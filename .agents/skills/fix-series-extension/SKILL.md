@@ -31,6 +31,13 @@
   - conn 的 dict k/v 子字段在每层（registry/connTypeIndex/pin builder）是否传递？
 - **编码形态类**：官方 golden 与生产输出的逐字段对照（type/value/ioc/items），
   同一节点族（get/set 图变量、set_or_add、dict 参数）全部覆盖。
+- **exec 边完整性类**（本系列：synthetic→ordinary 断链，2026-08-14 #12）：
+  - IR 层：implEdges 源必须是真实 node id（无 "undefined"）；connect 对 FlowMarkerRef
+    （composite call 返回对象仅 __markerNodeId 无 id）必须用解析后的 sourceId。
+  - GIA 层：合成调用节点 OutFlow 有 connects；链尾普通 exec 节点有物理 InFlow pin；
+    两个后端都查（vendor overlay 与 legacy-handwritten——#12 实证 legacy 同样缺失）。
+  - 日志判据：复合内上游全部有帧、链尾普通节点零帧 = 断链（head 前缀计数 0）；
+    修复生效 = 链尾出现帧 + 宿主链恢复 + 定时器写入。
 
 ### 3. 一次修一组 + 回归
 
