@@ -11,6 +11,7 @@
 
 ### A1. run_code 是唯一可直接调用的工具
 
+> **⚠ 最高频错误（2026-08-14 复盘后仍复犯）：任何工具调用都必须写在 run_code 的 code 参数里**——模型层只能发起 run_code；bash/read/write/edit/grep/glob 都不允许作为独立工具调用出现。写 code 时第一步就写好包装函数：const bash = async (cmd, desc) => (await tools.bash({command: cmd, description: desc})).stdout?.text ?? ""，之后所有 shell 都走它。
 - bash / read / write / edit / grep / glob 等只能在 run_code 的程序体内用
   await tools.xxx(...) 调用；直接调用会报 "unknown tool ... only run_code is callable directly"。
 - 任何"先用哪个工具"的犹豫都在 run_code 里解决：程序体里写 const r = await tools.read({...})。
