@@ -388,6 +388,20 @@ export class CompositeRegistry {
               // 占位，避免 {...null} 展开成 {} 导致下游 argVarType(undefined) 崩溃
               const literal = a.toIRLiteral()
               if (literal === null) {
+                // 2026-08-14 修复（#16 启动失败根因，轮 13 差分确认）：capture 输入（复合输入
+                // 引用）是未赋值占位值，toIRLiteral 返回 null——按 null 占位序列化会丢 capture
+                // 标记，下游 classify 当 missing → 子复合调用参数丢失（orbit_point c/s NaN）。
+                // 编辑器规则（after 轮13）：复合输入→子复合调用参数 = compositePins 路由，
+                // 调用点物理 pin 不落盘——capture 占位必须保留 capture: true + 类型。
+                if (isCaptureInput) {
+                  const typeName = (a as any).constructor?.name ?? ''
+                  const giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? (typeName || 'generic')
+                  return withCompositeInputIndex({
+                    type: giaType as const,
+                    value: null,
+                    capture: true as const
+                  })
+                }
                 return withCompositeInputIndex(null as unknown as Record<string, unknown>)
               }
               return withCompositeInputIndex({
