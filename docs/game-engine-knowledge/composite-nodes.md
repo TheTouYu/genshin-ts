@@ -563,10 +563,20 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   （首次空）/ R<T>=新值 666 / Boolean=；事件 OutFlow → 内部 Set Custom Variable（IN4=空=不触发）
   → 无死循环。**监听边界**：图变量变化不触发（轮 12e），仅实体自定义变量（触发事件=是）触发；
   复合实例激活即监听（实例级监听器）。
-- **生产缺口（可设计）**：DSL 复合 build 无事件注册 API。设计依据已齐：
-  defineComposite({ ..., events: ['whenCustomVariableChanges'] }) + build 内
-  f.on('whenCustomVariableChanges', (evt, ef) => { evt: {entity, guid, name, oldValue, newValue} })
-  ——事件节点 = impl 普通节点（genericId=36 + concreteId 变体 + OutFlow connects + OutParam 数据连线）。
+- **生产实现完成（2026-08-14 #13，游戏验证通过）**：
+  - DSL：build 内 f.on(eventName, (evt, ef) => {...})——复合 impl 图注册事件入口节点；
+    evt 提供 eventSourceEntity/eventSourceGuid/variableName/preChangeValue/postChangeValue
+    （与主图 ServerEventMetadata 同源）。
+  - 编码：事件节点 = impl 普通节点（nodeType 事件名 → vendor genericId 36/concreteId 变体），
+    OutParam 0-4 + OutFlow[0] connects → 回调节点；compositePins 仅 InFlow 映射主链头
+    （事件节点不入 compositePins）。
+  - generic pin 放宽：matchType/parseValue 对 generic pin（事件 R<T> 输出）放行标量具体类型
+    （dict/_list 除外，需具体泛型）——主图事件同样受益。
+  - 回归：tests/composite/test-composite-event-node.ts（IR+GIA 双层）；8 项套件无回归。
+  - 游戏验证（日志 2684）：Tab → 主图 Set Custom Variable(tab_count, 触发=是) → 复合全部实例
+    事件节点触发（两级帧 490203/490204，OUT 含变量名/新值）→ 回调 print_string 执行
+    （head=4903 IN0=tab_count）——与编辑器差分样本（轮 12f）逐点一致。
+  - 提交：37d1e9b（生产支持）+ 92d6d77（rubik 演示链）。
 
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 
