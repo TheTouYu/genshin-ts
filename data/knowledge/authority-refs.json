@@ -272,6 +272,21 @@
       ]
     },
     {
+      "id": "aref_24eef9e3d52bfeebbdd912e5a5",
+      "path": "scripts/composite-health-check.ts",
+      "locator": "implementation of the health-check guardrail",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "a9655a04d350160e261a819ea9fe8e961c410b8ed57b5b86b2c5cdab9d3ee179",
+      "claim_ids": [
+        "clm_4502C6F37E622E56958CA09B8F"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_2625193826e5884b1af8bb8ee9",
       "path": "src/cli/gil_entities.ts",
       "locator": "attachDefinitionAuxes/writeEntityAuxIds/writeAuxOwner/carryAuxSlot",
@@ -281,6 +296,21 @@
       "approved_hash": "b9f0a8ff7e7cd43743add8c8a32ab4ef983df8d5516c2dc0a89dea3054a27d66",
       "claim_ids": [
         "clm_E4F7263D5D1B51415F6EA85DE1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_26513e52cf65e1da4904804dda",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "health-check usage documentation",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "73db30ea170c6662da7c288f9270786259ede7251cb5effe9310bb6d89ce29f7",
+      "claim_ids": [
+        "clm_4502C6F37E622E56958CA09B8F"
       ],
       "supports_fact_classes": [
         "cli_behavior"
@@ -494,6 +524,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_390379d4c2a5ac182fd994d75e",
+      "path": "package.json",
+      "locator": "npm test integration point (--scan dist/tests)",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "c91c593c69d73f931a3b05c29f9ee13882e446ef2eff1ddaa78bea9f7562bf2d",
+      "claim_ids": [
+        "clm_4502C6F37E622E56958CA09B8F"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
