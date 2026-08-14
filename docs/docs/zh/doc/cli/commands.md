@@ -38,7 +38,7 @@ npm run assets:static-assemblies -- --asset-config assemblies.config.ts --gil so
 
 `inspect` 和 `plan` 始终只读，`--output` 只新建、不覆盖。`closureStatus=complete` 只证明当前已知结构完整，`compatibility=unknown`；自动检查不等于编辑器或游戏验证。旧子命令 `--config` 暂作为 `--asset-config` 的 deprecated alias，根 `-c/--config` 只表示项目配置。
 
-静态元件拼装写入 `.gil` 资产结构；GIA injection 写入 NodeGraph；`createPrefab` 在运行时创生已有元件，三者不能互相替代。`assets:signals` 从已有信号克隆真实参数布局注册新信号；`--template-gil <donor.gil>` 可指定独立 donor。同一参数类型可以重复，但 donor 必须为每次出现提供一套不同布局，否则命令会停止而不推算 pin。省略 `--send-id/--monitor-id/--server-id` 时自动从当前最大占用 ID 之后连续分配；`inspect` 只读列出已注册信号，`--write` 写回前校验源 SHA 并自动备份到同级 `.gsts/backups/`，`--output` 只新建不覆盖。
+静态元件拼装写入 `.gil` 资产结构；GIA injection 写入 NodeGraph；`createPrefab` 在运行时创生已有元件，三者不能互相替代。`assets:signals` 注册新信号：省略 `--template-signal` 时使用**内置参数布局**（字节 100% 来自编辑器真实信号，覆盖 str/int/float/bool/vec3/entity/guid/prefab_id/config_id 及全部列表类型；新鲜地图 pin 基址与编辑器一致：str=12/34/40、int=68/76/83 等；同地图内复用已有类型的基址）；提供 `--template-signal`（可用 `--template-gil <donor.gil>` 指定独立 donor）则从该信号克隆布局。同一参数类型可以重复（str 自动按 send+4/mon+1/ser+1 递增，有编辑器实证），非 str 重复类型需要 donor（无编辑器布局证据，fail-closed）。省略 `--send-id/--monitor-id/--server-id` 时自动从当前最大占用 ID 之后连续分配；`inspect` 只读列出已注册信号，`--write` 写回前校验源 SHA 并自动备份到同级 `.gsts/backups/`，`--output` 只新建不覆盖。
 
 旧版工具可能留下 registry entry 存在、但三份 signal definition 缺少信号名布局的残缺注册。普通编译和 `inspect` 会继续拒绝；使用 `assets:signals repair --target-signal <name> --template-gil <verified-donor.gil> --template-signal <name>` 从完整 donor 原位修复。可先用 `--output` 生成候选；repair 保留目标名称和 IDs，要求参数 schema 一致，只替换目标三份 definition，定义不唯一或 donor 不完整时停止。`--write` 仍执行源 SHA 检查、备份以及候选/写后严格回读。
 

@@ -19,9 +19,13 @@ description: 游戏核验的最小自动注入通道。当用户说“去核验�
   `maps:create` 新建。
 - 从零新建（隔离场景）：`maps:create` 无 `--graphs` 时是 62B 最小骨架（无 root 6/10），
   `assets:node-graphs create` 会自动补最小挂载容器（2026-08-05 修复）；新地图无信号
-  注册表，`assets:signals register` 会自动初始化 field 10.5（无需手工脚本），但需要
-  donor 地图：`--template-gil <donor.gil> --template-signal <名> --name <新名>` +
-  `--param k:v`（信号 case 必须先注册目标信号）。
+  注册表，`assets:signals register` 会自动初始化 field 10.5（无需手工脚本）。
+- **信号从零注册（2026-08-15 起无 donor 可用）**：`assets:signals register --name <新名>
+  --param k:v` 不再需要 `--template-signal`——内置参数布局表（字节 100% 来自编辑器真实
+  信号，覆盖 str/int/float/bool/vec3/entity/guid/prefab_id/config_id + 全部列表类型）会在
+  无 donor 时自动使用；`--template-signal` 仍可用作 donor 覆盖（布局与 pin 基址从 donor 克隆，
+  此时字节与内置路径一致，仅当 donor 覆盖所有参数类型时生效）。重复的非 str 同型参数
+  （如两个 int）仍需 donor（编辑器无此布局证据，fail-closed）。
 - 分支节点图名：`verify-<点>`（如 `verify-inflow-index`）。注入后图名被替换为 `_GSTS_<gia基名>`。
 - case 文件：`verify/<分支>/<分支>.ts`，模板见 `references/template-case.ts`。
 - 注入配置：`gsts.verify.config.ts`（entries=`./verify`，outDir=`./dist-verify`）。
@@ -116,6 +120,11 @@ EOF
 2. **单文件注入**（`gsts <config> <file.gia>`）以 `config.inject.nodeGraphId` 为目标，且会把
    GIA 内 graph id 自动改写为目标 id（`loadGiaGraph` setGraphId）——**DSL 里 `g.server({id})`
    不必与 placeholder 图 id 一致**。这是最稳路径。
+2a. **信号注册 pin 规律（2026-08-15 内置布局调查结论，勿手猜）**：编辑器为每种参数类型分配
+   规范 pin 基址（新鲜地图：str=12/34/40、int=68/76/83、entity=69/77/84、float=90/109/122 等，
+   索引/发送/监听/服务器节点各自独立）；同型重复参数按 send+4/mon+1/ser+1 递增（仅 str 有编辑器
+   实证）；同地图内后续信号复用已有类型的基址（复用规则）。内置布局生成器已把这些规则编码，
+   无需手工指定 pin。
 2b. **多 case 注入流程（2026-08-14 复合族三合一实验复盘，必读）**：一次核验多个 case 时，
    每个 case 必须注入**各自的 placeholder 图**，且**每次注入前把 config.inject.nodeGraphId
    改成该 case 的目标图 id**（config 每次只指向一张图）。流程：
