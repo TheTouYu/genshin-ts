@@ -918,6 +918,47 @@ function materializeImplOrdinaryGraphWithVendor(
       if (pin.type === 16) pin.value = null
     }
   }
+  // 2026-08-14 修复（v8/v8b 游戏失败：复合内 doubleBranch 分支体不执行——分支边丢失）：
+  // ordinary→synthetic（复合调用 marker）的 exec 边在 flowEdges 构建中被过滤
+  // （vendorNodes 不含 synthetic），分支 OutFlow 无 connects → 分支体运行时零帧。
+  // 补边：encode 后对 ordinary 源节点的 OutFlow pin 设置 connects → synthetic 最终 nodeIndex
+  // （与 legacy 路径 nodeIndexMap 同构）。
+  const syntheticById = new Map(syntheticResults.map((result) => [result.node.id, result]))
+  for (const [fromIdRaw, edges] of Object.entries(implEdges)) {
+    const fromId = Number(fromIdRaw)
+    const srcResult = nodeResults.find((result) => result.node.id === fromId)
+    if (!srcResult || srcResult.isCompositeCall) continue
+    const syntheticEdges = (edges as ImplEdge[]).filter((edge) =>
+      syntheticById.has(getEdgeTarget(edge))
+    )
+    if (syntheticEdges.length === 0) continue
+    const encodedSrc = encodedNodes.find((node) => node.nodeIndex === srcResult.nodeIndex)
+    if (!encodedSrc) continue
+    for (const [srcIdx, group] of groupEdgesBySourceIndex(syntheticEdges)) {
+      let flowPin = (encodedSrc.pins ?? []).find(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === srcIdx
+      )
+      if (!flowPin) {
+        flowPin = {
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: srcIdx },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: srcIdx },
+          type: 0,
+          value: null
+        }
+        encodedSrc.pins = encodedSrc.pins ?? []
+        encodedSrc.pins.push(flowPin)
+      }
+      flowPin.connects = group.map((edge) => {
+        const targetResult = syntheticById.get(getEdgeTarget(edge))
+        return {
+          id: targetResult?.nodeIndex ?? getEdgeTarget(edge),
+          connect: { kind: NodePin_Index_Kind.InFlow, index: getEdgeTargetIndex(edge) },
+          connect2: { kind: NodePin_Index_Kind.InFlow, index: getEdgeTargetIndex(edge) }
+        }
+      })
+    }
+  }
+
   for (const encodedNode of encodedNodes) {
     const source = nodeResults.find((result) => result.nodeIndex === encodedNode.nodeIndex)
     const pos = source ? layout.get(source.node.id) : undefined
