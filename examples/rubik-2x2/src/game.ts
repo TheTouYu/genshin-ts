@@ -130,16 +130,11 @@ const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
   }
 })
 
-// 轨道速度计算+存储复合（2026-08-14 v4：#4 修复后字典动作入复合）——
-// 5 段速度预计算 + setOrAdd 写字典全在复合内（生产发现 #4 已修复，官方 wire 同构验证）；
-// setOrAdd 是 exec 动作节点 → 复合 exec 化：registerExecNode 链 + outflow('done')；
-// v6：orbit1 运动器入复合（链尾 outflow），vel1 输出保留（向后兼容，宿主不再消费）；
-// 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
-const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
-  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' }, i: { type: 'int' } },
-  outputs: { vel1: { type: 'vec3' } },
-  outflows: ['done'],
-  build: ({ e, axis, center, i }, f) => {
+// 轨道速度计算复合（2026-08-14 v8 语义拆分：纯数据——5 段速度预计算，无副作用）
+const gstsOrbitVelocity = g.defineComposite('gsts_orbit_velocity', {
+  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
+  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  build: ({ e, axis, center }, f) => {
     const loc = f.getEntityLocationAndRotation(e).location
     const v0 = f._3dVectorSubtraction(loc, center)
     const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
@@ -155,45 +150,37 @@ const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
     const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
     const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
     const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
-    // 5 个 setOrAdd 动作链（exec）：registerExecNode + connect 链尾 → outflow('done')
+    return { vel1, vel2, vel3, vel4, vel5 }
+  }
+})
+
+// 轨道速度存储复合（2026-08-14 v8 语义拆分：exec——5 段速度写入字典）
+const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
+  inputs: { i: { type: 'int' }, vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ i, vel1, vel2, vel3, vel4, vel5 }, f) => {
     const d1 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-      f.getNodeGraphVariable('vels1').asDict('int', 'vec3'),
-      i,
-      vel1
+      f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, vel1
     ])
     const d2 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-      f.getNodeGraphVariable('vels2').asDict('int', 'vec3'),
-      i,
-      vel2
+      f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, vel2
     ])
     const d3 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-      f.getNodeGraphVariable('vels3').asDict('int', 'vec3'),
-      i,
-      vel3
+      f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i, vel3
     ])
     const d4 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-      f.getNodeGraphVariable('vels4').asDict('int', 'vec3'),
-      i,
-      vel4
+      f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i, vel4
     ])
     const d5 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-      f.getNodeGraphVariable('vels5').asDict('int', 'vec3'),
-      i,
-      vel5
+      f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i, vel5
     ])
     f.connect(d1, 0, d2, 0)
     f.connect(d2, 0, d3, 0)
     f.connect(d3, 0, d4, 0)
     f.connect(d4, 0, d5, 0)
-    // v6：orbit1 运动器入复合（链尾）——宿主只调一次复合，不再直调运动器
-    const m1 = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-      e,
-      new str('orbit1'),
-      new float(0.2),
-      vel1
-    ])
-    f.outflow('done', m1, 0)
-    return { vel1 }
+    f.outflow('done', d5, 0)
+    return {}
   }
 })
 
@@ -245,8 +232,24 @@ const gstsTurnBlock = g.defineComposite('gsts_turn_block', {
     const turn = f.callComposite(gstsTurnCheck, { i, tabId })
     f.doubleBranch(turn.hit, () => {
       f.callComposite(gstsSpinBlock, { e: turn.e, axis: turn.axis })
-      const r = f.callComposite(gstsOrbitCalc, { e: turn.e, axis: turn.axis, center, i })
-      f.outflow('done', r, 0)
+      // v8 语义拆分：速度计算（纯数据）→ 字典存储（exec）→ orbit1 运动器
+      const v = f.callComposite(gstsOrbitVelocity, { e: turn.e, axis: turn.axis, center })
+      const store = f.callComposite(gstsOrbitStore, {
+        i,
+        vel1: v.vel1,
+        vel2: v.vel2,
+        vel3: v.vel3,
+        vel4: v.vel4,
+        vel5: v.vel5
+      })
+      const m1 = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+        turn.e,
+        new str('orbit1'),
+        new float(0.2),
+        v.vel1
+      ])
+      f.connect(store, 0, m1, 0)
+      f.outflow('done', m1, 0)
     }, () => {})
     return { hit: turn.hit }
   }

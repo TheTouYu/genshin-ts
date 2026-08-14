@@ -1778,19 +1778,23 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     targetInflowPinIndex = 0
   ): void {
     const current = this.currentFlow
-    if (!sourceRef.id || !targetRef.id) {
+    // 2026-08-14 修复（生产缺口 #10）：connect 支持 FlowMarkerRef（复合调用结果，
+    // 仅 __markerNodeId）——outflow 已支持，connect 未同步（v8 语义拆分暴露：
+    // store 复合调用结果 → orbit1 运动器 链式连接）
+    const sourceId = 'id' in sourceRef ? sourceRef.id : (sourceRef as unknown as FlowMarkerRef).__markerNodeId
+    const targetId = 'id' in targetRef ? targetRef.id : (targetRef as unknown as FlowMarkerRef).__markerNodeId
+    if (!sourceId || !targetId) {
       throw new Error('connect: both refs must be registered nodes')
     }
     const allNodes = new Set<number>([
       ...current.execNodes.map((n) => n.id),
       ...current.dataNodes.map((n) => n.id)
     ])
-    if (!allNodes.has(sourceRef.id) || !allNodes.has(targetRef.id)) {
+    if (!allNodes.has(sourceId) || !allNodes.has(targetId)) {
       throw new Error('connect: refs must belong to the current flow')
     }
-    const list = (current.edges[sourceRef.id] ??= [])
-    const targetId = targetRef.id
-    current.edges[sourceRef.id] = list.filter((conn) => {
+    const list = (current.edges[sourceId] ??= [])
+    current.edges[sourceId] = list.filter((conn) => {
       if (typeof conn === 'number') {
         // bare-number edge = default OutFlow[0] → InFlow[0]
         return !(conn === targetId && sourceOutflowPinIndex === 0 && targetInflowPinIndex === 0)
