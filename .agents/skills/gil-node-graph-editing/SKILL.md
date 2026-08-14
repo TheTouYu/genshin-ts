@@ -35,6 +35,14 @@ npx tsx src/cli/gsts.ts assets:node-graphs create --gil <map.gil> --name <图名
 npx tsx src/cli/gsts.ts assets:mounts attach <entity-id> --gil <map.gil> --graph <gid> --output <候选.gil>  # 挂载到场景实体（默认）或 --def 元件定义
 npx tsx src/cli/gsts.ts assets:mounts list [<target-id>] --gil <map.gil>                 # 挂载全景 / 某目标的挂载列表
 
+# 建图/挂载链路（2026-08-14 复合族实验复盘补充）——三件事的顺序：
+#   ① create/--name 建空 placeholder 图（或 gsts 注入 .gia 填内容）
+#   ② 填充内容：a) gsts 单文件注入编译产物（推荐，verify-injection 技能流程）；
+#      b) 本技能 patch ops 直接编辑空图（节点/连线/参数）
+#   ③ assets:mounts attach 挂载到实体/元件定义（可选——挂载后图才随实体生效）
+# 空图不挂载也能被事件触发（图 id 直接存在即生效），挂载用于"实体携带逻辑"场景；
+# 编辑器里"创建节点图 + 三个箭头"= 建图 + 挂载到三个目标（等价 assets:mounts attach × 3）。
+# 新建图 id 自动分配（1073741825 起递增）；同地图多图时注入务必核对目标 id（见 verify-injection 关键点 2b）。
 # 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实；**impl 图（复合实例体，16107xxxxx）可直接 patch**，2026-08-10 魔方 Bind 复合实战验证）
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <ops...> --output <候选.gil>
 # 自动布局 / 布局 lint（2026-08-11 布局长期方案）：

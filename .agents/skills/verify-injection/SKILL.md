@@ -102,6 +102,21 @@ EOF
 2. **单文件注入**（`gsts <config> <file.gia>`）以 `config.inject.nodeGraphId` 为目标，且会把
    GIA 内 graph id 自动改写为目标 id（`loadGiaGraph` setGraphId）——**DSL 里 `g.server({id})`
    不必与 placeholder 图 id 一致**。这是最稳路径。
+2b. **多 case 注入流程（2026-08-14 复合族三合一实验复盘，必读）**：一次核验多个 case 时，
+   每个 case 必须注入**各自的 placeholder 图**，且**每次注入前把 config.inject.nodeGraphId
+   改成该 case 的目标图 id**（config 每次只指向一张图）。流程：
+   ```bash
+   # 为每个 case 建图（id 自动递增 1826/1827/1828...）：assets:node-graphs --name verify-<case> --write
+   # 逐个注入（每次先改 config 的 nodeGraphId）
+   node bin/gsts.mjs -c gsts.verify.config.ts dist-verify/.../<case1>.gia   # 注入前 config.nodeGraphId=<图1 id>
+   # 下一个 case 重复：先改 config.nodeGraphId=<图2 id>，再注入 <case2>.gia
+   ```
+   **陷阱**：所有 case 用同一个 nodeGraphId 注入会互相覆盖（后注入的替换先注入的，只剩最后一张图）——
+   "每分支一个图"原则的落地要求就是 nodeGraphId 逐一指向。**注入后必须自检**：
+   `npx tsx tools/list-gil-node-graphs.ts <map.gil>` 核对每个目标图 nodeCount > 0 且图名为
+   `_GSTS_<case>`；nodeCount=0 或图名没变 = 注入没落到目标图（典型：config nodeGraphId 没改）。
+   多个实验也可写进**同一张 placeholder 图**（一个 TS 文件多个事件/多段逻辑，技能约定第 11 行），
+   单次注入即可；但失败时难以拆分定位——规则未闭合阶段建议每 case 一图（用户 2026-08-14 指导）。
 3. **批量注入**（不带文件参数）按 GIA 内 graph id 找目标图（不改写），要求该 id 已存在于
    地图；需要 placeholder 分配 id 与 DSL id 对齐，脆弱，默认不用。
 4. 新地图：`maps:create` 的 mapId = 现有最大 mapId + 1；`--graphs` 的 placeholder 图 id 从
