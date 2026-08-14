@@ -185,6 +185,10 @@ export function parseValue(v: any, type: keyof LiteralValueListTypeMap): list
 export function parseValue(v: any, type: ValueType) {
   if (z.instanceof(generic).safeParse(v).success) {
     const metadata = (v as value).getMetadata()
+    // 2026-08-14（复合内事件支持）：generic pin（事件 R<T> 输出）放行任意标量具体类型
+    if (metadata?.kind === 'pin' && type !== 'dict' && !type.endsWith('_list')) {
+      return v as value
+    }
     if (metadata?.kind === 'literal') {
       if (type === 'dict' || type.endsWith('_list')) return v as value
     }
@@ -468,6 +472,15 @@ function matchType(
   ...values: readonly unknown[]
 ) {
   for (const v of values) {
+    // 2026-08-14（复合内事件支持）：事件输出 R<T>（generic pin，如
+    // whenCustomVariableChanges 的 preChangeValue/postChangeValue）可匹配任意标量具体类型
+    // ——运行时由游戏引擎定值；dict/_list 仍需要具体泛型参数，不放行。
+    if (z.instanceof(generic).safeParse(v).success) {
+      const gmd = (v as generic).getMetadata?.()
+      if (gmd?.kind === 'pin' && type !== 'dict' && !type.endsWith('_list')) {
+        return v as never
+      }
+    }
     if (z.instanceof(list).safeParse(v).success) {
       if (!isListableType(type)) {
         throw new Error(`Invalid value type: ${type}_list`)
@@ -836,6 +849,27 @@ export class ServerExecutionFlowFunctions {
       throw new Error('connectOutFlow: result must come from callComposite()')
     }
     this.registry.connectOutFlowBranch(markerNodeId, outflowIdx, callback)
+  }
+
+  /**
+   * 复合内事件入口注册（2026-08-14 轮 12f 规则闭合）。
+   * 在复合 impl 图注册事件节点（如 whenCustomVariableChanges），复合实例激活即监听；
+   * 事件触发时执行 callback（evt 提供事件输出：eventSourceEntity/eventSourceGuid/
+   * variableName/preChangeValue/postChangeValue），回调内注册的 exec 节点挂到事件 OutFlow[0]。
+   *
+   * @example
+   * g.defineComposite('x', { inputs: {}, outputs: {}, build: (_i, f) => {
+   *   f.on('whenCustomVariableChanges', (evt, ef) => {
+   *     ef.setCustomVariable(evt.eventSourceEntity, evt.variableName, evt.postChangeValue, false)
+   *   })
+   *   return {}
+   * } })
+   */
+  on(
+    eventName: string,
+    callback: (evt: Record<string, value>, f: ServerExecutionFlowFunctions) => void
+  ): void {
+    this.registry.registerCompositeEventNode(eventName, (evt) => callback(evt, this))
   }
 
   private resolveLiteralVarName(input: StrValue): string | null {

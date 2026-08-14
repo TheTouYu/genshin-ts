@@ -943,6 +943,10 @@ export interface ExecutionFlowRegistry {
   ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value>
   createOutParamValue(type: string, record: MetaCallRecordRef, pinIndex: number): value
   connectOutFlowBranch(markerNodeId: number, outflowIdx: number, callback: () => void): void
+  registerCompositeEventNode(
+    eventName: string,
+    callback: (evt: Record<string, value>) => void
+  ): void
   fork(...branches: Array<() => void>): void
   runCompositeCall(
     compositeId: number,
@@ -1566,6 +1570,57 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     })
 
     return eventObj
+  }
+
+  /**
+   * 复合 build() 内的事件入口注册（2026-08-14 轮 12f 规则闭合后实现）：
+   * 在复合 impl 图注册一个事件节点（如 when_custom_variable_changes），回调内注册的
+   * exec 节点自动挂到事件节点 OutFlow[0]（connects 驱动，目标无需物理 InFlow pin）。
+   * 事件节点不推进当前 tail（独立入口）；复合实例激活即监听实体事件。
+   * evt 对象 = 事件节点 OutParam 的 pin 引用（与主图 registerEvent 同构）。
+   */
+  registerCompositeEventNode(
+    eventName: string,
+    callback: (evt: Record<string, value>) => void
+  ): void {
+    const current = this.currentFlow
+    const eventParams = ServerEventMetadata[eventName as ServerEventName]
+    if (!eventParams) {
+      throw new Error(`Unknown event: ${eventName}`)
+    }
+    const eventNode: MetaCallRecord = {
+      id: this.currentRecordId,
+      type: 'exec',
+      nodeType: camelToSnake(eventName),
+      args: []
+    }
+    current.execNodes.push(eventNode)
+    const evt: Record<string, value> = {}
+    eventParams.forEach((param, idx) => {
+      const makePin = () => {
+        if (param.typeBase === dict) {
+          const v = processDictParam(param)
+          v.markPin(eventNode, param.name, idx)
+          return v
+        }
+        if (param.typeBase === enumeration) {
+          const v = new enumeration(param.typeName as EnumerationType)
+          v.markPin(eventNode, param.name, idx)
+          return v
+        }
+        const v = new (param.typeBase as Exclude<typeof param.typeBase, typeof dict>)()
+        v.markPin(eventNode, param.name, idx)
+        return v
+      }
+      if (param.isArray) {
+        const l = new list(param.typeName)
+        l.markPin(eventNode, param.name, idx)
+        evt[param.name] = l
+      } else {
+        evt[param.name] = makePin()
+      }
+    })
+    this.connectOutFlowBranch(eventNode.id!, 0, () => callback(evt))
   }
 
   /**
