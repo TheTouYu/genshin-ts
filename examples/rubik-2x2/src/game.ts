@@ -455,6 +455,88 @@ const gstsInLayer = g.defineComposite('gsts_in_layer', {
   }
 })
 
+// 轨道段调度复合（2026-08-14 v19：4 段相似长链打包）——
+// 输入 {i, seg, target}：按 seg（timerSequenceId 0-3）分发 → 查对应 velsN 字典 →
+// gsts_orbit_segment；seg=3（orbit5 段）触发后 +250ms 解锁定时器（相对时序 #2 语义）。
+const gstsOrbitSegmentDispatch = g.defineComposite('gsts_orbit_segment_dispatch', {
+  inputs: { i: { type: 'int' }, seg: { type: 'int' }, target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ i, seg, target }, f) => {
+    f.multipleBranches(seg, {
+      0: () => {
+        const vel = f.queryDictionaryValueByKey(
+          f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i
+        )
+        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit2'), vel })
+      },
+      1: () => {
+        const vel = f.queryDictionaryValueByKey(
+          f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i
+        )
+        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit3'), vel })
+      },
+      2: () => {
+        const vel = f.queryDictionaryValueByKey(
+          f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i
+        )
+        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit4'), vel })
+      },
+      3: () => {
+        const vel = f.queryDictionaryValueByKey(
+          f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i
+        )
+        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit5'), vel })
+        // +250ms 解锁（相对时序 #2 语义：orbit5 实际触发后）
+        f.registerExecNode('start_timer', [
+          target, new str('unlock'), new bool(false),
+          f.assemblyList([new float(0.25)], 'float')
+        ])
+      },
+      default: () => {}
+    })
+    return {}
+  }
+})
+
+// 轨道定时器调度复合（2026-08-14 v19：图内定时器替代 setTimeout 捕获机制）——
+// 输入 {i, target}：内部 1 个 start_timer 序列 [0.2, 0.4, 0.6, 0.8]（替代宿主 4 个
+// setTimeout + 编译器 __gsts_timeout_N_index/cap_i 捕获字典 100 节点）；
+// whenTimerIsTriggered 按 timerName（dataTypeConversion(i→str) 块唯一名）路由 →
+// gsts_orbit_segment_dispatch（段分发）；unlock 定时器独立回调解锁 lock。
+const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
+  inputs: { i: { type: 'int' }, target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ i, target }, f) => {
+    // 块唯一定时器名（'0'..'7'）：多块并发注册互不冲突
+    const tname = f.dataTypeConversion(i, 'str')
+    // 1 个序列定时器：4 个时间点 = 4 段轨道
+    const t = f.registerExecNode('start_timer', [
+      target,
+      tname,
+      new bool(false),
+      f.assemblyList([new float(0.2), new float(0.4), new float(0.6), new float(0.8)], 'float')
+    ])
+    // 回调：按 timerName 路由到本块 → 段分发复合（seg = timerSequenceId）
+    f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
+      const nameMatch = f.equal(evt.timerName, tname)
+      f.doubleBranch(nameMatch, () => {
+        ef.callComposite(gstsOrbitSegmentDispatch, { i, seg: evt.timerSequenceId as never, target })
+      }, () => {})
+    })
+    // 解锁回调：lock 变量置 false
+    f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
+      const nameMatch = f.equal(evt.timerName, new str('unlock'))
+      f.doubleBranch(nameMatch, () => {
+        ef.setNodeGraphVariable('lock', false, false)
+      }, () => {})
+    })
+    f.outflow('done', t, 0)
+    return {}
+  }
+})
+
 const graph = g
   .server({
     id: 1073741825,
@@ -503,53 +585,14 @@ const graph = g
       // v8：转动一块完整封装（数据准备+层判断+自旋+轨道）；定时器留宿主（#3）
       const hit = f.callComposite(gstsTurnBlock, { i, tabId: evt.tabId, center }).hit
       f.doubleBranch(hit, () => {
-        gstsServerOrbitTimers(f, i)
+        // v19：整块轨道定时器打包为 gsts_orbit_scheduler（图内定时器替代 setTimeout）
+        f.callComposite(gstsOrbitScheduler, { i, target: evt.eventSourceEntity })
       }, () => {})
     }
     // 解锁改为相对时序：orbit5 实际触发后 +250ms 解锁（见 gstsServerOrbitBlock 的 orbit5 回调），
     // 消除绝对 1000ms 解锁与 tick 不稳导致的末段中断（生产发现 #2 的底层修复）
   })
 
-// orbit2-5 定时器（2026-08-14：速度预计算已封装到 gsts_orbit_calc 复合；
-// 复合内 setTimeout 不可用——生产发现 #3，定时器留在宿主）
-function gstsServerOrbitTimers(
-  f: ServerExecutionFlowFunctions,
-  i: bigint
-) {
-  setTimeout((_e, tf) => {
-    // v5：运动器动作入复合（gsts_orbit_segment），字典查询留宿主（变量名按段不同）
-    tf.callComposite(gstsOrbitSegment, {
-      i,
-      name: new str('orbit2'),
-      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i)
-    })
-  }, 200)
-  setTimeout((_e, tf) => {
-    tf.callComposite(gstsOrbitSegment, {
-      i,
-      name: new str('orbit3'),
-      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i)
-    })
-  }, 400)
-  setTimeout((_e, tf) => {
-    tf.callComposite(gstsOrbitSegment, {
-      i,
-      name: new str('orbit4'),
-      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i)
-    })
-  }, 600)
-  setTimeout((_e, tf) => {
-    tf.callComposite(gstsOrbitSegment, {
-      i,
-      name: new str('orbit5'),
-      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i)
-    })
-    // 生产发现 #2 底层修复：相对时序解锁——orbit5 实际触发后 +250ms（0.2s 时长 + 50ms 余量）
-    // 解锁，不受绝对 1000ms 与 tick 不稳影响；4 块各触发一次，幂等。
-    setTimeout((_e2, tf2) => {
-      tf2.setNodeGraphVariable('lock', false, false)
-    }, 250)
-  }, 800)
-}
+
 
 export default graph
