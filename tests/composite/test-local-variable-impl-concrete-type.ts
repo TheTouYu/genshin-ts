@@ -1,3 +1,6 @@
+// 2026-08-14 更新：getterHandle.value 断言 undefined → null（复合路径对齐宿主：handle pin
+// value 不序列化——轮 9c 差分取证：编辑器复合内获取局部变量未连接时无 handle pin，生产保留
+//（set 连接需要）但 value 置 null 不编码）
 import assert from 'node:assert/strict'
 
 import { buildCompositeAccessories } from '../../src/compiler/ir_to_gia_transform/composite.js'
@@ -85,7 +88,8 @@ assert.ok(getterInput)
 assert.ok(getterHandle)
 assert.ok(getterValue)
 assert.equal(getterHandle.type, 16)
-assert.equal(getterHandle.value, undefined)
+// 2026-08-14 轮 9c 取证+对齐：handle pin value 置 null（GIA 字节省略 value 字段，对齐宿主 index.ts 771-778）
+assert.equal(getterHandle.value, null)
 assert.equal(getterInput.type, 12)
 assert.equal(getterInput.value?.bConcreteValue?.indexOfConcrete, 6)
 assert.equal(getterInput.value?.bConcreteValue?.value?.class, 7)

@@ -660,6 +660,10 @@ function materializeLegacyImplGraphNode(
     }
   }
 
+  // Local Variable 句柄 pin：value 不序列化（对齐宿主 index.ts 771-778 与 materialize）
+  for (const pin of pins) {
+    if (pin.type === 16) pin.value = null
+  }
   const pos = layout.get(node.id) ?? { x: 0, y: 0 }
   return {
     nodeIndex,
@@ -906,6 +910,14 @@ function materializeImplOrdinaryGraphWithVendor(
   // Patch send/monitor placeholders to builtin SysGraph ids + compositePinIndex
   // (root path also runs finalizeSignalEncoding for SignalDef accessories).
   patchEncodedSignalNodes(encodedNodes as any)
+  // Local Variable 句柄 pin 只有类型和连接，真实 GIA 不序列化空 VarBase 值
+  // （对齐宿主 index.ts 771-778；轮 9c 差分取证——编辑器复合内获取局部变量未连接时无 handle pin，
+  //  生产保留 handle pin（set 连接需要）但 value 不编码——GIA 对象层置 null 省略 value 字段）
+  for (const encodedNode of encodedNodes) {
+    for (const pin of encodedNode.pins ?? []) {
+      if (pin.type === 16) pin.value = null
+    }
+  }
   for (const encodedNode of encodedNodes) {
     const source = nodeResults.find((result) => result.nodeIndex === encodedNode.nodeIndex)
     const pos = source ? layout.get(source.node.id) : undefined

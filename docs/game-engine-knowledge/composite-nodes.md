@@ -481,6 +481,17 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   内部节点零变化为证）。
 - 观察项：目标实体源 node 34（gid 73）自动补入（编辑器为用户填充实体源）。
 
+### 复合内局部变量节点（2026-08-14 轮 9c 差分 CONFIRMED）
+
+> 证据：orbit_calc 内部添加「获取局部变量」节点（vec3，未连线未提升），编辑器保存差分
+
+- **编辑器官方形态：无 handle pin**——只有 InParam(0) 初始值（ConcreteBase ioc=6 VectorBase）+ OutParam(1) 值输出；
+  handle（local_variable 类型）pin **未连接时不物化**。
+- **生产对照**：复合路径保留 handle pin（set_local_variable 连接需要），但 value 曾编码为 {}（vendor
+  encode 对 local_variable 类型生成空 VarBase）——与宿主路径不一致（index.ts 771-778 置 null 省略）。
+- **修复**：materialize GIA 对象层对 type=16 pin 置 value=null（对齐宿主；GIA 字节省略 value 字段）。
+- test-local-variable 断言更新（undefined → null）；两个旧测试（local/custom-variable）全部转绿。
+
 ### 复现命令
 
 ```bash
