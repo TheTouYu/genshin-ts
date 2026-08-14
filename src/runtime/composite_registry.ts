@@ -201,7 +201,15 @@ export class CompositeRegistry {
               innerPinIndex: m.inflowPinIndex
             })
           })
-        } else if (hasExec && impl?.captureNodeId) {
+        } else if (
+          hasExec &&
+          impl?.captureNodeId &&
+          !hasCompositeEventNode(impl)
+        ) {
+          // 事件复合（impl 含 when_* 事件节点，如 whenTimerIsTriggered）以事件为
+          // 执行入口，capture 节点无物理 InFlow——不生成调用流 InFlow 路由。
+          // （2026-08-14 v20：事件流复合与调用流复合分离架构；2690 日志实证
+          //   事件回调是独立执行流，复合输入 capture 在事件流中不可见）
           const captureEdges = impl.edges[impl.captureNodeId] ?? []
           if (captureEdges.length > 0) {
             for (const edge of captureEdges) {
@@ -286,11 +294,15 @@ export class CompositeRegistry {
         const isMultiInflow = totalInflows > 1
         const isMultiOutflow = totalOutflows > 1
 
+        const isEventComposite = impl ? hasCompositeEventNode(impl) : false
+
         return {
           name,
           id,
           type: 'composite',
-          inflows: hasExec
+          inflows: isEventComposite
+            ? []
+            : hasExec
             ? inflowMarks.length > 0
               ? inflowMarks.map((m, i) => ({
                   name: explicitInflowDefs[i]?.name ?? m.name,
@@ -418,6 +430,11 @@ export class CompositeRegistry {
     }
 
     this.definitions.set(name, definition)
+
+    // 事件复合判定：impl exec 链含 when_* 事件节点（f.on 注册的复合内事件入口）
+    function hasCompositeEventNode(impl: CompositeCapture): boolean {
+      return (impl.execNodes ?? []).some((n) => n.nodeType.startsWith('when_'))
+    }
 
     function normalizeFlowDefs(defs: Array<string | CompositeFlowDef>): CompositeFlowDef[] {
       return defs.map((def) => (typeof def === 'string' ? { name: def } : def))

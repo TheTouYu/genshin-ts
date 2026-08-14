@@ -499,11 +499,12 @@ const gstsOrbitSegmentDispatch = g.defineComposite('gsts_orbit_segment_dispatch'
   }
 })
 
-// 轨道定时器调度复合（2026-08-14 v19：图内定时器替代 setTimeout 捕获机制）——
+// 轨道定时器设置复合（2026-08-14 v20：纯调用流）——
 // 输入 {i, target}：内部 1 个 start_timer 序列 [0.2, 0.4, 0.6, 0.8]（替代宿主 4 个
-// setTimeout + 编译器 __gsts_timeout_N_index/cap_i 捕获字典 100 节点）；
-// whenTimerIsTriggered 按 timerName（dataTypeConversion(i→str) 块唯一名）路由 →
-// gsts_orbit_segment_dispatch（段分发）；unlock 定时器独立回调解锁 lock。
+// setTimeout + 编译器 __gsts_timeout_N_index/cap_i 捕获字典 100 节点）。
+// 定时器名 = dataTypeConversion(i→str) 块唯一名（'0'..'7'），多块并发注册互不冲突。
+// 仅含调用流：start_timer → outflow done。事件流拆分到 gsts_orbit_trigger（v20 架构）——
+// 复合不混事件流：事件回调是独立执行流，capture 参数在事件流中不可见（2690 日志实证）。
 const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
   inputs: { i: { type: 'int' }, target: { type: 'entity' } },
   outputs: {},
@@ -518,11 +519,22 @@ const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
       new bool(false),
       f.assemblyList([new float(0.2), new float(0.4), new float(0.6), new float(0.8)], 'float')
     ])
-    // 回调：按 evt.timerName（事件自带数据，注册时的块名 "0".."7"）分发。
-    // #19 修复：不能用 capture 输入 i 做匹配——capture 在事件回调（延迟执行）路径
-    // 被引擎惰性重新求值（2690 日志实证：注册时 i=1→"1"，触发时重求值为 0→"0"，
-    // Equal 失败 → dispatch 永不执行 → 5 段公转缺失）。case 内 i 用字面量，
-    // seg/target 用事件数据（timerSequenceId/eventSourceEntity）——全部非 capture。
+    f.outflow('done', t, 0)
+    return {}
+  }
+})
+
+// 轨道定时器触发复合（2026-08-14 v20：纯事件流）——
+// 入口 = whenTimerIsTriggered 事件（无调用流输入）；用事件载荷分发：
+//   evt.timerName（注册时的块名 "0".."7" 或 "unlock"）→ multipleBranches，
+//   case 内 i 用字面量（避免 capture 跨事件流不可见问题），
+//   seg = evt.timerSequenceId，target = evt.eventSourceEntity——全部事件自带数据。
+// 设计（用户 2026-08-14 指导）：事件流单独一个复合表达"触发时"，与调用流复合分开，
+// 接口语义清晰：scheduler 引脚 = 设置完之后的控制流；trigger 引脚 = 定时器触发时。
+const gstsOrbitTrigger = g.defineComposite('gsts_orbit_trigger', {
+  inputs: {},
+  outputs: {},
+  build: (_a, f) => {
     f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
       f.multipleBranches(evt.timerName as never, {
         '0': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 0, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
@@ -533,17 +545,13 @@ const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
         '5': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 5, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
         '6': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 6, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
         '7': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 7, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        'unlock': () => {
+          // 解锁：orbit5 段（seg=3）注册的 unlock 定时器触发 → lock 置 false
+          ef.setNodeGraphVariable('lock', false, false)
+        },
         default: () => {}
       })
     })
-    // 解锁回调：lock 变量置 false
-    f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
-      const nameMatch = f.equal(evt.timerName, new str('unlock'))
-      f.doubleBranch(nameMatch, () => {
-        ef.setNodeGraphVariable('lock', false, false)
-      }, () => {})
-    })
-    f.outflow('done', t, 0)
     return {}
   }
 })
@@ -583,6 +591,9 @@ const graph = g
     // blocks 数组在宿主组（复合内 entity_list 数组字面量缺口，v13 已验证路径）
     const cubes = f.callComposite(gstsSpawnRubik, { stage })
     f.setNodeGraphVariable('blocks', [cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7], false)
+    // v20：实例化定时器触发复合（纯事件流）——事件节点必须在图里存在才能触发。
+    // 语义：trigger 复合 = "定时器触发时"事件，与 scheduler（设置定时器，调用流）分离
+    f.callComposite(gstsOrbitTrigger, {})
   })
   .on('whenTabIsSelected', (evt, f) => {
     // #13 复合内事件验证链：每次 Tab 设置自定义变量（触发事件=是）→
