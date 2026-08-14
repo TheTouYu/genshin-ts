@@ -1306,6 +1306,12 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     let fallbackIndex = 0
     for (const [name, val] of Object.entries(inputs)) {
       let v = val as value
+      // 2026-08-14 修复（生产 bug #5）：定时器/局部变量句柄 {localVariable, value}（如
+      // initLocalVariable/getLocalVariable 返回，转换器对高层 API 位置参数自动解 .value，
+      // 但 callComposite inputs 对象字面量不经过该转换）——取其 value（markPin 值类实例）。
+      if (v && typeof v === 'object' && 'localVariable' in v && 'value' in v) {
+        v = (v as { value: value }).value
+      }
       // 2026-08-14 修复（生产 bug #1）：callComposite 字面量输入（number/bigint/boolean/string）
       // 未包装成 value 实例，下游 collectDataDeps 对裸值调用 getMetadata 崩溃。
       // 按复合输入声明类型包装；非 value 对象（数组等）保持原样（另有约束）。

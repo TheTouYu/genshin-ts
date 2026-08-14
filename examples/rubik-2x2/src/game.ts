@@ -107,6 +107,29 @@ const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
 // 定时器回调只查字典取用（复合内 setTimeout 不可用——生产发现 #3）
 // 轨道块复合（2026-08-14 v2：exec 复合，含动作）：5 段速度预计算 + 字典存储 + orbit1。
 // 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
+// 轨道段运动器复合（2026-08-14 v5：定时器运动器动作入复合）——
+// 输入 {i, name, vel}：内部查 blocks[i] + 添加 0.2s 线性运动器（exec 复合，registerExecNode+outflow）
+// 验证 #4 修复的 entity_list 场景（复合内 getNodeGraphVariable('blocks')）——定时器回调留宿主（#3）
+const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
+  inputs: { i: { type: 'int' }, name: { type: 'str' }, vel: { type: 'vec3' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ i, name, vel }, f) => {
+    const e = f.getCorrespondingValueFromList(
+      f.getNodeGraphVariable('blocks').asType('entity_list'),
+      i
+    )
+    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+      e,
+      name,
+      new float(0.2),
+      vel
+    ])
+    f.outflow('done', tail, 0)
+    return {}
+  }
+})
+
 // 轨道速度计算+存储复合（2026-08-14 v4：#4 修复后字典动作入复合）——
 // 5 段速度预计算 + setOrAdd 写字典全在复合内（生产发现 #4 已修复，官方 wire 同构验证）；
 // setOrAdd 是 exec 动作节点 → 复合 exec 化：registerExecNode 链 + outflow('done')；
@@ -374,36 +397,33 @@ function gstsServerOrbitTimers(
   i: bigint
 ) {
   setTimeout((_e, tf) => {
-    tf.addUniformBasicLinearMotionDevice(
-      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
-      'orbit2',
-      0.2,
-      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i)
-    )
+    // v5：运动器动作入复合（gsts_orbit_segment），字典查询留宿主（变量名按段不同）
+    tf.callComposite(gstsOrbitSegment, {
+      i,
+      name: new str('orbit2'),
+      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i)
+    })
   }, 200)
   setTimeout((_e, tf) => {
-    tf.addUniformBasicLinearMotionDevice(
-      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
-      'orbit3',
-      0.2,
-      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i)
-    )
+    tf.callComposite(gstsOrbitSegment, {
+      i,
+      name: new str('orbit3'),
+      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i)
+    })
   }, 400)
   setTimeout((_e, tf) => {
-    tf.addUniformBasicLinearMotionDevice(
-      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
-      'orbit4',
-      0.2,
-      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i)
-    )
+    tf.callComposite(gstsOrbitSegment, {
+      i,
+      name: new str('orbit4'),
+      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i)
+    })
   }, 600)
   setTimeout((_e, tf) => {
-    tf.addUniformBasicLinearMotionDevice(
-      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
-      'orbit5',
-      0.2,
-      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i)
-    )
+    tf.callComposite(gstsOrbitSegment, {
+      i,
+      name: new str('orbit5'),
+      vel: tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i)
+    })
     // 生产发现 #2 底层修复：相对时序解锁——orbit5 实际触发后 +250ms（0.2s 时长 + 50ms 余量）
     // 解锁，不受绝对 1000ms 与 tick 不稳影响；4 块各触发一次，幂等。
     setTimeout((_e2, tf2) => {
