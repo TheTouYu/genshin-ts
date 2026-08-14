@@ -72,6 +72,33 @@ const gstsOrbitPoint = g.defineComposite('gsts_orbit_point', {
   }
 })
 
+// 单轴局部旋转复合（2026-08-14 #16 递归拆分）：v 绕 u 旋转 angle（deg）——内部 6 节点
+const gstsLocalAxisRot = g.defineComposite('gsts_local_axis_rot', {
+  inputs: { v: { type: 'vec3' }, angle: { type: 'float' }, u: { type: 'vec3' } },
+  outputs: { out: { type: 'vec3' } },
+  build: ({ v, angle, u }, f) => {
+    const rad = f.multiplication(angle, DEG2RAD)
+    const out = f.callComposite(gstsRotateVec, {
+      v, u,
+      c: f.cosineFunction(rad),
+      s: f.multiplication(f.sineFunction(rad), -1)
+    }).out
+    return { out }
+  }
+})
+
+// 三轴局部旋转复合（2026-08-14 #16 递归拆分）：Y→X→Z 依次把世界轴转进块局部系——内部 7 节点
+const gstsSpinAxisTriple = g.defineComposite('gsts_spin_axis_triple', {
+  inputs: { v: { type: 'vec3' }, rot: { type: 'vec3' } },
+  outputs: { out: { type: 'vec3' } },
+  build: ({ v, rot }, f) => {
+    const v1 = f.callComposite(gstsLocalAxisRot, { v, angle: rot.y, u: f.create3dVector(0, 1, 0) }).out
+    const v2 = f.callComposite(gstsLocalAxisRot, { v: v1, angle: rot.x, u: f.create3dVector(1, 0, 0) }).out
+    const out = f.callComposite(gstsLocalAxisRot, { v: v2, angle: rot.z, u: f.create3dVector(0, 0, 1) }).out
+    return { out }
+  }
+})
+
 // 自旋块复合（2026-08-14 封装型）：世界层轴转换到块局部系 + 添加自旋运动器——
 // 把"自旋这件事"的范围封装清晰（含嵌套调用 gsts_rotate_vec）
 // 自旋块复合（2026-08-14 v2：exec 复合，含动作）：世界层轴 → 块局部系（罗德里格斯×3）+ 添加自旋运动器。
@@ -81,16 +108,9 @@ const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
   outputs: {},
   outflows: ['done'],
   build: ({ e, axis }, f) => {
+    // #16 递归拆分：三轴局部旋转 → gsts_spin_axis_triple（原 26 节点 → 本复合 4 节点）
     const rot = f.getEntityLocationAndRotation(e).rotate
-    const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
-    const sy = f.sineFunction(f.multiplication(rot.y, DEG2RAD))
-    const v1 = f.callComposite(gstsRotateVec, { v: axis, u: f.create3dVector(0, 1, 0), c: cy, s: f.multiplication(sy, -1) }).out
-    const cx = f.cosineFunction(f.multiplication(rot.x, DEG2RAD))
-    const sx = f.sineFunction(f.multiplication(rot.x, DEG2RAD))
-    const v2 = f.callComposite(gstsRotateVec, { v: v1, u: f.create3dVector(1, 0, 0), c: cx, s: f.multiplication(sx, -1) }).out
-    const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
-    const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
-    const localAxis = f.callComposite(gstsRotateVec, { v: v2, u: f.create3dVector(0, 0, 1), c: cz, s: f.multiplication(sz, -1) }).out
+    const localAxis = f.callComposite(gstsSpinAxisTriple, { v: axis, rot }).out
     const tail = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
       e,
       new str('spin'),
@@ -135,30 +155,45 @@ const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
 })
 
 // 轨道速度计算复合（2026-08-14 v8 语义拆分：纯数据——5 段速度预计算，无副作用）
-const gstsOrbitVelocity = g.defineComposite('gsts_orbit_velocity', {
+// 轨道起点分解复合（2026-08-14 #16 递归拆分）：位置差分解 v0/vp/vPerp/axv——内部 6 节点
+const gstsOrbitPrep = g.defineComposite('gsts_orbit_prep', {
   inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
-  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  outputs: { v0: { type: 'vec3' }, vp: { type: 'vec3' }, vPerp: { type: 'vec3' }, axv: { type: 'vec3' } },
   build: ({ e, axis, center }, f) => {
     const loc = f.getEntityLocationAndRotation(e).location
     const v0 = f._3dVectorSubtraction(loc, center)
     const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
     const vPerp = f._3dVectorSubtraction(v0, vp)
     const axv = f._3dVectorCrossProduct(axis, vPerp)
-    const p1 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C1, s: S1 }).p
-    const vel1 = f._3dVectorZoom(f._3dVectorSubtraction(p1, v0), K_VEL)
-    const p2 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C2, s: S2 }).p
-    const vel2 = f._3dVectorZoom(f._3dVectorSubtraction(p2, p1), K_VEL)
-    const p3 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C3, s: S3 }).p
-    const vel3 = f._3dVectorZoom(f._3dVectorSubtraction(p3, p2), K_VEL)
-    const p4 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C4, s: S4 }).p
-    const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
-    const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
-    const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
-    return { vel1, vel2, vel3, vel4, vel5 }
+    return { v0, vp, vPerp, axv }
   }
 })
 
-// 轨道速度存储复合（2026-08-14 v8 语义拆分：exec——5 段速度写入字典）
+// 轨道单段复合（2026-08-14 #16 递归拆分）：p_k 位置 + vel_k 速度——内部 3 节点
+const gstsOrbitStep = g.defineComposite('gsts_orbit_step', {
+  inputs: { vp: { type: 'vec3' }, vPerp: { type: 'vec3' }, axv: { type: 'vec3' }, c: { type: 'float' }, s: { type: 'float' }, prev: { type: 'vec3' } },
+  outputs: { p: { type: 'vec3' }, vel: { type: 'vec3' } },
+  build: ({ vp, vPerp, axv, c, s, prev }, f) => {
+    const p = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c, s }).p
+    const vel = f._3dVectorZoom(f._3dVectorSubtraction(p, prev), K_VEL)
+    return { p, vel }
+  }
+})
+
+const gstsOrbitVelocity = g.defineComposite('gsts_orbit_velocity', {
+  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
+  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  build: ({ e, axis, center }, f) => {
+    // #16 递归拆分：起点分解 + 5 段位置/速度（原 21 节点 → 本复合 6 节点）
+    const prep = f.callComposite(gstsOrbitPrep, { e, axis, center })
+    const s1 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C1, s: S1, prev: prep.v0 })
+    const s2 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C2, s: S2, prev: s1.p })
+    const s3 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C3, s: S3, prev: s2.p })
+    const s4 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C4, s: S4, prev: s3.p })
+    const s5 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C5, s: S5, prev: s4.p })
+    return { vel1: s1.vel, vel2: s2.vel, vel3: s3.vel, vel4: s4.vel, vel5: s5.vel }
+  }
+})
 const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
   inputs: { i: { type: 'int' }, vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
   outputs: {},
@@ -191,10 +226,27 @@ const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
 // 转动块数据准备复合（2026-08-14 v7：循环体数据逻辑入复合，8 块共用）——
 // 输入 {i, tabId}：内部 blocks[i] 查询 + 层轴字典查询 + isR..isB 比较 + 嵌套 inLayer 层判断；
 // 输出 {e, axis, hit}——宿主保留 doubleBranch（exec 动作 + 定时器留宿主，#3）
+// tabId → 6 轴标志复合（2026-08-14 #16 递归拆分）：内部 6 个 equal
+const gstsTabAxisFlags = g.defineComposite('gsts_tab_axis_flags', {
+  inputs: { tabId: { type: 'int' } },
+  outputs: { isR: { type: 'bool' }, isL: { type: 'bool' }, isU: { type: 'bool' }, isD: { type: 'bool' }, isF: { type: 'bool' }, isB: { type: 'bool' } },
+  build: ({ tabId }, f) => {
+    return {
+      isR: f.equal(tabId, 1),
+      isL: f.equal(tabId, 2),
+      isU: f.equal(tabId, 3),
+      isD: f.equal(tabId, 4),
+      isF: f.equal(tabId, 5),
+      isB: f.equal(tabId, 6)
+    }
+  }
+})
+
 const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
   inputs: { i: { type: 'int' }, tabId: { type: 'int' } },
   outputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, hit: { type: 'bool' } },
   build: ({ i, tabId }, f) => {
+    // #16 递归拆分：6 轴标志 → gsts_tab_axis_flags（原 15 节点 → 本复合 6 节点）
     const e = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('blocks').asType('entity_list'),
       i
@@ -203,28 +255,22 @@ const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
       f.getNodeGraphVariable('axes').asDict('int', 'vec3'),
       tabId
     )
-    const isR = f.equal(tabId, 1)
-    const isL = f.equal(tabId, 2)
-    const isU = f.equal(tabId, 3)
-    const isD = f.equal(tabId, 4)
-    const isF = f.equal(tabId, 5)
-    const isB = f.equal(tabId, 6)
+    const flags = f.callComposite(gstsTabAxisFlags, { tabId })
     const loc = f.getEntityLocationAndRotation(e).location
     const hit = f.callComposite(gstsInLayer, {
       x: loc.x,
       y: loc.y,
       z: loc.z,
-      isR,
-      isL,
-      isU,
-      isD,
-      isF,
-      isB
+      isR: flags.isR,
+      isL: flags.isL,
+      isU: flags.isU,
+      isD: flags.isD,
+      isF: flags.isF,
+      isB: flags.isB
     }).hit
     return { e, axis, hit }
   }
 })
-
 // 转动一块复合（2026-08-14 v8：封装型「转动一块」完整封装）——
 // 输入 {i, tabId, center}：内部 turn_check 数据准备 + doubleBranch（命中 → spinBlock + orbitCalc 嵌套
 // exec 复合调用）；输出 {hit} 供宿主定时器分支（setTimeout 留宿主 #3）
