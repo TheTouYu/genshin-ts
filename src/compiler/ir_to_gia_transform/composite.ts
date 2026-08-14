@@ -1088,6 +1088,40 @@ function materializeImplOrdinaryGraphWithVendor(
   const syntheticNodes = syntheticResults.map((result) =>
     materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap)
   )
+  // #20（2026-08-14 v20 事件复合回归）：impl 内部 exec 边（multiple_branches 分支 →
+  // 复合调用）指向的合成调用节点必须有物理 InFlow pin——引擎按 connects 的 InFlow
+  // 目标进入被调复合 impl；缺失时调用帧后无内部执行（2691 日志 rec35：trigger MB →
+  // dispatch 调用后 dispatch impl 零帧 → 5 段公转缺失）。buildCompositeCallPins 只
+  // 生成显式声明的 flow pin，内部 exec 边目标的 InFlow 不在其中——此处按 implEdges
+  // 收集每个 synthetic 节点被内部 exec 边指向的 InFlow index 并补 pin。
+  const syntheticInflowIndexes = new Map<number, Set<number>>()
+  for (const [, edges] of Object.entries(implEdges)) {
+    for (const edge of edges) {
+      const targetId = getEdgeTarget(edge)
+      if (!syntheticById.has(targetId)) continue
+      const indexes = syntheticInflowIndexes.get(targetId) ?? new Set<number>()
+      indexes.add(getEdgeTargetIndex(edge))
+      syntheticInflowIndexes.set(targetId, indexes)
+    }
+  }
+  for (const [syntheticIdx, node] of syntheticNodes.entries()) {
+    const result = syntheticResults[syntheticIdx]
+    const required = result ? syntheticInflowIndexes.get(result.node.id) : undefined
+    if (!required) continue
+    for (const inflowIdx of required) {
+      const hasInFlow = (node.pins ?? []).some(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.InFlow && pin.i1?.index === inflowIdx
+      )
+      if (hasInFlow) continue
+      node.pins = node.pins ?? []
+      node.pins.unshift({
+        i1: { kind: NodePin_Index_Kind.InFlow, index: inflowIdx },
+        i2: { kind: NodePin_Index_Kind.InFlow, index: inflowIdx },
+        type: 0,
+        value: null
+      })
+    }
+  }
   const allNodes = [...encodedNodes, ...syntheticNodes]
   const allNodesByIndex = new Map(allNodes.map((node) => [node.nodeIndex, node]))
 
