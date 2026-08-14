@@ -620,6 +620,34 @@ function buildImplGraphNodes(
   patchEncodedSignalNodes(legacyNodes as any)
   // Real-editor wire rules apply to handwritten legacy nodes too (idempotent).
   applyEditorConnectionWireRules(legacyNodes)
+  // 2026-08-14 修复（#12 同族扩展）：legacy 路径的 synthetic→ordinary exec 边目标
+  // 普通节点同样缺物理 InFlow pin（buildImplNodePins 只生成 OutFlow；#11 只补了
+  // compositePins 覆盖节点）。S12 回归 legacy 模式实证：目标 InFlow[0] 缺失。
+  for (const [fromIdRaw, edges] of Object.entries(implEdges)) {
+    const fromId = Number(fromIdRaw)
+    const srcResult = nodeResults.find((result) => result.node.id === fromId)
+    if (!srcResult || !srcResult.isCompositeCall) continue
+    for (const edge of edges) {
+      const targetId = getEdgeTarget(edge)
+      const targetResult = nodeResults.find((result) => result.node.id === targetId)
+      if (!targetResult || targetResult.isCompositeCall) continue
+      const targetNode = legacyNodes.find((n: any) => n.nodeIndex === targetResult.nodeIndex)
+      if (!targetNode) continue
+      const targetIndex = getEdgeTargetIndex(edge)
+      const hasInFlow = (targetNode.pins ?? []).some(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.InFlow && pin.i1?.index === targetIndex
+      )
+      if (!hasInFlow) {
+        targetNode.pins = targetNode.pins ?? []
+        targetNode.pins.unshift({
+          i1: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+          i2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+          type: 0,
+          value: null
+        })
+      }
+    }
+  }
   return legacyNodes
 }
 
@@ -983,7 +1011,9 @@ function materializeImplOrdinaryGraphWithVendor(
     )
     if (!hasFlow) {
       encodedInner.pins = encodedInner.pins ?? []
-      encodedInner.pins.push({
+      // flow pin 插到数组前（对齐宿主 pins 排序：OutFlow/InFlow 在前——index.ts 780-792；
+      // impl 图无排序步骤，游戏端按序处理 flow 时需在前）
+      encodedInner.pins.unshift({
         i1: { kind: flowKind, index: idx },
         i2: { kind: flowKind, index: idx },
         type: 0,
@@ -1115,6 +1145,23 @@ function materializeImplOrdinaryGraphWithVendor(
         )
       }
       const targetIndex = getEdgeTargetIndex(edge)
+      // 2026-08-14 修复（#12 延续）：synthetic→ordinary exec 边的目标普通节点
+      // 必须有物理 InFlow pin（vendor 物化不生成 exec 节点的 flow pins；#11 只补了
+      // compositePins 映射覆盖的节点）。日志实证：turn_block 内 m1 运动器零帧——
+      // store→m1 边因 connect 源解析 bug 丢失，修复 IR 后仍需物理 pin 才能触发。
+      const targetInFlow = (target.pins ?? []).find(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.InFlow && pin.i1?.index === targetIndex
+      )
+      if (!targetInFlow) {
+        target.pins = target.pins ?? []
+        // flow pin 前插（对齐宿主 pins 排序：OutFlow/InFlow 在前）
+        target.pins.unshift({
+          i1: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+          i2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+          type: 0,
+          value: null
+        })
+      }
       const connects = (sourcePin as any).connects ?? []
       if (
         !connects.some(

@@ -507,6 +507,48 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - **嵌套打包**（轮 7 的复合实例再打包）编辑器允许（用户方案确认），实例作为内部节点搬入（本轮最终
   打包的是普通节点链——46/47/48 重排后为 lock 链）。
 
+### 生产 #12：合成→普通 exec 边完整规则（2026-08-14 日志实证 + 双后端回归）
+
+> 触发：v8/v8fix3/v8f 注入后游戏仍失败——turn_block 复合内全部节点执行但 m1 运动器
+> （Add Uniform Basic Linear Motion Device 84）零帧 → outflow('done', m1, 0) 不触发 →
+> 宿主链零帧 → 锁永不释放。日志 2026-08-14_13-55-55_2678 逐帧确认 head=3205 零帧。
+> 三份日志（2675/2677/2678）帧分布逐字节一致 → 排除注入时序变量。
+
+- **规则 1（core.ts connect）**：f.connect(compositeCallResult, 0, execNode, 0) 的 IR 边源
+  必须是 composite call 的**真实 node id**。composite call 返回对象只有 __markerNodeId
+  （无 id 属性）；connect 曾用 sourceRef.id（undefined）→ IR implEdges 源写成
+  "undefined" → materialize Number("undefined")=NaN 找不到源 → **边静默丢弃**。
+  修复：addEdge(current, sourceId, ...)（用已解析的 __markerNodeId）。
+- **规则 2（materialize vendor 路径）**：synthetic→ordinary exec 边的目标**普通 exec 节点**
+  必须有物理 InFlow pin（vendor 物化不生成 exec 节点的 flow pins；#11 只补了 compositePins
+  覆盖的节点）。overlay 循环补 target InFlow pin（unshift 前插，flow pin 在前）。
+- **规则 3（materialize legacy 路径同族）**：legacy-handwritten 后端同样缺目标 InFlow pin
+  （buildImplNodePins 只生成 OutFlow）——S12 回归 legacy 模式实证，同补。
+- **exec 链完整性判据**（turn_block 实证，注入副本 read 确认）：宿主 InFlow → doubleBranch(n2)
+  → spin_block(n3) OutFlow(cpi=4) → store(n4) InFlow → store OutFlow(cpi=4) → m1(n5) InFlow[0]
+  → m1 OutFlow[0]（done）→ 宿主 outflow 链。任一环缺 pin 或 connects 即断链。
+- **回归**：tests/composite/test-composite-synthetic-to-ordinary-exec-edge.ts（IR + GIA 双层，
+  vendor/legacy 双后端，红绿验证）；相关套件 9 项全 PASS。
+- **状态**：自动回归通过、生产 GIA 重编译通过、副本注入 read 验证通过；**待用户游戏验证**
+  （注入后重新加载地图；注意编辑器保存可能改写 flow pin——注入后先游戏测试再动编辑器）。
+
+### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
+
+> 方法：node_id.ts 全部变体推断分支 vs 复合路径纳管集合（usesSharedVariantResolution +
+> DICT_KV_VARIANT_NODE_TYPES + usesSharedOrdinaryConcreteIdentity + gv/custom/local concrete）求差集
+
+- **已纳管（差集补充，2026-08-14）**：create_dictionary / query_if_dictionary_contains_specific_key /
+  query_if_dictionary_contains_specific_value / remove_key_value_pairs_from_dictionary_by_key
+  → DICT_KV_VARIANT_NODE_TYPES（12 个）；覆盖测试 24→27 族全 PASS。
+- **assembly 族**：已有 special-arg 处理（isAssemblySpecialArgNodeType），非缺口。
+- **事件节点（when_custom_variable_changes / when_node_graph_variable_changes）**：
+  **用户澄清：编辑器复合内可放事件节点（复合可包含一切节点，甚至整图打包成复合）**——
+  生产 DSL 复合 build 无事件注册 API（g.server().on 是图级入口）＝**生产 DSL 知识/实现缺口**，
+  不排除；待差分验证（轮 11：复合内事件节点的 wire 与触发语义）。
+- **观察项（低风险）**：复合输出 OutParam 的 ioc 用硬编码 concreteOutputIndex（bool→0/float→1/
+  str→2/int→3，其他 default 0）——与 vendor 输出 ioc 可能不同（v5/v7 输出核验正常——运行时值
+  不受影响）；待差分验证输出 ioc 编辑器值后决定是否对齐。
+
 ### 复现命令
 
 ```bash

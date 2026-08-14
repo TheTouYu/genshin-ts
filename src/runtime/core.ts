@@ -1805,7 +1805,10 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
         (conn.target_index ?? 0) === targetInflowPinIndex
       )
     })
-    this.addEdge(current, sourceRef.id, targetId, sourceOutflowPinIndex, targetInflowPinIndex)
+    // 2026-08-14 修复（#12）：addEdge 用 sourceId（FlowMarkerRef 场景 sourceRef.id 为
+    // undefined——composite call 返回对象只有 __markerNodeId）——此前 IR implEdges 源
+    // 写为 "undefined"，synthetic→ordinary exec 边丢失，m1 运动器零帧（日志 13-55-55）
+    this.addEdge(current, sourceId, targetId, sourceOutflowPinIndex, targetInflowPinIndex)
   }
 
   /**
