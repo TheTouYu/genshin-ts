@@ -186,6 +186,36 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite gsts_orbit_segm
 # 执行流条数 = MB 分支数 + 后续链；接口 inflows 非空（混合复合必须有调用流入口）
 ```
 
+## #21 复合族能力验证（2026-08-14 游戏实测，2696 日志全通过）
+
+### 复合内 finite_loop（有限循环）✅
+
+复合 build 内可直接用 `f.finiteLoop(0, 7, (i, brk) => {...})`——纯 exec 节点，编码/执行
+正常（2696 日志：每次触发 8 次循环体帧）。与 setTimeout 不同（#3：setTimeout 宿主 API
+复合内不可用）；finite_loop 是图节点，复合内完全可用。
+
+### 复合内事件触发语义（轮 12f + 2695 独立复现）✅
+
+- **whenCustomVariableChanges（实体自定义变量，触发事件=是）触发**：主图/复合内
+  `setCustomVariable(entity, name, value, true)` → 复合内事件节点触发。
+- **whenNodeGraphVariableChanges（图变量变化）不触发**：即使主图 Set Node Graph Variable。
+- 复合内事件节点 = impl 普通节点（OutParam 0-4 + OutFlow[0] → 回调节点），
+  compositePins 仅 InFlow 映射主链头（事件节点不入 compositePins）。
+
+### 复合内 sendSignal + 图级 onSignal ✅
+
+复合 build 内 `f.sendSignal(Signal.x, ...params)` 可编码（send 复合）；图级
+`g.server().onSignal(Signal.x, (evt, f) => ...)` 接收并消费参数（2696 日志：ping-msg/tagA）。
+信号注册表需先注册信号（含参数布局——donor 布局或未来内置布局）。
+
+### 混合复合模式（事件 + 调用流共存）✅
+
+复合同时含事件节点和调用流时，必须用**混合复合模式**（参考 gsts_tab_lock）：
+- 调用流：`f.entry() → ... → f.outflow('done', tail, 0)`——提供 InFlow/OutFlow 接口
+- 事件节点：`f.on(...)` 独立旁路（不参与调用流，OutFlow 直连回调节点）
+- 纯事件复合（无 inflow/outflow）**不能被调用流链式调用**（调用后无 outflow 出口 →
+  注入器裁剪调用点引脚 → 边丢失，2026-08-14 实证）
+
 ## 待逐步还原
 
 - 复合节点外部接口的定义结构。
