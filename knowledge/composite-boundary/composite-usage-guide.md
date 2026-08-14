@@ -13,3 +13,15 @@ Author-facing guide: when to composite, four forms, interface design, three arch
 示例全部来自已验证生产代码（rubik v20 游戏核验通过、verify/composite-family 2696 日志全通过）；使用指南是作者视角总纲，规则与 wire 细节以 composite-nodes.md 为准；能力边界为生产现状（2026-08-14），官方编辑器能力可能更宽。
 
 <!-- CLAIM:END clm_1EB7BE64DF651835F79AE4DB94 -->
+
+<!-- CLAIM:START clm_7FA04F29CA2F39F00CB435A903 -->
+
+### Reusable composite asset catalog: three tiers extracted from rubik v20
+
+复合跨项目资产目录（2026-08-15 从 rubik v20 的 22 个复合提炼，全部游戏核验通过）：A 类通用数学/几何（纯数据、零玩法依赖、直接复制）——rotate_vec（Rodrigues 旋转）、local_axis_rot（绕任意轴旋转）、spin_axis_triple（三轴顺序旋转）、orbit_point（圆周运动点）、axis_compare（阈值比较）、any_greater（多值超阈值）；B 类机制模式（模式可复用、按项目参数化）——定时器序列调度（scheduler 调用流注册 start_timer 序列 + trigger 事件流按 timerName 分发）、MB 分发（seg → multipleBranches → 子复合）、输入锁+解锁（tab_lock）、信号封装（复合内 sendSignal + 图级 onSignal）、混合复合（事件旁路+调用流）；C 类玩法特定（仅作编写范例）。复用判定标准：inputs/outputs 全为通用标量/vec3 且不读图变量/不依赖实体状态 = A 类直接复制；依赖 start_timer/事件/信号 = B 类按模式重写；依赖特有状态 = C 类只借鉴结构。目录见 game-from-scratch 技能 references/composite-authoring.md 第 5 节与使用指南第 7 节。
+
+#### 适用边界
+
+资产全部来自 rubik v20 已验证生产代码（游戏核验通过）；A 类复制的直接适用性基于接口纯数据化判定，跨项目仍需编译+体检+游戏核验；B 类为模式级指导，实现细节随项目参数化；目录为 2026-08-15 快照，新增资产应持续补充。
+
+<!-- CLAIM:END clm_7FA04F29CA2F39F00CB435A903 -->

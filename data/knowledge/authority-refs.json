@@ -827,6 +827,21 @@
       ]
     },
     {
+      "id": "aref_509fb718cdeac1df78a4b01532",
+      "path": "docs/game-engine-knowledge/composite-usage-guide.md",
+      "locator": "asset section (section 7)",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4f3e36a4e3f874237e8a92125977bb1062075e4f63ba760843c7af18ef4dab3f",
+      "claim_ids": [
+        "clm_7FA04F29CA2F39F00CB435A903"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_5331661f69591a298f45ad2189",
       "path": ".agents/skills/gil-node-graph-editing/SKILL.md",
       "locator": "安全流程第 3c 步：变量名三方一致性",
@@ -1004,6 +1019,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6c51fe160e3417c5a88408af7a",
+      "path": ".agents/skills/game-from-scratch/references/composite-authoring.md",
+      "locator": "asset catalog (section 5)",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "3b93cb891c208083e3e09745151d7680ff0dadeede41ba39362cfdcc6c881ade",
+      "claim_ids": [
+        "clm_7FA04F29CA2F39F00CB435A903"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

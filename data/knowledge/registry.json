@@ -1593,6 +1593,11 @@
       "fact_classes": [
         "cli_behavior"
       ]
+    },
+    "clm_7FA04F29CA2F39F00CB435A903": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }
