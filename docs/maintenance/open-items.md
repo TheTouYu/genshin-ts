@@ -218,3 +218,6 @@
   `~/genshin-ts-evidence/u4-color-change/`（SHA 见该目录）。
 - M4 同步影响：835 无效支持"新资源删除方向正确"，但操控运动器系列等其他旧独有节点
   仍待逐个验证，同步保持中止。
+- **替代方案已核验（U4b，2702 日志）**：节点 308（activateDisableModelDisplay，官方
+  Set_Model_Visible）**生效**——R 隐藏/L 重现（u4b-hide-fire ×1 + u4b-show-fire ×5）；
+  灯阵明暗方案确定（亮=显示/暗=隐藏）；verified-cases.md 已登记。
