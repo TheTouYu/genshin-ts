@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "核验_灯柱",
+      "id": 1077936131,
+      "definitionId": 1077936129,
+      "position": [5, 0, 5],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "核验_灯头",
+      "id": 1077936132,
+      "definitionId": 1077936130,
+      "position": [5, 0.95, 5],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    }
+  ]
+}

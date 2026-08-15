@@ -234,3 +234,13 @@
 - 修复方向：实例侧回链替换改用独立占位符/精确位置替换；短期规避：aux 避开 1073741828
   （灯阵已改用 1073741830，探针验证闭包 complete）。
 - 何时做：M4 编译器快速迭代（用户确认后修源码 + 回归）。
+
+### O-2026-08-16-12. assets:entities patch 为单实体命令（--entities 仅 import）
+
+- 证据：W2 派活（2026-08-16）主代理误用 `patch --entities <json>` 形态；子代理 9d6603cb
+  读源码 assets_entities.ts 确认：`patch <entity-id> --position x,y,z` 为单实体操作，
+  `--entities` 仅 import 专用。两次 patch 串联可改多实体。
+- 影响：派活/文档中该命令形态需用单实体形式；灯阵实体位置调整已按正确形态完成
+  （灯柱/灯头 → [5,0,5]/[5,0.95,5]，写回 SHA e09f6e2a…）。
+- 何时做：下次 assets:entities 相关派活/文档维护时同步（production-workflow 或
+  static-gil-model-builder 参考补命令形态）。
