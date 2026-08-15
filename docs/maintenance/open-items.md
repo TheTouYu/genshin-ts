@@ -174,14 +174,18 @@
 - **映射收敛完成（2026-08-16）**：85 条人工补全（含 10 事件名 + query/装备/商店/任务等），
   完整 gen **0 警告**——全部 406 节点 + 62 事件走名称映射配对，无 sig 兜底；
   修正 1 处误补（Aggro List→仇恨列表）。
-- **同步评估完成（2026-08-16，用户已授权执行，登记为下一轮专项）**：
-  改名适配为字符串级（expr.ts 两处 makeFCall 'modifyValueInList'→'setListValue'），
-  但**签名语义风险**：旧 10 个类型化重载（parseValue(list,'float') 等）→ 新 GenericValue
-  单签名（parseValue(list,'generic')），`list[id]=v` 的运行时编码变化需游戏验证；
-  timer 侧 modifyGlobalTimer→increaseGlobalTimerValue 丢失 targetEntity 参数，
-  转换器调用需重建参数。专项步骤：同步 definitions → expr.ts/timer 转换器适配 →
-  zh_aliases → 重生成测试 → quicktest 全量回归 → 用户游戏验证 list 赋值语义。
-- 何时做：下一轮专项（当前工作树已提交干净，适合专项启动）。
+- **同步第一层完成（2026-08-16，提交 7e752f4）**：生成器全家桶修复——mapType 容错
+  （空串/unknown→generic、Emtity→entity）、payload 类型映射（str→string 等）、
+  GenericValue/EnumerationValue 幂等导入补丁、映射表 2 处修正（Loot 装备/GUID 对调）。
+  验证：gen + generate-zh-aliases.mjs 全链 0 错，nodes.ts 生成物自身类型 0 错。
+- **第二层剩余（77 个依赖方错误）**：manual_verify_*（44）、server-nodegraph（12）、
+  list_dict_placeholder（8）、core.ts 事件映射（5）、signal_parameters（3）、
+  enum_updates（3）——断言期望更新 + core.ts 事件表适配；**事件集收缩决策点**
+  （官方资源删除 whenPlayerFollowsControlMotor 等 3 事件，DSL 表面收缩）。
+- **第三层**：expr.ts modifyValueInList→setListValue（签名语义：10 重载→GenericValue
+  单签名，需游戏验证 list[id]=v）；timer 转换器 modifyGlobalTimer→increaseGlobalTimerValue
+  （targetEntity 参数变化）。
+- 何时做：用户授权范围内继续（第二层断言更新可自主完成）。
 
 ### O-2026-08-16-9. U2 同图多实体挂载未验证（灯阵架构选项）
 
