@@ -228,6 +228,22 @@
       ]
     },
     {
+      "id": "aref_177b37eadf60fd791f49458b7b",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "信号版本下限：vec3（非 str）信号版本 2 被引擎拒绝（2026-08-15 最小图差分实证）章节（lamp_toggle 最小图证据 + 工程结论 039a060）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "2e543cfd9b1b52c9ce84b224cf3e33356a4a19ee3d4197f26b077482ddf3d893",
+      "claim_ids": [
+        "clm_1A1C5E0F7051870C7FD35CA476"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_1de78737960006bd44fbd49dbc",
       "path": "docs/game-engine-knowledge/node-graphs.md",
       "locator": "Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json Variants 表闭环）",
