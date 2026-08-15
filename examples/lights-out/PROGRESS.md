@@ -22,6 +22,7 @@
 ## 待闭合未知（实现中核验）
 
 - [ ] createPrefab 动态实体继承 tabBar 组件（basicMotion 继承已验证）
+- [ ] 隐藏实体（308 false）的可点击性（设计已规避：灯头实体不承载交互，灯柱常显）
 - [ ] 动态实体上 whenTabIsSelected 触发（U9 变体）
 - [ ] 单图节点预算（目标 < 2000）
 
