@@ -292,3 +292,15 @@
 - 影响：胜利判定（查每灯状态）、关卡解锁（定向激活）都被逼用 self+广播/信号回执模式，图复杂度上升。
 - 方向：评估 DSL 实体字面量/按 GUID 引用（O-13 同族）；信号定向投递需引擎能力调查（可能不支持，
   文档明确限制与推荐模式）。
+
+### O-2026-08-16-19. 信号节点已连接 InParam 默认值规则（第 4 次信号错误根因，已修复+文档化，待知识库录入）
+
+- 证据：三版本差分闭环（v3 我们注入/ v4 自动保存 / v5 用户修复）——发送信号节点 vec3 参数
+  空 VectorBase 默认值 → 引擎"参数错误"拒载（级别极高无日志）；修复后 GIA 与用户修复版逐字段
+  一致，游戏核验通过。
+- 落地：src/compiler/ir_to_gia_transform/index.ts 修复（commit 0b52395）；signals.md 规则段 +
+  retrospective-2026-08-16-signal-param-default.md 已写入；**待知识库录入（clm 待建）**。
+- 关联方法论：①"变更消失"先核对 hash（旧编辑器内存保存覆盖假象，v19 教训复发）
+  ②加载期拒载错误不落 Beyond_Debug_Log，进不去游戏走三版本差分。
+- 未闭合风险：客户端 send_signal_to_server_node_graph conn 参数默认载荷（client_graph.ts
+  SIGNAL_PARAM_DEFAULT_BY_TYPE）从未端到端游戏验证，若引擎对客户端同样严格校验则存在同类风险。
