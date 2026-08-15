@@ -166,6 +166,13 @@ R3 的修复应同时覆盖 `AUTHORITY_FACT_COVERAGE` 变体：当 coverage 缺�
 
 ---
 
+## R3 修复状态（2026-08-16 已实施+已发布）
+
+- 本体 commit `1de74e310e0ff3a090fd49ee60bab335896fc22c` 实现 `knowledge-plan init --baseline worktree`：操作者可显式接受"已 apply 未提交"的工作树权威为 plan 基线，并钉住工作树快照（`PLAN_WORKTREE_SNAPSHOT_DRIFT` 守卫后续漂移）。
+- 已随 plan-upgrade 发布到 genshin-ts（wheel `edad0ba4...`，锁 `source_ref 1de74e3`）。
+- 补充认知：纯已 apply 维护（refs 全部 refresh 到 current）时 committed 模式本就不拦截；worktree 模式是"有未 refresh stale ref 混入时"的显式推进通道。
+- 待办：`--baseline worktree` 的真实"混入 stale"场景端到端验证（当前 authority 干净，未触发）。
+
 ## R6（P1）：draft 重复无自动消重——同 intent 近似重复 draft 无任何提示
 
 ### 现状

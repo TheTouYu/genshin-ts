@@ -1650,6 +1650,12 @@
         "documented_contract",
         "evidence_scope"
       ]
+    },
+    "clm_1C061DE3FA2A42C14A740AF537": {
+      "fact_classes": [
+        "documented_contract",
+        "evidence_scope"
+      ]
     }
   }
 }

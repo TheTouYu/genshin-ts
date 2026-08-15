@@ -197,6 +197,22 @@
       ]
     },
     {
+      "id": "aref_15e0fb934fc6162108a9931496",
+      "path": "docs/pkc-improvement-requests.md",
+      "locator": "PKC 使用体验改进需求集合（2026-08-13 起提交给 portable-knowledge 项目）：本 claim 的三条摩擦点同类——draft 重复无消重、approved 空文件脱节、bundle 生命周期缺汇总此处为维护者真实使用反馈集合，本 claim 为其新增条目",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "27390a20bde2e034881e24d2d13c2d6372f16569e549dc8116e03203dd410553",
+      "claim_ids": [
+        "clm_1C061DE3FA2A42C14A740AF537"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_1720ba080ea2e9ceebe1c58b73",
       "path": "src/compiler/ts_to_gs_transform/expr.ts",
       "locator": "transformTimerCall() timerHandleMeta registration and capture metadata preservation",

@@ -25,3 +25,15 @@ This governs the Genshin-TS PKC capture workflow only. Working-tree observations
 本 claim 证据层=真实工具使用（本轮 supersede 实操 + bundle-status 观察），是 PKC 工具本体维护经验，非编译器/GIA/游戏规则；仅描述工具现有行为与正确用法，不授权工具改动；supersede 语义与遗留 bundle 以当前 pkc 0.2.0rc5 为准
 
 <!-- CLAIM:END clm_6788051E40C22ACCD528325348 -->
+
+<!-- CLAIM:START clm_1C061DE3FA2A42C14A740AF537 -->
+
+### PKC 工具自身可用性摩擦点：draft 重复无消重 / approved 状态与空 approval 脱节 / bundle 生命周期缺汇总入口
+
+2026-08 真实使用 pkc-project-operator + toolkit 维护 genshin-ts 知识树时暴露三个工具可用性摩擦点（证据=真实工具调查，均已在 bundle-status + approval/applied 文件 + knowledge-check 三方交叉中核实）：(a) draft 会重复且无自动消重——两对近似重复（entity-import-aux 意图的 bnd_ffe4dbcac/bnd_e13c56cbe，及 P4-4 类型契约意图的 bnd_36ef81925/bnd_bbda2fb98）语义相同的 create 却各带不同 content hash 且均无 superseded_by，工具不自动提示同意图幂等；(b) approved 状态可与 approval 文件脱节——部分 bundle 处于 approved 态但 approval 内容或语义需人工核验，工具缺状态与 approval 文件的内部一致性校验；(c) bundle 生命周期缺一个健康度汇总入口——判断 draft 是否被 apply、approval 是否真、意图是否已落地需手工交叉 bundle-status + 逐 approval/applied 文件 + knowledge-check 三方才能拼全
+
+#### 适用边界
+
+本 claim 是知识树维护者使用 PKC 工具本体的真实体验反馈，证据层=真实工具使用（bundle 文件事实），非编译器/GIA/编辑器/游戏行为规则；所列摩擦点是工具不足而非缺陷归咎，最终是否改工具需另行决策；不含授权任何工具改动
+
+<!-- CLAIM:END clm_1C061DE3FA2A42C14A740AF537 -->
