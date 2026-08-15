@@ -20,7 +20,7 @@ writeFileSync(gilPath, buildStaticAssemblyFixture())
 writeFileSync(
   configPath,
   `export default { assets: { staticAssemblies: [{
-  name: 'new', prefabId: 300, templatePrefabId: ${FIXTURE_IDS.definition},
+  name: 'new', prefabId: 1077936139, templatePrefabId: ${FIXTURE_IDS.definition},
   templateInstanceId: ${FIXTURE_IDS.instance}, templateName: '模板', position: [0,0,0],
   items: [{ resourceId: 10009001, position: [0,0,0] }],
   definitionAuxiliaryIds: [301], instanceAuxiliaryIds: [302]

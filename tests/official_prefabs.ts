@@ -109,6 +109,47 @@ assert.equal(auxFields.find((f) => f.number === 1)!.value, 701)
 assert.equal(auxFields.find((f) => f.number === 2)!.value, 10009002)
 assert.equal(auxFields.find((f) => f.number === 3)!.value, 1, 'definition-side aux keeps f3=1')
 
+// —— O-2026-08-16-11 回归：实例侧 aux 的 id=1828（占位符值）不得被回链替换破坏 ——
+const instAux = buildAuxiliaryRecord({
+  id: 1828,
+  resourceId: 10009002,
+  ownerId: 600,
+  name: '装饰物_1',
+  transform: { position: [1, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
+  definitionAuxiliaryId: 1827
+})
+const instFields = parse(instAux)!
+assert.equal(
+  instFields.find((f) => f.number === 1)!.value,
+  1828,
+  'instance aux keeps its own id=1828 after back-link replacement'
+)
+const f12 = instFields.find((f) => f.number === 12 && f.wire === 2)
+assert.ok(f12, 'instance aux has f12 back-link')
+const f12Inner = parse(f12.value as Uint8Array)!
+assert.equal(
+  f12Inner.find((f) => f.number === 1)!.value,
+  1827,
+  'f12 back-link points to definition aux id (1827), not clobbered'
+)
+// 常规 id（非占位符值）也不受影响
+const instAux2 = buildAuxiliaryRecord({
+  id: 1830,
+  resourceId: 10009002,
+  ownerId: 600,
+  name: '装饰物_1',
+  transform: { position: [1, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
+  definitionAuxiliaryId: 1827
+})
+const instFields2 = parse(instAux2)!
+assert.equal(instFields2.find((f) => f.number === 1)!.value, 1830)
+const f12b = instFields2.find((f) => f.number === 12 && f.wire === 2)!
+assert.equal(
+  parse(f12b.value as Uint8Array)!.find((f) => f.number === 1)!.value,
+  1827,
+  'regular instance aux back-link intact'
+)
+
 // —— applyEntities 官方直引：无本地定义时不报错，生成官方骨架实体 ——
 const mini = buildFile(
   emit([
@@ -145,7 +186,7 @@ const applied = applyEntities({
   entities: [
     {
       name: '平面',
-      id: 800,
+      id: 1077936150,
       definitionId: 10009003,
       position: [10, 20, 30],
       scale: [2, 2, 2]
@@ -154,7 +195,7 @@ const applied = applyEntities({
 })
 const exported = exportEntities(applied)
 assert.equal(exported.length, 1)
-assert.equal(exported[0].id, 800)
+assert.equal(exported[0].id, 1077936150)
 assert.equal(exported[0].name, '平面')
 assert.equal(exported[0].definitionId, 10009003)
 assert.equal(exported[0].resourceId, 10009003)
@@ -163,7 +204,7 @@ assert.deepEqual(exported[0].scale, [2, 2, 2])
 const appliedTop = parse(applied.slice(20, -4))!
 const appliedEntity = wireRecords(appliedTop, 5, 1).find((r) => {
   const first = parse(r)![0]
-  return first.number === 1 && first.value === 800
+  return first.number === 1 && first.value === 1077936150
 })
 assert.ok(appliedEntity, 'official entity record must exist')
 const appliedEntityFields = parse(appliedEntity)!

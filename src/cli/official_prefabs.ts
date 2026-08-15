@@ -248,12 +248,18 @@ export function buildAuxiliaryRecord(params: {
     instanceSide ? AUX_SKELETON_INSTANCE : AUX_SKELETON_DEFINITION,
     'hex'
   )
+  // 替换顺序（O-2026-08-16-11 修复）：必须先替换回链占位（SKELETON_AUX_ID=1828 →
+  // definitionAuxiliaryId，实例骨架 f12），再写实例 ID（1829 → params.id，f1）。
+  // 旧顺序（先 1829→id 再 1828→defId）在 id=1828 时会把刚写入的实例 ID 也替换成
+  // defId，产生 incomplete 闭包（missing-instance-auxiliary，W1 候选回读实证）。
+  if (instanceSide) {
+    record = replaceVarint(record, SKELETON_AUX_ID, params.definitionAuxiliaryId!)
+  }
   record = replaceVarint(
     record,
     instanceSide ? SKELETON_AUX_INSTANCE_ID : SKELETON_AUX_ID,
     params.id
   )
-  if (instanceSide) record = replaceVarint(record, SKELETON_AUX_ID, params.definitionAuxiliaryId!)
   record = replaceVarint(record, SKELETON_AUX_RESOURCE_ID, params.resourceId)
   const ownerTemplateId = instanceSide ? SKELETON_AUX_INSTANCE_OWNER_ID : SKELETON_AUX_OWNER_ID
   record = replaceVarint(record, ownerTemplateId, params.ownerId)

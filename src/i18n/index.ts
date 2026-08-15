@@ -46,8 +46,22 @@ export function detectLang(raw?: string): Lang {
     // ignore
   }
 
-  const picked = match(candidates.filter(Boolean), supported, 'en-US')
-  return picked as Lang
+  // locale=C / POSIX 等非 BCP47 tag 会让 intl-localematcher 抛
+  // "Invalid language tag: C"（2026-08-15 CLI 测试/CI 环境实证）：先过滤非法候选，
+  // match 仍失败时兜底回退 en-US，绝不因环境 locale 崩 CLI。
+  const valid = candidates.filter((candidate) => {
+    try {
+      new Intl.Locale(candidate)
+      return true
+    } catch {
+      return false
+    }
+  })
+  try {
+    return match(valid, supported, 'en-US') as Lang
+  } catch {
+    return 'en-US'
+  }
 }
 
 export function initCliI18n(lang: Lang) {
