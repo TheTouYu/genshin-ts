@@ -3178,7 +3178,7 @@
       "locator": "GstsAssetsConfig and GstsConfig.assets",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "7753d7da2b5f07f28b2ddd8b3345fb8029162ebb3c6e416b44a76fa5fa3856f7",
+      "approved_hash": "cb9eef5403554ff01b419473cffc554deab5b405ada1ce0dbcc3e2a6e04c6a8d",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
