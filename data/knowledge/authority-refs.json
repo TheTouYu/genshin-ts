@@ -1699,6 +1699,21 @@
       ]
     },
     {
+      "id": "aref_9edd27795f5fd1269139b56204",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "导入语义证据：同名图 GIA 导入时编辑器不合并，自动改名（追加 _1）并创建新图（id 1073741847，16 节点），原图 1073741842 不变（consume-str 用户确认段落）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "eb2b6cec14ceb385c8e5b10628bec61191eccfeaa3b6c6ad31051ac429ca8f3b",
+      "claim_ids": [
+        "clm_B57B95C94FC41F8DFDAA236468"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_9f116f181d9e43676eed4601f1",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "装饰物引用元件与元件层 transform > v1→v2→v3 相邻链修正（2026-08-08）",
