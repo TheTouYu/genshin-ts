@@ -32,10 +32,10 @@ scripts/composite-health-check.ts 把已闭合规则（#12-#18、#20）编码为
 
 ### Composite node-family coverage matrix: compile-layer batch verification with layered evidence
 
-复合节点族覆盖矩阵（tests/composite/test-composite-node-family-coverage.ts，自动迭代收敛：构建全部→失败定位→移除重试）：13 族（算术/比较/向量/三角/列表/字典/图变量/查询/动作/控制流/自定义变量/转换/局部变量/定时器/组合）+ 事件族 18 代表事件（2026-08-15 扩展，覆盖状态变量/实体生命周期/碰撞触发/战斗伤害/运动停止/定时器/UI 交互/单位状态/阵营玩家/装备背包 10 类语义），共 45 case 编译层一次通过。分层原则：编译层 PASS 只证明复合 impl 内编码无缺口，≠ 游戏正确——游戏层以 rubik 实际用例核验为准；事件触发语义需逐事件游戏核验（#21 已证 whenNodeGraphVariableChanges 图变量在复合内不触发）。已知 DSL 约束：createPrefab 的 prefabId 不支持数据节点、复合内空列表需 listLiteral、复合内 setTimeout 不可用。
+复合节点族覆盖矩阵（tests/composite/test-composite-node-family-coverage.ts，自动迭代收敛）：13 族 + 事件族 18 代表事件（10 类语义），45 case 编译层一次通过。分层原则：编译层 PASS 只证明复合 impl 内编码无缺口，≠ 游戏正确。游戏层证据（2026-08-15，2698 日志）：复合内 whenEntityIsCreated（捕获实体创建）+ whenCustomVariableChanges（对照组）在 event-internal 验证图真实触发；whenTimerIsTriggered 此前已验证（2696）；复合内 sendSignal → 图级 onSignal 参数接收 3 次全通（从零注册信号 verify_ping2）。已知 DSL 约束：createPrefab 的 prefabId 不支持数据节点、复合内空列表需 listLiteral、复合内 setTimeout 不可用。
 
 #### 适用边界
 
-编译层证据为 2026-08-15 45/45 一次通过；游戏层仅 whenCustomVariableChanges/whenTimerIsTriggered/whenEntityIsCreated 实测（2696 日志）；其余事件触发语义为待核验状态，不得推广为游戏行为断言。
+编译层 45/45（2026-08-15）；游戏层已实测事件：whenCustomVariableChanges/whenTimerIsTriggered/whenEntityIsCreated（2696+2698 日志）；其余 15 个代表事件触发语义仍为待核验状态，不得推广为游戏行为断言。
 
 <!-- CLAIM:END clm_740967E3FFD383A6EEA8C68637 -->

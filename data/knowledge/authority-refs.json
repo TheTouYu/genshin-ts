@@ -2260,7 +2260,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "1e04d8974c819f46fa22abacef3ab57f96ea92c11e55f70c07aba4e14d1a683d",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_740967E3FFD383A6EEA8C68637"
       ],
