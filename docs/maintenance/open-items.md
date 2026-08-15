@@ -221,3 +221,16 @@
 - **替代方案已核验（U4b，2702 日志）**：节点 308（activateDisableModelDisplay，官方
   Set_Model_Visible）**生效**——R 隐藏/L 重现（u4b-hide-fire ×1 + u4b-show-fire ×5）；
   灯阵明暗方案确定（亮=显示/暗=隐藏）；verified-cases.md 已登记。
+
+### O-2026-08-16-11. SKELETON_AUX_ID=1073741828 占位符递归替换 bug（生产缺陷，M4 候选）
+
+- 证据：W1 候选回读（子代理 9d6603cb，2026-08-16）——配置 instanceAuxiliaryIds=[1073741828]
+  时，候选 top27 field2（实例侧 aux）记录 ID 被改写为 def aux ID（1073741827），闭包
+  incomplete（missing-instance-auxiliary）。
+- 根因（源码定位）：src/cli/official_prefabs.ts 的 buildAuxiliaryRecord（实例侧）两步
+  replaceVarint：先写 SKELETON_AUX_INSTANCE_ID(1829)→params.id(1828)，再递归替换
+  SKELETON_AUX_ID(1828)→definitionAuxiliaryId(1827)——第二步把刚写入的 1828 也替换了。
+- 影响：任何 instanceAuxiliaryIds 含 1073741828 的资产配置生成坏闭包。
+- 修复方向：实例侧回链替换改用独立占位符/精确位置替换；短期规避：aux 避开 1073741828
+  （灯阵已改用 1073741830，探针验证闭包 complete）。
+- 何时做：M4 编译器快速迭代（用户确认后修源码 + 回归）。
