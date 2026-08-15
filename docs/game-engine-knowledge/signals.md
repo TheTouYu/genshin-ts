@@ -38,7 +38,7 @@ serverId
 ```text
 genericId = concreteId = 当前注册信号的 sendId
 kind = SysGraph
-signalVersion = 1
+signalVersion = 注册表条目 f6（样本信号恰为 1；见下方 signalVersion 一致性章节）
 信号名 pin 必须存在
 未赋值参数不生成实例 pin
 ```
@@ -89,7 +89,7 @@ genericId = SysCall 300001
 ```text
 genericId = concreteId = 当前注册信号的 monitorId
 kind = SysGraph
-signalVersion = 1
+signalVersion = 注册表条目 f6（样本信号恰为 1；见下方 signalVersion 一致性章节）
 节点坐标保持
 只有信号名 pin 会自动实例化；参数输出不会仅因绑定而自动写入节点
 ```

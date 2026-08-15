@@ -948,6 +948,22 @@
       ]
     },
     {
+      "id": "aref_5b4f997d843197938533dbba03",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "signalVersion 一致性：注册表条目 f6 必须与三份 CompositeDef #4 field5 相同（2026-08-15 灯阵差分实证）章节（含五态证据链与 repair 工程结论）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "970e403cc2de40427301f933617744f846da29782061ef56eb991fa08d3e4647",
+      "claim_ids": [
+        "clm_6C4D0D6A2ADCB7DFB399357BB2"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_5bf83e21073b0aa07b6c362581",
       "path": "tests/composite/test-three-level-nested-capture-routing.ts",
       "locator": "three-level compositeInputIndex and decoded compositePins routing regression",

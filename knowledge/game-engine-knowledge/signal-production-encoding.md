@@ -49,3 +49,15 @@
 单地图（1073741888）单信号（verify_ping2 str×2）样本；entity/guid 等参数类型与级联发送未覆盖；证据为 2699 日志 + 图名索引，用户游戏核验通过。
 
 <!-- CLAIM:END clm_1A48C87938D83D3736EA97AFA1 -->
+
+<!-- CLAIM:START clm_6C4D0D6A2ADCB7DFB399357BB2 -->
+
+### signalVersion 一致性：注册表条目 f6 必须与三份 CompositeDef #4 field5 相同（2026-08-15 灯阵差分实证）
+
+引擎加载信号时校验版本一致性：注册表条目的 signalVersion（条目 f6，readRegisteredSignalsFromGil 返回）必须与 send/monitor/server 三份 CompositeDef 身份字段 #4 内最后一个 field5（版本字段）完全相等；不一致→引擎拒绝加载→地图启动失败。证据链（~/genshin-ts-evidence/lights-out/signal-diff/round2/）：编辑器创建未改=1（条目 f6 与定义 field5 均 1）；编辑器修改一次=2（两边一致，正常加载）；用户手动追加参数=3（两边一致但参数布局属另一类错误）；CLI repair 产出条目 f6=3（保留目标）但定义 field5=2（复刻 builtin 模板）→不一致→启动失败；用户重存信号后两边统一为 4→正常。工程结论：register（builtin 路径）自洽（f6=2、field5=2）；update（目标定义作模板）自洽；repair 必须把重建定义的 field5 改写为目标条目 signalVersion（rewriteDefinitionVersion 已实现，SignalIndexEntry.signalVersion 从条目 f6 读取）；#4 内 field5 可能多次出现（身份块内另有大数 field5），只改写最后一个 occurrence。
+
+#### 适用边界
+
+证据=真实 GIL 差分（编辑器创建/修改/用户追加/CLI repair/用户重存五态对比，round2 证据目录）+ 自动回归 tests/signal_consumption_replay_regression.ts:100（signalVersion preserved）+ 灯阵 v3 游戏核验（日志 2707，1599 帧零异常，2026-08-15）；适用于当前编辑器/CLI 版本，不证明其他版本；#4 身份字段 field5 语义未闭合（观察值 1/2/3），本 claim 只断言一致性约束而非语义
+
+<!-- CLAIM:END clm_6C4D0D6A2ADCB7DFB399357BB2 -->

@@ -1656,6 +1656,12 @@
         "documented_contract",
         "evidence_scope"
       ]
+    },
+    "clm_6C4D0D6A2ADCB7DFB399357BB2": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
     }
   }
 }
