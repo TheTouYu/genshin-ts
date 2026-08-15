@@ -86,3 +86,108 @@
 - 证据：`/tmp/spiral-v12-eval/` + 会话 019fef2f 用户反馈（三角形突出、内圈凸起）。
 - 期望形态：用户重新分析结论闭合后，补入 `curve-path-decoration.md` 的 V11.1 小节（当前已标注"未定稿"）。
 - 何时做：用户给出下一轮反馈并核验通过后。
+
+### O-2026-08-16-1. DSH 环境 write 工具与 bash 沙箱的 /tmp 不同视图
+
+- 证据：2026-08-16 用 write 工具创建 `/tmp/probe-components.mts` 返回成功，但 bash `ls /tmp` 不可见、
+  无法执行；改用 bash heredoc 写 /tmp 后正常（与协作手册 A5"不跨 bash 持久"叠加，探针脚本必须
+  单调用内完成或落仓库/证据目录）。
+- 期望形态：DSH 环境技能注记（探针/临时脚本用 bash heredoc 写 /tmp，或直接写证据目录；
+  跨调用数据放 `~/genshin-ts-evidence/`）。
+- 何时做：下次 DSH 会话写探针脚本前。
+
+### O-2026-08-16-2. U1 跨图信号投递未验证（第二 demo 架构命门）
+
+- 证据：S4 测评（eval-s4-signal-puzzle/final.md U1）——2698 日志只验证了**同图内**
+  send→onSignal；信号在"图 A 发送、图 B 监听"的跨图投递从未游戏验证；signals.md"监听信号
+  实际触发及参数值的游戏行为"仍标"尚未闭合"。
+- 进度（2026-08-16）：差分 case 已备好并编译通过——`verify/u1-cross-graph/send.ts`（图 1833，
+  whenTabIsSelected→sendSignal verify_ping2）与 `recv.ts`（图 1832，onSignal→print ×4）；
+  GIA wire 断言通过（send=1610612744 / monitor=1610612745 与注册表精确一致，参数字面量
+  ping-u1/tag-u1 在位）。
+- 期望形态：注入验证地图 1073741888（2 个 placeholder 图 → 逐图注入 → attach 实体 1077936151
+  → 用户游戏核验 → 日志判定：`u1-send-fire` + `u1-recv-msg/ping-u1/u1-recv-tag/tag-u1` 全现 =
+  跨图成立；只有 send 无 recv = 不成立，第二 demo 降级单图信号链并明示用户）。
+- **已核验通过（2026-08-16，2699 日志）**：跨图投递成立——图 1830 send 5 次，图 1831 与
+  1828 均收到且参数完整（ping-u1/tag-u1）；信号广播到所有监听图。证据
+  `~/genshin-ts-evidence/u1-u2-verify/`（SHA ac82e67a…）；signals.md 尚未闭合条目已闭合；
+  verified-cases.md 已登记。
+
+### O-2026-08-16-3. PKC progressive-query 可用 context 清单未文档化
+
+- 证据：S4 测评子代理对任意 --context 报 `RETRIEVAL_CONTEXT_UNKNOWN` 后绕路 knowledge-search
+  （tool 报告 + 主会话复验：仅 compiler-diagnostics 等注册 context 可用，报错不提示候选列表）。
+- 期望形态：documentation-map 或 pkc 帮助补"已注册 context 清单"；progressive-query 报错时
+  枚举可用 context。
+- 何时做：下次文档/工具维护轮。
+
+### O-2026-08-16-4. 测评 --assert-no-changes 与主会话并行写互相污染
+
+- 证据：eval-s4 运行期间主会话并行编辑 docs/roadmap.md、PROGRESS.md 并 finalize PKC bundle
+  （data/knowledge/bundles/bnd_bbda2fb9…json）→ 断言 no_workspace_changes 失败，changed 全为
+  主会话产物（子代理 0 工具错误、纯只读，报告已核）。
+- 期望形态：评估运行期间主会话暂停工作树写操作，或 evaluate.py 用 --exclude 排除已知变动路径 /
+  独立 worktree。
+- 何时做：下次跑 --assert-no-changes 评估前。
+
+### O-2026-08-16-5. DSH 环境 CLI 自动语言检测失败（Invalid language tag: C）
+
+- 证据：2026-08-16 本会话多次复现——`gsts assets:mounts list`、`assets:signals inspect`、
+  编译均先报 `[error] Invalid language tag: C`，加 `--lang zh-CN` 后正常（auto 检测在 DSH
+  bash 沙箱 locale 下失效）。
+- 期望形态：DSH 环境技能/协作手册注记"gsts 命令一律显式 --lang zh-CN"。
+- 何时做：下次 DSH 会话跑 gsts 命令前。
+
+### O-2026-08-16-6. 普通场景实体 type 1 自定义变量无 CLI 写入口（灯阵设计直接障碍）
+
+- 证据：S5 第二轮测评（eval-s4-r2/final.md T2）——`staticAssemblies[].components` 仅支持
+  basicMotion(4)/followMotion(9)/tabBar(17)；`assets:entities import` 不支持组件；
+  `assets:custom-variables` 只覆盖玩家/CustomPrefab/角色初始变量；**普通场景实体上的
+  自定义变量组件（type 1）无 CLI 写入口**（源码 gil_static_assemblies/gil_entities/
+  gil_custom_variables 复核确认）。
+- 期望形态：CLI 新增普通实体 type 1 组件写入口（GIL 资产槽编码已有编辑器样本证据）或
+  灯阵设计改为不依赖实体变量（信号参数携带状态，eval 已给出规避设计）。
+- 何时做：第二 demo 立项后按需求决定；M4 编译器快速迭代候选。
+
+### O-2026-08-16-7. signals.md 候选"注册布局池"段落未落地
+
+- 证据：S5 第二轮测评（eval-s4-r2/final.md T6）——signals.md 尾部有一份 2026-08-11
+  eval-split 建议的"候选：注册布局池"追加段落（同类型参数每出现一次须消费一套真实且不同
+  布局，套数不足 fail-closed），未并入正式章节。
+- 期望形态：决定并入正式章节或标注废弃。
+- 何时做：下次信号相关文档维护轮。
+
+### O-2026-08-16-8. gen 本地化节点级错配修复（M4 候选，根因已实证）
+
+- 证据：2026-08-16 诊断（backlog §7.1 根因实证小节）——`sectionParameterShape` 排序扁平签名
+  无法区分节点身份；英文 `Insert Value Into List`(3 参) 与中文"拼接列表"(2 参) 同处形状
+  同构的 7 节点 section，按 index 错配注释；`Modify Value In List` 类在中文无对应节点时
+  函数消失/被替换。诊断脚本：resources/node_definitions.json 只读比对。
+- **生成器修复已完成（2026-08-16）**：matchLocalizedNode（名称映射全局搜索→sig rank→降级+warn）
+  + resources/node_name_zh_map.json（489 官方 + 59 人工，含 10 条事件名）；nodes+events 双修复，
+  完整 gen 0 报错；关键注释验证正确；events 漂移（事件参数清空/消失）同根因修复。
+- **同步仍阻塞（用户决策项），已确认 4 处影响面**：① `modifyValueInList`→`setListValue`
+  （GenericValue 单签名）——expr.ts（list[id]=v 降级）/zh_aliases/tests/generated 引用；
+  ② `modifyGlobalTimer`→`increaseGlobalTimerValue`（参数变化）——Stage 1 timer 转换器 +
+  tests/timer_global_overload_type_safety_test.ts 类型断言失败（恢复 definitions 后 tsc 回绿，
+  归因已实证）；③ events 生成内容变化；④ 新定义全量 diff ~4700 行需审阅。
+- **映射收敛完成（2026-08-16）**：85 条人工补全（含 10 事件名 + query/装备/商店/任务等），
+  完整 gen **0 警告**——全部 406 节点 + 62 事件走名称映射配对，无 sig 兜底；
+  修正 1 处误补（Aggro List→仇恨列表）。
+- 何时做：同步决策 + 编译层适配由用户确认后执行。
+
+### O-2026-08-16-9. U2 同图多实体挂载未验证（灯阵架构选项）
+
+- 证据：S4 测评未知清单 U2——"同一节点图挂载到多个实体"从未游戏验证；知识库标注
+  "节点图多实例运行时变量隔离未验证"；决定灯阵是"1 图×9 挂载"还是"9 份同源图"。
+- 进度（2026-08-16）：case 已备好并编译通过——`verify/u2-multi-mount/u2-multi-mount.ts`
+  （图 1834，whenEntityIsCreated→printString('u2-fire')）；GIA wire 断言通过
+  （whenEntityIsCreated=genericId 71 + printString 字面量在位）；挂载计划：1077936151 +
+  1086324737「默认模版」（编辑器自动补占位实体，position 2000 高处，与触发无关）。
+- 期望形态：用户授权后注入验证地图 1073741888 → attach 两实体 → 游戏核验 →
+  日志判定：u2-fire 出现 N 次（N=挂载数）= 多挂载各实例独立执行（灯阵可用 1 图×9 挂载）；
+  1 次 = 仅首实体执行；0 次 = 未执行。图变量实例隔离为次要问题，可后续单独差分。
+- **已核验通过（2026-08-16，2699 日志）**：u2-fire ×2（图 1832 在 1077936151 与
+  1086324738 独立执行，rec0/rec9）——同图多实体挂载成立，灯阵可用 1 图×9 挂载。
+- 备注：attach 目标是 1086324737，日志执行实体为 1086324738（默认模版同 def 实例，
+  挂载共享/实例映射细节未深究，不影响结论）。

@@ -368,7 +368,13 @@ fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec in
 - 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；两例外均已跨家族确认（entity：18 族+180 族；str：18 族+SysCall 1 打印字符串）；例外值 3/4 无解释，按经验规则写值，生产红灯修复见 [`signal-production-red-lights.md`](signal-production-red-lights.md)；`compositePinIndex` 与实例输出 index 的映射；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
 - 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验（同一生成器 + 严格回读 + focused regression `tests/signal_consumption_replay_regression.ts` 保证结构一致，导入仅作可选确认）；
-- 监听信号实际触发及参数值的游戏行为；
+- 监听信号实际触发及参数值的游戏行为——**已闭合（2026-08-16，U1 差分实验 2699 日志）**：
+  跨图投递成立——图 1830 `_GSTS_send`（whenTabIsSelected→sendSignal verify_ping2('ping-u1','tag-u1')）
+  发送后，**图 1831 `_GSTS_recv` 与图 1828 `_GSTS_signal-family2`（同图内另一监听图）均收到**，
+  参数值（ping-u1/tag-u1）完整传递（日志 rec27-38 等，5 次发送 10 组接收打印）；
+  同图多实体挂载也成立——图 1832 `_GSTS_u2-multi-mount` 挂载两个实体
+  （1077936151 + 1086324738）各自独立执行（u2-fire ×2，rec0/rec9）；
+  证据 `~/genshin-ts-evidence/u1-u2-verify/`（日志 SHA ac82e67a…）。
 - 客户端信号节点；
 - 除当前 `cube_turn` 两个 `str` 参数样本外，其他重复类型数量和参数组合的跨地图注册；
 - 全参数端到端游戏行为。

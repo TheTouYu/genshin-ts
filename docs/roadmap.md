@@ -50,6 +50,45 @@
 | S3 | P4-3 CLI 组件移除能力 | `setStaticAssemblyComponents` 扩展移除操作；用命令行移除 1077936135 的命中检测/物件镜头；逐组件验证矩阵（1/3/4/6/12/13/16/17/27/28/29） | 自动回归 + 差分回读一致 + 用户游戏核验 |
 | S4 | 测评回路 P1 最小版 | 定义固定任务包（从零小玩法 demo 的规划阶段）+ 指标（成功率/卡点/绕路次数/成本/知识缺口）；用 isolated-model-evaluator 试跑 | 测评报告 + 暴露的知识/技能缺口清单 |
 
+### 执行状态（滚动更新）
+
+| 项 | 状态 | 证据 |
+|---|---|---|
+| S1 基线收尾 | ✅ 完成 | 提交 822481a（P4-4）+ 59f19e2（roadmap）；tsc/quicktest 绿 |
+| S3 工作① CLI 移除能力 | ✅ 完成 | 提交 1ff4d6a；自动回归全绿 |
+| S3 工作② 真实写回 | ✅ 完成（待用户游戏核验） | SHA dcca49ae→4a2368c2；差分只动目标记录；证据 `~/genshin-ts-evidence/p43-remove-components/` |
+| S4 测评回路最小版 | ✅ 完成（2026-08-16） | 详见下文"测评结果"；证据 `~/genshin-ts-evidence/eval-s4-signal-puzzle/` |
+| S5 缺口补齐（PKC 检索语义） | ✅ 完成（2026-08-16） | documentation-map 补 progressive-query context 语义注；对应 O-2026-08-16-3 |
+| S5 第二轮测评对比（M3 首次） | ✅ 完成（2026-08-16） | R2 vs R1：耗时 −24.5%、调用 −47.6%、成本 −32.9%、零污染；且新发现 T2（CLI 无普通实体自定义变量写入口）；证据 `~/genshin-ts-evidence/eval-s4-r2/` |
+| M3 稳定性确认（第三轮测评） | ✅ 完成（2026-08-16） | R3 vs R1：耗时 −19.6%、调用 −29.5%、成本 −29.2%，改善稳定非噪声；1 次 ls 错误子代理自恢复；证据 `~/genshin-ts-evidence/eval-s4-r3/` |
+| M4 前置：gen 漂移修复 | ✅ 完成（2026-08-16） | 生成器本地化修复（名称映射配对，resources/node_name_zh_map.json 538 条）；完整 gen 0 错配、关键注释验证正确；同步阻塞于 modifyValueInList→setListValue 改名（expr.ts/zh_aliases/tests 引用），待用户决策；O-2026-08-16-8 + backlog §7.1 |
+| S6 前置：U1+U2 核验 | ✅ **双成立（2026-08-16，2699 日志）** | U1 跨图投递：图 1830 send → 1831+1828 均收、参数完整；U2 多挂载：1832 双实体独立执行；signals.md 闭合；O-2026-08-16-2/9 关闭 |
+| S6 架构决策 | ✅ 灯阵架构确认 | **1 图 × 9 挂载 + 跨图信号广播** 均可行——灯阵用单图多挂载方案（更简） |
+| S2 文档对齐 | ✅ 完成（PKC 回填待 P5 验收后） | PROGRESS.md P4 行 + 2026-08-16 变更记录；挂载状态复核 |
+| S3 工作③ 验证矩阵 | ⬜ 待安排 | 验证地图上做，不碰魔方地图 |
+
+### S4 测评结果（2026-08-16，第一个指标基线）
+
+**任务**：干净模型（deepseek-v4-flash，无会话无上下文，只加载 game-from-scratch + miliastra-knowledge 技能）对"信号驱动灯阵谜题"做规划阶段。
+
+**指标基线**：442s / 105 次工具调用（364 bash + 56 read）/ 0 工具错误 / $0.037 / 最终答案完整达标（7 项验收全满足）。
+
+**质量结论**：子代理自主产出高质量规划——输入机制带闭合状态标注、8 阶段计划每阶段有验收、资产复用如实判定（A 档不硬凑）、12 条未知规则（U1-U12）逐条标注"未验证/需差分/需用户编辑器确认"、含降级路径与玩家视角验收标准；全程只读，诚实报告工具不一致。
+
+**暴露的缺口（三类）**：
+
+1. **引擎知识缺口（第二 demo 前置差分实验清单，S6 输入）**：
+   - U1 跨图信号运行时投递（图 A send → 图 B onSignal）——**架构命门**，2698 只验证了同图内
+   - U2 同一节点图挂载多实体 + 图变量实例隔离
+   - U3 monitorSignal 事件载荷游戏层语义
+   - U4 `modify_model_color_and_material`(835) 权威 data.json 无定义、fillColor 颜色格式无出处（需用户编辑器差分）
+   - U5 `activate_disable_model_display`(308) 有官方定义但游戏行为未验证
+   - U6-U12 低风险项见 `~/genshin-ts-evidence/eval-s4-signal-puzzle/final.md` §5
+2. **PKC 工具文档缺口**：`progressive-query --context` 只接受已注册 context（compiler-diagnostics 等），任意节点 id 报 `RETRIEVAL_CONTEXT_UNKNOWN` 且报错不提示可用列表；子代理绕路 knowledge-search 成功。→ 文档补"已注册 context 清单"或报错提示候选。
+3. **测评方法论缺口**：--assert-no-changes 与主会话并行写互相污染（本次 changed 全为主会话产物）；→ 评估期间主会话暂停写，或用 --exclude / 独立 worktree。
+
+**S6 方向建议**：信号驱动灯阵谜题作为第二 demo 候选已具备完整规划（含 0.5 差分前置清单），方向取舍待用户拍板；测评任务文件本身即 S6 立项文档草案。
+
 ### D2（明天）
 
 | # | 任务 | 动作 | 验收标准 |
@@ -97,15 +136,27 @@ M1+M2 合起来就是中期目标的核心产出：**通过配套技能轻松完
 
 | 项 | 状态 | 对策 |
 |---|---|---|
-| P4-4 工作树未提交 | 待用户确认 | 提交前重跑 tsc + quicktest |
 | P4-5 type 4 配置变体 / P4-6 type 18 UI 名 | 不阻塞 | 用户方便时安排受控实验 |
 | `npm test` 已知枚举组合边界（E_UNKNOWN_NODE_VARIANT） | 与本次无关的预存失败（testing.md 2026-07-31） | 不扩散；如要闭合需独立任务 |
-| `npm run gen` 完整产物 ~5k 行资源漂移 | 未审计（compiler-practical-optimization-backlog §7.1） | 独立审计任务，不混入本轮 |
+| `npm run gen` 完整产物漂移 | 已审计 + 生成器修复完成（backlog §7.1）；同步待用户决策（D5） | 同步前禁止整批替换 definitions |
 | 编辑器保存会破坏注入内容（B4） | 已知 | 写回后要求用户重新加载地图/游戏 |
 | 验证地图实例 1073741888 的注入配置 | 注入前临时加（verify-injection 约定） | 按技能流程执行 |
 | 第二 demo 方向未定 | 待用户拍板 | S6 提供选项与取舍说明 |
 
-## 八、防丢失锚点（给未来会话）
+## 八、待用户决策清单（2026-08-16 汇总，按优先级）
+
+| # | 事项 | 状态 | 用户动作 |
+|---|---|---|---|
+| D1 | **U1 跨图信号注入**（第二 demo 架构命门） | case 已编译断言通过 | 授权注入验证地图 1073741888（2 placeholder 图 + 2 注入 + attach 1077936151），随后进游戏点 1 次选项卡 |
+| D2 | **P4-3 游戏核验** | 角块 UFL 12/13 已写回 | 重新加载魔方地图，确认角块 UFL 正常 |
+| D3 | **PKC Bundle 审批** | bnd_bbda2fb9… 已 finalize | 确认 content_hash `bbda2fb9…b2e0` 后 approve+apply |
+| D4 | **本轮改动提交** | 生成器修复 + 10 文档 + verify case 在工作树 | 指示提交（建议分 3 笔：生成器修复 / 文档沉淀 / verify case） |
+| D5 | **M4 同步决策** | gen 修复完成，同步影响面 4 处已确认 | 决定是否同步新定义 + 适配编译层（modifyValueInList→setListValue、modifyGlobalTimer→increaseGlobalTimerValue） |
+| D6 | **S6 第二 demo 方向** | 灯阵规划完成（含 0.5 差分前置清单） | 拍板方向（信号灯阵 / UI 计分 / 连续输入） |
+| D7 | **S3 工作③ 矩阵执行** | 设计已定稿 `docs/maintenance/component-cli-verification-matrix.md` | 授权在验证地图执行（新建专用实体逐行验证） |
+| D8 | 低优先 | P4-5（type 4 变体）/ P4-6（type 18 UI 名） | 用户方便时编辑器确认 |
+
+## 九、防丢失锚点（给未来会话）
 
 - 本路线图：`docs/roadmap.md`
 - 复盘账本：`docs/maintenance/open-items.md`（DONE/OPEN 带状态）

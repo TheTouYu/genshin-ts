@@ -329,6 +329,33 @@ gsts validate-gia <file.gia> --format json
 `--composite-contracts-only` 从同一生成脚本产出 Composite 契约的最小 diff。后续定义维护应独立审计
 并决定是否同步整批生成结果，不能把大范围资源更新伪装成 Composite 类型修复。
 
+**漂移审计（2026-08-16，证据 `~/genshin-ts-evidence/gen-drift-audit/`）**：完整 gen 产物三类漂移——
+① `nodes.ts`（+2050/−3469）**注释错配 + 函数被替换**（例：`insertValueIntoList` 的注释被写成
+"拼接列表/清除列表"、`modifyValueInList` 函数体被替换为"清除列表"实现）——本地化 section 匹配
+对部分节点仍错位；② `events.ts`（+15/−71）**事件参数丢失/清空**（`whenComplexCreationPresetStatusChanges`
+整段消失、`whenTheActiveCharacterChanges` 参数清空为 `[]`）——事件参数来源比提交版少；③ `prefabs.ts`
+（2 行）无害引号规范化。**结论：当前完整 gen 产物有实质语义错误，禁止整批同步；提交版 definitions
+更可靠**；生成器本地化匹配 + 事件参数来源需独立修复任务（M4 候选）。
+
+**根因实证（2026-08-16 追加）**：`findLocalizedSection` 的 `sectionParameterShape` 把 section 内
+所有节点的参数方向**排序后扁平拼接**成签名（如 `i|ii|ii|ii|iii|iii|io`），不保留节点身份；
+中文 section 的节点是中文名（如"拼接列表"2 参、"清除列表"1 参），与英文节点集（Insert Value
+Into List 3 参等）**语义不同但形状同构**时匹配成功，随后 `nodeZh = sectionZh.nodes[nIndex]`
+按索引取 → 注释张冠李戴；英文有而中文无的节点（Modify Value In List 类）则函数消失/被替换。
+**修复方向（fail-closed）**：形状匹配后增加**节点级校验**（逐节点参数数量+方向序列一致，
+不一致抛错并给出 en/zh 节点名）或显式错配映射表；不得静默错配。修复需完整 gen 复验。
+
+**修复完成（2026-08-16，脚本层）**：`scripts/generate-definitions.ts` 新增 `nodeSignature` +
+`matchLocalizedNode`（名称映射优先 → sig rank 兜底 → 空 zh 降级 + warn），名称映射固化在
+`resources/node_name_zh_map.json`（data.json InGameName 官方映射 489 条 + 人工补全 49 条）。
+验证：完整 gen 0 报错 0 错配警告；`insertValueIntoList` 注释恢复正确（"对列表插入值"）、
+排行榜 Integer/Float 不再交叉错配、`setListValue`（原 modifyValueInList，官方改名 "Set List
+Value"）注释正确。**映射收敛完成（2026-08-16）**：85 条人工补全后完整 gen 0 警告（406 节点 + 62 事件全部名称映射配对）。
+**同步阻塞**：新资源将 `modifyValueInList` 改名为 `setListValue` 且签名
+从 10 个类型化重载变为 GenericValue 单签名——`src/compiler/ts_to_gs_transform/expr.ts`
+（`list[id]=v` 降级调用）、`src/definitions/zh_aliases.ts`、`tests/generated/group_02.literal.ts`
+均引用旧名；同步新定义需连带适配编译层并全量回归（独立任务，用户决策）。
+
 ### 7.2 文档站依赖阻断
 
 `cd docs && npm run build` 当前失败：

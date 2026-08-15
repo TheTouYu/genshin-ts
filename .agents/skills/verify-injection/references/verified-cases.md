@@ -33,3 +33,20 @@
     `connect/connect2 = {kind: InFlow, index: 1}`，与 case3 真实证据逐字节同构；
   - 注入后 `.gil` 回读同一 wire 形态保持。
 - 用户游戏证据：编辑器打开正常、行为符合预期（loop-body 仅 1 次 + after 打印），核验通过。
+
+## verify-u1-cross-graph + verify-u2-multi-mount（2026-08-16，用户游戏核验通过）
+
+- 背景：S4 测评暴露 U1（跨图信号投递未验证）与 U2（同图多实体挂载未验证）——信号灯阵
+  第二 demo 的架构命门。
+- 地图：`1073741888.gil`「GSTS核验-复合族4」（现有实例，未新建）。
+- 分支图：placeholder 1830/1831/1832 → 注入后 `_GSTS_send`（3 节点）/`_GSTS_recv`（5 节点）/
+  `_GSTS_u2-multi-mount`（2 节点）；attach：1830/1831→1077936151，1832→1077936151+1086324737
+  （日志实际执行实体 1086324738——默认模版实例，与 attach 目标同 def）。
+- case 源：`verify/u1-cross-graph/send.ts|recv.ts`（verify_ping2）、`verify/u2-multi-mount/u2-multi-mount.ts`。
+- 自动证据：GIA wire 断言（send=1610612744/monitor=1610612745 与注册表精确一致、字面量在位）；
+  注入后图名索引逐节点吻合；Temp 同步 MD5 一致。
+- 用户游戏证据：2699 日志——**U1 跨图投递成立**（send 图 1830 发送 5 次 → 图 1831 与 1828
+  均收到，参数 ping-u1/tag-u1 完整传递）；**U2 多挂载成立**（图 1832 在两个实体上独立执行，
+  u2-fire ×2）。证据 `~/genshin-ts-evidence/u1-u2-verify/`（SHA ac82e67a…）。
+- 规则结论：跨图信号投递 = 广播语义（所有监听该信号的图均收到）；同图可挂多实体且各实例
+  独立执行（whenEntityIsCreated 每实体触发）。已同步 signals.md「尚未闭合」条目闭合。

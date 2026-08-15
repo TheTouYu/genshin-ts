@@ -17,7 +17,7 @@
 | P2 资产 | 角块元件 v7：长方体薄片有厚度、缝 0.035、深灰 0x404040 + 6 色薄片 | ✅ 完成 | 用户游戏确认 |
 | 控制器视觉 | 微缩魔方控制器 v11：薄片偏移公式修正（0.465）+ 厚度 0.01 | ✅ 完成 | 用户游戏确认（2026-08-13 v11） |
 | P3 输入 | tabBar 选项卡组件（sphere r=3 [0.1,0,0]）CLI 支持 + 游戏核验 | ✅ 完成 | 用户游戏确认 |
-| P4 玩法 | 节点图源码→编译→注入（最小实验→6 选项） | 🟡 最小实验完成：事件链路/tabId/旋转配方已游戏+日志核验；6 选项全量+动态创建待做 | 编译断言+回读+用户游戏核验+日志逐帧 |
+| P4 玩法 | 节点图源码→编译→注入（最小实验→6 选项） | 🟡 主玩法闭环：8 角块动态创建 + 6 选项全量 + 组合旋转（v5.5 位置+朝向全精确，用户核验"数据非常完美"）；待 P5 正式验收 | 编译断言+回读+用户游戏核验+日志逐帧 |
 | P5 验证 | 游戏核验 + 日志解析 | ⬜ 待做 | 用户游戏确认 |
 | P6 沉淀 | PKC 回填 + 本文件更新 | ⬜ 待做 | pkc validate |
 
@@ -122,3 +122,15 @@
   - `shouldCaptureIdentifier` 排除类型级 `typeof a.b`（QualifiedName），修复定时器捕获生成跨作用域引用的 ReferenceError。
 - **生成与回归**：`scripts/generate-definitions.ts` 的契约补丁函数改名 `applyDefinitionTypeContracts`；用 `--composite-contracts-only` 最小生成 nodes.ts（完整 `npm run gen` 的 ~5k 行资源漂移未纳入，见 compiler-practical-optimization-backlog §7.1）。`tests/timer_global_overload_type_safety_test.ts` 增补 evt/timerName 非 any 类型断言。
 - **验证**：`npm run build` 绿；`npm run quicktest` 绿（66 GIA，--noinject）；`npm test` 仍停在与本次无关的已知枚举组合断言边界（`E_UNKNOWN_NODE_VARIANT`，testing.md 2026-07-31 记录）；`git diff --check` 通过。
+
+## 变更记录 2026-08-16（P4-3：CLI 组件移除能力 + 角块 12/13 移除写回）
+
+- **工作①（提交 1ff4d6a）**：`GstsStaticPrefabUpdate.removeComponents`——定义槽 8 + 实例槽 7 双写移除；
+  不存在码静默跳过并回报实际移除清单；与 components 同型互斥校验；CLI summary 输出
+  `updatedRemovedComponents`。自动验证：tsc 绿 + `tests/gil_static_prefab_updates.ts`
+  （增→删回源字节一致/幂等 no-op/重复码/互斥/非法码）+ `static_assembly_public_config.ts` + quicktest 66 GIA 绿。
+- **工作②（写回完成）**：探针确认仅 1077936135（角块_UFL）多出 type 12/13（其余 7 块标准 7 槽）；
+  候选 diff 只动该记录（25 图 + 24 复合零改动）；`--write` 后 SHA `dcca49ae→4a2368c2`（与候选一致），
+  备份 `.gsts/backups/1073741882.gil.2026-08-15T05-29-23-697Z.bak`，Temp 已同步；回读 def+inst 均 7 槽标准。
+  证据：`~/genshin-ts-evidence/p43-remove-components/`。**待用户游戏核验**（重新加载地图后角块 UFL 正常）。
+- **工作③**：逐组件验证矩阵（添加→回读→游戏核验→移除）待安排（在验证地图上做，不碰魔方地图）。
