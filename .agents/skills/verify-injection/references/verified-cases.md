@@ -50,3 +50,18 @@
   u2-fire ×2）。证据 `~/genshin-ts-evidence/u1-u2-verify/`（SHA ac82e67a…）。
 - 规则结论：跨图信号投递 = 广播语义（所有监听该信号的图均收到）；同图可挂多实体且各实例
   独立执行（whenEntityIsCreated 每实体触发）。已同步 signals.md「尚未闭合」条目闭合。
+
+## verify-u4-color-change + verify-u4b-model-display（2026-08-16，用户游戏核验）
+
+- 背景：U4 判定节点 835（modifyModelColorAndMaterial）有效性 + 灯阵明暗方案选择；
+  835 不在编辑器 data.json/server 静态元数据，committed DSL 支持为旧快照遗产。
+- 地图：`1073741888.gil`；分支图 1833 `_GSTS_u4-color-change`（835）/ 1834
+  `_GSTS_u4b-model-display`（308），均 attach 1077936151。
+- case：`verify/u4-color-change/`（图 1835 DSL：whenTabIsSelected → 835 改色 0xFF0000/
+  opacity 100）+ `verify/u4b-model-display/`（图 1836 DSL：tabId==1 → 308 false 隐藏，
+  其他 → 308 true 显示）。
+- 自动证据：GIA wire 断言（835 帧 IN3=16711680、IN4=100.0 参数正确；308 双分支结构）。
+- 用户游戏证据（2701/2702 日志）：**835 执行但不变色 → 无效节点 ID**（三重重证据）；
+  **308 生效**——点 R 实体隐藏（u4b-hide-fire ×1）、点 L 重现（u4b-show-fire ×5）。
+- 结论：灯阵明暗用 308 显隐（亮=显示/暗=隐藏）；835 从 M4 同步保留清单移除（新资源
+  删除方向正确）。证据 `~/genshin-ts-evidence/u4-color-change/` + `u4b-model-display/`。
