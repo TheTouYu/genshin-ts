@@ -423,7 +423,20 @@ function buildEvents() {
   }[] = []
   eventDef.sections.forEach((section, sIndex) => {
     section.nodes.forEach((node, nIndex) => {
-      const nodeZh = eventDefZh.sections[sIndex].nodes[nIndex]
+      // 2026-08-16 修复：事件本地化与 nodes 同构——en/zh section 数量不一致（27 vs 28）
+      // 且节点顺序不同，旧实现按 index 取 zh 节点零校验导致事件参数清空/事件消失
+      const eventSectionZh = findLocalizedSection(eventDefZh.sections, section, sIndex)
+      const matchedEventNode = matchLocalizedNode(eventSectionZh!, section, nIndex, eventDefZh.sections)
+      const nodeZh = matchedEventNode.node ?? ({ parameters: [] } as DefinitionSection['nodes'][number])
+      if (!matchedEventNode.node) {
+        console.warn(
+          `buildEvents: event "${node.name}" has no zh counterpart in section "${section.title}" (sig=${nodeSignature(node)}); generating english-only — add entry to resources/node_name_zh_map.json to fix`
+        )
+      } else if (matchedEventNode.matchedBy === 'signature') {
+        console.warn(
+          `buildEvents: event "${node.name}" matched zh by signature (not name map), zh="${nodeZh.name}"`
+        )
+      }
       const params = (node.parameters ?? []).map((p, pIndex) => ({
         name: toIdentifier(p.name),
         nameZh: nodeZh.parameters?.[pIndex]?.name || '',
@@ -434,7 +447,7 @@ function buildEvents() {
       }))
       events.push({
         name: toIdentifier(node.name),
-        nameZh: nodeZh.name,
+        nameZh: nodeZh.name ?? '',
         desc: getNodeFunctions(node).join('; '),
         descZh: getNodeFunctions(nodeZh).join('; '),
         params
@@ -689,7 +702,52 @@ function parseRomanSectionOrdinal(title: string): number | undefined {
 
 type DefinitionSection = {
   title?: string
-  nodes: Array<{ parameters?: Array<{ io: string }> }>
+  nodes: Array<{
+    name?: string
+    parameters?: Array<{ io: string; name?: string; description?: string }>
+    functions?: string[]
+    overview?: string[]
+  }>
+}
+
+// en 节点名 → zh 节点名官方映射（2026-08-16 修复本地化错配；来源：
+// Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack InGameName，已固化为
+// resources/node_name_zh_map.json，生成器不依赖外部路径）
+const nodeNameZhMap: Record<string, string> = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'resources', 'node_name_zh_map.json'), 'utf-8')
+).entries as Record<string, string>
+
+function nodeSignature(node: DefinitionSection['nodes'][number]): string {
+  return (node.parameters ?? [])
+    .map((parameter) => (/output|出参/i.test(parameter.io) ? 'o' : 'i'))
+    .join('')
+}
+
+function matchLocalizedNode(
+  zhSection: DefinitionSection,
+  enSection: DefinitionSection,
+  enIndex: number,
+  allZhSections?: readonly DefinitionSection[]
+): { node: DefinitionSection['nodes'][number] | undefined; matchedBy: 'name' | 'signature' } {
+  const enNode = enSection.nodes[enIndex]
+  // 1) 名称映射优先（全 zh 文档搜索）：shape 匹配可能把 en section 配到错误的 zh section
+  //    （同形状不同内容），zh 节点名全局唯一，全局按名找最稳
+  const zhName = enNode.name ? nodeNameZhMap[enNode.name] : undefined
+  if (zhName) {
+    const pool = allZhSections?.length ? allZhSections : [zhSection]
+    for (const section of pool) {
+      const byName = section.nodes.find((node) => node.name === zhName)
+      if (byName) return { node: byName, matchedBy: 'name' }
+    }
+  }
+  // 2) 签名 rank 兜底：en 第 k 个 sig X ↔ zh 第 k 个 sig X（同 section 内相对顺序一致时正确）
+  const signature = nodeSignature(enNode)
+  const rank = enSection.nodes
+    .slice(0, enIndex)
+    .filter((node) => nodeSignature(node) === signature).length
+  const bySignature = zhSection.nodes.filter((node) => nodeSignature(node) === signature)[rank]
+  if (bySignature) return { node: bySignature, matchedBy: 'signature' }
+  return { node: undefined, matchedBy: 'signature' }
 }
 
 function sectionParameterShape(section: DefinitionSection): string {
@@ -779,10 +837,15 @@ function buildNodes() {
           const zhKey = key.replace('en-us', 'zh-cn') as keyof typeof rawDef
           const nodeDefZh = rawDef[zhKey] as (typeof rawDef)['server_exec_zh-cn']
           const sectionZh = findLocalizedSection(nodeDefZh.sections, section, sIndex)
-          const nodeZh = sectionZh?.nodes[nIndex]
-          if (!nodeZh) {
-            throw new Error(
-              `missing Chinese definition at section "${section.title}", node ${nIndex}`
+          const matchedNode = matchLocalizedNode(sectionZh!, section, nIndex, nodeDefZh.sections)
+          const nodeZh = matchedNode.node ?? ({ parameters: [] } as DefinitionSection['nodes'][number])
+          if (!matchedNode.node) {
+            console.warn(
+              `buildNodes: node "${node.name}" has no zh counterpart in section "${section.title}" (sig=${nodeSignature(node)}); generating english-only comments — add entry to resources/node_name_zh_map.json to fix`
+            )
+          } else if (matchedNode.matchedBy === 'signature') {
+            console.warn(
+              `buildNodes: node "${node.name}" matched zh by signature (not name map), zh="${nodeZh.name}"`
             )
           }
 
@@ -838,7 +901,7 @@ function buildNodes() {
                 })
           nodes.push({
             name: nodeName,
-            nameZh: nodeZh.name,
+            nameZh: nodeZh.name ?? '',
             desc: getNodeFunctions(node).join('; '),
             descZh: getNodeFunctions(nodeZh).join('; '),
             nodeKind,
