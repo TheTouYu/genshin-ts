@@ -248,3 +248,47 @@
   （灯柱/灯头 → [5,0,5]/[5,0.95,5]，写回 SHA e09f6e2a…）。
 - 何时做：下次 assets:entities 相关派活/文档维护时同步（production-workflow 或
   static-gil-model-builder 参考补命令形态）。
+
+### O-2026-08-16-13. DSL 无法传实体字面量（entityLiteral IR=null）——编译器能力缺口
+
+- 证据：游戏开发子代理（b914c930）三关实现 trace（2026-08-15）——尝试在 DSL 中引用指定实体
+  （按 ID 获取/字面量），grep ir_builder/toIRLiteral/declaredGuid 多处后实测 entityLiteral IR=null；
+  绕路：锁定/解锁全部由灯柱 self 完成，管理图纯信号编排。
+- 影响：无法在节点图代码中定向引用场景实体，设计被逼用信号回执/self 模式。
+- 方向：评估 DSL 增加实体字面量/按 GUID 引用能力，或文档明确限制 + 提供推荐模式。
+
+### O-2026-08-16-14. 屏幕 UI 控件 CLI 无创建入口——编译器能力缺口
+
+- 证据：同 trace——查 ui-controls.md + src/cli/ui.ts 确认 CLI 无屏幕 UI 创建能力；
+  用选项卡（tabBar）替代开始界面。
+- 影响：游戏无法用 CLI 做屏幕 UI（开始界面/计分板等），只能选项卡/实体替代。
+- 方向：文档标注限制（已有 ui-controls.md）；评估 CLI 增加 UI 入口（需编辑器预置语义调查）。
+
+### O-2026-08-16-15. 注入覆盖陷阱：多图注入需分别建占位图——流程/技能缺口
+
+- 证据：同 trace——四图（1073741825-28）逐图注入时发现注入互相覆盖，需分别建占位图+逐图注入。
+- 影响：多图项目注入流程摩擦；技能未覆盖。
+- 方向：gil-node-graph-editing/verify-injection 技能补"多图注入"章节。
+
+### O-2026-08-16-16. setCustomVariable 类型变体规则（胜利 bug 根因，已文档化）
+
+- 证据：同 trace（日志 2712）——number→float(cid=26)、bigint→int(cid=22)，读写变体分裂导致
+  winCount 恒 1。
+- 落地：docs/game-engine-knowledge/variable-scopes.md 已新增规则；待知识库录入（clm 待建）。
+
+### O-2026-08-16-17. DSL 不支持数组 forEach/闭包循环——手写展开绕路（编译器能力缺口）
+
+- 证据：游戏开发子代理 trace（t11.21/t11.37）——三关解锁需 activateDisableTab 50 个实体，
+  想用 forEach/列表循环，确认"没有实体列表循环的现成简单方式/编译器可能不支持数组 forEach
+  回调"后**手写展开 50 个调用**（"就 50 个吧"）。
+- 影响：批量实体操作（解锁/禁用/批量设置）被迫手写展开，节点数爆炸（50 个节点 vs 1 循环）。
+- 方向：评估 DSL 增加有限循环（finite loop 映射）/集合迭代支持，或文档明确"批量操作手写展开"
+  并提供模板模式。
+
+### O-2026-08-16-18. 无按 ID/定向实体查询 + 信号无定向投递——设计受限
+
+- 证据：同 trace（t9.1/t9.18/t11.47）——"Get Entity by GUID 可能不存在"、"无法定向只能广播"、
+  "activateDisableTab 需要实体 ID 引用（DSL 无法）"。
+- 影响：胜利判定（查每灯状态）、关卡解锁（定向激活）都被逼用 self+广播/信号回执模式，图复杂度上升。
+- 方向：评估 DSL 实体字面量/按 GUID 引用（O-13 同族）；信号定向投递需引擎能力调查（可能不支持，
+  文档明确限制与推荐模式）。
