@@ -178,14 +178,14 @@
   （空串/unknown→generic、Emtity→entity）、payload 类型映射（str→string 等）、
   GenericValue/EnumerationValue 幂等导入补丁、映射表 2 处修正（Loot 装备/GUID 对调）。
   验证：gen + generate-zh-aliases.mjs 全链 0 错，nodes.ts 生成物自身类型 0 错。
-- **第二层剩余（77 个依赖方错误）**：manual_verify_*（44）、server-nodegraph（12）、
-  list_dict_placeholder（8）、core.ts 事件映射（5）、signal_parameters（3）、
-  enum_updates（3）——断言期望更新 + core.ts 事件表适配；**事件集收缩决策点**
-  （官方资源删除 whenPlayerFollowsControlMotor 等 3 事件，DSL 表面收缩）。
-- **第三层**：expr.ts modifyValueInList→setListValue（签名语义：10 重载→GenericValue
-  单签名，需游戏验证 list[id]=v）；timer 转换器 modifyGlobalTimer→increaseGlobalTimerValue
-  （targetEntity 参数变化）。
-- 何时做：用户授权范围内继续（第二层断言更新可自主完成）。
+- **同步中止（2026-08-16 决策）**：第二层排查发现**节点集差异阻塞**——新资源缺失
+  modifyModelColorAndMaterial(835)、操控运动器系列、光标系列等**旧快照独有节点**
+  （manual_verify 断言 30+ 处引用）；835 是灯阵变色玩法关键节点（U4 未验证），
+  完全同步将删除其 DSL 支持 = 能力回退。**决策：保持 committed definitions，不同步**；
+  生成器修复（第一层，7e752f4）独立保留（未来资源更新时 gen 产物正确性有保证）。
+- **后续路径**：① 先做 U4 差分（835 游戏行为，灯阵前置）→ ② 若 835 有效，生成器加
+  "保留节点清单"机制做受控同步（新资源 + 旧独有节点）→ ③ 若 835 无效，评估 308 替代。
+- 第三层（expr.ts/timer 适配）随同步取消而取消（committed 定义不变，无需适配）。
 
 ### O-2026-08-16-9. U2 同图多实体挂载未验证（灯阵架构选项）
 
