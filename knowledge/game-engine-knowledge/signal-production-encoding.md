@@ -37,3 +37,15 @@
 自动回归断言曾与真实证据冲突，本轮按真实证据修正测试（生产代码零改动）；列表参数物理 pin 证据为真实 GIL v14；端到端 demo 覆盖复合内发送+主图监听消费单一样本；其他信号 schema 与客户端图不推广
 
 <!-- CLAIM:END clm_D4F75C7BF79D3B60EB8DF5EB3F -->
+
+<!-- CLAIM:START clm_1A48C87938D83D3736EA97AFA1 -->
+
+### 跨图信号投递为广播语义；同图可挂多实体且各实例独立执行
+
+2026-08-16 U1/U2 差分实验（2699 日志，SHA ac82e67a…）游戏核验闭合：①跨图信号投递成立——图 1830 _GSTS_send（whenTabIsSelected→sendSignal verify_ping2('ping-u1','tag-u1')）发送后，图 1831 _GSTS_recv 与图 1828 _GSTS_signal-family2（另一张监听图）均收到且参数值完整传递（广播语义：所有监听该信号的图都收到）；②同图多实体挂载成立——图 1832 _GSTS_u2-multi-mount 挂载两个实体（1077936151 与默认模版实例 1086324738）各自独立执行（whenEntityIsCreated 每实体触发，u2-fire ×2）。灯阵架构可用 1 图×9 挂载 + 跨图信号广播。
+
+#### 适用边界
+
+单地图（1073741888）单信号（verify_ping2 str×2）样本；entity/guid 等参数类型与级联发送未覆盖；证据为 2699 日志 + 图名索引，用户游戏核验通过。
+
+<!-- CLAIM:END clm_1A48C87938D83D3736EA97AFA1 -->

@@ -62,6 +62,21 @@
       ]
     },
     {
+      "id": "aref_07db79e6d080aba53d7b36f7ee",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "895e2cb:尚未闭合条目闭合（跨图投递+多挂载）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "877c27a568403f8d9948f70fd6592362c14df191b35f031ba38d760bdf0de0fb",
+      "claim_ids": [
+        "clm_1A48C87938D83D3736EA97AFA1"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_085b746b8b4bdf228c8b4f7184",
       "path": "src/cli/static_assembly/inspection.ts",
       "locator": "inspectStaticAssemblyMap() and Inspection V1 construction",
@@ -1826,6 +1841,21 @@
       "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
       "claim_ids": [
         "clm_02691D5BF0DDBAD95E355C3933"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_be0345fbbcc598dc30f6d0fd0c",
+      "path": ".agents/skills/verify-injection/references/verified-cases.md",
+      "locator": "895e2cb:verify-u1-cross-graph + verify-u2-multi-mount",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "075ef9c0ef333bba16f4ac466f8589a8855363fb0387d58855be1c10d439b4b5",
+      "claim_ids": [
+        "clm_1A48C87938D83D3736EA97AFA1"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
