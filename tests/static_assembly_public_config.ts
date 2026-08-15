@@ -71,6 +71,7 @@ const update: GstsStaticPrefabUpdate = {
   instanceId: 5,
   expectedName: '模板',
   components: [component],
+  removeComponents: [12, 13],
   scale: [0.01, 0.01, 0.01]
 }
 

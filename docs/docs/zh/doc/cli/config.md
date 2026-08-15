@@ -94,12 +94,18 @@ assets: {
       instanceId: EXISTING_SCENE_INSTANCE_ID,
       expectedName: '当前确认名称',
       scale: [0.01, 0.01, 0.01]
+    },
+    {
+      prefabId: EXISTING_PREFAB_DEFINITION_ID,
+      instanceId: EXISTING_SCENE_INSTANCE_ID,
+      expectedName: '当前确认名称',
+      removeComponents: [12, 13]
     }
   ]
 }
 ```
 
-该操作要求 ID、名称和实例到定义的引用全部匹配，否则失败关闭。`components` 同步更新定义与指定实例，已有相同类型组件槽时替换而不叠加；`position` 只更新指定场景实例的位置，保持旋转、缩放和元件定义不变；`scale` 只更新指定场景实例的缩放，保持位置、旋转和元件定义不变。它不会创建元件或辅助 ID。CLI 仍默认 preview，`--output` 生成离线候选，`--write` 自动备份后写回。当前原地更新能力已有自动回归和离线真实地图候选验证；具体写回与游戏表现必须另行确认，不能由自动测试替代。
+该操作要求 ID、名称和实例到定义的引用全部匹配，否则失败关闭。`components` 同步更新定义与指定实例，已有相同类型组件槽时替换而不叠加；`removeComponents` 同步从定义与实例中移除指定类型码的组件槽（如 `4`=基础运动器、`12`=命中检测、`13`=物件镜头），只做移除不做其他编码，记录中不存在的类型码静默跳过，实际移除清单输出到结果；`position` 只更新指定场景实例的位置，保持旋转、缩放和元件定义不变；`scale` 只更新指定场景实例的缩放，保持位置、旋转和元件定义不变。`removeComponents` 与 `components` 不得针对同一类型码（禁止对同一类型既增又删）。它不会创建元件或辅助 ID。CLI 仍默认 preview，`--output` 生成离线候选，`--write` 自动备份后写回。当前原地更新能力已有自动回归和离线真实地图候选验证；具体写回与游戏表现必须另行确认，不能由自动测试替代。
 
 复杂模型可以把主颜色和 `items` 移到严格 JSON 结构文件中，地图相关的名称、模板、ID 和场景 Transform 仍保留在配置里：
 

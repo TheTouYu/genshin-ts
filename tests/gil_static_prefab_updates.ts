@@ -181,4 +181,106 @@ assert.throws(
   /expectedName.*does not match/i
 )
 
+// --- P4-3: removeComponents（组件移除能力）---
+writeFileSync(gilPath, sourceBytes)
+const addForRemoval = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'basicMotion', preset: 'default' }]
+  }
+})
+assert.equal(components(record(addForRemoval.bytes, 4, FIXTURE_IDS.definition), 8, 4).length, 1)
+assert.equal(components(record(addForRemoval.bytes, 8, FIXTURE_IDS.instance), 7, 4).length, 1)
+
+writeFileSync(gilPath, addForRemoval.bytes)
+const removeResult = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    removeComponents: [4]
+  }
+})
+assert.deepEqual(removeResult.removedComponents, [4])
+assert.equal(components(record(removeResult.bytes, 4, FIXTURE_IDS.definition), 8, 4).length, 0)
+assert.equal(components(record(removeResult.bytes, 8, FIXTURE_IDS.instance), 7, 4).length, 0)
+assert.equal(
+  Buffer.from(record(removeResult.bytes, 4, FIXTURE_IDS.definition)).equals(
+    Buffer.from(record(sourceBytes, 4, FIXTURE_IDS.definition))
+  ),
+  true,
+  'removing the only added component must restore the original definition'
+)
+assert.equal(
+  Buffer.from(record(removeResult.bytes, 8, FIXTURE_IDS.instance)).equals(
+    Buffer.from(record(sourceBytes, 8, FIXTURE_IDS.instance))
+  ),
+  true,
+  'removing the only added component must restore the original instance'
+)
+
+writeFileSync(gilPath, sourceBytes)
+const absentRemoval = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    removeComponents: [12, 13]
+  }
+})
+assert.deepEqual(absentRemoval.removedComponents, [])
+assert.equal(
+  Buffer.from(absentRemoval.bytes).equals(Buffer.from(sourceBytes)),
+  true,
+  'removing absent component codes must be a byte-identical no-op'
+)
+
+assert.throws(
+  () =>
+    applyStaticPrefabUpdate({
+      gilPath,
+      update: {
+        prefabId: FIXTURE_IDS.definition,
+        instanceId: FIXTURE_IDS.instance,
+        expectedName: '模板',
+        removeComponents: [4, 4]
+      }
+    }),
+  /duplicate type codes/i
+)
+
+assert.throws(
+  () =>
+    applyStaticPrefabUpdate({
+      gilPath,
+      update: {
+        prefabId: FIXTURE_IDS.definition,
+        instanceId: FIXTURE_IDS.instance,
+        expectedName: '模板',
+        components: [{ type: 'basicMotion', preset: 'default' }],
+        removeComponents: [4]
+      }
+    }),
+  /must not add and remove the same component type 4/i
+)
+
+assert.throws(
+  () =>
+    applyStaticPrefabUpdate({
+      gilPath,
+      update: {
+        prefabId: FIXTURE_IDS.definition,
+        instanceId: FIXTURE_IDS.instance,
+        expectedName: '模板',
+        removeComponents: [-1]
+      }
+    }),
+  /non-negative safe integer/i
+)
+
 console.log('static prefab update component test passed')

@@ -305,7 +305,7 @@ async function runPreview(
       source: string
       sourceSha256: string
       assemblies: { name: string; prefabId: number }[]
-      updates: { name: string; prefabId: number; instanceId: number }[]
+      updates: { name: string; prefabId: number; instanceId: number; removedComponents?: number[] }[]
       categories: { name: string; prefabIds: readonly number[] }[]
       touchedTopLevelFields: number[]
       field9: string
@@ -338,11 +338,21 @@ async function runPreview(
       log(`updatedPrefabName=${updates[index].expectedName}`)
       log(`updatedPrefabId=${result.prefabId}`)
       log(`updatedInstanceId=${result.instanceId}`)
-      summary.updates.push({
+      const entry: {
+        name: string
+        prefabId: number
+        instanceId: number
+        removedComponents?: number[]
+      } = {
         name: updates[index].expectedName,
         prefabId: result.prefabId,
         instanceId: result.instanceId
-      })
+      }
+      if (result.removedComponents.length) {
+        log(`updatedRemovedComponents=${result.removedComponents.join(',')}`)
+        entry.removedComponents = result.removedComponents
+      }
+      summary.updates.push(entry)
     }
     for (const category of categoryResult?.categories ?? []) {
       log(`updatedPrefabCategory=${category.name}`)

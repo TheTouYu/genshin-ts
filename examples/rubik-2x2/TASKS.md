@@ -34,13 +34,17 @@
 - 验收：连续多轮（≥8）转动后块仍对齐网格，无累积漂移
 - 证据层：真实日志逐帧 + 用户游戏核验
 
-### P4-3 CLI 组件移除能力 + 组件操作验证
+### P4-3 CLI 组件移除能力 + 组件操作验证——🟡 工作①完成（待真实写回+核验）
 
 - 背景：用户手动添加的命中检测（type 12）/物件镜头（type 13）仅用于规则确认，需**通过命令行移除**；
   并逐步验证文档已支持组件（1/3/4/6/12/13/16/17/27/28/29）均可命令行操作且游戏正常
-- 工作①：CLI staticPrefabUpdates 扩展组件移除能力（当前 setStaticAssemblyComponents 只增/替换，无移除）；
+- 工作①（✅ 完成 2026-08-16）：`GstsStaticPrefabUpdate.removeComponents`（类型码列表，定义槽 8 + 实例槽 7 双写移除；
+  记录中不存在的类型码静默跳过并回报实际移除清单；与 components 同型互斥校验；CLI summary 输出
+  `updatedRemovedComponents`）。自动验证：`npx tsc --noEmit` 绿 + `tests/gil_static_prefab_updates.ts`
+  （增→删回源字节一致 / 不存在码幂等 no-op / 重复码 / 同型增删互斥 / 非法码）+ `tests/static_assembly_public_config.ts`
+  + `npm run quicktest` 绿；文档 zh/en config.md 同步。
   ⚠️ 注意：写回后需用户重新加载地图/游戏（避免编辑器旧内存覆盖）
-- 工作②：用命令行移除 1077936135 的 12/13（差分确认）
+- 工作②：用命令行移除 1077936135 的 12/13（差分确认）——**待用户确认写回**（preview 候选已就绪流程）
 - 工作③：逐组件验证矩阵（添加→回读→游戏核验→移除）
 - 验收：命令行移除成功 + 差分回读一致 + 游戏正常；验证矩阵文档化
 - 证据层：CLI 自动回归 + 差分回读 + 用户游戏核验

@@ -312,7 +312,7 @@ function tabBarComponent(
   ])
 }
 
-function componentSnapshot(component: GstsStaticAssemblyComponent): {
+export function componentSnapshot(component: GstsStaticAssemblyComponent): {
   typeCode: number
   bytes: Uint8Array
 } {
@@ -385,6 +385,39 @@ export function setStaticAssemblyComponents(
     else fields.push(value)
   }
   return emit(fields)
+}
+
+/**
+ * [ZH] 从记录中按类型码移除组件槽（P4-3）。
+ * 与 setStaticAssemblyComponents 同源的识别方式（子字段 1 的 varint 类型码）。
+ * 请求的类型码在记录中不存在时静默跳过，返回实际移除清单。
+ *
+ * [EN] Remove component slots by type code (P4-3). Identification matches
+ * setStaticAssemblyComponents (child field 1 varint type code). Codes absent
+ * from the record are skipped; the actually removed set is returned.
+ */
+export function removeStaticAssemblyComponents(
+  record: Uint8Array,
+  typeCodes: readonly number[],
+  fieldNumber: number
+): { bytes: Uint8Array; removed: number[] } {
+  if (!typeCodes.length) return { bytes: record, removed: [] }
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid component owner record')
+  const removed: number[] = []
+  const kept = fields.filter((field) => {
+    if (field.number !== fieldNumber || field.wire !== 2) return true
+    const componentFields = parse(field.value as Uint8Array)
+    const typeCode = componentFields?.find(
+      (child) => child.number === 1 && child.wire === 0
+    )?.value
+    if (typeof typeCode === 'number' && typeCodes.includes(typeCode)) {
+      removed.push(typeCode)
+      return false
+    }
+    return true
+  })
+  return { bytes: emit(kept), removed }
 }
 
 function colorFields(color: GstsStaticColor): WireField[] {

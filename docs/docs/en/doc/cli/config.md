@@ -94,12 +94,18 @@ assets: {
       instanceId: EXISTING_SCENE_INSTANCE_ID,
       expectedName: 'Current confirmed name',
       scale: [0.01, 0.01, 0.01]
+    },
+    {
+      prefabId: EXISTING_PREFAB_DEFINITION_ID,
+      instanceId: EXISTING_SCENE_INSTANCE_ID,
+      expectedName: 'Current confirmed name',
+      removeComponents: [12, 13]
     }
   ]
 }
 ```
 
-The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing slot of the same component type instead of duplicating it. `position` changes only the selected scene instance while preserving its rotation, scale, and prefab definition; `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
+The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing slot of the same component type instead of duplicating it. `removeComponents` removes component slots of the given type codes (e.g. `4`=Basic Motion, `12`=Hit Detection, `13`=Object Camera) from both the definition and the selected instance; removal only, codes absent from a record are skipped, and the actually removed set is reported. `removeComponents` and `components` must not target the same type code (no add-and-remove of the same type). `position` changes only the selected scene instance while preserving its rotation, scale, and prefab definition; `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
 
 For a complex model, move the main color and `items` into a strict JSON structure file while keeping map-specific names, templates, IDs, and scene Transform in the config:
 

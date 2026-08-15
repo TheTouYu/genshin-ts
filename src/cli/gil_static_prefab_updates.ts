@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import type { GstsStaticPrefabUpdate } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import {
+  componentSnapshot,
+  removeStaticAssemblyComponents,
   setStaticAssemblyComponents,
   setStaticAssemblyPosition,
   setStaticAssemblyScale
@@ -21,6 +23,8 @@ export type StaticPrefabUpdateResult = {
   bytes: Uint8Array
   prefabId: number
   instanceId: number
+  /** [ZH] 实际从定义与实例中移除的组件类型码。 / [EN] Type codes actually removed from definition and instance. */
+  removedComponents: number[]
 }
 
 function recordName(record: Uint8Array): string | undefined {
@@ -60,8 +64,29 @@ function validateUpdate(update: GstsStaticPrefabUpdate): void {
     throw new Error('[error] instanceId must be a non-negative safe integer')
   }
   if (!update.expectedName) throw new Error('[error] expectedName is required')
-  if (!update.components?.length && !update.position && !update.scale) {
-    throw new Error('[error] static prefab update requires components, position or scale')
+  if (!update.components?.length && !update.removeComponents?.length && !update.position && !update.scale) {
+    throw new Error('[error] static prefab update requires components, removeComponents, position or scale')
+  }
+  if (update.removeComponents) {
+    if (
+      update.removeComponents.some(
+        (typeCode) => !Number.isSafeInteger(typeCode) || typeCode < 0
+      )
+    ) {
+      throw new Error('[error] removeComponents must contain non-negative safe integer type codes')
+    }
+    if (new Set(update.removeComponents).size !== update.removeComponents.length) {
+      throw new Error('[error] static prefab update removeComponents must not contain duplicate type codes')
+    }
+    if (update.components) {
+      const addedCodes = update.components.map((component) => componentSnapshot(component).typeCode)
+      const overlap = update.removeComponents.filter((typeCode) => addedCodes.includes(typeCode))
+      if (overlap.length) {
+        throw new Error(
+          `[error] static prefab update must not add and remove the same component type ${overlap.join(',')}`
+        )
+      }
+    }
   }
   if (
     update.components &&
@@ -108,6 +133,10 @@ export function applyStaticPrefabUpdate(params: {
     findWireRecord([], update.prefabId)
     throw new Error('[error] unreachable')
   }
+  if (update.removeComponents && !definitionField) {
+    findWireRecord([], update.prefabId)
+    throw new Error('[error] unreachable')
+  }
   if (!instanceField) {
     findWireRecord([], update.instanceId)
     throw new Error('[error] unreachable')
@@ -129,6 +158,22 @@ export function applyStaticPrefabUpdate(params: {
     definition = setStaticAssemblyComponents(definition!, update.components, 8)
     instance = setStaticAssemblyComponents(instance, update.components, 7)
   }
+  const removedComponents: number[] = []
+  if (update.removeComponents?.length) {
+    const definitionRemoval = removeStaticAssemblyComponents(
+      definition!,
+      update.removeComponents,
+      8
+    )
+    const instanceRemoval = removeStaticAssemblyComponents(instance, update.removeComponents, 7)
+    definition = definitionRemoval.bytes
+    instance = instanceRemoval.bytes
+    removedComponents.push(
+      ...[...new Set([...definitionRemoval.removed, ...instanceRemoval.removed])].sort(
+        (a, b) => a - b
+      )
+    )
+  }
   if (update.position) {
     instance = setStaticAssemblyPosition(instance, update.position, 6)
   }
@@ -148,6 +193,7 @@ export function applyStaticPrefabUpdate(params: {
       tailTag: readUint32BE(source, source.length - 4)
     }),
     prefabId: update.prefabId,
-    instanceId: update.instanceId
+    instanceId: update.instanceId,
+    removedComponents
   }
 }

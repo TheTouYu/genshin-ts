@@ -375,6 +375,15 @@ export type GstsStaticPrefabUpdate = {
   expectedName: string
   /** [ZH] 同步更新定义与实例的组件。 / [EN] Components applied to definition and instance. */
   components?: readonly GstsStaticAssemblyComponent[]
+  /**
+   * [ZH] 从定义与实例中移除的组件类型码列表（如 4=基础运动器、12=命中检测、13=物件镜头）。
+   * 仅做移除，不做其他编码；某条记录中不存在的类型码静默跳过，实际移除清单写入结果。
+   *
+   * [EN] Component type codes to remove from both definition and instance
+   * (e.g. 4=Basic Motion, 12=Hit Detection, 13=Object Camera). Removal only;
+   * codes absent from a record are skipped and the actually removed set is reported.
+   */
+  removeComponents?: readonly number[]
   /** [ZH] 仅更新场景实例位置。 / [EN] Update only the scene instance position. */
   position?: readonly [number, number, number]
   /** [ZH] 仅更新场景实例缩放。 / [EN] Update only the scene instance scale. */
