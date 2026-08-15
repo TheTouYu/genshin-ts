@@ -24,7 +24,7 @@
 |---|---|---|
 | A 编译器（genshin-ts） | TS→GS→IR→GIA 管线 + CLI + 注入器 + 类型契约 | `npx tsc --noEmit` EXIT 0；P4-4 修复在工作树待提交 |
 | B 游戏 | rubik-2x2（第一战线）；第二个 demo（立项中） | P4 玩法闭环（v5.5 用户核验"数据非常完美"）；P5/P6 待收尾 |
-| C 知识库 | PKC 知识树 + `docs/game-engine-knowledge/` + 16+ 技能 | 133+ claims，12 节点 / 52+ 主题（持续增长） |
+| C 知识库 | PKC 知识树 + `docs/game-engine-knowledge/` + 15 项 genshin 技能 | 139 claims，12 节点 / 52+ 主题（持续增长） |
 
 **相互依赖闭环**（中期目标的"三项目相互支持"）：
 

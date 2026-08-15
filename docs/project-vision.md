@@ -12,8 +12,8 @@
 ## 短期目标（当前执行中）
 
 1. 一边实现游戏 demo（rubik-2x2 等），一边**补充现有游戏代码生产能力的缺陷与 bug**；
-2. **技能更新**：每轮沉淀的方法论回灌到技能（debug-log-investigator、game-from-scratch、
-   dsl-nodegraph-development、editor-incremental-gia-investigator 等）；
+2. **技能更新**：每轮沉淀的方法论回灌到技能（debug-log-investigator、gil-node-graph-reading、
+   gil-node-graph-editing、static-gil-model-builder、verify-injection、game-from-scratch 等）；
 3. **知识落盘**：游戏引擎规则进 docs/game-engine-knowledge + PKC 知识树。
 
 ## 中期目标
