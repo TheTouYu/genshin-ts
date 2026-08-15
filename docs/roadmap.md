@@ -24,7 +24,13 @@
 |---|---|---|
 | A 编译器（genshin-ts） | TS→GS→IR→GIA 管线 + CLI + 注入器 + 类型契约 | `npx tsc --noEmit` EXIT 0；P4-4 修复在工作树待提交 |
 | B 游戏 | rubik-2x2（第一战线）；第二个 demo（立项中） | P4 玩法闭环（v5.5 用户核验"数据非常完美"）；P5/P6 待收尾 |
-| C 知识库 | PKC 知识树 + `docs/game-engine-knowledge/` + 15 项 genshin 技能 | 139 claims，12 节点 / 52+ 主题（持续增长） |
+| C 知识库 | **项目本体：`/home/h/portable-knowledge/`（PKC 引擎）**；genshin-ts 内为消费投影（`tools/pkc.py` + `knowledge/`，139 claims，12 节点 / 52+ 主题）+ `docs/game-engine-knowledge/` + 15 项 genshin 技能 | 139 claims；引擎版本 0.2.0rc5（2026-08-16 核） |
+
+> **三项目物理位置（2026-08-16 用户确认，防混淆）**：编译器项目 = `/home/h/genshin-ts`；
+> 知识库项目 = `/home/h/portable-knowledge/`（PKC 引擎本体，含 pkc-project-operator /
+> isolated-model-evaluator 技能源头）；genshin-ts 内的 knowledge/ 是引擎的消费投影。
+> 协同：genshin-ts 使用中发现的 PKC 缺口（如 O-2026-08-16-3 progressive-query
+> context 候选提示）应作为**上游反馈**登记到 portable-knowledge。
 
 **相互依赖闭环**（中期目标的"三项目相互支持"）：
 
