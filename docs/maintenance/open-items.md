@@ -210,6 +210,11 @@
 - 进度（2026-08-16）：case `verify/u4-color-change/`（图 1835 DSL）编译 + wire 断言通过
   （genericId 307/835/1）；已注入验证地图 1073741888 图 1833 `_GSTS_u4-color-change`
   + attach 1077936151 + Temp 同步（SHA 3f3fd3c8…）；提交 b3b461d。
-- 判定：用户游戏点选项卡观察实体是否变红——变红 = 835 生效（fillColor 0xRRGGBB 成立），
-  灯阵用 835 + M4 受控同步保留清单；不变色 = 835 无效/参数格式需差分（opacity/颜色/材质），
-  灯阵改用 308 显隐方案。
+- **已核验（2026-08-16，2701 日志）**：**835 判定为无效节点 ID**——节点完整执行且参数
+  全部正确（帧 IN3 Integer=16711680、IN4 Float=100.0、事件源实体正确、printString 触发）
+  但游戏内无颜色变化；三重重证据（编辑器 data.json 无 835 / server 静态元数据无 835 /
+  游戏执行无效果）→ 835 为旧快照错误遗产，**灯阵变色不可用 835，改用 308 显隐方案**
+  （activate_disable_model_display，data.json 有官方定义）。证据
+  `~/genshin-ts-evidence/u4-color-change/`（SHA 见该目录）。
+- M4 同步影响：835 无效支持"新资源删除方向正确"，但操控运动器系列等其他旧独有节点
+  仍待逐个验证，同步保持中止。
