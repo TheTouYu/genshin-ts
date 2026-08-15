@@ -144,7 +144,18 @@ EOF
    `npx tsx tools/list-gil-node-graphs.ts <map.gil>` 核对每个目标图 nodeCount > 0 且图名为
    `_GSTS_<case>`；nodeCount=0 或图名没变 = 注入没落到目标图（典型：config nodeGraphId 没改）。
    多个实验也可写进**同一张 placeholder 图**（一个 TS 文件多个事件/多段逻辑，技能约定第 11 行），
-   单次注入即可；但失败时难以拆分定位——规则未闭合阶段建议每 case 一图（用户 2026-08-14 指导）。
+   单次注入即可
+2c. **注入后必挂载（2026-08-15 实测教训，必读）**：节点图注入 .gil 只是"存在于地图"，
+   **必须 attach 到实体才执行**（graph-mounting.md）。漏挂载的症状 = 游戏日志只有旧图执行、
+   新注入图零帧（本次验证：5 图注入 3 图挂载，日志只有 3 张旧图）。流程与自检：
+   ```bash
+   # 挂载到普通实体（挂载 API 比 CLI 稳定：assets:mounts attach 曾被 commander 参数解析卡住）
+   # 用 production API：mountGraphToEntity(bytes, <entityId>, <graphId>, true) 写回 + 备份
+   # 自检：list 盘点必须显示 graphs not mounted anywhere (0)
+   node bin/gsts.mjs assets:mounts list --gil <map.gil>   # 每张图都有归属实体
+   ```
+   同时确认游戏加载目录：Save_Level 与 Temp 双份 .gil 必须一致（md5 对比；CLI 写 Save_Level
+   后 Temp 需手动同步，否则游戏可能加载旧 Temp 版本）。；但失败时难以拆分定位——规则未闭合阶段建议每 case 一图（用户 2026-08-14 指导）。
 3. **批量注入**（不带文件参数）按 GIA 内 graph id 找目标图（不改写），要求该 id 已存在于
    地图；需要 placeholder 分配 id 与 DSL id 对齐，脆弱，默认不用。
 4. 新地图：`maps:create` 的 mapId = 现有最大 mapId + 1；`--graphs` 的 placeholder 图 id 从
