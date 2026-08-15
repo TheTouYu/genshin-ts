@@ -222,7 +222,7 @@
   Set_Model_Visible）**生效**——R 隐藏/L 重现（u4b-hide-fire ×1 + u4b-show-fire ×5）；
   灯阵明暗方案确定（亮=显示/暗=隐藏）；verified-cases.md 已登记。
 
-### O-2026-08-16-11. SKELETON_AUX_ID=1073741828 占位符递归替换 bug（生产缺陷，M4 候选）
+### O-2026-08-16-11. SKELETON_AUX_ID=1073741828 占位符递归替换 bug（生产缺陷，M4 候选）→ DONE
 
 - 证据：W1 候选回读（子代理 9d6603cb，2026-08-16）——配置 instanceAuxiliaryIds=[1073741828]
   时，候选 top27 field2（实例侧 aux）记录 ID 被改写为 def aux ID（1073741827），闭包
@@ -233,7 +233,11 @@
 - 影响：任何 instanceAuxiliaryIds 含 1073741828 的资产配置生成坏闭包。
 - 修复方向：实例侧回链替换改用独立占位符/精确位置替换；短期规避：aux 避开 1073741828
   （灯阵已改用 1073741830，探针验证闭包 complete）。
-- 何时做：M4 编译器快速迭代（用户确认后修源码 + 回归）。
+- 落地（2026-08-15 commit ceb8fe6）：替换顺序反转——先 1828→definitionAuxiliaryId（f12
+  回链），再 1829→params.id（f1），id=1828 不再被二次替换；tests/official_prefabs.ts 新增
+  id=1828/1830 双场景回归（PASS）。附带修复：i18n detectLang 对 locale=C/POSIX 过滤+兜底
+  en-US（修复 4 个 CLI 测试的环境性失败）；static-assembly 测试 fixture prefabId
+  300→1077936139（prefab-id-out-of-range）、official_prefabs 实体 id 800→1077936150。
 
 ### O-2026-08-16-12. assets:entities patch 为单实体命令（--entities 仅 import）
 
