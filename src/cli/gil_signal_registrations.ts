@@ -760,7 +760,7 @@ function buildBuiltinTemplate(
           { number: 1, wire: 2, value: identity },
           { number: 2, wire: 2, value: kind === 'ser' ? BUILTIN_SERVER_F4_N2 : identity },
           { number: 4, wire: 2, value: emitWireMessage([]) },
-          { number: 5, wire: 0, value: 2 }
+          { number: 5, wire: 0, value: 3 }
         ])
       }
     ]
@@ -802,7 +802,7 @@ function buildBuiltinTemplate(
         { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
         { number: 3, wire: 2, value: TEXT.encode(signal.name) },
         { number: 4, wire: 2, value: firstTemplates.index.value },
-        { number: 6, wire: 0, value: 2 },
+        { number: 6, wire: 0, value: 3 },
         { number: 7, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
       ])
     },
@@ -810,9 +810,10 @@ function buildBuiltinTemplate(
     params: [...signal.params],
     identity: { sendId: signal.sendId, monitorId: signal.monitorId, serverId: signal.serverId },
     paramEntries: [firstTemplates.index],
-    // builtin 布局的版本固定为 2（复刻 1888 verify_ping 的创建后一次编辑状态），
-    // 与上方 field f6=2 及三份定义 #4 field5=2 保持一致。
-    signalVersion: 2
+    // builtin 布局的版本固定为 3（2026-08-15 最小图实证：引擎拒绝 vec3 信号版本 2，
+    // 版本 >=3 且注册表 f6 与定义 #4 field5 一致即可加载；verify_ping 的 str 版本 2
+    // 虽历史可用，但统一 >=3 更安全），与上方 field f6=3 及三份定义 #4 field5=3 保持一致。
+    signalVersion: 3
   }
   return { template, templateDefinitions }
 }
@@ -1030,6 +1031,18 @@ function rewriteDefinitionVersion(main: WireField, version: number): WireField {
   }
 }
 
+/**
+ * 改写注册表条目的 signalVersion（f6）。引擎要求条目 f6 与三份定义 #4 field5 一致，
+ * 且 vec3 信号版本 >=3（2026-08-15 最小图实证：版本 2 被拒绝、3/4 均可加载）。
+ */
+function withSignalVersion(entryField: WireField, version: number): WireField {
+  const fields = message(entryField, 'signal index entry')
+  const next = fields.map((field) =>
+    field.number === 6 && field.wire === 0 ? { ...field, value: version } : field
+  )
+  return { ...entryField, value: emitWireMessage(next) }
+}
+
 function containsText(data: Uint8Array, expected: string, depth = 0): boolean {
   if (depth > 8) return false
   for (const field of parseWireMessage(data) ?? []) {
@@ -1209,6 +1222,10 @@ export function repairSignalInGil(input: {
   const pool = buildParamPool(templateSource.top, [template])
   const signal: SignalRegistrationSpec = { ...target, ...target.identity }
   validateSpec(signal, pool)
+  // 版本一致性 + 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，
+  // >=3 且条目 f6 与定义 #4 field5 一致即可加载）。定义 field5 与条目 f6 统一为目标
+  // 版本与 3 的较大值。
+  const effectiveVersion = Math.max(target.signalVersion, 3)
   const replacements = new Map<WireField, WireField>()
   const kinds: DefinitionKind[] = ['send', 'monitor', 'server']
   for (let index = 0; index < kinds.length; index++) {
@@ -1224,7 +1241,7 @@ export function repairSignalInGil(input: {
           signal,
           pool
         ),
-        target.signalVersion
+        effectiveVersion
       )
     )
   }
@@ -1237,7 +1254,7 @@ export function repairSignalInGil(input: {
     throw new Error('[error] signal registry index not found in target')
   }
   const nextIndex = targetSource.index.fields.map((field) =>
-    field === target.field ? buildIndexEntry(target, signal, pool) : field
+    field === target.field ? withSignalVersion(buildIndexEntry(target, signal, pool), effectiveVersion) : field
   )
   nextTop[indexPosition] = { ...targetSource.index.field, value: emitWireMessage(nextIndex) }
   const unchanged = Buffer.compare(
@@ -1287,18 +1304,23 @@ export function updateSignalInGil(input: {
     [target.identity.serverId, 'server']
   ])
   const found = new Set<number>()
+  // 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，>=3 且 f6==field5 可加载）
+  const effectiveVersion = Math.max(target.signalVersion, 3)
   const nextTop = top.map((field) => {
     const id = definitionNodeId(field)
     const kind = id === undefined ? undefined : kinds.get(id)
     if (!kind) return field
     found.add(id!)
-    return buildDefinition(field, kind, target, signal, pool)
+    return rewriteDefinitionVersion(buildDefinition(field, kind, target, signal, pool), effectiveVersion)
   })
   if (found.size !== 3) throw new Error(`[error] incomplete signal definitions: ${target.name}`)
 
   const targetIndexPosition = index.fields.indexOf(target.field)
   const nextIndex = [...index.fields]
-  nextIndex[targetIndexPosition] = buildIndexEntry(target, signal, pool)
+  nextIndex[targetIndexPosition] = withSignalVersion(
+    buildIndexEntry(target, signal, pool),
+    effectiveVersion
+  )
   const indexPosition = nextTop.indexOf(index.field)
   nextTop[indexPosition] = { ...index.field, value: emitWireMessage(nextIndex) }
   const nextRoot = sourceRoot.map((field) =>

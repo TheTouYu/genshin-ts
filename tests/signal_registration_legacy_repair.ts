@@ -141,15 +141,30 @@ const result = repairSignalInGil({
   templateSignalName: 'cube_turn'
 })
 assert.equal(result.status, 'repaired')
-assert.deepEqual(
-  fieldBytes(entry(result.bytes, 'cube_turn')),
-  fieldBytes(entry(malformed, 'cube_turn'))
+// 2026-08-15 版本下限修复：条目 f6 从 2 提升到 3（与定义 field5 一致），其余字段保持
+const beforeEntry = parse(entry(malformed, 'cube_turn') as Uint8Array)!
+const afterEntry = parse(entry(result.bytes, 'cube_turn') as Uint8Array)!
+const entryDiff = afterEntry.filter(
+  (f) => !beforeEntry.some((g) => g.number === f.number && g.wire === f.wire && g.value === f.value)
+)
+assert.ok(
+  entryDiff.length <= 1 && entryDiff.every((f) => f.number === 6),
+  `entry must change only f6 (version), got: ${entryDiff.map((f) => f.number).join(',')}`
 )
 assert.deepEqual(unrelated(result.bytes), unrelated(malformed))
 const repairedDefs = definitions(result.bytes)
 const donorDefs = definitions(donor)
 for (const id of [1610612741, 1610612742, 1610612743]) {
-  assert.deepEqual(fieldBytes(repairedDefs.get(id)!), fieldBytes(donorDefs.get(id)!))
+  const repairedBytes = fieldBytes(repairedDefs.get(id)!)
+  const donorBytes = fieldBytes(donorDefs.get(id)!)
+  // 2026-08-15 版本下限修复：repair 把版本提升到 >=3（条目 f6 与定义 #4 field5 同步），
+  // 因此与 donor（版本 2）仅 #4 身份字段的最后一个 field5 不同，其余逐字节一致。
+  assert.equal(repairedBytes.length, donorBytes.length, 'repaired def length must match donor')
+  let versionDiff = 0
+  for (let i = 0; i < repairedBytes.length; i++) {
+    if (repairedBytes[i] !== donorBytes[i]) versionDiff++
+  }
+  assert.ok(versionDiff <= 2, `repaired def should differ from donor only in version field, got ${versionDiff} bytes`)
   assert.equal(contains(repairedDefs.get(id)!.value as Uint8Array, 'cube_turn'), true)
 }
 
