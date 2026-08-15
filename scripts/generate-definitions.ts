@@ -15,6 +15,8 @@ const TYPE_MAP: Record<string, string> = {
   integer: 'int',
   int: 'int',
   'integer list': 'int_list',
+  // 2026-08-16：资源拼写错误容错（Refresh Notification Queue 的 Player Entity data_type='Emtity'）
+  emtity: 'entity',
   float: 'float',
   'floating point numbers': 'float',
   'floating-point numbers': 'float',
@@ -178,6 +180,10 @@ function getSummaryTypeInfo(name: string) {
 function mapType(type: string) {
   const t = type.trim().toLowerCase()
   if (TYPE_MAP[t]) return TYPE_MAP[t]
+  // 2026-08-16：资源中部分参数 data_type 为空串或 'unknown'（如 Modify Structure 的
+  // Target Structure、Refresh Notification Queue 的 Emtity 拼写）——映射为 generic
+  // （= value 基类），避免生成不存在的 UnknownValue 类型
+  if (!t || t === 'unknown') return 'generic'
   console.warn(`Unknown type: ${type}`)
   return 'unknown'
 }
@@ -493,6 +499,20 @@ function buildEvents() {
   const eventsPayloadContent = fs.readFileSync(eventsPayloadPath, 'utf-8')
 
   const payloadLines: string[] = []
+  // events-payload 的类型位置映射：DSL 类型名 → TS 内置类型（2026-08-16 修复；
+  // str/int/float/bool 是运行时 value 类，未导入时在类型位置报 "'str' refers to a value"）
+  const TS_PAYLOAD_TYPE: Record<string, string> = {
+    str: 'string',
+    int: 'number',
+    float: 'number',
+    bool: 'boolean'
+  }
+  const payloadTypeOf = (dslType: string): string => {
+    const isArray = dslType.includes('_list')
+    const base = dslType.replace('_list', '')
+    const scalar = TS_PAYLOAD_TYPE[base] ?? base
+    return isArray ? `${scalar}[]` : scalar
+  }
   for (const e of events) {
     const paramLines: string[] = []
     for (const p of e.params) {
@@ -511,9 +531,7 @@ function buildEvents() {
         `${p.name}: ${
           enumType
             ? enumType
-            : p.type.includes('_list')
-              ? `${p.type.replace('_list', '')}[]`
-              : p.type
+            : payloadTypeOf(p.type)
         }`
       )
     }
@@ -1614,6 +1632,11 @@ function buildNodes() {
 
 function applyDefinitionTypeContracts(nodesContent: string): string {
   return nodesContent
+    // 2026-08-16：新资源含 generic 类型参数节点（setListValue 等）与无枚举映射的
+    // enum 参数节点（fallback EnumerationValue），生成物签名引用这两个类型但 import 块
+    // （标记区外手工维护）未含——幂等补导入（负向前瞻防重复）
+    .replace(/  FloatValue,\n(?!  GenericValue,)/, '  FloatValue,\n  GenericValue,\n')
+    .replace(/  FloatValue,\n(?!  EnumerationValue,)/, '  FloatValue,\n  EnumerationValue,\n')
     .replace(
       "import type { CompositeHandle } from '../runtime/composite_registry.js'",
       `import type {
