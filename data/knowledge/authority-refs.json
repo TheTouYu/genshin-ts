@@ -980,6 +980,22 @@
       ]
     },
     {
+      "id": "aref_5b6b096e2f546e16f79626382c",
+      "path": "docs/game-engine-knowledge/variable-scopes.md",
+      "locator": "实体自定义变量类型变体（2026-08-15 灯阵胜利 bug 实证）：Set 按值类型选变体（number→float cid26、bigint→int cid22）、Get asType('int') 只读 int 变体、读写分裂致 Get 恒空、probe 验证",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "de3fb1aaf5bf94f8fc91ec050345436b3de4d6fa51ca846d238f1750a8ed7028",
+      "claim_ids": [
+        "clm_EFBFB1B399A65BADA32F540774"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_5bf83e21073b0aa07b6c362581",
       "path": "tests/composite/test-three-level-nested-capture-routing.ts",
       "locator": "three-level compositeInputIndex and decoded compositePins routing regression",
