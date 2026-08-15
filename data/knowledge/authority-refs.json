@@ -887,6 +887,21 @@
       ]
     },
     {
+      "id": "aref_521f67e94412520a1400276e8a",
+      "path": ".agents/skills/verify-injection/references/verified-cases.md",
+      "locator": "ef6189b:verify-u4b-model-display",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "32f69cadb815a1deb164d9672ed84b158f4f7092c72a3eaeb84757f734176294",
+      "claim_ids": [
+        "clm_16E4577B31D6C1E471BF693FA8"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_5331661f69591a298f45ad2189",
       "path": ".agents/skills/gil-node-graph-editing/SKILL.md",
       "locator": "安全流程第 3c 步：变量名三方一致性",
@@ -1661,6 +1676,21 @@
       "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
       "claim_ids": [
         "clm_3319B38030FCF6DDD38C57147C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_a677a7dd1d86af1ecef3ef66d5",
+      "path": ".agents/skills/verify-injection/references/verified-cases.md",
+      "locator": "ef6189b:verify-u4-color-change",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "32f69cadb815a1deb164d9672ed84b158f4f7092c72a3eaeb84757f734176294",
+      "claim_ids": [
+        "clm_8CCF0CFB09C9DE0C6809B93C76"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
