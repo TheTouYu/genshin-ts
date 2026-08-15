@@ -55,14 +55,15 @@ type ConvertToReturnTypeMap = {
 }
 
 type TimerKind = 'timeout' | 'interval'
-type TimerCaptureSpec = {
+export type TimerCaptureSpec = {
   name: string
   dictVar: string
   valueType: DictValueType
   value: unknown
 }
 type TimerCaptureDictMeta = { name: string; valueType: DictValueType }
-type TimerOptions = {
+/** Stage 1 转换器传给 setTimeout/setInterval 的内部元数据（对应 server_globals.d.ts 的 meta 参数）。 */
+export type TimerOptions = {
   __gstsTimer: true
   kind: TimerKind
   poolNames: string[]

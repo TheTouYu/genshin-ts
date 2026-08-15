@@ -109,4 +109,16 @@
 - **v5.4**：组合旋转错位根因 = 魔方转动后层成员变化，静态 layers 失效 → **循环 + 按当前坐标筛选层成员**（节点 2400→240，循环体只物化 1 次）。
 - **v5.5**：组合旋转朝向错乱根因 = 运动器 axis 为"相对朝向"（局部轴，官方定义+矩阵实证）→ **自旋轴 = R^T·worldAxis（罗德里格斯×3，YXZ 内旋）** → **任意面连续/组合旋转位置+朝向全部精确**（用户核验：数据非常完美）。
 - **知识落盘**：`docs/game-engine-knowledge/motion-devices.md` 运动器运行时行为专章（轴语义/公式/层成员/DSL 笔记）；TASKS.md P4-1/P4-2 关闭。
-- **遗留**：P4-3（CLI 组件移除+逐组件验证）、P4-4（examples 构建类型）、P4-5（type 4 变体）、P4-6（type 18 UI 名）、定时器 tick 量化（⚪）——见 TASKS.md。
+- **遗留**：P4-3（CLI 组件移除+逐组件验证）、P4-5（type 4 变体）、P4-6（type 18 UI 名）、定时器 tick 量化（⚪）——见 TASKS.md。
+
+## 变更记录 2026-08-15（P4-4 关闭：examples 构建类型问题全修复）
+
+- **背景**：TASKS.md P4-4——`npm run build` 被 examples 的 `game.ts` + `game.gs.ts` 类型错误阻塞（接手时 34 个错误，含历史 timerName 缺口）。
+- **修复**（纯类型契约，不改运行时语义）：
+  - `src/runtime/value.ts` 新增 `RuntimeExecNodeArg`（value | DSL 伪装返回值类型），`f.node`/`registerExecNode`/`registerDetachedExecNode` 使用；
+  - `defineComposite` 接受 Stage 1 注入的 `provenance`；`connect` 源参接受 `FlowMarkerRef`（对齐 #10 实现）；
+  - `createEntity/createPrefab/createPrefabGroup` 的 `unitTagIndexList` 接受 `list<'int'>`；
+  - `server_globals.d.ts` 的 `setTimeout/setInterval` 声明转换器第三参 `meta?: TimerOptions`（闭合历史 timerName 类型缺口）；
+  - `shouldCaptureIdentifier` 排除类型级 `typeof a.b`（QualifiedName），修复定时器捕获生成跨作用域引用的 ReferenceError。
+- **生成与回归**：`scripts/generate-definitions.ts` 的契约补丁函数改名 `applyDefinitionTypeContracts`；用 `--composite-contracts-only` 最小生成 nodes.ts（完整 `npm run gen` 的 ~5k 行资源漂移未纳入，见 compiler-practical-optimization-backlog §7.1）。`tests/timer_global_overload_type_safety_test.ts` 增补 evt/timerName 非 any 类型断言。
+- **验证**：`npm run build` 绿；`npm run quicktest` 绿（66 GIA，--noinject）；`npm test` 仍停在与本次无关的已知枚举组合断言边界（`E_UNKNOWN_NODE_VARIANT`，testing.md 2026-07-31 记录）；`git diff --check` 通过。

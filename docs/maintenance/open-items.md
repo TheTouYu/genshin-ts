@@ -11,6 +11,14 @@
 
 ## 已落地（DONE）
 
+### 2026-08-15 P4-4 构建门禁修复（examples 类型问题全链）
+
+| 发现 | 证据 | 落地方式 |
+|---|---|---|
+| `npm run build` 红：34 个类型错误集中在 examples（provenance/FlowMarkerRef/裸 exec 参数伪装类型/unitTagIndexList list 实例 + 历史 timerName 缺口） | `npx tsc -p tsconfig.json --noEmit` EXIT=2 | 类型契约修复（value.ts/core.ts/nodes.ts/server_globals.d.ts）+ `tests/timer_global_overload_type_safety_test.ts` 回归；TASKS.md P4-4 关闭、PROGRESS.md 新增变更记录 |
+| 定时器类型回归顺带暴露 Stage-1 新 bug：类型级 `typeof a.b`（QualifiedName）被 timer capture 误当运行时变量 → 生成跨作用域引用 `timerName` 并在 IR 阶段 ReferenceError | quicktest 红灯 `ReferenceError: timerName is not defined`（生成 .gs.ts 捕获块跨作用域） | `shouldCaptureIdentifier` 排除 `QualifiedName.right`；同文件类型断言保留为永久回归 |
+| 完整 `npm run gen` 再次产出 ~5.5k 行资源漂移（nodes/events/prefab 生成物） | 本次 gen 后 `git diff --stat`：nodes.ts 5520 行、events 561 行等 | 按 compiler-practical-optimization-backlog §7.1 恢复无关生成结果，改用 `--composite-contracts-only` 最小生成；**漂移仍需独立审计，不属于 P4-4** |
+
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 
 | 发现 | 证据 | 落地方式 |

@@ -109,6 +109,7 @@ import {
   vec3,
   type DictValueType,
   type FloatValue,
+  type RuntimeExecNodeArg,
   type RuntimeParameterValueTypeMap,
   type RuntimeReturnValueTypeMap,
   type StrValue
@@ -926,11 +927,11 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
 
 export interface ExecutionFlowRegistry {
   branchExec(sourceIndex: number, record: MetaCallRecord): MetaCallRecordRef
-  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef
+  registerExecNode(nodeType: string, args: RuntimeExecNodeArg[]): MetaCallRecordRef
   leaf(outflowIndex: number): void
   outflow(name: string, ref: MetaCallRecordRef | FlowMarkerRef, outflowPinIndex?: number): void
   connect(
-    sourceRef: MetaCallRecordRef,
+    sourceRef: MetaCallRecordRef | FlowMarkerRef,
     sourceOutflowPinIndex: number,
     targetRef: MetaCallRecordRef,
     targetInflowPinIndex?: number
@@ -938,7 +939,7 @@ export interface ExecutionFlowRegistry {
   inflow(name: string, ref: MetaCallRecordRef, inflowPinIndex?: number): void
   registerDetachedExecNode(
     nodeType: string,
-    args?: value[],
+    args?: RuntimeExecNodeArg[],
     outParams?: Record<string, { type: string; index: number }>
   ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value>
   createOutParamValue(type: string, record: MetaCallRecordRef, pinIndex: number): value
@@ -1713,12 +1714,13 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
    * 注册一个任意类型的 exec 节点，自动串联到当前 tail 并推进 tail。
    * 供复合节点 build() 使用，替代高层 API（如 printString）来直接注册特定 nodeType。
    */
-  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef {
+  registerExecNode(nodeType: string, args: RuntimeExecNodeArg[]): MetaCallRecordRef {
     return this.registerNode({
       id: 0,
       type: 'exec',
       nodeType,
-      args
+      // DSL 返回值类型会伪装成原生类型，运行时实际仍是 value 实例
+      args: args as value[]
     })
   }
 
@@ -2235,7 +2237,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
    */
   registerDetachedExecNode(
     nodeType: string,
-    args: value[] = [],
+    args: RuntimeExecNodeArg[] = [],
     outParams?: Record<string, { type: string; index: number }>
   ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
     const current = this.currentFlow
@@ -2243,7 +2245,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       id: this.currentRecordId,
       type: 'exec',
       nodeType,
-      args
+      // DSL 返回值类型会伪装成原生类型，运行时实际仍是 value 实例
+      args: args as value[]
     }
 
     const nodeMode = NODE_MODE_BY_NODE_TYPE.get(record.nodeType)
@@ -3183,6 +3186,8 @@ export function defineComposite<
     outputs?: Outputs
     inflows?: Array<string | { name: string; pinIndex?: number }>
     outflows?: Array<string | { name: string; pinIndex?: number }>
+    /** Stage 1 转换器为诊断溯源注入；运行时按此包裹 build 以保留出处。 */
+    provenance?: DiagnosticProvenance
     build: (
       inputs: CompositeInputValues<Inputs>,
       f: ServerExecutionFlowFunctions

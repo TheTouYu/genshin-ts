@@ -721,6 +721,8 @@ export function shouldCaptureIdentifier(id: ts.Identifier): boolean {
   if (!parent) return true
   if (ts.isTypeNode(parent)) return false
   if (ts.isPropertyAccessExpression(parent) && parent.name === id) return false
+  // typeof a.b 的类型级 QualifiedName 不是运行时标识符，不能被定时器捕获逻辑当成变量
+  if (ts.isQualifiedName(parent) && parent.right === id) return false
   if (ts.isPropertyAssignment(parent) && parent.name === id) return false
   if (ts.isMethodDeclaration(parent) && parent.name === id) return false
   if (ts.isMethodSignature(parent) && parent.name === id) return false

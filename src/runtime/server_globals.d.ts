@@ -5,6 +5,7 @@ import type { PlayerEntity, StageEntity } from '../definitions/entity_helpers.js
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
 import type { ServerExecutionFlowFunctions } from '../definitions/nodes.js'
 import type { SignalDefinition, SignalParamValues } from './core.js'
+import type { TimerOptions } from './server_globals.js'
 import type { ClientGraphMode, ClientGraphSubType } from './IR.js'
 import type {
   BoolValue,
@@ -737,7 +738,11 @@ declare global {
       evt: ServerEventPayloads['whenTimerIsTriggered'],
       f: ServerExecutionFlowFunctions
     ) => void,
-    delayMs?: FloatValue
+    delayMs?: FloatValue,
+    /**
+     * @internal Stage 1 转换器注入的定时器元数据；用户代码不要直接传该参数。
+     */
+    meta?: TimerOptions
   ): string
   /**
    * JS-like setInterval for node graph timers, if not in node graph scope, use JS native setInterval.
@@ -753,7 +758,11 @@ declare global {
       evt: ServerEventPayloads['whenTimerIsTriggered'],
       f: ServerExecutionFlowFunctions
     ) => void,
-    delayMs?: FloatValue
+    delayMs?: FloatValue,
+    /**
+     * @internal Stage 1 转换器注入的定时器元数据；用户代码不要直接传该参数。
+     */
+    meta?: TimerOptions
   ): string
   /**
    * Clear a timer created by setTimeout.

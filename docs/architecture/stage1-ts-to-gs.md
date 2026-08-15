@@ -206,7 +206,11 @@ f.multipleBranches(controlExpr, {
 
 表达式变换还负责：
 
-- **timer handle 元数据提取**：识别 `setTimeout` 和 `setInterval`，分配 timer ID 池
+- **timer handle 元数据提取**：识别 `setTimeout` 和 `setInterval`，分配 timer ID 池。
+  生成的 `setTimeout(handler, delay, meta)` 第三参是转换器元数据（`__gstsTimer/poolNames/captures` 等），
+  类型为 `TimerOptions`（`server_globals.d.ts` 已声明，2026-08-15 P4-4 闭合）。
+  定时器捕获只收集运行时标识符：类型级 `typeof a.b`（QualifiedName）不参与捕获
+  （P4-4 修复 `shouldCaptureIdentifier`，回归见 `tests/timer_global_overload_type_safety_test.ts`）。
 - **常量折叠**（`const_eval.ts`）：纯字面量表达式在编译期预计算
 - **集合引用快照**（`tryTransformCollectionRebindSnapshot`）：对 `xs = list(…)` 这种集合绑定，插入 `initLocalVariable` + `setLocalVariable` 的快照
 - **timer 中复合输出类型保真**（`inferCompositeOutputType`）：当 timer callback 中的 `f.callComposite(...).output` 因回调参数类型不可见而无法由 TypeScript checker 推断时，从 `CompositeHandle.__outputs` 或同一 `defineComposite` 声明回退读取输出类型，避免生成错误的 `entity` 局部变量。

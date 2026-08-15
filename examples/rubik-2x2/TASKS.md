@@ -45,13 +45,19 @@
 - 验收：命令行移除成功 + 差分回读一致 + 游戏正常；验证矩阵文档化
 - 证据层：CLI 自动回归 + 差分回读 + 用户游戏核验
 
-### P4-4 examples 构建类型问题（超范围，需安排）
+### P4-4 examples 构建类型问题——✅ 已关闭（2026-08-15，tsc + quicktest 全绿）
 
-- 症状：npm run build 被 examples 阻塞——game.gs.ts 转换产物 timerName 类型缺口（编译器 setTimeout 生成代码）
-  + game.ts TS2345（helper 参数 ServerExecutionFlowFunctions vs WithVars 不匹配）
-- 工作：定位编译器 setTimeout 转换的类型标注缺口并修复；game.ts helper 签名按实际回调类型调整
-- 验收：npm run build 全绿
-- 证据层：tsc 自动验证
+- **症状**：`npm run build` 被 examples 阻塞（最初 49 个错误；本轮接手时 34 个：game.ts + 旧转换产物 game.gs.ts）。
+- **根因（分层定位）**：
+  1. `defineComposite` 公开类型不接受 Stage 1 注入的 `provenance` 字段；
+  2. `connect` 接口类型漏了 #10 生产实现已支持的 `FlowMarkerRef`；
+  3. `f.node`/`f.registerExecNode` 的 `args: value[]` 与 DSL“伪装返回值类型”不匹配（equal→boolean、dataTypeConversion→string、assemblyList→number[] 等运行时都是 value 实例）；
+  4. `createEntity/createPrefab/createPrefabGroup` 的 `unitTagIndexList` 不接受运行时已支持的 `list<'int'>` 实例；
+  5. 历史 timerName 缺口仍未闭合：`server_globals.d.ts` 的 `setTimeout/setInterval` 没声明转换器传入的第三参 `meta`；
+  6. 顺带暴露并修复：类型级 `typeof a.b`（QualifiedName）被定时器捕获逻辑误当运行时变量 → 生成跨作用域 `timerName` 引用。
+- **修复**：`RuntimeExecNodeArg` 联合类型（value.ts）；core/nodes 契约同步；生成器 `applyDefinitionTypeContracts` 走 `--composite-contracts-only` 最小生成；`TimerOptions` 导出并接入 `server_globals.d.ts`；`shouldCaptureIdentifier` 排除 QualifiedName；`tests/timer_global_overload_type_safety_test.ts` 增加 evt/timerName 非 any 类型断言作为回归。
+- **验收**：`npm run build` 绿（0 错误）；`npm run quicktest` 绿（66 GIA，--noinject）；`npm test` 在已知预存边界 `assert-enum-combinations.ts E_UNKNOWN_NODE_VARIANT` 失败（与本次改动无关，见 docs/architecture/composite/testing.md 2026-07-31 记录）。
+- **证据层**：tsc 自动验证 + 无注入测试管线；纯类型层修复，无游戏验证需求。
 
 ### P4-5 type 4 配置变体调查（超范围，需安排）
 

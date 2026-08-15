@@ -1546,10 +1546,10 @@ function buildNodes() {
     '// === AUTO-GENERATED END ===',
     lines.join('\n')
   )
-  fs.writeFileSync(nodesPath, applyCompositeCallContracts(generatedNodesContent))
+  fs.writeFileSync(nodesPath, applyDefinitionTypeContracts(generatedNodesContent))
 }
 
-function applyCompositeCallContracts(nodesContent: string): string {
+function applyDefinitionTypeContracts(nodesContent: string): string {
   return nodesContent
     .replace(
       "import type { CompositeHandle } from '../runtime/composite_registry.js'",
@@ -1569,13 +1569,42 @@ function applyCompositeCallContracts(nodesContent: string): string {
       `  declareDetached<\n    const Outputs extends Record<string, { type: LiteralValueType }>,\n    Inputs extends CompositeInputDefinitions,\n    const Provided extends Partial<Record<keyof Inputs, unknown>>\n  >(\n    handle: CompositeHandle<Outputs, Inputs>,\n    inputs: CompositeCallInputValues<NoInfer<Inputs>, Provided>\n  ): CompositeCallResult<Outputs> {`
     )
     .replace(/    \) as CompositeCallResult<Outputs>/g, '    ) as CompositeCallResult<Outputs>')
+    // 裸 exec 节点 API：DSL 返回值类型伪装成原生类型（equal→boolean、dataTypeConversion→string、
+    // assemblyList→number[] 等），参数类型必须同时兼容 value 实例与伪装形态。
+    .replace(
+      '  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef {',
+      '  registerExecNode(nodeType: string, args: RuntimeExecNodeArg[]): MetaCallRecordRef {'
+    )
+    .replace(
+      `  connect(\n    sourceRef: MetaCallRecordRef,\n    sourceOutflowPinIndex: number,\n    targetRef: MetaCallRecordRef,\n    targetInflowPinIndex = 0\n  ): void {`,
+      `  connect(\n    sourceRef: MetaCallRecordRef | FlowMarkerRef,\n    sourceOutflowPinIndex: number,\n    targetRef: MetaCallRecordRef,\n    targetInflowPinIndex = 0\n  ): void {`
+    )
+    .replace(
+      '  node(\n    nodeType: string,\n    args: value[] = [],',
+      '  node(\n    nodeType: string,\n    args: RuntimeExecNodeArg[] = [],'
+    )
+    .replace(
+      '  rawExecNode(\n    nodeType: string,\n    args: value[] = [],',
+      '  rawExecNode(\n    nodeType: string,\n    args: RuntimeExecNodeArg[] = [],'
+    )
+    // createEntity/createPrefab/createPrefabGroup 的 unitTagIndexList 运行时接受 list 实例
+    // （parseValue int_list 路径），参数签名补 list<'int'>。
+    .replace(
+      '  createEntity(targetGuid: GuidValue, unitTagIndexList: IntValue[]): void {',
+      "  createEntity(targetGuid: GuidValue, unitTagIndexList: IntValue[] | list<'int'>): void {"
+    )
+    .replaceAll('    unitTagIndexList: IntValue[]', "    unitTagIndexList: IntValue[] | list<'int'>")
+    .replace(
+      '  ReadonlyDict,\n  RuntimeParameterValueTypeMap,',
+      '  ReadonlyDict,\n  RuntimeExecNodeArg,\n  RuntimeParameterValueTypeMap,'
+    )
 }
 
 function main() {
   if (process.argv.includes('--composite-contracts-only')) {
     const nodesPath = path.join(ROOT, 'src', 'definitions', 'nodes.ts')
     const nodesContent = fs.readFileSync(nodesPath, 'utf-8')
-    fs.writeFileSync(nodesPath, applyCompositeCallContracts(nodesContent))
+    fs.writeFileSync(nodesPath, applyDefinitionTypeContracts(nodesContent))
     return
   }
   buildEvents()

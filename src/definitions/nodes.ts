@@ -63,6 +63,7 @@ import {
   prefabId,
   PrefabIdValue,
   ReadonlyDict,
+  RuntimeExecNodeArg,
   RuntimeParameterValueTypeMap,
   RuntimeReturnValueTypeMap,
   str,
@@ -754,7 +755,7 @@ export class ServerExecutionFlowFunctions {
   /**
    * @internal 供复合节点 build() 使用：注册一个任意 nodeType 的执行节点。
    */
-  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef {
+  registerExecNode(nodeType: string, args: RuntimeExecNodeArg[]): MetaCallRecordRef {
     return this.registry.registerExecNode(nodeType, args)
   }
 
@@ -777,7 +778,7 @@ export class ServerExecutionFlowFunctions {
    * @internal 供复合节点 build() 使用：将源节点的 OutFlow 连接到目标节点的 InFlow。
    */
   connect(
-    sourceRef: MetaCallRecordRef,
+    sourceRef: MetaCallRecordRef | FlowMarkerRef,
     sourceOutflowPinIndex: number,
     targetRef: MetaCallRecordRef,
     targetInflowPinIndex = 0
@@ -808,7 +809,7 @@ export class ServerExecutionFlowFunctions {
    */
   node(
     nodeType: string,
-    args: value[] = [],
+    args: RuntimeExecNodeArg[] = [],
     options?: { outParams?: Record<string, { type: string; index: number }> }
   ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
     return this.registry.registerDetachedExecNode(nodeType, args, options?.outParams)
@@ -817,7 +818,7 @@ export class ServerExecutionFlowFunctions {
   /** Alias for f.node(). */
   rawExecNode(
     nodeType: string,
-    args: value[] = [],
+    args: RuntimeExecNodeArg[] = [],
     options?: { outParams?: Record<string, { type: string; index: number }> }
   ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
     return this.node(nodeType, args, options)
@@ -3923,7 +3924,7 @@ export class ServerExecutionFlowFunctions {
    *
    * 单位标签索引列表: 可决定该实体创建时携带的单位标签
    */
-  createEntity(targetGuid: GuidValue, unitTagIndexList: IntValue[]): void {
+  createEntity(targetGuid: GuidValue, unitTagIndexList: IntValue[] | list<'int'>): void {
     const targetGuidObj = parseValue(targetGuid, 'guid')
     const unitTagIndexListObj = parseValue(unitTagIndexList, 'int_list')
     this.registry.registerNode({
@@ -3972,7 +3973,7 @@ export class ServerExecutionFlowFunctions {
     ownerEntity: EntityValue,
     overwriteLevel: BoolValue,
     level: IntValue,
-    unitTagIndexList: IntValue[]
+    unitTagIndexList: IntValue[] | list<'int'> | list<'int'>
   ): entity {
     const prefabIdObj = parseValue(prefabId, 'prefab_id')
     const locationObj = parseValue(location, 'vec3')
@@ -4037,7 +4038,7 @@ export class ServerExecutionFlowFunctions {
     rotate: Vec3Value,
     ownerEntity: EntityValue,
     level: IntValue,
-    unitTagIndexList: IntValue[],
+    unitTagIndexList: IntValue[] | list<'int'> | list<'int'>,
     overwriteLevel: BoolValue
   ): entity[] {
     const prefabGroupIdObj = parseValue(prefabGroupId, 'int')
@@ -5371,7 +5372,7 @@ export class ServerExecutionFlowFunctions {
     trackTarget: EntityValue,
     overwriteLevel: BoolValue,
     level: IntValue,
-    unitTagIndexList: IntValue[]
+    unitTagIndexList: IntValue[] | list<'int'> | list<'int'>
   ): entity {
     const prefabIdObj = parseValue(prefabId, 'prefab_id')
     const locationObj = parseValue(location, 'vec3')

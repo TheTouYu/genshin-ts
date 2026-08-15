@@ -116,6 +116,13 @@ export type RuntimeReturnValueTypeMap = {
   struct_list: struct[]
 }
 
+/**
+ * 裸 exec 节点 API（f.node / f.registerExecNode 等）的参数类型。
+ * DSL 返回值类型会把 value 实例伪装成原生类型（equal→boolean、dataTypeConversion→string、
+ * assemblyList→number[] 等），运行时它们仍是 value 实例；裸节点注册必须兼容两种形态。
+ */
+export type RuntimeExecNodeArg = value | RuntimeReturnValueTypeMap[keyof RuntimeReturnValueTypeMap]
+
 export type RuntimeLiteralValueTypeMapWithoutList = Pick<
   RuntimeValueTypeMap,
   keyof LiteralValueTypeMapWithoutList
