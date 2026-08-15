@@ -1073,7 +1073,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "5847fc65fe97534c85009e6391f30d24fe0814a4eddb06308b10d7f4f3682a64",
+      "approved_hash": "b8fd05a5d8d618b4ef029531a03b88cbecc940c6f698f6ce4e4b527db7ee1933",
       "claim_ids": [
         "clm_EB98A0BAEA640B8ECB6577B16C"
       ],
@@ -1734,7 +1734,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "34a652a62b2cada4c0ab0b17f2bfede946a8b99d51623fca8048176d50c117ee",
+      "approved_hash": "b8fd05a5d8d618b4ef029531a03b88cbecc940c6f698f6ce4e4b527db7ee1933",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
