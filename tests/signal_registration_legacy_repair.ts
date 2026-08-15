@@ -123,9 +123,12 @@ assert.throws(
 const malformedPath = `/tmp/gsts-malformed-${process.pid}.gil`
 fs.writeFileSync(malformedPath, malformed)
 try {
-  assert.throws(
-    () => readRegisteredSignalsFromGil(malformedPath),
-    /signal name pin layout is missing: cube_turn/
+  // 2026-08-11 容错修订：残缺信号（缺 signal-name pin layout）不再使整表读取抛错，
+  // 改为读侧跳过该信号（readSignalLayouts 对残缺布局 continue）。
+  const readable = readRegisteredSignalsFromGil(malformedPath)
+  assert.ok(
+    !readable.some((signal) => signal.name === 'cube_turn'),
+    '残缺信号应被容错跳过而不是抛错'
   )
 } finally {
   fs.rmSync(malformedPath, { force: true })

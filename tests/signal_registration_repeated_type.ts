@@ -48,22 +48,36 @@ try {
   fs.rmSync(output, { force: true })
 }
 
-assert.throws(
-  () =>
-    registerSignalInGil({
-      bytes: target,
-      templateBytes: donor,
-      templateSignalName: 'cube_turn',
-      signal: {
-        name: 'too_many_strings',
-        params: [
-          { name: 'one', type: 'str' },
-          { name: 'two', type: 'str' },
-          { name: 'three', type: 'str' }
-        ]
-      }
-    }),
-  /needs 3 distinct layouts.*provides 2/
-)
+// 46de408 builtin 布局池：重复同类型参数由内置生成器覆盖（str send +4k、monitor/server +k），
+// 不再依赖 donor 提供 N 套真实布局 → 不再 fail-closed 报错。
+const tooMany = registerSignalInGil({
+  bytes: target,
+  templateBytes: donor,
+  templateSignalName: 'cube_turn',
+  signal: {
+    name: 'too_many_strings',
+    params: [
+      { name: 'one', type: 'str' },
+      { name: 'two', type: 'str' },
+      { name: 'three', type: 'str' }
+    ]
+  }
+})
+const tooManyOut = `/tmp/gsts-signal-too-many-${process.pid}.gil`
+fs.writeFileSync(tooManyOut, tooMany.bytes)
+try {
+  const sig = readRegisteredSignalsFromGil(tooManyOut).find((s) => s.name === 'too_many_strings')
+  assert.ok(sig)
+  assert.deepEqual(
+    sig.params.map((param) => [param.sendPinIndex, param.monitorPinIndex, param.serverPinIndex]),
+    [
+      [111, 132, 145],
+      [16, 35, 41],
+      [20, 36, 42]
+    ]
+  )
+} finally {
+  fs.rmSync(tooManyOut, { force: true })
+}
 
 console.log('signal repeated-type donor layouts: PASS')
