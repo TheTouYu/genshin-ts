@@ -403,3 +403,57 @@ pin layout（definition field 106）即整体抛错 → `assets:signals inspect/
 且 donor 完整 → 本图无法修复。绕过：自写脚本直调 `registerSignalInGil()`（库函数无全表回读校验），
 产出后回读自洽；宽容读注册表工具 = `tools/scan-gil-signal-registry.ts`（残缺项单条标记，
 `--gate` 探活退出码 1）。跨地图已知残缺：1073741826 也有 3 个残缺项。
+
+## 信号参数布局：编辑器「新建」vs「追加参数」两套路径（2026-08-15 灯阵差分实证）
+
+**现象**：灯阵 `lamp_toggle`（vec3+int）试玩无法启动；用户手动在编辑器「给信号追加一个参数」
+并保存后，CLI 编译报 schema mismatch（IR=[vec3] vs map=[vec3,int]）。
+
+**差分定位**（证据 `~/genshin-ts-evidence/lights-out/signal-diff/raw/`：
+`user-fixed-signal.gil` vs `cli-version-signal.gil` vs `map-after-repair.gil`）：
+- 编辑器「新建信号」路径（真实样本：地图 1073741849「信号测试全参数」、1073741888 verify_ping）：
+  参数段 f3 的 field2 = **类型值**（send/server：int=0/float=1/vec3=2/str=0/bool=4…；
+  monitor：类型值+3）；pinIndex = 类型基准三元组（vec3=91/110/123、int=68/76/83）+ 同类重复偏移
+  （send +4k(str)/+1k(其他)，monitor +k，server +k）。`BUILTIN_PARAM_LAYOUTS`（gil_signal_registrations.ts）
+  与之字节一致 —— CLI builtin 布局 = 引擎可加载的规范布局。
+- 编辑器「给已有信号追加参数」路径（用户手动保存后整表重写）：全部参数的 field2 改为
+  **参数序号**（send：0,1…；monitor：3,4…），pinIndex 重排为小值（1/2/6）——与规范布局不符，
+  信号引擎侧不可加载（启动后信号链路零执行）。**追加路径是破坏性操作**，不能作为修复手段。
+- CLI v1 注册（builtin 引入前/后）在灯阵留下的 vec3 段也缺类型 field2（`08 03` 而非 `08 03 10 02`），
+  属同一错误家族。
+
+**CLI 修复（2026-08-15，gil_signal_registrations.ts）**：`repairSignalInGil` 原只重建三份
+send/monitor/server 定义、**不重建注册表索引条目**（残留旧 pinIndex）→ 已修复为同步重建
+（`buildIndexEntry` 用模板参数池），灯阵案例注册表 pinIndex 1/2/6 → 68/76/83，候选与
+1849/1888 编辑器样本一致。legacy 场景（条目已是规范值）幂等不变。
+
+**验证层级**：真实 GIL 字段树差分 + 编辑器新建样本（1849/1888）字节对照 + CLI 回读 = 已证实；
+游戏侧"信号可启动"仍需用户核验（当前被实体 y=2000 超出场景范围启动报错阻塞，见
+lights-out/PROGRESS.md）。`#4` 身份字段 field5（1/2/3）语义未闭合（观察值：1849=1、1888/CLI=2、
+用户手动追加后=3），待解。
+
+## signalVersion 一致性：注册表条目 f6 必须与三份 CompositeDef #4 field5 相同（2026-08-15 灯阵差分实证）
+
+**规则**：引擎加载信号时校验版本一致性——注册表条目的 `signalVersion`（条目 f6，`readRegisteredSignalsFromGil`
+返回的 signalVersion）必须与 send/monitor/server 三份 CompositeDef 身份字段 `#4` 内最后一个 `field5`
+（版本字段）**完全相等**。不一致 → 引擎拒绝加载 → 地图启动失败。
+
+**证据链**（`~/genshin-ts-evidence/lights-out/signal-diff/round2/`）：
+- 编辑器创建未改：1849 多数信号 =1（条目 f6 与定义 field5 均为 1）
+- 编辑器修改一次（verify_ping/face_turn、CLI builtin 复刻）：=2，两边一致，引擎正常加载
+- 用户手动追加参数后：=3（两边一致，但参数布局是序号式，属另一类错误）
+- **CLI `repair` 产出：条目 f6=3（保留目标）但定义 field5=2（复刻 builtin 模板）→ 不一致 → 启动失败**
+- 用户重存信号（编辑器保存）：两边统一为 4 → 正常
+
+**工程结论**：`register`（builtin 路径）自洽（f6=2、field5=2）；`update`（目标定义作模板）自洽；
+**`repair` 必须把重建定义的 field5 改写为目标条目 signalVersion**（2026-08-15 已修复：
+`rewriteDefinitionVersion`，`SignalIndexEntry.signalVersion` 从条目 f6 读取）。修复合规验证：
+灯阵 repair 候选 field5=3（与 f6=3 一致）、legacy 场景 field5=2（幂等）。#4 内 field5 可能多次出现
+（身份块内另有大数 field5），只改写最后一个 occurrence。
+
+**游戏侧端到端验证（2026-08-15，灯阵 v3 单参数，日志 2707）**：CLI `update` 删除多余 int 字段、
+单参数 [senderPos:vec3]（版本 4=4 一致）注入后，游戏正常启动、交互正常；日志逐节点核验：
+senderPos 参数传递、距离计算（0/2.5/5.0）、阈值分支（0.1/3.0）、lit/head 变量、308 显隐、
+状态保持全部与代码一致，1599 帧零异常（无空实体/NaN/负值）。至此"信号可启动"从待验证升级为
+**游戏核验通过**。信号布局规范（builtin 类型值布局）+ 版本一致性 + CLI update/repair 修复
+三环全部闭环。

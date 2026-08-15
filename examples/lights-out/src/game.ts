@@ -1,10 +1,13 @@
-// 灯阵玩法逻辑 v1（2026-08-16）
+// 灯阵玩法逻辑 v3（2026-08-15）
 // 架构（ADR-0004）：1 图 × 9 灯柱挂载 + 信号广播 + 308 显隐 + 实体自定义变量
 //  - 状态：lit/head 存灯柱实体自定义变量（type 1 在位；规避图变量共享风险）
 //  - 灯头：whenEntityIsCreated 动态创建（createPrefab 灯头元件，y 固定 0.95），引用存实体变量
 //  - 明暗：activateDisableModelDisplay(灯头, lit)（U4b 已验证 308 生效）
-//  - 邻居：信号广播 lamp_toggle(senderPos) → 距离判定（>0.1 且 <=1.5 排除自身与对角）
+//  - 邻居：信号广播 lamp_toggle(senderPos) → 距离判定（>0.1 且 <=3.0 排除自身与对角，
+//    网格间距 2.5：邻居 2.5、对角 3.54）
 //  - 连锁：只传一层（接收方翻转后不再广播）
+//  - v3：单参数信号（senderPos:vec3）验证版——删除多余的 int 字段，CLI update 重新生成
+//    规范布局（版本 4=4 一致）
 import { defineSignal, g } from 'genshin-ts/runtime/core'
 import { listLiteral, str } from 'genshin-ts/runtime/value'
 
@@ -34,6 +37,7 @@ const graph = g
     f.setCustomVariable(self, new str('lit'), false, false)
     f.setCustomVariable(self, new str('head'), head, false)
     f.activateDisableModelDisplay(head, false)
+    f.printString('lamp-head-created')
     f.printString('lamp-init')
   })
 
@@ -59,30 +63,40 @@ const graph = g
   })
 
   // ③ 收到邻居信号 → 翻转（不广播，链止一层）
+  // 距离判定三态（W4 插桩）：<=0.1 自身（self-skip）/ <=3.0 邻居（翻转）/ 其余对角与远处（far-skip）
   .onSignal(LampSig.lamp_toggle, (evt: any, f: any) => {
     const self = f.getSelfEntity()
     const loc = f.getEntityLocationAndRotation(self).location
     const dist = f.distanceBetweenTwoCoordinatePoints(loc, evt.params.senderPos)
-    const isNeighbor = f.logicalAndOperation(f.greaterThan(dist, 0.1), f.lessThanOrEqualTo(dist, 1.5))
     f.doubleBranch(
-      isNeighbor,
+      f.lessThanOrEqualTo(dist, 0.1),
       () => {
-        const lit = f.equal(f.getCustomVariable(self, new str('lit')).asType('bool'), true)
-        const head = f.getCustomVariable(self, new str('head')).asType('entity')
+        f.printString('lamp-recv-self-skip')
+      },
+      () => {
         f.doubleBranch(
-          lit,
+          f.lessThanOrEqualTo(dist, 3.0),
           () => {
-            f.setCustomVariable(self, new str('lit'), false, false)
-            f.activateDisableModelDisplay(head, false)
+            const lit = f.equal(f.getCustomVariable(self, new str('lit')).asType('bool'), true)
+            const head = f.getCustomVariable(self, new str('head')).asType('entity')
+            f.doubleBranch(
+              lit,
+              () => {
+                f.setCustomVariable(self, new str('lit'), false, false)
+                f.activateDisableModelDisplay(head, false)
+              },
+              () => {
+                f.setCustomVariable(self, new str('lit'), true, false)
+                f.activateDisableModelDisplay(head, true)
+              }
+            )
+            f.printString('lamp-neighbor-toggle')
           },
           () => {
-            f.setCustomVariable(self, new str('lit'), true, false)
-            f.activateDisableModelDisplay(head, true)
+            f.printString('lamp-recv-far-skip')
           }
         )
-        f.printString('lamp-neighbor-toggle')
-      },
-      () => {}
+      }
     )
   })
 

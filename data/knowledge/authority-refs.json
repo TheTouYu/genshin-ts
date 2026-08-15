@@ -1697,6 +1697,22 @@
       ]
     },
     {
+      "id": "aref_a6b7dc079e716dbf54cc1f667a",
+      "path": "docs/pkc-improvement-requests.md",
+      "locator": "PKC 使用体验改进需求集合（2026-08-13 起）：本 claim 为其新增条目——draft 生命周期健康度（orphan draft 残留/bundle-supersede 回收/堆积无提示）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b38bbbcc7b421ece2f014317c060127c2152c33e0073dc49a515751c82fb9f52",
+      "claim_ids": [
+        "clm_6788051E40C22ACCD528325348"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_a78da4e24fb7693ad7b7503285",
       "path": "docs/game-engine-knowledge/components.md",
       "locator": "自定义变量组件（1）条目编码（exp1-2）",

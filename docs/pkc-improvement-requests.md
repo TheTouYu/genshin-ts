@@ -139,3 +139,80 @@ python tools/pkc.py knowledge-plan finalize <plan>
 ```
 
 全程 3 次 git 提交、2 次 plan abandon、1 次源码阅读。其中 R2、R3 合计约 70% 的额外轮次。
+
+---
+
+## R3 复现确认（2026-08-16）：staged 快照缺未提交 ref 的另一变体——`AUTHORITY_FACT_COVERAGE`
+
+### 现状
+
+2026-08-16 再次真实命中 R3 同根因的**另一报错变体**：apply 一个维护/录入 bundle（未提交 git）后新建 plan，finalize 全量 preflight 报：
+
+```text
+AUTHORITY_FACT_COVERAGE: clm_6788051E...: missing documented_contract
+```
+
+根因与 R3 完全相同：新 plan 的 staging 从 git HEAD 快照 authority-refs.json（211 refs），而工作树已 apply 的 ref（`aref_a6b7dc07`，第 212 条）未提交，导致 staged 快照里该 claim 缺覆盖 → 校验失败。`validate`（工作树）通过、`knowledge-check` 不报该 ref，只有 plan finalize 的 staged preflight 报——误导性极强。
+
+### 期望（并入 R3）
+
+R3 的修复应同时覆盖 `AUTHORITY_FACT_COVERAGE` 变体：当 coverage 缺失源于"ref 存在于工作树但不在 HEAD"时，报错应提示"检测到未提交的 authority 变更（N 条 ref 仅在工作树），请先提交或使用 rebase 刷新快照"，而不是报"missing documented_contract"。
+
+---
+
+## R5.1（2026-08-16 已实施）：bundle-status 生命周期健康度汇总（R6/R7/R8 的首个落地）
+
+本体 `portable-knowledge` 已于 2026-08-16 实现 `bundle_health`：`bundle-inspect`/`bundle-status` 在列出全部时新增 `health` 块（状态计数 / 同 intent 重复 draft 提示 / approved 待 apply 下一步 / approval 内容级校验）。已通过全量测试（14/14）与 genshin-ts 真实数据端到端验证（正确识别 1 对重复 draft + 2 个待 apply + 0 误报）。等待发布后经 `plan-upgrade` 落入各消费项目。
+
+---
+
+## R6（P1）：draft 重复无自动消重——同 intent 近似重复 draft 无任何提示
+
+### 现状
+
+`bundle-status` 逐条列出 bundle，但不提示"同 intent 存在多个 draft"。2026-08-15/16 实测发现两对近似重复：
+
+- intent `entity-import-aux-attachment-2026-08-10`：`bnd_ffe4dbcac...` + `bnd_e13c56cbe...`（各 2 claims + 4 refs，语义相同，content hash 不同，均无 `superseded_by`）；
+- intent `P4-4 类型契约`：`bnd_36ef81925...` + `bnd_bbda2fb98...`（各 3 claims + 6 refs，同上）。
+
+其中第一对的意图其实已被第三个 bundle `bnd_4f9e9121...`（applied）覆盖——即**三个 bundle 做同一件事**，两个 draft 是孤儿。识别需手工 cross-check 每个 draft 的 claims/refs 与已 apply bundle 的语义。
+
+### 实际影响
+
+维护者无法从 `bundle-status` 得知"这个 draft 可能已被覆盖/重复"；误 apply 会重复注册已存在 claim/ref（stale-baseline 静默假成功风险）。本次靠逐 bundle 读 json + 与已 apply bundle 对比才识别。
+
+### 期望
+
+- `bundle-status` 对"同 intent 的多个 draft（均未 superseded）"输出疑似重复提示（附 intent 分组）。
+- 对"draft 的 claims/refs 与某已 apply bundle 完全重合"提示"意图可能已被 bnd_xxx 覆盖"。
+- 验收：一条 `bundle-status` 输出即可发现这两对重复，无需读 json。
+
+---
+
+## R7（P1）：bundle-status 缺生命周期健康度汇总——状态计数与"下一步"提示
+
+### 现状
+
+`bundle-status` 输出逐条 bundle（73+ 条），无聚合统计，无状态语义说明。本次实测两次误判：
+
+1. 误把 `approved` 态 bundle 的 approval 文件当成"空文件半成品"（用不存在的键 `approved_by/approved_at` 读，返回 None 误判为空）——实际 approval 文件合法完整（approval_hash/content_hash/principal/schema_version 齐全），`approved` 是合法中间态（已批准待 apply）。根源：输出无"approved=待 apply"的语义提示。
+2. 无法一眼看出"有几个 draft 待处理、几个 approved 待 apply、几个已 apply"。
+
+### 期望
+
+- `bundle-status` 增加健康度汇总块：各 state 计数（draft/approved/applied/superseded/...）。
+- `approved` 未 apply 的 bundle 显式标注"下一步：bundle-apply --apply"。
+- 验收：一条命令看清生命周期全景与待办，无需手工交叉 bundle-status + approval/applied 文件。
+
+---
+
+## R8（P2）：bundle 生命周期文件缺内容级校验——approval/lifecycle 文件损坏或半写无法被 detect
+
+### 现状
+
+`bundle-status`/`bundle-inspect` 只检查 approval/applied **文件是否存在**（`approval_path.is_file()`），不校验内容合法性（schema、approval_hash 是否匹配 bundle）。若文件被截断、写坏或手工改坏，`bundle-status` 仍报 `approved`/`applied`，直到 `bundle-apply` 才失败。
+
+### 期望
+
+- `bundle-status` 对 approval/applied/lifecycle 文件做内容级校验（schema + hash 匹配），异常标记为 `approval_invalid`/`receipt_invalid` 并列入健康度汇总。
+- 验收：故意损坏一个 approval 文件后，`bundle-status` 能指出该 bundle 状态异常，而不是静默报 approved。

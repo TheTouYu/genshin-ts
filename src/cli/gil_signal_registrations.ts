@@ -52,6 +52,10 @@ type SignalIndexEntry = {
   params: SignalRegistrationParam[]
   identity: SignalIdentity
   paramEntries: WireField[]
+  /** 注册表条目的 signalVersion（f6）。引擎要求与三份 CompositeDef #4 身份字段的 field5 一致
+   * （2026-08-15 灯阵实证：repair 复刻模板 field5=2 但条目 signalVersion=3 → 引擎拒绝加载，
+   * 用户重存统一为 4 后正常）。 */
+  signalVersion: number
 }
 
 type DefinitionKind = 'send' | 'monitor' | 'server'
@@ -403,10 +407,13 @@ function parseSignalIndexEntry(field: WireField): SignalIndexEntry | undefined {
         throw new Error(`[error] unsupported template signal parameter type: ${code}`)
       return { name: paramName, type }
     })
+  const signalVersion = varint(value, 6)
+  if (signalVersion === undefined) return undefined
   return {
     field,
     name,
     params,
+    signalVersion,
     identity: {
       sendId: sendIdentity.id,
       monitorId: monitorIdentity.id,
@@ -802,7 +809,10 @@ function buildBuiltinTemplate(
     name: signal.name,
     params: [...signal.params],
     identity: { sendId: signal.sendId, monitorId: signal.monitorId, serverId: signal.serverId },
-    paramEntries: [firstTemplates.index]
+    paramEntries: [firstTemplates.index],
+    // builtin 布局的版本固定为 2（复刻 1888 verify_ping 的创建后一次编辑状态），
+    // 与上方 field f6=2 及三份定义 #4 field5=2 保持一致。
+    signalVersion: 2
   }
   return { template, templateDefinitions }
 }
@@ -984,6 +994,37 @@ function buildDefinition(
     value: emitWireMessage(
       wrapperFields.map((field) =>
         field === inner ? { ...field, value: emitWireMessage(rebuilt) } : field
+      )
+    )
+  }
+}
+
+/**
+ * 把 CompositeDef 身份字段 #4 的最后一个 field5 varint 改写为指定版本。
+ * 引擎要求三份定义的 #4 field5 与注册表条目 signalVersion 一致（2026-08-15 灯阵实证：
+ * repair 复刻模板 field5=2 但条目 signalVersion=3 → 引擎拒绝加载 → 启动失败）。
+ * #4 内 field5 可能多次出现（如 42B 身份块内 28 85 80 80 80 06 后另有版本字段 28 xx），
+ * 只改写最后一个 occurrence（版本字段），其余保持。
+ */
+function rewriteDefinitionVersion(main: WireField, version: number): WireField {
+  const wrapperFields = message(main, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return main
+  const root = message(inner, 'signal definition')
+  const nextRoot = root.map((sub) => {
+    if (sub.number !== 4 || sub.wire !== 2) return sub
+    const idFields = message(sub, 'signal definition identity')
+    const lastIndex = idFields.map((f) => f.number).lastIndexOf(5)
+    if (lastIndex < 0 || idFields[lastIndex].wire !== 0) return sub
+    const next = [...idFields]
+    next[lastIndex] = { ...next[lastIndex], value: version }
+    return { ...sub, value: emitWireMessage(next) }
+  })
+  return {
+    ...main,
+    value: emitWireMessage(
+      wrapperFields.map((field) =>
+        field === inner ? { ...field, value: emitWireMessage(nextRoot) } : field
       )
     )
   }
@@ -1173,23 +1214,36 @@ export function repairSignalInGil(input: {
   for (let index = 0; index < kinds.length; index++) {
     replacements.set(
       targetDefinitions.get(targetIds[index])!,
-      buildDefinition(
-        templateDefinitions.get(templateIds[index])!,
-        kinds[index],
-        template,
-        signal,
-        pool
+      // 版本一致性：buildDefinition 复刻模板 #4 field5，需改写为目标条目 signalVersion，
+      // 否则引擎拒绝加载（2026-08-15 灯阵实证：field5=2 vs 条目 signalVersion=3 → 启动失败）。
+      rewriteDefinitionVersion(
+        buildDefinition(
+          templateDefinitions.get(templateIds[index])!,
+          kinds[index],
+          template,
+          signal,
+          pool
+        ),
+        target.signalVersion
       )
     )
   }
   const nextTop = targetSource.top.map((field) => replacements.get(field) ?? field)
-  const unchanged = [...replacements].every(
-    ([before, after]) =>
-      Buffer.compare(
-        Buffer.from(emitWireMessage([before])),
-        Buffer.from(emitWireMessage([after]))
-      ) === 0
+  // 重建注册表索引条目：pool 来自模板（规范布局），条目 pinIndex 同步为模板值。
+  // 修复前 repair 只重建三份定义、条目残留旧 pinIndex（2026-08-15 灯阵信号差分实证：
+  // 用户编辑器"追加参数"路径写入序号式布局，repair 需整体恢复为类型值布局）。
+  const indexPosition = nextTop.indexOf(targetSource.index.field)
+  if (indexPosition < 0) {
+    throw new Error('[error] signal registry index not found in target')
+  }
+  const nextIndex = targetSource.index.fields.map((field) =>
+    field === target.field ? buildIndexEntry(target, signal, pool) : field
   )
+  nextTop[indexPosition] = { ...targetSource.index.field, value: emitWireMessage(nextIndex) }
+  const unchanged = Buffer.compare(
+    Buffer.from(emitWireMessage(nextTop)),
+    Buffer.from(emitWireMessage(targetSource.top))
+  ) === 0
   if (unchanged) {
     return {
       bytes: input.bytes,

@@ -38,3 +38,6 @@ __pycache__/
 # Local tool state
 /.gsts/
 /.pi/
+
+# 灯阵示例的 gsts 提取产物（每次注入重新生成，不提交）
+examples/lights-out/src/resources/
