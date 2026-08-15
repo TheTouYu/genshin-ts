@@ -50,3 +50,15 @@ When Stage 1 lowers an object literal shorthand such as { pivot } and the refere
 Applies to current Stage 1 TS-to-.gs.ts lowering for object-literal shorthand values that reference checked LocalVariables, especially Composite inputs. Proven by the formal 20-branch regression, consumer no-injection generation, and user game test after vendor integration. Does not prove arbitrary Stage 3/GIA encoding, injection success, map safety, or general game behavior outside the tested consumer sequence.
 
 <!-- CLAIM:END clm_D9ECC27260829E9EA8C85E20F1 -->
+
+<!-- CLAIM:START clm_50FE14CCB8C2FE47CF7BD77FA3 -->
+
+### 定时器捕获排除类型级 QualifiedName（typeof a.b）
+
+Stage 1 定时器捕获：shouldCaptureIdentifier 必须排除类型级 typeof a.b（QualifiedName），否则类型位置标识符被误当运行时变量，生成跨作用域 timerName 引用并在 IR 阶段 ReferenceError（提交 822481a 修复）；tests/timer_global_overload_type_safety_test.ts 的 evt/timerName 非 any 断言为永久回归。
+
+#### 适用边界
+
+证据为自动回归（quicktest 66 GIA 绿）；只覆盖 QualifiedName 一个捕获边界。
+
+<!-- CLAIM:END clm_50FE14CCB8C2FE47CF7BD77FA3 -->

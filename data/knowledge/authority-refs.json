@@ -677,6 +677,36 @@
       ]
     },
     {
+      "id": "aref_3ec829493fdb7d7cc6e52fb95d",
+      "path": "src/compiler/gsts_config.ts",
+      "locator": "1ff4d6a:GstsStaticPrefabUpdate.removeComponents 字段",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cb9eef5403554ff01b419473cffc554deab5b405ada1ce0dbcc3e2a6e04c6a8d",
+      "claim_ids": [
+        "clm_2A0776BD30AF4352927C2268E7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_3ee68bfcb9accd48ac7da09cbd",
+      "path": "src/cli/gil_static_prefab_updates.ts",
+      "locator": "1ff4d6a:validateUpdate+applyStaticPrefabUpdate",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "2fe4d571ba031fd0258660cef297b0cbf16a91012ad1a38d4232e84f5c20fe11",
+      "claim_ids": [
+        "clm_2A0776BD30AF4352927C2268E7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_3fd14200bbbda9745717570001",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#21",
@@ -1127,6 +1157,21 @@
       ]
     },
     {
+      "id": "aref_75461307537c6e48b0397c2f91",
+      "path": "src/compiler/ts_to_gs_transform/expr.ts",
+      "locator": "822481a:shouldCaptureIdentifier QualifiedName",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "5dddb50124736f4281a83d20ccd316b95783fdcd76747faa3c4720cc67480910",
+      "claim_ids": [
+        "clm_50FE14CCB8C2FE47CF7BD77FA3"
+      ],
+      "supports_fact_classes": [
+        "transform_defaults"
+      ]
+    },
+    {
       "id": "aref_759f8dbcf6928e0480fcb4ccdf",
       "path": ".agents/skills/gil-node-graph-editing/SKILL.md",
       "locator": "布局规范（书页式）段落",
@@ -1454,6 +1499,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_90fee71ba5f6118a2a31eed0bb",
+      "path": "tests/timer_global_overload_type_safety_test.ts",
+      "locator": "822481a:非 any 断言",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "545de4aa1eff0eccacd9467d2ee371ac8ce03be11d6c14fba91cbc8dd0f78f0e",
+      "claim_ids": [
+        "clm_E00EA364E3007B602561B972F7"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
       ]
     },
     {
@@ -1924,6 +1984,21 @@
       ]
     },
     {
+      "id": "aref_cedc9b577a15faabf95dbeea13",
+      "path": "docs/docs/zh/doc/cli/config.md",
+      "locator": "1ff4d6a:staticPrefabUpdates 章节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "171c70794df60b3b87a55ca410b0acdc12c09ad5b5a7439f5d0fbc5935204aec",
+      "claim_ids": [
+        "clm_2A0776BD30AF4352927C2268E7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_cf52a2d9276e0cc970846ddfa7",
       "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
       "locator": "classifyExpressionSemantics() list length branch and storable runtime-value classification",
@@ -2146,6 +2221,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_eab991792a2210cfecc1128bd6",
+      "path": "src/runtime/value.ts",
+      "locator": "822481a:RuntimeExecNodeArg",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "c1f4d5aedb27ea8121cbff837cc94981e4ed968c2f4c56ab5863102043bdba26",
+      "claim_ids": [
+        "clm_E00EA364E3007B602561B972F7"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
       ]
     },
     {

@@ -960,6 +960,17 @@
       "summary": "Author-facing guide: when to composite, four forms, interface design, three architecture patterns, known boundaries, verification flow",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "static-assembly-asset-workflows",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "Static assembly and prefab-update asset workflows",
+      "path": "knowledge/cli-injector-asset-workflows/static-assembly-asset-workflows.md",
+      "summary": "staticAssemblies/staticPrefabUpdates 组件槽读写契约、CLI 行为与真实写回",
+      "keywords": [
+        "staticPrefabUpdates,removeComponents,组件槽,写回"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1602,6 +1613,21 @@
     "clm_740967E3FFD383A6EEA8C68637": {
       "fact_classes": [
         "evidence_scope"
+      ]
+    },
+    "clm_2A0776BD30AF4352927C2268E7": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_E00EA364E3007B602561B972F7": {
+      "fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    "clm_50FE14CCB8C2FE47CF7BD77FA3": {
+      "fact_classes": [
+        "transform_defaults"
       ]
     }
   }

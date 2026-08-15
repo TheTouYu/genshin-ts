@@ -26,3 +26,15 @@ For callback-based multi-outflow nodes, Stage 2 keeps every branch tail that was
 This is committed gsts runtime-to-IR behavior at 9ca2cc635d67800796c6ebc117978665af829a7e and focused automatic-regression evidence only. It does not establish consumer refreshed-snapshot warning counts, editor import, injection, or game behavior. Revalidate when branch callback join logic, tail endpoint registration, Composite marker continuation, or return termination changes.
 
 <!-- CLAIM:END clm_1CF9B63712693301D1FFA1FBD5 -->
+
+<!-- CLAIM:START clm_E00EA364E3007B602561B972F7 -->
+
+### examples 类型契约补齐：RuntimeExecNodeArg 与伪装返回值类型
+
+提交 822481a（P4-4）闭合 examples 类型缺口：RuntimeExecNodeArg = value | DSL 伪装返回值类型（equal→boolean、dataTypeConversion→string、assemblyList→number[] 等运行时均为 value 实例），f.node/registerExecNode/registerDetachedExecNode 使用；defineComposite 接受 Stage 1 注入的 provenance；connect 源参接受 FlowMarkerRef；createEntity/createPrefab/createPrefabGroup 的 unitTagIndexList 接受 list<'int'> 实例；server_globals.d.ts 的 setTimeout/setInterval 声明转换器第三参 meta?: TimerOptions。npm run build 绿 + quicktest 66 GIA 绿。
+
+#### 适用边界
+
+纯类型层契约，不改运行时语义；证据为 tsc/quicktest 自动回归；无游戏验证需求。
+
+<!-- CLAIM:END clm_E00EA364E3007B602561B972F7 -->
