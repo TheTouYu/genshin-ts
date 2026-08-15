@@ -733,9 +733,21 @@ const BUILTIN_DISPLAY: Record<'send' | 'mon' | 'ser', { text: string; kind: numb
   ser: { text: '向服务器节点图发送信号', kind: 1 }
 }
 
+/**
+ * 引擎接受的信号版本下限（2026-08-15 最小图三轮差分实证）：
+ * 校验范围 = 被玩法图引用的信号；被引用信号数 N 的版本阈值拟合
+ * f(N) = max(3, ceil(3N/4))（等价：注册表 identity 记录数 3N / 4 向上取整）。
+ * 铁证：N=3 → v2 失败 v3 成功；N=5 → v3 失败 v4 成功；未引用信号（v1）不参与校验；
+ * v5 在 N=5 可启动（无上限证据）。CLI 曾固定版本 3，N=5 时低于阈值 4 → 引擎拒绝加载。
+ */
+function versionFloor(signalCount: number): number {
+  return Math.max(3, Math.ceil((signalCount * 3) / 4))
+}
+
 function buildBuiltinTemplate(
   signal: SignalRegistrationSpec,
-  pool: SignalPool
+  pool: SignalPool,
+  version: number
 ): { template: SignalIndexEntry; templateDefinitions: WireField[] } {
   const first = signal.params[0]
   const firstTemplates = pool.byType.get(first.type)?.[0]
@@ -760,7 +772,7 @@ function buildBuiltinTemplate(
           { number: 1, wire: 2, value: identity },
           { number: 2, wire: 2, value: kind === 'ser' ? BUILTIN_SERVER_F4_N2 : identity },
           { number: 4, wire: 2, value: emitWireMessage([]) },
-          { number: 5, wire: 0, value: 3 }
+          { number: 5, wire: 0, value: version }
         ])
       }
     ]
@@ -802,7 +814,7 @@ function buildBuiltinTemplate(
         { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
         { number: 3, wire: 2, value: TEXT.encode(signal.name) },
         { number: 4, wire: 2, value: firstTemplates.index.value },
-        { number: 6, wire: 0, value: 3 },
+        { number: 6, wire: 0, value: version },
         { number: 7, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
       ])
     },
@@ -810,10 +822,9 @@ function buildBuiltinTemplate(
     params: [...signal.params],
     identity: { sendId: signal.sendId, monitorId: signal.monitorId, serverId: signal.serverId },
     paramEntries: [firstTemplates.index],
-    // builtin 布局的版本固定为 3（2026-08-15 最小图实证：引擎拒绝 vec3 信号版本 2，
-    // 版本 >=3 且注册表 f6 与定义 #4 field5 一致即可加载；verify_ping 的 str 版本 2
-    // 虽历史可用，但统一 >=3 更安全），与上方 field f6=3 及三份定义 #4 field5=3 保持一致。
-    signalVersion: 3
+    // builtin 布局的版本 = versionFloor(注册后信号数)（2026-08-15 最小图三轮差分：
+    // 版本阈值随被引用信号数增长，f(N)=max(3,ceil(3N/4))），与 f6 及定义 #4 field5 一致。
+    signalVersion: version
   }
   return { template, templateDefinitions }
 }
@@ -1031,6 +1042,21 @@ function rewriteDefinitionVersion(main: WireField, version: number): WireField {
   }
 }
 
+/** 读 CompositeDef 身份字段 #4 的最后一个 field5（版本字段）。 */
+function definitionVersion(main: WireField): number | undefined {
+  const wrapperFields = message(main, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return undefined
+  const root = message(inner, 'signal definition')
+  const idMsg = root.find((sub) => sub.number === 4 && sub.wire === 2)
+  if (!idMsg) return undefined
+  const f5s = message(idMsg, 'signal definition identity').filter(
+    (f) => f.number === 5 && f.wire === 0
+  )
+  const last = f5s.at(-1)
+  return last ? (last.value as number) : undefined
+}
+
 /**
  * 改写注册表条目的 signalVersion（f6）。引擎要求条目 f6 与三份定义 #4 field5 一致，
  * 且 vec3 信号版本 >=3（2026-08-15 最小图实证：版本 2 被拒绝、3/4 均可加载）。
@@ -1225,7 +1251,7 @@ export function repairSignalInGil(input: {
   // 版本一致性 + 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，
   // >=3 且条目 f6 与定义 #4 field5 一致即可加载）。定义 field5 与条目 f6 统一为目标
   // 版本与 3 的较大值。
-  const effectiveVersion = Math.max(target.signalVersion, 3)
+  const effectiveVersion = Math.max(target.signalVersion, versionFloor(targetSource.entries.length))
   const replacements = new Map<WireField, WireField>()
   const kinds: DefinitionKind[] = ['send', 'monitor', 'server']
   for (let index = 0; index < kinds.length; index++) {
@@ -1305,7 +1331,7 @@ export function updateSignalInGil(input: {
   ])
   const found = new Set<number>()
   // 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，>=3 且 f6==field5 可加载）
-  const effectiveVersion = Math.max(target.signalVersion, 3)
+  const effectiveVersion = Math.max(target.signalVersion, versionFloor(signalEntries(index.fields).length))
   const nextTop = top.map((field) => {
     const id = definitionNodeId(field)
     const kind = id === undefined ? undefined : kinds.get(id)
@@ -1428,7 +1454,7 @@ export function registerSignalInGil(input: {
     const mapPool = buildParamPool(top, existingEntries)
     const pool = mergePoolFor(signal.params, mapPool)
     validateSpec(signal, pool)
-    const built = buildBuiltinTemplate(signal, pool)
+    const built = buildBuiltinTemplate(signal, pool, versionFloor(existingEntries.length + 1))
     source = {
       template: built.template,
       pool,
@@ -1472,12 +1498,44 @@ export function registerSignalInGil(input: {
     { number: 2, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
   ]
   const firstEntry = index.fields.findIndex((field) => field.number === 3)
-  const nextIndex = [...index.fields]
+  let nextIndex = [...index.fields]
   nextIndex.splice(firstEntry < 0 ? nextIndex.length : firstEntry, 0, ...idFields)
   nextIndex.push(buildIndexEntry(template, signal, pool))
   const indexCount = nextIndex.find((field) => field.number === 6 && field.wire === 0)
   if (indexCount) indexCount.value = (indexCount.value as number) + 1
-  nextTop[indexPosition] = { ...index.field, value: emitWireMessage(nextIndex) }
+
+  // 版本回填（2026-08-15 最小图实证）：引擎校验所有被引用信号版本 >= versionFloor(信号数)。
+  // 逐个 register 时旧信号版本按当时数量生成（偏低），新信号加入后必须把全表条目 f6 与
+  // 三份定义 #4 field5 回填到新阈值（只提升不降级），否则旧信号低于新阈值 → 引擎拒绝加载。
+  const targetVersion = versionFloor(existingEntries.length + 1)
+  const bumpIndex = nextIndex.map((field) => {
+    if (field.wire !== 2) return field
+    const inner = parseWireMessage(field.value as Uint8Array)
+    if (!inner?.some((x) => x.number === 3 && x.wire === 2)) return field
+    const f6 = inner.find((x) => x.number === 6 && x.wire === 0)
+    if (f6 && (f6.value as number) < targetVersion) return withSignalVersion(field, targetVersion)
+    return field
+  })
+  nextIndex = bumpIndex
+  nextTop[indexPosition] = { ...index.field, value: emitWireMessage(bumpIndex) }
+  // 定义回填：旧信号三份定义 #4 field5 < 新阈值 → 提升
+  const oldSigIds = new Set(
+    existingEntries.flatMap((entry) => [
+      entry.identity.sendId,
+      entry.identity.monitorId,
+      entry.identity.serverId
+    ])
+  )
+  for (let i = 0; i < nextTop.length; i++) {
+    const field = nextTop[i]
+    if (field.number !== 2 || field.wire !== 2) continue
+    const id = definitionNodeId(field)
+    if (id === undefined || !oldSigIds.has(id)) continue
+    const current = definitionVersion(field)
+    if (current !== undefined && current < targetVersion) {
+      nextTop[i] = rewriteDefinitionVersion(field, targetVersion)
+    }
+  }
 
   const nextRoot = sourceRoot.map((field) =>
     field === topField ? { ...field, value: emitWireMessage(nextTop) } : field

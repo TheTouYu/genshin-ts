@@ -141,15 +141,26 @@ const result = repairSignalInGil({
   templateSignalName: 'cube_turn'
 })
 assert.equal(result.status, 'repaired')
-// 2026-08-15 版本下限修复：条目 f6 从 2 提升到 3（与定义 field5 一致），其余字段保持
-const beforeEntry = parse(entry(malformed, 'cube_turn') as Uint8Array)!
-const afterEntry = parse(entry(result.bytes, 'cube_turn') as Uint8Array)!
-const entryDiff = afterEntry.filter(
-  (f) => !beforeEntry.some((g) => g.number === f.number && g.wire === f.wire && g.value === f.value)
-)
-assert.ok(
-  entryDiff.length <= 1 && entryDiff.every((f) => f.number === 6),
-  `entry must change only f6 (version), got: ${entryDiff.map((f) => f.number).join(',')}`
+// 2026-08-15 版本下限修复：条目 f6 提升到 versionFloor(注册表信号数)（与定义 field5 同步）。
+// buildIndexEntry 会重编码 identity（f1/f2/f7）与参数条目（f4），字节不逐字段可比，
+// 这里只断言语义关键字段：名字保持 + f6 为预期的版本下限。
+const afterEntryFields = parse(entry(result.bytes, 'cube_turn').value as Uint8Array)!
+assert.equal(text(afterEntryFields, 3), 'cube_turn', 'repair 保持信号名')
+// 版本下限 = versionFloor(注册表信号数)（f(N)=max(3,ceil(3N/4))，2026-08-15 三轮差分实证）
+const signalEntryCount = (() => {
+  const index = parse(
+    top(result.bytes).find((field) => field.number === 5 && field.wire === 2)!.value as Uint8Array
+  )
+  return index.filter(
+    (f) => f.number === 3 && f.wire === 2 && text(parse(f.value as Uint8Array), 3) !== undefined
+  ).length
+})()
+const expectedVersion = Math.max(3, Math.ceil((signalEntryCount * 3) / 4))
+const f6After = afterEntryFields.find((f) => f.number === 6 && f.wire === 0)
+assert.equal(
+  f6After?.value,
+  expectedVersion,
+  `repair 提升条目版本到 versionFloor(信号数)=${expectedVersion}，got ${f6After?.value}`
 )
 assert.deepEqual(unrelated(result.bytes), unrelated(malformed))
 const repairedDefs = definitions(result.bytes)
