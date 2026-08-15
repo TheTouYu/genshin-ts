@@ -777,6 +777,20 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }
     }
 
+    // 信号节点（post-encode 阶段仍是占位 300000/300001，kind=22001 的 SysGraph
+    // 修正发生在 encode 之后，此处按占位 ID 识别）已连接 InParam：值来自上游连线，
+    // 不序列化默认值。vendor Pin.encode 对 value=null 的 Vector 类型会补空 VectorBase，
+    // 引擎信号参数校验拒绝该默认值（2026-08-16 灯阵实证：vec3 参数空默认值 → 参数错误拒载）。
+    if (mainNodes) {
+      for (const node of mainNodes) {
+        const nid = node.genericId?.nodeId
+        if (nid !== 300000 && nid !== 300001) continue
+        for (const pin of node.pins ?? []) {
+          if (pin.i1?.kind === 3 && (pin.connects ?? []).length > 0) pin.value = null
+        }
+      }
+    }
+
     // 重排序 pins：OutFlow (kind=2) 在前，InParam (kind=3) 在后（匹配游戏编辑器输出）
     if (mainNodes) {
       for (const n of mainNodes) {

@@ -470,3 +470,28 @@ builtin 模板此前复刻 verify_ping（str,str，版本 2）——str 版本 2
 **工程结论（2026-08-15 已修复，commit 039a060）**：register（builtin 模板版本 2→3）、
 update/repair（目标版本 <3 时提升到 3，`withSignalVersion` 同步条目 f6 与定义 field5）。
 验证：三路径均输出 v3=3 一致；legacy 断言更新（仅 f6/field5 变化其余逐字节一致）。
+
+## 信号节点参数默认值：已连接 InParam 不得携带默认值（2026-08-16 灯阵回归差分实证，第 4 次同类错误根因）
+
+**现象**：信号版本一致（v5=5）、图结构完整（84 节点）、挂载正确，但游戏**拒绝加载**（报"参数错误"，
+错误级别极高，游戏根本进不去，因此 Beyond_Debug_Log 无日志——此类加载期错误不落执行日志）。
+
+**三版本差分闭环**（`~/genshin-ts-evidence/lights-out/regression-diff/`，v3=我们注入 / v4=游戏自动保存 / v5=用户编辑器修复）：
+- v3（我们注入）发送信号节点参数：vec3 参数 pin 带**空 VectorBase 默认值**（`{val:{}}`）+ i2.index=0
+- v4（试玩自动保存，仍出错）：vec3 默认值被引擎删除但 i2.index 被改 2（引擎中间态，仍不可用）
+- v5（用户修复，正常）：vec3 参数 **value=NULL**、i2.index=0（与参数顺序一致）
+
+**规则**：发送信号（send_signal）节点的**已连接 InParam（connects 非空）不得携带默认值**——
+值来自上游连线，默认值会导致引擎信号参数校验失败。字面量参数（如 hop=1）可带默认值（引擎接受）。
+监听（monitor）节点无参数 pin，不受影响。引擎对普通 SysCall 节点已连接参数带默认值**容忍**
+（注入后 11 处与编辑器保存版一致，游戏通过），严格校验仅限信号节点参数。
+
+**工程结论（2026-08-16 已修复）**：`src/compiler/ir_to_gia_transform/index.ts` post-encode 阶段
+对占位信号节点（300000/300001）的已连接 InParam 统一 `value=null`（与复合调用 InParam 同规则）。
+根因：vendor `Pin.encode` 对 `value=null` 的 Vector 类型自动补空 VectorBase（`simple_value_var`
+"编辑器兼容"策略），导致"未设置"被序列化成"空默认值"；此前只对复合调用与 LocalVariable 处理，
+信号节点遗漏。验证：修复后 GIA 产物与用户修复版（v5）信号参数逐字段一致；游戏进入正常。
+
+**同类风险（未闭合）**：客户端 `send_signal_to_server_node_graph`（`client_graph.ts`）对 conn 参数
+同样填充默认载荷（`SIGNAL_PARAM_DEFAULT_BY_TYPE`，源自 2026-07-11 编辑器样本实测）——形态与编辑器
+样本一致，但客户端信号游戏行为从未端到端验证，若引擎对客户端同样严格校验则存在同类风险，待实验。
