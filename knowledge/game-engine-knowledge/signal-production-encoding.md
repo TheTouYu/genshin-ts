@@ -76,12 +76,48 @@
 
 <!-- CLAIM:START clm_1A1C5E0F7051870C7FD35CA476 -->
 
-### 信号版本下限：一致前提下 vec3 信号版本 2 被引擎拒绝，>=3 且一致即可加载（2026-08-15 最小图差分实证）
+### 信号版本下限：一致前提下 vec3 信号版本 2 被引擎拒绝，>=3 且一致即可加载（2026-08-15 实证；2026-08-16 修正布局归因）
 
-在'注册表 f6 == 三份定义 #4 field5'一致的前提下，版本值本身还有下限：最小图（lamp_toggle vec3,int + win_check/win_ack vec3，builtin 布局，版本 2=2）启动失败；用户编辑器修复（版本 3=3，参数段改序号式）后正常；主图 v3（版本 4=4，类型值布局）正常。结论：版本 >=3 且两边一致即可加载，布局（类型值/序号式）与版本精确值（3/4）不敏感；builtin 模板此前复刻 verify_ping（str,str，版本 2）——str 版本 2 历史可加载（U1 实验），但 vec3 版本 2 被拒（str 是否同样受限未验证，统一 >=3 规避）。工程结论（commit 039a060 已修复）：register（builtin 模板版本 2→3）、update/repair（目标版本 <3 时提升到 3，withSignalVersion 同步条目 f6 与定义 field5）；三路径均输出 v3=3 一致。
+在'注册表 f6 == 三份定义 #4 field5'一致的前提下，版本值本身还有下限：最小图（lamp_toggle vec3,int + win_check/win_ack vec3，builtin 布局，版本 2=2）启动失败；用户编辑器修复（版本 3=3）后正常；主图 v3（版本 4=4）正常。结论：版本 >=3 且两边一致即可加载。修正（2026-08-16，第 5 次错误实证）：初版'布局（类型值/序号式）与版本精确值（3/4）不敏感'是过度归因——用户修复同时改了版本（2→3）与布局（→序号式）两个变量，该样本不能单独归因布局；08-16 三信号差分证明布局（n3 field2 序号）敏感（见 field2 序号规则 claim）。builtin 模板此前复刻 verify_ping（str,str，版本 2）——str 版本 2 历史可加载（U1 实验），但 vec3 版本 2 被拒（str 是否同样受限未验证，统一 >=3 规避）。工程结论（commit 039a060 已修复）：register（builtin 模板版本 2→3）、update/repair（目标版本 <3 时提升到 3，withSignalVersion 同步条目 f6 与定义 field5）；三路径均输出 v3=3 一致。
 
 #### 适用边界
 
-证据=2026-08-15 最小图差分（builtin 布局版本 2=2 启动失败 / 用户修复 3=3 正常 / 主图 v3 4=4 正常）+ CLI 修复 commit 039a060 三路径验证 + commit 9a20126 文档沉淀；str 版本 2 是否受限未验证（统一 >=3 规避）；适用于当前编辑器/CLI 版本；与 clm_6C4D0D6A（一致性约束）互补——本 claim 断言一致前提下的版本下限
+证据=2026-08-15 最小图差分（builtin 布局版本 2=2 启动失败 / 用户修复 3=3 正常 / 主图 v3 4=4 正常）+ CLI 修复 commit 039a060 三路径验证；'布局不敏感'已按 08-16 第 5 次错误实证修正为过度归因；str 版本 2 是否受限未验证（统一 >=3 规避）；适用于当前编辑器/CLI 版本；与 clm_6C4D0D6A（一致性约束）互补——本 claim 断言一致前提下的版本下限
 
 <!-- CLAIM:END clm_1A1C5E0F7051870C7FD35CA476 -->
+
+<!-- CLAIM:START clm_3FA4D090D9B97BCC592BA07E0C -->
+
+### 信号版本动态阈值：f(N)=max(3,ceil(3N/4))，N=被引用信号数（2026-08-15 第 3 次错误实证）
+
+信号版本不仅要 >=3 且两边一致，还要满足随被引用信号数增长的动态阈值：f(N) = max(3, ceil(3N/4))，N=被引用信号数（等价：注册表 identity 记录数 3N/4 向上取整，每个信号注册生成 3 条 identity 记录）。第 3 次错误：N=5 信号时 v3 < 阈值 4——逐个 register 旧信号版本停留偏低，新信号加入后未全表回填 → 引擎拒载。修复（commit 66e24d9）：register/update 版本取 max(target.v, versionFloor(N))（只升不降），register 对全表回填。源码：src/cli/gil_signal_registrations.ts versionFloor（≈L739-744）。未闭合：f(N) 是否含上限未验证（v5/v6 在 N=5 可启动；更大 N 未测）。
+
+#### 适用边界
+
+证据=2026-08-15 灯阵 N=5 最小图差分（v3<4 拒载）+ register 全表回填三路径验证（commit 66e24d9）；f(N) 上限未验证；适用于当前引擎/CLI 版本，不证明其他版本
+
+<!-- CLAIM:END clm_3FA4D090D9B97BCC592BA07E0C -->
+
+<!-- CLAIM:START clm_168E839FC5B1F12E5B32DB2587 -->
+
+### 发送信号节点已连接 InParam 不得携带默认值（2026-08-16 第 4 次错误实证，commit 0b52395）
+
+发送信号（send_signal）节点的已连接 InParam（connects 非空）不得携带默认值——值来自上游连线，默认值会导致引擎信号参数校验失败（游戏报参数错误、级别极高、进不去、Beyond_Debug_Log 无日志）。三版本差分（v3 我们注入/v4 游戏自动保存/v5 用户修复）：唯一差异=vec3 参数的空 VectorBase 默认值（vendor Pin.encode 对 value=null 的 Vector 自动补空默认值，simple_value_var 编辑器兼容策略）。修复：src/compiler/ir_to_gia_transform/index.ts post-encode 对占位信号节点（300000/300001）已连接 InParam 统一 value=null（与复合调用 InParam 同规则）。引擎容忍范围：字面量参数（如 hop=1）可带默认值；普通 SysCall 节点已连接参数带默认值被容忍（注入后 11 处与编辑器保存版一致，游戏通过）。同类风险未闭合：客户端 send_signal_to_server_node_graph（client_graph.ts SIGNAL_PARAM_DEFAULT_BY_TYPE）conn 参数默认载荷从未端到端游戏验证。
+
+#### 适用边界
+
+证据=三版本差分闭环（regression-diff v0-v5 快照）+ 修复后 GIA 与用户修复版逐字段一致 + 用户游戏核验正常进入（2026-08-16）；仅服务端发送信号节点；客户端信号节点同类风险未闭合；适用于当前引擎/CLI 版本
+
+<!-- CLAIM:END clm_168E839FC5B1F12E5B32DB2587 -->
+
+<!-- CLAIM:START clm_ABB786BA502CA6C75C5758CB90 -->
+
+### 信号参数 n3 field2 = 参数全局序号：send/server=序号（0 省略）、monitor=3+序号（2026-08-16 第 5 次错误实证，commit 9e8fd76）
+
+CompositeDef 中每个信号参数条目的 n3 描述符 field2 = 该参数在信号内的全局序号（0-based）：send/server 定义（#102 参数条目）field2=序号（序号 0 时省略字段）；monitor 定义（#103 参数条目）field2=3+序号（monitor 前 3 个固定字段：事件源实体/事件源GUID/信号来源实体占 0/1/2）。证据链（三信号差分闭环，用户逐个重建 lamp_toggle/win_check/win_ack）：lamp_toggle（vec3+int）send/server senderPos=0（省略）、hop=1，monitor senderPos=3、hop=4；win_check/win_ack（vec3 单参）send/server=0、monitor=3。CLI 旧形态（BUILTIN_PARAM_LAYOUTS 历史样本常量 vec3=2/int=0/entity=1/guid=5…）全部错位；str/int 单参数 field2=0 恰好正确，掩盖 bug 至第 5 次。修复：rewriteParamN3Field2 按全局序号重写（0 删除字段、monitor 偏移 3），不再沿用历史常量。验证：修复后 CLI 生成结果与编辑器重建逐字节一致（仅版本号差异）+ 游戏核验可运行。术语区分：本规则是注册定义侧（CompositeDef 参数条目）描述符；第 4 次复盘的 i2.index 是图内信号节点参数 pin 描述符（节点侧），两层都要核对。
+
+#### 适用边界
+
+证据=三信号差分闭环（signal-rebuild-1890 v0-v3 快照）+ CLI 候选与编辑器重建 3/3 逐字节一致 + 用户游戏核验（2026-08-16）；未验证更大参数组合（如 3+ 参数、entity/guid 多参）；适用于当前引擎/CLI 版本
+
+<!-- CLAIM:END clm_ABB786BA502CA6C75C5758CB90 -->

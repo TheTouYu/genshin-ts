@@ -234,7 +234,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "2e543cfd9b1b52c9ce84b224cf3e33356a4a19ee3d4197f26b077482ddf3d893",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_1A1C5E0F7051870C7FD35CA476"
       ],
@@ -1086,6 +1086,21 @@
       ]
     },
     {
+      "id": "aref_611a633508a6258553f10039c6",
+      "path": "src/compiler/ir_to_gia_transform/index.ts",
+      "locator": "post-encode 对占位信号节点（300000/300001）已连接 InParam 统一 value=null（0b52395）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "70d16fb70ddcc99145e7a4ed11a6290b05ff009d45b7e880d789f72de797dd81",
+      "claim_ids": [
+        "clm_168E839FC5B1F12E5B32DB2587"
+      ],
+      "supports_fact_classes": [
+        "transform_defaults"
+      ]
+    },
+    {
       "id": "aref_617f91b11b4e063ff3102fbc7c",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "复合 impl 图内信号节点（2026-08-03 测试断言对齐）",
@@ -1098,6 +1113,36 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6188dc0949defb749df7423716",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "信号节点参数默认值：已连接 InParam 不得携带默认值 章节（2026-08-16 第 4 次错误实证 + 工程结论 0b52395）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
+      "claim_ids": [
+        "clm_168E839FC5B1F12E5B32DB2587"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6367efe361c8a4dd1d19e0b9dc",
+      "path": "src/cli/gil_signal_registrations.ts",
+      "locator": "versionFloor 实现（≈L739-744，f(N)=max(3,ceil(3N/4))）+ register 全表回填",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c8c33e975da0ab4f9800e8fc2a19cfc931d4fcc3ba671d32c9a601e131d9f726",
+      "claim_ids": [
+        "clm_3FA4D090D9B97BCC592BA07E0C"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -1203,6 +1248,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_6eaa5bf4fcf81bc4a225512ce9",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "信号版本动态阈值 f(N)=max(3,ceil(3N/4)) 章节（2026-08-15 第 3 次错误实证 + 工程结论 66e24d9）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
+      "claim_ids": [
+        "clm_3FA4D090D9B97BCC592BA07E0C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -2214,6 +2274,21 @@
       ]
     },
     {
+      "id": "aref_d85be2743188e36a8b9ce2252e",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "信号参数 n3 field2 = 参数全局序号 章节（2026-08-16 第 5 次错误实证 + 工程结论 9e8fd76）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
+      "claim_ids": [
+        "clm_ABB786BA502CA6C75C5758CB90"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_d908a5cf8581eee04864e99524",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
       "locator": "#四",
@@ -2556,6 +2631,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_ffe89af596c87942b85d97ccd6",
+      "path": "src/cli/gil_signal_registrations.ts",
+      "locator": "rewriteParamN3Field2：克隆参数时按全局序号重写 n3 field2（0 删除字段、monitor 偏移 3，9e8fd76）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c8c33e975da0ab4f9800e8fc2a19cfc931d4fcc3ba671d32c9a601e131d9f726",
+      "claim_ids": [
+        "clm_ABB786BA502CA6C75C5758CB90"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {

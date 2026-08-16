@@ -1679,6 +1679,24 @@
         "external_game_evidence",
         "runtime_behavior"
       ]
+    },
+    "clm_3FA4D090D9B97BCC592BA07E0C": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    "clm_168E839FC5B1F12E5B32DB2587": {
+      "fact_classes": [
+        "external_game_evidence",
+        "transform_defaults"
+      ]
+    },
+    "clm_ABB786BA502CA6C75C5758CB90": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
     }
   }
 }
