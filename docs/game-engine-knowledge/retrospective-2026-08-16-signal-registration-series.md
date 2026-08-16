@@ -110,6 +110,8 @@ n3 field2 = 参数在信号内的全局序号（0-based）
    逐字段对比直接定位"我们改了什么"——比在代码里猜快得多。
 3. **"变更消失"先核对 hash**：旧编辑器内存保存覆盖磁盘写回（v19 教训复发两次：
    灯柱实体两次消失、信号 v4 出错版均因此）。排查前先核对当前 hash 是否等于写回后 hash。
+   （v19 教训出处：2026-08-14 复盘 `retrospective-2026-08-14.md` 灯柱实体消失事件确立的
+   "CLI 写回后旧编辑器内存保存会覆盖磁盘"纪律。）
 4. **写回后必须提醒用户重新加载编辑器再保存**——每次写回（register/inject/import/attach）都适用。
 5. **样本字节要问语义**：builtin 布局抄自编辑器样本，但没提炼"field2=参数序号"的规律。
 6. **测试样本要覆盖"错误路径"**：现有 builtin 测试用 str+str（field2=0 恰好对），
@@ -131,8 +133,15 @@ n3 field2 = 参数在信号内的全局序号（0-based）
 
 ## 六、产出清单
 
+> 可执行排查命令（本文档只给方法不给命令）：见
+> `editor-incremental-gia-investigator/references/node-graph-logic/signals.md`
+> 「游戏拒载检查清单」——7 步按序排查，每步带具体命令/对照方法。
+
 - 修复：`src/cli/gil_signal_registrations.ts`（rewriteParamN3Field2）+ `tests/signal_registration_builtin.ts`（新回归）
 - 文档：本文件 + `signals.md` 参数布局规则段 + `retrospective-2026-08-16-signal-param-default.md`
 - 技能：editor-incremental-gia-investigator（hash 核对）+ debug-log-investigator（无日志阶梯）+ game-from-scratch（注入顺序纪律）+ static-gil-model-builder（import 前置）
 - 证据：`~/genshin-ts-evidence/lights-out/signal-rebuild-1890/`（v0-v3 四快照）+ `regression-diff/`（v0-v5）
 - 提交：0b52395 / e0c2306 / 9f345a6 / c2c1217 / 9e8fd76
+  （与第一节表格的 5 次**根因修复**提交 db11e34/039a060/66e24d9/0b52395/9e8fd76 不冲突：
+  本行是第 4、5 次相关的全部提交，其中 e0c2306（技能纪律）/9f345a6（文档登记）/c2c1217（技能）
+  是过程沉淀提交，不含根因修复；第 1-3 次根因提交见表格。）

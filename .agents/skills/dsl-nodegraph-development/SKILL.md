@@ -1,3 +1,8 @@
+---
+name: dsl-nodegraph-development
+description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写服务端节点图逻辑的方法论：受限子集、编译器能力预验证、节点预算、四层交叉验证。当用户写新玩法逻辑、修改 g.server 图逻辑、修复 DSL 编译错误/生成图异常（节点超限、值类型错误、capture 失败）、或需要把玩法逻辑可靠变成游戏内行为时使用。配套：调试日志分析用 debug-log-investigator；游戏内验证用 verify-injection。
+---
+
 # 节点图 DSL 生产开发（dsl-nodegraph-development）
 
 用 Genshin-TS 的 TypeScript DSL（`g.server` / `gstsServer*`）编写服务端节点图逻辑的方法论：
