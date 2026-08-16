@@ -293,19 +293,20 @@
 - 方向：评估 DSL 实体字面量/按 GUID 引用（O-13 同族）；信号定向投递需引擎能力调查（可能不支持，
   文档明确限制与推荐模式）。
 
-### O-2026-08-16-19. 信号节点已连接 InParam 默认值规则（第 4 次信号错误根因，已修复+文档化，待知识库录入）
+### O-2026-08-16-19. 信号节点已连接 InParam 默认值规则（第 4 次信号错误根因，已修复+文档化+已录入知识树）
 
 - 证据：三版本差分闭环（v3 我们注入/ v4 自动保存 / v5 用户修复）——发送信号节点 vec3 参数
   空 VectorBase 默认值 → 引擎"参数错误"拒载（级别极高无日志）；修复后 GIA 与用户修复版逐字段
   一致，游戏核验通过。
 - 落地：src/compiler/ir_to_gia_transform/index.ts 修复（commit 0b52395）；signals.md 规则段 +
-  retrospective-2026-08-16-signal-param-default.md 已写入；**待知识库录入（clm 待建）**。
+  retrospective-2026-08-16-signal-param-default.md 已写入；**已录入知识树（clm_168E839F，
+  bundle bnd_303f3d8f，commit 26bdbee）**。
 - 关联方法论：①"变更消失"先核对 hash（旧编辑器内存保存覆盖假象，v19 教训复发）
   ②加载期拒载错误不落 Beyond_Debug_Log，进不去游戏走三版本差分。
 - 未闭合风险：客户端 send_signal_to_server_node_graph conn 参数默认载荷（client_graph.ts
   SIGNAL_PARAM_DEFAULT_BY_TYPE）从未端到端游戏验证，若引擎对客户端同样严格校验则存在同类风险。
 
-### O-2026-08-16-20. 信号参数 n3 field2 序号规则（第 5 次信号错误根因，已修复+文档化，待知识库录入）
+### O-2026-08-16-20. 信号参数 n3 field2 序号规则（第 5 次信号错误根因，已修复+文档化+已录入知识树）
 
 - 证据：三信号差分闭环（用户逐个重建 lamp_toggle/win_check/win_ack）——builtin 模板 n3 field2
   沿用历史样本常量（vec3=2/int=0/entity=1…）→ 参数序号错位 → 引擎拒载；str/int 单参数
@@ -313,6 +314,6 @@
 - 规则：n3 field2 = 参数在信号内全局序号（send/server = 序号 0 省略；monitor = 3 + 序号）。
 - 落地：src/cli/gil_signal_registrations.ts rewriteParamN3Field2（commit 9e8fd76）；
   signals.md 规则段 + retrospective-2026-08-16-signal-registration-series.md 已写入；
-  **待知识库录入（clm 待建）**。
+  **已录入知识树（clm_ABB786BA，bundle bnd_303f3d8f，commit 26bdbee）**。
 - 系统性教训：①从样本抄字节必须提炼语义规律 ②静态检查 ≠ 引擎校验，需编辑器重建样本对照
   ③一次修复不能靠用户手工中间产物掩盖下一个 bug，修复后必须用生产工具独立跑全链路。
