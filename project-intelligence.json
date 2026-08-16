@@ -982,7 +982,11 @@
           "read_repository": false,
           "read_game_file": false,
           "write": false
-        }
+        },
+        "blocked_by": [
+          "默认值",
+          "field2"
+        ]
       },
       {
         "id": "signal-rejection-checklist",
@@ -1014,7 +1018,12 @@
           "read_repository": false,
           "read_game_file": false,
           "write": false
-        }
+        },
+        "blocked_by": [
+          "版本",
+          "默认值",
+          "field2"
+        ]
       },
       {
         "id": "signal-param-layout-default",
