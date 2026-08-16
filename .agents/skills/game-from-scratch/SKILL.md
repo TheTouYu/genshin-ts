@@ -149,6 +149,41 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 - **挂载图到实体**（事件触发前提，P4 用）：`gsts assets:mounts attach <实体ID> --graph <图ID> --gil <地图.gil> --write`；挂载后 whenTabIsSelected 等事件才会在实体上触发。
 - **注入后先回读核验再进游戏**（用户 2026-08-13 要求）：直接写代码生成的节点图可能有 bug，先读真实 GIL 确认节点/连线/参数与意图一致，再让用户去游戏。
 
+### 端到端注入顺序纪律（2026-08-16 灯阵回归实证——按此顺序一次性跑对）
+
+```text
+1 信号注册（assets:signals register 每条 --write；全部注册完后用 inspect 核验版本一致性）
+2 玩法图注入（node-graphs create 占位图 → injectGilFile / gsts 单文件注入 → 回读节点数）
+3 实体 import（assets:entities import --write；先确认 root4 定义已就位）
+4 挂载（assets:mounts attach <实体> --graph <图> --write）
+5 提醒用户重新加载编辑器 → 保存 → 游戏测试
+```
+
+关键规则（每条都是真实踩坑换来的）：
+- **顺序不可颠倒**：实体 import 会重写 root 5/6，晚于它执行的挂载才保留；先 attach 再 import
+  会导致挂载丢失。信号注册、图注入、实体 import、挂载互相独立但共用 root 10/5/8/6，
+  后写者覆盖先写者的风险按上述顺序规避。
+- **实体 import 前置条件——root4 元件定义必须在目标地图**：import 的 definitionId 若不在目标
+  root4，CLI 会误判为"官方 res 直引"（relation 带 f2:1）→ 编辑器加载时实体被丢弃（场景实体空）。
+  先 `assets:entities import` 前用 `assets:static-assemblies`/donor 把定义补齐，或确认
+  `--definitions-gil` 已提供。有效自定义定义实体 relation = `{定义ID}` 无 f2:1。
+- **信号注册后必须核验版本一致性**：inspect 输出每信号的 v= 与 defs=[..] 应一致且
+  ≥ 阈值（N 个被引用信号 → ≥ max(3, ceil(3N/4))）；CLI register 已全表回填只升不降。
+- **每次写回（register/inject/import/attach）后，用户必须先重新加载编辑器再保存**：
+  编辑器旧内存保存会覆盖磁盘写回（v19 教训复发：灯柱实体两次"消失"、信号 v4 出错版均因此）。
+  排查"变更消失"先核对当前 hash 是否等于写回后 hash。
+- **游戏拒载类错误无日志**：进不去地图时 Beyond_Debug_Log 不产生新文件（加载期错误不落
+  执行日志）。"进不去 + 无新日志"走三版本差分（我们版/自动保存版/用户修复版逐字段对比），
+  不要等日志。
+
+### 信号参数默认值规则（第 4 次信号错误根因，2026-08-16 已修）
+
+- 发送信号（send_signal）节点的**已连接 InParam 不得携带默认值**——vendor Pin.encode 对
+  value=null 的 Vector 会补空 VectorBase，引擎信号参数校验拒绝 → 游戏报"参数错误"拒载。
+  编译链 post-encode 已统一清除（占位 300000/300001），写新玩法代码无需额外处理；
+  若手工构造 GIA 需遵守：已连接参数 value 必须为 null，字面量参数（如 hop=1）可带值。
+- 完整规则与三版本差分证据见 `docs/game-engine-knowledge/signals.md`「信号节点参数默认值」。
+
 ## 7. 游戏日志验证
 
 - 加载 `debug-log-investigator`：Beyond_Debug_Log 逐节点执行记录（执行顺序、输入输出、变量、控制流分支）。具体命令/脚本/格式踩坑全部在该技能内（如 `gia_log.py latest` 定位最新日志、脚本在技能目录 `scripts/`），这里不重复。

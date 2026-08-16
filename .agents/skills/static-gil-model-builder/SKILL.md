@@ -82,6 +82,12 @@ python tools/pkc.py progressive-query \
 
 `assets:entities import` 能从已有 definition 生成实体快照，`patch` 能改既有实体或挂接**已存在**的 aux；它们不会凭 donor 自动把全新的 root 4/root 27 复杂闭包移植进目标。若用户要求全新复杂 root 5，而目标没有可复用 definition/aux，先按生产参考确认当前正式工具是否已覆盖；没有就报告 coverage gap，不用一次性脚本假装正式生产路径。
 
+**import 前置检查（2026-08-16 灯阵实证）**：import 的 `definitionId` 必须已在目标地图 root 4 存在——
+缺失时 CLI 误判为"官方 res 直引"（relation 带 `{f2:1}` 标记）→ 编辑器加载时实体被丢弃
+（场景实体空，保存后实体消失）。正确形态：自定义定义实体 relation = `{定义ID}` 无 f2:1
+（官方基础元件直引才带 f2:1）。import 前先确认目标 root4 有该定义（缺则用
+`--definitions-gil <donor>` 补齐，或先走 static-assemblies 建定义）。
+
 ## 总流程
 
 ```text
