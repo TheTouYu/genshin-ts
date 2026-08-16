@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "name": "genshin-ts-golden-set-v1",
+  "created": "2026-08-16",
+  "purpose": "知识树长期记忆评测黄金集：三档难度（direct 直接命中 / combo 跨话题组合 / ancient 一年前知识）。每问为任务式问题（给任务不给答案），expected_claims 为知识树应命中的 claim（存在性已在 2026-08-16 核对），verification 为判定要点。",
+  "eval_config": {
+    "model": "deepseek-v4-flash",
+    "thinking": "max",
+    "skills": ["pkc-project-operator", "genshin-ts-project-adapter"],
+    "context_clean": true
+  },
+  "questions": [
+    {
+      "id": "Q001",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "信号注册定义中 monitor 定义（#103）的参数条目 n3 field2 应该填什么值？发送信号有两个参数（senderPos 是第 0 参，hop 是第 1 参），两个参数在 monitor 里的 field2 分别是多少？",
+      "expected_claims": ["clm_ABB786BA502CA6C75C5758CB90"],
+      "keywords": ["field2", "monitor", "n3", "参数序号"],
+      "verification": "monitor field2 = 3 + 参数序号（senderPos=3、hop=4）；send/server = 序号（0 省略）"
+    },
+    {
+      "id": "Q002",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "一个 vec3 类型的信号（非 str），注册版本为 2，游戏启动失败。版本规则是什么？最低合法版本是多少？",
+      "expected_claims": ["clm_1A1C5E0F7051870C7FD35CA476"],
+      "keywords": ["版本下限", "vec3", "版本 2", "拒载"],
+      "verification": "版本 >=3 且注册表 f6 与三份定义 field5 一致；vec3 v2 被拒"
+    },
+    {
+      "id": "Q003",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "地图里有 5 个被引用信号，版本阈值怎么算？如果逐个 register 时版本停留在 3，会怎样？",
+      "expected_claims": ["clm_3FA4D090D9B97BCC592BA07E0C"],
+      "keywords": ["版本阈值", "f(N)", "ceil", "3N/4"],
+      "verification": "f(N)=max(3,ceil(3N/4))；N=5 阈值 4，v3 < 4 拒载；register 全表回填只升不降"
+    },
+    {
+      "id": "Q004",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "编译注入后游戏报参数错误拒载，检查图内发送信号节点的参数 pin：vec3 参数带了一个空的默认值（VectorBase）。这是否是问题？为什么？",
+      "expected_claims": ["clm_168E839FC5B1F12E5B32DB2587"],
+      "keywords": ["默认值", "InParam", "VectorBase", "发送信号"],
+      "verification": "已连接 InParam 不得携带默认值；空 VectorBase 是 vendor Pin.encode 自动补的；字面量参数可带默认值；普通 SysCall 节点容忍"
+    },
+    {
+      "id": "Q005",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "signalVersion 一致性规则是什么？CLI repair 修复信号时最容易犯什么不一致错误？",
+      "expected_claims": ["clm_6C4D0D6A2ADCB7DFB399357BB2"],
+      "keywords": ["signalVersion", "f6", "field5", "一致性"],
+      "verification": "注册表条目 f6 == 三份 CompositeDef #4 最后 field5；repair 曾复刻模板 field5=2 保留目标 f6=3"
+    },
+    {
+      "id": "Q006",
+      "tier": "combo",
+      "domain": "signals",
+      "question": "游戏拒载（参数错误、级别极高、进不去、Beyond_Debug_Log 无新文件），磁盘静态检查全过。按什么顺序排查？每步查什么？",
+      "expected_claims": ["clm_6C4D0D6A2ADCB7DFB399357BB2", "clm_1A1C5E0F7051870C7FD35CA476", "clm_3FA4D090D9B97BCC592BA07E0C", "clm_168E839FC5B1F12E5B32DB2587", "clm_ABB786BA502CA6C75C5758CB90"],
+      "keywords": ["拒载", "排查", "无日志", "差分"],
+      "verification": "①无日志=加载期错误正常 ②版本一致性 ③版本下限+阈值 ④n3 field2 序号 ⑤参数默认值 ⑥hash 防变更消失；修复后生产工具独立跑全链路"
+    },
+    {
+      "id": "Q007",
+      "tier": "combo",
+      "domain": "signals",
+      "question": "用 CLI 注册一个新信号后，如何验证生成的注册定义布局正确？有哪些独立验证手段？",
+      "expected_claims": ["clm_ABB786BA502CA6C75C5758CB90", "clm_747B855B2F15D8CF565A95D92D", "clm_EB98A0BAEA640B8ECB6577B16C"],
+      "keywords": ["注册", "验证", "布局", "回读"],
+      "verification": "CLI update 候选 hash == 当前地图 hash；编辑器重建样本逐字节对照；回读注册表；field2 序号正确"
+    },
+    {
+      "id": "Q008",
+      "tier": "ancient",
+      "domain": "signals",
+      "question": "历史实验里 str 类型的信号版本 2 曾经可以加载，为什么后来统一要求版本 >=3？这个历史证据是什么实验？",
+      "expected_claims": ["clm_1A1C5E0F7051870C7FD35CA476"],
+      "keywords": ["str", "版本 2", "U1 实验", "历史"],
+      "verification": "str v2 历史可加载（U1 监听触发差分实验）；vec3 v2 被拒；str 是否同样受限未验证，统一 >=3 规避"
+    },
+    {
+      "id": "Q009",
+      "tier": "ancient",
+      "domain": "signals",
+      "question": "曾经多次出现'CLI 写回后改动消失'的假象（灯柱实体消失、信号 v4 出错版），根因是什么？排查前必须先做什么？",
+      "expected_claims": [],
+      "keywords": ["v19", "内存保存", "覆盖", "hash", "变更消失"],
+      "verification": "旧编辑器内存保存覆盖磁盘写回；排查前先核对当前 hash == 写回后 hash；写回后提醒用户重新加载编辑器再保存（该规则知识树缺 claim，预期 MISS——记录为知识缺口）"
+    },
+    {
+      "id": "Q010",
+      "tier": "direct",
+      "domain": "signals",
+      "question": "跨图信号投递是什么语义？同一张监听图挂到多个实体上会怎样？",
+      "expected_claims": ["clm_1A48C87938D83D3736EA97AFA1"],
+      "keywords": ["广播", "跨图投递", "多实体挂载"],
+      "verification": "广播语义（所有监听图都收到）；同图多实体挂载各自独立执行"
+    },
+    {
+      "id": "Q011",
+      "tier": "direct",
+      "domain": "composite",
+      "question": "复合实例的输入要传给子复合调用，走什么路由机制？",
+      "expected_claims": ["clm_055FEF3F9617AC525DD344F7BB"],
+      "keywords": ["compositePins", "子复合", "参数路由"],
+      "verification": "复合输入传子复合调用参数 = compositePins 路由"
+    },
+    {
+      "id": "Q012",
+      "tier": "direct",
+      "domain": "composite",
+      "question": "复合内部 exec 链的链尾节点需要额外处理吗？OutParam 是什么求值语义？",
+      "expected_claims": ["clm_5B4ACBBBD0D7F05AAAA4B77FDF"],
+      "keywords": ["链尾", "OutParam", "显式连接", "惰性"],
+      "verification": "链尾节点必须显式连接；OutParam 惰性求值"
+    },
+    {
+      "id": "Q013",
+      "tier": "direct",
+      "domain": "composite",
+      "question": "如何判断一个复合是'纯事件复合'？",
+      "expected_claims": ["clm_CCF86C1A5174DFAD6DDC47ABDB"],
+      "keywords": ["纯事件", "判定", "outflow", "inflow"],
+      "verification": "事件节点 + 无 outflow + 无显式 inflow"
+    },
+    {
+      "id": "Q014",
+      "tier": "direct",
+      "domain": "composite",
+      "question": "在编辑器里编辑一个复合节点，改动会落在哪三处？",
+      "expected_claims": ["clm_8CC703AD6EAB67CF889F4D05F2"],
+      "keywords": ["三处落盘", "宿主实例", "CompositeDef", "impl 图"],
+      "verification": "宿主实例/CompositeDef/内部实现图三处"
+    },
+    {
+      "id": "Q015",
+      "tier": "combo",
+      "domain": "composite",
+      "question": "compositePins 外壳映射和共享合并有什么统一规律？与'复合输入传子复合调用参数'是什么关系？",
+      "expected_claims": ["clm_E259AE61C383F9B8447CA9D77C", "clm_055FEF3F9617AC525DD344F7BB", "clm_23C30B27044EC9F29E896D9EFF"],
+      "keywords": ["compositePins", "外壳映射", "共享合并", "ShellIndex"],
+      "verification": "compositePins 外壳映射与共享合并统一规律；参数流共用骨架与 ShellIndex/pinIndex 双号语义"
+    },
+    {
+      "id": "Q016",
+      "tier": "combo",
+      "domain": "composite",
+      "question": "修复复合节点 GIA bug 的标准流程是什么？证据链有什么要求？",
+      "expected_claims": ["clm_01KYH07BXVXF15V0QZKK1E37KB", "clm_01KYH4ZH6A6ZYM43SZFPR5K30R", "clm_4502C6F37E622E56958CA09B8F"],
+      "keywords": ["同构", "红绿", "证据链", "修复流程"],
+      "verification": "同构复现→红灯→修复→绿灯；边界修复要求 isomorphic red-to-green evidence chain；C1-C4 自动护栏"
+    },
+    {
+      "id": "Q017",
+      "tier": "ancient",
+      "domain": "composite",
+      "question": "复合 impl 图内的信号节点有什么特殊规则？这个结论是什么时候、以什么方式确认的？",
+      "expected_claims": ["clm_D4F75C7BF79D3B60EB8DF5EB3F"],
+      "keywords": ["复合", "信号节点", "impl 图", "测试断言"],
+      "verification": "2026-08-03 测试断言对齐；真实证据裁决；复合内信号节点规则"
+    },
+    {
+      "id": "Q018",
+      "tier": "direct",
+      "domain": "composite",
+      "question": "事件回调里对复合 capture 参数取用时是什么语义——快照还是引用？",
+      "expected_claims": ["clm_2B77A59F626CEE63E0191669C5"],
+      "keywords": ["事件回调", "capture", "惰性引用"],
+      "verification": "惰性引用非快照"
+    },
+    {
+      "id": "Q019",
+      "tier": "direct",
+      "domain": "assets",
+      "question": "想创建一个没有可见资源的宿主实体，用什么模型？有什么创建要求？",
+      "expected_claims": ["clm_D43A6E214D6B1F20B8EF995757"],
+      "keywords": ["空模型", "宿主", "root5", "root6"],
+      "verification": "空模型实体（root5 res=10005018）可作无可见资源宿主；创建需 root6 组登记"
+    },
+    {
+      "id": "Q020",
+      "tier": "direct",
+      "domain": "assets",
+      "question": "编辑器里对物体做多轴旋转，旋转顺序是什么（内旋还是外旋，先绕哪个轴）？面板显示值与 wire 值什么关系？",
+      "expected_claims": ["clm_A1E15CA57DDF9464638BB97C44"],
+      "keywords": ["旋转", "YXZ", "内旋", "欧拉"],
+      "verification": "YXZ 内旋（R = Ry·Rx·Rz）；面板值 = wire 值"
+    },
+    {
+      "id": "Q021",
+      "tier": "direct",
+      "domain": "assets",
+      "question": "装饰物本身就是主体（薄片外贴）时，偏移量怎么计算？",
+      "expected_claims": ["clm_6C67D5B49095C7CC9D3FD8DBEE"],
+      "keywords": ["装饰物", "薄片", "外贴", "偏移"],
+      "verification": "偏移 = 主体中心 + 主体半长 + 半厚 + 间隙"
+    },
+    {
+      "id": "Q022",
+      "tier": "combo",
+      "domain": "assets",
+      "question": "用 CLI 做静态拼装写回（生成候选到真实地图）的完整安全流程是什么？有哪些只读/确定性检查？",
+      "expected_claims": ["clm_01KYF24E5RX2APB1GZ2KZGYBFX", "clm_01KYGSK9PHX67KFENCBF7MAY2E", "clm_01KYF24E81AEA72Z0W72RVEHX1"],
+      "keywords": ["静态拼装", "写回", "候选", "确定计划", "ID 闭包"],
+      "verification": "两层 Transform 配置语义；公开配置/只读发现/确定性计划/发布消费边界；创建必须提供无冲突完整 ID 闭包"
+    },
+    {
+      "id": "Q023",
+      "tier": "ancient",
+      "domain": "assets",
+      "question": "足球模型的几何计算有没有可复用的模块？哪个 demo 提取的？",
+      "expected_claims": ["clm_EDCA91A83DB521C90679872ED1"],
+      "keywords": ["足球", "截角二十面体", "football_geometry", "可复用"],
+      "verification": "截角二十面体足球几何模块（football_geometry.ts）可复用"
+    },
+    {
+      "id": "Q024",
+      "tier": "combo",
+      "domain": "assets",
+      "question": "沿曲线铺放装饰物时，块与块之间的端面缝隙怎么处理？之前试过哪些方案被否定了？",
+      "expected_claims": ["clm_5CD8CFA765853432D2C6303215", "clm_1850E17524FC028FF5B0791A03"],
+      "keywords": ["端面缝隙", "楔子", "V9", "V11", "等F划分"],
+      "verification": "V9 恒定放大被否定、V11 楔子填充（真实样本确认）；等 F 划分：角度间隔=块长/局部半径"
+    },
+    {
+      "id": "Q025",
+      "tier": "direct",
+      "domain": "assets",
+      "question": "创建一组元件/装饰物时，ID 分配有什么硬性要求？",
+      "expected_claims": ["clm_01KYF24E81AEA72Z0W72RVEHX1"],
+      "keywords": ["ID 闭包", "无冲突", "创建"],
+      "verification": "创建必须提供无冲突的完整 ID 闭包"
+    },
+    {
+      "id": "Q026",
+      "tier": "direct",
+      "domain": "compiler",
+      "question": "开始诊断一个复杂编译器 bug 时，应该从哪里入手？",
+      "expected_claims": ["clm_01KYH64VA25BVS99BD4K1P5F5S"],
+      "keywords": ["诊断", "发散产物", "定位"],
+      "verification": "从第一个发散产物开始并保持结构"
+    },
+    {
+      "id": "Q027",
+      "tier": "direct",
+      "domain": "compiler",
+      "question": "IR.d.ts 在编译器里的角色是什么？",
+      "expected_claims": ["clm_01KYH64V2V7AQ052RMREK81B8F"],
+      "keywords": ["IR.d.ts", "seam", "生产消费"],
+      "verification": "typed producer-consumer seam（server/client graph 文档之间）"
+    },
+    {
+      "id": "Q028",
+      "tier": "direct",
+      "domain": "compiler",
+      "question": "遇到一个未知的 GIA/GIL 行为，应该用什么方法收敛？",
+      "expected_claims": ["clm_880C4DB58E0AD04C130A856689", "clm_1E31BAC638F84B68E6F1CB17B4"],
+      "keywords": ["未知行为", "单变化", "收敛", "章节"],
+      "verification": "知识优先的单变化链路收敛；未知 GIL 字段按章节和单变化逐步闭合"
+    },
+    {
+      "id": "Q029",
+      "tier": "direct",
+      "domain": "compiler",
+      "question": "GIL payload 的根能和 GIA Root 按同号字段互相解释吗？",
+      "expected_claims": ["clm_D855DC6B45CDA71076665B0BFA"],
+      "keywords": ["GIL payload", "GIA Root", "同号字段"],
+      "verification": "不能——GIL payload 根不能按同号字段解释为 GIA Root"
+    },
+    {
+      "id": "Q030",
+      "tier": "ancient",
+      "domain": "compiler",
+      "question": "批量编译器测试为什么必须保证 no-injection 执行？",
+      "expected_claims": ["clm_187AB1C3F90F1E99672658EE8D"],
+      "keywords": ["批量测试", "no-injection", "回归"],
+      "verification": "批量编译器测试强制 no-injection 执行（不写真实地图）"
+    },
+    {
+      "id": "Q031",
+      "tier": "direct",
+      "domain": "gamedev",
+      "question": "节点图要能被游戏执行，必须满足什么挂载条件？",
+      "expected_claims": ["clm_98EF365F97BE61A3874676F66A", "clm_D8AE4A86F79755B92C2FEB7E0C"],
+      "keywords": ["挂载", "type 3", "实体", "元件"],
+      "verification": "节点图挂载 type 3 槽规则（真实快照+游戏核验）；必须挂载在实体/元件上"
+    },
+    {
+      "id": "Q032",
+      "tier": "direct",
+      "domain": "gamedev",
+      "question": "变量有哪些作用域？局部变量的 GIL 编码有什么特征？",
+      "expected_claims": ["clm_6D652403251D3F18F6983A6205", "clm_A154340AA0EAEA30107AB18040"],
+      "keywords": ["作用域", "局部变量", "E<1016>"],
+      "verification": "实体级/节点图级/局部三种；局部变量 wire 无名、E<1016> 类型码、身份沿连线引用链传递"
+    },
+    {
+      "id": "Q033",
+      "tier": "direct",
+      "domain": "gamedev",
+      "question": "给实体配置了匀速旋转运动器但它不生效，最可能缺什么？",
+      "expected_claims": ["clm_4EBE2D912F213036BFCFD1C616"],
+      "keywords": ["运动器", "basicMotion", "组件"],
+      "verification": "运动器生效要求实体预配置 basicMotion 组件（type 4）"
+    },
+    {
+      "id": "Q034",
+      "tier": "combo",
+      "domain": "gamedev",
+      "question": "一波任务完成后的知识沉淀，要落到哪三层？顺序和触发条件是什么？",
+      "expected_claims": ["clm_12A31493E5D86934BB0318E84A", "clm_34362D9ED0266C1229DCA72EF8"],
+      "keywords": ["沉淀", "三层落盘", "技能", "文档", "知识树"],
+      "verification": "技能+文档+知识树三层；修复后反思三连：同族扩展+影响面+可复用性"
+    },
+    {
+      "id": "Q035",
+      "tier": "ancient",
+      "domain": "gamedev",
+      "question": "游戏运行时生命周期分哪些阶段？多人模式下节点图怎么执行？",
+      "expected_claims": ["clm_CF2DBEA9639E2430744636FDDE", "clm_D8AE4A86F79755B92C2FEB7E0C"],
+      "keywords": ["生命周期", "多人", "重复执行"],
+      "verification": "生命周期阶段（用户说明）；多人下按玩家重复执行"
+    },
+    {
+      "id": "Q036",
+      "tier": "combo",
+      "domain": "gamedev",
+      "question": "实体自定义变量读写分裂导致 Get 恒空的根因是什么？修复时要注意什么？",
+      "expected_claims": ["clm_EFBFB1B399A65BADA32F540774", "clm_38E9BD071D723E4A8FD6C039B5"],
+      "keywords": ["自定义变量", "变体", "读写分裂", "bigint"],
+      "verification": "Set 按值类型选变体（number→float cid26、bigint→int cid22），读写分裂致 Get 恒空；变量名三方一致性"
+    }
+  ]
+}
