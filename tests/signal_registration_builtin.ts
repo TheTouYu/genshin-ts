@@ -139,6 +139,50 @@ assert.throws(
   /needs 2 distinct layouts/
 )
 
+// ── 5. n3 field2 = 参数全局序号（2026-08-16 灯阵差分实证）──────────────
+// vec3+int 双参数：send/server 参数 n3 field2 = 0（省略）/1；monitor = 3/4。
+// 修复前 CLI 沿用 builtin 模板常量（vec3=2、int=0）→ 序号错位 → 引擎拒载。
+const r5 = registerSignalInGil({
+  bytes: freshBytes,
+  signal: {
+    name: 'lamp_seq',
+    params: [
+      { name: 'senderPos', type: 'vec3' },
+      { name: 'hop', type: 'int' }
+    ]
+  }
+})
+const t5 = top10(r5.bytes)
+function n3Field2(def: Uint8Array | undefined, paramName: string, kind: number): number | undefined {
+  if (!def) return undefined
+  const ws = parseWireMessage(def)!
+  const inner = ws.find((x) => x.number === 1 && x.wire === 2)
+  if (!inner) return undefined
+  const root = parseWireMessage(inner.value as Uint8Array)!
+  const params = root.filter((x) => x.wire === 2 && x.number === kind)
+  for (const p of params) {
+    const sub = parseWireMessage(p.value as Uint8Array)!
+    const name = sub.find((x) => x.number === 1 && x.wire === 2)
+    if (!name || Buffer.from(name.value as Uint8Array).toString('utf8') !== paramName) continue
+    const n3 = sub.find((x) => x.number === 3 && x.wire === 2)
+    if (!n3) return undefined
+    const n3f = parseWireMessage(n3.value as Uint8Array)!
+    const f2 = n3f.find((x) => x.number === 2 && x.wire === 0)
+    return f2 === undefined ? 0 : (f2.value as number)
+  }
+  return undefined
+}
+// send（#102）与 server（#102）：senderPos 序号 0（省略=0）、hop 序号 1
+for (const id of [r5.signal.sendId, r5.signal.serverId]) {
+  const def = defOf(t5, id)
+  assert.equal(n3Field2(def, 'senderPos', 102), 0, `id=${id} senderPos field2=0`)
+  assert.equal(n3Field2(def, 'hop', 102), 1, `id=${id} hop field2=1`)
+}
+// monitor（#103）：senderPos 3+0=3、hop 3+1=4
+const monDef = defOf(t5, r5.signal.monitorId)
+assert.equal(n3Field2(monDef, 'senderPos', 103), 3, 'monitor senderPos field2=3')
+assert.equal(n3Field2(monDef, 'hop', 103), 4, 'monitor hop field2=4')
+
 rmSync(dir1, { recursive: true, force: true })
 rmSync(dir3, { recursive: true, force: true })
 console.log('PASS signal_registration_builtin')

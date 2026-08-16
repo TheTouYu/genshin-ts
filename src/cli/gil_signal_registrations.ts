@@ -842,6 +842,30 @@ function cloneParamEntry(template: WireField, oldName: string, newName: string):
   }
 }
 
+// 参数条目的 n3 描述符 field2 = 参数在信号内的全局序号（2026-08-16 灯阵差分实证：
+// send/server 参数 = 序号（0 省略字段）；monitor 参数 = 3 + 序号，前 3 个固定字段
+// （事件源实体/事件源GUID/信号来源实体）占 0/1/2。builtin 模板的 field2 是历史样本
+// 遗留常量（vec3=2/int=0/entity=1/guid=5…），直接克隆会让双参数及非零常量类型
+// 的序号错位 → 引擎信号参数校验失败拒载（游戏进不去、无日志）。
+function rewriteParamN3Field2(entry: WireField, kind: DefinitionKind, paramIndex: number): WireField {
+  if (entry.wire !== 2 || entry.number !== 102 && entry.number !== 103) return entry
+  const sub = message(entry, 'parameter entry')
+  const n3 = sub.find((field) => field.number === 3 && field.wire === 2)
+  if (!n3) return entry
+  const field2 = kind === 'monitor' ? 3 + paramIndex : paramIndex
+  const n3Fields = message(n3, 'parameter n3 descriptor')
+  const next = field2 === 0
+    ? n3Fields.filter((field) => !(field.number === 2 && field.wire === 0))
+    : n3Fields.some((field) => field.number === 2 && field.wire === 0)
+      ? n3Fields.map((field) => (field.number === 2 && field.wire === 0 ? { ...field, value: field2 } : field))
+      : [...n3Fields, { number: 2, wire: 0, value: field2 }].sort((a, b) => a.number - b.number)
+  const nextN3 = { ...n3, value: emitWireMessage(next) }
+  return {
+    ...entry,
+    value: emitWireMessage(sub.map((field) => (field === n3 ? nextN3 : field)))
+  }
+}
+
 function replaceInFixed(
   data: Uint8Array,
   template: SignalIndexEntry,
@@ -990,7 +1014,7 @@ function buildDefinition(
     }
     if (paramSlot > 0) return []
     paramSlot++
-    return spec.params.map((param) => {
+    return spec.params.map((param, paramIndex) => {
       const offset = typeOffsets.get(param.type) ?? 0
       typeOffsets.set(param.type, offset + 1)
       const templates = pool.byType.get(param.type)?.[offset]
@@ -998,7 +1022,8 @@ function buildDefinition(
       if (!templates || !entry) {
         throw new Error(`[error] no ${kind} template entry for parameter type: ${param.type}`)
       }
-      return cloneParamEntry(entry, templates.sourceParam, param.name)
+      const cloned = cloneParamEntry(entry, templates.sourceParam, param.name)
+      return rewriteParamN3Field2(cloned, kind, paramIndex)
     })
   })
   return {
