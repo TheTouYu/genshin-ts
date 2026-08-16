@@ -984,8 +984,7 @@
           "write": false
         },
         "blocked_by": [
-          "默认值",
-          "field2"
+          "默认值"
         ]
       },
       {
@@ -1033,6 +1032,7 @@
         ],
         "priority": 45,
         "keywords": [
+          "field2",
           "n3 field2",
           "n3 描述符",
           "参数序号",
