@@ -374,7 +374,9 @@
           "主图对照",
           "红绿回归",
           "red-green regression",
-          "isomorphic reproduction"
+          "isomorphic reproduction",
+          "compositePins 边界",
+          "复合边界修复"
         ],
         "topic_ids": [
           "composite-validation-workflow"
@@ -949,6 +951,250 @@
           "read_game_file": false,
           "write": false
         }
+      },
+      {
+        "id": "signal-version-rules",
+        "contexts": [
+          "compiler-diagnostics",
+          "static-gil-assembly-production"
+        ],
+        "priority": 45,
+        "keywords": [
+          "信号版本",
+          "signalVersion",
+          "版本阈值",
+          "版本下限",
+          "注册版本",
+          "f6 field5",
+          "版本 2"
+        ],
+        "topic_ids": [
+          "signal-production-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract",
+          "external_environment_behavior"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "signal-rejection-checklist",
+        "contexts": [
+          "compiler-diagnostics",
+          "static-gil-assembly-production"
+        ],
+        "priority": 45,
+        "keywords": [
+          "拒载",
+          "参数错误",
+          "启动失败",
+          "进不去",
+          "排查顺序",
+          "加载期错误"
+        ],
+        "topic_ids": [
+          "signal-production-encoding",
+          "editor-game-evidence"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract",
+          "external_environment_behavior"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "signal-param-layout-default",
+        "contexts": [
+          "compiler-diagnostics",
+          "static-gil-assembly-production"
+        ],
+        "priority": 45,
+        "keywords": [
+          "n3 field2",
+          "n3 描述符",
+          "参数序号",
+          "默认值",
+          "已连接 InParam"
+        ],
+        "blocked_by": [
+          "版本"
+        ],
+        "topic_ids": [
+          "signal-production-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract",
+          "external_environment_behavior"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "signal-registration-verification",
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
+        "priority": 40,
+        "keywords": [
+          "注册验证",
+          "注册回读",
+          "注册定义",
+          "布局正确",
+          "候选一致"
+        ],
+        "topic_ids": [
+          "signal-registration-and-extraction",
+          "signal-production-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "gamedev-mounting-variables",
+        "contexts": [
+          "compiler-diagnostics",
+          "static-gil-assembly-production"
+        ],
+        "priority": 40,
+        "keywords": [
+          "节点图挂载",
+          "挂载规则",
+          "变量作用域",
+          "自定义变量",
+          "游戏生命周期",
+          "多实体"
+        ],
+        "topic_ids": [
+          "mounting-lifecycle-assets",
+          "variable-scopes-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract",
+          "external_environment_behavior"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "writeback-hash-safety",
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
+        "priority": 40,
+        "keywords": [
+          "hash 核对",
+          "变更消失",
+          "分层验证",
+          "写回后重新加载",
+          "旧编辑器内存"
+        ],
+        "topic_ids": [
+          "safe-gil-writeback",
+          "editor-game-evidence"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "empty-host-creation",
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
+        "priority": 40,
+        "keywords": [
+          "空模型实体",
+          "空物体",
+          "宿主实体",
+          "无可见资源",
+          "root5"
+        ],
+        "topic_ids": [
+          "closure-and-id-integrity",
+          "assembly-configuration"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "decoration-offset-rule",
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
+        "priority": 40,
+        "keywords": [
+          "薄片外贴",
+          "装饰物偏移",
+          "外贴偏移",
+          "装饰物即主体"
+        ],
+        "topic_ids": [
+          "assembly-configuration",
+          "curve-path-decoration"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
       }
     ],
     "semantic_groups": {
@@ -1011,6 +1257,18 @@
       {
         "context_id": "compiler-diagnostics",
         "node_id": "cli-injector-asset-workflows"
+      },
+      {
+        "context_id": "compiler-diagnostics",
+        "node_id": "game-engine-knowledge"
+      },
+      {
+        "context_id": "compiler-diagnostics",
+        "node_id": "debug-log-format"
+      },
+      {
+        "context_id": "static-gil-assembly-production",
+        "node_id": "game-engine-knowledge"
       }
     ],
     "decision_claims": [],
