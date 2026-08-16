@@ -31,6 +31,11 @@ description: 游戏核验的最小自动注入通道。当用户说“去核验�
   `register --name verify_ping --param msg:str --param tag:str --output <副本输出>` 全流程
   通过——空注册表自动初始化、规范 pin（12/34/40、16/35/41）、CLI 候选回读、inspect 确认。
   剩余待验：真实地图 `--write` + 游戏内信号可用性（需用户游戏核验）。
+- **注册后必须核验参数布局（2026-08-16 五连错实证）**：`assets:signals register/update` 后
+  用 `inspect` 确认版本一致（v= 与 defs=[..] 相等且 ≥ 阈值），**多参数信号（尤其含 vec3/entity/
+  guid 等非 str/int 类型）还需确认参数 n3 field2 = 全局序号**（send/server=0/1/2…，monitor=3+序号）；
+  引擎对布局序号错位会"参数错误"拒载（静态检查全过但游戏进不去、无日志）。判断标准：
+  用编辑器重建的同类信号样本逐字节对照，而不是只查已知字段。
 - 分支节点图名：`verify-<点>`（如 `verify-inflow-index`）。注入后图名被替换为 `_GSTS_<gia基名>`。
 - case 文件：`verify/<分支>/<分支>.ts`，模板见 `references/template-case.ts`。
 - 注入配置：`gsts.verify.config.ts`（entries=`./verify`，outDir=`./dist-verify`）。

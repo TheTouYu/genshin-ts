@@ -19,6 +19,7 @@
 - 用户要求用空模型、官方基础元件、装饰物或场景实体制作复杂静态模型（如足球、魔方、字母或建筑）时，必须加载 `.agents/skills/static-gil-model-builder/SKILL.md`；未知资源尺寸、零旋转朝向或局部轴先走最小校准，已知规则直接进入正式 CLI 候选流程。
 - 遇到结构歧义、真实 GIA 结论、游戏状态、布局取舍、注入或其他破坏性操作时，先说明证据、方案和影响，再向用户确认；不要猜测。
 - **卡住时的三问（2026-08-14 #17 教训，高频强制）**：规则未闭合或排查卡住时，先问 ①知识库/文档/技能是否已有此规则（有→按规则实现）；②能否让用户做一个 10 秒编辑器最小差分学真实 wire（能→先差分，不要在代码里静态推断）；③现有状态能否做天然实验（注入版对比/编辑器保存版直接测试）。出问题先分层归因：用法层（是否按生产语义编写）/设计层（DSL 语义是否正确）/实现层（生产是否符合学到的规则）。
+- **游戏拒载类错误排查纪律（2026-08-16 信号五连错实证，高频强制）**：游戏"参数错误/启动失败"且级别极高进不去时——①Beyond_Debug_Log 无新文件是正常（加载期错误不落执行日志），不要等日志；②磁盘静态检查全过 ≠ 引擎认可，用"用户编辑器重建样本"逐字节对照（版本/布局/默认值都可能藏坑）；③"变更消失"先核对当前 hash 是否等于写回后 hash（编辑器旧内存保存覆盖假象）；④修复后必须用生产工具独立跑完整流程（register→注入→游戏），不能靠用户手工中间产物掩盖下一个 bug。
 - 确定涉及游戏引擎节点、API 或合法类型组合的工作包范围时，先查本地 docs-search；资料不足或需对齐编辑器公开支持范围时，再用项目级 `miliastra-knowledge` skill 查询官方节点规则。外部资料只用于缩小范围，仍须以当前源码、真实 GIA、自动回归和用户编辑器验证分层确认。
 - 处理或修复复合节点、`.gia`、Composite/GIA Stage 3、复合参数/引脚、`compositePins`、impl GraphNode 或 capture 边界 bug 时，修改前必须阅读 `docs/architecture/composite/testing.md` 的“复合节点 Bug 的完整分析与修复流程”，并按其中的同构复现、节点族影响调查、主图对照、红灯回归、legacy/shared 路径验证和证据分层执行；GIA 编码细节同时阅读 `docs/architecture/composite/gia-encoding.md`。
 - 修改前说明修改范围和验证方式；完成后如实报告已运行与未运行的命令及结果。
@@ -55,5 +56,6 @@
 - 只有高频、可复用、可行动且已证实的经验才能进入 `AGENTS.md`；局部案例、临时路径和待验证推测应写入测试、状态、checkpoint 或权威技术文档。
 - 知识录入固定从项目根运行 `python tools/pkc.py`；当天提交只纳入已提交基线，工作树变化保持受保护。一个 knowledge-plan 内串行完成 Claim、Authority Ref 和必要的 stale refresh，所有 mutation 完成后只做一次最终 delta check，再 finalize；必须展示并等待精确 Bundle content hash 确认后才能 approve/apply；`bundle-approve`/`bundle-apply` 默认 dry-run，必须显式加 `--apply` 才会落盘（2026-08-01 曾静默假成功，靠 claim_count 核验发现）。apply 后运行 `rebuild`、`validate`、`tree` 和 `git diff --check`。
 - **apply 是提交单元（2026-08-16 三次真实命中后固化）**：每个 knowledge-plan 的 `bundle-apply` 落盘后，必须先以受控范围 git 提交该 apply 的产物（authority-refs.json、proposals、bundle 文件），才能开始下一个 knowledge-plan。新 plan 的权威快照来自已提交基线（git HEAD），未提交的已 apply 变更会触发 `PLAN_AUTHORITY_MAINTENANCE_UNCOMMITTED`/`PLAN_WORKTREE_DRIFT`/`PLAN_STALE_BASELINE` 拦截（R3 三形态）；不要绕过防护，按报错指引 abandon→提交→重建 plan。同一批多个 bundle 可合并为一次受控提交，但提交信息须注明每个 bundle 的意图。
+- **批量确认门（C1，2026-08-16）**：同批多个独立 bundle 的 hash 确认可一次展示（每项含 bundle_id + content_hash + 变更摘要 + 建议提交信息），主代理一次授权后逐个 approve+apply（不合并 bundle，安全边界不变）；提交授权同样按批合并。`bundle-apply` 输出的 `commit_suggestion`（git_add + 提交信息）可直接作为受控提交的清单。
 - 用户要求“派独立/单独模型”跑任务或验证时，必须用 `isolated-model-evaluator` 技能（`evaluate.py --root <项目> --skill <显式技能路径> --task-file <任务> --output-dir <目录>`，只读任务带 `--assert-no-changes`，默认 deepseek-v4-flash max 或按用户指定）；禁止裸跑 `pi -p`（无 trace/成本记录）。执行类任务：子模型只产 /tmp 候选，主代理校验后写回真实地图。
 - 完成报告应包含“规则反馈检查”：是否发现不一致、证据、更新的最小规则文件，以及未推广的局部经验。

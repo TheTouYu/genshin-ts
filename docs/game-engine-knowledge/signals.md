@@ -495,3 +495,23 @@ update/repair（目标版本 <3 时提升到 3，`withSignalVersion` 同步条�
 **同类风险（未闭合）**：客户端 `send_signal_to_server_node_graph`（`client_graph.ts`）对 conn 参数
 同样填充默认载荷（`SIGNAL_PARAM_DEFAULT_BY_TYPE`，源自 2026-07-11 编辑器样本实测）——形态与编辑器
 样本一致，但客户端信号游戏行为从未端到端验证，若引擎对客户端同样严格校验则存在同类风险，待实验。
+
+## 信号参数 n3 field2 = 参数全局序号（2026-08-16 灯阵五连错第 5 次差分实证）
+
+**规则**：CompositeDef 中每个信号参数条目的 n3 描述符 field2 = **该参数在信号内的全局序号**
+（0-based）：
+- send/server 定义（#102 参数条目）：field2 = 序号（序号 0 时省略字段）
+- monitor 定义（#103 参数条目）：field2 = **3 + 序号**——monitor 前 3 个固定字段
+  （事件源实体/事件源GUID/信号来源实体）占序号 0/1/2
+
+**证据链**（三信号差分闭环，用户逐个手动重建信号）：
+- lamp_toggle（vec3+int）：send/server senderPos field2=0（省略）、hop field2=1；
+  monitor senderPos=3、hop=4
+- win_check / win_ack（vec3 单参）：send/server field2=0、monitor=3
+- CLI 旧形态（builtin 模板常量）：vec3=2、int=0、entity=1、guid=5…——全部错位
+  （str/int 单参数 field2=0 恰好正确，掩盖了 bug）
+
+**工程结论（2026-08-16 已修复，commit 9e8fd76）**：`rewriteParamN3Field2` 在克隆参数时
+按全局序号重写 n3 field2（0 删除字段、monitor 偏移 3），不再沿用 `BUILTIN_PARAM_LAYOUTS`
+的历史样本常量。验证：修复后 CLI 对三个已修信号的生成结果与编辑器重建**逐字节一致**
+（仅版本号差异）；回归测试断言 send/server=0/1、monitor=3/4。

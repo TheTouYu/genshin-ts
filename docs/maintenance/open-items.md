@@ -304,3 +304,15 @@
   ②加载期拒载错误不落 Beyond_Debug_Log，进不去游戏走三版本差分。
 - 未闭合风险：客户端 send_signal_to_server_node_graph conn 参数默认载荷（client_graph.ts
   SIGNAL_PARAM_DEFAULT_BY_TYPE）从未端到端游戏验证，若引擎对客户端同样严格校验则存在同类风险。
+
+### O-2026-08-16-20. 信号参数 n3 field2 序号规则（第 5 次信号错误根因，已修复+文档化，待知识库录入）
+
+- 证据：三信号差分闭环（用户逐个重建 lamp_toggle/win_check/win_ack）——builtin 模板 n3 field2
+  沿用历史样本常量（vec3=2/int=0/entity=1…）→ 参数序号错位 → 引擎拒载；str/int 单参数
+  field2=0 恰好正确，掩盖 bug 至第 5 次才暴露。
+- 规则：n3 field2 = 参数在信号内全局序号（send/server = 序号 0 省略；monitor = 3 + 序号）。
+- 落地：src/cli/gil_signal_registrations.ts rewriteParamN3Field2（commit 9e8fd76）；
+  signals.md 规则段 + retrospective-2026-08-16-signal-registration-series.md 已写入；
+  **待知识库录入（clm 待建）**。
+- 系统性教训：①从样本抄字节必须提炼语义规律 ②静态检查 ≠ 引擎校验，需编辑器重建样本对照
+  ③一次修复不能靠用户手工中间产物掩盖下一个 bug，修复后必须用生产工具独立跑全链路。
