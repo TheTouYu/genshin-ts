@@ -244,6 +244,21 @@
       ]
     },
     {
+      "id": "aref_1be1e977b27fb024b1deedddcc",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
+      "locator": "v19 战役灯柱实体消失（'变更消失'教训源头）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bfe3cc80b6c35649ce83d183924a8b7b725c33c552282ac29acd43aea459ddbb",
+      "claim_ids": [
+        "clm_2A480D90B2B98CEECDAB1C9E0C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_1de78737960006bd44fbd49dbc",
       "path": "docs/game-engine-knowledge/node-graphs.md",
       "locator": "Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json Variants 表闭环）",
@@ -1173,6 +1188,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_69286240dcaed5e06e4d126b3b",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-16-signal-param-default.md",
+      "locator": "四、流程纪律教训 1：写回后必须提醒用户重新加载编辑器再保存（v19 教训复发）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "57c5a01634b321799d563e646ca0ecd326a8b336d7b29d7a64084485564d553a",
+      "claim_ids": [
+        "clm_2A480D90B2B98CEECDAB1C9E0C"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
       ]
     },
     {

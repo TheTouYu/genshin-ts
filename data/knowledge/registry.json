@@ -89,7 +89,7 @@
         "回滚",
         "明确确认"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "gia-wire-analysis",
@@ -1696,6 +1696,12 @@
       "fact_classes": [
         "cli_behavior",
         "external_game_evidence"
+      ]
+    },
+    "clm_2A480D90B2B98CEECDAB1C9E0C": {
+      "fact_classes": [
+        "external_game_evidence",
+        "writeback_behavior"
       ]
     }
   }
