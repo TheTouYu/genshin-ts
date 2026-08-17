@@ -167,6 +167,21 @@
       ]
     },
     {
+      "id": "aref_0a92082d978cf5cb13caf014c7",
+      "path": "docs/ui-tutorial/README.md",
+      "locator": "文件地图 / 覆盖情况 / 证据层级",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0abb15cebacf3e941f0f656aa7cebef48844dbadd4941f90ce6557d1dd94bf66",
+      "claim_ids": [
+        "clm_B0F0948E1BBDE7F814AA5177C3"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_0c114a0587afd5a17239fe4688",
       "path": "src/runtime/core.ts",
       "locator": "connect() addEdge(current, sourceId, ...) ~1780-1812",
@@ -1686,6 +1701,21 @@
       ]
     },
     {
+      "id": "aref_6c667fe022c6a7aaba36bb38cb",
+      "path": ".agents/skills/miliastra-knowledge/references/tools.md",
+      "locator": "已知坑 5. too_many 的精确兜底：用官方文件 ID 查询",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7dcfef99decfc6f5251082c06459c88ae527cea13bae24ff1f50d3ae5f4fab7",
+      "claim_ids": [
+        "clm_FE16BC7E172B8A5BC2845AFC59"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_6c67fed7ffff063c36abad0ba1",
       "path": "tests/composite/test-stage3-resolved-node-contract.ts",
       "locator": "focused resolved-node contract regression for enum alias resolution and supported Composite Stage 3 node identity",
@@ -2403,6 +2433,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_997f9cdb4d03cf87deb6f2c42b",
+      "path": ".agents/skills/miliastra-knowledge/references/tools.md",
+      "locator": "已知坑 6. query.sh 大响应会 Argument list too long",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "c7dcfef99decfc6f5251082c06459c88ae527cea13bae24ff1f50d3ae5f4fab7",
+      "claim_ids": [
+        "clm_296F35890557584DE18051A244"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {

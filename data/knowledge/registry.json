@@ -1129,6 +1129,20 @@
         "常见问题"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "knowledge-query-tooling",
+      "node_id": "project-intelligence",
+      "title": "知识库查询工具经验（miliastra-knowledge）",
+      "path": "knowledge/project-intelligence/knowledge-query-tooling.md",
+      "summary": "官方文件 ID 精确查询、query.sh ARG_MAX 兜底、docs/ui-tutorial 本地官方教程文档集",
+      "keywords": [
+        "miliastra-knowledge",
+        "query.sh",
+        "官方教程",
+        "知识库查询"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2230,6 +2244,21 @@
     "clm_3C6163054622FF00C7CC9615E3": {
       "fact_classes": [
         "documented_contract"
+      ]
+    },
+    "clm_FE16BC7E172B8A5BC2845AFC59": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_296F35890557584DE18051A244": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_B0F0948E1BBDE7F814AA5177C3": {
+      "fact_classes": [
+        "evidence_scope"
       ]
     }
   }
