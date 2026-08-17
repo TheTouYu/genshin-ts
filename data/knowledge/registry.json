@@ -1728,6 +1728,36 @@
       "fact_classes": [
         "evidence_scope"
       ]
+    },
+    "clm_CEA164CAE800CEF815B2E6E69D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_5365503602B2B9A13CBC738C4B": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9721CA3CFA9738DC9FF32CE0F4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F2BCE2C0D23A4C2F4D01A2EFB7": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1517EC2B9FCE5F09C3F24AF8AD": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_5C945628C48F2A500E711643ED": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }

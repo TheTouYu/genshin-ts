@@ -107,6 +107,21 @@
       ]
     },
     {
+      "id": "aref_09afa3686dc97edcd3080615dd",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "界面控件组管理（官方章节，完整）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_5365503602B2B9A13CBC738C4B"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_0c114a0587afd5a17239fe4688",
       "path": "src/runtime/core.ts",
       "locator": "connect() addEdge(current, sourceId, ...) ~1780-1812",
@@ -379,6 +394,21 @@
       ]
     },
     {
+      "id": "aref_27978890be8d27b3e6f2275372",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "§3.4.2 手柄适配引导（官方教程原文）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_1517EC2B9FCE5F09C3F24AF8AD"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2798be2eafbd74795a16f86c8e",
       "path": "src/cli/static_assembly/graph_layout.ts",
       "locator": "planFlowUpgrade/autoLayout/checkLayout",
@@ -514,6 +544,21 @@
       ]
     },
     {
+      "id": "aref_33794ccbdb5d61a72eee7cfc1a",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "界面控件 → 三、界面控件的分类 / 控件详解（19 个控件）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_F2BCE2C0D23A4C2F4D01A2EFB7"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_3415e39a227b9e30896afecb28",
       "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
       "locator": "块间端面缝隙处理节（V9/V11/V11.1）",
@@ -646,6 +691,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3b88ccdfa5d0c9f8563c4980b9",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "界面控件 → 四、界面控件的渲染模式",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_9721CA3CFA9738DC9FF32CE0F4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2544,6 +2604,21 @@
       ]
     },
     {
+      "id": "aref_eab9344274c63ab574bcabbcb0",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "§3.3 官方 FAQ 要点（界面控件组编辑）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_5C945628C48F2A500E711643ED"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_eab991792a2210cfecc1128bd6",
       "path": "src/runtime/value.ts",
       "locator": "822481a:RuntimeExecNodeArg",
@@ -2631,6 +2706,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_f1fdc813b52a5982d327b6aa4e",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "界面布局（官方章节，完整）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_CEA164CAE800CEF815B2E6E69D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
