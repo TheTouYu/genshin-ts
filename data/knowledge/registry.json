@@ -1012,6 +1012,22 @@
         "造物"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "concepts-functions",
+      "node_id": "official-guide",
+      "title": "概念介绍·功能组件（官方综合指南）",
+      "path": "knowledge/official-guide/concepts-functions.md",
+      "summary": "官方“功能”章节 43 个组件文档：实体配置/战斗/运动碰撞/数据状态/表现标识/资源/镜头交互",
+      "keywords": [
+        "功能组件",
+        "商店",
+        "战斗",
+        "组件",
+        "背包",
+        "运动器"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1906,6 +1922,56 @@
       ]
     },
     "clm_BF9B1C83D72D17DAB12E17D0A1": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_617D03450C45DA5D99521B3D51": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D7275AC67382FCE942CF906761": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_11B9943A2B9E66923F43287E34": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F9D72E69170EA38489A18FBCF4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_BF8ABC01DE7D76FA8C141876D3": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_C42161A9F6E6DFB8B5A4C52CB8": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E411787425EFD8DBBD59B529D1": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_B9E0C3DE26AA74AAB9C95956BA": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1FC4B6D85F2EFCAFF3C97099C6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_CE8BE1E9F234146770D56FE030": {
       "fact_classes": [
         "documented_contract"
       ]

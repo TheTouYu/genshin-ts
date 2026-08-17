@@ -289,6 +289,21 @@
       ]
     },
     {
+      "id": "aref_1c53c827c25a6365a676194efd",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 基础战斗属性/受击盒设置/战斗设置/命中检测/能力单元",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_11B9943A2B9E66923F43287E34"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_1de78737960006bd44fbd49dbc",
       "path": "docs/game-engine-knowledge/node-graphs.md",
       "locator": "Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json Variants 表闭环）",
@@ -949,6 +964,21 @@
       ]
     },
     {
+      "id": "aref_40a37744d3ca4debc7a1fc5c44",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 特效播放/音效播放器/光源/自定义挂接点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_E411787425EFD8DBBD59B529D1"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_41a1e9342a7af9ad1194e47af5",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "参数流定义（CompositeDef.inputs/outputs/inflows/outflows）",
@@ -1159,6 +1189,21 @@
       ]
     },
     {
+      "id": "aref_55ba8ec09c3e5da64a79b681f2",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 铭牌/文本气泡/小地图标识/扫描标签",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_B9E0C3DE26AA74AAB9C95956BA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_5787c6a96f5faf7925d0d0cc36",
       "path": "tests/gil_static_assemblies.ts",
       "locator": "focused closure and color raw-wire regression",
@@ -1171,6 +1216,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_5a4d9fa1eefc0a51c04e823a39",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 阵营/单位标签/实体布设组/负载优化/数据复制粘贴/特化配置",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_D7275AC67382FCE942CF906761"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2181,6 +2241,36 @@
       ]
     },
     {
+      "id": "aref_a14d133e7e7ae137b5058d70ab",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 背包组件/战利品/商店组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_1FC4B6D85F2EFCAFF3C97099C6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_a59662ad60386231e88c2286e3",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 自定义变量/单位状态/全局计时器/定时器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_C42161A9F6E6DFB8B5A4C52CB8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_a677a7dd1d86af1ecef3ef66d5",
       "path": ".agents/skills/verify-injection/references/verified-cases.md",
       "locator": "ef6189b:verify-u4-color-change",
@@ -2619,6 +2709,21 @@
       ]
     },
     {
+      "id": "aref_c892bb4947f72e8f3ac7e29094",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 仇恨配置",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_F9D72E69170EA38489A18FBCF4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_ca43ef65dcc374e39aefcf225e",
       "path": "docs/game-engine-knowledge/components.md",
       "locator": "旋转实现：运行时添加匀速旋转型基础运动器（已闭合）",
@@ -2919,6 +3024,21 @@
       ]
     },
     {
+      "id": "aref_e6f067d1634e4f6008f13f5eda",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 基础信息/变换/模型/常规设置/通用组件/选项卡",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_617D03450C45DA5D99521B3D51"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_e700320e933663e456bd6315e5",
       "path": ".agents/skills/static-gil-model-builder/references/production-workflow.md",
       "locator": "§7 已修复：实体 import 后装饰物丢失（游戏核验通过）",
@@ -3024,6 +3144,21 @@
       ]
     },
     {
+      "id": "aref_eda614096a0de4acfa9d674579",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 基础运动器/操控运动器/投射运动器/跟随运动器/碰撞触发器/碰撞触发源/额外碰撞/路径",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_BF8ABC01DE7D76FA8C141876D3"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_f0b606de9922ca095c1242d8bc",
       "path": "src/diagnostics.ts",
       "locator": "DiagnosticProvenance and structured diagnostic rendering",
@@ -3126,6 +3261,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_f7b05e05f8bfd665e7831ff865",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "功能 → 物件镜头/光标碰撞盒/寻路阻挡",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_CE8BE1E9F234146770D56FE030"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
