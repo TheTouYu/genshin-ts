@@ -469,6 +469,21 @@
       ]
     },
     {
+      "id": "aref_2f05a7dbcb7a12ea12c38e19b5",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "文档头证据层级（官方原文/知识库/本地 docs/待验证）+ §3.5 本地已确认规则与待验证点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_DE8CD088BD7F11E14BA2018243"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_305c48e46c522e6a1cc226281d",
       "path": "src/runtime/core.ts",
       "locator": "MetaCallRegistry.withExecBranch(), setCurrentExecTailEndpoints(), registerNode(), and addEdge() multi-outflow continuation handling",
@@ -811,6 +826,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_4446a60687b804ad8a3b5dcb2b",
+      "path": "docs/game-engine-knowledge/ui-controls.md",
+      "locator": "状态：框架草案；来源：用户对屏幕控件、输入和按钮事件的说明；待逐步还原（控件树/状态差异/事件绑定等）",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "631a0d66e142aa0868626daf6005fb55656b56fe69584541a4a2401c7962629a",
+      "claim_ids": [
+        "clm_DE8CD088BD7F11E14BA2018243"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -1927,6 +1957,21 @@
       ]
     },
     {
+      "id": "aref_ad67360ce34bcaaf88912f4667",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "服务器节点·执行节点/查询节点：切换当前界面布局、激活/移除控件组、设置界面控件(组)状态、获取玩家当前界面布局",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_3189B8F2FCEAA3CA18E4B6E1E7"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_af8a080722636eec081040eb3c",
       "path": "docs/game-engine-knowledge/composite-usage-guide.md",
       "locator": "the usage guide itself",
@@ -2334,6 +2379,21 @@
       ]
     },
     {
+      "id": "aref_d9b65576f80f7dae99a36f9519",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "界面控件组：状态（激活/未激活）与表现状态（开启/关闭/隐藏）语义",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_6052F0D18716A3AF164D48D5B7"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_dc36d4fbd8733b65f595c934fa",
       "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
       "locator": "等 F 划分算法节",
@@ -2634,6 +2694,21 @@
       ]
     },
     {
+      "id": "aref_fbe18553a892559f7d11b87753",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "服务器节点·事件节点：界面控件组触发时——触发控件类型、仅触发玩家节点图可获取、出参",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_459C6622D20B1570596376BB73"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_fe1858fdc3e4ce00fe577ab046",
       "path": "docs/composite-ir/04-validation-signal.md",
       "locator": "section 13 listen-node (onSignal) instance encoding v7-v10",
@@ -2676,6 +2751,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_fff19c029cec9644db621c7cc2",
+      "path": "docs/ui-tutorial/official-ui-tutorial.md",
+      "locator": "概念介绍 → 节点图 → 界面控件（总览）：界面控件定义、固有/预制分类、运行依赖界面布局",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
+      "claim_ids": [
+        "clm_221263ECDC10955ECCA4758730"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

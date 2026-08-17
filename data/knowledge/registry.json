@@ -1703,6 +1703,31 @@
         "external_game_evidence",
         "writeback_behavior"
       ]
+    },
+    "clm_221263ECDC10955ECCA4758730": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_6052F0D18716A3AF164D48D5B7": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3189B8F2FCEAA3CA18E4B6E1E7": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_459C6622D20B1570596376BB73": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_DE8CD088BD7F11E14BA2018243": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
     }
   }
 }
