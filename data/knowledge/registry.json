@@ -996,6 +996,22 @@
         "编辑器界面"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "concepts-entities",
+      "node_id": "official-guide",
+      "title": "概念介绍·实体与单位（官方综合指南）",
+      "path": "knowledge/official-guide/concepts-entities.md",
+      "summary": "单位/玩家/复苏/角色/造物/复杂造物/物件/水物件/白盒物件/本地投射物/关卡",
+      "keywords": [
+        "关卡",
+        "单位",
+        "物件",
+        "玩家",
+        "角色",
+        "造物"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1835,6 +1851,61 @@
       ]
     },
     "clm_9122A53628DC3CD9C38182ADAF": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3E10C89425941092CF813EC132": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_486C2FC803E1A7F84B283014CC": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_8352A6DB7D562CC72C76B3D09F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_24EF097057CFFF94BEE8499E1A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4441C7E900ADD0E3B4E0DCBB23": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F285B45BBBD8C2452A8210259F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_567BF9B20D6FF15DE7B5083D80": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_76C92A90AF647CF09C9D528C6D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_A98C473C9C4D1E81BBB23337FA": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E76BC990B778F8A12CAB547FE1": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_BF9B1C83D72D17DAB12E17D0A1": {
       "fact_classes": [
         "documented_contract"
       ]

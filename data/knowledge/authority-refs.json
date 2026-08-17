@@ -724,6 +724,21 @@
       ]
     },
     {
+      "id": "aref_393e4fab08e221a28aadfdb45b",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "物件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_567BF9B20D6FF15DE7B5083D80"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_3997f87b96a16bd17980f5a50f",
       "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/composite-nodes.md",
       "locator": "已闭合骨架（v22-v48）",
@@ -1066,6 +1081,21 @@
       ],
       "supports_fact_classes": [
         "public_type_surface"
+      ]
+    },
+    {
+      "id": "aref_4fd7f1d7a3129bc6c89799f0e7",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "关卡",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_BF9B1C83D72D17DAB12E17D0A1"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1551,6 +1581,21 @@
       ]
     },
     {
+      "id": "aref_729fab24ac7012d7f50214a2fe",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "复苏",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_8352A6DB7D562CC72C76B3D09F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_75461307537c6e48b0397c2f91",
       "path": "src/compiler/ts_to_gs_transform/expr.ts",
       "locator": "822481a:shouldCaptureIdentifier QualifiedName",
@@ -1746,6 +1791,21 @@
       ]
     },
     {
+      "id": "aref_7d1ace33b075d2ff68c2080f74",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "本地投射物",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_E76BC990B778F8A12CAB547FE1"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_7d75ec9b118c317a2ddda50b91",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "多轴欧拉角顺序已闭合（2026-08-08）段落",
@@ -1911,6 +1971,21 @@
       ]
     },
     {
+      "id": "aref_8e5f6bea2fe0ef5616e7e248cc",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "角色",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_24EF097057CFFF94BEE8499E1A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_90fee71ba5f6118a2a31eed0bb",
       "path": "tests/timer_global_overload_type_safety_test.ts",
       "locator": "822481a:非 any 断言",
@@ -2001,6 +2076,21 @@
       ]
     },
     {
+      "id": "aref_982be3d1175dccbafc7f80309a",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "造物",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_4441C7E900ADD0E3B4E0DCBB23"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_9a542651fb55e772d19d7936f5",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "节点图挂载（type 3 槽）规则与工具（mount-case1/2/3/4 真实相邻快照 + 用户游戏核验）",
@@ -2043,6 +2133,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_9e12e69a9a3e4b312cc1b7c517",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "复杂造物",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_F285B45BBBD8C2452A8210259F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2137,6 +2242,21 @@
       ]
     },
     {
+      "id": "aref_abe46503b82fefeb8f8e4a32f3",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "白盒物件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_A98C473C9C4D1E81BBB23337FA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_ac80ab3ccb2e6b0e716bcb70a9",
       "path": "docs/project-intelligence/knowledge-capture-common-errors.md",
       "locator": "sections 1-8: reusable command, preflight, evidence, approval, and verification errors",
@@ -2227,6 +2347,36 @@
       ]
     },
     {
+      "id": "aref_b39ed7ee27de72805cbb21341c",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "水物件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_76C92A90AF647CF09C9D528C6D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b56858db8019a117d5bcdd8480",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "玩家",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_486C2FC803E1A7F84B283014CC"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b615135758d50f11ef4d9478be",
       "path": "docs/game-engine-knowledge/gia-generation-chain.md",
       "locator": "生产链路（成功路径）与可复现性边界",
@@ -2299,6 +2449,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_bac39b8ecbf3931f9317a166aa",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "单位",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_3E10C89425941092CF813EC132"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
