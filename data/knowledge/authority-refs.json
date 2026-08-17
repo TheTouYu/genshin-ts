@@ -334,6 +334,21 @@
       ]
     },
     {
+      "id": "aref_1cab3a8b0f86096cf369ea4f10",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "事件节点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_C2EBFC89FDD3939147E1A53E4C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_1de78737960006bd44fbd49dbc",
       "path": "docs/game-engine-knowledge/node-graphs.md",
       "locator": "Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json Variants 表闭环）",
@@ -958,6 +973,21 @@
       "approved_hash": "9bb0a79e9c18de5cd6a5b1d629b8ec88919529e765b4ed7b02c1674fa5e8ca78",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_3e5de6d28df4c392b2b158a288",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "查询节点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_3FFFFBA78772A956B1D216D65B"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -2859,6 +2889,21 @@
       ]
     },
     {
+      "id": "aref_cb56acd6c18797cbee82824964",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "流程控制节点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_FEEAD834EB15F558C0BCFC3F16"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_cc232d3f222d65427c47dc1ffc",
       "path": "docs/ui-tutorial/official-guide-editor-interface.md",
       "locator": "整体界面",
@@ -3159,6 +3204,21 @@
       ]
     },
     {
+      "id": "aref_e29e315608c4e3278a5c3d8ec0",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "执行节点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_72FF6BBAB8864FB6E73DCADA2D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_e6f067d1634e4f6008f13f5eda",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "功能 → 基础信息/变换/模型/常规设置/通用组件/选项卡",
@@ -3186,6 +3246,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_e7194703e2f9cffdb05e246c7f",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "节点介绍（目录页）/服务器节点（目录页）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_E24C8ADC768A56E2A894E4D57F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3381,6 +3456,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_f3cbd4e346fdaf622847619f5f",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "运算节点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_DDCC2D646E370944E0A4EFE789"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

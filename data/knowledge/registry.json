@@ -1059,6 +1059,21 @@
         "资源系统"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "nodes-server",
+      "node_id": "official-guide",
+      "title": "节点介绍·服务器节点（官方综合指南）",
+      "path": "knowledge/official-guide/nodes-server.md",
+      "summary": "服务器节点：执行/事件/流程控制/查询/运算（含 UI 界面控件组相关节点）",
+      "keywords": [
+        "事件节点",
+        "执行节点",
+        "服务器节点",
+        "查询节点",
+        "运算节点"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2053,6 +2068,36 @@
       ]
     },
     "clm_A80B7549C50F375DE135FC212D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E24C8ADC768A56E2A894E4D57F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_72FF6BBAB8864FB6E73DCADA2D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_C2EBFC89FDD3939147E1A53E4C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_FEEAD834EB15F558C0BCFC3F16": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3FFFFBA78772A956B1D216D65B": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_DDCC2D646E370944E0A4EFE789": {
       "fact_classes": [
         "documented_contract"
       ]
