@@ -1116,6 +1116,19 @@
         "附录"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "faq",
+      "node_id": "official-guide",
+      "title": "官方 FAQ（miliastra 知识库镜像）",
+      "path": "knowledge/official-guide/faq.md",
+      "summary": "官方 FAQ 12 篇：组件/试玩调试/逻辑自查/地形编辑/元件库/千星沙箱/关卡编辑/存档/战斗预设/结构体/界面控件组编辑/实体摆放",
+      "keywords": [
+        "FAQ",
+        "官方答疑",
+        "常见问题"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2200,6 +2213,21 @@
       ]
     },
     "clm_CF33A5F44FF23BAA871532B4A3": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1C5EE01371E41A27D66EF1AEBE": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_896BA562A853D996C3CC7196F3": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3C6163054622FF00C7CC9615E3": {
       "fact_classes": [
         "documented_contract"
       ]

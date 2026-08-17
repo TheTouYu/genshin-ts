@@ -2,6 +2,21 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_01fac86b3c17c765f75fd5943c",
+      "path": "docs/ui-tutorial/official-guide-faq.md",
+      "locator": "千星沙箱/存档导出及合并/结构体",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e42d500ae1f20fd7d271ba8ddb98855535600f3d712d12ac260589f5e9473791",
+      "claim_ids": [
+        "clm_3C6163054622FF00C7CC9615E3"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_0271af7830715fcd2366a1f5ad",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "技能 → 技能定义与编辑/技能资源/复杂造物技能/关键行为/技能变量/技能属性组/技能预瞄准/角色操控技能",
@@ -1716,6 +1731,21 @@
       ]
     },
     {
+      "id": "aref_6e7ee9056f98d38fb6a5c3a5b1",
+      "path": "docs/ui-tutorial/official-guide-faq.md",
+      "locator": "组件/地形编辑/元件库/关卡编辑/实体摆放/战斗预设/试玩及调试/逻辑自查",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e42d500ae1f20fd7d271ba8ddb98855535600f3d712d12ac260589f5e9473791",
+      "claim_ids": [
+        "clm_896BA562A853D996C3CC7196F3"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_6eaa5bf4fcf81bc4a225512ce9",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "信号版本动态阈值 f(N)=max(3,ceil(3N/4)) 章节（2026-08-15 第 3 次错误实证 + 工程结论 66e24d9）",
@@ -2175,6 +2205,21 @@
       "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
       "claim_ids": [
         "clm_C6D426185B6125E4484CB8C948"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_8c56244acbfbf978ba4afbe901",
+      "path": "docs/ui-tutorial/official-guide-faq.md",
+      "locator": "FAQ 文档列表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e42d500ae1f20fd7d271ba8ddb98855535600f3d712d12ac260589f5e9473791",
+      "claim_ids": [
+        "clm_1C5EE01371E41A27D66EF1AEBE"
       ],
       "supports_fact_classes": [
         "documented_contract"
