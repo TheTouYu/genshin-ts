@@ -2,6 +2,21 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_0271af7830715fcd2366a1f5ad",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "技能 → 技能定义与编辑/技能资源/复杂造物技能/关键行为/技能变量/技能属性组/技能预瞄准/角色操控技能",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_4330ACECF227EA709FAC4B30FC"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_038734edefe92414518efe8f2a",
       "path": "tests/composite/test-composite-build-input-types.ts",
       "locator": "type assertions for entity, vec3, int build inputs",
@@ -256,6 +271,21 @@
       "supports_fact_classes": [
         "cli_behavior",
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_17c71855a9c01fc867f43129f0",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "技能 → 职业/单位状态/预设点/护盾/路径/特效器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_A9B5344C859963D175FA6F26FD"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -571,6 +601,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2eb717bc1146710ff681714265",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "其它概念 → 局内存档/多语言文本/语音和文字聊天/背景音乐/环境配置/元件组/场景生成模板",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_A80B7549C50F375DE135FC212D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2617,6 +2662,21 @@
       ]
     },
     {
+      "id": "aref_bbe46e37d6f0023ea92ee2c426",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "资源系统 → 道具/装备/货币/背包/掉落物/商店",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_2DCF4A33483268D6F2F37EECEB"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_bc643725d4c70d4d2223dbcd3b",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "节点图 → 一、节点图功能概述/二、节点图的类型/三、节点图的挂载",
@@ -3141,6 +3201,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_e90dbae7a80af1e74bf1866099",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "外围系统 → 排行榜/竞技段位/成就/关卡结算/奇域礼盒/奇域任务/先行体验/奇匠订阅",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_ED273B2434299235FC4E514024"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

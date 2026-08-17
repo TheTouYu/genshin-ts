@@ -1043,6 +1043,22 @@
         "节点图编辑"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "concepts-systems",
+      "node_id": "official-guide",
+      "title": "概念介绍·外围/资源/技能/其它系统（官方综合指南）",
+      "path": "knowledge/official-guide/concepts-systems.md",
+      "summary": "外围系统/资源系统/技能/其它概念",
+      "keywords": [
+        "商店",
+        "外围系统",
+        "技能",
+        "职业",
+        "背包",
+        "资源系统"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2012,6 +2028,31 @@
       ]
     },
     "clm_1851CEA2D0AE8097E7980EC52C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_ED273B2434299235FC4E514024": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2DCF4A33483268D6F2F37EECEB": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4330ACECF227EA709FAC4B30FC": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_A9B5344C859963D175FA6F26FD": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_A80B7549C50F375DE135FC212D": {
       "fact_classes": [
         "documented_contract"
       ]
