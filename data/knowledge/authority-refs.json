@@ -1776,6 +1776,21 @@
       ]
     },
     {
+      "id": "aref_72454c590f15d548df70e69937",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "附录 → 节点图高级特性/泛型引脚/节点图变量/复合节点/节点图日志/客户端节点图日志/复合节点图日志",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_6DB96B486CBC78BC5AC15C603C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_729fab24ac7012d7f50214a2fe",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "复苏",
@@ -1893,6 +1908,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_78638f42f5185c3bfd5af515fe",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "附录 → 能力单元效果/造物行为模式图鉴/造物行为模式的未入战行为/造物技能说明/单位状态效果池",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_4A38F967CC9B51443DB689A19F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2812,6 +2842,21 @@
       ]
     },
     {
+      "id": "aref_bd2ce490c46d960298d335b89a",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "风险检查功能",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_9931E0214334D98411A29B1BE3"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_be0345fbbcc598dc30f6d0fd0c",
       "path": ".agents/skills/verify-injection/references/verified-cases.md",
       "locator": "895e2cb:verify-u1-cross-graph + verify-u2-multi-mount",
@@ -3066,6 +3111,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_d2a4792895ffe793f806c908cd",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "负载计算功能",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_16ACBF0EE2592FBBA9D3EEAF04"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3633,6 +3693,21 @@
       "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
       "claim_ids": [
         "clm_9B948639C6EA426949824A5E3F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_fac4ebf8a55b2c01f9dab8377d",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "附录 → 信号/字典/结构体/编辑项范围限制/经典模式角色编号一览",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_CF33A5F44FF23BAA871532B4A3"
       ],
       "supports_fact_classes": [
         "documented_contract"

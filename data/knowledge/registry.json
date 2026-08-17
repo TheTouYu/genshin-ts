@@ -1089,6 +1089,33 @@
         "造物状态节点图"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "auxiliary",
+      "node_id": "official-guide",
+      "title": "辅助功能（官方综合指南）",
+      "path": "knowledge/official-guide/auxiliary.md",
+      "summary": "负载计算功能与风险检查功能",
+      "keywords": [
+        "负载计算",
+        "辅助功能",
+        "风险检查"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "appendix",
+      "node_id": "official-guide",
+      "title": "附录（官方综合指南）",
+      "path": "knowledge/official-guide/appendix.md",
+      "summary": "能力单元效果/造物图鉴/技能说明/单位状态效果池/节点图高级特性/信号/字典/结构体等",
+      "keywords": [
+        "结构体",
+        "能力单元效果",
+        "节点图日志",
+        "附录"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2148,6 +2175,31 @@
       ]
     },
     "clm_1605284BD5B5CFEBAC28521FED": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_16ACBF0EE2592FBBA9D3EEAF04": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9931E0214334D98411A29B1BE3": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4A38F967CC9B51443DB689A19F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_6DB96B486CBC78BC5AC15C603C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_CF33A5F44FF23BAA871532B4A3": {
       "fact_classes": [
         "documented_contract"
       ]
