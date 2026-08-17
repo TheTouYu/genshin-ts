@@ -350,6 +350,75 @@ export type GstsStaticAssemblyComponent =
        */
       regionCenter?: readonly [number, number, number]
     }
+  | {
+      /**
+       * [ZH] 铭牌组件（code 27）。支持真实编辑器样本的默认槽快照
+       * （nameplate-component exp2：definition f8 / instance f7 双写一致，7B 空配置槽
+       * `081b1001b20200`），以及带显示内容的配置槽（exp4 305B 模板，仅替换显示文本，
+       * 其余参数保持样本默认值）。配置字段 f38（27+11 规律）为 501 配置列表；内容路径
+       * `38.501[0].512[0].504.501`，详见 docs/game-engine-knowledge/components.md「铭牌配置」。
+       *
+       * [EN] Nameplate component (code 27). Supports the real editor default slot
+       * (nameplate-component exp2: definition f8 / instance f7 double-written, 7-byte
+       * empty-config slot `081b1001b20200`) and a content-configured slot (exp4 305B
+       * template; only the display text is replaced, other params keep sample defaults).
+       * Config field f38 (27+11 rule) holds the 501 config list; content path is
+       * `38.501[0].512[0].504.501`; see docs/game-engine-knowledge/components.md.
+       */
+      type: 'nameplate'
+      /** [ZH] 默认铭牌组件快照。 / [EN] Default nameplate component snapshot. */
+      preset: 'default'
+      /** [ZH] 显示内容（UTF-8 文本，支持 `{<id>:<变量名>}` 占位符）；省略时写默认空槽。 / [EN] Display text (UTF-8, supports `{<id>:<变量名>}` placeholders); omit for the default empty slot. */
+      content?: string
+      /** [ZH] 显示范围/可见半径（米）；对应 `38.501[0].505` f32，默认 5.0。 / [EN] Display range / visible radius (meters); `38.501[0].505` f32, defaults to 5.0. */
+      range?: number
+    }
+  | {
+      /**
+       * [ZH] 文本气泡组件（code 28）。仅支持真实编辑器样本的默认槽快照
+       * （component-investigation exp7：实例 f7 新增 97B 槽，含一条默认 501 配置
+       * 「文本气泡 配置ID1」；配置字段 f39 = 28+11）。后续配置结构见
+       * docs/game-engine-knowledge/components.md「待确认」族（501 配置列表规律）。
+       *
+       * [EN] Text-bubble component (code 28). Limited to the default slot snapshot
+       * observed on a real editor sample (component-investigation exp7: instance f7
+       * gained a 97-byte slot with one default 501 config “文本气泡 配置ID1”;
+       * config field f39 = 28+11). See docs/game-engine-knowledge/components.md
+       * for the 501 config-list family layout.
+       */
+      type: 'textBubble'
+      /** [ZH] 默认文本气泡组件快照。 / [EN] Default text-bubble component snapshot. */
+      preset: 'default'
+    }
+  | {
+      /**
+       * [ZH] 光源组件（code 38）。基于真实编辑器样本默认槽快照
+       * （2026-08-17 灯阵工具链缺口差分实验室 1073741892 两次独立添加逐字节一致：
+       * definition f8 / instance f7 双写一致，71B 槽 `08261001...b01f01`）。
+       * 配置字段 f49 = 38+11 规律，含一条默认 501 配置「光源1」+ GI_RootNode。
+       * 可选参数（2026-08-17 半径/强度差分定位）：`radius` = f501.f4.f51.f2 f32，
+       * `intensity` = f501.f4.f51.f3 f32，默认均为 3.0。
+       * 注意：编辑器滑条内部存储连续 float 值，界面显示两位小数；CLI 按传入数值直接
+       * 编码 float32，可能与编辑器滑条在“相同显示值”下存储的内部值有微小差异。
+       *
+       * [EN] Light-source component (code 38). Based on real editor default slot
+       * observed on two independent samples (2026-08-17 map 1073741892, byte-identical
+       * definition f8 / instance f7 double-write, 71-byte slot `08261001...b01f01`).
+       * Config field f49 = 38+11 holds one default 501 config “光源1” + GI_RootNode.
+       * Optional params (located by radius/intensity diff 2026-08-17): `radius` =
+       * f501.f4.f51.f2 f32, `intensity` = f501.f4.f51.f3 f32, defaults 3.0.
+       * Note: the editor slider stores continuous float values and the UI displays two
+       * decimals; CLI encodes the given number directly as float32, which may differ
+       * slightly from the editor's internal value for the same displayed number.
+       */
+      type: 'lightSource'
+      /** [ZH] 默认光源组件快照。 / [EN] Default light-source component snapshot. */
+      preset: 'default'
+      /** [ZH] 光源半径（实际 float 值）；默认 3.0。 / [EN] Light radius (actual float); defaults to 3.0. */
+      radius?: number
+      /** [ZH] 光源强度（实际 float 值）；默认 3.0。 / [EN] Light intensity (actual float); defaults to 3.0. */
+      intensity?: number
+    }
 
 export type GstsStaticPrefabCategory = {
   /** [ZH] 分类页签名称。 / [EN] Category-tab name. */

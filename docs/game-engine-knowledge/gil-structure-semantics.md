@@ -991,7 +991,8 @@ root 45（编辑器 MRU 自更新）+ root 46（保存副作用）。
   v21 live aux 同构（tests/gil_patch_test.ts shape 断言）。
 
 CLI（`gsts assets:entities patch`）：`--attach-aux <id>` / `--detach-aux <id>`
-作用于实体；`--aux <id>` 把 --color/--position/--rotation/--scale 切换到 aux 对象。
+作用于实体；`--aux <id>` 把 --color/--position/--rotation/--scale 切换到 aux 对象；
+`--remove-component <typeCode>`（可重复）从场景实体 root5 的组件槽列表（f7）按类型码移除组件。
 
 验证（`tests/gil_patch_test.ts`，v21 真实快照）：挂载后实体 f501 列表与 aux f502
 归属一致（双向），且与编辑器星球样本同构（f50 = {f501: auxID varint 嵌套

@@ -39,6 +39,7 @@ import preferConstOutsideServer from './rules/prefer-const-outside-server.js'
 import requireBigintIndexWrapper from './rules/require-bigint-index-wrapper.js'
 import requireBooleanCondition from './rules/require-boolean-condition.js'
 import serverLiteralArguments from './rules/server-literal-arguments.js'
+import serverRepeatedEvaluation from './rules/server-repeated-evaluation.js'
 import switchRestrictions from './rules/switch-restrictions.js'
 import ternaryBranchType from './rules/ternary-branch-type.js'
 import timerCallbackSignature from './rules/timer-callback-signature.js'
@@ -88,6 +89,7 @@ export const rules = {
   'require-bigint-index-wrapper': requireBigintIndexWrapper,
   'require-boolean-condition': requireBooleanCondition,
   'server-literal-arguments': serverLiteralArguments,
+  'server-repeated-evaluation': serverRepeatedEvaluation,
   'switch-restrictions': switchRestrictions,
   'ternary-branch-type': ternaryBranchType,
   'timer-callback-signature': timerCallbackSignature,
@@ -143,6 +145,7 @@ export const configs = {
       'gsts/client-graph-scoped-f': 'error',
       'gsts/client-literal-arguments': 'error',
       'gsts/server-literal-arguments': 'error',
+      'gsts/server-repeated-evaluation': 'warn',
       'gsts/client-local-variable-support': 'error',
       'gsts/client-repeated-evaluation': 'warn',
       'gsts/client-scoped-globals': 'error',

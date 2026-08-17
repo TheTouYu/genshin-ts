@@ -23,6 +23,7 @@ import listMethodTypeConstraints from '../../src/eslint/rules/list-method-type-c
 import noGraphFunctionRecursion from '../../src/eslint/rules/no-graph-function-recursion.js'
 import noJson from '../../src/eslint/rules/no-json.js'
 import serverLiteralArguments from '../../src/eslint/rules/server-literal-arguments.js'
+import serverRepeatedEvaluation from '../../src/eslint/rules/server-repeated-evaluation.js'
 import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
 
 const filename = path.join(process.cwd(), 'tests/eslint/node-graph-rules.test.ts')
@@ -43,6 +44,7 @@ const importG = `import { g } from 'genshin-ts/runtime/core'`
 assert.equal(configs.recommended.rules['gsts/client-local-variable-support'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-literal-arguments'], 'error')
 assert.equal(configs.recommended.rules['gsts/server-literal-arguments'], 'error')
+assert.equal(configs.recommended.rules['gsts/server-repeated-evaluation'], 'warn')
 assert.equal(configs.recommended.rules['gsts/client-repeated-evaluation'], 'warn')
 
 const renamedSharedRuleIds = [
@@ -457,6 +459,116 @@ g.server({ lang: 'zh' }).on('实体创建时', (_evt, f) => {
       errors: [
         {
           message: /服务端方法 setPlayerSCursorClickSelectableTargets 的第 2 个参数仅支持字面量/
+        }
+      ]
+    }
+  ]
+})
+
+ruleTester.run('server-repeated-evaluation', serverRepeatedEvaluation, {
+  valid: [
+    // 只消费一次：set 后重新 get 的绕行模式（缺陷 6 修复形态）不告警
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const count = f.getCustomVariable(f.getSelfEntity(), new TextEncoder().encode('winCount'))
+  const next = f.addition(count, 1n)
+  f.setCustomVariable(f.getSelfEntity(), 'winCount', next, false)
+  const after = f.getCustomVariable(f.getSelfEntity(), 'winCount')
+  f.equal(after, 5n)
+})`
+    },
+    // 非 f.* 消费不计（普通 JS 函数）
+    {
+      filename,
+      code: `${importG}
+function take(value: unknown): unknown {
+  return value
+}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const next = f.addition(1n, 2n)
+  take(next)
+  take(next)
+})`
+    },
+    // 非纯数据 init（查询/副作用方法不在白名单）
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const target = f.getSelfEntity()
+  f.setCustomVariable(target, 'a', 1n, false)
+  f.setCustomVariable(target, 'b', 2n, false)
+})`
+    },
+    // 客户端图不告警
+    {
+      filename,
+      code: `import { g } from 'genshin-ts/runtime/core'
+g.client({ id: 1, name: 'c' }).on('whenEntityIsCreated', (_evt, f) => {
+  const next = f.addition(1n, 2n)
+  f.equal(next, 3n)
+  f.greaterThan(next, 1n)
+})`
+    },
+    // 字面量 init 不是表达式复用
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const next = 5n
+  f.equal(next, 5n)
+  f.greaterThan(next, 1n)
+})`
+    }
+  ],
+  invalid: [
+    // 缺陷 6 原型：next 同时被 set 与 equal 消费 → 二次求值陷阱
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const count = f.getCustomVariable(f.getSelfEntity(), 'winCount')
+  const next = f.addition(count, 1n)
+  f.setCustomVariable(f.getSelfEntity(), 'winCount', next, false)
+  f.equal(next, 5n)
+})`,
+      errors: [
+        {
+          message: /服务端 const “next” 被 2 个 f\.\* 调用消费/
+        }
+      ]
+    },
+    // 纯读型双消费同样告警（保守：消费之间可能发生其他写入）
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const count = f.getCustomVariable(f.getSelfEntity(), 'winCount')
+  const next = f.addition(count, 1n)
+  f.equal(next, 5n)
+  f.greaterThan(next, 2n)
+})`,
+      errors: [
+        {
+          message: /服务端 const “next” 被 2 个 f\.\* 调用消费/
+        }
+      ]
+    },
+    // 嵌套消费（第二处在内层调用参数中）也计数
+    {
+      filename,
+      code: `${importG}
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const count = f.getCustomVariable(f.getSelfEntity(), 'winCount')
+  const next = f.addition(count, 1n)
+  f.equal(f.addition(next, 1n), 6n)
+  f.greaterThan(next, 2n)
+})`,
+      errors: [
+        {
+          message: /服务端 const “next” 被 2 个 f\.\* 调用消费/
         }
       ]
     }

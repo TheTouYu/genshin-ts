@@ -181,6 +181,188 @@ assert.throws(
   /expectedName.*does not match/i
 )
 
+// --- 2026-08-16: nameplate(27)/textBubble(28) 默认槽（update 路径锁定）---
+// 证据：nameplate-component exp2（27，7B 空配置）/ component-investigation exp7（28，97B 默认 501 配置）。
+writeFileSync(gilPath, sourceBytes)
+const nameplate = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'nameplate', preset: 'default' }]
+  }
+})
+const nameplateDefinition = components(record(nameplate.bytes, 4, FIXTURE_IDS.definition), 8, 27)
+const nameplateInstance = components(record(nameplate.bytes, 8, FIXTURE_IDS.instance), 7, 27)
+assert.equal(nameplateDefinition.length, 1)
+assert.equal(nameplateInstance.length, 1)
+assert.equal(Buffer.from(nameplateDefinition[0]).equals(Buffer.from(nameplateInstance[0])), true)
+assert.equal(Buffer.from(nameplateDefinition[0]).toString('hex'), '081b1001b20200')
+
+// 铭牌（code 27）带显示内容（update 路径锁定）：逐字节对照 nameplate-component exp4。
+writeFileSync(gilPath, sourceBytes)
+const nameplateContent = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'nameplate', preset: 'default', content: '这是显示内容' }]
+  }
+})
+const nameplateContentDefinition = components(
+  record(nameplateContent.bytes, 4, FIXTURE_IDS.definition),
+  8,
+  27
+)
+const nameplateContentInstance = components(
+  record(nameplateContent.bytes, 8, FIXTURE_IDS.instance),
+  7,
+  27
+)
+assert.equal(nameplateContentDefinition.length, 1)
+assert.equal(nameplateContentInstance.length, 1)
+assert.equal(
+  Buffer.from(nameplateContentDefinition[0]).equals(Buffer.from(nameplateContentInstance[0])),
+  true
+)
+assert.equal(
+  Buffer.from(nameplateContentDefinition[0]).toString('hex'),
+  '081b1001b202a902aa1fa502a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f0000a040' +
+    'd21f00dd1f0000a041e51f0000803f8220d901b21f30b01f12ba1f0cad1f0000c842b51f0000f041c21f' +
+    '15aa1f12e8bf99e698afe698bee7a4bae58685e5aeb9ca1f00f01f0cba1f16b01ff955c21f0cad1f0000' +
+    '0042b51f00000042ca1f00c21f48c21f0ca81fffffffffffffffffff01ca1f0ca81ffffffffffffffff' +
+    'fff01d21f0ca81fffffffffffffffffff01e01f01ea1f0cad1f0000c842b51f0000a040f21f00fd1f00' +
+    '00803fca1f06a81f01d21f00d21f1bb21f00ba1f0cad1f0000c842b51f0000a040c01f01e51f0000c842' +
+    'da1f15aa1f00b21f0cad1f0000c842b51f0000a040c01f02d025019a2000d22510e993ade7898c20e985' +
+    '8de7bdae494431e22500e8250d'
+)
+
+// 铭牌（code 27）显示范围 range=10（update 路径锁定）：逐字节对照 2026-08-17 地图 1073741893 编辑器样本。
+writeFileSync(gilPath, sourceBytes)
+const nameplateRange = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [
+      { type: 'nameplate', preset: 'default', content: '你好，这是测试铭牌', range: 10 }
+    ]
+  }
+})
+const nameplateRangeDefinition = components(
+  record(nameplateRange.bytes, 4, FIXTURE_IDS.definition),
+  8,
+  27
+)
+const nameplateRangeInstance = components(
+  record(nameplateRange.bytes, 8, FIXTURE_IDS.instance),
+  7,
+  27
+)
+assert.equal(nameplateRangeDefinition.length, 1)
+assert.equal(nameplateRangeInstance.length, 1)
+assert.equal(
+  Buffer.from(nameplateRangeDefinition[0]).equals(Buffer.from(nameplateRangeInstance[0])),
+  true
+)
+assert.equal(
+  Buffer.from(nameplateRangeDefinition[0]).toString('hex'),
+  '081b1001b202b202aa1fae02a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f00002041' +
+    'd21f00dd1f0000a041e51f0000803f8220e201b21f39b01f12ba1f0cad1f0000c842b51f0000f041c21f' +
+    '1eaa1f1be4bda0e5a5bdefbc8ce8bf99e698afe6b58be8af95e993ade7898cca1f00f01f0cba1f16b01f' +
+    'f955c21f0cad1f00000042b51f00000042ca1f00c21f48c21f0ca81fffffffffffffffffff01ca1f0ca8' +
+    '1fffffffffffffffffff01d21f0ca81fffffffffffffffffff01e01f01ea1f0cad1f0000c842b51f0000' +
+    'a040f21f00fd1f0000803fca1f06a81f01d21f00d21f1bb21f00ba1f0cad1f0000c842b51f0000a040c0' +
+    '1f01e51f0000c842da1f15aa1f00b21f0cad1f0000c842b51f0000a040c01f02d025019a2000d22510e9' +
+    '93ade7898c20e9858de7bdae494431e22500e8250d'
+)
+
+writeFileSync(gilPath, sourceBytes)
+const textBubble = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'textBubble', preset: 'default' }]
+  }
+})
+const bubbleDefinition = components(record(textBubble.bytes, 4, FIXTURE_IDS.definition), 8, 28)
+const bubbleInstance = components(record(textBubble.bytes, 8, FIXTURE_IDS.instance), 7, 28)
+assert.equal(bubbleDefinition.length, 1)
+assert.equal(bubbleInstance.length, 1)
+assert.equal(Buffer.from(bubbleDefinition[0]).equals(Buffer.from(bubbleInstance[0])), true)
+assert.equal(
+  Buffer.from(bubbleDefinition[0]).toString('hex'),
+  '081c1001ba025aaa1f57a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f0000a041' +
+    'd21f00d81f01ea1f0fb01f12ba1f00c51f0000803fc82501f81f1eca2516e69687e69cace6b094' +
+    'e6b3a120e9858de7bdae494431da2500e8250d'
+)
+
+// --- 2026-08-17: lightSource(38) 默认槽（update 路径锁定）---
+// 证据：地图 1073741892 两次独立编辑器样本，definition f8 / instance f7 双写一致 71B。
+writeFileSync(gilPath, sourceBytes)
+const lightSource = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'lightSource', preset: 'default' }]
+  }
+})
+const lightDefinition = components(record(lightSource.bytes, 4, FIXTURE_IDS.definition), 8, 38)
+const lightInstance = components(record(lightSource.bytes, 8, FIXTURE_IDS.instance), 7, 38)
+assert.equal(lightDefinition.length, 1)
+assert.equal(lightInstance.length, 1)
+assert.equal(Buffer.from(lightDefinition[0]).equals(Buffer.from(lightInstance[0])), true)
+assert.equal(
+  Buffer.from(lightDefinition[0]).toString('hex'),
+  '082610018a03400a3e0801aa1f361207e58589e6ba9031221e15000020411a00220028019a031015' +
+    '000040401d0000404020ffffffff0f320b47495f526f6f744e6f6465b01f01'
+)
+
+// 光源（code 38）参数化：radius/intensity 直接编码 float32（update 路径锁定）。
+// 用编辑器 after-round4 原始内部值（显示 7.86/3.90 对应的滑条存储值）逐字节锁定。
+writeFileSync(gilPath, sourceBytes)
+const lightSourceParams = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [
+      {
+        type: 'lightSource',
+        preset: 'default',
+        radius: 7.855867385864258,
+        intensity: 3.8992347717285156
+      }
+    ]
+  }
+})
+const lightParamsDefinition = components(
+  record(lightSourceParams.bytes, 4, FIXTURE_IDS.definition),
+  8,
+  38
+)
+const lightParamsInstance = components(
+  record(lightSourceParams.bytes, 8, FIXTURE_IDS.instance),
+  7,
+  38
+)
+assert.equal(lightParamsDefinition.length, 1)
+assert.equal(lightParamsInstance.length, 1)
+assert.equal(Buffer.from(lightParamsDefinition[0]).equals(Buffer.from(lightParamsInstance[0])), true)
+assert.equal(
+  Buffer.from(lightParamsDefinition[0]).toString('hex'),
+  '082610018a03400a3e0801aa1f361207e58589e6ba9031221e15000020411a00220028019a031015' +
+    '4463fb401d108d794020ffffffff0f320b47495f526f6f744e6f6465b01f01'
+)
+
 // --- P4-3: removeComponents（组件移除能力）---
 writeFileSync(gilPath, sourceBytes)
 const addForRemoval = applyStaticPrefabUpdate({

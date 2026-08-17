@@ -205,6 +205,161 @@ function basicMotionComponent(): Uint8Array {
   return Buffer.from('080410017203c81f01', 'hex')
 }
 
+// 真实编辑器样本 nameplate-component exp4：默认配置 + 显示内容“这是显示内容”（305B）。
+// 其他参数保持 exp3/exp4 默认：字号 18、显示范围 5、宽度 1000（UI 2000）、高度 30 等。
+const NAMEPLATE_CONTENT_TEMPLATE =
+  '081b1001b202a902aa1fa502a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f0000a040' +
+  'd21f00dd1f0000a041e51f0000803f8220d901b21f30b01f12ba1f0cad1f0000c842b51f0000f041c21f' +
+  '15aa1f12e8bf99e698afe698bee7a4bae58685e5aeb9ca1f00f01f0cba1f16b01ff955c21f0cad1f0000' +
+  '0042b51f00000042ca1f00c21f48c21f0ca81fffffffffffffffffff01ca1f0ca81ffffffffffffffff' +
+  'fff01d21f0ca81fffffffffffffffffff01e01f01ea1f0cad1f0000c842b51f0000a040f21f00fd1f00' +
+  '00803fca1f06a81f01d21f00d21f1bb21f00ba1f0cad1f0000c842b51f0000a040c01f01e51f0000c842' +
+  'da1f15aa1f00b21f0cad1f0000c842b51f0000a040c01f02d025019a2000d22510e993ade7898c20e985' +
+  '8de7bdae494431e22500e8250d'
+
+function replaceNameplateTextContainer(container: Uint8Array, content: string): Uint8Array {
+  const fields = parse(container)
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 501 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: TEXT.encode(content) }
+      }
+      return field
+    })
+  )
+}
+
+function replaceNameplateMainEntry(entry: Uint8Array, content: string): Uint8Array {
+  const fields = parse(entry)
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 504 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: replaceNameplateTextContainer(field.value, content) }
+      }
+      return field
+    })
+  )
+}
+
+function replaceNameplateContentGroup(group: Uint8Array, content: string): Uint8Array {
+  const fields = parse(group)
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 502 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: replaceNameplateMainEntry(field.value, content) }
+      }
+      return field
+    })
+  )
+}
+
+function replaceNameplateConfigEntry(
+  entry: Uint8Array,
+  content: string,
+  range?: number
+): Uint8Array {
+  const fields = parse(entry)
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 512 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: replaceNameplateContentGroup(field.value, content) }
+      }
+      if (range !== undefined && field.number === 505 && field.wire === 5) {
+        return { ...field, value: float32(range) }
+      }
+      return field
+    })
+  )
+}
+
+function replaceNameplateConfig(
+  config: Uint8Array,
+  content: string,
+  range?: number
+): Uint8Array {
+  const fields = parse(config)
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 501 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: replaceNameplateConfigEntry(field.value, content, range) }
+      }
+      return field
+    })
+  )
+}
+
+function nameplateComponent(content?: string, range?: number): Uint8Array {
+  // 真实编辑器样本 nameplate-component exp2：添加默认铭牌组件 = definition f8 /
+  // instance f7 各追加 7B 空配置槽（f1=27、f2=1、f38=空）。
+  if (content === undefined) return Buffer.from('081b1001b20200', 'hex')
+  const fields = parse(Buffer.from(NAMEPLATE_CONTENT_TEMPLATE, 'hex'))
+  if (!fields) throw new Error('[error] invalid nameplate content template')
+  return emit(
+    fields.map((field) => {
+      if (field.number === 38 && field.wire === 2 && field.value instanceof Uint8Array) {
+        return { ...field, value: replaceNameplateConfig(field.value, content, range) }
+      }
+      return field
+    })
+  )
+}
+
+function textBubbleComponent(): Uint8Array {
+  // 真实编辑器样本 component-investigation exp7：添加默认文本气泡组件 =
+  // instance f7 追加 97B 槽（f1=28、f2=1、f39 含一条默认 501 配置
+  // 「文本气泡 配置ID1」：f501=序号1、f502=1、f503=GI_RootNode、f504 空、
+  // f505=f32 20、f506 空、f507=1、f509{字号18}、f511=30、f601 配置名、f603 空、f605=13）。
+  return Buffer.from(
+    '081c1001ba025aaa1f57a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f0000a041' +
+      'd21f00d81f01ea1f0fb01f12ba1f00c51f0000803fc82501f81f1eca2516e69687e69cace6b094' +
+      'e6b3a120e9858de7bdae494431da2500e8250d',
+    'hex'
+  )
+}
+
+function lightSourceComponent(radius = 3, intensity = 3): Uint8Array {
+  // 真实编辑器样本（2026-08-17 地图 1073741892，两次独立添加逐字节一致）：
+  // 添加光源组件 = definition f8 / instance f7 各追加 71B 槽
+  // （f1=38、f2=1、f49 配置 {f1={f1=1, f501={f2='光源1', f4=参数, f6=GI_RootNode}, f502=1}}）。
+  // 参数差分（2026-08-17）：f501.f4.f51 子块 f2=f32 半径（默认 3.0）、f3=f32 强度（默认 3.0）；
+  // 外 f4.f2=f32 10.0 与 f4.f5=1 为固定样本值，暂不暴露。
+  const params = emit([
+    { number: 2, wire: 5, value: float32(radius) },
+    { number: 3, wire: 5, value: float32(intensity) },
+    { number: 4, wire: 0, value: 0xffffffff }
+  ])
+  const config = emit([
+    { number: 2, wire: 2, value: TEXT.encode('光源1') },
+    {
+      number: 4,
+      wire: 2,
+      value: emit([
+        { number: 2, wire: 5, value: float32(10) },
+        { number: 3, wire: 2, value: new Uint8Array() },
+        { number: 4, wire: 2, value: new Uint8Array() },
+        { number: 5, wire: 0, value: 1 },
+        { number: 51, wire: 2, value: params }
+      ])
+    },
+    { number: 6, wire: 2, value: TEXT.encode('GI_RootNode') }
+  ])
+  const entry = emit([
+    { number: 1, wire: 0, value: 1 },
+    { number: 501, wire: 2, value: config },
+    { number: 502, wire: 0, value: 1 }
+  ])
+  return emit([
+    { number: 1, wire: 0, value: 38 },
+    { number: 2, wire: 0, value: 1 },
+    { number: 49, wire: 2, value: emit([{ number: 1, wire: 2, value: entry }]) }
+  ])
+}
+
 type TabBarRegionConfig = {
   regionType: 'box' | 'sphere'
   regionSize: readonly [number, number, number]
@@ -321,6 +476,15 @@ export function componentSnapshot(component: GstsStaticAssemblyComponent): {
   }
   if (component.type === 'basicMotion' && component.preset === 'default') {
     return { typeCode: 4, bytes: basicMotionComponent() }
+  }
+  if (component.type === 'nameplate' && component.preset === 'default') {
+    return { typeCode: 27, bytes: nameplateComponent(component.content, component.range) }
+  }
+  if (component.type === 'textBubble' && component.preset === 'default') {
+    return { typeCode: 28, bytes: textBubbleComponent() }
+  }
+  if (component.type === 'lightSource' && component.preset === 'default') {
+    return { typeCode: 38, bytes: lightSourceComponent(component.radius, component.intensity) }
   }
   if (component.type === 'tabBar') {
     // 内联配置（gsts.config.ts / structure 文件外的组件）与 prefab update 都经此校验：

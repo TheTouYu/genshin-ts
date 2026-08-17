@@ -197,6 +197,37 @@ g.server({ name: 'stage1-captured-timer-handle', id: 1073742195 }).on(
   assert.match(output, /clearInterval\(interval\)/)
 }
 
+/** 2026-08-16：list('prefab_id', [...]).forEach 与 PrefabIdValue[]（联合元素）forEach 都应转换为 listIterationLoop。 */
+function assertPrefabListForEachTransforms() {
+  const literal = transformFixture(`
+import { g } from 'genshin-ts/runtime/core'
+import { listLiteral } from 'genshin-ts/runtime/value'
+g.server({ id: 1073742196 }).on('whenEntityIsCreated', (_evt, f) => {
+  const self = f.getSelfEntity()
+  const ids = list('prefab_id', [1077936129n, 1077936133n])
+  ids.forEach((id: any) => {
+    f.createPrefab(id, f.create3dVector(0, 0, 0), f.create3dVector(0, 0, 0), self, false, 0n, new listLiteral('int'))
+  })
+})
+`)
+  assert.match(literal, /listIterationLoop/)
+  assert.doesNotMatch(literal, /\.forEach/)
+
+  const union = transformFixture(`
+import { g } from 'genshin-ts/runtime/core'
+import { listLiteral, type PrefabIdValue } from 'genshin-ts/runtime/value'
+g.server({ id: 1073742197 }).on('whenEntityIsCreated', (_evt, f) => {
+  const self = f.getSelfEntity()
+  const ids: PrefabIdValue[] = list('prefab_id', [1077936129n, 1077936133n])
+  ids.forEach((id: any) => {
+    f.createPrefab(id, f.create3dVector(0, 0, 0), f.create3dVector(0, 0, 0), self, false, 0n, new listLiteral('int'))
+  })
+})
+`)
+  assert.match(union, /listIterationLoop/)
+  assert.doesNotMatch(union, /\.forEach/)
+}
+
 function assertTimerCompositeOutputContainerPreserved() {
   const timerSource = `${source}
 
@@ -223,4 +254,5 @@ assertStage1Output()
 assertNegativeDiagnostics()
 assertCapturedTimerHandleMetadataPreserved()
 assertTimerCompositeOutputContainerPreserved()
+assertPrefabListForEachTransforms()
 console.log('stage1 expression semantics tests passed')

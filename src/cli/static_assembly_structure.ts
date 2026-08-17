@@ -149,7 +149,11 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
     'regionType',
     'regionSize',
     'regionRadius',
-    'regionCenter'
+    'regionCenter',
+    'radius',
+    'intensity',
+    'content',
+    'range'
   ])
   if (source.type === 'followMotion') {
     if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
@@ -158,6 +162,46 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
   if (source.type === 'basicMotion') {
     if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
     return { type: 'basicMotion', preset: 'default' }
+  }
+  if (source.type === 'nameplate') {
+    if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
+    if (
+      source.content !== undefined &&
+      (typeof source.content !== 'string' || source.content.includes('\u0000'))
+    ) {
+      fail(filePath, `${field}.content`, 'must be a string without NUL characters')
+    }
+    if (source.range !== undefined) {
+      const range = finiteNumber(filePath, `${field}.range`, source.range)
+      if (range <= 0) fail(filePath, `${field}.range`, 'must be a positive number')
+    }
+    return {
+      type: 'nameplate',
+      preset: 'default',
+      ...(source.content === undefined ? {} : { content: source.content as string }),
+      ...(source.range === undefined ? {} : { range: source.range as number })
+    }
+  }
+  if (source.type === 'textBubble') {
+    if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
+    return { type: 'textBubble', preset: 'default' }
+  }
+  if (source.type === 'lightSource') {
+    if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
+    if (source.radius !== undefined) {
+      const radius = finiteNumber(filePath, `${field}.radius`, source.radius)
+      if (radius <= 0) fail(filePath, `${field}.radius`, 'must be a positive number')
+    }
+    if (source.intensity !== undefined) {
+      const intensity = finiteNumber(filePath, `${field}.intensity`, source.intensity)
+      if (intensity < 0) fail(filePath, `${field}.intensity`, 'must be a non-negative number')
+    }
+    return {
+      type: 'lightSource',
+      preset: 'default',
+      ...(source.radius === undefined ? {} : { radius: source.radius as number }),
+      ...(source.intensity === undefined ? {} : { intensity: source.intensity as number })
+    }
   }
   if (source.type === 'tabBar') {
     if (source.preset !== undefined) fail(filePath, `${field}.preset`, 'must be omitted for tabBar')
@@ -184,7 +228,11 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
         : { regionRadius: region.regionRadius, regionCenter: region.regionCenter })
     }
   }
-  fail(filePath, `${field}.type`, 'must be followMotion, basicMotion or tabBar')
+  fail(
+    filePath,
+    `${field}.type`,
+    'must be followMotion, basicMotion, nameplate, textBubble, lightSource or tabBar'
+  )
 }
 
 function item(filePath: string, index: number, value: unknown): GstsStaticAssemblyItem {

@@ -8,6 +8,7 @@ import {
   isOfficialResourceId,
   officialPrefabName
 } from './official_prefabs.js'
+import { removeStaticAssemblyComponents } from './gil_static_assemblies.js'
 import {
   emitWireMessage as emit,
   findWireRecord as findRecord,
@@ -355,7 +356,7 @@ function componentSlots(record: Uint8Array, fieldNumber: number): Uint8Array[] {
     .map((field) => field.value as Uint8Array)
 }
 
-type TabBarRegionGeometry = {
+export type TabBarRegionGeometry = {
   regionType?: 'box' | 'sphere'
   regionSize?: readonly [number, number, number]
   regionRadius?: number
@@ -372,7 +373,7 @@ function quantizeFloat(value: number): number {
  * 盒体 f11.f2 = {X,Y,Z} float32；球体 f1=1 + f12 = { f1=偏移子块, f2=float32 半径 }。
  * 默认盒体 1×1×1 不输出 region 字段（保持旧导出形状）；球体恒输出 regionType。
  */
-function decodeTabBarRegion(
+export function decodeTabBarRegion(
   region: WireField | undefined
 ): TabBarRegionGeometry {
   if (!region) return {}
@@ -416,6 +417,10 @@ function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefi
   if (code === 9) return { type: 'followMotion', preset: 'fullFollow' }
   // 2026-08-13 修正：基础运动器真实类型码为 4（原 18 为模板自带组件误判）
   if (code === 4) return { type: 'basicMotion', preset: 'default' }
+  // 铭牌/文本气泡/光源默认槽（nameplate exp2 / component-investigation exp7 / 2026-08-17 灯阵差分）
+  if (code === 27) return { type: 'nameplate', preset: 'default' }
+  if (code === 28) return { type: 'textBubble', preset: 'default' }
+  if (code === 38) return { type: 'lightSource', preset: 'default' }
   if (code === 17) {
     const config = fields.find((field) => field.number === 27 && field.wire === 2)
     if (!config) return undefined
@@ -853,4 +858,38 @@ const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
     fileType: readUint32BE(params.bytes, 12),
     tailTag: readUint32BE(params.bytes, params.bytes.length - 4)
   })
+}
+
+/** 从场景实体（root 5）记录中按组件类型码移除组件槽；返回新 GIL 与实际移除清单。 */
+export function removeEntityComponents(
+  bytes: Uint8Array,
+  entityId: number,
+  typeCodes: readonly number[]
+): { bytes: Uint8Array; removed: number[] } {
+  const top = parse(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const top5 = top.find((field) => field.number === 5 && field.wire === 2)
+  if (!top5) throw new Error('[error] entity section not found')
+  const section = message(top5)
+  const field = section.find(
+    (item) =>
+      item.number === 1 &&
+      item.wire === 2 &&
+      recordId(item.value as Uint8Array) === entityId
+  )
+  if (!field) throw new Error(`[error] entity not found: ${entityId}`)
+  const record = field.value as Uint8Array
+  const result = removeStaticAssemblyComponents(record, typeCodes, 7)
+  field.value = result.bytes
+  top5.value = emit(section)
+  const rebuilt = emit(top)
+  return {
+    bytes: buildFile(rebuilt, {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    removed: result.removed
+  }
 }

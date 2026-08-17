@@ -9,8 +9,10 @@ import {
   applyEntities,
   entityFromDefinition,
   exportEntities,
-  readEntityAuxIds
+  readEntityAuxIds,
+  removeEntityComponents
 } from '../src/cli/gil_entities.js'
+import { setStaticAssemblyComponents } from '../src/cli/gil_static_assemblies.js'
 import { emitWireMessage as emit, parseWireMessage, wireMessage } from '../src/cli/static_assembly/wire.js'
 import { buildFile } from '../src/injector/binary.js'
 
@@ -495,5 +497,35 @@ assert.equal(
   ).length,
   2
 )
+
+// removeEntityComponents：从场景实体移除指定类型码组件槽。
+// 用带 lightSource(38) 的 definition 生成实体，再移除并回读。
+const lightDefinition = setStaticAssemblyComponents(
+  definition,
+  [{ type: 'lightSource', preset: 'default' }],
+  8
+)
+const lightApplied = applyEntities({
+  bytes: mini,
+  definitions: [lightDefinition],
+  entities: [{ name: '带光源实体', id: 1077936190, definitionId: 1077936182, position: [0, 0, 0] }]
+})
+const lightBefore = exportEntities(lightApplied).find((entity) => entity.id === 1077936190)
+assert.ok(lightBefore)
+assert.deepEqual(
+  lightBefore.components.map((component) => component.type),
+  ['lightSource']
+)
+const lightRemoved = removeEntityComponents(lightApplied, 1077936190, [38])
+assert.deepEqual(lightRemoved.removed, [38])
+const lightAfter = exportEntities(lightRemoved.bytes).find((entity) => entity.id === 1077936190)
+assert.ok(lightAfter)
+assert.deepEqual(lightAfter.components, [])
+// 不存在的类型码静默跳过，返回空移除清单
+const noop = removeEntityComponents(lightApplied, 1077936190, [4])
+assert.deepEqual(noop.removed, [])
+assert.deepEqual(exportEntities(noop.bytes).find((entity) => entity.id === 1077936190)?.components, [
+  { type: 'lightSource', preset: 'default' }
+])
 
 console.log('gil entities tests passed')

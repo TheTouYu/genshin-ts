@@ -17,7 +17,21 @@ const valid = {
   components: [
     { type: 'followMotion', preset: 'fullFollow' },
     { type: 'basicMotion', preset: 'default' },
-    { type: 'tabBar', regionName: '区域1', options: ['U', 'R', 'F'] }
+    {
+      type: 'tabBar',
+      regionName: '区域1',
+      options: ['U', 'R', 'F'],
+      regionType: 'box',
+      regionSize: [1, 1, 1],
+      regionCenter: [0, 0, 0]
+    },
+    {
+      type: 'lightSource',
+      preset: 'default',
+      radius: 7.855867385864258,
+      intensity: 3.8992347717285156
+    },
+    { type: 'nameplate', preset: 'default', content: '这是显示内容', range: 10 }
   ],
   items: [
     {

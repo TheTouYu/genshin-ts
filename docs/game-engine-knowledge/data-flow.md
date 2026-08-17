@@ -96,6 +96,34 @@ connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非
 
 节点数量更多，但局部结构更清晰。两种方式在语义上是否始终等价，需要按节点是否纯查询、是否有状态或副作用分别验证。
 
+### 单节点输出多消费的二次求值陷阱（缺陷 6，2026-08-16 闭合）
+
+> 验证层级：真实 Beyond_Debug_Log 逐帧铁证（日志 2723 rec643：7→8→9 直接 win）+ 代码绕行已游戏核验
+
+**规则**：服务端 DSL 中一个**纯数据表达式**（`f.addition`/`f.multiplication`/`f.equal` 等读型节点）的
+结果被 **≥2 个调用消费**时，引擎在**每个消费点重新求值**该表达式（data 节点连线不是值快照）。
+若表达式输入来自图变量，且两次消费之间发生了对该变量的写入，第二次求值会读到**新值**，
+一次逻辑被重复计算。典型事故形态（读-算-写-判）：
+
+```ts
+const count = f.getCustomVariable(self, new str('winCount')).asType('int')
+const next = f.addition(count, 1)
+f.setCustomVariable(self, new str('winCount'), next, false)  // 写入 winCount
+f.equal(next, WIN_TARGET)  // ⚠️ 引擎重新求值 addition，基于 set 后的新 count → 多计一次
+```
+
+**绕行模式（代码侧，已核验）**：set 之后**重新 get**，比较用独立读取：
+
+```ts
+f.setCustomVariable(self, new str('winCount'), next, false)
+const after = f.getCustomVariable(self, new str('winCount')).asType('int')
+f.doubleBranch(f.equal(after, WIN_TARGET), ...)
+```
+
+**工具链侧（2026-08-16 交付）**：ESLint 规则 `gsts/server-repeated-evaluation`（推荐配置 warn）
+检测服务端作用域内「纯数据表达式 const 被 ≥2 个 f.* 调用消费」，命中即提示先 set 后 get 或保证
+单次消费。注意该规则是保守告警：纯读型双消费（消费之间无写入）实际无害，也会被警告。
+
 ## 与控制流的关系
 
 控制流决定“什么时候执行”；数据流决定“执行时使用什么值”。一个完整逻辑通常同时包含两者：

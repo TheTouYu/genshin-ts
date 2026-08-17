@@ -9,7 +9,12 @@ import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { resyncMap } from './maps.js'
-import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
+import {
+  applyEntities,
+  exportEntities,
+  removeEntityComponents,
+  type EntityImport
+} from './gil_entities.js'
 import { isOfficialResourceId } from './official_prefabs.js'
 import {
   attachAux,
@@ -64,6 +69,7 @@ function usage(exitCode = 1): never {
     '  --detach-aux <aux-id>  detach an aux decoration',
     '  --aux <aux-id>         target an aux decoration instead of the entity for',
     '                         --color/--position/--rotation/--scale',
+    '  --remove-component <typeCode>  remove component slot(s) by type code (repeatable)',
     '',
     'Import entities are created from their component definition record;',
     'sourceDefinitionId optionally selects a donor record without changing',
@@ -128,6 +134,7 @@ function parseArgs(argv: readonly string[]) {
   let auxId: number | undefined
   let attachAuxId: number | undefined
   let detachAuxId: number | undefined
+  const removeComponents: number[] = []
   let index = 0
   if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch' || argv[0] === 'apply-candidate') {
     command = argv[0]
@@ -158,6 +165,8 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--aux') auxId = nonNegativeId(value(argv, index++), '--aux')
     else if (arg === '--attach-aux') attachAuxId = nonNegativeId(value(argv, index++), '--attach-aux')
     else if (arg === '--detach-aux') detachAuxId = nonNegativeId(value(argv, index++), '--detach-aux')
+    else if (arg === '--remove-component')
+      removeComponents.push(nonNegativeId(value(argv, index++), '--remove-component'))
     else if (arg === '--help' || arg === '-h') usage(0)
     else if (command === 'patch' && entityId === undefined) {
       entityId = nonNegativeId(arg, 'entity-id')
@@ -187,11 +196,15 @@ function parseArgs(argv: readonly string[]) {
       color === undefined &&
       position === undefined &&
       rotation === undefined &&
-      scale === undefined
+      scale === undefined &&
+      removeComponents.length === 0
     ) {
       throw new Error(
-        '[error] patch requires at least one of --color/--position/--rotation/--scale/--attach-aux/--detach-aux'
+        '[error] patch requires at least one of --color/--position/--rotation/--scale/--attach-aux/--detach-aux/--remove-component'
       )
+    }
+    if (new Set(removeComponents).size !== removeComponents.length) {
+      throw new Error('[error] --remove-component must not contain duplicate type codes')
     }
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
@@ -213,7 +226,8 @@ function parseArgs(argv: readonly string[]) {
     scale,
     auxId,
     attachAuxId,
-    detachAuxId
+    detachAuxId,
+    removeComponents
   }
 }
 
@@ -538,12 +552,19 @@ async function runPatch(
       })
     }
   }
+  const removedComponents: number[] = []
+  if (args.removeComponents.length) {
+    const removal = removeEntityComponents(bytes, entityId, args.removeComponents)
+    bytes = removal.bytes
+    removedComponents.push(...removal.removed)
+  }
   const changed = exportEntities(bytes).find((entity) => entity.id === entityId)
   const summary: Record<string, unknown> = {
     schemaVersion: 1,
     kind: 'entities-patch',
     sourceSha256: sourceHash,
-    candidateSha256: sha256(bytes)
+    candidateSha256: sha256(bytes),
+    ...(removedComponents.length ? { removedComponents } : {})
   }
   const jsonMode = args.format === 'json'
   const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
@@ -578,10 +599,9 @@ async function runPatch(
       position: changed.position,
       rotation: changed.rotation,
       scale: changed.scale,
-      color:
-        changed.color !== undefined && changed.color.enabled
-          ? `#${(changed.color.rgb & 0xffffff).toString(16).padStart(6, '0')}`
-          : undefined
+      ...(changed.color !== undefined && changed.color.enabled
+        ? { color: `#${(changed.color.rgb & 0xffffff).toString(16).padStart(6, '0')}` }
+        : {})
     }
     log(
       `entity=${changed.id} name=${changed.name} ` +
@@ -591,6 +611,7 @@ async function runPatch(
   }
   if (args.attachAuxId !== undefined) log(`attached aux=${args.attachAuxId} -> entity=${entityId}`)
   if (args.detachAuxId !== undefined) log(`detached aux=${args.detachAuxId} from entity=${entityId}`)
+  if (removedComponents.length) log(`removedComponents=${removedComponents.join(',')}`)
   log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
   if (jsonMode) process.stdout.write(prettyStableJson(summary))
 }
