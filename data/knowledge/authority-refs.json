@@ -439,6 +439,21 @@
       ]
     },
     {
+      "id": "aref_26407ce0a31e94c625fe6eb117",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "节点图 → 节点图编辑指引",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_8A06B437A0516FC1048A2D8FBE"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_26513e52cf65e1da4904804dda",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "health-check usage documentation",
@@ -1656,6 +1671,21 @@
       ]
     },
     {
+      "id": "aref_74970151f9ce4a9fdfc1572ce9",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "节点图 → 资产/特效/预设状态/技能动画",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_86FA2AA93CFE545B5F202BE249"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_75461307537c6e48b0397c2f91",
       "path": "src/compiler/ts_to_gs_transform/expr.ts",
       "locator": "822481a:shouldCaptureIdentifier QualifiedName",
@@ -1743,6 +1773,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_786d95c2b4d1c955a28215d02e",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "节点图 → 基础概念",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_45238935EAE489EE3498B5BDB2"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2572,6 +2617,21 @@
       ]
     },
     {
+      "id": "aref_bc643725d4c70d4d2223dbcd3b",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "节点图 → 一、节点图功能概述/二、节点图的类型/三、节点图的挂载",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_4464D6E48DE5CDAD18CC3411A8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_be0345fbbcc598dc30f6d0fd0c",
       "path": ".agents/skills/verify-injection/references/verified-cases.md",
       "locator": "895e2cb:verify-u1-cross-graph + verify-u2-multi-mount",
@@ -2826,6 +2886,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_d55e85153ebf8393e73500335e",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "节点图 → 高级概念 → 素材库/主镜头",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
+      "claim_ids": [
+        "clm_1851CEA2D0AE8097E7980EC52C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
