@@ -183,6 +183,19 @@
       "boundary": "可复用的项目进化方法论与长期学习机制；不包含单次修复的技术细节",
       "keywords": [],
       "migration_status": "pilot"
+    },
+    {
+      "id": "official-guide",
+      "name": "Official Comprehensive Guide",
+      "path": "knowledge/official-guide",
+      "boundary": "原神千星奇域官方综合指南 documented contract（docs/ui-tutorial 本地镜像）；仅 documented_contract / evidence_scope，非真实 GIL/GIA wire 证据。",
+      "keywords": [
+        "documented contract",
+        "official guide",
+        "官方指南",
+        "综合指南"
+      ],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -971,6 +984,18 @@
         "staticPrefabUpdates,removeComponents,组件槽,写回"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "editor-interface",
+      "node_id": "official-guide",
+      "title": "编辑器界面（官方综合指南）",
+      "path": "knowledge/official-guide/editor-interface.md",
+      "summary": "官方综合指南界面介绍：编辑器功能界面与操作",
+      "keywords": [
+        "editor interface",
+        "编辑器界面"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1755,6 +1780,61 @@
       ]
     },
     "clm_5C945628C48F2A500E711643ED": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D9A795BC2864E190E210385666": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_498CF5A4451F5583A004462ABF": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_6F9C93AF8EE9E29B63075C8BCE": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_34D15CC43D6044B9D9BF0CC48D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4F11A23B54B54E8A82407A67FB": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3D4BE777152FC7152EC4E9524C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_005D5ACEBFA3397857B59D90D5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_B6B837B23E30B52E6EC6366EE0": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_78597DBB8042C08D6EB5517D58": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_31480DF25846127581CA0794EA": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9122A53628DC3CD9C38182ADAF": {
       "fact_classes": [
         "documented_contract"
       ]

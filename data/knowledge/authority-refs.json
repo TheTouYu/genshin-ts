@@ -259,6 +259,21 @@
       ]
     },
     {
+      "id": "aref_19b9d587e394e8c228bba92d8d",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "撤销与还原",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_31480DF25846127581CA0794EA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_1be1e977b27fb024b1deedddcc",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
       "locator": "v19 战役灯柱实体消失（'变更消失'教训源头）",
@@ -334,6 +349,21 @@
       ]
     },
     {
+      "id": "aref_24a4adc72cb752bfa821a9809c",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "战斗预设",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_3D4BE777152FC7152EC4E9524C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_24db2081745097c01e6e405668",
       "path": "docs/game-engine-knowledge/motion-devices.md",
       "locator": "第 5 节 层成员动态",
@@ -346,6 +376,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_24deec6e578f263fd139d5d2b3",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "编辑工具",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_9122A53628DC3CD9C38182ADAF"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -586,6 +631,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_354d186a63f62fa10efba0672f",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "奇域资产中心",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_9122A53628DC3CD9C38182ADAF"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1024,6 +1084,21 @@
       ]
     },
     {
+      "id": "aref_512e67accc5e283a7b92b47b4d",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "界面介绍",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_D9A795BC2864E190E210385666"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_521f67e94412520a1400276e8a",
       "path": ".agents/skills/verify-injection/references/verified-cases.md",
       "locator": "ef6189b:verify-u4b-model-display",
@@ -1116,6 +1191,21 @@
       ]
     },
     {
+      "id": "aref_5c0612d09b4c3ba9fe392e3edb",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "地形编辑",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_6F9C93AF8EE9E29B63075C8BCE"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_5c9201eadade5402369c697240",
       "path": "docs/composite-ir/04-validation-signal.md",
       "locator": "section 13 listen-node (onSignal) instance encoding v7-v10",
@@ -1176,6 +1266,21 @@
       ]
     },
     {
+      "id": "aref_5fa4e22cbf715f1e628e572ec6",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "关卡设置",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_005D5ACEBFA3397857B59D90D5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_60986dfe4acca395735bbfa5c1",
       "path": "docs/game-engine-knowledge/camera-system.md",
       "locator": "按玩家切换镜头与镜头切换入口章节（用户说明）",
@@ -1233,6 +1338,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_62853c8a40ef12625bdad65bf4",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "实体摆放",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_34D15CC43D6044B9D9BF0CC48D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1638,6 +1758,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_7f39a87a8ce428c323b61549af",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "千星沙箱",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_78597DBB8042C08D6EB5517D58"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2062,6 +2197,21 @@
       ]
     },
     {
+      "id": "aref_b29e275193fce199861b1fc5b3",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "试玩",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_B6B837B23E30B52E6EC6366EE0"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b2a698cb245c3e80edeb9754e4",
       "path": "docs/game-engine-knowledge/motion-devices.md",
       "locator": "第 3 节 轴语义",
@@ -2274,6 +2424,21 @@
       ]
     },
     {
+      "id": "aref_c5cf6bb42e5f4258b2244ec38f",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "资产导入导出",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_31480DF25846127581CA0794EA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_c805d76e081166c690825f88ba",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "装饰物引用元件与元件层 transform > v1→v2→v3 相邻链修正（2026-08-08）",
@@ -2301,6 +2466,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_cc232d3f222d65427c47dc1ffc",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "整体界面",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_498CF5A4451F5583A004462ABF"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2709,6 +2889,21 @@
       ]
     },
     {
+      "id": "aref_f12f1165701942d7689e626bc7",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "多人试玩",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_B6B837B23E30B52E6EC6366EE0"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_f1fdc813b52a5982d327b6aa4e",
       "path": "docs/ui-tutorial/official-ui-tutorial.md",
       "locator": "界面布局（官方章节，完整）",
@@ -2826,6 +3021,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_ff5f035e19c86e59d705a062f1",
+      "path": "docs/ui-tutorial/official-guide-editor-interface.md",
+      "locator": "元件库",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c7591702da3ee548beae6791c91b0b1460dee2b5b34b0845185912dfe4fb5bf6",
+      "claim_ids": [
+        "clm_4F11A23B54B54E8A82407A67FB"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
