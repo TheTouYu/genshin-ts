@@ -1074,6 +1074,21 @@
         "运算节点"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "nodes-client",
+      "node_id": "official-guide",
+      "title": "节点介绍·客户端节点（官方综合指南）",
+      "path": "knowledge/official-guide/nodes-client.md",
+      "summary": "客户端节点：角色技能/造物技能/造物状态/造物状态决策/角色操控技能/过滤器 六类节点图",
+      "keywords": [
+        "客户端节点",
+        "角色技能节点图",
+        "过滤器",
+        "造物技能节点图",
+        "造物状态节点图"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2098,6 +2113,41 @@
       ]
     },
     "clm_DDCC2D646E370944E0A4EFE789": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_890CD95EED614A385812382080": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E8BA869282852B169D795F99E6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F05D397F1637EAA60306835D82": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D379A5D40CB6DF351E14E2BFEC": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_A3B49C937AE483418D6A12105F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_280C86B7820A275323892AD8D6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1605284BD5B5CFEBAC28521FED": {
       "fact_classes": [
         "documented_contract"
       ]

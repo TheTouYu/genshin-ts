@@ -17,6 +17,21 @@
       ]
     },
     {
+      "id": "aref_028de4ad04d17020f7979899ca",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "角色操控技能节点图 → 查询/运算/执行/流程控制/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_280C86B7820A275323892AD8D6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_038734edefe92414518efe8f2a",
       "path": "tests/composite/test-composite-build-input-types.ts",
       "locator": "type assertions for entity, vec3, int build inputs",
@@ -559,6 +574,21 @@
       ]
     },
     {
+      "id": "aref_28e57bbd8258a7455374013f6b",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "角色技能节点图 → 查询/运算/执行/流程控制/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_E8BA869282852B169D795F99E6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2925708d9831d56c7390ea827d",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "rule details referenced by the guide",
@@ -616,6 +646,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2e31374c13987cd7c2440cabbb",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "过滤器节点图 → 查询/运算/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_1605284BD5B5CFEBAC28521FED"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2181,6 +2226,21 @@
       ]
     },
     {
+      "id": "aref_93924cdf4171dcaf0983734382",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "造物技能节点图 → 查询/运算/执行/流程控制/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_F05D397F1637EAA60306835D82"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_9485d97663f05c70ef153c3b16",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "信号定义原位修改（assets:signals update，2026-08-01 真实地图写回证据）",
@@ -2358,6 +2418,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_9fa78b846e3b955de601d074ee",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "客户端节点（目录页）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_890CD95EED614A385812382080"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2581,6 +2656,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_486C2FC803E1A7F84B283014CC"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b5c9f2092371b8ed916503250a",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "造物状态节点图 → 查询/运算/执行/流程控制/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_D379A5D40CB6DF351E14E2BFEC"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3213,6 +3303,21 @@
       "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
       "claim_ids": [
         "clm_72FF6BBAB8864FB6E73DCADA2D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_e6b74b62bfd3571782ac433576",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "造物状态决策节点图 → 查询/运算/执行/流程控制/其它",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_A3B49C937AE483418D6A12105F"
       ],
       "supports_fact_classes": [
         "documented_contract"
