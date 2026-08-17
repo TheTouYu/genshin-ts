@@ -37,5 +37,12 @@
     "gsts.config.ts",
     "gsts.test.config.ts"
   ],
-  "exclude": ["tests/generated", "tests/enum_cases", "tests/composite", "src/runtime/server_globals.d.ts"]
+  "exclude": [
+    "tests/generated",
+    "tests/enum_cases",
+    "tests/composite",
+    "src/runtime/server_globals.d.ts",
+    "examples/**/*.fragment.ts",
+    "examples/rubik-2x2"
+  ]
 }

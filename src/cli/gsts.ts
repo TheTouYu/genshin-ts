@@ -32,6 +32,7 @@ import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { runAssetsCustomVariables } from './assets_custom_variables.js'
 import { runAssetsEntities } from './assets_entities.js'
+import { runAssetsUi } from './assets_ui.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
@@ -1763,6 +1764,26 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsEntities(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:ui')
+    .description('list, clone (create) or update screen UI controls (root 9)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:ui')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsUi(args, projectConfig)
     })
 
   program
