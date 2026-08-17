@@ -28,6 +28,7 @@ API 端点：https://ugc.070077.xyz/（http 会 301 到 https；助手脚本已�
 
 【兜底】脚本不可用时手工 curl：POST https://ugc.070077.xyz/api/v1/skills/miliastra-knowledge/tools/<tool>
 （Content-Type: application/json；curl 必须加 -L）。响应包裹 {"success":true,"data":{"result":...},"error":null}，取 data.result。
+脚本在**大响应**下可能报 `Argument list too long`（`node -e` 把整段响应当 argv 传参），这是脚本传参限制不是 API 错误；此时改用「直接 curl + Python 解析」兜底，见 references/tools.md「已知坑」第 6 条。
 
 ## 什么时候用
 
@@ -63,7 +64,7 @@ rag_search(["嘲讽和仇恨系统配置", "怪物追击玩家行为"]) → get_
 ## 错误处理（按序执行，不要跳过）
 
 1. 脚本输出**「无匹配结果」** → 换更短/更通用的关键词重试一次；仍无结果 → 走**本地回退**（下节），**不要反复重试远程 API**
-2. get_document 返回 status="too_many" → 用更精确的关键词重查
+2. get_document 返回 status="too_many" → 先用 list_documents 找精确标题；若已知官方文件 ID（文件名形如 `mhnapxrumtzy_界面控件.md` 的前缀），**直接传文件 ID 前缀**可精确命中唯一一篇（2026-08-17 实测，见 references/tools.md「已知坑」第 5 条）
 3. get_document 返回 status="not_found" → 先 list_documents 找候选标题，再重查
 4. rag_search 结果为空或不相关 → 换领域术语重写 query（如把"怪物追我"改为"仇恨 嘲讽 追击"）
 5. 脚本报网络错误 → 重试一次；仍失败 → 明确告知用户知识库不可用
@@ -79,6 +80,18 @@ rag_search(["嘲讽和仇恨系统配置", "怪物追击玩家行为"]) → get_
 
 引擎节点语义的权威来源是 docs/game-engine-knowledge/ 与 miliastra-knowledge/references/（节点语义表），远程 KB 查不到时先看这两处。
 调用远程 API 前先 curl -sI https://ugc.070077.xyz/ 探活。
+
+## 官方教程文档集（本地参考，2026-08-17 起）
+
+`docs/ui-tutorial/` 已收录官方综合指南 207 页 + FAQ 12 篇的全文整理：
+
+- `official-ui-tutorial.md`：UI/界面控件主文档 + 综合指南总览；
+- `official-guide-editor-interface.md` / `official-guide-concepts.md`：界面介绍、概念介绍；
+- `official-guide-nodes-server.md` / `official-guide-nodes-client.md`：节点介绍全文；
+- `official-guide-auxiliary-appendix.md`：辅助功能 + 附录；
+- `official-guide-faq.md`：官方 FAQ。
+
+做 UI/节点规则验证时，可先查这套本地文档（含证据层级标记），再决定是否需要回远程 KB 取原文；远程查不到时优先走本地回退。
 
 ## 输出规范
 

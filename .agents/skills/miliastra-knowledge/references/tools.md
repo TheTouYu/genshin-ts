@@ -244,3 +244,21 @@
    不要反复重试远程 API，走 SKILL.md「本地回退」节（项目本地打包数据 + docs/game-engine-knowledge/）
 3. **宽泛词会 too_many**：get_document 用"节点"这类词会命中 >5 篇只返回标题；先 list_documents 找精确标题
 4. **get_node_info 注意 side 字段**：服务端节点和客户端节点是两套，别混用
+5. **too_many 的精确兜底：用官方文件 ID 查询（2026-08-17 实测）**：
+   官方文档文件名形如 `mhnapxrumtzy_界面控件.md`，其中 `mhnapxrumtzy` 是官方页 ID。
+   `get_document` 对 title 和文件名都做子串/子序列匹配，因此**直接传文件 ID 前缀**可精确命中唯一一篇，
+   绕过“宽泛词 too_many”。例：`bash …/query.sh get_document mhnapxrumtzy mhozt0r74ng6`
+   比 `get_document 界面控件 界面布局` 更稳（后者“界面控件”会命中 17 篇）。
+6. **query.sh 大响应会 `Argument list too long`（2026-08-17 实测）**：
+   `query.sh` 最后用 `node -e '…' "$RAW"` 把整个响应作为 argv 传参；单批返回很大（如“执行节点”“查询节点”全文，几十~上百 KB）时会报
+   `/usr/bin/node: Argument list too long`（脚本第 58 行）。这不是 API 错误，是脚本传参方式的限制。
+   **兜底路径**：绕过脚本，直接 curl + Python 解析（不把 RAW 当 argv 传）：
+   ```bash
+   curl -sS -m 90 -L -X POST https://ugc.070077.xyz/api/v1/skills/miliastra-knowledge/tools/get_document \
+     -H 'Content-Type: application/json' -d '{"titles":["mhw66orrrfkm"]}'
+   # 然后用 Python json.load 解析 stdout，取 data.result[].documents[].content
+   ```
+   这是脚本兜底，不改变 API 契约，也不绕过知识库约束（仍只读查询）。
+7. **官方教程文档集（2026-08-17 起）**：
+   `docs/ui-tutorial/` 已收录官方综合指南 207 页 + FAQ 12 篇的全文整理（`official-ui-tutorial.md` 为 UI 主文档，
+   `official-guide-*.md` 为其余章节）。做 UI/节点规则验证时可先查这套本地文档，再决定是否回远程；证据层级见各文件头。
