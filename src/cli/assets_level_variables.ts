@@ -6,24 +6,30 @@ import { pathToFileURL } from 'node:url'
 import type { GstsConfig } from '../compiler/gsts_config.js'
 import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget } from './gil_paths.js'
-import { createLevelVariable, listLevelVariables } from './gil_level_variables.js'
+import {
+  createLevelVariable,
+  listLevelVariables,
+  updateLevelVariable
+} from './gil_level_variables.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'list' | 'create'
+type Command = 'list' | 'create' | 'update'
 type Format = 'text' | 'json'
 
 function usage(exitCode = 1): never {
   const output = [
     'List or create level variables (关卡变量, root5 level entity f7[11].11).',
     '',
-    'Usage: gsts assets:level-variables [list|create] [options]',
+    'Usage: gsts assets:level-variables [list|create|update] [options]',
     '',
     '  list: gsts assets:level-variables list [--gil <file>] [--format json]',
     '  create: gsts assets:level-variables create --name <name> --type bool|int [--value <0|1|number|true|false>]',
+    '  update: gsts assets:level-variables update --name <current> [--value <v>] [--new-name <n>]',
     '',
     'Options:',
     '  --gil <file>            explicit GIL source',
-    '  --name <name>           variable name',
+    '  --name <name>           variable name (current for update)',
+    '  --new-name <name>       rename variable (update only)',
     '  --type <bool|int>       variable type',
     '  --value <v>             default value',
     '  --output <file>         create output without overwriting',
@@ -50,8 +56,9 @@ function parseArgs(argv: readonly string[]) {
   let name: string | undefined
   let type: 'bool' | 'int' | undefined
   let rawValue: string | undefined
+  let newName: string | undefined
   let index = 0
-  if (argv[0] === 'list' || argv[0] === 'create') {
+  if (argv[0] === 'list' || argv[0] === 'create' || argv[0] === 'update') {
     command = argv[0]
     index++
   }
@@ -65,6 +72,7 @@ function parseArgs(argv: readonly string[]) {
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
     } else if (arg === '--name') name = value(argv, index++)
+    else if (arg === '--new-name') newName = value(argv, index++)
     else if (arg === '--type') {
       const raw = value(argv, index++)
       if (raw !== 'bool' && raw !== 'int') throw new Error('[error] --type must be bool or int')
@@ -77,8 +85,13 @@ function parseArgs(argv: readonly string[]) {
     if (!name) throw new Error('[error] create requires --name <name>')
     if (!type) throw new Error('[error] create requires --type <bool|int>')
   }
+  if (command === 'update') {
+    if (!name) throw new Error('[error] update requires --name <current>')
+    if (rawValue === undefined && newName === undefined)
+      throw new Error('[error] update requires --value or --new-name')
+  }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, gilPath, outputPath, write, format, name, type, rawValue }
+  return { command, gilPath, outputPath, write, format, name, type, rawValue, newName }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -144,12 +157,20 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   let value: number | boolean | undefined
   if (args.rawValue !== undefined) {
     if (args.type === 'bool') value = args.rawValue === 'true' || args.rawValue === '1'
+    else if (args.type === 'int') value = Number(args.rawValue)
+    else if (args.rawValue === 'true' || args.rawValue === 'false') value = args.rawValue === 'true'
     else value = Number(args.rawValue)
   }
-  const result = createLevelVariable(sourceBytes, args.name!, args.type!, value)
+  const result =
+    args.command === 'update'
+      ? updateLevelVariable(sourceBytes, args.name!, {
+          ...(value !== undefined ? { value } : {}),
+          ...(args.newName !== undefined ? { newName: args.newName } : {})
+        })
+      : createLevelVariable(sourceBytes, args.name!, args.type!, value)
   const summary: Record<string, unknown> = {
     schemaVersion: 1,
-    kind: 'level-variables-create',
+    kind: `level-variables-${args.command}`,
     sourceSha256: sourceHash,
     name: result.name
   }

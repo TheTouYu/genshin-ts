@@ -159,6 +159,112 @@ export function createLevelVariable(
   }
 }
 
+export function updateLevelVariable(
+  bytes: Uint8Array,
+  name: string,
+  opts: { value?: number | boolean; newName?: string }
+): { bytes: Uint8Array; name: string } {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root5 = top.find((f) => f.number === 5 && f.wire === 2)
+  if (!root5) throw new Error('[error] root 5 not found')
+  const section = parseMessageFields(root5.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 5 section')
+  const entityIdx = section.findIndex((f) => {
+    if (f.number !== 1 || f.wire !== 2) return false
+    const rec = f.value as Uint8Array
+    return (
+      firstVarint(parseMessageFields(rec), 1) === LEVEL_ENTITY_ID ||
+      firstVarint(parseMessageFields(rec), 8) === 10003004
+    )
+  })
+  if (entityIdx < 0) throw new Error('[error] level entity not found')
+  const entity = section[entityIdx]
+  const entityFields = parseMessageFields(entity.value as Uint8Array)
+  if (!entityFields) throw new Error('[error] invalid level entity')
+  const f7Idx = entityFields.findIndex((f) => {
+    if (f.number !== 7 || f.wire !== 2) return false
+    const comp = parseMessageFields(f.value as Uint8Array)
+    return comp?.some((x) => x.number === 11 && x.wire === 2)
+  })
+  if (f7Idx < 0) throw new Error('[error] level variable component not found')
+  const f7 = entityFields[f7Idx]
+  const comp = parseMessageFields(f7.value as Uint8Array)
+  if (!comp) throw new Error('[error] invalid level variable component')
+  const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
+  const varsMsg = f11 ? parseMessageFields(f11.value as Uint8Array) ?? [] : []
+  const entryIdx = varsMsg.findIndex((x) => {
+    if (x.number !== 1 || x.wire !== 2) return false
+    const em = parseMessageFields(x.value as Uint8Array)
+    const en = em ? firstBytes(em, 2) : undefined
+    return en ? textOf(en) === name : false
+  })
+  if (entryIdx < 0) throw new Error(`[error] level variable not found: ${name}`)
+  const entryField = varsMsg[entryIdx]
+  const em = parseMessageFields(entryField.value as Uint8Array)
+  if (!em) throw new Error('[error] invalid level variable entry')
+  const type = firstVarint(em, 3) === 3 ? 'int' : 'bool'
+  let newEntry = em
+  if (opts.value !== undefined) {
+    const code = type === 'int' ? 3 : 4
+    const defaultValue = type === 'int' ? Number(opts.value) : Boolean(opts.value)
+    const defaultBranch =
+      type === 'int'
+        ? {
+            number: 13,
+            wire: 2,
+            value:
+              defaultValue !== 0
+                ? emitWireMessage([{ number: 1, wire: 0, value: Number(defaultValue) }])
+                : EMPTY
+          }
+        : {
+            number: 14,
+            wire: 2,
+            value: defaultValue ? emitWireMessage([{ number: 1, wire: 0, value: 1 }]) : EMPTY
+          }
+    newEntry = newEntry.map((x) =>
+      x.number === 4 && x.wire === 2
+        ? {
+            ...x,
+            value: emitWireMessage([
+              { number: 1, wire: 0, value: code },
+              {
+                number: 2,
+                wire: 2,
+                value: emitWireMessage([
+                  { number: 1, wire: 0, value: code },
+                  { number: 2, wire: 2, value: EMPTY }
+                ])
+              },
+              defaultBranch
+            ])
+          }
+        : x
+    )
+  }
+  if (opts.newName !== undefined) {
+    newEntry = newEntry.map((x) =>
+      x.number === 2 && x.wire === 2 ? { ...x, value: utf8(opts.newName!) } : x
+    )
+  }
+  varsMsg[entryIdx] = { ...entryField, value: emitWireMessage(newEntry) }
+  const newF11 = f11 ? { ...f11, value: emitWireMessage(varsMsg) } : f11!
+  const newComp = emitWireMessage(comp.map((x) => (x === f11 ? newF11 : x)))
+  entityFields[f7Idx] = { ...f7, value: newComp }
+  section[entityIdx] = { ...entity, value: emitWireMessage(entityFields) }
+  root5.value = emitWireMessage(section)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    name: opts.newName ?? name
+  }
+}
+
 const EMPTY = new Uint8Array()
 
 function buildEntry(name: string, type: 'bool' | 'int', value?: number | boolean): Uint8Array {
