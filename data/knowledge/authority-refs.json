@@ -1309,6 +1309,21 @@
       ]
     },
     {
+      "id": "aref_3bec57ce11c044329963835bcf",
+      "path": "docs/architecture/composite/gia-encoding.md",
+      "locator": "Stage 3 root/definition/impl 编码与 accessory fail-fast",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "2564955709a6269d1f49aef0f2b7730f6861bc1b791ce178f30e97cdf65d05fe",
+      "claim_ids": [
+        "clm_90A51FB7B582DB36FF61EE238C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_3bef570c041491916878fb652a",
       "path": "docs/game-engine-knowledge/graph-mounting.md",
       "locator": "挂载在实体上/元件上、特殊实体、多人联机与重复执行章节",
