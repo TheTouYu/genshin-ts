@@ -94,9 +94,6 @@
       ],
       "expected_claim_ids": [],
       "affected_by": {
-        "node_ids": [
-          "composite-boundary"
-        ],
         "topic_ids": [
           "stage3-root-impl-encoding"
         ]
