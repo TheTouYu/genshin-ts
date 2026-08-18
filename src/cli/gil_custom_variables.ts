@@ -11,6 +11,7 @@ import type { LenField } from '../injector/types.js'
 import { readGilPayloadFields } from './gil_extract_utils.js'
 import {
   buildDictF37Wire,
+  buildDictTypeEnvelope,
   decodeDictF37,
   type UiDictPair,
   type UiDictValueType
@@ -392,16 +393,27 @@ function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831)
   const specializedField = typeFieldForCode(typeCode)
   if (!specializedField) throw new Error(`[error] unsupported custom variable type: ${update.type}`)
   const initial = encodeInitialValue(update, entityBase)
-  const typePayload = Buffer.concat([
-    encodeTypedValueEnvelope(typeCode),
-    encodeLengthField(specializedField, initial)
-  ])
+  // dict 的类型包裹（f4.f2 / f6）需带 {f2:marker, f502:keyType, f503:valueType}，与真实编辑器样本一致
+  const envelope =
+    update.type === 'dict'
+      ? buildDictTypeEnvelope(valueOf(update) as readonly UiDictPair[])
+      : encodeTypedValueEnvelope(typeCode)
+  // dict 的 f4 = {f1:27, f2: <envelope>, f37: ...}（envelope 自带 f1:27，故显式补 f4 的 f1+f2）；
+  // 非 dict 的 envelope 已含 f1+f2，直接拼接默认值字段。
+  const typePayload =
+    update.type === 'dict'
+      ? Buffer.concat([
+          encodeVarintField(1, typeCode),
+          encodeLengthField(2, envelope),
+          encodeLengthField(specializedField, initial)
+        ])
+      : Buffer.concat([envelope, encodeLengthField(specializedField, initial)])
   return Buffer.concat([
     encodeLengthField(2, Buffer.from(update.name, 'utf8')),
     encodeVarintField(3, typeCode),
     encodeLengthField(4, typePayload),
     encodeVarintField(5, 1),
-    encodeLengthField(6, encodeTypedValueEnvelope(typeCode))
+    encodeLengthField(6, envelope)
   ])
 }
 

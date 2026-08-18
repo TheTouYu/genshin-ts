@@ -583,9 +583,10 @@ function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Arr
 /** 生成 dict 项的值消息（标量或列表）：f<type+10> = { f1: 值 } 或 重复 {f1: 值} */
 function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
   const code = dictValueTypeCode(t)
+  // 真实样本的值项 env 只有两层 {f1:code, f2:{}}；旧实现多包一层 {f1:code, f2:{f1:code, f2:{}}} 导致编辑器不识别
   const env = emitWireMessage([
     { number: 1, wire: 0, value: code },
-    { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) }
+    { number: 2, wire: 2, value: EMPTY }
   ])
   const valueField = code + 10
   let inner: Uint8Array
@@ -622,6 +623,33 @@ export function scalarTypeCode(t: 'str' | 'int'): number {
 
 export function dictValueTypeCode(t: UiDictValueType): number {
   return t === 'str' ? 6 : t === 'int' ? 3 : t === 'str_list' ? 11 : 8
+}
+
+/** 编辑器真实样本（after-dict*.gil）的 dict 值类型 marker（entry f4.f2/f6、Map25 f2、f35.f501 共用）。
+ *  实测：int(3)→63、str(6)→66、str_list(11)→76；int_list(8) 无样本，按标量+60/列表+65 规律外推为 73。 */
+export function dictMapMarker(valueTypeCode: number): number {
+  if (valueTypeCode === 3) return 63
+  if (valueTypeCode === 6) return 66
+  if (valueTypeCode === 11) return 76
+  return valueTypeCode + 65
+}
+
+/** dict 类型包裹 {f1:27, f2:{f2:marker, f502:keyType, f503:valueType}}（entry f4.f2/f6 用，与真实样本一致）。 */
+export function buildDictTypeEnvelope(pairs: readonly UiDictPair[]): Uint8Array {
+  const keyType = scalarTypeCode(pairs[0]?.keyType ?? 'str')
+  const valueType = dictValueTypeCode(pairs[0]?.valueType ?? 'str')
+  return emitWireMessage([
+    { number: 1, wire: 0, value: 27 },
+    {
+      number: 2,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 2, wire: 0, value: dictMapMarker(valueType) },
+        { number: 502, wire: 0, value: keyType },
+        { number: 503, wire: 0, value: valueType }
+      ])
+    }
+  ])
 }
 
 /** 扫描 root5 场景实体，返回可用于 dict Map25 分配的未占用实体 ID 下限。 */
@@ -725,7 +753,7 @@ function dictWire(
         wire: 2,
         value: emitWireMessage([
           { number: 1, wire: 0, value: 25 },
-          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 503, wire: 0, value: dictValueTypeCode(p.valueType) }]) }
+          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: dictMapMarker(dictValueTypeCode(p.valueType)) }, { number: 502, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 503, wire: 0, value: dictValueTypeCode(p.valueType) }]) }
         ])
       },
       {
@@ -734,7 +762,7 @@ function dictWire(
         value: emitWireMessage([
           { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) }, { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }]) },
           { number: 1, wire: 2, value: dictValueMsg(p.valueType, p.value) },
-          { number: 501, wire: 0, value: 63 },
+          { number: 501, wire: 0, value: dictMapMarker(dictValueTypeCode(p.valueType)) },
           { number: 502, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 28 }, { number: 4, wire: 0, value: entityIds ? entityIds[i] : entityBase + i }]) }
         ])
       }
@@ -759,18 +787,9 @@ function buildTypedValueWire(
   const code = typeCodeOf(type)
   if (type === 'dict') {
     const pairs = (value as UiDictPair[]) ?? []
-    const keyType = scalarTypeCode(pairs[0]?.keyType ?? 'str')
-    const valueType = dictValueTypeCode(pairs[0]?.valueType ?? 'str')
     return emitWireMessage([
       { number: 1, wire: 0, value: 27 },
-      {
-        number: 2,
-        wire: 2,
-        value: emitWireMessage([
-          { number: 1, wire: 0, value: 27 },
-          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: keyType }, { number: 503, wire: 0, value: valueType }]) }
-        ])
-      },
+      { number: 2, wire: 2, value: buildDictTypeEnvelope(pairs) },
       { number: 37, wire: 2, value: dictWire(pairs, entityBase ?? 1073741831, entityIds) }
     ])
   }
@@ -808,7 +827,10 @@ function buildTypedValueWire(
 function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityBase?: number): Uint8Array {
   const code = typeCodeOf(type)
   const defaultWire = buildTypedValueWire(type, value, entityBase)
-  const envelope = emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
+  const envelope =
+    type === 'dict'
+      ? buildDictTypeEnvelope((value as UiDictPair[]) ?? [])
+      : emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
   return emitWireMessage([
     { number: 2, wire: 2, value: utf8(name) },
     { number: 3, wire: 0, value: code },
