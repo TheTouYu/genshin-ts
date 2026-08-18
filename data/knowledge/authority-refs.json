@@ -272,6 +272,21 @@
       ]
     },
     {
+      "id": "aref_0f84284ea7b6999e02c781be7b",
+      "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
+      "locator": "## 33-道具规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "91d47a39815a2f239c6ff3be0c6fd30e16c1f55384ad84a8942cd37dcb2bdc90",
+      "claim_ids": [
+        "clm_21061113B8EE2AC228CECA5518"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_13401bd2be8c8bd953fcb39e05",
       "path": "tests/static_assembly_package_consumer.ts",
       "locator": "whole npm-pack and installed-scaffold consumer regression",
@@ -1576,6 +1591,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_580949e7077918030922c85f7c",
+      "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
+      "locator": "## 34-特效器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "91d47a39815a2f239c6ff3be0c6fd30e16c1f55384ad84a8942cd37dcb2bdc90",
+      "claim_ids": [
+        "clm_25800B5B1559D52C5805A4F8EA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3022,6 +3052,21 @@
       ]
     },
     {
+      "id": "aref_ae35d245607ccf833abeeacf2a",
+      "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
+      "locator": "## 32-本地投射物",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "91d47a39815a2f239c6ff3be0c6fd30e16c1f55384ad84a8942cd37dcb2bdc90",
+      "claim_ids": [
+        "clm_830CC704961EF21F4BE8A8710C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_af8a080722636eec081040eb3c",
       "path": "docs/game-engine-knowledge/composite-usage-guide.md",
       "locator": "the usage guide itself",
@@ -3723,6 +3768,21 @@
       "approved_hash": "4583d320673af74b5c2c7052038c7d948ecc10a37b8dc32683a369ba968917aa",
       "claim_ids": [
         "clm_6052F0D18716A3AF164D48D5B7"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_db6b81646e817dcbb4aa58bb3b",
+      "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
+      "locator": "## 31-技能体系规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "91d47a39815a2f239c6ff3be0c6fd30e16c1f55384ad84a8942cd37dcb2bdc90",
+      "claim_ids": [
+        "clm_C80FDAF54062F0B62D31E8306B"
       ],
       "supports_fact_classes": [
         "documented_contract"
