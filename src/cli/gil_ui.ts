@@ -469,3 +469,74 @@ export function cloneTemplate(
     id: options.id
   }
 }
+
+// 内置 UI 控件模板（真实编辑器样本，2026-08-17/18 提取自 1073741893）
+const BUILTIN_TEXTBOX_TEMPLATE =
+  'a81f9380808004b21f0f5a07a81f9380808004a81f01b01f05c01f8180808004ca1f14620caa1f09e69687e69cace6a186a81f02b01f0fca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209380808004ca1fa7035a056200a81f02a81f01b01f0cba1f96036afd0262f702aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f0000c842b51f00002042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f0000c842b51f00002042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f0000c842b51f00002042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f0000c842b51f00002042d21f0cad1f0000003fb51f0000003fe21f00b01f03c01f01a81f02a81f04b01f0cb81f01c21f0a10011808209380808004ca1f509a0100a81f09b01f19ba1f449a012bb01f14ca1f09aa1f06e4bda0e5a5bdd81f0cf01fffffffff0ff81fffffff078020e6f10f9820b3e6cc9903a81f0ab01f19b81f01c21f0a10011808209380808004'
+const BUILTIN_INTERACTIVE_BUTTON_TEMPLATE =
+  'a81f9480808004b21f0f5a07a81f9480808004a81f01b01f05c01f8180808004ca1f17620faa1f0ce4baa4e4ba92e68c89e992aea81f02b01f0fca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209480808004ca1fa7035a056200a81f02a81f01b01f0cba1f96036afd0262f702aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00008042b51f00008042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f0000c842b51f0000c842d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00008042b51f00008042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00008042b51f00008042d21f0cad1f0000003fb51f0000003fe21f00b01f01c01f01a81f02a81f04b01f0cb81f01c21f0a10011808209480808004ca1f598a0100a81f07b01f16ba1f4d820134a81f01b01f01b81f02c01f914eea1f0ca81fffffffffffffffffff01f81f0182200ca81fffffffffffffffffff0188201b902001a81f07b01f16b81f01c21f0a10011808209480808004'
+const BUILTIN_CUSTOM_BUTTON_TEMPLATE =
+  'a81f9580808004b21f0f5a07a81f9580808004a81f01b01f05c01f8180808004ca1f1a6212aa1f0fe887aae5ae9ae4b989e68c89e992aea81f02b01f0fca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209580808004ca1fd7035a056200a81f02a81f01b01f0cba1fc6036aad0362a703aa1f63b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1f01002f44b51f0000d4c3ca1f0cad1f04008c43b51f00005042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f01b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1f01002f44b51f0000d4c3ca1f0cad1f04008c43b51f00005042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f02b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1f01002f44b51f0000d4c3ca1f0cad1f04008c43b51f00005042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f03b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1f01002f44b51f0000d4c3ca1f0cad1f04008c43b51f00005042d21f0cad1f0000003fb51f0000003fe21f00b01f0cc01f01a81f02a81f04b01f0cb81f01c21f0a10011808209580808004ca1f5ae20200a81f23b01f34ba1f4ee20235a81f1fb01f01b81fc88d03c01f02da1f0ca81fffffffffffffffffff01e21f06b51f0000d0c1ea1f06b51f0000d0c1f01f3cf81f01a81f24b01f34b81f01c21f0a10011808209580808004ca1f31ea0200a81f25b01f36ba1f25ea020ca81f01b01f01c21f00ca1f00a81f26b01f36b81f01c21f0a10011808209580808004ca1f9302da0200a81f21b01f32ba1f8602da02ec01b21f38aa1f12a81f01b01f899506b81fffffffff0fc01f01b21f1ba81f01b01f14ca1f0faa1f0ce69687e69cace58685e5aeb9d01f01b81fe1a712ba1fa801aa1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00b21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00ba1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c01fe6f10fa81f22b01f32b81f01c21f0a10011808209580808004'
+const BUILTIN_LAYOUT_TEMPLATE =
+  'a81f8180808004b21f247a00a81f05b01f07ba1f198a0100a81f08b01f07b81f01c21f0a10011808208180808004b21f0f5a07a81f8180808004a81f01b01f05ba1f55828080800483808080048480808004858080800486808080048780808004888080800489808080048a808080048b808080048c808080048d808080048e808080048f80808004938080800494808080049580808004ca1f17620faa1f0ce9bb98e8aea4e5b883e5b180a81f02b01f0fca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a10011808208180808004'
+
+export type UiCreateType = 'textbox' | 'interactive-button' | 'custom-button'
+
+export type UiCreateOptions = UiCloneOptions & {
+  type: UiCreateType
+}
+
+function builtinTemplate(type: UiCreateType): Uint8Array {
+  if (type === 'textbox') return Buffer.from(BUILTIN_TEXTBOX_TEMPLATE, 'hex')
+  if (type === 'interactive-button') return Buffer.from(BUILTIN_INTERACTIVE_BUTTON_TEMPLATE, 'hex')
+  return Buffer.from(BUILTIN_CUSTOM_BUTTON_TEMPLATE, 'hex')
+}
+
+function bootstrapRoot9WithLayout(top: WireField[], controlId: number): WireField[] {
+  const layoutTemplate = Buffer.from(BUILTIN_LAYOUT_TEMPLATE, 'hex')
+  const layoutFields = parseMessageFields(layoutTemplate)
+  if (!layoutFields) throw new Error('[error] invalid layout template')
+  const f503 = layoutFields.find((f) => f.number === 503 && f.wire === 2)
+  if (!f503) throw new Error('[error] layout template missing 503')
+  f503.value = encodePackedVarints([controlId])
+  const layout = emitWireMessage(layoutFields)
+  const section = emitWireMessage([
+    { number: 501, wire: 2, value: encodePackedVarints([1073741825]) },
+    { number: 502, wire: 2, value: layout }
+  ])
+  top.push({ number: 9, wire: 2, value: section })
+  return top
+}
+
+export function createUiControl(
+  bytes: Uint8Array,
+  options: UiCreateOptions
+): { bytes: Uint8Array; id: number } {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  let record = builtinTemplate(options.type)
+  record = setUiControlId(record, options.id)
+  if (options.name !== undefined) record = setUiName(record, options.name)
+  if (options.content !== undefined) record = setUiContent(record, options.content)
+  if (options.position !== undefined || options.size !== undefined) {
+    record = setUiTransform(record, { position: options.position, size: options.size })
+  }
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) {
+    bootstrapRoot9WithLayout(top, options.id)
+  }
+  const root9Field = top.find((f) => f.number === 9 && f.wire === 2)!
+  const section = parseMessageFields(root9Field.value as Uint8Array)!
+  section.push({ number: 502, wire: 2, value: record })
+  root9Field.value = emitWireMessage(section)
+  appendLayoutControlId(top, options.id)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    id: options.id
+  }
+}

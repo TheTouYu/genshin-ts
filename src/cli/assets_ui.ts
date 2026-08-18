@@ -10,14 +10,16 @@ import { resyncMap } from './maps.js'
 import {
   cloneTemplate,
   cloneUiControl,
+  createUiControl,
   listTemplates,
   listUiControls,
   updateUiControl,
+  type UiCreateType,
   type UiUpdateOptions
 } from './gil_ui.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'list' | 'clone' | 'update' | 'template'
+type Command = 'list' | 'clone' | 'update' | 'template' | 'create'
 type TemplateSub = 'list' | 'clone'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
@@ -26,10 +28,11 @@ function usage(exitCode = 1): never {
   const output = [
     'List, clone (create) or update screen UI controls and templates (root 9).',
     '',
-    'Usage: gsts assets:ui [list|clone|update|template] [options]',
+    'Usage: gsts assets:ui [list|clone|create|update|template] [options]',
     '',
     '  list: gsts assets:ui list [--gil <file>] [--format json]',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
+    '  create: gsts assets:ui create --type textbox|interactive-button|custom-button --id <new-id> [options]',
     '  update: gsts assets:ui update <control-id> [options]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
     '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
@@ -89,8 +92,15 @@ function parseArgs(argv: readonly string[]) {
   let content: string | undefined
   let position: Vector2 | undefined
   let size: Vector2 | undefined
+  let createType: UiCreateType | undefined
   let index = 0
-  if (argv[0] === 'list' || argv[0] === 'clone' || argv[0] === 'update' || argv[0] === 'template') {
+  if (
+    argv[0] === 'list' ||
+    argv[0] === 'clone' ||
+    argv[0] === 'create' ||
+    argv[0] === 'update' ||
+    argv[0] === 'template'
+  ) {
     command = argv[0]
     index++
     if (command === 'template') {
@@ -117,19 +127,28 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--content') content = value(argv, index++)
     else if (arg === '--position') position = parseVector2(value(argv, index++), '--position')
     else if (arg === '--size') size = parseVector2(value(argv, index++), '--size')
-    else if (arg === '--help' || arg === '-h') usage(0)
+    else if (arg === '--type') {
+      const raw = value(argv, index++)
+      if (raw !== 'textbox' && raw !== 'interactive-button' && raw !== 'custom-button') {
+        throw new Error('[error] --type must be textbox, interactive-button or custom-button')
+      }
+      createType = raw
+    } else if (arg === '--help' || arg === '-h') usage(0)
     else if (command !== 'list' && targetId === undefined) {
       targetId = nonNegativeId(arg, 'control-id')
     } else usage()
   }
   if (command === 'clone' && targetId === undefined) throw new Error('[error] clone requires <source-id>')
   if (command === 'clone' && newId === undefined) throw new Error('[error] clone requires --id <new-id>')
+  if (command === 'create' && createType === undefined)
+    throw new Error('[error] create requires --type <textbox|interactive-button|custom-button>')
+  if (command === 'create' && newId === undefined) throw new Error('[error] create requires --id <new-id>')
   if (command === 'update' && targetId === undefined) throw new Error('[error] update requires <control-id>')
   if (command === 'update' && name === undefined && content === undefined && position === undefined && size === undefined) {
     throw new Error('[error] update requires at least one of --name/--content/--position/--size')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, name, content, position, size }
+  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, name, content, position, size, createType }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -247,6 +266,42 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       }
       if (jsonMode) process.stdout.write(prettyStableJson(summary))
     }
+    return
+  }
+
+  if (args.command === 'create') {
+    const result = createUiControl(sourceBytes, {
+      type: args.createType!,
+      id: args.newId!,
+      ...(args.name !== undefined ? { name: args.name } : {}),
+      ...(args.content !== undefined ? { content: args.content } : {}),
+      ...(args.position !== undefined ? { position: args.position } : {}),
+      ...(args.size !== undefined ? { size: args.size } : {})
+    })
+    const summary: Record<string, unknown> = {
+      schemaVersion: 1,
+      kind: 'ui-create',
+      sourceSha256: sourceHash,
+      newId: result.id
+    }
+    const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+    log2(`newId=${result.id}`)
+    summary.candidateSha256 = sha256(result.bytes)
+    log2(`candidateSha256=${sha256(result.bytes)}`)
+    if (args.outputPath) {
+      summary.candidate = writeNew(args.outputPath, result.bytes)
+      log2(`candidate=${summary.candidate}`)
+    } else if (args.write) {
+      const mapId = projectConfig?.inject?.mapId
+      summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+      summary.writePerformed = true
+      log2(`backup=${summary.backup}`)
+      log2('writePerformed=true')
+    } else {
+      summary.previewOnly = true
+      log2('preview only; use --write to apply after backup, or --output for a candidate')
+    }
+    if (jsonMode) process.stdout.write(prettyStableJson(summary))
     return
   }
 
