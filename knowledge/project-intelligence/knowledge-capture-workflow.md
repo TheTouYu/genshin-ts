@@ -4,13 +4,17 @@ Committed-baseline intake, bounded retrieval, serial semantic planning, exact-ha
 
 <!-- CLAIM:START clm_F25959994F5CD6EEE49495F001 -->
 
-### Knowledge capture should use one serial plan and an exact-hash apply gate
+### 知识录入用单一串行 plan 与精确哈希 apply 门（Knowledge capture should use one serial plan and an exact-hash apply gate）
+
+周期性知识录入：从明确识别的已提交变更开始，用项目入口 python tools/pkc.py，做一次有界检索，串行改动一个 knowledge-plan 完成 Claim、Authority Ref 与仅必要的 stale refresh；所有 mutation 后做一次最终 delta check 再 finalize；展示不可变 Bundle ID/content hash 并在 approve/apply 前要求人工确认精确哈希；apply 后 rebuild+validate 投影、检查 tree、跑 git diff --check，并让当前 Memory 与规范工作流和错误笔记同步。
 
 For recurring project knowledge capture, start from explicitly identified committed changes, use the canonical project entry python tools/pkc.py, perform one bounded retrieval, and mutate one knowledge-plan serially for Claims, Authority Refs, and only justified stale refreshes. After all mutations run one final delta check and finalize; display the immutable Bundle ID/content hash and require human confirmation of that exact hash before approve/apply. After apply, rebuild and validate the projection, inspect the tree, run git diff --check, and keep current Memory synchronized with the canonical workflow and error notes.
 
 #### 适用边界
 
-This governs the Genshin-TS PKC capture workflow only. Working-tree observations remain protected and cannot become Authority; automatic PKC validation proves knowledge/projection consistency, not compiler, GIA, editor, or game behavior. It does not authorize source changes, map operations, injection, or Git publication without separate task authorization.
+只约束 Genshin-TS PKC 录入流程；工作树观察保持受保护不能成为 Authority；自动 PKC 验证只证明知识/投影一致性，不证明编译器/GIA/编辑器/游戏行为。
+
+This governs the Genshin-TS PKC capture workflow only. Working-tree observations remain protected and cannot become Authority; automatic PKC validation proves knowledge/projection consistency, not compiler, GIA, editor, or game behavior.
 
 <!-- CLAIM:END clm_F25959994F5CD6EEE49495F001 -->
 

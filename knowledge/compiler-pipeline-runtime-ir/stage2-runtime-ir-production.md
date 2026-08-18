@@ -5,25 +5,33 @@ Isolated `.gs.ts` execution, runtime registries, values/metadata, and IR documen
 
 <!-- CLAIM:START clm_01KYH64TYS6MNC3JYD3EX74G04 -->
 
-### Stage 2 executes each graph script in isolation and snapshots runtime registries into IR
+### Stage 2 隔离执行每个图脚本并把运行时注册表快照进 IR（Stage 2 executes each graph script in isolation and snapshots runtime registries into IR）
+
+Stage 2 在隔离子进程中运行每个 .gs.ts 入口，导入以填充运行时 server/client 注册表，然后序列化 buildAllGraphRegistriesIRDocuments() 输出；运行时值与元数据通过 buildIRDocument() 变成字面量或连接参数，而不是直接编码成 GIA。
 
 Stage 2 runs each `.gs.ts` entry through an isolated child process, imports it to populate runtime server/client registries, then serializes `buildAllGraphRegistriesIRDocuments()` output; runtime values and metadata become literal or connection arguments through `buildIRDocument()` rather than being encoded directly as GIA.
 
-#### 适用边界与失效条件
+#### 适用边界
 
-This describes current gsts Stage 2 production, not user-code side effects outside the supported runtime or editor behavior. Server and client registry details differ. Revalidate when runner isolation, registry collection, value metadata conversion, IR construction, or process orchestration changes.
+这是当前 gsts Stage 2 生产行为，不涵盖支持运行时之外的用户代码副作用或编辑器行为；server 与 client 注册表细节不同。
+
+This describes current gsts Stage 2 production, not user-code side effects outside the supported runtime or editor behavior. Server and client registry details differ.
 
 <!-- CLAIM:END clm_01KYH64TYS6MNC3JYD3EX74G04 -->
 
 <!-- CLAIM:START clm_1CF9B63712693301D1FFA1FBD5 -->
 
-### Stage 2 preserves active multi-outflow branch tails until a real continuation exists
+### Stage 2 保留活动多流出分支尾直到存在真实续接（Stage 2 preserves active multi-outflow branch tails until a real continuation exists）
+
+对基于回调的多流出节点，Stage 2 保留未被 return 终止的每个分支尾。无后续顺序节点的终止分支不需要续接、不发出默认续接警告；有顺序节点时每个活动分支尾都汇入该节点。对声明了多个 OutFlow 的复合做顺序调用仍是独立歧义案例：隐式续接用 OutFlow[0] 并发 GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION。
 
 For callback-based multi-outflow nodes, Stage 2 keeps every branch tail that was not terminated by return. A terminal branch with no following sequential node needs no continuation and emits no default-continuation warning; when a sequential node follows, every active branch tail joins that node. Sequential calls to a Composite with multiple declared OutFlows remain a separate ambiguous case: implicit continuation uses OutFlow[0] and emits GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION.
 
 #### 适用边界
 
-This is committed gsts runtime-to-IR behavior at 9ca2cc635d67800796c6ebc117978665af829a7e and focused automatic-regression evidence only. It does not establish consumer refreshed-snapshot warning counts, editor import, injection, or game behavior. Revalidate when branch callback join logic, tail endpoint registration, Composite marker continuation, or return termination changes.
+这是提交 9ca2cc635d67800796c6ebc117978665af829a7e 的已提交 gsts 运行时到 IR 行为 + focused 自动回归证据，不建立编辑器导入/注入/游戏行为。
+
+This is committed gsts runtime-to-IR behavior at 9ca2cc635d67800796c6ebc117978665af829a7e and focused automatic-regression evidence only. It does not establish consumer refreshed-snapshot warning counts, editor import, injection, or game behavior.
 
 <!-- CLAIM:END clm_1CF9B63712693301D1FFA1FBD5 -->
 
