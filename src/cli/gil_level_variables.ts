@@ -331,22 +331,65 @@ function buildEntry(name: string, type: 'bool' | 'int', value?: number | boolean
   ])
 }
 
-export type UiVarType = 'int' | 'bool' | 'str' | 'int_list' | 'str_list' | 'dict'
+export type UiVarType =
+  | 'int'
+  | 'bool'
+  | 'str'
+  | 'float'
+  | 'vec3'
+  | 'int_list'
+  | 'bool_list'
+  | 'str_list'
+  | 'float_list'
+  | 'vec3_list'
+  | 'dict'
 export type UiDictPair = { key: string; keyType: 'str' | 'int'; value: string | number; valueType: 'str' | 'int' }
 
+const SCALAR_TYPES = new Set<UiVarType>(['int', 'bool', 'str', 'float', 'vec3'])
+const LIST_TYPES = new Set<UiVarType>(['int_list', 'bool_list', 'str_list', 'float_list', 'vec3_list'])
+
 function typeCodeOf(type: UiVarType): number {
-  return type === 'int' ? 3 : type === 'bool' ? 4 : type === 'str' ? 6 : type === 'int_list' ? 8 : type === 'str_list' ? 11 : 27
+  return (
+    {
+      int: 3,
+      bool: 4,
+      float: 5,
+      str: 6,
+      int_list: 8,
+      bool_list: 9,
+      float_list: 10,
+      str_list: 11,
+      vec3: 12,
+      vec3_list: 15,
+      dict: 27
+    } as Record<UiVarType, number>
+  )[type]
 }
 
-function scalarValueWire(type: 'int' | 'bool' | 'str', value: unknown): Uint8Array {
+function float32Bytes(value: number): Uint8Array {
+  const buf = Buffer.alloc(4)
+  buf.writeFloatLE(value, 0)
+  return new Uint8Array(buf)
+}
+
+function scalarValueWire(type: 'int' | 'bool' | 'str' | 'float' | 'vec3', value: unknown): Uint8Array {
   if (type === 'str') return emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
   if (type === 'bool') return emitWireMessage([{ number: 1, wire: 0, value: value ? 1 : 0 }])
+  if (type === 'float') return emitWireMessage([{ number: 1, wire: 5, value: float32Bytes(Number(value)) }])
+  if (type === 'vec3') {
+    const v = (value as readonly number[] | undefined) ?? [0, 0, 0]
+    return emitWireMessage([
+      { number: 1, wire: 5, value: float32Bytes(v[0] ?? 0) },
+      { number: 2, wire: 5, value: float32Bytes(v[1] ?? 0) },
+      { number: 3, wire: 5, value: float32Bytes(v[2] ?? 0) }
+    ])
+  }
   return emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
 }
 
-function listElementsWire(type: 'int_list' | 'str_list', values: readonly unknown[]): Uint8Array {
-  const elemType = type === 'int_list' ? 'int' : 'str'
-  return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType as 'int' | 'str', v) })))
+function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Array {
+  const elemType = type.slice(0, -5) as 'int' | 'bool' | 'str' | 'float' | 'vec3'
+  return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType, v) })))
 }
 
 function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
@@ -385,35 +428,8 @@ function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
 
 function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8Array {
   const code = typeCodeOf(type)
-  let defaultWire: Uint8Array
-  if (type === 'int') {
-    const v = Number(value ?? 0)
-    defaultWire = emitWireMessage([
-      { number: 1, wire: 0, value: code },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
-      { number: 13, wire: 2, value: v !== 0 ? emitWireMessage([{ number: 1, wire: 0, value: v }]) : EMPTY }
-    ])
-  } else if (type === 'bool') {
-    const b = Boolean(value)
-    defaultWire = emitWireMessage([
-      { number: 1, wire: 0, value: code },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
-      { number: 14, wire: 2, value: b ? emitWireMessage([{ number: 1, wire: 0, value: 1 }]) : EMPTY }
-    ])
-  } else if (type === 'str') {
-    defaultWire = emitWireMessage([
-      { number: 1, wire: 0, value: code },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
-      { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value ?? '')) }]) }
-    ])
-  } else if (type === 'int_list' || type === 'str_list') {
-    const elemField = code + 10
-    defaultWire = emitWireMessage([
-      { number: 1, wire: 0, value: code },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
-      { number: elemField, wire: 2, value: listElementsWire(type, (value as unknown[]) ?? []) }
-    ])
-  } else {
+  let defaultWire: Uint8Array = EMPTY
+  if (type === 'dict') {
     const pairs = (value as UiDictPair[]) ?? []
     const keyType = pairs[0]?.keyType === 'int' ? 3 : 6
     const valueType = pairs[0]?.valueType === 'int' ? 3 : 6
@@ -428,6 +444,33 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8A
         ])
       },
       { number: 37, wire: 2, value: dictWire(pairs) }
+    ])
+  } else if (SCALAR_TYPES.has(type)) {
+    const valueField = code + 10
+    const defaultValue =
+      type === 'int' ? (value as number) ?? 0
+      : type === 'bool' ? Boolean(value)
+      : type === 'float' ? (value as number) ?? 0
+      : type === 'vec3' ? (value as readonly number[]) ?? [0, 0, 0]
+      : String(value ?? '')
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      {
+        number: valueField,
+        wire: 2,
+        value:
+          (type === 'int' && (value as number) === 0) || (type === 'bool' && !value)
+            ? EMPTY
+            : scalarValueWire(type as 'int' | 'bool' | 'str' | 'float' | 'vec3', defaultValue)
+      }
+    ])
+  } else if (LIST_TYPES.has(type)) {
+    const elemField = code + 10
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: elemField, wire: 2, value: listElementsWire(type, (value as unknown[]) ?? []) }
     ])
   }
   const envelope = emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
