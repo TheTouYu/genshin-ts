@@ -11,6 +11,8 @@ export type LevelVariable = {
     | 'entity' | 'guid' | 'int' | 'bool' | 'float' | 'str' | 'vec3'
     | 'faction' | 'config_id' | 'prefab_id'
     | 'list' | 'dict'
+  /** 原始类型码（1..27，含具体列表码）；update 用它与 UiVarType 精确映射 */
+  typeCode: number
   value: unknown
 }
 
@@ -188,8 +190,12 @@ function decodeValue(code: number, entry: WireField[]): unknown {
     return b ? textOf(b) : ''
   }
   if (code === 12) {
-    const vm = parseMessageFields(firstBytes(branchMsg, 1) ?? EMPTY)
-    return [firstFloat32(vm, 1) ?? 0, firstFloat32(vm, 2) ?? 0, firstFloat32(vm, 3) ?? 0]
+    // 与编码一致：f22 = {f1,f2,f3: fixed32}（可稀疏），无需再解一层 f1
+    return [
+      firstFloat32(branchMsg, 1) ?? 0,
+      firstFloat32(branchMsg, 2) ?? 0,
+      firstFloat32(branchMsg, 3) ?? 0
+    ]
   }
   if (code === 1 || code === 2 || code === 17 || code === 20 || code === 21) return firstVarint(branchMsg, 1) ?? 0
   // 列表：branch 内重复 {f1: 元素}
@@ -221,7 +227,7 @@ export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelV
     const name = firstBytes(em, 2) ? textOf(firstBytes(em, 2)!) : ''
     const code = firstVarint(em, 3) ?? 27
     const type = typeNameOf(code)
-    result.push({ name, type, value: decodeValue(code, em) })
+    result.push({ name, type, typeCode: code, value: decodeValue(code, em) })
   }
   return result
 }
@@ -286,7 +292,7 @@ export function createLevelVariable(
 export function updateLevelVariable(
   bytes: Uint8Array,
   name: string,
-  opts: { value?: number | boolean; newName?: string },
+  opts: { value?: unknown; newName?: string },
   entityId?: number
 ): { bytes: Uint8Array; name: string } {
   const top = parseMessageFields(bytes.slice(20, -4))
@@ -330,48 +336,28 @@ export function updateLevelVariable(
   const em = parseMessageFields(entryField.value as Uint8Array)
   if (!em) throw new Error('[error] invalid level variable entry')
   const typeCode = firstVarint(em, 3)
-  const type: LevelVariable['type'] =
-    typeCode === 3 ? 'int' : typeCode === 4 ? 'bool' : typeCode === 6 ? 'str' : typeCode === 27 ? 'dict' : 'list'
+  const uiType = typeCode === undefined ? undefined : uiVarTypeFromCode(typeCode)
   let newEntry = em
-  if (opts.value !== undefined && type !== 'int' && type !== 'bool') {
-    throw new Error(`[error] value update for ${type} variables not yet supported`)
-  }
   if (opts.value !== undefined) {
-    const code = type === 'int' ? 3 : 4
-    const defaultValue = type === 'int' ? Number(opts.value) : Boolean(opts.value)
-    const defaultBranch =
-      type === 'int'
-        ? {
-            number: 13,
-            wire: 2,
-            value:
-              defaultValue !== 0
-                ? emitWireMessage([{ number: 1, wire: 0, value: Number(defaultValue) }])
-                : EMPTY
-          }
-        : {
-            number: 14,
-            wire: 2,
-            value: defaultValue ? emitWireMessage([{ number: 1, wire: 0, value: 1 }]) : EMPTY
-          }
+    if (uiType === undefined) {
+      throw new Error(`[error] unknown level variable type code: ${typeCode}`)
+    }
+    const entityBase = nextEntityBaseId(bytes)
+    let valueWire: Uint8Array
+    if (uiType === 'dict') {
+      // dict 更新优先复用既有 Map25 实体 ID，避免每次更新都泄漏新场景实体
+      const f4 = firstBytes(em, 4)
+      const f4msg = f4 ? parseMessageFields(f4) : undefined
+      const existingF37 = f4msg ? firstBytes(f4msg, 37) : undefined
+      const entityIds = existingF37
+        ? preservedDictEntityIds(existingF37, (opts.value as UiDictPair[]) ?? [], entityBase)
+        : undefined
+      valueWire = buildTypedValueWire(uiType, opts.value, entityBase, entityIds)
+    } else {
+      valueWire = buildTypedValueWire(uiType, opts.value, entityBase)
+    }
     newEntry = newEntry.map((x) =>
-      x.number === 4 && x.wire === 2
-        ? {
-            ...x,
-            value: emitWireMessage([
-              { number: 1, wire: 0, value: code },
-              {
-                number: 2,
-                wire: 2,
-                value: emitWireMessage([
-                  { number: 1, wire: 0, value: code },
-                  { number: 2, wire: 2, value: EMPTY }
-                ])
-              },
-              defaultBranch
-            ])
-          }
-        : x
+      x.number === 4 && x.wire === 2 ? { ...x, value: valueWire } : x
     )
   }
   if (opts.newName !== undefined) {
@@ -515,6 +501,35 @@ function typeCodeOf(type: UiVarType): number {
   )[type]
 }
 
+/** 类型码 → UiVarType（typeCodeOf 的逆映射；未知码返回 undefined）。 */
+export function uiVarTypeFromCode(code: number): UiVarType | undefined {
+  return (
+    {
+      1: 'entity',
+      2: 'guid',
+      3: 'int',
+      4: 'bool',
+      5: 'float',
+      6: 'str',
+      7: 'guid_list',
+      8: 'int_list',
+      9: 'bool_list',
+      10: 'float_list',
+      11: 'str_list',
+      12: 'vec3',
+      13: 'entity_list',
+      15: 'vec3_list',
+      17: 'faction',
+      20: 'config_id',
+      21: 'prefab_id',
+      22: 'config_id_list',
+      23: 'prefab_id_list',
+      24: 'faction_list',
+      27: 'dict'
+    } as Record<number, UiVarType>
+  )[code]
+}
+
 function float32Bytes(value: number): Uint8Array {
   const buf = Buffer.alloc(4)
   buf.writeFloatLE(value, 0)
@@ -593,8 +608,12 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
   ])
 }
 
-export function buildDictF37Wire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array {
-  return dictWire(pairs, entityBase)
+export function buildDictF37Wire(
+  pairs: readonly UiDictPair[],
+  entityBase: number,
+  entityIds?: readonly number[]
+): Uint8Array {
+  return dictWire(pairs, entityBase, entityIds)
 }
 
 export function scalarTypeCode(t: 'str' | 'int'): number {
@@ -621,7 +640,66 @@ export function nextEntityBaseId(bytes: Uint8Array): number {
   return entityBase
 }
 
-function dictWire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array {
+/** 读取 dict f37 中每对 key 与其 Map25 实体 ID（Map25 层与 f501 keys 均按 pairs 顺序）。 */
+function dictKeyEntityIds(f37: Uint8Array): { key: string; entityId: number }[] {
+  const m = parseMessageFields(f37) ?? []
+  const ids: number[] = []
+  const keys: string[] = []
+  for (const f of m) {
+    if (f.number === 1 && f.wire === 2) {
+      const rec = parseMessageFields(f.value as Uint8Array)
+      const f35 = rec ? firstBytes(rec, 35) : undefined
+      const inner = f35 ? parseMessageFields(f35) : undefined
+      const f502 = inner?.find((x) => x.number === 502 && x.wire === 2)
+      const idMsg = f502 ? parseMessageFields(f502.value as Uint8Array) : undefined
+      const id = idMsg ? firstVarint(idMsg, 4) : undefined
+      ids.push(id ?? 0)
+    } else if (f.number === 501 && f.wire === 2) {
+      const em = parseMessageFields(f.value as Uint8Array)
+      const b = em ? firstBytes(em, 16) : undefined
+      const keyMsg = b ? parseMessageFields(b) : undefined
+      const keyStr = keyMsg ? firstBytes(keyMsg, 1) : undefined
+      keys.push(keyStr ? textOf(keyStr) : String(firstVarint(em ?? [], 13) ?? 0))
+    }
+  }
+  const result: { key: string; entityId: number }[] = []
+  for (let i = 0; i < keys.length; i++) result.push({ key: keys[i], entityId: ids[i] })
+  return result
+}
+
+/** dict 更新时按 key 优先复用既有 Map25 实体 ID；新 key 复用未用旧 ID，再不够才新分配。 */
+function preservedDictEntityIds(
+  existingF37: Uint8Array,
+  pairs: readonly UiDictPair[],
+  entityBase: number
+): number[] {
+  const existing = dictKeyEntityIds(existingF37)
+  const used = new Set<number>()
+  const result: number[] = []
+  let nextNew = entityBase
+  for (const p of pairs) {
+    const byKey = existing.find((e) => e.key === p.key && !used.has(e.entityId))
+    if (byKey) {
+      used.add(byKey.entityId)
+      result.push(byKey.entityId)
+      continue
+    }
+    const unused = existing.find((e) => !used.has(e.entityId))
+    if (unused) {
+      used.add(unused.entityId)
+      result.push(unused.entityId)
+      continue
+    }
+    result.push(nextNew++)
+  }
+  return result
+}
+
+function dictWire(
+  pairs: readonly UiDictPair[],
+  entityBase: number,
+  entityIds?: readonly number[]
+): Uint8Array {
   const keyField = (p: UiDictPair) => ({
     number: 501,
     wire: 2,
@@ -657,7 +735,7 @@ function dictWire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array 
           { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) }, { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }]) },
           { number: 1, wire: 2, value: dictValueMsg(p.valueType, p.value) },
           { number: 501, wire: 0, value: 63 },
-          { number: 502, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 28 }, { number: 4, wire: 0, value: entityBase + i }]) }
+          { number: 502, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 28 }, { number: 4, wire: 0, value: entityIds ? entityIds[i] : entityBase + i }]) }
         ])
       }
     ])
@@ -671,14 +749,19 @@ function dictWire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array 
   ])
 }
 
-function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityBase?: number): Uint8Array {
+/** 生成 entry 的默认值消息（f4），与 create 共用同构编码；dict 可显式指定 Map25 实体 ID。 */
+function buildTypedValueWire(
+  type: UiVarType,
+  value?: unknown,
+  entityBase?: number,
+  entityIds?: readonly number[]
+): Uint8Array {
   const code = typeCodeOf(type)
-  let defaultWire: Uint8Array = EMPTY
   if (type === 'dict') {
     const pairs = (value as UiDictPair[]) ?? []
     const keyType = scalarTypeCode(pairs[0]?.keyType ?? 'str')
     const valueType = dictValueTypeCode(pairs[0]?.valueType ?? 'str')
-    defaultWire = emitWireMessage([
+    return emitWireMessage([
       { number: 1, wire: 0, value: 27 },
       {
         number: 2,
@@ -688,16 +771,17 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityB
           { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: keyType }, { number: 503, wire: 0, value: valueType }]) }
         ])
       },
-      { number: 37, wire: 2, value: dictWire(pairs, entityBase ?? 1073741831) }
+      { number: 37, wire: 2, value: dictWire(pairs, entityBase ?? 1073741831, entityIds) }
     ])
-  } else if (SCALAR_TYPES.has(type)) {
+  }
+  if (SCALAR_TYPES.has(type)) {
     const valueField = code + 10
     const defaultValue =
       type === 'int' || type === 'float' || ID_TYPES.has(type) ? (value as number) ?? 0
       : type === 'bool' ? Boolean(value)
       : type === 'vec3' ? (value as readonly number[]) ?? [0, 0, 0]
       : String(value ?? '')
-    defaultWire = emitWireMessage([
+    return emitWireMessage([
       { number: 1, wire: 0, value: code },
       { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
       {
@@ -709,14 +793,21 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityB
             : scalarValueWire(type as ScalarWireType, defaultValue)
       }
     ])
-  } else if (LIST_TYPES.has(type)) {
+  }
+  if (LIST_TYPES.has(type)) {
     const elemField = code + 10
-    defaultWire = emitWireMessage([
+    return emitWireMessage([
       { number: 1, wire: 0, value: code },
       { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
       { number: elemField, wire: 2, value: listElementsWire(type, (value as unknown[]) ?? []) }
     ])
   }
+  return EMPTY
+}
+
+function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityBase?: number): Uint8Array {
+  const code = typeCodeOf(type)
+  const defaultWire = buildTypedValueWire(type, value, entityBase)
   const envelope = emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
   return emitWireMessage([
     { number: 2, wire: 2, value: utf8(name) },

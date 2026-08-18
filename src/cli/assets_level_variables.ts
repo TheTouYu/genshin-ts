@@ -10,6 +10,7 @@ import {
   createLevelVariable,
   createLevelVariableTyped,
   listLevelVariables,
+  uiVarTypeFromCode,
   updateLevelVariable,
   type UiDictPair,
   type UiVarType
@@ -43,6 +44,8 @@ const TYPE_CODES: Record<string, UiVarType> = {
   dict: 'dict'
 }
 
+const ALL_TYPE_NAMES = Object.keys(TYPE_CODES).join('|')
+
 function usage(exitCode = 1): never {
   const output = [
     'List, create or update entity custom variables (关卡变量 = 关卡实体变量, root5 f7[11].11).',
@@ -50,7 +53,7 @@ function usage(exitCode = 1): never {
     'Usage: gsts assets:level-variables [list|create|update] [options]',
     '',
     '  list: gsts assets:level-variables list [--entity <id>] [--gil <file>] [--format json]',
-    '  create: gsts assets:level-variables create --name <name> --type bool|int|str|int_list|str_list|dict [--value <v>] [--entity <id>]',
+    '  create: gsts assets:level-variables create --name <name> --type <type> [--value <v>] [--entity <id>]',
     '  update: gsts assets:level-variables update --name <current> [--value <v>] [--new-name <n>] [--entity <id>]',
     '',
     'Options:',
@@ -58,8 +61,10 @@ function usage(exitCode = 1): never {
     '  --gil <file>            explicit GIL source',
     '  --name <name>           variable name (current for update)',
     '  --new-name <name>       rename variable (update only)',
-    '  --type <type>           bool|int|str|int_list|str_list|dict',
-    '  --value <v>             value: int/bool/str scalar; list "a,b,c"; dict "k=v;k2=v2"',
+    `  --type <type>           ${ALL_TYPE_NAMES}`,
+    '  --value <v>             scalar "1"/"true"/"1.5"/"str"/vec3 "x,y,z";',
+    '                          list "a,b,c"; dict "k=v;k2=v2" or "k1=[a,b]&k2=3";',
+    '                          update parses --value by the variable\'s existing type',
     '  --output <file>         create output without overwriting',
     '  --write                 atomically write source GIL after backup',
     '  --format <text|json>    output format (default: text)',
@@ -109,7 +114,7 @@ function parseArgs(argv: readonly string[]) {
     } else if (arg === '--type') {
       const raw = value(argv, index++)
       if (!(raw in TYPE_CODES)) {
-        throw new Error('[error] --type must be bool|int|str|int_list|str_list|dict')
+        throw new Error(`[error] --type must be one of: ${ALL_TYPE_NAMES}`)
       }
       type = TYPE_CODES[raw]
     } else if (arg === '--value') rawValue = value(argv, index++)
@@ -189,11 +194,14 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
       .map((triple) => triple.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n)))
   if (type === 'dict') {
     const pairs: UiDictPair[] = []
-    for (const part of raw.split(';')) {
-      const eq = part.indexOf('=')
+    // 分隔符兼容 assets:custom-variables 的 "k1=[a,b]&k2=3" 与历史 "k=v;k2=v2"
+    for (const part of raw.split(/[;&]/)) {
+      const trimmed = part.trim()
+      if (!trimmed) continue
+      const eq = trimmed.indexOf('=')
       if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
-      const k = part.slice(0, eq).trim()
-      const v = part.slice(eq + 1).trim()
+      const k = trimmed.slice(0, eq).trim()
+      const v = trimmed.slice(eq + 1).trim()
       // 列表值用 [a,b,c] 包裹；数值列表 → int_list，否则 str_list
       if (v.startsWith('[') && v.endsWith(']')) {
         const items = v.slice(1, -1).split(',').map((s) => s.trim()).filter((s) => s !== '')
@@ -250,16 +258,21 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       result = createLevelVariableTyped(sourceBytes, args.name!, type, value, args.entityId)
     }
   } else {
-    const rawValue = args.rawValue
-    const numeric = rawValue !== undefined && /^-?\d+$/.test(rawValue)
-    const boolVal = rawValue !== undefined && (rawValue === 'true' || rawValue === 'false' || rawValue === '1' || rawValue === '0')
-    let value: number | boolean | undefined
-    if (rawValue !== undefined) value = boolVal ? rawValue === 'true' || rawValue === '1' : numeric ? Number(rawValue) : Number.NaN
+    // update：先按变量现有类型解析 --value，保证全类型值更新
+    let value: unknown
+    if (args.rawValue !== undefined) {
+      const existing = listLevelVariables(sourceBytes, args.entityId)
+      const variable = existing.find((v) => v.name === args.name)
+      if (!variable) throw new Error(`[error] level variable not found: ${args.name}`)
+      const uiType = uiVarTypeFromCode(variable.typeCode)
+      if (!uiType) throw new Error(`[error] unknown level variable type code: ${variable.typeCode}`)
+      value = parseCreateValue(uiType, args.rawValue)
+    }
     result = updateLevelVariable(
       sourceBytes,
       args.name!,
       {
-        ...(value !== undefined && !Number.isNaN(value) ? { value } : {}),
+        ...(value !== undefined ? { value } : {}),
         ...(args.newName !== undefined ? { newName: args.newName } : {})
       },
       args.entityId
