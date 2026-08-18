@@ -18,7 +18,7 @@ gsts assets:signals 向地图 GIL 注册新信号：参数布局来源两路—�
 
 ### Signal registration encoding: index entry plus three GraphUnit definitions
 
-地图 GIL 信号注册编码 = field5 注册索引条目（f1 send 身份 / f2 monitor 身份 / f3 名称 / f4 参数 / f6 计数 / f7 server 身份）+ field2 三份 GraphUnit 定义（send/monitor/sendServer；编辑器插在图1定义之后，工具追加末尾，protobuf 顺序无语义影响）；注册索引 f4/f5/f6 引用定义参数条目的 f8 pin 编号；f8 pin 每定义局部（全图重复属正常）；每信号 <=9 参数、18 种合法类型（9 普通 + 9 _list 变体，PARAM_TYPE_CODES 完整映射）；同类型参数每信号只能一次（克隆条目复制相同 f8，工具防御性报错）。
+地图 GIL 信号注册编码 = field5 注册索引条目（f1 send 身份 / f2 monitor 身份 / f3 名称 / f4 参数 / f6 计数 / f7 server 身份）+ field2 三份 GraphUnit 定义（send/monitor/sendServer；编辑器插在图1定义之后，工具追加末尾，protobuf 顺序无语义影响）；注册索引 f4/f5/f6 引用定义参数条目的 f8 pin 编号；f8 pin 每定义局部（全图重复属正常）；每信号参数上限由 PARAM_TYPE_CODES 决定（已扩至 20 种：普通 + _list 变体，新增 faction/config_id/prefab_id 及其 _list）；同类型参数可按模板池多次出现，工具据此克隆 f8 条目。
 
 #### 适用边界
 
