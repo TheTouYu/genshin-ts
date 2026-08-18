@@ -6,11 +6,11 @@
 
 ### 调试日志 .gia 容器结构与版本单元标识
 
-Beyond_Debug_Log 调试日志文件为 GIA 容器（全部大端）：文件大小-4 的左 size 字段 = 其后内容总长（= protoSize + 20）；记录含版本单元 f11.1.1（structureId = 该版本单元自身 id），结构链接 40.50.502 指向所属版本单元 id。
+Beyond_Debug_Log 调试日志文件为 GIA 容器（全部大端）：开头两个 4 字节 big-endian 字段分别为「文件总大小 - 4」与「文件总大小 - 8」；之后 N 条记录，每条 = protobuf message（外层 tag 为 f1 wire2，即记录本身是外层 f1 字段的值）。
 
 #### 适用边界
 
-容器结论来自真实导出样本（用户运行落盘）与第三方 proto 定义核对；不同版本/地区客户端需单独验证。不含帧内参数解码细节（见同专题 frame-encoding-rules）。
+容器结论来自真实导出样本（用户运行落盘）与第三方 proto 定义核对 + docs/game-engine-knowledge/debug-log-format.md（2026-08 重写后格式）；不同版本/地区客户端需单独验证。不含帧内参数解码细节（见同专题 frame-encoding-rules）。
 
 <!-- CLAIM:END clm_43C39823DA58DBAB7172840ABC -->
 
