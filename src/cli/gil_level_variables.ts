@@ -332,35 +332,62 @@ function buildEntry(name: string, type: 'bool' | 'int', value?: number | boolean
 }
 
 export type UiVarType =
+  | 'entity'
+  | 'guid'
   | 'int'
   | 'bool'
-  | 'str'
   | 'float'
+  | 'str'
   | 'vec3'
+  | 'guid_list'
   | 'int_list'
   | 'bool_list'
-  | 'str_list'
   | 'float_list'
+  | 'str_list'
+  | 'entity_list'
   | 'vec3_list'
+  | 'faction'
+  | 'config_id'
+  | 'prefab_id'
+  | 'config_id_list'
+  | 'prefab_id_list'
+  | 'faction_list'
   | 'dict'
 export type UiDictPair = { key: string; keyType: 'str' | 'int'; value: string | number; valueType: 'str' | 'int' }
 
-const SCALAR_TYPES = new Set<UiVarType>(['int', 'bool', 'str', 'float', 'vec3'])
-const LIST_TYPES = new Set<UiVarType>(['int_list', 'bool_list', 'str_list', 'float_list', 'vec3_list'])
+/** id 类标量（varint 编码，与 int 同构）：entity/guid/faction/config_id/prefab_id */
+const ID_TYPES = new Set<UiVarType>(['entity', 'guid', 'faction', 'config_id', 'prefab_id'])
+const SCALAR_TYPES = new Set<UiVarType>([
+  'entity', 'guid', 'int', 'bool', 'float', 'str', 'vec3', 'faction', 'config_id', 'prefab_id'
+])
+const LIST_TYPES = new Set<UiVarType>([
+  'guid_list', 'int_list', 'bool_list', 'float_list', 'str_list', 'entity_list', 'vec3_list',
+  'config_id_list', 'prefab_id_list', 'faction_list'
+])
 
 function typeCodeOf(type: UiVarType): number {
   return (
     {
+      entity: 1,
+      guid: 2,
       int: 3,
       bool: 4,
       float: 5,
       str: 6,
+      guid_list: 7,
       int_list: 8,
       bool_list: 9,
       float_list: 10,
       str_list: 11,
       vec3: 12,
+      entity_list: 13,
       vec3_list: 15,
+      faction: 17,
+      config_id: 20,
+      prefab_id: 21,
+      config_id_list: 22,
+      prefab_id_list: 23,
+      faction_list: 24,
       dict: 27
     } as Record<UiVarType, number>
   )[type]
@@ -372,7 +399,11 @@ function float32Bytes(value: number): Uint8Array {
   return new Uint8Array(buf)
 }
 
-function scalarValueWire(type: 'int' | 'bool' | 'str' | 'float' | 'vec3', value: unknown): Uint8Array {
+type ScalarWireType =
+  | 'int' | 'bool' | 'str' | 'float' | 'vec3'
+  | 'entity' | 'guid' | 'faction' | 'config_id' | 'prefab_id'
+
+function scalarValueWire(type: ScalarWireType, value: unknown): Uint8Array {
   if (type === 'str') return emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
   if (type === 'bool') return emitWireMessage([{ number: 1, wire: 0, value: value ? 1 : 0 }])
   if (type === 'float') return emitWireMessage([{ number: 1, wire: 5, value: float32Bytes(Number(value)) }])
@@ -388,7 +419,7 @@ function scalarValueWire(type: 'int' | 'bool' | 'str' | 'float' | 'vec3', value:
 }
 
 function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Array {
-  const elemType = type.slice(0, -5) as 'int' | 'bool' | 'str' | 'float' | 'vec3'
+  const elemType = type.slice(0, -5) as ScalarWireType
   return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType, v) })))
 }
 
@@ -448,9 +479,8 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8A
   } else if (SCALAR_TYPES.has(type)) {
     const valueField = code + 10
     const defaultValue =
-      type === 'int' ? (value as number) ?? 0
+      type === 'int' || type === 'float' || ID_TYPES.has(type) ? (value as number) ?? 0
       : type === 'bool' ? Boolean(value)
-      : type === 'float' ? (value as number) ?? 0
       : type === 'vec3' ? (value as readonly number[]) ?? [0, 0, 0]
       : String(value ?? '')
     defaultWire = emitWireMessage([
@@ -462,7 +492,7 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8A
         value:
           (type === 'int' && (value as number) === 0) || (type === 'bool' && !value)
             ? EMPTY
-            : scalarValueWire(type as 'int' | 'bool' | 'str' | 'float' | 'vec3', defaultValue)
+            : scalarValueWire(type as ScalarWireType, defaultValue)
       }
     ])
   } else if (LIST_TYPES.has(type)) {

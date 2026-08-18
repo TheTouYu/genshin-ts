@@ -20,16 +20,26 @@ type Command = 'list' | 'create' | 'update'
 type Format = 'text' | 'json'
 
 const TYPE_CODES: Record<string, UiVarType> = {
+  entity: 'entity',
+  guid: 'guid',
   bool: 'bool',
   int: 'int',
   str: 'str',
   float: 'float',
   vec3: 'vec3',
+  faction: 'faction',
+  config_id: 'config_id',
+  prefab_id: 'prefab_id',
+  guid_list: 'guid_list',
   int_list: 'int_list',
   bool_list: 'bool_list',
   str_list: 'str_list',
   float_list: 'float_list',
+  entity_list: 'entity_list',
   vec3_list: 'vec3_list',
+  config_id_list: 'config_id_list',
+  prefab_id_list: 'prefab_id_list',
+  faction_list: 'faction_list',
   dict: 'dict'
 }
 
@@ -160,12 +170,12 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
 
 function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
   if (raw === undefined) return undefined
-  if (type === 'int') return Number(raw)
+  if (type === 'int' || type === 'float' || type === 'entity' || type === 'guid' || type === 'faction' || type === 'config_id' || type === 'prefab_id')
+    return Number(raw)
   if (type === 'bool') return raw === 'true' || raw === '1'
-  if (type === 'float') return Number(raw)
   if (type === 'str') return raw
   if (type === 'vec3') return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
-  if (type === 'int_list' || type === 'bool_list' || type === 'float_list')
+  if (type === 'int_list' || type === 'bool_list' || type === 'float_list' || type === 'guid_list' || type === 'entity_list' || type === 'config_id_list' || type === 'prefab_id_list' || type === 'faction_list')
     return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
   if (type === 'str_list') return raw.split(',').map((s) => s.trim()).filter((s) => s !== '')
   if (type === 'vec3_list')
