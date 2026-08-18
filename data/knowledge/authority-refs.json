@@ -2256,6 +2256,21 @@
       ]
     },
     {
+      "id": "aref_8d069765a2318deba394c9ec86",
+      "path": "docs/ui-tutorial/ugc-svg/classic-mode.md",
+      "locator": "## 01-经典模式角色编号对照表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "8e6e71e673c6de729a86b9651128c0995155e01cc2d2a620163f3b24b307c071",
+      "claim_ids": [
+        "clm_4DE967DB9AC12B566A3CFB5087"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_8d54507653cac609d4988414f0",
       "path": "docs/architecture/injector-system.md",
       "locator": "3.4 向特定 NodeGraph 增加节点：相邻快照与整图替换",

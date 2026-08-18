@@ -1143,6 +1143,19 @@
         "知识库查询"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "classic-mode",
+      "node_id": "official-guide",
+      "title": "经典模式角色编号",
+      "path": "knowledge/official-guide/ugc-classic-mode.md",
+      "summary": "官方奇匠学院一图流：经典模式角色编号对照表（122 位，7.0 新增 3 位）。",
+      "keywords": [
+        "经典模式",
+        "角色编号",
+        "角色配置ID"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2259,6 +2272,11 @@
     "clm_B0F0948E1BBDE7F814AA5177C3": {
       "fact_classes": [
         "evidence_scope"
+      ]
+    },
+    "clm_4DE967DB9AC12B566A3CFB5087": {
+      "fact_classes": [
+        "documented_contract"
       ]
     }
   }
