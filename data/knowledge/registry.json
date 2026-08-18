@@ -1156,6 +1156,21 @@
         "角色配置ID"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "terrain-environment",
+      "node_id": "official-guide",
+      "title": "地形编辑与环境配置",
+      "path": "knowledge/official-guide/ugc-terrain-environment.md",
+      "summary": "官方奇匠学院一图流：地形编辑操作、环境配置（天空盒/光源/天气）与编辑器快捷设置。",
+      "keywords": [
+        "光源",
+        "地形",
+        "天空盒",
+        "快捷设置",
+        "环境配置"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2275,6 +2290,21 @@
       ]
     },
     "clm_4DE967DB9AC12B566A3CFB5087": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F3DBA1408170B3EA45ECF3D712": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_12C5D911B96B6DEEDA391BC208": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_05A8C8C784D99200762A4C2ACA": {
       "fact_classes": [
         "documented_contract"
       ]

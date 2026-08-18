@@ -1354,6 +1354,21 @@
       ]
     },
     {
+      "id": "aref_540e80dfc0c14085323cac2d0f",
+      "path": "docs/ui-tutorial/ugc-svg/terrain-environment.md",
+      "locator": "## 04-编辑器快捷设置",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7fd4d216574704303e7d53ccf00200fa27abc76c95e2ebe117de499bfd85c308",
+      "claim_ids": [
+        "clm_05A8C8C784D99200762A4C2ACA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_55ba8ec09c3e5da64a79b681f2",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "功能 → 铭牌/文本气泡/小地图标识/扫描标签",
@@ -1393,6 +1408,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_D7275AC67382FCE942CF906761"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_5ac2f1d66d0233f7a6d351e356",
+      "path": "docs/ui-tutorial/ugc-svg/terrain-environment.md",
+      "locator": "## 03-环境配置（天空盒/光源/天气）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7fd4d216574704303e7d53ccf00200fa27abc76c95e2ebe117de499bfd85c308",
+      "claim_ids": [
+        "clm_12C5D911B96B6DEEDA391BC208"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -2283,6 +2313,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_8da81b86c61dddb96c3225be15",
+      "path": "docs/ui-tutorial/ugc-svg/terrain-environment.md",
+      "locator": "## 02-地形编辑操作规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7fd4d216574704303e7d53ccf00200fa27abc76c95e2ebe117de499bfd85c308",
+      "claim_ids": [
+        "clm_F3DBA1408170B3EA45ECF3D712"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
