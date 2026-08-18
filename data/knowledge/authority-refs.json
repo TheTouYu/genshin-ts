@@ -272,6 +272,21 @@
       ]
     },
     {
+      "id": "aref_14d95683d6bc54dcb79dffebf3",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 08-复杂造物规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_7AFFC8CCC787C9D9CFFCCB48F8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_15e0fb934fc6162108a9931496",
       "path": "docs/pkc-improvement-requests.md",
       "locator": "PKC 使用体验改进需求集合（2026-08-13 起提交给 portable-knowledge 项目）：本 claim 的三条摩擦点同类——draft 重复无消重、approved 空文件脱节、bundle 生命周期缺汇总此处为维护者真实使用反馈集合，本 claim 为其新增条目",
@@ -328,6 +343,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_A9B5344C859963D175FA6F26FD"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_181a495149699afb9f642c6784",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 05-实体与元件核心规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_82CA50C0C437E42F238B87757A"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -1054,6 +1084,21 @@
       ]
     },
     {
+      "id": "aref_3e386ef7cfbb73032937a1ce75",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 06-元件组规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_35B0AAF39CAED940C40E8A2047"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_3e5de6d28df4c392b2b158a288",
       "path": "docs/ui-tutorial/official-guide-nodes-server.md",
       "locator": "查询节点",
@@ -1261,6 +1306,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_4d75df1ac3e4bb609abefa13e1",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 13-阵营规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_EBC2B620AB981A6E1E1F025282"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2211,6 +2271,36 @@
       ]
     },
     {
+      "id": "aref_84835f04a25cdaa197a3fbf4d0",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 12-职业模板规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_D76782821544D212F61A78B901"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_85d01b70c58879e265d556de6d",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 07-造物行为模式与配置",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_09A19C8446195BBCB75B2ACF1C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_868dc0d47c2f24dae77320e288",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#20b",
@@ -2565,6 +2655,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_F285B45BBBD8C2452A8210259F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_9eaef051881045fee89628f9f3",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 14-单位标签规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_BC75A2AEBEEACA23D830FFB46D"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3129,6 +3234,21 @@
       ]
     },
     {
+      "id": "aref_c7cdce10f4cded76627840fa0b",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 09-掉落物规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_D9FE0EF8DE2C95617A98C4577D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_c805d76e081166c690825f88ba",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "装饰物引用元件与元件层 transform > v1→v2→v3 相邻链修正（2026-08-08）",
@@ -3183,6 +3303,21 @@
       "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
       "claim_ids": [
         "clm_FEEAD834EB15F558C0BCFC3F16"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_cbb47813fdf1e19b19bff1d804",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 10-关卡实体规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_2A56A8835DAF8F294DE8CA69EF"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3693,6 +3828,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_BF8ABC01DE7D76FA8C141876D3"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_edd433cd1794ec20f856cda75d",
+      "path": "docs/ui-tutorial/ugc-svg/entities.md",
+      "locator": "## 11-玩家模板与复苏规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
+      "claim_ids": [
+        "clm_0D3DEE29AFBE2DBF1A6FEC01A6"
       ],
       "supports_fact_classes": [
         "documented_contract"

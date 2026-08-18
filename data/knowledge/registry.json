@@ -1171,6 +1171,26 @@
         "环境配置"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "entities",
+      "node_id": "official-guide",
+      "title": "实体与元件（UGC 详细规则）",
+      "path": "knowledge/official-guide/ugc-entities.md",
+      "summary": "官方奇匠学院一图流：实体/元件/元件组/造物/复杂造物/掉落物/关卡实体/玩家模板/职业/阵营/单位标签的详细规则。",
+      "keywords": [
+        "元件",
+        "关卡实体",
+        "单位标签",
+        "复杂造物",
+        "实体",
+        "掉落物",
+        "玩家模板",
+        "职业",
+        "造物",
+        "阵营"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2305,6 +2325,56 @@
       ]
     },
     "clm_05A8C8C784D99200762A4C2ACA": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_82CA50C0C437E42F238B87757A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_35B0AAF39CAED940C40E8A2047": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_09A19C8446195BBCB75B2ACF1C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_7AFFC8CCC787C9D9CFFCCB48F8": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D9FE0EF8DE2C95617A98C4577D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2A56A8835DAF8F294DE8CA69EF": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_0D3DEE29AFBE2DBF1A6FEC01A6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D76782821544D212F61A78B901": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_EBC2B620AB981A6E1E1F025282": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_BC75A2AEBEEACA23D830FFB46D": {
       "fact_classes": [
         "documented_contract"
       ]
