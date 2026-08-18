@@ -68,7 +68,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "approved_hash": "ff57ac9e10392fc84a9bce94eda8e8d74f52d64b8fdf00f80d1091ad4c65c962",
       "claim_ids": [
         "clm_8D210530744937ADB0BA9B1A0F"
       ],
@@ -128,7 +128,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "877c27a568403f8d9948f70fd6592362c14df191b35f031ba38d760bdf0de0fb",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_1A48C87938D83D3736EA97AFA1"
       ],
@@ -233,7 +233,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "aa05f1f23a6b7b21981fdc0323d7840d64129d6ee7c0e58ef3c776e11e627ca9",
+      "approved_hash": "26c4581590ee5e4a09bd26800b3a53e917184440428d386542c35e8dc81105f8",
       "claim_ids": [
         "clm_A0AABCE5C788D7B423C905F0E7"
       ],
@@ -278,7 +278,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "approved_hash": "aee1b403d3c8ea137be13b293d732e730c261d55c58839973814eb9c0d4aec96",
       "claim_ids": [
         "clm_24058447AFCCFA8DF512E9F13C"
       ],
@@ -444,7 +444,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "a5d9f5ab2eee45cdace533fcbbe802e190f00e938e33270ad5568219720ecdcd",
+      "approved_hash": "5dddb50124736f4281a83d20ccd316b95783fdcd76747faa3c4720cc67480910",
       "claim_ids": [
         "clm_36C2A562146E76BED4BFF7DE89"
       ],
@@ -655,7 +655,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
       "claim_ids": [
         "clm_549B34333DEE92CFD22A232AE1"
       ],
@@ -715,7 +715,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "b9f0a8ff7e7cd43743add8c8a32ab4ef983df8d5516c2dc0a89dea3054a27d66",
+      "approved_hash": "62fc4e624e3b50aed30d1dda81e1f2de5e4ae7771839369a4abf724a6cf66333",
       "claim_ids": [
         "clm_E4F7263D5D1B51415F6EA85DE1"
       ],
@@ -745,7 +745,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "54c4e8b1add9d2e9409598e2700dadf25856c3b44c026689392a2e83eb91dceb",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_4502C6F37E622E56958CA09B8F"
       ],
@@ -850,7 +850,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "3d4e088cd36d1a80e6c42684ece04d2d1b8514299c74ac9c55870c1059439e3e",
+      "approved_hash": "d393c16dccb4bbb74f95d68e0511c410d7233020af9bb8e08d2ee04de0b4ca21",
       "claim_ids": [
         "clm_36C2A562146E76BED4BFF7DE89"
       ],
@@ -865,7 +865,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "b56b194da20c71c8926893896db7bd56e726b082d138f773da00106d22442755",
+      "approved_hash": "c161a15617792a325ff64a86658100144838337e62a80f6fe7cc758c5d4c5bdc",
       "claim_ids": [
         "clm_D9ECC27260829E9EA8C85E20F1"
       ],
@@ -985,7 +985,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
+      "approved_hash": "26c4581590ee5e4a09bd26800b3a53e917184440428d386542c35e8dc81105f8",
       "claim_ids": [
         "clm_1CF9B63712693301D1FFA1FBD5"
       ],
@@ -1000,7 +1000,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "388fb06a3773da24465bb9e85489f5e704f717240012e07bcf1ebc90ec4426e6",
+      "approved_hash": "a960a6cb63bf2124975dd8507c3f59fa279a2298d0a9d8b95a4220f7eef7827e",
       "claim_ids": [
         "clm_2CFB8DF7716132B41A820E8001"
       ],
@@ -1180,7 +1180,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_8CC703AD6EAB67CF889F4D05F2"
       ],
@@ -1315,7 +1315,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "28e0065f4d6055e817edc689b4eca5dc5282d9a764586e6a9486d879704aa3da",
+      "approved_hash": "d32df3c826bcc52397e7239555d3c7b6c19ef367893532e532eb1777e542b00d",
       "claim_ids": [
         "clm_D8AE4A86F79755B92C2FEB7E0C"
       ],
@@ -1330,7 +1330,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "041ed8ab24a50eb8435ede80ce324739096f2057465a450d30fd73f51c030d7b",
+      "approved_hash": "ffa5bb057e74017e8d2cc1d488c4188fd80fdbbddad1fc842b523b3619dd041f",
       "claim_ids": [
         "clm_BF84AB9A43CCFE104C55B93EE9"
       ],
@@ -1375,7 +1375,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "10b3f40af96234ecc2aec68e724eea054ae6c745563bfac04c4caf7cb10f31a0",
+      "approved_hash": "1ec48110e193c50600f60f02231a4bc9b9649b0c014b983bcef202b1e11d237b",
       "claim_ids": [
         "clm_7395AFE937DC8FD43786AA5B34"
       ],
@@ -1390,7 +1390,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "9bb0a79e9c18de5cd6a5b1d629b8ec88919529e765b4ed7b02c1674fa5e8ca78",
+      "approved_hash": "51589790ae1e101a678267cf2a3bb1ac240bb8992ab7cde9de80f3f1579f4f51",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
       ],
@@ -1435,7 +1435,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "cb9eef5403554ff01b419473cffc554deab5b405ada1ce0dbcc3e2a6e04c6a8d",
+      "approved_hash": "b403f430a7d308b09f8b40130cfbf022e04750a6a519718dad2d5e2a0d14a76c",
       "claim_ids": [
         "clm_2A0776BD30AF4352927C2268E7"
       ],
@@ -1450,7 +1450,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "2fe4d571ba031fd0258660cef297b0cbf16a91012ad1a38d4232e84f5c20fe11",
+      "approved_hash": "0c0d60950cf6b84711c20cf16be930d79e762fea71f0143ed409fdf8ce1a3dbd",
       "claim_ids": [
         "clm_2A0776BD30AF4352927C2268E7"
       ],
@@ -1465,7 +1465,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "50f20eb58d73d8d5d6c2b2471c58795d9c6b3236b5f95eb6e27df3c16c1e26e9",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_26377685777BD6F2DE40A797D4"
       ],
@@ -1510,7 +1510,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_D0216263867D8BDE9A5B831253"
       ],
@@ -1645,7 +1645,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_2B77A59F626CEE63E0191669C5"
       ],
@@ -1660,7 +1660,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "a5d9f5ab2eee45cdace533fcbbe802e190f00e938e33270ad5568219720ecdcd",
+      "approved_hash": "5dddb50124736f4281a83d20ccd316b95783fdcd76747faa3c4720cc67480910",
       "claim_ids": [
         "clm_D9ECC27260829E9EA8C85E20F1"
       ],
@@ -1720,7 +1720,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7753d7da2b5f07f28b2ddd8b3345fb8029162ebb3c6e416b44a76fa5fa3856f7",
+      "approved_hash": "b403f430a7d308b09f8b40130cfbf022e04750a6a519718dad2d5e2a0d14a76c",
       "claim_ids": [
         "clm_5CA329CCBED7E15CB53C785F6B"
       ],
@@ -1795,7 +1795,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "5b7a98e0b04f8b50cb300ffdd298d79cdc4efd295b0739e20b7c3ec76cbf3270",
+      "approved_hash": "0580fc8ce37c898deccd0eaf425cf5965f6eba3ec160a7e5afc7c14760eafbec",
       "claim_ids": [
         "clm_38E9BD071D723E4A8FD6C039B5"
       ],
@@ -1900,7 +1900,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "970e403cc2de40427301f933617744f846da29782061ef56eb991fa08d3e4647",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_6C4D0D6A2ADCB7DFB399357BB2"
       ],
@@ -2022,7 +2022,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f798aecaa7017e8800e47bbaa51f5541999d213c571e6dc31ea270cc1f20e094",
+      "approved_hash": "029d91edcf8e984ab53050c1f9eefe06afa41606a65a0be12e718281e0d83a0c",
       "claim_ids": [
         "clm_CFC2CA7A47D98ED4C1C40B081E"
       ],
@@ -2097,7 +2097,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_D4F75C7BF79D3B60EB8DF5EB3F"
       ],
@@ -2322,7 +2322,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "2f163eca03af26974f2b896402d2e1bd1291bd01e88c1f700f10ec427baa6cd4",
+      "approved_hash": "aa7c5a21ee2a813221f41513c116b6a8a8dd3dbcbe3416a4cf0bc92cd12a7fc5",
       "claim_ids": [
         "clm_E4F7263D5D1B51415F6EA85DE1"
       ],
@@ -2397,7 +2397,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_F008D0E6E613365A09C857B504"
       ],
@@ -2472,7 +2472,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "5b7a98e0b04f8b50cb300ffdd298d79cdc4efd295b0739e20b7c3ec76cbf3270",
+      "approved_hash": "0580fc8ce37c898deccd0eaf425cf5965f6eba3ec160a7e5afc7c14760eafbec",
       "claim_ids": [
         "clm_D724F6EB325FFD8A791E37502B"
       ],
@@ -2517,7 +2517,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
       "claim_ids": [
         "clm_C8DF8E12E10763D2C632790741"
       ],
@@ -2532,7 +2532,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "7eb104628ff33b44fbcd0e9362ee7d19bf1610bd59752b93ebefe0221ebb4c50",
+      "approved_hash": "95ca192ea6ed83b5d760ffb95f8acbfa528259c2b8708ace9f58536915d12010",
       "claim_ids": [
         "clm_2CFB8DF7716132B41A820E8001"
       ],
@@ -2652,7 +2652,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_0FC97EF7B561C3DEEEAD6918A8"
       ],
@@ -2667,7 +2667,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_C9B4B93B4DBE45BABAE487EC44"
       ],
@@ -2682,7 +2682,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "03dd896255e282e11d814ea333b2459c5a699e86ac3780ecf988637eb95ba4c2",
+      "approved_hash": "ffa5bb057e74017e8d2cc1d488c4188fd80fdbbddad1fc842b523b3619dd041f",
       "claim_ids": [
         "clm_055FEF3F9617AC525DD344F7BB"
       ],
@@ -2712,7 +2712,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_A1E15CA57DDF9464638BB97C44"
       ],
@@ -2832,7 +2832,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_B90783C13F06F78A94728CDBB3"
       ],
@@ -2877,7 +2877,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "approved_hash": "ff57ac9e10392fc84a9bce94eda8e8d74f52d64b8fdf00f80d1091ad4c65c962",
       "claim_ids": [
         "clm_C6D426185B6125E4484CB8C948"
       ],
@@ -3087,7 +3087,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_E84AC1061E900A2BFAB326D5C1"
       ],
@@ -3117,7 +3117,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_23C30B27044EC9F29E896D9EFF"
       ],
@@ -3147,7 +3147,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "approved_hash": "ff57ac9e10392fc84a9bce94eda8e8d74f52d64b8fdf00f80d1091ad4c65c962",
       "claim_ids": [
         "clm_6BE48E8DC77BF0D1636506D8D9"
       ],
@@ -3192,7 +3192,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_98EF365F97BE61A3874676F66A"
       ],
@@ -3237,7 +3237,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "b5870458830e6bd7702f04e27caf262d993fca9c70c63498a99039b9d33dd0d0",
+      "approved_hash": "ee7796ba1b58fa6eb27be8d15347675884c8fa5888a587eb8fee8c8044cc46ef",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -3282,7 +3282,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "eb2b6cec14ceb385c8e5b10628bec61191eccfeaa3b6c6ad31051ac429ca8f3b",
+      "approved_hash": "40873183486b99a9f4e28ec4f2b180c576cec472a9dddfd3c8a18b0c8b14e5b7",
       "claim_ids": [
         "clm_B57B95C94FC41F8DFDAA236468"
       ],
@@ -3297,7 +3297,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_3319B38030FCF6DDD38C57147C"
       ],
@@ -3433,7 +3433,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "approved_hash": "aee1b403d3c8ea137be13b293d732e730c261d55c58839973814eb9c0d4aec96",
       "claim_ids": [
         "clm_83E525E46C62931D431B3202D6"
       ],
@@ -3448,7 +3448,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b8fd05a5d8d618b4ef029531a03b88cbecc940c6f698f6ce4e4b527db7ee1933",
+      "approved_hash": "c8c33e975da0ab4f9800e8fc2a19cfc931d4fcc3ba671d32c9a601e131d9f726",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -3523,7 +3523,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "31bdfa4ac603a6c296315ab4507e74e052a9d7df620c03388a210f5c05c883f0",
+      "approved_hash": "4f3e36a4e3f874237e8a92125977bb1062075e4f63ba760843c7af18ef4dab3f",
       "claim_ids": [
         "clm_1EB7BE64DF651835F79AE4DB94"
       ],
@@ -3553,7 +3553,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
+      "approved_hash": "30eeb75a1db37ec0056196782bd4391869eaa0a52ea0a8a3825324ff77823ad1",
       "claim_ids": [
         "clm_8A72C10C71952438959C200669"
       ],
@@ -3583,7 +3583,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
       "claim_ids": [
         "clm_115296A1DA128D115CAC202DD0"
       ],
@@ -3673,7 +3673,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_E259AE61C383F9B8447CA9D77C"
       ],
@@ -3718,7 +3718,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_CCF86C1A5174DFAD6DDC47ABDB"
       ],
@@ -3733,7 +3733,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "approved_hash": "ff57ac9e10392fc84a9bce94eda8e8d74f52d64b8fdf00f80d1091ad4c65c962",
       "claim_ids": [
         "clm_8A72C10C71952438959C200669"
       ],
@@ -3778,7 +3778,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
       "claim_ids": [
         "clm_02691D5BF0DDBAD95E355C3933"
       ],
@@ -3838,7 +3838,7 @@
       "role": "design_intent",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "075ef9c0ef333bba16f4ac466f8589a8855363fb0387d58855be1c10d439b4b5",
+      "approved_hash": "32f69cadb815a1deb164d9672ed84b158f4f7092c72a3eaeb84757f734176294",
       "claim_ids": [
         "clm_1A48C87938D83D3736EA97AFA1"
       ],
@@ -3853,7 +3853,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "approved_hash": "aee1b403d3c8ea137be13b293d732e730c261d55c58839973814eb9c0d4aec96",
       "claim_ids": [
         "clm_55953E975D035A08C89368C982"
       ],
@@ -3915,7 +3915,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
+      "approved_hash": "30eeb75a1db37ec0056196782bd4391869eaa0a52ea0a8a3825324ff77823ad1",
       "claim_ids": [
         "clm_C6D426185B6125E4484CB8C948"
       ],
@@ -4020,7 +4020,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_184E301A2C7323E818C606720A"
       ],
@@ -4155,7 +4155,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_0D5030477987A86DE4D2A6A265"
       ],
@@ -4275,7 +4275,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "approved_hash": "aee1b403d3c8ea137be13b293d732e730c261d55c58839973814eb9c0d4aec96",
       "claim_ids": [
         "clm_6AD25A9E855663EA2CCACF78DC"
       ],
@@ -4320,7 +4320,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a0c0feed7a94082dd7315322259569664ef1bb8cb228d6a93f284224f7797149",
+      "approved_hash": "94e0a9136711fa350c951e2a49f44c4eb6419b253a9590e9ffa8a73f8f4fb238",
       "claim_ids": [
         "clm_1EB7BE64DF651835F79AE4DB94"
       ],
@@ -4425,7 +4425,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "19abb7217b589abf465066be4a9dd2185802fa93c19e0bea3d0c5afb34f69031",
+      "approved_hash": "8c2cbf9668617c2150d4b5b7057ba76e5adedc0ad94223fb4166211246aa23f8",
       "claim_ids": [
         "clm_2CFB8DF7716132B41A820E8001"
       ],
@@ -4455,7 +4455,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7eb104628ff33b44fbcd0e9362ee7d19bf1610bd59752b93ebefe0221ebb4c50",
+      "approved_hash": "95ca192ea6ed83b5d760ffb95f8acbfa528259c2b8708ace9f58536915d12010",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
       ],
@@ -4470,7 +4470,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ae586da26cbc457523e5acb1b7aedeac60909ec6c5ae1759344d2ca37f476585",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_8848DCF0478F05D2FC81D6FE41"
       ],
@@ -4500,7 +4500,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b5870458830e6bd7702f04e27caf262d993fca9c70c63498a99039b9d33dd0d0",
+      "approved_hash": "ee7796ba1b58fa6eb27be8d15347675884c8fa5888a587eb8fee8c8044cc46ef",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
       ],
@@ -4635,7 +4635,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "10d4f3ed474e3fbf03c9bdaecacebf8fffa894bf7a397e47fa473ec4d671dc70",
+      "approved_hash": "667f1b6130f720b72d50516f0579ff51550d378f368fcb4691ebf6e011669162",
       "claim_ids": [
         "clm_6C67D5B49095C7CC9D3FD8DBEE"
       ],
@@ -4740,7 +4740,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
       "claim_ids": [
         "clm_4EBE2D912F213036BFCFD1C616"
       ],
@@ -4755,7 +4755,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "f80108014d562454bd666dfcf40e5c2d71b7d26ebacf1458f5091fae5503b6cd",
+      "approved_hash": "2fd2b3f0d8df8db3c67f175bfc6ccf7a63e01ebfa4a02b5d9672f0f359c7c5ca",
       "claim_ids": [
         "clm_D855DC6B45CDA71076665B0BFA"
       ],
@@ -4905,7 +4905,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f76d61fd88e85058df360c62822666c6a264fe5e0960c452703808af4769dd49",
+      "approved_hash": "c91c593c69d73f931a3b05c29f9ee13882e446ef2eff1ddaa78bea9f7562bf2d",
       "claim_ids": [
         "clm_187AB1C3F90F1E99672658EE8D"
       ],
@@ -4965,7 +4965,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
+      "approved_hash": "30eeb75a1db37ec0056196782bd4391869eaa0a52ea0a8a3825324ff77823ad1",
       "claim_ids": [
         "clm_9B948639C6EA426949824A5E3F"
       ],
@@ -5203,7 +5203,7 @@
       "locator": "definitions, calls, typing, pure-data/exec, and nested Composite sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "d0f69ffca9cd0f6c685f2e3114e4615acc5b155f41c122bcc7d519e3c6234d2d",
+      "approved_hash": "aa82b83999319ece9377ab5119cbc683c436ee918b476bc88e24202bd3faca0d",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0"
@@ -5261,7 +5261,7 @@
       "locator": "CompositeCapture, CompositeDefinition, and toCompositeDefIR()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "041ed8ab24a50eb8435ede80ce324739096f2057465a450d30fd73f51c030d7b",
+      "approved_hash": "ffa5bb057e74017e8d2cc1d488c4188fd80fdbbddad1fc842b523b3619dd041f",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
@@ -5277,7 +5277,7 @@
       "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
+      "approved_hash": "26c4581590ee5e4a09bd26800b3a53e917184440428d386542c35e8dc81105f8",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
@@ -5461,7 +5461,7 @@
       "locator": "buildArgument(), buildNodesFromFlow(), and buildIRDocument()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "a9a495d602541d2c971f1faf7393b813fda39233c10d3011c3498df6f3183cad",
+      "approved_hash": "7ddb42b07c87dbd83daf8409c5037415ec2c6f722e3878aa6cfbc563f29cc122",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64TYS6MNC3JYD3EX74G04",
@@ -5510,7 +5510,7 @@
       "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
+      "approved_hash": "26c4581590ee5e4a09bd26800b3a53e917184440428d386542c35e8dc81105f8",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64TYS6MNC3JYD3EX74G04"
@@ -5558,7 +5558,7 @@
       "locator": "whole focused expression/LocalVariable regression",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "3d4e088cd36d1a80e6c42684ece04d2d1b8514299c74ac9c55870c1059439e3e",
+      "approved_hash": "d393c16dccb4bbb74f95d68e0511c410d7233020af9bb8e08d2ee04de0b4ca21",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
         "clm_01KYH64TV56ENY9PTZX9HJDB22"
@@ -5606,7 +5606,7 @@
       "locator": "irToGia() dispatch, preprocessing and materialization seams",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "44adc0770d5847015b84f1b091433c943f4804ae04c831425e72ec6f324327c1",
+      "approved_hash": "70d16fb70ddcc99145e7a4ed11a6290b05ff009d45b7e880d789f72de797dd81",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
@@ -5668,7 +5668,7 @@
       "locator": "SPECIAL_ARG_ADAPTER_CONTRACT and remapSpecialArgInputIndex()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "8301f64fa93c9e37abc50749c60531be6c75d7014e174bc19cb1be78f367c010",
+      "approved_hash": "cf66dd979e9464f56fb9e2dc2a2460c3d0abc08b12f2546ec6b49d6b81234fab",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZHNA0ZQSV882V3C2Z46H"
@@ -5743,7 +5743,7 @@
       "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "7eb104628ff33b44fbcd0e9362ee7d19bf1610bd59752b93ebefe0221ebb4c50",
+      "approved_hash": "95ca192ea6ed83b5d760ffb95f8acbfa528259c2b8708ace9f58536915d12010",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -5792,7 +5792,7 @@
       "locator": "GstsAssetsConfig and GstsConfig.assets",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "cb9eef5403554ff01b419473cffc554deab5b405ada1ce0dbcc3e2a6e04c6a8d",
+      "approved_hash": "b403f430a7d308b09f8b40130cfbf022e04750a6a519718dad2d5e2a0d14a76c",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
