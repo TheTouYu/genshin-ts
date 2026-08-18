@@ -189,13 +189,25 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
       if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
       const k = part.slice(0, eq).trim()
       const v = part.slice(eq + 1).trim()
-      const numeric = /^-?\d+$/.test(v)
-      pairs.push({
-        key: k,
-        keyType: 'str',
-        value: numeric ? Number(v) : v,
-        valueType: numeric ? 'int' : 'str'
-      })
+      // 列表值用 [a,b,c] 包裹；数值列表 → int_list，否则 str_list
+      if (v.startsWith('[') && v.endsWith(']')) {
+        const items = v.slice(1, -1).split(',').map((s) => s.trim()).filter((s) => s !== '')
+        const numeric = items.every((s) => /^-?\d+$/.test(s))
+        pairs.push({
+          key: k,
+          keyType: 'str',
+          value: numeric ? items.map((s) => Number(s)) : items,
+          valueType: numeric ? 'int_list' : 'str_list'
+        })
+      } else {
+        const numeric = /^-?\d+$/.test(v)
+        pairs.push({
+          key: k,
+          keyType: 'str',
+          value: numeric ? Number(v) : v,
+          valueType: numeric ? 'int' : 'str'
+        })
+      }
     }
     return pairs
   }

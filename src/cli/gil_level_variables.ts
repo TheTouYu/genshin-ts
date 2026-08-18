@@ -353,7 +353,13 @@ export type UiVarType =
   | 'prefab_id_list'
   | 'faction_list'
   | 'dict'
-export type UiDictPair = { key: string; keyType: 'str' | 'int'; value: string | number; valueType: 'str' | 'int' }
+export type UiDictValueType = 'str' | 'int' | 'str_list' | 'int_list'
+export type UiDictPair = {
+  key: string
+  keyType: 'str' | 'int'
+  value: string | number | readonly string[] | readonly number[]
+  valueType: UiDictValueType
+}
 
 /** id 类标量（varint 编码，与 int 同构）：entity/guid/faction/config_id/prefab_id */
 const ID_TYPES = new Set<UiVarType>(['entity', 'guid', 'faction', 'config_id', 'prefab_id'])
@@ -423,47 +429,101 @@ function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Arr
   return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType, v) })))
 }
 
-function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
+function scalarTypeCode(t: 'str' | 'int'): number {
+  return t === 'str' ? 6 : 3
+}
+
+function dictValueTypeCode(t: UiDictValueType): number {
+  return t === 'str' ? 6 : t === 'int' ? 3 : t === 'str_list' ? 11 : 8
+}
+
+/** 生成 dict 项的值消息（标量或列表）：f<type+10> = { f1: 值 } 或 重复 {f1: 值} */
+function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
+  const code = dictValueTypeCode(t)
+  const env = emitWireMessage([
+    { number: 1, wire: 0, value: code },
+    { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) }
+  ])
+  const valueField = code + 10
+  let inner: Uint8Array
+  if (t === 'str') inner = emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
+  else if (t === 'int') inner = emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
+  else {
+    const isStrList = t === 'str_list'
+    inner = emitWireMessage(
+      (value as readonly unknown[]).map((v) => ({
+        number: 1,
+        wire: 2,
+        value: isStrList
+          ? emitWireMessage([{ number: 1, wire: 2, value: utf8(String(v)) }])
+          : emitWireMessage([{ number: 1, wire: 0, value: Number(v) }])
+      }))
+    )
+  }
+  return emitWireMessage([
+    { number: 1, wire: 0, value: code },
+    { number: 2, wire: 2, value: env },
+    { number: valueField, wire: 2, value: inner }
+  ])
+}
+
+function dictWire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array {
   const keyField = (p: UiDictPair) => ({
     number: 501,
     wire: 2,
     value: emitWireMessage([
-      { number: 1, wire: 0, value: p.keyType === 'str' ? 6 : 3 },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: p.keyType === 'str' ? 6 : 3 }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 1, wire: 0, value: scalarTypeCode(p.keyType) },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) },
       { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }
     ])
   })
   const valueField = (p: UiDictPair) => ({
     number: 502,
     wire: 2,
+    value: dictValueMsg(p.valueType, p.value)
+  })
+  // Map(25) 实体映射层：每对分配一个实体 ID
+  const mapEntries = pairs.map((p, i) => ({
+    number: 1,
+    wire: 2,
     value: emitWireMessage([
-      { number: 1, wire: 0, value: p.valueType === 'str' ? 6 : 3 },
-      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: p.valueType === 'str' ? 6 : 3 }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 1, wire: 0, value: 25 },
       {
-        number: p.valueType === 'str' ? 16 : 13,
+        number: 2,
         wire: 2,
-        value:
-          p.valueType === 'str'
-            ? emitWireMessage([{ number: 1, wire: 2, value: utf8(String(p.value)) }])
-            : emitWireMessage([{ number: 1, wire: 0, value: Number(p.value) }])
+        value: emitWireMessage([
+          { number: 1, wire: 0, value: 25 },
+          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 503, wire: 0, value: dictValueTypeCode(p.valueType) }]) }
+        ])
+      },
+      {
+        number: 35,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) }, { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }]) },
+          { number: 1, wire: 2, value: dictValueMsg(p.valueType, p.value) },
+          { number: 501, wire: 0, value: 63 },
+          { number: 502, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 28 }, { number: 4, wire: 0, value: entityBase + i }]) }
+        ])
       }
     ])
-  })
+  }))
   return emitWireMessage([
+    ...mapEntries,
     ...pairs.map(keyField),
     ...pairs.map(valueField),
     { number: 503, wire: 0, value: 6 },
-    { number: 504, wire: 0, value: pairs[0]?.valueType === 'str' ? 6 : 3 }
+    { number: 504, wire: 0, value: dictValueTypeCode(pairs[0]?.valueType ?? 'str') }
   ])
 }
 
-function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8Array {
+function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityBase?: number): Uint8Array {
   const code = typeCodeOf(type)
   let defaultWire: Uint8Array = EMPTY
   if (type === 'dict') {
     const pairs = (value as UiDictPair[]) ?? []
-    const keyType = pairs[0]?.keyType === 'int' ? 3 : 6
-    const valueType = pairs[0]?.valueType === 'int' ? 3 : 6
+    const keyType = scalarTypeCode(pairs[0]?.keyType ?? 'str')
+    const valueType = dictValueTypeCode(pairs[0]?.valueType ?? 'str')
     defaultWire = emitWireMessage([
       { number: 1, wire: 0, value: 27 },
       {
@@ -474,7 +534,7 @@ function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8A
           { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: keyType }, { number: 503, wire: 0, value: valueType }]) }
         ])
       },
-      { number: 37, wire: 2, value: dictWire(pairs) }
+      { number: 37, wire: 2, value: dictWire(pairs, entityBase ?? 1073741831) }
     ])
   } else if (SCALAR_TYPES.has(type)) {
     const valueField = code + 10
@@ -550,7 +610,13 @@ export function createLevelVariableTyped(
   if (!comp) throw new Error('[error] invalid level variable component')
   const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
   const varsMsg = f11 ? parseMessageFields(f11.value as Uint8Array) ?? [] : []
-  const entry = buildTypedEntry(name, type, value)
+  let entityBase = 1073741831
+  for (const f of section) {
+    if (f.number !== 1 || f.wire !== 2) continue
+    const id = firstVarint(parseMessageFields(f.value as Uint8Array), 1)
+    if (id !== undefined && id >= entityBase) entityBase = id + 1
+  }
+  const entry = buildTypedEntry(name, type, value, entityBase)
   varsMsg.push({ number: 1, wire: 2, value: entry })
   const newF11 = f11
     ? { ...f11, value: emitWireMessage(varsMsg) }
