@@ -70,6 +70,6 @@ Add Uniform Basic Rotation-Based Motion Device（节点 id=85）参数配方：m
 
 #### 适用边界
 
-仅匀速旋转型（node 85）；不覆盖朝向目标/直线/定点运动器；axis 为世界轴方向向量，旋转轴过世界原点（魔方中心）场景已验证
+仅匀速旋转型（node 85）；不覆盖朝向目标/直线/定点运动器；axis 语义为实体局部坐标系方向（相对朝向，M_new=M·R_local，见 motion-device-runtime）；本配方 (1,0,0) 在局部轴与世界轴对齐的验证场景中等价绕世界 X 轴，绕世界轴的一般转换需按 motion-device-runtime 公式。
 
 <!-- CLAIM:END clm_8509374E5A139C10B4B0CCCB44 -->
