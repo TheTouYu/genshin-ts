@@ -161,7 +161,8 @@
           ],
           "workspaces": [],
           "branches": []
-        }
+        },
+        "validation_gate": "pkc validate && pkc knowledge-check && git diff --check"
       }
     ],
     "startup_budget": {
@@ -1487,6 +1488,6 @@
     ]
   },
   "evaluation": {
-    "cases_path": "data/knowledge/retrieval-evaluation-ugc.json"
+    "cases_path": "data/knowledge/retrieval-evaluation-fulltree.json"
   }
 }

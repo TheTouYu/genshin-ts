@@ -232,7 +232,7 @@
     },
     {
       "id": "full-red-green-regression-1",
-      "query": "red green 回归 基线 fixture 修复链",
+      "query": "DTC 边界 锁定 Alpha 回归 fixture 基线 物理 pin",
       "expected_topic_ids": [
         "red-green-regression"
       ],
@@ -536,7 +536,7 @@
     },
     {
       "id": "full-nodegraph-injection-target-and-safety-1",
-      "query": "节点图 注入 目标 安全 createInjector findNodeGraphTargets",
+      "query": "节点图 注入 整图替换 targetId 同构重放 injector",
       "expected_topic_ids": [
         "nodegraph-injection-target-and-safety"
       ],
