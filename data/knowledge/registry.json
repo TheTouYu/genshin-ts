@@ -2785,6 +2785,31 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_55CEE9BCE906957193DD7F80FF": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_078E7ECF2469F2E0CDAEA91267": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_9F67405A0B66F3C07FB26C47DA": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_0B1B304C292DBF00D1A82805F5": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_1C760125C0ACDED27BEB07BD31": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
     }
   }
 }

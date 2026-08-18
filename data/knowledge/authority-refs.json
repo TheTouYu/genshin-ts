@@ -212,6 +212,21 @@
       ]
     },
     {
+      "id": "aref_0b5e2a4a615f4faaf289bb2873",
+      "path": "src/cli/gsts.ts",
+      "locator": "maybeInjectGia/reinjectOnMapChange",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "85356cabbf0079e2d79505c2819c77378ee8803ddc202724d300c67ca90119b2",
+      "claim_ids": [
+        "clm_078E7ECF2469F2E0CDAEA91267"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_0c114a0587afd5a17239fe4688",
       "path": "src/runtime/core.ts",
       "locator": "connect() addEdge(current, sourceId, ...) ~1780-1812",
@@ -919,6 +934,21 @@
       ]
     },
     {
+      "id": "aref_2e82bd3515c5240bc3200456ca",
+      "path": "src/cli/gil_custom_variables.ts",
+      "locator": "applyCustomPrefabInitialCustomVariableDeclarations/syncPrefabCustomVariableDeclarations",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "0c02cb20d5d5629fd54cc45167318c59aca7b7bd4c014734ccab59b0ede135fc",
+      "claim_ids": [
+        "clm_1C760125C0ACDED27BEB07BD31"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_2eb717bc1146710ff681714265",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "其它概念 → 局内存档/多语言文本/语音和文字聊天/背景音乐/环境配置/元件组/场景生成模板",
@@ -1516,6 +1546,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_4469fdda8b42ed9bc75d4390f3",
+      "path": "src/injector/signal_nodes.ts",
+      "locator": "patchSignalNodeIds/buildSignalNodeIdMapFromFields",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "1841452ae53dc01cbe7691c31c809176e6db92ad6658e3f87c97fe1a660a9fbe",
+      "claim_ids": [
+        "clm_9F67405A0B66F3C07FB26C47DA"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -2130,6 +2175,21 @@
       "approved_hash": "c8135f7a192cb435167bb40bab7feb3502398771564eb8a432bf2d0b33e55c75",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_6540ef2cdc1be17eabe3e9e771",
+      "path": "src/injector/folder.ts",
+      "locator": "collectFolderIndexes/findFolderEntryField/resolveGraphTypeForTypeValue",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4d45ac5fff58ad0a2f1ea0c6c2647f8ba14b527dc11ad55f2262a28bac9cf36e",
+      "claim_ids": [
+        "clm_0B1B304C292DBF00D1A82805F5"
       ],
       "supports_fact_classes": [
         "cli_behavior"
@@ -3981,6 +4041,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_c98464e7cfd09890ed973fcbf7",
+      "path": "src/cli/gsts.ts",
+      "locator": "runBatch/runDev/runSingle/loadGstsConfigCached",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "85356cabbf0079e2d79505c2819c77378ee8803ddc202724d300c67ca90119b2",
+      "claim_ids": [
+        "clm_55CEE9BCE906957193DD7F80FF"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
