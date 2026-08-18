@@ -453,7 +453,7 @@
     },
     {
       "id": "full-stage1-expression-local-variable-semantics-1",
-      "query": "Stage1 表达式 语义 局部变量 LocalVariable 解析",
+      "query": "Stage 1 表达式分类 checked LocalVariable 语义",
       "expected_topic_ids": [
         "stage1-expression-local-variable-semantics"
       ],
