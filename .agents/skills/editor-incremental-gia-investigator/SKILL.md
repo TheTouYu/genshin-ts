@@ -456,3 +456,37 @@ index=0 形态必须不存在。红灯测试输出 wire diagnostics 总表，当
 - 增加一个 `references/ui-controls.md` 模块，固化 root9/控件记录/布局 packed 列表/内容与位置路径的已闭合规则，避免每次重新探测。
 - 在“比较相邻快照”里增加“packed varint vs message”判别提示。
 - 把“CLI 模板克隆法”写成可复用脚本/技能片段（`assets:ui clone` 已经落地）。
+
+## 变量类型通用规则（2026-08-18 多样本 CONFIRMED）
+
+> 来源：`~/.genshin-ts-evidence/toolchain-gaps/1073741894/`（`after-dict*.gil` 多样本，
+> 2026-08-18 编辑器逐步创建 + CLI 逐项解码 + round-trip）。
+> 适用：关卡实体（root5.1[entity].7.11）与元件定义（root4.1.8.11）的变量 entry 同构。
+
+**统一规律：默认值字段 = 类型码 + 10。** 变量 entry（`11.1[*]`）结构：
+`f2`=名称(UTF8)、`f3`=类型码、`f4`=默认值`{f1=类型码, f2=类型包裹, f<type+10>=值}`、
+`f5`=1、`f6`=类型包裹。
+
+- 标量：`f<type+10> = { f1: 值 }`。int(3)→f13 varint、bool(4)→f14 varint、str(6)→f16
+  bytes、float(5)→f15 f32、vec3(12)→f22 `{f1,f2,f3 f32}`（可稀疏）。
+- id 类标量（varint 与 int 同构）：entity(1)、guid(2)、faction(17)、config_id(20)、
+  prefab_id(21)。
+- 列表：`f<type+10>` = 重复 **field1 原语元素**——str→`field1(len){字符串}`（**单层**，
+  不是 `{f1:字符串}` 双层）、int/guid/id/bool→`field1(varint)`、float→`field1(fixed32)`、
+  vec3→`field1(len){f1,f2,f3}`。
+- dict(27)：`f37` 三层 = ① Map25 实体映射层（每对一条 `f1`，`f35.f502.f4` 新建实体引用，
+  ID 取 root5 最大实体 + 1）② parallel `f501` keys + `f502` values ③ `f503`(key 类型) +
+  `f504`(value 类型)。dict 值支持 str/int/str_list/int_list；str dict 值 `f16` 要解包
+  `f16.f1`。
+
+**全类型 list/create/update 命令**：
+- `assets:level-variables list|create|update --entity <id> --type <21 类型> --value ...`
+  （`--entity` 默认关卡实体 1094713345；任意场景实体可用）。
+- `assets:custom-variables --entity <id> --vars "a=1;b=[x,y];d:dict=k1=[a,b]&k2=3"`
+  （显式 `name:type=value` 或类型推断）与 `--list` 回读。
+- `assets:custom-variables`（config：target prefab/player/character，declarations 含
+  dict 类型，dict 值用 `{key,keyType,value,valueType}`）。
+
+**容器路径不同但 entry 同构**：元件 = root4.1[prefabId].8.11（field8）；场景实体 =
+root5.1[entity].7.11（field7 type1 组件槽）。新实体 `assets:entities import` 继承定义
+f8→f7 变量容器，可“创建实体 → 写变量”分步串联。

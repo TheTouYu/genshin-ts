@@ -176,7 +176,12 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
   if (type === 'str') return raw
   if (type === 'vec3') return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
   if (type === 'int_list' || type === 'bool_list' || type === 'float_list' || type === 'guid_list' || type === 'entity_list' || type === 'config_id_list' || type === 'prefab_id_list' || type === 'faction_list')
-    return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s !== '')
+      .map((s) => (type === 'bool_list' ? s === 'true' || s === '1' : Number(s)))
+      .filter((v) => typeof v === 'boolean' || Number.isFinite(v))
   if (type === 'str_list') return raw.split(',').map((s) => s.trim()).filter((s) => s !== '')
   if (type === 'vec3_list')
     return raw

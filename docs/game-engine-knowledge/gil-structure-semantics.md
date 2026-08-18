@@ -804,6 +804,43 @@ entry 逐字节不变。bool 与 integer entry 的顶层字段形状一致；fie
 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定。未执行 round-trip、临时重放、真实
 写回、编辑器导入或游戏行为验证。
 
+### 变量全类型通用规则（2026-08-18 多样本 CONFIRMED）
+
+> 来源：`~/.genshin-ts-evidence/toolchain-gaps/1073741894/`（`after-dict*.gil` 多样本，
+> 2026-08-18 编辑器逐步创建，CLI 逐项解码 + round-trip 验证）。
+> 状态：`CONFIRMED`（多样本互相印证），但仅限该锁定地图/编辑器版本；游戏内运行时行为
+> 未验证。属 `d7bd151f...` 之后新增的独立证据批次。
+
+前述 bool/int 限定观察的“`4/3` 不能升级为通用类型码”在此被推翻：编辑器连续创建
+str_list/vec3/dict 等变量后，**类型码是正式 enum**，entry 顶层形状一致，默认值字段
+严格等于 `类型码 + 10`。
+
+| 类型码 | 类型 | 默认值字段 | 值编码（f<type+10> 内容） |
+| --- | --- | --- | --- |
+| 3 | int | f13 | `{f1: varint}`（0 为空 field） |
+| 4 | bool | f14 | `{f1: varint 0/1}`（false 为空 field） |
+| 5 | float | f15 | `{f1: fixed32}` |
+| 6 | str | f16 | `{f1: UTF-8}` |
+| 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
+| 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
+| 7/8/9/10/11/13/15/22/23/24 | 十种列表 | f<type+10> | 重复 field1 原语元素（str→len 包裹、数字→varint/fixed32、vec3→len 包裹） |
+| 27 | dict | f37 | 三层：Map25 实体映射 + parallel f501/f502 + f503/f504 |
+
+entry 结构：`11.1[*]`（关卡实体 root5.1.7.11；元件 root4.1.8.11 同构）→ `f2` 名称、
+`f3` 类型码、`f4` 默认值 `{f1=类型码, f2=类型包裹, f<type+10>=值}`、`f5=1`、`f6` 类型
+包裹。dict 的 `f37` 每对 key/value 在 Map25 层新建实体引用（`f35.f502.f4`），CLI 分配
+ID 取 root5 最大实体 ID + 1。
+
+容器路径：元件定义 = `root4.1[prefabId].8.11`（field8）；场景实体 =
+`root5.1[entity].7.11`（field7，type1 组件槽）。CLI：
+`assets:level-variables --entity <id>` / `assets:custom-variables --entity <id> --vars`
+/ `assets:custom-variables`（config，target prefab/player/character，declarations 含
+dict）。新实体由 `assets:entities import` 创建时继承定义 f8→f7 的变量容器。
+
+> 编码细节修正（对照真实样本）：str 列表元素是单层 `field1(len){字符串}`（非双层
+> `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`。这两处修正使 CLI 编码与真实
+> `after-dict*.gil` 逐字节对齐，同时修复了此前 str_list/int_list 的 round-trip 失真。
+
 ### 自定义镜头：创建、名称、物件镜头联合变化与视野检测
 
 `CONFIRMED_BOUNDED`，但仅限当前锁定地图、编辑器版本和本批自定义镜头样本。连续创建两个

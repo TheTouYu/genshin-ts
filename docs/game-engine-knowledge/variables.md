@@ -104,6 +104,53 @@
 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定；未执行 round-trip、真实写回、编辑器
 导入或游戏行为验证。
 
+## 变量类型通用编码规则（2026-08-18 多样本 CONFIRMED）
+
+> 来源：`~/.genshin-ts-evidence/toolchain-gaps/1073741894/`（UI 能力测试地图 1073741894，
+> `after-dict*.gil` 多样本，2026-08-18 用户编辑器逐步创建 + CLI 逐项解码）。
+> 状态：`CONFIRMED`（多样本互相印证）；但只限该锁定地图/编辑器版本，且**未做游戏内运行时
+> 行为验证**（“编辑器/游戏验证未执行”，自动解码与 round-trip 已做）。
+
+全类型变量 entry 编码在关卡实体（root5.1[entity].7.11）与元件定义（root4.1.8.11）中
+**同构**——只有承载容器字段不同（实体 f7、元件 f8），entry 结构一致：
+
+| 字段 | wire | 语义 |
+| --- | --- | --- |
+| `entry.2` | length-delimited | 显式 UTF-8 名称 |
+| `entry.3` | varint | 类型码（见下表） |
+| `entry.4` | length-delimited | 默认值消息 `{f1=类型码, f2=类型包裹, f<type+10>=值}` |
+| `entry.5` | varint | `1`（固定） |
+| `entry.6` | length-delimited | 类型包裹 `{f1=类型码, f2=空}` |
+
+**统一规律：默认值字段 = 类型码 + 10。**
+
+| 类型码 | 类型 | 默认值字段 | 编码 |
+| --- | --- | --- | --- |
+| 3 | int | f13 | `{f1: varint}`（0 为空 field） |
+| 4 | bool | f14 | `{f1: varint 0/1}`（false 为空 field） |
+| 5 | float | f15 | `{f1: fixed32}` |
+| 6 | str | f16 | `{f1: UTF-8}` |
+| 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
+| 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
+| 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 重复 field1 原语元素：str→`field1(len){字符串}`、int/guid/id/bool→`field1(varint)`、float→`field1(fixed32)`、vec3→`field1(len){f1,f2,f3}` |
+| 27 | dict | f37 | 三层结构（见下） |
+
+**dict(27) 三层结构**：`f37` = ① Map25 实体映射层（每对 key/value 一条 `f1`，含 `f35` 内
+`f502.f4` 新建实体引用）② parallel `f501` keys + `f502` values ③ `f503`（key 类型码）+
+`f504`（value 类型码）。dict 值支持 `str`/`int`/`str_list`/`int_list` 四种（与
+`UiDictPair` 一致）。
+
+**实体变量泛化（CLI）**：`assets:level-variables --entity <id>` 与
+`assets:custom-variables --entity <id>` 可对任意场景实体（root5.1[entity].7.11）读写
+全 21 种类型变量（含 dict）；`assets:custom-variables --vars` 支持 `name:type=value`
+显式类型与 `name=value` 类型推断。新场景实体由 `assets:entities import` 创建时会继承
+元件定义（root4）的变量容器（定义 f8 → 实体 f7），因此可“创建实体 → 写入变量”分步串联。
+
+> 注意：标量/列表/dict 的字节级格式已对照 `after-dict*.gil` 真实样本逐项核对；其中
+> str 列表元素为单层 `field1(len){字符串}`（非 `{f1:字符串}` 双层包裹）、str dict 值
+> 需要解包 `f16.f1`，这两处是本轮与真实样本核对时修正的编码细节。尚未覆盖：负整数、
+> 空名/重名规则、dict 的 int key、游戏内获取/设置/变量变化事件，以及多实例运行时隔离。
+
 ## 待逐步还原
 
 - 三类变量支持的参数类型。

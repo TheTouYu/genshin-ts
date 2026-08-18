@@ -111,6 +111,11 @@ function decodeListElement(listCode: number, raw: Uint8Array): unknown {
 function decodeDictValue(f4msg: readonly WireField[] | undefined): unknown {
   const f37 = f4msg ? firstBytes(f4msg, 37) : undefined
   if (!f37) return {}
+  return decodeDictF37(f37)
+}
+
+/** 解码一段原始 f37 字典消息（Map25 + f501 keys + f502 values）为普通对象。 */
+export function decodeDictF37(f37: Uint8Array): unknown {
   const m = parseMessageFields(f37)
   const keys: unknown[] = []
   const vals: unknown[] = []
@@ -145,14 +150,20 @@ function decodeEntryValue(raw: Uint8Array): unknown {
   }
   if (code === 6) {
     const branch = firstBytes(em, 16)
-    return branch ? textOf(branch) : ''
+    if (!branch) return ''
+    const str = firstBytes(parseMessageFields(branch), 1)
+    return str ? textOf(str) : ''
   }
   // 列表值：f<code+10> 重复元素
   const listField = code + 10
   const listBytes = firstBytes(em, listField)
   if (listBytes) {
     const lm = parseMessageFields(listBytes)
-    return (lm ?? []).filter((f) => f.number === 1 && f.wire === 2).map((f) => decodeListElement(code, f.value as Uint8Array))
+    return (lm ?? []).filter((f) => f.number === 1).map((f) => {
+      if (f.wire === 0) return code === 9 ? (f.value as number) === 1 : f.value
+      if (f.wire === 5) return Buffer.from(f.value as Uint8Array).readFloatLE(0)
+      return decodeListElement(code, f.value as Uint8Array)
+    })
   }
   return null
 }
@@ -183,8 +194,12 @@ function decodeValue(code: number, entry: WireField[]): unknown {
   if (code === 1 || code === 2 || code === 17 || code === 20 || code === 21) return firstVarint(branchMsg, 1) ?? 0
   // 列表：branch 内重复 {f1: 元素}
   return (branchMsg ?? [])
-    .filter((f) => f.number === 1 && f.wire === 2)
-    .map((f) => decodeListElement(code, f.value as Uint8Array))
+    .filter((f) => f.number === 1)
+    .map((f) => {
+      if (f.wire === 0) return code === 9 ? (f.value as number) === 1 : f.value
+      if (f.wire === 5) return Buffer.from(f.value as Uint8Array).readFloatLE(0)
+      return decodeListElement(code, f.value as Uint8Array)
+    })
 }
 
 export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelVariable[] {
@@ -525,17 +540,29 @@ function scalarValueWire(type: ScalarWireType, value: unknown): Uint8Array {
   return emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
 }
 
+/** 单个列表元素 = protobuf repeated 原语：str=field1(len){raw}、int/bool/id=field1(varint)、float=field1(fixed32)、vec3=field1(len){vector} */
+function scalarElementWire(type: ScalarWireType, value: unknown): WireField {
+  if (type === 'str') return { number: 1, wire: 2, value: utf8(String(value)) }
+  if (type === 'bool') return { number: 1, wire: 0, value: value ? 1 : 0 }
+  if (type === 'float') return { number: 1, wire: 5, value: float32Bytes(Number(value)) }
+  if (type === 'vec3') {
+    const v = (value as readonly number[] | undefined) ?? [0, 0, 0]
+    return {
+      number: 1,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 5, value: float32Bytes(v[0] ?? 0) },
+        { number: 2, wire: 5, value: float32Bytes(v[1] ?? 0) },
+        { number: 3, wire: 5, value: float32Bytes(v[2] ?? 0) }
+      ])
+    }
+  }
+  return { number: 1, wire: 0, value: Number(value) }
+}
+
 function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Array {
   const elemType = type.slice(0, -5) as ScalarWireType
-  return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType, v) })))
-}
-
-function scalarTypeCode(t: 'str' | 'int'): number {
-  return t === 'str' ? 6 : 3
-}
-
-function dictValueTypeCode(t: UiDictValueType): number {
-  return t === 'str' ? 6 : t === 'int' ? 3 : t === 'str_list' ? 11 : 8
+  return emitWireMessage(values.map((v) => scalarElementWire(elemType, v)))
 }
 
 /** 生成 dict 项的值消息（标量或列表）：f<type+10> = { f1: 值 } 或 重复 {f1: 值} */
@@ -554,10 +581,8 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
     inner = emitWireMessage(
       (value as readonly unknown[]).map((v) => ({
         number: 1,
-        wire: 2,
-        value: isStrList
-          ? emitWireMessage([{ number: 1, wire: 2, value: utf8(String(v)) }])
-          : emitWireMessage([{ number: 1, wire: 0, value: Number(v) }])
+        wire: isStrList ? 2 : 0,
+        value: isStrList ? utf8(String(v)) : Number(v)
       }))
     )
   }
@@ -566,6 +591,34 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
     { number: 2, wire: 2, value: env },
     { number: valueField, wire: 2, value: inner }
   ])
+}
+
+export function buildDictF37Wire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array {
+  return dictWire(pairs, entityBase)
+}
+
+export function scalarTypeCode(t: 'str' | 'int'): number {
+  return t === 'str' ? 6 : 3
+}
+
+export function dictValueTypeCode(t: UiDictValueType): number {
+  return t === 'str' ? 6 : t === 'int' ? 3 : t === 'str_list' ? 11 : 8
+}
+
+/** 扫描 root5 场景实体，返回可用于 dict Map25 分配的未占用实体 ID 下限。 */
+export function nextEntityBaseId(bytes: Uint8Array): number {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) return 1073741831
+  const root5 = top.find((f) => f.number === 5 && f.wire === 2)
+  if (!root5) return 1073741831
+  const section = parseMessageFields(root5.value as Uint8Array)
+  let entityBase = 1073741831
+  for (const f of section ?? []) {
+    if (f.number !== 1 || f.wire !== 2) continue
+    const id = firstVarint(parseMessageFields(f.value as Uint8Array), 1)
+    if (id !== undefined && id >= entityBase) entityBase = id + 1
+  }
+  return entityBase
 }
 
 function dictWire(pairs: readonly UiDictPair[], entityBase: number): Uint8Array {
@@ -711,13 +764,7 @@ export function createLevelVariableTyped(
   if (!comp) throw new Error('[error] invalid level variable component')
   const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
   const varsMsg = f11 ? parseMessageFields(f11.value as Uint8Array) ?? [] : []
-  let entityBase = 1073741831
-  for (const f of section) {
-    if (f.number !== 1 || f.wire !== 2) continue
-    const id = firstVarint(parseMessageFields(f.value as Uint8Array), 1)
-    if (id !== undefined && id >= entityBase) entityBase = id + 1
-  }
-  const entry = buildTypedEntry(name, type, value, entityBase)
+  const entry = buildTypedEntry(name, type, value, nextEntityBaseId(bytes))
   varsMsg.push({ number: 1, wire: 2, value: entry })
   const newF11 = f11
     ? { ...f11, value: emitWireMessage(varsMsg) }

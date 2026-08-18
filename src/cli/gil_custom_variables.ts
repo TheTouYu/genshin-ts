@@ -9,6 +9,12 @@ import {
 } from '../injector/binary.js'
 import type { LenField } from '../injector/types.js'
 import { readGilPayloadFields } from './gil_extract_utils.js'
+import {
+  buildDictF37Wire,
+  decodeDictF37,
+  type UiDictPair,
+  type UiDictValueType
+} from './gil_level_variables.js'
 
 export type CustomVariableType =
   | 'entity'
@@ -31,6 +37,7 @@ export type CustomVariableType =
   | 'config_id_list'
   | 'prefab_id_list'
   | 'faction_list'
+  | 'dict'
   | 'unknown'
 
 export type CustomVariableDefinition = {
@@ -53,6 +60,7 @@ export type CustomVariableInitialValue =
   | CustomVariableVectorValue
   | readonly CustomVariableScalarValue[]
   | readonly CustomVariableVectorValue[]
+  | readonly UiDictPair[]
 
 export type CustomVariableUpdate = {
   name: string
@@ -106,7 +114,8 @@ const TYPE_BY_CODE: Readonly<Record<number, CustomVariableType>> = {
   21: 'prefab_id',
   22: 'config_id_list',
   23: 'prefab_id_list',
-  24: 'faction_list'
+  24: 'faction_list',
+  27: 'dict'
 }
 
 function fieldsOf(buf: Uint8Array): WireField[] {
@@ -169,6 +178,73 @@ function varintField(fields: WireField[], field: number): number | undefined {
   return fields.find((entry) => entry.field === field && entry.wire === 0)?.value
 }
 
+function fixed32Fields(fields: WireField[], buf: Uint8Array, field: number): number | undefined {
+  const match = fields.find((entry) => entry.field === field && entry.wire === 5)
+  if (!match || match.dataEnd - match.dataStart !== 4) return undefined
+  return Buffer.from(buf.subarray(match.dataStart, match.dataEnd)).readFloatLE(0)
+}
+
+/** 解码 single 元素消息（f<type+10> 内的元素）：str=raw、float=fixed32、bool=varint、其余 varint。 */
+function decodeElementWire(type: CustomVariableType, raw: Uint8Array): unknown {
+  if (type === 'str') return decodeUtf8(raw)
+  if (type === 'float') return Buffer.from(raw).readFloatLE(0)
+  if (type === 'bool') {
+    const v = readVarint(raw, 0)
+    return v ? v.value === 1 : false
+  }
+  if (type === 'vec3') {
+    const m = fieldsOf(raw)
+    return [
+      fixed32Fields(m, raw, 1) ?? 0,
+      fixed32Fields(m, raw, 2) ?? 0,
+      fixed32Fields(m, raw, 3) ?? 0
+    ]
+  }
+  const v = readVarint(raw, 0)
+  return v ? v.value : 0
+}
+
+/** 把变量定义解码为可读值（标量/列表/dict）。 */
+export function decodeCustomVariableValue(definition: CustomVariableDefinition): unknown {
+  const { type, initialValueWire } = definition
+  if (type === 'dict') {
+    return initialValueWire.length ? decodeDictF37(initialValueWire) : {}
+  }
+  const fields = fieldsOf(initialValueWire)
+  if (LIST_TYPES.has(type)) {
+    const elementType = type.slice(0, -5) as CustomVariableType
+    return fields.filter((entry) => entry.field === 1).map((entry) => {
+      if (entry.wire === 0) {
+        const v = entry.value ?? 0
+        return elementType === 'bool' ? v === 1 : v
+      }
+      if (entry.wire === 5) {
+        return Buffer.from(initialValueWire.subarray(entry.dataStart, entry.dataEnd)).readFloatLE(0)
+      }
+      return decodeElementWire(elementType, initialValueWire.subarray(entry.dataStart, entry.dataEnd))
+    })
+  }
+  if (type === 'str') {
+    const b = bytesField(fields, initialValueWire, 1)
+    return b ? decodeUtf8(b) : ''
+  }
+  if (type === 'bool') {
+    const v = varintField(fields, 1)
+    return (v ?? 0) === 1
+  }
+  if (type === 'float') return fixed32Fields(fields, initialValueWire, 1) ?? 0
+  if (type === 'vec3') {
+    const vecBytes = bytesField(fields, initialValueWire, 1)
+    const vm = vecBytes ? fieldsOf(vecBytes) : undefined
+    return [
+      fixed32Fields(vm ?? [], vecBytes ?? new Uint8Array(), 1) ?? 0,
+      fixed32Fields(vm ?? [], vecBytes ?? new Uint8Array(), 2) ?? 0,
+      fixed32Fields(vm ?? [], vecBytes ?? new Uint8Array(), 3) ?? 0
+    ]
+  }
+  return varintField(fields, 1) ?? 0
+}
+
 function encodeVarintField(field: number, value: number | bigint): Buffer {
   return Buffer.concat([
     Buffer.from(encodeVarint(field << 3)),
@@ -207,6 +283,7 @@ function defaultInitialValue(type: CustomVariableType): CustomVariableInitialVal
   if (type === 'str') return ''
   if (type === 'int') return 0n
   if (type === 'float') return 0
+  if (type === 'dict') return []
   if (LIST_TYPES.has(type)) return []
   return 0
 }
@@ -275,8 +352,17 @@ function encodeScalarValue(type: CustomVariableType, value: unknown): Buffer {
   return encodeVarintField(1, value)
 }
 
-function encodeInitialValue(update: CustomVariableUpdate): Uint8Array {
+function encodeInitialValue(
+  update: CustomVariableUpdate,
+  entityBase = 1073741831
+): Uint8Array {
   const value = valueOf(update)
+  if (update.type === 'dict') {
+    if (!Array.isArray(value)) {
+      throw new Error('[error] dict custom variable value must be an array of UiDictPair')
+    }
+    return buildDictF37Wire(value as readonly UiDictPair[], entityBase)
+  }
   if (!LIST_TYPES.has(update.type)) return encodeScalarValue(update.type, value)
   if (!Array.isArray(value)) throw new Error(`[error] ${update.type} custom variable value must be an array`)
   const elementType = update.type.slice(0, -5) as CustomVariableType
@@ -301,11 +387,11 @@ function encodeTypedValueEnvelope(typeCode: number): Buffer {
   ])
 }
 
-function encodeDefinition(update: CustomVariableUpdate): Buffer {
+function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831): Buffer {
   const typeCode = codeForType(update.type)
   const specializedField = typeFieldForCode(typeCode)
   if (!specializedField) throw new Error(`[error] unsupported custom variable type: ${update.type}`)
-  const initial = encodeInitialValue(update)
+  const initial = encodeInitialValue(update, entityBase)
   const typePayload = Buffer.concat([
     encodeTypedValueEnvelope(typeCode),
     encodeLengthField(specializedField, initial)
@@ -324,8 +410,54 @@ function typeFieldForCode(typeCode: number): number | undefined {
   return typeCode + 10 && type !== 'unknown' ? typeCode + 10 : undefined
 }
 
+/** 变量容器路径：prefab 元件定义 = root4.1[*].8.11，场景实体 = root5.1[entity].7.11 */
+type VariableContainerPath = { root: 4 | 5; container: 8 | 7 }
+const PREFAB_PATH: VariableContainerPath = { root: 4, container: 8 }
+const ENTITY_PATH: VariableContainerPath = { root: 5, container: 7 }
+
+function ownerEntriesFor(payload: Uint8Array, fields: LenField[], path: VariableContainerPath): LenField[] {
+  return fields.filter((field) => field.depth === 2 && field.p0 === path.root && field.p1 === 1)
+}
+
+function variableContainerFor(fields: LenField[], owner: LenField, path: VariableContainerPath): LenField | undefined {
+  return fields.find(
+    (field) =>
+      field.depth === 4 &&
+      field.p0 === path.root &&
+      field.p1 === 1 &&
+      field.p2 === path.container &&
+      field.p3 === 11 &&
+      field.dataStart >= owner.dataStart &&
+      field.dataEnd <= owner.dataEnd
+  )
+}
+
+function variableFieldsFor(fields: LenField[], owner: LenField, path: VariableContainerPath): LenField[] {
+  return fields.filter(
+    (field) =>
+      field.depth === 5 &&
+      field.p0 === path.root &&
+      field.p1 === 1 &&
+      field.p2 === path.container &&
+      field.p3 === 11 &&
+      field.p4 === 1 &&
+      field.dataStart >= owner.dataStart &&
+      field.dataEnd <= owner.dataEnd
+  )
+}
+
+/** 扫描 root5 场景实体，返回 dict Map25 可用的未占用实体 ID 下限。 */
+function entityBaseFor(payload: Uint8Array, fields: LenField[]): number {
+  let base = 1073741831
+  for (const owner of fields.filter((field) => field.depth === 2 && field.p0 === 5 && field.p1 === 1)) {
+    const id = varintField(fieldsOf(payload.subarray(owner.dataStart, owner.dataEnd)), 1)
+    if (id !== undefined && id >= base) base = id + 1
+  }
+  return base
+}
+
 function ownerEntries(payload: Uint8Array, fields: LenField[]): LenField[] {
-  return fields.filter((field) => field.depth === 2 && field.p0 === 4 && field.p1 === 1)
+  return ownerEntriesFor(payload, fields, PREFAB_PATH)
 }
 
 function ownerIdentity(
@@ -337,17 +469,7 @@ function ownerIdentity(
 }
 
 function variableFieldsInOwner(fields: LenField[], owner: LenField): LenField[] {
-  return fields.filter(
-    (field) =>
-      field.depth === 5 &&
-      field.p0 === 4 &&
-      field.p1 === 1 &&
-      field.p2 === 8 &&
-      field.p3 === 11 &&
-      field.p4 === 1 &&
-      field.dataStart >= owner.dataStart &&
-      field.dataEnd <= owner.dataEnd
-  )
+  return variableFieldsFor(fields, owner, PREFAB_PATH)
 }
 
 function parseDefinition(
@@ -441,21 +563,13 @@ export function applyCustomPrefabInitialCustomVariableDeclarations(params: {
     (entry) => ownerIdentity(nextPayload, entry).prefabId === params.prefabId
   )
   if (!owner) throw new Error(`[error] custom prefab not found after update: ${params.prefabId}`)
-  const variableContainer = nextFields.find(
-    (field) =>
-      field.depth === 4 &&
-      field.p0 === 4 &&
-      field.p1 === 1 &&
-      field.p2 === 8 &&
-      field.p3 === 11 &&
-      field.dataStart >= owner.dataStart &&
-      field.dataEnd <= owner.dataEnd
-  )
+  const variableContainer = variableContainerFor(nextFields, owner, PREFAB_PATH)
   if (!variableContainer)
     throw new Error(`[error] custom variable container not found: ${params.prefabId}`)
+  const entityBase = entityBaseFor(nextPayload, nextFields)
   const appended = Buffer.concat([
     Buffer.from(nextPayload.subarray(variableContainer.dataStart, variableContainer.dataEnd)),
-    ...additions.map((declaration) => encodeLengthField(1, encodeDefinition(declaration)))
+    ...additions.map((declaration) => encodeLengthField(1, encodeDefinition(declaration, entityBase)))
   ])
   nextPayload = applyReplacement(nextPayload, nextFields, variableContainer, appended)
   return {
@@ -547,9 +661,10 @@ export function syncPrefabCustomVariableDeclarations(params: {
       (declaration) => !existingNames.has(declaration.name)
     )
     if (additions.length === 0) break
+    const entityBase = entityBaseFor(payload, fields)
     const appended = Buffer.concat([
       Buffer.from(payload.subarray(container.dataStart, container.dataEnd)),
-      ...additions.map((declaration) => encodeLengthField(1, encodeDefinition(declaration)))
+      ...additions.map((declaration) => encodeLengthField(1, encodeDefinition(declaration, entityBase)))
     ])
     payload = Uint8Array.from(applyReplacement(payload, fields, container, appended))
     fields = parsePayloadFields(payload)
@@ -609,6 +724,7 @@ export function applyCustomPrefabInitialCustomVariableUpdates(params: {
 
   let nextPayload = payload
   let nextFields = fields
+  const entityBase = entityBaseFor(payload, fields)
   const changed: { name: string; type: CustomVariableType }[] = []
   const unchanged: string[] = []
   while (updates.size > 0) {
@@ -631,7 +747,7 @@ export function applyCustomPrefabInitialCustomVariableUpdates(params: {
         `[error] custom variable type mismatch: ${definition.name}; expected ${update.type}, actual ${definition.type}`
       )
     }
-    const wanted = encodeInitialValue(update)
+    const wanted = encodeInitialValue(update, entityBase)
     if (Buffer.from(definition.initialValueWire).equals(Buffer.from(wanted))) {
       unchanged.push(definition.name)
       updates.delete(definition.name)
@@ -671,6 +787,154 @@ export function applyCustomPrefabInitialCustomVariableUpdates(params: {
   if (updates.size > 0)
     throw new Error(`[error] custom variable not found: ${[...updates.keys()].join(', ')}`)
   return { bytes: rebuildGilFile(params.gilPath, nextPayload), changed, unchanged }
+}
+
+function entityOwnerFor(payload: Uint8Array, fields: LenField[], entityId: number): LenField | undefined {
+  return ownerEntriesFor(payload, fields, ENTITY_PATH).find((entry) => {
+    const id = varintField(fieldsOf(payload.subarray(entry.dataStart, entry.dataEnd)), 1)
+    return id === entityId
+  })
+}
+
+/** 读取场景实体（root5.1[entity].7.11）的自定义变量（与关卡变量 entry 同构）。 */
+export function readEntityCustomVariables(params: {
+  gilPath: string
+  entityId: number
+}): { entityId: number; variables: readonly CustomVariableDefinition[] } {
+  const { payload, fields } = readGilPayloadFields(params.gilPath)
+  const owner = entityOwnerFor(payload, fields, params.entityId)
+  if (!owner) throw new Error(`[error] scene entity not found: ${params.entityId}`)
+  const variables = variableFieldsFor(fields, owner, ENTITY_PATH)
+    .map((field) => parseDefinition(payload, field))
+    .filter((definition): definition is CustomVariableDefinition => !!definition)
+  return { entityId: params.entityId, variables }
+}
+
+/** 更新场景实体上已存在自定义变量的初始值（root5.1[entity].7.11）。 */
+export function applyEntityCustomVariableUpdates(params: {
+  gilPath: string
+  entityId: number
+  updates: readonly CustomVariableUpdate[]
+}): ApplyCustomVariableUpdatesResult {
+  const { payload, fields } = readGilPayloadFields(params.gilPath)
+  const initialOwner = entityOwnerFor(payload, fields, params.entityId)
+  if (!initialOwner) throw new Error(`[error] scene entity not found: ${params.entityId}`)
+  const variableContainer = variableContainerFor(fields, initialOwner, ENTITY_PATH)
+  if (!variableContainer)
+    throw new Error(`[error] custom variable container not found: entity ${params.entityId}`)
+
+  const updates = new Map(params.updates.map((update) => [update.name, update]))
+  if (updates.size !== params.updates.length)
+    throw new Error('[error] duplicate custom variable update name')
+
+  let nextPayload = payload
+  let nextFields = fields
+  const entityBase = entityBaseFor(payload, fields)
+  const changed: { name: string; type: CustomVariableType }[] = []
+  const unchanged: string[] = []
+  while (updates.size > 0) {
+    const nextOwner = entityOwnerFor(nextPayload, nextFields, params.entityId)
+    if (!nextOwner)
+      throw new Error(`[error] scene entity not found after update: ${params.entityId}`)
+    const pair = variableFieldsFor(nextFields, nextOwner, ENTITY_PATH)
+      .map((variableField) => ({
+        variableField,
+        definition: parseDefinition(nextPayload, variableField)
+      }))
+      .find((item) => item.definition && updates.has(item.definition.name))
+    if (!pair?.definition) break
+    const { variableField, definition } = pair
+    const update = updates.get(definition.name)!
+    if (definition.type !== update.type) {
+      throw new Error(
+        `[error] custom variable type mismatch: ${definition.name}; expected ${update.type}, actual ${definition.type}`
+      )
+    }
+    const wanted = encodeInitialValue(update, entityBase)
+    if (Buffer.from(definition.initialValueWire).equals(Buffer.from(wanted))) {
+      unchanged.push(definition.name)
+      updates.delete(definition.name)
+      continue
+    }
+
+    const variableBytes = nextPayload.subarray(variableField.dataStart, variableField.dataEnd)
+    const directFields = fieldsOf(variableBytes)
+    const typeField = directFields.find((field) => field.field === 4 && field.wire === 2)
+    if (!typeField)
+      throw new Error(`[error] custom variable type payload missing: ${definition.name}`)
+    const typeBytes = variableBytes.subarray(typeField.dataStart, typeField.dataEnd)
+    const specializedField = typeFieldForCode(definition.typeCode)
+    const specialized = specializedField
+      ? fieldsOf(typeBytes).find((field) => field.field === specializedField && field.wire === 2)
+      : undefined
+    if (!specialized || specializedField === undefined) {
+      throw new Error(`[error] unsupported custom variable type for update: ${definition.type}`)
+    }
+
+    const replacement = encodeLengthField(specializedField, wanted)
+    const rebuiltType = Buffer.concat([
+      Buffer.from(typeBytes.subarray(0, specialized.keyStart)),
+      replacement,
+      Buffer.from(typeBytes.subarray(specialized.dataEnd))
+    ])
+    nextPayload = applyReplacement(
+      nextPayload,
+      nextFields,
+      typeFieldAsPayloadField(variableField, typeField),
+      rebuiltType
+    )
+    nextFields = parsePayloadFields(nextPayload)
+    changed.push({ name: definition.name, type: definition.type })
+    updates.delete(definition.name)
+  }
+  if (updates.size > 0)
+    throw new Error(`[error] custom variable not found: ${[...updates.keys()].join(', ')}`)
+  return { bytes: rebuildGilFile(params.gilPath, nextPayload), changed, unchanged }
+}
+
+/** 在场景实体（root5.1[entity].7.11）上声明自定义变量：已存在则更新初始值，缺失则追加。 */
+export function applyEntityCustomVariableDeclarations(params: {
+  gilPath: string
+  entityId: number
+  declarations: readonly CustomVariableDeclaration[]
+}): ApplyCustomVariableUpdatesResult {
+  const existing = readEntityCustomVariables({
+    gilPath: params.gilPath,
+    entityId: params.entityId
+  })
+  const existingNames = new Set(existing.variables.map((definition) => definition.name))
+  const updates = params.declarations.filter((declaration) => existingNames.has(declaration.name))
+  const additions = params.declarations.filter(
+    (declaration) => !existingNames.has(declaration.name)
+  )
+  const updated = applyEntityCustomVariableUpdates({
+    gilPath: params.gilPath,
+    entityId: params.entityId,
+    updates
+  })
+  if (additions.length === 0) return updated
+
+  let nextPayload = updated.bytes.subarray(20, -4)
+  let nextFields = parsePayloadFields(nextPayload)
+  const owner = entityOwnerFor(nextPayload, nextFields, params.entityId)
+  if (!owner) throw new Error(`[error] scene entity not found after update: ${params.entityId}`)
+  const variableContainer = variableContainerFor(nextFields, owner, ENTITY_PATH)
+  if (!variableContainer)
+    throw new Error(`[error] custom variable container not found: entity ${params.entityId}`)
+  const entityBase = entityBaseFor(nextPayload, nextFields)
+  const appended = Buffer.concat([
+    Buffer.from(nextPayload.subarray(variableContainer.dataStart, variableContainer.dataEnd)),
+    ...additions.map((declaration) => encodeLengthField(1, encodeDefinition(declaration, entityBase)))
+  ])
+  nextPayload = applyReplacement(nextPayload, nextFields, variableContainer, appended)
+  return {
+    bytes: rebuildGilFileFromSource(updated.bytes, nextPayload),
+    changed: [
+      ...updated.changed,
+      ...additions.map((declaration) => ({ name: declaration.name, type: declaration.type }))
+    ],
+    unchanged: updated.unchanged
+  }
 }
 
 function typeFieldAsPayloadField(variableField: LenField, local: WireField): LenField {

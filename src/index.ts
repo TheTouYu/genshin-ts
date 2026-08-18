@@ -2,6 +2,8 @@ export type {
   GstsAssetsConfig,
   GstsConfig,
   GstsCustomVariableDeclaration,
+  GstsCustomVariableDictPair,
+  GstsCustomVariableDictValueType,
   GstsCustomVariableOperation,
   GstsCustomVariableType,
   GstsStage3Options,
@@ -45,12 +47,22 @@ export { applyStaticPrefabCategories } from './cli/gil_static_prefab_categories.
 export type { StaticPrefabCategoriesResult } from './cli/gil_static_prefab_categories.js'
 export { applyStaticPrefabUpdate } from './cli/gil_static_prefab_updates.js'
 export type { StaticPrefabUpdateResult } from './cli/gil_static_prefab_updates.js'
+export { applyTabOptionsUpdate } from './cli/gil_static_prefab_updates.js'
+export type {
+  TabOptionsRegion,
+  TabOptionsUpdateParams,
+  TabOptionsUpdateResult
+} from './cli/gil_static_prefab_updates.js'
 
 export {
   applyCustomPrefabInitialCustomVariableDeclarations,
   applyCustomPrefabInitialCustomVariableUpdates,
+  applyEntityCustomVariableDeclarations,
+  applyEntityCustomVariableUpdates,
+  decodeCustomVariableValue,
   readCharacterInitialCustomVariables,
   readCustomPrefabInitialCustomVariables,
+  readEntityCustomVariables,
   readPlayerInitialCustomVariables,
   syncCharacterCustomVariableDeclarations,
   syncPrefabCustomVariableDeclarations,

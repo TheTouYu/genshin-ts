@@ -217,11 +217,19 @@ export type GstsGameRegion = 'China' | 'Global'
 
 export type CustomVariableScalarValue = bigint | boolean | number | string
 export type CustomVariableVectorValue = readonly [number, number, number]
+export type GstsCustomVariableDictValueType = 'str' | 'int' | 'str_list' | 'int_list'
+export type GstsCustomVariableDictPair = {
+  key: string
+  keyType: 'str' | 'int'
+  value: string | number | readonly string[] | readonly number[]
+  valueType: GstsCustomVariableDictValueType
+}
 export type CustomVariableInitialValue =
   | CustomVariableScalarValue
   | CustomVariableVectorValue
   | readonly CustomVariableScalarValue[]
   | readonly CustomVariableVectorValue[]
+  | readonly GstsCustomVariableDictPair[]
 
 export type GstsCustomVariableType =
   | 'entity'
@@ -244,6 +252,7 @@ export type GstsCustomVariableType =
   | 'config_id_list'
   | 'prefab_id_list'
   | 'faction_list'
+  | 'dict'
 
 export type GstsCustomVariableDeclaration = {
   name: string
