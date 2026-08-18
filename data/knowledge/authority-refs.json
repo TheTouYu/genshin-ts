@@ -835,7 +835,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "73db30ea170c6662da7c288f9270786259ede7251cb5effe9310bb6d89ce29f7",
+      "approved_hash": "56adbf220c3229836c800b41c8f7fb5a14c3e6d14b8c74d6361198d2cd67b5bd",
       "claim_ids": [
         "clm_1EB7BE64DF651835F79AE4DB94"
       ],
@@ -1360,7 +1360,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "approved_hash": "ff57ac9e10392fc84a9bce94eda8e8d74f52d64b8fdf00f80d1091ad4c65c962",
       "claim_ids": [
         "clm_43C39823DA58DBAB7172840ABC"
       ],
