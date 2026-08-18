@@ -4830,7 +4830,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "e79eca81fe147eab78d4d4a65f2999867b5c7a32b59c4423e7a7d67c7f295472",
+      "approved_hash": "ed3690a6e80d3249375710730b545cb3e5af9f0d70911c0f01fc841ad96997ae",
       "claim_ids": [
         "clm_1AD56D30A3A2DF6F08673BA49C"
       ],
