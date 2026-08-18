@@ -8,30 +8,43 @@ import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget } from './gil_paths.js'
 import {
   createLevelVariable,
+  createLevelVariableTyped,
   listLevelVariables,
-  updateLevelVariable
+  updateLevelVariable,
+  type UiDictPair,
+  type UiVarType
 } from './gil_level_variables.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
 type Command = 'list' | 'create' | 'update'
 type Format = 'text' | 'json'
 
+const TYPE_CODES: Record<string, UiVarType> = {
+  bool: 'bool',
+  int: 'int',
+  str: 'str',
+  int_list: 'int_list',
+  str_list: 'str_list',
+  dict: 'dict'
+}
+
 function usage(exitCode = 1): never {
   const output = [
-    'List or create level variables (关卡变量, root5 level entity f7[11].11).',
+    'List, create or update entity custom variables (关卡变量 = 关卡实体变量, root5 f7[11].11).',
     '',
     'Usage: gsts assets:level-variables [list|create|update] [options]',
     '',
-    '  list: gsts assets:level-variables list [--gil <file>] [--format json]',
-    '  create: gsts assets:level-variables create --name <name> --type bool|int [--value <0|1|number|true|false>]',
-    '  update: gsts assets:level-variables update --name <current> [--value <v>] [--new-name <n>]',
+    '  list: gsts assets:level-variables list [--entity <id>] [--gil <file>] [--format json]',
+    '  create: gsts assets:level-variables create --name <name> --type bool|int|str|int_list|str_list|dict [--value <v>] [--entity <id>]',
+    '  update: gsts assets:level-variables update --name <current> [--value <v>] [--new-name <n>] [--entity <id>]',
     '',
     'Options:',
+    '  --entity <id>           scene entity id (default 1094713345 = 关卡实体)',
     '  --gil <file>            explicit GIL source',
     '  --name <name>           variable name (current for update)',
     '  --new-name <name>       rename variable (update only)',
-    '  --type <bool|int>       variable type',
-    '  --value <v>             default value',
+    '  --type <type>           bool|int|str|int_list|str_list|dict',
+    '  --value <v>             value: int/bool/str scalar; list "a,b,c"; dict "k=v;k2=v2"',
     '  --output <file>         create output without overwriting',
     '  --write                 atomically write source GIL after backup',
     '  --format <text|json>    output format (default: text)',
@@ -54,9 +67,10 @@ function parseArgs(argv: readonly string[]) {
   let write = false
   let format: Format = 'text'
   let name: string | undefined
-  let type: 'bool' | 'int' | undefined
+  let type: UiVarType | undefined
   let rawValue: string | undefined
   let newName: string | undefined
+  let entityId: number | undefined
   let index = 0
   if (argv[0] === 'list' || argv[0] === 'create' || argv[0] === 'update') {
     command = argv[0]
@@ -73,17 +87,23 @@ function parseArgs(argv: readonly string[]) {
       format = raw
     } else if (arg === '--name') name = value(argv, index++)
     else if (arg === '--new-name') newName = value(argv, index++)
-    else if (arg === '--type') {
+    else if (arg === '--entity') {
+      entityId = Number(value(argv, index++))
+      if (!Number.isSafeInteger(entityId) || entityId < 0)
+        throw new Error('[error] --entity must be a non-negative safe integer')
+    } else if (arg === '--type') {
       const raw = value(argv, index++)
-      if (raw !== 'bool' && raw !== 'int') throw new Error('[error] --type must be bool or int')
-      type = raw
+      if (!(raw in TYPE_CODES)) {
+        throw new Error('[error] --type must be bool|int|str|int_list|str_list|dict')
+      }
+      type = TYPE_CODES[raw]
     } else if (arg === '--value') rawValue = value(argv, index++)
     else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
   if (command === 'create') {
     if (!name) throw new Error('[error] create requires --name <name>')
-    if (!type) throw new Error('[error] create requires --type <bool|int>')
+    if (!type) throw new Error('[error] create requires --type')
   }
   if (command === 'update') {
     if (!name) throw new Error('[error] update requires --name <current>')
@@ -91,7 +111,7 @@ function parseArgs(argv: readonly string[]) {
       throw new Error('[error] update requires --value or --new-name')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, gilPath, outputPath, write, format, name, type, rawValue, newName }
+  return { command, gilPath, outputPath, write, format, name, type, rawValue, newName, entityId }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -133,6 +153,33 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
   return backup
 }
 
+function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
+  if (raw === undefined) return undefined
+  if (type === 'int') return Number(raw)
+  if (type === 'bool') return raw === 'true' || raw === '1'
+  if (type === 'str') return raw
+  if (type === 'int_list') return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
+  if (type === 'str_list') return raw.split(',').map((s) => s.trim()).filter((s) => s !== '')
+  if (type === 'dict') {
+    const pairs: UiDictPair[] = []
+    for (const part of raw.split(';')) {
+      const eq = part.indexOf('=')
+      if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
+      const k = part.slice(0, eq).trim()
+      const v = part.slice(eq + 1).trim()
+      const numeric = /^-?\d+$/.test(v)
+      pairs.push({
+        key: k,
+        keyType: 'str',
+        value: numeric ? Number(v) : v,
+        valueType: numeric ? 'int' : 'str'
+      })
+    }
+    return pairs
+  }
+  return raw
+}
+
 async function execute(argv: readonly string[], projectConfig: GstsConfig | undefined) {
   const args = parseArgs(argv)
   const gilPath = resolveGilPath(args, projectConfig)
@@ -145,29 +192,40 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
 
   if (args.command === 'list') {
-    const vars = listLevelVariables(sourceBytes)
+    const vars = listLevelVariables(sourceBytes, args.entityId)
     if (jsonMode) {
       process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'level-variables-list', variables: vars }))
     } else {
-      for (const v of vars) log(`name=${v.name} type=${v.type} value=${v.value}`)
+      for (const v of vars) log(`name=${v.name} type=${v.type} value=${JSON.stringify(v.value)}`)
     }
     return
   }
 
-  let value: number | boolean | undefined
-  if (args.rawValue !== undefined) {
-    if (args.type === 'bool') value = args.rawValue === 'true' || args.rawValue === '1'
-    else if (args.type === 'int') value = Number(args.rawValue)
-    else if (args.rawValue === 'true' || args.rawValue === 'false') value = args.rawValue === 'true'
-    else value = Number(args.rawValue)
+  let result: { bytes: Uint8Array; name: string }
+  if (args.command === 'create') {
+    const type = args.type!
+    const value = parseCreateValue(type, args.rawValue)
+    if (type === 'bool' || type === 'int') {
+      result = createLevelVariable(sourceBytes, args.name!, type, value as number | boolean, args.entityId)
+    } else {
+      result = createLevelVariableTyped(sourceBytes, args.name!, type, value, args.entityId)
+    }
+  } else {
+    const rawValue = args.rawValue
+    const numeric = rawValue !== undefined && /^-?\d+$/.test(rawValue)
+    const boolVal = rawValue !== undefined && (rawValue === 'true' || rawValue === 'false' || rawValue === '1' || rawValue === '0')
+    let value: number | boolean | undefined
+    if (rawValue !== undefined) value = boolVal ? rawValue === 'true' || rawValue === '1' : numeric ? Number(rawValue) : Number.NaN
+    result = updateLevelVariable(
+      sourceBytes,
+      args.name!,
+      {
+        ...(value !== undefined && !Number.isNaN(value) ? { value } : {}),
+        ...(args.newName !== undefined ? { newName: args.newName } : {})
+      },
+      args.entityId
+    )
   }
-  const result =
-    args.command === 'update'
-      ? updateLevelVariable(sourceBytes, args.name!, {
-          ...(value !== undefined ? { value } : {}),
-          ...(args.newName !== undefined ? { newName: args.newName } : {})
-        })
-      : createLevelVariable(sourceBytes, args.name!, args.type!, value)
   const summary: Record<string, unknown> = {
     schemaVersion: 1,
     kind: `level-variables-${args.command}`,

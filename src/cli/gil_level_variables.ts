@@ -7,8 +7,8 @@ const TEXT_DECODER = new TextDecoder()
 
 export type LevelVariable = {
   name: string
-  type: 'bool' | 'int'
-  value: boolean | number
+  type: 'bool' | 'int' | 'str' | 'list' | 'dict'
+  value: boolean | number | string | unknown
 }
 
 function parseMessageFields(data: Uint8Array): WireField[] | undefined {
@@ -37,7 +37,7 @@ function firstBytes(fields: readonly WireField[] | undefined, number: number): U
   return field?.value instanceof Uint8Array ? field.value : undefined
 }
 
-function root5LevelEntity(top: readonly WireField[]): WireField | undefined {
+function root5LevelEntity(top: readonly WireField[], entityId = LEVEL_ENTITY_ID): WireField | undefined {
   const root5 = top.find((f) => f.number === 5 && f.wire === 2)
   if (!root5) return undefined
   const section = parseMessageFields(root5.value as Uint8Array)
@@ -46,9 +46,9 @@ function root5LevelEntity(top: readonly WireField[]): WireField | undefined {
     if (field.number !== 1 || field.wire !== 2) return false
     const rec = field.value as Uint8Array
     const id = firstVarint(parseMessageFields(rec), 1)
-    if (id === LEVEL_ENTITY_ID) return true
+    if (id === entityId) return true
     // fallback: resourceId 10003004 = 关卡实体
-    return firstVarint(parseMessageFields(rec), 8) === 10003004
+    return entityId === LEVEL_ENTITY_ID && firstVarint(parseMessageFields(rec), 8) === 10003004
   })
 }
 
@@ -65,26 +65,30 @@ function levelVarComponent(record: Uint8Array): { field: WireField; message: Wir
   return undefined
 }
 
-function decodeValue(type: 'bool' | 'int', entry: WireField[]): boolean | number {
+function decodeValue(type: LevelVariable['type'], entry: WireField[]): unknown {
   const f4 = firstBytes(entry, 4)
-  if (f4) {
-    const f4msg = parseMessageFields(f4)
-    const branch = type === 'int' ? firstBytes(f4msg, 13) : firstBytes(f4msg, 14)
-    if (branch) {
-      const branchMsg = parseMessageFields(branch)
-      const v = firstVarint(branchMsg, 1)
-      if (type === 'int') return v ?? 0
-      return v === 1
-    }
-    return type === 'int' ? 0 : false
+  if (!f4) return type === 'int' ? 0 : type === 'bool' ? false : null
+  const f4msg = parseMessageFields(f4)
+  if (type === 'bool') {
+    const branch = firstBytes(f4msg, 14)
+    return branch ? (firstVarint(parseMessageFields(branch), 1) === 1) : false
   }
-  return type === 'int' ? 0 : false
+  if (type === 'int') {
+    const branch = firstBytes(f4msg, 13)
+    return branch ? (firstVarint(parseMessageFields(branch), 1) ?? 0) : 0
+  }
+  if (type === 'str') {
+    const branch = firstBytes(f4msg, 15) // str 类型默认值分支（占位，待样本确认）
+    return branch ? textOf(branch) : ''
+  }
+  // dict / list 默认值结构复杂，先返回 raw hex 占位
+  return `raw:${Buffer.from(f4).toString('hex').slice(0, 40)}`
 }
 
-export function listLevelVariables(bytes: Uint8Array): LevelVariable[] {
+export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelVariable[] {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
-  const entity = root5LevelEntity(top)
+  const entity = root5LevelEntity(top, entityId)
   if (!entity) return []
   const comp = levelVarComponent(entity.value as Uint8Array)
   if (!comp) return []
@@ -98,7 +102,9 @@ export function listLevelVariables(bytes: Uint8Array): LevelVariable[] {
     const em = parseMessageFields(entry.value as Uint8Array)
     if (!em) continue
     const name = firstBytes(em, 2) ? textOf(firstBytes(em, 2)!) : ''
-    const type = firstVarint(em, 3) === 3 ? 'int' : 'bool'
+    const code = firstVarint(em, 3)
+    const type: LevelVariable['type'] =
+      code === 3 ? 'int' : code === 4 ? 'bool' : code === 6 ? 'str' : code === 27 ? 'dict' : 'list'
     result.push({ name, type, value: decodeValue(type, em) })
   }
   return result
@@ -108,7 +114,8 @@ export function createLevelVariable(
   bytes: Uint8Array,
   name: string,
   type: 'bool' | 'int',
-  value?: number | boolean
+  value?: number | boolean,
+  entityId?: number
 ): { bytes: Uint8Array; name: string } {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
@@ -116,12 +123,13 @@ export function createLevelVariable(
   if (!root5) throw new Error('[error] root 5 not found')
   const section = parseMessageFields(root5.value as Uint8Array)
   if (!section) throw new Error('[error] invalid root 5 section')
+  const targetEntity = entityId ?? LEVEL_ENTITY_ID
   const entityIdx = section.findIndex((f) => {
     if (f.number !== 1 || f.wire !== 2) return false
     const rec = f.value as Uint8Array
     return (
-      firstVarint(parseMessageFields(rec), 1) === LEVEL_ENTITY_ID ||
-      firstVarint(parseMessageFields(rec), 8) === 10003004
+      firstVarint(parseMessageFields(rec), 1) === targetEntity ||
+      (targetEntity === LEVEL_ENTITY_ID && firstVarint(parseMessageFields(rec), 8) === 10003004)
     )
   })
   if (entityIdx < 0) throw new Error('[error] level entity not found')
@@ -162,7 +170,8 @@ export function createLevelVariable(
 export function updateLevelVariable(
   bytes: Uint8Array,
   name: string,
-  opts: { value?: number | boolean; newName?: string }
+  opts: { value?: number | boolean; newName?: string },
+  entityId?: number
 ): { bytes: Uint8Array; name: string } {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
@@ -170,12 +179,13 @@ export function updateLevelVariable(
   if (!root5) throw new Error('[error] root 5 not found')
   const section = parseMessageFields(root5.value as Uint8Array)
   if (!section) throw new Error('[error] invalid root 5 section')
+  const targetEntity = entityId ?? LEVEL_ENTITY_ID
   const entityIdx = section.findIndex((f) => {
     if (f.number !== 1 || f.wire !== 2) return false
     const rec = f.value as Uint8Array
     return (
-      firstVarint(parseMessageFields(rec), 1) === LEVEL_ENTITY_ID ||
-      firstVarint(parseMessageFields(rec), 8) === 10003004
+      firstVarint(parseMessageFields(rec), 1) === targetEntity ||
+      (targetEntity === LEVEL_ENTITY_ID && firstVarint(parseMessageFields(rec), 8) === 10003004)
     )
   })
   if (entityIdx < 0) throw new Error('[error] level entity not found')
@@ -203,8 +213,13 @@ export function updateLevelVariable(
   const entryField = varsMsg[entryIdx]
   const em = parseMessageFields(entryField.value as Uint8Array)
   if (!em) throw new Error('[error] invalid level variable entry')
-  const type = firstVarint(em, 3) === 3 ? 'int' : 'bool'
+  const typeCode = firstVarint(em, 3)
+  const type: LevelVariable['type'] =
+    typeCode === 3 ? 'int' : typeCode === 4 ? 'bool' : typeCode === 6 ? 'str' : typeCode === 27 ? 'dict' : 'list'
   let newEntry = em
+  if (opts.value !== undefined && type !== 'int' && type !== 'bool') {
+    throw new Error(`[error] value update for ${type} variables not yet supported`)
+  }
   if (opts.value !== undefined) {
     const code = type === 'int' ? 3 : 4
     const defaultValue = type === 'int' ? Number(opts.value) : Boolean(opts.value)
@@ -314,4 +329,170 @@ function buildEntry(name: string, type: 'bool' | 'int', value?: number | boolean
       ])
     }
   ])
+}
+
+export type UiVarType = 'int' | 'bool' | 'str' | 'int_list' | 'str_list' | 'dict'
+export type UiDictPair = { key: string; keyType: 'str' | 'int'; value: string | number; valueType: 'str' | 'int' }
+
+function typeCodeOf(type: UiVarType): number {
+  return type === 'int' ? 3 : type === 'bool' ? 4 : type === 'str' ? 6 : type === 'int_list' ? 8 : type === 'str_list' ? 11 : 27
+}
+
+function scalarValueWire(type: 'int' | 'bool' | 'str', value: unknown): Uint8Array {
+  if (type === 'str') return emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
+  if (type === 'bool') return emitWireMessage([{ number: 1, wire: 0, value: value ? 1 : 0 }])
+  return emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
+}
+
+function listElementsWire(type: 'int_list' | 'str_list', values: readonly unknown[]): Uint8Array {
+  const elemType = type === 'int_list' ? 'int' : 'str'
+  return emitWireMessage(values.map((v) => ({ number: 1, wire: 2, value: scalarValueWire(elemType as 'int' | 'str', v) })))
+}
+
+function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
+  const keyField = (p: UiDictPair) => ({
+    number: 501,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 1, wire: 0, value: p.keyType === 'str' ? 6 : 3 },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: p.keyType === 'str' ? 6 : 3 }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }
+    ])
+  })
+  const valueField = (p: UiDictPair) => ({
+    number: 502,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 1, wire: 0, value: p.valueType === 'str' ? 6 : 3 },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: p.valueType === 'str' ? 6 : 3 }, { number: 2, wire: 2, value: EMPTY }]) },
+      {
+        number: p.valueType === 'str' ? 16 : 13,
+        wire: 2,
+        value:
+          p.valueType === 'str'
+            ? emitWireMessage([{ number: 1, wire: 2, value: utf8(String(p.value)) }])
+            : emitWireMessage([{ number: 1, wire: 0, value: Number(p.value) }])
+      }
+    ])
+  })
+  return emitWireMessage([
+    ...pairs.map(keyField),
+    ...pairs.map(valueField),
+    { number: 503, wire: 0, value: 6 },
+    { number: 504, wire: 0, value: pairs[0]?.valueType === 'str' ? 6 : 3 }
+  ])
+}
+
+function buildTypedEntry(name: string, type: UiVarType, value?: unknown): Uint8Array {
+  const code = typeCodeOf(type)
+  let defaultWire: Uint8Array
+  if (type === 'int') {
+    const v = Number(value ?? 0)
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 13, wire: 2, value: v !== 0 ? emitWireMessage([{ number: 1, wire: 0, value: v }]) : EMPTY }
+    ])
+  } else if (type === 'bool') {
+    const b = Boolean(value)
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 14, wire: 2, value: b ? emitWireMessage([{ number: 1, wire: 0, value: 1 }]) : EMPTY }
+    ])
+  } else if (type === 'str') {
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value ?? '')) }]) }
+    ])
+  } else if (type === 'int_list' || type === 'str_list') {
+    const elemField = code + 10
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: code },
+      { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }]) },
+      { number: elemField, wire: 2, value: listElementsWire(type, (value as unknown[]) ?? []) }
+    ])
+  } else {
+    const pairs = (value as UiDictPair[]) ?? []
+    const keyType = pairs[0]?.keyType === 'int' ? 3 : 6
+    const valueType = pairs[0]?.valueType === 'int' ? 3 : 6
+    defaultWire = emitWireMessage([
+      { number: 1, wire: 0, value: 27 },
+      {
+        number: 2,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 0, value: 27 },
+          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 63 }, { number: 502, wire: 0, value: keyType }, { number: 503, wire: 0, value: valueType }]) }
+        ])
+      },
+      { number: 37, wire: 2, value: dictWire(pairs) }
+    ])
+  }
+  const envelope = emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
+  return emitWireMessage([
+    { number: 2, wire: 2, value: utf8(name) },
+    { number: 3, wire: 0, value: code },
+    { number: 4, wire: 2, value: defaultWire },
+    { number: 5, wire: 0, value: 1 },
+    { number: 6, wire: 2, value: envelope }
+  ])
+}
+
+export function createLevelVariableTyped(
+  bytes: Uint8Array,
+  name: string,
+  type: UiVarType,
+  value?: unknown,
+  entityId?: number
+): { bytes: Uint8Array; name: string } {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root5 = top.find((f) => f.number === 5 && f.wire === 2)
+  if (!root5) throw new Error('[error] root 5 not found')
+  const section = parseMessageFields(root5.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 5 section')
+  const targetEntity = entityId ?? LEVEL_ENTITY_ID
+  const entityIdx = section.findIndex((f) => {
+    if (f.number !== 1 || f.wire !== 2) return false
+    const rec = f.value as Uint8Array
+    return (
+      firstVarint(parseMessageFields(rec), 1) === targetEntity ||
+      (targetEntity === LEVEL_ENTITY_ID && firstVarint(parseMessageFields(rec), 8) === 10003004)
+    )
+  })
+  if (entityIdx < 0) throw new Error('[error] level entity not found')
+  const entity = section[entityIdx]
+  const entityFields = parseMessageFields(entity.value as Uint8Array)
+  if (!entityFields) throw new Error('[error] invalid level entity')
+  const f7Idx = entityFields.findIndex((f) => {
+    if (f.number !== 7 || f.wire !== 2) return false
+    const comp = parseMessageFields(f.value as Uint8Array)
+    return comp?.some((x) => x.number === 11 && x.wire === 2)
+  })
+  if (f7Idx < 0) throw new Error('[error] level variable component not found')
+  const f7 = entityFields[f7Idx]
+  const comp = parseMessageFields(f7.value as Uint8Array)
+  if (!comp) throw new Error('[error] invalid level variable component')
+  const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
+  const varsMsg = f11 ? parseMessageFields(f11.value as Uint8Array) ?? [] : []
+  const entry = buildTypedEntry(name, type, value)
+  varsMsg.push({ number: 1, wire: 2, value: entry })
+  const newF11 = f11
+    ? { ...f11, value: emitWireMessage(varsMsg) }
+    : { number: 11, wire: 2, value: emitWireMessage(varsMsg) }
+  const newComp = emitWireMessage(comp.map((x) => (x === f11 ? newF11 : x)))
+  entityFields[f7Idx] = { ...f7, value: newComp }
+  section[entityIdx] = { ...entity, value: emitWireMessage(entityFields) }
+  root5.value = emitWireMessage(section)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    name
+  }
 }
