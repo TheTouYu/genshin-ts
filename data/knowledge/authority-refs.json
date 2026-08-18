@@ -287,6 +287,21 @@
       ]
     },
     {
+      "id": "aref_1062e6e5fada2c5617a05420d3",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 39-实体布设组管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_1BF25B12586A6C253D9FD1AFD9"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_13401bd2be8c8bd953fcb39e05",
       "path": "tests/static_assembly_package_consumer.ts",
       "locator": "whole npm-pack and installed-scaffold consumer regression",
@@ -299,6 +314,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_13abb01377d3cfdd8c0084cb58",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 36-物件镜头组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_D42AC683F8498FD8215E1F4B14"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -326,6 +356,21 @@
       "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
       "claim_ids": [
         "clm_36C5FB9C950CDB551B99BACA9F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_1551cbfcade5422eb0ee478e4a",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 38-预设点管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_E45C4903A034F84D48662A9451"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -766,6 +811,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2c681b136a1d04fd94dc1d9e92",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 35-主镜头管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_E0D86BF73EF387FF7B0CF29F1A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2421,6 +2481,21 @@
       ]
     },
     {
+      "id": "aref_81ec9457cce31d68f2ae507be9",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 42-自定义小地图",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_C95E80BD10B1762A18479CF075"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_828497b93a0dd5f6d3473e72e8",
       "path": "docs/game-engine-knowledge/camera-system.md",
       "locator": "root 18 镜头容器与物件镜头组件绑定（exp14/17、exp13-14/16）",
@@ -3217,6 +3292,21 @@
       ]
     },
     {
+      "id": "aref_b80c26fbe03235b9f191fdc891",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 43-语音和文字聊天管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_E20140CC6FACE412C157B40E7A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b8a12c6ae9b70b0e6ed770e6b3",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#20c",
@@ -3444,6 +3534,21 @@
       ]
     },
     {
+      "id": "aref_c55141e5c600933dd84f0695ae",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 40-光源组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_FC35C57D9A62EBDE0805B6D689"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_c5cf6bb42e5f4258b2244ec38f",
       "path": "docs/ui-tutorial/official-guide-editor-interface.md",
       "locator": "资产导入导出",
@@ -3648,6 +3753,21 @@
       "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
       "claim_ids": [
         "clm_16ACBF0EE2592FBBA9D3EEAF04"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_d3f207450940a1417d2e1d6526",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 41-场景生成模板",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_28C772F7A997D00FE8F52328F6"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3978,6 +4098,21 @@
       "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
       "claim_ids": [
         "clm_E24C8ADC768A56E2A894E4D57F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_e73e3c71b2128c68762d319c90",
+      "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
+      "locator": "## 37-外围系统管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d5a39c664eca763138816baeedea8c7bc967e6963e7723f5abe7f43239aa205",
+      "claim_ids": [
+        "clm_71B05AAFBCFEED10A3A44257E3"
       ],
       "supports_fact_classes": [
         "documented_contract"

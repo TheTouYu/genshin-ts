@@ -1232,6 +1232,24 @@
         "道具"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "level-settings",
+      "node_id": "official-guide",
+      "title": "关卡设置（UGC 详细规则）",
+      "path": "knowledge/official-guide/ugc-level-settings.md",
+      "summary": "官方奇匠学院一图流：主镜头、物件镜头、外围系统、预设点、实体布设组、光源、场景生成模板、自定义小地图、语音文字聊天的详细规则。",
+      "keywords": [
+        "光源",
+        "场景生成模板",
+        "外围系统",
+        "布设组",
+        "聊天",
+        "自定义小地图",
+        "镜头",
+        "预设点"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2516,6 +2534,51 @@
       ]
     },
     "clm_25800B5B1559D52C5805A4F8EA": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E0D86BF73EF387FF7B0CF29F1A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D42AC683F8498FD8215E1F4B14": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_71B05AAFBCFEED10A3A44257E3": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E45C4903A034F84D48662A9451": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1BF25B12586A6C253D9FD1AFD9": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_FC35C57D9A62EBDE0805B6D689": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_28C772F7A997D00FE8F52328F6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_C95E80BD10B1762A18479CF075": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E20140CC6FACE412C157B40E7A": {
       "fact_classes": [
         "documented_contract"
       ]
