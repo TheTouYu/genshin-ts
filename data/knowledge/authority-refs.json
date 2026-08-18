@@ -107,6 +107,21 @@
       ]
     },
     {
+      "id": "aref_07093a3c79f2ba52aa93d65690",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 71-光标碰撞盒",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_204C7DD4507224A256C9992593"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_07db79e6d080aba53d7b36f7ee",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "895e2cb:尚未闭合条目闭合（跨图投递+多挂载）",
@@ -1519,6 +1534,21 @@
       ]
     },
     {
+      "id": "aref_45ae4c9d140e9384dda4156a00",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 72-技能预瞄准",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_AA6A57AEFA99098F04D0BCDEE8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_46db41354f12402648cf812f08",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 56-悬浮交互页控件",
@@ -1606,6 +1636,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_4d14eba348ae53b7da3984d7ed",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 74-角色操控技能",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_FAFBB1475455160E9798741AF9"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2886,6 +2931,21 @@
       ]
     },
     {
+      "id": "aref_8f021f253adb9386c9d80266e1",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 73-操控运动器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_BB96FD861BA73728EAFEAAC62C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_8f215b482181eaad507019c3a7",
       "path": "docs/ui-tutorial/ugc-svg/components.md",
       "locator": "## 29-扫描标签",
@@ -2913,6 +2973,21 @@
       ],
       "supports_fact_classes": [
         "public_type_surface"
+      ]
+    },
+    {
+      "id": "aref_9156f71cd579445977bebd49a1",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 70-白盒物件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_2347631B8817403E96FD580550"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -4503,6 +4578,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_ED273B2434299235FC4E514024"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_ea239587d76c897269424f6319",
+      "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
+      "locator": "## 7.0-7.0 版本更新要点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "529446b9e73eab1536b845b7c3ef4ea35571b9df7ffc5d20888d54675fb43958",
+      "claim_ids": [
+        "clm_3DE2C552C062388F69942FCCCD"
       ],
       "supports_fact_classes": [
         "documented_contract"

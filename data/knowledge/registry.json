@@ -1275,6 +1275,24 @@
         "锚点"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "version-updates",
+      "node_id": "official-guide",
+      "title": "版本更新（7.0 与月之八）",
+      "path": "knowledge/official-guide/ugc-version-updates.md",
+      "summary": "官方奇匠学院一图流：月之八新增能力（白盒物件/光标碰撞盒/技能预瞄准/操控运动器/角色操控技能）与 7.0 更新要点。",
+      "keywords": [
+        "7.0",
+        "光标碰撞盒",
+        "技能预瞄准",
+        "操控运动器",
+        "月之八",
+        "版本更新",
+        "白盒物件",
+        "角色操控技能"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2734,6 +2752,36 @@
       ]
     },
     "clm_15ABEF3C87ABF5DD941DEF7EB5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2347631B8817403E96FD580550": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_204C7DD4507224A256C9992593": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_AA6A57AEFA99098F04D0BCDEE8": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_BB96FD861BA73728EAFEAAC62C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_FAFBB1475455160E9798741AF9": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3DE2C552C062388F69942FCCCD": {
       "fact_classes": [
         "documented_contract"
       ]
