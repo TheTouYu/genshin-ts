@@ -1,0 +1,1098 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "topic_top_n": 3,
+    "claim_top_n": 5,
+    "permission": "internal"
+  },
+  "cases": [
+    {
+      "id": "full-pipeline-localization-1",
+      "query": "DTC 边界 bool 物理 pin 红灯基线 历史",
+      "expected_topic_ids": [
+        "pipeline-localization"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-diagnostics"
+        ],
+        "topic_ids": [
+          "pipeline-localization"
+        ]
+      }
+    },
+    {
+      "id": "full-physical-pin-routing-1",
+      "query": "compositePins 路由 物理 pin 复合边界",
+      "expected_topic_ids": [
+        "physical-pin-routing"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "physical-pin-routing"
+        ]
+      }
+    },
+    {
+      "id": "full-node-family-exceptions-1",
+      "query": "复合节点 物理 pin 完整性 条件 例外 节点族",
+      "expected_topic_ids": [
+        "node-family-exceptions"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "node-family-exceptions"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-lifecycle-1",
+      "query": "defineComposite callComposite 定义 调用 生命周期 模板",
+      "expected_topic_ids": [
+        "composite-lifecycle"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-lifecycle"
+        ]
+      }
+    },
+    {
+      "id": "full-capture-ir-contract-1",
+      "query": "复合 capture 定义 与 调用点 绑定 分离 契约",
+      "expected_topic_ids": [
+        "capture-ir-contract"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "capture-ir-contract"
+        ]
+      }
+    },
+    {
+      "id": "full-stage3-root-impl-encoding-1",
+      "query": "复合 Stage3 root definition impl 编码",
+      "expected_topic_ids": [
+        "stage3-root-impl-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "stage3-root-impl-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-validation-workflow-1",
+      "query": "复合 修复 同构 红灯到绿灯 回归 验证流程",
+      "expected_topic_ids": [
+        "composite-validation-workflow"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-validation-workflow"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-flow-and-nesting-1",
+      "query": "复合 flow 接口 嵌套 索引 跨深度",
+      "expected_topic_ids": [
+        "composite-flow-and-nesting"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-flow-and-nesting"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-parameter-wire-contracts-1",
+      "query": "复合 参数 编码 声明类型 物理 pin 输入 schema",
+      "expected_topic_ids": [
+        "composite-parameter-wire-contracts"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-parameter-wire-contracts"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-identity-and-related-ids-1",
+      "query": "复合 身份 relatedIds 重映射 闭包 引用集",
+      "expected_topic_ids": [
+        "composite-identity-and-related-ids"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-identity-and-related-ids"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-adapter-and-metadata-boundaries-1",
+      "query": "复合 root impl parity 共享 重映射 元数据 边界",
+      "expected_topic_ids": [
+        "composite-adapter-and-metadata-boundaries"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-adapter-and-metadata-boundaries"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-editor-wire-1",
+      "query": "复合节点 编辑器 wire 落盘 CompositeDef 内部实现图",
+      "expected_topic_ids": [
+        "composite-editor-wire"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-editor-wire"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-exec-chain-1",
+      "query": "复合 exec 链 InFlow pin 惰性 求值 链尾 显式连接",
+      "expected_topic_ids": [
+        "composite-exec-chain"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-exec-chain"
+        ]
+      }
+    },
+    {
+      "id": "full-composite-usage-guide-1",
+      "query": "复合节点 使用指南 5-7 节点 四形式 资产目录",
+      "expected_topic_ids": [
+        "composite-usage-guide"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "composite-boundary"
+        ],
+        "topic_ids": [
+          "composite-usage-guide"
+        ]
+      }
+    },
+    {
+      "id": "full-red-green-regression-1",
+      "query": "red green 回归 基线 fixture 修复链",
+      "expected_topic_ids": [
+        "red-green-regression"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "validation-evidence"
+        ],
+        "topic_ids": [
+          "red-green-regression"
+        ]
+      }
+    },
+    {
+      "id": "full-editor-game-evidence-1",
+      "query": "编辑器 游戏 验证 证据 分层 范围 GIA",
+      "expected_topic_ids": [
+        "editor-game-evidence"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "validation-evidence"
+        ],
+        "topic_ids": [
+          "editor-game-evidence"
+        ]
+      }
+    },
+    {
+      "id": "full-static-assembly-production-evidence-1",
+      "query": "静态拼装 生产 写回 回读 游戏 验证 证据",
+      "expected_topic_ids": [
+        "static-assembly-production-evidence"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "validation-evidence"
+        ],
+        "topic_ids": [
+          "static-assembly-production-evidence"
+        ]
+      }
+    },
+    {
+      "id": "full-assembly-configuration-1",
+      "query": "静态拼装 元件 位置 旋转 缩放 配置 模板",
+      "expected_topic_ids": [
+        "assembly-configuration"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "static-gil-assets"
+        ],
+        "topic_ids": [
+          "assembly-configuration"
+        ]
+      }
+    },
+    {
+      "id": "full-closure-and-id-integrity-1",
+      "query": "静态拼装 闭包 ID 完整性 定义 instance",
+      "expected_topic_ids": [
+        "closure-and-id-integrity"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "static-gil-assets"
+        ],
+        "topic_ids": [
+          "closure-and-id-integrity"
+        ]
+      }
+    },
+    {
+      "id": "full-signal-registration-and-extraction-1",
+      "query": "信号 注册 提取 资产 注入 折线",
+      "expected_topic_ids": [
+        "signal-registration-and-extraction"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "static-gil-assets"
+        ],
+        "topic_ids": [
+          "signal-registration-and-extraction"
+        ]
+      }
+    },
+    {
+      "id": "full-curve-path-decoration-1",
+      "query": "曲线 路径 连续 装饰物 铺放",
+      "expected_topic_ids": [
+        "curve-path-decoration"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "static-gil-assets"
+        ],
+        "topic_ids": [
+          "curve-path-decoration"
+        ]
+      }
+    },
+    {
+      "id": "full-safe-gil-writeback-1",
+      "query": "真实地图 写回 候选 确认 验证 hash 变更消失",
+      "expected_topic_ids": [
+        "safe-gil-writeback"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-map-writeback"
+        ],
+        "topic_ids": [
+          "safe-gil-writeback"
+        ]
+      }
+    },
+    {
+      "id": "full-gia-object-model-1",
+      "query": "GIA 容器 GraphUnit GraphNode 遍历 对象模型",
+      "expected_topic_ids": [
+        "gia-object-model"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "gia-object-model"
+        ]
+      }
+    },
+    {
+      "id": "full-protobuf-presence-and-roundtrip-1",
+      "query": "protobuf presence 往返 未知字段 单变化 闭合",
+      "expected_topic_ids": [
+        "protobuf-presence-and-roundtrip"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "protobuf-presence-and-roundtrip"
+        ]
+      }
+    },
+    {
+      "id": "full-gia-tool-selection-1",
+      "query": "GIA 工具 选择 最小 递增 升级",
+      "expected_topic_ids": [
+        "gia-tool-selection"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "gia-tool-selection"
+        ]
+      }
+    },
+    {
+      "id": "full-real-sample-isomorphic-analysis-1",
+      "query": "真实 GIA 样本 保存 同构 分析",
+      "expected_topic_ids": [
+        "real-sample-isomorphic-analysis"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "real-sample-isomorphic-analysis"
+        ]
+      }
+    },
+    {
+      "id": "full-signal-node-instance-encoding-1",
+      "query": "信号 发送节点 实例 编码 sendId monitorId 注册表",
+      "expected_topic_ids": [
+        "signal-node-instance-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "signal-node-instance-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-ordinary-connection-wire-encoding-1",
+      "query": "普通 SysCall 连接 wire 编码 源目标 index 省略 替换",
+      "expected_topic_ids": [
+        "ordinary-connection-wire-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "gia-wire-analysis"
+        ],
+        "topic_ids": [
+          "ordinary-connection-wire-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-stage1-expression-local-variable-semantics-1",
+      "query": "Stage1 表达式 语义 局部变量 LocalVariable 解析",
+      "expected_topic_ids": [
+        "stage1-expression-local-variable-semantics"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-pipeline-runtime-ir"
+        ],
+        "topic_ids": [
+          "stage1-expression-local-variable-semantics"
+        ]
+      }
+    },
+    {
+      "id": "full-stage2-runtime-ir-production-1",
+      "query": "Stage2 图脚本 隔离 快照 IR 多流出 分支 尾",
+      "expected_topic_ids": [
+        "stage2-runtime-ir-production"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-pipeline-runtime-ir"
+        ],
+        "topic_ids": [
+          "stage2-runtime-ir-production"
+        ]
+      }
+    },
+    {
+      "id": "full-typed-ir-server-client-contract-1",
+      "query": "typed IR 服务端 客户端 契约 IR.d.ts 生产者 消费者",
+      "expected_topic_ids": [
+        "typed-ir-server-client-contract"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-pipeline-runtime-ir"
+        ],
+        "topic_ids": [
+          "typed-ir-server-client-contract"
+        ]
+      }
+    },
+    {
+      "id": "full-stage3-materialization-seams-1",
+      "query": "Stage3 普通 合成 边界 物化 typed IR",
+      "expected_topic_ids": [
+        "stage3-materialization-seams"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-pipeline-runtime-ir"
+        ],
+        "topic_ids": [
+          "stage3-materialization-seams"
+        ]
+      }
+    },
+    {
+      "id": "full-structured-diagnostics-stage-localization-1",
+      "query": "编译器 诊断 阶段 定位 第一分歧 产物",
+      "expected_topic_ids": [
+        "structured-diagnostics-stage-localization"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "compiler-pipeline-runtime-ir"
+        ],
+        "topic_ids": [
+          "structured-diagnostics-stage-localization"
+        ]
+      }
+    },
+    {
+      "id": "full-nodegraph-injection-target-and-safety-1",
+      "query": "节点图 注入 目标 安全 createInjector findNodeGraphTargets",
+      "expected_topic_ids": [
+        "nodegraph-injection-target-and-safety"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "cli-injector-asset-workflows"
+        ],
+        "topic_ids": [
+          "nodegraph-injection-target-and-safety"
+        ]
+      }
+    },
+    {
+      "id": "full-static-assembly-asset-workflows-1",
+      "query": "staticPrefabUpdates removeComponents 组件 移除 契约",
+      "expected_topic_ids": [
+        "static-assembly-asset-workflows"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "cli-injector-asset-workflows"
+        ],
+        "topic_ids": [
+          "static-assembly-asset-workflows"
+        ]
+      }
+    },
+    {
+      "id": "full-knowledge-capture-workflow-1",
+      "query": "知识 录入 流程 memory 同步 捕获",
+      "expected_topic_ids": [
+        "knowledge-capture-workflow"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "project-intelligence"
+        ],
+        "topic_ids": [
+          "knowledge-capture-workflow"
+        ]
+      }
+    },
+    {
+      "id": "full-knowledge-query-tooling-1",
+      "query": "知识库 查询 工具 miliastra 检索 文档 ID",
+      "expected_topic_ids": [
+        "knowledge-query-tooling"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "project-intelligence"
+        ],
+        "topic_ids": [
+          "knowledge-query-tooling"
+        ]
+      }
+    },
+    {
+      "id": "full-variable-scopes-encoding-1",
+      "query": "变量 作用域 实体级 节点图级 局部 wire 无名 E1016",
+      "expected_topic_ids": [
+        "variable-scopes-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "variable-scopes-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-component-type-encoding-1",
+      "query": "组件 类型 映射 编码 字段号 铭牌 27 自定义变量 1",
+      "expected_topic_ids": [
+        "component-type-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "component-type-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-camera-ui-rules-1",
+      "query": "镜头 root18 容器 物件镜头 绑定 UI 控件 事件 转发",
+      "expected_topic_ids": [
+        "camera-ui-rules"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "camera-ui-rules"
+        ]
+      }
+    },
+    {
+      "id": "full-mounting-lifecycle-assets-1",
+      "query": "节点图 挂载 实体 生命周期 资产 选项卡 tabId",
+      "expected_topic_ids": [
+        "mounting-lifecycle-assets"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "mounting-lifecycle-assets"
+        ]
+      }
+    },
+    {
+      "id": "full-gil-structure-closed-paths-1",
+      "query": "GIL root10 容器 field1 主图 CompositeDef impl 挂载 type3",
+      "expected_topic_ids": [
+        "gil-structure-closed-paths"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "gil-structure-closed-paths"
+        ]
+      }
+    },
+    {
+      "id": "full-signal-production-encoding-1",
+      "query": "信号 生产 编码 signalVersion 发送 节点 骨架",
+      "expected_topic_ids": [
+        "signal-production-encoding"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "signal-production-encoding"
+        ]
+      }
+    },
+    {
+      "id": "full-production-chain-evidence-1",
+      "query": "GIA 生产链路 五层 证据 可复现 红灯 清单",
+      "expected_topic_ids": [
+        "production-chain-evidence"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "production-chain-evidence"
+        ]
+      }
+    },
+    {
+      "id": "full-node-graph-layout-1",
+      "query": "节点图 布局 书页式 自动布局 引擎",
+      "expected_topic_ids": [
+        "node-graph-layout"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "node-graph-layout"
+        ]
+      }
+    },
+    {
+      "id": "full-motion-device-runtime-1",
+      "query": "运动器 运行时 旋转 axis 局部轴 公转 公式 引擎负载",
+      "expected_topic_ids": [
+        "motion-device-runtime"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "game-engine-knowledge"
+        ],
+        "topic_ids": [
+          "motion-device-runtime"
+        ]
+      }
+    },
+    {
+      "id": "full-container-and-records-1",
+      "query": "调试日志 .gia 容器 版本 记录 字段 f21 f22",
+      "expected_topic_ids": [
+        "container-and-records"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "debug-log-format"
+        ],
+        "topic_ids": [
+          "container-and-records"
+        ]
+      }
+    },
+    {
+      "id": "full-frame-encoding-rules-1",
+      "query": "日志 帧 编码 类型码 两级帧 f6 操作码",
+      "expected_topic_ids": [
+        "frame-encoding-rules"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "debug-log-format"
+        ],
+        "topic_ids": [
+          "frame-encoding-rules"
+        ]
+      }
+    },
+    {
+      "id": "full-investigation-workflow-1",
+      "query": "日志 受控 实验 破译 流程 查询",
+      "expected_topic_ids": [
+        "investigation-workflow"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "debug-log-format"
+        ],
+        "topic_ids": [
+          "investigation-workflow"
+        ]
+      }
+    },
+    {
+      "id": "full-evolution-methodology-1",
+      "query": "自进化 方法论 长期 愿景 落盘",
+      "expected_topic_ids": [
+        "evolution-methodology"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "project-evolution"
+        ],
+        "topic_ids": [
+          "evolution-methodology"
+        ]
+      }
+    },
+    {
+      "id": "full-editor-interface-1",
+      "query": "编辑器 界面 整体 系统菜单 资产栏 快捷设置 详情面板",
+      "expected_topic_ids": [
+        "editor-interface"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "editor-interface"
+        ]
+      }
+    },
+    {
+      "id": "full-concepts-entities-1",
+      "query": "水物件 是什么 白盒物件 本地投射物 概念",
+      "expected_topic_ids": [
+        "concepts-entities"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "concepts-entities"
+        ]
+      }
+    },
+    {
+      "id": "full-concepts-functions-1",
+      "query": "仇恨配置 能力单元 受击盒 功能 组件 概念",
+      "expected_topic_ids": [
+        "concepts-functions"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "concepts-functions"
+        ]
+      }
+    },
+    {
+      "id": "full-concepts-nodegraph-basics-1",
+      "query": "节点图 基础 概念 类型 挂载 运行流程 数据类型",
+      "expected_topic_ids": [
+        "concepts-nodegraph-basics"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "concepts-nodegraph-basics"
+        ]
+      }
+    },
+    {
+      "id": "full-concepts-systems-1",
+      "query": "外围系统 资源 技能 其它 概念 排行榜 成就",
+      "expected_topic_ids": [
+        "concepts-systems"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "concepts-systems"
+        ]
+      }
+    },
+    {
+      "id": "full-nodes-server-1",
+      "query": "服务器 节点 执行 事件 流程控制 查询 运算",
+      "expected_topic_ids": [
+        "nodes-server"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "nodes-server"
+        ]
+      }
+    },
+    {
+      "id": "full-nodes-client-1",
+      "query": "客户端 节点 角色技能 造物技能 造物状态 过滤器",
+      "expected_topic_ids": [
+        "nodes-client"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "nodes-client"
+        ]
+      }
+    },
+    {
+      "id": "full-auxiliary-1",
+      "query": "官方 辅助 功能 综合指南",
+      "expected_topic_ids": [
+        "auxiliary"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "auxiliary"
+        ]
+      }
+    },
+    {
+      "id": "full-appendix-1",
+      "query": "附录 能力单元 节点图 高级特性 信号 字典 结构体",
+      "expected_topic_ids": [
+        "appendix"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "appendix"
+        ]
+      }
+    },
+    {
+      "id": "full-faq-1",
+      "query": "官方 FAQ 组件 试玩 地形 元件库 关卡 存档",
+      "expected_topic_ids": [
+        "faq"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "faq"
+        ]
+      }
+    },
+    {
+      "id": "full-classic-mode-1",
+      "query": "经典模式 角色编号 桑多涅",
+      "expected_topic_ids": [
+        "classic-mode"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "classic-mode"
+        ]
+      }
+    },
+    {
+      "id": "full-terrain-environment-1",
+      "query": "地形编辑 地块 层高 斜坡 环境配置 天空盒",
+      "expected_topic_ids": [
+        "terrain-environment"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "terrain-environment"
+        ]
+      }
+    },
+    {
+      "id": "full-entities-1",
+      "query": "实体 GUID 元件 静态实体 限制 造物 行为模式",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "full-components-1",
+      "query": "自定义变量 整数范围 引用传值 单位状态 效果池 公式",
+      "expected_topic_ids": [
+        "components"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "components"
+        ]
+      }
+    },
+    {
+      "id": "full-character-editor-1",
+      "query": "技能 事件轨道 结束事件 兜底 本地投射物 特效器",
+      "expected_topic_ids": [
+        "character-editor"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "character-editor"
+        ]
+      }
+    },
+    {
+      "id": "full-level-settings-1",
+      "query": "主镜头 五种模式 外围系统 预设点 场景生成模板",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "full-ui-controls-1",
+      "query": "界面控件组 状态 开启 关闭 隐藏 悬浮交互页 手柄导航",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "full-version-updates-1",
+      "query": "操控运动器 轮盘 白盒物件 技能预瞄准 7.0 月之八",
+      "expected_topic_ids": [
+        "version-updates"
+      ],
+      "expected_claim_ids": [],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "version-updates"
+        ]
+      }
+    }
+  ]
+}

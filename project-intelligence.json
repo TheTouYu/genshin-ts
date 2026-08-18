@@ -147,6 +147,21 @@
           ]
         },
         "recovery_role": "current_recovery"
+      },
+      {
+        "id": "official-guide",
+        "default": false,
+        "lifecycle": "active",
+        "goal": "千星沙箱官方综合指南与 UGC 一图流知识：实体/组件/变量/单位状态/技能/关卡设置/界面控件组/版本更新等玩法设计查询。",
+        "recovery_role": "current_recovery",
+        "priority": 3,
+        "applies_to": {
+          "paths": [
+            "knowledge/official-guide/**"
+          ],
+          "workspaces": [],
+          "branches": []
+        }
       }
     ],
     "startup_budget": {
@@ -1204,6 +1219,182 @@
           "read_game_file": false,
           "write": false
         }
+      },
+      {
+        "id": "ugc-classic-mode",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "经典模式 角色编号 桑多涅 奥黛塔 阿罗夏"
+        ],
+        "topic_ids": [
+          "classic-mode"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-terrain-environment",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "地形编辑 环境配置 天空盒 光源 天气 快捷设置"
+        ],
+        "topic_ids": [
+          "terrain-environment"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-entities",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "实体 元件 元件组 造物 复杂造物 掉落物 关卡实体 玩家模板 职业 阵营 单位标签"
+        ],
+        "topic_ids": [
+          "entities"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-components",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "自定义变量 数据结构 字典 结构体 全局计时器 单位状态 碰撞 特效 音效 背包 战利品 铭牌 文本气泡 装备 扫描标签 小地图标识"
+        ],
+        "topic_ids": [
+          "components"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-character-editor",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "技能 本地投射物 道具 特效器 事件轨道"
+        ],
+        "topic_ids": [
+          "character-editor"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-level-settings",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "主镜头 物件镜头 外围系统 预设点 布设组 光源 场景生成模板 自定义小地图 聊天"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-ui-controls",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "界面控件 界面布局 锚点 文本框 图片 动效 特殊数字 交互按钮 悬浮交互页 进度条 状态显示区 消息队列 素材库 形式变量"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "ugc-version-updates",
+        "contexts": [
+          "official-guide"
+        ],
+        "priority": 30,
+        "keywords": [
+          "7.0 月之八 操控运动器 角色操控技能 白盒物件 光标碰撞盒 技能预瞄准"
+        ],
+        "topic_ids": [
+          "version-updates"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
       }
     ],
     "semantic_groups": {
@@ -1278,6 +1469,10 @@
       {
         "context_id": "static-gil-assembly-production",
         "node_id": "game-engine-knowledge"
+      },
+      {
+        "context_id": "official-guide",
+        "node_id": "official-guide"
       }
     ],
     "decision_claims": [],
