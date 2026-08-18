@@ -1290,5 +1290,8 @@
         "locator": "section 19.2.1 and maintenance record"
       }
     ]
+  },
+  "evaluation": {
+    "cases_path": "data/knowledge/retrieval-evaluation-ugc.json"
   }
 }

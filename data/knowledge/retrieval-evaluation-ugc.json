@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "topic_top_n": 3,
+    "claim_top_n": 5,
+    "permission": "internal"
+  },
+  "cases": [
+    {
+      "id": "ugc-01-classic-mode",
+      "query": "经典模式 角色编号 桑多涅",
+      "expected_topic_ids": [
+        "classic-mode"
+      ],
+      "expected_claim_ids": [
+        "clm_4DE967DB9AC12B566A3CFB5087"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "classic-mode"
+        ]
+      }
+    },
+    {
+      "id": "ugc-02-terrain-environment",
+      "query": "地形编辑 地块 层高 斜坡",
+      "expected_topic_ids": [
+        "terrain-environment"
+      ],
+      "expected_claim_ids": [
+        "clm_F3DBA1408170B3EA45ECF3D712"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "terrain-environment"
+        ]
+      }
+    },
+    {
+      "id": "ugc-03-terrain-environment",
+      "query": "环境配置 天空盒 光源 天气",
+      "expected_topic_ids": [
+        "terrain-environment"
+      ],
+      "expected_claim_ids": [
+        "clm_12C5D911B96B6DEEDA391BC208"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "terrain-environment"
+        ]
+      }
+    },
+    {
+      "id": "ugc-04-entities",
+      "query": "实体 GUID 元件 静态实体 限制",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [
+        "clm_82CA50C0C437E42F238B87757A"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "ugc-05-entities",
+      "query": "复杂造物 冷却 三重限制 状态决策",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [
+        "clm_7AFFC8CCC787C9D9CFFCCB48F8"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "ugc-06-entities",
+      "query": "关卡实体 事件转发 移除销毁",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [
+        "clm_2A56A8835DAF8F294DE8CA69EF"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "ugc-07-entities",
+      "query": "职业 抗打断 受打断值 受保护",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [
+        "clm_D76782821544D212F61A78B901"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "ugc-08-entities",
+      "query": "单位标签 索引 名称 节点图",
+      "expected_topic_ids": [
+        "entities"
+      ],
+      "expected_claim_ids": [
+        "clm_BC75A2AEBEEACA23D830FFB46D"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "entities"
+        ]
+      }
+    },
+    {
+      "id": "ugc-09-components",
+      "query": "自定义变量 整数范围 引用传值 事件",
+      "expected_topic_ids": [
+        "components"
+      ],
+      "expected_claim_ids": [
+        "clm_070E69D18F1EBD551E2925921D"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "components"
+        ]
+      }
+    },
+    {
+      "id": "ugc-10-components",
+      "query": "字典 结构体 引用传递 节点",
+      "expected_topic_ids": [
+        "components"
+      ],
+      "expected_claim_ids": [
+        "clm_414B0B77A491B9D1F98539CAD1"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "components"
+        ]
+      }
+    },
+    {
+      "id": "ugc-11-components",
+      "query": "单位状态 效果池 最终值 公式 调整率",
+      "expected_topic_ids": [
+        "components"
+      ],
+      "expected_claim_ids": [
+        "clm_36C5FB9C950CDB551B99BACA9F"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "components"
+        ]
+      }
+    },
+    {
+      "id": "ugc-12-components",
+      "query": "全局计时器 暂停 修改 0s 恢复 触发",
+      "expected_topic_ids": [
+        "components"
+      ],
+      "expected_claim_ids": [
+        "clm_9772589233E49AF670D96B8198"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "components"
+        ]
+      }
+    },
+    {
+      "id": "ugc-13-character-editor",
+      "query": "技能 事件轨道 结束事件 兜底 槽位",
+      "expected_topic_ids": [
+        "character-editor"
+      ],
+      "expected_claim_ids": [
+        "clm_C80FDAF54062F0B62D31E8306B"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "character-editor"
+        ]
+      }
+    },
+    {
+      "id": "ugc-14-character-editor",
+      "query": "本地投射物 生命周期 销毁距离",
+      "expected_topic_ids": [
+        "character-editor"
+      ],
+      "expected_claim_ids": [
+        "clm_830CC704961EF21F4BE8A8710C"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "character-editor"
+        ]
+      }
+    },
+    {
+      "id": "ugc-15-character-editor",
+      "query": "特效器 限时 持续 预警特效",
+      "expected_topic_ids": [
+        "character-editor"
+      ],
+      "expected_claim_ids": [
+        "clm_25800B5B1559D52C5805A4F8EA"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "character-editor"
+        ]
+      }
+    },
+    {
+      "id": "ugc-16-level-settings",
+      "query": "主镜头 五种模式 3D背镜头 切换",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_E0D86BF73EF387FF7B0CF29F1A"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-17-level-settings",
+      "query": "外围系统 排行榜 竞技段位 成就",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_71B05AAFBCFEED10A3A44257E3"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-18-level-settings",
+      "query": "预设点 出生点 复苏点 索引",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_E45C4903A034F84D48662A9451"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-19-level-settings",
+      "query": "场景生成模板 层 剔除规则 植被",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_28C772F7A997D00FE8F52328F6"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-20-level-settings",
+      "query": "自定义小地图 映射 原点 比例尺",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_C95E80BD10B1762A18479CF075"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-21-level-settings",
+      "query": "语音和文字聊天 频道 权限 节点",
+      "expected_topic_ids": [
+        "level-settings"
+      ],
+      "expected_claim_ids": [
+        "clm_E20140CC6FACE412C157B40E7A"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "level-settings"
+        ]
+      }
+    },
+    {
+      "id": "ugc-22-ui-controls",
+      "query": "界面控件组 状态 开启 关闭 隐藏",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_F363A783F077C662BB1D2412D4"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-23-ui-controls",
+      "query": "锚点 九宫格 拉伸 跟随固有控件",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_0D9F23D7AFFE9032F91046FA39"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-24-ui-controls",
+      "query": "特殊数字 监听模式 单位状态",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_9D42E0526D56DBAA0AE8F836B9"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-25-ui-controls",
+      "query": "悬浮交互页 手柄导航 页签 容器",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_E3F9E367DF9EC11B53E520B419"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-26-ui-controls",
+      "query": "卡牌选择器 已知卡牌 未知卡牌",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_159AC666A24456E39603C2EC9F"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-27-ui-controls",
+      "query": "消息队列 结构体 更新 动画",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_9C621AB18986848BA307ADB121"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-28-ui-controls",
+      "query": "形式变量 素材复用 悬浮交互页",
+      "expected_topic_ids": [
+        "ui-controls"
+      ],
+      "expected_claim_ids": [
+        "clm_15ABEF3C87ABF5DD941DEF7EB5"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "ui-controls"
+        ]
+      }
+    },
+    {
+      "id": "ugc-29-version-updates",
+      "query": "操控运动器 轮盘 载具 角色操控技能",
+      "expected_topic_ids": [
+        "version-updates"
+      ],
+      "expected_claim_ids": [
+        "clm_BB96FD861BA73728EAFEAAC62C"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "version-updates"
+        ]
+      }
+    },
+    {
+      "id": "ugc-30-version-updates",
+      "query": "白盒物件 几何体 线框",
+      "expected_topic_ids": [
+        "version-updates"
+      ],
+      "expected_claim_ids": [
+        "clm_2347631B8817403E96FD580550"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "version-updates"
+        ]
+      }
+    },
+    {
+      "id": "ugc-31-version-updates",
+      "query": "技能预瞄准 瞄准区域 目标筛选",
+      "expected_topic_ids": [
+        "version-updates"
+      ],
+      "expected_claim_ids": [
+        "clm_AA6A57AEFA99098F04D0BCDEE8"
+      ],
+      "affected_by": {
+        "node_ids": [
+          "official-guide"
+        ],
+        "topic_ids": [
+          "version-updates"
+        ]
+      }
+    }
+  ]
+}
