@@ -1191,6 +1191,33 @@
         "阵营"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "components",
+      "node_id": "official-guide",
+      "title": "功能与通用组件（UGC 详细规则）",
+      "path": "knowledge/official-guide/ugc-components.md",
+      "summary": "官方奇匠学院一图流：组件总览、变量体系、字典/结构体、全局计时器、单位状态效果池、碰撞/特效/音效/货币背包/战利品/铭牌/文本气泡/装备/扫描/小地图标识的详细规则。",
+      "keywords": [
+        "单位状态",
+        "变量",
+        "字典",
+        "小地图",
+        "战利品",
+        "扫描标签",
+        "数据结构",
+        "文本气泡",
+        "特效",
+        "碰撞",
+        "组件",
+        "结构体",
+        "背包",
+        "装备",
+        "计时器",
+        "铭牌",
+        "音效"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2375,6 +2402,86 @@
       ]
     },
     "clm_BC75A2AEBEEACA23D830FFB46D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_7E28BECA4EAEA7EE3543252B5D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_070E69D18F1EBD551E2925921D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_414B0B77A491B9D1F98539CAD1": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9772589233E49AF670D96B8198": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_36C5FB9C950CDB551B99BACA9F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_029CAE085DEB01747545C451C4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2C007912C6177BC7D745A822F5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F150C9785F978FAB59BA85313A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_68DDF8B1E1565E892AB6AE8D42": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_C297F3CB9CF8D36623FD693514": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_8C1EE09CEABDA1749E0AE5D9CF": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2E389806E37DF532CF132C177C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4B2F2B21528922C274C6E315BB": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_17A509EA3560C3CE6FA2646DC6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_C615B0885042419D17A212B674": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_27176CDC56C82F5F221AC21852": {
       "fact_classes": [
         "documented_contract"
       ]

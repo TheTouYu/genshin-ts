@@ -182,6 +182,21 @@
       ]
     },
     {
+      "id": "aref_0ac351d755f67f1abc56f8f338",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 25-战利品组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_8C1EE09CEABDA1749E0AE5D9CF"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_0c114a0587afd5a17239fe4688",
       "path": "src/runtime/core.ts",
       "locator": "connect() addEdge(current, sourceId, ...) ~1780-1812",
@@ -281,6 +296,21 @@
       "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
       "claim_ids": [
         "clm_7AFFC8CCC787C9D9CFFCCB48F8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_1538852a096d8dfdac5f0cb098",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 19-单位状态效果池",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_36C5FB9C950CDB551B99BACA9F"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -544,6 +574,21 @@
       ]
     },
     {
+      "id": "aref_25b31d1a7fdaac5e0a241ac0a9",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 23-音效播放器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_68DDF8B1E1565E892AB6AE8D42"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2625193826e5884b1af8bb8ee9",
       "path": "src/cli/gil_entities.ts",
       "locator": "attachDefinitionAuxes/writeEntityAuxIds/writeAuxOwner/carryAuxSlot",
@@ -586,6 +631,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_274974bd827280b220df58fe2a",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 18-全局计时器规则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_9772589233E49AF670D96B8198"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -859,6 +919,51 @@
       ]
     },
     {
+      "id": "aref_3629b8ef8f28d4cef90b1eac88",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 24-货币与背包",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_C297F3CB9CF8D36623FD693514"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_3656dd33d310e4e9360befba47",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 15-功能与通用组件机制",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_7E28BECA4EAEA7EE3543252B5D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_371f74f713aface43785371422",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 20-碰撞触发器与碰撞触发源",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_029CAE085DEB01747545C451C4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_380339b8f8e61db2fdabdd9d1f",
       "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
       "locator": "颜色按块索引渐变节",
@@ -946,6 +1051,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_399ff51d51c07fbba05f0e0c19",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 17-数据结构（字典与结构体）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_414B0B77A491B9D1F98539CAD1"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1581,6 +1701,21 @@
       ]
     },
     {
+      "id": "aref_5ef427dcb087d17bb4e2e9f1d2",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 21-特效播放组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_2C007912C6177BC7D745A822F5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_5f6f390acacd351f14421b1e96",
       "path": "src/cli/static_assembly/patch.ts",
       "locator": "buildAuxRecord / attachAux（aux 编码与双向挂接）",
@@ -2151,6 +2286,21 @@
       ]
     },
     {
+      "id": "aref_7b5befd1d6bd290b80342606e3",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 27-文本气泡组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_4B2F2B21528922C274C6E315BB"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_7c12c8b3767e1b6bad98421fe4",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "已验证的发送节点骨架与已验证的发送固定值参数（信号测试全参数 8 种）",
@@ -2460,6 +2610,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_24EF097057CFFF94BEE8499E1A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_8f215b482181eaad507019c3a7",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 29-扫描标签",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_C615B0885042419D17A212B674"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -2992,6 +3157,21 @@
       ]
     },
     {
+      "id": "aref_b784b4a46931f69a5ac378ef24",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 30-小地图标识",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_27176CDC56C82F5F221AC21852"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b8a12c6ae9b70b0e6ed770e6b3",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#20c",
@@ -3339,6 +3519,21 @@
       ]
     },
     {
+      "id": "aref_ccd242389623dd1761f07a3872",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 26-铭牌组件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_2E389806E37DF532CF132C177C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_cd27648993baf325a209a89f01",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "wire 编码（2026-08-06 v22-v48 真实相邻快照 CONFIRMED）",
@@ -3486,6 +3681,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_d8d1925fb6071896b9ac7ba65b",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 28-装备系统",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_17A509EA3560C3CE6FA2646DC6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3864,6 +4074,21 @@
       ]
     },
     {
+      "id": "aref_f0e70769e24366c9daf2e572c6",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 22-自定义挂接点",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_F150C9785F978FAB59BA85313A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_f121b31ba78483ddabc5f21e75",
       "path": "docs/game-engine-knowledge/data-flow.md",
       "locator": "wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v21 + dataflow-case1-4 真实快照 CONFIRMED）",
@@ -3951,6 +4176,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_f689b9ff43d00511b9b911a9dc",
+      "path": "docs/ui-tutorial/ugc-svg/components.md",
+      "locator": "## 16-变量体系（自定义/节点图/技能变量）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d9d7fcd7f27ab94fa0091b231c1f3e38c4a10d0cc506aad1942cb9f6bd2f7d8",
+      "claim_ids": [
+        "clm_070E69D18F1EBD551E2925921D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
