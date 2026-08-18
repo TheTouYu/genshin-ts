@@ -1,4 +1,4 @@
-import { buildFile, readUint32BE } from '../injector/binary.js'
+import { buildFile, readUint32BE, readVarint } from '../injector/binary.js'
 import { emitWireMessage, parseWireMessage, type WireField } from './static_assembly/wire.js'
 
 const LEVEL_ENTITY_ID = 1094713345 // 关卡实体（root5.1），承载关卡变量 f7[comp11].11
@@ -7,8 +7,11 @@ const TEXT_DECODER = new TextDecoder()
 
 export type LevelVariable = {
   name: string
-  type: 'bool' | 'int' | 'str' | 'list' | 'dict'
-  value: boolean | number | string | unknown
+  type:
+    | 'entity' | 'guid' | 'int' | 'bool' | 'float' | 'str' | 'vec3'
+    | 'faction' | 'config_id' | 'prefab_id'
+    | 'list' | 'dict'
+  value: unknown
 }
 
 function parseMessageFields(data: Uint8Array): WireField[] | undefined {
@@ -65,24 +68,123 @@ function levelVarComponent(record: Uint8Array): { field: WireField; message: Wir
   return undefined
 }
 
-function decodeValue(type: LevelVariable['type'], entry: WireField[]): unknown {
-  const f4 = firstBytes(entry, 4)
-  if (!f4) return type === 'int' ? 0 : type === 'bool' ? false : null
-  const f4msg = parseMessageFields(f4)
-  if (type === 'bool') {
-    const branch = firstBytes(f4msg, 14)
-    return branch ? (firstVarint(parseMessageFields(branch), 1) === 1) : false
+function firstFloat32(fields: readonly WireField[] | undefined, number: number): number | undefined {
+  const field = fields?.find((item) => item.number === number && item.wire === 5)
+  return field?.value instanceof Uint8Array && field.value.length === 4
+    ? Buffer.from(field.value).readFloatLE(0)
+    : undefined
+}
+
+function typeNameOf(code: number): LevelVariable['type'] {
+  if (code === 3) return 'int'
+  if (code === 4) return 'bool'
+  if (code === 5) return 'float'
+  if (code === 6) return 'str'
+  if (code === 12) return 'vec3'
+  if (code === 1) return 'entity'
+  if (code === 2) return 'guid'
+  if (code === 17) return 'faction'
+  if (code === 20) return 'config_id'
+  if (code === 21) return 'prefab_id'
+  if (code === 27) return 'dict'
+  return 'list'
+}
+
+/** 解码单个列表元素（元素字段 = {f1: 值字节}） */
+function decodeListElement(listCode: number, raw: Uint8Array): unknown {
+  const em = parseMessageFields(raw)
+  if (listCode === 11) return textOf(raw)
+  if (listCode === 10) return Buffer.from(raw).readFloatLE(0)
+  if (listCode === 9) {
+    const v = readVarint(raw, 0)
+    return v ? v.value === 1 : false
   }
-  if (type === 'int') {
-    const branch = firstBytes(f4msg, 13)
+  if (listCode === 15) {
+    const vm = parseMessageFields(raw)
+    return [firstFloat32(vm, 1) ?? 0, firstFloat32(vm, 2) ?? 0, firstFloat32(vm, 3) ?? 0]
+  }
+  const v = readVarint(raw, 0)
+  return v ? v.value : 0
+}
+
+/** 解码 dict：读取 f37 的 parallel f501 keys + f502 values */
+function decodeDictValue(f4msg: readonly WireField[] | undefined): unknown {
+  const f37 = f4msg ? firstBytes(f4msg, 37) : undefined
+  if (!f37) return {}
+  const m = parseMessageFields(f37)
+  const keys: unknown[] = []
+  const vals: unknown[] = []
+  for (const f of m ?? []) {
+    if (f.number === 501 && f.wire === 2) {
+      const em = parseMessageFields(f.value as Uint8Array)
+      const b = firstBytes(em, 16)
+      const keyMsg = b ? parseMessageFields(b) : undefined
+      const keyStr = keyMsg ? firstBytes(keyMsg, 1) : undefined
+      keys.push(keyStr ? textOf(keyStr) : (firstVarint(parseMessageFields(firstBytes(em, 13) ?? EMPTY), 1) ?? 0))
+    } else if (f.number === 502 && f.wire === 2) {
+      vals.push(decodeEntryValue(f.value as Uint8Array))
+    }
+  }
+  const result: Record<string, unknown> = {}
+  for (let i = 0; i < keys.length && i < vals.length; i++) result[String(keys[i])] = vals[i]
+  return result
+}
+
+/** 解码一个 dict 值项（f502）或任意 entry 的 value 消息 */
+function decodeEntryValue(raw: Uint8Array): unknown {
+  const em = parseMessageFields(raw)
+  if (!em) return null
+  const code = firstVarint(em, 1) ?? 27
+  if (code === 3) {
+    const branch = firstBytes(em, 13)
     return branch ? (firstVarint(parseMessageFields(branch), 1) ?? 0) : 0
   }
-  if (type === 'str') {
-    const branch = firstBytes(f4msg, 15) // str 类型默认值分支（占位，待样本确认）
+  if (code === 4) {
+    const branch = firstBytes(em, 14)
+    return branch ? (firstVarint(parseMessageFields(branch), 1) === 1) : false
+  }
+  if (code === 6) {
+    const branch = firstBytes(em, 16)
     return branch ? textOf(branch) : ''
   }
-  // dict / list 默认值结构复杂，先返回 raw hex 占位
-  return `raw:${Buffer.from(f4).toString('hex').slice(0, 40)}`
+  // 列表值：f<code+10> 重复元素
+  const listField = code + 10
+  const listBytes = firstBytes(em, listField)
+  if (listBytes) {
+    const lm = parseMessageFields(listBytes)
+    return (lm ?? []).filter((f) => f.number === 1 && f.wire === 2).map((f) => decodeListElement(code, f.value as Uint8Array))
+  }
+  return null
+}
+
+function decodeValue(code: number, entry: WireField[]): unknown {
+  if (code === 27) {
+    const f4 = firstBytes(entry, 4)
+    return decodeDictValue(parseMessageFields(f4 ?? EMPTY))
+  }
+  const f4 = firstBytes(entry, 4)
+  if (!f4) return code === 3 ? 0 : code === 4 ? false : null
+  const f4msg = parseMessageFields(f4)
+  const valueField = code + 10
+  const branch = firstBytes(f4msg, valueField)
+  if (!branch) return code === 3 ? 0 : code === 4 ? false : null
+  const branchMsg = parseMessageFields(branch)
+  if (code === 3) return firstVarint(branchMsg, 1) ?? 0
+  if (code === 4) return (firstVarint(branchMsg, 1) ?? 0) === 1
+  if (code === 5) return firstFloat32(branchMsg, 1) ?? 0
+  if (code === 6) {
+    const b = firstBytes(branchMsg, 1)
+    return b ? textOf(b) : ''
+  }
+  if (code === 12) {
+    const vm = parseMessageFields(firstBytes(branchMsg, 1) ?? EMPTY)
+    return [firstFloat32(vm, 1) ?? 0, firstFloat32(vm, 2) ?? 0, firstFloat32(vm, 3) ?? 0]
+  }
+  if (code === 1 || code === 2 || code === 17 || code === 20 || code === 21) return firstVarint(branchMsg, 1) ?? 0
+  // 列表：branch 内重复 {f1: 元素}
+  return (branchMsg ?? [])
+    .filter((f) => f.number === 1 && f.wire === 2)
+    .map((f) => decodeListElement(code, f.value as Uint8Array))
 }
 
 export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelVariable[] {
@@ -102,10 +204,9 @@ export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelV
     const em = parseMessageFields(entry.value as Uint8Array)
     if (!em) continue
     const name = firstBytes(em, 2) ? textOf(firstBytes(em, 2)!) : ''
-    const code = firstVarint(em, 3)
-    const type: LevelVariable['type'] =
-      code === 3 ? 'int' : code === 4 ? 'bool' : code === 6 ? 'str' : code === 27 ? 'dict' : 'list'
-    result.push({ name, type, value: decodeValue(type, em) })
+    const code = firstVarint(em, 3) ?? 27
+    const type = typeNameOf(code)
+    result.push({ name, type, value: decodeValue(code, em) })
   }
   return result
 }
