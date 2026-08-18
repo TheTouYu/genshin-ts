@@ -9,6 +9,8 @@ export type UiControlInfo = {
   id: number
   name: string
   layoutId: number
+  /** 控件分类：template / textbox / interactive-button / custom-button / floating-page / close-button / container / control 等 */
+  category: string
 }
 
 export type UiTransform = {
@@ -269,9 +271,25 @@ function appendLayoutControlId(top: readonly WireField[], controlId: number): vo
   root9.value = emitWireMessage(section)
 }
 
+function classifyUiControl(name: string, isTemplate: boolean): string {
+  if (isTemplate) return name ? 'template' : 'container'
+  if (name.includes('文本框')) return 'textbox'
+  if (name.includes('交互按钮')) return 'interactive-button'
+  if (name.includes('自定义按钮')) return 'custom-button'
+  if (name.includes('自定义开关')) return 'custom-switch'
+  if (name.includes('悬浮交互页')) return 'floating-page'
+  if (name.includes('交互页关闭按钮')) return 'close-button'
+  if (name.includes('小地图')) return 'minimap'
+  if (name.includes('技能区')) return 'skill-area'
+  if (name.includes('队伍信息')) return 'team-info'
+  if (name === '') return 'container'
+  return 'control'
+}
+
 export function listUiControls(bytes: Uint8Array): UiControlInfo[] {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
+  const templateIds = new Set(root9Field501Ids(top))
   const result: UiControlInfo[] = []
   for (const record of root9Records(top)) {
     const rec = record.value as Uint8Array
@@ -289,7 +307,7 @@ export function listUiControls(bytes: Uint8Array): UiControlInfo[] {
       })
       .find((s) => s.length > 0) ?? ''
     const layoutId = firstVarint(fields, 504) ?? 0
-    result.push({ id, name, layoutId })
+    result.push({ id, name, layoutId, category: classifyUiControl(name, templateIds.has(id)) })
   }
   return result
 }
@@ -373,5 +391,81 @@ export function updateUiControl(
       tailTag: readUint32BE(bytes, bytes.length - 4)
     }),
     changed
+  }
+}
+
+function root9Field501Ids(top: readonly WireField[]): number[] {
+  const root9 = top.find((field) => field.number === 9 && field.wire === 2)
+  if (!root9) return []
+  const section = parseMessageFields(root9.value as Uint8Array)
+  const f501 = section?.find((field) => field.number === 501 && field.wire === 2)
+  if (!f501) return []
+  return parsePackedVarints(f501.value as Uint8Array)
+}
+
+export function listTemplates(bytes: Uint8Array): UiControlInfo[] {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const templateIds = new Set(root9Field501Ids(top))
+  return root9Records(top)
+    .map((field) => {
+      const rec = field.value as Uint8Array
+      const id = recordIdOf(rec)
+      if (id === undefined || !templateIds.has(id)) return undefined
+      const fields = parseMessageFields(rec)
+      const name =
+        fields
+          ?.filter((f) => f.number === 505 && f.wire === 2)
+          .map((f) => {
+            const sub = parseMessageFields(f.value as Uint8Array)
+            const nameField = sub?.find((x) => x.number === 12 && x.wire === 2)
+            const nameMsg = nameField ? parseMessageFields(nameField.value as Uint8Array) : undefined
+            const textField = nameMsg?.find((x) => x.number === 501 && x.wire === 2)
+            return textField ? textOf(textField.value as Uint8Array) : ''
+          })
+          .find((s) => s.length > 0) ?? ''
+      return { id, name, layoutId: firstVarint(fields, 504) ?? 0, category: 'template' }
+    })
+    .filter((x): x is UiControlInfo => x !== undefined && x.name !== '')
+}
+
+export function cloneTemplate(
+  bytes: Uint8Array,
+  sourceId: number,
+  options: UiCloneOptions,
+  donorBytes?: Uint8Array
+): { bytes: Uint8Array; id: number } {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const donorTop = donorBytes ? parseMessageFields(donorBytes.slice(20, -4)) : top
+  if (!donorTop) throw new Error('[error] malformed donor GIL payload')
+  const source = findRecord(donorTop, sourceId)
+  if (!source) throw new Error(`[error] source template not found: ${sourceId}`)
+  let record = source.value as Uint8Array
+  record = setUiControlId(record, options.id)
+  if (options.name !== undefined) record = setUiName(record, options.name)
+  if (options.content !== undefined) record = setUiContent(record, options.content)
+  if (options.position !== undefined || options.size !== undefined) {
+    record = setUiTransform(record, { position: options.position, size: options.size })
+  }
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)!
+  const section = parseMessageFields(root9.value as Uint8Array)!
+  section.push({ number: 502, wire: 2, value: record })
+  root9.value = emitWireMessage(section)
+  // prepend to field501 packed template list
+  const f501 = section.find((field) => field.number === 501 && field.wire === 2)
+  if (!f501) throw new Error('[error] template list (root9 field 501) not found')
+  const ids = parsePackedVarints(f501.value as Uint8Array)
+  if (!ids.includes(options.id)) ids.unshift(options.id)
+  f501.value = encodePackedVarints(ids)
+  root9.value = emitWireMessage(section)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    id: options.id
   }
 }

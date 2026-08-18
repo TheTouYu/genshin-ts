@@ -8,26 +8,31 @@ import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { resyncMap } from './maps.js'
 import {
+  cloneTemplate,
   cloneUiControl,
+  listTemplates,
   listUiControls,
   updateUiControl,
   type UiUpdateOptions
 } from './gil_ui.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'list' | 'clone' | 'update'
+type Command = 'list' | 'clone' | 'update' | 'template'
+type TemplateSub = 'list' | 'clone'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
 
 function usage(exitCode = 1): never {
   const output = [
-    'List, clone (create) or update screen UI controls (root 9).',
+    'List, clone (create) or update screen UI controls and templates (root 9).',
     '',
-    'Usage: gsts assets:ui [list|clone|update] [options]',
+    'Usage: gsts assets:ui [list|clone|update|template] [options]',
     '',
     '  list: gsts assets:ui list [--gil <file>] [--format json]',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
     '  update: gsts assets:ui update <control-id> [options]',
+    '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
+    '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
     '',
     'Options:',
     '  --gil <file>            explicit GIL source',
@@ -72,6 +77,7 @@ function parseVector2(raw: string, option: string): Vector2 {
 
 function parseArgs(argv: readonly string[]) {
   let command: Command = 'list'
+  let templateSub: TemplateSub = 'list'
   let gilPath: string | undefined
   let donorGilPath: string | undefined
   let outputPath: string | undefined
@@ -84,9 +90,17 @@ function parseArgs(argv: readonly string[]) {
   let position: Vector2 | undefined
   let size: Vector2 | undefined
   let index = 0
-  if (argv[0] === 'list' || argv[0] === 'clone' || argv[0] === 'update') {
+  if (argv[0] === 'list' || argv[0] === 'clone' || argv[0] === 'update' || argv[0] === 'template') {
     command = argv[0]
     index++
+    if (command === 'template') {
+      if (argv[1] === 'list' || argv[1] === 'clone') {
+        templateSub = argv[1]
+        index++
+      } else {
+        usage()
+      }
+    }
   }
   for (; index < argv.length; index++) {
     const arg = argv[index]
@@ -115,7 +129,7 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] update requires at least one of --name/--content/--position/--size')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, gilPath, donorGilPath, outputPath, write, format, targetId, newId, name, content, position, size }
+  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, name, content, position, size }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -180,7 +194,58 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     if (jsonMode) {
       process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-list', controls }))
     } else {
-      for (const c of controls) log(`id=${c.id} name=${c.name} layout=${c.layoutId}`)
+      for (const c of controls)
+        log(`id=${c.id} name=${c.name} category=${c.category} layout=${c.layoutId}`)
+    }
+    return
+  }
+
+  if (args.command === 'template') {
+    if (args.templateSub === 'list') {
+      const templates = listTemplates(sourceBytes)
+      if (jsonMode) {
+        process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-template-list', templates }))
+      } else {
+        for (const t of templates) log(`id=${t.id} name=${t.name} category=${t.category}`)
+      }
+    } else {
+      // template clone
+      const donorBytes = args.donorGilPath
+        ? new Uint8Array(fs.readFileSync(path.resolve(args.donorGilPath)))
+        : undefined
+      const result = cloneTemplate(
+        sourceBytes,
+        args.targetId!,
+        {
+          id: args.newId!,
+          ...(args.name !== undefined ? { name: args.name } : {})
+        },
+        donorBytes
+      )
+      const summary: Record<string, unknown> = {
+        schemaVersion: 1,
+        kind: 'ui-template-clone',
+        sourceSha256: sourceHash,
+        newId: result.id
+      }
+      const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+      log2(`newId=${result.id}`)
+      summary.candidateSha256 = sha256(result.bytes)
+      log2(`candidateSha256=${sha256(result.bytes)}`)
+      if (args.outputPath) {
+        summary.candidate = writeNew(args.outputPath, result.bytes)
+        log2(`candidate=${summary.candidate}`)
+      } else if (args.write) {
+        const mapId = projectConfig?.inject?.mapId
+        summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+        summary.writePerformed = true
+        log2(`backup=${summary.backup}`)
+        log2('writePerformed=true')
+      } else {
+        summary.previewOnly = true
+        log2('preview only; use --write to apply after backup, or --output for a candidate')
+      }
+      if (jsonMode) process.stdout.write(prettyStableJson(summary))
     }
     return
   }
