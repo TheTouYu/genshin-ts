@@ -5,11 +5,15 @@ Sparse binding, pin-hole and special-arg remaps, root/impl parity, backend fallb
 
 <!-- CLAIM:START clm_01KYH4ZHNA0ZQSV882V3C2Z46H -->
 
-### Root/impl parity shares ordinary remaps while Composite retains boundary and metadata ownership
+### root/impl 对等共享普通重映射，复合保留边界与元数据所有权（Root/impl parity shares ordinary remaps while Composite retains boundary and metadata ownership）
+
+当前 Stage 3 用共享的普通解析/物化服务生产共享后端并保留显式 legacy 回退。稀疏声明索引、命名 pin-hole 布局与信号/拼装/多分支特殊参数必须在 root 与 impl 两侧都用共享 IR→物理重映射；Composite 专用代码拥有定义/调用/capture/compositePins 叠加与虚拟 impl 布局，图容器元数据是显式 scoped 职责。
 
 Current Stage 3 uses shared ordinary resolution/materialization for the production shared backend and keeps explicit legacy fallback. Sparse declaration indexes, named pin-hole layouts, and signal/assembly/multiple-branches special arguments must use their shared IR→physical remaps in both root and impl; Composite-only code owns definition/call/capture/`compositePins` overlays and virtual impl layout, while graph container metadata remains an explicit scoped responsibility.
 
-#### 适用边界与失效条件
+#### 适用边界
+
+对等是架构/当前实现契约，不证明每个节点族或图元数据字段都经游戏验证；有意的物理引脚空洞与高风险信号/动态元数据仍是 scoped 例外。
 
 Parity is an architectural/current-implementation contract, not proof that every node family or graph metadata field is game-verified. Intentional physical pin holes and high-risk signal/dynamic metadata remain scoped exceptions. Revalidate when shared adapters, backend defaults, ordinary coverage inventory, Composite layout, graphValues/affiliations, or root/impl parity tests change.
 

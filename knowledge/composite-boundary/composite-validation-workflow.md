@@ -6,11 +6,15 @@ No claims are created by this structure Bundle.
 
 <!-- CLAIM:START clm_01KYH07BXVXF15V0QZKK1E37KB -->
 
-### Composite boundary fixes require an isomorphic red-to-green evidence chain
+### 复合边界修复需要同构的红灯→绿灯证据链（Composite boundary fixes require an isomorphic red-to-green evidence chain）
+
+复合/GIA 边界 bug 的分析流程：保存参照、按需解码接口/impl/路由与 raw wire、构造最小同构复现、在生产修改前确认失败、调查受影响节点族、在主图中对照同一批节点、写 focused 红灯回归、施加最小 seam 局部修复，并按需验证相邻的嵌套/capture/稀疏/root-impl 与 shared/legacy 路径。
 
 A Composite/GIA boundary bug is analyzed by preserving the reference, decoding interface/impl/routes and raw wire when needed, creating a minimal isomorphic reproduction, confirming the failure before production edits, surveying affected node families, comparing the same nodes in the root graph, writing a focused red regression, applying the smallest seam-local fix, and validating adjacent nested/capture/sparse/root-impl and shared/legacy paths as applicable.
 
 #### 适用边界
+
+报告必须把当前源码行为、自动回归、真实 GIA 观察、编辑器导入、注入/写回与游戏行为作为独立证据层分开陈述；生成的或结构合法的 GIA 本身不证明编辑器或游戏行为。
 
 Reports must keep current source behavior, automatic regression, real GIA observation, editor import, injection/writeback, and game behavior as separate evidence levels. A generated or structurally valid GIA does not by itself prove editor or game behavior.
 

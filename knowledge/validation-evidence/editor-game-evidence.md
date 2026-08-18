@@ -6,11 +6,15 @@ No claims are created by the Blueprint structure Bundle.
 
 <!-- CLAIM:START clm_01K13DM5F4F4F4F4F4F4F4F4F4 -->
 
-### External evidence is scoped to bool→DTC
+### 外部证据限定于 bool→DTC 边界（External evidence is scoped to bool→DTC）
+
+本 Alpha 的真实 GIA/编辑器/游戏证据只覆盖 bool 复合输入经 DTC 链（DTC handoff 记录）的场景；后续 common-scalar 边界 fixture 只扩展自动回归覆盖，不得作为标量族的真实 GIA/编辑器/游戏证据。
 
 Real-GIA/editor/game evidence for this Alpha covers the bool Composite input routed through the DTC chain documented in the DTC handoff. The later common-scalar boundary fixture expands automatic regression coverage only; it must not be cited as real-GIA, editor, or game proof for the scalar family.
 
 #### 适用边界
+
+用户确认的游戏结果只适用于记录的 bool→int→float→string 候选；后续构建、其它节点族与合法 pin-hole 情形需各自单独验证。
 
 The user-confirmed game result applies only to the recorded bool→int→float→string candidate. Future builds, other node families, and legal pin-hole cases remain separately verifiable.
 
