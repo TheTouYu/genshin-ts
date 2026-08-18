@@ -393,6 +393,21 @@
       ]
     },
     {
+      "id": "aref_16e7f2c0a2df3ea523f6b04e93",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 46-文本框界面控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_1E1950416D306DF847FE386A4E"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_1720ba080ea2e9ceebe1c58b73",
       "path": "src/compiler/ts_to_gs_transform/expr.ts",
       "locator": "transformTimerCall() timerHandleMeta registration and capture metadata preservation",
@@ -448,6 +463,21 @@
       "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
       "claim_ids": [
         "clm_82CA50C0C437E42F238B87757A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_184e315c88e4abed2af50da2e1",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 49-全屏界面动效控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_E9192DB440A070EA36E02F2D22"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -844,6 +874,21 @@
       ]
     },
     {
+      "id": "aref_2dfe95bd20c1c8218986f12f7e",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 62-状态显示区控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_8CF19C20BD25DB11D81C102C2C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2e31374c13987cd7c2440cabbb",
       "path": "docs/ui-tutorial/official-guide-nodes-client.md",
       "locator": "过滤器节点图 → 查询/运算/其它",
@@ -961,6 +1006,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_35042832e9d5d2871ecb9909a8",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 54-自定义开关控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_4BF962BBDCAF48A2565ECC2E0A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1156,6 +1216,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3b5c48ac4b7894f2eec3c83ff6",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 47-图片控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_E0C9BA692099971463A8E57D8B"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1399,6 +1474,21 @@
       ]
     },
     {
+      "id": "aref_4307a7b1225d30eafd37d96b44",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 51-交互按钮控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_A41789B2CD9D66577C8402EE6D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_4446a60687b804ad8a3b5dcb2b",
       "path": "docs/game-engine-knowledge/ui-controls.md",
       "locator": "状态：框架草案；来源：用户对屏幕控件、输入和按钮事件的说明；待逐步还原（控件树/状态差异/事件绑定等）",
@@ -1426,6 +1516,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_46db41354f12402648cf812f08",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 56-悬浮交互页控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_E3F9E367DF9EC11B53E520B419"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1851,6 +1956,21 @@
       ]
     },
     {
+      "id": "aref_604057cf1837822671bee4078c",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 69-形式变量",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_15ABEF3C87ABF5DD941DEF7EB5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_60986dfe4acca395735bbfa5c1",
       "path": "docs/game-engine-knowledge/camera-system.md",
       "locator": "按玩家切换镜头与镜头切换入口章节（用户说明）",
@@ -1911,6 +2031,21 @@
       ]
     },
     {
+      "id": "aref_62118926b5c567c56731383164",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 68-悬浮交互页-单选项视窗",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_904913BF49EA92D4E1A551908C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_62853c8a40ef12625bdad65bf4",
       "path": "docs/ui-tutorial/official-guide-editor-interface.md",
       "locator": "实体摆放",
@@ -1953,6 +2088,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_6743904ac2bfb13f8a8b2e4aef",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 50-特殊数字控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_9D42E0526D56DBAA0AE8F836B9"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -2511,6 +2661,21 @@
       ]
     },
     {
+      "id": "aref_839c920adf9f0745bf10e17ecd",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 64-界面控件组库与管理",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_F363A783F077C662BB1D2412D4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_83e1ce0f2cb6d325e41c3db70c",
       "path": "tests/football_geometry_test.ts",
       "locator": "拓扑/条带/边线/欧拉 round-trip 断言",
@@ -2766,6 +2931,21 @@
       ]
     },
     {
+      "id": "aref_93bf10d1183f7cda6e948b97a8",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 58-进度条控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_B1E1E8A4C8C55AA5E453A2199E"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_9485d97663f05c70ef153c3b16",
       "path": "docs/game-engine-knowledge/signals.md",
       "locator": "信号定义原位修改（assets:signals update，2026-08-01 真实地图写回证据）",
@@ -2883,6 +3063,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_9a69fb780c2233bcf5618a4291",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 59-计时器控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_3BB314AC295E0C67F687678B1F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3006,6 +3201,36 @@
       ]
     },
     {
+      "id": "aref_a20648855577772e07e0045971",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 61-图文输入框控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_6D71D76025D15C173E210CD6E6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_a537085780ea5c34e44eff1777",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 44-界面布局规范",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_AEEB50E819F769CAD9A38D34E4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_a59662ad60386231e88c2286e3",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "功能 → 自定义变量/单位状态/全局计时器/定时器",
@@ -3049,6 +3274,21 @@
       "supports_fact_classes": [
         "documented_contract",
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_a78834d1dcac1ba55fbf0b1888",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 48-界面动效控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_910EC861F28126AE2AEC8008F5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -3157,6 +3397,21 @@
       ]
     },
     {
+      "id": "aref_b11459f76b2333f31d0c1b06f6",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 55-弹窗界面控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_1B81CBCC42863AD7A168930AA6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b122e03d98c9ed18378e98a5b6",
       "path": ".agents/skills/debug-log-investigator/SKILL.md",
       "locator": "工具链 gia_log.py records/frames",
@@ -3211,6 +3466,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_76C92A90AF647CF09C9D528C6D"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b456b08d33e8c7cfbb9516de75",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 60-计分板控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_5E594F87BAF9D9CCDEC35E39ED"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3564,6 +3834,36 @@
       ]
     },
     {
+      "id": "aref_c735b87a4c0bcebdf48a945a2c",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 65-素材库",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_0F14BD6C5A135775ECEEE6FB39"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_c73eec8d637190ae47cd67bd1a",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 63-消息队列控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_9C621AB18986848BA307ADB121"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_c7cdce10f4cded76627840fa0b",
       "path": "docs/ui-tutorial/ugc-svg/entities.md",
       "locator": "## 09-掉落物规则",
@@ -3603,6 +3903,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_F9D72E69170EA38489A18FBCF4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_ca3573f061b1cdefd9be4c1683",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 45-锚点系统",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_0D9F23D7AFFE9032F91046FA39"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3708,6 +4023,36 @@
       "approved_hash": "bfe3cc80b6c35649ce83d183924a8b7b725c33c552282ac29acd43aea459ddbb",
       "claim_ids": [
         "clm_12A31493E5D86934BB0318E84A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_cd56742b3906af5b118f2044d0",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 67-悬浮交互页-页签",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_3FB0AB490C579EE3690AA5E074"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_ce9eca619675f4198aee34944d",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 57-卡牌选择器控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_159AC666A24456E39603C2EC9F"
       ],
       "supports_fact_classes": [
         "documented_contract"
@@ -3984,6 +4329,21 @@
       ]
     },
     {
+      "id": "aref_e171f523e11b810ec0585a3bd9",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 52-道具展示控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_2AB822AF6A3723B13610E2DEF5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_e190a4844c7344c1d3900e5d8d",
       "path": "AGENTS.md",
       "locator": "回复与协作：知识优先的最小单变化收敛流程",
@@ -4191,6 +4551,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_eb345302dc4d9507625b632dad",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 53-自定义按钮控件",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_7AFD25D319D4777DF37F6C6100"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -4458,6 +4833,21 @@
       "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
       "claim_ids": [
         "clm_459C6622D20B1570596376BB73"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_fd9caa3a1a4a66ef48bfa1c120",
+      "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
+      "locator": "## 66-悬浮交互页-容器",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c3bcf2055e2e3c2c2a68d857bf3bc9888ffc02c69a8b11be8bb6227ebaeca74f",
+      "claim_ids": [
+        "clm_D786EB837BD8D6A544B0126917"
       ],
       "supports_fact_classes": [
         "documented_contract"

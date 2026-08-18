@@ -1250,6 +1250,31 @@
         "预设点"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "ui-controls",
+      "node_id": "official-guide",
+      "title": "界面控件组（UGC 详细规则）",
+      "path": "knowledge/official-guide/ugc-ui-controls.md",
+      "summary": "官方奇匠学院一图流：界面布局/锚点/文本/图片/动效/特殊数字/交互按钮/道具展示/自定义按钮/开关/弹窗/悬浮交互页/卡牌/进度条/计时器/计分板/图文输入框/状态显示区/消息队列/控件组库/素材库/形式变量的详细规则。",
+      "keywords": [
+        "UI",
+        "交互按钮",
+        "动效",
+        "图片",
+        "形式变量",
+        "悬浮交互页",
+        "文本框",
+        "消息队列",
+        "特殊数字",
+        "状态显示区",
+        "界面布局",
+        "界面控件组",
+        "素材库",
+        "进度条",
+        "锚点"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2579,6 +2604,136 @@
       ]
     },
     "clm_E20140CC6FACE412C157B40E7A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_AEEB50E819F769CAD9A38D34E4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_0D9F23D7AFFE9032F91046FA39": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1E1950416D306DF847FE386A4E": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E0C9BA692099971463A8E57D8B": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_910EC861F28126AE2AEC8008F5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E9192DB440A070EA36E02F2D22": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9D42E0526D56DBAA0AE8F836B9": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_A41789B2CD9D66577C8402EE6D": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2AB822AF6A3723B13610E2DEF5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_7AFD25D319D4777DF37F6C6100": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_4BF962BBDCAF48A2565ECC2E0A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1B81CBCC42863AD7A168930AA6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_E3F9E367DF9EC11B53E520B419": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_159AC666A24456E39603C2EC9F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_B1E1E8A4C8C55AA5E453A2199E": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3BB314AC295E0C67F687678B1F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_5E594F87BAF9D9CCDEC35E39ED": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_6D71D76025D15C173E210CD6E6": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_8CF19C20BD25DB11D81C102C2C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_9C621AB18986848BA307ADB121": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_F363A783F077C662BB1D2412D4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_0F14BD6C5A135775ECEEE6FB39": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D786EB837BD8D6A544B0126917": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_3FB0AB490C579EE3690AA5E074": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_904913BF49EA92D4E1A551908C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_15ABEF3C87ABF5DD941DEF7EB5": {
       "fact_classes": [
         "documented_contract"
       ]
