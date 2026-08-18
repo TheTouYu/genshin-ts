@@ -190,7 +190,7 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
   if (type === 'str_list') return raw.split(',').map((s) => s.trim()).filter((s) => s !== '')
   if (type === 'vec3_list')
     return raw
-      .split(';')
+      .split('|')
       .map((triple) => triple.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n)))
   if (type === 'dict') {
     const pairs: UiDictPair[] = []
