@@ -119,7 +119,7 @@ function decodeDictValue(f4msg: readonly WireField[] | undefined): unknown {
 /** 解码一段原始 f37 字典消息（parallel f501 keys + f502 values；兼容旧 Map25 层，直接忽略 f1 记录）为普通对象。 */
 export function decodeDictF37(f37: Uint8Array): unknown {
   const m = parseMessageFields(f37)
-  const keys: unknown[] = []
+  const keys: (string | number)[] = []
   const vals: unknown[] = []
   for (const f of m ?? []) {
     if (f.number === 501 && f.wire === 2) {
@@ -132,8 +132,10 @@ export function decodeDictF37(f37: Uint8Array): unknown {
       vals.push(decodeEntryValue(f.value as Uint8Array))
     }
   }
-  const result: Record<string, unknown> = {}
-  for (let i = 0; i < keys.length && i < vals.length; i++) result[String(keys[i])] = vals[i]
+  // int key（f13 varint）保持数字键，str key（f16）保持字符串键；JSON 输出时键会被
+  // 序列化为字符串，但类型语义（UiDictPair.keyType）与编码（f13/f16）不丢失。
+  const result: Record<string | number, unknown> = {}
+  for (let i = 0; i < keys.length && i < vals.length; i++) result[keys[i]] = vals[i]
   return result
 }
 
@@ -451,13 +453,19 @@ export type UiDictValueType =
   | 'str' | 'int' | 'float'
   | 'str_list' | 'int_list' | 'bool_list' | 'float_list' | 'vec3_list'
 export type UiDictPair = {
-  key: string
+  key: string | number
   keyType: 'str' | 'int'
   value:
     | string | number
     | readonly string[] | readonly number[] | readonly boolean[]
     | readonly (readonly number[])[]
   valueType: UiDictValueType
+}
+
+/** dict key 解析：纯数字（/^-?\d+$/）→ int key（keyType:'int'，key 保持 number）；否则 str key。 */
+export function dictKeyOf(raw: string): { key: string | number; keyType: 'str' | 'int' } {
+  if (/^-?\d+$/.test(raw)) return { key: Number(raw), keyType: 'int' }
+  return { key: raw, keyType: 'str' }
 }
 
 /** id 类标量（varint 编码，与 int 同构）：entity/guid/faction/config_id/prefab_id */
@@ -692,7 +700,7 @@ function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
       { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) },
       p.keyType === 'int'
         ? { number: 13, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: Number(p.key) }]) }
-        : { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }
+        : { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(String(p.key)) }]) }
     ])
   })
   const valueField = (p: UiDictPair) => ({

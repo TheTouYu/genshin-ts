@@ -10,6 +10,7 @@ import type {
   GstsInjectConfig
 } from '../compiler/gsts_config.js'
 import type { UiDictPair, UiVarType } from './gil_level_variables.js'
+import { dictKeyOf } from './gil_level_variables.js'
 import { resolveGilTarget } from './gil_paths.js'
 import {
   applyCustomPrefabInitialCustomVariableDeclarations,
@@ -225,7 +226,8 @@ function parseDictValue(raw: string): UiDictPair[] {
   for (const part of raw.split('&')) {
     const eq = part.indexOf('=')
     if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
-    const key = part.slice(0, eq).trim()
+    // 纯数字 key → int key（keyType:'int'，key: number）；否则 str key
+    const { key, keyType } = dictKeyOf(part.slice(0, eq).trim())
     const value = part.slice(eq + 1).trim()
     if (value.includes('|')) {
       // vec3_list：triples 以 | 分隔（与 --vars vec3_list 语法一致）
@@ -237,27 +239,27 @@ function parseDictValue(raw: string): UiDictPair[] {
         }
         return parts
       })
-      pairs.push({ key, keyType: 'str', value: triples, valueType: 'vec3_list' })
+      pairs.push({ key, keyType, value: triples, valueType: 'vec3_list' })
     } else if (value.startsWith('[') && value.endsWith(']')) {
       const items = parseListItems(value)
       const bools = items.length > 0 && items.every((s) => s === 'true' || s === 'false')
       const ints = items.length > 0 && items.every((s) => /^-?\d+$/.test(s))
       const floats = items.length > 0 && items.every((s) => /^-?\d+(\.\d+)?$/.test(s))
       if (bools) {
-        pairs.push({ key, keyType: 'str', value: items.map((s) => s === 'true'), valueType: 'bool_list' })
+        pairs.push({ key, keyType, value: items.map((s) => s === 'true'), valueType: 'bool_list' })
       } else if (ints) {
-        pairs.push({ key, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'int_list' })
+        pairs.push({ key, keyType, value: items.map((s) => Number(s)), valueType: 'int_list' })
       } else if (floats) {
-        pairs.push({ key, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'float_list' })
+        pairs.push({ key, keyType, value: items.map((s) => Number(s)), valueType: 'float_list' })
       } else {
-        pairs.push({ key, keyType: 'str', value: items, valueType: 'str_list' })
+        pairs.push({ key, keyType, value: items, valueType: 'str_list' })
       }
     } else if (/^-?\d+$/.test(value)) {
-      pairs.push({ key, keyType: 'str', value: Number(value), valueType: 'int' })
+      pairs.push({ key, keyType, value: Number(value), valueType: 'int' })
     } else if (/^-?\d+(\.\d+)?$/.test(value)) {
-      pairs.push({ key, keyType: 'str', value: Number(value), valueType: 'float' })
+      pairs.push({ key, keyType, value: Number(value), valueType: 'float' })
     } else {
-      pairs.push({ key, keyType: 'str', value, valueType: 'str' })
+      pairs.push({ key, keyType, value, valueType: 'str' })
     }
   }
   return pairs

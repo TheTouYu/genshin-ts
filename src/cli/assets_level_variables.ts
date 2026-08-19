@@ -9,6 +9,7 @@ import { resolveGilTarget } from './gil_paths.js'
 import {
   createLevelVariable,
   createLevelVariableTyped,
+  dictKeyOf,
   listLevelVariables,
   uiVarTypeFromCode,
   updateLevelVariable,
@@ -200,7 +201,8 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
       if (!trimmed) continue
       const eq = trimmed.indexOf('=')
       if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
-      const k = trimmed.slice(0, eq).trim()
+      // 纯数字 key → int key（keyType:'int'，key: number）；否则 str key
+      const { key, keyType } = dictKeyOf(trimmed.slice(0, eq).trim())
       const v = trimmed.slice(eq + 1).trim()
       // 列表值用 [a,b,c] 包裹；数值列表 → int_list/float_list，布尔 → bool_list，
       // 三数组用 | 分隔 → vec3_list，否则 str_list
@@ -213,27 +215,27 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
           }
           return parts
         })
-        pairs.push({ key: k, keyType: 'str', value: triples, valueType: 'vec3_list' })
+        pairs.push({ key, keyType, value: triples, valueType: 'vec3_list' })
       } else if (v.startsWith('[') && v.endsWith(']')) {
         const items = v.slice(1, -1).split(',').map((s) => s.trim()).filter((s) => s !== '')
         const bools = items.length > 0 && items.every((s) => s === 'true' || s === 'false')
         const ints = items.length > 0 && items.every((s) => /^-?\d+$/.test(s))
         const floats = items.length > 0 && items.every((s) => /^-?\d+(\.\d+)?$/.test(s))
         if (bools) {
-          pairs.push({ key: k, keyType: 'str', value: items.map((s) => s === 'true'), valueType: 'bool_list' })
+          pairs.push({ key, keyType, value: items.map((s) => s === 'true'), valueType: 'bool_list' })
         } else if (ints) {
-          pairs.push({ key: k, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'int_list' })
+          pairs.push({ key, keyType, value: items.map((s) => Number(s)), valueType: 'int_list' })
         } else if (floats) {
-          pairs.push({ key: k, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'float_list' })
+          pairs.push({ key, keyType, value: items.map((s) => Number(s)), valueType: 'float_list' })
         } else {
-          pairs.push({ key: k, keyType: 'str', value: items, valueType: 'str_list' })
+          pairs.push({ key, keyType, value: items, valueType: 'str_list' })
         }
       } else if (/^-?\d+$/.test(v)) {
-        pairs.push({ key: k, keyType: 'str', value: Number(v), valueType: 'int' })
+        pairs.push({ key, keyType, value: Number(v), valueType: 'int' })
       } else if (/^-?\d+(\.\d+)?$/.test(v)) {
-        pairs.push({ key: k, keyType: 'str', value: Number(v), valueType: 'float' })
+        pairs.push({ key, keyType, value: Number(v), valueType: 'float' })
       } else {
-        pairs.push({ key: k, keyType: 'str', value: v, valueType: 'str' })
+        pairs.push({ key, keyType, value: v, valueType: 'str' })
       }
     }
     return pairs
