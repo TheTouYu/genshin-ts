@@ -4,6 +4,12 @@
 
 这里实现 Genshin-TS DSL 的 ESLint 规则、作用域/类型工具和推荐配置。规则要与编译器可支持的语义保持一致。
 
+## 关键入口
+
+- 规则注册：`index.ts` 的规则表和 `configs.recommended`。
+- 工具：`utils/scope.ts`、`ts_matchers.ts`、类型与 AST helper。
+- fixture：`tests/eslint/`，每个规则应有应报错/不应报错两个方向的最小用例。
+
 ## 修改前
 
 - 先确认规则适用范围、是否需要类型信息、是否只作用于 server scope，以及编译器是否已有对应支持。

@@ -4,6 +4,13 @@
 
 这里运行编译后的 `.gs.ts`，收集调用记录并生成 IR；同时提供 `g.server`、`f.*`、值类型、变量、Composite 和信号 DSL。
 
+## 关键契约
+
+- `IR.d.ts` 是 Stage 1/2 与 Stage 3 的唯一类型化交接；修改它等于修改公共 API。
+- `g.server(...)` 的 registry 必须隔离；`gsts.f` 保持惰性、按上下文绑定。
+- 值类型有三组映射：DSL 表面类型、IR 表达、GIA 编码；新增类型必须三处同步。
+- Composite 的 nested、capture 路由、typed physical pin 与 pin index 是跨 Stage 3 契约，不能当作普通节点展开。
+
 ## 修改前
 
 - 先确认改动影响 DSL 表面、值类型、变量、Composite capture、信号、IR 构建还是运行时上下文。
@@ -11,11 +18,9 @@
 
 ## 修改规则
 
-- `IR.d.ts` 是 Stage 1/2 与 Stage 3 的类型契约。修改它时同步检查所有生产者、消费者、序列化形状和回归。
-- 保持每个 `g.server(...)` 的 registry 隔离以及 `gsts.f` 的惰性、按上下文绑定语义。
+- 修改 `IR.d.ts` 时同步检查所有生产者、消费者、序列化形状和回归。
 - 新增值类型时同步更新三组类型映射，并检查 literal、参数、返回值和变量路径。
-- 修改 Composite 时保留 nested composite、capture 路由、typed physical pin 和 pin index 契约；
-  不要把 Composite 展开成普通节点。
+- 修改 Composite 时保留 nested composite、capture 路由、typed physical pin 和 pin index 契约；不要把 Composite 展开成普通节点。
 - 运行时可达代码仍要遵守用户 DSL 限制：避免 JSON、Promise、async/await 和未建模副作用。
 
 ## 验证

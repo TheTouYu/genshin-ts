@@ -4,6 +4,14 @@
 
 这里使用 TypeScript Compiler API，把 `g.server(...).on(...)`、`gstsServer*`、控制流和受支持表达式转换为 `f.*` 调用形式。
 
+## 关键文件
+
+- 入口：`index.ts`。
+- 语句/表达式/类型：`stmt.ts`、`expr.ts`、`types.ts`、`expression_semantics.ts`。
+- 列表/内建/循环：`lists.ts`、`list_methods.ts`、`list_utils.ts`、`builtins.ts`、`loops.ts`。
+- 局部变量与常量折叠：`local_variable_lowering.ts`、`const_eval.ts`、`ops.ts`。
+- 匹配/诊断：`matcher.ts`、`errors.ts`。
+
 ## 修改前
 
 - 先确认需求是语句、表达式、列表方法、内建函数、循环、常量折叠、作用域检查还是诊断格式。

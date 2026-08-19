@@ -5,6 +5,15 @@
 这里将 `IRDocument` 编码为 `.gia`。它消费 `src/runtime/IR.d.ts`，通过
 `src/compiler/gia_vendor.ts` 使用 vendor 的 `Graph`、`Node`、`Pin` 与 protobuf 包装能力。
 
+## 关键文件
+
+- 普通节点/引脚：`ordinary_node_factory.ts`、`ordinary_graph_materializer.ts`、`pins.ts`、`mappings.ts`。
+- Composite：`composite.ts`、`lower_composite_call.ts`、`build_composite_pins.ts`、`build_composite_definition.ts`、`build_composite_layout.ts`。
+- 边界适配：`pin_hole_adapter.ts`、`special_arg_adapter.ts`、`normalize_capture.ts`。
+- 信号：`build_signal_definition.ts`。
+- 布局/优化：`layout.ts`、`optimize_timer_dispatch.ts`、`node_id.ts`。
+- 入口：`index.ts`、`runner.ts`、`stage3_backend.ts`。
+
 ## 修改前
 
 - 先确认问题在类型解析、ordinary node lowering、Composite 边界、布局、优化还是 protobuf 物化层。

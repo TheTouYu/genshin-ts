@@ -3,6 +3,7 @@
 ## 适用范围
 
 本文件会被 `create-genshin-ts` 复制到最终用户项目。它指导用户项目的开发，不适用于 Genshin-TS 仓库内部维护。
+与同目录 `CLAUDE.md` 分工：`AGENTS.md` 管流程、安全与验证边界，`CLAUDE.md` 管 DSL 语法细节与调试顺序。
 
 ## 开始前
 
@@ -18,6 +19,7 @@
 - `gstsServer*` 必须在顶层，且只能有一个位于末尾的 `return`。
 - 图作用域内避免 Promise、async、递归、JSON 和普通对象；条件必须是 `boolean`，整数运算优先使用 `bigint`。
 - 变量通过 `g.server({ variables: ... })` 声明，并用 `f.get` / `f.set` 读写；类型必须保持一致。
+- 语法细节（timer、类型 helper、列表/dict、全局函数、硬规则）以 `CLAUDE.md` 为准。
 
 ## 调试与验证
 
@@ -25,3 +27,8 @@
 - 常用命令：`npm run dev`、`npm run build`、`npm run maps`、`npm run backup`。
 - 当需要编辑器操作、地图选择或注入时，先说明目标、前提和风险；不要把生成成功当作游戏行为已经验证。
 - 真实 `.gil` 写回前展示目标、来源/候选哈希、全部 ID、影响字段、备份与回滚方式，并取得明确确认。
+
+## 不要做
+
+- 不要手改 `dist/`、`node_modules/genshin-ts` 或生成产物来“修”问题。
+- 不要把静态 `.gil` 拼装、GIA NodeGraph 注入和运行时 `createPrefab` 混为一谈。

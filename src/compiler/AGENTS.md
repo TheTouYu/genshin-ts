@@ -4,6 +4,13 @@
 
 这里负责 TS → `.gs.ts` → IR JSON → `.gia` 的三阶段编译。进入 Stage 1 或 Stage 3 子目录后，必须继续读取其中的规则。
 
+## 管线入口
+
+- Stage 1：`src/compiler/ts_to_gs_transform/`（TS → `.gs.ts`）。
+- Stage 2：`src/compiler/gs_to_ir_json_transform/`（`.gs.ts` → IR JSON）。
+- Stage 3：`src/compiler/ir_to_gia_transform/`（IR → `.gia`）。
+- 主流程：`ts_to_gs_pipeline.ts`、`ir_to_gia_pipeline.ts`；配置：`gsts_config.ts`。
+
 ## 修改前
 
 - 先确认问题属于哪个阶段，以及输入、输出和跨阶段契约；不要通过跨阶段临时耦合绕过问题。
@@ -16,11 +23,13 @@
 - `gsts_config.ts` 的公开配置字段需要完整中英文 JSDoc，并保持 loader、CLI、模板和测试配置一致。
 - 进程间阶段执行应保持隔离，不依赖共享可变状态。
 - IR 是唯一的类型化跨阶段交接；修改 IR 形状时检查生产者、消费者、合并逻辑和回归。
+- 修改共享语义（capture、timer、Composite、special-arg、信号）时，必须同时检查 Stage 1 转换、ESLint 限制、Stage 3 编码和对应 focused 回归，不能只放宽一层。
 
 ## 验证
 
 - 优先运行受影响阶段的最小命令或测试；生产 TypeScript 改动后运行 `npm run build`。
 - 修改共享管线时扩大到相关 end-to-end 回归；最后运行 `git diff --check`。
+- 编译/GIA 生成/注入成功不能替代编辑器或游戏核验。
 
 ## 不要做
 
