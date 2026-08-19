@@ -41,7 +41,8 @@ export type ExportedEntity = {
 
 export type EntityImport = {
   name?: string
-  id: number
+  /** 新建实体可省略：由 CLI 自动分配下一个空闲系统 GUID（≥1077936129）。 */
+  id?: number
   definitionId: number
   /** 仅用于选择转换模板；省略时与 definitionId 相同，不会写入目标实体。 */
   sourceDefinitionId?: number
@@ -753,10 +754,10 @@ export function applyEntities(params: {
   // 目标地图 root 4 本地 definition ID 集合：definitionId 不在集合内时实体是
   // “直接 res 引用”，relation 必须带内建标记 {2:1}（2026-08-07 实测：缺标记的
   // 实体编辑器加载时被忽略，用户新建实体直接复用该 ID 并覆盖注入记录）。
-// 自定义元件 ID 区间：游戏/编辑器只认 0x40400000 区间（>=1077936129）的元件
-// def/inst/entity ID。0x4000xxxx 区间的实体加载时被整体丢弃 → 地图打开为空
-// （2026-08-09 R4 空图根因；aux ID 无此限制）。
-const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
+  // 自定义元件 ID 区间：游戏/编辑器只认 0x40400000 区间（>=1077936129）的元件
+  // def/inst/entity ID。0x4000xxxx 区间的实体加载时被整体丢弃 → 地图打开为空
+  // （2026-08-09 R4 空图根因；aux ID 无此限制）。
+  const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
 
   const localDefinitions = new Set<number>()
 
@@ -771,23 +772,45 @@ const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
       if (id !== undefined) localDefinitions.add(id)
     }
   }
-  for (const entity of params.entities) {
-    if (entity.id < MIN_CUSTOM_ENTITY_ID) {
-      throw new Error(
-        `[error] entity ID ${entity.id} is below the custom entity ID range (>= ${MIN_CUSTOM_ENTITY_ID}); lower IDs are dropped by the game and the map opens empty`
-      )
+  // 实体/定义/实例共享 ID 计数器：root 4 定义与 root 8 实例也加入占用，
+  // 避免自动分配的新实体撞上已有元件/实例 ID。
+  for (const id of localDefinitions) occupied.add(id)
+  const top8Existing = top.find((field) => field.number === 8 && field.wire === 2)
+  if (top8Existing) {
+    for (const record of records(top, 8, 1)) {
+      const id = recordId(record)
+      if (id !== undefined) occupied.add(id)
     }
-    if (occupied.has(entity.id) && !existingById.has(entity.id))
-      throw new Error(`[error] entity ID conflict: ${entity.id}`)
-    occupied.add(entity.id)
   }
+  // 新建实体省略 id 时自动分配：从当前最大占用 ID 的下一个开始（至少 1077936129）。
+  let maxOccupied = MIN_CUSTOM_ENTITY_ID - 1
+  for (const id of occupied) if (id > maxOccupied) maxOccupied = id
+  let nextId = maxOccupied + 1
+  const resolvedEntities = params.entities.map((entity) => {
+    let id = entity.id
+    if (id === undefined) {
+      while (occupied.has(nextId)) nextId++
+      id = nextId
+      nextId++
+    } else {
+      if (id < MIN_CUSTOM_ENTITY_ID) {
+        throw new Error(
+          `[error] entity ID ${id} is below the custom entity ID range (>= ${MIN_CUSTOM_ENTITY_ID}); lower IDs are dropped by the game and the map opens empty`
+        )
+      }
+      if (occupied.has(id) && !existingById.has(id))
+        throw new Error(`[error] entity ID conflict: ${id}`)
+    }
+    occupied.add(id)
+    return { ...entity, id }
+  })
   let top5 = top.find((field) => field.number === 5 && field.wire === 2)
   if (!top5) {
     top5 = { number: 5, wire: 2, value: emit([]) }
     top.push(top5)
   }
   const section = message(top5)
-  for (const entity of params.entities) {
+  for (const entity of resolvedEntities) {
     const sourceDefinitionId = entity.sourceDefinitionId ?? entity.definitionId
     // 官方直引：目标地图无本地定义时以官方骨架生成实体（f2={1:resID,2:1}、
     // f5×10/f6×15/f7×6/f8=resID，与 root 8 官方引用实例同构）。真实样本：

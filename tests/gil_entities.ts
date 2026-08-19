@@ -151,6 +151,21 @@ assert.equal(
 )
 assert.equal(dataView.getUint32(0, false), applied.length - 4, 'header size field must match file size')
 
+// 新建实体省略 id 时自动分配：mini 地图已占用 root4/root6 的 1077936182，
+// 下一个空闲系统 GUID 应为 1077936183（>=1077936129）。
+const autoApplied = applyEntities({
+  bytes: mini,
+  definitions: [definition],
+  entities: [
+    { name: '箭头指示牌_auto', definitionId: 1077936182, position: [1, 0, 0] }
+  ]
+})
+const autoExported = exportEntities(autoApplied)
+assert.equal(autoExported.length, 1)
+assert.equal(autoExported[0].id, 1077936183)
+assert.equal(autoExported[0].name, '箭头指示牌_auto')
+assert.equal(autoExported[0].definitionId, 1077936182)
+
 // sourceDefinitionId 只选择转换模板；definitionId 才写入实体 relation。这样可用独立
 // root4 空模型 definition 生成直接资源实体 10005018，而不把 donor definition 加入目标地图。
 const directResource = applyEntities({

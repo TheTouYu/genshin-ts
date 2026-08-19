@@ -74,6 +74,8 @@ function usage(exitCode = 1): never {
     'Import entities are created from their component definition record;',
     'sourceDefinitionId optionally selects a donor record without changing',
     'the definitionId written to the entity. Components are inherited byte-for-byte.',
+    'id is optional for new entities (auto-assigned from the next free GUID);',
+    'provide id only when updating an existing entity.',
     'patch performs a record-level local replacement (only the target record bytes change).',
     'apply-candidate: gsts assets:entities apply-candidate [options]',
     '  Hash-gated writeback of a pre-built candidate file: the source must match',
@@ -352,7 +354,7 @@ function loadEntitiesFile(filePath: string): EntitiesFile {
     }
     if (typeof item.name !== 'string' || !item.name)
       throw new Error(`[error] ${field}.name must be a non-empty string`)
-    if (!Number.isSafeInteger(item.id) || (item.id as number) < 0)
+    if (item.id !== undefined && (!Number.isSafeInteger(item.id) || (item.id as number) < 0))
       throw new Error(`[error] ${field}.id must be a non-negative safe integer`)
     if (!Number.isSafeInteger(item.definitionId) || (item.definitionId as number) < 0)
       throw new Error(`[error] ${field}.definitionId must be a non-negative safe integer`)
@@ -364,7 +366,7 @@ function loadEntitiesFile(filePath: string): EntitiesFile {
     }
     return {
       name: item.name,
-      id: item.id as number,
+      ...(item.id === undefined ? {} : { id: item.id as number }),
       definitionId: item.definitionId as number,
       ...(item.sourceDefinitionId === undefined
         ? {}
