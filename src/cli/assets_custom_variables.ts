@@ -16,9 +16,12 @@ import {
   applyCustomPrefabInitialCustomVariableDeclarations,
   applyEntityCustomVariableDeclarations,
   decodeCustomVariableValue,
+  readCustomPrefabInitialCustomVariables,
   readEntityCustomVariables,
   syncPrefabCustomVariableDeclarations,
+  type ApplyCustomVariableUpdatesResult,
   type CustomVariableDeclaration,
+  type CustomVariableDefinition,
   type CustomVariableInitialValue
 } from './gil_custom_variables.js'
 import { prettyStableJson } from './static_assembly/json.js'
@@ -316,10 +319,12 @@ export async function runAssetsCustomVariables(argv: readonly string[] = process
   if (!fs.statSync(sourcePath).isFile()) throw new Error(`[error] gil not found: ${sourcePath}`)
 
   if (args.entityId !== undefined && args.list) {
-    const variables = readEntityCustomVariables({
-      gilPath: sourcePath,
-      entityId: args.entityId
-    }).variables
+    let variables: readonly CustomVariableDefinition[]
+    try {
+      variables = readEntityCustomVariables({ gilPath: sourcePath, entityId: args.entityId }).variables
+    } catch {
+      variables = readCustomPrefabInitialCustomVariables({ gilPath: sourcePath, prefabId: args.entityId }).variables
+    }
     const rows = variables.map((definition) => ({
       name: definition.name,
       type: definition.type,
@@ -345,11 +350,20 @@ export async function runAssetsCustomVariables(argv: readonly string[] = process
     let operations = 0
     if (args.entityId !== undefined && args.varsSpec !== undefined) {
       const declarations = parseVarsSpec(args.varsSpec)
-      const result = applyEntityCustomVariableDeclarations({
-        gilPath: temporary,
-        entityId: args.entityId,
-        declarations
-      })
+      let result: ApplyCustomVariableUpdatesResult
+      try {
+        result = applyEntityCustomVariableDeclarations({
+          gilPath: temporary,
+          entityId: args.entityId,
+          declarations
+        })
+      } catch {
+        result = applyCustomPrefabInitialCustomVariableDeclarations({
+          gilPath: temporary,
+          prefabId: args.entityId,
+          declarations
+        })
+      }
       fs.writeFileSync(temporary, result.bytes)
       changed += result.changed.length
       operations = 1
