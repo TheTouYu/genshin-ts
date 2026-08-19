@@ -132,6 +132,7 @@ k1=[1,2,3]|4,5,6             # vec3_list（| 分隔多个三元组）
 - **`assets:entities import` 的 definitionId 必须在目标 root4 存在**：缺失会被 CLI 误判为官方 res 直引（relation 带 `{f2:1}`）→ 编辑器加载时实体被丢弃。自定义定义实体 relation 应为 `{definitionId}` 无 `f2:1`。
 - **新元件/实体 ID ≥1077936129**（0x40400000 区间），0x4000xxxx 区间的元件被游戏/编辑器整体丢弃；ID 分配前 root4/5/6 双查。
 - **新建实体 `id` 可省略**：`assets:entities import` 会自动分配下一个空闲系统 GUID（≥1077936129）；显式 `id` 只用于更新已有实体。
+- **gadget 联动**：`assets:gadgets search|get` 返回的 `list_id` 是元件 ID，可直接作 `assets:prefabs create --base` 或 `assets:entities import` 的 `definitionId`；`assets:gadgets create-entity --id <list_id> --gil <map> [--output|--write]` 会按该元件 ID 自动建实体（GUID 自动分配）。
 - **玩家初始变量要两处同步**：仅写顶层玩家资源定义，编辑器可能不可见；需把缺失声明同步到明确引用模板的实例容器（`syncInstances` 或 `sync*` API）。
 - **注入前目标图必须存在**：`target NodeGraph not found` → 先 `assets:node-graphs create` 空图占位再注入。
 - **写回后变更消失**：先核对当前 hash 是否等于写回后 hash；相等则请用户重新加载编辑器再保存，不要重做写回。

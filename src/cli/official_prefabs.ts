@@ -24,10 +24,21 @@ import {
 
 export const OFFICIAL_RESOURCE_MIN = 10_000_000
 export const OFFICIAL_RESOURCE_MAX = 1_000_000_000
+/** ugc_gadgets 目录 ID 范围（公开数据 API 实测约 1000001~2000002）。 */
+export const GADGET_RESOURCE_MIN = 1_000_000
+export const GADGET_RESOURCE_MAX = 2_000_002
 
-/** 官方基础元件资源 ID 判定：ID 落在 [1e7, 1e9) 即官方 resID（真实样本 1000900x/10005018）。 */
+/**
+ * 官方元件/资源 ID 判定：基础几何等 resID 落在 [1e7, 1e9)；
+ * 装饰物件目录 ID（ugc_gadgets.list_id）落在 [1e6, 2000002]，
+ * 同样可被 `assets:prefabs create --base` 引用或 `assets:entities import` 直引。
+ */
 export function isOfficialResourceId(id: number): boolean {
-  return Number.isSafeInteger(id) && id >= OFFICIAL_RESOURCE_MIN && id < OFFICIAL_RESOURCE_MAX
+  return (
+    Number.isSafeInteger(id) &&
+    ((id >= OFFICIAL_RESOURCE_MIN && id < OFFICIAL_RESOURCE_MAX) ||
+      (id >= GADGET_RESOURCE_MIN && id <= GADGET_RESOURCE_MAX))
+  )
 }
 
 const OFFICIAL_PREFAB_NAMES: Readonly<Record<number, string>> = {

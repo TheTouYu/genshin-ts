@@ -758,6 +758,9 @@ export function applyEntities(params: {
   // def/inst/entity ID。0x4000xxxx 区间的实体加载时被整体丢弃 → 地图打开为空
   // （2026-08-09 R4 空图根因；aux ID 无此限制）。
   const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
+  // 自动分配只看 0x40400000 自定义块；0x40c/0x410/0x414 等系统实体
+  // （默认模板/角色编辑/关卡实体）不参与“下一个实体 GUID”递增。
+  const CUSTOM_ID_BLOCK_END = 0x40500000
 
   const localDefinitions = new Set<number>()
 
@@ -782,9 +785,14 @@ export function applyEntities(params: {
       if (id !== undefined) occupied.add(id)
     }
   }
-  // 新建实体省略 id 时自动分配：从当前最大占用 ID 的下一个开始（至少 1077936129）。
+  // 新建实体省略 id 时自动分配：从自定义块当前最大占用 ID 的下一个开始
+  // （至少 1077936129）。
   let maxOccupied = MIN_CUSTOM_ENTITY_ID - 1
-  for (const id of occupied) if (id > maxOccupied) maxOccupied = id
+  for (const id of occupied) {
+    if (id >= MIN_CUSTOM_ENTITY_ID && id < CUSTOM_ID_BLOCK_END && id > maxOccupied) {
+      maxOccupied = id
+    }
+  }
   let nextId = maxOccupied + 1
   const resolvedEntities = params.entities.map((entity) => {
     let id = entity.id
