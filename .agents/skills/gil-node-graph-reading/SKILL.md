@@ -25,7 +25,7 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `tools/parse-gil-node-graph.ts` | 底层结构化解析（变量定义/inputs/value/boundary） | `--graph` `--composite` `--json` |
 | `tools/compare-gil-node-graph.ts` | 两个图/文件对比 | 见 `--help` |
 | `gsts assets:node-graphs layout --check` | 布局 lint：读图并报告违规（flow-upward/backward、chain-vertical、long-chain、block-order、line-align、data-detached、data-chain-long、island、overlap） | `--gil <地图> --graph <id>` |
-| `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代） | `--gil <地图> --graph <id> [--node <n>]` |
+| `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代）；复合分类读取 | `--gil <地图> --graph <id> [--node <n>]`；分类：`[--category <名>]` 过滤、`--composite <id>` 详情含分类、`--json` 带 category |
 | `tools/scan-gil-var-pins.ts` | 变量类节点（Get/Set Custom/Node Graph Variable）变量名 pin 完整性扫描——**交付候选前必跑**（2026-08-12 split2 复盘新增） | `<地图.gil> [--graph <id>] [--json] [--list-names]` |
 
 运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。

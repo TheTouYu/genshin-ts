@@ -145,6 +145,22 @@ reflectMap，真实快照验证 20+ 实例）。变体 f3（concreteId）与 ind
 - add/del/swap-input 会重编号实例节点（chooseRebuildIndex/chooseMovedIndex 规则；
   跨轮墓碑无会话史可能低于编辑器）
 
+## 复合分类（2026-08-19 编辑器差分闭合）
+
+- **分类注册表 = `field10.field3` 独立子节**（p1=3），与复合 def（p1=2）分开；每条记录一个分类。
+- 记录结构：`{ f1(分类id varint), f2(树) }`；树层级 `{ f1(名), f2(子分类), f3(成员引用) }`。
+- 成员引用 = `f3{ f1(17){ NodeGraph.Id{class 10001,type 20000,kind 22001, f5=复合defid} } }`（21 字节）。
+- **默认分类"复合节点"隐式**（无记录）；自定义分类 = 一条记录 + 成员列表；层级可嵌套。
+- 编辑器新建空分类会落记录（空成员）；拖复合进分类 = 记录成员加 21B 引用；拖出 = 删引用。
+- CLI：
+  - 读/定位：`gsts assets:node-graphs read --gil map.gil [--category 名] [--composite <id>] [--json]`
+    （列表含 `[分类]`，--json 复合带 `category` 字段）
+  - 写：`gsts assets:node-graphs patch --gil map.gil composite <def-id> category <名称|clear> --write`
+    （名称可含路径 `复合节点/xxx` 或简写 `xxx`；`clear`=移回默认）
+  - 证据：set +21B / clear -21B 往返 hash = 编辑器原始（ffbf525e 实测），逐字节一致。
+  - 原语：`src/cli/static_assembly/graph_edit.ts` 的 `listCompositeCategories` /
+    `compositeCategoryName` / `setCompositeCategory` / `clearCompositeCategory`。
+
 ## 复合内 setter 的 capture value 引脚（2026-08-19 编辑器差分 + 源码级 GIA 验证闭合）
 
 - **规则**：复合内用「复合输入 capture」直接设变量时，value 引脚必须是 **ConcreteBase 包裹**

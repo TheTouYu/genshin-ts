@@ -27,7 +27,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 |---|---|
 | `scripts/gia_log.py <日志.gia> text` | 提取 f22 文本日志（按记录序，验证打印顺序） |
 | `scripts/gia_log.py <日志.gia> records` | 记录概览（进程号/会话/实体/**图名**/f21 大小）；`--gil <地图.gil>` 标注图名、`--graph <id>` 过滤 |
-| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**标注节点名与图名**）；`--gil`/`--rec <n>`/`--graph <id>` 过滤 |
+| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**标注节点名与图名**）；`--gil`/`--rec <n>`/`--graph <id>`/`--contains <文本>` 过滤（2026-08-19 升级：**wire 列表值直接解码**为 `[0, 0.05, ...]`/`[0,1,2,...]`，免 hex 二次解析；`--contains` 免管道 grep） |
 | `scripts/gia_log.py <日志.gia> dump` | 逐帧原始结构 dump（无压缩，精确核对用） |
 | `scripts/gia_log.py latest` | 输出日志目录下最新 .gia 路径 |
 | `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存） |

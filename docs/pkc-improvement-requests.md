@@ -173,6 +173,76 @@ R3 的修复应同时覆盖 `AUTHORITY_FACT_COVERAGE` 变体：当 coverage 缺�
 - 补充认知：纯已 apply 维护（refs 全部 refresh 到 current）时 committed 模式本就不拦截；worktree 模式是"有未 refresh stale ref 混入时"的显式推进通道。
 - 待办：`--baseline worktree` 的真实"混入 stale"场景端到端验证（当前 authority 干净，未触发）。
 
+## T2/T3/C1 实施状态（2026-08-16 第二批，已发布）
+
+- **T2**：`bundle-apply` 返回 `commit_suggestion`（git_add 路径 + 提交信息）——把"apply 是提交单元"变成可执行清单。本体 commit `127d8ec`。
+- **T3**：`finalize` 输出非阻塞 `PLAN_INTENT_OVERLAP` 警告（同 intent 已存在 bundle 时）——孤儿/重复 draft 在 apply 前可见。真实数据验证：识别出 2 个同 intent bundle（含一个此前未发现的隐藏 draft `bnd_378cefa9`）。
+- **C1**：批量 hash 确认门约定写入 AGENTS.md + skill（同批多 bundle 一次展示，逐个 approve+apply，不合并）。
+- 已发布到 genshin-ts（wheel `...`，锁 source_ref `127d8ec`）。
+
+## T4/K1 实施状态（2026-08-16 第三批，已发布）
+
+- **T4**：`bundle-status --health-only`（只输出生命周期健康汇总）+ `knowledge-check` 输出 `bundle_health` 字段（状态计数/重复 draft/待 apply/异常）——健康门禁与权威检查合一。本体 commit `f94230b`，已发布到 genshin-ts（锁 `f94230b`）。
+- **K1**：意图覆盖可见性由 T3 的 `PLAN_INTENT_OVERLAP` finalize warning 覆盖，不另做 lifecycle 事件。
+- 真实数据观察：T3 检测暴露一个此前隐藏的孤儿 draft `bnd_378cefa9`（同 intent 已 apply 的遗留），待处置；knowledge-check warnings 76 条（74 历史 + 2 新增），stale 清理是持续任务。
+
+## 第四批 + 批次总览（2026-08-16 自主进化一轮完成）
+
+- **T5/R4**：确认 `knowledge-plan capture --file DRAFT.json` 已满足 R4（批量文件驱动录入，长文本可复用）；markdown `--from-file` 记为可能增强。
+- **F3**：`PLAN_*` 拦截标准恢复序列写入 operator skill（abandon→commit→rebase/worktree→重建）。
+- **K2**：工具反馈 topic 分离降级为待办（当前 3 claims 污染有限，反馈增长后再做）。
+- **K3**：验证层级结构化 schema 推迟（需真实需求驱动）。
+
+### 本轮自主进化批次总览（全部已发布到 genshin-ts）
+| 批次 | 内容 | 本体 commit |
+|---|---|---|
+| 1 | F1 提交单元文档 + T1 worktree-baseline（R3 修复） | 1de74e3 |
+| 2 | T2 commit_suggestion + T3 intent-overlap + C1 批量确认 | 127d8ec |
+| 3 | T4 health-only + knowledge-check 集成 | f94230b |
+| 4 | F3 恢复流程 + T5/R4 确认 | df920f1 |
+
+## A/B 验证结果（2026-08-16，isolated-model-evaluator 双组对比）
+
+### 设计
+- 任务：信号系统 5 问（signalVersion 一致性/发送节点骨架/固定值参数映射/导入改名语义/监听节点骨架），只读。
+- A 组：仅 debug-log-investigator 技能 + 文档；B 组：技能 + 文档 + 知识库查询入口（progressive-query/query/show-claim 说明）。
+- 同模型（deepseek-v4-flash/max），各自全新上下文。
+
+### 结果
+| 指标 | A 组 | B 组 |
+|---|---|---|
+| 耗时 | 66s | 92s（+40%） |
+| 工具调用 | 10 | 19 |
+| 成本 | $0.0054 | $0.0078 |
+| 5 题完成 | ✓ | ✓ |
+| 发现文档/知识库不一致 | 0 | **3** |
+
+### 结论
+1. **知识库承担验证责任的价值证据**：B 组通过 show-claim/query 交叉验证，发现 3 个 A 组不可见的真实问题——①docs 写死 signalVersion=1 vs 知识库"=注册表 f6"表述差异（样本恰为 1，f6≠1 时 docs 误导）；②Q4 导入改名语义（_1 后缀/新图）在知识库无 claim（coverage gap）；③R9 context 路由错位复现。
+2. **成本代价真实但可接受**：B 组 +40% 耗时/+45% 成本，换取"答案被权威 claim 交叉锁定"与"盲点暴露"。
+3. **R9 是最大可用性障碍**：两个合法 context 均 coverage gap，B 组被迫用 query --topic 兜底——修复 R9（game-engine-rules context）后 B 组效率可接近 A 组。
+
+### 后续动作（已列入待办）
+- docs/game-engine-knowledge/signals.md 修正 signalVersion 表述（"=1"→"=注册表 f6"）
+- 录入 Q4 导入改名语义 claim（覆盖缺口）
+- R9 修复（context 路由）
+
+## R9（P1，2026-08-16 编译器侧实证确认）：progressive-query context 路由缺口——game-engine-knowledge 无 context 覆盖
+
+### 现状
+
+`progressive-query --context <id>` 只路由到配置的 context（`compiler-diagnostics`、`static-gil-assembly-production`）。实测：两个 context 查询信号规则（signalVersion 等）都返回 `RETRIEVAL_CANDIDATE_UNKNOWN`（coverage gap），只有通用 `python tools/pkc.py query "<关键词>"` 能命中 `game-engine-knowledge` 节点的 claim。
+
+### 实际影响
+
+独立模型/编译器侧按 adapter 指引用 progressive-query 查游戏引擎规则时全部落空，被迫降级 query——知识库"有答案但入口找不到"。编译器侧 5 场景实证：信号相关 4/5 场景知识库能答，但 progressive-query 入口对它们不可用。
+
+### 期望
+
+- 为 `game-engine-knowledge`（及 `gia-wire-analysis`、`debug-log-format` 等游戏引擎知识节点）增加 context（如 `game-engine-rules`，priority 配置），或让 context 路由支持"未命中时回退到全库检索"。
+- `--context` 的合法值应在 CLI help 中列出（当前 help 只说 `<context-id>` 不列枚举）。
+- 验收：`progressive-query --context game-engine-rules --intent "signalVersion 一致性"` 能命中对应 claim。
+
 ## R6（P1）：draft 重复无自动消重——同 intent 近似重复 draft 无任何提示
 
 ### 现状

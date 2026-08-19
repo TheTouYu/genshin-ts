@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    { "name": "管理台", "id": 1077936191, "definitionId": 1077936131, "position": [5, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+    { "name": "引导牌1", "id": 1077936192, "definitionId": 1077936132, "position": [7.5, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] }
+  ]
+}

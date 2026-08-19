@@ -476,6 +476,311 @@ export function compositeImplGraphId(payload: Uint8Array, defId: number): number
   return implId
 }
 
+// ---- 复合分类（field10.field3 子节；2026-08-19 编辑器差分闭合）----
+// 结构：记录 = { f1(分类 id), f2(树) }；树 = { f1(名), f2(子分类), f3(成员引用) }；
+// 成员引用 = f3 { f1(17) { NodeGraph.Id: class/type/kind + f5=复合 def id } }。
+// 默认分类"复合节点"隐式；自定义分类 = 一条 field10.field3 记录 + 成员列表。
+
+export type CompositeCategory = {
+  /** 分类树路径，如 ["复合节点", "复合节点实验"] */
+  path: string[]
+  /** 该分类下的成员复合定义 id */
+  members: number[]
+  dataStart: number
+  dataEnd: number
+}
+
+/** 递归解析分类树：f1=名、f2=子分类、f3=成员引用（f3.f1.f5=复合 def id）。 */
+function walkCategoryTree(buf: Uint8Array, path: string[], out: CompositeCategory[]): void {
+  const fs = parseWireMessage(buf) ?? []
+  const name = fs.find((x) => x.number === 1 && x.wire === 2)
+  const myPath =
+    name && name.value instanceof Uint8Array
+      ? [...path, new TextDecoder('utf-8', { fatal: false }).decode(name.value)]
+      : path
+  const members: number[] = []
+  for (const ref of fs.filter((x) => x.number === 3 && x.wire === 2)) {
+    if (!(ref.value instanceof Uint8Array)) continue
+    const rf = parseWireMessage(ref.value)
+    const idMsg = rf?.find((x) => x.number === 1 && x.wire === 2)
+    const nodeId = idMsg && idMsg.value instanceof Uint8Array
+      ? parseWireMessage(idMsg.value)?.find((x) => x.number === 5 && x.wire === 0)?.value
+      : undefined
+    if (typeof nodeId === 'number') members.push(nodeId)
+  }
+  const children = fs.filter((x) => x.number === 2 && x.wire === 2)
+  if (children.length === 0) {
+    out.push({ path: myPath, members, dataStart: 0, dataEnd: 0 })
+  } else {
+    for (const child of children) {
+      if (child.value instanceof Uint8Array) walkCategoryTree(child.value, myPath, out)
+    }
+  }
+}
+
+/** 枚举全部复合分类记录（field10.field3）。 */
+export function listCompositeCategories(bytes: Uint8Array): CompositeCategory[] {
+  const payload = bytes.slice(20, -4)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const out: CompositeCategory[] = []
+  for (const f of fields) {
+    if (f.depth !== 2 || f.p0 !== 10 || f.p1 !== 3) continue
+    const ff = parseWireMessage(payload.subarray(f.dataStart, f.dataEnd))
+    const tree = ff?.find((x) => x.number === 2 && x.wire === 2)
+    if (!tree || !(tree.value instanceof Uint8Array)) continue
+    const entries: CompositeCategory[] = []
+    walkCategoryTree(tree.value, [], entries)
+    for (const e of entries) out.push({ ...e, dataStart: f.dataStart, dataEnd: f.dataEnd })
+  }
+  return out
+}
+
+/** 复合 def id → 所属分类路径；未归类（默认"复合节点"）返回 undefined。 */
+export function compositeCategoryPath(bytes: Uint8Array, defId: number): string[] | undefined {
+  for (const c of listCompositeCategories(bytes)) {
+    if (c.members.includes(defId)) return c.path
+  }
+  return undefined
+}
+
+/** 复合 def id → 分类显示名（"复合节点"= 默认；"复合节点/复合节点实验"= 自定义）。 */
+export function compositeCategoryName(bytes: Uint8Array, defId: number): string {
+  const path = compositeCategoryPath(bytes, defId)
+  return path && path.length > 0 ? path.join('/') : '复合节点'
+}
+
+// ---- 分类写入（重建 field10.field3 记录；2026-08-19 差分闭合）----
+// 记录 = { f1(分类 id varint), f2(树) }；树层级 = { f1(名), f2(子分类) × N, f3(成员引用) × N }；
+// 成员引用 = f3{ f1(17){ NodeGraph.Id{class 10001,type 20000,kind 22001, f5=复合 def id} } }。
+// 编辑器模型 = **单条记录，树根"复合节点"下挂多个子分类**（2026-08-19 实证：多条记录只有最后一条显示）。
+
+type CategoryTreeLevel = { name: string; children: CategoryTreeLevel[]; members: number[] }
+
+function parseCategoryTree(buf: Uint8Array): CategoryTreeLevel {
+  const fs = parseWireMessage(buf) ?? []
+  const level: CategoryTreeLevel = { name: '', children: [], members: [] }
+  const name = fs.find((x) => x.number === 1 && x.wire === 2)
+  if (name && name.value instanceof Uint8Array) {
+    level.name = new TextDecoder('utf-8', { fatal: false }).decode(name.value)
+  }
+  for (const ref of fs.filter((x) => x.number === 3 && x.wire === 2)) {
+    if (!(ref.value instanceof Uint8Array)) continue
+    const rf = parseWireMessage(ref.value)
+    const idMsg = rf?.find((x) => x.number === 1 && x.wire === 2)
+    const nodeId = idMsg && idMsg.value instanceof Uint8Array
+      ? parseWireMessage(idMsg.value)?.find((x) => x.number === 5 && x.wire === 0)?.value
+      : undefined
+    if (typeof nodeId === 'number') level.members.push(nodeId)
+  }
+  for (const child of fs.filter((x) => x.number === 2 && x.wire === 2)) {
+    if (child.value instanceof Uint8Array) level.children.push(parseCategoryTree(child.value))
+  }
+  return level
+}
+
+function categoryMemberRefField(nodeId: number): WireField {
+  const id = emitWireMessage([
+    { number: 1, wire: 0, value: 10001 },
+    { number: 2, wire: 0, value: 20000 },
+    { number: 3, wire: 0, value: 22001 },
+    { number: 5, wire: 0, value: nodeId }
+  ])
+  return {
+    number: 3,
+    wire: 2,
+    value: emitWireMessage([{ number: 1, wire: 2, value: id }])
+  }
+}
+
+function encodeCategoryTree(level: CategoryTreeLevel): Uint8Array {
+  const fields: WireField[] = []
+  if (level.name) fields.push({ number: 1, wire: 2, value: new TextEncoder().encode(level.name) })
+  for (const child of level.children) fields.push({ number: 2, wire: 2, value: encodeCategoryTree(child) })
+  for (const m of level.members) fields.push(categoryMemberRefField(m))
+  return emitWireMessage(fields)
+}
+
+function treeHasDef(level: CategoryTreeLevel, defId: number): boolean {
+  if (level.members.includes(defId)) return true
+  return level.children.some((c) => treeHasDef(c, defId))
+}
+
+/** 定位并改写 field10.field3 分类记录（isTarget 判定目标记录的树）。 */
+function mutateCategoryRecord(
+  bytes: Uint8Array,
+  isTarget: (tree: CategoryTreeLevel) => boolean,
+  fn: (tree: CategoryTreeLevel) => void
+): Uint8Array {
+  const payload = bytes.slice(20, -4)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const catFields = fields.filter((f) => f.depth === 2 && f.p0 === 10 && f.p1 === 3)
+  if (catFields.length === 0) throw new Error('[error] 地图无分类记录（field10.field3）')
+  const catField = catFields.find((f) => {
+    const ff = parseWireMessage(payload.subarray(f.dataStart, f.dataEnd)) ?? []
+    const tree = ff.find((x) => x.number === 2 && x.wire === 2)
+    return tree && tree.value instanceof Uint8Array && isTarget(parseCategoryTree(tree.value))
+  })
+  if (!catField) throw new Error('[error] 未找到目标分类记录')
+  const blob = payload.subarray(catField.dataStart, catField.dataEnd)
+  const ff = parseWireMessage(blob) ?? []
+  const f1 = ff.find((x) => x.number === 1 && x.wire === 0)
+  const tree = ff.find((x) => x.number === 2 && x.wire === 2)
+  if (!tree || !(tree.value instanceof Uint8Array)) throw new Error('[error] 分类记录无树结构')
+  const level = parseCategoryTree(tree.value)
+  fn(level)
+  const newBlob = emitWireMessage([
+    ...(f1 ? [{ number: 1, wire: 0, value: f1.value as number }] : []),
+    { number: 2, wire: 2, value: encodeCategoryTree(level) }
+  ])
+  const newPayload = applyReplacement(payload, fields, catField, newBlob)
+  return buildFile(newPayload, gilHeader(bytes))
+}
+
+/** 把复合 defId 加入分类（categoryPath 如 ["复合节点","逻辑状态"]；不存在则创建子分类）。 */
+export function setCompositeCategory(bytes: Uint8Array, defId: number, categoryPath: string[]): Uint8Array {
+  const root = categoryPath[0]
+  const payload = bytes.slice(20, -4)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const hasRegistry = fields.some((f) => {
+    if (f.depth !== 2 || f.p0 !== 10 || f.p1 !== 3) return false
+    const ff = parseWireMessage(payload.subarray(f.dataStart, f.dataEnd)) ?? []
+    const tree = ff.find((x) => x.number === 2 && x.wire === 2)
+    return tree && tree.value instanceof Uint8Array && parseCategoryTree(tree.value).name === root
+  })
+  if (hasRegistry) {
+    return mutateCategoryRecord(
+      bytes,
+      (tree) => tree.name === root,
+      (tree) => {
+        let level = tree
+        for (let i = 1; i < categoryPath.length; i++) {
+          let child = level.children.find((c) => c.name === categoryPath[i])
+          if (!child) {
+            child = { name: categoryPath[i], children: [], members: [] }
+            level.children.push(child)
+          }
+          level = child
+        }
+        if (!level.members.includes(defId)) level.members.push(defId)
+      }
+    )
+  }
+  // 无注册表 → 创建：根"复合节点" → … → 分类名，叶子带 defId
+  let leaf: CategoryTreeLevel = { name: categoryPath[categoryPath.length - 1], children: [], members: [defId] }
+  for (let i = categoryPath.length - 2; i >= 0; i--) {
+    leaf = { name: categoryPath[i], children: [leaf], members: [] }
+  }
+  const recordBlob = emitWireMessage([
+    { number: 1, wire: 0, value: 2 },
+    { number: 2, wire: 2, value: encodeCategoryTree(leaf) }
+  ])
+  return buildFile(appendRoot10Category(payload, recordBlob), gilHeader(bytes))
+}
+
+/** 把复合 defId 从所属分类移除（回默认"复合节点"）。 */
+export function clearCompositeCategory(bytes: Uint8Array, defId: number): Uint8Array {
+  return mutateCategoryRecord(
+    bytes,
+    (tree) => treeHasDef(tree, defId),
+    (tree) => {
+      const removeFrom = (l: CategoryTreeLevel): void => {
+        l.members = l.members.filter((m) => m !== defId)
+        for (const c of l.children) removeFrom(c)
+      }
+      removeFrom(tree)
+    }
+  )
+}
+
+/** 在 root10 的 field3（分类子节）追加一条分类记录（记录体 = f1w0+f2w2，直接作 field3 值）。 */
+function appendRoot10Category(payload: Uint8Array, recordBlob: Uint8Array): Uint8Array {
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const top10 = fields.find((f) => f.depth === 1 && f.p0 === 10 && f.p1 === 0)
+  if (!top10) throw new Error('[error] root 10 not found')
+  const root10 = parseWireMessage(payload.subarray(top10.dataStart, top10.dataEnd))
+  if (!root10) throw new Error('[error] root 10 unparseable')
+  const out: WireField[] = []
+  let inserted = false
+  for (const f of root10) {
+    if (!inserted && f.number > 3) {
+      out.push({ number: 3, wire: 2, value: recordBlob })
+      inserted = true
+    }
+    out.push(f)
+  }
+  if (!inserted) out.push({ number: 3, wire: 2, value: recordBlob })
+  return applyReplacement(payload, fields, top10, emitWireMessage(out))
+}
+
+// ---- 节点预算（复合调用递归展开计数；2026-08-19 闭合：游戏按"所有复合展开节点总数"限 3000）----
+
+export type NodeBudgetEntry = { id: number; name?: string; direct: number; expanded: number }
+
+export type NodeBudget = {
+  /** 全部图（主图 + impl）的直接/展开计数 */
+  graphs: NodeBudgetEntry[]
+  /** 所有 impl 图展开之和（游戏节点限制口径，>3000 拒载） */
+  implTotal: number
+  /** 主图递归展开（含所有被调复合） */
+  mainExpanded: number
+}
+
+/** 统计复合调用递归展开节点数：枚举 def→impl、复合实例调用图、递归求和。 */
+export function compositeNodeBudget(bytes: Uint8Array): NodeBudget {
+  const payload = bytes.slice(20, -4)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  // def → impl + 名字（listCompositeDefs 为已验证取名路径）
+  const defImpl = new Map<number, number>()
+  const defName = new Map<number, string>()
+  for (const d of listCompositeDefs(bytes)) {
+    if (d.name) defName.set(d.id, d.name)
+    try { defImpl.set(d.id, compositeImplGraphId(payload, d.id)) } catch { /* 骨架/未知 def 无 impl */ }
+  }
+  // 图 → 节点
+  const graphNodes = new Map<number, any[]>()
+  for (const f of fields) {
+    if (f.depth !== 3 || f.p0 !== 10 || (f.p1 !== 1 && f.p1 !== 4)) continue
+    const blob = payload.subarray(f.dataStart, f.dataEnd)
+    const gid = blobId(blob, f.p1 as 1 | 4)
+    if (gid !== undefined) graphNodes.set(gid, parseGraphNodes(blob))
+  }
+  // 复合实例调用（genericId 命中 def）
+  const calls = new Map<number, number[]>()
+  for (const [gid, nodes] of graphNodes) {
+    const cset: number[] = []
+    for (const n of nodes) if (defImpl.has(n.genericId)) cset.push(n.genericId)
+    calls.set(gid, cset)
+  }
+  const memo = new Map<number, number>()
+  const expand = (gid: number): number => {
+    const m = memo.get(gid)
+    if (m !== undefined) return m
+    const nodes = graphNodes.get(gid) ?? []
+    let total = nodes.length
+    for (const did of calls.get(gid) ?? []) {
+      const iid = defImpl.get(did)
+      if (iid !== undefined) total += expand(iid)
+    }
+    memo.set(gid, total)
+    return total
+  }
+  const graphs: NodeBudgetEntry[] = [...graphNodes.entries()]
+    .map(([gid, nodes]) => ({
+      id: gid,
+      name: defName.get(gid - 10000),
+      direct: nodes.length,
+      expanded: expand(gid)
+    }))
+    .sort((a, b) => b.expanded - a.expanded)
+  const implTotal = [...graphNodes.keys()].filter((g) => g >= 1610700000).reduce((s, g) => s + expand(g), 0)
+  return { graphs, implTotal, mainExpanded: expand(1073741825) }
+}
+
 // ---- 修改原语（GraphNode 记录级：bytes → bytes）----
 
 function pinFields(pin: Uint8Array): WireField[] {

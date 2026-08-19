@@ -42,6 +42,7 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | 条件 | ✅ | 必须为 boolean（`f.equal`/`f.greaterThan`/`f.logicalAndOperation` 等） |
 | 整数运算 | ⚠️ bigint | `0n`/`1n`；number 是 float（字典 key 等 int 参数传 number 会失败） |
 | 循环 | ✅ | `for (let i = 0n; i < Nn; i++)` → finite_loop；**循环体只物化 1 次**（节点爆炸解法） |
+| 批量创建/遍历 | ✅ `f.listIterationLoop` / `.forEach` | `f.listIterationLoop(f.assemblyList([...], '类型'), (v, _breakLoop) => …)` 或 `list('类型', [...]).forEach(cb)`（Stage1 转换；prefabId/位置可动态算，50 个手写 createPrefab → 3 节点）；编译环境须能解析全局 `list` 类型声明 |
 | 循环内 setTimeout | ✅ | 回调可 capture 循环变量（int） |
 | setTimeout/setInterval | ✅ | 回调 `(evt, f)`；evt 无 timerName 等字段（编译器类型缺口） |
 | 图变量 | ✅ | bool/entity/vec3/list/dict（`dict([{k,v}])` 初始条目推断类型） |
@@ -51,8 +52,17 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 
 ## 节点预算与膨胀模式
 
-- 单图节点上限约 **2000**（4000 跑不了，P4 实证）。
-- **函数内联 × 分支**：helper 被 6 分支调用 → 6 份展开（2400 节点）。解法：合并分支为数据驱动、循环化。
+- **游戏节点限制 = 单个节点图 3000**（2026-08-19 实证：4043 > 3000 拒载；口径 = 所有复合 impl **递归展开**节点总数，
+  复合实例计入其 impl 全部节点）。超限游戏启动失败，加载期错误不落日志。
+- **预算检查命令（可复用）**：`gsts assets:node-graphs nodes --gil map.gil [--json]`
+  ——输出所有 impl 展开之和、主图展开、最大贡献者排序、是否达标；`--json` 供脚本消费。
+  （原语：`src/cli/static_assembly/graph_edit.ts` 的 `compositeNodeBudget`）
+- **膨胀模式 1：函数内联 × 分支**——helper 被 N 分支调用 → N 份展开（如 orbit_trigger 8 turnblock 分支 = 8×turn_one）。
+- **膨胀模式 2：变量代替条件展开（2026-08-19 用户方法论）**——"循环/定时器能给 i，就别按条件展开复合"：
+  - 有规律（如块索引 0-7）：直接传变量——定时器用 `evt.timerSequenceId` 当 `i` 单次调用（8 分支→1 调用，
+    实测 orbit_trigger 1846→753 节点）；循环用循环变量。
+  - 无规律：先拼装列表把数据传进去，再按执行次数取变量。
+  - 反面：`multipleBranches(值, {0:.., 1:.., ...})` 每分支用不同常量调用同一复合 = 节点爆炸，优先变量化。
 - **循环体只物化 1 次**：finite_loop 循环体 1 份（2400→240 节点，P4 实证）。
 - **capture 字典机制**：每个 setTimeout 回调的捕获变量 = set_or_add + get_corresponding 链（~6 节点/回调）；
   回调越多越贵。
@@ -99,6 +109,7 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | unsupported timer capture type: any | capture 了 DSL 方法返回值（类型推断为 any） | 图变量/字典中转 |
 | Generic parameter not matched | 表达式混型（如 `dot(x) * (1 - c)` 泛型推断失败） | 变形公式避免混合表达式（如罗德里格斯改 `u·dot + (v−u·dot)·c + (u×v)·s`） |
 | 实体不动但节点执行 | 缺 basicMotion 组件（type 4）或作用空实体 | 组件差分检查 + 日志查运动器 IN0 实体 |
+| 一次调用计两次/计数翻倍 | 纯数据表达式被 ≥2 处消费，引擎每个消费点重新求值（消费间写入图变量 → 第二次读新值） | set 后**重新 get** 再比较；ESLint `gsts/server-repeated-evaluation` 会警告（详见 data-flow.md 缺陷 6 节） |
 | 位置漂移/朝向错乱 | 公式压缩平行分量 / 轴语义（局部轴） | 见 game-engine-knowledge/motion-devices.md |
 
 ## 参考

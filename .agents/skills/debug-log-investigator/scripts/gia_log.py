@@ -128,6 +128,49 @@ def decode_prefab(v2):
     return None
 
 
+def decode_list(v2):
+    """解码 wire 编码的列表值为可读文本（2026-08-19 升级：避免 hex 二次解析）。
+    格式：外层 {1: content}；content = 定宽 float(4B)/int(1B) 或嵌套子字段(vec3/entity/str)。
+    例：0a20<8×float> → [0, 0.05, 0.1, ...]；0a08<8×int> → [0,1,2,...]。"""
+    try:
+        fields = list(walk_fields(v2, 0, len(v2)))
+    except Exception:
+        return None
+    if not fields or fields[0][0] != 1 or fields[0][1] != 2:
+        return None
+    content = fields[0][2]
+    if not isinstance(content, bytes) or len(content) == 0:
+        return None
+    # 定宽 float（len%4==0 且首个分量可解且非 denormal）——int 表(1B/元素)先排除
+    if len(content) % 4 == 0:
+        first = f32(content[0:4])
+        # 允许 0.0；仅拒 denormal（~1e-38~1e-45）误判（int 表首 4B 常是微小值）
+        plausible = first is not None and (first == 0.0 or abs(first) >= 1e-30) and abs(first) <= 1e30
+        if plausible:
+            fs = [f32(content[i:i+4]) for i in range(0, len(content), 4)]
+            if all(f is not None for f in fs):
+                return '[' + ', '.join(f'{f:.4g}' for f in fs) + ']'
+    # 定宽 int（单字节，长度合理）
+    if 0 < len(content) <= 256:
+        return '[' + ', '.join(str(b) for b in content) + ']'
+    # 嵌套子字段（vec3_list / entity_list / string_list）
+    parts = []
+    try:
+        for sf, sw, sv, _ in walk_fields(content, 0, len(content)):
+            if sw == 5 and len(sv) == 4:
+                fv = f32(sv)
+                parts.append(f'{fv:.4g}' if fv is not None else sv.hex())
+            elif sw == 0:
+                parts.append(str(sv))
+            elif sw == 2 and isinstance(sv, bytes):
+                sq = printable(sv)
+                parts.append(sq if sq is not None else sv.hex())
+            elif sw == 1 and isinstance(sv, bytes):
+                parts.append(sv.hex())
+    except Exception:
+        return None
+    return '[' + ', '.join(parts) + ']' if parts else None
+
 def decode_param(v2):
     """参数: f1=序号(0省略), f2={f1=类型码, f2={f1=同码,f2=''}, f<类型码+10>=值}"""
     idx = typ = None; val = '?'
@@ -153,6 +196,9 @@ def decode_param(v2):
                 elif tw == 2:
                     try: vs = list(walk_fields(tv, 0, len(tv)))
                     except Exception: vs = []
+                    if not vs:
+                        dl = decode_list(tv)
+                        if dl is not None: val = dl
                     got = False
                     for vf, vw, vv, _ in vs:
                         if vf != 1: continue
@@ -171,7 +217,9 @@ def decode_param(v2):
                     if not got:
                         s = printable(tv)
                         if s is not None: val = s
-                        else: val = tv.hex()
+                        else:
+                            dl = decode_list(tv)
+                            val = dl if dl is not None else tv.hex()
                 elif tw == 0:
                     val = tv
     if isinstance(val, int) and typ == 14:
@@ -305,7 +353,7 @@ def cmd_records(recs, gil=None):
         print(f'rec{ri}: {info}')
 
 
-def cmd_frames(recs, gil=None, rec_filter=None, graph_filter=None):
+def cmd_frames(recs, gil=None, rec_filter=None, graph_filter=None, contains=None):
     for ri, r in enumerate(recs):
         if rec_filter is not None and ri != rec_filter: continue
         graph = None
@@ -324,7 +372,7 @@ def cmd_frames(recs, gil=None, rec_filter=None, graph_filter=None):
                 line = f'[{i}] {nl + " | " if nl else ""}head={head} load={load}'
                 for p in ins: line += f' | IN{p[0] if p[0] is not None else 0}:{VARTYPE.get(p[1], p[1])}={p[2]}'
                 for p in outs: line += f' | OUT{p[0] if p[0] is not None else 0}:{VARTYPE.get(p[1], p[1])}={p[2]}'
-                print(line)
+                if contains is None or contains in line: print(line)
 
 
 def cmd_dump(recs, rec_filter=None):
@@ -352,7 +400,7 @@ if __name__ == '__main__':
         cmd_latest(args[1] if len(args) > 1 else
                    '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log')
         sys.exit(0)
-    gil = None; rec_filter = None; graph_filter = None
+    gil = None; rec_filter = None; graph_filter = None; contains = None
     rest = []
     i = 1
     while i < len(args):
@@ -362,6 +410,8 @@ if __name__ == '__main__':
             rec_filter = int(args[i + 1]); i += 2
         elif args[i] == '--graph':
             graph_filter = int(args[i + 1]); i += 2
+        elif args[i] == '--contains':
+            contains = args[i + 1]; i += 2
         else:
             rest.append(args[i]); i += 1
     if not rest: print(__doc__); sys.exit(1)
@@ -370,7 +420,7 @@ if __name__ == '__main__':
         gil = load_gil_index(gil)
     cmd = rest[0]
     if cmd == 'records': cmd_records(recs, gil)
-    elif cmd == 'frames': cmd_frames(recs, gil, rec_filter, graph_filter)
+    elif cmd == 'frames': cmd_frames(recs, gil, rec_filter, graph_filter, contains)
     elif cmd == 'dump': cmd_dump(recs, rec_filter)
     elif cmd == 'text': cmd_text(recs)
     else:

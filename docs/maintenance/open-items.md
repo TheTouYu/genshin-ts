@@ -259,10 +259,13 @@
 
 ### O-2026-08-16-14. 屏幕 UI 控件 CLI 无创建入口——编译器能力缺口
 
-- 证据：同 trace——查 ui-controls.md + src/cli/ui.ts 确认 CLI 无屏幕 UI 创建能力；
+> 状态：已解决（2026-08-19 复核：`assets:ui create/clone/update/template` 已存在）。
+
+- 原始证据：同 trace——当时查 ui-controls.md + src/cli/ui.ts 确认 CLI 无屏幕 UI 创建能力；
   用选项卡（tabBar）替代开始界面。
-- 影响：游戏无法用 CLI 做屏幕 UI（开始界面/计分板等），只能选项卡/实体替代。
-- 方向：文档标注限制（已有 ui-controls.md）；评估 CLI 增加 UI 入口（需编辑器预置语义调查）。
+- 当前实现：`gsts assets:ui list|clone|create|update|template`（root9 文本框/交互按钮/自定义按钮），
+  入口在 `src/cli/assets_ui.ts`，已收入 `genshin-ts-asset-operations` 技能。
+- 仍待验证：UI 控件运行时显示/隐藏/禁用差异、按钮事件进角色、多人隔离；这些属于游戏行为验证，不是 CLI 缺口。
 
 ### O-2026-08-16-15. 注入覆盖陷阱：多图注入需分别建占位图——流程/技能缺口
 

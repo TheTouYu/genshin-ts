@@ -102,6 +102,7 @@ PY
 | 跨图复制 | `node-copy-from <src-gid> <idx1,idx2,...> <x> <y>` | 配 `--src-gil <文件>`；保持源内相对布局平移、自动重映射列表内连线；引用列表外节点 fail closed 报错 |
 | 图变量注册 | `graph-var-add <name> <type>` | 仅 Str(6) 闭合；exposed/structId 默认省略 |
 | 复合改名 | `composite <def-id> rename <名>` | |
+| 复合分类 | `composite <def-id> category <名称\|clear>` | 名称可含路径 `复合节点/xxx` 或简写 `xxx`；`clear`=移回默认分类（wire 规则见 references/wire-rules.md「复合分类」） |
 | 复合参数改名 | `composite <def-id> param input\|output\|inflow\|outflow <shell> rename <名>` | |
 | 复合加输入 | `composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>` | 实例唯一才允许；每输入只绑 1 条 inner——**共享映射**（1 outer 供多 inner，如 pivot→668 IP1×4、c1→668/99/365 IP0×3）用 `tools/inject-composite-pin.ts` 补注（2026-08-12 bind-hold 流程） |
 | 复合加 InFlow | `composite <def-id> add-inflow <shell> <name> <inner-node> <inner-shell>` | 只 patch def+impl，**实例不落 pin**（真实实例无 InFlow pin）；inflow 记录无 name 字段（2026-08-12 闭合） |

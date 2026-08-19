@@ -27,6 +27,7 @@
   "staticAssembliesOptHelp": "Show this help",
   "staticAssembliesHelpModes": "Modes: default preview changes nothing; --output saves a candidate; --write backs up and writes the source map.",
   "staticAssembliesHelpBoundary": "This command modifies .gil asset structures. It is not GIA NodeGraph injection, runtime createPrefab, or editor/game verification.",
+  "staticAssembliesTabOptionsHelp": "tab-options replaces the tab options of an existing instance (region config preserved; prefab definition and scene instance updated together):\n  gsts assets:static-assemblies tab-options <instance-id> --name <current-name> --options <opt1,opt2,...> [region overrides] [--map-id <id>|--gil <file>] [--write|--output <file>]\n  Region overrides (default: inherit the current slot): --region-name <name> --region-type box|sphere --region-size x,y,z | --region-radius r --region-center x,y,z",
   "cmdOpen": "Open directories: map|backup|data",
   "cmdHelp": "Show help",
   "openDesc": "Open directories: map|backup|data",

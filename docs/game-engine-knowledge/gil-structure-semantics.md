@@ -843,7 +843,8 @@ dict）。新实体由 `assets:entities import` 创建时继承定义 f8→f7 �
 > `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`；原始标量列表使用 packed
 > `{field1(len), 值=元素原始字节拼接}`（entity 元素为完整 `{field1(varint)}`）；
 > dict marker 按 `(keyType,valueType)` 枚举、int key 用 f13 编码、新建 dict 无 Map25 层
-> （2026-08-19 真实样本修正）。
+> （2026-08-19 真实样本修正）。2026-08-19 用户游戏核验通过：基于修复后元件新建实体
+> 完整继承原始列表与 dict 变量。
 
 ### 自定义镜头：创建、名称、物件镜头联合变化与视野检测
 

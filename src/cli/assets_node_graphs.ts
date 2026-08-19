@@ -38,6 +38,11 @@ import {
   isCompositeInstance,
   linkInParam,
   listCompositeDefs,
+  listCompositeCategories,
+  compositeCategoryName,
+  setCompositeCategory,
+  clearCompositeCategory,
+  compositeNodeBudget,
   listGraphs,
   locateBlobField,
   validateNodeGraphs,
@@ -127,7 +132,7 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
-  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate'
+  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes'
   gilPath: string | undefined
   mapId: number | undefined
   name: string
@@ -137,6 +142,7 @@ type Args = {
   graph: string | undefined
   node: number | undefined
   composite: string | undefined
+  category: string | undefined
   srcGil: string | undefined
   ops: string[]
   layoutCheck: boolean
@@ -160,7 +166,9 @@ function usage(exitCode = 0): never {
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
     '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
-    '  --composite <id|name>  read: composite def detail',
+    '  --composite <id|name>  read: composite def detail (含分类)',
+    '  --category <name>    read: 仅列出指定分类下的复合',
+    '  nodes                  节点预算：复合调用递归展开计数（游戏限制 3000）',
     '  --json            read: machine-readable output',
     '  --output <file>   patch: write result to a new file (no overwrite)',
     '  --write           patch: write source GIL after backup',
@@ -183,6 +191,7 @@ function usage(exitCode = 0): never {
     '  node <idx> flow <shell> <dst-idx> [dst-shell]   control-flow connection from OutFlow shell',
     '  node <idx> flow-rm <shell> <target>    disconnect control-flow from OutFlow shell to target node',
     '  composite <def-id> rename <name>       rename composite definition',
+    '  composite <def-id> category <名称|clear>  set/clear composite category (名称可含路径 复合节点/xxx)',
     '  composite <def-id> param <kind> <shell> rename <name>   kind=input|output|inflow|outflow',
     '  composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>  add input param from impl pin (type=int|flt|str|bool|gid|ety; renumbers instance unless already at min free)',
     '  composite <def-id> add-inflow <shell> <name> <inner-node> <inner-shell>  add InFlow entry (def flow + impl compositePin; instance untouched)',
@@ -224,11 +233,12 @@ function parseArgs(argv: readonly string[]): Args {
   let graph: string | undefined
   let node: number | undefined
   let composite: string | undefined
+  let category: string | undefined
   let srcGil: string | undefined
   let layoutCheck = false
   const ops: string[] = []
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate')
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate' || argv[0] === 'nodes')
     sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
@@ -243,11 +253,13 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--check') layoutCheck = true
     else if (arg === '--node') node = Number(value(argv, index++))
     else if (arg === '--composite') composite = value(argv, index++)
+    else if (arg === '--category') category = value(argv, index++)
     else if (arg === '--help' || arg === '-h') usage(0)
     else if (sub === 'patch') ops.push(arg)
     else usage()
   }
   if (sub === 'create' && ops.length) usage()
+  if (sub === 'nodes' && ops.length) usage()
   if (sub === 'patch' && !ops.length) usage()
   if (sub === 'layout' && !graph) usage()
   if (gilPath && mapId !== undefined)
@@ -257,7 +269,7 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] create does not accept --graph/--node/--composite/--json')
   if (sub === 'layout' && (node || composite || srcGil || ops.length))
     throw new Error('[error] layout does not accept --node/--composite/--src-gil/ops')
-  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, srcGil, ops, layoutCheck }
+  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -464,6 +476,10 @@ export async function runAssetsNodeGraphs(
     runRead(sourceBytes, gil, args)
     return
   }
+  if (args.sub === 'nodes') {
+    runNodes(sourceBytes, gil, args)
+    return
+  }
   if (args.sub === 'patch') {
     runPatch(sourceBytes, gil, args)
     return
@@ -569,10 +585,23 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
       // def 无 impl 图（异常/占位）时保持旧输出，不破坏既有用法
     }
     if (args.json) {
-      console.log(JSON.stringify({ gil, compositeDef: defId, flows: metas, implGraph, implNodes }, null, 2))
+      console.log(
+        JSON.stringify(
+          {
+            gil,
+            compositeDef: defId,
+            category: compositeCategoryName(bytes, defId),
+            flows: metas,
+            implGraph,
+            implNodes
+          },
+          null,
+          2
+        )
+      )
       return
     }
-    console.log(`composite def ${defId}`)
+    console.log(`composite def ${defId} [分类: ${compositeCategoryName(bytes, defId)}]`)
     for (const m of metas) {
       const type = m.type !== undefined ? (VAR_TYPE_NAME[m.type] ?? `T${m.type}`) : ''
       console.log(`  ${KIND_NAMES[m.kind] ?? m.kind}[${m.shell}] ${m.name ?? '(无名)'}${type ? ' ' + type : ''} pinIndex=${m.pinIndex ?? '?'}`)
@@ -590,12 +619,26 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
     const graphs = listGraphs(bytes)
     const defs = listCompositeDefs(bytes)
     if (args.json) {
-      console.log(JSON.stringify({ gil, graphs, composites: defs.map((d) => ({ id: d.id, name: d.name })) }, null, 2))
+      console.log(
+        JSON.stringify(
+          {
+            gil,
+            graphs,
+            composites: defs.map((d) => ({ id: d.id, name: d.name, category: compositeCategoryName(bytes, d.id) }))
+          },
+          null,
+          2
+        )
+      )
       return
     }
     for (const g of graphs) console.log(`graph ${g.id} ${g.name ?? '(无名)'} nodes=${g.nodeCount}${g.id >= 1073741825 && g.id < 1073741825 + 100 ? '' : ' (impl)'}`)
-    console.log(`composites: ${defs.length}`)
-    for (const d of defs) console.log(`  def ${d.id} ${d.name ?? '(无名)'}`)
+    console.log(`composites: ${defs.length}${args.category ? ` (按分类 "${args.category}" 过滤)` : ''}`)
+    for (const d of defs) {
+      const cat = compositeCategoryName(bytes, d.id)
+      if (args.category !== undefined && cat !== args.category && cat !== `复合节点/${args.category}`) continue
+      console.log(`  def ${d.id} ${d.name ?? '(无名)'} [${cat}]`)
+    }
     return
   }
   const graphId = resolveGraphId(bytes, args.graph)
@@ -612,6 +655,23 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
   for (const n of selected) {
     console.log(nodeText(n, bytes))
     for (const pin of n.pins) console.log(`    ${pinText(pin)}`)
+  }
+}
+
+function runNodes(bytes: Uint8Array, gil: string, args: Args): void {
+  const budget = compositeNodeBudget(bytes)
+  const LIMIT = 3000
+  if (args.json) {
+    console.log(JSON.stringify({ gil, limit: LIMIT, ...budget }, null, 2))
+    return
+  }
+  const ok = budget.implTotal <= LIMIT
+  console.log(`节点预算（复合调用递归展开，游戏限制 ${LIMIT}）`)
+  console.log(`  所有 impl 展开之和: ${budget.implTotal}  ${ok ? '✅ 达标' : '❌ 超限（游戏拒载）'}`)
+  console.log(`  主图展开: ${budget.mainExpanded}`)
+  console.log('  展开最大贡献者（>20）:')
+  for (const g of budget.graphs.filter((x) => x.expanded > 20).slice(0, 8)) {
+    console.log(`    ${g.name ?? ('graph ' + g.id)}: 直接${g.direct} → 展开${g.expanded}`)
   }
 }
 
@@ -660,6 +720,21 @@ function applyOps(
         if (name === undefined) throw new Error('[error] composite rename needs <name>')
         current = patchRecord(current, 2, defId, (b) => renameCompositeDef(b, name))
         summary.push(`composite ${defId} rename → ${name}`)
+        i += 4
+        continue
+      }
+      if (verb === 'category') {
+        const target = ops[i + 3]
+        if (target === undefined) throw new Error('[error] composite category needs <名称|clear>')
+        if (target === 'clear') {
+          current = clearCompositeCategory(current, defId)
+          summary.push(`composite ${defId} 移回默认分类`)
+        } else {
+          // 名称支持 "复合节点/复合节点实验" 或只给子名 "复合节点实验"
+          const path = target.includes('/') ? target.split('/').filter(Boolean) : ['复合节点', target]
+          current = setCompositeCategory(current, defId, path)
+          summary.push(`composite ${defId} → 分类 "${path.join('/')}"`)
+        }
         i += 4
         continue
       }

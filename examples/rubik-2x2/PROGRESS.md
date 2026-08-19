@@ -134,3 +134,65 @@
   备份 `.gsts/backups/1073741882.gil.2026-08-15T05-29-23-697Z.bak`，Temp 已同步；回读 def+inst 均 7 槽标准。
   证据：`~/genshin-ts-evidence/p43-remove-components/`。**待用户游戏核验**（重新加载地图后角块 UFL 正常）。
 - **工作③**：逐组件验证矩阵（添加→回读→游戏核验→移除）待安排（在验证地图上做，不碰魔方地图）。
+
+## 变更记录 2026-08-17（基础设施：完整游戏关卡五层架构，编译验证通过，未注入）
+
+- **新增文档**：`docs/architecture/rubik-game-level-infrastructure.md`（完整分析 + 架构设计）、`docs/adr/0005-魔方游戏关卡架构.md`（五层分离 + 逻辑状态单一事实源）。
+- **2×2 逻辑状态 move 置换表**：`tools/gen-2x2-logic-table.mjs` 离线生成（位置环 + 朝向 twist 映射），
+  内部校验（环闭合/R⁴=I/逆序列一致性）+ **CubeLib 交叉验证 2400 个 (piece,seq) 样本一致**；
+  产物 `tools/2x2-logic-tables.json` + TS 片段。修复过两处生成器 bug：层符号筛选（L/D/B 误用 x+）与错误的不变量校验（slot 编码下总和 mod3 不恒定）。
+- **game.ts 重构为五层**（保留全部已验证转动复合原样）：
+  - 逻辑状态层：cornerPos/cornerOrient（dict<int,int>，已还原初始态）+ read/apply/is_solved/reset 复合；
+    状态变更是"先全部读→暂存→再全部写"（防环内别名覆盖）；twist 编码对齐受限求解原型 cube.js。
+  - 流程层：gstsDoMove（逻辑+视觉一体）、gstsAfterTurn（AUTO 队列推进/MANUAL 胜利检查）、
+    gstsScramble（随机 20 步，避免相邻同层）、gstsSolve（占位，2×2 轮实装）、gstsResetCore（销毁+重建+复位）。
+  - 输入层：tabId 1-6 转动 / 7 打乱 / 8 复原 / 9 重置（9 由宿主分支处理——复合内 entity_list 数组字面量编码缺口，v13 已验证路径）。
+  - 结算层：gstsCheckWin → setPlayerSettlementSuccessStatus(Victory)（lights-out 已验证模式）。
+- **能力预验证**（DSL 技能要求）：复合 build 内 f.finiteLoop 可用、终端 exec 复合（无 outflow）合法、
+  SettlementStatus.Victory 可作 f.node 参数。
+- **编译验证**：`gsts -c examples/rubik-2x2/gsts.config.ts --noinject` 全绿（gs.ts + IR + GIA id=1073741825）；
+  **总节点 419**（root 17 + 复合 impl 402，35 个复合 def），2000 预算内。
+- **踩坑记录**：①复合内 entity_list 数组字面量（blocks）有 matchTypes 缺口 → blocks 写回宿主；②f.node 参数必须是值对象
+  （裸 bigint 报 toIRLiteral 错）→ new int() 包装；③变量声明裸数字值推断为 Flt → int 值必须 new int()；
+  ④复合 build 内不能用 TS for（Stage1 会转有限循环破坏显式链）→ 展开/显式链；⑤声明 outflows 必须显式 f.outflow 绑定。
+- **未做（等待用户确认后继续）**：注入回读、游戏核验（转动/逻辑一致性/打乱/胜利结算/重置）、日志验证。
+
+## 变更记录 2026-08-17（基础设施离线深度验证——未注入）
+
+- **GIA 解码结构核验**：`tools/decode-gia.ts` 解码 game.gia → 70 accessories（35 复合 def + 35 impl 图）、
+  主图 17 节点、全部 35 个复合名正确（13 新增 + 22 既有），复合 impl 节点 ~367 与 IR 一致。
+- **IR 变量类型核验**：30 个图变量全部正确——qLen/qIdx/lastMove 为 int、逻辑字典全部 dict<int,int>。
+- **端到端 apply_move 模拟验证**：`tools/verify-2x2-logic-state.mjs`（固化可复用）——
+  从编译产物 game.json 提取**内嵌真实表数据**，按复合相同算法（读 4 槽→暂存→写回+twistMap）模拟，
+  **CubeLib 对照 3200 个 (piece, seq) 样本一致 + 逆序列 50 组一致**——证明「表数据 + 更新算法」整体正确。
+
+## 变更记录 2026-08-17（基础设施注入 + 回读核验通过）
+
+- **注入**：新 game.gia 注入图 1073741825（config 注入）。前置：备份 `.gsts/backups/1073741882.gil.2026-08-17T14-50-07.infra-pre-inject.bak`（注入前 hash 4a2368c2…）；注入后 hash **891dda84…**。
+- **环境坑**：①注入器备份目录 `~/.genshin-ts/backups` 只读 → 用 `APPDATA=<可写目录>` 重定向；②`/mnt/c` 沙箱只读挂载 → 注入命令需 danger-full-access 宽权限。
+- **回读核验**（dump_gil_index 注入后图）：主图 1073741825 = **17 节点**（与 IR 一致）；37 个复合 impl 图合计 ~372 节点；whenTimerIsTriggered 位于 orbit_trigger 复合（1610710034）、setPlayerSettlementSuccessStatus 位于 check_win 复合（1610710006）、8 个 impl 图含字典查询（逻辑状态层）——结构完整。
+- **待游戏核验**（基线）：① R/L/U/D/F/B 无回归 ② 正常运行无拒载 ③ 拼好后触发胜利结算 ④ 逻辑状态流转日志。
+- **待做**：控制器 tabBar 增加 7/8/9 选项（打乱/复原/重置）资产更新；基线通过后按 ALGORITHM_DOC.md 设计 2×2 自动求解。
+
+## 变更记录 2026-08-17（回归修复：tab_dispatch 分支方向接反）
+
+- **症状**：游戏内点击选项无任何变化（日志 rec1：whenTabIsSelected → 读 lock → brLock 条件 false 后零帧）。
+- **根因**（日志 + GIA wire 实证）：`connectOutFlow` 索引 **0=真分支、1=假分支**（对照已验证的 gsts_tab_lock：
+  isFree 真分支在 outflow 0）。我的 gstsTabDispatch 把「转动分派」放在了 brLock(lock==true) 的**真分支**
+  （=锁着时），未锁时走空分支 → 正常点击什么都不执行。brMove 方向正确，仅 brLock 接反 + 显式 link 索引需同步改。
+- **修复**：brLock 真分支(0)=空、假分支(1)=转动分派；`f.link(brLock,1,brMove,0)`。
+- **审计**：check_win/after_turn/scramble 分支方向均正确（已逐一核对）。
+- **验证**：重编译 → decode 确认 brLock out1→brMove、brMove out0→tabLock；重注入（备份
+  `.gsts/backups/1073741882.gil.2026-08-17T15-xx.infra-branchfix-pre-inject.bak`，新 hash d0489c5a…）；回读 17+372 节点结构正常。
+- **待用户复测**：R/L/U/D/F/B 转动应恢复；拼好触发结算。
+
+## 变更记录 2026-08-18（编译器修复：复合 impl 列表反射节点 concreteId 回退泛型 → 游戏拒载）
+
+- **症状**：gsts_turn_check 里 getCorrespondingValueFromList(axes vec3_list) 的**输出类型与列表元素类型不匹配**，游戏拒绝启动；编辑器/编译器未拦截。
+- **根因（编译器 bug）**：复合 impl 普通节点的 concreteId 由 `resolveImplOrdinaryConcreteNodeId`（composite.ts）解析，其只处理 `concreteWrappedNodeTypes`（数学/比较）；**get_corresponding_value_from_list / set_list_value 等列表反射节点不在内** → 回退泛型 id（128=int 变体 / 160）。axes 的 get_list 输出到复合边界 producedType 为 undefined 更解析不了。泛型回退**静默发生** → 编辑器/编译器不报错 → 游戏拒载。
+- **修复**：
+  1. `resolveImplListReflectiveConcreteNodeId`：按列表参数元素类型解析 concrete 变体（vec3→133、entity→130 等；vendor 键经 SPECIAL_NODE_MAPPINGS 重命名，如 set_list_value→modify_value_in_list→165）。
+  2. **fail-closed**：列表参数类型已知却解析不出变体 → 抛错，禁止静默回退泛型。
+- **验证**：rubik 图 wire 检查 get_list→133/130、set_list→165（int 变体 128/160 为正确特化非回退）；新增回归测试 `tests/composite/test-list-reflective-concrete.ts`（PASS，断言 vec3_list get_list=133 / set_list=165）。
+- **环境坑**：`src/cli/gil_ui.ts` 工作区未提交改动带 tsc 错误阻塞 `npm run build`（postbuild 复制 .proto 不执行 → dist 残缺）→ 手动 `tsc + postbuild` 恢复。
+- **已注入**：hash 0b8963c1…（列表优化 + 循环修复 + 结算修复 + 本修复合一）。

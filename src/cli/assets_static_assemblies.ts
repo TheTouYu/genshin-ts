@@ -18,14 +18,18 @@ import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { resyncMap } from './maps.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
 import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
-import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
+import {
+  applyStaticPrefabUpdate,
+  applyTabOptionsUpdate,
+  type TabOptionsRegion
+} from './gil_static_prefab_updates.js'
 import { resolveStaticAssemblyStructure } from './static_assembly_structure.js'
 import { inspectStaticAssemblyMap } from './static_assembly/inspection.js'
 import { exportStaticAssemblies } from './static_assembly/export.js'
 import { prettyStableJson, sha256Bytes } from './static_assembly/json.js'
 import { createStaticAssemblyPlan } from './static_assembly/plan.js'
 
-type Command = 'preview' | 'inspect' | 'plan' | 'export'
+type Command = 'preview' | 'inspect' | 'plan' | 'export' | 'tab-options'
 type Format = 'text' | 'json'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
@@ -33,7 +37,7 @@ function usage(exitCode = 1): never {
   const output = [
     t('staticAssembliesHelpSummary'),
     '',
-    'Usage: gsts assets:static-assemblies [inspect|plan|export] [options]',
+    'Usage: gsts assets:static-assemblies [inspect|plan|export|tab-options] [options]',
     '',
     '  --asset-config <file>  static assembly asset configuration',
     '  --config <file>        deprecated alias for --asset-config',
@@ -44,6 +48,8 @@ function usage(exitCode = 1): never {
     '  --assembly <index>     select one assembly in preview mode',
     '  --write                write in legacy preview mode only',
     '  -h, --help             show help',
+    '',
+    t('staticAssembliesTabOptionsHelp'),
     '',
     t('staticAssembliesHelpBoundary')
   ].join('\n')
@@ -64,6 +70,28 @@ function nonNegativeId(raw: string, option: string): number {
   return result
 }
 
+function finiteNumber(raw: string, option: string): number {
+  const result = Number(raw)
+  if (!Number.isFinite(result)) throw new Error(`[error] ${option} must be a finite number`)
+  return result
+}
+
+function threeFloats(raw: string, option: string): [number, number, number] {
+  const parts = raw.split(',').map((part) => part.trim())
+  if (parts.length !== 3 || parts.some((part) => !Number.isFinite(Number(part)))) {
+    throw new Error(`[error] ${option} must be three comma-separated finite numbers`)
+  }
+  return parts.map((part) => Number(part)) as [number, number, number]
+}
+
+function optionList(raw: string, option: string): string[] {
+  const options = raw.split(',').map((part) => part.trim())
+  if (!options.length || options.some((part) => !part)) {
+    throw new Error(`[error] ${option} must be a non-empty comma-separated list of names`)
+  }
+  return options
+}
+
 function parseArgs(argv: readonly string[]) {
   let command: Command = 'preview'
   let assetConfigPath: string | undefined
@@ -74,9 +102,28 @@ function parseArgs(argv: readonly string[]) {
   let write = false
   let assembly: number | undefined
   let format: Format = 'text'
+  let instanceId: number | undefined
+  let expectedName: string | undefined
+  let options: string[] | undefined
+  let regionName: string | undefined
+  let regionType: 'box' | 'sphere' | undefined
+  let regionSize: [number, number, number] | undefined
+  let regionRadius: number | undefined
+  let regionCenter: [number, number, number] | undefined
   let index = 0
-  if (argv[0] === 'inspect' || argv[0] === 'plan' || argv[0] === 'export') {
+  if (
+    argv[0] === 'inspect' ||
+    argv[0] === 'plan' ||
+    argv[0] === 'export' ||
+    argv[0] === 'tab-options'
+  ) {
     command = argv[0]
+    index++
+  }
+  if (command === 'tab-options') {
+    const rawId = argv[index]
+    if (rawId === undefined) usage()
+    instanceId = nonNegativeId(rawId, 'instance-id')
     index++
   }
   for (; index < argv.length; index++) {
@@ -92,7 +139,21 @@ function parseArgs(argv: readonly string[]) {
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
     } else if (arg === '--write') write = true
-    else if (arg === '--help' || arg === '-h') usage(0)
+    else if (arg === '--name') expectedName = value(argv, index++)
+    else if (arg === '--options') options = optionList(value(argv, index++), '--options')
+    else if (arg === '--region-name') regionName = value(argv, index++)
+    else if (arg === '--region-type') {
+      const raw = value(argv, index++)
+      if (raw !== 'box' && raw !== 'sphere') {
+        throw new Error('[error] --region-type must be box or sphere')
+      }
+      regionType = raw
+    } else if (arg === '--region-size') regionSize = threeFloats(value(argv, index++), '--region-size')
+    else if (arg === '--region-radius') {
+      regionRadius = finiteNumber(value(argv, index++), '--region-radius')
+    } else if (arg === '--region-center') {
+      regionCenter = threeFloats(value(argv, index++), '--region-center')
+    } else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
   if (
@@ -105,12 +166,25 @@ function parseArgs(argv: readonly string[]) {
   if (gilPath && mapId !== undefined)
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  if (command !== 'preview' && write) throw new Error('[error] inspect and plan are read-only')
+  if ((command === 'inspect' || command === 'plan' || command === 'export') && write) {
+    throw new Error('[error] inspect, plan and export are read-only')
+  }
   if (command === 'plan' && !assetConfigPath && !legacyConfigPath) {
     throw new Error('[error] plan requires --asset-config <file>')
   }
   if (command === 'export' && !gilPath && mapId === undefined) {
     throw new Error('[error] export requires --gil <file> or --map-id')
+  }
+  if (command === 'tab-options') {
+    if (instanceId === undefined) throw new Error('[error] tab-options requires <instance-id>')
+    if (!expectedName) throw new Error('[error] tab-options requires --name <expected-name>')
+    if (!options) throw new Error('[error] tab-options requires --options <opt1,opt2,...>')
+    if (regionType === 'box' && regionRadius !== undefined) {
+      throw new Error('[error] --region-radius must be omitted for box regions')
+    }
+    if (regionType === 'sphere' && regionSize !== undefined) {
+      throw new Error('[error] --region-size must be omitted for sphere regions')
+    }
   }
   return {
     command,
@@ -121,7 +195,15 @@ function parseArgs(argv: readonly string[]) {
     outputPath,
     write,
     assembly,
-    format
+    format,
+    instanceId,
+    expectedName,
+    options,
+    regionName,
+    regionType,
+    regionSize,
+    regionRadius,
+    regionCenter
   }
 }
 
@@ -430,6 +512,118 @@ async function runExport(
   }
 }
 
+async function runTabOptions(
+  args: ReturnType<typeof parseArgs>,
+  projectConfig: GstsConfig | undefined
+): Promise<void> {
+  const source = resolveGilPath(projectConfig, args)
+  if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
+    throw new Error(`[error] gil not found: ${source.path}`)
+  const sourceBytes = fs.readFileSync(source.path)
+  const temporary = path.join(
+    os.tmpdir(),
+    `gsts-tab-options-${process.pid}-${Date.now()}.gil`
+  )
+  fs.copyFileSync(source.path, temporary)
+  try {
+    const result = applyTabOptionsUpdate({
+      gilPath: temporary,
+      instanceId: args.instanceId!,
+      expectedName: args.expectedName!,
+      options: args.options!,
+      regionName: args.regionName,
+      regionType: args.regionType,
+      regionSize: args.regionSize,
+      regionRadius: args.regionRadius,
+      regionCenter: args.regionCenter
+    })
+    fs.writeFileSync(temporary, result.bytes)
+    const candidateBytes = fs.readFileSync(temporary)
+    const mode = args.write ? 'write' : args.outputPath ? 'output' : 'preview'
+    const jsonMode = args.format === 'json'
+    const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+    const summary: {
+      schemaVersion: number
+      kind: string
+      mode: string
+      source: string
+      sourceSha256: string
+      instanceId: number
+      prefabId: number
+      expectedName: string
+      options: readonly string[]
+      region: TabOptionsRegion
+      touchedTopLevelFields: number[]
+      candidateSha256: string
+      write?: { backup: string; tempSync?: string; temp?: string; tempSyncSkipped?: string }
+      writePerformed: boolean
+    } = {
+      schemaVersion: 1,
+      kind: 'gsts.static-assembly.tab-options',
+      mode,
+      source: source.path,
+      sourceSha256: sha256Bytes(sourceBytes),
+      instanceId: result.instanceId,
+      prefabId: result.prefabId,
+      expectedName: args.expectedName!,
+      options: args.options!,
+      region: result.region,
+      touchedTopLevelFields: [4, 8],
+      candidateSha256: '',
+      writePerformed: args.write
+    }
+    log(`mode=${mode}`)
+    log(`source=${source.path}`)
+    log(`sourceSha256=${summary.sourceSha256}`)
+    log(`instanceId=${result.instanceId}`)
+    log(`prefabId=${result.prefabId}`)
+    log(`expectedName=${summary.expectedName}`)
+    log(`options=${args.options!.join(',')}`)
+    const region = result.region
+    log(`regionName=${region.regionName}`)
+    log(`regionType=${region.regionType}`)
+    log(
+      region.regionType === 'box'
+        ? `regionSize=${region.regionSize.join(',')}`
+        : `regionRadius=${region.regionRadius}`
+    )
+    log(`regionCenter=${region.regionCenter.join(',')}`)
+    log('touchedTopLevelFields=4,8')
+    log('field9=unchanged-by-current-implementation')
+    summary.candidateSha256 = sha256Bytes(candidateBytes)
+    log(`candidateSha256=${summary.candidateSha256}`)
+    if (args.write) {
+      const backup = backupPath(source.path)
+      fs.copyFileSync(source.path, backup)
+      fs.copyFileSync(temporary, source.path)
+      const writeInfo: NonNullable<typeof summary.write> = { backup }
+      log(`backup=${backup}`)
+      const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
+      if (tempCopied) {
+        writeInfo.tempSync = tempCopied
+        log(`temp-sync=${tempCopied}`)
+      }
+      if (args.mapId !== undefined) {
+        try {
+          const result = resyncMap(path.dirname(source.path), args.mapId)
+          if (result.tempPath) {
+            writeInfo.temp = result.tempPath
+            log(`temp=${result.tempPath}`)
+          }
+        } catch (error) {
+          writeInfo.tempSyncSkipped = (error as Error).message
+          log(`temp-sync-skipped=${(error as Error).message}`)
+        }
+      }
+      summary.write = writeInfo
+    } else if (args.outputPath) writeNew(args.outputPath, candidateBytes)
+    log(`writePerformed=${args.write}`)
+    if (jsonMode) process.stdout.write(prettyStableJson(summary))
+  } finally {
+    fs.rmSync(temporary, { force: true })
+  }
+}
+
 export async function runAssetsStaticAssemblies(
   argv: readonly string[] = process.argv.slice(2),
   rootContext: RootContext = {}
@@ -443,6 +637,7 @@ export async function runAssetsStaticAssemblies(
   if (args.command === 'inspect') return runInspect(args, projectConfig)
   if (args.command === 'plan') return runPlan(args, projectConfig)
   if (args.command === 'export') return runExport(args, projectConfig)
+  if (args.command === 'tab-options') return runTabOptions(args, projectConfig)
   return runPreview(args, projectConfig)
 }
 

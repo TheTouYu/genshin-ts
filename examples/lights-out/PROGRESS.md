@@ -3,8 +3,9 @@
 > 状态：进行中（2026-08-16 启动）
 > 地图：1073741889「灯阵」（初始 SHA 944f174a…，size 153）
 > 最小设计图：1073741890「灯阵-最小图」（2026-08-16 创建，SHA 1361fb26…，size 163，空图；用户确认保留）
-> 玩法图：1073741825「灯阵玩法」（v2 已注入主地图，44 节点）
-> 编译配置：`examples/lights-out/gsts.config.ts`
+> **最小图完整游戏（2026-08-16 一次性完成）**：建模 v2 精美版（灯柱 7 装饰/灯头 3 装饰）+ 9 灯柱实体 + 3 信号 + 玩法图 70 节点 + 9 挂载——全部注入回读通过，待用户游戏核验
+> 玩法图：1073741825「灯阵玩法」（主图 v2 44 节点；最小图 _GSTS_game-minimal 70 节点）
+> 编译配置：`examples/lights-out/gsts.config.ts`（主图）/ `gsts.minimal.config.ts`（最小图）
 > 玩法设计：`examples/lights-out/DESIGN.md`（核心玩法/资源清单/最小地图/节点调查）
 
 ## 当前主线（2026-08-16 主代理更新）
@@ -53,6 +54,122 @@
   最小图 1073741890 经用户确认保留。DESIGN.md/PROGRESS.md 同步至 v2 状态（纯文档操作）。
 - 2026-08-16：**当前阻塞**：主地图启动报错——实体 1077936131/132、预置灯头 150-158 在 y=2000
   超出场景生效范围；建模子代理处理中，方案确认后写回。阻塞解除前不推进游戏核验。
+- 2026-08-16：**最小图 1073741890 完整游戏一次性完成（用户直接指示，全链路）**：
+  - 建模 v2 精美版（`assets/plans/lamp-minimal-assets.mjs`）：灯柱=古典路灯（底座圆柱+台阶+柱身+
+    双装饰环+灯罩座+五棱柱半透明灯罩 opacity45+顶球，7 装饰物，tabBar 半径 1.5/球心 y1.2）；
+    灯头=发光核心（暖金球+内芯高光+挂环+顶珠，3 装饰物）——不再是"两个方块"
+  - 9 灯柱场景实体（1077936140-148，3×3 网格间距 2.5，aux 7/实体）
+  - 信号注册（builtin 类型值布局，v2 版本自洽）：lamp_toggle(senderPos:vec3,hop:int) +
+    win_check(senderPos) + win_ack(senderPos)
+  - 玩法图（`src/game-minimal.ts`，70 节点注入图 1073741825 → `_GSTS_game-minimal`）：
+    v2 逻辑 + **胜利判定**（点击后 win_check 广播 → lit 灯回 win_ack → 检查者 winCount==9 → lamp-win）
+  - 9 灯柱全部挂载玩法图（mounts list 零未挂载）；Temp/Save_Level 双份一致
+  - 证据：候选回读 PASS / 注入回读 70 节点 wire 核验 / 信号三注册版本一致 —— 全部注入层，**待用户游戏核验**
+- 2026-08-16：**用户游戏测试反馈 + v2.1 修复（日志 2712 定位）**：
+  - 🔴 **胜利判定 bug 根因**：winCount 初始化用 number 0 → **float 变体(cid26)**，计数处
+    `asType('int')` 读 **int 变体(cid22)** → 类型分裂恒读空 → 每次 `空+1=1` → ==9 永不触发
+    （日志铁证：Get OUT0:Integer=空 + Set Integer=1 反复 9 次、lamp-win 零次）。
+    修复：winCount 初始化/重置全部改 **bigint 0n**（int 变体）——probe 验证 `0`→float、`0n`→int
+  - 🟡 **tabBar 交互范围重叠**：半径 1.5→**1.0**（间距 2.5 时互不重叠）+ regionName「灯操作」→「切换」
+  - 🟡 **Y 轴坐标修正**（用户坐标常识）：items 相对模板中心，底座局部 -0.55 → 世界 y=0 半陷地；
+    全部 item y +0.06 → 底座底部贴地；灯头创建点 1.28→**1.34**（新灯罩中心）
+  - 重建流程：恢复空图备份(1361fb26) → v2.1 资产候选写回(df9cf3d0) → 实体 import(f72b72cc) →
+    3 信号注册(v3 一致) → 修复版玩法图注入(70 节点) → 9 挂载 → resync（Temp 一致 b570c929）
+  - 证据：IR 断言 winCount=int、createPrefab y=1.34、实体 tabBar(切换,1.0)、信号 gate 通过 ——
+    全部注入层，**待用户游戏核验**
+- 2026-08-16：**完整版交付（三关 + UI + 引导 + 特效，用户指示全部完成）**：
+  - **三关系统**：关卡 1=3×3(9 灯,WIN=9) / 关卡 2=4×4(16 灯,WIN=16) / 关卡 3=5×5(25 灯,WIN=25)，
+    同图三区域（间距 2.5）；三张玩法图 1073741825/1826/1827（各 84 节点）
+  - **顺序解锁**：灯柱创建时 `activateDisableTab(self,1,false)` 自锁 → 管理台图 1073741828
+    （19 节点，挂管理台 1077936191）点「开始游戏」广播 `level_unlock(1)` → 各关玩法图按
+    LEVEL 常量匹配解锁；通关广播 `level_clear(N)` → 管理图转发 `level_unlock(N+1)`；
+    全通（level_clear(3)）→ game-clear
+  - **UI（开始界面）**：管理台实体（tabBar「灯阵/开始游戏」）+ 引导牌 ×3（tabBar 显示帮助文字：
+    「点击灯柱翻转明暗」「点亮全部灯过关」「通关解锁下一关」——3D 世界可见，无需编辑器 UI 控件）
+  - **特效（用户可见）**：点亮/熄灭=308 灯头显隐（已有）；胜利庆祝=`addUniformBasicRotationBasedMotionDevice`
+    （灯头自旋 3s 90°/s）+ `toggleEntityLightSource`（光源开）——胜利瞬间可见旋转光效
+  - **能力调查结论**（DESIGN P8）：屏幕 UI 控件/铭牌/气泡需编辑器预置 Cfg（CLI 无入口）→ 用
+    tabBar 选项文字替代；特效节点 93/94 需特效资产 Cfg → 用 667 光源+旋转运动器（纯节点可见）
+  - 实体 54（灯柱 50 + 管理台 1 + 引导牌 3）；信号 5（lamp_toggle/win_check/win_ack/
+    level_clear/level_unlock 全部 v3）；四图零未挂载；Temp 一致 a148881a
+  - **注入教训（verify-injection 关键点 2b 实战）**：四图首次注入全部被改写为 config
+    nodeGraphId=1825 互相覆盖 → 必须每图创建占位图 + 注入前改 config nodeGraphId
+    （1825→1826→1827→1828）——已按正确流程重注入并核验 84/84/84/19 节点
+  - 证据：IR 断言（旋转/光源/选项卡/信号节点齐全）+ 四图回读 + 挂载 51 + 信号 5 ——
+    全部注入层，**待用户游戏核验**
+- 2026-08-16：**用户反馈"游戏本质=及时反馈"→ v4 动态关卡重构（用户直接指示）**：
+  - **诚实澄清**：此前庆祝特效 `toggleEntityLightSource` 需实体预配光源组件（灯头无配）→
+    **静默无效**；`addUniformBasicRotationBasedMotionDevice` 需 basicMotion 组件
+    （components.md 实证：模板不自带，P4 魔方角块同坑）→ 旋转也无效——"通关了但零视觉反馈"
+    的技术根因。+ 三关全摆地图 = 设计偷懒（createPrefab 动态创建本可用）
+  - **v4 重构**：地图**只放管理台+引导牌**（观察阶段无关卡）→ 点「开始」→ 反馈「第一关创建中」
+    → createPrefab 动态创建 9 灯柱 → 反馈「第一关开始」→ 通关反馈「完成！解锁第二关」→
+    创建 16 → …→ 全通「game-clear」——每步都有反馈闭环
+  - **元件配置（动态创建继承的关键）**：灯柱 L1(1077936129)/L2(1077936133)/L3(1077936134)
+    各含 tabBar+basicMotion 且 **def 挂载对应玩法图**（1825/1826/1827）；灯头 1077936130
+    含 basicMotion（旋转庆祝可见）；管理台 1077936131 含 basicMotion
+  - **能力边界验证中**：def 挂载 → createPrefab 动态实体是否继承执行 = 引擎运行时规则，
+    CLI 已双写 root4+root8 实例槽；已挂探测图 1829 到灯头 def（动态创建灯头时若打印
+    DEF-MOUNT-FIRED 即继承成立）——**若游戏验证不继承，属编译器/工具链缺口，如实上报**
+  - 信号 5 全 v3；四图 73/73/73/123（管理图 50 createPrefab）；静态实体仅 2；
+    Temp 一致 cb0e9a77；git diff --check OK；未 commit
+  - **注入教训复用**：四图逐图建占位+注入前改 config nodeGraphId（1825→1826→1827→1828）
+  - 证据：IR 断言（50 createPrefab 位置/旋转节点/信号）+ 四图回读 + def 挂载 3 + resync ——
+    全部注入层，**待用户游戏核验（重点：动态灯柱是否执行玩法图）**
+- 2026-08-16：**用户游玩反馈两个 bug → v4.1 修复（日志 2723 逐帧定位）**：
+  - ✅ **def 挂载继承 = 成立**（lamp-created 75 次 + lamp-toggle 10 次：动态灯柱执行玩法图、
+    tabBar 生效）——用户判断正确，非缺口
+  - 🔴 **Bug 2 第二关误解锁第三关（两因叠加）**：
+    ① **winCount 计数翻倍**（rec643 帧铁证）：`next = addition(count,1)` 被 `set` 和 `equal`
+    两处消费 → 引擎对 equal **二次求值** Addition（基于 set 后新值再 +1）→ 一次 ack 计两次
+    （帧：7→8→9 直接 win）。修复：`set` 后**重新 get winCount** 再 equal（独立读取）
+    ② **通关后灯柱残留**（用户指出）：第一关 9 亮灯未清理，全局 win_check/win_ack 继续
+    被其响应 → 污染第二关计数。修复：灯柱玩法图监听 level_clear，`equal(level,LEVEL)` →
+    `removeEntity(self)` 自清理（含 owner 灯头）
+  - 🔴 **Bug 1 旋转特效不显示（编译器缺口，如实上报）**：85 运动器节点执行 3 次但 0 运动器
+    停止帧 → 灯头实体未转。根因：**createPrefab 动态创建的灯头实体未继承 basicMotion
+    组件**（prefab def/inst f7/f8 均有 type 4，但动态实体无）——与 P4 角块同坑。
+    **属引擎/工具链缺口**：createPrefab 动态实体的组件继承规则未闭合。workaround：
+    庆祝改为 **管理台旋转**（静态实体 basicMotion 可靠，GIL 确认 type 4 存在）+
+    **灯头 308 闪烁**（纯显隐无需组件）
+  - 注入：四图 84/84/84/129（管理图 +3 旋转 +1 cleanup 打印等）；Temp 一致 67111660；
+    git diff --check OK；未 commit；主图未触碰
+  - 证据：日志帧（计数翻倍/0 停止帧/组件槽 hex）+ IR 断言（独立 get/remove_entity/旋转 3）+
+    四图回读 —— 注入层，**待用户游戏核验**
+- 2026-08-16：**用户三项质询（旋转特效不明显）→ v4.2 庆祝目标修正**：
+  - 质询①「给球旋转看不出」→ ✅ 正确：旧版旋转目标=灯头球（对称体自旋不可见）→ 改为
+    **灯柱 self 自旋 360°**（玩法图挂载实体=灯柱，绕 Y 2s×180°/s 整圈，明显可见）
+  - 质询②「参数对不对」→ 日志可查：celebrate/3.0s/90°/s/Y轴（旧版）→ 新版 2.0s/180°/s/Y 轴
+    （360° 整圈）；IR 断言 conn node_id=63（self）目标正确
+  - 质询③「挂载目标对不对」→ 关键修正：旧版挂到 head（灯头球），应挂到**灯柱本身**
+    （getSelfEntity）；灯柱 tabBar 生效→组件复制对灯柱成立→basicMotion 应同在（待核验）
+  - 保留：管理台旋转（静态实体可靠）+ 灯头 308 闪烁（兜底）
+  - 注入：四图 85/85/85/129；Temp 一致 3674340f；git diff --check OK；未 commit
+- 2026-08-16：**用户通关反馈 + 三项质询 → v5（清理链/原地创建/通关结算/数据驱动设计）**：
+  - 🔴 **清理不彻底**：灯头是独立 createPrefab 实体，removeEntity(灯柱) 不级联 → 清理时先
+    remove head（灯柱自定义变量存引用）再 remove self（日志 2724 已确认 lamp-cleaned 触发
+    但灯球残留）
+  - 🟡 **原地创建**：三关坐标改为同一中心区域（3×3: 2.5~7.5 / 4×4: 1.25~8.75 / 5×5: 0~10，
+    全部围绕 5,5 中心对称）——上一关已清理位置可复用，玩家无需跑动
+  - 🟡 **通关反馈+结算**：全通 → winDone 置位（再点管理台=立即胜利）+ 30s 定时器自动结算 +
+    管理台旋转庆祝；结算用 setPlayerSettlementSuccessStatus(player, SettlementStatus.Victory)
+    （枚举导入路径 genshin-ts/definitions/enum）
+  - **新证据（质询②③）**：灯柱旋转执行但 0 非零 rotation 帧 → **灯柱也无 basicMotion**
+    （createPrefab 组件继承缺口对灯柱同样成立；tabBar 生效≠组件全复制）
+  - 注入：四图 87/87/87/146（level +head 清理 3 节点；manager +winDone/定时器/结算 17 节点）；
+    Temp 一致 9f4a3495；git diff --check OK；未 commit
+- 2026-08-16：**设计确认纠错（用户批评"不确认就定案"）→ winDone 回退 + 缺陷汇总**：
+  - 🙏 **承认错误**：「立即胜利=再点一次开始游戏」（winDone 复用）是**不合理设计**——因
+    CLI 无法更新既有实体 tabBar options 就绕弯，未与用户确认即定案。已**回退**该设计
+    （manager 图 146→137 节点，winDone 全清，仅保留 30s 定时器自动结算）
+  - 📋 **缺陷汇总文档**：`docs/maintenance/lights-out-toolchain-gaps.md`（6 项，交编译器）：
+    ①createPrefab 动态实体组件继承缺口（🔴 旋转/动画全阻）②CLI 无法更新既有实体 tabBar
+    options（🔴 「立即胜利」等新选项阻）③光源组件 CLI 不支持（🟡 发光效果）④UI 控件/
+    铭牌/气泡无 CLI 入口（🟡 结算弹窗/引导）⑤DSL 无 forEach + prefabId 非字面量（🟡
+    数据驱动关卡）⑥DSL 表达式二次求值坑（🟡 计数逻辑）
+  - 保留的合理修复：清理链补灯头（remove head + remove self）、原地创建（中心区域）、
+    30s 定时器自动结算（setPlayerSettlementSuccessStatus + SettlementStatus.Victory）
+  - 注入：四图 87/87/87/137；Temp 一致 2ffa9dd3；git diff --check OK；未 commit
 
 ## 2026-08-15 晚：信号修复闭环 + v3 单参数验证（游戏核验通过）
 

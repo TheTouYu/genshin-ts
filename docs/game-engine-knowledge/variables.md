@@ -170,7 +170,9 @@ dict 值支持 `str`/`int`/`float`/`str_list`/`int_list`/`bool_list`/`float_list
 > str 列表元素为单层 `field1(len){字符串}`（非 `{f1:字符串}` 双层包裹）、str dict 值
 > 需要解包 `f16.f1`，原始标量列表使用 packed `{field1(len), 值=元素原始字节拼接}`
 > （entity 元素为完整 `{field1(varint)}`），这些是 2026-08-19 真实样本修正的编码细节；
-> dict marker 与 int key 编码也已按 2026-08-19 真实样本修正。尚未覆盖：负整数、空名/重名规则、
+> dict marker 与 int key 编码也已按 2026-08-19 真实样本修正。
+> 2026-08-19 用户游戏核验通过：基于 packed 修复后元件新建的实体完整继承 `PF_list=[1,2]`
+> 与统一 str_list 的 `PF_dict`。尚未覆盖：负整数、空名/重名规则、
 > 游戏内获取/设置/变量变化事件，以及多实例运行时隔离。
 
 ## 待逐步还原

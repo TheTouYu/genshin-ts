@@ -26,6 +26,7 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 - 读现有节点图逻辑：`gil-node-graph-reading`；
 - 未知 GIL 编码的真实相邻快照调查：`editor-incremental-gia-investigator`；
 - 已锁定 NodeGraph/GIA 的游戏注入核验：`verify-injection`；
+- 设置变量 / 挂载节点图 / 屏幕 UI / 信号等非静态 .gil 资源：`genshin-ts-asset-operations`；
 - 运行时创建、物理、碰撞和节点图玩法：按对应引擎/编译器路径处理，不混入静态视觉模型。
 
 ## 授权边界优先

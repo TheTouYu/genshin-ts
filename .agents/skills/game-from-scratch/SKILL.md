@@ -1,6 +1,6 @@
 ---
 name: game-from-scratch
-description: 从零开始做一个完整的千星沙箱（原神 Genshin-TS）游戏 demo 的端到端工作流：规划玩法与输入机制、创建地图骨架、元件建模、资产候选与安全写回、视觉核验循环、输入配置、节点图逻辑、编译注入、游戏日志验证与知识沉淀。当用户说"从零/新做/开始一个游戏或玩法 demo"、"把某个玩法做成一个完整示例"、"指导怎么做完整游戏"、或要参照 rubik-2x2 示例复制整条管线时必须使用本技能，即使用户没有明说"技能"。它把专门技能（static-gil-model-builder、gil-node-graph-editing、verify-injection、debug-log-investigator 等）串成固定阶段，每个阶段有验收标准，防止"建模成功就以为游戏完成"。
+description: 从零开始做一个完整的千星沙箱（原神 Genshin-TS）游戏 demo 的端到端工作流：规划玩法与输入机制、创建地图骨架、元件建模、资产候选与安全写回、视觉核验循环、输入配置、节点图逻辑、编译注入、游戏日志验证与知识沉淀。当用户说"从零/新做/开始一个游戏或玩法 demo"、"把某个玩法做成一个完整示例"、"指导怎么做完整游戏"、或要参照 rubik-2x2 示例复制整条管线时必须使用本技能，即使用户没有明说"技能"。它把专门技能（static-gil-model-builder、genshin-ts-asset-operations、gil-node-graph-editing、verify-injection、debug-log-investigator 等）串成固定阶段，每个阶段有验收标准，防止"建模成功就以为游戏完成"。
 ---
 
 # 从零开始做一个完整游戏（端到端管线）
@@ -22,7 +22,7 @@ description: 从零开始做一个完整的千星沙箱（原神 Genshin-TS）�
 → 9 子代理分包（大任务可选：独立工作包 + 复盘两类优化）
 ```
 
-阶段 2/3 会循环多次（用户视觉反馈），每轮独立证据目录。阶段 4-7 相互依赖（输入事件→节点图→注入→日志），常需一起迭代。
+阶段 2/3 会循环多次（用户视觉反馈），每轮独立证据目录。阶段 4-7 相互依赖（输入事件→节点图→注入→日志），常需一起迭代。阶段 3 的变量、节点图挂载、屏幕 UI、信号等资源操作统一走 `genshin-ts-asset-operations`；静态视觉模型仍走 `static-gil-model-builder`。
 
 ## 0. 规划与域建模
 
@@ -37,8 +37,13 @@ description: 从零开始做一个完整的千星沙箱（原神 Genshin-TS）�
 node ./bin/gsts.mjs maps:create --name "<游戏名>" --player 110170759 --region china
 ```
 
-- 记录新地图 ID、初始 SHA-256、名称；确认 `temp=` 输出（Temp 双写 + gip 注册成功，编辑器可见）。
-- 同时创建占位节点图 ID（如 1073741825，命名"<游戏名>玩法"）。
+- 记录新地图 ID、初始 SHA-256、名称；**必须确认 `temp=` 输出（Temp 双写 + gip 注册，编辑器可见）**。
+  当前 CLI 的 maps:create **不会自动 resync**（旧命令的 `--player/--region` 已移除）——若创建输出无 `temp=`，
+  编辑器列表看不到该图，需补：`node ./bin/gsts.mjs maps:resync --map-id <新图id>`（2026-08-19 实证）。
+- ⚠️ **maps:create 只建空地图骨架，本身没有可注入的节点图**——必须额外创建占位节点图
+  （2026-08-19 capture-set 复现实证：直接注入报 `target NodeGraph not found`）：
+  `node ./bin/gsts.mjs assets:node-graphs create --gil <地图.gil> --name "<图名>" --write`
+  （图 id 自动分配 1073741825 起；--write 前自动备份；`--graphs` 只命名不落可注入图记录）
 - 验收：新地图 inspect 显示 0 definition/instance/entity，且骨架预置 root 4/8/27 段（旧骨架会报 `unsupported GIL layout`）。
 
 ## 2. 元件建模

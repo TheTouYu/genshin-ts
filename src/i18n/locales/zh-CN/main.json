@@ -27,6 +27,7 @@
   "staticAssembliesOptHelp": "显示本帮助",
   "staticAssembliesHelpModes": "模式：默认 preview 不修改文件；--output 保存候选；--write 备份并写回来源地图。",
   "staticAssembliesHelpBoundary": "本命令修改 .gil 资产结构，不是 GIA NodeGraph 注入、运行时 createPrefab，也不代表编辑器或游戏验证。",
+  "staticAssembliesTabOptionsHelp": "tab-options 更新既有实例的选项卡选项（保留区域配置，同步写元件定义与场景实例）：\n  gsts assets:static-assemblies tab-options <instance-id> --name <当前名称> --options <opt1,opt2,...> [区域覆盖选项] [--map-id <id>|--gil <file>] [--write|--output <file>]\n  区域覆盖（缺省继承现有槽）：--region-name <名称> --region-type box|sphere --region-size x,y,z | --region-radius r --region-center x,y,z",
   "cmdOpen": "打开目录：map|backup|data",
   "cmdHelp": "显示帮助",
   "openDesc": "打开目录：map|backup|data",

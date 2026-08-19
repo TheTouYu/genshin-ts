@@ -20,6 +20,19 @@ export function inferConcreteTypeFromType(
   return inferConcreteTypeFromString(s)
 }
 
+/**
+ * 宽松值类型的联合（如 `PrefabIdValue = prefabId | bigint | number`）：
+ * branded 类型表达真实语义，基础类型只是宽松成员；混合时优先取唯一的 branded 候选。
+ */
+const BRANDED_LIST_TYPES = new Set<ListType>([
+  'prefab_id',
+  'config_id',
+  'guid',
+  'faction',
+  'entity',
+  'vec3'
+])
+
 export function inferListTypeFromType(
   checker: ts.TypeChecker,
   type: ts.Type,
@@ -67,14 +80,18 @@ export function inferListElementTypeFromType(
 ): ListType | null {
   if (type.flags & ts.TypeFlags.Union) {
     const u = type as ts.UnionType
-    let base: ListType | null = null
+    const candidates = new Set<ListType>()
     for (const t of u.types) {
       const next = inferListElementTypeFromType(checker, t, location)
       if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
+      candidates.add(next)
     }
-    return base
+    if (candidates.size === 1) return [...candidates][0]
+    // 混合候选（如 prefabId|bigint|number → prefab_id/int/float）：优先唯一的 branded 语义，
+    // 其余基础类型是宽松值类型；纯基础类型混合仍 fail（保持旧行为）。
+    const branded = [...candidates].filter((candidate) => BRANDED_LIST_TYPES.has(candidate))
+    if (branded.length === 1) return branded[0]
+    return null
   }
   if (type.flags & ts.TypeFlags.Intersection) {
     const i = type as ts.IntersectionType
