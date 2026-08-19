@@ -279,6 +279,43 @@ function assertServerGraphRuntimeModeCompatible(
   }
 }
 
+/** 2026-08-19：校验 set_node_graph_variable 值类型与变量声明类型一致。
+ *  裸数字会推断为 float，赋给 int 变量会在游戏拒载/行为异常（curBlock Float1.0 事故实证）。 */
+function validateSetNodeGraphVariableTypes(ir: IRDocument): void {
+  const varTypeByName = new Map<string, string>()
+  for (const v of ir.variables ?? []) varTypeByName.set(v.name, v.type)
+  const scan = (nodes: readonly IRNode[] | undefined, scope: string): void => {
+    for (const n of nodes ?? []) {
+      if (n.type !== 'set_node_graph_variable') continue
+      const nameArg = n.args?.[0]
+      const name = nameArg?.type === 'str' ? String(nameArg.value) : undefined
+      const valueArg = n.args?.[1]
+      const valueType = valueArg?.type
+      // conn（复合输出/数据引脚）与 capture（复合输入）类型由上游解析，跳过字面量校验
+      if (String(valueType) === 'conn' || String(valueType) === 'capture') continue
+      const varType = name ? varTypeByName.get(name) : undefined
+      if (
+        varType &&
+        valueType &&
+        valueType !== varType &&
+        !(varType === 'dict' && valueType === 'dict')
+      ) {
+        console.warn(
+          `[warn] set_node_graph_variable("${name}")${scope} 值类型 "${valueType}" ` +
+            `与变量声明类型 "${varType}" 不匹配（node id=${n.id}）；` +
+            `裸数字会推断为 float，int 变量请用 new int(n)`
+        )
+      }
+    }
+  }
+  scan(ir.nodes, '')
+  const compositeDefs = (ir as { compositeDefs?: Array<{ name?: string; id?: number; implNodes?: readonly IRNode[] }> })
+    .compositeDefs
+  for (const def of compositeDefs ?? []) {
+    scan(def.implNodes, `（复合 ${def.name ?? def.id ?? '?'}）`)
+  }
+}
+
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   if (ir.graph.type === 'client') {
     // TS cannot narrow the IRDocument union through the nested graph.type discriminant.
@@ -295,6 +332,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   if (!ir.nodes || ir.nodes.length === 0) {
     throw new Error('IR document must have at least one node')
   }
+
+  validateSetNodeGraphVariableTypes(ir)
 
   const expanded = expandListLiterals(ir)
   ir = expanded.ir

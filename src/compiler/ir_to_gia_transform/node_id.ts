@@ -359,6 +359,21 @@ export function resolveGiaNodeId(
         fallbacks?.push({ reason: 'unsupported-resolved-type', nodeId: node.id, nodeType })
       }
     }
+    // 2026-08-19：值类型与变量声明类型不匹配 → 告警（如裸数字→float 赋给 int 变量，
+    // 游戏会拒载或行为异常；curBlock Float1.0 事故实证）。conn/capture 值由上游解析，跳过。
+    if (variableName) {
+      const valueArg = node.args?.[1]
+      let valueType = valueArg?.type
+      if (String(valueType) === 'conn' || String(valueType) === 'capture') valueType = undefined
+      const varDecl = varsByName.get(variableName)
+      if (varDecl && valueType && valueType !== varDecl.type && !(varDecl.type === 'dict' && valueType === 'dict')) {
+        console.warn(
+          `[warn] set_node_graph_variable("${variableName}") 值类型 "${valueType}" ` +
+            `与变量声明类型 "${varDecl.type}" 不匹配（node id=${node.id}）；` +
+            `裸数字会推断为 float，int 变量请用 new int(n)`
+        )
+      }
+    }
   }
   const specialId = SPECIAL_NODE_IDS[nodeType]
   if (specialId) return specialId

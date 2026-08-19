@@ -24,7 +24,7 @@ description: 精准编辑真实地图节点图的专用技能。当用户要求"
 # 读（先看现状）
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id|名>           # 全图节点/引脚/连线
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id> --node <n>   # 单节点（explain 过长时定点替代）
-npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --composite <defId>       # 复合定义接口
+npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --composite <defId>       # 复合定义接口 + impl 图节点详情（2026-08-19 起直接带出 implGraph/implNodes，免二次 --graph）
 npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json                        # 底层结构（含 value）；输出键名速查见 gil-node-graph-reading SKILL.md Step 2.6
 npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（仅单图）
 npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]    # 文件级全量 diff（NodeGraph 1/4 + CompositeDef 2，含同 id 双记录）

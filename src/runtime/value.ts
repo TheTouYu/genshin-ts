@@ -310,6 +310,16 @@ export class vec3 extends value {
 
   constructor(value?: [number, number, number]) {
     super(value)
+    // 2026-08-19 差分核实：new vec3(1,2,3) 三参数写法会静默丢分量（value=1）——
+    // 曾误判为 vendor 编码 bug。此处显式拦截：多参数一律报错，避免编译期静默出错。
+    // 正确用法：new vec3([x,y,z])（数组参数）或 f.create3dVector(x,y,z)。
+    if (arguments.length > 1) {
+      throw new Error(
+        `[error] new vec3() 只接受数组参数：new vec3([x, y, z])，` +
+          `收到 ${arguments.length} 个参数（new vec3(1,2,3) 会静默丢分量，value=${JSON.stringify(value)}）；` +
+          `三参数请用 f.create3dVector(x, y, z)`
+      )
+    }
     this.value = value
   }
 

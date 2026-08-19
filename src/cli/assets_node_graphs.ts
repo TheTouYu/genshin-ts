@@ -557,14 +557,32 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
     const field = locateBlobField(payload, 2, defId)
     const blob = payload.subarray(field.dataStart, field.dataEnd)
     const metas = flowMetas(blob)
+    // 2026-08-19 优化：--composite 直接带出 impl 图节点详情（读复合内部 wire 免二次 --graph 找空名 impl 图）
+    let implGraph: number | undefined
+    let implNodes: NodeView[] = []
+    try {
+      implGraph = compositeImplGraphId(payload, defId)
+      const { field: implField } = locateGraphField(payload, implGraph)
+      const implBlob = payload.subarray(implField.dataStart, implField.dataEnd)
+      implNodes = parseGraphNodes(implBlob)
+    } catch {
+      // def 无 impl 图（异常/占位）时保持旧输出，不破坏既有用法
+    }
     if (args.json) {
-      console.log(JSON.stringify({ gil, compositeDef: defId, flows: metas }, null, 2))
+      console.log(JSON.stringify({ gil, compositeDef: defId, flows: metas, implGraph, implNodes }, null, 2))
       return
     }
     console.log(`composite def ${defId}`)
     for (const m of metas) {
       const type = m.type !== undefined ? (VAR_TYPE_NAME[m.type] ?? `T${m.type}`) : ''
       console.log(`  ${KIND_NAMES[m.kind] ?? m.kind}[${m.shell}] ${m.name ?? '(无名)'}${type ? ' ' + type : ''} pinIndex=${m.pinIndex ?? '?'}`)
+    }
+    if (implGraph !== undefined) {
+      console.log(`impl graph ${implGraph} (${implNodes.length} nodes)`)
+      for (const n of implNodes) {
+        console.log(nodeText(n, bytes))
+        for (const pin of n.pins) console.log(`    ${pinText(pin)}`)
+      }
     }
     return
   }

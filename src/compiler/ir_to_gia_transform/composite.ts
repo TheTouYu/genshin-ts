@@ -487,12 +487,30 @@ function buildImplGraphNodes(
     // shared resolveNodeIdentity. Handwritten resolveImplOrdinaryConcreteNodeId remains
     // only as a non-shared fallback for any still-unmigrated concrete-wrapped family.
     // assembly typed concrete: nodeId already resolved to variant; keep it as concrete only.
+    // 列表反射节点（get/set/insert/remove/length 等）：concreteId 由列表元素类型决定。
+    // 修复 2026-08-17：此前不在此集合内 → 回退泛型 id（如 get_list 128=int 变体），
+    // 输出类型与列表元素类型不匹配 → 游戏拒载（编辑器未拦截，因回退静默发生）。
+    const listReflectiveNid = resolveImplListReflectiveConcreteNodeId(node)
     const ordinaryConcreteNid =
-      usesSharedOrdinaryConcreteIdentity(node.type) || DICT_KV_VARIANT_NODE_TYPES.has(node.type)
+      listReflectiveNid ??
+      (usesSharedOrdinaryConcreteIdentity(node.type) || DICT_KV_VARIANT_NODE_TYPES.has(node.type)
         ? sharedConcreteNid
         : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
           ? nodeId
-          : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
+          : resolveImplOrdinaryConcreteNodeId(node.type, producedType))
+    if (
+      LIST_REFLECTIVE_NODE_TYPES.has(node.type) &&
+      listReflectiveNid === undefined
+    ) {
+      const listArgType = getImplArgType(node.args?.[0])
+      if (listArgType && listArgType.endsWith('_list')) {
+        throw new Error(
+          `[error] composite impl list-reflective node "${node.type}" (${node.id}): ` +
+            `无法解析列表元素类型变体（列表参数类型 ${listArgType}）；` +
+            `禁止回退泛型 id（会导致输出类型与列表元素类型不匹配，游戏拒载）`
+        )
+      }
+    }
     // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
     const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
     const calledDef = callIdentity?.calledDef
@@ -1053,6 +1071,38 @@ function materializeImplOrdinaryGraphWithVendor(
       const inputType =
         boundaryTypes.get(pinIndex) ?? inferInputTypeFromNode(source.node.type, pinIndex)
       const pin = buildConnPin(pinIndex, inputType)
+      // 2026-08-19 修复（cap_set_repro 差分实证）：复合内用复合输入 capture 设变量时，
+      // value 引脚必须是 ConcreteBase 包裹值（class:10000 + alreadySetVal:true +
+      // bConcreteValue{indexOfConcrete:0}）——即编辑器正确 wire 形态。buildConnPin 默认产出
+      // {class:2, alreadySetVal:false, bInt:{val:0}} 占位 → 编辑器/游戏按「值未设置」处理，
+      // 类型判定失败。同族：set_node_graph_variable（value pin 1）/ set_custom_variable（value pin 2）
+      // 均由编辑器差分实证需要此包裹。
+      // 2026-08-19 差分闭合（cap/cv/lv_set_repro 三样本）：复合内 setter 的 capture value 引脚
+      // 必须是 ConcreteBase 包裹。indexOfConcrete 由 vendor concrete map 决定（非固定 0——
+      // cap/cv 的 int→0 恰好是 vendor 值，但 float→1/4、bool→2/6 等各节点族不同；
+      // get_index_of_concrete 三节点族全类型实测与差分样本一致），内层 value 按值类型生成
+      // 对应 VarBase（int→IntBase / float→FloatBase / bool→EnumBase / str→StringBase /
+      // vec3→VectorBase / 引用→IdBase，逐字节对齐编辑器样本）。
+      const setterCapture =
+        source.node.type === 'set_node_graph_variable' && pinIndex === 1
+          ? (source.node.args as any)?.[1]?.capture === true
+          : source.node.type === 'set_custom_variable' && pinIndex === 2
+            ? (source.node.args as any)?.[2]?.capture === true
+            : source.node.type === 'set_local_variable' && pinIndex === 1
+              ? (source.node.args as any)?.[1]?.capture === true
+              : false
+      if (setterCapture) {
+        const genericId = resolveImplNodeId(source.node.type, (source.node as any).args)
+        const ioc = get_index_of_concrete(genericId, true, pinIndex, argVarType(inputType)) ?? 0
+        pin.value = {
+          class: VarBase_Class.ConcreteBase,
+          alreadySetVal: true,
+          bConcreteValue: {
+            indexOfConcrete: ioc,
+            value: makeVarBaseValue(argVarBaseClass(inputType), argVarType(inputType), false)
+          }
+        } as any
+      }
       if (needsConcreteWrapping(source.node.type) && pin.value) {
         pin.value = wrapConcreteValueForNodeInput(
           source.node.type,
@@ -1268,6 +1318,36 @@ function resolveImplOrdinaryConcreteNodeId(
   if (!producedType || !concreteWrappedNodeTypes.has(nodeType)) return undefined
   const suffix = producedType === 'vec3' ? 'vec' : producedType
   return getNodeIdLowerMap().get(`${nodeType.toLowerCase()}__${suffix}`)
+}
+
+// 列表反射节点：concreteId 由「列表参数的元素类型」决定（元素类型后缀的 S<T:...> 变体）。
+// 与 root resolveGiaNodeId 的 "typed by args" 语义对齐（node_id.ts:572-577）。
+const LIST_REFLECTIVE_NODE_TYPES = new Set([
+  'get_corresponding_value_from_list',
+  'set_list_value',
+  'insert_value_into_list',
+  'remove_value_from_list',
+  'get_list_length',
+  'concatenate_list',
+  'clear_list',
+  'list_includes_this_value',
+  'search_list_and_return_value_id'
+])
+
+// 仅当列表参数类型可推断时解析；否则返回 undefined（由调用方决定是否拒绝）。
+function resolveImplListReflectiveConcreteNodeId(node: {
+  type: string
+  args?: Array<{ type: string; value: unknown } | null> | null
+}): number | undefined {
+  if (!LIST_REFLECTIVE_NODE_TYPES.has(node.type)) return undefined
+  const listArg = node.args?.[0]
+  const t = getImplArgType(listArg)
+  if (!t || !t.endsWith('_list')) return undefined
+  const base = t.slice(0, -5)
+  const suffix = base === 'vec3' ? 'vec' : base
+  // vendor 键可能经 SPECIAL_NODE_MAPPINGS 重命名（如 set_list_value → modify_value_in_list）
+  const key = SPECIAL_NODE_MAPPINGS[node.type] ?? node.type
+  return getNodeIdLowerMap().get(`${key.toLowerCase()}__${suffix}`)
 }
 
 function resolveImplNodeId(

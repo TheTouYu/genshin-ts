@@ -313,17 +313,15 @@ assert.deepEqual(resolveNodeIdentity({
   type: 'set_node_graph_variable',
   args: [{ type: 'str', value: 'dictValue' }, { type: 'dict', dict: { k: 'int', v: 'float' } }]
 }, { ...context, fallbacks: unsupportedFallbacks }), {
-  logicalType: 'set_node_graph_variable', genericNodeId: 323
+  logicalType: 'set_node_graph_variable', genericNodeId: 323, concreteNodeId: 2902
 })
+// 2026-08-19 对齐：dict KV 变体族统一（0388e87, 08-14）后，复合路径与根路径（上方 rootFallbacks 同为 2902）
+// 一致解析 dict 具体变体；成功解析后不再记录 unsupported-resolved-type。
 assert.deepEqual(unsupportedFallbacks, [{
   reason: 'missing-variable-declaration',
   nodeId: 6,
   nodeType: 'set_node_graph_variable',
   variableName: 'dictValue'
-}, {
-  reason: 'unsupported-resolved-type',
-  nodeId: 6,
-  nodeType: 'set_node_graph_variable'
 }])
 
 console.log('PASS P1-W6 custom-variable identity uses value/output type contracts')

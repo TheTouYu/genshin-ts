@@ -145,6 +145,29 @@ reflectMap，真实快照验证 20+ 实例）。变体 f3（concreteId）与 ind
 - add/del/swap-input 会重编号实例节点（chooseRebuildIndex/chooseMovedIndex 规则；
   跨轮墓碑无会话史可能低于编辑器）
 
+## 复合内 setter 的 capture value 引脚（2026-08-19 编辑器差分 + 源码级 GIA 验证闭合）
+
+- **规则**：复合内用「复合输入 capture」直接设变量时，value 引脚必须是 **ConcreteBase 包裹**
+  （`class:10000` + `alreadySetVal:true` + `bConcreteValue`）。若留
+  `{class:2, alreadySetVal:false, bInt:{val:0}}` 占位 → 编辑器/游戏按「值未设置」处理，
+  类型判定失败（curMove 事故实证）。
+- **indexOfConcrete 一律由 vendor concrete map 决定**（`get_index_of_concrete(genericId, pin, varType)`，
+  勿写死——cap/cv 的 int→0 只是恰好；三节点族全类型实测：
+  cv(22, pin2) int→0/float→4/bool→6/str→1/vec3→5/entity→2；gv(323, pin1) int→0/float→1/bool→2/str→3/vec3→11/entity→5；
+  lv(19, pin1) int→1/float→5/bool→0/str→2/vec3→6/entity→3）。
+- **内层 value 按值类型生成对应 VarBase**（int→IntBase / float→FloatBase / bool→EnumBase /
+  str→StringBase / vec3→VectorBase / 引用→IdBase；编辑器样本 bInt/bVector 为**空 payload**，
+  编译器显式 0 字段语义等价、游戏接受——2026-08-19 int/float/bool/vec3 全类型游戏核验通过）。
+- 覆盖：**set_node_graph_variable**（value 引脚 index 1）、**set_custom_variable**（value 引脚 index 2）、
+  **set_local_variable**（value 引脚 index 1，第三形态 2026-08-19 lv_set_repro 差分闭合）。
+- **set_local_variable 额外要求**：配对 **Get Local Variable(18) 引用节点**——set 的 handle 引脚
+  （type 16 LocalVariable）连线到 getter 的 handle 输出（E<1016> 身份线）。
+- 编译器修复：`src/compiler/ir_to_gia_transform/composite.ts` `materializeImplOrdinaryGraphWithVendor`
+  边界引脚合并处（`setterCapture` 统一分支，三节点共用 vendor ioc + 按类型内层）。
+- 回归：`tests/composite/test-set-capture-concrete-wire.ts`（3 setter × int/float/bool/vec3 全断言）。
+- **DSL 用法坑（2026-08-19 差分核实）**：`new vec3(1,2,3)` 三参数**静默丢分量**（value=1）——
+  构造函数只收数组参数，必须 `new vec3([1,2,3])` 或裸数组；曾因此误判为 vendor 编码 bug。
+
 ## 运算节点变体（2026-08-09 turn-ctl 实战证据）
 
 - Subtraction（减法运算）：id 202，reflectMap `[[202,'S<T:Int>'],[203,'S<T:Flt>']]`——Flt 变体
