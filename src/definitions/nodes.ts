@@ -268,6 +268,19 @@ export function parseValue(v: any, type: ValueType) {
       if (z.instanceof(entity).safeParse(v).success) {
         return v as entity
       }
+      // 2026-08-19 修复（事件对象误当实体）：on() 回调第一个参数是「事件参数对象」
+      // （{eventSourceEntity, eventSourceGuid, ...}），不是实体本身。直接把 evt/_e 传入
+      // 会静默走到这里报泛化的 Invalid value type——给出明确提示与正确用法。
+      if (v && typeof v === 'object' && !(v instanceof value) && !Array.isArray(v)) {
+        const keySample = Object.keys(v as object).slice(0, 5).join(', ')
+        if (keySample.includes('eventSource')) {
+          throw new Error(
+            `[error] 收到事件参数对象而非实体值（键: ${keySample}）：` +
+              `on() 回调的第一个参数 evt 是整个事件输出对象，不是实体。` +
+              `请用 evt.eventSourceEntity（或事件对应的实体参数名）传入`
+          )
+        }
+      }
       break
     }
     case 'prefab_id': {

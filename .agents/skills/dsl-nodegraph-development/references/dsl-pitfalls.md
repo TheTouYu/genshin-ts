@@ -88,3 +88,35 @@
 - 字典未填充：Query Dictionary Value by Key OUT0 = 13=0.0。
 - 空实体：运动器 IN0:Entity= 空（0-based 越界/字典空值）。
 - rotation 输出含残差（如 270.0862°）——精确验证用矩阵，不用角度直接比较。
+
+## 11. 纯数据表达式被多处消费 = 每个消费点重新求值（缺陷 6，2026-08-16 灯阵实证）
+
+- 现象：`const next = f.addition(count, 1)` 同时传给 `f.setCustomVariable` 与 `f.equal`，
+  一次调用计两次（日志 2723 rec643：7→8→9 直接 win）。
+- 根因：data 节点连线不是值快照，引擎在每个消费点重新求值；两次消费之间写入图变量 → 第二次读到新值。
+- 修复：set 之后重新 get，比较用独立读取（`const after = f.getCustomVariable(...)`）。
+- 检测：ESLint 规则 `gsts/server-repeated-evaluation`（推荐配置 warn，保守版：纯数据 const 被 ≥2 个 f.* 调用消费即告警）。
+- 详见 `docs/game-engine-knowledge/data-flow.md`「单节点输出多消费的二次求值陷阱」。
+
+## 12. 批量创建优先 listIterationLoop；forEach 语法已支持（2026-08-16 实证）
+
+- `f.listIterationLoop(f.assemblyList([...], 'prefab_id'), (id, _breakLoop) => {...})` 全链路可用，
+  prefabId/位置可由循环变量动态计算（50 个手写 createPrefab → 3 个循环节点，见灯阵重构候选）。
+- **`.forEach` 语法已支持**（2026-08-16 修复验证）：`list('prefab_id', [A, B]).forEach(cb)` 在
+  Stage1 转换为 `listIterationLoop`，prefabId 为动态连接。两个前提：①编译环境必须能解析全局
+  `list` helper 的类型声明（仓库 `src/**/*.d.ts` 在 program 里；缺 tsconfig 的临时目录会解析成
+  `any` 导致转换静默跳过）；②元素为 `PrefabIdValue[]`（`prefabId|bigint|number` 联合）时依赖
+  `ts_list_utils` 的 branded 优先推断（2026-08-16 修复）。
+- 动态 prefabId（字典/变量驱动）编译器已无字面量拦截；游戏内是否接受运行时连接的 prefabId 引脚**待游戏核验**。
+
+## 13. 事件回调第一个参数是「事件参数对象」，不是实体（2026-08-19 修复实证）
+
+- `.on(evt, f)` / `f.on(evt, ef)` 回调的 `evt` 是**整个事件参数对象**
+  （`{eventSourceEntity, eventSourceGuid, ...}`），不是实体本身。
+- **错误**：`f.setCustomVariable(evt, ...)` 或 `f.callComposite(comp, { target: evt })`——
+  曾报无提示崩溃（`arg.toIRLiteral is not a function` / 泛化 `Invalid value type: entity`）。
+- **正确**：`evt.eventSourceEntity`（或事件对应的实体参数名，如 `attackerEntity`）才是一个实体值。
+- **编译器保护**（2026-08-19 起，fail-closed 有提示）：两处显式拦截并给出
+  「收到事件参数对象…请用 evt.eventSourceEntity」——①`parseValue` entity 分支
+  （set/getCustomVariable 等）②`buildCompositeCallArgs`（callComposite 输入）。
+- 回归：`tests/composite/test-event-arg-entity-contract.ts`（错误契约 ×2 + 正确用法 ×2）。

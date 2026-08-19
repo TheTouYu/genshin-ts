@@ -1339,6 +1339,23 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
         ) as any
         v = new Ctor(val)
       }
+      // 2026-08-19 修复（事件对象误当实体）：普通对象（非 value 实例）不是合法复合输入——
+      // 此前静默 push 后 ir_builder 报 arg.toIRLiteral is not a function（无提示）。
+      // on() 回调第一个参数是事件参数对象（{eventSourceEntity,...}），不是实体本身。
+      if (v !== null && v !== undefined && typeof v === 'object' && !(v instanceof value)) {
+        const keySample = Object.keys(v as object).slice(0, 5).join(', ')
+        if (keySample.includes('eventSource')) {
+          throw new Error(
+            `[error] callComposite 输入 "${name}" 收到事件参数对象（键: ${keySample}）：` +
+              `on() 回调的第一个参数 evt 是整个事件输出对象，不是实体。` +
+              `请用 evt.eventSourceEntity（或事件对应的实体参数名）传入`
+          )
+        }
+        throw new Error(
+          `[error] callComposite 输入 "${name}" 不是合法 DSL 值（收到普通对象，键: ${keySample}）：` +
+            `请输入 f.* 返回值、字面量或 value 实例`
+        )
+      }
       args.push(v)
       compositeInputIndices.push(this.getCompositeInputIndex(def, name, fallbackIndex))
       fallbackIndex++
