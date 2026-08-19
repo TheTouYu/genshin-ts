@@ -35,6 +35,7 @@ import { runAssetsEntities } from './assets_entities.js'
 import { runAssetsUi } from './assets_ui.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
+import { runAssetsGadgets } from './assets_gadgets.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
@@ -1826,6 +1827,18 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsPrefabs(args, projectConfig)
+    })
+
+  program
+    .command('assets:gadgets')
+    .description('query official gadget/prefab entity data from the public Miliastra data API')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:gadgets')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      await runAssetsGadgets(args)
     })
 
   program
