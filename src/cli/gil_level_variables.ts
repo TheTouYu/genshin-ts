@@ -116,7 +116,7 @@ function decodeDictValue(f4msg: readonly WireField[] | undefined): unknown {
   return decodeDictF37(f37)
 }
 
-/** 解码一段原始 f37 字典消息（Map25 + f501 keys + f502 values）为普通对象。 */
+/** 解码一段原始 f37 字典消息（parallel f501 keys + f502 values；兼容旧 Map25 层，直接忽略 f1 记录）为普通对象。 */
 export function decodeDictF37(f37: Uint8Array): unknown {
   const m = parseMessageFields(f37)
   const keys: unknown[] = []
@@ -155,6 +155,10 @@ function decodeEntryValue(raw: Uint8Array): unknown {
     if (!branch) return ''
     const str = firstBytes(parseMessageFields(branch), 1)
     return str ? textOf(str) : ''
+  }
+  if (code === 5) {
+    const branch = firstBytes(em, 15)
+    return branch ? (firstFloat32(parseMessageFields(branch), 1) ?? 0) : 0
   }
   // 列表值：f<code+10> 重复元素
   const listField = code + 10
@@ -342,20 +346,8 @@ export function updateLevelVariable(
     if (uiType === undefined) {
       throw new Error(`[error] unknown level variable type code: ${typeCode}`)
     }
-    const entityBase = nextEntityBaseId(bytes)
-    let valueWire: Uint8Array
-    if (uiType === 'dict') {
-      // dict 更新优先复用既有 Map25 实体 ID，避免每次更新都泄漏新场景实体
-      const f4 = firstBytes(em, 4)
-      const f4msg = f4 ? parseMessageFields(f4) : undefined
-      const existingF37 = f4msg ? firstBytes(f4msg, 37) : undefined
-      const entityIds = existingF37
-        ? preservedDictEntityIds(existingF37, (opts.value as UiDictPair[]) ?? [], entityBase)
-        : undefined
-      valueWire = buildTypedValueWire(uiType, opts.value, entityBase, entityIds)
-    } else {
-      valueWire = buildTypedValueWire(uiType, opts.value, entityBase)
-    }
+    // 新建/更新 dict 都采用无 Map25 的 f37；不再分配新场景实体
+    const valueWire = buildTypedValueWire(uiType, opts.value)
     newEntry = newEntry.map((x) =>
       x.number === 4 && x.wire === 2 ? { ...x, value: valueWire } : x
     )
@@ -455,11 +447,16 @@ export type UiVarType =
   | 'prefab_id_list'
   | 'faction_list'
   | 'dict'
-export type UiDictValueType = 'str' | 'int' | 'str_list' | 'int_list'
+export type UiDictValueType =
+  | 'str' | 'int' | 'float'
+  | 'str_list' | 'int_list' | 'bool_list' | 'float_list' | 'vec3_list'
 export type UiDictPair = {
   key: string
   keyType: 'str' | 'int'
-  value: string | number | readonly string[] | readonly number[]
+  value:
+    | string | number
+    | readonly string[] | readonly number[] | readonly boolean[]
+    | readonly (readonly number[])[]
   valueType: UiDictValueType
 }
 
@@ -592,15 +589,10 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
   let inner: Uint8Array
   if (t === 'str') inner = emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
   else if (t === 'int') inner = emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
+  else if (t === 'float') inner = emitWireMessage([{ number: 1, wire: 5, value: float32Bytes(Number(value)) }])
   else {
-    const isStrList = t === 'str_list'
-    inner = emitWireMessage(
-      (value as readonly unknown[]).map((v) => ({
-        number: 1,
-        wire: isStrList ? 2 : 0,
-        value: isStrList ? utf8(String(v)) : Number(v)
-      }))
-    )
+    const elemType = t.slice(0, -5) as ScalarWireType
+    inner = emitWireMessage((value as readonly unknown[]).map((v) => scalarElementWire(elemType, v)))
   }
   return emitWireMessage([
     { number: 1, wire: 0, value: code },
@@ -609,12 +601,8 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
   ])
 }
 
-export function buildDictF37Wire(
-  pairs: readonly UiDictPair[],
-  entityBase: number,
-  entityIds?: readonly number[]
-): Uint8Array {
-  return dictWire(pairs, entityBase, entityIds)
+export function buildDictF37Wire(pairs: readonly UiDictPair[]): Uint8Array {
+  return dictWire(pairs)
 }
 
 export function scalarTypeCode(t: 'str' | 'int'): number {
@@ -622,16 +610,40 @@ export function scalarTypeCode(t: 'str' | 'int'): number {
 }
 
 export function dictValueTypeCode(t: UiDictValueType): number {
-  return t === 'str' ? 6 : t === 'int' ? 3 : t === 'str_list' ? 11 : 8
+  return (
+    {
+      str: 6,
+      int: 3,
+      float: 5,
+      str_list: 11,
+      int_list: 8,
+      bool_list: 9,
+      float_list: 10,
+      vec3_list: 15
+    } as Record<UiDictValueType, number>
+  )[t]
 }
 
-/** 编辑器真实样本（after-dict*.gil）的 dict 值类型 marker（entry f4.f2/f6、Map25 f2、f35.f501 共用）。
- *  实测：int(3)→63、str(6)→66、str_list(11)→76；int_list(8) 无样本，按标量+60/列表+65 规律外推为 73。 */
-export function dictMapMarker(valueTypeCode: number): number {
-  if (valueTypeCode === 3) return 63
-  if (valueTypeCode === 6) return 66
-  if (valueTypeCode === 11) return 76
-  return valueTypeCode + 65
+/** 编辑器真实样本（after-dict*.gil）的 dict marker（entry f4.f2/f6、Map25 f2、f35.f501 共用）。
+ *  实测 8 对：(6,6)=66、(6,11)=76、(6,5)=65、(6,10)=75、(6,9)=74、(6,15)=78、
+ *  (3,3)=43、(3,15)=58。
+ *  拟合：marker = keyBase + valueBase；keyBase：str=60、int=40；valueBase：标量=类型码，
+ *  列表=第三方 concrete_map M3 下标（bool_list=14、float_list=15、str_list=16、vec3_list=18 等）。
+ *  未逐项实样验证的组合为拟合外推。 */
+const DICT_MARKER_KEY_BASE: Readonly<Record<number, number>> = { 3: 40, 6: 60 }
+const DICT_MARKER_VALUE_BASE: Readonly<Record<number, number>> = {
+  // 标量：base = 类型码
+  1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 12: 12, 17: 17, 20: 20, 21: 21,
+  // 列表：base = concrete_map M3 下标（8 个实测点均命中）
+  7: 12, 8: 13, 9: 14, 10: 15, 11: 16, 13: 11, 15: 18, 22: 19, 23: 20, 24: 17
+}
+export function dictMapMarker(keyTypeCode: number, valueTypeCode: number): number {
+  const keyBase = DICT_MARKER_KEY_BASE[keyTypeCode]
+  const valueBase = DICT_MARKER_VALUE_BASE[valueTypeCode]
+  if (keyBase === undefined || valueBase === undefined) {
+    throw new Error(`[error] unsupported dict marker (key=${keyTypeCode}, value=${valueTypeCode})`)
+  }
+  return keyBase + valueBase
 }
 
 /** dict 类型包裹 {f1:27, f2:{f2:marker, f502:keyType, f503:valueType}}（entry f4.f2/f6 用，与真实样本一致）。 */
@@ -644,7 +656,7 @@ export function buildDictTypeEnvelope(pairs: readonly UiDictPair[]): Uint8Array 
       number: 2,
       wire: 2,
       value: emitWireMessage([
-        { number: 2, wire: 0, value: dictMapMarker(valueType) },
+        { number: 2, wire: 0, value: dictMapMarker(keyType, valueType) },
         { number: 502, wire: 0, value: keyType },
         { number: 503, wire: 0, value: valueType }
       ])
@@ -652,7 +664,7 @@ export function buildDictTypeEnvelope(pairs: readonly UiDictPair[]): Uint8Array 
   ])
 }
 
-/** 扫描 root5 场景实体，返回可用于 dict Map25 分配的未占用实体 ID 下限。 */
+/** 扫描 root5 场景实体，返回当前最大实体 ID 的下限（保留给测试断言：新建 dict 不再分配新实体）。 */
 export function nextEntityBaseId(bytes: Uint8Array): number {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) return 1073741831
@@ -668,73 +680,19 @@ export function nextEntityBaseId(bytes: Uint8Array): number {
   return entityBase
 }
 
-/** 读取 dict f37 中每对 key 与其 Map25 实体 ID（Map25 层与 f501 keys 均按 pairs 顺序）。 */
-function dictKeyEntityIds(f37: Uint8Array): { key: string; entityId: number }[] {
-  const m = parseMessageFields(f37) ?? []
-  const ids: number[] = []
-  const keys: string[] = []
-  for (const f of m) {
-    if (f.number === 1 && f.wire === 2) {
-      const rec = parseMessageFields(f.value as Uint8Array)
-      const f35 = rec ? firstBytes(rec, 35) : undefined
-      const inner = f35 ? parseMessageFields(f35) : undefined
-      const f502 = inner?.find((x) => x.number === 502 && x.wire === 2)
-      const idMsg = f502 ? parseMessageFields(f502.value as Uint8Array) : undefined
-      const id = idMsg ? firstVarint(idMsg, 4) : undefined
-      ids.push(id ?? 0)
-    } else if (f.number === 501 && f.wire === 2) {
-      const em = parseMessageFields(f.value as Uint8Array)
-      const b = em ? firstBytes(em, 16) : undefined
-      const keyMsg = b ? parseMessageFields(b) : undefined
-      const keyStr = keyMsg ? firstBytes(keyMsg, 1) : undefined
-      keys.push(keyStr ? textOf(keyStr) : String(firstVarint(em ?? [], 13) ?? 0))
-    }
-  }
-  const result: { key: string; entityId: number }[] = []
-  for (let i = 0; i < keys.length; i++) result.push({ key: keys[i], entityId: ids[i] })
-  return result
-}
-
-/** dict 更新时按 key 优先复用既有 Map25 实体 ID；新 key 复用未用旧 ID，再不够才新分配。 */
-function preservedDictEntityIds(
-  existingF37: Uint8Array,
-  pairs: readonly UiDictPair[],
-  entityBase: number
-): number[] {
-  const existing = dictKeyEntityIds(existingF37)
-  const used = new Set<number>()
-  const result: number[] = []
-  let nextNew = entityBase
-  for (const p of pairs) {
-    const byKey = existing.find((e) => e.key === p.key && !used.has(e.entityId))
-    if (byKey) {
-      used.add(byKey.entityId)
-      result.push(byKey.entityId)
-      continue
-    }
-    const unused = existing.find((e) => !used.has(e.entityId))
-    if (unused) {
-      used.add(unused.entityId)
-      result.push(unused.entityId)
-      continue
-    }
-    result.push(nextNew++)
-  }
-  return result
-}
-
-function dictWire(
-  pairs: readonly UiDictPair[],
-  entityBase: number,
-  entityIds?: readonly number[]
-): Uint8Array {
+/** 生成 dict 的 f37（新建/更新同构）：parallel f501 keys + f502 values + f503/f504。
+ *  新建 dict 不含 Map25 实体映射层（与编辑器新增变量5-10 真实样本一致）；
+ *  Map25 层仅出现在编辑器多对历史样本（新增变量1），非新建必需。 */
+function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
   const keyField = (p: UiDictPair) => ({
     number: 501,
     wire: 2,
     value: emitWireMessage([
       { number: 1, wire: 0, value: scalarTypeCode(p.keyType) },
       { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) },
-      { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }
+      p.keyType === 'int'
+        ? { number: 13, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: Number(p.key) }]) }
+        : { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }
     ])
   })
   const valueField = (p: UiDictPair) => ({
@@ -742,47 +700,20 @@ function dictWire(
     wire: 2,
     value: dictValueMsg(p.valueType, p.value)
   })
-  // Map(25) 实体映射层：每对分配一个实体 ID
-  const mapEntries = pairs.map((p, i) => ({
-    number: 1,
-    wire: 2,
-    value: emitWireMessage([
-      { number: 1, wire: 0, value: 25 },
-      {
-        number: 2,
-        wire: 2,
-        value: emitWireMessage([
-          { number: 1, wire: 0, value: 25 },
-          { number: 2, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: dictMapMarker(dictValueTypeCode(p.valueType)) }, { number: 502, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 503, wire: 0, value: dictValueTypeCode(p.valueType) }]) }
-        ])
-      },
-      {
-        number: 35,
-        wire: 2,
-        value: emitWireMessage([
-          { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: scalarTypeCode(p.keyType) }, { number: 2, wire: 2, value: EMPTY }]) }, { number: 16, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: utf8(p.key) }]) }]) },
-          { number: 1, wire: 2, value: dictValueMsg(p.valueType, p.value) },
-          { number: 501, wire: 0, value: dictMapMarker(dictValueTypeCode(p.valueType)) },
-          { number: 502, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 28 }, { number: 4, wire: 0, value: entityIds ? entityIds[i] : entityBase + i }]) }
-        ])
-      }
-    ])
-  }))
   return emitWireMessage([
-    ...mapEntries,
     ...pairs.map(keyField),
     ...pairs.map(valueField),
-    { number: 503, wire: 0, value: 6 },
+    { number: 503, wire: 0, value: scalarTypeCode(pairs[0]?.keyType ?? 'str') },
     { number: 504, wire: 0, value: dictValueTypeCode(pairs[0]?.valueType ?? 'str') }
   ])
 }
 
-/** 生成 entry 的默认值消息（f4），与 create 共用同构编码；dict 可显式指定 Map25 实体 ID。 */
+/** 生成 entry 的默认值消息（f4），与 create 共用同构编码；新建 dict 不再分配 Map25 场景实体。 */
 function buildTypedValueWire(
   type: UiVarType,
   value?: unknown,
-  entityBase?: number,
-  entityIds?: readonly number[]
+  _entityBase?: number,
+  _entityIds?: readonly number[]
 ): Uint8Array {
   const code = typeCodeOf(type)
   if (type === 'dict') {
@@ -790,7 +721,7 @@ function buildTypedValueWire(
     return emitWireMessage([
       { number: 1, wire: 0, value: 27 },
       { number: 2, wire: 2, value: buildDictTypeEnvelope(pairs) },
-      { number: 37, wire: 2, value: dictWire(pairs, entityBase ?? 1073741831, entityIds) }
+      { number: 37, wire: 2, value: dictWire(pairs) }
     ])
   }
   if (SCALAR_TYPES.has(type)) {

@@ -362,7 +362,7 @@ function encodeInitialValue(
     if (!Array.isArray(value)) {
       throw new Error('[error] dict custom variable value must be an array of UiDictPair')
     }
-    return buildDictF37Wire(value as readonly UiDictPair[], entityBase)
+    return buildDictF37Wire(value as readonly UiDictPair[])
   }
   if (!LIST_TYPES.has(update.type)) return encodeScalarValue(update.type, value)
   if (!Array.isArray(value)) throw new Error(`[error] ${update.type} custom variable value must be an array`)
@@ -458,7 +458,7 @@ function variableFieldsFor(fields: LenField[], owner: LenField, path: VariableCo
   )
 }
 
-/** 扫描 root5 场景实体，返回 dict Map25 可用的未占用实体 ID 下限。 */
+/** 扫描 root5 场景实体，返回当前最大实体 ID 的下限（供新建场景实体的 ID 分配使用）。 */
 function entityBaseFor(payload: Uint8Array, fields: LenField[]): number {
   let base = 1073741831
   for (const owner of fields.filter((field) => field.depth === 2 && field.p0 === 5 && field.p1 === 1)) {

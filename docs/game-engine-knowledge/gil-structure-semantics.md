@@ -824,12 +824,14 @@ str_list/vec3/dict 等变量后，**类型码是正式 enum**，entry 顶层形�
 | 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
 | 7/8/9/10/11/13/15/22/23/24 | 十种列表 | f<type+10> | 重复 field1 原语元素（str→len 包裹、数字→varint/fixed32、vec3→len 包裹） |
-| 27 | dict | f37 | 三层：Map25 实体映射 + parallel f501/f502 + f503/f504 |
+| 27 | dict | f37 | parallel f501/f502 + f503/f504（新建无 Map25 层） |
 
 entry 结构：`11.1[*]`（关卡实体 root5.1.7.11；元件 root4.1.8.11 同构）→ `f2` 名称、
 `f3` 类型码、`f4` 默认值 `{f1=类型码, f2=类型包裹, f<type+10>=值}`、`f5=1`、`f6` 类型
-包裹。dict 的 `f37` 每对 key/value 在 Map25 层新建实体引用（`f35.f502.f4`），CLI 分配
-ID 取 root5 最大实体 ID + 1。
+包裹。**新建 dict 的 `f37` 不含 Map25 实体映射层**（与编辑器新增变量5-10 真实样本一致）；
+Map25 层仅出现在编辑器多对历史样本（新增变量1 等），非新建必需，CLI 不再分配 Map25 场景
+实体 ID。dict marker 按 `(keyType, valueType)` 枚举，实测表见
+[`variables.md`](variables.md)（str/int key × 标量/列表）。
 
 容器路径：元件定义 = `root4.1[prefabId].8.11`（field8）；场景实体 =
 `root5.1[entity].7.11`（field7，type1 组件槽）。CLI：
@@ -838,8 +840,8 @@ ID 取 root5 最大实体 ID + 1。
 dict）。新实体由 `assets:entities import` 创建时继承定义 f8→f7 的变量容器。
 
 > 编码细节修正（对照真实样本）：str 列表元素是单层 `field1(len){字符串}`（非双层
-> `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`。这两处修正使 CLI 编码与真实
-> `after-dict*.gil` 逐字节对齐，同时修复了此前 str_list/int_list 的 round-trip 失真。
+> `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`；dict marker 按 `(keyType,valueType)`
+> 枚举、int key 用 f13 编码、新建 dict 无 Map25 层（2026-08-19 真实样本修正）。
 
 ### 自定义镜头：创建、名称、物件镜头联合变化与视野检测
 

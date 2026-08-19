@@ -133,12 +133,32 @@
 | 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
 | 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 重复 field1 原语元素：str→`field1(len){字符串}`、int/guid/id/bool→`field1(varint)`、float→`field1(fixed32)`、vec3→`field1(len){f1,f2,f3}` |
-| 27 | dict | f37 | 三层结构（见下） |
+| 27 | dict | f37 | parallel f501/f502 + f503/f504（新建无 Map25 层，见下） |
 
-**dict(27) 三层结构**：`f37` = ① Map25 实体映射层（每对 key/value 一条 `f1`，含 `f35` 内
-`f502.f4` 新建实体引用）② parallel `f501` keys + `f502` values ③ `f503`（key 类型码）+
-`f504`（value 类型码）。dict 值支持 `str`/`int`/`str_list`/`int_list` 四种（与
-`UiDictPair` 一致）。
+**dict(27) f37（新建，推荐）**：`f37` = parallel `f501` keys + `f502` values + `f503`
+（key 类型码）+ `f504`（value 类型码）。`f501` key 项 = `{f1:keyType, f2:{f1:keyType,
+f2:{}}, f16|f13:key 值}`（str key 用 f16、int key 用 f13）；`f502` value 项 =
+`{f1:valueType, f2:{f1:valueType, f2:{}}, f<valueType+10>:值}`。
+**Map25 实体映射层仅出现在编辑器多对历史样本（新增变量1 等），非新建必需**；新版 CLI 新建
+dict 不写 Map25。
+
+**dict marker 枚举（entry f4.f2 类型包裹的 f2 字段）**：marker 按 `(keyType, valueType)`
+枚举，不是 value 的线性函数。实测 8 对如下；标量 valueBase = 类型码、列表 valueBase 取
+第三方 concrete_map M3 下标（未逐项实样验证的组合为拟合外推）：
+
+| keyType | valueType | marker |
+|---|---|---|
+| str(6) | str(6) | 66 |
+| str(6) | str_list(11) | 76 |
+| str(6) | float(5) | 65 |
+| str(6) | float_list(10) | 75 |
+| str(6) | bool_list(9) | 74 |
+| str(6) | vec3_list(15) | 78 |
+| int(3) | int(3) | 43 |
+| int(3) | vec3_list(15) | 58 |
+
+dict 值支持 `str`/`int`/`float`/`str_list`/`int_list`/`bool_list`/`float_list`/`vec3_list`
+（与 `UiDictPair` 一致）。
 
 **实体变量泛化（CLI）**：`assets:level-variables --entity <id>` 与
 `assets:custom-variables --entity <id>` 可对任意场景实体（root5.1[entity].7.11）读写
@@ -148,8 +168,9 @@
 
 > 注意：标量/列表/dict 的字节级格式已对照 `after-dict*.gil` 真实样本逐项核对；其中
 > str 列表元素为单层 `field1(len){字符串}`（非 `{f1:字符串}` 双层包裹）、str dict 值
-> 需要解包 `f16.f1`，这两处是本轮与真实样本核对时修正的编码细节。尚未覆盖：负整数、
-> 空名/重名规则、dict 的 int key、游戏内获取/设置/变量变化事件，以及多实例运行时隔离。
+> 需要解包 `f16.f1`，这两处是本轮与真实样本核对时修正的编码细节；dict marker 与 int key
+> 编码也已按 2026-08-19 真实样本修正。尚未覆盖：负整数、空名/重名规则、游戏内获取/设置/
+> 变量变化事件，以及多实例运行时隔离。
 
 ## 待逐步还原
 

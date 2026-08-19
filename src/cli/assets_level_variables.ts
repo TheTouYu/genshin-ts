@@ -202,24 +202,38 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
       if (eq <= 0) throw new Error(`[error] invalid dict pair: ${part}`)
       const k = trimmed.slice(0, eq).trim()
       const v = trimmed.slice(eq + 1).trim()
-      // 列表值用 [a,b,c] 包裹；数值列表 → int_list，否则 str_list
-      if (v.startsWith('[') && v.endsWith(']')) {
+      // 列表值用 [a,b,c] 包裹；数值列表 → int_list/float_list，布尔 → bool_list，
+      // 三数组用 | 分隔 → vec3_list，否则 str_list
+      if (v.includes('|')) {
+        const triples = v.split('|').map((t) => {
+          const cleaned = t.replace(/^\[(.*)\]$/, '$1')
+          const parts = cleaned.split(',').map((s) => Number(s.trim()))
+          if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) {
+            throw new Error(`[error] invalid vec3_list dict element: ${t}`)
+          }
+          return parts
+        })
+        pairs.push({ key: k, keyType: 'str', value: triples, valueType: 'vec3_list' })
+      } else if (v.startsWith('[') && v.endsWith(']')) {
         const items = v.slice(1, -1).split(',').map((s) => s.trim()).filter((s) => s !== '')
-        const numeric = items.every((s) => /^-?\d+$/.test(s))
-        pairs.push({
-          key: k,
-          keyType: 'str',
-          value: numeric ? items.map((s) => Number(s)) : items,
-          valueType: numeric ? 'int_list' : 'str_list'
-        })
+        const bools = items.length > 0 && items.every((s) => s === 'true' || s === 'false')
+        const ints = items.length > 0 && items.every((s) => /^-?\d+$/.test(s))
+        const floats = items.length > 0 && items.every((s) => /^-?\d+(\.\d+)?$/.test(s))
+        if (bools) {
+          pairs.push({ key: k, keyType: 'str', value: items.map((s) => s === 'true'), valueType: 'bool_list' })
+        } else if (ints) {
+          pairs.push({ key: k, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'int_list' })
+        } else if (floats) {
+          pairs.push({ key: k, keyType: 'str', value: items.map((s) => Number(s)), valueType: 'float_list' })
+        } else {
+          pairs.push({ key: k, keyType: 'str', value: items, valueType: 'str_list' })
+        }
+      } else if (/^-?\d+$/.test(v)) {
+        pairs.push({ key: k, keyType: 'str', value: Number(v), valueType: 'int' })
+      } else if (/^-?\d+(\.\d+)?$/.test(v)) {
+        pairs.push({ key: k, keyType: 'str', value: Number(v), valueType: 'float' })
       } else {
-        const numeric = /^-?\d+$/.test(v)
-        pairs.push({
-          key: k,
-          keyType: 'str',
-          value: numeric ? Number(v) : v,
-          valueType: numeric ? 'int' : 'str'
-        })
+        pairs.push({ key: k, keyType: 'str', value: v, valueType: 'str' })
       }
     }
     return pairs
