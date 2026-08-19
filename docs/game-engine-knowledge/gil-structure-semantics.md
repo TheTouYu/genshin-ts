@@ -823,7 +823,7 @@ str_list/vec3/dict 等变量后，**类型码是正式 enum**，entry 顶层形�
 | 6 | str | f16 | `{f1: UTF-8}` |
 | 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
-| 7/8/9/10/11/13/15/22/23/24 | 十种列表 | f<type+10> | 重复 field1 原语元素（str→len 包裹、数字→varint/fixed32、vec3→len 包裹） |
+| 7/8/9/10/11/13/15/22/23/24 | 十种列表 | f<type+10> | 原始标量列表 packed（guid/int/bool/float/entity/faction/config_id/prefab_id→`{field1(len), 值=元素原始字节拼接}`；entity 元素为完整 `{field1(varint)}`）；str_list/vec3_list 保持重复 field1 len 包裹 |
 | 27 | dict | f37 | parallel f501/f502 + f503/f504（新建无 Map25 层） |
 
 entry 结构：`11.1[*]`（关卡实体 root5.1.7.11；元件 root4.1.8.11 同构）→ `f2` 名称、
@@ -840,8 +840,10 @@ Map25 层仅出现在编辑器多对历史样本（新增变量1 等），非新
 dict）。新实体由 `assets:entities import` 创建时继承定义 f8→f7 的变量容器。
 
 > 编码细节修正（对照真实样本）：str 列表元素是单层 `field1(len){字符串}`（非双层
-> `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`；dict marker 按 `(keyType,valueType)`
-> 枚举、int key 用 f13 编码、新建 dict 无 Map25 层（2026-08-19 真实样本修正）。
+> `{f1:字符串}`）；str dict 值 `f16` 需解包 `f16.f1`；原始标量列表使用 packed
+> `{field1(len), 值=元素原始字节拼接}`（entity 元素为完整 `{field1(varint)}`）；
+> dict marker 按 `(keyType,valueType)` 枚举、int key 用 f13 编码、新建 dict 无 Map25 层
+> （2026-08-19 真实样本修正）。
 
 ### 自定义镜头：创建、名称、物件镜头联合变化与视野检测
 

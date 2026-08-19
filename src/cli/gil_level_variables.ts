@@ -1,4 +1,4 @@
-import { buildFile, readUint32BE, readVarint } from '../injector/binary.js'
+import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
 import { emitWireMessage, parseWireMessage, type WireField } from './static_assembly/wire.js'
 
 const LEVEL_ENTITY_ID = 1094713345 // 关卡实体（root5.1），承载关卡变量 f7[comp11].11
@@ -109,6 +109,59 @@ function decodeListElement(listCode: number, raw: Uint8Array): unknown {
   return v ? v.value : 0
 }
 
+/** 原始标量列表类型码（packed 编码；str_list=11、vec3_list=15 除外）。 */
+function isPackedListCode(listCode: number): boolean {
+  return (
+    listCode === 7 || listCode === 8 || listCode === 9 || listCode === 10 ||
+    listCode === 13 || listCode === 22 || listCode === 23 || listCode === 24
+  )
+}
+
+/** 解码 packed 原始标量列表：raw 是元素原始字节拼接（float=fixed32，其余=varint；entity=完整 {field1 varint}）。 */
+function decodePackedList(listCode: number, raw: Uint8Array): unknown[] {
+  if (listCode === 10) {
+    const out: number[] = []
+    for (let offset = 0; offset + 4 <= raw.length; offset += 4) {
+      out.push(Buffer.from(raw.subarray(offset, offset + 4)).readFloatLE(0))
+    }
+    return out
+  }
+  if (listCode === 13) {
+    // 真实编辑器样本为完整 {field1(varint)} 拼接；兼容旧 CLI 的裸 varint 拼接。
+    // 先尝试按完整 field1 消息流解析；只有整段恰好消费完才视为新格式，
+    // 否则回退到旧 CLI 的裸 varint 拼接（避免旧数据首个元素恰为 8 时误判）。
+    const full: number[] = []
+    let fullOffset = 0
+    while (fullOffset < raw.length) {
+      const key = readVarint(raw, fullOffset)
+      if (!key || key.value !== 8) break
+      const v = readVarint(raw, key.next)
+      if (!v) break
+      full.push(v.value)
+      fullOffset = v.next
+    }
+    if (fullOffset === raw.length) return full
+    const fallback: number[] = []
+    let fallbackOffset = 0
+    while (fallbackOffset < raw.length) {
+      const v = readVarint(raw, fallbackOffset)
+      if (!v) break
+      fallback.push(v.value)
+      fallbackOffset = v.next
+    }
+    return fallback
+  }
+  const out: unknown[] = []
+  let offset = 0
+  while (offset < raw.length) {
+    const v = readVarint(raw, offset)
+    if (!v) break
+    out.push(listCode === 9 ? v.value === 1 : v.value)
+    offset = v.next
+  }
+  return out
+}
+
 /** 解码 dict：读取 f37 的 parallel f501 keys + f502 values */
 function decodeDictValue(f4msg: readonly WireField[] | undefined): unknown {
   const f37 = f4msg ? firstBytes(f4msg, 37) : undefined
@@ -162,12 +215,16 @@ function decodeEntryValue(raw: Uint8Array): unknown {
     const branch = firstBytes(em, 15)
     return branch ? (firstFloat32(parseMessageFields(branch), 1) ?? 0) : 0
   }
-  // 列表值：f<code+10> 重复元素
+  // 列表值：f<code+10> 重复元素；原始标量列表为 packed {field1 length-delimited}
   const listField = code + 10
   const listBytes = firstBytes(em, listField)
   if (listBytes) {
     const lm = parseMessageFields(listBytes)
-    return (lm ?? []).filter((f) => f.number === 1).map((f) => {
+    const listFields = (lm ?? []).filter((f) => f.number === 1)
+    if (isPackedListCode(code) && listFields.length === 1 && listFields[0].wire === 2) {
+      return decodePackedList(code, listFields[0].value as Uint8Array)
+    }
+    return listFields.map((f) => {
       if (f.wire === 0) return code === 9 ? (f.value as number) === 1 : f.value
       if (f.wire === 5) return Buffer.from(f.value as Uint8Array).readFloatLE(0)
       return decodeListElement(code, f.value as Uint8Array)
@@ -204,14 +261,16 @@ function decodeValue(code: number, entry: WireField[]): unknown {
     ]
   }
   if (code === 1 || code === 2 || code === 17 || code === 20 || code === 21) return firstVarint(branchMsg, 1) ?? 0
-  // 列表：branch 内重复 {f1: 元素}
-  return (branchMsg ?? [])
-    .filter((f) => f.number === 1)
-    .map((f) => {
-      if (f.wire === 0) return code === 9 ? (f.value as number) === 1 : f.value
-      if (f.wire === 5) return Buffer.from(f.value as Uint8Array).readFloatLE(0)
-      return decodeListElement(code, f.value as Uint8Array)
-    })
+  // 列表：branch 内重复 {f1: 元素}；原始标量列表为 packed {field1 length-delimited}
+  const listFields = (branchMsg ?? []).filter((f) => f.number === 1)
+  if (isPackedListCode(code) && listFields.length === 1 && listFields[0].wire === 2) {
+    return decodePackedList(code, listFields[0].value as Uint8Array)
+  }
+  return listFields.map((f) => {
+    if (f.wire === 0) return code === 9 ? (f.value as number) === 1 : f.value
+    if (f.wire === 5) return Buffer.from(f.value as Uint8Array).readFloatLE(0)
+    return decodeListElement(code, f.value as Uint8Array)
+  })
 }
 
 export function listLevelVariables(bytes: Uint8Array, entityId?: number): LevelVariable[] {
@@ -477,6 +536,10 @@ const LIST_TYPES = new Set<UiVarType>([
   'guid_list', 'int_list', 'bool_list', 'float_list', 'str_list', 'entity_list', 'vec3_list',
   'config_id_list', 'prefab_id_list', 'faction_list'
 ])
+const PACKED_LIST_TYPES = new Set<UiVarType>([
+  'guid_list', 'int_list', 'bool_list', 'float_list', 'entity_list',
+  'config_id_list', 'prefab_id_list', 'faction_list'
+])
 
 function typeCodeOf(type: UiVarType): number {
   return (
@@ -580,8 +643,22 @@ function scalarElementWire(type: ScalarWireType, value: unknown): WireField {
   return { number: 1, wire: 0, value: Number(value) }
 }
 
+/** 元素载荷：float=fixed32；int/bool/guid/faction/config/prefab=varint；entity={field1 varint}。 */
+function scalarElementRawBytes(type: ScalarWireType, value: unknown): Uint8Array {
+  if (type === 'float') return float32Bytes(Number(value))
+  if (type === 'bool') return encodeVarint(value ? 1 : 0)
+  if (type === 'entity') return emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
+  return encodeVarint(Number(value))
+}
+
 function listElementsWire(type: UiVarType, values: readonly unknown[]): Uint8Array {
   const elemType = type.slice(0, -5) as ScalarWireType
+  if (PACKED_LIST_TYPES.has(type)) {
+    const packed = Buffer.concat(
+      values.map((v) => Buffer.from(scalarElementRawBytes(elemType, v)))
+    )
+    return emitWireMessage([{ number: 1, wire: 2, value: packed }])
+  }
   return emitWireMessage(values.map((v) => scalarElementWire(elemType, v)))
 }
 
@@ -599,8 +676,7 @@ function dictValueMsg(t: UiDictValueType, value: unknown): Uint8Array {
   else if (t === 'int') inner = emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
   else if (t === 'float') inner = emitWireMessage([{ number: 1, wire: 5, value: float32Bytes(Number(value)) }])
   else {
-    const elemType = t.slice(0, -5) as ScalarWireType
-    inner = emitWireMessage((value as readonly unknown[]).map((v) => scalarElementWire(elemType, v)))
+    inner = listElementsWire(t as UiVarType, (value as readonly unknown[]))
   }
   return emitWireMessage([
     { number: 1, wire: 0, value: code },

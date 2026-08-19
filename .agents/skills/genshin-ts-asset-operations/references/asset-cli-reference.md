@@ -123,7 +123,7 @@ k1=[1,2,3]|4,5,6             # vec3_list（| 分隔多个三元组）
 | 6 | str | f16（UTF-8） |
 | 12 | vec3 | f22（f1/f2/f3 fixed32，可稀疏） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13（与 int 同构） |
-| 7..24 | 各列表类型 | f<type+10>（重复 field1 原语元素） |
+| 7..24 | 各列表类型 | f<type+10>（原始标量列表 packed：`{field1(len), 值=元素原始字节拼接}`；entity 元素为完整 `{field1(varint)}`；str/vec3 保持重复） |
 | 27 | dict | f37（并行 f501/f502 + f503/f504） |
 
 ## 7. 已知坑（先看再动手）

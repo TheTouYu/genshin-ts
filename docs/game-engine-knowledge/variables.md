@@ -132,7 +132,7 @@
 | 6 | str | f16 | `{f1: UTF-8}` |
 | 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
-| 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 重复 field1 原语元素：str→`field1(len){字符串}`、int/guid/id/bool→`field1(varint)`、float→`field1(fixed32)`、vec3→`field1(len){f1,f2,f3}` |
+| 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 原始标量列表（guid/int/bool/float/entity/faction/config_id/prefab_id）用 packed `{field1(length-delimited), 值=元素原始字节拼接}`：int/bool/guid/faction/config_id/prefab_id→varint 拼接、float→fixed32 拼接、entity→完整 `{field1(varint)}` 拼接；str_list/vec3_list 保持重复 `field1(len){...}` |
 | 27 | dict | f37 | parallel f501/f502 + f503/f504（新建无 Map25 层，见下） |
 
 **dict(27) f37（新建，推荐）**：`f37` = parallel `f501` keys + `f502` values + `f503`
@@ -166,11 +166,12 @@ dict 值支持 `str`/`int`/`float`/`str_list`/`int_list`/`bool_list`/`float_list
 显式类型与 `name=value` 类型推断。新场景实体由 `assets:entities import` 创建时会继承
 元件定义（root4）的变量容器（定义 f8 → 实体 f7），因此可“创建实体 → 写入变量”分步串联。
 
-> 注意：标量/列表/dict 的字节级格式已对照 `after-dict*.gil` 真实样本逐项核对；其中
+> 注意：标量/列表/dict 的字节级格式已对照真实样本逐项核对；其中
 > str 列表元素为单层 `field1(len){字符串}`（非 `{f1:字符串}` 双层包裹）、str dict 值
-> 需要解包 `f16.f1`，这两处是本轮与真实样本核对时修正的编码细节；dict marker 与 int key
-> 编码也已按 2026-08-19 真实样本修正。尚未覆盖：负整数、空名/重名规则、游戏内获取/设置/
-> 变量变化事件，以及多实例运行时隔离。
+> 需要解包 `f16.f1`，原始标量列表使用 packed `{field1(len), 值=元素原始字节拼接}`
+> （entity 元素为完整 `{field1(varint)}`），这些是 2026-08-19 真实样本修正的编码细节；
+> dict marker 与 int key 编码也已按 2026-08-19 真实样本修正。尚未覆盖：负整数、空名/重名规则、
+> 游戏内获取/设置/变量变化事件，以及多实例运行时隔离。
 
 ## 待逐步还原
 

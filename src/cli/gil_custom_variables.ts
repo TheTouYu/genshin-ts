@@ -205,6 +205,52 @@ function decodeElementWire(type: CustomVariableType, raw: Uint8Array): unknown {
   return v ? v.value : 0
 }
 
+/** 解码 packed 原始标量列表：raw 是元素原始字节拼接（float=fixed32，其余=varint；entity=完整 {field1 varint}）。 */
+function decodePackedListValue(type: CustomVariableType, raw: Uint8Array): unknown[] {
+  const elementType = type.slice(0, -5) as CustomVariableType
+  if (elementType === 'float') {
+    const out: number[] = []
+    for (let offset = 0; offset + 4 <= raw.length; offset += 4) {
+      out.push(Buffer.from(raw.subarray(offset, offset + 4)).readFloatLE(0))
+    }
+    return out
+  }
+  if (elementType === 'entity') {
+    // 真实编辑器样本为完整 {field1(varint)} 拼接；兼容旧 CLI 的裸 varint 拼接。
+    // 先尝试按完整 field1 消息流解析；只有整段恰好消费完才视为新格式，
+    // 否则回退到旧 CLI 的裸 varint 拼接（避免旧数据首个元素恰为 8 时误判）。
+    const full: number[] = []
+    let fullOffset = 0
+    while (fullOffset < raw.length) {
+      const key = readVarint(raw, fullOffset)
+      if (!key || key.value !== 8) break
+      const v = readVarint(raw, key.next)
+      if (!v) break
+      full.push(v.value)
+      fullOffset = v.next
+    }
+    if (fullOffset === raw.length) return full
+    const fallback: number[] = []
+    let fallbackOffset = 0
+    while (fallbackOffset < raw.length) {
+      const v = readVarint(raw, fallbackOffset)
+      if (!v) break
+      fallback.push(v.value)
+      fallbackOffset = v.next
+    }
+    return fallback
+  }
+  const out: unknown[] = []
+  let offset = 0
+  while (offset < raw.length) {
+    const v = readVarint(raw, offset)
+    if (!v) break
+    out.push(elementType === 'bool' ? v.value === 1 : v.value)
+    offset = v.next
+  }
+  return out
+}
+
 /** 把变量定义解码为可读值（标量/列表/dict）。 */
 export function decodeCustomVariableValue(definition: CustomVariableDefinition): unknown {
   const { type, initialValueWire } = definition
@@ -214,7 +260,18 @@ export function decodeCustomVariableValue(definition: CustomVariableDefinition):
   const fields = fieldsOf(initialValueWire)
   if (LIST_TYPES.has(type)) {
     const elementType = type.slice(0, -5) as CustomVariableType
-    return fields.filter((entry) => entry.field === 1).map((entry) => {
+    const listFields = fields.filter((entry) => entry.field === 1)
+    if (
+      PACKED_LIST_TYPES.has(type) &&
+      listFields.length === 1 &&
+      listFields[0].wire === 2
+    ) {
+      return decodePackedListValue(
+        type,
+        initialValueWire.subarray(listFields[0].dataStart, listFields[0].dataEnd)
+      )
+    }
+    return listFields.map((entry) => {
       if (entry.wire === 0) {
         const v = entry.value ?? 0
         return elementType === 'bool' ? v === 1 : v
@@ -273,6 +330,18 @@ const LIST_TYPES = new Set<CustomVariableType>([
   'str_list',
   'entity_list',
   'vec3_list',
+  'config_id_list',
+  'prefab_id_list',
+  'faction_list'
+])
+
+/** 原始标量列表：编辑器/游戏使用 protobuf packed 编码（f<type+10> = 单个 {field1 length-delimited}）。 */
+const PACKED_LIST_TYPES = new Set<CustomVariableType>([
+  'guid_list',
+  'int_list',
+  'bool_list',
+  'float_list',
+  'entity_list',
   'config_id_list',
   'prefab_id_list',
   'faction_list'
@@ -353,6 +422,37 @@ function encodeScalarValue(type: CustomVariableType, value: unknown): Buffer {
   return encodeVarintField(1, value)
 }
 
+/** 元素载荷：float=fixed32；int/bool/guid/faction/config/prefab=varint；entity={field1 varint}。 */
+function encodeScalarRawValue(type: CustomVariableType, value: unknown): Uint8Array {
+  if (type === 'float') {
+    if (typeof value !== 'number' || !Number.isFinite(value))
+      throw new Error('[error] float custom variable value must be finite')
+    const data = Buffer.alloc(4)
+    data.writeFloatLE(value, 0)
+    return data
+  }
+  if (type === 'bool') {
+    if (typeof value !== 'boolean')
+      throw new Error('[error] bool custom variable value must be boolean')
+    return encodeVarintValue(value ? 1 : 0)
+  }
+  if (type === 'int') {
+    if (typeof value !== 'bigint')
+      throw new Error('[error] int custom variable value must be bigint')
+    return encodeVarintValue(value)
+  }
+  if (type === 'entity') {
+    if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+      throw new Error('[error] entity custom variable value must be a non-negative safe integer')
+    }
+    return encodeVarintField(1, value)
+  }
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`[error] ${type} custom variable value must be a non-negative safe integer`)
+  }
+  return encodeVarintValue(value)
+}
+
 function encodeInitialValue(
   update: CustomVariableUpdate,
   entityBase = 1073741831
@@ -367,6 +467,14 @@ function encodeInitialValue(
   if (!LIST_TYPES.has(update.type)) return encodeScalarValue(update.type, value)
   if (!Array.isArray(value)) throw new Error(`[error] ${update.type} custom variable value must be an array`)
   const elementType = update.type.slice(0, -5) as CustomVariableType
+  if (PACKED_LIST_TYPES.has(update.type)) {
+    const raw = Buffer.concat(
+      (value as readonly unknown[]).map((item) =>
+        Buffer.from(encodeScalarRawValue(elementType, item))
+      )
+    )
+    return encodeLengthField(1, raw)
+  }
   return Buffer.concat(
     (value as readonly unknown[]).map((item) => encodeScalarValue(elementType, item))
   )
