@@ -109,6 +109,41 @@ const SKELETON_AUX_RESOURCE_ID = 10009002
 const SKELETON_AUX_OWNER_ID = 1077936130
 const SKELETON_AUX_INSTANCE_OWNER_ID = 1077936138
 
+// 官方默认组件槽模板（2026-08-20 样本 after-revert-sphere-dynamic.gil：球体静态→动态恢复的槽；
+// 定义 f8 与实例 f7 双写一致，与官方动态模板逐字节相同）。顺序 = wire 原始顺序。
+const COMPONENT_SLOT_HEXES = [
+  '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465',
+  '080110015a00',
+  '080310016a00',
+  '08131001ea0100',
+  '08061001820100',
+  '080e1001c20100'
+]
+
+/** 删除记录中全部组件槽（field number = slotNumber，实例 7 / 定义 8）。 */
+export function removeComponentSlots(record: Uint8Array, slotNumber: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) return record
+  return emit(fields.filter((f) => !(f.number === slotNumber && f.wire === 2)))
+}
+
+/**
+ * 追加 6 个官方默认组件槽（静态→动态恢复用）。插入到第一个编号大于 slotNumber
+ * 的字段之前（与编辑器字段排序语义一致；实例 f7 在 f8 前、定义 f8 在 f10 前）。
+ */
+export function addDefaultComponentSlots(record: Uint8Array, slotNumber: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) return record
+  const slots: WireField[] = COMPONENT_SLOT_HEXES.map((hex) => ({
+    number: slotNumber,
+    wire: 2,
+    value: Uint8Array.from(Buffer.from(hex, 'hex'))
+  }))
+  const insertAt = fields.findIndex((f) => f.number > slotNumber)
+  const index = insertAt === -1 ? fields.length : insertAt
+  return emit([...fields.slice(0, index), ...slots, ...fields.slice(index)])
+}
+
 const TEXT = new TextEncoder()
 
 function float32(value: number): Uint8Array {
@@ -246,9 +281,9 @@ export function buildStaticPrefabRecord(params: {
   record = replaceVarint(record, SKELETON_STATIC_INSTANCE_ID, params.id)
   record = replaceVarint(record, SKELETON_STATIC_INSTANCE_RESOURCE_ID, params.resourceId)
   record = replaceName(record, 5, params.name)
-  // 静态记录 f6 变换槽自带“静态标记/元数据”，不能用普通 setTransform 重写（会丢 10 字节）；
-  // 骨架内嵌的是原点变换，先原样保留。
-  return record
+  // 静态记录 transform 槽与动态完全同构（2026-08-20 三棱锥样本同构重放验证），
+  // 可直接 setTransform 重写；骨架内嵌的是转换样本的原始位置，调用方需要重写时传 transform。
+  return setTransform(record, params.transform, 6)
 }
 
 /** 生成 root 4 自定义元件定义：f1=定义ID、f2=resID、f6×8 槽（槽1=名字）、f7×15、f8×6、f10=1。 */

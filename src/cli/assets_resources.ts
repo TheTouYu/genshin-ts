@@ -7,6 +7,7 @@ import type { GstsConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { exportEntities } from './gil_entities.js'
 import { createStaticAssemblyMapIndex } from './static_assembly/map_index.js'
+import { parseWireMessage } from './static_assembly/wire.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
 function usage(exitCode = 1): never {
@@ -77,6 +78,8 @@ type PrefabResource = {
   name?: string
   resourceId?: number
   kind: 'custom-definition' | 'official-instance'
+  /** 静态元件标记：无组件槽（定义 f8=0 / 实例 f7=0）＝动态→静态切换形态。 */
+  static?: boolean
 }
 
 type ResourceList = {
@@ -97,20 +100,51 @@ async function runList(
   const prefabs: PrefabResource[] = []
   try {
     const idx = createStaticAssemblyMapIndex(bytes)
+    // 记录原始字段解析：定义 f2=资源ID（直接 varint）、f8 组件槽数；
+    // 实例 f8=资源ID（穿透）、f7 组件槽数（静态切换形态为 0）。
+    const parseRecords = (rootNumber: number): Array<{ id: number; resourceId?: number; static: boolean }> => {
+      const root = idx.top.find((f) => f.number === rootNumber && f.wire === 2)
+      if (!root) return []
+      const out: Array<{ id: number; resourceId?: number; static: boolean }> = []
+      for (const f of parseWireMessage(root.value as Uint8Array) ?? []) {
+        if (f.number !== 1 || f.wire !== 2) continue
+        const rec = parseWireMessage(f.value as Uint8Array)
+        if (!rec) continue
+        const id = rec.find((x) => x.number === 1 && x.wire === 0)?.value
+        if (typeof id !== 'number') continue
+        // 定义资源 ID = f2 直接 varint；实例资源 ID = f8 穿透的官方 resID
+        const resourceId =
+          rootNumber === 4
+            ? (rec.find((x) => x.number === 2 && x.wire === 0)?.value as number | undefined)
+            : (rec.find((x) => x.number === 8 && x.wire === 0)?.value as number | undefined)
+        out.push({
+          id,
+          ...(typeof resourceId === 'number' ? { resourceId } : {}),
+          static: rec.filter((x) => x.number === (rootNumber === 4 ? 8 : 7) && x.wire === 2).length === 0
+        })
+      }
+      return out
+    }
+    const defRecords = parseRecords(4)
+    const instRecords = parseRecords(8)
     for (const def of idx.definitions) {
+      const detail = defRecords.find((r) => r.id === def.id)
       prefabs.push({
         id: def.id,
         ...(def.names[0] ? { name: def.names[0] } : {}),
-        ...(def.resourceIds[0] !== undefined ? { resourceId: def.resourceIds[0] } : {}),
-        kind: 'custom-definition'
+        ...(detail?.resourceId !== undefined ? { resourceId: detail.resourceId } : {}),
+        kind: 'custom-definition',
+        ...(detail?.static ? { static: true } : {})
       })
     }
     for (const inst of idx.instances) {
+      const detail = instRecords.find((r) => r.id === inst.id)
       prefabs.push({
         id: inst.id,
         ...(inst.names[0] ? { name: inst.names[0] } : {}),
-        ...(inst.resourceIds[0] !== undefined ? { resourceId: inst.resourceIds[0] } : {}),
-        kind: 'official-instance'
+        ...(detail?.resourceId !== undefined ? { resourceId: detail.resourceId } : {}),
+        kind: 'official-instance',
+        ...(detail?.static ? { static: true } : {})
       })
     }
   } catch {
@@ -126,7 +160,8 @@ async function runList(
   for (const p of prefabs) {
     const kind = p.kind === 'custom-definition' ? '自定义元件' : '官方元件'
     const res = p.resourceId !== undefined ? ` resource=${p.resourceId}` : ''
-    console.log(`prefab id=${p.id} name=${p.name ?? '-'} kind=${kind}${res}`)
+    const staticMark = p.static ? ' static=true' : ''
+    console.log(`prefab id=${p.id} name=${p.name ?? '-'} kind=${kind}${res}${staticMark}`)
   }
   for (const e of entities) {
     console.log(`entity id=${e.id} name=${e.name} definitionId=${e.definitionId} resourceId=${e.resourceId ?? '-'}`)

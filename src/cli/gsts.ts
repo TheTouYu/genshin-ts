@@ -35,6 +35,7 @@ import { runAssetsEntities } from './assets_entities.js'
 import { runAssetsUi } from './assets_ui.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
+import { runAssetsAux } from './assets_aux.js'
 import { runAssetsGadgets } from './assets_gadgets.js'
 import { runAssetsResources } from './assets_resources.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
@@ -1859,6 +1860,26 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsResources(args, projectConfig)
+    })
+
+  program
+    .command('assets:aux')
+    .description('attach an auxiliary decoration (装饰物, root 27 aux) to an entity/prefab/model host')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:aux')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsAux(args, projectConfig)
     })
 
   program
