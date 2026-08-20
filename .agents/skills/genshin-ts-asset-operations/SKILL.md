@@ -34,7 +34,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 用户意图 | 命令族 |
 | --- | --- |
 | 列出/解析 元件资源（root4 自定义定义 + root8 官方/静态实例）与摆放实体（root5） | `assets:resources list [--gil <map>]` |
-| 创建自定义元件 / 静态元件 | `assets:prefabs create --base <官方ID> --id <new> [--static]` |
+| 创建自定义元件 / 静态元件 / 切换静态/动态 / 挂装饰物 | `assets:prefabs create [--static]` / `assets:prefabs convert` / `assets:aux attach` |
 | 关卡变量（root5 关卡实体） | `assets:level-variables list\|create\|update` |
 | 任意场景实体变量 / CustomPrefab / 玩家 / 角色变量 | `assets:custom-variables --entity <id>` 或配置 `assets.customVariables` |
 | 把图挂到实体/元件，或查挂载关系 | `assets:mounts attach\|list\|detach` |
@@ -81,13 +81,20 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - **列出/解析用户地图资源**：`gsts assets:resources list [--gil <map>] [--format json]`
   - `prefabs`：**元件资源** = root4 自定义定义（`custom-definition`）+ root8 官方/静态实例（`official-instance`）
   - `entities`：**摆放实体** = root5 场景实体
+- **概念语义（2026-08-20 用户澄清，核心）**：定义（root4）= 元件本体；元件页面模型（root8）=
+  可视化编辑辅助（不渲染到场景，删了定义仍在）；场景实体（root5）= 引用定义。
+  UI"静态元件"分类 ≠ wire 无组件（纯静态类型保留组件槽）；"切换静态"才删组件槽。
 - **静态 vs 动态资源（2026-08-20 用户实证）**：
   - 动态资源可转换为静态资源；静态资源**只支持基础 缩放/位置/旋转**，**不支持组件、变量、高级功能**
+  - **切换静态**（`convert --static`）= 删组件槽（定义 f8/实例 f7/引用实体 f7）+ 名字槽 f11 加 `{f2:1}`；
+    **切回动态** = 恢复 6 个官方默认组件槽 + 删标记
   - 静态元件（root8 实例）记录**无 f7 组件槽**（约 409B），root6 注册表登记 **type 400**（场景实体为 type 200）
   - 因此：静态资源实体**不要设变量/组件**；动态资源实体才可设变量
-- **创建元件**：
-  - 动态/自定义元件：`assets:prefabs create --base <官方ID> --id <new>`
-  - 静态元件：`assets:prefabs create --static --base <官方ID> --id <new> [--name <n>]`
+- **创建/转化元件**：
+  - 动态/自定义元件：`assets:prefabs create --base <官方ID> --id <new>`（root4 定义 + root6 type6 登记）
+  - 静态元件：`assets:prefabs create --static --base <官方ID> --id <new> [--name <n>]`（root8 页面模型）
+  - 切换：`assets:prefabs convert --id <prefabId> --static|--dynamic`（定义/模型/实体联动；定义-only 也支持）
+  - 挂装饰物：`assets:aux attach --host <实体|定义|模型ID> --resource <装饰物资源ID>`（root27 aux + 宿主 f501）
 - ⚠️ `assets:gadgets` 的 `list_id` **不是游戏元件 ID**（如 `1000218`≠`20001219`），需要映射表；映射样本见 `~/genshin-ts-evidence/toolchain-gaps/1073741896/raw/gadget-mapping.md`，不可直接把 list_id 当 definitionId/resourceId 写实体。
 
 ### B. 设置变量

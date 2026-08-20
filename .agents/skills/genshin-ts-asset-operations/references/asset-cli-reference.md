@@ -44,10 +44,18 @@ gsts assets:prefabs create --base <官方ID> --id <newId> [--name <n>] [--gil <m
 
 # 创建静态元件（root8 实例 + root6 type400 登记）
 gsts assets:prefabs create --static --base <官方ID> --id <newId> [--name <n>] [--gil <map>] [--write|--output]
+
+# 动态 ↔ 静态切换已有元件（定义/实例/引用实体联动 + 名字槽标记；root46 fail-closed 不写）
+gsts assets:prefabs convert --id <prefabId> --static|--dynamic [--gil <map>] [--write|--output]
+
+# 挂装饰物（root 27 aux）：实体/定义/页面模型宿主；定义宿主 f501 挂 def aux，实体/模型挂 inst aux
+gsts assets:aux attach --host <entityId|prefabId> --resource <decoResourceId> [--name <n>] [--gil <map>] [--write|--output]
 ```
 
-- `assets:resources list` 的 `prefabs` = root4 自定义定义（`custom-definition`）+ root8 官方/静态实例（`official-instance`）；`entities` = root5 摆放实体。
-- **静态 vs 动态（2026-08-20 实证）**：静态资源只支持基础 缩放/位置/旋转，**不支持组件/变量/高级功能**；动态资源可转静态。静态元件记录无 f7 组件槽（约 409B），root6 登记 type 400（场景实体 type 200）。**静态资源实体不要设变量/组件。**
+- **装饰物（2026-08-20 实证）**：root27 = def-side（f1 字段，f3=1）+ inst-side（f2 字段，f12 回链 def）。宿主 f5/f6 槽40.f50.f501 packed 引用：**定义挂 def aux、模型/实体挂 inst aux**；aux f4 槽40.f50.f502 = 宿主 ID（关键引用，勿漏）。静态装饰物只有 inst 且 f12 空（资源性质差异）。
+
+- `assets:resources list` 的 `prefabs` = root4 自定义定义（`custom-definition`）+ root8 官方/静态实例（`official-instance`）；`entities` = root5 摆放实体。切换静态的元件带 `static=true` 标记（判据 = 定义 f8 / 实例 f7 组件槽数为 0；纯静态类型保留组件槽不标记）。
+- **静态 vs 动态（2026-08-20 实证）**：静态资源只支持基础 缩放/位置/旋转，**不支持组件/变量/高级功能**；动态资源可转静态。切换静态 = 删组件槽（定义 f8/实例 f7/引用实体 f7）+ 名字槽 f11 加 `{f2:1}`；切回动态 = 恢复 6 个官方默认组件槽 + 删名字槽标记。root6 登记 type 400（场景实体 type 200）。**静态资源实体不要设变量/组件。**
 - ⚠️ `assets:gadgets` 的 `list_id` **不是** GIL 元件 ID（如 `1000218 → 20001219`、`1000026 → 20001026`），直接当 `definitionId` 写实体会导致实体不显示/存档损坏；需用映射表（样本见 `~/genshin-ts-evidence/toolchain-gaps/1073741896/raw/gadget-mapping.md`）。
 
 ## 2. 节点图挂载命令
