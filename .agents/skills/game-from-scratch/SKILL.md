@@ -126,6 +126,30 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 - **引擎规则速查（先查再问）**：`references/engine-rules.md`——坐标系（Y 垂直上、XZ 地面）、运动器 6 类全表与选择准则（无椭圆类，轨迹用分段直线）、关键事件 payload（含 whenEntityIsCreated / whenBasicMotionDeviceStops / whenTimerIsTriggered）、关卡实体（g.stage）、动态创建（createPrefab 无 GUID）、定时器同步推进、输入锁模式。设计/实现前先翻它，避免向用户重复问已沉淀的规则。
 - **组件前置依赖**：运动类节点（如旋转运动器）要求目标实体带**基础运动器组件（basicMotion）**，否则节点执行时报错（P4 最小实验真实踩坑：用户手动补组件后日志恢复正常；基础元件模板自带 preset=default）。
 
+### 节点编写与优化的可复刻总览（2026-08-20 魔方性能战役，细节见 dsl-nodegraph-development）
+
+节点图逻辑和资产一样是可复刻能力，主线五块：
+
+1. **节点预算（先算后写）**：单图上限 **3000**（所有复合 impl 递归展开之和，实测 4043 拒载）；
+   预算检查 `gsts assets:node-graphs nodes --gil <map.gil>`（implTotal < 3000 为硬门槛，
+   direct 物理节点数作优化指标）。超限拆多图用信号/变量变更事件跨图触发。
+2. **膨胀模式（性能杀手）**：helper 函数被 N 分支调用 = N 份展开；**变量代替条件展开**
+   （定时器用 `evt.timerSequenceId` 当索引单次调用，8 分支→1 调用，1846→753 节点）；
+   循环体只物化 1 次；**常量表直接字面量/槽位**（不要变量读，魔方 implTotal 3138→2909）；
+   顺带移除诊断 print/事件监听。
+3. **复合编写硬规则**：exec 入口链首必须普通节点（复合调用只作链中/链尾，显式 link 会 duplicate
+   physical route 编译失败）；声明 outflows 的 exec 复合必须显式 f.outflow；start_timer 延迟
+   列表不用 0.0；finiteLoop 完成流不会自动续到循环后节点（后续放循环体最后迭代或 JS 展开）。
+4. **复合生命周期**：改名/改内部实现安全（ID 按定义顺序稳定）；**删除定义危险**（ID 前移 →
+   残留引用类型错位 → 游戏拒载）——不要的复合改名保留；改复合集合形状后必须
+   `tools/check-gil-composite-refs.ts` 全量校验。
+5. **性能优化范式（rubik 实证）**：定时器序列化（8 块 0.05~0.4s → 4 槽位 0.05~0.20s）、
+   命中块预知（逻辑层表数据直接定块，不再逐位置判断）、合并布尔图变量（is_solved）、
+   移除诊断 print/监听。优化后必查 `implTotal` 与 `direct` 两个口径。
+
+> 编写 DSL 细节（受限子集/值类型/capture 限制/常见错误）→ `dsl-nodegraph-development`；
+> 日志逐帧性能分析 → `debug-log-investigator` 的 perf 子命令。
+
 ### 复合节点编写（2026-08-14 方法论沉淀——重要技能）
 
 - **原则：能做成复合节点的，一定往这个方向靠**——即使未被别处使用也不亏（布局清晰），
