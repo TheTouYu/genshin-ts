@@ -11,7 +11,8 @@
 | `assets:entities` | 场景实体 export/import/patch | `assets_entities.ts`、`gil_entities.ts` |
 | `assets:custom-variables` | 实体/元件/玩家/角色变量 | `assets_custom_variables.ts`、`gil_custom_variables.ts` |
 | `assets:level-variables` | 关卡变量 | `assets_level_variables.ts`、`gil_level_variables.ts` |
-| `assets:prefabs` / `assets:gadgets` | 自定义元件/官方装饰物查询 | `assets_prefabs.ts`、`assets_gadgets.ts` |
+| `assets:prefabs` / `assets:gadgets` | 自定义元件 / 静态元件 / 官方装饰物查询 | `assets_prefabs.ts`、`assets_gadgets.ts` |
+| `assets:resources` | 列出/解析 元件资源（root4+root8）与摆放实体（root5） | `assets_resources.ts` |
 | `assets:static-assemblies` | 静态模型拼装写回 | `assets_static_assemblies.ts` |
 | `assets:ui` / `assets:node-graphs` / `assets:mounts` / `assets:signals` | UI/图挂载/信号 | 对应 `assets_*.ts` |
 | `maps` | 地图创建/打开/同步 Temp | `maps.ts`、`gil_paths.ts` |

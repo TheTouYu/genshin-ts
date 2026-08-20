@@ -9,6 +9,7 @@ import {
   buildAuxiliaryRecord,
   buildCustomDefinitionRecord,
   buildOfficialPrefabRecord,
+  buildStaticPrefabRecord,
   isOfficialResourceId,
   officialPrefabName,
   resolveItemResourceId
@@ -35,6 +36,16 @@ assert.equal(officialPrefabName(10009001), '长方体')
 assert.equal(officialPrefabName(10009003), '平面')
 assert.equal(officialPrefabName(10005018), '空模型')
 assert.equal(officialPrefabName(123456), undefined)
+
+// 静态元件骨架：来自用户“动态→静态”转换真实样本（after-convert-10009008-static.gil，
+// root8 实例 1077936140，resID 10009008），保留内嵌变换、无 f7 组件槽。
+const staticRecord = buildStaticPrefabRecord({
+  id: 1077936140,
+  resourceId: 10009008,
+  name: '圆柱',
+  transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] }
+})
+assert.equal(staticRecord.length, 409)
 
 // —— 官方骨架生成：root 8 官方引用实例 / root 5 官方直引实体共用 ——
 const official = buildOfficialPrefabRecord({

@@ -36,6 +36,7 @@ import { runAssetsUi } from './assets_ui.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
 import { runAssetsGadgets } from './assets_gadgets.js'
+import { runAssetsResources } from './assets_resources.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
@@ -1839,6 +1840,25 @@ async function main() {
       const commandIndex = process.argv.indexOf('assets:gadgets')
       const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
       await runAssetsGadgets(args)
+    })
+
+  program
+    .command('assets:resources')
+    .description('list and parse user map resources: 元件资源 (root4 definitions + root8 official/static instances) and 摆放实体 (root5 scene entities)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:resources')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsResources(args, projectConfig)
     })
 
   program

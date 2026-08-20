@@ -23,6 +23,8 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 读/改节点图内部逻辑（节点、连线、复合、参数） | `gil-node-graph-editing` + `gil-node-graph-reading` |
 | 把编译出的 `.gia` 注入游戏 | `verify-injection`（注入前如需空图占位/挂载，看本技能「节点图挂载」） |
 | 设置变量 / 挂载节点图 / UI 控件 / 信号 | **本技能** |
+| 列出/解析用户地图的元件资源与摆放实体 | **本技能**（`assets:resources list`） |
+| 创建/转化 静态/动态元件 | **本技能**（`assets:prefabs create [--static]`） |
 | 未知 wire 规则 / 编辑器 A/B 差分 | `editor-incremental-gia-investigator`（本技能假设规则已闭合） |
 
 ## 启动路由
@@ -31,6 +33,8 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 | 用户意图 | 命令族 |
 | --- | --- |
+| 列出/解析 元件资源（root4 自定义定义 + root8 官方/静态实例）与摆放实体（root5） | `assets:resources list [--gil <map>]` |
+| 创建自定义元件 / 静态元件 | `assets:prefabs create --base <官方ID> --id <new> [--static]` |
 | 关卡变量（root5 关卡实体） | `assets:level-variables list\|create\|update` |
 | 任意场景实体变量 / CustomPrefab / 玩家 / 角色变量 | `assets:custom-variables --entity <id>` 或配置 `assets.customVariables` |
 | 把图挂到实体/元件，或查挂载关系 | `assets:mounts attach\|list\|detach` |
@@ -71,6 +75,20 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 挂载：`gsts assets:mounts attach <target-id> --graph <gid> [--entity|--def] --gil <map> --write`；`list [<target-id>]` 查挂载关系；`detach <target-id> --graph <gid>` 卸下（最后一条卸完保留空 `08036a00` 槽）。
 - **挂载目标用普通场景实体**。⚠️ 关卡实体（1094713345，官方 defId=10003004）由游戏运行时默认创建，**禁止手动 import 添加**——手动加会导致游戏“地图异常”。需要挂载对象时先用 `assets:entities import`/`static-assemblies` 建普通实体。
 - 多人语义：挂到玩家/角色实体上的图按玩家分别执行；需要“全局只执行一次”时自行加去重门控，不能默认一次。
+
+### A2. 元件/实体资源列出与静态/动态元件
+
+- **列出/解析用户地图资源**：`gsts assets:resources list [--gil <map>] [--format json]`
+  - `prefabs`：**元件资源** = root4 自定义定义（`custom-definition`）+ root8 官方/静态实例（`official-instance`）
+  - `entities`：**摆放实体** = root5 场景实体
+- **静态 vs 动态资源（2026-08-20 用户实证）**：
+  - 动态资源可转换为静态资源；静态资源**只支持基础 缩放/位置/旋转**，**不支持组件、变量、高级功能**
+  - 静态元件（root8 实例）记录**无 f7 组件槽**（约 409B），root6 注册表登记 **type 400**（场景实体为 type 200）
+  - 因此：静态资源实体**不要设变量/组件**；动态资源实体才可设变量
+- **创建元件**：
+  - 动态/自定义元件：`assets:prefabs create --base <官方ID> --id <new>`
+  - 静态元件：`assets:prefabs create --static --base <官方ID> --id <new> [--name <n>]`
+- ⚠️ `assets:gadgets` 的 `list_id` **不是游戏元件 ID**（如 `1000218`≠`20001219`），需要映射表；映射样本见 `~/genshin-ts-evidence/toolchain-gaps/1073741896/raw/gadget-mapping.md`，不可直接把 list_id 当 definitionId/resourceId 写实体。
 
 ### B. 设置变量
 

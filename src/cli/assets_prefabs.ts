@@ -4,19 +4,21 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget } from './gil_paths.js'
-import { createCustomPrefab } from './gil_prefabs.js'
+import { createCustomPrefab, createStaticPrefabInstance } from './gil_prefabs.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
 function usage(exitCode = 1): never {
   const output = [
     'Create a new custom prefab (元件) copied from an official base prefab.',
     '',
-    'Usage: gsts assets:prefabs create --base <officialResourceId> --id <newId> [--name <name>]',
+    'Usage: gsts assets:prefabs create --base <officialResourceId> --id <newId> [--name <name>] [--static]',
     '',
     'Options:',
     '  --base <id>             official prefab resource id (e.g. 10009002 球体, 10009005 五棱柱)',
     '  --id <newId>            new custom prefab id (>= 1077936129)',
     '  --name <name>           custom prefab name (default: official name)',
+    '  --static                create a STATIC element instance (root8, type400 registry;',
+    '                          no components/variables support) instead of a root4 definition',
     '  --position x,y,z        scene position (default 0,0,0)',
     '  --gil <file>            explicit GIL source',
     '  --output <file>         create output without overwriting',
@@ -47,6 +49,7 @@ function parseArgs(argv: readonly string[]) {
   let gilPath: string | undefined
   let outputPath: string | undefined
   let write = false
+  let isStatic = false
   let format: 'text' | 'json' = 'text'
   let position: number[] = [0, 0, 0]
   let i = 0
@@ -56,6 +59,7 @@ function parseArgs(argv: readonly string[]) {
     if (a === '--base') baseId = num(value(argv, i++), '--base')
     else if (a === '--id') newId = num(value(argv, i++), '--id')
     else if (a === '--name') name = value(argv, i++)
+    else if (a === '--static') isStatic = true
     else if (a === '--position') position = value(argv, i++).split(',').map(Number)
     else if (a === '--gil') gilPath = value(argv, i++)
     else if (a === '--output') outputPath = value(argv, i++)
@@ -70,7 +74,7 @@ function parseArgs(argv: readonly string[]) {
   if (baseId === undefined) throw new Error('[error] create requires --base <officialResourceId>')
   if (newId === undefined) throw new Error('[error] create requires --id <newId>')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { baseId, newId, name, gilPath, outputPath, write, format, position }
+  return { baseId, newId, name, gilPath, outputPath, write, format, position, isStatic }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, cfg: GstsConfig | undefined): string {
@@ -90,11 +94,14 @@ async function execute(argv: readonly string[], cfg: GstsConfig | undefined) {
   if (!fs.existsSync(gilPath) || !fs.statSync(gilPath).isFile()) throw new Error(`[error] gil not found: ${gilPath}`)
   const src = new Uint8Array(fs.readFileSync(gilPath))
   const sourceHash = sha256(src)
-  const result = createCustomPrefab(src, { id: args.newId!, resourceId: args.baseId!, name: args.name, position: args.position })
+  const result = args.isStatic
+    ? createStaticPrefabInstance(src, { id: args.newId!, resourceId: args.baseId!, name: args.name, position: args.position })
+    : createCustomPrefab(src, { id: args.newId!, resourceId: args.baseId!, name: args.name, position: args.position })
   const json = args.format === 'json'
   const log = (s: string) => (json ? console.error(s) : console.log(s))
-  const summary: Record<string, unknown> = { schemaVersion: 1, kind: 'prefabs-create', sourceSha256: sourceHash, prefabId: result.id, name: result.name }
-  log(`prefabId=${result.id} name=${result.name}`)
+  const kind = args.isStatic ? 'prefabs-create-static' : 'prefabs-create'
+  const summary: Record<string, unknown> = { schemaVersion: 1, kind, sourceSha256: sourceHash, prefabId: result.id, name: result.name, static: args.isStatic }
+  log(`prefabId=${result.id} name=${result.name}${args.isStatic ? ' static=true' : ''}`)
   summary.candidateSha256 = sha256(result.bytes)
   log(`candidateSha256=${sha256(result.bytes)}`)
   if (args.outputPath) {

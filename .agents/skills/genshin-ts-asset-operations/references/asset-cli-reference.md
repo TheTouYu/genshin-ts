@@ -33,6 +33,23 @@ gsts assets:custom-variables --gil <map> --write
 - 配置路径支持 `operation.target`（prefab 等）与 `syncInstances`（把缺失声明同步到明确引用模板的实例容器；玩家模板通常需要“顶层定义 + 实例容器同步”才在编辑器可见）。
 - 全 21 种类型：entity / guid / int / bool / float / str / vec3 / faction / config_id / prefab_id 及对应 10 种列表 + dict。
 
+## 1.5 元件/实体资源列出与静态/动态元件
+
+```text
+# 列出/解析用户地图资源
+gsts assets:resources list [--gil <map>] [--format json]
+
+# 创建动态/自定义元件（root4 定义）
+gsts assets:prefabs create --base <官方ID> --id <newId> [--name <n>] [--gil <map>] [--write|--output]
+
+# 创建静态元件（root8 实例 + root6 type400 登记）
+gsts assets:prefabs create --static --base <官方ID> --id <newId> [--name <n>] [--gil <map>] [--write|--output]
+```
+
+- `assets:resources list` 的 `prefabs` = root4 自定义定义（`custom-definition`）+ root8 官方/静态实例（`official-instance`）；`entities` = root5 摆放实体。
+- **静态 vs 动态（2026-08-20 实证）**：静态资源只支持基础 缩放/位置/旋转，**不支持组件/变量/高级功能**；动态资源可转静态。静态元件记录无 f7 组件槽（约 409B），root6 登记 type 400（场景实体 type 200）。**静态资源实体不要设变量/组件。**
+- ⚠️ `assets:gadgets` 的 `list_id` **不是** GIL 元件 ID（如 `1000218 → 20001219`、`1000026 → 20001026`），直接当 `definitionId` 写实体会导致实体不显示/存档损坏；需用映射表（样本见 `~/genshin-ts-evidence/toolchain-gaps/1073741896/raw/gadget-mapping.md`）。
+
 ## 2. 节点图挂载命令
 
 ### assets:node-graphs（建空图占位）
