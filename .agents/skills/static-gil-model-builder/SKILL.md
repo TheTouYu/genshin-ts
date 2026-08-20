@@ -51,6 +51,21 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 | 新建复杂静态 prefab/元件 | `assets:static-assemblies` | 创建 root 4/8/27 闭包，走 plan → candidate → inspect/export → 写回门 |
 | 已有复杂 prefab/entity，只改位置、颜色或装饰物 Transform | `assets:entities patch` 或记录级 patch | 不创建新闭包；按实际 closure/export 找记录，同步三侧 aux |
 | 已有 definition，新建一个场景实体 | `assets:entities import` | 只复用已有 definition；确认 root 5/root 6 登记 |
+| 动态/静态元件与页面模型（不拼装） | `assets:prefabs create [--static]` | 动态 = root4 定义；静态 = root8 页面模型（非定义） |
+| 元件类型切换（动态↔静态） | `assets:prefabs convert --id <id> --static\|--dynamic` | 定义/模型/实体联动；定义-only 也支持 |
+| 挂装饰物（实体/定义/模型） | `assets:aux attach --host <id> --resource <装饰物ID>` | root27 aux + 宿主 f501；f502 宿主引用必须替换 |
+
+**静态/动态元件与装饰物（2026-08-20 差分 + 游戏核验，可复刻）**：
+- 三概念：**定义（root4）= 元件本体**；**页面模型（root8）= 可视化辅助**（不渲染到场景）；
+  **场景实体（root5）= 引用定义**。UI"静态元件"分类 ≠ wire 无组件（纯静态类型保留组件槽）。
+- **切换静态** = 删组件槽（定义 f8/实例 f7/引用实体 f7）+ 名字槽 f11 加 `{f2:1}`；
+  **切回动态** = 恢复 6 个官方默认组件槽 + 删标记。`convert` 输出与编辑器逐字节一致。
+- **装饰物 wire**：root27 = def-side（f1 字段，f3=1）+ inst-side（f2 字段，f12 回链 def）；
+  宿主 f5/f6 槽40.f50.f501 packed 引用（定义挂 def、模型/实体挂 inst）；
+  **aux f4 槽40.f50.f502 = 宿主 ID**——从样本提取 aux 模板时该引用必须参数化替换，漏掉则游戏不显示。
+- **transform 编码**：位置稀疏 / 旋转稀疏（欧拉角）/ 缩放全量 fixed32 + f501:-1；静态与动态同构，
+  `setTransform` 可直接重写（字节级还原用样本精确值，勿用 4 位小数反推）。
+- 写回后 `maps:resync` 同步 Temp；`resources list` 的 `static=true` 判定 = 组件槽数。
 | 未知资源尺寸、pivot 或局部基 | 最小校准 + 增量调查 | 先闭合缺失事实，不用待修生产链证明未知规则 |
 
 `assets:static-assemblies` 的成功只证明“新闭包创建”路径；它不是更新既有复杂模型的通用入口。已有模型的局部调参必须保留未改字段，并验证 definition-side、prefab-instance-side、scene-entity-side 三组 aux 仍一致。

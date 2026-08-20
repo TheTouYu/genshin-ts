@@ -70,6 +70,29 @@ node ./bin/gsts.mjs maps:create --name "<游戏名>" --player 110170759 --region
 - 白色贴片用明显更暗的浅灰白（0xD0D0D0；纯白/近白 0xE8E8E8 均刺眼，透明度方案效果弱）；
 - 场景实体**不预置**：游戏开始时由节点图动态创建（方便整体移位，改一个基准位置即可）。
 
+### 元件三概念与静态/动态（2026-08-20 用户澄清，可复刻）
+
+| 概念 | wire | 语义 |
+|---|---|---|
+| **定义** | root4 | 元件本体；修改定义 = 修改元件 |
+| **元件页面模型** | root8 | 可视化编辑辅助，**不渲染到场景**；删了定义仍在 |
+| **场景实体** | root5 | 引用定义（官方 resID 或本地 defID）；只要定义存在即可创建 |
+
+- UI"静态元件"分类 ≠ wire 无组件：**纯静态类型**（装饰物类，如木质花圃）保留组件槽；
+  **切换静态**（动态→静态转换）才删组件槽（定义 f8/实例 f7/实体 f7）+ 名字槽 f11 加 `{f2:1}`。
+- CLI 创建速查（都需 `--gil`，候选 `--output` / 写回 `--write`）：
+```bash
+gsts assets:prefabs create --base <官方ID> --id <newId>            # 动态定义（root4 + root6 type6）
+gsts assets:prefabs create --static --base <官方ID> --id <newId>   # 静态页面模型（root8 + type400）
+gsts assets:prefabs convert --id <prefabId> --static|--dynamic     # 切换（定义/模型/实体联动）
+gsts assets:aux attach --host <实体|定义|模型ID> --resource <装饰物ID> # 挂装饰物
+gsts assets:resources list --gil <map>                             # 列出（static=true 标记）
+```
+- **装饰物**（root27 aux）：定义挂 def aux、模型/实体挂 inst aux（f12 回链 def）；
+  aux f4 槽40.f50.**f502 = 宿主 ID**（模板复用必须替换，否则游戏不显示）。
+- **ID 纪律**：元件/实体 ID ≥ 1077936129；定义 ID 分配只查 root4 空间，可与 root5/8 重叠；
+  写回后必须 `maps:resync` 同步 Temp（编辑器活动副本），否则游戏加载旧版本。
+
 ## 3. 资产写回 + 视觉核验循环
 
 ```text
