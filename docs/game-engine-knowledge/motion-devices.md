@@ -17,6 +17,15 @@
 |---|---|---|
 | addUniformBasicRotationBasedMotionDevice | target_entity, mover_name, duration, angular_velocity(°/s), axis | 匀速旋转 |
 | addUniformBasicLinearMotionDevice | target_entity, mover_name, duration, velocity | 匀速直线 |
+| addBasicTargetOrientedRotationBasedMotionDevice | target_entity, mover_name, velocity(Flt), axis_or_angle(Vec) | 目标朝向旋转（id 520；参数语义待验证，见下） |
+
+**旋转运动器有两种（2026-08-20 核验）**：
+1. **Uniform（id 85）**：第 4 参 = **angular_velocity(°/s)**，总角 = duration × 角速度。
+   ⚠️ **2026-08-20 实证**：魔方 spin 曾传 90（0.3s）→ 只转 27°≈30°（旧版 1s×90°/s=90° 巧合正确）；
+   0.3s 内转满 90° 需 300°/s。**第 4 参不是总角，是角速度**。
+2. **Target-Oriented（id 520）**：inputs [Ety, Str, Flt, Vec]；patterns.md 实证读法
+   `(Ety, Str="p2_u_cw", Flt=2 速度, Vec=(0,90,0) 旋转轴/角度)`（证据：`_GSTS_param-turn` 图）。
+   Flt/Vec 的精确语义（速度单位 / Vec 是欧拉角还是轴+角）**待验证**（Fail closed，不猜）。
 
 **`getEntityLocationAndRotation` 返回字段为 `{ location, rotate }`（2026-08-13 实证：字段名是 `rotate` 不是 `rotation`）**——写 DSL 时 `.rotate` 取朝向欧拉。
 

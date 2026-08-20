@@ -69,6 +69,18 @@
 - 期望形态：技能/任务文件注记。
 - 何时做：下次派活任务文件模板加一行。
 
+### O5. 注入器 merge 复合定义不清理残留 → 类型错位拒载（fail-closed 治本）
+
+- 证据（2026-08-20 魔方注入事故）：`src/injector/index.ts` mergeWrappedFieldMessages 合并复合定义只覆盖同 ID、
+  不删除地图残留旧 def；删除/新增复合使 defineComposite 按定义顺序分配的 ID 前移，残留 def（如 gsts_in_layer）
+  引用被覆盖的 ID（现为 orbit_scheduler）→ 类型错位 → 游戏拒载（加载期无日志）。备份
+  `.gsts/backups/1073741882.gil.2026-08-20.broken-pre-inject.bak`、当前修复 `ed645c0a`。
+- 已落流程层防线：`tools/check-gil-composite-refs.ts`（注入后必跑，gil-node-graph-reading Step 3.5）。
+- 治本候选（二选一或都做）：① 注入器 merge 后对残留 def 做**类型校验**（impl 调用参数类型 vs 目标 def 接口），
+  不匹配即报错拒注入；② 编译器保留未调用 defineComposite 定义（不剔除）→ GIA 恒全量 → merge 全覆盖无残留。
+- 何时做：下次注入器/编译器改动窗口；改注入器需 tests/injector 回归 + 真实地图注入核验。
+
+
 ### O1. GIA 解析/编码无独立 CLI（已由 genshin-model-studio 覆盖，登记为指针）
 
 - 证据：`/tmp/gms-eval-b/trace.jsonl`——子代理 100 次手写脚本自建 parser；结论已落入 `/home/h/genshin-model-studio/docs/gia-format.md` + `src/gia/`。

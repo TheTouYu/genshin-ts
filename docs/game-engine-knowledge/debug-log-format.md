@@ -202,6 +202,12 @@ f21 = {
 - 节点定义查询流程（复用）：`grep -n "节点英文名" src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts`（见 gil-node-graph-editing 技能"节点 ID / 名称查询速查"）
 - **复合内 exec 链断链判据（2026-08-14 #12 实证）**：复合调用复合内某普通 exec 节点（如运动器 84）整段零帧、但上游复合调用节点（store/velocity 等）有帧 → 合成→普通 exec 边断链。三态对照：复合内全部执行但链尾普通节点零帧 = IR 边丢失（implEdges 源 "undefined"）或目标缺物理 InFlow pin；修复后链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34+）+ 定时器写入（__gsts_timeout_N_index）。
 - **复合 head 前缀 = 调用栈**：head=320702 读作「宿主节点 0x32=50（turn_block 调用）→ impl 节点 7（velocity）→ velocity impl 节点 2」；复合内各 impl 节点按其序号占 head 次高位（3202 doubleBranch / 3203 spin_block / 3204 store / 3205 运动器 / 3206 turn_check / 3207 velocity）。
+- **head 递归解析规则（2026-08-20 实证，gia_log.py node_label 已实现）**：head = **调用栈字节序列，每字节一层节点号**——
+  首字节=主图节点，后续每字节=上一层复合调用节点的 impl 图节点号；**普通节点（非复合调用）处链结束**，
+  尾随字节为记录标记（03=主帧、04=子帧上下文，如 get/set 的 `{N.04子}+{N.03主}` 成对出现）。
+  例：`0f0502100403` = tab_dispatch(0f) > do_move(05) > apply_move(02) > read_slot(10=16) > GetVar tblFrom(04) + 主帧标记(03)。
+  **疑点**：个别 head 末字节与标记 03/04 在数值上歧义（节点号 3/4 与标记同值），实际以"普通节点停止"规则消解，
+  未发现误解析实例；若遇异常以 dump 原始结构核对。
 
 ## 待解问题
 

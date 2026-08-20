@@ -196,3 +196,149 @@
 - **验证**：rubik 图 wire 检查 get_list→133/130、set_list→165（int 变体 128/160 为正确特化非回退）；新增回归测试 `tests/composite/test-list-reflective-concrete.ts`（PASS，断言 vec3_list get_list=133 / set_list=165）。
 - **环境坑**：`src/cli/gil_ui.ts` 工作区未提交改动带 tsc 错误阻塞 `npm run build`（postbuild 复制 .proto 不执行 → dist 残缺）→ 手动 `tsc + postbuild` 恢复。
 - **已注入**：hash 0b8963c1…（列表优化 + 循环修复 + 结算修复 + 本修复合一）。
+
+## 变更记录 2026-08-20（性能优化 A+B：命中块预知，砍掉动画期位置层判断）
+
+- **背景**：上一轮测试（日志 `2026-08-19_23-34-03_2736_110170759.gia`，104 记录）确认基本流程全正常，
+  但一次完整转动执行约 **1925 帧**（帧 = 单节点执行）：点击帧 380（apply_move 逻辑层 360）+ 8 个块事件
+  turn_one ≈1270（turn_check 位置层判断 102 + orbit_velocity 88 + spin 41 + store 15）+ 16 个段事件 224 + after_turn 93。
+- **方案（A+B，用户已确认）**：命中块由逻辑层表数据直接确定，动画期不再读实体位置做层判断——
+  - `gsts_turn_check`（读 blocks/axes 变量 + 6 equal + layer_hit 位置层判断链）→ **`gsts_turn_lookup`**（查表版）：
+    i = 槽位 0..3（do_move 块事件 timerSequenceId），`tempP[i]` = apply_move 已按 tblFrom 表算出的命中块编号，
+    再查 `blocks[piece]` 实体 + `axes[tabId]` 轴——纯数据 7 节点，无位置读取/层判断。
+  - `gsts_turn_block`：删除 doubleBranch 分支（块事件必为命中块），直接链 spin → orbit_store（key=命中块编号）→ orbit1 运动器。
+  - `gsts_turn_one`：turn_block.done → orbit_scheduler（i=命中块编号，段定时器 timerName=块编号，与 velsN 字典 key 对齐）。
+  - `gsts_do_move`：块事件定时器 **8 → 4**（0.05/0.10/0.15/0.20s，timerSequenceId=槽位）；unlock 1.40s 不变。
+  - **删除 4 个不再使用的层判断复合**：gsts_tab_axis_flags / gsts_layer_hit / gsts_in_layer / gsts_axis_compare。
+- **预期收益**：每转动省约 200 帧（4 个未命中块事件 + 层判断链），帧数从 ~1925 → ~1700（-10%+）；
+  命中块事件 272 → ~180 帧（turn_check 位置判断 102 → 查表 ~24）。
+- **踩坑（DSL 链接规则）**：复合定义内部 `f.link(f.entry(), 0, 复合调用, 0)` 会把 capture→复合调用记为
+  **对象边**，而 exec 复合调用注册时 auto-chain（`runCompositeCall` 单 outflow 尾部 tail 推进）已生成
+  **裸边** capture→复合调用 → IR compositePins 出现两条相同 InFlow 物理路由 →
+  `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: duplicate physical route`。修复：**删除显式 f.link**，
+  依赖 auto-chain 生成入口边（与 apply_move 既有模式一致——复合入口直连普通节点，复合调用只作链中目标）。
+- **验证**：
+  - 编译 + GIA 生成绿（32 复合 def = 35−4+改名，impl 401 节点，root 18）。
+  - GIA 解码回读：gsts_turn_lookup 就位，删除的 4 复合无残留。
+  - **注入**（备份 `.gsts/backups/1073741882.gil.2026-08-20.perf-pre-inject.bak`，注入前 sha `e911e7fa…`，
+    注入后 sha `175825a9…`，Temp 已同步）：读图自检 turn_block/turn_one/do_move 结构正确、
+    InFlow 入口非空、执行流条数正确、`scan-gil-var-pins` 39 图 136 变量节点 0 违规。
+  - **待用户游戏核验**：转动/打乱/复原/胜利结算无回归 + 新日志帧数对比（目标每转动帧数下降）。
+
+## 变更记录 2026-08-20（⚠️ 注入事故 + 修复：删除复合导致 ID 重排，残留旧 def 类型错位拒载）
+
+- **事故**：性能优化第一版删除 4 个层判断复合（tab_axis_flags/axis_compare/layer_hit/in_layer）→
+  defineComposite 按定义顺序分配 ID，后续复合 ID 前移（orbit_scheduler 0034→0030 等）。注入器 merge
+  复合定义只覆盖同 ID、不删除地图残留旧 def → 残留的 gsts_in_layer(0032) 仍引用旧 axis_compare 的 ID 0030，
+  而该 ID 已被覆盖为 gsts_orbit_scheduler → **类型错位（Float→Integer、Boolean→Entity）→ 游戏拒载、无日志**
+  （加载期错误不落 Beyond_Debug_Log，符合既有规则）。
+- **复现/证据**：explain 残留 gsts_in_layer 显示接口 x/y/z/isR… 但内部实现是 3 个 gsts_orbit_scheduler 调用；
+  地图 sha 从注入后 175825a9 变为 b94a689d（编辑器/游戏写回固化）；坏版备份
+  `.gsts/backups/1073741882.gil.2026-08-20.broken-pre-inject.bak`。
+- **深层教训（fail-closed 缺失）**：① 编辑器/编译器/注入器都未在 Link/注入时发现"复合引用 ID 类型错位"；
+  ② 我的注入后自检盲区：只查关键复合 + var-pins，未全量对比复合定义表。
+- **修复**：
+  1. 恢复注入前干净备份（e911e7fa，8/19 用户测试正常版）→ 重新注入性能优化版（空洞 ID 30-32 由地图旧版
+     axis_compare/layer_hit/in_layer 死复合填充，引用自洽、不被调用、无害）→ 注入后 sha `ed645c0a`，Temp 已同步。
+  2. game.ts 恢复 4 个死复合定义（标注"保 ID 稳定勿删"占位）——**但实测编译器会剔除未调用定义**，
+     仅靠占位无法进 GIA，真正的防线是注入后全量校验（见下）。
+  3. 新增 `tools/check-gil-composite-refs.ts`：全量复合引用完整性（0 悬空）+ `--incoming` 检测残留 def
+     引用被注入覆盖的 ID（事故模式）。注入后必跑，已纳入 gil-node-graph-reading Step 3.5。
+  4. open-items O5 登记治本候选：注入器残留类型校验 / 编译器保留死复合定义。
+- **待用户游戏核验**：转动/打乱/复原/胜利结算 + 新日志帧数对比（性能优化目标：每转动 ~1925→~1700 帧）。
+
+## 变更记录 2026-08-20（✅ 性能优化游戏核验通过：每转动 1925→1617 帧，-16%）
+
+- **用户游戏核验**（2026-08-20 11:37 会话，日志 `2026-08-20_11-37-24_2737_110170759.gia`，90 记录）：
+  4 次转动 + 打乱/复原流程正常、无拒载；`rubik-solved-win` 胜利结算触发（rec88）。
+- **优化效果（帧 = 单节点执行，旧 8/19 日志 vs 新 8/20 日志）**：
+
+  | 阶段 | 旧版 | 新版 | 变化 |
+  |---|---|---|---|
+  | 点击帧（apply_move 逻辑层） | 380 | 380 | 不变（方案 C 未做） |
+  | 块事件（turn_one） | 4×272+4×35=1228 | 4×230=920 | **-308** |
+  | 段事件（segment_dispatch） | 16×14=224 | 224 | 不变 |
+  | after_turn | 93 | 93 | 不变 |
+  | **一次转动合计** | **1925** | **1617** | **-308（-16%）** |
+
+- **构成分析**：8→4 块事件省 140 帧（未命中块事件消失）+ 命中块 turn_check 位置层判断→查表省 168 帧
+  （命中块事件 272→230）；点击帧 380 未动（apply_move 变量重复 get，属方案 C 范畴，后续可做）。
+
+## 变更记录 2026-08-20（✅ 复合生命周期管理示范：4 个废弃复合改名 _deprecated）
+
+- **落实"改名保留定义"规则**：四个不再使用的层判断复合统一加 `_deprecated` 后缀
+  （gsts_tab_axis_flags_deprecated / gsts_axis_compare_deprecated / gsts_layer_hit_deprecated /
+  gsts_in_layer_deprecated），内部互引同步改名——**不删除定义**（删除会导致复合 ID 前移 +
+  注入器残留错位，2026-08-20 事故教训）。
+- **验证**：编译绿；decode 新 GIA 复合 ID 集合与注入版完全一致（32 def、空洞 24/30-32、
+  关键 ID 0025/0033/0034/0035 不变）→ **无需重新注入**（地图 ed645c0a 保持有效）。
+  注：当前编译器会剔除未调用定义，_deprecated 复合不进 GIA（ID 由定义顺序占位保住），
+  待 open-items O5 治本（编译器保留全部定义 / 注入器残留清理）后可真正删除。
+- **规则已沉淀**：dsl-nodegraph-development 技能「复合生命周期管理」——改名/改实现 = 安全
+  （ID 不变，注入同 ID 覆盖，composite-reinjection.test.ts 回归保护）；删除 = 需先 O5 治本。
+
+## 变更记录 2026-08-20（✅ 写法重复优化 ②：变量 get 合并，已注入待核验）
+
+- **负载分析新维度**（用户方法论，已沉淀 `docs/game-engine-knowledge/node-load-reference.md`）：
+  优化不能只看帧数，要看 ①总帧数 ②单帧负载（load）③写法重复物化——段事件帧数 14% 但负载 34%
+  （add motion device 单帧 load=30）；Create Prefab 单帧 load=36-114（最重单节点）。
+- **优化 ②（零风险代码改写）**：
+  - `gsts_logic_is_solved`：cornerPos/cornerOrient 各 get 一次共享 → 64→50 节点（GetVar 16→2）
+  - `gsts_logic_apply_move`：tempP/tempT 各 get 一次共享 → 25→19 节点（GetVar 8→2）
+  - `gsts_logic_write_slot`：7 个变量句柄 get 一次共享（tempQ 2→1）→ 23→22 节点（GetVar 8→7）
+- **验证**：编译绿；注入（备份 `.gsts/backups/1073741882.gil.2026-08-20.opt2-pre-inject.bak`，
+  注入后 sha `984f5aed`，Temp 已同步）；自检 check-gil-composite-refs 0 悬空 + scan-gil-var-pins
+  94 节点 0 违规（GetVar 合并生效：var 节点 115→94）。
+- **待用户游戏核验**：转动/胜利结算 + 新日志对比（预期：点击帧 380→~340，after_turn 93→~70，
+  总负载 3547→~3400；打乱/自动队列 20 步逻辑层再省 ~880 帧）。
+
+## 变更记录 2026-08-20（✅ 优化②游戏核验：is_solved 生效，exec 链 GetVar 共享无效——方法论修正）
+
+- **用户游戏核验**（2026-08-20 12:05 会话）：转动 + 胜利结算正常（rubik-solved-win）。
+- **实测结果（12-05 vs 11-37 日志）**：
+  - `gsts_logic_is_solved`（纯数据复合）GetVar 16→2 **生效**：after_turn 93→65 帧（-28/转动，
+    负载 136→111；打乱/自动队列 20 步逻辑层 -560 帧）
+  - `gsts_logic_apply_move` / `gsts_logic_write_slot`（exec 复合）GetVar 共享 **帧数零变化**
+    （点击帧 380→380，负载 678→674）——引擎按 exec 链逐节点求值，共享 GetVar 不减少执行帧
+  - **每转动：1617 → 1589 帧（-1.7%）**；累计优化（A+B+②）：1925 → 1589（**-17.5%**）
+- **方法论修正**（已更新 node-load-reference.md）：GetVar 共享只在纯数据复合有效；
+  exec 链变量优化应聚焦减少节点本身，而非共享引用。
+- **下一步候选**：① 段事件合并（orbit2-5 四段→两段，负载 -17%，需确认动画取舍）。
+
+## 变更记录 2026-08-20（✅ vel1 物化实验：用户理论证实——复杂链双消费重复求值，物化有效）
+
+- **实验**（用户方法论："执行性能 = 单次负载 × 次数；复杂运算结果被多处消费会重复求值，物化到
+  变量可省"）：turn_block 的 m1 运动器 vel1 从 `v.vel1`（orbit_velocity 复杂链 ~40 节点输出，
+  被 store+m1 两处消费）改为读回 `vels1[piece]`（store 已写入，物化模式）。
+- **结果（12-29 vs 12-05 日志）**：
+  - 块事件帧数 **230 → 216（每事件 -14 帧）**——证实 orbit_velocity 链确因 vel1 双消费被重复求值
+    （省下的一次链执行 = 14 帧/块）；每转动 4 块 → **-56 帧/转动**
+  - 每转动 **1589 → 1533 帧（-3.5%）**；累计优化（A+B + is_solved + vel1 物化）：**1925 → 1533（-20.4%）**
+  - 胜利结算正常（rubik-solved-win）
+- **方法论结论（已更新 node-load-reference.md）**：复杂运算链（多节点复合）输出被 ≥2 处消费时，
+  引擎按消费点重复求值整链——**物化到变量（set 后 get 读回）只付读变量负载**，是真实负载优化
+  （区别于简单节点 GetVar 共享：只减节点不减负载）。
+- **日志工具升级（2026-08-20）**：gia_log.py frames 递归解析完整嵌套节点链 + 新增 perf 子命令
+  （每记录/节点链聚合 次数×负载，--compare 对比），性能分析一眼可见。
+
+## 变更记录 2026-08-20（动画渲染调优：轴方向修复 + 2 段公转 + 相位差收敛 + 实验 B 结论）
+
+- **轴方向修复（日志几何实证）**：R/L/F/B 四面 `axes` 方向与 tblTo 表不符（R 用 -X 应为 +X 等）——
+  初始渲染正确（y+ = Down 约定），但旋转运动器绕轴转的几何结果与逻辑表脱节，转动后块位置错位
+  （fin-pos 诊断 (3.5,3.5,2.5) vs 逻辑 UFR）。修复 axes：R(+X)/L(-X)/F(+Z)/B(-Z)，U/D 不变。
+  验证方法：模拟"块绕当前轴转 90°"（罗德里格斯）对比 tblTo 目标槽坐标，不一致即轴反。
+- **运动器语义实证**：`addUniformBasicRotationBasedMotionDevice` 第 4 参 = **角速度°/s 非总角**
+  （0.3s 传 90 → 只转 27°≈30°，旧版 1s×90°/s=90° 巧合正确）→ 修复 300°/s（0.3s 转满 90°）。
+  motion-devices.md 补充两种旋转运动器（Uniform 85 / Target-Oriented 520，后者语义待验证）。
+- **实验 B（失败，结论固化）**：公转改用旋转运动器绕层轴 90°——**旋转运动器只改朝向、不驱动位置**
+  （M·R_local 局部旋转，motion-devices.md 3.1 一致），公转必须用线性运动器分段逼近弧线。已回退。
+- **公转 5 段 → 3 段 → 2 段**：每段 0.15s（45°+45°，总 0.3s），K_VEL=6.6667；运动器/块 4→3，
+  段事件/转动 8→4；负载目标：段事件运动器次数减半（-18%）。
+- **相位差随机化收敛**：4 块启动间隔 getRandomFloatingPointNumber + 物化 turnTimes（float_list）——
+  34ms 嫌多 → 13ms 好 → 8ms 重叠 → 回调 13ms（0.004~0.008 起始 + 0.003~0.006 间隔）。
+- **日志工具升级**：gia_log.py frames 递归解析完整嵌套节点链 + `perf` 子命令（每记录/节点链 次数×负载，
+  `--compare` 对比）；`tools/check-gil-composite-refs.ts` 注入后全量复合引用校验。
+- **负载分析结论**（15-07 日志 40+ 转动）：段事件运动器 320 次×9810 负载居首（引擎操作，只能减次数）、
+  apply_move 逻辑链 5904 帧×6414（待方案 C）、turn_block 计算链 161×5522。
+- **待办**：方案 C（apply_move 变量 get 合并）、注入器残留治本（open-items O5）、
+  Target-Oriented(520) 参数语义验证。
