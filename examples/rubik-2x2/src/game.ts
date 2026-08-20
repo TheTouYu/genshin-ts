@@ -15,18 +15,13 @@ import type { IntValue } from 'genshin-ts/runtime/value'
 import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 import type { ServerExecutionFlowFunctions } from 'genshin-ts/definitions/nodes'
 
-// 18° 段预计算常量（v5 已验证）：p_k = v0·Ck + (axis×v0)·Sk；vel_k = (p_k − p_{k−1})·K_VEL
-const C1 = 0.9510565 // cos18°
-const S1 = 0.309017 // sin18°
-const C2 = 0.809017 // cos36°
-const S2 = 0.587785 // sin36°
-const C3 = 0.587785 // cos54°
-const S3 = 0.809017 // sin54°
-const C4 = 0.309017 // cos72°
-const S4 = 0.9510565 // sin72°
-const C5 = 0 // cos90°
-const S5 = 1 // sin90°
-const K_VEL = 5 // 1/0.2s
+// 45° 段预计算常量（2026-08-20 动画实验：3 段→2 段，每段 0.15s 总 0.3s，降运动器负载）：
+// p_k = v0·Ck + (axis×v0)·Sk；vel_k = (p_k − p_{k−1})·K_VEL
+const C1 = 0.7071068 // cos45°
+const S1 = 0.7071068 // sin45°
+const C2 = 0 // cos90°
+const S2 = 1 // sin90°
+const K_VEL = 6.6667 // 1/0.15s（orbit 2 段每段 0.15s，总动画 0.3s）
 const DEG2RAD = 0.017453292519943295 // π/180
 const SCRAMBLE_LEN = 20n // 打乱步数
 const CORNER_COUNT = 8n // 角块数
@@ -69,25 +64,29 @@ const gstsLogicApplyMove = g.defineComposite('gsts_logic_apply_move', {
   outputs: {},
   outflows: ['done'],
   build: ({ moveId }, f) => {
+    // 2026-08-20 负载优化：tempP/tempT 各 get 一次，8 个 set_list_value 共享引用
+    // （原每槽重新 getNodeGraphVariable → 8 个 GetVar 节点；参照 gsts_logic_reset 好写法）
+    const tempP = f.getNodeGraphVariable('tempP').asType('int_list')
+    const tempT = f.getNodeGraphVariable('tempT').asType('int_list')
     // 阶段 1：读取 4 槽 → 暂存
     const r0 = f.callComposite(gstsLogicReadSlot, { moveId, slot: 0n })
-    const t0a = f.node('set_list_value', [f.getNodeGraphVariable('tempP').asType('int_list'), new int(0), r0.piece])
-    const t0b = f.node('set_list_value', [f.getNodeGraphVariable('tempT').asType('int_list'), new int(0), r0.twist])
+    const t0a = f.node('set_list_value', [tempP, new int(0), r0.piece])
+    const t0b = f.node('set_list_value', [tempT, new int(0), r0.twist])
     f.link(f.entry(), 0, t0a, 0)
     f.connect(t0a, 0, t0b, 0)
     const r1 = f.callComposite(gstsLogicReadSlot, { moveId, slot: 1n })
-    const t1a = f.node('set_list_value', [f.getNodeGraphVariable('tempP').asType('int_list'), new int(1), r1.piece])
-    const t1b = f.node('set_list_value', [f.getNodeGraphVariable('tempT').asType('int_list'), new int(1), r1.twist])
+    const t1a = f.node('set_list_value', [tempP, new int(1), r1.piece])
+    const t1b = f.node('set_list_value', [tempT, new int(1), r1.twist])
     f.connect(t0b, 0, t1a, 0)
     f.connect(t1a, 0, t1b, 0)
     const r2 = f.callComposite(gstsLogicReadSlot, { moveId, slot: 2n })
-    const t2a = f.node('set_list_value', [f.getNodeGraphVariable('tempP').asType('int_list'), new int(2), r2.piece])
-    const t2b = f.node('set_list_value', [f.getNodeGraphVariable('tempT').asType('int_list'), new int(2), r2.twist])
+    const t2a = f.node('set_list_value', [tempP, new int(2), r2.piece])
+    const t2b = f.node('set_list_value', [tempT, new int(2), r2.twist])
     f.connect(t1b, 0, t2a, 0)
     f.connect(t2a, 0, t2b, 0)
     const r3 = f.callComposite(gstsLogicReadSlot, { moveId, slot: 3n })
-    const t3a = f.node('set_list_value', [f.getNodeGraphVariable('tempP').asType('int_list'), new int(3), r3.piece])
-    const t3b = f.node('set_list_value', [f.getNodeGraphVariable('tempT').asType('int_list'), new int(3), r3.twist])
+    const t3a = f.node('set_list_value', [tempP, new int(3), r3.piece])
+    const t3b = f.node('set_list_value', [tempT, new int(3), r3.twist])
     f.connect(t2b, 0, t3a, 0)
     f.connect(t3a, 0, t3b, 0)
     // 阶段 2：写入 4 槽（q = tblTo[moveId*4+slot]，t' = tblTwist[moveId*12+slot*3+twist]）
@@ -110,18 +109,26 @@ const gstsLogicWriteSlot = g.defineComposite('gsts_logic_write_slot', {
   outputs: {},
   outflows: ['done'],
   build: ({ moveId, slot }, f) => {
+    // 2026-08-20 负载优化：变量句柄各 get 一次共享（原 tempQ 被 set 前 + 物化读各 get 一次）
+    const tblTo = f.getNodeGraphVariable('tblTo').asType('int_list')
+    const tempQ = f.getNodeGraphVariable('tempQ').asType('int_list')
+    const tempT = f.getNodeGraphVariable('tempT').asType('int_list')
+    const tblTwist = f.getNodeGraphVariable('tblTwist').asType('int_list')
+    const tempP = f.getNodeGraphVariable('tempP').asType('int_list')
+    const cornerPos = f.getNodeGraphVariable('cornerPos').asType('int_list')
+    const cornerOrient = f.getNodeGraphVariable('cornerOrient').asType('int_list')
     // q 被 cornerPos/cornerOrient 两处消费 → 先物化到 tempQ（局部变量，避免重复求值）
-    const qv = f.getCorrespondingValueFromList(f.getNodeGraphVariable('tblTo').asType('int_list'),
+    const qv = f.getCorrespondingValueFromList(tblTo,
       f.addition(f.multiplication(moveId, 4n), slot))
-    const q1 = f.node('set_list_value', [f.getNodeGraphVariable('tempQ').asType('int_list'), new int(0), qv])
+    const q1 = f.node('set_list_value', [tempQ, new int(0), qv])
     f.link(f.entry(), 0, q1, 0)
-    const q = f.getCorrespondingValueFromList(f.getNodeGraphVariable('tempQ').asType('int_list'), new int(0))
+    const q = f.getCorrespondingValueFromList(tempQ, new int(0))
     const tIdx = f.addition(f.addition(f.multiplication(moveId, 12n), f.multiplication(slot, 3n)),
-      f.getCorrespondingValueFromList(f.getNodeGraphVariable('tempT').asType('int_list'), slot))
-    const tw = f.getCorrespondingValueFromList(f.getNodeGraphVariable('tblTwist').asType('int_list'), tIdx)
-    const piece = f.getCorrespondingValueFromList(f.getNodeGraphVariable('tempP').asType('int_list'), slot)
-    const s1 = f.node('set_list_value', [f.getNodeGraphVariable('cornerPos').asType('int_list'), q, piece])
-    const s2 = f.node('set_list_value', [f.getNodeGraphVariable('cornerOrient').asType('int_list'), q, tw])
+      f.getCorrespondingValueFromList(tempT, slot))
+    const tw = f.getCorrespondingValueFromList(tblTwist, tIdx)
+    const piece = f.getCorrespondingValueFromList(tempP, slot)
+    const s1 = f.node('set_list_value', [cornerPos, q, piece])
+    const s2 = f.node('set_list_value', [cornerOrient, q, tw])
     f.connect(q1, 0, s1, 0)
     f.connect(s1, 0, s2, 0)
     f.outflow('done', s2, 0)
@@ -134,8 +141,12 @@ const gstsLogicIsSolved = g.defineComposite('gsts_logic_is_solved', {
   inputs: {},
   outputs: { solved: { type: 'bool' } },
   build: (_a, f) => {
-    const pos = (i: bigint) => f.getCorrespondingValueFromList(f.getNodeGraphVariable('cornerPos').asType('int_list'), i)
-    const tw = (i: bigint) => f.getCorrespondingValueFromList(f.getNodeGraphVariable('cornerOrient').asType('int_list'), i)
+    // 2026-08-20 负载优化：cornerPos/cornerOrient 各 get 一次，8 槽 get_list 共享引用
+    // （原 pos(i)/tw(i) 每槽重新 getNodeGraphVariable → 16 个 GetVar 节点）
+    const cornerPos = f.getNodeGraphVariable('cornerPos').asType('int_list')
+    const cornerOrient = f.getNodeGraphVariable('cornerOrient').asType('int_list')
+    const pos = (i: bigint) => f.getCorrespondingValueFromList(cornerPos, i)
+    const tw = (i: bigint) => f.getCorrespondingValueFromList(cornerOrient, i)
     const ok0 = f.logicalAndOperation(f.equal(pos(0n), 0n), f.equal(tw(0n), 0n))
     const ok1 = f.logicalAndOperation(f.equal(pos(1n), 1n), f.equal(tw(1n), 0n))
     const ok2 = f.logicalAndOperation(f.equal(pos(2n), 2n), f.equal(tw(2n), 0n))
@@ -231,10 +242,11 @@ const gstsCheckWin = g.defineComposite('gsts_check_win', {
   }
 })
 
-// 单步转动（exec，方案 B 定时器驱动，2026-08-18）：
-// 复合内 finiteLoop + 调用复合的循环体会重启（引擎限制，日志实证）→ 改用定时器拆分到 1s：
-//   ① 逻辑状态变更 ② 存 curMove ③ 注册 8 个块事件定时器（0/0.05/…/0.35s，timerSequenceId=块索引）
-//   ④ 注册单一解锁定时器（1.40s，覆盖整个动画）——块事件由 gstsOrbitTrigger 的 'turnblock' 分支分发
+// 单步转动（exec，方案 B 定时器驱动，2026-08-18；2026-08-20 性能优化+动画实验）：
+// 复合内 finiteLoop + 调用复合的循环体会重启（引擎限制，日志实证）→ 改用定时器拆分：
+//   ① 逻辑状态变更 ② 存 curMove ③ 随机相位差：4 块启动时间 = 起始偏移随机(0.01~0.02)
+//      + 间隔随机(0.008~0.015)，总动画 0.3s 内完成，物化到 turnTimes（每次转动弹性幅度不同）
+//   ④ 注册单一解锁定时器（1.80s，覆盖 orbit 5 段×0.3s 动画）——'turnblock' 分支分发
 const gstsDoMove = g.defineComposite('gsts_do_move', {
   inputs: { moveId: { type: 'int' }, target: { type: 'entity' } },
   outputs: {},
@@ -244,25 +256,36 @@ const gstsDoMove = g.defineComposite('gsts_do_move', {
     f.callComposite(gstsLogicApplyMove, { moveId })
     // ② curMove 由调用方（宿主 tabId / afterTurn queue 值）设置——
     //    复合输入 capture 直接设图变量有类型问题（2026-08-18 编辑器实证），数据引脚路径已验证
-    // ③ 8 个块事件定时器（0.05s 步进，timerSequenceId = 块索引 0..7）
+    // ③ 随机相位差（2026-08-20 动画实验）：t0=rand(0.004,0.008)，t1=t0+rand(0.003,0.006)…
+    //    随机数被 set_list_value 消费即求值一次（物化到 turnTimes，start_timer 读变量）
+    const turnTimes = f.getNodeGraphVariable('turnTimes').asType('float_list')
+    const r0 = f.getRandomFloatingPointNumber(0.004, 0.008)
+    const r1 = f.getRandomFloatingPointNumber(0.003, 0.006)
+    const r2 = f.getRandomFloatingPointNumber(0.003, 0.006)
+    const r3 = f.getRandomFloatingPointNumber(0.003, 0.006)
+    const t1 = f.addition(r0, r1)
+    const t2 = f.addition(t1, r2)
+    const t3 = f.addition(t2, r3)
+    const s0 = f.node('set_list_value', [turnTimes, new int(0), r0])
+    const s1 = f.node('set_list_value', [turnTimes, new int(1), t1])
+    const s2 = f.node('set_list_value', [turnTimes, new int(2), t2])
+    const s3 = f.node('set_list_value', [turnTimes, new int(3), t3])
+    // s0-s3 经 exec tail 自动串联（apply_move done → s0 → … → s3 → start_timer）
+    // ④ 块事件定时器（turnTimes 随机时间；timerSequenceId = 槽位 0..3）
     f.registerExecNode('start_timer', [
-      target, new str('turnblock'), new bool(false),
-      // 时间首项不用 0（2026-08-19 实证：start_timer 时间含 0.0 导致定时器不触发），全部正数
-      f.assemblyList([
-        new float(0.05), new float(0.1), new float(0.15), new float(0.2),
-        new float(0.25), new float(0.3), new float(0.35), new float(0.4)
-      ], 'float')
+      target, new str('turnblock'), new bool(false), turnTimes
     ])
-    // ④ 单一解锁定时器（最后块事件 0.40 + orbit5 0.8 + 缓冲 0.2 = 1.40）
+    // ⑤ 单一解锁定时器（最后块 ~0.065 + orbit 0.3 + 缓冲 ~0.135 = 0.50；3 段每段 0.1s）
     f.registerExecNode('start_timer', [
       target, new str('unlock'), new bool(false),
-      f.assemblyList([new float(1.4)], 'float')
+      f.assemblyList([new float(0.5)], 'float')
     ])
     return {}
   }
 })
 
-// 单块转动（exec）：读取 curMove + center → turn_block → 命中则 orbit_scheduler（块事件调用）
+// 单块转动（exec，2026-08-20 性能优化）：i = 槽位 0..3（do_move 注册的块事件
+// timerSequenceId）→ turn_block 查表转动该槽命中块 → 注册轨道段定时器（i = 命中块编号）
 const gstsTurnOne = g.defineComposite('gsts_turn_one', {
   inputs: { i: { type: 'int' }, target: { type: 'entity' } },
   outputs: {},
@@ -270,10 +293,9 @@ const gstsTurnOne = g.defineComposite('gsts_turn_one', {
   build: ({ i, target }, f) => {
     const center = f.create3dVector(3, 3, 3)
     const moveId = f.getNodeGraphVariable('curMove').asType('int')
-    const hit = f.callComposite(gstsTurnBlock, { i, tabId: moveId, center }).hit
-    f.doubleBranch(hit, () => {
-      f.callComposite(gstsOrbitScheduler, { i, target })
-    }, () => {})
+    const turn = f.callComposite(gstsTurnBlock, { i, tabId: moveId, center })
+    const sched = f.callComposite(gstsOrbitScheduler, { i: turn.piece, target })
+    f.connect(turn, 0, sched, 0)
     return {}
   }
 })
@@ -525,11 +547,13 @@ const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
   build: ({ e, axis }, f) => {
     const rot = f.getEntityLocationAndRotation(e).rotate
     const localAxis = f.callComposite(gstsSpinAxisTriple, { v: axis, rot }).out
+    // 2026-08-20 修复：第 4 参是角速度(°/s) 非总角（motion-devices.md 实证）——
+    // 旧版 1s×90°/s=90° 恰好正确；0.3s 需 90°/0.3s = 300°/s 才在动画内转满 90°
     const tail = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
       e,
       new str('spin'),
-      new float(1),
-      new float(90),
+      new float(0.3),
+      new float(300),
       localAxis
     ])
     f.outflow('done', tail, 0)
@@ -553,7 +577,7 @@ const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
     const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       e,
       name,
-      new float(0.2),
+      new float(0.15),
       vel
     ])
     f.outflow('done', tail, 0)
@@ -588,48 +612,44 @@ const gstsOrbitStep = g.defineComposite('gsts_orbit_step', {
 
 const gstsOrbitVelocity = g.defineComposite('gsts_orbit_velocity', {
   inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
-  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' } },
   build: ({ e, axis, center }, f) => {
     const prep = f.callComposite(gstsOrbitPrep, { e, axis, center })
     const s1 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C1, s: S1, prev: prep.v0 })
     const s2 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C2, s: S2, prev: s1.p })
-    const s3 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C3, s: S3, prev: s2.p })
-    const s4 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C4, s: S4, prev: s3.p })
-    const s5 = f.callComposite(gstsOrbitStep, { vp: prep.vp, vPerp: prep.vPerp, axv: prep.axv, c: C5, s: S5, prev: s4.p })
-    return { vel1: s1.vel, vel2: s2.vel, vel3: s3.vel, vel4: s4.vel, vel5: s5.vel }
+    return { vel1: s1.vel, vel2: s2.vel }
   }
 })
 
 const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
-  inputs: { i: { type: 'int' }, vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  inputs: { i: { type: 'int' }, vel1: { type: 'vec3' }, vel2: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ i, vel1, vel2, vel3, vel4, vel5 }, f) => {
+  build: ({ i, vel1, vel2 }, f) => {
     const d1 = f.registerExecNode('set_list_value', [
       f.getNodeGraphVariable('vels1').asType('vec3_list'), i, vel1
     ])
     const d2 = f.registerExecNode('set_list_value', [
       f.getNodeGraphVariable('vels2').asType('vec3_list'), i, vel2
     ])
-    const d3 = f.registerExecNode('set_list_value', [
-      f.getNodeGraphVariable('vels3').asType('vec3_list'), i, vel3
-    ])
-    const d4 = f.registerExecNode('set_list_value', [
-      f.getNodeGraphVariable('vels4').asType('vec3_list'), i, vel4
-    ])
-    const d5 = f.registerExecNode('set_list_value', [
-      f.getNodeGraphVariable('vels5').asType('vec3_list'), i, vel5
-    ])
     f.connect(d1, 0, d2, 0)
-    f.connect(d2, 0, d3, 0)
-    f.connect(d3, 0, d4, 0)
-    f.connect(d4, 0, d5, 0)
-    f.outflow('done', d5, 0)
+    f.outflow('done', d2, 0)
     return {}
   }
 })
 
-const gstsTabAxisFlags = g.defineComposite('gsts_tab_axis_flags', {
+// ================================================================
+// 废弃占位复合（2026-08-20 生命周期管理示范，勿删）：
+// 四个层判断复合已无任何调用（turn_check→turn_lookup 查表改造）。按"改名保留定义"规则
+// 统一加 `_deprecated` 后缀标注废弃状态——**不删除定义**：defineComposite 按定义顺序自动分配
+// 复合 ID，删除会让后续复合（orbit_scheduler 等）ID 整体前移；注入器 merge 复合定义表只覆盖
+// 同 ID、不删除地图残留旧 def → 残留旧 def 引用被覆盖的 ID → 类型错位 → 游戏拒载。
+// 改名/改实现 = 安全（ID 不变，注入同 ID 覆盖）；删除 = 需先完成 open-items O5 治本。
+// 注：当前编译器会剔除未调用定义，这些废弃复合不进 GIA（空洞），ID 由顺序占位保住。
+// ================================================================
+
+// Tab 轴标志复合（废弃占位，保 ID 稳定；原实现见 git HEAD）
+const gstsTabAxisFlagsDeprecated = g.defineComposite('gsts_tab_axis_flags_deprecated', {
   inputs: { tabId: { type: 'int' } },
   outputs: { isR: { type: 'bool' }, isL: { type: 'bool' }, isU: { type: 'bool' }, isD: { type: 'bool' }, isF: { type: 'bool' }, isB: { type: 'bool' } },
   build: ({ tabId }, f) => {
@@ -644,60 +664,54 @@ const gstsTabAxisFlags = g.defineComposite('gsts_tab_axis_flags', {
   }
 })
 
-const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
+// 命中块查表复合（纯数据，2026-08-20 性能优化）：i = 槽位 0..3（do_move 注册的块事件
+// timerSequenceId），tempP[i] = 逻辑层 apply_move 已按 tblFrom 表算出的命中块编号——
+// 不再读取实体位置做层判断（原 gsts_turn_check 的位置层判断链整体移除，帧数大幅下降）
+const gstsTurnLookup = g.defineComposite('gsts_turn_lookup', {
   inputs: { i: { type: 'int' }, tabId: { type: 'int' } },
-  outputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, hit: { type: 'bool' } },
+  outputs: { piece: { type: 'int' }, e: { type: 'entity' }, axis: { type: 'vec3' } },
   build: ({ i, tabId }, f) => {
+    const piece = f.getCorrespondingValueFromList(
+      f.getNodeGraphVariable('tempP').asType('int_list'),
+      i
+    )
     const e = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('blocks').asType('entity_list'),
-      i
+      piece
     )
     const axis = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('axes').asType('vec3_list'),
       tabId
     )
-    const flags = f.callComposite(gstsTabAxisFlags, { tabId })
-    const hit = f.callComposite(gstsLayerHit, {
-      e,
-      isR: flags.isR,
-      isL: flags.isL,
-      isU: flags.isU,
-      isD: flags.isD,
-      isF: flags.isF,
-      isB: flags.isB
-    }).hit
-    return { e, axis, hit }
+    return { piece, e, axis }
   }
 })
 
-// 转动一块复合（exec）：数据准备 + 命中分支（命中 → 自旋 + 轨道计算 + orbit1 运动器）
+// 转动一块复合（exec，2026-08-20 性能优化）：块事件必为命中块（查表确定，无分支），
+// 直接执行 自旋 + 轨道速度预计算 + 速度存储 + orbit1 运动器（原 doubleBranch 分支删除）
 const gstsTurnBlock = g.defineComposite('gsts_turn_block', {
   inputs: { i: { type: 'int' }, tabId: { type: 'int' }, center: { type: 'vec3' } },
-  outputs: { hit: { type: 'bool' } },
+  outputs: { piece: { type: 'int' } },
   outflows: ['done'],
   build: ({ i, tabId, center }, f) => {
-    const turn = f.callComposite(gstsTurnCheck, { i, tabId })
-    f.doubleBranch(turn.hit, () => {
-      f.callComposite(gstsSpinBlock, { e: turn.e, axis: turn.axis })
-      const v = f.callComposite(gstsOrbitVelocity, { e: turn.e, axis: turn.axis, center })
-      const store = f.callComposite(gstsOrbitStore, {
-        i,
-        vel1: v.vel1,
-        vel2: v.vel2,
-        vel3: v.vel3,
-        vel4: v.vel4,
-        vel5: v.vel5
-      })
-      const m1 = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-        turn.e,
-        new str('orbit1'),
-        new float(0.2),
-        v.vel1
-      ])
-      f.connect(store, 0, m1, 0)
-      f.outflow('done', m1, 0)
-    }, () => {})
-    return { hit: turn.hit }
+    const t = f.callComposite(gstsTurnLookup, { i, tabId })
+    const v = f.callComposite(gstsOrbitVelocity, { e: t.e, axis: t.axis, center })
+    const spin = f.callComposite(gstsSpinBlock, { e: t.e, axis: t.axis })
+    const store = f.callComposite(gstsOrbitStore, {
+      i: t.piece,
+      vel1: v.vel1,
+      vel2: v.vel2
+    })
+    const m1 = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+      t.e,
+      new str('orbit1'),
+      new float(0.15),
+      v.vel1
+    ])
+    f.connect(spin, 0, store, 0)
+    f.connect(store, 0, m1, 0)
+    f.outflow('done', m1, 0)
+    return { piece: t.piece }
   }
 })
 
@@ -776,8 +790,10 @@ const gstsTabLock = g.defineComposite('gsts_tab_lock', {
   }
 })
 
-// 坐标轴比较复合：单轴层判断
-const gstsAxisCompare = g.defineComposite('gsts_axis_compare', {
+// —— 废弃占位复合（保 ID 稳定，勿删；详见 gstsTabAxisFlagsDeprecated 上注释）——
+
+// 坐标轴比较复合（废弃占位，原实现见 git HEAD）
+const gstsAxisCompareDeprecated = g.defineComposite('gsts_axis_compare_deprecated', {
   inputs: { coord: { type: 'float' }, isPos: { type: 'bool' }, isNeg: { type: 'bool' } },
   outputs: { hit: { type: 'bool' } },
   build: ({ coord, isPos, isNeg }, f) => ({
@@ -788,8 +804,8 @@ const gstsAxisCompare = g.defineComposite('gsts_axis_compare', {
   })
 })
 
-// 块层命中复合：位置读取 + 坐标分解 + 层判断
-const gstsLayerHit = g.defineComposite('gsts_layer_hit', {
+// 块层命中复合（废弃占位，原实现见 git HEAD）
+const gstsLayerHitDeprecated = g.defineComposite('gsts_layer_hit_deprecated', {
   inputs: {
     e: { type: 'entity' },
     isR: { type: 'bool' },
@@ -802,7 +818,7 @@ const gstsLayerHit = g.defineComposite('gsts_layer_hit', {
   outputs: { hit: { type: 'bool' } },
   build: ({ e, isR, isL, isU, isD, isF, isB }, f) => {
     const loc = f.getEntityLocationAndRotation(e).location
-    const hit = f.callComposite(gstsInLayer, {
+    const hit = f.callComposite(gstsInLayerDeprecated, {
       x: loc.x,
       y: loc.y,
       z: loc.z,
@@ -817,7 +833,7 @@ const gstsLayerHit = g.defineComposite('gsts_layer_hit', {
   }
 })
 
-const gstsInLayer = g.defineComposite('gsts_in_layer', {
+const gstsInLayerDeprecated = g.defineComposite('gsts_in_layer_deprecated', {
   inputs: {
     x: { type: 'float' },
     y: { type: 'float' },
@@ -833,10 +849,10 @@ const gstsInLayer = g.defineComposite('gsts_in_layer', {
   build: ({ x, y, z, isR, isL, isU, isD, isF, isB }, f) => {
     const hit = f.logicalOrOperation(
       f.logicalOrOperation(
-        f.callComposite(gstsAxisCompare, { coord: x, isPos: isR, isNeg: isL }).hit,
-        f.callComposite(gstsAxisCompare, { coord: y, isPos: isU, isNeg: isD }).hit
+        f.callComposite(gstsAxisCompareDeprecated, { coord: x, isPos: isR, isNeg: isL }).hit,
+        f.callComposite(gstsAxisCompareDeprecated, { coord: y, isPos: isU, isNeg: isD }).hit
       ),
-      f.callComposite(gstsAxisCompare, { coord: z, isPos: isF, isNeg: isB }).hit
+      f.callComposite(gstsAxisCompareDeprecated, { coord: z, isPos: isF, isNeg: isB }).hit
     )
     return { hit }
   }
@@ -854,25 +870,7 @@ const gstsOrbitSegmentDispatch = g.defineComposite('gsts_orbit_segment_dispatch'
           f.getNodeGraphVariable('vels2').asType('vec3_list'), i
         )
         f.callComposite(gstsOrbitSegment, { i, name: new str('orbit2'), vel })
-      },
-      1: () => {
-        const vel = f.getCorrespondingValueFromList(
-          f.getNodeGraphVariable('vels3').asType('vec3_list'), i
-        )
-        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit3'), vel })
-      },
-      2: () => {
-        const vel = f.getCorrespondingValueFromList(
-          f.getNodeGraphVariable('vels4').asType('vec3_list'), i
-        )
-        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit4'), vel })
-      },
-      3: () => {
-        const vel = f.getCorrespondingValueFromList(
-          f.getNodeGraphVariable('vels5').asType('vec3_list'), i
-        )
-        f.callComposite(gstsOrbitSegment, { i, name: new str('orbit5'), vel })
-        // 解锁改由 do_move 的单一 'unlock' 定时器触发（2026-08-18 方案 B，避免逐块 4 次解锁）
+        // 解锁改由 do_move 的单一 'unlock' 定时器触发（2026-08-18 方案 B）
       },
       default: () => {}
     })
@@ -891,7 +889,7 @@ const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
       target,
       tname,
       new bool(false),
-      f.assemblyList([new float(0.2), new float(0.4), new float(0.6), new float(0.8)], 'float')
+      f.assemblyList([new float(0.15)], 'float')
     ])
     f.outflow('done', t, 0)
     return {}
@@ -916,13 +914,22 @@ const gstsOrbitTrigger = g.defineComposite('gsts_orbit_trigger', {
         '6': () => { ef.setNodeGraphVariable('curBlock', new int(6), false); ef.callComposite(gstsOrbitSegmentDispatch, { i: ef.getNodeGraphVariable('curBlock').asType('int'), seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
         '7': () => { ef.setNodeGraphVariable('curBlock', new int(7), false); ef.callComposite(gstsOrbitSegmentDispatch, { i: ef.getNodeGraphVariable('curBlock').asType('int'), seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
         'turnblock': () => {
-          // 块事件：直接用定时器变量 timerSequenceId 作为块索引 i（循环给 i，定时器给 timerSequenceId）
-          // —— 无需按条件展开 8 个分支，单次调用即处理对应块（2026-08-19 用户指正）
+          // 块事件（2026-08-20 性能优化）：timerSequenceId = 槽位 0..3，
+          // 命中块编号由 turn_lookup 查 tempP[slot] 确定（逻辑层表数据，不再位置判断）
           ef.callComposite(gstsTurnOne, { i: evt.timerSequenceId as never, target: evt.eventSourceEntity })
         },
         'unlock': () => {
           // 解锁 + 转动完成钩子（胜利检查 / 队列推进）
           ef.setNodeGraphVariable('lock', false, false)
+          // —— 诊断实验（2026-08-20 渲染偏差定位，验证后移除）——
+          // 打印第一个命中块（tempP[0]）动画完成后的最终位置，对比理论目标反推偏差
+          const dp0 = ef.getCorrespondingValueFromList(ef.getNodeGraphVariable('tempP').asType('int_list'), 0n)
+          const de0 = ef.getCorrespondingValueFromList(ef.getNodeGraphVariable('blocks').asType('entity_list'), dp0)
+          const dlr = ef.getEntityLocationAndRotation(de0)
+          ef.printString('fin-pos')
+          ef.printString(ef.dataTypeConversion(dlr.location.x, 'str'))
+          ef.printString(ef.dataTypeConversion(dlr.location.y, 'str'))
+          ef.printString(ef.dataTypeConversion(dlr.location.z, 'str'))
           ef.callComposite(gstsAfterTurn, { target: evt.eventSourceEntity })
         },
         default: () => {}
@@ -947,9 +954,10 @@ const graph = g
       // —— 逻辑状态层（单一事实源，已还原初始态）——
       cornerPos: [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n], // int_list：位置→块编号
       cornerOrient: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // int_list：位置→朝向 0/1/2
-      tempP: [0n, 0n, 0n, 0n], // int_list：apply 暂存（先读后写防别名覆盖）
+      tempP: [0n, 0n, 0n, 0n], // int_list：apply 暂存（先读后写防别名覆盖）；动画期 = 4 个命中块编号（turn_lookup 查表源）
       tempT: [0n, 0n, 0n, 0n],
       tempQ: [0n], // int_list：write_slot 暂存 q（避免多消费重复求值）
+      turnTimes: [0.03, 0.05, 0.07, 0.09], // float_list：块事件启动时间（do_move 每次随机写入，弹性相位差）
       curMove: new int(0), // 当前 move（块事件触发时读取）
       curBlock: new int(0), // orbit 分支局部变量（复合参数源，避免按常量特化 8 份）
       // —— 2×2 逻辑状态 move 置换表（tools/gen-2x2-logic-table.mjs 生成，CubeLib 验证）——
@@ -970,18 +978,16 @@ const graph = g
       blocks: [entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0)],
       axes: [
         vec3([0, 0, 0]), // index 0 占位（tabId 从 1 开始）
-        vec3([-1, 0, 0]), // 1 R：x+ 层绕 X 负转
-        vec3([1, 0, 0]), // 2 L：x− 层绕 X 正转
+        vec3([1, 0, 0]), // 1 R：x+ 层绕 X 正转（2026-08-20 修正：原 -X 与 tblTo 表方向不符，日志 fin-pos 实证错位）
+        vec3([-1, 0, 0]), // 2 L：x− 层绕 X 负转（同上修正）
         vec3([0, -1, 0]), // 3 U：y+ 层绕 Y 负转
         vec3([0, 1, 0]), // 4 D：y− 层绕 Y 正转
-        vec3([0, 0, -1]), // 5 F：z+ 层绕 Z 负转
-        vec3([0, 0, 1]) // 6 B：z− 层绕 Z 正转
+        vec3([0, 0, 1]), // 5 F：z+ 层绕 Z 正转（同上修正）
+        vec3([0, 0, -1]) // 6 B：z− 层绕 Z 负转（同上修正）
       ],
       vels1: [vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0])],
       vels2: [vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0])],
-      vels3: [vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0])],
-      vels4: [vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0])],
-      vels5: [vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0])]
+
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {

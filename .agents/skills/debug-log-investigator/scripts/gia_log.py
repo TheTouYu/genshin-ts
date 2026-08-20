@@ -4,19 +4,26 @@
 用法:
   gia_log.py <日志.gia> text     # 提取 f22 文本日志（按记录序）
   gia_log.py <日志.gia> records  # 记录概览（大小/级别/实体/图ID/图名/是否含f21）
-  gia_log.py <日志.gia> frames   # f21 帧表（图名/节点名/head/负载/输入输出参数，已解码）
+  gia_log.py <日志.gia> frames   # f21 帧表（图名/完整嵌套节点链/head/负载/输入输出参数，已解码）
+  gia_log.py <日志.gia> perf     # 性能聚合：每记录 帧数/总负载/均负载 + 按节点链统计
+                                 #   真实执行性能 = 单次负载 × 执行次数（热点一目了然）
+                                 #   --compare <日志2.gia> 输出两次会话逐记录帧数/负载对比
   gia_log.py <日志.gia> dump     # 逐帧原始结构 dump（无压缩，供精确核对）
   gia_log.py <日志.gia> latest   # 输出目录下最新 .gia 路径（供管道复用）
 
-可选参数（records/frames）:
+可选参数（records/frames/perf）:
   --gil <map.gil>   加载 GIL 地图索引（图名 + 节点名标注；自动调 dump_gil_index.ts）
-  --rec <n>         只看指定记录号（frames/dump）
-  --graph <id>      只看指定图（frames/dump）
+  --rec <n>         只看指定记录号（frames/dump/perf）
+  --graph <id>      只看指定图（frames/dump/perf）
+  --compare <日志>  对比两份日志逐记录帧数/负载（perf）
 
-说明: frames 默认输出全部含 f21 的记录；帧 head 主帧号 = 图内节点序号（1 字节），
-复合子帧 = {主帧号, impl 节点序号}（2 字节，需 --gil 标注 impl 节点名）。
+说明: frames 默认输出全部含 f21 的记录；帧 head = 调用栈字节序列（主图节点 → 复合
+impl 节点 → 嵌套 impl 节点…），已递归展开为完整节点链（如
+"复合:A > 复合:B > Get Node Graph Variable"）；普通节点处链结束，尾随字节为
+03 主帧 / 04 子帧记录标记（忽略）。
 """
-import sys, struct, glob, os, json, hashlib, subprocess, tempfile
+import sys, struct, glob, os, json, hashlib, subprocess, tempfile, re
+from collections import defaultdict
 
 def read_varint(buf, i):
     v = 0; shift = 0
@@ -262,7 +269,9 @@ def graph_name(graph_id, gil):
 
 
 def node_label(head_hex, graph_id, gil):
-    """帧 head → 节点名。单字节=主图节点；双字节=复合主帧+impl 子节点。"""
+    """帧 head → 完整节点链。head = 调用栈字节序列（每字节一层节点号）：
+    主图节点 → 复合 impl 节点 → 嵌套 impl 节点…；普通节点处链结束，
+    尾随字节（03 主帧 / 04 子帧记录标记）忽略。2026-08-20 从 2 层升级为递归全链。"""
     if not gil:
         return ''
     try:
@@ -272,20 +281,26 @@ def node_label(head_hex, graph_id, gil):
     g = gil['graphs'].get(str(graph_id))
     if not g:
         return ''
-    if len(b) == 1:
-        return g['nodes'].get(str(b[0]), f'n{b[0]}?')
-    main, sub = b[0], b[1]
-    label = g['nodes'].get(str(main), f'n{main}?')
-    m = __import__('re').search(r'\((\d+)\)', label)
-    if m:
+    labels = []
+    graph = g
+    for byte in b:
+        node = graph['nodes'].get(str(byte))
+        if node is None:
+            if labels:
+                break  # 记录标记等尾随字节：链已结束
+            return f'n{byte}?'
+        labels.append(node)
+        m = re.search(r'\((\d+)\)', node)
+        if not m:
+            break  # 普通节点/叶：链结束
         d = gil['defs'].get(m.group(1))
-        if d and d.get('impl'):
-            impl = gil['graphs'].get(str(d['impl']))
-            if impl:
-                sub_label = impl['nodes'].get(str(sub))
-                if sub_label:
-                    return f'{label} > {sub_label}'
-    return f'{label} > sub{sub}'
+        if not d or not d.get('impl'):
+            break
+        nxt = gil['graphs'].get(str(d['impl']))
+        if not nxt:
+            break
+        graph = nxt
+    return ' > '.join(labels)
 
 
 def fmt_param(p):
@@ -389,6 +404,58 @@ def cmd_dump(recs, rec_filter=None):
                 print(f'--- 帧[{i}] ---')
                 for l in dump_show(fr): print(l)
 
+
+def _collect_perf(recs, gil, rec_filter, graph_filter):
+    """逐记录 + 逐节点链聚合：真实执行性能 = 单次负载 × 执行次数。"""
+    rec_stats = {}
+    node_stats = defaultdict(lambda: [0, 0])  # 节点链 -> [次数, 总负载]
+    for ri, r in enumerate(recs):
+        if rec_filter is not None and ri != rec_filter: continue
+        graph = None
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
+            if f == 7:
+                for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
+                    if f2 == 2:
+                        graph = v2 if isinstance(v2, int) else int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
+                continue
+            if f != 21: continue
+            if graph_filter is not None and graph != graph_filter: continue
+            frames = frames_of(x)
+            cnt = len(frames)
+            tot_load = sum(fr[3] or 0 for fr in frames)
+            rec_stats[ri] = (cnt, tot_load)
+            for head, ins, outs, ld in frames:
+                nl = node_label(head, graph, gil)
+                key = nl if nl else f'head={head}'
+                node_stats[key][0] += 1
+                node_stats[key][1] += ld or 0
+    return rec_stats, node_stats
+
+
+def cmd_perf(recs, gil=None, rec_filter=None, graph_filter=None, compare_path=None):
+    """性能聚合视图：一眼看出真实执行性能（= 单次负载 × 次数）。"""
+    rec_stats, node_stats = _collect_perf(recs, gil, rec_filter, graph_filter)
+    print('=== 每记录：帧数 / 总负载 / 均负载 ===')
+    for ri in sorted(rec_stats):
+        cnt, tot_load = rec_stats[ri]
+        avg = f'{tot_load / cnt:.1f}' if cnt else '-'
+        print(f'rec{ri}: 帧={cnt} 负载={tot_load} 均={avg}')
+    print(f'\n=== 节点链性能（单次负载 × 次数 = 真实消耗，按总负载降序 TOP 40）===')
+    print(f'{"次数":>5} {"总负载":>7} {"均负载":>6}  节点链')
+    for node, (cnt, tot_load) in sorted(node_stats.items(), key=lambda kv: -kv[1][1])[:40]:
+        avg = f'{tot_load / cnt:.1f}' if cnt else '-'
+        print(f'{cnt:5d} {tot_load:7d} {avg:>6}  {node[:110]}')
+    if compare_path:
+        cmp_recs = load(compare_path)
+        cmp_stats, _ = _collect_perf(cmp_recs, gil, rec_filter, graph_filter)
+        print(f'\n=== 对比（当前 vs {os.path.basename(compare_path)}，按 rec 对齐）===')
+        print(f'{"rec":>5} {"当前帧":>6} {"对比帧":>6} {"Δ帧":>6} {"当前负载":>8} {"对比负载":>8} {"Δ负载":>8}')
+        for ri in sorted(rec_stats):
+            c1, l1 = rec_stats[ri]
+            c2, l2 = cmp_stats.get(ri, (0, 0))
+            print(f'rec{ri:>2} {c1:6d} {c2:6d} {c2 - c1:6d} {l1:8d} {l2:8d} {l2 - l1:8d}')
+
+
 def cmd_latest(d):
     files = sorted(glob.glob(os.path.join(d, '*.gia')), key=os.path.getmtime)
     print(files[-1] if files else '')
@@ -400,7 +467,7 @@ if __name__ == '__main__':
         cmd_latest(args[1] if len(args) > 1 else
                    '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log')
         sys.exit(0)
-    gil = None; rec_filter = None; graph_filter = None; contains = None
+    gil = None; rec_filter = None; graph_filter = None; contains = None; compare_path = None
     rest = []
     i = 1
     while i < len(args):
@@ -412,6 +479,8 @@ if __name__ == '__main__':
             graph_filter = int(args[i + 1]); i += 2
         elif args[i] == '--contains':
             contains = args[i + 1]; i += 2
+        elif args[i] == '--compare':
+            compare_path = args[i + 1]; i += 2
         else:
             rest.append(args[i]); i += 1
     if not rest: print(__doc__); sys.exit(1)
@@ -421,6 +490,7 @@ if __name__ == '__main__':
     cmd = rest[0]
     if cmd == 'records': cmd_records(recs, gil)
     elif cmd == 'frames': cmd_frames(recs, gil, rec_filter, graph_filter, contains)
+    elif cmd == 'perf': cmd_perf(recs, gil, rec_filter, graph_filter, compare_path)
     elif cmd == 'dump': cmd_dump(recs, rec_filter)
     elif cmd == 'text': cmd_text(recs)
     else:
