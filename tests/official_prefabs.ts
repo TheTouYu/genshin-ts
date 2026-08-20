@@ -38,12 +38,13 @@ assert.equal(officialPrefabName(10005018), '空模型')
 assert.equal(officialPrefabName(123456), undefined)
 
 // 静态元件骨架：来自用户“动态→静态”转换真实样本（after-convert-10009008-static.gil，
-// root8 实例 1077936140，resID 10009008），保留内嵌变换、无 f7 组件槽。
+// root8 实例 1077936140，resID 10009008），无 f7 组件槽。
+// transform 用样本原始位置（float32 精确还原骨架内嵌值），可逐字节还原样本记录。
 const staticRecord = buildStaticPrefabRecord({
   id: 1077936140,
   resourceId: 10009008,
   name: '圆柱',
-  transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] }
+  transform: { position: [5.1272, 0, -6.2], rotation: [0, 0, 0], scale: [1, 1, 1] }
 })
 assert.equal(staticRecord.length, 409)
 
