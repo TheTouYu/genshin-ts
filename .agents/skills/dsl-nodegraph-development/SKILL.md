@@ -57,6 +57,9 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 - **预算检查命令（可复用）**：`gsts assets:node-graphs nodes --gil map.gil [--json]`
   ——输出所有 impl 展开之和、主图展开、最大贡献者排序、是否达标；`--json` 供脚本消费。
   （原语：`src/cli/static_assembly/graph_edit.ts` 的 `compositeNodeBudget`）
+- **指标口径**：`implTotal` 是“每个 impl 图递归展开之和”，会重复计算共享复合，往往大于实际物理节点；
+  `--json` 里 `graphs[].direct` 求和才是唯一物理节点数。优化时两个都看：先保证 implTotal <3000，
+  再关注 direct 总和（2026-08-20 魔方：direct 551→491，implTotal 3138→2909）。
 - **膨胀模式 1：函数内联 × 分支**——helper 被 N 分支调用 → N 份展开（如 orbit_trigger 8 turnblock 分支 = 8×turn_one）。
 - **膨胀模式 2：变量代替条件展开（2026-08-19 用户方法论）**——"循环/定时器能给 i，就别按条件展开复合"：
   - 有规律（如块索引 0-7）：直接传变量——定时器用 `evt.timerSequenceId` 当 `i` 单次调用（8 分支→1 调用，

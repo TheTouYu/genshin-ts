@@ -59,6 +59,8 @@
 
 - 文件里的转义（如 R<K> 反斜杠）、全角标点、反斜杠都要一致——先 tools.read 拿精确文本
   再 edit；edit 前必须先 read（fs-observation-policy 要求）。
+- 反复不匹配时用 `cat -A` 或 python `repr(line)` 看真实空格/制表符，不要只看编辑器的缩进显示；
+  本项目源码统一 2 空格缩进（2026-08-20 魔方优化轮：str_replace 因 4/2 空格假设错位失败多次）。
 
 ### A9. 沙箱写保护与审批
 
