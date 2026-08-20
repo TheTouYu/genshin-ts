@@ -48,6 +48,14 @@ const ROT = {
 const MOVE_IDS = { R: 1, L: 2, U: 3, D: 4, F: 5, B: 6 }
 const MOVE_NAMES = ['', 'R', 'L', 'U', 'D', 'F', 'B']
 
+// 整体转向：不是面转，而是全部 8 个角块的刚体旋转。
+// wholeX = 绕世界 X 轴 -90°，wholeY = 绕世界 Y 轴 -90°；连续三次即反向。
+// 它们与 R/L/U/D/F/B 使用同一位置+贴纸朝向编码，供严格模板对齐和自动求解使用。
+const WHOLE_ROT = {
+  wholeX: ROT.R,
+  wholeY: ROT.U
+}
+
 // slot 方向：slot0 = U/D 面(Y)，slot1 = Z 面(F/B)，slot2 = X 面(R/L)
 function slotDir(p, t) {
   if (t === 0) return [0, p.y, 0]
@@ -88,6 +96,20 @@ function computeMove(move) {
   return { move, fromPos, toPos, twistMap }
 }
 
+function computeWholeTransform(name) {
+  const rot = WHOLE_ROT[name]
+  const fromPos = POS.map((p) => p.id)
+  const toPos = POS.map((p) => {
+    const next = rot([p.x, p.y, p.z])
+    return POS.find((q) => q.x === next[0] && q.y === next[1] && q.z === next[2]).id
+  })
+  const twistMap = POS.map((p, index) => {
+    const target = posById[toPos[index]]
+    return [0, 1, 2].map((twist) => dirSlot(target, rot(slotDir(p, twist))))
+  })
+  return { name, fromPos, toPos, twistMap }
+}
+
 // 环排序：按从层轴正方向看顺时针（右手法则的旋转方向 = 负方向旋转）
 // 做法：对层内 4 个角位，按绕层轴的方位角排序
 function sortRing(ps, move) {
@@ -108,6 +130,8 @@ function sortRing(ps, move) {
 
 const tables = {}
 for (const m of MOVE_NAMES.slice(1)) tables[m] = computeMove(m)
+const wholeTransforms = {}
+for (const name of Object.keys(WHOLE_ROT)) wholeTransforms[name] = computeWholeTransform(name)
 
 // ---------------------------------------------------------------- 校验
 function check(cond, msg) {
@@ -189,7 +213,38 @@ for (const m of MOVE_NAMES.slice(1)) {
   check(a.samePos(b), m + ' nondeterministic')
 }
 
-// 3) CubeLib 交叉验证（原型 web-prototype/js/cube.js，CJS 导出）
+// 3) 整体旋转校验：每轴四次回原态，X/Y 组合恰好覆盖 24 个立方体整体朝向。
+function applyTransform(state, transform) {
+  const pos = state.pos.slice()
+  const tw = state.tw.slice()
+  for (let slot = 0; slot < transform.fromPos.length; slot++) {
+    const from = transform.fromPos[slot]
+    const to = transform.toPos[slot]
+    state.pos[to] = pos[from]
+    state.tw[to] = transform.twistMap[slot][tw[from]]
+  }
+}
+for (const transform of Object.values(wholeTransforms)) {
+  const state = new Sim()
+  for (let i = 0; i < 4; i++) applyTransform(state, transform)
+  check(state.solved(), transform.name + '^4 != identity')
+}
+const orientationKeys = new Set()
+const frontier = [new Sim()]
+while (frontier.length) {
+  const state = frontier.pop()
+  const key = state.pos.join(',') + '|' + state.tw.join(',')
+  if (orientationKeys.has(key)) continue
+  orientationKeys.add(key)
+  for (const transform of Object.values(wholeTransforms)) {
+    const next = { pos: state.pos.slice(), tw: state.tw.slice() }
+    applyTransform(next, transform)
+    frontier.push(next)
+  }
+}
+check(orientationKeys.size === 24, 'whole X/Y orientations expected 24, got ' + orientationKeys.size)
+
+// 4) CubeLib 交叉验证（原型 web-prototype/js/cube.js，CJS 导出）
 let cubeLib = null
 try {
   cubeLib = require(join(__dirname, '../../../../test/flash-思维链+jspace/魔方/web-prototype/js/cube.js'))
@@ -238,9 +293,13 @@ if (cubeLib) {
 }
 
 // ---------------------------------------------------------------- 输出
-const out = { comment: '2×2 逻辑状态 move 置换表（生成器 gen-2x2-logic-table.mjs 产出）', tables }
+const out = {
+  comment: '2×2 逻辑状态面转与整体转向表（生成器 gen-2x2-logic-table.mjs 产出）',
+  tables,
+  wholeTransforms
+}
 writeFileSync(join(__dirname, '2x2-logic-tables.json'), JSON.stringify(out, null, 2) + '\n')
-console.log('已写入 tools/2x2-logic-tables.json')
+console.log('已写入 tools/2x2-logic-tables.json（含 2 个整体转向）')
 
 // TS 字面量片段（供 game.ts 图变量 dict 初始值使用；值用 new int() 确保 dict<int,int>）
 function tsDict(entries) {
@@ -258,8 +317,12 @@ for (const m of MOVE_NAMES.slice(1)) {
     for (let tw = 0; tw < 3; tw++) twistEntries.push([mid * 12 + s * 3 + tw, t.twistMap[s][tw]])
   }
 }
+const wholeFrom = wholeTransformsList('fromPos')
+const wholeTo = wholeTransformsList('toPos')
+const wholeTwist = wholeTransformsList('twistMap').flat()
+const tsList = (values) => values.map((v) => `${v}n`).join(', ')
 const snippet = `// 由 tools/gen-2x2-logic-table.mjs 生成（CubeLib 交叉验证通过）——勿手改
-      // key = moveId*4+slot（from/to）或 moveId*12+slot*3+twist（twistMap）
+      // 面转 key = moveId*4+slot / moveId*12+slot*3+twist
       tblFrom: dict([
       ${tsDict(fromEntries)}
       ]),
@@ -268,7 +331,16 @@ const snippet = `// 由 tools/gen-2x2-logic-table.mjs 生成（CubeLib 交叉验
       ]),
       tblTwist: dict([
       ${tsDict(twistEntries)}
-      ])`
+      ]),
+      // 整体转 transformId=0/1：from/to = id*8+slot，twist = id*24+slot*3+twist
+      wholeFrom: [${tsList(wholeFrom)}],
+      wholeTo: [${tsList(wholeTo)}],
+      wholeTwist: [${tsList(wholeTwist)}]`
+
+function wholeTransformsList(field) {
+  return Object.values(wholeTransforms).flatMap((transform) => transform[field])
+}
 writeFileSync(join(__dirname, '2x2-logic-tables.fragment.ts'), snippet + '\n')
 console.log('\n已写入 tools/2x2-logic-tables.fragment.ts（TS 片段，供 game.ts 使用）')
+console.log('整体转向表:', JSON.stringify(wholeTransforms))
 console.log('\n===== TS 片段 =====\n' + snippet + '\n====================')

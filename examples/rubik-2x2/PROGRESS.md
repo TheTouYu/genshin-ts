@@ -342,3 +342,19 @@
   apply_move 逻辑链 5904 帧×6414（待方案 C）、turn_block 计算链 161×5522。
 - **待办**：方案 C（apply_move 变量 get 合并）、注入器残留治本（open-items O5）、
   Target-Oriented(520) 参数语义验证。
+
+## 变更记录 2026-08-20（✅ 整体旋转 + unlock 断链修复 + 性能/节点优化）
+
+- **整体旋转功能**：新增 tab 10/11（整体翻转/整体转向 = 整体 X/Y 转），8 块刚体旋转；
+  新增 `wholeFrom/wholeTo/wholeTwist` 逻辑表（生成器 + verify 校验通过，四次闭合、混合逆序 100 组 PASS）。
+- **断链修复**：`gstsTurnOne` 声明 `outflows:['done']` 但未 `f.outflow('done', ...)`，
+  导致 turnblock 回调中 `isLast`/`unlock` 永不执行 → lock 卡 true、第二次操作无响应。
+  修复后面转与整体转均正常连续操作（用户游戏核验通过）。
+- **性能优化（已注入并核验）**：
+  - 移除 `fin-pos` 诊断打印与 `whenCustomVariableChanges` 调试监听；
+  - `gstsLogicIsSolved` 目标表改字面量比较（-18 节点，每次 afterTurn 收益）；
+  - `gstsLogicApplyWhole` 去掉恒等表 `wholeFrom` 读取（-25 节点/整体转）。
+  - 实测：整体转主事件 793→697 帧、1429→1152 负载；unlock/afterTurn 116→65 帧、217→104 负载。
+- **节点预算**：impl 展开 3138 → 2909（达标 <3000）；主图展开 1389→1279；直接节点 551→491。
+- **规则沉淀**：dsl-nodegraph-development 技能补充「声明 done 必须显式 outflow」与
+  「常量/恒等表直接字面量/槽位，不要变量读」两条。

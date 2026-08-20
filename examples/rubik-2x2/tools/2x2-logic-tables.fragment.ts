@@ -1,5 +1,5 @@
 // 由 tools/gen-2x2-logic-table.mjs 生成（CubeLib 交叉验证通过）——勿手改
-      // key = moveId*4+slot（from/to）或 moveId*12+slot*3+twist（twistMap）
+      // 面转 key = moveId*4+slot / moveId*12+slot*3+twist
       tblFrom: dict([
       { k: 4, v: new int(7) },
       { k: 5, v: new int(3) },
@@ -125,4 +125,8 @@
       { k: 81, v: new int(2) },
       { k: 82, v: new int(1) },
       { k: 83, v: new int(0) }
-      ])
+      ]),
+      // 整体转 transformId=0/1：from/to = id*8+slot，twist = id*24+slot*3+twist
+      wholeFrom: [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n],
+      wholeTo: [4n, 5n, 0n, 1n, 6n, 7n, 2n, 3n, 1n, 3n, 0n, 2n, 5n, 7n, 4n, 6n],
+      wholeTwist: [1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n]

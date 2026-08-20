@@ -49,7 +49,8 @@ MICRO_PATCH = [0.38, 0.01, 0.38]  # 微块薄片尺寸（用户 2026-08-12 手�
 MICRO_GAP = 0.01                 # 薄片外贴间隙（SKILL 规律 0.005~0.01）
 # 偏移公式：装饰物即主体 → 表面 = 块中心 + 块半长（0.23+0.22=0.45），再 + 半厚 + 间隙
 MICRO_OFFSET = MICRO_C + MICRO / 2 + MICRO_PATCH[1] / 2 + MICRO_GAP
-OPTIONS = ['R', 'L', 'U', 'D', 'F', 'B']
+# 1-9 保持现有动作编号；整体 X/Y 旋转为 10/11，便于回到右侧小模板的严格朝向。
+OPTIONS = ['R', 'L', 'U', 'D', 'F', 'B', '打乱', '自动复原', '重置', '整体翻转', '整体转向']
 OUT = 'examples/rubik-2x2/assets/plans/controller-config.mjs'
 
 

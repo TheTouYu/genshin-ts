@@ -54,5 +54,10 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 1000001
    */
-  '默认模版(角色编辑)': 1090519041
+  '默认模版(角色编辑)': 1090519041,
+
+  /**
+   * Based on prefabId 10005108
+   */
+  圆形水体: 1077936138
 }

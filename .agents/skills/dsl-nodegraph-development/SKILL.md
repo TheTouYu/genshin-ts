@@ -66,6 +66,9 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 - **循环体只物化 1 次**：finite_loop 循环体 1 份（2400→240 节点，P4 实证）。
 - **capture 字典机制**：每个 setTimeout 回调的捕获变量 = set_or_add + get_corresponding 链（~6 节点/回调）；
   回调越多越贵。
+- **常量/恒等表直接字面量/槽位，不要用变量读**（2026-08-20 魔方优化实证）：`wholeFrom` 恒为 identity、
+  `targetPos/targetOrient` 恒为初始态，改成字面量比较/直接用 slot 后 implTotal 3138→2909（达标），
+  并顺带移除诊断 print/事件监听。每次“表是常量”都先确认是否真的需要变量读。
 - 节点统计脚本：`node -e "读 dist/**/*.json，统计 nodes 类型分布"`（IR 是数组格式，取 docs[0].nodes）。
 
 ## 值类型与 capture 限制
@@ -92,6 +95,7 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
   `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route`。
   正确写法：入口 → 普通节点（f.link 或分支回调），后续复合调用用 f.connect(前置, 0, 复合调用, 0) 显式链
   （connect 会去重裸边）；首个 exec 复合若直接跟在入口后，靠 auto-chain 即可，不要额外 link。
+- **声明了 `outflows: ['done']` 的 exec 复合必须显式 `f.outflow('done', 链尾, 0)`**：否则被调用方把该复合当作链中一环时，done 永不触发，后续节点零帧（2026-08-20 魔方整体转/面转：turnblock 回调里 unlock 定时器永不注册，lock 卡 true、第二次操作无响应）。
 - 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
 - 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。
 - 价值：复用型（多处调用）+ 封装型（单次但职责清晰）；通用型复合（比较/数学扩展）是跨项目资产。
