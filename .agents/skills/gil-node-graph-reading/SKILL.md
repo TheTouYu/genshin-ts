@@ -122,6 +122,33 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
 读图自检发现问题 → 直接修（不浪费用户测试轮次）；读图技能覆盖面不足无法定位 →
 记录技能缺口（覆盖范围、缺什么），再查 debug-log-investigator 日志。
 
+### Step 3.6 编写后二次核验（新写节点图编译注入后，2026-08-20 用户要求，勿跳）
+
+**刚写的 DSL 编译注入 ≠ 生成的图正确**——API 写法（连接/参数/引脚）和编译器 bug
+（节点爆炸/漏节点/捕获错误）都要靠读回真实图核验，尽早发现，不浪费用户游戏测试轮次。
+顺序：`decode-gia.ts 解码 .gia` → 注入 → `list-gil-node-graphs 全景` → `explain 人读式核对` → 定点检查。
+
+1. **.gia 解码核预期**（注入前）：`tools/decode-gia.ts <file.gia>` —— 复合 def 集合（accessories
+   which=12 的名字列表）、主图节点/连线、compositePins——核对"我写了 N 个复合、M 条逻辑"都生成；
+   节点数异常（膨胀）在这里就看出来。
+2. **注入后全景**：`tools/list-gil-node-graphs.ts <地图.gil>`——目标图存在、图名被替换为
+   `_GSTS_<gia基名>`、节点数 > 0。
+3. **人读式核对**：`tools/explain-gil-node-graph.ts --graph <名> --composite <名>`——按
+   "写的逻辑"逐条核对：事件入口挂对（whenXxx）、分支结构、复合调用展开、关键参数值在位。
+4. **定点检查**（每项都有对应工具）：
+   - 节点预算：`gsts assets:node-graphs nodes --gil <map>`（implTotal < 3000；膨胀在此暴露）
+   - 信号 pin：`tools/scan-gil-signals.ts`（send/monitor/server 编号与注册表一致）
+   - 变量 pin：`tools/scan-gil-var-pins.ts`（Get/Set 变量名 pin 完整）
+   - 复合引用：`tools/check-gil-composite-refs.ts --incoming <本次.gia>`（0 悬空 + 残留覆盖）
+   - 布局 lint：`gsts assets:node-graphs layout --check`
+5. **典型问题信号**：
+   - API 写法：预期节点/连线缺失、参数值错、复合调用展开数与预期不符、compile 期
+     `duplicate physical route`（exec 链显式 link 复合调用）
+   - 编译器 bug：节点爆炸（函数内联×分支/常量当变量读）、capture 链异常、值类型错、
+     丢边（.gia 有边 .gil 丢边——注入器按 CompositeDef 裁剪调用点引脚）
+
+核验通过才交用户游戏测试；发现问题直接修（改 DSL 或改注入器），不猜测。
+
 ### Step 4 数据流定点（查具体节点参数来源）
 ```bash
 npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --all-inputs

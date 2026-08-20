@@ -150,6 +150,15 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 > 编写 DSL 细节（受限子集/值类型/capture 限制/常见错误）→ `dsl-nodegraph-development`；
 > 日志逐帧性能分析 → `debug-log-investigator` 的 perf 子命令。
 
+### 编写后二次核验（2026-08-20 用户要求，防 API 写法/编译器 bug）
+
+**写完 DSL → 编译注入后，先用读图技能核验生成的图，再交用户游戏测试**（核验细节与工具清单见
+`gil-node-graph-reading` Step 3.6）。顺序：decode-gia 解码核预期（复合 def/节点数）→ 注入 →
+list-gil-node-graphs 全景（图名 _GSTS_/节点数）→ explain 人读式逐条核对写的逻辑 →
+定点检查（`nodes` 预算 / `scan-gil-signals` pin / `scan-gil-var-pins` / `check-gil-composite-refs` /
+layout lint）。典型问题：API 写法（连线/参数/引脚错、duplicate physical route）与编译器 bug
+（节点爆炸、漏节点、capture 异常、丢边）——核验通过才进游戏，发现问题直接修不猜测。
+
 ### 复合节点编写（2026-08-14 方法论沉淀——重要技能）
 
 - **原则：能做成复合节点的，一定往这个方向靠**——即使未被别处使用也不亏（布局清晰），
