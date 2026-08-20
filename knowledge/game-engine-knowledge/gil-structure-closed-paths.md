@@ -37,3 +37,15 @@ root27.f2 instance-side aux 的 f12={f1:宿主ID}，宿主为 definition ID 或�
 2026-08-10 前文档标记 INSUFFICIENT；现由 1073741862 真实地图解码 + 1073741878 游戏核验闭合；覆盖当前编辑器版本（v21 产物），不证明其他版本。
 
 <!-- CLAIM:END clm_C9B4B93B4DBE45BABAE487EC44 -->
+
+<!-- CLAIM:START clm_BEF0A24D1A5CA2F3D2CA1906BC -->
+
+### 装饰物（root27 aux）wire 与挂载
+
+root27 = def-side（f1 字段，f3=1）与 inst-side（f2 字段，f12 回链 def）aux；宿主 f5/f6 槽40.f50.f501 packed 引用挂载（定义挂 def aux、模型/实体挂 inst aux）；aux f4 槽40.f50.f502 = 宿主 ID（关键引用）。静态装饰物只有 inst 且 f12 空（资源性质差异，wire 无标记）。
+
+#### 适用边界
+
+样本 after-user-aux-both/after-prefab-with-aux/after-entity-aux-user；CLI assets:aux attach。
+
+<!-- CLAIM:END clm_BEF0A24D1A5CA2F3D2CA1906BC -->

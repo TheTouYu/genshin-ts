@@ -112,3 +112,15 @@ src/cli/static_assembly/football_geometry.ts 提供确定性截角二十面体�
 仅静态 GIL 元件装配（assets:static-assemblies 生成器几何）；薄片厚度 0.01、间隙 0.01 为 rubik-2x2 控制器 2026-08-13 用户游戏核验通过的实测值；用户编辑器手动修正值 0.454/0.449/0.455 作为权威证据；不适用于运行时动态创建。
 
 <!-- CLAIM:END clm_6C67D5B49095C7CC9D3FD8DBEE -->
+
+<!-- CLAIM:START clm_B9322D0BC71B355356F7DFA561 -->
+
+### transform 编码（位置稀疏/旋转稀疏/缩放全量）
+
+transform 槽 = {f1 位置 fixed32 稀疏（0 省略）、f2 旋转欧拉角 fixed32 稀疏、f3 缩放 fixed32 全量、f501:-1}；静态与动态记录同构。CLI setTransform 编码与编辑器逐字节一致。
+
+#### 适用边界
+
+样本 after-entity-transform.gil（球体实体移动/缩放/旋转）；旋转 Y 轴 90° 编码 {f2:90}。
+
+<!-- CLAIM:END clm_B9322D0BC71B355356F7DFA561 -->
