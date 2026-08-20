@@ -529,6 +529,21 @@
       ]
     },
     {
+      "id": "aref_1b2579f5972c1d03763418d54f",
+      "path": "src/cli/official_prefabs.ts",
+      "locator": "setTransform",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "e1e3f9427b89bfe6ad70f7cd6aab8471379819f32e9e5353295b70237f64eca7",
+      "claim_ids": [
+        "clm_B9322D0BC71B355356F7DFA561"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_1be1e977b27fb024b1deedddcc",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
       "locator": "v19 战役灯柱实体消失（'变更消失'教训源头）",
@@ -1066,6 +1081,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_3518aa166812f7c1e6ebfb194b",
+      "path": "src/cli/gil_aux.ts",
+      "locator": "attachAuxiliary",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "45c06172239fa552e5108c6e1de9d6ac8c894f32eeceba75dcfbbeb57a0ab031",
+      "claim_ids": [
+        "clm_BEF0A24D1A5CA2F3D2CA1906BC"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -1879,6 +1909,21 @@
       ]
     },
     {
+      "id": "aref_59dedb0f935668a36ba8ac426c",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "概念语义（2026-08-20 用户澄清，核心）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "06bb78ebd97a496b7b0cb33e3454a371bd5708998187e2a73fed7058ea71cea6",
+      "claim_ids": [
+        "clm_01E3088B1E55DAB3E5FCC7103D"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_5a4d9fa1eefc0a51c04e823a39",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "功能 → 阵营/单位标签/实体布设组/负载优化/数据复制粘贴/特化配置",
@@ -2088,6 +2133,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_609a61758465cca31e0465b52d",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "装饰物（root 27 aux",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "06bb78ebd97a496b7b0cb33e3454a371bd5708998187e2a73fed7058ea71cea6",
+      "claim_ids": [
+        "clm_BEF0A24D1A5CA2F3D2CA1906BC"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -4479,6 +4539,21 @@
       ]
     },
     {
+      "id": "aref_e0c6639a0b11030e37a7368876",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "transform 编码",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "06bb78ebd97a496b7b0cb33e3454a371bd5708998187e2a73fed7058ea71cea6",
+      "claim_ids": [
+        "clm_B9322D0BC71B355356F7DFA561"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_e1112103882bfdae6b2aa904ef",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "编辑器行为（v22-v48 逐轮单变化实测）",
@@ -4764,6 +4839,21 @@
       ]
     },
     {
+      "id": "aref_eb9965a9c021a37c15fadd0759",
+      "path": "src/cli/gil_prefabs.ts",
+      "locator": "convertPrefabStatic",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "e94323e032a28a1da5cdcf9cb63da928a11d301f5060681d78c09bd215c17aba",
+      "claim_ids": [
+        "clm_D68D1E5F559964FD1512BB0E6A"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_ed4923d5b5291ada326dcd22e8",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "GIL 根与 GIA Root 的边界；锁定快照 SHA-256、root wire 统计与直接解码冲突",
@@ -4971,6 +5061,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_fa76a0d690278382f908972df1",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "静态元件（2026-08-20 七个真实样本）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "06bb78ebd97a496b7b0cb33e3454a371bd5708998187e2a73fed7058ea71cea6",
+      "claim_ids": [
+        "clm_D68D1E5F559964FD1512BB0E6A"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {

@@ -2815,6 +2815,29 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_D68D1E5F559964FD1512BB0E6A": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    "clm_01E3088B1E55DAB3E5FCC7103D": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_B9322D0BC71B355356F7DFA561": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    "clm_BEF0A24D1A5CA2F3D2CA1906BC": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
     }
   }
 }
