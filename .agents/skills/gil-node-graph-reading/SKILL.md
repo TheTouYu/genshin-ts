@@ -10,8 +10,11 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 目标是让模型**像读本地代码一样**读懂游戏关卡里真人写的节点图：事件入口是什么、每条执行链做什么、
 分支条件数据从哪来、复合节点内部怎么写、嵌套多深都能追完。工具全是只读分析器，不修改任何图文件。
 
-适用素材：真实关卡 `.gil` 文件（含主图 + 复合 impl 图），以及编译器生成的 `.gia`。
-工具链细节见 `docs/gia-tools-reference.md`；引擎规则知识见 `docs/game-engine-knowledge/`（按需取用）。
+适用素材：真实关卡 `.gil` 文件（含主图 + 复合 impl 图）。编译器生成的 `.gia` 产物**不是**本技能
+工具链的输入（`explain/parse/list/scan` 等只接受 GIL 地图格式；2026-08-20 实测对 .gia 报"未找到节点图"）——
+验证编译产物 `.gia` 用项目根 `tools/decode-gia.ts`（配 jq，输出 accessories[复合def]+graph[主图]，详见其文件头 jq 速查）；
+`.gia` 注入到地图后才用本技能工具链读注入结果。工具链细节见 `docs/gia-tools-reference.md`；
+引擎规则知识见 `docs/game-engine-knowledge/`（按需取用）。
 
 ## 工具链速查
 
@@ -27,6 +30,8 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `gsts assets:node-graphs layout --check` | 布局 lint：读图并报告违规（flow-upward/backward、chain-vertical、long-chain、block-order、line-align、data-detached、data-chain-long、island、overlap） | `--gil <地图> --graph <id>` |
 | `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代）；复合分类读取 | `--gil <地图> --graph <id> [--node <n>]`；分类：`[--category <名>]` 过滤、`--composite <id>` 详情含分类、`--json` 带 category |
 | `tools/scan-gil-var-pins.ts` | 变量类节点（Get/Set Custom/Node Graph Variable）变量名 pin 完整性扫描——**交付候选前必跑**（2026-08-12 split2 复盘新增） | `<地图.gil> [--graph <id>] [--json] [--list-names]` |
+| `tools/check-gil-composite-refs.ts` | **全量复合引用完整性**：impl 图引用复合 ID 0 悬空；`--incoming <本次.gia>` 检测残留 def 引用被注入覆盖（类型错位事故模式）——**注入后必跑**（2026-08-20 新增） | `<地图.gil> [--incoming <game.gia>] [--json]` |
+| `tools/decode-gia.ts`（项目根） | **编译产物 `.gia` 解码**（accessories 复合 def + graph 主图 + compositePins；配 jq 查询）——验证 .gia 用这个，不用本技能其他工具 | `<file.gia> 2>/dev/null \| jq '[.accessories[] \| select(.which==12).name]'` |
 
 运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。
 
@@ -101,6 +106,12 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
 **修改生产代码（编译/注入后）的第一件事是读图自检，通过后才交用户游戏测试。**
 编译产物 .gia 正确 ≠ 注入后 .gil 正确（#20b/#20c 实证：.gia 有边、.gil 丢边——
 注入器按 CompositeDef 接口裁剪调用点引脚）。自检清单：
+- **全量复合引用完整性（2026-08-20 注入事故后必跑）**：`npx tsx tools/check-gil-composite-refs.ts <地图.gil> --incoming <本次.gia>`——
+  校验每个复合 impl 图引用的复合 ID 存在（0 悬空）+ 残留 def 引用被本次注入覆盖的 ID（类型错位事故模式）。
+  注入器 merge 复合定义只覆盖同 ID、**不删除地图残留旧 def**；残留 def（如 gsts_in_layer）引用被覆盖的
+  ID 会类型错位 → 游戏拒载（无日志）。删除/新增复合会改变后续复合 ID（defineComposite 按定义顺序分配），
+  所以**每轮注入后必须全量对比 def 集合**（dump_gil_index 或本工具），不能只看关键复合。
+  工具局限：连续注入的残留（引用更早注入的覆盖物）可能逃逸 → 残留 def 用 `explain --composite` 人工核对接口。
 - 复合接口完整性：被调用复合（尤其被 MB 分支调用的）必须有 `inflows` 非空
   （混合复合=调用流+事件节点，如 orbit_segment 有 whenCustomVariableChanges + done
   outflow，必须有 InFlow 入口；纯事件复合如 trigger 接口全空是正常的）

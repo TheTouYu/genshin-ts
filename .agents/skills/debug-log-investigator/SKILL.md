@@ -27,10 +27,11 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 |---|---|
 | `scripts/gia_log.py <日志.gia> text` | 提取 f22 文本日志（按记录序，验证打印顺序） |
 | `scripts/gia_log.py <日志.gia> records` | 记录概览（进程号/会话/实体/**图名**/f21 大小）；`--gil <地图.gil>` 标注图名、`--graph <id>` 过滤 |
-| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**标注节点名与图名**）；`--gil`/`--rec <n>`/`--graph <id>`/`--contains <文本>` 过滤（2026-08-19 升级：**wire 列表值直接解码**为 `[0, 0.05, ...]`/`[0,1,2,...]`，免 hex 二次解析；`--contains` 免管道 grep） |
+| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**节点名标注完整嵌套复合链**，如 `复合:A > 复合:B > 节点X`）；`--gil`/`--rec <n>`/`--graph <id>`/`--contains <文本>` 过滤（2026-08-19 升级：wire 列表值直接解码；2026-08-20 升级：head 递归解析全链，不再只显示 2 层） |
+| `scripts/gia_log.py <日志.gia> perf` | **性能聚合视图（2026-08-20 新增）**：每记录 帧数/总负载/均负载 + 节点链 TOP（**真实执行性能 = 单次负载 × 次数**，按总负载降序，热点一目了然）；`--compare <日志2.gia>` 输出两次会话逐记录帧数/负载对比（优化前后量化） |
 | `scripts/gia_log.py <日志.gia> dump` | 逐帧原始结构 dump（无压缩，精确核对用） |
 | `scripts/gia_log.py latest` | 输出日志目录下最新 .gia 路径 |
-| `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存） |
+| `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存）。**仅支持 .gil 地图**；编译产物 .gia 验证用项目根 `tools/decode-gia.ts` |
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
@@ -177,6 +178,26 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
    - 帧模式 → 节点 ID 表（节点定义查询流程见 gil-node-graph-editing 技能"节点 ID / 名称查询速查"）
 7. **用户面板核对**：请用户从游戏面板提供节点名/参数名/负载，逐项对照（参数名如"实体"、"guid"、"变量名字"、"是否触发事件"）
 8. **沉淀**：新发现 → 更新 `debug-log-format.md` + 本技能速查 + manifest（`~/genshin-ts-evidence/debug-log/format-investigation/notes/manifest.md`）
+
+## 性能分析 playbook（2026-08-20 魔方性能优化实证，复用标准命令）
+
+目标：量化"每次操作/每 tick 的真实执行性能 = **单次负载 × 执行次数**"，定位热点。**首选 `perf` 子命令**（一步到位）：
+
+1. **会话全景 + 热点聚合（首选）**：
+   ```bash
+   gia_log.py <日志.gia> perf --gil <地图.gil> --compare <优化前.gia> 2>/dev/null
+   ```
+   输出：①每记录 帧数/总负载/均负载（找大记录与重复模式：~380=点击、~230=块事件、~14=段事件）②节点链 TOP
+   （次数 × 总负载，**一眼看出真实热点**——段事件运动器 64 次×2354 居首即此类）③`--compare` 逐记录 Δ 帧/Δ 负载。
+2. **单记录帧明细（需要具体值/时序时）**：`frames --gil <地图> --rec <n>`——帧已标注**完整嵌套节点链**
+   （`复合:A > 复合:B > 节点X`），配合 `--contains <节点名>` 定点过滤；load= 字段看单帧负载。
+3. **一次完整操作帧预算**：perf 每记录帧数求和（如 380 点击 + 4×216 块事件 + 16×14 段事件 + 65 after_turn ≈ 1533）；
+   优化前后同操作对比（perf --compare 直接给 Δ）即量化收益。
+
+**典型热点形态**（优化目标模板）：
+①复杂链输出被 ≥2 处消费 → **物化到变量**（set 后 get 读回）只付读变量负载（魔方 vel1 实证：块事件 -14 帧/事件）；
+②事件回调里对每个候选实体做位置读取+层判断 → 改逻辑层表数据直接确定命中（turn_lookup 改造）；
+③简单节点（GetVar load=2）被多处消费 → 共享引用只减节点**不减负载**（exec 链实测无效，纯数据复合有效）。
 
 ## 受控实验流程（破译新规则）
 

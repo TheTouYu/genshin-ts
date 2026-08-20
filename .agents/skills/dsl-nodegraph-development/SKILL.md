@@ -84,9 +84,27 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 ## 复合节点编写（2026-08-14 方法论，详见 game-from-scratch/references/composite-authoring.md）
 
 - 调用：f.callComposite(handle, { 输入名: 值 })；多输出 res.输出名；嵌套/循环内可调用。
+- **exec 链链接规则（2026-08-20 性能优化实证，勿踩）**：复合内部**入口链首必须是普通 exec 节点**
+  （set_list_value / double_branch / destroy_entity 等），复合调用只作**链中/链尾目标**——
+  exec 复合调用注册时会 auto-chain（runCompositeCall 单 outflow 尾部把 tail 推进到该 marker），
+  **不要再对复合调用 `f.link(f.entry(), 0, 复合调用, 0)`**：显式 link 记对象边 + auto-chain 记裸边
+  → compositePins 出现两条相同 InFlow 物理路由 → 编译报
+  `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route`。
+  正确写法：入口 → 普通节点（f.link 或分支回调），后续复合调用用 f.connect(前置, 0, 复合调用, 0) 显式链
+  （connect 会去重裸边）；首个 exec 复合若直接跟在入口后，靠 auto-chain 即可，不要额外 link。
 - 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
 - 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。
 - 价值：复用型（多处调用）+ 封装型（单次但职责清晰）；通用型复合（比较/数学扩展）是跨项目资产。
+- **复合生命周期管理（2026-08-20 注入事故教训）**：
+  - **改名 / 改内部实现 = 安全**：defineComposite 按定义顺序分配 ID，只要不改定义顺序、不删除定义，
+    ID 就稳定；注入器 merge 同 ID 覆盖（`tests/injector/composite-reinjection.test.ts` 回归保护：
+    name 旧→新、impl 节点数 9→13 均覆盖且不重复追加）。
+  - **删除定义 = 危险**：删除 → 后续复合 ID 整体前移 → 注入器 merge 不清理地图残留旧 def →
+    残留复合（如 gsts_in_layer）引用被覆盖的 ID（现为另一复合）→ 类型错位 → 游戏拒载（加载期无日志）。
+    确实不想要的复合 → **改名保留定义**（如加 `_deprecated` 后缀），不要删除源码定义；
+    删除需先完成 open-items O5 治本（注入器残留清理/类型校验，或编译器保留全部定义保 ID）。
+  - **任何改变复合集合形状的操作（删/增定义）后注入，必须全量校验**：
+    `npx tsx tools/check-gil-composite-refs.ts <地图.gil> --incoming <本次.gia>`（0 悬空 + 残留引用被覆盖检测）。
 ## 四层交叉验证链
 
 ```text
@@ -111,6 +129,10 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | 实体不动但节点执行 | 缺 basicMotion 组件（type 4）或作用空实体 | 组件差分检查 + 日志查运动器 IN0 实体 |
 | 一次调用计两次/计数翻倍 | 纯数据表达式被 ≥2 处消费，引擎每个消费点重新求值（消费间写入图变量 → 第二次读新值） | set 后**重新 get** 再比较；ESLint `gsts/server-repeated-evaluation` 会警告（详见 data-flow.md 缺陷 6 节） |
 | 位置漂移/朝向错乱 | 公式压缩平行分量 / 轴语义（局部轴） | 见 game-engine-knowledge/motion-devices.md |
+| 旋转"只转一半/不到 90°" | **旋转运动器第 4 参是角速度(°/s) 非总角**（0.3s 传 90 → 只转 27°；旧版 1s×90 巧合正确） | 总角 = 时长 × 角速度：0.3s 转 90° 需传 300°/s（2026-08-20 实证，motion-devices.md 已补两种旋转运动器） |
+| 转动后块位置与逻辑对不上（部分面错） | **层轴方向与置换表不符**（如 R 用了 -X 应为 +X）——渲染跟随轴转、逻辑跟随表，方向反时两者脱节 | **轴方向几何验证**：对每面取一个初始块，模拟"绕当前轴转 90°"（罗德里格斯）对比 `tblTo[m*4+0]` 目标槽坐标；不一致即轴反（2026-08-20 实证 R/L/F/B 四面反） |
+| 动画"重叠/错开"手感反复 | 相位差（4 块启动间隔）过大=错开明显、过小=重叠 | 随机相位差分档收敛：总跨度 34ms 嫌多→13ms 好→8ms 重叠→回调 13ms；用 `getRandomFloatingPointNumber` + 物化到 float_list 变量（start_timer 读变量） |
+| GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route | 复合内部对**复合调用**节点 `f.link(f.entry(), 0, 复合调用, 0)`：显式 link 对象边 + exec 复合 auto-chain 裸边 → 同一 InFlow 物理路由两条 | 删掉该显式 f.link，靠 auto-chain 生成入口边（入口链首用普通节点，复合调用只作链中目标）；详见上文「exec 链链接规则」 |
 
 ## 参考
 

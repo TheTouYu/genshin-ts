@@ -189,6 +189,17 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
   若手工构造 GIA 需遵守：已连接参数 value 必须为 null，字面量参数（如 hop=1）可带值。
 - 完整规则与三版本差分证据见 `docs/game-engine-knowledge/signals.md`「信号节点参数默认值」。
 
+### 编译产物验证与真实地图注入（2026-08-20 魔方性能优化实证）
+
+- **编译产物 `.gia` 验证用项目根 `tools/decode-gia.ts`**（配 jq 查 accessories 复合名/compositePins/主图节点）；
+  `dump_gil_index` / `explain-gil-node-graph` / `parse-gil-node-graph` 只吃 .gil 地图，对 .gia 报"未找到节点图"。
+- **注入前先备份**：`cp <地图.gil> .gsts/backups/<名>.bak` 并 sha256sum 记录；注入后 sha 变化与候选一致才算成功。
+- **注入环境坑**：注入器备份目录 `~/.genshin-ts/backups` 只读 → 注入命令加 `APPDATA=<项目可写目录>`
+  （如 `.gsts/appdata`）重定向；`/mnt/c` 只读挂载时注入命令需宽权限。
+- **注入后两件事**：① 读图自检（`explain-gil-node-graph --composite` 验证被调复合 inflows 非空/执行流条数、
+  `scan-gil-var-pins` 0 违规）② **Temp 同步**：编辑器活动目录 `.../Temp/` 的同一 .gil 需手动复制，
+  否则编辑器显示旧图（2026-08-20 实证：注入命令不自动同步 Temp）。
+
 ## 7. 游戏日志验证
 
 - 加载 `debug-log-investigator`：Beyond_Debug_Log 逐节点执行记录（执行顺序、输入输出、变量、控制流分支）。具体命令/脚本/格式踩坑全部在该技能内（如 `gia_log.py latest` 定位最新日志、脚本在技能目录 `scripts/`），这里不重复。
