@@ -341,8 +341,7 @@ export function createMap(
   saveLevelDir: string,
   name: string,
   dependencies: ListMapsDependencies & { graphs?: string[] } = {}
-): CreateMapResult {
-  const warn = dependencies.warn ?? (() => {})
+): CreateMapResult {  const warn = dependencies.warn ?? (() => {})
   const graphNames = dependencies.graphs ?? []
   for (const graphName of graphNames) {
     if (!graphName.trim()) throw new Error('[error] --graphs contains an empty name')
@@ -408,4 +407,55 @@ export function createMap(
     sha256: createHash('sha256').update(file).digest('hex'),
     graphs
   }
+}
+
+/**
+ * 从首次保存模板补齐新地图骨架（root 3-49）。
+ *
+ * 背景（2026-08-21 实证）：maps:create 只生成 root 1/2/4/6/8/10/27/34/39/40/41 等基础段，
+ * 引擎骨架（root 3/5/7/9/11-23/25/29-33/35-38/43-49，含地形 400 块、默认实体、UI、系统模板）
+ * 需要用户首次在编辑器保存才补全。本函数从 `resources/first-save-template.gil`（用户首次
+ * 保存后的干净图）复制这些骨架段，使新地图免去"必须人工首次保存"的前置门槛。
+ *
+ * 保留新地图的 root：1(mapId)/2(名称)/10(节点图)/34/39/40/41(创建标记)——这些是地图特有值；
+ * 其余 root 全部用模板补齐。若目标已有同名 root 且非保留列表，也用模板覆盖（骨架应一致）。
+ */
+export function initFromTemplate(
+  gilPath: string,
+  templatePath: string,
+  dependencies: ListMapsDependencies = {}
+): { bytes: Uint8Array; replacedRoots: number[] } {
+  const warn = dependencies.warn ?? (() => {})
+  const source = fs.readFileSync(gilPath)
+  const template = fs.readFileSync(templatePath)
+  const sourceTop = parseWireMessage(source.slice(20, -4))
+  const templateTop = parseWireMessage(template.slice(20, -4))
+  if (!sourceTop || !templateTop) throw new Error('[error] malformed GIL payload')
+
+  // 新地图保留的 root（地图特有值）
+  const keepRoots = new Set([1, 2, 10, 34, 39, 40, 41])
+  const replacedRoots: number[] = []
+
+  // 收集模板的骨架 root（3-49，排除保留集合）
+  const templateFields = templateTop.filter(
+    (f) => f.number >= 3 && f.number <= 49 && !keepRoots.has(f.number)
+  )
+  // 从新地图中移除将被模板覆盖的 root
+  const merged = sourceTop.filter((f) => !templateFields.some((t) => t.number === f.number))
+  for (const tf of templateFields) {
+    merged.push(tf)
+    replacedRoots.push(tf.number)
+  }
+  // 按字段号排序保持稳定布局
+  merged.sort((a, b) => a.number - b.number)
+
+  const rebuilt = emitWireMessage(merged)
+  const bytes = buildFile(rebuilt, {
+    schema: readUint32BE(source, 4),
+    headTag: readUint32BE(source, 8),
+    fileType: readUint32BE(source, 12),
+    tailTag: readUint32BE(source, source.length - 4)
+  })
+  warn(`init-from-template: replaced roots ${replacedRoots.join(',')}`)
+  return { bytes, replacedRoots }
 }

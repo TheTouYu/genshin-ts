@@ -151,6 +151,18 @@ assert.equal(
 )
 assert.equal(dataView.getUint32(0, false), applied.length - 4, 'header size field must match file size')
 
+// 2026-08-21 root 22 PropertyTransform 注册：实体带非默认 Transform（position 非
+// 0）时，applyEntities 必须补写 root 22 的 PropertyTransform 条目（编辑器手加实体时
+// 引擎自动写入：f1 "PropertyTransform" + f2.bytes=01，地图级开关，不按实体数增长）。
+// 逐字节 = 真实编辑器样本 0a1150726f70657274795472616e73666f726d120101
+const root22 = top.find((field) => field.number === 22 && field.wire === 2)
+assert.ok(root22, 'root 22 must exist when entity has custom transform')
+assert.equal(
+  Buffer.from(root22.value as Uint8Array).toString('hex'),
+  '0a1150726f70657274795472616e73666f726d120101',
+  'root 22 PropertyTransform bytes must match editor sample'
+)
+
 // 新建实体省略 id 时自动分配：mini 地图已占用 root4/root6 的 1077936182，
 // 下一个空闲系统 GUID 应为 1077936183（>=1077936129）。
 const autoApplied = applyEntities({
@@ -165,6 +177,22 @@ assert.equal(autoExported.length, 1)
 assert.equal(autoExported[0].id, 1077936183)
 assert.equal(autoExported[0].name, '箭头指示牌_auto')
 assert.equal(autoExported[0].definitionId, 1077936182)
+
+// 反向守护：默认 Transform（无 position/rotation/scale）实体不得触发 PropertyTransform
+// ——root 22 只有在实体带非默认 Transform 时才写（2026-08-21 差分验证：编辑器首次
+// 保存空图 root 22 为空，手加带位置实体后才出现条目）。
+const defaultApplied = applyEntities({
+  bytes: mini,
+  definitions: [definition],
+  entities: [{ name: '箭头指示牌_default', id: 1077936189, definitionId: 1077936182 }]
+})
+const defaultTop = parseWireMessage(defaultApplied.slice(20, -4))
+assert.ok(defaultTop)
+const defaultRoot22 = defaultTop.find((field) => field.number === 22 && field.wire === 2)
+assert.ok(
+  !defaultRoot22 || (defaultRoot22.value as Uint8Array).length === 0,
+  'root 22 must stay empty for default-transform entity'
+)
 
 // sourceDefinitionId 只选择转换模板；definitionId 才写入实体 relation。这样可用独立
 // root4 空模型 definition 生成直接资源实体 10005018，而不把 donor definition 加入目标地图。

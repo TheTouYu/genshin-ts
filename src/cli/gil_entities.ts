@@ -879,6 +879,34 @@ export function applyEntities(params: {
     }
   }
   top5.value = emit(section)
+  // 地图级属性注册表（root 22）：编辑器手加带非默认 Transform 的实体时，引擎
+  // 自动写入 `PropertyTransform` 条目（f1 名称 + f2.bytes=01）。CLI 此前漏写，
+  // 导致 import 的实体与编辑器原生添加不完整等价（2026-08-21 真实地图差分验证：
+  // 1 球/2 球均只置 01，是地图级开关，不按实体数增长）。
+  // 只有本次导入存在非默认 Transform 且 root 22 尚无该条目时补写；root 22 已
+  // 有内容（如铭牌等其它属性注册）时保持不动，避免覆盖用户已有注册。
+  const hasCustomTransform = params.entities.some((entity) => {
+    const pos = entity.position ?? [0, 0, 0]
+    const rot = entity.rotation ?? [0, 0, 0]
+    const scale = entity.scale ?? [1, 1, 1]
+    return (
+      pos.some((v) => Math.abs(v) > 1e-9) ||
+      rot.some((v) => Math.abs(v) > 1e-9) ||
+      scale.some((v) => Math.abs(v - 1) > 1e-9)
+    )
+  })
+  if (hasCustomTransform) {
+    const top22 = top.find((field) => field.number === 22 && field.wire === 2)
+    const root22Empty = !top22 || (top22.value as Uint8Array).length === 0
+    if (root22Empty) {
+      const propertyTransform = emit([
+        { number: 1, wire: 2, value: new TextEncoder().encode('PropertyTransform') },
+        { number: 2, wire: 2, value: new Uint8Array([1]) }
+      ])
+      if (top22) top22.value = propertyTransform
+      else top.push({ number: 22, wire: 2, value: propertyTransform })
+    }
+  }
   const rebuilt = emit(top)
   // 头部长字段必须重建：编辑器按头部长度解析 payload，旧长度会导致“存档损坏”
   // （2026-08-06 实测：applyEntities 曾原样复制源头，payload 变大后长度字段过期，

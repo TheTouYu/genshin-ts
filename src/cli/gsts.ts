@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -32,6 +33,7 @@ import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { runAssetsCustomVariables } from './assets_custom_variables.js'
 import { runAssetsEntities } from './assets_entities.js'
+import { runAssetsTerrain } from './assets_terrain.js'
 import { runAssetsUi } from './assets_ui.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
@@ -44,14 +46,14 @@ import { runAssetsSignals } from './assets_signals.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
-import { resolveGilFolder, resolveGilTarget } from './gil_paths.js'
+import { resolveGilFolder, resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { DEFAULT_RESOURCES_PATH, extractCustomResourcesFromGil } from './gil_resources.js'
 import {
   DEFAULT_SIGNALS_PATH,
   extractSignalsFromGil,
   readRegisteredSignalsFromGil
 } from './gil_signals.js'
-import { listMaps, renameMap, createMap, resyncMap } from './maps.js'
+import { listMaps, renameMap, createMap, resyncMap, initFromTemplate } from './maps.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -1368,6 +1370,58 @@ async function runMapsResync(opts: GlobalOptions, commandOptions: { mapId: strin
   console.log(`temp=${result.tempPath ?? '(no Temp dir)'}`)
 }
 
+async function runMapsInit(
+  opts: GlobalOptions,
+  commandOptions: { mapId: string; template?: string; write?: boolean }
+) {
+  const loaded = await loadConfigOrNull(opts, 'project')
+  const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
+  const resolved = resolveGilFolder(gil)
+  const mapId = Number(commandOptions.mapId)
+  if (!Number.isSafeInteger(mapId) || mapId < 0) {
+    throw new Error(`[error] invalid map id: ${commandOptions.mapId}`)
+  }
+  const gilPath = path.join(resolved.saveLevelDir, `${mapId}.gil`)
+  if (!fs.existsSync(gilPath)) {
+    throw new Error(`[error] map file not found: ${gilPath}`)
+  }
+  const templatePath = commandOptions.template
+    ? path.resolve(commandOptions.template)
+    : path.resolve('resources/first-save-template.gil')
+  if (!fs.existsSync(templatePath)) {
+    throw new Error(`[error] template not found: ${templatePath}`)
+  }
+  const source = fs.readFileSync(gilPath)
+  const { bytes, replacedRoots } = initFromTemplate(gilPath, templatePath, {
+    warn: (message) => console.error(`[warning] ${message}`)
+  })
+  const candidateSha = createHash('sha256').update(bytes).digest('hex')
+  const sourceSha = createHash('sha256').update(source).digest('hex')
+  if (commandOptions.write) {
+    // 备份 + 原子写回
+    const backups = path.join(resolved.saveLevelDir, '.gsts', 'backups')
+    fs.mkdirSync(backups, { recursive: true })
+    const ts = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backups, `${mapId}.gil.${ts}.bak`)
+    fs.writeFileSync(backup, source)
+    const tmp = `${gilPath}.tmp-${process.pid}`
+    fs.writeFileSync(tmp, bytes)
+    fs.renameSync(tmp, gilPath)
+    console.log(`sourceSha256=${sourceSha}`)
+    console.log(`candidateSha256=${candidateSha}`)
+    console.log(`backup=${backup}`)
+    console.log(`replacedRoots=${replacedRoots.join(',')}`)
+    console.log('writePerformed=true')
+    const tempCopied = syncGilToTemp(resolved.saveLevelDir, `${mapId}.gil`)
+    if (tempCopied) console.log(`temp=${tempCopied}`)
+  } else {
+    console.log(`sourceSha256=${sourceSha}`)
+    console.log(`candidateSha256=${candidateSha}`)
+    console.log(`replacedRoots=${replacedRoots.join(',')}`)
+    console.log('writePerformed=false')
+  }
+}
+
 async function runOpen(target: string | undefined, opts: GlobalOptions) {
   if (!target) throw new Error('[error] missing target (map|backup|data)')
   const { dataDir, backupsDir } = ensureDataDirs()
@@ -1719,6 +1773,17 @@ async function main() {
     })
 
   program
+    .command('maps:init')
+    .description('bootstrap a fresh map with engine skeleton fields (root 3-49) from template')
+    .requiredOption('--map-id <id>', t('mapsOptMapId'))
+    .option('--template <file>', 'first-save template GIL (default: resources/first-save-template.gil)')
+    .option('--write', 'write source GIL after backup')
+    .action(async (commandOptions: { mapId: string; template?: string; write?: boolean }) => {
+      const opts = program.opts<GlobalOptions>()
+      await runMapsInit(opts, commandOptions)
+    })
+
+  program
     .command('maps:resync')
     .description(t('cmdMapsResync'))
     .requiredOption('--map-id <id>', t('mapsOptMapId'))
@@ -1769,6 +1834,29 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsEntities(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:terrain')
+    .description('read or set the terrain/grass tile grid (root 7 f4) of a GIL map')
+    .option('--col-min <n>', 'minimum column index (inclusive)')
+    .option('--col-max <n>', 'maximum column index (inclusive)')
+    .option('--row-min <n>', 'minimum row index (inclusive)')
+    .option('--row-max <n>', 'maximum row index (inclusive)')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--format <format>', 'output format: text or json')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:terrain')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      if (projectConfigPath) process.env.GSTS_CONFIG = projectConfigPath
+      await runAssetsTerrain(args)
     })
 
   program
