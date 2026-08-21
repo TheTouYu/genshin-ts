@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "足球场",
+      "id": 1077936132,
+      "definitionId": 1077936129,
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "左球门",
+      "id": 1077936133,
+      "definitionId": 1077936130,
+      "position": [-52.5, 0, 3.66],
+      "rotation": [0, 90, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "右球门",
+      "id": 1077936134,
+      "definitionId": 1077936130,
+      "position": [52.5, 0, -3.66],
+      "rotation": [0, -90, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "足球",
+      "id": 1077936135,
+      "definitionId": 1077936131,
+      "position": [0, 0.247, 0],
+      "rotation": [0, 0, 0],
+      "scale": [0.25, 0.25, 0.25]
+    }
+  ]
+}
