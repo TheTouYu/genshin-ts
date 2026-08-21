@@ -398,6 +398,8 @@ python3 .agents/skills/static-gil-model-builder/references/root-diff-summary.py 
 
 **比对用户编辑器修改**（2026-08-13 实测）：编辑器保存会把被编辑实体的 aux **整体重写为新 ID 区间**（同 ID 记录 transform 不变，改动全部落新区间）。比对法：候选 vs 当前地图做 aux ID 集合差（removed/added 各 N），再解析新 ID 区间的 transform——解析路径 f5→f11→f1/f2/f3 是嵌套 wire message（每轴 wire=5 float32），不是 12 字节 packed。
 
+**「用户只调旋转/位置不动其它」的差分提取**（2026-08-21 真实足球弧线复盘实测）：用户手工修改并保存后，实体 aux 整体重写为新 ID 区间，**按 ID 对比会全落空**。正确做法：①按**位置**（用户声明没动位置）匹配新旧两侧记录；②sparse vec3 解析用 `walk(f11.fN bytes)` 的 `fixed32` 字段（缺省 0），不是 `vec3f`——`f11.1`=pos、`f11.2`=rot、`f11.3`=scale 各自是 sparse fixed32 三元组；③只对匹配上的记录比较目标字段（如 rot），即可反推游戏内真实值（本轮：用户 4 段旋转 13.99/8.36/-8.68/-13.34 vs 我的 343/354/365/376 → 反推出切线公式 `atan2(-cosθ,-sinθ)`）。这个差分是"正确公式真值来源"，优先于源码推断。
+
 ### 实体换 def（换版本）时实体侧 aux 必须重建（2026-08-10 实测）
 
 实体从旧 def 切换到 items 数不同的新 def（如足球 132 → 224）时，**`import` 更新既有实体只改 def 引用、保留旧挂接槽**（`carryAuxSlot` 设计：`if (!existing || readEntityAuxIds(existing).length === 0)` 才自动克隆新 def 的 instance-side aux）。后果：实体 `auxIds` 数量仍是旧 def 的 items 数，游戏显示旧装饰物残留/不完整。
