@@ -2880,6 +2880,11 @@
       "fact_classes": [
         "external_game_evidence"
       ]
+    },
+    "clm_0F10FA742D2A96EA8D299D4173": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }

@@ -3592,6 +3592,21 @@
       ]
     },
     {
+      "id": "aref_ac962bb4301252c3a10cc0ec8d",
+      "path": "docs/composite-library/README.md",
+      "locator": "README.md 资源包总览表 + 各资源包文档 + curation-process.md",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "170ecf7dc91470c1819b4b57c6d6805adb9fe1dfc05ddda117e76b27ebc0bc70",
+      "claim_ids": [
+        "clm_0F10FA742D2A96EA8D299D4173"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_ad67360ce34bcaaf88912f4667",
       "path": "docs/ui-tutorial/official-guide-nodes-server.md",
       "locator": "服务器节点·执行节点/查询节点：切换当前界面布局、激活/移除控件组、设置界面控件(组)状态、获取玩家当前界面布局",
