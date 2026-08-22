@@ -9,7 +9,7 @@ import { physTick } from './composites/physics.js'
 
 // 发球点（罚球点）
 const SPAWN_X = -41.5
-const SPAWN_Y = 0.247
+const SPAWN_Y = 0.25 // = BALL_R，球心贴地不穿模
 const SPAWN_Z = 0
 
 const graph = g

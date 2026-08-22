@@ -7,7 +7,7 @@ import { motionLinear, motionInstant } from './motion.js'
 
 // 发球点（罚球点）
 const SPAWN_X = -41.5
-const SPAWN_Y = 0.247
+const SPAWN_Y = 0.25 // = BALL_R，球心贴地不穿模
 const SPAWN_Z = 0
 
 // 踢球参数表：tabId → ballVel/ballSpin（exec 复合，内部 multipleBranches 分派 set 图变量）
@@ -24,36 +24,36 @@ export const kickSetParams = g.defineComposite('kick_set_params', {
     ])
     f.multipleBranches(tabId, {
       1: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 0, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -3, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 3, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -6, 0), new bool(false)])
       },
       2: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-22, 0, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -5, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-22, 4, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -8, 0), new bool(false)])
       },
       3: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 0, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -5, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 3, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -8, 0), new bool(false)])
       },
       4: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-22, 0, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -3, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-22, 4, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -6, 0), new bool(false)])
       },
       5: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-17, 0.5, 2.5), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -4, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-17, 3, 2.5), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -6, 0), new bool(false)])
       },
       6: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-11, 4.5, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 4), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-11, 6, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 6), new bool(false)])
       },
       7: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-15, 0, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 2), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-15, 2, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 4), new bool(false)])
       },
       8: () => {
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-12.5, 4.5, 0), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 2), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-12.5, 5, 0), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 4), new bool(false)])
       },
       default: () => {}
     })

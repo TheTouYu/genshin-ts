@@ -10,7 +10,7 @@ const DT = 0.2 // 5Hz tick
 const G_ACC = -9.8 // 重力
 const KD = 0.03 // 空气阻力系数
 const KM = 0.008 // 马格努斯系数
-const KW_DECAY = 0.98413 // exp(-0.08*0.2)，旋转衰减
+const KW_DECAY = 0.99 // exp(-0.05*0.2)，旋转衰减（降低衰减，旋转更持久）
 const BALL_R = 0.25 // 球半径
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
@@ -162,7 +162,7 @@ export const physStop = g.defineComposite('phys_stop', {
 
 // 发球点（罚球点）
 const SPAWN_X = -41.5
-const SPAWN_Y = 0.247
+const SPAWN_Y = 0.25 // = BALL_R，球心贴地不穿模
 const SPAWN_Z = 0
 
 // 完整物理 tick 链（exec 复合）：积分 → 判定 → 碰撞 → 滚动摩擦 → 停球 → 运动器（直线+旋转）
@@ -209,27 +209,32 @@ export const physTick = g.defineComposite('phys_tick', {
         const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), gc.nvel, new bool(false)])
         f.connect(gp, 0, gv, 0)
       }, () => {})
-      const pc = f.callComposite(physPostCollide, { pos: integ.npos, vel: integ.nvel })
+      const velAfterGround = f.getNodeGraphVariable('ballVel').asType('vec3')
+      const pc = f.callComposite(physPostCollide, { pos: integ.npos, vel: velAfterGround })
       f.doubleBranch(pc.hit, () => {
         const pv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), pc.nvel, new bool(false)])
       }, () => {})
 
       // ④ 滚动摩擦（贴地滚动减速）
-      const rf = f.callComposite(physRollFriction, { pos: integ.npos, vel: integ.nvel })
+      const velAfterPost = f.getNodeGraphVariable('ballVel').asType('vec3')
+      const rf = f.callComposite(physRollFriction, { pos: integ.npos, vel: velAfterPost })
       f.doubleBranch(rf.rolling, () => {
         const rv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), rf.nvel, new bool(false)])
       }, () => {})
 
       // ⑤ 停球判定
-      const stop = f.callComposite(physStop, { pos: integ.npos, vel: integ.nvel })
+      const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
+      const stop = f.callComposite(physStop, { pos: integ.npos, vel: velFinal })
       f.doubleBranch(stop.isStop, () => {
         const sf = f.registerExecNode('set_node_graph_variable', [new str('flying'), new bool(false), new bool(false)])
         f.outflow('done', sf, 0)
       }, () => {
-        // ⑥ 下一 tick：匀速直线（velocity）+ 匀速旋转（axis + angVel）
-        const axis = f._3dVectorNormalization(integ.nspin)
-        const angVel = f.multiplication(f._3dVectorModuloOperation(integ.nspin), RAD2DEG)
-        const lin = f.callComposite(motionLinear, { e, vel: integ.nvel })
+        // ⑥ 下一 tick：读最新图变量（碰撞修正后的速度/旋转），匀速直线 + 匀速旋转
+        const finalVel = f.getNodeGraphVariable('ballVel').asType('vec3')
+        const finalSpin = f.getNodeGraphVariable('ballSpin').asType('vec3')
+        const axis = f._3dVectorNormalization(finalSpin)
+        const angVel = f.multiplication(f._3dVectorModuloOperation(finalSpin), RAD2DEG)
+        const lin = f.callComposite(motionLinear, { e, vel: finalVel })
         const spn = f.callComposite(motionSpin, { e, axis, angVel })
         f.connect(lin as never, 0, spn as never, 0)
         f.outflow('done', spn as never, 0)
