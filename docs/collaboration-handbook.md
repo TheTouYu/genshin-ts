@@ -54,6 +54,11 @@
   → node scripts/postbuild.mjs（复制 .proto/.d.ts）。TS5055 报错可忽略（JS 已产出），
   但 postbuild 必须跑，否则 .proto 缺失。
 - 长构建用 run_in_background: true + job_output 等待，避免前台超时。
+- **静态前端资源同样走 dist**：`image:serve` 的 `serveIndex` 读的是
+  `dist/src/image-editor/web/index.html`（`__dirname` 指向 dist），不是 `src/` 下的源文件。
+  改 `src/image-editor/web/index.html` 后，**只需 `cp src/... dist/...` 或跑 postbuild**，
+  不需要完整 tsc build（纯 HTML 无编译）。改完先 `stat -c '%y'` 对比 src/dist 时间戳确认已同步，
+  再刷新页面验证（2026-08-22 UI 美化轮：改了 src 页面无变化，排查发现读的是 dist 旧版）。
 
 ### A8. tools.edit 的 old_string 必须逐字精确
 
@@ -61,6 +66,10 @@
   再 edit；edit 前必须先 read（fs-observation-policy 要求）。
 - 反复不匹配时用 `cat -A` 或 python `repr(line)` 看真实空格/制表符，不要只看编辑器的缩进显示；
   本项目源码统一 2 空格缩进（2026-08-20 魔方优化轮：str_replace 因 4/2 空格假设错位失败多次）。
+- **edit 反复因字符问题失败时，改用 sed 做精确行替换兜底**：`sed -i 'N s/旧/新/' 文件`
+  （N 为行号，先 `grep -n` 定位）。当 old_string 里混入重复字符/不可见字符导致多次不匹配时，
+  不要继续重试 edit，直接 sed 按行号替换更可靠（2026-08-22 UI 美化轮：edit 连续 5 次因
+  old_string 混入重复字符失败，sed 一次成功）。
 
 ### A9. 沙箱写保护与审批
 
@@ -72,6 +81,16 @@
 
 - 打印前先评估规模（wc -l、head、grep -c）；默认只输出摘要和 PASS/FAIL，
   不加载完整大文件进上下文。
+
+### A11. API 层 400「reasoning_content must be passed back」（thinking mode 回传缺失）
+
+- **现象**：连续 `llm/retry` 失败，错误为 `invalid_request_error`，提示
+  `The reasoning_content in the thinking mode must be passed back to the API`。
+  这是 API 层兼容问题，**不是任务代码问题**——不要反复重发同一请求，不要改代码排查。
+- **应对**：停止重试，等待重试窗口；若 turn 中断且长时间无恢复，提示用户发"继续"恢复；
+  恢复后先核对工作区/任务状态再续做，避免在错误状态上叠加操作。
+- **实证**：2026-08-22 UI 任务三波 29 次（08:25-08:27、08:58-09:03、12:44-12:45）；
+  第二波 20 次重试后 turn 中断，09:03→09:53 空窗 50 分钟，用户手动"继续"才恢复。
 
 ## B. 跨项目工作方法论（本轮验证有效）
 

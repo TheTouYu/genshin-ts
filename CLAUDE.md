@@ -24,6 +24,18 @@ npm run gia:decode / gia:inspect / gia:compare / gia:diff   # GIA 解码/检查/
 npm run gil:parse-node-graph / gil:trace-exec / gil:trace-dataflow  # 真实 .gil 图分析
 ```
 
+PKC 知识树（长期记忆）查询（`python tools/pkc.py`，只读；缺关键信息先查它，见根 `AGENTS.md`）：
+
+```bash
+python tools/pkc.py query "<关键词1 关键词2 关键词3>" --level 2   # 全库 claim 检索；必须带 --level 2（默认 level 1 只搜节点标题，不搜 claim 内容）
+python tools/pkc.py progressive-query --context <ctx> --intent "<问题>" --max-level 2 --limit 3 --check-authority
+python tools/pkc.py tree                                      # 看全部 topic 与 keywords（可当查询词）
+python tools/pkc.py knowledge-search --status any "<词>"      # 含 pending_review 的检索
+python tools/pkc.py knowledge-search --semantic "<完整问题>"   # 向量化语义检索（hybrid）；中文长句/coverage gap 时用
+# context 清单（project-intelligence.json → memory.contexts）：
+#   compiler-diagnostics / static-gil-assembly-production / official-guide
+```
+
 说明：`npm test` 的 `pretest` 会清理生成测试目录，快速验证已有产物用 `quicktest`；两者都保持 `--noinject`。
 测试配置 `gsts.test.config.ts`（入口 `tests`），普通示例配置 `gsts.config.ts`（入口 `examples`）。
 
