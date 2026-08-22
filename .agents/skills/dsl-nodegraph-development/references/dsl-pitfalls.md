@@ -149,3 +149,25 @@
   （= `npm run build && node ./bin/gsts.mjs dev`）。
 - 诊断口诀：`game.json = []` 且 GIA generated 0 时，先确认编译入口是 `bin/gsts.mjs`（dist）
   而不是 tsx 直跑 src；src 与 dist 不同实例时 IR 静默为空，**这不是 gs 代码问题**。
+
+## 15. split3dVector 返回字段是 xComponent 不是 .x（2026-08-22 复刻矩阵转置实证）
+
+- 现象：`const s = f.split3dVector(v); f.create3dVector(s.x, s.y, s.z)` 编译报
+  `Error: Invalid value type: float`（在 create3dVector 的 parseValue）。
+- 根因：`f.split3dVector(v)` 返回 `{ xComponent, yComponent, zComponent }`（见 nodes.ts 签名），
+  **没有 `.x/.y/.z` 字段**；`.x/.y/.z` 是 `vec3` 类型的 getter（内部调 split3dVector 取 xComponent）。
+  写 `s.x` 得到 `undefined` → `create3dVector(undefined, ...)` → parseValue 抛错。
+- 修复：用 `s.xComponent / s.yComponent / s.zComponent`。
+- 教训：`vec3.x`（getter）与 `split3dVector().xComponent`（字段）是两套命名，别混用。
+
+## 16. 复合节点 enum 类型输入无法用于 enumerationsEqual（2026-08-22 复刻枚举转换实证，编译器 bug）
+
+- 现象：复合节点 `inputs: { status: { type: 'enumeration' } }`，build 内
+  `f.enumerationsEqual(status, SettlementStatus.Victory)` 编译报 `Error: Invalid value type: enum`。
+- 根因：`src/runtime/core.ts` 的 `createTypedValue(type)` switch **没有 enum/enumeration 分支**，
+  enum 输入落到 `default` 返回 `new generic()`；`enumerationsEqual` 里
+  `parseValue(enumeration1, 'enum')` 要求 `z.instanceof(enumeration)`，generic 不满足 → 抛错。
+- 影响：无法用 DSL 复刻「枚举→整数/字符串/执行分支」类复合节点（原版 1610612755/1610612759 等）。
+- 状态：已登记 `docs/maintenance/open-items.md` O-2026-08-22-1，待统一修复（不急着改）。
+- 教训：`RuntimeValueTypeMap` 类型层面含 `enum: enumeration`，但运行时 `createTypedValue` 未实现——
+  **类型声明与运行时实现不一致**，这类「类型允许但运行时抛错」的坑要靠最小复现实验提前暴露。

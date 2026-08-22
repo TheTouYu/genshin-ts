@@ -359,3 +359,124 @@
   create 动态也不建页面模型（编辑器保存时才补）。
 - 期望形态：`assets:prefabs create --aux <resId>` 一键生成 定义+模型+装饰物组（或 create 补建模型）。
 - 何时做：下一轮 CLI 迭代。
+
+### O-2026-08-20-3. 多出口执行流节点（finiteLoop/doubleBranch/multipleBranches）分支体入口写法不优雅，编译器待支持更自然写法
+
+- 证据：2026-08-20 3×3 魔方日志 2763/2765——`finiteLoop` 循环体入口和 `f.doubleBranch` 分支体内
+  第一个 exec 节点用 `f.node()` 会 detached 不执行（循环体写入帧 0、分支 Set 帧 0、胜利误判）。
+  当前可靠写法必须用 `f.registerExecNode(...)` 或显式 `f.link`/`f.connect`，对使用者不直观。
+- 期望形态：编译器/DSL 让 `f.node()` 在 `finiteLoop` 循环体、`doubleBranch`/`multipleBranches`
+  分支回调内自动成为该出口的入口节点（自动挂 OutFlow/InFlow），或在类型层强制报错提示用
+  `f.registerExecNode`。
+- 何时做：下一轮编译器/DSL 迭代。
+
+### O-2026-08-20-4. 不稳定 exec API 组合待弃用/编译器提供稳定封装
+
+- 证据：2026-08-20 3×3 魔方连续两轮回归——①公共 done 用 `f.registerExecNode` 放在 `doubleBranch`
+  前导致执行流死循环（游戏检测 execution flow loop）；②`f.callComposite` 后跟 `f.registerExecNode`
+  （start_timer）因 auto-chain 多拉一条入边，同一节点执行两次、定时器不触发、指令无反应（日志 2777）。
+- 根因：`f.registerExecNode` 同时承担“自动接进当前执行链”和“创建普通 exec 节点”两个语义，和显式
+  `f.connect` 混用时会产生重复入边/循环；`f.node` 是 detached，但作为分支/循环体首节点又不会自动挂链，
+  两个 API 的边界对使用者不友好。
+- 期望形态：编译器/DSL 收敛为一套稳定 API，例如：
+  - `f.registerExecNode` 只用于“当前执行链的下一个节点”（自动接链）；
+  - `f.node` 只用于“detached 节点 + 显式 connect”；
+  - 新增/改进高层 API（如 `f.after(...)` / `f.merge(...)`）让公共 done、链尾节点不再需要手写
+    `f.node` + `f.connect` 的脆弱组合。
+- 当前落地：dsl-nodegraph-development 技能已加入“推荐稳定 API / 待弃用 API”表，新代码按稳定写法；
+  旧代码逐步迁移。
+- 何时做：下一轮编译器/DSL API 迭代。
+
+### O-2026-08-20-5. 编译器需支持复合节点“定义/调用/实现”三要素的 ID 稳定性与残留清理
+
+- 证据：2026-08-21 尝试“新建视觉调度节点图”拆分逻辑时，新增/移动复合定义导致后续复合 ID 前移，
+  `check-gil-composite-refs` 报告残留 `flow_tab_dispatch` 引用的 ID 被本次注入覆盖（可能类型错位/游戏拒载）。
+- 用户明确：复合节点有三个要点——1. 定义 2. 调用 3. 实现；编译器需要支持解决这个问题。
+- 期望形态：编译器/注入器对复合定义分配稳定 ID（不因新增/删除/移动定义而前移），或提供残留 def 自动清理/
+  类型校验，使“新增节点图拆分逻辑”成为安全操作。
+- 当前落地：已回滚到稳定版（主图 2741 <3000，仅主图挂载）；新图拆分方案暂缓，待编译器支持后再实施。
+- 何时做：下一轮编译器/注入器迭代。
+
+#### 设计要点（2026-08-21 补充）
+
+- 复合定义 ID 建议改为基于“定义名 + 文件顺序 hash”的稳定 ID，或维护显式 ID 映射表；
+- 删除定义时写入 tombstone（`_deprecated` 桩），不释放 ID，避免后续定义前移；
+- 注入器在写入新 def 集合时，对地图残留 def 做“未引用且 ID 被覆盖”检测并自动隔离/清理；
+- `check-gil-composite-refs` 增加 `--clean` 候选模式，输出可安全移除的残留 def 清单。
+
+#### 进展（2026-08-21 Round 4）
+
+- 已实现 `g.defineComposite` 的 `id` 可选参数；现有玩法复合已全部显式锁定 ID。
+- 这解决了“定义顺序变化导致 ID 前移”的一半问题；剩余仍需“残留 def 自动清理”以安全移除旧 def（如 viewOrbitTrigger 在拆分后不再被主图调用时）。
+
+#### 进展（2026-08-21 Round 6）
+
+- 已实现“未调用显式 ID 复合输出空 stub”的编译器策略，配合显式 ID 后，新图拆分不再产生残留 def 引用被覆盖错误。
+- `check-gil-composite-refs` 对旧 viewOrbitTrigger 等 def 现在报告“死代码，无害”。
+- 新图拆分已在魔方地图落地：主图 1990 / 视觉图 1220，均 <3000。
+
+#### 新发现（2026-08-21 Round 9）
+
+- visual GIA 中未调用但被间接引用（view.ts → flow.ts）的复合，会被编译器自动生成占位 def，ID 变成 `2000000000+`（graphId `2000010000+`），而不是显式 ID `1610700000+`。
+- 这是“stub 覆盖 full def”方案失败的根因：stub 的 ID 命名空间与 full def 不一致，注入器无法按 ID 合并。
+- 需要编译器在生成占位 def 时保留显式 ID，或禁止生成这种占位 def。
+
+#### 进展（2026-08-21 Round 10）
+
+- 已用编辑器最小差分闭合“删除复合定义”的 wire 规则：用户新增仅定义无调用的 `打印`（id 1610612737）→ 保存快照 `a74c437d…`；用户再删除 → 保存快照 `abf2891c…`。
+- 结构 diff 结论：删除 = 移除 root10 section2 的 CompositeDef 记录 + section4 的 impl 图记录；root46 条目变化是保存副作用，不模拟（已写入 `docs/game-engine-knowledge/gil-structure-semantics.md`）。
+- 已实现 `gsts assets:node-graphs def-clean`：支持 `<id|name>` 或 `--all-unused`，`--dry-run`（默认）/`--output`/`--write`，`--include-system`，`--force`；有调用者时默认拒绝，避免悬空引用。
+- 验证：`def-clean 1610612737 --output` 从添加态快照产出与编辑器删除态同尺寸/同 def 集合（仅 root46 保存副作用不同）；`--all-unused --dry-run` 在当前地图默认跳过系统信号复合，`--include-system` 可列出未使用的 `1610612743 向服务器节点图发送信号`。
+- 遗留：`view_orbit_trigger` 当前仍被主图 n7 调用，`def-clean` 会拒绝删除；若确需清理需先移除该调用或确认 `--force` 的悬空风险。
+
+#### 进展（2026-08-21 Round 11）
+
+- 用户提供“修改已弃用复合定义”的编辑器差分：`view_orbit_trigger`（1610700029）改名 `view_orbit_trigger——2` + impl 图新增 Print String 节点（n1，接到 When Timer Is Triggered 的 OutFlow[0]）。
+- 结构 diff 结论：修改定义只动 root10 section2 的 def 记录（field200 name）+ section4 的 impl 图记录（新增节点/连线）；root46 为保存副作用。
+- 已实现编译器 `forceFull` 选项：`g.defineComposite(name, { id, forceFull: true, build })`——即使该复合未被任何图调用，也随 GIA 输出完整 impl（不再只是空 stub），从而让注入器用 full def 覆盖地图残留旧 def，支持“修改已弃用复合定义”。
+- 实现位置：`src/runtime/composite_registry.ts`（`forceFull` 存储）、`src/runtime/core.ts`（`forceFullIds` 加入 expandedIds）。
+- 验证：`tests/composite/force-full-test.ts` 断言 forceFull 未调用复合输出 2 节点 full，普通未调用复合仍为 0 节点 stub。
+- 使用方式：在需要更新地图旧 def 的复合定义上加 `forceFull: true`，重新编译注入即可。
+
+### O-2026-08-21-1. 球场线弧段数（折线感）与角球区小弧未做
+
+- 真实足球球场（地图 1073741901）第一版：中圈 32 段、罚球弧 16 段折线逼近圆弧，用户核验通过未反馈折线感。
+- 未闭合/可选：① 若放大看弧线有棱角，可增段数（中圈 32→48、罚球弧 16→24），弦高 ≈ R(1−cos(Δθ/2))，16 段/9.15m 半径弦高约 0.28m；② 四角角球区小弧（半径 1m 的四分之一圆）第一版从简未画，需时用 calibration-and-geometry.md「圆弧折线逼近与切线旋转」节同公式，端点由边线/底线交点约束。
+- 证据：`~/genshin-ts-evidence/static-assembly/football-real-v1/`、`examples/football/assets/plans/gen-field.mjs`。
+
+### O-2026-08-21-2. 足球升级4全开闭包含展示底座（y=-4.2 托盘）埋地
+
+- 导入的「足球·升级4全开」(224 items) 闭包含一个展示底座 item（position y=-4.2、scale 1.6×0.4×1.6，颜色 0x9AA0A8），实体 scale 0.25 后底座埋入地下约 0.8m，不可见但随球移动。
+- 影响：无害（埋地不可见），但若后续要给足球做物理/踢球逻辑或整体缩放，底座会随动；若要移除需记录级 patch 三侧 aux 的该 item（def/prefab-inst/scene-entity）。
+- 证据：`examples/football/evidence/` export 回读 item 索引（min-y item）。
+
+### O-2026-08-21-3. P0-1 analytic blockOrient 增量维护待游戏核验
+
+- 实现：`logicApplyFace/Middle/Whole` 在写回位置/朝向时同步写 `blockOrient[piece] = moveOrientTransition[moveId][oldOrient]`。
+- `flowAfterTurn` 删除 `flowUpdateOrient` 物理回读，新增 `blockOrientPre = blockOrient` 同步。
+- 待核验：游戏内旋转行为是否正常（无黑面/错位），负载是否有明显下降。
+- 若核验通过：关闭本项；记录验证日志 SHA 和结论到复盘文档。
+- 若失败：回退 P0-1，或改用 `flowUpdateOrientAnalytic`（保留 `flowAfterTurn` 中的循环，但用 analytic 表代替物理回读）。
+
+### O-2026-08-21-4. check-gil-composite-refs --incoming 把信号定义单元误报为「复合缺失」
+
+- `check-gil-composite-refs.ts --incoming <gia>` 的 incoming 对比把 GIA 中 which=12（监听信号）/14（发送信号/向服务器发送信号）的定义单元也收进 incomingIds，与复合 impl 图区间（161070xxxx）对比 → 报「GIA 复合 xxx 注入后在地图中缺失」。
+- 本轮实证：3×3 注入（map 1073741899）报 1610612741/42/43 三个「缺失」，实为信号定义单元（`发送信号`/`监听信号`/`向服务器节点图发送信号`，class=10001），地图中信号 `rubik3x3_tab` 注册正常（scan-gil-signals：发送2/监听1），属工具误报。
+- 修复方向：incoming 收集时过滤 class != 23（或仅收集复合 def，跳过 which 12/14 信号单元）；修复后补回归用例（含信号定义单元的 gia 不再误报）。
+- 证据：`tools/check-gil-composite-refs.ts`（--incoming 分支）、`examples/rubik-3x3/dist/src/game.gia` decode 输出、`scan-gil-signals` 输出。
+
+### O-2026-08-21-5. 悬空检测器增强：重复入边（auto-chain + 显式 connect 冲突）静态检测
+
+- 现检测器（`src/compiler/ir_lint_dangling_exec.ts`）只抓「有出边无入边」的悬空 exec 节点，抓不到**重复入边**（同一 exec 节点多条 exec 入边）。
+- 本轮实证：2×2 `gstsDoWhole` 若 start_timer 用 `f.registerExecNode()`（auto-chain 从当前 tail 串一条）同时又有 `connect(t7→startTimer)`，会形成两条 InFlow，同一节点执行两次（日志特征：Start Timer 同节点两帧）。当前靠 `gil-node-graph-reading` 读 `flow` 列表人工核对。
+- 增强方向：IR 层 edges 中统计同一 exec target 的 exec 类入边数 >1 即告警（同 dangling 归入 GSTS-DANGLING-EXEC-NODE warning 族）；注意复合调用 done 因 auto-chain 拉额外入边的合法场景需豁免或降级。
+- 证据：`examples/rubik-2x2/src/game.ts` 修复注释（2026-08-21）、`docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md` 第二节。
+
+### O-2026-08-22-1. 复合节点 enum 类型输入无法用于 enumerationsEqual（编译器 bug，待统一修复）
+
+- 现象：复合节点声明 `inputs: { status: { type: 'enumeration' } }`，build 内 `f.enumerationsEqual(status, SettlementStatus.Victory)` 编译报 `Error: Invalid value type: enum`。
+- 根因（已定位，未改）：`src/runtime/core.ts` 的 `createTypedValue(type)` switch **没有 `enum`/`enumeration` 分支**，enum 类型复合输入落到 `default` 返回 `new generic()`；而 `enumerationsEqual` 里 `parseValue(enumeration1, 'enum')` 要求 `z.instanceof(enumeration)`，generic 实例不满足 → 抛错。
+- 影响：无法用 DSL 复刻「枚举→整数/字符串/执行分支」类复合节点（原版资源包 1610612755/1610612759/1610612757/1610612758 等），因为复合输入无法传 enum。
+- 证据：`examples/composite-replica/src/batch2-random-enum-matrix.ts` 编译报错（2026-08-22 复刻实战）；`createTypedValue` 源码 switch 缺 enum 分支。
+- 修复方向（待统一安排）：`createTypedValue` 补 `case 'enum'`/`case 'enumeration'` 返回 `new enumeration(...)`（需确认 enumeration 构造方式与 capture 语义）；或复合输入类型系统显式排除 enum 并给出编译期报错（而非运行时 Invalid value type）。
+- 关联：`RuntimeValueTypeMap` 已含 `enum: enumeration`，`CompositeParamType = keyof RuntimeValueTypeMap` 类型层面允许 enum，但运行时 `createTypedValue` 未实现——类型与实现不一致。
