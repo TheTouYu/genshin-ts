@@ -42,6 +42,12 @@
 **CLI 组件白名单（2026-08-16/17 扩充）**：`staticAssemblies[].components` / `staticPrefabUpdates[].components`
 现支持 `followMotion`(9)、`basicMotion`(4)、`tabBar`(17)、**`nameplate`(27)**、**`textBubble`(28)**、
 **`lightSource`(38)**。
+
+**组件配置三入口（2026-08-22 足球 basicMotion 丢失实证）**：组件通过 `components` 字段配置，三个等价入口：
+1. `staticAssemblies[].components`（新建元件，config 内联）；
+2. **`structureFile` 的 `components` 字段**（新建元件，structure JSON 顶层与 `items` 平级）——`structureFile` 与 config 内联 `components` 互斥，用 structureFile 拼装饰物时组件必须写进 structure JSON；
+3. `staticPrefabUpdates[].components`（更新既有元件，三层联动写 root4 定义 f8 + root8 实例 f7 + root5 实体 f7，72dd60f）。
+**坑**：重建元件时 structure JSON 漏配 `components` → 新元件定义层无组件 → 实体 import 继承时组件丢失（足球重建 1077936138 漏配 basicMotion，球实体 components 变空、运动器失效）。重建元件前对照旧元件组件清单逐项写进新 structure JSON。
 27 支持默认槽 + `content` 显示文本；28 仅支持真实编辑器样本的默认槽快照；38 支持默认槽 + `radius`/`intensity` 参数：
 - 铭牌 27 默认槽 = `081b1001b20200`（7B 空配置，f38={}）——证据 nameplate-component exp2，def f8 / inst f7 双写一致。
 - 铭牌 27 带内容/范围 = 以 exp4 305B 模板替换 `38.501[0].512[0].502.504.501` 文本，并支持 `38.501[0].505` f32 显示范围（默认 5）；其余参数保持样本默认（字号 18、宽度 1000/UI 2000、高度 30）。

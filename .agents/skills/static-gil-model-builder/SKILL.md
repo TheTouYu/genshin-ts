@@ -191,6 +191,12 @@ python tools/pkc.py progressive-query \
 
 复杂模型优先把 items 放进严格 `structureFile`，地图名称、模板、ID 和场景 Transform 留在配置中。这样调几何时不会反复改地图绑定信息。
 
+**给元件/实体配组件（components）的正确入口（2026-08-22 足球 basicMotion 丢失实证）**：组件（basicMotion type 4 / tabBar type 17 / followMotion 9 / nameplate 27 / textBubble 28 / lightSource 38）通过 `components` 字段配置，**三个等价入口**：
+1. `staticAssemblies[].components`（新建元件时，config 内联）；
+2. **`structureFile` 的 `components` 字段**（新建元件时，structure JSON 顶层，与 `items` 平级）——**注意 `structureFile` 与 config 内联 `components` 互斥**，用 structureFile 拼装饰物时组件必须写进 structure JSON 里，不能写 config；
+3. `staticPrefabUpdates[].components`（更新既有元件时，三层联动写 root4 定义 f8 + root8 实例 f7 + root5 实体 f7，72dd60f 已实现）。
+**关键坑**：重建元件时若 structure JSON 漏配 `components`，新元件定义层无组件 → 实体 import 继承时组件丢失（足球重建 1077936138 时漏配 basicMotion，球实体 components 变空，运动器失效）。**重建元件前先对照旧元件的组件清单，逐项写进新 structure JSON 的 components**。排查"实体组件丢失"先查 structure JSON 的 components 字段，不要写一次性脚本改实体字节。
+
 ### 生产级质量标准（2026-08-09 第四轮用户核验反馈）
 
 复杂模型交付前必须按“远观整体轮廓、近看细节层次”两个观感自查，不能只满足“几何拼出来了”：
