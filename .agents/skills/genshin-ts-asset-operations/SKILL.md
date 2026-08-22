@@ -123,6 +123,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - `gsts assets:ui list --gil <map> --format json`（枚举 root9 控件）
 - `gsts assets:ui clone <source-id> --id <new-id> [--name <n>] [--donor-gil <file>] --write`
 - `gsts assets:ui create --type textbox|interactive-button|custom-button --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] --write`
+- `gsts assets:ui create --type image --id <new-id> --asset <素材索引ID> [--layout <布局ID>] [--name <n>] [--position <x,y>] [--size <w,h>] --write`（官方预制图片控件引用素材；`--asset` = 素材库容器 ID，见 `assets:library-inject`）
 - `gsts assets:ui update <control-id> [--name|--content|--position|--size] --write`
 - 模板：`gsts assets:ui template list|clone`（复用已存在的控件组模板）。
 - position 是屏幕中心偏移、size 是宽高（像素语义）。控件只做资产写回；显示/隐藏/禁用运行时行为、按钮事件如何进角色图，属于节点图/运行时逻辑，不要混写进静态资产步骤。

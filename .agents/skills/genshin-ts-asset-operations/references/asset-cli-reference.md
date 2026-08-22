@@ -86,7 +86,8 @@ gsts assets:mounts list [<target-id>] [--graph <gid>] --gil <map>
 ```text
 gsts assets:ui list [--gil <map>] [--format json]
 gsts assets:ui clone <source-id> --id <new-id> [--name <n>] [--donor-gil <file>] [--gil <map>] --write
-gsts assets:ui create --type textbox|interactive-button|custom-button --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
+gsts assets:ui create --type textbox|interactive-button|custom-button|image --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
+gsts assets:ui create --type image --id <new-id> --asset <素材索引ID> [--layout <布局ID>] [--name <n>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
 gsts assets:ui update <control-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
 gsts assets:ui template list [--gil <map>] [--format json]
 gsts assets:ui template clone <source-id> --id <new-id> [--name <n>]
@@ -94,6 +95,9 @@ gsts assets:ui template clone <source-id> --id <new-id> [--name <n>]
 
 - root9 屏幕空间控件；position 是屏幕中心偏移、size 是宽高。
 - 控件运行时显示/隐藏/禁用、按钮事件进角色图等属节点图/运行时逻辑，不是静态资产写回。
+- `--type image` 创建官方预制「图片控件」引用素材：`--asset` 是素材索引 ID（= 素材库容器 ID，
+  0x40000000+ 段，见 `assets:library-inject` 返回的 containerId）；`--layout` 默认 1073741825 默认布局。
+  单条记录（f502[type5]），图片源引用素材路径 f505[f502=38].f503.f31.f6.f4 = 素材 ID。
 
 ## 4. 信号命令
 
