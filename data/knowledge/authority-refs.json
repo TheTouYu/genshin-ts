@@ -2916,6 +2916,21 @@
       ]
     },
     {
+      "id": "aref_862162a6a5021c6271ed918823",
+      "path": "docs/adr/0006-元件继承与批量更新.md",
+      "locator": "五轮差分闭合的 wire 规律",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5e4a327e333fe58142d39c68ba95b3ad81587213dfe2c2fa08ce4c893bcc8f0c",
+      "claim_ids": [
+        "clm_AA837C8B1FAB3232BFA7E14F3F"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_868dc0d47c2f24dae77320e288",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#20b",

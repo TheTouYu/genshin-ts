@@ -49,3 +49,15 @@ root27 = def-side（f1 字段，f3=1）与 inst-side（f2 字段，f12 回链 de
 样本 after-user-aux-both/after-prefab-with-aux/after-entity-aux-user；CLI assets:aux attach。
 
 <!-- CLAIM:END clm_BEF0A24D1A5CA2F3D2CA1906BC -->
+
+<!-- CLAIM:START clm_AA837C8B1FAB3232BFA7E14F3F -->
+
+### 元件三层独立副本与差异化保留（批量更新）
+
+元件在 GIL 里是三层独立副本：root4 定义 f8（元件本体）、root8 实例 f7（页面模型/编辑辅助）、root5 场景实体 f7（游戏实际读取的摆放实例，f2 引用 prefabId）。编辑器操作只改目标层、不自动同步：改元件面板写 root8、改场景实体写 root5、root4 定义在编辑器里不被直接编辑。差异化保留 = 字段级差异（无 override 标记）：实体独属修改 = 实体 f7/f6 与定义 f8 的差异（加组件=实体 f7 多一个组件槽；改属性=实体 f7 内容变；移动=实体 f6 变）。transform（f6）是实体独属坐标层，永不参与继承同步。批量更新命令 assets:prefabs update --id <defId> [--force]：改 root4 定义 → 同步 root8 实例 + 所有引用实体，默认差异化保留、--force 强制覆盖。
+
+#### 适用边界
+
+2026-08-22 五轮编辑器差分闭合（移动实体/加铭牌组件/改 tabBar 选项/改元件面板/删元件实例）；证据快照 ~/genshin-ts-evidence/prefab-inheritance-diff/；实现见 ADR-0006 与 src/cli/gil_prefabs.ts updatePrefabDefinition。
+
+<!-- CLAIM:END clm_AA837C8B1FAB3232BFA7E14F3F -->
