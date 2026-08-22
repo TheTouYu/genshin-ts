@@ -3,7 +3,7 @@
 // 9 种踢法（DESIGN §5.4）：6 射门 + 2 传球 + 1 复位
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
-import { motionLinearTick, motionInstant } from './motion.js'
+import { motionLinear, motionInstant } from './motion.js'
 
 // 发球点（罚球点）
 const SPAWN_X = -41.5
@@ -77,7 +77,7 @@ export const kickLaunch = g.defineComposite('kick_launch', {
       new bool(false)
     ])
     f.connect(setFlying, 0, setShot, 0)
-    const tick = f.callComposite(motionLinearTick, { e, location: f.getNodeGraphVariable('ballPos').asType('vec3') })
+    const tick = f.callComposite(motionLinear, { e, vel: f.getNodeGraphVariable('ballVel').asType('vec3') })
     f.connect(setShot, 0, tick as never, 0)
     f.outflow('done', tick as never, 0)
     return {}

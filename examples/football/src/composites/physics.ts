@@ -1,9 +1,9 @@
 // 足球物理复合（纯数据 + exec）：三力积分 / 碰撞 / 判定 / 停球 / tick 链
 // 命名前缀：phys_*
-// 物理模型见 DESIGN.md §5：重力 + 空气阻力 + 马格努斯 + 旋转衰减
+// 物理模型见 DESIGN.md §5：重力 + 空气阻力 + 马格努斯 + 旋转衰减 + 滚动摩擦
 import { g } from 'genshin-ts/runtime/core'
 import { bool, str } from 'genshin-ts/runtime/value'
-import { motionLinearTick, motionInstant } from './motion.js'
+import { motionLinear, motionSpin, motionInstant } from './motion.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -14,6 +14,7 @@ const KW_DECAY = 0.98413 // exp(-0.08*0.2)，旋转衰减
 const BALL_R = 0.25 // 球半径
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
+const ROLL_FRICTION = 0.985 // 滚动摩擦（贴地每 tick 减速）
 const STOP_SPEED = 0.3 // 停球速度阈值
 const GOAL_X = -52.5 // 门线
 const GOAL_HALF = 3.66 // 门半宽
@@ -22,6 +23,7 @@ const POST_R = 0.37 // 门柱碰撞半径
 const POST_E = 0.7 // 门柱恢复
 const OUT_X = 60 // 出界范围
 const OUT_Z = 40
+const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s
 
 // 三力积分一步：pos/vel/spin → 新 pos/vel/spin（DESIGN §5.1）
 export const physIntegrate = g.defineComposite('phys_integrate', {
@@ -122,6 +124,27 @@ export const physPostCollide = g.defineComposite('phys_post_collide', {
   }
 })
 
+// 滚动摩擦：贴地时水平速度 ×0.985（DESIGN §5.2 滚动摩擦）
+export const physRollFriction = g.defineComposite('phys_roll_friction', {
+  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' } },
+  outputs: { nvel: { type: 'vec3' }, rolling: { type: 'bool' } },
+  build: ({ pos, vel }, f) => {
+    const p = f.split3dVector(pos)
+    const v = f.split3dVector(vel)
+    // 贴地（y ≈ r）且水平速度非零 → 滚动摩擦
+    const rolling = f.logicalAndOperation(
+      f.lessThan(p.yComponent, BALL_R + 0.05),
+      f.greaterThan(f.absoluteValueOperation(v.xComponent), 0.01)
+    )
+    const nvel = f.create3dVector(
+      f.multiplication(v.xComponent, ROLL_FRICTION),
+      v.yComponent,
+      f.multiplication(v.zComponent, ROLL_FRICTION)
+    )
+    return { nvel, rolling }
+  }
+})
+
 // 停球判定：贴地且慢 → 停（DESIGN §5.2）
 export const physStop = g.defineComposite('phys_stop', {
   inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' } },
@@ -142,7 +165,7 @@ const SPAWN_X = -41.5
 const SPAWN_Y = 0.247
 const SPAWN_Z = 0
 
-// 完整物理 tick 链（exec 复合）：积分 → 判定 → 碰撞 → 停球 → 下一 tick / 复位
+// 完整物理 tick 链（exec 复合）：积分 → 判定 → 碰撞 → 滚动摩擦 → 停球 → 运动器（直线+旋转）
 // 这是 whenBasicMotionDeviceStops 事件的核心处理，封装成"一件事"
 export const physTick = g.defineComposite('phys_tick', {
   inputs: { e: { type: 'entity' } },
@@ -164,7 +187,7 @@ export const physTick = g.defineComposite('phys_tick', {
     const judge = f.callComposite(physJudge, { pos: integ.npos })
     const doReset = f.logicalOrOperation(judge.isGoal, judge.isOut)
 
-    // ③ 分派：复位 vs 碰撞+停球+下一 tick
+    // ③ 分派：复位 vs 碰撞+滚动摩擦+停球+下一 tick
     f.doubleBranch(doReset, () => {
       // 进球/出界 → 复位
       const spawn = f.create3dVector(SPAWN_X, SPAWN_Y, SPAWN_Z)
@@ -191,15 +214,25 @@ export const physTick = g.defineComposite('phys_tick', {
         const pv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), pc.nvel, new bool(false)])
       }, () => {})
 
-      // ④ 停球判定
+      // ④ 滚动摩擦（贴地滚动减速）
+      const rf = f.callComposite(physRollFriction, { pos: integ.npos, vel: integ.nvel })
+      f.doubleBranch(rf.rolling, () => {
+        const rv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), rf.nvel, new bool(false)])
+      }, () => {})
+
+      // ⑤ 停球判定
       const stop = f.callComposite(physStop, { pos: integ.npos, vel: integ.nvel })
       f.doubleBranch(stop.isStop, () => {
         const sf = f.registerExecNode('set_node_graph_variable', [new str('flying'), new bool(false), new bool(false)])
         f.outflow('done', sf, 0)
       }, () => {
-        // ⑤ 下一 tick：匀速直线 0.2s
-        const tick = f.callComposite(motionLinearTick, { e, location: f.getNodeGraphVariable('ballPos').asType('vec3') })
-        f.outflow('done', tick as never, 0)
+        // ⑥ 下一 tick：匀速直线（velocity）+ 匀速旋转（axis + angVel）
+        const axis = f._3dVectorNormalization(integ.nspin)
+        const angVel = f.multiplication(f._3dVectorModuloOperation(integ.nspin), RAD2DEG)
+        const lin = f.callComposite(motionLinear, { e, vel: integ.nvel })
+        const spn = f.callComposite(motionSpin, { e, axis, angVel })
+        f.connect(lin as never, 0, spn as never, 0)
+        f.outflow('done', spn as never, 0)
       })
     })
     return {}
