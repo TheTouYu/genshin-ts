@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "type": "tabBar",
+      "regionName": "足球操作",
+      "regionType": "sphere",
+      "regionRadius": 3,
+      "regionCenter": [0, 0, 0],
+      "options": ["轻射", "重射", "轻射弧", "重射弧", "内弧", "高吊", "平传", "高传", "复位"]
+    }
+  ],
+  "items": [
+    {
+      "resourceId": 10009001,
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [0.5, 0.5, 0.5],
+      "color": { "enabled": true, "rgb": 4210752, "opacity": 100, "overlay": "overwrite" }
+    }
+  ]
+}

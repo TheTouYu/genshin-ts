@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "足球操作台",
+      "id": 1077936137,
+      "definitionId": 1077936136,
+      "position": [-35, 0.5, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    }
+  ]
+}

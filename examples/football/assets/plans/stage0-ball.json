@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "足球",
+      "id": 1077936135,
+      "definitionId": 1077936131,
+      "position": [0, 0.247, 0],
+      "rotation": [0, 0, 0],
+      "scale": [0.25, 0.25, 0.25]
+    }
+  ]
+}
