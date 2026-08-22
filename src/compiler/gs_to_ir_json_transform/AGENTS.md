@@ -23,7 +23,6 @@
 ## 验证
 
 - 运行对应 `.gs.ts` → IR 的 focused 测试；涉及共享 IR 形状时补跑 Stage 3 回归。
-- 改动 TypeScript 后运行 `npm run build`；最后运行 `git diff --check`。
 
 ## 不要做
 

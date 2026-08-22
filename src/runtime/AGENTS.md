@@ -26,7 +26,6 @@
 ## 验证
 
 - 运行相关 runtime/composite fixture；跨阶段 IR 行为变动时补跑 Stage 3 focused regression。
-- 改动 TypeScript 后运行 `npm run build`；最后运行 `git diff --check`。
 
 ## 不要做
 
