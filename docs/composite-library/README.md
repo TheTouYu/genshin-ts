@@ -33,6 +33,12 @@
 | 11 | 语音权限包 | 全体语音权限、顺序发言、强制开麦 | 语音类玩法的完整参考 | [voice-permission.md](voice-permission.md) |
 | 12 | 特权玩家/黑名单包 | 昵称标记、铭牌、特效、结算状态 | 社交/运营向玩法的思路 | [privileged-players.md](privileged-players.md) |
 | 13 | 通用思路包 | 空模型归纳变量、结构体替代、动态列表转静态 | 跨领域的「写法技巧」而非具体功能 | [general-patterns.md](general-patterns.md) |
+| 14 | 数学/几何运算包 | 罗德里格斯旋转、轨道位置、局部坐标变换 | 跨玩法最通用的 A 类资产（纯数据、零玩法依赖） | [math-geometry.md](math-geometry.md) |
+| 15 | 长列表工具包 | 分块读取突破 100 元素限制 | 「乘法选择器」纯数据流选值技巧 | [long-list.md](long-list.md) |
+| 16 | 输入锁/防重入包 | busy 锁防重入 | 有状态动作的必备机制 | [input-lock.md](input-lock.md) |
+| 17 | 跨图状态同步包 | 多图拆分时的状态桥接 | 自定义变量桥接 + 克制同步 | [cross-graph-sync.md](cross-graph-sync.md) |
+
+> 资源包 1-13 来自社区「常用复合节点大全 v1.7」；资源包 14-17 来自 rubik-2x2/3x3 项目抽象（2026-08-22）。
 
 ## 从这份资源包学到的「通用方法论」（提炼精华）
 
