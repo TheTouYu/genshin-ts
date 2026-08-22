@@ -80,6 +80,7 @@ root 1/2/4/5/6/8/10/22/27/34/39/40/41 等基础段，**没有 root 7（地形）
 ## 2. 元件建模
 
 路由：加载 `static-gil-model-builder`，读 `calibration-and-geometry.md` 已闭合资源表 + `production-workflow.md`。
+**元件要配组件（运动/选项卡/铭牌/光源等）时，先读本阶段「组件配置（components）」节**——它指向 `genshin-ts-asset-operations` 技能 + `docs/game-engine-knowledge/components.md` 权威文档，给出组件配置三入口，防止"组件丢失/运动器不生效"掉坑。
 
 **已闭合基础资源速查**（2026-08-12 验证）：
 
@@ -130,6 +131,19 @@ gsts assets:resources list --gil <map>                             # 列出（st
 - **ID 纪律**：元件/实体 ID ≥ 1077936129；定义 ID 分配只查 root4 空间，可与 root5/8 重叠；
   写回后必须 `maps:resync` 同步 Temp（编辑器活动副本），否则游戏加载旧版本。
 
+### 组件配置（components）——先查权威文档再动手（2026-08-22 足球 basicMotion 丢失实证）
+
+元件/实体要获得能力（运动、选项卡、铭牌、光源…）必须**显式配置组件**，组件**不会自动补全**。
+**动手前先加载 `genshin-ts-asset-operations` 技能 + 读 `docs/game-engine-knowledge/components.md`**
+（组件类型映射表 + 配置字段号规律 + 各组件默认槽字节），不要凭记忆猜组件名/类型码/槽位置。
+
+组件配置**三个等价入口**（`components` 字段，支持 followMotion 9 / basicMotion 4 / tabBar 17 / nameplate 27 / textBubble 28 / lightSource 38）：
+1. `staticAssemblies[].components`（新建元件，config 内联）；
+2. **`structureFile` 的 `components` 字段**（新建元件，structure JSON 顶层与 `items` 平级）——`structureFile` 与 config 内联 `components` 互斥，用 structureFile 拼装饰物时组件必须写进 structure JSON；
+3. `staticPrefabUpdates[].components`（更新既有元件，三层联动写 root4 定义 f8 + root8 实例 f7 + root5 实体 f7）。
+
+**关键坑（足球实证）**：重建元件时 structure JSON 漏配 `components` → 新元件定义层无组件 → 实体 import 继承时组件丢失（球实体 components 变空、运动器失效）。**重建元件前对照旧元件组件清单逐项写进新 structure JSON**。排查"实体组件丢失/运动器不生效"先查 structure JSON 的 components 字段，**不要写一次性脚本改实体字节**（绕过 CLI 的应急做法不可复用）。
+
 ## 3. 资产写回 + 视觉核验循环
 
 ```text
@@ -168,9 +182,16 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 ## 4. 输入机制
 
 - 首选"实体选项卡"（entity option tabs）：官方知识确认选项卡选中事件直达挂载该实体节点图。
-- **组件前置依赖**：选选项卡做输入，实体/元件必须先配置 **tabBar 组件**（regionName、options、regionType `box|sphere` + regionSize/regionRadius/regionCenter，CLI `assets:entities` 配置支持，编码见 `components.md`）——没配组件就没有选项显示、不会触发选中事件。
+- **组件前置依赖**（强 gate，缺则下游全废）：选选项卡做输入，事件源实体必须已配置 **tabBar 组件**——三件套
+  1. **tabBar 组件已写回**：CLI `gsts assets:static-assemblies tab-options <instance-id> --name <预期组件名> --options <a,b,c> --region-type sphere --region-radius <R> --region-center <x,y,z> --write`（球体触发）；region 是**生效范围**，不配玩家根本看不到选项。**组件配置通用入口见阶段 2「组件配置（components）」**（structure 文件 components 字段 / staticAssemblies / staticPrefabUpdates 三入口）。
+  2. **节点图已挂载到该实体**：`gsts assets:mounts attach <entity-id> --graph <graph-id> --entity --write`，没挂载事件没有 graph 接收方。
+  3. **DSL `whenTabIsSelected` 已写**：`f.multipleBranches(tabId, {1:…, 2:…, …})`，tabId=1..N 对应 options 顺序。
+  - 缺任何一件 → 选项不显示或点不动；用户测试**必失败**。
+  - 写回路径：CLI → 编辑器重载/重放确认（场景实体 root5 组件槽可能是独立副本）。
+  - 编码细节：`docs/game-engine-knowledge/components.md` + 实战参考 `examples/rubik-2x2` 的控制器（sphere r=3 center [0.1,0,0]，6~10 个 options）。
 - 编辑器配置最小样本后，用相邻快照调查闭合 GIL 编码（editor-incremental-gia-investigator 流程），再做批量配置。
 - **编辑器保存行为**：地图刚创建后，用户在编辑器**第一次手动保存**时，游戏引擎会自动补全地图**骨架定义**（默认实体 11 个、布局规范化等，与信号无关）；保存后必须重新比对/回读，不能假设磁盘与编辑器内存一致。
+- **完成判断**：仅 `assets:mounts list` 显示挂上 ≠ 通过，必须进游戏目视「选项卡浮现 + 选中能触发」才算通过（2026-08-22 足球阶段 0 实证：仅挂图未配 tabBar，玩家点不动）。
 - rubik-2x2：魔方实体上 6 个选项卡 R/L/U/D/F/B（tabId 1~6，2026-08-13 已闭合）。
 
 ## 5. 节点图逻辑
@@ -179,7 +200,7 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 - 改图：`gil-node-graph-editing`（快照备份→候选→回读→写回，fail closed 不猜字节）。
 - 事件挂载：`docs/game-engine-knowledge/graph-mounting.md`（实体挂载节点图、事件→节点入口）。
 - **引擎规则速查（先查再问）**：`references/engine-rules.md`——坐标系（Y 垂直上、XZ 地面）、运动器 6 类全表与选择准则（无椭圆类，轨迹用分段直线）、关键事件 payload（含 whenEntityIsCreated / whenBasicMotionDeviceStops / whenTimerIsTriggered）、关卡实体（g.stage）、动态创建（createPrefab 无 GUID）、定时器同步推进、输入锁模式。设计/实现前先翻它，避免向用户重复问已沉淀的规则。
-- **组件前置依赖**：运动类节点（如旋转运动器）要求目标实体带**基础运动器组件（basicMotion）**，否则节点执行时报错（P4 最小实验真实踩坑：用户手动补组件后日志恢复正常；基础元件模板自带 preset=default）。
+- **组件前置依赖**：运动类节点（如旋转运动器）要求目标实体带**基础运动器组件（basicMotion）**，否则节点执行时报错（P4 最小实验真实踩坑：用户手动补组件后日志恢复正常；基础元件模板自带 preset=default）。**basicMotion 组件配置入口见阶段 2「组件配置（components）」**——重建元件时 structure JSON 漏配 components 会导致实体继承时组件丢失（足球实证）。
 
 ### 节点编写与优化的可复刻总览（2026-08-20 魔方性能战役，细节见 dsl-nodegraph-development）
 
