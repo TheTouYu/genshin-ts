@@ -381,3 +381,179 @@ export function convertPrefabStatic(
     entitiesUpdated
   }
 }
+
+/**
+ * 组件槽按 type 码分组：返回 Map<typeCode, 槽字节>。
+ * 组件槽 = field number（实例/实体 7、定义 8）的 wire 2 字段，type 码在子字段 1 varint。
+ */
+function componentSlotsByType(record: Uint8Array, slotNumber: number): Map<number, Uint8Array> {
+  const fields = parse(record)
+  const map = new Map<number, Uint8Array>()
+  if (!fields) return map
+  for (const f of fields) {
+    if (f.number !== slotNumber || f.wire !== 2) continue
+    const slot = parse(f.value as Uint8Array)
+    const typeCode = slot?.find((x) => x.number === 1 && x.wire === 0)?.value
+    if (typeof typeCode === 'number') map.set(typeCode, f.value as Uint8Array)
+  }
+  return map
+}
+
+/**
+ * 差异化合并实体组件槽：以定义 f8 为"继承基线"，保留实体 f7 的独属修改。
+ *
+ * 规则（2026-08-22 五轮差分闭合，无 override 标记，靠字段级差异）：
+ * - 定义有、实体没有的 type → 新增到实体（继承）。
+ * - 定义有、实体也有、内容相同的 type → 保持（内容一致，无需动）。
+ * - 定义有、实体也有、内容不同的 type → 实体独属修改，保留（除非 force）。
+ * - 实体有、定义没有的 type → 实体独属新增，保留（除非 force）。
+ * - force：实体 f7 完全替换为定义 f8（丢弃全部独属修改）。
+ *
+ * 返回合并后的实体记录；无变化时返回原记录。
+ */
+function mergeEntityComponents(
+  entity: Uint8Array,
+  definitionSlots: Map<number, Uint8Array>,
+  force: boolean
+): Uint8Array {
+  const entitySlots = componentSlotsByType(entity, 7)
+  if (force) {
+    // 强制覆盖：实体 f7 完全替换为定义 f8 的组件槽集合
+    const fields = parse(entity)!
+    const kept = fields.filter((f) => !(f.number === 7 && f.wire === 2))
+    const defSlots: WireField[] = [...definitionSlots.entries()].map(([, value]) => ({
+      number: 7,
+      wire: 2,
+      value
+    }))
+    // 插入到第一个编号大于 7 的字段之前（保持字段排序语义）
+    const insertAt = kept.findIndex((f) => f.number > 7)
+    const index = insertAt === -1 ? kept.length : insertAt
+    return emit([...kept.slice(0, index), ...defSlots, ...kept.slice(index)])
+  }
+
+  // 差异化合并：计算最终组件槽集合（按 type 码）
+  const merged = new Map<number, Uint8Array>()
+  // 1. 定义的所有槽作为基线
+  for (const [type, value] of definitionSlots) merged.set(type, value)
+  // 2. 实体独属的槽（定义没有的 type，或同 type 内容不同）覆盖/保留
+  for (const [type, value] of entitySlots) {
+    const defValue = definitionSlots.get(type)
+    if (defValue === undefined) {
+      // 实体独属新增
+      merged.set(type, value)
+    } else if (Buffer.from(defValue).equals(Buffer.from(value))) {
+      // 内容一致，保持（merged 已有定义值，无需动）
+    } else {
+      // 同 type 内容不同 = 实体独属修改，保留实体值
+      merged.set(type, value)
+    }
+  }
+
+  // 重建实体 f7 组件槽
+  const fields = parse(entity)!
+  const kept = fields.filter((f) => !(f.number === 7 && f.wire === 2))
+  const mergedSlots: WireField[] = [...merged.entries()].map(([, value]) => ({
+    number: 7,
+    wire: 2,
+    value
+  }))
+  const insertAt = kept.findIndex((f) => f.number > 7)
+  const index = insertAt === -1 ? kept.length : insertAt
+  return emit([...kept.slice(0, index), ...mergedSlots, ...kept.slice(index)])
+}
+
+/**
+ * 批量更新元件定义：改 root4 定义（元件本体）→ 同步 root8 实例（所见即所得）+
+ * 所有引用该定义的 root5 场景实体（差异化保留实体独属修改）。
+ *
+ * [ZH] 语义（2026-08-22 用户定义 + 五轮差分闭合）：
+ * - "元件" = root4 定义（本体）；root8 实例是编辑辅助；root5 实体是摆放实例。
+ * - 默认差异化保留：实体独属修改（加组件/改属性/transform）不被覆盖。
+ * - force：实体 f7 完全替换为定义 f8（丢弃独属修改）。
+ * - transform（f6）永不参与同步（实体摆放坐标独立）。
+ */
+export function updatePrefabDefinition(
+  bytes: Uint8Array,
+  params: { id: number; force: boolean }
+): { bytes: Uint8Array; id: number; entitiesUpdated: number; entitiesPreserved: number } {
+  const top = topFields(bytes)
+  const definitionId = params.id
+
+  // 1. 定位 root4 定义（元件本体）
+  const root4 = top.find((f) => f.number === 4 && f.wire === 2)
+  if (!root4) throw new Error(`[error] prefab definition not found: ${definitionId}`)
+  const defSection = parse(root4.value as Uint8Array) ?? []
+  let definitionRecord: Uint8Array | undefined
+  for (const f of defSection) {
+    if (f.number !== 1 || f.wire !== 2) continue
+    const rec = parse(f.value as Uint8Array)
+    if (rec?.find((x) => x.number === 1 && x.wire === 0)?.value === definitionId) {
+      definitionRecord = f.value as Uint8Array
+      break
+    }
+  }
+  if (!definitionRecord) throw new Error(`[error] prefab definition not found: ${definitionId}`)
+  const definitionSlots = componentSlotsByType(definitionRecord, 8)
+
+  // 2. 同步 root8 实例（所见即所得）：f7 组件槽直接替换为定义 f8 的内容
+  const root8 = top.find((f) => f.number === 8 && f.wire === 2)
+  if (root8) {
+    const instSection = parse(root8.value as Uint8Array) ?? []
+    for (const f of instSection) {
+      if (f.number !== 1 || f.wire !== 2) continue
+      const rec = parse(f.value as Uint8Array)
+      if (!rec) continue
+      // 实例 f2 引用定义，或 f1 直接等于定义 id
+      const f1 = rec.find((x) => x.number === 1 && x.wire === 0)?.value
+      const f2 = rec.find((x) => x.number === 2 && x.wire === 2)
+      const f2Fields = f2 ? (parse(f2.value as Uint8Array) ?? []) : []
+      const refId = f2Fields.find((x) => x.number === 1 && x.wire === 0)?.value
+      if (f1 !== definitionId && refId !== definitionId) continue
+      // 替换实例 f7 组件槽为定义 f8 内容
+      const instFields = parse(f.value as Uint8Array)!
+      const kept = instFields.filter((x) => !(x.number === 7 && x.wire === 2))
+      const defSlots: WireField[] = [...definitionSlots.entries()].map(([, value]) => ({
+        number: 7,
+        wire: 2,
+        value
+      }))
+      const insertAt = kept.findIndex((x) => x.number > 7)
+      const index = insertAt === -1 ? kept.length : insertAt
+      f.value = emit([...kept.slice(0, index), ...defSlots, ...kept.slice(index)])
+      root8.value = emit(instSection)
+      break
+    }
+  }
+
+  // 3. 同步 root5 场景实体（差异化保留）
+  let entitiesUpdated = 0
+  let entitiesPreserved = 0
+  const root5 = top.find((f) => f.number === 5 && f.wire === 2)
+  if (root5) {
+    const entSection = parse(root5.value as Uint8Array) ?? []
+    for (const f of entSection) {
+      if (f.number !== 1 || f.wire !== 2) continue
+      const rec = parse(f.value as Uint8Array)
+      if (!rec) continue
+      const f2 = rec.find((x) => x.number === 2 && x.wire === 2)
+      const f2Fields = f2 ? (parse(f2.value as Uint8Array) ?? []) : []
+      if (f2Fields.find((x) => x.number === 1 && x.wire === 0)?.value !== definitionId) continue
+      const merged = mergeEntityComponents(f.value as Uint8Array, definitionSlots, params.force)
+      if (Buffer.from(merged).equals(Buffer.from(f.value as Uint8Array))) {
+        entitiesPreserved++
+        continue
+      }
+      f.value = merged
+      root5.value = emit(entSection)
+      entitiesUpdated++
+    }
+  }
+
+  return {
+    bytes: rebuild(bytes, top),
+    id: definitionId,
+    entitiesUpdated,
+    entitiesPreserved
+  }
+}

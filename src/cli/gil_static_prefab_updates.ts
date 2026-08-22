@@ -220,13 +220,29 @@ export function applyStaticPrefabUpdate(params: {
   nthWireField(top, 4).value = emitWireMessage(definitions)
   nthWireField(top, 8).value = emitWireMessage(instances)
 
+  // 三层联动：组件槽写回同步 root5 场景实体（游戏实际读取的副本）。
+  // transform（position/scale）不联动——场景实体 transform 是独立坐标层。
+  let bytes: Uint8Array = buildFile(emitWireMessage(top), {
+    schema: readUint32BE(source, 4),
+    headTag: readUint32BE(source, 8),
+    fileType: readUint32BE(source, 12),
+    tailTag: readUint32BE(source, source.length - 4)
+  })
+  if (update.components || update.removeComponents?.length) {
+    bytes = syncSceneEntityComponents(bytes, update.prefabId, (entity) => {
+      let updated = entity
+      if (update.components) {
+        updated = setStaticAssemblyComponents(updated, update.components, 7)
+      }
+      if (update.removeComponents?.length) {
+        updated = removeStaticAssemblyComponents(updated, update.removeComponents, 7).bytes
+      }
+      return updated
+    })
+  }
+
   return {
-    bytes: buildFile(emitWireMessage(top), {
-      schema: readUint32BE(source, 4),
-      headTag: readUint32BE(source, 8),
-      fileType: readUint32BE(source, 12),
-      tailTag: readUint32BE(source, source.length - 4)
-    }),
+    bytes,
     prefabId: update.prefabId,
     instanceId: update.instanceId,
     removedComponents
@@ -279,22 +295,22 @@ function decodeTabBarSlot(record: Uint8Array, fieldNumber: number): DecodedTabBa
 }
 
 /**
- * [ZH] 同步 root5 场景实体的 tabBar 组件槽（field 7）。
- * tab-options 写 root4 定义 + root8 实例后，场景实体（root5）上的组件槽是独立副本，
- * 游戏实际读取的是场景实体的副本；不同步会导致"改了元件但游戏里没生效"。
- * 场景实体通过 field 2 引用 prefabId，匹配后写其 field 7 组件槽（编码与 root8 实例一致）。
- * 无匹配场景实体时保持原样（不报错，避免误伤无 tabBar 副本的实体）。
+ * [ZH] 同步 root5 场景实体的组件槽（field 7）——统一三层联动抽象。
+ * 元件定义（root4 f8）、元件实例（root8 f7）、场景实体（root5 f7）是三层独立副本，
+ * 游戏实际读取的是场景实体的副本；组件槽写回必须三层联动，否则"改了元件但游戏里没生效"。
+ * 场景实体通过 field 2 引用 prefabId，匹配后对每个实体应用 apply 变换（写其 field 7 组件槽）。
+ * 无匹配场景实体时保持原样（不报错，避免误伤无组件副本的实体）。
  *
- * [EN] Sync the tabBar component slot (field 7) of the root5 scene entity.
- * The scene entity (root5) carries an independent copy of the component slot
- * that the game actually reads; without syncing it, editing the prefab has no
- * in-game effect. The scene entity references the prefabId via field 2; its
- * field 7 slot is encoded identically to the root8 instance.
+ * [EN] Sync the component slots (field 7) of root5 scene entities — the shared
+ * three-layer linkage. The prefab definition (root4 f8), instance (root8 f7)
+ * and scene entity (root5 f7) are three independent copies; the game reads the
+ * scene entity copy, so component-slot writes must link all three layers.
+ * Scene entities reference the prefabId via field 2; apply runs on each match.
  */
-function syncSceneEntityTabOptions(
+function syncSceneEntityComponents(
   bytes: Uint8Array,
   prefabId: number,
-  component: GstsStaticAssemblyComponent
+  apply: (entity: Uint8Array) => Uint8Array
 ): Uint8Array {
   const top = parseWireMessage(bytes.slice(20, -4))
   if (!top) return bytes
@@ -304,7 +320,7 @@ function syncSceneEntityTabOptions(
     if (field.number !== 1 || field.wire !== 2) continue
     const entity = field.value as Uint8Array
     if (instanceDefinitionId(entity) !== prefabId) continue
-    field.value = setStaticAssemblyComponents(entity, [component], 7)
+    field.value = apply(entity)
     changed = true
   }
   if (!changed) return bytes
@@ -384,7 +400,9 @@ export function applyTabOptionsUpdate(params: TabOptionsUpdateParams): TabOption
     }
   })
   // 同步 root5 场景实体（游戏实际读取的组件槽副本），否则"改了元件但游戏里没生效"。
-  const bytes = syncSceneEntityTabOptions(result.bytes, result.prefabId, component)
+  const bytes = syncSceneEntityComponents(result.bytes, result.prefabId, (entity) =>
+    setStaticAssemblyComponents(entity, [component], 7)
+  )
   return {
     ...result,
     bytes,

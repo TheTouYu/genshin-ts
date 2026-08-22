@@ -218,6 +218,17 @@ GIL file
 >   场景实体此时**删除旧实体 + 新建引用新定义的静态实体**（f2={1:defID}、f7=0、411B）。
 > - 定义 ID 分配只查 root 4 空间，可与 root 5/root 8 的 ID 重叠（跨 section 复用是常态）。
 
+> **三层独立副本 + 差异化保留（2026-08-22 五轮编辑器差分闭合，见 ADR-0006）**：
+> - **三层完全独立**：root4 定义 f8 / root8 实例 f7 / root5 实体 f7 是三份独立副本，
+>   编辑器操作只改目标层、**不自动同步**。改"元件面板"→ 写 root8 实例 f7；改"场景实体"→
+>   写 root5 实体 f7/f6；root4 定义 f8 在编辑器里不被直接编辑（"保存元件"时由 root8 同步写入）。
+> - **游戏实际读取 root5 实体 f7**（不是 root4/root8）。
+> - **差异化保留 = 字段级差异（无 override 标记）**：实体独属修改 = 实体 f7/f6 与定义 f8 的差异。
+>   加组件 = 实体 f7 多一个组件槽；改属性 = 实体 f7 内容变；移动 = 实体 f6 变。
+>   transform（f6）是实体独属坐标层，永不参与继承同步。
+> - 批量更新命令 `assets:prefabs update --id <defId> [--force]`：改 root4 定义 → 同步 root8 实例 +
+>   所有引用实体；默认差异化保留，`--force` 强制覆盖。
+
 `CONFIRMED`，但每条结论都受表中边界限制：
 
 | 路径         | 当前含义                                                                   | 边界                                                          |
@@ -1018,6 +1029,10 @@ root `2/10/43` 可分别按该草案有界解码为 `模型比对`、节点图�
 `CONFIRMED`：当前 reader 在 `10.2[*]` 使用 `gia.CompositeDef`，其 `id/inflows/outflows/inputs/outputs/type/name` 及 `ParameterFlow.name/index/type/pinIndex` 由 `gia.proto` 映射。
 
 `CONFIRMED`：当前信号 reader 在 `10.5.3[*]` 读取注册索引条目，锁定快照中得到 10 个去重注册信号。条目包含 send、monitor、server identity、名称和参数条目。这里的读取属于当前源码加真实 raw-wire execution，不称为 round-trip。
+
+`CONFIRMED`（2026-08-21 编辑器差分闭合，样本 `打印` 复合定义添加/删除）：删除一个复合定义 = 从 root 10 移除两条容器记录——`10.2[*]` 的 `CompositeDef` 记录（section 2）和 `10.4[*]` 的复合 impl 图记录（section 4，记录 id 与 def 相同或由 def `field4.sub4.field5` 指定）；若该 def 在自定义分类（root 10 field3）中有成员引用，需同步移出。root 46 的条目替换是编辑器保存副作用，不属删除语义，CLI 不模拟。已落地为 `gsts assets:node-graphs def-clean`（`src/cli/assets_node_graphs.ts` + `graph_edit.ts` 的 `deleteCompositeDef`）。
+
+`CONFIRMED`（2026-08-21 编辑器差分闭合，样本 `view_orbit_trigger`→`view_orbit_trigger——2` + impl 新增 Print String）：修改一个复合定义 = 只改 `10.2[*]` 的 `CompositeDef` 记录（本次仅 `field200` name 变长）和 `10.4[*]` 的 impl 图记录（新增节点 n1、在 When Timer Is Triggered 的 OutFlow[0] 增加一条到 n1 的连线）；已有节点/连线保持不变，def ID 与 impl 图 ID 不变。root 46 仍是保存副作用。编译器侧已用 `forceFull` 支持把“未调用但需更新”的复合以完整 impl 输出（`src/runtime/core.ts`）。
 
 ### 静态字段树全景（2026-08-07，v21 快照 `7fa4557a…`，只读解析无新快照）
 

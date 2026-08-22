@@ -94,6 +94,15 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   - 动态/自定义元件：`assets:prefabs create --base <官方ID> --id <new>`（root4 定义 + root6 type6 登记）
   - 静态元件：`assets:prefabs create --static --base <官方ID> --id <new> [--name <n>]`（root8 页面模型）
   - 切换：`assets:prefabs convert --id <prefabId> --static|--dynamic`（定义/模型/实体联动；定义-only 也支持）
+  - **批量更新（2026-08-22 五轮差分闭合）**：`assets:prefabs update --id <definitionId> [--force]`
+    - 语义：改 root4 定义（元件本体）→ 同步 root8 实例（所见即所得）+ 所有引用该定义的 root5 实体。
+    - **默认差异化保留**：实体独属修改（加组件/改属性/transform）不被覆盖；`--force` 才强制覆盖。
+    - **三层独立副本铁律**：root4 定义 f8 / root8 实例 f7 / root5 实体 f7 是**三份独立副本**，
+      编辑器操作只改目标层、**不自动同步**（改"元件面板"→写 root8；改"场景实体"→写 root5；
+      root4 定义在编辑器里不被直接编辑）。游戏实际读取 root5 实体 f7。
+    - **差异化保留 = 字段级差异（无 override 标记）**：实体独属修改 = 实体 f7/f6 与定义 f8 的差异；
+      加组件 = 实体 f7 多一个组件槽；改属性 = 实体 f7 内容变；移动 = 实体 f6 变。
+      transform（f6）永不参与同步（实体摆放坐标独立）。
   - 挂装饰物：`assets:aux attach --host <实体|定义|模型ID> --resource <装饰物资源ID>`（root27 aux + 宿主 f501）
 - ⚠️ `assets:gadgets` 的 `list_id` **不是游戏元件 ID**（如 `1000218`≠`20001219`），需要映射表；映射样本见 `~/genshin-ts-evidence/toolchain-gaps/1073741896/raw/gadget-mapping.md`，不可直接把 list_id 当 definitionId/resourceId 写实体。
 
