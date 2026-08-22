@@ -18,6 +18,43 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 - DSL 编译报错或生成图异常（节点数超限、值类型错误、capture 失败）
 - 需要把"玩法逻辑"可靠地变成游戏内行为
 
+## 复合节点铁律（用户 5-7 节点标准，违反后果见 2026-08-22 足球事故）
+
+> **「能做成复合节点的，一定往这个方向靠」——即使未被别处使用也不亏。**
+> 用户标准：每层级打开一张图，看到 5~7 个节点；超过 7 个就复合化。
+> 详细方法论见 `references/composite-authoring.md`（类型/接口/能力边界/4 种形态）
+> 与 `docs/game-engine-knowledge/composite-usage-guide.md`。
+
+**不要让逻辑超过 7 个节点还挤在根图。** 违反后果（2026-08-22 足球阶段 0 实证）：
+- 9 个射门分支 × 每分支 5 节点 × 无复合 = 根图 221 节点像"一坨面条"；
+- 排查 bug 时必须逐节点解码 221 节点 IR，无法快速定位；
+- 游戏运行时帧率劣化、负载爬升。
+
+**编写时即复合化（4 步骤）：**
+1. 识别**复用型**块（真正多处调用）或**封装型**块（一件事一个复合）；
+2. `g.defineComposite(name, { inputs/outputs/outflows, build })` 显式声明类型；
+3. 宿主 `f.callComposite(Com, { … })` 调用；`setTimeout` 与 `f.on(...)` 事件注册留宿主，不进复合；
+4. 编译后 `tools/check-gil-composite-refs.ts` 全量校验（删除/改名复合必须走此关）。
+
+**案例对照**（rubik-2x2 v5→v5.5 节点预算战役）：主图 155→15 节点、22 个复合、每层 2-16 节点。
+
+## 输入机制前置条件（实体侧必配，未配直接卡死）
+
+DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输入事件，**不等于游戏里能看到 / 触发**——必须先在 **事件源实体**上配好对应组件，事件才会被游戏引擎派发。常见踩坑（2026-08-22 足球阶段 0 实证）：
+
+| 输入机制 | 实体侧必备组件 | 缺失表现 |
+|---|---|---|
+| **实体选项卡**（`whenTabIsSelected`） | `tabBar` 组件（regionName + options + regionType `box/sphere` + regionSize/regionRadius + regionCenter），通过 `gsts assets:static-assemblies tab-options <id> --name … --options … --region-type … --write` 写回 | 游戏中点不动 / 没选项显示 / 选不触发；节点图根本不会跑 |
+| **基础运动**（运动器类节点） | `basicMotion` 组件（基础元件模板 `10005018` 自带 preset=default，其他模板要手动补） | 节点报错：未配置 basicMotion |
+| **玩家化身交互** | 玩家实体挂载 `player` 组件 / 交互触发器实体 | `whenEntityInteract` 不触发 |
+
+**强制 gate（编写事件 DSL 前先回答）：**
+- 这个事件的事件源实体是哪个？该实体是否已经配置了对应组件？
+- 没配置 → 先用 `assets:static-assemblies` 或 `assets:entities` 写回组件（参考 `genshin-ts-asset-operations` 技能 tabBar CLI 用法），再写 DSL。
+- 写完 DSL → 注入 → **先用编辑器/游戏目视确认组件槽可见、选项可见、区域半径有效**（生效范围），再交用户测试。仅 `assets:mounts list` 显示 graph 挂上 ≠ 选项卡能用——前者只是图挂载，后者需要 tabBar 组件 + region 同时就绪。
+
+> 完整流程标准：实体的 tabBar 组件配置 + 节点图挂载 + 节点图编译注入，是三件并列的事，缺一不可。rubik-2x2 控制器（2026-08-13 已闭合）是该标准的参考实现。
+
 ## 核心流程（每轮一个可归因变量）
 
 ```text
@@ -206,6 +243,7 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | 分支/循环后的**公共 merge/done 节点** | `f.registerExecNode(...)` 放在 `f.doubleBranch` 之前，再让分支尾连回它 | `f.node(...)` 创建 detached 公共节点；分支尾 `f.connect(..., 0, doneNode, 0)`；最后 `f.outflow('done', doneNode, 0)` |
 | `f.callComposite(...)` 之后的**链尾 exec 节点**（如 start_timer） | `f.registerExecNode('start_timer', ...)`（会被 auto-chain 从复合调用 done 再拉一条入边，导致同一节点执行两次） | `f.node('start_timer', ...)` + 显式 `f.connect(前置, 0, t, 0)` |
 | 循环体/分支回调的**第一个 exec 节点** | `f.node(...)`（detached，不会自动挂进执行链） | `f.registerExecNode(...)` 或高层 flow API（这是 `registerExecNode` 的正确使用场景） |
+| `f.doubleBranch` 的 **false 分支**第一个 exec 节点（兜底/else 路径） | `f.node(...)`（detached，false 分支边丢失，兜底失效） | `f.registerExecNode(...)`。**注意**：true 分支常以 `f.callComposite` 开头（自动设 headNodeId，边正常），false 分支常是单节点兜底，最容易漏——写 else 兜底时先自查这一行 |
 
 判断口诀：
 
@@ -276,9 +314,61 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | 转动后块位置与逻辑对不上（部分面错） | **视觉层轴方向与逻辑置换表方向不一致**——渲染跟随轴转、逻辑跟随表，方向反时两者脱节（2026-08-20 日志 2768 实证：L 轴用了 -X，DBL 实体应到 UBL 却到了 DFL）。这不是编译器 bug，也不是性能问题，而是**数据表/视觉层坐标契约没对齐** | **通用规则**：`axes` 不是通用常量，必须与当前项目的逻辑表 `ROT` 一一对应；每个项目独立做“取一个初始块，模拟绕当前轴转 90°（罗德里格斯）对比 `tblTo` 目标槽坐标”的几何验证，不一致就翻转对应轴。**具体值只在本项目有效**：3×3 按逻辑表 ROT 为 R=-X、L=+X、F=-Z、B=+Z（U/D 不动），不要直接照抄 2×2 axes 注释 |
 | 动画"重叠/错开"手感反复 | 相位差（4 块启动间隔）过大=错开明显、过小=重叠 | 随机相位差分档收敛：总跨度 34ms 嫌多→13ms 好→8ms 重叠→回调 13ms；用 `getRandomFloatingPointNumber` + 物化到 float_list 变量（start_timer 读变量） |
 | GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route | 复合内部对**复合调用**节点 `f.link(f.entry(), 0, 复合调用, 0)`：显式 link 对象边 + exec 复合 auto-chain 裸边 → 同一 InFlow 物理路由两条 | 删掉该显式 f.link，靠 auto-chain 生成入口边（入口链首用普通节点，复合调用只作链中目标）；详见上文「exec 链链接规则」 |
+| 读图看到 `Double Branch false → (无)` / 分支体零帧 / 兜底 done 永不触发 | **`f.doubleBranch` 的 false 分支回调里第一个 exec 节点用了 `f.node()`**（detached，不设 headNodeId → `withExecBranch` 弹出时不生成 false 分支边）。**尤其易漏**：true 分支常以 `f.callComposite` 开头（自动设 headNodeId，边正常），false 分支常是单节点兜底（如 `set_node_graph_variable`），一用 `f.node` 就断链 | false 分支回调第一个 exec 节点改用 `f.registerExecNode(...)`（或高层 flow API）；读图应看到 `false → <节点>`（2026-08-23 魔方打乱守卫实证：`f.node` 让非法 moveId 兜底失效，done 永不触发） |
+
+## 通用复合节点模式库（2026-08-22 来自「常用复合节点大全 v1.7」资源包）
+
+> 社区作者「左岸丶寒」整理的 87 个通用复合节点，按功能分 13 类资源包，已落盘到
+> `docs/composite-library/`（README 是总览，各资源包文档含用途/节点清单/通用方法论/复用提示）。
+> 写玩法前先查这里有没有现成模式可抄，别从零造轮子。下面是**跨资源包、真正通用**的提炼：
+
+### 高频「三段式」骨架（直接套）
+
+| 骨架 | 形态 | 适用 |
+|---|---|---|
+| 变量运算 | `Get 变量 → 运算 → Set 变量` | 计数/累加/状态自增（+1/-1/±N） |
+| 列表遍历 | `查列表 → 遍历 → 取值` | 任何「对多个实体做同一件事」 |
+| 随机取一 | `Get List Length → Get Random → 取值` | 从任意列表随机取一个 |
+| 位置生成 | `算位置 → Create Prefab` | 生成类玩法（位置来源可配置） |
+| 事件动作 | `监听事件 → 执行动作` | 隐藏/碰撞/UI 触发等简单响应 |
+
+### 关键技巧（跨领域通用）
+
+- **动态列表转静态**：遍历列表的同时销毁/删除/移动列表元素，会导致列表长度变化、索引错乱。
+  先 `Set Local Variable` 复制成静态快照，再遍历快照操作。**任何「遍历时改列表」都要先转静态**。
+- **哨兵值 + 自增**：用 `-1` 作「未开始」哨兵，+1 后正好是第一个元素（如顺序发言序号默认 -1）。
+- **空模型当结构体**：节点图没有结构体类型，用「空实体 + 多个自定义变量」模拟多字段数据聚合，
+  减少负载（作者明确「可替代结构体使用」）。
+- **跨实体读写变量**：`Query Entity by GUID → Get/Set Custom Variable`，是跨图/跨实体数据共享的标准模板。
+- **数值封顶**：累加时用 `Take Smaller Value` 限制上限。
+- **枚举转值**：`Enumerations Equal` 逐项判断（one-hot）+ 加权求和（转整数）/ 查表（转字符串）/
+  `Multiple Branches`（转执行分支）。枚举项多时查表法更省节点。
+
+### 负载意识（节点图不是免费算力）
+
+- **重操作拆帧/间隔**：批量销毁、矩阵运算等重操作要间隔执行（作者：批量销毁间隔 0.1s 防炸图；
+  矩阵求逆单次 120ms，不要每帧调用）。
+- **选对数据结构比优化算法更有效**：同一功能「向量形式」3 节点低负载 vs「列表形式」8 节点 300ms，
+  差 100 倍（作者留作反例）。
+- **轮询 vs 事件按频率选**：持续状态用轮询（全局计时器，间隔越短负载越高——1s 约 50ms、0.06s 约 800ms），
+  离散事件用事件监听（`When Entity Is Removed` 等）。频率高选轮询，频率低选事件。
+- **局部变量优先于节点图变量**：作用域小、无持久化开销，能省就省（作者排名节点 v2 用局部变量替代节点图变量）。
+
+### 复用前置条件（复用前必查）
+
+作者在每个复合节点注释里都写明了依赖，复用前先满足：
+- 挂载位置（关卡实体 / 玩家实体 / 角色实体 / 任意实体）；
+- 依赖变量（如「关卡实体挂全局计时器 Update + 图变量 time」「玩家实体挂排名依据变量」）；
+- 定时器名不重复（多块并发用 `dataTypeConversion(i, 'str')` 生成唯一名）。
+
+### 注释是资源包的核心价值
+
+**没有注释的复合节点无法复用**。写复合节点时，注释要写清：用途 / 依赖（挂载哪、需要哪些变量）/
+负载 / 注意事项。这是「可复用资源包」与「一次性代码」的分水岭。
 
 ## 参考
 
 - 引擎运行时行为（运动器轴语义/公式/层成员）：`docs/game-engine-knowledge/motion-devices.md`
 - DSL 架构：`docs/architecture/runtime-dsl.md`；踩坑明细：`references/dsl-pitfalls.md`
 - 玩法全流程：`game-from-scratch` 技能；组件/资产：`static-gil-model-builder`
+- 通用复合节点资源库（13 类，可直接抄）：`docs/composite-library/README.md`

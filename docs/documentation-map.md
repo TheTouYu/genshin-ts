@@ -98,6 +98,9 @@
 - [`composite-ir/06-advanced-patterns.md`](composite-ir/06-advanced-patterns.md)
 - [`composite-ir/analyze-workflow.md`](composite-ir/analyze-workflow.md)
 
+可复用复合节点资源库（从社区资源包 + 自己项目提炼的通用复合节点，写玩法前先查）：
+[`composite-library/README.md`](composite-library/README.md)（13 类资源包总览 + 策展流程 `curation-process.md`）。
+
 真实 GIA 样本常见位置包括 Windows `Beyond_Local_Export/` 下的 `user_edit/`、`布局/`、`实用/` 等目录。历史文档中的项目根 `复杂gia/` 是曾使用过的机器相关 symlink；当前仓库不再跟踪该入口。路径必须以当前机器实际存在且任务明确授权的位置为准，不能从历史路径猜测或重建。
 
 ### 历史记录
