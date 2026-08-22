@@ -1293,6 +1293,28 @@
         "角色操控技能"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "football-physics-model",
+      "node_id": "game-engine-knowledge",
+      "title": "足球物理模型：飞行/碰撞/控球与 5Hz 运动器实现通道",
+      "path": "knowledge/game-engine-knowledge/football-physics-model.md",
+      "summary": "examples/football 已确认的完整球物理模型（重力+空气阻力+马格努斯弧线+旋转衰减+碰撞扫掠+控球弹簧场）与 5Hz 匀速直线运动器插值的引擎实现方案。",
+      "keywords": [
+        "足球 物理 马格努斯 弧线 控球 弹簧 5Hz 匀速直线运动器 定点运动器 碰撞扫掠 足球场 1073741901"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "football-game-design",
+      "node_id": "project-intelligence",
+      "title": "真实足球 demo 玩法设计（单人训练场·半场单门）",
+      "path": "knowledge/project-intelligence/football-game-design.md",
+      "summary": "examples/football 已确认的玩法设计：单人训练场、官方角色操作、半场单门射左门、9 项选项卡（6 射门+2 传球+1 停球）、带球→传球→接球→射门机制链、分阶段实施计划。",
+      "keywords": [
+        "足球 demo 设计 射门 传球 停球 选项卡 半场 官方角色 队友 计分 阶段计划 训练场"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2837,6 +2859,16 @@
       "fact_classes": [
         "cli_behavior",
         "external_game_evidence"
+      ]
+    },
+    "clm_588CB42271BC0A51988D005184": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_CCDC89BB579A261BE1ACD24C09": {
+      "fact_classes": [
+        "runtime_behavior"
       ]
     }
   }

@@ -2511,6 +2511,21 @@
       ]
     },
     {
+      "id": "aref_73e10dbf9c711d5f48dee250aa",
+      "path": "examples/football/DESIGN.md",
+      "locator": "5. 物理模型（5.1飞行/5.2碰撞/5.3控球/5.4出球参数/5.5 5Hz实现方案）",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "643a6899eab0a36f5ff41478409609b4575bb7c6ae12f936e7b88f3af0aa8dce",
+      "claim_ids": [
+        "clm_588CB42271BC0A51988D005184"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_74970151f9ce4a9fdfc1572ce9",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "节点图 → 资产/特效/预设状态/技能动画",
@@ -4011,6 +4026,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_c3f6c9386e3a08ae609764a974",
+      "path": "examples/football/DESIGN.md",
+      "locator": "1. 游戏形态/2. 场地布局/3. 输入机制/4. 状态机/6. 计分/8. 分阶段实施计划",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "643a6899eab0a36f5ff41478409609b4575bb7c6ae12f936e7b88f3af0aa8dce",
+      "claim_ids": [
+        "clm_CCDC89BB579A261BE1ACD24C09"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
