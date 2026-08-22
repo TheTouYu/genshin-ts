@@ -51,6 +51,18 @@
 - 教训：**传值前先看构造函数签名**（单数组参数 vs 多参数 API）；DSL 方法返回值/构造器
   不匹配是静默错误的重灾区——写完后跑一次 `npx tsc --noEmit` + 编译看 IR。
 
+## 6.3 回调内禁止 new vec3 数组构造（2026-08-22 足球阶段 0 实证）
+
+- 现象：`.on('whenTabIsSelected', (evt, f) => { ... f.set('ballVel', new vec3([x, y, z])) })` 编译报
+  `[error] gsts.f is only available in server_* ctxType (current: javascript)`，
+  栈：assertServerCtx → getBoundServerF → gsts.f getter → branch callback game.gs.ts → withCtx(684) → nodes.ts:3336 multipleBranches 分支回调。
+- 根因：TS→GS 转换器把回调内 `new vec3([...])` 改写为 `new vec3(gsts.f.assemblyList([...]))`
+  （gs.ts 实证；`gsts.f` getter 只能在 `server_*` ctxType 访问）。
+- 修复：回调内一律 `f.create3dVector(x, y, z)`（数据节点，不依赖 gsts.f）；
+  变量声明区 `new vec3([...])` 保留原样（gs.ts 41-43 行实证），`parseScalarLiteral` 支持
+  `raw instanceof vec3`（variables.ts:133）。
+- 附加：`new bool(...)` 不被改写（gs.ts 实证），回调内可安全使用。
+
 | 操作 | 中文名 | 英文名 | DSL 调用 |
 |---|---|---|---|
 | 读 | 对列表取值 / 获取列表对应值 | Get Corresponding Value From List | `f.getCorrespondingValueFromList(list, id)`（0-based） |
@@ -120,3 +132,20 @@
   「收到事件参数对象…请用 evt.eventSourceEntity」——①`parseValue` entity 分支
   （set/getCustomVariable 等）②`buildCompositeCallArgs`（callComposite 输入）。
 - 回归：`tests/composite/test-event-arg-entity-contract.ts`（错误契约 ×2 + 正确用法 ×2）。
+
+## 14. 空 IR：src CLI 与 dist 发布包模块实例分离（2026-08-22 足球实证）
+
+- 现象：编译全链路 `[ok] game.gs.ts` → `[ok] game.json` → `[info] All GIA generated (0)`，
+  但 `game.json` 内容为 `[]`，**无任何报错**。
+- 根因：`npx tsx src/cli/gsts.ts`（源码 CLI）下：
+  - `runner.ts` 用相对路径 `import '../../runtime/core.js'` → **src/runtime/core.ts 实例**；
+  - `game.gs.ts` 的 `import 'genshin-ts/runtime/core'` 经 Node self-reference
+    （package.json name + `exports['./runtime/*']` → `./dist/src/runtime/*.js`）→ **dist 发布包实例**；
+  - 两个 core 模块实例：gs.ts 注册到 dist 实例的 `serverRegistries`，runner 读 src 实例 → 空。
+- 验证链：`node --import tsx` + dist core import game.gs.ts → docs:1；同环境 src core → docs:0；
+  `mv dist/src/runtime/core.js` 后 runner 报 `ERR_MODULE_NOT_FOUND`（self-reference 无回退）。
+- 修复：用正式 CLI `node ./bin/gsts.mjs dev --config <cfg>`（dist CLI：runner 的
+  `../../runtime/core.js` 编译后指向 dist/src/runtime/core.js，与 gs.ts 同实例）或 `npm run dev`
+  （= `npm run build && node ./bin/gsts.mjs dev`）。
+- 诊断口诀：`game.json = []` 且 GIA generated 0 时，先确认编译入口是 `bin/gsts.mjs`（dist）
+  而不是 tsx 直跑 src；src 与 dist 不同实例时 IR 静默为空，**这不是 gs 代码问题**。

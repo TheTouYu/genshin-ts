@@ -22,15 +22,26 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 
 ```text
 设计（数据流思维）→ 能力预验证（最小编译实验）→ 实现 → 编译+IR 断言
-→ 注入+回读 → 日志验证 → 用户游戏核验
+→ 注入+真实 GIL 读图核验（强制，用 gil-node-graph-reading）→ 日志验证 → 用户游戏核验
 ```
 
 1. **设计**：DSL 无可变状态，一切是节点连线。先画数据流（输入事件 → 计算 → 图变量/字典 → 定时器 → 运动器）。
 2. **能力预验证**：要用不熟悉的能力（循环、循环内 setTimeout、capture 某类型、dict 操作）前，
    先写最小用例编译（10-30 行），确认编译器支持再写正式代码（P4 实证：循环方案先验证才敢用，避免返工）。
 3. **实现**：按受限子集写；每轮只改一个可归因变量（五轮修复链 v5→v5.5 每轮一个根因）。
-4. **编译 + IR 断言**：编译后检查 `dist/**/*.json` 节点统计（总数、关键节点族）；节点总数须 < 2000。
-5. **注入 + 回读**：注入地图后用 `dump_gil_index.ts` 回读图节点数/结构，确认与 IR 一致。
+4. **编译 + IR 断言**：用**正式 CLI** `node ./bin/gsts.mjs dev --config <cfg> --noinject`（或 `npm run dev`）编译，
+   检查 `dist/**/*.json` 节点统计（总数、关键节点族）；节点总数须 < 2000。
+   ⚠️ **不要用 `npx tsx src/cli/gsts.ts` 直接跑源码 CLI**——gs.ts 的包名 import
+   （`'genshin-ts/runtime/core'`）经 Node self-reference 解析到 **dist 发布包实例**，而源码 CLI
+   的 runner import **src 实例**，注册与读取分离 → `game.json = []` 且**无任何报错**
+   （`All GIA generated (0)`，2026-08-22 足球阶段 0 实证）。正式 CLI（dist 编译产物）两者同实例。
+5. **注入 + 真实 GIL 读图核验（强制，勿跳）**：注入地图并 `maps:resync` 后，**必须加载 `gil-node-graph-reading` 技能**，
+   用 `parse-gil-node-graph.ts` / `explain-gil-node-graph.ts` 回读真实 `.gil`，逐条核对：
+   - 复合定义/调用是否出现、是否挂到预期分支；
+   - 执行流是否与源码意图一致：有没有**重复入边**（同一节点两条 InFlow）、**死循环**（分支尾回到入口）、**断链**（链尾节点无后续）；
+   - 变量名 pin 完整（`scan-gil-var-pins.ts` 0 违规）；
+   - 节点预算、复合引用（`check-gil-composite-refs.ts`）通过。
+   不要只依赖 `dump_gil_index` 看节点数；它看不到执行边/重复边。
 6. **日志验证**：用户运行后解析 Beyond_Debug_Log，逐帧核对输入输出（见 debug-log-investigator）。
 7. **游戏核验**：用户最终确认行为（编译/注入成功 ≠ 游戏行为正确——v5.1 注入成功但 layers 空实体不动）。
 
@@ -46,7 +57,8 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | 循环内 setTimeout | ✅ | 回调可 capture 循环变量（int） |
 | setTimeout/setInterval | ✅ | 回调 `(evt, f)`；evt 无 timerName 等字段（编译器类型缺口） |
 | 图变量 | ✅ | bool/entity/vec3/list/dict（`dict([{k,v}])` 初始条目推断类型） |
-| 数组字面量 | ✅ | `[c0, c1]` 作 entity_list 值（setNodeGraphVariable/setOrAdd value） |
+| vec3 字面量 | ⚠️ | **变量声明区** `new vec3([x,y,z])` ✅（`parseScalarLiteral` 支持 `instanceof vec3`）；**事件/分支回调内禁止 `new vec3([...])`**——TS→GS 转换器把它改写为 `new vec3(gsts.f.assemblyList([...]))` → 报 `gsts.f is only available in server_* ctxType`（2026-08-22 足球实证）；回调内一律 `f.create3dVector(x, y, z)`（数据节点，不依赖 gsts.f） |
+| 数组字面量 | ✅ | `[c0, c1]` 作 entity_list 值（setNodeGraphVariable/setOrAdd value）；⚠️ **初始列表字面量最多 100 个元素**（2026-08-21 用户确认）——超过需拆成多个 ≤100 列表并用长列表复合（`long_list_get_vec3` for vec3_list / `long_list_get_int` for int_list，内部按 chunkSize 拆分/选择器相加） |
 | 字符串拼接 | ❓ | 未验证（用字面量/字典 key 替代） |
 | helper 函数 | ⚠️ | **被每个调用点内联**——分支×调用次数=节点爆炸 |
 
@@ -57,7 +69,8 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 - **预算检查命令（可复用）**：`gsts assets:node-graphs nodes --gil map.gil [--json]`
   ——输出所有 impl 展开之和、主图展开、最大贡献者排序、是否达标；`--json` 供脚本消费。
   （原语：`src/cli/static_assembly/graph_edit.ts` 的 `compositeNodeBudget`）
-- **指标口径**：`implTotal` 是“每个 impl 图递归展开之和”，会重复计算共享复合，往往大于实际物理节点；
+- **指标口径**：`implTotal` 是“**主图可达**的每个 impl 图递归展开之和”，会重复计算共享复合，往往大于实际物理节点；
+  **未被调用的复合定义不计入**（2026-08-20 修复：旧版把所有 impl 全算，残留死定义会把预算虚高到 3810，实际仅 1664）；
   `--json` 里 `graphs[].direct` 求和才是唯一物理节点数。优化时两个都看：先保证 implTotal <3000，
   再关注 direct 总和（2026-08-20 魔方：direct 551→491，implTotal 3138→2909）。
 - **膨胀模式 1：函数内联 × 分支**——helper 被 N 分支调用 → N 份展开（如 orbit_trigger 8 turnblock 分支 = 8×turn_one）。
@@ -66,6 +79,19 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
     实测 orbit_trigger 1846→753 节点）；循环用循环变量。
   - 无规律：先拼装列表把数据传进去，再按执行次数取变量。
   - 反面：`multipleBranches(值, {0:.., 1:.., ...})` 每分支用不同常量调用同一复合 = 节点爆炸，优先变量化。
+  - **具体落法（2026-08-21 3×3 视觉图重构实证）**：`multipleBranches`/`doubleBranch` 自带 join（
+    `setCurrentExecTailEndpoints`），所以分支里**只 set 变量参数**，分支后**只调用一次**统一复合：
+    ```ts
+    // 根图：分支只构造变量，不调用复合
+    f.multipleBranches(timerName, {
+      'a': () => { f.setNodeGraphVariable('mode', 0n, false); f.setNodeGraphVariable('base', 0n, false) },
+      'b': () => { f.setNodeGraphVariable('mode', 1n, false); f.setNodeGraphVariable('base', 7n, false) },
+      default: () => {}
+    })
+    // join 后单次调用统一处理器（分支 N 份复合调用 → 1 份）
+    f.callComposite(handleTimerEvent, { target, seq })
+    ```
+    复合内部再按 `mode` 分派到子复合。这样 10 个 timer 分支从“10×复合展开”降为“10×set 变量 + 1 次复合调用”。
 - **循环体只物化 1 次**：finite_loop 循环体 1 份（2400→240 节点，P4 实证）。
 - **capture 字典机制**：每个 setTimeout 回调的捕获变量 = set_or_add + get_corresponding 链（~6 节点/回调）；
   回调越多越贵。
@@ -83,11 +109,63 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | capture 支持 | str/int/bool/float/entity/vec3 等字面可推断类型；不支持 dict/复合结果 |
 | 字典 key | 必须 int/str 等键类型；传 float 报 `Invalid value type: int` |
 | 列表下标 | `getCorrespondingValueFromList` **0-based**（1..N 会越界返回空） |
+| 全 0 int_list 图变量 | **引擎运行时只物化出很短长度**（日志 2765 实证：`cornerOrient` 声明 8 个 0 → 运行时 `[0,0]`；`edgeOrient` 声明 12 个 0 → 运行时 `[0,0,0]`），读取高下标会“列表索引越界”。且**写 0 到越界下标不扩容**（日志 2766：logicReset 写 0 后仍短）；必须先写非 0 哨兵撑满长度，再写真实 0 值（两阶段复位），或避免全 0 字面量。 |
 | 返回字段名 | `getEntityLocationAndRotation` 返回 `{ location, rotate }`（**rotate** 不是 rotation） |
 | 向量分量 | vec3 有 `.x/.y/.z` getter（生成 split3dVector 节点） |
 | 三角函数 | `cosineFunction/sineFunction`（弧度输入；角度需乘 π/180） |
 
 ## 复合节点编写（2026-08-14 方法论，详见 game-from-scratch/references/composite-authoring.md）
+
+> ### 🔴 铁律：`finiteLoop` 循环体的“入口 exec 节点”必须是 `f.registerExecNode(...)` 或高层 flow API；`f.node()` 只能用于已被高层 flow 节点包裹后的子节点
+>
+> **2026-08-20 3×3 魔方日志 2763/2764 实证**：
+> - 循环体内第一个节点用 `f.node('set_list_value')` → 循环控制帧有、`Set List Value` 帧 0、`tempP` 全 0；
+> - 循环体外的 doneNode 用 `f.node('set_node_graph_variable')` → Loop Complete `OutFlow[1]` 不会自动续到它，
+>   复合 `done` 永不触发，后续 `start_timer` 零帧。
+>
+> 根因：`f.node()` 是 detached 创建，不会成为循环体 `OutFlow[0]` 的入口；只有 `f.registerExecNode(...)`
+> 或高层 flow API（如 `f.doubleBranch(...)`）才会被 `finiteLoop` 自动接进执行链。
+>
+> 🔴 **同族铁律：任何多出口执行流节点（`f.doubleBranch` / `f.multipleBranches` / `f.connectOutFlow` /
+> `finiteLoop` 的 Branch）的回调体里，第一个 exec 节点也必须用 `f.registerExecNode(...)`，或用
+> `f.link`/`f.connect` 从分支源显式接上；`f.node()` 是 detached，不会自动挂到分支出口。**
+> （2026-08-20 3×3 日志 2765 实证：`logic_is_solved` 的 `f.doubleBranch` true 分支里用
+> `f.node('set_node_graph_variable')` → 分支条件为 true 但 Set Node Graph Variable 帧为 0，
+> `solvedFlag` 一直是 true → 转动一次立即结算胜利。读图可见 `Double Branch true → (无)`；
+> 改用 `f.registerExecNode` 后 `true → Set Node Graph Variable`。）
+>
+> 正确写法（循环体入口用 registerExecNode）：
+> ```ts
+> f.finiteLoop(0n, 3n, (i) => {
+>   f.registerExecNode('set_list_value', [tempP, i, piece])
+>   f.registerExecNode('set_list_value', [tempT, i, twist])
+> })
+> const done = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), ..., new bool(false)])
+> f.outflow('done', done, 0)
+> ```
+>
+> 正确写法（循环体入口用高层 flow API，分支体内 exec 节点用 registerExecNode）：
+> ```ts
+> f.finiteLoop(0n, N - 1n, (i) => {
+>   f.doubleBranch(cond, () => {
+>     const setQ = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [...])
+>     const setM = f.registerExecNode('set_node_graph_variable', [...])
+>     f.connect(setQ, 0, setM, 0)
+>   }, () => {})
+> })
+> ```
+>
+> 错误写法（循环体入口直接 f.node，日志里零执行/不触发 done）：
+> ```ts
+> f.finiteLoop(0n, 3n, (i) => {
+>   f.node('set_list_value', [tempP, i, piece]) // ❌ 作为循环体入口，detached，不执行
+> })
+> const done = f.node('set_node_graph_variable', ...) // ❌ 不会自动接 Loop Complete
+> f.outflow('done', done, 0)
+> ```
+>
+> 读图验证：`explain --composite` 应看到 `Finite Loop Branch[0] → (registerExecNode/高层节点)` 和
+> `Branch[1] → doneNode`；若只有 `Finite Loop` 控制帧、没有循环体写入帧/没有 done 链，就是这个坑。
 
 - 调用：f.callComposite(handle, { 输入名: 值 })；多输出 res.输出名；嵌套/循环内可调用。
 - **exec 链链接规则（2026-08-20 性能优化实证，勿踩）**：复合内部**入口链首必须是普通 exec 节点**
@@ -99,6 +177,12 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
   正确写法：入口 → 普通节点（f.link 或分支回调），后续复合调用用 f.connect(前置, 0, 复合调用, 0) 显式链
   （connect 会去重裸边）；首个 exec 复合若直接跟在入口后，靠 auto-chain 即可，不要额外 link。
 - **声明了 `outflows: ['done']` 的 exec 复合必须显式 `f.outflow('done', 链尾, 0)`**：否则被调用方把该复合当作链中一环时，done 永不触发，后续节点零帧（2026-08-20 魔方整体转/面转：turnblock 回调里 unlock 定时器永不注册，lock 卡 true、第二次操作无响应）。
+- **公共 done/merge 节点不要用 `registerExecNode` 放在 `doubleBranch` 之前**（2026-08-20 魔方日志：游戏检测 execution flow loop）。`registerExecNode` 会被 auto-chain 成 doubleBranch 的入口，分支尾再连回它就形成 `分支尾 → 公共节点 → Double Branch → … → 分支尾` 死循环。正确写法：公共节点用 `f.node(...)` 创建 detached，分支尾 `f.connect(..., 0, doneNode, 0)` 连入，最后 `f.outflow('done', doneNode, 0)`；读图应看到 boundary `InFlow` 直连 Double Branch，且 done 节点没有回到分支入口的执行边。
+- **`f.callComposite(...)` 后跟 `f.registerExecNode(...)` 会产生重复执行**（2026-08-20 魔方日志 2777：Start Timer 同一节点执行两次，定时器不触发、指令无反应）。`registerExecNode` 会从当前尾（通常是上一个复合调用）auto-chain 到它；如果你又显式把复合调用 done 连到一条 `f.node` 链再连到该节点，该节点会有两条入边、执行两次。需要把这类链尾的 `registerExecNode` 改成 `f.node` 并显式 `f.connect`，只保留一条入边。
+- **`start_timer` 延迟列表不要用 0.0**：0s 定时器实测不触发（2026-08-20 3×3 魔方：execMove 用 0s 汇聚定时器，日志只有 Start Timer 帧、没有 When Timer Is Triggered，导致锁卡 true 无反应）；需要“立即/下一帧执行”时用 `[0.01]` 等小正数。
+- **`finiteLoop` 循环体内不要用 `f.node()` 创建 exec 节点**（2026-08-20 3×3 魔方日志 2763 实证：循环控制帧有、`Set List Value` 帧 0，`tempP` 全 0）。`f.node()` 是 detached 创建，不会自动接进循环体执行链；循环体内 exec 节点必须用 `f.registerExecNode('set_list_value', [...])`（或高层 flow API），节点图读图会看到 `Finite Loop Branch[0] → Set List Value`。循环后的普通节点用 `f.node()` 仍可被 Loop Complete OutFlow[1] 自动续接（读图已确认）。
+- **`finiteLoop` 的“完成流”不会自动续到循环后的节点**（2026-08-20 3×3 魔方日志 2762 实证：logic_apply_* 的 finiteLoop 全部执行，但循环后的 doneNode/start_timer 零帧）。需要循环后继续执行时，两种可靠写法：①把后续动作放进循环体最后一个迭代（`f.doubleBranch(f.equal(loopVar, N-1n), () => { ... }, () => {})`）；②在 build 里用 JS `for` 编译期展开并显式 chain。不要依赖 finiteLoop 之后的顺序语句自动续链。
+- **🔴 `finiteLoop(start, end)` 是闭区间 `[start, end]`，迭代次数 = `end - start + 1`**（2026-08-20 日志实证：`finiteLoop(0n, 4n)` 实际执行 0..4 共 5 次）。要执行 N 次必须传 `end = start + N - 1n`，例如 4 次写 `finiteLoop(0n, 3n)`。写错会多读一个表项/多写一个越界下标，导致状态错乱。
 - 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
 - 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。
 - 价值：复用型（多处调用）+ 封装型（单次但职责清晰）；通用型复合（比较/数学扩展）是跨项目资产。
@@ -112,6 +196,55 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
     删除需先完成 open-items O5 治本（注入器残留清理/类型校验，或编译器保留全部定义保 ID）。
   - **任何改变复合集合形状的操作（删/增定义）后注入，必须全量校验**：
     `npx tsx tools/check-gil-composite-refs.ts <地图.gil> --incoming <本次.gia>`（0 悬空 + 残留引用被覆盖检测）。
+
+### 推荐稳定 API / 待弃用 API（2026-08-20 实证）
+
+当前最容易踩的两个 API 组合已经形成稳定替代写法，**新代码一律按“稳定写法”写**；旧代码逐步迁移。编译器后续应把不稳定 API 标为 deprecated 或提供更安全的封装（见 `docs/maintenance/open-items.md` O-2026-08-20-4）。
+
+| 场景 | ❌ 不稳定写法 | ✅ 稳定写法 |
+|---|---|---|
+| 分支/循环后的**公共 merge/done 节点** | `f.registerExecNode(...)` 放在 `f.doubleBranch` 之前，再让分支尾连回它 | `f.node(...)` 创建 detached 公共节点；分支尾 `f.connect(..., 0, doneNode, 0)`；最后 `f.outflow('done', doneNode, 0)` |
+| `f.callComposite(...)` 之后的**链尾 exec 节点**（如 start_timer） | `f.registerExecNode('start_timer', ...)`（会被 auto-chain 从复合调用 done 再拉一条入边，导致同一节点执行两次） | `f.node('start_timer', ...)` + 显式 `f.connect(前置, 0, t, 0)` |
+| 循环体/分支回调的**第一个 exec 节点** | `f.node(...)`（detached，不会自动挂进执行链） | `f.registerExecNode(...)` 或高层 flow API（这是 `registerExecNode` 的正确使用场景） |
+
+判断口诀：
+
+- **需要“自动接进当前执行链”的第一个节点** → `f.registerExecNode`。
+- **需要“显式连线、作为链中/链尾/公共 merge”的节点** → `f.node` + `f.connect`。
+- 写完必须读图确认：同一节点只有一条 InFlow 入边；公共 done 不回到分支入口。
+
+### 跨图拆分逻辑（2026-08-21 规划，依赖编译器复合 ID 稳定性）
+
+当单图接近 3000 且职责边界清晰时，可拆到第二个节点图：
+
+- **共享状态桥**：用控制器实体自定义变量（`setCustomVariable` / `getCustomVariable`）跨图共享
+  `blocks/tempP/centerPos/curMove/定时参数` 等；视觉图在事件处理开始时 `setNodeGraphVariable`
+  把自定义变量同步进本图图变量，现有复合可继续用 `getNodeGraphVariable` 不变。
+- **职责划分**：主图保留输入/逻辑/`execMove`/`unlock`；视觉图处理 `turnblock`/`orbit2` 与运动。
+- **🔴 跨图复合不能引用目标图没有的图变量（2026-08-21 实证）**：视觉图若调用主图复合（如
+  `flow_after_turn`，内部读 `autoMode/qIdx/queue/lock` 等主图变量），GIA 编码会报
+  `ordinary data edge pin type mismatch`。跨图调用前必须确认被调复合只依赖本图已声明的图变量，
+  否则把该逻辑留在主图，视觉图只发信号/定时器过去。
+- **🔴 跨图共享状态同步：每次操作首个事件同步一次，不要每 tick 同步（2026-08-21 性能实证）**：
+  主图开定时器前已把共享状态写入视觉宿主自定义变量；视觉图若在每个 `turnblock`/`orbit2` 事件都
+  `syncShared`，面转 16 次/整体转 52 次重复同步，单次转动负载飙到 ~5000-10000。正确做法：
+  在 `base==0 && seq==0` 的首次 turnblock 事件里同步一次，后续事件直接用图变量。
+- **前置条件**：必须先解决复合定义/调用/实现三要素的 ID 稳定性（O-2026-08-20-5），否则新增图会导致
+  残留 def 引用被覆盖 ID（`check-gil-composite-refs` 报类型错位）。
+- **流程**：建占位图 → 注入 → `assets:mounts attach` → 读图核验两个图的 MB/执行流 → 用户测试。
+
+### 长定时器列表避免重复的稳定做法（2026-08-20 用户建议）
+
+引擎定时器延迟精度为两位小数；**同一个 `start_timer` 的延迟列表内不能出现重复值**（不同定时器名字不同则互不影响）。
+当需要很多个错开时间（如整体转 26 块）时，不要硬塞进一个长列表导致延迟被推到 0.7s，而是：
+
+- 拆成多个不同名字的定时器（如 `turnblock0..3`、`orbit20..3`），每个定时器内部用少量两位小数唯一值（如 0.01..0.07）；
+- 不同定时器之间可以复用相同时间序列，因为名字不同；
+- 在 `whenTimerIsTriggered` 的 `multipleBranches` 里按 `timerName` 映射 `base` 偏移，`slot = base + timerSequenceId`；
+- 最后一个 chunk 的最后一个 slot 再触发 unlock（`slot == turnLastSlot`）。
+
+这样既满足“单个定时器内不重复”，又把总延迟控制在低范围。
+
 ## 四层交叉验证链
 
 ```text
@@ -133,11 +266,14 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 | Invalid value type: int | float 传给 int 参数（字典 key/循环变量） | bigint 循环 + 字面量 key；避免 number 运算 |
 | unsupported timer capture type: any | capture 了 DSL 方法返回值（类型推断为 any） | 图变量/字典中转 |
 | Generic parameter not matched | 表达式混型（如 `dot(x) * (1 - c)` 泛型推断失败） | 变形公式避免混合表达式（如罗德里格斯改 `u·dot + (v−u·dot)·c + (u×v)·s`） |
+| `gsts.f is only available in server_* ctxType (current: javascript)` | 事件/分支回调内写了 `new vec3([x,y,z])`——转换器改写为 `new vec3(gsts.f.assemblyList([...]))`，`gsts.f` 只能在 `server_*` ctx 访问 | 回调内用 `f.create3dVector(x, y, z)`；变量声明区 `new vec3([...])` 不受影响（2026-08-22 足球实证） |
+| 编译全通过但 `game.json = []`（`All GIA generated (0)`，无报错） | `npx tsx src/cli/gsts.ts` 直跑源码 CLI：gs.ts 包名 import → dist 实例（self-reference），runner → src 实例，注册/读取分离 | 用正式 CLI `node ./bin/gsts.mjs dev`（或 `npm run dev`），两者同实例（2026-08-22 足球实证） |
 | 实体不动但节点执行 | 缺 basicMotion 组件（type 4）或作用空实体 | 组件差分检查 + 日志查运动器 IN0 实体 |
 | 一次调用计两次/计数翻倍 | 纯数据表达式被 ≥2 处消费，引擎每个消费点重新求值（消费间写入图变量 → 第二次读新值） | set 后**重新 get** 再比较；ESLint `gsts/server-repeated-evaluation` 会警告（详见 data-flow.md 缺陷 6 节） |
 | 位置漂移/朝向错乱 | 公式压缩平行分量 / 轴语义（局部轴） | 见 game-engine-knowledge/motion-devices.md |
 | 旋转"只转一半/不到 90°" | **旋转运动器第 4 参是角速度(°/s) 非总角**（0.3s 传 90 → 只转 27°；旧版 1s×90 巧合正确） | 总角 = 时长 × 角速度：0.3s 转 90° 需传 300°/s（2026-08-20 实证，motion-devices.md 已补两种旋转运动器） |
-| 转动后块位置与逻辑对不上（部分面错） | **层轴方向与置换表不符**（如 R 用了 -X 应为 +X）——渲染跟随轴转、逻辑跟随表，方向反时两者脱节 | **轴方向几何验证**：对每面取一个初始块，模拟"绕当前轴转 90°"（罗德里格斯）对比 `tblTo[m*4+0]` 目标槽坐标；不一致即轴反（2026-08-20 实证 R/L/F/B 四面反） |
+| 黑面/朝向错乱但位置正确 | 生成“欧拉→朝向表/局部轴表”时用错约定：`rotate` 返回 **(x,y,z)**，矩阵 `R=Ry(y)·Rx(x)·Rz(z)`；曾误用 (y,x,z)+Rz·Rx·Ry | 先读 `motion-devices.md` §3；生成器参考 `examples/rubik-3x3/tools/gen-orient-tables.mjs`，并用已知样本断言（如 (x=90,y=270,z=0)→索引 17） |
+| 转动后块位置与逻辑对不上（部分面错） | **视觉层轴方向与逻辑置换表方向不一致**——渲染跟随轴转、逻辑跟随表，方向反时两者脱节（2026-08-20 日志 2768 实证：L 轴用了 -X，DBL 实体应到 UBL 却到了 DFL）。这不是编译器 bug，也不是性能问题，而是**数据表/视觉层坐标契约没对齐** | **通用规则**：`axes` 不是通用常量，必须与当前项目的逻辑表 `ROT` 一一对应；每个项目独立做“取一个初始块，模拟绕当前轴转 90°（罗德里格斯）对比 `tblTo` 目标槽坐标”的几何验证，不一致就翻转对应轴。**具体值只在本项目有效**：3×3 按逻辑表 ROT 为 R=-X、L=+X、F=-Z、B=+Z（U/D 不动），不要直接照抄 2×2 axes 注释 |
 | 动画"重叠/错开"手感反复 | 相位差（4 块启动间隔）过大=错开明显、过小=重叠 | 随机相位差分档收敛：总跨度 34ms 嫌多→13ms 好→8ms 重叠→回调 13ms；用 `getRandomFloatingPointNumber` + 物化到 float_list 变量（start_timer 读变量） |
 | GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route | 复合内部对**复合调用**节点 `f.link(f.entry(), 0, 复合调用, 0)`：显式 link 对象边 + exec 复合 auto-chain 裸边 → 同一 InFlow 物理路由两条 | 删掉该显式 f.link，靠 auto-chain 生成入口边（入口链首用普通节点，复合调用只作链中目标）；详见上文「exec 链链接规则」 |
 

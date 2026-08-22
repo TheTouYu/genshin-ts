@@ -67,6 +67,33 @@ GIA 中的目标资产
 
 GIA 和 GIL 的资产边界见[资产、关卡保存与导出文件](assets-and-files.md)。
 
+## 编译入口与模块实例一致性（2026-08-22 实证）
+
+> 状态：已验证
+> 来源：足球阶段 0 空 IR 排查（真实复现链 + 正式 CLI 对照）
+> 最近校验：2026-08-22
+> 适用范围：gsts 编译管线的命令入口选择
+
+**现象**：`npx tsx src/cli/gsts.ts dev --config <cfg>` 编译全链路 `[ok] game.gs.ts` → `[ok] game.json` →
+`[info] All GIA generated (0)`，但 `game.json` 内容为 `[]`，**无任何报错**。
+
+**根因**：同一进程存在两个 core 模块实例——
+
+- `runner.ts` 用相对路径 `import '../../runtime/core.js'` → `src/runtime/core.ts` 实例；
+- `game.gs.ts` 的 `import 'genshin-ts/runtime/core'` 经 **Node self-reference**
+  （根 package.json `name: genshin-ts` + `exports["./runtime/*"] → ./dist/src/runtime/*.js`）→ **dist 发布包实例**；
+- gs.ts 注册进 dist 实例的 `serverRegistries`（core.ts:2459，未导出），runner 读 src 实例 → 空。
+
+**证据链**：①`node --import tsx` + dist core 实例 import game.gs.ts → docs:1（graph 1073741825）；
+同环境 src core 实例 → docs:0；②`mv dist/src/runtime/core.js` 后 runner 报 `ERR_MODULE_NOT_FOUND`
+（self-reference 无回退，tsx resolveTsPaths 不救场）；③正式 CLI `node ./bin/gsts.mjs dev`
+（dist CLI：runner 的相对 import 编译后指向 dist/src/runtime/core.js，与 gs.ts 同实例）
+→ `game.json` 正常（1 graph / 221 nodes / 6 variables）。
+
+**规则**：编译必须用正式入口 `node ./bin/gsts.mjs`（或 `npm run dev` = `npm run build && node ./bin/gsts.mjs`）；
+**不要**用 `npx tsx src/cli/gsts.ts` 直跑源码 CLI 做编译。诊断口诀：`game.json = []` + `GIA generated (0)`
+且无报错 → 先查编译入口是不是 src CLI；src/dist 不同实例时 IR 静默为空，不是 gs 代码问题。
+
 ## 新功能的正确顺序
 
 ```text
