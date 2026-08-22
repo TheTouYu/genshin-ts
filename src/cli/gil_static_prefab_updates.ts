@@ -279,13 +279,53 @@ function decodeTabBarSlot(record: Uint8Array, fieldNumber: number): DecodedTabBa
 }
 
 /**
+ * [ZH] 同步 root5 场景实体的 tabBar 组件槽（field 7）。
+ * tab-options 写 root4 定义 + root8 实例后，场景实体（root5）上的组件槽是独立副本，
+ * 游戏实际读取的是场景实体的副本；不同步会导致"改了元件但游戏里没生效"。
+ * 场景实体通过 field 2 引用 prefabId，匹配后写其 field 7 组件槽（编码与 root8 实例一致）。
+ * 无匹配场景实体时保持原样（不报错，避免误伤无 tabBar 副本的实体）。
+ *
+ * [EN] Sync the tabBar component slot (field 7) of the root5 scene entity.
+ * The scene entity (root5) carries an independent copy of the component slot
+ * that the game actually reads; without syncing it, editing the prefab has no
+ * in-game effect. The scene entity references the prefabId via field 2; its
+ * field 7 slot is encoded identically to the root8 instance.
+ */
+function syncSceneEntityTabOptions(
+  bytes: Uint8Array,
+  prefabId: number,
+  component: GstsStaticAssemblyComponent
+): Uint8Array {
+  const top = parseWireMessage(bytes.slice(20, -4))
+  if (!top) return bytes
+  const entities = wireMessage(nthWireField(top, 5))
+  let changed = false
+  for (const field of entities) {
+    if (field.number !== 1 || field.wire !== 2) continue
+    const entity = field.value as Uint8Array
+    if (instanceDefinitionId(entity) !== prefabId) continue
+    field.value = setStaticAssemblyComponents(entity, [component], 7)
+    changed = true
+  }
+  if (!changed) return bytes
+  nthWireField(top, 5).value = emitWireMessage(entities)
+  return buildFile(emitWireMessage(top), {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
+}
+
+/**
  * [ZH] 更新既有实例的选项卡选项：保留现有区域配置，仅替换选项列表。
- * 元件定义（root 4 f8）与场景实例（root 8 f7）同步写；区域字段可覆盖。
+ * 元件定义（root 4 f8）、场景实例（root 8 f7）与场景实体（root 5 f7）三层同步写；
+ * 区域字段可覆盖。
  *
  * [EN] Replace the tab options of an existing instance: the current region
- * config is preserved and only the option list is replaced. Both the prefab
- * definition (root 4 f8) and the scene instance (root 8 f7) are updated;
- * region fields may be overridden.
+ * config is preserved and only the option list is replaced. The prefab
+ * definition (root 4 f8), the scene instance (root 8 f7) and the scene entity
+ * (root 5 f7) are all updated; region fields may be overridden.
  */
 export function applyTabOptionsUpdate(params: TabOptionsUpdateParams): TabOptionsUpdateResult {
   const source = new Uint8Array(fs.readFileSync(params.gilPath))
@@ -343,8 +383,11 @@ export function applyTabOptionsUpdate(params: TabOptionsUpdateParams): TabOption
       components: [component]
     }
   })
+  // 同步 root5 场景实体（游戏实际读取的组件槽副本），否则"改了元件但游戏里没生效"。
+  const bytes = syncSceneEntityTabOptions(result.bytes, result.prefabId, component)
   return {
     ...result,
+    bytes,
     region: { regionName, regionType, regionSize, regionRadius, regionCenter }
   }
 }

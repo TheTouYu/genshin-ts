@@ -117,6 +117,21 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - `gsts assets:ui update <control-id> [--name|--content|--position|--size] --write`
 - 模板：`gsts assets:ui template list|clone`（复用已存在的控件组模板）。
 - position 是屏幕中心偏移、size 是宽高（像素语义）。控件只做资产写回；显示/隐藏/禁用运行时行为、按钮事件如何进角色图，属于节点图/运行时逻辑，不要混写进静态资产步骤。
+- **选项卡组件（tabBar，type 17）标准配置流程**（2026-08-22 足球事故反馈，非配不可测）
+  - **命令**：`gsts assets:static-assemblies tab-options <instance-id> --name <预期组件名> --options <a,b,c> [--region-type box|sphere + --region-size/--region-radius + --region-center] --write`
+  - **region 是生效范围**：选项卡只在玩家**进入 region** 时才显示。球体示例（rubik-2x2）`--region-type sphere --region-radius 3 --region-center 0.1,0,0`；盒体用 `--region-type box --region-size w,h,d --region-center x,y,z`。
+    不配 region 时游戏可能给默认 1×1×1 盒且回家时仍不显示——**必须显式**。
+  - **options**：最多 10 个（multiple_branches 上限），超 10 必须拆成多个 tabBar。
+  - **三件套缺一不可**：实体上的 tabBar 组件配好（上）+ 节点图 `gsts assets:mounts attach` 挂到该实体 + `whenTabIsSelected` DSL 已写——缺任何一件游戏内点不了。
+  - **验证**：`assets:static-assemblies inspect <id>` 可见 `components[0].type === 'tabBar'` + region 字段完整；再进编辑器目视「点击或进入 region 有选项卡浮现」才算完成（**不能只靠 `mounts list` 显示挂载就交付**——2026-08-22 实证）。
+  - **tabBar 三层副本（2026-08-22 魔方"改了元件但游戏没生效"实证）**：tabBar 组件槽在 GIL 里有**三层独立副本**，`tab-options` 命令**三层都写**（已修复，勿再只改一层）：
+    1. **root4 元件定义**（f8 组件槽）——元件本体；
+    2. **root8 元件实例**（f7 组件槽）——编辑器元件页面模型；
+    3. **root5 场景实体**（f7 组件槽）——**游戏实际读取的副本**，通过 field 2 引用 prefabId 定位。
+    - 只改 root4/root8 不改 root5 → 游戏里"没生效"（旧命令的 bug，已修）。
+    - 三层可能**已经分叉**（历史只改了一层）：排查"选项对不上"时先读三层各自内容，别假设一致。
+    - 选项 id（field 1）= 1-based 序号（第 N 项 id=N），`tab-options` 按序重编号；删除中间项后 id 会重排，依赖 id 的节点图逻辑（如 relay +9 映射）需同步核对。
+    - 写回后仍需编辑器重载/重放确认（旧编辑器内存保存会覆盖磁盘写回）。
 
 ### D. 信号
 
