@@ -72,9 +72,9 @@
 - 球门内宽 7.32m，横梁高 2.5m，球网深 1.8m
 
 ### 足球
-- 复用「足球·升级4全开」闭包（224 items：12 五棱柱 + 120 三棱柱 + 92 缝线长条，含展示底座）
+- 复用「足球」官方预制体（12 五棱柱 + 120 三棱柱 + 92 缝线长条）
 - 实体 scale 0.25（直径≈0.5m），中心 [0, 0.247, 0]（y=半径，底面贴地）
-- 底座 item 埋入地下（不可见，球体主体贴地）
+- **预制体版本选择**：V4「升级4全开」自带展示底座装饰（球下出现跟随实体），改用 V2/V3 无底座版本，重建预制体 1077936138（222 items，去 2 底座 item）；旧预制体 1077936131（带底座）已弃用未引用
 
 ## 证据目录
 - `examples/football/evidence/`：plan.json、candidate.gil、preview.json、root-wire-diff.json、entity-import.candidate.gil、entity-root-wire-diff.json

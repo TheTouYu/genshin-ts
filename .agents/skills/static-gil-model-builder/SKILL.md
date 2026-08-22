@@ -158,6 +158,14 @@ python tools/pkc.py progressive-query \
 
 先锁定模型原点、外形尺寸和朝向，再计算所有 item；不要把场景坐标直接写进局部坐标。已知 `1×1×1` 只证明尺寸，不自动证明资源 pivot。pivot 未被 Authority/真实校准闭合时，计划只能给目标几何中心符号和公式 `t = c - R·(S⊙g)`（`g` 为资源几何中心相对 pivot 的局部向量），禁止出现任何数值 `item.position` 或可复制的 items 配置，即使旁边标了“假设/待确认”。
 
+**多件套成品布局（2026-08-20 复刻实验用户反馈，强制）**：建模必须**假定质量不高、要交给用户核验**——用户能直接看的就是元件页面的摆放。同一模型的多个元件（如魔方 8 角块）**必须把 assembly 级 `position` 设为最终成品布局**（如 2×2 魔方 = 中心 ± 半块宽的三向偏移，摆成真正的立方体），**禁止全部堆在原点重叠**。两条理由：①页面布局是用户核验建模质量的第一对象（整体轮廓/薄片贴面/块间缝隙），堆叠 = 无法核验；②后续节点图动态创建实体时直接复用这些坐标，页面摆错 → 玩法逻辑坐标错（如旋转中心/层偏移全错）。写回前自查：多件套各 assembly 的 position 互不相同且构成目标形状；每块留缝、贴片贴面（薄片外贴 = 表面 ± 半厚 + 间隙 0.005~0.01）。
+
+**场景落地规则（2026-08-20 用户核验实证，强制）**：千星沙箱的**地面平面从 y=0 开始**，模型必须完全在地面以上——成品布局的**中心 y 必须 ≥ 半高 + 裕量**（半高 = 模型在 y 向的包围半尺寸），**禁止模型陷入地面**（一半埋在地下 = 用户只能看到一半）。写回前自查：布局内所有元件的 `position.y − 半高 ≥ 0`（如 2×2 魔方中心 y 至少取 0.6~1.0，不要用 0）。
+
+**装饰物缩放小点便于坐标控制（2026-08-20 用户经验）**：装饰物相对模型中心定位——**把装饰物缩得很小（如 0.01）时它近似一个"点"，位置坐标 ≈ 偏移值本身，无需为装饰物自身尺寸重算中心**，拼装坐标最好控制。反之装饰物不缩放（如 1×1×1 长方体、空模型不缩放）时，其几何中心与直观坐标有半尺寸偏差，需重新计算中心，缩放之后误差会被进一步放大，不好用。规则：装饰物（尤其作中心锚点/挂载点/参考点的）默认缩到 0.01 级；需要可见主体时用基础元件本身（见「多件套成品布局」下块体方案），不要用"大尺寸装饰物 + 后补偏移"的笨办法。
+
+**复用官方预制体先确认版本差异（2026-08-22 足球实证）**：官方同名预制体常有多个版本（如「足球」V2/V3/V4「升级4全开」），版本间差异不只是外观——**高版本可能自带展示底座/装饰物**（V4 自带底座，球下出现跟随实体）。复用官方预制体前先确认版本差异，尤其是否自带装饰物/底座；需要"纯主体"时选无底座版本（V2/V3），不要选带展示装饰的高版本再事后删 item。排查"模型下出现跟随实体"时先归因到预制体版本（资源层），不要默认是代码 bug。
+
 ### 几何拆分
 
 按最少且最贴合目标面的基础元件拆分：
@@ -204,6 +212,12 @@ python tools/pkc.py progressive-query \
 5. 必要时 root raw diff 只出现计划字段；
 6. 当前地图仍保持源 SHA。
 
+**export 回读字段语义（2026-08-20 复刻实验卡点）**：export 输出分两层——
+- **assembly 级**：`position/rotation/scale` = 场景层 Transform（新定义模板默认 [0,0,0]/[0,0,0]/[1,1,1] 或配置值）；
+- **item 级**：`pos/rot/scale/color` = 装饰物相对模板原点的局部 Transform。
+`transform: None`（或某些版本不输出该键）**不是缺陷**，只表示该记录没有单独的 transform 字段（如定义侧）；
+需要确认场景/局部数值时看 `position/rotation/scale` 与 item 的 `pos/rot/scale`，**不要因为字段名困惑就转去手工解 wire**。
+
 既有模型 patch 还必须增加：
 
 - patch 前保存 closure/export 摘要和源 SHA；
@@ -218,6 +232,8 @@ python tools/pkc.py progressive-query \
 
 ## 验证回路与 CLI 约定（2026-08-12 tabBar 区域配置任务复盘，trace 证据见 eval-tabbar-cli）
 
+- **生产路径结果只用 CLI 回读验证，禁止 wire 字节探针**（2026-08-20 复刻实验实证）：`assets:static-assemblies` 生成/写回后的验证 = `inspect`（身份/闭包）+ `export`（两层 Transform/颜色/顺序）+ 必要时 root diff。`gil_wire_lib.walk` 槽字节探针**只属于"未知编码规则"的增量调查**（editor-incremental-gia-investigator 流程，需用户编辑器样本），**禁止用来验证或研究已闭合生产路径的输出**——两者混用会把 10 分钟能完成的验证拖成无限 wire 考古。字段含义不清楚先查本技能「export 回读字段语义」，不要读 `src/cli/*.ts` 源码推断 CLI 行为。
+- **跑 `bin/gsts.mjs` 前确认 dist 产物存在**：`ls dist/src/cli/gsts.js`；缺失时 `ERR_MODULE_NOT_FOUND`（bin 从 dist 加载），先 `npm run build` 再跑 CLI。CLI 输出异常（报错、缺字段）先排查是否跑在陈旧 dist 上（`npm run build` 会 rm -rf dist 重建），不要直接怀疑生成器或 wire。
 - **快速类型检查回路**：`npx tsc -p tsconfig.json --noEmit --incremental` 首次冷启 ~45s、之后热 ~5s；`npm run build` 因 prebuild `rm -rf dist` 每次冷启 ~47s——改代码循环用 noEmit 快速回路，只有需要跑 `bin/gsts.mjs`（CLI 读 dist）或最终验收时才 build。不要用裸 `npx tsc -p tsconfig.json`（增量 emit 会报 TS5055 overwrite）。
 - **plan CLI 非零退出约定**：`assets:static-assemblies plan` blocked 时 exit 1 且 **stderr 为空**，原因在 stdout JSON 的 `errors[]`（如 `prefab-id-out-of-range`）与 `assemblies[].template.diagnostics`——先解析 stdout 再下结论，不要在 stderr 上考古（本次为此多花 18 个调用）。
 - **fixture 形状坑**：`tests/fixtures/static-assembly/build_fixture.ts` 的 def name 在 f5（旧形状），`exportStaticAssemblies` 读 f6.f11.f1 → 基于该 fixture 的地图 `export` 恒为 0；回读/export 类测试复用 `tests/static_assembly_export.ts` 的 `buildMiniMap` 形状（或先修 fixture 再复用）。
