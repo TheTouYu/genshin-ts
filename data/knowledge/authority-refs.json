@@ -4419,6 +4419,21 @@
       ]
     },
     {
+      "id": "aref_d6d3cf93ba63372f9f55079136",
+      "path": "docs/game-engine-knowledge/project-pipeline.md",
+      "locator": "编译入口与模块实例一致性（2026-08-22 实证）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "f62ba34dd926dc6b07c308e3ae89eabb39ca04258d156812cee5aacdf76a5132",
+      "claim_ids": [
+        "clm_17AC91E904431B26514623E244"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_d730db94a0e29d62c88924c170",
       "path": ".agents/skills/game-from-scratch/SKILL.md",
       "locator": "skill pointer to the guide",

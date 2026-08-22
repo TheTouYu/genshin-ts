@@ -46,3 +46,15 @@ This is committed gsts runtime-to-IR behavior at 9ca2cc635d67800796c6ebc11797866
 纯类型层契约，不改运行时语义；证据为 tsc/quicktest 自动回归；无游戏验证需求。
 
 <!-- CLAIM:END clm_E00EA364E3007B602561B972F7 -->
+
+<!-- CLAIM:START clm_17AC91E904431B26514623E244 -->
+
+### 空 IR：src CLI 与 dist 发布包模块实例分离（2026-08-22 足球实证）
+
+编译必须用正式入口 node ./bin/gsts.mjs（或 npm run dev = npm run build && node ./bin/gsts.mjs）。用 npx tsx src/cli/gsts.ts 直接跑源码 CLI 时，runner.ts 的相对 import（../../runtime/core.js）加载 src/runtime/core.ts 实例，而 game.gs.ts 的包名 import（genshin-ts/runtime/core）经 Node self-reference（package.json name + exports ./runtime/* → dist/src/runtime/*.js）解析到 dist 发布包实例；gs.ts 注册进 dist 实例的 serverRegistries、runner 读 src 实例，导致 game.json 静默输出 []（[ok] 全链路但 All GIA generated (0)，无报错）。正式 CLI 的 runner 相对 import 编译后指向 dist 实例，与 gs.ts 同实例，IR 正常（足球阶段 0 实证：1 graph / 221 nodes / 6 variables）。
+
+#### 适用边界
+
+适用于本仓库 gsts 编译命令入口选择与空 IR 诊断；不涵盖编辑器导入/注入/游戏行为；src/dist 同步状态变化时以当前源码与测试为准。
+
+<!-- CLAIM:END clm_17AC91E904431B26514623E244 -->
