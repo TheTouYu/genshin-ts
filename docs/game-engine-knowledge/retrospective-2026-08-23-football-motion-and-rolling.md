@@ -19,6 +19,8 @@
 | 7 | 定点器 lockRotation 语义 | 复位用 lockRotation=true 被解释为“保留当前朝向”，上一段高吊的 z≈105.7° 残留导致横传 local axis≠world axis、旋转方向错 | motionInstant 改 lockRotation=false，复位真正应用 targetRotation=(0,0,0) | 9b0d261 |
 | 8 | DSL 重复求值（同族扩展） | physFlyTick/physRollTick 同样先写回 ballPos/ballVel/ballSpin 再消费 integ.*，goal/ground 会二次积分 | 单 tick 内物化 tmpPos/tmpVel/tmpSpin 快照，goal/ground 只读快照 | 5f2fc97 |
 | 9 | 首段视觉目标越界 | 上旋低平施力后首步积分被马格努斯压到 y=-0.1，kickLaunch 未 clamp → 球第一段扎进草 | 首段目标 max(y,0.25) 贴地 clamp，速度仍用积分速度 | 60308a7 |
+| 10 | 同名运动器重叠 | 运动中再施力会新建同名 physics 设备，与旧设备冲突 → DBG_LOC 卡住、后续直线速度误算到 -64 | 运动中施力改为唯一名冲量运动器叠加（impulseSeq 转字符串名），主 physics 仍只有一条 | b23f7eb |
+| 11 | 分支流被复合调用打断 | 在 inner doubleBranch 前放 dbgTag 复合调用，导致两个分支同时执行：kickLaunch 与 kickApplyImpulse 都触发，球瞬间停/异常 | 把 dbgTag 移到两个分支内部，内层 doubleBranch 前不再放 exec 复合调用 | 4e8c55a |
 
 ## 二、最近一次错误的完整调查链
 

@@ -30,6 +30,8 @@
 | 复位 lockRotation=true 保留上一段朝向，导致第二次横传 local axis≠world axis、旋转方向错 | 日志 2832：复位后球朝向仍 z≈105.7°；提交 9b0d261 | motionInstant 改 lockRotation=false；motion-devices.md §10 补语义 |
 | 同族：physFlyTick/physRollTick 也先写回 ball* 再消费 integ.*，goal/ground 二次积分 | 代码审查同族扩展；提交 5f2fc97 | 单 tick 物化 tmpPos/tmpVel/tmpSpin 快照；fly/roll 的 goal 只读快照 |
 | 上旋低平施力首段视觉目标未贴地 clamp，y=-0.1 扎草 | 日志 2836 DBG_KICK=6：rec188/484 首段 pos y=-0.1；提交 60308a7 | kickLaunch 首段目标 max(y,0.25) 贴地，速度用 integ.nvel；用户复测通过 |
+| 运动中再施力触发同名 physics 运动器冲突，球卡住后速度误算 | 日志 2839/2841：DBG_LOC 卡顿、add_uniform 速度升到 -64 | 状态分支 + 唯一名冲量运动器叠加（impulseSeq→str）；b23f7eb |
+| 内层 doubleBranch 前放 exec 复合调用导致两分支都执行 | 日志 2841：kickLaunch 与 kickApplyImpulse 同 record 帧 | 公共复合调用移入各分支；dsl 技能补规则；4e8c55a |
 
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 
