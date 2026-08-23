@@ -4,6 +4,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { SettlementStatus } from 'genshin-ts/definitions/enum'
 import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 import { logicApplyFace, logicApplyMiddle, logicApplyWhole, logicIsSolved, logicReset } from './logic.js'
+import { RubikSignal } from '../signals.js'
 
 const SCRAMBLE_LEN = 20n
 type Flow = any
@@ -455,14 +456,19 @@ export const flowScramble = g.defineComposite('flow_scramble', {
   }
 })
 
-// 自动复原（exec）：占位（求解器接入前）
+// 自动复原（exec）：发布逻辑状态到自定义变量 + 置锁 + 回 op=2（最小版，game 侧只加信号级）
 export const flowSolve = g.defineComposite('flow_solve', {
     id: 1610700013,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ _target }, f) => {
-    f.printString('rubik3x3-solve-placeholder')
+  build: ({ target }, f) => {
+    f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
+    f.sendSignal(RubikSignal.rubik3x3_solve, 2n, 0n)
     const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
     f.outflow('done', doneNode, 0)
     return {}

@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn } from './composites/flow.js'
+import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn, flowSolve, flowRequestMove } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -281,6 +281,19 @@ const graph = g
         })
       }
     )
+  })
+  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
+    f.multipleBranches(evt.params.op, {
+      1: () => {
+        // 求状态：发布 cp/co/ep/eo 并回 op=2
+        f.callComposite(flowSolve, { target: f.getSelfEntity() })
+      },
+      3: () => {
+        // 执行一步（solver 已按动画节奏定时逐条发）
+        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+      },
+      default: () => {}
+    })
   })
 
 export default graph

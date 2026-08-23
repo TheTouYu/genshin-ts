@@ -15,7 +15,7 @@ import {
 
 const graph = g
   .server({
-    id: 1073741829,
+    id: 1073741834,
     variables: {
       scp: [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n],
       sco: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n],
@@ -101,10 +101,10 @@ const graph = g
               f.equal(f.callComposite(solverCrossMask, { h0: 4n, h1: 5n, h2: 6n, h3: 7n }).mask, 15n),
               () => {
                 f.setNodeGraphVariable('phase', new int(3), false)
-                // 解序列写入控制器 A（主图读同一实体自定义变量），再发 op=3 交主图自动播放
-                f.setCustomVariable(entity(1077936201n), new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), false)
-                f.setCustomVariable(entity(1077936201n), new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), false)
-                f.sendSignal(RubikSignal.rubik3x3_solve, 3n, 0n)
+                // 解序列写入本实体（执行图同挂本实体读取），发 op=6 交执行图逐条定时播放
+                f.setCustomVariable(f.getSelfEntity(), new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), false)
+                f.setCustomVariable(f.getSelfEntity(), new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), false)
+                f.sendSignal(RubikSignal.rubik3x3_solve, 6n, 0n)
               },
               () => {
                 f.callComposite(solverStartTick, { target: f.getSelfEntity() })

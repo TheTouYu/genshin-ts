@@ -4,7 +4,7 @@ import { RubikSignal } from './signals.js'
 import { flowDoMove } from './composites/flow.js'
 
 const graph = g
-  .server({ id: 1073741826 })
+  .server({ id: 1073741831 })
   .on('whenTabIsSelected', (evt: any, f: any) => {
     // 本地 1..6 → 全局 10..15；本地 7（手动检查）→ 全局 16
     f.doubleBranch(
