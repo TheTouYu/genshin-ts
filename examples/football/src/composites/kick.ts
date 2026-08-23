@@ -27,43 +27,43 @@ export const kickApplyForce = g.defineComposite('kick_apply_force', {
     const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
     f.multipleBranches(tabId, {
       1: () => {
-        // 轻射：-X 小力 + 内旋
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 2, 0), new bool(false)])
+        // 轻射：左前上 (-X,+Z) + 内旋
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 4, 6), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -6, 0), new bool(false)])
       },
       2: () => {
-        // 重射：-X 大力 + 内旋
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-24, 3, 0), new bool(false)])
+        // 重射：向左上 (-X) + 内旋
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-24, 5, 0), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -8, 0), new bool(false)])
       },
       3: () => {
-        // 高吊：斜上大力 + 上旋
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-15, 9, 0), new bool(false)])
+        // 高吊：向左高抛 (-X) + 上旋
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-15, 14, 0), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 6), new bool(false)])
       },
       4: () => {
-        // 内旋弧（香蕉球）：-X + 内旋强 + z 正偏
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-16, 2, 2), new bool(false)])
+        // 内旋弧：左前上大幅右弧 (-X,+Z)
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-16, 6, 12), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -9, 0), new bool(false)])
       },
       5: () => {
-        // 外旋弧：-X + 外旋强 + z 负偏
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-16, 2, -2), new bool(false)])
+        // 外旋弧：左后上大幅左弧 (-X,-Z)
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-16, 6, -12), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 9, 0), new bool(false)])
       },
       6: () => {
-        // 上旋低平：快速落地前滚（测试滚滑摩擦）
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-18, 0.5, 0), new bool(false)])
+        // 上旋低平：向右前上 (+X,+Z) 绕场返回
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(18, 4, 12), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 10), new bool(false)])
       },
       7: () => {
-        // 下旋（回旋）：落地回弹减速
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 2, 0), new bool(false)])
+        // 下旋回旋：左前上 (-X,+Z)
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(-14, 5, 8), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, -8), new bool(false)])
       },
       8: () => {
-        // 横传：向 +Z 方向 + 上旋（v 主要沿 +Z，前滚轴 = +X）
-        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(2, 3, 12), new bool(false)])
+        // 横传：右前上 (+Z 为主)
+        f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(4, 6, 18), new bool(false)])
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(6, 0, 0), new bool(false)])
       },
       default: () => {}
@@ -157,7 +157,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     }
     f.multipleBranches(tabId, {
       1: () => {
-        const dv = makeDv(-14, 2, 0)
+        const dv = makeDv(-14, 4, 6)
         const dw = makeDw(0, -6, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -172,7 +172,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       2: () => {
-        const dv = makeDv(-24, 3, 0)
+        const dv = makeDv(-24, 5, 0)
         const dw = makeDw(0, -8, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -187,7 +187,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       3: () => {
-        const dv = makeDv(-15, 9, 0)
+        const dv = makeDv(-15, 14, 0)
         const dw = makeDw(0, 0, 6)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -202,7 +202,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       4: () => {
-        const dv = makeDv(-16, 2, 2)
+        const dv = makeDv(-16, 6, 12)
         const dw = makeDw(0, -9, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -217,7 +217,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       5: () => {
-        const dv = makeDv(-16, 2, -2)
+        const dv = makeDv(-16, 6, -12)
         const dw = makeDw(0, 9, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -232,7 +232,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       6: () => {
-        const dv = makeDv(-18, 0.5, 0)
+        const dv = makeDv(18, 4, 12)
         const dw = makeDw(0, 0, 10)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -247,7 +247,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       7: () => {
-        const dv = makeDv(-14, 2, 0)
+        const dv = makeDv(-14, 5, 8)
         const dw = makeDw(0, 0, -8)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
@@ -262,7 +262,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(st, 0, inc, 0)
       },
       8: () => {
-        const dv = makeDv(2, 3, 12)
+        const dv = makeDv(4, 6, 18)
         const dw = makeDw(6, 0, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
