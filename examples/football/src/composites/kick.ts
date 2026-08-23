@@ -132,6 +132,20 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     const seq = f.getNodeGraphVariable('impulseSeq').asType('int')
     const impName = f.dataTypeConversion(seq, 'str')
     const maxSpeed = new float(24)
+    // 运动状态：只在空中允许冲量带竖直分量；滚滑时竖直冲量会被下一 tick 滚滑状态吞掉，
+    // 之前“海绵/突然自由落体”就是这个原因。这里把滚滑冲量投影为水平冲量。
+    const isAirInt = f.dataTypeConversion(f.equal(f.getNodeGraphVariable('state').asType('int'), 1n), 'int')
+    const vyScale = f.dataTypeConversion(isAirInt, 'float')
+    const makeDv = (x, y, z) => {
+      const base = f.create3dVector(x, y, z)
+      const d = f.split3dVector(base)
+      return f.create3dVector(
+        f.multiplication(d.xComponent, IMPULSE_SCALE),
+        f.multiplication(f.multiplication(d.yComponent, IMPULSE_SCALE), vyScale),
+        f.multiplication(d.zComponent, IMPULSE_SCALE)
+      )
+    }
+    const makeDw = (x, y, z) => f._3dVectorZoom(f.create3dVector(x, y, z), IMPULSE_SCALE)
     // 默认节点（entry 链首），分支覆盖
     const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), curVel, new bool(false)])
     const clampSpeed = (v) => {
@@ -142,8 +156,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     }
     f.multipleBranches(tabId, {
       1: () => {
-        const dv = f.create3dVector(-14, 2, 0)
-        const dw = f.create3dVector(0, -6, 0)
+        const dv = makeDv(-14, 2, 0)
+        const dw = makeDw(0, -6, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -155,8 +169,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       2: () => {
-        const dv = f.create3dVector(-24, 3, 0)
-        const dw = f.create3dVector(0, -8, 0)
+        const dv = makeDv(-24, 3, 0)
+        const dw = makeDw(0, -8, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -168,8 +182,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       3: () => {
-        const dv = f.create3dVector(-15, 9, 0)
-        const dw = f.create3dVector(0, 0, 6)
+        const dv = makeDv(-15, 9, 0)
+        const dw = makeDw(0, 0, 6)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -181,8 +195,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       4: () => {
-        const dv = f.create3dVector(-16, 2, 2)
-        const dw = f.create3dVector(0, -9, 0)
+        const dv = makeDv(-16, 2, 2)
+        const dw = makeDw(0, -9, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -194,8 +208,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       5: () => {
-        const dv = f.create3dVector(-16, 2, -2)
-        const dw = f.create3dVector(0, 9, 0)
+        const dv = makeDv(-16, 2, -2)
+        const dw = makeDw(0, 9, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -207,8 +221,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       6: () => {
-        const dv = f.create3dVector(-18, 0.5, 0)
-        const dw = f.create3dVector(0, 0, 10)
+        const dv = makeDv(-18, 0.5, 0)
+        const dw = makeDw(0, 0, 10)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -220,8 +234,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       7: () => {
-        const dv = f.create3dVector(-14, 2, 0)
-        const dw = f.create3dVector(0, 0, -8)
+        const dv = makeDv(-14, 2, 0)
+        const dw = makeDw(0, 0, -8)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
@@ -233,8 +247,8 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.connect(imp, 0, inc, 0)
       },
       8: () => {
-        const dv = f.create3dVector(2, 3, 12)
-        const dw = f.create3dVector(6, 0, 0)
+        const dv = makeDv(2, 3, 12)
+        const dw = makeDw(6, 0, 0)
         const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
         const nw = f._3dVectorAddition(curSpin, dw)
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
