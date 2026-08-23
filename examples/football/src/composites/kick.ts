@@ -87,11 +87,17 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     // 第一个目标点必须用与 physFlyTick 完全相同的半隐式积分结果：
     // 否则首段视觉按 v0·dt 走、物理按 v1·dt 走，造成 launch 过冲/回头（“虚拟天花板”）。
     const integ = f.callComposite(physIntegrate, { pos: loc, vel, spin })
+    // 首段目标 clamp 到地面：上旋/低平球的第一步积分可能已被马格努斯压到 y<0.25，
+    // 直接拿 integ.npos 当视觉目标会让球第一段就扎进草里。
+    const ip = f.split3dVector(integ.npos)
+    const diffY = f.subtraction(ip.yComponent, CENTER_Y)
+    const clampedY = f.division(f.addition(f.addition(ip.yComponent, CENTER_Y), f.absoluteValueOperation(diffY)), 2)
+    const clampedPos = f.create3dVector(ip.xComponent, clampedY, ip.zComponent)
     // 关键顺序：先消费 integ.npos/nspin 再写回 ballVel/ballSpin。
     // physIntegrate 的输入来自图变量 get；若先写 ballVel 再消费 integ.*，
     // 引擎会按“每个消费点求值一次”重新积分 → 首段目标被二次重力拖到地下（球往草里扎）。
-    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
-    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), clampedPos, new bool(false)])
+    const ap = f.callComposite(physApplyMotion, { e, pos: clampedPos, spin: integ.nspin })
     f.connect(setPos, 0, ap as never, 0)
     const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
     f.connect(ap as never, 0, setVel, 0)
