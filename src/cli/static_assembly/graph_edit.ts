@@ -718,19 +718,57 @@ function appendRoot10Category(payload: Uint8Array, recordBlob: Uint8Array): Uint
 
 // ---- 节点预算（复合调用递归展开计数；2026-08-19 闭合：游戏按"所有复合展开节点总数"限 3000）----
 
-export type NodeBudgetEntry = { id: number; name?: string; direct: number; expanded: number }
+export type NodeBudgetEntry = { id: number; name?: string; direct: number; expanded: number; reachable?: boolean }
 
 export type NodeBudget = {
   /** 全部图（主图 + impl）的直接/展开计数 */
   graphs: NodeBudgetEntry[]
-  /** 所有 impl 图展开之和（游戏节点限制口径，>3000 拒载） */
+  /** 从根图可达的所有 impl 展开之和（2026-08-21 公式关键参数） */
   implTotal: number
   /** 主图递归展开（含所有被调复合） */
   mainExpanded: number
+  /** 主图可达的所有图（主图 + 可达 impl）展开之和；更接近游戏“单节点图总量”的保守口径 */
+  engineExpanded: number
+  /** 全部图（含不可达死代码）展开之和；最保守上限 */
+  engineExpandedAll: number
+  /** 根图直接节点数 */
+  direct: number
+  /** 根图内复合实例节点数 */
+  compositeInstances: number
+  /** 根图内 Multiple Branches 的 case 总数 */
+  mbCases: number
+  /** 根图内未连线/无执行流接入的复合实例节点数（游戏仍会计数） */
+  unconnectedCompositeNodes: number
+  /** 根图控制流节点数（Double Branch / Multiple Branches / Start Timer / When Timer） */
+  controlNodes: number
+  /** 根图数据流节点数（除控制流与复合实例外的普通节点） */
+  dataFlowNodes: number
+  /** 根图数据流节点中被消费（有数据出边）的数量 */
+  dataFlowConsumed: number
+  /** 根图数据流节点中未被消费的数量 */
+  dataFlowUnconsumed: number
+  /** 根图控制流边数（OutFlow 连接数） */
+  flowEdges: number
+  /** 根图数据流边数（InParam 连接数） */
+  dataFlowEdges: number
+  /**
+   * 游戏“节点图数量”预测值（Round 17 定稿公式，10/10 回归校准，2026-08-22 修正）：
+   * count = (28/11) * mainExpanded - (761/1056) * implTotal - 39343/66
+   * 依据：PROGRESS.md Round 17 四组实测点（H-3283/I-3588/J-3812/K-4036）拟合，
+   * 系数来自两个干净实验（未连线 logic_apply_whole ΔmainExpanded=88 → Δactual=225 → 28/11）。
+   * 注意：2026-08-21 的简单公式（2*mainExpanded + mbCases + dataFlowEdges/2）对“能加载的
+   * 混合有限循环版”误报 >3000（实际 2029 可加载），故弃用；简单公式仅作宽松上界参考。
+   */
+  gameNodeCount: number
+}
+
+/** 由指标计算游戏“节点图数量”预测值（Round 17 定稿公式）。 */
+export function predictGameNodeCount(mainExpanded: number, implTotal: number): number {
+  return (28 / 11) * mainExpanded - (761 / 1056) * implTotal - 39343 / 66
 }
 
 /** 统计复合调用递归展开节点数：枚举 def→impl、复合实例调用图、递归求和。 */
-export function compositeNodeBudget(bytes: Uint8Array): NodeBudget {
+export function compositeNodeBudget(bytes: Uint8Array, rootGraphId = 1073741825): NodeBudget {
   const payload = bytes.slice(20, -4)
   const fields: LenField[] = []
   parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
@@ -769,16 +807,94 @@ export function compositeNodeBudget(bytes: Uint8Array): NodeBudget {
     memo.set(gid, total)
     return total
   }
+  // 只统计从 rootGraphId 可达的 impl（未被调用的复合定义不计入游戏节点预算）
+  const mainGraphId = rootGraphId
+  const reachable = new Set<number>()
+  const queue = [mainGraphId]
+  while (queue.length) {
+    const gid = queue.shift()!
+    for (const did of calls.get(gid) ?? []) {
+      const iid = defImpl.get(did)
+      if (iid !== undefined && !reachable.has(iid)) {
+        reachable.add(iid)
+        queue.push(iid)
+      }
+    }
+  }
   const graphs: NodeBudgetEntry[] = [...graphNodes.entries()]
     .map(([gid, nodes]) => ({
       id: gid,
       name: defName.get(gid - 10000),
       direct: nodes.length,
-      expanded: expand(gid)
+      expanded: expand(gid),
+      reachable: reachable.has(gid) || gid === mainGraphId
     }))
     .sort((a, b) => b.expanded - a.expanded)
-  const implTotal = [...graphNodes.keys()].filter((g) => g >= 1610700000).reduce((s, g) => s + expand(g), 0)
-  return { graphs, implTotal, mainExpanded: expand(1073741825) }
+  const implTotal = [...reachable].reduce((s, g) => s + expand(g), 0)
+  const engineExpanded = graphs
+    .filter((g) => g.reachable !== false)
+    .reduce((s, g) => s + g.expanded, 0)
+  const engineExpandedAll = graphs.reduce((s, g) => s + g.expanded, 0)
+  const mainExpanded = expand(mainGraphId)
+  const rootNodes = graphNodes.get(mainGraphId) ?? []
+  const direct = rootNodes.length
+  const compositeInstances = calls.get(mainGraphId)?.length ?? 0
+  const mbCases = rootNodes
+    .filter((n: any) => n.genericId === 3)
+    .reduce((s: number, n: any) => s + n.pins.filter((p: any) => p.kind === 2 && p.index > 0).length, 0)
+  // 未连线/无执行流接入的复合实例节点（游戏仍会计数）
+  const unconnectedCompositeNodes = rootNodes.filter(
+    (n: any) =>
+      defImpl.has(n.genericId) &&
+      !n.pins.some((p: any) => (p.kind === 1 || p.kind === 2) && (p.connects?.length ?? 0) > 0)
+  ).length
+  // 根图普通节点分类与边统计（2026-08-21 简单估计公式用）
+  const CONTROL_NODE_NAMES = new Set(['Double Branch', 'Multiple Branches', 'Start Timer', 'When Timer Is Triggered'])
+  const isControl = (n: any) => CONTROL_NODE_NAMES.has(nodeName(n.genericId) ?? '')
+  const isData = (n: any) => !defImpl.has(n.genericId) && !isControl(n)
+  const controlNodes = rootNodes.filter(isControl).length
+  const dataFlowNodes = rootNodes.filter(isData).length
+  const flowEdges = rootNodes.reduce(
+    (s: number, n: any) => s + n.pins.filter((p: any) => p.kind === 2).reduce((a: number, p: any) => a + (p.connects?.length ?? 0), 0),
+    0
+  )
+  const dataFlowEdges = rootNodes.reduce(
+    (s: number, n: any) =>
+      s +
+      n.pins
+        .filter((p: any) => p.kind === 3)
+        .reduce((a: number, p: any) => a + (p.connects?.filter((c: any) => c.kind === 4).length ?? 0), 0),
+    0
+  )
+  const dataConsumedIds = new Set<number>()
+  for (const n of rootNodes) {
+    for (const p of n.pins) {
+      if (p.kind !== 3) continue
+      for (const c of p.connects ?? []) if (c.kind === 4) dataConsumedIds.add(c.id)
+    }
+  }
+  const dataFlowConsumed = rootNodes.filter((n: any) => isData(n) && dataConsumedIds.has(n.index)).length
+  const dataFlowUnconsumed = dataFlowNodes - dataFlowConsumed
+  // 2026-08-22 修正：用 Round 17 定稿公式（签名 (mainExpanded, implTotal)），弃用简单公式
+  const gameNodeCount = predictGameNodeCount(mainExpanded, implTotal)
+  return {
+    graphs,
+    implTotal,
+    mainExpanded,
+    engineExpanded,
+    engineExpandedAll,
+    direct,
+    compositeInstances,
+    mbCases,
+    unconnectedCompositeNodes,
+    controlNodes,
+    dataFlowNodes,
+    dataFlowConsumed,
+    dataFlowUnconsumed,
+    flowEdges,
+    dataFlowEdges,
+    gameNodeCount
+  }
 }
 
 // ---- 修改原语（GraphNode 记录级：bytes → bytes）----
@@ -1973,6 +2089,55 @@ export function patchRecord(bytes: Uint8Array, section: 1 | 2 | 4, id: number, m
   const blob = payload.subarray(target.dataStart, target.dataEnd)
   const newPayload = applyReplacement(payload, fields, target, mutate(blob))
   return buildFile(newPayload, gilHeader(bytes))
+}
+
+/** 删除 root10.section 里 id 对应的容器记录（2026-08-21 编辑器差分闭合：删除复合定义 =
+ *  移除 root10 section2 的 CompositeDef 记录 + section4 的 impl 图记录；root46 等保存副作用不模拟）。 */
+export function removeRoot10Record(bytes: Uint8Array, section: 2 | 4, id: number): Uint8Array {
+  const payload = bytes.slice(20, -4)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const top10 = fields.find((f) => f.depth === 1 && f.p0 === 10 && f.p1 === 0)
+  if (!top10) throw new Error('[error] root 10 not found')
+  const root10 = parseWireMessage(payload.subarray(top10.dataStart, top10.dataEnd))
+  if (!root10) throw new Error('[error] root 10 unparseable')
+  let found = false
+  const out: WireField[] = []
+  for (const f of root10) {
+    if (f.number === section && f.wire === 2 && f.value instanceof Uint8Array) {
+      const rec = parseWireMessage(f.value)
+      const blob = rec?.find((x) => x.number === 1 && x.wire === 2)?.value
+      if (blob instanceof Uint8Array && blobId(blob, section) === id) {
+        found = true
+        continue
+      }
+    }
+    out.push(f)
+  }
+  if (!found) {
+    const what = section === 2 ? 'composite def' : 'impl graph'
+    throw new Error(`[error] ${what} ${id} not found in root 10`)
+  }
+  const newRoot10 = emitWireMessage(out)
+  const newPayload = applyReplacement(payload, fields, top10, newRoot10)
+  return buildFile(newPayload, gilHeader(bytes))
+}
+
+/** 删除一个复合定义及其 impl 图（若存在）。若该定义在自定义分类中，会先移出分类成员。
+ *  调用方必须保证该定义不再被任何节点引用，否则会留下悬空调用。 */
+export function deleteCompositeDef(bytes: Uint8Array, defId: number): Uint8Array {
+  let result = bytes
+  const categoryPath = compositeCategoryPath(bytes, defId)
+  if (categoryPath) result = clearCompositeCategory(result, defId)
+  let implId: number | undefined
+  try {
+    implId = compositeImplGraphId(result.slice(20, -4), defId)
+  } catch {
+    // 骨架/异常 def 无 impl 图时只删定义
+  }
+  result = removeRoot10Record(result, 2, defId)
+  if (implId !== undefined) result = removeRoot10Record(result, 4, implId)
+  return result
 }
 
 /** 复合定义参数列表（读侧：实例 pin 的 type/pinIndex 来源）。 */export type FlowMeta = { kind: number; shell: number; name?: string; type?: number; pinIndex?: number }

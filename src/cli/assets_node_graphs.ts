@@ -30,6 +30,7 @@ import {
   copyGraphNode,
   copyGraphNodesFromBlob,
   createComposite,
+  deleteCompositeDef,
   delCompositePin,
   delGraphNode,
   delInstanceCompositePin,
@@ -132,7 +133,7 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
-  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes'
+  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes' | 'def-clean'
   gilPath: string | undefined
   mapId: number | undefined
   name: string
@@ -146,6 +147,11 @@ type Args = {
   srcGil: string | undefined
   ops: string[]
   layoutCheck: boolean
+  defs: string[]
+  allUnused: boolean
+  includeSystem: boolean
+  force: boolean
+  dryRun: boolean
 }
 
 function usage(exitCode = 0): never {
@@ -157,6 +163,7 @@ function usage(exitCode = 0): never {
     '  patch                        apply precise node-graph edits (preview by default)',
   '  layout                       auto-layout / lint a graph (--check = lint only)',
   '  validate                     check R<T> concreteId/pin consistency, variable names, skill-graph node guard',
+  '  def-clean                    remove unused composite definitions (dry-run by default)',
     '',
     'Options:',
     '  --config <file>   project config (for --map-id resolution)',
@@ -170,8 +177,12 @@ function usage(exitCode = 0): never {
     '  --category <name>    read: 仅列出指定分类下的复合',
     '  nodes                  节点预算：复合调用递归展开计数（游戏限制 3000）',
     '  --json            read: machine-readable output',
-    '  --output <file>   patch: write result to a new file (no overwrite)',
-    '  --write           patch: write source GIL after backup',
+    '  --output <file>   patch/def-clean: write result to a new file (no overwrite)',
+    '  --write           patch/def-clean: write source GIL after backup',
+    '  --dry-run         def-clean: show what would be removed without writing (default)',
+    '  --all-unused      def-clean: remove every composite definition with no callers',
+    '  --include-system  def-clean: include built-in signal composite defs in --all-unused',
+    '  --force           def-clean: allow explicit defs even if they still have callers (dangerous)',
     '  -h, --help        show help',
     '',
     'patch ops (order matters, applied sequentially):',
@@ -210,7 +221,10 @@ function usage(exitCode = 0): never {
     '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 rename 我的复合 --write',
     '  gsts assets:node-graphs patch --gil map.gil --graph 1073741836 composite create 我的复合 1 1 11',
     '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 del-input 2',
-    '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 swap-input 0 1'
+    '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 swap-input 0 1',
+    '  gsts assets:node-graphs def-clean --gil map.gil --all-unused --dry-run',
+    '  gsts assets:node-graphs def-clean --gil map.gil --all-unused --write',
+    '  gsts assets:node-graphs def-clean --gil map.gil 1610700029 --dry-run'
   ].join('\n')
   console[exitCode === 0 ? 'log' : 'error'](output)
   process.exit(exitCode)
@@ -237,8 +251,13 @@ function parseArgs(argv: readonly string[]): Args {
   let srcGil: string | undefined
   let layoutCheck = false
   const ops: string[] = []
+  const defs: string[] = []
+  let allUnused = false
+  let includeSystem = false
+  let force = false
+  let dryRun = false
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate' || argv[0] === 'nodes')
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate' || argv[0] === 'nodes' || argv[0] === 'def-clean')
     sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
@@ -254,8 +273,13 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--node') node = Number(value(argv, index++))
     else if (arg === '--composite') composite = value(argv, index++)
     else if (arg === '--category') category = value(argv, index++)
+    else if (arg === '--all-unused') allUnused = true
+    else if (arg === '--include-system') includeSystem = true
+    else if (arg === '--force') force = true
+    else if (arg === '--dry-run') dryRun = true
     else if (arg === '--help' || arg === '-h') usage(0)
     else if (sub === 'patch') ops.push(arg)
+    else if (sub === 'def-clean' && !arg.startsWith('--')) defs.push(arg)
     else usage()
   }
   if (sub === 'create' && ops.length) usage()
@@ -269,7 +293,13 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] create does not accept --graph/--node/--composite/--json')
   if (sub === 'layout' && (node || composite || srcGil || ops.length))
     throw new Error('[error] layout does not accept --node/--composite/--src-gil/ops')
-  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck }
+  if (sub === 'def-clean' && defs.length === 0 && !allUnused)
+    throw new Error('[error] def-clean needs at least one <id|name> or --all-unused')
+  if (sub === 'def-clean' && defs.length > 0 && allUnused)
+    throw new Error('[error] def-clean cannot combine explicit defs with --all-unused')
+  if (sub === 'def-clean' && (graph || node || composite || category || srcGil || ops.length))
+    throw new Error('[error] def-clean does not accept --graph/--node/--composite/--category/--src-gil/ops')
+  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck, defs, allUnused, includeSystem, force, dryRun }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -499,6 +529,10 @@ export async function runAssetsNodeGraphs(
     if (errors.length > 0) process.exitCode = 1
     return
   }
+  if (args.sub === 'def-clean') {
+    runDefClean(sourceBytes, gil, args)
+    return
+  }
   const sourceSha = sha256Bytes(sourceBytes)
   const payload = sourceBytes.slice(20, -4)
   const graphId = nextGraphId(payload)
@@ -659,20 +693,119 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
 }
 
 function runNodes(bytes: Uint8Array, gil: string, args: Args): void {
-  const budget = compositeNodeBudget(bytes)
+  const root = args.graph ? Number(args.graph) : 1073741825
+  const budget = compositeNodeBudget(bytes, root)
   const LIMIT = 3000
   if (args.json) {
-    console.log(JSON.stringify({ gil, limit: LIMIT, ...budget }, null, 2))
+    console.log(JSON.stringify({ gil, rootGraphId: root, limit: LIMIT, ...budget }, null, 2))
     return
   }
-  const ok = budget.implTotal <= LIMIT
-  console.log(`节点预算（复合调用递归展开，游戏限制 ${LIMIT}）`)
-  console.log(`  所有 impl 展开之和: ${budget.implTotal}  ${ok ? '✅ 达标' : '❌ 超限（游戏拒载）'}`)
-  console.log(`  主图展开: ${budget.mainExpanded}`)
-  console.log('  展开最大贡献者（>20）:')
-  for (const g of budget.graphs.filter((x) => x.expanded > 20).slice(0, 8)) {
+  const gameCount = Math.round(budget.gameNodeCount)
+  const gameOk = gameCount <= LIMIT
+  console.log(`节点预算（游戏“节点图数量”公式，限制 ${LIMIT}，rootGraphId=${root}）`)
+  console.log(`  游戏节点图数量(预测): ${budget.gameNodeCount.toFixed(2)} → round=${gameCount}  ${gameOk ? '✅ 可进游戏' : '❌ 游戏拒载'}`)
+  console.log(`  根图展开(mainExpanded): ${budget.mainExpanded}`)
+  console.log(`  可达 impl 展开之和(implTotal): ${budget.implTotal}`)
+  console.log(`  根图直接节点: ${budget.direct}`)
+  console.log(`  根图复合实例数: ${budget.compositeInstances}`)
+  console.log(`  根图未连线复合节点数: ${budget.unconnectedCompositeNodes}`)
+  console.log(`  根图 MB case 数: ${budget.mbCases}`)
+  console.log(`  根图控制流节点: ${budget.controlNodes} / 数据流节点: ${budget.dataFlowNodes}（被消费 ${budget.dataFlowConsumed} / 未消费 ${budget.dataFlowUnconsumed}）`)
+  console.log(`  根图控制流边: ${budget.flowEdges} / 数据流边: ${budget.dataFlowEdges}`)
+  console.log(`  主图可达展开总量(engineExpanded): ${budget.engineExpanded}`)
+  console.log(`  全部图展开总量(含死代码): ${budget.engineExpandedAll}`)
+  console.log(`  所有 impl 展开之和(旧口径): ${budget.implTotal}（即上面的可达 impl 展开之和）`)
+  console.log('  展开最大贡献者（>20，仅主图可达）:')
+  for (const g of budget.graphs.filter((x) => x.reachable !== false && x.expanded > 20).slice(0, 8)) {
     console.log(`    ${g.name ?? ('graph ' + g.id)}: 直接${g.direct} → 展开${g.expanded}`)
   }
+}
+
+const SYSTEM_COMPOSITE_NAMES = new Set(['发送信号', '监听信号', '向服务器节点图发送信号'])
+
+function compositeCallerMap(bytes: Uint8Array): Map<number, Array<{ graphId: number; node: number }>> {
+  const defIds = new Set(listCompositeDefs(bytes).map((d) => d.id))
+  const callers = new Map<number, Array<{ graphId: number; node: number }>>()
+  const payload = bytes.slice(20, -4)
+  for (const g of listGraphs(bytes)) {
+    const { field } = locateGraphField(payload, g.id)
+    for (const n of parseGraphNodes(payload.subarray(field.dataStart, field.dataEnd))) {
+      if (!defIds.has(n.genericId)) continue
+      const list = callers.get(n.genericId) ?? []
+      list.push({ graphId: g.id, node: n.index })
+      callers.set(n.genericId, list)
+    }
+  }
+  return callers
+}
+
+function runDefClean(bytes: Uint8Array, gil: string, args: Args): void {
+  const defs = listCompositeDefs(bytes)
+  const defById = new Map(defs.map((d) => [d.id, d]))
+  const callers = compositeCallerMap(bytes)
+  const targets: Array<{ id: number; name?: string }> = []
+  if (args.allUnused) {
+    for (const d of defs) {
+      if (!args.includeSystem && SYSTEM_COMPOSITE_NAMES.has(d.name ?? '')) continue
+      if ((callers.get(d.id)?.length ?? 0) === 0) targets.push({ id: d.id, name: d.name })
+    }
+  } else {
+    for (const ref of args.defs) {
+      const id = resolveDefId(bytes, ref)
+      targets.push({ id, name: defById.get(id)?.name })
+    }
+  }
+  if (targets.length === 0) {
+    console.log('def-clean: no unused composite definitions to remove')
+    return
+  }
+
+  let result = bytes
+  const removed: Array<{ id: number; name?: string }> = []
+  for (const t of targets) {
+    const refs = callers.get(t.id) ?? []
+    if (refs.length > 0 && !args.force) {
+      const sample = refs.slice(0, 5).map((c) => `graph ${c.graphId} n${c.node}`).join(', ')
+      throw new Error(
+        `[error] def ${t.id} ${t.name ?? ''} still referenced by ${refs.length} node(s): ${sample}; remove callers first or use --force`
+      )
+    }
+    if (refs.length > 0) {
+      console.log(`[warn] def ${t.id} ${t.name ?? ''} still has ${refs.length} caller(s); --force will leave dangling nodes`)
+    }
+    result = deleteCompositeDef(result, t.id)
+    removed.push(t)
+  }
+
+  const sourceSha = sha256Bytes(bytes)
+  const candidateSha = sha256Bytes(result)
+  if (args.write) {
+    const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
+    if (nowSha !== sourceSha) throw new Error('[error] source GIL changed since read; aborting write')
+    const backupDir = path.join(path.dirname(gil), '.gsts', 'backups')
+    fs.mkdirSync(backupDir, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.def-clean.bak`)
+    fs.copyFileSync(gil, backup)
+    fs.writeFileSync(gil, result)
+    console.log(`backup=${backup}`)
+    console.log(`written=${gil}`)
+  } else if (args.outputPath) {
+    const absolute = path.resolve(args.outputPath)
+    if (fs.existsSync(absolute)) throw new Error(`[error] output already exists: ${absolute}`)
+    fs.mkdirSync(path.dirname(absolute), { recursive: true })
+    fs.writeFileSync(absolute, result)
+    console.log(`written=${absolute}`)
+  } else {
+    console.log(`preview=${gil}${args.dryRun ? ' (dry-run)' : ''}`)
+  }
+  for (const r of removed) {
+    console.log(`def-clean: ${r.id} ${r.name ?? '(无名)'}`)
+  }
+  console.log(
+    `defs=${removed.length} sourceSha256=${sourceSha} candidateSha256=${candidateSha} ` +
+      `size=${bytes.length}->${result.length}`
+  )
 }
 
 type InstanceMeta = { defId: number; pinIndex?: number; type?: number }

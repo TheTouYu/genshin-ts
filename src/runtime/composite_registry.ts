@@ -101,6 +101,8 @@ export type CompositeDefinition = {
   readonly outputs: Record<string, CompositeParamDef>
   readonly variables?: Variable[]
   readonly build: (...args: any[]) => any
+  /** 强制全量输出：即使未被任何图调用，也捕获完整 impl 并随 GIA 输出（用于修改/更新地图残留旧 def） */
+  readonly forceFull?: boolean
   /** 捕获后的内部节点和连线 */
   captured: CompositeCapture | null
   /**
@@ -138,11 +140,13 @@ export class CompositeRegistry {
   define(
     name: string,
     def: {
+      id?: number
       inputs?: Record<string, CompositeParamDef>
       outputs?: Record<string, CompositeParamDef>
       inflows?: Array<string | CompositeFlowDef>
       outflows?: Array<string | CompositeFlowDef>
       variables?: Record<string, unknown>
+      forceFull?: boolean
       build: (...args: any[]) => any
       provenance?: DiagnosticProvenance
     }
@@ -151,7 +155,10 @@ export class CompositeRegistry {
       throw new Error(`[error] composite "${name}" already defined`)
     }
 
-    const id = nextCompositeId++
+    const id = def.id ?? nextCompositeId++
+    if (def.id !== undefined && [...this.definitions.values()].some((d) => d.id === id)) {
+      throw new Error(`[error] composite id ${id} already used by another definition`)
+    }
 
     const parsedVars = def.variables ? parseVariableDefinitions(def.variables) : undefined
     const definition: CompositeDefinition = {
@@ -160,6 +167,7 @@ export class CompositeRegistry {
       variables: parsedVars?.variables,
       inputs: def.inputs ?? {},
       outputs: def.outputs ?? {},
+      forceFull: def.forceFull ?? false,
       build: def.provenance
         ? (...args: any[]) =>
             globalThis.gsts.ctx.withDiagnosticProvenance(def.provenance!, () => def.build(...args))

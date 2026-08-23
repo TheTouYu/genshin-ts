@@ -5,6 +5,7 @@ import { DEFAULT_GIA_PROTO } from '../../injector/proto.js'
 import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type { IRDocument } from '../../runtime/IR.js'
 import type { SignalRegistry } from '../signal_registry.js'
+import { lintDanglingExecNodes } from '../ir_lint_dangling_exec.js'
 import { irToGia } from './index.js'
 
 function ensurePrefixedDefaultName(raw: string): string {
@@ -82,6 +83,11 @@ export function writeGiaFromIrJsonFile(
     if (!ir.graph.name) {
       ir.graph.name = ensurePrefixedDefaultName(inputBaseName)
     }
+
+    // 编译期悬空 exec 静态检出（方案 A，2026-08-21）：
+    // 在 IR→GIA 编码前扫描根图与每个复合 impl，检出「有出边但无入边」的 exec 节点。
+    // 默认 warning；--strict-warnings 提升为失败，--warnings-json 输出结构化诊断。
+    lintDanglingExecNodes(ir)
 
     const bytes = irToGia(ir, {
       protoPath: DEFAULT_GIA_PROTO,

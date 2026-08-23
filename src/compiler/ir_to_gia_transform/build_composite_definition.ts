@@ -217,7 +217,22 @@ export function buildCompositeDefinitionInterface(
   }
 }
 
+const LIST_VAR_TYPE_BY_ELEMENT: Record<string, VarType> = {
+  guid: VarType.GUIDList,
+  int: VarType.IntegerList,
+  bool: VarType.BooleanList,
+  float: VarType.FloatList,
+  str: VarType.StringList,
+  vec3: VarType.VectorList,
+  entity: VarType.EntityList,
+  config_id: VarType.ConfigurationList,
+  prefab_id: VarType.PrefabList,
+  faction: VarType.FactionList
+}
+
 function typeClassFromValueType(type: string): VarBase_Class {
+  // 2026-08-21 真实差分：复合参数的 *_list 必须是 ArrayBase，type1/type2 用列表 VarType
+  if (type.endsWith('_list')) return VarBase_Class.ArrayBase
   switch (type) {
     case 'int': return VarBase_Class.IntBase
     case 'float': return VarBase_Class.FloatBase
@@ -234,16 +249,16 @@ function typeClassFromValueType(type: string): VarBase_Class {
     case 'config_id':
       return VarBase_Class.IdBase
     default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeClassFromValueType(elementType)
-      }
       // Unknown scalar families keep class 0; matches previous inline encoder.
       return 0 as VarBase_Class
   }
 }
 
 function typeIdFromValueType(type: string): VarType {
+  if (type.endsWith('_list')) {
+    const elementType = type.slice(0, -5)
+    return LIST_VAR_TYPE_BY_ELEMENT[elementType] ?? 0
+  }
   switch (type) {
     case 'bool': return VarType.Boolean
     case 'int': return VarType.Integer
@@ -257,10 +272,6 @@ function typeIdFromValueType(type: string): VarType {
     case 'config_id': return VarType.Configuration
     case 'faction': return VarType.Faction
     default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeIdFromValueType(elementType)
-      }
       return 0 as VarType
   }
 }

@@ -99,7 +99,8 @@ function mergeWrappedFieldMessages(
   existingWrappers: Uint8Array[],
   incomingInnerMessages: Uint8Array[],
   getId: (bytes: Uint8Array) => number | undefined,
-  overwriteExisting = false
+  overwriteExisting = false,
+  shouldOverwrite?: (existingInner: Uint8Array, incomingInner: Uint8Array) => boolean
 ): Uint8Array[] {
   const ordered: Uint8Array[] = []
   const indexById = new Map<number, number>()
@@ -125,6 +126,10 @@ function mergeWrappedFieldMessages(
       indexById.set(id, ordered.length)
       ordered.push(wrapper)
     } else if (overwriteExisting) {
+      const existingInner = readFieldBytes(ordered[existingIndex], 1)
+      if (existingInner && shouldOverwrite && !shouldOverwrite(existingInner, inner)) {
+        continue
+      }
       // Replace the GIL-side definition in place: composite implementations must
       // be updatable across builds (same id, new internals). Callers pass only
       // non-signal accessories (filtered via isSignalDefinitionAccessory), so
@@ -322,9 +327,35 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         throw new Error('[error] target NodeGraph wrapper not found in composite container')
       }
 
+      // 防止 stub 覆盖已存在的 full def：stub = 本 GIA 中对应 impl 图为空（0 节点）；
+      // full = 对应 impl 图非空。只有“incoming 是 stub 且 existing 是 full”时才跳过 stub。
+      const incomingFullDefIds = new Set<number>()
+      for (const gb of incomingImplGraphBytes) {
+        const graph = proto.nodeGraphMessage.decode(gb) as { id?: { id?: unknown }; nodes?: unknown[] }
+        const gid = toFiniteNumber(graph.id?.id)
+        if (gid !== undefined && (graph.nodes?.length ?? 0) > 0) incomingFullDefIds.add(gid - 10000)
+      }
+      const mapFullDefIds = new Set<number>()
+      for (const wrapper of readFieldMessages(top10Bytes, 4)) {
+        const inner = readFieldBytes(wrapper, 1)
+        if (!inner) continue
+        const graph = proto.nodeGraphMessage.decode(inner) as { id?: { id?: unknown }; nodes?: unknown[] }
+        const gid = toFiniteNumber(graph.id?.id)
+        if (gid !== undefined && (graph.nodes?.length ?? 0) > 0) mapFullDefIds.add(gid - 10000)
+      }
+      const filteredIncomingCompositeDefBytes = incomingCompositeDefBytes.filter((bytes) => {
+        const def = compositeDefMessage.decode(bytes) as {
+          id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
+        }
+        const id = toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
+        if (id === undefined) return true
+        const isStub = !incomingFullDefIds.has(id)
+        if (isStub && mapFullDefIds.has(id)) return false
+        return true
+      })
       const nextCompositeDefWrappers = mergeWrappedFieldMessages(
         readFieldMessages(top10Bytes, 2),
-        incomingCompositeDefBytes,
+        filteredIncomingCompositeDefBytes,
         (bytes) => {
           const def = compositeDefMessage.decode(bytes) as {
             id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
@@ -332,7 +363,25 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
           return toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
         },
         // incoming 已过滤信号定义 accessories，普通复合实现需支持同 id 覆盖
-        true
+        true,
+        (existingInner, incomingInner) => {
+          const existingId = (() => {
+            const def = compositeDefMessage.decode(existingInner) as {
+              id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
+            }
+            return toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
+          })()
+          const incomingId = (() => {
+            const def = compositeDefMessage.decode(incomingInner) as {
+              id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
+            }
+            return toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
+          })()
+          if (existingId === undefined || incomingId === undefined) return true
+          const incomingIsStub = !incomingFullDefIds.has(incomingId)
+          const existingIsFull = mapFullDefIds.has(existingId)
+          return !(incomingIsStub && existingIsFull)
+        }
       )
       const nextImplGraphWrappers = mergeWrappedFieldMessages(
         readFieldMessages(top10Bytes, 4),
@@ -341,7 +390,14 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
           const graph = proto.nodeGraphMessage.decode(bytes) as { id?: { id?: unknown } }
           return toFiniteNumber(graph.id?.id)
         },
-        true
+        true,
+        (existingInner, incomingInner) => {
+          const existingGraph = proto.nodeGraphMessage.decode(existingInner) as { nodes?: unknown[] }
+          const incomingGraph = proto.nodeGraphMessage.decode(incomingInner) as { nodes?: unknown[] }
+          const existingFull = (existingGraph.nodes?.length ?? 0) > 0
+          const incomingEmpty = (incomingGraph.nodes?.length ?? 0) === 0
+          return !(incomingEmpty && existingFull)
+        }
       )
 
       const rebuiltTop10Parts: Uint8Array[] = []

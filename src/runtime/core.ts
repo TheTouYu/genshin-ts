@@ -3199,10 +3199,13 @@ export function defineComposite<
 >(
   name: string,
   def: {
+    id?: number
     inputs?: Inputs
     outputs?: Outputs
     inflows?: Array<string | { name: string; pinIndex?: number }>
     outflows?: Array<string | { name: string; pinIndex?: number }>
+    /** 强制全量输出：即使未被任何图调用，也捕获完整 impl 并随 GIA 输出（用于修改/更新地图残留旧 def） */
+    forceFull?: boolean
     /** Stage 1 转换器为诊断溯源注入；运行时按此包裹 build 以保留出处。 */
     provenance?: DiagnosticProvenance
     build: (
@@ -3427,6 +3430,12 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
   for (const def of compositeRegistry.getAll()) {
     allCompositeDefs.push(def.toCompositeDefIR())
   }
+  const forceFullIds = new Set(
+    compositeRegistry
+      .getAll()
+      .filter((def) => def.forceFull)
+      .map((def) => def.id)
+  )
 
   for (let di = 0; di < list.length; di++) {
     const doc = list[di]
@@ -3444,9 +3453,10 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       }
     }
 
-    // 递归展开：被调复合内部可能还调用其他复合
+    // 递归展开：被调复合内部可能还调用其他复合；forceFull 复合无条件全量展开
     const expandedIds = new Set(calledIds)
-    const queue = [...calledIds]
+    for (const fid of forceFullIds) expandedIds.add(fid)
+    const queue = [...expandedIds]
     const defById = new Map(allCompositeDefs.map((d) => [d.id, d]))
     while (queue.length > 0) {
       const id = queue.pop()!
@@ -3466,11 +3476,13 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       }
     }
 
-    // 只附加被此图实际调用的复合定义（含递归展开）
+    // 只附加被此图实际调用的复合定义（含递归展开），forceFull 定义始终以 full 附加。
+    // 注意：不能给未调用定义输出空 stub——游戏会把 stub 关联到地图中已存在的 full def，
+    // 导致该图的“节点数量”虚增（2026-08-21 多实体拆分启动报错根因）。
     if (expandedIds.size > 0) {
-      const filtered = allCompositeDefs.filter((d) => expandedIds.has(d.id))
-      if (filtered.length > 0) {
-        ;(doc as any).compositeDefs = filtered
+      const calledDefs = allCompositeDefs.filter((d) => expandedIds.has(d.id))
+      if (calledDefs.length > 0) {
+        ;(doc as any).compositeDefs = calledDefs
       }
     }
 

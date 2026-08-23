@@ -228,22 +228,34 @@ function remapCompositeIds(doc: IRDocument, ids: Map<number, number>) {
 
 function allocateCompositeIds(docs: { doc: IRDocument; source: string }[]): Set<string> {
   const changedSources = new Set<string>()
-  const used = new Map<number, { signature: string; source: string }>()
+  const used = new Map<number, { signature: string; source: string; stub: boolean }>()
   let nextId = 2000000000
   for (const { doc, source } of docs) {
     if (doc.graph.type !== 'server') continue
     const ids = new Map<number, number>()
     for (const def of (doc as ServerIRDocument).compositeDefs ?? []) {
       const signature = compositeDefinitionSignature(def)
+      const isStub = (def.implNodes?.length ?? 0) === 0
       const previous = used.get(def.id)
       if (!previous) {
-        used.set(def.id, { signature, source })
+        used.set(def.id, { signature, source, stub: isStub })
         continue
       }
-      if (previous.signature === signature) continue
+      if (previous.signature === signature) {
+        // 同签名：full 优先于 stub，保留 full
+        if (!previous.stub && isStub) continue
+        if (previous.stub && !isStub) used.set(def.id, { signature, source, stub: false })
+        continue
+      }
+      // 签名不同：stub 不参与重命名，full 覆盖 stub，两个 full 才需要新 ID
+      if (isStub || previous.stub) {
+        if (!previous.stub && isStub) continue
+        if (previous.stub && !isStub) used.set(def.id, { signature, source, stub: false })
+        continue
+      }
       while (used.has(nextId)) nextId++
       ids.set(def.id, nextId)
-      used.set(nextId, { signature, source })
+      used.set(nextId, { signature, source, stub: false })
       nextId++
     }
     if (ids.size) {
