@@ -37,3 +37,15 @@ docs/composite-library/ 沉淀了从社区「常用复合节点大全 v1.7」资
 可复用复合节点资源库的目录结构与策展流程；不包含具体复合节点的逐节点 wire 细节（那是 gil-node-graph-reading 的职责），也不替代 composite-usage-guide 的接口设计方法论。
 
 <!-- CLAIM:END clm_0F10FA742D2A96EA8D299D4173 -->
+
+<!-- CLAIM:START clm_213B9BC24AE31BB588E9D9A7BC -->
+
+### 复合节点定时器序列调度 + 循环物化/节点预算 + rubik 2x2→3x3 写法演进（第二轮魔方抽象）
+
+docs/composite-library/ 第二轮从 rubik-2x2/3x3 完整精读抽象出三个通用知识。①定时器序列调度（timer-scheduling.md）：scheduler（调用流，设定时器）+ trigger（事件流，whenTimerIsTriggered 分派）分离；分派方式从 2x2 的「N 个 timerName 分支」演进为 3x3 的「handlerMode/handlerBase 变量 + multipleBranches 2 分支单次调用」（节点爆炸解法）；长序列分 chunk 链式衔接；解锁用独立 unlock 定时器从最后块实际启动时刻计时长。②循环物化与节点预算（loop-node-budget.md）：两个硬限（节点<3000 拒载、单记录帧<3000 截断）要同时算；build 期 JS for 展开=节点多帧少、运行时 finiteLoop=节点少帧多，迭代体小用展开、体大用循环、折中 temp 展开写回循环；循环不变量提升（循环内不变表达式提到循环外只建 1 次）；全 0 int_list 两阶段复位（先非 0 哨兵撑满再写真实 0）；置换类操作两阶段读写（先读入 temp 再写回，防多对多互相覆盖）。③rubik 2x2→3x3 写法演进（rubik-evolution.md）：命名前缀分层（gsts_*→math_/logic_/flow_/motion_/view_*）；逻辑状态字典→列表+finiteLoop；定时器调度 N 分支→mode 变量化；单图→主图+视觉图+跨图同步；错峰相位运行时随机→预生成常量表。
+
+#### 适用边界
+
+复合节点编排层的可复用设计模式（调度/循环/拆图）与项目演进经验；不包含具体玩法状态（魔方的置换表/朝向表等玩法特定数据），也不替代 composite-usage-guide 的接口设计方法论。
+
+<!-- CLAIM:END clm_213B9BC24AE31BB588E9D9A7BC -->

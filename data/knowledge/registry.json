@@ -2885,6 +2885,11 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_213B9BC24AE31BB588E9D9A7BC": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }

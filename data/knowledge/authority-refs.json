@@ -4809,6 +4809,21 @@
       ]
     },
     {
+      "id": "aref_e79038d7469e91e134d59ad94e",
+      "path": "docs/composite-library/timer-scheduling.md",
+      "locator": "timer-scheduling.md + loop-node-budget.md + rubik-evolution.md（第二轮抽象三文档）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "f3b423aa0cc20d8b4c63fc676f823618e9e972ee8d9f7e486f1cf39c98a6ec55",
+      "claim_ids": [
+        "clm_213B9BC24AE31BB588E9D9A7BC"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_e90dbae7a80af1e74bf1866099",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "外围系统 → 排行榜/竞技段位/成就/关卡结算/奇域礼盒/奇域任务/先行体验/奇匠订阅",
