@@ -80,11 +80,15 @@ export const kickLaunch = g.defineComposite('kick_launch', {
   outputs: {},
   outflows: ['done'],
   build: ({ e }, f) => {
+    // 同步逻辑位置到球实体视觉位置（修复 ballPos 图变量残留导致视觉/逻辑错位）
+    const loc = f.getEntityLocationAndRotation(e).location
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), loc, new bool(false)])
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const setState = f.registerExecNode('set_node_graph_variable', [
       new str('state'), new int(1), new bool(false)
     ])
+    f.connect(setPos, 0, setState, 0)
     const setScored = f.registerExecNode('set_node_graph_variable', [
       new str('scored'), new bool(false), new bool(false)
     ])
