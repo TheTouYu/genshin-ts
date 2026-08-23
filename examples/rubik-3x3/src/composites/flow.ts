@@ -463,7 +463,6 @@ export const flowSolve = g.defineComposite('flow_solve', {
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    f.registerExecNode('set_node_graph_variable', [new str('solveActive'), new bool(true), new bool(false)])
     f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])

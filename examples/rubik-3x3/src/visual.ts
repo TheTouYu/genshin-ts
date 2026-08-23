@@ -8,7 +8,7 @@ import { localAxisTable0, localAxisTable1, localAxisTable2 } from './orientTable
 
 const graph = g
   .server({
-    id: 1073741827,
+    id: 1073741831,
     variables: {
       // 定时器事件统一处理器参数（由根图 multipleBranches 构造）
       handlerMode: new int(0), // 0=turn 1=orbit（unlock 由主图处理）

@@ -21,12 +21,11 @@ import {
 
 const graph = g
   .server({
-    id: 1073741825,
+    id: 1073741830,
     variables: {
       // —— 流程层 ——
       lock: false,
       autoMode: false,
-      solveActive: false,
       settled: false,
       solvedFlag: false,
       qLen: new int(0),
@@ -207,9 +206,6 @@ const graph = g
       },
       'unlock': () => {
         f.setNodeGraphVariable('lock', false, false)
-        f.doubleBranch(f.equal(f.getNodeGraphVariable('solveActive').asType('bool'), true), () => {
-          f.sendSignal(RubikSignal.rubik3x3_solve, 4n, 0n)
-        }, () => {})
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
       },
       default: () => {}
@@ -289,16 +285,25 @@ const graph = g
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
     f.multipleBranches(evt.params.op, {
       1: () => {
+        // 求解器请求状态：发布 cp/co/ep/eo + 回 op=2
         f.callComposite(flowSolve, { target: f.getSelfEntity() })
       },
       3: () => {
+        // 求解器已把解序列写入自定义变量：灌入 queue + 走自动播放（复用打乱路径）
+        const self = f.getSelfEntity()
+        const seq = f.getCustomVariable(self, new str('solve_seq')).asType('int_list')
+        const len = f.getCustomVariable(self, new str('solve_len')).asType('int')
+        f.finiteLoop(0n, f.subtraction(len, 1n), (i) => {
+          f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+            f.getNodeGraphVariable('queue').asDict('int', 'int'), i, f.getCorrespondingValueFromList(seq, i)
+          ])
+        })
+        f.setNodeGraphVariable('qLen', len, false)
+        f.setNodeGraphVariable('autoMode', true, false)
+        f.setNodeGraphVariable('qIdx', new int(0), false)
         f.setNodeGraphVariable('lock', true, false)
-        f.setNodeGraphVariable('solveActive', true, false)
-        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
-      },
-      5: () => {
-        f.setNodeGraphVariable('solveActive', false, false)
-        f.setNodeGraphVariable('lock', false, false)
+        const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
+        f.callComposite(flowRequestMove, { moveId: mv0, target: self })
       },
       default: () => {}
     })
