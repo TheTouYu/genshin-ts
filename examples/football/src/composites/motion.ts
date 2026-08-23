@@ -39,12 +39,22 @@ export const motionSpin = g.defineComposite('motion_spin', {
   outputs: {},
   outflows: ['done'],
   build: ({ e, axis, angVel }, f) => {
+    // 旋转运动器 axis 是实体局部轴；球带着任意朝向时，必须把世界自旋轴转回局部系：
+    // local = Rz(-rz)·Rx(-rx)·Ry(-ry)·worldAxis（YXZ 内旋），否则横传/曲线球方向会错。
+    const rot = f.getEntityLocationAndRotation(e).rotate
+    const r = f.split3dVector(rot)
+    const negX = f.multiplication(r.xComponent, -1)
+    const negY = f.multiplication(r.yComponent, -1)
+    const negZ = f.multiplication(r.zComponent, -1)
+    const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
+    const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
+    const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
     const tail = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
       e,
       new str('spin'),
       new float(0.2),
       angVel,
-      axis
+      localAxis
     ])
     f.outflow('done', tail, 0)
     return {}

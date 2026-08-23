@@ -18,6 +18,7 @@ const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_FRICTION = 0.8 // 滚动摩擦（贴地每 tick 减速，0.8 对应约 2~3s 停下）
+const ROLL_SPIN_GAIN = 0.5 // 压力摩擦产生的力矩把 ω 拉向纯滚动目标的系数（滑转再收敛）
 const ROLL_BOUNCE_VY = 1.0 // 反弹后 |vy| 低于该值才转滚滑，否则继续空中弹跳
 const STOP_SPEED = 0.3 // 停球速度阈值
 // —— 球门（世界坐标，|x| 对称）——
@@ -301,13 +302,21 @@ export const physRollIntegrate = g.defineComposite('phys_roll_integrate', {
       f.addition(p.zComponent, f.multiplication(nvz, DT))
     )
     const nvel = f.create3dVector(nvx, 0, nvz)
-    // 滚滑自旋与线速度耦合（无滑动）：ω = (v_z/R, 0, -v_x/R)
-    // 这样往前滚/斜滚时视觉旋转方向始终与运动方向一致（不再沿用初旋方向）
-    const nspin = f.create3dVector(
-      f.multiplication(nvz, INV_BALL_R),
-      0,
-      f.multiplication(nvx, -INV_BALL_R)
+    // 压力 × 摩擦力会产生绕接触点的力矩，把 ω 往“纯滚动”方向拉；
+    // 不是每 tick 强制无滑，而是按 ROLL_SPIN_GAIN 收敛（允许先滑动再滚）。
+    const s = f.split3dVector(spin)
+    const targetSpinX = f.multiplication(nvz, INV_BALL_R)
+    const targetSpinZ = f.multiplication(nvx, -INV_BALL_R)
+    const nsx = f.addition(
+      s.xComponent,
+      f.multiplication(f.subtraction(targetSpinX, s.xComponent), ROLL_SPIN_GAIN)
     )
+    const nsy = f.multiplication(s.yComponent, KW_DECAY)
+    const nsz = f.addition(
+      s.zComponent,
+      f.multiplication(f.subtraction(targetSpinZ, s.zComponent), ROLL_SPIN_GAIN)
+    )
+    const nspin = f.create3dVector(nsx, nsy, nsz)
     return { npos, nvel, nspin }
   }
 })
