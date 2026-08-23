@@ -72,6 +72,9 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 ```
 
 - 缺图时先 `gsts assets:node-graphs create --gil <map> --name <name> --write`（图 ID 自动分配，从 1073741825 起；注入报 `target NodeGraph not found` 就用它补占位）。
+  - **⚠️ create 是 max+1、不复用空洞（2026-08-23 实证）**：删除的主图 ID（如 1073741825）重建时会跳过，分到更大的新 ID（如 1830）。
+    .gia 内嵌图 ID，必须**同步改 DSL g.server({id}) + 配置 inject.nodeGraphId + 重新挂载**到新 ID；旧挂载需用编辑器清理残引用。
+  - 多图协作首选**单信号 + op/val 参数**（2026-08-23 实证），少建多个信号；根图事件回调改变量用高层 `f.setNodeGraphVariable`。
 - 挂载：`gsts assets:mounts attach <target-id> --graph <gid> [--entity|--def] --gil <map> --write`；`list [<target-id>]` 查挂载关系；`detach <target-id> --graph <gid>` 卸下（最后一条卸完保留空 `08036a00` 槽）。
 - **挂载目标用普通场景实体**。⚠️ 关卡实体（1094713345，官方 defId=10003004）由游戏运行时默认创建，**禁止手动 import 添加**——手动加会导致游戏“地图异常”。需要挂载对象时先用 `assets:entities import`/`static-assemblies` 建普通实体。
 - 多人语义：挂到玩家/角色实体上的图按玩家分别执行；需要“全局只执行一次”时自行加去重门控，不能默认一次。

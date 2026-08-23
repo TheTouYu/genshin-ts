@@ -110,6 +110,13 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
   **未被调用的复合定义不计入**（2026-08-20 修复：旧版把所有 impl 全算，残留死定义会把预算虚高到 3810，实际仅 1664）；
   `--json` 里 `graphs[].direct` 求和才是唯一物理节点数。优化时两个都看：先保证 implTotal <3000，
   再关注 direct 总和（2026-08-20 魔方：direct 551→491，implTotal 3138→2909）。
+- **游戏内真值优先 + 删图差分定位（2026-08-23 3×3 求解器实证）**：本地 `engineExpanded`/回归公式**偏小**，游戏内"节点图数量"才是 gate；
+  出现"3054 超标"且不确定是哪张图时，先让用户**删除某张主图看能否进图**做差分，精准定位超限图再动刀
+  （本轮先误判 solver 图、拆分后仍 3054，实为 game 主图；删主图实验才定位）。
+- **根图事件回调 ≠ 复合 build（2026-08-23 实证，两次复现）**：在 `g.server().on(...)` 的事件回调里，
+  `f.registerExecNode('set_node_graph_variable', [混合字面量数组])` 会被改写为 `gsts.f.assemblyList(...)`
+  导致 `Generic parameter not matched`；根图事件回调改变量一律用高层 `f.setNodeGraphVariable(name, value, override)`，
+  循环体/分支回调内才用 `registerExecNode`。同样的坑也出现在根图里直接 `start_timer` + `assemblyList`——计时器注册要挪进复合。
 - **膨胀模式 1：函数内联 × 分支**——helper 被 N 分支调用 → N 份展开（如 orbit_trigger 8 turnblock 分支 = 8×turn_one）。
 - **膨胀模式 2：变量代替条件展开（2026-08-19 用户方法论）**——"循环/定时器能给 i，就别按条件展开复合"：
   - 有规律（如块索引 0-7）：直接传变量——定时器用 `evt.timerSequenceId` 当 `i` 单次调用（8 分支→1 调用，

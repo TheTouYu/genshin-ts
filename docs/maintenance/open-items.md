@@ -508,3 +508,12 @@
 - 排查过程（2026-08-22 技能全景审计）：对比 frontmatter 格式、description 长度（756/676，未超 907 的可加载上限）、特殊字符（em dash/弯引号——maintainer 无特殊字符也排除）、冒号模式（均无冒号+空格）——**均非根因**；且刚改 `genshin-ts-project-adapter` 的 description 后目录实时刷新，说明 watcher 活跃，排除「未刷新」。
 - 根因判断：DSH skill-filesystem 发现机制层（`@deepseek-ai/dsh-skill-filesystem`）对这两个技能有未定位的排除规则，非项目文件可修。
 - 务实缓解（已做）：两者实际是「read 直接读」的知识文档（`genshin-ts-project-adapter` 第 7 条已用文件路径 read 引用）；AGENTS.md 路由表已标注「知识文档，直接 read 引用，勿用 skill 工具加载」。待 DSH 框架层定位根因后决定是否改回可加载。
+
+### O-2026-08-23-1. rubik-3x3 求解接线清理（queue 自动播放方案落定后的残留）
+
+- 背景：game 主图 3054 超标已按"灌 queue 复用自动播放"修复；旧逐条 solve_* 协议废弃。
+- 残留待清理（均不影响当前进图，先记录）：
+  - 控制器 A(1077936201) 挂载列表残留已删除的 graph 1073741825（detach 报 graph not found，需编辑器清理）。
+  - exec 图 1073741828 在 op4/6 无人发后已成死图（已挂 1077936230，可卸载）。
+  - 地图仍注册旧 5 个信号 solve_req/ready/move/ack/done（DSL 已不用，死注册；待 assets:signals 清理能力确认后删）。
+- 证据：提交 723f679；真实地图 1073741899 回读（mounts list / signals inspect）。
