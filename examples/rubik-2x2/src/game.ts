@@ -361,27 +361,27 @@ const gstsScramble = g.defineComposite('gsts_scramble', {
     const setLast = f.node('set_node_graph_variable', [new str('lastMove'), new int(0), new bool(false)])
     f.link(setLen, 0, setLast, 0)
     // cur = last + rand(1..5)，>6 则 −6（保证不等于 last，均匀覆盖其余 5 层）
-    f.finiteLoop(0n, SCRAMBLE_LEN, (i, _br) => {
+    f.finiteLoop(0n, SCRAMBLE_LEN - 1n, (i, _br) => {
       const last = f.getNodeGraphVariable('lastMove').asType('int')
       const raw = f.addition(last, f.getRandomInteger(1n, 5n))
       const needWrap = f.greaterThan(raw, 6n)
       f.doubleBranch(needWrap, () => {
         const cur = f.subtraction(raw, 6n)
-        const setQ = f.node('set_or_add_key_value_pairs_to_dictionary', [f.getNodeGraphVariable('queue').asDict('int', 'int'), i, cur])
-        const setM = f.node('set_node_graph_variable', [new str('lastMove'), cur, new bool(false)])
+        const setQ = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [f.getNodeGraphVariable('queue').asDict('int', 'int'), i, cur])
+        const setM = f.registerExecNode('set_node_graph_variable', [new str('lastMove'), cur, new bool(false)])
         f.connect(setQ, 0, setM, 0)
       }, () => {
-        const setQ = f.node('set_or_add_key_value_pairs_to_dictionary', [f.getNodeGraphVariable('queue').asDict('int', 'int'), i, raw])
-        const setM = f.node('set_node_graph_variable', [new str('lastMove'), raw, new bool(false)])
+        const setQ = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [f.getNodeGraphVariable('queue').asDict('int', 'int'), i, raw])
+        const setM = f.registerExecNode('set_node_graph_variable', [new str('lastMove'), raw, new bool(false)])
         f.connect(setQ, 0, setM, 0)
       })
     })
-    // 启动播放：autoMode=true, qIdx=0, lock=true → do_move(queue[0])
-    const setAuto = f.node('set_node_graph_variable', [new str('autoMode'), new bool(true), new bool(false)])
-    const setIdx = f.node('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
-    f.connect(setAuto, 0, setIdx, 0)
-    const setLock = f.node('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
-    f.connect(setIdx, 0, setLock, 0)
+    // 2026-08-21 修复（与 rubik-3x3 flow.ts 同源）：f.node 是 detached 注册（入口悬空），
+    // 必须用 f.registerExecNode 自动串接到 finiteLoop 的 Loop Complete 出口，
+    // 保证 autoMode/qIdx/lock 在队列生成后、第 1 步执行前依次写入。
+    f.registerExecNode('set_node_graph_variable', [new str('autoMode'), new bool(true), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
     const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
     f.callComposite(gstsDoMove, { moveId: mv0, target })
     return {}
@@ -1042,7 +1042,11 @@ const gstsDoWhole = g.defineComposite('gsts_do_whole', {
     f.callComposite(gstsLogicApplyWhole, { transformId })
     f.setNodeGraphVariable('curMove', f.addition(transformId, 10n), false)
     const times = f.getNodeGraphVariable('wholeTurnTimes').asType('float_list')
-    const t0 = f.node('set_list_value', [times, new int(0), new float(0.03)])
+    // 2026-08-21 修复：t0 必须用 f.registerExecNode 接入 curMove 之后的执行链
+    // （f.node 是 detached 注册，整条 times 写入链会悬空，start_timer 读到旧值）；
+    // start_timer 用 f.node + 显式 connect（registerExecNode 会从当前 tail 再 auto-chain，
+    // 与 connect(t7→start_timer) 形成重复入边）。
+    const t0 = f.registerExecNode('set_list_value', [times, new int(0), new float(0.03)])
     const t1 = f.node('set_list_value', [times, new int(1), new float(0.05)])
     const t2 = f.node('set_list_value', [times, new int(2), new float(0.07)])
     const t3 = f.node('set_list_value', [times, new int(3), new float(0.09)])
@@ -1057,9 +1061,10 @@ const gstsDoWhole = g.defineComposite('gsts_do_whole', {
     f.connect(t4, 0, t5, 0)
     f.connect(t5, 0, t6, 0)
     f.connect(t6, 0, t7, 0)
-    f.connect(t7, 0, f.registerExecNode('start_timer', [
+    const startTimer = f.node('start_timer', [
       target, new str('turnblock'), new bool(false), times
-    ]), 0)
+    ])
+    f.connect(t7, 0, startTimer, 0)
     return {}
   }
 })

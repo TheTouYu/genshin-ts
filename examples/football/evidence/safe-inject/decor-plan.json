@@ -1,0 +1,107 @@
+{
+  "assemblies": [
+    {
+      "conflicts": [],
+      "definitionAuxiliaryIds": [
+        1073741830
+      ],
+      "instanceAuxiliaryIds": [
+        1073741900
+      ],
+      "items": [
+        {
+          "resourceId": 10009001,
+          "transform": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "name": "球体测试",
+      "prefabId": 1077936131,
+      "resources": [
+        10009001
+      ],
+      "structure": {
+        "itemCount": 1,
+        "locator": {
+          "kind": "inline"
+        }
+      },
+      "template": {
+        "closureStatus": "official-resource",
+        "compatibility": "unknown",
+        "definitionId": 10009002,
+        "diagnostics": [],
+        "instanceId": 10009002,
+        "name": "球体"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  ],
+  "assetConfig": {
+    "locator": {
+      "displayName": "decor-test.config.mjs",
+      "kind": "assetConfig"
+    },
+    "sha256": "bc021e744a2ebb4b24c996179abe3d6684566fd6444a2d2bb9230afeebb43cbc"
+  },
+  "errors": [],
+  "evidenceBoundary": {
+    "candidateGenerated": false,
+    "editorOrGameValidation": "not-performed",
+    "sourceModified": false,
+    "structuralInspection": true,
+    "templateCompatibility": "not-proven"
+  },
+  "field9": "unchanged-by-current-implementation",
+  "kind": "gsts.static-assembly.plan",
+  "planHash": "fbc9cd7595d4fa0bfb392c88cdb41137a79805d58ea97f282a353b0a832d5f7a",
+  "planHashAlgorithm": "sha256-canonical-json-v1",
+  "schemaVersion": 1,
+  "source": {
+    "locator": {
+      "kind": "mapId",
+      "mapId": 1073741902
+    },
+    "sha256": "911b9a6a871e5238b7655b84a8a7a8a6dfd4ec2a12ee03630fd4581e5c3fe89e",
+    "size": 22404
+  },
+  "status": "ready",
+  "touchedTopLevelFields": [
+    4,
+    6,
+    8,
+    27
+  ],
+  "warnings": []
+}

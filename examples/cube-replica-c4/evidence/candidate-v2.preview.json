@@ -1,0 +1,52 @@
+{
+  "assemblies": [
+    {
+      "name": "角块_UBL",
+      "prefabId": 1077936129
+    },
+    {
+      "name": "角块_UBR",
+      "prefabId": 1077936130
+    },
+    {
+      "name": "角块_UFL",
+      "prefabId": 1077936131
+    },
+    {
+      "name": "角块_UFR",
+      "prefabId": 1077936132
+    },
+    {
+      "name": "角块_DBL",
+      "prefabId": 1077936133
+    },
+    {
+      "name": "角块_DBR",
+      "prefabId": 1077936134
+    },
+    {
+      "name": "角块_DFL",
+      "prefabId": 1077936135
+    },
+    {
+      "name": "角块_DFR",
+      "prefabId": 1077936136
+    }
+  ],
+  "candidateSha256": "dc6cd113e9f8ebd13d7116ebbd4c36b0d112ab41c12b190cc8e0ed80007dee5a",
+  "categories": [],
+  "field9": "unchanged-by-current-implementation",
+  "kind": "gsts.static-assembly.preview",
+  "mode": "output",
+  "schemaVersion": 1,
+  "source": "/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741900.gil",
+  "sourceSha256": "4e0eb01788f85314e25e4483882eb38b1b41e043f290d25f738000a2dd375c43",
+  "touchedTopLevelFields": [
+    4,
+    6,
+    8,
+    27
+  ],
+  "updates": [],
+  "writePerformed": false
+}

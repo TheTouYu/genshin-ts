@@ -1,0 +1,32 @@
+{
+  "assemblies": [
+    {
+      "name": "足球场",
+      "prefabId": 1077936129
+    },
+    {
+      "name": "足球门",
+      "prefabId": 1077936130
+    },
+    {
+      "name": "足球",
+      "prefabId": 1077936131
+    }
+  ],
+  "candidateSha256": "cea2cf792dce58d66b268ab0cc5536a5090b8618c10ad7784b031ef00474920b",
+  "categories": [],
+  "field9": "unchanged-by-current-implementation",
+  "kind": "gsts.static-assembly.preview",
+  "mode": "output",
+  "schemaVersion": 1,
+  "source": "/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741901.gil",
+  "sourceSha256": "6b42e325c8aaf525b05e154933be0fe343748e07138f771b6800a9833aa3e481",
+  "touchedTopLevelFields": [
+    4,
+    6,
+    8,
+    27
+  ],
+  "updates": [],
+  "writePerformed": false
+}

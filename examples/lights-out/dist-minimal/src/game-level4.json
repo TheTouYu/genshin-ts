@@ -1,0 +1,2747 @@
+[
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "server",
+      "mode": "beyond",
+      "sub_type": "entity",
+      "id": 1073741829,
+      "name": "_GSTS_game-level4"
+    },
+    "variables": [],
+    "nodes": [
+      {
+        "id": 1,
+        "type": "when_entity_is_created",
+        "next": [
+          7
+        ]
+      },
+      {
+        "id": 7,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936130
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 6,
+              "index": 0,
+              "type": "vec3"
+            }
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          22
+        ]
+      },
+      {
+        "id": 22,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 21,
+              "index": 0,
+              "type": "bool"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          23
+        ]
+      },
+      {
+        "id": 23,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 7,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          24
+        ]
+      },
+      {
+        "id": 24,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "winCount"
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          25
+        ]
+      },
+      {
+        "id": 25,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 21,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 26,
+            "source_index": 0
+          },
+          {
+            "node_id": 27,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 7,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          28
+        ]
+      },
+      {
+        "id": 27,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 7,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          28
+        ]
+      },
+      {
+        "id": 28,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-created"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 3,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "type": "create3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 1.34
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 5,
+              "index": 2,
+              "type": "float"
+            }
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 8,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 3.75
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 9,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 10,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 12,
+              "index": 2,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 13,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 14,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "type": "multiplication",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 15,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "type": "addition",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 16,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 11,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "type": "exponentiation",
+        "args": [
+          {
+            "type": "int",
+            "value": 2
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 17,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "type": "division",
+        "args": [
+          {
+            "type": "int",
+            "value": 56
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 18,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "type": "modulo_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 19,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 20,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "type": "when_tab_is_selected",
+        "next": [
+          34
+        ]
+      },
+      {
+        "id": 34,
+        "type": "add_uniform_basic_rotation_based_motion_device",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "clickPulse"
+          },
+          {
+            "type": "float",
+            "value": 0.25
+          },
+          {
+            "type": "float",
+            "value": 180
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              1,
+              0
+            ]
+          }
+        ],
+        "next": [
+          35
+        ]
+      },
+      {
+        "id": 35,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 31,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 36,
+            "source_index": 0
+          },
+          {
+            "node_id": 38,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 36,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          37
+        ]
+      },
+      {
+        "id": 37,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 32,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          41
+        ]
+      },
+      {
+        "id": 38,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          },
+          {
+            "type": "bool",
+            "value": true
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          39
+        ]
+      },
+      {
+        "id": 39,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 32,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          41
+        ]
+      },
+      {
+        "id": 41,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_toggle"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 40,
+              "index": 0,
+              "type": "vec3"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ],
+        "next": [
+          42
+        ]
+      },
+      {
+        "id": 42,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-toggle"
+          }
+        ],
+        "next": [
+          43
+        ]
+      },
+      {
+        "id": 43,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "winCount"
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          44
+        ]
+      },
+      {
+        "id": 44,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_check"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 40,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ],
+        "next": [
+          45
+        ]
+      },
+      {
+        "id": 45,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-check-sent"
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 30,
+              "index": 0,
+              "type": "bool"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 40,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 29,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 46,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_toggle"
+          }
+        ],
+        "next": [
+          51
+        ]
+      },
+      {
+        "id": 51,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 50,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 52,
+            "source_index": 0
+          },
+          {
+            "node_id": 54,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 52,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-recv-self-skip"
+          }
+        ]
+      },
+      {
+        "id": 54,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 53,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 58,
+            "source_index": 0
+          },
+          {
+            "node_id": 64,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 58,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 56,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 59,
+            "source_index": 0
+          },
+          {
+            "node_id": 61,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 59,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          60
+        ]
+      },
+      {
+        "id": 60,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 57,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          63
+        ]
+      },
+      {
+        "id": 61,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          },
+          {
+            "type": "bool",
+            "value": true
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          62
+        ]
+      },
+      {
+        "id": 62,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 57,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          63
+        ]
+      },
+      {
+        "id": 63,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-neighbor-toggle"
+          }
+        ]
+      },
+      {
+        "id": 64,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-recv-far-skip"
+          }
+        ]
+      },
+      {
+        "id": 47,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 48,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 49,
+        "type": "distance_between_two_coordinate_points",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 48,
+              "index": 0,
+              "type": "vec3"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 46,
+              "index": 3,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "type": "less_than_or_equal_to",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 49,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 0.1
+          }
+        ]
+      },
+      {
+        "id": 53,
+        "type": "less_than_or_equal_to",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 49,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "id": 55,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 55,
+              "index": 0,
+              "type": "bool"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": 57,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 65,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_check"
+          }
+        ],
+        "next": [
+          69
+        ]
+      },
+      {
+        "id": 69,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 68,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 70,
+            "source_index": 0
+          },
+          {
+            "node_id": 72,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 70,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_ack"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 65,
+              "index": 3,
+              "type": "vec3"
+            }
+          }
+        ],
+        "next": [
+          71
+        ]
+      },
+      {
+        "id": 71,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-ack-sent"
+          }
+        ]
+      },
+      {
+        "id": 72,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-no-ack"
+          }
+        ]
+      },
+      {
+        "id": 66,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 67,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 66,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          }
+        ]
+      },
+      {
+        "id": 68,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 67,
+              "index": 0,
+              "type": "bool"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": 73,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_ack"
+          }
+        ],
+        "next": [
+          78
+        ]
+      },
+      {
+        "id": 78,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 77,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 81,
+            "source_index": 0
+          },
+          {
+            "node_id": 88,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 81,
+        "type": "set_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 74,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "winCount"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          84
+        ]
+      },
+      {
+        "id": 84,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 83,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 85,
+            "source_index": 0
+          },
+          {
+            "node_id": 87,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 85,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-win"
+          }
+        ],
+        "next": [
+          86
+        ]
+      },
+      {
+        "id": 86,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "level_clear"
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 87,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-counting"
+          }
+        ]
+      },
+      {
+        "id": 88,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-ack-other"
+          }
+        ]
+      },
+      {
+        "id": 74,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 75,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 74,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 76,
+        "type": "distance_between_two_coordinate_points",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 75,
+              "index": 0,
+              "type": "vec3"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 73,
+              "index": 3,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 77,
+        "type": "less_than_or_equal_to",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 76,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 0.1
+          }
+        ]
+      },
+      {
+        "id": 79,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 74,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "winCount"
+          }
+        ]
+      },
+      {
+        "id": 80,
+        "type": "addition",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 79,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "id": 82,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 74,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "winCount"
+          }
+        ]
+      },
+      {
+        "id": 83,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 82,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 6
+          }
+        ]
+      },
+      {
+        "id": 89,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_wave"
+          }
+        ],
+        "next": [
+          93
+        ]
+      },
+      {
+        "id": 93,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 92,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 105,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 105,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 91,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          109
+        ]
+      },
+      {
+        "id": 109,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 90,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "waveDelay"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 108,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ]
+      },
+      {
+        "id": 90,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 91,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 90,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 92,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 89,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 94,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 90,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 95,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 94,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 96,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 95,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 3.75
+          }
+        ]
+      },
+      {
+        "id": 97,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 96,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 98,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 97,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 99,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 94,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 100,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 99,
+              "index": 2,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 101,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 100,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 102,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 101,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 103,
+        "type": "multiplication",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 102,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 104,
+        "type": "addition",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 103,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 98,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 106,
+        "type": "data_type_conversion_float",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 104,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 107,
+        "type": "multiplication",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 106,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 0.15
+          }
+        ]
+      },
+      {
+        "id": 108,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 107,
+              "index": 0,
+              "type": "float"
+            }
+          }
+        ]
+      },
+      {
+        "id": 110,
+        "type": "when_timer_is_triggered",
+        "next": [
+          113
+        ]
+      },
+      {
+        "id": 113,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 112,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 115,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 115,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 114,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": 111,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 112,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 110,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "waveDelay"
+          }
+        ]
+      },
+      {
+        "id": 114,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 111,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 116,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          }
+        ],
+        "next": [
+          119
+        ]
+      },
+      {
+        "id": 119,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 118,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 121,
+            "source_index": 0
+          },
+          {
+            "node_id": 124,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 121,
+        "type": "remove_entity",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 120,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ],
+        "next": [
+          122
+        ]
+      },
+      {
+        "id": 122,
+        "type": "remove_entity",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 117,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ],
+        "next": [
+          123
+        ]
+      },
+      {
+        "id": 123,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-cleaned"
+          }
+        ]
+      },
+      {
+        "id": 124,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-clean-other"
+          }
+        ]
+      },
+      {
+        "id": 117,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 118,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 116,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 120,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 117,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 125,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_hint"
+          }
+        ],
+        "next": [
+          129
+        ]
+      },
+      {
+        "id": 129,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 128,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 142,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 142,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 141,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 143,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 143,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 127,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          145
+        ]
+      },
+      {
+        "id": 145,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 126,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "hintOff"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 144,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          146
+        ]
+      },
+      {
+        "id": 146,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-hint-shown"
+          }
+        ]
+      },
+      {
+        "id": 126,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 127,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 126,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 128,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 125,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 130,
+        "type": "get_entity_location_and_rotation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 126,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 131,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 130,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 132,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 131,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 3.75
+          }
+        ]
+      },
+      {
+        "id": 133,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 132,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 134,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 133,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 135,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 130,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 136,
+        "type": "subtraction",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 135,
+              "index": 2,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 137,
+        "type": "division",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 136,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 138,
+        "type": "round_to_integer_operation",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 137,
+              "index": 0,
+              "type": "float"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "rounding_mode_round_to_nearest"
+          }
+        ]
+      },
+      {
+        "id": 139,
+        "type": "multiplication",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 138,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 140,
+        "type": "addition",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 139,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 134,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 141,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 140,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 125,
+              "index": 4,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 144,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 0.6
+          }
+        ]
+      },
+      {
+        "id": 147,
+        "type": "when_timer_is_triggered",
+        "next": [
+          150
+        ]
+      },
+      {
+        "id": 150,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 149,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 153,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 153,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 152,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 154,
+            "source_index": 0
+          },
+          {
+            "node_id": 155,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 154,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 151,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          156
+        ]
+      },
+      {
+        "id": 155,
+        "type": "activate_disable_model_display",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 151,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          156
+        ]
+      },
+      {
+        "id": 156,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp-hint-off"
+          }
+        ]
+      },
+      {
+        "id": 148,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 149,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 147,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "hintOff"
+          }
+        ]
+      },
+      {
+        "id": 151,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 148,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "head"
+          }
+        ]
+      },
+      {
+        "id": 152,
+        "type": "get_custom_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 148,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "lit"
+          }
+        ]
+      }
+    ]
+  }
+]

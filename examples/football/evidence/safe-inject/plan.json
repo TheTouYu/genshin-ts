@@ -1,0 +1,80 @@
+{
+  "assemblies": [
+    {
+      "conflicts": [],
+      "definitionAuxiliaryIds": [],
+      "instanceAuxiliaryIds": [],
+      "items": [],
+      "name": "安全测试球",
+      "prefabId": 1077936129,
+      "resources": [],
+      "structure": {
+        "itemCount": 0,
+        "locator": {
+          "kind": "inline"
+        }
+      },
+      "template": {
+        "closureStatus": "official-resource",
+        "compatibility": "unknown",
+        "definitionId": 10009002,
+        "diagnostics": [],
+        "instanceId": 10009002,
+        "name": "球体"
+      },
+      "transform": {
+        "position": [
+          2,
+          0.5,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  ],
+  "assetConfig": {
+    "locator": {
+      "displayName": "safe-test.config.mjs",
+      "kind": "assetConfig"
+    },
+    "sha256": "983e91de758a629d802d551a9607471151a7be57305e1b4001bad817a9ac9d4e"
+  },
+  "errors": [],
+  "evidenceBoundary": {
+    "candidateGenerated": false,
+    "editorOrGameValidation": "not-performed",
+    "sourceModified": false,
+    "structuralInspection": true,
+    "templateCompatibility": "not-proven"
+  },
+  "field9": "unchanged-by-current-implementation",
+  "kind": "gsts.static-assembly.plan",
+  "planHash": "ec3cd4a47d0d1d310df504642c9b8e65b1954b5b8f9dfc12431ec9794e4bf5e3",
+  "planHashAlgorithm": "sha256-canonical-json-v1",
+  "schemaVersion": 1,
+  "source": {
+    "locator": {
+      "kind": "mapId",
+      "mapId": 1073741902
+    },
+    "sha256": "97c666c6c1bb4e74096f00c27a8f2e193e5f8a4651f0e10e4b12524fd1af558d",
+    "size": 21248
+  },
+  "status": "ready",
+  "touchedTopLevelFields": [
+    4,
+    6,
+    8,
+    27
+  ],
+  "warnings": []
+}

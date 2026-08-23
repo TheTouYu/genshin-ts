@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "魔方控制器3x3-B",
+      "id": 1077936203,
+      "definitionId": 1077936202,
+      "position": [2.0, 1.2, 4.0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    }
+  ]
+}

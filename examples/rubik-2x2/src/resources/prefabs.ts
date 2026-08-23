@@ -59,5 +59,10 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 10005108
    */
-  圆形水体: 1077936138
+  圆形水体: 1077936138,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  环型箭头: 1077936139
 }

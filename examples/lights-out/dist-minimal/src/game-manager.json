@@ -1,0 +1,4351 @@
+[
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "server",
+      "mode": "beyond",
+      "sub_type": "entity",
+      "id": 1073741828,
+      "name": "_GSTS_game-manager"
+    },
+    "variables": [],
+    "nodes": [
+      {
+        "id": 1,
+        "type": "when_entity_is_created",
+        "next": [
+          2
+        ]
+      },
+      {
+        "id": 2,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "manager-ready"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "type": "when_tab_is_selected",
+        "next": [
+          6
+        ]
+      },
+      {
+        "id": 6,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 5,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 7,
+            "source_index": 0
+          },
+          {
+            "node_id": 15,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "game-start-clicked"
+          }
+        ],
+        "next": [
+          8
+        ]
+      },
+      {
+        "id": 8,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level1-building"
+          }
+        ],
+        "next": [
+          9
+        ]
+      },
+      {
+        "id": 9,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              3.75
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          10
+        ]
+      },
+      {
+        "id": 10,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              6.25
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          11
+        ]
+      },
+      {
+        "id": 11,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level1-ready"
+          }
+        ],
+        "next": [
+          12
+        ]
+      },
+      {
+        "id": 12,
+        "type": "activate_disable_tab",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          },
+          {
+            "type": "bool",
+            "value": false
+          }
+        ],
+        "next": [
+          13
+        ]
+      },
+      {
+        "id": 13,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "start-tab-disabled"
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 14,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 16,
+            "source_index": 0
+          },
+          {
+            "node_id": 26,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "restart-clicked"
+          }
+        ],
+        "next": [
+          17
+        ]
+      },
+      {
+        "id": 17,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ],
+        "next": [
+          18
+        ]
+      },
+      {
+        "id": 18,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ],
+        "next": [
+          19
+        ]
+      },
+      {
+        "id": 19,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 3
+          }
+        ],
+        "next": [
+          20
+        ]
+      },
+      {
+        "id": 20,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ],
+        "next": [
+          21
+        ]
+      },
+      {
+        "id": 21,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 5
+          }
+        ],
+        "next": [
+          22
+        ]
+      },
+      {
+        "id": 22,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 6
+          }
+        ],
+        "next": [
+          24
+        ]
+      },
+      {
+        "id": 24,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "restart"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 23,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 25,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 27,
+            "source_index": 0
+          },
+          {
+            "node_id": 37,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "back-clicked"
+          }
+        ],
+        "next": [
+          28
+        ]
+      },
+      {
+        "id": 28,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ],
+        "next": [
+          29
+        ]
+      },
+      {
+        "id": 29,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ],
+        "next": [
+          30
+        ]
+      },
+      {
+        "id": 30,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 3
+          }
+        ],
+        "next": [
+          31
+        ]
+      },
+      {
+        "id": 31,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ],
+        "next": [
+          32
+        ]
+      },
+      {
+        "id": 32,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 5
+          }
+        ],
+        "next": [
+          33
+        ]
+      },
+      {
+        "id": 33,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 6
+          }
+        ],
+        "next": [
+          35
+        ]
+      },
+      {
+        "id": 35,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "back"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 34,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ]
+      },
+      {
+        "id": 37,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 36,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 38,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 38,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "hint-clicked"
+          }
+        ],
+        "next": [
+          40
+        ]
+      },
+      {
+        "id": 40,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_hint"
+          },
+          {
+            "type": "int",
+            "value": 1
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 39,
+              "index": 0,
+              "type": "int"
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 5,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 2,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 2,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 0.5
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 2,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 0.5
+          }
+        ]
+      },
+      {
+        "id": 36,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 2,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 39,
+        "type": "get_random_integer",
+        "args": [
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 41,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "level_clear"
+          }
+        ],
+        "next": [
+          44
+        ]
+      },
+      {
+        "id": 44,
+        "type": "add_uniform_basic_rotation_based_motion_device",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "celebrate"
+          },
+          {
+            "type": "float",
+            "value": 2
+          },
+          {
+            "type": "float",
+            "value": 180
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              1,
+              0
+            ]
+          }
+        ],
+        "next": [
+          45
+        ]
+      },
+      {
+        "id": 45,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "console-spin"
+          }
+        ],
+        "next": [
+          46
+        ]
+      },
+      {
+        "id": 46,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_wave"
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          }
+        ],
+        "next": [
+          48
+        ]
+      },
+      {
+        "id": 48,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 47,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 50,
+            "source_index": 0
+          },
+          {
+            "node_id": 54,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe1"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 49,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          52
+        ]
+      },
+      {
+        "id": 52,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build2"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 51,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 54,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 53,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 56,
+            "source_index": 0
+          },
+          {
+            "node_id": 60,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe2"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 55,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          58
+        ]
+      },
+      {
+        "id": 58,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build3"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 57,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 60,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 59,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 62,
+            "source_index": 0
+          },
+          {
+            "node_id": 66,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 62,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe3"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 61,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          64
+        ]
+      },
+      {
+        "id": 64,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build4"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 63,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 66,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 65,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 68,
+            "source_index": 0
+          },
+          {
+            "node_id": 72,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 68,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe4"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 67,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          70
+        ]
+      },
+      {
+        "id": 70,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build5"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 69,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 72,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 71,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 74,
+            "source_index": 0
+          },
+          {
+            "node_id": 78,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 74,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe5"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 73,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          76
+        ]
+      },
+      {
+        "id": 76,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build6"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 75,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 78,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 42,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe6"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 77,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ],
+        "next": [
+          79
+        ]
+      },
+      {
+        "id": 79,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level[object Object]-complete"
+          }
+        ]
+      },
+      {
+        "id": 42,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 47,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "id": 49,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.3499999999999999
+          }
+        ]
+      },
+      {
+        "id": 51,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.45
+          }
+        ]
+      },
+      {
+        "id": 53,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": 55,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.5
+          }
+        ]
+      },
+      {
+        "id": 57,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.6
+          }
+        ]
+      },
+      {
+        "id": 59,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "id": 61,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.65
+          }
+        ]
+      },
+      {
+        "id": 63,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.75
+          }
+        ]
+      },
+      {
+        "id": 65,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "id": 67,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 1.95
+          }
+        ]
+      },
+      {
+        "id": 69,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 2.05
+          }
+        ]
+      },
+      {
+        "id": 71,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 41,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "id": 73,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 2.4000000000000004
+          }
+        ]
+      },
+      {
+        "id": 75,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 2.5
+          }
+        ]
+      },
+      {
+        "id": 77,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 2.4000000000000004
+          }
+        ]
+      },
+      {
+        "id": 80,
+        "type": "when_timer_is_triggered",
+        "next": [
+          83
+        ]
+      },
+      {
+        "id": 83,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 82,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 84,
+            "source_index": 0
+          },
+          {
+            "node_id": 90,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 84,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level2-building"
+          }
+        ],
+        "next": [
+          85
+        ]
+      },
+      {
+        "id": 85,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936133
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          86
+        ]
+      },
+      {
+        "id": 86,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936133
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          87
+        ]
+      },
+      {
+        "id": 87,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936133
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          88
+        ]
+      },
+      {
+        "id": 88,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level2-ready"
+          }
+        ]
+      },
+      {
+        "id": 90,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 89,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 91,
+            "source_index": 0
+          },
+          {
+            "node_id": 98,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 91,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level3-building"
+          }
+        ],
+        "next": [
+          92
+        ]
+      },
+      {
+        "id": 92,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936134
+          },
+          {
+            "type": "vec3",
+            "value": [
+              3.75,
+              0,
+              3.75
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          93
+        ]
+      },
+      {
+        "id": 93,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936134
+          },
+          {
+            "type": "vec3",
+            "value": [
+              6.25,
+              0,
+              3.75
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          94
+        ]
+      },
+      {
+        "id": 94,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936134
+          },
+          {
+            "type": "vec3",
+            "value": [
+              3.75,
+              0,
+              6.25
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          95
+        ]
+      },
+      {
+        "id": 95,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936134
+          },
+          {
+            "type": "vec3",
+            "value": [
+              6.25,
+              0,
+              6.25
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          96
+        ]
+      },
+      {
+        "id": 96,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level3-ready"
+          }
+        ]
+      },
+      {
+        "id": 98,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 97,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 99,
+            "source_index": 0
+          },
+          {
+            "node_id": 108,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 99,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level4-building"
+          }
+        ],
+        "next": [
+          100
+        ]
+      },
+      {
+        "id": 100,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              3.75,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          101
+        ]
+      },
+      {
+        "id": 101,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              6.25,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          102
+        ]
+      },
+      {
+        "id": 102,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              3.75,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          103
+        ]
+      },
+      {
+        "id": 103,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              6.25,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          104
+        ]
+      },
+      {
+        "id": 104,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              3.75,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          105
+        ]
+      },
+      {
+        "id": 105,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936200
+          },
+          {
+            "type": "vec3",
+            "value": [
+              6.25,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          106
+        ]
+      },
+      {
+        "id": 106,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level4-ready"
+          }
+        ]
+      },
+      {
+        "id": 108,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 107,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 109,
+            "source_index": 0
+          },
+          {
+            "node_id": 121,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 109,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level5-building"
+          }
+        ],
+        "next": [
+          110
+        ]
+      },
+      {
+        "id": 110,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          111
+        ]
+      },
+      {
+        "id": 111,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          112
+        ]
+      },
+      {
+        "id": 112,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          113
+        ]
+      },
+      {
+        "id": 113,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          114
+        ]
+      },
+      {
+        "id": 114,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          115
+        ]
+      },
+      {
+        "id": 115,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          116
+        ]
+      },
+      {
+        "id": 116,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          117
+        ]
+      },
+      {
+        "id": 117,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          118
+        ]
+      },
+      {
+        "id": 118,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936201
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          119
+        ]
+      },
+      {
+        "id": 119,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level5-ready"
+          }
+        ]
+      },
+      {
+        "id": 121,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 120,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 122,
+            "source_index": 0
+          },
+          {
+            "node_id": 134,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 122,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level6-building"
+          }
+        ],
+        "next": [
+          123
+        ]
+      },
+      {
+        "id": 123,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          124
+        ]
+      },
+      {
+        "id": 124,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          125
+        ]
+      },
+      {
+        "id": 125,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              2.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          126
+        ]
+      },
+      {
+        "id": 126,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          127
+        ]
+      },
+      {
+        "id": 127,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          128
+        ]
+      },
+      {
+        "id": 128,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          129
+        ]
+      },
+      {
+        "id": 129,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              2.5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          130
+        ]
+      },
+      {
+        "id": 130,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          131
+        ]
+      },
+      {
+        "id": 131,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936202
+          },
+          {
+            "type": "vec3",
+            "value": [
+              7.5,
+              0,
+              7.5
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          132
+        ]
+      },
+      {
+        "id": 132,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level6-ready"
+          }
+        ]
+      },
+      {
+        "id": 134,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 133,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 135,
+            "source_index": 0
+          },
+          {
+            "node_id": 138,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 135,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 1
+          }
+        ],
+        "next": [
+          136
+        ]
+      },
+      {
+        "id": 136,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe1-sent"
+          }
+        ]
+      },
+      {
+        "id": 138,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 137,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 139,
+            "source_index": 0
+          },
+          {
+            "node_id": 142,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 139,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ],
+        "next": [
+          140
+        ]
+      },
+      {
+        "id": 140,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe2-sent"
+          }
+        ]
+      },
+      {
+        "id": 142,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 141,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 143,
+            "source_index": 0
+          },
+          {
+            "node_id": 146,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 143,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 3
+          }
+        ],
+        "next": [
+          144
+        ]
+      },
+      {
+        "id": 144,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe3-sent"
+          }
+        ]
+      },
+      {
+        "id": 146,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 145,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 147,
+            "source_index": 0
+          },
+          {
+            "node_id": 150,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 147,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 4
+          }
+        ],
+        "next": [
+          148
+        ]
+      },
+      {
+        "id": 148,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe4-sent"
+          }
+        ]
+      },
+      {
+        "id": 150,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 149,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 151,
+            "source_index": 0
+          },
+          {
+            "node_id": 154,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 151,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 5
+          }
+        ],
+        "next": [
+          152
+        ]
+      },
+      {
+        "id": 152,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe5-sent"
+          }
+        ]
+      },
+      {
+        "id": 154,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 153,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 155,
+            "source_index": 0
+          },
+          {
+            "node_id": 158,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 155,
+        "type": "send_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "lamp_wipe"
+          },
+          {
+            "type": "int",
+            "value": 6
+          }
+        ],
+        "next": [
+          156
+        ]
+      },
+      {
+        "id": 156,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "wipe6-sent"
+          }
+        ]
+      },
+      {
+        "id": 158,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 157,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 160,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 160,
+        "type": "set_player_settlement_success_status",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 159,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "enum",
+            "value": "settlement_status_victory"
+          }
+        ],
+        "next": [
+          161
+        ]
+      },
+      {
+        "id": 161,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "win-auto-30s"
+          }
+        ]
+      },
+      {
+        "id": 81,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 82,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build2"
+          }
+        ]
+      },
+      {
+        "id": 89,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build3"
+          }
+        ]
+      },
+      {
+        "id": 97,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build4"
+          }
+        ]
+      },
+      {
+        "id": 107,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build5"
+          }
+        ]
+      },
+      {
+        "id": 120,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "build6"
+          }
+        ]
+      },
+      {
+        "id": 133,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe1"
+          }
+        ]
+      },
+      {
+        "id": 137,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe2"
+          }
+        ]
+      },
+      {
+        "id": 141,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe3"
+          }
+        ]
+      },
+      {
+        "id": 145,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe4"
+          }
+        ]
+      },
+      {
+        "id": 149,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe5"
+          }
+        ]
+      },
+      {
+        "id": 153,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "wipe6"
+          }
+        ]
+      },
+      {
+        "id": 157,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 80,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "win30"
+          }
+        ]
+      },
+      {
+        "id": 159,
+        "type": "get_player_entity_to_which_the_character_belongs",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 81,
+              "index": 0,
+              "type": "entity"
+            }
+          }
+        ]
+      },
+      {
+        "id": 162,
+        "type": "monitor_signal",
+        "args": [
+          {
+            "type": "str",
+            "value": "win_wave"
+          }
+        ],
+        "next": [
+          165
+        ]
+      },
+      {
+        "id": 165,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 164,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 166,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 166,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "game-clear"
+          }
+        ],
+        "next": [
+          167
+        ]
+      },
+      {
+        "id": 167,
+        "type": "activate_disable_tab",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 163,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "int",
+            "value": 1
+          },
+          {
+            "type": "bool",
+            "value": true
+          }
+        ],
+        "next": [
+          168
+        ]
+      },
+      {
+        "id": 168,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "start-tab-enabled"
+          }
+        ],
+        "next": [
+          170
+        ]
+      },
+      {
+        "id": 170,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 163,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "win30"
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 169,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ]
+      },
+      {
+        "id": 163,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 164,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 162,
+              "index": 3,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 6
+          }
+        ]
+      },
+      {
+        "id": 169,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "float",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "id": 171,
+        "type": "when_timer_is_triggered",
+        "next": [
+          174
+        ]
+      },
+      {
+        "id": 174,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 173,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 175,
+            "source_index": 0
+          },
+          {
+            "node_id": 180,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 175,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "restart-building"
+          }
+        ],
+        "next": [
+          176
+        ]
+      },
+      {
+        "id": 176,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              3.75
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 172,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          177
+        ]
+      },
+      {
+        "id": 177,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              6.25
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 172,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          178
+        ]
+      },
+      {
+        "id": 178,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level1-ready"
+          }
+        ]
+      },
+      {
+        "id": 180,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 179,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 181,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 181,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "back-building"
+          }
+        ],
+        "next": [
+          182
+        ]
+      },
+      {
+        "id": 182,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              3.75
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 172,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          183
+        ]
+      },
+      {
+        "id": 183,
+        "type": "create_prefab",
+        "args": [
+          {
+            "type": "prefab_id",
+            "value": 1077936129
+          },
+          {
+            "type": "vec3",
+            "value": [
+              5,
+              0,
+              6.25
+            ]
+          },
+          {
+            "type": "vec3",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 172,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "bool",
+            "value": false
+          },
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int_list",
+            "value": []
+          }
+        ],
+        "next": [
+          184
+        ]
+      },
+      {
+        "id": 184,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "level1-ready"
+          }
+        ]
+      },
+      {
+        "id": 172,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 173,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 171,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "restart"
+          }
+        ]
+      },
+      {
+        "id": 179,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 171,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "back"
+          }
+        ]
+      }
+    ]
+  }
+]
