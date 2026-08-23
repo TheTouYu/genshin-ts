@@ -32,6 +32,9 @@
 | 上旋低平施力首段视觉目标未贴地 clamp，y=-0.1 扎草 | 日志 2836 DBG_KICK=6：rec188/484 首段 pos y=-0.1；提交 60308a7 | kickLaunch 首段目标 max(y,0.25) 贴地，速度用 integ.nvel；用户复测通过 |
 | 运动中再施力触发同名 physics 运动器冲突，球卡住后速度误算 | 日志 2839/2841：DBG_LOC 卡顿、add_uniform 速度升到 -64 | 状态分支 + 唯一名冲量运动器叠加（impulseSeq→str）；b23f7eb |
 | 内层 doubleBranch 前放 exec 复合调用导致两分支都执行 | 日志 2841：kickLaunch 与 kickApplyImpulse 同 record 帧 | 公共复合调用移入各分支；dsl 技能补规则；4e8c55a |
+| 快静止 ROLLING 球补力 y 被砍 0，能量接近 0 | 用户复测 + code 审查；提交 703a9ca | 冲量保留 y 分量且补力后写 state=1 |
+| 8 选项方向单一无法绕场 | 用户反馈；提交 66321f1 | 重排 y 力度与水平方向向量 |
+| kickApplyImpulse 分支链出现 n7↔n8 循环控制流，地图启动失败 | 真实 GIL parse flow；提交 341815c | 分支链线性化 setVel→setSpin→state→seq→impulse |
 
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 

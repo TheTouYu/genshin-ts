@@ -21,6 +21,9 @@
 | 9 | 首段视觉目标越界 | 上旋低平施力后首步积分被马格努斯压到 y=-0.1，kickLaunch 未 clamp → 球第一段扎进草 | 首段目标 max(y,0.25) 贴地 clamp，速度仍用积分速度 | 60308a7 |
 | 10 | 同名运动器重叠 | 运动中再施力会新建同名 physics 设备，与旧设备冲突 → DBG_LOC 卡住、后续直线速度误算到 -64 | 运动中施力改为唯一名冲量运动器叠加（impulseSeq 转字符串名），主 physics 仍只有一条 | b23f7eb |
 | 11 | 分支流被复合调用打断 | 在 inner doubleBranch 前放 dbgTag 复合调用，导致两个分支同时执行：kickLaunch 与 kickApplyImpulse 都触发，球瞬间停/异常 | 把 dbgTag 移到两个分支内部，内层 doubleBranch 前不再放 exec 复合调用 | 4e8c55a |
+| 12 | 滚动状态冲量被截断 | 快静止的 ROLLING 球再施力时 y 分量被 state=2 投影为 0，高吊类冲量几乎无能量 | 冲量保留 y 分量，并统一在补力后写 state=1（转回飞行） | 703a9ca |
+| 13 | 受力方向单一 | 8 个选项几乎都只往 -X 方向，无法绕场运动 | 重排 8 选项 y 力度与水平方向（见代码注释和 PROGRESS 表） | 66321f1 |
+| 14 | exec 链反向成环 | kickApplyImpulse 里把 state/impulseSeq 两个节点连成双向边，真实 GIL 检出 n7↔n8 循环 → 游戏启动失败 | 分支链按单一线性顺序排布：setVel→setSpin→state→seq→impulse | 341815c |
 
 ## 二、最近一次错误的完整调查链
 
