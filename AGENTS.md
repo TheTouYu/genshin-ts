@@ -36,6 +36,8 @@
 
 ## 信息检索优先级（缺关键信息/上下文/历史记忆时，2026-08-22 强制）
 
+**高频触发——节点预算/帧数超限（先查规则再动刀，2026-08-23 复盘补）**：遇到「节点数 >3000 拒载 / 单记录帧 >3000 截断 / 图预算超限/超标」类问题，第一步**不要直接拆图、注入测量或读预算源码**，先 `pkc query "预算 3000 有限循环 截断 拒载" --level 2` 读硬限与公式口径（如 clm_213B9BC24），再 `dsh-session-history` 找该地图的历史定稿预算公式；本地测量是第二步的取证动作，不是第一反应（Sa296f579 08-22 白耗约 40 分钟的教训）。
+
 1. **先查知识树 PKC**（只读，无需确认）：`python tools/pkc.py progressive-query --context <ctx> --intent "<问题>" --max-level 2 --limit 3`（有明确 context 时）或 `python tools/pkc.py query "<关键词1 关键词2 关键词3>" --level 2`（全库 claim 检索；**必须带 `--level 2`——默认 level 1 只搜 13 个节点标题，不搜 300+ 条 claim 内容，2026-08-22 实测「负载」默认 0 命中、level 2 命中**；并 3~5 个不同层面关键词召回更高）。context 清单见 `project-intelligence.json` 的 `memory.contexts`（compiler-diagnostics / static-gil-assembly-production / official-guide）。
 2. `progressive-query` 报 coverage gap（中文长句常见，2026-08-22 实测）→ **立即降级全库 `query "<关键词…>" --level 2`（并 3~5 个不同层面关键词，中英混排，如 `"physical pin compositePins 缺失"`）**；仍空再换词：短词→同义词→英文/官方术语→`--status any`→`knowledge-search --semantic "<完整问题>"`（向量化语义检索，hybrid 模式，中文长句意图用它命中率更高）；**bounded miss ≠ 仓库级缺失**。
 3. 仍未命中 → 才允许 `dsh-session-history`（历史会话）/ `codebase-memory`（代码结构）/ 项目搜索兜底；缺口记入知识树 pending-capture（`pkc-project-operator`）。
