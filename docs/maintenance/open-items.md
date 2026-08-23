@@ -25,6 +25,7 @@
 |---|---|---|
 | 固定点运动器（匀速直线）与旋转运动器同链激活时直线设备被秒停，球原位不动；旧修复只改 move_speed 无效 | 日志 2828：ballPos 正常推进但 GetEntityLocation 连续多 tick (0,0.25,0)；提交 6fdcfa3 | motion-devices.md §10 新增定点器叠加规则；同族扫描无其他该组合 |
 | 落地状态机只看 pos.y 就转 ROLL，吞掉弹跳；滚滑沿用初旋方向导致方向错、摩擦 0.985 太滑 | 日志 2829：rec11 落地即 state=2，滚滑 ballSpin 恒绕 Z；提交 48b680d | football physics.ts 弹跳阈值 + 摩擦 0.8 + ω=(v_z/R,0,-v_x/R)；retrospective-2026-08-23-football-motion-and-rolling.md |
+| 施力首段视觉目标用 v0·dt、物理用 v1·dt → 首段过冲+反向回拉，空中速度突变 | 日志 2830：高吊/横传首段 linvel 反向回拉；提交 e23b817 | kickLaunch 复用 physIntegrate 预积分首步；retrospective 文档 2.5 节 + dsl 技能错误表补行 |
 
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 
