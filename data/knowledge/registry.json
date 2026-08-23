@@ -2890,6 +2890,21 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_0DED65DA905D38D1DBD032807B": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_EBA810B533A0A59E26B69BAC3D": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_0ED0606E558B0290223FFC96E7": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }

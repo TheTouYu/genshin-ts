@@ -362,6 +362,21 @@
       ]
     },
     {
+      "id": "aref_14ba637d29429ff9b8a5208cfc",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "装饰物颜色“不透明度”由 f3 的 Alpha 通道决定，f4 是冗余 float 百分比（2026-08-23 魔方 F 块实证，用户修正）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "448c7d8a7956ea2760e1f273d7288ca5100f9ac20ac1fa3bad23eaa7dcee1cd6",
+      "claim_ids": [
+        "clm_EBA810B533A0A59E26B69BAC3D"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_14d95683d6bc54dcb79dffebf3",
       "path": "docs/ui-tutorial/ugc-svg/entities.md",
       "locator": "## 08-复杂造物规则",
@@ -1456,6 +1471,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_3e489a0c05fdcfa456e5cf2e7e",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "元件页面模型 position 与 createPrefab 世界坐标是两套独立坐标系（2026-08-23 魔方 3x3 实证）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "448c7d8a7956ea2760e1f273d7288ca5100f9ac20ac1fa3bad23eaa7dcee1cd6",
+      "claim_ids": [
+        "clm_0ED0606E558B0290223FFC96E7"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -3423,6 +3453,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_a14be55fb4e6560d32e06e29d3",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "删除自定义元件（编辑器/工具删除，2026-08-23 魔方 3x3 清理脚本实证 + CLI 回读验证）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "448c7d8a7956ea2760e1f273d7288ca5100f9ac20ac1fa3bad23eaa7dcee1cd6",
+      "claim_ids": [
+        "clm_0DED65DA905D38D1DBD032807B"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
