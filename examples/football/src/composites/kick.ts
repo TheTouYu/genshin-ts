@@ -22,6 +22,8 @@ export const kickApplyForce = g.defineComposite('kick_apply_force', {
   outputs: {},
   outflows: ['done'],
   build: ({ tabId }, f) => {
+    // 默认值节点（entry 链首，multipleBranches 之前），分支覆盖
+    const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
     f.multipleBranches(tabId, {
       1: () => {
         // 轻射：-X 小力 + 内旋
@@ -65,8 +67,7 @@ export const kickApplyForce = g.defineComposite('kick_apply_force', {
       },
       default: () => {}
     })
-    const tail = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, -6, 0), new bool(false)])
-    f.outflow('done', tail, 0)
+    f.outflow('done', done, 0)
     return {}
   }
 })
