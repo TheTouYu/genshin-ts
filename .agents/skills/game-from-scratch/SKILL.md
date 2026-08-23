@@ -269,6 +269,7 @@ layout lint）。典型问题：API 写法（连线/参数/引脚错、duplicate
 4. **5Hz 事件链驱动**：`whenBasicMotionDeviceStops`（0.2s 匀速直线运动器停止）→ 积分 → 碰撞写回图变量 → 重新激活运动器。**运动器只做视觉插值，图变量（pos/vel/spin）是唯一事实源**；每步碰撞修正后读最新图变量串行传递（写后读，日志实证成立）。
 5. **状态转换**：落地反弹后 `y < r+ε`（贴地）→ 滚滑；动能耗尽（`|v| < 阈值`）→ 静止；出界（`|x|/|z| > 边界`）→ 瞬移复位。
 6. **两个对称门用 `|x|` 统一处理**：门线 `|x|=52.5`、门柱 `z=±3.6`、横梁 `y=2.5`，用绝对 x 对称，省一半节点。
+7. **多运动器驱动的停止事件必须按 motionDeviceName 过滤（2026-08-23 足球双触发实证，最坑）**：`whenBasicMotionDeviceStops` 的 payload 带 `motionDeviceName`，**每个运动器名各触发一次**。若用"直线运动器(physics) + 旋转运动器(spin)"两个运动器驱动同一个物理 tick，两者 duration 相同同时停止 → **事件触发两次，physTick 每 tick 执行两次**（积分翻倍/状态竞争/视觉逻辑漂移，表现为越升越高/瞬移/测不到物理效果）。修复：事件入口用 `f.equal(evt.motionDeviceName, new str('<主运动器名>'))` 只响应一个运动器，其它忽略。排查"物理状态怪"先统计日志里该事件帧的 `OUT2`(mover_name) 字段分布：`grep "Basic Motion Device Stops" | grep -oE "OUT2:String=[a-z]*" | sort | uniq -c`，出现两个不同名就是双触发。
 
 ### 节点图治理要求（用户 2026-08-12 严格三要求）
 

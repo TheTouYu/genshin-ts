@@ -150,6 +150,14 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 1. **等日志落盘**：游戏退出时才写日志（内存累积）——先请用户退出游戏，再找最新文件。
 2. **records 概览**：识别"一次操作"的记录组（如 tab 事件大记录 + 定时器回调 + 解锁）；同一操作重复出现的组结构相同。
 3. **frames 逐帧解码**：--gil 带节点名；过滤关键节点（事件/位置读取/查询/运动器/减法）。
+3.5 **字段分布统计（先于逐帧看单值，2026-08-23 足球双触发实证）**：怀疑某事件/设备重复触发时，**先统计字段分布，不要逐帧盯单个值**：
+   ```bash
+   python3 gia_log.py <日志> frames --gil <地图> | grep "<关键事件节点名>" \
+     | grep -oE "OUT[0-9]+:(String|Integer|EnumItem)=[^ ]*" | sort | uniq -c
+   ```
+   例：`grep "Basic Motion Device Stops" | grep -oE "OUT2:String=[a-z]*" | sort | uniq -c` 一眼看出
+   `whenBasicMotionDeviceStops` 被 physics/spin 两个运动器各触发一次（双触发 → 状态机每 tick 执行两次）。
+   逐帧看单值（如 ballPos=-52）会被误导（那是双触发的结果，不是原因）；字段分布统计直接暴露触发源。
 4. **常见帧模式对照**：
 
 | 现象（帧） | 结论 | 下一步 |
