@@ -134,8 +134,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     const maxSpeed = new float(24)
     // 运动状态：只在空中允许冲量带竖直分量；滚滑时竖直冲量会被下一 tick 滚滑状态吞掉，
     // 之前“海绵/突然自由落体”就是这个原因。这里把滚滑冲量投影为水平冲量。
-    const isAirInt = f.dataTypeConversion(f.equal(f.getNodeGraphVariable('state').asType('int'), 1n), 'int')
-    const vyScale = f.dataTypeConversion(isAirInt, 'float')
+    // 运动中再施力统一让球进入飞行状态；不要因为 state=2 就把竖直冲量砍成 0
+    // （用户反馈：快静止时再施力能量接近 0，就是这里把 y 归零导致的）
+    const vyScale = f.dataTypeConversion(new int(1), 'float')
     const makeDv = (x, y, z) => {
       const base = f.create3dVector(x, y, z)
       const d = f.split3dVector(base)
@@ -166,7 +167,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       2: () => {
         const dv = makeDv(-24, 3, 0)
@@ -179,7 +182,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       3: () => {
         const dv = makeDv(-15, 9, 0)
@@ -192,7 +197,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       4: () => {
         const dv = makeDv(-16, 2, 2)
@@ -205,7 +212,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       5: () => {
         const dv = makeDv(-16, 2, -2)
@@ -218,7 +227,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       6: () => {
         const dv = makeDv(-18, 0.5, 0)
@@ -231,7 +242,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       7: () => {
         const dv = makeDv(-14, 2, 0)
@@ -244,7 +257,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       8: () => {
         const dv = makeDv(2, 3, 12)
@@ -257,7 +272,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(sW, 0, imp, 0)
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(imp, 0, inc, 0)
+        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
+        f.connect(imp, 0, st, 0)
+        f.connect(st, 0, inc, 0)
       },
       default: () => {}
     })
