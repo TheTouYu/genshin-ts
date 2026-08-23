@@ -135,6 +135,16 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 - **常量/恒等表直接字面量/槽位，不要用变量读**（2026-08-20 魔方优化实证）：`wholeFrom` 恒为 identity、
   `targetPos/targetOrient` 恒为初始态，改成字面量比较/直接用 slot 后 implTotal 3138→2909（达标），
   并顺带移除诊断 print/事件监听。每次“表是常量”都先确认是否真的需要变量读。
+- **build 期展开 vs 运行时循环的节点/帧权衡**（2026-08-22 3×3 整体转 26 块实证，详见
+  `docs/composite-library/loop-node-budget.md`）：JS `for` 是**编译期展开**（节点多、帧少，无控制帧）；
+  `f.finiteLoop` 是**运行时循环**（节点少、帧多，每次迭代有控制帧）。迭代体小/次数少 → 展开；
+  迭代体大/次数多 → 循环；折中：temp 段展开、写回段循环。**两个硬限都要算**：节点 <3000（拒载）、
+  单记录帧 <3000（截断），不要凭直觉全展开或全循环。
+- **循环不变量提升**（2026-08-22 3×3 实证）：循环内不变的减法/乘法提到循环外只建 1 次节点
+  （如 `m10 = subtract(moveId, 10n)` 提到 6 个 finiteLoop 之外），循环体内只用轻量加法。
+  节点图是静态的，循环体内引用的外层表达式也各建 1 次节点，能提就提。
+- **两阶段读写（置换类操作）**：多对多映射（如魔方转动）不能原地改列表（A→B、B→A 会互相覆盖），
+  要先「读入 temp 列表 → 再从 temp 写回」。复位置换见 loop-node-budget.md 技巧 3。
 - 节点统计脚本：`node -e "读 dist/**/*.json，统计 nodes 类型分布"`（IR 是数组格式，取 docs[0].nodes）。
 
 ## 值类型与 capture 限制

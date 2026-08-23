@@ -37,8 +37,11 @@
 | 15 | 长列表工具包 | 分块读取突破 100 元素限制 | 「乘法选择器」纯数据流选值技巧 | [long-list.md](long-list.md) |
 | 16 | 输入锁/防重入包 | busy 锁防重入 | 有状态动作的必备机制 | [input-lock.md](input-lock.md) |
 | 17 | 跨图状态同步包 | 多图拆分时的状态桥接 | 自定义变量桥接 + 克制同步 | [cross-graph-sync.md](cross-graph-sync.md) |
+| 18 | 定时器序列调度包 | scheduler+trigger 分离、mode 变量化、chunk 链式 | 多实体错峰执行 | [timer-scheduling.md](timer-scheduling.md) |
+| 19 | 循环物化与节点预算包 | build 期展开 vs 运行时循环、循环不变量提升、两阶段复位 | 节点预算与帧数双硬限 | [loop-node-budget.md](loop-node-budget.md) |
 
-> 资源包 1-13 来自社区「常用复合节点大全 v1.7」；资源包 14-17 来自 rubik-2x2/3x3 项目抽象（2026-08-22）。
+> 资源包 1-13 来自社区「常用复合节点大全 v1.7」；资源包 14-17 来自 rubik-2x2/3x3 项目抽象（2026-08-22 第一轮）；
+> 资源包 18-19 来自 rubik-2x2/3x3 完整精读抽象（2026-08-22 第二轮）。
 
 ## 从这份资源包学到的「通用方法论」（提炼精华）
 
