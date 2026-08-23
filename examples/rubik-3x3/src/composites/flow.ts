@@ -4,7 +4,6 @@ import { g } from 'genshin-ts/runtime/core'
 import { SettlementStatus } from 'genshin-ts/definitions/enum'
 import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 import { logicApplyFace, logicApplyMiddle, logicApplyWhole, logicIsSolved, logicReset } from './logic.js'
-import { RubikSignal } from '../signals.js'
 
 const SCRAMBLE_LEN = 20n
 type Flow = any
@@ -420,6 +419,11 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
       f.getNodeGraphVariable('blockOrient').asType('int_list'),
       new bool(false)
     ])
+    // 求解状态持续发布（每步后）：供求解器随时直接读取，省去请求回发信号
+    f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
     f.callComposite(flowCheckWin, {})
     return {}
   }
@@ -456,19 +460,38 @@ export const flowScramble = g.defineComposite('flow_scramble', {
   }
 })
 
-// 自动复原（exec）：发布逻辑状态到自定义变量 + 置锁 + 回 op=2（最小版，game 侧只加信号级）
-export const flowSolve = g.defineComposite('flow_solve', {
-    id: 1610700013,
-  inputs: { target: { type: 'entity' } },
+// 重置发布（exec）：flowResetCore + 把 26 块列表写回图变量与两个视觉宿主的自定义变量
+// 把游戏主图里两处重复内联的 reset 尾块合并成一个复合，只物化一次（节点预算减负）
+export const flowResetPublish = g.defineComposite('flow_reset_publish', {
+    id: 1610700059,
+  inputs: { stage: { type: 'entity' }, target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ target }, f) => {
-    f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
-    f.sendSignal(RubikSignal.rubik3x3_solve, 2n, 0n)
+  build: ({ stage, target }, f) => {
+    const r = f.callComposite(flowResetCore, { stage })
+    const blocks = f.assemblyList([
+      r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
+      r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
+      r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
+      r.c24, r.c25
+    ], 'entity')
+    f.registerExecNode('set_node_graph_variable', [new str('blocks'), blocks, new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('blocks'), blocks, new bool(false)])
+    f.registerExecNode('set_custom_variable', [entity(1077936203n), new str('blocks'), blocks, new bool(false)])
+    const done = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+    f.outflow('done', done, 0)
+    return {}
+  }
+})
+
+// 自动复原（exec）：占位——真正求解由 solver 图承担，tab14 仅兜底不锁
+export const flowSolve = g.defineComposite('flow_solve', {
+    id: 1610700013,
+  inputs: { _target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: (_i, f) => {
+    f.printString('rubik3x3-solve-placeholder')
     const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
     f.outflow('done', doneNode, 0)
     return {}

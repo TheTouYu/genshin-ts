@@ -54,18 +54,10 @@ const graph = g
     f.printString('rubik3x3-solver-plan-ready')
   })
   .on('whenTabIsSelected', (_evt, f) => {
-    // 自动求解实体选项卡：请求主图发布状态（op=1）
-    f.sendSignal(RubikSignal.rubik3x3_solve, 1n, 0n)
-  })
-  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
-    f.multipleBranches(evt.params.op, {
-      2: () => {
-        f.setNodeGraphVariable('phase', new int(1), false)
-        f.setNodeGraphVariable('solveLen', new int(0), false)
-        f.callComposite(solverStartTick, { target: f.getSelfEntity() })
-      },
-      default: () => {}
-    })
+    // 自动求解实体选项卡：状态已由主图每步持续发布，直接开始求解
+    f.setNodeGraphVariable('phase', new int(1), false)
+    f.setNodeGraphVariable('solveLen', new int(0), false)
+    f.callComposite(solverStartTick, { target: f.getSelfEntity() })
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
     f.multipleBranches(evt.timerName as never, {

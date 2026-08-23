@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn, flowSolve, flowRequestMove } from './composites/flow.js'
+import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn, flowRequestMove, flowResetPublish } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -216,26 +216,7 @@ const graph = g
     f.doubleBranch(
       f.logicalOrOperation(f.equal(evt.tabId, 14), f.equal(evt.tabId, 15)),
       () => {
-        const self = f.getSelfEntity()
-        const r = f.callComposite(flowResetCore, { stage })
-        f.setNodeGraphVariable('blocks', [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
-        f.setCustomVariable(self, new str('blocks'), [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
-        f.setCustomVariable(entity(1077936203n), new str('blocks'), [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
+        f.callComposite(flowResetPublish, { stage, target: f.getSelfEntity() })
       },
       () => {
         // curMove 由宿主设置（事件载荷数据引脚路径，复合内 capture 设变量有类型问题）
@@ -253,25 +234,7 @@ const graph = g
     f.doubleBranch(
       f.logicalOrOperation(f.equal(evt.params.tabId, 14), f.equal(evt.params.tabId, 15)),
       () => {
-        const r = f.callComposite(flowResetCore, { stage })
-        f.setNodeGraphVariable('blocks', [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
-        f.setCustomVariable(target, new str('blocks'), [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
-        f.setCustomVariable(entity(1077936203n), new str('blocks'), [
-          r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
-          r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
-          r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
-          r.c24, r.c25
-        ], false)
+        f.callComposite(flowResetPublish, { stage, target })
       },
       () => {
         f.setNodeGraphVariable('curMove', evt.params.tabId, false)
@@ -283,17 +246,9 @@ const graph = g
     )
   })
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
-    f.multipleBranches(evt.params.op, {
-      1: () => {
-        // 求状态：发布 cp/co/ep/eo 并回 op=2
-        f.callComposite(flowSolve, { target: f.getSelfEntity() })
-      },
-      3: () => {
-        // 执行一步（solver 已按动画节奏定时逐条发）
-        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
-      },
-      default: () => {}
-    })
+    f.doubleBranch(f.equal(evt.params.op, 3), () => {
+      f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+    }, () => {})
   })
 
 export default graph
