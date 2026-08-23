@@ -28,6 +28,7 @@
 | 施力首段视觉目标用 v0·dt、物理用 v1·dt → 首段过冲+反向回拉，空中速度突变 | 日志 2830：高吊/横传首段 linvel 反向回拉；提交 e23b817 | kickLaunch 复用 physIntegrate 预积分首步；retrospective 文档 2.5 节 + dsl 技能错误表补行 |
 | kickLaunch 纯数据复合多消费且中途写回输入图变量 → 引擎重新求值二次积分，低弹道球往草里扎 | 日志 2832：同一 physIntegrate 第二次输入使用已积分 ballVel；提交 9b0d261 | 消费顺序 setPos→physApplyMotion→setVel/setSpin；dsl 技能补行 |
 | 复位 lockRotation=true 保留上一段朝向，导致第二次横传 local axis≠world axis、旋转方向错 | 日志 2832：复位后球朝向仍 z≈105.7°；提交 9b0d261 | motionInstant 改 lockRotation=false；motion-devices.md §10 补语义 |
+| 同族：physFlyTick/physRollTick 也先写回 ball* 再消费 integ.*，goal/ground 二次积分 | 代码审查同族扩展；提交 5f2fc97 | 单 tick 物化 tmpPos/tmpVel/tmpSpin 快照；fly/roll 的 goal 只读快照 |
 
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 

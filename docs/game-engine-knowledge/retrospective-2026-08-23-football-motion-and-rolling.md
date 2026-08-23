@@ -17,6 +17,7 @@
 | 5 | 视觉/物理积分一致性 | 施力首段视觉按 v0·dt 走、物理按积分后 v1·dt 走 → 首段过冲后反向纠正，空中速度突变/“虚拟天花板” | kickLaunch 调用同一个 physIntegrate 先做第一步积分，写 ballPos/ballVel/ballSpin，再以 integ.npos 为视觉目标 | e23b817 |
 | 6 | DSL 重复求值 | kickLaunch 先写 ballVel 再消费 integ.*，而 physIntegrate 的输入来自图变量 → 引擎按消费点重新积分，首段被二次重力拖低（轻射/横传往草里扎） | 消费顺序改为 setPos → physApplyMotion → setVel/setSpin，先消费再写回 | 9b0d261 |
 | 7 | 定点器 lockRotation 语义 | 复位用 lockRotation=true 被解释为“保留当前朝向”，上一段高吊的 z≈105.7° 残留导致横传 local axis≠world axis、旋转方向错 | motionInstant 改 lockRotation=false，复位真正应用 targetRotation=(0,0,0) | 9b0d261 |
+| 8 | DSL 重复求值（同族扩展） | physFlyTick/physRollTick 同样先写回 ballPos/ballVel/ballSpin 再消费 integ.*，goal/ground 会二次积分 | 单 tick 内物化 tmpPos/tmpVel/tmpSpin 快照，goal/ground 只读快照 | 5f2fc97 |
 
 ## 二、最近一次错误的完整调查链
 
