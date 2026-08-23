@@ -14,9 +14,11 @@ const KD = 0.02 // 空气阻力系数
 const KM = 0.01 // 马格努斯系数
 const KW_DECAY = 0.99 // exp(-0.05*0.2)，旋转衰减
 const BALL_R = 0.25 // 球半径
+const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
-const ROLL_FRICTION = 0.985 // 滚动摩擦（贴地每 tick 减速）
+const ROLL_FRICTION = 0.8 // 滚动摩擦（贴地每 tick 减速，0.8 对应约 2~3s 停下）
+const ROLL_BOUNCE_VY = 1.0 // 反弹后 |vy| 低于该值才转滚滑，否则继续空中弹跳
 const STOP_SPEED = 0.3 // 停球速度阈值
 // —— 球门（世界坐标，|x| 对称）——
 const GOAL_X = 52.5 // 门线 |x|
@@ -299,7 +301,13 @@ export const physRollIntegrate = g.defineComposite('phys_roll_integrate', {
       f.addition(p.zComponent, f.multiplication(nvz, DT))
     )
     const nvel = f.create3dVector(nvx, 0, nvz)
-    const nspin = f._3dVectorZoom(spin, KW_DECAY)
+    // 滚滑自旋与线速度耦合（无滑动）：ω = (v_z/R, 0, -v_x/R)
+    // 这样往前滚/斜滚时视觉旋转方向始终与运动方向一致（不再沿用初旋方向）
+    const nspin = f.create3dVector(
+      f.multiplication(nvz, INV_BALL_R),
+      0,
+      f.multiplication(nvx, -INV_BALL_R)
+    )
     return { npos, nvel, nspin }
   }
 })
@@ -374,12 +382,23 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
       f.outflow('done', sf, 0)
     }, () => {
       const pp = f.split3dVector(posFinal)
+      const vv = f.split3dVector(velFinal)
       const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
       f.doubleBranch(grounded, () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-        const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
-        f.connect(ss, 0, ap as never, 0)
-        f.outflow('done', ap as never, 0)
+        // 贴地但反弹还有足够垂直速度 → 继续空中弹跳，不要急着切滚滑
+        // （否则球一落地就被"钉"在地上往前滑，看不到反弹）
+        const bounceDead = f.lessThan(f.absoluteValueOperation(vv.yComponent), ROLL_BOUNCE_VY)
+        f.doubleBranch(bounceDead, () => {
+          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+          const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+          f.connect(ss, 0, ap as never, 0)
+          f.outflow('done', ap as never, 0)
+        }, () => {
+          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
+          const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+          f.connect(ss, 0, ap as never, 0)
+          f.outflow('done', ap as never, 0)
+        })
       }, () => {
         const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
         const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })

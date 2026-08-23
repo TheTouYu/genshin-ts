@@ -61,9 +61,9 @@ export const kickApplyForce = g.defineComposite('kick_apply_force', {
         f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, -8), new bool(false)])
       },
       8: () => {
-        // 横传：向 +Z 方向 + 上旋
+        // 横传：向 +Z 方向 + 上旋（v 主要沿 +Z，前滚轴 = +X）
         f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(2, 3, 12), new bool(false)])
-        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 6), new bool(false)])
+        f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(6, 0, 0), new bool(false)])
       },
       default: () => {}
     })
