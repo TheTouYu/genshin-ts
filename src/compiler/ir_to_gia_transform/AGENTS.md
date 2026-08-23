@@ -30,10 +30,14 @@
 - pin-hole / hidden-pin 节点：IR 参数序与物理 InParam 不一致时，必须走共享 remap
   （`pin_hole_adapter.ts`）。凡同时触及 capture 与 pin-hole，vendor/legacy 过滤物理 pin 与
   `compositePins.innerPinIndex` 必须用同一物理脚位；只 remap 一侧会出现“主图正常、复合丢参”。
-- `data_type_conversion_*` 的 capture 输入被当前复合 `compositePins` 直接指向时，必须保留类型化
-  物理 InParam pin（ConcreteBase/EnumBase oneof），并独立生成该节点的 OutParam。
-  普通 capture 输入跳过物理 pin 的规则不适用于这种边界路由场景。
-  回归：`tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`。
+- capture 输入被当前复合 `compositePins` 直接指向（边界路由）时，必须保留类型化物理 InParam pin，
+  并独立生成该节点的 OutParam；「普通 capture 输入跳过物理 pin」的规则不适用于这种边界路由场景。
+  `data_type_conversion_*` 用 ConcreteBase/EnumBase oneof 包裹；普通数据节点（如列表反射
+  `get_corresponding_value_from_list` 的 index capture）用普通 VarBase 值 pin。legacy 后端
+  `buildImplNodePins` 的 `unconfiguredVariant` 门必须把 `ordinaryConcreteNid` 一并纳入判定，
+  与 vendor 后端对齐，否则已解析 concrete 变体的边界 capture 会被误判为「未配置 Variant」而整体跳过。
+  回归：`tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`、
+  `tests/composite/test-stage3-list-boundary-capture-physical-pin.ts`。
 - special-arg 节点（signal / assembly / multiple_branches）：字面量布局与 IR→physical remap
   必须走共享 `special_arg_adapter.ts`（P5-W10）。root `applySpecialArgs`、factory 与
   composite vendor/legacy 不得再各写一套 count@0 / ClientExec name / case-list 逻辑。

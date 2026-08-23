@@ -578,6 +578,7 @@ function buildImplGraphNodes(
           gvConcreteNid,
           customVariableConcreteNid,
           localVariableConcreteNid,
+          ordinaryConcreteNid,
           boundaryInputIndexesByNode.get(node.id),
           boundaryInputTypesByNode.get(node.id)
         )
@@ -1522,6 +1523,7 @@ function buildImplNodePins(
   gvConcreteNid?: number,
   customVariableConcreteNid?: number,
   localVariableConcreteNid?: number,
+  ordinaryConcreteNid?: number,
   boundaryInputIndexes: ReadonlySet<number> = new Set<number>(),
   boundaryInputTypes: ReadonlyMap<number, string> = new Map<number, string>()
 ): {
@@ -1900,7 +1902,8 @@ function buildImplNodePins(
         const unconfiguredVariant =
           gvConcreteNid === undefined &&
           customVariableConcreteNid === undefined &&
-          localVariableConcreteNid === undefined
+          localVariableConcreteNid === undefined &&
+          ordinaryConcreteNid === undefined
         if (unconfiguredVariant) {
           if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
           continue
