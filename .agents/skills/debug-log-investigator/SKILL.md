@@ -177,6 +177,12 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 游戏报"列表长度超过100"/"index out of bounds"（加载期或运行时） | 图变量初始列表字面量 > 100 元素（引擎限制）；或长列表复合（如 `long_list_get_vec3`）内部 `getCorrespondingValueFromList` 下标 ≥ 列表长度 | 检查 `game.json` 中所有变量初始值列表长度；读真实 GIL 图变量声明确认；长列表必须拆成 ≤100 分块 + 用 `long_list_get_*` 复合读取 |
 | queue dict 出现非法值（如 -4/18446744073709551612 或 16） | `finiteLoop` 内 `doubleBranch`（wrap 检查）的回调中 `set_or_add` 写字典不可靠：wrap 分支 `setM` 不执行 / 非 wrap 分支 `setQ` 缺位 → 后轮 raw 越界变负 → `logicApplyFace(-4)` 崩溃。**根因：`registerExecNode` 在 `finiteLoop` 内 `doubleBranch` 回调中的状态写不可靠**（与 PROGRESS.md:42 同类问题） | 修复：每项独立 `getRandomInteger(1n,9n)` 直写 `queue[i]`，删 lastMove/wrap/doubleBranch/setLast；`flowDoMove` 顶部加 moveId∈[1,12] 合法性守卫 |
 
+4.5 **变量 tag 日志模式（不 print，靠固定标识搜索）**：
+   图变量 `dbgTag`/`dbgVal` + 复合 `dbgTag(tag,val)`；调用时 `tag` 传固定字符串、`val` 用
+   `f.dataTypeConversion(value,'str')`。日志会记录 `Set Node Graph Variable: dbgTag=... / dbgVal=...`，
+   用 `frames --contains "DBG_XXX"` 或 `grep "String=dbgTag"` 快速定位。
+   资产：`examples/football/src/composites/debuglog.ts`（dbgTag + dbgPhysSnapshot）。
+
 5. **数值对比**：实际读取值 vs 期望（网格坐标/理论速度）——差异即根因方向。
 6. **修复 → 注入 → 用户重测 → 新日志复验**：每轮一个可归因变量，日志确认修复生效。
 

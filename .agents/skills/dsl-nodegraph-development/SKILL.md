@@ -389,3 +389,4 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 - DSL 架构：`docs/architecture/runtime-dsl.md`；踩坑明细：`references/dsl-pitfalls.md`
 - 玩法全流程：`game-from-scratch` 技能；组件/资产：`static-gil-model-builder`
 - 通用复合节点资源库（19 类，可直接抄/套模式）：`docs/composite-library/README.md`
+- 变量 tag 日志复合（不 print，靠固定标识搜索帧）：`examples/football/src/composites/debuglog.ts`（`dbgTag`/`dbgPhysSnapshot`）；模式 = 图变量 `dbgTag`/`dbgVal` + `f.dataTypeConversion(value,'str')`
