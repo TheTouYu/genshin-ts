@@ -5,6 +5,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickLaunch, kickReset } from './composites/kick.js'
+import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
 import { physTick } from './composites/physics.js'
 
 // 场地中间（复位点）
@@ -25,6 +26,8 @@ const graph = g
       tmpPos: new vec3([0, 0, 0]),
       tmpVel: new vec3([0, 0, 0]),
       tmpSpin: new vec3([0, 0, 0]),
+      dbgTag: new str(''),
+      dbgVal: new str(''),
       state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)
@@ -43,8 +46,11 @@ const graph = g
         f.callComposite(kickReset, { e: ball })
       },
       () => {
-        f.callComposite(kickApplyForce, { tabId })
-        f.callComposite(kickLaunch, { e: ball })
+        const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
+        const ka = f.callComposite(kickApplyForce, { tabId })
+        const kl = f.callComposite(kickLaunch, { e: ball })
+        f.connect(lg as never, 0, ka as never, 0)
+        f.connect(ka as never, 0, kl as never, 0)
       }
     )
   })
@@ -58,7 +64,9 @@ const graph = g
     f.doubleBranch(
       f.equal(evt.motionDeviceName, new str('physics')),
       () => {
-        f.callComposite(physTick, { e: ball })
+        const snap = f.callComposite(dbgPhysSnapshot, { e: ball })
+        const pt = f.callComposite(physTick, { e: ball })
+        f.connect(snap as never, 0, pt as never, 0)
       },
       () => {}
     )
