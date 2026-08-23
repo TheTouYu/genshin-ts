@@ -3,7 +3,7 @@
 // whenBasicMotionDeviceStops → 物理 tick（状态机：空中/反弹/滚滑/静止）
 // 选项组件（tabBar）挂在足球本体上，5 米交互范围
 import { g } from 'genshin-ts/runtime/core'
-import { bool, int, vec3 } from 'genshin-ts/runtime/value'
+import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickLaunch, kickReset } from './composites/kick.js'
 import { physTick } from './composites/physics.js'
 
@@ -48,7 +48,15 @@ const graph = g
   // ================================================================
   .on('whenBasicMotionDeviceStops', (evt: any, f: any) => {
     const ball = evt.eventSourceEntity
-    f.callComposite(physTick, { e: ball })
+    // 只响应 physics（直线运动器）停止，忽略 spin（旋转运动器）停止
+    // 否则两个运动器各触发一次，physTick 每 tick 执行两次导致球状态错乱/越升越高
+    f.doubleBranch(
+      f.equal(evt.motionDeviceName, new str('physics')),
+      () => {
+        f.callComposite(physTick, { e: ball })
+      },
+      () => {}
+    )
   })
 
 export default graph
