@@ -5,7 +5,7 @@
 //   门线 |x|=52.5，门柱中心 z=±3.6（半径 0.06），横梁中心 y=2.5，球网深 1.8m
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
-import { motionInstant, motionLinear, motionSpin } from './motion.js'
+import { motionSpin, motionToPoint } from './motion.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -28,9 +28,13 @@ const POST_E = 0.7 // 门柱/横梁恢复系数
 const NET_DAMP = 0.25 // 球网速度衰减（穿网后保留 25%）
 const GOAL_INNER_Z = 3.29 // POST_Z - POST_R - BALL_R（门柱内边减球半径）
 const GOAL_INNER_Y = 2.19 // BAR_Y - POST_R - BALL_R（横梁下边减球半径）
-// —— 边界（足球场 105×68m，半场）——
-const OUT_X = 60 // 出界 |x|
-const OUT_Z = 34 // 出界 |z|
+// —— 草地四面墙边界（25×25 格，col/row 98..122，球心活动范围留半格）——
+const WALL_X_MIN = -55 // -X 墙（左）
+const WALL_X_MAX = 60 // +X 墙（右）
+const WALL_Z_MIN = -55 // -Z 墙（后）
+const WALL_Z_MAX = 60 // +Z 墙（前）
+const WALL_E = 0.7 // 墙反弹恢复系数
+const WALL_E_NEG = -0.7 // 负恢复系数（反弹方向取负用）
 const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s
 
 // ================================================================
@@ -71,7 +75,6 @@ export const physGoalCollide = g.defineComposite('phys_goal_collide', {
     hitBar: { type: 'bool' },
     netHit: { type: 'bool' },
     isGoal: { type: 'bool' },
-    isOut: { type: 'bool' },
     nvelPost1: { type: 'vec3' },
     nvelPost2: { type: 'vec3' },
     nvelBar: { type: 'vec3' },
@@ -142,14 +145,9 @@ export const physGoalCollide = g.defineComposite('phys_goal_collide', {
       pastLine,
       f.logicalAndOperation(inGoalZ, inGoalY)
     )
-    // —— 出界：|z|>34 或 |x|>60 ——
-    const isOut = f.logicalOrOperation(
-      f.greaterThan(f.absoluteValueOperation(p.zComponent), OUT_Z),
-      f.greaterThan(ax, OUT_X)
-    )
     const nvelNet = f._3dVectorZoom(vel, NET_DAMP)
     return {
-      hitPost1, hitPost2, hitBar, netHit, isGoal, isOut,
+      hitPost1, hitPost2, hitBar, netHit, isGoal,
       nvelPost1, nvelPost2, nvelBar, nvelNet
     }
   }
@@ -222,19 +220,63 @@ const STATE_FLY = 1
 const STATE_ROLL = 2
 
 // ================================================================
-// 运动器激活（exec）：匀速直线 + 匀速旋转，封装成"一件事"
+// 运动器激活（exec）：定点移动（精确到目标点）+ 匀速旋转，封装成"一件事"
+// 目标点由物理积分预计算（含地面/墙约束），球精确到达，不漂移不穿模
 // ================================================================
 export const physApplyMotion = g.defineComposite('phys_apply_motion', {
-  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' }, spin: { type: 'vec3' } },
+  inputs: { e: { type: 'entity' }, pos: { type: 'vec3' }, spin: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ e, vel, spin }, f) => {
+  build: ({ e, pos, spin }, f) => {
     const axis = f._3dVectorNormalization(spin)
     const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
-    const lin = f.callComposite(motionLinear, { e, vel })
+    const lin = f.callComposite(motionToPoint, { e, target: pos })
     const spn = f.callComposite(motionSpin, { e, axis, angVel })
     f.connect(lin as never, 0, spn as never, 0)
     f.outflow('done', spn as never, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 四面墙碰撞（exec）：球越界拉回墙内 + 速度分量反向（草地边界，防穿墙）
+// 读最新 ballPos/ballVel 图变量，检测 |x|/|z| 越界 → 位置钳制 + 对应速度分量反向
+// ================================================================
+export const physWallCollide = g.defineComposite('phys_wall_collide', {
+  inputs: {},
+  outputs: {},
+  outflows: ['done'],
+  build: (_i, f) => {
+    const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const p = f.split3dVector(pos)
+    const v = f.split3dVector(vel)
+    // -X 墙（左）：球心 x < 墙 → 拉回 + vx 反向
+    f.doubleBranch(f.lessThan(p.xComponent, WALL_X_MIN), () => {
+      const np = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.create3dVector(WALL_X_MIN, p.yComponent, p.zComponent), new bool(false)])
+      const nv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(f.multiplication(f.absoluteValueOperation(v.xComponent), WALL_E), v.yComponent, v.zComponent), new bool(false)])
+      f.connect(np, 0, nv, 0)
+    }, () => {})
+    // +X 墙（右）
+    f.doubleBranch(f.greaterThan(p.xComponent, WALL_X_MAX), () => {
+      const np = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.create3dVector(WALL_X_MAX, p.yComponent, p.zComponent), new bool(false)])
+      const nv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(f.multiplication(f.absoluteValueOperation(v.xComponent), WALL_E_NEG), v.yComponent, v.zComponent), new bool(false)])
+      f.connect(np, 0, nv, 0)
+    }, () => {})
+    // -Z 墙（后）
+    f.doubleBranch(f.lessThan(p.zComponent, WALL_Z_MIN), () => {
+      const np = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.create3dVector(p.xComponent, p.yComponent, WALL_Z_MIN), new bool(false)])
+      const nv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(v.xComponent, v.yComponent, f.multiplication(f.absoluteValueOperation(v.zComponent), WALL_E)), new bool(false)])
+      f.connect(np, 0, nv, 0)
+    }, () => {})
+    // +Z 墙（前）
+    f.doubleBranch(f.greaterThan(p.zComponent, WALL_Z_MAX), () => {
+      const np = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.create3dVector(p.xComponent, p.yComponent, WALL_Z_MAX), new bool(false)])
+      const nv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(v.xComponent, v.yComponent, f.multiplication(f.absoluteValueOperation(v.zComponent), WALL_E_NEG)), new bool(false)])
+      f.connect(np, 0, nv, 0)
+    }, () => {})
+    const tail = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f._3dVectorZoom(f.getNodeGraphVariable('ballSpin').asType('vec3'), 1), new bool(false)])
+    f.outflow('done', tail, 0)
     return {}
   }
 })
@@ -294,67 +336,55 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
       })
     }, () => {})
 
-    // 出界 → 瞬移复位
-    const spawnCenter = f.create3dVector(0, BALL_R, 0)
-    f.doubleBranch(goal.isOut, () => {
-      const move = f.callComposite(motionInstant, { e, location: spawnCenter })
-      const mp = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), spawnCenter, new bool(false)])
-      f.connect(move as never, 0, mp, 0)
-      const mv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
-      f.connect(mp, 0, mv, 0)
-      const ms = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 0), new bool(false)])
-      f.connect(mv, 0, ms, 0)
-      const mst = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-      f.connect(ms, 0, mst, 0)
-      f.outflow('done', mst, 0)
+    // 门柱/横梁/球网反射（出界已改墙反弹，不再瞬移复位）
+    f.doubleBranch(goal.hitPost1, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitPost2, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitBar, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
+    }, () => {})
+    const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
+    f.doubleBranch(goal.netHit, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
+    }, () => {})
+
+    // ③ 四面墙碰撞（草地边界反弹）
+    const wall = f.callComposite(physWallCollide, {})
+
+    // ④ 地面反弹
+    const velAfterGoal = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const ground = f.callComposite(physGroundBounce, { pos: integ.npos, vel: velAfterGoal })
+    f.doubleBranch(ground.hit, () => {
+      const gp = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), ground.npos, new bool(false)])
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), ground.nvel, new bool(false)])
+      f.connect(gp, 0, gv, 0)
+    }, () => {})
+
+    // ⑤ 停球判定 → 静止；否则按贴地/离地写状态 + 定点移动
+    const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
+    f.doubleBranch(stop.isStop, () => {
+      const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
+      f.outflow('done', sf, 0)
     }, () => {
-      // 门柱/横梁/球网反射
-      f.doubleBranch(goal.hitPost1, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
-      }, () => {})
-      f.doubleBranch(goal.hitPost2, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
-      }, () => {})
-      f.doubleBranch(goal.hitBar, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
-      }, () => {})
-      const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
-      const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
-      f.doubleBranch(goal.netHit, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
-      }, () => {})
-
-      // ③ 地面反弹
-      const velAfterGoal = f.getNodeGraphVariable('ballVel').asType('vec3')
-      const ground = f.callComposite(physGroundBounce, { pos: integ.npos, vel: velAfterGoal })
-      f.doubleBranch(ground.hit, () => {
-        const gp = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), ground.npos, new bool(false)])
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), ground.nvel, new bool(false)])
-        f.connect(gp, 0, gv, 0)
-      }, () => {})
-
-      // ④ 停球判定 → 静止；否则按贴地/离地写状态 + 运动器
-      const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
-      const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
-      const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
-      const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
-      f.doubleBranch(stop.isStop, () => {
-        const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-        f.outflow('done', sf, 0)
+      const pp = f.split3dVector(posFinal)
+      const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
+      f.doubleBranch(grounded, () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+        const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+        f.connect(ss, 0, ap as never, 0)
+        f.outflow('done', ap as never, 0)
       }, () => {
-        const pp = f.split3dVector(posFinal)
-        const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
-        f.doubleBranch(grounded, () => {
-          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
-          f.connect(ss, 0, ap as never, 0)
-          f.outflow('done', ap as never, 0)
-        }, () => {
-          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
-          f.connect(ss, 0, ap as never, 0)
-          f.outflow('done', ap as never, 0)
-        })
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
+        const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+        f.connect(ss, 0, ap as never, 0)
+        f.outflow('done', ap as never, 0)
       })
     })
     return {}
@@ -393,51 +423,39 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       })
     }, () => {})
 
-    // 出界 → 瞬移复位
-    const spawnCenter = f.create3dVector(0, BALL_R, 0)
-    f.doubleBranch(goal.isOut, () => {
-      const move = f.callComposite(motionInstant, { e, location: spawnCenter })
-      const mp = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), spawnCenter, new bool(false)])
-      f.connect(move as never, 0, mp, 0)
-      const mv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
-      f.connect(mp, 0, mv, 0)
-      const ms = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 0), new bool(false)])
-      f.connect(mv, 0, ms, 0)
-      const mst = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-      f.connect(ms, 0, mst, 0)
-      f.outflow('done', mst, 0)
-    }, () => {
-      // 门柱/横梁反射（球滚到门框弹回）
-      f.doubleBranch(goal.hitPost1, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
-      }, () => {})
-      f.doubleBranch(goal.hitPost2, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
-      }, () => {})
-      f.doubleBranch(goal.hitBar, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
-      }, () => {})
-      // 球网衰减（球滚进网减速）
-      const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
-      const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
-      f.doubleBranch(goal.netHit, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
-      }, () => {})
+    // 门柱/横梁反射（球滚到门框弹回，出界已改墙反弹）
+    f.doubleBranch(goal.hitPost1, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitPost2, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitBar, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
+    }, () => {})
+    // 球网衰减（球滚进网减速）
+    const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
+    f.doubleBranch(goal.netHit, () => {
+      const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
+    }, () => {})
 
-      // ③ 停球判定 → 静止；否则继续滚滑 + 运动器
-      const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
-      const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
-      const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
-      const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
-      f.doubleBranch(stop.isStop, () => {
-        const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-        f.outflow('done', sf, 0)
-      }, () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-        const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
-        f.connect(ss, 0, ap as never, 0)
-        f.outflow('done', ap as never, 0)
-      })
+    // ③ 四面墙碰撞（草地边界反弹）
+    const wall = f.callComposite(physWallCollide, {})
+
+    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
+    const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
+    f.doubleBranch(stop.isStop, () => {
+      const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
+      f.outflow('done', sf, 0)
+    }, () => {
+      const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+      const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+      f.connect(ss, 0, ap as never, 0)
+      f.outflow('done', ap as never, 0)
     })
     return {}
   }

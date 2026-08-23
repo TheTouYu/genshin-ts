@@ -80,11 +80,13 @@ export const kickLaunch = g.defineComposite('kick_launch', {
   outputs: {},
   outflows: ['done'],
   build: ({ e }, f) => {
-    // 同步逻辑位置到球实体视觉位置（修复 ballPos 图变量残留导致视觉/逻辑错位）
+    // 同步逻辑位置到球实体视觉位置（球从实际所在位置施力）
     const loc = f.getEntityLocationAndRotation(e).location
-    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), loc, new bool(false)])
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    // 第一个目标点：当前位置 + 初速·0.2（预计算第一步，定点移动精确到达）
+    const target0 = f._3dVectorAddition(loc, f._3dVectorZoom(vel, 0.2))
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), loc, new bool(false)])
     const setState = f.registerExecNode('set_node_graph_variable', [
       new str('state'), new int(1), new bool(false)
     ])
@@ -93,7 +95,7 @@ export const kickLaunch = g.defineComposite('kick_launch', {
       new str('scored'), new bool(false), new bool(false)
     ])
     f.connect(setState, 0, setScored, 0)
-    const ap = f.callComposite(physApplyMotion, { e, vel, spin })
+    const ap = f.callComposite(physApplyMotion, { e, pos: target0, spin })
     f.connect(setScored, 0, ap as never, 0)
     f.outflow('done', ap as never, 0)
     return {}
