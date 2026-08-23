@@ -1,5 +1,5 @@
-// 灯阵玩法图 L2（v6 内联，由 tools/gen-levels.mjs 生成，勿手改）
-// 阵形 1×3，胜利 3 灯，预置掩码 0
+// 灯阵玩法图 L6（v6 内联，由 tools/gen-levels.mjs 生成，勿手改）
+// 阵形 3×3，胜利 9 灯，预置掩码 0
 import { defineSignal, g } from 'genshin-ts/runtime/core'
 import { listLiteral, str } from 'genshin-ts/runtime/value'
 import { RoundingMode } from 'genshin-ts/definitions/enum'
@@ -15,7 +15,7 @@ const LampSig = {
 } as const
 
 const graph = g
-  .server({ id: 1073741826 })
+  .server({ id: 1073741831 })
 
   .on('whenEntityIsCreated', (_e: any, f: any) => {
     const self = f.getSelfEntity()
@@ -30,14 +30,14 @@ const graph = g
       new listLiteral('int'),
     )
     const ixInit = f.roundToIntegerOperation(
-      f.division(f.subtraction(loc.x, 5), 2.5),
+      f.division(f.subtraction(loc.x, 2.5), 2.5),
       RoundingMode.RoundToNearest,
     )
     const izInit = f.roundToIntegerOperation(
       f.division(f.subtraction(loc.z, 2.5), 2.5),
       RoundingMode.RoundToNearest,
     )
-    const indexInit = f.addition(f.multiplication(izInit, 1n), ixInit)
+    const indexInit = f.addition(f.multiplication(izInit, 3n), ixInit)
     const pow2 = f.exponentiation(2n, indexInit)
     const shifted = f.division(0n, pow2)
     const litInit = f.equal(f.moduloOperation(shifted, 2n), 1n)
@@ -133,10 +133,10 @@ const graph = g
         f.setCustomVariable(self, new str('winCount'), next, false)
         const after = f.getCustomVariable(self, new str('winCount')).asType('int')
         f.doubleBranch(
-          f.equal(after, 3n),
+          f.equal(after, 9n),
           () => {
             f.printString('lamp-win')
-            f.sendSignal(LampSig.level_clear, 2)
+            f.sendSignal(LampSig.level_clear, 6)
           },
           () => { f.printString('win-counting') },
         )
@@ -149,18 +149,18 @@ const graph = g
     const self = f.getSelfEntity()
     const head = f.getCustomVariable(self, new str('head')).asType('entity')
     f.doubleBranch(
-      f.equal(evt.params.level, 2),
+      f.equal(evt.params.level, 6),
       () => {
         const loc = f.getEntityLocationAndRotation(self).location
         const ix = f.roundToIntegerOperation(
-          f.division(f.subtraction(loc.x, 5), 2.5),
+          f.division(f.subtraction(loc.x, 2.5), 2.5),
           RoundingMode.RoundToNearest,
         )
         const iz = f.roundToIntegerOperation(
           f.division(f.subtraction(loc.z, 2.5), 2.5),
           RoundingMode.RoundToNearest,
         )
-        const index = f.addition(f.multiplication(iz, 1n), ix)
+        const index = f.addition(f.multiplication(iz, 3n), ix)
         f.activateDisableModelDisplay(head, false)
         const delay = f.multiplication(f.dataTypeConversion(index, 'float'), 0.15)
         f.startTimer(self, 'waveDelay', false, [delay])
@@ -184,7 +184,7 @@ const graph = g
   .onSignal(LampSig.lamp_wipe, (evt: any, f: any) => {
     const self = f.getSelfEntity()
     f.doubleBranch(
-      f.equal(evt.params.level, 2),
+      f.equal(evt.params.level, 6),
       () => {
         const head = f.getCustomVariable(self, new str('head')).asType('entity')
         f.removeEntity(head)
@@ -199,18 +199,18 @@ const graph = g
     const self = f.getSelfEntity()
     const head = f.getCustomVariable(self, new str('head')).asType('entity')
     f.doubleBranch(
-      f.equal(evt.params.level, 2),
+      f.equal(evt.params.level, 6),
       () => {
         const loc = f.getEntityLocationAndRotation(self).location
         const ix = f.roundToIntegerOperation(
-          f.division(f.subtraction(loc.x, 5), 2.5),
+          f.division(f.subtraction(loc.x, 2.5), 2.5),
           RoundingMode.RoundToNearest,
         )
         const iz = f.roundToIntegerOperation(
           f.division(f.subtraction(loc.z, 2.5), 2.5),
           RoundingMode.RoundToNearest,
         )
-        const index = f.addition(f.multiplication(iz, 1n), ix)
+        const index = f.addition(f.multiplication(iz, 3n), ix)
         f.doubleBranch(
           f.equal(index, evt.params.seq),
           () => {

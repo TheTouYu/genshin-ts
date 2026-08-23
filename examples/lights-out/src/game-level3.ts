@@ -1,22 +1,18 @@
-
-// 灯阵玩法逻辑 关卡3（最小图 1073741890 v4，2026-08-16 动态关卡重构）
-// 挂载：灯柱L3 prefab def（createPrefab 动态创建的灯柱继承执行）
-//  - 灯头：whenEntityIsCreated 动态创建（灯头 prefab 带 basicMotion，y 1.34 灯罩中心）
-//  - 明暗：activateDisableModelDisplay(灯头, lit)；胜利庆祝：灯头旋转（basicMotion 已配）
-//  - 邻居：lamp_toggle 距离判定（<=0.1 自身 / <=3.0 邻居）；胜利：winCount==25
+// 灯阵玩法图 L3（v6 内联，由 tools/gen-levels.mjs 生成，勿手改）
+// 阵形 2×2，胜利 4 灯，预置掩码 8
 import { defineSignal, g } from 'genshin-ts/runtime/core'
 import { listLiteral, str } from 'genshin-ts/runtime/value'
+import { RoundingMode } from 'genshin-ts/definitions/enum'
 
 const LampSig = {
   lamp_toggle: defineSignal('lamp_toggle', [['senderPos', 'vec3'], ['hop', 'int']]),
   win_check: defineSignal('win_check', [['senderPos', 'vec3']]),
   win_ack: defineSignal('win_ack', [['senderPos', 'vec3']]),
-  level_clear: defineSignal('level_clear', [['level', 'int']])
+  level_clear: defineSignal('level_clear', [['level', 'int']]),
+  lamp_wipe: defineSignal('lamp_wipe', [['level', 'int']]),
+  win_wave: defineSignal('win_wave', [['level', 'int']]),
+  lamp_hint: defineSignal('lamp_hint', [['level', 'int'], ['seq', 'int']]),
 } as const
-
-const LAMP_HEAD_PREFAB = 1077936130
-const WIN_TARGET = 25
-const LEVEL = 3
 
 const graph = g
   .server({ id: 1073741827 })
@@ -25,18 +21,34 @@ const graph = g
     const self = f.getSelfEntity()
     const loc = f.getEntityLocationAndRotation(self).location
     const head = f.createPrefab(
-      LAMP_HEAD_PREFAB,
+      1077936130,
       f.create3dVector(loc.x, 1.34, loc.z),
       f.create3dVector(0, 0, 0),
       self,
       false,
       0,
-      new listLiteral('int')
+      new listLiteral('int'),
     )
-    f.setCustomVariable(self, new str('lit'), false, false)
+    const ixInit = f.roundToIntegerOperation(
+      f.division(f.subtraction(loc.x, 3.75), 2.5),
+      RoundingMode.RoundToNearest,
+    )
+    const izInit = f.roundToIntegerOperation(
+      f.division(f.subtraction(loc.z, 3.75), 2.5),
+      RoundingMode.RoundToNearest,
+    )
+    const indexInit = f.addition(f.multiplication(izInit, 2n), ixInit)
+    const pow2 = f.exponentiation(2n, indexInit)
+    const shifted = f.division(8n, pow2)
+    const litInit = f.equal(f.moduloOperation(shifted, 2n), 1n)
+    f.setCustomVariable(self, new str('lit'), litInit, false)
     f.setCustomVariable(self, new str('head'), head, false)
     f.setCustomVariable(self, new str('winCount'), 0n, false)
-    f.activateDisableModelDisplay(head, false)
+    f.doubleBranch(
+      litInit,
+      () => { f.activateDisableModelDisplay(head, true) },
+      () => { f.activateDisableModelDisplay(head, false) },
+    )
     f.printString('lamp-created')
   })
 
@@ -44,6 +56,7 @@ const graph = g
     const self = evt.eventSourceEntity
     const lit = f.equal(f.getCustomVariable(self, new str('lit')).asType('bool'), true)
     const head = f.getCustomVariable(self, new str('head')).asType('entity')
+    f.addUniformBasicRotationBasedMotionDevice(self, 'clickPulse', 0.25, 180, [0, 1, 0])
     f.doubleBranch(
       lit,
       () => {
@@ -53,7 +66,7 @@ const graph = g
       () => {
         f.setCustomVariable(self, new str('lit'), true, false)
         f.activateDisableModelDisplay(head, true)
-      }
+      },
     )
     const loc = f.getEntityLocationAndRotation(self).location
     f.sendSignal(LampSig.lamp_toggle, loc, 1)
@@ -85,32 +98,13 @@ const graph = g
               () => {
                 f.setCustomVariable(self, new str('lit'), true, false)
                 f.activateDisableModelDisplay(head, true)
-              }
+              },
             )
             f.printString('lamp-neighbor-toggle')
           },
-          () => { f.printString('lamp-recv-far-skip') }
+          () => { f.printString('lamp-recv-far-skip') },
         )
-      }
-    )
-  })
-
-  // 关卡清理（2026-08-16 用户反馈：通关后上一关产物应清除，否则全局信号污染下一关）
-  // 灯柱收到 level_clear 且 level==自己关卡 → 移除自身（含灯头，owner 链）
-  .onSignal(LampSig.level_clear, (evt: any, f: any) => {
-    const self = f.getSelfEntity()
-    f.doubleBranch(
-      f.equal(evt.params.level, LEVEL),
-      () => {
-        // 2026-08-16 v5：清理链补灯头——灯头是独立 createPrefab 实体，removeEntity(灯柱) 不级联
-        const head = f.getCustomVariable(self, new str('head')).asType('entity')
-        f.removeEntity(head)
-        f.removeEntity(self)
-        f.printString('lamp-cleaned')
       },
-      () => {
-        f.printString('lamp-clean-other')
-      }
     )
   })
 
@@ -123,7 +117,7 @@ const graph = g
         f.sendSignal(LampSig.win_ack, evt.params.senderPos)
         f.printString('win-ack-sent')
       },
-      () => { f.printString('win-no-ack') }
+      () => { f.printString('win-no-ack') },
     )
   })
 
@@ -137,29 +131,115 @@ const graph = g
         const count = f.getCustomVariable(self, new str('winCount')).asType('int')
         const next = f.addition(count, 1)
         f.setCustomVariable(self, new str('winCount'), next, false)
-        // 2026-08-16 修复（日志 2723 铁证：next 被 set+equal 两处消费 → addition 二次求值
-        // → 一次 ack 计两次：7→8→9 直接 win）。改：set 后重新 get，equal 用独立读取
         const after = f.getCustomVariable(self, new str('winCount')).asType('int')
         f.doubleBranch(
-          f.equal(after, WIN_TARGET),
+          f.equal(after, 4n),
           () => {
             f.printString('lamp-win')
-            f.sendSignal(LampSig.level_clear, LEVEL)
-            const head = f.getCustomVariable(self, new str('head')).asType('entity')
-            // 庆祝：灯柱整体自旋 360°（绕 Y 整圈，比灯头球自旋明显得多——用户质询修正）
-            // 目标 = self（玩法图挂载实体=灯柱本身）；灯柱 tabBar 生效→组件复制对灯柱成立，
-            // basicMotion 应同在（待游戏核验）；同时灯头闪烁兜底
-            f.addUniformBasicRotationBasedMotionDevice(self, 'celebrate', 2.0, 180.0, [0, 1, 0])
-            f.activateDisableModelDisplay(head, false)
-            f.activateDisableModelDisplay(head, true)
-            f.activateDisableModelDisplay(head, false)
-            f.activateDisableModelDisplay(head, true)
-            f.printString('lamp-celebrate')
+            f.sendSignal(LampSig.level_clear, 3)
           },
-          () => { f.printString('win-counting') }
+          () => { f.printString('win-counting') },
         )
       },
-      () => { f.printString('win-ack-other') }
+      () => { f.printString('win-ack-other') },
+    )
+  })
+
+  .onSignal(LampSig.win_wave, (evt: any, f: any) => {
+    const self = f.getSelfEntity()
+    const head = f.getCustomVariable(self, new str('head')).asType('entity')
+    f.doubleBranch(
+      f.equal(evt.params.level, 3),
+      () => {
+        const loc = f.getEntityLocationAndRotation(self).location
+        const ix = f.roundToIntegerOperation(
+          f.division(f.subtraction(loc.x, 3.75), 2.5),
+          RoundingMode.RoundToNearest,
+        )
+        const iz = f.roundToIntegerOperation(
+          f.division(f.subtraction(loc.z, 3.75), 2.5),
+          RoundingMode.RoundToNearest,
+        )
+        const index = f.addition(f.multiplication(iz, 2n), ix)
+        f.activateDisableModelDisplay(head, false)
+        const delay = f.multiplication(f.dataTypeConversion(index, 'float'), 0.15)
+        f.startTimer(self, 'waveDelay', false, [delay])
+      },
+      () => {},
+    )
+  })
+
+  .on('whenTimerIsTriggered', (evt: any, f: any) => {
+    const self = f.getSelfEntity()
+    f.doubleBranch(
+      f.equal(evt.timerName, new str('waveDelay')),
+      () => {
+        const head = f.getCustomVariable(self, new str('head')).asType('entity')
+        f.activateDisableModelDisplay(head, true)
+      },
+      () => {},
+    )
+  })
+
+  .onSignal(LampSig.lamp_wipe, (evt: any, f: any) => {
+    const self = f.getSelfEntity()
+    f.doubleBranch(
+      f.equal(evt.params.level, 3),
+      () => {
+        const head = f.getCustomVariable(self, new str('head')).asType('entity')
+        f.removeEntity(head)
+        f.removeEntity(self)
+        f.printString('lamp-cleaned')
+      },
+      () => { f.printString('lamp-clean-other') },
+    )
+  })
+
+  .onSignal(LampSig.lamp_hint, (evt: any, f: any) => {
+    const self = f.getSelfEntity()
+    const head = f.getCustomVariable(self, new str('head')).asType('entity')
+    f.doubleBranch(
+      f.equal(evt.params.level, 3),
+      () => {
+        const loc = f.getEntityLocationAndRotation(self).location
+        const ix = f.roundToIntegerOperation(
+          f.division(f.subtraction(loc.x, 3.75), 2.5),
+          RoundingMode.RoundToNearest,
+        )
+        const iz = f.roundToIntegerOperation(
+          f.division(f.subtraction(loc.z, 3.75), 2.5),
+          RoundingMode.RoundToNearest,
+        )
+        const index = f.addition(f.multiplication(iz, 2n), ix)
+        f.doubleBranch(
+          f.equal(index, evt.params.seq),
+          () => {
+            f.activateDisableModelDisplay(head, true)
+            f.startTimer(self, 'hintOff', false, [0.6])
+            f.printString('lamp-hint-shown')
+          },
+          () => {},
+        )
+      },
+      () => {},
+    )
+  })
+
+  .on('whenTimerIsTriggered', (evt: any, f: any) => {
+    const self = f.getSelfEntity()
+    f.doubleBranch(
+      f.equal(evt.timerName, new str('hintOff')),
+      () => {
+        const head = f.getCustomVariable(self, new str('head')).asType('entity')
+        const lit = f.getCustomVariable(self, new str('lit')).asType('bool')
+        f.doubleBranch(
+          lit,
+          () => { f.activateDisableModelDisplay(head, true) },
+          () => { f.activateDisableModelDisplay(head, false) },
+        )
+        f.printString('lamp-hint-off')
+      },
+      () => {},
     )
   })
 

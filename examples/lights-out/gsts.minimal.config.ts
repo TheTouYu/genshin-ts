@@ -9,6 +9,9 @@ const config: GstsConfig = {
     './src/game-level1.ts',
     './src/game-level2.ts',
     './src/game-level3.ts',
+    './src/game-level4.ts',
+    './src/game-level5.ts',
+    './src/game-level6.ts',
     './src/game-manager.ts'
   ],
   outDir: './dist-minimal',
