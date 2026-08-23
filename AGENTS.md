@@ -53,14 +53,14 @@
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
 | 游戏内最小注入核验 | `verify-injection` |
-| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer` |
+| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（**知识文档，直接 read 引用**，不在技能加载列表，勿用 skill 工具加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | 代码结构/调用关系/影响面分析 | `codebase-memory` |
 | 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
-| 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator` |
+| 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
-| 派独立模型/评估技能 | `isolated-model-evaluator` |
-| 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center` |
+| 派独立模型/评估技能 | `isolated-model-evaluator`（全局技能） |
+| 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center`（全局技能） |
 | 建/改技能 | `skill-creator` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 

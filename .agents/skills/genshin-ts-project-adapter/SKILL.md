@@ -1,6 +1,6 @@
 ---
 name: genshin-ts-project-adapter
-description: Route complex Genshin-TS compiler diagnosis, static GIL asset work, game-map writeback, and real-environment validation through bounded Project Memory and Domain Knowledge, with explicit evidence layers and approved semantic writes.
+description: 复杂 Genshin-TS 编译器诊断/静态 GIL 资产/地图写回/真实环境验证的「项目记忆层路由」——先查项目 PKC 知识树 Context（progressive-query）→ 读最小 Authority → 证据分层再动手。当任务需要判断"该查哪个 Context、该读哪份权威文档、证据分几层"、涉及 compiler-diagnostics / static-gil-assembly-production 两个 context、或复杂自适应诊断/写回准备时使用。与 task-command-center（会话级调度：何时加载技能）、composite-docs-navigator（composite/GIA 领域知识导航，直接 read 引用）分层分工，不要混用。
 ---
 
 # Genshin-TS Project Adapter

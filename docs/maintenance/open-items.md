@@ -480,3 +480,10 @@
 - 证据：`examples/composite-replica/src/batch2-random-enum-matrix.ts` 编译报错（2026-08-22 复刻实战）；`createTypedValue` 源码 switch 缺 enum 分支。
 - 修复方向（待统一安排）：`createTypedValue` 补 `case 'enum'`/`case 'enumeration'` 返回 `new enumeration(...)`（需确认 enumeration 构造方式与 capture 语义）；或复合输入类型系统显式排除 enum 并给出编译期报错（而非运行时 Invalid value type）。
 - 关联：`RuntimeValueTypeMap` 已含 `enum: enumeration`，`CompositeParamType = keyof RuntimeValueTypeMap` 类型层面允许 enum，但运行时 `createTypedValue` 未实现——类型与实现不一致。
+
+### O-2026-08-22-2. composite-docs-navigator/maintainer 不在会话技能加载列表（DSH 发现机制疑点，框架层待排查）
+
+- 现象：`.agents/skills/composite-docs-navigator/` 与 `composite-docs-maintainer/` 的 `SKILL.md` frontmatter 完全正常（name kebab-case + description，无 `disable-model-invocation`），但**不在会话 available_skills 目录**，`skill` 工具加载报 "not available for model invocation"。
+- 排查过程（2026-08-22 技能全景审计）：对比 frontmatter 格式、description 长度（756/676，未超 907 的可加载上限）、特殊字符（em dash/弯引号——maintainer 无特殊字符也排除）、冒号模式（均无冒号+空格）——**均非根因**；且刚改 `genshin-ts-project-adapter` 的 description 后目录实时刷新，说明 watcher 活跃，排除「未刷新」。
+- 根因判断：DSH skill-filesystem 发现机制层（`@deepseek-ai/dsh-skill-filesystem`）对这两个技能有未定位的排除规则，非项目文件可修。
+- 务实缓解（已做）：两者实际是「read 直接读」的知识文档（`genshin-ts-project-adapter` 第 7 条已用文件路径 read 引用）；AGENTS.md 路由表已标注「知识文档，直接 read 引用，勿用 skill 工具加载」。待 DSH 框架层定位根因后决定是否改回可加载。
