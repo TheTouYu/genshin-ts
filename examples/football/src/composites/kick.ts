@@ -11,6 +11,7 @@ import { physApplyMotion, physIntegrate } from './physics.js'
 const CENTER_X = 0
 const CENTER_Y = 0.25 // = BALL_R
 const CENTER_Z = 0
+const IMPULSE_SCALE = 0.35 // 运动中追加冲量相对“静态施力向量”的比例（加载量级）
 
 // ================================================================
 // 施力参数表：tabId → ballVel/ballSpin（exec 复合，内部 multipleBranches 分派）
@@ -130,7 +131,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     const curSpin = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const seq = f.getNodeGraphVariable('impulseSeq').asType('int')
     const impName = f.dataTypeConversion(seq, 'str')
-    const maxSpeed = new float(32)
+    const maxSpeed = new float(24)
     // 默认节点（entry 链首），分支覆盖
     const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), curVel, new bool(false)])
     const clampSpeed = (v) => {
