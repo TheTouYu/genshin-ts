@@ -4,7 +4,7 @@
 // 选项组件（tabBar）挂在足球本体上，5 米交互范围
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
-import { kickApplyForce, kickLaunch, kickReset } from './composites/kick.js'
+import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
 import { physTick } from './composites/physics.js'
 
@@ -29,6 +29,7 @@ const graph = g
       dbgTag: new str(''),
       dbgVal: new str(''),
       state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
+      impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)
     }
@@ -47,10 +48,22 @@ const graph = g
       },
       () => {
         const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
-        const ka = f.callComposite(kickApplyForce, { tabId })
-        const kl = f.callComposite(kickLaunch, { e: ball })
-        f.connect(lg as never, 0, ka as never, 0)
-        f.connect(ka as never, 0, kl as never, 0)
+        const state = f.getNodeGraphVariable('state').asType('int')
+        f.doubleBranch(
+          f.equal(state, 0n),
+          () => {
+            // 静止：设定初速 + 启动主运动器
+            const ka = f.callComposite(kickApplyForce, { tabId })
+            const kl = f.callComposite(kickLaunch, { e: ball })
+            f.connect(lg as never, 0, ka as never, 0)
+            f.connect(ka as never, 0, kl as never, 0)
+          },
+          () => {
+            // 运动中：只叠加冲量 + 启动唯一名冲量运动器，不新建 physics
+            const imp = f.callComposite(kickApplyImpulse, { e: ball, tabId })
+            f.connect(lg as never, 0, imp as never, 0)
+          }
+        )
       }
     )
   })

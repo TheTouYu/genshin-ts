@@ -3,7 +3,7 @@
 // 8 个施力选项（tabId 1-8，每选项给球施加不同方向/力度/旋转的力）+ 复位（tabId 9）
 // 球持续运动直到动能耗尽（速度足够小）才进入静止状态
 import { g } from 'genshin-ts/runtime/core'
-import { bool, int, str } from 'genshin-ts/runtime/value'
+import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { motionInstant } from './motion.js'
 import { physApplyMotion, physIntegrate } from './physics.js'
 
@@ -112,6 +112,141 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     ])
     f.connect(setState, 0, setScored, 0)
     f.outflow('done', setScored, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 运动中追加冲量（exec 复合）：读当前 ballVel/ballSpin，加法叠加选项冲量，
+// 同时启动一个唯一名的短时匀速直线运动器，让主运动器与冲量运动器“不同名叠加”
+// 主名 physics 继续负责状态机；冲量名 = dataTypeConversion(impulseSeq,'str')，stop 被忽略。
+// ================================================================
+export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
+  inputs: { e: { type: 'entity' }, tabId: { type: 'int' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ e, tabId }, f) => {
+    const curVel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const curSpin = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const seq = f.getNodeGraphVariable('impulseSeq').asType('int')
+    const impName = f.dataTypeConversion(seq, 'str')
+    const maxSpeed = new float(32)
+    // 默认节点（entry 链首），分支覆盖
+    const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), curVel, new bool(false)])
+    const clampSpeed = (v) => {
+      const mag = f._3dVectorModuloOperation(v)
+      const denom = f.addition(mag, 0.0001)
+      const minMag = f.division(f.subtraction(f.addition(mag, maxSpeed), f.absoluteValueOperation(f.subtraction(mag, maxSpeed))), 2)
+      return f._3dVectorZoom(v, f.division(minMag, denom))
+    }
+    f.multipleBranches(tabId, {
+      1: () => {
+        const dv = f.create3dVector(-14, 2, 0)
+        const dw = f.create3dVector(0, -6, 0)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      2: () => {
+        const dv = f.create3dVector(-24, 3, 0)
+        const dw = f.create3dVector(0, -8, 0)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      3: () => {
+        const dv = f.create3dVector(-15, 9, 0)
+        const dw = f.create3dVector(0, 0, 6)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      4: () => {
+        const dv = f.create3dVector(-16, 2, 2)
+        const dw = f.create3dVector(0, -9, 0)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      5: () => {
+        const dv = f.create3dVector(-16, 2, -2)
+        const dw = f.create3dVector(0, 9, 0)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      6: () => {
+        const dv = f.create3dVector(-18, 0.5, 0)
+        const dw = f.create3dVector(0, 0, 10)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      7: () => {
+        const dv = f.create3dVector(-14, 2, 0)
+        const dw = f.create3dVector(0, 0, -8)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      8: () => {
+        const dv = f.create3dVector(2, 3, 12)
+        const dw = f.create3dVector(6, 0, 0)
+        const nv = clampSpeed(f._3dVectorAddition(curVel, dv))
+        const nw = f._3dVectorAddition(curSpin, dw)
+        const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
+        const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
+        f.connect(sV, 0, sW, 0)
+        const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
+        f.connect(sW, 0, imp, 0)
+        const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
+        f.connect(imp, 0, inc, 0)
+      },
+      default: () => {}
+    })
+    f.outflow('done', done, 0)
     return {}
   }
 })
