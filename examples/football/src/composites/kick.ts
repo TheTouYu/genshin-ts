@@ -5,7 +5,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { motionInstant } from './motion.js'
-import { physApplyMotion } from './physics.js'
+import { physApplyMotion, physIntegrate } from './physics.js'
 
 // 场地中间（复位点）
 const CENTER_X = 0
@@ -84,18 +84,23 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     const loc = f.getEntityLocationAndRotation(e).location
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
-    // 第一个目标点：当前位置 + 初速·0.2（预计算第一步，定点移动精确到达）
-    const target0 = f._3dVectorAddition(loc, f._3dVectorZoom(vel, 0.2))
-    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), loc, new bool(false)])
+    // 第一个目标点必须用与 physFlyTick 完全相同的半隐式积分结果：
+    // 否则首段视觉按 v0·dt 走、物理按 v1·dt 走，造成 launch 过冲/回头（“虚拟天花板”）。
+    const integ = f.callComposite(physIntegrate, { pos: loc, vel, spin })
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
+    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    f.connect(setPos, 0, setVel, 0)
+    const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
+    f.connect(setVel, 0, setSpin, 0)
     const setState = f.registerExecNode('set_node_graph_variable', [
       new str('state'), new int(1), new bool(false)
     ])
-    f.connect(setPos, 0, setState, 0)
+    f.connect(setSpin, 0, setState, 0)
     const setScored = f.registerExecNode('set_node_graph_variable', [
       new str('scored'), new bool(false), new bool(false)
     ])
     f.connect(setState, 0, setScored, 0)
-    const ap = f.callComposite(physApplyMotion, { e, pos: target0, spin })
+    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
     f.connect(setScored, 0, ap as never, 0)
     f.outflow('done', ap as never, 0)
     return {}
