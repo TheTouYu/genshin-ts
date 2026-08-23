@@ -29,6 +29,7 @@
 | kickLaunch 纯数据复合多消费且中途写回输入图变量 → 引擎重新求值二次积分，低弹道球往草里扎 | 日志 2832：同一 physIntegrate 第二次输入使用已积分 ballVel；提交 9b0d261 | 消费顺序 setPos→physApplyMotion→setVel/setSpin；dsl 技能补行 |
 | 复位 lockRotation=true 保留上一段朝向，导致第二次横传 local axis≠world axis、旋转方向错 | 日志 2832：复位后球朝向仍 z≈105.7°；提交 9b0d261 | motionInstant 改 lockRotation=false；motion-devices.md §10 补语义 |
 | 同族：physFlyTick/physRollTick 也先写回 ball* 再消费 integ.*，goal/ground 二次积分 | 代码审查同族扩展；提交 5f2fc97 | 单 tick 物化 tmpPos/tmpVel/tmpSpin 快照；fly/roll 的 goal 只读快照 |
+| 上旋低平施力首段视觉目标未贴地 clamp，y=-0.1 扎草 | 日志 2836 DBG_KICK=6：rec188/484 首段 pos y=-0.1；提交 60308a7 | kickLaunch 首段目标 max(y,0.25) 贴地，速度用 integ.nvel；用户复测通过 |
 
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 
@@ -62,6 +63,13 @@
 - `205b88f` cases/node-copy/graph-var-add ops + 图变量注册/Str 变体 Set/DoubleBranch 语义闭合
 
 ## 未落地（OPEN）
+
+### 2026-08-23 长期记忆复盘（本次 LTM review，范围=只审 genshin-ts 主战场）
+
+- git 未落盘积压（genshin-ts，最高优先）：13+ 个 src/ 修改、3 个 docs/game-engine-knowledge/retrospective-2026-08-21-*.md、data/knowledge/bundles/bnd_a1fc4455* 与 bnd_fab275183*.json、examples/rubik-3x3/、cube-replica-c4/、football/evidence/ 均为 modified/untracked（证据：git status --short，08-23 复盘）。期望形态：活跃会话按小点主动提交（AGENTS.md 已授权）；bundle 数据文件与 .approval/.applied 一并提交。何时做：各活跃会话收尾时。
+- git 未落盘积压（genshin-ts-ui，最高优先）：src/cli 修改 + untracked retrospective-2026-08-21-football-field-arcs.md / orientation-table-convention.md / terrain-grass.md + resources/first-save-template.gil + examples/football/ 与 ui-interact-test/ + 已删除 assets/images/guide-arrow-right.css（证据：git status --short）。期望形态/何时做：同上。
+- 忆侧纪律缺口（触发太晚，非内容缺口）：Sa296f579 在 08-22 12:20 前实际 PKC/历史检索 = 0，用户两度提醒（12:20 写知识树、12:42 搜历史会话找定稿方案）才触发；知识树已有 节点<3000拒载/预算公式。期望形态：验证 AGENTS.md 检索优先级真的在任务中被第一动作执行，不重复加知识。何时做：下一轮复盘看 卡住第一动作是否检索 指标。
+- 量化工具跨项目 bug（本轮不动 hub，仅登记）：portable-knowledge/tools/memory-health-report.py 调用 pkc query ... --status any，rc5 CLI 报 unrecognized arguments: --status，一键健康报告不可用。期望形态：在枢纽修正 --status 调用。何时做：hub 维护窗口。
 
 ### O2. `build_fixture.ts` 的 def name 形状（f5）与 `exportStaticAssemblies`（f6.f11.f1）不符
 

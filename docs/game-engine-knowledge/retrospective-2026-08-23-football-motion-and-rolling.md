@@ -18,6 +18,7 @@
 | 6 | DSL 重复求值 | kickLaunch 先写 ballVel 再消费 integ.*，而 physIntegrate 的输入来自图变量 → 引擎按消费点重新积分，首段被二次重力拖低（轻射/横传往草里扎） | 消费顺序改为 setPos → physApplyMotion → setVel/setSpin，先消费再写回 | 9b0d261 |
 | 7 | 定点器 lockRotation 语义 | 复位用 lockRotation=true 被解释为“保留当前朝向”，上一段高吊的 z≈105.7° 残留导致横传 local axis≠world axis、旋转方向错 | motionInstant 改 lockRotation=false，复位真正应用 targetRotation=(0,0,0) | 9b0d261 |
 | 8 | DSL 重复求值（同族扩展） | physFlyTick/physRollTick 同样先写回 ballPos/ballVel/ballSpin 再消费 integ.*，goal/ground 会二次积分 | 单 tick 内物化 tmpPos/tmpVel/tmpSpin 快照，goal/ground 只读快照 | 5f2fc97 |
+| 9 | 首段视觉目标越界 | 上旋低平施力后首步积分被马格努斯压到 y=-0.1，kickLaunch 未 clamp → 球第一段扎进草 | 首段目标 max(y,0.25) 贴地 clamp，速度仍用积分速度 | 60308a7 |
 
 ## 二、最近一次错误的完整调查链
 
@@ -70,6 +71,16 @@
   并以 integ.npos 作为首段视觉目标；首段速度自动等于 integ.nvel，与后续 tick 无缝衔接。
 - 验证：game.gia 编译成功；临时副本注入回读 kick_launch（impl 1610710015）已含 phys_integrate 调用；
   真实地图注入 + Temp 同步 + 真实 GIL 回读通过。待用户复测。
+
+### 2.6 最终闭环：上旋低平扎草（日志 2836 DBG_* 核验）
+
+- 现象（用户反馈）：旋转方向已无明显问题；额外测试中上旋低平出现球扎进草地。
+- 铁证：`DBG_KICK=6`（上旋低平）；rec188/rec484 的首段 `DBG_POS`/`DBG_LOC` y=-0.1，state=1，
+  `DBG_SPIN={0,0,9.9}`。→ 施力后第一步积分被马格努斯压到地下，视觉第一段直接进草。
+- 根因：kickLaunch 用预积分 `integ.npos` 作为首段视觉目标，但没做和后继 tick 一样的地面 clamp。
+- 修复：首段目标 y 用 `max(integY, 0.25)` 贴地 clamp；速度仍保留 `integ.nvel` 不变。
+- 验证：编译成功；临时副本回读 kick_launch 出现 clamp 链；真实注入 + Temp 同步 + 真实 GIL 回读；
+  用户游戏复测“上旋低平不再扎草”通过。
 
 ## 三、系统性根因（可复用）
 
