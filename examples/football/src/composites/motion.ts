@@ -1,33 +1,31 @@
-// 足球运动器复合（exec）：定点移动 + 匀速旋转 + 瞬间移动
+// 足球运动器复合（exec）：点到点匀速直线 + 匀速旋转 + 瞬间移动
 // 命名前缀：motion_*
-// 2026-08-23 重构：velocity 运动器会自由漂移（视觉位置=当前位置+速度×时间，与物理目标点
-// 在碰撞修正后不一致导致穿模/悬空），改用定点运动器（activate_fixed_point_motion_device
-// 匀速直线 + FixedTime），球精确到达预计算的目标点，目标点已做地面/墙约束，永不越界。
+// 2026-08-23 重构：velocity 运动器重在"给定速度"会 free drift；这里按 (target-loc)/0.2
+// 计算速度，让球精确到达预计算目标点（目标点已做地面/墙约束，永不越界），
+// 同时用可与旋转运动器叠加的匀速直线运动器，避免定点运动器与旋转运动器互相打断。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, str } from 'genshin-ts/runtime/value'
 import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/enum'
 
-// 定点移动：0.2s 内精确移动到 target（匀速直线 + 固定时间）
+// 点到点移动：0.2s 内精确移动到 target（匀速直线运动器，速度按位移÷时长计算）
 // 目标点由物理预计算（重力/阻力/马格努斯/地面反弹/墙反弹/球门），y 已约束 ≥0.25、x/z 在墙内
-// move_speed 填实际速度（距离÷时间），兼容引擎 FixedTime/FixedSpeed 两种语义，避免 speed=0 球不动
+// 2026-08-23 修复：定点运动器(activate_fixed_point_motion_device)与同一事件链里激活的
+// 旋转运动器互相打断，直线设备被秒停 → 球原地不动（日志逐帧：GetEntityLocation 始终不动）。
+// 改回可与旋转运动器叠加的匀速直线运动器，但速度仍按 (target-loc)/0.2 计算，
+// 保留"精确到达预计算目标点"的防穿模目标，不做自由漂移。
 export const motionToPoint = g.defineComposite('motion_to_point', {
   inputs: { e: { type: 'entity' }, target: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
   build: ({ e, target }, f) => {
     const loc = f.getEntityLocationAndRotation(e).location
-    const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(target, loc))
-    const speed = f.multiplication(dist, 5) // dist / 0.2
-    const tail = f.registerExecNode('activate_fixed_point_motion_device', [
+    const delta = f._3dVectorSubtraction(target, loc)
+    const vel = f._3dVectorZoom(delta, 5) // (target - loc) / 0.2
+    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       e,
       new str('physics'),
-      MovementMode.UniformLinearMotion,
-      speed,
-      target,
-      f.create3dVector(0, 0, 0),
-      new bool(true),
-      FixedMotionParameterType.FixedTime,
-      new float(0.2)
+      new float(0.2),
+      vel
     ])
     f.outflow('done', tail, 0)
     return {}
