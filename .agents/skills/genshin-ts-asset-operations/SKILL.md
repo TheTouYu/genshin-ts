@@ -149,6 +149,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 - 只读：`gsts assets:signals inspect --gil <map>`
 - 注册：`gsts assets:signals register --name <n> --param <name:type> [--template-gil <donor>] [--template-signal <name>] [--send-id/--monitor-id/--server-id] --write`（省略 donor 用内置参数布局；重复的非 str 类型需要 donor，fail-closed）
+  - **实测（2026-08-23 rubik-3x3）**：**无参信号不带 donor 注册会报 `Cannot read properties of undefined (reading 'type')`**，带 `--template-gil <map> --template-signal <已有信号>` 即可成功（不传 `--param`）。带 int 参信号同样用同 donor + `--param name:int`。新信号必须先 `register` 进真实地图，之后 `gsts dev` 才能编码该信号的 `.gia`（编码期从地图读信号表，缺注册报 `signal is not registered in target map`）。ID 由 `--write` 自动分配（send/monitor/server 连号）。
 - 原位更新：`update --target-signal <name> --name <new> ...`；残缺注册修复：`repair --target-signal <name> --template-gil <verified-donor> --template-signal <name>`
 - 先注册再注入：目标图缺失时先 `assets:node-graphs create` 建空图（见 A 节）。
 
