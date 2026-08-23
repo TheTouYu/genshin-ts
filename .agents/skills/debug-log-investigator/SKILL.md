@@ -164,6 +164,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 |---|---|---|
 | Query Dictionary OUT0 = 13=0.0 | 字典未填充/键不存在 | 检查写入节点是否执行（whenEntityIsCreated 填充） |
 | 运动器 IN0:Entity= 空 | 空实体（列表越界/字典空值） | 检查 0-based 下标/字典值 |
+| 运动器设备帧都在、但 `Get Entity Location and Rotation` 连续多 tick 位置不变（只有微旋） | 同一 exec 链里**定点运动器被随后激活的旋转运动器秒停**；逻辑位置照常推进会形成“逻辑位置前进、实体位置纹丝不动”的铁证（2026-08-23 足球日志 2828/2829） | 移动+自旋组合改用 `add_uniform_basic_linear_motion_device` + `add_uniform_basic_rotation_based_motion_device`；直线速度显式算 `(target-loc)/duration`（motion-devices.md §10） |
 | 全 0 int_list 变量读出来只有 2/3 个元素（如 `cornerOrient=[0,0]`、`edgeOrient=[0,0,0]`，但 GIL 声明 8/12） | 引擎对“全 0 int_list”只物化出很短长度；且写 0 到越界下标不扩容 | 先写非 0 哨兵逐下标撑满，再写真实 0 值（`logicReset` 两阶段复位） |
 | Get Entity Location OUT0 偏离网格 | 位置漂移（公式/预计算问题） | 核对速度计算中间值 |
 | rotation 组合后异常 | 轴语义（局部轴） | 矩阵反推验证（YXZ 内旋 R=Ry·Rx·Rz） |

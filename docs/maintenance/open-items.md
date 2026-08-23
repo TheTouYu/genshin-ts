@@ -19,6 +19,13 @@
 | 定时器类型回归顺带暴露 Stage-1 新 bug：类型级 `typeof a.b`（QualifiedName）被 timer capture 误当运行时变量 → 生成跨作用域引用 `timerName` 并在 IR 阶段 ReferenceError | quicktest 红灯 `ReferenceError: timerName is not defined`（生成 .gs.ts 捕获块跨作用域） | `shouldCaptureIdentifier` 排除 `QualifiedName.right`；同文件类型断言保留为永久回归 |
 | 完整 `npm run gen` 再次产出 ~5.5k 行资源漂移（nodes/events/prefab 生成物） | 本次 gen 后 `git diff --stat`：nodes.ts 5520 行、events 561 行等 | 按 compiler-practical-optimization-backlog §7.1 恢复无关生成结果，改用 `--composite-contracts-only` 最小生成；**漂移仍需独立审计，不属于 P4-4** |
 
+### 2026-08-23 football 运动器叠加 + 物理状态机复盘
+
+| 发现 | 证据 | 落地方式 |
+|---|---|---|
+| 固定点运动器（匀速直线）与旋转运动器同链激活时直线设备被秒停，球原位不动；旧修复只改 move_speed 无效 | 日志 2828：ballPos 正常推进但 GetEntityLocation 连续多 tick (0,0.25,0)；提交 6fdcfa3 | motion-devices.md §10 新增定点器叠加规则；同族扫描无其他该组合 |
+| 落地状态机只看 pos.y 就转 ROLL，吞掉弹跳；滚滑沿用初旋方向导致方向错、摩擦 0.985 太滑 | 日志 2829：rec11 落地即 state=2，滚滑 ballSpin 恒绕 Z；提交 48b680d | football physics.ts 弹跳阈值 + 摩擦 0.8 + ω=(v_z/R,0,-v_x/R)；retrospective-2026-08-23-football-motion-and-rolling.md |
+
 ### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
 
 | 发现 | 证据 | 落地方式 |
