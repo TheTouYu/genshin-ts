@@ -39,7 +39,7 @@
 
 **配置字段号规律**：普通组件 = 类型码+10（如 12→f22、6→f16、13→f23）；含 501 配置列表的组件（27/28/29/38） = 类型码+11（27→f38、28→f39、29→f40、38→f49）。
 
-**CLI 组件白名单（2026-08-16/17 扩充）**：`staticAssemblies[].components` / `staticPrefabUpdates[].components`
+**CLI 组件白名单（2026-08-16/17/22 扩充）**：`staticAssemblies[].components` / **`structureFile` 的 `components` 字段** / `staticPrefabUpdates[].components`
 现支持 `followMotion`(9)、`basicMotion`(4)、`tabBar`(17)、**`nameplate`(27)**、**`textBubble`(28)**、
 **`lightSource`(38)**。
 

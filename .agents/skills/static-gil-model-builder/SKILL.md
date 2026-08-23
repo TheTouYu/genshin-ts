@@ -191,6 +191,8 @@ python tools/pkc.py progressive-query \
 
 复杂模型优先把 items 放进严格 `structureFile`，地图名称、模板、ID 和场景 Transform 留在配置中。这样调几何时不会反复改地图绑定信息。
 
+**structure 文件的 components 字段是给元件配组件的通用入口（2026-08-22 足球 basicMotion 丢失实证）**：`structureFile` 的 JSON 顶层支持 `components: [{type, preset/...}, ...]`，支持 followMotion(9)/basicMotion(4)/nameplate(27)/textBubble(28)/lightSource(38)/tabBar(17)——与 `staticAssemblies[].components` / `staticPrefabUpdates[].components` 同源（同一 `componentSnapshot` 编码器），且三层联动（root4 定义 f8 + root8 实例 f7 + root5 实体 f7）已实现（72dd60f）。**新建/重建预制体时必须配齐所需组件**（如运动类模型配 basicMotion、可交互类配 tabBar），否则游戏运行时运动器不生效/选项卡不显示。排查"模型能动但运动器节点执行无效果"时先 `assets:entities export` 看实体 `components` 字段——空数组 = 缺组件，去 structure 文件补 components 重建，不要写一次性脚本直接改实体字节。
+
 **给元件/实体配组件（components）的正确入口（2026-08-22 足球 basicMotion 丢失实证）**：组件（basicMotion type 4 / tabBar type 17 / followMotion 9 / nameplate 27 / textBubble 28 / lightSource 38）通过 `components` 字段配置，**三个等价入口**：
 1. `staticAssemblies[].components`（新建元件时，config 内联）；
 2. **`structureFile` 的 `components` 字段**（新建元件时，structure JSON 顶层，与 `items` 平级）——**注意 `structureFile` 与 config 内联 `components` 互斥**，用 structureFile 拼装饰物时组件必须写进 structure JSON 里，不能写 config；
