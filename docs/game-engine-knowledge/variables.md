@@ -178,6 +178,15 @@ dict 值支持 `str`/`int`/`float`/`str_list`/`int_list`/`bool_list`/`float_list
 > 2026-08-19 用户游戏核验通过：基于 packed 修复后元件新建的实体完整继承 `PF_list=[1,2]`
 > 与统一 str_list 的 `PF_dict`。尚未覆盖：负整数、空名/重名规则、
 > 游戏内获取/设置/变量变化事件，以及多实例运行时隔离。
+>
+> ⚠️ **运行时全 0 int_list 长度陷阱（2026-08-20 日志 2765/2766 实证）**：GIL 图变量里
+> `cornerOrient` 声明 8 个 0、`edgeOrient` 声明 12 个 0，但游戏运行时首次读取只物化出
+> `[0,0]` / `[0,0,0]`；高下标 `Get Corresponding Value From List` 会“列表索引越界”。
+> 这不是 GIL 编码问题（地图字节和 parse 都是满长），而是引擎对“全 0 int_list”初始值的
+> 运行时物化行为。更隐蔽的是：**向越界下标 `set_list_value` 写 0 不会扩展长度**（日志 2766：
+> `logicReset` 写 0 后 cornerOrient 仍 `[0,0]`、edgeOrient 仍 `[0,0,0]`），只有写非 0 值才会
+> 扩展（且中间槽可能是垃圾）。对策：先写非 0 哨兵逐下标把列表撑到满长，再写真实 0 值
+> （`logicReset` 两阶段复位）；不要依赖全 0 字面量长度或“写 0 自动扩容”。
 
 ## 待逐步还原
 

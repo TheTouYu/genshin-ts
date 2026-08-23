@@ -69,6 +69,11 @@ v′ = u·(u·v) + (v − u·(u·v))·cosθ + (u×v)·sinθ
 详见 gil-structure-semantics.md（2026-08-08 用户分步样本 + wire 交叉闭合）。
 组合旋转后 rotation 输出按同一约定反推，与"局部轴右乘"自洽（2026-08-13 复验）。
 
+> ⚠️ 2026-08-21 魔方朝向表事故：`GetEntityLocationAndRotation.rotate` 的返回值顺序是 **(x,y,z)**，
+> 不是 (y,x,z)。任何“欧拉角 → 矩阵 / 朝向索引 / 局部轴表”的生成器必须按
+> `R = Ry(y)·Rx(x)·Rz(z)` 实现，否则组合旋转后朝向索引错位、块在正确位置但贴纸/黑面错误。
+> 参考实现：`examples/rubik-3x3/tools/gen-orient-tables.mjs`。
+
 ## 4. 轨道/公转公式（平行分量必须保持）
 
 5 段折线逼近 90° 圆弧：每段 18°、0.2s。段速度必须基于**垂直分量**：

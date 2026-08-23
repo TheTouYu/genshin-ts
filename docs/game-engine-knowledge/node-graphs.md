@@ -253,3 +253,20 @@ dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升�
 
 - 不同节点图类型允许使用的节点范围。
 - 编辑器自动布局或规范化字段。
+
+## 节点图数量上限（3000，2026-08-21 真实差分定稿）
+
+游戏启动时按**单个节点图**统计"节点图数量"（不是地图总量、不是实体挂载合并、不是全部图展开总和），
+超过 3000 报"节点图数量超过3000"拒载。实测公式（10/10 回归通过，4 快照点零误差）：
+
+```
+gameNodeCount = (28/11) * mainExpanded - (761/1056) * implTotal - 39343/66
+```
+
+- `mainExpanded`：根图递归展开节点数（每个复合实例展开一份 impl，含嵌套）
+- `implTotal`：从根图**可达**的 impl 图展开之和（不可达复合不计；H:304 → I/J/K:400）
+- M 系数 28/11 由两次"干净实验"锁定（仅新增未连线复合实例、impl 图集合不变：Δactual/ΔM = 224/88）
+- implTotal 负系数 -0.72 与常数 -596.1 暂无物理直觉，待"只改变可达性"实验单独验证
+- 统计实现：`src/cli/static_assembly/graph_edit.ts` 的 `compositeNodeBudget` / `predictGameNodeCount`；
+  回归：`examples/rubik-3x3/tools/node-count-regression.ts`；快照：`snapshot-state.ts` + `diff-state.ts`
+- 嵌套统计已全量核对自洽：expand = direct + Σ(嵌套 expand × 实例数)（33 图全过）

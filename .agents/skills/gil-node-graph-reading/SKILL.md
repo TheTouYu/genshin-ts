@@ -112,11 +112,19 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
   ID 会类型错位 → 游戏拒载（无日志）。删除/新增复合会改变后续复合 ID（defineComposite 按定义顺序分配），
   所以**每轮注入后必须全量对比 def 集合**（dump_gil_index 或本工具），不能只看关键复合。
   工具局限：连续注入的残留（引用更早注入的覆盖物）可能逃逸 → 残留 def 用 `explain --composite` 人工核对接口。
+  误报判读（2026-08-21 实证）：`--incoming` 把 GIA 中 which=12（监听信号）/14（发送信号/向服务器发送信号）的
+  **信号定义单元**也收进对比，会报「GIA 复合 16106127xx 注入后在地图中缺失」——这是误报，信号单元以信号形态注册
+  （用 `scan-gil-signals.ts` 确认信号存在且被使用即正常），不是复合图；修复方向见 open-items O-2026-08-21-4。
 - 复合接口完整性：被调用复合（尤其被 MB 分支调用的）必须有 `inflows` 非空
   （混合复合=调用流+事件节点，如 orbit_segment 有 whenCustomVariableChanges + done
   outflow，必须有 InFlow 入口；纯事件复合如 trigger 接口全空是正常的）
 - 执行流条数：MB 分支 → 子复合调用的边应逐条可见；"外部入口 InFlow → MB →
   各分支"结构完整；执行流条数 = 分支数 + 后续链数
+- **执行边健康（2026-08-20 日志 2777 后新增，强制）**：用 `parse --json` 的 `flow` 列表核对：
+  - 每个普通 exec 节点（start_timer / set_list_value / set_node_graph_variable 等）**最多一条 InFlow 入边**；
+    复合调用 done 因 auto-chain 可能额外拉一条入边，导致同一节点执行两次（日志特征：Start Timer 同节点两帧）。
+  - 公共 merge/done 节点**不得回到分支入口**（否则 execution flow loop，游戏直接报循环）。
+  - 链尾节点应通过 `boundary` 映射到复合 `done` outflow，或显式连到后续节点。
 - 事件复合：事件入口 → MB 分发 → case 各分支完整（trigger 应为 10 条执行流）
 - 判定标准详见 docs/game-engine-knowledge/composite-nodes.md #20 章节验证命令
 读图自检发现问题 → 直接修（不浪费用户测试轮次）；读图技能覆盖面不足无法定位 →
@@ -144,10 +152,22 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
 5. **典型问题信号**：
    - API 写法：预期节点/连线缺失、参数值错、复合调用展开数与预期不符、compile 期
      `duplicate physical route`（exec 链显式 link 复合调用）
+   - **重复入边/死循环**：同一节点在 `flow` 列表出现多条 InFlow；或公共 done 回到分支入口。
+     这类问题编译期不报错，必须读 `flow`/`boundary` 才能发现（2026-08-20 日志 2777 实证）。
    - 编译器 bug：节点爆炸（函数内联×分支/常量当变量读）、capture 链异常、值类型错、
      丢边（.gia 有边 .gil 丢边——注入器按 CompositeDef 裁剪调用点引脚）
 
 核验通过才交用户游戏测试；发现问题直接修（改 DSL 或改注入器），不猜测。
+
+### Step 3.7 多图拆分核验（2026-08-21 新增）
+
+当玩法拆到多个节点图时，除了单图读图，还要：
+
+- `assets:mounts list <entity> --gil <map>`：确认目标实体挂载了哪些图，顺序是否符合预期。
+- 按图 ID 分别核对节点预算：`assets:node-graphs nodes` 目前默认只统计主图；多图时需扩展支持 `--graph <id>`。
+- `check-gil-composite-refs --incoming <各图.gia>`：检查跨图残留 def 是否被覆盖 ID（新增图后必跑）。
+- 每个图的 `whenTimerIsTriggered` / `Multiple Branches` 分发只处理自己负责的 timerName，避免两个图同时处理同一 timer 造成重复。
+- 共享状态通过实体自定义变量桥接时，读图确认 `getCustomVariable` / `setCustomVariable` 的变量名 pin 完整。
 
 ### Step 4 数据流定点（查具体节点参数来源）
 ```bash

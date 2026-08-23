@@ -5,9 +5,10 @@
   gia_log.py <日志.gia> text     # 提取 f22 文本日志（按记录序）
   gia_log.py <日志.gia> records  # 记录概览（大小/级别/实体/图ID/图名/是否含f21）
   gia_log.py <日志.gia> frames   # f21 帧表（图名/完整嵌套节点链/head/负载/输入输出参数，已解码）
-  gia_log.py <日志.gia> perf     # 性能聚合：每记录 帧数/总负载/均负载 + 按节点链统计
+  gia_log.py <日志.gia> perf     # 性能聚合：每秒负载（被踢指标）+ 每记录 + 按节点链统计
                                  #   真实执行性能 = 单次负载 × 执行次数（热点一目了然）
                                  #   --compare <日志2.gia> 输出两次会话逐记录帧数/负载对比
+                                 #   --sec <n> 输出指定秒的节点链明细
   gia_log.py <日志.gia> dump     # 逐帧原始结构 dump（无压缩，供精确核对）
   gia_log.py <日志.gia> latest   # 输出目录下最新 .gia 路径（供管道复用）
 
@@ -16,6 +17,7 @@
   --rec <n>         只看指定记录号（frames/dump/perf）
   --graph <id>      只看指定图（frames/dump/perf）
   --compare <日志>  对比两份日志逐记录帧数/负载（perf）
+  --sec <n>         只看指定秒的节点链明细（perf；秒 = 记录字段 f3）
 
 说明: frames 默认输出全部含 f21 的记录；帧 head = 调用栈字节序列（主图节点 → 复合
 impl 节点 → 嵌套 impl 节点…），已递归展开为完整节点链（如
@@ -406,54 +408,100 @@ def cmd_dump(recs, rec_filter=None):
 
 
 def _collect_perf(recs, gil, rec_filter, graph_filter):
-    """逐记录 + 逐节点链聚合：真实执行性能 = 单次负载 × 执行次数。"""
-    rec_stats = {}
+    """逐记录 + 逐秒 + 逐节点链聚合。
+
+    真实执行性能 = 单次负载 × 执行次数。
+    超载/被踢的核心指标 = 每秒负载（记录字段 f3 = 会话内已过秒数，秒桶内所有帧 f6 之和）。
+    """
+    rec_stats = {}   # rec -> (sec, 帧数, 总负载)
+    sec_stats = defaultdict(lambda: [0, 0])   # sec -> [帧数, 总负载]
     node_stats = defaultdict(lambda: [0, 0])  # 节点链 -> [次数, 总负载]
+    sec_node_stats = defaultdict(lambda: defaultdict(lambda: [0, 0]))  # sec -> 节点链 -> [次数, 总负载]
     for ri, r in enumerate(recs):
         if rec_filter is not None and ri != rec_filter: continue
-        graph = None
+        graph = None; sec = None
         for f, w, x, _ in walk_fields(r, 0, len(r)):
-            if f == 7:
+            if f == 3 and w == 0:
+                sec = x
+            elif f == 7:
                 for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
                     if f2 == 2:
                         graph = v2 if isinstance(v2, int) else int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
-                continue
+        if graph_filter is not None and graph != graph_filter: continue
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
             if f != 21: continue
-            if graph_filter is not None and graph != graph_filter: continue
             frames = frames_of(x)
             cnt = len(frames)
             tot_load = sum(fr[3] or 0 for fr in frames)
-            rec_stats[ri] = (cnt, tot_load)
+            rec_stats[ri] = (sec, cnt, tot_load)
+            if sec is not None:
+                sec_stats[sec][0] += cnt
+                sec_stats[sec][1] += tot_load
             for head, ins, outs, ld in frames:
                 nl = node_label(head, graph, gil)
                 key = nl if nl else f'head={head}'
                 node_stats[key][0] += 1
                 node_stats[key][1] += ld or 0
-    return rec_stats, node_stats
+                if sec is not None:
+                    sec_node_stats[sec][key][0] += 1
+                    sec_node_stats[sec][key][1] += ld or 0
+    return rec_stats, sec_stats, node_stats, sec_node_stats
 
 
-def cmd_perf(recs, gil=None, rec_filter=None, graph_filter=None, compare_path=None):
-    """性能聚合视图：一眼看出真实执行性能（= 单次负载 × 次数）。"""
-    rec_stats, node_stats = _collect_perf(recs, gil, rec_filter, graph_filter)
-    print('=== 每记录：帧数 / 总负载 / 均负载 ===')
-    for ri in sorted(rec_stats):
-        cnt, tot_load = rec_stats[ri]
+def cmd_perf(recs, gil=None, rec_filter=None, graph_filter=None, compare_path=None, sec_filter=None):
+    """性能聚合视图：按秒负载定位超载（被踢关键指标）+ 记录/节点链热点。"""
+    rec_stats, sec_stats, node_stats, sec_node_stats = _collect_perf(recs, gil, rec_filter, graph_filter)
+
+    print('=== 每秒负载（f3 秒桶：帧数 / 总负载 / 均负载，按负载降序 TOP 15）===')
+    print('   超载风险高→低；这是“1秒内平均负载过高被踢”的直接指标。')
+    for sec, (cnt, tot_load) in sorted(sec_stats.items(), key=lambda kv: -kv[1][1])[:15]:
         avg = f'{tot_load / cnt:.1f}' if cnt else '-'
-        print(f'rec{ri}: 帧={cnt} 负载={tot_load} 均={avg}')
+        print(f'sec{sec:>4}: 帧={cnt:>6} 负载={tot_load:>7} 均={avg}')
+
+    print('\n=== 每秒负载（时间序，峰值用 <<< 标记）===')
+    max_sec = max(sec_stats, key=lambda s: sec_stats[s][1]) if sec_stats else None
+    for sec in sorted(sec_stats):
+        cnt, tot_load = sec_stats[sec]
+        avg = f'{tot_load / cnt:.1f}' if cnt else '-'
+        mark = ' <<< PEAK' if sec == max_sec else ''
+        print(f'sec{sec:>4}: 帧={cnt:>6} 负载={tot_load:>7} 均={avg}{mark}')
+
+    if sec_filter is not None:
+        print(f'\n=== sec{sec_filter} 节点链明细（单次负载 × 次数 = 真实消耗，TOP 30）===')
+        sub = sec_node_stats.get(sec_filter, {})
+        if not sub:
+            print('（该秒无帧记录）')
+        for node, (cnt, tot_load) in sorted(sub.items(), key=lambda kv: -kv[1][1])[:30]:
+            avg = f'{tot_load / cnt:.1f}' if cnt else '-'
+            print(f'{cnt:5d} {tot_load:7d} {avg:>6}  {node[:110]}')
+
+    print('\n=== 每记录：秒 / 帧数 / 总负载 / 均负载 ===')
+    for ri in sorted(rec_stats):
+        sec, cnt, tot_load = rec_stats[ri]
+        avg = f'{tot_load / cnt:.1f}' if cnt else '-'
+        print(f'rec{ri}: sec={sec} 帧={cnt} 负载={tot_load} 均={avg}')
+
     print(f'\n=== 节点链性能（单次负载 × 次数 = 真实消耗，按总负载降序 TOP 40）===')
     print(f'{"次数":>5} {"总负载":>7} {"均负载":>6}  节点链')
     for node, (cnt, tot_load) in sorted(node_stats.items(), key=lambda kv: -kv[1][1])[:40]:
         avg = f'{tot_load / cnt:.1f}' if cnt else '-'
         print(f'{cnt:5d} {tot_load:7d} {avg:>6}  {node[:110]}')
+
     if compare_path:
         cmp_recs = load(compare_path)
-        cmp_stats, _ = _collect_perf(cmp_recs, gil, rec_filter, graph_filter)
+        cmp_rec_stats, cmp_sec_stats, _, _ = _collect_perf(cmp_recs, gil, rec_filter, graph_filter)
         print(f'\n=== 对比（当前 vs {os.path.basename(compare_path)}，按 rec 对齐）===')
-        print(f'{"rec":>5} {"当前帧":>6} {"对比帧":>6} {"Δ帧":>6} {"当前负载":>8} {"对比负载":>8} {"Δ负载":>8}')
+        print(f'{"rec":>5} {"当前秒":>6} {"当前帧":>6} {"对比帧":>6} {"Δ帧":>6} {"当前负载":>8} {"对比负载":>8} {"Δ负载":>8}')
         for ri in sorted(rec_stats):
-            c1, l1 = rec_stats[ri]
-            c2, l2 = cmp_stats.get(ri, (0, 0))
-            print(f'rec{ri:>2} {c1:6d} {c2:6d} {c2 - c1:6d} {l1:8d} {l2:8d} {l2 - l1:8d}')
+            s1, c1, l1 = rec_stats[ri]
+            s2, c2, l2 = cmp_rec_stats.get(ri, (None, 0, 0))
+            print(f'rec{ri:>2} {str(s1):>6} {c1:6d} {c2:6d} {c2 - c1:6d} {l1:8d} {l2:8d} {l2 - l1:8d}')
+        print(f'\n=== 每秒负载对比（当前 vs 对比，按秒对齐）===')
+        print(f'{"sec":>5} {"当前帧":>6} {"对比帧":>6} {"Δ帧":>6} {"当前负载":>8} {"对比负载":>8} {"Δ负载":>8}')
+        for sec in sorted(set(sec_stats) | set(cmp_sec_stats)):
+            c1, l1 = sec_stats.get(sec, (0, 0))
+            c2, l2 = cmp_sec_stats.get(sec, (0, 0))
+            print(f'{sec:>5} {c1:6d} {c2:6d} {c2 - c1:6d} {l1:8d} {l2:8d} {l2 - l1:8d}')
 
 
 def cmd_latest(d):
@@ -467,7 +515,7 @@ if __name__ == '__main__':
         cmd_latest(args[1] if len(args) > 1 else
                    '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log')
         sys.exit(0)
-    gil = None; rec_filter = None; graph_filter = None; contains = None; compare_path = None
+    gil = None; rec_filter = None; graph_filter = None; contains = None; compare_path = None; sec_filter = None
     rest = []
     i = 1
     while i < len(args):
@@ -481,6 +529,8 @@ if __name__ == '__main__':
             contains = args[i + 1]; i += 2
         elif args[i] == '--compare':
             compare_path = args[i + 1]; i += 2
+        elif args[i] == '--sec':
+            sec_filter = int(args[i + 1]); i += 2
         else:
             rest.append(args[i]); i += 1
     if not rest: print(__doc__); sys.exit(1)
@@ -490,7 +540,7 @@ if __name__ == '__main__':
     cmd = rest[0]
     if cmd == 'records': cmd_records(recs, gil)
     elif cmd == 'frames': cmd_frames(recs, gil, rec_filter, graph_filter, contains)
-    elif cmd == 'perf': cmd_perf(recs, gil, rec_filter, graph_filter, compare_path)
+    elif cmd == 'perf': cmd_perf(recs, gil, rec_filter, graph_filter, compare_path, sec_filter)
     elif cmd == 'dump': cmd_dump(recs, rec_filter)
     elif cmd == 'text': cmd_text(recs)
     else:

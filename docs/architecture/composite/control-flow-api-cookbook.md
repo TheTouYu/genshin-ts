@@ -799,6 +799,12 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 > `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning；应把各分支逻辑写入对应 callback，或用
 > `f.node()/f.link()`、`f.connectOutFlow()` 显式处理。`finiteLoop` / `listIterationLoop` 的高层 API
 > 已明确把普通后续接到 Loop Complete `OutFlow[1]`，不要把该循环例外误归入条件分支默认规则。
+>
+> ⚠️ **2026-08-20 实证（3×3 魔方）**：`finiteLoop` 循环体的**入口 exec 节点**必须用 `f.registerExecNode(...)` 或高层 flow API（如 `f.doubleBranch`），不要直接放 `f.node()`。`f.node()` 是 detached 创建：作为循环体入口不会自动接进 `OutFlow[0]`（日志：循环控制帧有、写入帧 0）；循环体外的 doneNode 用 `f.node()` 也不会被 Loop Complete `OutFlow[1]` 自动续接（日志：复合 done 不触发、后续 start_timer 零帧）。
+>
+> ⚠️ **同族规则（2026-08-20 日志 2765 实证）**：`f.doubleBranch` / `f.multipleBranches` / `f.connectOutFlow` 等**多出口执行流节点的回调体里，第一个 exec 节点同样不能用 `f.node()`**——`f.node()` 是 detached，不会自动挂到分支出口；必须用 `f.registerExecNode(...)`，或从分支源显式 `f.link`/`f.connect`。日志证据：`logic_is_solved` 的 `f.doubleBranch` true 分支用 `f.node('set_node_graph_variable')` 时分支条件为 true 但 Set 帧为 0，`solvedFlag` 恒 true → 转动一次立即结算胜利；读图显示 `Double Branch true → (无)`。
+>
+> ⚠️ **`finiteLoop(start, end)` 是闭区间 `[start, end]`**（`docs/architecture/ir-control-data-flow.md` 已记录；2026-08-20 日志 2766 再次实证）。要执行 N 次必须传 `end = start + N - 1n`：4 次=`(0n,3n)`、8 次=`(0n,7n)`、12 次=`(0n,11n)`、26 次=`(0n,25n)`。传 `(0n,Nn)` 会多执行一次并越界读写。
 
 | 你想做什么 | 写法 | 关键 API |
 |------------|------|----------|
@@ -879,6 +885,16 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 | `ServerExecutionFlowFunctions` 类起点 | `src/definitions/nodes.ts:700` |
 
 ---
+
+### 10.5 不稳定/待弃用 API（状态：已验证 / 当前推荐，2026-08-20 真实日志 2763/2765/2777 实证，新代码勿用）
+
+以下组合已被真实日志证明会产生死循环或重复执行，**新代码一律改用稳定写法**，旧代码逐步迁移；编译器后续会提供更自然的封装（见 `docs/maintenance/open-items.md` O-2026-08-20-4）。
+
+| 场景 | ❌ 不稳定写法 | ✅ 稳定写法 |
+|---|---|---|
+| 分支/循环后的公共 merge/done | `f.registerExecNode` 放在 `f.doubleBranch` 之前，分支尾再连回它 → 执行流死循环 | `f.node` 创建 detached 公共节点；分支尾 `f.connect(..., 0, doneNode, 0)`；`f.outflow('done', doneNode, 0)` |
+| `f.callComposite` 后的链尾 exec | `f.registerExecNode('start_timer', ...)` → auto-chain 多拉一条入边，同一节点执行两次 | `f.node('start_timer', ...)` + 显式 `f.connect(前置, 0, t, 0)` |
+| 分支/循环体第一个 exec | `f.node(...)` → detached 不执行 | `f.registerExecNode(...)` 或高层 flow API（这是它唯一推荐场景） |
 
 ## 11. 文档维护
 
