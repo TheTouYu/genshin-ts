@@ -150,3 +150,7 @@ vel_k = (p_k − p_{k−1}) / 0.2
 - 旧提交 bd9da07 只把定点器 move_speed 从 0 改成 dist/duration，日志证明 speed 正确仍然不动——
   **怀疑“参数默认值”之前，先核对日志里设备帧与实体位置变化**。
 - 定点器仍可用于 INSTANT_MOVEMENT 瞬移（如复位），不要因本结论把定点器全盘禁用。
+- **lockRotation 语义（日志 2832 闭合）**：`activate_fixed_point_motion_device` 的 `lockRotation=true` 是“保留当前朝向”，
+  `false` 才会把 `targetRotation` 应用到实体。要“复位同时把朝向清零/设为目标朝向”，必须传 `false`；
+  传 `true` 会让上一段旋转残留在实体上，后续 `addUniformBasicRotationBasedMotionDevice` 的 local axis 不再等于 world axis，
+  表现为“第一段旋转对、第二段错”。
