@@ -9,16 +9,20 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 
 // 定点移动：0.2s 内精确移动到 target（匀速直线 + 固定时间）
 // 目标点由物理预计算（重力/阻力/马格努斯/地面反弹/墙反弹/球门），y 已约束 ≥0.25、x/z 在墙内
+// move_speed 填实际速度（距离÷时间），兼容引擎 FixedTime/FixedSpeed 两种语义，避免 speed=0 球不动
 export const motionToPoint = g.defineComposite('motion_to_point', {
   inputs: { e: { type: 'entity' }, target: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
   build: ({ e, target }, f) => {
+    const loc = f.getEntityLocationAndRotation(e).location
+    const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(target, loc))
+    const speed = f.multiplication(dist, 5) // dist / 0.2
     const tail = f.registerExecNode('activate_fixed_point_motion_device', [
       e,
       new str('physics'),
       MovementMode.UniformLinearMotion,
-      new float(0),
+      speed,
       target,
       f.create3dVector(0, 0, 0),
       new bool(true),
