@@ -66,12 +66,14 @@ export const physIntegrate = g.defineComposite('phys_integrate', {
 export const physGoalCollide = g.defineComposite('phys_goal_collide', {
   inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' } },
   outputs: {
-    hitPost: { type: 'bool' },
+    hitPost1: { type: 'bool' },
+    hitPost2: { type: 'bool' },
     hitBar: { type: 'bool' },
     netHit: { type: 'bool' },
     isGoal: { type: 'bool' },
     isOut: { type: 'bool' },
-    nvelPost: { type: 'vec3' },
+    nvelPost1: { type: 'vec3' },
+    nvelPost2: { type: 'vec3' },
     nvelBar: { type: 'vec3' },
     nvelNet: { type: 'vec3' }
   },
@@ -81,27 +83,49 @@ export const physGoalCollide = g.defineComposite('phys_goal_collide', {
     const ax = f.absoluteValueOperation(p.xComponent) // |px|
     // 球到门线带符号距离 dx = |px| - 52.5（负=门前，正=门后）
     const dx = f.subtraction(ax, GOAL_X)
-    // —— 门柱 z=+3.6 与 z=-3.6 ——
+    // 反射系数 -(1+e)（e=恢复系数，标准反射公式 v' = v - (1+e)(v·n)n）
+    const reflCoef = -1.7
+    // —— 门柱 z=+3.6 与 z=-3.6：精确法向反射 ——
     const dz1 = f.subtraction(p.zComponent, POST_Z)
     const hd1 = f.addition(f.multiplication(dx, dx), f.multiplication(dz1, dz1))
-    const hitPz1 = f.lessThan(hd1, HIT_R2)
+    const hitGeom1 = f.lessThan(hd1, HIT_R2)
     const dz2 = f.addition(p.zComponent, POST_Z)
     const hd2 = f.addition(f.multiplication(dx, dx), f.multiplication(dz2, dz2))
-    const hitPz2 = f.lessThan(hd2, HIT_R2)
-    // 球在门柱高度内
+    const hitGeom2 = f.lessThan(hd2, HIT_R2)
     const postCap = f.addition(BAR_Y, f.addition(POST_R, BALL_R))
     const inPostHeight = f.lessThan(p.yComponent, postCap)
-    const hitPost = f.logicalAndOperation(
-      f.logicalOrOperation(hitPz1, hitPz2),
-      inPostHeight
+    const hitPost1 = f.logicalAndOperation(hitGeom1, inPostHeight)
+    const hitPost2 = f.logicalAndOperation(hitGeom2, inPostHeight)
+    // 门柱 1 法向反射：n1 = normalize(dx, 0, dz1)
+    const dvec1 = f.create3dVector(dx, 0, dz1)
+    const n1 = f._3dVectorNormalization(dvec1)
+    const vdotn1 = f._3dVectorDotProduct(vel, n1)
+    const nvelPost1 = f._3dVectorAddition(
+      vel,
+      f._3dVectorZoom(n1, f.multiplication(vdotn1, reflCoef))
     )
-    // —— 横梁 y=2.5（水平圆柱，沿 z）——
+    // 门柱 2 法向反射：n2 = normalize(dx, 0, dz2)
+    const dvec2 = f.create3dVector(dx, 0, dz2)
+    const n2 = f._3dVectorNormalization(dvec2)
+    const vdotn2 = f._3dVectorDotProduct(vel, n2)
+    const nvelPost2 = f._3dVectorAddition(
+      vel,
+      f._3dVectorZoom(n2, f.multiplication(vdotn2, reflCoef))
+    )
+    // —— 横梁 y=2.5（水平圆柱，沿 z）：精确法向反射（x-y 平面）——
     const dy = f.subtraction(p.yComponent, BAR_Y)
     const vd = f.addition(f.multiplication(dx, dx), f.multiplication(dy, dy))
     const hitBarGeom = f.lessThan(vd, HIT_R2)
     const barZ = f.addition(POST_Z, f.addition(POST_R, BALL_R))
     const inBarZ = f.lessThan(f.absoluteValueOperation(p.zComponent), barZ)
     const hitBar = f.logicalAndOperation(hitBarGeom, inBarZ)
+    const bvec = f.create3dVector(dx, dy, 0)
+    const nb = f._3dVectorNormalization(bvec)
+    const vdotnb = f._3dVectorDotProduct(vel, nb)
+    const nvelBar = f._3dVectorAddition(
+      vel,
+      f._3dVectorZoom(nb, f.multiplication(vdotnb, reflCoef))
+    )
     // —— 球网：越门线 且 门框内 ——
     const overLine = f.greaterThan(ax, GOAL_X)
     const inNetZ = f.lessThan(f.absoluteValueOperation(p.zComponent), POST_Z)
@@ -123,19 +147,11 @@ export const physGoalCollide = g.defineComposite('phys_goal_collide', {
       f.greaterThan(f.absoluteValueOperation(p.zComponent), OUT_Z),
       f.greaterThan(ax, OUT_X)
     )
-    // —— 反射速度 ——
-    const nvelPost = f.create3dVector(
-      f.multiplication(v.xComponent, -POST_E),
-      v.yComponent,
-      f.multiplication(v.zComponent, -POST_E)
-    )
-    const nvelBar = f.create3dVector(
-      v.xComponent,
-      f.multiplication(v.yComponent, -POST_E),
-      v.zComponent
-    )
     const nvelNet = f._3dVectorZoom(vel, NET_DAMP)
-    return { hitPost, hitBar, netHit, isGoal, isOut, nvelPost, nvelBar, nvelNet }
+    return {
+      hitPost1, hitPost2, hitBar, netHit, isGoal, isOut,
+      nvelPost1, nvelPost2, nvelBar, nvelNet
+    }
   }
 })
 
@@ -286,9 +302,13 @@ export const physTick = g.defineComposite('phys_tick', {
           f.connect(ms, 0, mst, 0)
           f.outflow('done', mst, 0)
         }, () => {
-          // 门柱反射
-          f.doubleBranch(goal.hitPost, () => {
-            const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost, new bool(false)])
+          // 门柱 1 反射（z=+3.6）
+          f.doubleBranch(goal.hitPost1, () => {
+            const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
+          }, () => {})
+          // 门柱 2 反射（z=-3.6）
+          f.doubleBranch(goal.hitPost2, () => {
+            const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
           }, () => {})
           // 横梁反射
           f.doubleBranch(goal.hitBar, () => {
