@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn, flowRequestMove, flowSolve } from './composites/flow.js'
+import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -214,7 +214,7 @@ const graph = g
   .on('whenTabIsSelected', (evt, f) => {
     // 14 复原（临时=重置到还原态）/ 15 重置：宿主写 blocks（复合内 entity_list 数组字面量有编码缺口）
     f.doubleBranch(
-      f.equal(evt.tabId, 15),
+      f.logicalOrOperation(f.equal(evt.tabId, 14), f.equal(evt.tabId, 15)),
       () => {
         const self = f.getSelfEntity()
         const r = f.callComposite(flowResetCore, { stage })
@@ -251,7 +251,7 @@ const graph = g
     const target = f.getSelfEntity()
     // 副控制器 B 的本地 tabId 已在 relay 中 +9 映射到全局 10..15
     f.doubleBranch(
-      f.equal(evt.params.tabId, 15),
+      f.logicalOrOperation(f.equal(evt.params.tabId, 14), f.equal(evt.params.tabId, 15)),
       () => {
         const r = f.callComposite(flowResetCore, { stage })
         f.setNodeGraphVariable('blocks', [
@@ -281,32 +281,6 @@ const graph = g
         })
       }
     )
-  })
-  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
-    f.multipleBranches(evt.params.op, {
-      1: () => {
-        // 求解器请求状态：发布 cp/co/ep/eo + 回 op=2
-        f.callComposite(flowSolve, { target: f.getSelfEntity() })
-      },
-      3: () => {
-        // 求解器已把解序列写入自定义变量：灌入 queue + 走自动播放（复用打乱路径）
-        const self = f.getSelfEntity()
-        const seq = f.getCustomVariable(self, new str('solve_seq')).asType('int_list')
-        const len = f.getCustomVariable(self, new str('solve_len')).asType('int')
-        f.finiteLoop(0n, f.subtraction(len, 1n), (i) => {
-          f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
-            f.getNodeGraphVariable('queue').asDict('int', 'int'), i, f.getCorrespondingValueFromList(seq, i)
-          ])
-        })
-        f.setNodeGraphVariable('qLen', len, false)
-        f.setNodeGraphVariable('autoMode', true, false)
-        f.setNodeGraphVariable('qIdx', new int(0), false)
-        f.setNodeGraphVariable('lock', true, false)
-        const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
-        f.callComposite(flowRequestMove, { moveId: mv0, target: self })
-      },
-      default: () => {}
-    })
   })
 
 export default graph
