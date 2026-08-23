@@ -275,7 +275,11 @@ const graph = g
   .on('whenEntityIsCreated', (_evt, f) => {
     f.printString('rubik3x3-solver-ready')
   })
-  .onSignal(RubikSignal.rubik3x3_solve_req, (_evt, f) => {
+  .on('whenTabIsSelected', (_evt, f) => {
+    // 专用自动求解实体选项卡：请求主图发布状态
+    f.sendSignal(RubikSignal.rubik3x3_solve_req)
+  })
+  .onSignal(RubikSignal.rubik3x3_solve_ready, (_evt, f) => {
     f.setNodeGraphVariable('phase', new int(1), false)
     f.setNodeGraphVariable('solveLen', new int(0), false)
     f.setNodeGraphVariable('solveIdx', new int(0), false)
@@ -286,7 +290,7 @@ const graph = g
       'solverTick': () => {
         f.multipleBranches(f.getNodeGraphVariable('phase').asType('int'), {
           1: () => {
-            const target = f.getSelfEntity()
+            const target = entity(1077936201n) // 状态宿主：控制器 A（主图发布处）
             const cp = f.getCustomVariable(target, new str('solver_cp')).asType('int_list')
             const co = f.getCustomVariable(target, new str('solver_co')).asType('int_list')
             const ep = f.getCustomVariable(target, new str('solver_ep')).asType('int_list')
