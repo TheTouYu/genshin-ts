@@ -226,7 +226,7 @@ const solverSendNext = g.defineComposite('solver_send_next', {
       f.getNodeGraphVariable('solveBuf').asType('int_list'),
       f.getNodeGraphVariable('solveIdx').asType('int')
     )
-    f.sendSignal(RubikSignal.rubik3x3_solve_move, mv)
+    f.sendSignal(RubikSignal.rubik3x3_solve, 3n, mv)
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
     return {}
@@ -276,14 +276,30 @@ const graph = g
     f.printString('rubik3x3-solver-ready')
   })
   .on('whenTabIsSelected', (_evt, f) => {
-    // 专用自动求解实体选项卡：请求主图发布状态
-    f.sendSignal(RubikSignal.rubik3x3_solve_req)
+    // 专用自动求解实体选项卡：请求主图发布状态（op=1）
+    f.sendSignal(RubikSignal.rubik3x3_solve, 1n, 0n)
   })
-  .onSignal(RubikSignal.rubik3x3_solve_ready, (_evt, f) => {
-    f.setNodeGraphVariable('phase', new int(1), false)
-    f.setNodeGraphVariable('solveLen', new int(0), false)
-    f.setNodeGraphVariable('solveIdx', new int(0), false)
-    f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
+    f.multipleBranches(evt.params.op, {
+      2: () => {
+        f.setNodeGraphVariable('phase', new int(1), false)
+        f.setNodeGraphVariable('solveLen', new int(0), false)
+        f.setNodeGraphVariable('solveIdx', new int(0), false)
+        f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+      },
+      4: () => {
+        // 上一步动画完成，推进到下一条 move 或结束
+        const idx = f.addition(f.getNodeGraphVariable('solveIdx').asType('int'), 1n)
+        f.setNodeGraphVariable('solveIdx', idx, false)
+        f.doubleBranch(f.lessThan(idx, f.getNodeGraphVariable('solveLen').asType('int')), () => {
+          f.callComposite(solverSendNext, {})
+        }, () => {
+          f.setNodeGraphVariable('phase', new int(8), false)
+          f.sendSignal(RubikSignal.rubik3x3_solve, 5n, 1n)
+        })
+      },
+      default: () => {}
+    })
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
     f.multipleBranches(evt.timerName as never, {
@@ -331,18 +347,6 @@ const graph = g
       },
       default: () => {}
     })
-  })
-  .onSignal(RubikSignal.rubik3x3_solve_ack, (_evt, f) => {
-    f.doubleBranch(f.equal(f.getNodeGraphVariable('phase').asType('int'), 7), () => {
-      const idx = f.addition(f.getNodeGraphVariable('solveIdx').asType('int'), 1n)
-      f.setNodeGraphVariable('solveIdx', idx, false)
-      f.doubleBranch(f.lessThan(idx, f.getNodeGraphVariable('solveLen').asType('int')), () => {
-        f.callComposite(solverSendNext, {})
-      }, () => {
-        f.setNodeGraphVariable('phase', new int(8), false)
-        f.sendSignal(RubikSignal.rubik3x3_solve_done, 1n)
-      })
-    }, () => {})
   })
 
 export default graph

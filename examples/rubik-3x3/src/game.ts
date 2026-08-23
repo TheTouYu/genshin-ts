@@ -207,6 +207,9 @@ const graph = g
       },
       'unlock': () => {
         f.setNodeGraphVariable('lock', false, false)
+        f.doubleBranch(f.equal(f.getNodeGraphVariable('solveActive').asType('bool'), true), () => {
+          f.sendSignal(RubikSignal.rubik3x3_solve, 4n, 0n)
+        }, () => {})
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
       },
       default: () => {}
@@ -283,19 +286,22 @@ const graph = g
       }
     )
   })
-  .onSignal(RubikSignal.rubik3x3_solve_req, (_evt: any, f: any) => {
-    // 专用自动求解实体的请求：发布状态到控制器 A + 回 solve_ready
-    f.callComposite(flowSolve, { target: f.getSelfEntity() })
-  })
-  .onSignal(RubikSignal.rubik3x3_solve_move, (evt: any, f: any) => {
-    // 求解器请求执行一步：加锁 + 复用 execMove 汇聚路径（动画流程与手动一致）
-    f.setNodeGraphVariable('lock', true, false)
-    f.setNodeGraphVariable('solveActive', true, false)
-    f.callComposite(flowRequestMove, { moveId: evt.params.moveId, target: f.getSelfEntity() })
-  })
-  .onSignal(RubikSignal.rubik3x3_solve_done, (evt: any, f: any) => {
-    f.setNodeGraphVariable('solveActive', false, false)
-    f.setNodeGraphVariable('lock', false, false)
+  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
+    f.multipleBranches(evt.params.op, {
+      1: () => {
+        f.callComposite(flowSolve, { target: f.getSelfEntity() })
+      },
+      3: () => {
+        f.setNodeGraphVariable('lock', true, false)
+        f.setNodeGraphVariable('solveActive', true, false)
+        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+      },
+      5: () => {
+        f.setNodeGraphVariable('solveActive', false, false)
+        f.setNodeGraphVariable('lock', false, false)
+      },
+      default: () => {}
+    })
   })
 
 export default graph

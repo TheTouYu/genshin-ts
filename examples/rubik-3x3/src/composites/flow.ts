@@ -415,18 +415,11 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
     })
     // 无论 AUTO 是否结束，统一做一次胜利检查（减少 flowCheckWin 在分支内重复展开）
     // 转动完成：blockOrient 已更新为“转动后”，同步到 blockOrientPre 供下一次转动发布
-    const syncPre = f.registerExecNode('set_node_graph_variable', [
+    f.registerExecNode('set_node_graph_variable', [
       new str('blockOrientPre'),
       f.getNodeGraphVariable('blockOrient').asType('int_list'),
       new bool(false)
     ])
-    // 求解模式：回执一步完成，让 solver 图继续推进（否则 solver 等待 solve_ack 卡住）
-    const brSolve = f.node('double_branch', [f.equal(f.getNodeGraphVariable('solveActive').asType('bool'), true)])
-    f.connect(syncPre, 0, brSolve, 0)
-    f.connectOutFlow(brSolve, 0, () => {
-      f.sendSignal(RubikSignal.rubik3x3_solve_ack)
-    })
-    f.connectOutFlow(brSolve, 1, () => {})
     f.callComposite(flowCheckWin, {})
     return {}
   }
@@ -476,7 +469,7 @@ export const flowSolve = g.defineComposite('flow_solve', {
     f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
-    f.sendSignal(RubikSignal.rubik3x3_solve_ready)
+    f.sendSignal(RubikSignal.rubik3x3_solve, 2n, 0n)
     const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
     f.outflow('done', doneNode, 0)
     return {}

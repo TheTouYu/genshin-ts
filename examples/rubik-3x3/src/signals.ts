@@ -3,14 +3,8 @@ import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const RubikSignal = {
   rubik3x3_tab: defineSignal('rubik3x3_tab', [['tabId', 'int']]),
-  // 求解器 -> 主图：请求主图发布逻辑状态
-  rubik3x3_solve_req: defineSignal('rubik3x3_solve_req', []),
-  // 主图 -> 求解器：状态已发布，可以开始求解
-  rubik3x3_solve_ready: defineSignal('rubik3x3_solve_ready', []),
-  // 求解器 -> 主图：请求执行一步（game moveId 1..6）
-  rubik3x3_solve_move: defineSignal('rubik3x3_solve_move', [['moveId', 'int']]),
-  // 主图 -> 求解器：上一步动画完成回执
-  rubik3x3_solve_ack: defineSignal('rubik3x3_solve_ack', []),
-  // 求解器 -> 主图：求解结束（ok 1=完成 0=失败）
-  rubik3x3_solve_done: defineSignal('rubik3x3_solve_done', [['ok', 'int']])
+  // 单一求解信号：op 区分阶段，val 携带参数
+  // op 1 求解器→主图 请求状态；2 主图→求解器 状态已发布；
+  // op 3 求解器→主图 执行一步(val=moveId)；4 主图→求解器 该步完成；5 求解器→主图 完成(val=ok)
+  rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']])
 } as const
