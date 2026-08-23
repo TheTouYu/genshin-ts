@@ -384,6 +384,15 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ② 球门碰撞（球滚到门柱）
     const goal = f.callComposite(physGoalCollide, { pos: integ.npos, vel: integ.nvel })
 
+    // 进球计分（去重，贴地球滚进球门也计分）
+    f.doubleBranch(goal.isGoal, () => {
+      f.doubleBranch(f.get('scored'), () => {}, () => {
+        const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), new int(1)), new bool(false)])
+        const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(true), new bool(false)])
+        f.connect(gc, 0, sc, 0)
+      })
+    }, () => {})
+
     // 出界 → 瞬移复位
     const spawnCenter = f.create3dVector(0, BALL_R, 0)
     f.doubleBranch(goal.isOut, () => {
@@ -407,6 +416,12 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       }, () => {})
       f.doubleBranch(goal.hitBar, () => {
         const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
+      }, () => {})
+      // 球网衰减（球滚进网减速）
+      const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
+      const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
+      f.doubleBranch(goal.netHit, () => {
+        const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
       }, () => {})
 
       // ③ 停球判定 → 静止；否则继续滚滑 + 运动器
