@@ -87,9 +87,14 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     // 第一个目标点必须用与 physFlyTick 完全相同的半隐式积分结果：
     // 否则首段视觉按 v0·dt 走、物理按 v1·dt 走，造成 launch 过冲/回头（“虚拟天花板”）。
     const integ = f.callComposite(physIntegrate, { pos: loc, vel, spin })
+    // 关键顺序：先消费 integ.npos/nspin 再写回 ballVel/ballSpin。
+    // physIntegrate 的输入来自图变量 get；若先写 ballVel 再消费 integ.*，
+    // 引擎会按“每个消费点求值一次”重新积分 → 首段目标被二次重力拖到地下（球往草里扎）。
     const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
+    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
+    f.connect(setPos, 0, ap as never, 0)
     const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
-    f.connect(setPos, 0, setVel, 0)
+    f.connect(ap as never, 0, setVel, 0)
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
     const setState = f.registerExecNode('set_node_graph_variable', [
@@ -100,9 +105,7 @@ export const kickLaunch = g.defineComposite('kick_launch', {
       new str('scored'), new bool(false), new bool(false)
     ])
     f.connect(setState, 0, setScored, 0)
-    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
-    f.connect(setScored, 0, ap as never, 0)
-    f.outflow('done', ap as never, 0)
+    f.outflow('done', setScored, 0)
     return {}
   }
 })

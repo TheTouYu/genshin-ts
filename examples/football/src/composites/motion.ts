@@ -52,6 +52,8 @@ export const motionSpin = g.defineComposite('motion_spin', {
 })
 
 // 瞬间移动（定点运动器 INSTANT 模式，复位用）
+// lockRotation=false 才会应用 targetRotation=(0,0,0)；true 是“锁定当前旋转”（日志 2832 实证：
+// 复位后球仍保留上一段高吊的 z≈105.7° 朝向，导致后续横传的 local axis ≠ world axis，旋转方向错）
 export const motionInstant = g.defineComposite('motion_instant', {
   inputs: { e: { type: 'entity' }, location: { type: 'vec3' } },
   outputs: {},
@@ -64,7 +66,7 @@ export const motionInstant = g.defineComposite('motion_instant', {
       new float(0),
       location,
       f.create3dVector(0, 0, 0),
-      new bool(true),
+      new bool(false),
       FixedMotionParameterType.FixedSpeed,
       new float(0)
     ])
