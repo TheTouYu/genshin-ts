@@ -88,7 +88,7 @@ gsts assets:ui list [--gil <map>] [--format json]
 gsts assets:ui clone <source-id> --id <new-id> [--name <n>] [--donor-gil <file>] [--gil <map>] --write
 gsts assets:ui create --type textbox|interactive-button|custom-button|image --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
 gsts assets:ui create --type image --id <new-id> --asset <素材索引ID> [--layout <布局ID>] [--name <n>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
-gsts assets:ui update <control-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--asset <素材ID>] [--gil <map>] --write
+gsts assets:ui update <control-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--asset <素材ID>] [--color <#RRGGBB>] [--gil <map>] --write
 gsts assets:ui delete <control-id> [--gil <map>] --write
 gsts assets:ui template list [--gil <map>] [--format json]
 gsts assets:ui template clone <source-id> --id <new-id> [--name <n>]
@@ -109,6 +109,7 @@ root9 502 记录按 f502 子记录的 type 码分三层：
 - `delete` 按种类级联删除：素材删容器+分类副本+全部组+num501+1841 分类树；模板删模板+所有实例；
   官方预制/实例删记录+从父容器 f503 移除+实例从模板 f14 移除。
 - `update --asset` 改素材引用（f6.f4）；目标是模板时同步改所有实例。
+- `update --color <#RRGGBB>` 改素材容器（含分类副本）所有图元组颜色 f505.f503.f31.f4（ARGB）。
 - `template create` 创建控件模板（type4 + type3 两条，实例挂控件组容器 1840，与布局解耦）。
 
 - root9 屏幕空间控件；position 是屏幕中心偏移、size 是宽高。
@@ -119,7 +120,7 @@ root9 502 记录按 f502 子记录的 type 码分三层：
 - `--type image` 创建官方预制「图片控件」引用素材：`--asset` 是素材索引 ID（= 素材库容器 ID，
   0x40000000+ 段，见 `assets:library-inject` 返回的 containerId）；`--layout` 默认 1073741825 默认布局。
   单条记录（f502[type5]），图片源引用素材路径 f505[f502=38].f503.f31.f6.f4 = 素材 ID。
-- **未覆盖**：素材图元编辑（改素材的颜色/位置/尺寸，需改组的形状/颜色/槽）；模板 name/position/size 编辑只改单条记录不自动同步实例。
+- **未覆盖**：素材图元的位置/尺寸/形状编辑（已覆盖颜色）；模板 name/position/size 编辑只改单条记录不自动同步实例。
 
 ## 4. 信号命令
 
