@@ -20,6 +20,11 @@ const graph = g
       ballPos: new vec3([CENTER_X, CENTER_Y, CENTER_Z]),
       ballVel: new vec3([0, 0, 0]),
       ballSpin: new vec3([0, 0, 0]),
+      // 单 tick 内把积分结果物化成快照，避免下面 goal/ground 再次消费 interg.*
+      // 时引擎按消费点重新求值（其输入来自图变量，消费前已被写回）
+      tmpPos: new vec3([0, 0, 0]),
+      tmpVel: new vec3([0, 0, 0]),
+      tmpSpin: new vec3([0, 0, 0]),
       state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)

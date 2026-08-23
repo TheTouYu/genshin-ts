@@ -331,9 +331,18 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
     f.connect(sPos, 0, sVel, 0)
     const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(sVel, 0, sSpin, 0)
+    // 物化快照：后面 goal/ground 一律读 tmp*，不再读 integ.*（避免重新求值）
+    const tPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), f.getNodeGraphVariable('ballPos').asType('vec3'), new bool(false)])
+    f.connect(sSpin, 0, tPos, 0)
+    const tVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), f.getNodeGraphVariable('ballVel').asType('vec3'), new bool(false)])
+    f.connect(tPos, 0, tVel, 0)
+    const tSpin = f.registerExecNode('set_node_graph_variable', [new str('tmpSpin'), f.getNodeGraphVariable('ballSpin').asType('vec3'), new bool(false)])
+    f.connect(tVel, 0, tSpin, 0)
+    const posSnap = f.getNodeGraphVariable('tmpPos').asType('vec3')
+    const velSnap = f.getNodeGraphVariable('tmpVel').asType('vec3')
 
     // ② 球门碰撞
-    const goal = f.callComposite(physGoalCollide, { pos: integ.npos, vel: integ.nvel })
+    const goal = f.callComposite(physGoalCollide, { pos: posSnap, vel: velSnap })
 
     // 进球计分（去重）
     f.doubleBranch(goal.isGoal, () => {
@@ -365,7 +374,7 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
 
     // ④ 地面反弹
     const velAfterGoal = f.getNodeGraphVariable('ballVel').asType('vec3')
-    const ground = f.callComposite(physGroundBounce, { pos: integ.npos, vel: velAfterGoal })
+    const ground = f.callComposite(physGroundBounce, { pos: posSnap, vel: velAfterGoal })
     f.doubleBranch(ground.hit, () => {
       const gp = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), ground.npos, new bool(false)])
       const gv = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), ground.nvel, new bool(false)])
@@ -429,9 +438,16 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     f.connect(sPos, 0, sVel, 0)
     const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(sVel, 0, sSpin, 0)
+    // 物化快照：goal 只读 tmp*，不读 integ.*（避免重复求值）
+    const tPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), f.getNodeGraphVariable('ballPos').asType('vec3'), new bool(false)])
+    f.connect(sSpin, 0, tPos, 0)
+    const tVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), f.getNodeGraphVariable('ballVel').asType('vec3'), new bool(false)])
+    f.connect(tPos, 0, tVel, 0)
+    const posSnap = f.getNodeGraphVariable('tmpPos').asType('vec3')
+    const velSnap = f.getNodeGraphVariable('tmpVel').asType('vec3')
 
     // ② 球门碰撞（球滚到门柱）
-    const goal = f.callComposite(physGoalCollide, { pos: integ.npos, vel: integ.nvel })
+    const goal = f.callComposite(physGoalCollide, { pos: posSnap, vel: velSnap })
 
     // 进球计分（去重，贴地球滚进球门也计分）
     f.doubleBranch(goal.isGoal, () => {
