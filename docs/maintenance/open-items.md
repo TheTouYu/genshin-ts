@@ -520,3 +520,11 @@
   - exec 图 1073741828 在 op4/6 无人发后已成死图（已挂 1077936230，可卸载）。
   - 地图仍注册旧 5 个信号 solve_req/ready/move/ack/done（DSL 已不用，死注册；待 assets:signals 清理能力确认后删）。
 - 证据：提交 723f679；真实地图 1073741899 回读（mounts list / signals inspect）。
+
+### O-2026-08-23-2. Stage3 复合 pin 路由两条谱系（shared-vendor 丢 data 输出 / legacy 丢列表节点 InParam）
+
+- 谱系1（d44b915 已兜底）：shared-vendor-impl-graph 丢「复合 data 输出→复合输入」路由，view_turn_unlock_if_last 的 slot 空 → unlock 永不触发 → 转动锁死。已用 options.stage3.vendorImplGraphBeta=false 回退 legacy 兜底。
+- 谱系2（未修，当前阻塞）：legacy 下 get_corresponding_value_from_list(128) 在复合 impl 里丢全部 InParam（IR 有 capture:true 的 index + list conn，但 .gia 只物化 OutParam、connects=[]）→ 数据连线断开 → 游戏加载拒载。
+- 根因方向：compositePins 边界路由的 capture 输入应按 ir_to_gia_transform/AGENTS.md「保留类型化物理 InParam」规则物化；当前被「普通 capture 跳过物理 pin」误删。
+- 疑似回归提交：b440a88 / 0593877（pin-hole adapter 共享重构 + preserve special arg pins）。
+- 证据：日志 2850；真实 .gil `assets:node-graphs read --composite 1610700026` 节点 3 无 InParam；dist/src/visual.json 节点 3 args=[conn, {int,null,capture:true}]。
