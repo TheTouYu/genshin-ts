@@ -26,6 +26,7 @@ const graph = g
       // —— 流程层 ——
       lock: false,
       autoMode: false,
+      spawned: false,
       settled: false,
       solvedFlag: false,
       qLen: new int(0),
@@ -171,31 +172,36 @@ const graph = g
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {
-    // 创建 26 块 + 写 blocks；发布到控制器实体自定义变量供视觉图读取
-    const self = f.getSelfEntity()
-    const cubes = f.callComposite(flowSpawnRubik, { stage })
-    f.setNodeGraphVariable('blocks', [
-      cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-      cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-      cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-      cubes.c24, cubes.c25
-    ], false)
-    f.setCustomVariable(self, new str('blocks'), [
-      cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-      cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-      cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-      cubes.c24, cubes.c25
-    ], false)
-    f.setCustomVariable(entity(1077936203n), new str('blocks'), [
-      cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-      cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-      cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-      cubes.c24, cubes.c25
-    ], false)
-    // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
-    // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
-    // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
-    f.callComposite(logicReset, {})
+    // 2026-08-23 负载被踢修复：whenEntityIsCreated 会被重复触发 3 次（日志 rec0/5/10），
+    // 每次 spawn 26 块 + logicReset；重复 3 次把秒级负载顶到 11324 被踢。加 spawned 守卫只跑一次。
+    f.doubleBranch(f.logicalNotOperation(f.getNodeGraphVariable('spawned').asType('bool')), () => {
+      f.setNodeGraphVariable('spawned', true, false)
+      // 创建 26 块 + 写 blocks；发布到控制器实体自定义变量供视觉图读取
+      const self = f.getSelfEntity()
+      const cubes = f.callComposite(flowSpawnRubik, { stage })
+      f.setNodeGraphVariable('blocks', [
+        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
+        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
+        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
+        cubes.c24, cubes.c25
+      ], false)
+      f.setCustomVariable(self, new str('blocks'), [
+        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
+        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
+        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
+        cubes.c24, cubes.c25
+      ], false)
+      f.setCustomVariable(entity(1077936203n), new str('blocks'), [
+        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
+        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
+        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
+        cubes.c24, cubes.c25
+      ], false)
+      // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
+      // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
+      // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
+      f.callComposite(logicReset, {})
+    }, () => {})
   })
   .on('whenTimerIsTriggered', (evt, f) => {
     f.multipleBranches(evt.timerName as never, {
