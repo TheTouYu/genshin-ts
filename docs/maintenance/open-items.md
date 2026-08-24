@@ -526,3 +526,14 @@
 - 谱系1（原判 shared-vendor 丢「复合 data 输出→输入」路由）：**已证伪**。真实 `.gia` decode + 最小 case 均显示该 conn 物化在位；面转锁死的真实根因是视觉图 `_GSTS_visual` 的 `whenTimerIsTriggered` 对 `execMove` 定时器误走 `view_handle_turn_core`（slot=0）。已在 `a71c4ea` 修 DSL（`visual.ts` default 置 handlerMode=2）。见 `docs/game-engine-knowledge/retrospective-2026-08-24-rubik3x3-stage3-turn-lock.md`。
 - 谱系2（legacy 下 get_corresponding_value_from_list 丢 InParam）：**已修** `4717aa0`（`buildImplNodePins` 补 `ordinaryConcreteNid` 门，列表反射边界 capture 保留物理 InParam），回归 `tests/composite/test-stage3-list-boundary-capture-physical-pin.ts` PASS。
 - 未闭合：Stage3 独立边界 capture 回归（p2w3/p2w8/p5w9/p5w10/p5w1）的修复在 `backup-stage3-fix-attempts` 分支（0d457a2/9a4fc6e），尚未合入主干；与面转游戏 bug 分开验收。
+
+### O-2026-08-24-1. rubik-3x3 视觉图挂载错位（已修地图，待游戏复测）
+
+- 现象：修掉 execMove 误触发后，面转“没有任何反应”。日志 2862 回读：turnblock/orbit2 定时器发到 `1077936203`，但视觉图 `1073741832` 挂在 `1077936201`。
+- 修复：`assets:mounts detach 1077936201 --graph 1073741832` + `attach 1077936203 --graph 1073741832` + `maps:resync`。回读 `1077936201=game`、`1077936203=relay+visual`。
+- 待办：游戏内复测面转（9 块逐槽位转 + 解锁）。
+
+### O-2026-08-24-2. 初始化负载拆分 setTimeout 待验证
+
+- `570ca46` 把 `logicReset` 用 `setTimeout(new float(5000))` 延后 5s（spawn 仍即时）。这是“进入负载”的独立缓解，不是“没反应”的根因。
+- 风险：5s 内手速触发转动时，列表可能尚未 reset。需连同挂载修复一起游戏复测；若 setTimer 反而引入首转越界/未初始化，需回退。

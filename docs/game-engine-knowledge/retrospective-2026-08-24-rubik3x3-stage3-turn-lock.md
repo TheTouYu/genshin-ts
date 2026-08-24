@@ -1,6 +1,6 @@
 # 完整复盘：rubik-3x3 面转“一个块在动 / 转完不解锁”的真实根因（Stage3 疑似回归实为 DSL 视觉调度逻辑）
 
-> 状态：已定位 / 已修复（DSL 层） / 待游戏复测
+> 状态：面转锁死已定位两处根因（DSL 视觉调度 + 图挂载错位），均已修复 / 待游戏复测；初始化负载拆分待验证
 > 范围：rubik-3x3 视觉图 `_GSTS_visual` 的 `whenTimerIsTriggered` 转向处理
 > 视角：从 Stage3 编译器疑似回归，逐步下钻到真实执行时间线后，确认是 DSL 逻辑错误
 > 证据：日志 `2850 / 2855 / 2859`；`.` 相关提交 `d9f61bb → a71c4ea`；基线快照
@@ -13,6 +13,7 @@
 | 1 | 面转 / 整体转 / 打乱后锁死，`view_turn_unlock_if_last` 的 Equal IN0(slot) 空 | shared-vendor 丢失“复合 data 输出→复合 data 输入”conn（f842349 记录） | 真实 `.gia` decode 显示这条 conn 已物化；最小 case 也 PASS | conn 从未丢失 | 本会话实测推翻 |
 | 2 | Stage3 5 个测试失败（boundary capture 物理 pin 过度物化） | 未区分测试回归与游戏回归，当成同一个 bug 修 | 修完 8 测试全 PASS，游戏仍坏 | 是独立编译器回归，但不是游戏根因 | `backup-stage3-fix-attempts` 分支（0d457a2 / 9a4fc6e） |
 | 3 | 面转“只一个块在动、旋转不对” | 编译器给 Addition 边界 capture 输入包了 ConcreteBase | 编辑器回读“节点正常”，说明静态接线没问题 | 视觉图把 `execMove` 启动定时器误当成一次 slot=0 的转动 | `a71c4ea`（DSL 修复）|
+| 4 | 修掉 3 后再按等于“没反应” | 初始化负载拆分（setTimeout）改坏执行顺序 | 日志 2862 rec2 视觉图只收到 execMove、没有任何 turnblock 帧 | 视觉图 `1073741832` 挂错实体：挂在 `1077936201`，而 `turnblock/orbit2` 定时器发到 `1077936203` | `assets:mounts` 移挂（地图写回） |
 
 ## 二、最近一次错误的完整调查链（时间线优先）
 
@@ -70,3 +71,22 @@
 - 基线快照：`~/genshin-ts-evidence/rubik3x3-stage3-baseline/1073741899.baseline-d9f61bb.gil`
   （sha256 `5110c938…`）
 - 待游戏复测：`view_turn_unlock_if_last > Equal` 是否有值、`view_turn_block` 是否按槽位逐块执行。
+
+## 附录：第二波（19:51 日志 2862，挂载错位 + 初始化负载拆分）
+
+1. 上一波 `a71c4ea` 修掉 execMove 误触发后，用户再按面转报“没有任何反应”。日志 2862 回读：
+   - rec0（game）：tab 按下 → `flow_request_move` 在 **1077936201** 上启动 `execMove`；
+   - rec1（game）：`flow_do_move` 在 **1077936203** 上启动 `turnblock`(9 槽) + `orbit2`；
+   - rec2（visual）：只收到 `execMove`（handlerMode=2 空操作，符合 a71c4ea），**再没有 turnblock/orbit2 帧**。
+2. `assets:mounts list` 铁证：
+   - `1077936201` 挂 `game + visual`；`1077936203` 只挂 `relay`。
+   - 而源码 `flow.ts` 的 `visualHost = entity(1077936203n)`，turnblock/orbit2 都发到该实体。
+   → 视觉图从来没收到过真正的转动定时器。
+3. 这个是“只一个块在动”的第二层真相：visual 图只能收到发到 1077936201 的 `execMove`，
+   把它误当 slot=0 转动一次；真正的 9 槽位 turnblock 从未送达。
+4. 修复：`assets:mounts detach 1077936201 --graph 1073741832` + `attach 1077936203 --graph 1073741832`，
+   `maps:resync`；回读确认 `1077936201=game`、`1077936203=relay+visual`、0 图未挂。
+   备份：`…1073741899/.gsts/backups/1073741899.gil.2026-08-24T11-58-0{3,4}*.bak`。
+5. 同期还有一项初始化负载拆分（`570ca46`，logicReset 用 `setTimeout(new float(5000))` 延后 5s）：
+   它是**独立**的进入负载问题，不是“没反应”的原因；尚未游戏验证，并有“5s 内手速转动时列表未 reset”的
+   理论风险，需连同挂载修复一起在游戏里复测后再定论。
