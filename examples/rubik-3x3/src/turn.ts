@@ -1,11 +1,12 @@
-// rubik-3x3 完整魔方（2026-08-20）
+// rubik-3x3 转动/逻辑图 _GSTS_turn（2026-08-24 拆图：承载 flowDoMove/flowAfterTurn/flowRequestMove）
 //
 // 架构：五层分离（输入/流程/逻辑/表现/结算），复合按目录分类：
 //   math / motion / logic / flow / view
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowSpawnRubik, flowSolve } from './composites/flow.js'
+import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble } from './composites/flow.js'
+import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
 import {
@@ -18,23 +19,9 @@ import {
   wholeCenterFrom, wholeCenterTo
 } from './tables.js'
 
-// 根图输入统一分派器：宿主写 pendingTab 后，两个输入路径都只启动这一个 0.01s 定时器，
-// 避免 flow_reset_publish / flow_tab_dispatch 在根图出现两个实例（各约 247/77 展开）。
-const mainStartDispatch = g.defineComposite('main_start_dispatch', {
-  id: 1610700062,
-  inputs: { target: { type: 'entity' } },
-  outputs: {},
-  outflows: ['done'],
-  build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('dispatch'), new bool(false), f.assemblyList([new float(0.01)], 'float')])
-    f.outflow('done', t, 0)
-    return {}
-  }
-})
-
 const graph = g
   .server({
-    id: 1073741830,
+    id: 1073741835,
     variables: {
       // —— 流程层 ——
       lock: false,
@@ -185,118 +172,40 @@ const graph = g
       turnChunk: new int(0)
     }
   })
-  .on('whenEntityIsCreated', (_evt, f) => {
-    // 2026-08-23 负载被踢修复：whenEntityIsCreated 会被重复触发 3 次（日志 rec0/5/10），
-    // 每次 spawn 26 块 + logicReset；重复 3 次把秒级负载顶到 11324 被踢。加 spawned 守卫只跑一次。
-    f.doubleBranch(f.logicalNotOperation(f.getNodeGraphVariable('spawned').asType('bool')), () => {
-      f.setNodeGraphVariable('spawned', true, false)
-      // 创建 26 块 + 写 blocks；发布到控制器实体自定义变量供视觉图读取
-      const self = f.getSelfEntity()
-      const cubes = f.callComposite(flowSpawnRubik, { stage })
-      f.setNodeGraphVariable('blocks', [
-        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-        cubes.c24, cubes.c25
-      ], false)
-      f.setCustomVariable(self, new str('blocks'), [
-        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-        cubes.c24, cubes.c25
-      ], false)
-      f.setCustomVariable(entity(1077936203n), new str('blocks'), [
-        cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-        cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-        cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-        cubes.c24, cubes.c25
-      ], false)
-      // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
-      // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
-      // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
-      // 2026-08-24 负载拆分：不把 logicReset 和 26 块 spawn 挤在进入那一秒；延到 5s 后跑。
-      setTimeout(() => {
-        f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
-      }, new float(5000))
-    }, () => {})
-  })
+
   .on('whenTimerIsTriggered', (evt, f) => {
     f.multipleBranches(evt.timerName as never, {
-      'dispatch': () => {
-        // 统一分派 A/B 两条输入路径，避免 flow_reset_publish / flow_tab_dispatch 两个根图实例
-        const tabId = f.getNodeGraphVariable('pendingTab').asType('int')
-        f.doubleBranch(
-          f.logicalOrOperation(f.equal(tabId, 14), f.equal(tabId, 15)),
-          () => {
-            // flow_reset_core 内联（现在只有 dispatch 一处调用）：
-            // 1) 26 块 stop/delete 循环  2) 重建  3) 逻辑复位  4) 写回 blocks
-            const blocksVar = f.getNodeGraphVariable('blocks').asType('entity_list')
-            f.finiteLoop(0n, 25n, (i) => {
-              const e = f.getCorrespondingValueFromList(blocksVar, i)
-              const stop = f.registerExecNode('stop_and_delete_basic_motion_device', [e, new str('spin'), new bool(true)])
-              const d = f.registerExecNode('destroy_entity', [e])
-              f.connect(stop, 0, d, 0)
-            })
-            const cubes = f.callComposite(flowSpawnRubik, { stage })
-            f.setNodeGraphVariable('autoMode', false, false)
-            f.setNodeGraphVariable('settled', false, false)
-            f.setNodeGraphVariable('qLen', new int(0), false)
-            f.setNodeGraphVariable('qIdx', new int(0), false)
-            f.setNodeGraphVariable('lastMove', new int(0), false)
-            f.setNodeGraphVariable('lock', false, false)
-            // turn 图复位自己的逻辑状态
-            f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
-            const blocks = f.assemblyList([
-              cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7,
-              cubes.c8, cubes.c9, cubes.c10, cubes.c11, cubes.c12, cubes.c13, cubes.c14, cubes.c15,
-              cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
-              cubes.c24, cubes.c25
-            ], 'entity')
-            f.setNodeGraphVariable('blocks', blocks, false)
-            f.setCustomVariable(evt.eventSourceEntity, new str('blocks'), blocks, false)
-            f.setCustomVariable(entity(1077936203n), new str('blocks'), blocks, false)
-          },
-          () => {
-            // flow_tab_dispatch 内联（现在只有 dispatch 一处调用）
-            f.setNodeGraphVariable('curMove', tabId, false)
-            f.doubleBranch(
-              f.equal(f.getNodeGraphVariable('lock').asType('bool'), true),
-              () => {},
-              () => {
-                const isMove = f.logicalAndOperation(
-                  f.greaterThan(tabId, 0),
-                  f.logicalNotOperation(f.greaterThan(tabId, 12))
-                )
-                f.doubleBranch(isMove, () => {
-                  // 由 turn 图统一接收 op3 并做 flowTabLock + flowRequestMove
-                  f.sendSignal(RubikSignal.rubik3x3_solve, 3n, tabId)
-                }, () => {
-                  f.multipleBranches(tabId, {
-                    13: () => f.sendSignal(RubikSignal.rubik3x3_solve, 10n, 0n),
-                    14: () => f.callComposite(flowSolve, { target: evt.eventSourceEntity }),
-                    16: () => {},
-                    default: () => {}
-                  })
-                })
-              }
-            )
-          }
-        )
+      'execMove': () => {
+        const mv = f.getNodeGraphVariable('pendingMove').asType('int')
+        f.setNodeGraphVariable('curMove', mv, false)
+        f.callComposite(flowDoMove, { moveId: mv, target: evt.eventSourceEntity })
+      },
+      'unlock': () => {
+        f.setNodeGraphVariable('lock', false, false)
+        f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
+      },
+      10: () => {
+        // 打乱：由 turn 图统一维护 queue/lock/autoMode
+        f.callComposite(flowScramble, { target: f.getSelfEntity() })
       },
       default: () => {}
     })
   })
-  .on('whenTabIsSelected', (evt, f) => {
-    // 统一走 dispatch 定时器，避免 flow_reset_publish / flow_tab_dispatch 在根图出现两个实例
-    f.setNodeGraphVariable('pendingTab', evt.tabId, false)
-    f.callComposite(mainStartDispatch, { target: f.getSelfEntity() })
-  })
-  .onSignal(RubikSignal.rubik3x3_tab, (evt: any, f: any) => {
-    // 副控制器 B 的本地 tabId 已在 relay 中 +9 映射到全局 10..15；统一走 dispatch 定时器
-    const target = f.getSelfEntity()
-    f.setNodeGraphVariable('pendingTab', evt.params.tabId, false)
-    f.callComposite(mainStartDispatch, { target })
-  })
 
+
+  .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
+    f.multipleBranches(evt.params.op, {
+      3: () => {
+        // 手动 tab 与求解执行都从这里统一进入转动
+        f.callComposite(flowTabLock, {})
+        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+      },
+      8: () => {
+        // 主图重置/开局 5s 后通知 turn 图复位自己的逻辑状态
+        f.callComposite(logicReset, {})
+      },
+      default: () => {}
+    })
+  })
 
 export default graph

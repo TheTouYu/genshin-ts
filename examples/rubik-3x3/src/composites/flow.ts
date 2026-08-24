@@ -424,7 +424,8 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
     f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
-    f.callComposite(flowCheckWin, {})
+    // 2026-08-24 拆图：胜利结算 flowCheckWin 暂从 flowAfterTurn 移除（避免 turn 图 engineExpanded 超 2000）。
+    // 视觉/逻辑复原仍可通过自动求解验证；手动静置胜利后续再单独择机恢复。
     return {}
   }
 })
