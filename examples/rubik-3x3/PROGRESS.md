@@ -210,3 +210,19 @@
   - 硬性规定新增：单图 engineExpanded ≤2000（用户定义，避免计算口径偏小的风险）。
   - 已注入，待用户最小化测试：打乱→开日志→点一次自动求解→核查（expect DBG_RUBIK_SOLVE replan/plan-done 与 op7）。
   - 补充：执行图增加 `doneTick`（最后一步播放后再等 1.2s 才发 op5），避免主图最后一步动画/状态发布未完成时规划图提前重算；op5 重算前 `solveLen=0` 清空旧序列。solver 执行图 engineExpanded=45、solverPlan=1687。
+
+## 附：主图 engineExpanded 拆分路线图（2026-08-24 user 批准完整方案）
+
+准确读图数据（`assets:node-graphs nodes --graph 1073741830 --json`）：
+- mainExpanded=1558，engineExpanded=3537；单项贡献（多计口径）：
+  - flow_do_move expanded=553 / flow_reset_publish 247 / flow_reset_core 239
+  - logic_apply_whole 154 / logic_reset 148 / logic_apply_face 144 / logic_apply_middle 106
+  - flow_tab_dispatch 77 / flow_after_turn 74 / flow_check_win 45 / flow_manual_check 39 / 其余小计
+- 计算：只拆 reset/manual 等 → engineExpanded≈2311；必须把 flow_do_move + logic_apply 三件套 + reset 整块拆出，才可达 ≈1907。
+
+执行顺序（每步核验，禁止一步莽改）：
+1. 建立 `_GSTS_turn` 图骨架与信号/事件协议（turn 图负责：tab 分派、flowRequestMove/flowDoMove/flowAfterTurn/flowCheckWin、logic 状态、复位/求解状态发布）。
+2. 将转动/逻辑所需图变量和 composite 调用迁入 turn 图；主图改为只处理「输入壳 / spawn / 对外发布」或最小协调。
+3. 主图删除不再调用的 defs（def-clean），turn/visual/relay 共享状态仍走控制器实体自定义变量。
+4. 工作站编译 --noinject、`assets:node-graphs nodes` 复算两次通过后，再按用户确认注入真图。
+5. 用户回归：打乱→自动求解→面转/整体转/复原 三项冒烟。
