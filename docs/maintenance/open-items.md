@@ -537,3 +537,11 @@
 
 - `570ca46` 把 `logicReset` 用 `setTimeout(new float(5000))` 延后 5s（spawn 仍即时）。这是“进入负载”的独立缓解，不是“没反应”的根因。
 - 风险：5s 内手速触发转动时，列表可能尚未 reset。需连同挂载修复一起游戏复测；若 setTimer 反而引入首转越界/未初始化，需回退。
+
+### O-2026-08-24-3. solverTick 限载已按锚点定 0.7s，待日志复核 + 后续层预算预案
+
+- 已做：`solver_start_tick` 按「面转 0.3s 极限」锚点标定为 0.7s（一次面转主路径 flow_do_move 展开 553 节点 → 可接受 ≈1843 节点/s；求解单 tick 最坏约 1095 节点 → 间隔≥0.59s，取 0.7s）。提交 `bce8cde`。
+- 待验证：游戏内核验 0.7s 求解是否不再踢；抓一次 Beyond_Debug_Log 用 `scripts/gia_log.py perf` 复核求解秒段每秒负载。
+- 未闭合优化：
+  - `solverCrossStep` 内算一次 `solver_cross_mask`（展开 359）+ 外层判定再算一次，可合并省约 1/3 单 tick 展开；
+  - 第二层/OLL/PLL 求解更重，必须沿用同一锚点标定法先估 tick 间隔与单 tick 拆分粒度，禁止再拍值。
