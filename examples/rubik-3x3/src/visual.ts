@@ -119,8 +119,12 @@ const graph = g
         ef.setNodeGraphVariable('handlerBase', 21n, false)
         ef.setNodeGraphVariable('handlerMode', 1n, false)
       },
-      // unlock 由主图（1073741825）处理，视觉图不拦截
-      default: () => {}
+      // execMove / unlock 等非视觉定时器：handlerMode 置 2（无匹配分支），
+      // 下面 join 后仍会调用 view_handle_timer_event，但其内部 multipleBranches
+      // 对 mode=2 走 default 空操作，避免把 execMove 误当成一次 slot=0 的转动。
+      default: () => {
+        ef.setNodeGraphVariable('handlerMode', 2n, false)
+      }
     })
     // join 后：只调用一次统一处理器
     ef.callComposite(viewHandleTimerEvent, {
