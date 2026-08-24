@@ -227,3 +227,4 @@
 4. 工作站编译 --noinject、`assets:node-graphs nodes` 复算两次通过后，再按用户确认注入真图。
 5. 用户回归：打乱→自动求解→面转/整体转/复原 三项冒烟。
 - 2026-08-24（拆主图 round1 实测）：根图两处 `flowResetPublish/flowTabDispatch` 重复实例合并为 `dispatch 0.01s` 统一分派（新增 main_start_dispatch 复合 id 1610700062）。实测主图 engineExpanded 3537→3216，mainExpanded 1558→1235，gameNodeCount(预测) 1120。仍超 2000；下一步把 flow_do_move+logic_apply 三件套迁移到新 _GSTS_turn 图（预计主图≈1706、turn 图≈1523）。
+- 2026-08-24（拆主图 round2 实测）：dispatch 单实例后，把 `flow_reset_publish` 与 `flow_tab_dispatch` 内联进根图 dispatch 分支（两个 def 已无根图实例，def 从 reachable 消失）。实测主图 engineExpanded 2966→2888，mainExpanded 1232→1231。后续大户：flow_do_move 553 / flow_reset_core 239 / logic_apply_* 404 / logic_reset 148。

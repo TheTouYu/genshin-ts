@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabDispatch, flowAfterTurn, flowRequestMove, flowResetPublish } from './composites/flow.js'
+import { flowDoMove, flowResetCore, flowSpawnRubik, flowTabLock, flowScramble, flowSolve, flowManualCheck, flowAfterTurn, flowRequestMove } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -238,11 +238,42 @@ const graph = g
         f.doubleBranch(
           f.logicalOrOperation(f.equal(tabId, 14), f.equal(tabId, 15)),
           () => {
-            f.callComposite(flowResetPublish, { stage, target: evt.eventSourceEntity })
+            // flow_reset_publish 内联（现在只有 dispatch 一处调用）：flowResetCore + 把 26 块写回
+            const r = f.callComposite(flowResetCore, { stage })
+            const blocks = f.assemblyList([
+              r.c0, r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7,
+              r.c8, r.c9, r.c10, r.c11, r.c12, r.c13, r.c14, r.c15,
+              r.c16, r.c17, r.c18, r.c19, r.c20, r.c21, r.c22, r.c23,
+              r.c24, r.c25
+            ], 'entity')
+            f.setNodeGraphVariable('blocks', blocks, false)
+            f.setCustomVariable(evt.eventSourceEntity, new str('blocks'), blocks, false)
+            f.setCustomVariable(entity(1077936203n), new str('blocks'), blocks, false)
           },
           () => {
+            // flow_tab_dispatch 内联（现在只有 dispatch 一处调用）
             f.setNodeGraphVariable('curMove', tabId, false)
-            f.callComposite(flowTabDispatch, { tabId, target: evt.eventSourceEntity })
+            f.doubleBranch(
+              f.equal(f.getNodeGraphVariable('lock').asType('bool'), true),
+              () => {},
+              () => {
+                const isMove = f.logicalAndOperation(
+                  f.greaterThan(tabId, 0),
+                  f.logicalNotOperation(f.greaterThan(tabId, 12))
+                )
+                f.doubleBranch(isMove, () => {
+                  f.callComposite(flowTabLock, {})
+                  f.callComposite(flowRequestMove, { moveId: tabId, target: evt.eventSourceEntity })
+                }, () => {
+                  f.multipleBranches(tabId, {
+                    13: () => f.callComposite(flowScramble, { target: evt.eventSourceEntity }),
+                    14: () => f.callComposite(flowSolve, { target: evt.eventSourceEntity }),
+                    16: () => f.callComposite(flowManualCheck, {}),
+                    default: () => {}
+                  })
+                })
+              }
+            )
           }
         )
       },
