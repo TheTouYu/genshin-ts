@@ -234,3 +234,10 @@
   - 六图 engineExpanded：game=317 / relay=1535 / visual=985 / solver=45 / solverPlan=1687 / turn=1936，全部 ≤2000。
   - 挂载：1077936201=game+turn；1077936203=relay+visual；1077936230=solver+solverPlan。
   - 待用户最小化回归：打乱(tab13)→自动求解→面转/整体转。
+- 2026-08-24（日志 2870 复盘：replan 单链截断修复）：
+  - 现象：事件驱动自动求解 `op5 replan` 一个信号回调内完成 读状态→mask→策略→追加序列，记录帧 3382 >3000 被引擎终止。
+  - 修复：solverPlan 引入 `planTick` 0.3s 定时器 + `pStep` 状态机，拆成 4 个小步：
+    step1 读状态写 sep/seo → step2 只算 mask → step3 策略查表写宏 → step4 每 tick 只追加一个 code，最后发 op6。
+  - 新增 `solver_start_plan_tick` 复合（id 1610700065）。
+  - 六图 engineExpanded 仍全部≤2000：game 317 / relay 1535 / visual 985 / solver 45 / solverPlan 1168 / turn 1936。
+  - 已注入待用户最小化回归：只点一次自动求解，看是否完整求解并自动转动。

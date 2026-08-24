@@ -1,7 +1,7 @@
 // solverCore.ts —— 求解器共享复合（事件驱动版：规划图不再模拟转动，只算下一步宏）
 // 约定：求解状态 = CubeLib 约定；move code 0..17；单信号 rubik3x3_solve(op,val)
 import { g } from 'genshin-ts/runtime/core'
-import { bool, int, str } from 'genshin-ts/runtime/value'
+import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { longListGetInt4 } from './list.js'
 import {
   CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
@@ -132,5 +132,18 @@ export const solverCrossStep = g.defineComposite('solver_cross_step', {
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
     return { mask }
+  }
+})
+
+// exec：启动下一个 planTick 小步（0.3s 低频率；每个 planTick 只做一小步重算）
+export const solverStartPlanTick = g.defineComposite('solver_start_plan_tick', {
+  id: 1610700065,
+  inputs: { target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target }, f) => {
+    const t = f.registerExecNode('start_timer', [target, new str('planTick'), new bool(false), f.assemblyList([new float(0.3)], 'float')])
+    f.outflow('done', t, 0)
+    return {}
   }
 })
