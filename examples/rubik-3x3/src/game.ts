@@ -200,7 +200,10 @@ const graph = g
       // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
       // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
       // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
-      f.callComposite(logicReset, {})
+      // 2026-08-24 负载拆分：不把 logicReset 和 26 块 spawn 挤在进入那一秒；延到 5s 后跑。
+      setTimeout(() => {
+        f.callComposite(logicReset, {})
+      }, new float(5000))
     }, () => {})
   })
   .on('whenTimerIsTriggered', (evt, f) => {
