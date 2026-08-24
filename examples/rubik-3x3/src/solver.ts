@@ -18,6 +18,19 @@ const solverStartEmitTick = g.defineComposite('solver_start_emit_tick', {
   }
 })
 
+// exec：序列播完后再等 1.2s（让主图最后一步动画完成/发布状态），才发 op5 回规划图重算
+const solverStartDoneTick = g.defineComposite('solver_start_done_tick', {
+  id: 1610700061,
+  inputs: { target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target }, f) => {
+    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(1.2)], 'float')])
+    f.outflow('done', t, 0)
+    return {}
+  }
+})
+
 const graph = g
   .server({
     id: 1073741833,
@@ -52,6 +65,9 @@ const graph = g
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
     f.multipleBranches(evt.timerName as never, {
+      'doneTick': () => {
+        f.sendSignal(RubikSignal.rubik3x3_solve, 5n, 1n)
+      },
       'emitTick': () => {
         const self = f.getSelfEntity()
         const seq = f.getCustomVariable(self, new str('solve_seq')).asType('int_list')
@@ -64,7 +80,7 @@ const graph = g
           f.doubleBranch(f.lessThan(nxt, len), () => {
             f.callComposite(solverStartEmitTick, { target: self })
           }, () => {
-            f.sendSignal(RubikSignal.rubik3x3_solve, 5n, 1n)
+            f.callComposite(solverStartDoneTick, { target: self })
           })
         }, () => {})
       },

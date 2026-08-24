@@ -209,3 +209,4 @@
   - 新事件循环：tab-start → op5(重算) → op6(交执行图) → executing 按 1.2s 播放 → op5(再算) → ... → op7(完成)。op5 每次前 solveLen=0。
   - 硬性规定新增：单图 engineExpanded ≤2000（用户定义，避免计算口径偏小的风险）。
   - 已注入，待用户最小化测试：打乱→开日志→点一次自动求解→核查（expect DBG_RUBIK_SOLVE replan/plan-done 与 op7）。
+  - 补充：执行图增加 `doneTick`（最后一步播放后再等 1.2s 才发 op5），避免主图最后一步动画/状态发布未完成时规划图提前重算；op5 重算前 `solveLen=0` 清空旧序列。solver 执行图 engineExpanded=45、solverPlan=1687。
