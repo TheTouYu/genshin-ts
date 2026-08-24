@@ -521,10 +521,8 @@
   - 地图仍注册旧 5 个信号 solve_req/ready/move/ack/done（DSL 已不用，死注册；待 assets:signals 清理能力确认后删）。
 - 证据：提交 723f679；真实地图 1073741899 回读（mounts list / signals inspect）。
 
-### O-2026-08-23-2. Stage3 复合 pin 路由两条谱系（shared-vendor 丢 data 输出 / legacy 丢列表节点 InParam）
+### O-2026-08-23-2. Stage3 复合 pin 路由两条谱系（真实根因已修正）
 
-- 谱系1（d44b915 已兜底）：shared-vendor-impl-graph 丢「复合 data 输出→复合输入」路由，view_turn_unlock_if_last 的 slot 空 → unlock 永不触发 → 转动锁死。已用 options.stage3.vendorImplGraphBeta=false 回退 legacy 兜底。
-- 谱系2（未修，当前阻塞）：legacy 下 get_corresponding_value_from_list(128) 在复合 impl 里丢全部 InParam（IR 有 capture:true 的 index + list conn，但 .gia 只物化 OutParam、connects=[]）→ 数据连线断开 → 游戏加载拒载。
-- 根因方向：compositePins 边界路由的 capture 输入应按 ir_to_gia_transform/AGENTS.md「保留类型化物理 InParam」规则物化；当前被「普通 capture 跳过物理 pin」误删。
-- 疑似回归提交：b440a88 / 0593877（pin-hole adapter 共享重构 + preserve special arg pins）。
-- 证据：日志 2850；真实 .gil `assets:node-graphs read --composite 1610700026` 节点 3 无 InParam；dist/src/visual.json 节点 3 args=[conn, {int,null,capture:true}]。
+- 谱系1（原判 shared-vendor 丢「复合 data 输出→输入」路由）：**已证伪**。真实 `.gia` decode + 最小 case 均显示该 conn 物化在位；面转锁死的真实根因是视觉图 `_GSTS_visual` 的 `whenTimerIsTriggered` 对 `execMove` 定时器误走 `view_handle_turn_core`（slot=0）。已在 `a71c4ea` 修 DSL（`visual.ts` default 置 handlerMode=2）。见 `docs/game-engine-knowledge/retrospective-2026-08-24-rubik3x3-stage3-turn-lock.md`。
+- 谱系2（legacy 下 get_corresponding_value_from_list 丢 InParam）：**已修** `4717aa0`（`buildImplNodePins` 补 `ordinaryConcreteNid` 门，列表反射边界 capture 保留物理 InParam），回归 `tests/composite/test-stage3-list-boundary-capture-physical-pin.ts` PASS。
+- 未闭合：Stage3 独立边界 capture 回归（p2w3/p2w8/p5w9/p5w10/p5w1）的修复在 `backup-stage3-fix-attempts` 分支（0d457a2/9a4fc6e），尚未合入主干；与面转游戏 bug 分开验收。
