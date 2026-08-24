@@ -190,3 +190,10 @@
   - `solver_start_tick` 从 0.2s 改 0.7s；decode-gia 核验 solverTick 延时编码为 0.7。
   - 规划完成耗时：平均 8.56 tick × 0.7 = 6.0s，最长 13 tick × 0.7 = 9.1s（播放阶段 1.2s/转不变）。
   - 待用户游戏核验：求解间隔是否不再触发负载踢出。
+- 2026-08-24（求解 tick 截断修复 + 调试日志埋点）：
+  - 用户日志 2864 复测：复原后 solverTick 已按 0.7s 生效，但 phase2 首个解算 tick 单记录 3052 帧 > 3000 上限被引擎截断，记录不 COMPLETE、后续帧不再执行 → solve_seq/op6 未派发，表现“自动求解无反应”。
+  - 修复 1：`solver_cross_step` 输出 `mask`，外层 phase2 直接用 `step.mask` 判定，不再二次调用 `solver_cross_mask`（单 tick 少约 700 帧）。
+  - 修复 2：`solver_apply_face` 的 4 个 `finiteLoop(0..3)` 改为 build 期 JS 展开（体小展开省控制帧；节点 55→145，solverPlan 可接受）。
+  - 调试日志：新增 `src/composites/debuglog.ts`（`dbg_tag` 显式 ID 1610700060，写 `dbgTag/dbgVal`）；solverPlan 在 tab-start / phase2 / plan-done / 未完成 mask 处打 `DBG_RUBIK_SOLVE` 标签。
+  - 读图核验：根图 phase2 = solver_cross_step→DoubleBranch→(true:写 seq/len→send op6→dbg plan-done; false:dbg→solver_start_tick)；solver_apply_face 已无 Finite Loop；gameNodeCount(预测)=833、engineExpanded=2885 <3000。
+  - 已注入真实地图 1073741899.gil。待用户最小化测试（先打乱→开日志→点一次自动求解→退出后给日志核查）。

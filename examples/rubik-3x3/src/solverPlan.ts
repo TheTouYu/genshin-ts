@@ -4,7 +4,8 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { RubikSignal } from './signals.js'
-import { solverCrossStep, solverCrossMask, solverStartTick } from './composites/solverCore.js'
+import { solverCrossStep, solverStartTick } from './composites/solverCore.js'
+import { dbgTag } from './composites/debuglog.js'
 import {
   CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
   CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
@@ -39,6 +40,8 @@ const graph = g
       ],
       solveLen: new int(0),
       phase: new int(0), // 0 idle / 1 init / 2 cross / 3 publish
+      dbgTag: new str(''),
+      dbgVal: new str(''),
       tmpA: new int(0),
       crossHomes: [4n, 5n, 6n, 7n],
       cubeLibG: [3n, 2n, 1n, 0n, 7n, 6n, 5n, 4n],
@@ -57,7 +60,10 @@ const graph = g
     // 自动求解实体选项卡：状态已由主图每步持续发布，直接开始求解
     f.setNodeGraphVariable('phase', new int(1), false)
     f.setNodeGraphVariable('solveLen', new int(0), false)
-    f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+    // DBG：标记一次有效的自动求解触发（日志帧搜 DBG_RUBIK_SOLVE）
+    const tag = f.callComposite(dbgTag, { tag: new str('DBG_RUBIK_SOLVE'), val: new str('tab-start') })
+    const tick = f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+    f.connect(tag as never, 0, tick as never, 0)
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
     f.multipleBranches(evt.timerName as never, {
@@ -85,21 +91,29 @@ const graph = g
               f.registerExecNode('set_list_value', [seo, c, f.getCorrespondingValueFromList(eo, c)])
             })
             f.setNodeGraphVariable('phase', new int(2), false)
-            f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+            const tag = f.callComposite(dbgTag, { tag: new str('DBG_RUBIK_SOLVE'), val: new str('phase2') })
+            const tick = f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+            f.connect(tag as never, 0, tick as never, 0)
           },
           2: () => {
-            f.callComposite(solverCrossStep, {})
+            // 2026-08-24 截断修复：mask 只算一次（solverCrossStep 内部算并输出），
+            // 外层不再重复调 solverCrossMask，省掉第二次 mask 展开帧。
+            const step = f.callComposite(solverCrossStep, {})
             f.doubleBranch(
-              f.equal(f.callComposite(solverCrossMask, { h0: 4n, h1: 5n, h2: 6n, h3: 7n }).mask, 15n),
+              f.equal(step.mask, 15n),
               () => {
                 f.setNodeGraphVariable('phase', new int(3), false)
                 // 解序列写入本实体（执行图同挂本实体读取），发 op=6 交执行图逐条定时播放
                 f.setCustomVariable(f.getSelfEntity(), new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), false)
                 f.setCustomVariable(f.getSelfEntity(), new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), false)
                 f.sendSignal(RubikSignal.rubik3x3_solve, 6n, 0n)
+                const tag = f.callComposite(dbgTag, { tag: new str('DBG_RUBIK_SOLVE'), val: new str('plan-done') })
+                // tag 已由 sendSignal 后链路的最后调用挂接；这里不额外 connect 避免重复入边
               },
               () => {
-                f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+                const tag = f.callComposite(dbgTag, { tag: new str('DBG_RUBIK_SOLVE'), val: f.dataTypeConversion(step.mask, 'str') })
+                const tick = f.callComposite(solverStartTick, { target: f.getSelfEntity() })
+                f.connect(tag as never, 0, tick as never, 0)
               }
             )
           },
