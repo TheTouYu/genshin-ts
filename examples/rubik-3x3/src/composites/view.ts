@@ -394,7 +394,10 @@ export const viewHandleTurnCore = g.defineComposite('view_handle_turn_core', {
     const prep = f.callComposite(viewTurnPrepare, { target, base, seq })
     const slot = f.callComposite(viewTurnSlot, { target, base, seq })
     f.connect(prep as never, 0, slot as never, 0)
-    const unlock = f.callComposite(viewTurnUnlockIfLast, { slot: slot.slot, target })
+    // 2026-08-23：shared-vendor 后端丢「复合调用 data 输出→复合调用输入」路由（slot.slot 空）。
+    // 这里 slot 本质是 base+seq 的纯数据表达式，直接本地重算传给 unlock，绕开该后端缺陷。
+    const slotIdx = f.addition(base, seq)
+    const unlock = f.callComposite(viewTurnUnlockIfLast, { slot: slotIdx, target })
     f.connect(slot as never, 0, unlock as never, 0)
     return {}
   }
