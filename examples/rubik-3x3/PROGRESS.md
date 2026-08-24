@@ -202,3 +202,10 @@
   - 日志 2869 复测：回滚版 phase2 tick 仍 3052 帧 >3000 被截断；applyFace 从帧 1423 开始且占满截断前大部分帧（4 个运行时 finiteLoop 控制帧大户）。
   - 修复 v2：`solver_apply_face` 4 个 finiteLoop 合并成 2 个（角块/棱块各一个，体 4 set/迭代），节点 55→51、solverPlan engineExpanded 2133；不 build 期展开，兼顾帧数与图规模。
   - 已注入，待用户游戏复测：开局应能进；自动求解单 tick 是否 <3000 且能跑到 plan-done。
+- 2026-08-24（求解器事件驱动重构）：
+  - 按用户铁律重写：不再模拟转动；主图每步转动完成持续发布状态，solverPlan 由 op5 事件触发重算，一次只算 mask+策略+追加一个宏序列，交执行图播放后回 op5 再算；十字完成即 op7 停止，全程无 0.7s/0.06s 重计算 tick。
+  - solverCore 删掉 solver_apply_face（模拟转动）；solver_cross_step 不再大循环模拟，只输出 mask 并追加宏序列；solverAppendCode 只写 solveBuf/solveLen。
+  - solverPlan 图 engineExpanded 从 2133 降到 **1687**（≤2000 硬限）；def-clean 删除残留 solver_apply_face/solver_start_tick/solver_send_next 三个旧 def。
+  - 新事件循环：tab-start → op5(重算) → op6(交执行图) → executing 按 1.2s 播放 → op5(再算) → ... → op7(完成)。op5 每次前 solveLen=0。
+  - 硬性规定新增：单图 engineExpanded ≤2000（用户定义，避免计算口径偏小的风险）。
+  - 已注入，待用户最小化测试：打乱→开日志→点一次自动求解→核查（expect DBG_RUBIK_SOLVE replan/plan-done 与 op7）。
