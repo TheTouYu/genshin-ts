@@ -55,6 +55,11 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 
 > 完整流程标准：实体的 tabBar 组件配置 + 节点图挂载 + 节点图编译注入，是三件并列的事，缺一不可。rubik-2x2 控制器（2026-08-13 已闭合）是该标准的参考实现。
 
+**定时器/事件与图挂载对齐（2026-08-24 rubik-3x3 “面转无反应”实证）**：写 `f.node('start_timer', [target, 'turnblock', ...])` 这类跨图定时器时，先回答“定时器发到哪个实体、监听它的图挂在哪”：
+- 反向 name 定位：`gsts assets:mounts list --gil <map>` 查每张图挂到哪个实体；`target` 实体的 choice 与 visualHost 常量要一致。
+- 典型事故：`flow_do_move` 把 `turnblock/orbit2` 发到 `visualHost=1077936203`，但视觉图挂在主控制器 `1077936201` → 图永远收不到槽位定时器，只有跨实体发错时漏进来的一发事件，表现为“只看到一个块动/完全没反应”。
+- 判断字段：日志里 `When Timer Is Triggered` 事件的 `OUT0/OUT1(entity/guid)` = 定时器 target 实体；对比 `assets:mounts list` 中监听的图挂载实体。
+
 ## 核心流程（每轮一个可归因变量）
 
 ```text
