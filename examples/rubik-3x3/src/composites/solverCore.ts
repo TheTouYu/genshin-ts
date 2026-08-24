@@ -93,45 +93,38 @@ export const solverApplyFace = g.defineComposite('solver_apply_face', {
     const teo = f.getNodeGraphVariable('teo').asType('int_list')
     const m1 = f.subtraction(moveId, 1n)
     const base = f.multiplication(m1, 4n)
-    // 2026-08-24 求解 tick 截断修复：4 个小循环由运行时 finiteLoop 改为 build 期展开。
-    // 逻辑同 logic_apply_face 的折中模式：体小（2 个 set_list_value / 4 次迭代）展开省控制帧；
-    // 节点增量约 24，远低于 solverPlan 图预算余量（engineExpanded 当前 ~2510）。
-    for (let s = 0; s < 4; s++) {
-      const idx = f.addition(base, new int(s))
+    f.finiteLoop(0n, 3n, (s) => {
+      const idx = f.addition(base, s)
       const from = f.getCorrespondingValueFromList(fcFrom, idx)
-      const setP = f.registerExecNode('set_list_value', [tcp, new int(s), f.getCorrespondingValueFromList(scp, from)])
-      const setO = f.registerExecNode('set_list_value', [tco, new int(s), f.getCorrespondingValueFromList(sco, from)])
-      f.connect(setP, 0, setO, 0)
-    }
-    for (let s = 0; s < 4; s++) {
-      const idx = f.addition(base, new int(s))
+      f.registerExecNode('set_list_value', [tcp, s, f.getCorrespondingValueFromList(scp, from)])
+      f.registerExecNode('set_list_value', [tco, s, f.getCorrespondingValueFromList(sco, from)])
+    })
+    f.finiteLoop(0n, 3n, (s) => {
+      const idx = f.addition(base, s)
       const to = f.getCorrespondingValueFromList(fcTo, idx)
       const tw = f.getCorrespondingValueFromList(fcTw, f.addition(
-        f.addition(f.multiplication(m1, 12n), f.multiplication(new int(s), 3n)),
-        f.getCorrespondingValueFromList(tco, new int(s))
+        f.addition(f.multiplication(m1, 12n), f.multiplication(s, 3n)),
+        f.getCorrespondingValueFromList(tco, s)
       ))
-      const setP = f.registerExecNode('set_list_value', [scp, to, f.getCorrespondingValueFromList(tcp, new int(s))])
-      const setO = f.registerExecNode('set_list_value', [sco, to, tw])
-      f.connect(setP, 0, setO, 0)
-    }
-    for (let s = 0; s < 4; s++) {
-      const idx = f.addition(base, new int(s))
+      f.registerExecNode('set_list_value', [scp, to, f.getCorrespondingValueFromList(tcp, s)])
+      f.registerExecNode('set_list_value', [sco, to, tw])
+    })
+    f.finiteLoop(0n, 3n, (s) => {
+      const idx = f.addition(base, s)
       const from = f.getCorrespondingValueFromList(feFrom, idx)
-      const setP = f.registerExecNode('set_list_value', [tep, new int(s), f.getCorrespondingValueFromList(sep, from)])
-      const setO = f.registerExecNode('set_list_value', [teo, new int(s), f.getCorrespondingValueFromList(seo, from)])
-      f.connect(setP, 0, setO, 0)
-    }
-    for (let s = 0; s < 4; s++) {
-      const idx = f.addition(base, new int(s))
+      f.registerExecNode('set_list_value', [tep, s, f.getCorrespondingValueFromList(sep, from)])
+      f.registerExecNode('set_list_value', [teo, s, f.getCorrespondingValueFromList(seo, from)])
+    })
+    f.finiteLoop(0n, 3n, (s) => {
+      const idx = f.addition(base, s)
       const to = f.getCorrespondingValueFromList(feTo, idx)
       const fl = f.getCorrespondingValueFromList(feFl, f.addition(
-        f.addition(f.multiplication(m1, 8n), f.multiplication(new int(s), 2n)),
-        f.getCorrespondingValueFromList(teo, new int(s))
+        f.addition(f.multiplication(m1, 8n), f.multiplication(s, 2n)),
+        f.getCorrespondingValueFromList(teo, s)
       ))
-      const setP = f.registerExecNode('set_list_value', [sep, to, f.getCorrespondingValueFromList(tep, new int(s))])
-      const setO = f.registerExecNode('set_list_value', [seo, to, fl])
-      f.connect(setP, 0, setO, 0)
-    }
+      f.registerExecNode('set_list_value', [sep, to, f.getCorrespondingValueFromList(tep, s)])
+      f.registerExecNode('set_list_value', [seo, to, fl])
+    })
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
     return {}
