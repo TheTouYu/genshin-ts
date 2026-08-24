@@ -19,6 +19,20 @@ import {
   wholeCenterFrom, wholeCenterTo
 } from './tables.js'
 
+// 根图输入统一分派器：宿主写 pendingTab 后，两个输入路径都只启动这一个 0.01s 定时器，
+// 避免 flow_reset_publish / flow_tab_dispatch 在根图出现两个实例（各约 247/77 展开）。
+const mainStartDispatch = g.defineComposite('main_start_dispatch', {
+  id: 1610700062,
+  inputs: { target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target }, f) => {
+    const t = f.registerExecNode('start_timer', [target, new str('dispatch'), new bool(false), f.assemblyList([new float(0.01)], 'float')])
+    f.outflow('done', t, 0)
+    return {}
+  }
+})
+
 const graph = g
   .server({
     id: 1073741830,
@@ -35,6 +49,7 @@ const graph = g
       queue: dict([{ k: 0, v: new int(0) }]),
       curMove: new int(0),
       pendingMove: new int(0),
+      pendingTab: new int(-1),
       turnLastSlot: new int(7),
       turnDuration: new float(0.3),
       segmentDuration: new float(0.15),
@@ -217,42 +232,33 @@ const graph = g
         f.setNodeGraphVariable('lock', false, false)
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
       },
+      'dispatch': () => {
+        // 统一分派 A/B 两条输入路径，避免 flow_reset_publish / flow_tab_dispatch 两个根图实例
+        const tabId = f.getNodeGraphVariable('pendingTab').asType('int')
+        f.doubleBranch(
+          f.logicalOrOperation(f.equal(tabId, 14), f.equal(tabId, 15)),
+          () => {
+            f.callComposite(flowResetPublish, { stage, target: evt.eventSourceEntity })
+          },
+          () => {
+            f.setNodeGraphVariable('curMove', tabId, false)
+            f.callComposite(flowTabDispatch, { tabId, target: evt.eventSourceEntity })
+          }
+        )
+      },
       default: () => {}
     })
   })
   .on('whenTabIsSelected', (evt, f) => {
-    // 14 复原（临时=重置到还原态）/ 15 重置：宿主写 blocks（复合内 entity_list 数组字面量有编码缺口）
-    f.doubleBranch(
-      f.logicalOrOperation(f.equal(evt.tabId, 14), f.equal(evt.tabId, 15)),
-      () => {
-        f.callComposite(flowResetPublish, { stage, target: f.getSelfEntity() })
-      },
-      () => {
-        // curMove 由宿主设置（事件载荷数据引脚路径，复合内 capture 设变量有类型问题）
-        f.setNodeGraphVariable('curMove', evt.tabId, false)
-        f.callComposite(flowTabDispatch, {
-          tabId: evt.tabId,
-          target: evt.eventSourceEntity
-        })
-      }
-    )
+    // 统一走 dispatch 定时器，避免 flow_reset_publish / flow_tab_dispatch 在根图出现两个实例
+    f.setNodeGraphVariable('pendingTab', evt.tabId, false)
+    f.callComposite(mainStartDispatch, { target: f.getSelfEntity() })
   })
   .onSignal(RubikSignal.rubik3x3_tab, (evt: any, f: any) => {
+    // 副控制器 B 的本地 tabId 已在 relay 中 +9 映射到全局 10..15；统一走 dispatch 定时器
     const target = f.getSelfEntity()
-    // 副控制器 B 的本地 tabId 已在 relay 中 +9 映射到全局 10..15
-    f.doubleBranch(
-      f.logicalOrOperation(f.equal(evt.params.tabId, 14), f.equal(evt.params.tabId, 15)),
-      () => {
-        f.callComposite(flowResetPublish, { stage, target })
-      },
-      () => {
-        f.setNodeGraphVariable('curMove', evt.params.tabId, false)
-        f.callComposite(flowTabDispatch, {
-          tabId: evt.params.tabId,
-          target
-        })
-      }
-    )
+    f.setNodeGraphVariable('pendingTab', evt.params.tabId, false)
+    f.callComposite(mainStartDispatch, { target })
   })
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
     f.doubleBranch(f.equal(evt.params.op, 3), () => {
