@@ -199,14 +199,14 @@ export const solverCrossStep = g.defineComposite('solver_cross_step', {
   }
 })
 
-// exec：启动下一个 solverTick（0.01s 分片）
+// exec：启动下一个 solverTick（0.2s 限载分片，避免求解瞬时高负载被踢）
 export const solverStartTick = g.defineComposite('solver_start_tick', {
   id: 1610700056,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('solverTick'), new bool(false), f.assemblyList([new float(0.01)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('solverTick'), new bool(false), f.assemblyList([new float(0.2)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
