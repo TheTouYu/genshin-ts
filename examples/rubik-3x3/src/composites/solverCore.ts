@@ -93,14 +93,14 @@ export const solverApplyFace = g.defineComposite('solver_apply_face', {
     const teo = f.getNodeGraphVariable('teo').asType('int_list')
     const m1 = f.subtraction(moveId, 1n)
     const base = f.multiplication(m1, 4n)
+    // 2026-08-24 截断修复 v2：4 个 finiteLoop 合并成 2 个（角块/棱块各一个）。
+    // 每个循环体 4 个 set_list_value，循环控制帧约为原版一半；
+    // 不做 build 期展开——展开版 solverPlan engineExpanded 2885 已实测开局负载被踢。
     f.finiteLoop(0n, 3n, (s) => {
       const idx = f.addition(base, s)
       const from = f.getCorrespondingValueFromList(fcFrom, idx)
       f.registerExecNode('set_list_value', [tcp, s, f.getCorrespondingValueFromList(scp, from)])
       f.registerExecNode('set_list_value', [tco, s, f.getCorrespondingValueFromList(sco, from)])
-    })
-    f.finiteLoop(0n, 3n, (s) => {
-      const idx = f.addition(base, s)
       const to = f.getCorrespondingValueFromList(fcTo, idx)
       const tw = f.getCorrespondingValueFromList(fcTw, f.addition(
         f.addition(f.multiplication(m1, 12n), f.multiplication(s, 3n)),
@@ -114,9 +114,6 @@ export const solverApplyFace = g.defineComposite('solver_apply_face', {
       const from = f.getCorrespondingValueFromList(feFrom, idx)
       f.registerExecNode('set_list_value', [tep, s, f.getCorrespondingValueFromList(sep, from)])
       f.registerExecNode('set_list_value', [teo, s, f.getCorrespondingValueFromList(seo, from)])
-    })
-    f.finiteLoop(0n, 3n, (s) => {
-      const idx = f.addition(base, s)
       const to = f.getCorrespondingValueFromList(feTo, idx)
       const fl = f.getCorrespondingValueFromList(feFl, f.addition(
         f.addition(f.multiplication(m1, 8n), f.multiplication(s, 2n)),

@@ -380,6 +380,15 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 
 - **重操作拆帧/间隔**：批量销毁、矩阵运算等重操作要间隔执行（作者：批量销毁间隔 0.1s 防炸图；
   矩阵求逆单次 120ms，不要每帧调用）。
+- **build 期展开会显著增加图规模，先算增量再下手（2026-08-24 rubik-3x3 开局负载被踢实证）**：
+  把运行时 `finiteLoop` 改成 build 期 JS `for` 确实省循环控制帧，但每个迭代的 exec 节点会全部实体化，
+  直接拉开联合体 impl 节点数。实战：`solver_apply_face` 4 个小循环展开后直接节点 55→145、
+  solverPlan `engineExpanded` 2510→2885，帧数优化还没验证，游戏开局就负载过高被踢。
+  约束：**展开前先估节点增量**（每迭代 exec 节点数 × 迭代数 - 循环头）并跑
+  `assets:node-graphs nodes --graph <id>` 看 `engineExpanded`；进入前必须确认节点增量和图规模合理；
+  开局负载敏感期（实体创建/登录即执行）尤其不要把大复合完全展开。替代方案：**合并多个小循环为
+  一个大循环**（体 4 set/迭代代替 2 set），帧数约减半、节点数不增（rubik `solver_apply_face` 4→2 循环，
+  51 节点、engineExpanded 2133）。
 - **分片 tick 间隔用「安全操作锚点」标定，不拍值（2026-08-24 rubik-3x3 求解负载限流实证）**：
   给重计算循环（求解/矩阵等）定 `start_timer` 间隔时，先找用户确认一个已知安全操作及其极限间隔
   （如“转动一个面，间隔 0.3s 就是极限”），再按五步算：

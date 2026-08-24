@@ -197,3 +197,8 @@
   - 调试日志：新增 `src/composites/debuglog.ts`（`dbg_tag` 显式 ID 1610700060，写 `dbgTag/dbgVal`）；solverPlan 在 tab-start / phase2 / plan-done / 未完成 mask 处打 `DBG_RUBIK_SOLVE` 标签。
   - 读图核验：根图 phase2 = solver_cross_step→DoubleBranch→(true:写 seq/len→send op6→dbg plan-done; false:dbg→solver_start_tick)；solver_apply_face 已无 Finite Loop；gameNodeCount(预测)=833、engineExpanded=2885 <3000。
   - 已注入真实地图 1073741899.gil。待用户最小化测试（先打乱→开日志→点一次自动求解→退出后给日志核查）。
+- 2026-08-24（开局负载被踢复盘 + 循环合并修复）：
+  - applyFace 全展开版（直接 55→145 节点、solverPlan engineExpanded 2885）虽省帧，但用户进游戏开局即负载被踢；回滚后开局恢复。经验：改图前先算 build 期展开的节点增量，开局敏感期不要大幅膨胀图规模。已写入 dsl-nodegraph-development 技能负载意识节。
+  - 日志 2869 复测：回滚版 phase2 tick 仍 3052 帧 >3000 被截断；applyFace 从帧 1423 开始且占满截断前大部分帧（4 个运行时 finiteLoop 控制帧大户）。
+  - 修复 v2：`solver_apply_face` 4 个 finiteLoop 合并成 2 个（角块/棱块各一个，体 4 set/迭代），节点 55→51、solverPlan engineExpanded 2133；不 build 期展开，兼顾帧数与图规模。
+  - 已注入，待用户游戏复测：开局应能进；自动求解单 tick 是否 <3000 且能跑到 plan-done。
