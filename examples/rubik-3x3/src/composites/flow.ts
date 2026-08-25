@@ -407,6 +407,8 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
       f.connectOutFlow(brMore, 1, () => {
         const offAuto = f.node('set_node_graph_variable', [new str('autoMode'), new bool(false), new bool(false)])
         f.link(brMore, 1, offAuto, 0)
+        const offScr = f.node('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(false), new bool(false)])
+        f.link(offAuto, 0, offScr, 0)
       })
     })
     f.connectOutFlow(brAuto, 1, () => {
@@ -437,10 +439,25 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
       f.getCorrespondingValueFromList(eoVar, 11n),
       new int(1)
     ], 'int')
+    // solver_co 同样追加第 9 位哨兵 1：cornerOrient 全 0（第一层完成）时防短物化。
+    // 求解器只读前 8 位，哨兵位不参与角状态计算。
+    const coVar = f.getNodeGraphVariable('cornerOrient').asType('int_list')
+    const co9 = f.assemblyList([
+      f.getCorrespondingValueFromList(coVar, 0n),
+      f.getCorrespondingValueFromList(coVar, 1n),
+      f.getCorrespondingValueFromList(coVar, 2n),
+      f.getCorrespondingValueFromList(coVar, 3n),
+      f.getCorrespondingValueFromList(coVar, 4n),
+      f.getCorrespondingValueFromList(coVar, 5n),
+      f.getCorrespondingValueFromList(coVar, 6n),
+      f.getCorrespondingValueFromList(coVar, 7n),
+      new int(1)
+    ], 'int')
     f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_co'), co9, new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), eo13, new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_ct'), f.getNodeGraphVariable('centerPos').asType('int_list'), new bool(false)])
     // 2026-08-24 拆图：胜利结算 flowCheckWin 暂从 flowAfterTurn 移除（避免 turn 图 engineExpanded 超 2000）。
     // 视觉/逻辑复原仍可通过自动求解验证；手动静置胜利后续再单独择机恢复。
     return {}
@@ -456,12 +473,10 @@ export const flowScramble = g.defineComposite('flow_scramble', {
   build: ({ target }, f) => {
     const setLen = f.node('set_node_graph_variable', [new str('qLen'), new int(SCRAMBLE_LEN), new bool(false)])
     f.link(f.entry(), 0, setLen, 0)
-    // 2026-08-22 修复（bug2 打乱踢人重构）：每项独立 getRandomInteger(1n,9n) 直写 queue[i]，
-    // 删 lastMove/wrap/doubleBranch/setLast —— 旧模式在 finiteLoop 内 doubleBranch 回调
-    // 中的 set_or_add 写不可靠（wrap 分支 setM 不执行 / 非 wrap 分支 setQ 缺位），
-    // 导致后轮 raw 越界变负 → logicApplyFace(-4) → 引擎拒载（rec333/334 铁证）。
+    // 2026-08-22 修复（bug2 打乱踢人重构）：每项独立 getRandomInteger 直写 queue[i]。
+    // 2026-08-26 修复：自动打乱只用面转 1..6，不打乱中心（求解器当前按固定中心配色求解）。
     f.finiteLoop(0n, SCRAMBLE_LEN - 1n, (i, _br) => {
-      const mv = f.getRandomInteger(1n, 9n)
+      const mv = f.getRandomInteger(1n, 6n)
       f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
         f.getNodeGraphVariable('queue').asDict('int', 'int'), i, mv
       ])
@@ -472,6 +487,8 @@ export const flowScramble = g.defineComposite('flow_scramble', {
     f.registerExecNode('set_node_graph_variable', [new str('autoMode'), new bool(true), new bool(false)])
     f.registerExecNode('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
     f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
+    // 标记打乱进行中，主图在打乱期间忽略自动复原请求（防并发）
+    f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
     const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
     f.callComposite(flowRequestMove, { moveId: mv0, target })
     return {}

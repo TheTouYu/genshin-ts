@@ -273,3 +273,11 @@
   - 实锤执行器 bug：`solver.ts` emitTick 的 `nxt` 被二次物化，续播判定实际比较 `(idx+1)+1`，导致每个 `len>=2` 的宏丢掉最后一步（rec148：发完第 4 步后 `5<5` 提前 doneTick）。复现脚本输出与日志 15 步 `2,6,6,6,3,1,1,6,5,3,5,5,5,2,2` 一字不差。
   - 修复已注入（fix 后 solveIdx<solve_len 直接读已写入值）；真实 GIL 数据流回读确认 n=34 续播判定 = Get(solveIdx) < Get(solve_len)。
   - 日志终点 `solveMask=15`、`plan-done`、op7：逻辑上十字已解；角块仍乱（本求解器只实现十字，未实现第一层角块）。视觉是否对上逻辑待用户复测确认。
+- 2026-08-26（第一层角块 + 中心/整转 + 并发 + 负载）：
+  - solverPlan 扩展为 stage 0=整体旋转/中心归一化 → 1=十字 → 2=第一层角块。
+  - 生成 `centerTables.ts`：按 `centerPos[u=slot0, f=slot2]` 键查 24 个整体朝向，用正方向 x/y/z 宏把整转回正；只处理整体旋转，不处理 M/E/S 中心置换。
+  - `flowAfterTurn` 新增发布 `solver_ct`；`solver_cp/co/ep/eo/ct` 中枢全部就位。
+  - 自动打乱改为仅面转 1..6（不打乱中心）；打乱未结束时 tab14 忽略（guard 变量 `rubik3x3_scrambling`）。
+  - 自动求解节拍放缓：`emitTick 2.2→3.0s`、`doneTick 4.0→5.0s`、`planTick 0.5→0.7s`。
+  - 已注入真实地图 + def-clean 无用残留 + maps:resync；六图 engineExpanded 全部≤2000：game 315 / relay 1535 / visual 985 / solver 50 / solverPlan 1994 / turn 1988。
+  - 反向旋转接口未落地：turn 图 engineExpanded 1988 已近 2000，加正/逆双逻辑表会超限；需要新图承载逆逻辑，或先做"逆=三连正转"的退化实现。列入下一轮。

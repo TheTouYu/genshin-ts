@@ -12,7 +12,7 @@ const solverStartEmitTick = g.defineComposite('solver_start_emit_tick', {
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(2.2)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(3.0)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
@@ -26,7 +26,7 @@ const solverStartDoneTick = g.defineComposite('solver_start_done_tick', {
   outflows: ['done'],
   build: ({ target }, f) => {
     // 4s：必须等最后一个转动的 flowAfterTurn 发布完 solver_ep/eo 再回 op5 重算
-    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(4.0)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(5.0)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }

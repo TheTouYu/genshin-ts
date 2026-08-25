@@ -257,11 +257,16 @@ const graph = g
             f.setCustomVariable(entity(1077936203n), new str('blocks'), blocks, false)
           },
           () => {
-            // 14 = 自动还原（启动事件驱动求解器）；其余再进入转动/打乱分发
+            // 14 = 自动还原（启动事件驱动求解器）；打乱未结束时忽略，避免两个自动流程并发打乱状态
             f.doubleBranch(
               f.equal(tabId, 14),
               () => {
-                f.sendSignal(RubikSignal.rubik3x3_solve, 12n, 0n)
+                const scrambling = f.getCustomVariable(evt.eventSourceEntity, new str('rubik3x3_scrambling')).asType('bool')
+                f.doubleBranch(f.logicalNotOperation(scrambling), () => {
+                  f.sendSignal(RubikSignal.rubik3x3_solve, 12n, 0n)
+                }, () => {
+                  f.printString('rubik3x3-solve-busy')
+                })
               },
               () => {
                 // flow_tab_dispatch 内联（现在只有 dispatch 一处调用）
