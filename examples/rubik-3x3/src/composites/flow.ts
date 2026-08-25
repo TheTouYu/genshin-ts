@@ -212,11 +212,15 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
   outputs: {},
   outflows: ['done'],
   build: ({ moveId, target }, f) => {
+    // 反向用负 moveId 表示；逻辑层按 base 查表，面转反向连做 3 次正逻辑（视觉负轴单转）。
+    const isInv = f.lessThan(moveId, 0n)
+    const base = f.absoluteValueOperation(moveId)
+    const invReps = f.multiplication(f.dataTypeConversion(isInv, 'int'), 2n)
     const isMiddle = f.logicalAndOperation(
-      f.greaterThan(moveId, 6),
-      f.logicalNotOperation(f.greaterThan(moveId, 9))
+      f.greaterThan(base, 6),
+      f.logicalNotOperation(f.greaterThan(base, 9))
     )
-    const isWhole = f.greaterThan(moveId, 9)
+    const isWhole = f.greaterThan(base, 9)
     // 视觉图挂载在独立实体上，定时器/共享状态都发到该实体，避免同一实体节点数合并超限
     const visualHost = entity(1077936203n)
 
@@ -247,13 +251,13 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
     // 旧生成器错位产物（-4/16 等非法值）若漏到 logicApplyFace 会越界崩溃，
     // 守卫让非法 moveId 直接跳过逻辑层、安全完成 done（队列生成器已改合法，此为兜底）。
     const isValidMove = f.logicalAndOperation(
-      f.greaterThan(moveId, 0),
-      f.logicalNotOperation(f.greaterThan(moveId, 12))
+      f.greaterThan(base, 0),
+      f.logicalNotOperation(f.greaterThan(base, 12))
     )
     f.doubleBranch(isValidMove, () => {
     // 逻辑应用（编译期展开，done 可靠）→ 显式链到参数设置 → 启动 turnblock/orbit2
     f.doubleBranch(isMiddle, () => {
-      const logic = f.callComposite(logicApplyMiddle, { moveId })
+      const logic = f.callComposite(logicApplyMiddle, { moveId: base })
       const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
       f.connect(logic as never, 0, s1, 0)
       const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
@@ -276,7 +280,7 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.outflow('done', t2, 0)
     }, () => {
       f.doubleBranch(isWhole, () => {
-        const logic = f.callComposite(logicApplyWhole, { moveId })
+        const logic = f.callComposite(logicApplyWhole, { moveId: base })
         const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(25), new bool(false)])
         f.connect(logic as never, 0, s1, 0)
         const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(1.0), new bool(false)])
@@ -316,9 +320,10 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
         f.connect(o2, 0, o3, 0)
         f.outflow('done', o3, 0)
       }, () => {
-        const logic = f.callComposite(logicApplyFace, { moveId })
-        const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
-        f.connect(logic as never, 0, s1, 0)
+        f.finiteLoop(0n, invReps, (k: any) => {
+          f.callComposite(logicApplyFace, { moveId: base })
+        })
+        const s1 = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
         const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
         f.connect(s1, 0, s2, 0)
         const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.15), new bool(false)])

@@ -318,6 +318,9 @@ function main() {
   parts.push('// CFOP 求解器静态表（CubeLib 约定），单块 ≤100，长表拆 _c0/_c1/_c2…')
   parts.push('export const CF_MOVE_CODE_FACE: bigint[] = [' + CODE_FACE.map(x => x + 'n').join(', ') + ']')
   parts.push('export const CF_MOVE_CODE_CNT: bigint[] = [' + CODE_CNT.map(x => x + 'n').join(', ') + ']')
+  parts.push('export const CF_MOVE_CODE_DIR: bigint[] = [' + Array.from({ length: 18 }, (_, c) => (c % 3 === 2 ? -1 : 1) + 'n').join(', ') + ']')
+  parts.push('export const CF_MOVE_CODE_STEPS: bigint[] = [' + Array.from({ length: 18 }, (_, c) => (c % 3 === 2 ? 1 : c % 3 + 1) + 'n').join(', ') + ']')
+  parts.push('// 折叠语义：cnt==3 的 face code（如 U\' = U3）在求解序列里折叠为一个负 moveId，省去三连转。')
   function emit(name, arr, max) {
     const ch = chunk(arr, max)
     ch.forEach((c, i) => {

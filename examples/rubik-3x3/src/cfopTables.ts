@@ -2,6 +2,9 @@
 // CFOP 求解器静态表（CubeLib 约定），单块 ≤100，长表拆 _c0/_c1/_c2…
 export const CF_MOVE_CODE_FACE: bigint[] = [3n, 3n, 3n, 4n, 4n, 4n, 5n, 5n, 5n, 6n, 6n, 6n, 1n, 1n, 1n, 2n, 2n, 2n]
 export const CF_MOVE_CODE_CNT: bigint[] = [1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n]
+export const CF_MOVE_CODE_DIR: bigint[] = [1n, 1n, -1n, 1n, 1n, -1n, 1n, 1n, -1n, 1n, 1n, -1n, 1n, 1n, -1n, 1n, 1n, -1n]
+export const CF_MOVE_CODE_STEPS: bigint[] = [1n, 2n, 1n, 1n, 2n, 1n, 1n, 2n, 1n, 1n, 2n, 1n, 1n, 2n, 1n, 1n, 2n, 1n]
+// 折叠语义：cnt==3 的 face code（如 U' = U3）在求解序列里折叠为一个负 moveId，省去三连转。
 export const CF_X_MACRO_LEN_c0: bigint[] = [1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 1n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n]
 export const CF_X_MACRO_C0_c0: bigint[] = [0n, 1n, 2n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 15n, 16n, 17n, 6n, 6n, 6n, 8n, 8n, 8n, 9n, 9n, 9n, 11n, 11n, 11n, 12n, 12n, 12n, 14n, 14n, 14n, 15n, 15n, 15n, 17n, 17n, 17n]
 export const CF_X_MACRO_C1_c0: bigint[] = [18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 18n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n]

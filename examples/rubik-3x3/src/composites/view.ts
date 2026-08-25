@@ -13,7 +13,7 @@ const CENTER = { x: 3, y: 3, z: 3 }
 const viewTurnLookup = g.defineComposite('view_turn_lookup', {
     id: 1610700026,
   inputs: { slot: { type: 'int' } },
-  outputs: { piece: { type: 'int' }, e: { type: 'entity' }, axis: { type: 'vec3' }, orientIdx: { type: 'int' } },
+  outputs: { piece: { type: 'int' }, e: { type: 'entity' }, axis: { type: 'vec3' }, orientIdx: { type: 'int' }, base: { type: 'int' }, dir: { type: 'int' } },
   build: ({ slot }, f) => {
     const piece = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('visualP').asType('int_list'),
@@ -23,15 +23,20 @@ const viewTurnLookup = g.defineComposite('view_turn_lookup', {
       f.getNodeGraphVariable('blocks').asType('entity_list'),
       piece
     )
-    const axis = f.getCorrespondingValueFromList(
+    const rawMove = f.getNodeGraphVariable('curMove').asType('int')
+    const base = f.absoluteValueOperation(rawMove)
+    const negI = f.dataTypeConversion(f.lessThan(rawMove, 0n), 'int')
+    const dir = f.subtraction(1, f.multiplication(negI, 2))
+    const axisRaw = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('axes').asType('vec3_list'),
-      f.getNodeGraphVariable('curMove').asType('int')
+      base
     )
+    const axis = f._3dVectorZoom(axisRaw as any, f.dataTypeConversion(dir, 'float'))
     const orientIdx = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('blockOrient').asType('int_list'),
       piece
     )
-    return { piece, e, axis, orientIdx }
+    return { piece, e, axis, orientIdx, base, dir }
   }
 })
 
@@ -50,7 +55,7 @@ export const viewTurnBlock = g.defineComposite('view_turn_block', {
       kVel: f.getNodeGraphVariable('orbitKVel').asType('float')
     })
     const localIdx = f.addition(
-      f.multiplication(f.subtraction(f.getNodeGraphVariable('curMove').asType('int'), 1n), 24n),
+      f.multiplication(f.subtraction(t.base, 1n), 24n),
       t.orientIdx
     )
     // 长列表资产：内部按 100 元素分块，这里像官方 Get 一样直接取
@@ -61,9 +66,10 @@ export const viewTurnBlock = g.defineComposite('view_turn_block', {
       c1: f.getNodeGraphVariable('localAxisTable1').asType('vec3_list'),
       c2: f.getNodeGraphVariable('localAxisTable2').asType('vec3_list')
     }).out
+    const localAxisSigned = f._3dVectorZoom(localAxis as any, f.dataTypeConversion(t.dir, 'float'))
     const spin = f.callComposite(motionSpinBlock, {
       e: t.e,
-      axis: localAxis,
+      axis: localAxisSigned,
       duration: f.getNodeGraphVariable('turnDuration').asType('float'),
       angularVelocity: f.getNodeGraphVariable('angularVelocity').asType('float')
     })
@@ -335,7 +341,7 @@ export const viewTurnPrepare = g.defineComposite('view_turn_prepare', {
     f.doubleBranch(needPrepare, () => {
       f.callComposite(viewSyncShared, { target })
       f.callComposite(viewPrepareVisualOrder, {
-        moveId: f.getNodeGraphVariable('curMove').asType('int')
+        moveId: f.absoluteValueOperation(f.getNodeGraphVariable('curMove').asType('int'))
       })
     }, () => {})
     const done = f.registerExecNode('set_node_graph_variable', [

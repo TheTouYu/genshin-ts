@@ -282,3 +282,4 @@
   - 已注入真实地图 + def-clean 无用残留 + maps:resync；六图 engineExpanded 全部≤2000：game 315 / relay 1535 / visual 985 / solver 50 / solverPlan 1994 / turn 1988。
   - 反向旋转接口未落地：turn 图 engineExpanded 1988 已近 2000，加正/逆双逻辑表会超限；需要新图承载逆逻辑，或先做"逆=三连正转"的退化实现。列入下一轮。
   - 反向资产预研：生成 `src/inverseTables.ts` 与 `tools/gen-inverse-tables.mjs`（12 move 的反向一步表，未接线，供下一轮新图使用）。
+  - 反向第一步接线：flowDoMove/视觉支持负 moveId（面转反向=3 次正逻辑 + 负轴单转视觉）；求解序列用 `CF_MOVE_CODE_DIR/STEPS` 折叠 `U3→U'`，减少自动还原总步数。六图 engineExpanded 仍全部≤2000：solverPlan 2000 / turn 1998 / visual 1036 / relay 1545 / game 315 / solver 50。手工反向开关 UI 仍未做。
