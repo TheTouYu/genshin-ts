@@ -12,6 +12,7 @@
 | 1 | 只手动转一个面后点自动求解，求解一直重复 R,R,R | 引擎“全 0 int_list 物化短长度”击中 `solver_eo` 自定义变量 | `flowAfterTurn` 发布 `solver_eo` 时追加第 13 位哨兵 1 |
 | 2 | 开日志后自动求解动画阶段被踢 | 视觉图动画槽位记录在相邻秒堆叠成 3000+ 帧/秒 | 自动求解播放器 `emitTick 1.2→2.2s`、`doneTick 3→4s` |
 | 3 | 自动打乱无反应 | `op10` 误插到 whenTimer 分支 | 移入 onSignal |
+| 4b | 求解转几百下不收敛 | `op6` 分支单步序列完立即 `sendSignal op5`，早于动画 flowAfterTurn | `op6` 的 len<=1/len<=0 改为 `solverStartDoneTick` |
 | 4 | 自动求解重算早于转动完成 | 执行器 doneTick 1.2s 不够 | doneTick 4s |
 
 ## 二、最近一次调查链

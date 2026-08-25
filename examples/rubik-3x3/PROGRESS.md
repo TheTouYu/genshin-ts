@@ -259,3 +259,8 @@
   - 修复：`flowAfterTurn` 发布 `solver_eo` 时追加第 13 位哨兵 `1`（前 12 位仍为真实朝向），避免全 0 列表截断；solverPlan 仍只读前 12 位。
   - 动画节奏：自动求解播放器 `emitTick 1.2→2.2s`、`doneTick 3.0→4.0s`（只影响自动求解动画，不碰玩家手动转动 0.3s 手感）。
   - 已注入；六图 engineExpanded 全部≤2000（turn 1962 / solverPlan 1177 …）。
+- 2026-08-25（自动求解转圈过多根因二：op6 单步序列立即回 op5）：
+  - 日志 2877 显示 op5 replan（rec52）出现在第一次转动动画（rec76 flowAfterTurn）之前，读了上一次状态，因此 mask 永远 0、求解器反复发 R。
+  - 根因：solver.ts op6 分支 `len<=1` 时旧代码立即 `sendSignal op5`，没走 doneTick 4.0s 等待。
+  - 修复：op6 的 len<=1 与 len<=0 两个分支都改为 `solverStartDoneTick`，让动画完成后再回 op5。
+  - 六图 engineExpanded 仍全部≤2000。

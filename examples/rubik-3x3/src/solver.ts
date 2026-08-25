@@ -55,10 +55,11 @@ const graph = g
           f.doubleBranch(f.greaterThan(len, 1), () => {
             f.callComposite(solverStartEmitTick, { target: self })
           }, () => {
-            f.sendSignal(RubikSignal.rubik3x3_solve, 5n, 1n)
+            // 单步序列也必须等最后一个转动动画完成，再通过 doneTick 回 op5
+            f.callComposite(solverStartDoneTick, { target: self })
           })
         }, () => {
-          f.sendSignal(RubikSignal.rubik3x3_solve, 5n, 1n)
+          f.callComposite(solverStartDoneTick, { target: self })
         })
       },
       default: () => {}
