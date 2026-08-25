@@ -76,9 +76,9 @@ const longListGetInt = g.defineComposite('long_list_get_int', {
     const sel0 = f.dataTypeConversion(f.equal(chunk, 0n), 'int')
     const sel1 = f.dataTypeConversion(f.equal(chunk, 1n), 'int')
     const sel2 = f.dataTypeConversion(f.equal(chunk, 2n), 'int')
-    const v0 = f.multiplication(f.getCorrespondingValueFromList(c0, offset), sel0)
-    const v1 = f.multiplication(f.getCorrespondingValueFromList(c1, offset), sel1)
-    const v2 = f.multiplication(f.getCorrespondingValueFromList(c2, offset), sel2)
+    const v0 = f.multiplication(f.getCorrespondingValueFromList(c0 as any, offset) as any, sel0)
+    const v1 = f.multiplication(f.getCorrespondingValueFromList(c1 as any, offset) as any, sel1)
+    const v2 = f.multiplication(f.getCorrespondingValueFromList(c2 as any, offset) as any, sel2)
     const out = f.addition(v0, f.addition(v1, v2))
     return { out }
   }

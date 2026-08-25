@@ -355,7 +355,7 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
 
     // 进球计分（去重）
     f.doubleBranch(goal.isGoal, () => {
-      f.doubleBranch(f.get('scored'), () => {}, () => {
+      f.doubleBranch(f.get('scored').asType('bool'), () => {}, () => {
         const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), new int(1)), new bool(false)])
         const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(true), new bool(false)])
         f.connect(gc, 0, sc, 0)
@@ -460,7 +460,7 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
 
     // 进球计分（去重，贴地球滚进球门也计分）
     f.doubleBranch(goal.isGoal, () => {
-      f.doubleBranch(f.get('scored'), () => {}, () => {
+      f.doubleBranch(f.get('scored').asType('bool'), () => {}, () => {
         const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), new int(1)), new bool(false)])
         const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(true), new bool(false)])
         f.connect(gc, 0, sc, 0)

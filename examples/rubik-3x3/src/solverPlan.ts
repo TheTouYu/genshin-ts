@@ -77,7 +77,7 @@ const graph = g
             const eo = f.getCustomVariable(stHost, new str('solver_eo')).asType('int_list')
             const sep = f.getNodeGraphVariable('sep').asType('int_list')
             const seo = f.getNodeGraphVariable('seo').asType('int_list')
-            f.finiteLoop(0n, 11n, (c) => {
+            f.finiteLoop(0n, 11n, (c: any) => {
               f.registerExecNode('set_list_value', [sep, c, f.getCorrespondingValueFromList(ep, c)])
               f.registerExecNode('set_list_value', [seo, c, f.getCorrespondingValueFromList(eo, c)])
             })

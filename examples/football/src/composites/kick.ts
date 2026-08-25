@@ -137,7 +137,7 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
     // 运动中再施力统一让球进入飞行状态；不要因为 state=2 就把竖直冲量砍成 0
     // （用户反馈：快静止时再施力能量接近 0，就是这里把 y 归零导致的）
     const vyScale = f.dataTypeConversion(new int(1), 'float')
-    const makeDv = (x, y, z) => {
+    const makeDv = (x: any, y: any, z: any) => {
       const base = f.create3dVector(x, y, z)
       const d = f.split3dVector(base)
       return f.create3dVector(
@@ -146,10 +146,10 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         f.multiplication(d.zComponent, IMPULSE_SCALE)
       )
     }
-    const makeDw = (x, y, z) => f._3dVectorZoom(f.create3dVector(x, y, z), IMPULSE_SCALE)
+    const makeDw = (x: any, y: any, z: any) => f._3dVectorZoom(f.create3dVector(x, y, z), IMPULSE_SCALE)
     // 默认节点（entry 链首），分支覆盖
     const done = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), curVel, new bool(false)])
-    const clampSpeed = (v) => {
+    const clampSpeed = (v: any) => {
       const mag = f._3dVectorModuloOperation(v)
       const denom = f.addition(mag, 0.0001)
       const minMag = f.division(f.subtraction(f.addition(mag, maxSpeed), f.absoluteValueOperation(f.subtraction(mag, maxSpeed))), 2)

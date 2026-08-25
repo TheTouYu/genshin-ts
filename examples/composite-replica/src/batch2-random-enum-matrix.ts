@@ -17,7 +17,7 @@ const weightedRandom = g.defineComposite('weighted_random', {
   outputs: { index: { type: 'int' } },
   forceFull: true,
   build: ({ weights }, f) => ({
-    index: f.weightedRandom(weights)
+    index: f.weightedRandom(weights as any)
   })
 })
 

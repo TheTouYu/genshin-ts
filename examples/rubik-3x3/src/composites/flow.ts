@@ -645,7 +645,7 @@ export const flowTabDispatch = g.defineComposite('flow_tab_dispatch', {
       f.connectOutFlow(brMove, 1, () => {
         f.multipleBranches(tabId, {
           13: () => f.callComposite(flowScramble, { target }),
-          14: () => f.callComposite(flowSolve, { target }),
+          14: () => f.callComposite(flowSolve, { _target: target }),
           16: () => f.callComposite(flowManualCheck, {}),
           default: () => {}
         })
