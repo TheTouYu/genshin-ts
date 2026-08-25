@@ -176,6 +176,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 整体转 orbit2 事件明显晚于预期（如 >0.8s 才出现） | 链式定时器把后续 chunk 的延迟当绝对时间累加（orbit2 后续段仍用 0.51..0.57 相对启动） | orbit2 不要链式；改用单一定时器全量列表，或后续段用 0.01..0.07 相对小延迟 |
 | 游戏报"列表长度超过100"/"index out of bounds"（加载期或运行时） | 图变量初始列表字面量 > 100 元素（引擎限制）；或长列表复合（如 `long_list_get_vec3`）内部 `getCorrespondingValueFromList` 下标 ≥ 列表长度 | 检查 `game.json` 中所有变量初始值列表长度；读真实 GIL 图变量声明确认；长列表必须拆成 ≤100 分块 + 用 `long_list_get_*` 复合读取 |
 | queue dict 出现非法值（如 -4/18446744073709551612 或 16） | `finiteLoop` 内 `doubleBranch`（wrap 检查）的回调中 `set_or_add` 写字典不可靠：wrap 分支 `setM` 不执行 / 非 wrap 分支 `setQ` 缺位 → 后轮 raw 越界变负 → `logicApplyFace(-4)` 崩溃。**根因：`registerExecNode` 在 `finiteLoop` 内 `doubleBranch` 回调中的状态写不可靠**（与 PROGRESS.md:42 同类问题） | 修复：每项独立 `getRandomInteger(1n,9n)` 直写 `queue[i]`，删 lastMove/wrap/doubleBranch/setLast；`flowDoMove` 顶部加 moveId∈[1,12] 合法性守卫 |
+| 自动播放序列每轮丢尾步（计划 B3U1B1 只播 B3U1，len>=2 都少最后一步） | 续播分支 `f.lessThan(nxt, len)` 中 `nxt` 被编译器二次物化，第二个物化在 `set solveIdx` 后重新读 `solveIdx`，实际比较 `(idx+1)+1 < len`。**帧签名**：同一次 emitTick 出现两个 Addition，且第二个 ADD 的 IN0 = 刚写入的 `Get Node Graph Variable`（2887 rec148：[16] 3+1=4 → [18] set=4 → [20] get=4 → [22] 4+1=5 → [24] 5<5=false 提前 doneTick） | 修复后判据：续播 DoubleBranch 的条件数据流 = Get(solveIdx) < Get(solve_len)（`trace-gil-dataflow` n=33/34 直达两个 Get，无第二个 Addition）。DSL 侧按“先写回再显式读回判断”写 |
 
 4.5 **变量 tag 日志模式（不 print，靠固定标识搜索）**：
    图变量 `dbgTag`/`dbgVal` + 复合 `dbgTag(tag,val)`；调用时 `tag` 传固定字符串、`val` 用
