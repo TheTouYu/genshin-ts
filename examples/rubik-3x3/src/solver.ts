@@ -79,7 +79,10 @@ const graph = g
           f.sendSignal(RubikSignal.rubik3x3_solve, 3n, f.getCorrespondingValueFromList(seq, idx))
           const nxt = f.addition(idx, 1n)
           f.setNodeGraphVariable('solveIdx', nxt, false)
-          f.doubleBranch(f.lessThan(nxt, len), () => {
+          // 续播判定必须读“已写入的新 solveIdx”，不能复用表达式 nxt：
+          // nxt 会被编译器二次物化，第二次物化是在 set 之后重新读 solveIdx，
+          // 导致这里实际比较的是 (idx+1)+1 = idx+2，永远丢掉每个宏的最后一步。
+          f.doubleBranch(f.lessThan(f.getNodeGraphVariable('solveIdx').asType('int'), len), () => {
             f.callComposite(solverStartEmitTick, { target: self })
           }, () => {
             f.callComposite(solverStartDoneTick, { target: self })
