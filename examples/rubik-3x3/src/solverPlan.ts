@@ -38,7 +38,8 @@ const graph = g
     variables: {
       sct: [0n, 1n, 2n, 3n, 4n, 5n],
       sep: [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n],
-      seo: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n],
+      // 末尾哨兵 1（下标 12）：防 seo 全 0 时引擎短物化；solver_edge_state 只读前 12 位。
+      seo: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 1n],
       scp: [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n],
       // 末尾哨兵 1（下标 8）：防 sco 全 0 时引擎短物化。solver_corner_state 只读前 8 位。
       sco: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 1n],

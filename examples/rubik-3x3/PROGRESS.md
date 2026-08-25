@@ -284,3 +284,5 @@
   - 反向资产预研：生成 `src/inverseTables.ts` 与 `tools/gen-inverse-tables.mjs`（12 move 的反向一步表，未接线，供下一轮新图使用）。
   - 反向第一步接线：flowDoMove/视觉支持负 moveId（面转反向=3 次正逻辑 + 负轴单转视觉）；求解序列用 `CF_MOVE_CODE_DIR/STEPS` 折叠 `U3→U'`，减少自动还原总步数。六图 engineExpanded 仍全部≤2000：solverPlan 2000 / turn 1998 / visual 1036 / relay 1545 / game 315 / solver 50。手工反向开关已做：主图 `reverse` 变量，tab16 切换；面转(1..6)在 reverse 开启时发负 moveId，中层/整转保持正方向。
   - `def-clean --all-unused` 清理 14 个死复合，六图 engineExpandedAll 从 6742 降至 5977。
+  - 日志 2893 回归：求解器卡在十字 mask=13 循环，实锤原因 = 本地 `seo` 变量全 0 被短物化成 `[0,0,0]`，solverEdgeState 高下标读 0/空导致状态计算错。修复：`seo` 声明加第 13 位哨兵 `1`（只读前 12 位），与 `sco` 同法。
+  - 手工反向开关组件补上：B 控制器打印第 7 项「反向旋转」（`assets:static-assemblies tab-options 1077936202 --name 魔方控制器3x3-B`）；relay 本地 7→全局 16 已有，graph 逻辑已支持。

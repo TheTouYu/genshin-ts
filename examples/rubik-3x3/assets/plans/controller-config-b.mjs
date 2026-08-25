@@ -1,4 +1,4 @@
-// 3×3 魔方控制器 B（副控制器，6 项，通过信号转发给主图）
+// 3×3 魔方控制器 B（副控制器，7 项，通过信号转发给主图）
 export default {
   assets: {
     staticAssemblies: [
@@ -20,7 +20,7 @@ export default {
             regionType: 'sphere',
             regionRadius: 3,
             regionCenter: [0, 0, 0],
-            options: ['x', 'y', 'z', '打乱', '自动复原', '重置']
+            options: ['整体转X', '整体转Y', '整体转Z', '自动打乱', '自动还原', '重置', '反向旋转']
           }
         ],
         items: [
