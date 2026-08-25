@@ -11,6 +11,14 @@
 
 ## 已落地（DONE）
 
+### 2026-08-25 UI 分支细搬合并（genshin-ts-ui → 主项目）
+
+| 发现 | 证据 | 落地方式 |
+|---|---|---|
+| UI 分支（~/genshin-ts-ui @ b6bc986）与主项目分叉：主项目独有 144 / UI 独有 35，双方同改 165 文件 | `git merge-base` = 50fc059 | “细搬”而非一把 merge：35 新文件 + 49 UI-only 改动 + `src/cli/gsts.ts` 三方合并（保留 maps:init + 加入 image/library 命令）；提交 `3ffe4bc` |
+| 本地垃圾目录与 examples 下 .gsts 备份进入 git 视野 | `git status --short`（.dsh/.jspace/.probe 等） | `.gitignore` 增补根规则 + `examples/*/.gsts/`；提交 `f2f674c` |
+| image-editor 缺 `image_template.gia` 与 `golden-image-mode.gia`，golden 测试 ENOENT | `tests/image-editor/gia-image-mode.test.ts` 失败 | 从 UI clone 复制并豁免 `*.gia` 忽略（它们是“输入数据”非生成产物）；提交 `f66f771`，测试 PASS |
+
 ### 2026-08-15 P4-4 构建门禁修复（examples 类型问题全链）
 
 | 发现 | 证据 | 落地方式 |
@@ -68,6 +76,12 @@
 - `205b88f` cases/node-copy/graph-var-add ops + 图变量注册/Str 变体 Set/DoubleBranch 语义闭合
 
 ## 未落地（OPEN）
+
+### 2026-08-25 PKC 双 UI bundle 生命周期已 applied、主库 authority 未同步（待治理 apply）
+
+- 证据：`python tools/pkc.py bundle-status` 显示 `bnd_653120d3a0906059bbd5835820` / `bnd_d9f9975041799b355db4d4d896` 为 applied；但主库 `data/knowledge/registry.json` / `authority-refs.json` 不含其 `clm_EB75B5FADE88856C52F62DE148` / `aref_e1c878c0ae99d453936294fccb`（UI clone 含）。
+- 期望：用 PKC `bundle-apply`（先 dry-run，L3 经用户确认 content_hash）或 `bundle-recover` 把两 bundle 的 claim/ref 应用到主库，禁止直接改 JSON。
+- 何时做：本次 UI 合并收尾时，与 fixture golden 一起处理（用户已选 A）。
 
 ### 2026-08-23 长期记忆复盘（本次 LTM review，范围=只审 genshin-ts 主战场）
 
