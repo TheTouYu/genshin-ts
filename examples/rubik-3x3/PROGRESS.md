@@ -241,3 +241,7 @@
   - 新增 `solver_start_plan_tick` 复合（id 1610700065）。
   - 六图 engineExpanded 仍全部≤2000：game 317 / relay 1535 / visual 985 / solver 45 / solverPlan 1168 / turn 1936。
   - 已注入待用户最小化回归：只点一次自动求解，看是否完整求解并自动转动。
+- 2026-08-25（日志 2871 复盘 + 自动求解/打乱修复）：
+  - 复算查实：doneTick 1.2s 后 op5 重算早于最后一个转动 flowAfterTurn 发布 solver_ep/eo（日志 rec73 读到上一次状态），导致求解每轮按旧状态重算、绕圈不收敛。修复：`solver_start_done_tick` 延时 1.2s→3.0s。
+  - op10（打乱）之前误插入 whenTimerIsTriggered（被当成 timer 分支），导致点自动打乱无反应；修复：移入 onSignal rubik3x3_solve。
+  - 六图 engineExpanded 不变仍全部≤2000：turn 1936 / solverPlan 1168。

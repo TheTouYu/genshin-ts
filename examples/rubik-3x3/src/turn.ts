@@ -184,10 +184,6 @@ const graph = g
         f.setNodeGraphVariable('lock', false, false)
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
       },
-      10: () => {
-        // 打乱：由 turn 图统一维护 queue/lock/autoMode
-        f.callComposite(flowScramble, { target: f.getSelfEntity() })
-      },
       default: () => {}
     })
   })
@@ -203,6 +199,10 @@ const graph = g
       8: () => {
         // 主图重置/开局 5s 后通知 turn 图复位自己的逻辑状态
         f.callComposite(logicReset, {})
+      },
+      10: () => {
+        // 打乱：由 turn 图统一维护 queue/lock/autoMode
+        f.callComposite(flowScramble, { target: f.getSelfEntity() })
       },
       default: () => {}
     })
