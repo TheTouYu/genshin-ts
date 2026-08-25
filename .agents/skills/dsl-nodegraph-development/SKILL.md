@@ -378,6 +378,15 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 
 ### 负载意识（节点图不是免费算力）
 
+> **发布 int_list 自定义变量也要防“全 0 短列表”（2026-08-25 rubik-3x3 自动求解绕圈实证）**：
+> `set_custom_variable(host, name, <某 12 维 int_list>)` 时，如果该列表可能全 0，引擎可能只物化出
+> `[0,0,0]`，消费者按 12 维读会错乱。通用做法：发布时**尾部追加一个调用方约定忽略的哨兵 1**，
+> 消费者只读前 N 维。rubik 的 `flowAfterTurn` 因此把 `solver_eo` 发布为 13 维，`solverPlan` 只读 0..11。
+>
+> **自动播放序列 vs 玩家手动手感解耦（2026-08-25 rubik-3x3 动画负载实证）**：
+> 自动求解/自动播放的 `emitTick`（步间休息）与 `doneTick`（播完休息）只改 executor/timer，
+> 不碰玩家手动转动的 0.3s 动画参数；这样开日志也能跑，手动手感不变。
+
 > **2026-08-24 用户制定的五条铁律（每次写图前逐条自检）**：
 > 1. 单个节点图数量很容易暴涨 → 每次改图先跑 `assets:node-graphs nodes --graph <id>`，看 `engineExpanded` 与增量。
 > 2. 很容易写出高负载代码 → 写完先按帧预算估算 `tick 帧数 × 触发频率`，再看单记录帧是否 <3000。
