@@ -1,5 +1,7 @@
 # 资源包 19：循环物化与节点预算包（loop-node-budget）
 
+> 长任务拆 tick 的现成模板见 [task-sharding-scheduler.md](task-sharding-scheduler.md)。
+
 > 状态：当前推荐
 > 来源：从 rubik-3x3 项目抽象（2026-08-22）
 > 最近校验：2026-08-22

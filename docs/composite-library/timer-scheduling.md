@@ -1,5 +1,7 @@
 # 资源包 18：定时器序列调度包（timer-scheduling）
 
+> 长任务拆 tick 的现成模板见 [task-sharding-scheduler.md](task-sharding-scheduler.md)。
+
 > 状态：当前推荐
 > 来源：从 rubik-2x2 / rubik-3x3 项目抽象（2026-08-22）
 > 最近校验：2026-08-22
