@@ -13,6 +13,7 @@ import {
   applyEntities,
   exportEntities,
   removeEntityComponents,
+  setTabBarOptions,
   type EntityImport
 } from './gil_entities.js'
 import { isOfficialResourceId } from './official_prefabs.js'
@@ -70,6 +71,8 @@ function usage(exitCode = 1): never {
     '  --aux <aux-id>         target an aux decoration instead of the entity for',
     '                         --color/--position/--rotation/--scale',
     '  --remove-component <typeCode>  remove component slot(s) by type code (repeatable)',
+  '  --tab-options <标签a,标签b,...>  replace tabBar options on the target entity',
+  '                                 (encodes the initial-enabled/序号 fields correctly)',
     '',
     'Import entities are created from their component definition record;',
     'sourceDefinitionId optionally selects a donor record without changing',
@@ -137,6 +140,7 @@ function parseArgs(argv: readonly string[]) {
   let attachAuxId: number | undefined
   let detachAuxId: number | undefined
   const removeComponents: number[] = []
+  let tabOptions: string[] | undefined
   let index = 0
   if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch' || argv[0] === 'apply-candidate') {
     command = argv[0]
@@ -169,6 +173,12 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--detach-aux') detachAuxId = nonNegativeId(value(argv, index++), '--detach-aux')
     else if (arg === '--remove-component')
       removeComponents.push(nonNegativeId(value(argv, index++), '--remove-component'))
+    else if (arg === '--tab-options') {
+      const raw = value(argv, index++)
+      const options = raw.split(',').map((option) => option.trim()).filter(Boolean)
+      if (!options.length) throw new Error('[error] --tab-options must list labels like a,b,c')
+      tabOptions = options
+    }
     else if (arg === '--help' || arg === '-h') usage(0)
     else if (command === 'patch' && entityId === undefined) {
       entityId = nonNegativeId(arg, 'entity-id')
@@ -199,10 +209,11 @@ function parseArgs(argv: readonly string[]) {
       position === undefined &&
       rotation === undefined &&
       scale === undefined &&
-      removeComponents.length === 0
+      removeComponents.length === 0 &&
+      tabOptions === undefined
     ) {
       throw new Error(
-        '[error] patch requires at least one of --color/--position/--rotation/--scale/--attach-aux/--detach-aux/--remove-component'
+        '[error] patch requires at least one of --color/--position/--rotation/--scale/--attach-aux/--detach-aux/--remove-component/--tab-options'
       )
     }
     if (new Set(removeComponents).size !== removeComponents.length) {
@@ -229,7 +240,8 @@ function parseArgs(argv: readonly string[]) {
     auxId,
     attachAuxId,
     detachAuxId,
-    removeComponents
+    removeComponents,
+    tabOptions
   }
 }
 
@@ -559,6 +571,9 @@ async function runPatch(
     const removal = removeEntityComponents(bytes, entityId, args.removeComponents)
     bytes = removal.bytes
     removedComponents.push(...removal.removed)
+  }
+  if (args.tabOptions) {
+    bytes = setTabBarOptions(bytes, entityId, args.tabOptions)
   }
   const changed = exportEntities(bytes).find((entity) => entity.id === entityId)
   const summary: Record<string, unknown> = {

@@ -250,3 +250,7 @@
   - 主图 dispatch：tab14=自动还原→发 op12 启动 solverPlan；tab15=重置；tab13=自动打乱。
   - solverPlan：新增 op12 入口（置 phase=1 并启动 planTick）；planTick 0.3s→0.5s 降低平均负载，便于开日志观察。
   - 六图 engineExpanded 全部≤2000：game 311 / relay 1535 / visual 985 / solver 45 / solverPlan 1177 / turn 1936。
+- 2026-08-25（tabBar 初始生效知识补全 + CLI 支持）：
+  - 差异比对：我们字节 patch 的选项只有 f2 短名，缺 f1/f3/f6/f503/f504 外壳字段；编辑器里初始不生效（玩家看不见）。
+  - 用户手动保存后的真实编码：每个选项 f1=序号、f2=短名、f3=1(初始生效)、f6=空串、f503="{短名}  序号: N"、f504=13；旧 f4/f5=1 legacy 可不输出。
+  - CLI：`assets:entities patch <entity-id> --tab-options 标签a,标签b,...` 已实现并写入 components.md；新编码 dry-run 与用户保存的当前地图候选 SHA 一致。

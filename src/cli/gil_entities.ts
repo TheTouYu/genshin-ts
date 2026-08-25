@@ -535,6 +535,79 @@ export function setTransform(
 }
 
 /**
+ * 重写实体 tabBar 组件的选项标签，并补齐「初始生效」等编辑器中必填的选项字段。
+ *
+ * 编辑器真实编码（2026-08-25 rubik-3x3 用户手动修复后比对备份与当前样本）：
+ * 每个选项是一条 f2 子消息，至少需要：
+ *   f1 index（1-based）
+ *   f2 短标签（UTF-8）
+ *   f3 = 1（初始生效；缺省或为 0 时该选项在玩家面板不可见）
+ *   f6 空字符串
+ *   f503 = "<label>  序号: <index>"（两个空格）
+ *   f504 = 13
+ * 旧样本里出现过的 f4/f5 均为 1，编辑器保存后当前写法已不再输出；新选项按当前样本
+ * 只生成上述字段。如果目标实体没有 tabBar 组件，抛错。
+ */
+export function setTabBarOptions(
+  bytes: Uint8Array,
+  entityId: number,
+  options: readonly string[]
+): Uint8Array {
+  if (!options.length) throw new Error('[error] tab options must not be empty')
+  const top = parse(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const top5 = top.find((field) => field.number === 5 && field.wire === 2)
+  if (!top5) throw new Error('[error] entity section not found')
+  const section = message(top5)
+  const entityField = section.find(
+    (item) =>
+      item.number === 1 &&
+      item.wire === 2 &&
+      recordId(item.value as Uint8Array) === entityId
+  )
+  if (!entityField) throw new Error(`[error] entity not found: ${entityId}`)
+  const fields = message(entityField)
+  const slot = fields.find((field) => {
+    if (field.number !== 7 || field.wire !== 2) return false
+    const slotFields = parse(field.value as Uint8Array)
+    if (!slotFields) return false
+    const code = slotFields.find((item) => item.number === 1 && item.wire === 0)?.value
+    const enabled = slotFields.find((item) => item.number === 2 && item.wire === 0)?.value
+    return code === 17 && enabled === 1
+  })
+  if (!slot) {
+    throw new Error(`[error] entity ${entityId} has no enabled tabBar component`)
+  }
+  const slotFields = message(slot)
+  const configField = slotFields.find((field) => field.number === 27 && field.wire === 2)
+  if (!configField) throw new Error('[error] tabBar component missing config field 27')
+  const configFields = message(configField)
+  const regionFields = configFields.filter((field) => field.number !== 2)
+  const optionFields = options.map((label, index) => {
+    const text = TEXT.encode(label)
+    const body = [
+      { number: 1, wire: 0, value: index + 1 },
+      { number: 2, wire: 2, value: text },
+      { number: 3, wire: 0, value: 1 },
+      { number: 6, wire: 2, value: new Uint8Array() },
+      { number: 503, wire: 2, value: TEXT.encode(`${label}  序号: ${index + 1}`) },
+      { number: 504, wire: 0, value: 13 }
+    ]
+    return { number: 2, wire: 2, value: emit(body) }
+  })
+  configField.value = emit([...regionFields, ...optionFields])
+  entityField.value = emit(fields)
+  top5.value = emit(section)
+  const rebuilt = emit(top)
+  return buildFile(rebuilt, {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
+}
+
+/**
  * 从元件定义记录转换场景实体记录。规则来自真实编辑器样本：
  * 资源 f2→f8、名称/能力 f6→f5（追加 19/52 两个默认能力）、
  * 装饰物列表 f7→f6（transform 更新为新位置）、组件槽 f8→f7（逐字节继承）、
