@@ -41,3 +41,14 @@ __pycache__/
 
 # 灯阵示例的 gsts 提取产物（每次注入重新生成，不提交）
 examples/lights-out/src/resources/
+
+# Local agent/harness scratch（勿提交）
+/.dsh/
+/.dsh-paste/
+/.jspace/
+/.probe/
+*.heapsnapshot
+basic_tool.lean.js
+
+# 示例目录下的 gsts 提取/备份产物（保留本地，不进 git）
+examples/*/.gsts/
