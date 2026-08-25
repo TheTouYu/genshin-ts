@@ -254,3 +254,8 @@
   - 差异比对：我们字节 patch 的选项只有 f2 短名，缺 f1/f3/f6/f503/f504 外壳字段；编辑器里初始不生效（玩家看不见）。
   - 用户手动保存后的真实编码：每个选项 f1=序号、f2=短名、f3=1(初始生效)、f6=空串、f503="{短名}  序号: N"、f504=13；旧 f4/f5=1 legacy 可不输出。
   - CLI：`assets:entities patch <entity-id> --tab-options 标签a,标签b,...` 已实现并写入 components.md；新编码 dry-run 与用户保存的当前地图候选 SHA 一致。
+- 2026-08-25（求解状态全 0 截断修复 + 动画负载节奏）：
+  - 根因确认：只转一个面后 `edgeOrient` 全 0，`flowAfterTurn` 把 `solver_eo` 发布成自定义变量时被引擎物化成 `[0,0,0]`（日志 2876 实锤），求解器 mask 恒 0 → 一直重复 R,R,R。
+  - 修复：`flowAfterTurn` 发布 `solver_eo` 时追加第 13 位哨兵 `1`（前 12 位仍为真实朝向），避免全 0 列表截断；solverPlan 仍只读前 12 位。
+  - 动画节奏：自动求解播放器 `emitTick 1.2→2.2s`、`doneTick 3.0→4.0s`（只影响自动求解动画，不碰玩家手动转动 0.3s 手感）。
+  - 已注入；六图 engineExpanded 全部≤2000（turn 1962 / solverPlan 1177 …）。

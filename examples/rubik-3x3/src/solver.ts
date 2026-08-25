@@ -5,28 +5,28 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { RubikSignal } from './signals.js'
 
-// exec：启动下一个 emitTick（1.2s，与转动动画完成时长对齐）
+// exec：启动下一个 emitTick（2.2s——仅自动求解的动画步进；玩家手动转动不受影响）
 const solverStartEmitTick = g.defineComposite('solver_start_emit_tick', {
   id: 1610700058,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(1.2)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(2.2)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
 })
 
-// exec：序列播完后再等 1.2s（让主图最后一步动画完成/发布状态），才发 op5 回规划图重算
+// exec：序列播完后再等 4.0s：给最后一转动画与状态发布一段休息，再回 op5 重算
 const solverStartDoneTick = g.defineComposite('solver_start_done_tick', {
   id: 1610700061,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    // 3s：必须等最后一个转动的 flowAfterTurn 发布完 solver_ep/eo 再回 op5 重算
-    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(3.0)], 'float')])
+    // 4s：必须等最后一个转动的 flowAfterTurn 发布完 solver_ep/eo 再回 op5 重算
+    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(4.0)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }

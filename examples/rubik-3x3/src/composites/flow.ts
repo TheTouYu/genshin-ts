@@ -420,10 +420,27 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
       new bool(false)
     ])
     // 求解状态持续发布（每步后）：供求解器随时直接读取，省去请求回发信号
+    // 2026-08-25：solver_eo 追加第 13 位哨兵 1，避免 edgeOrient 全 0 时被引擎物化成 [0,0,0]。
+    const eoVar = f.getNodeGraphVariable('edgeOrient').asType('int_list')
+    const eo13 = f.assemblyList([
+      f.getCorrespondingValueFromList(eoVar, 0n),
+      f.getCorrespondingValueFromList(eoVar, 1n),
+      f.getCorrespondingValueFromList(eoVar, 2n),
+      f.getCorrespondingValueFromList(eoVar, 3n),
+      f.getCorrespondingValueFromList(eoVar, 4n),
+      f.getCorrespondingValueFromList(eoVar, 5n),
+      f.getCorrespondingValueFromList(eoVar, 6n),
+      f.getCorrespondingValueFromList(eoVar, 7n),
+      f.getCorrespondingValueFromList(eoVar, 8n),
+      f.getCorrespondingValueFromList(eoVar, 9n),
+      f.getCorrespondingValueFromList(eoVar, 10n),
+      f.getCorrespondingValueFromList(eoVar, 11n),
+      new int(1)
+    ], 'int')
     f.registerExecNode('set_custom_variable', [target, new str('solver_cp'), f.getNodeGraphVariable('cornerPos').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_co'), f.getNodeGraphVariable('cornerOrient').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solver_ep'), f.getNodeGraphVariable('edgePos').asType('int_list'), new bool(false)])
-    f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), f.getNodeGraphVariable('edgeOrient').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solver_eo'), eo13, new bool(false)])
     // 2026-08-24 拆图：胜利结算 flowCheckWin 暂从 flowAfterTurn 移除（避免 turn 图 engineExpanded 超 2000）。
     // 视觉/逻辑复原仍可通过自动求解验证；手动静置胜利后续再单独择机恢复。
     return {}
