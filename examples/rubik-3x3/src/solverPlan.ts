@@ -167,6 +167,15 @@ const graph = g
   })
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
     f.multipleBranches(evt.params.op, {
+      12: () => {
+        // 主图 tab14 自动还原入口：武装并启动 planTick 重算
+        f.setNodeGraphVariable('phase', new int(1), false)
+        f.setNodeGraphVariable('solveLen', new int(0), false)
+        f.setNodeGraphVariable('pStep', new int(1), false)
+        f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
+        f.setNodeGraphVariable('dbgVal', new str('tab-auto'), false)
+        f.callComposite(solverStartPlanTick, { target: f.getSelfEntity() })
+      },
       5: () => {
         const phase = f.getNodeGraphVariable('phase').asType('int')
         f.doubleBranch(f.greaterThan(phase, 0n), () => {

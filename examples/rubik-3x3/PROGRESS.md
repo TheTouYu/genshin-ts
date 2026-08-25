@@ -245,3 +245,8 @@
   - 复算查实：doneTick 1.2s 后 op5 重算早于最后一个转动 flowAfterTurn 发布 solver_ep/eo（日志 rec73 读到上一次状态），导致求解每轮按旧状态重算、绕圈不收敛。修复：`solver_start_done_tick` 延时 1.2s→3.0s。
   - op10（打乱）之前误插入 whenTimerIsTriggered（被当成 timer 分支），导致点自动打乱无反应；修复：移入 onSignal rubik3x3_solve。
   - 六图 engineExpanded 不变仍全部≤2000：turn 1936 / solverPlan 1168。
+- 2026-08-25（交互整理 + 自动还原入口 + 求解间隔加长）：
+  - 选项卡实体：1077936203(B) 选项改为「整体转X/整体转Y/整体转Z/自动打乱/自动还原/重置」；1077936230(自动求解) 移除 tabBar（只留 textBubble）。字节级 patch 真实 .gil，不重写地图；备份 `.gsts/backups/1073741899.gil.2026-08-25T03-41-02-430Z.tab-patch.bak`。
+  - 主图 dispatch：tab14=自动还原→发 op12 启动 solverPlan；tab15=重置；tab13=自动打乱。
+  - solverPlan：新增 op12 入口（置 phase=1 并启动 planTick）；planTick 0.3s→0.5s 降低平均负载，便于开日志观察。
+  - 六图 engineExpanded 全部≤2000：game 311 / relay 1535 / visual 985 / solver 45 / solverPlan 1177 / turn 1936。

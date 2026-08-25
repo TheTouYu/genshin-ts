@@ -226,7 +226,7 @@ const graph = g
         // 统一分派 A/B 两条输入路径，避免 flow_reset_publish / flow_tab_dispatch 两个根图实例
         const tabId = f.getNodeGraphVariable('pendingTab').asType('int')
         f.doubleBranch(
-          f.logicalOrOperation(f.equal(tabId, 14), f.equal(tabId, 15)),
+          f.equal(tabId, 15),
           () => {
             // flow_reset_core 内联（现在只有 dispatch 一处调用）：
             // 1) 26 块 stop/delete 循环  2) 重建  3) 逻辑复位  4) 写回 blocks
@@ -257,27 +257,35 @@ const graph = g
             f.setCustomVariable(entity(1077936203n), new str('blocks'), blocks, false)
           },
           () => {
-            // flow_tab_dispatch 内联（现在只有 dispatch 一处调用）
-            f.setNodeGraphVariable('curMove', tabId, false)
+            // 14 = 自动还原（启动事件驱动求解器）；其余再进入转动/打乱分发
             f.doubleBranch(
-              f.equal(f.getNodeGraphVariable('lock').asType('bool'), true),
-              () => {},
+              f.equal(tabId, 14),
               () => {
-                const isMove = f.logicalAndOperation(
-                  f.greaterThan(tabId, 0),
-                  f.logicalNotOperation(f.greaterThan(tabId, 12))
+                f.sendSignal(RubikSignal.rubik3x3_solve, 12n, 0n)
+              },
+              () => {
+                // flow_tab_dispatch 内联（现在只有 dispatch 一处调用）
+                f.setNodeGraphVariable('curMove', tabId, false)
+                f.doubleBranch(
+                  f.equal(f.getNodeGraphVariable('lock').asType('bool'), true),
+                  () => {},
+                  () => {
+                    const isMove = f.logicalAndOperation(
+                      f.greaterThan(tabId, 0),
+                      f.logicalNotOperation(f.greaterThan(tabId, 12))
+                    )
+                    f.doubleBranch(isMove, () => {
+                      // 由 turn 图统一接收 op3 并做 flowTabLock + flowRequestMove
+                      f.sendSignal(RubikSignal.rubik3x3_solve, 3n, tabId)
+                    }, () => {
+                      f.multipleBranches(tabId, {
+                        13: () => f.sendSignal(RubikSignal.rubik3x3_solve, 10n, 0n),
+                        16: () => {},
+                        default: () => {}
+                      })
+                    })
+                  }
                 )
-                f.doubleBranch(isMove, () => {
-                  // 由 turn 图统一接收 op3 并做 flowTabLock + flowRequestMove
-                  f.sendSignal(RubikSignal.rubik3x3_solve, 3n, tabId)
-                }, () => {
-                  f.multipleBranches(tabId, {
-                    13: () => f.sendSignal(RubikSignal.rubik3x3_solve, 10n, 0n),
-                    14: () => f.callComposite(flowSolve, { target: evt.eventSourceEntity }),
-                    16: () => {},
-                    default: () => {}
-                  })
-                })
               }
             )
           }

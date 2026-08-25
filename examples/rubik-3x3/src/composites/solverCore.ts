@@ -142,7 +142,7 @@ export const solverStartPlanTick = g.defineComposite('solver_start_plan_tick', {
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('planTick'), new bool(false), f.assemblyList([new float(0.3)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('planTick'), new bool(false), f.assemblyList([new float(0.5)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
