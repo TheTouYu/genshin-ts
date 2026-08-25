@@ -39,6 +39,7 @@ const graph = g
       // —— 流程层 ——
       lock: false,
       autoMode: false,
+      reverse: false,
       spawned: false,
       settled: false,
       solvedFlag: false,
@@ -280,12 +281,21 @@ const graph = g
                       f.logicalNotOperation(f.greaterThan(tabId, 12))
                     )
                     f.doubleBranch(isMove, () => {
-                      // 由 turn 图统一接收 op3 并做 flowTabLock + flowRequestMove
-                      f.sendSignal(RubikSignal.rubik3x3_solve, 3n, tabId)
+                      // 仅面转(1..6)受 reverse 开关控制为负 moveId；中层/整转仍正方向。
+                      const isFaceMove = f.logicalNotOperation(f.greaterThan(tabId, 6n))
+                      const revOn = f.getNodeGraphVariable('reverse').asType('bool')
+                      const flip = f.logicalAndOperation(isFaceMove, revOn)
+                      const sign = f.subtraction(1, f.multiplication(f.dataTypeConversion(flip, 'int'), 2))
+                      const signedTab = f.multiplication(tabId, sign)
+                      f.sendSignal(RubikSignal.rubik3x3_solve, 3n, signedTab)
                     }, () => {
                       f.multipleBranches(tabId, {
                         13: () => f.sendSignal(RubikSignal.rubik3x3_solve, 10n, 0n),
-                        16: () => {},
+                        16: () => {
+                          const rev = f.getNodeGraphVariable('reverse').asType('bool')
+                          f.setNodeGraphVariable('reverse', f.logicalNotOperation(rev), false)
+                          f.printString('rubik3x3-reverse-toggled')
+                        },
                         default: () => {}
                       })
                     })
