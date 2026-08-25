@@ -40,9 +40,10 @@
 | 18 | 定时器序列调度包 | scheduler+trigger 分离、mode 变量化、chunk 链式 | 多实体错峰执行 | [timer-scheduling.md](timer-scheduling.md) |
 | 19 | 循环物化与节点预算包 | build 期展开 vs 运行时循环、循环不变量提升、两阶段复位 | 节点预算与帧数双硬限 | [loop-node-budget.md](loop-node-budget.md) |
 | 20 | 日志标签包 | 图变量固定标识+dataTypeConversion(str)，无 print 快速定位帧 | 调试任何游戏行为的通用取数方案 | [debug-log-tag.md](debug-log-tag.md) |
+| 21 | 负载均衡分片调度器 | `pStep` 状态机 + `shardStartTick` 定时器，把大任务拆成多 tick 低负载执行 | 求解/批处理/长链任务的负载拆解 | [task-sharding-scheduler.md](task-sharding-scheduler.md) |
 
 > 资源包 1-13 来自社区「常用复合节点大全 v1.7」；资源包 14-17 来自 rubik-2x2/3x3 项目抽象（2026-08-22 第一轮）；
-> 资源包 18-19 来自 rubik-2x2/3x3 完整精读抽象（2026-08-22 第二轮）。
+> 资源包 18-19 来自 rubik-2x2/3x3 完整精读抽象（2026-08-22 第二轮）；资源包 21 来自 2026-08-25 自动求解负载拆分实践。
 
 ## 从这份资源包学到的「通用方法论」（提炼精华）
 
