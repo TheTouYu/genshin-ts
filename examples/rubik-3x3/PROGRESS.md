@@ -281,3 +281,4 @@
   - 自动求解节拍放缓：`emitTick 2.2→3.0s`、`doneTick 4.0→5.0s`、`planTick 0.5→0.7s`。
   - 已注入真实地图 + def-clean 无用残留 + maps:resync；六图 engineExpanded 全部≤2000：game 315 / relay 1535 / visual 985 / solver 50 / solverPlan 1994 / turn 1988。
   - 反向旋转接口未落地：turn 图 engineExpanded 1988 已近 2000，加正/逆双逻辑表会超限；需要新图承载逆逻辑，或先做"逆=三连正转"的退化实现。列入下一轮。
+  - 反向资产预研：生成 `src/inverseTables.ts` 与 `tools/gen-inverse-tables.mjs`（12 move 的反向一步表，未接线，供下一轮新图使用）。
