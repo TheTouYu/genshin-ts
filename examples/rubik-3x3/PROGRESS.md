@@ -268,3 +268,8 @@
   - 日志 2886 实锤：`long_list_get_vec3` 在 `IN1:Integer=97` 处读第三个分块，而 `localAxisTable2` 原长 88；`long_list_get_int` 也有复合输入 i>100 的同类风险。
   - 修复：`gen-orient-tables.mjs` 将 `localAxisTable`(288) 与 `moveOrientTransition`(288) 都补齐到 300（每 100 分块完整），重新生成 `orientTables.ts`；保留 `wholeOrientTransition` 导出。
   - 六图 engineExpanded 仍全部≤2000；已注入。
+- 2026-08-25（日志 2887 全程溯源：执行器丢步修复；求解逻辑与视觉分层结论）：
+  - 逐帧复算 15 步实际面转：每步后 `solver_ep/eo` 与 CubeLib 完全一致（逻辑执行/状态发布正确）；规划器宏序列也正确（round1 L、round2 B3U1B1…）。
+  - 实锤执行器 bug：`solver.ts` emitTick 的 `nxt` 被二次物化，续播判定实际比较 `(idx+1)+1`，导致每个 `len>=2` 的宏丢掉最后一步（rec148：发完第 4 步后 `5<5` 提前 doneTick）。复现脚本输出与日志 15 步 `2,6,6,6,3,1,1,6,5,3,5,5,5,2,2` 一字不差。
+  - 修复已注入（fix 后 solveIdx<solve_len 直接读已写入值）；真实 GIL 数据流回读确认 n=34 续播判定 = Get(solveIdx) < Get(solve_len)。
+  - 日志终点 `solveMask=15`、`plan-done`、op7：逻辑上十字已解；角块仍乱（本求解器只实现十字，未实现第一层角块）。视觉是否对上逻辑待用户复测确认。
