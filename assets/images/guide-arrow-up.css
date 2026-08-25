@@ -1,0 +1,37 @@
+/* AI 生成的引导资产 2/5：上箭头（160×240，4 图元） */
+.shaper-container {
+  position: relative;
+  width: 160px;
+  height: 240px;
+  overflow: hidden;
+}
+.shaper-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+.shaper-element.shaper-e0 {
+  left: 80px; top: 120px; width: 160px; height: 240px;
+  background: #1e293b; opacity: 0.8500;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 0;
+}
+.shaper-element.shaper-e1 {
+  left: 80px; top: 120px; width: 120px; height: 200px;
+  background: #f8fafc; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 1;
+  border-radius: 50%;
+}
+.shaper-element.shaper-e2 {
+  left: 80px; top: 145px; width: 46px; height: 70px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 2;
+}
+.shaper-element.shaper-e3 {
+  left: 80px; top: 68px; width: 56px; height: 70px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 3;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}

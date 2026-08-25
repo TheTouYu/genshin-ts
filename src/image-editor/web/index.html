@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Genshin-TS 图片编辑器</title>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --panel: #141a2a;
+    --panel-2: #1c2438;
+    --panel-3: #232d45;
+    --border: #2a3550;
+    --border-soft: #222c44;
+    --text: #e6ebf5;
+    --muted: #8b96ad;
+    --accent: #5eb0ff;
+    --accent-2: #3d8bfd;
+    --accent-soft: rgba(61, 139, 253, 0.14);
+    --danger: #ff7a7a;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --radius: 10px;
+    --radius-sm: 7px;
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 15px; font-weight: 600; margin: 0 10px 0 0; white-space: nowrap; letter-spacing: 0.01em; }
+  header .spacer { flex: 1; }
+  button {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.05s;
+  }
+  button:hover { border-color: var(--accent); background: var(--panel-3); }
+  button:active { transform: translateY(1px); }
+  button.primary { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+  button.primary:hover { background: var(--accent); border-color: var(--accent); filter: none; }
+  button.danger { color: var(--danger); }
+  button.danger:hover { border-color: var(--danger); background: rgba(255, 122, 122, 0.08); }
+  input, select, textarea {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  input[type="color"] { padding: 2px; width: 42px; height: 30px; }
+  main { flex: 1; display: flex; min-height: 0; }
+  section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  #left { width: 340px; border-right: 1px solid var(--border); background: var(--panel); }
+  #center {
+    flex: 1;
+    background-color: #0a0e18;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+    position: relative;
+    overflow: auto;
+  }
+  #right { width: 300px; border-left: 1px solid var(--border); background: var(--panel); overflow: auto; }
+  .pane-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 14px 16px 8px;
+    margin: 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .pane-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+  #left .pane-body { flex: 1; }
+  textarea#source {
+    flex: 1;
+    min-height: 180px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre;
+  }
+  .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .row label { font-size: 12px; color: var(--muted); min-width: 52px; }
+  .row input[type="number"] { width: 78px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  #canvasWrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    box-shadow: var(--shadow);
+    border-radius: 2px;
+  }
+  #canvasWrap svg { display: block; }
+  svg .shape { cursor: pointer; }
+  svg .shape.selected { stroke: #f43f5e; stroke-width: 2; }
+  #status {
+    padding: 7px 18px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    min-height: 30px;
+    line-height: 1.5;
+  }
+  #status.error { color: var(--danger); }
+  #status.ok { color: var(--ok); }
+  ul#elementList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  ul#elementList li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  ul#elementList li:hover { border-color: var(--accent); }
+  ul#elementList li.active { border-color: var(--accent); background: var(--accent-soft); }
+  ul#elementList li .swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); flex: none; }
+  ul#elementList li .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  ul#elementList li button { padding: 1px 6px; font-size: 11px; }
+  .field { display: flex; align-items: center; gap: 8px; }
+  .field label { font-size: 12px; color: var(--muted); width: 64px; flex: none; }
+  .field input, .field select { flex: 1; }
+  .field-group { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+  .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  #previewLabel { position: absolute; top: 12px; left: 14px; font-size: 12px; color: var(--muted); }
+  .empty-tip { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 12px; }
+  #assetList {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  #assetCount { color: var(--muted); font-weight: normal; }
+  .asset-card {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 10px;
+    background: var(--panel-2);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .asset-card:hover { border-color: var(--accent); background: var(--panel-3); }
+  .asset-card.asset-current { border-color: var(--accent); background: var(--accent-soft); }
+  .asset-preview {
+    background: #0a0e18;
+    border-radius: var(--radius-sm);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 56px;
+    flex: none;
+    overflow: hidden;
+  }
+  .asset-preview svg { width: 100%; height: 100%; max-height: 100%; }
+  .asset-info { font-size: 12px; line-height: 1.5; min-width: 0; flex: 1; }
+  .asset-name { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .asset-meta { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .asset-warn { color: var(--warn); }
+  .asset-error { color: var(--danger); }
+  .asset-actions { display: flex; flex-direction: column; gap: 4px; flex: none; }
+  .asset-actions button { padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+  .asset-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .asset-head input[type="checkbox"] { flex: none; width: 15px; height: 15px; accent-color: var(--accent-2); }
+  .asset-head .asset-name { flex: 1; min-width: 0; }
+  #assetToolbar { display: flex; gap: 8px; padding: 10px 16px 12px; }
+  #assetToolbar select { flex: 1; min-width: 0; }
+  #assetToolbar button { flex: none; font-size: 12px; padding: 6px 10px; white-space: nowrap; }
+  #mapToolbar { display: flex; gap: 8px; padding: 0 16px 12px; }
+  #mapToolbar select { flex: 1; min-width: 0; }
+  #mapToolbar button { flex: none; font-size: 12px; padding: 6px 10px; white-space: nowrap; }
+  #mapKnowledge { margin: 0 16px 12px; padding: 10px 12px; font-size: 12px; line-height: 1.6; }
+  #importedPanel {
+    border-top: 1px solid var(--border-soft);
+    overflow-y: auto;
+    max-height: 34%;
+    background: var(--panel);
+  }
+  #importedPanel .imp-item { padding: 10px 16px; border-bottom: 1px solid var(--border-soft); font-size: 12px; }
+  #importedPanel .imp-item b { color: var(--text); }
+  #importedPanel .imp-meta { color: var(--muted); line-height: 1.5; }
+  #importedPanel .imp-res { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+  #importedPanel .empty-tip { padding: 14px 10px; }
+  .pane-toggle {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color 0.15s;
+  }
+  .pane-toggle:hover { color: var(--text); }
+  .pane-toggle .toggle-arrow { transition: transform 0.2s; font-size: 11px; }
+  .pane-toggle.collapsed .toggle-arrow { transform: rotate(-90deg); }
+  #aiImportBody.collapsed { display: none; }
+  .menu-wrap { position: relative; }
+  .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 120px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    padding: 4px;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 50;
+  }
+  .menu.open { display: flex; }
+  .menu button {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 7px 10px;
+    border-radius: 5px;
+  }
+  .menu button:hover { background: var(--panel-3); border: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🖼️ Genshin-TS 图片编辑器</h1>
+  <input id="groupName" placeholder="素材组名（默认=资产名）" style="width: 140px" title="GIA 组名：留空时用当前资产名（AI 起的名字），无资产时用日期" />
+  <button class="primary" id="btnExportGia" title="导出为游戏图片素材 GIA 文件">导出 GIA</button>
+  <button class="primary" id="btnInject" title="导出 GIA 并写入游戏 Beyond_Local_Export，游戏内加载外部资产即可用">🚀 导入关卡</button>
+  <span class="spacer"></span>
+  <div class="menu-wrap">
+    <button id="btnExportMenu" title="导出为 SVG / CSS / JSON 文件">导出为… ▾</button>
+    <div class="menu" id="exportMenu">
+      <button id="btnExportSvg">SVG</button>
+      <button id="btnExportCss">CSS</button>
+      <button id="btnExportJson">JSON</button>
+    </div>
+  </div>
+  <button id="btnClear">清空</button>
+</header>
+<main>
+  <section id="left">
+    <p class="pane-title">资产库 <span id="assetCount"></span></p>
+    <div id="assetToolbar">
+      <select id="gameSelect" title="选择要注入的游戏（自动 = 唯一候选 / 默认导出目录）">
+        <option value="">🎮 自动检测</option>
+      </select>
+      <button id="btnInjectBatch" class="primary" title="勾选资产后批量转 GIA 并写入所选游戏的 Beyond_Local_Export">📦 批量导入</button>
+      <button id="btnRefreshImported" title="扫描 Beyond_Local_Export 里的 .gia，列出资源 ID/名字">🔍 已导入</button>
+    </div>
+    <div id="mapToolbar">
+      <select id="mapSelect" title="选择要写入的目标地图（Save_Level/*.gil）">
+        <option value="">🗺️ 选择地图…</option>
+      </select>
+      <button id="btnInjectMap" class="primary" title="勾选资产后直接写入所选地图的素材库（root9 素材段），容器 ID = 素材索引 ID，可被节点图引用">🗺️ 写入地图</button>
+      <button id="btnRefreshMaps" title="重新扫描本机地图列表">🔄</button>
+    </div>
+    <div class="pane-body" id="assetList">
+      <div class="empty-tip">扫描中…</div>
+    </div>
+    <div id="importedPanel" style="display:none"></div>
+    <div id="mapKnowledge" class="hint" style="display:none"></div>
+    <p class="pane-title pane-toggle" id="aiImportTitle">AI 生成内容导入 <span class="toggle-arrow">▾</span></p>
+    <div class="pane-body" id="aiImportBody">
+      <div class="hint">
+        让 AI 用 <b>image-css-builder</b> / <b>image-svg-builder</b> 技能生成图片资源
+        （CSS/SVG/JSON），粘贴到下方后点「导入到画布」。也可直接写 JSON SceneDocument。
+      </div>
+      <div class="row">
+        <select id="sourceType">
+          <option value="css">CSS</option>
+          <option value="svg">SVG</option>
+          <option value="json">JSON</option>
+        </select>
+        <button class="primary" id="btnImport" style="flex:1">导入到画布</button>
+      </div>
+      <textarea id="source" placeholder="粘贴 AI 生成的 CSS / SVG / JSON 内容…"></textarea>
+      <button id="btnAddShape" title="往画布添加一个基础形状">+ 添加图元</button>
+      <div class="grid2">
+        <select id="addShapeType">
+          <option value="rectangle">矩形</option>
+          <option value="ellipse">椭圆</option>
+          <option value="triangle">三角形</option>
+          <option value="four_point_star">四角星</option>
+          <option value="five_point_star">五角星</option>
+          <option value="ring">圆环</option>
+        </select>
+        <button id="btnAddShapeGo">添加</button>
+      </div>
+    </div>
+  </section>
+  <section id="center">
+    <div id="previewLabel">画布预览（点击图元选中编辑）</div>
+    <div id="canvasWrap" style="display:none"></div>
+    <div class="empty-tip" id="emptyTip">还没有内容。左侧粘贴 AI 生成的 CSS/SVG 后点「导入到画布」。</div>
+  </section>
+  <section id="right">
+    <p class="pane-title">图元列表</p>
+    <div class="pane-body">
+      <ul id="elementList"></ul>
+    </div>
+    <p class="pane-title">属性编辑</p>
+    <div class="pane-body">
+      <div id="propsCanvas">
+        <div class="field-group">
+          <div class="field"><label>画布宽</label><input type="number" id="canvasW" min="1" /></div>
+          <div class="field"><label>画布高</label><input type="number" id="canvasH" min="1" /></div>
+          <div class="field"><label>背景色</label><input type="color" id="canvasBg" /></div>
+        </div>
+        <div class="hint">图元数量：<span id="countLabel">0</span></div>
+      </div>
+      <div id="propsElement" style="display:none">
+        <div class="field"><label>类型</label><select id="propType">
+          <option value="rectangle">矩形</option>
+          <option value="ellipse">椭圆</option>
+          <option value="triangle">三角形</option>
+          <option value="four_point_star">四角星</option>
+          <option value="five_point_star">五角星</option>
+          <option value="ring">圆环</option>
+        </select></div>
+        <div class="field"><label>名称</label><input id="propName" /></div>
+        <div class="grid2">
+          <div class="field"><label>X</label><input type="number" id="propX" step="0.5" /></div>
+          <div class="field"><label>Y</label><input type="number" id="propY" step="0.5" /></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>宽</label><input type="number" id="propW" step="0.5" min="1" /></div>
+          <div class="field"><label>高</label><input type="number" id="propH" step="0.5" min="1" /></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>旋转°</label><input type="number" id="propRot" step="1" /></div>
+          <div class="field"><label>透明度</label><input type="number" id="propOpacity" step="0.05" min="0" max="1" /></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>颜色</label><input type="color" id="propColor" /></div>
+          <div class="field"><label>层级</label><input type="number" id="propZ" step="1" /></div>
+        </div>
+        <div class="row"><label><input type="checkbox" id="propBg" /> 背景图元（铺满画布）</label></div>
+        <div class="btn-row">
+          <button id="btnUp">上移一层</button>
+          <button id="btnDown">下移一层</button>
+          <button class="danger" id="btnDelete">删除图元</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="status">就绪。</div>
+<script>
+(() => {
+  'use strict'
+
+  const SHAPE_LABELS = {
+    rectangle: '矩形', ellipse: '椭圆', triangle: '三角形',
+    four_point_star: '四角星', five_point_star: '五角星', ring: '圆环'
+  }
+  const DEFAULT_SHAPES = {
+    rectangle: { width: 120, height: 80, color: '#c2410c' },
+    ellipse: { width: 100, height: 100, color: '#0f766e' },
+    triangle: { width: 110, height: 96, color: '#7c3aed' },
+    four_point_star: { width: 100, height: 100, color: '#0f4c81' },
+    five_point_star: { width: 100, height: 100, color: '#be123c' },
+    ring: { width: 100, height: 100, color: '#f59e0b' }
+  }
+
+  let scene = emptyScene()
+  let selectedId = null
+  let selectedZ = null
+
+  const $ = (id) => document.getElementById(id)
+  const els = {
+    source: $('source'), sourceType: $('sourceType'), btnImport: $('btnImport'),
+    canvasWrap: $('canvasWrap'), emptyTip: $('emptyTip'),
+    elementList: $('elementList'), status: $('status'),
+    groupName: $('groupName'),
+    btnExportGia: $('btnExportGia'), btnInject: $('btnInject'),
+    btnExportSvg: $('btnExportSvg'), btnExportCss: $('btnExportCss'), btnExportJson: $('btnExportJson'),
+    btnExportMenu: $('btnExportMenu'), exportMenu: $('exportMenu'),
+    btnClear: $('btnClear'), btnAddShape: $('btnAddShape'), btnAddShapeGo: $('btnAddShapeGo'), addShapeType: $('addShapeType'),
+    canvasW: $('canvasW'), canvasH: $('canvasH'), canvasBg: $('canvasBg'), countLabel: $('countLabel'),
+    propsCanvas: $('propsCanvas'), propsElement: $('propsElement'),
+    propType: $('propType'), propName: $('propName'), propX: $('propX'), propY: $('propY'),
+    propW: $('propW'), propH: $('propH'), propRot: $('propRot'), propOpacity: $('propOpacity'),
+    propColor: $('propColor'), propZ: $('propZ'), propBg: $('propBg'),
+    btnUp: $('btnUp'), btnDown: $('btnDown'), btnDelete: $('btnDelete'),
+    assetList: $('assetList'), assetCount: $('assetCount'),
+    gameSelect: $('gameSelect'),
+    btnInjectBatch: $('btnInjectBatch'), btnRefreshImported: $('btnRefreshImported'),
+    importedPanel: $('importedPanel'),
+    mapSelect: $('mapSelect'), btnInjectMap: $('btnInjectMap'), btnRefreshMaps: $('btnRefreshMaps'),
+    mapKnowledge: $('mapKnowledge')
+  }
+
+  // —— 资产库状态 ——
+  let currentAssetName = null
+  let assetLoadSnapshot = null
+  let lastAssetKey = null
+  const selectedAssets = new Set()
+
+  function emptyScene() {
+    return {
+      canvas: { width: 300, height: 300, background: '#ffffff' },
+      elements: [],
+      meta: { sourceType: 'editor', sourceName: '', warnings: [] },
+      library: {
+        activeCategory: '基础形状',
+        categories: [],
+        baseShapePresets: [],
+        savedItems: []
+      }
+    }
+  }
+
+  function setStatus(text, kind) {
+    els.status.textContent = text
+    els.status.className = kind || ''
+  }
+
+  async function api(path, body) {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const ct = res.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`)
+      return data
+    }
+    if (!res.ok) throw new Error(`请求失败 (${res.status})`)
+    return await res.text()
+  }
+
+  function sortedElements() {
+    return [...scene.elements].sort((a, b) => a.zIndex - b.zIndex)
+  }
+
+  function nextId() {
+    let n = 1
+    while (scene.elements.some((e) => e.id === 'e' + n)) n++
+    return 'e' + n
+  }
+
+  function addShape(type) {
+    const preset = DEFAULT_SHAPES[type] || DEFAULT_SHAPES.rectangle
+    const z = scene.elements.length === 0 ? 0 : Math.max(...scene.elements.map((e) => e.zIndex)) + 1
+    const element = {
+      id: nextId(), name: '', type,
+      x: scene.canvas.width / 2, y: scene.canvas.height / 2,
+      width: preset.width, height: preset.height,
+      rotation: 0, color: preset.color, opacity: 1, zIndex: z,
+      isBackground: false
+    }
+    scene.elements.push(element)
+    if (scene.elements.length === 1) {
+      // 首个图元默认铺满画布作为背景
+      element.width = scene.canvas.width
+      element.height = scene.canvas.height
+      element.isBackground = true
+    }
+    select(element.id)
+    refresh()
+  }
+
+  async function refresh() {
+    renderList()
+    els.countLabel.textContent = String(scene.elements.length)
+    els.canvasW.value = scene.canvas.width
+    els.canvasH.value = scene.canvas.height
+    els.canvasBg.value = scene.canvas.background
+    if (scene.elements.length === 0) {
+      els.emptyTip.style.display = 'block'
+      els.canvasWrap.style.display = 'none'
+      els.propsElement.style.display = 'none'
+      els.propsCanvas.style.display = 'block'
+      return
+    }
+    els.emptyTip.style.display = 'none'
+    els.canvasWrap.style.display = 'block'
+    try {
+      const svg = await api('/api/export', { scene, format: 'svg' })
+      els.canvasWrap.innerHTML = svg
+      bindShapeClicks()
+      if (selectedId) highlightSelected()
+    } catch (err) {
+      setStatus(err.message, 'error')
+    }
+    renderProps()
+  }
+
+  function bindShapeClicks() {
+    const svg = els.canvasWrap.querySelector('svg')
+    if (!svg) return
+    const sorted = sortedElements()
+    // svg children: [0]=background rect, then one node per element
+    const nodes = Array.from(svg.children).slice(1)
+    nodes.forEach((node, index) => {
+      const element = sorted[index]
+      if (!element) return
+      node.classList.add('shape')
+      node.addEventListener('click', (ev) => {
+        ev.stopPropagation()
+        select(element.id)
+      })
+    })
+    svg.addEventListener('click', () => select(null))
+  }
+
+  function highlightSelected() {
+    const svg = els.canvasWrap.querySelector('svg')
+    if (!svg) return
+    svg.querySelectorAll('.shape.selected').forEach((n) => n.classList.remove('selected'))
+    if (!selectedId) return
+    const sorted = sortedElements()
+    const index = sorted.findIndex((e) => e.id === selectedId)
+    const node = Array.from(svg.children)[index + 1]
+    if (node) node.classList.add('selected')
+  }
+
+  function select(id) {
+    selectedId = id
+    selectedZ = id ? scene.elements.find((e) => e.id === id)?.zIndex ?? null : null
+    highlightSelected()
+    renderList()
+    renderProps()
+  }
+
+  function renderList() {
+    els.elementList.innerHTML = ''
+    const sorted = sortedElements()
+    if (sorted.length === 0) {
+      els.elementList.innerHTML = '<li class="empty-tip">（空）</li>'
+      return
+    }
+    for (const element of sorted) {
+      const li = document.createElement('li')
+      li.className = element.id === selectedId ? 'active' : ''
+      const swatch = document.createElement('span')
+      swatch.className = 'swatch'
+      swatch.style.background = element.color
+      const name = document.createElement('span')
+      name.className = 'name'
+      name.textContent = element.name || `${SHAPE_LABELS[element.type] || element.type} #${element.zIndex + 1}`
+      const type = document.createElement('span')
+      type.textContent = element.isBackground ? '背景' : SHAPE_LABELS[element.type] || element.type
+      type.style.color = '#64748b'
+      li.append(swatch, name, type)
+      li.addEventListener('click', () => select(element.id))
+      els.elementList.appendChild(li)
+    }
+  }
+
+  function renderProps() {
+    els.canvasW.value = scene.canvas.width
+    els.canvasH.value = scene.canvas.height
+    els.canvasBg.value = scene.canvas.background
+    const element = selectedId ? scene.elements.find((e) => e.id === selectedId) : null
+    if (!element) {
+      els.propsElement.style.display = 'none'
+      els.propsCanvas.style.display = 'block'
+      return
+    }
+    els.propsCanvas.style.display = 'none'
+    els.propsElement.style.display = 'flex'
+    els.propsElement.style.flexDirection = 'column'
+    els.propsElement.style.gap = '6px'
+    els.propType.value = element.type
+    els.propName.value = element.name || ''
+    els.propX.value = element.x
+    els.propY.value = element.y
+    els.propW.value = element.width
+    els.propH.value = element.height
+    els.propRot.value = element.rotation
+    els.propOpacity.value = element.opacity
+    els.propColor.value = element.color
+    els.propZ.value = element.zIndex
+    els.propBg.checked = element.isBackground
+  }
+
+  function updateElement(patch) {
+    if (!selectedId) return
+    const element = scene.elements.find((e) => e.id === selectedId)
+    if (!element) return
+    Object.assign(element, patch)
+    refresh()
+  }
+
+  function bindProps() {
+    const num = (id) => {
+      const input = $(id)
+      input.addEventListener('change', () => {
+        const value = Number(input.value)
+        if (Number.isFinite(value)) {
+          const key = { propX: 'x', propY: 'y', propW: 'width', propH: 'height', propRot: 'rotation', propOpacity: 'opacity', propZ: 'zIndex' }[id]
+          if (key) updateElement({ [key]: value })
+        }
+      })
+    }
+    ;['propX', 'propY', 'propW', 'propH', 'propRot', 'propOpacity', 'propZ'].forEach(num)
+    els.propName.addEventListener('change', () => updateElement({ name: els.propName.value }))
+    els.propColor.addEventListener('change', () => updateElement({ color: els.propColor.value }))
+    els.propType.addEventListener('change', () => updateElement({ type: els.propType.value }))
+    els.propBg.addEventListener('change', () => updateElement({ isBackground: els.propBg.checked }))
+    els.canvasW.addEventListener('change', () => { scene.canvas.width = Math.max(1, Number(els.canvasW.value) || 300); refresh() })
+    els.canvasH.addEventListener('change', () => { scene.canvas.height = Math.max(1, Number(els.canvasH.value) || 300); refresh() })
+    els.canvasBg.addEventListener('change', () => { scene.canvas.background = els.canvasBg.value; refresh() })
+  }
+
+  function moveLayer(delta) {
+    if (!selectedId) return
+    const sorted = sortedElements()
+    const index = sorted.findIndex((e) => e.id === selectedId)
+    const target = index + delta
+    if (index < 0 || target < 0 || target >= sorted.length) return
+    const a = sorted[index]
+    const b = sorted[target]
+    const za = a.zIndex
+    a.zIndex = b.zIndex
+    b.zIndex = za
+    select(a.id)
+    refresh()
+  }
+
+  function downloadText(filename, text) {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+    downloadBlob(filename, blob)
+  }
+  function downloadBlob(filename, blob) {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function bindActions() {
+    els.btnImport.addEventListener('click', async () => {
+      const content = els.source.value.trim()
+      if (!content) { setStatus('请先粘贴内容', 'error'); return }
+      try {
+        const data = await api('/api/import', { sourceType: els.sourceType.value, content })
+        scene = data.scene
+        selectedId = null
+        setStatus(`导入成功：${scene.elements.length} 个图元` + (data.warnings.length ? `；警告：${data.warnings.join('；')}` : ''), 'ok')
+        refresh()
+      } catch (err) {
+        setStatus(err.message, 'error')
+      }
+    })
+    els.btnAddShapeGo.addEventListener('click', () => addShape(els.addShapeType.value))
+    els.btnAddShape.addEventListener('click', () => { els.source.value = ''; els.sourceType.value = 'json' })
+    els.btnClear.addEventListener('click', () => {
+      scene = emptyScene()
+      selectedId = null
+      setStatus('已清空', 'ok')
+      refresh()
+    })
+    els.btnUp.addEventListener('click', () => moveLayer(-1))
+    els.btnDown.addEventListener('click', () => moveLayer(1))
+    els.btnDelete.addEventListener('click', () => {
+      if (!selectedId) return
+      scene.elements = scene.elements.filter((e) => e.id !== selectedId)
+      selectedId = null
+      refresh()
+    })
+    els.btnExportGia.addEventListener('click', async () => {
+      if (scene.elements.length === 0) { setStatus('画布为空', 'error'); return }
+      try {
+        const res = await fetch('/api/export-gia', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ scene, groupName: els.groupName.value, assetName: currentAssetName })
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => null)
+          throw new Error((data && data.error) || '导出失败')
+        }
+        const blob = await res.blob()
+        const name = els.groupName.value || (currentAssetName || '').replace(/\.[^.]+$/, '') || 'image'
+        downloadBlob(name.endsWith('.gia') ? name : name + '.gia', blob)
+        setStatus('GIA 已导出', 'ok')
+      } catch (err) {
+        setStatus(err.message, 'error')
+      }
+    })
+    els.btnInject.addEventListener('click', async () => {
+      if (scene.elements.length === 0) { setStatus('画布为空', 'error'); return }
+      try {
+        const data = await api('/api/inject', { scene, groupName: els.groupName.value, assetName: currentAssetName })
+        setStatus(data.message, 'ok')
+      } catch (err) {
+        setStatus(err.message, 'error')
+      }
+    })
+    els.btnInjectBatch.addEventListener('click', async () => {
+      const names = [...selectedAssets]
+      if (names.length === 0) { setStatus('请先勾选要批量导入的资产', 'error'); return }
+      const confirmed = confirm(
+        `将 ${names.length} 个资产转为 GIA 并写入游戏 Beyond_Local_Export？\n\n` +
+        names.map((n) => `  · ${n.replace(/\.[^.]+$/, '')}.gia`).join('\n')
+      )
+      if (!confirmed) return
+      setStatus(`正在批量导入 ${names.length} 个资产…`, '')
+      try {
+        const data = await api('/api/assets/inject-batch', { names })
+        const ok = data.results || []
+        const bad = data.errors || []
+        const lines = []
+        for (const r of ok) {
+          lines.push(`✓ ${r.fileName} → ${r.resources.length} 个资源`)
+          for (const res of r.resources) lines.push(`    ID ${res.guid}「${res.name || '未命名'}」`)
+        }
+        for (const e of bad) lines.push(`✗ ${e.name}: ${e.error}`)
+        setStatus(`批量导入完成：成功 ${ok.length} / 失败 ${bad.length}`, ok.length ? 'ok' : 'error')
+        renderImported(true)
+        lastAssetKey = null
+        pollAssets()
+        if (ok.length) alert(lines.join('\n'))
+      } catch (err) {
+        setStatus(err.message, 'error')
+      }
+    })
+    els.btnRefreshImported.addEventListener('click', () => renderImported())
+    els.btnRefreshMaps.addEventListener('click', () => refreshMaps())
+    els.btnInjectMap.addEventListener('click', () => injectToMap())
+    els.btnExportSvg.addEventListener('click', async () => {
+      try {
+        const text = await api('/api/export', { scene, format: 'svg' })
+        downloadText('image.svg', text)
+        els.exportMenu.classList.remove('open')
+      } catch (err) { setStatus(err.message, 'error') }
+    })
+    els.btnExportCss.addEventListener('click', async () => {
+      try {
+        const text = await api('/api/export', { scene, format: 'css' })
+        downloadText('image.css', text)
+        els.exportMenu.classList.remove('open')
+      } catch (err) { setStatus(err.message, 'error') }
+    })
+    els.btnExportJson.addEventListener('click', async () => {
+      downloadText('scene.json', JSON.stringify(scene, null, 2))
+      els.exportMenu.classList.remove('open')
+    })
+    // 导出下拉菜单：点按钮切换，点外部/选完关闭
+    els.btnExportMenu.addEventListener('click', (ev) => {
+      ev.stopPropagation()
+      els.exportMenu.classList.toggle('open')
+    })
+    document.addEventListener('click', () => els.exportMenu.classList.remove('open'))
+  }
+
+  function mkBtn(text, cls, onClick) {
+    const b = document.createElement('button')
+    b.textContent = text
+    if (cls) b.className = cls
+    b.addEventListener('click', onClick)
+    return b
+  }
+
+  function applyAsset(item) {
+    scene = JSON.parse(JSON.stringify(item.scene))
+    selectedId = null
+    currentAssetName = item.name
+    assetLoadSnapshot = JSON.stringify(scene)
+    // 游戏内素材组名默认用资产名（AI 生成时起的名字），可手动覆盖
+    els.groupName.value = item.name.replace(/\.[^.]+$/, '')
+    refresh()
+    setStatus(`已载入资产 ${item.name}`, 'ok')
+  }
+
+  function renderAssetList(data) {
+    els.assetCount.textContent = data.count ? `（${data.count}）` : '（空）'
+    els.assetList.innerHTML = ''
+    if (data.count === 0) {
+      els.assetList.innerHTML =
+        '<div class="empty-tip">资产库为空。AI 生成的文件放入资产库目录会自动出现并刷新。</div>'
+      return
+    }
+    const sorted = [...data.items].sort((a, b) => b.mtimeMs - a.mtimeMs)
+    for (const item of sorted) {
+      const card = document.createElement('div')
+      card.className = 'asset-card' + (currentAssetName === item.name ? ' asset-current' : '')
+      const preview = document.createElement('div')
+      preview.className = 'asset-preview'
+      if (item.svg) preview.innerHTML = item.svg
+      else if (item.error) preview.textContent = '⚠️ 解析失败'
+      else preview.textContent = '（无预览）'
+      const info = document.createElement('div')
+      info.className = 'asset-info'
+      const head = document.createElement('div')
+      head.className = 'asset-head'
+      const checkbox = document.createElement('input')
+      checkbox.type = 'checkbox'
+      checkbox.checked = selectedAssets.has(item.name)
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) selectedAssets.add(item.name)
+        else selectedAssets.delete(item.name)
+      })
+      const name = document.createElement('div')
+      name.className = 'asset-name'
+      name.textContent = item.name
+      head.append(checkbox, name)
+      const meta = document.createElement('div')
+      meta.className = 'asset-meta'
+      meta.textContent = item.error
+        ? `解析失败：${item.error}`
+        : `${item.sourceType.toUpperCase()} · ${item.scene.elements.length} 图元 · ${item.scene.canvas.width}×${item.scene.canvas.height}`
+      info.append(head, meta)
+      if (item.error) {
+        const err = document.createElement('div')
+        err.className = 'asset-error'
+        err.textContent = item.error
+        info.appendChild(err)
+      } else if (item.warnings && item.warnings.length) {
+        const warn = document.createElement('div')
+        warn.className = 'asset-warn'
+        warn.textContent = '⚠ ' + item.warnings[0]
+        warn.title = item.warnings.join('\n')
+        info.appendChild(warn)
+      }
+      const actions = document.createElement('div')
+      actions.className = 'asset-actions'
+      const btnLoad = mkBtn('载入', 'primary', () => item.scene ? applyAsset(item) : setStatus('该资产解析失败，无法载入', 'error'))
+      const btnSave = mkBtn('存回', '', () => saveToAsset(item.name))
+      const btnDel = mkBtn('删除', 'danger', () => deleteAsset(item.name))
+      actions.append(btnLoad, btnSave, btnDel)
+      card.append(preview, info, actions)
+      els.assetList.appendChild(card)
+    }
+  }
+
+  async function renderImported(forceOpen) {
+    // 已导入面板默认收起；点击「已导入」按钮切换展开/收起
+    if (els.importedPanel.style.display !== 'none' && !forceOpen) {
+      els.importedPanel.style.display = 'none'
+      return
+    }
+    let data
+    try {
+      const res = await fetch('/api/assets/imported')
+      data = await res.json()
+      if (data.error) throw new Error(data.error)
+    } catch (err) {
+      setStatus(err.message, 'error')
+      return
+    }
+    els.importedPanel.style.display = ''
+    els.importedPanel.innerHTML = ''
+    if (data.count === 0) {
+      els.importedPanel.innerHTML =
+        '<div class="empty-tip">Beyond_Local_Export 里还没有 .gia 文件。<br/>勾选资产后点「批量导入」。</div>'
+      return
+    }
+    for (const item of data.items) {
+      const div = document.createElement('div')
+      div.className = 'imp-item'
+      const title = document.createElement('div')
+      title.innerHTML = `<b>${item.fileName}</b>` +
+        (item.inventory.groupName ? ` · 组「${item.inventory.groupName}」` : '') +
+        ` · ${item.inventory.resources.length} 资源`
+      div.appendChild(title)
+      if (item.inventory.resources.length) {
+        const res = document.createElement('div')
+        res.className = 'imp-res'
+        res.textContent = item.inventory.resources
+          .map((r) => `${r.name || '未命名'} → ID ${r.guid}`)
+          .join(' | ')
+        div.appendChild(res)
+      }
+      const meta = document.createElement('div')
+      meta.className = 'imp-meta'
+      meta.textContent = item.path
+      div.appendChild(meta)
+      els.importedPanel.appendChild(div)
+    }
+    setStatus(`已导入 ${data.count} 个 GIA（资源 ID 见左侧列表）`, 'ok')
+  }
+  // —— 写入地图（素材库注入）——
+  async function refreshMaps() {
+    let data
+    try {
+      const res = await fetch('/api/maps')
+      data = await res.json()
+      if (data.error) throw new Error(data.error)
+    } catch (err) {
+      setStatus('扫描地图失败：' + err.message, 'error')
+      return
+    }
+    const prev = els.mapSelect.value
+    els.mapSelect.innerHTML = '<option value="">🗺️ 选择地图…</option>'
+    for (const m of data.maps || []) {
+      const opt = document.createElement('option')
+      opt.value = String(m.mapId)
+      const name = m.name ? `「${m.name}」` : ''
+      const size = (m.size / 1024).toFixed(0) + 'KB'
+      opt.textContent = `${m.mapId} ${name} · ${size} · ${new Date(m.modifiedAtMs).toLocaleString()}`
+      els.mapSelect.appendChild(opt)
+    }
+    if (prev && [...els.mapSelect.options].some((o) => o.value === prev)) {
+      els.mapSelect.value = prev
+    }
+    setStatus(`已扫描 ${data.count} 张地图`, 'ok')
+  }
+
+  function showMapKnowledge() {
+    els.mapKnowledge.style.display = ''
+    els.mapKnowledge.innerHTML =
+      '<b>🗺️ 写入地图 vs 📦 批量导入</b><br/>' +
+      '· <b>写入地图</b>：把 CSS 资产直接写进地图 <b>素材库</b>（root9 素材段），' +
+      '容器 ID = <b>素材索引 ID</b>（0x40000000+ 段），可被游戏 API / 节点图直接引用。<br/>' +
+      '· <b>批量导入</b>：转成 GIA 写入 <b>Beyond_Local_Export</b>（外部资产文件夹），' +
+      '游戏内需「资产导入导出工具 → 加载外部资产」手动加载。<br/>' +
+      '· 写地图会自动备份到 <code>.gsts/backups/</code>，并同步 Temp（编辑器列表可见）。<br/>' +
+      '· 写完后游戏内<b>重载地图</b>，素材库即可见；节点图按返回的素材索引 ID 引用。'
+  }
+
+  async function injectToMap() {
+    const names = [...selectedAssets]
+    if (names.length === 0) { setStatus('请先勾选要写入地图的资产', 'error'); return }
+    const mapId = els.mapSelect.value
+    if (!mapId) { setStatus('请先选择目标地图', 'error'); return }
+    const confirmed = confirm(
+      `将 ${names.length} 个资产写入地图 ${mapId} 的素材库？\n\n` +
+      names.map((n) => `  · ${n.replace(/\.[^.]+$/, '')}`).join('\n') +
+      `\n\n写入前会自动备份到 .gsts/backups/，并同步 Temp。`
+    )
+    if (!confirmed) return
+    setStatus(`正在写入地图 ${mapId}…`, '')
+    try {
+      const data = await api('/api/maps/inject-library', { mapId: Number(mapId), names })
+      const ok = data.results || []
+      const bad = data.errors || []
+      const lines = []
+      for (const r of ok) {
+        lines.push(`✓ ${r.name} → 素材索引 ID ${r.containerId}`)
+      }
+      for (const e of bad) lines.push(`✗ ${e.name}: ${e.error}`)
+      setStatus(`写入地图完成：成功 ${ok.length} / 失败 ${bad.length}`, ok.length ? 'ok' : 'error')
+      showMapKnowledge()
+      if (ok.length) alert(lines.join('\n') + `\n\n备份：${data.backup || '无'}`)
+    } catch (err) {
+      setStatus(err.message, 'error')
+    }
+  }
+
+
+  async function pollAssets() {
+    let data
+    try {
+      const res = await fetch('/api/assets')
+      data = await res.json()
+      if (data.error) throw new Error(data.error)
+    } catch {
+      return // 静默：轮询失败不影响编辑器
+    }
+    if (lastAssetKey === data.key) return
+    lastAssetKey = data.key
+    // 当前画布来自某资产且用户未手动修改 → 自动载入该资产的最新版
+    if (currentAssetName && data.items) {
+      const current = data.items.find((item) => item.name === currentAssetName)
+      if (current && current.scene) {
+        const fresh = JSON.stringify(current.scene)
+        if (fresh !== assetLoadSnapshot) {
+          if (JSON.stringify(scene) === assetLoadSnapshot) {
+            applyAsset(current)
+            setStatus(`资产 ${current.name} 已自动更新到最新版`, 'ok')
+          } else {
+            setStatus(`资产 ${current.name} 有新版本（画布已手动调整，点「载入」查看）`, '')
+          }
+        }
+      }
+    }
+    renderAssetList(data)
+  }
+
+  async function saveToAsset(name) {
+    if (scene.elements.length === 0) {
+      setStatus('画布为空，无法存回', 'error')
+      return
+    }
+    const confirmed = confirm(`用当前画布覆盖资产「${name}」？（CSS 源写回 CSS，SVG 源升级为 JSON）`)
+    if (!confirmed) return
+    try {
+      const data = await api('/api/assets/save', { name, scene })
+      assetLoadSnapshot = JSON.stringify(scene)
+      lastAssetKey = null
+      setStatus(data.message, 'ok')
+      pollAssets()
+    } catch (err) {
+      setStatus(err.message, 'error')
+    }
+  }
+
+  async function deleteAsset(name) {
+    const confirmed = confirm(`删除资产「${name}」？文件将从资产库移除。`)
+    if (!confirmed) return
+    try {
+      const res = await fetch('/api/assets?name=' + encodeURIComponent(name), { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '删除失败')
+      if (currentAssetName === name) {
+        currentAssetName = null
+        assetLoadSnapshot = null
+      }
+      lastAssetKey = null
+      setStatus(data.message, 'ok')
+      pollAssets()
+    } catch (err) {
+      setStatus(err.message, 'error')
+    }
+  }
+
+  function init() {
+    bindProps()
+    bindActions()
+    // AI 导入区折叠：默认收起，点标题展开/收起
+    const aiTitle = $('aiImportTitle')
+    const aiBody = $('aiImportBody')
+    aiBody.classList.add('collapsed')
+    aiTitle.classList.add('collapsed')
+    aiTitle.addEventListener('click', () => {
+      aiBody.classList.toggle('collapsed')
+      aiTitle.classList.toggle('collapsed')
+    })
+    refresh()
+    // 自动保存到 localStorage，刷新不丢
+    setInterval(() => {
+      try { localStorage.setItem('image-editor-scene', JSON.stringify(scene)) } catch { /* ignore */ }
+    }, 2000)
+    try {
+      const saved = localStorage.getItem('image-editor-scene')
+      if (saved) {
+        scene = JSON.parse(saved)
+        currentAssetName = null
+        assetLoadSnapshot = null
+        setStatus('已恢复上次编辑内容（localStorage）', 'ok')
+      }
+    } catch { /* ignore */ }
+    // 资产库自动轮询：AI 写入资产目录后网页自动刷新
+    pollAssets()
+    // 地图列表：启动时扫描一次
+    refreshMaps()
+    setInterval(pollAssets, 2000)
+  }
+
+  init()
+})()
+</script>
+</body>
+</html>

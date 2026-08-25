@@ -90,6 +90,9 @@ export type {
 
 export * from './definitions/prefabs.js'
 
+// 图片编辑器能力（Miliastra image scenes ↔ GIA image mode）
+export * from './image-editor/index.js'
+
 // 复合节点支持
 export { defineComposite } from './runtime/core.js'
 export type { CompositeHandle, CompositeDefinition } from './runtime/composite_registry.js'

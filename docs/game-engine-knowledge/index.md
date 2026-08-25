@@ -33,6 +33,7 @@
 20. [复合节点](composite-nodes.md)
 21. [游戏引擎知识与项目编译管线](project-pipeline.md)
 22. [验证与规则学习流程](validation-workflow.md)
+23. [素材库注入](library-injection.md)
 
 ## 知识关系图
 

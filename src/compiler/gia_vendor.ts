@@ -46,3 +46,5 @@ export {
   CLIENT_GRAPH_ENCODING_BY_SUB_TYPE,
   getClientGraphEncoding
 } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js'
+
+export { resolveImageTemplatePath } from './image_template_path.js'

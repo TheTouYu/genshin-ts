@@ -79,6 +79,14 @@
       "types": "./dist/src/definitions/*.d.ts",
       "default": "./dist/src/definitions/*.js"
     },
+    "./image-editor/*.js": {
+      "types": "./dist/src/image-editor/*.d.ts",
+      "default": "./dist/src/image-editor/*.js"
+    },
+    "./image-editor/*": {
+      "types": "./dist/src/image-editor/*.d.ts",
+      "default": "./dist/src/image-editor/*.js"
+    },
     "./schemas/static-assembly.schema.json": "./schemas/static-assembly.schema.json",
     "./schemas/static-assembly-inspection.schema.json": "./schemas/static-assembly-inspection.schema.json",
     "./schemas/static-assembly-plan.schema.json": "./schemas/static-assembly-plan.schema.json",
@@ -105,6 +113,7 @@
     "test:eslint": "tsx tests/eslint/node-graph-rules.test.ts",
     "health:composite": "tsx scripts/composite-health-check.ts --scan dist/tests",
     "test:injector": "tsx tests/injector/client-graph-injection.test.ts && tsx tests/injector/signal-injection-boundary.test.ts && tsx tests/injector/composite-reinjection.test.ts",
+    "test:image-editor": "tsx tests/image-editor/import-export.test.ts && tsx tests/image-editor/gia-image-mode.test.ts",
     "test:stage-bootstrap": "npm run build && tsx scripts/assert-stage-event-prelude.ts",
     "test:client-transform": "npm run build && tsx scripts/client-nodegraph/assert-client-ts-transform.ts && tsx scripts/client-nodegraph/smoke-minimal-client-gia.ts && tsx scripts/client-nodegraph/smoke-generic-specialization.ts && tsx scripts/client-nodegraph/smoke-dict-reflect-nodes.ts && tsx scripts/client-nodegraph/smoke-local-variables.ts && tsx scripts/client-nodegraph/smoke-inline-id-values.ts && tsx scripts/client-nodegraph/smoke-ordered-start-pins.ts && tsx scripts/client-nodegraph/smoke-client-exec-bindings.ts && tsx scripts/client-nodegraph/smoke-enum-match.ts",
     "test:client-generics": "npm run build && tsx scripts/client-nodegraph/smoke-generic-specialization.ts",

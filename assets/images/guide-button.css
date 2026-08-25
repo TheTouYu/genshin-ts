@@ -1,0 +1,31 @@
+/* AI 生成的引导资产 5/5：按钮「点击这里」（200×100，3 图元） */
+.shaper-container {
+  position: relative;
+  width: 200px;
+  height: 100px;
+  overflow: hidden;
+}
+.shaper-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+.shaper-element.shaper-e0 {
+  left: 100px; top: 50px; width: 200px; height: 100px;
+  background: #1e293b; opacity: 0.8500;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 0;
+}
+.shaper-element.shaper-e1 {
+  left: 80px; top: 50px; width: 84px; height: 84px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 1;
+  border-radius: 50%;
+}
+.shaper-element.shaper-e2 {
+  left: 80px; top: 50px; width: 36px; height: 44px;
+  background: #f8fafc; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(90.00deg);
+  transform-origin: 50% 50%; z-index: 2;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}

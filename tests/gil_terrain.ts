@@ -3,7 +3,8 @@
 
 import assert from 'node:assert'
 import { readTerrainTiles, setTerrainRange } from '../src/cli/gil_terrain.js'
-import { emitWireMessage as emit, parseWireMessage as parse, type WireField } from '../src/cli/static_assembly/wire.js'
+import { emitWireMessage as emit, parseWireMessage as parse } from '../src/cli/static_assembly/wire.js'
+import type { WireField } from '../src/cli/static_assembly/wire.js'
 import { buildFile } from '../src/injector/binary.js'
 
 // 构造一个带 root 7 地形的微型 GIL
@@ -71,11 +72,11 @@ assert.ok(shrunkTop)
 const root7 = shrunkTop.find((f) => f.number === 7 && f.wire === 2)
 assert.ok(root7, 'root 7 exists')
 const terrain = parse(root7.value as Uint8Array)
-assert.ok(terrain, 'terrain parsed')
+if (!terrain) throw new Error('terrain record missing')
 const f1 = terrain.find((f) => f.number === 1 && f.wire === 2)
 assert.ok(f1, 'terrain record f1 exists')
 const f1Fields = parse(f1.value as Uint8Array)
-assert.ok(f1Fields, 'f1 fields parsed')
+if (!f1Fields) throw new Error('f1 fields missing')
 const name = f1Fields.find((f) => f.number === 2 && f.wire === 2)
 assert.ok(name, 'name field preserved')
 

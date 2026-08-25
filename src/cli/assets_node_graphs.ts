@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { sha256Bytes } from './static_assembly/json.js'
 import {
   emitWireMessage,
@@ -556,6 +556,11 @@ export async function runAssetsNodeGraphs(
     const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.new-graph.bak`)
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, newFile)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
     console.log(`backup=${backup}`)
     console.log(`written=${gil}`)
   } else if (args.outputPath) {
@@ -788,6 +793,11 @@ function runDefClean(bytes: Uint8Array, gil: string, args: Args): void {
     const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.def-clean.bak`)
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
     console.log(`backup=${backup}`)
     console.log(`written=${gil}`)
   } else if (args.outputPath) {
@@ -1241,6 +1251,11 @@ function runLayout(bytes: Uint8Array, gil: string, args: Args): void {
     const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.layout.bak`)
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
     console.log(`backup=${backup}`)
     console.log(`written=${gil}`)
   } else if (args.outputPath) {
@@ -1295,6 +1310,11 @@ function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
     const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.node-graph-patch.bak`)
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
     console.log(`backup=${backup}`)
     console.log(`written=${gil}`)
   } else if (args.outputPath) {

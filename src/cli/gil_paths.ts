@@ -95,6 +95,44 @@ export function detectGameRegion(): { region: GstsGameRegion; root: string } | n
   return null
 }
 
+export type GameExportDirInfo = {
+  /** Stable id for --game: `china:110170759`, `global:root`, or an absolute path. */
+  id: string
+  region: GstsGameRegion
+  /** Player uid under BeyondLocal, or null when the export dir sits at the root. */
+  uid: number | null
+  path: string
+}
+
+/**
+ * Scan every candidate Beyond_Local_Export directory across both regions
+ * (root-level + per-uid subfolders). Used by `gsts image:games` and the
+ * web UI's game picker. Never throws: missing/unreadable regions are skipped.
+ */
+export function listBeyondLocalExportDirs(): GameExportDirInfo[] {
+  const found: GameExportDirInfo[] = []
+  for (const region of ['China', 'Global'] as const) {
+    let root: string
+    try {
+      root = getBeyondLocalRoot(region)
+    } catch {
+      continue
+    }
+    if (!existsDir(root)) continue
+    const rootExport = path.join(root, 'Beyond_Local_Export')
+    if (existsDir(rootExport)) {
+      found.push({ id: `${region.toLowerCase()}:root`, region, uid: null, path: rootExport })
+    }
+    for (const uid of listNumericDirs(root)) {
+      const dir = path.join(root, String(uid), 'Beyond_Local_Export')
+      if (existsDir(dir)) {
+        found.push({ id: `${region.toLowerCase()}:${uid}`, region, uid, path: dir })
+      }
+    }
+  }
+  return found
+}
+
 function resolveBase(cfg: GstsInjectConfig): ResolvedGilFolder {
   const auto = detectGameRegion()
   let region: GstsGameRegion | undefined = cfg.gameRegion

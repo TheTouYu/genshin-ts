@@ -28,6 +28,35 @@ fs.mkdirSync(path.dirname(distProto), { recursive: true })
 fs.copyFileSync(srcProto, distProto)
 console.log('[ok] copied', srcProto, '->', distProto)
 
+// Copy image-mode GIA template
+const srcImageTemplate = path.join(
+  repoRoot,
+  'src',
+  'thirdparty',
+  'miliastra-image-editor',
+  'template',
+  'image_template.gia'
+)
+const distImageTemplate = path.join(
+  repoRoot,
+  'dist',
+  'src',
+  'thirdparty',
+  'miliastra-image-editor',
+  'template',
+  'image_template.gia'
+)
+fs.mkdirSync(path.dirname(distImageTemplate), { recursive: true })
+fs.copyFileSync(srcImageTemplate, distImageTemplate)
+console.log('[ok] copied', srcImageTemplate, '->', distImageTemplate)
+
+// Copy image editor web UI
+const srcWeb = path.join(repoRoot, 'src', 'image-editor', 'web', 'index.html')
+const distWeb = path.join(repoRoot, 'dist', 'src', 'image-editor', 'web', 'index.html')
+fs.mkdirSync(path.dirname(distWeb), { recursive: true })
+fs.copyFileSync(srcWeb, distWeb)
+console.log('[ok] copied', srcWeb, '->', distWeb)
+
 const extraDtsFiles = [
   path.join(repoRoot, 'src', 'definitions', 'server_on_overloads.d.ts'),
   path.join(repoRoot, 'src', 'runtime', 'IR.d.ts')

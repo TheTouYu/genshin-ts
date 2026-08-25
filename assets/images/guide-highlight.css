@@ -1,0 +1,53 @@
+/* AI 生成的引导资产 4/5：高亮框「请看这里」（256×256，7 图元） */
+.shaper-container {
+  position: relative;
+  width: 256px;
+  height: 256px;
+  overflow: hidden;
+}
+.shaper-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+.shaper-element.shaper-e0 {
+  left: 128px; top: 128px; width: 256px; height: 256px;
+  background: #1e293b; opacity: 0.5500;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 0;
+}
+.shaper-element.shaper-e1 {
+  left: 128px; top: 128px; width: 168px; height: 168px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 1;
+}
+.shaper-element.shaper-e2 {
+  left: 128px; top: 128px; width: 134px; height: 134px;
+  background: #1e293b; opacity: 0.8500;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 2;
+}
+.shaper-element.shaper-e3 {
+  left: 44px; top: 44px; width: 18px; height: 18px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 3;
+}
+.shaper-element.shaper-e4 {
+  left: 212px; top: 44px; width: 18px; height: 18px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 4;
+}
+.shaper-element.shaper-e5 {
+  left: 44px; top: 212px; width: 18px; height: 18px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 5;
+}
+.shaper-element.shaper-e6 {
+  left: 212px; top: 212px; width: 18px; height: 18px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 6;
+}

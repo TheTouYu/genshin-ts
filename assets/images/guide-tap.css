@@ -1,0 +1,66 @@
+/* AI 生成的引导资产 3/5：点击指示「点这里」（256×256，9 图元） */
+.shaper-container {
+  position: relative;
+  width: 256px;
+  height: 256px;
+  overflow: hidden;
+}
+.shaper-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+.shaper-element.shaper-e0 {
+  left: 128px; top: 128px; width: 256px; height: 256px;
+  background: #1e293b; opacity: 0.6000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 0;
+}
+.shaper-element.shaper-e1 {
+  left: 128px; top: 128px; width: 190px; height: 190px;
+  background: #f8fafc; opacity: 0.2200;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 1;
+  border-radius: 50%;
+}
+.shaper-element.shaper-e2 {
+  left: 128px; top: 128px; width: 150px; height: 150px;
+  background: radial-gradient(closest-side, transparent 79.5%, #f59e0b 80.5%, #f59e0b 100%, transparent 100%);
+  opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 2;
+}
+.shaper-element.shaper-e3 {
+  left: 128px; top: 128px; width: 56px; height: 56px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 3;
+  border-radius: 50%;
+}
+.shaper-element.shaper-e4 {
+  left: 128px; top: 40px; width: 24px; height: 24px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(180.00deg);
+  transform-origin: 50% 50%; z-index: 4;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+.shaper-element.shaper-e5 {
+  left: 128px; top: 216px; width: 24px; height: 24px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(0.00deg);
+  transform-origin: 50% 50%; z-index: 5;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+.shaper-element.shaper-e6 {
+  left: 40px; top: 128px; width: 24px; height: 24px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(90.00deg);
+  transform-origin: 50% 50%; z-index: 6;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+.shaper-element.shaper-e7 {
+  left: 216px; top: 128px; width: 24px; height: 24px;
+  background: #f59e0b; opacity: 1.0000;
+  transform: translate(-50%, -50%) rotate(-90.00deg);
+  transform-origin: 50% 50%; z-index: 7;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}

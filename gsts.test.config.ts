@@ -6,6 +6,7 @@ const config: GstsConfig = {
     './tests',
     '!./tests/manual/**/*.ts',
     '!./tests/composite/**/*.ts',
+    '!./tests/image-editor/**/*.ts',
     '!./tests/generated/other.*.ts',
     '!./tests/generated/*.literal.ts',
     '!./tests/generated/*.wire.ts',

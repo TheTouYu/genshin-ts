@@ -43,7 +43,9 @@ import { runAssetsResources } from './assets_resources.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
+import { runImageEditor } from './image_editor.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
+import { runLibraryInject } from './static_assembly/library_inject.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
 import { resolveGilFolder, resolveGilTarget, syncGilToTemp } from './gil_paths.js'
@@ -280,6 +282,7 @@ const ROOT_SUBCOMMANDS = new Set([
   'dev',
   'maps',
   'assets:static-assemblies',
+  'assets:library-inject',
   'assets:entities',
   'assets:custom-variables',
   'open',
@@ -1818,6 +1821,24 @@ async function main() {
     })
 
   program
+    .command('assets:library-inject')
+    .description(t('cmdAssetsLibraryInject'))
+    .option('--gil <file>', 'source .gil (required)')
+    .option('--list', 'list material library contents (read-only)')
+    .option('--css <dir>', 'CSS asset directory (default assets/images)')
+    .option('--names <a,b>', 'inject only named assets (comma separated)')
+    .option('--group-name <s>', 'asset group name (default: 图片)')
+    .option('--output <file>', 'write candidate file + independent read-back verify')
+    .option('--write', 'write back to source .gil (auto backup + Temp sync)')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:library-inject')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      await runLibraryInject(args)
+    })
+
+  program
     .command('assets:entities')
     .description('export or import scene entities (root 5) of a GIL map')
     .option('--entities <file>', 'entity import JSON (import only)')
@@ -2028,6 +2049,56 @@ async function main() {
     .action(async () => {
       const args = process.argv.slice(3).filter((arg) => arg !== '--')
       await runAssetsCustomVariables(args)
+    })
+
+  program
+    .command('image:import')
+    .description('parse CSS/JSON/SVG into a normalized Miliastra SceneDocument JSON')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runImageEditor(['import', ...args])
+    })
+
+  program
+    .command('image:export')
+    .description('render a SceneDocument JSON to CSS/SVG/JSON or GIA (image mode)')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runImageEditor(['export', ...args])
+    })
+
+  program
+    .command('image:serve')
+    .description('start the local image editor web UI (preview/edit/export GIA/import to game)')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runImageEditor(['serve', ...args])
+    })
+
+  program
+    .command('image:games')
+    .description('scan and list every detected game Beyond_Local_Export dir')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runImageEditor(['games', ...args])
+    })
+
+  program
+    .command('image:inject')
+    .description('convert asset file(s) to GIA and write them into a game Beyond_Local_Export')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runImageEditor(['inject', ...args])
     })
 
   program
