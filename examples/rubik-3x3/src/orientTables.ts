@@ -54,7 +54,9 @@ export const localAxisTable2 = [
   vec3([0, 0, -1]), vec3([0, 0, -1]), vec3([1, 0, 0]), vec3([0, -1, 0]), vec3([-1, 0, 0]), vec3([0, 1, 0]),
   vec3([0, 0, 1]), vec3([0, 0, 1]), vec3([0, 0, 1]), vec3([0, 0, 1]), vec3([-1, 0, 0]), vec3([0, 1, 0]),
   vec3([1, 0, 0]), vec3([0, -1, 0]), vec3([0, -1, 0]), vec3([-1, 0, 0]), vec3([0, 1, 0]), vec3([1, 0, 0]),
-  vec3([0, 1, 0]), vec3([1, 0, 0]), vec3([0, -1, 0]), vec3([-1, 0, 0]),
+  vec3([0, 1, 0]), vec3([1, 0, 0]), vec3([0, -1, 0]), vec3([-1, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+  vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+  vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
 ]
 // orientIndexByEuler[ qy*16 + qx*4 + qz ] = 朝向索引（0..23）
 export const orientIndexByEuler = [
@@ -88,12 +90,9 @@ export const moveOrientTransition2 = [
   0n, 1n, 2n, 3n, 10n, 11n, 8n, 9n, 12n, 13n, 14n, 15n, 0n, 1n, 2n, 3n,
   4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 17n, 18n, 19n, 16n, 23n, 20n, 21n, 22n,
   3n, 0n, 1n, 2n, 19n, 16n, 17n, 18n, 9n, 10n, 11n, 8n, 23n, 20n, 21n, 22n,
-  15n, 12n, 13n, 14n, 7n, 4n, 5n, 6n,
+  15n, 12n, 13n, 14n, 7n, 4n, 5n, 6n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
+  0n, 0n, 0n, 0n,
 ]
-// 2026-08-22 追加（性能修复）：整体转专用紧凑表。
-// = moveOrientTransition2 的 216..287 段（moveId 10/11/12 各 24 项），72 项 < 100 免分块，
-// 让 logicApplyWhole 每块朝向查表从 longListGetInt（~9 节点）降到直接查表（2 节点），
-// 把整体转单次执行压到引擎单记录 ~3000 帧上限以内（此前 rec184 3001 帧截断、lock 卡死）。
 export const wholeOrientTransition = [
   20n, 21n, 22n, 23n, 7n, 4n, 5n, 6n, 18n, 19n, 16n, 17n, 13n, 14n, 15n, 12n,
   0n, 1n, 2n, 3n, 10n, 11n, 8n, 9n, 12n, 13n, 14n, 15n, 0n, 1n, 2n, 3n,

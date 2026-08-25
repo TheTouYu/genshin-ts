@@ -55,6 +55,8 @@ for (let move=1; move<=12; move++) {
     localAxisTable.push(local)
   }
 }
+// long_list_get_vec3 会同时读取三个分块；最后一块也补齐 100，避免 c2[offset] 越界（2026-08-25）
+while (localAxisTable.length % 100 !== 0) localAxisTable.push([0, 0, 0])
 
 // orientIndexByEuler 下标 = qy*16 + qx*4 + qz（与 flow_update_orient 的 key 一致）
 const orientIndexByEuler = []
@@ -76,6 +78,8 @@ for (let move=1; move<=12; move++) {
     moveOrientTransition.push(byMat.get(matStr(Rnew)))
   }
 }
+// 三个 100 元素分块同样补齐，避免 long_list_get_int 的第三块越界
+while (moveOrientTransition.length % 100 !== 0) moveOrientTransition.push(0)
 
 function fmtVec(v) { const s = v.map(x => x === 0 ? 0 : x).join(', '); return `vec3([${s}])` }
 function chunks(arr, per) { const out=[]; for(let i=0;i<arr.length;i+=per) out.push(arr.slice(i,i+per)); return out }

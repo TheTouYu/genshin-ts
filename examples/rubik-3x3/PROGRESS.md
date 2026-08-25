@@ -264,3 +264,7 @@
   - 根因：solver.ts op6 分支 `len<=1` 时旧代码立即 `sendSignal op5`，没走 doneTick 4.0s 等待。
   - 修复：op6 的 len<=1 与 len<=0 两个分支都改为 `solverStartDoneTick`，让动画完成后再回 op5。
   - 六图 engineExpanded 仍全部≤2000。
+- 2026-08-25（长列表分块越界修复）：
+  - 日志 2886 实锤：`long_list_get_vec3` 在 `IN1:Integer=97` 处读第三个分块，而 `localAxisTable2` 原长 88；`long_list_get_int` 也有复合输入 i>100 的同类风险。
+  - 修复：`gen-orient-tables.mjs` 将 `localAxisTable`(288) 与 `moveOrientTransition`(288) 都补齐到 300（每 100 分块完整），重新生成 `orientTables.ts`；保留 `wholeOrientTransition` 导出。
+  - 六图 engineExpanded 仍全部≤2000；已注入。
