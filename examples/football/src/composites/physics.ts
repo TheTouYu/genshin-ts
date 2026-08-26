@@ -5,6 +5,7 @@
 //   门线 |x|=52.5，门柱中心 z=±3.6（半径 0.06），横梁中心 y=2.5，球网深 1.8m
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
+import { EntityType } from 'genshin-ts/definitions/enum'
 import { motionSpin, motionToPoint } from './motion.js'
 
 // —— 物理常量（编译期预计算为字面量）——
@@ -487,10 +488,22 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ③ 四面墙碰撞（草地边界反弹）
     const wall = f.callComposite(physWallCollide, {})
 
-    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
+    // ④a 自动兜底判定：球慢（<2m/s）且玩家近（<2m）→ 补踢（冲量），
+    // 命中检测 0.3s CD 期间的空白由本判定补位；踢后球速>玩家速自然离开，不连发
     const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const roleC = f.callComposite(pushGetRole, {})
+    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos: posFinal, vel: velFinal })
+    f.doubleBranch(
+      autoK.kick,
+      () => {
+        const pc = f.callComposite(pushCompute, { hitPoint: posFinal })
+        const rl = f.callComposite(rollLaunch, { e, dV: pc.dV })
+        f.outflow('done', rl as never, 0)
+      },
+      () => {
+    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
     const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
     f.doubleBranch(stop.isStop, () => {
       const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
@@ -501,6 +514,8 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       f.connect(ss, 0, ap as never, 0)
       f.outflow('done', ap as never, 0)
     })
+      }
+    )
     return {}
   }
 })
@@ -537,5 +552,157 @@ export const physTick = g.defineComposite('phys_tick', {
       }
     )
     return {}
+  }
+})
+
+// ================================================================
+// 带球「冲量」模型（v3，原 composites/push.ts 并入：避免 physics↔push 循环 import）
+// ================================================================
+// 足球带球「冲量」复合（v3 推球模型），命名前缀：push_*
+// 模型：踢球 = 给球施加速度增量 Δv（冲量），球进入滚滑物理链自然滑动→滚动→停。
+// 不再做定点位移（v2 的"瞬移+急停"手感僵硬，且不衔接完整物理状态）。
+// 输入状态 → 冲量：
+//   球速 vB（沿踢向投影）、玩家速率 vP、距离 d、玩家朝向/移动方向
+// 目标：踢后球相对玩家领先 D* 米停下（滚滑摩擦 0.8/tick 下相对滚距 ≈ 相对速度）
+
+// —— 冲量模型参数（集中可调）——
+const D_BASE = 1.2 // 目标领先距离基数（米）
+const D_SPEED_COEF = 0.15 // 玩家速率系数：D* = D_BASE + D_SPEED_COEF·vP
+const D_MIN = 0.8 // D* 下限
+const D_MAX = 2.0 // D* 上限
+const DV_MIN = 2.5 // 冲量下限（球静止/玩家慢走也能滚起来）
+const DV_MAX = 6.0 // 冲量上限（防击飞）
+const DEG2RAD = 0.0174533
+// BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
+
+// ================================================================
+// 获取持球者角色实体（纯数据）：单人=场上角色列表第一个（多人扩展点=取最近者）
+// ================================================================
+export const pushGetRole = g.defineComposite('push_get_role', {
+  inputs: {},
+  outputs: { role: { type: 'entity' } },
+  build: (_i, f) => {
+    const list = f.getSpecifiedTypeOfEntitiesOnTheField(EntityType.Character)
+    return { role: f.getCorrespondingValueFromList(list, new int(0)) }
+  }
+})
+
+// ================================================================
+// 冲量计算（纯数据）：输入命中点 → 输出速度增量 Δv（沿踢球方向）
+// 踢球方向 dir：玩家移动方向（监听移动速率节点速度向量，水平归一）；
+// 玩家静止时回退玩家朝向（rotY → (sin, 0, cos)）。
+// Δv = clamp((vP + D*) − vB, DV_MIN, DV_MAX)，vB = 球速沿 dir 投影。
+// ================================================================
+export const pushCompute = g.defineComposite('push_compute', {
+  inputs: { hitPoint: { type: 'vec3' } },
+  outputs: { dV: { type: 'vec3' } },
+  build: ({ hitPoint }, f) => {
+    const role = f.callComposite(pushGetRole, {})
+    const t = f.getEntityLocationAndRotation(role.role)
+    const r = f.split3dVector(t.rotate)
+    const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
+    const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
+    const facing = f.create3dVector(sinY, 0, cosY)
+    // 玩家速度（官方节点：需角色挂「监听移动速率」单位状态效果）
+    const spd = f.queryCharacterSCurrentMovementSpd(role.role)
+    const vP = f._3dVectorModuloOperation(spd.velocityVector)
+    // dir：见下合成加权（无需 velLen）
+    // dir = normalize(速度向量 + 朝向×0.35)：跑动时≈移动方向（偏差 <4°），
+    // 静止时速度向量为 0 → 自动退化为玩家朝向。合成加权避免 bool→float 转换
+    // （数据类型转换无 bool→float variant，E_UNKNOWN_NODE_VARIANT 实证）。
+    const vx = f.split3dVector(spd.velocityVector).xComponent
+    const vz = f.split3dVector(spd.velocityVector).zComponent
+    const mixX = f.addition(vx, f.multiplication(sinY, 0.35))
+    const mixZ = f.addition(vz, f.multiplication(cosY, 0.35))
+    const mixLen = f.addition(
+      f._3dVectorModuloOperation(f.create3dVector(mixX, 0, mixZ)),
+      0.0001
+    )
+    const dir = f.create3dVector(f.division(mixX, mixLen), 0, f.division(mixZ, mixLen))
+    // 球速沿 dir 投影
+    const vB = f._3dVectorDotProduct(f.getNodeGraphVariable('ballVel').asType('vec3'), dir)
+    // D* = clamp(D_BASE + D_SPEED_COEF·vP, D_MIN, D_MAX)
+    const dRaw = f.addition(D_BASE, f.multiplication(vP, D_SPEED_COEF))
+    const dStar = f.division(
+      f.addition(
+        f.addition(dRaw, D_MIN),
+        f.absoluteValueOperation(f.subtraction(dRaw, D_MIN))
+      ),
+      2
+    )
+    // min(dStar, D_MAX) = (dStar+D_MAX−|dStar−D_MAX|)/2
+    const dStarClamped = f.division(
+      f.subtraction(
+        f.addition(dStar, D_MAX),
+        f.absoluteValueOperation(f.subtraction(dStar, D_MAX))
+      ),
+      2
+    )
+    // Δv = clamp(vP + D* − vB, DV_MIN, DV_MAX)
+    const dvRaw = f.subtraction(f.addition(vP, dStarClamped), vB)
+    const dvFloor = f.division(
+      f.addition(
+        f.addition(dvRaw, DV_MIN),
+        f.absoluteValueOperation(f.subtraction(dvRaw, DV_MIN))
+      ),
+      2
+    )
+    // min(dvFloor, DV_MAX) = (dvFloor+DV_MAX−|dvFloor−DV_MAX|)/2
+    const dv = f.division(
+      f.subtraction(
+        f.addition(dvFloor, DV_MAX),
+        f.absoluteValueOperation(f.subtraction(dvFloor, DV_MAX))
+      ),
+      2
+    )
+    return { dV: f._3dVectorZoom(dir, dv) }
+  }
+})
+
+// ================================================================
+// 踢球执行（exec 复合）：ballVel += Δv → 滚滑首 tick 积分 → 运动器 + 状态 ROLLING
+// 与 kickLaunch 同模式（半隐式首段积分，视觉与逻辑同源），衔接完整滚滑物理链
+// ================================================================
+export const rollLaunch = g.defineComposite('roll_launch', {
+  inputs: { e: { type: 'entity' }, dV: { type: 'vec3' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ e, dV }, f) => {
+    const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const nvel = f._3dVectorAddition(vel, dV)
+    const integ = f.callComposite(physRollIntegrate, { pos, vel: nvel, spin })
+    // 首段目标贴地（滚滑积分 y=BALL_R）
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
+    const ap = f.callComposite(motionToPoint, { e, target: integ.npos })
+    f.connect(setPos, 0, ap as never, 0)
+    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    f.connect(ap as never, 0, setVel, 0)
+    const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
+    f.connect(setVel, 0, setSpin, 0)
+    const setState = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+    f.connect(setSpin, 0, setState, 0)
+    f.outflow('done', setState, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 自动兜底判定（纯数据）：球慢速（<2 m/s）且玩家在 2m 内 → 需要补踢
+// 命中检测 0.3s CD 期间的空白由滚滑 tick 里的此判定补位
+// ================================================================
+export const pushAutoCheck = g.defineComposite('push_auto_check', {
+  inputs: { role: { type: 'entity' }, pos: { type: 'vec3' }, vel: { type: 'vec3' } },
+  outputs: { kick: { type: 'bool' } },
+  build: ({ role, pos, vel }, f) => {
+    const rolePos = f.getEntityLocationAndRotation(role).location
+    const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(rolePos, pos))
+    const speed = f._3dVectorModuloOperation(vel)
+    const kick = f.logicalAndOperation(
+      f.lessThan(speed, 2),
+      f.lessThan(dist, 2)
+    )
+    return { kick }
   }
 })

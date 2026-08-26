@@ -9,10 +9,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { Signal } from './resources/signals.js'
 
-const PUSH_DIST = 1.8 // 推球距离（米）：球被踢到持球者正前方该距离处
-const BALL_R = 0.25 // 球半径（目标点 y 贴地）
-const DEG2RAD = 0.0174533 // 度→弧度（实体旋转是欧拉角度）
-const LOCK_MS = 0.4 // 推球锁时长（秒）
+const LOCK_MS = 0.25 // 踢球锁时长（秒）——比命中检测 0.3s CD 短，基本只防同帧双渠道重发
 
 const graph = g
   .server({
@@ -36,22 +33,12 @@ const graph = g
         f.doubleBranch(
           f.equal(lock, 0n),
           () => {
-            const role = evt.onHitEntity
-            const t = f.getEntityLocationAndRotation(role)
-            const p = f.split3dVector(t.location)
-            const r = f.split3dVector(t.rotate)
-            const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
-            const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
-            const target = f.create3dVector(
-              f.addition(p.xComponent, f.multiplication(sinY, PUSH_DIST)),
-              BALL_R,
-              f.addition(p.zComponent, f.multiplication(cosY, PUSH_DIST))
-            )
+            // v3：只发命中点，冲量计算（方向/大小）在物理图完成
             f.setNodeGraphVariable('dbgTag', new str('DBG_PUSH'), false)
             f.setNodeGraphVariable('dbgVal', new str('HIT_PUSH'), false)
             f.setNodeGraphVariable('pushLock', 1n, false)
             f.startTimer(f.getSelfEntity(), 'push_lock', false, [LOCK_MS])
-            f.sendSignal(Signal.football_push, target)
+            f.sendSignal(Signal.football_push, evt.onHitLocation)
           },
           () => {}
         )
@@ -71,7 +58,7 @@ const graph = g
         f.setNodeGraphVariable('dbgVal', new str('REQ_PUSH'), false)
         f.setNodeGraphVariable('pushLock', 1n, false)
         f.startTimer(f.getSelfEntity(), 'push_lock', false, [LOCK_MS])
-        f.sendSignal(Signal.football_push, evt.params.target)
+        f.sendSignal(Signal.football_push, evt.params.hitPoint)
       },
       () => {}
     )
