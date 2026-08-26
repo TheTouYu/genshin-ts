@@ -85,7 +85,7 @@ const graph = g
       () => {
         // 冲量计算（玩家速率/朝向/球速投影 → Δv）→ 踢球入滚滑物理
         const pc = f.callComposite(pushCompute, { hitPoint })
-        const rl = f.callComposite(kickApply, { e: ball, vKick: pc.vKick })
+        const rl = f.callComposite(kickApply, { e: ball, dV: pc.dV })
       }
     )
   })

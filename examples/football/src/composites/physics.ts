@@ -538,7 +538,7 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       autoK.kick,
       () => {
         const pc = f.callComposite(pushCompute, { hitPoint: posFinal })
-        const rl = f.callComposite(kickApply, { e, vKick: pc.vKick })
+        const rl = f.callComposite(kickApply, { e, dV: pc.dV })
         f.outflow('done', rl as never, 0)
       },
       () => {
@@ -617,7 +617,9 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK = 3.5 // 踢后球速（固定 m/s）
+const VKICK_TARGET = 3.5 // 冲量目标球速（m/s）：施加冲量后球速应到的参考值
+const DV_MIN = 1.0 // 最小冲量（追球轻触）
+const DV_MAX = 4.5 // 最大冲量（球反向滚时纠正）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -641,7 +643,7 @@ export const pushGetRole = g.defineComposite('push_get_role', {
 // ================================================================
 export const pushCompute = g.defineComposite('push_compute', {
   inputs: { hitPoint: { type: 'vec3' } },
-  outputs: { vKick: { type: 'vec3' } },
+  outputs: { dV: { type: 'vec3' } },
   build: (_i, f) => {
     const role = f.callComposite(pushGetRole, {})
     const t = f.getEntityLocationAndRotation(role.role)
@@ -651,8 +653,21 @@ export const pushCompute = g.defineComposite('push_compute', {
     const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const dir = f.create3dVector(sinY, 0, cosY)
-    // 球速 = 固定 VKICK（一脚轻踢，与玩家速度无关）
-    return { vKick: f._3dVectorZoom(dir, VKICK) }
+    // 施加冲量：Δv = clamp(VKICK_TARGET − vB, DV_MIN, DV_MAX)
+    // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈3.5（大冲量）、
+    // 追球 vB 大 → Δv 小（轻触）；球反向滚 → Δv 上限 4.5（纠正）
+    const ballVel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const vB = f._3dVectorDotProduct(ballVel, dir)
+    const dvRaw = f.subtraction(VKICK_TARGET, vB)
+    const dvFloor = f.division(
+      f.addition(f.addition(dvRaw, DV_MIN), f.absoluteValueOperation(f.subtraction(dvRaw, DV_MIN))),
+      2
+    )
+    const dv = f.division(
+      f.subtraction(f.addition(dvFloor, DV_MAX), f.absoluteValueOperation(f.subtraction(dvFloor, DV_MAX))),
+      2
+    )
+    return { dV: f._3dVectorZoom(dir, dv) }
   }
 })
 
@@ -661,23 +676,25 @@ export const pushCompute = g.defineComposite('push_compute', {
 // 与 kickLaunch 同模式（半隐式首段积分，视觉与逻辑同源），衔接完整滚滑物理链
 // ================================================================
 export const kickApply = g.defineComposite('kick_apply', {
-  inputs: { e: { type: 'entity' }, vKick: { type: 'vec3' } },
+  inputs: { e: { type: 'entity' }, dV: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ e, vKick }, f) => {
+  build: ({ e, dV }, f) => {
     const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
-    // 首段积分（踢球瞬间快照物化，运动器到位）；ballVel 直接覆盖为目标速度
-    const integ = f.callComposite(physRollIntegrate, { pos, vel: vKick, spin })
+    // 施加冲量：ballVel = ballVel + dV（叠加动量，不覆盖），状态演化交给状态机
+    const nvel = f._3dVectorAddition(vel, dV)
+    const integ = f.callComposite(physRollIntegrate, { pos, vel: nvel, spin })
     const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
     const ap = f.callComposite(motionToPoint, { e, target: integ.npos })
     f.connect(setPos, 0, ap as never, 0)
-    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), vKick, new bool(false)])
+    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
     f.connect(ap as never, 0, setVel, 0)
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
     // 状态机：踢后球速 > SLIDE_ENTER_SPEED → 滑动（打滑，强减速）；否则直接滚动
-    const spd = f._3dVectorModuloOperation(vKick)
+    const spd = f._3dVectorModuloOperation(nvel)
     const sliding = f.greaterThan(spd, SLIDE_ENTER_SPEED)
     f.doubleBranch(
       sliding,
