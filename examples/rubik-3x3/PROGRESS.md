@@ -329,3 +329,8 @@
   - 修复：orbit2 同样拆 A/B（A 槽 0..4@0.16..0.20 / B 槽 5..8@0.16..0.19，与各自 turnblock 保持 +0.15s 相位）；flowDoMove 面转分支加 orbit2B 定时器；视觉根图加 orbit2B 分支（handlerBase=5）。
   - 预算腾挪：busyNop 回退空真分支（2897 实证可行）、isInv noop 改字面量——turn 回 1997。
   - 注入 ok 6、turn 1997 / visual 1040、var pins 全绿、已 resync。
+- 2026-08-26（日志 2910：整转后排块只转一半卡住——单事件执行数超限）：
+  - 你方反馈+日志合证：整转单事件（execMove→flowDoMove 整转链）单记录 2889 帧，为全游戏最大单事件（次大 894）；按 700 数量/事件口径换算即超限，后半段（逻辑写回尾部/视觉定时器）被引擎静默截断，后排块只走完第一段弦线、orbit2 缺失 → 卡在 45°。
+  - 修复：整转执行拆两事件——flowDoMove 整转分支只跑逻辑 A 段（角块 temp+写回、棱 temp）+ 0.02s wholeTail 定时器；新复合 flowWholeTail（逻辑 B 段：棱写回+心块，参数/发布/8 视觉定时器）由 turn 图 wholeTail 事件承载。单事件 ~1000/~1500 帧，远离上限。
+  - 预算：移除 moveId 守卫（来源构造安全）+ A/B 的 temp 段改回运行时循环（事件拆分后帧预算富余）→ turn 2017→1821，其他图不变。
+  - 读图核验：turn 根图 wholeTail 事件与 flow_do_move 的 logic_apply_whole_a 就位；var pins 全绿；已注入 + resync。
