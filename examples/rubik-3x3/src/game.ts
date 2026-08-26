@@ -281,13 +281,10 @@ const graph = g
                       f.logicalNotOperation(f.greaterThan(tabId, 12))
                     )
                     f.doubleBranch(isMove, () => {
-                      // 仅面转(1..6)受 reverse 开关控制为负 moveId；中层/整转仍正方向。
-                      const isFaceMove = f.logicalNotOperation(f.greaterThan(tabId, 6n))
-                      const revOn = f.getNodeGraphVariable('reverse').asType('bool')
-                      const flip = f.logicalAndOperation(isFaceMove, revOn)
-                      const sign = f.subtraction(1, f.multiplication(f.dataTypeConversion(flip, 'int'), 2))
-                      const signedTab = f.multiplication(tabId, sign)
-                      f.sendSignal(RubikSignal.rubik3x3_solve, 3n, signedTab)
+                      // 2026-08-26 修复：手动面转固定正 moveId。
+                      // 负 moveId（reverse 开关）会让 flowDoMove 单记录超 3000 帧被截断、
+                      // lock 卡死导致后续指令全部无响应；反向旋转待逆表实现后恢复。
+                      f.sendSignal(RubikSignal.rubik3x3_solve, 3n, tabId)
                     }, () => {
                       f.multipleBranches(tabId, {
                         13: () => f.sendSignal(RubikSignal.rubik3x3_solve, 10n, 0n),

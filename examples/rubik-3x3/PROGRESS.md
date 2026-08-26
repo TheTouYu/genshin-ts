@@ -286,3 +286,12 @@
   - `def-clean --all-unused` 清理 14 个死复合，六图 engineExpandedAll 从 6742 降至 5977。
   - 日志 2893 回归：求解器卡在十字 mask=13 循环，实锤原因 = 本地 `seo` 变量全 0 被短物化成 `[0,0,0]`，solverEdgeState 高下标读 0/空导致状态计算错。修复：`seo` 声明加第 13 位哨兵 `1`（只读前 12 位），与 `sco` 同法。
   - 手工反向开关组件补上：B 控制器打印第 7 项「反向旋转」（`assets:static-assemblies tab-options 1077936202 --name 魔方控制器3x3-B`）；relay 本地 7→全局 16 已有，graph 逻辑已支持。
+- 2026-08-26（日志 2894/2895 实锤：负 moveId 单记录超 3000 帧截断 → lock 卡死、接口无响应；已回退折叠）：
+  - 现象：2894 手动 -1,3,1×9 只执行 1 步、0 次 unlock；2895 自动求解 3,5,4 三步后第 4 步 -5 无 unlock，此后 50s 内 72 次 planTick、15 轮 replan 全部 mask=0（状态永远不更新）→「循环 + 接口不响应」。
+  - 逐帧实锤：正 move 记录 1387 帧/条；负 move（flowDoMove 内 finiteLoop 连做 3 次 logic_apply_face）单记录 3027 帧 > 3000 帧硬上限，记录在第 2 次应用中途被截断，turnLastSlot/publishShared/turnblock/unlock 整条链不再执行 → `lock` 永久 true → flowTabLock 挡住后续所有手动/自动指令。
+  - 修复（回退 7748853/7b1bc25 的负 moveId 路径）：solverAppendCode 改回 CNT 正 moveId 展开；flowDoMove 面转分支恢复「单次逻辑应用 → 参数 → 发布 → 定时器」单链；view.ts 撤负轴缩放；game.ts 手动面转固定正 moveId。tab16「反向旋转」保留开关与打印，但暂为占位（待逆表/拆图承载）。
+  - 读图核验（explain-gil-node-graph）：注入后 flow_do_move 面转分支 = logic_apply_face(impl 1610710000) → s1..s6 → 20×Set Custom → turnblock/orbit2 两个 Start Timer，单链无重复入边、无 Finite Loop/Absolute Value 残留；非法 moveId 兜底链完整。
+  - 静态检查：scan-gil-var-pins 全绿；check-gil-composite-refs 仅剩 6 个已知信号复合假阳性（2741/2742/2743 + 2759/2760/2761）。
+  - 预算（注入后）：game 319 / relay 1535 / visual 985 / solver 50 / solverPlan 1994 / turn 1988，全部 ≤2000；已 maps:resync。
+  - 速度口径（负载锚点公式推导）：planTick 0.7s×4 + emitTick 3.0s/步 + doneTick 5.0s/宏 → 每个宏周期 ≈ 3L+4.8s；离线统计第一层（十字+角块）平均 41 步/约 15 宏 → **第一层复原约 3~4 分钟**（最坏 78 步约 6 分钟；中心归一化 0~4 个整转另计约 10s/转）。速度是 2026-08-24 负载防踢节拍（锚点公式在 dsl-nodegraph-development 技能），非 bug；如需提速可在日志 perf 复核后下调 emitTick/doneTick。
+  - 下一轮：反向旋转需「3 次逻辑应用拆成 3 条独立事件链」或逆表新图（turn 1988 余量 12，先扩预算再动刀）；inverseTables.ts 预研资产已就位。

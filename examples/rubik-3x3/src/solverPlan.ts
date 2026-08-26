@@ -15,7 +15,7 @@ import {
 } from './composites/solverCore.js'
 import { longListGetInt4 } from './composites/list.js'
 import {
-  CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS,
+  CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
   CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
   CF_X_POLICY_c0, CF_X_POLICY_c1, CF_X_POLICY_c2, CF_X_POLICY_c3
 } from './cfopTables.js'
@@ -73,7 +73,7 @@ const graph = g
       dbgTag: new str(''),
       dbgVal: new str(''),
 
-      CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS,
+      CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
       CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
       CF_X_POLICY_c0, CF_X_POLICY_c1, CF_X_POLICY_c2, CF_X_POLICY_c3,
       CF_CORNER_MACRO_LEN_c0,
