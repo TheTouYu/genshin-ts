@@ -78,7 +78,7 @@ const graph = g
   // ================================================================
   .onSignal(Signal.football_push, (evt: any, f: any) => {
     const ball = f.getSelfEntity()
-    const target = evt.target
+    const target = evt.params.target
     const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
     f.doubleBranch(
       f.greaterThan(speed, 6),
