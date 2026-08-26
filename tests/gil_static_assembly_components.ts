@@ -249,6 +249,32 @@ assert.equal(lightSourceInstance.length, 1)
 assert.equal(Buffer.from(lightSourceDefinition[0]).equals(Buffer.from(lightSourceInstance[0])), true)
 assert.equal(Buffer.from(lightSourceDefinition[0]).toString('hex'), expectedLightSourceHex)
 
+// 命中检测（code 12）：默认 81B 槽（配置字段 f22，含一条默认区域「区域1」+默认触发参数）。
+// 逐字节对照真实编辑器样本 component-investigation exp6（definition f8 / instance f7 双写一致）。
+const hitDetectionConfigured = applyStaticAssembly({
+  gilPath,
+  assembly: {
+    ...assembly(431),
+    components: [{ type: 'hitDetection', preset: 'default' }]
+  }
+})
+const hitDetectionDefinition = componentRecords(
+  createdRecord(hitDetectionConfigured.bytes, 4, 431),
+  8
+)
+const hitDetectionInstance = componentRecords(createdRecord(hitDetectionConfigured.bytes, 8, 431), 7)
+const expectedHitDetectionHex =
+  '080c1001b2014a0a245a150a00120f0d0000803f150000803f1d0000803f1a00b21f07' +
+  'e58cbae59f9f31b81f01100118b510250000803f32003a0040d20f4a02fd0a5d9a99993e' +
+  '6a02a914b81f0dd03e01'
+assert.equal(hitDetectionDefinition.length, 1)
+assert.equal(hitDetectionInstance.length, 1)
+assert.equal(
+  Buffer.from(hitDetectionDefinition[0]).equals(Buffer.from(hitDetectionInstance[0])),
+  true
+)
+assert.equal(Buffer.from(hitDetectionDefinition[0]).toString('hex'), expectedHitDetectionHex)
+
 // 光源（code 38）参数化：radius/intensity 直接编码 float32。
 // 用编辑器 after-round4 的原始内部值（显示 7.86/3.90 对应的滑条存储值）逐字节锁定。
 const lightSourceParamsConfigured = applyStaticAssembly({

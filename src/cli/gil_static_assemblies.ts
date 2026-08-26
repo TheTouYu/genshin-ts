@@ -360,6 +360,22 @@ function lightSourceComponent(radius = 3, intensity = 3): Uint8Array {
   ])
 }
 
+function hitDetectionComponent(): Uint8Array {
+  // 真实编辑器样本 component-investigation exp6（2026-08-04）：元件手动添加命中检测组件 =
+  // definition f8 / instance f7 各追加 81B 槽（双写逐字节一致）：
+  //   f1=12、f2=1、f22=74B 配置 { f1=区域配置（与选项卡同构，f11 区域几何 {fixed32 1,1,1}
+  //   + f502="区域1" + f503=1）、f2=1（疑似触发类型）、f3=2101（疑似位域）、f4=f32 1.0、
+  //   f6/f7=空（过滤器节点图引用）、f8=2002、f9/f13=2B 怪字节、f11=f32 0.3、
+  //   f503=13、f1002=1 }。
+  // 内部字段语义大部分未归因，参数调整请在编辑器手动进行；此槽即编辑器默认添加快照。
+  return Buffer.from(
+    '080c1001b2014a0a245a150a00120f0d0000803f150000803f1d0000803f1a00b21f07' +
+      'e58cbae59f9f31b81f01100118b510250000803f32003a0040d20f4a02fd0a5d9a99993e' +
+      '6a02a914b81f0dd03e01',
+    'hex'
+  )
+}
+
 type TabBarRegionConfig = {
   regionType: 'box' | 'sphere'
   regionSize: readonly [number, number, number]
@@ -485,6 +501,9 @@ export function componentSnapshot(component: GstsStaticAssemblyComponent): {
   }
   if (component.type === 'lightSource' && component.preset === 'default') {
     return { typeCode: 38, bytes: lightSourceComponent(component.radius, component.intensity) }
+  }
+  if (component.type === 'hitDetection' && component.preset === 'default') {
+    return { typeCode: 12, bytes: hitDetectionComponent() }
   }
   if (component.type === 'tabBar') {
     // 内联配置（gsts.config.ts / structure 文件外的组件）与 prefab update 都经此校验：

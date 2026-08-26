@@ -194,10 +194,11 @@ function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefi
   if (code === 9) return { type: 'followMotion', preset: 'fullFollow' }
   // 2026-08-13 修正：基础运动器真实类型码为 4（原 18 为模板自带组件误判）
   if (code === 4) return { type: 'basicMotion', preset: 'default' }
-  // 铭牌/文本气泡/光源默认槽（nameplate exp2 / component-investigation exp7 / 2026-08-17 灯阵差分）
+  // 铭牌/文本气泡/光源/命中检测默认槽（nameplate exp2 / exp7 / 2026-08-17 灯阵差分 / exp6）
   if (code === 27) return { type: 'nameplate', preset: 'default' }
   if (code === 28) return { type: 'textBubble', preset: 'default' }
   if (code === 38) return { type: 'lightSource', preset: 'default' }
+  if (code === 12) return { type: 'hitDetection', preset: 'default' }
   if (code === 17) {
     const config = fields.find((field) => field.number === 27 && field.wire === 2)
     if (!config) return undefined

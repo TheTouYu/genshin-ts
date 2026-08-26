@@ -186,6 +186,10 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
     if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
     return { type: 'textBubble', preset: 'default' }
   }
+  if (source.type === 'hitDetection') {
+    if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
+    return { type: 'hitDetection', preset: 'default' }
+  }
   if (source.type === 'lightSource') {
     if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
     if (source.radius !== undefined) {
@@ -231,7 +235,7 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
   fail(
     filePath,
     `${field}.type`,
-    'must be followMotion, basicMotion, nameplate, textBubble, lightSource or tabBar'
+    'must be followMotion, basicMotion, nameplate, textBubble, lightSource, hitDetection or tabBar'
   )
 }
 

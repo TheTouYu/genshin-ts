@@ -428,6 +428,26 @@ export type GstsStaticAssemblyComponent =
       /** [ZH] 光源强度（实际 float 值）；默认 3.0。 / [EN] Light intensity (actual float); defaults to 3.0. */
       intensity?: number
     }
+  | {
+      /**
+       * [ZH] 命中检测组件（code 12）。仅支持真实编辑器样本的默认槽快照
+       * （component-investigation exp6：元件 A 手动添加命中检测，81B 槽，
+       * definition f8 / instance f7 双写逐字节一致；配置字段 f22 = 12+10，
+       * 含一条默认球体区域「区域1」与默认触发参数，内部字段语义部分待归因，
+       * 参数调整请在编辑器手动进行）。带球/抢断控球判定事件
+       * whenOnHitDetectionIsTriggered 依赖此组件。
+       *
+       * [EN] Hit-detection component (code 12). Limited to the default slot snapshot
+       * observed on a real editor sample (component-investigation exp6: 81-byte slot,
+       * definition f8 / instance f7 double-written byte-identical; config field
+       * f22 = 12+10 with one default region “区域1” and default trigger params;
+       * some inner field semantics are un-attributed — tune parameters in the editor).
+       * The dribble/tackle possession event whenOnHitDetectionIsTriggered depends on it.
+       */
+      type: 'hitDetection'
+      /** [ZH] 默认命中检测组件快照。 / [EN] Default hit-detection component snapshot. */
+      preset: 'default'
+    }
 
 export type GstsStaticPrefabCategory = {
   /** [ZH] 分类页签名称。 / [EN] Category-tab name. */

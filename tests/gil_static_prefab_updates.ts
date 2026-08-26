@@ -200,6 +200,35 @@ assert.equal(nameplateInstance.length, 1)
 assert.equal(Buffer.from(nameplateDefinition[0]).equals(Buffer.from(nameplateInstance[0])), true)
 assert.equal(Buffer.from(nameplateDefinition[0]).toString('hex'), '081b1001b20200')
 
+// 命中检测（code 12）默认槽（update 路径锁定）：逐字节对照 component-investigation exp6。
+writeFileSync(gilPath, sourceBytes)
+const hitDetection = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'hitDetection', preset: 'default' }]
+  }
+})
+const hitDetectionDefinition = components(record(hitDetection.bytes, 4, FIXTURE_IDS.definition), 8, 12)
+const hitDetectionInstance = components(record(hitDetection.bytes, 8, FIXTURE_IDS.instance), 7, 12)
+const hitDetectionSceneEntity = components(record(hitDetection.bytes, 5, FIXTURE_IDS.sceneEntity), 7, 12)
+assert.equal(hitDetectionDefinition.length, 1)
+assert.equal(hitDetectionInstance.length, 1)
+assert.equal(hitDetectionSceneEntity.length, 1)
+assert.equal(Buffer.from(hitDetectionDefinition[0]).equals(Buffer.from(hitDetectionInstance[0])), true)
+assert.equal(
+  Buffer.from(hitDetectionSceneEntity[0]).equals(Buffer.from(hitDetectionInstance[0])),
+  true
+)
+assert.equal(
+  Buffer.from(hitDetectionDefinition[0]).toString('hex'),
+  '080c1001b2014a0a245a150a00120f0d0000803f150000803f1d0000803f1a00b21f07' +
+    'e58cbae59f9f31b81f01100118b510250000803f32003a0040d20f4a02fd0a5d9a99993e' +
+    '6a02a914b81f0dd03e01'
+)
+
 // 铭牌（code 27）带显示内容（update 路径锁定）：逐字节对照 nameplate-component exp4。
 writeFileSync(gilPath, sourceBytes)
 const nameplateContent = applyStaticPrefabUpdate({

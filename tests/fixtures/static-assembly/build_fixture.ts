@@ -61,6 +61,7 @@ function namedRecord(
 export const FIXTURE_IDS = {
   definition: 100,
   instance: 101,
+  sceneEntity: 102,
   definitionAuxiliary: 200,
   instanceAuxiliary: 201
 } as const
@@ -88,6 +89,14 @@ export function buildStaticAssemblyFixture(): Uint8Array {
     { number: 3, wire: 0, value: FIXTURE_IDS.instance },
     msg(12, [{ number: 1, wire: 0, value: FIXTURE_IDS.definitionAuxiliary }])
   ])
+  // root5 场景实体（游戏实际读取的副本）：f2 为 {1: definitionId} 子消息引用，
+  // transform 在 f6，组件槽在 f7（三层联动的第三层写入目标）。
+  const sceneEntity = emit([
+    { number: 1, wire: 0, value: FIXTURE_IDS.sceneEntity },
+    msg(2, [{ number: 1, wire: 0, value: FIXTURE_IDS.definition }]),
+    transform(6, [1, 2, 3]),
+    msg(7, [])
+  ])
   const registry = msg(1, [
     msg(3, [
       msg(5, [
@@ -98,6 +107,7 @@ export function buildStaticAssemblyFixture(): Uint8Array {
   ])
   const top = emit([
     msg(4, [{ number: 1, wire: 2, value: definition }]),
+    msg(5, [{ number: 1, wire: 2, value: sceneEntity }]),
     msg(6, [registry]),
     msg(8, [{ number: 1, wire: 2, value: instance }]),
     { number: 9, wire: 2, value: Uint8Array.from([8, 42]) },
