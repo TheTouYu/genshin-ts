@@ -313,3 +313,8 @@
   - 修复：分支改读 `get(negPhase)`（已写入值），判据 1/2/3 步进正确；op3 的 autoMode 空真分支补 registerExecNode noop（避免空分支边影响 join）。
   - 读图核验：negDone 的 Less Than 数据源直连 Get(negPhase)，不再经过 Addition。六图预算不变（turn 1990）、var pins 全绿；已注入 + resync。
   - 教训再次命中「先写回再显式读回判断」铁律（同 solveIdx 2887 案），本轮自己代码重犯，已双份注释。
+- 2026-08-26（日志 2906：L,U,U',L' 块错位——上一轮修复从未注入）：
+  - 2906 实锤：两个负向（-3、-1）都是 2 次逻辑应用 + 1 次视觉（negDone 25/22 帧交替、negPhase set 值 1,2,1,2）——negPhase 二次物化 bug 仍在运行。
+  - 真因：5766bcb 的 autoMode 空分支补丁用了根图事件回调裸 `registerExecNode('set_node_graph_variable', [..., get(...)])`，触发 `Generic parameter not matched` → turn.gs.ts 编译失败 → 注入中止（当时 tail 截断没看到 error，误判已注入；读图核验也只核对了结构没核对数据流源）。游戏一直跑 518898b 旧图。
+  - 修复：busyNop 改高层 `f.setNodeGraphVariable(...)`；重新注入并读图核验 **LessThan 数据源 = Get(negPhase) 直连**（不再经 Addition）；turn engineExpanded 1993、var pins 全绿、已 resync。
+  - 教训：注入必须看“All injections done (ok 6)”整行 + error 关键字；读图核验要核到「条件节点数据流来源」，不能只看分支结构。
