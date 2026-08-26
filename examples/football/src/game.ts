@@ -7,6 +7,7 @@ import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
 import { physTick } from './composites/physics.js'
+import { carryGetRole } from './composites/carry.js'
 
 // 场地中间（复位点）
 const CENTER_X = 0
@@ -28,7 +29,8 @@ const graph = g
       tmpSpin: new vec3([0, 0, 0]),
       dbgTag: new str(''),
       dbgVal: new str(''),
-      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
+      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING / 3=带球 CARRIED
+      carrierPrevPos: new vec3([0, 0, 0]), // 持球者上一 tick 位置（丢球判定的角色速度差分量）
       impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)
@@ -49,9 +51,9 @@ const graph = g
       () => {
         const state = f.getNodeGraphVariable('state').asType('int')
         f.doubleBranch(
-          f.equal(state, 0n),
+          f.logicalOrOperation(f.equal(state, 0n), f.equal(state, 3n)),
           () => {
-            // 静止：设定初速 + 启动主运动器
+            // 静止或带球中：设定初速 + 启动主运动器（带球时点选项=射门/传球全力出球）
             const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const ka = f.callComposite(kickApplyForce, { tabId })
             const kl = f.callComposite(kickLaunch, { e: ball })
@@ -66,6 +68,40 @@ const graph = g
           }
         )
       }
+    )
+  })
+  // ================================================================
+  // 控球判定主通道：命中检测事件（球挂命中检测组件后，球碰到角色受击盒触发）
+  // FREE(0) → 直接控球；ROLLING(2) 且球速<3 → 控球（脱脚后追上球）；
+  // FLYING(1)/CARRIED(3) → 忽略（带球贴脚持续命中持球者；飞行接球留传球阶段）
+  // ================================================================
+  .on('whenOnHitDetectionIsTriggered', (evt: any, f: any) => {
+    f.doubleBranch(
+      evt.onHitHurtbox,
+      () => {
+        const state = f.getNodeGraphVariable('state').asType('int')
+        const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
+        f.doubleBranch(
+          f.equal(state, 0n),
+          () => {
+            const roleC = f.callComposite(carryGetRole, {})
+            f.setNodeGraphVariable('state', 3n, false)
+            f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
+          },
+          () => {
+            f.doubleBranch(
+              f.logicalAndOperation(f.equal(state, 2n), f.lessThan(speed, 3)),
+              () => {
+                const roleC = f.callComposite(carryGetRole, {})
+                f.setNodeGraphVariable('state', 3n, false)
+                f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
+              },
+              () => {}
+            )
+          }
+        )
+      },
+      () => {}
     )
   })
   // ================================================================

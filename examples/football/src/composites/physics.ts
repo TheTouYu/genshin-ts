@@ -6,6 +6,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { motionSpin, motionToPoint } from './motion.js'
+import { carryFreeTick, carryGetRole, carryTakeCheck, carryTick } from './carry.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -487,20 +488,40 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ③ 四面墙碰撞（草地边界反弹）
     const wall = f.callComposite(physWallCollide, {})
 
-    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
+    // ④a 控球判定：脱脚/滚滑中角色追上球（<1.2m 且球速<3）→ 重新 CARRIED
     const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
-    const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
-    f.doubleBranch(stop.isStop, () => {
-      const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-      f.outflow('done', sf, 0)
-    }, () => {
-      const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-      const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
-      f.connect(ss, 0, ap as never, 0)
-      f.outflow('done', ap as never, 0)
-    })
+    const roleC = f.callComposite(carryGetRole, {})
+    const takeC = f.callComposite(carryTakeCheck, { role: roleC.role, pos: posFinal, vel: velFinal })
+    f.doubleBranch(
+      takeC.take,
+      () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(3), new bool(false)])
+        const sp = f.registerExecNode('set_node_graph_variable', [
+          new str('carrierPrevPos'),
+          f.getEntityLocationAndRotation(roleC.role).location,
+          new bool(false)
+        ])
+        f.connect(ss, 0, sp, 0)
+        const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+        f.connect(sp, 0, ap as never, 0)
+        f.outflow('done', ap as never, 0)
+      },
+      () => {
+        // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
+        const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
+        f.doubleBranch(stop.isStop, () => {
+          const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
+          f.outflow('done', sf, 0)
+        }, () => {
+          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+          const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+          f.connect(ss, 0, ap as never, 0)
+          f.outflow('done', ap as never, 0)
+        })
+      }
+    )
     return {}
   }
 })
@@ -518,8 +539,9 @@ export const physTick = g.defineComposite('phys_tick', {
     f.doubleBranch(
       f.equal(state, 0n),
       () => {
-        const tail = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
-        f.outflow('done', tail, 0)
+        // 静止：控球判定 + 零速心跳（5Hz 链保持活着）
+        const ct = f.callComposite(carryFreeTick, { e })
+        f.outflow('done', ct as never, 0)
       },
       () => {
         f.doubleBranch(
@@ -529,8 +551,18 @@ export const physTick = g.defineComposite('phys_tick', {
             f.outflow('done', ft as never, 0)
           },
           () => {
-            const rt = f.callComposite(physRollTick, { e })
-            f.outflow('done', rt as never, 0)
+            f.doubleBranch(
+              f.equal(state, 3n),
+              () => {
+                // 带球：弹簧场 tick
+                const kt = f.callComposite(carryTick, { e })
+                f.outflow('done', kt as never, 0)
+              },
+              () => {
+                const rt = f.callComposite(physRollTick, { e })
+                f.outflow('done', rt as never, 0)
+              }
+            )
           }
         )
       }
