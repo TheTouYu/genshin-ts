@@ -8,7 +8,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
-import { physTick, pushCompute, rollLaunch } from './composites/physics.js'
+import { physTick, pushCompute, kickApply } from './composites/physics.js'
 import { Signal } from './resources/signals.js'
 
 // 场地中间（复位点）
@@ -85,7 +85,7 @@ const graph = g
       () => {
         // 冲量计算（玩家速率/朝向/球速投影 → Δv）→ 踢球入滚滑物理
         const pc = f.callComposite(pushCompute, { hitPoint })
-        const rl = f.callComposite(rollLaunch, { e: ball, dV: pc.dV })
+        const rl = f.callComposite(kickApply, { e: ball, vKick: pc.vKick })
       }
     )
   })

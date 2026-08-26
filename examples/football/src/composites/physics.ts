@@ -18,7 +18,11 @@ const BALL_R = 0.25 // 球半径
 const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
-const ROLL_FRICTION = 0.82 // 滚动摩擦（贴地每 tick 减速；0.82 让球慢速多滚一会，更自然）
+const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
+const ROLL_DECEL = 1.2 // 滚动匀减速（m/s²）：慢慢滚、几秒停（线性衰减，无"急停写死"感）
+const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
+const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
+const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
 const ROLL_SPIN_GAIN = 0.5 // 压力摩擦产生的力矩把 ω 拉向纯滚动目标的系数（滑转再收敛）
 const ROLL_BOUNCE_VY = 1.0 // 反弹后 |vy| 低于该值才转滚滑，否则继续空中弹跳
 const STOP_SPEED = 0.3 // 停球速度阈值
@@ -222,6 +226,7 @@ export const physStopCheck = g.defineComposite('phys_stop_check', {
 const STATE_FREE = 0
 const STATE_FLY = 1
 const STATE_ROLL = 2
+const STATE_SLIDE = 3
 
 // ================================================================
 // 运动器激活（exec）：定点移动（精确到目标点）+ 匀速旋转，封装成"一件事"
@@ -294,9 +299,17 @@ export const physRollIntegrate = g.defineComposite('phys_roll_integrate', {
   build: ({ pos, vel, spin }, f) => {
     const p = f.split3dVector(pos)
     const v = f.split3dVector(vel)
-    // 水平摩擦（滑动+滚动），垂直贴地 vy=0
-    const nvx = f.multiplication(v.xComponent, ROLL_FRICTION)
-    const nvz = f.multiplication(v.zComponent, ROLL_FRICTION)
+    // 匀减速：水平速度每 tick 减 ROLL_DECEL·DT（方向保留），线性衰减、无急停
+    const spd = f._3dVectorModuloOperation(f.create3dVector(v.xComponent, 0, v.zComponent))
+    const spdSub = f.subtraction(spd, f.multiplication(ROLL_DECEL, DT))
+    // max(spdSub, 0) = (spdSub + |spdSub|)/2
+    const spd2 = f.division(
+      f.addition(spdSub, f.absoluteValueOperation(spdSub)),
+      2
+    )
+    const ratio = f.division(spd2, f.addition(spd, 0.0001))
+    const nvx = f.multiplication(v.xComponent, ratio)
+    const nvz = f.multiplication(v.zComponent, ratio)
     const npos = f.create3dVector(
       f.addition(p.xComponent, f.multiplication(nvx, DT)),
       BALL_R,
@@ -318,6 +331,32 @@ export const physRollIntegrate = g.defineComposite('phys_roll_integrate', {
       f.multiplication(f.subtraction(targetSpinZ, s.zComponent), ROLL_SPIN_GAIN)
     )
     const nspin = f.create3dVector(nsx, nsy, nsz)
+    return { npos, nvel, nspin }
+  }
+})
+
+// ================================================================
+// 滑动积分（纯数据）：贴地打滑，匀减速更强（SLIDE_DECEL），自旋缓慢衰减
+// ================================================================
+export const physSlideIntegrate = g.defineComposite('phys_slide_integrate', {
+  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' }, spin: { type: 'vec3' } },
+  outputs: { npos: { type: 'vec3' }, nvel: { type: 'vec3' }, nspin: { type: 'vec3' } },
+  build: ({ pos, vel, spin }, f) => {
+    const p = f.split3dVector(pos)
+    const v = f.split3dVector(vel)
+    const spd = f._3dVectorModuloOperation(f.create3dVector(v.xComponent, 0, v.zComponent))
+    const spdSub = f.subtraction(spd, f.multiplication(SLIDE_DECEL, DT))
+    const spd2 = f.division(f.addition(spdSub, f.absoluteValueOperation(spdSub)), 2)
+    const ratio = f.division(spd2, f.addition(spd, 0.0001))
+    const nvx = f.multiplication(v.xComponent, ratio)
+    const nvz = f.multiplication(v.zComponent, ratio)
+    const npos = f.create3dVector(
+      f.addition(p.xComponent, f.multiplication(nvx, DT)),
+      BALL_R,
+      f.addition(p.zComponent, f.multiplication(nvz, DT))
+    )
+    const nvel = f.create3dVector(nvx, 0, nvz)
+    const nspin = f._3dVectorZoom(spin, 0.95)
     return { npos, nvel, nspin }
   }
 })
@@ -499,7 +538,7 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       autoK.kick,
       () => {
         const pc = f.callComposite(pushCompute, { hitPoint: posFinal })
-        const rl = f.callComposite(rollLaunch, { e, dV: pc.dV })
+        const rl = f.callComposite(kickApply, { e, vKick: pc.vKick })
         f.outflow('done', rl as never, 0)
       },
       () => {
@@ -545,8 +584,17 @@ export const physTick = g.defineComposite('phys_tick', {
             f.outflow('done', ft as never, 0)
           },
           () => {
-            const rt = f.callComposite(physRollTick, { e })
-            f.outflow('done', rt as never, 0)
+            f.doubleBranch(
+              f.equal(state, 3n),
+              () => {
+                const st = f.callComposite(physSlideTick, { e })
+                f.outflow('done', st as never, 0)
+              },
+              () => {
+                const rt = f.callComposite(physRollTick, { e })
+                f.outflow('done', rt as never, 0)
+              }
+            )
           }
         )
       }
@@ -565,15 +613,12 @@ export const physTick = g.defineComposite('phys_tick', {
 //   球速 vB（沿踢向投影）、玩家速率 vP、距离 d、玩家朝向/移动方向
 // 目标：踢后球以低速滚 2~3 秒自然停（领先速度预算 vLead 决定，不再叠加完整玩家速度）
 
-// —— 冲量模型参数（集中可调，2026-08-26 日志校准）——
-// 目标：踢后球慢速滚 2~3 秒自然停，玩家 2~3 秒追上再踢下一脚；
-//       球静止时踢得稍大、追球时踢得小（vB 抵消）
-const VLEAD_BASE = 1.8 // 领先速度基数（m/s）：静止球被踢后的目标领先速度
-const VLEAD_SPEED_COEF = 0.1 // 玩家速率系数：vLead = VLEAD_BASE + coef·vP（微增）
-const VLEAD_MIN = 1.5 // vLead 下限
-const VLEAD_MAX = 2.6 // vLead 上限
-const DV_MIN = 1.3 // 冲量下限（追球轻触）
-const DV_MAX = 2.8 // 冲量上限（静止启动也在此内，防飞出）
+// —— 踢球模型参数（v4：球速目标设定，方向=玩家正前方；集中可调）——
+// 踢球 = 把球速设定为 clamp(vP + VKICK_LEAD, VKICK_MIN, VKICK_MAX)，沿玩家朝向。
+// 球比玩家只快 VKICK_LEAD，踢出后平滑减速、几秒被追上（自然带球节奏）。
+const VKICK_RATIO = 1.8 // 球速 = 玩家速率 × 该系数（保证球快于玩家、不被甩到身后）
+const VKICK_MIN = 3.0 // 球速下限（玩家静止/慢走也能滚起来）
+const VKICK_MAX = 11.0 // 球速上限（防极端冲刺飞出）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -597,68 +642,37 @@ export const pushGetRole = g.defineComposite('push_get_role', {
 // ================================================================
 export const pushCompute = g.defineComposite('push_compute', {
   inputs: { hitPoint: { type: 'vec3' } },
-  outputs: { dV: { type: 'vec3' } },
-  build: ({ hitPoint }, f) => {
+  outputs: { vKick: { type: 'vec3' } },
+  build: (_i, f) => {
     const role = f.callComposite(pushGetRole, {})
     const t = f.getEntityLocationAndRotation(role.role)
     const r = f.split3dVector(t.rotate)
+    // 踢球方向 = 玩家正前方（朝向 rotY → (sin, 0, cos)）。带球时玩家面朝移动方向；
+    // 不再混入速度向量（慢走/转身时速度向量不可靠，导致球被踢到身后）
     const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
-    const facing = f.create3dVector(sinY, 0, cosY)
-    // 玩家速度（官方节点：需角色挂「监听移动速率」单位状态效果）
+    const dir = f.create3dVector(sinY, 0, cosY)
+    // 玩家速率（官方节点：需角色挂「监听移动速率」单位状态效果）
     const spd = f.queryCharacterSCurrentMovementSpd(role.role)
-    const vP = f._3dVectorModuloOperation(spd.velocityVector)
-    // dir：见下合成加权（无需 velLen）
-    // dir = normalize(速度向量 + 朝向×0.35)：跑动时≈移动方向（偏差 <4°），
-    // 静止时速度向量为 0 → 自动退化为玩家朝向。合成加权避免 bool→float 转换
-    // （数据类型转换无 bool→float variant，E_UNKNOWN_NODE_VARIANT 实证）。
-    const vx = f.split3dVector(spd.velocityVector).xComponent
-    const vz = f.split3dVector(spd.velocityVector).zComponent
-    const mixX = f.addition(vx, f.multiplication(sinY, 0.35))
-    const mixZ = f.addition(vz, f.multiplication(cosY, 0.35))
-    const mixLen = f.addition(
-      f._3dVectorModuloOperation(f.create3dVector(mixX, 0, mixZ)),
-      0.0001
-    )
-    const dir = f.create3dVector(f.division(mixX, mixLen), 0, f.division(mixZ, mixLen))
-    // 球速沿 dir 投影
-    const vB = f._3dVectorDotProduct(f.getNodeGraphVariable('ballVel').asType('vec3'), dir)
-    // vLead = clamp(VLEAD_BASE + VLEAD_SPEED_COEF·vP, VLEAD_MIN, VLEAD_MAX)
-    const vLeadRaw = f.addition(VLEAD_BASE, f.multiplication(vP, VLEAD_SPEED_COEF))
-    const vLeadFloor = f.division(
+    const vP = spd.currentSpeed
+    // 目标球速 = clamp(vP + VKICK_LEAD, VKICK_MIN, VKICK_MAX)
+    const raw = f.multiplication(vP, VKICK_RATIO)
+    const floor = f.division(
       f.addition(
-        f.addition(vLeadRaw, VLEAD_MIN),
-        f.absoluteValueOperation(f.subtraction(vLeadRaw, VLEAD_MIN))
+        f.addition(raw, VKICK_MIN),
+        f.absoluteValueOperation(f.subtraction(raw, VKICK_MIN))
       ),
       2
     )
-    // min(vLeadFloor, VLEAD_MAX) = (x+VLEAD_MAX−|x−VLEAD_MAX|)/2
-    const vLead = f.division(
+    // min(floor, VKICK_MAX) = (floor+VKICK_MAX−|floor−VKICK_MAX|)/2
+    const kick = f.division(
       f.subtraction(
-        f.addition(vLeadFloor, VLEAD_MAX),
-        f.absoluteValueOperation(f.subtraction(vLeadFloor, VLEAD_MAX))
+        f.addition(floor, VKICK_MAX),
+        f.absoluteValueOperation(f.subtraction(floor, VKICK_MAX))
       ),
       2
     )
-    // Δv = clamp(vLead − vB, DV_MIN, DV_MAX)：球速 vB 已领先则轻触（追球小），
-    // 球静止 vB≈0 则 Δv≈vLead（启动大）
-    const dvRaw = f.subtraction(vLead, vB)
-    const dvFloor = f.division(
-      f.addition(
-        f.addition(dvRaw, DV_MIN),
-        f.absoluteValueOperation(f.subtraction(dvRaw, DV_MIN))
-      ),
-      2
-    )
-    // min(dvFloor, DV_MAX) = (dvFloor+DV_MAX−|dvFloor−DV_MAX|)/2
-    const dv = f.division(
-      f.subtraction(
-        f.addition(dvFloor, DV_MAX),
-        f.absoluteValueOperation(f.subtraction(dvFloor, DV_MAX))
-      ),
-      2
-    )
-    return { dV: f._3dVectorZoom(dir, dv) }
+    return { vKick: f._3dVectorZoom(dir, kick) }
   }
 })
 
@@ -666,27 +680,76 @@ export const pushCompute = g.defineComposite('push_compute', {
 // 踢球执行（exec 复合）：ballVel += Δv → 滚滑首 tick 积分 → 运动器 + 状态 ROLLING
 // 与 kickLaunch 同模式（半隐式首段积分，视觉与逻辑同源），衔接完整滚滑物理链
 // ================================================================
-export const rollLaunch = g.defineComposite('roll_launch', {
-  inputs: { e: { type: 'entity' }, dV: { type: 'vec3' } },
+export const kickApply = g.defineComposite('kick_apply', {
+  inputs: { e: { type: 'entity' }, vKick: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ e, dV }, f) => {
+  build: ({ e, vKick }, f) => {
     const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
-    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
-    const nvel = f._3dVectorAddition(vel, dV)
-    const integ = f.callComposite(physRollIntegrate, { pos, vel: nvel, spin })
-    // 首段目标贴地（滚滑积分 y=BALL_R）
+    // 首段积分（踢球瞬间快照物化，运动器到位）；ballVel 直接覆盖为目标速度
+    const integ = f.callComposite(physRollIntegrate, { pos, vel: vKick, spin })
     const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
     const ap = f.callComposite(motionToPoint, { e, target: integ.npos })
     f.connect(setPos, 0, ap as never, 0)
-    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), vKick, new bool(false)])
     f.connect(ap as never, 0, setVel, 0)
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
-    const setState = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-    f.connect(setSpin, 0, setState, 0)
-    f.outflow('done', setState, 0)
+    // 状态机：踢后球速 > SLIDE_ENTER_SPEED → 滑动（打滑，强减速）；否则直接滚动
+    const spd = f._3dVectorModuloOperation(vKick)
+    const sliding = f.greaterThan(spd, SLIDE_ENTER_SPEED)
+    f.doubleBranch(
+      sliding,
+      () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_SLIDE), new bool(false)])
+        f.connect(setSpin, 0, ss, 0)
+        f.outflow('done', ss, 0)
+      },
+      () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+        f.connect(setSpin, 0, ss, 0)
+        f.outflow('done', ss, 0)
+      }
+    )
+    return {}
+  }
+})
+
+// ================================================================
+// 滑动 tick（exec 复合）：贴地打滑，匀减速强衰减（SLIDE_DECEL）；
+// 球速降到 SLIDE_TO_ROLL_SPEED 以下 → 转滚动（spin 开始收敛纯滚动）
+// ================================================================
+export const physSlideTick = g.defineComposite('phys_slide_tick', {
+  inputs: { e: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ e }, f) => {
+    const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
+    const integ = f.callComposite(physSlideIntegrate, { pos, vel, spin })
+    const sPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
+    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
+    f.connect(sPos, 0, ap as never, 0)
+    const sVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    f.connect(ap as never, 0, sVel, 0)
+    const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
+    f.connect(sVel, 0, sSpin, 0)
+    // 判断是否转滚动
+    const spd = f._3dVectorModuloOperation(integ.nvel)
+    const toRoll = f.lessThan(spd, SLIDE_TO_ROLL_SPEED)
+    f.doubleBranch(
+      toRoll,
+      () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
+        f.outflow('done', ss, 0)
+      },
+      () => {
+        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_SLIDE), new bool(false)])
+        f.outflow('done', ss, 0)
+      }
+    )
     return {}
   }
 })
