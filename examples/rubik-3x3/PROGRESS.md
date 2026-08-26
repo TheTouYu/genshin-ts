@@ -318,3 +318,9 @@
   - 真因：5766bcb 的 autoMode 空分支补丁用了根图事件回调裸 `registerExecNode('set_node_graph_variable', [..., get(...)])`，触发 `Generic parameter not matched` → turn.gs.ts 编译失败 → 注入中止（当时 tail 截断没看到 error，误判已注入；读图核验也只核对了结构没核对数据流源）。游戏一直跑 518898b 旧图。
   - 修复：busyNop 改高层 `f.setNodeGraphVariable(...)`；重新注入并读图核验 **LessThan 数据源 = Get(negPhase) 直连**（不再经 Addition）；turn engineExpanded 1993、var pins 全绿、已 resync。
   - 教训：注入必须看“All injections done (ok 6)”整行 + error 关键字；读图核验要核到「条件节点数据流来源」，不能只看分支结构。
+- 2026-08-26（自动求解动画降载 + 动画微调）：
+  - 求解播放节拍（只影响自动求解，不碰手动）：动画前加 0.5s 静默（preTick）、步间 emitTick 1.8→2.3s、宏尾 doneTick 0.7→1.2s——前后格子各 +0.5s 降载。
+  - 面转动画微调：turnblock 拆 A/B 双通道（A 槽 0..4@0.01..0.05，B 槽 5..8@0.01..0.04 并行），块间运动错开从 70ms 缩到 40ms 且两排并行，动画更紧凑；unlock 仍由 B 通道末槽(8) 触发（turnCompletionDelay 0.35 不变）。
+  - 视觉根图按「分支设变量 + join 单调用」模式加 turnblockB 分支（handlerBase=5）；flowDoMove 面转分支加 faceTurnTimesB 定时器。
+  - 陷阱更正：先误改 viewOrbitTrigger 复合的内部 f.on（非视觉根图活跃路径），已撤回，改对视觉根图 visual.ts。
+  - 六图预算≤2000（visual 1038 / turn 1997 / solver 50），var pins 全绿，已注入 + resync。
