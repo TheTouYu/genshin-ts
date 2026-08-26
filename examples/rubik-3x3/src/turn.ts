@@ -217,7 +217,8 @@ const graph = g
       3: () => {
         // 手动 tab 与求解执行都从这里统一进入转动；打乱队列播放期间忽略外部指令（防串台）
         f.doubleBranch(f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true), () => {
-          const busyNop = f.registerExecNode('set_node_graph_variable', [new str('pendingMove'), f.getNodeGraphVariable('pendingMove').asType('int'), new bool(false)])
+          // 根图事件回调必须用高层 setNodeGraphVariable（registerExecNode 裸 pin 会编译失败）
+          f.setNodeGraphVariable('pendingMove', f.getNodeGraphVariable('pendingMove').asType('int'), false)
         }, () => {
           f.doubleBranch(f.lessThan(evt.params.val, 0n), () => {
             // 负 moveId：锁门后先 3 次逻辑-only（negDone 状态机），最后负轴视觉
