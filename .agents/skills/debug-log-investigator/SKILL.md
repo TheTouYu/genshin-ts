@@ -171,6 +171,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 黑面/贴纸错误但块位置正确 | 朝向索引/局部轴表约定错误：`rotate` 输出是 **(x,y,z)**，矩阵 `R=Ry(y)·Rx(x)·Rz(z)` | 先对比 26 块实际位置与 cornerPos/edgePos（位置一致则排除位置）；再提取 `GetEntityLocationAndRotation` 实际欧拉，与生成器预测欧拉逐块差分（2026-08-21 魔方黑面实证） |
 | 循环帧 head 复用 | 循环内执行 | 按轮核对各迭代值 |
 | 状态机连续 tick 记录帧数交替（如 25/22/25/22） | 计数分支跳步：写回后分支复用表达式被二次物化，判据偏移（rubik-3x3 negDone 负向少做一次逻辑应用、面转少 90°，2026-08-26 日志 2899） | 核对同一状态机记录的帧数序列 = 期望步进签名（如 3×25 + 1×22）；修复后读图数据流 = LessThan 直连 Get(已写回值) |
+| 同槽位两段事件时间差漂移（如 B 块 turnblockB 0.01s 起转、orbit2 0.21s 才到，预期 +0.15s） | 多相位动画只拆了一相位的定时器通道，另一相位按旧时序串行（rubik-3x3 2909 最终位置错乱） | 拆分通道必须同步拆全部相位；日志核对每块两段事件的记录时间差恒定 |
 | 复合内上游全执行、链尾普通节点零帧（如 head=3205 运动器 0 帧） | synthetic→ordinary exec 边断链（IR 边源 "undefined" / 目标缺 InFlow pin） | ① check IR implEdges 无 "undefined" 源 ② read 复合 impl 图核对链尾节点有 InFlow pin + 上游 OutFlow connects |
 | 链尾节点出现帧 + 宿主链恢复 + 定时器写入（__gsts_timeout_N_index） | 断链修复生效 | 对照修复前后帧分布（head=32xx uniq -c）确认仅链尾列从 0 变非 0 |
 | 同一 exec 节点（如 Start Timer）在一条 record 内出现 2 次相同 head | 该节点有两条 InFlow 入边（常因 `f.callComposite` 后 `f.registerExecNode` auto-chain + 显式 connect 重复） | 读真实 GIL `flow` 列表核对入边数；把链尾 `registerExecNode` 改 `f.node` + 显式 `f.connect`，只留一条入边 |
