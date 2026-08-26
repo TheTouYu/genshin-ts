@@ -348,6 +348,7 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 | GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route | 复合内部对**复合调用**节点 `f.link(f.entry(), 0, 复合调用, 0)`：显式 link 对象边 + exec 复合 auto-chain 裸边 → 同一 InFlow 物理路由两条 | 删掉该显式 f.link，靠 auto-chain 生成入口边（入口链首用普通节点，复合调用只作链中目标）；详见上文「exec 链链接规则」 |
 | 读图看到 `Double Branch false → (无)` / 分支体零帧 / 兜底 done 永不触发 | **`f.doubleBranch` 的 false 分支回调里第一个 exec 节点用了 `f.node()`**（detached，不设 headNodeId → `withExecBranch` 弹出时不生成 false 分支边）。**尤其易漏**：true 分支常以 `f.callComposite` 开头（自动设 headNodeId，边正常），false 分支常是单节点兜底（如 `set_node_graph_variable`），一用 `f.node` 就断链 | false 分支回调第一个 exec 节点改用 `f.registerExecNode(...)`（或高层 flow API）；读图应看到 `false → <节点>`（2026-08-23 魔方打乱守卫实证：`f.node` 让非法 moveId 兜底失效，done 永不触发） |
 | `TypeError: f.player is not a function` | 把全局函数 `player()` 当成了 handler 方法 `f.player()` 调用 | 用**全局** `player(1n)`（玩家序号从 1 开始，返回 PlayerEntity），不是 `f.player`（2026-08-23 UI 交互测试实证） |
+| 负 moveId「折叠」（U3→U' 一条链连做 3 次逻辑应用）→ 后续指令全部无响应、求解器无限重算同一宏 | 单记录帧超 3000 硬上限：rubik-3x3 实测正 move 记录 1387 帧，`finiteLoop` 3 连 `logic_apply_face` 记录 3027 帧，在第 2 次应用中途被截断 → turnLastSlot/publishShared/turnblock/unlock 整条链不再执行 → `lock` 永久 true → flowTabLock 挡住一切后续 op3（日志 2894：27 次手动发送只 1 步执行 0 次 unlock；2895：第 4 步 -5 后 50s 内 72 次 planTick 全部 mask=0） | **把重逻辑折叠进一条执行链之前，先算「单次应用帧数 × 次数 + 链尾开销 < 3000」**；不满足就把多次应用拆成多条独立事件链（每条一个记录），或做逆表一步应用。本轮回退为正 moveId 展开（每步一条 1387 帧记录，锁/发布链可靠） |
 
 ## 通用复合节点模式库（2026-08-22 来自「常用复合节点大全 v1.7」资源包 + rubik 项目抽象）
 
