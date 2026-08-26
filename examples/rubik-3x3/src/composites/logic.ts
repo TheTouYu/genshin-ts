@@ -461,3 +461,32 @@ export const logicReset = g.defineComposite('logic_reset', {
     // 复位（有限循环：52 迭代控制帧 ~978f，换回 ~150 展开节点——节点预算余量 ~480 的关键）
     // 2026-08-22 节点预算回归修复：全展开版 logic_reset 285 节点把“节点图数量”预测推到 3657 拒载；
     // 哨兵段保持展开（无控制帧、必须先撑满列表），复位段恢复有限循环（体 ~9 节点/循环）。
+    // 复原 execMove 帧 ≈2138 <3000、logic_reset 节点 ≈148。
+    f.finiteLoop(0n, 7n, (i) => {
+      const p = f.registerExecNode('set_list_value', [cornerPos, i, i])
+      const t = f.registerExecNode('set_list_value', [cornerOrient, i, new int(0)])
+      f.connect(p, 0, t, 0)
+    })
+    f.finiteLoop(0n, 11n, (i) => {
+      const p = f.registerExecNode('set_list_value', [edgePos, i, i])
+      const t = f.registerExecNode('set_list_value', [edgeOrient, i, new int(0)])
+      f.connect(p, 0, t, 0)
+    })
+    f.finiteLoop(0n, 5n, (i) => {
+      f.registerExecNode('set_list_value', [centerPos, i, i])
+    })
+    f.finiteLoop(0n, 25n, (i) => {
+      const p = f.registerExecNode('set_list_value', [tempP, i, new int(0)])
+      const t = f.registerExecNode('set_list_value', [tempT, i, new int(0)])
+      const b = f.registerExecNode('set_list_value', [blockOrient, i, new int(0)])
+      const bp = f.registerExecNode('set_list_value', [blockOrientPre, i, new int(0)])
+      f.connect(p, 0, t, 0)
+      f.connect(t, 0, b, 0)
+      f.connect(b, 0, bp, 0)
+    })
+
+    const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+    f.outflow('done', doneNode, 0)
+    return {}
+  }
+})
