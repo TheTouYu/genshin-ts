@@ -34,7 +34,8 @@ export const viewPrepareVisualOrder = g.defineComposite('view_prepare_visual_ord
         const srcIdx = f.addition(f.multiplication(f.subtraction(moveId, 1n), 8n), i)
         const src = f.getCorrespondingValueFromList(order, srcIdx)
         const piece = f.getCorrespondingValueFromList(tempP, src)
-        f.registerExecNode('set_list_value', [visualP, i, piece])
+        // 2026-08-26 中心块优先：8 个块写入槽 1..8
+        f.registerExecNode('set_list_value', [visualP, f.addition(i, 1n), piece])
       })
       const centerIdx = f.getCorrespondingValueFromList(
         f.getNodeGraphVariable('faceCenterIndex').asType('int_list'),
@@ -45,7 +46,7 @@ export const viewPrepareVisualOrder = g.defineComposite('view_prepare_visual_ord
         centerIdx
       )
       const centerPiece = f.addition(centerLocal, 20n)
-      const setCenter = f.registerExecNode('set_list_value', [visualP, new int(8), centerPiece])
+      const setCenter = f.registerExecNode('set_list_value', [visualP, new int(0), centerPiece])
       const branchDone = f.registerExecNode('set_node_graph_variable', [
         new str('turnLastSlot'), lastSlot, new bool(false)
       ])

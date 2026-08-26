@@ -16,33 +16,34 @@ const solverStartEmitTick = g.defineComposite('solver_start_emit_tick', {
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(2.3)], 'float')])
+    // 步间：动画 ~0.65s + 旋转后 0.25s 暂停（2026-08-26 用户调整：旋转后暂停 0.25s）
+    const t = f.registerExecNode('start_timer', [target, new str('emitTick'), new bool(false), f.assemblyList([new float(0.9)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
 })
 
-// exec：宏播完休息（1.2s：盖住最后一转 0.3s 转动 + 0.35s 完成延迟 + 0.5s 静默），回 op5 重算
+// exec：宏播完休息（1.45s：盖住最后一转（面 0.65s/整 1.2s）+ 旋转后 0.25s 暂停），回 op5 重算
 const solverStartDoneTick = g.defineComposite('solver_start_done_tick', {
     id: 1610700061,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(1.2)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('doneTick'), new bool(false), f.assemblyList([new float(1.45)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
 })
 
-// exec：动画前静默 0.5s（降载：每个自动求解动画前留 0.5s 间隔）
+// exec：动画前静默 1.0s（2026-08-26 用户调整：求解出结果后再加 0.5s 才开始转）
 const solverStartPreTick = g.defineComposite('solver_start_pre_tick', {
     id: 1610700069,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('preTick'), new bool(false), f.assemblyList([new float(0.5)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('preTick'), new bool(false), f.assemblyList([new float(1.0)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }
