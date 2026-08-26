@@ -519,6 +519,11 @@ export function matchTypes<T extends keyof (ListableValueTypeMap & SpecialValueT
     }
   }
   const formatValue = (v: unknown) => {
+    // JSON.stringify(undefined) 返回 undefined（而非字符串），模板拼接后报错信息变成
+    // "Generic parameter not matched: "（空）——排查时看不到传入值是什么。
+    // 对 undefined/null 显式输出标签（2026-08-26 足球推球 onSignal evt 字段笔误实录）。
+    if (v === undefined) return '<undefined>'
+    if (v === null) return '<null>'
     if (z.instanceof(value).safeParse(v).success) {
       const metadata = (v as value).getMetadata()
       if (!metadata) return JSON.stringify(v)

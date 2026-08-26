@@ -24,5 +24,10 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 10005018
    */
-  足球: 1077936131
+  足球操作台: 1077936136,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  足球_1: 1077936138
 }

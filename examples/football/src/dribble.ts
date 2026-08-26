@@ -62,7 +62,7 @@ const graph = g
   // ================================================================
   // 入口② 接收信号（自动触发渠道）：目标点已算好，走同一套锁判定 + 推球
   // ================================================================
-  .onSignal(Signal.football_push_req, (evt: any, f: any) => {
+  .onSignal(Signal.football_push_req, (evt, f) => {
     const lock = f.getNodeGraphVariable('pushLock').asType('int')
     f.doubleBranch(
       f.equal(lock, 0n),

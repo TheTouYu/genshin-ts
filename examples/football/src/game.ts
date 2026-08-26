@@ -76,7 +76,7 @@ const graph = g
   // 推球执行：弹球图（命中检测触发）发来 target，球被"踢"到前方目标点
   // 球高速运动中（|v|>6，射门/长传）忽略推球（碰撞反射留后续版本）
   // ================================================================
-  .onSignal(Signal.football_push, (evt: any, f: any) => {
+  .onSignal(Signal.football_push, (evt, f) => {
     const ball = f.getSelfEntity()
     const target = evt.params.target
     const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
