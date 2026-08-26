@@ -73,7 +73,8 @@ const graph = g
         4n, 12n, 24n, 5n, 13n, 25n, 6n, 14n,
         7n, 15n
       ],
-      faceCenterIndex: [0n, 4n, 5n, 0n, 1n, 2n, 3n]
+      faceCenterIndex: [0n, 4n, 5n, 0n, 1n, 2n, 3n],
+      handlerCount: new int(0)
     }
   })
   .on('whenTimerIsTriggered', (evt: any, ef: any) => {
@@ -85,19 +86,23 @@ const graph = g
       },
       'turnblock0': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'turnblock1': () => {
         ef.setNodeGraphVariable('handlerBase', 7n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'turnblock2': () => {
         ef.setNodeGraphVariable('handlerBase', 14n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'turnblock3': () => {
         ef.setNodeGraphVariable('handlerBase', 21n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', 5n, false)
       },
       'orbit2': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
@@ -105,19 +110,23 @@ const graph = g
       },
       'orbit20': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'orbit21': () => {
         ef.setNodeGraphVariable('handlerBase', 7n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'orbit22': () => {
         ef.setNodeGraphVariable('handlerBase', 14n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', 7n, false)
       },
       'orbit23': () => {
         ef.setNodeGraphVariable('handlerBase', 21n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', 5n, false)
       },
       // execMove / unlock 等非视觉定时器：handlerMode 置 2（无匹配分支），
       // 下面 join 后仍会调用 view_handle_timer_event，但其内部 multipleBranches

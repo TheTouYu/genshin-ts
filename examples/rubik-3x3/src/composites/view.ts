@@ -432,7 +432,40 @@ export const viewHandleTimerEvent = g.defineComposite('view_handle_timer_event',
     f.multipleBranches(mode, {
       0: () => f.callComposite(viewHandleTurnCore, { target, base, seq }),
       1: () => f.callComposite(viewHandleOrbitCore, { target, base, seq }),
+      3: () => f.callComposite(viewHandleTurnBatch, { target, base, count: f.getNodeGraphVariable('handlerCount').asType('int') }),
+      4: () => f.callComposite(viewHandleOrbitBatch, { target, base, count: f.getNodeGraphVariable('handlerCount').asType('int') }),
       default: () => {}
+    })
+    return {}
+  }
+})
+
+// 整转批量通道（2026-08-26 事件总数降载）：一个定时器事件内循环处理 count 个槽位，
+// 整转 52 个槽位事件 → 8 个批量事件（4×turnblock + 4×orbit2），避免事件数过多丢执行
+export const viewHandleTurnBatch = g.defineComposite('view_handle_turn_batch', {
+    id: 1610700074,
+  inputs: { target: { type: 'entity' }, base: { type: 'int' }, count: { type: 'int' } },
+  outputs: {},
+  build: ({ target, base, count }, f) => {
+    const prep = f.callComposite(viewTurnPrepare, { target, base, seq: 0n })
+    f.finiteLoop(0n, f.subtraction(count, 1n), (i) => {
+      f.callComposite(viewTurnBlock, { slot: f.addition(base, i), target })
+      f.callComposite(viewTurnUnlockIfLast, { slot: f.addition(base, i), target })
+    })
+    const doneN = f.registerExecNode('set_node_graph_variable', [new str('handlerCount'), f.getNodeGraphVariable('handlerCount').asType('int'), new bool(false)])
+    f.outflow('done', doneN, 0)
+    return {}
+  }
+})
+
+// 整转批量 orbit2 通道：一个事件内循环启动 count 个块的二段运动
+export const viewHandleOrbitBatch = g.defineComposite('view_handle_orbit_batch', {
+    id: 1610700075,
+  inputs: { target: { type: 'entity' }, base: { type: 'int' }, count: { type: 'int' } },
+  outputs: {},
+  build: ({ target, base, count }, f) => {
+    f.finiteLoop(0n, f.subtraction(count, 1n), (i) => {
+      f.callComposite(viewOrbit2, { slot: f.addition(base, i), target })
     })
     return {}
   }
