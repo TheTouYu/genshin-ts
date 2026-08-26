@@ -18,7 +18,7 @@ const BALL_R = 0.25 // 球半径
 const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
-const ROLL_FRICTION = 0.8 // 滚动摩擦（贴地每 tick 减速，0.8 对应约 2~3s 停下）
+const ROLL_FRICTION = 0.82 // 滚动摩擦（贴地每 tick 减速；0.82 让球慢速多滚一会，更自然）
 const ROLL_SPIN_GAIN = 0.5 // 压力摩擦产生的力矩把 ω 拉向纯滚动目标的系数（滑转再收敛）
 const ROLL_BOUNCE_VY = 1.0 // 反弹后 |vy| 低于该值才转滚滑，否则继续空中弹跳
 const STOP_SPEED = 0.3 // 停球速度阈值
@@ -563,15 +563,17 @@ export const physTick = g.defineComposite('phys_tick', {
 // 不再做定点位移（v2 的"瞬移+急停"手感僵硬，且不衔接完整物理状态）。
 // 输入状态 → 冲量：
 //   球速 vB（沿踢向投影）、玩家速率 vP、距离 d、玩家朝向/移动方向
-// 目标：踢后球相对玩家领先 D* 米停下（滚滑摩擦 0.8/tick 下相对滚距 ≈ 相对速度）
+// 目标：踢后球以低速滚 2~3 秒自然停（领先速度预算 vLead 决定，不再叠加完整玩家速度）
 
-// —— 冲量模型参数（集中可调）——
-const D_BASE = 1.2 // 目标领先距离基数（米）
-const D_SPEED_COEF = 0.15 // 玩家速率系数：D* = D_BASE + D_SPEED_COEF·vP
-const D_MIN = 0.8 // D* 下限
-const D_MAX = 2.0 // D* 上限
-const DV_MIN = 2.5 // 冲量下限（球静止/玩家慢走也能滚起来）
-const DV_MAX = 6.0 // 冲量上限（防击飞）
+// —— 冲量模型参数（集中可调，2026-08-26 日志校准）——
+// 目标：踢后球慢速滚 2~3 秒自然停，玩家 2~3 秒追上再踢下一脚；
+//       球静止时踢得稍大、追球时踢得小（vB 抵消）
+const VLEAD_BASE = 1.8 // 领先速度基数（m/s）：静止球被踢后的目标领先速度
+const VLEAD_SPEED_COEF = 0.1 // 玩家速率系数：vLead = VLEAD_BASE + coef·vP（微增）
+const VLEAD_MIN = 1.5 // vLead 下限
+const VLEAD_MAX = 2.6 // vLead 上限
+const DV_MIN = 1.3 // 冲量下限（追球轻触）
+const DV_MAX = 2.8 // 冲量上限（静止启动也在此内，防飞出）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -591,7 +593,7 @@ export const pushGetRole = g.defineComposite('push_get_role', {
 // 冲量计算（纯数据）：输入命中点 → 输出速度增量 Δv（沿踢球方向）
 // 踢球方向 dir：玩家移动方向（监听移动速率节点速度向量，水平归一）；
 // 玩家静止时回退玩家朝向（rotY → (sin, 0, cos)）。
-// Δv = clamp((vP + D*) − vB, DV_MIN, DV_MAX)，vB = 球速沿 dir 投影。
+// Δv = clamp(vLead − vB, DV_MIN, DV_MAX)，vB = 球速沿 dir 投影。
 // ================================================================
 export const pushCompute = g.defineComposite('push_compute', {
   inputs: { hitPoint: { type: 'vec3' } },
@@ -621,25 +623,26 @@ export const pushCompute = g.defineComposite('push_compute', {
     const dir = f.create3dVector(f.division(mixX, mixLen), 0, f.division(mixZ, mixLen))
     // 球速沿 dir 投影
     const vB = f._3dVectorDotProduct(f.getNodeGraphVariable('ballVel').asType('vec3'), dir)
-    // D* = clamp(D_BASE + D_SPEED_COEF·vP, D_MIN, D_MAX)
-    const dRaw = f.addition(D_BASE, f.multiplication(vP, D_SPEED_COEF))
-    const dStar = f.division(
+    // vLead = clamp(VLEAD_BASE + VLEAD_SPEED_COEF·vP, VLEAD_MIN, VLEAD_MAX)
+    const vLeadRaw = f.addition(VLEAD_BASE, f.multiplication(vP, VLEAD_SPEED_COEF))
+    const vLeadFloor = f.division(
       f.addition(
-        f.addition(dRaw, D_MIN),
-        f.absoluteValueOperation(f.subtraction(dRaw, D_MIN))
+        f.addition(vLeadRaw, VLEAD_MIN),
+        f.absoluteValueOperation(f.subtraction(vLeadRaw, VLEAD_MIN))
       ),
       2
     )
-    // min(dStar, D_MAX) = (dStar+D_MAX−|dStar−D_MAX|)/2
-    const dStarClamped = f.division(
+    // min(vLeadFloor, VLEAD_MAX) = (x+VLEAD_MAX−|x−VLEAD_MAX|)/2
+    const vLead = f.division(
       f.subtraction(
-        f.addition(dStar, D_MAX),
-        f.absoluteValueOperation(f.subtraction(dStar, D_MAX))
+        f.addition(vLeadFloor, VLEAD_MAX),
+        f.absoluteValueOperation(f.subtraction(vLeadFloor, VLEAD_MAX))
       ),
       2
     )
-    // Δv = clamp(vP + D* − vB, DV_MIN, DV_MAX)
-    const dvRaw = f.subtraction(f.addition(vP, dStarClamped), vB)
+    // Δv = clamp(vLead − vB, DV_MIN, DV_MAX)：球速 vB 已领先则轻触（追球小），
+    // 球静止 vB≈0 则 Δv≈vLead（启动大）
+    const dvRaw = f.subtraction(vLead, vB)
     const dvFloor = f.division(
       f.addition(
         f.addition(dvRaw, DV_MIN),
