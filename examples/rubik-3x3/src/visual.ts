@@ -83,11 +83,6 @@ const graph = g
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 0n, false)
       },
-      // 面转 B 通道：槽位 5..8（seq 0..3 偏移 5），与 A 通道并行、块间错开更小（2026-08-26 微调）
-      'turnblockB': () => {
-        ef.setNodeGraphVariable('handlerBase', 5n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
-      },
       'turnblock0': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 0n, false)
@@ -106,11 +101,6 @@ const graph = g
       },
       'orbit2': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
-      },
-      // 面转 B 通道 orbit2：与 B 通道 turnblock 相位对齐（2026-08-26 修复 2909 位置错乱）
-      'orbit2B': () => {
-        ef.setNodeGraphVariable('handlerBase', 5n, false)
         ef.setNodeGraphVariable('handlerMode', 1n, false)
       },
       'orbit20': () => {
