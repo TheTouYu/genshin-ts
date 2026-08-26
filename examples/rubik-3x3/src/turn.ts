@@ -25,8 +25,11 @@ const graph = g
     variables: {
       // —— 流程层 ——
       lock: false,
-      // 逻辑-only 执行标志：执行器 op4 置 true，flowDoMove 只推逻辑状态、跳过视觉与定时器，并在结束时复位
+      // 逻辑-only 执行标志：op3 负向分支置 true，flowDoMove 只推逻辑状态、跳过视觉与定时器，并在结束时复位
       logicOnly: false,
+      // 负 moveId 拆分状态：pendNeg=待发的负 moveId，negPhase=已完成逻辑-only 次数（0..2）
+      pendNeg: new int(0),
+      negPhase: new int(0),
       autoMode: false,
       spawned: false,
       settled: false,
@@ -186,6 +189,21 @@ const graph = g
         f.setNodeGraphVariable('lock', false, false)
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
       },
+      'negDone': () => {
+        // 负 moveId 拆分的状态机：每完成一次逻辑-only 应用，推进一次；
+        // 满 3 次后请求负 moveId 的视觉转动（flowDoMove isInv 分支只转视觉）。
+        const self = f.getSelfEntity()
+        const ph = f.addition(f.getNodeGraphVariable('negPhase').asType('int'), 1n)
+        f.setNodeGraphVariable('negPhase', ph, false)
+        const pend = f.getNodeGraphVariable('pendNeg').asType('int')
+        const base = f.absoluteValueOperation(pend)
+        f.doubleBranch(f.lessThan(ph, 3n), () => {
+          f.setNodeGraphVariable('logicOnly', true, false)
+          f.callComposite(flowRequestMove, { moveId: base, target: self })
+        }, () => {
+          f.callComposite(flowRequestMove, { moveId: pend, target: self })
+        })
+      },
       default: () => {}
     })
   })
@@ -194,16 +212,20 @@ const graph = g
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
     f.multipleBranches(evt.params.op, {
       3: () => {
-        // 手动 tab 与求解执行都从这里统一进入转动
-        f.callComposite(flowTabLock, {})
-        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
-      },
-      4: () => {
-        // 逻辑-only 应用：执行器对折叠负 moveId 的预置 3 连逻辑（正 base moveId）。
-        // 走 flowRequestMove 复用 execMove 路径（每条 op4 一条独立记录，不超帧），
-        // 不直接内联 logicApplyFace（避免根图二次展开把预算推到 2000+）。
-        f.setNodeGraphVariable('logicOnly', true, false)
-        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+        // 手动 tab 与求解执行都从这里统一进入转动；打乱队列播放期间忽略外部指令（防串台）
+        f.doubleBranch(f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true), () => {}, () => {
+          f.doubleBranch(f.lessThan(evt.params.val, 0n), () => {
+            // 负 moveId：锁门后先 3 次逻辑-only（negDone 状态机），最后负轴视觉
+            f.callComposite(flowTabLock, {})
+            f.setNodeGraphVariable('pendNeg', evt.params.val, false)
+            f.setNodeGraphVariable('negPhase', new int(0), false)
+            f.setNodeGraphVariable('logicOnly', true, false)
+            f.callComposite(flowRequestMove, { moveId: f.absoluteValueOperation(evt.params.val), target: f.getSelfEntity() })
+          }, () => {
+            f.callComposite(flowTabLock, {})
+            f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+          })
+        })
       },
       8: () => {
         // 主图重置/开局 5s 后通知 turn 图复位自己的逻辑状态

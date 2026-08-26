@@ -303,3 +303,8 @@
   - 预算（注入后全部 ≤2000）：game 319 / relay 1491 / visual 1036 / solver 104 / solverPlan 1988 / turn 1950（publishShared 只发视觉宿主省 30 节点 + op4 复用 execMove 路径避免 logicApplyFace 二次展开）。
   - 读图核验：flow_do_move 面转 = isInv 分支（负向跳过逻辑）→ join → logicOnly 分支（true 复位+done / false 视觉链）单链无重复入边；solver 根图 op6 → solver_send_move(1610710069) → emit/done tick；negTick 状态机就位。
   - 静态检查：scan-gil-var-pins 全绿；check-gil-composite-refs 仅 6 个已知信号假阳性。
+- 2026-08-26（日志 2897 修复：队列串台/状态循环 + 手动反向真正接线）：
+  - 2897 实锤：flowRequestMove 写 pendingMove 仅 8 次（5×1、1×-1、1×2、1×4），执行读取却达数百次（230×1、46×2、46×4）——unlock→flowAfterTurn 的 AUTO 分支在求解期间误推进了打乱队列（autoMode=true 残留），打乱队列与求解序列串台，move 2/4 反复执行、ep 状态循环、planner mask 恒 0、未还原第一层即停。
+  - 修复：flowAfterTurn AUTO 分支加“打乱进行中”守卫（autoMode && rubik3x3_scrambling 双真才推进队列）；turn 图 op3 入口在 autoMode=true 时忽略外部指令。
+  - 手动反向真正接线：game.ts 恢复负 moveId 发送；负向处理统一收进 turn 图——op3 负值分支：锁门 → 3 次逻辑-only（logicOnly 标志 + negDone 0.02s 状态机）→ 负轴视觉；flowDoMove 的 logicOnly 分支完成后启 negDone 步进。执行器(solver.ts)简化为只发 op3（去掉 op4/negTick 状态机，节点 104→50）。
+  - 六图 engineExpanded 全部 ≤2000：game 327 / relay 1495 / visual 1036 / solver 50 / solverPlan 1988 / turn 1990；var pins 全绿；已注入 + maps:resync。

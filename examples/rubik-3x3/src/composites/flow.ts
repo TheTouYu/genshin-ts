@@ -327,10 +327,12 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
         }, () => {
           f.callComposite(logicApplyFace, { moveId })
         })
-        // 逻辑-only（执行器 op4）：逻辑已应用，跳过视觉/定时器直接 done（复位 logicOnly）
+        // 逻辑-only（负 moveId 拆分的第 N 次逻辑应用）：逻辑已应用，复位 logicOnly 并启 negDone 0.02s 步进
         f.doubleBranch(f.getNodeGraphVariable('logicOnly').asType('bool'), () => {
           const off = f.registerExecNode('set_node_graph_variable', [new str('logicOnly'), new bool(false), new bool(false)])
-          f.outflow('done', off, 0)
+          const t = f.node('start_timer', [target, new str('negDone'), new bool(false), f.assemblyList([new float(0.02)], 'float')])
+          f.connect(off, 0, t, 0)
+          f.outflow('done', t, 0)
         }, () => {
           const s1 = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
           const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
@@ -401,7 +403,12 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const isAuto = f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true)
+    // AUTO 队列推进只属于打乱流程：autoMode && rubik3x3_scrambling 同时为真才推进
+    // （2026-08-26 修复：求解/手动期间的 unlock 曾误推进打乱队列，队列串台导致状态循环）
+    const isAuto = f.logicalAndOperation(
+      f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true),
+      f.equal(f.getCustomVariable(target, new str('rubik3x3_scrambling')).asType('bool'), true)
+    )
     const brAuto = f.node('double_branch', [isAuto])
     // 2026-08-21 性能优化：blockOrient 已由逻辑层增量维护，不再读物理回写
     f.link(f.entry(), 0, brAuto, 0)
