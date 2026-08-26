@@ -19,7 +19,7 @@ const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
-const ROLL_DECEL = 1.2 // 滚动匀减速（m/s²）：慢慢滚、几秒停（线性衰减，无"急停写死"感）
+const ROLL_DECEL = 2.2 // 滚动匀减速（m/s²）：VKICK=3.5 时滚 ~2.8m 停 ~1.6s（几秒追上再踢）
 const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
@@ -613,12 +613,11 @@ export const physTick = g.defineComposite('phys_tick', {
 //   球速 vB（沿踢向投影）、玩家速率 vP、距离 d、玩家朝向/移动方向
 // 目标：踢后球以低速滚 2~3 秒自然停（领先速度预算 vLead 决定，不再叠加完整玩家速度）
 
-// —— 踢球模型参数（v4：球速目标设定，方向=玩家正前方；集中可调）——
-// 踢球 = 把球速设定为 clamp(vP + VKICK_LEAD, VKICK_MIN, VKICK_MAX)，沿玩家朝向。
-// 球比玩家只快 VKICK_LEAD，踢出后平滑减速、几秒被追上（自然带球节奏）。
-const VKICK_RATIO = 1.8 // 球速 = 玩家速率 × 该系数（保证球快于玩家、不被甩到身后）
-const VKICK_MIN = 3.0 // 球速下限（玩家静止/慢走也能滚起来）
-const VKICK_MAX = 11.0 // 球速上限（防极端冲刺飞出）
+// —— 踢球模型参数（v4.3：球速=固定一脚轻踢，与玩家速度无关；集中可调）——
+// 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
+// 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
+// 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
+const VKICK = 3.5 // 踢后球速（固定 m/s）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -652,27 +651,8 @@ export const pushCompute = g.defineComposite('push_compute', {
     const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const dir = f.create3dVector(sinY, 0, cosY)
-    // 玩家速率（官方节点：需角色挂「监听移动速率」单位状态效果）
-    const spd = f.queryCharacterSCurrentMovementSpd(role.role)
-    const vP = spd.currentSpeed
-    // 目标球速 = clamp(vP + VKICK_LEAD, VKICK_MIN, VKICK_MAX)
-    const raw = f.multiplication(vP, VKICK_RATIO)
-    const floor = f.division(
-      f.addition(
-        f.addition(raw, VKICK_MIN),
-        f.absoluteValueOperation(f.subtraction(raw, VKICK_MIN))
-      ),
-      2
-    )
-    // min(floor, VKICK_MAX) = (floor+VKICK_MAX−|floor−VKICK_MAX|)/2
-    const kick = f.division(
-      f.subtraction(
-        f.addition(floor, VKICK_MAX),
-        f.absoluteValueOperation(f.subtraction(floor, VKICK_MAX))
-      ),
-      2
-    )
-    return { vKick: f._3dVectorZoom(dir, kick) }
+    // 球速 = 固定 VKICK（一脚轻踢，与玩家速度无关）
+    return { vKick: f._3dVectorZoom(dir, VKICK) }
   }
 })
 
