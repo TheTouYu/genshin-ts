@@ -308,3 +308,8 @@
   - 修复：flowAfterTurn AUTO 分支加“打乱进行中”守卫（autoMode && rubik3x3_scrambling 双真才推进队列）；turn 图 op3 入口在 autoMode=true 时忽略外部指令。
   - 手动反向真正接线：game.ts 恢复负 moveId 发送；负向处理统一收进 turn 图——op3 负值分支：锁门 → 3 次逻辑-only（logicOnly 标志 + negDone 0.02s 状态机）→ 负轴视觉；flowDoMove 的 logicOnly 分支完成后启 negDone 步进。执行器(solver.ts)简化为只发 op3（去掉 op4/negTick 状态机，节点 104→50）。
   - 六图 engineExpanded 全部 ≤2000：game 327 / relay 1495 / visual 1036 / solver 50 / solverPlan 1988 / turn 1990；var pins 全绿；已注入 + maps:resync。
+- 2026-08-26（日志 2899 最小复现：反向面转少转 90°——negPhase 二次物化 bug）：
+  - 2899 铁证：负 moveId 请求 2 次（-3、-2），negDone 记录帧数呈 25/22 交替（各 2 组）——状态机只走了 2 次逻辑应用 + 1 次视觉，期望 3+1。根因：negDone 里 `ph = get(negPhase)+1; set(negPhase, ph)` 后分支复用表达式 `lessThan(ph,3)`——ph 被二次物化，第二次物化在 set 之后重读 negPhase，实际判 (ph+1)+1，负向面转少应用 1 次逻辑 = 少 90°。
+  - 修复：分支改读 `get(negPhase)`（已写入值），判据 1/2/3 步进正确；op3 的 autoMode 空真分支补 registerExecNode noop（避免空分支边影响 join）。
+  - 读图核验：negDone 的 Less Than 数据源直连 Get(negPhase)，不再经过 Addition。六图预算不变（turn 1990）、var pins 全绿；已注入 + resync。
+  - 教训再次命中「先写回再显式读回判断」铁律（同 solveIdx 2887 案），本轮自己代码重犯，已双份注释。

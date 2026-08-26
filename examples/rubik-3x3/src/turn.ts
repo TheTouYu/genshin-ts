@@ -192,12 +192,15 @@ const graph = g
       'negDone': () => {
         // 负 moveId 拆分的状态机：每完成一次逻辑-only 应用，推进一次；
         // 满 3 次后请求负 moveId 的视觉转动（flowDoMove isInv 分支只转视觉）。
+        // 2026-08-26 日志 2899 修复：分支必须读“已写入的 negPhase”，不能复用表达式 ph——
+        // 表达式被二次物化，第二次物化在 set 之后重读 negPhase，(ph+1)+1 导致只做 2 次逻辑应用，
+        // 反向面转少转 90°（旋转面回归）。
         const self = f.getSelfEntity()
         const ph = f.addition(f.getNodeGraphVariable('negPhase').asType('int'), 1n)
         f.setNodeGraphVariable('negPhase', ph, false)
         const pend = f.getNodeGraphVariable('pendNeg').asType('int')
         const base = f.absoluteValueOperation(pend)
-        f.doubleBranch(f.lessThan(ph, 3n), () => {
+        f.doubleBranch(f.lessThan(f.getNodeGraphVariable('negPhase').asType('int'), 3n), () => {
           f.setNodeGraphVariable('logicOnly', true, false)
           f.callComposite(flowRequestMove, { moveId: base, target: self })
         }, () => {
@@ -213,7 +216,9 @@ const graph = g
     f.multipleBranches(evt.params.op, {
       3: () => {
         // 手动 tab 与求解执行都从这里统一进入转动；打乱队列播放期间忽略外部指令（防串台）
-        f.doubleBranch(f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true), () => {}, () => {
+        f.doubleBranch(f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true), () => {
+          const busyNop = f.registerExecNode('set_node_graph_variable', [new str('pendingMove'), f.getNodeGraphVariable('pendingMove').asType('int'), new bool(false)])
+        }, () => {
           f.doubleBranch(f.lessThan(evt.params.val, 0n), () => {
             // 负 moveId：锁门后先 3 次逻辑-only（negDone 状态机），最后负轴视觉
             f.callComposite(flowTabLock, {})
