@@ -31,3 +31,15 @@ No claims are created by this structure Bundle.
 实现与自动证据只覆盖 NodeGraph 整图替换及本次临时副本同构重放；地图整体字节无需相同。没有执行本轮真实地图写回，也没有新的游戏行为验证。具体 signal pin/VarType 规则由 signal-node-instance-encoding Topic 单独约束。
 
 <!-- CLAIM:END clm_2B593993003299201E6F576C7E -->
+
+<!-- CLAIM:START clm_3EC5CF42D28754C1610DCCD1DC -->
+
+### 注入后复合目录多版本残留导致游戏拒载（2026-08-26 足球实证）
+
+地图复合目录出现同名复合的多个版本（历史注入残留，名字带(1)后缀、id新分配的副本）时，游戏加载校验目录里全部复合（含零引用条目）→零引用错误副本照样导致拒载（报'复合节点内部参数不匹配'）。注入器同id覆盖(mergeWrappedFieldMessages)不删除地图多余条目。排查：parse-gil-node-graph --list 全量列复合目录看多版本/重名→--composite '名字(1)' 读可疑副本对比→统计主图/impl全部复合调用concrete_id确认引用只落在正确版→删除零引用错误条目（先备份快照）。修复实例：足球地图删9个(1)版+carry_spin残留（10def+10impl，428724→376983字节）后游戏正常加载。
+
+#### 适用边界
+
+2026-08-26 足球地图1073741908实证（拒载快照SHA 12e1fdaf→清理后be722d0d，备份cleanup-bak-20260826-212850）；(1)版本产生路径（编译器/注入器改名追加）未复现锁定，属未闭合风险；仅覆盖复合目录条目清理，不覆盖改名产生路径修复。
+
+<!-- CLAIM:END clm_3EC5CF42D28754C1610DCCD1DC -->

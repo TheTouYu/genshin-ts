@@ -107,6 +107,21 @@
       ]
     },
     {
+      "id": "aref_05cef51fc6eb5986d5737c61f8",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-football-composite-dup-version.md",
+      "locator": "一、错误谱系总览",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4482a9d0718d41e8524bb84bfd742091fb51120ab5e3a9c629572259f705c888",
+      "claim_ids": [
+        "clm_3EC5CF42D28754C1610DCCD1DC"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_07093a3c79f2ba52aa93d65690",
       "path": "docs/ui-tutorial/ugc-svg/version-updates.md",
       "locator": "## 71-光标碰撞盒",
