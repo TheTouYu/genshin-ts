@@ -295,3 +295,11 @@
   - 预算（注入后）：game 319 / relay 1535 / visual 985 / solver 50 / solverPlan 1994 / turn 1988，全部 ≤2000；已 maps:resync。
   - 速度口径（负载锚点公式推导）：planTick 0.7s×4 + emitTick 3.0s/步 + doneTick 5.0s/宏 → 每个宏周期 ≈ 3L+4.8s；离线统计第一层（十字+角块）平均 41 步/约 15 宏 → **第一层复原约 3~4 分钟**（最坏 78 步约 6 分钟；中心归一化 0~4 个整转另计约 10s/转）。速度是 2026-08-24 负载防踢节拍（锚点公式在 dsl-nodegraph-development 技能），非 bug；如需提速可在日志 perf 复核后下调 emitTick/doneTick。
   - 下一轮：反向旋转需「3 次逻辑应用拆成 3 条独立事件链」或逆表新图（turn 1988 余量 12，先扩预算再动刀）；inverseTables.ts 预研资产已就位。
+- 2026-08-26（节拍按实测负载重排：计算快进、转动保持间隔、第一层目标 ≤60s）：
+  - 日志 2895 perf 实测：转动秒负载 4332~6601（峰值 6601）/秒 vs 规划一轮 ≈2200 负载——转动是绝对大头，计算很轻；旧节拍把计算也放得和转动一样慢（planTick 0.7s/doneTick 5s/emitTick 3s）导致第一层 ~4 分钟。
+  - 新节拍：planTick 0.7→0.15s（规划 0.6s/宏）、doneTick 5.0→0.7s（只需盖住 0.3s 转动+0.35s 完成延迟）、emitTick 3.0→1.8s（转动步间保持休息）。10s 窗口估算 ≈30-31k 负载，低于 34.2k 被踢分水岭（待游戏日志 perf 复核）。
+  - U3 折叠安全回归（不再单记录超帧）：规划器折叠负 moveId（DIR/STEPS 表）；执行器（solver.ts）把负值拆成 3 条 op4 逻辑-only 事件（0.02s 步进，每条独立记录 ≈1000 帧）+ 1 条 op3 负轴视觉；turn 图 op4 = logicOnly 标志 + 复用 flowRequestMove/execMove 路径（不在根图二次内联 logicApplyFace），flowDoMove 面转分支按 logicOnly 跳过视觉。表统计：折叠后十字 0.57、角块 0.53 → 第一层约 24 次视觉转动。
+  - 新估算：24 视觉 × 1.8s + 规划 12×0.6s + done 12×0.7s ≈ 59s（中心归一化整转另计 ≤4×~4s）。
+  - 预算（注入后全部 ≤2000）：game 319 / relay 1491 / visual 1036 / solver 104 / solverPlan 1988 / turn 1950（publishShared 只发视觉宿主省 30 节点 + op4 复用 execMove 路径避免 logicApplyFace 二次展开）。
+  - 读图核验：flow_do_move 面转 = isInv 分支（负向跳过逻辑）→ join → logicOnly 分支（true 复位+done / false 视觉链）单链无重复入边；solver 根图 op6 → solver_send_move(1610710069) → emit/done tick；negTick 状态机就位。
+  - 静态检查：scan-gil-var-pins 全绿；check-gil-composite-refs 仅 6 个已知信号假阳性。

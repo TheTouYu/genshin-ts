@@ -4,7 +4,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { longListGetInt4 } from './list.js'
 import {
-  CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
+  CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS,
   CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
   CF_X_POLICY_c0, CF_X_POLICY_c1, CF_X_POLICY_c2, CF_X_POLICY_c3
 } from '../cfopTables.js'
@@ -81,17 +81,18 @@ export const solverAppendCode = g.defineComposite('solver_append_code', {
       f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.addition(sl, 1n), new bool(false)])
     }, () => {
       const faceVar = f.getNodeGraphVariable('CF_MOVE_CODE_FACE').asType('int_list')
-      const cntVar = f.getNodeGraphVariable('CF_MOVE_CODE_CNT').asType('int_list')
+      const dirVar = f.getNodeGraphVariable('CF_MOVE_CODE_DIR').asType('int_list')
+      const stepsVar = f.getNodeGraphVariable('CF_MOVE_CODE_STEPS').asType('int_list')
       const face = f.getCorrespondingValueFromList(faceVar, code)
-      const cnt = f.getCorrespondingValueFromList(cntVar, code)
-      // 2026-08-26 修复：不使用负 moveId 折叠（U3→U'）。
-      // 负 moveId 会让 flowDoMove 在一条 exec 链里连做 3 次逻辑应用（约 3000+ 帧/记录），
-      // 超过单记录 3000 帧硬上限被引擎截断 → turnblock/unlock 永不启动 → lock 卡死、接口无响应。
-      // 改回正 moveId 展开：每步一条独立记录（约 1387 帧），锁与发布链完整可靠。
-      f.finiteLoop(0n, f.subtraction(cnt, 1n), (k) => {
-        f.registerExecNode('set_list_value', [solveBuf, f.addition(sl, k), face])
+      const dir = f.getCorrespondingValueFromList(dirVar, code)
+      const steps = f.getCorrespondingValueFromList(stepsVar, code)
+      // U3 折叠为负 moveId（dir=-1 → -face）：执行器收到负值后拆成 3 次逻辑-only 事件 + 1 次负轴视觉，
+      // 每条记录独立，不再有 3027 帧单记录截断问题（2026-08-26 修复教训）。
+      const signedFace = f.multiplication(face, dir)
+      f.finiteLoop(0n, f.subtraction(steps, 1n), (k) => {
+        f.registerExecNode('set_list_value', [solveBuf, f.addition(sl, k), signedFace])
       })
-      f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.addition(sl, cnt), new bool(false)])
+      f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.addition(sl, steps), new bool(false)])
     })
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
@@ -198,14 +199,14 @@ export const solverCornerFirstUnsolved = g.defineComposite('solver_corner_first_
   }
 })
 
-// exec：启动下一个 planTick 小步（0.3s 低频率；每个 planTick 只做一小步重算）
+// exec：启动下一个 planTick 小步（0.15s；日志 2895 实测规划单轮 ≈2200 负载，远低于转动 ≈5450/秒，计算可快进）
 export const solverStartPlanTick = g.defineComposite('solver_start_plan_tick', {
   id: 1610700065,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str('planTick'), new bool(false), f.assemblyList([new float(0.7)], 'float')])
+    const t = f.registerExecNode('start_timer', [target, new str('planTick'), new bool(false), f.assemblyList([new float(0.15)], 'float')])
     f.outflow('done', t, 0)
     return {}
   }

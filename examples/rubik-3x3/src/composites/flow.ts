@@ -212,25 +212,25 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
   outputs: {},
   outflows: ['done'],
   build: ({ moveId, target }, f) => {
-    // 2026-08-26 修复：撤销负 moveId 反向面转（U3 折叠 U'）。
-    // 负向在一条 exec 链里连做 3 次逻辑应用，单记录帧数超 3000 硬上限被截断，
-    // 导致 turnblock/unlock 永不启动 → lock 卡死、手动/自动指令全部无响应。
-    // 面转统一正 moveId（求解器把 U3 展开成 3 个正 move），中层/整转仍 7..12。
+    // 负 moveId = 折叠的 U3 类面转（face*dir=-1）。逻辑由执行器用 3 条独立 op4 事件预应用，
+    // 这里负向分支只做负轴视觉单转；正 moveId 分支照常一次逻辑 + 正轴视觉。
+    // （2026-08-26 教训：3 次逻辑挤一条链会超 3000 帧截断锁死，必须拆事件。）
+    const isInv = f.lessThan(moveId, 0n)
+    const base = f.absoluteValueOperation(moveId)
     const isMiddle = f.logicalAndOperation(
-      f.greaterThan(moveId, 6),
-      f.logicalNotOperation(f.greaterThan(moveId, 9))
+      f.greaterThan(base, 6),
+      f.logicalNotOperation(f.greaterThan(base, 9))
     )
-    const isWhole = f.greaterThan(moveId, 9)
+    const isWhole = f.greaterThan(base, 9)
     // 视觉图挂载在独立实体上，定时器/共享状态都发到该实体，避免同一实体节点数合并超限
     const visualHost = entity(1077936203n)
 
-    // 把视觉图需要的共享状态发布到主控制器 + 视觉控制器实体自定义变量
-    const publishShared = (tail: Flow, target: any, visualHost: any): Flow => {
+    // 把视觉图需要的共享状态发布到视觉控制器实体自定义变量
+    // （2026-08-26 减负：主控制器副本无消费者——视觉图只从事件源实体=visualHost 读，省 30 节点/图）
+    const publishShared = (tail: Flow, _target: any, visualHost: any): Flow => {
       const mk = (name: string, value: any) => {
-        const n1 = f.node('set_custom_variable', [target, new str(name), value, new bool(false)])
-        f.connect(tail, 0, n1, 0)
         const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
-        f.connect(n1, 0, n2, 0)
+        f.connect(tail, 0, n2, 0)
         tail = n2
       }
       mk('tempP', f.getNodeGraphVariable('tempP').asType('int_list'))
@@ -251,13 +251,13 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
     // 旧生成器错位产物（-4/16 等非法值）若漏到 logicApplyFace 会越界崩溃，
     // 守卫让非法 moveId 直接跳过逻辑层、安全完成 done（队列生成器已改合法，此为兜底）。
     const isValidMove = f.logicalAndOperation(
-      f.greaterThan(moveId, 0),
-      f.logicalNotOperation(f.greaterThan(moveId, 12))
+      f.greaterThan(base, 0),
+      f.logicalNotOperation(f.greaterThan(base, 12))
     )
     f.doubleBranch(isValidMove, () => {
     // 逻辑应用（编译期展开，done 可靠）→ 显式链到参数设置 → 启动 turnblock/orbit2
     f.doubleBranch(isMiddle, () => {
-      const logic = f.callComposite(logicApplyMiddle, { moveId })
+      const logic = f.callComposite(logicApplyMiddle, { moveId: base })
       const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
       f.connect(logic as never, 0, s1, 0)
       const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
@@ -280,7 +280,7 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.outflow('done', t2, 0)
     }, () => {
       f.doubleBranch(isWhole, () => {
-        const logic = f.callComposite(logicApplyWhole, { moveId })
+        const logic = f.callComposite(logicApplyWhole, { moveId: base })
         const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(25), new bool(false)])
         f.connect(logic as never, 0, s1, 0)
         const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(1.0), new bool(false)])
@@ -320,27 +320,38 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
         f.connect(o2, 0, o3, 0)
         f.outflow('done', o3, 0)
       }, () => {
-        const logic = f.callComposite(logicApplyFace, { moveId })
-        const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
-        f.connect(logic as never, 0, s1, 0)
-        const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
-        f.connect(s1, 0, s2, 0)
-        const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.15), new bool(false)])
-        f.connect(s2, 0, s3, 0)
-        const s4 = f.node('set_node_graph_variable', [new str('orbitKVel'), new float(6.6667), new bool(false)])
-        f.connect(s3, 0, s4, 0)
-        const s5 = f.node('set_node_graph_variable', [new str('angularVelocity'), new float(300), new bool(false)])
-        f.connect(s4, 0, s5, 0)
-        const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.35), new bool(false)])
-        f.connect(s5, 0, s6, 0)
-        const ptail = publishShared(s6, target, visualHost)
-        const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
-        const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
-        const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-        f.connect(ptail, 0, t1, 0)
-        const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
-        f.connect(t1, 0, t2, 0)
-        f.outflow('done', t2, 0)
+        // 面转：负 moveId 的逻辑已由执行器 3×op4 预应用，这里跳过逻辑层直接负轴视觉；
+        // 正 moveId 照常一次逻辑应用。join 后统一参数/发布/定时器链。
+        f.doubleBranch(isInv, () => {
+          const nop = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+        }, () => {
+          f.callComposite(logicApplyFace, { moveId })
+        })
+        // 逻辑-only（执行器 op4）：逻辑已应用，跳过视觉/定时器直接 done（复位 logicOnly）
+        f.doubleBranch(f.getNodeGraphVariable('logicOnly').asType('bool'), () => {
+          const off = f.registerExecNode('set_node_graph_variable', [new str('logicOnly'), new bool(false), new bool(false)])
+          f.outflow('done', off, 0)
+        }, () => {
+          const s1 = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
+          const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
+          f.connect(s1, 0, s2, 0)
+          const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.15), new bool(false)])
+          f.connect(s2, 0, s3, 0)
+          const s4 = f.node('set_node_graph_variable', [new str('orbitKVel'), new float(6.6667), new bool(false)])
+          f.connect(s3, 0, s4, 0)
+          const s5 = f.node('set_node_graph_variable', [new str('angularVelocity'), new float(300), new bool(false)])
+          f.connect(s4, 0, s5, 0)
+          const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.35), new bool(false)])
+          f.connect(s5, 0, s6, 0)
+          const ptail = publishShared(s6, target, visualHost)
+          const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
+          const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
+          const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
+          f.connect(ptail, 0, t1, 0)
+          const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
+          f.connect(t1, 0, t2, 0)
+          f.outflow('done', t2, 0)
+        })
       })
     })
     }, () => {

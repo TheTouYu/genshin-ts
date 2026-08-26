@@ -25,6 +25,8 @@ const graph = g
     variables: {
       // —— 流程层 ——
       lock: false,
+      // 逻辑-only 执行标志：执行器 op4 置 true，flowDoMove 只推逻辑状态、跳过视觉与定时器，并在结束时复位
+      logicOnly: false,
       autoMode: false,
       spawned: false,
       settled: false,
@@ -194,6 +196,13 @@ const graph = g
       3: () => {
         // 手动 tab 与求解执行都从这里统一进入转动
         f.callComposite(flowTabLock, {})
+        f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
+      },
+      4: () => {
+        // 逻辑-only 应用：执行器对折叠负 moveId 的预置 3 连逻辑（正 base moveId）。
+        // 走 flowRequestMove 复用 execMove 路径（每条 op4 一条独立记录，不超帧），
+        // 不直接内联 logicApplyFace（避免根图二次展开把预算推到 2000+）。
+        f.setNodeGraphVariable('logicOnly', true, false)
         f.callComposite(flowRequestMove, { moveId: evt.params.val, target: f.getSelfEntity() })
       },
       8: () => {

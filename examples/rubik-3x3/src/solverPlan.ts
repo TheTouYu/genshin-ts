@@ -15,7 +15,7 @@ import {
 } from './composites/solverCore.js'
 import { longListGetInt4 } from './composites/list.js'
 import {
-  CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
+  CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS,
   CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
   CF_X_POLICY_c0, CF_X_POLICY_c1, CF_X_POLICY_c2, CF_X_POLICY_c3
 } from './cfopTables.js'
@@ -73,7 +73,7 @@ const graph = g
       dbgTag: new str(''),
       dbgVal: new str(''),
 
-      CF_MOVE_CODE_FACE, CF_MOVE_CODE_CNT,
+      CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS,
       CF_X_MACRO_LEN_c0, CF_X_MACRO_C0_c0, CF_X_MACRO_C1_c0, CF_X_MACRO_C2_c0,
       CF_X_POLICY_c0, CF_X_POLICY_c1, CF_X_POLICY_c2, CF_X_POLICY_c3,
       CF_CORNER_MACRO_LEN_c0,
@@ -130,8 +130,6 @@ const graph = g
               },
               default: () => {}
             })
-            f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-            f.setNodeGraphVariable('dbgVal', new str('step1'), false)
             f.setNodeGraphVariable('pStep', new int(2), false)
             f.callComposite(solverStartPlanTick, { target: self })
           },
@@ -181,8 +179,6 @@ const graph = g
                   f.setNodeGraphVariable('mLen', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CENTER_MACRO_LEN').asType('int_list'), p), false)
                   f.setNodeGraphVariable('mP', p, false)
                   f.setNodeGraphVariable('mIdx', new int(0), false)
-                  f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                  f.setNodeGraphVariable('dbgVal', new str('center-step3'), false)
                   f.setNodeGraphVariable('pStep', new int(4), false)
                   f.callComposite(solverStartPlanTick, { target: self })
                 })
@@ -218,8 +214,6 @@ const graph = g
                     f.setNodeGraphVariable('mC1', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_X_MACRO_C1_c0').asType('int_list'), p), false)
                     f.setNodeGraphVariable('mC2', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_X_MACRO_C2_c0').asType('int_list'), p), false)
                     f.setNodeGraphVariable('mIdx', new int(0), false)
-                    f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                    f.setNodeGraphVariable('dbgVal', new str('cross-step3'), false)
                     f.setNodeGraphVariable('pStep', new int(4), false)
                     f.callComposite(solverStartPlanTick, { target: self })
                   }
@@ -251,8 +245,6 @@ const graph = g
                     f.setNodeGraphVariable('mLen', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_LEN_c0').asType('int_list'), p), false)
                     f.setNodeGraphVariable('mP', p, false)
                     f.setNodeGraphVariable('mIdx', new int(0), false)
-                    f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                    f.setNodeGraphVariable('dbgVal', new str('corner-step3'), false)
                     f.setNodeGraphVariable('pStep', new int(4), false)
                     f.callComposite(solverStartPlanTick, { target: self })
                   }
@@ -319,8 +311,6 @@ const graph = g
                   raw: f.equal(stage, 0n)
                 })
                 f.setNodeGraphVariable('mIdx', f.addition(mIdx, 1n), false)
-                f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                f.setNodeGraphVariable('dbgVal', new str('step4-append'), false)
                 f.callComposite(solverStartPlanTick, { target: self })
               },
               () => {
@@ -356,8 +346,6 @@ const graph = g
         f.doubleBranch(f.greaterThan(phase, 0n), () => {
           f.setNodeGraphVariable('solveLen', new int(0), false)
           f.setNodeGraphVariable('pStep', new int(1), false)
-          f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-          f.setNodeGraphVariable('dbgVal', new str('replan'), false)
           f.callComposite(solverStartPlanTick, { target: f.getSelfEntity() })
         }, () => {})
       },
