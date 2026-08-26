@@ -21,15 +21,15 @@ const mkTimer = (id: number, name: string, timerName: string, delay: number) => 
 })
 
 // 面转：步间 1.1s（动画 ~0.35s + 旋转后 0.75s 余量）
-const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.1)
+const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.27)
 // 面转：宏尾 1.75s（面转 0.6s 完成 + 1.1s 余量）
-const solverStartDoneTick = mkTimer(1610700061, 'solver_start_done_tick', 'doneTick', 1.75)
+const solverStartDoneTick = mkTimer(1610700061, 'solver_start_done_tick', 'doneTick', 2.01)
 // 面转：动画前 1.2s
-const solverStartPreTick = mkTimer(1610700069, 'solver_start_pre_tick', 'preTick', 1.2)
+const solverStartPreTick = mkTimer(1610700069, 'solver_start_pre_tick', 'preTick', 1.38)
 // 整转：动画前 3.6s、步间 3.3s、宏尾 5.25s（负载 3 倍 → 间隔 3 倍）
-const solverStartWholePre = mkTimer(1610700076, 'solver_start_whole_pre', 'wholePre', 3.6)
-const solverStartWholeEmit = mkTimer(1610700077, 'solver_start_whole_emit', 'wholeEmit', 3.3)
-const solverStartWholeDone = mkTimer(1610700078, 'solver_start_whole_done', 'wholeDone', 5.25)
+const solverStartWholePre = mkTimer(1610700076, 'solver_start_whole_pre', 'wholePre', 5.52)
+const solverStartWholeEmit = mkTimer(1610700077, 'solver_start_whole_emit', 'wholeEmit', 5.08)
+const solverStartWholeDone = mkTimer(1610700078, 'solver_start_whole_done', 'wholeDone', 8.04)
 
 const graph = g
   .server({

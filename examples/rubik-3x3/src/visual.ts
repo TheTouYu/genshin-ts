@@ -84,6 +84,15 @@ const graph = g
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 0n, false)
       },
+      // 面转 B 通道：槽 5..8（与 A 并行、orbit2 相位 +0.1 对齐）
+      'turnblockB': () => {
+        ef.setNodeGraphVariable('handlerBase', 5n, false)
+        ef.setNodeGraphVariable('handlerMode', 0n, false)
+      },
+      'orbit2B': () => {
+        ef.setNodeGraphVariable('handlerBase', 5n, false)
+        ef.setNodeGraphVariable('handlerMode', 1n, false)
+      },
       'turnblock0': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 3n, false)
