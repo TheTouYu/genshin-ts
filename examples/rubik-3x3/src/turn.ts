@@ -155,7 +155,10 @@ const graph = g
       faceTurnTimes: [0.01, 0.02, 0.03, 0.04, 0.05],
       // 2026-08-26 微调：面转拆双通道（A/B 各 4-5 槽并行），块间运动错开从 70ms 缩到 40ms、动画更紧凑
       faceTurnTimesB: [0.01, 0.02, 0.03, 0.04],
-      faceOrbit2Times: [0.16, 0.17, 0.18, 0.19, 0.20, 0.21, 0.22, 0.23, 0.24],
+      faceOrbit2Times: [0.16, 0.17, 0.18, 0.19, 0.20],
+      // 2026-08-26 修复 2909：orbit2 必须与 B 通道相位对齐（B 块 0.01s 起转 → orbit2 0.16s 起），
+      // 否则 B 块两段运动错开 0.2s，动画后最终位置错乱
+      faceOrbit2TimesB: [0.16, 0.17, 0.18, 0.19],
       middleTurnTimes: [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08],
       middleOrbit2Times: [0.16, 0.17, 0.18, 0.19, 0.20, 0.21, 0.22, 0.23],
       // 整体转拆成 4 个不同名字的定时器，每个定时器内部两位小数唯一且低延迟；
@@ -219,8 +222,7 @@ const graph = g
       3: () => {
         // 手动 tab 与求解执行都从这里统一进入转动；打乱队列播放期间忽略外部指令（防串台）
         f.doubleBranch(f.equal(f.getNodeGraphVariable('autoMode').asType('bool'), true), () => {
-          // 根图事件回调必须用高层 setNodeGraphVariable（registerExecNode 裸 pin 会编译失败）
-          f.setNodeGraphVariable('pendingMove', f.getNodeGraphVariable('pendingMove').asType('int'), false)
+          // 打乱队列播放中：忽略外部指令（2897 实证空真分支不影响 join 与 false 分支链路）
         }, () => {
           f.doubleBranch(f.lessThan(evt.params.val, 0n), () => {
             // 负 moveId：锁门后先 3 次逻辑-only（negDone 状态机），最后负轴视觉

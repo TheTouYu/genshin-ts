@@ -108,6 +108,11 @@ const graph = g
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 1n, false)
       },
+      // 面转 B 通道 orbit2：与 B 通道 turnblock 相位对齐（2026-08-26 修复 2909 位置错乱）
+      'orbit2B': () => {
+        ef.setNodeGraphVariable('handlerBase', 5n, false)
+        ef.setNodeGraphVariable('handlerMode', 1n, false)
+      },
       'orbit20': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 1n, false)

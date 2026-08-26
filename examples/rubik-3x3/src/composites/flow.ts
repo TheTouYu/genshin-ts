@@ -323,7 +323,7 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
         // 面转：负 moveId 的逻辑已由执行器 3×op4 预应用，这里跳过逻辑层直接负轴视觉；
         // 正 moveId 照常一次逻辑应用。join 后统一参数/发布/定时器链。
         f.doubleBranch(isInv, () => {
-          const nop = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+          const nop = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(0), new bool(false)])
         }, () => {
           f.callComposite(logicApplyFace, { moveId })
         })
@@ -349,13 +349,16 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
           const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
           const timesB = f.getNodeGraphVariable('faceTurnTimesB').asType('float_list')
           const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
+          const orbit2B = f.getNodeGraphVariable('faceOrbit2TimesB').asType('float_list')
           const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
           f.connect(ptail, 0, t1, 0)
           const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), timesB])
           f.connect(t1, 0, t1b, 0)
           const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
           f.connect(t1b, 0, t2, 0)
-          f.outflow('done', t2, 0)
+          const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), orbit2B])
+          f.connect(t2, 0, t2b, 0)
+          f.outflow('done', t2b, 0)
         })
       })
     })

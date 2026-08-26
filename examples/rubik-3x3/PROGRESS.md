@@ -324,3 +324,8 @@
   - 视觉根图按「分支设变量 + join 单调用」模式加 turnblockB 分支（handlerBase=5）；flowDoMove 面转分支加 faceTurnTimesB 定时器。
   - 陷阱更正：先误改 viewOrbitTrigger 复合的内部 f.on（非视觉根图活跃路径），已撤回，改对视觉根图 visual.ts。
   - 六图预算≤2000（visual 1038 / turn 1997 / solver 50），var pins 全绿，已注入 + resync。
+- 2026-08-26（日志 2909：动画致最终位置错乱——orbit2 相位未随 B 通道对齐）：
+  - 2909 实锤：turnblockB 槽位 5..8 在 0.01..0.04 提前起转，但 orbit2 仍按旧时序 0.16..0.24 全员串行——B 块两段运动错开约 0.2s，动画结束位置错乱。
+  - 修复：orbit2 同样拆 A/B（A 槽 0..4@0.16..0.20 / B 槽 5..8@0.16..0.19，与各自 turnblock 保持 +0.15s 相位）；flowDoMove 面转分支加 orbit2B 定时器；视觉根图加 orbit2B 分支（handlerBase=5）。
+  - 预算腾挪：busyNop 回退空真分支（2897 实证可行）、isInv noop 改字面量——turn 回 1997。
+  - 注入 ok 6、turn 1997 / visual 1040、var pins 全绿、已 resync。
