@@ -1,13 +1,16 @@
 // 足球物理图（挂球实体 1077936135）
 // whenTabIsSelected → 施力（选项 tabId 1-8）+ 复位（tabId 9）
+// onSignal(football_push) → 推球执行（弹球图发来推球目标点）
 // whenBasicMotionDeviceStops → 物理 tick（状态机：空中/反弹/滚滑/静止）
-// 选项组件（tabBar）挂在足球本体上，5 米交互范围
+// 带球「推」模型：命中检测触发由弹球图（1073741827）处理并发信号；
+// 球状态机不再有 CARRIED 弹簧场（取消"拉"，改"推"，球总在玩家正前方）
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
 import { physTick } from './composites/physics.js'
-import { carryGetRole, carryHeartbeat } from './composites/carry.js'
+import { pushApply } from './composites/push.js'
+import { Signal } from './resources/signals.js'
 
 // 场地中间（复位点）
 const CENTER_X = 0
@@ -29,8 +32,7 @@ const graph = g
       tmpSpin: new vec3([0, 0, 0]),
       dbgTag: new str(''),
       dbgVal: new str(''),
-      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING / 3=带球 CARRIED
-      carrierPrevPos: new vec3([0, 0, 0]), // 持球者上一 tick 位置（丢球判定的角色速度差分量）
+      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
       impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)
@@ -51,9 +53,9 @@ const graph = g
       () => {
         const state = f.getNodeGraphVariable('state').asType('int')
         f.doubleBranch(
-          f.logicalOrOperation(f.equal(state, 0n), f.equal(state, 3n)),
+          f.equal(state, 0n),
           () => {
-            // 静止或带球中：设定初速 + 启动主运动器（带球时点选项=射门/传球全力出球）
+            // 静止：设定初速 + 启动主运动器
             const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const ka = f.callComposite(kickApplyForce, { tabId })
             const kl = f.callComposite(kickLaunch, { e: ball })
@@ -71,58 +73,19 @@ const graph = g
     )
   })
   // ================================================================
-  // 冷启动：球实体创建（进关卡）时激活一次零速心跳运动器，
-  // 把 whenBasicMotionDeviceStops 5Hz 链拉起来——带球状态机全靠这条链驱动
-  // （修复：球初始 FREE 静止、无运动器在跑 → 无 stop 事件 → physTick 永不执行，
-  //  玩家走近永远不触发控球判定）
+  // 推球执行：弹球图（命中检测触发）发来 target，球被"踢"到前方目标点
+  // 球高速运动中（|v|>6，射门/长传）忽略推球（碰撞反射留后续版本）
   // ================================================================
-  .on('whenEntityIsCreated', (evt: any, f: any) => {
+  .onSignal(Signal.football_push, (evt: any, f: any) => {
+    const ball = f.getSelfEntity()
+    const target = evt.target
+    const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
     f.doubleBranch(
-      f.equal(evt.eventSourceEntity, f.getSelfEntity()),
+      f.greaterThan(speed, 6),
+      () => {},
       () => {
-        const ball = f.getSelfEntity()
-        const hb = f.callComposite(carryHeartbeat, { e: ball })
-      },
-      () => {}
-    )
-  })
-  // ================================================================
-  // 控球判定主通道：命中检测事件（球挂命中检测组件后，球碰到角色受击盒触发）
-  // FREE(0) → 直接控球；ROLLING(2) 且球速<3 → 控球（脱脚后追上球）；
-  // FLYING(1)/CARRIED(3) → 忽略（带球贴脚持续命中持球者；飞行接球留传球阶段）
-  // ================================================================
-  .on('whenOnHitDetectionIsTriggered', (evt: any, f: any) => {
-    f.doubleBranch(
-      evt.onHitHurtbox,
-      () => {
-        const state = f.getNodeGraphVariable('state').asType('int')
-        const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
-        f.doubleBranch(
-          f.equal(state, 0n),
-          () => {
-            const roleC = f.callComposite(carryGetRole, {})
-            f.setNodeGraphVariable('state', 3n, false)
-            f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
-            // 激活心跳：控球后下一 tick 由 stop 事件驱动 carryTick（弹簧场接手）
-            const ball = f.getSelfEntity()
-            const hb = f.callComposite(carryHeartbeat, { e: ball })
-          },
-          () => {
-            f.doubleBranch(
-              f.logicalAndOperation(f.equal(state, 2n), f.lessThan(speed, 3)),
-              () => {
-                const roleC = f.callComposite(carryGetRole, {})
-                f.setNodeGraphVariable('state', 3n, false)
-                f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
-                const ball = f.getSelfEntity()
-                const hb = f.callComposite(carryHeartbeat, { e: ball })
-              },
-              () => {}
-            )
-          }
-        )
-      },
-      () => {}
+        const ap = f.callComposite(pushApply, { e: ball, target })
+      }
     )
   })
   // ================================================================
