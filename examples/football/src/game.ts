@@ -7,7 +7,7 @@ import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
 import { physTick } from './composites/physics.js'
-import { carryGetRole } from './composites/carry.js'
+import { carryGetRole, carryHeartbeat } from './composites/carry.js'
 
 // 场地中间（复位点）
 const CENTER_X = 0
@@ -71,6 +71,22 @@ const graph = g
     )
   })
   // ================================================================
+  // 冷启动：球实体创建（进关卡）时激活一次零速心跳运动器，
+  // 把 whenBasicMotionDeviceStops 5Hz 链拉起来——带球状态机全靠这条链驱动
+  // （修复：球初始 FREE 静止、无运动器在跑 → 无 stop 事件 → physTick 永不执行，
+  //  玩家走近永远不触发控球判定）
+  // ================================================================
+  .on('whenEntityIsCreated', (evt: any, f: any) => {
+    f.doubleBranch(
+      f.equal(evt.eventSourceEntity, f.getSelfEntity()),
+      () => {
+        const ball = f.getSelfEntity()
+        const hb = f.callComposite(carryHeartbeat, { e: ball })
+      },
+      () => {}
+    )
+  })
+  // ================================================================
   // 控球判定主通道：命中检测事件（球挂命中检测组件后，球碰到角色受击盒触发）
   // FREE(0) → 直接控球；ROLLING(2) 且球速<3 → 控球（脱脚后追上球）；
   // FLYING(1)/CARRIED(3) → 忽略（带球贴脚持续命中持球者；飞行接球留传球阶段）
@@ -87,6 +103,9 @@ const graph = g
             const roleC = f.callComposite(carryGetRole, {})
             f.setNodeGraphVariable('state', 3n, false)
             f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
+            // 激活心跳：控球后下一 tick 由 stop 事件驱动 carryTick（弹簧场接手）
+            const ball = f.getSelfEntity()
+            const hb = f.callComposite(carryHeartbeat, { e: ball })
           },
           () => {
             f.doubleBranch(
@@ -95,6 +114,8 @@ const graph = g
                 const roleC = f.callComposite(carryGetRole, {})
                 f.setNodeGraphVariable('state', 3n, false)
                 f.setNodeGraphVariable('carrierPrevPos', f.getEntityLocationAndRotation(roleC.role).location, false)
+                const ball = f.getSelfEntity()
+                const hb = f.callComposite(carryHeartbeat, { e: ball })
               },
               () => {}
             )
