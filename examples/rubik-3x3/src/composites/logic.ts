@@ -205,7 +205,7 @@ export const logicApplyMiddle = g.defineComposite('logic_apply_middle', {
 })
 
 // 整体转：8 角 + 12 棱 + 6 心
-export const logicApplyWhole = g.defineComposite('logic_apply_whole', {
+export const logicApplyWholeA = g.defineComposite('logic_apply_whole_a', {
     id: 1610700002,
   inputs: { moveId: { type: 'int' } },
   outputs: {},
@@ -246,15 +246,16 @@ export const logicApplyWhole = g.defineComposite('logic_apply_whole', {
     //   但全展开把 logic_apply_whole 从 ~87 推到 512 节点，游戏“节点图数量”预测 3657 > 3000 拒载。
     //   折中：temp 段（26 迭代，体 ~6 节点/迭代）保持展开；写回段（26 迭代，体 ~13 节点/迭代）
     //   恢复有限循环。节点 ≈216（预算余量 ~480），帧 ≈2513 <3000。
-    for (let s = 0; s < 8; s++) {
-      const idx = f.addition(m10x8, new int(s))
+    // 2026-08-26 事件拆分后帧预算富余：角 temp 改回运行时循环（省 ~40 节点给 A/B 拆分）
+    f.finiteLoop(0n, 7n, (s) => {
+      const idx = f.addition(m10x8, s)
       const from = f.getCorrespondingValueFromList(wholeCornerFromVar, idx)
       const piece = f.getCorrespondingValueFromList(cornerPos, from)
       const twist = f.getCorrespondingValueFromList(cornerOrient, from)
-      const setP = f.registerExecNode('set_list_value', [tempP, new int(s), piece])
-      const setT = f.registerExecNode('set_list_value', [tempT, new int(s), twist])
+      const setP = f.registerExecNode('set_list_value', [tempP, s, piece])
+      const setT = f.registerExecNode('set_list_value', [tempT, s, twist])
       f.connect(setP, 0, setT, 0)
-    }
+    })
     // 角：写回（有限循环）
     f.finiteLoop(0n, 7n, (s) => {
       const idx = f.addition(m10x8, s)
@@ -273,7 +274,7 @@ export const logicApplyWhole = g.defineComposite('logic_apply_whole', {
       f.connect(setPos, 0, setOrient, 0)
       f.connect(setOrient, 0, setBO, 0)
     })
-    // 棱：temp 槽 8..19
+    // 棱：temp 槽 8..19（A 段到此为止；写回段见 logic_apply_whole_b）
     // 2026-08-22 节点预算回归（游戏拒载 3150）：棱 temp 12 迭代展开 ≈120 节点→循环化省 ~106
     // 节点（Δformula ≈ -193）；旋转记录帧 2513→~2740 仍 <3000（余量 ~260f，全部 temp 循环化
     // 会 3002f 截断，故角/心 temp 保持展开）。
@@ -288,6 +289,38 @@ export const logicApplyWhole = g.defineComposite('logic_apply_whole', {
       const setT = f.registerExecNode('set_list_value', [tempT, slot, flip])
       f.connect(setP, 0, setT, 0)
     })
+
+    const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+    f.outflow('done', doneNode, 0)
+    return {}
+  }
+})
+// 整转逻辑 B 段（2026-08-26 单事件执行数上限拆分）：棱写回 + 心块；与 A 段经 0.02s 定时器分事件执行
+export const logicApplyWholeB = g.defineComposite('logic_apply_whole_b', {
+    id: 1610700072,
+  inputs: { moveId: { type: 'int' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ moveId }, f) => {
+    const wholeEdgeToVar = f.getNodeGraphVariable('wholeEdgeTo').asType('int_list')
+    const wholeEdgeFlipVar = f.getNodeGraphVariable('wholeEdgeFlip').asType('int_list')
+    const wholeCenterFromVar = f.getNodeGraphVariable('wholeCenterFrom').asType('int_list')
+    const wholeCenterToVar = f.getNodeGraphVariable('wholeCenterTo').asType('int_list')
+    const edgePos = f.getNodeGraphVariable('edgePos').asType('int_list')
+    const edgeOrient = f.getNodeGraphVariable('edgeOrient').asType('int_list')
+    const centerPos = f.getNodeGraphVariable('centerPos').asType('int_list')
+    const tempP = f.getNodeGraphVariable('tempP').asType('int_list')
+    const tempT = f.getNodeGraphVariable('tempT').asType('int_list')
+    const blockOrient = f.getNodeGraphVariable('blockOrient').asType('int_list')
+    const wholeOrientTrans = f.getNodeGraphVariable('wholeOrientTransition').asType('int_list')
+    const m10 = f.subtraction(moveId, 10n)
+    const m10x12 = f.multiplication(m10, 12n)
+    const m10x6 = f.multiplication(m10, 6n)
+    const wholeOrientBase = f.multiplication(m10, 24n)
+    const nextOrient = (oldOrient: any) => f.getCorrespondingValueFromList(
+      wholeOrientTrans, f.addition(wholeOrientBase, oldOrient)
+    )
+
     // 棱：写回（有限循环）
     f.finiteLoop(0n, 11n, (s) => {
       const idx = f.addition(m10x12, s)
@@ -308,15 +341,15 @@ export const logicApplyWhole = g.defineComposite('logic_apply_whole', {
       f.connect(setPos, 0, setOrient, 0)
       f.connect(setOrient, 0, setBO, 0)
     })
-    // 心：temp 槽 20..25；心随整体转也更新朝向
-    for (let s = 0; s < 6; s++) {
-      const idx = f.addition(m10x6, new int(s))
-      const slot = new int(20 + s)
+    // 心：temp 槽 20..25；心随整体转也更新朝向（事件拆分后改运行时循环省节点）
+    f.finiteLoop(0n, 5n, (s) => {
+      const idx = f.addition(m10x6, s)
+      const slot = f.addition(s, 20n)
       const from = f.getCorrespondingValueFromList(wholeCenterFromVar, idx)
       const piece = f.getCorrespondingValueFromList(centerPos, from)
       const globalPiece = f.addition(piece, new int(20))
-      const setP = f.registerExecNode('set_list_value', [tempP, slot, globalPiece])
-    }
+      f.registerExecNode('set_list_value', [tempP, slot, globalPiece])
+    })
     // 心：写回（有限循环）
     f.finiteLoop(0n, 5n, (s) => {
       const idx = f.addition(m10x6, s)
@@ -428,32 +461,3 @@ export const logicReset = g.defineComposite('logic_reset', {
     // 复位（有限循环：52 迭代控制帧 ~978f，换回 ~150 展开节点——节点预算余量 ~480 的关键）
     // 2026-08-22 节点预算回归修复：全展开版 logic_reset 285 节点把“节点图数量”预测推到 3657 拒载；
     // 哨兵段保持展开（无控制帧、必须先撑满列表），复位段恢复有限循环（体 ~9 节点/循环）。
-    // 复原 execMove 帧 ≈2138 <3000、logic_reset 节点 ≈148。
-    f.finiteLoop(0n, 7n, (i) => {
-      const p = f.registerExecNode('set_list_value', [cornerPos, i, i])
-      const t = f.registerExecNode('set_list_value', [cornerOrient, i, new int(0)])
-      f.connect(p, 0, t, 0)
-    })
-    f.finiteLoop(0n, 11n, (i) => {
-      const p = f.registerExecNode('set_list_value', [edgePos, i, i])
-      const t = f.registerExecNode('set_list_value', [edgeOrient, i, new int(0)])
-      f.connect(p, 0, t, 0)
-    })
-    f.finiteLoop(0n, 5n, (i) => {
-      f.registerExecNode('set_list_value', [centerPos, i, i])
-    })
-    f.finiteLoop(0n, 25n, (i) => {
-      const p = f.registerExecNode('set_list_value', [tempP, i, new int(0)])
-      const t = f.registerExecNode('set_list_value', [tempT, i, new int(0)])
-      const b = f.registerExecNode('set_list_value', [blockOrient, i, new int(0)])
-      const bp = f.registerExecNode('set_list_value', [blockOrientPre, i, new int(0)])
-      f.connect(p, 0, t, 0)
-      f.connect(t, 0, b, 0)
-      f.connect(b, 0, bp, 0)
-    })
-
-    const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
-    f.outflow('done', doneNode, 0)
-    return {}
-  }
-})

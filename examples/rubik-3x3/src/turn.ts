@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble } from './composites/flow.js'
+import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowWholeTail } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -193,6 +193,10 @@ const graph = g
       'unlock': () => {
         f.setNodeGraphVariable('lock', false, false)
         f.callComposite(flowAfterTurn, { target: evt.eventSourceEntity })
+      },
+      'wholeTail': () => {
+        // 整转事件拆分第二段：逻辑 B + 参数 + 发布 + 8 视觉定时器（2910 单事件超限拆分）
+        f.callComposite(flowWholeTail, { target: evt.eventSourceEntity })
       },
       'negDone': () => {
         // 负 moveId 拆分的状态机：每完成一次逻辑-only 应用，推进一次；
