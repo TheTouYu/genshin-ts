@@ -563,3 +563,5 @@
 - O-2026-08-26-2：`gsts/server-repeated-evaluation` ESLint 规则未在 examples 上跑（negPhase 二次物化 2899 未被拦截）——补 examples lint 门禁或 CI 脚本。
 - O-2026-08-26-3：rubik-3x3 反向旋转仅覆盖面转 1..6；中层 M/E/S 与整体转 x/y/z 仍正方向；`inverseTables.ts` 预研资产闲置。
 - O-2026-08-26-4：新节拍（planTick 0.15s / emitTick 1.8s / doneTick 0.7s）的完整自动还原日志 + perf 每秒负载复核未完成；通过后再评估 emitTick 调 1.5s 的空间。
+- O-2026-08-26-5：gsts 注入某图失败时不产生醒目失败摘要/非零退出码（2906 事故中 error 行被输出截断掩盖）——给 inject 管线加统一的 FAIL 计数与退出码，供脚本/模型可靠判断。
+- 观察项（2026-08-26）：rubik-3x3 game.ts 根回调 finiteLoop 内 registerExecNode（destroy_entity 等）与 turn.ts busyNop 同类形态但为既有工作代码、本轮无回归，未动；若未来再碰 `Generic parameter not matched` 按同法改成高层 API 或挪进复合。

@@ -12,6 +12,8 @@
 | 1 | 08-26 | 预算设计缺失 | 折叠 U3→负 moveId，flowDoMove 一条 exec 链 finiteLoop 3 连 logic_apply_face | 单记录 3027 帧 > 3000 硬限截断 → turnblock/unlock 永不启动 → lock 卡死、一切指令无响应（2894：27 发只 1 步执行；2895：50s 内 72 次 planTick 全 mask=0 循环） | `53d0e79` 回退正 moveId 展开 |
 | 2 | 08-26 | 状态共享缺守卫 | 恢复折叠但由**执行器** op4 状态机拆分（solver 图）——flowAfterTurn 的 AUTO 分支只看 `autoMode` 就推进**打乱队列**，求解序列与打乱队列串台 | pendingMove 写 8 次读数百次（46×move2/46×move4），状态循环、未还原第一层即停（2897） | `518898b` AUTO 加 `rubik3x3_scrambling` 双真守卫；负向统一收进 turn 图；手动反向接线 |
 | 3 | 08-26 | 纪律违反（铁律重犯） | turn 图 negDone 状态机：`ph=get(negPhase)+1; set(negPhase,ph)` 后分支复用表达式 `lessThan(ph,3)`——二次物化，实际判 `(ph+1)+1` | 负向只做 2 次逻辑应用 + 1 次视觉（期望 3+1），反向面转少 90°；negDone 记录 25/22 帧交替 ×2 组（2899 最小复现） | `5766bcb` 分支读已写回 `get(negPhase)`；op3 空真分支补 registerExecNode noop |
+| 4 | 08-26 | 根图回调 API 误用 | `5766bcb` 的 busyNop 在根事件回调分支里用裸 `registerExecNode('set_node_graph_variable', [str, get(...)])`——参数数组混入 get 节点 pin，`Generic parameter not matched` → turn.gs.ts 编译失败 → **注入中止** | 游戏继续跑旧图：L,U,U',L' 后块错位（2906，negDone 25/22、negPhase 1,2,1,2——与 2899 完全同症状） | `cbfa138` 改高层 `f.setNodeGraphVariable`；重建注入并核验 LessThan 数据源=Get |
+| 5 | 08-26 | 验证链盲区（过程错误） | 上一轮注入输出被 `tail -2` 截断没看到 `[error]`；读图核验只核分支结构、没核**条件节点的数据流来源**（LessThan 输入仍是 Addition）→ 误判"修复已注入" | 用户两次复测同一症状（2905/2906）才发现修复从未生效 | 注入守则 + 读图数据流核验写入 dsl-nodegraph-development 技能 |
 
 ## 二、最近一次错误的完整调查链（2899）
 
@@ -31,6 +33,7 @@
    防线有两道都失效：设计时无 checklist 强制；仓库已有 `gsts/server-repeated-evaluation` ESLint 规则，但 examples 没有 lint 门禁，从未在此类代码上跑过。
 2. **单轮改动变量过多，违反「每轮一个可归因变量」**。`542c763` 一轮同时改：节拍 3 参数、折叠机制、执行器状态机、publishShared 减负、调试标签裁剪。2897 串台与 2899 跳步都是上一轮新塞入的 bug——每次修复都靠用户下一次复现补课。正确姿势应为：先回退求稳 → 单变量重构 → 逐个验证。
 3. **折叠/分片类优化缺少「帧预算与日志签名即设计输入」**。7748853 设计时没算 3027 > 3000（差 27 帧）；542c763 拆分正确，但注入前没有预设「负向期望日志签名 = 3×逻辑-only 记录 + 1×视觉记录」作为验收，2899 才发现跳步。教训：新状态机必须**先写期望的执行序列签名**，再以日志逐项对照。
+4. **注入/读图核验流于形式（第 5 号错误的过程根因）**：注入命令输出被 `tail` 截断后未单独核对 `[error]` 与「ok 6, fail 0」整行；读图只核执行流结构、未核到**条件节点数据流来源**。两次防线都是「只看了一步之遥」。迭代：注入守则与读图数据流核验已写入 dsl-nodegraph-development 技能第 5 步；CLI 注入失败无失败退出码登记 open-items。
 
 ## 四、流程与方法论教训
 

@@ -77,7 +77,11 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
    （`'genshin-ts/runtime/core'`）经 Node self-reference 解析到 **dist 发布包实例**，而源码 CLI
    的 runner import **src 实例**，注册与读取分离 → `game.json = []` 且**无任何报错**
    （`All GIA generated (0)`，2026-08-22 足球阶段 0 实证）。正式 CLI（dist 编译产物）两者同实例。
-5. **注入 + 真实 GIL 读图核验（强制，勿跳）**：注入地图并 `maps:resync` 后，**必须加载 `gil-node-graph-reading` 技能**，
+5. **注入 + 真实 GIL 读图核验（强制，勿跳）**：
+   - 🔴 **注入命令的输出必须整段核对，禁止 `grep | tail` 只看尾巴**（2026-08-26 rubik 2906 事故：`[error] gs_to_ir_json failed: turn.gs.ts` 被 tail -2 截断，修复“看似注入”实则游戏一直跑旧图，用户两次复测同一症状才发现）：
+     ① grep `error`（必须 0 行） ② 确认 `All injections done (ok 6, fail 0)` 整行、ok 数=图数 ③ 任何图失败都要先修。
+   - 🔴 **读图核验要核到「条件节点的数据流来源」**，不能只看执行流结构（同 2906 事故：分支结构正确，但 LessThan 的输入仍是旧 Addition 而非新 Get——结构对 ≠ 数据流对）；关键条件节点（DoubleBranch/MultipleBranches 的控制输入）必须核其上游一路到源。
+   - 注入地图并 `maps:resync` 后，**必须加载 `gil-node-graph-reading` 技能**，
    用 `parse-gil-node-graph.ts` / `explain-gil-node-graph.ts` 回读真实 `.gil`，逐条核对：
    - 复合定义/调用是否出现、是否挂到预期分支；
    - 执行流是否与源码意图一致：有没有**重复入边**（同一节点两条 InFlow）、**死循环**（分支尾回到入口）、**断链**（链尾节点无后续）；
