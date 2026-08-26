@@ -243,6 +243,10 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 - **`finiteLoop` 循环体内不要用 `f.node()` 创建 exec 节点**（2026-08-20 3×3 魔方日志 2763 实证：循环控制帧有、`Set List Value` 帧 0，`tempP` 全 0）。`f.node()` 是 detached 创建，不会自动接进循环体执行链；循环体内 exec 节点必须用 `f.registerExecNode('set_list_value', [...])`（或高层 flow API），节点图读图会看到 `Finite Loop Branch[0] → Set List Value`。循环后的普通节点用 `f.node()` 仍可被 Loop Complete OutFlow[1] 自动续接（读图已确认）。
 - **`finiteLoop` 的“完成流”不会自动续到循环后的节点**（2026-08-20 3×3 魔方日志 2762 实证：logic_apply_* 的 finiteLoop 全部执行，但循环后的 doneNode/start_timer 零帧）。需要循环后继续执行时，两种可靠写法：①把后续动作放进循环体最后一个迭代（`f.doubleBranch(f.equal(loopVar, N-1n), () => { ... }, () => {})`）；②在 build 里用 JS `for` 编译期展开并显式 chain。不要依赖 finiteLoop 之后的顺序语句自动续链。
 - **🔴 推进索引/游标：先写回，再显式读回判断；不要复用读图变量表达式同时做 set 和后续分支**（2026-08-25 rubik-3x3 日志 2887 rec148 实证）：`const nxt = f.addition(idx, 1n)` 被编译器二次物化，续播分支 `f.lessThan(nxt, len)` 的第二个物化是在 `set solveIdx` 之后重新读 `solveIdx`——把 `idx+1` 算成 `idx+2`，导致自动播放每个多步宏都丢最后一步（计划 B3U1B1 只播 B3U1）。正确范式（`rubik-2x2/gsts_after_turn` 已验证）：`setNodeGraphVariable(X, X+1)` → `const after = f.getNodeGraphVariable(X).asType('int')` → 用 `after` 判断；或分支直接读写后的 `getNodeGraphVariable(X)`。修复后读图判据：续播分支数据流 = Get(X) < Get(L)，不再经过第二个 Addition。
+  **2026-08-26 复发（negPhase，日志 2899）**：turn 图 negDone 状态机 `ph=get(negPhase)+1; set(negPhase,ph)` 后分支复用 `lessThan(ph,3)`——二次物化把判据变成 `(ph+1)+1`，负向面转只做 2 次逻辑应用、少 90°（negDone 记录 25/22 帧交替暴露跳步）。修复为分支直接读 `get(negPhase)`。**该坑在我自己明知铁律的代码里重犯——写「计数器状态机」时按下面 checklist 逐条自查，不要凭感觉跳过**：
+  - ① 推进计数器：`set(X, get(X)+1)` 之后的一切判断/使用，一律重新 `get(X)`，绝不复用之前的加法表达式变量；
+  - ② 状态机/分支的空分支（`() => {}`）禁止留空——写 `registerExecNode` noop（空分支不生成执行边，会破坏 join）；
+  - ③ 新状态机注入前先写下「期望日志签名」（如负向 = 3×逻辑-only 记录(25 帧级) + 1×视觉记录），拿到日志逐项对照帧数模式，跳步会暴露为帧数交替；
 - **🔴 `finiteLoop(start, end)` 是闭区间 `[start, end]`，迭代次数 = `end - start + 1`**（2026-08-20 日志实证：`finiteLoop(0n, 4n)` 实际执行 0..4 共 5 次）。要执行 N 次必须传 `end = start + N - 1n`，例如 4 次写 `finiteLoop(0n, 3n)`。写错会多读一个表项/多写一个越界下标，导致状态错乱。
 - 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
 - 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。

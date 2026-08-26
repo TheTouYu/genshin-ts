@@ -559,3 +559,7 @@
 - 未闭合优化：
   - `solverCrossStep` 内算一次 `solver_cross_mask`（展开 359）+ 外层判定再算一次，可合并省约 1/3 单 tick 展开；
   - 第二层/OLL/PLL 求解更重，必须沿用同一锚点标定法先估 tick 间隔与单 tick 拆分粒度，禁止再拍值。
+- O-2026-08-26-1：rubik-3x3 负向 3+1 拆分与队列守卫修复待游戏复测（最小路径：反向开关+手动 U；自动打乱→自动还原全程走完第一层）。
+- O-2026-08-26-2：`gsts/server-repeated-evaluation` ESLint 规则未在 examples 上跑（negPhase 二次物化 2899 未被拦截）——补 examples lint 门禁或 CI 脚本。
+- O-2026-08-26-3：rubik-3x3 反向旋转仅覆盖面转 1..6；中层 M/E/S 与整体转 x/y/z 仍正方向；`inverseTables.ts` 预研资产闲置。
+- O-2026-08-26-4：新节拍（planTick 0.15s / emitTick 1.8s / doneTick 0.7s）的完整自动还原日志 + perf 每秒负载复核未完成；通过后再评估 emitTick 调 1.5s 的空间。
