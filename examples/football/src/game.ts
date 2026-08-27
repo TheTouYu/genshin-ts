@@ -31,6 +31,7 @@ const graph = g
       tmpSpin: new vec3([0, 0, 0]),
       dbgTag: new str(''),
       dbgVal: new str(''),
+      autoTimerOn: new bool(false), // auto_check 循环定时器是否已启动（whenEntityIsCreated 对已存在实体不触发）
       state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
       impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
@@ -101,15 +102,35 @@ const graph = g
   // 实体创建时启动；whenTimerIsTriggered 里 auto_check → autoCheckTick。
   // ================================================================
   .on('whenEntityIsCreated', (evt: any, f: any) => {
+    f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
     f.startTimer(f.getSelfEntity(), 'auto_check', true, [200])
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
+    // 确保 auto_check 循环已启动（幂等）：whenEntityIsCreated 对地图已存在的球不触发，
+    // 借任何定时器事件（如 push_lock）作为启动机会；启动后持续运行，不依赖后续事件
+    const timerOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
     f.doubleBranch(
-      f.equal(evt.timerName, new str('auto_check')),
+      timerOn,
       () => {
-        f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
+        f.doubleBranch(
+          f.equal(evt.timerName, new str('auto_check')),
+          () => {
+            f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
+          },
+          () => {}
+        )
       },
-      () => {}
+      () => {
+        f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
+        f.startTimer(f.getSelfEntity(), 'auto_check', true, [200])
+        f.doubleBranch(
+          f.equal(evt.timerName, new str('auto_check')),
+          () => {
+            f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
+          },
+          () => {}
+        )
+      }
     )
   })
 
