@@ -420,6 +420,7 @@ DSL 运行时 API（definitions/nodes.ts 已生成）：show/closeFloatingIntera
 updateFloatingInteractionPageListData、modifyUiControlStatusWithinTheInterfaceLayout、
 switchCurrentInterfaceLayout、playUiAnimationOnControl；
 事件 whenFloatingInteractionPageIsTriggered / whenUiControlGroupIsTriggered 已注册。
+> 富版悬浮页（内容素材组/页签/形式变量）创建实现依据见 [ui-floating-page-rich-create.md](ui-floating-page-rich-create.md)。
 
 ### 使用实例：示例节点图 → DSL 等价（AI 生成节点图用）
 
