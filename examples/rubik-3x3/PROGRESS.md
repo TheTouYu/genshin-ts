@@ -345,3 +345,11 @@
 - 2026-08-27（节拍调整：触发前后 +20%、整转 +30%，降低平均负载）：
   - 面转：preTick 1.38→1.66s（+20%）、emitTick 1.27→1.52s（+20%）；doneTick 2.01s 不变。
   - 整转：wholePre 5.52→7.18s、wholeEmit 5.08→6.6s、wholeDone 8.04→10.45s（+30%）。
+- 2026-08-27（日志 2931：自动还原第一层不收敛——solveBuf 残留导致角块 mask 振荡）：
+  - 现象：自动还原会回退已拼好的角块，一直循环不完成第一层；动画/负载已正常（上轮整转修复生效）。
+  - 核验顺序（先算法后运行时）：离线脚本 verify-corner-macros.mjs 用真实逻辑表+宏表模拟——十字宏 3000 样本不破坏已拼棱且收敛、角块宏 5000 样本保持十字+不破坏已拼角块且收敛 → **算法层完全稳定**；随后聚焦运行时。
+  - 日志铁证：dbgVal（solveMask）序列 0,1,1,3,2,2,2,3 各跟 seq-ready → 角块 mask 2↔3 振荡、从未到 15、无 plan-done；solver_cp 轨迹 DBR（home5）拼好又回退；solver_co 轨迹 co[5]=2（twist 未归位）；solve_seq 发布 solve_len=16 但前 16 个值混入 8 个残留 -1。
+  - 根因：solverPlan 重算只 solveLen=0，solveBuf（100 项图变量）数组元素不清空——新序列展开步数少于旧序列时尾部残留旧 moveId 被发布，执行器按 solve_len 读到残留步执行 → 破坏已拼角块 → mask 振荡 → 无限重算。
+  - 修复：新增复合 solverClearBuf（100 项 set_list_value 置 0），在 4 个重算入口（op5/op12/stage 0→1/stage 1→2）solveLen=0 后调用（提交 abd3673）。
+  - 已注入（ok 6）+ 读图核验（4 处 solver_clear_buf 执行流 = solveLen=0→清空→pStep=1→planTick 就位）+ resync md5 一致。
+  - **用户游戏复测通过（2026-08-27 晚）：第一层可完成，不再循环/回退**。O-04（同秒 3 面转）/O-05（solve_len=16 异常）闭合为残留次生现象。

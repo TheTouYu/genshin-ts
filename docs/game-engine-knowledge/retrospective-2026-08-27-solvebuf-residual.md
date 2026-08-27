@@ -1,7 +1,7 @@
 # 完整复盘：求解器 solveBuf 残留——第一层还原不收敛/角块 mask 振荡（2026-08-27）
 > 范围：rubik-3x3 自动求解器（solverPlan 规划 + solver 执行）重算时 solveBuf 残留导致执行错误序列、角块反复拼好又回退
 > 证据：日志 2931（dbgVal mask 0,1,1,3,2,2,2,3 振荡 + solve_seq 含残留 -1 + 同秒 3 面转 + cp 轨迹角块回退）；离线验证脚本 verify-corner-macros.mjs（算法层 8000 样本全绿）
-> 状态：已修复（abd3673）+ 已注入（ok 6）+ 读图核验（4 个 solver_clear_buf 就位）+ resync md5 一致；待用户游戏复测
+> 状态：**已修复并用户游戏验证通过**（abd3673 + 注入 ok6 + 读图核验 4 处 solver_clear_buf 就位 + resync md5 一致 + 用户复测 2932 确认第一层可完成不再循环）；O-04/O-05 随根因修复闭合
 > 提交：abd3673（修复）；配套脚本 verify-corner-macros.mjs / verify-exec-vs-publish.mjs
 
 ## 一、错误谱系总览（求解器状态同步类）
