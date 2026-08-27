@@ -103,32 +103,27 @@ const graph = g
   // ================================================================
   .on('whenEntityIsCreated', (evt: any, f: any) => {
     f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-    f.startTimer(f.getSelfEntity(), 'auto_check', true, [200])
+    f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
-    // 确保 auto_check 循环已启动（幂等）：whenEntityIsCreated 对地图已存在的球不触发，
-    // 借任何定时器事件（如 push_lock）作为启动机会；启动后持续运行，不依赖后续事件
-    const timerOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
+    // auto_check 定时器触发 → 处理 + 自重启（一次性定时器 + 自重启，比 loop 可靠：
+    // 2026-08-27 日志实证 startTimer(loop=true) 启动后从不触发 whenTimerIsTriggered）
     f.doubleBranch(
-      timerOn,
+      f.equal(evt.timerName, new str('auto_check')),
       () => {
-        f.doubleBranch(
-          f.equal(evt.timerName, new str('auto_check')),
-          () => {
-            f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
-          },
-          () => {}
-        )
+        f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
+        f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
       },
       () => {
-        f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-        f.startTimer(f.getSelfEntity(), 'auto_check', true, [200])
+        // 其他定时器（如 push_lock）——确保 auto_check 首次启动（对静态实体 whenEntityIsCreated 也可能丢失）
+        const timerOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
         f.doubleBranch(
-          f.equal(evt.timerName, new str('auto_check')),
+          timerOn,
+          () => {},
           () => {
-            f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
-          },
-          () => {}
+            f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
+            f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
+          }
         )
       }
     )
