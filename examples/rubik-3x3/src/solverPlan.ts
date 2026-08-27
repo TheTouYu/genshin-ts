@@ -3,7 +3,7 @@
 // 单信号 rubik3x3_solve(op,val)：op 3=执行一步(执行图发) / op 5=序列播完，重算下一步 /
 // op 6=序列就绪(规划→执行) / op 7=全部完成(规划发)
 //
-// 阶段 stage：0=整体旋转/中心归一化；1=底层十字；2=第一层(D面)角块。
+// 阶段 stage：0=整体旋转/中心归一化；1=底层十字；2=第一层(D面)角块；3=中二层(E层棱块)。
 // 中心归一化用正方向 x/y/z 宏（centerTables），把整体旋转后的 centerPos 转回恒等，
 // 之后十字/角块才按固定中心配色求解（不满足 "centerPos 非恒等" 的场景不会漏掉）。
 import { g } from 'genshin-ts/runtime/core'
@@ -27,6 +27,12 @@ import {
   CF_CORNER_MACRO_C12_c0, CF_CORNER_MACRO_C13_c0, CF_CORNER_MACRO_C14_c0, CF_CORNER_MACRO_C15_c0,
   CF_CORNER_POLICY_c0, CF_CORNER_POLICY_c1, CF_CORNER_POLICY_c2, CF_CORNER_POLICY_c3
 } from './cornerTables.js'
+import {
+  CF_E_MACRO_LEN_c0,
+  CF_E_MACRO_C0_c0, CF_E_MACRO_C1_c0, CF_E_MACRO_C2_c0, CF_E_MACRO_C3_c0,
+  CF_E_MACRO_C4_c0, CF_E_MACRO_C5_c0, CF_E_MACRO_C6_c0, CF_E_MACRO_C7_c0, CF_E_MACRO_C8_c0,
+  CF_E_POLICY_c0, CF_E_POLICY_c1, CF_E_POLICY_c2, CF_E_POLICY_c3
+} from './eLayerTables.js'
 import {
   CF_CENTER_LOOKUP, CF_CENTER_MACRO_LEN,
   CF_CENTER_MACRO_C0, CF_CENTER_MACRO_C1, CF_CENTER_MACRO_C2, CF_CENTER_MACRO_C3
@@ -83,7 +89,11 @@ const graph = g
       CF_CORNER_MACRO_C12_c0, CF_CORNER_MACRO_C13_c0, CF_CORNER_MACRO_C14_c0, CF_CORNER_MACRO_C15_c0,
       CF_CORNER_POLICY_c0, CF_CORNER_POLICY_c1, CF_CORNER_POLICY_c2, CF_CORNER_POLICY_c3,
       CF_CENTER_LOOKUP, CF_CENTER_MACRO_LEN,
-      CF_CENTER_MACRO_C0, CF_CENTER_MACRO_C1, CF_CENTER_MACRO_C2, CF_CENTER_MACRO_C3
+      CF_CENTER_MACRO_C0, CF_CENTER_MACRO_C1, CF_CENTER_MACRO_C2, CF_CENTER_MACRO_C3,
+      CF_E_MACRO_LEN_c0,
+      CF_E_MACRO_C0_c0, CF_E_MACRO_C1_c0, CF_E_MACRO_C2_c0, CF_E_MACRO_C3_c0,
+      CF_E_MACRO_C4_c0, CF_E_MACRO_C5_c0, CF_E_MACRO_C6_c0, CF_E_MACRO_C7_c0, CF_E_MACRO_C8_c0,
+      CF_E_POLICY_c0, CF_E_POLICY_c1, CF_E_POLICY_c2, CF_E_POLICY_c3
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {
@@ -128,6 +138,18 @@ const graph = g
                   f.registerExecNode('set_list_value', [sco, c, f.getCorrespondingValueFromList(co, c)])
                 })
               },
+              3: () => {
+                // 中二层：读棱状态（与 stage 1 同）
+                const stHost = entity(1077936201n)
+                const ep = f.getCustomVariable(stHost, new str('solver_ep')).asType('int_list')
+                const eo = f.getCustomVariable(stHost, new str('solver_eo')).asType('int_list')
+                const sep = f.getNodeGraphVariable('sep').asType('int_list')
+                const seo = f.getNodeGraphVariable('seo').asType('int_list')
+                f.finiteLoop(0n, 11n, (c: any) => {
+                  f.registerExecNode('set_list_value', [sep, c, f.getCorrespondingValueFromList(ep, c)])
+                  f.registerExecNode('set_list_value', [seo, c, f.getCorrespondingValueFromList(eo, c)])
+                })
+              },
               default: () => {}
             })
             f.setNodeGraphVariable('pStep', new int(2), false)
@@ -151,6 +173,11 @@ const graph = g
               },
               2: () => {
                 const mask = f.callComposite(solverCornerMask, { c4: 4n, c5: 5n, c6: 6n, c7: 7n }).mask
+                f.setNodeGraphVariable('solveMask', mask, false)
+              },
+              3: () => {
+                // E 层 mask（home 8..11，复用通用 solverCrossMask）
+                const mask = f.callComposite(solverCrossMask, { h0: 8n, h1: 9n, h2: 10n, h3: 11n }).mask
                 f.setNodeGraphVariable('solveMask', mask, false)
               },
               default: () => {}
@@ -226,10 +253,14 @@ const graph = g
                 f.doubleBranch(
                   f.equal(mask, 15n),
                   () => {
-                    f.setNodeGraphVariable('phase', new int(0), false)
+                    // 第一层角块完成：切到中二层(E层棱)阶段（同样清空 solveBuf）
+                    f.setNodeGraphVariable('stage', new int(3), false)
+                    f.setNodeGraphVariable('solveLen', new int(0), false)
+                    f.callComposite(solverClearBuf, {})
+                    f.setNodeGraphVariable('pStep', new int(1), false)
                     f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                    f.setNodeGraphVariable('dbgVal', new str('plan-done'), false)
-                    f.sendSignal(RubikSignal.rubik3x3_solve, 7n, 0n)
+                    f.setNodeGraphVariable('dbgVal', new str('stage-e-layer'), false)
+                    f.callComposite(solverStartPlanTick, { target: self })
                   },
                   () => {
                     const t = f.callComposite(solverCornerFirstUnsolved, { mask }).out
@@ -245,6 +276,38 @@ const graph = g
                       c3: f.getNodeGraphVariable('CF_CORNER_POLICY_c3').asType('int_list')
                     }).out
                     f.setNodeGraphVariable('mLen', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_LEN_c0').asType('int_list'), p), false)
+                    f.setNodeGraphVariable('mP', p, false)
+                    f.setNodeGraphVariable('mIdx', new int(0), false)
+                    f.setNodeGraphVariable('pStep', new int(4), false)
+                    f.callComposite(solverStartPlanTick, { target: self })
+                  }
+                )
+              },
+              3: () => {
+                const mask = f.getNodeGraphVariable('solveMask').asType('int')
+                f.doubleBranch(
+                  f.equal(mask, 15n),
+                  () => {
+                    // 中二层完成：全部完成（op7）
+                    f.setNodeGraphVariable('phase', new int(0), false)
+                    f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
+                    f.setNodeGraphVariable('dbgVal', new str('plan-done'), false)
+                    f.sendSignal(RubikSignal.rubik3x3_solve, 7n, 0n)
+                  },
+                  () => {
+                    const t = f.callComposite(solverFirstUnsolved, { mask }).out
+                    const home = f.addition(t, 8n)
+                    const st = f.callComposite(solverEdgeState, { home }).out
+                    const idx = f.addition(f.multiplication(mask, 24n), st)
+                    const p = f.callComposite(longListGetInt4, {
+                      i: idx,
+                      chunkSize: 96n,
+                      c0: f.getNodeGraphVariable('CF_E_POLICY_c0').asType('int_list'),
+                      c1: f.getNodeGraphVariable('CF_E_POLICY_c1').asType('int_list'),
+                      c2: f.getNodeGraphVariable('CF_E_POLICY_c2').asType('int_list'),
+                      c3: f.getNodeGraphVariable('CF_E_POLICY_c3').asType('int_list')
+                    }).out
+                    f.setNodeGraphVariable('mLen', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_LEN_c0').asType('int_list'), p), false)
                     f.setNodeGraphVariable('mP', p, false)
                     f.setNodeGraphVariable('mIdx', new int(0), false)
                     f.setNodeGraphVariable('pStep', new int(4), false)
@@ -301,6 +364,21 @@ const graph = g
                       13: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C13_c0').asType('int_list'), p), false),
                       14: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C14_c0').asType('int_list'), p), false),
                       15: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C15_c0').asType('int_list'), p), false),
+                      default: () => {}
+                    })
+                  },
+                  3: () => {
+                    const p = f.getNodeGraphVariable('mP').asType('int')
+                    f.multipleBranches(mIdx, {
+                      0: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C0_c0').asType('int_list'), p), false),
+                      1: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C1_c0').asType('int_list'), p), false),
+                      2: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C2_c0').asType('int_list'), p), false),
+                      3: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C3_c0').asType('int_list'), p), false),
+                      4: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C4_c0').asType('int_list'), p), false),
+                      5: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C5_c0').asType('int_list'), p), false),
+                      6: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C6_c0').asType('int_list'), p), false),
+                      7: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C7_c0').asType('int_list'), p), false),
+                      8: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C8_c0').asType('int_list'), p), false),
                       default: () => {}
                     })
                   },
