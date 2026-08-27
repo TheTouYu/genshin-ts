@@ -181,6 +181,19 @@ MB 分支边无接口对应被丢。
 修复：纯事件复合判定 = **事件节点 + 无 outflow 标记 + 无显式 inflow 声明** 三条件
 （trigger 符合、orbit_segment 不符合）。
 
+### 规则 #20d：Multiple Branches 命名 case 上限 10（2026-08-27 3×3 整转回归实锤）
+
+症状：整转后 12 块（槽 14–25）无二段轨道运动，位置错乱、块没转完；日志 2927 rec27/rec28
+timerName=orbit22/orbit23 → Multiple Branches 落 **default 分支**（handlerMode=2 空操作，仅 7 帧），
+orbit20/orbit21 正常（256 帧）。真实 GIL explain：n=2 Multiple Branches 只有 10 命名 case + default，
+orbit22/orbit23 的 6 个 set 变量节点是孤立执行链。
+根因链：引擎该节点上限 **10 命名 case + 1 default（11 outflow）**；编译器
+optimize_timer_dispatch.ts 的 MAX_TIMER_DISPATCH_CASES=10 只对无 default 分支的 dispatch 生效，
+视觉根图有 default（handlerMode=2），12 case 原样进 GIA → 引擎丢弃第 11/12 个 case，无任何报错。
+修复：整转 orbit2 批量 4→2（orbit20=槽0..13 count=14 / orbit21=槽14..25 count=12），视觉根图回 10 case。
+写图铁律：**一张根图 multipleBranches 命名 case ≤10**；超限合并分支或拆多个 MB，不能硬加。
+同类事件（e044d29→2909、fd40432→2927）已两次复现。
+
 ### 流程沉淀：修复后必须读图自检（用户 2026-08-14 方法论强制）
 
 修复生产代码并编译/注入后，**第一件事**是用 gil-node-graph-reading 技能读解析出的

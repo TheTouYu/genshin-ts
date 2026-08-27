@@ -145,6 +145,14 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
     f.callComposite(handleTimerEvent, { target, seq })
     ```
     复合内部再按 `mode` 分派到子复合。这样 10 个 timer 分支从“10×复合展开”降为“10×set 变量 + 1 次复合调用”。
+- **Multiple Branches 命名 case 硬上限 = 10（2026-08-27 3×3 整转回归实锤）**：引擎该节点只支持
+  **10 个命名 case + 1 个 default（共 11 outflow）**；超过 10 命名 case 时，第 11/12…个 case 的
+  分支体被引擎丢弃成**孤立执行链**（事件落入 default），无任何编译/注入报错——静默丢分支。
+  编译器 src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts 有 MAX_TIMER_DISPATCH_CASES=10，
+  但该 chunking 优化只对**无 default 分支**的 dispatch 生效；有 default 分支（如“未命中时置 handlerMode=2”）
+  时 >10 case 原样进 GIA 被引擎截断（日志 2927：orbit22/orbit23 事件 → default 空操作，整转后 12 块缺二段运动）。
+  写图规则：**数清一张根图 multipleBranches 的命名 case ≤10**；超限时合并分支（如整转 orbit 批量 4→2）
+  或拆成多个 MB/复合，不能硬加 case。docs/architecture/composite/control-flow-api-cookbook.md 已闭合该上限。
 - **循环体只物化 1 次**：finite_loop 循环体 1 份（2400→240 节点，P4 实证）。
 - **capture 字典机制**：每个 setTimeout 回调的捕获变量 = set_or_add + get_corresponding 链（~6 节点/回调）；
   回调越多越贵。

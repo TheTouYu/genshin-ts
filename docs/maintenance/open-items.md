@@ -77,6 +77,17 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-27-01 编译器 optimize_timer_dispatch 有 default 分支的 >10 case dispatch 不 chunking → 静默截断
+
+- 证据（2026-08-27 3×3 整转回归）：src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts 的
+  parseMultipleBranchesDispatch 遇到 next sourceIndex=0（default 分支）返回 null → 跳过 chunking；
+  有 default 的 multipleBranches 超过 10 命名 case 时原样进 GIA，被引擎 Multiple Branches 节点
+  （上限 10 命名 case + 1 default）截断，第 11/12 个 case 分支体变孤立执行链，无编译/注入报错。
+  日志 2927 实锤（orbit22/orbit23 → default 空操作）。
+- 期望形态：① chunking 支持有 default 分支的 dispatch（default 保留在首 chunk，其余 case 分块）；
+  ② 或超过 10 命名 case 时编译器发硬警告（fail 编译），杜绝静默丢分支。
+- 何时做：下次编译器 Stage 3 改动窗口；需 focused 回归（>10 case 有 default 的 timer dispatch）+ 真实地图注入核验。
+
 ### 2026-08-25 PKC 双 UI bundle 生命周期已 applied、主库 authority 未同步（待治理 apply）
 
 - 证据：`python tools/pkc.py bundle-status` 显示 `bnd_653120d3a0906059bbd5835820` / `bnd_d9f9975041799b355db4d4d896` 为 applied；但主库 `data/knowledge/registry.json` / `authority-refs.json` 不含其 `clm_EB75B5FADE88856C52F62DE148` / `aref_e1c878c0ae99d453936294fccb`（UI clone 含）。
