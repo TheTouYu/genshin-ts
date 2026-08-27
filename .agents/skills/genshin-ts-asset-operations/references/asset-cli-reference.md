@@ -86,13 +86,15 @@ gsts assets:mounts list [<target-id>] [--graph <gid>] --gil <map>
 ```text
 gsts assets:ui list [--gil <map>] [--format json]
 gsts assets:ui clone <source-id> --id <new-id> [--name <n>] [--donor-gil <file>] [--gil <map>] --write
-gsts assets:ui create --type textbox|interactive-button|custom-button|image --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
+gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
 gsts assets:ui create --type image --id <new-id> --asset <素材索引ID> [--layout <布局ID>] [--name <n>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
 gsts assets:ui update <control-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] [--asset <素材ID>] [--color <#RRGGBB>] [--gil <map>] --write
 gsts assets:ui delete <control-id> [--gil <map>] --write
 gsts assets:ui template list [--gil <map>] [--format json]
 gsts assets:ui template clone <source-id> --id <new-id> [--name <n>]
 gsts assets:ui template create --id <模板ID> --asset <素材索引ID> [--name <n>] [--position <x,y>] [--size <w,h>] [--gil <map>] --write
+gsts assets:ui variables list [--page <悬浮交互页ID>] [--gil <map>] [--format json]
+gsts assets:ui states --id <自定义按钮|页签|关闭按钮ID> [--gil <map>] [--format json]
 ```
 
 ### UI 三层概念（2026-08-23 差分闭合）
@@ -111,6 +113,21 @@ root9 502 记录按 f502 子记录的 type 码分三层：
 - `update --asset` 改素材引用（f6.f4）；目标是模板时同步改所有实例。
 - `update --color <#RRGGBB>` 改素材容器（含分类副本）所有图元组颜色 f505.f503.f31.f4（ARGB）。
 - `template create` 创建控件模板（type4 + type3 两条，实例挂控件组容器 1840，与布局解耦）。
+
+#### 悬浮交互页创建（2026-08-27 实读，含用户修复版规范）
+
+- `create --type floating-page --id <模板ID>` 创建悬浮交互页：模板 + 实例 + 实例侧固有容器组 + 关闭按钮（4 条记录）。
+  模板 t42 → 地图级共享模板侧固有容器组（首个创建时一并建，后续复用）；实例 t42 → 各自实例侧组。
+- ID 派生：实例=模板-3、组=模板-2、关闭按钮=模板-1；6 个派生 ID 冲突校验（真实地图重复 ID 会损坏记录）。
+- ⚠️ 编辑器保存时会自动补全控件组（删外部实例/组/关，按自己规范重建 + 模板 t4 追加实例 ID）——这是预期行为，不是 bug。
+- ⚠️ 关闭按钮 t52.f44 含 max-uint64 varint（`ff×9 01`），禁止 parse→emit 往返（JS 精度丢失损坏）——必须原始字节级重映射。
+
+#### 列出命令（List 优先原则，2026-08-27 用户定义）
+
+- `variables list`：形式变量（t41.f503.f34），输出名字/类型（整数/浮点/字符串/动态文本域）/序号。`--page` 指定悬浮交互页。
+- `states --id <控件>`：状态块（按钮 t50 或页签 t58）+ 素材组引用。状态名类型化：按钮第 4 块=**禁用**，页签第 4 块=**选中**。
+  - t50 双布局：打包式（f43.f503）+ 展开式（f43 顶层）；t58 页签状态在 f503.f48.f501。
+  - 块结构：`{f501: {f2:1, f3:8, f4: 素材组ID}, f502: 空, f503: 尺寸对, f504: 缩放对, f505: 空}`。
 
 - root9 屏幕空间控件；position 是屏幕中心偏移、size 是宽高。
 - ⚠️ `--position <x,y>` 是**编辑器绝对坐标，原点在左下角**（1600×900 设计分辨率，x 向右 y 向上），
