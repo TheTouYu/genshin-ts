@@ -199,6 +199,24 @@ export const solverCornerFirstUnsolved = g.defineComposite('solver_corner_first_
   }
 })
 
+// exec：清空 solveBuf（100 项全置 0）。2026-08-27 修复：op5/op12/stage 切换重算前必须清空，
+// 否则新序列展开步数少于旧序列时，solveBuf 尾部残留旧 moveId 被执行器读到，执行错误步骤破坏已拼角块（2931）。
+export const solverClearBuf = g.defineComposite('solver_clear_buf', {
+  id: 1610700080,
+  inputs: {},
+  outputs: {},
+  outflows: ['done'],
+  build: (_i, f) => {
+    const solveBuf = f.getNodeGraphVariable('solveBuf').asType('int_list')
+    f.finiteLoop(0n, 99n, (c: any) => {
+      f.registerExecNode('set_list_value', [solveBuf, c, new int(0)])
+    })
+    const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
+    f.outflow('done', done, 0)
+    return {}
+  }
+})
+
 // exec：启动下一个 planTick 小步（0.15s；日志 2895 实测规划单轮 ≈2200 负载，远低于转动 ≈5450/秒，计算可快进）
 export const solverStartPlanTick = g.defineComposite('solver_start_plan_tick', {
   id: 1610700065,

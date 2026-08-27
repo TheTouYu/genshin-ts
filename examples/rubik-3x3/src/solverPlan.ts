@@ -11,7 +11,7 @@ import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { RubikSignal } from './signals.js'
 import {
   solverCrossMask, solverFirstUnsolved, solverEdgeState, solverAppendCode, solverStartPlanTick,
-  solverCornerState, solverCornerMask, solverCornerFirstUnsolved
+  solverCornerState, solverCornerMask, solverCornerFirstUnsolved, solverClearBuf
 } from './composites/solverCore.js'
 import { longListGetInt4 } from './composites/list.js'
 import {
@@ -170,6 +170,7 @@ const graph = g
                   // 中心已归一化：切到十字阶段
                   f.setNodeGraphVariable('stage', new int(1), false)
                   f.setNodeGraphVariable('solveLen', new int(0), false)
+                  f.callComposite(solverClearBuf, {})
                   f.setNodeGraphVariable('pStep', new int(1), false)
                   f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
                   f.setNodeGraphVariable('dbgVal', new str('stage-cross'), false)
@@ -191,6 +192,7 @@ const graph = g
                     // 十字完成：切到第一层角块阶段
                     f.setNodeGraphVariable('stage', new int(2), false)
                     f.setNodeGraphVariable('solveLen', new int(0), false)
+                    f.callComposite(solverClearBuf, {})
                     f.setNodeGraphVariable('pStep', new int(1), false)
                     f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
                     f.setNodeGraphVariable('dbgVal', new str('stage-corners'), false)
@@ -336,6 +338,7 @@ const graph = g
         f.setNodeGraphVariable('phase', new int(1), false)
         f.setNodeGraphVariable('stage', new int(0), false)
         f.setNodeGraphVariable('solveLen', new int(0), false)
+        f.callComposite(solverClearBuf, {})
         f.setNodeGraphVariable('pStep', new int(1), false)
         f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
         f.setNodeGraphVariable('dbgVal', new str('tab-auto'), false)
@@ -345,6 +348,7 @@ const graph = g
         const phase = f.getNodeGraphVariable('phase').asType('int')
         f.doubleBranch(f.greaterThan(phase, 0n), () => {
           f.setNodeGraphVariable('solveLen', new int(0), false)
+          f.callComposite(solverClearBuf, {})
           f.setNodeGraphVariable('pStep', new int(1), false)
           f.callComposite(solverStartPlanTick, { target: f.getSelfEntity() })
         }, () => {})
