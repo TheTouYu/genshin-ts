@@ -607,15 +607,15 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK_ADD = 1.5 // 球速 = vP + VKICK_ADD（球比玩家快，跟得上；运动器已修复不再瞬移）
+const VKICK_ADD = 1.8 // 球速 = vP + VKICK_ADD（球比玩家快 1.8，4.5m 追上≈2.5s，符合 2-3s 带球节奏）
 const VKICK_MIN = 3.0 // 球速下限
 const VKICK_MAX = 7.0 // 球速上限（玩家冲刺 8 时球 9.5→clamp 7，正常速度不超限）
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
 const DV_MAX = 7.0 // 最大冲量（同球速上限）
 // —— 预测补偿自动触发参数（2026-08-27 数据驱动调优）——
-const KICK_DIST = 3.0 // 预测触发距离（预测 T 后玩家与球的距离；日志实证 predDist 2.98~5.2 全>2.0，从未触发）
+const KICK_DIST = 4.5 // 预测触发距离（预测 T 后玩家与球的距离；4.5m 外提前踢，球先滚出玩家追上）
 const KICK_SPEED = 4.0 // 球速阈值（球已滚开超过该值不补踢；日志实证触发时 vB 可达 3.7）
-const LAG_T = 0.2 // 滞后补偿时间（预测前瞻，≈一个 tick）
+const LAG_T = 0.25 // 滞后补偿时间（预测前瞻；玩家 5m/s×0.25=提前 1.25m）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
