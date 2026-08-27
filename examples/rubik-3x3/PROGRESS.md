@@ -334,3 +334,13 @@
   - 修复：整转执行拆两事件——flowDoMove 整转分支只跑逻辑 A 段（角块 temp+写回、棱 temp）+ 0.02s wholeTail 定时器；新复合 flowWholeTail（逻辑 B 段：棱写回+心块，参数/发布/8 视觉定时器）由 turn 图 wholeTail 事件承载。单事件 ~1000/~1500 帧，远离上限。
   - 预算：移除 moveId 守卫（来源构造安全）+ A/B 的 temp 段改回运行时循环（事件拆分后帧预算富余）→ turn 2017→1821，其他图不变。
   - 读图核验：turn 根图 wholeTail 事件与 flow_do_move 的 logic_apply_whole_a 就位；var pins 全绿；已注入 + resync。
+- 2026-08-27（日志 2926/2927：面转双通道回归 + 整转后排块缺二段运动——Multiple Branches 10 case 上限）：
+  - fd40432 面转双通道（turnblockB/orbit2B）在视觉根图 multipleBranches 加了 2 个 case（共 12 个），引擎仅支持 10 个命名 case + 1 default（11 outflow）。
+  - 第 11/12 个 case（orbit22/orbit23）的变量链（setNodeGraphVariable handlerBase/handlerMode/handlerCount）成了孤立执行链（n=30–35），整转后 12 块（槽 14–25）无 orbit2 二段运动，动画结束位置错乱、部分块未完成旋转。
+  - 详细证据：2927 日志 rec27/rec28 timerName=orbit22/orbit23 → Multiple Branches default 分支（handlerMode=2 空操作）；rec25/rec26 orbit20/orbit21 正常匹配 mode=4 批量。真实 GIL 的 explain 确认 n=2 Multiple Branches 只有 10 个命名 case + 默认，orbit22/orbit23 链孤立。
+  - 根因：编译器 optimize_timer_dispatch.ts 的 MAX_TIMER_DISPATCH_CASES=10，但优化只对无 default 分支的 dispatch 生效（parseMultipleBranchesDispatch 遇到 sourceIndex=0 返回 null，跳过 chunking），视觉根图有 default 分支，12 case 原样进 GIA → 引擎节点截断。
+  - 修复：整转 orbit2 从 4 个定时器（orbit20..23）合并为 2 个（orbit20=槽 0..13 count=14 / orbit21=槽 14..25 count=12）。视觉根图 case 回到 10（turnblock/turnblockB/orbit2B/turnblock0..3/orbit2/orbit20/orbit21）。flowWholeTail 链 t0→t1→t2→t3→o0→o1→done。turn.ts 移除 wholeOrbit2Times2/3。
+  - 知识落盘：控制流 API cookbook 的 Multiple Branches 上限❌→已闭合（10 命名 case + 1 default，>10 被丢弃）。
+- 2026-08-27（节拍调整：触发前后 +20%、整转 +30%，降低平均负载）：
+  - 面转：preTick 1.38→1.66s（+20%）、emitTick 1.27→1.52s（+20%）；doneTick 2.01s 不变。
+  - 整转：wholePre 5.52→7.18s、wholeEmit 5.08→6.6s、wholeDone 8.04→10.45s（+30%）。

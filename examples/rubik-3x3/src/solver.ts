@@ -1,9 +1,9 @@
 // solver.ts —— 求解执行图（轻量：按规划序列逐条发 op3 给 turn 图，负 moveId 由 turn 图统一拆分）
 // 与规划图(solverPlan)同挂自动求解实体；单信号 rubik3x3_solve(op,val)
 // op 6 = 序列就绪(规划→执行)；op 3 = 执行一步(val=moveId，可为负=折叠反向)；op 5 = 完成
-// 2026-08-26 节拍（+20% 防踢 + 整转 3 倍等待）：
-//   面转：preTick 1.2s / emitTick 1.1s / doneTick 1.75s；
-//   整转（|moveId|>=10，负载 ~3x）：wholePre 3.6s / wholeEmit 3.3s / wholeDone 5.25s。
+// 2026-08-27 节拍（fd40432 歇息 +15% → 本轮触发前后 +20% / 整转 +30%，降低平均负载）：
+//   面转：preTick 1.66s / emitTick 1.52s / doneTick 2.01s；
+//   整转（|moveId|>=10，负载 ~3x）：wholePre 7.18s / wholeEmit 6.6s / wholeDone 10.45s。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { RubikSignal } from './signals.js'
@@ -20,16 +20,16 @@ const mkTimer = (id: number, name: string, timerName: string, delay: number) => 
   }
 })
 
-// 面转：步间 1.1s（动画 ~0.35s + 旋转后 0.75s 余量）
-const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.27)
-// 面转：宏尾 1.75s（面转 0.6s 完成 + 1.1s 余量）
+// 面转：步间/触发后 1.52s（动画 ~0.2s + 旋转后余量）
+const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.52)
+// 面转：宏尾 2.01s（面转完成 + 余量）
 const solverStartDoneTick = mkTimer(1610700061, 'solver_start_done_tick', 'doneTick', 2.01)
-// 面转：动画前 1.2s
-const solverStartPreTick = mkTimer(1610700069, 'solver_start_pre_tick', 'preTick', 1.38)
-// 整转：动画前 3.6s、步间 3.3s、宏尾 5.25s（负载 3 倍 → 间隔 3 倍）
-const solverStartWholePre = mkTimer(1610700076, 'solver_start_whole_pre', 'wholePre', 5.52)
-const solverStartWholeEmit = mkTimer(1610700077, 'solver_start_whole_emit', 'wholeEmit', 5.08)
-const solverStartWholeDone = mkTimer(1610700078, 'solver_start_whole_done', 'wholeDone', 8.04)
+// 面转：触发前/动画前 1.66s
+const solverStartPreTick = mkTimer(1610700069, 'solver_start_pre_tick', 'preTick', 1.66)
+// 整转：触发前 7.18s、步间 6.6s、宏尾 10.45s（负载 ~3x → 间隔放大，降平均负载）
+const solverStartWholePre = mkTimer(1610700076, 'solver_start_whole_pre', 'wholePre', 7.18)
+const solverStartWholeEmit = mkTimer(1610700077, 'solver_start_whole_emit', 'wholeEmit', 6.6)
+const solverStartWholeDone = mkTimer(1610700078, 'solver_start_whole_done', 'wholeDone', 10.45)
 
 const graph = g
   .server({

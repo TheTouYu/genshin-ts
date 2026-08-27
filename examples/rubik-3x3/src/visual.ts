@@ -117,25 +117,18 @@ const graph = g
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 1n, false)
       },
+      // 整转 orbit2 批量：只保留 2 个定时器（orbit20=槽0..13 / orbit21=槽14..25）。
+      // 根图 multipleBranches 上限 10 case —— fd40432 加 turnblockB/orbit2B 后曾到 12 case，
+      // orbit22/orbit23 被丢成孤立链，整转后 12 块缺二段运动（2927 回归，本轮修复）
       'orbit20': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 4n, false)
-        ef.setNodeGraphVariable('handlerCount', 7n, false)
+        ef.setNodeGraphVariable('handlerCount', 14n, false)
       },
       'orbit21': () => {
-        ef.setNodeGraphVariable('handlerBase', 7n, false)
-        ef.setNodeGraphVariable('handlerMode', 4n, false)
-        ef.setNodeGraphVariable('handlerCount', 7n, false)
-      },
-      'orbit22': () => {
         ef.setNodeGraphVariable('handlerBase', 14n, false)
         ef.setNodeGraphVariable('handlerMode', 4n, false)
-        ef.setNodeGraphVariable('handlerCount', 7n, false)
-      },
-      'orbit23': () => {
-        ef.setNodeGraphVariable('handlerBase', 21n, false)
-        ef.setNodeGraphVariable('handlerMode', 4n, false)
-        ef.setNodeGraphVariable('handlerCount', 5n, false)
+        ef.setNodeGraphVariable('handlerCount', 12n, false)
       },
       // execMove / unlock 等非视觉定时器：handlerMode 置 2（无匹配分支），
       // 下面 join 后仍会调用 view_handle_timer_event，但其内部 multipleBranches

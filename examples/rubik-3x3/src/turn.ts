@@ -164,14 +164,14 @@ const graph = g
       middleOrbit2Times: [0.16, 0.17, 0.18, 0.19, 0.20, 0.21, 0.22, 0.23],
       // 整体转拆成 4 个不同名字的定时器，每个定时器内部两位小数唯一且低延迟；
       // 不同定时器之间可以复用相同时间序列（名字不同互不影响）。
+      // 整转 orbit2 只保留 2 个批量定时器（orbit20=槽0..13 / orbit21=槽14..25）：
+      // 视觉根图 multipleBranches 上限 10 case，orbit22/orbit23 会被丢成孤立链（2927 回归）
       wholeTurnTimes0: [0.01],
       wholeTurnTimes1: [0.01],
       wholeTurnTimes2: [0.01],
       wholeTurnTimes3: [0.01],
       wholeOrbit2Times0: [0.16],
       wholeOrbit2Times1: [0.16],
-      wholeOrbit2Times2: [0.16],
-      wholeOrbit2Times3: [0.16],
       // 整体转 orbit2 使用单一定时器全量列表（避免链式延迟累积）
       wholeOrbit2Times: [
         0.51, 0.514, 0.518, 0.522, 0.526, 0.53, 0.534, 0.538,

@@ -698,8 +698,6 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
     const times3 = f.getNodeGraphVariable('wholeTurnTimes3').asType('float_list')
     const orbit0 = f.getNodeGraphVariable('wholeOrbit2Times0').asType('float_list')
     const orbit1 = f.getNodeGraphVariable('wholeOrbit2Times1').asType('float_list')
-    const orbit2 = f.getNodeGraphVariable('wholeOrbit2Times2').asType('float_list')
-    const orbit3 = f.getNodeGraphVariable('wholeOrbit2Times3').asType('float_list')
     const t0 = f.node('start_timer', [visualHost, new str('turnblock0'), new bool(false), times0])
     f.connect(ptail, 0, t0, 0)
     const t1 = f.node('start_timer', [visualHost, new str('turnblock1'), new bool(false), times1])
@@ -708,15 +706,13 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
     f.connect(t1, 0, t2, 0)
     const t3 = f.node('start_timer', [visualHost, new str('turnblock3'), new bool(false), times3])
     f.connect(t2, 0, t3, 0)
+    // 整转 orbit2 只发 2 个批量定时器（orbit20=槽0..13 / orbit21=槽14..25）。
+    // 不能拆 4 个：视觉根图 multipleBranches 上限 10 case，orbit22/orbit23 会被丢成孤立链（2927 回归）
     const o0 = f.node('start_timer', [visualHost, new str('orbit20'), new bool(false), orbit0])
     f.connect(t3, 0, o0, 0)
     const o1 = f.node('start_timer', [visualHost, new str('orbit21'), new bool(false), orbit1])
     f.connect(o0, 0, o1, 0)
-    const o2 = f.node('start_timer', [visualHost, new str('orbit22'), new bool(false), orbit2])
-    f.connect(o1, 0, o2, 0)
-    const o3 = f.node('start_timer', [visualHost, new str('orbit23'), new bool(false), orbit3])
-    f.connect(o2, 0, o3, 0)
-    f.outflow('done', o3, 0)
+    f.outflow('done', o1, 0)
     return {}
   }
 })

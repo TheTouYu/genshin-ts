@@ -592,7 +592,7 @@ f.doubleBranch(condition, () => {
 | API | 推断的行为 | 验证状态 |
 |-----|-----------|----------|
 | `f.multipleBranches` 的 default 分支 | 不匹配任何 case 时触发 default | ❌ 需手动验证 |
-| `f.multipleBranches` 的 case 数上限 | 顺序执行 复合内部 4 个, 物理运动 n=23 有 11 个, n=56 有 5 个 — 上限? | ❌ 需手动验证 |
+| `f.multipleBranches` 的 case 数上限 | ✅ **10 个命名 case + 1 个 default（11 outflow）**；>10 命名 case 时，超出的分支（第 11、12…个）被引擎丢弃，表现为孤立执行链，事件落入 default 分支（rubik-3x3 2927 整转回归实锤；真实 GIL explain + 日志帧双证） | ✅ 2026-08-27 真实 GIL/日志闭合 |
 | 顺序执行 复合的"等待"语义 | 是等下游**完全终止**, 还是等下游**触发到第一个 terminal**? | ❌ 需手动验证 |
 | 顺序执行 复合的 OutFlow 闲置 | 闲置时, 引擎是"跳过"还是"等不存在的完成"? | ❌ 需手动验证 |
 | Multi-InFlow 复合 (10 个 InFlow) | gsts 的 `g.defineComposite` 是否支持? | ❌ 需验证 gap |
