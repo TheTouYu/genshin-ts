@@ -18,6 +18,7 @@ import {
   CF_E_MACRO_C4_c0, CF_E_MACRO_C5_c0, CF_E_MACRO_C6_c0, CF_E_MACRO_C7_c0,
   CF_E_POLICY_c0, CF_E_POLICY_c1, CF_E_POLICY_c2, CF_E_POLICY_c3
 } from './eLayerTables.js'
+import { CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS } from './cfopTables.js'
 
 // 中二层专用 planTick（独立 timer 名，避免与 solverPlan 的 planTick 互触）
 const solverStartEPlanTick = g.defineComposite('solver_start_eplan_tick', {
@@ -49,7 +50,8 @@ const graph = g
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
-        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
+        1n  // 哨兵：防全 0 时引擎短物化（solveBuf 100 项被物化成 25 项 → 越界写丢失）
       ],
       solveLen: new int(0),
       phase: new int(0), // 0 idle / 1 armed / 2 waiting-exec
@@ -65,7 +67,10 @@ const graph = g
       CF_E_MACRO_LEN_c0,
       CF_E_MACRO_C0_c0, CF_E_MACRO_C1_c0, CF_E_MACRO_C2_c0, CF_E_MACRO_C3_c0,
       CF_E_MACRO_C4_c0, CF_E_MACRO_C5_c0, CF_E_MACRO_C6_c0, CF_E_MACRO_C7_c0,
-      CF_E_POLICY_c0, CF_E_POLICY_c1, CF_E_POLICY_c2, CF_E_POLICY_c3
+      CF_E_POLICY_c0, CF_E_POLICY_c1, CF_E_POLICY_c2, CF_E_POLICY_c3,
+      // solverAppendCode 复合需要读这三个表来把宏 code 转为 moveId（face×dir 折叠），
+      // 缺失导致「变量名字对不上」+ 追加全失败 → solveBuf 恒空 → 死循环（2026-08-27 日志 2944 实证）
+      CF_MOVE_CODE_FACE, CF_MOVE_CODE_DIR, CF_MOVE_CODE_STEPS
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {
