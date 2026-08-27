@@ -73,3 +73,35 @@
 **流程优化（下次先做）**：
 - .gia 图解析器已验证，转正 tools/ 工具；批量覆盖阶段直接用它扫全部资产
 - 控件模板 related=143 表示大控件树——先看 f19 再定深入深度
+
+---
+
+### 样本3：UGC对话框模板——元件版（经典模式资产）.gia（2026-08-27）
+
+- 性质：完整对话系统资产（373 单元/93 图：流程控制器+渲染器双主图 + 30+ 对话复合 + 大量发送信号）
+- 探索方式：inventory 概览 → parse-gia-graphs --summary 聚合两张主图节点构成
+
+**做得好（可复用模式）**：
+1. 对话系统 = 复合深度模块化：CreateDialogue(7)/DialogueRenderer/获得自身拥有者实体(19)/切换对话类型/角色限位/推进下一句话 等
+2. **UI 注册表模式**：RegistryUI/RegisterdUIOpen/RegisterdUIHide/UnregistryUI/UnregisterdAllUI 复合封装「UI 实例注册-打开-关闭-注销」生命周期
+3. **按控件名操作**：PRIVATE_根据控件名激活控件/移除控件 —— UI 操作支持控件名(字符串)引用，不只有 ID（对 CLI：list 输出 name 的用途 +1）
+4. 隐藏/显示官方 UI：HideNormalUI/ShowNormalUI 复合（对话时隐藏默认布局?）
+5. 主图 224 节点：变量(Get/Set ×45 + 节点图变量 12) + 复合调用(30+) + 判断(Equal/String.Equals/List Includes/Query Dictionary) + Activate/Remove 控件组(开合对话框) —— 变量驱动 + 复合 + UI 开关三合一
+6. FadeController（淡入淡出复合）+ ContentHexTween（文本 Hex 色 tween）+ Delay + 开启定时器 —— 表现层复合
+
+**覆盖（现有能力已支持）**：
+- DSL：自定义变量/节点图变量/Activate&Remove控件组/Set UI Control Status/列表字典/定时器/信号
+- CLI：assets:signals 注册（该资产大量发送信号节点）、assets:ui 控件组开关链路
+
+**缺陷（登记）**：
+- 缺陷6：99% 的"发送信号/监听信号"复合（which=14）如何注册到目标地图——大量信号名需要批量注册流程（当前 assets:signals register 单条）
+- 缺陷7：UI 按控件名操作（根据控件名激活/移除）的真实节点名未在 vendor 映射（PRIVATE_ 前缀）——需要确认系统节点还是复合内实现（dsl: 按名操作节点是否存在？）
+
+**不清楚（待探索）**：
+- 对话数据流：对话实例（which=1 复合定义）里存什么（文本/选项/分支）
+- HideNormalUI/ShowNormalUI 具体隐藏哪些官方 UI（默认布局控件？）
+- 渲染器 Set UI Control (Group) Status 的操作对象（对话框文本框？）
+
+**流程优化（下次先做）**：
+- 对 which=14（发送信号/监听信号）复合：区分"信号节点"与"复合封装"，批量信号注册是这类资产的共性需求
+- 登记样本时先跑全资产 --summary 聚合（几秒），再挑 1-2 张主图深究
