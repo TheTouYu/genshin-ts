@@ -1120,35 +1120,85 @@ export function createUiTemplate(
   }
 }
 
-// ============ 悬浮交互页创建（2026-08-26 轮1 差分闭合）============
-// 样本：ui学习 1073741909 after-轮1（真实编辑器添加「悬浮交互页」默认配置，6 条新记录）：
-//   模板(type4) + 实例(type3, f504=控件组容器) + 固有容器素材组×2(type55) + 关闭按钮素材×2
-// ID 布局：实例=base-3, 组I=base-2, 关I=base-1, 模板=base, 组T=base+1, 关T=base+2
-const FP_SRC_TEMPLATE = 1073741846
-const FP_SRC_INSTANCE = 1073741843
-const FP_SRC_GROUP_T = 1073741847
-const FP_SRC_CLOSEBTN_T = 1073741848
-const FP_SRC_GROUP_I = 1073741844
-const FP_SRC_CLOSEBTN_I = 1073741845
+// ============ 悬浮交互页创建（2026-08-26 轮9 用户修复版规范，4 条记录）============
+// 规范样本：ui学习 1073741909（用户编辑器修复后的「主菜单」真初始状态）：
+//   模板 + 实例 + 实例侧固有容器素材组 + 关闭按钮（共 4 条）
+// 模板 t42 → 地图级共享模板侧固有容器组（首个悬浮交互页创建时一并建立，后续复用）
+// ID 布局：实例=base-3, 组=base-2, 关闭按钮=base-1, 模板=base
+const FP2_SRC_TEMPLATE = 1073741880
+const FP2_SRC_INSTANCE = 1073741883
+const FP2_SRC_GROUP = 1073741884
+const FP2_SRC_CLOSEBTN = 1073741885
+// 首个悬浮页的模板侧组 + 关闭按钮（轮1 样本 1847/1848，仅无共享组时使用）
+const FP2_SRC_GROUP_T = 1073741847
+const FP2_SRC_CLOSEBTN_T = 1073741848
 
-// 模板 1073741846（639B）
-const BUILTIN_FLOATING_PAGE_TEMPLATE =
-  'a81f9680808004b21f0f5a07a81f9680808004a81f01b01f05b21f0b6203a81f01a81f02b01f06b21f107208aa1f059380808004a81f04b01f04ca1f1a6212aa1f0fe682ace6b5aee4baa4e4ba92e9a1b5a81f02b01f0fca1f2da20200a81f1ab01f2aba1f21a20208aa1f059780808004a81f1bb01f2ab81f01c21f0a10011808209680808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209680808004ca1fc7025a056200a81f02a81f01b01f0cba1fb6026a9d02629702aa1f3fb21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f01b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f02b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f03b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00b01f0ec01f01a81f02a81f04b01f0cb81f01c21f0a10011808209680808004ca1f258a0200a81f17b01f28ba1f198a0200a81f18b01f28b81f01c21f0a10011808209680808004ca1f25920200a81f18b01f29ba1f19920200a81f19b01f29b81f01c21f0a10011808209680808004ca1f2a9a0200a81f19b01f2cba1f1e9a0205b01f919214a81f1ab01f2cb81f01c21f0a10011808209680808004'
-// 实例 1073741843（645B，f504=控件组容器 1073741840 保留）
-const BUILTIN_FLOATING_PAGE_INSTANCE =
-  'a81f9380808004b21f0f5a07a81f9380808004a81f01b01f05b21f0b6203a81f01a81f02b01f06b21f0f6a07a81f9680808004a81f03b01f03c01f9080808004ca1f1a6212aa1f0fe682ace6b5aee4baa4e4ba92e9a1b5a81f02b01f0fca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209380808004ca1fc7025a056200a81f02a81f01b01f0cba1fb6026a9d02629702aa1f3fb21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f01b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f02b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f03b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00b01f0ec01f01a81f02a81f04b01f0cb81f01c21f0a10011808209380808004ca1f258a0200a81f17b01f28ba1f198a0200a81f18b01f28b81f01c21f0a10011808209380808004ca1f25920200a81f18b01f29ba1f19920200a81f19b01f29b81f01c21f0a10011808209380808004ca1f2a9a0200a81f19b01f2cba1f1e9a0205b01f919214a81f1ab01f2cb81f01c21f0a10011808209380808004ca1f2da20200a81f1ab01f2aba1f21a20208aa1f059480808004a81f1bb01f2ab81f01c21f0a10011808209380808004'
-// 模板固有容器素材组 1073741847（164B）
-const BUILTIN_FLOATING_PAGE_GROUP_T =
+// 模板 1073741880（638B，t42 在第 2 位）
+const BUILTIN_FP_TEMPLATE =
+  'a81fb880808004b21f0f5a07a81fb880808004a81f01b01f05b21f0b6203a81f01a81f02b01f06b21f15720daa1f0ab580808004bb80808004a81f04b01f04ca1f14620caa1f09e4b8bbe88f9ce58d95a81f02b01f0fca1f2da20200a81f1ab01f2aba1f21a20208aa1f059780808004a81f1bb01f2ab81f01c21f0a1001180820b880808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820b880808004ca1fc7025a056200a81f02a81f01b01f0cba1fb6026a9d02629702aa1f3fb21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f01b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f02b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f03b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00b01f0ec01f01a81f02a81f04b01f0cb81f01c21f0a1001180820b880808004ca1f258a0200a81f17b01f28ba1f198a0200a81f18b01f28b81f01c21f0a1001180820b880808004ca1f25920200a81f18b01f29ba1f19920200a81f19b01f29b81f01c21f0a1001180820b880808004ca1f2a9a0200a81f19b01f2cba1f1e9a0205b01f919214a81f1ab01f2cb81f01c21f0a1001180820b880808004'
+// 实例 1073741883（639B，t42 在第 2 位）
+const BUILTIN_FP_INSTANCE =
+  'a81fbb80808004b21f0f5a07a81fbb80808004a81f01b01f05b21f0b6203a81f01a81f02b01f06b21f0f6a07a81fb880808004a81f03b01f03c01f9080808004ca1f14620caa1f09e4b8bbe88f9ce58d95a81f02b01f0fca1f2da20200a81f1ab01f2aba1f21a20208aa1f05bc80808004a81f1bb01f2ab81f01c21f0a1001180820bb80808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820bb80808004ca1fc7025a056200a81f02a81f01b01f0cba1fb6026a9d02629702aa1f3fb21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f01b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f02b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00aa1f42a81f03b21f3caa1f0f0d0000803f150000803f1d0000803fb21f00ba1f0cad1f0000803fb51f0000803fc21f00ca1f00d21f0cad1f0000003fb51f0000003fe21f00b01f0ec01f01a81f02a81f04b01f0cb81f01c21f0a1001180820bb80808004ca1f258a0200a81f17b01f28ba1f198a0200a81f18b01f28b81f01c21f0a1001180820bb80808004ca1f25920200a81f18b01f29ba1f19920200a81f19b01f29b81f01c21f0a1001180820bb80808004ca1f2a9a0200a81f19b01f2cba1f1e9a0205b01f919214a81f1ab01f2cb81f01c21f0a1001180820bb80808004'
+// 实例侧固有容器素材组 1073741884（164B）
+const BUILTIN_FP_GROUP =
+  'a81fbc80808004b21f0f5a07a81fbc80808004a81f01b01f05b21f0b6203a81f02a81f02b01f06ba1f05bd80808004ca1f086200a81f02b01f0fca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a1001180820bc80808004ca1f37aa0200a81f1bb01f2bba1f2baa0212aa1f0ce59bbae69c89e5aeb9e599a8b01f01a81f1cb01f2bb81f01c21f0a1001180820bc80808004'
+// 关闭按钮 1073741885（1089B；含 max-uint64，禁止 parse→emit 往返）
+const BUILTIN_FP_CLOSEBTN =
+  'a81fbd80808004b21f0f5a07a81fbd80808004a81f01b01f05b21f0b6203a81f03a81f02b01f06c01fbc80808004ca1f206218aa1f15e4baa4e4ba92e9a1b5e585b3e997ade68c89e992aea81f02b01f0fca1f09a20300a81f2ab01f3dca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820bd80808004ca1fd7035a056200a81f02a81f01b01f0cba1fc6036aad0362a703aa1f63b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f01b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f02b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f03b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00b01f12c01f01a81f02a81f04b01f0cb81f01c21f0a1001180820bd80808004ca1f5ae20200a81f23b01f34ba1f4ee20235a81f1fb01f01b81fc88d03c01f02da1f0ca81fffffffffffffffffff01e21f06b51f0000d0c1ea1f06b51f0000d0c1f01f3cf81f01a81f24b01f34b81f01c21f0a1001180820bd80808004ca1f31ea0200a81f25b01f36ba1f25ea020ca81f01b01f01c21f00ca1f00a81f26b01f36b81f01c21f0a1001180820bd80808004ca1f40f20100a81f14b01f25ba1f34f2011bc81f01d81f01e21f06b51f00000042f21f06b51f0000d0c1f81f01a81f15b01f25b81f01c21f0a1001180820bd80808004ca1f8102da0200a81f21b01f32ba1ff401da02da01b21f26aa1f12a81f01b01fb78e06b81fbbdab8f90fc01f01b21f09a81f01b01f14ca1f00b81fe9a712ba1fa801aa1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00b21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00ba1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c01fe6f10fa81f22b01f32b81f01c21f0a1001180820bd80808004'
+
+// 模板侧固有容器素材组 1073741847（164B，仅无共享组时用）
+const BUILTIN_FP_GROUP_T_HEX =
   'a81f9780808004b21f0f5a07a81f9780808004a81f01b01f05b21f0b6203a81f02a81f02b01f06ba1f059880808004ca1f086200a81f02b01f0fca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a10011808209780808004ca1f37aa0200a81f1bb01f2bba1f2baa0212aa1f0ce59bbae69c89e5aeb9e599a8b01f01a81f1cb01f2bb81f01c21f0a10011808209780808004'
-// 模板关闭按钮 1073741848（1089B）
-const BUILTIN_FLOATING_PAGE_CLOSEBTN_T =
+// 模板侧关闭按钮 1073741848（1089B，仅无共享组时用）
+const BUILTIN_FP_CLOSEBTN_T_HEX =
   'a81f9880808004b21f0f5a07a81f9880808004a81f01b01f05b21f0b6203a81f03a81f02b01f06c01f9780808004ca1f206218aa1f15e4baa4e4ba92e9a1b5e585b3e997ade68c89e992aea81f02b01f0fca1f09a20300a81f2ab01f3dca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209880808004ca1fd7035a056200a81f02a81f01b01f0cba1fc6036aad0362a703aa1f63b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f01b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f02b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f03b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00b01f12c01f01a81f02a81f04b01f0cb81f01c21f0a10011808209880808004ca1f5ae20200a81f23b01f34ba1f4ee20235a81f1fb01f01b81fc88d03c01f02da1f0ca81fffffffffffffffffff01e21f06b51f0000d0c1ea1f06b51f0000d0c1f01f3cf81f01a81f24b01f34b81f01c21f0a10011808209880808004ca1f31ea0200a81f25b01f36ba1f25ea020ca81f01b01f01c21f00ca1f00a81f26b01f36b81f01c21f0a10011808209880808004ca1f40f20100a81f14b01f25ba1f34f2011bc81f01d81f01e21f06b51f00000042f21f06b51f0000d0c1f81f01a81f15b01f25b81f01c21f0a10011808209880808004ca1f8102da0200a81f21b01f32ba1ff401da02da01b21f26aa1f12a81f01b01fb78e06b81fbbdab8f90fc01f01b21f09a81f01b01f14ca1f00b81fe9a712ba1fa801aa1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00b21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00ba1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c01fe6f10fa81f22b01f32b81f01c21f0a10011808209880808004'
-// 实例固有容器素材组 1073741844（153B）
-const BUILTIN_FLOATING_PAGE_GROUP_I =
-  'a81f9480808004b21f0f5a07a81f9480808004a81f01b01f05b21f0b6203a81f02a81f02b01f06ba1f059580808004ca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a10011808209480808004ca1f37aa0200a81f1bb01f2bba1f2baa0212aa1f0ce59bbae69c89e5aeb9e599a8b01f01a81f1cb01f2bb81f01c21f0a10011808209480808004'
-// 实例关闭按钮 1073741845（1089B）
-const BUILTIN_FLOATING_PAGE_CLOSEBTN_I =
-  'a81f9580808004b21f0f5a07a81f9580808004a81f01b01f05b21f0b6203a81f03a81f02b01f06c01f9480808004ca1f206218aa1f15e4baa4e4ba92e9a1b5e585b3e997ade68c89e992aea81f02b01f0fca1f09a20300a81f2ab01f3dca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a10011808209580808004ca1fd7035a056200a81f02a81f01b01f0cba1fc6036aad0362a703aa1f63b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f01b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f02b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f03b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000803fb51f0000803fba1f0cad1f0000803fb51f0000803fc21f0cad1f000070c2b51f000020c2ca1f0cad1f00004042b51f00004042d21f0cad1f0000003fb51f0000003fe21f00b01f12c01f01a81f02a81f04b01f0cb81f01c21f0a10011808209580808004ca1f5ae20200a81f23b01f34ba1f4ee20235a81f1fb01f01b81fc88d03c01f02da1f0ca81fffffffffffffffffff01e21f06b51f0000d0c1ea1f06b51f0000d0c1f01f3cf81f01a81f24b01f34b81f01c21f0a10011808209580808004ca1f31ea0200a81f25b01f36ba1f25ea020ca81f01b01f01c21f00ca1f00a81f26b01f36b81f01c21f0a10011808209580808004ca1f40f20100a81f14b01f25ba1f34f2011bc81f01d81f01e21f06b51f00000042f21f06b51f0000d0c1f81f01a81f15b01f25b81f01c21f0a10011808209580808004ca1f8102da0200a81f21b01f32ba1ff401da02da01b21f26aa1f12a81f01b01fb78e06b81fbbdab8f90fc01f01b21f09a81f01b01f14ca1f00b81fe9a712ba1fa801aa1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00b21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00ba1f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c21f27aa1f00b21f00ba1f0cad1f0000c842b51f0000c842c21f0cad1f0000803fb51f0000803fca1f00c01fe6f10fa81f22b01f32b81f01c21f0a10011808209580808004'
+
+
+/** 原始字节级 varint 替换（保留 packed 流与 max-uint64，绕开 parse→emit 精度损失） */
+function remapVarintBytes(data: Uint8Array, from: number, to: number): Uint8Array {
+  const fromBytes = Buffer.from(encodeVarint(from))
+  const toBytes = Buffer.from(encodeVarint(to))
+  if (fromBytes.length !== toBytes.length) {
+    throw new Error('[error] floating-page ID remap requires equal varint width')
+  }
+  let out = Buffer.from(data)
+  let idx = out.indexOf(fromBytes)
+  while (idx >= 0) {
+    out = Buffer.concat([out.subarray(0, idx), toBytes, out.subarray(idx + fromBytes.length)])
+    idx = out.indexOf(fromBytes, idx + toBytes.length)
+  }
+  return out
+}
+
+/** 找地图已有的模板侧固有容器组（任一悬浮交互页模板 t42 引用的组） */
+function findSharedFloatingGroup(top: readonly WireField[]): number | undefined {
+  for (const rec of root9Records(top)) {
+    const m = parseWireMessage(rec.value as Uint8Array)
+    if (!m) continue
+    const isTemplate = m.some(
+      (f) =>
+        f.number === 502 &&
+        f.wire === 2 &&
+        parseWireMessage(f.value as Uint8Array)?.some((x) => x.number === 502 && x.wire === 0 && x.value === 4)
+    )
+    if (!isTemplate) continue
+    for (const f of m) {
+      if (f.number !== 505 || f.wire !== 2) continue
+      const comp = parseWireMessage(f.value as Uint8Array)
+      if (!comp) continue
+      if (comp.find((x) => x.number === 502 && x.wire === 0)?.value !== 42) continue
+      const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+      const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+      const f36 = f503m?.find((x) => x.number === 36 && x.wire === 2)
+      const f36m = f36 ? parseWireMessage(f36.value as Uint8Array) : undefined
+      const f501 = f36m?.find((x) => x.number === 501 && x.wire === 2)
+      if (!f501) continue
+      const ids = parsePackedVarints(f501.value as Uint8Array)
+      if (ids.length > 0) return ids[0]
+    }
+  }
+  return undefined
+}
 
 export type FloatingPageCreateResult = {
   bytes: Uint8Array
@@ -1156,9 +1206,10 @@ export type FloatingPageCreateResult = {
   instanceId: number
   groupTemplateId: number
   groupInstanceId: number
+  closeButtonId: number
 }
 
-/** 创建悬浮交互页（模板 + 实例 + 固有容器素材组×2 + 关闭按钮×2，共 6 条记录） */
+/** 创建悬浮交互页（用户修复版规范：模板+实例+实例侧固有容器组+关闭按钮，共 4 条；无共享组时补模板侧组，共 6 条） */
 export function createFloatingPage(
   bytes: Uint8Array,
   options: { id: number; name?: string }
@@ -1166,50 +1217,71 @@ export function createFloatingPage(
   const top = parseWireMessage(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
   const templateId = options.id
-  const mapping: Record<number, number> = {
-    [FP_SRC_TEMPLATE]: templateId,
-    [FP_SRC_INSTANCE]: templateId - 3,
-    [FP_SRC_GROUP_T]: templateId + 1,
-    [FP_SRC_CLOSEBTN_T]: templateId + 2,
-    [FP_SRC_GROUP_I]: templateId - 2,
-    [FP_SRC_CLOSEBTN_I]: templateId - 1
-  }
-  // 冲突校验：6 个派生 ID 必须全部空闲（真实地图重复 ID 会损坏记录）
+  const instanceId = templateId - 3
+  const groupId = templateId - 2
+  const closeBtnId = templateId - 1
+  // 冲突校验：派生 ID 必须全部空闲
   const existing = new Set(root9Records(top).map((f) => recordIdOf(f.value as Uint8Array)))
-  const taken = Object.values(mapping).filter((id) => existing.has(id))
+  const taken = [instanceId, groupId, closeBtnId].filter((id) => existing.has(id))
   if (taken.length > 0) {
-    throw new Error(
-      `[error] floating-page 派生 ID 冲突（模板=${templateId}）：${taken.join(',')} 已存在；请换一个 --id`
-    )
+    throw new Error(`[error] floating-page 派生 ID 冲突（模板=${templateId}）：${taken.join(',')} 已存在；请换一个 --id`)
   }
-  const mk = (hex: string): Uint8Array => {
-    const fields = parseWireMessage(Buffer.from(hex, 'hex'))
-    if (!fields) throw new Error('[error] invalid floating page record template')
-    for (const [from, to] of Object.entries(mapping)) replaceAllVarints(fields, Number(from), to)
-    return emitWireMessage(fields)
+  const sharedGroup = findSharedFloatingGroup(top)
+  const mk = (hex: string, map: Record<number, number>): Uint8Array => {
+    let data = Buffer.from(hex, 'hex')
+    for (const [from, to] of Object.entries(map)) {
+      data = Buffer.from(remapVarintBytes(data, Number(from), to))
+    }
+    return data
   }
-  let tmpl = mk(BUILTIN_FLOATING_PAGE_TEMPLATE)
-  let inst = mk(BUILTIN_FLOATING_PAGE_INSTANCE)
-  let groupT = mk(BUILTIN_FLOATING_PAGE_GROUP_T)
-  const closeBtnT = mk(BUILTIN_FLOATING_PAGE_CLOSEBTN_T)
-  let groupI = mk(BUILTIN_FLOATING_PAGE_GROUP_I)
-  const closeBtnI = mk(BUILTIN_FLOATING_PAGE_CLOSEBTN_I)
-  // packed 引用修复：replaceAllVarints 不处理 packed varint 流，显式重写两处
-  // 1) 模板 t4.f14.f501 的实例回指列表（编辑器按它解析模板内容 → 不修会显示旧实例）
-  const tmplFields = parseWireMessage(tmpl)
-  if (!tmplFields) throw new Error('[error] invalid floating page template record')
-  setTemplateInstanceListField(tmplFields, [mapping[FP_SRC_INSTANCE]])
-  tmpl = Buffer.from(emitWireMessage(tmplFields))
-  // 2) 固有容器素材组 f503 packed 成员列表
-  const setPacked = (rec: Uint8Array, fieldNumber: number, values: number[]): Uint8Array => {
-    const fields = parseWireMessage(rec)
-    if (!fields) throw new Error('[error] invalid floating page group record')
-    const f = fields.find((x) => x.number === fieldNumber && x.wire === 2)
-    if (f) f.value = encodePackedVarints(values)
-    return Buffer.from(emitWireMessage(fields))
+  // 模板 t42 指向共享模板侧组；无共享组时用轮1样本新建模板侧组+关闭按钮
+  let groupTemplateId: number | undefined
+  let closeBtnTemplateId: number | undefined
+  let tmpl = mk(BUILTIN_FP_TEMPLATE, {
+    [FP2_SRC_TEMPLATE]: templateId,
+    [FP2_SRC_INSTANCE]: instanceId,
+    [FP2_SRC_GROUP_T]: sharedGroup ?? FP2_SRC_GROUP_T
+  })
+  if (sharedGroup !== undefined) {
+    // 模板 t4 悬空回指（源样本含已删实例 1877）→ 通过重映射清除后显式设置
+    tmpl = Buffer.from(remapVarintBytes(tmpl, 1073741877, instanceId))
+    const tmplFields = parseWireMessage(tmpl)
+    if (!tmplFields) throw new Error('[error] invalid floating page template record')
+    setTemplateInstanceListField(tmplFields, [instanceId])
+    tmpl = Buffer.from(emitWireMessage(tmplFields))
+  } else {
+    const groupT = mk(BUILTIN_FP_GROUP_T_HEX, { [FP2_SRC_GROUP_T]: templateId + 1 })
+    const closeBtnT = mk(BUILTIN_FP_CLOSEBTN_T_HEX, {
+      [FP2_SRC_CLOSEBTN_T]: templateId + 2,
+      [FP2_SRC_GROUP_T]: templateId + 1
+    })
+    groupTemplateId = templateId + 1
+    closeBtnTemplateId = templateId + 2
+    const tmplFields = parseWireMessage(tmpl)
+    if (!tmplFields) throw new Error('[error] invalid floating page template record')
+    setTemplateInstanceListField(tmplFields, [instanceId])
+    tmpl = Buffer.from(emitWireMessage(tmplFields))
+    const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+    if (!root9) throw new Error('[error] root9 缺失')
+    const section = parseWireMessage(root9.value as Uint8Array)
+    if (!section) throw new Error('[error] root9 段解析失败')
+    section.push({ number: 502, wire: 2, value: groupT })
+    section.push({ number: 502, wire: 2, value: closeBtnT })
+    root9.value = emitWireMessage(section)
   }
-  groupT = setPacked(groupT, 503, [mapping[FP_SRC_CLOSEBTN_T]])
-  groupI = setPacked(groupI, 503, [mapping[FP_SRC_CLOSEBTN_I]])
+  let inst = mk(BUILTIN_FP_INSTANCE, {
+    [FP2_SRC_INSTANCE]: instanceId,
+    [FP2_SRC_TEMPLATE]: templateId,
+    [FP2_SRC_GROUP]: groupId
+  })
+  const group = mk(BUILTIN_FP_GROUP, {
+    [FP2_SRC_GROUP]: groupId,
+    [FP2_SRC_CLOSEBTN]: closeBtnId
+  })
+  const closeBtn = mk(BUILTIN_FP_CLOSEBTN, {
+    [FP2_SRC_CLOSEBTN]: closeBtnId,
+    [FP2_SRC_GROUP]: groupId
+  })
   if (options.name !== undefined) {
     tmpl = Buffer.from(setUiName(tmpl, options.name))
     inst = Buffer.from(setUiName(inst, options.name))
@@ -1220,19 +1292,16 @@ export function createFloatingPage(
   if (!section) throw new Error('[error] root9 段解析失败')
   section.push({ number: 502, wire: 2, value: tmpl })
   section.push({ number: 502, wire: 2, value: inst })
-  section.push({ number: 502, wire: 2, value: groupT })
-  section.push({ number: 502, wire: 2, value: closeBtnT })
-  section.push({ number: 502, wire: 2, value: groupI })
-  section.push({ number: 502, wire: 2, value: closeBtnI })
+  section.push({ number: 502, wire: 2, value: group })
+  section.push({ number: 502, wire: 2, value: closeBtn })
   root9.value = emitWireMessage(section)
-  // 实例注册进控件组容器（f503）+ 顶层模板/素材组登记 f501
-  appendToLayoutById(top, INST_CONTAINER_ID, mapping[FP_SRC_INSTANCE])
+  appendToLayoutById(top, INST_CONTAINER_ID, instanceId)
   const f501 = section.find((f) => f.number === 501 && f.wire === 2)
   if (f501) {
     const ids = parsePackedVarints(f501.value as Uint8Array)
     if (!ids.includes(templateId)) ids.push(templateId)
-    if (!ids.includes(mapping[FP_SRC_GROUP_T])) ids.push(mapping[FP_SRC_GROUP_T])
-    if (!ids.includes(mapping[FP_SRC_GROUP_I])) ids.push(mapping[FP_SRC_GROUP_I])
+    if (!ids.includes(groupId)) ids.push(groupId)
+    if (groupTemplateId !== undefined && !ids.includes(groupTemplateId)) ids.push(groupTemplateId)
     f501.value = encodePackedVarints(ids)
   }
   root9.value = emitWireMessage(section)
@@ -1244,12 +1313,12 @@ export function createFloatingPage(
       tailTag: readUint32BE(bytes, bytes.length - 4)
     }),
     templateId,
-    instanceId: mapping[FP_SRC_INSTANCE],
-    groupTemplateId: mapping[FP_SRC_GROUP_T],
-    groupInstanceId: mapping[FP_SRC_GROUP_I]
+    instanceId,
+    groupTemplateId: groupTemplateId ?? (sharedGroup ?? FP2_SRC_GROUP_T),
+    groupInstanceId: groupId,
+    closeButtonId: closeBtnId
   }
 }
-
 
 // ============ 改素材引用（编辑：模板/控件换素材）============
 
