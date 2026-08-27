@@ -341,6 +341,7 @@
   - 根因：编译器 optimize_timer_dispatch.ts 的 MAX_TIMER_DISPATCH_CASES=10，但优化只对无 default 分支的 dispatch 生效（parseMultipleBranchesDispatch 遇到 sourceIndex=0 返回 null，跳过 chunking），视觉根图有 default 分支，12 case 原样进 GIA → 引擎节点截断。
   - 修复：整转 orbit2 从 4 个定时器（orbit20..23）合并为 2 个（orbit20=槽 0..13 count=14 / orbit21=槽 14..25 count=12）。视觉根图 case 回到 10（turnblock/turnblockB/orbit2B/turnblock0..3/orbit2/orbit20/orbit21）。flowWholeTail 链 t0→t1→t2→t3→o0→o1→done。turn.ts 移除 wholeOrbit2Times2/3。
   - 知识落盘：控制流 API cookbook 的 Multiple Branches 上限❌→已闭合（10 命名 case + 1 default，>10 被丢弃）。
+  - 已注入（ok 6, fail 0）+ 读图核验（视觉根图 10 case + default 无孤立链；orbit20 count=14 / orbit21 count=12；turn.gia 无 orbit22/23）+ maps:resync（Save_Level/Temp md5 一致）。待用户游戏复测。
 - 2026-08-27（节拍调整：触发前后 +20%、整转 +30%，降低平均负载）：
   - 面转：preTick 1.38→1.66s（+20%）、emitTick 1.27→1.52s（+20%）；doneTick 2.01s 不变。
   - 整转：wholePre 5.52→7.18s、wholeEmit 5.08→6.6s、wholeDone 8.04→10.45s（+30%）。
