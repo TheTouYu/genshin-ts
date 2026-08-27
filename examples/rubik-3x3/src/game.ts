@@ -40,7 +40,6 @@ const graph = g
       lock: false,
       autoMode: false,
       reverse: false,
-      fastMode: false, // 快速模式（tab17 切换）：自动复原等待缩短 60%
       spawned: false,
       settled: false,
       solvedFlag: false,
@@ -296,18 +295,6 @@ const graph = g
                           const rev = f.getNodeGraphVariable('reverse').asType('bool')
                           f.setNodeGraphVariable('reverse', f.logicalNotOperation(rev), false)
                           f.printString('rubik3x3-reverse-toggled')
-                        },
-                        17: () => {
-                          // 快速模式：切换后写主控制器自定义变量，solver 定时器按 0.4 倍节拍
-                          const fm = f.getNodeGraphVariable('fastMode').asType('bool')
-                          const nv = f.logicalNotOperation(fm)
-                          f.setNodeGraphVariable('fastMode', nv, false)
-                          f.setCustomVariable(f.getSelfEntity(), new str('rubik3x3_fast_mode'), nv, false)
-                          f.printString('rubik3x3-fast-mode')
-                        },
-                        18: () => {
-                          // 二层测试：只打乱 U/E（保持第一层完整），完成后自动接自动还原
-                          f.sendSignal(RubikSignal.rubik3x3_solve, 18n, 0n)
                         },
                         default: () => {}
                       })

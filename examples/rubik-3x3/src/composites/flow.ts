@@ -391,18 +391,6 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
         f.link(brMore, 1, offAuto, 0)
         const offScr = f.node('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(false), new bool(false)])
         f.link(offAuto, 0, offScr, 0)
-        // 二层测试：打乱播放完成后自动触发 op12（自动还原，stage 0/1/2 跳过直接解 E 层）
-        const isL2 = f.equal(
-          f.getCustomVariable(target, new str('rubik3x3_layer2_test')).asType('bool'),
-          true
-        )
-        const brL2 = f.node('double_branch', [isL2])
-        f.link(offScr, 0, brL2, 0)
-        f.connectOutFlow(brL2, 0, () => {
-          f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_layer2_test'), new bool(false), new bool(false)])
-          f.registerExecNode('send_signal', [new str('rubik3x3_solve'), new int(12n), new int(0n)])
-        })
-        f.connectOutFlow(brL2, 1, () => {})
       })
     })
     f.connectOutFlow(brAuto, 1, () => {
@@ -511,8 +499,6 @@ export const flowScrambleLayer2 = g.defineComposite('flow_scramble_layer2', {
     f.registerExecNode('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
     f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
-    // 标记二层测试：打乱完成后自动触发 auto-solve
-    f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_layer2_test'), new bool(true), new bool(false)])
     const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
     f.callComposite(flowRequestMove, { moveId: mv0, target })
     return {}

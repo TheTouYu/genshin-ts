@@ -596,6 +596,7 @@ export function setTabBarOptions(
     return { number: 2, wire: 2, value: emit(body) }
   })
   configField.value = emit([...regionFields, ...optionFields])
+  slot.value = emit(slotFields)
   entityField.value = emit(fields)
   top5.value = emit(section)
   const rebuilt = emit(top)
