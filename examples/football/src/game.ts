@@ -44,6 +44,17 @@ const graph = g
   .on('whenTabIsSelected', (evt: any, f: any) => {
     const ball = f.getSelfEntity()
     const tabId = evt.tabId
+    // 实验验证：事件时机启动 auto_check（whenEntityIsCreated 时机注册的定时器不触发，
+    // 2026-08-27 日志实证；对比 push_lock 在事件时机启动正常触发）
+    const acOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
+    f.doubleBranch(
+      acOn,
+      () => {},
+      () => {
+        f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
+        f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
+      }
+    )
     // 9 = 复位，1-8 = 施力
     f.doubleBranch(
       f.equal(tabId, 9n),
@@ -103,7 +114,12 @@ const graph = g
   // ================================================================
   .on('whenEntityIsCreated', (evt: any, f: any) => {
     f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-    f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
+    // 实体创建太早、信号/定时器系统未就绪时 startTimer 注册会丢失（2026-08-27 用户经验 +
+    // 日志实证：whenEntityIsCreated time1 启动的 auto_check 从未触发，push_lock 事件时机正常）。
+    // 用 setTimeout 延迟 3 秒再启动（rubik 实证 setTimeout 在事件回调有效）。
+    setTimeout(() => {
+      f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
+    }, 3000)
   })
   .on('whenTimerIsTriggered', (evt: any, f: any) => {
     // auto_check 定时器触发 → 处理 + 自重启（一次性定时器 + 自重启，比 loop 可靠：
@@ -112,7 +128,7 @@ const graph = g
       f.equal(evt.timerName, new str('auto_check')),
       () => {
         f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
-        f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
+        f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
       },
       () => {
         // 其他定时器（如 push_lock）——确保 auto_check 首次启动（对静态实体 whenEntityIsCreated 也可能丢失）
@@ -122,7 +138,7 @@ const graph = g
           () => {},
           () => {
             f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-            f.startTimer(f.getSelfEntity(), 'auto_check', false, [200])
+            f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
           }
         )
       }
