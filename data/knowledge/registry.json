@@ -196,6 +196,16 @@
         "综合指南"
       ],
       "migration_status": "pilot"
+    },
+    {
+      "id": "rubik-autosolve",
+      "name": "Rubik 3×3 Auto-Solver",
+      "path": "knowledge/rubik-autosolve",
+      "boundary": "Reusable rubik-3x3 auto-solver architecture, state machine, error family, and verification methodology; not project status or copied implementation.",
+      "keywords": [
+        "rubik,solver,solveBuf,自动还原,魔方,CFOP,负moveId"
+      ],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -1313,6 +1323,39 @@
       "summary": "examples/football 已确认的玩法设计：单人训练场、官方角色操作、半场单门射左门、9 项选项卡（6 射门+2 传球+1 停球）、带球→传球→接球→射门机制链、分阶段实施计划。",
       "keywords": [
         "足球 demo 设计 射门 传球 停球 选项卡 半场 官方角色 队友 计分 阶段计划 训练场"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "autosolve-architecture",
+      "node_id": "rubik-autosolve",
+      "title": "Rubik 3×3 auto-solver architecture: event-driven planner/executor split",
+      "path": "knowledge/rubik-autosolve/autosolve-architecture.md",
+      "summary": "solverPlan reads state, computes solveMask, appends macro to solveBuf, sends op6; solver drives op3 via timer chain, signals op5; turn/flow executes moves; flowAfterTurn publishes state.",
+      "keywords": [
+        "solverPlan,solver,solveMask,op6,op5,事件驱动,状态机"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "autosolve-bug-family",
+      "node_id": "rubik-autosolve",
+      "title": "Autosolve error family: list materialization, read-write timing, budget, injection",
+      "path": "knowledge/rubik-autosolve/autosolve-bug-family.md",
+      "summary": "Three repeating bug families: (A) DSL expression re-materialization causing stale reads; (B) int_list short-materialization and solveBuf residue; (C) frame/budget limits (<3000 frames, <=10 case multipleBranches).",
+      "keywords": [
+        "二次物化,solveBuf,残留,哨兵,截断,帧预算,10 case,list materialization,sentinel"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "autosolve-verification",
+      "node_id": "rubik-autosolve",
+      "title": "Autosolve verification: layered evidence (algorithm offline, runtime log, injection read-back, user)",
+      "path": "knowledge/rubik-autosolve/autosolve-verification.md",
+      "summary": "Verify in layers: offline algorithm simulation (verify-corner-macros.mjs, 3000-8000 samples) proving macro preservation/convergence; runtime log trajectory (dbgVal=solveMask, solve_seq, solver_cp/co/ep/eo publish, 0403 exec) with BigInt parsing for uint64 negative display; injection read-back (explain real GIL) + maps:resync + md5; user in-game retest as final authority.",
+      "keywords": [
+        "离线验证,读图核验,resync,md5,日志,BigInt,分层证据,verify-corner-macros"
       ],
       "permission": "internal"
     }
@@ -2909,6 +2952,26 @@
     "clm_3EC5CF42D28754C1610DCCD1DC": {
       "fact_classes": [
         "documented_contract"
+      ]
+    },
+    "clm_696D6AFD6F5ADF3D690F3407FE": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_3E358071795A329628DF8E6563": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior",
+        "transform_defaults"
+      ]
+    },
+    "clm_0F2EC6DB0371AF423DB3B3B886": {
+      "fact_classes": [
+        "documented_contract",
+        "evidence_scope",
+        "runtime_behavior"
       ]
     }
   }

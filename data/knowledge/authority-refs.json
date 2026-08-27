@@ -302,6 +302,22 @@
       ]
     },
     {
+      "id": "aref_0e2b5da41f17406961b2e9dfa8",
+      "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
+      "locator": "section 五、验证方法论（分层证据）+ 工具速查",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "078914308a9275616c9044b820191ecdd8a863341defc9687811c849355d28df",
+      "claim_ids": [
+        "clm_0F2EC6DB0371AF423DB3B3B886"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_0f71c33eade0666d41c4730080",
       "path": "docs/game-engine-knowledge/variables.md",
       "locator": "当前关卡变量的受限 GIL 观察（CONFIRMED_BOUNDED）",
@@ -374,6 +390,22 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_1420370df224f0b378f6420ff5",
+      "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
+      "locator": "section 一、架构全景（事件驱动三段式）+ solverPlan 状态机",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "078914308a9275616c9044b820191ecdd8a863341defc9687811c849355d28df",
+      "claim_ids": [
+        "clm_696D6AFD6F5ADF3D690F3407FE"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
       ]
     },
     {
@@ -616,6 +648,22 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_1d83f273a108d9d4824b48df84",
+      "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
+      "locator": "section 三、错误谱系（A/B/C 三类）+ 四、已验证模式 4/5/6",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "078914308a9275616c9044b820191ecdd8a863341defc9687811c849355d28df",
+      "claim_ids": [
+        "clm_3E358071795A329628DF8E6563"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "transform_defaults"
       ]
     },
     {
@@ -2886,6 +2934,21 @@
       ]
     },
     {
+      "id": "aref_827bb39eaf15ac8b9c7f37e140",
+      "path": "examples/rubik-3x3/PROGRESS.md",
+      "locator": "2026-08-27 solveBuf 残留条目",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "96533132ac20c629a2add1435d8e2621a8bca748a618ac7bd9c3de1cef338ebe",
+      "claim_ids": [
+        "clm_3E358071795A329628DF8E6563"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_828497b93a0dd5f6d3473e72e8",
       "path": "docs/game-engine-knowledge/camera-system.md",
       "locator": "root 18 镜头容器与物件镜头组件绑定（exp14/17、exp13-14/16）",
@@ -2898,6 +2961,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_832a42e44b9563fa7501ea24a9",
+      "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
+      "locator": "section 三、错误谱系（规则铁律）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "078914308a9275616c9044b820191ecdd8a863341defc9687811c849355d28df",
+      "claim_ids": [
+        "clm_3E358071795A329628DF8E6563"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -4069,6 +4147,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_bfc3bc8b558d53ad75a3c5edb4",
+      "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
+      "locator": "section 五、验证方法论",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "078914308a9275616c9044b820191ecdd8a863341defc9687811c849355d28df",
+      "claim_ids": [
+        "clm_0F2EC6DB0371AF423DB3B3B886"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
