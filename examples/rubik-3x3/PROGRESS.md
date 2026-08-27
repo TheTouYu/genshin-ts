@@ -353,3 +353,14 @@
   - 修复：新增复合 solverClearBuf（100 项 set_list_value 置 0），在 4 个重算入口（op5/op12/stage 0→1/stage 1→2）solveLen=0 后调用（提交 abd3673）。
   - 已注入（ok 6）+ 读图核验（4 处 solver_clear_buf 执行流 = solveLen=0→清空→pStep=1→planTick 就位）+ resync md5 一致。
   - **用户游戏复测通过（2026-08-27 晚）：第一层可完成，不再循环/回退**。O-04（同秒 3 面转）/O-05（solve_len=16 异常）闭合为残留次生现象。
+- 2026-08-27（中二层 E 层棱块 stage 3——独立新图 solverEPlan）：
+  - 目标：自动还原从「中心→十字→第一层角块」扩展到「→中二层(E层棱)」，不破坏 stage 0/1/2。
+  - 离线：新增 tools/gen-e-layer-tables.mjs 生成 CF_E_POLICY（384 项 4 块×96，索引=mask*24+state）+ CF_E_MACRO_LEN/C0..C7（15 宏：3 U 单转 + 4 提取 + 8 插入公式，来自 second-layer-solver.js）；
+    新增 tools/verify-e-layer-macros.mjs：3000 样本保持第一层（十字+角块恒 15）+ E mask 单调 + 收敛全绿；1000 样本全流程集成（十字→角块→E层）全绿。
+  - 关键推导：E 层宏只动 U 层+目标槽；插入公式 2 变体×4 U 位置由 BFS 拼 U 单转覆盖（省 24 宏/节点预算）；E mask 用直接判 sep[h]==h && seo[h]==0（等价 edgeState==home*2，省一个 solverCrossMask 实例 359 节点）。
+  - **预算红线（用户 2026-08-27 更正：单图节点数量 ≤2000 不是 3000）**：stage 3 塞 solverPlan 后 gameNodeCount 3198>2000 → 按用户指示拆新图；
+    solverPlan 回退到 pre-stage-3（1742）+ 新增独立图 solverEPlan（id 1073741836，挂载 1077936230，121）——全部 ≤2000。
+  - 交棒协议：solverPlan stage2 完成发 **op=13**（op7 保留给最终完成）；solverEPlan 处理 op13(武装)/op5(重算)/op6(序列就绪→solver)/op7(完成)，加 op12/op8 让位防双规划器。
+  - 已注入（ok 7, fail 0）+ 读图核验（solverEPlan pStep1→4 链 + op13/op5 handler + solverPlan stage2→op13 就位）+ resync md5 一致（dcd7b01c）。
+  - 待用户游戏复测：打乱→自动还原→确认完成第一层+第二层（E 层每槽提取+插入约 8 步/宏，全程约 4 分钟）。
+

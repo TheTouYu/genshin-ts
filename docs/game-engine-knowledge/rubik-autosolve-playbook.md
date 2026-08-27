@@ -3,7 +3,7 @@
 > 用途：面向**新阶段开发（中二层 E 层棱块）与后续维护**的一站式知识入口。
 > 覆盖：架构全景 / 里程碑 / 错误谱系 / 已验证模式 / 验证方法论 / 中二层预防清单 / 工具速查。
 > 证据：examples/rubik-3x3/PROGRESS.md、docs/game-engine-knowledge/retrospective-*.md（rubik 系列）、提交历史。
-> 状态：已覆盖到 2026-08-27 solveBuf 残留闭环（用户游戏验证通过）。
+> 状态：已覆盖到 2026-08-27 中二层 stage 3 独立图 solverEPlan（已注入+读图核验，待用户复测）。
 
 ## 一、架构全景（事件驱动三段式）
 
@@ -13,17 +13,23 @@
 |---|---|---|
 | game | 1073741830 | 主控制器（挂载 1077936201），发起/重置/打乱 |
 | relay | 1073741831 | 信号转发 |
-| solverPlan | 1073741834 | **规划图**（挂载自动求解实体 1077936230）：读发布状态 → 算 mask → 查宏表 → 追加 solveBuf → 发 op6 |
+| solverPlan | 1073741834 | **规划图**（挂载自动求解实体 1077936230）：读发布状态 → 算 mask → 查宏表 → 追加 solveBuf → 发 op6；stage 0/1/2（中心/十字/角块） |
+| solverEPlan | 1073741836 | **中二层规划图**（同挂 1077936230）：stage 3（E 层棱）专用独立图——solverPlan 发 op13 交棒，定时器用独立名 ePlanTick |
 | solver | 1073741833 | **执行图**：op6 武装 → preTick/emitTick/doneTick 定时器链 → 逐步发 op3，播完发 op5 |
 | turn | 1073741835 | 转动层：op3 → 锁/队列 → 负 moveId 拆分（negDone 状态机）→ flowDoMove |
 | visual | 1073741832 | 视觉动画：viewOrbitTrigger + 批量定时器（turnblock/orbit2） |
 
-### solverPlan 状态机
-- `stage`：0=中心归一化（整转宏）→ 1=十字（面转宏）→ 2=第一层角块（面转宏）。**stage=3 将是中二层（E 层棱）**。
+### solverPlan 状态机（stage 0/1/2）
+- `stage`：0=中心归一化（整转宏）→ 1=十字（面转宏）→ 2=第一层角块（面转宏）。**stage2 完成发 op13 交棒 solverEPlan**（stage 3 不在本图）。
 - `phase`：0=idle / 1=armed / 2=waiting-exec。
 - `pStep`：planTick 小步 1=读状态（从 stHost 自定义变量复制到图变量）→ 2=算 mask → 3=查宏表写宏参数 → 4=逐 code 追加 solveBuf → seq-ready 发 op6。
-- `solveMask`：stage1=十字 mask（4 棱 bit）==15 切 stage2；stage2=角块 mask ==15 发 op7(plan-done)。
-- 信号：op5=播完重算 / op6=新序列就绪 / op7=完成 / op12=tab-auto 武装 / op3=执行一步 / op8=reset / op10=scramble。
+- `solveMask`：stage1=十字 mask（4 棱 bit）==15 切 stage2；stage2=角块 mask ==15 发 **op13**（不是 op7）。
+- 信号：op5=播完重算 / op6=新序列就绪 / op7=最终完成（solverEPlan 发）/ op12=tab-auto 武装 / op13=第一层完成交棒 / op3=执行一步 / op8=reset / op10=scramble。
+
+### solverEPlan 状态机（stage 3，独立图）
+- 与 solverPlan 同构：op13 武装 → ePlanTick 定时器（独立名，避免与 solverPlan 的 planTick 互触）→ pStep 1 读棱状态 / 2 算 E mask（直接判 sep[h]==h && seo[h]==0）/ 3 查 CF_E_POLICY / 4 追加 CF_E_MACRO → op6；E mask==15 发 op7。
+- op12（tab-auto 重武装）与 op8（reset）让位（phase=0），防双规划器并发。
+- E 棱 = ep 索引 8..11（FR/FL/BR/BL），state=pos*2+eo，home 8..11；宏集 15 条（U 单转×3 + 提取×4 + 插入×8）。
 
 ### solver 执行链
 ```
@@ -48,6 +54,7 @@ solverPlan 从 stHost=1077936201 读取。**发布端与读取端实体必须一
 | 5 负载调优 | 542c763→b7add0a | 节拍实测重排、动画前后静默降载、批量定时器 |
 | 6 视觉双通道 | fd40432→0fab0c1 | 面转 A/B 双通道（后回退单通道）→ 整转 orbit2 批量 4→2（10 case 上限修复） |
 | 7 稳定性闭环 | abd3673 | solveBuf 残留（用户验证通过） |
+| 8 中二层 E 层棱 | 538f397/3aad8bf | stage 3 独立图 solverEPlan（预算红线 2000 拆图）：宏表生成+离线验证 3000 样本绿+交棒协议 op13；待用户复测 |
 
 ## 三、错误谱系（按机制分类，全部实锤）
 
@@ -98,6 +105,7 @@ solverPlan 从 stHost=1077936201 读取。**发布端与读取端实体必须一
 6. **宏表**：CF_X_POLICY（十字）/CF_CORNER_POLICY（角块）策略表，索引 = mask*24+state，longListGetInt4 4 块×96 分块读取；宏 code 0..17 = face/dir/steps（18=NOP 占位）。
 7. **算法核验先行**：verify-corner-macros.mjs 离线模拟（逻辑表 applyMove）→ 证明宏保持性/收敛性后再动运行时。
 8. **节拍**：面转 preTick 1.66s / emitTick 1.52s / doneTick 2.01s；整转 wholePre 7.18s / wholeEmit 6.6s / wholeDone 10.45s（触发前后 +20%、整转 +30% 降载后实测值）。
+9. **预算超标拆新图**：单图 gameNodeCount 超 2000 时，按职责边界拆到独立新图（solverEPlan 1073741836）。新图复用通用复合（solverEdgeState/solverFirstUnsolved/solverAppendCode/solverClearBuf/solverStartPlanTick），定时器名用独立标识（ePlanTick）避免与旧图互触。交棒用新 op 码（op13）而非 op7（op7 保留给最终完成）。
 
 ## 五、验证方法论（分层证据）
 
@@ -113,15 +121,15 @@ solverPlan 从 stHost=1077936201 读取。**发布端与读取端实体必须一
 
 ## 六、中二层（E 层棱块，stage=3）开发预防清单
 
-- [ ] 1. **状态表**：E 层棱 = ep 索引 8..11（FR/FL/BR/BL）。新增 solverEMask/solverEState/solverEFirstUnsolved（复用 solverEdgeState 模式，home 8..11）。注意 M/E/S 中层转（moveId 7..9）也会动 E 棱——发布状态已含 ep/eo，无需新增发布。
-- [ ] 2. **宏表**：新 CF_E_POLICY + CF_E_MACRO（≤100 项/块，longListGetInt4 最多 4 块=400 项；若超 400 需扩 longListGetInt5 或拆策略）。生成器参考 gen-cfop-tables.mjs。
-- [ ] 3. **宏保持性**：E 层宏必须保持第一层（十字+角块）。**先离线验证**（复用 verify-corner-macros.mjs 模式：E 宏执行后第一层 mask 不减、E 层 mask 单调增）再写运行时。
-- [ ] 4. **状态机**：stage 3 新分支（solverPlan 的 pStep 1/2/3/4 各加 case 3）。stage 分支 multipleBranches 4 个 case（0..3）≤10 上限 ✓。切 stage3 的 solveLen=0 处**同样调用 solverClearBuf**。
-- [ ] 5. **帧预算**：E 宏展开 ≤3000 帧/事件；负折叠用 negDone 模式；宏 code 追加逐 code 一帧（planTick 0.15s），长宏（16 code）重算 ~3s 可接受。
-- [ ] 6. **二次物化**：新复合里分支判定一律读 set 后的图变量；循环内不要复用外层表达式当索引。
-- [ ] 7. **mask 语义**：stage3 的 solveMask 改 E 层 mask；stage 2→3 切换条件 = 角块 mask==15（现有 plan-done 逻辑要改：op7 只在 stage==3 且 E mask==15 时发）。
-- [ ] 8. **注入闭环**：改完 → 编译 --noinject → 注入 → explain 读图核验 → resync → md5 → 用户复测。
-- [ ] 9. **回归**：stage 0/1/2 行为不得变（中心/十字/角块 mask 判定、solveBuf 清空、负折叠、节拍）。
+- [x] 1. **状态表**：E 层棱 = ep 索引 8..11（FR/FL/BR/BL）。solverEdgeState 已通用（home 可任意），直接复用；E mask 用直接判 sep[h]==h && seo[h]==0（等价 edgeState==home*2，省一个 solverCrossMask 实例 359 节点）。注意 M/E/S 中层转（moveId 7..9）也会动 E 棱——发布状态已含 ep/eo，无需新增发布。
+- [x] 2. **宏表**：新 CF_E_POLICY（384 项 4 块×96）+ CF_E_MACRO_LEN/C0..C7（15 宏：3 U 单转 + 4 提取 + 8 插入公式，来自 second-layer-solver.js）。生成器 tools/gen-e-layer-tables.mjs（参考 gen-cfop-tables.mjs 模式）。宏集不含预转体（U 位置由 BFS 拼 U 单转，省 24 宏/节点预算）。
+- [x] 3. **宏保持性**：E 层宏必须保持第一层（十字+角块）。**先离线验证**（tools/verify-e-layer-macros.mjs：3000 样本保持第一层+E mask 单调+收敛全绿；1000 样本全流程集成全绿）。
+- [x] 4. **状态机**：**预算超限 → 拆新图**。solverPlan 回退到 pre-stage-3，stage 2 完成发 op13 交棒；新增独立图 solverEPlan（1073741836）承载 stage 3。定时器用独立名 ePlanTick，避免与 solverPlan 的 planTick 互触。切 stage 的 solveLen=0 处**同样调用 solverClearBuf**。
+- [x] 5. **帧预算**：E 宏展开 ≤3000 帧/事件；负折叠用 negDone 模式；宏 code 追加逐 code 一帧（ePlanTick 0.15s），超长宏（8 code）重算 ~1.2s 可接受。
+- [x] 6. **二次物化**：新图里分支判定一律读 set 后的图变量；循环内不要复用外层表达式当索引。
+- [x] 7. **mask 语义**：solverEPlan 的 solveMask 改 E 层 mask；E mask==15 发 op7（最终完成）。solverPlan 的 stage 2→3 切换条件 = 角块 mask==15 → 发 op13（不是 op7，op7 保留给 solverEPlan 发）。
+- [x] 8. **注入闭环**：改完 → 编译 --noinject → 注入 → explain 读图核验 → resync → md5 → 用户复测。已完成（ok 7 fail 0，读图核验 pStep 1→4 链 + op13/op5 就位，resync md5 一致）。
+- [x] 9. **回归**：stage 0/1/2 行为不得变。solverPlan 已回退到 pre-stage-3（仅 stage 2 完成改发 op13），预算 1742 < 2000，engineExpanded 2013。
 
 ## 七、工具与命令速查
 
@@ -139,6 +147,7 @@ python .agents/skills/debug-log-investigator/scripts/gia_log.py "<日志.gia>" r
 python .agents/skills/debug-log-investigator/scripts/gia_log.py "<日志.gia>" frames --contains "solveMask"
 # 离线算法核验
 node examples/rubik-3x3/tools/verify-corner-macros.mjs <角块样本> <十字样本>
+node examples/rubik-3x3/tools/verify-e-layer-macros.mjs <E层样本> [全流程样本]
 # 执行链核验（0403 vs 发布轨迹）
 node examples/rubik-3x3/tools/verify-exec-vs-publish.mjs
 ```
