@@ -11,6 +11,7 @@ import {
   cloneTemplate,
   cloneUiControl,
   createFloatingPage,
+  createFloatingPageRich,
   createUiControl,
   createUiImageControl,
   createUiTemplate,
@@ -111,6 +112,8 @@ function parseArgs(argv: readonly string[]) {
   let position: Vector2 | undefined
   let size: Vector2 | undefined
   let createType: (UiCreateType | 'image') | undefined
+  let rich = false
+  let variables: Array<{ name: string; type: number }> | undefined
   let assetId: number | undefined
   let layoutId: number | undefined
   let color: string | undefined
@@ -154,6 +157,15 @@ function parseArgs(argv: readonly string[]) {
       format = raw
     } else if (arg === '--id') { const v = nonNegativeId(value(argv, index++), '--id'); newId = v; if (command === 'states') targetId = v }
     else if (arg === '--page') pageId = nonNegativeId(value(argv, index++), '--page')
+    else if (arg === '--rich') rich = true
+    else if (arg === '--variable') {
+      const raw = value(argv, index++)
+      const [vname, vtype] = raw.split(':')
+      const typeMap: Record<string, number> = { int: 0, float: 1, str: 2, text: 3 }
+      const vtypeNum = typeMap[vtype ?? '']
+      if (!vname || vtypeNum === undefined) throw new Error(`[error] --variable 格式: 名:int|float|str|text`)
+      ;(variables ??= []).push({ name: vname, type: vtypeNum })
+    }
     else if (arg === '--name') name = value(argv, index++)
     else if (arg === '--content') content = value(argv, index++)
     else if (arg === '--position') position = parseVector2(value(argv, index++), '--position')
@@ -190,7 +202,7 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] update requires at least one of --name/--content/--position/--size/--asset/--color')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, pageId, name, content, position, size, createType, assetId, layoutId, color }
+  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, pageId, name, content, position, size, createType, rich, variables, assetId, layoutId, color }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -416,10 +428,16 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
 
   if (args.command === 'create') {
     if (args.createType === 'floating-page') {
-      const result = createFloatingPage(sourceBytes, {
-        id: args.newId!,
-        ...(args.name !== undefined ? { name: args.name } : {})
-      })
+      const result = args.rich
+        ? createFloatingPageRich(sourceBytes, {
+            id: args.newId!,
+            ...(args.name !== undefined ? { name: args.name } : {}),
+            ...(args.variables ? { variables: args.variables } : {})
+          })
+        : createFloatingPage(sourceBytes, {
+            id: args.newId!,
+            ...(args.name !== undefined ? { name: args.name } : {})
+          })
       const summary: Record<string, unknown> = {
         schemaVersion: 1,
         kind: 'ui-create-floating-page',
@@ -436,6 +454,18 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       log2(`groupInstanceId=${result.groupInstanceId}`)
       summary.candidateSha256 = sha256(result.bytes)
       log2(`candidateSha256=${sha256(result.bytes)}`)
+      if (args.rich) {
+        const rich = result as import('./gil_ui.js').RichFloatingPageCreateResult
+        summary.kind = 'ui-create-floating-page-rich'
+        summary.pageGroupIds = rich.pageGroupIds
+        summary.tabContainerId = rich.tabContainerId
+        summary.tabId = rich.tabId
+        summary.stateGroupIds = rich.stateGroupIds
+        log2(`pageGroupIds=${rich.pageGroupIds.join(',')}`)
+        log2(`tabContainerId=${rich.tabContainerId}`)
+        log2(`tabId=${rich.tabId}`)
+        log2(`stateGroupIds=${rich.stateGroupIds.join(',')}`)
+      }
       if (args.outputPath) {
         summary.candidate = writeNew(args.outputPath, result.bytes)
         log2(`candidate=${summary.candidate}`)

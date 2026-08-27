@@ -1768,3 +1768,255 @@ export function listButtonStates(bytes: Uint8Array, buttonId: number): ButtonSta
   }
   return out
 }
+
+
+// ============ 富版悬浮交互页创建（2026-08-27 学习资产实读，先差分阻塞项再写码）============
+// 来源：1073741911「学习资产」底板1-使用(1989) 逐字节提取
+// 阻塞项差分结论：
+//   - t12 骨架与富版逐字节相同（阻塞项4 消除）
+//   - t47 页签项内部 ~180B 含 max-uint64/嵌套 → 整体 2305B hex 提取为 BUILTIN，不构造（阻塞项3）
+//   - t44 富版 {f501:1, f502:330002} vs 骨架 {f502:330001}；f503 内部配置字段是 f35（非 f19！）（阻塞项2）
+//   - 页签容器/页签/关闭按钮 hex 已提取可 remap（阻塞项1）
+
+// 页签容器 1073742007（184B, 素材组, f503 成员 = [页签1, tips, 关闭按钮, 页签2, 图片]）
+const RICH_TAB_CONTAINER =
+  'a81fb781808004b21f0f5a07a81fb781808004a81f01b01f05b21f0b6203a81f13a81f02b01f06ba1f19b881808004c481808004c581808004c681808004c781808004ca1f086200a81f02b01f0fca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a1001180820b781808004ca1f37aa0200a81f1bb01f2bba1f2baa0212aa1f0ce59bbae69c89e5aeb9e599a8b01f01a81f1cb01f2bb81f01c21f0a1001180820b781808004'
+// 页签1 1073742008（2305B, 含 t46 基座/t47 6页签项/t48-49 配置/t58 4状态/t37）
+const RICH_TAB_1 =
+  'a81fb881808004b21f0f5a07a81fb881808004a81f01b01f05b21f0b6203a81f14a81f02b01f06c01fb781808004ca1f116209aa1f06e9a1b5e7adbea81f02b01f0fca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820b881808004ca1fd7035a056200a81f02a81f01b01f0cba1fc6036aad0362a703aa1f63b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1fff3fe2c3b51f29e259c1ca1f0cad1f02004343b51f16a71244d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f01b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1fff3fe2c3b51f29e259c1ca1f0cad1f02004343b51f16a71244d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f02b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1fff3fe2c3b51f29e259c1ca1f0cad1f02004343b51f16a71244d21f0cad1f0000003fb51f0000003fe21f00aa1f66a81f03b21f60aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f0cad1fff3fe2c3b51f29e259c1ca1f0cad1f02004343b51f16a71244d21f0cad1f0000003fb51f0000003fe21f00b01f0fc01f01a81f02a81f04b01f0cb81f01c21f0a1001180820b881808004ca1f5bba0200a81f1db01f2eba1f4fba0236aa1f0cad1f00004843b51f00007042b51f00002042c01f01ca1f0cad1f0000a041b51f0000a041d21f0cad1f0000c041b51f0000c041a81f1eb01f2eb81f01c21f0a1001180820b881808004ca1f9009c20200a81f1eb01f2fba1f8309c202e908aa1fb401aa1f07aa1f0132b01f01b21f43aa1f1ea81f01b21f186a04aa1f0136a81f03b21f0ca81fffffffffffffffffff01b21f0100ba1f1bb21f186a04aa1f0136a81f03b21f0ca81fffffffffffffffffff01ba1f58aa1f07a81fb781808004aa1f0aa81fa681808004b01f01aa1f0aa81fa881808004b01f01aa1f0aa81fab81808004b01f01aa1f0aa81fae81808004b01f01aa1f0aa81fb181808004b01f01aa1f07a81fb481808004b01f01c21f00c81f06d01f01aa1fbe01aa1f11aa1f0be9a1b5e7adbee9a1b95f35b01f01b21f43aa1f1ea81f01b21f186a04aa1f0135a81f03b21f0ca81fffffffffffffffffff01b21f0100ba1f1bb21f186a04aa1f0135a81f03b21f0ca81fffffffffffffffffff01ba1f58aa1f07a81fb781808004aa1f0aa81fa681808004b01f01aa1f0aa81fa881808004b01f01aa1f0aa81fab81808004b01f01aa1f0aa81fae81808004b01f01aa1f07a81fb181808004aa1f0aa81fb481808004b01f01b01f01c21f00c81f05d01f01aa1fb401aa1f11aa1f0be9a1b5e7adbee9a1b95f34b01f01b21f43aa1f1ea81f01b21f186a04aa1f0134a81f03b21f0ca81fffffffffffffffffff01b21f0100ba1f1bb21f186a04aa1f0134a81f03b21f0ca81fffffffffffffffffff01ba1f4eaa1f0aa81fa681808004b01f01aa1f0aa81fa881808004b01f01aa1f0aa81fab81808004b01f01aa1f07a81fae81808004aa1f0aa81fb181808004b01f01aa1f0aa81fb481808004b01f01b01f01c21f00c81f04d01f01aa1fb401aa1f11aa1f0be9a1b5e7adbee9a1b95f33b01f01b21f43aa1f1ea81f01b21f186a04aa1f0133a81f03b21f0ca81fffffffffffffffffff01b21f0100ba1f1bb21f186a04aa1f0133a81f03b21f0ca81fffffffffffffffffff01ba1f4eaa1f0aa81fa681808004b01f01aa1f0aa81fa881808004b01f01aa1f07a81fab81808004aa1f0aa81fae81808004b01f01aa1f0aa81fb181808004b01f01aa1f0aa81fb481808004b01f01b01f01c21f00c81f03d01f01aa1fb401aa1f11aa1f0be9a1b5e7adbee9a1b95f32b01f01b21f43aa1f1ea81f01b21f186a04aa1f0132a81f03b21f0ca81fffffffffffffffffff01b21f0100ba1f1bb21f186a04aa1f0132a81f03b21f0ca81fffffffffffffffffff01ba1f4eaa1f0aa81fa681808004b01f01aa1f07a81fa881808004aa1f0aa81fab81808004b01f01aa1f0aa81fae81808004b01f01aa1f0aa81fb181808004b01f01aa1f0aa81fb481808004b01f01b01f01c21f00c81f02d01f01aa1fc001aa1f11aa1f0be9a1b5e7adbee9a1b95f31b01f01b21f45aa1f1ea81f01b21f186a04aa1f0131a81f03b21f0ca81fffffffffffffffffff01b21f03eb8e06ba1f1bb21f186a04aa1f0131a81f03b21f0ca81fffffffffffffffffff01ba1f58aa1f07a81fb781808004aa1f07a81fa681808004aa1f0aa81fa881808004b01f01aa1f0aa81fab81808004b01f01aa1f0aa81fae81808004b01f01aa1f0aa81fb181808004b01f01aa1f0aa81fb481808004b01f01b01f01c21f00c81f01d01f01b01f06a81f1fb01f2fb81f01c21f0a1001180820b881808004ca1f3cca0200a81f1fb01f30ba1f30ca0217a81f01b21f00ba1f00c01f01ca1f00d21f00d81fdb8d03a81f20b01f30b81f01c21f0a1001180820b881808004ca1f30d20200a81f20b01f31ba1f24d2020ba81f01b01f01b81f86c413a81f21b01f31b81f01c21f0a1001180820b881808004ca1f8902fa0200a81f28b01f3aba1ffc018203e201aa1fde01aa1f31aa1f0a1001180820b981808004b21f00ba1f0cad1f00004843b51f00007042c21f0cad1f0000803fb51f0000803fca1f00b21f31aa1f0a1001180820bb81808004b21f00ba1f0cad1f00004843b51f00007042c21f0cad1f0000803fb51f0000803fca1f00ba1f31aa1f0a1001180820be81808004b21f00ba1f0cad1f00004843b51f00007042c21f0cad1f0000803fb51f0000803fca1f00c21f31aa1f0a1001180820c181808004b21f00ba1f0cad1f00004843b51f00007042c21f0cad1f0000803fb51f0000803fca1f00c81f01d21f08e6a0b7e5bc8f5f31a81f2ab01f3ab81f01c21f0a1001180820b881808004ca1f40f20100a81f14b01f25ba1f34f2011bc81f01d81f01e21f06b51f00001042f21f06b51f0000d0c1f81f01a81f15b01f25b81f01c21f0a1001180820b881808004'
+// 内容页素材组 1073741990（153B, 空组, f503 成员 = [1991]→remap 到自身避免悬空）
+const RICH_PAGE_GROUP =
+  'a81fa681808004b21f0f5a07a81fa681808004a81f01b01f05b21f0b6203a81f02a81f02b01f06ba1f05a781808004ca1f086200a81f02b01f0fca1f2d5a055a00a81f01a81f01b01f0bba1f1d6a055a00a81f01a81f04b01f0bb81f01c21f0a1001180820a681808004ca1f2caa0200a81f1bb01f2bba1f20aa0207aa1f0131b01f01a81f1cb01f2bb81f01c21f0a1001180820a681808004'
+// 状态素材组（默认 2009 / 悬浮 2011 / 按下 2014 / 选中 2017，646-651B）
+const RICH_STATE_DEFAULT =
+  'a81fb981808004b21f0f5a07a81fb981808004a81f01b01f05b21f2d8201055a00a81f01a81f06b01f37ba1f1cf20203a81f01a81f27b01f37b81f01c21f0a1001180820b981808004ba1f05ba81808004ca1f206218aa1f15e9bb98e8aea4e78ab6e68081e7b4a0e69d90e7bb84a81f02b01f0fca1fa4035a056200a81f02a81f01b01f0cba1f93036afa0262f402aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00c01f01a81f02a81f04b01f0cb81f01c21f0a1001180820b981808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820b981808004ca1f37f20200a81f26b01f38ba1f2bfa02120a00120cad1f00004842b51f000048421802a81f28b01f38b81f01c21f0a1001180820b981808004'
+const RICH_STATE_HOVER =
+  'a81fbb81808004b21f0f5a07a81fbb81808004a81f01b01f05b21f2d8201055a00a81f01a81f06b01f37ba1f1cf20203a81f01a81f27b01f37b81f01c21f0a1001180820bb81808004ba1f0abc81808004bd81808004ca1f206218aa1f15e682ace6b5aee78ab6e68081e7b4a0e69d90e7bb84a81f02b01f0fca1fa4035a056200a81f02a81f01b01f0cba1f93036afa0262f402aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00c01f01a81f02a81f04b01f0cb81f01c21f0a1001180820bb81808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820bb81808004ca1f37f20200a81f26b01f38ba1f2bfa02120a00120cad1f00004842b51f000048421802a81f28b01f38b81f01c21f0a1001180820bb81808004'
+const RICH_STATE_PRESSED =
+  'a81fbe81808004b21f0f5a07a81fbe81808004a81f01b01f05b21f2d8201055a00a81f01a81f06b01f37ba1f1cf20203a81f01a81f27b01f37b81f01c21f0a1001180820be81808004ba1f0abf81808004c081808004ca1f206218aa1f15e68c89e4b88be78ab6e68081e7b4a0e69d90e7bb84a81f02b01f0fca1fa4035a056200a81f02a81f01b01f0cba1f93036afa0262f402aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00c01f01a81f02a81f04b01f0cb81f01c21f0a1001180820be81808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820be81808004ca1f37f20200a81f26b01f38ba1f2bfa02120a00120cad1f00004842b51f000048421802a81f28b01f38b81f01c21f0a1001180820be81808004'
+const RICH_STATE_SELECTED =
+  'a81fc181808004b21f0f5a07a81fc181808004a81f01b01f05b21f2d8201055a00a81f01a81f06b01f37ba1f1cf20203a81f01a81f27b01f37b81f01c21f0a1001180820c181808004ba1f0ac281808004c381808004ca1f206218aa1f15e98089e4b8ade78ab6e68081e7b4a0e69d90e7bb84a81f02b01f0fca1fa4035a056200a81f02a81f01b01f0cba1f93036afa0262f402aa1f57b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f01b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f02b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00aa1f5aa81f03b21f54aa1f0f0d0000803f150000803f1d0000803fb21f0cad1f0000003fb51f0000003fba1f0cad1f0000003fb51f0000003fc21f00ca1f0cad1f00004843b51f00007042d21f0cad1f0000003fb51f0000003fe21f00c01f01a81f02a81f04b01f0cb81f01c21f0a1001180820c181808004ca1f2d72057a00a81f05a81f04b01f17ba1f1d72057a00a81f05a81f05b01f17b81f01c21f0a1001180820c181808004ca1f37f20200a81f26b01f38ba1f2bfa02120a00120cad1f00004842b51f000048421802a81f28b01f38b81f01c21f0a1001180820c181808004'
+
+/** 富版悬浮交互页选项 */
+export type RichFloatingPageOptions = {
+  id: number
+  name?: string
+  variables?: Array<{ name: string; type: number }>
+}
+
+/** 富版悬浮交互页创建结果 */
+export type RichFloatingPageCreateResult = FloatingPageCreateResult & {
+  pageGroupIds: number[]
+  tabContainerId: number
+  tabId: number
+  stateGroupIds: [number, number, number, number]
+}
+
+/**
+ * 创建富版悬浮交互页（6 内容组 + 页签（6页签项+4状态）+ 4 状态素材组）
+ * 来源：1073741911 底板1-使用 逐字节实读，2026-08-27 阻塞项差分完成后实现
+ * ID 派生：模板=id, 实例=id-3, 组=id-2, 关闭按钮=id-1, 内容组1-6=id-4..id-9,
+ * 页签容器=id-10, 页签1=id-11, 状态组默认/悬浮/按下/选中=id-12..id-15
+ */
+export function createFloatingPageRich(
+  bytes: Uint8Array,
+  options: RichFloatingPageOptions
+): RichFloatingPageCreateResult {
+  const top = parseWireMessage(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const T = options.id
+  const instanceId = T - 3
+  const groupId = T - 2
+  const closeBtnId = T - 1
+  const pageGroupIds = [T - 4, T - 5, T - 6, T - 7, T - 8, T - 9]
+  const tabContainerId = T - 10
+  const tabId = T - 11
+  const stateGroupIds: [number, number, number, number] = [T - 12, T - 13, T - 14, T - 15]
+  const allIds = [instanceId, groupId, closeBtnId, ...pageGroupIds, tabContainerId, tabId, ...stateGroupIds]
+  const existing = new Set(root9Records(top).map((f) => recordIdOf(f.value as Uint8Array)))
+  const taken = allIds.filter((id) => existing.has(id))
+  if (taken.length > 0) {
+    throw new Error(`[error] 富版派生 ID 冲突: ${taken.join(',')} 已存在；请换一个 --id`)
+  }
+  const mk = (hex: string, map: Record<number, number>): Uint8Array => {
+    let data = Buffer.from(hex, 'hex')
+    for (const [from, to] of Object.entries(map)) data = Buffer.from(remapVarintBytes(data, Number(from), to))
+    return data
+  }
+  // 1) 骨架模板
+  let tmpl = mk(BUILTIN_FP_TEMPLATE, {
+    [FP2_SRC_TEMPLATE]: T,
+    [FP2_SRC_INSTANCE]: instanceId,
+    [FP2_SRC_GROUP_T]: FP2_SRC_GROUP_T
+  })
+  // 2) 模板改造：t42 追加内容组 ID + 页签容器 ID
+  const tmplFields = parseWireMessage(tmpl)
+  if (!tmplFields) throw new Error('[error] invalid floating page template')
+  for (const f of tmplFields) {
+    if (f.number !== 505 || f.wire !== 2) continue
+    const comp = parseWireMessage(f.value as Uint8Array)
+    if (comp?.find((x) => x.number === 502 && x.wire === 0)?.value !== 42) continue
+    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+    const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+    const f36 = f503m?.find((x) => x.number === 36 && x.wire === 2)
+    const f36m = f36 ? parseWireMessage(f36.value as Uint8Array) : undefined
+    const f501 = f36m?.find((x) => x.number === 501 && x.wire === 2)
+    if (f501) {
+      const ids = parsePackedVarints(f501.value as Uint8Array)
+      for (const nid of [...pageGroupIds, tabContainerId]) if (!ids.includes(nid)) ids.push(nid)
+      f501.value = encodePackedVarints(ids)
+      f36!.value = emitWireMessage(f36m!)
+      f503!.value = emitWireMessage(f503m!)
+      f.value = emitWireMessage(comp)
+    }
+  }
+  // 3) t41 形式变量（追加选项；f503 序号在条目 f501 内部）
+  if (options.variables && options.variables.length > 0) {
+    for (const f of tmplFields) {
+      if (f.number !== 505 || f.wire !== 2) continue
+      const comp = parseWireMessage(f.value as Uint8Array)
+      if (comp?.find((x) => x.number === 502 && x.wire === 0)?.value !== 41) continue
+      const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+      const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+      const f34 = f503m?.find((x) => x.number === 34 && x.wire === 2)
+      if (f34) {
+        const entryFields: WireField[] = parseWireMessage(f34.value as Uint8Array) ?? []
+        let seq = 1
+        for (const st of entryFields) {
+          if (st.number === 501 && st.wire === 2) {
+            const stM = parseWireMessage(st.value as Uint8Array)
+            const idx = stM?.find((x) => x.number === 503 && x.wire === 0)?.value
+            if (typeof idx === 'number' && idx >= seq) seq = idx + 1
+          }
+        }
+        for (const v of options.variables) {
+          const nameBytes = Buffer.from(v.name, 'utf-8')
+          const inner: WireField[] = [
+            { number: 501, wire: 0, value: v.type },
+            { number: 502, wire: 2, value: nameBytes },
+            { number: 503, wire: 0, value: seq }
+          ]
+          entryFields.push({ number: 501, wire: 2, value: emitWireMessage(inner) })
+          seq++
+        }
+        f34.value = emitWireMessage(entryFields)
+        f503!.value = emitWireMessage(f503m!)
+        f.value = emitWireMessage(comp)
+      }
+    }
+  }
+  // 4) t44 改为富版标记 {f501:1, f502:330002}（组件级 parse→emit）
+  // 注意：f503 内部配置字段是 f35（不是 f19！）——`9a02` 标签编码 field 35
+  // 骨架 f35 = {f502: 330001}；富版 = {f501: 1, f502: 330002}
+  for (const f of tmplFields) {
+    if (f.number !== 505 || f.wire !== 2) continue
+    const comp = parseWireMessage(f.value as Uint8Array)
+    if (comp?.find((x) => x.number === 502 && x.wire === 0)?.value !== 44) continue
+    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+    const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+    const f35 = f503m?.find((x) => x.number === 35 && x.wire === 2)
+    if (f35) {
+      const newF35: WireField[] = [
+        { number: 501, wire: 0, value: 1 },
+        { number: 502, wire: 0, value: 330002 }
+      ]
+      f35.value = emitWireMessage(newF35)
+      f503!.value = emitWireMessage(f503m!)
+      f.value = emitWireMessage(comp)
+    }
+  }
+  // 5) 清除模板 t4 悬空回指 + 设置名字
+  tmpl = Buffer.from(remapVarintBytes(Buffer.from(emitWireMessage(tmplFields)), 1073741877, instanceId))
+  const tFields = parseWireMessage(tmpl)
+  if (!tFields) throw new Error('[error] invalid template after t4 set')
+  setTemplateInstanceListField(tFields, [instanceId])
+  tmpl = Buffer.from(emitWireMessage(tFields))
+  if (options.name !== undefined) tmpl = Buffer.from(setUiName(tmpl, options.name))
+  // 6) 创建骨架实例/组/关闭按钮
+  let inst = mk(BUILTIN_FP_INSTANCE, {
+    [FP2_SRC_INSTANCE]: instanceId,
+    [FP2_SRC_TEMPLATE]: T,
+    [FP2_SRC_GROUP]: groupId
+  })
+  const group = mk(BUILTIN_FP_GROUP, { [FP2_SRC_GROUP]: groupId, [FP2_SRC_CLOSEBTN]: closeBtnId })
+  const closeBtn = mk(BUILTIN_FP_CLOSEBTN, { [FP2_SRC_CLOSEBTN]: closeBtnId, [FP2_SRC_GROUP]: groupId })
+  if (options.name !== undefined) inst = Buffer.from(setUiName(inst, options.name))
+  // 7) 6 个内容页素材组（f503 成员 remap 到自身避免悬空）
+  const pageGroups = pageGroupIds.map((gid) => mk(RICH_PAGE_GROUP, { [1073741990]: gid, [1073741991]: gid }))
+  // 8) 页签容器（成员改为 [tabId]，去掉 tips/关闭按钮/页签2/图片 占位）
+  const tabContainer = mk(RICH_TAB_CONTAINER, {
+    [1073742007]: tabContainerId,
+    [1073742008]: tabId,
+    [1073742020]: tabContainerId,
+    [1073742021]: tabContainerId,
+    [1073742022]: tabContainerId,
+    [1073742023]: tabContainerId
+  })
+  const tcFields = parseWireMessage(tabContainer)
+  if (!tcFields) throw new Error('[error] invalid tab container')
+  const tcF503 = tcFields.find((x) => x.number === 503 && x.wire === 2)
+  if (tcF503) tcF503.value = encodePackedVarints([tabId])
+  // 9) 页签1（2305B，含 t47 6页签项 + t58 4状态）
+  const tab1 = mk(RICH_TAB_1, {
+    [1073742008]: tabId,
+    [1073742007]: tabContainerId,
+    [1073741990]: pageGroupIds[0],
+    [1073741992]: pageGroupIds[1],
+    [1073741995]: pageGroupIds[2],
+    [1073741998]: pageGroupIds[3],
+    [1073742001]: pageGroupIds[4],
+    [1073742004]: pageGroupIds[5],
+    [1073742009]: stateGroupIds[0],
+    [1073742011]: stateGroupIds[1],
+    [1073742014]: stateGroupIds[2],
+    [1073742017]: stateGroupIds[3]
+  })
+  // 10) 4 状态素材组
+  const stateGroups = [
+    mk(RICH_STATE_DEFAULT, { [1073742009]: stateGroupIds[0] }),
+    mk(RICH_STATE_HOVER, { [1073742011]: stateGroupIds[1] }),
+    mk(RICH_STATE_PRESSED, { [1073742014]: stateGroupIds[2] }),
+    mk(RICH_STATE_SELECTED, { [1073742017]: stateGroupIds[3] })
+  ]
+  // 11) 全部推入 root9
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 缺失')
+  const section = parseWireMessage(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] root9 段解析失败')
+  section.push({ number: 502, wire: 2, value: tmpl })
+  section.push({ number: 502, wire: 2, value: inst })
+  section.push({ number: 502, wire: 2, value: group })
+  section.push({ number: 502, wire: 2, value: closeBtn })
+  for (const pg of pageGroups) section.push({ number: 502, wire: 2, value: pg })
+  section.push({ number: 502, wire: 2, value: Buffer.from(tcFields ? emitWireMessage(tcFields) : tabContainer) })
+  section.push({ number: 502, wire: 2, value: tab1 })
+  for (const sg of stateGroups) section.push({ number: 502, wire: 2, value: sg })
+  // 12) 注册容器 + f501
+  appendToLayoutById(top, INST_CONTAINER_ID, instanceId)
+  const f501 = section.find((f) => f.number === 501 && f.wire === 2)
+  if (f501) {
+    const ids = parsePackedVarints(f501.value as Uint8Array)
+    for (const nid of [T, groupId, ...pageGroupIds, tabContainerId, tabId, ...stateGroupIds]) {
+      if (!ids.includes(nid)) ids.push(nid)
+    }
+    f501.value = encodePackedVarints(ids)
+  }
+  root9.value = emitWireMessage(section)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    templateId: T,
+    instanceId,
+    groupTemplateId: FP2_SRC_GROUP_T,
+    groupInstanceId: groupId,
+    closeButtonId: closeBtnId,
+    pageGroupIds,
+    tabContainerId,
+    tabId,
+    stateGroupIds
+  }
+}
