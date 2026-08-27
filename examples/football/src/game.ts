@@ -73,21 +73,11 @@ const graph = g
   })
   // ================================================================
   // 推球执行：弹球图（命中检测触发）发来 target，球被"踢"到前方目标点
-  // 球高速运动中（|v|>6，射门/长传）忽略推球（碰撞反射留后续版本）
+  // 2026-08-27 纯 auto 测试：临时禁用命中踢球（用户已改命中范围但日志仍触发 20 次），
+  // 只保留预测补偿自动触发路线，测完可恢复
   // ================================================================
   .onSignal(Signal.football_push, (evt, f) => {
-    const ball = f.getSelfEntity()
-    const hitPoint = evt.params.hitPoint
-    const speed = f._3dVectorModuloOperation(f.getNodeGraphVariable('ballVel').asType('vec3'))
-    f.doubleBranch(
-      f.greaterThan(speed, 8),
-      () => {},
-      () => {
-        // 冲量计算（玩家速率/朝向/球速投影 → Δv）→ 踢球入滚滑物理
-        const pc = f.callComposite(pushCompute, { hitPoint })
-        const rl = f.callComposite(kickApply, { e: ball, dV: pc.dV })
-      }
-    )
+    // 禁用：命中路线暂时关闭（纯 auto 测试）
   })
   // ================================================================
   // 物理：运动器停止事件链驱动（5Hz 状态机）
