@@ -98,7 +98,7 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     // physIntegrate 的输入来自图变量 get；若先写 ballVel 再消费 integ.*，
     // 引擎会按“每个消费点求值一次”重新积分 → 首段目标被二次重力拖到地下（球往草里扎）。
     const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), clampedPos, new bool(false)])
-    const ap = f.callComposite(physApplyMotion, { e, vel: integ.nvel, spin: integ.nspin })
+    const ap = f.callComposite(physApplyMotion, { e, vel: integ.nvel, spin: integ.nspin, grounded: new bool(false) })
     f.connect(setPos, 0, ap as never, 0)
     const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
     f.connect(ap as never, 0, setVel, 0)

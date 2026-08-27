@@ -37,29 +37,34 @@ export const motionToPoint = g.defineComposite('motion_to_point', {
 // 运动器被打断而滞后 ballPos，delta 被放大（20~35 m/s），引擎可能不驱动实体
 // → 实体更滞后 → 恶性循环。改成直接用逻辑球速，速度恒在正常范围，实体正常被驱动。
 export const motionByVel = g.defineComposite('motion_by_vel', {
-  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' } },
+  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' }, grounded: { type: 'bool' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ e, vel }, f) => {
-    // 水平速度 = vel（逻辑球速），垂直速度 = 拉回地面（0.25=0.25）
-    // 2026-08-27 日志实证：球 y=5.7 进入滚动后，vel.y=0 导致永不下落→"空中滚动"
+  build: ({ e, vel, grounded }, f) => {
+    const vx = f.split3dVector(vel).xComponent
+    const vz = f.split3dVector(vel).zComponent
+    const velY = f.split3dVector(vel).yComponent
+    // grounded=true（贴地滚动）：垂直速度 = 拉回地面（0.25），治"空中滚动"（2026-08-27 实证球 y=5.7 不下落）
+    // grounded=false（飞行/射门）：保留 vel.y——否则飞行垂直速度被覆盖，球永远 y=0.25 飞不起来
     const loc = f.getEntityLocationAndRotation(e).location
     const lp = f.split3dVector(loc)
     const dy = f.subtraction(new float(0.25), lp.yComponent)
     const vyRaw = f.division(dy, new float(0.2))
-    // clamp vy 到 [-5, 5]（最大 1m/tick 下降，避免超限引擎忽略）
     const vyFloor = f.division(f.addition(f.subtraction(vyRaw, new float(5)), f.absoluteValueOperation(f.addition(vyRaw, new float(5)))), 2)
-    const vy = f.division(f.subtraction(f.addition(vyFloor, new float(5)), f.absoluteValueOperation(f.subtraction(vyFloor, new float(5)))), 2)
-    const vx = f.split3dVector(vel).xComponent
-    const vz = f.split3dVector(vel).zComponent
-    const fullVel = f.create3dVector(vx, vy, vz)
-    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-      e,
-      new str('physics'),
-      new float(0.2),
-      fullVel
-    ])
-    f.outflow('done', tail, 0)
+    const vyGround = f.division(f.subtraction(f.addition(vyFloor, new float(5)), f.absoluteValueOperation(f.subtraction(vyFloor, new float(5)))), 2)
+    f.doubleBranch(
+      grounded,
+      () => {
+        const fullVel = f.create3dVector(vx, vyGround, vz)
+        const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, new str('physics'), new float(0.2), fullVel])
+        f.outflow('done', tail, 0)
+      },
+      () => {
+        const fullVel = f.create3dVector(vx, velY, vz)
+        const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, new str('physics'), new float(0.2), fullVel])
+        f.outflow('done', tail, 0)
+      }
+    )
     return {}
   }
 })
