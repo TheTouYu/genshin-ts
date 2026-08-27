@@ -6,7 +6,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { EntityType } from 'genshin-ts/definitions/enum'
-import { motionSpin, motionToPoint } from './motion.js'
+import { motionByVel, motionSpin, motionToPoint } from './motion.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -233,13 +233,15 @@ const STATE_SLIDE = 3
 // 目标点由物理积分预计算（含地面/墙约束），球精确到达，不漂移不穿模
 // ================================================================
 export const physApplyMotion = g.defineComposite('phys_apply_motion', {
-  inputs: { e: { type: 'entity' }, pos: { type: 'vec3' }, spin: { type: 'vec3' } },
+  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' }, spin: { type: 'vec3' } },
   outputs: {},
   outflows: ['done'],
-  build: ({ e, pos, spin }, f) => {
+  build: ({ e, vel, spin }, f) => {
     const axis = f._3dVectorNormalization(spin)
     const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
-    const lin = f.callComposite(motionToPoint, { e, target: pos })
+    // 用逻辑球速驱动（motionByVel），不再 (target-实体位置)/0.2 反推：
+    // 实体位置滞后会放大 delta → 速度 20~35 超限 → 引擎不驱动 → 更滞后（恶性循环）
+    const lin = f.callComposite(motionByVel, { e, vel })
     const spn = f.callComposite(motionSpin, { e, axis, angVel })
     f.connect(lin as never, 0, spn as never, 0)
     f.outflow('done', spn as never, 0)
@@ -448,18 +450,18 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
         const bounceDead = f.lessThan(f.absoluteValueOperation(vv.yComponent), ROLL_BOUNCE_VY)
         f.doubleBranch(bounceDead, () => {
           const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
           f.connect(ss, 0, ap as never, 0)
           f.outflow('done', ap as never, 0)
         }, () => {
           const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
           f.connect(ss, 0, ap as never, 0)
           f.outflow('done', ap as never, 0)
         })
       }, () => {
         const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
-        const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+        const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
         f.connect(ss, 0, ap as never, 0)
         f.outflow('done', ap as never, 0)
       })
@@ -549,7 +551,7 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       f.outflow('done', sf, 0)
     }, () => {
       const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-      const ap = f.callComposite(physApplyMotion, { e, pos: posFinal, spin: spinFinal })
+      const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal })
       f.connect(ss, 0, ap as never, 0)
       f.outflow('done', ap as never, 0)
     })
@@ -713,7 +715,7 @@ export const kickApply = g.defineComposite('kick_apply', {
     // ② 写回 + 运动器（全部读物化快照，不再直接消费 integ.*）
     const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.getNodeGraphVariable('tmpPos').asType('vec3'), new bool(false)])
     f.connect(sTmpSpin, 0, setPos, 0)
-    const ap = f.callComposite(motionToPoint, { e, target: f.getNodeGraphVariable('tmpPos').asType('vec3') })
+    const ap = f.callComposite(motionByVel, { e, vel: f.getNodeGraphVariable('tmpVel').asType('vec3') })
     f.connect(setPos, 0, ap as never, 0)
     const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
     f.connect(ap as never, 0, setVel, 0)
@@ -760,7 +762,7 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
     f.connect(sTmpVel, 0, sTmpSpin, 0)
     const sPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.getNodeGraphVariable('tmpPos').asType('vec3'), new bool(false)])
     f.connect(sTmpSpin, 0, sPos, 0)
-    const ap = f.callComposite(physApplyMotion, { e, pos: f.getNodeGraphVariable('tmpPos').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3') })
+    const ap = f.callComposite(physApplyMotion, { e, vel: f.getNodeGraphVariable('tmpVel').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3') })
     f.connect(sPos, 0, ap as never, 0)
     const sVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
     f.connect(ap as never, 0, sVel, 0)

@@ -32,6 +32,26 @@ export const motionToPoint = g.defineComposite('motion_to_point', {
   }
 })
 
+// 按速度移动（0.2s 匀速直线运动器，速度 = 逻辑球速，不依赖实体位置）：
+// 2026-08-27 足球传导链铁证——用 (target-loc)/0.2 反推速度时，若实体位置因
+// 运动器被打断而滞后 ballPos，delta 被放大（20~35 m/s），引擎可能不驱动实体
+// → 实体更滞后 → 恶性循环。改成直接用逻辑球速，速度恒在正常范围，实体正常被驱动。
+export const motionByVel = g.defineComposite('motion_by_vel', {
+  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ e, vel }, f) => {
+    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+      e,
+      new str('physics'),
+      new float(0.2),
+      vel
+    ])
+    f.outflow('done', tail, 0)
+    return {}
+  }
+})
+
 // 匀速旋转运动器（axis 旋转轴 + angVel 角速度 °/s，duration 0.2s）
 // 球绕自旋轴 ω 视觉旋转；axis = ω 方向（世界轴=局部轴，因 ω 是旋转轴），angVel = |ω|·180/π
 export const motionSpin = g.defineComposite('motion_spin', {
@@ -62,7 +82,7 @@ export const motionSpin = g.defineComposite('motion_spin', {
 })
 
 // 瞬间移动（定点运动器 INSTANT 模式，复位用）
-// lockRotation=false 才会应用 targetRotation=(0,0,0)；true 是“锁定当前旋转”（日志 2832 实证：
+// lockRotation=false 才会应用 targetRotation=(0,0,0)；true 是"锁定当前旋转"（日志 2832 实证：
 // 复位后球仍保留上一段高吊的 z≈105.7° 朝向，导致后续横传的 local axis ≠ world axis，旋转方向错）
 export const motionInstant = g.defineComposite('motion_instant', {
   inputs: { e: { type: 'entity' }, location: { type: 'vec3' } },
