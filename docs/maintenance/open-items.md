@@ -576,3 +576,9 @@
 - O-2026-08-26-4：新节拍（planTick 0.15s / emitTick 1.8s / doneTick 0.7s）的完整自动还原日志 + perf 每秒负载复核未完成；通过后再评估 emitTick 调 1.5s 的空间。
 - O-2026-08-26-5：gsts 注入某图失败时不产生醒目失败摘要/非零退出码（2906 事故中 error 行被输出截断掩盖）——给 inject 管线加统一的 FAIL 计数与退出码，供脚本/模型可靠判断。
 - 观察项（2026-08-26）：rubik-3x3 game.ts 根回调 finiteLoop 内 registerExecNode（destroy_entity 等）与 turn.ts busyNop 同类形态但为既有工作代码、本轮无回归，未动；若未来再碰 `Generic parameter not matched` 按同法改成高层 API 或挪进复合。
+
+### O-2026-08-27-02 复合输出二次求值：编译器层自动物化/报错（防运动器速度翻倍类 bug）
+
+- 背景：`kickApply`/`physSlideTick` 中 `callComposite` 输出被 exec 链消费 ≥2 次、中间夹 set 图变量 → 引擎按消费点重新求值 → npos 翻倍 → 运动器速度=逻辑球速×2 → 球瞬移（足球实证，日志 2026-08-27_16-43-43；提交 73b0ca6/e463c1c）。
+- 已做（DSL 层）：复合作者手动物化 tmp* 快照防翻倍，技能 + PKC 已沉淀纪律。
+- 未闭合（编译器层）：能否在 `gs_to_ir`/`ir_to_gia` 检测"同一复合输出被 exec 链多个消费点引用且中间夹 set 图变量"并自动物化或报错——让复合作者无需手动 tmp*。属编译器改进方向，待设计。
