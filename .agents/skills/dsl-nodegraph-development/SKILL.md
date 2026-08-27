@@ -110,8 +110,8 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 
 ## 节点预算与膨胀模式
 
-- **游戏节点限制 = 单个节点图 3000**（2026-08-19 实证：4043 > 3000 拒载；口径 = 所有复合 impl **递归展开**节点总数，
-  复合实例计入其 impl 全部节点）。超限游戏启动失败，加载期错误不落日志。
+- **游戏节点限制 = 单个节点图 2000**（2026-08-27 用户更正：不是 3000；引擎在 3000+ 拒载——4043/3270 实证——但生产红线是单图 ≤2000。
+  口径 = 所有复合 impl **递归展开**节点总数，复合实例计入其 impl 全部节点）。超限游戏启动失败，加载期错误不落日志。
 - **预算检查命令（可复用）**：`gsts assets:node-graphs nodes --gil map.gil [--json]`
   ——输出所有 impl 展开之和、主图展开、最大贡献者排序、是否达标；`--json` 供脚本消费。
   （原语：`src/cli/static_assembly/graph_edit.ts` 的 `compositeNodeBudget`）

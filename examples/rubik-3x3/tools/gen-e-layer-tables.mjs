@@ -14,8 +14,8 @@
 // 宏集（来自 second-layer-solver.js 的 F2L 插入/提取公式，全部保持第一层）：
 //   - U/U2/U' 三单转（只动 U 层）
 //   - 每个 E 槽 1 条提取公式（槽内棱 → U 层）
-//   - 每个 E 槽 2 条插入公式 × 4 个 U 预转（U 层棱 → 槽内）
-// 共 3 + 4 + 32 = 39 条；BFS 找每个 (mask, state) 到目标的最短首步宏。
+//   - 每个 E 槽 2 条插入公式（U 层棱 → 槽内，公式自带起始 U/U'；其他 U 位置由 BFS 用 U 单转拼）
+// 共 3 + 4 + 8 = 15 条（省节点预算：不展开 4 个 U 预转变体）；BFS 找每个 (mask, state) 到目标的最短首步宏。
 import { createRequire } from 'node:module'
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -64,17 +64,12 @@ const EDGE_EXTRACT = {
   10: "B U B' U' R' U' R U",
   11: "B' U' B U L U L' U'",
 }
-const PRE = ['', 'U', 'U2', "U'"]
-
 const macros = []
 for (const c of [0, 1, 2]) macros.push({ codes: [c], slot: null, kind: 'U' })
 for (const s of [8, 9, 10, 11]) macros.push({ codes: algToCodes(EDGE_EXTRACT[s]), slot: s, kind: 'extract' })
 for (const s of [8, 9, 10, 11]) {
   for (const alg of EDGE_INSERT[s]) {
-    for (const pre of PRE) {
-      const full = pre ? pre + ' ' + alg : alg
-      macros.push({ codes: algToCodes(full), slot: s, kind: 'insert' })
-    }
+    macros.push({ codes: algToCodes(alg), slot: s, kind: 'insert' })
   }
 }
 const maxLen = Math.max(...macros.map(m => m.codes.length))
@@ -126,8 +121,8 @@ function buildEPolicy() {
 const { P: policy, unfilled } = buildEPolicy()
 console.log('macros:', macros.length, 'maxLen:', maxLen, 'policy unfilled:', unfilled, '/', 16 * 24)
 if (unfilled > 0) {
-  console.log('WARN: 有不可达/未填充 policy 项，需核对')
-  for (let mask = 0; mask < 16; mask++) for (let st = 0; st < 24; st++) {
+  // mask=15（全部已解）不会被查询；其余只允许 D 层位置(4..7)不可达
+  for (let mask = 0; mask < 15; mask++) for (let st = 0; st < 24; st++) {
     const idx = mask * 24 + st
     if (policy[idx] < 0 && (st >> 1) < 4) console.log('  unexpected unfilled mask=' + mask + ' st=' + st)
   }
