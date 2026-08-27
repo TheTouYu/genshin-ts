@@ -112,3 +112,32 @@
 **流程优化（下次先做）**：
 - 对 which=14（发送信号/监听信号）复合：区分"信号节点"与"复合封装"，批量信号注册是这类资产的共性需求
 - 登记样本时先跑全资产 --summary 聚合（几秒），再挑 1-2 张主图深究
+
+---
+
+### 样本4：教程UI系统_多级切换.gia（2026-08-27）
+
+- 性质：多级教程 UI 系统（922 单元：主图 214 节点 + 打开教程入口图 + 控件模板 related=735 巨型控件树 + 教程角落素材容器）
+- 探索方式：SOP 全流程（inventory → parse-gia-graphs --summary/明细 → DSL 支持确认）——工具就绪后显著加快
+
+**做得好（可复用模式）**：
+1. **教程多级切换 = Update Floating Interaction Page List Data ×15**：主图以「悬浮页列表数据更新」为核心驱动多级教程内容；配合 Show Floating Page ×2 / Close ×1 / When Floating Interaction Page is Triggered 完成开-切-关闭环
+2. **新事件 When Tab Is Selected（页签选中触发，con=307）**：教程打开入口——页签点击进节点图，DSL whenTabIsSelected 已支持（events.ts:278）
+3. 商业级图数据操作：节点图变量 Get/Set ×62、Assembly List ×43、列表运算（长度/最大/最小/搜索/有限循环/List Iteration Loop）、字典 ×7
+4. 教程进度用节点图变量记录（43+19 读写 + When Node Graph Variable Changes 事件）
+
+**覆盖（现有能力已支持）**：
+- DSL：whenTabIsSelected / show+close+updateFloatingInteractionPage / 列表字典 / 变量
+- CLI：assets:ui floating-page 骨架 + variables list（富版待做——该资产证明列表更新是真实商业需求）
+
+**缺陷（登记）**：
+- 缺陷8：控件模板 related=735 巨型控件树——CLI list 性能/输出格式未针对这种规模验证（922 单元对应 735 子记录）
+- 缺陷9：Assembly List ×43 + Update List Data ×15 的组合模式 = 「列表内容定义 → 批量推送」——CLI 若支持"列表数据模板"会大幅简化此类资产复刻
+
+**不清楚（待探索）**：
+- 打开教程入口图里 1073741826（复合）的具体作用（Multiple Branches case 分支后调什么）
+- When Tab Is Selected 的 payload 参数（哪个页签/列表索引）——events-payload 可查但未细读
+- 教程节点图挂载对象（[玩家]前缀 → 玩家图？）
+
+**流程优化（已验证 SOP 提速）**：
+- .gia 资产现在 3 步出结论（inventory → parse-gia-graphs → DSL grep），无需手写脚本
