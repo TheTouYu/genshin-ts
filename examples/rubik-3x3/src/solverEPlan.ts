@@ -203,6 +203,16 @@ const graph = g
           f.callComposite(solverStartEPlanTick, { target: f.getSelfEntity() })
         }, () => {})
       },
+      12: () => {
+        // tab-auto 重新武装：本图让位（solverPlan 会从 stage 0 重启），避免双规划器并发
+        f.setNodeGraphVariable('phase', new int(0), false)
+        f.setNodeGraphVariable('pStep', new int(0), false)
+      },
+      8: () => {
+        // 重置：本图停摆（solverPlan 同样不处理 op8，保持现状）
+        f.setNodeGraphVariable('phase', new int(0), false)
+        f.setNodeGraphVariable('pStep', new int(0), false)
+      },
       default: () => {}
     })
   })
