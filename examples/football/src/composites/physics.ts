@@ -821,17 +821,8 @@ export const autoCheckTick = g.defineComposite('auto_check_tick', {
     f.doubleBranch(
       autoK.kick,
       () => {
-        // 埋点：预测距离/实际距离/玩家速度/球速（数据驱动调优）
-        const tg1 = f.callComposite(dbgTag, { tag: new str('KICK_PRED'), val: f.dataTypeConversion(autoK.predDist, 'str') })
-        const tg2 = f.callComposite(dbgTag, { tag: new str('KICK_NOW'), val: f.dataTypeConversion(autoK.distNow, 'str') })
-        f.connect(tg1 as never, 0, tg2 as never, 0)
-        const tg3 = f.callComposite(dbgTag, { tag: new str('KICK_VP'), val: f.dataTypeConversion(autoK.vP, 'str') })
-        f.connect(tg2 as never, 0, tg3 as never, 0)
-        const tg4 = f.callComposite(dbgTag, { tag: new str('KICK_VB'), val: f.dataTypeConversion(autoK.vB, 'str') })
-        f.connect(tg3 as never, 0, tg4 as never, 0)
         const pc = f.callComposite(pushCompute, { hitPoint: pos })
         const rl = f.callComposite(kickApply, { e, dV: pc.dV })
-        f.connect(tg4 as never, 0, rl as never, 0)
         f.outflow('done', rl as never, 0)
       },
       () => {
