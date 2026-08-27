@@ -5,6 +5,13 @@
 > 方法：先手选典型样本逐个完整探索（容错高）→ 试点成熟后写批量脚本覆盖 → 对异常点单独探索
 > 评估基准：[能力覆盖全景](../capability-coverage-map.md)（官方指南 A/B/C/D/E 五构成块 + 联动；20 控件类型清单）
 
+## 探索 SOP（3 样本固化，2026-08-27）
+
+- **.gil 关卡**：list-gil-node-graphs（图全景）→ assets:ui list --gil（UI 记录）→ wire-inspect --type 13/55/42（结构定位）→ explain 关键图 → 触发 ID 回查
+- **.gia 资产**：inventory-gia-units（单元盘点）→ parse-gia-graphs --summary（图节点聚合）→ wire-inspect --find（记录定点）
+- **工具**：tools/wire-inspect.ts（通用 wire 检查：--list/--type/--find/--packed）| tools/parse-gia-graphs.ts（.gia 图节点）| tools/inventory-gia-units.ts（.gia 单元盘点）
+- 每样本登记五栏：做得好 / 覆盖 / 缺陷 / 不清楚 / 流程优化
+
 ## 登记条目
 
 ---
