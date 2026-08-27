@@ -646,3 +646,9 @@
   - whenEntityIsCreated 里直接 startTimer 注册是否真的丢失（setTimeout 延迟是规避还是必要）——未做对照实验确认；
   - 4fef286 push_lock 触发也调 autoCheckTick 的结构问题（888df04 已重写，未深挖为什么）；
   - 命中检测路线（onSignal 禁用中）后续是否恢复。
+
+### O-2026-08-27-05 编译器：复合输出 pin 缺失（push_auto_check predDist 输出 = |rolePos|）
+
+- 铁证（22-55-56 日志 + parse push_auto_check impl）：kick 判定用 n=11（正确 predDist），但 predDist **输出**用 n=13，其输入 n=12 Subtraction 第二个输入 present=False（缺失）→ 输出 = |rolePos|。
+- 影响：仅该输出值错误（埋点/外部消费），kick 功能正常。
+- 待办：构造最小复现（单一复合多 float 输出、一个减法缺减数）判断是否编译器通用缺陷；检查同族复合输出（distNow/vP/vB）。

@@ -66,6 +66,21 @@
 - [ ] 命中检测路线（onSignal 禁用中）后续是否恢复
 - [ ] build 并发方案：dist.tmp 固定名，两人同时编译仍冲突（用户接受"仔细使用"）
 
+
+## 七、后继发现：编译器复合输出 pin 缺失（2026-08-27 数据采集时定位）
+
+**现象**：KICK_PRED 埋点输出值 3.5~40.9 全部"触发"，与 kick 条件（predDist<3）矛盾。
+
+**铁证**（push_auto_check impl 图）：
+- kick 判定用 n=11 Modulo（|predBall−predPlayer|，正确 predDist）
+- predDist **输出**用 n=13 Modulo，其输入 n=12 Subtraction 的**第二个输入 pin present=False（缺失）**→ 输出 = |rolePos|（不完整的减法）
+
+**结论**：编译器在复合输出映射时，predDist 输出（n=13）未连到正确的 predDist 计算（n=11），连到了缺输入的 n=12。**功能不受影响**（kick 判定用 n=11 正确路径），只影响该输出值的埋点/外部消费。
+
+**同族扩展**：push_auto_check 输出 distNow（n=?）是否也受影响？autoCheckTick 已移除埋点，暂不验证。其他复合输出（kick_apply 等）此前已物化修复，本 bug 疑似独立的"复合输出 pin 未连接"类型。
+
+**待办**：登记 open-items；构造最小复现（单一复合多 float 输出，其中一个减法缺减数）判断是否编译器通用缺陷。
+
 ## 六、产出清单
 
 - 修复：autoCheckTick 独立定时器（fa1af6e）→ 结构重写（888df04）→ 单位修复（ada095c）
