@@ -1660,9 +1660,45 @@ export type ButtonStateInfo = {
   hasMaterial: boolean
 }
 
-const BUTTON_STATE_NAMES = ['常态', '悬停', '按下', '状态4(候选选中/保留)']
+const BUTTON_STATE_NAMES = ['常态', '悬停', '按下', '禁用']
+const TAB_STATE_NAMES = ['常态', '悬停', '按下', '选中']
 
-/** 取记录的 t50 组件状态块（无则返回 null） */
+/**
+ * 从"状态容器"消息提取状态块（块特征 = 含 f503/f504 子对，字段号 501..504 排序）。
+ * 两种布局（2026-08-27 学习资产实读）：
+ *   A 打包式（自定义按钮 1853 型）：容器.f503 = 4 块连接
+ *   B 展开式（关闭按钮 2021 型）：容器顶层直接 4 块（f502 可能是 config 也可能是块——按块特征过滤）
+ */
+function extractStateBlocks(container: WireField[] | undefined): Uint8Array[] {
+  if (!container) return []
+  const isBlock = (m: WireField[] | undefined): boolean =>
+    m !== undefined &&
+    m.some((x) => x.number === 503 && x.wire === 2) &&
+    m.some((x) => x.number === 504 && x.wire === 2)
+  // 1) 展开式：顶层直接多个块（字段号 501..504 各一块；config 等字段会被 isBlock 过滤掉）
+  const direct = container
+    .filter((x) => x.wire === 2 && isBlock(parseWireMessage(x.value as Uint8Array)))
+    .map((x) => ({ number: x.number, value: x.value as Uint8Array }))
+  if (direct.length >= 2) {
+    direct.sort((a, b) => a.number - b.number)
+    return direct.map((x) => x.value)
+  }
+  // 2) 打包式：f503 是块容器（内部多个块）
+  const packed = container.find((x) => x.number === 503 && x.wire === 2)
+  const packedM = packed ? parseWireMessage(packed.value as Uint8Array) : undefined
+  const found: Array<{ number: number; value: Uint8Array }> = []
+  if (packedM) {
+    for (const st of packedM) {
+      if (st.wire !== 2) continue
+      const stM = parseWireMessage(st.value as Uint8Array)
+      if (isBlock(stM)) found.push({ number: st.number, value: st.value as Uint8Array })
+    }
+  }
+  found.sort((a, b) => a.number - b.number)
+  return found.map((x) => x.value)
+}
+
+/** 取记录的状态块：按钮 t50 或页签 t58（2026-08-27 学习资产实读双组件支持） */
 export function listButtonStates(bytes: Uint8Array, buttonId: number): ButtonStateInfo[] {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
@@ -1676,41 +1712,59 @@ export function listButtonStates(bytes: Uint8Array, buttonId: number): ButtonSta
   if (!rec) throw new Error(`[error] 记录 ${buttonId} 不存在`)
   const m = parseWireMessage(rec.value as Uint8Array)
   if (!m) throw new Error('[error] invalid record')
+  let blocks: Uint8Array[] = []
+  let stateNames = BUTTON_STATE_NAMES
   for (const f of m) {
     if (f.number !== 505 || f.wire !== 2) continue
     const comp = parseWireMessage(f.value as Uint8Array)
     if (!comp) continue
-    if (comp.find((x) => x.number === 502 && x.wire === 0)?.value !== 50) continue
-    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
-    const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
-    const f43 = f503m?.find((x) => x.number === 43 && x.wire === 2)
-    const f43m = f43 ? parseWireMessage(f43.value as Uint8Array) : undefined
-    const states = f43m?.find((x) => x.number === 503 && x.wire === 2)
-    const statesM = states ? parseWireMessage(states.value as Uint8Array) : undefined
-    if (!statesM) return []
-    const out: ButtonStateInfo[] = []
-    let idx = 0
-    for (const st of statesM) {
-      if (st.wire !== 2) continue
-      const stM = parseWireMessage(st.value as Uint8Array)
-      if (!stM) continue
-      // 素材引用在 block.f501 = {f2:1, f3:8, f4: 素材组ID}（2026-08-27 实读确认，无 f504 层）
-      let materialGroupId: number | null = null
-      const f501 = stM.find((x) => x.number === 501 && x.wire === 2)
-      if (f501) {
-        const f501m = parseWireMessage(f501.value as Uint8Array)
-        const f4 = f501m?.find((x) => x.number === 4 && x.wire === 0)?.value
-        if (typeof f4 === 'number' && f4 !== 0) materialGroupId = f4
+    const compType = comp.find((x) => x.number === 502 && x.wire === 0)?.value
+    if (compType === 50) {
+      // 按钮 t50：f503.f43 → 状态容器（打包或展开）
+      const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+      const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+      const f43 = f503m?.find((x) => x.number === 43 && x.wire === 2)
+      const f43m = f43 ? parseWireMessage(f43.value as Uint8Array) : undefined
+      const found = extractStateBlocks(f43m)
+      if (found.length > 0) {
+        blocks = found
+        stateNames = BUTTON_STATE_NAMES
+        break
       }
-      out.push({
-        index: idx,
-        stateName: BUTTON_STATE_NAMES[idx] ?? `状态${idx + 1}`,
-        materialGroupId,
-        hasMaterial: materialGroupId !== null
-      })
-      idx += 1
+    } else if (compType === 58) {
+      // 页签 t58：f503.f48.f501 = 状态容器
+      const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+      const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+      const f48 = f503m?.find((x) => x.number === 48 && x.wire === 2)
+      const f48m = f48 ? parseWireMessage(f48.value as Uint8Array) : undefined
+      const f501 = f48m?.find((x) => x.number === 501 && x.wire === 2)
+      const f501m = f501 ? parseWireMessage(f501.value as Uint8Array) : undefined
+      const found = extractStateBlocks(f501m)
+      if (found.length > 0) {
+        blocks = found
+        stateNames = TAB_STATE_NAMES
+        break
+      }
     }
-    return out
   }
-  return []
+  const out: ButtonStateInfo[] = []
+  for (let idx = 0; idx < blocks.length; idx++) {
+    const stM = parseWireMessage(blocks[idx])
+    if (!stM) continue
+    // 素材引用在 block.f501 = {f2:1, f3:8, f4: 素材组ID}（2026-08-27 实读确认，无 f504 层）
+    let materialGroupId: number | null = null
+    const f501 = stM.find((x) => x.number === 501 && x.wire === 2)
+    if (f501) {
+      const f501m = parseWireMessage(f501.value as Uint8Array)
+      const f4 = f501m?.find((x) => x.number === 4 && x.wire === 0)?.value
+      if (typeof f4 === 'number' && f4 !== 0) materialGroupId = f4
+    }
+    out.push({
+      index: idx,
+      stateName: stateNames[idx] ?? `状态${idx + 1}`,
+      materialGroupId,
+      hasMaterial: materialGroupId !== null
+    })
+  }
+  return out
 }
