@@ -10,6 +10,7 @@ import { resyncMap } from './maps.js'
 import {
   cloneTemplate,
   cloneUiControl,
+  createFloatingPage,
   createUiControl,
   createUiImageControl,
   createUiTemplate,
@@ -39,7 +40,7 @@ function usage(exitCode = 1): never {
     '',
     '  list: gsts assets:ui list [--gil <file>] [--format json]',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
-    '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image --id <new-id> [options]',
+    '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [options]',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
   '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
@@ -144,8 +145,8 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--size') size = parseVector2(value(argv, index++), '--size')
     else if (arg === '--type') {
       const raw = value(argv, index++)
-      if (raw !== 'textbox' && raw !== 'interactive-button' && raw !== 'custom-button' && raw !== 'image') {
-        throw new Error('[error] --type must be textbox, interactive-button, custom-button or image')
+      if (raw !== 'textbox' && raw !== 'interactive-button' && raw !== 'custom-button' && raw !== 'image' && raw !== 'floating-page') {
+        throw new Error('[error] --type must be textbox, interactive-button, custom-button, image or floating-page')
       }
       createType = raw
     } else if (arg === '--asset') assetId = nonNegativeId(value(argv, index++), '--asset')
@@ -159,7 +160,7 @@ function parseArgs(argv: readonly string[]) {
   if (command === 'clone' && targetId === undefined) throw new Error('[error] clone requires <source-id>')
   if (command === 'clone' && newId === undefined) throw new Error('[error] clone requires --id <new-id>')
   if (command === 'create' && createType === undefined)
-    throw new Error('[error] create requires --type <textbox|interactive-button|custom-button|image>')
+    throw new Error('[error] create requires --type <textbox|interactive-button|custom-button|image|floating-page>')
   if (command === 'create' && createType === 'image' && assetId === undefined)
     throw new Error('[error] create --type image requires --asset <素材索引ID>')
   if (command === 'create' && newId === undefined) throw new Error('[error] create requires --id <new-id>')
@@ -368,6 +369,43 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
 
   if (args.command === 'create') {
+    if (args.createType === 'floating-page') {
+      const result = createFloatingPage(sourceBytes, {
+        id: args.newId!,
+        ...(args.name !== undefined ? { name: args.name } : {})
+      })
+      const summary: Record<string, unknown> = {
+        schemaVersion: 1,
+        kind: 'ui-create-floating-page',
+        sourceSha256: sourceHash,
+        templateId: result.templateId,
+        instanceId: result.instanceId,
+        groupTemplateId: result.groupTemplateId,
+        groupInstanceId: result.groupInstanceId
+      }
+      const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+      log2(`templateId=${result.templateId}`)
+      log2(`instanceId=${result.instanceId}`)
+      log2(`groupTemplateId=${result.groupTemplateId}`)
+      log2(`groupInstanceId=${result.groupInstanceId}`)
+      summary.candidateSha256 = sha256(result.bytes)
+      log2(`candidateSha256=${sha256(result.bytes)}`)
+      if (args.outputPath) {
+        summary.candidate = writeNew(args.outputPath, result.bytes)
+        log2(`candidate=${summary.candidate}`)
+      } else if (args.write) {
+        const mapId = projectConfig?.inject?.mapId
+        summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+        summary.writePerformed = true
+        log2(`backup=${summary.backup}`)
+        log2('writePerformed=true')
+      } else {
+        summary.previewOnly = true
+        log2('preview only; use --write to apply after backup, or --output for a candidate')
+      }
+      if (jsonMode) process.stdout.write(prettyStableJson(summary))
+      return
+    }
     const result =
       args.createType === 'image'
         ? createUiImageControl(sourceBytes, {
