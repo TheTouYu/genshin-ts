@@ -19,7 +19,7 @@ const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
-const ROLL_DECEL = 2.2 // 滚动匀减速（m/s²）：VKICK=3.5 时滚 ~2.8m 停 ~1.6s（几秒追上再踢）
+const ROLL_DECEL = 0.7 // 滚动匀减速（m/s²）：弱减速，球慢慢降下来多滚一会（几秒追平）
 const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
@@ -617,9 +617,10 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK_TARGET = 3.5 // 冲量目标球速（m/s）：施加冲量后球速应到的参考值
-const DV_MIN = 1.0 // 最小冲量（追球轻触）
-const DV_MAX = 4.5 // 最大冲量（球反向滚时纠正）
+const VKICK_ADD = 1.5 // 球速 = 玩家速率 + 该领先量（球略快于玩家，拉开后几秒被追上）
+const VKICK_MIN = 3.0 // 球速下限（玩家静止/慢走也能滚起来）
+const DV_MIN = 0.8 // 最小冲量（追球轻触）
+const DV_MAX = 5.0 // 最大冲量（球反向滚时纠正）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -653,12 +654,19 @@ export const pushCompute = g.defineComposite('push_compute', {
     const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const dir = f.create3dVector(sinY, 0, cosY)
-    // 施加冲量：Δv = clamp(VKICK_TARGET − vB, DV_MIN, DV_MAX)
-    // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈3.5（大冲量）、
-    // 追球 vB 大 → Δv 小（轻触）；球反向滚 → Δv 上限 4.5（纠正）
+    // 玩家速率（官方节点：需角色挂「监听移动速率」单位状态效果）
+    const spd = f.queryCharacterSCurrentMovementSpd(role.role)
+    const vP = spd.currentSpeed
+    // 目标球速 = max(vP + VKICK_ADD, VKICK_MIN)，施加冲量 Δv = clamp(目标 − vB, DV_MIN, DV_MAX)
+    // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈目标（大）、追球 vB 大 → Δv 小（轻触）
     const ballVel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const vB = f._3dVectorDotProduct(ballVel, dir)
-    const dvRaw = f.subtraction(VKICK_TARGET, vB)
+    const targetRaw = f.addition(vP, VKICK_ADD)
+    const target = f.division(
+      f.addition(f.addition(targetRaw, VKICK_MIN), f.absoluteValueOperation(f.subtraction(targetRaw, VKICK_MIN))),
+      2
+    )
+    const dvRaw = f.subtraction(target, vB)
     const dvFloor = f.division(
       f.addition(f.addition(dvRaw, DV_MIN), f.absoluteValueOperation(f.subtraction(dvRaw, DV_MIN))),
       2
