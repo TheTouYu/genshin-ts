@@ -77,6 +77,25 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-27-04 求解执行器定时器叠加（同秒 3 面转，2931 实测）
+
+- 证据：2931 日志 sec454 内 rec93/97/101 三个完整面转（89KB×3）同秒连续执行，无 emitTick 1.52s 间隔——节拍失控。
+- 候选根因：solveBuf 残留导致序列变长/错误步 → 执行时间错乱；或多次 op6 导致多个 preTick 定时器叠加。
+- 期望形态：solveBuf 清空修复（abd3673）后复测；若仍复发，执行器 op6 处理需防重入（新序列到达时清理/跳过旧定时器）。
+- 何时做：用户复测 2932+ 日志确认后。
+
+### O-2026-08-27-05 solve_len=16 但有效 moveId 少于 16（solverAppendCode sl 表达式二次物化候选）
+
+- 证据：2931 solve_seq 发布 solve_len=16 但前 16 个值混入 8 个残留 -1；0403 执行序列中无对应 8 连 -1 展开。
+- 候选根因：solverAppendCode 中 sl=getNodeGraphVariable(solveLen) 表达式在 finiteLoop 内被二次求值（已知 DSL 坑），或 steps 读取错位。
+- 何时做：复测后若 mask 仍异常再深挖；当前 solveBuf 清空已消除残留读数。
+
+### O-2026-08-27-06 solverCornerMask 的 c4..c7 输入参数未使用（hardcode 4/5/6/7）
+
+- 证据：solverCore.ts solverCornerMask 的 build 内 bit() 硬编码 4n/5n/6n/7n，c4..c7 输入未引用。
+- 影响：当前调用方固定传 4/5/6/7，功能正常；属代码质量/误导风险。
+- 何时做：下次 solverCore 改动窗口顺手清理。
+
 ### O-2026-08-27-01 编译器 optimize_timer_dispatch 有 default 分支的 >10 case dispatch 不 chunking → 静默截断
 
 - 证据（2026-08-27 3×3 整转回归）：src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts 的

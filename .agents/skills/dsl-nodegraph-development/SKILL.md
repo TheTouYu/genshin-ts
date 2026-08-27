@@ -153,6 +153,11 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
   时 >10 case 原样进 GIA 被引擎截断（日志 2927：orbit22/orbit23 事件 → default 空操作，整转后 12 块缺二段运动）。
   写图规则：**数清一张根图 multipleBranches 的命名 case ≤10**；超限时合并分支（如整转 orbit 批量 4→2）
   或拆成多个 MB/复合，不能硬加 case。docs/architecture/composite/control-flow-api-cookbook.md 已闭合该上限。
+- **重置计数型缓冲必须清空数组（2026-08-27 3×3 solveBuf 残留实锤）**：「预分配数组 + 长度计数 + set_list_value 覆盖追加」
+  模式重置时**只改长度计数不够**——新序列展开步数少于旧序列时，数组尾部残留旧元素，发布时被读成长度内
+  的有效步 → 执行错误步骤。症状：求解 mask 在 2↔3 振荡不收敛、同一序列反复执行（日志 2931）。
+  修复模板：新增清空复合（finiteLoop 0..N-1 set_list_value 0），在**所有**重置入口（op5/op12/阶段切换）
+  的 solveLen=0 后调用。教训：`set_list_value` 是覆盖写，但不是清空；长度计数与数组内容两套状态必须同步。
 - **循环体只物化 1 次**：finite_loop 循环体 1 份（2400→240 节点，P4 实证）。
 - **capture 字典机制**：每个 setTimeout 回调的捕获变量 = set_or_add + get_corresponding 链（~6 节点/回调）；
   回调越多越贵。
