@@ -619,12 +619,11 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK_BASE = 2.0 // 球速 = VKICK_BASE + VKICK_COEF·vP（随玩家缓增）
-const VKICK_COEF = 0.4 // 玩家速率系数
-const VKICK_MIN = 2.5 // 球速下限
-const VKICK_MAX = 4.5 // 球速硬上限（焊死：任何情况球速不超 4.5，绝不"子弹/瞬移"）
+const VKICK_ADD = 1.5 // 球速 = vP + VKICK_ADD（球比玩家快，跟得上；运动器已修复不再瞬移）
+const VKICK_MIN = 3.0 // 球速下限
+const VKICK_MAX = 7.0 // 球速上限（玩家冲刺 8 时球 9.5→clamp 7，正常速度不超限）
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
-const DV_MAX = 4.5 // 最大冲量（球反向滚纠正，同球速上限）
+const DV_MAX = 7.0 // 最大冲量（同球速上限）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -665,7 +664,7 @@ export const pushCompute = g.defineComposite('push_compute', {
     // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈目标（大）、追球 vB 大 → Δv 小（轻触）
     const ballVel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const vB = f._3dVectorDotProduct(ballVel, dir)
-    const targetRaw = f.addition(VKICK_BASE, f.multiplication(vP, VKICK_COEF))
+    const targetRaw = f.addition(vP, VKICK_ADD)
     // max(targetRaw, VKICK_MIN)
     const targetFloor = f.division(
       f.addition(f.addition(targetRaw, VKICK_MIN), f.absoluteValueOperation(f.subtraction(targetRaw, VKICK_MIN))),

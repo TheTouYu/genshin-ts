@@ -41,11 +41,23 @@ export const motionByVel = g.defineComposite('motion_by_vel', {
   outputs: {},
   outflows: ['done'],
   build: ({ e, vel }, f) => {
+    // 水平速度 = vel（逻辑球速），垂直速度 = 拉回地面（0.25=0.25）
+    // 2026-08-27 日志实证：球 y=5.7 进入滚动后，vel.y=0 导致永不下落→"空中滚动"
+    const loc = f.getEntityLocationAndRotation(e).location
+    const lp = f.split3dVector(loc)
+    const dy = f.subtraction(new float(0.25), lp.yComponent)
+    const vyRaw = f.division(dy, new float(0.2))
+    // clamp vy 到 [-5, 5]（最大 1m/tick 下降，避免超限引擎忽略）
+    const vyFloor = f.division(f.addition(f.subtraction(vyRaw, new float(5)), f.absoluteValueOperation(f.addition(vyRaw, new float(5)))), 2)
+    const vy = f.division(f.subtraction(f.addition(vyFloor, new float(5)), f.absoluteValueOperation(f.subtraction(vyFloor, new float(5)))), 2)
+    const vx = f.split3dVector(vel).xComponent
+    const vz = f.split3dVector(vel).zComponent
+    const fullVel = f.create3dVector(vx, vy, vz)
     const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       e,
       new str('physics'),
       new float(0.2),
-      vel
+      fullVel
     ])
     f.outflow('done', tail, 0)
     return {}
