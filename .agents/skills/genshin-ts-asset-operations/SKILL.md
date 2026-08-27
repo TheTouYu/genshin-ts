@@ -26,6 +26,11 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 列出/解析用户地图的元件资源与摆放实体 | **本技能**（`assets:resources list`） |
 | 创建/转化 静态/动态元件 | **本技能**（`assets:prefabs create [--static]`） |
 | 未知 wire 规则 / 编辑器 A/B 差分 | `editor-incremental-gia-investigator`（本技能假设规则已闭合） |
+- **UI 控件创建最小增量红线（2026-08-27 富版贪心事故后强制）**：
+  - 任何 UI 控件创建实现，必须先有「编辑器能产生的最小形态」的完整 wire 知识（落盘到 ui-controls.md）；
+  - 知识不足（记录标「待差分」/只有复杂样本）→ **禁止直接复用复杂样本 hex**，先申请用户做 10 秒编辑器最小实验（加最小控件→保存→提取 wire→落盘）；
+  - 实现顺序 = 最小单元（1 个）→ 逐个加状态/页签项/内容组，每步候选验证 + 用户核验后再增量；
+  - 禁止一次性实现含多状态/多页签项/未闭合字段的「完整版」并写回真实地图。
 
 ## 启动路由
 
