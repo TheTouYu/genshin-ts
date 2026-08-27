@@ -185,7 +185,7 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 | capture 支持 | str/int/bool/float/entity/vec3 等字面可推断类型；不支持 dict/复合结果 |
 | 字典 key | 必须 int/str 等键类型；传 float 报 `Invalid value type: int` |
 | 列表下标 | `getCorrespondingValueFromList` **0-based**（1..N 会越界返回空） |
-| 全 0 int_list 图变量 | **引擎运行时只物化出很短长度**（日志 2765 实证：`cornerOrient` 声明 8 个 0 → 运行时 `[0,0]`；`edgeOrient` 声明 12 个 0 → 运行时 `[0,0,0]`），读取高下标会“列表索引越界”。且**写 0 到越界下标不扩容**（日志 2766：logicReset 写 0 后仍短）；必须先写非 0 哨兵撑满长度，再写真实 0 值（两阶段复位），或避免全 0 字面量。 |
+| 全 0 int_list 图变量 | **引擎运行时只物化出很短长度**（日志 2765 实证：`cornerOrient` 声明 8 个 0 → 运行时 `[0,0]`；`edgeOrient` 声明 12 个 0 → 运行时 `[0,0,0]`；日志 2944：`solveBuf` 声明 100 个 0 → 运行时 `[0×25]`——**长度随声明/上下文变化，2/3/25 各异**），读取高下标会“列表索引越界”。且**写 0 到越界下标不扩容**（日志 2766：logicReset 写 0 后仍短；日志 2944：clear_buf 写 0..99 后仍 25 项）；必须先写非 0 哨兵撑满长度，再写真实 0 值（两阶段复位），或避免全 0 字面量。 |
 | 返回字段名 | `getEntityLocationAndRotation` 返回 `{ location, rotate }`（**rotate** 不是 rotation） |
 | 向量分量 | vec3 有 `.x/.y/.z` getter（生成 split3dVector 节点）；但 **`f.split3dVector(v)` 的返回值字段是 `xComponent/yComponent/zComponent`，不是 `.x/.y/.z`**（`.x` 是 vec3 的 getter，不是 split3dVector 返回对象的字段）——写 `s.x` 会得到 `undefined` → `create3dVector` 报 `Invalid value type: float`（2026-08-22 复刻矩阵转置实证） |
 | 复合节点 enum 输入 | ❌ **复合节点 `inputs` 声明 `{ type: 'enumeration' }` 后，build 内 `f.enumerationsEqual(status, ...)` 报 `Invalid value type: enum`**——`createTypedValue` 缺 enum 分支，enum 输入落到 `new generic()`，不满足 `parseValue(..., 'enum')` 的 `instanceof enumeration` 检查（2026-08-22 复刻枚举转换实证，已登记 O-2026-08-22-1）。**枚举转换类复合节点暂无法用 DSL 复刻**，需等编译器修复 |
@@ -308,6 +308,12 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
   `flow_after_turn`，内部读 `autoMode/qIdx/queue/lock` 等主图变量），GIA 编码会报
   `ordinary data edge pin type mismatch`。跨图调用前必须确认被调复合只依赖本图已声明的图变量，
   否则把该逻辑留在主图，视觉图只发信号/定时器过去。
+- **🔴 复用复合前逐名核对图变量依赖（2026-08-27 日志 2944 实证）**：把通用复合搬进**新图**时，
+  即使编译/注入全绿，运行时也会因缺图变量而挂——solverEPlan 复用 solverAppendCode，漏声明其
+  内部 `getNodeGraphVariable('CF_MOVE_CODE_FACE/DIR/STEPS')` → 引擎报「变量名字对不上」→ 追加
+  静默失败 → solveLen=0 → solver 空序列 → 无限循环。**做法**：新图引用任何现成复合前，
+  `grep -n getNodeGraphVariable <复合文件>` 列出全部变量名，逐一对照目标图 variables 声明；
+  同时检查复合依赖的表变量（如 CF_MOVE_CODE_*）也要一并声明。
 - **🔴 跨图共享状态同步：每次操作首个事件同步一次，不要每 tick 同步（2026-08-21 性能实证）**：
   主图开定时器前已把共享状态写入视觉宿主自定义变量；视觉图若在每个 `turnblock`/`orbit2` 事件都
   `syncShared`，面转 16 次/整体转 52 次重复同步，单次转动负载飙到 ~5000-10000。正确做法：

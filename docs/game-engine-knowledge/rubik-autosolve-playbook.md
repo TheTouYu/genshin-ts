@@ -72,7 +72,13 @@ solverPlan 从 stHost=1077936201 读取。**发布端与读取端实体必须一
 | c543584 | seo 全 0 短物化 | 列表全 0 被引擎物化成 [0] → 加 13 位哨兵 1 |
 | c53ac7b | 自转轴越界 | logicReset blockOrient 哨兵泄漏（1..26）→ 截断恢复循环 |
 | abd3673 | 角块 mask 振荡 | solveBuf 残留（solveLen=0 但数组不清空） |
-**铁律：① 易被全 0 的列表尾部加哨兵 1；② 重置长度计数 ≠ 清空数组——重算入口先清 solveBuf 100 项。**
+**铁律：① 易被全 0 的列表尾部加哨兵 1（长度各异：co=2/eo=3/solveBuf=25，日志 2765/2944）；② 重置长度计数 ≠ 清空数组——重算入口先清 solveBuf 100 项。**
+
+### B2. 复合图变量依赖缺失（新图复用复合）
+| 提交 | 症状 | 根因 |
+|---|---|---|
+| 60222d7 | 自动还原死循环 + 「变量名字对不上」 | solverEPlan 复用 solverAppendCode 漏声明其依赖的 CF_MOVE_CODE_FACE/DIR/STEPS → 追加静默失败 → solveLen=0 → solver 空序列 |
+**铁律：新图调用任何现成复合前，grep 复合体内全部 getNodeGraphVariable 名逐一核对目标图 variables 已声明（含表变量）。**
 
 ### C. 帧预算/节点上限
 | 提交 | 症状 | 根因 |

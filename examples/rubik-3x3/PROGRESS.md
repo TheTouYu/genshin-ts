@@ -363,4 +363,9 @@
   - 交棒协议：solverPlan stage2 完成发 **op=13**（op7 保留给最终完成）；solverEPlan 处理 op13(武装)/op5(重算)/op6(序列就绪→solver)/op7(完成)，加 op12/op8 让位防双规划器。
   - 已注入（ok 7, fail 0）+ 读图核验（solverEPlan pStep1→4 链 + op13/op5 handler + solverPlan stage2→op13 就位）+ resync md5 一致（dcd7b01c）。
   - 待用户游戏复测：打乱→自动还原→确认完成第一层+第二层（E 层每槽提取+插入约 8 步/宏，全程约 4 分钟）。
+- 2026-08-27（运行时死循环——solverEPlan 缺 CF_MOVE_CODE_* 图变量，日志 2944 实证）：
+  - 现象：自动还原触发后 E 层不动、一直循环；游戏报「变量名字对不上」「索引越界」。
+  - 根因：solverEPlan 复用 solverAppendCode 复合但漏声明其依赖的 CF_MOVE_CODE_FACE/DIR/STEPS 三个图变量（cfopTables.ts）——引擎读不到 → 追加静默失败 → solveLen=0 → solver 空序列 → 无限 op5 重算。
+  - 修复：① 补 CF_MOVE_CODE_FACE/DIR/STEPS 导入+变量声明；② solveBuf 尾部加哨兵 1n（101 项，防全 0 短物化到 25 项）。
+  - 已注入（60222d7, ok 7 fail 0）+ resync md5 一致（367ad52a）。**待用户复测确认 E 层真正转动**。
 
