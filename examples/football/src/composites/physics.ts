@@ -752,15 +752,22 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const integ = f.callComposite(physSlideIntegrate, { pos, vel, spin })
-    const sPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
-    const ap = f.callComposite(physApplyMotion, { e, pos: integ.npos, spin: integ.nspin })
+    // 物化快照（同 kickApply/flyTick）：复合输出二次求值会因中间 set 图变量而翻倍
+    const sTmpPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), integ.npos, new bool(false)])
+    const sTmpVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), integ.nvel, new bool(false)])
+    f.connect(sTmpPos, 0, sTmpVel, 0)
+    const sTmpSpin = f.registerExecNode('set_node_graph_variable', [new str('tmpSpin'), integ.nspin, new bool(false)])
+    f.connect(sTmpVel, 0, sTmpSpin, 0)
+    const sPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.getNodeGraphVariable('tmpPos').asType('vec3'), new bool(false)])
+    f.connect(sTmpSpin, 0, sPos, 0)
+    const ap = f.callComposite(physApplyMotion, { e, pos: f.getNodeGraphVariable('tmpPos').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3') })
     f.connect(sPos, 0, ap as never, 0)
-    const sVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    const sVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
     f.connect(ap as never, 0, sVel, 0)
-    const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
+    const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
     f.connect(sVel, 0, sSpin, 0)
     // 判断是否转滚动
-    const spd = f._3dVectorModuloOperation(integ.nvel)
+    const spd = f._3dVectorModuloOperation(f.getNodeGraphVariable('tmpVel').asType('vec3'))
     const toRoll = f.lessThan(spd, SLIDE_TO_ROLL_SPEED)
     f.doubleBranch(
       toRoll,
