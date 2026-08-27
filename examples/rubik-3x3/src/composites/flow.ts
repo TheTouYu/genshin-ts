@@ -391,6 +391,18 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
         f.link(brMore, 1, offAuto, 0)
         const offScr = f.node('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(false), new bool(false)])
         f.link(offAuto, 0, offScr, 0)
+        // 二层测试：打乱播放完成后自动触发 op12（自动还原，stage 0/1/2 跳过直接解 E 层）
+        const isL2 = f.equal(
+          f.getCustomVariable(target, new str('rubik3x3_layer2_test')).asType('bool'),
+          true
+        )
+        const brL2 = f.node('double_branch', [isL2])
+        f.link(offScr, 0, brL2, 0)
+        f.connectOutFlow(brL2, 0, () => {
+          f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_layer2_test'), new bool(false), new bool(false)])
+          f.registerExecNode('send_signal', [new str('rubik3x3_solve'), new int(12n), new int(0n)])
+        })
+        f.connectOutFlow(brL2, 1, () => {})
       })
     })
     f.connectOutFlow(brAuto, 1, () => {
@@ -471,6 +483,36 @@ export const flowScramble = g.defineComposite('flow_scramble', {
     f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
     // 标记打乱进行中，主图在打乱期间忽略自动复原请求（防并发）
     f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
+    const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
+    f.callComposite(flowRequestMove, { moveId: mv0, target })
+    return {}
+  }
+})
+
+// 二层测试打乱（exec）：只动 U/E（moveId 3/8），保持第一层（D 面十字+角块）完整
+// 打乱完成后检查 rubik3x3_layer2_test 标志 → 自动触发 op12（自动还原）
+export const flowScrambleLayer2 = g.defineComposite('flow_scramble_layer2', {
+    id: 1610700082,
+  inputs: { target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target }, f) => {
+    const L2_LEN = 14n
+    const setLen = f.node('set_node_graph_variable', [new str('qLen'), new int(L2_LEN), new bool(false)])
+    f.link(f.entry(), 0, setLen, 0)
+    f.finiteLoop(0n, L2_LEN - 1n, (i, _br) => {
+      const rnd = f.getRandomInteger(0n, 1n)
+      const mv = f.addition(3n, f.multiplication(5n, rnd)) // 0→3(U), 1→8(E)
+      f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+        f.getNodeGraphVariable('queue').asDict('int', 'int'), i, mv
+      ])
+    })
+    f.registerExecNode('set_node_graph_variable', [new str('autoMode'), new bool(true), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
+    // 标记二层测试：打乱完成后自动触发 auto-solve
+    f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_layer2_test'), new bool(true), new bool(false)])
     const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
     f.callComposite(flowRequestMove, { moveId: mv0, target })
     return {}

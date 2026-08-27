@@ -14,7 +14,13 @@ const mkTimer = (id: number, name: string, timerName: string, delay: number) => 
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    const t = f.registerExecNode('start_timer', [target, new str(timerName), new bool(false), f.assemblyList([new float(delay)], 'float')])
+    // 快速模式（tab17切换）：等待缩短 60%（保留 40%），从主控制器 1077936201 的自定义变量读取
+    const fast = f.getCustomVariable(entity(1077936201n), new str('rubik3x3_fast_mode')).asType('bool')
+    const fastInt = f.dataTypeConversion(fast, 'int')
+    const fastF = f.dataTypeConversion(fastInt, 'float')
+    const factor = f.subtraction(new float(1.0), f.multiplication(new float(0.6), fastF))
+    const scaled = f.multiplication(new float(delay), factor)
+    const t = f.registerExecNode('start_timer', [target, new str(timerName), new bool(false), f.assemblyList([scaled], 'float')])
     f.outflow('done', t, 0)
     return {}
   }

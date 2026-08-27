@@ -275,3 +275,33 @@ for (const s of badSamples.slice(0, 8)) console.log("  -", s)
 if (bad === 0) console.log("RESULT: ALL GREEN")
 else { console.error("RESULT: FAIL"); process.exit(1) }
 
+// 7) 二层测试验证：U/E 打乱（保持第一层完整）→ 自动求解 E 层
+{
+  const moveSet = [3, 8] // U=3, E=8 (中层 slice)
+  let uTotal = 0, uBad = 0
+  for (let iter = 0; iter < 200; iter++) {
+    const s = makeState()
+    const len = 14 + Math.floor(Math.random() * 8)
+    for (let k = 0; k < len; k++) { const m = moveSet[Math.floor(Math.random() * 2)]; applyMove(s, m) }
+    if (crossMask(s) !== 15 || cornerMask(s) !== 15) { uBad++; console.log("U/E broke layer1 iter", iter); continue }
+    if (eMask(s) === 15) continue
+    let steps = 0, broken = false
+    while (eMask(s) !== 15 && steps < 30) {
+      const mask = eMask(s), t = firstUnsolved(mask), home = 8 + t, st = edgeState(s, home)
+      const p = policyAt(mask, st)
+      if (p < 0) { broken = true; break }
+      const codes = macroOf(p)
+      for (const c of codes) applyCode(s, c, FACE, DIR, STEPS)
+      if (eMask(s) < mask) { broken = true; break }
+      steps++
+    }
+    if (broken || eMask(s) !== 15) { uBad++; console.log("U/E test E not converged iter", iter, "eMask=" + eMask(s)) }
+    uTotal++
+  }
+  console.log("=== 二层测试（U/E 打乱 → E 层求解）验证 ===")
+  console.log("样本:", uTotal, " 通过:", uTotal - uBad, " 异常:", uBad, "U/E 打乱保持第一层:", uTotal - uBad - (uBad > 0 ? 1 : 0))
+  if (uBad > 0) { console.error("U/E LAYER2 TEST: FAIL"); process.exit(1) }
+  else console.log("U/E LAYER2 TEST: PASS")
+}
+
+
