@@ -34,8 +34,8 @@ const graph = g
           f.equal(lock, 0n),
           () => {
             // v3：只发命中点，冲量计算（方向/大小）在物理图完成
-            f.setNodeGraphVariable('dbgTag', new str('DBG_PUSH'), false)
-            f.setNodeGraphVariable('dbgVal', new str('HIT_PUSH'), false)
+            // f.setNodeGraphVariable('dbgTag', new str('DBG_PUSH'), false)
+            // f.setNodeGraphVariable('dbgVal', new str('HIT_PUSH'), false)
             f.setNodeGraphVariable('pushLock', 1n, false)
             f.startTimer(f.getSelfEntity(), 'push_lock', false, [LOCK_MS])
             f.sendSignal(Signal.football_push, evt.onHitLocation)
@@ -54,8 +54,8 @@ const graph = g
     f.doubleBranch(
       f.equal(lock, 0n),
       () => {
-        f.setNodeGraphVariable('dbgTag', new str('DBG_PUSH_REQ'), false)
-        f.setNodeGraphVariable('dbgVal', new str('REQ_PUSH'), false)
+        // f.setNodeGraphVariable('dbgTag', new str('DBG_PUSH_REQ'), false)
+        // f.setNodeGraphVariable('dbgVal', new str('REQ_PUSH'), false)
         f.setNodeGraphVariable('pushLock', 1n, false)
         f.startTimer(f.getSelfEntity(), 'push_lock', false, [LOCK_MS])
         f.sendSignal(Signal.football_push, evt.params.hitPoint)

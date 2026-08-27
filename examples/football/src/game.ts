@@ -67,17 +67,16 @@ const graph = g
           f.equal(state, 0n),
           () => {
             // 静止：设定初速 + 启动主运动器
-            const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
+            // const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const ka = f.callComposite(kickApplyForce, { tabId })
             const kl = f.callComposite(kickLaunch, { e: ball })
-            f.connect(lg as never, 0, ka as never, 0)
             f.connect(ka as never, 0, kl as never, 0)
           },
           () => {
             // 运动中：只叠加冲量 + 启动唯一名冲量运动器，不新建 physics
-            const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
+            // const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const imp = f.callComposite(kickApplyImpulse, { e: ball, tabId })
-            f.connect(lg as never, 0, imp as never, 0)
+            // f.connect(lg as never, 0, imp as never, 0)
           }
         )
       }
@@ -101,9 +100,8 @@ const graph = g
     f.doubleBranch(
       f.equal(evt.motionDeviceName, new str('physics')),
       () => {
-        const snap = f.callComposite(dbgPhysSnapshot, { e: ball })
+        // 调试快照已注释（回归主线，减少日志）
         const pt = f.callComposite(physTick, { e: ball })
-        f.connect(snap as never, 0, pt as never, 0)
       },
       () => {}
     )
