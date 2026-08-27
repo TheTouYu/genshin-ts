@@ -95,3 +95,14 @@
 - 覆盖矩阵增量：A-悬浮页列表更新为真实商业需求（多级切换教程）；A-页签选中事件（whenTabIsSelected）确认 DSL 已有；工具化后单样本探索时间显著缩短（inventory→parse-gia-graphs→DSL grep 三步）
 - 工具：tools/parse-gia-graphs.ts 转正（.gia 节点图解析，试点成功 → 批量覆盖前置工具）
 - 覆盖矩阵增量：A-悬浮交互页已见真实完整实现；D-BGM/背景音乐有真实样本；C-结构体（拼装/拆分/修改 + dict/list 数据库）在音乐播放器大量使用
+
+## 跨样本通用模式提炼（4 样本，2026-08-27）
+
+> 这些是「AI 配置 UI / 复刻资产」的高频模板，覆盖评估与 CLI 补能力时优先对齐。
+
+1. **变量驱动是 UI 系统的底层**：所有样本都大量 Get/Set Custom Variable + Node Graph Variable；UI 显示/开关/进度都由变量驱动（快捷消息/第三人称/教程进度）
+2. **悬浮交互页家族 = 完整 UI 交互主力**：播放器(千星)/教程(多级切换)/对话(对话框)/快捷面板(推箱子) 都用悬浮页 + 列表更新 + 页签/单选项；show/close/updateFloatingInteractionPage + whenFloatingInteractionPageIsTriggered + whenTabIsSelected 三件套成闭环
+3. **复合节点封装是 UI 资产的通用组织方式**：MP-*（播放器）/对话复合（CreateDialogue 等）/教程复合——UI 资产普遍拆成 10~30 个复合
+4. **临时 UI = Activate/Remove 控件组 + 定时器**：推箱子提示气泡/对话框开关同模式
+5. **事件族三入口**：whenUiControlGroupIsTriggered（按钮/素材组点击）→ whenFloatingInteractionPageIsTriggered（页内交互）→ whenTabIsSelected（页签选中）；DSL 三者均已支持
+6. **控件树规模**：真实资产控件模板 related 数百（音乐播放器 143 / 教程 735）——CLI 需验证大规模 list 性能与输出形态
