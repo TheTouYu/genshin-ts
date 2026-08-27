@@ -397,6 +397,29 @@ viewOrbitTrigger 复合内的 f.on 是非活跃残留——误改浪费一轮注
 | 位置生成 | `算位置 → Create Prefab` | 生成类玩法（位置来源可配置） |
 | 事件动作 | `监听事件 → 执行动作` | 隐藏/碰撞/UI 触发等简单响应 |
 
+### 复合输出二次求值防翻倍（2026-08-27 足球传导链铁证，必守）
+
+`f.callComposite(纯数据复合)` 的输出（如 `integ.npos`）在 exec 链中**被消费 ≥2 次**时，
+如果两次消费之间夹了 `set_node_graph_variable` 写回了复合的**图变量输入**（如 ballPos），
+引擎会**按消费点重新求值复合**——第二次求值时输入已被写回，结果翻倍（如 npos 多算一个 tick 位移）。
+
+**铁证**（足球带球）：`kickApply` 里 `integ.npos` 被 `setPos`（写 ballPos）+ `motionToPoint` 消费两次，
+中间 `setPos` 更新了 ballPos → 运动器速度 = 逻辑球速 × 2 → 球"瞬移"。日志：运动器 9.9 vs 球速 4.86。
+
+**标准姿势：物化快照**——复合输出先 `set` 到临时图变量（`tmpPos/tmpVel/tmpSpin`），
+所有消费点（set 图变量 / motionToPoint / 状态判断）都读临时变量，杜绝二次求值：
+```
+const integ = f.callComposite(physRollIntegrate, { pos, vel, spin })
+const sTmpPos = set tmpPos = integ.npos     // ① 物化（此时图变量未变，求值正确）
+const sTmpVel = set tmpVel = integ.nvel
+const sTmpSpin = set tmpSpin = integ.nspin
+const setPos = set ballPos = get(tmpPos)    // ② 之后全部读物化值
+const ap = motionToPoint(e, target=get(tmpPos))
+```
+- **自查**：新建/修改 exec 复合时，`grep "integ\."` 确认每个输出消费 ≤1 次（除非已物化）。
+- **用户追问信号**：参数怎么调都不对（固定→比例→增量来回震荡）→ 停止调参，查传导链
+  （上游逻辑值 vs 下游运动器参数是否一致，日志成对读）。
+
 ### 关键技巧（跨领域通用）
 
 - **动态列表转静态**：遍历列表的同时销毁/删除/移动列表元素，会导致列表长度变化、索引错乱。
