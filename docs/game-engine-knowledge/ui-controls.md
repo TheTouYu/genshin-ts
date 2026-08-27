@@ -477,3 +477,60 @@ gsts assets:ui states --id <控件ID>
    - 页签容器 2007 → 页签×2 + 游戏小tips + 交互页关闭按钮 + 图片
 
 4. 节点图（3 张）：按钮打开悬浮交互页/按钮打开图片/获取玩家 GUID（见上文 DSL 等价表）
+
+
+## 节点图 UI 交互配置全链路（2026-08-27 学习资产示例图 + DSL 定义交叉验证）
+
+> 状态：事件/动作 API 已从 definitions 与真实图交叉验证；挂载关系真实读取；**未游戏核验**
+> 证据：1073741911「学习资产」3 张示例图 explain + definitions/events.ts|nodes.ts + assets:mounts list
+
+### 交互事件（2 个，全部发到玩家节点图）
+
+| 事件 | 触发源 | 出参 payload | DSL 注册 |
+| --- | --- | --- | --- |
+| whenUiControlGroupIsTriggered（界面控件组触发时） | 交互按钮/道具展示/自定义按钮/自定义开关 点击；只发给触发交互的玩家节点图 | eventSourceEntity/Guid, uiControlGroupCompositeIndex(组组合索引), uiControlGroupIndex(组索引=单控件组时即控件ID) | g.on('whenUiControlGroupIsTriggered') |
+| whenFloatingInteractionPageIsTriggered（悬浮交互页操作触发时） | 页签/单选项视窗确认（须开【返回服务器事件】开关）+ 页内关闭按钮/交互按钮/道具展示/自定义按钮 | playerEntity/Guid, floatingInteractionPageIndex, interactiveItemIndex, listIndex[](列表索引列表), selectedListItem[](列表选中项列表，与 listIndex 一一对应) | g.on('whenFloatingInteractionPageIsTriggered') |
+
+### 动作节点（11 个，服务端，目标玩家实体=player(1n)）
+
+| 节点 | 参数 | 用途 |
+| --- | --- | --- |
+| activateUiControlGroupInControlGroupLibrary | 玩家, 控件组索引 | 激活控件组库内控件组 |
+| removeInterfaceControlGroupFromControlGroupLibrary | 玩家, 控件组索引 | 移除已激活控件组 |
+| switchCurrentInterfaceLayout | 玩家, 布局索引 | 切换当前布局 |
+| modifyUiControlStatusWithinTheInterfaceLayout | 玩家, 控件ID, 状态(On/Off/Hidden) | 改控件显示状态（Off=不可见+逻辑停/On=可见+逻辑跑/Hidden=不可见+逻辑跑） |
+| showFloatingInteractionPage | 玩家, 页索引, dict<页签索引,int_list> | 唤起悬浮页并初始化页签/单选项视窗数据 |
+| closeFloatingInteractionPage | 玩家, 页索引 | 关闭悬浮页 |
+| updateFloatingInteractionPageListData | 玩家, 列表索引, int_list, 是否默认选首项 | 更新页签/单选项视窗的显示列表项 |
+| playUiAnimationOnControl | 玩家, 动效控件索引 | 播放界面动效控件 |
+| refreshNotificationQueue | 玩家, 消息队列索引, 消息项ID | 更新消息队列 |
+| getPlayerSCurrentUiLayout | 玩家 → int | 查询当前布局 |
+| setWhetherPlayerSCursorClickPenetratesUiControls | 玩家, bool | 光标是否穿透 UI 控件 |
+
+### 示例图交互模式（学习资产 3 张图）
+
+1. **按钮 → 唤起悬浮交互页并初始化页签**（图 1073741825，7 节点）：
+   When UI Control Group Is Triggered → Equal(事件Int, 按钮ID=1073743061) → Show Floating Interaction Page
+   (Ety=Get Self Entity, Int=页ID=1073741898「底板1-使用」, Dict{页签索引: 列表项})
+   → DSL：g.on('whenUiControlGroupIsTriggered') + f.showFloatingInteractionPage(player(1n), 1073741898n, {tabId: [...]})
+
+2. **按钮 → 开关图片控件组**（图 1073741826，12 节点）：
+   两路 When UI Control Group Is Triggered → Equal(按钮A=1073743073 / 按钮B=1073743088) →
+   Set UI Control (Group) Status On/Off（控件 1073743087+1073743088）
+   → DSL：f.modifyUiControlStatusWithinTheInterfaceLayout(player(1n), 控件ID, On|Off)
+
+3. **获取玩家GUID 辅助**（图 1073741827，4 节点）：
+   When Entering Collision Trigger → Query GUID by Entity → Set Custom Variable「玩家GUID」
+   → 用途：UI 多人隔离时以玩家 GUID 作 key
+
+### 挂载要求（交互事件到图的通路）
+
+- UI 事件只发给**触发交互的玩家节点图**——事件图必须挂到玩家/角色实体或其 definition（assets:mounts attach），
+  学习资产实测：按钮打开图片挂在 definition 1077936129（获取GUID 复合定义）。
+- 图内所有控件 ID 均为**字面量**（按钮ID/页ID/控件ID），来自作者原地图；目标地图必须重映射（见上方「导入 ID 重分配」）。
+
+### CLI 解析能力现状（2026-08-27 assets:ui 已支持）
+
+- 列表：assets:ui list（素材/组/模板/实例/官方/布局分类）、template list、variables list（悬浮页 t41 形式变量）、states（t50 按钮 4 状态 / t58 页签 4 状态）
+- 创建：create textbox|interactive-button|custom-button|image|floating-page（官方预制单条 + 布局注册）；template create/clone；library-inject（CSS 素材）
+- 更新：update name/content/position/size/asset/color；delete
