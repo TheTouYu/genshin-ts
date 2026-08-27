@@ -635,8 +635,8 @@ const VKICK_MAX = 7.0 // 球速上限（玩家冲刺 8 时球 9.5→clamp 7，�
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
 const DV_MAX = 7.0 // 最大冲量（同球速上限）
 // —— 预测补偿自动触发参数（2026-08-27 数据驱动调优）——
-const KICK_DIST = 2.0 // 预测触发距离（预测 T 后玩家与球的距离）
-const KICK_SPEED = 3.0 // 球速阈值（球已滚开超过该值不补踢）
+const KICK_DIST = 3.0 // 预测触发距离（预测 T 后玩家与球的距离；日志实证 predDist 2.98~5.2 全>2.0，从未触发）
+const KICK_SPEED = 4.0 // 球速阈值（球已滚开超过该值不补踢；日志实证触发时 vB 可达 3.7）
 const LAG_T = 0.2 // 滞后补偿时间（预测前瞻，≈一个 tick）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
