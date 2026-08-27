@@ -368,4 +368,8 @@
   - 根因：solverEPlan 复用 solverAppendCode 复合但漏声明其依赖的 CF_MOVE_CODE_FACE/DIR/STEPS 三个图变量（cfopTables.ts）——引擎读不到 → 追加静默失败 → solveLen=0 → solver 空序列 → 无限 op5 重算。
   - 修复：① 补 CF_MOVE_CODE_FACE/DIR/STEPS 导入+变量声明；② solveBuf 尾部加哨兵 1n（101 项，防全 0 短物化到 25 项）。
   - 已注入（60222d7, ok 7 fail 0）+ resync md5 一致（367ad52a）。**待用户复测确认 E 层真正转动**。
+- 2026-08-27（测试专用功能，e142905）：
+  - **tab17 快速模式**：切换 rubik3x3_fast_mode → solver 全部定时器节拍 ×0.4（缩短 60%）：preTick 1.66→0.66s、emitTick 1.52→0.61s、doneTick 2.01→0.80s、整转组同步缩放。
+  - **tab18 二层测试**：flowScrambleLayer2 只打乱 U(3)/E(8)（不动 D 层 → 第一层保持完整），打乱播放完自动发 op12 自动还原 → stage 0/1/2 立即跳过（mask=15），直接验证 stage 3 E 层算法。离线验证 156 样本全过（第一层保持 + E 层可解）。
+  - 已注入（e142905, ok 7 fail 0）+ resync md5 一致（38221f99）。**待用户测试**：进游戏按 tab18（先打乱到第一层已拼好状态→自动开始解 E 层），按 tab17 开启快速模式缩短等待。
 
