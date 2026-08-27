@@ -50,8 +50,7 @@ const graph = g
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
-        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
-        1n  // 哨兵：防全 0 时引擎短物化（solveBuf 100 项被物化成 25 项 → 越界写丢失）
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
       ],
       solveLen: new int(0),
       phase: new int(0), // 0 idle / 1 armed / 2 waiting-exec
