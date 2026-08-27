@@ -668,7 +668,7 @@ export interface UiRecordInfo {
   id: number
   name: string
   kind: UiRecordKind
-  parentId: number | undefined
+  parentId: number | null
 }
 
 /** 提取记录 f502 子记录里的 type 码集合 */
@@ -722,7 +722,7 @@ export function listUiRecords(bytes: Uint8Array): UiRecordInfo[] {
     const id = m.find((x) => x.number === 501 && x.wire === 0)?.value
     if (typeof id !== 'number') continue
     const parentId = m.find((x) => x.number === 504 && x.wire === 0)?.value as number | undefined
-    out.push({ id, name: recordNameOf(m), kind: classifyUiRecord(m), parentId })
+    out.push({ id, name: recordNameOf(m), kind: classifyUiRecord(m), parentId: parentId ?? null })
   }
   return out
 }
@@ -1507,4 +1507,210 @@ export function setAssetColor(
     }),
     changedIds,
   }
+}
+
+// ============ 列出：形式变量 / 按钮三状态（2026-08-27 差分闭合）============
+
+export const FORM_VARIABLE_TYPE_NAMES: Record<number, string> = {
+  0: '整数',
+  1: '浮点数',
+  2: '字符串',
+  3: '动态文本域'
+}
+
+export type FormVariableInfo = {
+  name: string
+  type: number
+  typeName: string
+  index: number
+}
+
+export type PageVariablesInfo = {
+  recordId: number
+  pageName: string
+  variables: FormVariableInfo[]
+}
+
+/**
+ * 解析 t41 组件变量列表（t41.f503.f34）：
+ * f34 = 重复的 f501 条目；每条 = {f501: 类型码(可缺省), f502: 名字, f503: 序号}
+ */
+function parseFormVariableList(data: Uint8Array): FormVariableInfo[] {
+  const entries: FormVariableInfo[] = []
+  let pos = 0
+  const readVarint = (): number => {
+    let r = 0
+    let s = 0
+    for (;;) {
+      const x = data[pos]
+      pos += 1
+      r |= (x & 0x7f) << s
+      if ((x & 0x80) === 0) break
+      s += 7
+    }
+    return r
+  }
+  while (pos < data.length) {
+    const tag = readVarint()
+    const field = tag >> 3
+    const wt = tag & 7
+    if (wt !== 2) continue
+    const len = readVarint()
+    const content = data.subarray(pos, pos + len)
+    pos += len
+    if (field !== 501) continue
+    // 条目内容：{f501: 类型, f502: 名字, f503: 序号}
+    let type = 0
+    let name = ''
+    let index = 0
+    let p = 0
+    const readInner = (): number => {
+      let r = 0
+      let s = 0
+      for (;;) {
+        const x = content[p]
+        p += 1
+        r |= (x & 0x7f) << s
+        if ((x & 0x80) === 0) break
+        s += 7
+      }
+      return r
+    }
+    while (p < content.length) {
+      const t2 = readInner()
+      const f2 = t2 >> 3
+      const w2 = t2 & 7
+      if (w2 === 0) {
+        let vv = 0
+        let s3 = 0
+        for (;;) {
+          const x = content[p]
+          p += 1
+          vv |= (x & 0x7f) << s3
+          if ((x & 0x80) === 0) break
+          s3 += 7
+        }
+        if (f2 === 501) type = vv
+        else if (f2 === 503) index = vv
+      } else if (w2 === 2) {
+        const ln2 = readInner()
+        if (f2 === 502) name = textOf(content.subarray(p, p + ln2))
+        p += ln2
+      }
+    }
+    entries.push({ name, type, typeName: FORM_VARIABLE_TYPE_NAMES[type] ?? `未知(${type})`, index })
+  }
+  return entries
+}
+
+/** 取记录的 t41 组件变量列表（无则返回 null） */
+function recordFormVariables(m: readonly WireField[]): FormVariableInfo[] | null {
+  for (const f of m) {
+    if (f.number !== 505 || f.wire !== 2) continue
+    const comp = parseWireMessage(f.value as Uint8Array)
+    if (!comp) continue
+    if (comp.find((x) => x.number === 502 && x.wire === 0)?.value !== 41) continue
+    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+    const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+    const f34 = f503m?.find((x) => x.number === 34 && x.wire === 2)
+    if (!f34) return null
+    const vars = parseFormVariableList(f34.value as Uint8Array)
+    return vars.length > 0 ? vars : null
+  }
+  return null
+}
+
+/** 列出地图里所有悬浮交互页（或指定页）的形式变量 */
+export function listPageVariables(bytes: Uint8Array, pageId?: number): PageVariablesInfo[] {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 缺失')
+  const section = parseMessageFields(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] root9 段解析失败')
+  const out: PageVariablesInfo[] = []
+  for (const f of section) {
+    if (f.number !== 502 || f.wire !== 2) continue
+    const m = parseWireMessage(f.value as Uint8Array)
+    if (!m) continue
+    const rid = recordIdOf(f.value as Uint8Array)
+    if (rid === undefined) continue
+    if (pageId !== undefined && rid !== pageId) continue
+    // 只处理模板（type4 槽）——实例 t41 与模板双写，避免重复
+    const isTemplate = m.some(
+      (x) =>
+        x.number === 502 &&
+        x.wire === 2 &&
+        parseWireMessage(x.value as Uint8Array)?.some((y) => y.number === 502 && y.wire === 0 && y.value === 4)
+    )
+    if (!isTemplate) continue
+    const vars = recordFormVariables(m)
+    if (vars === null) continue
+    const name = recordNameOf(m)
+    out.push({ recordId: rid, pageName: name, variables: vars })
+  }
+  return out
+}
+
+/** 按钮三状态：解析 t50 组件 f43.f503 状态块序列 */
+export type ButtonStateInfo = {
+  index: number
+  stateName: string
+  materialGroupId: number | null
+  hasMaterial: boolean
+}
+
+const BUTTON_STATE_NAMES = ['常态', '悬停', '按下', '状态4(候选选中/保留)']
+
+/** 取记录的 t50 组件状态块（无则返回 null） */
+export function listButtonStates(bytes: Uint8Array, buttonId: number): ButtonStateInfo[] {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 缺失')
+  const section = parseMessageFields(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] root9 段解析失败')
+  const rec = section.find(
+    (f) => f.number === 502 && f.wire === 2 && recordIdOf(f.value as Uint8Array) === buttonId
+  )
+  if (!rec) throw new Error(`[error] 记录 ${buttonId} 不存在`)
+  const m = parseWireMessage(rec.value as Uint8Array)
+  if (!m) throw new Error('[error] invalid record')
+  for (const f of m) {
+    if (f.number !== 505 || f.wire !== 2) continue
+    const comp = parseWireMessage(f.value as Uint8Array)
+    if (!comp) continue
+    if (comp.find((x) => x.number === 502 && x.wire === 0)?.value !== 50) continue
+    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+    const f503m = f503 ? parseWireMessage(f503.value as Uint8Array) : undefined
+    const f43 = f503m?.find((x) => x.number === 43 && x.wire === 2)
+    const f43m = f43 ? parseWireMessage(f43.value as Uint8Array) : undefined
+    const states = f43m?.find((x) => x.number === 503 && x.wire === 2)
+    const statesM = states ? parseWireMessage(states.value as Uint8Array) : undefined
+    if (!statesM) return []
+    const out: ButtonStateInfo[] = []
+    let idx = 0
+    for (const st of statesM) {
+      if (st.wire !== 2) continue
+      const stM = parseWireMessage(st.value as Uint8Array)
+      if (!stM) continue
+      // 素材引用在 block.f501 = {f2:1, f3:8, f4: 素材组ID}（2026-08-27 实读确认，无 f504 层）
+      let materialGroupId: number | null = null
+      const f501 = stM.find((x) => x.number === 501 && x.wire === 2)
+      if (f501) {
+        const f501m = parseWireMessage(f501.value as Uint8Array)
+        const f4 = f501m?.find((x) => x.number === 4 && x.wire === 0)?.value
+        if (typeof f4 === 'number' && f4 !== 0) materialGroupId = f4
+      }
+      out.push({
+        index: idx,
+        stateName: BUTTON_STATE_NAMES[idx] ?? `状态${idx + 1}`,
+        materialGroupId,
+        hasMaterial: materialGroupId !== null
+      })
+      idx += 1
+    }
+    return out
+  }
+  return []
 }

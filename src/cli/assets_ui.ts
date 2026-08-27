@@ -15,6 +15,8 @@ import {
   createUiImageControl,
   createUiTemplate,
   deleteUiRecord,
+  listButtonStates,
+  listPageVariables,
   listTemplates,
   listUiControls,
   listUiRecords,
@@ -27,7 +29,7 @@ import {
 import { prettyStableJson } from './static_assembly/json.js'
 import { cssColorToArgb } from './static_assembly/library_css.js'
 
-type Command = 'list' | 'clone' | 'update' | 'template' | 'create' | 'delete'
+type Command = 'list' | 'clone' | 'update' | 'template' | 'create' | 'delete' | 'variables' | 'states'
 type TemplateSub = 'list' | 'clone' | 'create'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
@@ -46,6 +48,9 @@ function usage(exitCode = 1): never {
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
     '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
   '  template create: gsts assets:ui template create --id <模板ID> --asset <素材索引ID> [--name <n>] [--position <x,y>] [--size <w,h>]',
+    '  variables list: gsts assets:ui variables list [--gil <file>] [--page <悬浮交互页ID>] [--format json]',
+    '  states: gsts assets:ui states --id <自定义按钮ID> [--gil <file>] [--format json]',
+    '  variables list: gsts assets:ui variables list [--page <悬浮交互页ID>] [--gil <file>] [--format json]',
     '',
     'Options:',
     '  --gil <file>            explicit GIL source',
@@ -100,6 +105,7 @@ function parseArgs(argv: readonly string[]) {
   let format: Format = 'text'
   let targetId: number | undefined
   let newId: number | undefined
+  let pageId: number | undefined
   let name: string | undefined
   let content: string | undefined
   let position: Vector2 | undefined
@@ -115,13 +121,21 @@ function parseArgs(argv: readonly string[]) {
     argv[0] === 'create' ||
     argv[0] === 'update' ||
     argv[0] === 'template' ||
-    argv[0] === 'delete'
+    argv[0] === 'delete' ||
+    argv[0] === 'variables' ||
+    argv[0] === 'states'
   ) {
     command = argv[0]
     index++
     if (command === 'template') {
       if (argv[1] === 'list' || argv[1] === 'clone' || argv[1] === 'create') {
         templateSub = argv[1]
+        index++
+      } else {
+        usage()
+      }
+    } else if (command === 'variables') {
+      if (argv[1] === 'list') {
         index++
       } else {
         usage()
@@ -138,7 +152,8 @@ function parseArgs(argv: readonly string[]) {
       const raw = value(argv, index++)
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
-    } else if (arg === '--id') newId = nonNegativeId(value(argv, index++), '--id')
+    } else if (arg === '--id') { const v = nonNegativeId(value(argv, index++), '--id'); newId = v; if (command === 'states') targetId = v }
+    else if (arg === '--page') pageId = nonNegativeId(value(argv, index++), '--page')
     else if (arg === '--name') name = value(argv, index++)
     else if (arg === '--content') content = value(argv, index++)
     else if (arg === '--position') position = parseVector2(value(argv, index++), '--position')
@@ -153,7 +168,7 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--color') color = value(argv, index++)
     else if (arg === '--layout') layoutId = nonNegativeId(value(argv, index++), '--layout')
     else if (arg === '--help' || arg === '-h') usage(0)
-    else if (command !== 'list' && targetId === undefined) {
+    else if (command !== 'list' && command !== 'variables' && command !== 'states' && targetId === undefined) {
       targetId = nonNegativeId(arg, 'control-id')
     } else usage()
   }
@@ -164,6 +179,7 @@ function parseArgs(argv: readonly string[]) {
   if (command === 'create' && createType === 'image' && assetId === undefined)
     throw new Error('[error] create --type image requires --asset <素材索引ID>')
   if (command === 'create' && newId === undefined) throw new Error('[error] create requires --id <new-id>')
+  if (command === 'states' && targetId === undefined) throw new Error('[error] states requires --id <自定义按钮ID>')
   if (command === 'update' && targetId === undefined) throw new Error('[error] update requires <control-id>')
   if (command === 'delete' && targetId === undefined) throw new Error('[error] delete requires <control-id>')
   if (command === 'template' && templateSub === 'create' && newId === undefined)
@@ -174,7 +190,7 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] update requires at least one of --name/--content/--position/--size/--asset/--color')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, name, content, position, size, createType, assetId, layoutId, color }
+  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, pageId, name, content, position, size, createType, assetId, layoutId, color }
 }
 
 function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
@@ -364,6 +380,36 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         log2('preview only; use --write to apply after backup, or --output for a candidate')
       }
       if (jsonMode) process.stdout.write(prettyStableJson(summary))
+    }
+    return
+  }
+
+  if (args.command === 'variables') {
+    const pages = listPageVariables(sourceBytes, args.pageId)
+    if (jsonMode) {
+      process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-variables-list', pages }))
+    } else {
+      for (const p of pages) {
+        log(`悬浮交互页 ${p.recordId}「${p.pageName}」: ${p.variables.length} 个形式变量`)
+        for (const v of p.variables) {
+          log(`  [${v.index}] ${v.name} (${v.typeName})`)
+        }
+      }
+      if (pages.length === 0) log('（无形式变量）')
+    }
+    return
+  }
+
+  if (args.command === 'states') {
+    const states = listButtonStates(sourceBytes, args.targetId!)
+    if (jsonMode) {
+      process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-button-states', buttonId: args.targetId, states }))
+    } else {
+      log(`按钮 ${args.targetId} 状态:`)
+      for (const s of states) {
+        log(`  ${s.stateName}: ${s.hasMaterial ? `素材组 ${s.materialGroupId}` : '未配置'}`)
+      }
+      if (states.length === 0) log('  （无 t50 状态块）')
     }
     return
   }
