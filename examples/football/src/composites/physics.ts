@@ -7,6 +7,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { EntityType } from 'genshin-ts/definitions/enum'
 import { motionByVel, motionSpin, motionToPoint } from './motion.js'
+import { dbgTag } from './debuglog.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -535,12 +536,21 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const roleC = f.callComposite(pushGetRole, {})
-    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos: posFinal, vel: velFinal })
+    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos: posFinal, vel: velFinal, lagT: LAG_T })
     f.doubleBranch(
       autoK.kick,
       () => {
+        // 埋点：记录每次自动触发的预测距离/实际距离/玩家速度/球速（数据驱动调优）
+        const tg1 = f.callComposite(dbgTag, { tag: new str('KICK_PRED'), val: f.dataTypeConversion(autoK.predDist, 'str') })
+        const tg2 = f.callComposite(dbgTag, { tag: new str('KICK_NOW'), val: f.dataTypeConversion(autoK.distNow, 'str') })
+        f.connect(tg1 as never, 0, tg2 as never, 0)
+        const tg3 = f.callComposite(dbgTag, { tag: new str('KICK_VP'), val: f.dataTypeConversion(autoK.vP, 'str') })
+        f.connect(tg2 as never, 0, tg3 as never, 0)
+        const tg4 = f.callComposite(dbgTag, { tag: new str('KICK_VB'), val: f.dataTypeConversion(autoK.vB, 'str') })
+        f.connect(tg3 as never, 0, tg4 as never, 0)
         const pc = f.callComposite(pushCompute, { hitPoint: posFinal })
         const rl = f.callComposite(kickApply, { e, dV: pc.dV })
+        f.connect(tg4 as never, 0, rl as never, 0)
         f.outflow('done', rl as never, 0)
       },
       () => {
@@ -624,6 +634,10 @@ const VKICK_MIN = 3.0 // 球速下限
 const VKICK_MAX = 7.0 // 球速上限（玩家冲刺 8 时球 9.5→clamp 7，正常速度不超限）
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
 const DV_MAX = 7.0 // 最大冲量（同球速上限）
+// —— 预测补偿自动触发参数（2026-08-27 数据驱动调优）——
+const KICK_DIST = 2.0 // 预测触发距离（预测 T 后玩家与球的距离）
+const KICK_SPEED = 3.0 // 球速阈值（球已滚开超过该值不补踢）
+const LAG_T = 0.2 // 滞后补偿时间（预测前瞻，≈一个 tick）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -790,16 +804,24 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
 // 命中检测 0.3s CD 期间的空白由滚滑 tick 里的此判定补位
 // ================================================================
 export const pushAutoCheck = g.defineComposite('push_auto_check', {
-  inputs: { role: { type: 'entity' }, pos: { type: 'vec3' }, vel: { type: 'vec3' } },
-  outputs: { kick: { type: 'bool' } },
-  build: ({ role, pos, vel }, f) => {
+  inputs: { role: { type: 'entity' }, pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' } },
+  outputs: { kick: { type: 'bool' }, predDist: { type: 'float' }, distNow: { type: 'float' }, vP: { type: 'float' }, vB: { type: 'float' } },
+  build: ({ role, pos, vel, lagT }, f) => {
+    // 预测补偿：用"预测 lagT 秒后玩家与球的距离"判定，抵消 tick 快照滞后
+    // （检测到距离<2 时实际已贴脸 0.2~0.4s；预测后提前踢，玩家到达时球在前滚）
     const rolePos = f.getEntityLocationAndRotation(role).location
-    const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(rolePos, pos))
-    const speed = f._3dVectorModuloOperation(vel)
+    const roleSpd = f.queryCharacterSCurrentMovementSpd(role)
+    const roleVel = roleSpd.velocityVector
+    const vP = f._3dVectorModuloOperation(roleVel)
+    const vB = f._3dVectorModuloOperation(vel)
+    const predPlayer = f._3dVectorAddition(rolePos, f._3dVectorZoom(roleVel, lagT))
+    const predBall = f._3dVectorAddition(pos, f._3dVectorZoom(vel, lagT))
+    const predDist = f._3dVectorModuloOperation(f._3dVectorSubtraction(predBall, predPlayer))
+    const distNow = f._3dVectorModuloOperation(f._3dVectorSubtraction(rolePos, pos))
     const kick = f.logicalAndOperation(
-      f.lessThan(speed, 2),
-      f.lessThan(dist, 2)
+      f.lessThan(vB, KICK_SPEED),
+      f.lessThan(predDist, KICK_DIST)
     )
-    return { kick }
+    return { kick, predDist, distNow, vP, vB }
   }
 })
