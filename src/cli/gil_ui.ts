@@ -1190,10 +1190,26 @@ export function createFloatingPage(
   }
   let tmpl = mk(BUILTIN_FLOATING_PAGE_TEMPLATE)
   let inst = mk(BUILTIN_FLOATING_PAGE_INSTANCE)
-  const groupT = mk(BUILTIN_FLOATING_PAGE_GROUP_T)
+  let groupT = mk(BUILTIN_FLOATING_PAGE_GROUP_T)
   const closeBtnT = mk(BUILTIN_FLOATING_PAGE_CLOSEBTN_T)
-  const groupI = mk(BUILTIN_FLOATING_PAGE_GROUP_I)
+  let groupI = mk(BUILTIN_FLOATING_PAGE_GROUP_I)
   const closeBtnI = mk(BUILTIN_FLOATING_PAGE_CLOSEBTN_I)
+  // packed 引用修复：replaceAllVarints 不处理 packed varint 流，显式重写两处
+  // 1) 模板 t4.f14.f501 的实例回指列表（编辑器按它解析模板内容 → 不修会显示旧实例）
+  const tmplFields = parseWireMessage(tmpl)
+  if (!tmplFields) throw new Error('[error] invalid floating page template record')
+  setTemplateInstanceListField(tmplFields, [mapping[FP_SRC_INSTANCE]])
+  tmpl = Buffer.from(emitWireMessage(tmplFields))
+  // 2) 固有容器素材组 f503 packed 成员列表
+  const setPacked = (rec: Uint8Array, fieldNumber: number, values: number[]): Uint8Array => {
+    const fields = parseWireMessage(rec)
+    if (!fields) throw new Error('[error] invalid floating page group record')
+    const f = fields.find((x) => x.number === fieldNumber && x.wire === 2)
+    if (f) f.value = encodePackedVarints(values)
+    return Buffer.from(emitWireMessage(fields))
+  }
+  groupT = setPacked(groupT, 503, [mapping[FP_SRC_CLOSEBTN_T]])
+  groupI = setPacked(groupI, 503, [mapping[FP_SRC_CLOSEBTN_I]])
   if (options.name !== undefined) {
     tmpl = Buffer.from(setUiName(tmpl, options.name))
     inst = Buffer.from(setUiName(inst, options.name))
