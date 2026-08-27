@@ -60,6 +60,18 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 - 典型事故：`flow_do_move` 把 `turnblock/orbit2` 发到 `visualHost=1077936203`，但视觉图挂在主控制器 `1077936201` → 图永远收不到槽位定时器，只有跨实体发错时漏进来的一发事件，表现为“只看到一个块动/完全没反应”。
 - 判断字段：日志里 `When Timer Is Triggered` 事件的 `OUT0/OUT1(entity/guid)` = 定时器 target 实体；对比 `assets:mounts list` 中监听的图挂载实体。
 
+**定时器延迟单位：f.startTimer 用秒、setTimeout 用毫秒（2026-08-27 足球实证，必守）**：
+`f.startTimer(e, name, loop, [延迟])` 的延迟参数单位是**秒**（日志 IN3 实证：push_lock `[0.25]`=250ms）；
+**setTimeout 的 delayMs 单位是毫秒**（DSL 内部转秒）。事故：`[200]` 以为是 200ms 实为 **200 秒**，
+日志 57 秒内定时器从未触发。自查：对照同族已验证调用（如 dribble 的 `[LOCK_MS]`，注释写明"秒"）。
+
+**定时器链路排查顺序（不甩锅引擎）**：
+1. 数复合调用次数（如 auto_check_tick 帧数）确认定时器是否真的触发——别只看结果埋点（埋点可能只在条件分支里）
+2. 对比同族定时器（同图/同实体/同参数）的日志 IN3 延迟值与触发次数
+3. 核对 startTimer 实体参数 vs 图挂载实体（`assets:mounts list` + When Timer Is Triggered 的 OUT0/OUT1）
+4. 实体创建太早（whenEntityIsCreated time 0~1）时定时器可能注册失败——setTimeout 延迟几秒再启动
+5. **最后才怀疑引擎**——引擎稳定，先怀疑参数/实体/时序
+
 ## 核心流程（每轮一个可归因变量）
 
 ```text
