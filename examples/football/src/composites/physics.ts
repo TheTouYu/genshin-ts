@@ -530,31 +530,11 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ③ 四面墙碰撞（草地边界反弹）
     const wall = f.callComposite(physWallCollide, {})
 
-    // ④a 自动兜底判定：球慢（<2m/s）且玩家近（<2m）→ 补踢（冲量），
-    // 命中检测 0.3s CD 期间的空白由本判定补位；踢后球速>玩家速自然离开，不连发
+    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
+    // （auto 补踢已移到 autoCheckTick 独立定时器——挂在滚滑 tick 里球静止时无法触发）
     const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
-    const roleC = f.callComposite(pushGetRole, {})
-    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos: posFinal, vel: velFinal, lagT: LAG_T })
-    f.doubleBranch(
-      autoK.kick,
-      () => {
-        // 埋点：记录每次自动触发的预测距离/实际距离/玩家速度/球速（数据驱动调优）
-        const tg1 = f.callComposite(dbgTag, { tag: new str('KICK_PRED'), val: f.dataTypeConversion(autoK.predDist, 'str') })
-        const tg2 = f.callComposite(dbgTag, { tag: new str('KICK_NOW'), val: f.dataTypeConversion(autoK.distNow, 'str') })
-        f.connect(tg1 as never, 0, tg2 as never, 0)
-        const tg3 = f.callComposite(dbgTag, { tag: new str('KICK_VP'), val: f.dataTypeConversion(autoK.vP, 'str') })
-        f.connect(tg2 as never, 0, tg3 as never, 0)
-        const tg4 = f.callComposite(dbgTag, { tag: new str('KICK_VB'), val: f.dataTypeConversion(autoK.vB, 'str') })
-        f.connect(tg3 as never, 0, tg4 as never, 0)
-        const pc = f.callComposite(pushCompute, { hitPoint: posFinal })
-        const rl = f.callComposite(kickApply, { e, dV: pc.dV })
-        f.connect(tg4 as never, 0, rl as never, 0)
-        f.outflow('done', rl as never, 0)
-      },
-      () => {
-    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
     const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
     f.doubleBranch(stop.isStop, () => {
       const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
@@ -565,8 +545,6 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
       f.connect(ss, 0, ap as never, 0)
       f.outflow('done', ap as never, 0)
     })
-      }
-    )
     return {}
   }
 })
@@ -823,5 +801,45 @@ export const pushAutoCheck = g.defineComposite('push_auto_check', {
       f.lessThan(predDist, KICK_DIST)
     )
     return { kick, predDist, distNow, vP, vB }
+  }
+})
+
+// ================================================================
+// 自动补踢 tick（exec 复合）：独立定时器驱动（0.2s），球静止也能触发。
+// 预测补偿：predDist < KICK_DIST 且球速 < KICK_SPEED → 踢球。
+// 2026-08-27 架构修正：原挂 physRollTick 内，球静止（FREE）无滚滑 tick → 永不触发。
+// ================================================================
+export const autoCheckTick = g.defineComposite('auto_check_tick', {
+  inputs: { e: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ e }, f) => {
+    const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const roleC = f.callComposite(pushGetRole, {})
+    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT: LAG_T })
+    f.doubleBranch(
+      autoK.kick,
+      () => {
+        // 埋点：预测距离/实际距离/玩家速度/球速（数据驱动调优）
+        const tg1 = f.callComposite(dbgTag, { tag: new str('KICK_PRED'), val: f.dataTypeConversion(autoK.predDist, 'str') })
+        const tg2 = f.callComposite(dbgTag, { tag: new str('KICK_NOW'), val: f.dataTypeConversion(autoK.distNow, 'str') })
+        f.connect(tg1 as never, 0, tg2 as never, 0)
+        const tg3 = f.callComposite(dbgTag, { tag: new str('KICK_VP'), val: f.dataTypeConversion(autoK.vP, 'str') })
+        f.connect(tg2 as never, 0, tg3 as never, 0)
+        const tg4 = f.callComposite(dbgTag, { tag: new str('KICK_VB'), val: f.dataTypeConversion(autoK.vB, 'str') })
+        f.connect(tg3 as never, 0, tg4 as never, 0)
+        const pc = f.callComposite(pushCompute, { hitPoint: pos })
+        const rl = f.callComposite(kickApply, { e, dV: pc.dV })
+        f.connect(tg4 as never, 0, rl as never, 0)
+        f.outflow('done', rl as never, 0)
+      },
+      () => {
+        // 未触发：轻量 no-op 收尾（outflow 需要 registered node）
+        const noop = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), vel, new bool(false)])
+        f.outflow('done', noop, 0)
+      }
+    )
+    return {}
   }
 })

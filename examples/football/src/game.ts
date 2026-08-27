@@ -8,7 +8,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
 import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
-import { physTick, pushCompute, kickApply } from './composites/physics.js'
+import { autoCheckTick, physTick, pushCompute, kickApply } from './composites/physics.js'
 import { Signal } from './resources/signals.js'
 
 // 场地中间（复位点）
@@ -92,6 +92,22 @@ const graph = g
         const snap = f.callComposite(dbgPhysSnapshot, { e: ball })
         const pt = f.callComposite(physTick, { e: ball })
         f.connect(snap as never, 0, pt as never, 0)
+      },
+      () => {}
+    )
+  })
+  // ================================================================
+  // 自动补踢独立定时器（0.2s 循环）：球静止（FREE）也有滚滑 tick 外的检查源。
+  // 实体创建时启动；whenTimerIsTriggered 里 auto_check → autoCheckTick。
+  // ================================================================
+  .on('whenEntityIsCreated', (evt: any, f: any) => {
+    f.startTimer(f.getSelfEntity(), 'auto_check', true, [200])
+  })
+  .on('whenTimerIsTriggered', (evt: any, f: any) => {
+    f.doubleBranch(
+      f.equal(evt.timerName, new str('auto_check')),
+      () => {
+        f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
       },
       () => {}
     )
