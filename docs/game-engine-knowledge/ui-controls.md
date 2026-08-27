@@ -535,3 +535,32 @@ gsts assets:ui states --id <控件ID>
 - 列表：assets:ui list（素材/组/模板/实例/官方/布局分类）、template list、variables list（悬浮页 t41 形式变量）、states（t50 按钮 4 状态 / t58 页签 4 状态）
 - 创建：create textbox|interactive-button|custom-button|image|floating-page（官方预制单条 + 布局注册）；template create/clone；library-inject（CSS 素材）
 - 更新：update name/content/position/size/asset/color；delete
+### 真实关卡 UI 交互模式（2026-08-27 推箱子关卡 1073741910 实读）
+
+> 状态：已验证（真实 .gil 1073741910 explain + UI 记录逐项对照）；游戏核验待做
+> 来源：127 图完整关卡 explain 关键图（玩家1/2发言、存档点按键）
+
+**构成**：30 个控件模板全部带 f502[type13] 控件组标记（可开关 UI 面板为关卡主用法）；
+2 个布局（默认 + 自定义「开场」）；模板 = f503 成员列表 + 素材组子记录。
+
+**事件 case = 素材组子记录 ID（修正）**：按钮点击事件的 uiControlGroupIndex = 可点击素材组的记录 ID，
+不是模板 ID。样本：快捷语言面板（新版快捷发言 1073742161）的子素材组
+「再按一下！」1073741994 /「我准备好了」1073741995 /「到我这边来！」1073741996 即事件 case 值；
+「观察周围！」1073742157 是混用的官方预制控件。
+
+**三大交互模式（AI 生成节点图的模板）**：
+
+1. **临时提示（自动消失）**：When UI Control Group Is Triggered → (case 分派) →
+   Activate UI Control Group in Control Group Library(玩家, 模板ID) → 自身启动定时器(3s) →
+   When Timer Is Triggered → Remove UI Control Group From Control Group Library(玩家, 模板ID)
+2. **多按钮一图分派**：When UI Control Group Is Triggered → Multiple Branches
+   （case 列表 = 素材组子记录 ID，如 [1994,1995,1996,2157]）→ 各自动作（传送/切镜头/设变量）
+3. **双人同步**：对两个玩家实体都执行 Activate/Remove（复合「玩家1玩家2」返回双玩家 GUID）
+
+**字符串 case**：定时器事件的 Multiple Branches 用定时器名字符串分派
+（"1"、"存档点功能已激活"、"5s后传送至下一关"、"成功获得神殿祝福！"批量移除提示组）。
+
+**存档点按键图**：一个控件组模板承担多按钮（存档点→Teleport、切换视角→Switch Main Camera + 变量）；
+同一图里 When Timer Is Triggered 批量清理多个提示控件组。
+
+探索登记：docs/game-engine-knowledge/ui-coverage-exploration-log.md
