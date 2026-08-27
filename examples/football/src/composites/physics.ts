@@ -19,7 +19,7 @@ const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
-const ROLL_DECEL = 0.7 // 滚动匀减速（m/s²）：弱减速，球慢慢降下来多滚一会（几秒追平）
+const ROLL_DECEL = 1.2 // 滚动匀减速（m/s²）：球速≤4.5 滚 ~8m 停 ~2.5s，不瞬移也不写死
 const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
@@ -617,10 +617,12 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK_ADD = 1.5 // 球速 = 玩家速率 + 该领先量（球略快于玩家，拉开后几秒被追上）
-const VKICK_MIN = 3.0 // 球速下限（玩家静止/慢走也能滚起来）
+const VKICK_BASE = 2.0 // 球速 = VKICK_BASE + VKICK_COEF·vP（随玩家缓增）
+const VKICK_COEF = 0.4 // 玩家速率系数
+const VKICK_MIN = 2.5 // 球速下限
+const VKICK_MAX = 4.5 // 球速硬上限（焊死：任何情况球速不超 4.5，绝不"子弹/瞬移"）
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
-const DV_MAX = 5.0 // 最大冲量（球反向滚时纠正）
+const DV_MAX = 4.5 // 最大冲量（球反向滚纠正，同球速上限）
 const DEG2RAD = 0.0174533
 // BALL_R/STATE_ROLL 复用本文件顶部既有常量（避免重复声明）
 
@@ -661,9 +663,15 @@ export const pushCompute = g.defineComposite('push_compute', {
     // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈目标（大）、追球 vB 大 → Δv 小（轻触）
     const ballVel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const vB = f._3dVectorDotProduct(ballVel, dir)
-    const targetRaw = f.addition(vP, VKICK_ADD)
-    const target = f.division(
+    const targetRaw = f.addition(VKICK_BASE, f.multiplication(vP, VKICK_COEF))
+    // max(targetRaw, VKICK_MIN)
+    const targetFloor = f.division(
       f.addition(f.addition(targetRaw, VKICK_MIN), f.absoluteValueOperation(f.subtraction(targetRaw, VKICK_MIN))),
+      2
+    )
+    // min(targetFloor, VKICK_MAX) —— 硬上限 4.5
+    const target = f.division(
+      f.subtraction(f.addition(targetFloor, VKICK_MAX), f.absoluteValueOperation(f.subtraction(targetFloor, VKICK_MAX))),
       2
     )
     const dvRaw = f.subtraction(target, vB)
@@ -694,15 +702,25 @@ export const kickApply = g.defineComposite('kick_apply', {
     // 施加冲量：ballVel = ballVel + dV（叠加动量，不覆盖），状态演化交给状态机
     const nvel = f._3dVectorAddition(vel, dV)
     const integ = f.callComposite(physRollIntegrate, { pos, vel: nvel, spin })
-    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), integ.npos, new bool(false)])
-    const ap = f.callComposite(motionToPoint, { e, target: integ.npos })
+    // ① 物化快照（同 flyTick）：单 tick 内复合输出只物化一次；否则 exec 链里
+    // setPos 先改 ballPos 后，motionToPoint 的 target 再消费 integ.npos 会二次求值
+    // （其 pos 输入=图变量已被更新）→ 位移翻倍 → 运动器速度=球速×2 → 球瞬移
+    const sTmpPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), integ.npos, new bool(false)])
+    const sTmpVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), integ.nvel, new bool(false)])
+    f.connect(sTmpPos, 0, sTmpVel, 0)
+    const sTmpSpin = f.registerExecNode('set_node_graph_variable', [new str('tmpSpin'), integ.nspin, new bool(false)])
+    f.connect(sTmpVel, 0, sTmpSpin, 0)
+    // ② 写回 + 运动器（全部读物化快照，不再直接消费 integ.*）
+    const setPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.getNodeGraphVariable('tmpPos').asType('vec3'), new bool(false)])
+    f.connect(sTmpSpin, 0, setPos, 0)
+    const ap = f.callComposite(motionToPoint, { e, target: f.getNodeGraphVariable('tmpPos').asType('vec3') })
     f.connect(setPos, 0, ap as never, 0)
-    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), integ.nvel, new bool(false)])
+    const setVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
     f.connect(ap as never, 0, setVel, 0)
-    const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
+    const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
     // 状态机：踢后球速 > SLIDE_ENTER_SPEED → 滑动（打滑，强减速）；否则直接滚动
-    const spd = f._3dVectorModuloOperation(nvel)
+    const spd = f._3dVectorModuloOperation(f.getNodeGraphVariable('tmpVel').asType('vec3'))
     const sliding = f.greaterThan(spd, SLIDE_ENTER_SPEED)
     f.doubleBranch(
       sliding,
