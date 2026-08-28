@@ -377,3 +377,12 @@
   - CLI 修复：setTabBarOptions 嵌套写回 bug（slotFields 改完没写回 slot.value → --tab-options patch 静默无效）。
   - 已注入（ok 8 fail 0）+ resync md5 一致（5d27b788）。**待用户复测**（O-2026-08-27-15）。
 
+
+- 2026-08-28（顶层 stage 4 求解，solverLPlan）：
+  - **新图 _GSTS_solverLPlan (1073741838)** 挂实体 1077936230：E 层完成后 solverEPlan 发 op14 交棒 → 顶层 OLL→PLL → 完成发 op7（最终 plan-done）。
+  - **OLL（顶面朝向）**：216 朝向态紧凑查表（sig=(co0*9+co1*3+co2)*8+(eo0*4+eo1*2+eo2)），action=a1+(a2+1)*64，token 0/1/2=U/U2/U'，3+j=逆公式 j（57 条逆公式表）。
+  - **PLL（顶层位置）**：288 态紧凑查表（角排列阶乘索引×24+棱排列阶乘索引，576 项表），action=(pre*22+alg+1)*4+post。
+  - **状态映射（游戏↔CubeLib）**：角槽镜像 game i↔cube 3-i；棱一致；角位置镜像 pos→3-pos；twist/flip 方向一致（gen-3x3-logic-table ROT 与 CubeLib BASE_MOVES 同约定）。
+  - 离线验证：verify-top-layer.mjs 20000 样本 ALL PASS（平均 4.2 宏 / 46 codes，每宏 ≤22 codes < solveBuf 25 项）。
+  - 新增复合：longListGetInt6/9（6/9 块长列表查询）、llFindPos/llPermIdx（位置查找/阶乘进制排列索引）。
+  - 已注入（ok 9 fail 0）+ resync md5 一致（81cd8127）+ 读图核验通过（变量 pin 完整/信号 op 分发正确/预算 1025<2000）。**待用户游戏复测**：完整打乱→自动还原应能一路解到顶层完成。
