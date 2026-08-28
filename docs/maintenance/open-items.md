@@ -94,17 +94,14 @@
 - 影响：读客户端图循环结构时判读方向可能反（信号发一次 vs 每方块发一次都讲得通）。
 - 何时做：用 debug 日志核验一次转动（信号触发帧数 + 单位状态添加帧数）或最小注入差分实验。
 
-### O-2026-08-28-08 客户端图读法待录入 PKC（bundle 流程，本轮未应用）
+### O-2026-08-28-08 客户端图读法待录入 PKC【已闭合 2026-08-28 第二轮 bundle 应用】
 
-- 待录 claim（game-engine-knowledge 节点，新 topic client-graph-reading）：
-  ① 客户端图识别：graph Id.type 枚举（20000 BasicNode / 20001 BooleanFilter / 20003 StatusNode /
-  20010 CharacterControlSkill，来源官方 proto NodeGraph.Id.Type）+ 读图先查 type 字段；
-  ② explain/parse 对客户端图节点错标服务端名（撞号），按 generic_id→client_node_metadata.ts
-  （subType 过滤）映射真名；③ 客户端多分支 OutFlow[0]=default 未匹配、OutFlow[i]=case[i-1]，
-  default 串联成 fallthrough 顺序分类器（真实 GIL 魔方 9 面逐引脚核验）。
-- 证据：魔方-客户端优化版本.gil SHA f90ac5438c… + 技能 Step 2.8 + 复盘
-  retrospective-2026-08-28-rubik-client-graph-reading.md。
-- 何时做：走 pkc bundle 流程录入（工作区已有他人待处理 bnd_*.json，避免并发写知识树）。
+- 已录：bundle bnd_9bf56357567e299b1b291865c6（content_hash
+  9bf56357567e299b1b291865c69c02ab79996672e1a3b793e835acde8fc59b83）审批应用成功——
+  新 topic knowledge/game-engine-knowledge/client-server-call-chain.md + claim
+  clm_D1A208295BD4F1E3FE（服务端调用客户端节点图全链路，含客户端图识别/错标名重映射/
+  角色操控技能触发链，fact-class external_game_evidence；验证：claims 329→330 通过）。
+- 复盘：retrospective-2026-08-28-client-server-call-chain.md（第二轮）。
 
 ### O-2026-08-28-07 玩家-界面图 n=62 计数链执行流入口读不到
 
