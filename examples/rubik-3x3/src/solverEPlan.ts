@@ -53,6 +53,7 @@ const graph = g
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
       ],
       solveLen: new int(0),
+      bufPos: new int(0),
       phase: new int(0), // 0 idle / 1 armed / 2 waiting-exec
       pStep: new int(0), // plan tick 小步
       solveMask: new int(0),
@@ -163,10 +164,13 @@ const graph = g
                   7: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C7_c0').asType('int_list'), p), false),
                   default: () => {}
                 })
-                f.callComposite(solverAppendCode, {
+const nextPos = f.callComposite(solverAppendCode, {
                   code: f.getNodeGraphVariable('mCode').asType('int'),
-                  raw: new bool(false)
-                })
+                  raw: new bool(false),
+                  pos: f.getNodeGraphVariable('bufPos').asType('int')
+                }).next
+                f.setNodeGraphVariable('bufPos', nextPos, false)
+                f.setNodeGraphVariable('solveLen', nextPos, false)
                 f.setNodeGraphVariable('mIdx', f.addition(mIdx, 1n), false)
                 f.callComposite(solverStartEPlanTick, { target: self })
               },
@@ -192,6 +196,7 @@ const graph = g
         // solverPlan 第一层完成交棒：武装并启动
         f.setNodeGraphVariable('phase', new int(1), false)
         f.setNodeGraphVariable('solveLen', new int(0), false)
+        f.setNodeGraphVariable('bufPos', new int(0), false)
         f.callComposite(solverClearBuf, {})
         f.setNodeGraphVariable('pStep', new int(1), false)
         f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
@@ -202,6 +207,7 @@ const graph = g
         const phase = f.getNodeGraphVariable('phase').asType('int')
         f.doubleBranch(f.greaterThan(phase, 0n), () => {
           f.setNodeGraphVariable('solveLen', new int(0), false)
+          f.setNodeGraphVariable('bufPos', new int(0), false)
           f.callComposite(solverClearBuf, {})
           f.setNodeGraphVariable('pStep', new int(1), false)
           f.callComposite(solverStartEPlanTick, { target: f.getSelfEntity() })

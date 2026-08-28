@@ -56,6 +56,7 @@ const graph = g
         0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
       ],
       solveLen: new int(0),
+      bufPos: new int(0),
       phase: new int(0), // 0 idle / 1 armed / 2 waiting-exec
       stage: new int(0), // 0 归一化 / 1 十字 / 2 第一层角块
       pStep: new int(0), // plan tick 小步
@@ -170,6 +171,7 @@ const graph = g
                   // 中心已归一化：切到十字阶段
                   f.setNodeGraphVariable('stage', new int(1), false)
                   f.setNodeGraphVariable('solveLen', new int(0), false)
+                  f.setNodeGraphVariable('bufPos', new int(0), false)
                   f.callComposite(solverClearBuf, {})
                   f.setNodeGraphVariable('pStep', new int(1), false)
                   f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
@@ -192,6 +194,7 @@ const graph = g
                     // 十字完成：切到第一层角块阶段
                     f.setNodeGraphVariable('stage', new int(2), false)
                     f.setNodeGraphVariable('solveLen', new int(0), false)
+                    f.setNodeGraphVariable('bufPos', new int(0), false)
                     f.callComposite(solverClearBuf, {})
                     f.setNodeGraphVariable('pStep', new int(1), false)
                     f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
@@ -311,10 +314,13 @@ const graph = g
                 })
                 // stage 0：中心宏是原始 moveId（10/11/12），用 solverAppendMoveId 逐 id 追加；
                 // 其余 stage：face move code 用 solverAppendCode 展开 cnt 次。
-                f.callComposite(solverAppendCode, {
+                const nextPos = f.callComposite(solverAppendCode, {
                   code: f.getNodeGraphVariable('mCode').asType('int'),
-                  raw: f.equal(stage, 0n)
-                })
+                  raw: f.equal(stage, 0n),
+                  pos: f.getNodeGraphVariable('bufPos').asType('int')
+                }).next
+                f.setNodeGraphVariable('bufPos', nextPos, false)
+                f.setNodeGraphVariable('solveLen', nextPos, false)
                 f.setNodeGraphVariable('mIdx', f.addition(mIdx, 1n), false)
                 f.callComposite(solverStartPlanTick, { target: self })
               },
@@ -341,6 +347,7 @@ const graph = g
         f.setNodeGraphVariable('phase', new int(1), false)
         f.setNodeGraphVariable('stage', new int(0), false)
         f.setNodeGraphVariable('solveLen', new int(0), false)
+        f.setNodeGraphVariable('bufPos', new int(0), false)
         f.callComposite(solverClearBuf, {})
         f.setNodeGraphVariable('pStep', new int(1), false)
         f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
@@ -351,6 +358,7 @@ const graph = g
         const phase = f.getNodeGraphVariable('phase').asType('int')
         f.doubleBranch(f.greaterThan(phase, 0n), () => {
           f.setNodeGraphVariable('solveLen', new int(0), false)
+          f.setNodeGraphVariable('bufPos', new int(0), false)
           f.callComposite(solverClearBuf, {})
           f.setNodeGraphVariable('pStep', new int(1), false)
           f.callComposite(solverStartPlanTick, { target: f.getSelfEntity() })

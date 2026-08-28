@@ -70,15 +70,15 @@ export const solverFirstUnsolved = g.defineComposite('solver_first_unsolved', {
 // exec：追加一步到 solveBuf。raw=true 时 code 是"原始 moveId（1..12）"，raw=false 时是 face move code 表码（0..17）。
 export const solverAppendCode = g.defineComposite('solver_append_code', {
   id: 1610700054,
-  inputs: { code: { type: 'int' }, raw: { type: 'bool' } },
-  outputs: {},
+  inputs: { code: { type: 'int' }, raw: { type: 'bool' }, pos: { type: 'int' } },
+  outputs: { next: { type: 'int' } },
   outflows: ['done'],
-  build: ({ code, raw }, f) => {
+  build: ({ code, raw, pos }, f) => {
     const solveBuf = f.getNodeGraphVariable('solveBuf').asType('int_list')
-    const sl = f.getNodeGraphVariable('solveLen').asType('int')
+    let nextOut: any = null
     f.doubleBranch(raw, () => {
-      const set = f.registerExecNode('set_list_value', [solveBuf, sl, code])
-      f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.addition(sl, 1n), new bool(false)])
+      f.registerExecNode('set_list_value', [solveBuf, pos, code])
+      nextOut = f.addition(pos, 1n)
     }, () => {
       const faceVar = f.getNodeGraphVariable('CF_MOVE_CODE_FACE').asType('int_list')
       const dirVar = f.getNodeGraphVariable('CF_MOVE_CODE_DIR').asType('int_list')
@@ -89,14 +89,18 @@ export const solverAppendCode = g.defineComposite('solver_append_code', {
       // U3 折叠为负 moveId（dir=-1 → -face）：执行器收到负值后拆成 3 次逻辑-only 事件 + 1 次负轴视觉，
       // 每条记录独立，不再有 3027 帧单记录截断问题（2026-08-26 修复教训）。
       const signedFace = f.multiplication(face, dir)
+      // 2026-08-28 修复（日志 2954 实证 -1×6 连发 + solveBuf 残留错位）：旧版读写
+      // solveLen 图变量，op5 重算与 pStep4 追加在相邻 tick 对 solveLen 产生写序竞态 →
+      // solve_seq 重复/跳码 → 宏残缺 → 十字被破坏。改为调用方显式 pos（pStep4 用独立
+      // bufPos 图变量维护），复合内不再读写 solveLen。
       f.finiteLoop(0n, f.subtraction(steps, 1n), (k) => {
-        f.registerExecNode('set_list_value', [solveBuf, f.addition(sl, k), signedFace])
+        f.registerExecNode('set_list_value', [solveBuf, f.addition(pos, k), signedFace])
       })
-      f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.addition(sl, steps), new bool(false)])
+      nextOut = f.addition(pos, steps)
     })
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
-    return {}
+    return { next: nextOut }
   }
 })
 
