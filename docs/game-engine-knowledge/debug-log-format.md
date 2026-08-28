@@ -59,6 +59,72 @@ f21 = {
 }
 ```
 
+## 客户端节点图日志（2026-08-28 魔方-客户端优化版本会话 2979 实证）
+
+客户端图（type≠20000，如 20010 角色操控技能图）执行也落同一日志文件，但记录与帧编码与服务端不同：
+
+### 客户端记录特征
+
+| 维度 | 服务端记录 | 客户端记录 |
+|---|---|---|
+| graph | 服务器图 ID | 客户端图 ID（如 1082130436） |
+| f8 | 级别 2/3 或图内序号 | **2097154（0x200002）**，恒同值（客户端图标记+级别） |
+| f22 文本 | Print String 输出 | **无**——客户端图打印不落服务器日志（官方有独立「客户端节点图日志」功能 mhrnuz9izfne） |
+| 帧规模 | 每事件几十帧 | **一次技能实例释放=一条记录**（整体旋转 1438 帧 101KB；面旋转 1295 帧 91KB） |
+
+### 客户端帧结构（f21 内，与服务端帧同字段但语义不同）
+
+```
+f21 = {
+  f1 = 一帧（多条，从「节点图开始」顺序执行到链尾）:
+    f1 varint   = head：图内节点序号（**不是动态帧 ID**！n=114 即 head=0x72；
+                  序号 ≥128 用 varint 多字节，如 n=130 = head 8201）
+    f4 bytes    = 输入参数（嵌套结构同服务端 {f1=类型码, f2={...}, f<码+10>=值}）
+    f5 bytes    = 输出参数（结构同 f4）
+    # 无 f6 负载字段——客户端日志不记录计算负载（load 恒 None）
+}
+```
+
+- head ↔ 节点名：head varint = parse --json 的 nodes[i].index；再用 generic_id 查
+  client_node_metadata.ts 映射 displayName（见 gil-node-graph-reading 技能 Step 2.8）
+- 客户端多分支帧：IN0=控制表达式，IN1:StringList=case 值（解码器显示首元素）
+
+### 枚举新增（DTC 数字族，客户端/服务器复合 impl 通用）
+
+| 值 | 含义 | 证据 |
+|---|---|---|
+| 801 | IntToFlt | Integer 90 → Float 90.0；uint64 18446744073709551615 → -1.0（负整数 uint64 显示坑，同服务端） |
+| 805 | BoolToInt | 布尔→整数（是否整体旋转） |
+| 807 | FltToInt | Float 90.0 → Integer 90；5.96e-08 → 0（四舍五入取整=客户端"三维向量取整"内联实现） |
+
+与字符串族 802=IntToStr / 806=BoolToStr / 808=FltToStr 平行。
+
+### 类型码 20（单位状态配置，客户端/服务器通用）
+
+值 = 嵌套 protobuf `{f8:[状态嵌套], f1:1, f16:状态ID varint}`；状态 1077936131（0x40400003）显示为
+`20=[8, 1, 16, 131, 128, 128, 130, 4]`（f16 尾部 5 字节 = 0x40400003 的 varint）。
+出现在 Query If Entity Has Unit Status / 添加单位状态 / Remove Unit Status 的配置参数。
+
+### 跨端通信日志铁证（魔方一次完整旋转的执行序列）
+
+1. **玩家点按钮**：When Floating Interaction Page is Triggered（OUT2/OUT3=按钮 ID）→ Create Dictionary
+   （按钮 ID → 指令编码表：F/B/L/R/U/D=1073741937~1073741940、x/y/z=1073743064~1073743066）→
+   Query Dictionary Value by Key → Set Local Variable → Set Custom Variable "指令"=x（IN4:Boolean=1 触发变量事件）
+2. **服务器施放技能实例**：When Custom Variable Changes（OUT2="指令"）→ Equal → Get Custom Variable
+   "技能实例ID"=10000001 → Cast Specified Skill Instance（IN0=角色实体、IN1=10000001、IN2=校验 false）
+3. **客户端图整链执行**（一条记录）：节点图开始 → 读"指令" → 多分支 fallthrough 解析 → 设置局部变量
+   （层数/范围中心/角度/轴/轴向/角速度）→ 向量计算 → 获取单位标签实体列表 26 块 →
+   遍历实体列表（每块：层数判定 |分量|≤层数/2 → 添加单位状态 1077936131 + 3 变量旋转取整 + 还原计数）→
+   「向服务器节点图发送信号」：IN0=旋转时长、IN1=旋转角度、IN2=是否还原、IN3/IN4=整体向前/向上向量、
+   IN5=指令异常（与服务器监听信号 OUT 参数逐位一致）
+4. **服务器 26 块各自动画**：监听信号（OUT0=本块实体）→ Query Unit Status（客户端已加状态）→
+   遍历 [位置,向前向量,向上向量] 各自 3D Vector Rotation(信号角度)×当前值 → 取整写回 →
+   玩家变量"魔方动画"=1 → Add Basic Target-Oriented Rotation-Based Motion Device
+   （IN1="旋转"、IN2=时长 0.5、IN3=目标旋转）→ When Basic Motion Device Stops（OUT2="旋转"）→
+   Remove Unit Status（1540 同名全清）
+5. **指令编码**：整体旋转=x（层数 3、轴 (1,0,0)、+90°）；面旋转=D（层数 1、范围中心 (0,-1,0)、
+   轴 (0,-1,0)、轴向 y、-90°）
+
 ### 参数类型码 = VarType 枚举（第三方定义 protobuf/gia.proto 确认）
 
 **值字段号 = 类型码 + 10**（如 类型5→f15、类型12→f22、类型16→f26、类型18→f28）

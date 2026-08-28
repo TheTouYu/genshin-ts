@@ -32,12 +32,30 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | `scripts/gia_log.py <日志.gia> dump` | 逐帧原始结构 dump（无压缩，精确核对用） |
 | `scripts/gia_log.py latest` | 输出日志目录下最新 .gia 路径 |
 | `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存）。**仅支持 .gil 地图**；编译产物 .gia 验证用项目根 `tools/decode-gia.ts` |
+| `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、--trace-node 沿 dataflow 倒查来源链到源头 | `<日志> --gil <地图> --rec <n> --client [--trace-node <idx>]` |
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
 > **脚本位置**：本技能脚本在 `<技能目录>/scripts/` 下（绝对路径 `/home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/`），**不在** `/home/h/genshin-ts/scripts/`（旧位置）。运行前先 `ls` 确认，或用 `scripts/gia_log.py` 相对本文件目录解析（2026-08-12 复盘：子代理曾 find 3 轮才定位）。
 
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
+
+### 客户端日志（2026-08-28 魔方-客户端优化版本会话 2979 实证，完整细节见 debug-log-format.md）
+
+- **识别**：records 里 graph=客户端图 ID（如 1082130436）、f8=**2097154(0x200002)** 恒值、无 f22 文本——
+  一次技能实例释放 = 一条大记录（整体旋转 1438 帧 101KB）。客户端图打印不落服务器日志。
+- **客户端帧**：head = **图内节点序号 varint**（n=114→head=0x72；≥128 多字节如 130→8201），不是动态帧 ID；
+  **无 f6 负载**（load 恒 None）；IN/OUT 参数结构与服务端相同。节点名映射：head→nodes[i].index→
+  generic_id→client_node_metadata.ts displayName（gil-node-graph-reading 技能 Step 2.8）。
+- **新枚举**（DTC 数字族，服务端复合 impl 也出现）：801=IntToFlt、805=BoolToInt、807=FltToInt
+  （字符串族 802/806/808 的平行族）；807+801 连用 = 四舍五入取整。
+- **类型码 20** = 单位状态配置 `{f8:[...], f1:1, f16:状态ID varint}`：状态 1077936131 显示
+  `20=[8,1,16,131,128,128,130,4]`。
+- **跨端铁证链**：玩家按钮→字典(按钮ID→指令码)→Set"指令"→When Custom Variable Changes→
+  Cast Specified Skill Instance(技能实例ID 10000001)→客户端图整链(发信号)→服务器 26 块各自动画。
+  指令编码：x=整体旋转(层3/轴(1,0,0)/+90°)、D=面旋转(层1/中心(0,-1,0)/轴(0,-1,0)/-90°)。
+- **事件线视图（`gia_log_flow.py`）**：一条记录=一次技能释放的完整事件线；数据链折叠行=纯数据节点；
+  循环体×N=重复块自动折叠；`--trace-node` 沿 dataflow 倒查输入来源链到源头（获取局部变量自动跳到写回它的设置局部变量继续倒查）。
 
 ### 容器与记录
 - 文件前 8 字节 = 两个 big-endian 长度（`文件大小-4`、`文件大小-8`），之后是连续 protobuf 记录
