@@ -1367,6 +1367,15 @@
       "summary": "服务端经技能实例施放触发客户端节点图执行、客户端经信号/通知回传服务器：官方规则+魔方客户端图真实读图证据",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "client-log-encoding",
+      "node_id": "debug-log-format",
+      "title": "客户端节点图日志编码与跨端通信铁证链",
+      "path": "knowledge/debug-log-format/client-log-encoding.md",
+      "summary": "客户端图记录的帧结构/枚举/类型码20/跨端通信日志铁证链（魔方会话2979实证）",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2984,6 +2993,11 @@
       ]
     },
     "clm_D1A208295BD4F1E3FECDE5C157": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_CAE30537EC91456D842A343D39": {
       "fact_classes": [
         "external_game_evidence"
       ]
