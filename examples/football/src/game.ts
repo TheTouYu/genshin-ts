@@ -29,6 +29,7 @@ const graph = g
       tmpPos: new vec3([0, 0, 0]),
       tmpVel: new vec3([0, 0, 0]),
       tmpSpin: new vec3([0, 0, 0]),
+      tmpDV: new vec3([0, 0, 0]), // autoCheckTick 物化 dV（防 pushCompute 二次求值）
       dbgTag: new str(''),
       dbgVal: new str(''),
       autoTimerOn: new bool(false), // auto_check 循环定时器是否已启动（whenEntityIsCreated 对已存在实体不触发）
@@ -125,8 +126,8 @@ const graph = g
     f.doubleBranch(
       f.equal(evt.timerName, new str('auto_check')),
       () => {
+        // 自重启已移入 autoCheckTick 内部（两分支都启动，防双 outflow 丢下游）
         f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
-        f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
       },
       () => {
         // 其他定时器（如 push_lock）——确保 auto_check 首次启动（对静态实体 whenEntityIsCreated 也可能丢失）

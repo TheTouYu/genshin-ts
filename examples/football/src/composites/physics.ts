@@ -713,21 +713,16 @@ export const kickApply = g.defineComposite('kick_apply', {
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
     // 状态机：踢后球速 > SLIDE_ENTER_SPEED → 滑动（打滑，强减速）；否则直接滚动
+    // 数据选择（不分裂执行流）：stVal = ROLL + (SLIDE − ROLL) × sI
+    // 双分支 outflow 产生两个 done，调用方只连 done[0] → 慢球（false 分支）下游丢失
     const spd = f._3dVectorModuloOperation(f.getNodeGraphVariable('tmpVel').asType('vec3'))
     const sliding = f.greaterThan(spd, SLIDE_ENTER_SPEED)
-    f.doubleBranch(
-      sliding,
-      () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_SLIDE), new bool(false)])
-        f.connect(setSpin, 0, ss, 0)
-        f.outflow('done', ss, 0)
-      },
-      () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-        f.connect(setSpin, 0, ss, 0)
-        f.outflow('done', ss, 0)
-      }
-    )
+    const sI = f.dataTypeConversion(sliding, 'int')
+    const delta = f.multiplication(f.subtraction(new int(STATE_SLIDE), new int(STATE_ROLL)), sI)
+    const stVal = f.addition(new int(STATE_ROLL), delta)
+    const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), stVal, new bool(false)])
+    f.connect(setSpin, 0, ss, 0)
+    f.outflow('done', ss, 0)
     return {}
   }
 })
@@ -816,19 +811,30 @@ export const autoCheckTick = g.defineComposite('auto_check_tick', {
   build: ({ e }, f) => {
     const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const state = f.getNodeGraphVariable('state').asType('int')
     const roleC = f.callComposite(pushGetRole, {})
     const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT: LAG_T })
+    // 飞行/滑动中不补踢（空踢会打断飞行物理/滑动物理）
+    const notFly = f.logicalNotOperation(f.equal(state, 1n))
+    const notSlide = f.logicalNotOperation(f.equal(state, 3n))
+    const kickOk = f.logicalAndOperation(f.logicalAndOperation(autoK.kick, notFly), notSlide)
+    // 自重启 start_timer 放复合内两个分支（2026-08-27 实证：双分支 outflow 产生两个 done，
+    // 调用方只连 done[0] → false 分支下游（原 game.ts 自重启）丢失 → 定时器一次性后停）
     f.doubleBranch(
-      autoK.kick,
+      kickOk,
       () => {
+        // dV 物化到 tmpDV：kickApply 内部 set 图变量后，直接传 pc.dV 会二次求值 pushCompute
         const pc = f.callComposite(pushCompute, { hitPoint: pos })
-        const rl = f.callComposite(kickApply, { e, dV: pc.dV })
-        f.outflow('done', rl as never, 0)
+        const sDV = f.registerExecNode('set_node_graph_variable', [new str('tmpDV'), pc.dV, new bool(false)])
+        const rl = f.callComposite(kickApply, { e, dV: f.getNodeGraphVariable('tmpDV').asType('vec3') })
+        f.connect(sDV, 0, rl as never, 0)
+        const rt = f.registerExecNode('start_timer', [e, new str('auto_check'), new bool(false), f.assemblyList([0.2], 'float')])
+        f.connect(rl as never, 0, rt, 0)
+        f.outflow('done', rt, 0)
       },
       () => {
-        // 未触发：轻量 no-op 收尾（outflow 需要 registered node）
-        const noop = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), vel, new bool(false)])
-        f.outflow('done', noop, 0)
+        const rt = f.registerExecNode('start_timer', [e, new str('auto_check'), new bool(false), f.assemblyList([0.2], 'float')])
+        f.outflow('done', rt, 0)
       }
     )
     return {}

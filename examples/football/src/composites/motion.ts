@@ -52,19 +52,15 @@ export const motionByVel = g.defineComposite('motion_by_vel', {
     const vyRaw = f.division(dy, new float(0.2))
     const vyFloor = f.division(f.addition(f.subtraction(vyRaw, new float(5)), f.absoluteValueOperation(f.addition(vyRaw, new float(5)))), 2)
     const vyGround = f.division(f.subtraction(f.addition(vyFloor, new float(5)), f.absoluteValueOperation(f.subtraction(vyFloor, new float(5)))), 2)
-    f.doubleBranch(
-      grounded,
-      () => {
-        const fullVel = f.create3dVector(vx, vyGround, vz)
-        const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, new str('physics'), new float(0.2), fullVel])
-        f.outflow('done', tail, 0)
-      },
-      () => {
-        const fullVel = f.create3dVector(vx, velY, vz)
-        const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, new str('physics'), new float(0.2), fullVel])
-        f.outflow('done', tail, 0)
-      }
-    )
+    // 数据选择 vy（不分裂执行流）：vy = velY + (vyGround − velY) × gF
+    // 双分支 outflow 会产生两个 done，调用方只连 done[0] → false 分支下游丢失
+    // （2026-08-27 实证：飞行 grounded=false 时链断，kick_launch 的 setState 不执行 → 球空中定住）
+    const gI = f.dataTypeConversion(grounded, 'int')
+    const gF = f.dataTypeConversion(gI, 'float')
+    const vy = f.addition(velY, f.multiplication(f.subtraction(vyGround, velY), gF))
+    const fullVel = f.create3dVector(vx, vy, vz)
+    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, new str('physics'), new float(0.2), fullVel])
+    f.outflow('done', tail, 0)
     return {}
   }
 })
