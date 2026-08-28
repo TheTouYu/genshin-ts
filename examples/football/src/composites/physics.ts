@@ -7,7 +7,6 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { EntityType } from 'genshin-ts/definitions/enum'
 import { motionByVel, motionSpin, motionToPoint } from './motion.js'
-import { dbgTag } from './debuglog.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -800,6 +799,34 @@ export const pushAutoCheck = g.defineComposite('push_auto_check', {
 })
 
 // ================================================================
+// dribbleDecide（纯数据复合，无 outflow 无副作用）：带球决策
+// 职责单一：预测判定（pushAutoCheck 前瞻）+ 状态保护（非飞行/滑动）+ 冲量计算（pushCompute）
+// 输出 kick + dV（不踢时 dV=(0,0,0)）。可独立测试；路由进 pushAutoCheck/pushCompute 的既有数值。
+// 架构（2026-08-28）：心跳（auto_check_tick 编排）/ 判定（本复合纯数据）/ 执行（kickApply 既有）三段分离，
+// 分支只允许出现在编排器链尾（复合内多分支会产生多个 done，调用方单连 done[0] 会静默丢下游）。
+// ================================================================
+export const dribbleDecide = g.defineComposite('dribble_decide', {
+  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' } },
+  outputs: { kick: { type: 'bool' }, dV: { type: 'vec3' } },
+  build: ({ pos, vel, lagT }, f) => {
+    const roleC = f.callComposite(pushGetRole, {})
+    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT })
+    // 飞行/滑动中不补踢（踢球会打断飞行物理/滑动物理）
+    const state = f.getNodeGraphVariable('state').asType('int')
+    const notFly = f.logicalNotOperation(f.equal(state, 1n))
+    const notSlide = f.logicalNotOperation(f.equal(state, 3n))
+    const kickOk = f.logicalAndOperation(f.logicalAndOperation(autoK.kick, notFly), notSlide)
+    // 冲量：kickOk=false 时 dV=(0,0,0)（kickApply 分支在编排器由 kick 守门）
+    const pc = f.callComposite(pushCompute, { hitPoint: pos })
+    const kI = f.dataTypeConversion(kickOk, 'int')
+    const kF = f.dataTypeConversion(kI, 'float')
+    const dV = f._3dVectorZoom(pc.dV, kF)
+    return { kick: kickOk, dV }
+  }
+})
+
+
+// ================================================================
 // 自动补踢 tick（exec 复合）：独立定时器驱动（0.2s），球静止也能触发。
 // 预测补偿：predDist < KICK_DIST 且球速 < KICK_SPEED → 踢球。
 // 2026-08-27 架构修正：原挂 physRollTick 内，球静止（FREE）无滚滑 tick → 永不触发。
@@ -811,21 +838,16 @@ export const autoCheckTick = g.defineComposite('auto_check_tick', {
   build: ({ e }, f) => {
     const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
-    const state = f.getNodeGraphVariable('state').asType('int')
-    const roleC = f.callComposite(pushGetRole, {})
-    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT: LAG_T })
-    // 飞行/滑动中不补踢（空踢会打断飞行物理/滑动物理）
-    const notFly = f.logicalNotOperation(f.equal(state, 1n))
-    const notSlide = f.logicalNotOperation(f.equal(state, 3n))
-    const kickOk = f.logicalAndOperation(f.logicalAndOperation(autoK.kick, notFly), notSlide)
+    // 职责（2026-08-28 三段式编排）：判定=纯数据 dribbleDecide；这里只做
+    // 「条件踢（链尾分支）+ 物化 tmpDV + 心跳自重启」。分支后无下游、无旧逻辑耦合。
+    const dec = f.callComposite(dribbleDecide, { pos, vel, lagT: LAG_T })
     // 自重启 start_timer 放复合内两个分支（2026-08-27 实证：双分支 outflow 产生两个 done，
     // 调用方只连 done[0] → false 分支下游（原 game.ts 自重启）丢失 → 定时器一次性后停）
     f.doubleBranch(
-      kickOk,
+      dec.kick,
       () => {
-        // dV 物化到 tmpDV：kickApply 内部 set 图变量后，直接传 pc.dV 会二次求值 pushCompute
-        const pc = f.callComposite(pushCompute, { hitPoint: pos })
-        const sDV = f.registerExecNode('set_node_graph_variable', [new str('tmpDV'), pc.dV, new bool(false)])
+        // dV 物化到 tmpDV：kickApply 内部 set 图变量后，直接消费 dec.dV 会二次求值判定复合
+        const sDV = f.registerExecNode('set_node_graph_variable', [new str('tmpDV'), dec.dV, new bool(false)])
         const rl = f.callComposite(kickApply, { e, dV: f.getNodeGraphVariable('tmpDV').asType('vec3') })
         f.connect(sDV, 0, rl as never, 0)
         const rt = f.registerExecNode('start_timer', [e, new str('auto_check'), new bool(false), f.assemblyList([0.2], 'float')])

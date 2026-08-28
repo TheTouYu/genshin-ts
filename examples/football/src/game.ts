@@ -7,7 +7,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
-import { dbgPhysSnapshot, dbgTag } from './composites/debuglog.js'
+import { dbgTag } from './composites/debuglog.js'
 import { autoCheckTick, physTick, pushCompute, kickApply } from './composites/physics.js'
 import { Signal } from './resources/signals.js'
 
