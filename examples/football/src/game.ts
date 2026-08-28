@@ -1,14 +1,17 @@
-// 足球物理图（挂球实体 1077936135）
+// 足球物理图（挂球实体 1077936135，图 1073741825）——主图，负责球状态机
 // whenTabIsSelected → 施力（选项 tabId 1-8）+ 复位（tabId 9）
-// onSignal(football_push) → 推球执行（弹球图发来推球目标点）
+// onSignal(football_push) → 推球执行（弹球图发来推球目标点，暂禁用）
 // whenBasicMotionDeviceStops → 物理 tick（状态机：空中/反弹/滚滑/静止）
-// 带球「推」模型：命中检测触发由弹球图（1073741827）处理并发信号；
-// 球状态机不再有 CARRIED 弹簧场（取消"拉"，改"推"，球总在玩家正前方）
+// 状态机：0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING / 3=滑动 SLIDE
+// 架构（2026-08-28 速度场带球切换）：
+//   - 本图是「主图」，负责球状态机 + 射门/传球/复位（物理权威）；
+//   - 带球（速度场吸附）已拆到独立图 dribble-field.ts（1073741828），
+//     读球实体自定义变量 state（本图写，跨图共享），只在 state==0 时驱动；
+//   - 本图每次状态变化后把 state 同步写到球实体自定义变量，供带球图读取。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
-import { dbgTag } from './composites/debuglog.js'
-import { autoCheckTick, physTick, pushCompute, kickApply } from './composites/physics.js'
+import { physTick } from './composites/physics.js'
 import { Signal } from './resources/signals.js'
 
 // 场地中间（复位点）
@@ -29,12 +32,9 @@ const graph = g
       tmpPos: new vec3([0, 0, 0]),
       tmpVel: new vec3([0, 0, 0]),
       tmpSpin: new vec3([0, 0, 0]),
-      tmpDV: new vec3([0, 0, 0]), // autoCheckTick 物化 dV（防 pushCompute 二次求值）
-      lastPlayerPos: new vec3([0, 0, 0]), // 玩家上一 tick 位置（位置差分测速，替代 queryCharacter 依赖 buff）
       dbgTag: new str(''),
       dbgVal: new str(''),
-      autoTimerOn: new bool(false), // auto_check 循环定时器是否已启动（whenEntityIsCreated 对已存在实体不触发）
-      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
+      state: new int(0), // 0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING / 3=滑动 SLIDE
       impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
       goalCount: new int(0)
@@ -46,22 +46,13 @@ const graph = g
   .on('whenTabIsSelected', (evt: any, f: any) => {
     const ball = f.getSelfEntity()
     const tabId = evt.tabId
-    // 实验验证：事件时机启动 auto_check（whenEntityIsCreated 时机注册的定时器不触发，
-    // 2026-08-27 日志实证；对比 push_lock 在事件时机启动正常触发）
-    const acOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
-    f.doubleBranch(
-      acOn,
-      () => {},
-      () => {
-        f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-        f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
-      }
-    )
     // 9 = 复位，1-8 = 施力
     f.doubleBranch(
       f.equal(tabId, 9n),
       () => {
         f.callComposite(kickReset, { e: ball })
+        // 复位后 state=0，同步到球自定义变量（供带球图读取）
+        f.setCustomVariable(ball, new str('state'), new int(0), false)
       },
       () => {
         const state = f.getNodeGraphVariable('state').asType('int')
@@ -69,16 +60,17 @@ const graph = g
           f.equal(state, 0n),
           () => {
             // 静止：设定初速 + 启动主运动器
-            // const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const ka = f.callComposite(kickApplyForce, { tabId })
             const kl = f.callComposite(kickLaunch, { e: ball })
             f.connect(ka as never, 0, kl as never, 0)
+            // 施力后 state=1（空中），同步到球自定义变量
+            f.setCustomVariable(ball, new str('state'), new int(1), false)
           },
           () => {
             // 运动中：只叠加冲量 + 启动唯一名冲量运动器，不新建 physics
-            // const lg = f.callComposite(dbgTag, { tag: new str('DBG_KICK'), val: f.dataTypeConversion(tabId, 'str') })
             const imp = f.callComposite(kickApplyImpulse, { e: ball, tabId })
-            // f.connect(lg as never, 0, imp as never, 0)
+            // 运动中施力后 state=1（空中），同步到球自定义变量
+            f.setCustomVariable(ball, new str('state'), new int(1), false)
           }
         )
       }
@@ -102,46 +94,12 @@ const graph = g
     f.doubleBranch(
       f.equal(evt.motionDeviceName, new str('physics')),
       () => {
-        // 调试快照已注释（回归主线，减少日志）
         const pt = f.callComposite(physTick, { e: ball })
+        // 物理 tick 后 state 可能变化，同步到球自定义变量（供带球图读取）
+        const state = f.getNodeGraphVariable('state').asType('int')
+        f.setCustomVariable(ball, new str('state'), state, false)
       },
       () => {}
-    )
-  })
-  // ================================================================
-  // 自动补踢独立定时器（0.2s 循环）：球静止（FREE）也有滚滑 tick 外的检查源。
-  // 实体创建时启动；whenTimerIsTriggered 里 auto_check → autoCheckTick。
-  // ================================================================
-  .on('whenEntityIsCreated', (evt: any, f: any) => {
-    f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-    // 实体创建太早、信号/定时器系统未就绪时 startTimer 注册会丢失（2026-08-27 用户经验 +
-    // 日志实证：whenEntityIsCreated time1 启动的 auto_check 从未触发，push_lock 事件时机正常）。
-    // 用 setTimeout 延迟 3 秒再启动（rubik 实证 setTimeout 在事件回调有效）。
-    setTimeout(() => {
-      f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
-    }, 3000)
-  })
-  .on('whenTimerIsTriggered', (evt: any, f: any) => {
-    // auto_check 定时器触发 → 处理 + 自重启（一次性定时器 + 自重启，比 loop 可靠：
-    // 2026-08-27 日志实证 startTimer(loop=true) 启动后从不触发 whenTimerIsTriggered）
-    f.doubleBranch(
-      f.equal(evt.timerName, new str('auto_check')),
-      () => {
-        // 自重启已移入 autoCheckTick 内部（两分支都启动，防双 outflow 丢下游）
-        f.callComposite(autoCheckTick, { e: f.getSelfEntity() })
-      },
-      () => {
-        // 其他定时器（如 push_lock）——确保 auto_check 首次启动（对静态实体 whenEntityIsCreated 也可能丢失）
-        const timerOn = f.getNodeGraphVariable('autoTimerOn').asType('bool')
-        f.doubleBranch(
-          timerOn,
-          () => {},
-          () => {
-            f.setNodeGraphVariable('autoTimerOn', new bool(true), false)
-            f.startTimer(f.getSelfEntity(), 'auto_check', false, [0.2])
-          }
-        )
-      }
     )
   })
 
