@@ -314,13 +314,10 @@ const graph = g
                 })
                 // stage 0：中心宏是原始 moveId（10/11/12），用 solverAppendMoveId 逐 id 追加；
                 // 其余 stage：face move code 用 solverAppendCode 展开 cnt 次。
-                const nextPos = f.callComposite(solverAppendCode, {
+                f.callComposite(solverAppendCode, {
                   code: f.getNodeGraphVariable('mCode').asType('int'),
-                  raw: f.equal(stage, 0n),
-                  pos: f.getNodeGraphVariable('bufPos').asType('int')
-                }).next
-                f.setNodeGraphVariable('bufPos', nextPos, false)
-                f.setNodeGraphVariable('solveLen', nextPos, false)
+                  raw: f.equal(stage, 0n)
+                })
                 f.setNodeGraphVariable('mIdx', f.addition(mIdx, 1n), false)
                 f.callComposite(solverStartPlanTick, { target: self })
               },

@@ -164,13 +164,10 @@ const graph = g
                   7: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_E_MACRO_C7_c0').asType('int_list'), p), false),
                   default: () => {}
                 })
-const nextPos = f.callComposite(solverAppendCode, {
+                f.callComposite(solverAppendCode, {
                   code: f.getNodeGraphVariable('mCode').asType('int'),
-                  raw: new bool(false),
-                  pos: f.getNodeGraphVariable('bufPos').asType('int')
-                }).next
-                f.setNodeGraphVariable('bufPos', nextPos, false)
-                f.setNodeGraphVariable('solveLen', nextPos, false)
+                  raw: new bool(false)
+                })
                 f.setNodeGraphVariable('mIdx', f.addition(mIdx, 1n), false)
                 f.callComposite(solverStartEPlanTick, { target: self })
               },

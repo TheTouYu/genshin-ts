@@ -70,15 +70,20 @@ export const solverFirstUnsolved = g.defineComposite('solver_first_unsolved', {
 // exec：追加一步到 solveBuf。raw=true 时 code 是"原始 moveId（1..12）"，raw=false 时是 face move code 表码（0..17）。
 export const solverAppendCode = g.defineComposite('solver_append_code', {
   id: 1610700054,
-  inputs: { code: { type: 'int' }, raw: { type: 'bool' }, pos: { type: 'int' } },
-  outputs: { next: { type: 'int' } },
+  inputs: { code: { type: 'int' }, raw: { type: 'bool' } },
+  outputs: {},
   outflows: ['done'],
-  build: ({ code, raw, pos }, f) => {
+  build: ({ code, raw }, f) => {
     const solveBuf = f.getNodeGraphVariable('solveBuf').asType('int_list')
-    let nextOut: any = null
+    // 写址游标：bufPos 为 pStep4 追加链独占（与 solveLen 同步清零/推进），复合内读写完成游标闭环。
+    // 2026-08-28 回归复盘（日志 2956）：上一版把 pos/next 设计成复合输入/输出引脚 +
+    // nextOut 在 doubleBranch 分支内赋值 → 引脚数据边错乱（下游「发送信号」节点吃到
+    // String=bufPos、stage 图变量读空、视觉 blockOrient 错乱黑块）。复合输出引脚 +
+    // 分支内赋值是高危模式，回归为复合内读写独立游标图变量。
+    const bufPos = f.getNodeGraphVariable('bufPos').asType('int')
     f.doubleBranch(raw, () => {
-      f.registerExecNode('set_list_value', [solveBuf, pos, code])
-      nextOut = f.addition(pos, 1n)
+      f.registerExecNode('set_list_value', [solveBuf, bufPos, code])
+      f.registerExecNode('set_node_graph_variable', [new str('bufPos'), f.addition(bufPos, 1n), new bool(false)])
     }, () => {
       const faceVar = f.getNodeGraphVariable('CF_MOVE_CODE_FACE').asType('int_list')
       const dirVar = f.getNodeGraphVariable('CF_MOVE_CODE_DIR').asType('int_list')
@@ -89,18 +94,16 @@ export const solverAppendCode = g.defineComposite('solver_append_code', {
       // U3 折叠为负 moveId（dir=-1 → -face）：执行器收到负值后拆成 3 次逻辑-only 事件 + 1 次负轴视觉，
       // 每条记录独立，不再有 3027 帧单记录截断问题（2026-08-26 修复教训）。
       const signedFace = f.multiplication(face, dir)
-      // 2026-08-28 修复（日志 2954 实证 -1×6 连发 + solveBuf 残留错位）：旧版读写
-      // solveLen 图变量，op5 重算与 pStep4 追加在相邻 tick 对 solveLen 产生写序竞态 →
-      // solve_seq 重复/跳码 → 宏残缺 → 十字被破坏。改为调用方显式 pos（pStep4 用独立
-      // bufPos 图变量维护），复合内不再读写 solveLen。
       f.finiteLoop(0n, f.subtraction(steps, 1n), (k) => {
-        f.registerExecNode('set_list_value', [solveBuf, f.addition(pos, k), signedFace])
+        f.registerExecNode('set_list_value', [solveBuf, f.addition(bufPos, k), signedFace])
       })
-      nextOut = f.addition(pos, steps)
+      f.registerExecNode('set_node_graph_variable', [new str('bufPos'), f.addition(bufPos, steps), new bool(false)])
     })
+    // solveLen 与 bufPos 同步（执行器/op6 发布消费 solveLen 语义不变）
+    f.registerExecNode('set_node_graph_variable', [new str('solveLen'), f.getNodeGraphVariable('bufPos').asType('int'), new bool(false)])
     const done = f.registerExecNode('set_node_graph_variable', [new str('tmpA'), new int(0), new bool(false)])
     f.outflow('done', done, 0)
-    return { next: nextOut }
+    return {}
   }
 })
 
