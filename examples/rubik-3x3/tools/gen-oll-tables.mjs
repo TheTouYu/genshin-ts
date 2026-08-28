@@ -1,8 +1,10 @@
 // gen-oll-tables.mjs — 顶层 OLL 表生成器（stage 4 用，CubeLib 约定）
 // 输出：examples/rubik-3x3/src/ollTables.ts
-// OLL 表存「sig→solved 的正序求解 token 序列」（最多 2 token）：
-//   token 0/1/2 = U/U2/U'（move code 0/1/2），3+j = 逆公式 j（codes 在 CF_OLL_ALG_INV）
-//   action 编码 = a1 + (a2+1)*64，a2=-1 表示单 token。
+// 紧凑索引：sig_compact = (co0*9+co1*3+co2)*8 + (eo0*4+eo1*2+eo2)
+//   其中 co0..co2 = U层 4 角前 3 个 twist（第 4 个由 sum%3==0 约束），
+//         eo0..eo2 = U层 4 棱前 3 个 flip（第 4 个由 sum%2==0 约束）。
+//   共 27×8 = 216 个合法朝向态。
+// action 编码 = a1 + (a2+1)*64；token 0/1/2 = U/U2/U'（move code），3+j = 逆公式 j。
 import { createRequire } from 'node:module'
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -54,10 +56,14 @@ function oriSig(cube) {
   const ee = ((eo[0]*2+eo[1])*2+eo[2])*2+eo[3]
   return cc*16+ee
 }
+// 紧凑索引（运行时）：前 3 个 co + 前 3 个 eo
+function compactIdx(co, eo) {
+  return (co[0]*9 + co[1]*3 + co[2])*8 + (eo[0]*4 + eo[1]*2 + eo[2])
+}
 const ollAlgCodes = LL.oll.map(e => decodeCodes(e.codes, e.len))
 const ollAlgInv = ollAlgCodes.map(codes => invertCodes(codes))
 
-// 正向 BFS：solved →(正 token)→ sig；正 token 定义：0/1/2=U/U2/U'，3+i=公式 i
+// 正向 BFS：solved →(正 token)→ sig；正 token：0/1/2=U/U2/U'，3+i=公式 i
 const gens = [
   { codes: [0], token: 0 }, { codes: [1], token: 1 }, { codes: [2], token: 2 },
   ...ollAlgCodes.map((codes, i) => ({ codes, token: 3 + i }))
@@ -80,25 +86,29 @@ while (head < q.length) {
 }
 console.log('OLL covered sigs:', bestPath.size, '/ 216')
 
-// 求解 token 序列 = 反转 path，每个正 token 取逆
-// 逆 token 编码（运行时）：0/1/2 = U/U2/U'（move code 0/1/2），3+j = 逆公式 j
 function invToken(t) {
-  if (t <= 2) {
-    // U(0)→U'(2), U2(1)→U2(1), U'(2)→U(0)
-    return t === 1 ? 1 : (t === 0 ? 2 : 0)
-  }
-  return t // 公式 token 保持 id（3+i 引用逆公式 i）
+  if (t <= 2) return t === 1 ? 1 : (t === 0 ? 2 : 0)
+  return t
 }
-const ACT = new Array(81 * 16).fill(-1)
+// 216 项紧凑表
+const ACT = new Array(216).fill(-1)
+let filled = 0
 for (const [sig, path] of bestPath.entries()) {
+  const co = [Math.floor(sig/16/27)%3, Math.floor(sig/16/9)%3, Math.floor(sig/16/3)%3, Math.floor(sig/16)%3]
+  const eo = [Math.floor((sig%16)/8)%2, Math.floor((sig%16)/4)%2, Math.floor((sig%16)/2)%2, sig%2]
+  const idx = compactIdx(co, eo)
+  if (idx === 0) continue // sig=0 已朝向，运行时跳过
   const rev = path.slice().reverse().map(invToken)
   const a1 = rev[0], a2 = rev.length > 1 ? rev[1] : -1
-  ACT[sig] = a1 + (a2 + 1) * 64
+  ACT[idx] = a1 + (a2 + 1) * 64
+  filled++
 }
-const legal = ACT.filter(x => x >= 0).length
-console.log('ACT legal:', legal, '（sig=0 已朝向，不计入）')
+console.log('ACT compact filled:', filled, '（应=215，sig0 跳过）')
 
 const ALGLEN = ollAlgInv.map(c => c.length)
+const ALGOFF = []
+let _acc = 0
+for (const len of ALGLEN) { ALGOFF.push(_acc); _acc += len }
 const ALG = ollAlgInv.flat()
 
 function chunk(arr, max) { const out = []; for (let i = 0; i < arr.length; i += max) out.push(arr.slice(i, i + max)); return out }
@@ -111,11 +121,13 @@ function emit(name, arr, max) {
 }
 const out = []
 out.push('// 自动生成：node examples/rubik-3x3/tools/gen-oll-tables.mjs —— 勿手改')
-out.push('// 顶层 OLL 表（CubeLib 约定）：sig=cc*16+ee 索引 action=a1+(a2+1)*64；token 0/1/2=U/U2/U\'，3+j=逆公式j')
+out.push('// 顶层 OLL 表（CubeLib 约定）：紧凑索引 sig=(co0*9+co1*3+co2)*8+(eo0*4+eo1*2+eo2)')
+out.push('// action=a1+(a2+1)*64；token 0/1/2=U/U2/U\'，3+j=逆公式j')
 out.push(...emit('CF_OLL_ACT', ACT, 100))
 out.push(...emit('CF_OLL_ALGLEN', ALGLEN, 100))
+out.push(...emit('CF_OLL_ALGOFF', ALGOFF, 100))
 out.push(...emit('CF_OLL_ALG', ALG, 100))
-out.push('// 尺寸：' + JSON.stringify({ act: ACT.length, legal, algLen: ALGLEN.length, alg: ALG.length }))
+out.push('// 尺寸：' + JSON.stringify({ act: ACT.length, filled, algLen: ALGLEN.length, algOff: ALGOFF.length, alg: ALG.length }))
 const dest = join(dirname(fileURLToPath(import.meta.url)), '../src/ollTables.ts')
 writeFileSync(dest, out.join('\n') + '\n')
 console.log('wrote', dest)

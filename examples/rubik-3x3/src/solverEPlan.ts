@@ -121,8 +121,8 @@ const graph = g
               () => {
                 f.setNodeGraphVariable('phase', new int(0), false)
                 f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
-                f.setNodeGraphVariable('dbgVal', new str('plan-done'), false)
-                f.sendSignal(RubikSignal.rubik3x3_solve, 7n, 0n)
+                f.setNodeGraphVariable('dbgVal', new str('stage-top-layer'), false)
+                f.sendSignal(RubikSignal.rubik3x3_solve, 14n, 0n)
               },
               () => {
                 const t = f.callComposite(solverFirstUnsolved, { mask }).out

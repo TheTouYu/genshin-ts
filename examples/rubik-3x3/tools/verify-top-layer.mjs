@@ -49,19 +49,30 @@ const cf = readFileSync(join(EXAMPLE, 'src/cfopTables.ts'),'utf8')
 const ol = readFileSync(join(EXAMPLE, 'src/ollTables.ts'),'utf8')
 const FACE = parseTS('CF_MOVE_CODE_FACE', cf), DIR = parseTS('CF_MOVE_CODE_DIR', cf), STEPS = parseTS('CF_MOVE_CODE_STEPS', cf)
 const OLL_ACT = parseTS('CF_OLL_ACT', ol), OLL_ALGLEN = parseTS('CF_OLL_ALGLEN', ol), OLL_ALG = parseTS('CF_OLL_ALG', ol)
-const PLL_SIG = parseTS('CF_PLL_SIG', cf), PLL_ACT = parseTS('CF_PLL_ACT', cf), PLL_ALGLEN = parseTS('CF_PLL_ALGLEN', cf), PLL_ALG = parseTS('CF_PLL_ALG', cf)
+const pllCf = readFileSync(join(EXAMPLE, 'src/pllTables.ts'),'utf8')
+const PLLC_ACT = parseTS('CF_PLLC_ACT', pllCf)
+const PLL_ALGLEN = parseTS('CF_PLL_ALGLEN', cf), PLL_ALG = parseTS('CF_PLL_ALG', cf)
 function applyCode(s, code) { const face = FACE[code], dir = DIR[code], steps = STEPS[code]; for (let k = 0; k < steps; k++) { if (dir < 0) { for (let i = 0; i < 3; i++) applyMove(s, face) } else applyMove(s, face) } }
 // 签名：槽镜像（角 game i ↔ cube 3-i；棱一致）+ 位置镜像（角 pos → 3-pos）
-function ollSigGame(s) { const co = [s.co[3], s.co[2], s.co[1], s.co[0]]; const eo = [s.eo[0], s.eo[1], s.eo[2], s.eo[3]]; const cc = ((co[0]*3+co[1])*3+co[2])*3+co[3]; const ee = ((eo[0]*2+eo[1])*2+eo[2])*2+eo[3]; return cc*16+ee }
+function ollSigGame(s) {
+  // 槽镜像后取前 3 个 co/eo，紧凑索引（第 4 个由约束决定）
+  const co = [s.co[3], s.co[2], s.co[1], s.co[0]]
+  const eo = [s.eo[0], s.eo[1], s.eo[2], s.eo[3]]
+  return (co[0]*9 + co[1]*3 + co[2])*8 + (eo[0]*4 + eo[1]*2 + eo[2])
+}
 function pllSigGame(s) {
-  // CubeLib U 层 4 角 home（UFR,UFL,UBR,UBL）= 游戏 home 3,2,1,0
-  const cornerHome = [3, 2, 1, 0]
-  // CubeLib U 层 4 棱 home（UF,UR,UB,UL）= 游戏 home 0,1,2,3
-  const edgeHome = [0, 1, 2, 3]
-  let k = 0
-  for (const h of cornerHome) { const gp = s.cp.indexOf(h); k = k*8 + (3 - gp) }  // 角位置镜像 3-gp
-  for (const h of edgeHome) { const gp = s.ep.indexOf(h); k = k*8 + gp }  // 棱一致
-  return k
+  // 角排列（镜像后 0..3 排列）：UFR,UFL,UBR,UBL = home 3,2,1,0，位置镜像 3-gp
+  const cornerPos = [3 - s.cp.indexOf(3), 3 - s.cp.indexOf(2), 3 - s.cp.indexOf(1), 3 - s.cp.indexOf(0)]
+  // 棱排列：UF,UR,UB,UL = home 0,1,2,3（一致）
+  const edgePos = [s.ep.indexOf(0), s.ep.indexOf(1), s.ep.indexOf(2), s.ep.indexOf(3)]
+  // 阶乘进制索引
+  function permIdx(pos) {
+    const p0 = pos[0]
+    const p1 = pos[1] - (pos[1] > p0 ? 1 : 0)
+    const p2 = pos[2] - (pos[2] > p0 ? 1 : 0) - (pos[2] > pos[1] ? 1 : 0)
+    return p0*6 + p1*2 + p2
+  }
+  return permIdx(cornerPos)*24 + permIdx(edgePos)
 }
 function isSolved(s) { return s.cp.every((x,i)=>x===i) && s.co.every(x=>x===0) && s.ep.every((x,i)=>x===i) && s.eo.every(x=>x===0) }
 function solveLL(s) {
@@ -79,9 +90,8 @@ function solveLL(s) {
   }
   const psig = pllSigGame(s)
   if (psig !== 0) {
-    const idx = PLL_SIG.indexOf(psig)
-    if (idx < 0) return { ok:false, stage:'PLL-sig', macros }
-    const act = PLL_ACT[idx]
+    const act = PLLC_ACT[psig]
+    if (act < 0) return { ok:false, stage:'PLL-sig', macros }
     const post = act % 4, pre = Math.floor(act/4/22), algp1 = Math.floor(act/4) % 22
     if (pre > 0) { const codes = Array(pre).fill(0); macros.push(codes); for (const c of codes) applyCode(s, c) }
     if (algp1 > 0) { const alg = algp1-1; const off = PLL_ALGLEN.slice(0,alg).reduce((x,y)=>x+y,0); const codes = PLL_ALG.slice(off, off+PLL_ALGLEN[alg]); macros.push(codes); for (const c of codes) applyCode(s, c) }
