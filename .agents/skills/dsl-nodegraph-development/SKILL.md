@@ -65,6 +65,19 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 **setTimeout 的 delayMs 单位是毫秒**（DSL 内部转秒）。事故：`[200]` 以为是 200ms 实为 **200 秒**，
 日志 57 秒内定时器从未触发。自查：对照同族已验证调用（如 dribble 的 `[LOCK_MS]`，注释写明"秒"）。
 
+**官方节点依赖 buff 的降级方案（2026-08-28 足球带球实证）**：
+`queryCharacterSCurrentMovementSpd` 等官方节点**仅当角色挂对应单位状态效果（buff）时才能查询**，
+buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0:Float=空`/`OUT1:Vector=(0,0,0)` = buff 未挂。
+**降级方案**：位置差分测速——`roleVel = (当前实体位置 − 上一 tick 位置) × (1/DT)`，存图变量 lastPos，
+不依赖任何编辑器前置。凡"官方节点需挂 buff"都要评估降级方案。
+
+**排查"球/实体不动"三层核对法（2026-08-28 足球实证）**：
+逻辑值 ≠ 渲染值。排查"不动/跟不上"必须同时核对三层，缺一层就误判：
+1. 逻辑位置（ballPos 图变量）
+2. 实体实际位置（getEntityLocationAndRotation 的 OUT0）
+3. 运动器参数（Add Uniform 的 IN3 速度 + 旋转运动器 IN3 角速度）
+三层一致才说明渲染正确。只盯逻辑值会误判"球在滚"（实际渲染没动）。
+
 **定时器链路排查顺序（不甩锅引擎）**：
 1. 数复合调用次数（如 auto_check_tick 帧数）确认定时器是否真的触发——别只看结果埋点（埋点可能只在条件分支里）
 2. 对比同族定时器（同图/同实体/同参数）的日志 IN3 延迟值与触发次数
