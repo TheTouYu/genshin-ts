@@ -77,6 +77,42 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-28-05 parse/explain 工具把客户端图节点错标成服务端 API 名
+
+- 证据：魔方-客户端优化版本.gil（SHA f90ac5438c…）客户端图 1082130436（type=20010）191 节点全错标：
+  多分支→"Set Custom Variable Dict Str List Int"、节点图开始→"Set Custom Variable Dict Str List Bool"、
+  获取自定义变量→"When Custom Variable Changes …"。
+- 根因：名字解析只查服务端名字表（node_pin_records），客户端 genericId 与服务端撞号落错条目。
+- 影响：读客户端图第一步就被误导；当前靠手工 generic_id→client_node_metadata.ts 映射绕过（技能 Step 2.8）。
+- 何时做：改 tools/parse-gil-node-graph.ts + explain 系列的名字解析——先按 graph.type 分流，
+  非 20000 图查 client_node_metadata.ts（subType 按图型过滤）取 displayName。
+
+### O-2026-08-28-06 客户端「遍历实体列表」out_flow[0]/[1] 语义未闭合
+
+- 证据：客户端有限循环已实证 0=循环体/1=完成；遍历实体列表同图读取（n=4：OutFlow[0]→发信号、
+  OutFlow[1]→加单位状态+还原计数）按设计自洽推断 0=完成/1=每次，与有限循环相反。
+- 影响：读客户端图循环结构时判读方向可能反（信号发一次 vs 每方块发一次都讲得通）。
+- 何时做：用 debug 日志核验一次转动（信号触发帧数 + 单位状态添加帧数）或最小注入差分实验。
+
+### O-2026-08-28-08 客户端图读法待录入 PKC（bundle 流程，本轮未应用）
+
+- 待录 claim（game-engine-knowledge 节点，新 topic client-graph-reading）：
+  ① 客户端图识别：graph Id.type 枚举（20000 BasicNode / 20001 BooleanFilter / 20003 StatusNode /
+  20010 CharacterControlSkill，来源官方 proto NodeGraph.Id.Type）+ 读图先查 type 字段；
+  ② explain/parse 对客户端图节点错标服务端名（撞号），按 generic_id→client_node_metadata.ts
+  （subType 过滤）映射真名；③ 客户端多分支 OutFlow[0]=default 未匹配、OutFlow[i]=case[i-1]，
+  default 串联成 fallthrough 顺序分类器（真实 GIL 魔方 9 面逐引脚核验）。
+- 证据：魔方-客户端优化版本.gil SHA f90ac5438c… + 技能 Step 2.8 + 复盘
+  retrospective-2026-08-28-rubik-client-graph-reading.md。
+- 何时做：走 pkc bundle 流程录入（工作区已有他人待处理 bnd_*.json，避免并发写知识树）。
+
+### O-2026-08-28-07 玩家-界面图 n=62 计数链执行流入口读不到
+
+- 证据：魔方-客户端优化版本.gil 图 1073741851（玩家-界面）：监听信号 n=88 无执行出边，
+  n=62 List Iteration Loop（遍历方块统计"选中/运动完成魔方块数量"）在 parse flow 中无 InFlow 入边。
+- 影响：该计数链是"信号触发后运行"还是"编辑器遗留死链"无法从 GIL 静态确定。
+- 何时做：游戏内转一次魔方，debug 日志核验 n=62 链是否执行（运动完成数是否更新）。
+
 ### O-2026-08-27-04 求解执行器定时器叠加（同秒 3 面转，2931 实测）【已闭合 2026-08-27】
 
 - 证据：2931 日志 sec454 内 rec93/97/101 三个完整面转（89KB×3）同秒连续执行，无 emitTick 1.52s 间隔——节拍失控。

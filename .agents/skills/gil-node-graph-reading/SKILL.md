@@ -73,6 +73,10 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
 - 只看单节点：`gsts assets:node-graphs read --gil <地图> --graph <id> --node <n>`（--node 定点）
 - 结构化提取：`parse --json > /tmp/g.json` 后 python 按 index 过滤（比 explain 更省 token）
 - 大 pin 节点（Assembly List 等）直接跳过「参数来源」段，pin 值用 --node 定点查
+- **DSH 沙箱环境（2026-08-28 魔方客户端图复盘）**：每条 bash 命令独立沙箱，/tmp 不跨调用持久——
+  `parse > /tmp/g.json` 与"下一条命令读 /tmp"必然 FileNotFoundError。**parse+python 分析合并进同一条
+  bash 命令**（heredoc 一次跑完）；正则转义（d/s/n）在 run_code→bash 链路会被 JS 模板字符串吃掉，
+  统一写双反斜杠或改用无转义写法，否则正则静默 0 命中且无报错。
 
 ### Step 2.6 parse --json 输出键名速查（勿猜结构，2026-08-12 复盘）
 
@@ -100,6 +104,42 @@ for m in re.finditer(r"name: '([^']+)',\s*\n\s*id: (\d+),(.*?)(?=\n  \})", src, 
 PY
 ```
 （与 `gil-node-graph-editing` SKILL.md「名称→ID 速查」同源，读图分析时同样适用）
+
+### Step 2.8 客户端节点图读法（2026-08-28 魔方-客户端优化版本实证，勿跳）
+
+地图里混着客户端图时（`list-gil-node-graphs.ts` 输出的 `type` ≠ 20000），explain/parse 会把客户端节点
+**错标成服务端 API 名**（多分支→"Set Custom Variable Dict Str List Int"、节点图开始→"Set Custom Variable
+Dict Str List Bool"、获取自定义变量→"When Custom Variable Changes"…），按错名读必然全错。正确读法：
+
+1. **先认图型**：graph `type` 字段枚举见官方 proto
+   `src/thirdparty/.../protobuf/gia.proto` 的 `NodeGraph.Id.Type`：
+   20000=BasicNode(服务端玩法图) / 20001=BooleanFilter / 20003=StatusNode / 20010=CharacterControlSkill
+   （客户端图：过滤器/状态图/角色操控技能图；其余 20002~20009 同理）。
+2. **名字映射**：`parse --json` 的 `nodes[i].generic_id` 是真身份，用它查
+   `src/thirdparty/.../node_data/client_node_metadata.ts` 的 `subType`+`displayName`：
+
+```bash
+python3 - <<'PY'
+import re
+src = open('src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts').read()
+for m in re.finditer(r"subType:\s*'(character_control_skill|bool_filter|int_filter)',\s*\n\s*nodeType:\s*'([^']+)',\s*\n\s*displayName:\s*'([^']*)',\s*\n\s*graphType:\s*\d+,\s*\n\s*genericId:\s*(\d+),", src):
+    print(m.group(1), m.group(4), m.group(3))
+PY
+```
+
+3. **客户端多分支 pin 语义（真实 GIL 核验，勿按服务端习惯猜）**：`OutFlow[0]` = default/未匹配分支，
+   `OutFlow[i]` = case[i-1]（i≥1）；多个多分支用 default 串联成 fallthrough 链 = 顺序分类器
+   （链尾 default = 兜底分支，如"指令异常"）。case↔引脚映射用"case 列表 × OutFlow 目标 × 目标字面量赋值"
+   三方互证（魔方 9 面全部吻合才固化）。
+4. **客户端循环语义**：「有限循环」out_flow[0]=循环体 / [1]=完成（真实 GIL 核验）；「遍历实体列表」
+   语义未闭合（按设计自洽推断 0=完成/1=每次，与有限循环相反，见 open-items O-2026-08-28-06）——
+   判读时标注"待日志核验"，不要当结论。
+5. **客户端图入口**：入口节点是「节点图开始」(node_graph_begins)，explain 会显示成"孤立执行链"——
+   这是正常现象（客户端图由技能释放/事件轨道触发，无事件/InFlow 入口），不是坏图。
+6. **恒真条件的「双分支」单 OutFlow 挂 N 条边** = 扇出 fork（N 个独立处理开关都进入，只有命中者执行）。
+7. **跨端信号**：客户端图发信号用「向服务器节点图发送信号」节点，信号名在 `ClientExecNode[1]` pin；
+   parse JSON 里监听信号节点的 `composite.interface.outputs` 直接给出参数名列表（本次旋转信号 6 参数
+   在监听侧核对与发送侧一致）。
 
 ### Step 3 追进复合
 ```bash
@@ -256,6 +296,10 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --
 - **`[变量=...]` 注解缺失 ≠ 无关紧要**：变量设置类节点没显示变量名 = 变量名 pin 缺失，是交付硬伤
   （不是可选参数）；explain/layout 都不报错，只有逐节点核 pin 才看得到
 - **不要猜**：引擎规则不确定时查 `docs/game-engine-knowledge/`；查不到就列为疑点交给用户/游戏核验
+- **客户端图节点名不可信**：list 输出 type≠20000 的图，explain/parse 的节点名是服务端名字表撞号产物
+  （2026-08-28 魔方客户端图实证），一律按 Step 2.8 用 generic_id 映射真名后再读
+- **客户端"孤立执行链"可能是入口**：客户端图入口「节点图开始」被 explain 显示为孤立链是正常现象，
+  别当成死链；服务端图的孤立链才需要警惕
 
 ## 报告模板
 
