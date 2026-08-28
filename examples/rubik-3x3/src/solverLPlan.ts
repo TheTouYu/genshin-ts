@@ -54,6 +54,22 @@ const llPermIdx = g.defineComposite('ll_perm_idx', {
   }
 })
 
+// 发布序列 + 发 op6（追加完成的三个分支共用；缺失导致 solver 不执行 → 死循环 + bufPos 越界，日志 2976 实证）
+const llPublishSeq = g.defineComposite('ll_publish_seq', {
+  id: 1610700087,
+  inputs: { target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target }, f) => {
+    f.registerExecNode('set_custom_variable', [target, new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('phase'), new int(2), new bool(false)])
+    const send = f.registerExecNode('send_signal', [new str('rubik3x3_solve'), new int(6n), new int(0n)])
+    f.outflow('done', send, 0)
+    return {}
+  }
+})
+
 // 顶层专用 planTick（独立 timer 名）
 const solverStartLPlanTick = g.defineComposite('solver_start_lplan_tick', {
   id: 1610700082,
@@ -235,14 +251,18 @@ const graph = g
                 1: () => {
                   const a2 = f.subtraction(f.division(mP, 64n), 1n)
                   f.doubleBranch(f.lessThan(a2, 0n), () => {
-                    f.setNodeGraphVariable('pStep', new int(1), false)
+                    // OLL 追加完：发布 + 发 op6（solver 执行后 op5 回来重算）
+                    f.setNodeGraphVariable('pStep', new int(0), false)
+                    f.callComposite(llPublishSeq, { target: self })
                   }, () => {
                     f.setNodeGraphVariable('mCode', a2, false)
                     f.setNodeGraphVariable('pStep', new int(5), false)
                   })
                 },
                 default: () => {
-                  f.setNodeGraphVariable('pStep', new int(1), false)
+                  // OLL 追加完（多 token 边界）：发布 + 发 op6
+                  f.setNodeGraphVariable('pStep', new int(0), false)
+                  f.callComposite(llPublishSeq, { target: self })
                 }
               })
             }, () => {
@@ -292,7 +312,9 @@ const graph = g
                   })
                 },
                 default: () => {
-                  f.setNodeGraphVariable('pStep', new int(1), false)
+                  // PLL 全部段追加完：发布 + 发 op6
+                  f.setNodeGraphVariable('pStep', new int(0), false)
+                  f.callComposite(llPublishSeq, { target: self })
                 }
               })
             })
