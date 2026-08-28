@@ -324,6 +324,10 @@ function main() {
   function emit(name, arr, max) {
     const ch = chunk(arr, max)
     ch.forEach((c, i) => {
+      if (c.length < max) {
+        const pad = new Array(max - c.length).fill(18)
+        c = c.concat(pad)
+      }
       parts.push('export const ' + name + '_c' + i + ': bigint[] = [' + c.map(x => x + 'n').join(', ') + ']')
     })
   }

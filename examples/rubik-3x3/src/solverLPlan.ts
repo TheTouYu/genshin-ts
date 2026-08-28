@@ -367,7 +367,7 @@ const graph = g
                 f.callComposite(solverAppendCode, { code: c, raw: new bool(false) })
               }, () => {
                 const c = f.callComposite(longListGetInt4, {
-                  i: idx, chunkSize: 96n,
+                  i: idx, chunkSize: 100n,
                   c0: f.getNodeGraphVariable('CF_PLL_ALG_c0').asType('int_list'),
                   c1: f.getNodeGraphVariable('CF_PLL_ALG_c1').asType('int_list'),
                   c2: f.getNodeGraphVariable('CF_PLL_ALG_c2').asType('int_list'),

@@ -114,7 +114,13 @@ const ALG = ollAlgInv.flat()
 function chunk(arr, max) { const out = []; for (let i = 0; i < arr.length; i += max) out.push(arr.slice(i, i + max)); return out }
 function emit(name, arr, max) {
   const parts = []
-  chunk(arr, max).forEach((c, i) => {
+  const ch = chunk(arr, max)
+  ch.forEach((c, i) => {
+    // 补齐最后一块到 max（用 18 填充无效值），避免乘法选择器越界读
+    if (c.length < max) {
+      const pad = new Array(max - c.length).fill(18)
+      c = c.concat(pad)
+    }
     parts.push('export const ' + name + '_c' + i + ': bigint[] = [' + c.map(x => x + 'n').join(', ') + ']')
   })
   return parts

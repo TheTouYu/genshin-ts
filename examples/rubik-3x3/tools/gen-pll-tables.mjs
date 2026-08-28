@@ -92,7 +92,12 @@ console.log('PLL compact filled:', filled, '/ 288')
 function chunk(arr, max) { const out = []; for (let i = 0; i < arr.length; i += max) out.push(arr.slice(i, i + max)); return out }
 function emit(name, arr, max) {
   const parts = []
-  chunk(arr, max).forEach((c, i) => {
+  const ch = chunk(arr, max)
+  ch.forEach((c, i) => {
+    if (c.length < max) {
+      const pad = new Array(max - c.length).fill(-1)
+      c = c.concat(pad)
+    }
     parts.push('export const ' + name + '_c' + i + ': bigint[] = [' + c.map(x => x + 'n').join(', ') + ']')
   })
   return parts
