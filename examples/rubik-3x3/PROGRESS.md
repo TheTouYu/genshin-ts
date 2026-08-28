@@ -368,8 +368,12 @@
   - 根因：solverEPlan 复用 solverAppendCode 复合但漏声明其依赖的 CF_MOVE_CODE_FACE/DIR/STEPS 三个图变量（cfopTables.ts）——引擎读不到 → 追加静默失败 → solveLen=0 → solver 空序列 → 无限 op5 重算。
   - 修复：① 补 CF_MOVE_CODE_FACE/DIR/STEPS 导入+变量声明；② solveBuf 尾部加哨兵 1n（101 项，防全 0 短物化到 25 项）。
   - 已注入（60222d7, ok 7 fail 0）+ resync md5 一致（367ad52a）。**待用户复测确认 E 层真正转动**。
-- 2026-08-27（测试专用功能，e142905）：
-  - **tab17 快速模式**：切换 rubik3x3_fast_mode → solver 全部定时器节拍 ×0.4（缩短 60%）：preTick 1.66→0.66s、emitTick 1.52→0.61s、doneTick 2.01→0.80s、整转组同步缩放。
-  - **tab18 二层测试**：flowScrambleLayer2 只打乱 U(3)/E(8)（不动 D 层 → 第一层保持完整），打乱播放完自动发 op12 自动还原 → stage 0/1/2 立即跳过（mask=15），直接验证 stage 3 E 层算法。离线验证 156 样本全过（第一层保持 + E 层可解）。
-  - 已注入（e142905, ok 7 fail 0）+ resync md5 一致（38221f99）。**待用户测试**：进游戏按 tab18（先打乱到第一层已拼好状态→自动开始解 E 层），按 tab17 开启快速模式缩短等待。
+- 2026-08-27（独立测试台，b38bdeb；初版 e142905 塞主图 tab17/18 被用户纠正后全部迁移独立）：
+  - **新实体 1077936231「魔方测试台3x3」**：独立 tabBar 平台，选项 = [二层测试状态, 快速模式]，与主/B 控制器完全隔离（后续第 3 层测试也加在这里）。
+  - **新图 _GSTS_testPanel (1073741837)** 挂载测试台：tab1 → op18（flowScrambleLayer2 只打乱 U/E，第一层保持完整，**不自动还原**，由用户按 tab14）；tab2 → 切换 rubik3x3_fast_mode。
+  - **快速模式**：solver mkTimer 全部定时器 ×0.4（preTick 1.66→0.66s / emitTick 1.52→0.61s / doneTick 2.01→0.80s / 整转组同步），从主控制器 1077936201 自定义变量读取。
+  - 离线验证：U/E 打乱 156 样本全过（第一层保持 + E 层可解，verify-e-layer-macros.mjs 第 7 节）。
+  - **列表初始化红线**：solveBuf 哨兵 101 项触发「列表初始化最多100个元素」拒载 → 回退 100（f326224）；哨兵非必需（root cause 是 CF_MOVE_CODE_* 缺失）。
+  - CLI 修复：setTabBarOptions 嵌套写回 bug（slotFields 改完没写回 slot.value → --tab-options patch 静默无效）。
+  - 已注入（ok 8 fail 0）+ resync md5 一致（5d27b788）。**待用户复测**（O-2026-08-27-15）。
 

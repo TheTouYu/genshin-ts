@@ -150,6 +150,13 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
     - 三层可能**已经分叉**（历史只改了一层）：排查"选项对不上"时先读三层各自内容，别假设一致。
     - 选项 id（field 1）= 1-based 序号（第 N 项 id=N），`tab-options` 按序重编号；删除中间项后 id 会重排，依赖 id 的节点图逻辑（如 relay +9 映射）需同步核对。
     - 写回后仍需编辑器重载/重放确认（旧编辑器内存保存会覆盖磁盘写回）。
+    - 写回后仍需编辑器重载/重放确认（旧编辑器内存保存会覆盖磁盘写回）。
+- **场景实体直改 tabBar 选项（assets:entities patch --tab-options，2026-08-27 测试台实证）**：
+  不经 static-assemblies 时可用 `gsts assets:entities patch <entity-id> --tab-options '标签a,标签b' --write`——
+  只写 root5 实体副本（适合同 definition 多实体需不同选项的场景，如从 B 控制器元件新挂的测试台）。
+  **已修复嵌套写回 bug**：setTabBarOptions 修改 configField 后漏 `slot.value = emit(slotFields)` → patch
+  报成功但选项不变；排查手法 = 直接调 dist 函数 + exportEntities 回读（size 不变即函数 bug）。修复已过
+  导出回读验证，**编辑器/游戏核验待做**（2026-08-27 rubik 测试台复测时观察）。
 
 ### D. 信号
 

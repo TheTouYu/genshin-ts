@@ -198,6 +198,7 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 | 字典 key | 必须 int/str 等键类型；传 float 报 `Invalid value type: int` |
 | 列表下标 | `getCorrespondingValueFromList` **0-based**（1..N 会越界返回空） |
 | 全 0 int_list 图变量 | **引擎运行时只物化出很短长度**（日志 2765 实证：`cornerOrient` 声明 8 个 0 → 运行时 `[0,0]`；`edgeOrient` 声明 12 个 0 → 运行时 `[0,0,0]`；日志 2944：`solveBuf` 声明 100 个 0 → 运行时 `[0×25]`——**长度随声明/上下文变化，2/3/25 各异**），读取高下标会“列表索引越界”。且**写 0 到越界下标不扩容**（日志 2766：logicReset 写 0 后仍短；日志 2944：clear_buf 写 0..99 后仍 25 项）；必须先写非 0 哨兵撑满长度，再写真实 0 值（两阶段复位），或避免全 0 字面量。 |
+| **列表初始化 ≤100 项（启动拒载红线，2026-08-27）** | 字面量声明列表**最多 100 个元素**，超限地图直接拒载：「列表初始化，最多100个元素，现在有101个」（solveBuf 哨兵 101 项实证）。（日志 2765/2944 ③条列表规则：全 0 短物化 / 写 0 不扩容 / **init ≤100**）。长列表走 `longListGet*` 分块资产，不用长字面量。 |
 | 返回字段名 | `getEntityLocationAndRotation` 返回 `{ location, rotate }`（**rotate** 不是 rotation） |
 | 向量分量 | vec3 有 `.x/.y/.z` getter（生成 split3dVector 节点）；但 **`f.split3dVector(v)` 的返回值字段是 `xComponent/yComponent/zComponent`，不是 `.x/.y/.z`**（`.x` 是 vec3 的 getter，不是 split3dVector 返回对象的字段）——写 `s.x` 会得到 `undefined` → `create3dVector` 报 `Invalid value type: float`（2026-08-22 复刻矩阵转置实证） |
 | 复合节点 enum 输入 | ❌ **复合节点 `inputs` 声明 `{ type: 'enumeration' }` 后，build 内 `f.enumerationsEqual(status, ...)` 报 `Invalid value type: enum`**——`createTypedValue` 缺 enum 分支，enum 输入落到 `new generic()`，不满足 `parseValue(..., 'enum')` 的 `instanceof enumeration` 检查（2026-08-22 复刻枚举转换实证，已登记 O-2026-08-22-1）。**枚举转换类复合节点暂无法用 DSL 复刻**，需等编译器修复 |
