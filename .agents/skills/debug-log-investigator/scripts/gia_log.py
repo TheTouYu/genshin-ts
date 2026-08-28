@@ -351,7 +351,41 @@ def cmd_text(recs):
                 for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
                     if f2 == 2: print(f'rec{ri}: {v2.decode("utf-8", "replace")}')
 
-def cmd_records(recs, gil=None):
+def cmd_records(recs, gil=None, summary=False):
+    if summary:
+        from collections import defaultdict
+        agg = defaultdict(lambda: [0, 0, None, None])  # 图 -> [条数, f21字节, f8min, f8max]
+        secs = []
+        for ri, r in enumerate(recs):
+            info = {}
+            for f, w, x, _ in walk_fields(r, 0, len(r)):
+                if w == 0:
+                    info[f] = x
+                elif f in (7, 21):
+                    if f == 7:
+                        for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
+                            if f2 == 2:
+                                info['graph'] = v2 if isinstance(v2, int) else int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
+                    elif f == 21:
+                        info['f21'] = len(x)
+            if 3 in info:
+                secs.append(info[3])
+            gid = info.get('graph')
+            if gid is None:
+                continue
+            a = agg[gid]
+            a[0] += 1
+            a[1] += info.get('f21', 0)
+            if 8 in info:
+                a[2] = info[8] if a[2] is None else min(a[2], info[8])
+                a[3] = info[8] if a[3] is None else max(a[3], info[8])
+        print(f'=== 记录摘要：{len(recs)} 条 | f3 秒范围 {min(secs)}..{max(secs)}（会话秒）===')
+        print(f'{"图":>12} {"条数":>5} {"f8范围":>14} {"f21总量":>10}  图名')
+        for gid, a in sorted(agg.items(), key=lambda kv: -kv[1][0]):
+            nm = graph_name(gid, gil).strip() if gil else ''
+            f8r = f'{a[2]}..{a[3]}' if a[2] is not None else '-'
+            print(f'{gid:>12} {a[0]:>5} {f8r:>14} {a[1]:>9}B  {nm}')
+        return
     for ri, r in enumerate(recs):
         info = {}
         for f, w, x, _ in walk_fields(r, 0, len(r)):
@@ -368,6 +402,98 @@ def cmd_records(recs, gil=None):
         if 'graph' in info and gil:
             info['graph'] = f"{info['graph']}{graph_name(info['graph'], gil)}"
         print(f'rec{ri}: {info}')
+
+
+def cmd_ops(recs, gil=None):
+    """操作时间线：以客户端记录（f8=2097154）为界，把整段日志聚类成一次次操作。
+    每条客户端记录 = 一次技能实例释放；其后跟随的服务端记录 = 该次操作的响应（26 块等）。"""
+    infos = []
+    for ri, r in enumerate(recs):
+        info = {'sec': None, 'f8': None, 'graph': None, 'f21': 0}
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
+            if w == 0 and f == 3:
+                info['sec'] = x
+            elif w == 0 and f == 8:
+                info['f8'] = x
+            elif f == 7:
+                for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
+                    if f2 == 2:
+                        info['graph'] = v2 if isinstance(v2, int) else int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
+            elif f == 21:
+                info['f21'] = len(x)
+        infos.append(info)
+
+    def client_instr(ri):
+        """客户端记录 → 指令码：解码 f21 找 head=0x72（n114 设置局部变量[指令]）的 IN1:String。"""
+        r = recs[ri]
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
+            if f != 21:
+                continue
+            for head, ins, outs, ld in frames_of(x):
+                if head != '72':
+                    continue
+                for idx, typ, val in ins:
+                    if idx == 1 and typ == 6:
+                        return val
+        return None
+
+    ops = []
+    cur = None
+    for ri, info in enumerate(infos):
+        if info['f8'] == 2097154:
+            cur = {'start': ri, 'sec': info['sec'], 'client_frames': None, 'recs': []}
+            ops.append(cur)
+        elif cur is not None:
+            cur['recs'].append((ri, info))
+        elif ops:
+            ops[-1]['recs'].append((ri, info))
+
+    if not ops:
+        print('未发现客户端记录（f8=2097154）；尝试按秒聚类请用 records --summary')
+        return
+
+    print(f'=== 操作时间线：{len(ops)} 次操作（客户端记录 f8=2097154 为界）===')
+    for oi, op in enumerate(ops):
+        client_frames = 0
+        r = recs[op['start']]
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
+            if f == 21:
+                client_frames = len(frames_of(x))
+        instr = client_instr(op['start'])
+        from collections import defaultdict
+        by_graph = defaultdict(lambda: [0, 0, 0])  # 图 -> [条数, 帧数, 负载]
+        f8s = defaultdict(set)
+        moved = set()  # 魔方块-旋转：真正转动的块（大记录 f21>1KB）
+        secs = [op['sec']] if op['sec'] is not None else []
+        for ri, info in op['recs']:
+            if info['sec'] is not None:
+                secs.append(info['sec'])
+            gid = info['graph']
+            if gid is None:
+                continue
+            a = by_graph[gid]
+            a[0] += 1
+            r2 = recs[ri]
+            for f, w, x, _ in walk_fields(r2, 0, len(r2)):
+                if f == 21:
+                    frs = frames_of(x)
+                    a[1] += len(frs)
+                    a[2] += sum(fr[3] or 0 for fr in frs)
+            if info['f8'] is not None and info['f8'] <= 65535:
+                f8s[gid].add(info['f8'])
+                if gid == 1073741835 and info['f21'] > 1000:
+                    moved.add(info['f8'])
+        srv = ', '.join(
+            f'{gid}{(" " + graph_name(gid, gil).strip()) if gil else ""}×{a[0]}'
+            for gid, a in sorted(by_graph.items(), key=lambda kv: -kv[1][0]))
+        blocks = sorted(f8s.get(1073741835, set()))
+        sel = sorted(f8s.get(1073741852, set()))
+        settle = '，含结算' if 1073741854 in by_graph else ''
+        print(f'op{oi + 1:>2} rec{op["start"]:>3} sec{str(op["sec"]):>4} 指令={instr or "?"} '
+              f'客户端{client_frames}帧'
+              f'{" | 服务端: " + srv if srv else ""}'
+              f'{" | 转动块f8=" + str(sorted(moved)) if moved else ""}'
+              f'{" | 选中f8=" + str(sel) if sel else ""}{settle}')
 
 
 def cmd_frames(recs, gil=None, rec_filter=None, graph_filter=None, contains=None):
@@ -516,6 +642,7 @@ if __name__ == '__main__':
                    '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log')
         sys.exit(0)
     gil = None; rec_filter = None; graph_filter = None; contains = None; compare_path = None; sec_filter = None
+    summary = False
     rest = []
     i = 1
     while i < len(args):
@@ -531,6 +658,8 @@ if __name__ == '__main__':
             compare_path = args[i + 1]; i += 2
         elif args[i] == '--sec':
             sec_filter = int(args[i + 1]); i += 2
+        elif args[i] == '--summary':
+            summary = True; i += 1
         else:
             rest.append(args[i]); i += 1
     if not rest: print(__doc__); sys.exit(1)
@@ -538,7 +667,8 @@ if __name__ == '__main__':
     if gil:
         gil = load_gil_index(gil)
     cmd = rest[0]
-    if cmd == 'records': cmd_records(recs, gil)
+    if cmd == 'records': cmd_records(recs, gil, summary)
+    elif cmd == 'ops': cmd_ops(recs, gil)
     elif cmd == 'frames': cmd_frames(recs, gil, rec_filter, graph_filter, contains)
     elif cmd == 'perf': cmd_perf(recs, gil, rec_filter, graph_filter, compare_path, sec_filter)
     elif cmd == 'dump': cmd_dump(recs, rec_filter)

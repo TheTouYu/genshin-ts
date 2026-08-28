@@ -31,8 +31,10 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | `scripts/gia_log.py <日志.gia> perf` | **性能聚合视图（2026-08-20 新增）**：每记录 帧数/总负载/均负载 + 节点链 TOP（**真实执行性能 = 单次负载 × 次数**，按总负载降序，热点一目了然）；`--compare <日志2.gia>` 输出两次会话逐记录帧数/负载对比（优化前后量化） |
 | `scripts/gia_log.py <日志.gia> dump` | 逐帧原始结构 dump（无压缩，精确核对用） |
 | `scripts/gia_log.py latest` | 输出日志目录下最新 .gia 路径 |
+| `scripts/gia_log.py <日志.gia> records --summary` | **海量日志主视图（2026-08-28 新增）**：按图聚合（条数/f8 范围/f21 总量）+ f3 秒范围，一眼看全 482 条完整游玩日志 |
+| `scripts/gia_log.py <日志.gia> ops` | **操作时间线（2026-08-28 新增）**：以客户端记录（f8=2097154）为界聚类记录成一次次操作——每次操作的指令码（自动解码 n114）、客户端帧数、服务端各图响应条数、转动块 f8 集合、是否含结算 |
 | `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存）。**仅支持 .gil 地图**；编译产物 .gia 验证用项目根 `tools/decode-gia.ts` |
-| `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、--trace-node 沿 dataflow 倒查来源链到源头 | `<日志> --gil <地图> --rec <n> --client [--trace-node <idx>]` |
+| `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增，双模式）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、同节点连续机制帧合并(×N)、--trace-node 沿 dataflow 倒查来源链到源头。`--client`=客户端图模式；缺省=服务端图模式（head 首字节→主图节点、节点链标注来自 gia_log.py） | `<日志> --gil <地图> --rec <n> [--client] [--trace-node <idx>]` |
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
@@ -56,6 +58,28 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
   指令编码：x=整体旋转(层3/轴(1,0,0)/+90°)、D=面旋转(层1/中心(0,-1,0)/轴(0,-1,0)/-90°)。
 - **事件线视图（`gia_log_flow.py`）**：一条记录=一次技能释放的完整事件线；数据链折叠行=纯数据节点；
   循环体×N=重复块自动折叠；`--trace-node` 沿 dataflow 倒查输入来源链到源头（获取局部变量自动跳到写回它的设置局部变量继续倒查）。
+
+### 完整游玩日志（2026-08-28 会话 2980 实证，480+ 条记录/7 图/5 次操作，f8 语义修正）
+
+- **f8 = 记录相关实体的实体索引**（推翻旧"级别(2/3)"说）：魔方块-旋转 26 条记录 f8=5..30 ↔ 客户端
+  遍历实体列表 IN1=[5..30] ↔ 监听信号 OUT0:Entity=f8 逐条对应；玩家-界面恒 f8=3（该实体索引 3）。
+  客户端记录 f8=**2097154(0x200002)** 恒值 = 客户端图标记。
+- **f3 = 会话内已过秒数**（perf 秒桶依据，全部记录共用同一时间轴）；f10=8=组件定义 ID 8（结算合法=5）。
+- **`ops` 操作时间线**：5 次操作 D@25s/L@31s/x@74s/D@93s/L@111s；面旋转 9 块转动、整体旋转 26 块全动、
+  第 5 次 L 后触发结算合法（还原通关）。**选中状态图的 f8 集合 = 转动块集合**（运动中魔方块数计数）。
+- **服务端块响应链（一对一，gia_log_flow 服务端模式）**：监听信号(客户端 n115 的 8 参数) →
+  Query If Entity Has Unit Status(类型码20, 命中=1) → Double Branch → List Iteration Loop
+  （Assembly List [位置,向前向量,向上向量] ×3 → Get Custom Variable → 3D Vector Rotation →
+  复合:三维向量取整(807/801) → Set Custom Variable 写回）→ 魔方动画=1 检查 → Direction Vector to Rotation →
+  取整 → Add Basic Target-Oriented Rotation-Based Motion Device(时长=信号 Float)。
+- **新节点**：When Unit Status Changes(300)、When Global Timer Is Triggered(315)、When Tab Is Selected(307)、
+  Multiple Branches(3)、Activate/Disable Tab(306)、Set Player to Activate/Follow Control Motion Device(839/837)、
+  List Iteration Loop(509)=服务端版有限循环（0d 系列帧）、Get/Set Local Variable(18/19，服务端图局部变量槽)。
+- **类型码 25/26**：局内存档结构体链（1_chip_1/2）出现 `25=[...]`（列表元素=结构体原始字节）与 `26=`
+  （结构体值）；配合 拆分结构体/修改结构体 复合（1610612796/1610612797）。内部字段待解析（O-10）。
+- **按钮字典映射（日志实测精确值）**：F=1073741937、B=1073741938、**L=1073741870**、R=1073741936、
+  U=1073741939、D=1073741940、x/y/z=1073743064/3065/3066（修正 PKC claim 中 L 值）。
+- **玩家-界面也监听客户端信号**（每次操作 +1 条 1 帧记录：复合:监听信号 8 参数）。
 
 ### 容器与记录
 - 文件前 8 字节 = 两个 big-endian 长度（`文件大小-4`、`文件大小-8`），之后是连续 protobuf 记录
@@ -285,5 +309,6 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 - get/set 帧中 Boolean=1（0801）输入的含义（疑似同步/有效标志，面板不显示）
 - 循环 0d05（300 但输出=输入）与 0d09（NOT 但 2 输入）的精确语义
-- f3 规律、f8 级别完整枚举、f7.f1 含义、帧 ID 分配规律（2602 的 47.x 跳号）
+- f7.f1 含义、帧 ID 分配规律（2602 的 47.x 跳号）；f3=会话秒 / f8=实体索引 已闭合（2980 实证）
+- 类型码 25/26（结构体）内部字段结构（局内存档 chip 数据）
 - 变量初始值定义位置（推测在 GIL 图数据中）

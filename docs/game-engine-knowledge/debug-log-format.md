@@ -258,7 +258,12 @@ f21 = {
 - **新类型码（2602 观察）**：8=f18 packed 字节列表（如 01020304050607）、11=f21 字符串列表（UDLRFB 魔方记号）、21=f31 {f1=1, f2=预制件ID}
 - **新操作码（2602 观察）**：1100/1101（完全跟随/跟随位置）、1200/1201（相对/世界坐标系）
 - **Vector 零分量省略（2602 闭合）**：如 (0, 2.4357, 0) 只编码 f2
-- **f8 级别**：2=创建类、3=运行类、4=特殊图（2602 轮询图）
+- **f8 = 记录相关实体的实体索引（2026-08-28 会话 2980 完整游玩日志实证，推翻"级别"说）**：魔方块-旋转
+  每条记录 f8=5..30 ↔ 客户端遍历实体列表 IN1=[5..30] ↔ 帧内监听信号 OUT0:Entity=f8 逐条一致；
+  玩家-界面恒 f8=3（实体 1086324738 的索引）；结算合法 f8=1。客户端图记录 f8=2097154(0x200002)=客户端标记。
+  旧注"2=创建类、3=运行类、4=特殊图"（2602 轮询图）实为该图相关实体索引 2/3/4，已修正理解。
+- **f3 = 会话内已过秒数（2980 完整日志闭合）**：全部记录同一时间轴（8..165 秒），perf 秒桶依据；
+  不再视为"f22 记录规律"。
 - **f7.f2 编码变体**：图 ID 可为 bytes（2602）或 varint（2604/2608）
 - **float 编码 f15 = {f1 wire5 fixed32}**：4 字节 ≥0x80 时不能当 varint 解析（-90.0 等负值）；外层是 length-delimited
 - **get/set 节点面板参数名**：变量名字、变量值、（set 有）是否触发事件=否（IN 空）
@@ -281,11 +286,38 @@ f21 = {
   写错位（finiteLoop 内 doubleBranch 回调 setM 不执行/非 wrap 分支 setQ 缺位），修复见
   debug-log-investigator 技能"queue dict 出现非法值"行。
 
+## 完整游玩日志（2026-08-28 会话 2980 实证：480+ 条记录 / 7 图 / 5 次操作）
+
+会话 2980 是首次完整游玩日志（非两次操作调试日志），新闭合与修正：
+
+- **`ops` 操作时间线（gia_log.py）**：客户端记录（f8=2097154）为界聚类 → 5 次操作
+  D@25s / L@31s / x@74s / D@93s / L@111s；第 5 次 L 后出现结算合法（还原通关）。
+  面旋转每次 9 块转动（转动块 f8 集合=选中状态 f8 集合=运动的 9 块）、整体旋转 26 块全动。
+- **服务端块响应链（一对一完整闭合）**：监听信号(OUT0..OUT8 = 客户端 n115 信号 6 参数+事件源)
+  → Query If Entity Has Unit Status（类型码20，OUT0=命中）→ Double Branch → List Iteration Loop
+  （Assembly List [位置,向前向量,向上向量] → Get Custom Variable → 3D Vector Rotation → 复合:三维向量取整
+  （807/801）→ Set Custom Variable 写回）×3 → 玩家变量 魔方动画=1 → Direction Vector to Rotation
+  （向前×向上 → 欧拉）→ 取整 → Add Basic Target-Oriented Rotation-Based Motion Device（IN1="旋转"、
+  IN2=时长=信号 Float、IN3=目标旋转）。玩家-界面图也监听该信号（每次操作 1 帧记录）。
+- **新节点 ID**：When Unit Status Changes=300、When Global Timer Is Triggered=315、
+  When Tab Is Selected=307、Multiple Branches=3、Activate/Disable Tab=306、
+  Set Player to Activate Control Motion Device=839、Set Player to Follow Control Motion Device=837、
+  List Iteration Loop=509（服务端有限循环，0d 系列帧同构）、Get/Set Local Variable=18/19
+  （类型16 LocalVariable varint=图局部变量槽）。
+- **选中状态图（1073741852）= 运动中魔方块数计数**：When Unit Status Changes（OUT4:Boolean=1=添加）
+  → Equal → Set Local Variable 12=1 → Get Custom Variable 运动中魔方块数 → Addition +1 → Set Custom Variable。
+- **类型码 25/26（结构体，局内存档 1_chip_1/2）**：25=列表元素原始字节 `[8,10,18,4,...]`（结构体序列化）、
+  26=结构体值；配套复合 拆分结构体(1610612796)/修改结构体(1610612797)。内部字段待解析（O-10-①）。
+- **按钮字典精确映射（修正 PKC claim）**：When Floating Interaction Page Is Triggered
+  OUT2=页面 ID 1073741848、OUT3=按钮 ID；字典 F=1073741937、B=1073741938、**L=1073741870**、
+  R=1073741936、U=1073741939、D=1073741940、x/y/z=1073743064/3065/3066 → Query Dictionary
+  OUT0:String=指令码 → Set Local Variable → When Custom Variable Changes → Cast Skill Instance。
+- **f10=组件定义 ID**：8=常规（大世界玩法图挂载）、5=结算合法（全局计时器图挂载）；f8/f3 见上。
+
 ## 待解问题
 
 - get/set 帧中"类型4=1（0801）"输入的含义（get 第 3 输入 / set 第 4 输入；疑似同步/有效标志，面板不显示）
 - while 护栏循环收尾序列（2608 帧 1710，IN0=LocalVar+IN1=1）的引擎原因
-- f3 出现的规律（f22 记录中 8/10 有）
-- 记录级字段非单调规律（f2/f3 等）
-- f7.f1=1 的含义
+- 类型码 25/26（结构体）内部字段结构；结算合法全局计时器周期/判胜链（读图 1073741854）
+- 记录级字段非单调规律（f2 等）；f7.f1=1 的含义
 - 变量初始值定义位置（推测在 GIL 图数据中，不在日志）

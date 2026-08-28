@@ -5,24 +5,28 @@
 游戏引擎日志查看方式：执行沿一条/多条事件线进行；引擎自动高亮触发的控制流
 （未执行的控制流灰白）；开发者顺具体节点倒查输入输出数据，一直追到第一个数据/最后一个节点。
 
-本工具把该视角搬进 CLI（客户端图模式）：
-  事件线高亮（默认）：按日志帧序列重建事件线——控制流节点（多分支/双分支/循环/遍历/
-    信号/入口）与写节点全显并标注关键值，纯数据节点（get/convert/math）折叠成"…数据链"，
+本工具把该视角搬进 CLI：
+  事件线高亮（默认）：按日志帧序列重建事件线——控制流节点（分支/循环/遍历/信号/状态/事件/运动）
+    与写节点全显并标注关键值，纯数据节点（get/convert/math）折叠成"…数据链"，
     循环重复块自动检测折叠（标注 ×N）。
   数据倒查（--trace-node <idx>）：沿图 dataflow 边回溯该节点输入的完整来源链到源头，
-    每步标注日志实际值。
+    每步标注日志实际值（获取变量自动跳到写回它的设置节点继续倒查）。
 
-用法：
+用法（--client：客户端图 head=图内节点序号 varint；缺省=服务端图 head 首字节=主图节点序号）：
   python3 gia_log_flow.py <日志.gia> --gil <地图.gil> --rec <n> --client
-  python3 gia_log_flow.py <日志.gia> --gil <地图.gil> --rec <n> --client --trace-node <idx>
+  python3 gia_log_flow.py <日志.gia> --gil <地图.gil> --rec <n>
+  python3 gia_log_flow.py <日志.gia> --gil <地图.gil> --rec <n> [--client] --trace-node <idx>
 
-依赖：同目录 gia_log.py（frames 解码）+ npx tsx tools/parse-gil-node-graph.ts（图结构）。
+依赖：同目录 gia_log.py（frames 解码 + 节点链标注）+ npx tsx tools/parse-gil-node-graph.ts（图结构）。
 """
 import argparse
+import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -32,8 +36,11 @@ META_TS = REPO + "/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-
 FRAME_RE = re.compile(r"[(\d+)] head=([0-9a-f]+) load=(\S+) | (.*)$")
 PARAM_RE = re.compile(r"(IN|OUT)(\d+):([A-Za-z0-9]+)=(.*?)(?= \| |$)")
 
-CTL_KW = ("分支", "循环", "遍历", "信号", "开始", "发送", "添加单位状态")
-WRITE_KW = ("设置局部变量", "设置自定义变量")
+# 控制流/写节点关键词：中英双语（客户端 displayName 中文、服务端 api 英文）
+CTL_KW = ("分支", "Branch", "循环", "Loop", "遍历", "Iteration",
+          "信号", "Signal", "发送", "Send", "状态", "Status", "运动", "Motion", "When")
+WRITE_KW = ("设置局部变量", "设置自定义变量", "设置节点图变量",
+            "Set Custom", "Set Node Graph", "Set Local")
 
 # 客户端节点库缺名的补充映射（魔方-客户端优化版本实证：n115 向服务器发信号）
 META_OVERRIDES = {1610612774: "向服务器节点图发送信号"}
@@ -69,20 +76,35 @@ def load_client_meta():
 
 
 def load_graph(gil_path: str, graph_id: str):
+    """parse-gil-node-graph 读图（按 gil mtime 缓存到 /tmp，海量记录逐条钻取提速）"""
+    tag = hashlib.md5(os.path.abspath(gil_path).encode()).hexdigest()[:12]
+    cache = os.path.join(tempfile.gettempdir(), f"gia-flow-{tag}-{graph_id}.json")
+    if (os.path.exists(cache) and os.path.exists(gil_path)
+            and os.path.getmtime(cache) >= os.path.getmtime(gil_path)):
+        try:
+            return json.load(open(cache))["graph"]
+        except Exception:
+            pass
     out = subprocess.run(
         ["npx", "tsx", "tools/parse-gil-node-graph.ts", gil_path, "--graph", graph_id, "--json"],
         capture_output=True, text=True, cwd=REPO
     ).stdout
     start = out.find("{")
     data, _ = json.JSONDecoder().raw_decode(out[start:])
+    try:
+        json.dump(data, open(cache, "w"))
+    except Exception:
+        pass
     return data["graph"]
 
 
-def load_frames(log_path: str, rec: int):
-    out = subprocess.run(
-        [sys.executable, str(HERE / "gia_log.py"), log_path, "frames", "--rec", str(rec)],
-        capture_output=True, text=True
-    ).stdout
+def load_frames(log_path: str, rec: int, gil=None, client=False):
+    """帧解码 + 每帧节点链标注（--gil 时）。client：idx=图内节点序号 varint；
+    服务端：idx=完整 head 值、idx_main=head 首字节（主图节点序号）、tag=head hex。"""
+    cmd = [sys.executable, str(HERE / "gia_log.py"), log_path, "frames", "--rec", str(rec)]
+    if gil:
+        cmd += ["--gil", gil]
+    out = subprocess.run(cmd, capture_output=True, text=True).stdout
     frames = []
     for line in out.splitlines():
         if not line.startswith("["):
@@ -92,7 +114,13 @@ def load_frames(log_path: str, rec: int):
             continue
         seq = int(line[1:end])
         rest = line[end + 2:]
-        hx = rest.split(" ")[0].split("=")[1]
+        label = ""
+        hm = rest.find("head=")
+        if hm >= 0:
+            if hm > 0:
+                label = rest[:hm].strip().rstrip("|").strip()
+            rest = rest[hm + 5:]
+        hx = rest.split(" ")[0]
         params = {}
         pipe = rest.find(" | ")
         if pipe > 0:
@@ -100,7 +128,15 @@ def load_frames(log_path: str, rec: int):
                 if "=" in seg:
                     k, v = seg.split("=", 1)
                     params[k] = v
-        frames.append({"seq": seq, "idx": vardecode(hx), "params": params})
+        idx = vardecode(hx)
+        if client:
+            idx_main = idx
+            tag = f"n{idx:3d}"
+        else:
+            idx_main = int(hx[:2], 16) if hx else idx
+            tag = hx
+        frames.append({"seq": seq, "idx": idx, "idx_main": idx_main, "hx": hx,
+                       "label": label, "tag": tag, "params": params})
     return frames
 
 
@@ -175,20 +211,20 @@ def find_repeat(seq, allowed=None):
     return best
 
 
-def control_view(frames, names):
-    """事件线高亮：帧序列重建，数据节点折叠，循环重复检测折叠"""
+def control_view(frames, names, fname):
+    """事件线高亮：帧序列重建，数据节点折叠，循环重复检测折叠（客户端/服务端通用）"""
 
     def tokenize(fr_list):
-        tokens = []  # (kind, idx, detail)
+        tokens = []  # (kind, idx_main, detail)
         buf = []
         pending = None  # 单帧数据节点，并入下一个控制流行（← 前缀）
         for fr in fr_list:
-            i = fr["idx"]
-            nm = names(i)
+            nm = fname(fr)
             if any(k in nm for k in CTL_KW) or any(k in nm for k in WRITE_KW):
                 if buf:
                     if len(buf) == 1:
-                        pending = f"n{buf[0]:3d} {names(buf[0])}"
+                        bfr = buf[0]
+                        pending = f"{bfr['tag']} {fname(bfr)}"
                     else:
                         tokens.append(("data", None, f"… 数据链 {len(buf)} 帧（get/convert/math 折叠）"))
                     buf = []
@@ -198,34 +234,54 @@ def control_view(frames, names):
                     ctrl = p.get("IN0:String") or p.get("IN0:Integer") or "?"
                     case = p.get("IN1:StringList", "")
                     detail = f"控制={ctrl} case=[{case}…]"
-                elif "双分支" in nm:
-                    cond = p.get("IN1:Boolean") or p.get("IN0:Boolean") or "?"
+                elif "双分支" in nm or "Branch" in nm:
+                    cond = p.get("IN0:Boolean") or p.get("IN1:Boolean") or "?"
                     detail = f"条件={cond}"
-                elif "循环" in nm or "遍历" in nm:
+                elif "循环" in nm or "遍历" in nm or "Loop" in nm or "Iteration" in nm:
                     lst = p.get("IN1:13") or p.get("IN1:Integer") or ""
                     detail = f"IN1={lst[:50]}"
-                elif "设置" in nm:
-                    key = p.get("IN0:String", "?")
-                    in1 = {k: v for k, v in p.items() if k.startswith("IN1")}
-                    detail = f"[{key}] = {list(in1.values())[0] if in1 else '?'}"
-                elif "添加单位状态" in nm:
-                    detail = f"Entity={p.get('IN1:Entity', '?')} 状态={p.get('IN3:20', '?')[:30]}"
-                elif "信号" in nm or "发送" in nm:
+                elif "设置" in nm or "Set " in nm:
+                    key = p.get("IN1:String") or p.get("IN0:String") or "?"
+                    vals = [v for k, v in p.items()
+                            if k.startswith("IN") and ":" in k and v != key and v]
+                    detail = f"[{key}] = {vals[-1] if vals else '?'}"
+                elif "状态" in nm or "Status" in nm:
+                    e = p.get("IN0:Entity") or p.get("IN1:Entity") or "?"
+                    st = p.get("IN1:20") or p.get("IN3:20") or ""
+                    hit = p.get("OUT0:Boolean", "")
+                    detail = f"Entity={e} 状态={st[:40]}"
+                    if hit:
+                        detail += f" 命中={hit}"
+                elif "信号" in nm or "Signal" in nm or "发送" in nm or "Send" in nm:
                     outs = {k: v for k, v in p.items() if k.startswith("OUT")}
                     if not outs:
                         outs = {k: v for k, v in p.items() if k.startswith("IN")}
-                    detail = " ".join(f"{k}={v}" for k, v in list(outs.items())[:7])
+                    detail = " ".join(f"{k}={v}" for k, v in list(outs.items())[:10])
+                elif nm.startswith("When"):
+                    detail = "★ 事件"
                 elif "开始" in nm:
                     detail = "★ 事件线起点"
                 if pending:
                     detail = f"← {pending} {detail}".rstrip()
                     pending = None
-                tokens.append(("ctl", i, f"n{i:3d} {nm} {detail}"))
+                line = f"{fr['tag']} {nm} {detail}".rstrip()
+                if tokens and tokens[-1][0] == "ctl" and tokens[-1][1] == fr["idx_main"]:
+                    # 同一节点连续帧（循环/遍历机制帧、双分支重复帧）合并计数
+                    prev = tokens[-1][2]
+                    m = re.search(r"×(\d+)$", prev)
+                    if m:
+                        tokens[-1] = ("ctl", fr["idx_main"],
+                                      re.sub(r"×\d+$", f"×{int(m.group(1)) + 1}", prev))
+                    else:
+                        tokens[-1] = ("ctl", fr["idx_main"], prev + " ×2")
+                else:
+                    tokens.append(("ctl", fr["idx_main"], line))
             else:
-                buf.append(i)
+                buf.append(fr)
         if buf:
             if len(buf) == 1:
-                tokens.append(("data", buf[0], f"n{buf[0]:3d} {names(buf[0])}"))
+                bfr = buf[0]
+                tokens.append(("data", bfr["idx_main"], f"{bfr['tag']} {fname(bfr)}"))
             else:
                 tokens.append(("data", None, f"… 数据链 {len(buf)} 帧（get/convert/math 折叠）"))
         return tokens
@@ -233,8 +289,8 @@ def control_view(frames, names):
     # 循环重复折叠：对原始帧 idx 序列做迭代块检测（循环体+循环后尾部）
     raw_seq = [f["idx"] for f in frames]
     ctl_idxs = {fr["idx"] for fr in frames if
-                any(k in names(fr["idx"]) for k in CTL_KW) or
-                any(k in names(fr["idx"]) for k in WRITE_KW)}
+                any(k in fname(fr) for k in CTL_KW) or
+                any(k in fname(fr) for k in WRITE_KW)}
     period, k, start, end = find_repeat(raw_seq, ctl_idxs)
     if period and k >= 3:
         lines = [t[2] for t in tokenize(frames[:start])]
@@ -246,8 +302,10 @@ def control_view(frames, names):
     return "\n".join(lines)
 
 
-def trace_view(frames, graph, names, target):
+def trace_view(frames, graph, names, target, fname=None):
     """数据倒查：目标节点每个输入的来源链 + 日志实际值"""
+    if fname is None:
+        fname = lambda fr: names(fr.get("idx_main", fr["idx"]))
     nodes = {n["index"]: n for n in graph["nodes"]}
     rev = {}
     for f in graph.get("dataflow", []):
@@ -255,14 +313,21 @@ def trace_view(frames, graph, names, target):
         rev.setdefault(key, []).append((f["from"]["node"], f["from"]["pin"]["index"]))
     executed = {}
     for fr in frames:
-        executed.setdefault(fr["idx"], []).append(fr)
+        executed.setdefault(fr["idx_main"], []).append(fr)
 
     def val_at(i, pin, direction="IN"):
         frs = executed.get(i)
         if not frs:
             return ""
+        pick = None
+        for fr in frs:
+            if len(fr["hx"]) == 2:  # 优先节点自身的单字节帧（服务端复合 impl 帧除外）
+                pick = fr
+                break
+        if pick is None:
+            pick = frs[0]
         for key in (f"{direction}{pin}:", f"{direction}{pin}"):
-            for k, v in frs[0]["params"].items():
+            for k, v in pick["params"].items():
                 if k.startswith(key):
                     return v
         return ""
@@ -286,7 +351,8 @@ def trace_view(frames, graph, names, target):
         for fr in frames:
             if fr["seq"] >= get_seq:
                 continue
-            if "设置" not in names(fr["idx"]):
+            nm2 = fname(fr)
+            if not ("设置" in nm2 or "Set " in nm2):
                 continue
             fp = fr["params"]
             if (fp.get("IN1:String") or fp.get("IN0:String")) == vname:
@@ -294,7 +360,7 @@ def trace_view(frames, graph, names, target):
         if writer is None:
             lines.append(f"{pad}↳ 变量 {vname}：本事件线内无写回（跨图/外部来源）")
             return True
-        sn, fp = writer["idx"], writer["params"]
+        sn, fp = writer["idx_main"], writer["params"]
         val_pins = [int(k[2:].split(":")[0]) for k, v in fp.items()
                     if k.startswith("IN") and v != vname]
         if not val_pins:
@@ -314,7 +380,8 @@ def trace_view(frames, graph, names, target):
         pad = "  " * (depth + 1)
         if not srcs:
             nm0 = names(node)
-            if out and "获取" in nm0 and "变量" in nm0:
+            if out and (("获取" in nm0 and "变量" in nm0)
+                        or ("Get " in nm0 and "Variable" in nm0)):
                 if _trace_var_writer(node, depth, seen, pad):
                     return
             if out and node != target:
@@ -353,30 +420,37 @@ def main():
     ap.add_argument("log")
     ap.add_argument("--gil", required=True)
     ap.add_argument("--rec", type=int, required=True)
-    ap.add_argument("--client", action="store_true", help="客户端图（head=图内节点序号）")
+    ap.add_argument("--client", action="store_true", help="客户端图（head=图内节点序号 varint）")
     ap.add_argument("--trace-node", type=int)
     args = ap.parse_args()
 
-    out = subprocess.run(
-        [sys.executable, str(HERE / "gia_log.py"), args.log, "frames", "--rec", str(args.rec)],
-        capture_output=True, text=True
-    ).stdout
+    cmd = [sys.executable, str(HERE / "gia_log.py"), args.log, "frames", "--rec", str(args.rec)]
+    if not args.client:
+        cmd += ["--gil", args.gil]
+    out = subprocess.run(cmd, capture_output=True, text=True).stdout
     first = out.splitlines()[0] if out.splitlines() else ""
     if "graph=" not in first:
         print("无法从 frames 表头解析 graph id", file=sys.stderr)
         sys.exit(1)
     graph_id = first.split("graph=")[1].split(" ")[0]
     graph = load_graph(args.gil, graph_id)
-    frames = load_frames(args.log, args.rec)
+    frames = load_frames(args.log, args.rec, None if args.client else args.gil,
+                         client=args.client)
     if not frames:
         print("无帧", file=sys.stderr)
         sys.exit(1)
-    names = ClientNames(graph) if args.client else (lambda i: f"n{i}")
+    if args.client:
+        names = ClientNames(graph)
+        fname = lambda fr: names(fr["idx"])
+    else:
+        api = {n["index"]: n["api"] for n in graph["nodes"]}
+        names = lambda i: api.get(i, f"n{i}")
+        fname = lambda fr: fr["label"] or names(fr["idx_main"])
 
     if args.trace_node is not None:
-        print(trace_view(frames, graph, names, args.trace_node))
+        print(trace_view(frames, graph, names, args.trace_node, fname))
     else:
-        print(control_view(frames, names))
+        print(control_view(frames, names, fname))
 
 
 if __name__ == "__main__":
