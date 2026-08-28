@@ -659,6 +659,13 @@
 - 期望形态：抽一个 solverResetPlanState 复合（清 solveLen/bufPos/mIdx/mLen/mP/pStep），新增共享状态只改一处。
 - 何时做：下次 solverCore 改动窗口顺手做（与 O-2026-08-27-06 同窗口）。
 
+### O-2026-08-28-03 复合新增输出引脚+分支内赋值=高危反模式（已回归修复，待用户复测确认无黑块）
+
+- 证据：日志 2956 rec13「发送信号」吃到 String=bufPos、rec22 stage 图变量读空、视觉 blockOrient 错乱黑块——solverAppendCode 上一版把 pos/next 设计成复合输入/输出引脚 + nextOut 在 doubleBranch 分支内赋值，GIL 数据边错乱（调用方 append 节点 outputs 出现悬空 next:Integer 引脚，被相邻节点参数污染）。
+- 修复（0cd996b9）：撤销数据引脚设计，附录游标改回复合内读写独立图变量（bufPos），调用方零引脚变化；已回读核验 call node inputs=[code,raw] outputs=[]。
+- 教训：**给带 doubleBranch 的复合新增数据输出引脚，且输出值在分支内赋值 = 高危反模式**（数据边在分支 join 时错位）。
+- 何时做：用户复测（转动手感/无黑块/无错位）后闭合。
+
 ### O-2026-08-28-01 solveSeq 追加竞态修复待复测（偶发十字破坏+循环，日志 2954）
 
 - 证据：日志 2954 rec138 solveBuf 残留 [255×9,1,3,3,1]（不可能序列，离线角块宏最长负连发=3）+ 实测 op3 发码 -1×6 连发；根因 = solverAppendCode 读写 solveLen 图变量，op5 重算与 pStep4 追加在相邻 tick 写序交错 → solve_seq 重复/跳码 → 宏残缺 → 十字破坏 → 卡十字/角块循环。
