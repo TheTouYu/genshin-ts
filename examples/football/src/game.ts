@@ -30,6 +30,7 @@ const graph = g
       tmpVel: new vec3([0, 0, 0]),
       tmpSpin: new vec3([0, 0, 0]),
       tmpDV: new vec3([0, 0, 0]), // autoCheckTick 物化 dV（防 pushCompute 二次求值）
+      lastPlayerPos: new vec3([0, 0, 0]), // 玩家上一 tick 位置（位置差分测速，替代 queryCharacter 依赖 buff）
       dbgTag: new str(''),
       dbgVal: new str(''),
       autoTimerOn: new bool(false), // auto_check 循环定时器是否已启动（whenEntityIsCreated 对已存在实体不触发）

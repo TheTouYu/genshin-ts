@@ -637,9 +637,9 @@ export const pushGetRole = g.defineComposite('push_get_role', {
 // Δv = clamp(vLead − vB, DV_MIN, DV_MAX)，vB = 球速沿 dir 投影。
 // ================================================================
 export const pushCompute = g.defineComposite('push_compute', {
-  inputs: { hitPoint: { type: 'vec3' } },
+  inputs: { hitPoint: { type: 'vec3' }, vP: { type: 'float' } },
   outputs: { dV: { type: 'vec3' } },
-  build: (_i, f) => {
+  build: ({ hitPoint, vP }, f) => {
     const role = f.callComposite(pushGetRole, {})
     const t = f.getEntityLocationAndRotation(role.role)
     const r = f.split3dVector(t.rotate)
@@ -648,9 +648,7 @@ export const pushCompute = g.defineComposite('push_compute', {
     const sinY = f.sineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const cosY = f.cosineFunction(f.multiplication(r.yComponent, DEG2RAD))
     const dir = f.create3dVector(sinY, 0, cosY)
-    // 玩家速率（官方节点：需角色挂「监听移动速率」单位状态效果）
-    const spd = f.queryCharacterSCurrentMovementSpd(role.role)
-    const vP = spd.currentSpeed
+    // 玩家速率由编排器位置差分测速传入（queryCharacter 依赖 buff，脆弱）
     // 目标球速 = max(vP + VKICK_ADD, VKICK_MIN)，施加冲量 Δv = clamp(目标 − vB, DV_MIN, DV_MAX)
     // vB=球当前速度沿踢向投影；静止球 vB≈0 → Δv≈目标（大）、追球 vB 大 → Δv 小（轻触）
     const ballVel = f.getNodeGraphVariable('ballVel').asType('vec3')
@@ -776,14 +774,13 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
 // 命中检测 0.3s CD 期间的空白由滚滑 tick 里的此判定补位
 // ================================================================
 export const pushAutoCheck = g.defineComposite('push_auto_check', {
-  inputs: { role: { type: 'entity' }, pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' } },
+  inputs: { role: { type: 'entity' }, pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' }, roleVel: { type: 'vec3' } },
   outputs: { kick: { type: 'bool' }, predDist: { type: 'float' }, distNow: { type: 'float' }, vP: { type: 'float' }, vB: { type: 'float' } },
-  build: ({ role, pos, vel, lagT }, f) => {
+  build: ({ role, pos, vel, lagT, roleVel }, f) => {
     // 预测补偿：用"预测 lagT 秒后玩家与球的距离"判定，抵消 tick 快照滞后
     // （检测到距离<2 时实际已贴脸 0.2~0.4s；预测后提前踢，玩家到达时球在前滚）
+    // roleVel 由编排器位置差分测速传入（queryCharacter 依赖「监听移动速率」buff，脆弱）
     const rolePos = f.getEntityLocationAndRotation(role).location
-    const roleSpd = f.queryCharacterSCurrentMovementSpd(role)
-    const roleVel = roleSpd.velocityVector
     const vP = f._3dVectorModuloOperation(roleVel)
     const vB = f._3dVectorModuloOperation(vel)
     const predPlayer = f._3dVectorAddition(rolePos, f._3dVectorZoom(roleVel, lagT))
@@ -806,18 +803,18 @@ export const pushAutoCheck = g.defineComposite('push_auto_check', {
 // 分支只允许出现在编排器链尾（复合内多分支会产生多个 done，调用方单连 done[0] 会静默丢下游）。
 // ================================================================
 export const dribbleDecide = g.defineComposite('dribble_decide', {
-  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' } },
+  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' }, lagT: { type: 'float' }, roleVel: { type: 'vec3' }, vP: { type: 'float' } },
   outputs: { kick: { type: 'bool' }, dV: { type: 'vec3' } },
-  build: ({ pos, vel, lagT }, f) => {
+  build: ({ pos, vel, lagT, roleVel, vP }, f) => {
     const roleC = f.callComposite(pushGetRole, {})
-    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT })
+    const autoK = f.callComposite(pushAutoCheck, { role: roleC.role, pos, vel, lagT, roleVel })
     // 飞行/滑动中不补踢（踢球会打断飞行物理/滑动物理）
     const state = f.getNodeGraphVariable('state').asType('int')
     const notFly = f.logicalNotOperation(f.equal(state, 1n))
     const notSlide = f.logicalNotOperation(f.equal(state, 3n))
     const kickOk = f.logicalAndOperation(f.logicalAndOperation(autoK.kick, notFly), notSlide)
     // 冲量：kickOk=false 时 dV=(0,0,0)（kickApply 分支在编排器由 kick 守门）
-    const pc = f.callComposite(pushCompute, { hitPoint: pos })
+    const pc = f.callComposite(pushCompute, { hitPoint: pos, vP })
     const kI = f.dataTypeConversion(kickOk, 'int')
     const kF = f.dataTypeConversion(kI, 'float')
     const dV = f._3dVectorZoom(pc.dV, kF)
@@ -838,16 +835,25 @@ export const autoCheckTick = g.defineComposite('auto_check_tick', {
   build: ({ e }, f) => {
     const pos = f.getNodeGraphVariable('ballPos').asType('vec3')
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
+    // 位置差分测速（替代 queryCharacter 依赖「监听移动速率」buff）：
+    // roleVel = (当前玩家位置 − 上一 tick 位置) / DT；vP = |roleVel|
+    const roleC = f.callComposite(pushGetRole, {})
+    const rolePos = f.getEntityLocationAndRotation(roleC.role).location
+    const lastPos = f.getNodeGraphVariable('lastPlayerPos').asType('vec3')
+    const roleVel = f._3dVectorZoom(f._3dVectorSubtraction(rolePos, lastPos), 5)
+    const vP = f._3dVectorModuloOperation(roleVel)
     // 职责（2026-08-28 三段式编排）：判定=纯数据 dribbleDecide；这里只做
-    // 「条件踢（链尾分支）+ 物化 tmpDV + 心跳自重启」。分支后无下游、无旧逻辑耦合。
-    const dec = f.callComposite(dribbleDecide, { pos, vel, lagT: LAG_T })
+    // 「条件踢（链尾分支）+ 物化 tmpDV + 记录玩家位置 + 心跳自重启」。分支后无下游。
+    const dec = f.callComposite(dribbleDecide, { pos, vel, lagT: LAG_T, roleVel, vP })
     // 自重启 start_timer 放复合内两个分支（2026-08-27 实证：双分支 outflow 产生两个 done，
     // 调用方只连 done[0] → false 分支下游（原 game.ts 自重启）丢失 → 定时器一次性后停）
     f.doubleBranch(
       dec.kick,
       () => {
-        // dV 物化到 tmpDV：kickApply 内部 set 图变量后，直接消费 dec.dV 会二次求值判定复合
+        // 记录玩家位置（供下一 tick 差分测速）+ dV 物化到 tmpDV（防二次求值）
+        const sLast = f.registerExecNode('set_node_graph_variable', [new str('lastPlayerPos'), rolePos, new bool(false)])
         const sDV = f.registerExecNode('set_node_graph_variable', [new str('tmpDV'), dec.dV, new bool(false)])
+        f.connect(sLast, 0, sDV, 0)
         const rl = f.callComposite(kickApply, { e, dV: f.getNodeGraphVariable('tmpDV').asType('vec3') })
         f.connect(sDV, 0, rl as never, 0)
         const rt = f.registerExecNode('start_timer', [e, new str('auto_check'), new bool(false), f.assemblyList([0.2], 'float')])
@@ -855,7 +861,9 @@ export const autoCheckTick = g.defineComposite('auto_check_tick', {
         f.outflow('done', rt, 0)
       },
       () => {
+        const sLast = f.registerExecNode('set_node_graph_variable', [new str('lastPlayerPos'), rolePos, new bool(false)])
         const rt = f.registerExecNode('start_timer', [e, new str('auto_check'), new bool(false), f.assemblyList([0.2], 'float')])
+        f.connect(sLast, 0, rt, 0)
         f.outflow('done', rt, 0)
       }
     )
