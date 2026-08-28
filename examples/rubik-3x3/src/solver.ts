@@ -14,11 +14,12 @@ const mkTimer = (id: number, name: string, timerName: string, delay: number) => 
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
-    // 快速模式（tab17切换）：等待缩短 60%（保留 40%），从主控制器 1077936201 的自定义变量读取
+    // 速度切换（测试台 tab2）：快速=×0.4（缩短 60%，日常演示）；慢速=×1.3（+30%，日志收集降负载）
+    // 从主控制器 1077936201 的自定义变量读取；factor = 1.3 - 0.9×fast（fast=1→0.4，fast=0→1.3）
     const fast = f.getCustomVariable(entity(1077936201n), new str('rubik3x3_fast_mode')).asType('bool')
     const fastInt = f.dataTypeConversion(fast, 'int')
     const fastF = f.dataTypeConversion(fastInt, 'float')
-    const factor = f.subtraction(new float(1.0), f.multiplication(new float(0.6), fastF))
+    const factor = f.subtraction(new float(1.3), f.multiplication(new float(0.9), fastF))
     const scaled = f.multiplication(new float(delay), factor)
     const t = f.registerExecNode('start_timer', [target, new str(timerName), new bool(false), f.assemblyList([scaled], 'float')])
     f.outflow('done', t, 0)
