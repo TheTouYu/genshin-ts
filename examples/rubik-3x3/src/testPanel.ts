@@ -14,11 +14,13 @@ const graph = g
         f.sendSignal(RubikSignal.rubik3x3_solve, 18n, 0n)
       },
       2: () => {
-        // 快速模式：切换主控制器 rubik3x3_fast_mode → solver 定时器 ×0.4
+        // 切换自动复原转动的速度：再按一下切换回常速（快速 ↔ 正常，toggle）
+        // 快速 ⇒ solver 定时器 ×0.4（等待缩短 60%）；常速 = 默认慢速节拍（日志收集必须用它）
         const main = entity(1077936201n)
         const fm = f.getCustomVariable(main, new str('rubik3x3_fast_mode')).asType('bool')
-        f.setCustomVariable(main, new str('rubik3x3_fast_mode'), f.logicalNotOperation(fm), false)
-        f.printString('rubik3x3-fast-mode-toggled')
+        const nv = f.logicalNotOperation(fm)
+        f.setCustomVariable(main, new str('rubik3x3_fast_mode'), nv, false)
+        f.printString('rubik3x3-speed-toggled')
       },
       default: () => {}
     })
