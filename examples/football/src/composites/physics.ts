@@ -19,7 +19,7 @@ const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
-const ROLL_DECEL = 1.2 // 滚动匀减速（m/s²）：球速≤4.5 滚 ~8m 停 ~2.5s，不瞬移也不写死
+const ROLL_DECEL = 3.0 // 滚动匀减速（m/s²）：带球球速 6 滚 ~6m 停；射门 15 滚 ~37m。真实带球球滚 1-3m 球员追上，不滚到停
 const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
@@ -606,13 +606,13 @@ export const physTick = g.defineComposite('phys_tick', {
 // 真实带球：一脚轻踢球速约 3~4 m/s，滚 2~3 米停，玩家（无论跑多快）追上再踢。
 // 覆盖式踢球（ballVel=vKick）：静止球 0→VKICK 是大冲量、追球 2→VKICK 是小冲量，
 // 自然满足"静止大、追球小"。绝不能随玩家速度放大（会变子弹）。
-const VKICK_ADD = 1.8 // 球速 = vP + VKICK_ADD（球比玩家快 1.8，4.5m 追上≈2.5s，符合 2-3s 带球节奏）
+const VKICK_ADD = 1.0 // 球速 = vP + VKICK_ADD（球略快于玩家，滚 2-3m 玩家 1-2s 追上，真实带球节奏）
 const VKICK_MIN = 3.0 // 球速下限
 const VKICK_MAX = 7.0 // 球速上限（玩家冲刺 8 时球 9.5→clamp 7，正常速度不超限）
 const DV_MIN = 0.8 // 最小冲量（追球轻触）
 const DV_MAX = 7.0 // 最大冲量（同球速上限）
 // —— 预测补偿自动触发参数（2026-08-27 数据驱动调优）——
-const KICK_DIST = 4.5 // 预测触发距离（预测 T 后玩家与球的距离；4.5m 外提前踢，球先滚出玩家追上）
+const KICK_DIST = 2.0 // 预测触发距离（球离脚 2m 触球，真实带球球在脚前 1-3m）
 const KICK_SPEED = 4.0 // 球速阈值（球已滚开超过该值不补踢；日志实证触发时 vB 可达 3.7）
 const LAG_T = 0.25 // 滞后补偿时间（预测前瞻；玩家 5m/s×0.25=提前 1.25m）
 const DEG2RAD = 0.0174533
