@@ -653,6 +653,12 @@
 - 影响：仅该输出值错误（埋点/外部消费），kick 功能正常。
 - 待办：构造最小复现（单一复合多 float 输出、一个减法缺减数）判断是否编译器通用缺陷；检查同族复合输出（distNow/vP/vB）。
 
+### O-2026-08-28-02 让位清理重复 set（solverPlan/solverEPlan 5 处）待合并【代码质量，下次窗口】
+
+- 证据：37584a8 给 solveLen/solveLen 重算入口加 bufPos 清零时，5 处重复 `set solveLen+set bufPos` 是复制展开（坏味道）。
+- 期望形态：抽一个 solverResetPlanState 复合（清 solveLen/bufPos/mIdx/mLen/mP/pStep），新增共享状态只改一处。
+- 何时做：下次 solverCore 改动窗口顺手做（与 O-2026-08-27-06 同窗口）。
+
 ### O-2026-08-28-01 solveSeq 追加竞态修复待复测（偶发十字破坏+循环，日志 2954）
 
 - 证据：日志 2954 rec138 solveBuf 残留 [255×9,1,3,3,1]（不可能序列，离线角块宏最长负连发=3）+ 实测 op3 发码 -1×6 连发；根因 = solverAppendCode 读写 solveLen 图变量，op5 重算与 pStep4 追加在相邻 tick 写序交错 → solve_seq 重复/跳码 → 宏残缺 → 十字破坏 → 卡十字/角块循环。

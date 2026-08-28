@@ -277,6 +277,7 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
   - ① 推进计数器：`set(X, get(X)+1)` 之后的一切判断/使用，一律重新 `get(X)`，绝不复用之前的加法表达式变量；
   - ② 状态机/分支的空分支（`() => {}`）禁止留空——写 `registerExecNode` noop（空分支不生成执行边，会破坏 join）；
   - ③ 新状态机注入前先写下「期望日志签名」（如负向 = 3×逻辑-only 记录(25 帧级) + 1×视觉记录），拿到日志逐项对照帧数模式，跳步会暴露为帧数交替；
+- **🔴 跨复合/跨 tick 共享推进状态的第三变体：写序竞态（2026-08-28 rubik 日志 2954 实证）**：solverAppendCode 内 `sl = get(solveLen)` + 尾部 `set(solveLen, sl+steps)`，与 op5 重算入口的 `set(solveLen, 0)` 在相邻 tick 交错 → solve_seq 追加起点错位 → 序列重复（日志实测 -1×6 连发，而离线枚举角块宏最长负连发=3，出现"不可能序列"）→ 宏残缺 → 十字永久破坏卡循环（偶发=纯时序窗口）。**修复范式：游标/位图推进用显式入参（pos）+ 返回 next 的纯函数复合，所有者链用独立图变量（bufPos）推进，把状态所有权收敛到单一链，复合内零图变量读写**。判别法：先做部署面 vs 源面逐字节对照（排除表错），再抽日志全部实际发出 op 值去比"离线可能序列"，出现不可能序列 = 管线竞态实锤。前两变体：275 行二次物化丢步、O-2026-08-27-05 sl 表达式。
 - **🔴 `finiteLoop(start, end)` 是闭区间 `[start, end]`，迭代次数 = `end - start + 1`**（2026-08-20 日志实证：`finiteLoop(0n, 4n)` 实际执行 0..4 共 5 次）。要执行 N 次必须传 `end = start + N - 1n`，例如 4 次写 `finiteLoop(0n, 3n)`。写错会多读一个表项/多写一个越界下标，导致状态错乱。
 - 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
 - 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。
