@@ -1358,6 +1358,15 @@
         "离线验证,读图核验,resync,md5,日志,BigInt,分层证据,verify-corner-macros"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "client-server-call-chain",
+      "node_id": "game-engine-knowledge",
+      "title": "服务端调用客户端节点图全链路（角色操控技能+施放技能实例）",
+      "path": "knowledge/game-engine-knowledge/client-server-call-chain.md",
+      "summary": "服务端经技能实例施放触发客户端节点图执行、客户端经信号/通知回传服务器：官方规则+魔方客户端图真实读图证据",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2972,6 +2981,11 @@
         "documented_contract",
         "evidence_scope",
         "runtime_behavior"
+      ]
+    },
+    "clm_D1A208295BD4F1E3FECDE5C157": {
+      "fact_classes": [
+        "external_game_evidence"
       ]
     }
   }
