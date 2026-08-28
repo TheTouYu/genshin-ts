@@ -209,7 +209,9 @@ const graph = g
               const e1p = f.callComposite(llFindPos, { val: 1n, p0: f.getCorrespondingValueFromList(sep as any, 0n), p1: f.getCorrespondingValueFromList(sep as any, 1n), p2: f.getCorrespondingValueFromList(sep as any, 2n), p3: f.getCorrespondingValueFromList(sep as any, 3n) }).out
               const e2p = f.callComposite(llFindPos, { val: 2n, p0: f.getCorrespondingValueFromList(sep as any, 0n), p1: f.getCorrespondingValueFromList(sep as any, 1n), p2: f.getCorrespondingValueFromList(sep as any, 2n), p3: f.getCorrespondingValueFromList(sep as any, 3n) }).out
               const e3p = f.callComposite(llFindPos, { val: 3n, p0: f.getCorrespondingValueFromList(sep as any, 0n), p1: f.getCorrespondingValueFromList(sep as any, 1n), p2: f.getCorrespondingValueFromList(sep as any, 2n), p3: f.getCorrespondingValueFromList(sep as any, 3n) }).out
-              const ci = f.callComposite(llPermIdx, { p0: c0p, p1: c1p, p2: c2p, p3: c3p }).out
+              // 角排列顺序必须与生成器一致：CubeLib CORNER_NAMES = [UFR, UFL, UBR, UBL]
+              // = c3p(UFR), c2p(UFL), c1p(UBR), c0p(UBL)（日志 2977 实证：顺序反 → 反排误判为已还原 → 提前发 op7）
+              const ci = f.callComposite(llPermIdx, { p0: c3p, p1: c2p, p2: c1p, p3: c0p }).out
               const ei = f.callComposite(llPermIdx, { p0: e0p, p1: e1p, p2: e2p, p3: e3p }).out
               const sig = f.addition(f.multiplication(ci, 24n), ei)
               f.setNodeGraphVariable('solveMask', sig, false)
