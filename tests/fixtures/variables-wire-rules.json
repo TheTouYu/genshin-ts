@@ -1,0 +1,944 @@
+{
+  "meta": {
+    "version": 1,
+    "kind": "variables-wire-rules",
+    "title": "变量系统 wire 规律表（设计文档 C4 单一事实源）",
+    "created": "2026-08-29",
+    "author": "genshin-ts 变量系统 P3 M1",
+    "docs": [
+      "docs/design/variable-system-design.md",
+      "docs/game-engine-knowledge/variables.md"
+    ],
+    "manifest": "~/genshin-ts-evidence/variable-system/notes/manifest.md",
+    "rawDir": "~/genshin-ts-evidence/variable-system/raw/",
+    "scopes": [
+      "assets",
+      "graph",
+      "local-server",
+      "local-client"
+    ],
+    "statusLegend": {
+      "verified": "编辑器样本字节级实证（samples 字段给出证据样本 id，hex 与样本解码重编码逐字节一致）",
+      "cross-checked": "项目表交叉核对闭合（v16b：采样 10/10 命中项目表 → 表即编辑器规则）；无独立编辑器样本",
+      "inferred": "推断/拟合外推，无编辑器样本；verify 默认跳过硬断言，只报告 NOTE",
+      "open": "观察项/未闭合，不得作为断言依据"
+    }
+  },
+  "samples": [
+    {
+      "id": "v0",
+      "file": "var-baseline-v0-empty-graphs-1-2.gil",
+      "sha256": "3d9282e20a1d5afd8f756a2bf8e3a02250b8cb057c2fbc6abf444dc4bec4cc50",
+      "scope": "graph",
+      "note": "基线：干净地图 + 两个空节点图（1073741825/1073741826）"
+    },
+    {
+      "id": "v1",
+      "file": "var-v1-graph1-int-list-len50.gil",
+      "sha256": "b7ca3d9fea0e1726dbd936fe1ceaf21d04d98ef0d94a03bb05a19d57080aef80",
+      "scope": "graph",
+      "note": "图1 新增图变量 int50 = int_list 50×0"
+    },
+    {
+      "id": "v2",
+      "file": "var-v2-after-inject-graph2.gil",
+      "sha256": "9c8f5cc58f0a86541a0283b343126354a6a0714414148a95d26ae7e9e24a1797",
+      "scope": "graph",
+      "note": "我方注入：图2 同型 int50（写回成功+回读核验）"
+    },
+    {
+      "id": "v3",
+      "file": "var-v3-after-user-save.gil",
+      "sha256": "f65e8776de035f426b336d6d1c973975e1b33a2a0ad5d2c0e1151583e7f997a2",
+      "scope": "graph",
+      "note": "用户编辑器保存：GraphVariable 记录逐字节未变（经受编辑器首存）"
+    },
+    {
+      "id": "v4",
+      "file": "var-v4-user-set-last-index.gil",
+      "sha256": "48b79d7f43741f84386d1088ffccceca9aacd3eb64717ad797469846b1110e3f",
+      "scope": "graph",
+      "note": "图1 int50 末位（下标49）改 1234：非默认值元素形态"
+    },
+    {
+      "id": "v5",
+      "file": "var-v5-level-entity-list-len5.gil",
+      "sha256": "d4b7137641ae2f504b7c43ec385a110206a90161f6ffd49b16c05c7256ba2e42",
+      "scope": "assets",
+      "note": "关卡实体新增变量1 = str_list 长度5（空字符串×5）"
+    },
+    {
+      "id": "v6",
+      "file": "var-v6-six-types.gil",
+      "sha256": "66109c04db0404b8d8bc7e3aff269dfe8d87127870b4168e04c4af0ebc677d54",
+      "scope": "graph",
+      "note": "图1 十变量全默认值（str/int/float/bool/vec3 标量 + 5 种空列表）"
+    },
+    {
+      "id": "v7",
+      "file": "var-v7-level-entity-initial-values.gil",
+      "sha256": "1d87b5c5455c0bb2da0a833b48f8f8ee80b215bab2302ba396ce3654b3cf38c1",
+      "scope": "assets",
+      "note": "关卡实体 9 变量带初始值（str/int/float/bool/vec3 + int/float/bool/vec3_list）"
+    },
+    {
+      "id": "v8",
+      "file": "var-v8-normal-entity.gil",
+      "sha256": "eed79284338d35d608072d3fde4d0aea74101ce603dfd125e8d9a89696a8e31b",
+      "scope": "assets",
+      "note": "普通实体 1077936129（def 10005018）3 变量（vec3_list/float_list/str）"
+    },
+    {
+      "id": "v9",
+      "file": "var-v9-player-character-vars.gil",
+      "sha256": "938b62270b7a35890a11c9ab29dddf50dcc683b2e58ec2d3df81e1ca8d24d191",
+      "scope": "assets",
+      "note": "玩家实体×3 + 角色实体 1：str 空串默认值（f16=空消息）"
+    },
+    {
+      "id": "v10",
+      "file": "var-v10-local-var-usage.gil",
+      "sha256": "85dd631387ac8750f9bb49df41d63f1b553a0dadd546c2ab16891fee1b7c93b2",
+      "scope": "local-server",
+      "note": "图1 Get(18)+Set(19) 局部变量 bool 基本使用（E<1016> 身份连线）"
+    },
+    {
+      "id": "v11",
+      "file": "var-v11-local-var-types.gil",
+      "sha256": "169b53b0d47d3ffce7cfcab4f3aedd094dd4acb11956d73edbe96c903c597d8d",
+      "scope": "local-server",
+      "note": "Get 六类型（int/str/entity/guid/float/vec3）：cid 变体 + server ioc 表"
+    },
+    {
+      "id": "v12",
+      "file": "var-v12-set-local-var-types.gil",
+      "sha256": "ac428a77ea343abaac23bf3dea0885cf0dcab888dc8a48c6cd96d95df52d9f95",
+      "scope": "local-server",
+      "note": "Set 六类型（与 Get 同构，Set cid 变体）"
+    },
+    {
+      "id": "v13",
+      "file": "var-v13-local-var-int-list.gil",
+      "sha256": "ac3defd32f7e5ccb602b6ffa6b58c43224b3c23b6da883b49fcb457f5a250af5",
+      "scope": "local-server",
+      "note": "int_list 完整周期（Get 2661/Set 2679/ioc 7）+ 空拼装列表(169)"
+    },
+    {
+      "id": "v14",
+      "file": "var-v14-str-list-cycle.gil",
+      "sha256": "a0cd33d45dff5af6d0bb157fb1df3c36be5ba5797765281e116f060fea455039",
+      "scope": "local-server",
+      "note": "str_list 周期（Get 2662/Set 2680/ioc 8）+ 拼装列表扩展（count 4/5，元素 23/233）"
+    },
+    {
+      "id": "v15",
+      "file": "var-v15-client-graph.gil",
+      "sha256": "e12fc8d79c92f36404f9974ef6a3d3e7bf7bf64769b0e4864be4acaedd1dd3a3",
+      "scope": "local-client",
+      "note": "客户端图 1082130433：start(200042)→Set(200081)+Get(200082)，名字「测试」(int)"
+    },
+    {
+      "id": "v16",
+      "file": "var-v16-client-more-types.gil",
+      "sha256": "8c6370c64d1a0f65ec90da9ada7e30da51a8864a056c9046923c434f25e68cf4",
+      "scope": "local-client",
+      "note": "客户端 Get 10 类型（名字=类型标记）：client ioc 表 + clientVarType 码字节级实证"
+    },
+    {
+      "id": "v16b",
+      "file": null,
+      "sha256": null,
+      "scope": "local-client",
+      "note": "交叉核对（无新样本文件）：采样 10/10 命中项目表 LOCAL_VAR_IOC_BY_IR / CLIENT_VAR_TYPE_BY_IR_TYPE → 剩余 11 类型按表闭合（dict 按设计文档标 inferred）"
+    }
+  ],
+  "rules": {
+    "assets": {
+      "name": "自定义变量（实体容器）",
+      "container": "root5.1[entity].7.11（四类实体同构：关卡 def=10003004 固定 / 普通 def=资源定义如 10005018 / 玩家 def=1000000 / 角色 def=1000001；元件定义 root4.1.8.11 同构）",
+      "entryForm": {
+        "f2": "name：显式 UTF-8",
+        "f3": "类型码（VarType：1=entity 2=guid 3=int 4=bool 5=float 6=str 8=int_list 9=bool_list 10=float_list 11=str_list 12=vec3 15=vec3_list 27=dict 等）",
+        "f4": "默认值消息 {1:类型码, 2:{1:类型码, 2:{}} 双层包裹, f<类型码+10>:值}",
+        "f5": "1（恒写）",
+        "f6": "{1:类型码, 2:{}} 单层类型包裹（编辑器形态；旧实现多包一层已修）"
+      },
+      "valueForms": {
+        "scalar-zero": "int 0 / bool false / str '' / float 0 → f<类型码+10> = 空消息（默认值省略哲学）",
+        "scalar-nonzero": "int/float/bool/str 非默认值 → 显式 payload（str 在 f16.f1）",
+        "vec3": "f22 = {1:{f1,f2,f3: fixed32}} 包裹，分量稀疏（零分量省略；全零 = {1:空}）",
+        "lists": "f<类型码+10>：原始标量列表 packed（元素原始字节拼接；entity 元素=完整 {f1(varint)} 拼接）；str_list 重复 field1(len){字符串}；vec3_list 重复 field1(len){向量消息}（元素稀疏）",
+        "dict": "f37 = parallel f501 keys + f502 values + f503 key 类型码 + f504 value 类型码；Map25 实体映射层非新建必需"
+      },
+      "dictMarkers": [
+        {
+          "keyType": "str",
+          "valueType": "str",
+          "marker": 66,
+          "status": "verified",
+          "evidence": "variables.md 2026-08-18/19 多样本（样本不在 v0–v16b 序列，位于 ~/.genshin-ts-evidence/toolchain-gaps/1073741894/）"
+        },
+        {
+          "keyType": "str",
+          "valueType": "str_list",
+          "marker": 76,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "str",
+          "valueType": "float",
+          "marker": 65,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "str",
+          "valueType": "float_list",
+          "marker": 75,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "str",
+          "valueType": "bool_list",
+          "marker": 74,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "str",
+          "valueType": "vec3_list",
+          "marker": 78,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "int",
+          "valueType": "int",
+          "marker": 43,
+          "status": "verified",
+          "evidence": "同上"
+        },
+        {
+          "keyType": "int",
+          "valueType": "vec3_list",
+          "marker": 58,
+          "status": "verified",
+          "evidence": "同上"
+        }
+      ],
+      "fixtures": {
+        "1094713345:新增变量1": {
+          "hex": "120de696b0e5a29ee58f98e9878f31180b2215080b1204080b1200aa010a0a000a000a000a000a0028013204080b1200",
+          "typeCode": 11,
+          "samples": [
+            "v5",
+            "v7",
+            "v8",
+            "v9"
+          ],
+          "note": "str_list 5×空串（长度=元素记录条数，空元素必须保留）"
+        },
+        "1094713345:新增变量2": {
+          "hex": "120de696b0e5a29ee58f98e9878f321806221108061204080612008201060a04617364662801320408061200",
+          "typeCode": 6,
+          "samples": [
+            "v7"
+          ],
+          "note": "str 'asdf'"
+        },
+        "1094713345:新增变量3": {
+          "hex": "120de696b0e5a29ee58f98e9878f331803220d08031204080312006a0308cd022801320408031200",
+          "typeCode": 3,
+          "samples": [
+            "v7"
+          ],
+          "note": "int 333"
+        },
+        "1094713345:新增变量4": {
+          "hex": "120de696b0e5a29ee58f98e9878f341805220f08051204080512007a050d000060422801320408051200",
+          "typeCode": 5,
+          "samples": [
+            "v7"
+          ],
+          "note": "float 56"
+        },
+        "1094713345:新增变量5": {
+          "hex": "120de696b0e5a29ee58f98e9878f351804220c0804120408041200720208012801320408041200",
+          "typeCode": 4,
+          "samples": [
+            "v7"
+          ],
+          "note": "bool true"
+        },
+        "1094713345:新增变量6": {
+          "hex": "120de696b0e5a29ee58f98e9878f36180c2212080c1204080c1200b201070a050d0000404028013204080c1200",
+          "typeCode": 12,
+          "samples": [
+            "v7"
+          ],
+          "note": "vec3 [3,0,0]（分量稀疏，零分量省略）"
+        },
+        "1094713345:新增变量7": {
+          "hex": "120de696b0e5a29ee58f98e9878f371808221008081204080812009201050a030003022801320408081200",
+          "typeCode": 8,
+          "samples": [
+            "v7"
+          ],
+          "note": "int_list [0,3,2] packed"
+        },
+        "1094713345:新增变量8": {
+          "hex": "120de696b0e5a29ee58f98e9878f38180a2215080a1204080a1200a2010a0a08333313400000000028013204080a1200",
+          "typeCode": 10,
+          "samples": [
+            "v7"
+          ],
+          "note": "float_list [2.3,0] packed"
+        },
+        "1094713345:新增变量9": {
+          "hex": "120de696b0e5a29ee58f98e9878f391809220f08091204080912009a01040a0200012801320408091200",
+          "typeCode": 9,
+          "samples": [
+            "v7"
+          ],
+          "note": "bool_list [false,true] packed"
+        },
+        "1094713345:新增变量10": {
+          "hex": "120ee696b0e5a29ee58f98e9878f3130180f221d080f1204080f1200ca01120a000a050d0000e0400a0515000000400a0028013204080f1200",
+          "typeCode": 15,
+          "samples": [
+            "v7"
+          ],
+          "note": "vec3_list [[0,0,0],[7,0,0],[0,2,0],[0,0,0]]（元素稀疏）"
+        },
+        "1077936129:新增变量1": {
+          "hex": "120de696b0e5a29ee58f98e9878f31180f2212080f1204080f1200ca01070a05150000404028013204080f1200",
+          "typeCode": 15,
+          "samples": [
+            "v8"
+          ],
+          "note": "普通实体 vec3_list [[0,3,0]]"
+        },
+        "1077936129:新增变量2": {
+          "hex": "120de696b0e5a29ee58f98e9878f32180a2211080a1204080a1200a201060a040000404028013204080a1200",
+          "typeCode": 10,
+          "samples": [
+            "v8"
+          ],
+          "note": "普通实体 float_list [3]"
+        },
+        "1077936129:新增变量3": {
+          "hex": "120de696b0e5a29ee58f98e9878f331806221008061204080612008201050a036164662801320408061200",
+          "typeCode": 6,
+          "samples": [
+            "v8"
+          ],
+          "note": "普通实体 str 'adf'"
+        },
+        "1086324743:这是玩家变量": {
+          "hex": "1212e8bf99e698afe78ea9e5aeb6e58f98e9878f1806220b08061204080612008201002801320408061200",
+          "typeCode": 6,
+          "samples": [
+            "v9"
+          ],
+          "note": "玩家实体 str ''（f16=空消息 820100，不是 {1:len0}）"
+        },
+        "1090519041:这是角色变量": {
+          "hex": "1212e8bf99e698afe8a792e889b2e58f98e9878f1806220b08061204080612008201002801320408061200",
+          "typeCode": 6,
+          "samples": [
+            "v9"
+          ],
+          "note": "角色实体 str ''（同空消息规则）"
+        }
+      }
+    },
+    "graph": {
+      "name": "图变量（GraphVariable）",
+      "container": "NodeGraph 消息 f6 graphValues（root10 图容器记录内）",
+      "recordForm": {
+        "f2": "name：显式 UTF-8",
+        "f3": "VarType 类型码",
+        "f4": "VarBase（值；列表=ArrayBase f109 逐元素记录）",
+        "f5": "exposed（false 默认省略）",
+        "f6": "structId（0 默认省略）",
+        "f7": "keyType = 6（简单类型也写）",
+        "f8": "valueType = 6"
+      },
+      "valueForms": {
+        "list": "class=10002 ArrayBase + f2 alreadySetVal（非空列表保留）+ itemType{1:1,100:{类型}}（无 kind）+ f109 逐元素独立 VarBase 记录",
+        "list-element-default": "元素 = {class, itemType, 空 payload}，无 f2 alreadySetVal、无 kind",
+        "list-element-nondefault": "元素 = {class, f2 alreadySetVal=1, itemType, 显式 payload}（如 f102={1:1234}）",
+        "empty-list": "列表层 alreadySetVal 也省略（编辑器 v6 变量_6..10）",
+        "scalar-zero": "int/float/str/bool 零值 = {class, itemType{1:1,100:{类型}}, 空 payload}",
+        "vec3-zero": "零 vec3 = class 7 + bVector{val:{}}",
+        "scalar-nondefault": "非默认值 = alreadySetVal=1 + 显式 payload"
+      },
+      "fixtures": {
+        "int50": [
+          {
+            "hex": "1205696e743530180822b20608924e100122070801a206020808ea06a0060a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b2060038064006",
+            "variant": "50×0",
+            "samples": [
+              "v1",
+              "v2",
+              "v3"
+            ],
+            "note": "v2/v3 为我方注入后图2 同型（v3 经编辑器保存未变）"
+          },
+          {
+            "hex": "1205696e743530180822b70608924e100122070801a206020808ea06a5060a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a0e080222070801a206020803b206000a130802100122070801a206020803b2060308d20938064006",
+            "variant": "49×0+末位1234",
+            "samples": [
+              "v4"
+            ],
+            "note": "非默认值元素=alreadySetVal+显式 payload（末元素 08d209 = 1234）"
+          }
+        ],
+        "变量_1": [
+          {
+            "hex": "1208e58f98e9878f5f311806220e080522070801a206020806ca060038064006",
+            "variant": "str ''",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_2": [
+          {
+            "hex": "1208e58f98e9878f5f321803220e080222070801a206020803b2060038064006",
+            "variant": "int 0",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_3": [
+          {
+            "hex": "1208e58f98e9878f5f331805220e080422070801a206020805c2060038064006",
+            "variant": "float 0",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_4": [
+          {
+            "hex": "1208e58f98e9878f5f341804220e080622070801a206020804d2060038064006",
+            "variant": "bool false",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_5": [
+          {
+            "hex": "1208e58f98e9878f5f35180c2210080722070801a20602080cda06020a0038064006",
+            "variant": "vec3 [0,0,0]（bVector{val:{}}）",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_6": [
+          {
+            "hex": "1208e58f98e9878f5f36180b220f08924e22070801a20602080bea060038064006",
+            "variant": "str_list []（空列表去 alreadySetVal）",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_7": [
+          {
+            "hex": "1208e58f98e9878f5f371808220f08924e22070801a206020808ea060038064006",
+            "variant": "int_list []",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_8": [
+          {
+            "hex": "1208e58f98e9878f5f38180a220f08924e22070801a20602080aea060038064006",
+            "variant": "float_list []",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_9": [
+          {
+            "hex": "1208e58f98e9878f5f391809220f08924e22070801a206020809ea060038064006",
+            "variant": "bool_list []",
+            "samples": [
+              "v6"
+            ]
+          }
+        ],
+        "变量_10": [
+          {
+            "hex": "1209e58f98e9878f5f3130180f220f08924e22070801a20602080fea060038064006",
+            "variant": "vec3_list []",
+            "samples": [
+              "v6"
+            ]
+          }
+        ]
+      },
+      "inferred": [
+        "float_list/bool_list/str_list/vec3_list 非零元素（未实样，fail closed）",
+        "dict 图变量（未实样）",
+        "exposed=1 覆写变量（未实样）"
+      ]
+    },
+    "local-server": {
+      "name": "局部变量 server（Get/Set Local Variable + 拼装列表）",
+      "nodes": {
+        "get": 18,
+        "set": 19,
+        "assembly": "169（int）/170（str）"
+      },
+      "identity": "E<1016> 身份连线：Set InParam[0] ← Get OutParam[0]（wire kind 4 index 0）；局部变量无名，身份只能靠连线追溯",
+      "cidTable": {
+        "verified": {
+          "get": {
+            "bool": 18,
+            "int": 20,
+            "str": 2656,
+            "entity": 2657,
+            "guid": 2658,
+            "float": 2659,
+            "vec3": 2660,
+            "int_list": 2661,
+            "str_list": 2662
+          },
+          "set": {
+            "bool": 19,
+            "int": 21,
+            "str": 2674,
+            "entity": 2675,
+            "guid": 2676,
+            "float": 2677,
+            "vec3": 2678,
+            "int_list": 2679,
+            "str_list": 2680
+          }
+        },
+        "inferred": "其它列表/配置/元件/阵营/dict 类型的 Get/Set cid（按同族变体机制推断，无样本）"
+      },
+      "iocTable": {
+        "verified": {
+          "bool": 0,
+          "int": 1,
+          "str": 2,
+          "entity": 3,
+          "guid": 4,
+          "float": 5,
+          "vec3": 6,
+          "int_list": 7,
+          "str_list": 8
+        },
+        "inferred": {
+          "entity_list": 9,
+          "guid_list": 10,
+          "float_list": 11,
+          "vec3_list": 12,
+          "bool_list": 13,
+          "config_id": 14,
+          "prefab_id": 15,
+          "config_id_list": 16,
+          "prefab_id_list": 17,
+          "faction": 18,
+          "faction_list": 19,
+          "dict": 20
+        },
+        "note": "verified 键为 VarType 名（server ioc 表与 client 表顺序不同实证；9..20 按 client 表尾部同序推断，待样本）"
+      },
+      "pinForm": {
+        "value": "R<T> pin = ConcreteBase{1:10000, 2:1, 110:{indexOfConcrete(0 省略), 2: 内层 VarBase}}；内层一律无 alreadySetVal、itemType.kind 省略；int/str/guid/float = class+itemType+空 payload；vec3 = class 7+bVector{val:{}}；entity = 无 class 字段 + 无 payload",
+        "nondefault": "非默认值也只写显式 payload（bool true → bEnum{1:1}），内层仍无 alreadySetVal（与图变量元素规则不同）"
+      },
+      "assemblyForm": {
+        "cid": "按元素类型变体：int=169、str=170（generic 恒 169）",
+        "count": "count>0 → 普通 VarBase{1:2, 2:1, itemType{1:1,100:{1:3}}, 102:{1:count}}（非 ConcreteBase 包裹；元素类型 int 也写 type 3）；count=0 → 编辑器省略该 pin（v13 观察，专项样本未做）",
+        "element": "元素 pin = ConcreteBase{ioc: 元素类型序（int=0 省略/str=1）, value: 标量 VarBase}；非默认值保留 alreadySetVal+显式 payload（v14 23/233 实证），默认值空 payload 无 f2",
+        "outParam": "ConcreteBase{indexOfConcrete = 元素类型 ioc（int=0 省略/str=1 实证——非列表 ioc！）, value: ArrayBase{1:10002, itemType{1:1,100:{列表码}}, 109:空}}（manifest 曾记「OutParam=列表 ioc」，v13/v14 样本字节不符，以样本为准）"
+      },
+      "fixtures": {
+        "bool:false": {
+          "hex": "08904e1001f20610120e080622070801a206020804d20600",
+          "samples": [
+            "v10",
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "Get InParam[0]/OutParam[1]、Set InParam[1] 默认 false 同形"
+        },
+        "bool:true": {
+          "hex": "08904e1001f206121210080622070801a206020804d206020801",
+          "samples": [
+            "v10",
+            "v13",
+            "v14"
+          ],
+          "note": "Set 值 true（bEnum{1:1}，内层无 alreadySetVal）"
+        },
+        "int": {
+          "hex": "08904e1001f206120801120e080222070801a206020803b20600",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=1"
+        },
+        "str": {
+          "hex": "08904e1001f206120802120e080522070801a206020806ca0600",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=2"
+        },
+        "entity": {
+          "hex": "08904e1001f2060d0803120922070801a206020801",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=3；内层无 class 无 payload"
+        },
+        "guid": {
+          "hex": "08904e1001f206120804120e080122070801a206020802aa0600",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=4"
+        },
+        "float": {
+          "hex": "08904e1001f206120805120e080422070801a206020805c20600",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=5"
+        },
+        "vec3": {
+          "hex": "08904e1001f2061408061210080722070801a20602080cda06020a00",
+          "samples": [
+            "v11",
+            "v12",
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=6"
+        },
+        "int_list": {
+          "hex": "08904e1001f206130807120f08924e22070801a206020808ea0600",
+          "samples": [
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=7；Get cid 2661 / Set cid 2679"
+        },
+        "str_list": {
+          "hex": "08904e1001f206130808120f08924e22070801a20602080bea0600",
+          "samples": [
+            "v14"
+          ],
+          "note": "ioc=8；Get cid 2662 / Set cid 2680"
+        },
+        "assembly:count:int:4": {
+          "hex": "0802100122070801a206020803b206020804",
+          "samples": [
+            "v14"
+          ],
+          "note": "count pin（普通 VarBase，非 ConcreteBase）"
+        },
+        "assembly:count:str:5": {
+          "hex": "0802100122070801a206020803b206020805",
+          "samples": [
+            "v14"
+          ],
+          "note": "str 拼装列表 count pin 的 itemType 仍是 int(3)"
+        },
+        "assembly:element:int:default": {
+          "hex": "08904e1001f20610120e080222070801a206020803b20600",
+          "samples": [
+            "v13",
+            "v14"
+          ],
+          "note": "ioc=0 省略；空 payload 无 alreadySetVal"
+        },
+        "assembly:element:int:23": {
+          "hex": "08904e1001f2061412120802100122070801a206020803b206020817",
+          "samples": [
+            "v14"
+          ],
+          "note": "非默认元素保留 alreadySetVal + 显式 payload"
+        },
+        "assembly:element:int:233": {
+          "hex": "08904e1001f2061512130802100122070801a206020803b2060308e901",
+          "samples": [
+            "v14"
+          ],
+          "note": "样本实际值 233（08e901）；manifest 曾记 489，与样本字节不符，以样本为准"
+        },
+        "assembly:element:str:default": {
+          "hex": "08904e1001f206120801120e080522070801a206020806ca0600",
+          "samples": [
+            "v14"
+          ],
+          "note": "ioc=1"
+        },
+        "assembly:element:str:123": {
+          "hex": "08904e1001f20619080112150805100122070801a206020806ca06050a03313233",
+          "samples": [
+            "v14"
+          ],
+          "note": "非默认 str 元素：alreadySetVal + bString{1:'123'}"
+        },
+        "assembly:out:int_list": {
+          "hex": "08904e1001f20611120f08924e22070801a206020808ea0600",
+          "samples": [
+            "v13"
+          ],
+          "note": "OutParam：ioc=0 省略（元素 ioc），内层 ArrayBase int_list"
+        },
+        "assembly:out:str_list": {
+          "hex": "08904e1001f206130801120f08924e22070801a20602080bea0600",
+          "samples": [
+            "v14"
+          ],
+          "note": "OutParam：ioc=1（元素 ioc），内层 ArrayBase str_list"
+        }
+      }
+    },
+    "local-client": {
+      "name": "局部变量 client（按名字，Get/Set 局部变量）",
+      "nodes": {
+        "get": {
+          "genericId": 200082,
+          "cid": 1036
+        },
+        "set": {
+          "genericId": 200081,
+          "cid": 2000
+        },
+        "start": {
+          "genericId": 200042,
+          "cid": 2001,
+          "note": "contextDeclaration={1:6(ClientSignal)}、无位置字段"
+        }
+      },
+      "iocTable": {
+        "int": 0,
+        "str": 1,
+        "entity": 2,
+        "guid": 3,
+        "float": 4,
+        "vec3": 5,
+        "bool": 6,
+        "int_list": 7,
+        "str_list": 8,
+        "entity_list": 9,
+        "guid_list": 10,
+        "float_list": 11,
+        "vec3_list": 12,
+        "bool_list": 13,
+        "config_id": 14,
+        "prefab_id": 15,
+        "config_id_list": 16,
+        "prefab_id_list": 17,
+        "faction": 18,
+        "faction_list": 19,
+        "dict": 20
+      },
+      "clientVarTypeTable": {
+        "entity": 1,
+        "entity_list": 2,
+        "int": 3,
+        "int_list": 4,
+        "bool": 5,
+        "bool_list": 6,
+        "float": 7,
+        "float_list": 8,
+        "str": 9,
+        "str_list": 10,
+        "vec3": 11,
+        "vec3_list": 12,
+        "enum": 13,
+        "guid": 14,
+        "guid_list": 15,
+        "faction": 16,
+        "enum_list": 17,
+        "config_id": 18,
+        "prefab_id": 19,
+        "config_id_list": 20,
+        "prefab_id_list": 21,
+        "dict": 24,
+        "faction_list": 25
+      },
+      "classTable": {
+        "int": 2,
+        "str": 5,
+        "vec3": 7,
+        "float": 4,
+        "bool": 6,
+        "guid": 1,
+        "entity": null,
+        "list": 10002,
+        "dict": 10003,
+        "config_id": 1,
+        "prefab_id": 1,
+        "faction": 1
+      },
+      "typeStatus": {
+        "verified": [
+          "int",
+          "str",
+          "vec3",
+          "entity",
+          "float",
+          "bool",
+          "guid",
+          "str_list",
+          "vec3_list",
+          "float_list"
+        ],
+        "cross-checked": [
+          "int_list",
+          "entity_list",
+          "bool_list",
+          "guid_list",
+          "config_id",
+          "prefab_id",
+          "faction",
+          "config_id_list",
+          "prefab_id_list",
+          "faction_list"
+        ],
+        "inferred": [
+          "dict"
+        ],
+        "note": "verified=v16 编辑器样本；cross-checked=v16b 项目表交叉核对（采样 10/10 命中）；inferred=设计文档风险节：client dict 值 pin（MapBase 形式）无编辑器样本"
+      },
+      "namePinForm": {
+        "type": 9,
+        "value": "StringBase{1:5, 2:1(非默认名字保留 alreadySetVal), itemType{1:2, 101:{2:9}}, 105:{1:名字}}"
+      },
+      "valuePinForm": {
+        "type": "pin.type = clientVarType 码（不是 server VarType）",
+        "value": "ConcreteBase{1:10000, 2:1, 110:{indexOfConcrete: client ioc 表（0 省略）, 2: 内层 {class, itemType{1:2, 101:{2:clientVarType}}, 空 payload}}}；内层无 alreadySetVal；entity 无 class 无 payload；列表=ArrayBase(10002)、config/prefab/faction=IdBase(1)、dict=MapBase(10003)（inferred）"
+      },
+      "setForm": "Set(200081) 执行走 ClientExec pin（kind 5，i1.clientExecNode.nodeId=200081），无流 pin（kind 1/2）",
+      "fixtures": {
+        "测试": {
+          "irType": "int",
+          "namePinHex": "0805100122070802aa06021009ca06080a06e6b58be8af95",
+          "valuePinHex": "08904e1001f20610120e080222070802aa06021003b20600",
+          "samples": [
+            "v15",
+            "v16"
+          ],
+          "note": "int：ioc=0 省略"
+        },
+        "字符串": {
+          "irType": "str",
+          "namePinHex": "0805100122070802aa06021009ca060b0a09e5ad97e7aca6e4b8b2",
+          "valuePinHex": "08904e1001f206120801120e080522070802aa06021009ca0600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=1"
+        },
+        "三维向量": {
+          "irType": "vec3",
+          "namePinHex": "0805100122070802aa06021009ca060e0a0ce4b889e7bbb4e59091e9878f",
+          "valuePinHex": "08904e1001f2061408051210080722070802aa0602100bda06020a00",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=5"
+        },
+        "实体": {
+          "irType": "entity",
+          "namePinHex": "0805100122070802aa06021009ca06080a06e5ae9ee4bd93",
+          "valuePinHex": "08904e1001f2060d0802120922070802aa06021001",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=2；内层无 class 无 payload"
+        },
+        "浮点数": {
+          "irType": "float",
+          "namePinHex": "0805100122070802aa06021009ca060b0a09e6b5aee782b9e695b0",
+          "valuePinHex": "08904e1001f206120804120e080422070802aa06021007c20600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=4"
+        },
+        "布尔": {
+          "irType": "bool",
+          "namePinHex": "0805100122070802aa06021009ca06080a06e5b883e5b094",
+          "valuePinHex": "08904e1001f206120806120e080622070802aa06021005d20600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=6"
+        },
+        "GUID": {
+          "irType": "guid",
+          "namePinHex": "0805100122070802aa06021009ca06060a0447554944",
+          "valuePinHex": "08904e1001f206120803120e080122070802aa0602100eaa0600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=3"
+        },
+        "字符串列表": {
+          "irType": "str_list",
+          "namePinHex": "0805100122070802aa06021009ca06110a0fe5ad97e7aca6e4b8b2e58897e8a1a8",
+          "valuePinHex": "08904e1001f206130808120f08924e22070802aa0602100aea0600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=8"
+        },
+        "三维向量列表": {
+          "irType": "vec3_list",
+          "namePinHex": "0805100122070802aa06021009ca06140a12e4b889e7bbb4e59091e9878fe58897e8a1a8",
+          "valuePinHex": "08904e1001f20613080c120f08924e22070802aa0602100cea0600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=12"
+        },
+        "浮点数列表": {
+          "irType": "float_list",
+          "namePinHex": "0805100122070802aa06021009ca06110a0fe6b5aee782b9e695b0e58897e8a1a8",
+          "valuePinHex": "08904e1001f20613080b120f08924e22070802aa06021008ea0600",
+          "samples": [
+            "v16"
+          ],
+          "note": "ioc=11"
+        }
+      }
+    }
+  }
+}
