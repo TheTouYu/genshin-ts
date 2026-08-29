@@ -222,7 +222,7 @@ function usage(exitCode = 0): never {
     '  --gil <file>      explicit GIL source',
     '  --map-id <id>     target map ID (location only; requires project config)',
     '  --name <string>   create: new NodeGraph name (default: 按类型默认名，如 新建角色操控技能节点图)',
-    '  --graph-id <id>  create: 显式图 ID（客户端图段规则未闭合时必需）',
+    '  --graph-id <id>  create: 显式图 ID（缺省自动：服务端=全图 max+1，客户端=段内 max+1，段空=1082130433）',
     '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20006 整数过滤器/',
     '                      20008 造物技能/20009 造物状态/20010 角色操控技能；20003/20004/20005/20007 自动节点未采样 fail closed）',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
@@ -416,16 +416,20 @@ function insertAfterLastGraph(root10: WireField[], record: WireField): WireField
   return next
 }
 
-// 客户端图 ID 段（0x40800001 起，1082130433..）是否存在既有图（段起始值仅 1073741914/1073741913 两地图样本）
-function hasClientSegmentGraph(payload: Uint8Array): boolean {
+// 客户端图 ID 段起始值 = 1082130433（0x40800001；用户 2026-08-29 从初始地图实测：第一个客户端节点图 ID 即 1082130433；
+// 1073741914 连续 +1 至 1082130440 与参考图 1082130436 佐证）。自动分配 = 段内 max + 1，段空 = 起始值。
+const CLIENT_GRAPH_ID_START = 1082130433
+
+function nextClientGraphId(payload: Uint8Array): number {
   const root = readRoot(payload)
   const top10 = root.find((f) => f.number === 10 && f.wire === 2)
-  if (!top10) return false
+  if (!top10) return CLIENT_GRAPH_ID_START
   const root10 = parseWireMessage(top10.value as Uint8Array)!
-  return root10
+  const ids = root10
     .filter((f) => f.number === 1 && f.wire === 2)
     .map((f) => graphIdOf(f.value as Uint8Array))
-    .some((id): boolean => typeof id === 'number' && id >= 1082130433)
+    .filter((id): id is number => typeof id === 'number' && id >= CLIENT_GRAPH_ID_START)
+  return ids.length ? Math.max(...ids) + 1 : CLIENT_GRAPH_ID_START
 }
 
 function appendGraphWrapper(root10: WireField[], graphId: number, name: string): WireField[] {
@@ -785,14 +789,8 @@ export async function runAssetsNodeGraphs(
   const sourceSha = sha256Bytes(sourceBytes)
   const payload = sourceBytes.slice(20, -4)
   const spec = graphTypeSpec(args.graphType)
-  // 客户端图 ID 段规则未闭合（段起始 1082130433=0x40800001 仅 2 地图样本）：
-  // 地图已有客户端图时 nextGraphId（全图 max+1）自然落在客户端段；客户端段为空且未显式指定时 fail closed
-  if (spec.kind !== 'server' && args.graphId === undefined && !hasClientSegmentGraph(payload)) {
-    throw new Error(
-      `[error] 客户端图 ID 段规则未闭合（起始值仅 2 样本），此地图尚无客户端图；请用 --graph-id 显式指定图 ID`
-    )
-  }
-  const graphId = args.graphId ?? nextGraphId(payload)
+  const graphId =
+    args.graphId ?? (spec.kind === 'server' ? nextGraphId(payload) : nextClientGraphId(payload))
   const effectiveName = args.name ?? spec.defaultName
   const result = buildEmptyNodeGraph(payload, graphId, effectiveName, spec.type)
   const header = {

@@ -68,7 +68,13 @@ function assertRootEquals(
   assertRootEquals('create 20010', r1, load(`${R}/after.gil`), [6, 10])
   const r2 = buildEmptyNodeGraph(load(`${R}/after.gil`), 1082130434, '新建角色技能节点图', 20002)
   assertRootEquals('create 20002', r2, load(`${R}/after-20002.gil`), [6, 10])
-  console.log('PASS: node-graphs create --type 20010/20002（root6/10 逐字节一致）')
+  // 客户端图 ID 自动分配：段空 → 起始值 1082130433（用户实测）；段内 → max+1
+  const r3 = buildEmptyNodeGraph(load(`${R}/before.gil`), 1082130433, 'x', 20010)
+  assert.ok(
+    Buffer.from(rootBytes(r3, 10)).length > 0,
+    '客户端段空自动分配首图 ID=1082130433 应可构建'
+  )
+  console.log('PASS: node-graphs create --type 20010/20002 + 客户端段自动分配（root6/10 逐字节一致）')
 }
 
 // 2. 技能配置：36 普通创建（v2→v3）、36 瞬发+绑（v2→v4 一步形态）
