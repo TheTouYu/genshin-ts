@@ -70,6 +70,17 @@ node bin/gsts.mjs -c gsts.verify.config.ts dist-verify/verify/<分支>/<分支>.
 npx tsx tools/list-gil-node-graphs.ts <saveLevelDir>/<mapId>.gil
 #    .gil 解码片段见“wire 断言片段”
 
+# 8b. 注入后必跑复合残留检查（2026-08-30 足球拒载事故后强制）：
+#     只跑 list-gil-node-graphs / check-gil-composite-refs（不带 --incoming）看到"0 悬空"就交付，
+#     会漏掉旧版残留 def 链类型错位 → 游戏拒载无日志。--incoming 是唯一能抓"残留引用被覆盖 ID"的检查。
+npx tsx tools/check-gil-composite-refs.ts <saveLevelDir>/<mapId>.gil --incoming <本次.gia>
+#     输出判读：
+#       ✗ 残留复合 X 引用的 ID ... 被本次注入覆盖——可能类型错位 → 真问题，先 def-clean 清理残留再交付
+#         （清理流程见 gil-node-graph-editing 技能「残留复合清理」）
+#       ✓ 0 悬空 → 只证明引用存在，还需 parse --list 确认复合目录无多版本残留（(1) 后缀/旧 def）
+#       「GIA 复合 16106127xx 注入后在地图中缺失」→ 信号定义单元误报，用 scan-gil-signals 确认即可
+#       「GIA 复合 2000000000 段缺失」→ 旧 def 段本次未注入，非残留，主图正常引用即无害（2026-08-30 实证）
+
 # 9. 通知用户去游戏核验：明确“看什么、正确/错误行为各是什么”（见 template-case.ts 注释风格）
 ```
 

@@ -419,6 +419,10 @@ viewOrbitTrigger 复合内的 f.on 是非活跃残留——误改浪费一轮注
 4. 离线验证先声明**不含哪些运行时语义**（越界读 2964 / 跨图握手 2976 / 事件链时序），对应补日志或读图核验，不许以离线全绿代替。
 5. 改动执行链/动画调度后，提醒用户重点看**渲染**（视觉回归 2956 教训）。
 6. 出现回归先 diff 自己最近一轮改动，不从零排查（2956 绕路教训）。
+7. **注入后必跑 `check-gil-composite-refs --incoming <本次.gia>`（2026-08-30 足球拒载事故后强制）**：
+   只看"✓ 0 悬空"就交付 → 漏掉旧版残留 def 链类型错位 → 游戏拒载无日志（实测：足球 1073741908
+   残留 auto_check_tick→dribble_decide 链，--incoming 回测可抓 3 条"类型错位"，当时漏跑）；
+   再 `parse --list` 确认复合目录无多版本残留（(1) 后缀/旧 def）；报「16106127xx 缺失」是信号误报。
 
 ## 常见错误速查
 
@@ -449,6 +453,8 @@ viewOrbitTrigger 复合内的 f.on 是非活跃残留——误改浪费一轮注
 | 读图看到 `Double Branch false → (无)` / 分支体零帧 / 兜底 done 永不触发 | **`f.doubleBranch` 的 false 分支回调里第一个 exec 节点用了 `f.node()`**（detached，不设 headNodeId → `withExecBranch` 弹出时不生成 false 分支边）。**尤其易漏**：true 分支常以 `f.callComposite` 开头（自动设 headNodeId，边正常），false 分支常是单节点兜底（如 `set_node_graph_variable`），一用 `f.node` 就断链 | false 分支回调第一个 exec 节点改用 `f.registerExecNode(...)`（或高层 flow API）；读图应看到 `false → <节点>`（2026-08-23 魔方打乱守卫实证：`f.node` 让非法 moveId 兜底失效，done 永不触发） |
 | `TypeError: f.player is not a function` | 把全局函数 `player()` 当成了 handler 方法 `f.player()` 调用 | 用**全局** `player(1n)`（玩家序号从 1 开始，返回 PlayerEntity），不是 `f.player`（2026-08-23 UI 交互测试实证） |
 | 负 moveId「折叠」（U3→U' 一条链连做 3 次逻辑应用）→ 后续指令全部无响应、求解器无限重算同一宏 | 单记录帧超 3000 硬上限：rubik-3x3 实测正 move 记录 1387 帧，`finiteLoop` 3 连 `logic_apply_face` 记录 3027 帧，在第 2 次应用中途被截断 → turnLastSlot/publishShared/turnblock/unlock 整条链不再执行 → `lock` 永久 true → flowTabLock 挡住一切后续 op3（日志 2894：27 次手动发送只 1 步执行 0 次 unlock；2895：第 4 步 -5 后 50s 内 72 次 planTick 全部 mask=0） | **把重逻辑折叠进一条执行链之前，先算「单次应用帧数 × 次数 + 链尾开销 < 3000」**；不满足就把多次应用拆成多条独立事件链（每条一个记录），或做逆表一步应用。本轮回退为正 moveId 展开（每步一条 1387 帧记录，锁/发布链可靠） |
+| `E_UNKNOWN_NODE_VARIANT: missing data type conversion variant for bool→float` | 引擎无 `bool→float` 直转变体（2026-08-28 足球速度场带球实证）；项目内 `dataTypeConversion(bool, 'int')` 合法、`(int, 'float')` 合法，但 `(bool, 'float')` 不合法 | **bool→float 必须两段**：`f.dataTypeConversion(f.dataTypeConversion(x, 'int'), 'float')`（项目既有模式见 physics.ts 的 sI→sF 两段） |
+| 怀疑 `set_custom_variable` / `get_custom_variable` 节点"被 GIA 丢弃"（decode 搜字符串找不到） | **GIA 里节点类型是数字 nodeId 不是字符串**：Set Custom Variable = nodeId 22、Get Custom Variable = nodeId 308（node_pin_records.ts 可查）；搜 `set_custom_variable` 字符串必然 0 命中，是排查方法错不是节点丢（2026-08-28 足球实证） | 按 **nodeId** 核对：`decode-gia.py | python3 -c "找 genericId.nodeId==22"`；`setCustomVariable` 高层 API 4 参（entity,name,value,triggerEvent）合法，`Unk` pin 由编码器省略 |
 
 ## 通用复合节点模式库（2026-08-22 来自「常用复合节点大全 v1.7」资源包 + rubik 项目抽象）
 

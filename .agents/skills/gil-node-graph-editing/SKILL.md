@@ -113,6 +113,32 @@ PY
 | 复合创建 | `composite create <名> <anchor-idx> <node-idx...>` | 选节点打包成复合 |
 | 复合删/换输入 | `composite <def-id> del-input <shell>` / `swap-input <a> <b>` | 实例重编号 |
 
+### 残留复合清理（def-clean，2026-08-30 足球拒载实证后补）
+
+**什么时候用**：`check-gil-composite-refs --incoming` 报「残留复合 X 引用的 ID 被本次注入覆盖——可能类型错位」，
+或 `parse --list` 复合目录出现多版本残留（同名 `(1)` 后缀、已删复合旧 def）。游戏校验目录里全部复合
+（含零引用残留），残留链类型错位 → 拒载无日志。
+
+```bash
+# 1. 找残留 def 的调用者（暴露残留互相引用链）：
+#    def-clean 显式指定某 def 会报 "still referenced by N node(s): graph <impl-gid> n<idx>"
+npx tsx src/cli/gsts.ts assets:node-graphs def-clean --gil <map.gil> <def-id> --dry-run
+
+# 2. 候选验证（--output 不写回）：
+npx tsx src/cli/gsts.ts assets:node-graphs def-clean --gil <map.gil> <def-id...> --force --output <候选.gil>
+#    候选回读：parse --list 目录干净 + check-gil-composite-refs 0 悬空 + 主图复合引用完好
+
+# 3. 写回（自动备份 + SHA 校验）：
+npx tsx src/cli/gsts.ts assets:node-graphs def-clean --gil <map.gil> <def-id...> --force --write
+```
+
+**关键判读（2026-08-30 实证）**：
+- `--all-unused` 一轮只删"无调用者"的 def；**残留链互相引用时删不掉**（如 auto_check_tick→dribble_decide），
+  必须**显式列出全部残留 + `--force`**。
+- `--force` 的 "will leave dangling nodes" 警告在**残留链整体删除**时是安全的：引用节点随 impl 图一起删，
+  不产生悬空调用。
+- 删除会连 impl 图一起删（deleteCompositeDef 语义）；先 `--output` 候选回读验证再 `--write`。
+
 ## 安全流程（写回真实地图的固定步骤）
 
 ```
