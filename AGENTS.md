@@ -57,6 +57,7 @@
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
 | 游戏内最小注入核验 | `verify-injection` |
+| 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
 | Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（**知识文档，直接 read 引用**，不在技能加载列表，勿用 skill 工具加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | 代码结构/调用关系/影响面分析 | `codebase-memory` |

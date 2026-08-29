@@ -176,6 +176,15 @@ EOF
 8. 目标节点图不存在时注入报 `[error] target NodeGraph not found: <id>` → 回到第 2 步建 placeholder。
 9. 破坏性操作边界：注入/新建地图前把 mapId、nodeGraphId、playerId、目标 .gil、源 .gia、命令
    一次性展示给用户确认（除非用户已给出本轮明确授权）。
+9a. **客户端图注入（2026-08-29 实证，rubik-3x3-client clientProbe）**：客户端图（g.characterControlSkill 等）
+   的注入与 server 图同链路（单文件注入自动改写图 id），但有三点差异：
+   - **单文件 entry 配置编译会失败**：`entries=['./src/clientProbe.ts']` 触发
+     `gsts.fCharacterControlSkill is only available in client_character_control_skill_* ctxType (current: javascript)`
+     ——必须用**主配置**（entries 含全部图）`--noinject` 编译出 .gia，再单文件注入。
+   - 信号类客户端图编译期仍需要 inject 指向目标 gil（读信号注册表），主配置 inject 已含 mapId 即可。
+   - 客户端图**不经 mounts attach**（技能配置绑定/事件轨道是执行通道）；注入后回读哨兵 =
+     图名变 `_GSTS_<gia基名>` + nodeCount 变化；图内节点名是服务端撞号产物，须按 genericId 重映射核对。
+   - 客户端图 ID 段自动分配（起始 1082130433）见 `assets:node-graphs create --type`。
 10. **多分支共存**：`./verify` 下多个分支的 DSL graph id 必须互不相同（merge 按图 id 合并，
     同 id 只出 1 个 GIA）；单文件注入会改写为目标图 id，DSL id 可随意取（用 1073741826+ 递增即可）。
 

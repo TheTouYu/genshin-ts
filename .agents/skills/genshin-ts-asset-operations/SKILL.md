@@ -1,6 +1,6 @@
 ---
 name: genshin-ts-asset-operations
-description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）和信号（assets:signals inspect/register/update/repair）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
+description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）和信号（assets:signals inspect/register/update/repair）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“技能配置/技能资产/创建技能”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
 compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets:custom-variables / assets:level-variables / assets:mounts / assets:node-graphs / assets:ui / assets:signals), a user-verifiable real map .gil or fixture.
 ---
 
@@ -46,6 +46,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 地图还没有目标图，注入找不到图 | `assets:node-graphs create`（空图占位） |
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
 | 信号注册/更新/修复/检查 | `assets:signals inspect\|register\|update\|repair` |
+| 技能配置创建/列出（36/6/28 模板×普通/瞬发+绑定） | `assets:skill-config create\|list`（详见 reference 速查；28 模板固定模型遗迹守卫 10005001、root20 联动；28+普通 仅 list） |
 
 命令细节与 dict 编码见 [references/asset-cli-reference.md](references/asset-cli-reference.md)。
 
@@ -165,6 +166,15 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   **已修复嵌套写回 bug**：setTabBarOptions 修改 configField 后漏 `slot.value = emit(slotFields)` → patch
   报成功但选项不变；排查手法 = 直接调 dist 函数 + exportEntities 回读（size 不变即函数 bug）。修复已过
   导出回读验证，**编辑器/游戏核验待做**（2026-08-27 rubik 测试台复测时观察）。
+
+### D2. 技能配置（2026-08-29 CLI 落地，证据见 docs/game-engine-knowledge/gil-structure-semantics.md「技能配置资产」）
+
+- `gsts assets:skill-config create --id <必填> --name <名> --template 普通技能|36|自定义技能|6|自定义造物|28 --skill-type 瞬发|普通 [--graph-id <图ID,...>] [--output <候选>|--write]`
+  - 模板×释放类型支持矩阵：36/6 全组合；28 仅瞬发（固定模型 10005001 遗迹守卫 + root20 1970→2955B 联动，多造物技能共用容器合法）
+  - 瞬发绑定 = body f5（轨道点 1073741825+7×顺序）；普通绑定 = 事件轨道打点（36=3001 单打点/6=1001..1007 三打点，限 1 图）
+  - 技能配置 ID 分配规则未闭合 → `--id` 必填；普通释放多图绑定/28+普通 绑定 fail closed
+- `gsts assets:skill-config list [--gil <map>] [--json]` + `npx tsx tools/list-gil-skill-configs.ts <map.gil>` 独立回读
+- 写回流程同通用安全写回（候选 → 回读 → 安全门 → --write → 备份 → 重载编辑器）
 
 ### D. 信号
 
