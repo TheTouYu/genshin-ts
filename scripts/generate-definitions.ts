@@ -482,6 +482,18 @@ function buildEvents() {
       }
     }
 
+    // 引擎运行时输出顺序修正（2026-08-30 帧铁证，Beyond_Debug_Log 2998）：
+    // whenTimerIsTriggered 的编辑器/vendor 定义顺序（…定时器序列序号, 循环次数）
+    // 与引擎运行时输出顺序相反——帧参数自报 index：OUT3 恒空、OUT4 按定时器各自
+    // 计数（d2lv:1,2,3 / d2skill:1,2,3）。连线按运行时顺序解释，timerSequenceId
+    // 必须排 index 4（dyn 动态 init 连 index 3 实测读空）。vendor 数据保持官方
+    // 顺序，此处仅对生成产物换序。
+    if (e.name === 'whenTimerIsTriggered' && paramLines.length >= 5) {
+      const p3 = paramLines[3]
+      paramLines[3] = paramLines[4]
+      paramLines[4] = p3
+    }
+
     lines.push(`${e.name}: [`)
     lines.push(...paramLines)
     lines.push('],')

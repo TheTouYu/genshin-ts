@@ -83999,24 +83999,24 @@
               },
               {
                 "io": "Output Parameter",
-                "name": "Number of Loops",
-                "data_type": "Integer",
-                "description": "",
-                "raw": {
-                  "Parameter Type": "Output Parameter",
-                  "Parameter Name": "Number of Loops",
-                  "Type": "Integer",
-                  "Description": ""
-                }
-              },
-              {
-                "io": "Output Parameter",
                 "name": "Timer Sequence ID",
                 "data_type": "Integer",
                 "description": "",
                 "raw": {
                   "Parameter Type": "Output Parameter",
                   "Parameter Name": "Timer Sequence ID",
+                  "Type": "Integer",
+                  "Description": ""
+                }
+              },
+              {
+                "io": "Output Parameter",
+                "name": "Number of Loops",
+                "data_type": "Integer",
+                "description": "",
+                "raw": {
+                  "Parameter Type": "Output Parameter",
+                  "Parameter Name": "Number of Loops",
                   "Type": "Integer",
                   "Description": ""
                 }
@@ -88179,24 +88179,24 @@
               },
               {
                 "io": "出参",
-                "name": "循环次数",
-                "data_type": "整数",
-                "description": "",
-                "raw": {
-                  "参数类型": "出参",
-                  "参数名": "循环次数",
-                  "类型": "整数",
-                  "说明": ""
-                }
-              },
-              {
-                "io": "出参",
                 "name": "定时器序列序号",
                 "data_type": "整数",
                 "description": "",
                 "raw": {
                   "参数类型": "出参",
                   "参数名": "定时器序列序号",
+                  "类型": "整数",
+                  "说明": ""
+                }
+              },
+              {
+                "io": "出参",
+                "name": "循环次数",
+                "data_type": "整数",
+                "description": "",
+                "raw": {
+                  "参数类型": "出参",
+                  "参数名": "循环次数",
                   "类型": "整数",
                   "说明": ""
                 }
