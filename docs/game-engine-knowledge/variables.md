@@ -209,12 +209,22 @@ VarBase{ f1=10002(ArrayBase), f2=1(alreadySetVal),
   // 零值元素 payload 为空消息（默认值省略）；元素无 alreadySetVal
 ```
 
+**非默认值元素**（v4 样本：用户把下标 49 改为 1234，v4 sha `48b79d7f…`）：该元素保留
+`alreadySetVal=1`（f2=1），payload 为显式值 `f102={1:1234}`；其余 49 个零值元素仍为空
+payload、无 f2。即：
+
+```text
+零值/默认值元素：{class, itemType, 空 payload}               （无 f2）
+非默认值元素：   {class, f2=1(alreadySetVal), itemType, 显式 payload}
+```
+
 关键规律：**列表长度 = f109 下的元素记录条数**；全 0 列表也必须逐元素写出（每个元素一条
 独立记录，即使值是默认 0、payload 为空）。这与运行时“全 0 int_list 短物化”陷阱直接相关：
 生产编码若把 0 值元素写成显式 `val=0` + `alreadySetVal=1` + `itemType.kind=0`（旧我方输出），
-与编辑器字节不一致；2026-08-29 起 `ir_to_gia_transform` 已归一化为编辑器形态（元素去
-alreadySetVal/kind、零值 payload 清空、GraphVariable 去 exposed/structId 默认值），
-修复后 .gia → 注入回读的 GraphVariable 记录与编辑器样本 **1668 hex 逐字节一致**。
+与编辑器字节不一致；2026-08-29 起 `ir_to_gia_transform` 已归一化为编辑器形态（零值元素去
+alreadySetVal/kind、零值 payload 清空、非默认值元素保留 alreadySetVal+显式 payload、
+GraphVariable 去 exposed/structId 默认值），修复后 .gia → 注入回读的 GraphVariable 记录与
+编辑器 v1（50×0）**1668 hex**、v4（末位 1234）**1678 hex** 均逐字节一致。
 回归：`tests/graph_variable_int_list_editor_wire_test.ts`。
 
 适用边界：仅 int_list（编辑器单个样本）；bool/float/str/vec3 列表、非零值元素、dict 图变量、

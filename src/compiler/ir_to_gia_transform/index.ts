@@ -177,10 +177,12 @@ function buildDictValue(variable: Variable): unknown[] {
 }
 
 /**
- * 图变量列表值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」= 50×0）：
- * 编辑器元素记录 = {class:IntBase(2), itemType:{1:1,100:{1:3}}, bInt:空}；我方生产编码多写
- * alreadySetVal=1、itemType.type_server.kind=0、bInt.val=0（显式 0）。三处都与编辑器字节不一致；
- * 值恒为 0/默认值的元素统一改成编辑器形态（空 payload），非零值保留显式 payload。
+ * 图变量列表值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」）：
+ * - 零值/默认值元素：编辑器形态 = {class, itemType, 空 payload}，**无 alreadySetVal**（v1 样本 50×0）；
+ * - 非默认值元素：编辑器形态 = {class, alreadySetVal=1, itemType, 显式 payload}（v4 样本
+ *   末位 1234 → 102:{1:1234}）——**保留 alreadySetVal 与显式 payload**；
+ * - itemType.type_server.kind=0 一律省略。
+ * 我方 vendor 编码对零值元素多写 alreadySetVal=1、kind=0、显式 val=0，需按上两形态归一化。
  * 只归一化列表（ArrayBase=10002），dict/标量/vec3 元素暂不扩展（未实样，fail closed）。
  */
 function normalizeGraphVarListEditorWire(val: unknown): void {
@@ -207,12 +209,18 @@ function normalizeGraphVarListEditorWire(val: unknown): void {
       bEnum?: { val?: number }
       bString?: { val?: string }
     }
-    delete ev.alreadySetVal
     stripKind(ev.itemType)
-    if (ev.bInt && ev.bInt.val === 0) ev.bInt = {}
-    else if (ev.bFloat && ev.bFloat.val === 0) ev.bFloat = {}
-    else if (ev.bEnum && ev.bEnum.val === 0) ev.bEnum = {}
-    else if (ev.bString && ev.bString.val === '') ev.bString = {}
+    const hasNonDefault =
+      (ev.bInt && ev.bInt.val !== 0) ||
+      (ev.bFloat && ev.bFloat.val !== 0) ||
+      (ev.bEnum && ev.bEnum.val !== 0) ||
+      (ev.bString && ev.bString.val !== '')
+    if (hasNonDefault) continue // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
+    delete ev.alreadySetVal
+    if (ev.bInt) ev.bInt = {}
+    else if (ev.bFloat) ev.bFloat = {}
+    else if (ev.bEnum) ev.bEnum = {}
+    else if (ev.bString) ev.bString = {}
   }
 }
 
