@@ -65,3 +65,24 @@
   **308 生效**——点 R 实体隐藏（u4b-hide-fire ×1）、点 L 重现（u4b-show-fire ×5）。
 - 结论：灯阵明暗用 308 显隐（亮=显示/暗=隐藏）；835 从 M4 同步保留清单移除（新资源
   删除方向正确）。证据 `~/genshin-ts-evidence/u4-color-change/` + `u4b-model-display/`。
+
+## verify-d2-lv + verify-d2-client + verify-d2-client-skill（2026-08-30，用户游戏核验）
+
+- 背景：D2 对象式局部变量 API（LocalVariable<T> .set/.value）server/client 双端游戏内行为核验
+  + 服务端调用客户端技能完整链路。
+- 地图：`1073741915.gil`；图 1828 `_GSTS_verify-d2-lv`（server d2-lv，attach 1077936129）、
+  1829 `_GSTS_verify-d2-skill`（server 施放/监听，attach 1077936129）、1082130434（20010 客户端图）、
+  1082130435（20002 角色技能客户端图，6 配置 1098907654 瞬发绑定）。
+- 链路：1829 定时器 → getAllCharacterEntitiesOfSpecifiedPlayer(player)[0]（角色实体，非玩家）
+  → addCharacterSkill(角色, 1098907654, CustomSkillSlot1, Destroy) → createCustomSkillInstance
+  → setCustomVariable(角色所属玩家, "技能实例ID", 实例) → castSpecifiedSkillInstance(角色,
+  getCustomVariable("技能实例ID").asType(int), false) → 20002 客户端图 start → D2 链 → 信号回传。
+- 用户游戏证据（2997 日志）：**客户端图记录 f8=2097154 ×32**；B 组 `set → 100 / len → 3`；
+  客户端帧 Get('score')=100（Set 后读回）、拼装列表 [1,2,3] → getListLength=3、信号 send×2。
+- 结论（D2 客户端 API 游戏内闭环）：localVariable 显式名 + set 后 value 读回 = 新值 ✓；
+  列表字面量值保留 ✓；服务器→客户端技能链路（6 模板 20002 图 + 玩家变量中转实例 id）✓。
+- 教训（链路上多轮归因）：① cast 需**技能实例 id**（非配置 id）；② 施放/创建需**角色实体**
+  （Get All Character Entities of Specified Player[0]，非玩家实体）；③ **6 模板必须绑 20002 图、
+  36 绑 20010**（类型约束）；④ 36 角色操控技能需**操控状态**（未受控 Cast 静默无效）；
+  ⑤ 技能装配 = 编辑器战斗预设（root16 变体记录，魔方 9 条 vs 我们 3 条——装配 wire 未闭合，
+  CLI 待补）；⑥ getCustomVariable 仅 2 参（asType 显式定型）。
