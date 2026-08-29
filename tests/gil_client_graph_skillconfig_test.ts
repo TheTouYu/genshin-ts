@@ -15,7 +15,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
 import { buildEmptyNodeGraph } from '../src/cli/assets_node_graphs.js'
-import { buildSkillConfig } from '../src/cli/assets_skill_config.js'
+import { buildSkillConfig, listSkillConfigs } from '../src/cli/assets_skill_config.js'
 import { parseWireMessage } from '../src/cli/static_assembly/wire.js'
 
 const R = '/home/h/genshin-ts-evidence/node-graph-logic/2026-08-29-client-graph-skillconfig/raw'
@@ -30,6 +30,26 @@ function rootBytes(payload: Uint8Array, n: number): Uint8Array {
   const field = root.find((x) => x.number === n && x.wire === 2)
   assert.ok(field, `root ${n} missing`)
   return field.value as Uint8Array
+}
+
+function root10Record(payload: Uint8Array, id: number): Uint8Array {
+  const root = parseWireMessage(payload)
+  assert.ok(root)
+  const field = root.find((x) => x.number === 10 && x.wire === 2)
+  assert.ok(field)
+  const msg = parseWireMessage(field.value as Uint8Array)
+  assert.ok(msg)
+  for (const rec of msg) {
+    if (rec.wire !== 2 || rec.number !== 1) continue
+    const inner = parseWireMessage(rec.value as Uint8Array)
+    const nodeGraph = inner?.find((f) => f.number === 1 && f.wire === 2)
+    const ng = nodeGraph ? parseWireMessage(nodeGraph.value as Uint8Array) : undefined
+    const idMsg = ng?.find((f) => f.number === 1 && f.wire === 2)
+    const idFields = idMsg ? parseWireMessage(idMsg.value as Uint8Array) : undefined
+    const nodeId = idFields?.find((f) => f.number === 5 && f.wire === 0)?.value
+    if (nodeId === id) return rec.value as Uint8Array
+  }
+  throw new Error(`graph record ${id} not found in root10`)
 }
 
 function recordBytes(payload: Uint8Array, rootN: number, id: number): Uint8Array {
@@ -172,7 +192,83 @@ function assertRootEquals(
   console.log('PASS: skill-config 6 模板 普通创建/瞬发创建/瞬发绑定/普通绑定（记录逐字节一致）')
 }
 
-// 5. fail closed：20003/20004/20005/20007 建图 + 28 模板创建 + 普通释放多绑
+// 5. 更多类型覆盖：20008/20006/20001/20009 单图记录与 folder 记录 == v5 快照（v4 基线）
+{
+  const base = load(`${R}/after-bind.gil`)
+  const target = load(`${R}/after-more-graphs.gil`)
+  const cases = [
+    { type: 20008, gid: 1082130435, name: '新建造物技能节点图' },
+    { type: 20006, gid: 1082130436, name: '新建过滤器节点图' },
+    { type: 20001, gid: 1082130437, name: '新建过滤器节点图_1' },
+    { type: 20009, gid: 1082130438, name: '新建造物状态节点图' }
+  ]
+  for (const c of cases) {
+    const candidate = buildEmptyNodeGraph(base, c.gid, c.name, c.type)
+    const candRec = root10Record(candidate, c.gid)
+    const v5Rec = root10Record(target, c.gid)
+    assert.ok(
+      Buffer.from(candRec).equals(Buffer.from(v5Rec)),
+      `create --type ${c.type}: 图记录与 v5 快照不一致`
+    )
+  }
+  console.log('PASS: create --type 20008/20006/20001/20009 图记录逐字节一致（v4→v5）')
+}
+
+// 6. 多图绑定：双绑逐字节（v2→v7）、三绑语义（轨道点 1825/1832/1839；wire 顺序编辑器会重排，未闭合）
+{
+  const r2 = buildSkillConfig(load(`${R}/after-20002.gil`), {
+    id: 1228931073,
+    name: '操控技能',
+    template: 'normal',
+    skillType: 'instant',
+    graphIds: [1082130433, 1082130440]
+  })
+  const t7 = load(`${R}/after-multibind.gil`)
+  assert.ok(
+    Buffer.from(recordBytes(r2, 15, 1228931073)).equals(Buffer.from(recordBytes(t7, 15, 1228931073))),
+    '双绑: root15 记录不一致'
+  )
+  const r3 = buildSkillConfig(load(`${R}/after-20002.gil`), {
+    id: 1228931073,
+    name: '操控技能',
+    template: 'normal',
+    skillType: 'instant',
+    graphIds: [1082130433, 1082130440, 1082130433]
+  })
+  const v = listSkillConfigs(r3).find((c) => c.id === 1228931073)
+  const tps = (v?.bindings ?? []).map((b) => `${b.graphId}@${b.trackPoint}`).sort()
+  assert.deepEqual(tps, ['1082130433@1073741825', '1082130433@1073741839', '1082130440@1073741832'])
+  console.log('PASS: 双绑逐字节（v7）+ 三绑语义（轨道点序列）')
+}
+
+// 7. 名称长度边界 + 重复 ID 拒绝
+{
+  for (const name of ['x', '测试技能', '这是一个非常长的技能配置名称用于验证UTF8长度变化的边界情况测试测试测试测试测试测试']) {
+    const r = buildSkillConfig(load(`${R}/after-20002.gil`), {
+      id: 1228931074,
+      name,
+      template: 'normal',
+      skillType: 'normal',
+      graphIds: []
+    })
+    const v = listSkillConfigs(r).find((c) => c.id === 1228931074)
+    assert.equal(v?.name, name, `名称回读不一致: ${name}`)
+  }
+  assert.throws(
+    () =>
+      buildSkillConfig(load(`${R}/after-skillconfig.gil`), {
+        id: 1228931073,
+        name: 'x',
+        template: 'normal',
+        skillType: 'normal',
+        graphIds: []
+      }),
+    /already exists/
+  )
+  console.log('PASS: 名称长度边界（1/4/43 字）+ 重复 ID 拒绝')
+}
+
+// 8. fail closed：20003/20004/20005/20007 建图 + 28 模板创建 + 普通释放多绑
 {
   assert.throws(() => buildEmptyNodeGraph(load(`${R}/before.gil`), 1082130441, 'x', 20003), /未采样/)
   assert.throws(() => buildEmptyNodeGraph(load(`${R}/before.gil`), 1082130441, 'x', 20007), /未采样/)

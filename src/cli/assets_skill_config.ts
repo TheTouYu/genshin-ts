@@ -377,6 +377,9 @@ function appendSkillConfigFolder(
 }
 
 export function buildSkillConfig(payload: Uint8Array, opts: CreateOptions): Uint8Array {
+  if (listSkillConfigs(payload).some((c) => c.id === opts.id)) {
+    throw new Error(`[error] skill config ${opts.id} already exists in root 15`)
+  }
   if (opts.template === 'creation') {
     throw new Error(
       '[error] 自定义造物模板(f2=28) 创建需编辑器联动 root20 造物模型容器（未复刻），fail closed'

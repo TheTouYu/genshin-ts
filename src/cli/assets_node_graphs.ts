@@ -533,8 +533,13 @@ function statusNode(): WireField[] {
 
 // 过滤器类（20001 布尔 / 20006 整数）：过滤节点 + 两段参数块（值因类型而异，v5 record[13]/[14]）
 function filterNode(filterGeneric: 200000 | 200122): WireField[] {
-  const typeValue1 = filterGeneric === 200000 ? 5 : 3 // 参数块1: f4.4 与 f4.3.f4.f101.f2
-  const typeValue2 = filterGeneric === 200000 ? 1000010 : 10000011 // 参数块2: f4.3.f106.f1
+  // 类型相关常量（v5 record[13]=20006 / record[14]=20001 逐字节确认）：
+  //   参数块1: f3.f1（2=int / 6=bool）、f4.f4 与 f4.3.f4.f101.f2（3=int / 5=bool）、空消息 field（102=int / 106=bool）
+  //   参数块2: f3.f106.f1（10000011=int / 1000010=bool）
+  const isBool = filterGeneric === 200000
+  const typeValue1 = isBool ? 5 : 3
+  const typeValue2 = isBool ? 1000010 : 10000011
+  const emptyField = isBool ? 106 : 102
   const paramBlock1 = emitWireMessage([
     { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 3 }]) },
     { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 3 }]) },
@@ -542,7 +547,7 @@ function filterNode(filterGeneric: 200000 | 200122): WireField[] {
       number: 3,
       wire: 2,
       value: emitWireMessage([
-        { number: 1, wire: 0, value: 2 },
+        { number: 1, wire: 0, value: isBool ? 6 : 2 },
         {
           number: 4,
           wire: 2,
@@ -550,7 +555,9 @@ function filterNode(filterGeneric: 200000 | 200122): WireField[] {
             { number: 1, wire: 0, value: 2 },
             { number: 101, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: typeValue1 }]) }
           ])
-        }
+        },
+        // 空消息（f102 int / f106 bool；v5 逐字节确认，dump 工具会吞掉空消息导致早期模板漏项）
+        { number: emptyField, wire: 2, value: new Uint8Array(0) }
       ])
     },
     { number: 4, wire: 0, value: typeValue1 }
@@ -587,7 +594,8 @@ function filterNode(filterGeneric: 200000 | 200122): WireField[] {
   return [
     { number: 1, wire: 0, value: 1 },
     { number: 2, wire: 2, value: emitWireMessage(sysId(20001, filterGeneric)) },
-    { number: 3, wire: 2, value: emitWireMessage(sysId(20001, 2001)) },
+    // 过滤器 concreteId 无 f5（v5 record[13]/[14] 逐字节确认：仅 {1:10001, 2:20001, 3:22000}）
+    { number: 3, wire: 2, value: emitWireMessage(sysId(20001, 0).filter((x) => x.number !== 5)) },
     { number: 4, wire: 2, value: paramBlock1 },
     { number: 4, wire: 2, value: paramBlock2 }
   ]
