@@ -71,13 +71,62 @@ CLI
   产出字段 + CLI 消费，不碰字节形态。A 作为 B 未获认可时的回退。
 - **验收**：同一实体用 config 声明与用 --from-json 声明产出**逐字节相同** entry。
 
-### D2 局部变量 API 定型（server/client 双面）
+### D2 局部变量 API 定型（server/client 双面，2026-08-29 矩阵实证后修订）
 
-- 保留现有类型化 API：`initLocalVariable(type, init?)`（返回 `{localVariable, value}`）、
-  `setLocalVariable(lv|name, value)`、server 身份句柄 / client 名字两种语义不变。
-- 新增（低优先）：client `initLocalVariable` 可选显式名字参数（调试可读性）；默认仍生成
-  `__gsts_local_<type>_<n>`。
-- 不做：统一"一个 API 管三类变量"——作用域/生命周期/注入链不同，强统一牺牲类型安全。
+#### 设计目标
+
+- **语法统一**：server/client 用同一套 DSL 形状（用户心智一致），编译层按图类型分流到各自的
+  wire（server = E<1016> 身份连线；client = 名字 pin + ClientExec）——wire 差异对用户透明。
+- **语义对齐编辑器节点**（本会话 v10–v16b + 矩阵批次 7–9 实证）：
+  - Get(18/200082) = **创建**：类型 + 初始值锚（常量直接放 Get InParam[0]；非默认值保留
+    alreadySetVal——批次 7 实样）；OutParam[1] 恒为**类型默认锚**（与初始值无关，批次 7 实样）。
+  - Set(19/200081) = **更新**：引用同一身份（server E<1016> 隐式 OutParam[0] / client 名字），
+    非默认值不写 alreadySetVal（v10 规则）。
+
+#### 语法形状（草案，向后兼容现状）
+
+```ts
+// 创建 + 初始值（常量字面量 → M2 折叠后直接进 Get；动态表达式 → get(empty)+set(expr)）
+const lv = f.localVariable('int', 42n)            // 返回 LocalVariable<'int'> 句柄
+const s  = f.localVariable('str')                 // 只声明（默认锚）
+const d  = f.localVariable('dict', { k: 'str', v: 'int' })  // dict：类型声明，空 map（元素 wire 未实样）
+
+// 更新：同一身份引用（server 编译 E<1016> 连线；client 编译同名 Set + ClientExec）
+lv.set(99n)
+
+// 读值：数据流锚（= Get 的读值输出；静态数据流下"当前值"即该锚）
+const x = lv.value                                // bigint（类型安全随 T 变化）
+
+// client 可选显式名字（调试可读性；server 图忽略/告警——server 局部变量 wire 无名）
+const c = f.localVariable('int', 0n, { name: 'score' })
+```
+
+- 保留 `initLocalVariable(type, init?)` / `setLocalVariable(lv, value)` 为兼容别名（现有
+  测试与存量代码不破坏）；`localVariable` 对象式 API 为推荐形态。
+- `LocalVariable<T>` 对象：`.set(value)`（编译 Set 节点）、`.value`（Get 读值锚）、
+  server 内部携带 E<1016> 身份、client 内部携带名字——**用户不需要知道身份机制**。
+
+#### 编译映射表
+
+| DSL | server wire | client wire |
+| --- | --- | --- |
+| `f.localVariable('int', 42)`（常量） | Get(18) cid 20：InParam[0]=ConcreteBase{ioc:1, bInt{42}}；OutParam[1]=默认锚 | Get(200082/1036)：名字 pin + 值 pin（clientVarType=3） |
+| `f.localVariable('int')` | Get(18)：InParam[0]=默认锚 | 同上（默认锚） |
+| `lv.set(99)` | Set(19) cid 21：InParam[0] E<1016> ← Get 隐式 OutParam[0]；InParam[1]=99 | Set(200081/2000)：同名 + 值 pin + ClientExec、无流 pin |
+| 动态 init | get(empty) + set(expr)（防重复求值，现状语义） | 同左 |
+| `lv.value` | Get OutParam[1] 数据引用 | Get 值 pin 数据引用 |
+
+#### 类型覆盖与 fail-closed
+
+- 21 类型重载（7 标量 + 4 ID + 10 列表）已具备；**新增 dict 重载**（`{k,v}` 类型声明，
+  client 容器元数据语义已实证——批次 9 int→entity/entity→entity；非空 map 元素 wire 未实样，
+  fail closed 只支持空 dict）。
+- server/client 语法一致；client 图传 `{name}` 生效，server 图传名忽略并告警。
+
+#### 与 D3（常量折叠）的关系
+
+- 语法不变，折叠是编译层优化：常量 init 直接进 Get（编辑器形态，批次 7 Get bool true 实样 =
+  折叠后的目标形态）；动态 init 保持 get+set。M2 落地后本语法自动获得折叠收益。
 
 ### D3 局部变量常量 init 折叠（F10 落地）
 
@@ -171,6 +220,11 @@ CLI
 ## 九、风险与开放项
 
 - 规律表与测试双份维护漂移 → C4 要求共用或自动比对；
-- client dict 值 pin（MapBase 形式）只经项目表交叉核对，无编辑器样本 → 标 inferred；
-- O-2026-08-29-03（indexOfConcrete=0 显式）与 O-29-04（常量 init）随 M2 窗口处理；
+- ✅ **client dict 值 pin 已转 verified**（2026-08-29 游戏核验矩阵批次 9：entity→entity +
+  int→entity 双实样，容器元数据语义证实——原"标 inferred"风险项关闭）；
+- O-2026-08-29-03（indexOfConcrete=0 显式）随 M2 窗口处理（矩阵已补 i1/i2 index 省略，
+  337 等其它节点族仍待样本）；
+- O-2026-08-29-05（int 拼装首元素 alreadySetVal presence，新建 vs 扩展路径）待专项样本；
+- dict entry f6/Map25 双形态（新建 vs 编辑器保存后升级，矩阵批次 10 实证）——CLI 保持写
+  新建形态，编辑器归一化自行升级，触发条件待确认；
 - server 局部变量 ioc 9..20 推断段：样本到位后一键转 verified。
