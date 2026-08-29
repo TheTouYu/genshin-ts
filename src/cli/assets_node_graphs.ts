@@ -361,9 +361,13 @@ function parseArgs(argv: readonly string[]): Args {
   return { sub, gilPath, mapId, name, graphType, graphId, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck, defs, allUnused, includeSystem, force, dryRun }
 }
 
-// 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
+// 自动分配下一个节点图 ID：扫描地图已有**服务端段**图 ID（排除客户端图段 1082130433+），
+// 取 max+1；服务端段一个都没有时用固定起始值。
 // （真实编辑器证据：10+ 张地图最小图 ID 均为 1073741825；1840 的 1825→1836→1856→1870
-//  与 1845 删 1825 后新建从 1826 起，均为 max+1 不复用空洞）
+//  与 1845 删 1825 后新建从 1826 起，均为 max+1 不复用空洞。
+//  2026-08-29 修复：混合地图（含客户端图）曾把服务端新图分配到客户端段 1082130434——
+//  编辑器保存时不认该段服务端图，重编号重写节点导致非默认 pin 值丢失（变量地图 1073741915
+//  实测：Set Local Variable 值 100 被抹为 0）。服务端段必须过滤客户端图 ID。）
 export function nextGraphId(payload: Uint8Array): number {
   const root = readRoot(payload)
   const top10 = root.find((f) => f.number === 10 && f.wire === 2)
@@ -372,7 +376,9 @@ export function nextGraphId(payload: Uint8Array): number {
   const ids = root10
     .filter((f) => f.number === 1 && f.wire === 2)
     .map((f) => graphIdOf(f.value as Uint8Array))
-    .filter((id): id is number => typeof id === 'number')
+    .filter(
+      (id): id is number => typeof id === 'number' && id < CLIENT_GRAPH_ID_START
+    )
   return ids.length ? Math.max(...ids) + 1 : DEFAULT_GRAPH_ID
 }
 
