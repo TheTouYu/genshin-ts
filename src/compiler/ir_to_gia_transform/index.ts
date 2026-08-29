@@ -551,6 +551,51 @@ function validateSetNodeGraphVariableTypes(ir: IRDocument): void {
   }
 }
 
+/**
+ * 局部变量 Set/Get 类型一致性校验（O-29-07 修复，2026-08-29）：
+ * server 局部变量身份走 E<1016> 连线（Set InParam[0] conn → Get），Set 值类型必须与
+ * Get 声明类型一致（variables.md "Get/Set 类型必须一致"实证）。运行时对原始数组的
+ * matchTypes 会把三元 number 数组误判为 vec3 字面量 → set_local_variable 值 arg 类型
+ * 错位且无任何报错（静默丢值/错值）——这里编译期硬拦截。
+ * client 的 Set 以名字识别（args[0] 为 str 非 conn），自动跳过；类型由 Stage 1 检查保证。
+ */
+function validateLocalVariableTypeConsistency(ir: IRDocument): void {
+  const nodes = ir.nodes ?? []
+  const byId = new Map(nodes.map((n) => [n.id, n]))
+  const argTypeOf = (arg: Argument | undefined): string | undefined => {
+    if (!arg) return undefined
+    if (arg.type === 'conn') return arg.value.type
+    return arg.type
+  }
+  const scan = (list: readonly IRNode[] | undefined, scope: string): void => {
+    for (const n of list ?? []) {
+      if (n.type !== 'set_local_variable') continue
+      const args = n.args ?? []
+      const idArg = args[0]
+      if (!idArg || idArg.type !== 'conn') continue // client 名字 pin / 异常 IR：跳过
+      const getNode = byId.get(idArg.value.node_id)
+      if (!getNode || getNode.type !== 'get_local_variable') continue
+      const getType = argTypeOf(getNode.args?.[0])
+      if (!getType || getType === 'generic') continue
+      const setType = argTypeOf(args[1])
+      if (!setType || setType === 'generic') continue
+      if (setType !== getType) {
+        throw new Error(
+          `[error] set_local_variable${scope} 值类型 "${setType}" 与局部变量类型 ` +
+            `"${getType}" 不一致（node id=${n.id} → get id=${getNode.id}）；` +
+            `列表值没有字面量形态，请用 f.assemblyList([...], '${getType.endsWith('_list') ? getType.slice(0, -5) : getType}') 拼装`
+        )
+      }
+    }
+  }
+  scan(nodes, '')
+  const compositeDefs = (ir as { compositeDefs?: Array<{ name?: string; id?: number; implNodes?: readonly IRNode[] }> })
+    .compositeDefs
+  for (const def of compositeDefs ?? []) {
+    scan(def.implNodes, `（复合 ${def.name ?? def.id ?? '?'}）`)
+  }
+}
+
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   if (ir.graph.type === 'client') {
     // TS cannot narrow the IRDocument union through the nested graph.type discriminant.
@@ -572,6 +617,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const expanded = expandListLiterals(ir)
   ir = expanded.ir
+  validateLocalVariableTypeConsistency(ir)
   const timerDispatchAggregate =
     opts.optimize?.timerDispatchAggregate ?? process.env.GSTS_OPT_TIMER_DISPATCH === '1'
   ir = optimizeTimerDispatchAggregate(ir, timerDispatchAggregate)

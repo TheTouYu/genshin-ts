@@ -794,20 +794,26 @@
 - 证据：日志 2026-08-28_23-51-57_2980（5 次操作 ops 时间线）+ 地图 SHA f90ac5438c…。
 - 何时做：下次读服务端图日志/读图窗口补 ①②③；读结算图窗口补 ④；pkc 录入窗口补 ⑤。
 
-### O-2026-08-29-07 server 局部变量列表字面量静默丢值（DSL 缺口）
+### O-2026-08-29-07 server 局部变量列表字面量静默丢值（DSL 缺口）【已闭合 2026-08-29 修复层】
 
-- 证据（2026-08-29 复盘实验）：`f.localVariable('int_list', [1,2,3])`（及 set_local_variable 的
-  int_list 字面量）编译成功但**值被静默丢弃**——Get/Set 值 pin 只生成空类型锚
-  （ConcreteBase{ioc=7, ArrayBase 空}，54 hex）；非零元素 [1,2,3] 与 100 元素全零同样丢失。
-  `tests/assembly_dictionary_cases.ts:17` 注释明说 "List values have no literal form, so list
-  cases are always wired"——server 列表值必须来自数据流（拼装列表节点 169/170 创建）。
-  **client 侧行为不同**：client_list_literal_value 完整写入 bArray.entries（100 条元素记录，
-  {class IntBase, alreadySetVal, itemType{client int}, bInt{val}}）——server/client 不对称。
-- 影响：用户写列表字面量得到空列表且无报错（fail closed 但静默）——必须消除静默。
-- 候选修复（已入设计 D2）：① Stage 1/2 把 server 列表字面量编译为拼装列表节点（自动展开
-  count+元素 pin）；② 或编译期显式报错。另：client 列表字面量元素形态（alreadySetVal+显式
-  bInt{0}）无编辑器样本，不得声称 verified。
-- 何时做：D2 局部变量 DSL 实现任务（修复层第一项）。
+- 证据修正（2026-08-29 本任务第 0 轮三探针复核）：`f.initLocalVariable('int_list', [1,2,3])`
+  经正式 DSL 管线编译时值**不丢**——Stage 1 `tryTransformWrappedArrayLiteral` 把数组字面量包装为
+  `gsts.f.assemblyList([...])`；Stage 3 `expandListLiterals`（preprocess.ts）对手写 IR 的
+  `*_list` 字面量 arg 也自动展开为拼装列表节点(169)，元素/count pin 全部保留（`.local/vars-explore/`
+  lv-list-literal / lit-list-ir 探针实证）。**真正的静默面是运行时收到原始数组（绕过 Stage 1）**：
+  bigint 数组 → matchTypes 报 "Generic parameter not matched"（非静默）；**三元 number 数组
+  [1,2,3] 被 matchTypes 误判为 vec3 字面量 → set_local_variable 值 arg 类型错位且无任何报错**
+  （静默错值）。原记录"只生成空类型锚 54 hex"与当前源码行为不符（疑为当时陈旧 dist 实验），已修正。
+- 修复：`ir_to_gia_transform/index.ts` 新增 `validateLocalVariableTypeConsistency`（Stage 3
+  编译期硬拦截）：server `set_local_variable` 的 InParam[1] 值类型必须与 E<1016> 身份连线指向的
+  Get 声明类型一致（variables.md "Get/Set 类型必须一致"实证）；不一致抛错并提示用
+  `f.assemblyList([...])` 拼装。client 以名字识别自动跳过（类型由 Stage 1 检查保证）。
+- 回归：`tests/local_variable_list_literal_test.ts`（A：DSL 路径数组字面量 → assemblyList 包装；
+  B：*_list 字面量 → 拼装节点元素/连线保留；C：vec3/int 错位值 → 编译期报错）+ fixture
+  `tests/local_variable_list_literal_fixture.ts`。三个 wire 回归 + 17 样本 verify 全 0 DIFF。
+- 剩余：`f.concatenateList(c, d)` 类运行时直调原始数组仍报 "Generic parameter not matched"
+  （非静默，报错信息泛化）——可后续优化提示；不影响本闭合。client 列表字面量元素形态
+  （alreadySetVal+显式 bInt{0}）无编辑器样本，不得声称 verified（维持原标注）。
 
 ### O-2026-08-29-08 技能配置绑定未闭合规则（CLI 边界）
 
