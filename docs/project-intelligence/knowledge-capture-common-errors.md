@@ -139,6 +139,30 @@ retire/refresh/add 任何操作后，plan digest 变化，直接 finalize 报 `P
 （bnd_xxx.json / .approval.json / .applied.json）**与 registry/authority-refs/proposals 及本次
 knowledge 主题文件；`proposals/*.jsonl` 是共享追加文件，先 `git diff` 确认新增行都属于本次计划再提交。
 
+
+## 14. 多 plan 连续维护三坑（2026-08-29 二轮复盘元复盘实证）
+
+### 14a. 同 topic 多 claim 批量 capture：topic 元数据只在创建时有效
+
+同 topic 的第 2 条起再传 --topic-title/--topic-summary/--topic-keyword 报
+PLAN_TOPIC_INVALID「topic metadata is only valid when creating a new topic」。
+批量脚本按 topic 分组：每 topic 首条 claim 带全量元数据，后续只传 --topic-id + --topic-path。
+
+### 14b. bundle apply 后必须先提交 PKC 落盘文件，再开新 plan
+
+apply 只写工作树不写 git。未提交时开新 plan：full preflight 把新 ref 判 missing（committed 基线不可见），
+update/refresh-authority-ref 报 PLAN_AUTHORITY_REF_MISSING（not found），与 ref 是否存在于磁盘无关；
+提交后旧 plan 又可能 rebase 冲突（authority-refs.json 跨基线变化，PLAN_REBASE_CONFLICT），
+只能 abandon 重 init。正确时序：bundle apply → validate/rebuild → **提交落盘** → 再开下一个 plan。
+
+### 14c. post-apply 评估门失败 ≠ 事务失败；检索竞争用三级杠杆
+
+bundle-apply 报 PLAN_POST_APPLY_EVALUATION_FAILED（exit 1）时，事务通常**已落盘**——
+先 bundle-status / validate / tree 定性，再处理评估门。检索竞争类失败（新知识把评估用例期望 topic
+挤出 top-N）三级杠杆按序：①topic 元数据（关键词去竞争，官方杠杆）②claim 标题措辞（clarify 声明）
+③评估夹具 expected_topic_ids 更新（tracked config，用户审阅精确 diff）。前两级可能都不够——
+若新 claim 语义上就是该 query 的合法答案（语义重叠），直接走第 3 级；禁止为迁就检索删改 claim 正文语义。
+
 ## 复盘结论
 
 最常见的可避免错误是入口路径手写错误。最重要的安全错误是绕过 stale Authority、混淆证据等级或未确认精确 Bundle hash。前者靠固定命令模板解决，后者必须保留 PKC 的 staged validation 和人工审批门。
