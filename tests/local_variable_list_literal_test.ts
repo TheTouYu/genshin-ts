@@ -24,6 +24,7 @@ import { join } from 'node:path'
 import { writeGiaFromIrJsonFile } from '../src/compiler/ir_to_gia_pipeline.js'
 import { compileTsToGs } from '../src/compiler/ts_to_gs_pipeline.js'
 import { loadGiaProto } from '../src/injector/proto.js'
+import { buildServerGraphRegistriesIRDocuments, g } from '../src/runtime/core.js'
 
 const repoRoot = path.resolve(new URL('..', import.meta.url).pathname)
 
@@ -174,4 +175,65 @@ try {
   )
 } finally {
   rmSync(tmp, { recursive: true, force: true })
+}
+
+// ===== D. M2 常量折叠：常量 init 直写 Get（无 Set），动态 init 保持 get+set =====
+// 编辑器实样：v10 默认锚（EDITOR_VALUE_FALSE）+ 批次 7 Get bool true（内层 alreadySetVal +
+// OutParam[1] 默认锚）——折叠后 Get 与编辑器实样逐字节一致（D2 验收第 1/2 条）。
+const EDITOR_VALUE_FALSE =
+  '08904e1001f20610120e080622070801a206020804d20600'
+const FOLD_GET_TRUE_PREFIX = '08904e1001f20614121208061001' // ConcreteBase{ioc 省略? no: 无 ioc + 内层 class6 + alreadySetVal}
+
+g.server({ id: 1073741825, name: 'm2-fold' }).on('whenCustomVariableChanges', (evt, f) => {
+  const b = f.initLocalVariable('bool', true)
+  const dyn = f.initLocalVariable('int', f.getNodeGraphVariable('someInt').asType('int'))
+  // 消费（回写）防止 unused 移除
+  f.setLocalVariable(b.localVariable, b.value)
+  f.setLocalVariable(dyn.localVariable, dyn.value)
+})
+
+const foldDocs = buildServerGraphRegistriesIRDocuments() as any[]
+{
+  const gets = foldDocs[0].nodes.filter((n: any) => n.type === 'get_local_variable')
+  const sets = foldDocs[0].nodes.filter((n: any) => n.type === 'set_local_variable')
+  const foldGet = gets.find((n: any) => n.args?.[0]?.type === 'bool')
+  const dynGet = gets.find((n: any) => n.args?.[0]?.type === 'int')
+  assert.ok(foldGet, 'folded bool Get must exist')
+  assert.equal(foldGet.args[0].value, true, 'bool constant init folded into Get InParam[0]')
+  assert.deepEqual(dynGet.args[0], { type: 'int', value: 0 }, 'dynamic init keeps get(empty)')
+  // Set 计数：动态 init 的 set(expr) + 两个消费回写 = 3；常量 init 不得产生第 4 个 init Set
+  const setTargets = sets.map((s: any) => s.args?.[0]?.value?.node_id)
+  assert.equal(sets.length, 3, '3 Sets = dynamic init set + two consumer write-backs')
+  assert.equal(
+    setTargets.filter((id: number) => id === foldGet.id).length,
+    1,
+    'folded Get referenced by exactly one Set (consumer) — no constant init Set'
+  )
+
+  const tmpD = mkdtempSync(join(tmpdir(), 'lv-lit-fold-'))
+  try {
+    writeFileSync(join(tmpD, 'case.json'), JSON.stringify(foldDocs))
+    const giaPath = join(tmpD, 'case.gia')
+    writeGiaFromIrJsonFile(join(tmpD, 'case.json'), giaPath, {}, () => {})
+    const { rootMessage } = loadGiaProto()
+    const root = rootMessage.decode(new Uint8Array(readFileSync(giaPath)).slice(20, -4))
+    const nodes = root.graph?.graph?.inner?.graph?.nodes ?? []
+    const getN = nodes.find((n: any) => n.genericId?.nodeId === 18 && n.concreteId?.nodeId === 18)
+    assert.ok(getN, 'Get bool node (cid 18) must exist')
+    const hex = (v: unknown) =>
+      v ? Buffer.from((v as any).$type.encode(v).finish()).toString('hex') : ''
+    const inPin = getN.pins.find((p: any) => p.i1?.kind === 3 && p.i1?.index === 0)
+    const outPin = getN.pins.find((p: any) => p.i1?.kind === 4 && p.i1?.index === 1)
+    assert.ok(inPin?.value, 'Get InParam[0] must have value')
+    const inHex = hex(inPin.value)
+    // 批次 7 实样：非默认值内层保留 alreadySetVal（f2=1 在 bConcreteValue.value 内）
+    assert.ok(inHex.startsWith(FOLD_GET_TRUE_PREFIX), `Get true prefix must match batch-7 shape, got ${inHex}`)
+    assert.ok(
+      !getN.pins.some((p: any) => p.i1?.kind === 4 && p.i1?.index === 0),
+      'Get OutParam[0] (E<1016>) not persisted'
+    )
+    assert.equal(hex(outPin.value), EDITOR_VALUE_FALSE, 'Get OutParam[1] must be type default anchor')
+  } finally {
+    rmSync(tmpD, { recursive: true, force: true })
+  }
 }

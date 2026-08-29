@@ -2347,109 +2347,94 @@ export class ServerExecutionFlowFunctions {
       | 'str_list'
       | 'vec3_list'
   >(type: T, init?: RuntimeParameterValueTypeMap[T]) {
+    // M2 常量折叠（2026-08-29，O-29-04/F10 落地）：init 为**字面量**（编译产物里的 value 实例，
+    // metadata.kind === 'literal'）时直接作为 Get Local Variable 的初始值进 InParam[0]
+    // （编辑器形态，v10 样本：Get bool true 自带默认值；省 1 个 Set 节点）；动态表达式
+    // （pin ref / 复合输出）保持 get(empty)+set(init)（防重复求值，原注释语义不变）。
+    const foldOrSet = <V>(
+      init: unknown,
+      typeName: ValueType,
+      makeEmpty: () => { localVariable: localVariable; value: V }
+    ): { localVariable: localVariable; value: V } => {
+      if (init !== undefined) {
+        const parsed = parseValue(init, typeName as never)
+        if (parsed && isLiteralValue(parsed)) {
+          // @ts-ignore allow：getLocalVariable 重载按具体 value 子类解析
+          return this.getLocalVariable(parsed as never) as unknown as {
+            localVariable: localVariable
+            value: V
+          }
+        }
+      }
+      const v = makeEmpty()
+      if (init !== undefined) this.setLocalVariable(v.localVariable, init as never)
+      return v
+    }
     switch (type) {
-      case 'bool': {
-        const v = this.getLocalVariable(false)
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'int': {
-        const v = this.getLocalVariable(0n)
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'float': {
-        const v = this.getLocalVariable(0)
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'str': {
-        const v = this.getLocalVariable('')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'vec3': {
-        const v = this.getLocalVariable([0, 0, 0])
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'guid': {
-        const v = this.getLocalVariable(new guid(0))
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'entity': {
-        const e = new entity()
-        e.markLiteral()
-        const v = this.getLocalVariable(e)
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'prefab_id': {
-        const v = this.getLocalVariable(new prefabId(0))
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'config_id': {
-        const v = this.getLocalVariable(new configId(0))
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'faction': {
-        const v = this.getLocalVariable(new faction(0))
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'bool_list': {
-        const v = this.emptyLocalVariableList('bool')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'int_list': {
-        const v = this.emptyLocalVariableList('int')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'float_list': {
-        const v = this.emptyLocalVariableList('float')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'str_list': {
-        const v = this.emptyLocalVariableList('str')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'vec3_list': {
-        const v = this.emptyLocalVariableList('vec3')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'guid_list': {
-        const v = this.emptyLocalVariableList('guid')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'entity_list': {
-        const v = this.emptyLocalVariableList('entity')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'prefab_id_list': {
-        const v = this.emptyLocalVariableList('prefab_id')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'config_id_list': {
-        const v = this.emptyLocalVariableList('config_id')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
-      case 'faction_list': {
-        const v = this.emptyLocalVariableList('faction')
-        if (init !== undefined) this.setLocalVariable(v.localVariable, init)
-        return v
-      }
+      case 'bool':
+        // @ts-ignore allow
+        return foldOrSet(init, 'bool', () => this.getLocalVariable(false))
+      case 'int':
+        // @ts-ignore allow
+        return foldOrSet(init, 'int', () => this.getLocalVariable(0n))
+      case 'float':
+        // @ts-ignore allow
+        return foldOrSet(init, 'float', () => this.getLocalVariable(0))
+      case 'str':
+        // @ts-ignore allow
+        return foldOrSet(init, 'str', () => this.getLocalVariable(''))
+      case 'vec3':
+        // @ts-ignore allow
+        return foldOrSet(init, 'vec3', () => this.getLocalVariable([0, 0, 0]))
+      case 'guid':
+        // @ts-ignore allow
+        return foldOrSet(init, 'guid', () => this.getLocalVariable(new guid(0)))
+      case 'entity':
+        // @ts-ignore allow
+        return foldOrSet(init, 'entity', () => {
+          const e = new entity()
+          e.markLiteral()
+          return this.getLocalVariable(e)
+        })
+      case 'prefab_id':
+        // @ts-ignore allow
+        return foldOrSet(init, 'prefab_id', () => this.getLocalVariable(new prefabId(0)))
+      case 'config_id':
+        // @ts-ignore allow
+        return foldOrSet(init, 'config_id', () => this.getLocalVariable(new configId(0)))
+      case 'faction':
+        // @ts-ignore allow
+        return foldOrSet(init, 'faction', () => this.getLocalVariable(new faction(0)))
+      case 'bool_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'bool_list', () => this.emptyLocalVariableList('bool'))
+      case 'int_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'int_list', () => this.emptyLocalVariableList('int'))
+      case 'float_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'float_list', () => this.emptyLocalVariableList('float'))
+      case 'str_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'str_list', () => this.emptyLocalVariableList('str'))
+      case 'vec3_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'vec3_list', () => this.emptyLocalVariableList('vec3'))
+      case 'guid_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'guid_list', () => this.emptyLocalVariableList('guid'))
+      case 'entity_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'entity_list', () => this.emptyLocalVariableList('entity'))
+      case 'prefab_id_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'prefab_id_list', () => this.emptyLocalVariableList('prefab_id'))
+      case 'config_id_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'config_id_list', () => this.emptyLocalVariableList('config_id'))
+      case 'faction_list':
+        // @ts-ignore allow
+        return foldOrSet(init, 'faction_list', () => this.emptyLocalVariableList('faction'))
     }
   }
 

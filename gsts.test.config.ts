@@ -14,6 +14,7 @@ const config: GstsConfig = {
     '!./tests/generated/events.ts',
     '!./tests/layout/physics-motion/**/*.ts',
     '!./tests/builtins_math_success_test.ts',
+    '!./tests/local_variable_list_literal_test.ts',
     '!./tests/data_type_conversion_invalid_test.ts',
     '!./tests/signal_parameters_test.ts',
     '!./tests/generate-signal-min-send-monitor.ts',
