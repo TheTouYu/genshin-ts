@@ -22,6 +22,7 @@ GIA/GIL 只读工具（`npx tsx tools/<file>.ts <样本>`）：
 ```bash
 npm run gia:decode / gia:inspect / gia:compare / gia:diff   # GIA 解码/检查/比较/差异
 npm run gil:parse-node-graph / gil:trace-exec / gil:trace-dataflow  # 真实 .gil 图分析
+npx tsx src/cli/gsts.ts variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all] [--entity <id>] [--graph <id>]  # 变量 wire 照规律表逐字节核验（tests/fixtures/variables-wire-rules.json，只读 PASS/DIFF）
 ```
 
 PKC 知识树（长期记忆）查询（`python tools/pkc.py`，只读；缺关键信息先查它，见根 `AGENTS.md`）：

@@ -793,3 +793,18 @@
 - ⑥ f10=8（结算合法=5）的组件定义 ID 语义、魔方动画=1 的写入方（服务端图未读）、指令异常始终空的触发条件。
 - 证据：日志 2026-08-28_23-51-57_2980（5 次操作 ops 时间线）+ 地图 SHA f90ac5438c…。
 - 何时做：下次读服务端图日志/读图窗口补 ①②③；读结算图窗口补 ④；pkc 录入窗口补 ⑤。
+
+### O-2026-08-29-07 server 局部变量列表字面量静默丢值（DSL 缺口）
+
+- 证据（2026-08-29 复盘实验）：`f.localVariable('int_list', [1,2,3])`（及 set_local_variable 的
+  int_list 字面量）编译成功但**值被静默丢弃**——Get/Set 值 pin 只生成空类型锚
+  （ConcreteBase{ioc=7, ArrayBase 空}，54 hex）；非零元素 [1,2,3] 与 100 元素全零同样丢失。
+  `tests/assembly_dictionary_cases.ts:17` 注释明说 "List values have no literal form, so list
+  cases are always wired"——server 列表值必须来自数据流（拼装列表节点 169/170 创建）。
+  **client 侧行为不同**：client_list_literal_value 完整写入 bArray.entries（100 条元素记录，
+  {class IntBase, alreadySetVal, itemType{client int}, bInt{val}}）——server/client 不对称。
+- 影响：用户写列表字面量得到空列表且无报错（fail closed 但静默）——必须消除静默。
+- 候选修复（已入设计 D2）：① Stage 1/2 把 server 列表字面量编译为拼装列表节点（自动展开
+  count+元素 pin）；② 或编译期显式报错。另：client 列表字面量元素形态（alreadySetVal+显式
+  bInt{0}）无编辑器样本，不得声称 verified。
+- 何时做：D2 局部变量 DSL 实现任务（修复层第一项）。

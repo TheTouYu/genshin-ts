@@ -130,6 +130,7 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 | 图变量 | ✅ | bool/entity/vec3/list/dict（`dict([{k,v}])` 初始条目推断类型） |
 | vec3 字面量 | ⚠️ | **变量声明区** `new vec3([x,y,z])` ✅（`parseScalarLiteral` 支持 `instanceof vec3`）；**事件/分支回调内禁止 `new vec3([...])`**——TS→GS 转换器把它改写为 `new vec3(gsts.f.assemblyList([...]))` → 报 `gsts.f is only available in server_* ctxType`（2026-08-22 足球实证）；回调内一律 `f.create3dVector(x, y, z)`（数据节点，不依赖 gsts.f） |
 | 数组字面量 | ✅ | `[c0, c1]` 作 entity_list 值（setNodeGraphVariable/setOrAdd value）；⚠️ **初始列表字面量最多 100 个元素**（2026-08-21 用户确认）——超过需拆成多个 ≤100 列表并用长列表复合（`long_list_get_vec3` for vec3_list / `long_list_get_int` for int_list，内部按 chunkSize 拆分/选择器相加） |
+| 局部变量列表字面量 | ⚠️ **server 静默丢值** | `f.initLocalVariable('int_list', [1,2,3])` / setLocalVariable 的列表字面量在 **server 图编译成功但值被丢弃**（只写空类型锚，`tests/assembly_dictionary_cases.ts` "List values have no literal form"）——server 列表值必须来自数据流（`f.assemblyList` 拼装列表节点）；**client 图支持列表字面量**（完整写入 bArray.entries，形态无编辑器样本未 verified）——server/client 不对称（2026-08-29 复盘实证，O-29-07） |
 | 字符串拼接 | ❓ | 未验证（用字面量/字典 key 替代） |
 | helper 函数 | ⚠️ | **被每个调用点内联**——分支×调用次数=节点爆炸 |
 
