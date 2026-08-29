@@ -183,7 +183,7 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
-  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes' | 'def-clean'
+  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes' | 'def-clean' | 'delete'
   gilPath: string | undefined
   mapId: number | undefined
   name: string | undefined
@@ -216,6 +216,7 @@ function usage(exitCode = 0): never {
   '  layout                       auto-layout / lint a graph (--check = lint only)',
   '  validate                     check R<T> concreteId/pin consistency, variable names, skill-graph node guard',
   '  def-clean                    remove unused composite definitions (dry-run by default)',
+  '  delete                       remove a node graph (root10 record + folder entry; dry-run by default)',
     '',
     'Options:',
     '  --config <file>   project config (for --map-id resolution)',
@@ -314,7 +315,7 @@ function parseArgs(argv: readonly string[]): Args {
   let force = false
   let dryRun = false
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate' || argv[0] === 'nodes' || argv[0] === 'def-clean')
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate' || argv[0] === 'nodes' || argv[0] === 'def-clean' || argv[0] === 'delete')
     sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
@@ -358,6 +359,10 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] def-clean cannot combine explicit defs with --all-unused')
   if (sub === 'def-clean' && (graph || node || composite || category || srcGil || ops.length))
     throw new Error('[error] def-clean does not accept --graph/--node/--composite/--category/--src-gil/ops')
+  if (sub === 'delete' && !graph)
+    throw new Error('[error] delete needs --graph <id|name>')
+  if (sub === 'delete' && (node || composite || category || srcGil || ops.length || graphType !== 20000))
+    throw new Error('[error] delete does not accept --node/--composite/--category/--src-gil/--type/ops')
   return { sub, gilPath, mapId, name, graphType, graphId, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck, defs, allUnused, includeSystem, force, dryRun }
 }
 
@@ -800,6 +805,10 @@ export async function runAssetsNodeGraphs(
     runDefClean(sourceBytes, gil, args)
     return
   }
+  if (args.sub === 'delete') {
+    runDelete(sourceBytes, gil, args)
+    return
+  }
   const sourceSha = sha256Bytes(sourceBytes)
   const payload = sourceBytes.slice(20, -4)
   const spec = graphTypeSpec(args.graphType)
@@ -1086,6 +1095,155 @@ function runDefClean(bytes: Uint8Array, gil: string, args: Args): void {
     `defs=${removed.length} sourceSha256=${sourceSha} candidateSha256=${candidateSha} ` +
       `size=${bytes.length}->${result.length}`
   )
+}
+
+/**
+ * 删除节点图（`assets:node-graphs delete --graph <id|name>`）。
+ *
+ * 删除 wire（2026-08-29 编辑器删除差分实证，1073741915）：
+ * 1. root10（field10）移除目标图记录 field1；
+ * 2. field6 folder 记录（field1 记录）内 **f3** 内部的 f5 条目 `{1:typeValue, 2:图ID}` 移除；
+ *    ——只删图记录不删 folder 条目会导致存档损坏（游戏加载失败）。
+ * 复合定义/信号定义等其它 root10 记录不动。
+ *
+ * 默认 dry-run（输出将删除内容）；--write 写回（.gsts/backups/ 备份 + Temp 同步）。
+ */
+function runDelete(bytes: Uint8Array, gil: string, args: Args): void {
+  const sourceSha = sha256Bytes(bytes)
+  const payload = bytes.slice(20, -4)
+  const graphId = resolveGraphId(bytes, args.graph ?? '')
+  const graphName = graphNameOf(payload, graphId) ?? String(graphId)
+
+  const graphIdOf = (record: Uint8Array): number | undefined => {
+    const inner = parseWireMessage(record)
+    const nodeGraph = inner?.find((f) => f.number === 1 && f.wire === 2)
+    if (!nodeGraph) return undefined
+    const ng = parseWireMessage(nodeGraph.value as Uint8Array)
+    const idMsg = ng?.find((f) => f.number === 1 && f.wire === 2)
+    if (!idMsg) return undefined
+    const idFields = parseWireMessage(idMsg.value as Uint8Array)
+    const nodeId = idFields?.find((f) => f.number === 5 && f.wire === 0)
+    return typeof nodeId?.value === 'number' ? nodeId.value : undefined
+  }
+
+  const top = parseWireMessage(payload)
+  if (!top) throw new Error('[error] cannot parse GIL payload')
+  let removedGraphs = 0
+  let removedFolder = 0
+  const rebuilt: Array<{ number: number; wire: number; value: number | Uint8Array }> = []
+  for (const f of top) {
+    if (f.number === 10 && f.wire === 2) {
+      const root10 = parseWireMessage(f.value as Uint8Array)
+      if (root10) {
+        const kept = root10.filter((x) => {
+          if (x.number === 1 && x.wire === 2 && graphIdOf(x.value as Uint8Array) === graphId) {
+            removedGraphs += 1
+            return false
+          }
+          return true
+        })
+        rebuilt.push({ number: 10, wire: 2, value: emitWireMessage(kept) })
+        continue
+      }
+    }
+    if (f.number === 6 && f.wire === 2) {
+      const root6 = parseWireMessage(f.value as Uint8Array)
+      if (root6) {
+        const keptRecs = root6.map((x) => {
+          if (x.number !== 1 || x.wire !== 2) return x
+          const inner = parseWireMessage(x.value as Uint8Array)
+          if (!inner) return x
+          const keptInner = inner.map((y) => {
+            if (y.number !== 3 || y.wire !== 2) return y
+            const f3 = parseWireMessage(y.value as Uint8Array)
+            if (!f3) return y
+            const keptEntries = f3.filter((z) => {
+              if (z.number === 5 && z.wire === 2) {
+                const e = parseWireMessage(z.value as Uint8Array) ?? []
+                const id = e.find((w) => w.number === 2 && w.wire === 0)?.value
+                if (Number(id) === graphId) {
+                  removedFolder += 1
+                  return false
+                }
+              }
+              return true
+            })
+            if (keptEntries.length === f3.length) return y
+            return { ...y, value: emitWireMessage(keptEntries) }
+          })
+          if (keptInner.every((v, i) => v === inner[i])) return x
+          return { ...x, value: emitWireMessage(keptInner) }
+        })
+        rebuilt.push({ number: 6, wire: 2, value: emitWireMessage(keptRecs) })
+        continue
+      }
+    }
+    rebuilt.push(f as { number: number; wire: number; value: number | Uint8Array })
+  }
+  if (removedGraphs === 0) {
+    throw new Error(`[error] graph ${graphId} not found in root 10`)
+  }
+  const newPayload = emitWireMessage(rebuilt)
+  const header = {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  }
+  const result = buildFile(newPayload, header)
+  const candidateSha = sha256Bytes(result)
+
+  if (args.write) {
+    const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
+    if (nowSha !== sourceSha) throw new Error('[error] source GIL changed since read; aborting write')
+    const backupDir = path.join(path.dirname(gil), '.gsts', 'backups')
+    fs.mkdirSync(backupDir, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.delete-graph.bak`)
+    fs.copyFileSync(gil, backup)
+    fs.writeFileSync(gil, result)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
+    console.log(`backup=${backup}`)
+    console.log(`written=${gil}`)
+  } else if (args.outputPath) {
+    const absolute = path.resolve(args.outputPath)
+    if (fs.existsSync(absolute)) throw new Error(`[error] output already exists: ${absolute}`)
+    fs.mkdirSync(path.dirname(absolute), { recursive: true })
+    fs.writeFileSync(absolute, result)
+    console.log(`written=${absolute}`)
+  } else {
+    console.log(`preview=${gil}${args.dryRun ? ' (dry-run)' : ''}`)
+  }
+  console.log(
+    `delete: graph=${graphId} name=${graphName} graphs=${removedGraphs} folderEntries=${removedFolder} ` +
+      `sourceSha256=${sourceSha} candidateSha256=${candidateSha} size=${bytes.length}->${result.length}`
+  )
+}
+
+function graphNameOf(payload: Uint8Array, graphId: number): string | undefined {
+  const top = parseWireMessage(payload)
+  const root10 = top?.find((f) => f.number === 10 && f.wire === 2)
+  const recs = root10 ? parseWireMessage(root10.value as Uint8Array) : []
+  for (const rec of recs ?? []) {
+    if (rec.number !== 1 || rec.wire !== 2) continue
+    const inner = parseWireMessage(rec.value as Uint8Array)
+    const nodeGraph = inner?.find((f) => f.number === 1 && f.wire === 2)
+    if (!nodeGraph) continue
+    const ng = parseWireMessage(nodeGraph.value as Uint8Array)
+    const idMsg = ng?.find((f) => f.number === 1 && f.wire === 2)
+    if (!idMsg) continue
+    const idFields = parseWireMessage(idMsg.value as Uint8Array)
+    const nodeId = idFields?.find((f) => f.number === 5 && f.wire === 0)
+    if (Number(nodeId?.value) !== graphId) continue
+    const nameField = ng?.find((f) => f.number === 2 && f.wire === 2)
+    if (!nameField) return undefined
+    return Buffer.from(nameField.value as Uint8Array).toString('utf8')
+  }
+  return undefined
 }
 
 type InstanceMeta = { defId: number; pinIndex?: number; type?: number }
