@@ -163,6 +163,23 @@
           "branches": []
         },
         "validation_gate": "pkc validate && pkc knowledge-check && git diff --check"
+      },
+      {
+        "id": "game-engine-rules",
+        "default": false,
+        "lifecycle": "active",
+        "goal": "游戏引擎实测规则知识：信号注册表与编码（signalVersion 一致性等）、节点图创建/挂载、GIA wire 分析、调试日志格式等真实引擎规则查询。",
+        "recovery_role": "current_recovery",
+        "priority": 4,
+        "applies_to": {
+          "paths": [
+            "knowledge/game-engine-knowledge/**"
+          ],
+          "workspaces": [],
+          "branches": []
+        },
+        "validation_gate": "pkc validate && pkc knowledge-check && git diff --check",
+        "current_recovery": "docs/project-intelligence/contexts/game-engine-rules.md"
       }
     ],
     "startup_budget": {
@@ -1539,6 +1556,18 @@
       {
         "context_id": "official-guide",
         "node_id": "official-guide"
+      },
+      {
+        "context_id": "game-engine-rules",
+        "node_id": "game-engine-knowledge"
+      },
+      {
+        "context_id": "game-engine-rules",
+        "node_id": "gia-wire-analysis"
+      },
+      {
+        "context_id": "game-engine-rules",
+        "node_id": "debug-log-format"
       }
     ],
     "decision_claims": [],
