@@ -356,6 +356,12 @@ Stage 3（IR→GIA）：现有编码器 + 本会话已修的编辑器形态归�
   （server/client 21+dict 重载 + LocalVariable<T> + 别名兼容 + 列表字面量静默面修复 O-29-07）。
   验收：折叠后 Get 与编辑器实样逐字节一致（批次 7 形态）+ 动态 init 回归不漂移 +
   三个 wire 回归 + 17 样本 verify 全 0 DIFF + 存量代码零破坏（批量编译 67 GIA 全过）。
+- **M2 游戏核验闭环（2026-08-30，3001 日志）**：D2 全链游戏内行为确认——`d2lv|set|=101`
+  （Addition IN1 字面量保留，重新注入当前产物后恢复）、`d2lv|dyn|=1,1,2,2,3,3`（动态 init
+  timerSequenceId 递增；根因 = whenTimerIsTriggered 官方定义顺序与引擎运行时输出顺序相反，
+  timerSequenceId 必须连 index 4，gen 脚本 override 修复，提交 7ef46b8）、init=42/len=3/
+  elem0=1 与 B 组客户端链路照旧。详见
+  `.agents/skills/verify-injection/references/verified-cases.md` 2026-08-30 双缺陷闭环记录。
 - **M3（P1）**：D1 声明清单（--from-json）。验收：与 config 声明字节等价。
 - **M4（P2）**：C2 组合命令 + C3 语义目标 + D2 显式名字。验收：等价性 + 文档。
 
