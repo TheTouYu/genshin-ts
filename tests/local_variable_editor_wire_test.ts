@@ -54,6 +54,16 @@ const EDITOR_LIST_VALUE =
 const EDITOR_STR_LIST_VALUE =
   '08904e1001f206130808120f08924e22070801a20602080bea0600'
 
+// v15 客户端局部变量（编辑器样本 var-v15-client-graph.gil sha e12fc8d7…，图 1082130433
+// 角色操控 20010）：按名字访问（与 server 的 E<1016> 完全不同）——节点图开始(200042/cid 2001) →
+// Set(200081/cid 2000) + Get(200082/cid 1036)；名字 pin（type 9）= StringBase bString 名字；
+// 值 pin = ConcreteBase{内层 {class, itemType{1:2,101:{2:type}}, 空 payload}}，**无 ioc**；
+// Set 无流 pin（执行走 ClientExec）；start contextDeclaration={1:6}、无位置字段
+const EDITOR_CLIENT_VALUE =
+  '08904e1001f20610120e080222070802aa06021003b20600'
+const EDITOR_CLIENT_NAME =
+  '0805100122070802aa06021009ca06080a06e6b58be8af95'
+
 const ir = [
   {
     ir_version: 1,
@@ -411,6 +421,102 @@ try {
       'default element has no alreadySetVal'
     )
     assert.equal(elem(assyStr, 1).indexOfConcrete, 1, 'str element ioc 1')
+    // ===== v15：客户端局部变量（按名字，角色操控图） =====
+    const clientIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'client',
+          mode: 'beyond',
+          sub_type: 'character_control_skill',
+          id: 1082130433,
+          name: 'client-lv-wire'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'node_graph_begins', next: [3] },
+          { id: 2, type: 'get_local_variable', args: [{ type: 'str', value: '测试' }] },
+          {
+            id: 3,
+            type: 'set_local_variable',
+            args: [
+              { type: 'str', value: '测试' },
+              { type: 'conn', value: { node_id: 2, index: 0, type: 'int' } }
+            ]
+          }
+        ],
+        edges: null
+      }
+    ]
+    const irPath7 = join(tmp2, 'client.json')
+    writeFileSync(irPath7, JSON.stringify(clientIr))
+    const giaPath7 = join(tmp2, 'client.gia')
+    writeGiaFromIrJsonFile(irPath7, giaPath7, {}, () => {})
+    const bytes7 = new Uint8Array(readFileSync(giaPath7))
+    const root7 = rootMessage.decode(bytes7.slice(20, -4))
+    const nodes7 = root7.graph?.graph?.inner?.graph?.nodes ?? []
+    const startN = nodes7.find((n) => n.genericId?.nodeId === 200042)
+    const getN = nodes7.find((n) => n.genericId?.nodeId === 200082)
+    const setN = nodes7.find((n) => n.genericId?.nodeId === 200081)
+    assert.ok(startN && getN && setN, 'client start/get/set nodes')
+    assert.equal(startN.concreteId?.nodeId, 2001, 'start cid 2001')
+    assert.equal(getN.concreteId?.nodeId, 1036, 'get cid 1036')
+    assert.equal(setN.concreteId?.nodeId, 2000, 'set cid 2000')
+    // start：contextDeclaration={1:6} 无 2:0、无位置字段（proto3 缺省读 0，查 own property）
+    assert.ok(
+      !Object.prototype.hasOwnProperty.call(startN, 'x') &&
+        !Object.prototype.hasOwnProperty.call(startN, 'y'),
+      'start no zero position'
+    )
+    const cd = JSON.parse(JSON.stringify(startN.contextDeclaration ?? {}))
+    assert.deepEqual(cd, { kind: 'ClientSignal' }, 'start contextDeclaration {1:6}')
+    // 名字 pin（InParam[0]，type 9）= StringBase bString 名字
+    const nameOf = (n: any) => n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 0)
+    for (const n of [getN, setN]) {
+      const p = nameOf(n)
+      assert.equal(p.type, 9, 'name pin type 9')
+      const hex = Buffer.from(p.value.$type.encode(p.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_CLIENT_NAME, 'name pin value must match editor')
+    }
+    // 值 pin：ConcreteBase 内层无 alreadySetVal + bInt 空；无 ioc；hex == 编辑器
+    const valuePin = (n: any, kind: number, index: number) =>
+      n.pins.find((p) => p.i1?.kind === kind && p.i1?.index === index)
+    for (const [n, kind, idx] of [
+      [getN, 4, 0],
+      [setN, 3, 1]
+    ] as const) {
+      const p = valuePin(n, kind, idx)
+      assert.ok(p?.value, 'client value pin')
+      assert.equal(p.value.bConcreteValue?.indexOfConcrete ?? 0, 0, 'client pins have no ioc')
+      assert.ok(
+        !Object.prototype.hasOwnProperty.call(p.value.bConcreteValue, 'indexOfConcrete'),
+        'client pins have no ioc (own)'
+      )
+      const inner = p.value.bConcreteValue.value
+      assert.equal(
+        Object.prototype.hasOwnProperty.call(inner, 'alreadySetVal'),
+        false,
+        'default value pin has no alreadySetVal'
+      )
+      assert.equal(
+        Object.prototype.hasOwnProperty.call(inner, 'bInt') &&
+          !Object.prototype.hasOwnProperty.call(inner.bInt, 'val'),
+        true,
+        'empty bInt payload'
+      )
+      const hex = Buffer.from(p.value.$type.encode(p.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_CLIENT_VALUE, 'client value pin must match editor')
+    }
+    // Set：值 pin 连线自 Get OutParam[0]；有 ClientExec；无流 pin
+    const setValue = valuePin(setN, 3, 1)
+    assert.equal(setValue.connects?.length, 1, 'set value connected from getter')
+    assert.equal(setValue.connects[0].connect?.kind, 4, 'source OutParam')
+    assert.ok(setN.pins.some((p) => p.i1?.kind === 5), 'set has ClientExec pin')
+    assert.ok(
+      !setN.pins.some((p) => p.i1?.kind === 1 || p.i1?.kind === 2),
+      'set has no flow pins'
+    )
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
   }

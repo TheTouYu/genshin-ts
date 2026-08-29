@@ -1215,6 +1215,82 @@ function applyLiteralArgs(
   }
 }
 
+/**
+ * 客户端节点按编辑器形态归一化（2026-08-29 v15 差分，图 1082130433 角色操控）：
+ * - 节点位置 0 → 省略（节点图开始编辑器无 x/y 字段）；
+ * - contextDeclaration 内显式 0 → 省略（编辑器 {1:6}，我方 {1:6,2:0}）；
+ * - pin i1/i2 index=0 → 省略（编辑器 name/value pin 都不写 index 0）；
+ * - pin type=0（Unk 流 pin）→ 省略（编辑器 OutFlow/InFlow pin 无 type 字段）；
+ * - 局部变量值 pin（ConcreteBase 内层）默认值：显式 alreadySetVal=0 → 省略，
+ *   并按 class 补空 payload（编辑器 Int 默认 = {1:2, itemType, 102:空}）；
+ *   非默认值（有 payload）保持原样（client 语料已验证）。
+ */
+function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
+  for (const node of nodes) {
+    if (node.x === 0) node.x = undefined
+    if (node.y === 0) node.y = undefined
+    const cd = node.contextDeclaration as Record<string, unknown> | undefined
+    if (cd && typeof cd === 'object') {
+      for (const key of Object.keys(cd)) {
+        if (cd[key] === 0) cd[key] = undefined
+      }
+    }
+    const gid = node.genericId?.nodeId
+    const hasClientExec = node.pins.some((pin) => pin.i1?.kind === PIN_KIND_CLIENT_EXEC)
+    const pinsToRemove: ClientGiaPin[] = []
+    for (const pin of node.pins) {
+      // 局部变量 Set（200081）编辑器无流 pin（执行走 ClientExec）；break/return 等其它
+      // ClientExec 节点的流 pin 承载循环目标，不能删（smoke-client-exec-bindings 回归）
+      if (gid === 200081 && hasClientExec && (pin.i1?.kind === PIN_KIND_IN_FLOW || pin.i1?.kind === PIN_KIND_OUT_FLOW)) {
+        pinsToRemove.push(pin)
+        continue
+      }
+      if (pin.i1?.index === 0) pin.i1.index = undefined
+      if (pin.i2?.index === 0) pin.i2.index = undefined
+      if (pin.type === 0) pin.type = undefined
+      for (const conn of pin.connects ?? []) {
+        for (const side of [conn.connect, conn.connect2]) {
+          if (side && side.index === 0) side.index = undefined
+        }
+      }
+      const v = pin.value
+      if (!v || typeof v !== 'object') continue
+      // 值归一化：ConcreteBase 包裹（R<T> 值 pin）取内层；普通 VarBase（ClientExec 值 pin）直接用
+      const cv = v as { class?: number; bConcreteValue?: { value?: Record<string, unknown> } }
+      const inner = cv.class === 10000 && cv.bConcreteValue ? cv.bConcreteValue.value : (v as Record<string, unknown>)
+      if (!inner || typeof inner !== 'object') continue
+      const nonZero = (x: unknown) => x != null && Number(x) !== 0
+      const innerVal = inner as {
+        bInt?: { val?: number }
+        bFloat?: { val?: number }
+        bEnum?: { val?: number | boolean }
+        bString?: { val?: string }
+        bId?: { val?: number }
+        bVector?: { val?: { x?: number; y?: number; z?: number } }
+      }
+      const hasNonDefault =
+        (innerVal.bInt && nonZero(innerVal.bInt.val)) ||
+        (innerVal.bFloat && nonZero(innerVal.bFloat.val)) ||
+        (innerVal.bEnum && innerVal.bEnum.val != null && innerVal.bEnum.val !== false && nonZero(innerVal.bEnum.val)) ||
+        (innerVal.bString && innerVal.bString.val != null && innerVal.bString.val !== '') ||
+        (innerVal.bId && nonZero(innerVal.bId.val)) ||
+        (innerVal.bVector?.val !== undefined &&
+          (nonZero(innerVal.bVector.val.x) || nonZero(innerVal.bVector.val.y) || nonZero(innerVal.bVector.val.z)))
+      if (hasNonDefault) continue
+      delete inner.alreadySetVal
+      const cls = inner.class
+      if (cls === 2) inner.bInt = {}
+      else if (cls === 4) inner.bFloat = {}
+      else if (cls === 5) inner.bString = {}
+      else if (cls === 6) inner.bEnum = {}
+      else if (cls === 7) inner.bVector = { val: {} }
+      else if (cls === 1) inner.bId = {}
+      // class 0（entity 类）无 payload 字段
+    }
+    node.pins = node.pins.filter((pin) => !pinsToRemove.includes(pin))
+  }
+}
+
 export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8Array {
   const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
@@ -1408,6 +1484,11 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     root.gameVersion = signalSource.gameVersion
   }
   const { rootMessage } = loadGiaProto(opts.protoPath)
+  const graphNodes = (root.graph as { graph?: { inner?: { graph?: { nodes?: unknown[] } } } })
+    ?.graph?.inner?.graph?.nodes
+  if (Array.isArray(graphNodes)) {
+    normalizeClientNodesEditorWire(graphNodes as ClientGiaNode[])
+  }
   return restoreRegisteredSignalDefinitionBytes(
     new Uint8Array(wrap_gia(rootMessage, root)),
     signalRegistry
