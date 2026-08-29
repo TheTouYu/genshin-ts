@@ -128,6 +128,131 @@ const c = f.localVariable('int', 0n, { name: 'score' })
 - 语法不变，折叠是编译层优化：常量 init 直接进 Get（编辑器形态，批次 7 Get bool true 实样 =
   折叠后的目标形态）；动态 init 保持 get+set。M2 落地后本语法自动获得折叠收益。
 
+#### 完整 API 规格（实施依据）
+
+**类型签名（server 与 client 同一形状，f = 图作用域对象）**
+
+```ts
+// —— 创建（重载族；type 字面量驱动 T 推断）——
+f.localVariable('bool', init?: boolean): LocalVariable<boolean>
+f.localVariable('int', init?: bigint): LocalVariable<bigint>
+f.localVariable('float', init?: number): LocalVariable<number>
+f.localVariable('str', init?: string): LocalVariable<string>
+f.localVariable('vec3', init?: vec3): LocalVariable<vec3>
+f.localVariable('guid', init?: guid): LocalVariable<guid>
+f.localVariable('entity', init?: entity): LocalVariable<entity>
+f.localVariable('prefab_id', init?: prefabId): LocalVariable<prefabId>
+f.localVariable('config_id', init?: configId): LocalVariable<configId>
+f.localVariable('faction', init?: faction): LocalVariable<faction>
+f.localVariable('bool_list', init?: boolean[]): LocalVariable<boolean[]>
+f.localVariable('int_list', init?: bigint[]): LocalVariable<bigint[]>
+f.localVariable('float_list', init?: number[]): LocalVariable<number[]>
+f.localVariable('str_list', init?: string[]): LocalVariable<string[]>
+f.localVariable('vec3_list', init?: vec3[]): LocalVariable<vec3[]>
+f.localVariable('guid_list', init?: guid[]): LocalVariable<guid[]>
+f.localVariable('entity_list', init?: entity[]): LocalVariable<entity[]>
+f.localVariable('prefab_id_list', init?: prefabId[]): LocalVariable<prefabId[]>
+f.localVariable('config_id_list', init?: configId[]): LocalVariable<configId[]>
+f.localVariable('faction_list', init?: faction[]): LocalVariable<faction[]>
+// dict：只声明键值类型（空 map；非空元素 wire 未实样，fail-closed）
+f.localVariable('dict', type: { k: 'str' | 'int'; v: DictValueType }): LocalVariable<dict>
+// 统一形态（opts.name 仅 client 图生效；server 图传名 = 编译告警并忽略）
+f.localVariable<T>(type: T, init?: InitT<T>, opts?: { name?: string }): LocalVariable<ValueT<T>>
+```
+
+**LocalVariable<T> 对象接口**
+
+```ts
+interface LocalVariable<T> {
+  /** 更新：编译为 Set Local Variable（server: E<1016> 身份连线；client: 同名 Set + ClientExec） */
+  set(value: T): void
+  /** 读当前值：编译为 Get 的读值输出（OutParam[1] / 值 pin）的数据引用 */
+  readonly value: T
+  /** 内部：server 持 E<1016> 引用（nodeId + OutParam[0]）、client 持名字；不暴露 */
+}
+```
+
+**别名兼容**：`f.initLocalVariable(type, init?)` = `f.localVariable(type, init?)`（返回
+`{ localVariable, value }` 旧形状的适配层或直接返回新对象 + 解构兼容）；`f.setLocalVariable(lv, v)`
+= `lv.set(v)`（lv 接受新句柄对象或旧 `{localVariable}` 结构）。存量测试不改。
+
+**语义规则（编译层）**
+
+| # | 规则 | 依据 |
+| --- | --- | --- |
+| S1 | 创建 + **编译期常量** init → 值直接进 Get InParam[0]（M2 折叠）；非默认值内层保留 alreadySetVal | 批次 7 Get bool true 实样 |
+| S2 | 创建 + **动态表达式** init → get(empty) + set(expr) 两节点（防重复求值） | 现状 definitions 注释 |
+| S3 | 无 init → Get InParam[0] = 类型默认锚（空 payload） | v10/v11 样本 |
+| S4 | Get OutParam[1]（lv.value 锚）**恒为类型默认锚**，与 init 无关 | 批次 7 实样（Get bool true 的 OutParam[1] = false 锚） |
+| S5 | server Get 不落盘 OutParam[0]（E<1016> 隐式）；Set InParam[0] 连线引用它 | 批次 7 实样 |
+| S6 | Set 值非默认**不写** alreadySetVal（仅显式 payload） | v10 样本（Set true = bEnum{1:1}） |
+| S7 | 同一 lv 的多次 set = 多个 Set 节点共享同一身份（同一 Get） | v10 双 Set 样本 |
+| S8 | 不同 lv = 不同 Get（独立身份/名字）；client 名字冲突 = 编译错误 | 编辑器语义 |
+| S9 | lv 生命周期 = 一次图执行（事件触发）；跨 .on 回调共享状态用图变量/实体变量，局部变量编译期报错 | 局部变量 = 画布数据连接 |
+
+**作用域与生命周期（DSL 层）**
+
+- `f.localVariable` 必须在事件回调体内调用；同一回调内创建的 lv 可被该回调后续代码引用
+  （set/读值/传给子表达式）——编译为同一次触发的数据流。
+- 回调之间不共享（每次触发重新执行 Get 节点）。需要跨触发状态 → 图变量
+  （`f.get/f.set`）或实体变量（`assets:custom-variables`），三容器语义不混。
+- 图内多分支（if/循环）中引用同一 lv：编译为同一 Get 的多个消费连线（与编辑器"多个节点
+  消费一个变量"一致，v10 双 Set 即同身份多消费）。
+
+**server/client 对照（每个操作的完整 wire 形态）**
+
+| DSL | server wire（节点/cid/pin） | client wire（节点/cid/pin） |
+| --- | --- | --- |
+| `localVariable('int', 42n)` | Get(18) cid=20；InParam[0]=ConcreteBase{1:10000,2:1,110:{ioc:1,{class 2,alreadySetVal,itemType, bInt{42}}}}；OutParam[1]=默认锚；**无** OutParam[0] 落盘 | Get(200082) cid=1036；名字 pin（type 9 StringBase）；值 pin（type 3，ioc 0 省略，clientVarType=3） |
+| `localVariable('int')` | Get(18) cid=20；InParam[0]=默认锚（空 payload 无 alreadySetVal） | 同上（默认锚） |
+| `lv.set(99n)` | Set(19) cid=21；InParam[0] type16 E<1016> ← Get.OutParam[0]（kind4/idx0）；InParam[1]=ConcreteBase{ioc:1, bInt{99}}（无 alreadySetVal） | Set(200081) cid=2000；同名 pin + 值 pin + ClientExec（kind5）；**无流 pin** |
+| `localVariable('bool', true)` | Get(18) cid=18；InParam[0]=ConcreteBase{110:{class6,**alreadySetVal**,itemType,bEnum{1}}}；OutParam[1]=false 默认锚 | Get(200082) cid=1036；值 pin type 5 |
+| `lv.value` | 引用 Get OutParam[1]（kind4/idx1） | 引用 Get 值 pin（kind4/idx0） |
+| `localVariable('dict',{k:'str',v:'int'})` | （server dict 局部变量 ioc=20 推断段，待样本） | Get(200082) cid=1036；值 pin type24，ioc=20，MapBase + 容器元数据（mode/kind/key/value = 键值 clientVarType） |
+| 类型表 | server VarType + SERVER_LOCAL_VAR_IOC_BY_VARTYPE | CLIENT_VAR_TYPE_BY_IR_TYPE + LOCAL_VAR_IOC_BY_IR |
+
+**转换规则（Stage 1 → IR → GIA）**
+
+```
+Stage 1（TS→.gs.ts）：
+  const lv = f.localVariable('int', 42n)
+    → const lv = __gstsLocalVar('int', 42n)          // 运行时辅助，返回 {id, valueRef}
+  lv.set(expr) → __gstsSetLocalVar(lv, expr)
+  lv.value     → __gstsLocalVarValue(lv)             // 表达式位置的数据引用
+  initLocalVariable/setLocalVariable 别名 → 同一辅助
+
+Stage 2（.gs.ts→IR）：
+  __gstsLocalVar('int', 常量) → { node: get_local_variable, args: [{type:'int', value:42}] }
+  __gstsLocalVar('int', 动态) → get_local_variable(empty) + set_local_variable(id, 动态)
+  __gstsLocalVarValue(lv)     → conn { node_id: lv.getNodeId, index: 1 }（server）/ index 0（client）
+  __gstsSetLocalVar(lv, v)    → set_local_variable(lv.id, v)（IR 层按图类型标记身份）
+
+Stage 3（IR→GIA）：现有编码器 + 本会话已修的编辑器形态归一化
+  （Get 隐式 OutParam[0]、i1/i2 index 省略、Get 非默认 alreadySetVal、OutParam[1] 默认锚、
+   client dict 容器元数据、count pin kind 省略）——全部已闭合并回归
+```
+
+**验收标准**
+
+1. 同一段玩法代码（不涉及 client 特有节点）可编译 server 与 client 双端，字节分别与
+   矩阵批次 7/8/9 实样逐字节一致（Get bool true alreadySetVal + OutParam[1] 默认锚 +
+   E<1016> 隐式 + dict 元数据 + i1/i2 省略）。
+2. 常量 init 折叠（M2）后：Get 节点与编辑器实样一致，动态 init 回归不漂移。
+3. 现有 `initLocalVariable`/`setLocalVariable` 测试与存量代码全绿（别名兼容）。
+4. dict 非空 map / server dict 局部变量 = 编译期报错或待样本标记（fail closed）。
+5. 类型错误（set 传错类型、跨回调引用 lv）编译期拦截。
+
+**边界与错误处理**
+
+| 场景 | 行为 |
+| --- | --- |
+| server 图传 opts.name | 编译告警并忽略（server 局部变量 wire 无名） |
+| client 图两个 lv 同名 | 编译错误（名字冲突） |
+| 跨 .on 回调引用 lv | 编译错误（生命周期=单次触发；跨触发用图/实体变量） |
+| dict 非空元素 init | 编译错误（fail closed，待元素 wire 样本） |
+| server dict 局部变量 | 编译错误或 inferred 标注（server ioc=20 推断段） |
+| set 类型与 T 不符 | TS 泛型编译期拦截 |
+
 ### D3 局部变量常量 init 折叠（F10 落地）
 
 - **现状**：`initLocalVariable(type, 常量)` 编译为 `get(empty)+set(init)`——编辑器形态是
