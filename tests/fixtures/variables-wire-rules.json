@@ -161,14 +161,14 @@
         "f3": "类型码（VarType：1=entity 2=guid 3=int 4=bool 5=float 6=str 8=int_list 9=bool_list 10=float_list 11=str_list 12=vec3 15=vec3_list 27=dict 等）",
         "f4": "默认值消息 {1:类型码, 2:{1:类型码, 2:{}} 双层包裹, f<类型码+10>:值}；dict(27) 例外：f4.f2 为含 marker 的复杂包裹 {1:27, 2:{2:marker, 502:keyType, 503:valueType}}（CLI 形态与 variables.md 2026-08-18/19 样本一致；v0–v16 序列无 dict 样本，fixture 未覆盖，verify 只查骨架）",
         "f5": "1（恒写）",
-        "f6": "{1:类型码, 2:{}} 单层类型包裹（编辑器形态；旧实现多包一层已修）；dict(27) 例外：f6.f2 为 marker 包裹"
+        "f6": "{1:类型码, 2:{}} 单层类型包裹（编辑器形态；旧实现多包一层已修）；dict(27) 例外：f6 双形态——新建简单包裹 / 编辑器保存后 marker 包裹（2026-08-29 矩阵实证，verify 骨架级检查兼容）"
       },
       "valueForms": {
         "scalar-zero": "int 0 / bool false / str '' / float 0 → f<类型码+10> = 空消息（默认值省略哲学）",
         "scalar-nonzero": "int/float/bool/str 非默认值 → 显式 payload（str 在 f16.f1）",
         "vec3": "f22 = {1:{f1,f2,f3: fixed32}} 包裹，分量稀疏（零分量省略；全零 = {1:空}）",
         "lists": "f<类型码+10>：原始标量列表 packed（元素原始字节拼接；entity 元素=完整 {f1(varint)} 拼接）；str_list 重复 field1(len){字符串}；vec3_list 重复 field1(len){向量消息}（元素稀疏）",
-        "dict": "f37 = parallel f501 keys + f502 values + f503 key 类型码 + f504 value 类型码；Map25 实体映射层非新建必需"
+        "dict": "f37 = parallel f501 keys + f502 values + f503 key 类型码 + f504 value 类型码；**双形态实证（2026-08-29 矩阵）**：新建/CLI 写入 = 无 Map25 + f6 简单包裹；编辑器保存后升级 = f37 增 f1 Map25 实体映射记录（每 pair 一条，{1:25, 2:{1:25,2:{2:marker,502,503}}, 35:pairs}）+ f6 marker 包裹——编辑器归一化，两种形态均合法"
       },
       "dictMarkers": [
         {

@@ -145,6 +145,12 @@ f2:{}}, f16|f13:key 值}`（str key 用 f16、int key 用 f13）；`f502` value 
 `{f1:valueType, f2:{f1:valueType, f2:{}}, f<valueType+10>:值}`。
 **Map25 实体映射层仅出现在编辑器多对历史样本（新增变量1 等），非新建必需**；新版 CLI 新建
 dict 不写 Map25。
+> **双形态实证（2026-08-29 游戏核验矩阵批次 10）**：编辑器会把 dict entry 从「新建形态」
+> 升级为「完整形态」——新建/CLI 写入 = f37 无 Map25 + f6 简单包裹 `{1:27,2:{}}`；编辑器
+> 后续保存后 = f37 增加 `f1` Map25 实体映射记录（每 pair 一条，`{1:25, 2:{1:25, 2:{2:marker,
+> 502, 503}}, 35:{映射 pairs}}`）+ f6 升级为 marker 包裹 `{1:27,2:{2:marker,502,503}}`。
+> 两种形态均合法（编辑器归一化，方向 = 简单→完整；批次 4 首存未升级、批次 5-9 期间升级，
+> 触发条件待确认）。CLI 保持写新建形态。
 
 **dict marker 枚举（entry f4.f2 类型包裹的 f2 字段）**：marker 按 `(keyType, valueType)`
 枚举，不是 value 的线性函数。实测 8 对如下；标量 valueBase = 类型码、列表 valueBase 取
