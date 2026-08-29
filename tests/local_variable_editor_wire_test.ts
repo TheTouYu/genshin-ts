@@ -181,13 +181,89 @@ try {
       const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
       assert.equal(hex, EDITOR_TYPE_VALUES[t.cid], `cid ${t.cid} value must match editor bytes`)
     }
+
+    // ===== v12：Set Local Variable 六类型（get+set 对）——cid 变体 + 值字节 =====
+    // Set cid：bool=19、int=21、str=2674、entity=2675、guid=2676、float=2677、vec3=2678；
+    // 值 pin 结构与 Get 相同（同 ioc 表 + 同内层形态）
+    const SET_CID_BY_TYPE: Record<string, number> = {
+      int: 21,
+      str: 2674,
+      entity: 2675,
+      guid: 2676,
+      float: 2677,
+      vec3: 2678
+    }
+    const SET_VALUE_BY_CID: Record<number, string> = {
+      21: EDITOR_TYPE_VALUES[20],
+      2674: EDITOR_TYPE_VALUES[2656],
+      2675: EDITOR_TYPE_VALUES[2657],
+      2676: EDITOR_TYPE_VALUES[2658],
+      2677: EDITOR_TYPE_VALUES[2659],
+      2678: EDITOR_TYPE_VALUES[2660]
+    }
+    const pairIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'server',
+          mode: 'beyond',
+          sub_type: 'entity',
+          id: 1073741825,
+          name: '_GSTS_set_types'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'when_custom_variable_changes', next: [] },
+          ...TYPES.flatMap((t, i) => {
+            const gid = 2 + i * 2
+            return [
+              { id: gid, type: 'get_local_variable' as const, args: [{ type: t.irType, value: t.irValue }] },
+              {
+                id: gid + 1,
+                type: 'set_local_variable' as const,
+                args: [
+                  { type: 'conn', value: { node_id: gid, index: 0, type: 'local_variable' } },
+                  { type: t.irType, value: t.irValue }
+                ]
+              }
+            ]
+          })
+        ],
+        edges: null
+      }
+    ]
+    const irPath3 = join(tmp2, 'pair.json')
+    writeFileSync(irPath3, JSON.stringify(pairIr))
+    const giaPath3 = join(tmp2, 'pair.gia')
+    writeGiaFromIrJsonFile(irPath3, giaPath3, {}, () => {})
+    const bytes3 = new Uint8Array(readFileSync(giaPath3))
+    const root3 = rootMessage.decode(bytes3.slice(20, -4))
+    const nodes3 = root3.graph?.graph?.inner?.graph?.nodes ?? []
+    const sets3 = nodes3.filter((n) => n.genericId?.nodeId === 19)
+    assert.equal(sets3.length, TYPES.length, 'six typed Set nodes')
+    for (const t of TYPES) {
+      const cid = SET_CID_BY_TYPE[t.irType]
+      const n = sets3.find((x) => x.concreteId?.nodeId === cid)
+      assert.ok(n, `Set node with cid ${cid} must exist`)
+      const inPin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 1)
+      assert.ok(inPin?.value, `Set cid ${cid} InParam[1] value`)
+      const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
+      assert.equal(hex, SET_VALUE_BY_CID[cid], `Set cid ${cid} value must match editor bytes`)
+    }
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
   }
 
   console.log(
     JSON.stringify(
-      { getNode: true, setNodes: setNodes.length, typedTypes: TYPES.length, ok: true },
+      {
+        getNode: true,
+        setNodes: setNodes.length,
+        typedTypes: TYPES.length,
+        setTypedTypes: TYPES.length,
+        ok: true
+      },
       null,
       2
     )

@@ -289,6 +289,41 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 - 回归：`tests/local_variable_editor_wire_test.ts`（pin value hex 常量 + 身份连线 + 类型一致 +
   v11 六类型 cid/ioc 断言）。
 
+## 变量类型体系的共性与差异（三容器 + 信号，2026-08-29 汇总）
+
+### 统一类型码体系（所有容器共享同一 VarType 数字）
+
+`3=Int 4=Bool 5=Float 6=Str 1=Entity 2=GUID 12=Vec 27=Dict`；列表 = 具体类型码
+（int_list=8、bool_list=9、float_list=10、str_list=11、vec3_list=15…）；`E<1016>` = 局部变量身份。
+
+### 类型表达对照表
+
+| 维度 | 自定义变量 entry | 图变量 GraphVariable | 局部变量 Get/Set R<T> pin | 信号 ParameterFlow |
+| --- | --- | --- | --- | --- |
+| 类型码位置 | f3 + f4{1:code, 2:envelope} | f3 + VarBase.itemType{1:1,100:{type}} | pin.type + 内层 itemType{1:1,100:{type}} | type1/type2（独立字段） |
+| 值容器 | f4 的 f<类型码+10> | VarBase payload（bInt/bString/bArray…） | bConcreteValue.value 内层 payload | 不带值 |
+| 列表编码 | 原始标量 packed / str、vec3 重复 field1 | f109 逐元素独立 VarBase 记录 | 待样本 | class=ArrayBase(10002) + type1=type2=**StringList(11)**，元素类型在物理 pin |
+| entity 形态 | f13 varint（与 int 同构） | 未实样 | 内层**无 class 字段**（0 省略）+ 无 payload | class=Unknown(0) + type1=Entity(1) |
+| indexOfConcrete | 无 | 无 | **server/client 两表**（见局部变量节） | 无（在物理 pin） |
+| 身份 | 名字 f2 | 名字 f2 | **E<1016> 连线** | 名字/定义 |
+
+### 共性（三容器实证）
+
+1. 同一 VarType 数字体系 + `itemType{1:1, 100:{type}}`（图变量/局部变量/节点字面量 pin 值一致）；
+2. **默认字段省略哲学**：零值/空串/false → 空 payload；`kind=0` 省略；非默认值才显式写值；
+3. **concreteId 变体机制**：局部变量 Get/Set（18/19 + 类型 cid）、图变量 Set/Get、其他变体节点同机制；
+4. entity 在局部变量与信号中都走「class 0/省略」特例（图变量待样本）。
+
+### 差异（各自独立的规则）
+
+1. **身份**：自定义/图变量 = 名字；局部变量 = E<1016> 连线（无名字）；
+2. **alreadySetVal**：图变量元素非默认值保留 f2；局部变量内层**从不写**；自定义变量 entry 无此字段；
+3. **载荷字段号**：自定义 = f<类型码+10>；图变量/局部变量 = 按 class 的 bX 字段（bInt/bId/bString…）；
+4. **indexOfConcrete 仅局部变量**，且 server（bool=0,int=1,str=2,ety=3,gid=4,flt=5,vec=6）与
+   client（int=0,str=1,ety=2,gid=3,flt=4,vec=5,bool=6，列表 7..13，配置/元件/阵营/dict 14..20）顺序不同；
+5. **信号 ParameterFlow 最特殊**：任意 *_list 统一标记 StringList(11)+ArrayBase，元素类型不进
+   ParameterFlow（与其它容器把元素类型写进 itemType 不同）。
+
 ## 待逐步还原
 
 - 三类变量支持的参数类型。
