@@ -779,21 +779,32 @@ function verifyAssetsScope(
           if (!f4 || f4Code !== typeCode) {
             problems.push(`f4 缺失或 f4Code=${f4Code}≠typeCode`)
           } else {
-            const envOk =
-              f4EnvFields.length === 2 &&
-              f4EnvFields[0]?.wire === 0 &&
-              f4EnvFields[0]?.value === typeCode &&
-              f4EnvFields[1]?.wire === 2 &&
-              (f4EnvFields[1].value as Uint8Array).length === 0
-            if (!envOk) problems.push(`f4.f2 双层包裹异常（期望 {1:${typeCode}, 2:{}}）`)
-            if (!f4Val) problems.push(`缺 f4.f${Number(typeCode) + 10} 默认值字段`)
+            if (typeCode !== 27) {
+              // dict(27) 例外：f4.f2 是含 marker 的复杂包裹（{1:27,2:{2:marker,502,503}}，
+              // CLI 形态与 variables.md 2026-08-18/19 样本一致；v0–v16 序列无 dict 样本，
+              // fixture 未覆盖 → 只查骨架 + f37 值字段存在）
+              const envOk =
+                f4EnvFields.length === 2 &&
+                f4EnvFields[0]?.wire === 0 &&
+                f4EnvFields[0]?.value === typeCode &&
+                f4EnvFields[1]?.wire === 2 &&
+                (f4EnvFields[1].value as Uint8Array).length === 0
+              if (!envOk) problems.push(`f4.f2 双层包裹异常（期望 {1:${typeCode}, 2:{}}）`)
+            } else if (!f4Env || !f4Val) {
+              problems.push('dict 缺 f4.f2 或 f4.f37 值字段')
+            }
+            if (typeCode !== 27 && !f4Val) problems.push(`缺 f4.f${Number(typeCode) + 10} 默认值字段`)
           }
-          const f6Ok =
-            f6Fields.length === 2 &&
-            f6Code === typeCode &&
-            f6Env?.wire === 2 &&
-            (f6Env.value as Uint8Array).length === 0
-          if (!f6Ok) problems.push(`f6 类型包裹异常（期望单层 {1:${typeCode}, 2:{}}）`)
+          if (typeCode === 27) {
+            if (f6Code !== typeCode || !f6Env) problems.push('f6 类型包裹异常（dict 期望含 marker 的 {1:27,2:{…}}）')
+          } else {
+            const f6Ok =
+              f6Fields.length === 2 &&
+              f6Code === typeCode &&
+              f6Env?.wire === 2 &&
+              (f6Env.value as Uint8Array).length === 0
+            if (!f6Ok) problems.push(`f6 类型包裹异常（期望单层 {1:${typeCode}, 2:{}}）`)
+          }
           const entryHex = hexOf(v.value as Uint8Array)
           const fixture = fixtures[`${id}:${eName}`]
           let fxResult: CheckResult | undefined

@@ -309,13 +309,21 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       const v = (pin as { value?: unknown }).value
       if (!v || typeof v !== 'object') continue
       const cv = v as { class?: number; bConcreteValue?: { value?: unknown; indexOfConcrete?: number } }
-      if (cv.class !== 10000 || !cv.bConcreteValue) continue
+      const pinI1 = (pin as { i1?: { kind?: number; index?: number } }).i1
       if (gid === 169 || gid === 170) {
-        // 拼装列表元素 pin：走图变量元素规则（非默认值保留 alreadySetVal + 显式 payload，
-        // v14 样本 int 23/489 有 f2=1；默认值空 payload 无 f2）；元素 ioc vendor 已写（int=0 省略/str=1）
+        // 拼装列表：count pin 是普通 VarBase（非 ConcreteBase 包裹）——kind=0 省略
+        // （v14 样本 count pin itemType=2207…，无 10 00；2026-08-29 游戏核验矩阵抓出）
+        if (cv.class !== 10000) {
+          if (pinI1?.kind === 3 && pinI1?.index === 0) normalizeScalarEditorWire(cv)
+          continue
+        }
+        if (!cv.bConcreteValue) continue
+        // 元素 pin：走图变量元素规则（非默认值保留 alreadySetVal + 显式 payload，
+        // v14 样本 int 23/233 有 f2=1；默认值空 payload 无 f2）；元素 ioc vendor 已写（int=0 省略/str=1）
         normalizeScalarEditorWire(cv.bConcreteValue.value)
         continue
       }
+      if (cv.class !== 10000 || !cv.bConcreteValue) continue
       normalizePinInner(cv.bConcreteValue.value)
       if (gid === 18 || gid === 19) {
         const vt = (cv.bConcreteValue.value as

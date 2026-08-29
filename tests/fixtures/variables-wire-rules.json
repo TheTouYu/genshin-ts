@@ -159,9 +159,9 @@
       "entryForm": {
         "f2": "name：显式 UTF-8",
         "f3": "类型码（VarType：1=entity 2=guid 3=int 4=bool 5=float 6=str 8=int_list 9=bool_list 10=float_list 11=str_list 12=vec3 15=vec3_list 27=dict 等）",
-        "f4": "默认值消息 {1:类型码, 2:{1:类型码, 2:{}} 双层包裹, f<类型码+10>:值}",
+        "f4": "默认值消息 {1:类型码, 2:{1:类型码, 2:{}} 双层包裹, f<类型码+10>:值}；dict(27) 例外：f4.f2 为含 marker 的复杂包裹 {1:27, 2:{2:marker, 502:keyType, 503:valueType}}（CLI 形态与 variables.md 2026-08-18/19 样本一致；v0–v16 序列无 dict 样本，fixture 未覆盖，verify 只查骨架）",
         "f5": "1（恒写）",
-        "f6": "{1:类型码, 2:{}} 单层类型包裹（编辑器形态；旧实现多包一层已修）"
+        "f6": "{1:类型码, 2:{}} 单层类型包裹（编辑器形态；旧实现多包一层已修）；dict(27) 例外：f6.f2 为 marker 包裹"
       },
       "valueForms": {
         "scalar-zero": "int 0 / bool false / str '' / float 0 → f<类型码+10> = 空消息（默认值省略哲学）",
