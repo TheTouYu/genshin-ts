@@ -177,14 +177,14 @@ function buildDictValue(variable: Variable): unknown[] {
 }
 
 /**
- * 图变量值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」）：
- * - 零值/默认值 VarBase（含列表元素与顶层标量）：编辑器形态 = {class, itemType, 空 payload}，
- *   **无 alreadySetVal**（v1 样本 50×0；Str 模板 2026-08-09 同为 {f105:空}）；
- * - 非默认值 VarBase：编辑器形态 = {class, alreadySetVal=1, itemType, 显式 payload}
- *   （v4 样本末位 1234 → 102:{1:1234}）——**保留 alreadySetVal 与显式 payload**；
+ * 图变量值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1）：
+ * - 零值/默认值 VarBase（列表元素、顶层标量、空列表）：编辑器形态 = {class, itemType, 空 payload}，
+ *   **无 alreadySetVal**（v1 样本 50×0、Str 模板 8-09、v6 样本 10 变量全默认值）；
+ * - 非默认值 VarBase：{class, alreadySetVal=1, itemType, 显式 payload}（v4 末位 1234）；
+ * - **空列表**：列表层 also 省略 alreadySetVal（v6 变量_6..10：08924e 后无 1001）；
+ * - 零 vec3：payload 为 {val:{}}（v6 变量_5：da06 02 0a 00），非零分量保留显式；
  * - itemType.type_server.kind=0 一律省略。
- * 我方 vendor 编码对零值多写 alreadySetVal=1、kind=0、显式 val=0，需按上两形态归一化。
- * dict（MapBase）与 vec3（bVector）未实样，fail closed 不处理。
+ * dict（MapBase）未实样，fail closed 不处理。
  */
 function normalizeGraphVarEditorWire(val: unknown): void {
   if (!val || typeof val !== 'object') return
@@ -205,28 +205,36 @@ function normalizeGraphVarEditorWire(val: unknown): void {
       itemType?: unknown
       bInt?: { val?: number }
       bFloat?: { val?: number }
-      bEnum?: { val?: number }
+      bEnum?: { val?: number | boolean }
       bString?: { val?: string }
+      bVector?: { val?: { x?: number; y?: number; z?: number } }
     }
     stripKind(ev.itemType)
+    const vec = ev.bVector?.val
     const hasNonDefault =
       (ev.bInt && ev.bInt.val !== 0) ||
       (ev.bFloat && ev.bFloat.val !== 0) ||
-      (ev.bEnum && ev.bEnum.val !== 0) ||
-      (ev.bString && ev.bString.val !== '')
+      (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
+      (ev.bString && ev.bString.val !== '') ||
+      (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
     if (hasNonDefault) return // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
     delete ev.alreadySetVal
     if (ev.bInt) ev.bInt = {}
     else if (ev.bFloat) ev.bFloat = {}
     else if (ev.bEnum) ev.bEnum = {}
     else if (ev.bString) ev.bString = {}
+    else if (vec) ev.bVector = { val: {} } // 零 vec3 → {val:{}}（编辑器 v6 变量_5 形态）
   }
   stripKind(v.itemType)
   if (v.class === 10002 && v.bArray) {
+    if (v.bArray.entries.length === 0) {
+      // 空列表：列表层 alreadySetVal 也省略（编辑器 v6 变量_6..10）
+      delete (v as { alreadySetVal?: boolean }).alreadySetVal
+    }
     for (const e of v.bArray.entries) normalizeScalar(e)
     return
   }
-  // 顶层标量图变量（int/float/str/bool…）：与列表元素同一 VarBase 形态
+  // 顶层标量图变量（int/float/str/bool/vec3…）：与列表元素同一 VarBase 形态
   normalizeScalar(val)
 }
 

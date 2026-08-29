@@ -232,9 +232,10 @@ GraphVariable 去 exposed/structId 默认值），修复后 .gia → 注入回�
 非默认值 = {class, alreadySetVal=1, itemType, 显式 payload}。当前生产编码对 int/float/str 标量
 已归一化（bool/vec3 未实样，fail closed）。
 
-适用边界：图变量 int_list/标量（int/float/str）已字节级对齐；bool/vec3 标量、float_list/
-bool_list/str_list/vec3_list、dict 图变量、exposed=1 覆写变量未实样。原“短物化机制”问题
-是否随编码对齐消失，仍需游戏内实机验证。
+适用边界：图变量 int_list（v1/v4）、标量（str/int/float/bool/vec3 默认值，v6）、5 种空列表
+（str/int/float/bool/vec3_list，v6）已字节级对齐；**非默认值的其它类型元素**（float_list/
+bool_list/str_list/vec3_list 非零元素、dict 图变量）、exposed=1 覆写变量未实样。原“短物化
+机制”问题是否随编码对齐消失，仍需游戏内实机验证。
 
 ## 自定义变量 vs 节点图变量：结构异同（2026-08-29 两容器差分后确认）
 

@@ -178,6 +178,74 @@ const scalar7 = runScalarCase('aint7', 'int', 7, 2, true)
 const scalarStr = runScalarCase('astr', 'str', '', 5, false)
 const scalarFlt = runScalarCase('aflt', 'float', 0, 4, false)
 
+// v6 样本（2026-08-29，用户编辑器图 1 新增 10 变量全默认值；快照 var-v6-six-types.gil
+// sha 66109c04…）：str/int/float/bool/vec3 标量 + 5 种空列表，逐字节锁定
+const EDITOR_V6_HEXES: Record<string, string> = {
+  变量_1: '1208e58f98e9878f5f311806220e080522070801a206020806ca060038064006',
+  变量_2: '1208e58f98e9878f5f321803220e080222070801a206020803b2060038064006',
+  变量_3: '1208e58f98e9878f5f331805220e080422070801a206020805c2060038064006',
+  变量_4: '1208e58f98e9878f5f341804220e080622070801a206020804d2060038064006',
+  变量_5: '1208e58f98e9878f5f35180c2210080722070801a20602080cda06020a0038064006',
+  变量_6: '1208e58f98e9878f5f36180b220f08924e22070801a20602080bea060038064006',
+  变量_7: '1208e58f98e9878f5f371808220f08924e22070801a206020808ea060038064006',
+  变量_8: '1208e58f98e9878f5f38180a220f08924e22070801a20602080aea060038064006',
+  变量_9: '1208e58f98e9878f5f391809220f08924e22070801a206020809ea060038064006',
+  变量_10: '1209e58f98e9878f5f3130180f220f08924e22070801a20602080fea060038064006'
+}
+
+function runV6Case(): void {
+  const variables = [
+    { name: '变量_1', type: 'str', value: '' },
+    { name: '变量_2', type: 'int', value: 0 },
+    { name: '变量_3', type: 'float', value: 0 },
+    { name: '变量_4', type: 'bool', value: false },
+    { name: '变量_5', type: 'vec3', value: [0, 0, 0] },
+    { name: '变量_6', type: 'str_list', value: [] },
+    { name: '变量_7', type: 'int_list', value: [] },
+    { name: '变量_8', type: 'float_list', value: [] },
+    { name: '变量_9', type: 'bool_list', value: [] },
+    { name: '变量_10', type: 'vec3_list', value: [] }
+  ]
+  const ir = {
+    ir_version: 1,
+    ir_type: 'node_graph',
+    graph: {
+      type: 'server',
+      mode: 'beyond',
+      sub_type: 'entity',
+      id: 1073741825,
+      name: '_GSTS_ten_vars'
+    },
+    variables,
+    nodes: [
+      { id: 1, type: 'get_node_graph_variable', args: [{ type: 'str', value: '变量_1' }] }
+    ],
+    edges: {}
+  }
+  const tmp = mkdtempSync(join(tmpdir(), 'gsts-graph-var-v6-'))
+  try {
+    const irPath = join(tmp, 'case.json')
+    writeFileSync(irPath, JSON.stringify(ir))
+    const giaPath = join(tmp, 'case.gia')
+    writeGiaFromIrJsonFile(irPath, giaPath, {}, () => {})
+    const { rootMessage } = loadGiaProto()
+    const bytes = new Uint8Array(readFileSync(giaPath))
+    const root = rootMessage.decode(bytes.slice(20, -4))
+    const graphValues = root.graph?.graph?.inner?.graph?.graphValues
+    assert.equal(graphValues.length, variables.length, '10 graph variables')
+    const graphVarType = rootMessage.root.lookupType('GraphVariable')
+    for (const gv of graphValues) {
+      const name = gv.name
+      assert.ok(EDITOR_V6_HEXES[name], `unexpected variable ${name}`)
+      const hex = Buffer.from(graphVarType.encode(gv).finish()).toString('hex')
+      assert.equal(hex, EDITOR_V6_HEXES[name], `v6 variable ${name} must match editor bytes`)
+    }
+  } finally {
+    rmSync(tmp, { recursive: true, force: true })
+  }
+}
+runV6Case()
+
 console.log(
   JSON.stringify(
     {
@@ -187,6 +255,7 @@ console.log(
       scalarInt7: scalar7.length,
       scalarStr: scalarStr.length,
       scalarFloat0: scalarFlt.length,
+      v6TenVars: true,
       ok: true
     },
     null,
