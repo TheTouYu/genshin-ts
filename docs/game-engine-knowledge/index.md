@@ -34,6 +34,7 @@
 21. [游戏引擎知识与项目编译管线](project-pipeline.md)
 22. [验证与规则学习流程](validation-workflow.md)
 23. [素材库注入](library-injection.md)
+24. [复盘档案（按主题检索历史经验）](#复盘档案)
 
 ## 知识关系图
 
@@ -178,3 +179,43 @@ GIL 整体结构与语义树
 - **关联**：它依赖或补充本目录中的哪些规则。
 
 未知内容明确写成“待验证”，不依靠常见编号、代码实现或历史记忆猜测。
+
+## 复盘档案
+
+> 复盘文档 = 任务级错误谱系与方法论记录，是「下次同类任务前先查」的经验入口。
+> 周度总纲做跨主题合成；单主题细节回源对应复盘文档。索引入口：[周度总纲 2026-08-22~29](retrospective-weekly-2026-08-22-29.md)。
+
+- **魔方 rubik-2x2/3x3**：整体性能与预算 [08-14](retrospective-2026-08-14.md)、
+  [P0/P1](retrospective-2026-08-21-rubik-performance-p0-1.md)、[记录上限 3000f](retrospective-2026-08-22-rubik-record-limit-fixes.md)、
+  [CFOP 移植](retrospective-2026-08-23-rubik-cfop-solver-port.md)、[节点预算两次误判](retrospective-2026-08-23-rubik-runtime-node-budget.md)、
+  [面转锁死](retrospective-2026-08-24-rubik3x3-stage3-turn-lock.md)、[负载限流锚点标定](retrospective-2026-08-24-rubik-solver-load-tick.md)、
+  [eo 短列表](retrospective-2026-08-25-rubik-solver-eo-shortlist.md)、[十字收尾两 bug](retrospective-2026-08-25-rubik-cross-exec-skip.md)、
+  [负 moveId 系列](retrospective-2026-08-26-rubik-negative-moveid-series.md)、[solveBuf 残留](retrospective-2026-08-27-solvebuf-residual.md)、
+  [stage3 独立图](retrospective-2026-08-27-rubik-stage3-newgraph.md)、[独立测试台](retrospective-2026-08-27-rubik-testbench.md)、
+  [视觉根图 10-case](retrospective-2026-08-27-multiple-branches-10-case.md)、[solveSeq 竞态](retrospective-2026-08-28-solveseq-race.md)、
+  [修复引入回归](retrospective-2026-08-28-regression-fix.md)、[顶层求解+越界读](retrospective-2026-08-28-top-layer.md)、
+  [漏发 op6](retrospective-2026-08-28-op6-missing.md)、[客户端计算改造第 0 轮](retrospective-2026-08-29-rubik3x3-client-round0.md)
+- **足球**：[真实物理+运动器](retrospective-2026-08-22-football-physics-motion.md)、
+  [双触发事件链](retrospective-2026-08-23-football-motion-dual-trigger.md)、
+  [三阶段修复](retrospective-2026-08-23-football-motion-and-rolling.md)、
+  [复合重复版本拒载](retrospective-2026-08-26-football-composite-dup-version.md)、
+  [带球 8 次迭代](retrospective-2026-08-27-football-impulse-transmission.md)、
+  [传导链二次调查](retrospective-2026-08-27-football-motion-chain.md)、
+  [auto_check 定时器链](retrospective-2026-08-27-football-auto-timer-chain.md)、
+  [带球测速 buff 依赖](retrospective-2026-08-28-football-dribble-speed.md)
+- **客户端图与日志**：[客户端图读法](retrospective-2026-08-28-rubik-client-graph-reading.md)、
+  [服务端↔客户端调用链](retrospective-2026-08-28-client-server-call-chain.md)、
+  [事件线工具闭环](retrospective-2026-08-28-client-log-flow.md)、
+  [完整游玩日志技能进化](retrospective-2026-08-28-full-log-skill.md)、
+  [客户端图创建+技能配置](retrospective-2026-08-29-client-graph-skillconfig.md)
+- **信号/复合/变量/UI**：[信号参数默认值](retrospective-2026-08-16-signal-param-default.md)、
+  [信号五连错谱系](retrospective-2026-08-16-signal-registration-series.md)、
+  [悬空 exec 谱系](retrospective-2026-08-21-dangling-exec-fix.md)、
+  [Stage3 复合 pin 路由](retrospective-2026-08-23-stage3-composite-pin-routing.md)、
+  [UI CLI 扩展](retrospective-2026-08-27-ui-cli-development.md)、
+  [富版悬浮页贪心事故](retrospective-2026-08-27-rich-floating-page-greedy.md)、
+  [变量系统 M1+核验矩阵](retrospective-2026-08-29-variable-game-verify-matrix.md)
+- **静态模型/朝向**：[静态与动态预制体](retrospective-2026-08-20-static-dynamic-prefabs.md)、
+  [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
+  [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
+  [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)

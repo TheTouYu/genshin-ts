@@ -22,6 +22,8 @@ GIA/GIL 只读工具（`npx tsx tools/<file>.ts <样本>`）：
 ```bash
 npm run gia:decode / gia:inspect / gia:compare / gia:diff   # GIA 解码/检查/比较/差异
 npm run gil:parse-node-graph / gil:trace-exec / gil:trace-dataflow  # 真实 .gil 图分析
+python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> records|frames|perf|ops   # 调试日志分析（records --summary 聚合 / ops 操作时间线 / perf 每秒负载）
+python3 .agents/skills/debug-log-investigator/scripts/gia_log_flow.py <日志.gia> --gil <地图.gil> --rec N [--client] [--trace-node I]   # 事件线视图（循环折叠×N）+ 数据倒查（服务端/客户端双模式）
 npx tsx src/cli/gsts.ts variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all] [--entity <id>] [--graph <id>]  # 变量 wire 照规律表逐字节核验（tests/fixtures/variables-wire-rules.json，只读 PASS/DIFF）
 ```
 
