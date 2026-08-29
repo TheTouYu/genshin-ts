@@ -215,6 +215,19 @@ function decodeEntryValue(raw: Uint8Array): unknown {
     const branch = firstBytes(em, 15)
     return branch ? (firstFloat32(parseMessageFields(branch), 1) ?? 0) : 0
   }
+  if (code === 12) {
+    // 与 decodeValue 一致：f22 = {1: {f1:x,f2:y,f3:z}} 稀疏；兼容旧平铺
+    const branch = firstBytes(em, 22)
+    if (!branch) return [0, 0, 0]
+    const branchMsg = parseMessageFields(branch) ?? []
+    const wrapped = firstBytes(branchMsg, 1)
+    const vm = wrapped ? (parseMessageFields(wrapped) ?? []) : branchMsg
+    return [
+      firstFloat32(vm, 1) ?? 0,
+      firstFloat32(vm, 2) ?? 0,
+      firstFloat32(vm, 3) ?? 0
+    ]
+  }
   // 列表值：f<code+10> 重复元素；原始标量列表为 packed {field1 length-delimited}
   const listField = code + 10
   const listBytes = firstBytes(em, listField)
@@ -253,11 +266,14 @@ function decodeValue(code: number, entry: WireField[]): unknown {
     return b ? textOf(b) : ''
   }
   if (code === 12) {
-    // 与编码一致：f22 = {f1,f2,f3: fixed32}（可稀疏），无需再解一层 f1
+    // 编辑器形态：f22 = {1: {f1:x,f2:y,f3:z}}（分量消息包在 field1 里，稀疏）；
+    // 兼容旧 CLI 写过的平铺 {f1,f2,f3: fixed32}
+    const wrapped = firstBytes(branchMsg, 1)
+    const vm = wrapped ? (parseMessageFields(wrapped) ?? []) : branchMsg
     return [
-      firstFloat32(branchMsg, 1) ?? 0,
-      firstFloat32(branchMsg, 2) ?? 0,
-      firstFloat32(branchMsg, 3) ?? 0
+      firstFloat32(vm, 1) ?? 0,
+      firstFloat32(vm, 2) ?? 0,
+      firstFloat32(vm, 3) ?? 0
     ]
   }
   if (code === 1 || code === 2 || code === 17 || code === 20 || code === 21) return firstVarint(branchMsg, 1) ?? 0
@@ -608,16 +624,25 @@ type ScalarWireType =
   | 'int' | 'bool' | 'str' | 'float' | 'vec3'
   | 'entity' | 'guid' | 'faction' | 'config_id' | 'prefab_id'
 
+/** vec3 分量消息：编辑器形态 = {f1:x, f2:y, f3:z}，零分量省略（可稀疏），全零 = 空消息
+ *  （2026-08-29 v7 差分：新增变量6 = {1:{1:3.0}}、新增变量10 元素 (0,0,0) = {1:空}）。 */
+function vec3ComponentsWire(v: readonly number[] | undefined): Uint8Array {
+  const comps = [v?.[0] ?? 0, v?.[1] ?? 0, v?.[2] ?? 0]
+  const fields: { number: number; wire: 5; value: Uint8Array }[] = []
+  for (let i = 0; i < 3; i++) {
+    if (comps[i] !== 0) fields.push({ number: i + 1, wire: 5, value: float32Bytes(comps[i]) })
+  }
+  return emitWireMessage(fields)
+}
+
 function scalarValueWire(type: ScalarWireType, value: unknown): Uint8Array {
   if (type === 'str') return emitWireMessage([{ number: 1, wire: 2, value: utf8(String(value)) }])
   if (type === 'bool') return emitWireMessage([{ number: 1, wire: 0, value: value ? 1 : 0 }])
   if (type === 'float') return emitWireMessage([{ number: 1, wire: 5, value: float32Bytes(Number(value)) }])
   if (type === 'vec3') {
-    const v = (value as readonly number[] | undefined) ?? [0, 0, 0]
+    // 编辑器形态：f22 = {1: {f1:x,f2:y,f3:z}}（分量消息包在 field1 里，稀疏）
     return emitWireMessage([
-      { number: 1, wire: 5, value: float32Bytes(v[0] ?? 0) },
-      { number: 2, wire: 5, value: float32Bytes(v[1] ?? 0) },
-      { number: 3, wire: 5, value: float32Bytes(v[2] ?? 0) }
+      { number: 1, wire: 2, value: vec3ComponentsWire(value as readonly number[] | undefined) }
     ])
   }
   return emitWireMessage([{ number: 1, wire: 0, value: Number(value) }])
@@ -629,15 +654,11 @@ function scalarElementWire(type: ScalarWireType, value: unknown): WireField {
   if (type === 'bool') return { number: 1, wire: 0, value: value ? 1 : 0 }
   if (type === 'float') return { number: 1, wire: 5, value: float32Bytes(Number(value)) }
   if (type === 'vec3') {
-    const v = (value as readonly number[] | undefined) ?? [0, 0, 0]
+    // 编辑器形态：元素 = {1: {f1:x,f2:y,f3:z}}（分量消息包在 field1 里，稀疏）
     return {
       number: 1,
       wire: 2,
-      value: emitWireMessage([
-        { number: 1, wire: 5, value: float32Bytes(v[0] ?? 0) },
-        { number: 2, wire: 5, value: float32Bytes(v[1] ?? 0) },
-        { number: 3, wire: 5, value: float32Bytes(v[2] ?? 0) }
-      ])
+      value: vec3ComponentsWire(value as readonly number[] | undefined)
     }
   }
   return { number: 1, wire: 0, value: Number(value) }

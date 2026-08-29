@@ -134,9 +134,9 @@
 | 4 | bool | f14 | `{f1: varint 0/1}`（false 为空 field） |
 | 5 | float | f15 | `{f1: fixed32}` |
 | 6 | str | f16 | `{f1: UTF-8}` |
-| 12 | vec3 | f22 | `{f1,f2,f3: fixed32}`（可稀疏） |
+| 12 | vec3 | f22 | `{1: {f1,f2,f3: fixed32}}`——**分量消息包在 field1 里，零分量省略（稀疏），全零 = {1:空}**（2026-08-29 v7 差分修正：旧记录"平铺 {f1,f2,f3}"是错误外推；编辑器样本 新增变量6=[3,0,0] 只写 {1:{1:3.0}}） |
 | 1/2/17/20/21 | entity/guid/faction/config_id/prefab_id | f13 | varint，与 int 同构 |
-| 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 原始标量列表（guid/int/bool/float/entity/faction/config_id/prefab_id）用 packed `{field1(length-delimited), 值=元素原始字节拼接}`：int/bool/guid/faction/config_id/prefab_id→varint 拼接、float→fixed32 拼接、entity→完整 `{field1(varint)}` 拼接；str_list/vec3_list 保持重复 `field1(len){...}` |
+| 7..24（列表） | guid_list/int_list/bool_list/float_list/str_list/entity_list/vec3_list/config_id_list/prefab_id_list/faction_list | f<type+10> | 原始标量列表（guid/int/bool/float/entity/faction/config_id/prefab_id）用 packed `{field1(length-delimited), 值=元素原始字节拼接}`：int/bool/guid/faction/config_id/prefab_id→varint 拼接、float→fixed32 拼接、entity→完整 `{field1(varint)}` 拼接；str_list 重复 `field1(len){...}`；**vec3_list 重复 `field1(len){向量消息}`，向量消息 {f1,f2,f3: fixed32} 稀疏**（2026-08-29 v7 差分：元素 (0,0,0)=`{1:空}`、(7,0,0)=`{1:{1:7.0}}`） |
 | 27 | dict | f37 | parallel f501/f502 + f503/f504（新建无 Map25 层，见下） |
 
 **dict(27) f37（新建，推荐）**：`f37` = parallel `f501` keys + `f502` values + `f503`
