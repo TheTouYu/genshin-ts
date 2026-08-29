@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url'
 
 import { mergeIrJsonFilesByGraphId } from '../../src/compiler/ir_merge.js'
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
+import { createSignalRegistry } from '../../src/compiler/signal_registry.js'
 import { compileTsToGs } from '../../src/compiler/ts_to_gs_pipeline.js'
 import { loadGiaProto } from '../../src/injector/proto.js'
 import type { IRDocument } from '../../src/runtime/IR.js'
@@ -21,6 +22,76 @@ const tempRoot = path.join(root, 'tests', '.client-ts-transform-tmp')
 const outDir = path.join(tempRoot, 'out')
 const fixture = 'scripts/client-nodegraph/fixtures/client_ts_transform.ts'
 const helperFixture = 'scripts/client-nodegraph/fixtures/client_ts_transform_helpers.ts'
+
+/**
+ * 合成最小信号注册表（K-01 修复）：本脚本 fixture 使用到的客户端信号身份三元组。
+ * 仅用于编码冒烟断言（字节长度 + 解码结构检查），身份 ID 为占位值、不参与注入，
+ * 不包含真实地图注册数据。含信号节点的客户端图编码必须绑定注册表（编译器硬约束）。
+ */
+function buildFixtureSignalRegistry() {
+  return createSignalRegistry([
+    {
+      name: 'client_transform_values',
+      params: [
+        { name: 'p1', type: 'str' },
+        { name: 'p2', type: 'str' },
+        { name: 'p3', type: 'str' },
+        { name: 'p4', type: 'str' },
+        { name: 'p5', type: 'str' },
+        { name: 'p6', type: 'bool' },
+        { name: 'p7', type: 'bool' },
+        { name: 'p8', type: 'bool' }
+      ],
+      sendId: 900001,
+      monitorId: 900002,
+      serverId: 900003
+    },
+    {
+      name: 'gsts_feature_log',
+      params: [
+        { name: 'mode', type: 'str' },
+        { name: 'check', type: 'str' },
+        { name: 'actual', type: 'str' },
+        { name: 'expected', type: 'str' }
+      ],
+      sendId: 900004,
+      monitorId: 900005,
+      serverId: 900006
+    },
+    {
+      name: 'feature_probe',
+      params: [
+        { name: 'amount', type: 'int' },
+        { name: 'message', type: 'str' },
+        { name: 'enabled', type: 'bool' },
+        { name: 'targets', type: 'entity_list' }
+      ],
+      sendId: 900007,
+      monitorId: 900008,
+      serverId: 900009
+    },
+    {
+      name: 'classic_creation_character',
+      params: [{ name: 'character_id', type: 'int' }],
+      sendId: 900010,
+      monitorId: 900011,
+      serverId: 900012
+    },
+    {
+      name: 'gsts_client_flow_log',
+      params: [
+        { name: 'mode', type: 'str' },
+        { name: 'check', type: 'str' },
+        { name: 'actual', type: 'str' },
+        { name: 'expected', type: 'str' }
+      ],
+      sendId: 900013,
+      monitorId: 900014,
+      serverId: 900015
+    }
+  ])
+}
+const fixtureSignalRegistry = buildFixtureSignalRegistry()
 
 function relative(file: string) {
   return path.relative(root, file).replace(/\\/g, '/')
@@ -350,7 +421,7 @@ try {
     /CLIENT_LITERAL_REQUIRED.*notify_server_node_graph input pin #0/
   )
   documents.forEach((document, index) => {
-    const bytes = irToGia(document, { protoPath })
+    const bytes = irToGia(document, { protoPath, signalRegistry: fixtureSignalRegistry })
     assert.ok(bytes.length > 0, `${subTypes[index]}: empty GIA output`)
     const message = rootMessage.decode(bytes.slice(20, -4))
     const decoded = rootMessage.toObject(message, {
@@ -533,7 +604,7 @@ g.creationSkill({ id: ${classicCreationGraphId}, mode: 'classic' }).on('start', 
   ]) {
     assert.ok(classicIr.includes(`"type":"${nodeType}"`), `missing classic node ${nodeType}`)
   }
-  const classicBytes = irToGia(classicCreationDocument, { protoPath })
+  const classicBytes = irToGia(classicCreationDocument, { protoPath, signalRegistry: fixtureSignalRegistry })
   const classicMessage = rootMessage.decode(classicBytes.slice(20, -4))
   const classicDecoded = rootMessage.toObject(classicMessage, {
     defaults: true,
@@ -593,7 +664,10 @@ g.creationSkill({ id: ${entityHelperGraphIds.classicCreationSkill}, mode: 'class
     )
   }
   for (const document of entityHelperDocuments) {
-    assert.ok(irToGia(document, { protoPath }).length > 0, 'client entity helper GIA is empty')
+    assert.ok(
+      irToGia(document, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
+      'client entity helper GIA is empty'
+    )
   }
 
   await expectRuntimeError(
@@ -1432,15 +1506,15 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
     )
 
     assert.ok(
-      irToGia(controlFlowDocument, { protoPath }).length > 0,
+      irToGia(controlFlowDocument, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
       `${example.mode} client control-flow example GIA is empty`
     )
     assert.ok(
-      irToGia(statusDocument, { protoPath }).length > 0,
+      irToGia(statusDocument, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
       `${example.mode} control-flow status GIA is empty`
     )
     assert.ok(
-      irToGia(decisionDocument, { protoPath }).length > 0,
+      irToGia(decisionDocument, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
       `${example.mode} control-flow decision GIA is empty`
     )
   }
@@ -1495,7 +1569,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
       assert.strictEqual(document.graph.mode, example.mode)
       assert.strictEqual(document.graph.sub_type, subType)
       assert.ok(
-        irToGia(document, { protoPath }).length > 0,
+        irToGia(document, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
         `${example.mode} feature graph id=${graphId} GIA is empty`
       )
     }
@@ -1623,7 +1697,7 @@ g.characterSkill({ id: ${unoptimizedLoopGraphId} }).on('start', (_evt, f) => {
       'removeUnusedNodes=false fixture must retain an unconsumed return-gate getter'
     )
     assert.ok(
-      irToGia(unoptimizedLoopDocument, { protoPath }).length > 0,
+      irToGia(unoptimizedLoopDocument, { protoPath, signalRegistry: fixtureSignalRegistry }).length > 0,
       'unconsumed local-variable getter must infer its type from the matching setter'
     )
   } finally {
