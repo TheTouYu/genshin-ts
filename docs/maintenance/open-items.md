@@ -862,7 +862,7 @@
 - **答复（2026-08-29，portable-knowledge 92ab7d2）**：已在运行时修正——post-apply 全量跑用例但只阻塞
   affected 用例（与 preflight 同一 select 口径），不相交失败降级 `PLAN_EVALUATION_NON_BLOCKING` 告警；
   阻塞时报错附 `PLAN_POST_APPLY_TRANSACTION_STATE`（applied/not rolled back + bundle-status 指引）。
-  副本复现验证：修复前 exit 1 只报 case_id → 修复后同场景 exit 0、该用例仅告警。待下一次发布 +
-  plan-upgrade 落入本项目运行时后即关闭本项。
+  副本复现验证：修复前 exit 1 只报 case_id → 修复后同场景 exit 0、该用例仅告警。
+- **已关闭（2026-08-29）**：本项目运行时已 plan-upgrade 至 portable-knowledge `fe838a0`（含 92ab7d2 的 R10 修复，升级校验含 knowledge-check 全绿），本项残留问题随之关闭。
 - 流程沉淀：新知识合法改变检索格局时，正确杠杆顺序 = topic 元数据 → claim 标题措辞（clarify）→
   夹具更新（用户审阅精确 diff）；禁止为迁就检索删改 claim 正文语义。
