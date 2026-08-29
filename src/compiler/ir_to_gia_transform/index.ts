@@ -264,7 +264,7 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
     const t = it as { type_server?: { kind?: number } }
     if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
   }
-  const normalizePinInner = (e: unknown) => {
+  const normalizePinInner = (e: unknown, keepNonDefaultAlreadySetVal = false) => {
     if (!e || typeof e !== 'object') return
     const ev = e as {
       alreadySetVal?: boolean
@@ -277,7 +277,6 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       bId?: { val?: number }
       bVector?: { val?: { x?: number; y?: number; z?: number } }
     }
-    delete ev.alreadySetVal
     stripKind(ev.itemType)
     const vec = ev.bVector?.val
     const nonZero = (v: unknown) => v != null && Number(v) !== 0
@@ -288,7 +287,15 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       (ev.bString && ev.bString.val != null && ev.bString.val !== '') ||
       (ev.bId && nonZero(ev.bId.val)) ||
       (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z)))
-    if (hasNonDefault) return // 保留显式 payload（编辑器 true → bEnum{1:1}）
+    if (hasNonDefault) {
+      // 非默认值：显式 payload 保留；alreadySetVal 按 pin 语义——
+      // Get InParam[0]（创建锚）保留 alreadySetVal=1（2026-08-29 矩阵批次 7 实样：
+      // Get bool 默认 true → 内层 {class:6, f2:1, itemType, bEnum{1:1}}），
+      // Set InParam[1]（更新值）不写（v10 样本 true → 仅 bEnum{1:1}）
+      if (!keepNonDefaultAlreadySetVal) delete ev.alreadySetVal
+      return
+    }
+    delete ev.alreadySetVal
     if (ev.bInt) ev.bInt = {}
     else if (ev.bFloat) ev.bFloat = {}
     else if (ev.bEnum) ev.bEnum = {}
@@ -305,6 +312,26 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
     const gid = (node as { genericId?: { nodeId?: number } }).genericId?.nodeId
     const pins = (node as { pins?: unknown[] }).pins
     if (!Array.isArray(pins)) continue
+    if (gid === 18) {
+      // Get Local Variable：编辑器不落盘 OutParam[0]（E<1016> 身份输出 pin）——v10–v14 全样本
+      // 只有 InParam[0] + OutParam[1] 两个 pin；Set 的 E<1016> 连线仍引用隐式 OutParam[0]
+      // （2026-08-29 游戏核验矩阵批次 7 实样确认）
+      const idx = pins.findIndex((p) => {
+        const pn = p as { i1?: { kind?: number; index?: number } }
+        return pn.i1?.kind === 4 && pn.i1?.index === 0
+      })
+      if (idx >= 0) pins.splice(idx, 1)
+    }
+    if (gid === 18 || gid === 19 || gid === 169 || gid === 170) {
+      // pin 的 i1/i2 index=0 默认字段省略（编辑器 v10–v14 样本：i1/i2 只保留 kind；
+      // 客户端 v15 归一化已做，server 局部变量族同规则——2026-08-29 矩阵批次 7 实样确认；
+      // 其它节点族（337 等）的 index=0 显式属 O-29-03 窗口，待专项样本）
+      for (const pin of pins) {
+        const pn = pin as { i1?: { kind?: number; index?: number }; i2?: { kind?: number; index?: number } }
+        if (pn.i1 && pn.i1.index === 0) delete pn.i1.index
+        if (pn.i2 && pn.i2.index === 0) delete pn.i2.index
+      }
+    }
     for (const pin of pins) {
       const v = (pin as { value?: unknown }).value
       if (!v || typeof v !== 'object') continue
@@ -324,7 +351,8 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
         continue
       }
       if (cv.class !== 10000 || !cv.bConcreteValue) continue
-      normalizePinInner(cv.bConcreteValue.value)
+      const isGetIn0 = gid === 18 && pinI1?.kind === 3 && (pinI1?.index ?? 0) === 0
+      normalizePinInner(cv.bConcreteValue.value, isGetIn0)
       if (gid === 18 || gid === 19) {
         const vt = (cv.bConcreteValue.value as
           | { itemType?: { type_server?: { type?: number } } }
@@ -332,6 +360,27 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
         const ioc = vt !== undefined ? SERVER_LOCAL_VAR_IOC_BY_VARTYPE[vt] : undefined
         // ioc=0（bool）编辑器省略不写（v10 样本无 f1）
         if (ioc !== undefined && ioc !== 0) cv.bConcreteValue.indexOfConcrete = ioc
+      }
+      if (gid === 18 && pinI1?.kind === 4 && (pinI1?.index ?? 0) === 1) {
+        // Get OutParam[1]（读值输出）= 类型默认值锚（零值形态，与初始值无关）——
+        // 2026-08-29 矩阵批次 7 实样：Get bool 默认 true 时 OutParam[1] 仍是 false 空 payload；
+        // v11/v13 默认值样本 InParam[0]==OutParam[1]（默认锚），规则自洽
+        const inner = cv.bConcreteValue.value as {
+          bInt?: unknown
+          bFloat?: unknown
+          bEnum?: unknown
+          bString?: unknown
+          bId?: unknown
+          bVector?: { val?: unknown }
+          alreadySetVal?: boolean
+        }
+        delete inner.alreadySetVal
+        if (inner.bInt) inner.bInt = {}
+        else if (inner.bFloat) inner.bFloat = {}
+        else if (inner.bEnum) inner.bEnum = {}
+        else if (inner.bString) inner.bString = {}
+        else if (inner.bId) inner.bId = {}
+        else if (inner.bVector) inner.bVector = { val: {} }
       }
     }
   }
