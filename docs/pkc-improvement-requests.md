@@ -384,4 +384,3 @@ PLAN_TOPIC_INVALID「topic metadata is only valid when creating a new topic」�
 ### 期望
 - proposals 追加事件不计入 apply 的 authority drift 判定（或提供文档化的强制重放开关）；
 - 验收：finalize 后向 proposals 追加一行无关事件，同 bundle 重放 apply 不再因该文件报 drift。
-
