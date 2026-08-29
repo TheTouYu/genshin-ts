@@ -192,8 +192,12 @@ export const ServerEventMetadata = {
     { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
     { name: 'eventSourceGuid', typeBase: guid, typeName: 'guid', isArray: false },
     { name: 'timerName', typeBase: str, typeName: 'str', isArray: false },
-    { name: 'timerSequenceId', typeBase: int, typeName: 'int', isArray: false },
-    { name: 'numberOfLoops', typeBase: int, typeName: 'int', isArray: false }
+    // 输出 pin 顺序按引擎实际（2998 日志帧铁证）：Int 第 4 个才是定时器序列序号
+    //（OUT3 恒空、OUT4 按定时器各自计数 1,1,2,2,3,3）；vendor 来源顺序相反，
+    // 旧产物把 timerSequenceId 放 index 3，动态 init 读空（dyn=0）。来源
+    // resources/node_definitions.json 已同步换序（npm run gen 后此段保持一致）。
+    { name: 'numberOfLoops', typeBase: int, typeName: 'int', isArray: false },
+    { name: 'timerSequenceId', typeBase: int, typeName: 'int', isArray: false }
   ],
   whenGlobalTimerIsTriggered: [
     { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },

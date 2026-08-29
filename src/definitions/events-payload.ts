@@ -804,14 +804,14 @@ export type ServerEventPayloads = {
     timerName: string
     /**
      *
-     * 定时器序列序号
-     */
-    timerSequenceId: bigint
-    /**
-     *
      * 循环次数
      */
     numberOfLoops: bigint
+    /**
+     *
+     * 定时器序列序号
+     */
+    timerSequenceId: bigint
   }
   /**
    * This event is triggered when the Global Countdown Timer reaches zero; The Global Stopwatch Timer does not trigger this event
