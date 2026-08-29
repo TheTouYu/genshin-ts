@@ -119,9 +119,76 @@ const values2 = Array.from({ length: 50 }, () => 0)
 values2[49] = 1234
 const hex2 = runCase(values2, EDITOR_GRAPH_VARIABLE_HEX_LAST_1234, 'last-1234')
 
+// 标量图变量（顶层与列表元素同一 VarBase 形态，2026-08-29 由元素规则推广闭合；
+// Str 模板 2026-08-09 编辑器验证 {f105:空}）：
+// 零值/空值 → 无 kind、无 alreadySetVal、空 payload；非默认值 → alreadySetVal + 显式 payload
+function runScalarCase(
+  name: string,
+  type: 'int' | 'float' | 'str' | 'bool',
+  value: unknown,
+  expectClass: number,
+  expectNonDefault: boolean
+): string {
+  const ir = {
+    ir_version: 1,
+    ir_type: 'node_graph',
+    graph: {
+      type: 'server',
+      mode: 'beyond',
+      sub_type: 'entity',
+      id: 1073741825,
+      name: `_GSTS_scalar_${name}`
+    },
+    variables: [{ name, type, value }],
+    nodes: [
+      { id: 1, type: 'get_node_graph_variable', args: [{ type: 'str', value: name }] }
+    ],
+    edges: {}
+  }
+  const tmp = mkdtempSync(join(tmpdir(), 'gsts-graph-var-scalar-'))
+  try {
+    const irPath = join(tmp, 'case.json')
+    writeFileSync(irPath, JSON.stringify(ir))
+    const giaPath = join(tmp, 'case.gia')
+    writeGiaFromIrJsonFile(irPath, giaPath, {}, () => {})
+    const { rootMessage } = loadGiaProto()
+    const bytes = new Uint8Array(readFileSync(giaPath))
+    const root = rootMessage.decode(bytes.slice(20, -4))
+    const gv = root.graph?.graph?.inner?.graph?.graphValues?.[0]
+    assert.ok(gv, 'graph variable must exist')
+    const val = gv.values
+    assert.equal(val.class, expectClass, `${name}: class`)
+    const valJson = JSON.parse(JSON.stringify(val))
+    assert.equal('kind' in (valJson.itemType?.type_server ?? {}), false, `${name}: kind must be omitted`)
+    assert.equal(val.alreadySetVal, expectNonDefault, `${name}: alreadySetVal`)
+    const payload = JSON.parse(JSON.stringify(val.bInt ?? val.bFloat ?? val.bString ?? val.bEnum ?? {}))
+    if (expectNonDefault) {
+      assert.ok('val' in payload, `${name}: non-default payload must be explicit`)
+    } else {
+      assert.deepEqual(payload, {}, `${name}: payload must be empty`)
+    }
+    const graphVarType = rootMessage.root.lookupType('GraphVariable')
+    return Buffer.from(graphVarType.encode(gv).finish()).toString('hex')
+  } finally {
+    rmSync(tmp, { recursive: true, force: true })
+  }
+}
+const scalar0 = runScalarCase('aint0', 'int', 0, 2, false)
+const scalar7 = runScalarCase('aint7', 'int', 7, 2, true)
+const scalarStr = runScalarCase('astr', 'str', '', 5, false)
+const scalarFlt = runScalarCase('aflt', 'float', 0, 4, false)
+
 console.log(
   JSON.stringify(
-    { allZeroHexLength: hex1.length, last1234HexLength: hex2.length, ok: true },
+    {
+      allZeroHexLength: hex1.length,
+      last1234HexLength: hex2.length,
+      scalarInt0: scalar0.length,
+      scalarInt7: scalar7.length,
+      scalarStr: scalarStr.length,
+      scalarFloat0: scalarFlt.length,
+      ok: true
+    },
     null,
     2
   )

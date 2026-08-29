@@ -177,15 +177,16 @@ function buildDictValue(variable: Variable): unknown[] {
 }
 
 /**
- * 图变量列表值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」）：
- * - 零值/默认值元素：编辑器形态 = {class, itemType, 空 payload}，**无 alreadySetVal**（v1 样本 50×0）；
- * - 非默认值元素：编辑器形态 = {class, alreadySetVal=1, itemType, 显式 payload}（v4 样本
- *   末位 1234 → 102:{1:1234}）——**保留 alreadySetVal 与显式 payload**；
+ * 图变量值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」）：
+ * - 零值/默认值 VarBase（含列表元素与顶层标量）：编辑器形态 = {class, itemType, 空 payload}，
+ *   **无 alreadySetVal**（v1 样本 50×0；Str 模板 2026-08-09 同为 {f105:空}）；
+ * - 非默认值 VarBase：编辑器形态 = {class, alreadySetVal=1, itemType, 显式 payload}
+ *   （v4 样本末位 1234 → 102:{1:1234}）——**保留 alreadySetVal 与显式 payload**；
  * - itemType.type_server.kind=0 一律省略。
- * 我方 vendor 编码对零值元素多写 alreadySetVal=1、kind=0、显式 val=0，需按上两形态归一化。
- * 只归一化列表（ArrayBase=10002），dict/标量/vec3 元素暂不扩展（未实样，fail closed）。
+ * 我方 vendor 编码对零值多写 alreadySetVal=1、kind=0、显式 val=0，需按上两形态归一化。
+ * dict（MapBase）与 vec3（bVector）未实样，fail closed 不处理。
  */
-function normalizeGraphVarListEditorWire(val: unknown): void {
+function normalizeGraphVarEditorWire(val: unknown): void {
   if (!val || typeof val !== 'object') return
   const v = val as {
     class?: number
@@ -197,10 +198,8 @@ function normalizeGraphVarListEditorWire(val: unknown): void {
     const t = it as { type_server?: { kind?: number } }
     if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
   }
-  stripKind(v.itemType)
-  if (v.class !== 10002 || !v.bArray) return
-  for (const e of v.bArray.entries) {
-    if (!e || typeof e !== 'object') continue
+  const normalizeScalar = (e: unknown) => {
+    if (!e || typeof e !== 'object') return
     const ev = e as {
       alreadySetVal?: boolean
       itemType?: unknown
@@ -215,13 +214,20 @@ function normalizeGraphVarListEditorWire(val: unknown): void {
       (ev.bFloat && ev.bFloat.val !== 0) ||
       (ev.bEnum && ev.bEnum.val !== 0) ||
       (ev.bString && ev.bString.val !== '')
-    if (hasNonDefault) continue // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
+    if (hasNonDefault) return // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
     delete ev.alreadySetVal
     if (ev.bInt) ev.bInt = {}
     else if (ev.bFloat) ev.bFloat = {}
     else if (ev.bEnum) ev.bEnum = {}
     else if (ev.bString) ev.bString = {}
   }
+  stripKind(v.itemType)
+  if (v.class === 10002 && v.bArray) {
+    for (const e of v.bArray.entries) normalizeScalar(e)
+    return
+  }
+  // 顶层标量图变量（int/float/str/bool…）：与列表元素同一 VarBase 形态
+  normalizeScalar(val)
 }
 
 function applyGraphVariables(graph: GiaGraph, variables: Variable[]) {
@@ -789,7 +795,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
         // 编辑器省略默认值字段（exposed=false / structId=0 不写；keyType/valueType=6 保留）
         if (gvm.exposed === false) gvm.exposed = undefined
         if (gvm.structId === 0) gvm.structId = undefined
-        normalizeGraphVarListEditorWire(gvm.values)
+        normalizeGraphVarEditorWire(gvm.values)
       }
     }
     if (signalSource) {

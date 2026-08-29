@@ -225,10 +225,31 @@ payload、无 f2。即：
 alreadySetVal/kind、零值 payload 清空、非默认值元素保留 alreadySetVal+显式 payload、
 GraphVariable 去 exposed/structId 默认值），修复后 .gia → 注入回读的 GraphVariable 记录与
 编辑器 v1（50×0）**1668 hex**、v4（末位 1234）**1678 hex** 均逐字节一致。
-回归：`tests/graph_variable_int_list_editor_wire_test.ts`。
+回归：`tests/graph_variable_int_list_editor_wire_test.ts`（int_list 双样本 hex + 标量四形态结构断言）。
 
-适用边界：仅 int_list（编辑器单个样本）；bool/float/str/vec3 列表、非零值元素、dict 图变量、
-exposed=1 的覆写变量未实样。原“短物化机制”问题是否随编码对齐消失，仍需游戏内实机验证。
+**标量图变量**（2026-08-29 由元素规则推广，Str 模板 2026-08-09 编辑器验证）：顶层标量与
+列表元素是同一 VarBase 形态——零值/空值 = {class, itemType, 空 payload}（无 kind/alreadySetVal）；
+非默认值 = {class, alreadySetVal=1, itemType, 显式 payload}。当前生产编码对 int/float/str 标量
+已归一化（bool/vec3 未实样，fail closed）。
+
+适用边界：图变量 int_list/标量（int/float/str）已字节级对齐；bool/vec3 标量、float_list/
+bool_list/str_list/vec3_list、dict 图变量、exposed=1 覆写变量未实样。原“短物化机制”问题
+是否随编码对齐消失，仍需游戏内实机验证。
+
+## 自定义变量 vs 节点图变量：结构异同（2026-08-29 两容器差分后确认）
+
+| 维度 | 自定义变量（root4/root5 组件槽 f8/f7 内 `…11` 容器） | 节点图变量（NodeGraph 消息 f6 `graphValues`） |
+| --- | --- | --- |
+| entry 骨架 | `{f2名, f3类型码, f4默认值, f5=1, f6类型包裹}` | `{f2名, f3类型码, f4=VarBase, f7=keyType, f8=valueType}`（无 f5/f6 语义） |
+| 值编码 | f4 = `{1:code, 2:{1:code,2:{}}双层, f<code+10>:值}` | f4 = VarBase `{class, itemType{1:1,100:{类型}}, bArray/bInt/bString…}` |
+| 列表编码 | 原始标量列表 packed；str/vec3 列表重复 `field1(len){…}` | f109 下每元素一条独立 VarBase（元素=标量 VarBase 形态） |
+| 默认字段省略 | exposed/structId 无此概念；f5=1 恒写 | exposed=false/structId=0 省略；元素 kind=0/alreadySetVal 按值省略 |
+| 类型码 | 统一 VarType（int=3、str=6、str_list=11…） | 同一 VarType 枚举 |
+| 生命周期/作用域 | 跟实体，全局可读写 | 跟图，图内私有（可暴露覆写） |
+| 我方闭合度 | 21 类型全闭合（含 dict marker） | int_list（v1/v4）+ int/float/str 标量 + Str 模板；其余待样本 |
+
+**共同编码哲学**：列表长度 = 元素记录条数；默认值元素空 payload；默认字段省略（kind=0、
+alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规范化掉（v3 实证）。
 
 ## 待逐步还原
 
