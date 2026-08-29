@@ -304,6 +304,13 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 > sha 8c6370c6…）；**21 类型全部闭合**——10 类型编辑器字节级实证，其余 11 类型经项目表
 > （LOCAL_VAR_IOC_BY_IR + CLIENT_VAR_TYPE_BY_IR_TYPE，client_graph.ts/client_nodes.ts）交叉核对
 > 命中 10/10 采样后宣布闭合（Get+Set 同构）。
+>
+> **dict 转 verified（2026-08-29 游戏核验矩阵批次 9 双实样）**：地图 1073741915 客户端图新建
+> dict 局部变量（先 entity→entity 默认，后改 int→entity），值 pin 与管线逐字节一致——容器
+> 元数据语义证实：`containerBinding.mode/kind` 与 `structs.mapPair.key/value` = key/value 的
+> **clientVarType**（int→entity 实样 = mode:3/kind:1/key:3/value:1；entity→entity = 全 1）；
+> `containerBinding.keyType/valueType`（1/2）与 `mapPair.keyClientType/valueClientType`（1/1）
+> 固定。此前标 inferred（设计文档风险节），现转 verified。
 
 客户端局部变量与 server **完全不同**：
 - **按名字访问**（无 E<1016> 身份连线）：名字 pin（InParam[0]，type=9）=

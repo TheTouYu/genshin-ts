@@ -818,7 +818,8 @@
           "guid",
           "str_list",
           "vec3_list",
-          "float_list"
+          "float_list",
+          "dict"
         ],
         "cross-checked": [
           "int_list",
@@ -832,10 +833,8 @@
           "prefab_id_list",
           "faction_list"
         ],
-        "inferred": [
-          "dict"
-        ],
-        "note": "verified=v16 编辑器样本；cross-checked=v16b 项目表交叉核对（采样 10/10 命中）；inferred=设计文档风险节：client dict 值 pin（MapBase 形式）无编辑器样本"
+        "inferred": [],
+        "note": "verified=v16 编辑器样本 + 矩阵批次 9 dict 双实样（entity→entity/int→entity）；cross-checked=v16b 项目表交叉核对（采样 10/10 命中）"
       },
       "namePinForm": {
         "type": 9,
@@ -937,6 +936,15 @@
             "v16"
           ],
           "note": "ioc=11"
+        },
+        "gsts_d3": {
+          "irType": "dict",
+          "namePinHex": null,
+          "valuePinHex": "08904e1001f206370814121c08934e22140802aa060f10181802aa060808031001200128028207002a152001a206100a0e08934eb206080803100120012801",
+          "samples": [
+            "matrix-b9"
+          ],
+          "note": "client dict int→entity 值 pin（容器元数据 mode=3/kind=1/key=3/value=1）"
         }
       }
     }
