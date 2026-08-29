@@ -9,6 +9,7 @@ export const DEFAULT_GRAPH_TYPE_VALUES = new Map<number, number>([
   [20004, 2400],
   [20005, 4300],
   [20006, 6300],
+  [20007, 6600],
   [20008, 6700],
   [20009, 6800],
   [20010, 7400]
