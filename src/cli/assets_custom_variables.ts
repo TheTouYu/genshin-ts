@@ -166,6 +166,14 @@ function parseListItems(raw: string): string[] {
     .filter((s) => s !== '')
 }
 
+/** str_list 专用：空字符串是编辑器合法元素（2026-08-29 差分），保留空元素只做 trim */
+function parseStrListItems(raw: string): string[] {
+  return raw
+    .replace(/^\[(.*)\]$/, '$1')
+    .split(',')
+    .map((s) => s.trim())
+}
+
 function inferScalar(raw: string): { type: 'int' | 'bool' | 'float' | 'str'; value: boolean | bigint | number | string } {
   if (raw === 'true' || raw === 'false') return { type: 'bool', value: raw === 'true' }
   if (/^-?\d+$/.test(raw)) return { type: 'int', value: BigInt(raw) }
@@ -181,7 +189,7 @@ function inferList(raw: string): { type: 'int_list' | 'float_list' | 'str_list';
   if (items.length > 0 && items.every((s) => /^-?\d+(\.\d+)?$/.test(s))) {
     return { type: 'float_list', value: items.map((s) => Number(s)) }
   }
-  return { type: 'str_list', value: items }
+  return { type: 'str_list', value: parseStrListItems(raw) }
 }
 
 function parseTypedValue(type: UiVarType, raw: string): CustomVariableInitialValue {
@@ -200,7 +208,7 @@ function parseTypedValue(type: UiVarType, raw: string): CustomVariableInitialVal
   if (type === 'bool_list') {
     return parseListItems(raw).map((s) => s === 'true' || s === '1')
   }
-  if (type === 'str_list') return parseListItems(raw)
+  if (type === 'str_list') return parseStrListItems(raw)
   if (type === 'vec3_list') {
     return raw
       .split('|')
@@ -255,7 +263,7 @@ function parseDictValue(raw: string): UiDictPair[] {
       } else if (floats) {
         pairs.push({ key, keyType, value: items.map((s) => Number(s)), valueType: 'float_list' })
       } else {
-        pairs.push({ key, keyType, value: items, valueType: 'str_list' })
+        pairs.push({ key, keyType, value: parseStrListItems(value), valueType: 'str_list' })
       }
     } else if (/^-?\d+$/.test(value)) {
       pairs.push({ key, keyType, value: Number(value), valueType: 'int' })

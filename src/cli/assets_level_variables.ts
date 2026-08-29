@@ -174,7 +174,8 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
   return backup
 }
 
-function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
+/** @internal 导出供回归测试（tests/level_variable_str_list_empty_test.ts） */
+export function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
   if (raw === undefined) return undefined
   if (type === 'int' || type === 'float' || type === 'entity' || type === 'guid' || type === 'faction' || type === 'config_id' || type === 'prefab_id')
     return Number(raw)
@@ -188,7 +189,9 @@ function parseCreateValue(type: UiVarType, raw: string | undefined): unknown {
       .filter((s) => s !== '')
       .map((s) => (type === 'bool_list' ? s === 'true' || s === '1' : Number(s)))
       .filter((v) => typeof v === 'boolean' || Number.isFinite(v))
-  if (type === 'str_list') return raw.split(',').map((s) => s.trim()).filter((s) => s !== '')
+  // 空字符串是编辑器合法元素（默认值形态，2026-08-29 差分：关卡实体 str_list 长度 5 = 5 个空串）：
+  // 保留空元素只做 trim——",,,," 即 5 个空串元素，不能过滤掉
+  if (type === 'str_list') return raw.split(',').map((s) => s.trim())
   if (type === 'vec3_list')
     return raw
       .split('|')

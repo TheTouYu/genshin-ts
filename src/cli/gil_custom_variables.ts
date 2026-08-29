@@ -487,6 +487,7 @@ function codeForType(type: CustomVariableUpdate['type']): number {
 }
 
 function encodeTypedValueEnvelope(typeCode: number): Buffer {
+  // f4 默认值消息的类型包裹 = 双层 {f1:类型码, f2:{f1:类型码, f2:{}}}（与编辑器样本一致）
   return Buffer.concat([
     encodeVarintField(1, typeCode),
     encodeLengthField(
@@ -494,6 +495,11 @@ function encodeTypedValueEnvelope(typeCode: number): Buffer {
       Buffer.concat([encodeVarintField(1, typeCode), encodeLengthField(2, Buffer.alloc(0))])
     )
   ])
+}
+
+/** f6 类型包裹 = 单层 {f1:类型码, f2:{}}（2026-08-29 差分：编辑器样本 32 04 08 0b 12 00） */
+function encodeTypeEnvelopeSingle(typeCode: number): Buffer {
+  return Buffer.concat([encodeVarintField(1, typeCode), encodeLengthField(2, Buffer.alloc(0))])
 }
 
 function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831): Buffer {
@@ -521,7 +527,11 @@ function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831)
     encodeVarintField(3, typeCode),
     encodeLengthField(4, typePayload),
     encodeVarintField(5, 1),
-    encodeLengthField(6, envelope)
+    // f6 = 单层类型包裹（dict 走带 marker 的 buildDictTypeEnvelope，非 dict 用单层 {1:code, 2:{}}）
+    encodeLengthField(
+      6,
+      update.type === 'dict' ? envelope : encodeTypeEnvelopeSingle(typeCode)
+    )
   ])
 }
 
