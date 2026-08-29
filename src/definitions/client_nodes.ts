@@ -111,7 +111,7 @@ import type {
   UnitStatusRemovalReason,
   UnitStatusRemovalStrategy
 } from './enum.js'
-import { matchTypes, parseValue, type DataTypeConversionMap } from './nodes.js'
+import { matchTypes, parseValue, type DataTypeConversionMap, type LocalVariable } from './nodes.js'
 
 /** supported conversion pairs; IR encodes data_type_conversion_<out> like the server */
 const DATA_TYPE_CONVERSIONS = new Set([
@@ -145,6 +145,7 @@ class ClientExecutionFlowFunctionsBase<
   Mode extends ClientGraphMode
 > {
   private localVariableCounter = 0
+  private localVariableNames = new Set<string>()
   private returnGate?: { localVariable: string; value: boolean }
 
   constructor(protected registry: ExecutionFlowRegistry) {}
@@ -152,9 +153,16 @@ class ClientExecutionFlowFunctionsBase<
   /** Compiler-only helper. Client local-variable nodes identify state by a string name. */
   __gstsInitLocalVariable<T extends ClientLocalVariableType>(
     type: T,
-    initialValue?: RuntimeParameterValueTypeMap[T]
+    initialValue?: RuntimeParameterValueTypeMap[T],
+    name?: string
   ): { localVariable: string; value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T] } {
-    const localVariable = '__gsts_local_' + type + '_' + ++this.localVariableCounter
+    const localVariable = name ?? '__gsts_local_' + type + '_' + ++this.localVariableCounter
+    if (this.localVariableNames.has(localVariable)) {
+      throw new Error(
+        `[error] client local variable name "${localVariable}" is used more than once (D2 S8: name conflict)`
+      )
+    }
+    this.localVariableNames.add(localVariable)
     const variableNameObj = parseValue(localVariable, 'str')
     const ref = this.registry.registerNode({
       id: 0,
@@ -180,6 +188,154 @@ class ClientExecutionFlowFunctionsBase<
       setLocalVariable.call(this, localVariable, initialValue)
     }
     return { localVariable, value }
+  }
+
+  /**
+   * @gsts
+   *
+   * Object-style client local variable API (D2, 2026-08-29): returns a `LocalVariable<T>` handle.
+   * `opts.name` sets an explicit variable name (default `__gsts_local_<type>_<n>`);
+   * duplicate explicit names are a compile error (S8). `dict` declares key/value types only
+   * (empty map; container metadata is verified — matrix batch 9).
+   *
+   * 对象式客户端局部变量 API：`const lv = f.localVariable('int', 0n, { name: 'score' })`；
+   * `lv.set(v)` 编译同名 Set + ClientExec；`lv.value` 是 Get 值 pin 读值锚。dict 只声明键值类型
+   * （空 map，容器元数据已实证——矩阵批次 9）。
+   */
+  localVariable(
+    type: 'bool',
+    init?: BoolValue,
+    opts?: { name?: string }
+  ): LocalVariable<boolean>
+  localVariable(type: 'int', init?: IntValue, opts?: { name?: string }): LocalVariable<bigint>
+  localVariable(type: 'float', init?: FloatValue, opts?: { name?: string }): LocalVariable<number>
+  localVariable(type: 'str', init?: StrValue, opts?: { name?: string }): LocalVariable<string>
+  localVariable(type: 'vec3', init?: Vec3Value, opts?: { name?: string }): LocalVariable<vec3>
+  localVariable(type: 'guid', init?: GuidValue, opts?: { name?: string }): LocalVariable<guid>
+  localVariable(type: 'entity', init?: EntityValue, opts?: { name?: string }): LocalVariable<entity>
+  localVariable(
+    type: 'prefab_id',
+    init?: PrefabIdValue,
+    opts?: { name?: string }
+  ): LocalVariable<prefabId>
+  localVariable(
+    type: 'config_id',
+    init?: ConfigIdValue,
+    opts?: { name?: string }
+  ): LocalVariable<configId>
+  localVariable(type: 'faction', init?: FactionValue, opts?: { name?: string }): LocalVariable<faction>
+  localVariable(
+    type: 'bool_list',
+    init?: BoolValue[],
+    opts?: { name?: string }
+  ): LocalVariable<boolean[]>
+  localVariable(
+    type: 'int_list',
+    init?: IntValue[],
+    opts?: { name?: string }
+  ): LocalVariable<bigint[]>
+  localVariable(
+    type: 'float_list',
+    init?: FloatValue[],
+    opts?: { name?: string }
+  ): LocalVariable<number[]>
+  localVariable(
+    type: 'str_list',
+    init?: StrValue[],
+    opts?: { name?: string }
+  ): LocalVariable<string[]>
+  localVariable(
+    type: 'vec3_list',
+    init?: Vec3Value[],
+    opts?: { name?: string }
+  ): LocalVariable<vec3[]>
+  localVariable(
+    type: 'guid_list',
+    init?: GuidValue[],
+    opts?: { name?: string }
+  ): LocalVariable<guid[]>
+  localVariable(
+    type: 'entity_list',
+    init?: EntityValue[],
+    opts?: { name?: string }
+  ): LocalVariable<entity[]>
+  localVariable(
+    type: 'prefab_id_list',
+    init?: PrefabIdValue[],
+    opts?: { name?: string }
+  ): LocalVariable<prefabId[]>
+  localVariable(
+    type: 'config_id_list',
+    init?: ConfigIdValue[],
+    opts?: { name?: string }
+  ): LocalVariable<configId[]>
+  localVariable(
+    type: 'faction_list',
+    init?: FactionValue[],
+    opts?: { name?: string }
+  ): LocalVariable<faction[]>
+  localVariable<K extends DictKeyType, V extends DictValueType>(
+    type: 'dict',
+    dictType: { k: K; v: V },
+    opts?: { name?: string }
+  ): LocalVariable<dict<K, V>>
+  localVariable<T extends ClientLocalVariableType>(
+    type: T,
+    init?: RuntimeParameterValueTypeMap[T],
+    opts?: { name?: string }
+  ): LocalVariable<ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]> {
+    if ((type as string) === 'dict') {
+      // dict：只声明键值类型（空 map；容器元数据 = 键值 clientVarType，矩阵批次 9 实证）
+      const dictType = init as unknown as { k: DictKeyType; v: DictValueType }
+      const name = opts?.name ?? '__gsts_local_dict_' + ++this.localVariableCounter
+      if (this.localVariableNames.has(name)) {
+        throw new Error(
+          `[error] client local variable name "${name}" is used more than once (D2 S8: name conflict)`
+        )
+      }
+      this.localVariableNames.add(name)
+      const variableNameObj = parseValue(name, 'str')
+      const ref = this.registry.registerNode({
+        id: 0,
+        type: 'data',
+        nodeType: 'get_local_variable',
+        args: [
+          variableNameObj,
+          // dict 声明锚：dict 实例 toIRLiteral → {type:'dict', value:null, dict:{k,v}}
+          // （client_graph.ts inferredOutputTypeInfo 读 args[1] 回退定型）
+          new dict(dictType.k, dictType.v)
+        ]
+      })
+      const genericValue = new generic()
+      genericValue.markPin(ref, 'variableValue', 0)
+      const value = genericValue.asDict(dictType.k, dictType.v)
+      const owner = this as unknown as {
+        setLocalVariable(variableName: StrValue, variableValue: unknown): void
+      }
+      const result: LocalVariable<dict<DictKeyType, DictValueType>> = {
+        localVariable: name,
+        value,
+        set(v: dict<DictKeyType, DictValueType>) {
+          owner.setLocalVariable(name, v)
+        }
+      }
+      return result as unknown as LocalVariable<ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]>
+    }
+    const { localVariable, value } = this.__gstsInitLocalVariable(
+      type,
+      init as never,
+      opts?.name
+    )
+    const owner = this as unknown as {
+      setLocalVariable(variableName: StrValue, variableValue: unknown): void
+    }
+    return {
+      localVariable,
+      value,
+      set(v: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]) {
+        owner.setLocalVariable(localVariable, v)
+      }
+    } as LocalVariable<ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]>
   }
 
   /**

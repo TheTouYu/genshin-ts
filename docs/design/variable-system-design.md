@@ -1,7 +1,8 @@
 # 变量系统 DSL/CLI 设计（P3）
 
-> 状态：M1 已落地（2026-08-29 实施完成：C4 规律表 + C1 variables:verify + L1 双锁一致性测试；
-> M2–M4 待实施）｜ 依据：已闭合规律（证据分层见 `docs/game-engine-knowledge/variables.md`
+> 状态：M1 已落地（2026-08-29：C4 规律表 + C1 variables:verify + L1 双锁一致性测试）；
+> M2 已落地（2026-08-29：D3 常量折叠 + D2 对象式 API 全量落地，本任务）；M3–M4 待实施
+> ｜ 依据：已闭合规律（证据分层见 `docs/game-engine-knowledge/variables.md`
 > 与 `~/genshin-ts-evidence/variable-system/notes/manifest.md` v0–v16b，每条均有样本 sha + 字节级比对）
 > ｜ 日期：2026-08-29
 
@@ -72,6 +73,15 @@ CLI
 - **验收**：同一实体用 config 声明与用 --from-json 声明产出**逐字节相同** entry。
 
 ### D2 局部变量 API 定型（server/client 双面，2026-08-29 矩阵实证后修订）
+
+> ✅ **已落地（2026-08-29 本任务）**：`f.localVariable(type, init?, opts?)` 21+dict 重载 +
+> `LocalVariable<T>` 对象式句柄（`.set/.value`）在 server（`src/definitions/nodes.ts`）与
+> client（`src/definitions/client_nodes.ts`）双端实现；`initLocalVariable`/`setLocalVariable`
+> 别名保留（返回形状 `{localVariable, value}` 不变，存量调用零破坏）；server opts.name 告警
+> 并忽略、client opts.name 生效 + 重名编译错误（S8）；server dict 局部变量 fail-closed 报错
+> （ioc=20 推断段）、client dict 只声明空 map（声明锚 args[1] 携带容器元数据，批次 9 实证）。
+> 回归：`tests/local_variable_d2_api_test.ts` + `tests/local_variable_list_literal_test.ts`。
+> 类型错误（set 传错类型）由 TS 泛型编译期拦截（验证：`lv.set('wrong')` → TS2345）。
 
 #### 设计目标
 
@@ -236,30 +246,42 @@ Stage 3（IR→GIA）：现有编码器 + 本会话已修的编辑器形态归�
 
 1. 同一段玩法代码（不涉及 client 特有节点）可编译 server 与 client 双端，字节分别与
    矩阵批次 7/8/9 实样逐字节一致（Get bool true alreadySetVal + OutParam[1] 默认锚 +
-   E<1016> 隐式 + dict 元数据 + i1/i2 省略）。
-2. 常量 init 折叠（M2）后：Get 节点与编辑器实样一致，动态 init 回归不漂移。
-3. 现有 `initLocalVariable`/`setLocalVariable` 测试与存量代码全绿（别名兼容）。
-4. dict 非空 map / server dict 局部变量 = 编译期报错或待样本标记（fail closed）。
-5. 类型错误（set 传错类型、跨回调引用 lv）编译期拦截。
+   E<1016> 隐式 + dict 元数据 + i1/i2 省略）。✅ 已达成（折叠后 Get bool true hex 与批次 7
+   实样一致；client dict 容器元数据 mode/kind + mapPair.key/value = clientVarType 实证）
+2. 常量 init 折叠（M2）后：Get 节点与编辑器实样一致，动态 init 回归不漂移。✅ 已达成
+   （Get int 42 折叠 + alreadySetVal + OutParam[1] 默认锚逐字节一致；动态 get+set 回归零漂移）
+3. 现有 `initLocalVariable`/`setLocalVariable` 测试与存量代码全绿（别名兼容）。✅ 已达成
+   （返回形状 `{localVariable, value}` 不变；三个 wire 回归 + client smokes + 批量编译 67 GIA 全过）
+4. dict 非空 map / server dict 局部变量 = 编译期报错或待样本标记（fail closed）。✅ 已达成
+   （server dict 抛错；client dict 只声明空 map，非空 map 元素 wire 仍待样本，未开放）
+5. 类型错误（set 传错类型、跨回调引用 lv）编译期拦截。✅ 已达成（TS 泛型拦截：
+   `lv.set('wrong')` → TS2345 实测；跨回调引用为 DSL 作用域约束，文档已声明）
 
 **边界与错误处理**
 
-| 场景 | 行为 |
-| --- | --- |
-| server 图传 opts.name | 编译告警并忽略（server 局部变量 wire 无名） |
-| client 图两个 lv 同名 | 编译错误（名字冲突） |
-| 跨 .on 回调引用 lv | 编译错误（生命周期=单次触发；跨触发用图/实体变量） |
-| dict 非空元素 init | 编译错误（fail closed，待元素 wire 样本） |
-| server dict 局部变量 | 编译错误或 inferred 标注（server ioc=20 推断段） |
-| set 类型与 T 不符 | TS 泛型编译期拦截 |
+| 场景 | 行为 | 状态 |
+| --- | --- | --- |
+| server 图传 opts.name | 编译告警并忽略（server 局部变量 wire 无名） | ✅ 运行时告警实测 |
+| client 图两个 lv 同名 | 编译错误（名字冲突） | ✅ 运行时抛错实测（S8） |
+| 跨 .on 回调引用 lv | 编译错误（生命周期=单次触发；跨触发用图/实体变量） | 文档声明（DSL 作用域） |
+| dict 非空元素 init | 编译错误（fail closed，待元素 wire 样本） | ✅ client dict 仅开放空 map 声明 |
+| server dict 局部变量 | 编译错误或 inferred 标注（server ioc=20 推断段） | ✅ 编译错误（fail closed） |
+| set 类型与 T 不符 | TS 泛型编译期拦截 | ✅ TS2345 实测 |
 
 ### D3 局部变量常量 init 折叠（F10 落地）
+
+> ✅ **已落地（2026-08-29 本任务，M2）**：`initLocalVariable` 运行时对字面量 init
+> （value 实例 metadata.kind==='literal'）直接作为 Get InParam[0] 初始值（省 1 个 Set）；
+> 动态 init 保持 get(empty)+set(init)（防重复求值语义不变）。折叠后 Get bool true 内层
+> 保留 alreadySetVal（批次 7 实样）+ OutParam[1] 类型默认锚，与编辑器实样逐字节一致。
+> 回归：`tests/local_variable_list_literal_test.ts` Part D。
 
 - **现状**：`initLocalVariable(type, 常量)` 编译为 `get(empty)+set(init)`——编辑器形态是
   常量直接放 Get 的 R<T> pin（v10 实证）。
 - **设计**：Stage-1/3 对**编译期可求值字面量** init 折叠为 Get 初始值（省 1 个 Set 节点）；
   动态值保持 get+set 模式（防重复求值，definitions 注释）。
-- **验收**：折叠后 Get 节点与 v10 编辑器样本逐字节一致；动态 init 回归不漂移。
+- **验收**：折叠后 Get 节点与 v10 编辑器样本逐字节一致；动态 init 回归不漂移。✅ 已达成
+  （Get int 42 常量折叠 hex 与批次 7 形态一致；动态 init get+set 回归零漂移）。
 
 ### D4 图变量声明保持全自动
 
@@ -330,7 +352,10 @@ Stage 3（IR→GIA）：现有编码器 + 本会话已修的编辑器形态归�
     （clientVarType 9→10）→ DIFF 报出（类型码 + 字节偏移 22）。
   - 实施中的证据修正（以样本字节为准）：v14 拼装列表元素 4 实际为 233（08e901）非 manifest 旧记 489；
     拼装列表 OutParam 的 ConcreteBase ioc = 元素类型 ioc（int=0/str=1）而非列表 ioc（manifest 旧记有误）。
-- **M2（P1）**：D3 常量 init 折叠。验收：v10 样本字节一致 + 预算对比（省节点数）。
+- **M2（P1）✅ 已落地（2026-08-29 本任务）**：D3 常量 init 折叠 + D2 对象式 API 全量
+  （server/client 21+dict 重载 + LocalVariable<T> + 别名兼容 + 列表字面量静默面修复 O-29-07）。
+  验收：折叠后 Get 与编辑器实样逐字节一致（批次 7 形态）+ 动态 init 回归不漂移 +
+  三个 wire 回归 + 17 样本 verify 全 0 DIFF + 存量代码零破坏（批量编译 67 GIA 全过）。
 - **M3（P1）**：D1 声明清单（--from-json）。验收：与 config 声明字节等价。
 - **M4（P2）**：C2 组合命令 + C3 语义目标 + D2 显式名字。验收：等价性 + 文档。
 

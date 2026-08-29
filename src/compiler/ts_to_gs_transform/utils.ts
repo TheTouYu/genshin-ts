@@ -30,6 +30,10 @@ export function isClientFMethodAvailable(env: Env, method: string): boolean {
   if (method === 'initLocalVariable' || method === '__gstsInitLocalVariable') {
     return methods.has('getLocalVariable') && methods.has('setLocalVariable')
   }
+  if (method === 'localVariable') {
+    // D2 对象式 API：依赖 client get/set 局部变量能力
+    return methods.has('getLocalVariable') && methods.has('setLocalVariable')
+  }
   if (method === 'emptyLocalVariableList') {
     return methods.has('getLocalVariable') && methods.has('setLocalVariable')
   }

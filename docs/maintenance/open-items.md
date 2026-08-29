@@ -93,13 +93,17 @@
 - 影响：仅注入后首存产生一次性字节漂移（编辑器簿记），无功能影响；但可让生产编码直接对齐编辑器形态。
 - 何时做：低优先；下次改节点引用编码（nodeRefWire/pin index）窗口顺手归一化 + 样本回归。
 
-### O-2026-08-29-04 局部变量常量 init 的节点数优化（F10 候选）
+### O-2026-08-29-04 局部变量常量 init 的节点数优化（F10 候选）【已闭合 2026-08-29 本任务】
 
 - 证据（2026-08-29 v10 差分）：编辑器把常量初始值直接放在 Get Local Variable 的 R<T> pin 上
   （Get 节点自带 Default(0)）；我方编译器 initLocalVariable(type, init) 编译为 get(empty)+set(init)，
   常量 init 会多一个 Set 节点（定义注释：该模式是为动态 init 防重复求值）。
-- 候选：常量 init（编译期可求值的字面量）直接写 Get 的 R<T> pin，动态 init 保持 get+set 模式。
-- 何时做：预算敏感玩法需要时（每常量 init 省 1 节点）；需先加字节级回归（v10 样本作锚）。
+- 落地（M2）：`src/definitions/nodes.ts` `initLocalVariable` 运行时对字面量 init（value 实例
+  metadata.kind==='literal'）直接作为 Get InParam[0] 初始值（每常量 init 省 1 个 Set 节点）；
+  动态 init（pin ref/复合输出）保持 get+set 防重复求值。折叠后 Get bool true 内层保留
+  alreadySetVal + OutParam[1] 类型默认锚，与批次 7 编辑器实样逐字节一致。
+- 回归：`tests/local_variable_list_literal_test.ts` Part D（Get 直带值 + 动态不漂移 + GIA hex）；
+  三个 wire 回归 + 17 样本 verify 全 0 DIFF；批量编译 67 GIA 全过。
 
 ### O-2026-08-29-02 dict int key CLI 缺口【已闭合 2026-08-29 goal 第 1 轮】
 

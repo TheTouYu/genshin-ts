@@ -197,6 +197,11 @@ function inferredOutputTypeInfo(
     }
   }
   if (irNode.type === 'get_local_variable') {
+    // D2 dict 声明锚：localVariable('dict', {k,v}) 只声明无消费方时，args[1] 携带
+    // {type:'dict', dict:{k,v}} 元数据（client 容器元数据 = 键值 clientVarType，批次 9 实证）
+    const declArg = irNode.args?.[1]
+    const declInfo = irTypeInfoOfArg(declArg)
+    if (declInfo) return declInfo
     const nameArg = irNode.args?.[0]
     if (isValueArg(nameArg) && nameArg.type === 'str') {
       return localVariableTypes.get(String(nameArg.value))

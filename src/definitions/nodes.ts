@@ -150,6 +150,42 @@ export type {
   StageEntity
 } from './entity_helpers.js'
 
+/** 局部变量支持的 20 种类型（7 标量 + 4 ID + 10 列表；dict 走专用 fail-closed 分支，D2） */
+export type LocalVariableType =
+  | 'bool'
+  | 'config_id'
+  | 'entity'
+  | 'faction'
+  | 'float'
+  | 'guid'
+  | 'int'
+  | 'prefab_id'
+  | 'str'
+  | 'vec3'
+  | 'bool_list'
+  | 'config_id_list'
+  | 'entity_list'
+  | 'faction_list'
+  | 'float_list'
+  | 'guid_list'
+  | 'int_list'
+  | 'prefab_id_list'
+  | 'str_list'
+  | 'vec3_list'
+
+/**
+ * 对象式局部变量句柄（D2，2026-08-29）：
+ * - `.set(value)` 编译 Set Local Variable（server：E<1016> 身份连线；client：同名 Set + ClientExec）
+ * - `.value` = Get 的读值锚（数据流引用；静态数据流下"当前值"即该锚）
+ * - `.localVariable` 内部身份（server = localVariable 实例、client = 名字字符串）；保留字段以便
+ *   与旧 `{ localVariable, value }` 返回形状解构/属性访问兼容（initLocalVariable 别名兼容）。
+ */
+export interface LocalVariable<T> {
+  readonly localVariable: localVariable | string
+  readonly value: T
+  set(value: T): void
+}
+
 export function parseValue(v: any, type: 'bool'): bool
 export function parseValue(v: any, type: 'int'): int
 export function parseValue(v: any, type: 'float'): float
@@ -2558,6 +2594,115 @@ export class ServerExecutionFlowFunctions {
         return ret as unknown as RuntimeReturnValueTypeMap[T]
       })()
     }
+  }
+
+  /**
+   * @gsts
+   *
+   * Object-style local variable API (D2, 2026-08-29). Creates a local variable and returns a
+   * `LocalVariable<T>` handle with `.set(value)` / `.value`. Constant literal `init` is folded
+   * into the Get node (M2); dynamic `init` compiles to get(empty)+set(init) (repeated-evaluation safe).
+   *
+   * 对象式局部变量 API：`const lv = f.localVariable('int', 42n)` 返回句柄；`lv.set(99n)` 编译 Set 节点；
+   * `lv.value` 是 Get 读值锚。常量 init 折叠进 Get（M2），动态 init 走 get(empty)+set(init)。
+   *
+   * 注意：server 局部变量 wire 无名（E<1016> 身份连线），`opts.name` 被忽略并告警；
+   * `lv` 生命周期 = 一次图执行（事件触发），跨 .on 回调共享状态请用图变量/实体变量。
+   */
+  localVariable(type: 'bool', init?: BoolValue, opts?: { name?: string }): LocalVariable<boolean>
+  localVariable(type: 'int', init?: IntValue, opts?: { name?: string }): LocalVariable<bigint>
+  localVariable(type: 'float', init?: FloatValue, opts?: { name?: string }): LocalVariable<number>
+  localVariable(type: 'str', init?: StrValue, opts?: { name?: string }): LocalVariable<string>
+  localVariable(type: 'vec3', init?: Vec3Value, opts?: { name?: string }): LocalVariable<vec3>
+  localVariable(type: 'guid', init?: GuidValue, opts?: { name?: string }): LocalVariable<guid>
+  localVariable(type: 'entity', init?: EntityValue, opts?: { name?: string }): LocalVariable<entity>
+  localVariable(
+    type: 'prefab_id',
+    init?: PrefabIdValue,
+    opts?: { name?: string }
+  ): LocalVariable<prefabId>
+  localVariable(
+    type: 'config_id',
+    init?: ConfigIdValue,
+    opts?: { name?: string }
+  ): LocalVariable<configId>
+  localVariable(type: 'faction', init?: FactionValue, opts?: { name?: string }): LocalVariable<faction>
+  localVariable(
+    type: 'bool_list',
+    init?: BoolValue[],
+    opts?: { name?: string }
+  ): LocalVariable<boolean[]>
+  localVariable(
+    type: 'int_list',
+    init?: IntValue[],
+    opts?: { name?: string }
+  ): LocalVariable<bigint[]>
+  localVariable(
+    type: 'float_list',
+    init?: FloatValue[],
+    opts?: { name?: string }
+  ): LocalVariable<number[]>
+  localVariable(
+    type: 'str_list',
+    init?: StrValue[],
+    opts?: { name?: string }
+  ): LocalVariable<string[]>
+  localVariable(
+    type: 'vec3_list',
+    init?: Vec3Value[],
+    opts?: { name?: string }
+  ): LocalVariable<vec3[]>
+  localVariable(
+    type: 'guid_list',
+    init?: GuidValue[],
+    opts?: { name?: string }
+  ): LocalVariable<guid[]>
+  localVariable(
+    type: 'entity_list',
+    init?: EntityValue[],
+    opts?: { name?: string }
+  ): LocalVariable<entity[]>
+  localVariable(
+    type: 'prefab_id_list',
+    init?: PrefabIdValue[],
+    opts?: { name?: string }
+  ): LocalVariable<prefabId[]>
+  localVariable(
+    type: 'config_id_list',
+    init?: ConfigIdValue[],
+    opts?: { name?: string }
+  ): LocalVariable<configId[]>
+  localVariable(
+    type: 'faction_list',
+    init?: FactionValue[],
+    opts?: { name?: string }
+  ): LocalVariable<faction[]>
+  localVariable<T extends LocalVariableType>(
+    type: T,
+    init?: RuntimeParameterValueTypeMap[T],
+    opts?: { name?: string }
+  ): LocalVariable<RuntimeReturnValueTypeMap[T]> {
+    if ((type as string) === 'dict') {
+      throw new Error(
+        '[error] server graph local variable dict is not supported (server ioc=20 推断段待样本)；' +
+          'client graphs support dict local variables via the same API'
+      )
+    }
+    if (opts?.name) {
+      // server 局部变量 wire 无名（E<1016> 身份连线），显式名字无意义——告警并忽略（D2 边界表）
+      console.warn(
+        `[warn] localVariable name "${opts.name}" is ignored in server graphs (server local variables are identified by wire identity, not name)`
+      )
+    }
+    const { localVariable, value } = this.initLocalVariable(type as never, init as never)
+    const owner = this
+    return {
+      localVariable,
+      value,
+      set(v: RuntimeReturnValueTypeMap[T]) {
+        owner.setLocalVariable(localVariable, v)
+      }
+    } as LocalVariable<RuntimeReturnValueTypeMap[T]>
   }
 
   /**
