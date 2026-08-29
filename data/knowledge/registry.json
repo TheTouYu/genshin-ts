@@ -880,6 +880,7 @@
       "path": "knowledge/game-engine-knowledge/signal-production-encoding.md",
       "summary": "发送节点骨架与 8 种固定值参数、信号定义原位修改、复合 impl 图内信号节点",
       "keywords": [
+        "signalVersion",
         "信号",
         "原位修改",
         "发送节点",
