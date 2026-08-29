@@ -60,13 +60,17 @@ gsts assets:aux attach --host <entityId|prefabId> --resource <decoResourceId> [-
 
 ## 2. 节点图挂载命令
 
-### assets:node-graphs（建空图占位）
+### assets:node-graphs（建空图占位 / 删除图）
 
 ```text
 gsts assets:node-graphs create --gil <map> --name <name> [--output <candidate> | --write]
+gsts assets:node-graphs delete --gil <map> --graph <id|name> [--output <candidate> | --write]
 ```
 
 - 图 ID 自动分配（空图从 1073741825 起）；用于“目标 NodeGraph not found”前的占位。
+- 删除 wire（2026-08-29 编辑器删除差分实证）：root10 图记录 + folder 条目（field6 记录内
+  f3 内部 f5={1:typeValue,2:图ID}）一起删；**只删图记录漏 folder 条目 → 存档损坏**。
+  delete 默认 dry-run；--write 自动备份 .gsts/backups/ + Temp 同步。
 - 节点图**内部**读-改-写走 `assets:node-graphs read|patch`，属 `gil-node-graph-editing` 技能。
 
 ### assets:mounts（挂载 / 卸下 / 查看）
