@@ -3255,6 +3255,12 @@
       "fact_classes": [
         "evidence_scope"
       ]
+    },
+    "clm_58BEBCC0C6DED97EDFC39A38D2": {
+      "fact_classes": [
+        "documented_contract",
+        "external_game_evidence"
+      ]
     }
   }
 }

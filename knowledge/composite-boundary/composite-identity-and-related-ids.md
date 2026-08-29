@@ -18,3 +18,15 @@ Current gsts allocates and compares Composite definitions across IR documents be
 This is the current gsts merge/encoding contract, not the editor's universal ID allocation algorithm. Numeric ID conventions and ordering are not portable evidence. Revalidate when IR merge timing, equality, ID allocation, call lowering, accessory identity, or `relatedIds` construction changes.
 
 <!-- CLAIM:END clm_01KYH4ZHG20242R3TTYBWTJTXR -->
+
+<!-- CLAIM:START clm_58BEBCC0C6DED97EDFC39A38D2 -->
+
+### 复合重名改名产生 (1) 版本并存（足球复合实证；产生路径未锁定）
+
+编辑器/引擎对重名复合的改名冲突避让是追加 (1) 后缀的新版本，而不是覆盖同 id 旧版本——2026-08-26 足球 demo 实证出现两个版本并存。产生路径（某次编译/注入的避让时机）尚未复现锁定；每次地图注入前先 --list 快照复合目录，注入后比对增量，确保无重名、无未引用历史版本、主图引用全部落在最新版。
+
+#### 适用边界
+
+仅覆盖复合资产重名；节点图改名重写 root 2 名字是不同机制；(1) 产生路径的锁定结论待后续实证。
+
+<!-- CLAIM:END clm_58BEBCC0C6DED97EDFC39A38D2 -->

@@ -3744,6 +3744,22 @@
       ]
     },
     {
+      "id": "aref_994d667319ba6258efb649c324",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-football-composite-dup-version.md",
+      "locator": "复合版本并存实证与未闭合项",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4482a9d0718d41e8524bb84bfd742091fb51120ab5e3a9c629572259f705c888",
+      "claim_ids": [
+        "clm_58BEBCC0C6DED97EDFC39A38D2"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_997f9cdb4d03cf87deb6f2c42b",
       "path": ".agents/skills/miliastra-knowledge/references/tools.md",
       "locator": "已知坑 6. query.sh 大响应会 Argument list too long",
