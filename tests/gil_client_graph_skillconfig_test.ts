@@ -268,21 +268,59 @@ function assertRootEquals(
   console.log('PASS: 名称长度边界（1/4/43 字）+ 重复 ID 拒绝')
 }
 
-// 8. fail closed：20003/20004/20005/20007 建图 + 28 模板创建 + 普通释放多绑
+// 8. 28 造物模板：创建（v10→v11 记录除模型外一致 + root20 1970B）+ 绑定（v10→v12 + root20 2955B）
+{
+  // 模型字节替换：CLI 固定模型 = 10005001（遗迹守卫，用户确认）；快照 v11/v12 为 10007001
+  const swapModel = (rec: Uint8Array, from: number, to: number): Uint8Array => {
+    const hex = Buffer.from(rec).toString('hex')
+    const vf = Buffer.from([
+      (from & 0x7f) | 0x80, (from >> 7) & 0x7f | 0x80, (from >> 14) & 0x7f | 0x80, from >> 21
+    ]).toString('hex')
+    const vt = Buffer.from([
+      (to & 0x7f) | 0x80, (to >> 7) & 0x7f | 0x80, (to >> 14) & 0x7f | 0x80, to >> 21
+    ]).toString('hex')
+    return Uint8Array.from(Buffer.from(hex.replaceAll(vf, vt), 'hex'))
+  }
+  const base = load(`${R}/after-custom-bind.gil`) // v10：无造物技能、root20 空占位
+  const r1 = buildSkillConfig(base, {
+    id: 1191182337, name: '自定义造物技能', template: 'creation', skillType: 'instant', graphIds: []
+  })
+  const t11 = load(`${R}/after-custom-create-instant.gil`)
+  assert.ok(
+    Buffer.from(swapModel(recordBytes(r1, 15, 1191182337), 10005001, 10007001))
+      .equals(Buffer.from(recordBytes(t11, 15, 1191182337))),
+    '28创建: root15 记录（除模型外）不一致'
+  )
+  assert.ok(
+    Buffer.from(rootBytes(r1, 20)).equals(Buffer.from(rootBytes(t11, 20))),
+    '28创建: root20 1970B 不一致'
+  )
+  const v1 = listSkillConfigs(r1).find((c) => c.id === 1191182337)
+  assert.equal(v1?.model, 10005001, '28创建: 模型应为遗迹守卫 10005001')
+  const r2 = buildSkillConfig(base, {
+    id: 1191182337, name: '自定义造物技能', template: 'creation', skillType: 'instant',
+    graphIds: [1082130435]
+  })
+  const t12 = load(`${R}/after-create-bind.gil`)
+  assert.ok(
+    Buffer.from(swapModel(recordBytes(r2, 15, 1191182337), 10005001, 10007001))
+      .equals(Buffer.from(recordBytes(t12, 15, 1191182337))),
+    '28绑定: root15 记录（除模型外）不一致'
+  )
+  assert.ok(
+    Buffer.from(rootBytes(r2, 20)).equals(Buffer.from(rootBytes(t12, 20))),
+    '28绑定: root20 2955B 不一致'
+  )
+  const v2 = listSkillConfigs(r2).find((c) => c.id === 1191182337)
+  assert.equal(v2?.bindings.length, 1)
+  assert.equal(v2?.bindings[0].graphId, 1082130435, '28绑定: 78.1.4 图 ID 不一致')
+  console.log('PASS: 28 造物模板 创建/绑定（除模型外逐字节一致 + root20 联动 + 模型 10005001）')
+}
+
+// 9. fail closed：20003/20004/20005/20007 建图 + 普通释放多绑
 {
   assert.throws(() => buildEmptyNodeGraph(load(`${R}/before.gil`), 1082130441, 'x', 20003), /未采样/)
   assert.throws(() => buildEmptyNodeGraph(load(`${R}/before.gil`), 1082130441, 'x', 20007), /未采样/)
-  assert.throws(
-    () =>
-      buildSkillConfig(load(`${R}/after-20002.gil`), {
-        id: 1228931074,
-        name: 'x',
-        template: 'creation',
-        skillType: 'instant',
-        graphIds: []
-      }),
-    /root20/
-  )
   assert.throws(
     () =>
       buildSkillConfig(load(`${R}/after-20002.gil`), {
@@ -294,7 +332,7 @@ function assertRootEquals(
       }),
     /限 1 个/
   )
-  console.log('PASS: fail-closed 清单（20003/20007 建图、28 模板、普通释放多绑）')
+  console.log('PASS: fail-closed 清单（20003/20007 建图、普通释放多绑）')
 }
 
 console.log('PASS: gil_client_graph_skillconfig isomorphism replay (全部逐字节一致)')

@@ -30,6 +30,25 @@ const TPL_6_NORMAL_R15 =
 const TPL_6_NORMAL_R16 =
   '088180808c04108180808c041a0408015a001a8b030815f20185030a82030a06200238a19c0112001a331001180228014802520f0d0000803f150000803f1d0000803f5d0000803f650000803f6d0000f0427d0000803f85010000803f220210013205250000803f3a0c08011d0000803f250000204142a502b21fa102a81f01b21f6daa1f5bbd1f00002041c51f0000a040cd1f00000040d21f0a0d0000a0401500002041da1f0a0d0000a040150000a040e01f01e81f01f21f08a914aa14ad14ae14fd1f00007a448820019a2000a2200ca81fffffffffffffffffff01a82001b21f0ca81f01b51f00002041ca1f00ba1f77aa1f6ea81f01c51f0000c03fcd1f0000c03fd51f0000a040dd1f00002041e51f0000f042ed1f00000040f21f0a0d0000003f150000c03ffa1f0a0d0000003f150000c03f82200a0d0000b442150000f0428a200a0d0000a040150000204192200a0d0000a040150000a040b22000b82001b21f03b81f01c21f2eaa1f28a81f01b21f0d47495f417661746172526f6f74ba1f05150ad7233cc01fffffffef04c81f01d01f01b21f00c81f014a001a6b0823ea02660a5e122a0a15e88a82e782b9e59bbee4ba8be4bbb6e8bda8e981931001180120013081808080034d00007a44580112210a0ce78ab6e68081e8bda8e981931002180120013088808080034d00007a4458014a0408011001520408011001800105101518a0f00f1a050824f20200'
 
+// 28 自定义造物模板（2026-08-29 快照 v11/v12 提取；用户确认：造物技能固定一个造物模型为引擎合法行为，
+// 普通/瞬发共用同一造物，CLI 固定复制模板字节）：
+// 创建态 = 99B（body 78.1.1={1:20001} 瞬发缺省 + 78.1.2.1=模型 + 78.1.3={4:1,5:1}，45.2=52）
+// 绑定态 = 113B（+ 78.1.4={1:图ID, 2:1073741825}）；root20 造物模型容器：创建=1970B、绑定=2955B（联动）
+// 固定造物模型 = 10005001（遗迹守卫，用户 2026-08-29 确认；快照 v11/v12 中的 10007001 是当时编辑器状态）
+const TPL_28_CREATED_R15 =
+  '08818080b804101c221b08015a170a15e887aae5ae9ae4b989e980a0e789a9e68a80e883bd221a0849f204150a130a0408a19c01120508d9e3e2041a042001280122190823ea02140a0c4a0408011001520408011001103418a0f00f22050824f20200'
+const TPL_28_CREATED_R16 =
+  '08818080b80410818080b8041a0408015a001a1a0849f204150a130a0408a19c01120508d9e3e2041a04200128011a190823ea02140a0c4a0408011001520408011001103418a0f00f1a050824f20200'
+const TPL_28_BOUND_R15 =
+  '08818080b804101c221b08015a170a15e887aae5ae9ae4b989e980a0e789a9e68a80e883bd22280849f204230a210a0408a19c01120508d9e3e2041a0420012801220c08838080840410818080800422190823ea02140a0c4a0408011001520408011001103418a0f00f22050824f20200'
+const TPL_28_BOUND_R16 =
+  '08818080b80410818080b8041a0408015a001a280849f204230a210a0408a19c01120508d9e3e2041a0420012801220c0883808084041081808080041a190823ea02140a0c4a0408011001520408011001103418a0f00f1a050824f20200'
+const ROOT20_CREATED =
+  '0ad60708818080840412070889aea70e10012a1208015a0e0a0ce98197e8bfb9e5ae88e58dab2a0b080db2010620ffffffff0f2a0c08268203070d0000803f10012a0508289203002a05086fea05002a05083d8a04002a05083e9204002a0e0850fa04090a070801a81fa79c012a0e08518205090a0712050d0000803f2a070841b204020a002a0708528a05020a002a050813e201002a050834f20300322a08015a260a0a1500007a451d000040c012001a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408036a00320608047202080132050806820100324508078a01400d0e2dbe4215e92671421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7d3333333f328304080baa01fd030a390a0e47495f4d6f6e73746572526f6f7412001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f10426579645f4d6f6e73746572526f6f740a2e0a0b47495f526f6f744e6f646512001a00b21f0ce6a8a1e59e8be58e9fe782b9c01f01ca1f08526f6f744e6f64650a300a0c47495f4e616d65506c61746512001a00b21f06e993ade7898cc01f01ca1f0f42696c6c626f6172644174746163680a310a0b47495f486561644d61726b12001a00b21f0ce5a4b4e9a1b6e6a087e8aeb0c01f01ca1f0b46785f486561644e6f64650a330a0c47495f43686573744d61726b12001a00b21f0ce883b8e983a8e6a087e8aeb0c01f01ca1f0c46785f43686573744e6f64650a340a0e47495f41696d696e67506f696e7412001a00b21f0ce5a4b4e983a8e6a0b8e5bf83c01f01ca1f0b41696d696e67506f696e740a220a0847495f436865737412001a00b21f06e883b8e983a8c01f01ca1f0543686573740a250a0847495f48616e644c12001a00b21f06e5b7a6e6898bc01f01ca1f084c65667448616e640a260a0847495f48616e645212001a00b21f06e58fb3e6898bc01f01ca1f09526967687448616e640a250a0847495f466f6f744c12001a00b21f06e5b7a6e8849ac01f01ca1f084c656674466f6f740a260a0847495f466f6f745212001a00b21f06e58fb3e8849ac01f01ca1f095269676874466f6f743208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f2010032050815fa01003a4208121001e2013b4a1a2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0d521d2a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d3a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa02004089aea70e0ad60708838080840412070889aea70e10012a1208015a0e0a0ce98197e8bfb9e5ae88e58dab2a0b080db2010620ffffffff0f2a0c08268203070d0000803f10012a0508289203002a05086fea05002a05083d8a04002a05083e9204002a0e0850fa04090a070801a81fa79c012a0e08518205090a0712050d0000803f2a070841b204020a002a0708528a05020a002a050813e201002a050834f20300322a08015a260a0a1500007a451d000040c012001a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408036a00320608047202080132050806820100324508078a01400d0e2dbe4215e92671421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7d3333333f328304080baa01fd030a390a0e47495f4d6f6e73746572526f6f7412001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f10426579645f4d6f6e73746572526f6f740a2e0a0b47495f526f6f744e6f646512001a00b21f0ce6a8a1e59e8be58e9fe782b9c01f01ca1f08526f6f744e6f64650a300a0c47495f4e616d65506c61746512001a00b21f06e993ade7898cc01f01ca1f0f42696c6c626f6172644174746163680a310a0b47495f486561644d61726b12001a00b21f0ce5a4b4e9a1b6e6a087e8aeb0c01f01ca1f0b46785f486561644e6f64650a330a0c47495f43686573744d61726b12001a00b21f0ce883b8e983a8e6a087e8aeb0c01f01ca1f0c46785f43686573744e6f64650a340a0e47495f41696d696e67506f696e7412001a00b21f0ce5a4b4e983a8e6a0b8e5bf83c01f01ca1f0b41696d696e67506f696e740a220a0847495f436865737412001a00b21f06e883b8e983a8c01f01ca1f0543686573740a250a0847495f48616e644c12001a00b21f06e5b7a6e6898bc01f01ca1f084c65667448616e640a260a0847495f48616e645212001a00b21f06e58fb3e6898bc01f01ca1f09526967687448616e640a250a0847495f466f6f744c12001a00b21f06e5b7a6e8849ac01f01ca1f084c656674466f6f740a260a0847495f466f6f745212001a00b21f06e58fb3e8849ac01f01ca1f095269676874466f6f743208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f2010032050815fa01003a4208121001e2013b4a1a2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0d521d2a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d3a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa02004089aea70e'
+const CREATION_MODEL_ID = 10005001 // 遗迹守卫（用户确认固定模型）
+const ROOT20_BOUND =
+  '0ad60708818080840412070889aea70e10012a1208015a0e0a0ce98197e8bfb9e5ae88e58dab2a0b080db2010620ffffffff0f2a0c08268203070d0000803f10012a0508289203002a05086fea05002a05083d8a04002a05083e9204002a0e0850fa04090a070801a81fa79c012a0e08518205090a0712050d0000803f2a070841b204020a002a0708528a05020a002a050813e201002a050834f20300322a08015a260a0a1500007a451d000040c012001a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408036a00320608047202080132050806820100324508078a01400d0e2dbe4215e92671421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7d3333333f328304080baa01fd030a390a0e47495f4d6f6e73746572526f6f7412001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f10426579645f4d6f6e73746572526f6f740a2e0a0b47495f526f6f744e6f646512001a00b21f0ce6a8a1e59e8be58e9fe782b9c01f01ca1f08526f6f744e6f64650a300a0c47495f4e616d65506c61746512001a00b21f06e993ade7898cc01f01ca1f0f42696c6c626f6172644174746163680a310a0b47495f486561644d61726b12001a00b21f0ce5a4b4e9a1b6e6a087e8aeb0c01f01ca1f0b46785f486561644e6f64650a330a0c47495f43686573744d61726b12001a00b21f0ce883b8e983a8e6a087e8aeb0c01f01ca1f0c46785f43686573744e6f64650a340a0e47495f41696d696e67506f696e7412001a00b21f0ce5a4b4e983a8e6a0b8e5bf83c01f01ca1f0b41696d696e67506f696e740a220a0847495f436865737412001a00b21f06e883b8e983a8c01f01ca1f0543686573740a250a0847495f48616e644c12001a00b21f06e5b7a6e6898bc01f01ca1f084c65667448616e640a260a0847495f48616e645212001a00b21f06e58fb3e6898bc01f01ca1f09526967687448616e640a250a0847495f466f6f744c12001a00b21f06e5b7a6e8849ac01f01ca1f084c656674466f6f740a260a0847495f466f6f745212001a00b21f06e58fb3e8849ac01f01ca1f095269676874466f6f743208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f2010032050815fa01003a4208121001e2013b4a1a2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0d521d2a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d3a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa02004089aea70e0ad60708838080840412070889aea70e10012a1208015a0e0a0ce98197e8bfb9e5ae88e58dab2a0b080db2010620ffffffff0f2a0c08268203070d0000803f10012a0508289203002a05086fea05002a05083d8a04002a05083e9204002a0e0850fa04090a070801a81fa79c012a0e08518205090a0712050d0000803f2a070841b204020a002a0708528a05020a002a050813e201002a050834f20300322a08015a260a0a1500007a451d000040c012001a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408036a00320608047202080132050806820100324508078a01400d0e2dbe4215e92671421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7d3333333f328304080baa01fd030a390a0e47495f4d6f6e73746572526f6f7412001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f10426579645f4d6f6e73746572526f6f740a2e0a0b47495f526f6f744e6f646512001a00b21f0ce6a8a1e59e8be58e9fe782b9c01f01ca1f08526f6f744e6f64650a300a0c47495f4e616d65506c61746512001a00b21f06e993ade7898cc01f01ca1f0f42696c6c626f6172644174746163680a310a0b47495f486561644d61726b12001a00b21f0ce5a4b4e9a1b6e6a087e8aeb0c01f01ca1f0b46785f486561644e6f64650a330a0c47495f43686573744d61726b12001a00b21f0ce883b8e983a8e6a087e8aeb0c01f01ca1f0c46785f43686573744e6f64650a340a0e47495f41696d696e67506f696e7412001a00b21f0ce5a4b4e983a8e6a0b8e5bf83c01f01ca1f0b41696d696e67506f696e740a220a0847495f436865737412001a00b21f06e883b8e983a8c01f01ca1f0543686573740a250a0847495f48616e644c12001a00b21f06e5b7a6e6898bc01f01ca1f084c65667448616e640a260a0847495f48616e645212001a00b21f06e58fb3e6898bc01f01ca1f09526967687448616e640a250a0847495f466f6f744c12001a00b21f06e5b7a6e8849ac01f01ca1f084c656674466f6f740a260a0847495f466f6f745212001a00b21f06e58fb3e8849ac01f01ca1f095269676874466f6f743208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f2010032050815fa01003a4208121001e2013b4a1a2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0d521d2a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d3a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa02004089aea70e0ad60708848080840412070889aea70e10012a1208015a0e0a0ce98197e8bfb9e5ae88e58dab2a0b080db2010620ffffffff0f2a0c08268203070d0000803f10012a0508289203002a05086fea05002a05083d8a04002a05083e9204002a0e0850fa04090a070801a81fa79c012a0e08518205090a0712050d0000803f2a070841b204020a002a0708528a05020a002a050813e201002a050834f20300322a08015a260a0a1500007a451d000040c012001a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408036a00320608047202080132050806820100324508078a01400d0e2dbe4215e92671421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7d3333333f328304080baa01fd030a390a0e47495f4d6f6e73746572526f6f7412001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f10426579645f4d6f6e73746572526f6f740a2e0a0b47495f526f6f744e6f646512001a00b21f0ce6a8a1e59e8be58e9fe782b9c01f01ca1f08526f6f744e6f64650a300a0c47495f4e616d65506c61746512001a00b21f06e993ade7898cc01f01ca1f0f42696c6c626f6172644174746163680a310a0b47495f486561644d61726b12001a00b21f0ce5a4b4e9a1b6e6a087e8aeb0c01f01ca1f0b46785f486561644e6f64650a330a0c47495f43686573744d61726b12001a00b21f0ce883b8e983a8e6a087e8aeb0c01f01ca1f0c46785f43686573744e6f64650a340a0e47495f41696d696e67506f696e7412001a00b21f0ce5a4b4e983a8e6a0b8e5bf83c01f01ca1f0b41696d696e67506f696e740a220a0847495f436865737412001a00b21f06e883b8e983a8c01f01ca1f0543686573740a250a0847495f48616e644c12001a00b21f06e5b7a6e6898bc01f01ca1f084c65667448616e640a260a0847495f48616e645212001a00b21f06e58fb3e6898bc01f01ca1f09526967687448616e640a250a0847495f466f6f744c12001a00b21f06e5b7a6e8849ac01f01ca1f084c656674466f6f740a260a0847495f466f6f745212001a00b21f06e58fb3e8849ac01f01ca1f095269676874466f6f743208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f2010032050815fa01003a4208121001e2013b4a1a2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0d521d2a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d3a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa02004089aea70e'
+
 // 45.2 = 模板×释放类型形态值（绑定不改；Round 3a~3e 五轮差分闭合）
 const F45_2_VALUE: Record<number, Record<'normal' | 'instant', number>> = {
   36: { normal: 61, instant: 62 },
@@ -288,25 +307,44 @@ function addNormalBinding(record: WireField[], template: number, graphId: number
 
 // ==================== 构建 ====================
 
-const TEMPLATE_R15: Record<'normal' | 'custom', string> = {
+type CreationTemplate = 'normal' | 'custom' | 'creation'
+const TEMPLATE_R15: Record<CreationTemplate, string> = {
   normal: TPL_36_NORMAL_R15,
-  custom: TPL_6_NORMAL_R15
+  custom: TPL_6_NORMAL_R15,
+  creation: TPL_28_CREATED_R15
 }
-const TEMPLATE_R16: Record<'normal' | 'custom', string> = {
+const TEMPLATE_R16: Record<CreationTemplate, string> = {
   normal: TPL_36_NORMAL_R16,
-  custom: TPL_6_NORMAL_R16
+  custom: TPL_6_NORMAL_R16,
+  creation: TPL_28_CREATED_R16
 }
-const TEMPLATE_F2: Record<'normal' | 'custom', number> = { normal: 36, custom: 6 }
-const TEMPLATE_TYPE_VALUE: Record<'normal' | 'custom', number> = { normal: 7500, custom: 2800 }
-const TEMPLATE_FOLDER_ID: Record<'normal' | 'custom', number> = { normal: 68, custom: 12 }
+const TEMPLATE_F2: Record<CreationTemplate, number> = { normal: 36, custom: 6, creation: 28 }
+const TEMPLATE_TYPE_VALUE: Record<CreationTemplate, number> = { normal: 7500, custom: 2800, creation: 6900 }
+const TEMPLATE_FOLDER_ID: Record<CreationTemplate, number> = { normal: 68, custom: 12, creation: 61 }
 
 function buildRecord(
-  template: 'normal' | 'custom',
+  template: CreationTemplate,
   isRoot16: boolean,
   opts: CreateOptions
 ): Uint8Array {
-  const hex = isRoot16 ? TEMPLATE_R16[template] : TEMPLATE_R15[template]
   const sectionNumber = isRoot16 ? 3 : 4
+  if (template === 'creation') {
+    // 28 模板：创建态/绑定态是两个固定模板（用户确认固定造物模型合法）；
+    // 绑定 = bound 模板 + 78.1.4.f1 图 ID 参数化
+    const bound = opts.graphIds.length > 0
+    const hex = isRoot16
+      ? (bound ? TPL_28_BOUND_R16 : TPL_28_CREATED_R16)
+      : (bound ? TPL_28_BOUND_R15 : TPL_28_CREATED_R15)
+    let record = msg({ number: 1, wire: 2, value: hexToBytes(hex) })
+    record = setRecordId(record, opts.id, isRoot16)
+    if (!isRoot16) record = setName(record, opts.name)
+    record = setCreationModel(record, CREATION_MODEL_ID, sectionNumber)
+    if (bound) {
+      record = setCreationBindGraphId(record, opts.graphIds[0], sectionNumber)
+    }
+    return emitWireMessage(record)
+  }
+  const hex = isRoot16 ? TEMPLATE_R16[template] : TEMPLATE_R15[template]
   let record = msg({ number: 1, wire: 2, value: hexToBytes(hex) })
   record = setRecordId(record, opts.id, isRoot16)
   if (!isRoot16) record = setName(record, opts.name)
@@ -324,6 +362,90 @@ function buildRecord(
     }
   }
   return emitWireMessage(record)
+}
+
+// 28 模板：78.1.2.1 = 造物模型引用（固定 10005001 遗迹守卫，用户确认）
+function setCreationModel(record: WireField[], modelId: number, sectionNumber: number): WireField[] {
+  return record.map((section) => {
+    if (section.wire !== 2 || section.number !== sectionNumber) return section
+    const sec = msg(section)
+    if (sec.find((g) => g.number === 1 && g.wire === 0)?.value !== 73) return section
+    return {
+      ...section,
+      value: emitWireMessage(
+        sec.map((f) => {
+          if (f.wire !== 2 || f.number !== 78) return f
+          const b78 = msg(f)
+          return {
+            ...f,
+            value: emitWireMessage(
+              b78.map((r) => {
+                if (r.wire !== 2 || r.number !== 1) return r
+                const r1 = msg(r)
+                return {
+                  ...r,
+                  value: emitWireMessage(
+                    r1.map((x) => {
+                      if (x.wire !== 2 || x.number !== 2) return x
+                      const r2 = msg(x)
+                      return {
+                        ...x,
+                        value: emitWireMessage(
+                          r2.map((y) => (y.number === 1 && y.wire === 0 ? { ...y, value: modelId } : y))
+                        )
+                      }
+                    })
+                  )
+                }
+              })
+            )
+          }
+        })
+      )
+    }
+  })
+}
+
+// 28 绑定态模板：78.1.4.f1（或 root16 的 78.1.4.f1）替换为绑定图 ID
+function setCreationBindGraphId(record: WireField[], graphId: number, sectionNumber: number): WireField[] {
+  return record.map((section) => {
+    if (section.wire !== 2 || section.number !== sectionNumber) return section
+    const sec = msg(section)
+    if (sec.find((g) => g.number === 1 && g.wire === 0)?.value !== 73) return section
+    return {
+      ...section,
+      value: emitWireMessage(
+        sec.map((f) => {
+          if (f.wire !== 2 || f.number !== 78) return f
+          const b78 = msg(f)
+          return {
+            ...f,
+            value: emitWireMessage(
+              b78.map((r) => {
+                if (r.wire !== 2 || r.number !== 1) return r
+                const r1 = msg(r)
+                return {
+                  ...r,
+                  value: emitWireMessage(
+                    r1.map((x) => {
+                      if (x.wire !== 2 || x.number !== 4) return x
+                      const f4 = msg(x)
+                      return {
+                        ...x,
+                        value: emitWireMessage(
+                          f4.map((y) => (y.number === 1 && y.wire === 0 ? { ...y, value: graphId } : y))
+                        )
+                      }
+                    })
+                  )
+                }
+              })
+            )
+          }
+        })
+      )
+    }
+  })
 }
 
 function appendRootRecord(payload: Uint8Array, rootN: number, record: Uint8Array): Uint8Array {
@@ -344,7 +466,7 @@ function appendRootRecord(payload: Uint8Array, rootN: number, record: Uint8Array
 
 function appendSkillConfigFolder(
   root6: WireField[],
-  template: 'normal' | 'custom',
+  template: CreationTemplate,
   id: number
 ): WireField[] {
   const folderId = TEMPLATE_FOLDER_ID[template]
@@ -380,16 +502,39 @@ export function buildSkillConfig(payload: Uint8Array, opts: CreateOptions): Uint
   if (listSkillConfigs(payload).some((c) => c.id === opts.id)) {
     throw new Error(`[error] skill config ${opts.id} already exists in root 15`)
   }
-  if (opts.template === 'creation') {
-    throw new Error(
-      '[error] 自定义造物模板(f2=28) 创建需编辑器联动 root20 造物模型容器（未复刻），fail closed'
-    )
-  }
-  const template = opts.template as 'normal' | 'custom'
+  const template = opts.template as CreationTemplate
   const root = parseWireMessage(payload)
   if (!root) throw new Error('[error] malformed GIL payload')
   let next = appendRootRecord(payload, 15, buildRecord(template, false, opts))
   next = appendRootRecord(next, 16, buildRecord(template, true, opts))
+  if (template === 'creation') {
+    // root20 造物模型容器（28 模板联动；用户确认固定造物模型合法）：
+    // 创建=1970B（地图无 root20 或已为创建态时保持/补齐），绑定=替换 2955B；
+    // 其它 root20 状态（如既有绑定态容器）未采样 → fail closed
+    const r20 = root.find((f) => f.number === 20 && f.wire === 2)
+    const r20bytes = r20 ? (r20.value as Uint8Array) : undefined
+    const createdHex = hexToBytes(ROOT20_CREATED)
+    const boundHex = hexToBytes(ROOT20_BOUND)
+    // root20 状态：缺失 / 空占位（len 0，28 创建前） / 创建态 1970B / 绑定态 2955B（多技能共用，用户确认合法）
+    const isEmpty = r20bytes !== undefined && r20bytes.length === 0
+    const isCreated = r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(createdHex))
+    const isBound = r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(boundHex))
+    if (r20bytes && !isEmpty && !isCreated && !isBound) {
+      throw new Error(
+        '[error] root20 造物模型容器状态未采样（非空占位/创建态/绑定态模板），28 模板创建 fail closed'
+      )
+    }
+    const targetR20 = opts.graphIds.length > 0 ? boundHex : createdHex
+    next = emitWireMessage(
+      (parseWireMessage(next)!).map((field) => {
+        if (field.number !== 20) return field
+        return { ...field, value: targetR20 }
+      })
+    )
+    if (!r20bytes) {
+      next = emitWireMessage([...(parseWireMessage(next)!), { number: 20, wire: 2, value: targetR20 }])
+    }
+  }
   const root6 = parseWireMessage(
     (parseWireMessage(next)!).find((f) => f.number === 6 && f.wire === 2)!.value as Uint8Array
   )!
@@ -480,7 +625,7 @@ export function parseSkillConfigRecord(record: Uint8Array): SkillConfigView {
     const r2 = r1Msg?.find((g) => g.number === 2 && g.wire === 2)
     const r2Msg = r2 ? parseWireMessage(r2.value as Uint8Array) : undefined
     model = r2Msg?.find((g) => g.number === 1 && g.wire === 0)?.value as number | undefined
-    for (const f4 of b78Msg?.filter((g) => g.number === 4 && g.wire === 2) ?? []) {
+    for (const f4 of r1Msg?.filter((g) => g.number === 4 && g.wire === 2) ?? []) {
       const e = parseWireMessage(f4.value as Uint8Array)
       const gid = e?.find((g) => g.number === 1 && g.wire === 0)?.value as number | undefined
       const tp = e?.find((g) => g.number === 2 && g.wire === 0)?.value as number | undefined
