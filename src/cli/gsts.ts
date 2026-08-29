@@ -43,6 +43,7 @@ import { runAssetsResources } from './assets_resources.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
+import { runVariablesVerify } from './variables_verify.js'
 import { runImageEditor } from './image_editor.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { runLibraryInject } from './static_assembly/library_inject.js'
@@ -2049,6 +2050,19 @@ async function main() {
     .action(async () => {
       const args = process.argv.slice(3).filter((arg) => arg !== '--')
       await runAssetsCustomVariables(args)
+    })
+
+  program
+    .command('variables:verify')
+    .description(
+      'verify variable wire against the closed rules table (read-only; PASS/DIFF report)'
+    )
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('variables:verify')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      await runVariablesVerify(args)
     })
 
   program
