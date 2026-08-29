@@ -521,8 +521,8 @@ function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831)
   if (!specializedField) throw new Error(`[error] unsupported custom variable type: ${update.type}`)
   const initial = encodeInitialValue(update, entityBase)
   const initialField = isEmptyDefaultValue(update) ? Buffer.alloc(0) : initial
-  // dict 的类型包裹（f4.f2 / f6）需带 {f2:marker, f502:keyType, f503:valueType}，与真实编辑器样本一致
-  const envelope =
+  // f4.f2：dict 走含 marker 的复杂包裹（{1:27, 2:{2:marker, 502, 503}}），与编辑器实样一致
+  const f4Envelope =
     update.type === 'dict'
       ? buildDictTypeEnvelope(valueOf(update) as readonly UiDictPair[])
       : encodeTypedValueEnvelope(typeCode)
@@ -532,20 +532,18 @@ function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831)
     update.type === 'dict'
       ? Buffer.concat([
           encodeVarintField(1, typeCode),
-          encodeLengthField(2, envelope),
+          encodeLengthField(2, f4Envelope),
           encodeLengthField(specializedField, initialField)
         ])
-      : Buffer.concat([envelope, encodeLengthField(specializedField, initialField)])
+      : Buffer.concat([f4Envelope, encodeLengthField(specializedField, initialField)])
   return Buffer.concat([
     encodeLengthField(2, Buffer.from(update.name, 'utf8')),
     encodeVarintField(3, typeCode),
     encodeLengthField(4, typePayload),
     encodeVarintField(5, 1),
-    // f6 = 单层类型包裹（dict 走带 marker 的 buildDictTypeEnvelope，非 dict 用单层 {1:code, 2:{}}）
-    encodeLengthField(
-      6,
-      update.type === 'dict' ? envelope : encodeTypeEnvelopeSingle(typeCode)
-    )
+    // f6 = 单层类型包裹（一律 {1:code, 2:{}}——2026-08-29 游戏核验矩阵实样 gsts_a12 推翻旧实现：
+    // 编辑器 dict 的 f6 与其它类型同构，非 marker 包裹）
+    encodeLengthField(6, encodeTypeEnvelopeSingle(typeCode))
   ])
 }
 

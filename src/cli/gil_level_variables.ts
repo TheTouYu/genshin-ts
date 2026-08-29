@@ -890,16 +890,20 @@ function buildTypedValueWire(
 function buildTypedEntry(name: string, type: UiVarType, value?: unknown, entityBase?: number): Uint8Array {
   const code = typeCodeOf(type)
   const defaultWire = buildTypedValueWire(type, value, entityBase)
-  const envelope =
+  // f4.f2：dict 走含 marker 的复杂包裹（{1:27, 2:{2:marker, 502, 503}}），其余类型双层 {1:code, 2:{}}
+  const f4Envelope =
     type === 'dict'
       ? buildDictTypeEnvelope((value as UiDictPair[]) ?? [])
       : emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
+  // f6：一律单层 {1:code, 2:{}}——2026-08-29 游戏核验矩阵实样（gsts_a12）推翻旧实现：
+  // 编辑器 dict 的 f6 与其它类型同构（简单包裹），非 marker 包裹
+  const f6Envelope = emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: EMPTY }])
   return emitWireMessage([
     { number: 2, wire: 2, value: utf8(name) },
     { number: 3, wire: 0, value: code },
     { number: 4, wire: 2, value: defaultWire },
     { number: 5, wire: 0, value: 1 },
-    { number: 6, wire: 2, value: envelope }
+    { number: 6, wire: 2, value: f6Envelope }
   ])
 }
 
