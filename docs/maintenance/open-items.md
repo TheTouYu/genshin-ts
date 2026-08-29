@@ -876,3 +876,13 @@
 - 可选改进：topic Markdown 头（title/summary）与 registry 无一致性校验——2026-08-29 测试夹具
   暴露 registry/markdown summary 不一致仍通过 validate；真实项目若出现同类漂移当前只能靠 apply 时
   update-topic 的重建顺带修正。登记给 portable-knowledge 作为候选校验项。
+
+### O-2026-08-30-01 其他地图注入残留扫描（2026-08-30 足球拒载复盘登记）
+
+- 事实：足球 1073741908 注入切版本后残留旧冲量踢球复合链（auto_check_tick→dribble_decide）类型错位 → 游戏拒载无日志。
+  已清理 7 个残留（SHA 0ae6f5d1→7130d60d）。同族风险：**其他地图（rubik-3x3、lights-out、cube-replica-c4 等）
+  历史上多次注入，复合目录可能也有 (1) 后缀残留或旧 def 残留**——游戏校验目录全部复合，零引用错误副本照样拒载。
+- 排查命令：`npx tsx tools/parse-gil-node-graph.ts <map.gil> --list` 看多版本/残留；
+  `npx tsx tools/check-gil-composite-refs.ts <map.gil> --incoming <本次.gia>` 看类型错位。
+- 清理流程：见 gil-node-graph-editing 技能「残留复合清理」（def-clean --force 残留链整体删）。
+- 状态：待扫描（用户无反馈前不主动动其他地图）。
