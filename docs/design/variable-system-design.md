@@ -1,6 +1,7 @@
 # 变量系统 DSL/CLI 设计（P3）
 
-> 状态：设计提案（待评审）｜ 依据：已闭合规律（证据分层见 `docs/game-engine-knowledge/variables.md`
+> 状态：M1 已落地（2026-08-29 实施完成：C4 规律表 + C1 variables:verify + L1 双锁一致性测试；
+> M2–M4 待实施）｜ 依据：已闭合规律（证据分层见 `docs/game-engine-knowledge/variables.md`
 > 与 `~/genshin-ts-evidence/variable-system/notes/manifest.md` v0–v16b，每条均有样本 sha + 字节级比对）
 > ｜ 日期：2026-08-29
 
@@ -95,11 +96,15 @@ CLI
 ### C1 规律表驱动核验命令（核心）
 
 - 新增 `gsts variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all]
-  [--entity <id>] [--graph <id>]`（只读）：
+  [--entity <id>] [--graph <id>] [--json]`（只读）：
   - 按 scope 读回容器/节点，与规律表（C4）逐字节比对；
   - 输出 PASS/DIFF 报告：差异条目 + 字节偏移 + 归属规律编号；
   - 用途：注入后 read-back 自动核验、编辑器保存后回归核验、CI。
-- **验收**：对 v0–v16b 全部样本运行全 scope 全 PASS；故意改 1 字节 → 对应 DIFF 报出。
+- ✅ **已落地（M1，2026-08-29）**：`src/cli/variables_verify.ts`；规律表为编辑器归一化形态
+  （默认字段省略哲学），对我方未归一化产物会报默认字段差异（"我方产物 vs 编辑器归一化"模式
+  差异见报告 detail）。inferred 段（client dict 值 pin、图变量 dict、server ioc 9..20）默认
+  不硬断言（NOTE），与设计红线一致。
+- **验收**：对 v0–v16b 全部样本运行全 scope 全 PASS；故意改 1 字节 → 对应 DIFF 报出。✅ 已达成。
 
 ### C2 注入/变量写回流程文档化与组合入口
 
@@ -118,7 +123,12 @@ CLI
 - 把已闭合规律集中为 machine-readable 规律表（如 `tests/fixtures/variables-wire-rules.json`：
   每容器/节点的 hex 常量 + 形态规则 + 证据样本 sha），供 `variables:verify` 与回归测试共用；
   `tests/*_editor_wire_test.ts` 的常量改为从表引用（或保持常量+表双锁）。
-- 验收：表与现有 hex 常量一致（自动比对脚本），改动表需同步证据。
+- ✅ **已落地（M1，2026-08-29）**：`tests/fixtures/variables-wire-rules.json` v1 建成，
+  采用「保持常量+表双锁」：`tests/variables_wire_rules_consistency_test.ts` 自动提取三个
+  回归测试的 48 条 hex 常量与表逐条比对 + 17 样本 sha 完整性校验（fixture 由脚本从测试
+  常量程序化回填，杜绝转抄漂移）。表条目带 status（verified / cross-checked / inferred）
+  与样本引用，改动表必须同步证据。
+- 验收：表与现有 hex 常量一致（自动比对脚本），改动表需同步证据。✅ 已达成。
 
 ## 六、核验体系设计（分层）
 
@@ -133,7 +143,19 @@ CLI
 
 ## 七、里程碑与验收
 
-- **M1（P0）**：C4 规律表 + C1 verify 命令 + L1 测试改表驱动。验收：v0–v16b 样本全 PASS。
+- **M1（P0）✅ 已落地（2026-08-29）**：C4 规律表 + C1 verify 命令 + L1 测试双锁。
+  - 规律表：`tests/fixtures/variables-wire-rules.json`（v1，四 scope：assets/graph/local-server/local-client；
+    容器×形态×hex fixture×样本 sha×inferred 标注；18 样本条目，17 个 .gil sha 锁定）。
+  - 命令：`gsts variables:verify --gil <file> [--scope ...] [--entity <id>] [--graph <id>] [--json]`
+    （`src/cli/variables_verify.ts`，只读；PASS/DIFF/NOTE 报告 + 字节偏移 + 退出码 0/1；
+    inferred 段（client dict、server ioc 9..20 等）默认不硬断言，报 NOTE）。
+  - L1 双锁：`tests/variables_wire_rules_consistency_test.ts`（48 条 fixture 与三个回归测试常量自动比对 +
+    17 样本 sha 完整性；防「规律表/测试双份漂移」）。
+  - 验收结果：v0–v16b 全 17 样本全 scope 全 PASS（0 DIFF）；21 类型客户端 .gia 生成核验
+    （10 采样类型 hex 逐字节 + 10 交叉核对类型结构 + dict inferred NOTE）；人为改 1 字节
+    （clientVarType 9→10）→ DIFF 报出（类型码 + 字节偏移 22）。
+  - 实施中的证据修正（以样本字节为准）：v14 拼装列表元素 4 实际为 233（08e901）非 manifest 旧记 489；
+    拼装列表 OutParam 的 ConcreteBase ioc = 元素类型 ioc（int=0/str=1）而非列表 ioc（manifest 旧记有误）。
 - **M2（P1）**：D3 常量 init 折叠。验收：v10 样本字节一致 + 预算对比（省节点数）。
 - **M3（P1）**：D1 声明清单（--from-json）。验收：与 config 声明字节等价。
 - **M4（P2）**：C2 组合命令 + C3 语义目标 + D2 显式名字。验收：等价性 + 文档。
