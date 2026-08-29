@@ -135,11 +135,52 @@ if (normalEntitySample) {
   rmSync(tmp2, { recursive: true, force: true })
 }
 
+// ===== 玩家/角色实体（v9 样本，可选第三参数）：容器同构 + 空串默认值 =====
+// 玩家实体 def=1000000（如 1086324743「这是玩家变量」str 空串）、角色实体 def=1000001
+// （1090519041「这是角色变量」str 空串）；编辑器 f16 = 空消息（不是 {1:len0}）
+const PLAYER_CHARACTER_HEXES: Record<string, Record<string, string>> = {
+  1086324743: {
+    这是玩家变量: '1212e8bf99e698afe78ea9e5aeb6e58f98e9878f1806220b08061204080612008201002801320408061200'
+  },
+  1090519041: {
+    这是角色变量: '1212e8bf99e698afe8a792e889b2e58f98e9878f1806220b08061204080612008201002801320408061200'
+  }
+}
+
+const playerCharacterSample = process.argv[4]
+if (playerCharacterSample) {
+  const tmp3 = mkdtempSync(join(tmpdir(), 'gsts-player-character-'))
+  const gil3 = join(tmp3, 'map.gil')
+  copyFileSync(playerCharacterSample, gil3)
+  for (const [entityIdStr, entries] of Object.entries(PLAYER_CHARACTER_HEXES)) {
+    const entityId = Number(entityIdStr)
+    const result = applyEntityCustomVariableDeclarations({
+      gilPath: gil3,
+      entityId,
+      declarations: Object.keys(entries).map((name) => ({
+        name,
+        type: 'str' as const,
+        initialValue: ''
+      }))
+    })
+    writeFileSync(gil3, result.bytes)
+    for (const name of Object.keys(entries)) {
+      assert.equal(
+        await readEntryHex(gil3, name, entityId),
+        entries[name],
+        `player/character ${entityId} ${name} entry must match editor bytes`
+      )
+    }
+  }
+  rmSync(tmp3, { recursive: true, force: true })
+}
+
 console.log(
   JSON.stringify(
     {
       initialValueEntries: Object.keys(EDITOR_HEXES).length,
       normalEntityVerified: !!normalEntitySample,
+      playerCharacterVerified: !!playerCharacterSample,
       ok: true
     },
     null,

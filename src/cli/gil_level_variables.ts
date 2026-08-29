@@ -868,7 +868,9 @@ function buildTypedValueWire(
         number: valueField,
         wire: 2,
         value:
-          (type === 'int' && (value as number) === 0) || (type === 'bool' && !value)
+          (type === 'int' && (value as number) === 0) ||
+          (type === 'bool' && !value) ||
+          (type === 'str' && String(value ?? '') === '')
             ? EMPTY
             : scalarValueWire(type as ScalarWireType, defaultValue)
       }

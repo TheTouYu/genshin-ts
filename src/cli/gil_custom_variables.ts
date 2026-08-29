@@ -504,11 +504,23 @@ function encodeTypeEnvelopeSingle(typeCode: number): Buffer {
   return Buffer.concat([encodeVarintField(1, typeCode), encodeLengthField(2, Buffer.alloc(0))])
 }
 
+/** 默认值（0 / false / 空串）→ f<type+10> 为空消息（2026-08-18 int/bool 样本 + 2026-08-29
+ *  v9 玩家/角色 str 空串样本：编辑器 f16 = 空消息，不是 {1:len0}） */
+function isEmptyDefaultValue(update: CustomVariableUpdate): boolean {
+  const v = valueOf(update)
+  return (
+    (update.type === 'int' && !v) ||
+    (update.type === 'bool' && !v) ||
+    (update.type === 'str' && v === '')
+  )
+}
+
 function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831): Buffer {
   const typeCode = codeForType(update.type)
   const specializedField = typeFieldForCode(typeCode)
   if (!specializedField) throw new Error(`[error] unsupported custom variable type: ${update.type}`)
   const initial = encodeInitialValue(update, entityBase)
+  const initialField = isEmptyDefaultValue(update) ? Buffer.alloc(0) : initial
   // dict 的类型包裹（f4.f2 / f6）需带 {f2:marker, f502:keyType, f503:valueType}，与真实编辑器样本一致
   const envelope =
     update.type === 'dict'
@@ -521,9 +533,9 @@ function encodeDefinition(update: CustomVariableUpdate, entityBase = 1073741831)
       ? Buffer.concat([
           encodeVarintField(1, typeCode),
           encodeLengthField(2, envelope),
-          encodeLengthField(specializedField, initial)
+          encodeLengthField(specializedField, initialField)
         ])
-      : Buffer.concat([envelope, encodeLengthField(specializedField, initial)])
+      : Buffer.concat([envelope, encodeLengthField(specializedField, initialField)])
   return Buffer.concat([
     encodeLengthField(2, Buffer.from(update.name, 'utf8')),
     encodeVarintField(3, typeCode),
@@ -879,7 +891,8 @@ export function applyCustomPrefabInitialCustomVariableUpdates(params: {
         `[error] custom variable type mismatch: ${definition.name}; expected ${update.type}, actual ${definition.type}`
       )
     }
-    const wanted = encodeInitialValue(update, entityBase)
+    const rawWanted = encodeInitialValue(update, entityBase)
+    const wanted = isEmptyDefaultValue(update) ? Buffer.alloc(0) : rawWanted
     if (Buffer.from(definition.initialValueWire).equals(Buffer.from(wanted))) {
       unchanged.push(definition.name)
       updates.delete(definition.name)
@@ -982,7 +995,8 @@ export function applyEntityCustomVariableUpdates(params: {
         `[error] custom variable type mismatch: ${definition.name}; expected ${update.type}, actual ${definition.type}`
       )
     }
-    const wanted = encodeInitialValue(update, entityBase)
+    const rawWanted = encodeInitialValue(update, entityBase)
+    const wanted = isEmptyDefaultValue(update) ? Buffer.alloc(0) : rawWanted
     if (Buffer.from(definition.initialValueWire).equals(Buffer.from(wanted))) {
       unchanged.push(definition.name)
       updates.delete(definition.name)
