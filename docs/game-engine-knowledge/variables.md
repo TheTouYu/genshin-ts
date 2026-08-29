@@ -264,11 +264,30 @@ entry 编码与关卡/普通实体逐字节同构；角色实体组件槽更多�
 **共同编码哲学**：列表长度 = 元素记录条数；默认值元素空 payload；默认字段省略（kind=0、
 alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规范化掉（v3 实证）。
 
+## 局部变量（Get/Set Local Variable，2026-08-29 v10 差分闭合）
+
+> 状态：已验证（编辑器样本 var-v10-local-var-usage.gil sha 85dd6313… + 管线字节级比对）；
+> client 侧差异待样本。
+
+局部变量不是"定义"而是 **API 节点 + E<1016> 身份连线**（无变量名 pin）：
+- **Get Local Variable(18) = 创建**：InParam[0] R<T> 携带类型+默认值（Bol false→bEnum 空）；
+  OutParam[0] **E<1016>** 身份输出；OutParam[1] R<T> 读值。
+- **Set Local Variable(19) = 更新**：InParam[0] E<1016> ← Get.OutParam[0]（wire kind 4 index 0，
+  同一身份的多个 Set/消费节点即"多个节点消费一个变量"）；InParam[1] R<T> = 新值。
+- Get/Set 类型必须一致（样本 Bol）。
+- **R<T> pin 值** = ConcreteBase{1:10000, 2:1, 110:bConcreteValue{2: 内层}}；内层 VarBase
+  **一律无 alreadySetVal**（非默认值也只写显式 payload，如 bEnum{1:1}）、零值空 payload、
+  itemType.kind 省略（与图变量同族）。
+- 我方编译器模式：`initLocalVariable(type, init)` 编译为 get(empty)+set(init)（动态 init 防重复
+  求值，definitions/nodes.ts 注释）；常量 init 编辑器直接放 Get —— 预算敏感时可优化（F10 候选）。
+- 回归：`tests/local_variable_editor_wire_test.ts`（pin value hex 常量 + 身份连线 + 类型一致）。
+
 ## 待逐步还原
 
 - 三类变量支持的参数类型。
 - 节点图级变量的声明与初始值编码（int_list 已闭合，见上；其余类型待样本）。
-- 获取、设置和变量变化事件的节点结构。
+- 变量变化事件的节点结构（when_custom_variable_changes 事件节点已有定义）。
+- 局部变量 client 图差异（P1 待样本）。
 - 实体由元件创建时变量如何继承和初始化。
 - 节点图多实例运行时变量如何隔离。
 - 局部变量在普通图和复合节点边界上的连接编码。

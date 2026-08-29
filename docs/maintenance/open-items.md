@@ -88,9 +88,18 @@
 
 - 证据（2026-08-29 变量实验 v3 差分）：注入图 2 的 getter 节点（337/344）经用户编辑器保存后，
   节点记录 f3 136→124 B——编辑器省略 id 引用里的默认 indexOfConcrete=0（与 GraphVariable 修复
-  同族「默认字段省略」）；id 数值/类型/pinCount 不变，语义无损。
+  同族「默认字段省略」）；id 数值/类型/pinCount 不变，语义无损。v10 差分再确认：pin i1/i2 的
+  indexOfConcrete=0 同样被编辑器省略（我们写显式 10 00）。
 - 影响：仅注入后首存产生一次性字节漂移（编辑器簿记），无功能影响；但可让生产编码直接对齐编辑器形态。
-- 何时做：低优先；下次改节点引用编码（nodeRefWire）窗口顺手归一化 + 样本回归。
+- 何时做：低优先；下次改节点引用编码（nodeRefWire/pin index）窗口顺手归一化 + 样本回归。
+
+### O-2026-08-29-04 局部变量常量 init 的节点数优化（F10 候选）
+
+- 证据（2026-08-29 v10 差分）：编辑器把常量初始值直接放在 Get Local Variable 的 R<T> pin 上
+  （Get 节点自带 Default(0)）；我方编译器 initLocalVariable(type, init) 编译为 get(empty)+set(init)，
+  常量 init 会多一个 Set 节点（定义注释：该模式是为动态 init 防重复求值）。
+- 候选：常量 init（编译期可求值的字面量）直接写 Get 的 R<T> pin，动态 init 保持 get+set 模式。
+- 何时做：预算敏感玩法需要时（每常量 init 省 1 节点）；需先加字节级回归（v10 样本作锚）。
 
 ### O-2026-08-29-02 dict int key CLI 缺口【已闭合 2026-08-29 goal 第 1 轮】
 
