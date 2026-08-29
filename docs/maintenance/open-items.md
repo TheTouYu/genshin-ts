@@ -847,3 +847,17 @@
   → 客户端图记录 f8=2097154 + 服务器 f22 'client-probe' 文本。
 - 前置：服务端图需加施放逻辑（参考「魔方-客户端优化版本」架构：技能实例创建→施放指定技能实例）。
 - 何时做：用户安排真实技能触发测试时。
+
+### O-2026-08-29-10 PKC post-apply 评估门行为与新知识合法重叠流程（二轮复盘 R2 记录）
+
+- 事实：二轮复盘 R2 capture（bnd_81d5378d，claims 339→357）apply 后，post-apply 评估门报
+  full-closure-and-id-integrity-1 失败（exit 1），但事务已落盘（validate ok、357 claims）。
+  根因：新 R12 claim（模板 ID 审计/引用完整性）与评估 query「静态拼装 闭包 ID 完整性」**语义合法重叠**，
+  把旧期望 topic 挤出 top-3（断言 topic_top_n=3）。
+- 处理（用户逐门批准）：①topic 关键词去竞争（bnd_f5dc558f）②claim 标题修订（bnd_253802ff）
+  ③评估夹具 expected_topic_ids 增加 static-assembly-family（语义断言不变）。
+- 残留问题：post-apply 评估门对 **affected_by 不相交** 的用例也做阻塞判定（本例 affected_by=static-gil-assets，
+  而计划只动 game-engine-knowledge 节点）——与「无关用例失败只告警不卡」的既定口径不符；
+  是否需在 PKC 运行时修正，待后续维护轮确认。
+- 流程沉淀：新知识合法改变检索格局时，正确杠杆顺序 = topic 元数据 → claim 标题措辞（clarify）→
+  夹具更新（用户审阅精确 diff）；禁止为迁就检索删改 claim 正文语义。

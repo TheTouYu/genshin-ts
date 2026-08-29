@@ -295,7 +295,8 @@
       "id": "full-closure-and-id-integrity-1",
       "query": "静态拼装 闭包 ID 完整性 定义 instance",
       "expected_topic_ids": [
-        "closure-and-id-integrity"
+        "closure-and-id-integrity",
+        "static-assembly-family"
       ],
       "expected_claim_ids": [],
       "affected_by": {
