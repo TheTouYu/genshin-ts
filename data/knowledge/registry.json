@@ -1387,6 +1387,15 @@
         "客户端图,20010,skill config,技能配置,事件轨道,节点图事件轨道,folder typeValue,轨道点ID,45.2,角色操控技能"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "nodegraph-value-semantics",
+      "node_id": "game-engine-knowledge",
+      "title": "节点图值语义与列表运行时规则（真实日志实证）",
+      "path": "knowledge/game-engine-knowledge/nodegraph-value-semantics.md",
+      "summary": "图变量/列表值的引擎运行时语义：重复求值、全 0 短物化、初始化上限、长列表分块——全部来自 Beyond_Debug_Log 帧铁证与真实 GIL 回读。",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3024,6 +3033,31 @@
       ]
     },
     "clm_ED0FA439CD02DA5EEC16241BCD": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_777AAD5F1A419F4FC852B62DD1": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_391FD0CF4D41AA608917E99E1E": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_E14B322C7B3428784D34649139": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_6583EB7C5B309BEEBEC0F3D035": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_D9623A8BE08E2906051D49033A": {
       "fact_classes": [
         "external_game_evidence"
       ]

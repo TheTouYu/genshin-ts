@@ -318,6 +318,21 @@
       ]
     },
     {
+      "id": "aref_0ed20d8276a7bb08d66debac92",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-solveseq-race.md",
+      "locator": "三、为什么反复出问题——系统性根因",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "existence_only",
+      "approved_hash": "ce57798fc2fed2e8d03508eda4f13b9815024344087514cbb80a4616fd9c8a36",
+      "claim_ids": [
+        "clm_6583EB7C5B309BEEBEC0F3D035"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_0f71c33eade0666d41c4730080",
       "path": "docs/game-engine-knowledge/variables.md",
       "locator": "当前关卡变量的受限 GIL 观察（CONFIRMED_BOUNDED）",
@@ -694,6 +709,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_204cf8642932b0da33f3615ac1",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-24-rubik-solver-load-tick.md",
+      "locator": "四、流程与方法论教训",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "existence_only",
+      "approved_hash": "7627e6112bcee5d700946cb8b8736e4ac61d079079471458fe1870d55f18c1ec",
+      "claim_ids": [
+        "clm_391FD0CF4D41AA608917E99E1E"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -1267,6 +1297,21 @@
       ]
     },
     {
+      "id": "aref_3810fac57699129ae9946c9105",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-27-football-motion-chain.md",
+      "locator": "三、系统性根因（为什么反复踩）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "existence_only",
+      "approved_hash": "a5f79aff1d0a3a601a5e26511bda2b777ae699d674869d433c9fa85652c35b52",
+      "claim_ids": [
+        "clm_777AAD5F1A419F4FC852B62DD1"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_38948e6f94b5b6e3c552947913",
       "path": "docs/game-engine-knowledge/control-flow.md",
       "locator": "普通图 SysCall 的 FlowOut→FlowIn 落盘",
@@ -1366,6 +1411,21 @@
       "approved_hash": "4f29425fd6791658b03a6a6ccc092172c5bbfbc05575a3e8cd3b172b57e73b40",
       "claim_ids": [
         "clm_1E31BAC638F84B68E6F1CB17B4"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_39eefeb4e6b6092be987beff8e",
+      "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
+      "locator": "1. 跨主题错误谱系总表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "15a77b3cdae54a0e15e6fc7d3710973cb1ccd950702e5c8ba6e8fae358d66502",
+      "claim_ids": [
+        "clm_D9623A8BE08E2906051D49033A"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -2379,6 +2439,21 @@
       ]
     },
     {
+      "id": "aref_65653084659ac5d92aa6f7e648",
+      "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
+      "locator": "3. 本周新增可复用方法论索引",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "15a77b3cdae54a0e15e6fc7d3710973cb1ccd950702e5c8ba6e8fae358d66502",
+      "claim_ids": [
+        "clm_E14B322C7B3428784D34649139"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_6743904ac2bfb13f8a8b2e4aef",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 50-特殊数字控件",
@@ -2931,6 +3006,36 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_7fa8aa008cf8dbbf60f85ad534",
+      "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
+      "locator": "3. 本周新增可复用方法论索引",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "15a77b3cdae54a0e15e6fc7d3710973cb1ccd950702e5c8ba6e8fae358d66502",
+      "claim_ids": [
+        "clm_391FD0CF4D41AA608917E99E1E"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_812ff9ff259ef9aeb5fd27f5c0",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-22-rubik-record-limit-fixes.md",
+      "locator": "二、根因（铁证）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "existence_only",
+      "approved_hash": "a729f5ad99267a30ca410aa562f444f4762f2c3bee1364fe2cf4d9b4d487ba29",
+      "claim_ids": [
+        "clm_D9623A8BE08E2906051D49033A"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -3501,6 +3606,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_9cfc44db14d32517b2ee985bbc",
+      "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
+      "locator": "1. 跨主题错误谱系总表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "15a77b3cdae54a0e15e6fc7d3710973cb1ccd950702e5c8ba6e8fae358d66502",
+      "claim_ids": [
+        "clm_6583EB7C5B309BEEBEC0F3D035"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -4120,6 +4240,21 @@
       ]
     },
     {
+      "id": "aref_bc907b02038047808ed298cbc7",
+      "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
+      "locator": "1. 跨主题错误谱系总表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "15a77b3cdae54a0e15e6fc7d3710973cb1ccd950702e5c8ba6e8fae358d66502",
+      "claim_ids": [
+        "clm_777AAD5F1A419F4FC852B62DD1"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_bd2ce490c46d960298d335b89a",
       "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
       "locator": "风险检查功能",
@@ -4719,6 +4854,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_d91f200e7214db986101a7031f",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-29-variable-game-verify-matrix.md",
+      "locator": "四、流程与方法论教训",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "existence_only",
+      "approved_hash": "bfb0815d11cf3349ccf0f454c59d686cc4c287151df6c4d56b7f3dd33d728370",
+      "claim_ids": [
+        "clm_E14B322C7B3428784D34649139"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
