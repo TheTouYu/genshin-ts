@@ -47,6 +47,13 @@ const EDITOR_TYPE_VALUES: Record<number, string> = {
 const EDITOR_LIST_VALUE =
   '08904e1001f206130807120f08924e22070801a206020808ea0600'
 
+// v14 str_list 周期（编辑器样本 var-v14-str-list-cycle.gil sha a0cd33d4…）：
+// Get cid=2662、Set cid=2680、ioc=8（server 列表段 str_list=8 实证）；拼装列表 cid 按元素类型
+// （int=169/str=170）；元素 pin：默认值空 payload 无 alreadySetVal、非默认值保留 alreadySetVal+
+// 显式 payload（int 23/489 实证）；元素 ioc：int=0 省略、str=1（vendor 写）
+const EDITOR_STR_LIST_VALUE =
+  '08904e1001f206130808120f08924e22070801a20602080bea0600'
+
 const ir = [
   {
     ir_version: 1,
@@ -307,6 +314,103 @@ try {
       const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
       assert.equal(hex, EDITOR_LIST_VALUE, 'int_list value must match editor bytes')
     }
+    // ===== v14：str_list 周期 + 拼装列表元素（非默认值 alreadySetVal） =====
+    const strListIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'server',
+          mode: 'beyond',
+          sub_type: 'entity',
+          id: 1073741825,
+          name: '_GSTS_lv_str'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'when_custom_variable_changes', next: [] },
+          { id: 2, type: 'get_local_variable', args: [{ type: 'str_list', value: [] }] },
+          {
+            id: 3,
+            type: 'set_local_variable',
+            args: [
+              { type: 'conn', value: { node_id: 2, index: 0, type: 'local_variable' } },
+              { type: 'str_list', value: [] }
+            ]
+          }
+        ],
+        edges: null
+      }
+    ]
+    const irPath5 = join(tmp2, 'strlist.json')
+    writeFileSync(irPath5, JSON.stringify(strListIr))
+    const giaPath5 = join(tmp2, 'strlist.gia')
+    writeGiaFromIrJsonFile(irPath5, giaPath5, {}, () => {})
+    const bytes5 = new Uint8Array(readFileSync(giaPath5))
+    const root5 = rootMessage.decode(bytes5.slice(20, -4))
+    const nodes5 = root5.graph?.graph?.inner?.graph?.nodes ?? []
+    const getS = nodes5.find((n) => n.genericId?.nodeId === 18)
+    const setS = nodes5.find((n) => n.genericId?.nodeId === 19)
+    assert.ok(getS && setS, 'str_list Get/Set nodes')
+    assert.equal(getS.concreteId?.nodeId, 2662, 'Get str_list cid 2662')
+    assert.equal(setS.concreteId?.nodeId, 2680, 'Set str_list cid 2680')
+    for (const [n, idx] of [
+      [getS, 0],
+      [setS, 1]
+    ] as const) {
+      const inPin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === idx)
+      assert.ok(inPin?.value, 'str_list pin value')
+      assert.equal(inPin.value.bConcreteValue?.indexOfConcrete, 8, 'str_list ioc 8')
+      const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_STR_LIST_VALUE, 'str_list value must match editor bytes')
+    }
+
+    // 拼装列表元素（int 169 / str 170）：cid 变体 + 元素 ioc + 非默认值 alreadySetVal
+    const assyIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'server',
+          mode: 'beyond',
+          sub_type: 'entity',
+          id: 1073741825,
+          name: '_GSTS_assy'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'when_custom_variable_changes', next: [] },
+          { id: 2, type: 'assembly_list', args: [{ type: 'int', value: 0 }, { type: 'int', value: 23 }, { type: 'int', value: 0 }, { type: 'int', value: 489 }] },
+          { id: 3, type: 'assembly_list', args: [{ type: 'str', value: '' }, { type: 'str', value: '' }, { type: 'str', value: '' }, { type: 'str', value: '' }, { type: 'str', value: '' }] }
+        ],
+        edges: null
+      }
+    ]
+    const irPath6 = join(tmp2, 'assy.json')
+    writeFileSync(irPath6, JSON.stringify(assyIr))
+    const giaPath6 = join(tmp2, 'assy.gia')
+    writeGiaFromIrJsonFile(irPath6, giaPath6, {}, () => {})
+    const bytes6 = new Uint8Array(readFileSync(giaPath6))
+    const root6 = rootMessage.decode(bytes6.slice(20, -4))
+    const nodes6 = root6.graph?.graph?.inner?.graph?.nodes ?? []
+    const assyInt = nodes6.find((n) => n.concreteId?.nodeId === 169)
+    const assyStr = nodes6.find((n) => n.concreteId?.nodeId === 170)
+    assert.ok(assyInt && assyStr, 'assembly variants 169/170')
+    assert.equal(assyStr.concreteId?.nodeId, 170, 'str assembly cid 170')
+    const elem = (n: any, idx: number) => {
+      const p = n.pins.find((x) => x.i1?.kind === 3 && x.i1?.index === idx)
+      assert.ok(p?.value, `assembly element ${idx}`)
+      return p.value.bConcreteValue
+    }
+    assert.equal(elem(assyInt, 2).value.alreadySetVal, true, 'int 23 element keeps alreadySetVal')
+    assert.equal(elem(assyInt, 2).value.bInt.val, 23, 'int 23 payload')
+    assert.equal(elem(assyInt, 4).value.alreadySetVal, true, 'int 489 element keeps alreadySetVal')
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(elem(assyInt, 1).value, 'alreadySetVal'),
+      false,
+      'default element has no alreadySetVal'
+    )
+    assert.equal(elem(assyStr, 1).indexOfConcrete, 1, 'str element ioc 1')
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
   }

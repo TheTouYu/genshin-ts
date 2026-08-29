@@ -310,6 +310,12 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       if (!v || typeof v !== 'object') continue
       const cv = v as { class?: number; bConcreteValue?: { value?: unknown; indexOfConcrete?: number } }
       if (cv.class !== 10000 || !cv.bConcreteValue) continue
+      if (gid === 169 || gid === 170) {
+        // 拼装列表元素 pin：走图变量元素规则（非默认值保留 alreadySetVal + 显式 payload，
+        // v14 样本 int 23/489 有 f2=1；默认值空 payload 无 f2）；元素 ioc vendor 已写（int=0 省略/str=1）
+        normalizeScalarEditorWire(cv.bConcreteValue.value)
+        continue
+      }
       normalizePinInner(cv.bConcreteValue.value)
       if (gid === 18 || gid === 19) {
         const vt = (cv.bConcreteValue.value as
