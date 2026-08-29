@@ -64,6 +64,23 @@ const EDITOR_CLIENT_VALUE =
 const EDITOR_CLIENT_NAME =
   '0805100122070802aa06021009ca06080a06e6b58be8af95'
 
+// v16 客户端更多类型（编辑器样本 var-v16-client-more-types.gil sha 8c6370c6…，图 1082130433）：
+// Get 10 类型值 pin 全部对齐（client ioc 表 int=0 省略/str=1/ety=2/gid=3/flt=4/vec=5/bool=6/
+// str_list=8/flt_list=11/vec3_list=12；clientVarType 码 int=3/str=9/vec=11/ety=1/flt=7/bool=5/
+// gid=14/str_list=10/flt_list=8/vec3_list=12；entity 内层无 class 无 payload）
+const EDITOR_CLIENT_TYPE_VALUES: Record<string, string> = {
+  测试: '08904e1001f20610120e080222070802aa06021003b20600',
+  字符串: '08904e1001f206120801120e080522070802aa06021009ca0600',
+  三维向量: '08904e1001f2061408051210080722070802aa0602100bda06020a00',
+  实体: '08904e1001f2060d0802120922070802aa06021001',
+  浮点数: '08904e1001f206120804120e080422070802aa06021007c20600',
+  布尔: '08904e1001f206120806120e080622070802aa06021005d20600',
+  GUID: '08904e1001f206120803120e080122070802aa0602100eaa0600',
+  字符串列表: '08904e1001f206130808120f08924e22070802aa0602100aea0600',
+  三维向量列表: '08904e1001f20613080c120f08924e22070802aa0602100cea0600',
+  浮点数列表: '08904e1001f20613080b120f08924e22070802aa06021008ea0600'
+}
+
 const ir = [
   {
     ir_version: 1,
@@ -517,6 +534,71 @@ try {
       !setN.pins.some((p) => p.i1?.kind === 1 || p.i1?.kind === 2),
       'set has no flow pins'
     )
+    // ===== v16：客户端 10 类型值 pin（名字=类型标记） =====
+    const CLIENT_TYPES: Array<[string, string]> = [
+      ['int', '测试'],
+      ['str', '字符串'],
+      ['vec3', '三维向量'],
+      ['entity', '实体'],
+      ['float', '浮点数'],
+      ['bool', '布尔'],
+      ['guid', 'GUID'],
+      ['str_list', '字符串列表'],
+      ['vec3_list', '三维向量列表'],
+      ['float_list', '浮点数列表']
+    ]
+    const moreIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'client',
+          mode: 'beyond',
+          sub_type: 'character_control_skill',
+          id: 1082130433,
+          name: 'client-more-types'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'node_graph_begins', next: [] },
+          ...CLIENT_TYPES.flatMap(([t, name], i) => {
+            const gid = 2 + i * 2
+            return [
+              { id: gid, type: 'get_local_variable', args: [{ type: 'str', value: name }] },
+              {
+                id: gid + 1,
+                type: 'set_local_variable',
+                args: [
+                  { type: 'str', value: name },
+                  { type: 'conn', value: { node_id: gid, index: 0, type: t } }
+                ]
+              }
+            ]
+          })
+        ],
+        edges: null
+      }
+    ]
+    const irPath8 = join(tmp2, 'more.json')
+    writeFileSync(irPath8, JSON.stringify(moreIr))
+    const giaPath8 = join(tmp2, 'more.gia')
+    writeGiaFromIrJsonFile(irPath8, giaPath8, {}, () => {})
+    const bytes8 = new Uint8Array(readFileSync(giaPath8))
+    const root8 = rootMessage.decode(bytes8.slice(20, -4))
+    const nodes8 = root8.graph?.graph?.inner?.graph?.nodes ?? []
+    const gets8 = nodes8.filter((n) => n.genericId?.nodeId === 200082)
+    assert.equal(gets8.length, CLIENT_TYPES.length, 'ten typed client Gets')
+    for (const [t, name] of CLIENT_TYPES) {
+      const n = gets8.find((x) => {
+        const namePin = x.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 0)
+        return namePin?.value?.bString?.val === name
+      })
+      assert.ok(n, `Get node for ${name}`)
+      const outPin = n.pins.find((p) => p.i1?.kind === 4 && p.i1?.index === 0)
+      assert.ok(outPin?.value, `${name} value pin`)
+      const hex = Buffer.from(outPin.value.$type.encode(outPin.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_CLIENT_TYPE_VALUES[name], `${name} value must match editor`)
+    }
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
   }

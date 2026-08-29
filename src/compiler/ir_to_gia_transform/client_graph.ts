@@ -1285,7 +1285,8 @@ function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
       else if (cls === 6) inner.bEnum = {}
       else if (cls === 7) inner.bVector = { val: {} }
       else if (cls === 1) inner.bId = {}
-      // class 0（entity 类）无 payload 字段
+      else if (cls === 0) delete inner.class // entity：class 0 编辑器省略（v16 样本 inner 只有 itemType）
+      // 其余无 payload 字段的 class 不动
     }
     node.pins = node.pins.filter((pin) => !pinsToRemove.includes(pin))
   }
