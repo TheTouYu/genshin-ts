@@ -13,6 +13,7 @@ import {
   printableWireText,
   type WireField
 } from './static_assembly/wire.js'
+import { DEFAULT_GRAPH_TYPE_VALUES } from '../injector/folder.js'
 import {
   addCompositePin,
   addGraphNode,
@@ -109,6 +110,55 @@ const GRAPH_CLASS = 10000
 const GRAPH_TYPE = 20000
 const GRAPH_KIND = 21001
 const FOLDER_TYPE_SERVER_GRAPH = 800 // DEFAULT_GRAPH_TYPE_VALUES: 20000 -> 800
+// fixed32 0.3（过滤器类 evaluationInterval f101，v5 快照 record[13]/[14] 逐字节确认）
+const F32_0_3 = new Uint8Array([0x9a, 0x99, 0x99, 0x3e])
+
+/**
+ * 客户端图类型规格（2026-08-29 1073741914 快照差分闭合，见 docs/game-engine-knowledge/node-graphs.md）。
+ * folderId 是类型级常量（v0 已存在空记录，新建图=重写空记录追加条目；1073741914/1073741913 双地图一致）。
+ * kind：skill=节点图开始(200042/2001)+f8{kind:6}；status=造物状态节点(200126/4000)+f11；filter=过滤节点(200000|200122)+参数块。
+ */
+type GraphTypeSpec = {
+  type: number
+  name: string
+  defaultName: string
+  folderId: number
+  kind: 'server' | 'skill' | 'status' | 'filter'
+  filterGeneric?: 200000 | 200122
+}
+
+export const GRAPH_TYPES: GraphTypeSpec[] = [
+  { type: 20000, name: '服务端图', defaultName: '新建节点图', folderId: 4, kind: 'server' },
+  { type: 20001, name: '布尔过滤器', defaultName: '新建过滤器节点图', folderId: 13, kind: 'filter', filterGeneric: 200000 },
+  { type: 20002, name: '角色技能', defaultName: '新建角色技能节点图', folderId: 14, kind: 'skill' },
+  { type: 20006, name: '整数过滤器', defaultName: '新建过滤器节点图', folderId: 57, kind: 'filter', filterGeneric: 200122 },
+  { type: 20008, name: '造物技能', defaultName: '新建造物技能节点图', folderId: 59, kind: 'skill' },
+  { type: 20009, name: '造物状态', defaultName: '新建造物状态节点图', folderId: 60, kind: 'status' },
+  { type: 20010, name: '角色操控技能', defaultName: '新建角色操控技能节点图', folderId: 67, kind: 'skill' }
+]
+
+// 未采样自动节点结构的类型：20003 状态 / 20004 ClassNode / 20005 ItemNode / 20007 造物状态决策 → fail closed
+function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
+  const spec = GRAPH_TYPES.find((s) =>
+    typeof typeOrName === 'number'
+      ? s.type === typeOrName
+      : s.type === Number(typeOrName) || s.name === typeOrName
+  )
+  if (!spec) {
+    const input = String(typeOrName)
+    const known = /^\d+$/.test(input) ? Number(input) : undefined
+    if (known !== undefined && known >= 20000 && known <= 20010) {
+      throw new Error(
+        `[error] 图类型 ${known} 的自动节点结构未采样（20003/20004/20005/20007），fail closed；` +
+          `可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
+      )
+    }
+    throw new Error(
+      `[error] unknown graph type: ${input}；可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
+    )
+  }
+  return spec
+}
 
 // 最小 root 6：编辑器新图首次保存才有完整 records（33 条模板/元件目录）；
 // 占位节点图只需“未分类页签”聚合 record（#1=4，tab 含“未分类页签”），
@@ -136,7 +186,9 @@ type Args = {
   sub: 'create' | 'read' | 'patch' | 'layout' | 'validate' | 'nodes' | 'def-clean'
   gilPath: string | undefined
   mapId: number | undefined
-  name: string
+  name: string | undefined
+  graphType: number
+  graphId: number | undefined
   outputPath: string | undefined
   write: boolean
   json: boolean
@@ -169,7 +221,10 @@ function usage(exitCode = 0): never {
     '  --config <file>   project config (for --map-id resolution)',
     '  --gil <file>      explicit GIL source',
     '  --map-id <id>     target map ID (location only; requires project config)',
-    '  --name <string>   create: new NodeGraph name (default: 新建节点图)',
+    '  --name <string>   create: new NodeGraph name (default: 按类型默认名，如 新建角色操控技能节点图)',
+    '  --graph-id <id>  create: 显式图 ID（客户端图段规则未闭合时必需）',
+    '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20006 整数过滤器/',
+    '                      20008 造物技能/20009 造物状态/20010 角色操控技能；20003/20004/20005/20007 自动节点未采样 fail closed）',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
     '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
@@ -240,7 +295,9 @@ function parseArgs(argv: readonly string[]): Args {
   let sub: Args['sub'] = 'create'
   let gilPath: string | undefined
   let mapId: number | undefined
-  let name = '新建节点图'
+  let name: string | undefined
+  let graphType = 20000
+  let graphId: number | undefined
   let outputPath: string | undefined
   let write = false
   let json = false
@@ -264,6 +321,8 @@ function parseArgs(argv: readonly string[]): Args {
     if (arg === '--gil') gilPath = value(argv, index++)
     else if (arg === '--map-id') mapId = Number(value(argv, index++))
     else if (arg === '--name') name = value(argv, index++)
+    else if (arg === '--type') graphType = graphTypeSpec(value(argv, index++)).type
+    else if (arg === '--graph-id') graphId = Number(value(argv, index++))
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--write') write = true
     else if (arg === '--json') json = true
@@ -299,7 +358,7 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] def-clean cannot combine explicit defs with --all-unused')
   if (sub === 'def-clean' && (graph || node || composite || category || srcGil || ops.length))
     throw new Error('[error] def-clean does not accept --graph/--node/--composite/--category/--src-gil/ops')
-  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck, defs, allUnused, includeSystem, force, dryRun }
+  return { sub, gilPath, mapId, name, graphType, graphId, outputPath, write, json, graph, node, composite, category, srcGil, ops, layoutCheck, defs, allUnused, includeSystem, force, dryRun }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -345,6 +404,30 @@ function graphIdOf(record: Uint8Array): number | undefined {
   return typeof nodeId?.value === 'number' ? nodeId.value : undefined
 }
 
+// 插入位置 = 最后一个既有图 f1 记录之后（编辑器行为：新图紧跟既有图，f2 复合/f4 定义在后；
+// 2026-08-29 1073741914 快照确认：before root10 f1×10 在 idx0-9，after f1×11 新图在 idx10）
+function insertAfterLastGraph(root10: WireField[], record: WireField): WireField[] {
+  let last = -1
+  root10.forEach((f, i) => {
+    if (f.number === 1) last = i
+  })
+  const next = [...root10]
+  next.splice(last + 1, 0, record)
+  return next
+}
+
+// 客户端图 ID 段（0x40800001 起，1082130433..）是否存在既有图（段起始值仅 1073741914/1073741913 两地图样本）
+function hasClientSegmentGraph(payload: Uint8Array): boolean {
+  const root = readRoot(payload)
+  const top10 = root.find((f) => f.number === 10 && f.wire === 2)
+  if (!top10) return false
+  const root10 = parseWireMessage(top10.value as Uint8Array)!
+  return root10
+    .filter((f) => f.number === 1 && f.wire === 2)
+    .map((f) => graphIdOf(f.value as Uint8Array))
+    .some((id): boolean => typeof id === 'number' && id >= 1082130433)
+}
+
 function appendGraphWrapper(root10: WireField[], graphId: number, name: string): WireField[] {
   const idMsg: WireField[] = [
     { number: 1, wire: 0, value: GRAPH_CLASS },
@@ -357,34 +440,46 @@ function appendGraphWrapper(root10: WireField[], graphId: number, name: string):
     { number: 2, wire: 2, value: new TextEncoder().encode(name) }
   ])
   // root10.1 记录 = {1: NodeGraph}，NodeGraph = {1: Id, 2: name}
-  return [
-    ...root10,
-    { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: nodeGraph }]) }
-  ]
+  return insertAfterLastGraph(root10, {
+    number: 1,
+    wire: 2,
+    value: emitWireMessage([{ number: 1, wire: 2, value: nodeGraph }])
+  })
 }
 
 function appendFolderEntry(root6: WireField[], graphId: number): WireField[] {
+  return appendFolderEntryTo(root6, 4, FOLDER_TYPE_SERVER_GRAPH, graphId)
+}
+
+// 通用 folder 条目追加：定位 folderId 常量记录（f1 varint == folderId），重写其 f3 tab 追加 f5={typeValue, id}
+// （2026-08-29 闭合：folder 记录是类型级常量，编辑器从不创建新记录；找不到记录 = fail closed）
+function appendFolderEntryTo(
+  root6: WireField[],
+  folderId: number,
+  typeValue: number,
+  graphId: number
+): WireField[] {
   const records = root6.filter((f) => f.number === 1 && f.wire === 2)
   let folderRecord: WireField | undefined
   for (const rec of records) {
     const inner = parseWireMessage(rec.value as Uint8Array)
-    if (!inner || varintOf(inner, 1) !== 4) continue
-    const tab = inner.find((f) => f.number === 3 && f.wire === 2)
-    const tabFields = tab ? parseWireMessage(tab.value as Uint8Array) : undefined
-    if (tabFields && textOf(tabFields, 1) === '未分类页签') {
+    if (inner && varintOf(inner, 1) === folderId) {
       folderRecord = rec
       break
     }
   }
   if (!folderRecord) {
-    throw new Error('[error] root6 record #1=4 with "未分类页签" not found in this map')
+    throw new Error(
+      `[error] root6 缺少 folderId=${folderId} 的「未分类页签」记录（folderId 分配规则未闭合，` +
+        `请先在编辑器中创建一张该类型图/资产建立记录，再重试）`
+    )
   }
   const inner = parseWireMessage(folderRecord.value as Uint8Array)!
   const rebuilt = inner.map((f) => {
     if (f.number !== 3 || f.wire !== 2) return f
     const tab = parseWireMessage(f.value as Uint8Array)!
     const entry: WireField[] = [
-      { number: 1, wire: 0, value: FOLDER_TYPE_SERVER_GRAPH },
+      { number: 1, wire: 0, value: typeValue },
       { number: 2, wire: 0, value: graphId }
     ]
     const nextTab = [...tab, { number: 5, wire: 2, value: emitWireMessage(entry) }]
@@ -392,6 +487,148 @@ function appendFolderEntry(root6: WireField[], graphId: number): WireField[] {
   })
   const rebuiltBytes = emitWireMessage(rebuilt)
   return root6.map((f) => (f === folderRecord ? { ...f, value: rebuiltBytes } : f))
+}
+
+// ==================== 客户端图自动节点模板（v5 快照 record[10..15] 逐字节提取） ====================
+
+function sysId(className: number, nodeId: number): WireField[] {
+  return [
+    { number: 1, wire: 0, value: 10001 },
+    { number: 2, wire: 0, value: className },
+    { number: 3, wire: 0, value: 22000 },
+    { number: 5, wire: 0, value: nodeId }
+  ]
+}
+
+// 技能类（20002/20008/20010）：节点图开始 200042/2001 + contextDeclaration f8={1:6}
+function skillStartNode(): WireField[] {
+  return [
+    { number: 1, wire: 0, value: 1 },
+    { number: 2, wire: 2, value: emitWireMessage(sysId(20002, 200042)) },
+    { number: 3, wire: 2, value: emitWireMessage(sysId(20002, 2001)) },
+    { number: 8, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 6 }]) }
+  ]
+}
+
+// 造物状态 20009：造物状态节点 200126/4000 + f11={1:1, 100:{1:1}}
+function statusNode(): WireField[] {
+  return [
+    { number: 1, wire: 0, value: 1 },
+    { number: 2, wire: 2, value: emitWireMessage(sysId(20007, 200126)) },
+    { number: 3, wire: 2, value: emitWireMessage(sysId(20007, 4000)) },
+    {
+      number: 11,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 0, value: 1 },
+        { number: 100, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 1 }]) }
+      ])
+    }
+  ]
+}
+
+// 过滤器类（20001 布尔 / 20006 整数）：过滤节点 + 两段参数块（值因类型而异，v5 record[13]/[14]）
+function filterNode(filterGeneric: 200000 | 200122): WireField[] {
+  const typeValue1 = filterGeneric === 200000 ? 5 : 3 // 参数块1: f4.4 与 f4.3.f4.f101.f2
+  const typeValue2 = filterGeneric === 200000 ? 1000010 : 10000011 // 参数块2: f4.3.f106.f1
+  const paramBlock1 = emitWireMessage([
+    { number: 1, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 3 }]) },
+    { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 3 }]) },
+    {
+      number: 3,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 0, value: 2 },
+        {
+          number: 4,
+          wire: 2,
+          value: emitWireMessage([
+            { number: 1, wire: 0, value: 2 },
+            { number: 101, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: typeValue1 }]) }
+          ])
+        }
+      ])
+    },
+    { number: 4, wire: 0, value: typeValue1 }
+  ])
+  const paramBlock2 = emitWireMessage([
+    {
+      number: 1,
+      wire: 2,
+      value: emitWireMessage([{ number: 1, wire: 0, value: 3 }, { number: 2, wire: 0, value: 1 }])
+    },
+    {
+      number: 2,
+      wire: 2,
+      value: emitWireMessage([{ number: 1, wire: 0, value: 3 }, { number: 2, wire: 0, value: 1 }])
+    },
+    {
+      number: 3,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 0, value: 6 },
+        {
+          number: 4,
+          wire: 2,
+          value: emitWireMessage([
+            { number: 1, wire: 0, value: 2 },
+            { number: 101, wire: 2, value: emitWireMessage([{ number: 2, wire: 0, value: 13 }]) }
+          ])
+        },
+        { number: 106, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: typeValue2 }]) }
+      ])
+    },
+    { number: 4, wire: 0, value: 13 }
+  ])
+  return [
+    { number: 1, wire: 0, value: 1 },
+    { number: 2, wire: 2, value: emitWireMessage(sysId(20001, filterGeneric)) },
+    { number: 3, wire: 2, value: emitWireMessage(sysId(20001, 2001)) },
+    { number: 4, wire: 2, value: paramBlock1 },
+    { number: 4, wire: 2, value: paramBlock2 }
+  ]
+}
+
+function clientAutoNode(spec: GraphTypeSpec): { node: WireField[]; extra: WireField[] } {
+  if (spec.kind === 'skill') return { node: skillStartNode(), extra: [{ number: 100, wire: 0, value: 1 }] }
+  if (spec.kind === 'status') return { node: statusNode(), extra: [{ number: 100, wire: 0, value: 1 }] }
+  if (spec.kind === 'filter') {
+    return {
+      node: filterNode(spec.filterGeneric!),
+      extra: [
+        { number: 100, wire: 0, value: 1 },
+        { number: 101, wire: 5, value: F32_0_3 }
+      ]
+    }
+  }
+  throw new Error(`[error] unexpected graph kind: ${spec.kind}`)
+}
+
+function appendClientGraphWrapper(
+  root10: WireField[],
+  graphId: number,
+  name: string,
+  spec: GraphTypeSpec
+): WireField[] {
+  const idMsg: WireField[] = [
+    { number: 1, wire: 0, value: GRAPH_CLASS },
+    { number: 2, wire: 0, value: spec.type },
+    { number: 3, wire: 0, value: GRAPH_KIND },
+    { number: 5, wire: 0, value: graphId }
+  ]
+  const { node, extra } = clientAutoNode(spec)
+  const nodeGraph = emitWireMessage([
+    { number: 1, wire: 2, value: emitWireMessage(idMsg) },
+    { number: 2, wire: 2, value: new TextEncoder().encode(name) },
+    { number: 3, wire: 2, value: emitWireMessage(node) },
+    ...extra
+  ])
+  // root10.1 记录 = {1: NodeGraph}，NodeGraph = {1: Id, 2: name, 3: nodes, 100/101}
+  return insertAfterLastGraph(root10, {
+    number: 1,
+    wire: 2,
+    value: emitWireMessage([{ number: 1, wire: 2, value: nodeGraph }])
+  })
 }
 
 // 补最小 root 6/10 挂载容器（全新骨架地图没有这两层，游戏会加载失败——round4 事故）；
@@ -418,8 +655,10 @@ export function ensureMinimalContainers(payload: Uint8Array): Uint8Array {
 export function buildEmptyNodeGraph(
   payload: Uint8Array,
   graphId: number,
-  name: string
+  name: string,
+  type = 20000
 ): Uint8Array {
+  const spec = graphTypeSpec(type)
   const root = readRoot(ensureMinimalContainers(payload))
   const nextRoot = root.map((field) => {
     if (field.wire !== 2) return field
@@ -429,18 +668,28 @@ export function buildEmptyNodeGraph(
         (f) => f.number === 1 && f.wire === 2 && graphIdOf(f.value as Uint8Array) === graphId
       )
       if (hasId) throw new Error(`[error] graph ${graphId} already exists in root 10`)
-      return { ...field, value: emitWireMessage(appendGraphWrapper(root10, graphId, name)) }
+      if (spec.kind === 'server') {
+        return { ...field, value: emitWireMessage(appendGraphWrapper(root10, graphId, name)) }
+      }
+      return { ...field, value: emitWireMessage(appendClientGraphWrapper(root10, graphId, name, spec)) }
     }
     if (field.number === 6) {
       const root6 = parseWireMessage(field.value as Uint8Array)!
-      return { ...field, value: emitWireMessage(appendFolderEntry(root6, graphId)) }
+      const typeValue = spec.kind === 'server' ? FOLDER_TYPE_SERVER_GRAPH : typeValueFor(spec.type)
+      return { ...field, value: emitWireMessage(appendFolderEntryTo(root6, spec.folderId, typeValue, graphId)) }
     }
     return field
   })
   return emitWireMessage(nextRoot)
 }
 
-function verifyNodeGraphReadBack(bytes: Uint8Array, graphId: number): void {
+function typeValueFor(graphType: number): number {
+  const value = DEFAULT_GRAPH_TYPE_VALUES.get(graphType)
+  if (value === undefined) throw new Error(`[error] no folder typeValue for graph type ${graphType}`)
+  return value
+}
+
+function verifyNodeGraphReadBack(bytes: Uint8Array, graphId: number, folderId = 4): void {
   const root = readRoot(bytes.slice(20, -4))
   const top10Field = root.find((f) => f.number === 10 && f.wire === 2)
   if (!top10Field) throw new Error('[error] read-back: root 10 missing after create')
@@ -456,7 +705,7 @@ function verifyNodeGraphReadBack(bytes: Uint8Array, graphId: number): void {
     .filter((f) => f.number === 1 && f.wire === 2)
     .some((f) => {
       const inner = parseWireMessage(f.value as Uint8Array)
-      if (varintOf(inner ?? [], 1) !== 4) return false
+      if (varintOf(inner ?? [], 1) !== folderId) return false
       const tab = inner?.find((g) => g.number === 3 && g.wire === 2)
       const tabMsg = tab ? parseWireMessage(tab.value as Uint8Array) : undefined
       return tabMsg?.some(
@@ -535,8 +784,17 @@ export async function runAssetsNodeGraphs(
   }
   const sourceSha = sha256Bytes(sourceBytes)
   const payload = sourceBytes.slice(20, -4)
-  const graphId = nextGraphId(payload)
-  const result = buildEmptyNodeGraph(payload, graphId, args.name)
+  const spec = graphTypeSpec(args.graphType)
+  // 客户端图 ID 段规则未闭合（段起始 1082130433=0x40800001 仅 2 地图样本）：
+  // 地图已有客户端图时 nextGraphId（全图 max+1）自然落在客户端段；客户端段为空且未显式指定时 fail closed
+  if (spec.kind !== 'server' && args.graphId === undefined && !hasClientSegmentGraph(payload)) {
+    throw new Error(
+      `[error] 客户端图 ID 段规则未闭合（起始值仅 2 样本），此地图尚无客户端图；请用 --graph-id 显式指定图 ID`
+    )
+  }
+  const graphId = args.graphId ?? nextGraphId(payload)
+  const effectiveName = args.name ?? spec.defaultName
+  const result = buildEmptyNodeGraph(payload, graphId, effectiveName, spec.type)
   const header = {
     schema: readUint32BE(sourceBytes, 4),
     headTag: readUint32BE(sourceBytes, 8),
@@ -545,7 +803,7 @@ export async function runAssetsNodeGraphs(
   }
   const newFile = buildFile(result, header)
   const candidateSha = sha256Bytes(newFile)
-  verifyNodeGraphReadBack(newFile, graphId)
+  verifyNodeGraphReadBack(newFile, graphId, spec.folderId)
 
   if (args.write) {
     const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
@@ -573,7 +831,7 @@ export async function runAssetsNodeGraphs(
     console.log(`preview=${gil}`)
   }
   console.log(
-    `graphId=${graphId} name=${args.name} sourceSha256=${sourceSha} ` +
+    `graphId=${graphId} name=${effectiveName} type=${spec.type}(${spec.name}) sourceSha256=${sourceSha} ` +
       `candidateSha256=${candidateSha} size=${sourceBytes.length}->${newFile.length}`
   )
 }

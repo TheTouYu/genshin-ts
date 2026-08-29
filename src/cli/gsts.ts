@@ -42,6 +42,7 @@ import { runAssetsGadgets } from './assets_gadgets.js'
 import { runAssetsResources } from './assets_resources.js'
 import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
+import { runAssetsSkillConfig } from './assets_skill_config.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runVariablesVerify } from './variables_verify.js'
 import { runImageEditor } from './image_editor.js'
@@ -2027,6 +2028,24 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsNodeGraphs(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:skill-config')
+    .description('create or list skill config assets in a map GIL')
+    .option('--config <file>', 'project config (for --map-id resolution)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:skill-config')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsSkillConfig(args, { projectConfigPath })
     })
 
   program
