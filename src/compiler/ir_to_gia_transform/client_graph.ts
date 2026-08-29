@@ -1244,9 +1244,16 @@ function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
     const hasClientExec = node.pins.some((pin) => pin.i1?.kind === PIN_KIND_CLIENT_EXEC)
     const pinsToRemove: ClientGiaPin[] = []
     for (const pin of node.pins) {
-      // 局部变量 Set（200081）编辑器无流 pin（执行走 ClientExec）；break/return 等其它
-      // ClientExec 节点的流 pin 承载循环目标，不能删（smoke-client-exec-bindings 回归）
-      if (gid === 200081 && hasClientExec && (pin.i1?.kind === PIN_KIND_IN_FLOW || pin.i1?.kind === PIN_KIND_OUT_FLOW)) {
+      // 局部变量 Set（200081）：编辑器物理 pin 不落盘 InFlow（执行边引用隐式 InFlow[0]，
+      // v15 样本 start→Set 边实证）；**OutFlow 必须保留**——Set 链中作 from 时执行边
+      // 挂在 OutFlow pin 上（2026-08-29 客户端图实测：全删导致 Set→Set 执行链断连，
+      // 真实 .gil flow 只剩 start→Set 与信号复合边）。break/return 等其它 ClientExec
+      // 节点的流 pin 承载循环目标，不能删（smoke-client-exec-bindings 回归）。
+      if (
+        gid === 200081 &&
+        hasClientExec &&
+        pin.i1?.kind === PIN_KIND_IN_FLOW
+      ) {
         pinsToRemove.push(pin)
         continue
       }

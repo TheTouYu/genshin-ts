@@ -14,7 +14,7 @@ import { g } from 'genshin-ts/runtime/core'
 //   d2lv|dyn|   → N      动态 init（timerSequenceId）→ get(empty)+set(expr)，值 = tick 序号
 g.server({ id: 1073741840, name: 'verify-d2-lv' })
   .on('whenEntityIsCreated', (_evt, f) => {
-    f.startTimer(f.getSelfEntity(), 'd2lv_tick', true, [0.5])
+    f.startTimer(f.getSelfEntity(), 'd2lv_tick', true, [5])
   })
   .on('whenTimerIsTriggered', (evt, f) => {
     // ① 常量折叠 init（M2）：Get 直带 42

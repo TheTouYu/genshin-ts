@@ -131,7 +131,7 @@ try {
   const mapPair = dictOut.value.bConcreteValue.structs?.inner?.wrapper?.mapPair
   assert.equal(mapPair?.key, 9, 'client GIA: mapPair.key = key clientVarType (str=9)')
   assert.equal(mapPair?.value, 3, 'client GIA: mapPair.value = value clientVarType (int=3)')
-  // Set 有 ClientExec、无流 pin
+  // Set 有 ClientExec、无物理 InFlow/OutFlow 之外的流 pin（InFlow 隐式省略——v15 实证）
   const setN = giaNodes.find((n: any) => {
     if (n.genericId?.nodeId !== 200081) return false
     const namePin = n.pins.find((p: any) => p.i1?.kind === 3 && p.i1?.index === 0)
@@ -140,8 +140,20 @@ try {
   assert.ok(setN, 'client GIA: score Set node exists')
   assert.ok(setN.pins.some((p: any) => p.i1?.kind === 5), 'client GIA: Set has ClientExec pin')
   assert.ok(
-    !setN.pins.some((p: any) => p.i1?.kind === 1 || p.i1?.kind === 2),
-    'client GIA: Set has no flow pins'
+    !setN.pins.some((p: any) => p.i1?.kind === 1),
+    'client GIA: Set has no physical InFlow pin (implicit, v15 sample)'
+  )
+  // 客户端执行链完整（2026-08-29 实测回归）：Set 链中作 from 时 OutFlow 必须保留——
+  // 之前 normalize 全删流 pin 导致 Set→Set 执行边断连（真实 .gil flow 只剩 start→Set）。
+  const startN = giaNodes.find((n: any) => n.genericId?.nodeId === 200042)
+  const startOut = startN?.pins.find((p: any) => p.i1?.kind === 2 && p.i1?.index === 0)
+  assert.ok(startOut?.connects?.length === 1, 'client GIA: start OutFlow wired to first Set')
+  const firstSetIdx = startOut.connects[0].id
+  const firstSet = giaNodes.find((n: any) => n.nodeIndex === firstSetIdx)
+  const setOut = firstSet?.pins.find((p: any) => p.i1?.kind === 2 && p.i1?.index === 0)
+  assert.ok(
+    setOut?.connects?.length === 1,
+    'client GIA: Set OutFlow must be preserved (chain Set→Set execution edge)'
   )
 
   console.log(JSON.stringify({ serverFold: true, clientNames: setNames, dictMapBase: true, ok: true }, null, 2))

@@ -12,7 +12,7 @@ import { D2ClientSignal } from './signals.js'
 //   len → 3     客户端列表字面量长度
 g.server({ id: 1073741841, name: 'verify-d2-skill' })
   .on('whenEntityIsCreated', (_evt, f) => {
-    f.startTimer(f.getSelfEntity(), 'd2skill_tick', true, [0.5])
+    f.startTimer(f.getSelfEntity(), 'd2skill_tick', true, [5])
   })
   .on('whenTimerIsTriggered', (_evt, f) => {
     f.castSpecifiedSkillInstance(player(1n), 1228931075n, false)
