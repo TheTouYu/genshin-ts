@@ -155,7 +155,12 @@
 
 - 证据：历史实证 cornerOrient=2/edgeOrient=3；本次 solveBuf 声明 100 项全 0 被物化成 25 项（日志 2944 pStep4 完成帧 [0×25]，写 0..99 后仍 25 项）。
 - 影响：越界写被静默丢弃；已用尾部哨兵 1n 规避（与 seo/sco 同模式），但「长度由什么决定」仍开放。
-- 何时做：下次需要新增全 0 int_list 图变量时，先按哨兵模式声明；有精力再做受控差分实验破译长度规则。
+- **进展（2026-08-29 差分实验 v1）**：编辑器 int_list 声明 wire 已闭合——列表长度 = f109 元素记录条数，
+  全 0 列表也逐元素写独立 VarBase（payload 空）；我方生产编码旧形态（元素 alreadySetVal=1 +
+  itemType.kind=0 + 显式 val=0）已归一化为编辑器形态，GraphVariable 记录与样本 1668 hex 逐字节一致
+  （`tests/graph_variable_int_list_editor_wire_test.ts` + variables.md 新节）。
+  **待用户游戏内核验**：编码对齐后「全 0 短物化」是否消失；不消失则机制在引擎运行时侧，哨兵模式继续。
+- 何时做：用户实机复测（声明 int50 → 读第 49 下标是否越界）。
 
 ### O-2026-08-27-09 solverEPlan 与 solverPlan 同实体同名图变量建议 e 前缀隔离
 

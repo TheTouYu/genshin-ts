@@ -188,10 +188,42 @@ dict 值支持 `str`/`int`/`float`/`str_list`/`int_list`/`bool_list`/`float_list
 > 扩展（且中间槽可能是垃圾）。对策：先写非 0 哨兵逐下标把列表撑到满长，再写真实 0 值
 > （`logicReset` 两阶段复位）；不要依赖全 0 字面量长度或“写 0 自动扩容”。
 
+## 图变量（NodeGraph GraphVariable）列表声明 wire（2026-08-29 最小差分）
+
+> 状态：已验证（真实编辑器相邻快照 + 生产管线字节级对齐；**游戏内核验待用户**）
+> 来源：真实 GIL 差分（map 1073741915「变量」图 1073741825，v0 空图 → v1 用户编辑器加
+> 变量 `int50` = int 列表长度 50 默认全 0；快照 `~/genshin-ts-evidence/variable-system/raw/`，
+> after sha256 `b7ca3d9f…`）+ 生产管线重放比对
+> 最近校验：2026-08-29
+
+节点图变量的容器与关卡/实体变量（root4/root5 的 21 类型 entry）**不是同一编码**：它写在
+NodeGraph 消息的 `f6 graphValues` 里。编辑器样本（int_list 50×0）结构：
+
+```text
+GraphVariable{ f2:name, f3:type=8, f4:VarBase, f7:keyType=6, f8:valueType=6 }
+  // f5(exposed=false)、f6(structId=0) 为默认值 → 编辑器省略不写
+VarBase{ f1=10002(ArrayBase), f2=1(alreadySetVal),
+         f4=itemType{1:1, 100:{1:8}}（100 子消息只有类型，无 kind 字段）,
+         f109=50 个元素记录 }
+元素记录 = 独立 VarBase{ f1=2(IntBase), f4=itemType{1:1,100:{1:3}}, f102=空 payload }
+  // 零值元素 payload 为空消息（默认值省略）；元素无 alreadySetVal
+```
+
+关键规律：**列表长度 = f109 下的元素记录条数**；全 0 列表也必须逐元素写出（每个元素一条
+独立记录，即使值是默认 0、payload 为空）。这与运行时“全 0 int_list 短物化”陷阱直接相关：
+生产编码若把 0 值元素写成显式 `val=0` + `alreadySetVal=1` + `itemType.kind=0`（旧我方输出），
+与编辑器字节不一致；2026-08-29 起 `ir_to_gia_transform` 已归一化为编辑器形态（元素去
+alreadySetVal/kind、零值 payload 清空、GraphVariable 去 exposed/structId 默认值），
+修复后 .gia → 注入回读的 GraphVariable 记录与编辑器样本 **1668 hex 逐字节一致**。
+回归：`tests/graph_variable_int_list_editor_wire_test.ts`。
+
+适用边界：仅 int_list（编辑器单个样本）；bool/float/str/vec3 列表、非零值元素、dict 图变量、
+exposed=1 的覆写变量未实样。原“短物化机制”问题是否随编码对齐消失，仍需游戏内实机验证。
+
 ## 待逐步还原
 
 - 三类变量支持的参数类型。
-- 节点图级变量的声明与初始值编码（关卡变量与实体级变量的全 21 类型 create/update 已支持，见上）。
+- 节点图级变量的声明与初始值编码（int_list 已闭合，见上；其余类型待样本）。
 - 获取、设置和变量变化事件的节点结构。
 - 实体由元件创建时变量如何继承和初始化。
 - 节点图多实例运行时变量如何隔离。

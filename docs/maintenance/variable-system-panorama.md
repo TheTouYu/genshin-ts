@@ -197,7 +197,7 @@
 | D3 | 列表变量 Set 只改第一元素（论坛） | Set 列表变量整体赋值 → 回读 | 列表赋值语义 |
 | D4 | 局部变量生命周期=事件执行流（论坛） | 两个事件各用同一种局部变量，跨事件读值 | 生命周期/隔离边界 |
 | D5 | ~~dict int key 的 wire（marker/key 编码）~~ **已闭合**：证据复用 2026-08-18 编辑器样本 after-dict-keytypes/int-key-dict/int-values（marker 43/56/63/76 + f13 key 编码字节级同构）；无需新实验 | 已完成 | 其余键类型（entity/guid/阵营/元件ID/配置ID）仍缺样本 |
-| D6 | 全 0 int_list 运行时短物化长度规则 | 声明 N 个 0（N=2/8/25/100）→ 游戏读长度 | 物化长度公式 |
+| D6 | 全 0 int_list 运行时短物化长度规则 | **声明 wire 已闭合（2026-08-29 v1 差分）**：编辑器 int50=50×0 样本 → 列表长度=f109 元素记录数、零值元素空 payload；我方生产编码已归一化逐字节一致。剩余：**游戏内读下标 49 是否越界（待用户复测）** | 物化长度公式（若实机仍短物化 → 引擎运行时侧，哨兵模式继续） |
 | D7 | UI 引用变量语法 `{1:ps.名}` 的实体/类型范围 | 文本框引用角色/关卡/元件变量 | UI 引用规则 |
 | D8 | 关卡变量 discriminator 其它类型（bool=4/int=3 之外） | 编辑器逐个类型建关卡变量 → 相邻快照 | 关卡变量类型表 |
 | D9 | 节点图变量「向关卡暴露」的 wire 位置与覆写编码 | 暴露一个图变量 → 关卡里改覆写值 → 相邻快照 | 暴露/覆写 wire |
@@ -239,7 +239,11 @@
       1073741826「2」均为 20000 空图）；基线快照 v0 锁定
       （`~/genshin-ts-evidence/variable-system/raw/var-baseline-v0-empty-graphs-1-2.gil`，
       sha256 3d9282e20a1d5…，manifest 见 `~/genshin-ts-evidence/variable-system/notes/manifest.md`）。
-- [ ] 第二层：差分清单 D1-D14（D5 已闭合作废）逐项与用户配合执行（每项 ≤10 秒编辑器实验）；D1 待用户指示。
+- [x] 差分 v1（2026-08-29，用户编辑器加 int50=50×0 int_list 图变量）：声明 wire 闭合 + 生产编码
+      归一化（`ir_to_gia_transform/index.ts`）→ 注入回读与编辑器样本 1668 hex 逐字节一致；
+      回归 `tests/graph_variable_int_list_editor_wire_test.ts`；知识回填 `variables.md` 新节；
+      **待用户游戏内核验（读下标 49 是否越界）**。
+- [ ] 第二层：差分清单 D1-D14（D5/D6 声明侧已闭合）逐项与用户配合执行（每项 ≤10 秒编辑器实验）；D1 待用户指示。
 - [ ] 第三层：F2-F9 按闭合情况排期修复。
 - 临时取证文件：`.local/vars-explore/kb-*.json`（KB 原文落盘，非 git 跟踪）。
 - 相关 open-items：见 `open-items.md` O-2026-08-29-01。

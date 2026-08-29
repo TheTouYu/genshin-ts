@@ -176,6 +176,46 @@ function buildDictValue(variable: Variable): unknown[] {
   return out
 }
 
+/**
+ * 图变量列表值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」= 50×0）：
+ * 编辑器元素记录 = {class:IntBase(2), itemType:{1:1,100:{1:3}}, bInt:空}；我方生产编码多写
+ * alreadySetVal=1、itemType.type_server.kind=0、bInt.val=0（显式 0）。三处都与编辑器字节不一致；
+ * 值恒为 0/默认值的元素统一改成编辑器形态（空 payload），非零值保留显式 payload。
+ * 只归一化列表（ArrayBase=10002），dict/标量/vec3 元素暂不扩展（未实样，fail closed）。
+ */
+function normalizeGraphVarListEditorWire(val: unknown): void {
+  if (!val || typeof val !== 'object') return
+  const v = val as {
+    class?: number
+    itemType?: unknown
+    bArray?: { entries: unknown[] }
+  }
+  const stripKind = (it: unknown) => {
+    if (!it || typeof it !== 'object') return
+    const t = it as { type_server?: { kind?: number } }
+    if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
+  }
+  stripKind(v.itemType)
+  if (v.class !== 10002 || !v.bArray) return
+  for (const e of v.bArray.entries) {
+    if (!e || typeof e !== 'object') continue
+    const ev = e as {
+      alreadySetVal?: boolean
+      itemType?: unknown
+      bInt?: { val?: number }
+      bFloat?: { val?: number }
+      bEnum?: { val?: number }
+      bString?: { val?: string }
+    }
+    delete ev.alreadySetVal
+    stripKind(ev.itemType)
+    if (ev.bInt && ev.bInt.val === 0) ev.bInt = {}
+    else if (ev.bFloat && ev.bFloat.val === 0) ev.bFloat = {}
+    else if (ev.bEnum && ev.bEnum.val === 0) ev.bEnum = {}
+    else if (ev.bString && ev.bString.val === '') ev.bString = {}
+  }
+}
+
 function applyGraphVariables(graph: GiaGraph, variables: Variable[]) {
   for (const v of variables) {
     let nodeType: NodeType
@@ -732,6 +772,18 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   let root: GiaRoot
   try {
     root = graph.encode()
+    // 图变量列表值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1「int50」=50×0）：
+    // 必须在 encode 后的 protobuf 消息上做（add_graph_var 的 val 是原始数组，vendor 在 encode 时才展开）。
+    const mainGraphVars = (root.graph as any)?.graph?.inner?.graph?.graphValues as unknown[]
+    if (Array.isArray(mainGraphVars)) {
+      for (const gv of mainGraphVars) {
+        const gvm = gv as { exposed?: boolean; structId?: number; values?: unknown }
+        // 编辑器省略默认值字段（exposed=false / structId=0 不写；keyType/valueType=6 保留）
+        if (gvm.exposed === false) gvm.exposed = undefined
+        if (gvm.structId === 0) gvm.structId = undefined
+        normalizeGraphVarListEditorWire(gvm.values)
+      }
+    }
     if (signalSource) {
       const parts = root.filePath.split('-')
       if (parts.length >= 4) {
