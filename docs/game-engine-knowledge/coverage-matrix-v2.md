@@ -83,7 +83,7 @@
 
 | 族 | 复盘 | 权威文档 | 技能 | PKC | 账本 |
 |---|---|---|---|---|---|
-| R1 重复求值 | 🟢 10 文档 | 🟡 无独立权威章节（技能+PKC 承载） | 🟢 4 铁律在位；🔴 lint 门禁缺（O-26-2） | 🟢 clm_6583EB7（bnd_83bb3685） | 🟢 O-26-2/O-27-02 在册 |
+| R1 重复求值 | 🟢 10 文档 | 🟡 无独立权威章节（技能+PKC 承载） | 🟢 4 铁律在位（lint 门禁属工具层缺口，O-26-2 账本跟踪，不计沉淀层红格） | 🟢 clm_6583EB7（bnd_83bb3685） | 🟢 O-26-2/O-27-02 在册 |
 | R2 列表语义 | 🟢 9 文档 | 🟡 同上 | 🟢 列表规则表+哨兵/补整块 | 🟢 bnd_83bb3685 列表三规则 | 🟢 O-27-08/O-27-01/O-29-07 在册 |
 | R3 负载预算 | 🟢 10 文档 | 🟢 node-graphs.md 2000 红线 + control-flow-api-cookbook 10-case | 🟢 锚点标定法+预算检索优先级 | 🟢 clm_645571FF（bnd_81d5378d 已 apply） | 🟢 O-27-01 在册 |
 | R4 运动器传导链 | 🟢 6 文档 | 🟢 motion-devices.md 定点器叠加 | 🟢 直接速度驱动+buff 降级 | 🟢 bnd_83bb3685 传导链 | 🟢 O-27-03 在册 |
@@ -96,6 +96,20 @@
 | R11 信号注册编码（新） | 🟢 4 文档 | 🟢 signals.md 参数布局/默认值规则 | 🟢 editor-incremental-gia-investigator 差分+hash 核对 | 🟢 **查证已在树**（一致性 clm_6C4D0D6A/下限 clm_1A1C5E0F/阈值 clm_3FA4D090/默认值 clm_168E839F/布局 clm_ABB786BA/工具链 clm_747B855B） | 🟡 客户端信号默认载荷未闭合（signals.md 风险项） |
 | R12 静态拼装（新） | 🟢 4 文档（含 UI wire 子类，用户裁决归入） | 🟢 gil-structure-semantics 静态/transform/装饰物 | 🟢 static-gil-model-builder | 🟢 clm_A559EA2D（已 apply + 检索调优：topic 关键词去竞争 + claim 标题修订 + 评估夹具 expected_topic_ids 用户批准更新） | 🟡 root46 判别未闭合（O-20-1） |
 
+
+## 3.1 R3 复核结论（2026-08-29 提交前）
+
+- **红格 = 0**：沉淀层五列（复盘/权威文档/技能/PKC/账本）已无红格；剩余黄格均为
+  「最小规则文件原则下的有意不新建权威章节（R1/R2/R5/R6/R8，技能+PKC 双承载）」与
+  「账本 2 项引擎/未验证项（客户端信号默认载荷、root46）」，非缺失。
+- **R 族 100% 有二级卡片**：root-cause-family-cards-v2.md R1-R12 全量（约 130 案例行）+ 跨族修复模式 8 卡。
+- **43/43 文档入档**：§1 表 43 行复核通过。
+- **客户端图名字断言（R3 实测）**：parse-gil-node-graph.ts 对 1913 图 1082130436 --json →
+  多分支×26 / 设置局部变量×38 / 获取局部变量×22 / 获取自定义变量×8 / 服务端错名=0 / 191 节点，全 PASS
+  （与 771cd42 基线一致）。
+- **PKC delta check + finalize**：三个 plan 全部 delta 通过、finalize ok:true 0 errors
+  （bnd_81d5378d / bnd_f5dc558f / bnd_253802ff，用户逐 hash 确认后 apply，validate ok 357 claims）。
+- **git diff --check**：各批次提交前均 CLEAN。
 
 ## 4. 红格清单与清零计划
 
