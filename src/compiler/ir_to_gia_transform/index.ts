@@ -205,12 +205,13 @@ function normalizeScalarEditorWire(e: unknown): void {
   }
   stripKind(ev.itemType)
   const vec = ev.bVector?.val
+  const nonZero = (v: unknown) => v != null && Number(v) !== 0
   const hasNonDefault =
-    (ev.bInt && ev.bInt.val !== 0) ||
-    (ev.bFloat && ev.bFloat.val !== 0) ||
-    (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
-    (ev.bString && ev.bString.val !== '') ||
-    (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
+    (ev.bInt && nonZero(ev.bInt.val)) ||
+    (ev.bFloat && nonZero(ev.bFloat.val)) ||
+    (ev.bEnum && ev.bEnum.val != null && ev.bEnum.val !== false && nonZero(ev.bEnum.val)) ||
+    (ev.bString && ev.bString.val != null && ev.bString.val !== '') ||
+    (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z)))
   if (hasNonDefault) return // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
   delete ev.alreadySetVal
   if (ev.bInt) ev.bInt = {}
@@ -220,9 +221,24 @@ function normalizeScalarEditorWire(e: unknown): void {
   else if (vec) ev.bVector = { val: {} } // 零 vec3 → {val:{}}（编辑器 v6 变量_5 形态）
 }
 
+/** server 侧局部变量 R<T> pin 的 ConcreteBase.indexOfConcrete 表（v10/v11 编辑器样本：
+ *  bool=0 省略、int=1、str=2、entity=3、guid=4、float=5、vec3=6；与 client 侧
+ *  LOCAL_VAR_IOC_BY_IR（client_graph.ts）顺序不同——server/client 有区别）。
+ *  键 = VarType 数值（1=Entity 2=GUID 3=Int 4=Bool 5=Flt 6=Str 12=Vec）。 */
+const SERVER_LOCAL_VAR_IOC_BY_VARTYPE: Record<number, number> = {
+  4: 0, // Bool
+  3: 1, // Int
+  6: 2, // Str
+  1: 3, // Entity
+  2: 4, // GUID
+  5: 5, // Float
+  12: 6 // Vector
+}
+
 /** 节点 R<T> pin 字面量值（ConcreteBase.bConcreteValue.value）按编辑器形态归一化
- *  （v10 局部变量样本）：默认值零 → 空 payload、itemType.kind 省略；**内层 alreadySetVal
- *  一律省略**（编辑器 true 值也只写 bEnum{1:1}，无 f2）——与图变量元素的规则不同。 */
+ *  （v10/v11 局部变量样本）：默认值零 → 空 payload、itemType.kind 省略；**内层 alreadySetVal
+ *  一律省略**（编辑器 true 值也只写 bEnum{1:1}，无 f2）——与图变量元素的规则不同；
+ *  局部变量节点（18/19）的 R<T> pin 还要写 ConcreteBase.indexOfConcrete（类型序）。 */
 function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
   if (!Array.isArray(nodes)) return
   const stripKind = (it: unknown) => {
@@ -234,38 +250,57 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
     if (!e || typeof e !== 'object') return
     const ev = e as {
       alreadySetVal?: boolean
+      class?: number
       itemType?: unknown
       bInt?: { val?: number }
       bFloat?: { val?: number }
       bEnum?: { val?: number | boolean }
       bString?: { val?: string }
+      bId?: { val?: number }
       bVector?: { val?: { x?: number; y?: number; z?: number } }
     }
     delete ev.alreadySetVal
     stripKind(ev.itemType)
     const vec = ev.bVector?.val
+    const nonZero = (v: unknown) => v != null && Number(v) !== 0
     const hasNonDefault =
-      (ev.bInt && ev.bInt.val !== 0) ||
-      (ev.bFloat && ev.bFloat.val !== 0) ||
-      (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
-      (ev.bString && ev.bString.val !== '') ||
-      (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
+      (ev.bInt && nonZero(ev.bInt.val)) ||
+      (ev.bFloat && nonZero(ev.bFloat.val)) ||
+      (ev.bEnum && ev.bEnum.val != null && ev.bEnum.val !== false && nonZero(ev.bEnum.val)) ||
+      (ev.bString && ev.bString.val != null && ev.bString.val !== '') ||
+      (ev.bId && nonZero(ev.bId.val)) ||
+      (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z)))
     if (hasNonDefault) return // 保留显式 payload（编辑器 true → bEnum{1:1}）
     if (ev.bInt) ev.bInt = {}
     else if (ev.bFloat) ev.bFloat = {}
     else if (ev.bEnum) ev.bEnum = {}
     else if (ev.bString) ev.bString = {}
+    else if (ev.bId) ev.bId = {}
     else if (vec) ev.bVector = { val: {} }
+    // entity（VarType 1）内层 = 无 class 字段（class 0=EntityBase 省略）、无 payload（v11 样本）
+    if ((ev.itemType as { type_server?: { type?: number } } | undefined)?.type_server?.type === 1) {
+      delete (ev as { class?: number }).class
+      delete (ev as { bId?: unknown }).bId
+    }
   }
   for (const node of nodes) {
+    const gid = (node as { genericId?: { nodeId?: number } }).genericId?.nodeId
     const pins = (node as { pins?: unknown[] }).pins
     if (!Array.isArray(pins)) continue
     for (const pin of pins) {
       const v = (pin as { value?: unknown }).value
       if (!v || typeof v !== 'object') continue
-      const cv = v as { class?: number; bConcreteValue?: { value?: unknown } }
+      const cv = v as { class?: number; bConcreteValue?: { value?: unknown; indexOfConcrete?: number } }
       if (cv.class !== 10000 || !cv.bConcreteValue) continue
       normalizePinInner(cv.bConcreteValue.value)
+      if (gid === 18 || gid === 19) {
+        const vt = (cv.bConcreteValue.value as
+          | { itemType?: { type_server?: { type?: number } } }
+          | undefined)?.itemType?.type_server?.type
+        const ioc = vt !== undefined ? SERVER_LOCAL_VAR_IOC_BY_VARTYPE[vt] : undefined
+        // ioc=0（bool）编辑器省略不写（v10 样本无 f1）
+        if (ioc !== undefined && ioc !== 0) cv.bConcreteValue.indexOfConcrete = ioc
+      }
     }
   }
 }

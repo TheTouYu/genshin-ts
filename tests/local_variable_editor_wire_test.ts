@@ -29,6 +29,18 @@ const EDITOR_VALUE_FALSE =
 const EDITOR_VALUE_TRUE =
   '08904e1001f206121210080622070801a206020804d206020801'
 
+// v11 各类型 Get Local Variable（创建锚点默认值，编辑器样本 var-v11-local-var-types.gil
+// sha 169b53b0…）：concreteId 变体 + ConcreteBase.indexOfConcrete（bool=0 省略；server 表
+// int=1 str=2 ety=3 gid=4 flt=5 vec=6——与 client 侧 LOCAL_VAR_IOC_BY_IR 顺序不同）
+const EDITOR_TYPE_VALUES: Record<number, string> = {
+  20: '08904e1001f206120801120e080222070801a206020803b20600', // int
+  2656: '08904e1001f206120802120e080522070801a206020806ca0600', // str
+  2657: '08904e1001f2060d0803120922070801a206020801', // entity（内层无 class、无 payload）
+  2658: '08904e1001f206120804120e080122070801a206020802aa0600', // guid
+  2659: '08904e1001f206120805120e080422070801a206020805c20600', // float
+  2660: '08904e1001f2061408061210080722070801a20602080cda06020a00' // vec3
+}
+
 const ir = [
   {
     ir_version: 1,
@@ -118,7 +130,68 @@ try {
   })
   assert.ok(allBol, 'all local variable pin types must be consistent (Bol)')
 
-  console.log(JSON.stringify({ getNode: true, setNodes: setNodes.length, ok: true }, null, 2))
+  // ===== v11：六类型创建锚点（默认值）字节级 + concreteId 变体 =====
+  const TYPES: Array<{ irType: string; irValue: unknown; cid: number }> = [
+    { irType: 'int', irValue: 0, cid: 20 },
+    { irType: 'str', irValue: '', cid: 2656 },
+    { irType: 'entity', irValue: null, cid: 2657 },
+    { irType: 'guid', irValue: 0, cid: 2658 },
+    { irType: 'float', irValue: 0, cid: 2659 },
+    { irType: 'vec3', irValue: [0, 0, 0], cid: 2660 }
+  ]
+  const typedIr = [
+    {
+      ir_version: 1,
+      ir_type: 'node_graph',
+      graph: {
+        type: 'server',
+        mode: 'beyond',
+        sub_type: 'entity',
+        id: 1073741825,
+        name: '_GSTS_local_var_types'
+      },
+      variables: [],
+      nodes: [
+        { id: 1, type: 'when_custom_variable_changes', next: [] },
+        ...TYPES.map((t, i) => ({
+          id: 2 + i,
+          type: 'get_local_variable' as const,
+          args: [{ type: t.irType, value: t.irValue }]
+        }))
+      ],
+      edges: null
+    }
+  ]
+  const tmp2 = mkdtempSync(join(tmpdir(), 'gsts-local-var-types-'))
+  try {
+    const irPath2 = join(tmp2, 'case.json')
+    writeFileSync(irPath2, JSON.stringify(typedIr))
+    const giaPath2 = join(tmp2, 'case.gia')
+    writeGiaFromIrJsonFile(irPath2, giaPath2, {}, () => {})
+    const bytes2 = new Uint8Array(readFileSync(giaPath2))
+    const root2 = rootMessage.decode(bytes2.slice(20, -4))
+    const nodes2 = root2.graph?.graph?.inner?.graph?.nodes ?? []
+    const gets2 = nodes2.filter((n) => n.genericId?.nodeId === 18)
+    assert.equal(gets2.length, TYPES.length, 'six typed Get nodes')
+    for (const t of TYPES) {
+      const n = gets2.find((x) => x.concreteId?.nodeId === t.cid)
+      assert.ok(n, `Get node with cid ${t.cid} must exist`)
+      const inPin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 0)
+      assert.ok(inPin?.value, `cid ${t.cid} InParam[0] value`)
+      const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_TYPE_VALUES[t.cid], `cid ${t.cid} value must match editor bytes`)
+    }
+  } finally {
+    rmSync(tmp2, { recursive: true, force: true })
+  }
+
+  console.log(
+    JSON.stringify(
+      { getNode: true, setNodes: setNodes.length, typedTypes: TYPES.length, ok: true },
+      null,
+      2
+    )
+  )
 } finally {
   rmSync(tmp, { recursive: true, force: true })
 }
