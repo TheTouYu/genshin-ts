@@ -86,3 +86,21 @@
   36 绑 20010**（类型约束）；④ 36 角色操控技能需**操控状态**（未受控 Cast 静默无效）；
   ⑤ 技能装配 = 编辑器战斗预设（root16 变体记录，魔方 9 条 vs 我们 3 条——装配 wire 未闭合，
   CLI 待补）；⑥ getCustomVariable 仅 2 参（asType 显式定型）。
+
+## verify-d2-lv 编译器双缺陷修复闭环（2026-08-30，用户游戏核验 3001）
+
+- 背景：2998 日志比对发现两处编译缺陷——`d2lv|set|`=100（源码期望 101，Addition IN1
+  字面量 1 丢失）与 `d2lv|dyn|`=恒 0（源码期望 timerSequenceId 递增）。
+- 缺陷 ① set=100：**非编译缺陷**——.gia 与注入器产物中 Addition IN1 均完好（内层
+  alreadySetVal=1 + bInt=1，内存注入差分实证），真实 .gil 里被清是历史旧产物（fc44db1
+  前注入）+ 编辑器保存清零遗留；编辑器差分（用户改 Addition IN1=1 保存）证明编辑器
+  保留 alreadySetVal=1 的值 → 重新注入当前产物即恢复 101。
+- 缺陷 ② dyn=0：**whenTimerIsTriggered 输出 pin 顺序**——官方/vendor 定义（定时器序列序号
+  index 3、循环次数 index 4，用户编辑器实测）与**引擎运行时顺序相反**（帧参数自报 index：
+  OUT3 恒空、OUT4 按定时器各自计数 d2lv:1,2,3 / d2skill:1,2,3）→ timerSequenceId 必须连
+  index 4。修复：vendor 保持官方顺序，`scripts/generate-definitions.ts` buildEvents 加
+  whenTimerIsTriggered 换序 override（提交 7ef46b8）。
+- 用户游戏证据（3001 日志，注入后首测）：`d2lv|set|`=**101** ✓、`d2lv|dyn|`=**1,1,2,2,3,3**
+  ✓（每定时器独立序列，与帧证据一致）；init=42/len=3/elem0=1 不变；B 组 set=100/len=3 照旧。
+- 知识：定时器事件节点"官方定义顺序 ≠ 引擎运行时输出顺序"（详见
+  docs/game-engine-knowledge/node-graphs.md「定时器事件」节）。
