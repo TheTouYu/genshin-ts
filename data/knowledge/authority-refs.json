@@ -3135,7 +3135,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "700b43886c88aa52f4114da7f036c8c9d5d94829c3c314a077dff48c58bb50ed",
+      "approved_hash": "38aa16481b1a1a0b1ea6ab47d607cf5e75a49e36eeb90c6366952382a52e542b",
       "claim_ids": [
         "clm_2D884A9122B6B83DB69A722F65"
       ],
