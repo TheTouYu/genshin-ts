@@ -189,6 +189,8 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
 
     // 球状态（跨图共享的自定义变量，主图写）：0=静止 FREE 才驱动
+    // 2026-08-30 日志 3000 修复：state!=0（射门/传球飞行/滚滑中）完全停手，
+    //   不激活任何运动器——否则与 game 图的 physics 运动器冲突（物理回归异常）。
     const ballState = f.getCustomVariable(e, new str('state')).asType('int')
     const stateFree = f.equal(ballState, 0n)
 
@@ -204,7 +206,7 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
       ballPos: ballLoc.location, ballVx, ballVz
     })
 
-    // 踢球节流判定（叠加状态保护：只在球静止 FREE 时驱动）
+    // 踢球节流判定
     const tickDiff = f.subtraction(tickCount, lastKickTick)
     const cooldownOk = f.greaterThanOrEqualTo(tickDiff, new int(KICK_COOLDOWN_TICKS))
     const distOk = f.lessThan(comp.dist2, KICK_DIST2)
@@ -221,7 +223,7 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const newVelX = f.addition(decayVx, f.multiplication(f.subtraction(comp.newVelX, decayVx), kickF))
     const newVelZ = f.addition(decayVz, f.multiplication(f.subtraction(comp.newVelZ, decayVz), kickF))
 
-    // y 高度修复（2026-08-30 日志 2999）：球离地（射门后）时每 tick 拉回地面
+    // y 高度修复（2026-08-30 日志 2999）：球离地时每 tick 拉回地面
     // vy = (BALL_R − 球当前y) / TICK；球已贴地时 vy=0（不弹跳）
     const ballY = f.split3dVector(ballLoc.location).yComponent
     const dy = f.subtraction(BALL_R, ballY)
@@ -230,51 +232,65 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     // 组装最终速度向量（物化到图变量快照，防二次求值）
     const finalVel = f.create3dVector(newVelX, vy, newVelZ)
 
-    // exec 链：写快照 → 写图变量 → 运动器 → 自重启
-    const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpDribbleVel'), finalVel, new bool(false)])
-    const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), f.addition(tickCount, new int(1)), new bool(false)])
-    f.connect(sVel, 0, sTick, 0)
+    // exec 链分叉（链尾分支，两分支都自重启）：
+    //   true（state==0 静止）→ 完整驱动：写快照→写球速→运动器→速度变量→lastKickTick→自重启
+    //   false（state!=0 飞行/滚滑）→ 完全停手：只 tickCount + 自重启（不碰球）
+    f.doubleBranch(
+      stateFree,
+      () => {
+        const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpDribbleVel'), finalVel, new bool(false)])
+        const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), f.addition(tickCount, new int(1)), new bool(false)])
+        f.connect(sVel, 0, sTick, 0)
 
-    // 写回 ballVx/ballVz（从物化快照读）
-    const velSnap = f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
-    const fv = f.split3dVector(velSnap)
-    const sVx = f.registerExecNode('set_node_graph_variable', [new str('ballVx'), fv.xComponent, new bool(false)])
-    f.connect(sTick, 0, sVx, 0)
-    const sVz = f.registerExecNode('set_node_graph_variable', [new str('ballVz'), fv.zComponent, new bool(false)])
-    f.connect(sVx, 0, sVz, 0)
+        // 写回 ballVx/ballVz（从物化快照读）
+        const velSnap = f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
+        const fv = f.split3dVector(velSnap)
+        const sVx = f.registerExecNode('set_node_graph_variable', [new str('ballVx'), fv.xComponent, new bool(false)])
+        f.connect(sTick, 0, sVx, 0)
+        const sVz = f.registerExecNode('set_node_graph_variable', [new str('ballVz'), fv.zComponent, new bool(false)])
+        f.connect(sVx, 0, sVz, 0)
 
-    // 滚动旋转（纯数据，从物化快照读）
-    const spin = f.callComposite(dribbleFieldRollSpin, {
-      vel: velSnap, radius: BALL_R, curRot: ballLoc.rotate
-    })
+        // 滚动旋转（纯数据，从物化快照读）
+        const spin = f.callComposite(dribbleFieldRollSpin, {
+          vel: velSnap, radius: BALL_R, curRot: ballLoc.rotate
+        })
 
-    // 运动器：匀速直线（速度含 vy 拉回地面）+ 匀速旋转（0.12s）
-    const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-      e, new str('dribbleCtrl'), new float(TICK), velSnap
-    ])
-    f.connect(sVz, 0, lin, 0)
-    const rot = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
-      e, new str('角度'), new float(TICK), spin.angVel, spin.axis
-    ])
-    f.connect(lin, 0, rot, 0)
+        // 运动器：匀速直线（速度含 vy 拉回地面）+ 匀速旋转（0.12s）
+        const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+          e, new str('dribbleCtrl'), new float(TICK), velSnap
+        ])
+        f.connect(sVz, 0, lin, 0)
+        const rot = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
+          e, new str('角度'), new float(TICK), spin.angVel, spin.axis
+        ])
+        f.connect(lin, 0, rot, 0)
 
-    // 写回自定义变量「速度」（参考版 Set Custom Variable）
-    const sCv = f.registerExecNode('set_custom_variable', [e, new str('速度'), velSnap, new bool(false)])
-    f.connect(rot, 0, sCv, 0)
+        // 写回自定义变量「速度」（参考版 Set Custom Variable）
+        const sCv = f.registerExecNode('set_custom_variable', [e, new str('速度'), velSnap, new bool(false)])
+        f.connect(rot, 0, sCv, 0)
 
-    // 踢球时更新 lastKickTick（数据选择，不分裂执行流）
-    const kickI = f.dataTypeConversion(kick, 'int')
-    const lastKick = f.addition(
-      f.multiplication(f.subtraction(tickCount, lastKickTick), kickI),
-      lastKickTick
+        // 踢球时更新 lastKickTick（数据选择，不分裂执行流）
+        const kickI = f.dataTypeConversion(kick, 'int')
+        const lastKick = f.addition(
+          f.multiplication(f.subtraction(tickCount, lastKickTick), kickI),
+          lastKickTick
+        )
+        const sLast = f.registerExecNode('set_node_graph_variable', [new str('lastKickTick'), lastKick, new bool(false)])
+        f.connect(sCv, 0, sLast, 0)
+
+        // 自重启定时器（0.12s 循环）
+        const rt = f.registerExecNode('start_timer', [e, new str('dribble_field'), new bool(false), f.assemblyList([TICK], 'float')])
+        f.connect(sLast, 0, rt, 0)
+        f.outflow('done', rt, 0)
+      },
+      () => {
+        // 停手分支：只 tickCount + 自重启，不激活运动器（球交给 game 物理图）
+        const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), f.addition(tickCount, new int(1)), new bool(false)])
+        const rt = f.registerExecNode('start_timer', [e, new str('dribble_field'), new bool(false), f.assemblyList([TICK], 'float')])
+        f.connect(sTick, 0, rt, 0)
+        f.outflow('done', rt, 0)
+      }
     )
-    const sLast = f.registerExecNode('set_node_graph_variable', [new str('lastKickTick'), lastKick, new bool(false)])
-    f.connect(sCv, 0, sLast, 0)
-
-    // 自重启定时器（0.12s 循环）
-    const rt = f.registerExecNode('start_timer', [e, new str('dribble_field'), new bool(false), f.assemblyList([TICK], 'float')])
-    f.connect(sLast, 0, rt, 0)
-    f.outflow('done', rt, 0)
     return {}
   }
 })
