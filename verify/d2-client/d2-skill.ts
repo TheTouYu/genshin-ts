@@ -34,11 +34,11 @@ g.server({ id: 1073741841, name: 'verify-d2-skill' })
     const owner = f.getPlayerEntityToWhichTheCharacterBelongs(character)
     f.addCharacterSkill(
       character,
-      configId(1098907652),
+      configId(1098907653),
       CharacterSkillSlot.CustomSkillSlot1,
       OriginalSlotSkillHandling.Destroy
     )
-    const inst = f.createCustomSkillInstance(character, configId(1098907652))
+    const inst = f.createCustomSkillInstance(character, configId(1098907653))
     f.setCustomVariable(owner, '技能实例ID', inst, false)
     f.castSpecifiedSkillInstance(
       character,
