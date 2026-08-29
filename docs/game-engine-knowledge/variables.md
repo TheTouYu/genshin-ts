@@ -249,6 +249,11 @@ bool_list/str_list/vec3_list 非零元素、dict 图变量）、exposed=1 覆写
 | 生命周期/作用域 | 跟实体，全局可读写 | 跟图，图内私有（可暴露覆写） |
 | 我方闭合度 | 21 类型全闭合（含 dict marker） | int_list（v1/v4）+ int/float/str 标量 + Str 模板；其余待样本 |
 
+**普通实体 vs 关卡实体（v8 差分，2026-08-29）**：root5.1[entity] 记录骨架同构（f1=id/f2=name/
+f7 组件槽/f8=defId），**变量容器完全同构** = `f7.{f11}` 自定义变量组件，entry 编码逐字节一致；
+差异只在实体本身：关卡实体 defId=10003004（固定、禁手动 import）、组件槽少；普通实体 defId=资源
+定义（如空模型 10005018）、组件槽多（含变换组件 f11 内位置/缩放 vec3，缩放 0.1=0x3dcccccd）。
+
 **共同编码哲学**：列表长度 = 元素记录条数；默认值元素空 payload；默认字段省略（kind=0、
 alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规范化掉（v3 实证）。
 
