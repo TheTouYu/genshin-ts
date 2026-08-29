@@ -260,6 +260,12 @@
       （Get 18/20/2656-2660、Set 19/21/2674-2678）+ **server ioc 表**（与 client 表顺序不同）；
       六类型 Get/Set 全字节级一致；跨容器类型体系共性与差异落盘 variables.md
       （提交 79a24a7/5ebd598/db50787/120db1f/1f30e08）。
+- [x] **P3-M1 规律表驱动核验体系（2026-08-29）**：C4 规律表 `tests/fixtures/variables-wire-rules.json`
+      （四 scope 容器×形态×hex fixture×样本 sha×inferred 标注）+ `gsts variables:verify`（只读，PASS/DIFF/NOTE
+      报告+字节偏移+退出码）+ L1 双锁一致性测试（48 fixture 与回归常量自动比对 + 17 样本 sha）；
+      验收：v0–v16b 全 17 样本全 scope 全 PASS，21 类型客户端 .gia 核验（dict 标 inferred NOTE），
+      改 1 字节报 DIFF（设计文档 §七 M1 ✅）。证据修正：v14 元素 4=233（非 489）、拼装 OutParam ioc=元素 ioc
+      （manifest 已加注记）。
 - [ ] 第二层：差分清单 D1-D14（D5/D6 声明侧已闭合）逐项与用户配合执行（每项 ≤10 秒编辑器实验）；D1 待用户指示。
 - [ ] 第三层：F2-F9 按闭合情况排期修复。
 - 临时取证文件：`.local/vars-explore/kb-*.json`（KB 原文落盘，非 git 跟踪）。
