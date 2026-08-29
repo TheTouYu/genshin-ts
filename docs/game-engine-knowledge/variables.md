@@ -278,10 +278,14 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 - **R<T> pin 值** = ConcreteBase{1:10000, 2:1, 110:bConcreteValue{2: 内层}}；内层 VarBase
   **一律无 alreadySetVal**（非默认值也只写显式 payload，如 bEnum{1:1}）、零值空 payload、
   itemType.kind 省略（与图变量同族）。
-- **concreteId 按类型变体**（v11 样本）：bool=18、int=20、str=2656、entity=2657、guid=2658、
-  float=2659、vec3=2660；**bConcreteValue.indexOfConcrete server 表**：bool=0（省略）、int=1、
-  str=2、entity=3、guid=4、float=5、vec3=6（**与 client 侧 LOCAL_VAR_IOC_BY_IR 顺序不同**，
-  client：int=0,str=1,entity=2,guid=3,float=4,vec3=5,bool=6——server/client 差异实证）。
+- **concreteId 按类型变体**（v11/v13 样本）：Get bool=18、int=20、str=2656、entity=2657、
+  guid=2658、float=2659、vec3=2660、**int_list=2661**；Set bool=19、int=21、str=2674、
+  entity=2675、guid=2676、float=2677、vec3=2678、**int_list=2679**；
+  **bConcreteValue.indexOfConcrete server 表**：bool=0（省略）、int=1、str=2、entity=3、
+  guid=4、float=5、vec3=6、int_list=7（7..20 按 client 表尾部同序推断：str_list=8、entity_list=9、
+  guid_list=10、float_list=11、vec3_list=12、bool_list=13、config_id=14、prefab_id=15、
+  config_id_list=16、prefab_id_list=17、faction=18、faction_list=19、dict=20，待样本；
+  **与 client 侧 LOCAL_VAR_IOC_BY_IR 标量段顺序不同**——server/client 差异实证）。
 - 默认值内层形态：int/str/guid/float = class+itemType+空 payload；vec3 = class 7+bVector{val:{}}；
   **entity = 无 class 字段（class 0 省略）+ 无 payload**；内层一律无 alreadySetVal、kind 省略。
 - 我方编译器模式：`initLocalVariable(type, init)` 编译为 get(empty)+set(init)（动态 init 防重复
