@@ -241,12 +241,36 @@ root 6：重写「未分类页签」聚合 record（本图 folderId=67），其 
 ```
 
 - 编辑器默认图名 = `新建角色操控技能节点图`（CLI 的 name 参数可替换）。
-- folder typeValue 真实样本（2026-08-29 相邻快照）：20000→800、**20002→2200**、
-  20010→7400；参考地图另见 20003→2300、技能配置→7500。不同图类型落在不同「未分类页签」
-  folder record（本图 20000=folderId4、20002=folderId14、20010=folderId67）。
+- folder typeValue 真实样本（2026-08-29 相邻快照，已补入 `src/injector/folder.ts` 的
+  `DEFAULT_GRAPH_TYPE_VALUES`）：
+
+  | 图类型 | 名称 | folder typeValue |
+  |---|---|---|
+  | 20000 | 服务端 BasicNode | 800 |
+  | 20001 | 布尔过滤器 BooleanFilter | 2100 |
+  | 20002 | 角色技能 Skills | 2200 |
+  | 20003 | 状态 StatusNode | 2300 |
+  | 20004 | ClassNode | 2400（代码，未采样） |
+  | 20005 | ItemNode | 4300（代码，未采样） |
+  | 20006 | 整数过滤器 IntegerFilter | 6300 |
+  | 20007 | 造物状态决策 CreationStatusDecision | **未采样** |
+  | 20008 | 造物技能 CreationSkill | 6700 |
+  | 20009 | 造物状态 CreationStatus | 6800 |
+  | 20010 | 角色操控技能 CharacterControlSkill | 7400 |
+  | 技能配置资产 | skill config | 7500 |
+
+  不同图类型落在不同「未分类页签」folder record（本图 20000=folderId4、20001=13、
+  20002=14、20006=57、20008=59、20009=60、20010=67、技能配置=68）。
 - 客户端图 ID 与 server 图 ID 分属不同数值段（1082130xxx vs 1073741xxx）：连续建 20010→20002
   依次取 1082130433 → 1082130434（+1 递增）；参考图 20010 为 1082130436。跨类型/跨保存的
   全局分配与复用规则未闭合，CLI 建图按显式 `--graph-id` 处理。
+- **空图自动节点因图类别而异**（2026-08-29 四张新空图样本）：
+  - 技能类（20002 角色技能 / 20008 造物技能 / 20010 角色操控技能）：自动节点 = 节点图开始
+    `genericId.nodeId=200042 / concreteId.nodeId=2001`，NodeGraph 带 `entrySlotIndex(f100)=1`。
+  - 造物状态 20009：自动节点 = `genericId.nodeId=200126 / concreteId.nodeId=4000`，`f100=1`。
+  - 过滤器类（20001 布尔 / 20006 整数）：自动节点不是「节点图开始」，而是过滤节点
+    （20001→`genericId.nodeId=200000`，20006→`genericId.nodeId=200122`，无 concreteId），
+    NodeGraph 带 `evaluationInterval(f101)=0.3`（官方文档默认值），无 `f100`。
 
 ## 精准修改工具（2026-08-08）
 

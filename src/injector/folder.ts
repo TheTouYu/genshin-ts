@@ -3,9 +3,15 @@ import type { FolderEntry, FolderIndex, FolderMetaList, LenField } from './types
 
 export const DEFAULT_GRAPH_TYPE_VALUES = new Map<number, number>([
   [20000, 800],
+  [20001, 2100],
+  [20002, 2200],
   [20003, 2300],
   [20004, 2400],
-  [20005, 4300]
+  [20005, 4300],
+  [20006, 6300],
+  [20008, 6700],
+  [20009, 6800],
+  [20010, 7400]
 ])
 const DEFAULT_VALUE_TO_GRAPH_TYPE = new Map<number, number>(
   [...DEFAULT_GRAPH_TYPE_VALUES.entries()].map(([type, value]) => [value, type])
