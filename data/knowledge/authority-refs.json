@@ -2079,6 +2079,21 @@
       ]
     },
     {
+      "id": "aref_5baf05ea8606f0afcb32157fba",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "节点图绑定（body f5/事件轨道打点/造物 78）+ 切换释放类型丢挂载",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "53aa9ea356444224b51494baf08cdc9825368bc16992955883614dd06df132c8",
+      "claim_ids": [
+        "clm_ED0FA439CD02DA5EEC16241BCD"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_5bf83e21073b0aa07b6c362581",
       "path": "tests/composite/test-three-level-nested-capture-routing.ts",
       "locator": "three-level compositeInputIndex and decoded compositePins routing regression",
@@ -3114,6 +3129,21 @@
       ]
     },
     {
+      "id": "aref_8b7285873faee7f5947f6f9750",
+      "path": "docs/game-engine-knowledge/node-graphs.md",
+      "locator": "客户端图 20010 wire 配方 + folder typeValue 全表",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "700b43886c88aa52f4114da7f036c8c9d5d94829c3c314a077dff48c58bb50ed",
+      "claim_ids": [
+        "clm_2D884A9122B6B83DB69A722F65"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_8c56244acbfbf978ba4afbe901",
       "path": "docs/ui-tutorial/official-guide-faq.md",
       "locator": "FAQ 文档列表",
@@ -3952,6 +3982,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b8045ce1dc1204d312c21f8ffd",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "技能配置资产（root6/15/16 + 模板映射 + 释放类型形态值）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "53aa9ea356444224b51494baf08cdc9825368bc16992955883614dd06df132c8",
+      "claim_ids": [
+        "clm_D9E4C5E98025AA2A5B1ABA99A7"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {

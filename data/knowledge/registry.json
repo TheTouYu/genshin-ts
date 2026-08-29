@@ -1376,6 +1376,17 @@
       "summary": "客户端图记录的帧结构/枚举/类型码20/跨端通信日志铁证链（魔方会话2979实证）",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "node-graph-creation-skillconfig",
+      "node_id": "game-engine-knowledge",
+      "title": "客户端图创建与技能配置绑定 wire 配方（真实 GIL 差分闭合）",
+      "path": "knowledge/game-engine-knowledge/node-graph-creation-skillconfig.md",
+      "summary": "客户端节点图创建（root6 folder typeValue/folderId + root10 NodeGraph 双层包装 + 类别自动节点）与技能配置资产（root15/16）及其节点图绑定编码（body f5 / 事件轨道打点）",
+      "keywords": [
+        "客户端图,20010,skill config,技能配置,事件轨道,节点图事件轨道,folder typeValue,轨道点ID,45.2,角色操控技能"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -2998,6 +3009,21 @@
       ]
     },
     "clm_CAE30537EC91456D842A343D39": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_2D884A9122B6B83DB69A722F65": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_D9E4C5E98025AA2A5B1ABA99A7": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_ED0FA439CD02DA5EEC16241BCD": {
       "fact_classes": [
         "external_game_evidence"
       ]
