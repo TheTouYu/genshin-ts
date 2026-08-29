@@ -61,7 +61,15 @@ const declarations: readonly CustomVariableDeclaration[] = [
     type: 'dict',
     initialValue: [
       { key: 'k1', keyType: 'str', value: ['a', 'b'], valueType: 'str_list' },
-      { key: 'k2', keyType: 'str', value: 3, valueType: 'int' }
+      { key: 'k2', keyType: 'str', value: ['c', 'd'], valueType: 'str_list' }
+    ]
+  },
+  {
+    name: `${suffix}_dict_int`,
+    type: 'dict',
+    initialValue: [
+      { key: '1', keyType: 'int', value: ['A'], valueType: 'str_list' },
+      { key: '2', keyType: 'int', value: ['B'], valueType: 'str_list' }
     ]
   }
 ]
@@ -90,7 +98,8 @@ const expected: Record<string, unknown> = {
   [`${suffix}_config_id_list`]: [1, 2],
   [`${suffix}_prefab_id_list`]: [3, 4],
   [`${suffix}_faction_list`]: [5, 6],
-  [`${suffix}_dict`]: { k1: ['a', 'b'], k2: 3 }
+  [`${suffix}_dict`]: { k1: ['a', 'b'], k2: ['c', 'd'] },
+  [`${suffix}_dict_int`]: { 1: ['A'], 2: ['B'] }
 }
 
 // 1. 场景实体：声明 21 种类型 → 回读逐项校验
@@ -125,7 +134,7 @@ const updateResult = applyEntityCustomVariableDeclarations({
       type: 'dict',
       initialValue: [
         { key: 'k1', keyType: 'str', value: ['x'], valueType: 'str_list' },
-        { key: 'k2', keyType: 'str', value: 7, valueType: 'int' }
+        { key: 'k2', keyType: 'str', value: ['z'], valueType: 'str_list' }
       ]
     }
   ]
@@ -136,7 +145,7 @@ readBack = readEntityCustomVariables({ gilPath, entityId })
 const updatedInt = readBack.variables.find((item) => item.name === `${suffix}_int`)!
 const updatedDict = readBack.variables.find((item) => item.name === `${suffix}_dict`)!
 assert.deepEqual(decodeCustomVariableValue(updatedInt), 99)
-assert.deepEqual(decodeCustomVariableValue(updatedDict), { k1: ['x'], k2: 7 })
+assert.deepEqual(decodeCustomVariableValue(updatedDict), { k1: ['x'], k2: ['z'] })
 
 // 4. 元件（prefab root4.1.8.11）：dict + 标量 + 列表声明
 const prefabDeclarations: readonly CustomVariableDeclaration[] = [
@@ -147,7 +156,7 @@ const prefabDeclarations: readonly CustomVariableDeclaration[] = [
     type: 'dict',
     initialValue: [
       { key: 'k1', keyType: 'str', value: ['a', 'b'], valueType: 'str_list' },
-      { key: 'k2', keyType: 'str', value: 3, valueType: 'int' }
+      { key: 'k2', keyType: 'str', value: ['c', 'd'], valueType: 'str_list' }
     ]
   }
 ]

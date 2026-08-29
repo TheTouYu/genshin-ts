@@ -730,8 +730,32 @@ export function dictMapMarker(keyTypeCode: number, valueTypeCode: number): numbe
   return keyBase + valueBase
 }
 
+/** fail closed：官方规则 = 一个字典由一种键类型 + 一种值类型唯一确定。混合键/混合值会生成
+ *  f503/f504 与个别 pair 不一致的畸形 wire（引擎按单一类型解码）；编辑器样本（after-dict-keytypes
+ *  等）中全部字典 pair 均同构。 */
+export function assertUniformDictPairs(pairs: readonly UiDictPair[], where = 'dict'): void {
+  if (pairs.length < 2) return
+  const keyType = pairs[0].keyType
+  const valueType = pairs[0].valueType
+  const mixedKey = pairs.find((p) => p.keyType !== keyType)
+  if (mixedKey) {
+    throw new Error(
+      `[error] ${where}: mixed dict key types (${pairs.map((p) => p.keyType).join(', ')}) — ` +
+        'one dict requires one key type (纯数字键=int，其余=str，请统一)'
+    )
+  }
+  const mixedValue = pairs.find((p) => p.valueType !== valueType)
+  if (mixedValue) {
+    throw new Error(
+      `[error] ${where}: mixed dict value types (${pairs.map((p) => p.valueType).join(', ')}) — ` +
+        'one dict requires one value type'
+    )
+  }
+}
+
 /** dict 类型包裹 {f1:27, f2:{f2:marker, f502:keyType, f503:valueType}}（entry f4.f2/f6 用，与真实样本一致）。 */
 export function buildDictTypeEnvelope(pairs: readonly UiDictPair[]): Uint8Array {
+  assertUniformDictPairs(pairs)
   const keyType = scalarTypeCode(pairs[0]?.keyType ?? 'str')
   const valueType = dictValueTypeCode(pairs[0]?.valueType ?? 'str')
   return emitWireMessage([
@@ -768,6 +792,7 @@ export function nextEntityBaseId(bytes: Uint8Array): number {
  *  新建 dict 不含 Map25 实体映射层（与编辑器新增变量5-10 真实样本一致）；
  *  Map25 层仅出现在编辑器多对历史样本（新增变量1），非新建必需。 */
 function dictWire(pairs: readonly UiDictPair[]): Uint8Array {
+  assertUniformDictPairs(pairs)
   const keyField = (p: UiDictPair) => ({
     number: 501,
     wire: 2,

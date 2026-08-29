@@ -84,6 +84,14 @@
 - 状态：第一层完成；第二层（差分清单 D1-D14）需用户配合编辑器最小差分；第三层修复候选 F1-F9 待排期。
 - 何时做：每会话读 panorama §6 检查点继续；第二层逐项闭合后录入 docs/game-engine-knowledge/ + PKC。
 
+### O-2026-08-29-02 dict int key CLI 缺口【已闭合 2026-08-29 goal 第 1 轮】
+
+- 证据：int key 支持其实已在代码（`dictKeyOf`+f13+marker keyBase=40），技能文档陈旧；混合键/混合值
+  类型却静默生成畸形 wire（f503/f504 只取首 pair）——真缺口是校验。
+- 结论：编辑器样本（after-dict-keytypes 新增变量11 等）字节级确认 marker (3,11)=56、f13 key 同构；
+  `assertUniformDictPairs` fail closed 落地；回归 gil_level/custom_variables_full 通过。
+- 剩余：dict 的 entity/guid/阵营/元件ID/配置ID 键无真实样本（编辑器中编辑器允许与否未验）；编辑器/游戏核验待用户。
+
 ### O-2026-08-28-05 parse/explain 工具把客户端图节点错标成服务端 API 名
 
 - 证据：魔方-客户端优化版本.gil（SHA f90ac5438c…）客户端图 1082130436（type=20010）191 节点全错标：

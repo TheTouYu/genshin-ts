@@ -5,6 +5,7 @@ import { join } from 'node:path'
 
 import {
   createLevelVariableTyped,
+  dictMapMarker,
   listLevelVariables,
   nextEntityBaseId,
   uiVarTypeFromCode,
@@ -58,13 +59,13 @@ const cases: Case[] = [
     type: 'dict',
     initial: [
       { key: 'k1', keyType: 'str', value: ['a', 'b'], valueType: 'str_list' },
-      { key: 'k2', keyType: 'str', value: 3, valueType: 'int' }
+      { key: 'k2', keyType: 'str', value: ['c', 'd'], valueType: 'str_list' }
     ],
     updated: [
       { key: 'k1', keyType: 'str', value: ['x', 'y'], valueType: 'str_list' },
-      { key: 'k2', keyType: 'str', value: 7, valueType: 'int' }
+      { key: 'k2', keyType: 'str', value: ['z'], valueType: 'str_list' }
     ],
-    expected: { k1: ['x', 'y'], k2: 7 }
+    expected: { k1: ['x', 'y'], k2: ['z'] }
   }
 ]
 
@@ -117,6 +118,95 @@ list = listLevelVariables(new Uint8Array(readFileSync(gilPath)), entityId)
 assert.ok(list.some((x) => x.name === `${suffix}_str_renamed`), 'rename target missing')
 assert.ok(!list.some((x) => x.name === `${suffix}_str`), 'old name still present')
 
+// 5. int-key dict：创建/更新/回读（marker 56 int→str_list、43 int→int，编辑器样本锁定）
+const intKeyDictName = `${suffix}_dict_int`
+bytes = createLevelVariableTyped(
+  bytes,
+  intKeyDictName,
+  'dict',
+  [
+    { key: 1, keyType: 'int', value: ['A', 'B'], valueType: 'str_list' },
+    { key: 2, keyType: 'int', value: ['C'], valueType: 'str_list' }
+  ],
+  entityId
+).bytes
+bytes = updateLevelVariable(
+  bytes,
+  intKeyDictName,
+  {
+    value: [
+      { key: 1, keyType: 'int', value: ['X'], valueType: 'str_list' },
+      { key: 2, keyType: 'int', value: ['Y', 'Z'], valueType: 'str_list' }
+    ]
+  },
+  entityId
+).bytes
+writeFileSync(gilPath, bytes)
+list = listLevelVariables(new Uint8Array(readFileSync(gilPath)), entityId)
+assert.deepEqual(list.find((x) => x.name === intKeyDictName)?.value, { 1: ['X'], 2: ['Y', 'Z'] })
+
+const intIntDictName = `${suffix}_dict_intint`
+bytes = createLevelVariableTyped(
+  bytes,
+  intIntDictName,
+  'dict',
+  [
+    { key: 1, keyType: 'int', value: 3, valueType: 'int' },
+    { key: 2, keyType: 'int', value: 4, valueType: 'int' }
+  ],
+  entityId
+).bytes
+bytes = updateLevelVariable(
+  bytes,
+  intIntDictName,
+  {
+    value: [
+      { key: 1, keyType: 'int', value: 7, valueType: 'int' },
+      { key: 2, keyType: 'int', value: 9, valueType: 'int' }
+    ]
+  },
+  entityId
+).bytes
+writeFileSync(gilPath, bytes)
+list = listLevelVariables(new Uint8Array(readFileSync(gilPath)), entityId)
+assert.deepEqual(list.find((x) => x.name === intIntDictName)?.value, { 1: 7, 2: 9 })
+
+// 6. dict marker 表锁定（编辑器真实样本 after-dict-*.gil，2026-08-18）
+assert.equal(dictMapMarker(3, 3), 43, 'int→int marker（after-dict-keytypes 新增变量5）')
+assert.equal(dictMapMarker(3, 11), 56, 'int→str_list marker（after-dict-keytypes 新增变量11）')
+assert.equal(dictMapMarker(6, 3), 63, 'str→int marker（after-dict-int-values 新增变量1）')
+assert.equal(dictMapMarker(6, 11), 76, 'str→str_list marker（after-int-key-dict 新增变量1）')
+
+// 7. 混合键/混合值 fail closed（官方：一个字典 = 一种键类型 + 一种值类型）
+assert.throws(
+  () =>
+    createLevelVariableTyped(
+      bytes,
+      `${suffix}_dict_mixed_keys`,
+      'dict',
+      [
+        { key: 1, keyType: 'int', value: ['a'], valueType: 'str_list' },
+        { key: 'k2', keyType: 'str', value: ['b'], valueType: 'str_list' }
+      ],
+      entityId
+    ),
+  /mixed dict key types/
+)
+assert.throws(
+  () =>
+    createLevelVariableTyped(
+      bytes,
+      `${suffix}_dict_mixed_values`,
+      'dict',
+      [
+        { key: 'k1', keyType: 'str', value: ['a'], valueType: 'str_list' },
+        { key: 'k2', keyType: 'str', value: 3, valueType: 'int' }
+      ],
+      entityId
+    ),
+  /mixed dict value types/
+)
+
 assert.equal(readFileSync(sourceGilPath).equals(source), true)
 
 console.log(
@@ -127,6 +217,10 @@ console.log(
       count: cases.length,
       dictEntityIdsPreserved: dictBaseBefore,
       rename: true,
+      intKeyDict: true,
+      intIntDict: true,
+      dictMarkerLocked: true,
+      mixedPairsRejected: true,
       ok: true
     },
     null,

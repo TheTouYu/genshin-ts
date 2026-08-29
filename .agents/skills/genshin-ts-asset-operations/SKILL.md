@@ -122,7 +122,11 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 任意场景实体变量（含新建实体）：`gsts assets:custom-variables --entity <id> --vars "name:type=value;..." --write`，回读用 `--list --format json`。declaration 是 upsert：同名同类型更新，缺失追加，不会动其它变量。
 - 元件/玩家/角色初始变量：`gsts.config.ts` 的 `assets.customVariables` 声明，`assets:custom-variables --write`（无 `--entity` 时走配置路径）；`syncInstances: true` 会补齐明确引用模板的实例容器（玩家模板通常需要“顶层定义 + 实例容器同步”两处都写才可见）。
 - **推荐串联**：`assets:entities import` 建实体（自动继承元件定义变量容器）→ `assets:custom-variables --entity <id> --vars ...` 写变量 → `--list` 回读。
-- dict 语法：`name:dict=k1=abc&k2=[a,b]&k3=[1.5,2.5]&k4=[1,2,3]|4,5,6`；dict 值支持 str/int/float/str_list/int_list/bool_list/float_list/vec3_list。marker 公式与完整表见 reference。**注意**：当前 CLI 的 dict key 只支持字符串（`parseDictValue` 恒为 `keyType:'str'`），int key 无法经 `--vars` 表达——需要 int key 时按未覆盖项说明并跳过，不要硬造。
+- dict 语法：`name:dict=k1=abc&k2=[a,b]&k3=[1.5,2.5]&k4=[1,2,3]|4,5,6`；dict 值支持 str/int/float/str_list/int_list/bool_list/float_list/vec3_list。marker 公式与完整表见 reference。
+  - **int key 已支持（2026-08-29 证据复核）**：纯数字键自动解析为 int key（`dictKeyOf`，f13 编码，marker keyBase=int=40）；
+    编辑器真实样本已锁定 marker：(3,3)=43、(3,11)=56、(6,3)=63、(6,11)=76（after-dict-keytypes/int-key-dict/int-values，2026-08-18）。
+  - **一个字典 = 一种键类型 + 一种值类型（fail closed）**：混合键/混合值类型会被拒绝（`assertUniformDictPairs`），
+    不再静默生成 f503/f504 与个别 pair 不一致的畸形 wire。
 
 ### C. 屏幕 UI 控件（UI 空间）
 
@@ -180,7 +184,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 未覆盖 / 不可推广：
 
-- dict 的 **int key** 无法经 CLI `--vars` 表达；
+- dict 的 **int key** 已支持（纯数字键自动 int，marker 43/56/63/76 编辑器样本锁定）；混合键/值类型 fail closed；
 - 游戏内运行时获取/设置/变量变化事件、多实例变量隔离未验证；
 - 挂载对象多图顺序、创建/销毁事件触发精确规则未完全验证；
 - UI 运行时显示状态差异（隐藏/关闭/禁用）与多人隔离未游戏核验；

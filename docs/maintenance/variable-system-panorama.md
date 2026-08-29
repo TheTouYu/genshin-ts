@@ -103,7 +103,7 @@
 - GIL 编码：dict(27) f37 = parallel f501 keys + f502 values + f503(key 类型码) + f504(value 类型码)；
   marker 按 (keyType,valueType) 枚举，已实测 8 对（str6: str→66 / str_list→76 / float→65 /
   float_list→75 / bool_list→74 / vec3_list→78；int3: int→43 / vec3_list→58）；Map25 层仅历史样本。
-- **CLI 缺口**：`--vars` 的 dict key 只能 str（`parseDictValue` 恒 keyType:'str'），int key 不可表达 → 差分 D5。
+- **int key CLI 已闭合（2026-08-29）**：纯数字键自动 int key（f13 编码）；编辑器样本（2026-08-18 after-dict-keytypes/int-key-dict/int-values）字节级锁定 marker (3,3)=43、(3,11)=56、(6,3)=63、(6,11)=76；混合键/混合值类型 fail closed 拒绝（见 F1）。
 
 #### 结构体
 - 官方：基础/列表/字典/自定义结构体可用；高级数据管理里声明结构体类型；「空模型归纳变量」技巧
@@ -146,7 +146,7 @@
 13. 🔵 **UI 控件只能引用玩家实体变量**（`{1:ps.分数}`）；引用角色变量不刷新（论坛实测）。
 14. 🔵 **局部变量不能跨事件流/跨实体**；跨节点图状态用技能变量或自定义变量（论坛）。
 15. 🔵 **复合节点无自定义变量编辑入口**（变量跟随所在节点图）；跨复合共享变量用暴露/实体变量（论坛）。
-16. 🟡 **dict marker 8 对已闭合、int key CLI 缺口**；其余组合为拟合外推，未逐项实样（`variables.md`）。
+16. 🟡 **dict marker 已闭合 9 对（含 int→str_list=56）；int key CLI 已支持 + 混合键/值 fail closed（2026-08-29）**；其余组合为拟合外推，未逐项实样（`variables.md`）。
 17. 🟡 **关卡变量 discriminator**：bool=4 / integer=3（CONFIRMED_BOUNDED，非正式 enum，仅默认类型两个）。
 18. ⚪ **官方文档矛盾**：设置自定义变量能否动态创建（§1.1 A 末）；节点图变量共享 vs 每实体持有（D1）。
 19. 🟡 **int 在日志帧内编码为 float（类型5）**；循环迭代变量才是真 Integer（类型3）——读日志别误判类型。
@@ -171,8 +171,8 @@
 - `assets:custom-variables --entity <id> --vars "a=1;d:dict=k1=[a,b]&k2=3" --write|--output` +
   config `assets.customVariables`（prefab/player/character + syncInstances）。
 - 安全写回：--output 候选回读 → --write（.gsts/backups 时间戳备份 + SHA 校验）。
-- 已闭合：实体级/关卡变量全 21 类型读写、dict marker 公式、str-key 六种值类型。
-- 未覆盖：dict int key、负整数、空名/重名规则、游戏内获取/设置/变化事件、多实例运行时隔离。
+- 已闭合：实体级/关卡变量全 21 类型读写、dict marker 公式、str-key 六种值类型、**dict int key**（纯数字键自动 int；marker 43/56/63/76 编辑器样本锁定；混合键/值 fail closed）。
+- 未覆盖：dict 的 entity/guid/阵营/元件ID/配置ID 键、负整数、空名/重名规则、游戏内获取/设置/变化事件、多实例运行时隔离。
 
 ### 3.3 工具（tools/）
 - `scan-gil-var-pins.ts`：变量名 pin 完整性 + --list-names 与声明集合核对。
@@ -196,7 +196,7 @@
 | D2 | 设置自定义变量能否动态创建变量（官方文档矛盾） | 空白实体上直接 Set 不存在的变量名 → 看是否创建/报错 | 动态创建规则 |
 | D3 | 列表变量 Set 只改第一元素（论坛） | Set 列表变量整体赋值 → 回读 | 列表赋值语义 |
 | D4 | 局部变量生命周期=事件执行流（论坛） | 两个事件各用同一种局部变量，跨事件读值 | 生命周期/隔离边界 |
-| D5 | dict int key 的 wire（marker/key 编码） | 编辑器建 int-key dict（int→int、int→vec3_list 已有 marker 43/58 对照） | int key CLI 表达与编码 |
+| D5 | ~~dict int key 的 wire（marker/key 编码）~~ **已闭合**：证据复用 2026-08-18 编辑器样本 after-dict-keytypes/int-key-dict/int-values（marker 43/56/63/76 + f13 key 编码字节级同构）；无需新实验 | 已完成 | 其余键类型（entity/guid/阵营/元件ID/配置ID）仍缺样本 |
 | D6 | 全 0 int_list 运行时短物化长度规则 | 声明 N 个 0（N=2/8/25/100）→ 游戏读长度 | 物化长度公式 |
 | D7 | UI 引用变量语法 `{1:ps.名}` 的实体/类型范围 | 文本框引用角色/关卡/元件变量 | UI 引用规则 |
 | D8 | 关卡变量 discriminator 其它类型（bool=4/int=3 之外） | 编辑器逐个类型建关卡变量 → 相邻快照 | 关卡变量类型表 |
@@ -213,7 +213,7 @@
 
 | # | 修复 | 依赖 | 验证方式 |
 | --- | --- | --- | --- |
-| F1 | dict int key 走 CLI（`--vars`/config）表达与编码 | D5 闭合 | 候选回读 + 用户编辑器核验 |
+| F1 | dict int key 走 CLI（`--vars`/config）表达与编码 | ~~D5 闭合~~ **已完成 2026-08-29**：`assertUniformDictPairs` fail closed + 回归（gil_level/custom_variables_full）+ marker 表锁定；编辑器/游戏核验待用户 | 测试通过 + 字节级同构（editor sample） |
 | F2 | int 变体分裂的编译器防线：写实体自定义变量时 number/bigint 类型检查或 lint | 规则已闭合（🟢） | focused 回归 + 真实 GIA |
 | F3 | 变量名三方一致性校验进生产链（scan-gil-var-pins 集成到注入后检查/错误提示） | 规则已闭合（🟢） | 注入后自动核对 |
 | F4 | 全 0 int_list 陷阱的 DSL 告警/哨兵自动物化（评估后决定） | D6 闭合 | 日志回读长度 |
@@ -232,8 +232,11 @@
       PKC（clm_070E69D18F1EBD551E2925921D 等）+ 本地权威文档（variables/variable-scopes/gil-custom-variables/
       gil-structure-semantics/composite-library 4 篇）+ 源码（runtime variables/server_globals/nodes.ts、
       compiler node_id/Stage3 变量校验、cli assets_level/custom_variables、tools scan-gil-var-pins）。
-- [ ] 第二层：差分清单 D1-D14 逐项与用户配合执行（每项 ≤10 秒编辑器实验）。
-- [ ] 第三层：F1-F9 按闭合情况排期修复。
+- [x] 第三层 F1（dict int key CLI + 混合键/值 fail closed，2026-08-29 goal 第 1 轮）：证据复用编辑器样本
+      锁定 marker（43/56/63/76）+ `assertUniformDictPairs` + 回归（`tests/gil_level_variables_full.ts`
+      第 5-7 节、`gil_custom_variables_full.ts` 统一化）+ 技能/全景文档更新；编辑器/游戏核验待用户。
+- [ ] 第二层：差分清单 D1-D14（D5 已闭合作废）逐项与用户配合执行（每项 ≤10 秒编辑器实验）。
+- [ ] 第三层：F2-F9 按闭合情况排期修复。
 - 临时取证文件：`.local/vars-explore/kb-*.json`（KB 原文落盘，非 git 跟踪）。
 - 相关 open-items：见 `open-items.md` O-2026-08-29-01。
 

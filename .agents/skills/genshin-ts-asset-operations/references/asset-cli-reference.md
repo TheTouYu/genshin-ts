@@ -177,10 +177,16 @@ k1=[1,2,3]|4,5,6             # vec3_list（| 分隔多个三元组）
 | str(6) | float_list(10) | 15 | 75 |
 | str(6) | vec3_list(15) | 18 | 78 |
 | int(3) | int(3) | 3 | 43 |
+| int(3) | str_list(11) | 16 | 56 |
 | int(3) | vec3_list(15) | 18 | 58 |
 
 - 新建 dict 的 f37 = parallel `f501`(keys) + `f502`(values) + `f503`(keyType) + `f504`(valueType)，**无 Map25 层**。
-- ⚠️ **int key 目前无法经 CLI `--vars` 表达**：`assets_custom_variables.ts#parseDictValue` 恒把 key 解析为 `keyType:'str'`。需要 int key 时按未覆盖项说明并跳过，不要硬造。
+- **int key 已支持（2026-08-29 证据复核）**：`--vars`/config 声明里纯数字键（`/^-?\d+$/`）自动解析为
+  int key（f13 编码，marker keyBase=int=40）；`name:dict=1=[A,B]&2=[C]` 即 int→str_list（marker 56）。
+  marker (3,11)=56 已由编辑器样本 after-dict-keytypes「新增变量11」字节级确认（2026-08-18）。
+- **一个字典 = 一种键类型 + 一种值类型（fail closed，2026-08-29）**：混合键/混合值类型会被
+  `assertUniformDictPairs` 拒绝，不再静默生成 f503/f504 与个别 pair 不一致的畸形 wire
+  （回归：`tests/gil_level_variables_full.ts` 第 5/7 节）。
 
 ## 6. 变量类型码（默认值字段 = 类型码 + 10）
 
