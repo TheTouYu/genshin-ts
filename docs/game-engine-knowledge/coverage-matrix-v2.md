@@ -2,7 +2,7 @@
 
 > 状态：当前推荐（R0 建表 v1；R2 轮按红格逐项清零）
 > 口径：43 份单主题复盘（34 窗口 + 9 旧档）= 100% 入档；族 = v1 R1-R10 + 新族候选 R11/R12；
->   ✓* = UI wire 案例归 R12 属**提案**，待用户裁决（见 §5）。
+>   ✓ = 含该族案例/规则落点（UI wire 案例归 R12 已按用户裁决更新）。
 > 证据分层：本表只记录"哪份文档命中哪族"与"哪层已落盘"；落盘内容本身以各层载体为准。
 
 ## 1. 文档×根因族归位总表（43/43）
@@ -35,11 +35,11 @@
 | 2026-08-27-football-impulse-transmission | 冲量传导链 | ✓ |  |  | ✓ |  |  |  |  |  |  |  |  |
 | 2026-08-27-football-motion-chain | 运动链delta放大 | ✓ |  |  | ✓ |  |  |  |  |  |  |  |  |
 | 2026-08-27-multiple-branches-10-case | MB 10-case上限 |  |  | ✓ |  |  |  |  |  |  |  |  |  |
-| 2026-08-27-rich-floating-page-greedy | 富版悬浮页贪心事故 |  |  |  |  | ✓ |  |  | ✓ |  |  |  | ✓* |
+| 2026-08-27-rich-floating-page-greedy | 富版悬浮页贪心事故 |  |  |  |  | ✓ |  |  | ✓ |  |  |  | ✓ |
 | 2026-08-27-rubik-stage3-newgraph | 拆图+101拒载 |  | ✓ | ✓ |  |  |  |  | ✓ |  |  |  |  |
 | 2026-08-27-rubik-testbench | 独立测试台三轮纠正 |  | ✓ |  |  |  |  |  | ✓ |  |  |  |  |
 | 2026-08-27-solvebuf-residual | solveBuf残留 | ✓ |  |  |  |  | ✓ |  |  |  |  |  |  |
-| 2026-08-27-ui-cli-development | UI CLI wire开发 |  |  |  |  |  |  |  | ✓ |  |  |  | ✓* |
+| 2026-08-27-ui-cli-development | UI CLI wire开发 |  |  |  |  |  |  |  | ✓ |  |  |  | ✓ |
 | 2026-08-28-client-log-flow | 客户端事件线工具 |  |  |  |  |  |  |  |  | ✓ |  |  |  |
 | 2026-08-28-client-server-call-chain | 客户端图调用链读法 |  |  |  |  |  |  |  |  | ✓ |  |  |  |
 | 2026-08-28-football-dribble-speed | 带球测速降级 |  |  |  | ✓ |  |  | ✓ |  |  |  |  |  |
@@ -75,7 +75,7 @@
 | 候选 | 名称 | 命中案例 | 主源 | 与 v1 的关系 |
 |---|---|---|---|---|
 | **R11** | 信号注册编码族 | 版本一致性 / 版本下限 / 版本阈值 / 参数默认值 / 参数布局 / 注册前置（无参信号需 donor） | 08-16 两份 + 08-14 缺口 + 08-23 cfop #6 | v1 无对应族；引擎拒载无日志 + 样本字节语义化是独特特征 |
-| **R12** | 静态拼装族 | 模板残留 ID / 三级写回链 / 浮点精度 / 挂载语义 / ID 分配 / 几何公式 / 端点约束 / 符号断言（+候选：UI 页面 wire） | 08-20 prefabs + 08-21 arcs | v1 无对应族；静态资产 wire 编码与几何推导是独特特征 |
+| **R12** | 静态拼装族 | 模板残留 ID / 三级写回链 / 浮点精度 / 挂载语义 / ID 分配 / 几何公式 / 端点约束 / 符号断言 / **UI wire 子类**（用户裁决归入：ui-cli 7 条 wire 错误 + rich-floating 引用完整性） | 08-20 prefabs + 08-21 arcs + 08-27 UI 两份 | v1 无对应族；静态资产 wire 编码与几何推导是独特特征 |
 
 ## 3. 根因族×五沉淀层状态
 
@@ -94,7 +94,7 @@
 | R9 客户端图 | 🟢 6 文档 | 🟢 gil-structure-semantics 客户端图 ID 段 + debug-log-format f8/f3 | 🟢 reading Step 2.8 + debug-log ops/事件线 | 🟢 clm_D1A2 + bnd_f8e9a327/efba42/ae7c7e87 | 🟢 O-28-05 **已闭合 771cd42** |
 | R10 变量系统 | 🟢 2 文档 | 🟢 variables.md dict verified 双实样 | 🟢 assets ops + variables:verify | 🟡 待查证是否已入树 | 🟢 O-29-01 在册 |
 | R11 信号注册编码（新） | 🟢 4 文档 | 🟢 signals.md 参数布局/默认值规则 | 🟢 editor-incremental-gia-investigator 差分+hash 核对 | 🔴 **未入树** | 🟡 客户端信号默认载荷未闭合（signals.md 风险项） |
-| R12 静态拼装（新） | 🟢 2 确定 + 2 候选* | 🟢 gil-structure-semantics 静态/transform/装饰物 | 🟢 static-gil-model-builder | 🔴 **未入树** | 🟡 root46 判别未闭合（O-20-1） |
+| R12 静态拼装（新） | 🟢 4 文档（含 UI wire 子类，用户裁决归入） | 🟢 gil-structure-semantics 静态/transform/装饰物 | 🟢 static-gil-model-builder | 🔴 **未入树** | 🟡 root46 判别未闭合（O-20-1） |
 
 
 ## 4. 红格清单与清零计划
@@ -114,9 +114,8 @@
    矩阵按 32 主档出（map-graph-type-matrix.md §5）。
 2. **10 张 graphs=[]**（1909/1892/1866/1880/1862/1865/1879/1894/1897/1898）：工具读回 0 图，
    此前无盘点结论——是"真无图"还是工具盲区，请裁决是否复核。
-3. **UI 页面 wire 案例归属**：ui-cli-development（7 条 wire 错误）与 rich-floating-page（引用完整性）
-   的字节级 wire 错误在"R12 静态拼装族（wire 子类）"与"R8 方法论族（贪心/差分纪律）"之间——
-   我提案：R8 保留过程纪律案例，wire 编码案例归 R12 子类。请裁决。
+3. **UI 页面 wire 案例归属**：~~待裁决~~ → **已裁决（用户 08-29）**：R8 保留过程纪律案例，
+   wire 编码案例归 **R12 wire 子类**（ui-cli-development、rich-floating-page 归入 R12）。
 4. **v1 R9 缺口已过期**：O-2026-08-28-05（客户端图错标名）在当前 HEAD 已闭合（771cd42，
    191 节点实测 0 错标 0 占位），矩阵已按闭合更新；v1 总纲该缺口标记将在 v2 总纲同步。
 5. **PKC 基线实测**：`python tools/pkc.py tree` → 14 nodes / claim_count 合计 **339**，与任务书一致。
