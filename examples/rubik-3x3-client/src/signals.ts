@@ -6,5 +6,7 @@ export const RubikSignal = {
   // 单一求解信号：op 区分阶段，val 携带参数
   // op 1 求解器→主图 请求状态；2 主图→求解器 状态已发布；
   // op 3 求解器→主图 执行一步(val=moveId)；4 主图→求解器 该步完成；5 求解器→主图 完成(val=ok)
-  rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']])
+  rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']]),
+  // 第 1 轮客户端图实验探针：客户端图经「向服务器节点图发送信号」回传
+  rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [['check', 'str'], ['val', 'str']])
 } as const

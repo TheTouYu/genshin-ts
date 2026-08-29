@@ -320,6 +320,11 @@ const graph = g
     f.setNodeGraphVariable('pendingTab', evt.params.tabId, false)
     f.callComposite(mainStartDispatch, { target })
   })
+  .onSignal(RubikSignal.rubik3x3_client_probe, (evt: any, f: any) => {
+    // 第 1 轮客户端图实验：打印客户端图回传的探针参数（服务器日志 f22 可 grep 'client-probe'）
+    f.printString(evt.params.check)
+    f.printString(evt.params.val)
+  })
 
 
 export default graph

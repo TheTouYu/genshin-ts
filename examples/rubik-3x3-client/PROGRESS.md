@@ -38,11 +38,50 @@
 | 轮 | 内容 | 状态 |
 |---|---|---|
 | 0 | 复制资源 + 基线可运行 + PROGRESS 建立 | ✅ 完成（本文件） |
-| 1 | 最小客户端图注入实验：极简 20010 图打通 gstsClient DSL → 注入 → 读图回读 → 游戏日志闭环；修复 K-01 | ⬜ 待用户确认 |
+| 1 | 最小客户端图注入实验：极简 20010 图打通 gstsClient DSL → 注入 → 读图回读 → 游戏日志闭环；修复 K-01 | 🟡 进行中（模型侧完成，待编辑器建图+用户确认注入） |
 | 2+ | 旋转计算逐块迁移到客户端图（指令解析/向量计算/信号发送，分多个小轮） | ⬜ |
 | 3+ | 服务器侧瘦身（只留动画执行）与信号参数对接 | ⬜ |
 | 4+ | 负载对比与优化迭代 | ⬜ |
 | 5+ | 暴露的编译器局限逐项修复 | ⬜ |
+
+## Round 1 记录（2026-08-29，进行中）
+
+### 1.1 K-01 修复（已提交，客户端 DSL 测试链 11/11 全绿）
+
+- `assert-client-ts-transform.ts` 增加合成最小 SignalRegistry（4 个 fixture 信号：
+  client_transform_values / gsts_feature_log / feature_probe / classic_creation_character，
+  身份 ID 900001..900015 占位），传入全部 8 处 irToGia 调用点；退出码 0。
+- 完整测试链：assert-client-ts-transform + 9 个 smoke + check-client-definitions-consistency = 11/11 PASS。
+
+### 1.2 探针信号注册（CLI，游戏文件已写回）
+
+- `gsts assets:signals register --gil 1073741914.gil --name rubik3x3_client_probe --param check:str --param val:str --write`
+  → sendId=1610612762 / monitorId=1610612763 / serverId=1610612764；
+  备份 `.gsts/backups/1073741914.gil.2026-08-29T02-51-42-632Z.bak`；自动提取 `src/resources/signals.ts` count=8。
+
+### 1.3 最小客户端图 + 服务器监听（源码 + 编译 + GIA 核验）
+
+- 新文件 `src/clientProbe.ts`：`g.characterControlSkill({ id: 1082130433 占位, name: '_GSTS_clientProbe' })`
+  → on start：设置局部变量 probeCount=42 → 读回 → str 转换 → 向服务器发送信号
+  rubik3x3_client_probe('client-probe', str(count))。
+- `src/signals.ts` 增加 rubik3x3_client_probe 定义；`src/game.ts` 增加 onSignal 监听（printString×2，
+  服务器日志 f22 可 grep 'client-probe'）。
+- 踩坑并修正：客户端图的 str/int/bool 是**全局转换函数**（TS 转换改写为 dataTypeConversion），
+  从 'genshin-ts/runtime/value' 导入会得到类构造器，运行时报 `Class constructor str cannot be invoked without 'new'`。
+- 编译：10 GIA exit 0（clientProbe.gia id=1082130433）。
+- GIA 解码核验：客户端图 = 节点图开始(200042) → 设置局部变量(200081) →[exec]→ 发送信号节点
+  (genericId=1610612764=server 身份)，数据链 获取局部变量(200082/1036) → str 转换(200022) → 信号参数1，
+  信号名 pin='rubik3x3_client_probe'，check 字面量 'client-probe'；信号三元组 def（发送/监听/向服务器发送）
+  relatedIds 互指正确。game.gia 相对基线新增 1 监听信号调用(1610612763)+2 print 节点+信号三元组 def。
+
+### 1.4 待办（用户侧 + 注入）
+
+- 编辑器：在 1073741914 创建 20010 角色操控技能图 → 回填真实 id 到 `CLIENT_PROBE_GRAPH_ID`。
+- 编辑器：创建技能配置并把客户端图绑定到技能「节点图事件轨道」（参照魔方-客户端优化版本），
+  提供技能配置 id / 实例 id 供服务器施放链使用（或按参考架构的 UI 变量触发）。
+- 注入（需用户确认）：10 GIA → 1073741914；随后回读真实 .gil 核验（仓库红线）。
+- 用户游戏试玩 → Beyond_Debug_Log → 验收：客户端图记录 f8=2097154 + 服务器 f22 'client-probe' 文本。
+
 
 ## Round 0 记录（2026-08-29）
 
