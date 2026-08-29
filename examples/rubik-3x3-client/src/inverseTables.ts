@@ -1,0 +1,22 @@
+// 自动生成：node examples/rubik-3x3-client/tools/gen-inverse-tables.mjs —— 勿手改
+// 12 个 move 的反向一步逻辑表（from/to/orientMap 与正表同构）
+// 方向约定：反向 move = 正 move 连做 3 次的逆映射；供反向旋转接口使用。
+export const invFaceCornerFrom: bigint[] = [1n, 3n, 5n, 7n, 0n, 2n, 4n, 6n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 2n, 3n, 6n, 7n, 0n, 1n, 4n, 5n]
+export const invFaceCornerTo: bigint[] = [3n, 7n, 1n, 5n, 4n, 0n, 6n, 2n, 2n, 0n, 3n, 1n, 5n, 7n, 4n, 6n, 6n, 2n, 7n, 3n, 1n, 5n, 0n, 4n]
+export const invFaceCornerTwist: bigint[] = [1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n]
+export const invFaceEdgeFrom: bigint[] = [1n, 5n, 8n, 10n, 3n, 7n, 9n, 11n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 0n, 4n, 8n, 9n, 2n, 6n, 10n, 11n]
+export const invFaceEdgeTo: bigint[] = [8n, 10n, 5n, 1n, 11n, 9n, 3n, 7n, 1n, 2n, 3n, 0n, 7n, 4n, 5n, 6n, 9n, 8n, 0n, 4n, 10n, 11n, 6n, 2n]
+export const invFaceEdgeFlip: bigint[] = [0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n]
+export const invMiddleEdgeFrom: bigint[] = [0n, 2n, 4n, 6n, 8n, 9n, 10n, 11n, 1n, 3n, 5n, 7n]
+export const invMiddleEdgeTo: bigint[] = [2n, 6n, 0n, 4n, 9n, 11n, 8n, 10n, 3n, 7n, 1n, 5n]
+export const invMiddleEdgeFlip: bigint[] = [1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n]
+export const invMiddleCenterFrom: bigint[] = [0n, 1n, 2n, 3n, 2n, 3n, 4n, 5n, 0n, 1n, 4n, 5n]
+export const invMiddleCenterTo: bigint[] = [3n, 2n, 0n, 1n, 5n, 4n, 2n, 3n, 5n, 4n, 0n, 1n]
+export const invWholeCornerFrom: bigint[] = [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n]
+export const invWholeCornerTo: bigint[] = [2n, 3n, 6n, 7n, 0n, 1n, 4n, 5n, 2n, 0n, 3n, 1n, 6n, 4n, 7n, 5n, 4n, 0n, 6n, 2n, 5n, 1n, 7n, 3n]
+export const invWholeCornerTwist: bigint[] = [1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n, 2n, 1n, 0n]
+export const invWholeEdgeFrom: bigint[] = [0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n]
+export const invWholeEdgeTo: bigint[] = [4n, 8n, 0n, 9n, 6n, 10n, 2n, 11n, 5n, 7n, 1n, 3n, 1n, 2n, 3n, 0n, 5n, 6n, 7n, 4n, 10n, 8n, 11n, 9n, 9n, 3n, 11n, 7n, 8n, 1n, 10n, 5n, 0n, 4n, 2n, 6n]
+export const invWholeEdgeFlip: bigint[] = [1n, 0n, 0n, 1n, 1n, 0n, 0n, 1n, 1n, 0n, 0n, 1n, 1n, 0n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n, 1n, 0n]
+export const invWholeCenterFrom: bigint[] = [0n, 1n, 2n, 3n, 4n, 5n, 0n, 1n, 2n, 3n, 4n, 5n, 0n, 1n, 2n, 3n, 4n, 5n]
+export const invWholeCenterTo: bigint[] = [2n, 3n, 1n, 0n, 4n, 5n, 0n, 1n, 4n, 5n, 3n, 2n, 5n, 4n, 2n, 3n, 0n, 1n]
