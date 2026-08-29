@@ -65,6 +65,7 @@
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
 | 派独立模型/评估技能 | `isolated-model-evaluator`（全局技能） |
 | 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center`（全局技能） |
+| 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
 | 建/改技能 | `skill-creator` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 
