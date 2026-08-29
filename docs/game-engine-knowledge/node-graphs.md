@@ -220,6 +220,32 @@ root 6（f1=4 记录）的 f2.f4（「调试」文件夹）末尾追加 f5={1:80
 - root 46 等长变化 = 编辑器保存副作用，不模拟；root 10 field4 的 field106 同理
 - **GIL header 长度字段必须同步**（见 gil-structure-semantics.md），否则游戏报文件损坏
 
+### 客户端图 20010（CharacterControlSkill）wire 配方（2026-08-29）
+
+来源：1073741914 真实相邻快照 v0（`cdcb56d0…`）→ v1（`45267e07…`），编辑器新建
+「角色操控技能」图并保存；/tmp 同构重放后 root 6/10 与 after 逐字节一致。
+`CONFIRMED`（真实编辑器观察 + 同构重放 + `tools/list-gil-node-graphs.ts` 回读 type=20010/nodeCount=1）。
+
+```text
+root 10：在最后一张既有图 field 1 记录之后（field 2 之前）插入一条 field 1 记录：
+  记录 value = {1: NodeGraph}                        # 双层包装
+  NodeGraph = {1: Id, 2: name(UTF-8), 3: nodes[1], 100: entrySlotIndex=1}
+  Id        = {1: 10000(UserDefined), 2: 20010(CharacterControlSkill), 3: 21001(NodeGraph), 5: 图ID}
+  node[0]   = 节点图开始（编辑器自动生成，nodeCount=1 非空）：
+              nodeIndex=1
+              genericId  = {1:10001(SystemDefined), 2:20002(Skills), 3:22000(SysCall), 5:200042}
+              concreteId = {1:10001, 2:20002, 3:22000, 5:2001}
+              contextDeclaration(f8) = {1: kind=6(ClientSignal)}
+root 6：重写「未分类页签」聚合 record（本图 folderId=67），其 f3 末尾追加：
+  f5 = {1: 7400, 2: 图ID}                            # 7400 = client 图 20010 folder typeValue
+```
+
+- 编辑器默认图名 = `新建角色操控技能节点图`（CLI 的 name 参数可替换）。
+- folder typeValue 真实样本：20000→800，20010→7400；参考地图另见 20003→2300、技能配置→7500。
+- 客户端图 ID 与 server 图 ID 分属不同数值段（1082130xxx vs 1073741xxx）：本图首张 20010
+  编辑器分配 1082130433，参考图 20010 为 1082130436；全局分配/复用规则未闭合，CLI 建图按显式
+  `--graph-id` 处理。
+
 ## 精准修改工具（2026-08-08）
 
 `gsts assets:node-graphs read|patch` 提供记录级精准读-改-写：位置、参数固定值、
