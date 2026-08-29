@@ -68,6 +68,10 @@ const EDITOR_CLIENT_NAME =
 // Get 10 类型值 pin 全部对齐（client ioc 表 int=0 省略/str=1/ety=2/gid=3/flt=4/vec=5/bool=6/
 // str_list=8/flt_list=11/vec3_list=12；clientVarType 码 int=3/str=9/vec=11/ety=1/flt=7/bool=5/
 // gid=14/str_list=10/flt_list=8/vec3_list=12；entity 内层无 class 无 payload）
+// v16b 客户端剩余类型（项目表 CLIENT_VAR_TYPE_BY_IR_TYPE / LOCAL_VAR_IOC_BY_IR 交叉核对闭合）：
+// 采样 10/10 命中项目表 → 表即编辑器规则 → 剩余 11 类型（int_list/entity_list/bool_list/
+// guid_list/config_id/prefab_id/faction/config_id_list/prefab_id_list/faction_list/dict）
+// 全部闭合（Get+Set 同构；dict 走 MapBase 特殊形式）
 const EDITOR_CLIENT_TYPE_VALUES: Record<string, string> = {
   测试: '08904e1001f20610120e080222070802aa06021003b20600',
   字符串: '08904e1001f206120801120e080522070802aa06021009ca0600',
@@ -598,6 +602,88 @@ try {
       assert.ok(outPin?.value, `${name} value pin`)
       const hex = Buffer.from(outPin.value.$type.encode(outPin.value).finish()).toString('hex')
       assert.equal(hex, EDITOR_CLIENT_TYPE_VALUES[name], `${name} value must match editor`)
+    }
+    // ===== v16b：剩余 11 类型（项目表交叉核对，get+set 同构） =====
+    // 期望值来自项目表：LOCAL_VAR_IOC_BY_IR（ioc）+ CLIENT_VAR_TYPE_BY_IR_TYPE（clientType）
+    const REST_TYPES: Array<[string, number, number]> = [
+      ['int_list', 7, 4],
+      ['entity_list', 9, 2],
+      ['bool_list', 13, 6],
+      ['guid_list', 10, 15],
+      ['config_id', 14, 18],
+      ['prefab_id', 15, 19],
+      ['faction', 18, 16],
+      ['config_id_list', 16, 20],
+      ['prefab_id_list', 17, 21],
+      ['faction_list', 19, 25],
+      ['dict', 20, 24]
+    ]
+    const restIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'client',
+          mode: 'beyond',
+          sub_type: 'character_control_skill',
+          id: 1082130433,
+          name: 'client-rest-types'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'node_graph_begins', next: [] },
+          ...REST_TYPES.flatMap(([t], i) => {
+            const gid = 2 + i * 2
+            const conn: Record<string, unknown> = { node_id: gid, index: 0, type: t }
+            if (t === 'dict') conn.dict = { k: 'str', v: 'int' }
+            return [
+              { id: gid, type: 'get_local_variable', args: [{ type: 'str', value: t }] },
+              {
+                id: gid + 1,
+                type: 'set_local_variable',
+                args: [{ type: 'str', value: t }, { type: 'conn', value: conn }]
+              }
+            ]
+          })
+        ],
+        edges: null
+      }
+    ]
+    const irPath9 = join(tmp2, 'rest.json')
+    writeFileSync(irPath9, JSON.stringify(restIr))
+    const giaPath9 = join(tmp2, 'rest.gia')
+    writeGiaFromIrJsonFile(irPath9, giaPath9, {}, () => {})
+    const bytes9 = new Uint8Array(readFileSync(giaPath9))
+    const root9 = rootMessage.decode(bytes9.slice(20, -4))
+    const nodes9 = root9.graph?.graph?.inner?.graph?.nodes ?? []
+    for (const [t, ioc, ctype] of REST_TYPES) {
+      const getN = nodes9.find((n) => {
+        if (n.genericId?.nodeId !== 200082) return false
+        const namePin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 0)
+        return namePin?.value?.bString?.val === t
+      })
+      const setN = nodes9.find((n) => {
+        if (n.genericId?.nodeId !== 200081) return false
+        const namePin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === 0)
+        return namePin?.value?.bString?.val === t
+      })
+      assert.ok(getN && setN, `get/set for ${t}`)
+      for (const [n, kind, idx] of [
+        [getN, 4, 0],
+        [setN, 3, 1]
+      ] as const) {
+        const p = n.pins.find((x) => x.i1?.kind === kind && x.i1?.index === idx)
+        assert.ok(p?.value, `${t} value pin`)
+        assert.equal(p.value.bConcreteValue?.indexOfConcrete, ioc, `${t} ioc ${ioc}`)
+        const inner = p.value.bConcreteValue.value
+        assert.equal(inner.itemType?.type_client?.type, ctype, `${t} clientType ${ctype}`)
+        if (t === 'dict') {
+          assert.equal(inner.class, 10003, `${t} MapBase`)
+          assert.ok(inner.bMap, `${t} bMap form`)
+        } else {
+          assert.equal(inner.class, t.endsWith('_list') || t === 'config_id_list' ? 10002 : 1, `${t} inner class`)
+        }
+      }
     }
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
