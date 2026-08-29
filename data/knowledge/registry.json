@@ -1396,6 +1396,110 @@
       "summary": "图变量/列表值的引擎运行时语义：重复求值、全 0 短物化、初始化上限、长列表分块——全部来自 Beyond_Debug_Log 帧铁证与真实 GIL 回读。",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "load-budget-family",
+      "node_id": "game-engine-knowledge",
+      "title": "负载与预算硬限族（load budget hard limits）",
+      "path": "knowledge/game-engine-knowledge/load-budget-family.md",
+      "summary": "引擎静默硬限：单记录 3000f 截断、生产红线 2000 节点、MB 10-case、滚动窗口负载判定；写图前算两笔账。",
+      "keywords": [
+        "10-case",
+        "2000 红线",
+        "3000",
+        "负载",
+        "预算"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "state-machine-protocols",
+      "node_id": "game-engine-knowledge",
+      "title": "状态机协议族（state machine protocols）",
+      "path": "knowledge/game-engine-knowledge/state-machine-protocols.md",
+      "summary": "多图/多 tick/多信号共享状态协议缺陷：缓冲残留、握手漏发、写序竞态、队列串台、冷启动心跳；防线三件套。",
+      "keywords": [
+        "握手",
+        "状态机",
+        "竞态",
+        "缓冲",
+        "队列"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "verification-chain-blindspots",
+      "node_id": "game-engine-knowledge",
+      "title": "验证链盲区族（verification chain blindspots）",
+      "path": "knowledge/game-engine-knowledge/verification-chain-blindspots.md",
+      "summary": "六类单层结论冒充全链结论的盲区：注入失败看不见/读图不核数据流/离线不等于真实/逻辑不等于渲染/修复引入回归/管道判退；统一交付前验证清单 C1。",
+      "keywords": [
+        "分层证据",
+        "回归",
+        "注入",
+        "盲区",
+        "验证"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "composite-injection-residue",
+      "node_id": "game-engine-knowledge",
+      "title": "复合/注入器残留族（composite & injection residue）",
+      "path": "knowledge/game-engine-knowledge/composite-injection-residue.md",
+      "summary": "复合 exec 边完整性与注入残留变体：悬空 exec、重复入边、物理 InFlow pin、ID 前移残留类型错位、数据引脚+分支赋值、输出 pin 映射错连；检测器与校验工具防线。",
+      "keywords": [
+        "pin",
+        "复合",
+        "悬空",
+        "残留",
+        "注入"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "requirements-methodology",
+      "node_id": "game-engine-knowledge",
+      "title": "需求与方法论族（requirements & methodology）",
+      "path": "knowledge/game-engine-knowledge/requirements-methodology.md",
+      "summary": "写代码前的方法论层错误：贪心实现、需求偏离、单位错误、甩锅引擎、样本时效、口径错误、知识路由、手解 hex；防线=卡住三问+最小单元+差分申请。",
+      "keywords": [
+        "单位",
+        "差分",
+        "方法论",
+        "纪律",
+        "需求"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "static-assembly-family",
+      "node_id": "game-engine-knowledge",
+      "title": "静态资产拼装与几何族（static asset assembly & geometry family）",
+      "path": "knowledge/game-engine-knowledge/static-assembly-family.md",
+      "summary": "静态资产 wire 编码与几何推导：模板 ID 全审计、三级写回链、精确值断言、def/inst 挂载语义、场弧切线公式与端点约束、UI wire 子类。",
+      "keywords": [
+        "UI wire",
+        "三级写回链",
+        "几何推导",
+        "场弧",
+        "模板复用"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "retrospective-methods",
+      "node_id": "game-engine-knowledge",
+      "title": "跨周复盘方法论索引（retrospective methods M2-M21）",
+      "path": "knowledge/game-engine-knowledge/retrospective-methods.md",
+      "summary": "跨玩法可复用定位/验证方法论：最小复现日志协作、帧数交替签名、统计分布优先、逐位对比、不可能序列判别、事件线视图、快照基线、同构重放、位置差分测速、三版本差分、样本字节语义化、同族扩展扫描。",
+      "keywords": [
+        "复盘",
+        "定位",
+        "方法论",
+        "验证"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3060,6 +3164,96 @@
     "clm_D9623A8BE08E2906051D49033A": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_645571FF703D9EC0CD8E9E854D": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_ED54D8AD0913E750C38709B35D": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_20EC2BE4048E84485B4F7A4FD5": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_449F516AB0A6F79B5A42901B4C": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_E9757EBDC754A93E8B61F74F27": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_A559EA2D19E431BB3ADB702DDE": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_7E4CB6E3C215130C97C49F2EB5": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_9EC3CFC683DC3C8B985A533488": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_528A51758DA9332F2ADE2BAAE3": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_3CAC602EEC2CE50138B7786FA0": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_911493D08A13755B6D040BC0AE": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_8C0AC156F4F47CAC5C4DDF048E": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_949A6BB697683AD7B16CACA3A9": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_C9CB55F4DACF47654BD73E5F80": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_FE86367F1A720AA5CDA4BE380D": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_FA3E6E08F584413AB01CB78263": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_09274089DD20C091F7EDE19DF3": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    "clm_BA3431BA081FF4DE34994D70DB": {
+      "fact_classes": [
+        "evidence_scope"
       ]
     }
   }

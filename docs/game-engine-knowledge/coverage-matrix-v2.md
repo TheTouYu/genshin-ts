@@ -85,28 +85,28 @@
 |---|---|---|---|---|---|
 | R1 重复求值 | 🟢 10 文档 | 🟡 无独立权威章节（技能+PKC 承载） | 🟢 4 铁律在位；🔴 lint 门禁缺（O-26-2） | 🟢 clm_6583EB7（bnd_83bb3685） | 🟢 O-26-2/O-27-02 在册 |
 | R2 列表语义 | 🟢 9 文档 | 🟡 同上 | 🟢 列表规则表+哨兵/补整块 | 🟢 bnd_83bb3685 列表三规则 | 🟢 O-27-08/O-27-01/O-29-07 在册 |
-| R3 负载预算 | 🟢 10 文档 | 🟢 node-graphs.md 2000 红线 + control-flow-api-cookbook 10-case | 🟢 锚点标定法+预算检索优先级 | 🔴 **未入树** | 🟢 O-27-01 在册 |
+| R3 负载预算 | 🟢 10 文档 | 🟢 node-graphs.md 2000 红线 + control-flow-api-cookbook 10-case | 🟢 锚点标定法+预算检索优先级 | 🟡 已 capture（clm_645571FF，bnd_81d5378d 待 apply） | 🟢 O-27-01 在册 |
 | R4 运动器传导链 | 🟢 6 文档 | 🟢 motion-devices.md 定点器叠加 | 🟢 直接速度驱动+buff 降级 | 🟢 bnd_83bb3685 传导链 | 🟢 O-27-03 在册 |
-| R5 验证链盲区 | 🟢 ~13 文档 | 🟡 分层证据分散各文档 | 🟡 守则多条；🔴 C1 统一验证清单未聚合 | 🔴 **未入树** | 🟢 O-26-5 在册 |
-| R6 状态机协议 | 🟢 11 文档 | 🟡 无独立章节 | 🟢 握手三件套/重置清数组/pos 入参 | 🔴 **未入树** | 🟢 O-28-02/O-27-09 在册 |
-| R7 复合/注入器残留 | 🟢 12 文档 | 🟢 composite-nodes.md + gil-structure-semantics | 🟢 Step 3.5 全量校验+exec 边健康 | 🔴 **未入树** | 🟢 O-27-05/O-23-2 在册 |
-| R8 需求方法论 | 🟢 16 文档 | 🟡 AGENTS.md 三问（纪律层） | 🟢 复盘技能最小单元+定时器单位 | 🔴 **未入树** | 🟢 无 OPEN（纪律闭环） |
+| R5 验证链盲区 | 🟢 ~13 文档 | 🟡 分层证据分散各文档 | 🟢 C1 统一验证清单已回灌 dsl 技能（R2） | 🟡 已 capture（clm_20EC2BE4，bnd_81d5378d 待 apply） | 🟢 O-26-5 在册 |
+| R6 状态机协议 | 🟢 11 文档 | 🟡 无独立章节 | 🟢 握手三件套/重置清数组/pos 入参 | 🟡 已 capture（clm_ED54D8AD，bnd_81d5378d 待 apply） | 🟢 O-28-02/O-27-09 在册 |
+| R7 复合/注入器残留 | 🟢 12 文档 | 🟢 composite-nodes.md + gil-structure-semantics | 🟢 Step 3.5 全量校验+exec 边健康 | 🟡 已 capture（clm_449F516A；多版本残留 clm_3EC5CF42 早已在树） | 🟢 O-27-05/O-23-2 在册 |
+| R8 需求方法论 | 🟢 16 文档 | 🟡 AGENTS.md 三问（纪律层） | 🟢 复盘技能最小单元+定时器单位 | 🟡 已 capture（clm_E9757EBD，bnd_81d5378d 待 apply） | 🟢 无 OPEN（纪律闭环） |
 | R9 客户端图 | 🟢 6 文档 | 🟢 gil-structure-semantics 客户端图 ID 段 + debug-log-format f8/f3 | 🟢 reading Step 2.8 + debug-log ops/事件线 | 🟢 clm_D1A2 + bnd_f8e9a327/efba42/ae7c7e87 | 🟢 O-28-05 **已闭合 771cd42** |
-| R10 变量系统 | 🟢 2 文档 | 🟢 variables.md dict verified 双实样 | 🟢 assets ops + variables:verify | 🟡 待查证是否已入树 | 🟢 O-29-01 在册 |
-| R11 信号注册编码（新） | 🟢 4 文档 | 🟢 signals.md 参数布局/默认值规则 | 🟢 editor-incremental-gia-investigator 差分+hash 核对 | 🔴 **未入树** | 🟡 客户端信号默认载荷未闭合（signals.md 风险项） |
-| R12 静态拼装（新） | 🟢 4 文档（含 UI wire 子类，用户裁决归入） | 🟢 gil-structure-semantics 静态/transform/装饰物 | 🟢 static-gil-model-builder | 🔴 **未入树** | 🟡 root46 判别未闭合（O-20-1） |
+| R10 变量系统 | 🟢 2 文档 | 🟢 variables.md dict verified 双实样 | 🟢 assets ops + variables:verify | 🟢 查证已在树（clm_E14B322C 矩阵协议+clm_070E69D1 变量体系） | 🟢 O-29-01 在册 |
+| R11 信号注册编码（新） | 🟢 4 文档 | 🟢 signals.md 参数布局/默认值规则 | 🟢 editor-incremental-gia-investigator 差分+hash 核对 | 🟢 **查证已在树**（一致性 clm_6C4D0D6A/下限 clm_1A1C5E0F/阈值 clm_3FA4D090/默认值 clm_168E839F/布局 clm_ABB786BA/工具链 clm_747B855B） | 🟡 客户端信号默认载荷未闭合（signals.md 风险项） |
+| R12 静态拼装（新） | 🟢 4 文档（含 UI wire 子类，用户裁决归入） | 🟢 gil-structure-semantics 静态/transform/装饰物 | 🟢 static-gil-model-builder | 🟡 已 capture（clm_A559EA2D，bnd_81d5378d 待 apply） | 🟡 root46 判别未闭合（O-20-1） |
 
 
 ## 4. 红格清单与清零计划
 
 | # | 红格 | 清零动作 | 轮次 |
 |---|---|---|---|
-| 1 | PKC：R3/R5/R6/R7/R8/R11/R12 七族 + M2-M9/M11-M15 方法论 | 按族一条 claim capture（**禁止逐文档碎片化**），339 → ≥350，bundle 走 L3 hash 门 | R2 |
-| 2 | R5 技能：C1 统一「修复交付前验证清单」未聚合 | 在 dsl-nodegraph-development 技能聚合成固定 6 项 | R2 |
+| 1 | PKC：R3/R5/R6/R7/R8/R11/R12 七族 + M2-M9/M11-M15 方法论 | ✅ 查证+R2 capture 完成：R11 查证**已在树**（六条历史 claim 免重复）；R3/R5/R6/R7/R8/R12 六族各 1 claim + M2/M3/M4/M5/M6/M9/M11/M12/M14/M16/M17/M20 十二方法论已入 plan（M7/M8→clm_777AAD5F、M13→clm_D1A208、M15→clm_E14B322C 查证已在树免重复）——bundle bnd_81d5378d（content_hash 81d5378d8d79eca005e93357dc5c532d59b20ec7b749cc13fc9aa362e00f37b7）**待用户 hash 确认后 apply**，339 → 357 | R2（apply 在用户确认后） |
+| 2 | R5 技能：C1 统一「修复交付前验证清单」未聚合 | ✅ 已回灌 dsl-nodegraph-development 技能「修复交付前验证清单（C1，六项）」 | R2 |
 | 3 | R1 防线：lint 门禁（O-26-2）+ 编译器自动物化（O-27-02） | 工具/编译器层，非知识任务，保持账本跟踪 | R3 |
 | 4 | R2 工具：chunking（O-27-01）+ 字面量丢值（O-29-07） | 同上，编译器层 | R3 |
-| 5 | 权威文档 🟡 四格（R1/R2/R5/R6/R8） | 最小规则文件原则评估：已有技能+PKC 承载则不新建权威文档；评估结论写入 R2 报告 | R2 |
-| 6 | R10 PKC 🟡、R11/R12 账本 🟡 | R2 查证（pkc query）→ 该 capture 则 capture，该登记 open-items 则登记 | R2 |
+| 5 | 权威文档 🟡 四格（R1/R2/R5/R6/R8） | ✅ R2 评估完成（最小规则文件原则）：四族规则均已在 dsl/reading/debug-log 技能 + PKC 承载，**不新建权威文档**（避免双写漂移）；R5 已聚合 C1 清单进技能 | R2 |
+| 6 | R10 PKC 🟡、R11/R12 账本 🟡 | ✅ R2 查证完成：R10/R11 已在树（见 §3 表）；账本 🟡 两项（客户端信号默认载荷、root46）保持跟踪，不新增 O- 条目 | R2 |
 
 ## 5. 差异清单（交用户裁决，不擅自改结论）
 

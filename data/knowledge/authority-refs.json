@@ -2,6 +2,21 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_00e7afe737fa7dfda7bf68a7e4",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-16-signal-registration-series.md",
+      "locator": "系统性根因 缺陷 A（样本字节语义化）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c08a70b58fec12e8d5283c3a1cef65724b8e9551277a9af9bfe8f8ff9f157bb1",
+      "claim_ids": [
+        "clm_09274089DD20C091F7EDE19DF3"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_01fac86b3c17c765f75fd5943c",
       "path": "docs/ui-tutorial/official-guide-faq.md",
       "locator": "千星沙箱/存档导出及合并/结构体",
@@ -14,6 +29,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_025ea9e5e8403b16de8038e56b",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-16-signal-registration-series.md",
+      "locator": "三版本差分结论（lamp_toggle 逐字节对比）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c08a70b58fec12e8d5283c3a1cef65724b8e9551277a9af9bfe8f8ff9f157bb1",
+      "claim_ids": [
+        "clm_FA3E6E08F584413AB01CB78263"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -194,6 +224,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_0a041d8a647801291823277e5f",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-27-football-auto-timer-chain.md",
+      "locator": "错误谱系总览 #6 单位错误",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "13669915aba764929792a0ed68c94a865fad67cceee083db3265daa774b48db0",
+      "claim_ids": [
+        "clm_E9757EBDC754A93E8B61F74F27"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -967,6 +1012,21 @@
       ]
     },
     {
+      "id": "aref_297a3b4f90f7afd12180cd9f85",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-27-multiple-branches-10-case.md",
+      "locator": "错误谱系总览（12 case 被丢弃）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5f2987b84b41dfb18f99977621891fae4156622f1c5158e276a3801605420e70",
+      "claim_ids": [
+        "clm_645571FF703D9EC0CD8E9E854D"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_2b2d716ee98d5f69f76e8c4e6e",
       "path": "tests/stage1_expression_semantics_test.ts",
       "locator": "focused Stage 1 assertions for list length int lowering and captured timer handle metadata",
@@ -979,6 +1039,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2bc0f343edc7f37ce9aa062b90",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-rubik-negative-moveid-series.md",
+      "locator": "错误谱系总览 #1 3027f 截断",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c1b30cfeada9ea5b49c7a5ee4f327e3361855168329329aefdf9b149e4551821",
+      "claim_ids": [
+        "clm_645571FF703D9EC0CD8E9E854D"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -1402,6 +1477,21 @@
       ]
     },
     {
+      "id": "aref_39b6c225bb389d40d28c60dda9",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-solveseq-race.md",
+      "locator": "调查链（离线重放+宏表穷举）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ce57798fc2fed2e8d03508eda4f13b9815024344087514cbb80a4616fd9c8a36",
+      "claim_ids": [
+        "clm_911493D08A13755B6D040BC0AE"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_39bc846325e8542fe6216cceb3",
       "path": "docs/game-engine-knowledge/validation-workflow.md",
       "locator": "整体语义树的章节式调查；单变化、不可变快照、presence、Validator 和证据状态边界",
@@ -1717,6 +1807,21 @@
       ]
     },
     {
+      "id": "aref_41c278e4d483d3e9b5505b929b",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-20-rubik-perf-optimization.md",
+      "locator": "错误谱系总览 #4 注入事故+系统性根因 #3",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4725f83c1cd9348009a1b25984a6e884d6c025be1ae576580ad10d33b9fa42ba",
+      "claim_ids": [
+        "clm_449F516AB0A6F79B5A42901B4C"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_4307a7b1225d30eafd37d96b44",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 51-交互按钮控件",
@@ -1729,6 +1834,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_44035fa855a04b47d11dbfccf8",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-27-solvebuf-residual.md",
+      "locator": "错误谱系总览 #3 solveBuf 残留",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d54849bb97d51daa3671c7e67db7233388c6e9571957bcc1f5f81c25039ff12a",
+      "claim_ids": [
+        "clm_ED54D8AD0913E750C38709B35D"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -1894,6 +2014,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_4d271f83b86c2ec9a5837f1c23",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-27-rubik-testbench.md",
+      "locator": "错误谱系总览 #1 需求理解层",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bda00d77b9af2f11c2bdda7ffa0fe770e992f69ca863573243bb9bc73007998e",
+      "claim_ids": [
+        "clm_E9757EBDC754A93E8B61F74F27"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -2394,6 +2529,21 @@
       ]
     },
     {
+      "id": "aref_632630926a98388c99567a07c7",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-20-static-dynamic-prefabs.md",
+      "locator": "错误谱系总览（模板残留/三级写回/浮点精度）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e10ef1fe4e0d922bf74fe38c2f2b42dd99dd8c96ef27e88e9e23004c18389f45",
+      "claim_ids": [
+        "clm_A559EA2D19E431BB3ADB702DDE"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_6367efe361c8a4dd1d19e0b9dc",
       "path": "src/cli/gil_signal_registrations.ts",
       "locator": "versionFloor 实现（≈L739-744，f(N)=max(3,ceil(3N/4))）+ register 全表回填",
@@ -2571,6 +2721,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6d67c8f8393ef30e0b74ab6348",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-rubik-negative-moveid-series.md",
+      "locator": "错误谱系总览 #5 验证链盲区（tail 截断+读图数据流）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c1b30cfeada9ea5b49c7a5ee4f327e3361855168329329aefdf9b149e4551821",
+      "claim_ids": [
+        "clm_20EC2BE4048E84485B4F7A4FD5"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -3204,6 +3369,21 @@
       ]
     },
     {
+      "id": "aref_884c5e7593d2810c2bbd425c2e",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-23-football-motion-dual-trigger.md",
+      "locator": "错误谱系总览 #1（437=220+217）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "cde88c0bc12c21eb453aeeea45cbb54b5363292850a036aa0f896357e56466d1",
+      "claim_ids": [
+        "clm_528A51758DA9332F2ADE2BAAE3"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_8a73d3cf6dce0ca3a5b098f446",
       "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/connections.md",
       "locator": "数据流：目标新增 InParam（单线或 --wires 多线一次保存）",
@@ -3246,6 +3426,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_8c09e2c55d44b3706d6583904e",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-football-dribble-speed.md",
+      "locator": "错误谱系总览 #4 测速依赖",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "3e5964c85c6e32bdd7db5e0e119cbfb22643429381ae38d6907e04f01b9b8b30",
+      "claim_ids": [
+        "clm_FE86367F1A720AA5CDA4BE380D"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -3534,6 +3729,21 @@
       ]
     },
     {
+      "id": "aref_98a9649843568294060c94f1d3",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-rubik-negative-moveid-series.md",
+      "locator": "错误谱系总览 #3（25/22 帧交替签名）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c1b30cfeada9ea5b49c7a5ee4f327e3361855168329329aefdf9b149e4551821",
+      "claim_ids": [
+        "clm_9EC3CFC683DC3C8B985A533488"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_997f9cdb4d03cf87deb6f2c42b",
       "path": ".agents/skills/miliastra-knowledge/references/tools.md",
       "locator": "已知坑 6. query.sh 大响应会 Argument list too long",
@@ -3621,6 +3831,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_9d98ff6138cf359eceb29a70a3",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-25-rubik-cross-exec-skip.md",
+      "locator": "调查链（两层逐位对比锁定执行器）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "82a1ead3c4dacdaf6f96dbfbaf6547c46aed250b3db7e230a534231e0f7f4f3b",
+      "claim_ids": [
+        "clm_3CAC602EEC2CE50138B7786FA0"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -4662,6 +4887,36 @@
       ]
     },
     {
+      "id": "aref_cd5f22b1f6cd237b77aea5a79d",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md",
+      "locator": "系统性根因 #2+流程教训（同族扩展有效）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "710eaa240a8d2dce3ad07b216027fa9d4424fc9a7f28bd39dcf8afe4f86d5a18",
+      "claim_ids": [
+        "clm_BA3431BA081FF4DE34994D70DB"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_cdd65e45e75bc45234641046d0",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-client-log-flow.md",
+      "locator": "启发要点→CLI 实现表",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b3841d8b0d5c06da05c59f295200d202ff6c0756f0cb468a2d91ec1ead8b22b9",
+      "claim_ids": [
+        "clm_8C0AC156F4F47CAC5C4DDF048E"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_ce9eca619675f4198aee34944d",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 57-卡牌选择器控件",
@@ -4704,6 +4959,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_cfe345e54d5210ac2f6f495c37",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-regression-fix.md",
+      "locator": "系统性根因 #1 修复方案反模式",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "eacbf9e47a7d71e8acb36d27e241e43a62eebe0d7f012ee239d61c6f408920a3",
+      "claim_ids": [
+        "clm_20EC2BE4048E84485B4F7A4FD5"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -4887,6 +5157,21 @@
       ]
     },
     {
+      "id": "aref_dae2ea4557f43700a472609823",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-21-football-field-arcs.md",
+      "locator": "错误谱系总览（旋转公式/凸向/端点/acos）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "262673ecefef92e8a557ef72c836e229c3c12226abb478684aa25f2235798a62",
+      "claim_ids": [
+        "clm_A559EA2D19E431BB3ADB702DDE"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_db6b81646e817dcbb4aa58bb3b",
       "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
       "locator": "## 31-技能体系规则",
@@ -5067,6 +5352,36 @@
       ]
     },
     {
+      "id": "aref_e57307c15dc69c2b92c63f5fd5",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md",
+      "locator": "错误谱系总览（悬空 exec×4+双入边）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "710eaa240a8d2dce3ad07b216027fa9d4424fc9a7f28bd39dcf8afe4f86d5a18",
+      "claim_ids": [
+        "clm_449F516AB0A6F79B5A42901B4C"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_e5f99b7e31e55ab15645ae27e5",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-28-op6-missing.md",
+      "locator": "错误谱系总览 #2 漏发 op6",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6cbcee99b90138223c0976c4a96225785538ca0c5b34b27399c17417dd1406b3",
+      "claim_ids": [
+        "clm_ED54D8AD0913E750C38709B35D"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_e6b74b62bfd3571782ac433576",
       "path": "docs/ui-tutorial/official-guide-nodes-client.md",
       "locator": "造物状态决策节点图 → 查询/运算/执行/流程控制/其它",
@@ -5172,6 +5487,21 @@
       ]
     },
     {
+      "id": "aref_e811b0f9e61ae2a0aec33a9166",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-29-client-graph-skillconfig.md",
+      "locator": "错误谱系总览 #4 验证基线选错",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d70dc20b05a2cb19220362e489ea746f054c4c3573a4036c0402923ae2eaab74",
+      "claim_ids": [
+        "clm_949A6BB697683AD7B16CACA3A9"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_e90dbae7a80af1e74bf1866099",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "外围系统 → 排行榜/竞技段位/成就/关卡结算/奇域礼盒/奇域任务/先行体验/奇匠订阅",
@@ -5184,6 +5514,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_e98e4cfcb972b736bc24718389",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-29-client-graph-skillconfig.md",
+      "locator": "错误谱系总览 #3（全部经重放验证）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d70dc20b05a2cb19220362e489ea746f054c4c3573a4036c0402923ae2eaab74",
+      "claim_ids": [
+        "clm_C9CB55F4DACF47654BD73E5F80"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
@@ -5559,6 +5904,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_fc82ed6aa0d71742553c8b36fc",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-26-rubik-negative-moveid-series.md",
+      "locator": "流程与方法论教训（最小复现日志协作链）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c1b30cfeada9ea5b49c7a5ee4f327e3361855168329329aefdf9b149e4551821",
+      "claim_ids": [
+        "clm_7E4CB6E3C215130C97C49F2EB5"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {
