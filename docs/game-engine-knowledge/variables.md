@@ -298,6 +298,23 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 - 回归：`tests/local_variable_editor_wire_test.ts`（pin value hex 常量 + 身份连线 + 类型一致 +
   v11 六类型 cid/ioc 断言）。
 
+## 客户端局部变量（按名字，2026-08-29 v15 差分闭合）
+
+> 状态：已验证（编辑器样本 var-v15-client-graph.gil sha e12fc8d7… + 注入比对）；
+> 其它类型（str/float/vec3/列表/dict）待样本。
+
+客户端局部变量与 server **完全不同**：
+- **按名字访问**（无 E<1016> 身份连线）：名字 pin（InParam[0]，type=9）=
+  StringBase{1:5, 2:1, itemType{1:2, 101:{2:9}}, 105:{1:名字}}（非默认保留 alreadySetVal=1）；
+- 值 pin = ConcreteBase{**无 indexOfConcrete**，内层 {class, itemType{**1:2, 101:{2:客户端类型码}**},
+  空 payload}}——类型走 itemType.101（ClientType 通道），server 走 100(ServerType)+ioc；
+- 节点 cid：节点图开始 200042/2001、Set 局部变量 200081/2000、Get 局部变量 200082/1036
+  （generic 恒 200081/200082，client 局部变量 cid 恒定、类型只在值引脚）；
+- Set 执行走 **ClientExec pin**（kind 5，含 boundary{1:5,2:1,4:{1:cid}}），**无流 pin**；
+- 节点图开始：contextDeclaration={1:6(ClientSignal)}、位置 0 省略；
+- 我方编译器生成名字 `__gsts_local_<type>_<n>`（DSL 无自定义名字入口，设计观察）；
+- 回归：`tests/local_variable_editor_wire_test.ts` v15 段 + client smokes。
+
 ## 变量类型体系的共性与差异（三容器 + 信号，2026-08-29 汇总）
 
 ### 统一类型码体系（所有容器共享同一 VarType 数字）
