@@ -306,8 +306,14 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 客户端局部变量与 server **完全不同**：
 - **按名字访问**（无 E<1016> 身份连线）：名字 pin（InParam[0]，type=9）=
   StringBase{1:5, 2:1, itemType{1:2, 101:{2:9}}, 105:{1:名字}}（非默认保留 alreadySetVal=1）；
-- 值 pin = ConcreteBase{**无 indexOfConcrete**，内层 {class, itemType{**1:2, 101:{2:客户端类型码}**},
-  空 payload}}——类型走 itemType.101（ClientType 通道），server 走 100(ServerType)+ioc；
+- 值 pin = ConcreteBase{**indexOfConcrete = client ioc 表**（int=0 省略、str=1、entity=2、guid=3、
+  float=4、vec3=5、bool=6、int_list=7、str_list=8、entity_list=9、guid_list=10、float_list=11、
+  vec3_list=12、bool_list=13、config_id=14、prefab_id=15、config_id_list=16、prefab_id_list=17、
+  faction=18、faction_list=19、dict=20），内层 {class, itemType{**1:2, 101:{2:clientVarType}**},
+  空 payload}}；
+- **clientVarType 码与 server VarType 码不同**：entity=1、int=3、bool=5、float=7、str=9、
+  str_list=10、vec3=11、vec3_list=12、float_list=8、guid=14（server：bool=4、float=5、str=6 等）；
+  内层 class：int=2/str=5/vec3=7/float=4/bool=6/guid=1/列表=10002，**entity 无 class 无 payload**；
 - 节点 cid：节点图开始 200042/2001、Set 局部变量 200081/2000、Get 局部变量 200082/1036
   （generic 恒 200081/200082，client 局部变量 cid 恒定、类型只在值引脚）；
 - Set 执行走 **ClientExec pin**（kind 5，含 boundary{1:5,2:1,4:{1:cid}}），**无流 pin**；
