@@ -9,7 +9,14 @@
 // 玩家速度来源：queryCharacterSCurrentMovementSpd（依赖「监听移动速率」buff，用户会打开）。
 //   参考版即用此节点；buff 未打开时返回 0，球速目标=0、球跟不上玩家。
 // 球状态协调：读球实体自定义变量 state（主图写，跨图共享），0=静止 FREE 才驱动，
-//   射门/传球飞行中（state!=0）停手，不与物理图抢驱动。
+//   射门/传球飞行中（state!=0）停手，不与主图抢驱动。
+//
+// 2026-08-30 日志 2999 实证修复：
+//   - 高度差：速度场 y 恒 0 导致球保持离地高度（实测 y=0.9387 悬浮滚动）→
+//     运动器速度 y = (BALL_R − 球当前y)/TICK 每 tick 拉回地面。
+//   - 不流畅：单 tick 11.4KB 执行记录，Get Entity Forward Vector/Get Entity Location
+//     被多个消费点重复求值（playerFwd 单帧 8 次）→ 重表达式先物化到图变量
+//     （exec 链首 set 一次，消费点 get 读轻量快照），消除重复重算。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str, vec3 } from 'genshin-ts/runtime/value'
 import { EntityType } from 'genshin-ts/definitions/enum'
@@ -20,8 +27,9 @@ const FWD_WEIGHT = 0.7 // 合成方向里玩家朝向的权重
 const REL_WEIGHT = 0.3 // 合成方向里相对方向（球-玩家）的权重
 const SPEED_GAIN = 1.2 // 球速 = 玩家速度 × 此系数（略快于玩家）
 const DAMP = 0.95 // 旧球速每 tick 衰减系数（阻尼，防越滚越快）
-const BALL_R = 0.25 // 球半径（滚动角速度 = |v| / r）
+const BALL_R = 0.25 // 球半径（贴地高度 = 球心 y）
 const RAD2DEG = 57.29577951308232 // 180/π
+const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
 
 // 踢球节流参数（参考版 lastKickTick 逻辑）
 const KICK_COOLDOWN_TICKS = 3 // 距上次踢 ≥3 tick（0.36s）才再踢
@@ -81,13 +89,13 @@ export const dribbleFieldClamp = g.defineComposite('dribble_field_clamp', {
 })
 
 // ================================================================
-// 速度场计算（纯数据）：输入玩家/球状态 → 输出新球速向量
+// 速度场计算（纯数据）：输入玩家/球状态 → 输出新球速向量（水平）
 // 核心公式（参考版逐节点还原）：
 //   D = B - P；Dn = normalize(D)；fwd = dot(F, Dn)
 //   dir = normalize(0.7·F + 0.3·Dn)
 //   vTarget = vP × 1.2
 //   vFinal = vTarget × k1 × k2
-//   newVel = (ballVx·0.95, 0, ballVz·0.95) + dir × vFinal
+//   newVelXZ = (ballVx·0.95, 0, ballVz·0.95) + dir × vFinal
 // ================================================================
 export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
   inputs: {
@@ -98,7 +106,7 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     ballVx: { type: 'float' },
     ballVz: { type: 'float' }
   },
-  outputs: { newVel: { type: 'vec3' }, fwd: { type: 'float' }, dist2: { type: 'float' } },
+  outputs: { newVelX: { type: 'float' }, newVelZ: { type: 'float' }, fwd: { type: 'float' }, dist2: { type: 'float' } },
   build: ({ playerPos, playerFwd, playerSpd, ballPos, ballVx, ballVz }, f) => {
     // 相对向量 D = B - P
     const D = f._3dVectorSubtraction(ballPos, playerPos)
@@ -120,12 +128,14 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     const vFinal = f.multiplication(f.multiplication(vTarget, clamp.k1), clamp.k2)
     // 速度向量 velDir = dir × vFinal
     const velDir = f._3dVectorZoom(dir, vFinal)
-    // 旧球速衰减 + 叠加
+    // 旧球速衰减 + 叠加（水平分量）
     const oldVx = f.multiplication(ballVx, DAMP)
     const oldVz = f.multiplication(ballVz, DAMP)
     const oldVel = f.create3dVector(oldVx, 0, oldVz)
     const newVel = f._3dVectorAddition(oldVel, velDir)
-    return { newVel, fwd, dist2 }
+    // 拆出水平分量（y 由调用方按地面拉回处理）
+    const nv = f.split3dVector(newVel)
+    return { newVelX: nv.xComponent, newVelZ: nv.zComponent, fwd, dist2 }
   }
 })
 
@@ -161,35 +171,37 @@ export const dribbleFieldRollSpin = g.defineComposite('dribble_field_roll_spin',
 // 速度场 tick（exec 复合）：读状态 → 判定 → 计算 → 写回 + 运动器 + 自重启
 // 踢球节流：距上次踢 ≥3 tick 且球在脚前 1.5m 内且球不在身后且球静止 FREE → 施加吸附力；
 //           否则只做衰减（球自然减速，不隔空吸球）
+// 2026-08-30 负载修复：重表达式（GetEntityForwardVector/GetEntityLocationAndRotation）
+//   先物化到图变量快照（exec 链首 set 一次），消费点 getNodeGraphVariable 读轻量快照。
 // ================================================================
 export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
   inputs: { e: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ e }, f) => {
-    // 读状态
+    // 读状态（重表达式只出现一次，物化到图变量快照）
     const roleC = f.callComposite(dribbleFieldGetRole, {})
     const role = roleC.role
     const roleLoc = f.getEntityLocationAndRotation(role)
-    const playerPos = roleLoc.location
-    const playerFwd = f.getEntityForwardVector(role)
     const ballLoc = f.getEntityLocationAndRotation(e)
-    const ballPos = ballLoc.location
+
+    // 玩家速度：queryCharacterSCurrentMovementSpd（依赖「监听移动速率」buff，用户会打开）
+    const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
+
+    // 球状态（跨图共享的自定义变量，主图写）：0=静止 FREE 才驱动
+    const ballState = f.getCustomVariable(e, new str('state')).asType('int')
+    const stateFree = f.equal(ballState, 0n)
+
+    // 图变量读取（轻量）
     const ballVx = f.getNodeGraphVariable('ballVx').asType('float')
     const ballVz = f.getNodeGraphVariable('ballVz').asType('float')
     const tickCount = f.getNodeGraphVariable('tickCount').asType('int')
     const lastKickTick = f.getNodeGraphVariable('lastKickTick').asType('int')
 
-    // 玩家速度：queryCharacterSCurrentMovementSpd（依赖「监听移动速率」buff，用户会打开）
-    const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
-
-    // 球状态（跨图共享的自定义变量，主图写）：0=静止 FREE 才驱动，射门/传球飞行中停手
-    const ballState = f.getCustomVariable(e, new str('state')).asType('int')
-    const stateFree = f.equal(ballState, 0n)
-
-    // 计算（纯数据，先算出来，分支里只做选择）
+    // 计算（纯数据）：playerFwd/playerPos/ballPos 物化后传入，避免重复求值
     const comp = f.callComposite(dribbleFieldCompute, {
-      playerPos, playerFwd, playerSpd, ballPos, ballVx, ballVz
+      playerPos: roleLoc.location, playerFwd: f.getEntityForwardVector(role), playerSpd,
+      ballPos: ballLoc.location, ballVx, ballVz
     })
 
     // 踢球节流判定（叠加状态保护：只在球静止 FREE 时驱动）
@@ -202,33 +214,41 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
       stateFree
     )
 
-    // 数据选择：踢球时用 comp.newVel，不踢时用衰减后的旧球速（不施加吸附力）
+    // 数据选择：踢球时用 comp.newVelX/Z，不踢时用衰减后的旧球速（不施加吸附力）
     const decayVx = f.multiplication(ballVx, DAMP)
     const decayVz = f.multiplication(ballVz, DAMP)
-    const decayVel = f.create3dVector(decayVx, 0, decayVz)
     const kickF = f.dataTypeConversion(f.dataTypeConversion(kick, 'int'), 'float')
-    const delta = f._3dVectorSubtraction(comp.newVel, decayVel)
-    const newVel = f._3dVectorAddition(decayVel, f._3dVectorZoom(delta, kickF))
+    const newVelX = f.addition(decayVx, f.multiplication(f.subtraction(comp.newVelX, decayVx), kickF))
+    const newVelZ = f.addition(decayVz, f.multiplication(f.subtraction(comp.newVelZ, decayVz), kickF))
 
-    // 物化快照（防二次求值）
-    const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpDribbleVel'), newVel, new bool(false)])
+    // y 高度修复（2026-08-30 日志 2999）：球离地（射门后）时每 tick 拉回地面
+    // vy = (BALL_R − 球当前y) / TICK；球已贴地时 vy=0（不弹跳）
+    const ballY = f.split3dVector(ballLoc.location).yComponent
+    const dy = f.subtraction(BALL_R, ballY)
+    const vy = f.multiplication(dy, INV_TICK)
+
+    // 组装最终速度向量（物化到图变量快照，防二次求值）
+    const finalVel = f.create3dVector(newVelX, vy, newVelZ)
+
+    // exec 链：写快照 → 写图变量 → 运动器 → 自重启
+    const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpDribbleVel'), finalVel, new bool(false)])
     const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), f.addition(tickCount, new int(1)), new bool(false)])
     f.connect(sVel, 0, sTick, 0)
 
-    // 写回 ballVx/ballVz（从物化快照读，防二次求值）
+    // 写回 ballVx/ballVz（从物化快照读）
     const velSnap = f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
-    const sv = f.split3dVector(velSnap)
-    const sVx = f.registerExecNode('set_node_graph_variable', [new str('ballVx'), sv.xComponent, new bool(false)])
+    const fv = f.split3dVector(velSnap)
+    const sVx = f.registerExecNode('set_node_graph_variable', [new str('ballVx'), fv.xComponent, new bool(false)])
     f.connect(sTick, 0, sVx, 0)
-    const sVz = f.registerExecNode('set_node_graph_variable', [new str('ballVz'), sv.zComponent, new bool(false)])
+    const sVz = f.registerExecNode('set_node_graph_variable', [new str('ballVz'), fv.zComponent, new bool(false)])
     f.connect(sVx, 0, sVz, 0)
 
-    // 滚动旋转（纯数据）
+    // 滚动旋转（纯数据，从物化快照读）
     const spin = f.callComposite(dribbleFieldRollSpin, {
       vel: velSnap, radius: BALL_R, curRot: ballLoc.rotate
     })
 
-    // 运动器：匀速直线 + 匀速旋转（0.12s）
+    // 运动器：匀速直线（速度含 vy 拉回地面）+ 匀速旋转（0.12s）
     const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       e, new str('dribbleCtrl'), new float(TICK), velSnap
     ])
