@@ -172,8 +172,21 @@
   - root 6：重写「未分类页签」聚合 record（本图 folderId=67），f3 末尾追加 `f5={1:7400, 2:1082130433}` → **20010 folder typeValue=7400**。
   - root 10：在最后一张既有图 field 1 记录之后插入 `{1: NodeGraph}`（双层包装）；NodeGraph 含 Id{10000,20010,21001,1082130433} + name + 1 个自动「节点图开始」节点（genericId.nodeId=200042，concreteId.nodeId=2001，contextDeclaration f8={kind:6}）+ entrySlotIndex(f100)=1。
   - root 46：等长 113B 保存副作用（不模拟）。
-  - root 2：地图名 `魔方3x3`→`魔方3x3_1`（+2B，独立于图创建，待用户确认是否为本次改名）。
+  - root 2：地图名 `魔方3x3`→`魔方3x3_1`（+2B；用户确认=自动保存改名，独立于图创建）。
 - 同构重放：/tmp 从 BEFORE 重放 → root 6/10 与 AFTER **逐字节一致**；`list-gil-node-graphs` 回读 11 张图（新增 type=20010/nodeCount=1）；GIL header 长度字段同步自检通过。
 - 规则状态：**CONFIRMED**（编辑器真实增量 + 同构重放 + 回读）；知识已落盘 `docs/game-engine-knowledge/node-graphs.md` 与 `gil-structure-semantics.md`。
 - 待闭合（open-items）：客户端图 ID 分配/复用规则；CLI `create --type 20010` 是否需自动带「节点图开始」节点。
 - 下一轮：创建技能配置并把客户端图绑定到「节点图事件轨道」（规则 2）。
+
+### Round 1b（第二样本：20002 技能图，顺带闭合 folder typeValue 2200）
+
+- 用户操作：新增「角色技能节点图」空图并保存；AFTER hash `b45462e0…`，size 795399。
+- 新增图：**id=1082130434**（用户确认）、type=**20002**（Skills，非 20010）、name=`新建角色技能节点图`、nodeCount=1。
+- 归因（v1→v2 相邻差分，唯一结构增量）：
+  - root 6：重写「未分类页签」record（**folderId=14**，与 20010 的 folderId=67 不同），f3 末尾追加 `f5={1:2200, 2:1082130434}` → **20002 folder typeValue=2200**。
+  - root 10：在最后一张既有图 field 1 记录之后插入 `{1: NodeGraph}`；结构与 20010 完全同构，仅 Id.type=20002 / name 不同，同样含自动「节点图开始」节点 + entrySlotIndex=1。
+  - root 46：等长保存副作用；root 2 本次不变。
+- 同构重放：/tmp 从 v1 重放 → root 6/10 与 v2 **逐字节一致**；`list-gil-node-graphs` 回读 12 张图。
+- 增量结论：图记录结构对 20002/20010 通用；客户端图 ID 连续 +1（1082130433→1082130434）；folder typeValue 映射新增 20002→2200。
+- 规则状态：**CONFIRMED**（第二样本强化规则 1 + 闭合 20002）；知识已更新并提交。
+- 待办：技能配置（规则 2）仍未创建——「技能配置」是资产不是节点图（参考 1228931073），下一步请用户在编辑器找「技能配置」创建入口。
