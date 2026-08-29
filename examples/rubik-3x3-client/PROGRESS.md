@@ -138,3 +138,28 @@
 在 1073741914 上做最小客户端图注入实验：用 gstsClientCharacterControlSkill 写一张极简 20010 图
 （读自定义变量「指令」→ 设置局部变量 → 向服务器节点图发送信号），打通 gstsClient DSL → 注入 →
 读图回读 → 用户游戏日志核验的完整链路；同轮修复 K-01（assert 脚本补 signalRegistry）。
+
+---
+
+## GIL 编码学习任务 Round 0（客户端图创建 + 技能配置/事件轨道绑定）
+
+> 目标：学习两条编辑器编码规则，闭合后支持 `assets:node-graphs create --type` 建 20010 客户端图 + 设计技能 CLI。
+> 证据目录：`/home/h/genshin-ts-evidence/node-graph-logic/2026-08-29-client-graph-skillconfig/`
+
+### 基线（1073741914，锁定）
+- MAP = `/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741914.gil`
+- BEFORE = `…/raw/1073741914.gil`，SHA-256 = `cdcb56d0f27aa5f799b17a6eeecefd91ce17a49a3e8dce0dce761764fb7b4c33`，size 795177
+- 图：10 张全部 type=20000（1073741830..1073741839）；信号 8 个；无客户端图、无技能配置。
+
+### 参考地图正样本索引（1073741913 只读，非结论）
+- 客户端图 1082130436 type=20010 → root 6 folder 条目 `typeValue=7400`（folderId=67）
+- 服务端图 20000 → `typeValue=800`（folderId=4，已知规则）
+- 图 1073741852 type=20003 → `typeValue=2300`（folderId=15）
+- 技能配置 1228931073 → folder `typeValue=7500`（folderId=68）；资产记录在 root field 15
+  （field1 varint=1228931073，len=475），平行引用在 root field 16（len=465）
+- 1082130433 实际 type=20001（"完全隐藏"），未在 folder 条目中定位到，按非本任务记录。
+
+### 下一动作（等用户）
+- 第 1 个最小差分：编辑器在 1073741914 新建一张 20010「角色操控技能」图并保存（不画任何节点）。
+- 差分位置：root 6 folder 条目 + root 10 图记录（双层包装）。
+- 第 2 个差分：创建技能配置并把客户端图绑定到「节点图事件轨道」。
