@@ -243,6 +243,9 @@
       归一化（`ir_to_gia_transform/index.ts`）→ 注入回读与编辑器样本 1668 hex 逐字节一致；
       回归 `tests/graph_variable_int_list_editor_wire_test.ts`；知识回填 `variables.md` 新节；
       **待用户游戏内核验（读下标 49 是否越界）**。
+- [x] v2/v3（2026-08-29）：我方注入图 2 同变量（用户授权）→ 用户编辑器打开可见（长度 50 默认值）并保存；
+      保存后差分：变量记录 1668 hex 未变 ✓，仅编辑器首存簿记（节点 id 引用省略 indexOfConcrete=0、
+      root6/10/46 登记/审计）——无未预期变更（详见 manifest v2/v3、open-items O-2026-08-29-03）。
 - [ ] 第二层：差分清单 D1-D14（D5/D6 声明侧已闭合）逐项与用户配合执行（每项 ≤10 秒编辑器实验）；D1 待用户指示。
 - [ ] 第三层：F2-F9 按闭合情况排期修复。
 - 临时取证文件：`.local/vars-explore/kb-*.json`（KB 原文落盘，非 git 跟踪）。
