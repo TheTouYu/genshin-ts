@@ -2085,7 +2085,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "53aa9ea356444224b51494baf08cdc9825368bc16992955883614dd06df132c8",
+      "approved_hash": "54456b81660f6f32c7dbd487b60fb462eb6fafdab6bbecd612cd1743e610960a",
       "claim_ids": [
         "clm_ED0FA439CD02DA5EEC16241BCD"
       ],
@@ -3991,7 +3991,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "53aa9ea356444224b51494baf08cdc9825368bc16992955883614dd06df132c8",
+      "approved_hash": "54456b81660f6f32c7dbd487b60fb462eb6fafdab6bbecd612cd1743e610960a",
       "claim_ids": [
         "clm_D9E4C5E98025AA2A5B1ABA99A7"
       ],
