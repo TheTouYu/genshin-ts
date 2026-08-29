@@ -288,11 +288,13 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       (ev.bId && nonZero(ev.bId.val)) ||
       (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z)))
     if (hasNonDefault) {
-      // 非默认值：显式 payload 保留；alreadySetVal 按 pin 语义——
-      // Get InParam[0]（创建锚）保留 alreadySetVal=1（2026-08-29 矩阵批次 7 实样：
-      // Get bool 默认 true → 内层 {class:6, f2:1, itemType, bEnum{1:1}}），
-      // Set InParam[1]（更新值）不写（v10 样本 true → 仅 bEnum{1:1}）
-      if (!keepNonDefaultAlreadySetVal) delete ev.alreadySetVal
+      // 非默认值：显式 payload 保留；alreadySetVal 恒保留（2026-08-29 治本实测修正）：
+      // - Get InParam[0]（创建锚）保留 alreadySetVal=1（矩阵批次 7 实样）；
+      // - Set InParam[1]（更新值）**也保留**——编辑器修改路径实测：用户把 Set 值改为
+      //   100 保存后，内层写 alreadySetVal=1（{class2, f2:1, itemType, bInt{100}}）；
+      //   无标记的非默认 int 值会被编辑器保存按默认清零（1073741915 实测：CLI 注入
+      //   无标记 Set 100 → 编辑器保存 → bInt 空）。旧 S6"Set 不写 alreadySetVal"只符合
+      //   编辑器新建路径（v10 bool true 无 f2），修改路径必须写，否则注入后保存必丢值。
       return
     }
     delete ev.alreadySetVal

@@ -26,8 +26,12 @@ import { loadGiaProto } from '../src/injector/proto.js'
 // 编辑器样本 pin value 常量（v10 图 1）
 const EDITOR_VALUE_FALSE =
   '08904e1001f20610120e080622070801a206020804d20600'
+// Set 非默认值形态（2026-08-29 治本修订）：编辑器「修改路径」实测写 alreadySetVal=1
+// （内层 f2）——用户把 Set 值改为 100 保存后 = {class, f2:1, itemType, payload}；无标记的
+// 非默认 int 会被编辑器保存按默认清零（1073741915 实测）。v10 样本 Set true 无 f2 是编辑器
+// 新建路径特例；管线按修改路径产出（注入后编辑器保存不丢值）。
 const EDITOR_VALUE_TRUE =
-  '08904e1001f206121210080622070801a206020804d206020801'
+  '08904e1001f2061412120806100122070801a206020804d206020801'
 
 // v11 各类型 Get Local Variable（创建锚点默认值，编辑器样本 var-v11-local-var-types.gil
 // sha 169b53b0…）：concreteId 变体 + ConcreteBase.indexOfConcrete（bool=0 省略；server 表
