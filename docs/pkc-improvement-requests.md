@@ -293,3 +293,95 @@ R3 的修复应同时覆盖 `AUTHORITY_FACT_COVERAGE` 变体：当 coverage 缺�
 
 - `bundle-status` 对 approval/applied/lifecycle 文件做内容级校验（schema + hash 匹配），异常标记为 `approval_invalid`/`receipt_invalid` 并列入健康度汇总。
 - 验收：故意损坏一个 approval 文件后，`bundle-status` 能指出该 bundle 状态异常，而不是静默报 approved。
+---
+
+## 2026-08-29 批次（二轮复盘 PKC 扩容实证，18 claims + 3 bundles 连续维护）
+
+> 提交方：genshin-ts 项目。运行版本 portable_knowledge 0.2.0rc5，source_commit 85b3cf8e。
+> 证据锚点：docs/project-intelligence/knowledge-capture-common-errors.md §14；open-items O-2026-08-29-10；
+> 本批次 bundle 记录 bnd_81d5378d / bnd_f5dc558f / bnd_253802ff。
+
+### R3 验证更新（原 R3 场景在 0.2.0rc5 仍复现，且新变体）
+
+- 原场景（维护 bundle apply 后不提交，finalize 误报）本次未复现——historical 非关联 refs 已降级为
+  non-blocking warning（R2 的 A 方案已落地，149 条 warning 只告警）。
+- **新变体**：apply 后未提交时开**新** plan，full preflight 把新 bundle 的 6 条 refs 判 missing
+  （observed_hash=None），其中与 plan 触及 claim 关联的 2 条 blocking；
+  update/refresh-authority-ref 报 PLAN_AUTHORITY_REF_MISSING（Authority Ref not found，与 ref
+  实际存在于工作树无关——committed 基线不可见）；提交后旧 plan rebase 报 PLAN_REBASE_CONFLICT
+  （authority-refs.json 跨基线变化）。唯一走通路径 = git 提交落盘 → abandon 重建 plan（本次实际路径）。
+- 期望追加：PLAN_AUTHORITY_REF_MISSING 区分两种成因——ref 不存在 vs ref 存在于工作树但 committed
+  基线不可见（未提交），后者建议先提交；rebase 对 authority-refs.json 自身跨基线变化给出可操作提示。
+
+## R9（P0）：knowledge-plan capture --file 的 DRAFT 格式无契约文档
+
+### 现状
+capture --help 有 --file / --draft-format json|markdown / --preview-only，但 draft 内容的字段级 schema
+在 pkc-project-operator 技能、references/MODES.md、CLI help 三处均无描述；也没有最小示例。
+2026-08-29 批量录入 18 claims+23 refs 时因无法确定 DRAFT 结构，改用交互式 add-claim/add-authority-ref
+（40+ 次 CLI 调用），可靠但成本高。
+
+### 期望
+- 在技能或 MODES.md 补 DRAFT 格式契约（字段名/必填/嵌套结构/多 claim 与多 ref 的表示），附最小示例；
+- capture --help 增加一行指向该文档的说明；
+- 验收：不看源码、只看技能/help，能写出可被 capture --preview-only 接受的 DRAFT.json。
+
+### 复现
+python tools/pkc.py knowledge-plan capture --help   （输出无任何 draft 格式说明）
+
+## R10（P0）：post-apply 评估门对 affected_by 不相交用例阻塞，且失败信息不说明事务状态
+
+### 现状
+- bundle-apply 的 post-apply full check 对用例 full-closure-and-id-integrity-1（affected_by =
+  static-gil-assets 节点）做阻塞判定，而该计划只新建 game-engine-knowledge 节点下的 topic——与
+  preflight 的「仅 affected 用例阻塞」口径不一致（open-items O-2026-08-29-10）。
+- 失败时 exit 1 只报 case_id，不说明事务已落盘（.applied.json 已写、validate ok、claims 已生效），
+  操作者误判为「apply 失败」并多轮返工。
+
+### 期望
+- post-apply 评估门阻塞口径与 preflight 对齐（只阻塞 affected 用例；无关失败告警），或提供
+  bundle-apply --defer-evaluation 显式开关；
+- 评估门失败信息显式报告事务状态（applied/rolled back）+ 指向 bundle-status 复核；
+- 验收：构造「无关用例失败 + 计划正常」场景，apply 成功且只告警（或 defer 后可成功），
+  失败信息含事务状态说明。
+
+### 复现
+# genshin-ts：应用任一 bundle 后评估用例 full-closure-and-id-integrity-1 处于失败态（如新知识
+# 语义重叠把期望 topic 挤出 top-3），再 apply 一个只改 game-engine-knowledge 节点的 bundle：
+python tools/pkc.py bundle-apply <id> --content-hash <h> --apply
+# → exit 1 PLAN_POST_APPLY_EVALUATION_FAILED（事务实际已落盘）
+
+## R11（P1）：检索评估失败报告缺排名明细；新知识合法重叠时的夹具治理路径无文档
+
+### 现状
+- 评估失败只给 case_id，无 returned_topic_ids/rank/score——定位靠手动 knowledge-search 同 query 看排名
+  （本次：新 topic rank 3、期望 topic rank 4、断言 top-3）。
+- 新知识语义合法重叠（新 claim 本就是该 query 的合法答案）时，正确修复=更新夹具 expected_topic_ids，
+  但该治理流程（谁批准、diff 审阅、保持语义断言）在技能/MODES.md 无任何文档。
+
+### 期望
+- 评估失败报告附每条断言失败用例的 query、returned_topics（含 rank+score）、expected、top-N 口径；
+- 技能/MODES.md 补「评估夹具治理」小节：知识演进导致合法重叠时的更新流程与批准要求（L3 审阅）。
+
+## R12（P1）：同 topic 多 claim 批量 capture 的元数据规则未文档化
+
+### 现状
+同一 topic 的第 2 条 claim 若仍带 --topic-title/--topic-summary/--topic-keyword，报
+PLAN_TOPIC_INVALID「topic metadata is only valid when creating a new topic」（报错可读，但规则
+未文档化；批量脚本按 topic 分组、首条带元数据是唯一正确姿势，本次靠报错试出）。
+
+### 期望
+- 技能/help 文档化「topic 元数据仅创建时有效」；
+- capture --file 批处理对重复 topic 元数据容错（幂等：与首条一致则忽略，不一致则报错）或文档写明。
+
+## R13（P2）：apply 后 proposals 追加行导致同 bundle 幂等重放被 PLAN_WORKTREE_DRIFT 阻断
+
+### 现状
+夹具修复后想重跑 bundle-apply 获取绿色评估记录，报 PLAN_WORKTREE_DRIFT（data/knowledge/proposals/
+*.jsonl 共享追加文件在 finalize 之后有新增行——rebuild 等操作都会追加事件）。apply 的 authority drift
+判定把 proposals 追加计入，幂等重放被阻断。
+
+### 期望
+- proposals 追加事件不计入 apply 的 authority drift 判定（或提供文档化的强制重放开关）；
+- 验收：finalize 后向 proposals 追加一行无关事件，同 bundle 重放 apply 不再因该文件报 drift。
+
