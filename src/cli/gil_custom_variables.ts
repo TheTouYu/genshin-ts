@@ -388,11 +388,13 @@ function encodeVector(value: CustomVariableVectorValue): Buffer {
   if (value.length !== 3 || value.some((item) => !Number.isFinite(item))) {
     throw new Error('[error] vec3 custom variable values must contain three finite numbers')
   }
-  return Buffer.concat([
-    encodeFixed32Field(1, value[0]),
-    encodeFixed32Field(2, value[1]),
-    encodeFixed32Field(3, value[2])
-  ])
+  // 2026-08-29 v7/v8 差分：分量稀疏（零分量省略，全零 = 空消息）；编辑器样本
+  // (0,3,0) = {2:3.0}、(0,0,0) = 空
+  const parts: Buffer[] = []
+  if (value[0] !== 0) parts.push(encodeFixed32Field(1, value[0]))
+  if (value[1] !== 0) parts.push(encodeFixed32Field(2, value[1]))
+  if (value[2] !== 0) parts.push(encodeFixed32Field(3, value[2]))
+  return Buffer.concat(parts)
 }
 
 function encodeScalarValue(type: CustomVariableType, value: unknown): Buffer {

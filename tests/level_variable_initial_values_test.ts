@@ -18,6 +18,7 @@ import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from '
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import { applyEntityCustomVariableDeclarations } from '../src/cli/gil_custom_variables.js'
 import { createLevelVariableTyped } from '../src/cli/gil_level_variables.js'
 
 // 编辑器 entry hex（新增变量2..10，不含 v5 已有的新增变量1）
@@ -45,7 +46,7 @@ const VALUES: Record<string, { type: string; value: unknown }> = {
   新增变量10: { type: 'vec3_list', value: [[0, 0, 0], [7, 0, 0], [0, 2, 0], [0, 0, 0]] }
 }
 
-async function readEntryHex(gilPath: string, name: string): Promise<string> {
+async function readEntryHex(gilPath: string, name: string, entityId = 1094713345): Promise<string> {
   const { parseWireMessage } = await import('../src/cli/static_assembly/wire.js')
   const bytes = new Uint8Array(readFileSync(gilPath))
   const payload = bytes.slice(20, -4)
@@ -55,17 +56,18 @@ async function readEntryHex(gilPath: string, name: string): Promise<string> {
   for (const f of section.filter((x) => x.number === 1 && x.wire === 2)) {
     const rec = parseWireMessage(f.value) ?? []
     const id = rec.find((x) => x.number === 1 && x.wire === 0)?.value
-    const def = rec.find((x) => x.number === 8 && x.wire === 0)?.value
-    if (id !== 1094713345 && def !== 10003004) continue
-    const f7 = rec.find((x) => x.number === 7 && x.wire === 2)
-    const comp = parseWireMessage(f7.value) ?? []
-    const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
-    const vars = parseWireMessage(f11.value) ?? []
-    for (const v of vars.filter((x) => x.number === 1 && x.wire === 2)) {
-      const entry = parseWireMessage(v.value) ?? []
-      const nameField = entry.find((x) => x.number === 2 && x.wire === 2)
-      const n = nameField ? new TextDecoder('utf-8', { fatal: true }).decode(nameField.value) : ''
-      if (n === name) return Buffer.from(v.value).toString('hex')
+    if (id !== entityId) continue
+    for (const f7 of rec.filter((x) => x.number === 7 && x.wire === 2)) {
+      const comp = parseWireMessage(f7.value) ?? []
+      const f11 = comp.find((x) => x.number === 11 && x.wire === 2)
+      if (!f11) continue
+      const vars = parseWireMessage(f11.value) ?? []
+      for (const v of vars.filter((x) => x.number === 1 && x.wire === 2)) {
+        const entry = parseWireMessage(v.value) ?? []
+        const nameField = entry.find((x) => x.number === 2 && x.wire === 2)
+        const n = nameField ? new TextDecoder('utf-8', { fatal: true }).decode(nameField.value) : ''
+        if (n === name) return Buffer.from(v.value).toString('hex')
+      }
     }
   }
   throw new Error('entry not found: ' + name)
@@ -99,4 +101,48 @@ for (const name of Object.keys(EDITOR_HEXES)) {
 }
 rmSync(tmp, { recursive: true, force: true })
 
-console.log(JSON.stringify({ initialValueEntries: Object.keys(EDITOR_HEXES).length, ok: true }, null, 2))
+// ===== 普通实体（v8 样本，可选第二参数）：自定义变量容器同构 + custom 路径字节一致 =====
+// 编辑器样本：map 1073741915 新增普通实体 1077936129「空模型」（缩放 0.1×3），
+// 变量 新增变量1=vec3_list [[0,3,0]]、新增变量2=float_list [3]、新增变量3=str "adf"
+const NORMAL_ENTITY_HEXES: Record<string, string> = {
+  新增变量1: '120de696b0e5a29ee58f98e9878f31180f2212080f1204080f1200ca01070a05150000404028013204080f1200',
+  新增变量2: '120de696b0e5a29ee58f98e9878f32180a2211080a1204080a1200a201060a040000404028013204080a1200',
+  新增变量3: '120de696b0e5a29ee58f98e9878f331806221008061204080612008201050a036164662801320408061200'
+}
+
+const normalEntitySample = process.argv[3]
+if (normalEntitySample) {
+  const tmp2 = mkdtempSync(join(tmpdir(), 'gsts-normal-entity-'))
+  const gil2 = join(tmp2, 'map.gil')
+  copyFileSync(normalEntitySample, gil2)
+  const result = applyEntityCustomVariableDeclarations({
+    gilPath: gil2,
+    entityId: 1077936129,
+    declarations: [
+      { name: '新增变量1', type: 'vec3_list', initialValue: [[0, 3, 0]] },
+      { name: '新增变量2', type: 'float_list', initialValue: [3] },
+      { name: '新增变量3', type: 'str', initialValue: 'adf' }
+    ]
+  })
+  writeFileSync(gil2, result.bytes)
+  for (const name of Object.keys(NORMAL_ENTITY_HEXES)) {
+    assert.equal(
+      await readEntryHex(gil2, name, 1077936129),
+      NORMAL_ENTITY_HEXES[name],
+      `normal-entity ${name} entry must match editor bytes`
+    )
+  }
+  rmSync(tmp2, { recursive: true, force: true })
+}
+
+console.log(
+  JSON.stringify(
+    {
+      initialValueEntries: Object.keys(EDITOR_HEXES).length,
+      normalEntityVerified: !!normalEntitySample,
+      ok: true
+    },
+    null,
+    2
+  )
+)
