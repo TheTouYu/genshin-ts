@@ -278,9 +278,16 @@ alreadySetVal、exposed/structId）。编辑器首存会把显式默认字段规
 - **R<T> pin 值** = ConcreteBase{1:10000, 2:1, 110:bConcreteValue{2: 内层}}；内层 VarBase
   **一律无 alreadySetVal**（非默认值也只写显式 payload，如 bEnum{1:1}）、零值空 payload、
   itemType.kind 省略（与图变量同族）。
+- **concreteId 按类型变体**（v11 样本）：bool=18、int=20、str=2656、entity=2657、guid=2658、
+  float=2659、vec3=2660；**bConcreteValue.indexOfConcrete server 表**：bool=0（省略）、int=1、
+  str=2、entity=3、guid=4、float=5、vec3=6（**与 client 侧 LOCAL_VAR_IOC_BY_IR 顺序不同**，
+  client：int=0,str=1,entity=2,guid=3,float=4,vec3=5,bool=6——server/client 差异实证）。
+- 默认值内层形态：int/str/guid/float = class+itemType+空 payload；vec3 = class 7+bVector{val:{}}；
+  **entity = 无 class 字段（class 0 省略）+ 无 payload**；内层一律无 alreadySetVal、kind 省略。
 - 我方编译器模式：`initLocalVariable(type, init)` 编译为 get(empty)+set(init)（动态 init 防重复
   求值，definitions/nodes.ts 注释）；常量 init 编辑器直接放 Get —— 预算敏感时可优化（F10 候选）。
-- 回归：`tests/local_variable_editor_wire_test.ts`（pin value hex 常量 + 身份连线 + 类型一致）。
+- 回归：`tests/local_variable_editor_wire_test.ts`（pin value hex 常量 + 身份连线 + 类型一致 +
+  v11 六类型 cid/ioc 断言）。
 
 ## 待逐步还原
 
