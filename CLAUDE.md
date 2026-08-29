@@ -36,7 +36,8 @@ python tools/pkc.py tree                                      # 看全部 topic 
 python tools/pkc.py knowledge-search --status any "<词>"      # 含 pending_review 的检索
 python tools/pkc.py knowledge-search --semantic "<完整问题>"   # 向量化语义检索（hybrid）；中文长句/coverage gap 时用
 # context 清单（project-intelligence.json → memory.contexts）：
-#   compiler-diagnostics / static-gil-assembly-production / official-guide
+#   compiler-diagnostics / static-gil-assembly-production / official-guide / game-engine-rules（游戏引擎实测规则，2026-08-29 新增）
+# progressive-query 命中结果在响应的 `claims` 字段（`results` 键只用于 knowledge-search）。
 ```
 
 说明：`npm test` 的 `pretest` 会清理生成测试目录，快速验证已有产物用 `quicktest`；两者都保持 `--noinject`。

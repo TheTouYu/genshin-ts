@@ -866,3 +866,13 @@
 - **已关闭（2026-08-29）**：本项目运行时已 plan-upgrade 至 portable-knowledge `fe838a0`（含 92ab7d2 的 R10 修复，升级校验含 knowledge-check 全绿），本项残留问题随之关闭。
 - 流程沉淀：新知识合法改变检索格局时，正确杠杆顺序 = topic 元数据 → claim 标题措辞（clarify）→
   夹具更新（用户审阅精确 diff）；禁止为迁就检索删改 claim 正文语义。
+
+### O-2026-08-29-11 PKC 补录轮遗留（2026-08-29 复盘登记）
+
+- 事实：补录轮后工作树仍有 7 个未跟踪 bundle 文件（bnd_60015fd1f/bnd_9838cbe/bnd_9b1f27e/
+  bnd_bc159e/bnd_c9263d/bnd_f7a55d6，含 approval/draft），属**进行中工作**（非本会话创建）——
+  任何提交只精确暂存本次相关文件，**勿扫入这些文件**；其所有者应自行完成或明确移交。
+- 126 条 historical stale/invalidated refs 维护积压仍待处理（非阻塞，单独维护 plan 消化）。
+- 可选改进：topic Markdown 头（title/summary）与 registry 无一致性校验——2026-08-29 测试夹具
+  暴露 registry/markdown summary 不一致仍通过 validate；真实项目若出现同类漂移当前只能靠 apply 时
+  update-topic 的重建顺带修正。登记给 portable-knowledge 作为候选校验项。
