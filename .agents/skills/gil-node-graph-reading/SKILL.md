@@ -77,6 +77,9 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
   `parse > /tmp/g.json` 与"下一条命令读 /tmp"必然 FileNotFoundError。**parse+python 分析合并进同一条
   bash 命令**（heredoc 一次跑完）；正则转义（d/s/n）在 run_code→bash 链路会被 JS 模板字符串吃掉，
   统一写双反斜杠或改用无转义写法，否则正则静默 0 命中且无报错。
+  **同族扩展（2026-08-29 元复盘）**：run_code 模板字面量内联**大段 Markdown/脚本**同样踩坑——
+  反引号会截断模板、转义序列（如 \\u0060）变成字面量甚至语法报错。通用纪律：**大文本一律先用
+  write 工具落文件（或 String.fromCharCode(96) 拼反引号），不要在模板字面量里内联**；
 
 ### Step 2.6 parse --json 输出键名速查（勿猜结构，2026-08-12 复盘）
 
