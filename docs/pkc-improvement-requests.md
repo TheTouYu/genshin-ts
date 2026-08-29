@@ -457,3 +457,22 @@ PLAN_TOPIC_INVALID「topic metadata is only valid when creating a new topic」�
 - 公共资产契约测试 `test_public_assets_contain_no_source_project_names_or_personal_absolute_paths`
   在 portable-knowledge main 仍红（skills/long-term-memory-review/references/session-trace-extraction.md
   含源项目名，历史遗留，与本次批次无关），单独登记待修。
+
+## A/B 后续动作闭环（2026-08-29 补录轮，portable-knowledge 0c02d2a+fe838a0 / genshin-ts 运行时已升级）
+
+> 2026-08-29 执行「知识树升级+技能升级+知识树补录」时闭环 A/B 验证的三条待办（原「后续动作（已列入待办）」）：
+
+1. **signals.md signalVersion 表述** → 核对已闭合（无需改）：`docs/game-engine-knowledge/signals.md` L41/L92 已为「signalVersion = 注册表条目 f6（样本信号恰为 1）」；知识树 claim `clm_6C4D0D6A2ADCB7DFB399357BB2`（signalVersion 一致性：注册表条目 f6 必须与三份 CompositeDef #4 最后 field5 相同）与文档一致。
+2. **Q4 导入改名语义 claim 覆盖缺口** → closed：apply `bnd_8d32f392`（hash `8d32f392be80129c0192cebe9cbbababda96ae2a121beb0e57f461024bd3fd8b`，claim `clm_58BEBCC0C6DED97EDFC39A38D2`，落 composite-identity-and-related-ids topic：复合重名改名产生 `(1)` 版本并存、产生路径未锁定、注入前 --list 快照/注入后比对增量的核验清单；Authority 为 2026-08-26 足球复合复盘文档）。
+3. **R9 context 路由缺口** → closed：
+   - config `cb48bad`：新增 `game-engine-rules` context（priority 4，关联 game-engine-knowledge / gia-wire-analysis / debug-log-format 三节点）+ `docs/project-intelligence/contexts/game-engine-rules.md`；
+   - knowledge `f8b0fe2`：apply `bnd_a889eaa3`——signal-production-encoding topic 关键词补 `signalVersion`（官方检索调优杠杆）；
+   - 验收：`progressive-query --context game-engine-rules --intent "signalVersion 一致性"` 命中 6 条 claim（含 `clm_6C4D0D6A…`）；评估 68/68 全绿；
+   - `--context` 合法值指引已入 progressive-query --help（portable-knowledge `fe838a0`，指向 project-intelligence.json memory.contexts）。
+
+### 补录轮附带修复与维护
+
+- **update-topic 关键词-only 崩溃修复**（portable-knowledge `0c02d2a`）：关键词/别名-only 更新此前触发 `SemanticPlanError(path=...)` TypeError + Markdown noop 误判；修复后合法走通、noop 干净报 `PLAN_STRUCTURE_NOOP`。回归测试已加。
+- **落盘缺口修复**（genshin-ts `2395ebc`）：`knowledge/game-engine-knowledge/node-graph-creation-skillconfig.md` 从未提交（registry 已提交但 topic 文件未提交）；内容与已 apply 的 `bnd_ae7c7e87` 动作后镜像逐字节一致，已补提交。
+- **运行时升级**：五个 PKC 项目（portable-knowledge / genshin-ts / genshin-ts-ui / star-cube-nexus / AI-Brand-Lab）全部升级至 portable-knowledge `fe838a0`（0.2.0rc5 系列最新，含 R3更新/R9/R10/R11/R12/R13 全部修复）；升级计划按 pkc-project-operator `plan-upgrade` 精确 commit 构建 wheel + 校验（capabilities/validate/rebuild/validate/knowledge-check）+ 回滚保留旧 runtime。
+- **技能升级**：`install-global` 记录 pkc-project-operator + isolated-model-evaluator 双技能根投影（~/.agents/skills 与 ~/.pi/agent/skills 均为指向 portable-knowledge 仓库的 symlink，源 commit fe838a0）。
