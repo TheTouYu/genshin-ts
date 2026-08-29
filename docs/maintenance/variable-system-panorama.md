@@ -235,7 +235,11 @@
 - [x] 第三层 F1（dict int key CLI + 混合键/值 fail closed，2026-08-29 goal 第 1 轮）：证据复用编辑器样本
       锁定 marker（43/56/63/76）+ `assertUniformDictPairs` + 回归（`tests/gil_level_variables_full.ts`
       第 5-7 节、`gil_custom_variables_full.ts` 统一化）+ 技能/全景文档更新；编辑器/游戏核验待用户。
-- [ ] 第二层：差分清单 D1-D14（D5 已闭合作废）逐项与用户配合执行（每项 ≤10 秒编辑器实验）。
+- [x] 第二层实验台就绪（2026-08-29）：基准地图 **1073741915「变量」**（用户新建，图 1073741825「1」/
+      1073741826「2」均为 20000 空图）；基线快照 v0 锁定
+      （`~/genshin-ts-evidence/variable-system/raw/var-baseline-v0-empty-graphs-1-2.gil`，
+      sha256 3d9282e20a1d5…，manifest 见 `~/genshin-ts-evidence/variable-system/notes/manifest.md`）。
+- [ ] 第二层：差分清单 D1-D14（D5 已闭合作废）逐项与用户配合执行（每项 ≤10 秒编辑器实验）；D1 待用户指示。
 - [ ] 第三层：F2-F9 按闭合情况排期修复。
 - 临时取证文件：`.local/vars-explore/kb-*.json`（KB 原文落盘，非 git 跟踪）。
 - 相关 open-items：见 `open-items.md` O-2026-08-29-01。
