@@ -109,15 +109,20 @@
   `assertUniformDictPairs` fail closed 落地；回归 gil_level/custom_variables_full 通过。
 - 剩余：dict 的 entity/guid/阵营/元件ID/配置ID 键无真实样本（编辑器中编辑器允许与否未验）；编辑器/游戏核验待用户。
 
-### O-2026-08-28-05 parse/explain 工具把客户端图节点错标成服务端 API 名
+### O-2026-08-28-05 parse/explain 工具把客户端图节点错标成服务端 API 名【已闭合 2026-08-29 元复盘修复】
 
 - 证据：魔方-客户端优化版本.gil（SHA f90ac5438c…）客户端图 1082130436（type=20010）191 节点全错标：
   多分支→"Set Custom Variable Dict Str List Int"、节点图开始→"Set Custom Variable Dict Str List Bool"、
   获取自定义变量→"When Custom Variable Changes …"。
-- 根因：名字解析只查服务端名字表（node_pin_records），客户端 genericId 与服务端撞号落错条目。
-- 影响：读客户端图第一步就被误导；当前靠手工 generic_id→client_node_metadata.ts 映射绕过（技能 Step 2.8）。
-- 何时做：改 tools/parse-gil-node-graph.ts + explain 系列的名字解析——先按 graph.type 分流，
-  非 20000 图查 client_node_metadata.ts（subType 按图型过滤）取 displayName。
+- 修复：tools/parse-gil-node-graph.ts describeNode 按 graph.Id.type 分流——非 20000 图优先查
+  client_node_metadata.ts 的 genericId→displayName（命中 297 个 id，200042→节点图开始、200016→获取
+  自定义变量、200082→获取局部变量等已验证），未收录节点输出中性占位 `客户端API#<gid>`，不再落错
+  服务端条目；explain 复用 parse 的解析自动生效。
+- 验证：服务端样本 cube-e1-base.gil 回归无变化（42 节点名与修复前一致，type=20000 路径未动）；
+  explain 同一样本输出正常；客户端元数据命中率由 tsx 脚本断言。无仓库内客户端 .gil 样本，
+  真实客户端图（魔方-客户端优化版本）待下次读图时用 --json 复核名字。
+- 残余：元数据无 displayName 的客户端节点（如信号节点，id 注入期才确定）显示 `客户端API#<gid>`——
+  需要真名时对照 client_zh_aliases.ts / 日志上下文（技能 Step 2.8 保留手工映射脚本）。
 
 ### O-2026-08-28-06 客户端「遍历实体列表」out_flow[0]/[1] 语义未闭合【已闭合 2026-08-28 日志 2979 实证】
 

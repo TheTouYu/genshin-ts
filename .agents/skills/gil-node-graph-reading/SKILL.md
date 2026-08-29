@@ -107,9 +107,13 @@ PY
 
 ### Step 2.8 客户端节点图读法（2026-08-28 魔方-客户端优化版本实证，勿跳）
 
-地图里混着客户端图时（`list-gil-node-graphs.ts` 输出的 `type` ≠ 20000），explain/parse 会把客户端节点
-**错标成服务端 API 名**（多分支→"Set Custom Variable Dict Str List Int"、节点图开始→"Set Custom Variable
-Dict Str List Bool"、获取自定义变量→"When Custom Variable Changes"…），按错名读必然全错。正确读法：
+地图里混着客户端图时（`list-gil-node-graphs.ts` 输出的 `type` ≠ 20000）先按本 Step 读。
+**2026-08-29 工具修复**：parse/explain 已按图 type 自动切换客户端名字解析（genericId →
+`client_node_metadata.ts` displayName）；未收录的节点显示为 `客户端API#<gid>` 中性占位（如
+「向服务器节点图发送信号」gid 1610612774 元数据无 displayName，见下）。
+**修复前的旧行为**（历史坑，勿再被旧输出误导）：工具曾把客户端节点错标成服务端 API 名
+（多分支→"Set Custom Variable Dict Str List Int"、节点图开始→"Set Custom Variable Dict Str List Bool"、
+获取自定义变量→"When Custom Variable Changes"…）——若看到这类错名说明工具是旧版。正确读法：
 
 1. **先认图型**：graph `type` 字段枚举见官方 proto
    `src/thirdparty/.../protobuf/gia.proto` 的 `NodeGraph.Id.Type`：

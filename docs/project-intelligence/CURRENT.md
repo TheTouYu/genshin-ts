@@ -1,6 +1,6 @@
 # Genshin-TS Project Intelligence 恢复入口
 
-更新时间：2026-07-30
+更新时间：2026-08-29
 
 本文件是有界 Global Router，不复制各 Context 的详细状态。新会话先选择一个 Primary Context，再读取其恢复入口；不要默认读取历史 handoff 或全部知识节点。
 
@@ -24,6 +24,9 @@
 ## 知识录入入口
 
 - 常见错误：[`knowledge-capture-common-errors.md`](knowledge-capture-common-errors.md)。
+- 周度经验入口：`docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md`（10 根因族总表 +
+  15 方法论索引 + 沉淀缺口）；知识索引的「复盘档案」节指向全部单主题复盘。
+  2026-08-29 元复盘已把 5 条跨玩法规则录入 PKC（bundle bnd_83bb3685…，claims 334→339）。
 - 固化流程：[`knowledge-capture-canonical-flow.md`](knowledge-capture-canonical-flow.md)。
 - 录入原则：从已提交变更开始，固定使用 `python tools/pkc.py`，单计划串行 mutation，最终一次 delta check，精确 hash 审批，apply 后集中验证。
 

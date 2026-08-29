@@ -105,6 +105,40 @@ git diff --check
 
 同时检查 `git status`，确认变化只属于本次 Bundle 和明确授权的文档/规则修改。
 
+## 9. 新 topic 的 topic-path 必须落在 knowledge/ 且为 Markdown 路径
+
+`add-claim` 建新 topic 时 `--topic-path` 必须是完整 Markdown 路径（`knowledge/<node>/<topic-id>.md`）。
+写 `game-engine-knowledge` 报 `path must remain under knowledge/`；写到目录不写 `.md` 报 `must be Markdown`。
+失败后 plan 状态不变，可直接用正确路径重试（同 plan 内幂等，不会产生重复 claim）。
+
+## 10. 引用「本轮刚提交的索引文档」不要用 manual_review 政策
+
+`add-authority-ref --change-policy manual_review` 的 Ref 在 finalize 全量预检中**恒为阻塞态**
+（`PLAN_FULL_AUTHORITY_NOT_CURRENT ... blocking: true`，即使 expected==observed hash 也拦），
+且 `refresh-authority-ref` 对 hash 一致的 Ref 返回 `PLAN_STRUCTURE_NOOP`，无法解除。
+规律：**引用定期更新的索引/总纲类文档（如周度复盘总纲）用 `review_on_change`**（内容未变即 current）；
+`manual_review` 只适合「每次 finalize 前必须人工介入」的强门场景，且要提前想好解除阻塞的路径。
+补救：retire 旧 Ref（**必须带 `--replacement-authority-ref-id`，否则报 `PLAN_AUTHORITY_REPLACEMENT_REQUIRED`**）
++ 以新政策重新 add。
+
+## 11. bundle-approve / bundle-apply 默认 dry-run，必须加 --apply
+
+不带 `--apply` 的 `bundle-approve` 只做 DRY RUN（不落 `.approval.json`），随后 `bundle-apply`
+会报 `required file missing: ...approval.json`。正确顺序：`bundle-approve <id> --content-hash <h> --apply`
+→ `bundle-apply <id> --content-hash <h> --apply`。
+
+## 12. 每次 mutation 后 finalize 前必须重新 delta check
+
+retire/refresh/add 任何操作后，plan digest 变化，直接 finalize 报 `PLAN_DELTA_REQUIRED`。
+流程固定为：全部 mutation → `knowledge-plan check <id> --mode delta` → `finalize <id>`。
+
+## 13. 共享工作树下只提交自己的 bundle 文件
+
+多个会话并发做 PKC capture 时，`data/knowledge/bundles/` 下会并存其他会话的草稿 bundle
+（`.json`/`.approval.json` 未提交）。提交时**只精确暂存本次 bundle 的三件套
+（bnd_xxx.json / .approval.json / .applied.json）**与 registry/authority-refs/proposals 及本次
+knowledge 主题文件；`proposals/*.jsonl` 是共享追加文件，先 `git diff` 确认新增行都属于本次计划再提交。
+
 ## 复盘结论
 
 最常见的可避免错误是入口路径手写错误。最重要的安全错误是绕过 stale Authority、混淆证据等级或未确认精确 Bundle hash。前者靠固定命令模板解决，后者必须保留 PKC 的 staged validation 和人工审批门。

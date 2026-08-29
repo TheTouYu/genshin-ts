@@ -21,6 +21,7 @@ import { NODE_ID } from 'genshin-ts/compiler/gia_vendor.js'
 import { parseMessage, readFieldBytes, readFieldMessages } from 'genshin-ts/injector/binary.js'
 import { loadGiaProto } from 'genshin-ts/injector/proto.js'
 import { NODE_PIN_RECORDS } from 'genshin-ts/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
+import { CLIENT_NODE_METADATA } from 'genshin-ts/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 
 const COMPOSITE_KIND = 22001
 const SYSTEM_KIND = 22000
@@ -94,6 +95,17 @@ for (const [name, id] of Object.entries(NODE_ID)) {
   if (typeof id === 'number' && !nodeNames.has(id)) {
     nodeNames.set(id, name.replace(/__Generic$/, '').replace(/_/g, ' '))
   }
+}
+
+// 客户端图节点名映射（2026-08-28 读图复盘实证：客户端 genericId 与服务端撞号，
+// 只查服务端名字表会把「多分支」错标成 Set Custom Variable Dict…）。
+// 非 20000 类型图按 genericId 优先查 client_node_metadata 的 displayName。
+const CLIENT_GRAPH_TYPES = new Set([20001, 20002, 20003, 20004, 20005, 20006, 20007, 20008, 20009, 20010])
+const clientNodeNames = new Map()
+for (const meta of CLIENT_NODE_METADATA) {
+  const gid = asNumber(meta.genericId)
+  if (gid === undefined || !meta.displayName) continue
+  if (!clientNodeNames.has(gid)) clientNodeNames.set(gid, meta.displayName)
 }
 
 function asNumber(value) {
@@ -294,10 +306,11 @@ function loadDocument(filePath) {
   }
 }
 
-function describeNode(doc, node) {
+function describeNode(doc, node, graphType) {
   const genericId = asNumber(node.genericId?.nodeId)
   const concreteId = asNumber(node.concreteId?.nodeId)
   const kind = asNumber(node.genericId?.kind)
+  const clientMode = graphType !== undefined && CLIENT_GRAPH_TYPES.has(graphType)
   if (kind === COMPOSITE_KIND) {
     const def = doc.defsById.get(genericId)
     const graphId = compositeGraphId(def)
@@ -312,6 +325,22 @@ function describeNode(doc, node) {
       definitionId: genericId,
       graphId: graphId === 0 ? undefined : graphId,
       definition: def
+    }
+  }
+
+  if (clientMode) {
+    // 客户端图：服务端名字表与客户端 genericId 撞号，不得用 nodeRecords/nodeNames 解析；
+    // 找不到 displayName 时用中性占位，避免错标成服务端 API 名误导读图。
+    const clientName = clientNodeNames.get(genericId) ?? clientNodeNames.get(concreteId)
+    return {
+      genericId,
+      concreteId,
+      kind,
+      kindName: kind === SYSTEM_KIND ? 'SysCall' : `Kind(${kind ?? '?'})`,
+      api: clientName ?? `客户端API#${genericId ?? concreteId ?? '?'}`,
+      name: clientName ?? `客户端API#${genericId ?? concreteId ?? '?'}`,
+      composite: false,
+      record: undefined
     }
   }
 
@@ -524,13 +553,14 @@ function parseGraph(doc, graph, meta, depth, activeGraphIds, maxItems) {
   const rawNodes = [...(graph.nodes ?? [])].sort(
     (a, b) => (asNumber(a.nodeIndex) ?? 0) - (asNumber(b.nodeIndex) ?? 0)
   )
+  const graphType = asNumber(graph.id?.type)
   const nodeInfoMap = new Map()
   const nodeMap = new Map()
   for (const node of rawNodes) {
     const index = asNumber(node.nodeIndex)
     if (index === undefined) continue
     nodeMap.set(index, node)
-    nodeInfoMap.set(index, describeNode(doc, node))
+    nodeInfoMap.set(index, describeNode(doc, node, graphType))
   }
 
   const nodes = rawNodes.map((node) => {
