@@ -384,3 +384,76 @@ PLAN_TOPIC_INVALID「topic metadata is only valid when creating a new topic」�
 ### 期望
 - proposals 追加事件不计入 apply 的 authority drift 判定（或提供文档化的强制重放开关）；
 - 验收：finalize 后向 proposals 追加一行无关事件，同 bundle 重放 apply 不再因该文件报 drift。
+## 2026-08-29 批次实施状态（portable-knowledge 回复，2026-08-29）
+
+> 修复方：portable-knowledge 项目 main。两个提交：`b79307f`（文档化批次）+
+> `92ab7d2`（代码批次）。全部证据以 genshin-ts 副本复现（真实 0.2.0rc5 运行时，
+> source_commit 85b3cf8e，在 git worktree 副本上操作，未触碰主工作区数据）。
+> 生效口径：技能文档类改动经全局技能 symlink（/home/h/.agents/skills/pkc-project-operator
+> → portable-knowledge/skills/...）即刻生效；运行时代码修复在 portable-knowledge main，
+> 待下一次发布 + plan-upgrade 落入各消费项目后才在本项目运行时生效。
+
+### R3 验证更新 → closed（代码，92ab7d2）
+
+- `PLAN_AUTHORITY_REF_MISSING` 现区分两种成因：ref 不存在 vs ref 存在于工作树但
+  committed 基线不可见（apply 未提交）——后者报 `working_tree_visible: true` +
+  「先提交 applied Bundle，再 abandon + 重建 plan」指引（contract 测试覆盖）。
+- `rebase` 遇 authority-refs.json 自身跨基线变化时给出可操作提示（abandon + re-init，
+  说明 rebase 无法重锚定跨基线变化的 registry）。
+
+### R9 → closed（文档化，b79307f + 92ab7d2 help）
+
+- 新增 `skills/pkc-project-operator/references/capture-draft-format.md`：DRAFT 字段级契约
+  （顶层/claim/ref 全字段、必填、受控词表、多 claim 多 ref 表示、JSON+Markdown 最小示例、
+  错误定位说明）；SKILL.md/MODES.md 指向该文档。
+- `capture --help` 的 `--file` 增加契约文档指引行。
+- 验收：只看该文档写出的 DRAFT.json 在真实 runtime（0.2.0rc5）上
+  `capture --preview-only` 通过（副本实测 ok，bundle 候选 bnd_fdb43e7c 生成）。
+
+### R10 → closed（代码，92ab7d2）
+
+- post-apply 评估门与 preflight 口径对齐：全部用例照跑（记录全量画面），但**只有 affected
+  用例（affected_by 与本计划触及 node/topic/claim 相交）阻塞**；不相交失败降级为
+  `PLAN_EVALUATION_NON_BLOCKING` 告警（与 finalize 全量预检同一 select 口径）。
+- 阻塞时报错新增 `PLAN_POST_APPLY_TRANSACTION_STATE`（applied: true, rolled_back: false，
+  明确「exit 1 ≠ 事务失败」+ bundle-status/bundle-inspect 复核指引），失败 finding 附
+  query/returned_topics(rank+score)/expected/top-N（见 R11）。
+- 验证（副本复现 bnd_81d5378d @ 基线 c9457a5 + 修复前夹具）：
+  修复前 exit 1、只报 case_id；补丁代码重放同场景 → exit 0，full-closure-and-id-integrity-1
+  仅以 PLAN_EVALUATION_NON_BLOCKING 告警出现，post_apply_full_receipt 落盘。
+- 新增 2 个契约测试（无关失败告警不阻塞 / affected 失败阻塞+事务状态+明细）。
+
+### R11 → closed（代码 92ab7d2 + 文档 b79307f）
+
+- 三处评估失败 finding（delta `PLAN_EVALUATION_FAILED`、finalize
+  `PLAN_FULL_EVALUATION_FAILED`、post-apply `PLAN_POST_APPLY_EVALUATION_FAILED`）统一附
+  排名明细：query、returned_topics/returned_claims（rank+score）、returned_*_ids、
+  expected_*_ids、topic_top_n/claim_top_n、failed_assertions。
+- 技能 MODES.md 新增「Evaluation fixture governance」节：三级杠杆顺序（topic 元数据 →
+  claim 标题措辞 → 夹具 expected_topic_ids 更新）、夹具更新必须走 Bundle + L3 精确 hash
+  批准、语义断言不变、禁止为迁就检索删改 claim 正文。
+
+### R12 → closed（代码 92ab7d2 + 文档 b79307f）
+
+- capture 批处理对同 topic 重复元数据幂等容错：与首条完全一致则忽略（批量脚本按 topic
+  分组、首条带元数据的姿势直接可用）；不一致报 `PLAN_TOPIC_METADATA_CONFLICT` 并带
+  `draft_field` 定位。
+- 「topic 元数据仅创建时有效」写入 capture-draft-format.md §2/§5 与 MODES.md。
+- 契约测试覆盖幂等与冲突两分支。
+
+### R13 → closed（代码，92ab7d2）
+
+- append-only 事件日志（store 的 proposals/evidence/sources/*.jsonl）不再计入 drift 判定：
+  当前内容以 finalize 后镜像为前缀即视为「已 apply + 后续追加」，apply 重放为保留追加行的
+  幂等 no-op；其余 replace action 在当前文件已等于 after-image（new_hash）时同样 no-op 重放；
+  其他一切仍 fail-closed（authority changed / PLAN_WORKTREE_DRIFT 不变）。
+- 验证（副本复现 bnd_253802ff @ 基线 fc49a3f）：修复前 dry-run 重放 exit 1
+  PLAN_WORKTREE_DRIFT（proposals 文件）；补丁代码 → dry-run ok；再向 proposals 追加一行无关
+  事件后 `--apply` 重放 ok（exit 0、receipt 落盘、追加行保留）。
+- 契约测试覆盖「追加一行后 approve/apply 均不再被 drift 阻断且追加行保留」。
+
+### 遗留说明
+
+- 公共资产契约测试 `test_public_assets_contain_no_source_project_names_or_personal_absolute_paths`
+  在 portable-knowledge main 仍红（skills/long-term-memory-review/references/session-trace-extraction.md
+  含源项目名，历史遗留，与本次批次无关），单独登记待修。

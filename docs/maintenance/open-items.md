@@ -859,5 +859,10 @@
 - 残留问题：post-apply 评估门对 **affected_by 不相交** 的用例也做阻塞判定（本例 affected_by=static-gil-assets，
   而计划只动 game-engine-knowledge 节点）——与「无关用例失败只告警不卡」的既定口径不符；
   是否需在 PKC 运行时修正，待后续维护轮确认。
+- **答复（2026-08-29，portable-knowledge 92ab7d2）**：已在运行时修正——post-apply 全量跑用例但只阻塞
+  affected 用例（与 preflight 同一 select 口径），不相交失败降级 `PLAN_EVALUATION_NON_BLOCKING` 告警；
+  阻塞时报错附 `PLAN_POST_APPLY_TRANSACTION_STATE`（applied/not rolled back + bundle-status 指引）。
+  副本复现验证：修复前 exit 1 只报 case_id → 修复后同场景 exit 0、该用例仅告警。待下一次发布 +
+  plan-upgrade 落入本项目运行时后即关闭本项。
 - 流程沉淀：新知识合法改变检索格局时，正确杠杆顺序 = topic 元数据 → claim 标题措辞（clarify）→
   夹具更新（用户审阅精确 diff）；禁止为迁就检索删改 claim 正文语义。
