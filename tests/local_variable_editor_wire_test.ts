@@ -41,6 +41,12 @@ const EDITOR_TYPE_VALUES: Record<number, string> = {
   2660: '08904e1001f2061408061210080722070801a20602080cda06020a00' // vec3
 }
 
+// v13 列表类型（int_list 完整周期，编辑器样本 var-v13-local-var-int-list.gil sha ac3defd3…）：
+// Get cid=2661、Set cid=2679、ioc=7（server 列表段，与 client 表尾部同序）；值 = 空 ArrayBase
+// 字面量（连接时也带空字面量锚）；拼装列表(169) OutParam 同为 ioc=7 空 ArrayBase
+const EDITOR_LIST_VALUE =
+  '08904e1001f206130807120f08924e22070801a206020808ea0600'
+
 const ir = [
   {
     ir_version: 1,
@@ -251,6 +257,56 @@ try {
       const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
       assert.equal(hex, SET_VALUE_BY_CID[cid], `Set cid ${cid} value must match editor bytes`)
     }
+    // ===== v13：int_list 局部变量（Get cid 2661 / Set cid 2679，ioc=7，空 ArrayBase） =====
+    const listIr = [
+      {
+        ir_version: 1,
+        ir_type: 'node_graph',
+        graph: {
+          type: 'server',
+          mode: 'beyond',
+          sub_type: 'entity',
+          id: 1073741825,
+          name: '_GSTS_lv_list'
+        },
+        variables: [],
+        nodes: [
+          { id: 1, type: 'when_custom_variable_changes', next: [] },
+          { id: 2, type: 'get_local_variable', args: [{ type: 'int_list', value: [] }] },
+          {
+            id: 3,
+            type: 'set_local_variable',
+            args: [
+              { type: 'conn', value: { node_id: 2, index: 0, type: 'local_variable' } },
+              { type: 'int_list', value: [] }
+            ]
+          }
+        ],
+        edges: null
+      }
+    ]
+    const irPath4 = join(tmp2, 'list.json')
+    writeFileSync(irPath4, JSON.stringify(listIr))
+    const giaPath4 = join(tmp2, 'list.gia')
+    writeGiaFromIrJsonFile(irPath4, giaPath4, {}, () => {})
+    const bytes4 = new Uint8Array(readFileSync(giaPath4))
+    const root4 = rootMessage.decode(bytes4.slice(20, -4))
+    const nodes4 = root4.graph?.graph?.inner?.graph?.nodes ?? []
+    const getL = nodes4.find((n) => n.genericId?.nodeId === 18)
+    const setL = nodes4.find((n) => n.genericId?.nodeId === 19)
+    assert.ok(getL && setL, 'list Get/Set nodes')
+    assert.equal(getL.concreteId?.nodeId, 2661, 'Get int_list cid 2661')
+    assert.equal(setL.concreteId?.nodeId, 2679, 'Set int_list cid 2679')
+    for (const [n, idx] of [
+      [getL, 0],
+      [setL, 1]
+    ] as const) {
+      const inPin = n.pins.find((p) => p.i1?.kind === 3 && p.i1?.index === idx)
+      assert.ok(inPin?.value, 'list pin value')
+      assert.equal(inPin.value.bConcreteValue?.indexOfConcrete, 7, 'int_list ioc 7')
+      const hex = Buffer.from(inPin.value.$type.encode(inPin.value).finish()).toString('hex')
+      assert.equal(hex, EDITOR_LIST_VALUE, 'int_list value must match editor bytes')
+    }
   } finally {
     rmSync(tmp2, { recursive: true, force: true })
   }
@@ -262,6 +318,7 @@ try {
         setNodes: setNodes.length,
         typedTypes: TYPES.length,
         setTypedTypes: TYPES.length,
+        intListCycle: true,
         ok: true
       },
       null,

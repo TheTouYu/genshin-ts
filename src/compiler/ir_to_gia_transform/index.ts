@@ -221,10 +221,14 @@ function normalizeScalarEditorWire(e: unknown): void {
   else if (vec) ev.bVector = { val: {} } // 零 vec3 → {val:{}}（编辑器 v6 变量_5 形态）
 }
 
-/** server 侧局部变量 R<T> pin 的 ConcreteBase.indexOfConcrete 表（v10/v11 编辑器样本：
- *  bool=0 省略、int=1、str=2、entity=3、guid=4、float=5、vec3=6；与 client 侧
- *  LOCAL_VAR_IOC_BY_IR（client_graph.ts）顺序不同——server/client 有区别）。
- *  键 = VarType 数值（1=Entity 2=GUID 3=Int 4=Bool 5=Flt 6=Str 12=Vec）。 */
+/** server 侧局部变量 R<T> pin 的 ConcreteBase.indexOfConcrete 表（v10/v11/v13 编辑器样本）：
+ *  标量 bool=0（省略）、int=1、str=2、entity=3、guid=4、float=5、vec3=6；int_list=7（v13 实证）。
+ *  7..20 与 client 表尾部同序（str_list=8、entity_list=9、guid_list=10、float_list=11、
+ *  vec3_list=12、bool_list=13、config_id=14、prefab_id=15、config_id_list=16、prefab_id_list=17、
+ *  faction=18、faction_list=19、dict=20——按 client LOCAL_VAR_IOC_BY_IR 推断，待样本）。
+ *  键 = VarType 数值（1=Entity 2=GUID 3=Int 4=Bool 5=Flt 6=Str 7=guid_list 8=int_list
+ *  9=bool_list 10=float_list 11=str_list 12=Vec 13=entity_list 15=vec3_list 17=faction
+ *  20=config_id 21=prefab_id 22=config_id_list 23=prefab_id_list 24=faction_list 27=dict）。 */
 const SERVER_LOCAL_VAR_IOC_BY_VARTYPE: Record<number, number> = {
   4: 0, // Bool
   3: 1, // Int
@@ -232,7 +236,21 @@ const SERVER_LOCAL_VAR_IOC_BY_VARTYPE: Record<number, number> = {
   1: 3, // Entity
   2: 4, // GUID
   5: 5, // Float
-  12: 6 // Vector
+  12: 6, // Vector
+  8: 7, // int_list（v13 实证）
+  11: 8, // str_list
+  13: 9, // entity_list
+  7: 10, // guid_list
+  10: 11, // float_list
+  15: 12, // vec3_list
+  9: 13, // bool_list
+  20: 14, // config_id
+  21: 15, // prefab_id
+  22: 16, // config_id_list
+  23: 17, // prefab_id_list
+  17: 18, // faction
+  24: 19, // faction_list
+  27: 20 // dict
 }
 
 /** 节点 R<T> pin 字面量值（ConcreteBase.bConcreteValue.value）按编辑器形态归一化
