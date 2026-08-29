@@ -177,15 +177,99 @@ function buildDictValue(variable: Variable): unknown[] {
 }
 
 /**
- * 图变量值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915 图 1）：
- * - 零值/默认值 VarBase（列表元素、顶层标量、空列表）：编辑器形态 = {class, itemType, 空 payload}，
- *   **无 alreadySetVal**（v1 样本 50×0、Str 模板 8-09、v6 样本 10 变量全默认值）；
+ * 图变量/节点 pin 值按编辑器真实样本归一化（2026-08-29 最小差分，map 1073741915）：
+ * - 零值/默认值 VarBase（列表元素、顶层标量、空列表、R<T> pin 字面量）：编辑器形态 =
+ *   {class, itemType, 空 payload}，**无 alreadySetVal**（v1 样本 50×0、Str 模板 8-09、
+ *   v6 样本 10 变量全默认值、v10 局部变量 Get/Set pin 值）；
  * - 非默认值 VarBase：{class, alreadySetVal=1, itemType, 显式 payload}（v4 末位 1234）；
- * - **空列表**：列表层 also 省略 alreadySetVal（v6 变量_6..10：08924e 后无 1001）；
- * - 零 vec3：payload 为 {val:{}}（v6 变量_5：da06 02 0a 00），非零分量保留显式；
+ * - **空列表**：列表层 also 省略 alreadySetVal（v6 变量_6..10）；
+ * - 零 vec3：payload 为 {val:{}}（v6 变量_5），非零分量保留显式；
  * - itemType.type_server.kind=0 一律省略。
  * dict（MapBase）未实样，fail closed 不处理。
  */
+function normalizeScalarEditorWire(e: unknown): void {
+  if (!e || typeof e !== 'object') return
+  const ev = e as {
+    alreadySetVal?: boolean
+    itemType?: unknown
+    bInt?: { val?: number }
+    bFloat?: { val?: number }
+    bEnum?: { val?: number | boolean }
+    bString?: { val?: string }
+    bVector?: { val?: { x?: number; y?: number; z?: number } }
+  }
+  const stripKind = (it: unknown) => {
+    if (!it || typeof it !== 'object') return
+    const t = it as { type_server?: { kind?: number } }
+    if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
+  }
+  stripKind(ev.itemType)
+  const vec = ev.bVector?.val
+  const hasNonDefault =
+    (ev.bInt && ev.bInt.val !== 0) ||
+    (ev.bFloat && ev.bFloat.val !== 0) ||
+    (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
+    (ev.bString && ev.bString.val !== '') ||
+    (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
+  if (hasNonDefault) return // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
+  delete ev.alreadySetVal
+  if (ev.bInt) ev.bInt = {}
+  else if (ev.bFloat) ev.bFloat = {}
+  else if (ev.bEnum) ev.bEnum = {}
+  else if (ev.bString) ev.bString = {}
+  else if (vec) ev.bVector = { val: {} } // 零 vec3 → {val:{}}（编辑器 v6 变量_5 形态）
+}
+
+/** 节点 R<T> pin 字面量值（ConcreteBase.bConcreteValue.value）按编辑器形态归一化
+ *  （v10 局部变量样本）：默认值零 → 空 payload、itemType.kind 省略；**内层 alreadySetVal
+ *  一律省略**（编辑器 true 值也只写 bEnum{1:1}，无 f2）——与图变量元素的规则不同。 */
+function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
+  if (!Array.isArray(nodes)) return
+  const stripKind = (it: unknown) => {
+    if (!it || typeof it !== 'object') return
+    const t = it as { type_server?: { kind?: number } }
+    if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
+  }
+  const normalizePinInner = (e: unknown) => {
+    if (!e || typeof e !== 'object') return
+    const ev = e as {
+      alreadySetVal?: boolean
+      itemType?: unknown
+      bInt?: { val?: number }
+      bFloat?: { val?: number }
+      bEnum?: { val?: number | boolean }
+      bString?: { val?: string }
+      bVector?: { val?: { x?: number; y?: number; z?: number } }
+    }
+    delete ev.alreadySetVal
+    stripKind(ev.itemType)
+    const vec = ev.bVector?.val
+    const hasNonDefault =
+      (ev.bInt && ev.bInt.val !== 0) ||
+      (ev.bFloat && ev.bFloat.val !== 0) ||
+      (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
+      (ev.bString && ev.bString.val !== '') ||
+      (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
+    if (hasNonDefault) return // 保留显式 payload（编辑器 true → bEnum{1:1}）
+    if (ev.bInt) ev.bInt = {}
+    else if (ev.bFloat) ev.bFloat = {}
+    else if (ev.bEnum) ev.bEnum = {}
+    else if (ev.bString) ev.bString = {}
+    else if (vec) ev.bVector = { val: {} }
+  }
+  for (const node of nodes) {
+    const pins = (node as { pins?: unknown[] }).pins
+    if (!Array.isArray(pins)) continue
+    for (const pin of pins) {
+      const v = (pin as { value?: unknown }).value
+      if (!v || typeof v !== 'object') continue
+      const cv = v as { class?: number; bConcreteValue?: { value?: unknown } }
+      if (cv.class !== 10000 || !cv.bConcreteValue) continue
+      normalizePinInner(cv.bConcreteValue.value)
+    }
+  }
+}
+
 function normalizeGraphVarEditorWire(val: unknown): void {
   if (!val || typeof val !== 'object') return
   const v = val as {
@@ -198,44 +282,17 @@ function normalizeGraphVarEditorWire(val: unknown): void {
     const t = it as { type_server?: { kind?: number } }
     if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
   }
-  const normalizeScalar = (e: unknown) => {
-    if (!e || typeof e !== 'object') return
-    const ev = e as {
-      alreadySetVal?: boolean
-      itemType?: unknown
-      bInt?: { val?: number }
-      bFloat?: { val?: number }
-      bEnum?: { val?: number | boolean }
-      bString?: { val?: string }
-      bVector?: { val?: { x?: number; y?: number; z?: number } }
-    }
-    stripKind(ev.itemType)
-    const vec = ev.bVector?.val
-    const hasNonDefault =
-      (ev.bInt && ev.bInt.val !== 0) ||
-      (ev.bFloat && ev.bFloat.val !== 0) ||
-      (ev.bEnum && ev.bEnum.val !== 0 && ev.bEnum.val !== false) ||
-      (ev.bString && ev.bString.val !== '') ||
-      (vec !== undefined && (vec.x !== 0 || vec.y !== 0 || vec.z !== 0))
-    if (hasNonDefault) return // 保留 alreadySetVal + 显式 payload（编辑器 v4 形态）
-    delete ev.alreadySetVal
-    if (ev.bInt) ev.bInt = {}
-    else if (ev.bFloat) ev.bFloat = {}
-    else if (ev.bEnum) ev.bEnum = {}
-    else if (ev.bString) ev.bString = {}
-    else if (vec) ev.bVector = { val: {} } // 零 vec3 → {val:{}}（编辑器 v6 变量_5 形态）
-  }
   stripKind(v.itemType)
   if (v.class === 10002 && v.bArray) {
     if (v.bArray.entries.length === 0) {
       // 空列表：列表层 alreadySetVal 也省略（编辑器 v6 变量_6..10）
       delete (v as { alreadySetVal?: boolean }).alreadySetVal
     }
-    for (const e of v.bArray.entries) normalizeScalar(e)
+    for (const e of v.bArray.entries) normalizeScalarEditorWire(e)
     return
   }
   // 顶层标量图变量（int/float/str/bool/vec3…）：与列表元素同一 VarBase 形态
-  normalizeScalar(val)
+  normalizeScalarEditorWire(val)
 }
 
 function applyGraphVariables(graph: GiaGraph, variables: Variable[]) {
@@ -806,6 +863,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
         normalizeGraphVarEditorWire(gvm.values)
       }
     }
+    const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
+    normalizeNodePinValuesEditorWire(mainNodes)
     if (signalSource) {
       const parts = root.filePath.split('-')
       if (parts.length >= 4) {
@@ -813,8 +872,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }
       root.gameVersion = signalSource.gameVersion
     }
-
-    const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
 
     // 修正 composite call 节点的 kind 为 SysGraph(22001) 并设置正确的 nodeId + compositePinIndex
     if (compositeCallNodeIndices.size > 0) {
