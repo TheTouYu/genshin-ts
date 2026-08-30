@@ -11,6 +11,23 @@
 
 ## 已落地（DONE）
 
+### 2026-08-30 构建门禁修复 + tsx 运行时单副本（build 888 错到 0，quicktest 恢复绿）
+
+- client_graph.ts normalizeClientNodesEditorWire 用未定义 ClientGiaPin 类型 + 对必填 number 字段赋
+  undefined（编辑器 wire 归一化）——EditorWire 类型收窄修复（243bf0e）。
+- types-local/gsts 同时引用 src 全局 + dist 模块双副本；08-16 加 private brand 后 branded 类型
+  （entity 等）nominal 不兼容，build 门禁实际从 08-16 断，期间提交均未跑通全量 build（888 错）。
+  修复：types-local export 改指 src + tsconfig paths（genshin-ts/* 到 src/*）统一 src 单副本；
+  D2 白名单漏 localVariable（ClientSyntheticFlowMethod）补上（243bf0e）。
+- tsx 运行时读 tsconfig paths，把 .gs.ts 的包 import 解析到 src 副本，与 CLI（dist）双副本，
+  kCtxStack unique symbol 分裂，所有 gsts.f 访问报 ctx=javascript（quicktest 7+1 失败、football
+  编译失败）。修复：新增 tsconfig.tsx.json（无 paths）+ 三处 tsx spawn 注入 TSX_TSCONFIG_PATH
+  （gs_to_ir_json / ir_to_gia / config_loader，235bdff）——tsc 类型检查用 tsconfig.json（src 单
+  副本），运行时统一 dist 单副本。
+- 验证：npm run build exit 0；npm run quicktest exit 0（67 GIA）。
+- football 状态机重构（并行工作，R0 用户已确认）：new str() 缺 import + 旧生成物 dribble.gs.ts
+  残留已修/清理；重构主体保留工作树（REFACTOR-PLAN.md 跟踪）。
+
 ### 2026-08-25 UI 分支细搬合并（genshin-ts-ui → 主项目）
 
 | 发现 | 证据 | 落地方式 |
@@ -196,16 +213,19 @@
 - 期望形态：solverEPlan 变量改 e 前缀（eSolveBuf/eSep/eSeo/ePhase/…），或至少 solveBuf/phase 关键项。
 - 何时做：下次 solverEPlan 改动窗口（避免单独为改名字重启验证链）。
 
-### O-2026-08-27-01 编译器 optimize_timer_dispatch 有 default 分支的 >10 case dispatch 不 chunking → 静默截断
+### O-2026-08-27-01 编译器 optimize_timer_dispatch 有 default 分支的 >10 case dispatch 不 chunking → 静默截断【已修复 2026-08-30】
 
 - 证据（2026-08-27 3×3 整转回归）：src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts 的
   parseMultipleBranchesDispatch 遇到 next sourceIndex=0（default 分支）返回 null → 跳过 chunking；
   有 default 的 multipleBranches 超过 10 命名 case 时原样进 GIA，被引擎 Multiple Branches 节点
   （上限 10 命名 case + 1 default）截断，第 11/12 个 case 分支体变孤立执行链，无编译/注入报错。
   日志 2927 实锤（orbit22/orbit23 → default 空操作）。
-- 期望形态：① chunking 支持有 default 分支的 dispatch（default 保留在首 chunk，其余 case 分块）；
-  ② 或超过 10 命名 case 时编译器发硬警告（fail 编译），杜绝静默丢分支。
-- 何时做：下次编译器 Stage 3 改动窗口；需 focused 回归（>10 case 有 default 的 timer dispatch）+ 真实地图注入核验。
+- 落地（2026-08-30，提交 4298282 + e00bf6b）：parseMultipleBranchesDispatch 允许唯一 default 边
+  （source_index=0）；chunking 时 default 保留在首 chunk（buildDispatch 先写 source_index=0 边）；
+  有 default 的 dispatch 不参与多 dispatch 合并（default 语义唯一，避免合并丢分支）。
+  回归 tests/timer_dispatch_default_chunk_test.ts 4 场景 PASS（12 case+default 分块无截断 /
+  两 default dispatch 不合并 / 无 default 合并保持 / 11 case 无 default 分块保持）。
+- 剩余：真实地图（rubik-3x3 整转 orbit22/23 场景）注入核验待做。
 
 ### 2026-08-25 PKC 双 UI bundle 生命周期已 applied、主库 authority 未同步（待治理 apply）
 
@@ -885,4 +905,7 @@
 - 排查命令：`npx tsx tools/parse-gil-node-graph.ts <map.gil> --list` 看多版本/残留；
   `npx tsx tools/check-gil-composite-refs.ts <map.gil> --incoming <本次.gia>` 看类型错位。
 - 清理流程：见 gil-node-graph-editing 技能「残留复合清理」（def-clean --force 残留链整体删）。
-- 状态：待扫描（用户无反馈前不主动动其他地图）。
+- 状态：备份快照已扫描（2026-08-30）——rubik-3x3（1073741899）/ lights-out（1889+1890）/
+  football（1073741908）最新备份 parse --list 均无 (1) 后缀副本、无重复 def（rubik-3x3 有历史删除
+  留下的 ID 空洞，属正常）。注意：备份为写回前快照，真实游戏端地图残留仍需下次注入时 --incoming
+  校验；未主动动其他地图。
