@@ -154,7 +154,8 @@
     "gia:diff": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/gia-diff.ts",
     "gil:parse-node-graph": "NODE_OPTIONS='--no-deprecation' tsx tools/parse-gil-node-graph.ts",
     "gil:trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-exec-flow.ts",
-    "gil:trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-dataflow.ts"
+    "gil:trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-dataflow.ts",
+    "football:sim": "NODE_OPTIONS='--no-deprecation' tsx examples/football/sim/verify/run.ts"
   },
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.47.0",
