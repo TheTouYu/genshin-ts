@@ -114,47 +114,45 @@ const graph = g
   // 只响应 physics（直线运动器）停止，忽略 spin（旋转运动器）停止
   // ================================================================
   .on('whenBasicMotionDeviceStops', (evt: any, f: any) => {
+    const ball = evt.eventSourceEntity
+    const state = f.getNodeGraphVariable('state').asType('int')
+    // 2026-08-30 日志 3005 实证：分发不能按设备名过滤（只响应 physics）——
+    // kickApplyImpulse 用唯一名设备（"1"/"2"…），其停止事件被旧分发忽略 →
+    // 飞行中再施力后物理链断裂、球冻结。改为按 state 分发：物理态
+    // （FLY/ROLL/SLIDE/FREE）任何设备停止都恢复物理链；CARRIED/GOAL 忽略。
     f.doubleBranch(
-      f.equal(evt.motionDeviceName, new str('physics')),
+      f.equal(state, 0n),
       () => {
-        const ball = evt.eventSourceEntity
-        const state = f.getNodeGraphVariable('state').asType('int')
+        // 静止：清零速度，无运动器（链自然停）
+        f.setNodeGraphVariable('ballVel', f.create3dVector(0, 0, 0), false)
+      },
+      () => {
         f.doubleBranch(
-          f.equal(state, 0n),
+          f.equal(state, 1n),
           () => {
-            // 静止：清零速度，无运动器（链自然停）
-            f.setNodeGraphVariable('ballVel', f.create3dVector(0, 0, 0), false)
+            f.callComposite(physFlyTick, { e: ball })
           },
           () => {
             f.doubleBranch(
-              f.equal(state, 1n),
+              f.equal(state, 3n),
               () => {
-                f.callComposite(physFlyTick, { e: ball })
+                f.callComposite(physSlideTick, { e: ball })
               },
               () => {
                 f.doubleBranch(
-                  f.equal(state, 3n),
+                  f.equal(state, 2n),
                   () => {
-                    f.callComposite(physSlideTick, { e: ball })
+                    f.callComposite(physRollTick, { e: ball })
                   },
                   () => {
-                    f.doubleBranch(
-                      f.equal(state, 2n),
-                      () => {
-                        f.callComposite(physRollTick, { e: ball })
-                      },
-                      () => {
-                        // CARRIED(4)/GOAL(5)：不驱动（带球图 / 复位定时器负责）
-                      }
-                    )
+                    // CARRIED(4)/GOAL(5)：不驱动（带球图 / 复位定时器负责）
                   }
                 )
               }
             )
           }
         )
-      },
-      () => {}
+      }
     )
   })
   // ================================================================
@@ -217,6 +215,11 @@ const graph = g
         // 速度交接：带球图当前球速 → ballVel（滚动物理接管），消灭速度双真相
         f.setNodeGraphVariable('ballVel', evt.params.vel, false)
         f.callComposite(stateCommit, { e: ball, next: new int(STATE_ROLL) })
+        // 2026-08-30 日志 3005 实证：脱脚瞬间球上最后的运动器是 dribbleCtrl，
+        // 其停止事件被分发忽略（只处理 physics）→ 无 physics 设备停止事件 →
+        // 物理链断裂，球冻结（位置不变）。必须立即执行第一次 roll tick
+        // （激活 physics 设备 0.2s），之后物理链由 physics 停止事件自持续。
+        f.callComposite(physRollTick, { e: ball })
       },
       () => {}
     )
