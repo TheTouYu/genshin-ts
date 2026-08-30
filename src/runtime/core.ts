@@ -2621,6 +2621,12 @@ function createTypedValue(type: string): value {
       return new configId()
     case 'faction':
       return new faction()
+    case 'enum':
+    case 'enumeration':
+      // O-2026-08-22-1：复合 enum/enumeration 输入需要 enumeration 实例
+      // （enumerationsEqual 的 parseValue('enum') 用 instanceof enumeration 校验，
+      //   旧实现落 default 返回 generic() → 编译期抛 Invalid value type: enum）。
+      return new enumeration()
     case 'local_variable':
       return new localVariable()
     default:

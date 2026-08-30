@@ -1214,7 +1214,12 @@ export class ServerExecutionFlowFunctions {
     const enumeration1Obj = parseValue(enumeration1, 'enum')
     const enumeration2Obj = parseValue(enumeration2, 'enum')
 
-    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+    // O-2026-08-22-1：复合 enum 输入在捕获阶段的占位值 className 为空
+    // （createTypedValue('enumeration') = new enumeration()，无具体枚举类名），
+    // 与具体枚举比较时跳过 mismatch 校验；两个具体枚举类名不同仍报错。
+    const cls1 = enumeration1Obj.getClassName()
+    const cls2 = enumeration2Obj.getClassName()
+    if (cls1 && cls2 && cls1 !== cls2) {
       throw new Error('enumeration type mismatch')
     }
 
