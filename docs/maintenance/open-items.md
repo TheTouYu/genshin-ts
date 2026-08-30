@@ -827,6 +827,11 @@
   `docs/game-engine-knowledge/debug-log-format.md`「按钮字典精确映射」节（F=1937/B=1938/L=1870/R=1936/
   U=1939/D=1940，commit 9cfbc58）——claim 与文档暂时不一致，待 PKC 支持 revise 无 ref claim 补 ref
   或批量维护轮统一处理（与 O-2026-08-29-11 stale refs 积压同窗口）。
+  **2026-08-31 第 0 轮复现完成**：四错误码全部落码复现（revise→add 拒 PLAN_CLAIM_REVISED_NEEDS_REFRESH /
+  refresh 无目标 PLAN_AUTHORITY_REF_MISSING / check PLAN_CLAIM_AUTHORITY_INSUFFICIENT / 对照直接 add
+  PLAN_CLAIM_MISSING），与本记录一致；推荐修复候选 A（add_authority_ref 对零 ref revised claim 放行，
+  有 ref 仍走 refresh）影响面分析见 `docs/maintenance/O-28-10-pkc-deadlock-round0-design.md`——
+  待用户裁决后才动上游（R1 红绿测试 → R2 修复 → R3 本项目 plan-upgrade+复现 → R4 bundle 审批提交）。
 - ⑥ f10=8（结算合法=5）的组件定义 ID 语义、魔方动画=1 的写入方（服务端图未读）、指令异常始终空的触发条件。
 - 证据：日志 2026-08-28_23-51-57_2980（5 次操作 ops 时间线）+ 地图 SHA f90ac5438c…。
 - 何时做：下次读服务端图日志/读图窗口补 ①②③；读结算图窗口补 ④；pkc 录入窗口补 ⑤。
