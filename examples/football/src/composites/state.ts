@@ -5,7 +5,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 
 const CARRY_DIST2 = 2.25 // 1.5m²（控球判定半径）——2026-08-31 日志 3012：玩家贴球实测最近 1.49m（胶囊碰撞），1.2m 圈永远进不去；对齐牵引区 PULL_DIST2=2.25，获球即牵引、无死区不闪烁
-const CARRY_SPEED = 0.5 // 球速低于该值才可被控球（静止/刚停）
+const CARRY_SPEED = 2.0 // 球速低于该值才可被控球（← sim params thresholds.acquireMaxBallSpeed=2.0；旧 0.5 要求球近停才能再获得，脱落后等球停=僵直感，3014 实证）
 
 // 状态提交（exec）：图变量 state 与球实体自定义变量 state 一次性写入。
 // 所有状态迁移必须经此复合（或物理 tick 复合内的同名提交对），行为图只读。

@@ -18,8 +18,8 @@ import { Signal } from '../resources/signals.js'
 const TICK = 0.12 // 定时器间隔（秒），参考版 0.12s
 const FWD_WEIGHT = 0.7 // 合成方向里玩家朝向的权重
 const REL_WEIGHT = 0.3 // 合成方向里相对方向（球-玩家）的权重
-const SPEED_GAIN = 1.2 // 球速 = 玩家速度 × 此系数（略快于玩家）
-const DAMP = 0.95 // 旧球速每 tick 衰减系数（阻尼，防越滚越快）
+const SPEED_GAIN = 1.0 // 球速 = 玩家速度 × 此系数。1.2 会恒定拉开间距（0.2×vP ≈ 0.6m/s）→ 直走 ~2.5s 必脱脚（2026-08-31 日志 3014）；1.0=跟速，方向合成仍把球拢到脚前
+const DAMP = 0.95 // 非牵引时旧球速每 tick 衰减系数（自然减速；不进驱动叠加，见 compute 内 3014 修复注释）
 const BALL_R = 0.25 // 球半径（贴地高度 = 球心 y）
 const RAD2DEG = 57.29577951308232 // 180/π
 const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
@@ -86,12 +86,10 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     playerPos: { type: 'vec3' },
     playerFwd: { type: 'vec3' },
     playerSpd: { type: 'float' },
-    ballPos: { type: 'vec3' },
-    ballVx: { type: 'float' },
-    ballVz: { type: 'float' }
+    ballPos: { type: 'vec3' }
   },
   outputs: { newVelX: { type: 'float' }, newVelZ: { type: 'float' }, fwd: { type: 'float' }, dist2: { type: 'float' } },
-  build: ({ playerPos, playerFwd, playerSpd, ballPos, ballVx, ballVz }, f) => {
+  build: ({ playerPos, playerFwd, playerSpd, ballPos }, f) => {
     // 相对向量 D = B - P
     const D = f._3dVectorSubtraction(ballPos, playerPos)
     // 归一化 Dn
@@ -112,13 +110,12 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     const vFinal = f.multiplication(f.multiplication(vTarget, clamp.k1), clamp.k2)
     // 速度向量 velDir = dir × vFinal
     const velDir = f._3dVectorZoom(dir, vFinal)
-    // 旧球速衰减 + 叠加（水平分量）
-    const oldVx = f.multiplication(ballVx, DAMP)
-    const oldVz = f.multiplication(ballVz, DAMP)
-    const oldVel = f.create3dVector(oldVx, 0, oldVz)
-    const newVel = f._3dVectorAddition(oldVel, velDir)
+    // 2026-08-31 日志 3014 修复：牵引速度=纯 velDir，不再叠加 DAMP·旧速——
+    // v'=0.95v+velDir 是积分发散拓扑（平衡点=20×velDir），球 ~0.6s 内加速窜出
+    // 牵引区 → lostTicks 3 连 → 脱脚，CARRIED 闪烁（获得 ~1s→脱落→等球停→再获得）。
+    // 旧速衰减只保留在 tick 的非牵引分支（自然减速），不进驱动叠加。
     // 拆出水平分量（y 由调用方按地面拉回处理）
-    const nv = f.split3dVector(newVel)
+    const nv = f.split3dVector(velDir)
     return { newVelX: nv.xComponent, newVelZ: nv.zComponent, fwd, dist2 }
   }
 })
@@ -187,7 +184,7 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     // 计算（纯数据）：物化角色位姿后传入，避免重复求值
     const comp = f.callComposite(dribbleFieldCompute, {
       playerPos: roleLoc.location, playerFwd: f.getEntityForwardVector(role), playerSpd,
-      ballPos: f.getNodeGraphVariable('tmpBallPos').asType('vec3'), ballVx: baseVx, ballVz: baseVz
+      ballPos: f.getNodeGraphVariable('tmpBallPos').asType('vec3')
     })
 
     // 牵引条件：CARRIED 且 球在脚前 1.5m 内 且 不在身后
