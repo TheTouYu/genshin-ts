@@ -45,41 +45,9 @@ export const dribbleFieldGetRole = g.defineComposite('dribble_field_get_role', {
 })
 
 // ================================================================
-// 分段 clamp（纯数据）：前后分量 fwd → 前后系数 k1、左右系数 k2
-// ================================================================
-export const dribbleFieldClamp = g.defineComposite('dribble_field_clamp', {
-  inputs: { fwd: { type: 'float' } },
-  outputs: { k1: { type: 'float' }, k2: { type: 'float' } },
-  build: ({ fwd }, f) => {
-    const g09 = f.greaterThan(fwd, 0.9)
-    const g05 = f.greaterThan(fwd, 0.5)
-    const g0 = f.greaterThan(fwd, 0)
-    const gNeg05 = f.greaterThan(fwd, -0.5)
-    // 数据选择（不分裂执行流）：bool→int→float 两段转换（引擎无 bool→float 直转）
-    const b1 = f.dataTypeConversion(f.dataTypeConversion(gNeg05, 'int'), 'float')
-    const b2 = f.dataTypeConversion(f.dataTypeConversion(g0, 'int'), 'float')
-    const b3 = f.dataTypeConversion(f.dataTypeConversion(g05, 'int'), 'float')
-    const b4 = f.dataTypeConversion(f.dataTypeConversion(g09, 'int'), 'float')
-    const k1 = f.addition(
-      f.addition(
-        f.addition(
-          f.addition(0.1, f.multiplication(0.1, b1)),
-          f.multiplication(0.3, b2)
-        ),
-        f.multiplication(0.5, b3)
-      ),
-      f.multiplication(0.2, b4)
-    )
-    const k2 = f.addition(
-      f.addition(0.3, f.multiplication(0.5, b2)),
-      f.multiplication(0.4, b4)
-    )
-    return { k1, k2 }
-  }
-})
-
-// ================================================================
 // 速度场计算（纯数据）：输入玩家/球状态 → 输出新球速向量（水平）
+// （2026-08-31 删除分段 clamp 复合 dribble_field_clamp：非前位压速 0.32~0.4 致
+// 球跟不上玩家=慢走不动；见 compute 内 3016 修复注释）
 // ================================================================
 export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
   inputs: {
@@ -104,10 +72,12 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     const dir = f._3dVectorNormalization(f._3dVectorAddition(fwdPart, relPart))
     // 目标球速 vTarget = vP × 1.2
     const vTarget = f.multiplication(playerSpd, SPEED_GAIN)
-    // 分段 clamp
-    const clamp = f.callComposite(dribbleFieldClamp, { fwd })
-    // 最终球速 vFinal = vTarget × k1 × k2
-    const vFinal = f.multiplication(f.multiplication(vTarget, clamp.k1), clamp.k2)
+    // 2026-08-31 日志 3016 修复：去掉参考版分段 clamp 表——k1k2 在侧/后位仅
+    // 0.32~0.4（慢走 vP≈1.2 → 球速 0.4~0.5 追不上玩家 → 被超过落身后 → 牵引断=「慢走
+    // 球不动」）；正前位又 ×1.44 必窜出牵引区。改 vFinal = vP × SPEED_GAIN（牵引时
+    // 球速=玩家速，方向合成 0.7F+0.3Dn 负责把球拢到脚前）；超前引导留待 R3 按 sim
+    // touchLeadSpeed(+1.6) 模型单独引入。
+    const vFinal = vTarget
     // 速度向量 velDir = dir × vFinal
     const velDir = f._3dVectorZoom(dir, vFinal)
     // 2026-08-31 日志 3014 修复：牵引速度=纯 velDir，不再叠加 DAMP·旧速——
