@@ -87,7 +87,7 @@ function buildTwoDispatchIr(withDefault: boolean) {
 
 // ===== 场景 1：12 case + default → chunking 保留 default 在首 chunk，无截断 =====
 {
-  const out = optimizeTimerDispatchAggregate(buildSingleDispatchIr(12, true), true)
+  const out = optimizeTimerDispatchAggregate(buildSingleDispatchIr(12, true), true) as any
   const dispatches = out.nodes.filter((n: any) => n.type === 'multiple_branches')
   assert.equal(dispatches.length, 2, '12 cases + default → 2 chunks')
   const first = dispatches.find((n: any) => n.id === DISPATCH_ID)
@@ -112,7 +112,7 @@ function buildTwoDispatchIr(withDefault: boolean) {
 
 // ===== 场景 2：两个有 default 的 dispatch 不参与合并（default 语义唯一） =====
 {
-  const out = optimizeTimerDispatchAggregate(buildTwoDispatchIr(true), true)
+  const out = optimizeTimerDispatchAggregate(buildTwoDispatchIr(true), true) as any
   const dispatches = out.nodes.filter((n: any) => n.type === 'multiple_branches')
   assert.equal(dispatches.length, 2, 'with-default dispatches must not merge')
   assert.deepEqual(
@@ -132,7 +132,7 @@ function buildTwoDispatchIr(withDefault: boolean) {
 
 // ===== 场景 3：无 default 的多个 dispatch 仍可合并（回归既有行为） =====
 {
-  const out = optimizeTimerDispatchAggregate(buildTwoDispatchIr(false), true)
+  const out = optimizeTimerDispatchAggregate(buildTwoDispatchIr(false), true) as any
   const dispatches = out.nodes.filter((n: any) => n.type === 'multiple_branches')
   assert.equal(dispatches.length, 1, 'no-default dispatches merge as before')
   const merged = dispatches[0]
@@ -146,7 +146,7 @@ function buildTwoDispatchIr(withDefault: boolean) {
 
 // ===== 场景 4：11 case 无 default → 仍 chunking（既有行为） =====
 {
-  const out = optimizeTimerDispatchAggregate(buildSingleDispatchIr(11, false), true)
+  const out = optimizeTimerDispatchAggregate(buildSingleDispatchIr(11, false), true) as any
   const dispatches = out.nodes.filter((n: any) => n.type === 'multiple_branches')
   assert.equal(dispatches.length, 2, '11 cases without default → 2 chunks')
   const namedHeads = dispatches.flatMap((d: any) =>
