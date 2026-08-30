@@ -164,14 +164,14 @@ export function collectSignalUsages(
     return entry
   }
 
-  for (const node of (ir.nodes ?? []) as Array<{
+  const handleNode = (node: {
     id: number
     type: string
     args?: Array<Argument | null>
-  }>) {
+  }) => {
     if (node.type === 'send_signal') {
       const name = signalNameFromArgs(node.args)
-      if (!name) continue
+      if (!name) return
       const entry = ensure(name)
       entry.hasSend = true
       const params: SignalParamSpec[] = []
@@ -184,7 +184,7 @@ export function collectSignalUsages(
       if (params.length >= entry.params.length) entry.params = params
     } else if (node.type === 'monitor_signal') {
       const name = signalNameFromArgs(node.args)
-      if (!name) continue
+      if (!name) return
       const entry = ensure(name)
       entry.hasMonitor = true
       const outs = connIndex?.get(node.id)
@@ -208,6 +208,29 @@ export function collectSignalUsages(
         }
       }
     }
+  }
+
+  for (const node of (ir.nodes ?? []) as Array<{
+    id: number
+    type: string
+    args?: Array<Argument | null>
+  }>) {
+    handleNode(node)
+  }
+  // 2026-08-30 事故（游戏拒载）：发送节点位于复合 IR（如 dribble_field_tick 内的
+  // f.sendSignal），只扫主图 IR 会让 finalizeSignalEncoding 早退 → 复合内信号节点
+  // 从不 patch（无 signalVersion / clientExecNode.kind=6 / compositePinIndex），
+  // 注入器只补 ID → 游戏加载时信号发送节点校验失败拒载。
+  for (const def of (ir as {
+    compositeDefs?: Array<{
+      implNodes?: Array<{
+        id: number
+        type: string
+        args?: Array<Argument | null>
+      }>
+    }>
+  }).compositeDefs ?? []) {
+    for (const node of def.implNodes ?? []) handleNode(node)
   }
 
   return [...byName.values()]
@@ -695,6 +718,10 @@ export function patchEncodedSignalNodes(
     for (const pin of node.pins ?? []) {
       const pinKind = pin.i1?.kind
       const pinIndex = pin.i1?.index ?? 0
+      // 2026-08-30 用户修复版实样：编辑器不编码零值 index（i1/i2 的 index=0 一律省略）。
+      // 注意：vendor Pin 是 protobufjs Message，delete 会被原型 getter 复活默认值，必须赋 undefined。
+      if (pin.i1 && pin.i1.index === 0) pin.i1.index = undefined as any
+      if (pin.i2 && pin.i2.index === 0) pin.i2.index = undefined as any
 
       if (pinKind === NodePin_Index_Kind.ClientExecNode || pinKind === 5) {
         pin.compositePinIndex =
@@ -702,16 +729,21 @@ export function patchEncodedSignalNodes(
             ? (identity.encoding?.sendNameCompositePinIndex ?? SEND_SIGNAL_PIN_INDEX.clientExec)
             : (identity.encoding?.monitorNameCompositePinIndex ??
               MONITOR_SIGNAL_PIN_INDEX.clientExec)
-        // Real GIA: type=0, clientExecNode.kind=6, i2=null
-        pin.type = 0
+        // 2026-08-30 用户修复版实样：编辑器不编码 type / i2（旧注释称 Real GIA 有
+        // type=0，与当前编辑器输出不符；显式写出 → 游戏加载拒载）。clientExecNode.kind=6 保留。
+        pin.type = undefined as any
         pin.i2 = null
         pin.clientExecNode = {
           kind: SIGNAL_DEFINITION_CONTRACT.clientExecNodeKind,
           index: 1
         }
-        // itemType.type_server.type = 0 for ClientExec string in real samples
-        if (pin.value?.itemType?.type_server) {
-          pin.value.itemType.type_server.type = 0
+        // type_server 清空（编辑器为空 message，不写 type/kind）
+        const ts = pin.value?.itemType?.type_server as
+          | { type?: number; kind?: number }
+          | undefined
+        if (ts) {
+          ts.type = undefined as any
+          ts.kind = undefined as any
         }
         continue
       }
@@ -748,6 +780,16 @@ export function patchEncodedSignalNodes(
       node.pins = (node.pins ?? []).filter(
         (pin: any) => pin.i1?.kind !== NodePin_Index_Kind.OutParam
       )
+    }
+    if (kind === 'send') {
+      // 2026-08-30 用户修复版实样：send 节点的 name pin（ClientExec）在 OutFlow 之后（最后）。
+      // 管线默认顺序为 [InParam, name, OutFlow]，与编辑器 [InParam, OutFlow, name] 不一致。
+      const pins = node.pins ?? []
+      const nameIdx = pins.findIndex((pin: any) => pin.clientExecNode !== undefined)
+      if (nameIdx >= 0 && nameIdx < pins.length - 1) {
+        const [namePin] = pins.splice(nameIdx, 1)
+        pins.push(namePin)
+      }
     }
   }
 }
