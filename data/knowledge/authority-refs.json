@@ -1837,6 +1837,21 @@
       ]
     },
     {
+      "id": "aref_430adf7d606c1de5e1959ef785",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "按钮字典精确映射",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "1eb5990e169cf3c98c35d078a7dc1cf3e9e3fded680ba0a052d8ebac6cd0cce8",
+      "claim_ids": [
+        "clm_CAE30537EC91456D842A343D39"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_44035fa855a04b47d11dbfccf8",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-27-solvebuf-residual.md",
       "locator": "错误谱系总览 #3 solveBuf 残留",

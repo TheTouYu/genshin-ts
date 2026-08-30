@@ -832,6 +832,12 @@
   PLAN_CLAIM_MISSING），与本记录一致；推荐修复候选 A（add_authority_ref 对零 ref revised claim 放行，
   有 ref 仍走 refresh）影响面分析见 `docs/maintenance/O-28-10-pkc-deadlock-round0-design.md`——
   待用户裁决后才动上游（R1 红绿测试 → R2 修复 → R3 本项目 plan-upgrade+复现 → R4 bundle 审批提交）。
+  **已闭合（2026-08-31）**：用户裁决候选 A 后全链落地——上游修复 bccf0c9（红绿测试：新增
+  zero_ref_revised 用例 + 1728 守护断言保持，198 测试全绿）+ 0c86356（SKILL.md 语义同步）；本项目
+  plan-upgrade fe838a0→0c86356（校验链绿）；复现场景 revise→add-ref→check delta 0 错→finalize 全程
+  无 PLAN_* 错误；bundle bnd_afd9abe3（精确 hash afd9abe33124947dfd14149ce59fd28b4a7d24164534d30d382614edfe43777d）
+  经用户审批 apply——claim 精确映射 F=1937/B=1938/L=1870/R=1936/U=1939/D=1940 已落知识文档，
+  首条 authority ref aref_430adf7d（debug-log-format.md 按钮字典精确映射节）补齐 coverage。
 - ⑥ f10=8（结算合法=5）的组件定义 ID 语义、魔方动画=1 的写入方（服务端图未读）、指令异常始终空的触发条件。
 - 证据：日志 2026-08-28_23-51-57_2980（5 次操作 ops 时间线）+ 地图 SHA f90ac5438c…。
 - 何时做：下次读服务端图日志/读图窗口补 ①②③；读结算图窗口补 ④；pkc 录入窗口补 ⑤。
