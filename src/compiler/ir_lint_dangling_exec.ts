@@ -53,6 +53,11 @@ function isInFlowTarget(pins: CompositePinEntry[], nodeId: number): boolean {
   return pins.some((pin) => pin.outerPinKind === 1 && pin.innerNodeId === nodeId)
 }
 
+/** 事件/信号/引导流入口节点（作为执行来源时其出边是广播/分发性质） */
+function isEntryNodeType(nodeType: string | undefined): boolean {
+  return !!nodeType && (ENTRY_NODE_TYPES.has(nodeType) || nodeType.startsWith(EVENT_ENTRY_PREFIX))
+}
+
 /**
  * 扫描一组 exec 节点 + 执行边，检出「有出边但无入边」的悬空节点。
  *
@@ -79,8 +84,23 @@ export function lintExecGraphForDangling(
 
   // 所有入边目标集合（出现在任何边的 value 中的节点 = 有人指向它）
   const incoming = new Set<number>()
-  for (const connections of Object.values(edges)) {
-    for (const id of collectTargetIds(connections)) incoming.add(id)
+  // 入边明细（非入口来源）：target → { from, sourceIndex }[]，用于分支 join 豁免判定
+  const inEdgeByTarget = new Map<number, Array<{ from: number; sourceIndex: number }>>()
+  for (const [fromStr, connections] of Object.entries(edges)) {
+    const from = Number(fromStr)
+    const fromType = nodeTypeById.get(from)
+    if (isEntryNodeType(fromType)) continue
+    for (const conn of connections) {
+      const target = typeof conn === 'number' ? conn : conn.node_id
+      incoming.add(target)
+      const sourceIndex = typeof conn === 'number' ? 0 : (conn.source_index ?? 0)
+      let list = inEdgeByTarget.get(target)
+      if (!list) {
+        list = []
+        inEdgeByTarget.set(target, list)
+      }
+      list.push({ from, sourceIndex })
+    }
   }
 
   const graphName = opts.graphName ?? '<unnamed>'
@@ -90,8 +110,7 @@ export function lintExecGraphForDangling(
     if (incoming.has(from)) continue
     if (entryIds.has(from)) continue
     if (isInFlowTarget(pins, from)) continue
-    if (nodeType && (ENTRY_NODE_TYPES.has(nodeType) || nodeType.startsWith(EVENT_ENTRY_PREFIX)))
-      continue
+    if (isEntryNodeType(nodeType)) continue
 
     diagnostics.push({
       code: 'GSTS-DANGLING-EXEC-NODE',
@@ -109,6 +128,76 @@ export function lintExecGraphForDangling(
       nodeType,
       originKind: 'user',
     })
+  }
+
+  // —— 重复入边检测（O-2026-08-21-5）——
+  // 同一 target 收到 ≥2 条「相同 source_index 且不同非入口来源」的 exec 边 = 执行链冲突：
+  // auto-chain（f.registerExecNode 从当前 tail 串一条）与显式 f.connect 同时接线时，
+  // 同一节点被执行两次（实证：2×2 gstsDoWhole start_timer 同节点两帧）。
+  // 豁免（合法汇聚形态，不告警）：
+  //   ① 来源是入口节点（when_*/monitor_signal/__bootstrap__/node_graph_begins）——
+  //      多事件汇聚到同一 dispatch 是合法聚合（如 optimize_timer_dispatch 的 mergeGroups）；
+  //   ② 同一 from 的多条边（分支 join / outflow 汇聚，引擎按 source_index 区分）；
+  //   ③ target 是复合 inflow 引脚（外部流入 + impl 内部互连合法）；
+  //   ④ 分支 join：多个来源 from 各自唯一入边来自同一分支节点（double_branch /
+  //      multiple_branches 等），是 true/false 分支汇聚（互斥触发，实测测试图大量存在）。
+  const inputSources = new Map<number, Map<string, Set<number>>>() // target → source_index → from 集合
+  for (const [fromStr, connections] of Object.entries(edges)) {
+    const from = Number(fromStr)
+    const fromType = nodeTypeById.get(from)
+    if (isEntryNodeType(fromType)) continue
+    for (const conn of connections) {
+      const target = typeof conn === 'number' ? conn : conn.node_id
+      if (isInFlowTarget(pins, target)) continue
+      const sourceIndex = typeof conn === 'number' ? 0 : (conn.source_index ?? 0)
+      const key = String(sourceIndex)
+      let byIndex = inputSources.get(target)
+      if (!byIndex) {
+        byIndex = new Map()
+        inputSources.set(target, byIndex)
+      }
+      let sources = byIndex.get(key)
+      if (!sources) {
+        sources = new Set()
+        byIndex.set(key, sources)
+      }
+      sources.add(from)
+    }
+  }
+  const isBranchJoin = (sources: Set<number>): boolean => {
+    if (sources.size < 2) return false
+    let branchFrom: number | undefined
+    for (const from of sources) {
+      const ins = inEdgeByTarget.get(from)
+      // 分支体链尾节点：唯一入边（来自分支节点）；链尾也可能无入边（悬空分支）——不算 join
+      if (!ins || ins.length !== 1) return false
+      if (branchFrom === undefined) branchFrom = ins[0].from
+      else if (branchFrom !== ins[0].from) return false
+    }
+    return branchFrom !== undefined
+  }
+  for (const [target, byIndex] of inputSources) {
+    for (const [index, sources] of byIndex) {
+      if (sources.size < 2) continue
+      if (isBranchJoin(sources)) continue
+      diagnostics.push({
+        code: 'GSTS-DUPLICATE-EXEC-INPUT',
+        severity: 'warning',
+        source: 'user',
+        message:
+          `exec 节点 ${target}（${nodeTypeById.get(target) ?? 'unknown'}）收到 ` +
+          `${sources.size} 条同出口(source_index=${index})入边（来源：${[...sources].join(', ')}）：` +
+          `auto-chain 与显式 connect 冲突会让该节点重复执行`,
+        suggestion:
+          '检查 f.registerExecNode() auto-chain 与 f.connect()/f.link() 是否同时接线；' +
+          '保留单条入口（推荐 f.registerExecNode 自动串联，显式 connect 改为高层 API）',
+        graphId: opts.graphId,
+        graphName,
+        nodeId: target,
+        nodeType: nodeTypeById.get(target),
+        originKind: 'user',
+      })
+    }
   }
 
   return diagnostics
