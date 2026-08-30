@@ -1501,6 +1501,28 @@
         "验证"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "football-physics-core-headless",
+      "node_id": "game-engine-knowledge",
+      "title": "足球第一阶段物理核心（headless 确定性引擎）工程规则",
+      "path": "knowledge/game-engine-knowledge/football-physics-core.md",
+      "summary": "examples/football/sim 确定性物理核心的可复用工程规则：RK4 积分选型（半隐式 Euler 能量漂移不达标）、TOI 冲量接触（支撑位置钉回防幽灵 TOI）、角速度安全阀对纯滚旋量豁免、确定性快照要素、验收工程方法。",
+      "keywords": [
+        "RK4",
+        "TOI",
+        "headless",
+        "physics core",
+        "冲量接触",
+        "安全阀",
+        "恢复系数",
+        "确定性",
+        "纯滚",
+        "足球物理",
+        "轨迹哈希",
+        "马格努斯"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3261,6 +3283,24 @@
       "fact_classes": [
         "documented_contract",
         "external_game_evidence"
+      ]
+    },
+    "clm_BADDE88F8E05D69CF284D1FFB0": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_5B3474A169E052884931E27343": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_31C296D449EF436CB7C5CAD763": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
       ]
     }
   }

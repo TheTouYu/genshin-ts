@@ -3624,6 +3624,21 @@
       ]
     },
     {
+      "id": "aref_92005e9e8a4f9da5fe8f3abd4b",
+      "path": "examples/football/sim/src/core.ts",
+      "locator": "rk4Step / aeroAccel",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "19b90ac0cfd90d328a501e773dfe529e26a1d17e38bdfcd52a7958bf9078741c",
+      "claim_ids": [
+        "clm_BADDE88F8E05D69CF284D1FFB0"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_93924cdf4171dcaf0983734382",
       "path": "docs/ui-tutorial/official-guide-nodes-client.md",
       "locator": "造物技能节点图 → 查询/运算/执行/流程控制/其它",
@@ -4166,6 +4181,22 @@
       ]
     },
     {
+      "id": "aref_adb803190ee77503deda3a86e0",
+      "path": "docs/game-engine-knowledge/football-physics-core.md",
+      "locator": "## 3. 角速度安全阀与纯滚",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "547acad97e57f980b90779bdd405b6f3cab5bce615c4ff58df902d62473f6b8d",
+      "claim_ids": [
+        "clm_31C296D449EF436CB7C5CAD763"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_ae35d245607ccf833abeeacf2a",
       "path": "docs/ui-tutorial/ugc-svg/character-editor.md",
       "locator": "## 32-本地投射物",
@@ -4403,6 +4434,21 @@
       ],
       "supports_fact_classes": [
         "transform_defaults"
+      ]
+    },
+    {
+      "id": "aref_b8e96fa0afcd057851ea215e08",
+      "path": "examples/football/sim/src/core.ts",
+      "locator": "clampVelocities",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "19b90ac0cfd90d328a501e773dfe529e26a1d17e38bdfcd52a7958bf9078741c",
+      "claim_ids": [
+        "clm_31C296D449EF436CB7C5CAD763"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -5098,6 +5144,22 @@
       ]
     },
     {
+      "id": "aref_d6fc6eb7f2ace823474cc6091b",
+      "path": "docs/game-engine-knowledge/football-physics-core.md",
+      "locator": "## 1. 数值积分选型",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "547acad97e57f980b90779bdd405b6f3cab5bce615c4ff58df902d62473f6b8d",
+      "claim_ids": [
+        "clm_BADDE88F8E05D69CF284D1FFB0"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_d730db94a0e29d62c88924c170",
       "path": ".agents/skills/game-from-scratch/SKILL.md",
       "locator": "skill pointer to the guide",
@@ -5530,6 +5592,22 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_e8447a7e8fdeec50a31270ce9d",
+      "path": "docs/game-engine-knowledge/football-physics-core.md",
+      "locator": "## 2. 接触解算",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "547acad97e57f980b90779bdd405b6f3cab5bce615c4ff58df902d62473f6b8d",
+      "claim_ids": [
+        "clm_5B3474A169E052884931E27343"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
       ]
     },
     {
