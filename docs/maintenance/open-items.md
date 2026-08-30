@@ -11,6 +11,12 @@
 
 ## 已落地（DONE）
 
+### 2026-08-30 git 现场修复：stash pop 冲突被误判为「他人未完成 merge」（composite.ts UU）
+
+| 发现 | 证据 | 落地方式 |
+|---|---|---|
+| `composite.ts` 呈 UU 被上报为「他人未完成合并、stash 已不可用」；实为 7 月遗留 `stash@{0}`（fork-api-and-layout "ds"，07-08）在当前分支 `stash pop` 冲突残留——pop 失败不丢 stash，且未合并路径会令后续 stash 命令全被拒（「stash 不可用」的真相） | 无 `MERGE_HEAD`/MERGE_MSG + reflog 无任何 merge 记录 + 冲突标记为 `Updated upstream`/`Stashed changes`（stash 指纹；真 merge 会写 MERGE_HEAD 且标记是分支名）+ `git show 'stash@{0}':<file>` 含 `computeImplLayout` 与冲突 Stashed 侧吻合 + `git diff 'stash@{0}^' 'stash@{0}' --name-only` 波及面仅此一文件 | 三处冲突逐块取 HEAD 侧（stash 侧旧 `computeImplLayout`（÷300/÷200 缩放布局）已被 `build_composite_layout.ts` 的 P4W6 方案取代且有契约测试）：`git restore --source=HEAD --staged --worktree -- <file>` 清 UU；stash 栈 4 条原样保留零丢失；`npm run build` exit 0 + P4W6/P4W7 契约回归 PASS。指纹口诀：**UU + 无 MERGE_HEAD + `Stashed changes` 标记 = stash pop 冲突，不是 merge** |
+
 ### 2026-08-30 构建门禁修复 + tsx 运行时单副本（build 888 错到 0，quicktest 恢复绿）
 
 - client_graph.ts normalizeClientNodesEditorWire 用未定义 ClientGiaPin 类型 + 对必填 number 字段赋
@@ -93,6 +99,15 @@
 - `205b88f` cases/node-copy/graph-var-add ops + 图变量注册/Str 变体 Set/DoubleBranch 语义闭合
 
 ## 未落地（OPEN）
+
+### O-2026-08-30-14 4 条七月遗留 stash 待评估清理（fork-api-and-layout WIP）【OPEN】
+
+- 证据：`git stash list`——`stash@{0}` "ds"（07-08，本次 pop 冲突源，内容已被 build_composite_layout.ts
+  取代）；`stash@{1}` r21 outflow API 重设计（07-05，交接文档
+  `docs/composite-ir/handover/r21-outflow-api-redesign-pending.md`，自述 Bug B 修复/doubleBranch
+  弃用守卫/isCapturing flag「值得保留」）；`stash@{2}` r12 planning（07-03）；`stash@{3}` 8335329 WIP（07-03）。
+- 待办：逐条 `git stash show -p` 比对当前实现，确认无独有价值后 drop；r21 条目先核对 Bug B
+  （capture flag 跳过物理 pin）是否已随后续提交落地。
 
 ### O-2026-08-30-13 mounts def 挂载缺 root5 副本同步（编辑器形态 = root4 f7 + root5 全部引用实体 f6）【OPEN】
 
