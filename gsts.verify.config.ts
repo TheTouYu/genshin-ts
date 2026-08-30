@@ -30,8 +30,8 @@ const config: GstsConfig = {
   inject: {
     gameRegion: 'China',
     playerId: 110170759,
-    mapId: 1073741915,
-    nodeGraphId: 1082130435
+    mapId: 1073741916,
+    nodeGraphId: 1073741825
   }
   // 注入段见 SKILL.md 关键点 1（非信号 case 不配 inject；信号 case 编译时临时配
   // inject 指向验证地图 + --noinject，编译完再单文件注入）
