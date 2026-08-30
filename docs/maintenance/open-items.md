@@ -94,6 +94,34 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-30-01 注入器重建 top field 10 保留 field>5（f7=1 信号标记）【已修复 fcea719，待 PKC 录入】
+
+- 证据：2026-08-30 足球拒载四版本对照（39f54330/e180bbbe/db162dd1/用户修复版）——
+  注入后 `06 38 01 5a eb 02` 变 `06 5a eb 02`，f7=1 丢失 → 游戏不识别信号参数拒载。
+- 落地：src/injector/binary.ts readFieldRawTail + index.ts 两处重建点追加（fcea719）。
+- 待办：PKC 录入（信号注册后注入链路完整性规则）。
+
+### O-2026-08-30-02 复合内信号发送节点完整 patch（collectSignalUsages 扫复合 IR）【已修复 3af8745，待 PKC 录入】
+
+- 证据：dribble_field_tick 内 f.sendSignal 生成的发送节点在 .gia 中仍是占位 300000
+  （无 signalVersion/clientExecNode.kind=6/compositePinIndex）→ 游戏拒载；
+  用户提示"信号发送那里"定位。
+- 落地：collectSignalUsages 扩展扫描 ir.compositeDefs[].implNodes（3af8745）。
+- 待办：PKC 录入（信号节点完整生命周期规则）。
+
+### O-2026-08-30-03 信号名 pin 零字段对齐编辑器实样（protobufjs delete 陷阱）【已修复 3af8745，待 PKC 录入】
+
+- 证据：我的编码 type=0/type_server={0,0}/i1.index=0/i2 vs 编辑器省略；
+  vendor Message 上 delete 无效（getter 复活默认值）→ 须赋 undefined。
+- 落地：patchEncodedSignalNodes 零字段置 undefined + send name pin 移最后（3af8745）。
+- 待办：PKC 录入。
+
+### O-2026-08-30-04 复合内监听节点 / 客户端图信号节点 patch 路径未验证【OPEN 待验证】
+
+- 复合内 monitor_signal：collectSignalUsages 已覆盖但无真实样本验证 patch 输出。
+- 客户端图（client_graph.ts）信号路径无 patchEncodedSignalNodes 调用——同族风险未排查。
+- 何时做：下次涉及复合内监听或客户端信号时先查本项。
+
 ### O-2026-08-29-01 变量系统三层打通任务（跨会话）
 
 - 证据：用户 2026-08-29 发起「完整打通游戏变量相关」三层任务；第一层全景地图已落盘
