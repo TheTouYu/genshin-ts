@@ -451,6 +451,20 @@ function setCreationBindGraphId(record: WireField[], graphId: number, sectionNum
 function appendRootRecord(payload: Uint8Array, rootN: number, record: Uint8Array): Uint8Array {
   const root = parseWireMessage(payload)
   if (!root) throw new Error('[error] malformed GIL payload')
+  // 最小骨架地图（maps:create 产物）没有 root15/16 容器字段：按字段号升序补建
+  // （形态 = 参考图 root15/16：value 为 {1:record,...} 列表；此前缺失时 map 静默
+  // 无操作 → create 后回读 missing，1073741916 干净地图实证）。
+  if (!root.some((field) => field.number === rootN && field.wire === 2)) {
+    const created: WireField = {
+      number: rootN,
+      wire: 2,
+      value: emitWireMessage([{ number: 1, wire: 2, value: record }])
+    }
+    const insertAt = root.findIndex((field) => field.number > rootN)
+    const next =
+      insertAt === -1 ? [...root, created] : [...root.slice(0, insertAt), created, ...root.slice(insertAt)]
+    return emitWireMessage(next)
+  }
   return emitWireMessage(
     root.map((field) => {
       if (field.number !== rootN || field.wire !== 2) return field
