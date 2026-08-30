@@ -17,4 +17,8 @@ g.characterSkill({ id: 1082130433, name: 'verify-c2s-cv-client' }).on('start', (
   const owner = f.getPlayerEntityToWhichTheCharacterBelongs(character)
   const cv = f.getCustomVariable(owner, 'd2c_counter')
   f.sendSignalToServerNodeGraph(C2sCvSignal.d2cv, 'cv', cv.asType('int'))
+  // 手段 4b（2026-08-30 第 2 轮）：通知服务器节点图——三参均需字面量
+  // （assertClientLiteralValue 编译期断言，不能传动态值）；服务端 whenSkillNodeIsCalled 接收。
+  // 预期日志：每 10s 施放后服务端 f22 出现 nt1→c2s-nt / nt2→p2-fixed / nt3→p3-fixed。
+  f.notifyServerNodeGraph('c2s-nt', 'p2-fixed', 'p3-fixed')
 })

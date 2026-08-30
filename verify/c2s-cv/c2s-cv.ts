@@ -63,3 +63,14 @@ g.server({ id: 1073741842, name: 'verify-c2s-cv' })
     f.printString(evt.params.tag)
     f.printString(f.dataTypeConversion(evt.params.val, 'str'))
   })
+  // 手段 4b 接收端（2026-08-30 第 2 轮）：客户端图 notifyServerNodeGraph 三字面量
+  // → 本事件。预期每 10s 施放后 f22：nt1→c2s-nt / nt2→p2-fixed / nt3→p3-fixed；
+  // evt.callerEntity/callerGuid 顺带观察（通知发起者身份）。
+  .on('whenSkillNodeIsCalled', (evt, f) => {
+    f.printString('nt1|')
+    f.printString(evt.parameter1)
+    f.printString('nt2|')
+    f.printString(evt.parameter2)
+    f.printString('nt3|')
+    f.printString(evt.parameter3)
+  })
