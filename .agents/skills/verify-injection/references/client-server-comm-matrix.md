@@ -19,7 +19,7 @@
 |---|------|------|--------------|---------|------|
 | 1 | 技能施放触发客户端图（20002 角色技能/6 模板） | S→C | getAllCharacterEntitiesOfSpecifiedPlayer[0] → addCharacterSkill → createCustomSkillInstance → setCustomVariable(玩家,"技能实例ID") → castSpecifiedSkillInstance → 技能事件轨道(0.0s) → 客户端图节点图开始(200042) | 2997：客户端图记录 f8=2097154×32 | ✅ 闭环 |
 | 2 | 技能施放触发客户端图（20010 操控技能/36 模板） | S→C | 同上 + 需玩家操控状态（未受控 Cast 静默无效） | 配置 1228931075 已建；d2-client.ts 为其编译目标 | ❌ 未闭环（操控状态链） |
-| 3 | 自定义变量共享存储（S 写→C 读） | S→C 数据面 | setCustomVariable(服务端,玩家实体) → 客户端 getCustomVariable(200016).asType | 官方魔方图 2979 间接证据；我方 DSL 链路无游戏证据 | 🔶 第 1 轮目标 |
+| 3 | 自定义变量共享存储（S 写→C 读） | S→C 数据面 | setCustomVariable(服务端,玩家实体) → 客户端 getCustomVariable(200016).asType | **3008 我方闭环**：写入帧(Set=2)→客户端读取帧(OUT0:Integer=2, f8=2097154)→回传帧(cv=2)，N=2,4,7 三点一致；**前置=变量预注册**（3007 反证：动态创建变量客户端读无 OUT 帧→信号 val=None；受控差分：同编译产物仅注册差异→行为翻转） | ✅ 闭环 |
 | 4 | 信号回传 | C→S | sendSignalToServerNodeGraph → 服务端 onSignal（d2lv_client：send=1610612741/monitor=1610612742/server=1610612743，tag:str val:int） | 2997：set→100 / len→3（str+int 两参） | ✅ 基本闭环（float/bool/vec3/entity/list 参数待扩） |
 | 4b | 通知服务器节点图 | C→S | notifyServerNodeGraph(s1,s2,s3)（三参均需字面量）→ 服务端 whenSkillNodeIsCalled（callerEntity/callerGuid/parameter1..3） | DSL 双端面已确认（client_nodes.ts:5045 / events-payload.ts:1264）；PKC clm_D1A2 官方链路描述；无我方游戏证据 | ❌ 未闭环（候选第 2 轮） |
 | 5 | 单位状态间接通道 | C→S | addUnitStatus(客户端) → When Unit Status Changes(服务端) | 官方魔方 2979（26 块加状态→27 块监听） | ❌ 我方 DSL 链路未验 |
@@ -42,9 +42,11 @@
 6. localVariable 其余 18 类型 + dict 声明锚（批次 9 容器元数据）
 7. assemblyList / copyList / createDictionary / assemblyDictionary（wire 层）
 
+### 已验证（游戏内 3008，手段 3 闭环随带）
+8. getCustomVariable（客户端读服务端写入值；前置=预注册）✓ OUT0:Integer=2
+9. 实体查询族：getCurrentCharacter（OUT0:Entity=4）/ getPlayerEntityToWhichTheCharacterBelongs（带参版，角色4→玩家3）✓
+
 ### 待验证（游戏内，按优先级）
-8. getCustomVariable（客户端读服务端写入值）——第 1 轮
-9. 实体查询族：getCurrentCharacter / getPlayerEntityToWhichTheCharacterBelongs / getCharacterEntityOfSpecifiedPlayer / queryGuidByEntity / getEntityLocation——第 1 轮顺带
 10. 信号参数类型扩展：float / bool / vec3 / entity / list
 11. 列表操作族：getCorrespondingValueFromList / min / max / listIncludesThisValue
 12. dict 值族：queryDictionarySLength（非空 dict 读写）
@@ -64,14 +66,15 @@
 - **地图决策（2026-08-30 用户指示）**：创建新地图开始验证；1073741915（变量图）与
   1073741913（魔方-客户端优化版本）仅作参考图。理由：旧图有编辑器保存清零史、双 5s
   定时器仲裁、复合残留等干扰，新地图归因干净。
-- 第 1 轮（已确认）：手段 3——新地图上服务端图定时器写玩家自定义变量 `d2c_counter`
-  （递增值；setCustomVariable 支持动态创建，PKC clm_070E，免预注册先试），定时器施放技能
-  （20002 客户端图，6 模板瞬发配置）触发客户端图读该变量：
-  getCustomVariable(getPlayerEntityToWhichTheCharacterBelongs(), 'd2c_counter').asType('int')
-  → 信号回传 `cv` 值。观测：服务器 f22 `d2cv|w|`=N vs `cv`=N 一致即闭环（写入/施放定时器
-  错峰，客户端读到最近一次写入值）。
-- 候选后续：信号参数类型扩展（手段 4 加固）→ 单位状态通道（手段 5）→ 20010 操控链（手段 2，
-  需用户操控配合）→ API 清单 11-20 按族批量验证（每轮一族，共用信号回传通道）。
+- 第 1 轮（✅ 已闭环，3008 日志）：手段 3——服务端图双定时器（cv_write 4s 写玩家变量
+  d2c_counter=序列 / cv_cast 10s 施放链触发 20002 客户端图）→ 客户端读变量回传。
+  **3007 首测失败 → 归因动态创建变量客户端不可见 → 预注册（顶层+9 副本）→ 3008 闭环**。
+  证据链：写入帧 Set=2 → 客户端读取帧 OUT0:Integer=2（f8=2097154）→ 回传帧 cv=2；
+  N=2,4,7 三次一致。附带观察：同 tick 双定时器 cv_cast 先于 cv_write 执行（t=20 读到
+  t=16 的值 4 而非当 tick 值 5，单样本）。
+- 候选后续：信号参数类型扩展（手段 4 加固）→ notifyServerNodeGraph 通道（手段 4b）→
+  单位状态通道（手段 5）→ 20010 操控链（手段 2，需用户操控配合）→ API 清单 10-20 按族
+  批量验证（每轮一族，共用信号回传通道）。
 
 ## 四、已知局限（做归因时参考）
 

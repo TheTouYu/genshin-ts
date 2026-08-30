@@ -107,6 +107,16 @@ f21 = {
 
 ### 跨端通信日志铁证（魔方一次完整旋转的执行序列）
 
+#### 客户端图「获取自定义变量」帧模式（2026-08-30 会话 3007/3008 受控差分实证）
+
+- **变量存在（预注册）**：`head=04 获取自定义变量: IN0:Entity=玩家 | IN1:String=变量名 | OUT0:Integer=值`
+  ——输出帧正常产生，值随后流入发送信号参数（`IN1:Integer=值`）。
+- **变量不存在（服务端运行时动态创建）**：同节点**只有 IN0/IN1、无 OUT 行**；下游「向服务器
+  节点图发送信号」对应参数显示 `IN1:None=?`，服务端 monitor 不触发。注意与官方文档
+  「变量不存在返回类型默认值」不符——实测无输出帧而非默认值帧（单样本，int 类型）。
+- 判别口诀：客户端记录 f21 大小突变（同图 134B↔156B）+ head=04 有无 OUT 行 = 变量跨端
+  可见性的一眼判据。
+
 1. **玩家点按钮**：When Floating Interaction Page is Triggered（OUT2/OUT3=按钮 ID）→ Create Dictionary
    （按钮 ID → 指令编码表：F/B/L/R/U/D=1073741937~1073741940、x/y/z=1073743064~1073743066）→
    Query Dictionary Value by Key → Set Local Variable → Set Custom Variable "指令"=x（IN4:Boolean=1 触发变量事件）

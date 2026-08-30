@@ -104,3 +104,29 @@
   ✓（每定时器独立序列，与帧证据一致）；init=42/len=3/elem0=1 不变；B 组 set=100/len=3 照旧。
 - 知识：定时器事件节点"官方定义顺序 ≠ 引擎运行时输出顺序"（详见
   docs/game-engine-knowledge/node-graphs.md「定时器事件」节）。
+
+## verify-c2s-cv（2026-08-30，用户游戏核验通过 3008——手段 3 闭环）
+
+- 背景：服务端↔客户端通信手段矩阵第 1 轮——自定义变量共享存储（S 写→C 读）在新地图闭环。
+- 地图：**新建** 1073741916「GSTS核验-变量C2S」（用户指示：旧变量图 1073741915 仅作参考）；
+  服务端图 `_GSTS_verify-c2s-cv`（1073741825，28 节点，挂载空模型 1077936129）、客户端图
+  `_GSTS_verify-c2s-cv-client`（1082130433，20002，5 节点）、信号 `d2cv`（tag:str val:int）、
+  技能配置 1098907660（6 模板瞬发绑定）。
+- 链路：cv_write 定时器(4s) setCustomVariable(玩家, d2c_counter, 序列) → cv_cast 定时器(10s)
+  施放链（addCharacterSkill→createCustomSkillInstance→set 技能实例ID→cast）→ 客户端图
+  getCurrentCharacter→getPlayerEntityToWhichTheCharacterBelongs(带参)→getCustomVariable
+  ('d2c_counter')→sendSignalToServerNodeGraph → 服务端 onSignal 打印。
+- 自动证据：wire 断言（WhenTimer OUT4 值链/技能实例ID set-get 对/monitor tag→OP3、val→OP4；
+  客户端 5 节点链+信号名 pin）；注入后 .gil 回读两图执行流一致；复合 0 悬空；Temp md5 一致。
+- 用户游戏证据（3007 首测→3008 复测，**受控差分定论**）：
+  - 3007（未预注册）：写入/施放/客户端图执行全正常（施放链 CreateInstance=10000002、
+    Set/Get 技能实例ID 当 tick 读写正常），但客户端「获取自定义变量」**无 OUT 帧**→信号
+    val=None→monitor 不触发。动态创建的变量**客户端不可见**。
+  - 3008（预注册 d2c_counter+技能实例ID 到玩家 prefab 顶层+9 副本后，编译产物零改动）：
+    客户端 OUT0:Integer=2 → 信号 IN1:Integer=2 → f22 `cv`=2；N=2,4,7 三次一致全链闭环。
+- 规则结论：①**自定义变量必须资产侧预注册才能被客户端图读取**（官方文档前置要求 + 实证；
+  已沉淀 genshin-ts-asset-operations 技能红线）；②服务端动态创建变量仅服务端当 tick 读写
+  可见（跨端不可见）；③附带观察：同 tick 双定时器 cv_cast 分支先于 cv_write 执行（单样本）。
+- 踩坑（已回写）：新分支图 id 必须先查 verify/ 全部 g.server id（与 d2-lv 1073741840 撞 id
+  → merge 污染 60 节点，parse 回读发现）；客户端 helper 类实现是带参版（interface 无参版
+  未落到类，调无参版传 undefined 报 Invalid value type: entity）。
