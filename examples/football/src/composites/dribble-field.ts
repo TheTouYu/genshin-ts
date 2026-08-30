@@ -251,10 +251,14 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     f.doubleBranch(
       canDrive,
       () => {
-        // 自旋滞后（用脉冲前的衰减速度算滚动 ω）：触球瞬间线速度跳变而自旋未跟上
-        // → 视觉相对滑动，随后续脉冲逐渐追上纯滚（用户 A/B：高速触球要有滑动）
+        // 自旋 = 当前拍球速的纯滚表达（R0 日志 3028 取证修复，2026-08-30）：
+        // 旧链用 decayVx 作 spin 入参，编译后该表达式在 write-back 之后重新求值
+        // → 0.95×(写回后的新 v) = 双衰减，滑差恒 5%、永不收敛（日志实测 |v|-ωR=5.0%·v）。
+        // 改为与线速度设备同源：直接读物化快照 tmpDribbleVel（本拍最终速度，已由
+        // sTmp 写入且本 tick 不再变），取水平分量 → ω=|v_h|/R 原样表达当前球速；
+        // 触球瞬间"滑动→滚动"的过渡由引擎对同名 0.15s 旋转设备的连续表达自然给出。
         const spin = f.callComposite(dribbleFieldRollSpin, {
-          vel: f.create3dVector(decayVx, 0, decayVz), radius: BALL_R, curRot: ballLoc.rotate
+          vel: f.create3dVector(fv.xComponent, 0, fv.zComponent), radius: BALL_R, curRot: ballLoc.rotate
         })
         // 设备时长 DEVICE_T=0.15 > 拍距 0.12：相邻设备重叠，速度切换无缝
         const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
