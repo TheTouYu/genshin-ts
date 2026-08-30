@@ -33,6 +33,22 @@ gsts assets:custom-variables --gil <map> --write
 - 配置路径支持 `operation.target`（prefab 等）与 `syncInstances`（把缺失声明同步到明确引用模板的实例容器；玩家模板通常需要“顶层定义 + 实例容器同步”才在编辑器可见）。
 - 全 21 种类型：entity / guid / int / bool / float / str / vec3 / faction / config_id / prefab_id 及对应 10 种列表 + dict。
 
+**⚠️ 预注册前置红线（2026-08-30 用户定规 + 3007 日志实证）**：DSL 里 `setCustomVariable` /
+`getCustomVariable`（尤其客户端图读取）使用的自定义变量，**必须先在本节 CLI/API 预注册变量定义，
+再进 DSL**。依据：①官方文档「设置自定义变量…要求目标实体上存在自定义变量组件，且有对应名字
+的变量，否则节点无法正常执行」；②3007 日志实证：未预注册、靠服务端运行时"动态创建"的变量
+`d2c_counter`——服务端当 tick Set→Get 读回正常，但客户端图「获取自定义变量」**无 OUT 输出帧**
+（发送信号 IN1=None）；而同链路预注册过的「技能实例ID」模式（参考图/旧图）在 2997 全链正常。
+（归因待复验：动态创建变量客户端不可见 vs 客户端 Variant 出参未定型，两者均以预注册规避。）
+
+**新地图前置（maps:create 产物）**：最小骨架**没有**玩家模板（root4 无 1086324737 定义、root5 无
+“默认模版”实体）——游戏运行时仍会创建玩家实体，但资产侧无处预注册玩家变量。前置步骤：
+`assets:entities import --definitions-gil <参考图.gil>`（donor 补定义）导入参考图的“默认模版”
+实体（1086324737），再用 API 路径声明变量：
+`applyCustomPrefabInitialCustomVariableDeclarations`（顶层定义）+ `syncPlayerCustomVariableDeclarations`
+（实例容器同步；包公开入口见 `docs/architecture/gil-custom-variables.md` §2）。
+服务端图 / 客户端图要读写的**每一个**自定义变量（含施放链的「技能实例ID」）都要走此预注册。
+
 ## 1.5 元件/实体资源列出与静态/动态元件
 
 ```text

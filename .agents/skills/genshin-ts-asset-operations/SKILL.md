@@ -123,6 +123,10 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 变量按作用域分实体级 / 节点图级 / 局部；本技能只做**实体级/关卡级/初始变量**的 .gil 资产读写，不碰节点图内部局部变量。
 
+- **⚠️ 预注册前置（2026-08-30 定规）**：DSL（`setCustomVariable`/`getCustomVariable`，尤其客户端图读取）
+  使用的自定义变量**必须先在本节 CLI/API 预注册定义再进 DSL**——官方文档要求变量已存在，且 3007
+  日志实证动态创建的变量客户端图读不到（无 OUT 帧）。红线细节、新地图玩家模板前置步骤与 API 入口
+  见 `references/asset-cli-reference.md` §1「预注册前置红线」。
 - 关卡变量：`gsts assets:level-variables create --name <n> --type <t> [--value <v>] [--entity <id>]`（默认关卡实体 1094713345）；`list` / `update` 同理。
 - 任意场景实体变量（含新建实体）：`gsts assets:custom-variables --entity <id> --vars "name:type=value;..." --write`，回读用 `--list --format json`。declaration 是 upsert：同名同类型更新，缺失追加，不会动其它变量。
 - 元件/玩家/角色初始变量：`gsts.config.ts` 的 `assets.customVariables` 声明，`assets:custom-variables --write`（无 `--entity` 时走配置路径）；`syncInstances: true` 会补齐明确引用模板的实例容器（玩家模板通常需要“顶层定义 + 实例容器同步”两处都写才可见）。
