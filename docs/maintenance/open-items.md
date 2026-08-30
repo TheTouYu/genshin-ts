@@ -821,6 +821,12 @@
 - ③ trace-node 服务端复合 impl 帧参数：当前仅主图节点（head 首字节）；复合内节点数据流需读 impl 图（parse-gil --json 已有 children）。
 - ④ 结算合法图（1073741854）：When Global Timer Is Triggered（全局计时器1）周期与判胜链未读图核验（日志已见 36 帧）。
 - ⑤ PKC claim 修正：按钮字典 L=1073741870（claim 现写 1073741937~1073741940 连续），需重跑 pkc capture 更新 client-log-encoding claim。
+  **2026-08-30 尝试被 PKC 工具约束阻塞**：revise-claim 后 add-authority-ref 报 PLAN_CLAIM_REVISED_NEEDS_REFRESH
+  （只许 refresh），而该 claim 为 not_registered（authority-refs.json 0 条）无法 refresh 单条；
+  `refresh --all-stale` 会拉全库 130 条 stale ref（范围事故，已 abandon）。精确映射已落已提交文档
+  `docs/game-engine-knowledge/debug-log-format.md`「按钮字典精确映射」节（F=1937/B=1938/L=1870/R=1936/
+  U=1939/D=1940，commit 9cfbc58）——claim 与文档暂时不一致，待 PKC 支持 revise 无 ref claim 补 ref
+  或批量维护轮统一处理（与 O-2026-08-29-11 stale refs 积压同窗口）。
 - ⑥ f10=8（结算合法=5）的组件定义 ID 语义、魔方动画=1 的写入方（服务端图未读）、指令异常始终空的触发条件。
 - 证据：日志 2026-08-28_23-51-57_2980（5 次操作 ops 时间线）+ 地图 SHA f90ac5438c…。
 - 何时做：下次读服务端图日志/读图窗口补 ①②③；读结算图窗口补 ④；pkc 录入窗口补 ⑤。
