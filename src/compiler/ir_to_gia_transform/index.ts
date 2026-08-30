@@ -276,6 +276,7 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       bString?: { val?: string }
       bId?: { val?: number }
       bVector?: { val?: { x?: number; y?: number; z?: number } }
+      bArray?: { entries?: unknown[] }
     }
     stripKind(ev.itemType)
     const vec = ev.bVector?.val
@@ -286,15 +287,21 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       (ev.bEnum && ev.bEnum.val != null && ev.bEnum.val !== false && nonZero(ev.bEnum.val)) ||
       (ev.bString && ev.bString.val != null && ev.bString.val !== '') ||
       (ev.bId && nonZero(ev.bId.val)) ||
-      (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z)))
+      (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z))) ||
+      // 2026-08-31 编辑器差分实证（1073741914 多分支 cases）：bArray 容器有 entries 时
+      // 是非默认值，必须保留内层 alreadySetVal——编辑器/引擎靠它判断值已设置；
+      // 漏判会让 alreadySetVal 被 delete（=false），编辑器加载分支全丢+保存清零
+      // （差分实样：编辑器手加 cases 后内层 asv=true；我们产物 asv=false → 分支丢失）。
+      (ev.bArray && Array.isArray(ev.bArray.entries) && ev.bArray.entries.length > 0)
     if (hasNonDefault) {
-      // 非默认值：显式 payload 保留；alreadySetVal 恒保留（2026-08-29 治本实测修正）：
-      // - Get InParam[0]（创建锚）保留 alreadySetVal=1（矩阵批次 7 实样）；
-      // - Set InParam[1]（更新值）**也保留**——编辑器修改路径实测：用户把 Set 值改为
-      //   100 保存后，内层写 alreadySetVal=1（{class2, f2:1, itemType, bInt{100}}）；
-      //   无标记的非默认 int 值会被编辑器保存按默认清零（1073741915 实测：CLI 注入
-      //   无标记 Set 100 → 编辑器保存 → bInt 空）。旧 S6"Set 不写 alreadySetVal"只符合
-      //   编辑器新建路径（v10 bool true 无 f2），修改路径必须写，否则注入后保存必丢值。
+      // 非默认值：显式 payload 保留；alreadySetVal 恒置 true（2026-08-29 治本实测 +
+      // 2026-08-31 vendor 补写修正）：
+      // - 编辑器修改路径实测：非默认值内层恒写 alreadySetVal=1（fc44db1，1073741915 差分）；
+      // - 2026-08-31 1073741914 多分支 cases 差分：编辑器对有 entries 的 bArray 容器同样
+      //   写 asv=1；asv 缺失/false 会被编辑器/引擎视为"未设置" -> 分支全丢+保存清零。
+      // - 原实现只"保留"上游写入的 asv：legacy factory 写了 true 被保留，但 vendor 惰性
+      //   物化不写 -> 保留 undefined 无效。这里统一主动补写 true，双后端一致。
+      ev.alreadySetVal = true
       return
     }
     delete ev.alreadySetVal
