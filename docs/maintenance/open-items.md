@@ -94,6 +94,13 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-30-13 mounts def 挂载缺 root5 副本同步（编辑器形态 = root4 f7 + root5 全部引用实体 f6）【OPEN】
+
+- 证据：2026-08-30 用户编辑器教学差分（1073741916）——编辑器挂玩家模板 def 一次同步 root5 九副本
+  f6；CLI `mountGraphToDef` 只同步 root8（元件），root5 场景副本须手工循环 `attach --entity`。
+- 增强：attach --def 时对 root5 中 `instanceReferencesDef` 的实体一并 f6 双写（或加 --sync-instances）。
+- 知识已落盘：graph-mounting.md「特殊实体的节点图挂载」+ asset-operations 技能挂载节。
+
 ### O-2026-08-30-09 客户端 entity helper：interface 无参 self 绑定版未落到类实现【OPEN】
 
 - 证据：2026-08-30 c2s-cv 分支——`f.getPlayerEntityToWhichTheCharacterBelongs()` 无参调用 TS 放行

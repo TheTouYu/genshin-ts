@@ -83,6 +83,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   - 多图协作首选**单信号 + op/val 参数**（2026-08-23 实证），少建多个信号；根图事件回调改变量用高层 `f.setNodeGraphVariable`。
 - 挂载：`gsts assets:mounts attach <target-id> --graph <gid> [--entity|--def] --gil <map> --write`；`list [<target-id>]` 查挂载关系；`detach <target-id> --graph <gid>` 卸下（最后一条卸完保留空 `08036a00` 槽）。
 - **挂载目标用普通场景实体**。⚠️ 关卡实体（1094713345，官方 defId=10003004）由游戏运行时默认创建，**禁止手动 import 添加**——手动加会导致游戏“地图异常”。需要挂载对象时先用 `assets:entities import`/`static-assemblies` 建普通实体。
+- **特殊实体挂载（玩家/角色模板，2026-08-30 用户编辑器教学差分实证）**：玩家模板 1086324737（root4 def + root5 九副本 737–745）/ 角色编辑实体 1090519041（def + 实体）；挂载条目 wire = `{1:1, 2:图GID, 501:20000}` 与普通实体同构（root5 f6 / root4 f7）。**编辑器挂模板 def = root4 f7 + root5 全部副本 f6 自动同步**；CLI `--def` 只同步 root8（元件）**不同步 root5 副本**——复现编辑器形态须 `attach --def` + 循环 `attach --entity`（每副本）。事件定向：`whenSkillNodeIsCalled` 需挂角色侧（详见 graph-mounting.md「特殊实体的节点图挂载」）。
 - 多人语义：挂到玩家/角色实体上的图按玩家分别执行；需要“全局只执行一次”时自行加去重门控，不能默认一次。
 - **玩家/角色实体变量 = 资产侧模板同步（2026-08-29 矩阵批次 11/12 实证）**：编辑器修改任一玩家实体
   变量 → 自动同步全部玩家实体副本（本地图 9 个 1086324737–745，entry 字节相同 = 模板复制）；
