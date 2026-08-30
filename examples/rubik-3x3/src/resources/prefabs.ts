@@ -149,5 +149,10 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 10009001
    */
-  '魔方控制器3x3-B': 1077936202
+  '魔方控制器3x3-B': 1077936202,
+
+  /**
+   * Based on prefabId 10008001
+   */
+  元件组魔方摆放: 1077936230
 }

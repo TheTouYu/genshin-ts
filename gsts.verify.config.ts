@@ -8,7 +8,7 @@ import type { GstsConfig } from './src/compiler/gsts_config.js'
 //     gameRegion: 'China',
 //     playerId: 110170759,
 //     mapId: <验证地图 id>,
-//     nodeGraphId: <分支 placeholder 图 id>
+//     nodeGraphId: 1082130435<分支 placeholder 图 id>
 //   }
 //
 const config: GstsConfig = {
@@ -31,7 +31,7 @@ const config: GstsConfig = {
     gameRegion: 'China',
     playerId: 110170759,
     mapId: 1073741915,
-    nodeGraphId: 1082130434
+    nodeGraphId: 1082130435
   }
   // 注入段见 SKILL.md 关键点 1（非信号 case 不配 inject；信号 case 编译时临时配
   // inject 指向验证地图 + --noinject，编译完再单文件注入）

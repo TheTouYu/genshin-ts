@@ -56,3 +56,10 @@ examples/*/.gsts/
 # image-editor 需要的“输入数据”(非生成中间产物)：模板与字节金样本文档化后纳入 git
 !src/thirdparty/miliastra-image-editor/template/image_template.gia
 !tests/image-editor/fixtures/golden-image-mode.gia
+
+# 本地临时/构建目录与会话缓存（勿提交）
+.session-cache/
+.tmp_cube/
+dist.tmp/
+dist.bak-src/
+examples/*/dist-*/

@@ -1941,8 +1941,17 @@ export function createFloatingPageRich(
   const group = mk(BUILTIN_FP_GROUP, { [FP2_SRC_GROUP]: groupId, [FP2_SRC_CLOSEBTN]: closeBtnId })
   const closeBtn = mk(BUILTIN_FP_CLOSEBTN, { [FP2_SRC_CLOSEBTN]: closeBtnId, [FP2_SRC_GROUP]: groupId })
   if (options.name !== undefined) inst = Buffer.from(setUiName(inst, options.name))
-  // 7) 6 个内容页素材组（f503 成员 remap 到自身避免悬空）
-  const pageGroups = pageGroupIds.map((gid) => mk(RICH_PAGE_GROUP, { [1073741990]: gid, [1073741991]: gid }))
+  // 7) 6 个内容页素材组（f503 成员置空——学习资产子记录引用了本图不存在的素材 1884，补子记录反而悬空）
+  const pageGroups = pageGroupIds.map((gid) => {
+    const pg = mk(RICH_PAGE_GROUP, { [1073741990]: gid })
+    const pgFields = parseWireMessage(pg)
+    if (pgFields) {
+      const f503 = pgFields.find((x) => x.number === 503 && x.wire === 2)
+      if (f503) f503.value = encodePackedVarints([])
+      return Buffer.from(emitWireMessage(pgFields))
+    }
+    return pg
+  })
   // 8) 页签容器（成员改为 [tabId]，去掉 tips/关闭按钮/页签2/图片 占位）
   const tabContainer = mk(RICH_TAB_CONTAINER, {
     [1073742007]: tabContainerId,
@@ -1971,13 +1980,21 @@ export function createFloatingPageRich(
     [1073742014]: stateGroupIds[2],
     [1073742017]: stateGroupIds[3]
   })
-  // 10) 4 状态素材组
+  // 10) 4 状态素材组（f503 成员置空——子记录 2010/2012 等未创建，避免悬空）
   const stateGroups = [
     mk(RICH_STATE_DEFAULT, { [1073742009]: stateGroupIds[0] }),
     mk(RICH_STATE_HOVER, { [1073742011]: stateGroupIds[1] }),
     mk(RICH_STATE_PRESSED, { [1073742014]: stateGroupIds[2] }),
     mk(RICH_STATE_SELECTED, { [1073742017]: stateGroupIds[3] })
-  ]
+  ].map((sg) => {
+    const sgFields = parseWireMessage(sg)
+    if (sgFields) {
+      const f503 = sgFields.find((x) => x.number === 503 && x.wire === 2)
+      if (f503) f503.value = encodePackedVarints([])
+      return Buffer.from(emitWireMessage(sgFields))
+    }
+    return sg
+  })
   // 11) 全部推入 root9
   const root9 = top.find((f) => f.number === 9 && f.wire === 2)
   if (!root9) throw new Error('[error] root9 缺失')
