@@ -24,9 +24,11 @@
 ## 知识录入入口
 
 - 常见错误：[`knowledge-capture-common-errors.md`](knowledge-capture-common-errors.md)。
-- 周度经验入口：`docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md`（10 根因族总表 +
-  15 方法论索引 + 沉淀缺口）；知识索引的「复盘档案」节指向全部单主题复盘。
-  2026-08-29 元复盘已把 5 条跨玩法规则录入 PKC（bundle bnd_83bb3685…，claims 334→339）。
+- 周度经验入口（2026-08-30 归档后）：`docs/game-engine-knowledge/retrospective-archive.md`
+  （两轮复盘闭环总索引：当前推荐区 = 总纲 v2 + 族卡片 + 两矩阵 + 元复盘 + 08-30 批次；
+  历史记录区 = v1 总纲 retrospective-weekly-2026-08-22-29.md（已标历史，被 v2 取代）+ 43 份单主题复盘）。
+- 元复盘已把跨玩法规则录入 PKC：v1 批 bundle bnd_83bb3685…（334→339）；
+  二轮批 bnd_81d5378d/bnd_f5dc558f/bnd_253802ff（339→357，三 bundle 均用户精确 hash 确认后 apply）。
 - 固化流程：[`knowledge-capture-canonical-flow.md`](knowledge-capture-canonical-flow.md)。
 - 录入原则：从已提交变更开始，固定使用 `python tools/pkc.py`，单计划串行 mutation，最终一次 delta check，精确 hash 审批，apply 后集中验证。
 

@@ -183,10 +183,12 @@ GIL 整体结构与语义树
 ## 复盘档案
 
 > 复盘文档 = 任务级错误谱系与方法论记录，是「下次同类任务前先查」的经验入口。
-> 周度总纲做跨主题合成；单主题细节回源对应复盘文档。索引入口：[周度总纲 2026-08-22~29](retrospective-weekly-2026-08-22-29.md)。
-> **第二轮合成（2026-08-29，覆盖 08-14~08-29 共 43 份）四件套**：[总纲 v2](retrospective-weekly-v2-2026-08-14-29.md)（R1-R12 族总表）/
+> **归档总入口（两轮复盘已闭环，2026-08-30）**：[复盘档案总索引](retrospective-archive.md)
+> （当前推荐区：v2 四件套 + 元复盘 + 08-30 批次；历史记录区：v1 总纲 + 43 份单主题复盘逐行登记）。
+> **第二轮合成四件套**：[总纲 v2](retrospective-weekly-v2-2026-08-14-29.md)（R1-R12 族总表）/
 > [根因族二级卡片](root-cause-family-cards-v2.md)（逐案例：现象/日志帧签名/根因子类/防线）/ [地图×图型矩阵](map-graph-type-matrix.md) /
 > [覆盖率矩阵](coverage-matrix-v2.md)（文档×族×五沉淀层，红格=0）。执行过程元复盘：[二轮复盘任务复盘](retrospective-2026-08-29-meta-retro-round2.md)。
+> 第一轮总纲 [2026-08-22~29](retrospective-weekly-2026-08-22-29.md) 已标历史记录（被 v2 取代）。
 
 - **魔方 rubik-2x2/3x3**：整体性能与预算 [08-14](retrospective-2026-08-14.md)、
   [P0/P1](retrospective-2026-08-21-rubik-performance-p0-1.md)、[记录上限 3000f](retrospective-2026-08-22-rubik-record-limit-fixes.md)、
