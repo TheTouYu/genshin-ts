@@ -254,6 +254,23 @@ const graph = g
         // 二层测试打乱：只动 U/E（保持第一层完整），完成后自动接自动还原
         f.callComposite(flowScrambleLayer2, { target: f.getSelfEntity() })
       },
+      99: () => {
+        // B1 设备语义实验（2026-08-31 perf 任务）：对 blocks[0] 加朝向目标旋转型运动器。
+        // blocks[0] 世界位置 (2,4,2) = 中心 (3,3,3) + 偏移 (-1,+1,-1)，初始朝向 (0,0,0)。
+        // 判定表：绕中心转到 (2,4,4) = 语义含魔方中心锚点（官方模式可用）；
+        // 原地自转 = 纯朝向插值；绕世界原点飞出 = 绕原点语义（官方另有机遇）。
+        const b0 = f.getCorrespondingValueFromList(
+          f.getNodeGraphVariable('blocks').asType('entity_list'),
+          0n
+        )
+        f.addTargetOrientedRotationBasedMotionDevice(
+          b0,
+          new str('b1probe'),
+          1.0,
+          f.create3dVector(0, 90, 0)
+        )
+        f.printString('b1-probe-fired')
+      },
       default: () => {}
     })
   })

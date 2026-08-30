@@ -22,6 +22,11 @@ const graph = g
         f.setCustomVariable(main, new str('rubik3x3_fast_mode'), nv, false)
         f.printString('rubik3x3-speed-toggled')
       },
+      3: () => {
+        // B1 设备语义实验：触发 turn 图 op=99（对 blocks[0] 加 Target-Oriented 设备，1s 观察）
+        f.sendSignal(RubikSignal.rubik3x3_solve, 99n, 0n)
+        f.printString('b1-probe-tab3')
+      },
       default: () => {}
     })
   })
