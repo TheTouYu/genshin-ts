@@ -34,7 +34,13 @@ type DispatchCase = {
   headNodeId?: number
 }
 
-type DispatchInfo = {
+// 有 default 分支（next source_index=0）的 dispatch：default 只保留在首个 chunk，
+// 其余 chunk 不带 default；有 default 的 dispatch 不参与多 dispatch 合并（default 语义唯一）。
+type DefaultHead = {
+  defaultHeadNodeId?: number
+}
+
+type DispatchInfo = DefaultHead & {
   eventNodeId: number
   dispatchNodeId: number
   equalNodeId?: number
@@ -98,9 +104,16 @@ function parseMultipleBranchesDispatch(eventNodeId: number, dispatch: IRNode): D
   const nexts = asNextArray(dispatch.next)
   const caseCount = caseNames.length
   const heads = new Map<number, number>()
+  let defaultHeadNodeId: number | undefined
   for (const n of nexts) {
     const sourceIndex = getNextSourceIndex(n)
-    if (sourceIndex === 0 || sourceIndex > caseCount) return null
+    if (sourceIndex === 0) {
+      // default 分支（Multiple Branches 的 OutFlow[0]）：至多一条
+      if (defaultHeadNodeId !== undefined) return null
+      defaultHeadNodeId = getNextNodeId(n)
+      continue
+    }
+    if (sourceIndex > caseCount) return null
     if (heads.has(sourceIndex)) return null
     heads.set(sourceIndex, getNextNodeId(n))
   }
@@ -113,6 +126,7 @@ function parseMultipleBranchesDispatch(eventNodeId: number, dispatch: IRNode): D
   return {
     eventNodeId,
     dispatchNodeId: dispatch.id,
+    defaultHeadNodeId,
     cases
   }
 }
@@ -168,7 +182,8 @@ export function optimizeTimerDispatchAggregate(ir: IRDocument, enabled: boolean)
   const buildDispatch = (
     dispatchId: number,
     eventNodeId: number,
-    cases: DispatchCase[]
+    cases: DispatchCase[],
+    defaultHeadNodeId?: number
   ): IRNode => {
     const controlArg: ConnectionArgument = {
       type: 'conn',
@@ -176,6 +191,9 @@ export function optimizeTimerDispatchAggregate(ir: IRDocument, enabled: boolean)
     }
     const caseArgs: Argument[] = cases.map((c) => ({ type: 'str', value: c.timerName }))
     const next: NextDetail[] = []
+    if (defaultHeadNodeId !== undefined) {
+      next.push({ node_id: defaultHeadNodeId, source_index: 0 })
+    }
     cases.forEach((c, idx) => {
       if (c.headNodeId === undefined) return
       next.push({ node_id: c.headNodeId, source_index: idx + 1 })
@@ -214,7 +232,12 @@ export function optimizeTimerDispatchAggregate(ir: IRDocument, enabled: boolean)
 
     const first = chunks[0] ?? []
     if (first.length) {
-      const updated = buildDispatch(info.dispatchNodeId, info.eventNodeId, first)
+      const updated = buildDispatch(
+        info.dispatchNodeId,
+        info.eventNodeId,
+        first,
+        info.defaultHeadNodeId
+      )
       baseDispatch.type = updated.type
       baseDispatch.args = updated.args
       if (updated.next) baseDispatch.next = updated.next
@@ -255,8 +278,10 @@ export function optimizeTimerDispatchAggregate(ir: IRDocument, enabled: boolean)
     })
   })
 
-  const eligible = infos.filter((info) =>
-    info.cases.every((c) => (caseCounts.get(c.timerName) ?? 0) === 1)
+  const eligible = infos.filter(
+    (info) =>
+      info.defaultHeadNodeId === undefined &&
+      info.cases.every((c) => (caseCounts.get(c.timerName) ?? 0) === 1)
   )
   if (eligible.length < 2) return ir
 
