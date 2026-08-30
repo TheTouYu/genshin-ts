@@ -210,6 +210,15 @@ EOF
    - 客户端图 ID 段自动分配（起始 1082130433）见 `assets:node-graphs create --type`。
 10. **多分支共存**：`./verify` 下多个分支的 DSL graph id 必须互不相同（merge 按图 id 合并，
     同 id 只出 1 个 GIA）；单文件注入会改写为目标图 id，DSL id 可随意取（用 1073741826+ 递增即可）。
+    **先查再选**（2026-08-30 撞车实证）：新分支 id 定值前先 `grep -rn "g.server({ id:" verify/`
+    列出全部现有 id——撞 id 时编译/wire 断言/注入全绿，只有注入后 parse 回读节点数暴露
+    （c2s-cv 撞 d2-lv 1073741840，60 节点混入旧链，详见 verified-cases verify-c2s-cv）。
+10a. **客户端图 DSL 陷阱**（2026-08-30 实证）：`f.getPlayerEntityToWhichTheCharacterBelongs()`
+    等 entity helper 的**无参 self 绑定版只存在于 interface 声明，类实现只有带参版**——调无参版
+    TS 不报错但运行时传 undefined → `Invalid value type: entity`。客户端图拿玩家实体用
+    `f.getCurrentCharacter()` + 带参 `getPlayerEntityToWhichTheCharacterBelongs(character)`。
+    另：客户端图使用的自定义变量必须资产预注册（genshin-ts-asset-operations 技能红线），
+    动态创建变量客户端读无 OUT 帧。
 
 ## 核验闭环
 

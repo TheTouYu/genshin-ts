@@ -42,13 +42,20 @@ gsts assets:custom-variables --gil <map> --write
 （客户端 OUT0:Integer=2 → 信号 IN1=2 → 服务端 f22 回传，3008）。结论：**动态创建变量仅服务端
 当 tick 可见，跨端不可见；客户端图读变量必须预注册**。
 
-**新地图前置（maps:create 产物）**：最小骨架**没有**玩家模板（root4 无 1086324737 定义、root5 无
-“默认模版”实体）——游戏运行时仍会创建玩家实体，但资产侧无处预注册玩家变量。前置步骤：
-`assets:entities import --definitions-gil <参考图.gil>`（donor 补定义）导入参考图的“默认模版”
-实体（1086324737），再用 API 路径声明变量：
-`applyCustomPrefabInitialCustomVariableDeclarations`（顶层定义）+ `syncPlayerCustomVariableDeclarations`
-（实例容器同步；包公开入口见 `docs/architecture/gil-custom-variables.md` §2）。
+**新地图前置（maps:create 产物）**：最小骨架**没有**编辑器基线资产，按撞到顺序补齐：
+1. **folder 基线记录**（`assets:node-graphs create --type` / `assets:skill-config create` 报
+   「root6 缺少 folderId=N 的未分类页签记录」时）：用 `references/scripts/ensure-folders.ts
+   <地图.gil> <folderId...>` 补齐（空模板=类型级常量，参考图逐字节一致；常用 12=6模板技能配置/
+   14=20002 角色技能/61=28模板/67=20010 操控/68=36模板，全表见 node-graphs.md folderId 表）。
+2. **root15/16 技能配置容器**：skill-config create 已自动补建（98b6d6e 修复，此前静默失败）。
+3. **玩家模板组**（root4 无 1086324737 定义、root5 无「默认模版」实体——运行时玩家实体照常创建，
+   但资产侧无处预注册玩家变量）：`assets:entities import --definitions-gil <参考图.gil>` 导入
+   参考图「默认模版」实体（donor 补定义；会自动带出 9 副本+角色编辑+关卡实体组）。
+4. **玩家变量预注册**：`references/scripts/register-player-vars.ts <地图.gil> "名:类型=值;..."`
+   （= prefab 顶层 `applyCustomPrefabInitialCustomVariableDeclarations` + 全部副本实体容器
+   upsert + Temp 同步 + 回读；API 语义见 `docs/architecture/gil-custom-variables.md` §2）。
 服务端图 / 客户端图要读写的**每一个**自定义变量（含施放链的「技能实例ID」）都要走此预注册。
+完整踩坑谱系见 `docs/game-engine-knowledge/retrospective-2026-08-30-c2s-variable-channel.md`。
 
 ## 1.5 元件/实体资源列出与静态/动态元件
 

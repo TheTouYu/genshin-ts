@@ -94,6 +94,31 @@
 
 ## 未落地（OPEN）
 
+### O-2026-08-30-09 客户端 entity helper：interface 无参 self 绑定版未落到类实现【OPEN】
+
+- 证据：2026-08-30 c2s-cv 分支——`f.getPlayerEntityToWhichTheCharacterBelongs()` 无参调用 TS 放行
+  （interface ClientEntityHelperMethods 声明了无参版）但运行时 undefined →
+  `Invalid value type: entity`（client_nodes.ts 类实现只有带参版）。
+- 待办：全量排查 ClientEntityHelperMethods 声明 vs 各类实现差集；TS 为何不拦（interface 并集
+  签名）待查；修定义生成器或加运行时 guard。临时规避已入 verify-injection 技能 10a。
+
+### O-2026-08-30-10 PKC 录入：自定义变量跨端可见性规则【OPEN 待 bundle 流】
+
+- dry-run 已验证（clm_01M18VQAQZ8VW5EHDJ6WRT7YA9，new-claim --apply 生产模式禁用）；
+  收尾轮统一走 bundle-create → approve → apply。
+
+### O-2026-08-30-11 新地图基线补齐 CLI 化【OPEN】
+
+- 2026-08-30 手段 3 轮实证：maps:create 最小骨架缺 folder 记录/root15-16（已修）/玩家模板组，
+  补齐散在两个脚本（已沉淀 genshin-ts-asset-operations references/scripts/ensure-folders.ts +
+  register-player-vars.ts）。完整 CLI 化（如 maps:create --baseline）待做。
+- 谱系详见 retrospective-2026-08-30-c2s-variable-channel.md。
+
+### O-2026-08-30-12 「变量不存在返回类型默认值」官方文档语义与实测不符【OPEN 待多样本】
+
+- 2026-08-30 实测（int 单样本，3007）：变量不存在时客户端「获取自定义变量」无 OUT 输出帧
+  （非默认值帧）。float/容器类型待验。
+
 ### O-2026-08-30-01 注入器重建 top field 10 保留 field>5（f7=1 信号标记）【已修复 fcea719，待 PKC 录入】
 
 - 证据：2026-08-30 足球拒载四版本对照（39f54330/e180bbbe/db162dd1/用户修复版）——
