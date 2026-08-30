@@ -38,6 +38,11 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
+> **坑（2026-08-31 足球会话实证，先用后信）**：① `frames --contains <文本>` 过滤**不可靠**
+> （3017 会话对 'fly_tick'/'kick_launch'/'Tab' 均命中了不含该文本的记录）——定点检索改用
+> 全量 dump 落文件后本地 grep/awk；② /tmp **不跨 bash 命令持久**、JS 模板字符串吃 shell `$`、
+> 大段文本内联反引号截断模板——这三个坑在同会话各踩 2~3 次，**写命令前先自查这三点**，不要靠踩坑回忆。
+
 > **脚本位置**：本技能脚本在 `<技能目录>/scripts/` 下（绝对路径 `/home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/`），**不在** `/home/h/genshin-ts/scripts/`（旧位置）。运行前先 `ls` 确认，或用 `scripts/gia_log.py` 相对本文件目录解析（2026-08-12 复盘：子代理曾 find 3 轮才定位）。
 
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
