@@ -196,6 +196,12 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
    `assets:node-graphs read` 核对图有实际节点。先按此阶梯定位，不要直接怀疑编译/注入。
 1. **等日志落盘**：游戏退出时才写日志（内存累积）——先请用户退出游戏，再找最新文件。
 2. **records 概览**：识别"一次操作"的记录组（如 tab 事件大记录 + 定时器回调 + 解锁）；同一操作重复出现的组结构相同。
+2.5 **完整时间线还原（先全后精，2026-08-30 足球物理链断链实证）**：涉及"状态机/物理运动/交互序列"类问题时，**先建立全局时间线再下结论**，不要只 grep 单点帧：
+    - 状态提交序列：`frames | grep "IN1:String=state" | grep -E "Set Node Graph Variable|Set Custom Variable"` → 带 rec 号的状态迁移链（FREE→FLY→SLIDE→ROLL→…），一眼看出哪段没有迁移；
+    - 交互序列：When Tab Is Selected / When Timer Is Triggered 的 OUT 参数（tabId/定时器名）；
+    - 球/实体位置时间线：Get Entity Location and Rotation 的 OUT0 跨记录对比——**两个时间点位置逐字节相同 = 冻结硬铁证**（2026-08-30：rec263 与 rec287 位置相同 → 球冻结，单点 grep 信号帧看不到）；
+    - 设备激活/停止配对：Add Uniform Basic Motion Device 的设备名 × When Basic Motion Device Stops 的设备名——**停止事件分发被忽略 = 物理链断裂**（旧分发器只响应 name==physics，唯一名冲量设备被忽略）。
+    本轮教训：用户提示"信号没有补上参数"——第一次只查信号帧（参数有值）误判正常；完整时间线才暴露"状态对了但运动没接上"。
 3. **frames 逐帧解码**：--gil 带节点名；过滤关键节点（事件/位置读取/查询/运动器/减法）。
 3.5 **字段分布统计（先于逐帧看单值，2026-08-23 足球双触发实证）**：怀疑某事件/设备重复触发时，**先统计字段分布，不要逐帧盯单个值**：
    ```bash
