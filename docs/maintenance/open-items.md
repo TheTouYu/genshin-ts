@@ -1012,3 +1012,12 @@
 
 - 文件：`<, v) for k,v in d[scripts].items() if k in (build,test,quicktest,typecheck)]`（根目录，
   会话命令解析残留，约 0 字节）。删除即可（非 git 跟踪）。
+
+### O-2026-08-31-01 物理足球第二阶段待办：游戏内节点图移植 + C1 人工核验（2026-08-31 交付复盘登记）
+
+- 事实：第一阶段 headless 物理核心已交付并通过门 A–D 全量验收（PASS 31/0/1，
+  `npm run football:sim`，提交 02a53f5..c21080f）。游戏内 5Hz 节点图（examples/football/src）
+  仍用旧常量（KM=0.01/KD=0.02/e=0.65 等手填值），未与 sim/src/params.ts 单一事实源对齐。
+- 待办：①游戏内图移植到本参数基准（映射规则见 sim/README.md「坐标系与游戏内图的映射」）；
+  ②C1 的人工操作手感核验（核验标准 C 门要求 headless + 人工各一遍）；③注入按红线走用户确认。
+- 何时做：用户发起第二阶段时。
