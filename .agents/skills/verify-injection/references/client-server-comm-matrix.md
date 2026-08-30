@@ -21,7 +21,7 @@
 | 2 | 技能施放触发客户端图（20010 操控技能/36 模板） | S→C | 同上 + 需玩家操控状态（未受控 Cast 静默无效） | 配置 1228931075 已建；d2-client.ts 为其编译目标 | ❌ 未闭环（操控状态链） |
 | 3 | 自定义变量共享存储（S 写→C 读） | S→C 数据面 | setCustomVariable(服务端,玩家实体) → 客户端 getCustomVariable(200016).asType | **3008 我方闭环**：写入帧(Set=2)→客户端读取帧(OUT0:Integer=2, f8=2097154)→回传帧(cv=2)，N=2,4,7 三点一致；**前置=变量预注册**（3007 反证：动态创建变量客户端读无 OUT 帧→信号 val=None；受控差分：同编译产物仅注册差异→行为翻转） | ✅ 闭环 |
 | 4 | 信号回传 | C→S | sendSignalToServerNodeGraph → 服务端 onSignal（d2lv_client：send=1610612741/monitor=1610612742/server=1610612743，tag:str val:int） | 2997：set→100 / len→3（str+int 两参） | ✅ 基本闭环（float/bool/vec3/entity/list 参数待扩） |
-| 4b | 通知服务器节点图 | C→S | notifyServerNodeGraph(s1,s2,s3)（三参均需字面量）→ 服务端 whenSkillNodeIsCalled（callerEntity/callerGuid/parameter1..3） | DSL 双端面已确认（client_nodes.ts:5045 / events-payload.ts:1264）；PKC clm_D1A2 官方链路描述；无我方游戏证据 | ❌ 未闭环（候选第 2 轮） |
+| 4b | 通知服务器节点图 | C→S | notifyServerNodeGraph(s1,s2,s3)（三参均需字面量）→ 服务端 whenSkillNodeIsCalled（callerEntity/callerGuid/parameter1..3） | **3011 我方闭环**：三参数完整到达（nt-p/q/r 三组 f22 ×4 次）；**实体定向**——事件只路由到调用者（角色）实体上挂载的图（每次施放仅 1 条记录 f8=角色实体，挂玩家副本/空模型的图不触发：3009/3010 反证） | ✅ 闭环（前置=图挂角色侧实体 1090519041） |
 | 5 | 单位状态间接通道 | C→S | addUnitStatus(客户端) → When Unit Status Changes(服务端) | 官方魔方 2979（26 块加状态→27 块监听） | ❌ 我方 DSL 链路未验 |
 | 6 | 客户端写自定义变量 | C→S | — | PKC clm_070E：本地节点图（客户端）自定义变量引擎面仅可读不可写 | ⛔ 引擎不支持（DSL 无 API + 引擎只读，双重确认） |
 | 7 | 服务端→客户端信号直发 | S→C | —（客户端图无监听事件/节点 API） | — | ⛔ DSL 不支持（引擎面待查，低优先） |

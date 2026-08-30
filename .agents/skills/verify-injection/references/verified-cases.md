@@ -130,3 +130,20 @@
 - 踩坑（已回写）：新分支图 id 必须先查 verify/ 全部 g.server id（与 d2-lv 1073741840 撞 id
   → merge 污染 60 节点，parse 回读发现）；客户端 helper 类实现是带参版（interface 无参版
   未落到类，调无参版传 undefined 报 Invalid value type: entity）。
+
+## verify-c2s-nt（2026-08-30，用户游戏核验通过 3011——手段 4b 闭环）
+
+- 背景：通知服务器节点图（notifyServerNodeGraph）→ whenSkillNodeIsCalled 通道闭环 + 事件定向规则定论。
+- 资产：同图 1073741826（7 节点：When Skill Node Is Called + 6 打印）；客户端图 1082130433 加 notify
+  节点（gid 200039，三字面量 c2s-nt/p2-fixed/p3-fixed，串行在 sendSignal 后）。
+- 用户游戏证据（四轮差分链，3009→3011）：
+  - 3009（图挂空模型）：客户端 notify 帧完整执行（head=06 三参数）但事件零触发。
+  - 3010（玩家侧挂载 root4 def+root5 副本）：仍零触发（含 9 副本 f6）。
+  - 用户编辑器教学差分：特殊实体挂载真实 wire（root4 f7 + root5 副本 f6 双写；条目 {1:1,2:gid,501:20000}）。
+  - 3011（CLI 复现编辑器形态 27 槽 0 差异 + 角色侧挂载）：每 10s 施放 → **恰好 1 条事件记录
+    （f8=角色实体）**，nt-p/q/r 三组打印 ×4 次全对，回归正常。
+- 规则结论：①whenSkillNodeIsCalled = 实体定向事件（只触发挂调用者角色实体的图，挂玩家副本不触发）；
+  ②notify 三参必须字面量（assertClientLiteralValue 编译期断言，通道定位=静态通知，动态值走信号通道）；
+  ③特殊实体挂载 = root4 f7 + root5 副本 f6 双写（编辑器自动同步副本，CLI 需 --def + 循环 --entity）。
+- 踩坑：CLI attach 无参默认 entity 单槽（与编辑器 def 双写形态不同）；hex 误读教训——`a81f a09c01`
+  = f501:20000（挂载类型标记），非独立字段。
