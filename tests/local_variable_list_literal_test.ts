@@ -94,7 +94,9 @@ try {
   const giaPath = join(tmp, 'case.gia')
   writeGiaFromIrJsonFile(irPath, giaPath, {}, () => {})
   const { rootMessage } = loadGiaProto()
-  const root = rootMessage.decode(new Uint8Array(readFileSync(giaPath)).slice(20, -4))
+  const root = rootMessage.decode(new Uint8Array(readFileSync(giaPath)).slice(20, -4)) as unknown as {
+    graph?: { graph?: { inner?: { graph?: { nodes?: any[] } } } }
+  }
   const nodes = root.graph?.graph?.inner?.graph?.nodes ?? []
   const getL = nodes.find((n: any) => n.genericId?.nodeId === 18)
   const setL = nodes.find((n: any) => n.genericId?.nodeId === 19)
@@ -216,7 +218,9 @@ const foldDocs = buildServerGraphRegistriesIRDocuments() as any[]
     const giaPath = join(tmpD, 'case.gia')
     writeGiaFromIrJsonFile(join(tmpD, 'case.json'), giaPath, {}, () => {})
     const { rootMessage } = loadGiaProto()
-    const root = rootMessage.decode(new Uint8Array(readFileSync(giaPath)).slice(20, -4))
+    const root = rootMessage.decode(new Uint8Array(readFileSync(giaPath)).slice(20, -4)) as unknown as {
+    graph?: { graph?: { inner?: { graph?: { nodes?: any[] } } } }
+  }
     const nodes = root.graph?.graph?.inner?.graph?.nodes ?? []
     const getN = nodes.find((n: any) => n.genericId?.nodeId === 18 && n.concreteId?.nodeId === 18)
     assert.ok(getN, 'Get bool node (cid 18) must exist')

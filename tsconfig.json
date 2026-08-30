@@ -3,6 +3,11 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "genshin-ts": ["./src/index.ts"],
+      "genshin-ts/*": ["./src/*"]
+    },
 
     "lib": ["ES2022"],
     "types": ["gsts", "node"],

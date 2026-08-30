@@ -35,7 +35,7 @@ try {
     assert.ok((alias.value as unknown as { getMetadata?: () => unknown }).getMetadata?.(), 'alias value is a pin ref')
     // dict fail-closed
     assert.throws(
-      () => (f.localVariable as unknown as (t: string) => unknown)('dict', { k: 'str', v: 'int' }),
+      () => (f.localVariable as unknown as (t: string, opts?: unknown) => unknown)('dict', { k: 'str', v: 'int' }),
       /server graph local variable dict is not supported/,
       'server dict local variable must fail closed'
     )
@@ -73,7 +73,7 @@ try {
     const score = f.localVariable('int', 0n, { name: 'score' })
     score.set(99n)
     const map = f.localVariable('dict', { k: 'str', v: 'int' })
-    f.setLocalVariable(map.localVariable, map.value)
+    f.setLocalVariable(map.localVariable as string, map.value)
     const list = f.localVariable('int_list', f.assemblyList([1n, 2n]), { name: 'seq' })
     list.set(f.assemblyList([3n, 4n]))
     // 重名：编译错误（S8）
@@ -108,7 +108,9 @@ try {
   const clientGiaPath = join(tmp, 'client.gia')
   writeGiaFromIrJsonFile(clientIrPath, clientGiaPath, {}, () => {})
   const { rootMessage } = loadGiaProto()
-  const root = rootMessage.decode(new Uint8Array(readFileSync(clientGiaPath)).slice(20, -4))
+  const root = rootMessage.decode(new Uint8Array(readFileSync(clientGiaPath)).slice(20, -4)) as unknown as {
+    graph?: { graph?: { inner?: { graph?: { nodes?: any[] } } } }
+  }
   const giaNodes = root.graph?.graph?.inner?.graph?.nodes ?? []
   const dictGetN = giaNodes.find((n: any) => {
     if (n.genericId?.nodeId !== 200082) return false

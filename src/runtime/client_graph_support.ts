@@ -188,7 +188,7 @@ type ClientSyntheticFlowMethod<T extends ClientGraphSubType, Mode extends Client
       : never)
   | ('getLocalVariable' extends ClientNodeMethodForMode<T, Mode>
       ? 'setLocalVariable' extends ClientNodeMethodForMode<T, Mode>
-        ? 'emptyLocalVariableList' | 'initLocalVariable'
+        ? 'emptyLocalVariableList' | 'initLocalVariable' | 'localVariable'
         : never
       : never)
 

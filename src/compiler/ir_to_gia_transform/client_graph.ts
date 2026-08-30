@@ -78,6 +78,23 @@ const CLIENT_VAR_TYPE_ENUM = 13
 const CLIENT_SEND_SIGNAL_PLACEHOLDER_GID = 300002
 
 type ClientGiaNode = ReturnType<typeof client_node_body>
+// 编辑器 wire 归一化类型：protobuf 必填 number 字段置 undefined 使序列化省略默认值
+// （v15/v16 语料：x/y=0、pin index=0、type=0 编辑器均不落盘）
+type EditorWireNode = Omit<ClientGiaNode, 'x' | 'y' | 'pins'> & {
+  x?: number
+  y?: number
+  pins: EditorWirePin[]
+}
+type EditorWirePin = Omit<ClientGiaNode['pins'][number], 'i1' | 'i2' | 'type' | 'connects'> & {
+  i1?: { kind: number; index?: number; nodeId?: { id: number } }
+  i2?: { kind: number; index?: number; nodeId?: { id: number } }
+  type?: number
+  connects: EditorWireConn[]
+}
+type EditorWireConn = Omit<ClientGiaNode['pins'][number]['connects'][number], 'connect' | 'connect2'> & {
+  connect?: { kind: number; index?: number; nodeId?: { id: number } }
+  connect2?: { kind: number; index?: number; nodeId?: { id: number } }
+}
 type ResolvedClientPinMetadata = ClientPinMetadata & {
   clientVarType: number
   indexOfConcrete: number
@@ -1231,7 +1248,8 @@ function applyLiteralArgs(
  *   非默认值（有 payload）保持原样（client 语料已验证）。
  */
 function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
-  for (const node of nodes) {
+  for (const node0 of nodes) {
+    const node = node0 as EditorWireNode
     if (node.x === 0) node.x = undefined
     if (node.y === 0) node.y = undefined
     const cd = node.contextDeclaration as Record<string, unknown> | undefined
@@ -1242,7 +1260,7 @@ function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
     }
     const gid = node.genericId?.nodeId
     const hasClientExec = node.pins.some((pin) => pin.i1?.kind === PIN_KIND_CLIENT_EXEC)
-    const pinsToRemove: ClientGiaPin[] = []
+    const pinsToRemove: EditorWirePin[] = []
     for (const pin of node.pins) {
       // 局部变量 Set（200081）：编辑器物理 pin 不落盘 InFlow（执行边引用隐式 InFlow[0]，
       // v15 样本 start→Set 边实证）；OutFlow 仅在**有出边**时保留——链中 Set 作 from 时执行边
@@ -1270,7 +1288,7 @@ function normalizeClientNodesEditorWire(nodes: ClientGiaNode[]): void {
       if (!v || typeof v !== 'object') continue
       // 值归一化：ConcreteBase 包裹（R<T> 值 pin）取内层；普通 VarBase（ClientExec 值 pin）直接用
       const cv = v as { class?: number; bConcreteValue?: { value?: Record<string, unknown> } }
-      const inner = cv.class === 10000 && cv.bConcreteValue ? cv.bConcreteValue.value : (v as Record<string, unknown>)
+      const inner = cv.class === 10000 && cv.bConcreteValue ? cv.bConcreteValue.value : (v as unknown as Record<string, unknown>)
       if (!inner || typeof inner !== 'object') continue
       const nonZero = (x: unknown) => x != null && Number(x) !== 0
       const innerVal = inner as {
