@@ -35,6 +35,13 @@ const payload = bytes.slice(20, -4)
 const defs = listCompositeDefs(bytes)
 const defById = new Map(defs.map((d) => [Number(d.id), d]))
 
+// O-2026-08-21-4：内置 SysGraph 信号单元区间（监听/发送信号 def，16106127xx）。
+// unit.which（监听信号=12 与复合 def 相同）与 def.class（全部 10001）均无法区分，id 区间是唯一可靠判据。
+const isSignalDefId = (id: number): boolean => id >= 1610612736 && id < 1610700000
+// 复合 def 区间：用户显式（1610700000-1610700099）+ 默认命名空间 stub/full（2000000000+，football motion_by_vel 等）
+const isCompositeDefId = (id: number): boolean =>
+  (id >= 1610700000 && id < 1610700100) || (id >= 2000000000 && id < 2100000000)
+
 function collectCompositeRefs(defId: number): number[] {
   const out: number[] = []
   let implId: number | undefined
@@ -82,9 +89,12 @@ if (incomingPath) {
   for (const unit of root.accessories ?? []) {
     const def = unit.compositeDef?.inner?.def
     const id = def?.id?.genericId?.id ?? def?.id?.concreteId?.id
-    if (id !== undefined) incomingIds.add(Number(id))
+    if (id === undefined) continue
+    const nid = Number(id)
+    if (isSignalDefId(nid)) continue // 信号单元不是复合 def（O-2026-08-21-4 误报根因）
+    incomingIds.add(nid)
   }
-  const mapIds = new Set([...defById.keys()].filter((id) => id >= 1610700000 && id < 1610700100))
+  const mapIds = new Set([...defById.keys()].filter(isCompositeDefId))
   for (const id of [...incomingIds].filter((id) => !mapIds.has(id))) {
     errors.push(`GIA 复合 ${id} 注入后在地图中缺失`)
   }
