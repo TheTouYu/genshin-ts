@@ -259,8 +259,11 @@ const graph = g
         // blocks[0] 世界位置 (2,4,2) = 中心 (3,3,3) + 偏移 (-1,+1,-1)，初始朝向 (0,0,0)。
         // 判定表：绕中心转到 (2,4,4) = 语义含魔方中心锚点（官方模式可用）；
         // 原地自转 = 纯朝向插值；绕世界原点飞出 = 绕原点语义（官方另有机遇）。
+        // 2026-08-31 二修：turn 图没有 blocks 图变量（那是 game/visual 图的）——
+        // 块实体列表由 game 图开局写到本实体（1077936201）的自定义变量 blocks，
+        // 3018 日志实证图变量读法返回 26 个 0（Entity 空，设备加到空实体）。
         const b0 = f.getCorrespondingValueFromList(
-          f.getNodeGraphVariable('blocks').asType('entity_list'),
+          f.getCustomVariable(f.getSelfEntity(), new str('blocks')).asType('entity_list'),
           0n
         )
         f.addTargetOrientedRotationBasedMotionDevice(

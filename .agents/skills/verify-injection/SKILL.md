@@ -158,6 +158,19 @@ EOF
 2. **单文件注入**（`gsts <config> <file.gia>`）以 `config.inject.nodeGraphId` 为目标，且会把
    GIA 内 graph id 自动改写为目标 id（`loadGiaGraph` setGraphId）——**DSL 里 `g.server({id})`
    不必与 placeholder 图 id 一致**。这是最稳路径。
+2pre. **注入窗口纪律（2026-08-30 魔方 asv 事故实证，强制）**：注入必须与游戏/编辑器会话
+   **无时间重叠**——游戏退出时会用内存态回写地图（铁证：修复注入 18:36 被游戏退出回写
+   18:37:41 覆盖，产生"修复无效"假象）；编辑器查看后保存也会按编辑器解析结果重写整文件。
+   注入前向用户确认游戏/编辑器已关闭；注入后立即记录 mtime 并回读内容核验。
+2pre-b. **注入模式路由语义（2026-08-30 事故）**：单文件注入（positional .gia）= 强制路由到
+   `config.inject.nodeGraphId`（**会覆盖该图位**——config 指错图会把错误内容写进目标，
+   事故实例：testPanel 内容覆盖了 game 图）；批量模式（无 positional）= 按 .gia 内
+   graph id 各自路由。多图注入用批量；单图注入前核对 config.nodeGraphId 就是目标图。
+2pre-c. **注入后列表字面量核验（2026-08-30 asv 回归）**：多分支 cases / 列表参数 pin 依赖
+   内层 `alreadySetVal=true`（编辑器/引擎判"已设置"的标志；编译器归一化曾误删，
+   44a18d8 修复+2026-08-30 复盘同族 bDict 补齐）。注入含多分支/列表字面量的图后，
+   dump_asv 法核验 InParam[1] 的 `bConcreteValue.value.alreadySetVal` 为 true 且 entries
+   非空（工具重建法见 examples/rubik-3x3-client/PROGRESS.md R1.3）。
 2a. **信号注册 pin 规律（2026-08-15 内置布局调查结论，勿手猜）**：编辑器为每种参数类型分配
    规范 pin 基址（新鲜地图：str=12/34/40、int=68/76/83、entity=69/77/84、float=90/109/122 等，
    索引/发送/监听/服务器节点各自独立）；同型重复参数按 send+4/mon+1/ser+1 递增（仅 str 有编辑器

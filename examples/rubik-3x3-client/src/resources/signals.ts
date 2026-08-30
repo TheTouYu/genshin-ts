@@ -3,6 +3,10 @@
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const Signal = {
+  rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [
+    ['check', 'str'],
+    ['val', 'str']
+  ]),
   rubik3x3_solve: defineSignal('rubik3x3_solve', [
     ['op', 'int'],
     ['val', 'int']

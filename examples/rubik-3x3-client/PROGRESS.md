@@ -389,3 +389,41 @@
 1. 第 1 轮走 B（纯服务端动画改造）还是 A 最小切片（客户端算单块）？
 2. 基线是否需要用户在 1073741914 上现跑一轮同操作序列（更严格的同口径对比锚点）？
    历史基线 2960 已可用，但那是 1073741899 上的自动求解会话。
+
+---
+
+## 性能优化任务 Round 1/B1（2026-08-30 下午，设备语义实验 + 编译器事故）
+
+> 用户选定 B 方向（动画事件驱动化+单设备化）。完整复盘见
+> `docs/game-engine-knowledge/retrospective-2026-08-30-rubik-b1-asv-injection.md`。
+
+### R1.1 B1 实验链（已闭环）
+
+- turn.ts op=99 分支（对 blocks[0] 加 Target-Oriented 设备 1.0s (0,90,0)）+ testPanel tab3
+  + tabBar 第三选项 B1DeviceProbe（assets:entities patch --tab-options）。
+- **判定 B 落定**（3026 日志 + 用户观察）：设备加到真实块（Entity=62；blocks 读
+  getCustomVariable(self,'blocks')——初版读图变量是 bug 已修：turn 图无 blocks 图变量），
+  块**原地自转、位置不变** → 朝向目标旋转型基础运动器 = 纯转向设备。
+- **用户情报（下轮核心）**：官方圆弧公转 = **跟随运动器**——中心球自转带动层内块
+  同时做位置+旋转变化。B 轮提示词已产出（Round 0 会话尾部），下轮第 0 轮精读官方图+新日志。
+
+### R1.2 编译器 asv 事故（重大修复 44a18d8 + 同族 bDict 收尾提交）
+
+- 事故：多分支 cases 全丢（编辑器+游戏双断，3013 日志 IN1:List= 空）。根因链：
+  79a24a7（08-29）归一化扩全节点删内层 alreadySetVal → fc44db1 修标量漏 bArray
+  → 编辑器/引擎靠内层 asv 判"已设置"。
+- 修复：hasNonDefault 补 bArray/bDict 容器判断 + 非默认值**主动置 true**（vendor 惰性
+  物化下被动保留无效）。用户编辑器差分实样定论 + 1899 正常对照。用户实测多分支恢复。
+- 事故外围：单文件注入被 config.nodeGraphId 覆盖路由（game 图一度被覆盖，批量注入恢复
+  ——批量模式按 .gia 内 ID 路由）；游戏退出回写覆盖注入（mtime 18:37:41 铁证）——
+  **注入必须与游戏/编辑器无时间重叠**。
+
+### R1.3 遗留（登记 open-items）
+
+- O-30-05 批量首注丢 cases（错位中间态复合污染假设）未最小复现；
+  O-30-06 solverEPlan/LPlan 帧乱码（3018）待同入口链对比；
+  O-30-07 跟随运动器公转机制（下轮闭合，提示词已备）。
+- 临时工具（项目根、不在 git，丢失按此重建）：
+  - dump_asv.ts：readGilPayloadFields + parseMessage(nodeGraphBlobFields) → NodeGraph.decode
+    → 遍历 genericId=3 节点 InParam[1]，打印 outer/inner alreadySetVal + entries。
+  - dump_mb_wire.ts：同路径 + VarBase.encode 规范化 hex，对比 .gil 编辑器实样 vs .gia 产物。

@@ -277,6 +277,7 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       bId?: { val?: number }
       bVector?: { val?: { x?: number; y?: number; z?: number } }
       bArray?: { entries?: unknown[] }
+      bDict?: { mapPairs?: unknown[] }
     }
     stripKind(ev.itemType)
     const vec = ev.bVector?.val
@@ -292,7 +293,11 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       // 是非默认值，必须保留内层 alreadySetVal——编辑器/引擎靠它判断值已设置；
       // 漏判会让 alreadySetVal 被 delete（=false），编辑器加载分支全丢+保存清零
       // （差分实样：编辑器手加 cases 后内层 asv=true；我们产物 asv=false → 分支丢失）。
-      (ev.bArray && Array.isArray(ev.bArray.entries) && ev.bArray.entries.length > 0)
+      // 同族扩展（同日复盘）：bDict 容器同规则——1225 行证明 dict 容器形态存在，
+      // dict 局部变量 pin 同样依赖 asv 语义（mapPairs 非空 = 非默认）。
+      (ev.bArray && Array.isArray(ev.bArray.entries) && ev.bArray.entries.length > 0) ||
+      (ev.bDict != null &&
+        (((ev.bDict as { mapPairs?: unknown[] }).mapPairs ?? []).length > 0))
     if (hasNonDefault) {
       // 非默认值：显式 payload 保留；alreadySetVal 恒置 true（2026-08-29 治本实测 +
       // 2026-08-31 vendor 补写修正）：
