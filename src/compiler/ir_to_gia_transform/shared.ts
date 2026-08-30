@@ -6,6 +6,7 @@ import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type { IRDocument } from '../../runtime/IR.js'
 import type { SignalRegistry } from '../signal_registry.js'
 import { lintDanglingExecNodes } from '../ir_lint_dangling_exec.js'
+import { lintCompositeOutputReuseInDocument } from '../ir_lint_composite_reuse.js'
 import { irToGia } from './index.js'
 
 function ensurePrefixedDefaultName(raw: string): string {
@@ -88,6 +89,10 @@ export function writeGiaFromIrJsonFile(
     // 在 IR→GIA 编码前扫描根图与每个复合 impl，检出「有出边但无入边」的 exec 节点。
     // 默认 warning；--strict-warnings 提升为失败，--warnings-json 输出结构化诊断。
     lintDanglingExecNodes(ir)
+
+    // 复合输出二次求值检出（O-2026-08-27-02）：同一复合输出被 ≥2 消费点引用 →
+    // warning（引擎按消费点重新求值，夹写回输入变量会错值；建议物化 tmp* 快照）。
+    lintCompositeOutputReuseInDocument(ir)
 
     const bytes = irToGia(ir, {
       protoPath: DEFAULT_GIA_PROTO,
