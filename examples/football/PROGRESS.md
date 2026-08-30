@@ -5,7 +5,7 @@
 - 2026-08-31（第二阶段 R1 反馈二修：带球"偶尔才动一下"根因——速度场积分发散 + 获得阈值过严）：
   - **日志 3014 铁证**：spin 守卫生效（球在地面 y=0.25，空中冻结已愈）；CARRIED 写入仅 8 次 vs ROLLING 60 次——控球"获得 ~1s→脱脚→球滚走→等球近停→再获得"循环，即"偶尔才动一下"；lostTicks 1/2/3 各 4 次（脱脚路径实证）；玩家贴球实测 0.27m（无胶囊阻挡，前次 1.49m 疑为贴近空中冻结球的量测）。
   - **根因三连（dribble-field.ts / state.ts）**：①dribbleFieldCompute 内 v'=0.95v+velDir 是积分发散拓扑（平衡点=20×velDir，玩家走 3m/s 时球 ~0.6s 加速窜出 1.5m 牵引区→3 tick 脱脚）；②SPEED_GAIN=1.2 球恒快玩家 20%（0.6m/s 拉开）直走 ~2.5s 必脱；③CARRY_SPEED=0.5 球须近停才能再获得（等待=僵直段）。
-  - **修复**：compute 去掉旧速叠加（纯 velDir，衰减只留非牵引分支）+ 移除 compute 的 ballVx/ballVz 死输入；SPEED_GAIN 1.2→1.0（跟速，方向合成仍拢脚前）；CARRY_SPEED 0.5→2.0（← sim thresholds.acquireMaxBallSpeed）。build 绿+编译过。**待注入确认**。
+  - **修复**：compute 去掉旧速叠加（纯 velDir，衰减只留非牵引分支）+ 移除 compute 的 ballVx/ballVz 死输入；SPEED_GAIN 1.2→1.0（跟速，方向合成仍拢脚前）；CARRY_SPEED 0.5→2.0（← sim thresholds.acquireMaxBallSpeed）。build 绿+编译过。**已注入（用户确认，64392b9）：ok 2/0 + Temp 双 SHA 53f5bf78；核验全过——真实 .gil 回读 compute 0.95×0（发散已除）/tick 0.95×4（衰减保留 2 处×双份）/半径 2.25×2/spin 守卫×2/CARRY 2.0 在场（整数形态）/composite-refs 0 悬空/无 (1)/var-pins 全完整。待用户复测带球跟手性**。注：JS 序列化会把 2.0 写成 "2"，.gia/.gil 数值回读的整数形态要计入模式。
 
 - 2026-08-31（第二阶段 R1 游戏核验反馈修复：两症状根因定位 + 修复待注入）：
   - **用户反馈**：①走近球不动 ②高吊球空中冻结。日志 3012（18:15，2.1MB，272 记录）逐帧定位。
