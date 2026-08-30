@@ -45,7 +45,11 @@ function spawnRunner(
     const args = [tsxCli, runnerPath, absIr, out, preserve, indices, registry]
     const child = spawn(process.execPath, args, {
       cwd: opts?.cwd,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      // tsx 默认读 tsconfig.json 的 paths（genshin-ts/* → src），会把 .gs.ts 的包 import
+      // 解析到 src 副本，与 CLI 本体（dist）形成双副本 → ctx 栈分裂。用无 paths 的
+      // tsconfig.tsx.json 让运行时统一 dist 单副本（tsc 类型检查仍用 tsconfig.json）。
+      env: { ...process.env, TSX_TSCONFIG_PATH: path.join(__dirname, '..', '..', '..', 'tsconfig.tsx.json') }
     })
     let stdout = ''
     let stderrBuf = ''

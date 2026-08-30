@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import os from 'node:os'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { GstsConfig } from './gsts_config.js'
 
@@ -92,6 +92,7 @@ export async function loadGstsConfig(
 
   const loadViaTsx = (): unknown => {
     const require = createRequire(import.meta.url)
+    const __dirname = path.dirname(fileURLToPath(import.meta.url))
     let tsxCli: string
     try {
       tsxCli = require.resolve('tsx/cli')
@@ -111,6 +112,10 @@ export async function loadGstsConfig(
     fs.writeFileSync(tmp, code, 'utf8')
     try {
       const res = spawnSync(process.execPath, [tsxCli, tmp, absolutePath], {
+        env: {
+          ...process.env,
+          TSX_TSCONFIG_PATH: path.join(__dirname, '..', '..', '..', 'tsconfig.tsx.json')
+        },
         encoding: 'utf8',
         windowsHide: true
       })
