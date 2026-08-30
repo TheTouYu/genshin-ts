@@ -1,10 +1,11 @@
 // 足球物理复合（纯数据 + exec）：状态机驱动的完整物理
 // 命名前缀：phys_*
-// 状态机：0=静止 FREE / 1=空中 FLYING / 2=滚滑 ROLLING
+// 状态机：0=FREE 1=FLYING 2=ROLLING 3=SLIDE 4=CARRIED 5=GOAL（与 game.ts 对齐）
+// 状态提交：各 tick 复合链尾一次性写图变量 state + 球自定义变量 state（单一写路径）
 // 球门几何（世界坐标，两个门对称于 x=0，用 |x| 统一处理）：
 //   门线 |x|=52.5，门柱中心 z=±3.6（半径 0.06），横梁中心 y=2.5，球网深 1.8m
 import { g } from 'genshin-ts/runtime/core'
-import { bool, int, str } from 'genshin-ts/runtime/value'
+import { bool, str } from 'genshin-ts/runtime/value'
 import { motionByVel, motionSpin } from './motion.js'
 
 // —— 物理常量（编译期预计算为字面量）——
@@ -17,7 +18,6 @@ const BALL_R = 0.25 // 球半径
 const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.65 // 地面反弹法向恢复
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
-const ROLL_FRICTION = 0.82 // 兼容占位（滚滑匀减速已由 ROLL_DECEL 接管；保留避免旧引用报错）
 const ROLL_DECEL = 3.0 // 滚动匀减速（m/s²）：带球球速 6 滚 ~6m 停；射门 15 滚 ~37m。真实带球球滚 1-3m 球员追上，不滚到停
 const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
@@ -25,6 +25,7 @@ const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
 const ROLL_SPIN_GAIN = 0.5 // 压力摩擦产生的力矩把 ω 拉向纯滚动目标的系数（滑转再收敛）
 const ROLL_BOUNCE_VY = 1.0 // 反弹后 |vy| 低于该值才转滚滑，否则继续空中弹跳
 const STOP_SPEED = 0.3 // 停球速度阈值
+const GOAL_RESET_S = 2 // 进球后复位延时（s）
 // —— 球门（世界坐标，|x| 对称）——
 const GOAL_X = 52.5 // 门线 |x|
 const POST_Z = 3.6 // 门柱中心 z 偏移
@@ -184,27 +185,6 @@ export const physGroundBounce = g.defineComposite('phys_ground_bounce', {
 })
 
 // ================================================================
-// 滚动/滑动摩擦：贴地时水平速度 ×0.985
-// ================================================================
-export const physRollFriction = g.defineComposite('phys_roll_friction', {
-  inputs: { pos: { type: 'vec3' }, vel: { type: 'vec3' } },
-  outputs: { nvel: { type: 'vec3' }, rolling: { type: 'bool' } },
-  build: ({ pos, vel }, f) => {
-    const p = f.split3dVector(pos)
-    const v = f.split3dVector(vel)
-    const grounded = f.lessThan(p.yComponent, f.addition(BALL_R, 0.05))
-    const moving = f.greaterThan(f.absoluteValueOperation(v.xComponent), 0.01)
-    const rolling = f.logicalAndOperation(grounded, moving)
-    const nvel = f.create3dVector(
-      f.multiplication(v.xComponent, ROLL_FRICTION),
-      v.yComponent,
-      f.multiplication(v.zComponent, ROLL_FRICTION)
-    )
-    return { nvel, rolling }
-  }
-})
-
-// ================================================================
 // 停球判定：|v| < 0.3 且 贴地 → 停（动能耗尽）
 // ================================================================
 export const physStopCheck = g.defineComposite('phys_stop_check', {
@@ -220,12 +200,6 @@ export const physStopCheck = g.defineComposite('phys_stop_check', {
     return { isStop }
   }
 })
-
-// 状态常量（与 game.ts 图变量 state 对齐）
-const STATE_FREE = 0
-const STATE_FLY = 1
-const STATE_ROLL = 2
-const STATE_SLIDE = 3
 
 // ================================================================
 // 运动器激活（exec）：定点移动（精确到目标点）+ 匀速旋转，封装成"一件事"
@@ -357,7 +331,20 @@ export const physSlideIntegrate = g.defineComposite('phys_slide_integrate', {
       f.addition(p.zComponent, f.multiplication(nvz, DT))
     )
     const nvel = f.create3dVector(nvx, 0, nvz)
-    const nspin = f._3dVectorZoom(spin, 0.95)
+    // 物理定义：滑动摩擦产生力矩，把自旋向"纯滚动"（ω=v/R）收敛（ROLL_SPIN_GAIN）
+    const s = f.split3dVector(spin)
+    const targetSpinX = f.multiplication(nvz, INV_BALL_R)
+    const targetSpinZ = f.multiplication(nvx, -INV_BALL_R)
+    const nsx = f.addition(
+      s.xComponent,
+      f.multiplication(f.subtraction(targetSpinX, s.xComponent), ROLL_SPIN_GAIN)
+    )
+    const nsy = f.multiplication(s.yComponent, KW_DECAY)
+    const nsz = f.addition(
+      s.zComponent,
+      f.multiplication(f.subtraction(targetSpinZ, s.zComponent), ROLL_SPIN_GAIN)
+    )
+    const nspin = f.create3dVector(nsx, nsy, nsz)
     return { npos, nvel, nspin }
   }
 })
@@ -394,13 +381,18 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
     // ② 球门碰撞
     const goal = f.callComposite(physGoalCollide, { pos: posSnap, vel: velSnap })
 
-    // 进球计分（去重）
-    f.doubleBranch(goal.isGoal, () => {
-      f.doubleBranch(f.get('scored').asType('bool'), () => {}, () => {
-        const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), new int(1)), new bool(false)])
-        const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(true), new bool(false)])
-        f.connect(gc, 0, sc, 0)
-      })
+    // 进球计分（数据选择，不分裂执行流；goalNew 仅首次越线为真）
+    // 物化 tmpGoal：scored 写回后 goalNew 的消费点重求值会读到 scored=true → false（重复求值家族）
+    const scoredOld = f.getNodeGraphVariable('scored').asType('bool')
+    const goalNew = f.logicalAndOperation(goal.isGoal, f.logicalNotOperation(scoredOld))
+    const sGoalTmp = f.registerExecNode('set_node_graph_variable', [new str('tmpGoal'), goalNew, new bool(false)])
+    const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), f.dataTypeConversion(f.getNodeGraphVariable('tmpGoal').asType('bool'), 'int')), new bool(false)])
+    f.connect(sGoalTmp, 0, gc, 0)
+    const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), f.logicalOrOperation(scoredOld, f.getNodeGraphVariable('tmpGoal').asType('bool')), new bool(false)])
+    f.connect(gc, 0, sc, 0)
+    // 进球 → GOAL 复位定时器（2s 一次性；定时器事件由宿主 whenTimerIsTriggered 处理）
+    f.doubleBranch(f.getNodeGraphVariable('tmpGoal').asType('bool'), () => {
+      f.registerExecNode('start_timer', [e, new str('goal_reset'), new bool(false), f.assemblyList([GOAL_RESET_S], 'float')])
     }, () => {})
 
     // 门柱/横梁/球网反射（出界已改墙反弹，不再瞬移复位）
@@ -431,40 +423,52 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
       f.connect(gp, 0, gv, 0)
     }, () => {})
 
-    // ⑤ 停球判定 → 静止；否则按贴地/离地写状态 + 定点移动
+    // ⑤ 状态判定（纯数据，单一提交）+ 运动器（数据选择，无执行分支）
     const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
-    f.doubleBranch(stop.isStop, () => {
-      const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-      f.outflow('done', sf, 0)
-    }, () => {
-      const pp = f.split3dVector(posFinal)
-      const vv = f.split3dVector(velFinal)
-      const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
-      f.doubleBranch(grounded, () => {
-        // 贴地但反弹还有足够垂直速度 → 继续空中弹跳，不要急着切滚滑
-        // （否则球一落地就被"钉"在地上往前滑，看不到反弹）
-        const bounceDead = f.lessThan(f.absoluteValueOperation(vv.yComponent), ROLL_BOUNCE_VY)
-        f.doubleBranch(bounceDead, () => {
-          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal, grounded: new bool(true) })
-          f.connect(ss, 0, ap as never, 0)
-          f.outflow('done', ap as never, 0)
-        }, () => {
-          const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
-          const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal, grounded: new bool(false) })
-          f.connect(ss, 0, ap as never, 0)
-          f.outflow('done', ap as never, 0)
-        })
-      }, () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FLY), new bool(false)])
-        const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal, grounded: new bool(false) })
-        f.connect(ss, 0, ap as never, 0)
-        f.outflow('done', ap as never, 0)
-      })
-    })
+    const pp = f.split3dVector(posFinal)
+    const vv = f.split3dVector(velFinal)
+    const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
+    const bounceDead = f.lessThan(f.absoluteValueOperation(vv.yComponent), ROLL_BOUNCE_VY)
+    const hSpd = f._3dVectorModuloOperation(f.create3dVector(vv.xComponent, 0, vv.zComponent))
+    const slideEntry = f.logicalAndOperation(
+      f.logicalAndOperation(grounded, bounceDead),
+      f.greaterThan(hSpd, SLIDE_ENTER_SPEED)
+    )
+    // nextState 数据选择（值域 {0,1,2,3,5}）：GOAL > 停 > 贴地打滑(3) > 贴地弹跳死(2) > 空中(1)
+    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+    const bGoal = b2f(f.getNodeGraphVariable('tmpGoal').asType('bool'))
+    const bStop = b2f(stop.isStop)
+    const bGround = b2f(grounded)
+    const bSlide = b2f(slideEntry)
+    const bDead = b2f(bounceDead)
+    const notStop = f.subtraction(1, bStop)
+    const notSlide = f.subtraction(1, bSlide)
+    const notDead = f.subtraction(1, bDead)
+    const notGround = f.subtraction(1, bGround)
+    const groundedPart = f.addition(
+      f.multiplication(bSlide, 3),
+      f.multiplication(notSlide, f.addition(f.multiplication(bDead, 2), f.multiplication(notDead, 1)))
+    )
+    const normal = f.multiplication(
+      notStop,
+      f.addition(f.multiplication(bGround, groundedPart), f.multiplication(notGround, 1))
+    )
+    const nextF = f.addition(f.multiplication(bGoal, 5), f.multiplication(f.subtraction(1, bGoal), normal))
+    const nextState = f.dataTypeConversion(nextF, 'int')
+    // 停/进球 → 零速占位运动器（链自然停，避免执行分支）
+    const haltF = b2f(f.logicalOrOperation(stop.isStop, f.getNodeGraphVariable('tmpGoal').asType('bool')))
+    const motionVel = f._3dVectorZoom(velFinal, f.subtraction(1, haltF))
+    const motionGrounded = f.logicalAndOperation(grounded, bounceDead)
+    const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: spinFinal, grounded: motionGrounded })
+    // ⑥ 状态提交（图变量 + 球自定义变量一次性写；行为图经自定义变量读到）
+    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
+    f.connect(ap as never, 0, cg, 0)
+    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
+    f.connect(cg, 0, cc, 0)
+    f.outflow('done', cc, 0)
     return {}
   }
 })
@@ -499,13 +503,18 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ② 球门碰撞（球滚到门柱）
     const goal = f.callComposite(physGoalCollide, { pos: posSnap, vel: velSnap })
 
-    // 进球计分（去重，贴地球滚进球门也计分）
-    f.doubleBranch(goal.isGoal, () => {
-      f.doubleBranch(f.get('scored').asType('bool'), () => {}, () => {
-        const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), new int(1)), new bool(false)])
-        const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(true), new bool(false)])
-        f.connect(gc, 0, sc, 0)
-      })
+    // 进球计分（数据选择，不分裂执行流；goalNew 仅首次越线为真）
+    // 物化 tmpGoal：scored 写回后 goalNew 的消费点重求值会读到 scored=true → false（重复求值家族）
+    const scoredOld = f.getNodeGraphVariable('scored').asType('bool')
+    const goalNew = f.logicalAndOperation(goal.isGoal, f.logicalNotOperation(scoredOld))
+    const sGoalTmp = f.registerExecNode('set_node_graph_variable', [new str('tmpGoal'), goalNew, new bool(false)])
+    const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), f.dataTypeConversion(f.getNodeGraphVariable('tmpGoal').asType('bool'), 'int')), new bool(false)])
+    f.connect(sGoalTmp, 0, gc, 0)
+    const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), f.logicalOrOperation(scoredOld, f.getNodeGraphVariable('tmpGoal').asType('bool')), new bool(false)])
+    f.connect(gc, 0, sc, 0)
+    // 进球 → GOAL 复位定时器（2s 一次性；定时器事件由宿主 whenTimerIsTriggered 处理）
+    f.doubleBranch(f.getNodeGraphVariable('tmpGoal').asType('bool'), () => {
+      f.registerExecNode('start_timer', [e, new str('goal_reset'), new bool(false), f.assemblyList([GOAL_RESET_S], 'float')])
     }, () => {})
 
     // 门柱/横梁反射（球滚到门框弹回，出界已改墙反弹）
@@ -528,69 +537,32 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     // ③ 四面墙碰撞（草地边界反弹）
     const wall = f.callComposite(physWallCollide, {})
 
-    // ④ 停球判定 → 静止；否则继续滚滑 + 定点移动
-    // （auto 补踢已移到 autoCheckTick 独立定时器——挂在滚滑 tick 里球静止时无法触发）
+    // ④ 停球判定 + 状态提交（纯数据，单一提交）+ 运动器（数据选择）
     const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
     const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
     const spinFinal = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
-    f.doubleBranch(stop.isStop, () => {
-      const sf = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_FREE), new bool(false)])
-      f.outflow('done', sf, 0)
-    }, () => {
-      const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-      const ap = f.callComposite(physApplyMotion, { e, vel: velFinal, spin: spinFinal, grounded: new bool(true) })
-      f.connect(ss, 0, ap as never, 0)
-      f.outflow('done', ap as never, 0)
-    })
-    return {}
-  }
-})
-
-// ================================================================
-// 完整物理 tick 链（exec 复合）：状态机分派
-// state 0=静止 → 不动；1=空中 → 空中物理；2=滚滑 → 滚滑物理
-// ================================================================
-export const physTick = g.defineComposite('phys_tick', {
-  inputs: { e: { type: 'entity' } },
-  outputs: {},
-  outflows: ['done'],
-  build: ({ e }, f) => {
-    const state = f.getNodeGraphVariable('state').asType('int')
-    f.doubleBranch(
-      f.equal(state, 0n),
-      () => {
-        // 静止：清零速度，无运动器（链自然停；下一次命中事件推球或选项卡施力重新激活）
-        const tail = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.create3dVector(0, 0, 0), new bool(false)])
-        f.outflow('done', tail, 0)
-      },
-      () => {
-        f.doubleBranch(
-          f.equal(state, 1n),
-          () => {
-            const ft = f.callComposite(physFlyTick, { e })
-            f.outflow('done', ft as never, 0)
-          },
-          () => {
-            f.doubleBranch(
-              f.equal(state, 3n),
-              () => {
-                const st = f.callComposite(physSlideTick, { e })
-                f.outflow('done', st as never, 0)
-              },
-              () => {
-                const rt = f.callComposite(physRollTick, { e })
-                f.outflow('done', rt as never, 0)
-              }
-            )
-          }
-        )
-      }
+    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+    const bGoal = b2f(f.getNodeGraphVariable('tmpGoal').asType('bool'))
+    const bStop = b2f(stop.isStop)
+    // nextState：GOAL(5) > 停(0) > 滚动(2)
+    const nextF = f.addition(
+      f.multiplication(bGoal, 5),
+      f.multiplication(f.subtraction(1, bGoal), f.multiplication(f.subtraction(1, bStop), 2))
     )
+    const nextState = f.dataTypeConversion(nextF, 'int')
+    const haltF = b2f(f.logicalOrOperation(stop.isStop, f.getNodeGraphVariable('tmpGoal').asType('bool')))
+    const motionVel = f._3dVectorZoom(velFinal, f.subtraction(1, haltF))
+    const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: spinFinal, grounded: new bool(true) })
+    // 状态提交（图变量 + 球自定义变量一次性写）
+    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
+    f.connect(ap as never, 0, cg, 0)
+    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
+    f.connect(cg, 0, cc, 0)
+    f.outflow('done', cc, 0)
     return {}
   }
 })
-
 
 // ================================================================
 // 滑动 tick（exec 复合）：贴地打滑，匀减速强衰减（SLIDE_DECEL）；
@@ -605,7 +577,7 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
     const vel = f.getNodeGraphVariable('ballVel').asType('vec3')
     const spin = f.getNodeGraphVariable('ballSpin').asType('vec3')
     const integ = f.callComposite(physSlideIntegrate, { pos, vel, spin })
-    // 物化快照（同 kickApply/flyTick）：复合输出二次求值会因中间 set 图变量而翻倍
+    // 物化快照（防二次求值）
     const sTmpPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), integ.npos, new bool(false)])
     const sTmpVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), integ.nvel, new bool(false)])
     f.connect(sTmpPos, 0, sTmpVel, 0)
@@ -613,37 +585,81 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
     f.connect(sTmpVel, 0, sTmpSpin, 0)
     const sPos = f.registerExecNode('set_node_graph_variable', [new str('ballPos'), f.getNodeGraphVariable('tmpPos').asType('vec3'), new bool(false)])
     f.connect(sTmpSpin, 0, sPos, 0)
-    const ap = f.callComposite(physApplyMotion, { e, vel: f.getNodeGraphVariable('tmpVel').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3'), grounded: new bool(true) })
-    f.connect(sPos, 0, ap as never, 0)
-    const sVel = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
-    f.connect(ap as never, 0, sVel, 0)
-    const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
-    f.connect(sVel, 0, sSpin, 0)
-    // 判断是否转滚动
-    const spd = f._3dVectorModuloOperation(f.getNodeGraphVariable('tmpVel').asType('vec3'))
+    // 新速度/自旋先写回（碰撞分支可能再覆盖）
+    const sVel0 = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), f.getNodeGraphVariable('tmpVel').asType('vec3'), new bool(false)])
+    f.connect(sPos, 0, sVel0, 0)
+
+    // 球门碰撞 + 进球计分（数据选择）+ GOAL 复位定时器
+    const posSnap = f.getNodeGraphVariable('tmpPos').asType('vec3')
+    const velSnap = f.getNodeGraphVariable('tmpVel').asType('vec3')
+    const goal = f.callComposite(physGoalCollide, { pos: posSnap, vel: velSnap })
+    // 进球计分（数据选择）+ 物化 tmpGoal（scored 写回后再读 goalNew 会重算出 false）
+    const scoredOld = f.getNodeGraphVariable('scored').asType('bool')
+    const goalNew = f.logicalAndOperation(goal.isGoal, f.logicalNotOperation(scoredOld))
+    const sGoalTmp = f.registerExecNode('set_node_graph_variable', [new str('tmpGoal'), goalNew, new bool(false)])
+    const gc = f.registerExecNode('set_node_graph_variable', [new str('goalCount'), f.addition(f.getNodeGraphVariable('goalCount').asType('int'), f.dataTypeConversion(f.getNodeGraphVariable('tmpGoal').asType('bool'), 'int')), new bool(false)])
+    f.connect(sGoalTmp, 0, gc, 0)
+    const sc = f.registerExecNode('set_node_graph_variable', [new str('scored'), f.logicalOrOperation(scoredOld, f.getNodeGraphVariable('tmpGoal').asType('bool')), new bool(false)])
+    f.connect(gc, 0, sc, 0)
+    f.doubleBranch(f.getNodeGraphVariable('tmpGoal').asType('bool'), () => {
+      f.registerExecNode('start_timer', [e, new str('goal_reset'), new bool(false), f.assemblyList([GOAL_RESET_S], 'float')])
+    }, () => {})
+    // 门柱/横梁反射（贴地滑行撞门框弹回）
+    f.doubleBranch(goal.hitPost1, () => {
+      f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost1, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitPost2, () => {
+      f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelPost2, new bool(false)])
+    }, () => {})
+    f.doubleBranch(goal.hitBar, () => {
+      f.registerExecNode('set_node_graph_variable', [new str('ballVel'), goal.nvelBar, new bool(false)])
+    }, () => {})
+    const velAfterFrame = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const netVel = f._3dVectorZoom(velAfterFrame, NET_DAMP)
+    f.doubleBranch(goal.netHit, () => {
+      f.registerExecNode('set_node_graph_variable', [new str('ballVel'), netVel, new bool(false)])
+    }, () => {})
+
+    // 四面墙碰撞
+    const wall = f.callComposite(physWallCollide, {})
+
+    // 停球判定 + 滑转滚 + 状态提交（纯数据）
+    const velFinal = f.getNodeGraphVariable('ballVel').asType('vec3')
+    const posFinal = f.getNodeGraphVariable('ballPos').asType('vec3')
+    const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
+    const vv = f.split3dVector(velFinal)
+    const spd = f._3dVectorModuloOperation(f.create3dVector(vv.xComponent, 0, vv.zComponent))
     const toRoll = f.lessThan(spd, SLIDE_TO_ROLL_SPEED)
-    f.doubleBranch(
-      toRoll,
-      () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_ROLL), new bool(false)])
-        f.outflow('done', ss, 0)
-      },
-      () => {
-        const ss = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(STATE_SLIDE), new bool(false)])
-        f.outflow('done', ss, 0)
-      }
+    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+    const bGoal = b2f(f.getNodeGraphVariable('tmpGoal').asType('bool'))
+    const bStop = b2f(stop.isStop)
+    const bRoll = b2f(toRoll)
+    // nextState：GOAL(5) > 停(0) > 转滚(2) > 继续滑(3)
+    const nextF = f.addition(
+      f.multiplication(bGoal, 5),
+      f.multiplication(
+        f.subtraction(1, bGoal),
+        f.multiplication(f.subtraction(1, bStop), f.addition(f.multiplication(bRoll, 2), f.multiplication(f.subtraction(1, bRoll), 3)))
+      )
     )
+    const nextState = f.dataTypeConversion(nextF, 'int')
+    const haltF = b2f(f.logicalOrOperation(stop.isStop, f.getNodeGraphVariable('tmpGoal').asType('bool')))
+    const motionVel = f._3dVectorZoom(velFinal, f.subtraction(1, haltF))
+    const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: f.getNodeGraphVariable('tmpSpin').asType('vec3'), grounded: new bool(true) })
+    const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
+    f.connect(ap as never, 0, sSpin, 0)
+    // 状态提交（图变量 + 球自定义变量一次性写）
+    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
+    f.connect(sSpin, 0, cg, 0)
+    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
+    f.connect(cg, 0, cc, 0)
+    f.outflow('done', cc, 0)
     return {}
   }
 })
 
 // ================================================================
-// 自动兜底判定（纯数据）：球慢速（<2 m/s）且玩家在 2m 内 → 需要补踢
-// 命中检测 0.3s CD 期间的空白由滚滑 tick 里的此判定补位
-// ================================================================
-
-// ================================================================
-// 带球「速度场吸附」已拆到独立模块 dribble-field.ts（composites/dribble-field.ts）
-// 旧「冲量踢球」复合（pushGetRole/pushCompute/kickApply/pushAutoCheck/dribbleDecide/autoCheckTick）
-// 已移除（2026-08-28 速度场带球切换）。物理状态机（phys_*）保留。
+// 带球「速度场吸附」已拆到独立模块 dribble-field.ts（composites/dribble-field.ts）。
+// 状态分发在宿主 game.ts（whenBasicMotionDeviceStops）：0=FREE 清速 / 1=fly / 2=roll / 3=slide /
+// 4=CARRIED 带球图驱动 / 5=GOAL 复位定时器。各 tick 复合链尾单一提交 state。
 // ================================================================

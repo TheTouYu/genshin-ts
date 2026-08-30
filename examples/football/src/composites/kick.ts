@@ -104,14 +104,11 @@ export const kickLaunch = g.defineComposite('kick_launch', {
     f.connect(ap as never, 0, setVel, 0)
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), integ.nspin, new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
-    const setState = f.registerExecNode('set_node_graph_variable', [
-      new str('state'), new int(1), new bool(false)
-    ])
-    f.connect(setSpin, 0, setState, 0)
+    // 状态由宿主 stateCommit 统一提交（本复合不写 state）
     const setScored = f.registerExecNode('set_node_graph_variable', [
       new str('scored'), new bool(false), new bool(false)
     ])
-    f.connect(setState, 0, setScored, 0)
+    f.connect(setSpin, 0, setScored, 0)
     f.outflow('done', setScored, 0)
     return {}
   }
@@ -164,10 +161,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -179,10 +175,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -194,10 +189,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -209,10 +203,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -224,10 +217,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -239,10 +231,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -254,10 +245,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -269,10 +259,9 @@ export const kickApplyImpulse = g.defineComposite('kick_apply_impulse', {
         const sV = f.registerExecNode('set_node_graph_variable', [new str('ballVel'), nv, new bool(false)])
         const sW = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), nw, new bool(false)])
         f.connect(sV, 0, sW, 0)
-        const st = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(1), new bool(false)])
-        f.connect(sW, 0, st, 0)
+        // 状态由宿主 stateCommit 统一提交（本复合不写 state）
         const inc = f.registerExecNode('set_node_graph_variable', [new str('impulseSeq'), f.addition(seq, new int(1)), new bool(false)])
-        f.connect(st, 0, inc, 0)
+        f.connect(sW, 0, inc, 0)
         const imp = f.registerExecNode('add_uniform_basic_linear_motion_device', [e, impName, new float(0.2), dv])
         f.connect(inc, 0, imp, 0)
       },
@@ -299,10 +288,9 @@ export const kickReset = g.defineComposite('kick_reset', {
     f.connect(setPos, 0, setVel, 0)
     const setSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.create3dVector(0, 0, 0), new bool(false)])
     f.connect(setVel, 0, setSpin, 0)
-    const setState = f.registerExecNode('set_node_graph_variable', [new str('state'), new int(0), new bool(false)])
-    f.connect(setSpin, 0, setState, 0)
+    // 状态由宿主 stateCommit 统一提交（本复合不写 state）
     const setScored = f.registerExecNode('set_node_graph_variable', [new str('scored'), new bool(false), new bool(false)])
-    f.connect(setState, 0, setScored, 0)
+    f.connect(setSpin, 0, setScored, 0)
     f.outflow('done', setScored, 0)
     return {}
   }

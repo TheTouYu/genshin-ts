@@ -1,5 +1,23 @@
 # 进度记录 — 真实足球
 
+## 最近轮次
+
+- 2026-08-30（R2-R3 注入完成 + 读图核验通过，待游戏验证）：
+  - **注入**：注册信号 ball_dropped(vel:vec3)（send 1610612750/mon 1610612751/srv 1610612752）+ 注入 game.gia→1073741825（69 节点）+ dribble-field.gia→1073741828（12 节点）；Temp 同步双 SHA 9e086d47。
+  - **核验（逐项勾对）**：check-gil-composite-refs --incoming ✓（game.gia 的 7 项=文档化误报：2000000000 段旧段复用+信号 def；dribble-field.gia 0 悬空）；parse --list 复合目录 0 残留（旧 phys_tick/physRollFriction 被同 ID 覆盖清除，无 (1) 后缀；唯一注意=跨 .gia 双份 dribble_field_get_role 0000/0021 均活引用，非残留）；scan-gil-var-pins 30 图 205 节点全完整；explain 读回 game（5 入口/分发链/心跳门控/ball_dropped/单一提交）、dribble_field_tick（物化→脱脚信号→写回→牵引分支）、phys_fly_tick（线性链+tmpGoal 物化+goal_reset+state 双写提交）、state_commit（2 节点双写）全部符合设计；implTotal 776<3000。
+  - **用户测试点**：①走近球 1.2m 内自动带球（CARRIED，≤0.5s）②带球贴地/跟手/停球也停 ③射门 9 选项/弧线/高速落地滑动段 ④**射门停球后再走近可重新带球（R0 铁证#1 修复回归点）** ⑤进球计分+2s 自动复位 ⑥脱脚（跑远/急停甩球）⑦墙/门柱/反弹/马格努斯/运动中冲量 回归；日志 Beyond_Debug_Log 供帧值分析。
+- 2026-08-30（R1-R3 状态机重构·代码实施完成，编译/注入待编译器稳定）：
+  - **R1 定稿**：状态同步=轮询检测（lastSeenState）；脱脚=ball_dropped(vel) 信号；state 单一提交（state_commit / tick 链尾提交对）；物理 tick 自提交消灭多 outflow 漏写；SLIDE 按物理定义补入口（落地高速>4.5m/s + 自旋收敛）；GOAL 状态 + 2s 复位（goalNew 物化 tmpGoal 防重复求值）；心跳 0.5s 常驻门控。
+  - **代码改动**：game.ts 重写（状态机唯一仲裁/宿主分发/心跳/ball_dropped 落地/GOAL 复位）；physics.ts（三 tick 数据选择+单一提交、SLIDE 入口与自旋收敛、删 phys_tick/physRollFriction）；kick.ts（移除全部 state 写入）；新增 state.ts（stateCommit/statePossessCheck）；dribble-field.ts 复合+根图（CARRIED 门控、进入复位、脱脚信号入复合）；signals.ts 只留 ball_dropped；删除 dribble.ts/debuglog.ts。
+  - **编译器并发回归**：根图数组字面量 → gsts.f.assemblyList 触发 ctx 错误（同事修复中；旧代码同样失败已实证）；已用显式 f.assemblyList + setNodeGraphVariable 规避；dist 构建被并发 build 干扰（config_loader.js 缺失），编译暂缓。
+  - **下一步**：编译器稳定后编译 → 解码核验 .gia → 注入（用户确认）→ R4 游戏验证。
+- 2026-08-30（R0 状态机重构·现状盘点，方案待实施）：
+  - **任务**：状态机架构重构——引入 CARRIED + 状态机唯一仲裁 + 行为图职责单一化（任务书见会话；方案见 `examples/football/REFACTOR-PLAN.md`）。
+  - **R0 交付**：状态所有权矩阵 / 状态机判定表草案（FREE/CARRIED/FLYING/ROLLING/SLIDE/GOAL）/ 图间接口方案（state 自定义变量唯一写者 + state_changed/ball_dropped 信号）/ 文件改动清单——全部写入 REFACTOR-PLAN.md。
+  - **关键铁证（真实地图 1073741908.gil + IR 双印证）**：phys_tick 复合 4 个 done outflow 只有 outflow[0]（FREE 分支）被调用点消费 → FLY/ROLL/SLIDE tick 后自定义变量 state 镜像不更新 → 球滚停后带球图不恢复（软契约失效根因）；速度双真相（game.ballVel vs dribble.ballVx/Vz）；SLIDE 无入口（死分支）；GOAL 非状态；_GSTS_input/_GSTS_dribble 死图未挂载。
+  - **决策（用户确认）**：SLIDE 保留按物理定义设计（落地高速>4.5m/s 进 SLIDE）；CARRIED 用范围查询（1.2m+球速低，FREE 心跳 0.5s）；删除输入图（tab 由状态机图直收）；第 9 选项保留复位；新增 GOAL 状态 + 2s 自动复位；文档定调速度场吸附。
+  - **下一步（R1）**：双节拍最小实验（0.5s 心跳 vs 0.12s tick 协同语义）→ 判定表/接口定稿 → R2 状态机图落地。
+
 ## 基本信息
 
 | 项 | 值 |
