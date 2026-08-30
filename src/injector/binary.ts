@@ -118,6 +118,43 @@ export function readFieldMessages(buf: Uint8Array, targetField: number): Uint8Ar
   return list
 }
 
+/**
+ * 返回 buf 中 field 编号 > maxField 的字段的**原始编码字节**（key+length+data 完整切片，
+ * 任意 wire 类型）。注入器重建顶层 field 10 时只重组 field 1-5，其余字段（如信号注册表
+ * 之后的 f7=1 标记）必须原样保留，否则游戏加载拒载（2026-08-30 足球 ball_dropped 信号
+ * 事故实证：注入后 f7=1 丢失 → 游戏不识别信号参数、无日志拒载）。
+ */
+export function readFieldRawTail(buf: Uint8Array, maxField: number): Uint8Array[] {
+  const out: Uint8Array[] = []
+  let offset = 0
+  while (offset < buf.length) {
+    const keyStart = offset
+    const key = readVarint(buf, offset)
+    if (!key) break
+    offset = key.next
+    const field = key.value >> 3
+    const wire = key.value & 7
+    if (wire === 2) {
+      const lenVar = readVarint(buf, offset)
+      if (!lenVar) break
+      offset = lenVar.next + lenVar.value
+      if (offset > buf.length) break
+    } else if (wire === 0) {
+      const v = readVarint(buf, offset)
+      if (!v) break
+      offset = v.next
+    } else if (wire === 1) {
+      offset += 8
+    } else if (wire === 5) {
+      offset += 4
+    } else {
+      break
+    }
+    if (field > maxField) out.push(buf.subarray(keyStart, offset))
+  }
+  return out
+}
+
 export function readFieldVarint(buf: Uint8Array, targetField: number): number | undefined {
   let offset = 0
   while (offset < buf.length) {

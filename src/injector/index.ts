@@ -9,6 +9,7 @@ import {
   parseMessage,
   readFieldBytes,
   readFieldMessages,
+  readFieldRawTail,
   readUint32BE
 } from './binary.js'
 import {
@@ -411,6 +412,9 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         rebuiltTop10Parts.push(encodeMessageField(4, wrapper))
       for (const msg of readFieldMessages(top10Bytes, 5))
         rebuiltTop10Parts.push(encodeMessageField(5, msg))
+      // 保留 field > 5 的原始字段（信号注册表后的 f7=1 标记等；2026-08-30 事故：丢失 → 游戏拒载）
+      for (const raw of readFieldRawTail(top10Bytes, 5))
+        rebuiltTop10Parts.push(raw)
       const rebuiltTop10Bytes = Buffer.concat(rebuiltTop10Parts.map((part) => Buffer.from(part)))
 
       const newPayload = applyReplacement(payload, fields, top10Field, rebuiltTop10Bytes)
@@ -471,7 +475,9 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         readFieldMessages(top10Bytes, field).map((message) =>
           Buffer.from(encodeMessageField(field, message))
         )
-      )
+      ),
+      // 保留 field > 5 的原始字段（信号注册表后的 f7=1 标记等；2026-08-30 事故：丢失 → 游戏拒载）
+      ...readFieldRawTail(top10Bytes, 5).map((raw) => Buffer.from(raw))
     ])
     const newPayload = applyReplacement(payload, fields, top10Field, rebuiltTop10Bytes)
     return {
