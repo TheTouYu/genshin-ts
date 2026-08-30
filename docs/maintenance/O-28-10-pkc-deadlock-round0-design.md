@@ -3,7 +3,8 @@
 > 日期：2026-08-31（第 0 轮）
 > 范围：上游 portable-knowledge「revise 无 ref claim 补 authority ref」路径缺失的复现与设计；
 >   本项目 clm_CAE30537（client-log-encoding）按钮字典修正为首个受益场景。
-> 状态：**设计方案待用户确认，未动上游任何代码**。
+> 状态：**候选 A 已获用户裁决确认（2026-08-31），进入 R1 上游红绿测试 / R2 修复实施**。
+> 裁决记录：用户于第 0 轮末从候选 A（推荐）/B/C 中选定 A——add_authority_ref 对零 ref revised claim 放行，有 ref 仍走 refresh。
 > 关联：open-items O-28-10⑤（死锁登记）/ O-2026-08-29-11（全库 stale refs 维护轮，本次不误触）。
 
 ## 一、复现记录（本项目 genshin-ts，runtime fe838a0）
