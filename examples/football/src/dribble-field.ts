@@ -1,11 +1,10 @@
-// 足球带球「速度场吸附」图（挂球实体 1077936135，图 1073741828）
-// 职责：带球（速度场吸附）——0.12s 循环定时器驱动，只在 CARRIED 状态驱动球。
-// 与状态机图（game.ts 1073741825）分工（状态机唯一仲裁）：
-//   - 状态机图唯一写 state（球实体自定义变量，跨图共享）；本图只读；
-//   - 本图仅在 state==4（CARRIED）时激活运动器，其他状态完全停手；
-//   - 进入 CARRIED（轮询迁移检测）→ 球速清零重算；
-//   - 脱脚（球脱离牵引区 3 tick）→ dribble_field_tick 复合内直接发 ball_dropped(vel) 信号，
-//     状态机图写回 ballVel 后转 ROLLING（速度交接）。
+// 足球带球「连续速度控制器」图（挂球实体 1077936135，图 1073741828）
+// 设计不变量（2026-08-31 重设计，教训见 PORTING-MAP C1 节）：
+//   ① 设备永不断供——运动器是实体唯一运动来源，场监管期间每拍无条件写设备；
+//   ② 速度=带记忆的状态——区内 v←0.95v+脉冲，区外 v←0.95v 滑行（无"断电死停"）；
+//   ③ 反馈=每拍实时几何（dist/fwd 对实体真实位置），无状态机延时。
+// custody 分工：FREE(0)/CARRIED(4)=场独占驱动；FLY/ROLL/SLIDE/GOAL=物理链独占（场零设备）。
+// CARRIED 仅踢球语义标志（状态机图心跳设置）；脱脚=持续出区 3 tick → ball_dropped(vel)。
 // 命中检测兜底：后续打开命中检测组件时再接 whenOnHitDetectionIsTriggered（预留，本期不挂）。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str, vec3 } from 'genshin-ts/runtime/value'
@@ -27,24 +26,17 @@ const graph = g
       lastSeenState: new int(0),
       // 脱脚计数（float 便于数据选择；≥3 tick 请求脱脚）
       lostTicks: new float(0),
-      // 初始化标记（When Entity Is Created 只启动一次定时器）
-      _init: new bool(false)
+      // 脱脚计数（float 便于数据选择；≥3 tick 请求脱脚）
+      lostTicks: new float(0)
     }
   })
   // ================================================================
-  // 实体创建：首次启动 0.12s 循环定时器（_init 防重复启动）
+  // 实体创建：启动 0.12s loop 循环定时器（引擎级恒定周期；自重启链周期=
+  // 0.12+链执行时长，抖动=延时感——2026-08-31 连续控制器重设计。重复启动为
+  // 同名替换无害；_init 标志跨会话持久化不可靠，弃用）
   // ================================================================
   .on('whenEntityIsCreated', (evt: any, f: any) => {
-    const init = f.getNodeGraphVariable('_init').asType('bool')
-    f.doubleBranch(
-      init,
-      () => {},
-      () => {
-        f.setNodeGraphVariable('_init', new bool(true), false)
-        // 显式 assemblyList（规避编译器根图数组字面量 → gsts.f 的 ctx 回归）
-        f.startTimer(f.getSelfEntity(), 'dribble_field', false, f.assemblyList([TICK], 'float'))
-      }
-    )
+    f.startTimer(f.getSelfEntity(), 'dribble_field', true, f.assemblyList([TICK], 'float'))
   })
   // ================================================================
   // 定时器触发：速度场 tick（自重启在复合内部；脱脚信号也在复合内直接发送）
