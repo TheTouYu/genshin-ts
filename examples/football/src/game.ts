@@ -116,10 +116,17 @@ const graph = g
   .on('whenBasicMotionDeviceStops', (evt: any, f: any) => {
     const ball = evt.eventSourceEntity
     const state = f.getNodeGraphVariable('state').asType('int')
-    // 2026-08-30 日志 3005 实证：分发不能按设备名过滤（只响应 physics）——
-    // kickApplyImpulse 用唯一名设备（"1"/"2"…），其停止事件被旧分发忽略 →
-    // 飞行中再施力后物理链断裂、球冻结。改为按 state 分发：物理态
-    // （FLY/ROLL/SLIDE/FREE）任何设备停止都恢复物理链；CARRIED/GOAL 忽略。
+    // 2026-08-31 日志 3012 实证（R2-R3 回归）：任何设备停止都分发 → 每 tick 加
+    // physics+spin 两设备、两停止各触发一次 tick → 后到 tick 的同名设备瞬间替换
+    // 杀死先到设备（~5ms 级联，23 拍挤在 1s 内）→ 实体不被驱动冻结空中、变量独自
+    // 跑完全程（球心 2.4m 悬停 vs 变量已滚停）。修正：只忽略 spin 停止——
+    // physics 与冲量唯一名设备（"1"/"2"…，3005 实证其停止必须恢复物理链）都分发。
+    f.doubleBranch(
+      f.equal(evt.motionDeviceName, new str('spin')),
+      () => {
+        // spin（旋转运动器）停止：忽略，防双触发同名替换级联
+      },
+      () => {
     f.doubleBranch(
       f.equal(state, 0n),
       () => {
@@ -152,6 +159,8 @@ const graph = g
             )
           }
         )
+      }
+    )
       }
     )
   })
