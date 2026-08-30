@@ -2,6 +2,12 @@
 
 ## 最近轮次
 
+- 2026-08-31（第一阶段物理核心交付：headless 确定性引擎 + 门 A–D 全量验收 PASS）：
+  - **交付物**：`examples/football/sim/`——确定性物理核心（RK4 气动积分、自适应子步 CCD+TOI 冲量接触、六态滞回状态机、踢球 API、带球控制器、遥测+轨迹哈希、快照回滚）+ 验收 harness（门 A–D 全用例 CLI，退出码判分）+ 核验报告。总判定 **PASS（31/0/1）**，报告 `sim/reports/verification-report.md`。
+  - **关键实测**：A1 真空弹道误差 1.7e-14；A4 e=1 反弹回高 ±0.001%；B4 侧旋 +X 3.68m/上旋短 25%/回旋滞空 2.1×；C1 带球间距 [0.34,0.60]m 球速 [4.4,7.6] 脉冲；C6 门柱反射比 0.7200 精确、穿透 1.37mm；D1/D2 哈希逐位一致；D3 单球 0.008ms/tick。
+  - **修复谱系**（开发中揪出的真 bug）：皮肤区支撑吞反弹能量（首触不弹）；滚动球无位置纠偏无限下沉→幽灵 TOI 假弹跳；角速度安全阀误伤纯滚旋量（8m/s 纯滚需 72.7>70 rad/s）→假滑移+假马格努斯；REST 冻结不标 groundedContact 导致带球走近不控球；嵌入出生被 REST 冻结无法推出；区域门平面从背侧进入产生幽灵巨穿透；柱轴退化法向沿轴上推。
+  - **参数定标**：magnusK=0.00356（⇔Cl≈0.31@S=0.22，B4 校准）；草地 e=0.70（含气动阻力回高 0.94m∈[0.9,1.3]）；硬地 e=0.85；a_roll=1.0（停距 22.9m∈[20,40]，含阻力解析解吻合）。
+  - **复现**：`npm run football:sim`。**注意**：本阶段为 headless 物理核心层（核验标准 Out of Scope 之外的游戏内表现不在本轮）；游戏内 5Hz 节点图移植到本参数基准为第二阶段。
 - 2026-08-30（R2-R3 注入完成 + 读图核验通过，待游戏验证）：
   - **注入**：注册信号 ball_dropped(vel:vec3)（send 1610612750/mon 1610612751/srv 1610612752）+ 注入 game.gia→1073741825（69 节点）+ dribble-field.gia→1073741828（12 节点）；Temp 同步双 SHA 9e086d47。
   - **核验（逐项勾对）**：check-gil-composite-refs --incoming ✓（game.gia 的 7 项=文档化误报：2000000000 段旧段复用+信号 def；dribble-field.gia 0 悬空）；parse --list 复合目录 0 残留（旧 phys_tick/physRollFriction 被同 ID 覆盖清除，无 (1) 后缀；唯一注意=跨 .gia 双份 dribble_field_get_role 0000/0021 均活引用，非残留）；scan-gil-var-pins 30 图 205 节点全完整；explain 读回 game（5 入口/分发链/心跳门控/ball_dropped/单一提交）、dribble_field_tick（物化→脱脚信号→写回→牵引分支）、phys_fly_tick（线性链+tmpGoal 物化+goal_reset+state 双写提交）、state_commit（2 节点双写）全部符合设计；implTotal 776<3000。
