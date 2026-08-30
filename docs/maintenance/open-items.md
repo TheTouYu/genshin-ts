@@ -646,28 +646,27 @@
 - 若核验通过：关闭本项；记录验证日志 SHA 和结论到复盘文档。
 - 若失败：回退 P0-1，或改用 `flowUpdateOrientAnalytic`（保留 `flowAfterTurn` 中的循环，但用 analytic 表代替物理回读）。
 
-### O-2026-08-21-4. check-gil-composite-refs --incoming 把信号定义单元误报为「复合缺失」
+### O-2026-08-21-4. check-gil-composite-refs --incoming 把信号定义单元误报为「复合缺失」【已修复 2026-08-30】
 
 - `check-gil-composite-refs.ts --incoming <gia>` 的 incoming 对比把 GIA 中 which=12（监听信号）/14（发送信号/向服务器发送信号）的定义单元也收进 incomingIds，与复合 impl 图区间（161070xxxx）对比 → 报「GIA 复合 xxx 注入后在地图中缺失」。
 - 本轮实证：3×3 注入（map 1073741899）报 1610612741/42/43 三个「缺失」，实为信号定义单元（`发送信号`/`监听信号`/`向服务器节点图发送信号`，class=10001），地图中信号 `rubik3x3_tab` 注册正常（scan-gil-signals：发送2/监听1），属工具误报。
-- 修复方向：incoming 收集时过滤 class != 23（或仅收集复合 def，跳过 which 12/14 信号单元）；修复后补回归用例（含信号定义单元的 gia 不再误报）。
+- 落地（2026-08-30，提交 89ba917）：实测 unit.which 与 def.class 均无法区分信号单元（监听信号 which=12 同复合、class 全 10001），**id 区间是唯一可靠判据**——incoming 收集排除内置 SysGraph 信号区间（1610612736~1610700000）；mapIds 扩展覆盖默认命名空间区间（2000000000+，football motion_by_vel 等同族误报一并修）。验证：rubik-3x3 --incoming 0 误报；football 只剩真实版本不一致报错。
 - 证据：`tools/check-gil-composite-refs.ts`（--incoming 分支）、`examples/rubik-3x3/dist/src/game.gia` decode 输出、`scan-gil-signals` 输出。
 
-### O-2026-08-21-5. 悬空检测器增强：重复入边（auto-chain + 显式 connect 冲突）静态检测
+### O-2026-08-21-5. 悬空检测器增强：重复入边（auto-chain + 显式 connect 冲突）静态检测【已修复 2026-08-30】
 
 - 现检测器（`src/compiler/ir_lint_dangling_exec.ts`）只抓「有出边无入边」的悬空 exec 节点，抓不到**重复入边**（同一 exec 节点多条 exec 入边）。
 - 本轮实证：2×2 `gstsDoWhole` 若 start_timer 用 `f.registerExecNode()`（auto-chain 从当前 tail 串一条）同时又有 `connect(t7→startTimer)`，会形成两条 InFlow，同一节点执行两次（日志特征：Start Timer 同节点两帧）。当前靠 `gil-node-graph-reading` 读 `flow` 列表人工核对。
-- 增强方向：IR 层 edges 中统计同一 exec target 的 exec 类入边数 >1 即告警（同 dangling 归入 GSTS-DANGLING-EXEC-NODE warning 族）；注意复合调用 done 因 auto-chain 拉额外入边的合法场景需豁免或降级。
-- 证据：`examples/rubik-2x2/src/game.ts` 修复注释（2026-08-21）、`docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md` 第二节。
+- 落地（2026-08-30，提交 edfcac3）：新增 `GSTS-DUPLICATE-EXEC-INPUT` warning——同一 target 收到 ≥2 条同 source_index 且不同非入口来源的 exec 边即告警。豁免：事件入口 fan-in（timer dispatch 聚合）、同 from 多边（分支 join）、复合 inflow 目标、分支 join（来源 from 唯一入边来自同一分支节点）。6 场景回归 PASS；真实项目告警量：rubik-3x3 9 / football 1（测试合并图 41 为聚合特殊性）。
+- 证据：`examples/rubik-2x2/src/game.ts` 修复注释（2026-08-21）、`docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md` 第二节、`tests/ir_lint_dangling_exec_test.ts`。
 
-### O-2026-08-22-1. 复合节点 enum 类型输入无法用于 enumerationsEqual（编译器 bug，待统一修复）
+### O-2026-08-22-1. 复合节点 enum 类型输入无法用于 enumerationsEqual（编译器 bug）【已修复 2026-08-30】
 
 - 现象：复合节点声明 `inputs: { status: { type: 'enumeration' } }`，build 内 `f.enumerationsEqual(status, SettlementStatus.Victory)` 编译报 `Error: Invalid value type: enum`。
-- 根因（已定位，未改）：`src/runtime/core.ts` 的 `createTypedValue(type)` switch **没有 `enum`/`enumeration` 分支**，enum 类型复合输入落到 `default` 返回 `new generic()`；而 `enumerationsEqual` 里 `parseValue(enumeration1, 'enum')` 要求 `z.instanceof(enumeration)`，generic 实例不满足 → 抛错。
+- 根因（已定位）：`src/runtime/core.ts` 的 `createTypedValue(type)` switch **没有 `enum`/`enumeration` 分支**，enum 类型复合输入落到 `default` 返回 `new generic()`；而 `enumerationsEqual` 里 `parseValue(enumeration1, 'enum')` 要求 `z.instanceof(enumeration)`，generic 实例不满足 → 抛错。
 - 影响：无法用 DSL 复刻「枚举→整数/字符串/执行分支」类复合节点（原版资源包 1610612755/1610612759/1610612757/1610612758 等），因为复合输入无法传 enum。
-- 证据：`examples/composite-replica/src/batch2-random-enum-matrix.ts` 编译报错（2026-08-22 复刻实战）；`createTypedValue` 源码 switch 缺 enum 分支。
-- 修复方向（待统一安排）：`createTypedValue` 补 `case 'enum'`/`case 'enumeration'` 返回 `new enumeration(...)`（需确认 enumeration 构造方式与 capture 语义）；或复合输入类型系统显式排除 enum 并给出编译期报错（而非运行时 Invalid value type）。
-- 关联：`RuntimeValueTypeMap` 已含 `enum: enumeration`，`CompositeParamType = keyof RuntimeValueTypeMap` 类型层面允许 enum，但运行时 `createTypedValue` 未实现——类型与实现不一致。
+- 落地（2026-08-30，提交 5c6e94a）：`createTypedValue` 补 `case 'enum'/'enumeration'` 返回 `new enumeration()`（三处调用点全覆盖）；`enumerationsEqual` 的 className mismatch 检查放宽——捕获阶段占位值 className 为空时跳过校验（两个具体枚举类名不同仍报错）。回归 `tests/composite_enum_input_test.ts` PASS + enum_operator_equal + build 绿。
+- 关联：`RuntimeValueTypeMap` 已含 `enum: enumeration`，类型与实现现已一致。
 
 ### O-2026-08-22-2. composite-docs-navigator/maintainer 不在会话技能加载列表（DSH 发现机制疑点，框架层待排查）
 
@@ -716,11 +715,12 @@
 - O-2026-08-26-5：gsts 注入某图失败时不产生醒目失败摘要/非零退出码（2906 事故中 error 行被输出截断掩盖）——给 inject 管线加统一的 FAIL 计数与退出码，供脚本/模型可靠判断。
 - 观察项（2026-08-26）：rubik-3x3 game.ts 根回调 finiteLoop 内 registerExecNode（destroy_entity 等）与 turn.ts busyNop 同类形态但为既有工作代码、本轮无回归，未动；若未来再碰 `Generic parameter not matched` 按同法改成高层 API 或挪进复合。
 
-### O-2026-08-27-02 复合输出二次求值：编译器层自动物化/报错（防运动器速度翻倍类 bug）
+### O-2026-08-27-02 复合输出二次求值：编译器层自动物化/报错（防运动器速度翻倍类 bug）【部分落地 2026-08-30】
 
 - 背景：`kickApply`/`physSlideTick` 中 `callComposite` 输出被 exec 链消费 ≥2 次、中间夹 set 图变量 → 引擎按消费点重新求值 → npos 翻倍 → 运动器速度=逻辑球速×2 → 球瞬移（足球实证，日志 2026-08-27_16-43-43；提交 73b0ca6/e463c1c）。
 - 已做（DSL 层）：复合作者手动物化 tmp* 快照防翻倍，技能 + PKC 已沉淀纪律。
-- 未闭合（编译器层）：能否在 `gs_to_ir`/`ir_to_gia` 检测"同一复合输出被 exec 链多个消费点引用且中间夹 set 图变量"并自动物化或报错——让复合作者无需手动 tmp*。属编译器改进方向，待设计。
+- 落地（2026-08-30，提交 0ec799b）：新增 `GSTS-COMPOSITE-OUTPUT-REUSE` warning（独立 linter `ir_lint_composite_reuse.ts`，挂 IR→GIA 必经点）——同一 `__composite_call__` 输出被 ≥2 消费点引用即告警（含写变量消费点标记更高风险），提示物化 tmp* 快照。**选 warning 级**：rubik-3x3 实测 29+ 处多消费，error 会破坏编译；纯数据多消费（无中间写回）可能无害，保守提示。
+- 剩余：rubik-3x3 的 29+ 处告警逐处核对清理（部分可能需物化重构）；「中间夹 set 的 exec 链判定」精确版需执行链可达性分析（当前为简化版任意多消费）；未来可评估 --strict-warnings 升级。
 
 ### O-2026-08-27-03 运动器传导链：实体滞后机制 + 引擎速度超限阈值未破译
 
@@ -810,9 +810,9 @@
 
 ### O-2026-08-28-09 gia_log_flow 工具后续改进项
 
-- ① 服务端图模式：head=动态帧 ID，需复用 gia_log.py 的节点名映射（当前 --client 专用）【**已闭合 2026-08-28**：服务端模式实现——head 首字节=主图节点序号 + gia_log.py 节点链标注 + 双语控制流关键词 + 同节点连续机制帧合并 ×N + trace-node 主图节点 + 图解析 /tmp 缓存】② 多分支 case 精确匹配：当前只显示 case 列表首元素，无法标注实际命中分支 ③ 双分支只显示条件值，未标注 true/false 走向 ④ 客户端打印不落服务器日志（官方客户端节点图日志通道 mhrnuz9izfne 另查）。
+- ① 服务端图模式：head=动态帧 ID，需复用 gia_log.py 的节点名映射（当前 --client 专用）【**已闭合 2026-08-28**：服务端模式实现——head 首字节=主图节点序号 + gia_log.py 节点链标注 + 双语控制流关键词 + 同节点连续机制帧合并 ×N + trace-node 主图节点 + 图解析 /tmp 缓存】② 多分支 case 精确匹配【**已落地 2026-08-30（ae481ef）**：控制值匹配 case 列表 → `命中 case[N]`，无匹配 → `default` 标注】③ 双分支 true/false 走向【**已落地 2026-08-30（ae481ef）**：按条件值标注 `TRUE/FALSE 分支`；受控小样本 PASS，端到端待真实多分支日志验证】④ 客户端打印不落服务器日志（官方客户端节点图日志通道 mhrnuz9izfne 另查）。
 - 证据：魔方会话 2979 rec2/rec163 事件线视图验证输出（rec2 65 行含循环体×26 折叠、rec163 58 行、--trace-node 115 六参数来源链到源头）；会话 2980 完整游玩日志服务端模式验证（魔方块-旋转 137 帧→15 行事件线、trace-node 主图节点）。
-- 何时做：读复杂多分支客户端图时补 ②③。
+- 何时做：④ 客户端打印通道另查；②③ 端到端在下次读真实多分支日志时顺带核验。
 
 ### O-2026-08-28-10 完整游玩日志（会话 2980）新发现待闭合项
 
