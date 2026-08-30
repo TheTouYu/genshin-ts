@@ -34,7 +34,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | `scripts/gia_log.py <日志.gia> records --summary` | **海量日志主视图（2026-08-28 新增）**：按图聚合（条数/f8 范围/f21 总量）+ f3 秒范围，一眼看全 482 条完整游玩日志 |
 | `scripts/gia_log.py <日志.gia> ops` | **操作时间线（2026-08-28 新增）**：以客户端记录（f8=2097154）为界聚类记录成一次次操作——每次操作的指令码（自动解码 n114）、客户端帧数、服务端各图响应条数、转动块 f8 集合、是否含结算 |
 | `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存）。**仅支持 .gil 地图**；编译产物 .gia 验证用项目根 `tools/decode-gia.ts` |
-| `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增，双模式）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、同节点连续机制帧合并(×N)、--trace-node 沿 dataflow 倒查来源链到源头。`--client`=客户端图模式；缺省=服务端图模式（head 首字节→主图节点、节点链标注来自 gia_log.py） | `<日志> --gil <地图> --rec <n> [--client] [--trace-node <idx>]` |
+| `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增，双模式）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、同节点连续机制帧合并(×N)、--trace-node 沿 dataflow 倒查来源链到源头。多分支标注**实际命中 case**（控制值匹配 case 列表→`命中 case[N]`，无匹配→`default`）；双分支标注 **TRUE/FALSE 走向**（按条件值推断，2026-08-30 O-28-09 改进）。`--client`=客户端图模式；缺省=服务端图模式（head 首字节→主图节点、节点链标注来自 gia_log.py） | `<日志> --gil <地图> --rec <n> [--client] [--trace-node <idx>]` |
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 

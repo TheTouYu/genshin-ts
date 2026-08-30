@@ -233,10 +233,31 @@ def control_view(frames, names, fname):
                 if "多分支" in nm:
                     ctrl = p.get("IN0:String") or p.get("IN0:Integer") or "?"
                     case = p.get("IN1:StringList", "")
-                    detail = f"控制={ctrl} case=[{case}…]"
+                    # O-2026-08-28-09-②：实际命中 case 推断——控制值匹配 case 列表中的项；
+                    # 列表分隔符未知（逗号/竖线/中文逗号），多形态尝试；无匹配 = default 分支。
+                    hit = ""
+                    if ctrl != "?" and case:
+                        parts = [x.strip() for x in re.split(r"[|,，]", str(case)) if x.strip()]
+                        if parts:
+                            for i, part in enumerate(parts):
+                                if part == ctrl:
+                                    hit = f" → 命中 case[{i + 1}]={part}"
+                                    break
+                            else:
+                                hit = " → default（控制值无匹配 case）"
+                    case_disp = str(case)
+                    if len(case_disp) > 40:
+                        case_disp = case_disp[:40] + "…"
+                    detail = f"控制={ctrl} case=[{case_disp}]{hit}"
                 elif "双分支" in nm or "Branch" in nm:
                     cond = p.get("IN0:Boolean") or p.get("IN1:Boolean") or "?"
-                    detail = f"条件={cond}"
+                    # O-2026-08-28-09-③：true/false 走向标注（按条件值推断；帧本身无显式走向字段）
+                    way = ""
+                    if str(cond).lower() in ("true", "1", "是"):
+                        way = " → TRUE 分支"
+                    elif str(cond).lower() in ("false", "0", "否"):
+                        way = " → FALSE 分支"
+                    detail = f"条件={cond}{way}"
                 elif "循环" in nm or "遍历" in nm or "Loop" in nm or "Iteration" in nm:
                     lst = p.get("IN1:13") or p.get("IN1:Integer") or ""
                     detail = f"IN1={lst[:50]}"
