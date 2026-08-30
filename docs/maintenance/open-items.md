@@ -1073,4 +1073,8 @@
   ByEntity + activateDisableFollowMotionDevice，src/definitions/nodes.ts 5348+）。
 - 待闭合：跟随配置承载层（块元件组件预配置 or 节点动态 switch）、跟随期间实体真实坐标
   语义（FAQ：跟随中"实体位置还在原地"）、层切换生命周期。
-- 下轮：B 轮提示词已产出（Round 0 会话尾部），第 0 轮=官方图精读+用户新日志逐帧。
+- 进度（2026-08-31 B 轮 Round 0，见 examples/rubik-3x3-client/PROGRESS.md B0 节 + FOLLOW-ORBIT-PLAN.md）：
+  官方 1913 全 9 图精读完成——零跟随节点、26 块定义/实例无 followMotion(9) 槽（仅
+  basicMotion(4) 等）→ 跟随配置在官方元件资产层（地图不可见）；中心球 = 创建图 Create Prefab
+  1077936170（空模型）于 (2,2,-2)；跟随文档 mhuts59m9gju 已读；用户情报：跟随需配置且与
+  基础运动器互斥（H1b）。假设清单 H1~H6 落 PROGRESS；五个待定项待 1913 新日志逐帧闭环。
