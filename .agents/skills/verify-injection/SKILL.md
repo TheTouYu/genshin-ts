@@ -81,6 +81,18 @@ npx tsx tools/check-gil-composite-refs.ts <saveLevelDir>/<mapId>.gil --incoming 
 #       「GIA 复合 16106127xx 注入后在地图中缺失」→ 信号定义单元误报，用 scan-gil-signals 确认即可
 #       「GIA 复合 2000000000 段缺失」→ 旧 def 段本次未注入，非残留，主图正常引用即无害（2026-08-30 实证）
 
+# 8c. 注入后信号相关检查（2026-08-30 足球信号拒载二连后强制；有信号节点时必做）：
+#     ① 顶层 field 10 的 field>5 保留检查——注入器重建 top10 只重组 field 1-5，若地图 field 10
+#        在信号注册表（f5）之后有 f7=1 等标记字段，注入会丢 → 游戏不识别信号参数拒载。
+#        检查：解析 top10 字段序列，末尾应有 (7,0)（field>5 全部保留）；修复见
+#        src/injector/binary.ts readFieldRawTail（fcea719）。
+#     ② 信号节点（监听/发送）与编辑器形态字节对照——scan/parse/explain 会归一化差异，
+#        只读工具显示一致 ≠ 字节一致 ≠ 游戏接受。判据 = .gia 与真实地图中信号节点原始字节：
+#        名 pin 应为 `22 2a 0a 02 08 05 1a 1c 08 05 10 01 22 05 08 01 a2 06 00 ca 06 0e 0a 0c <名>
+#        32 04 08 06 10 01 38 2b|2c`（无 type、type_server 空、clientExecNode.kind=6、cpi 43/44），
+#        节点带 signalVersion（48 03）；有编辑器修复版地图时逐字节对照（2026-08-30 实证：f7 修复后
+#        仍拒载，第二层根因 = 复合内发送节点从未被 patch，见 3af8745）。
+
 # 9. 通知用户去游戏核验：明确“看什么、正确/错误行为各是什么”（见 template-case.ts 注释风格）
 ```
 

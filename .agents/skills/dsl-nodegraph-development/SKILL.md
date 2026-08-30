@@ -299,6 +299,11 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
   `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: compositePins duplicate physical route`。
   正确写法：入口 → 普通节点（f.link 或分支回调），后续复合调用用 f.connect(前置, 0, 复合调用, 0) 显式链
   （connect 会去重裸边）；首个 exec 复合若直接跟在入口后，靠 auto-chain 即可，不要额外 link。
+- **复合多 outflow 只有 OutFlow[0] 被宿主续链（2026-08-27 项目实证 + 2026-08-30 足球自踩）**：
+  宿主 `f.callComposite(...)` 后继续的语句只挂在 outflow[0]；分支里 `f.outflow('done', ...)` 的
+  第 2+ 个 outflow 分支对宿主**不可见**（如"脱脚检测放在 idle 分支 → 信号永不发"）。
+  需要"复合完成后宿主必须继续"时：要么复合只保留单一 outflow，要么把该动作移进复合内部
+  （如脱脚信号在复合内直接 `f.sendSignal`，宿主零续链依赖）。
 - **声明了 `outflows: ['done']` 的 exec 复合必须显式 `f.outflow('done', 链尾, 0)`**：否则被调用方把该复合当作链中一环时，done 永不触发，后续节点零帧（2026-08-20 魔方整体转/面转：turnblock 回调里 unlock 定时器永不注册，lock 卡 true、第二次操作无响应）。
 - **公共 done/merge 节点不要用 `registerExecNode` 放在 `doubleBranch` 之前**（2026-08-20 魔方日志：游戏检测 execution flow loop）。`registerExecNode` 会被 auto-chain 成 doubleBranch 的入口，分支尾再连回它就形成 `分支尾 → 公共节点 → Double Branch → … → 分支尾` 死循环。正确写法：公共节点用 `f.node(...)` 创建 detached，分支尾 `f.connect(..., 0, doneNode, 0)` 连入，最后 `f.outflow('done', doneNode, 0)`；读图应看到 boundary `InFlow` 直连 Double Branch，且 done 节点没有回到分支入口的执行边。
 - **`f.callComposite(...)` 后跟 `f.registerExecNode(...)` 会产生重复执行**（2026-08-20 魔方日志 2777：Start Timer 同一节点执行两次，定时器不触发、指令无反应）。`registerExecNode` 会从当前尾（通常是上一个复合调用）auto-chain 到它；如果你又显式把复合调用 done 连到一条 `f.node` 链再连到该节点，该节点会有两条入边、执行两次。需要把这类链尾的 `registerExecNode` 改成 `f.node` 并显式 `f.connect`，只保留一条入边。
