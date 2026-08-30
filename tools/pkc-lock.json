@@ -4,10 +4,10 @@
   "version": "0.2.0rc5",
   "release_channel": "remote-commit",
   "source_repository": "/home/h/portable-knowledge",
-  "source_ref": "fe838a077160aeb35414ed6900291974a6d36ac2",
-  "source_commit": "fe838a077160aeb35414ed6900291974a6d36ac2",
-  "wheel_sha256": "b187a2bc84bb03dd54995c6bab6f7de1ba2e7c56b2ee852b5da50d34f7c8e7e9",
-  "wheel_cache": "/home/h/.local/share/portable-knowledge/wheels/fe838a077160aeb35414ed6900291974a6d36ac2/63809df7ce76d99d/portable_knowledge-0.2.0rc5-py3-none-any.whl",
-  "runtime": ".local/pkc/runtimes/fe838a077160aeb35414ed6900291974a6d36ac2",
+  "source_ref": "0c863560a26df6db9df2071a222cdfcb98df9440",
+  "source_commit": "0c863560a26df6db9df2071a222cdfcb98df9440",
+  "wheel_sha256": "55a64e8d7c5d49acd4160e706142bd41003c9d03b66c92684d599bdc0ecc001a",
+  "wheel_cache": "/home/h/.local/share/portable-knowledge/wheels/0c863560a26df6db9df2071a222cdfcb98df9440/aa51215022f9a37b/portable_knowledge-0.2.0rc5-py3-none-any.whl",
+  "runtime": ".local/pkc/runtimes/0c863560a26df6db9df2071a222cdfcb98df9440",
   "python_requirement": ">=3.11"
 }
