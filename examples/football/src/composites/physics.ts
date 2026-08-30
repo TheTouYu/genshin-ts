@@ -16,10 +16,10 @@ const KM = 0.01 // 马格努斯系数
 const KW_DECAY = 0.99 // exp(-0.05*0.2)，旋转衰减
 const BALL_R = 0.25 // 球半径
 const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
-const GROUND_E = 0.65 // 地面反弹法向恢复
+const GROUND_E = 0.70 // 地面反弹法向恢复（← sim params surfaces.grass.restitution；2m 落体回高 0.9418m·B1b；推导见 sim/PORTING-MAP.md §1.1）
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
 const ROLL_DECEL = 3.0 // 滚动匀减速（m/s²）：带球球速 6 滚 ~6m 停；射门 15 滚 ~37m。真实带球球滚 1-3m 球员追上，不滚到停
-const SLIDE_DECEL = 6.0 // 滑动强减速（m/s²）：踢球瞬间打滑，迅速降到滚动
+const SLIDE_DECEL = 4.41 // 滑动摩擦减速（m/s²）＝ μ_slide·g ＝ 0.45×9.81（← sim params grass.frictionSlide×env.gravity）
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
 const ROLL_SPIN_GAIN = 0.5 // 压力摩擦产生的力矩把 ω 拉向纯滚动目标的系数（滑转再收敛）
@@ -32,7 +32,7 @@ const POST_Z = 3.6 // 门柱中心 z 偏移
 const POST_R = 0.06 // 门柱/横梁半径
 const BAR_Y = 2.5 // 横梁中心高度
 const HIT_R2 = 0.0961 // (BALL_R+POST_R)^2 = 0.31^2
-const POST_E = 0.7 // 门柱/横梁恢复系数
+const POST_E = 0.72 // 门柱/横梁恢复系数（← sim params surfaces.post.restitution；C6 反射比 0.7200）
 const NET_DAMP = 0.25 // 球网速度衰减（穿网后保留 25%）
 const GOAL_INNER_Z = 3.29 // POST_Z - POST_R - BALL_R（门柱内边减球半径）
 const GOAL_INNER_Y = 2.19 // BAR_Y - POST_R - BALL_R（横梁下边减球半径）
@@ -41,8 +41,8 @@ const WALL_X_MIN = -55 // -X 墙（左）
 const WALL_X_MAX = 60 // +X 墙（右）
 const WALL_Z_MIN = -55 // -Z 墙（后）
 const WALL_Z_MAX = 60 // +Z 墙（前）
-const WALL_E = 0.7 // 墙反弹恢复系数
-const WALL_E_NEG = -0.7 // 负恢复系数（反弹方向取负用）
+const WALL_E = 0.65 // 墙反弹恢复系数（← sim params surfaces.wall.restitution）
+const WALL_E_NEG = -0.65 // 负恢复系数（反弹方向取负用）
 const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s
 
 // ================================================================
@@ -94,8 +94,8 @@ export const physGoalCollide = g.defineComposite('phys_goal_collide', {
     const ax = f.absoluteValueOperation(p.xComponent) // |px|
     // 球到门线带符号距离 dx = |px| - 52.5（负=门前，正=门后）
     const dx = f.subtraction(ax, GOAL_X)
-    // 反射系数 -(1+e)（e=恢复系数，标准反射公式 v' = v - (1+e)(v·n)n）
-    const reflCoef = -1.7
+    // 反射系数 -(1+e)（e=恢复系数=POST_E=0.72，标准反射公式 v' = v - (1+e)(v·n)n）
+    const reflCoef = -1.72
     // —— 门柱 z=+3.6 与 z=-3.6：精确法向反射 ——
     const dz1 = f.subtraction(p.zComponent, POST_Z)
     const hd1 = f.addition(f.multiplication(dx, dx), f.multiplication(dz1, dz1))

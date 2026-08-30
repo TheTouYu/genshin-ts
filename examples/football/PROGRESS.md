@@ -2,6 +2,11 @@
 
 ## 最近轮次
 
+- 2026-08-31（第二阶段 R1：反弹/摩擦族参数对齐——代码完成+编译通过+.gia 回读核验通过，待注入确认）：
+  - **改动**（physics.ts 4 项，来源注释已标 params 依据）：GROUND_E 0.65→0.70（grass.restitution）、门柱 reflCoef −1.7→−1.72（post.restitution，C6 反射比 0.72）、WALL_E/WALL_E_NEG ±0.7→±0.65（wall.restitution）、SLIDE_DECEL 6.0→4.41（μ·g=0.45×9.81）。GROUND_FX/NET_DAMP/ROLL_BOUNCE_VY 保留（依据带见 PORTING-MAP §1.1）。R2/R3 常量（KD/KM/KW/ROLL_DECEL）未动。
+  - **核验**：npm run build 绿；gsts 编译（--noinject）出 game.gia+ dribble-field.gia；decode-gia bFloat 精确回读——新值 5 处全落位（-0.7×1、±0.65×2+2、-1.72×3、slide 折叠 0.882×1）、旧值 3 项全清除（0.7/-1.7/6.0 折叠 1.2 均 0）、保留项完好（GROUND_FX 0.85×2、KW_DECAY 0.99×3、KM 0.01×1）；主图 68 节点（常量折叠位点数一致，结构未变）。**发现：TS 常量算术会被折叠**（SLIDE_DECEL×DT→0.882 单字面量），运行时输入的乘法保留常量引脚——后续轮读图核验按此找值。
+  - **git 异常（未掩盖已上报）**：仓库索引出现他人未完成合并（src/compiler/ir_to_gia_transform/composite.ts UU，疑为同事修编译器并发回归的并行会话），stash 不可用；本次用 pathspec 局部提交绕开冲突条目（不触碰对方状态）。
+  - **待办**：用户确认注入（game.gia→1073741825 + dribble-field.gia→1073741828）→ 注入后 check-gil-composite-refs --incoming + parse --list + scan-gil-var-pins → 用户游戏核验（2m 落体回高 ~0.94m/墙弹变弱/落地滑行变长）→ 通过后进 R2（气动/自旋族）。
 - 2026-08-31（第二阶段 R0：参数映射表 + 差距清单，未动代码未注入，待用户确认）：
   - **交付**：`sim/PORTING-MAP.md`——游戏内 physics.ts 全部手填常量 ← `sim/src/params.ts` 单一事实源的派生映射（每项含 5Hz 等效公式与理由）：KD=0.5ρCdA/m=0.013537、KM=k/m=0.008279、KW_DECAY=2^(−0.2/T½)=0.9612(空)/0.8909(地)、SLIDE_DECEL=μg=4.41、GROUND_E→0.70、reflCoef→−1.72、WALL_E→0.65、ROLL_DECEL→1.0；**推导澄清**：加速度系数不需 ×dt（README 原话不精确），真正按 dt 重标定的只有乘性衰减因子；ROLL_BOUNCE_VY=1.0 经 5Hz 可分辨下限 g·DT/2=0.981 推导确认恰好正确。
   - **差距清单 8 项**：TOI 能量反弹（v_y′=−e·√(vy²−2gδ)，R4 候选#1）/ 门柱 swept 检测（6m/tick≫0.62m 窗口高速穿柱，#1b）/ slip 滞回判据（2 乘 2 加可替换速度代理，#2）= 建议移植；反弹改自旋（#3）= R2 后评估；RK4/CCD 子步/安全阀/网精细 = 跳过（理由齐）；状态机 = 已对齐（六态映射表）。R1–R3 纯常量替换节点/帧数零变化；R4 全候选 +50~70 节点预算内。
