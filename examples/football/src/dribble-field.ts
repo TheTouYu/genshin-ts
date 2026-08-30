@@ -26,8 +26,9 @@ const graph = g
       lastSeenState: new int(0),
       // 脱脚计数（float 便于数据选择；≥3 tick 请求脱脚）
       lostTicks: new float(0),
-      // 脱脚计数（float 便于数据选择；≥3 tick 请求脱脚）
-      lostTicks: new float(0)
+      // 脉冲节流记账（连续控制器限幅器）
+      tickCount: new int(0),
+      lastKickTick: new int(0)
     }
   })
   // ================================================================

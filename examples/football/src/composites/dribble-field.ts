@@ -30,6 +30,8 @@ const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
 const PULL_DIST2 = 2.25 // 球距玩家距离² < 2.25（1.5m）才牵引
 const PULL_FWD_MIN = -0.3 // 球在玩家身后超过此值不牵引
 const LOST_TICKS_MAX = 3 // 连续脱牵引 3 tick（0.36s）→ 请求脱脚
+const PULSE_EVERY_TICKS = 3 // 脉冲节流：距上次脉冲 ≥3 tick（0.36s）才发完整速度场——v←0.95v+pulse 的配套限幅器（无节流平衡点=20×velDir，日志 3025 实测球窜到 82 m/s=「触球太快」真身）；节流同时产生脉冲-衰减锯齿=速度自然变化
+const DEVICE_T = 0.15 // 设备时长 > 拍距 0.12s：相邻设备重叠 25%，消除调度抖动的安全间隙（间隙=无人下指令=球瞬冻；用户 A/B 足球_2 的关键差异点）
 
 // 状态常量（与 game.ts 判定表一致）
 const STATE_CARRIED = 4
@@ -154,6 +156,8 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const ballVz = f.getNodeGraphVariable('ballVz').asType('float')
     const lastSeen = f.getNodeGraphVariable('lastSeenState').asType('int')
     const lostTicks = f.getNodeGraphVariable('lostTicks').asType('float')
+    const tickCount = f.getNodeGraphVariable('tickCount').asType('int')
+    const lastKickTick = f.getNodeGraphVariable('lastKickTick').asType('int')
 
     // 速度记忆 custody 复位：上一拍在物理链监管态 → 本拍回到场监管 → 记忆清零
     // （物理链期间的球速真相在 ballVel，不从旧记忆续算）
@@ -180,14 +184,19 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const fwdOk = f.greaterThan(comp.fwd, PULL_FWD_MIN)
     const inZone = f.logicalAndOperation(distOk, fwdOk)
     const drive = f.logicalAndOperation(canDrive, inZone)
+    // 脉冲节流（连续控制器限幅器）：距上次脉冲 ≥3 tick 才发完整速度场；
+    // 节流期间的在区拍只衰减——脉冲-衰减锯齿即速度的"自然变化"（丝滑感来源）
+    const sinceKick = f.subtraction(tickCount, lastKickTick)
+    const canPulse = f.greaterThanOrEqualTo(sinceKick, 3n)
+    const pulseNow = f.logicalAndOperation(drive, canPulse)
 
     // 速度律（连续控制器不变量②：速度=带记忆的状态）：v ← 0.95v + (在区 ? velDir : 0)
     // 出区只衰减不归零——滑行惯性，配合每拍设备供给（不变量①）消灭"断电死停"
     const decayVx = f.multiplication(baseVx, DAMP)
     const decayVz = f.multiplication(baseVz, DAMP)
-    const driveF = b2f(drive)
-    const newVelX = f.addition(decayVx, f.multiplication(comp.newVelX, driveF))
-    const newVelZ = f.addition(decayVz, f.multiplication(comp.newVelZ, driveF))
+    const pulseF = b2f(pulseNow)
+    const newVelX = f.addition(decayVx, f.multiplication(comp.newVelX, pulseF))
+    const newVelZ = f.addition(decayVz, f.multiplication(comp.newVelZ, pulseF))
 
     // y 高度修复：球离地时每 tick 拉回地面（vy = (BALL_R − 球当前y)/TICK）
     const ballY = f.split3dVector(f.getNodeGraphVariable('tmpBallPos').asType('vec3')).yComponent
@@ -224,6 +233,16 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     f.connect(sVz, 0, sLost, 0)
     const sSeen = f.registerExecNode('set_node_graph_variable', [new str('lastSeenState'), ballState, new bool(false)])
     f.connect(sLost, 0, sSeen, 0)
+    // 节流记账：tickCount 每拍 +1；发脉冲拍把 lastKickTick := 当前 tickCount（数据选择）
+    const tickNext = f.addition(tickCount, 1)
+    const lastKickNew = f.addition(
+      f.multiplication(f.dataTypeConversion(tickCount, 'float'), pulseF),
+      f.multiplication(f.dataTypeConversion(lastKickTick, 'float'), f.subtraction(1, pulseF))
+    )
+    const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), tickNext, new bool(false)])
+    f.connect(sSeen, 0, sTick, 0)
+    const sKick = f.registerExecNode('set_node_graph_variable', [new str('lastKickTick'), f.dataTypeConversion(lastKickNew, 'int'), new bool(false)])
+    f.connect(sTick, 0, sKick, 0)
 
     // 设备供给（连续控制器不变量①：永不断供）：场监管期间每拍无条件写设备——
     // 在区=驱动速度，出区=滑行速度（衰减中的 v）；物理链监管态完全停手（零设备，
@@ -232,14 +251,17 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     f.doubleBranch(
       canDrive,
       () => {
+        // 自旋滞后（用脉冲前的衰减速度算滚动 ω）：触球瞬间线速度跳变而自旋未跟上
+        // → 视觉相对滑动，随后续脉冲逐渐追上纯滚（用户 A/B：高速触球要有滑动）
         const spin = f.callComposite(dribbleFieldRollSpin, {
-          vel: f.getNodeGraphVariable('tmpDribbleVel').asType('vec3'), radius: BALL_R, curRot: ballLoc.rotate
+          vel: f.create3dVector(decayVx, 0, decayVz), radius: BALL_R, curRot: ballLoc.rotate
         })
+        // 设备时长 DEVICE_T=0.15 > 拍距 0.12：相邻设备重叠，速度切换无缝
         const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-          e, new str('dribbleCtrl'), new float(TICK), f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
+          e, new str('dribbleCtrl'), new float(DEVICE_T), f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
         ])
         const rot = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
-          e, new str('角度'), new float(TICK), spin.angVel, spin.axis
+          e, new str('角度'), new float(DEVICE_T), spin.angVel, spin.axis
         ])
         f.connect(lin, 0, rot, 0)
       },
