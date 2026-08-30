@@ -26,8 +26,8 @@ try {
   if (gates.includes('C')) runGateC(h)
   if (gates.includes('D')) runGateD(h)
 
-  // D4：headless/CI 元用例——本 CLI 全部用例无渲染依赖运行并自动判分
-  if (gates.length >= 1) {
+  // D4：headless/CI 元用例——仅当四门全跑时纳入（单门运行时其它门缺席属预期，不判 FAIL）
+  if (gates.includes('A') && gates.includes('B') && gates.includes('C') && gates.includes('D')) {
     const expected = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'D1', 'D2', 'D3']
     const ids = new Set(
       h.results.map((r) => r.id.replace(/-[a-z0-9-]+$/i, '').replace(/^([A-E]\d+)[a-z]+$/i, '$1'))
