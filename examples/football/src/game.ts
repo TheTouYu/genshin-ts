@@ -48,24 +48,26 @@ const graph = g
       state: new int(0), // 0=FREE 1=FLYING 2=ROLLING 3=SLIDE 4=CARRIED 5=GOAL
       impulseSeq: new int(0), // 运动中冲量运动器的唯一名自增序号
       scored: new bool(false), // 进球去重（复位时清零）
-      goalCount: new int(0),
-      _init: new bool(false) // 心跳只启动一次
+      goalCount: new int(0)
     }
   })
   // ================================================================
   // 启动：FREE 心跳（whenEntityIsCreated，场景实体加载创建时触发）
   // ================================================================
   .on('whenEntityIsCreated', (evt: any, f: any) => {
-    const init = f.getNodeGraphVariable('_init').asType('bool')
-    f.doubleBranch(
-      init,
-      () => {},
-      () => {
-        f.setNodeGraphVariable('_init', new bool(true), false)
-        // 显式 assemblyList（规避编译器根图数组字面量 → gsts.f 的 ctx 回归）
-        f.startTimer(f.getSelfEntity(), 'free_heartbeat', false, f.assemblyList([HEARTBEAT], 'float'))
-      }
-    )
+    // 2026-08-31 日志 3017 本质修复：图变量运行态与实体位置都跨会话持久，但二者无
+    // 同步机制——分歧后（实测 6m）所有位置逻辑（获得判定/物理积分）量的是幽灵球，
+    // 玩家站在真球上也永不触发。每次实体创建：变量拉回实体现实 + 运行态复位。
+    // （_init 防重已删：同名定时器重复启动为替换语义，且防重标志本身持久化不可靠）
+    const ball = f.getSelfEntity()
+    const loc = f.getEntityLocationAndRotation(ball).location
+    f.setNodeGraphVariable('ballPos', loc, false)
+    f.setNodeGraphVariable('ballVel', f.create3dVector(0, 0, 0), false)
+    f.setNodeGraphVariable('ballSpin', f.create3dVector(0, 0, 0), false)
+    f.setNodeGraphVariable('scored', new bool(false), false)
+    f.callComposite(stateCommit, { e: ball, next: new int(STATE_FREE) })
+    // 显式 assemblyList（规避编译器根图数组字面量 → gsts.f 的 ctx 回归）
+    f.startTimer(ball, 'free_heartbeat', false, f.assemblyList([HEARTBEAT], 'float'))
   })
   // ================================================================
   // 输入：选项施力（tabBar 挂足球本体）——1-8 施力，9 复位
@@ -187,6 +189,10 @@ const graph = g
               f.equal(state, 0n),
               () => {
                 const ball = f.getSelfEntity()
+                // 3017 本质修复：FREE 期每拍把 ballPos 拉回实体真实位置（变量与实体
+                // 会分歧；获得判定必须量玩家眼前的可见球，不是积分链的变量球）
+                const loc = f.getEntityLocationAndRotation(ball).location
+                f.setNodeGraphVariable('ballPos', loc, false)
                 const roleC = f.callComposite(dribbleFieldGetRole, {})
                 const pc = f.callComposite(statePossessCheck, {
                   role: roleC.role,
