@@ -909,3 +909,27 @@
   football（1073741908）最新备份 parse --list 均无 (1) 后缀副本、无重复 def（rubik-3x3 有历史删除
   留下的 ID 空洞，属正常）。注意：备份为写回前快照，真实游戏端地图残留仍需下次注入时 --incoming
   校验；未主动动其他地图。
+
+### O-2026-08-30-02 CI/本地门禁缺失——build 断裂约 2 周无人知（2026-08-30 构建门禁复盘登记）
+
+- 事实：08-16 加 private brand 后 `npm run build` 实际一直红（888 类型错误），期间多笔提交用
+  「src-only tsc 无新增错误」局部验证代替全量门禁；quicktest 同理从未跑通（第一步 build 即失败）。
+  本次（2026-08-30）才一次性暴露并修复（243bf0e + 235bdff，双门禁恢复绿）。
+- 期望形态：本地一键门禁脚本（build + quicktest + git diff --check）或 GitHub Actions；提交前必跑。
+- 何时做：下一次工具链维护轮。
+
+### O-2026-08-30-03 双副本消费方检查清单（新增 tsx spawn / CLI 入口时必须带 TSX_TSCONFIG_PATH）
+
+- 事实：tsconfig paths（genshin-ts/* → src）对 tsc 类型检查必需（src 单副本），但 tsx 运行时也读
+  tsconfig.json paths，导致 .gs.ts 包 import 走 src 与 CLI（dist）双副本，kCtxStack unique symbol
+  分裂 → 所有 gsts.f 访问报 ctx=javascript（quicktest 7+1、football 编译失败）。
+  修复：tsconfig.tsx.json（无 paths）+ 三处 spawn 注入 TSX_TSCONFIG_PATH（235bdff）。
+- 检查点（新增 spawn/入口时）：① spawn tsx 必须带 TSX_TSCONFIG_PATH；② 验证命令
+  `node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`；
+  ③ __dirname 跳数按目录深度逐处核对（src 与 dist 下深度不同）。
+- 详见 CLAUDE.md「类型与运行时单副本」节 + retrospective-2026-08-30-build-gate-and-dual-copy.md。
+
+### O-2026-08-30-04 根目录命令残留垃圾文件待删（无意义文件名）
+
+- 文件：`<, v) for k,v in d[scripts].items() if k in (build,test,quicktest,typecheck)]`（根目录，
+  会话命令解析残留，约 0 字节）。删除即可（非 git 跟踪）。

@@ -81,6 +81,21 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
 - 图变量通过 `g.server({ variables: ... })` 声明，用 `f.get`/`f.set` 读写。计时器用 `setTimeout`/`setInterval`，注意捕获和性能约束。
 - 编译产物默认写入 `dist/`：`.gs.ts`（DSL 转换结果）、`.json`（IR 节点/连线/类型）、`.gia`（最终可注入产物）。
 
+## 类型与运行时单副本（2026-08-30 修复，改类型/构建配置必读）
+
+- **tsc 类型检查**：`tsconfig.json` paths 把 `genshin-ts/*` 映射到 `src/*`，`types-local/gsts` re-export src
+  类型——全仓库统一 **src 单副本**（dist 可能过期/缺失；src/dist 双副本下 branded 类型 nominal 不兼容，
+  08-16 加 private brand 后 build 门禁实际断了约 2 周，累积 888 错）。
+- **tsx 运行时**（gsts 管线 spawn 的 runner）：统一 **dist 单副本**（与 CLI 本体一致）。tsx 会读
+  tsconfig.json 的 paths，必须给每个 tsx spawn 注入 `TSX_TSCONFIG_PATH=tsconfig.tsx.json`（无 paths 配置，
+  现有 3 处：`gs_to_ir_json_transform/index.ts`、`ir_to_gia_pipeline.ts`、`config_loader.ts`）。
+  否则 .gs.ts 包 import 走 src 与 CLI 的 dist 双副本，`kCtxStack` unique symbol 分裂 →
+  `gsts.f is only available in server_* ctxType (current: javascript)`。
+- **新增 tsx spawn / CLI 入口必须带 TSX_TSCONFIG_PATH**；改 tsconfig/类型配置后验证解析方向：
+  `node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`——输出
+  `src/...` = paths 生效（类型检查侧正常）；`dist/...` = 运行时解析（runner 侧正常）。
+- 手动 `node --import tsx` 跑 .gs.ts 同样走 src（与 dist CLI 分裂），仅调试/类型检查时用。
+
 ## 修改约束
 
 - 遵循目标目录最近的 `AGENTS.md`；根目录规则：相对 TS import 使用 `.js` 后缀、无分号、单引号、100 字符宽。
