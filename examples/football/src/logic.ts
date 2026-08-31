@@ -226,7 +226,8 @@ const graph = g
     )
   })
   // ================================================================
-  // ball_kick 信号（高阶：设定式起脚）——IMMEDIATE 统一路径
+  // ball_kick 信号（高阶：tabId 参数表预设踢球）——与 whenTabIsSelected 1-8 同构：
+  // GOAL 忽略 → ballTabKick（IDLE 全量/运动 ×0.35 叠加）→ IMMEDIATE 统一路径
   // ================================================================
   .onSignal(Signal.ball_kick, (evt: any, f: any) => {
     const ball = f.getSelfEntity()
@@ -235,14 +236,16 @@ const graph = g
       f.equal(state, new int(BALL_GOAL)),
       () => {},
       () => {
-        f.callComposite(ballApplyImmediate, { e: ball, vel: evt.params.vel, spin: evt.params.spin })
+        const tk = f.callComposite(ballTabKick, { e: ball, tabId: evt.params.tabId })
+        const ap = f.callComposite(ballApplyImmediate, { e: ball, vel: f.getNodeGraphVariable('tmpVel').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3') })
+        f.connect(tk as never, 0, ap as never, 0)
       }
     )
   })
   // ================================================================
-  // ball_impulse 信号（低阶核心）：
+  // ball_impulse 信号（低阶核心，vel:vec3 + mode:int；spin 冲量走黑板 impSpin）：
   //   有效模式 = IMMEDIATE 或 IDLE（IDLE 无 loop 消费队列，DEFERRED 自动升级 IMMEDIATE 唤醒）
-  //   IMMEDIATE：读当前速度+Δ → 统一路径（当拍积分+当帧渲染）
+  //   IMMEDIATE：读当前速度+Δ → 统一路径（当拍积分+当帧渲染；spin 不变）
   //   DEFERRED（运动态）：黑板队列 +=（多使用方累积语义；drain 读后清零）
   // ================================================================
   .onSignal(Signal.ball_impulse, (evt: any, f: any) => {
@@ -257,16 +260,14 @@ const graph = g
       f.logicalOrOperation(modeImm, isIdle),
       notGoal
     )
-    const active = f.logicalAndOperation(notGoal, f.logicalNotOperation(isGoal))
-    const deferred = f.logicalAndOperation(active, f.logicalNotOperation(imm))
+    const deferred = f.logicalAndOperation(notGoal, f.logicalNotOperation(imm))
     f.doubleBranch(
       imm,
       () => {
         const boardVel = f.getCustomVariable(ball, new str('vel')).asType('vec3')
         const nv = f._3dVectorAddition(boardVel, evt.params.vel)
         const boardSpin = f.getCustomVariable(ball, new str('spin')).asType('vec3')
-        const nw = f._3dVectorAddition(boardSpin, evt.params.spin)
-        f.callComposite(ballApplyImmediate, { e: ball, vel: nv, spin: nw })
+        f.callComposite(ballApplyImmediate, { e: ball, vel: nv, spin: boardSpin })
       },
       () => {
         f.doubleBranch(
@@ -275,9 +276,6 @@ const graph = g
             const curIv = f.getCustomVariable(ball, new str('impVel')).asType('vec3')
             const nIv = f._3dVectorAddition(curIv, evt.params.vel)
             f.setCustomVariable(ball, 'impVel', nIv, false)
-            const curIs = f.getCustomVariable(ball, new str('impSpin')).asType('vec3')
-            const nIs = f._3dVectorAddition(curIs, evt.params.spin)
-            f.setCustomVariable(ball, 'impSpin', nIs, false)
           },
           () => {}
         )

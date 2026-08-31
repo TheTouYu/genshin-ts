@@ -10,20 +10,18 @@
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const Signal = {
-  // 低阶核心：施加冲量（速度加法叠加，clamp 24 m/s）
+  // 低阶核心：施加速度冲量（加法叠加，clamp 24 m/s）；spin 冲量不走信号——使用方直接写
+  // 黑板 impSpin（DEFERRED 队列语义），避免信号参数出现重复 vec3 类型
   //   mode 0=DEFERRED（入黑板队列，下一拍逻辑循环消费）
   //        1=IMMEDIATE（当拍积分 + 当拍渲染——触球/踢球即时反馈路径）
   //   IDLE 态收到即唤醒（自动状态分流 + 立即首拍）
   ball_impulse: defineSignal('ball_impulse', [
     ['vel', 'vec3'],
-    ['spin', 'vec3'],
     ['mode', 'int']
   ]),
-  // 高阶踢球：设定初速（覆盖式）。IDLE 起脚=完整施力；运动中=等效冲量叠加
-  ball_kick: defineSignal('ball_kick', [
-    ['vel', 'vec3'],
-    ['spin', 'vec3']
-  ]),
+  // 高阶踢球：tabId 参数表预设（1-8 同 whenTabIsSelected；v4 kickApplyForce 语义）。
+  // IDLE 起脚=全量设定；运动中=×0.35 冲量叠加——由 logic.ts 统一分流
+  ball_kick: defineSignal('ball_kick', [['tabId', 'int']]),
   // 复位：瞬移场地中心 + 清全部物理量 + 转 IDLE（幂等）
   ball_reset: defineSignal('ball_reset', []),
   // 高级：强制状态切换（裁判判罚/玩法传送/获得判定请求）。vel 为速度交接
