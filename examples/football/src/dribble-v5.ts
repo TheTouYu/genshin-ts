@@ -86,8 +86,11 @@ const ballDribbleDecide = g.defineComposite('ball_dribble_decide', {
     const dVz = f.subtraction(newVelZ, bv.zComponent)
 
     // 写黑板 impVel（+= 队列语义，与其他使用方共存；逻辑层 drain 读后清零）
-    const impOld = f.getCustomVariable(e, new str('impVel')).asType('vec3')
-    const nIv = f._3dVectorAddition(impOld, f.create3dVector(dVx, 0, dVz))
+    // 覆盖式写（2026-08-31 队列竞态修复，日志 20-02-57 铁证）：两 0.5s loop 相位错开时
+    // += 语义按旧 vel 连续多拍累积 → impVel 线性爆炸到 ±20 → drain 叠进 vel → 球一拍
+    // 弹射 12 米。改 = 语义：每拍覆盖本拍 Δv，drain 消费一次、期间覆盖只丢拍不累积
+    //（丢拍无害：下拍按最新黑板 vel 重算 Δv）。
+    const nIv = f.create3dVector(dVx, 0, dVz)
     f.setCustomVariable(e, 'impVel', nIv, false)
     // drivePrev 写回（上升沿检测记忆——本图唯一记忆）
     f.setNodeGraphVariable('drivePrev', drive, false)
