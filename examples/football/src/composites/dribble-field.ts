@@ -18,8 +18,8 @@ import { Signal } from '../resources/signals.js'
 
 // —— 速度场参数（编译期预计算为字面量，集中可调）——
 const TICK = 0.12 // 定时器间隔（秒），参考版 0.12s
-const FWD_WEIGHT = 0.7 // 合成方向里玩家朝向的权重
-const REL_WEIGHT = 0.3 // 合成方向里相对方向（球-玩家）的权重
+const FWD_WEIGHT = 0.3 // 合成方向里玩家朝向的权重（2026-08-31 R4 复测定调：位置拉引 0.7 / 朝向 0.3——原参考版 0.7/0.3 对调）
+const REL_WEIGHT = 0.7 // 合成方向里相对方向（球-玩家）的权重（位置比例占主导，球更被"拉到脚下"）
 const SPEED_GAIN = 1.2 // 目标球速 = vP × 此系数。乘性保证"玩家停球停"（零对零）；上限 1.2×K_MAX=1.44×vP（验收口径）
 const K_MIN = 0.1 // k(fwd) 连续坡度下限（球在身后几乎不推）
 const K_MAX = 1.2 // k(fwd) 上限（正前方全力）
@@ -31,14 +31,16 @@ const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
 // v ← v + (target−v)·G，G = |target−v| / (|target−v| + C)：
 //   d 大 → G→1 快贴合；d→0 → G→0 无限逼近；恒 <1 永不超调（凸组合，根除"越带越快"）。
 // 出区 target=0 同式衰减 = 摩擦刹车（d 大刹得快，d 小缓收）。
-const CONV_C = 1.5 // 收敛常数 C（m/s）：d=C 时 G=0.5
+const CONV_C = 2.0 // 收敛常数 C（m/s）：d=C 时 G=0.5。R4 1.5→2.0：触球 surge 衰减放缓，滑动/分离距离加长（推球感）
+const COAST_C = 4.0 // 出区/刹车收敛常数（R4 新增）：刹车分支（target=0）用大 C → G 显著变小，
+// 滑行从"两三拍停死"变缓刹——3038 实测旧急刹（C=1.5，v=4 时 G=0.73 一拍砍 73%）把滑动段掐死
 
 // —— 触球冲量（2026-08-31 日志 3038 复测反馈：旧冲量=1.2×k×vP 实测只有玩家速 44%
 // （k=0.37 侧/脚跟进入）且无保底——慢走/贴脚触球无感，"看不到给冲量"）——
 // 触球拍（进区上升沿）速度 := dir × max(TOUCH_MIN, TOUCH_GAIN×vFinal)：
 // 增益放大 + 保底速度；后续拍由 G 律收敛回 target（不叠加；瞬时超调仅触球拍一拍，
 // 是"永不超调"唯一许可的例外——冲量手感来源）。
-const TOUCH_GAIN = 1.6 // 触球拍冲量增益
+const TOUCH_GAIN = 1.8 // 触球拍冲量增益（R4 1.6→1.8：推球感"再稍稍增大"，配合 CONV_C 放缓衰减）
 const TOUCH_MIN = 3.0 // 触球拍保底速度（m/s）：慢走/站立触球也有可感知推球
 
 // —— 旋转摩擦累积（ω 是状态量，替代 R1 的逐拍纯滚直写）——
@@ -213,7 +215,13 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const diffX = f.subtraction(targetX, ballVx)
     const diffZ = f.subtraction(targetZ, ballVz)
     const distDiff = f._3dVectorModuloOperation(f.create3dVector(diffX, 0, diffZ))
-    const gNl = f.division(distDiff, f.addition(distDiff, CONV_C))
+    // 收敛常数数据选择（R4）：驱动拍用 CONV_C（贴合），刹车拍（target=0，drive=0）用 COAST_C
+    // （缓刹——滑行距离加长）；driveF 已物化，C_eff = CONV_C·drive + COAST_C·(1−drive)
+    const cEff = f.addition(
+      f.multiplication(CONV_C, driveF),
+      f.multiplication(COAST_C, f.subtraction(1, driveF))
+    )
+    const gNl = f.division(distDiff, f.addition(distDiff, cEff))
     const convX = f.addition(ballVx, f.multiplication(diffX, gNl))
     const convZ = f.addition(ballVz, f.multiplication(diffZ, gNl))
     const eF = b2f(edge)

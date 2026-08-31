@@ -19,7 +19,7 @@ const BALL_R = 0.25 // 球半径
 const INV_BALL_R = 4 // 1 / BALL_R（滚滑角速度 = 线速度 / 半径）
 const GROUND_E = 0.70 // 地面反弹法向恢复（← sim params surfaces.grass.restitution；2m 落体回高 0.9418m·B1b；推导见 sim/PORTING-MAP.md §1.1）
 const GROUND_FX = 0.85 // 地面反弹水平摩擦
-const ROLL_DECEL = 3.0 // 滚动匀减速（m/s²）：带球球速 6 滚 ~6m 停；射门 15 滚 ~37m。真实带球球滚 1-3m 球员追上，不滚到停
+const ROLL_DECEL = 2.0 // 滚动匀减速（m/s²）：R4 3.0→2.0（用户：滚停时间/距离再增加一点）——@3m/s 从 1s/1.5m → 1.5s/2.25m；带球球速 6 滚 ~9m 停
 const SLIDE_DECEL = 4.41 // 滑动摩擦减速（m/s²）＝ μ_slide·g ＝ 0.45×9.81（← sim params grass.frictionSlide×env.gravity）
 const SLIDE_ENTER_SPEED = 4.5 // 踢后球速 > 该值 → 进入滑动状态
 const SLIDE_TO_ROLL_SPEED = 2.5 // 滑动降到该值 → 转滚动
