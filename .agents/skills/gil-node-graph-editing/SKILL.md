@@ -139,6 +139,16 @@ npx tsx src/cli/gsts.ts assets:node-graphs def-clean --gil <map.gil> <def-id...>
   不产生悬空调用。
 - 删除会连 impl 图一起删（deleteCompositeDef 语义）；先 `--output` 候选回读验证再 `--write`。
 
+**多图（多 .gia）项目必做前置（2026-08-31 足球 v5 实证，误删事故教训）**：
+- **def-clean 前先建跨 gia 全量引用图**：`read --composite <每个defId>` 解析 impl 内 `复合:NAME (id)` 调用边
+  + 各主图调用，构建 def←callers 全表，**零引用集合才是安全删除集**——单看一个 gia 的 incoming 报告会把
+  别的 gia 的活 def 误判残留（本轮误删 1610700018 造成 ball_phys_carried_tick 悬空，靠引用图发现）。
+- **编译器已根治重复来源**（f46701b，ir_merge 跨图 def ID 归一）：多图项目同一复合跨 gia 同 ID，
+  注入幂等覆盖；但**历史注入的旧 def 残留仍需 def-clean**（注入器只覆盖不删除）。
+- `check-gil-composite-refs --incoming` 在多图项目有两类已知误报：① per-gia 视角（其他 gia 的 def 报
+  "缺失/残留"）② 签名含进程内节点 id 基数噪声（同 ID 同源报"错位"）——报"错位"时先
+  `read --composite <ID>` 人工核对接口与调用方是否匹配，勿直接按报告删。
+
 ## 安全流程（写回真实地图的固定步骤）
 
 ```

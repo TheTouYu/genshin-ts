@@ -158,10 +158,23 @@ PY
 ```bash
 npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
 npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2   # 原地展开嵌套
+gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             # 逐节点原始边（环/接口核对金工具）
 ```
 `--composite` 显示：定义接口（inputs/outputs/inflows/outflows）→ impl 图内部解读（与主图同格式）。
 复合的执行起点显示为【外部入口】（InFlow 驱动），不是孤立链。`--depth N` 递归展开嵌套复合，
 循环引用自动标注。复合内部节点的数据输入显示 `← 接口 <名>`（来自调用方传参）。
+
+**impl 图读取与执行流环检测（2026-08-31 足球 v5 实证，两条铁律）**：
+1. **impl 图不能 `parse --graph <implId>` 直读**——工具报"未找到节点图"（--graph 只认主图 ID/名），
+   脚本里 `except: continue` 会把失败静默吞掉产出 "ALL CLEAN" 假阴性（本轮真实事故：30 个 impl 全部
+   静默跳过、环漏检，游戏报"XX 复合有执行流循环"）。读 impl 用 `read --composite <defId>`（直接带出
+   impl 节点与逐条 OutFlow 边）或 `explain --composite <名>`。**任何批量验证脚本必须断言
+   "成功解析对象数 == 预期数"**——静默失败比无工具更危险。
+2. **环检测模式**：`read --composite` 输出里每节点下 `OutFlow[n] (cpi=k)?( Unk)? → nX InFlow` 即
+   exec 边；正则 `OutFlow\[\d+\](?: cpi=\d+)?(?: Unk)? → n(\d+) InFlow` 提取建邻接表后 DFS 判环。
+   游戏报"XX 复合节点有执行流循环"时**先 `read --composite <该复合 defId>` 肉眼看边**——报错点名
+   的复合就是入口，比全量扫描快一个数量级。注意区分：双分支两出口汇到同一下游 = 合法互斥汇聚，
+   不是环、不是重复执行。
 
 ### Step 3.5 修复后读图自检（2026-08-14 方法论强制，勿跳；2026-08-30 升级逐项勾对）
 **修改生产代码（编译/注入后）的第一件事是读图自检，通过后才交用户游戏测试。**

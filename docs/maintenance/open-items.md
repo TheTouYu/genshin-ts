@@ -758,6 +758,7 @@
 - 排查过程（2026-08-22 技能全景审计）：对比 frontmatter 格式、description 长度（756/676，未超 907 的可加载上限）、特殊字符（em dash/弯引号——maintainer 无特殊字符也排除）、冒号模式（均无冒号+空格）——**均非根因**；且刚改 `genshin-ts-project-adapter` 的 description 后目录实时刷新，说明 watcher 活跃，排除「未刷新」。
 - 根因判断：DSH skill-filesystem 发现机制层（`@deepseek-ai/dsh-skill-filesystem`）对这两个技能有未定位的排除规则，非项目文件可修。
 - 务实缓解（已做）：两者实际是「read 直接读」的知识文档（`genshin-ts-project-adapter` 第 7 条已用文件路径 read 引用）；AGENTS.md 路由表已标注「知识文档，直接 read 引用，勿用 skill 工具加载」。待 DSH 框架层定位根因后决定是否改回可加载。
+- **已闭环（2026-08-31 全域清点轮）**：本轮会话 available_skills 目录中两个技能均正常出现（说明 DSH 发现机制对它们已可用）；同时删除了 gitignored 的 `.claude/skills/` 旧副本（内容为 `.agents/skills/` 的子集，18 个 references 逐字节一致、3 个 references 与 2 个 SKILL.md 均为 agents 侧更新），消除同名双副本歧义。保留「read 直接引用」作为路由兜底不变。
 
 ### O-2026-08-23-1. rubik-3x3 求解接线清理（queue 自动播放方案落定后的残留）
 
@@ -1030,10 +1031,11 @@
   ③ __dirname 跳数按目录深度逐处核对（src 与 dist 下深度不同）。
 - 详见 CLAUDE.md「类型与运行时单副本」节 + retrospective-2026-08-30-build-gate-and-dual-copy.md。
 
-### O-2026-08-30-04 根目录命令残留垃圾文件待删（无意义文件名）
+### O-2026-08-30-04 根目录命令残留垃圾文件待删（无意义文件名）【已闭环 2026-08-31】
 
 - 文件：`<, v) for k,v in d[scripts].items() if k in (build,test,quicktest,typecheck)]`（根目录，
   会话命令解析残留，约 0 字节）。删除即可（非 git 跟踪）。
+- **已删除（2026-08-31 全域清点轮）**：`rm -f -- "<该文件名>"`，连同 `.claude/` 目录一并清理；均为非 git 跟踪文件，无提交。
 
 ### O-2026-08-31-01 物理足球第二阶段待办：游戏内节点图移植 + C1 人工核验（2026-08-31 交付复盘登记）
 
@@ -1093,3 +1095,15 @@
   retrospective-2026-08-31-client-call-chain-and-official-mechanism.md。
 - 知识树待录（验收后交维护者）：①官方魔方=中心球自转+块为装饰物；②客户端调用跑通形态
   =6+瞬发绑 20002+Create/Cast 链；③实体自定义变量须编辑器注册；④角色实体不可 GUID 寻址。
+
+### O-2026-08-31-03 足球 v5 三层架构：游戏内核验 pending + 工具遗留（2026-08-31 复盘登记）
+
+- 来源：retrospective-2026-08-31-football-v5-three-layer.md（提交 7f7c637..9ca8446 共 6 个）。
+- 状态：静态三项全净（预算 648 / 24 def 无重名 / 24 impl 零环）；**游戏内进图+踢球+带球核验 pending**。
+- 工具遗留 ①：`check-gil-composite-refs --incoming` 签名比对受进程内节点 id 基数噪声干扰
+  （同 ID 同源报"错位"）+ per-gia 视角在多图项目误报——改进方向：进程无关签名（节点 id 归一化哈希）
+  + 支持全 gia 并集模式。
+- 工具遗留 ②：旧测试 `ir_merge_composite_id_collision_test.ts` 在 f46701b 改动前就挂
+  （断言过时：stub/full 同 ID 共存是现行设计）——待修断言或删除。
+- 知识树待录（交维护者）：①ir_merge 跨图 def ID 归一机制（同名权威/权威链修正/隔离段）；
+  ②根图 handler 必须用 f.xxx helper；③分支内复合勿手动 connect（auto-chain 环）；④图变量不跨图。
