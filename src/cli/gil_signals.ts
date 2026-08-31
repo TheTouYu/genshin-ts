@@ -354,22 +354,31 @@ export function readRegisteredSignalsFromGil(gilPath: string): RegisteredSignalD
   const ids = extractSignalNodeIds(payload, fields)
   const layouts = readSignalLayouts(payload)
   const source = readSignalSource(gilPath, payload)
-  return entries.map((entry) => {
+  // 编辑器创建的信号可能缺 identity/layout（如 1915 的「日志操作」）——跳过并警告，
+  // 不让单个不可读条目堵死 inspect/compile/register 整条链路（2026-09-01）。
+  // 重名保护不受影响：registerSignalInGil 走 readSignalSource 的 raw entries。
+  const readable: RegisteredSignalDefinition[] = []
+  for (const entry of entries) {
     const identity = ids.get(entry.name)
     const layout = layouts.get(entry.name)
     if (!identity?.send?.nodeId || !identity.monitor?.nodeId || !identity.sendServer?.nodeId) {
-      throw new Error(`[error] incomplete signal identity: ${entry.name}`)
+      console.warn(`[warn] skip signal without complete identity: ${entry.name}`)
+      continue
     }
-    if (!layout) throw new Error(`[error] incomplete signal layout: ${entry.name}`)
-    return {
+    if (!layout) {
+      console.warn(`[warn] skip signal without readable layout: ${entry.name}`)
+      continue
+    }
+    readable.push({
       ...entry,
       params: layout.params,
       sendId: identity.send.nodeId,
       monitorId: identity.monitor.nodeId,
       serverId: identity.sendServer.nodeId,
       encoding: { ...layout, source }
-    }
-  })
+    })
+  }
+  return readable
 }
 
 export function extractSignalsFromGil(params: {
