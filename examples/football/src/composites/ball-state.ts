@@ -99,6 +99,16 @@ export const ballStateTransition = g.defineComposite('ball_state_transition', {
           toMotion,
           () => {
             f.registerExecNode('start_timer', [e, new str(LOOP_NAME), new bool(true), f.assemblyList([LOOP_TICK], 'float')])
+            // 进 CARRIED 复位决策上升沿记忆（drivePrev 是 logic 图变量；重新获得必产生
+            // 触球上升沿 → touch 冲量，v4 state_changed 复位语义的 v5 内聚版）
+            const isCarried = f.equal(next, new int(BALL_CARRIED))
+            f.doubleBranch(
+              isCarried,
+              () => {
+                f.registerExecNode('set_node_graph_variable', [new str('drivePrev'), new bool(false), new bool(false)])
+              },
+              () => {}
+            )
           },
           () => {
             const stop = f.registerExecNode('stop_timer', [e, new str(LOOP_NAME)])

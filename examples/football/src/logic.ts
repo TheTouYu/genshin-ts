@@ -33,7 +33,9 @@ const graph = g
       tmpGoal: new bool(false), // 进球判定物化（scored 写回后再读 goalNew 会重算出 false——重复求值家族）
       scored: new bool(false), // 进球去重（复位清零）
       goalCount: new int(0), // 累计进球（跨复位保留；进球拍发布黑板）
-      lostTicks: new float(0) // CARRIED 脱手计数（脱手/获得时清零）
+      lostTicks: new float(0), // CARRIED 脱手计数（脱手/获得时清零）
+      // 带球决策上升沿记忆（进区触球拍判定；transition 进 CARRIED 时复位）
+      drivePrev: new bool(false)
     }
   })
   // ================================================================

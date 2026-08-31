@@ -37,7 +37,7 @@ import {
   BALL_GOAL,
   BALL_IDLE
 } from './ball-state.js'
-import { dribbleFieldGetRole } from './dribble-field.js'
+import { dribbleFieldGetRole, dribbleFieldCompute } from './dribble-field.js'
 import { motionInstant } from './motion.js'
 import { Signal } from '../resources/signals.js'
 
@@ -431,9 +431,14 @@ export const ballPhysCarriedTick = g.defineComposite('ball_phys_carried_tick', {
   outflows: ['done'],
   build: ({ e }, f) => {
     const pos0 = f.getCustomVariable(e, new str('pos')).asType('vec3')
-    const vel = f.getNodeGraphVariable('tmpVel').asType('vec3')
+    const vel0 = f.getNodeGraphVariable('tmpVel').asType('vec3')
     const spin = f.getNodeGraphVariable('tmpSpin').asType('vec3')
     const p0 = f.split3dVector(pos0)
+    // 同拍原子决策（2026-08-31 架构修正）：感知→G律→newVel 在本拍内完成，
+    // 杜绝双 loop 黑板竞态（四轮补丁失败的终解）
+    const dec = f.callComposite(ballDribbleDecideAtomic, { e, vel: vel0 })
+    const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), dec.newVel, new bool(false)])
+    const vel = f.getNodeGraphVariable('tmpVel').asType('vec3')
     const v = f.split3dVector(vel)
 
     // 位置欧拉积分：贴地带球（y 固定 BALL_R；速度水平分量驱动）
@@ -584,5 +589,56 @@ export const ballResetFlow = g.defineComposite('ball_reset_flow', {
     f.connect(sLost, 0, tr as never, 0)
     f.outflow('done', tr as never, 0)
     return {}
+  }
+})
+
+// ================================================================
+// 带球决策（原子版，2026-08-31 双 loop 竞态架构修正）：
+// v5 初版把决策放 828 独立 loop 写 impVel 队列——四轮日志实证任何补丁（覆盖式/
+// vel 物化/pos 物化）都堵不住双 loop 相位竞态（快照本身横跨 drain 拿未来值，
+// impVel 恒 ±20、vel 模 24 震荡）。修正 = 感知-决策-积分收回同一拍原子执行
+// （v4 语义）：本复合由 CARRIED 分支同拍调用，vel 参数传入、newVel 返回，
+// 不经黑板队列。上升沿记忆 drivePrev 用宿主图（825）图变量。
+// G 律/触球参数与 v4 dribbleFieldCompute 完全一致（R4 手感保真）。
+// ================================================================
+export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_atomic', {
+  inputs: { e: { type: 'entity' }, vel: { type: 'vec3' } },
+  outputs: { newVel: { type: 'vec3' } },
+  build: ({ e, vel }, f) => {
+    const roleC = f.callComposite(dribbleFieldGetRole, {})
+    const role = roleC.role
+    const roleLoc = f.getEntityLocationAndRotation(role)
+    const playerFwd = f.getEntityForwardVector(role)
+    const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
+    const boardPos = f.getCustomVariable(e, new str('pos')).asType('vec3')
+    const comp = f.callComposite(dribbleFieldCompute, {
+      playerPos: roleLoc.location, playerFwd, playerSpd, ballPos: boardPos
+    })
+    const distOk = f.lessThan(comp.dist2, 2.25)
+    const fwdOk = f.greaterThan(comp.fwd, -0.3)
+    const drive = f.logicalAndOperation(distOk, fwdOk)
+    const drivePrev = f.getNodeGraphVariable('drivePrev').asType('bool')
+    const edge = f.logicalAndOperation(drive, f.logicalNotOperation(drivePrev))
+    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+    const driveF = b2f(drive)
+    // G 律（R4 原式）：target = drive ? vFinal : 0；conv = vel + (target−vel)·G
+    const targetX = f.multiplication(comp.newVelX, driveF)
+    const targetZ = f.multiplication(comp.newVelZ, driveF)
+    const bv = f.split3dVector(vel)
+    const diffX = f.subtraction(targetX, bv.xComponent)
+    const diffZ = f.subtraction(targetZ, bv.zComponent)
+    const distDiff = f._3dVectorModuloOperation(f.create3dVector(diffX, 0, diffZ))
+    const cEff = f.addition(f.multiplication(2.0, driveF), f.multiplication(4.0, f.subtraction(1, driveF)))
+    const gNl = f.division(distDiff, f.addition(distDiff, cEff))
+    const convX = f.addition(bv.xComponent, f.multiplication(diffX, gNl))
+    const convZ = f.addition(bv.zComponent, f.multiplication(diffZ, gNl))
+    const eF = b2f(edge)
+    const keepF = f.subtraction(1, eF)
+    const nvx = f.addition(f.multiplication(convX, keepF), f.multiplication(comp.touchX, eF))
+    const nvz = f.addition(f.multiplication(convZ, keepF), f.multiplication(comp.touchZ, eF))
+    // drivePrev 写回（宿主图变量；写回节点挂链尾由调用方 connect）
+    const sPrev = f.registerExecNode('set_node_graph_variable', [new str('drivePrev'), drive, new bool(false)])
+    void sPrev
+    return { newVel: f.create3dVector(nvx, 0, nvz) }
   }
 })
