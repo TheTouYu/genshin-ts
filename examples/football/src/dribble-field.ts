@@ -2,7 +2,8 @@
 // 设计不变量（2026-08-31 重设计 + 四点合一改造）：
 //   ① 设备永不断供——运动器是实体唯一运动来源，场监管期间每拍无条件写设备；
 //   ② 速度=带记忆的状态——非线性收敛 v←v+(target−v)·G（G=d/(d+C)，恒<1 不超调），
-//      触球拍（进区上升沿）全额设定，出区 target=0 同式刹车；
+//      触球拍（进区上升沿）增益设定 v:=dir×max(TOUCH_MIN, TOUCH_GAIN×vFinal)（唯一许可的
+//      瞬时超调，仅一拍），出区 target=0 同式刹车；
 //   ③ 反馈=每拍实时几何（dist/fwd 对实体真实位置），无状态机延时。
 // custody 分工：FREE(0)/CARRIED(4)=场独占驱动；FLY/ROLL/SLIDE/GOAL=物理链独占（场零设备）。
 // 状态传播（信号化）：state_changed(prev,next) 由 stateCommit 发（真实变化才发），
