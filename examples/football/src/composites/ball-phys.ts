@@ -543,12 +543,18 @@ export const ballApplyImmediate = g.defineComposite('ball_apply_immediate', {
     const nextState = f.dataTypeConversion(nextF, 'int')
     const tr = f.callComposite(ballStateTransition, { e, next: nextState, vel: velC })
     f.connect(sSpin, 0, tr as never, 0)
-    // 当拍积分（transition.done 后执行——loop 可能尚未启动，此拍即首拍）
-    const tick = f.callComposite(ballPhysTick, { e })
-    f.connect(tr as never, 0, tick as never, 0)
-    // 渲染插队帧（语句式 sendSignal——直线代码按注册序串行，stateCommit 同款模式；
-    // 渲染层 onSignal(render_now) 当拍读黑板挂设备。回读 .gia 时核验此链序）
+    // 渲染插队帧（语句式 sendSignal，直线代码按注册序串行，stateCommit 同款模式；
+    // 渲染层 onSignal(render_now) 当拍读黑板挂设备。2026-08-31 修正：原序
+    // tick→signal 依赖 ballPhysTick 调用点的 exec 出边，但该 def 未声明 outflows，
+    // 注入器按接口裁边后 signal 节点成孤儿（日志 3069 + .gil 回读实证）——改挂
+    // transition.done 之后（其 def 有 done 出口，边可存活）；此时 vel 交接已上
+    // 黑板，渲染当拍即读到新速度）
     f.sendSignal(Signal.render_now)
+    // 当拍积分（render_now 后执行——loop 可能尚未启动，此拍即首拍。tick 保持
+    // 链尾：ballPhysTick def 无 outflow，本复合 done 锚点注入后悬空——现无调用方
+    // 在 ap 之后接链（input.ts 两处均不接）故无害；未来要链 done 须先给
+    // ballPhysTick 声明真实链尾 outflow）
+    const tick = f.callComposite(ballPhysTick, { e })
     f.outflow('done', tick as never, 0)
     return {}
   }
@@ -604,6 +610,11 @@ export const ballResetFlow = g.defineComposite('ball_reset_flow', {
 export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_atomic', {
   inputs: { e: { type: 'entity' }, vel: { type: 'vec3' } },
   outputs: { newVel: { type: 'vec3' } },
+  // outflows 必须声明（2026-08-31 第四轮日志 3069 修正）：本复合内含 exec 节点
+  // （drivePrev 写回）却未声明 outflows 时，注入器按 def 接口裁掉调用点的 exec
+  // 出边——ballPhysCarriedTick 在本复合之后的链（写 tmpVel/积分/发布/transition）
+  // 全部成孤儿节点，球完全不动（.gia 有边、注入后 .gil 丢边）。
+  outflows: ['done'],
   build: ({ e, vel }, f) => {
     const roleC = f.callComposite(dribbleFieldGetRole, {})
     const role = roleC.role
@@ -636,9 +647,10 @@ export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_at
     const keepF = f.subtraction(1, eF)
     const nvx = f.addition(f.multiplication(convX, keepF), f.multiplication(comp.touchX, eF))
     const nvz = f.addition(f.multiplication(convZ, keepF), f.multiplication(comp.touchZ, eF))
-    // drivePrev 写回（宿主图变量；写回节点挂链尾由调用方 connect）
+    // drivePrev 写回挂链尾并锚定 done 出口（同上：调用方 auto-chain 的下一条边
+    // 依赖本 def 的 OutFlow 引脚存活；锚在链尾 exec 节点上语义 = 决策+记忆写完才继续）
     const sPrev = f.registerExecNode('set_node_graph_variable', [new str('drivePrev'), drive, new bool(false)])
-    void sPrev
+    f.outflow('done', sPrev, 0)
     return { newVel: f.create3dVector(nvx, 0, nvz) }
   }
 })
