@@ -189,23 +189,22 @@ export const ballPhysTick = g.defineComposite('ball_phys_tick', {
     f.connect(c1, 0, c2, 0)
 
     // —— 状态分发（multipleBranches：FLY/ROLL/SLIDE/CARRIED；default=IDLE/GOAL 防御停转）——
+    // 分支内复合调用由 MB 分支出口驱动（语句序 auto-chain），不做手动 connect——
+    // 2026-08-31 实证：手动 connect(分支复合, done, c2) 与 auto-chain 的 c2→MB 相连
+    // 构成执行流环（c2→MB→分支复合→c2，引擎报"ball_phys_tick 有执行流循环"）。
     const state = f.getNodeGraphVariable('state').asType('int')
     f.multipleBranches(state, {
       [BALL_FLY]: () => {
-        const c = f.callComposite(ballPhysFlyTick, { e })
-        f.connect(c as never, 0, c2 as never, 0)
+        f.callComposite(ballPhysFlyTick, { e })
       },
       [BALL_ROLL]: () => {
-        const c = f.callComposite(ballPhysRollTick, { e })
-        f.connect(c as never, 0, c2 as never, 0)
+        f.callComposite(ballPhysRollTick, { e })
       },
       [BALL_SLIDE]: () => {
-        const c = f.callComposite(ballPhysSlideTick, { e })
-        f.connect(c as never, 0, c2 as never, 0)
+        f.callComposite(ballPhysSlideTick, { e })
       },
       [BALL_CARRIED]: () => {
-        const c = f.callComposite(ballPhysCarriedTick, { e })
-        f.connect(c as never, 0, c2 as never, 0)
+        f.callComposite(ballPhysCarriedTick, { e })
       },
       default: () => {
         // IDLE/GOAL：loop 不应运行（transition 已停转）——防御性停转自愈
