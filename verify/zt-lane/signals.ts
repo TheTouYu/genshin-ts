@@ -6,7 +6,6 @@ import { defineSignal } from 'genshin-ts/runtime/core'
 export const ZtSignal = {
   zt_echo: defineSignal('zt_echo', [
     ['tag', 'str'],
-    ['e', 'int'],
-    ['h', 'int']
+    ['e', 'int']
   ])
 } as const

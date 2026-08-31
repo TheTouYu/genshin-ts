@@ -2,13 +2,12 @@ import { g } from 'genshin-ts/runtime/core'
 
 import { ZtSignal } from './signals.js'
 
-// 计算通道 v2·客户端门控图（20008 造物技能图，替换原 _GSTS_zaowuSkill 内容，ID/绑定不变）
+// 计算通道 v2·客户端门控图（20008 造物技能图，原位替换 _GSTS_zaowuSkill，技能配置/造物绑定不变）
 //
-// 机制（seqlock 变体）：每次施放 = 一次轮询。读 zt_epoch/zt_ack 门控 → 不等才读 100 变量
-// → 哈希折叠比对 zt_sum → 二读 zt_epoch 防读取中被覆盖 → 全过才算并回传。
+// 机制（seqlock 变体，求和哈希版）：每次施放 = 一次轮询。读 zt_epoch/zt_ack 门控 →
+// 不等才读 100 个载荷变量 → 求和比对 zt_sum → 二读 zt_epoch 防读取中被覆盖 → 全过才回传。
+// 载荷随 epoch 严格单调，撕裂（部分变量停在前代）必然改变总和——检测是确定性的。
 // 空转成本 = 2 次变量读 + 1 次比较；无打印（观测全走信号，服务端 f22 留痕）。
-//
-// 期望日志（服务端 f22）：每任务一条 lane:ok 回声；撕裂期偶发 tearH/tearE。
 g.creationSkill({ id: 1082130436, name: '_GSTS_ztSkill' }).on('start', (_evt, f) => {
   const owner = f.getCorrespondingValueFromList(0n, f.getListOfPlayerEntitiesOnTheField())
   const ack = f.getCustomVariable(owner, 'zt_ack').asType('int')
@@ -118,115 +117,115 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_ztSkill' }).on('start', (_evt, f)
 
     const sum = f.getCustomVariable(owner, 'zt_sum').asType('int')
     const e2 = f.getCustomVariable(owner, 'zt_epoch').asType('int')
-    const h1 = v1 % 1000000007n
-    const h2 = (h1 * 31n + v2) % 1000000007n
-    const h3 = (h2 * 31n + v3) % 1000000007n
-    const h4 = (h3 * 31n + v4) % 1000000007n
-    const h5 = (h4 * 31n + v5) % 1000000007n
-    const h6 = (h5 * 31n + v6) % 1000000007n
-    const h7 = (h6 * 31n + v7) % 1000000007n
-    const h8 = (h7 * 31n + v8) % 1000000007n
-    const h9 = (h8 * 31n + v9) % 1000000007n
-    const h10 = (h9 * 31n + v10) % 1000000007n
-    const h11 = (h10 * 31n + v11) % 1000000007n
-    const h12 = (h11 * 31n + v12) % 1000000007n
-    const h13 = (h12 * 31n + v13) % 1000000007n
-    const h14 = (h13 * 31n + v14) % 1000000007n
-    const h15 = (h14 * 31n + v15) % 1000000007n
-    const h16 = (h15 * 31n + v16) % 1000000007n
-    const h17 = (h16 * 31n + v17) % 1000000007n
-    const h18 = (h17 * 31n + v18) % 1000000007n
-    const h19 = (h18 * 31n + v19) % 1000000007n
-    const h20 = (h19 * 31n + v20) % 1000000007n
-    const h21 = (h20 * 31n + v21) % 1000000007n
-    const h22 = (h21 * 31n + v22) % 1000000007n
-    const h23 = (h22 * 31n + v23) % 1000000007n
-    const h24 = (h23 * 31n + v24) % 1000000007n
-    const h25 = (h24 * 31n + v25) % 1000000007n
-    const h26 = (h25 * 31n + v26) % 1000000007n
-    const h27 = (h26 * 31n + v27) % 1000000007n
-    const h28 = (h27 * 31n + v28) % 1000000007n
-    const h29 = (h28 * 31n + v29) % 1000000007n
-    const h30 = (h29 * 31n + v30) % 1000000007n
-    const h31 = (h30 * 31n + v31) % 1000000007n
-    const h32 = (h31 * 31n + v32) % 1000000007n
-    const h33 = (h32 * 31n + v33) % 1000000007n
-    const h34 = (h33 * 31n + v34) % 1000000007n
-    const h35 = (h34 * 31n + v35) % 1000000007n
-    const h36 = (h35 * 31n + v36) % 1000000007n
-    const h37 = (h36 * 31n + v37) % 1000000007n
-    const h38 = (h37 * 31n + v38) % 1000000007n
-    const h39 = (h38 * 31n + v39) % 1000000007n
-    const h40 = (h39 * 31n + v40) % 1000000007n
-    const h41 = (h40 * 31n + v41) % 1000000007n
-    const h42 = (h41 * 31n + v42) % 1000000007n
-    const h43 = (h42 * 31n + v43) % 1000000007n
-    const h44 = (h43 * 31n + v44) % 1000000007n
-    const h45 = (h44 * 31n + v45) % 1000000007n
-    const h46 = (h45 * 31n + v46) % 1000000007n
-    const h47 = (h46 * 31n + v47) % 1000000007n
-    const h48 = (h47 * 31n + v48) % 1000000007n
-    const h49 = (h48 * 31n + v49) % 1000000007n
-    const h50 = (h49 * 31n + v50) % 1000000007n
-    const h51 = (h50 * 31n + v51) % 1000000007n
-    const h52 = (h51 * 31n + v52) % 1000000007n
-    const h53 = (h52 * 31n + v53) % 1000000007n
-    const h54 = (h53 * 31n + v54) % 1000000007n
-    const h55 = (h54 * 31n + v55) % 1000000007n
-    const h56 = (h55 * 31n + v56) % 1000000007n
-    const h57 = (h56 * 31n + v57) % 1000000007n
-    const h58 = (h57 * 31n + v58) % 1000000007n
-    const h59 = (h58 * 31n + v59) % 1000000007n
-    const h60 = (h59 * 31n + v60) % 1000000007n
-    const h61 = (h60 * 31n + v61) % 1000000007n
-    const h62 = (h61 * 31n + v62) % 1000000007n
-    const h63 = (h62 * 31n + v63) % 1000000007n
-    const h64 = (h63 * 31n + v64) % 1000000007n
-    const h65 = (h64 * 31n + v65) % 1000000007n
-    const h66 = (h65 * 31n + v66) % 1000000007n
-    const h67 = (h66 * 31n + v67) % 1000000007n
-    const h68 = (h67 * 31n + v68) % 1000000007n
-    const h69 = (h68 * 31n + v69) % 1000000007n
-    const h70 = (h69 * 31n + v70) % 1000000007n
-    const h71 = (h70 * 31n + v71) % 1000000007n
-    const h72 = (h71 * 31n + v72) % 1000000007n
-    const h73 = (h72 * 31n + v73) % 1000000007n
-    const h74 = (h73 * 31n + v74) % 1000000007n
-    const h75 = (h74 * 31n + v75) % 1000000007n
-    const h76 = (h75 * 31n + v76) % 1000000007n
-    const h77 = (h76 * 31n + v77) % 1000000007n
-    const h78 = (h77 * 31n + v78) % 1000000007n
-    const h79 = (h78 * 31n + v79) % 1000000007n
-    const h80 = (h79 * 31n + v80) % 1000000007n
-    const h81 = (h80 * 31n + v81) % 1000000007n
-    const h82 = (h81 * 31n + v82) % 1000000007n
-    const h83 = (h82 * 31n + v83) % 1000000007n
-    const h84 = (h83 * 31n + v84) % 1000000007n
-    const h85 = (h84 * 31n + v85) % 1000000007n
-    const h86 = (h85 * 31n + v86) % 1000000007n
-    const h87 = (h86 * 31n + v87) % 1000000007n
-    const h88 = (h87 * 31n + v88) % 1000000007n
-    const h89 = (h88 * 31n + v89) % 1000000007n
-    const h90 = (h89 * 31n + v90) % 1000000007n
-    const h91 = (h90 * 31n + v91) % 1000000007n
-    const h92 = (h91 * 31n + v92) % 1000000007n
-    const h93 = (h92 * 31n + v93) % 1000000007n
-    const h94 = (h93 * 31n + v94) % 1000000007n
-    const h95 = (h94 * 31n + v95) % 1000000007n
-    const h96 = (h95 * 31n + v96) % 1000000007n
-    const h97 = (h96 * 31n + v97) % 1000000007n
-    const h98 = (h97 * 31n + v98) % 1000000007n
-    const h99 = (h98 * 31n + v99) % 1000000007n
-    const h100 = (h99 * 31n + v100) % 1000000007n
+    const h1 = v1
+    const h2 = h1 + v2
+    const h3 = h2 + v3
+    const h4 = h3 + v4
+    const h5 = h4 + v5
+    const h6 = h5 + v6
+    const h7 = h6 + v7
+    const h8 = h7 + v8
+    const h9 = h8 + v9
+    const h10 = h9 + v10
+    const h11 = h10 + v11
+    const h12 = h11 + v12
+    const h13 = h12 + v13
+    const h14 = h13 + v14
+    const h15 = h14 + v15
+    const h16 = h15 + v16
+    const h17 = h16 + v17
+    const h18 = h17 + v18
+    const h19 = h18 + v19
+    const h20 = h19 + v20
+    const h21 = h20 + v21
+    const h22 = h21 + v22
+    const h23 = h22 + v23
+    const h24 = h23 + v24
+    const h25 = h24 + v25
+    const h26 = h25 + v26
+    const h27 = h26 + v27
+    const h28 = h27 + v28
+    const h29 = h28 + v29
+    const h30 = h29 + v30
+    const h31 = h30 + v31
+    const h32 = h31 + v32
+    const h33 = h32 + v33
+    const h34 = h33 + v34
+    const h35 = h34 + v35
+    const h36 = h35 + v36
+    const h37 = h36 + v37
+    const h38 = h37 + v38
+    const h39 = h38 + v39
+    const h40 = h39 + v40
+    const h41 = h40 + v41
+    const h42 = h41 + v42
+    const h43 = h42 + v43
+    const h44 = h43 + v44
+    const h45 = h44 + v45
+    const h46 = h45 + v46
+    const h47 = h46 + v47
+    const h48 = h47 + v48
+    const h49 = h48 + v49
+    const h50 = h49 + v50
+    const h51 = h50 + v51
+    const h52 = h51 + v52
+    const h53 = h52 + v53
+    const h54 = h53 + v54
+    const h55 = h54 + v55
+    const h56 = h55 + v56
+    const h57 = h56 + v57
+    const h58 = h57 + v58
+    const h59 = h58 + v59
+    const h60 = h59 + v60
+    const h61 = h60 + v61
+    const h62 = h61 + v62
+    const h63 = h62 + v63
+    const h64 = h63 + v64
+    const h65 = h64 + v65
+    const h66 = h65 + v66
+    const h67 = h66 + v67
+    const h68 = h67 + v68
+    const h69 = h68 + v69
+    const h70 = h69 + v70
+    const h71 = h70 + v71
+    const h72 = h71 + v72
+    const h73 = h72 + v73
+    const h74 = h73 + v74
+    const h75 = h74 + v75
+    const h76 = h75 + v76
+    const h77 = h76 + v77
+    const h78 = h77 + v78
+    const h79 = h78 + v79
+    const h80 = h79 + v80
+    const h81 = h80 + v81
+    const h82 = h81 + v82
+    const h83 = h82 + v83
+    const h84 = h83 + v84
+    const h85 = h84 + v85
+    const h86 = h85 + v86
+    const h87 = h86 + v87
+    const h88 = h87 + v88
+    const h89 = h88 + v89
+    const h90 = h89 + v90
+    const h91 = h90 + v91
+    const h92 = h91 + v92
+    const h93 = h92 + v93
+    const h94 = h93 + v94
+    const h95 = h94 + v95
+    const h96 = h95 + v96
+    const h97 = h96 + v97
+    const h98 = h97 + v98
+    const h99 = h98 + v99
+    const h100 = h99 + v100
 
     f.doubleBranch(f.equal(e2, e1), () => {
       f.doubleBranch(f.equal(h100, sum), () => {
-        f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'ok', e1, h100)
+        f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'ok', e1)
       }, () => {
-        f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'tearH', e1, h100)
+        f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'tearH', e1)
       })
     }, () => {
-      f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'tearE', e1, h100)
+      f.sendSignalToServerNodeGraph(ZtSignal.zt_echo, 'tearE', e1)
     })
   })
 })
