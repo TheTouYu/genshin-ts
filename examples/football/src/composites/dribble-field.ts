@@ -30,9 +30,16 @@ const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
 // —— 速度非线性收敛（2026-08-31 四点合一，替代 0.95 叠加+三拍节流）——
 // v ← v + (target−v)·G，G = |target−v| / (|target−v| + C)：
 //   d 大 → G→1 快贴合；d→0 → G→0 无限逼近；恒 <1 永不超调（凸组合，根除"越带越快"）。
-// 触球拍（进区上升沿）G:=1 → v:=velDir 全额设定（3031"第一次冲量合适"保持）。
 // 出区 target=0 同式衰减 = 摩擦刹车（d 大刹得快，d 小缓收）。
 const CONV_C = 1.5 // 收敛常数 C（m/s）：d=C 时 G=0.5
+
+// —— 触球冲量（2026-08-31 日志 3038 复测反馈：旧冲量=1.2×k×vP 实测只有玩家速 44%
+// （k=0.37 侧/脚跟进入）且无保底——慢走/贴脚触球无感，"看不到给冲量"）——
+// 触球拍（进区上升沿）速度 := dir × max(TOUCH_MIN, TOUCH_GAIN×vFinal)：
+// 增益放大 + 保底速度；后续拍由 G 律收敛回 target（不叠加；瞬时超调仅触球拍一拍，
+// 是"永不超调"唯一许可的例外——冲量手感来源）。
+const TOUCH_GAIN = 1.6 // 触球拍冲量增益
+const TOUCH_MIN = 3.0 // 触球拍保底速度（m/s）：慢走/站立触球也有可感知推球
 
 // —— 旋转摩擦累积（ω 是状态量，替代 R1 的逐拍纯滚直写）——
 // 触球冲量必然滑动：v 跳上去、ω 还是慢的；摩擦每拍把 ω 拉向纯滚 v/R，滑差收敛。
@@ -75,7 +82,7 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     playerSpd: { type: 'float' },
     ballPos: { type: 'vec3' }
   },
-  outputs: { newVelX: { type: 'float' }, newVelZ: { type: 'float' }, fwd: { type: 'float' }, dist2: { type: 'float' } },
+  outputs: { newVelX: { type: 'float' }, newVelZ: { type: 'float' }, touchX: { type: 'float' }, touchZ: { type: 'float' }, fwd: { type: 'float' }, dist2: { type: 'float' } },
   build: ({ playerPos, playerFwd, playerSpd, ballPos }, f) => {
     // 相对向量 D = B - P
     const D = f._3dVectorSubtraction(ballPos, playerPos)
@@ -105,9 +112,18 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     const vFinal = f.multiplication(vTarget, k)
     // 速度向量 velDir = dir × vFinal（作为收敛目标；叠加/节流已由 tick 的 G 律接管）
     const velDir = f._3dVectorZoom(dir, vFinal)
+    // 触球冲量向量 velTouch = dir × max(TOUCH_MIN, TOUCH_GAIN×vFinal)（3038 反馈修复）：
+    // max 无节点依赖实现同 k(fwd)：max(a,b)=(a+b+|a−b|)/2
+    const vBoost = f.multiplication(TOUCH_GAIN, vFinal)
+    const touchMag = f.division(
+      f.addition(f.addition(TOUCH_MIN, vBoost), f.absoluteValueOperation(f.subtraction(TOUCH_MIN, vBoost))),
+      2
+    )
+    const velTouch = f._3dVectorZoom(dir, touchMag)
     // 拆出水平分量（y 由调用方按地面拉回处理）
     const nv = f.split3dVector(velDir)
-    return { newVelX: nv.xComponent, newVelZ: nv.zComponent, fwd, dist2 }
+    const nt = f.split3dVector(velTouch)
+    return { newVelX: nv.xComponent, newVelZ: nv.zComponent, touchX: nt.xComponent, touchZ: nt.zComponent, fwd, dist2 }
   }
 })
 
@@ -186,11 +202,11 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const edge = f.logicalAndOperation(drive, f.logicalNotOperation(drivePrev))
     const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
 
-    // 速度律（非线性收敛，2026-08-31 四点合一）：
+    // 速度律（非线性收敛，2026-08-31 四点合一；触球增益 3038 复测修订）：
     //   target = drive ? velDir : 0（出区 target=0 同式衰减 = 摩擦刹车）
-    //   v ← v + (target−v)·G，G = d/(d+C)，d = |target−v|；进区上升沿 G:=1（全额）
-    // 三拍节流（sinceKick/canPulse/lastKickTick）已删——用户点名其导致不丝滑；
-    // G<1 恒不超调，根除 3025 的"后续冲量使球速不断增加"。
+    //   非触球拍：v ← v + (target−v)·G，G = d/(d+C)，d = |target−v|（恒<1 不超调）
+    //   触球拍（进区上升沿）：v := touch 向量（TOUCH_GAIN 放大 + TOUCH_MIN 保底）——
+    //     数据选择 conv·(1−e) + touch·e；瞬时超调仅此一拍，后续拍 G 律收敛回 target
     const driveF = b2f(drive)
     const targetX = f.multiplication(comp.newVelX, driveF)
     const targetZ = f.multiplication(comp.newVelZ, driveF)
@@ -198,14 +214,12 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const diffZ = f.subtraction(targetZ, ballVz)
     const distDiff = f._3dVectorModuloOperation(f.create3dVector(diffX, 0, diffZ))
     const gNl = f.division(distDiff, f.addition(distDiff, CONV_C))
-    // G_eff = max(gNl, edge)：非触球拍 = gNl ∈ [0,1)；触球拍 = 1（v:=velDir）
+    const convX = f.addition(ballVx, f.multiplication(diffX, gNl))
+    const convZ = f.addition(ballVz, f.multiplication(diffZ, gNl))
     const eF = b2f(edge)
-    const gEff = f.division(
-      f.addition(f.addition(gNl, eF), f.absoluteValueOperation(f.subtraction(gNl, eF))),
-      2
-    )
-    const newVelX = f.addition(ballVx, f.multiplication(diffX, gEff))
-    const newVelZ = f.addition(ballVz, f.multiplication(diffZ, gEff))
+    const keepF = f.subtraction(1, eF)
+    const newVelX = f.addition(f.multiplication(convX, keepF), f.multiplication(comp.touchX, eF))
+    const newVelZ = f.addition(f.multiplication(convZ, keepF), f.multiplication(comp.touchZ, eF))
 
     // y 高度修复：球离地时每 tick 拉回地面（vy = (BALL_R − 球当前y)/TICK）
     const ballY = f.split3dVector(f.getNodeGraphVariable('tmpBallPos').asType('vec3')).yComponent
@@ -213,12 +227,17 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const vy = f.multiplication(dy, INV_TICK)
     const finalVel = f.create3dVector(newVelX, vy, newVelZ)
 
-    // 脱脚计数（纯数据，滞回判据）：CARRIED 且 距离>2m（DROP_DIST2 上沿）逐拍 +1；
-    // 回到 2m 内自动清零。>2m 持续 3 tick → 请求脱脚（球此刻在被刹停，交接速度=newVel）
+    // 脱脚计数（滞回+身后并联合判，2026-08-31 日志 3038 rec538-586 铁证修复）：
+    // 旧滞回只看距离——球在身后 0.89m（fwd=−0.96）时 fwd 守卫关驱动、距离<2m 关脱手
+    // → 脚跟死锁（玩家跑球不动）。恢复"身后持续 3 拍"与">2m 持续 3 拍"并联脱手；
+    // 获得侧同步加 fwd 门（state_possess_check），身后球不获得 → 无脱手/再获得死循环。
     const carriedFar = f.logicalAndOperation(stateCarried, f.greaterThan(comp.dist2, DROP_DIST2))
-    const cfPF = b2f(carriedFar)
-    const lostNew = f.multiplication(f.addition(lostTicks, 1), cfPF)
-    const dropped = f.logicalAndOperation(carriedFar, f.greaterThanOrEqualTo(lostNew, LOST_TICKS_MAX))
+    const notFwdOk = f.logicalNotOperation(fwdOk)
+    const lostCause = f.logicalOrOperation(carriedFar, notFwdOk)
+    const carriedLost = f.logicalAndOperation(stateCarried, lostCause)
+    const clF = b2f(carriedLost)
+    const lostNew = f.multiplication(f.addition(lostTicks, 1), clF)
+    const dropped = f.logicalAndOperation(carriedLost, f.greaterThanOrEqualTo(lostNew, LOST_TICKS_MAX))
 
     // 脱脚请求（复合内直接发信号；状态机图唯一仲裁落地，宿主不参与）
     // 放在写回之前求值（dropped 输入 lostTicks 若在写回后重求值会读到新值，重复求值陷阱）

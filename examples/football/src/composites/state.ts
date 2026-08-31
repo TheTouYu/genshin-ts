@@ -7,6 +7,7 @@ import { Signal } from '../resources/signals.js'
 
 const CARRY_DIST2 = 4.0 // 2.0m²（控球判定半径）——2026-08-31 日志 3031：玩家追到 2.4m、球滑到 0.3m/s 仍不接管，尴尬期 ~10s。放宽到 2m：球滑行减速后玩家 2m 内即可重新接管
 const CARRY_SPEED = 3.5 // 球速低于该值才可被控球——3031 实证 2.0 仍太严（球 0.3m/s 时人已贴上）；3.5 允许接管仍在滚动的球
+const ACQUIRE_FWD_MIN = -0.3 // 获得前向门（与牵引区 PULL_FWD_MIN 对齐）——2026-08-31 日志 3038：身后获得 → fwd 守卫关驱动+距离滞回关脱手 → 脚跟死锁；获得侧加门后身后球保持 FREE，玩家转身球到前方才可获得
 
 // 状态提交（exec）：图变量 state 与球实体自定义变量 state 一次性写入，
 // 并在 state 真实变化（prev ≠ next）时发送 state_changed(prev, next) 信号。
@@ -35,7 +36,7 @@ export const stateCommit = g.defineComposite('state_commit', {
   }
 })
 
-// 控球判定（纯数据）：角色 1.2m 内 且 球速低 → 可进入 CARRIED
+// 控球判定（纯数据）：角色 2m 内 且 球速低 且 球在前方（fwd>−0.3）→ 可进入 CARRIED
 export const statePossessCheck = g.defineComposite('state_possess_check', {
   inputs: { role: { type: 'entity' }, ballPos: { type: 'vec3' }, ballVel: { type: 'vec3' } },
   outputs: { canCarry: { type: 'bool' } },
@@ -46,6 +47,10 @@ export const statePossessCheck = g.defineComposite('state_possess_check', {
     const near = f.lessThan(dist2, CARRY_DIST2)
     const spd = f._3dVectorModuloOperation(ballVel)
     const slow = f.lessThan(spd, CARRY_SPEED)
-    return { canCarry: f.logicalAndOperation(near, slow) }
+    // 前向门（3038 脚跟死锁修复）：球须在玩家前方才可获得
+    const Dn = f._3dVectorNormalization(d)
+    const fwd = f._3dVectorDotProduct(f.getEntityForwardVector(role), Dn)
+    const front = f.greaterThan(fwd, ACQUIRE_FWD_MIN)
+    return { canCarry: f.logicalAndOperation(f.logicalAndOperation(near, slow), front) }
   }
 })
