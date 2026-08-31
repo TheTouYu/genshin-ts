@@ -525,3 +525,21 @@
   API，风险更可控）。**相对旋转关系必须做实验**（跟随坐标系/旋转偏移如何与球自转合成）。
 - 更正 H1/H3：官方不用跟随（B0.2 的"资产层有跟随配置"被推翻——资产层有的是装饰物关系）；
   H1b（跟随与基础运动器互斥、需自行配置）保留为路线③的工程约束。
+
+### B0.8 A 线第一步：客户端调用链路四连修定形 v4（2026-08-31，复盘同期）
+
+- v1 坑（技能类型）：施放配置选 1228931074（36 普通技能需按键激活）→ 用户指正改 **1098907651
+  （6 自定义技能+瞬发，历史跑通形态）**，clientProbe 改 `g.characterSkill`(20002)/图 1082130434
+  （gsts 类型守卫拒 20010→20002 错配后修正）。
+- v2 坑（未注册变量）：`clientProbeSkillId` 实体自定义变量未在编辑器注册 → set 后 get 为空 →
+  用户指正**去变量**，改节点返回值数据流直连。
+- v3 坑（角色实体寻址）：`entity(1090519041n)` 编译成 Query Entity by GUID，**角色实体不可
+  GUID 寻址** → 用户指正改官方玩家-界面取法：`getListOfPlayerEntitiesOnTheField()[0] →
+  getAllCharacterEntitiesOfSpecifiedPlayer(p)[0]`。
+- v4 定形（提交 3f2808a，md5 f412d05a）：出生守卫 `client-probe-armed` 打点 + 2s 后回调内
+  玩家[0]→角色[0]→createCustomSkillInstance→castSpecifiedSkillInstance(false) 纯数据流直连，
+  零变量零 GUID 查询；注入 10/10 + 回读链路节点 24→29 逐个核对 + 复合 refs 0 悬空 + Temp
+  md5 双一致。**游戏验收待做**；R-31-01（20002 图 sendSignalToServerNodeGraph 运行时合法性）
+  登记 open-items O-2026-08-31-01。
+- 复盘：retrospective-2026-08-31-client-call-chain-and-official-mechanism.md（8 坑谱系/4 系统性
+  根因/三技能落盘）。

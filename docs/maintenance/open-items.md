@@ -1078,3 +1078,18 @@
   basicMotion(4) 等）→ 跟随配置在官方元件资产层（地图不可见）；中心球 = 创建图 Create Prefab
   1077936170（空模型）于 (2,2,-2)；跟随文档 mhuts59m9gju 已读；用户情报：跟随需配置且与
   基础运动器互斥（H1b）。假设清单 H1~H6 落 PROGRESS；五个待定项待 1913 新日志逐帧闭环。
+
+### O-2026-08-31-01 客户端调用链路验收 + 20002 信号回传运行时合法性（2026-08-31 B 轮 A 线登记）
+
+- 事实：A 线第一步 cast 链 v4 已注入（玩家列表[0]→角色列表[0]→createCustomSkillInstance(6+瞬发
+  1098907651)→castSpecifiedSkillInstance(false)，md5 f412d05a，Temp 同步）；**游戏验收未做**。
+- 风险 R-31-01：clientProbe 已从 20010 改为 **20002 角色技能图**（g.characterSkill），其中
+  `sendSignalToServerNodeGraph` 在 20002 形态的**运行时合法性未证**（编译过≠引擎可用；同族
+  先例 R-02 客户端图打印不落服务器日志）。验收时若 `client-probe-cast-fired` 有而
+  `client-probe`/f8=2097154 无 → 先查 20002 图是否允许该节点，再考虑事件轨道/4b notify 替代。
+- 同日已闭合：官方魔方机制定论（装饰物公转，O-30-07 大部分闭合，剩余=路线③相对旋转实验 +
+  basicMotion→followMotion 组件替换工程）；cast 链三坑（技能类型/未注册变量/角色实体 GUID
+  寻址）全修复并落盘 DSL/注入/资产三技能 + 复盘
+  retrospective-2026-08-31-client-call-chain-and-official-mechanism.md。
+- 知识树待录（验收后交维护者）：①官方魔方=中心球自转+块为装饰物；②客户端调用跑通形态
+  =6+瞬发绑 20002+Create/Cast 链；③实体自定义变量须编辑器注册；④角色实体不可 GUID 寻址。

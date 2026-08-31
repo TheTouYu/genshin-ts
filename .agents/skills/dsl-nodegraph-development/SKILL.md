@@ -144,7 +144,9 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 | 循环 | ✅ | `for (let i = 0n; i < Nn; i++)` → finite_loop；**循环体只物化 1 次**（节点爆炸解法） |
 | 批量创建/遍历 | ✅ `f.listIterationLoop` / `.forEach` | `f.listIterationLoop(f.assemblyList([...], '类型'), (v, _breakLoop) => …)` 或 `list('类型', [...]).forEach(cb)`（Stage1 转换；prefabId/位置可动态算，50 个手写 createPrefab → 3 节点）；编译环境须能解析全局 `list` 类型声明 |
 | 循环内 setTimeout | ✅ | 回调可 capture 循环变量（int） |
-| setTimeout/setInterval | ✅ | 回调 `(evt, f)`；evt 无 timerName 等字段（编译器类型缺口） |
+| setTimeout/setInterval | ✅ | 回调 `(evt, f)`；evt 无 timerName 等字段（编译器类型缺口）；⚠️ **回调不能 capture entity 变量**——编译器报 `unsupported timer capture type for "x": any`（2026-08-31 魔方 cast 链实证），回调内用 `entity(id)` 字面量重建（静态实体）或节点现取（动态实体） |
+| **实体寻址三态** | ⚠️ **写前必查** | ①静态物件/控制器：`entity(id)` 字面量 ✅（编译成 Query Entity by GUID）；②**角色实体：GUID 查询无效**——必须 `getListOfPlayerEntitiesOnTheField()[0]` → `getAllCharacterEntitiesOfSpecifiedPlayer(p)[0]` 动态取（官方玩家-界面模式）；③运行时创建实体：创建返回值/实体列表（B1 blocks 模式）。角色实体用 GUID 字面量 = 编译不报错、运行期静默失效（2026-08-31 用户三次指正实证，复盘 2026-08-31 坑 8） |
+| **实体自定义变量** | ⚠️ **未注册=读不到** | `set/getCustomVariable` 的变量名必须**编辑器里注册过**；未注册变量 set 后 get 返回空（2026-08-31 clientProbeSkillId 实证；与 B1 轮"turn 图无 blocks 图变量"同族复发）。跨节点传值优先用**节点返回值数据流直连**（如 createCustomSkillInstance 返回值直接喂 castSpecifiedSkillInstance——零变量零注册） |
 | 图变量 | ✅ | bool/entity/vec3/list/dict（`dict([{k,v}])` 初始条目推断类型） |
 | vec3 字面量 | ⚠️ | **变量声明区** `new vec3([x,y,z])` ✅（`parseScalarLiteral` 支持 `instanceof vec3`）；**事件/分支回调内禁止 `new vec3([...])`**——TS→GS 转换器把它改写为 `new vec3(gsts.f.assemblyList([...]))` → 报 `gsts.f is only available in server_* ctxType`（2026-08-22 足球实证）；回调内一律 `f.create3dVector(x, y, z)`（数据节点，不依赖 gsts.f） |
 | 数组字面量 | ✅ | `[c0, c1]` 作 entity_list 值（setNodeGraphVariable/setOrAdd value）；⚠️ **初始列表字面量最多 100 个元素**（2026-08-21 用户确认）——超过需拆成多个 ≤100 列表并用长列表复合（`long_list_get_vec3` for vec3_list / `long_list_get_int` for int_list，内部按 chunkSize 拆分/选择器相加） |

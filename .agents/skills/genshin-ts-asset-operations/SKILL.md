@@ -180,6 +180,12 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   - 技能配置 ID 分配规则未闭合 → `--id` 必填；普通释放多图绑定/28+普通 绑定 fail closed
 - `gsts assets:skill-config list [--gil <map>] [--json]` + `npx tsx tools/list-gil-skill-configs.ts <map.gil>` 独立回读
 - 写回流程同通用安全写回（候选 → 回读 → 安全门 → --write → 备份 → 重载编辑器）
+- **施放链开发前挂载验证先行（2026-08-31 魔方 cast 链选错技能实证，强制）**：任何
+  Create/Cast 技能链动工前先 `assets:skill-config list` 核对现网技能的模板/类型/绑定图——
+  历史记录只做线索不做依据（本轮凭最近提交记忆选了 1228931074（36 普通技能），实际历史
+  跑通形态是 **template 6 自定义技能+瞬发（body-f5 绑 20002 图）**，36 普通技能需按键
+  绑定+激活状态，节点施放（castSpecifiedSkillInstance checkKeyAvailability=false）走
+  6+瞬发免按键）。选择公式：**节点图施放 = 6+瞬发；普通(36)+普通 = 需玩家按键激活**。
 
 ### D. 信号
 
