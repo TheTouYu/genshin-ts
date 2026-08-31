@@ -290,7 +290,12 @@ root 6：重写「未分类页签」聚合 record（本图 folderId=67），其 
     `genericId.nodeId=200042 / concreteId.nodeId=2001` + `contextDeclaration f8={1:6}`，
     NodeGraph 带 `entrySlotIndex(f100)=1`。
   - 造物状态 20009：自动节点 = `genericId.nodeId=200126 / concreteId.nodeId=4000` +
-    额外 f11={1:1, 20:{1:1}}，`f100=1`。
+    额外 f11={1:1, 100:{1:1}}（内层键为 f100='a2 06'，2026-08-31 字节复核修正旧笔记'20'），`f100=1`。
+  - 造物状态决策 20007（2026-08-31 1915 差分闭合）：自动节点与 20009 同族 =
+    `200126/4000` + `f11={1:1, 100:{1:1}}`，`f100=1`；用户画「切换自身执行状态」节点 =
+    genericId 200128 / concreteId 4011，InParam[enum 自主逻辑参数序号, configId 状态图ID,
+    bool 是否执行]；入口节点 f11 块不随连接变化。CLI `create --type 20007` 仍 fail closed
+    （样本已闭合待实现）。证据：~/genshin-ts-evidence/zaowu-creation-skill/。
   - 过滤器类（20001 布尔 / 20006 整数）：自动节点 = 过滤节点（20001→`genericId.nodeId=200000`，
     20006→`genericId.nodeId=200122`）**带 concreteId.nodeId=2001** + 参数块（f4×2，值因类型而异）
     + `f100=1`，NodeGraph 另带 `evaluationInterval(f101)=0.3`（fixed32，官方文档默认值）。
