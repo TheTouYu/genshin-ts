@@ -220,19 +220,19 @@ const graph = g
         f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
       }, new float(5000))
       // 2026-08-31 B 轮 A 线第一步：客户端调用链路（照官方 3030 帧级模板）——
-      // Create Custom Skill Instance（角色实体，角色自定义技能 1098907651=6+瞬发，客户端图
-      // 1082130434 绑定）→ 2s 后 Cast Specified Skill Instance（不校验按键）→ 客户端图执行
-      // → 向服务器发 rubik3x3_client_probe → 本图打印。
-      // 用户指正：不要用未配置的角色实体自定义变量（未在编辑器注册=读不到），
-      // 定时器内直接重建技能实例？不——实例 ID 无法字面量重建，改为定时器回调内重新
-      // createCustomSkillInstance 拿新 ID 再施放（每次施放新建一个实例，探针场景可接受）。
-      // 定时器内不 capture 外层变量（DSL 不支持定时器 capture entity/int 变量），
-      // 全部用字面量在回调内重建。
-      f.createCustomSkillInstance(entity(1090519041n), configId(1098907651n))
-      f.printString('client-probe-skill-created')
+      // 用户三连指正定形：①用角色自定义技能（6+瞬发 1098907651，客户端图 1082130434 绑定）；
+      // ②不用未注册的实体自定义变量；③角色实体不能用 GUID 查询获取（entity(字面量) 会编译成
+      // Query Entity by GUID，对角色实体无效）——照官方玩家-界面取法：在场玩家列表[0] →
+      // 角色实体列表[0] → Create Custom Skill Instance → Cast（不校验按键）→ 客户端图执行
+      // → 向服务器发 rubik3x3_client_probe → 本图打印。全字面量+数据流直连，零变量。
+      f.printString('client-probe-armed')
       setTimeout(() => {
-        const skillId = f.createCustomSkillInstance(entity(1090519041n), configId(1098907651n))
-        f.castSpecifiedSkillInstance(entity(1090519041n), skillId, new bool(false))
+        const players = f.getListOfPlayerEntitiesOnTheField()
+        const player0 = f.getCorrespondingValueFromList(players, 0n)
+        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+        const charE = f.getCorrespondingValueFromList(chars, 0n)
+        const skillId = f.createCustomSkillInstance(charE, configId(1098907651n))
+        f.castSpecifiedSkillInstance(charE, skillId, new bool(false))
         f.printString('client-probe-cast-fired')
       }, new float(2000))
     }, () => {})
