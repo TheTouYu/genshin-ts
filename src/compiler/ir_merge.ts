@@ -228,40 +228,118 @@ function remapCompositeIds(doc: IRDocument, ids: Map<number, number>) {
 
 function allocateCompositeIds(docs: { doc: IRDocument; source: string }[]): Set<string> {
   const changedSources = new Set<string>()
-  const used = new Map<number, { signature: string; source: string; stub: boolean }>()
-  let nextId = 2000000000
+  // 跨图复合 def ID 全局归一（2026-08-31 v5 多图注入重复 def 修复，两遍式）：
+  //
+  // 背景：多张图 import 同一复合文件时，各图 IR 的 def.id 按各自注册序分配——同一
+  // 复合跨图不同 ID，注入后地图复合目录出现同名重复条目（引擎校验目录内全部复合，
+  // 重复条目引发加载报错/编辑器可见重复节点）。各图 ID 从同一基数递增，ID 空间高度
+  // 重叠但语义互不相同——流式逐 def 处理无法正确消解，必须全局两遍：
+  //
+  // Pass 1 按复合名选权威（full 优先于 stub、先到优先）；
+  // Pass 2 计算每个 def 的期望 ID（同名且签名一致或本条为 stub → 权威 ID；否则保持原 ID）；
+  // Pass 3 全局唯一性消解（归一优先落位、保持型撞车让路）：期望 ID 未占用 → 占用；
+  // 被同签名占用 → 共享（这正是归一目标；同 ID 同签名不同名也安全——内容一致）；
+  // 被不同签名占用 → 本条挪 2000000000 隔离段。同名双 full 签名不同 = 版本冲突，
+  // 不归一（防不同项目同名复合互相踩踏），同样走隔离段。
+  interface Entry {
+    doc: IRDocument
+    source: string
+    def: CompositeDefIR
+    desired: number
+    remap: number | null
+    signature: string
+    stub: boolean
+    unify: boolean
+  }
+  const authoritative = new Map<string, { id: number; signature: string; stub: boolean }>()
+  const entries: Entry[] = []
   for (const { doc, source } of docs) {
     if (doc.graph.type !== 'server') continue
-    const ids = new Map<number, number>()
     for (const def of (doc as ServerIRDocument).compositeDefs ?? []) {
       const signature = compositeDefinitionSignature(def)
-      const isStub = (def.implNodes?.length ?? 0) === 0
-      const previous = used.get(def.id)
-      if (!previous) {
-        used.set(def.id, { signature, source, stub: isStub })
-        continue
+      const stub = (def.implNodes?.length ?? 0) === 0
+      const prev = authoritative.get(def.name)
+      if (!prev || (prev.stub && !stub)) {
+        authoritative.set(def.name, { id: def.id, signature, stub })
       }
-      if (previous.signature === signature) {
-        // 同签名：full 优先于 stub，保留 full
-        if (!previous.stub && isStub) continue
-        if (previous.stub && !isStub) used.set(def.id, { signature, source, stub: false })
-        continue
-      }
-      // 签名不同：stub 不参与重命名，full 覆盖 stub，两个 full 才需要新 ID
-      if (isStub || previous.stub) {
-        if (!previous.stub && isStub) continue
-        if (previous.stub && !isStub) used.set(def.id, { signature, source, stub: false })
-        continue
-      }
-      while (used.has(nextId)) nextId++
-      ids.set(def.id, nextId)
-      used.set(nextId, { signature, source, stub: false })
-      nextId++
+      entries.push({ doc, source, def, desired: def.id, remap: null, signature, stub, unify: false })
     }
-    if (ids.size) {
-      remapCompositeIds(doc, ids)
-      changedSources.add(source)
+  }
+  for (const e of entries) {
+    const auth = authoritative.get(e.def.name)
+    if (auth && auth.id !== e.def.id) {
+      // 同名即归一（复合名是项目内唯一键；签名含进程内递增节点 id，跨进程不可比，
+      // 不能作为同名冲突判据）。真版本冲突（同项目同名不同内容）在单次编译中不存在
+      // （同一源文件）；签名差异仅告警留痕，不阻断。
+      if (auth.signature !== e.signature && !e.stub && !auth.stub) {
+        console.warn(
+          `[warn] composite "${e.def.name}" signature differs across graphs ` +
+            '(likely per-process node id bases); unifying by name'
+        )
+      }
+      e.desired = auth.id
+      e.unify = true
     }
+  }
+  const used = new Map<number, { signature: string; stub: boolean; name: string }>()
+  let nextId = 2000000000
+  const resolve = (e: Entry) => {
+    const prev = used.get(e.desired)
+    if (!prev) {
+      used.set(e.desired, { signature: e.signature, stub: e.stub, name: e.def.name })
+      if (e.desired !== e.def.id) e.remap = e.desired
+      return
+    }
+    // 同名一律共享（单项目内同名=同源文件；签名含进程内节点 id 基数噪声不可比——
+    // 同 id 同名却因签名噪声挪隔离段会把共享复合再次拆成两份，正是要修的 bug）
+    if (prev.name === e.def.name || prev.signature === e.signature || e.stub || e.unify) {
+      // 同 ID 同签名（或本条为 stub——stub 无内容跟随权威；或本条已经 Pass2 同名
+      // 归一校验——unify 目标即权威，直接共享）：
+      // 共享（跨图同一复合自然单份；同签名不同名共享也安全）
+      if (e.desired !== e.def.id) e.remap = e.desired
+      if (prev.stub && !e.stub) used.set(e.desired, { signature: e.signature, stub: false, name: e.def.name })
+      return
+    }
+    // 期望 ID 被不同名且不同签名的占用者持有：真正的 ID 冲突——本条挪隔离段
+    while (used.has(nextId)) nextId++
+    e.remap = nextId
+    used.set(nextId, { signature: e.signature, stub: e.stub, name: e.def.name })
+    nextId++
+  }
+  // 消解顺序：非归一条目（原位 desired==def.id）先落位占住 ID，归一条目后到共享
+  //（否则 stub 先占位会把 full 正主挤到隔离段）；两类内部均按出现顺序，保持原流式语义
+  for (const e of entries) if (!e.unify) resolve(e)
+  // 权威链修正：保持型消解可能把权威 def 自己挪到隔离段（其原 ID 被更早的不同名
+  // 复合占用）——跟随者必须取权威的最终 ID，否则会 remap 到别人的 ID 上（占位者
+  // 语义错位，比重复更糟）。e.def.id 在本轮未被改写（remap 记在 e.remap），据此
+  // 识别"权威被挪"并更新权威表。
+  for (const e of entries) {
+    if (e.remap === null || e.unify) continue
+    const auth = authoritative.get(e.def.name)
+    if (auth && auth.id === e.def.id) {
+      authoritative.set(e.def.name, { ...auth, id: e.remap })
+    }
+  }
+  for (const e of entries) {
+    if (!e.unify) continue
+    const auth = authoritative.get(e.def.name)
+    if (auth) e.desired = auth.id
+    resolve(e)
+  }
+  // 汇总 per-doc 重映射（一个 doc 多个 def 的 old→new 一次应用）
+  const perDoc = new Map<IRDocument, { ids: Map<number, number>; source: string }>()
+  for (const e of entries) {
+    if (e.remap === null) continue
+    let rec = perDoc.get(e.doc)
+    if (!rec) {
+      rec = { ids: new Map(), source: e.source }
+      perDoc.set(e.doc, rec)
+    }
+    rec.ids.set(e.def.id, e.remap)
+  }
+  for (const [doc, { ids, source }] of perDoc) {
+    remapCompositeIds(doc, ids)
+    changedSources.add(source)
   }
   return changedSources
 }
