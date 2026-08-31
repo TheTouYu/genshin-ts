@@ -5,6 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
+import { CharacterSkillSlot, OriginalSlotSkillHandling } from 'genshin-ts/definitions/enum'
 import { flowSpawnRubik, flowSolve } from './composites/flow.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -45,6 +46,9 @@ const graph = g
       solvedFlag: false,
       qLen: new int(0),
       qIdx: new int(0),
+      // A 线客户端探针 v5：技能实例 ID 跨 tick 中转（create 在 2s、cast 在 4s，
+      // 照官方 3030 的"create 初始化 + cast 后续操作"分 tick 模式）。图变量 DSL 声明即生效。
+      clientProbeSkillId: new int(0),
       lastMove: new int(0),
       queue: dict([{ k: 0, v: new int(0) }]),
       curMove: new int(0),
@@ -219,22 +223,37 @@ const graph = g
       setTimeout(() => {
         f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
       }, new float(5000))
-      // 2026-08-31 B 轮 A 线第一步：客户端调用链路（照官方 3030 帧级模板）——
-      // 用户三连指正定形：①用角色自定义技能（6+瞬发 1098907651，客户端图 1082130434 绑定）；
-      // ②不用未注册的实体自定义变量；③角色实体不能用 GUID 查询获取（entity(字面量) 会编译成
-      // Query Entity by GUID，对角色实体无效）——照官方玩家-界面取法：在场玩家列表[0] →
-      // 角色实体列表[0] → Create Custom Skill Instance → Cast（不校验按键）→ 客户端图执行
-      // → 向服务器发 rubik3x3_client_probe → 本图打印。全字面量+数据流直连，零变量。
+      // 2026-08-31 B 轮 A 线 v6：根因闭合（用户提供'变量'地图 1073741915 成功链路比对，
+      // 日志 3040 rec25 帧级 + verify/d2-client/d2-skill.ts 源码）——**create 前提 =
+      // 角色已装配该技能配置**（addCharacterSkill 到技能槽；官方 1913 角色经编辑器战斗
+      // 预设装配故链路里看不到；变量地图运行时补装配，同 tick add→create→cast 全链成功）。
+      // v4/v5 失败归因：角色未装配 1098907651 → create 返回 ID 但 cast 静默落空。
+      // v6 = 2s 回调内 create 前加 addCharacterSkill(CustomSkillSlot1, Destroy 原槽位)。
       f.printString('client-probe-armed')
       setTimeout(() => {
         const players = f.getListOfPlayerEntitiesOnTheField()
         const player0 = f.getCorrespondingValueFromList(players, 0n)
         const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
         const charE = f.getCorrespondingValueFromList(chars, 0n)
+        f.addCharacterSkill(
+          charE,
+          configId(1098907651n),
+          CharacterSkillSlot.CustomSkillSlot1,
+          OriginalSlotSkillHandling.Destroy
+        )
         const skillId = f.createCustomSkillInstance(charE, configId(1098907651n))
+        f.setNodeGraphVariable('clientProbeSkillId', skillId, false)
+        f.printString('client-probe-created')
+      }, new float(2000))
+      setTimeout(() => {
+        const players = f.getListOfPlayerEntitiesOnTheField()
+        const player0 = f.getCorrespondingValueFromList(players, 0n)
+        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+        const charE = f.getCorrespondingValueFromList(chars, 0n)
+        const skillId = f.getNodeGraphVariable('clientProbeSkillId').asType('int')
         f.castSpecifiedSkillInstance(charE, skillId, new bool(false))
         f.printString('client-probe-cast-fired')
-      }, new float(2000))
+      }, new float(4000))
     }, () => {})
   })
   .on('whenTimerIsTriggered', (evt, f) => {
