@@ -119,6 +119,36 @@ description: 服务端调用客户端节点图的完整开发链路：技能配�
 client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分支 OutFlow[0]=default/
 [i]=case[i-1]；遍历实体列表 out_flow[0]=完成/[1]=每次（与有限循环相反）。
 
+
+## 五C、造物技能路径（第二条通信路径，2026-08-31 首验通过，1915）
+
+与角色技能路径（服务端 cast）本质不同：**服务端零施放节点，触发权完全在客户端 AI**。
+
+```
+【资产准备】
+1. 技能配置：assets:skill-config create --template 28(自定义造物) --skill-type instant
+   --graph-id <20008图>（CLI 已支持，root20 联动自动处理；模型固定遗迹守卫 10005001）
+2. 20008 图：g.creationSkill({id, name}).on('start', f => f.sendSignalToServerNodeGraph(...))
+3. 20009 状态图：g.creationStatus({id}).on('start1', f => f.executeSkill(true, 1n))
+   ——start1..start10=按顺序唯一执行行为；前一行为失败(如CD中)才走下一个
+4. 20007 决策图：g.creationStatusDecision({id}).on('start1', f =>
+   f.switchToSelfExecutionStatus(true, configId(<20009图ID>n), <模板序号>n))
+【用户编辑器配置（一次性）】
+5. 元件库→复杂造物→遗迹守卫→放置；造物技能管理→引用技能（记序号，对应 executeSkill 参数）
+   +设 CD；自主逻辑参数→新增模板_1 初始生效（对应 switch 第三参）；特化配置绑定决策图
+【运行时链（全自动）】
+6. 造物 AI 持续执行决策图→切状态→状态图 executeSkill→技能施放→20008 图跑→信号回服务器
+```
+
+- 已验证形态（2026-08-31，1915）：编译产物与编辑器原生节点**逐结构一致**
+  （switch=200128/4011，入口 200126/4000+f11 块）——详见 verify/zaowu-client/ 源码与
+  ~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md。
+- **频率上限=三重冷却**：技能 CD 区间清零后仍被「公共冷却时间」（实体槽 81 外层 f2，
+  默认 1.0s）钉在 ~1 次/秒；提频须同时调小公共冷却。
+- 坑：20007 图 CLI 建不了（自动节点样本 2026-08-31 已闭合待实现）→ 编辑器建空图（ID=段内
+  max+1）；注入器安全门拒非空非 _GSTS 名图 → patch graph-clear 后注入；造物实体特化配置
+  组件槽：80=决策图绑定/81=技能管理/82=自主逻辑模板（f501=图类型标记在槽 80）。
+
 ## 六、参照资产与文档
 
 | 资产 | 用途 |
@@ -126,7 +156,8 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 | 地图 1073741915「变量」 | 6+瞬发+20002 全链阳性参照（graphs 1828/1829/1082130435） |
 | 地图 1073741916「GSTS核验-变量C2S」 | 手段 3 变量共享闭环参照 |
 | 地图 1073741913「魔方-客户端优化版本」 | 官方 191 节点客户端图 + 官方 cast 链（日志 3030） |
-| `verify/d2-client/` | 标准源码模板（d2-skill/d2-client-skill/signals） |
+| `verify/d2-client/` | 角色技能路径标准模板（d2-skill/d2-client-skill/signals） |
+| `verify/zaowu-client/` | 造物技能路径标准模板（20007/20008/20009 三图+监听图+signals，1915 首验通过） |
 | `verify-injection/references/verified-cases.md` D2 节 | 教训①~⑦ 案例库 |
 | `docs/game-engine-knowledge/graph-mounting.md` | 特殊实体（玩家/角色 def 1090519041）挂载 |
 | `docs/game-engine-knowledge/debug-log-format.md` | 客户端日志编码速查 |
