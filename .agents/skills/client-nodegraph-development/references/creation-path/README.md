@@ -84,8 +84,30 @@ node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --en
 | 拆分算力模式 | 服务端写变量（任务）→ 本路径 15Hz 客户端计算 → 信号回传；每逻辑一张 20008 图 |
 | 互换性 | 编译的 20007 图可直接嵌入第三方造物资产（实测跑满 15~16/s） |
 
+## 计算通道同步机制（zt-lane 模板，2026-08-31 两轮验证）
+
+拆分算力模式的**生产级形态**：N 个任务变量怎么保证客户端读到的是"同一代、完整的"快照，
+以及多生产者并发时不丢任务。机制=seqlock 门 + 单写者 dispatcher，实测 **~5 任务/秒、
+11/11 零丢失零撕裂**。原理/纪律/判读速查见 SKILL.md 五D 章；模板 `templates/zt-lane/`
+（门控图 zt-client / dispatcher zt-main / 邮箱生产者 zt-pa、zt-pb / signals / 编译配置）。
+
+改占位符起步（zt-lane 版）：
+
+| 占位 | 位置 | 换成 |
+|---|---|---|
+| 图 ID | zt-client 1082130436 / zt-main 1073741830 / pa、pb | 目标地图实际分配 ID（CLI 建空图后回填） |
+| 变量前缀 zt*/ztq_*/zt_dsp_* | 全部文件 + 变量注册清单 | 多通道时每通道独立前缀 |
+| 载荷公式 pe*1000n+i(+off) | publish/哈希闭式解两侧 | 业务值（**必须保持随 epoch 严格单调**，求和门才确定性） |
+| 信号 zt_echo(tag:str,e:int) | signals.ts + 地图注册 | 每通道独立信号（(str,int) 布局免 donor） |
+| 邮箱挂载实体 | pa/pb 与 dispatcher 同实体挂载 | 保持同实体（轮询读自己实体变量） |
+
+信号注册注意：**重复的非 str 参数类型必须提供 donor**——双 int 布局会被 fail-closed，
+用 (tag:str, e:int) 找现成同构信号当 donor（1916 d2cv）。
+
 ## 证据与工作版本
 
-- 工作源码：`verify/zaowu-client/`（5 件套）+ `gsts.zaowu.config.ts`
-- 证据链：`~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md`（三轮差分+注入+大佬资产对比）
+- 工作源码：`verify/zaowu-client/`（5 件套）+ `gsts.zaowu.config.ts`；
+  同步机制版 `verify/zt-lane/`（6 件套）+ `gsts.zt.config.ts`
+- 证据链：`~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md`（三轮差分+注入+大佬资产对比）；
+  同步机制 `docs/game-engine-knowledge/retrospective-2026-08-31-compute-lane-sync.md`（日志 3062/3064/3067）
 - 进度与实验记录：`examples/rubik-3x3-client/PROGRESS.md` C 线 C0~C0.7

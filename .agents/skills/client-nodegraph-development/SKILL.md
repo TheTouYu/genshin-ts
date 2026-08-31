@@ -85,7 +85,7 @@ description: 服务端调用客户端节点图的完整开发链路：技能配�
 | 方向 | 手段 | 状态 | 备注 |
 |---|---|---|---|
 | S→C 触发 | 技能施放（本技能主线） | ✅ 6+瞬发+20002 闭环 | 36+20010 需操控状态 |
-| S→C 数据 | 自定义变量共享（手段 3） | ✅ 3008 闭环 | 客户端读须预注册（三-8） |
+| S→C 数据 | 自定义变量共享（手段 3） | ✅ 3008 闭环 | 客户端读须预注册（三-8）；N 变量批量+同步保障走五D seqlock 门 |
 | C→S 数据 | 信号 sendSignalToServerNodeGraph（手段 4） | ✅ str/int 已验；float/vec3 未验 | 20002 图内运行时合法（1915 实证） |
 | C→S 事件 | notifyServerNodeGraph（手段 4b） | ✅ 3011 闭环 | 三字面量参数 |
 | — | 操控状态（手段 2） | ❌ 未闭环 | 勿走 |
@@ -161,6 +161,50 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
   多计算单元 = 多技能/多造物并行。与角色技能路径（服务端按需单次）互补：造物路径是常驻高频循环。
 - 编译的 20007 图可与第三方造物资产互换（实测嵌入大佬资产跑满 15~16/s）。
 
+## 五D、计算通道同步机制（服务端→客户端大带宽数据，2026-08-31 两轮游戏验证，1915）
+
+> **问题**：服务端写 N 个任务变量后立即触发客户端计算，客户端执行时变量可能尚未复制过来
+> （读到旧值）或只复制了一半（读到撕裂混合）。实测：单写者下延迟 0~1s；并发双写者 6 任务丢 2。
+> **资源包**：全套可抄源码（门控图/dispatcher/邮箱生产者/信号/配置）见
+> references/creation-path/templates/zt-lane/；复盘与全部数字见
+> docs/game-engine-knowledge/retrospective-2026-08-31-compute-lane-sync.md。
+
+**机制骨架（seqlock 门 + 单写者仲裁，全部实测）**：
+
+```
+生产者×N（只写邮箱 ztq_*，挂 dispatcher 图实体=同实体挂载）
+   → 唯一 dispatcher（1s 轮询 + 收到回声立即补位 + 4s 看门狗重提交 sum+epoch）
+   → 寄存器：zt1..ztN + zt_sum + zt_epoch + zt_ack（挂玩家实体，不挂造物——换造物不丢）
+   → 客户端 20008 图 15Hz 轮询门：epoch≠ack → 读全量 → 求和比对 zt_sum
+     → 二读 epoch（防读取中被覆盖）→ 全过才算 → sendSignal(tag='ok', epoch)
+   → 服务端 onSignal：ack 只前进不回退；epoch 匹配才链下一步（重复回声幂等吸收）
+```
+
+**实测数字（日志 3064/3067）**：单通道 ~5 任务/秒、同秒往返、11/11 零丢失零撕裂；
+求和校验在「载荷随 epoch 严格单调」前提下是**确定性**撕裂检测；吞吐不够=复制通道（每通道
+一套寄存器+技能+造物），不是加宽单通道。
+
+**DSL 写法要点（全部踩过的坑）**：
+- 20008 图取玩家实体：`getCorrespondingValueFromList(0n, f.getListOfPlayerEntitiesOnTheField())`
+  ——**客户端参数序是 (iD,list)，服务端相反是 (list,iD)**；20008 **没有** getCurrentCharacter。
+- 写图前用独立 tsconfig + 真实 DSL 类型做静态门（本节资源包配套 .local/tsconfig.zt.json 模式），
+  参数序/方法可用性错误在编译前就能抓出。
+- 空分支闭包 ` () => {} ` 编译合法（空转门/名单制分发都靠它）。
+- 变量挂**玩家实体**（getList.../setCustomVariable(owner,...)），客户端读须**资产预注册**（三-8）。
+
+**工程纪律**：
+- **定时器名单制分发**：同实体多图共享定时器事件广播——whenTimerIsTriggered 分支必须逐一
+  匹配本图定时器名，else 一律空分支（宽松 else 会吃进他图事件多发发布，3062 实证）。
+- **节点预算先算成本账**：setCustomVariable ≈3~4 节点/次；百变量寄存器×多调用点必超 2000 红线。
+  优先数学等价压缩：服务端哈希用闭式解（Σvᵢ=pe·K+常量，1 个表达式替代 100 节点链）；
+  单写者不变量下看门狗只需重提交 (sum+epoch) 对，不重写载荷。
+- **诊断读活图**：槽 81/挂载等状态断言必须读活地图并带 SHA——分析脚本硬编码证据快照路径
+  曾导致完全反向的误诊（3062）。
+
+**日志判读速查**：ok/ack 链=正常；每任务双 ack=回声 dup（幂等，无害）；tearH/tearE=撕裂被门
+拒绝（查是否有第二个写者）；repub=看门狗重提交（对在途回声冗余亦无害）；stale=过期回声被守卫
+拦下；enq 无 dsp=dispatcher 未取货（查邮箱变量挂载实体与轮询图）。
+
 ## 六、参照资产与文档
 
 | 资产 | 用途 |
@@ -170,6 +214,8 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 | 地图 1073741913「魔方-客户端优化版本」 | 官方 191 节点客户端图 + 官方 cast 链（日志 3030） |
 | `verify/d2-client/` | 角色技能路径标准模板（d2-skill/d2-client-skill/signals） |
 | `verify/zaowu-client/` | 造物技能路径标准模板（20007/20008/20009 三图+监听图+signals，1915 首验通过） |
+| `verify/zt-lane/` | 计算通道同步机制标准模板（门控图/dispatcher/邮箱生产者，3064/3067 两轮验证） |
+| `retrospective-2026-08-31-compute-lane-sync.md` | 五D 机制的完整错误谱系与实测数字（game-engine-knowledge/） |
 | `verify-injection/references/verified-cases.md` D2 节 | 教训①~⑦ 案例库 |
 | `docs/game-engine-knowledge/graph-mounting.md` | 特殊实体（玩家/角色 def 1090519041）挂载 |
 | `docs/game-engine-knowledge/debug-log-format.md` | 客户端日志编码速查 |

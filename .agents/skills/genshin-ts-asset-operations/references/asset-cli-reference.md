@@ -178,6 +178,7 @@ gsts assets:signals repair --target-signal <name> --template-gil <verified-donor
 
 - 参数类型限 18 种（str/int/float/bool/vec3/entity/guid/prefab_id/config_id 及对应列表，不含 faction）。
 - 省略 donor 用内置参数布局；重复的非 str 类型必须提供 donor（fail-closed）。
+- 注册表里编辑器创建的信号可能无 layout（inspect 时 `[warn] skip signal without readable layout: <名>`）——2026-08-31 起 CLI 跳过并警告而非整链报错（此前会堵死该地图全部编译/信号操作）；跳过不影响重名保护，但不能对这些信号做 update/repair 之外的读操作。
 - 直接写 GIL 时先 `register` 再注入 GIA；注入后 `inspect` 确认注册定义逐项不变。
 
 ## 5. dict 语法与 marker
