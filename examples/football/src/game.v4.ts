@@ -1,6 +1,9 @@
-// 足球状态机图（挂球实体 1077936135，图 1073741825）——唯一 state 仲裁者
-// 状态机唯一仲裁：state 只有本图写入（stateCommit 复合 / 物理 tick 复合内的提交对），
-//   行为图（dribble-field 1073741828）只读球实体自定义变量 state，仅在 CARRIED 驱动。
+// 【v4 已退役】足球状态机图（挂球实体 1077936135，图 1073741825）
+// v5 三层架构（logic.ts 接管图 1073741825）上线后本图不再编译（*.v4.ts 被
+// gsts.config.ts entries 排除）；保留供回滚与历史对照。恢复步骤见
+// docs/architecture-v5.md「回滚」节。
+// 原实现：状态机唯一仲裁（whenBasicMotionDeviceStops 事件链分发物理 tick）——
+// v5 改为 0.12s phys_loop 定时器驱动，设备停止事件分发整个退役。
 // 状态枚举：0=FREE 1=FLYING 2=ROLLING 3=SLIDE 4=CARRIED 5=GOAL
 // 职责：
 //   - 输入：whenTabIsSelected（tabBar 挂球本体，1-8 施力 / 9 复位）
@@ -10,7 +13,7 @@
 //   - 进球：物理 tick 内检测 goalNew → 计分 + 提交 GOAL + 启动 goal_reset 2s 定时器 → 复位
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str, vec3 } from 'genshin-ts/runtime/value'
-import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.js'
+import { kickApplyForce, kickApplyImpulse, kickLaunch, kickReset } from './composites/kick.v4.js'
 import { physFlyTick, physRollTick, physSlideTick } from './composites/physics.js'
 import { stateCommit, statePossessCheck } from './composites/state.js'
 import { dribbleFieldGetRole } from './composites/dribble-field.js'

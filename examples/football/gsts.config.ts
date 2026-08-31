@@ -2,7 +2,9 @@ import type { GstsConfig } from '../../src/compiler/gsts_config.js'
 
 const config: GstsConfig = {
   compileRoot: '.',
-  entries: ['./src'],
+  // v5 三层架构（2026-09）：logic（1073741825 逻辑层）/ render（1073741829 渲染层）/
+  // dribble-v5（1073741828 带球决策）。*.v4.ts 为退役旧图（排除编译，保留回滚）。
+  entries: ['./src', '!./src/**/*.v4.ts'],
   outDir: './dist',
   inject: {
     gameRegion: 'China',

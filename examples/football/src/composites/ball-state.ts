@@ -25,7 +25,12 @@
 //   进运动态(FLY/ROLL/SLIDE/CARRIED) → ensureLoop：start_timer('phys_loop', loop, 0.12s)
 //     （同名替换幂等：已在跑则刷新、不在跑则启动——静止唤醒的定时器保障）
 //   进 IDLE/GOAL → stopLoop + 清冲量队列(impVel/impSpin)：静止=全系统零定时器、日志静默
-//   速度交接：ballVel := vel（kick/脱手传新速度；物理内迁移传当前值幂等）
+//   速度交接：黑板 vel := vel（球实体自定义变量，kick/脱手传新速度；物理内迁移传当前值幂等）
+//
+// 黑板契约（球实体自定义变量，跨图单一事实源）：
+//   发布组（仅逻辑层写）：pos/vel/spin/state/goalCount/scored
+//   提交组（使用层写、逻辑层 drain 清零）：impVel/impSpin（累积冲量）
+//   变量创建清单见 docs/architecture-v5.md（需 assets:custom-variables 落地）
 //
 // 首拍约定（调用方职责，不在本复合内——根除 tick↔transition 相互调用的递归）：
 //   IDLE 唤醒路径（kick/impulse）在 transition.done 后链 physTick + render_now；
@@ -77,12 +82,8 @@ export const ballStateTransition = g.defineComposite('ball_state_transition', {
       () => {
         // ① 信号先发（prev 在 send 求值时读旧值——放在双写之前，重复求值陷阱防线）
         f.sendSignal(Signal.state_changed, prev, next)
-        // ② 速度交接：ballVel := vel
-        const sv = f.registerExecNode('set_node_graph_variable', [
-          new str('ballVel'),
-          vel,
-          new bool(false)
-        ])
+        // ② 速度交接：黑板 vel := vel（实体自定义变量，跨图事实源）
+        const sv = f.registerExecNode('set_custom_variable', [e, new str('vel'), vel, new bool(false)])
         // ③ 循环启停（进运动态=ensureLoop 幂等；进 IDLE/GOAL=停转+清冲量队列）
         const toMotion = f.logicalOrOperation(
           f.logicalOrOperation(
@@ -97,41 +98,19 @@ export const ballStateTransition = g.defineComposite('ball_state_transition', {
         f.doubleBranch(
           toMotion,
           () => {
-            f.registerExecNode('start_timer', [
-              e,
-              new str(LOOP_NAME),
-              new bool(true),
-              f.assemblyList([LOOP_TICK], 'float')
-            ])
+            f.registerExecNode('start_timer', [e, new str(LOOP_NAME), new bool(true), f.assemblyList([LOOP_TICK], 'float')])
           },
           () => {
             const stop = f.registerExecNode('stop_timer', [e, new str(LOOP_NAME)])
-            const c1 = f.registerExecNode('set_node_graph_variable', [
-              new str('impVel'),
-              f.create3dVector(0, 0, 0),
-              new bool(false)
-            ])
+            const c1 = f.registerExecNode('set_custom_variable', [e, new str('impVel'), f.create3dVector(0, 0, 0), new bool(false)])
             f.connect(stop, 0, c1, 0)
-            const c2 = f.registerExecNode('set_node_graph_variable', [
-              new str('impSpin'),
-              f.create3dVector(0, 0, 0),
-              new bool(false)
-            ])
+            const c2 = f.registerExecNode('set_custom_variable', [e, new str('impSpin'), f.create3dVector(0, 0, 0), new bool(false)])
             f.connect(c1, 0, c2, 0)
           }
         )
         // ④ 双写 state（图变量 + 球实体自定义变量——跨图单一事实源）
-        const s1 = f.registerExecNode('set_node_graph_variable', [
-          new str('state'),
-          next,
-          new bool(false)
-        ])
-        const s2 = f.registerExecNode('set_custom_variable', [
-          e,
-          new str('state'),
-          next,
-          new bool(false)
-        ])
+        const s1 = f.registerExecNode('set_node_graph_variable', [new str('state'), next, new bool(false)])
+        const s2 = f.registerExecNode('set_custom_variable', [e, new str('state'), next, new bool(false)])
         f.connect(s1, 0, s2, 0)
         f.outflow('done', s2, 0)
       },
