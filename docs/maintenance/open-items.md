@@ -1107,3 +1107,7 @@
   （断言过时：stub/full 同 ID 共存是现行设计）——待修断言或删除。
 - 知识树待录（交维护者）：①ir_merge 跨图 def ID 归一机制（同名权威/权威链修正/隔离段）；
   ②根图 handler 必须用 f.xxx helper；③分支内复合勿手动 connect（auto-chain 环）；④图变量不跨图。
+
+> 2026-08-31 晚追加（O-31-03 续）：带球链三层叠加根因修复（死区死锁 15d67cb / 队列竞态
+> 6e870ac / 重求值 3fb7098 + pos 同族物化），详见 retrospective-2026-08-31-football-v5-triple-race.md；
+> 用户游戏核验进行中。技能已迭代（dsl-nodegraph-development +2 条目：跨图重求值物化、覆盖式队列）。

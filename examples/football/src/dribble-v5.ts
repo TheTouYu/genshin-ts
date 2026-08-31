@@ -47,9 +47,11 @@ const ballDribbleDecide = g.defineComposite('ball_dribble_decide', {
     const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
     // 黑板：球速/球位（逻辑层唯一发布）。vel 先物化到图变量快照——后续 Δv/conv
     // 全部消费快照（表达式引用在 set 帧会重求值，读到 drain 已更新的黑板 → 爆炸）
-    f.registerExecNode('set_node_graph_variable', [new str('tmpSnapVel'), f.getCustomVariable(e, new str('vel')).asType('vec3'), new bool(false)])
+    const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpSnapVel'), f.getCustomVariable(e, new str('vel')).asType('vec3'), new bool(false)])
+    const sPos = f.registerExecNode('set_node_graph_variable', [new str('tmpSnapPos'), f.getCustomVariable(e, new str('pos')).asType('vec3'), new bool(false)])
+    f.connect(sVel, 0, sPos, 0)
     const boardVel = f.getNodeGraphVariable('tmpSnapVel').asType('vec3')
-    const boardPos = f.getCustomVariable(e, new str('pos')).asType('vec3')
+    const boardPos = f.getNodeGraphVariable('tmpSnapPos').asType('vec3')
 
     // 纯数据计算（v4 复合原样复用：dir 合成/k(fwd)/vTarget/touch 向量/几何量）
     const comp = f.callComposite(dribbleFieldCompute, { playerPos: roleLoc.location, playerFwd, playerSpd, ballPos: boardPos })
@@ -112,7 +114,10 @@ const graph = g
       // 黑板 vel 物化快照（2026-08-31 重求值陷阱修复，日志 20-09-26 铁证：Δv 的
       // Subtraction 帧 bv=0 算出 2.07，set 帧重求值时 825 drain 已更新黑板 vel=12.96
       // → 写入 -11.1 → 冲量反向爆炸。v4 tmpDribbleVel 物化纪律的 v5 继承）
-      tmpSnapVel: new vec3([0, 0, 0])
+      tmpSnapVel: new vec3([0, 0, 0]),
+      // pos 物化快照（同族扩展：与 vel 同级风险——compute 多消费点 D/Dn/dist2，
+      // 825 每拍更新 pos，重求值会致几何帧间不一致）
+      tmpSnapPos: new vec3([0, 0.25, 0])
     }
   })
   // 实体创建：启动 IDLE 待机心跳（常驻自愈：state_changed 到来时会被启停修正）
