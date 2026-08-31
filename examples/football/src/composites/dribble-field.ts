@@ -1,13 +1,15 @@
 // 足球带球「速度场吸附」复合（参考版「足球地面运动」逆向还原 + 复合化）
 // 命名前缀：dribbleField_*
-// 模型：连续速度场吸附——每 tick 把球速重算为「玩家速度分量 + 朝向吸附分量」的合成，
+// 模型：连续速度场吸附——每 tick 把球速向「玩家速度分量 + 朝向吸附分量」的合成收敛，
 //       球被持续牵引到玩家脚前，玩家转向球跟着转、玩家停球也停。
-// 状态协调（2026-08-30 状态机唯一仲裁）：
+// 状态协调（2026-08-31 四点合一：信号化）：
 //   - state 由状态机图（game.ts）唯一写入（球实体自定义变量，跨图共享）；
 //   - 本图只读 state，仅在 CARRIED(4) 驱动；FLYING/ROLLING/SLIDE/GOAL 完全停手；
-//   - 进入 CARRIED（轮询迁移检测 lastSeenState）→ 球速清零重算，节流计数复位；
-//   - 脱脚：CARRIED 但球脱离牵引区（>1.5m 或身后）持续 3 tick → 复合内直接发
-//     ball_dropped(vel) 信号请求状态机图转 ROLLING（速度交接，宿主不参与）。
+//   - 状态变化经 state_changed(prev,next) 信号传播（stateCommit 发、本图根图监听）：
+//     进入场监护态（FREE/CARRIED）→ 记忆复位（ballVx/Vz/spinW/lostTicks/drivePrev 清零）。
+//     旧轮询检测 lastSeenState 链已删——每状态独立逻辑，无叠加、无重复风暴；
+//   - 脱脚：CARRIED 且球距玩家 >2m（滞回上沿，防 CARRIED↔ROLLING 震荡）持续 3 tick
+//     → 复合内直接发 ball_dropped(vel) 信号请求状态机图转 ROLLING（速度交接）。
 // 参考：docs/game-engine-knowledge/football-dribble-velocity-field.md
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str, vec3 } from 'genshin-ts/runtime/value'
@@ -18,20 +20,33 @@ import { Signal } from '../resources/signals.js'
 const TICK = 0.12 // 定时器间隔（秒），参考版 0.12s
 const FWD_WEIGHT = 0.7 // 合成方向里玩家朝向的权重
 const REL_WEIGHT = 0.3 // 合成方向里相对方向（球-玩家）的权重
-const SPEED_GAIN = 1.2 // 脉冲目标球速 = vP × 此系数。乘性保证"玩家停球停"（零对零）；1.2 超前让球维持在前——发散由牵引区几何自然限幅成极限环（连续控制器重设计 2026-08-31，教训：单看乘子像 bug，配套记忆+几何门才是系统）
-const DAMP = 0.95 // 速度记忆衰减/tick：区内=脉冲叠加前的旧速衰减（防发散）；区外=滑行减速（0.95^8.3≈0.65/s，惯性滑行不断电）
+const SPEED_GAIN = 1.2 // 目标球速 = vP × 此系数。乘性保证"玩家停球停"（零对零）；上限 1.2×K_MAX=1.44×vP（验收口径）
 const K_MIN = 0.1 // k(fwd) 连续坡度下限（球在身后几乎不推）
 const K_MAX = 1.2 // k(fwd) 上限（正前方全力）
-const BALL_R = 0.25 // 球半径（贴地高度 = 球心 y）
-const RAD2DEG = 57.29577951308232 // 180/π
+const BALL_R = 0.25 // 球半径（贴地高度 = 球心 y；ω=v/R 纯滚换算）
+const RAD2DEG = 57.29577951308232 // 180/π（spinW 以 rad/s 维护，喂设备前 ×此值）
 const INV_TICK = 8.333333333333334 // 1/TICK（拉回地面速度系数）
+
+// —— 速度非线性收敛（2026-08-31 四点合一，替代 0.95 叠加+三拍节流）——
+// v ← v + (target−v)·G，G = |target−v| / (|target−v| + C)：
+//   d 大 → G→1 快贴合；d→0 → G→0 无限逼近；恒 <1 永不超调（凸组合，根除"越带越快"）。
+// 触球拍（进区上升沿）G:=1 → v:=velDir 全额设定（3031"第一次冲量合适"保持）。
+// 出区 target=0 同式衰减 = 摩擦刹车（d 大刹得快，d 小缓收）。
+const CONV_C = 1.5 // 收敛常数 C（m/s）：d=C 时 G=0.5
+
+// —— 旋转摩擦累积（ω 是状态量，替代 R1 的逐拍纯滚直写）——
+// 触球冲量必然滑动：v 跳上去、ω 还是慢的；摩擦每拍把 ω 拉向纯滚 v/R，滑差收敛。
+// Δω = K_F·(v/R − ω) ≡ K_F·slip/R（slip=|v|−ω·R）；凸组合（K_F<1）永不超调。
+const K_F = 0.35 // 摩擦增益/拍
 
 // 牵引区与脱脚参数
 const PULL_DIST2 = 2.25 // 球距玩家距离² < 2.25（1.5m）才牵引
 const PULL_FWD_MIN = -0.3 // 球在玩家身后超过此值不牵引
 const LOST_TICKS_MAX = 3 // 连续脱牵引 3 tick（0.36s）→ 请求脱脚
-const PULSE_EVERY_TICKS = 3 // 脉冲节流：距上次脉冲 ≥3 tick（0.36s）才发完整速度场——v←0.95v+pulse 的配套限幅器（无节流平衡点=20×velDir，日志 3025 实测球窜到 82 m/s=「触球太快」真身）；节流同时产生脉冲-衰减锯齿=速度自然变化
-const DEVICE_T = 0.15 // 设备时长 > 拍距 0.12s：相邻设备重叠 25%，消除调度抖动的安全间隙（间隙=无人下指令=球瞬冻；用户 A/B 足球_2 的关键差异点）
+const DROP_DIST2 = 4.0 // 脱脚滞回上沿（2.0m）：>此距离才计 lostTicks。与获得下沿
+// （state.ts CARRY_DIST2=4.0）构成施密特滞回：1.5~2m 之间刹停待牵引、不脱脚，
+// 根除"获得 2m / 脱脚 1.5m"边界上的 CARRIED↔ROLLING 震荡（用户成功口径③）
+const DEVICE_T = 0.15 // 设备时长 > 拍距 0.12s：相邻设备重叠 25%，消除调度抖动的安全间隙（用户定调丝滑公式，一个字不动：0.12s 定时器 + 0.15s 同名运动器自动顶替）
 
 // 状态常量（与 game.ts 判定表一致）
 const STATE_CARRIED = 4
@@ -49,7 +64,7 @@ export const dribbleFieldGetRole = g.defineComposite('dribble_field_get_role', {
 })
 
 // ================================================================
-// 速度场计算（纯数据）：输入玩家/球状态 → 输出新球速向量（水平）
+// 速度场计算（纯数据）：输入玩家/球状态 → 输出目标球速向量（水平）
 // （2026-08-31 删除分段 clamp 复合 dribble_field_clamp：非前位压速 0.32~0.4 致
 // 球跟不上玩家=慢走不动；见 compute 内 3016 修复注释）
 // ================================================================
@@ -88,12 +103,8 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
     )
     const k = f.addition(f.multiplication(1.1, t01), K_MIN) // K_MAX−K_MIN=1.1
     const vFinal = f.multiplication(vTarget, k)
-    // 速度向量 velDir = dir × vFinal
+    // 速度向量 velDir = dir × vFinal（作为收敛目标；叠加/节流已由 tick 的 G 律接管）
     const velDir = f._3dVectorZoom(dir, vFinal)
-    // 2026-08-31 日志 3014 修复：牵引速度=纯 velDir，不再叠加 DAMP·旧速——
-    // v'=0.95v+velDir 是积分发散拓扑（平衡点=20×velDir），球 ~0.6s 内加速窜出
-    // 牵引区 → lostTicks 3 连 → 脱脚，CARRIED 闪烁（获得 ~1s→脱落→等球停→再获得）。
-    // 旧速衰减只保留在 tick 的非牵引分支（自然减速），不进驱动叠加。
     // 拆出水平分量（y 由调用方按地面拉回处理）
     const nv = f.split3dVector(velDir)
     return { newVelX: nv.xComponent, newVelZ: nv.zComponent, fwd, dist2 }
@@ -101,19 +112,20 @@ export const dribbleFieldCompute = g.defineComposite('dribble_field_compute', {
 })
 
 // ================================================================
-// 球体滚动旋转计算（纯数据）：速度向量 + 半径 + 当前旋转 → 角速度 + 旋转轴
+// 球体滚动旋转计算（纯数据）：速度向量（定轴）+ ω 状态 → 设备入参（°/s + 轴）
+// 2026-08-31 四点合一：angVel 不再由 |v|/R 直写（R1 做法），改读状态量 spinRad
+// （rad/s，摩擦链逐步获得）；半径换算已前移到 tick 的 wRoll=|v|/R。
 // ================================================================
 export const dribbleFieldRollSpin = g.defineComposite('dribble_field_roll_spin', {
-  inputs: { vel: { type: 'vec3' }, radius: { type: 'float' }, curRot: { type: 'vec3' } },
+  inputs: { vel: { type: 'vec3' }, spinRad: { type: 'float' }, curRot: { type: 'vec3' } },
   outputs: { angVel: { type: 'float' }, axis: { type: 'vec3' } },
-  build: ({ vel, radius, curRot }, f) => {
+  build: ({ vel, spinRad, curRot }, f) => {
     // 滚动轴 = normalize(cross((0,1,0), vel))
     const up = f.create3dVector(0, 1, 0)
     const cross = f._3dVectorCrossProduct(up, vel)
     const worldAxis = f._3dVectorNormalization(cross)
-    // 角速度 = |vel| / radius × 180/π（rad/s → °/s）
-    const spd = f._3dVectorModuloOperation(vel)
-    const angVel = f.multiplication(f.division(spd, radius), RAD2DEG)
+    // 设备收度/秒：spinW 以 rad/s 维护，喂设备 ×180/π（量纲陷阱，见 PROGRESS）
+    const angVel = f.multiplication(spinRad, RAD2DEG)
     // 旋转轴朝向：把世界轴转回球的局部系（YXS 内旋逆旋转）
     const r = f.split3dVector(curRot)
     const negX = f.multiplication(r.xComponent, -1)
@@ -127,8 +139,9 @@ export const dribbleFieldRollSpin = g.defineComposite('dribble_field_roll_spin',
 })
 
 // ================================================================
-// 速度场 tick（exec 复合）：读状态 → 判定 → 计算 → 写回 + 运动器 + 自重启
-// 仅 CARRIED 驱动；脱脚（脱离牵引区 3 tick）→ 复合内直接发 ball_dropped(vel) 信号
+// 速度场 tick（exec 复合）：读状态 → 判定 → 计算 → 写回 + 运动器
+// 仅 CARRIED 驱动；脱脚（>2m 持续 3 tick）→ 复合内直接发 ball_dropped(vel) 信号
+// 状态记忆复位不在此处（信号监听方在根图做——每状态独立逻辑，无叠加）
 // ================================================================
 export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
   inputs: { e: { type: 'entity' } },
@@ -145,33 +158,18 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     // 连续控制器不等获得判定（几何即门，无延时）；CARRIED 仅为踢球语义标志。
     // FLY/ROLL/SLIDE/GOAL=物理链监管，场完全停手（零设备）。
     const ballState = f.getCustomVariable(e, new str('state')).asType('int')
-    const stateFree = f.equal(ballState, 0n)
     const stateCarried = f.equal(ballState, 4n)
+    const stateFree = f.equal(ballState, 0n)
     const canDrive = f.logicalOrOperation(stateFree, stateCarried)
     // 物化球位置快照（comp.ballPos 与 y 拉回两处消费，防 Get Entity Location 重求值）
     const sBallPos = f.registerExecNode('set_node_graph_variable', [new str('tmpBallPos'), ballLoc.location, new bool(false)])
 
-    // 图变量读取（轻量）
+    // 图变量读取（轻量；均在写回前消费，读到的都是本拍旧值）
     const ballVx = f.getNodeGraphVariable('ballVx').asType('float')
     const ballVz = f.getNodeGraphVariable('ballVz').asType('float')
-    const lastSeen = f.getNodeGraphVariable('lastSeenState').asType('int')
     const lostTicks = f.getNodeGraphVariable('lostTicks').asType('float')
-    const tickCount = f.getNodeGraphVariable('tickCount').asType('int')
-    const lastKickTick = f.getNodeGraphVariable('lastKickTick').asType('int')
-
-    // 速度记忆 custody 复位：上一拍在物理链监管态 → 本拍回到场监管 → 记忆清零
-    // （物理链期间的球速真相在 ballVel，不从旧记忆续算）
-    const wasFree = f.equal(lastSeen, 0n)
-    const wasCarried = f.equal(lastSeen, 4n)
-    const wasDrivable = f.logicalOrOperation(wasFree, wasCarried)
-    const memReset = f.logicalAndOperation(canDrive, f.logicalNotOperation(wasDrivable))
-    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
-    const memKeepF = f.subtraction(1, b2f(memReset))
-    const baseVx = f.multiplication(ballVx, memKeepF)
-    const baseVz = f.multiplication(ballVz, memKeepF)
-    // CARRIED 进入检测（脱脚计数复位用）
-    const entered = f.logicalAndOperation(stateCarried, f.logicalNotOperation(wasCarried))
-    const notEnteredF = f.subtraction(1, b2f(entered))
+    const drivePrev = f.getNodeGraphVariable('drivePrev').asType('bool')
+    const spinW = f.getNodeGraphVariable('spinW').asType('float')
 
     // 计算（纯数据）：物化角色位姿后传入，避免重复求值
     const comp = f.callComposite(dribbleFieldCompute, {
@@ -184,19 +182,30 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const fwdOk = f.greaterThan(comp.fwd, PULL_FWD_MIN)
     const inZone = f.logicalAndOperation(distOk, fwdOk)
     const drive = f.logicalAndOperation(canDrive, inZone)
-    // 脉冲节流（连续控制器限幅器）：距上次脉冲 ≥3 tick 才发完整速度场；
-    // 节流期间的在区拍只衰减——脉冲-衰减锯齿即速度的"自然变化"（丝滑感来源）
-    const sinceKick = f.subtraction(tickCount, lastKickTick)
-    const canPulse = f.greaterThanOrEqualTo(sinceKick, 3n)
-    const pulseNow = f.logicalAndOperation(drive, canPulse)
+    // 触球拍 = 进区上升沿（drive 恢复的第一拍）：v 全额设定，ω 仍是慢值 → 滑动
+    const edge = f.logicalAndOperation(drive, f.logicalNotOperation(drivePrev))
+    const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
 
-    // 速度律（连续控制器不变量②：速度=带记忆的状态）：v ← 0.95v + (在区 ? velDir : 0)
-    // 出区只衰减不归零——滑行惯性，配合每拍设备供给（不变量①）消灭"断电死停"
-    const decayVx = f.multiplication(baseVx, DAMP)
-    const decayVz = f.multiplication(baseVz, DAMP)
-    const pulseF = b2f(pulseNow)
-    const newVelX = f.addition(decayVx, f.multiplication(comp.newVelX, pulseF))
-    const newVelZ = f.addition(decayVz, f.multiplication(comp.newVelZ, pulseF))
+    // 速度律（非线性收敛，2026-08-31 四点合一）：
+    //   target = drive ? velDir : 0（出区 target=0 同式衰减 = 摩擦刹车）
+    //   v ← v + (target−v)·G，G = d/(d+C)，d = |target−v|；进区上升沿 G:=1（全额）
+    // 三拍节流（sinceKick/canPulse/lastKickTick）已删——用户点名其导致不丝滑；
+    // G<1 恒不超调，根除 3025 的"后续冲量使球速不断增加"。
+    const driveF = b2f(drive)
+    const targetX = f.multiplication(comp.newVelX, driveF)
+    const targetZ = f.multiplication(comp.newVelZ, driveF)
+    const diffX = f.subtraction(targetX, ballVx)
+    const diffZ = f.subtraction(targetZ, ballVz)
+    const distDiff = f._3dVectorModuloOperation(f.create3dVector(diffX, 0, diffZ))
+    const gNl = f.division(distDiff, f.addition(distDiff, CONV_C))
+    // G_eff = max(gNl, edge)：非触球拍 = gNl ∈ [0,1)；触球拍 = 1（v:=velDir）
+    const eF = b2f(edge)
+    const gEff = f.division(
+      f.addition(f.addition(gNl, eF), f.absoluteValueOperation(f.subtraction(gNl, eF))),
+      2
+    )
+    const newVelX = f.addition(ballVx, f.multiplication(diffX, gEff))
+    const newVelZ = f.addition(ballVz, f.multiplication(diffZ, gEff))
 
     // y 高度修复：球离地时每 tick 拉回地面（vy = (BALL_R − 球当前y)/TICK）
     const ballY = f.split3dVector(f.getNodeGraphVariable('tmpBallPos').asType('vec3')).yComponent
@@ -204,13 +213,12 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const vy = f.multiplication(dy, INV_TICK)
     const finalVel = f.create3dVector(newVelX, vy, newVelZ)
 
-    // 脱脚计数（纯数据）：CARRIED 但持续出区（3 tick）→ 请求脱脚（球此刻在滑行，
-    // 交接速度=newVel；物理链接管滑行段）
-    const carriedNotZone = f.logicalAndOperation(stateCarried, f.logicalNotOperation(inZone))
-    const cnPF = b2f(carriedNotZone)
-    const lostNew = f.multiplication(f.addition(lostTicks, 1), cnPF)
-    const lostAfterEntry = f.multiplication(lostNew, notEnteredF)
-    const dropped = f.logicalAndOperation(carriedNotZone, f.greaterThanOrEqualTo(lostAfterEntry, 3))
+    // 脱脚计数（纯数据，滞回判据）：CARRIED 且 距离>2m（DROP_DIST2 上沿）逐拍 +1；
+    // 回到 2m 内自动清零。>2m 持续 3 tick → 请求脱脚（球此刻在被刹停，交接速度=newVel）
+    const carriedFar = f.logicalAndOperation(stateCarried, f.greaterThan(comp.dist2, DROP_DIST2))
+    const cfPF = b2f(carriedFar)
+    const lostNew = f.multiplication(f.addition(lostTicks, 1), cfPF)
+    const dropped = f.logicalAndOperation(carriedFar, f.greaterThanOrEqualTo(lostNew, LOST_TICKS_MAX))
 
     // 脱脚请求（复合内直接发信号；状态机图唯一仲裁落地，宿主不参与）
     // 放在写回之前求值（dropped 输入 lostTicks 若在写回后重求值会读到新值，重复求值陷阱）
@@ -229,38 +237,34 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     f.connect(sTmp, 0, sVx, 0)
     const sVz = f.registerExecNode('set_node_graph_variable', [new str('ballVz'), fv.zComponent, new bool(false)])
     f.connect(sVx, 0, sVz, 0)
-    const sLost = f.registerExecNode('set_node_graph_variable', [new str('lostTicks'), lostAfterEntry, new bool(false)])
+    const sLost = f.registerExecNode('set_node_graph_variable', [new str('lostTicks'), lostNew, new bool(false)])
     f.connect(sVz, 0, sLost, 0)
-    const sSeen = f.registerExecNode('set_node_graph_variable', [new str('lastSeenState'), ballState, new bool(false)])
-    f.connect(sLost, 0, sSeen, 0)
-    // 节流记账：tickCount 每拍 +1；发脉冲拍把 lastKickTick := 当前 tickCount（数据选择）
-    const tickNext = f.addition(tickCount, 1)
-    const lastKickNew = f.addition(
-      f.multiplication(f.dataTypeConversion(tickCount, 'float'), pulseF),
-      f.multiplication(f.dataTypeConversion(lastKickTick, 'float'), f.subtraction(1, pulseF))
-    )
-    const sTick = f.registerExecNode('set_node_graph_variable', [new str('tickCount'), tickNext, new bool(false)])
-    f.connect(sSeen, 0, sTick, 0)
-    const sKick = f.registerExecNode('set_node_graph_variable', [new str('lastKickTick'), f.dataTypeConversion(lastKickNew, 'int'), new bool(false)])
-    f.connect(sTick, 0, sKick, 0)
+    const sDrivePrev = f.registerExecNode('set_node_graph_variable', [new str('drivePrev'), drive, new bool(false)])
+    f.connect(sLost, 0, sDrivePrev, 0)
+
+    // 旋转摩擦累积（v 源 = tmpDribbleVel 快照，R1 取数点保留）：
+    //   wRoll = |v_h| / R（纯滚目标，rad/s）；Δω = K_F·(wRoll − spinW) ≡ K_F·slip/R
+    //   spinW += Δω —— ω 是状态量：触球拍 v 全额跳上去而 spinW 还是慢值 → 滑动；
+    //   摩擦每拍把 ω 拉向纯滚（凸组合，K_F<1 永不超调）；v 衰减时 ω 同步被拉低。
+    //   custody 复位（物理链→场）时根图监听 state_changed 把 spinW 清零——
+    //   重新接近必有滑动（用户物理模型）。
+    const vh = f._3dVectorModuloOperation(f.create3dVector(fv.xComponent, 0, fv.zComponent))
+    const wRoll = f.division(vh, BALL_R)
+    const dW = f.multiplication(K_F, f.subtraction(wRoll, spinW))
+    const spinWNew = f.addition(spinW, dW)
 
     // 设备供给（连续控制器不变量①：永不断供）：场监管期间每拍无条件写设备——
-    // 在区=驱动速度，出区=滑行速度（衰减中的 v）；物理链监管态完全停手（零设备，
-    // physics 链独占球）。定时器为 loop 循环（根图启动一次），本复合不再自重启。
+    // 在区=驱动速度，出区=刹停中的 v；物理链监管态完全停手（零设备，physics 链独占球）。
+    // 定时器为 loop 循环（根图启动一次），本复合不再自重启。
     // 无 outflow（宿主不依赖本复合的完成信号，避免多 outflow 续链陷阱）
     f.doubleBranch(
       canDrive,
       () => {
-        // 自旋 = 当前拍球速的纯滚表达（R0 日志 3028 取证修复，2026-08-30）：
-        // 旧链用 decayVx 作 spin 入参，编译后该表达式在 write-back 之后重新求值
-        // → 0.95×(写回后的新 v) = 双衰减，滑差恒 5%、永不收敛（日志实测 |v|-ωR=5.0%·v）。
-        // 改为与线速度设备同源：直接读物化快照 tmpDribbleVel（本拍最终速度，已由
-        // sTmp 写入且本 tick 不再变），取水平分量 → ω=|v_h|/R 原样表达当前球速；
-        // 触球瞬间"滑动→滚动"的过渡由引擎对同名 0.15s 旋转设备的连续表达自然给出。
+        // 自旋入参 = 状态量 spinW（摩擦逐步获得），不再是 |v|/R 直写（R1 替代）
         const spin = f.callComposite(dribbleFieldRollSpin, {
-          vel: f.create3dVector(fv.xComponent, 0, fv.zComponent), radius: BALL_R, curRot: ballLoc.rotate
+          vel: f.create3dVector(fv.xComponent, 0, fv.zComponent), spinRad: spinWNew, curRot: ballLoc.rotate
         })
-        // 设备时长 DEVICE_T=0.15 > 拍距 0.12：相邻设备重叠，速度切换无缝
+        // 设备时长 DEVICE_T=0.15 > 拍距 0.12：相邻设备重叠，速度切换无缝（用户定调不动）
         const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
           e, new str('dribbleCtrl'), new float(DEVICE_T), f.getNodeGraphVariable('tmpDribbleVel').asType('vec3')
         ])
@@ -268,6 +272,9 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
           e, new str('角度'), new float(DEVICE_T), spin.angVel, spin.axis
         ])
         f.connect(lin, 0, rot, 0)
+        // spinW 写回放在设备之后（rot 消费 spinWNew 于写前，读到本拍旧 spinW ✓）
+        const sSpinW = f.registerExecNode('set_node_graph_variable', [new str('spinW'), spinWNew, new bool(false)])
+        f.connect(rot, 0, sSpinW, 0)
       },
       () => {}
     )

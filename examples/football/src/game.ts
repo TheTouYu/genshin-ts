@@ -5,7 +5,7 @@
 // 职责：
 //   - 输入：whenTabIsSelected（tabBar 挂球本体，1-8 施力 / 9 复位）
 //   - 物理：whenBasicMotionDeviceStops → 宿主分发 FLYING/ROLLING/SLIDE tick（各 tick 自提交状态）
-//   - 控球：free_heartbeat 0.5s 常驻自重启，仅 state==FREE 时做范围判定 → CARRIED
+//   - 控球：free_heartbeat 0.12s 常驻自重启，仅 state==FREE 时做范围判定 → CARRIED
 //   - 脱脚：带球图发 ball_dropped(vel) 信号 → 本图写回 ballVel 后转 ROLLING
 //   - 进球：物理 tick 内检测 goalNew → 计分 + 提交 GOAL + 启动 goal_reset 2s 定时器 → 复位
 import { g } from 'genshin-ts/runtime/core'
@@ -29,7 +29,7 @@ const STATE_SLIDE = 3
 const STATE_CARRIED = 4
 const STATE_GOAL = 5
 
-const HEARTBEAT = 0.5 // FREE 控球判定心跳（s，低频轮询；常驻自重启，仅 FREE 时干活）
+const HEARTBEAT = 0.12 // FREE 控球判定心跳（s；2026-08-31 四点合一：0.5s 太长→追球尴尬期 ~10s，3031 实证；0.12s 与带球 tick 同拍，获得判定无感知延时）
 const GOAL_RESET_S = 2 // 进球后复位延时（s，与 physics.ts 常量一致）
 
 const graph = g
@@ -183,7 +183,7 @@ const graph = g
         f.doubleBranch(
           f.equal(evt.timerName, new str('free_heartbeat')),
           () => {
-            // 控球判定：仅 state==FREE 时干活（范围查询 1.2m + 球速低）
+            // 控球判定：仅 state==FREE 时干活（范围查询 2.0m + 球速 <3.5，3031 放宽口径）
             const state = f.getNodeGraphVariable('state').asType('int')
             f.doubleBranch(
               f.equal(state, 0n),

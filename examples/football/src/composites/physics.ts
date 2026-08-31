@@ -7,6 +7,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, str } from 'genshin-ts/runtime/value'
 import { motionByVel, motionSpin } from './motion.js'
+import { stateCommit } from './state.js'
 
 // —— 物理常量（编译期预计算为字面量）——
 const DT = 0.2 // 5Hz tick
@@ -463,12 +464,11 @@ export const physFlyTick = g.defineComposite('phys_fly_tick', {
     const motionVel = f._3dVectorZoom(velFinal, f.subtraction(1, haltF))
     const motionGrounded = f.logicalAndOperation(grounded, bounceDead)
     const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: spinFinal, grounded: motionGrounded })
-    // ⑥ 状态提交（图变量 + 球自定义变量一次性写；行为图经自定义变量读到）
-    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
-    f.connect(ap as never, 0, cg, 0)
-    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
-    f.connect(cg, 0, cc, 0)
-    f.outflow('done', cc, 0)
+    // ⑥ 状态提交（统一走 state_commit：双写 + 真实变化时发 state_changed 信号；
+    // 同态占位提交（FLY→FLY）不发包，杜绝重复风暴）
+    const sCommit = f.callComposite(stateCommit, { e, next: nextState })
+    f.connect(ap as never, 0, sCommit as never, 0)
+    f.outflow('done', sCommit as never, 0)
     return {}
   }
 })
@@ -554,12 +554,10 @@ export const physRollTick = g.defineComposite('phys_roll_tick', {
     const haltF = b2f(f.logicalOrOperation(stop.isStop, f.getNodeGraphVariable('tmpGoal').asType('bool')))
     const motionVel = f._3dVectorZoom(velFinal, f.subtraction(1, haltF))
     const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: spinFinal, grounded: new bool(true) })
-    // 状态提交（图变量 + 球自定义变量一次性写）
-    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
-    f.connect(ap as never, 0, cg, 0)
-    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
-    f.connect(cg, 0, cc, 0)
-    f.outflow('done', cc, 0)
+    // 状态提交（统一走 state_commit：双写 + 变化时发 state_changed 信号）
+    const sCommit = f.callComposite(stateCommit, { e, next: nextState })
+    f.connect(ap as never, 0, sCommit as never, 0)
+    f.outflow('done', sCommit as never, 0)
     return {}
   }
 })
@@ -648,12 +646,10 @@ export const physSlideTick = g.defineComposite('phys_slide_tick', {
     const ap = f.callComposite(physApplyMotion, { e, vel: motionVel, spin: f.getNodeGraphVariable('tmpSpin').asType('vec3'), grounded: new bool(true) })
     const sSpin = f.registerExecNode('set_node_graph_variable', [new str('ballSpin'), f.getNodeGraphVariable('tmpSpin').asType('vec3'), new bool(false)])
     f.connect(ap as never, 0, sSpin, 0)
-    // 状态提交（图变量 + 球自定义变量一次性写）
-    const cg = f.registerExecNode('set_node_graph_variable', [new str('state'), nextState, new bool(false)])
-    f.connect(sSpin, 0, cg, 0)
-    const cc = f.registerExecNode('set_custom_variable', [e, new str('state'), nextState, new bool(false)])
-    f.connect(cg, 0, cc, 0)
-    f.outflow('done', cc, 0)
+    // 状态提交（统一走 state_commit：双写 + 变化时发 state_changed 信号）
+    const sCommit = f.callComposite(stateCommit, { e, next: nextState })
+    f.connect(sSpin, 0, sCommit as never, 0)
+    f.outflow('done', sCommit as never, 0)
     return {}
   }
 })
