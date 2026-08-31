@@ -1111,3 +1111,18 @@
 > 2026-08-31 晚追加（O-31-03 续）：带球链三层叠加根因修复（死区死锁 15d67cb / 队列竞态
 > 6e870ac / 重求值 3fb7098 + pos 同族物化），详见 retrospective-2026-08-31-football-v5-triple-race.md；
 > 用户游戏核验进行中。技能已迭代（dsl-nodegraph-development +2 条目：跨图重求值物化、覆盖式队列）。
+
+## O-2026-08-31-04 计算通道同步机制（zt-lane）——已验证，扩展项待做
+
+- 来源：retrospective-2026-08-31-compute-lane-sync.md（提交 a9303e8..bfa36a4；日志 3062/3064/3067）。
+- 状态：机制两轮游戏验证通过（11/11 零丢失零撕裂，~5 任务/s）；技能已迭代
+  （client-nodegraph-development 五D 章 + zt-lane 模板包；asset-operations 信号容错说明）。
+- 待做 ①：**生成器脚本**——变量数 N 参数化产出全套图源（现模板 N=100 手工改）。
+- 待做 ②：whenCustomVariableChanges 事件驱动 dispatcher（现 1s 轮询已够用；事件只听本图实体变量，
+  邮箱须挂 dispatcher 图实体）。
+- 待做 ③：吞吐扩展轴实测——一技能绑多 20008 图 / 一造物多技能（槽 81 多条目+状态图按序号
+  executeSkill）/ 多造物多通道并行。
+- 待做 ④：CLI assets:skill-config create（28 模板）放开造物模型选择（现焊死遗迹守卫 10005001）。
+- 知识树待录（交维护者）：①seqlock 门+单写者 dispatcher 模式与实测数字；②getCorrespondingValueFromList
+  客户端/服务端参数序相反；③同实体多图定时器事件广播（名单制分发纪律）；④setCustomVariable≈3~4 节点/次的
+  预算成本公式；⑤信号注册表编辑器信号容错（e3bcd12）。
