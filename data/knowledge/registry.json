@@ -3314,6 +3314,28 @@
         "cli_behavior",
         "documented_contract"
       ]
+    },
+    "clm_7193F4345C8D0F9C5C55D43F00": {
+      "fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    "clm_89F141A2ABFDE319B3856F303F": {
+      "fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    "clm_59AC79FF81694186FF90CAB9BA": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_276702E81BB5423E74080CE609": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }

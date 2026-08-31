@@ -13,3 +13,39 @@
 官方奇匠学院文档规则 + 2026-08-28 魔方-客户端优化版本.gil 真实读图实证 + gsts 编译器 client 元数据；不覆盖未验证的客户端图循环 pin 语义与技能事件轨道具体打点（编辑器侧配置）
 
 <!-- CLAIM:END clm_D1A208295BD4F1E3FECDE5C157 -->
+
+<!-- CLAIM:START clm_7193F4345C8D0F9C5C55D43F00 -->
+
+### 「禁锢」类控制单位状态静默阻断技能装配与施放（3045 vs 3070 因果闭合）
+
+编辑器给角色施加的「禁锢」类控制单位状态会静默阻断技能装配与施放：被禁锢时技能实例创建被拦（Create Custom Skill Instance 无有效实例产出）、Cast Specified Skill Instance 帧全对但无效、客户端图零执行，且无任何报错日志。解除禁锢后同一注入链路（含 addCharacterSkill 装配步骤）全链通过：create OUT=10000002 → cast → 客户端图 f8=2097154 执行 → 信号回传。单变量差分定论：日志 3045（禁锢，拦截）vs 3070（解除，全通），地图 1073741914，技能配置 1098907651（6 自定义+瞬发）。
+
+#### 适用边界
+
+判据适用于「服务端链路帧全对但客户端图零执行/装配无产出」的排查：先查角色是否被施加控制类单位状态。禁锢为用户编辑器侧可施加/解除的状态（本项目后续仍复用），本条不覆盖其施加编码及其它控制状态的作用面。
+
+<!-- CLAIM:END clm_7193F4345C8D0F9C5C55D43F00 -->
+
+<!-- CLAIM:START clm_89F141A2ABFDE319B3856F303F -->
+
+### 服务端主动调用客户端 20002 图跑通形态：6+瞬发 + add→create→存图变量→cast（3070 验收）
+
+服务端图主动触发客户端角色技能图的跑通形态：技能配置必须为 6 自定义技能+瞬发并绑定 20002 角色技能图；服务端链 = getListOfPlayerEntitiesOnTheField()[0] → getAllCharacterEntitiesOfSpecifiedPlayer(p)[0] → addCharacterSkill（装配前提）→ createCustomSkillInstance（返回实例 ID 1000000x）→ 存图变量 → 下一定时器读回 → castSpecifiedSkillInstance(实例ID, false)。验收特征：armed/created/cast-fired 打印 + 客户端图记录 f8=2097154 + 服务器 onSignal 收到信号参数。角色实体必须列表动态获取（不可 GUID 寻址）；图变量 DSL 声明即生效，实体自定义变量才需编辑器注册。
+
+#### 适用边界
+
+区别于 clm_D1A208295BD4F1E3FECDE5C157（官方地图静态精读、unconfirmed）：本条为我方 DSL 编译产物两轮游戏验证（1915 日志 3040 + 1914 日志 3070）。不覆盖 36 普通技能（需按键激活）与 20010 角色操控图形态。
+
+<!-- CLAIM:END clm_89F141A2ABFDE319B3856F303F -->
+
+<!-- CLAIM:START clm_59AC79FF81694186FF90CAB9BA -->
+
+### 20002 角色技能图内 sendSignalToServerNodeGraph 运行时合法（R-31-01 双实证闭合）
+
+客户端 20002 角色技能图内调用「向服务器节点图发送信号」运行时合法且可回传：客户端图执行尾帧发送信号（参数经局部变量 + IntToStr(802) 数据流），服务器侧 onSignal 监听同步收到并打印参数值。双实证：1915 日志 3040/3044（d2 链）与 1914 日志 3070（clientProbe 链，rubik3x3_client_probe('client-probe','42')）。客户端图 print 仍不落服务器 f22 文本——跨端回传靠信号节点，不是打印。
+
+#### 适用边界
+
+仅证 20002 图族；20008 造物技能图（客户端记录 f8=4194308）另行实证。客户端日志捕获窗口机制（窗口外执行可能无客户端留痕）不在本条范围。
+
+<!-- CLAIM:END clm_59AC79FF81694186FF90CAB9BA -->

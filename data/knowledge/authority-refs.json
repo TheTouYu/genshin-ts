@@ -1237,6 +1237,22 @@
       ]
     },
     {
+      "id": "aref_344c01d47f02b8df01ca8fea07",
+      "path": "examples/rubik-3x3-client/PROGRESS.md",
+      "locator": "B0.8 cast 链四连修定形 v4 + B0.10 帧级证据链",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b08c65438184f605386bb42279f22f705fb7d9d60fe3f9ff9d9e1561c2a179cd",
+      "claim_ids": [
+        "clm_89F141A2ABFDE319B3856F303F"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_347b2c2c0d5ec93f1254f21330",
       "path": "tests/compare_gil_node_graph_test.ts",
       "locator": "focused CLI regression: empty graph to one placeholder node",
@@ -4724,6 +4740,22 @@
       ]
     },
     {
+      "id": "aref_c41097804e73ff206fba423c0a",
+      "path": "examples/rubik-3x3-client/PROGRESS.md",
+      "locator": "B0.9 六轮排查至根因'禁锢' + B0.10 验收通过（日志 3070）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b08c65438184f605386bb42279f22f705fb7d9d60fe3f9ff9d9e1561c2a179cd",
+      "claim_ids": [
+        "clm_7193F4345C8D0F9C5C55D43F00"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_c55141e5c600933dd84f0695ae",
       "path": "docs/ui-tutorial/ugc-svg/level-settings.md",
       "locator": "## 40-光源组件",
@@ -5475,6 +5507,21 @@
       ]
     },
     {
+      "id": "aref_e23c5dd2828b0b57ccf2e94439",
+      "path": "examples/rubik-3x3-client/PROGRESS.md",
+      "locator": "B0.10 R-31-01 双实证闭合",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b08c65438184f605386bb42279f22f705fb7d9d60fe3f9ff9d9e1561c2a179cd",
+      "claim_ids": [
+        "clm_59AC79FF81694186FF90CAB9BA"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_e24c98bf45e1b84a6fec30ef1c",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
       "locator": "#四",
@@ -6013,6 +6060,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_f8bf17cb4c9d8cefd2c8432293",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-31-client-call-chain-and-official-mechanism.md",
+      "locator": "五、产出清单——机制定论（双证据）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "1b663bda10b1aafd67911606f84329cf69e05953b0186c2d4364a8db47f4c0c3",
+      "claim_ids": [
+        "clm_276702E81BB5423E74080CE609"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
