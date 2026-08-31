@@ -221,18 +221,18 @@ const graph = g
       }, new float(5000))
       // 2026-08-31 B 轮 A 线第一步：客户端调用链路（照官方 3030 帧级模板）——
       // Create Custom Skill Instance（角色实体，角色自定义技能 1098907651=6+瞬发，客户端图
-      // 1082130434 绑定）→ 实例 ID 存实体自定义变量 → 2s 后 Cast Specified Skill Instance
-      // （不校验按键）→ 客户端图执行 → 向服务器发 rubik3x3_client_probe → 本图打印。
-      const charE = entity(1090519041n)
-      const probeSkillId = f.createCustomSkillInstance(charE, configId(1098907651n))
-      f.setCustomVariable(charE, new str('clientProbeSkillId'), probeSkillId, false)
+      // 1082130434 绑定）→ 2s 后 Cast Specified Skill Instance（不校验按键）→ 客户端图执行
+      // → 向服务器发 rubik3x3_client_probe → 本图打印。
+      // 用户指正：不要用未配置的角色实体自定义变量（未在编辑器注册=读不到），
+      // 定时器内直接重建技能实例？不——实例 ID 无法字面量重建，改为定时器回调内重新
+      // createCustomSkillInstance 拿新 ID 再施放（每次施放新建一个实例，探针场景可接受）。
+      // 定时器内不 capture 外层变量（DSL 不支持定时器 capture entity/int 变量），
+      // 全部用字面量在回调内重建。
+      f.createCustomSkillInstance(entity(1090519041n), configId(1098907651n))
       f.printString('client-probe-skill-created')
       setTimeout(() => {
-        // 定时器内不 capture 外层 charE（DSL 不支持定时器 capture entity 变量），
-        // 用字面量重建同一实体值（1090519041 为地图内固定角色实体）。
-        const castE = entity(1090519041n)
-        const id = f.getCustomVariable(castE, new str('clientProbeSkillId')).asType('int')
-        f.castSpecifiedSkillInstance(castE, id, new bool(false))
+        const skillId = f.createCustomSkillInstance(entity(1090519041n), configId(1098907651n))
+        f.castSpecifiedSkillInstance(entity(1090519041n), skillId, new bool(false))
         f.printString('client-probe-cast-fired')
       }, new float(2000))
     }, () => {})
