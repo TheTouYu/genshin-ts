@@ -1,0 +1,91 @@
+# 造物技能路径资源包（2026-08-31 首验通过，1915）
+
+完整可抄资源 + 全链 runbook。成功链路：**复杂造物（小体型模型）→ 决策图(20007) → 状态图(20009)
+executeSkill → 造物技能(28+瞬发) → 20008 客户端图 → 信号回传服务端**，稳态 **15~16 次/秒**。
+
+## templates/（照抄起步，改占位符）
+
+| 文件 | 作用 | 必改占位符 |
+|---|---|---|
+| `signals.ts` | 回传信号定义 | 信号名 zaowu_probe（register 时同名） |
+| `zaowu-decision-graph.ts` | 20007 决策图：无条件切换状态 | 图 ID 1082130438、状态图 configId 1082130437、模板序号 1 |
+| `zaowu-status-graph.ts` | 20009 状态图：executeSkill(序号) | 图 ID 1082130437、技能序号 1 |
+| `zaowu-skill-graph.ts` | 20008 技能图：读参→计算→发信号 | 图 ID 1082130436、信号名、参数字面量 |
+| `zaowu-server.ts` | 服务端监听图（挂载关卡实体） | 图 ID 1073741830、信号名 |
+| `gsts.zaowu.config.ts` | 隔离编译配置（dist-zaowu，批量注入按 .gia 内 ID 路由） | mapId 1073741915 |
+
+源码原型：仓库 `verify/zaowu-client/`（工作版本）。
+
+## 全链 runbook（每步的命令与纪律）
+
+### ① 只读盘点（动任何东西之前）
+```bash
+MAP=$(ls /mnt/c/.../Beyond_Local_Save_Level/<mapId>.gil)
+sha256sum "$MAP"; npx tsx tools/list-gil-node-graphs.ts "$MAP"   # 图清单+客户端段 max
+npx tsx tools/list-gil-skill-configs.ts "$MAP"                    # 技能配置
+node bin/gsts.mjs assets:signals inspect --gil "$MAP"             # 信号
+node bin/gsts.mjs assets:mounts list --gil "$MAP"                 # 挂载（服务端图必须挂实体才跑）
+```
+客户端图新 ID = 客户端段（1082130433+）max+1；服务端图 = 服务端段 max+1。
+
+### ② CLI 资产写入（先干跑 --output 再 --write；编辑器/游戏必须关闭）
+```bash
+node bin/gsts.mjs assets:signals register --gil "$MAP" --name zaowu_probe \
+  --param tag:str --param val:str --write        # 三元组自动分配，inspect 核布局
+node bin/gsts.mjs assets:node-graphs create --gil "$MAP" --type 20008 --graph-id <A> --name _GSTS_xxSkill --write
+node bin/gsts.mjs assets:node-graphs create --gil "$MAP" --type 20009 --graph-id <B> --name _GSTS_xxStatus --write
+node bin/gsts.mjs assets:node-graphs create --gil "$MAP" --type 20000 --graph-id <S> --name _GSTS_xxListen --write
+node bin/gsts.mjs assets:skill-config create --gil "$MAP" --id <28段ID≥1191182337> \
+  --name <技能名> --template 28 --skill-type instant --graph-id <A> --write   # root20 联动自动
+node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --entity --gil "$MAP" --write
+```
+**20007 图 CLI 建不了**（自动节点未采样 fail closed）→ 编辑器建空图（自动 ID=段内 max+1，核实际值）。
+
+### ③ 源码回填真实 ID → 编译（--noinject）
+改 templates 里的图 ID/信号名/configId → `node bin/gsts.mjs -c gsts.zaowu.config.ts --noinject`
+（config 的 inject.mapId 必须指向目标地图——信号注册表从真实地图解析）。
+
+### ④ wire 断言（编译 ≠ wire 正确）
+`npx tsx tools/decode-gia.ts dist-zaowu/.../*.gia -o /tmp/x.json` 逐图核对：
+20008=开始节点(200042)→发信号节点（genericId=信号 server 身份 ID）+参数字面量；
+20009=入口(200126)→execute_skill(技能序号字面量)；20007=入口(200126)→switch(configId=状态图ID)。
+**字节模式断言先用正样本回测模式**（f11 块 = `5a 07 08 01 a2 06 02 08 01`，f100 键是 a2 06 不是 a0 06）。
+
+### ⑤ 注入（用户确认 + 编辑器/游戏零重叠）
+- 批量：`node bin/gsts.mjs -c gsts.zaowu.config.ts`（按 .gia 内 ID 路由）。
+- 坑①安全门拒"非空且非 _GSTS 名"图（编辑器建的默认名图）→ 先
+  `assets:node-graphs patch --graph <id> graph-clear --write` 再注入（注入器自动改名 _GSTS_*）。
+- 坑②单文件注入被 config.nodeGraphId 路由劫持 → 用批量。
+- 坑③注入后**手动核对/同步 Temp 副本**（BeyondLocal/../Temp/<mapId>.gil 与主图 md5 一致）。
+
+### ⑥ 注入后检查（verify-injection 纪律）
+`check-gil-composite-refs <map> --incoming <gia>` ×N = 0 悬空；top10 内部 f5 后保留 (7,0)；
+`parse-gil-node-graph --graph <id>` 语义回读节点链；`list-gil-node-graphs` 节点数符合。
+
+### ⑦ 用户编辑器配置（一次性 ~2 分钟，这是唯一的人工环节）
+1. 元件库 → 复杂造物 → **选小体型模型**（带宽=模型！打手丘丘人级 15~16/s，遗迹守卫 7.5/s）→ 放出生点附近
+2. 造物技能管理 → 引用技能（**记序号**，对应 executeSkill 参数）→ CD：冷却组 0.01s + 勾忽略公共冷却
+3. 自主逻辑参数 → 新增模板_1 → 初始生效（对应 switch 第三参）
+4. 特化配置 → 造物状态决策节点图 → 选 CLI/编辑器建好的 20007 图
+5. 保存并完全关闭编辑器
+
+### ⑧ 用户测试 → 日志定论
+- 服务端 f22：armed 打点 + 每次施放的信号参数打印（**最轻量观测面**，关详情日志也有效）
+- 客户端记录：**20008 图族 f8=4194308(0x400006)**（≠20002 族的 2097154）；开详情日志才留痕
+- 频率核对：小体型模型应 15~16/s（CD 配置到位时）
+
+## 带宽与配置速查（2026-08-31 定论）
+
+| 项 | 值 |
+|---|---|
+| 频率上限 | 模型施法占用决定：小体型 ≈4 帧/次=**15~16/s**；遗迹守卫 ≈8 帧=7.5/s |
+| CD 配置 | 冷却组 0.01s + 忽略公共冷却（之后 CD 不再是瓶颈） |
+| 三重冷却 | 公共+技能+冷却组全满足才释放（实体槽 81 外层 f2=公共冷却） |
+| 拆分算力模式 | 服务端写变量（任务）→ 本路径 15Hz 客户端计算 → 信号回传；每逻辑一张 20008 图 |
+| 互换性 | 编译的 20007 图可直接嵌入第三方造物资产（实测跑满 15~16/s） |
+
+## 证据与工作版本
+
+- 工作源码：`verify/zaowu-client/`（5 件套）+ `gsts.zaowu.config.ts`
+- 证据链：`~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md`（三轮差分+注入+大佬资产对比）
+- 进度与实验记录：`examples/rubik-3x3-client/PROGRESS.md` C 线 C0~C0.7
