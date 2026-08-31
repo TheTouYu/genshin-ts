@@ -55,6 +55,7 @@
 | 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合：变量运算/随机/定时器/实体查询销毁/矩阵/数学几何/长列表/输入锁/定时器调度/循环物化等，有现成的直接抄或套模式） |
 | 调试节点图日志/负载 | `debug-log-investigator` |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
+| 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
 | 游戏内最小注入核验 | `verify-injection` |
 | 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
