@@ -15,7 +15,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, str } from 'genshin-ts/runtime/value'
 
-const DEVICE_T = 0.15 // 设备时长 > 拍距 0.12（重叠无缝，用户定调不动）
+const DEVICE_T = 0.55 // 设备时长 > 拍距 0.5（重叠无缝；2026-08-31 降载联动 0.15->0.55）
 const RAD2DEG = 57.29577951308232
 
 export const ballRenderFrame = g.defineComposite('ball_render_frame', {

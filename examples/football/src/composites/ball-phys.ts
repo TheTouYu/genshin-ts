@@ -42,8 +42,8 @@ import { motionInstant } from './motion.js'
 import { Signal } from '../resources/signals.js'
 
 // —— 物理常量（秒量纲参数不变；拍距相关两处已换算 0.12s）——
-const DT = 0.12 // 逻辑拍距（0.12s loop，v4 为 0.2）
-const KW_DECAY = 0.994 // exp(-0.05·0.12) 旋转衰减/拍
+const DT = 0.5 // 逻辑拍距（2026-08-31 降载 0.12->0.5，与 LOOP_TICK 联动）
+const KW_DECAY = 0.9753 // exp(-0.05·0.5) 旋转衰减/拍（拍距联动换算）
 const BALL_R = 0.25
 const INV_BALL_R = 4 // 1/BALL_R（纯滚换算）
 const MAX_SPEED = 24 // 冲量叠加速度上限（m/s）

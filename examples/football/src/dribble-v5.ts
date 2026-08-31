@@ -19,16 +19,15 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, int, str } from 'genshin-ts/runtime/value'
 import { dribbleFieldGetRole, dribbleFieldCompute } from './composites/dribble-field.js'
-import { statePossessCheck } from './composites/state.js'
 import { Signal } from './resources/signals.js'
 import { BALL_IDLE, BALL_CARRIED } from './composites/ball-state.js'
 
-// 牵引区几何门（与 v4 dribbleFieldTick 同值；获得门在 statePossessCheck 内）
+// 牵引区几何门（与 v4 dribbleFieldTick 同值；获得门=同圈对齐，见 idle_scan 内联判定）
 const PULL_DIST2 = 2.25 // 1.5m 前半圆
 const PULL_FWD_MIN = -0.3 // 身后门
 const CONV_C = 2.0 // 驱动拍收敛常数
 const COAST_C = 4.0 // 出区缓刹常数
-const DRIBBLE_TICK = 0.12 // 决策拍距
+const DRIBBLE_TICK = 0.5 // 决策拍距（2026-08-31 降载联动；原 0.12）
 const IDLE_SCAN_T = 0.5 // IDLE 待机心跳（获得判定；二期可换命中检测事件驱动，零心跳）
 const DRIBBLE_LOOP = 'dribble_loop'
 const IDLE_SCAN = 'idle_scan'
@@ -161,12 +160,24 @@ const graph = g
         f.doubleBranch(
           f.equal(evt.timerName, new str(IDLE_SCAN)),
           () => {
-            // 获得判定：2m 内 + 球速<3.5 + 前向门（statePossessCheck 复合，v4 判定原样）
+            // 获得判定（内联，2026-08-31 死区死锁修复）：距离门对齐牵引圈 PULL_DIST2=2.25(1.5m)
+            // ——v4 statePossessCheck 的 2m 口径是"滚动球滑停接管"设计，v5 仅从静止球获得；
+            // 2m 获得圈 + 1.5m 牵引圈会在环带内 CARRIED 死锁（实测 1.797m 球全链空转 20s）。
+            // 门 = dist²<2.25 ∧ 球速<3.5 ∧ fwd>−0.3（前向门沿用）
             const ball = f.getSelfEntity()
             const roleC = f.callComposite(dribbleFieldGetRole, {  })
-            const pc = f.callComposite(statePossessCheck, { role: roleC.role, ballPos: f.getCustomVariable(ball, new str('pos')).asType('vec3'), ballVel: f.getCustomVariable(ball, new str('vel')).asType('vec3') })
+            const role = roleC.role
+            const d = f._3dVectorSubtraction(f.getCustomVariable(ball, new str('pos')).asType('vec3'), f.getEntityLocationAndRotation(role).location)
+            const dist2 = f._3dVectorDotProduct(d, d)
+            const near = f.lessThan(dist2, PULL_DIST2)
+            const spd = f._3dVectorModuloOperation(f.getCustomVariable(ball, new str('vel')).asType('vec3'))
+            const slow = f.lessThan(spd, 3.5)
+            const Dn = f._3dVectorNormalization(d)
+            const fwd = f._3dVectorDotProduct(f.getEntityForwardVector(role), Dn)
+            const front = f.greaterThan(fwd, PULL_FWD_MIN)
+            const canCarry = f.logicalAndOperation(f.logicalAndOperation(near, slow), front)
             f.doubleBranch(
-              pc.canCarry,
+              canCarry,
               () => {
                 // 请求获得：守卫终审在逻辑层 ballStateTransition（获得守卫仅地面态）
                 f.sendSignal(

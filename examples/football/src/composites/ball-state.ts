@@ -48,7 +48,7 @@ export const BALL_CARRIED = 4
 export const BALL_GOAL = 5
 
 const LOOP_NAME = 'phys_loop' // 逻辑层 0.12s 循环定时器（渲染层 loop 自管，不经此）
-const LOOP_TICK = 0.12
+const LOOP_TICK = 0.5 // 2026-08-31 用户定调降载：0.12->0.5（日志洪泛被踢；恢复手感时同步改回并联动 DT/KW_DECAY/DEVICE_T/RENDER_TICK/DRIBBLE_TICK）
 
 export const ballStateTransition = g.defineComposite('ball_state_transition', {
   inputs: { e: { type: 'entity' }, next: { type: 'int' }, vel: { type: 'vec3' } },

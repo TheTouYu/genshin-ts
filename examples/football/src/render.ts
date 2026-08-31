@@ -13,7 +13,7 @@ import { bool, str } from 'genshin-ts/runtime/value'
 import { ballRenderFrame, ballRenderHalt } from './composites/ball-render.js'
 import { Signal } from './resources/signals.js'
 
-const RENDER_TICK = 0.12 // 渲染拍距（与逻辑层同频起步；独立可调）
+const RENDER_TICK = 0.5 // 渲染拍距（2026-08-31 降载联动；原 0.12）
 const RENDER_LOOP = 'render_loop'
 
 const graph = g
