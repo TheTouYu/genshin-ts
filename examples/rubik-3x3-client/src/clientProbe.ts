@@ -14,13 +14,13 @@
 import { g } from 'genshin-ts/runtime/core'
 
 /**
- * 20010 客户端图 id。
- * 占位 1082130433 = gsts 客户端图默认 id；地图 1073741914 中由编辑器创建
- * 角色操控技能图后回填其真实 id（注入前必须与地图内图 id 一致）。
+ * 20002 客户端图 id（角色技能图，地图 1073741914 内编辑器创建的空图）。
+ * 2026-08-31 用户定论：触发技能用「角色自定义技能」（template 6）而非角色操控技能（20010/36）
+ * ——历史跑通组合 = 1098907651（6+瞬发，body-f5 绑定 1082130434）。
  */
-export const CLIENT_PROBE_GRAPH_ID = 1082130433
+export const CLIENT_PROBE_GRAPH_ID = 1082130434
 
-g.characterControlSkill({
+g.characterSkill({
   id: CLIENT_PROBE_GRAPH_ID,
   name: '_GSTS_clientProbe'
 }).on('start', (_evt, f) => {

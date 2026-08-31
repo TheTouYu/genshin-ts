@@ -220,11 +220,11 @@ const graph = g
         f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
       }, new float(5000))
       // 2026-08-31 B 轮 A 线第一步：客户端调用链路（照官方 3030 帧级模板）——
-      // Create Custom Skill Instance（角色实体，技能配置 1228931074=36+瞬发+客户端图
-      // 1082130441 绑定）→ 实例 ID 存实体自定义变量 → 2s 后 Cast Specified Skill Instance
+      // Create Custom Skill Instance（角色实体，角色自定义技能 1098907651=6+瞬发，客户端图
+      // 1082130434 绑定）→ 实例 ID 存实体自定义变量 → 2s 后 Cast Specified Skill Instance
       // （不校验按键）→ 客户端图执行 → 向服务器发 rubik3x3_client_probe → 本图打印。
       const charE = entity(1090519041n)
-      const probeSkillId = f.createCustomSkillInstance(charE, configId(1228931074n))
+      const probeSkillId = f.createCustomSkillInstance(charE, configId(1098907651n))
       f.setCustomVariable(charE, new str('clientProbeSkillId'), probeSkillId, false)
       f.printString('client-probe-skill-created')
       setTimeout(() => {
