@@ -2,6 +2,12 @@
 
 ## 最近轮次
 
+- 2026-08-31（第三阶段 R3 触球冲量+脚跟死锁修复，日志 3038 铁证驱动，已注入+全核验，待用户复测）：
+  - **日志 3038 取证（15s，触球段 rec218-248 / 尾段 rec538-586）**：①冲量弱实锤——触球拍 v=2.16 vs vP=4.87（44%）：v=1.2×k×vP，k=0.37（触球时球已贴脚 dist²=0.06 几何退化+侧向进入），且 vTarget 随玩家减速立刻跌、无保底；②滑差收敛**工作正常**（100%→65%→42%→18% 逐拍，ω 0→9.3 rad/s——"看不到滑动"根源是 v 太小不是 ω 链问题；此前会话疑"angVel 恒 0.2"是提取错参数列，日志纠错）；③**新 bug 脚跟死锁**——CARRIED+球身后 0.89m（fwd=−0.957）→ fwd 守卫关驱动+距离滞回关脱手 → 玩家跑球不动（R2 把脱手从"出牵引区"改成"仅>2m"时堵死了身后出路）；④信号无风暴（全程 2 次切换）。
+  - **修复（用户确认 A+B+E）**：①TOUCH_GAIN=1.6 + TOUCH_MIN=3.0——compute 新增 touch 向量输出（dir×max(3.0, 1.6×vFinal)，max 无节点实现 (a+b+|a−b|)/2），tick 触球拍数据选择 conv·(1−e)+touch·e（瞬时超调仅一拍，后续拍 G 律收敛回 target，不叠加不越带越快）；②脱手判据恢复并联：carriedLost = CARRIED &&（dist²>4 ∥ fwd≤−0.3）持续 3 拍；③获得加前向门：state_possess_check 增 fwd>−0.3（球须在前方才可获得，消除 脱手→身后再获得 死循环；impl 7→12 节点）。
+  - **核验**：build 绿；All GIA generated (2)；gia-verify-pin 常量落位（1.6@compute n23、3.0×2@n24/25 max 对、−0.3@possess n9）；源码一致性（touchX/Z 输出↔消费、gEff/cfPF 零残留、并联链完整）；注入 ok 2/0；Temp 双 SHA 115902b8；refs --incoming ×2=0 悬空；var-pins 全完整；parse --list 唯一 (1)=旧段良性；真实 .gil 回读 1.6/3×2/−0.30000001192092896/Logical OR 并联链全在位。
+  - **待用户复测**：①慢走/站立触球也有可感知推球（保底 3 m/s）+冲刺触球冲量明显（≈2.6×旧值量级）；②触球滑动→纯滚过渡可见（v 大了滑差段自然显形）；③球到身后不再冻死（0.36s 后脱手成滚动态，转身再获得）；④连续带球回归：球速仍收敛 ≈玩家×1.2 不爬升。
+
 - 2026-08-31（第三阶段 R2 续：**已注入 + 注入后全核验通过 + 三技能迭代**，待用户四点游戏复测）：
   - **注入链（用户确认后执行）**：①state_changed 正式注册进真实 1073741908（donor=rubik3x3_solve[1073741899.gil]，send/mon/srv=1610612753/754/755，与沙箱编译产物 ID 一致，备份在 .gsts/backups）；②重编译 All GIA generated (2)；③注入 **ok 2, fail 0**（game.gia+ dribble-field.gia）；④Temp 手动同步**双 SHA 一致 4d8a20ce**。
   - **注入后核验（Step 3.5 逐项勾对全过）**：refs --incoming ×2 = 0 悬空（仅文档化良性残留：跨 gia 双 def 家族 + phys_integrate(1) 旧段）；parse --list 无新增 (1)（唯一 = 08-30 记录的旧段）；scan-gil-var-pins 30 图 207 var-nodes 全完整（+2 = spinW/drivePrev）；真实 .gil 回读——监听信号节点（state_changed）在 _GSTS_dribble-field n10 ✓、state_commit 执行流 Double Branch→true:发送信号→Set图变量→Set实体变量（先发后写）✓、tick 写回链 ball_dropped→tmpDribbleVel→ballVx→ballVz→lostTicks→drivePrev + 设备 LinDev→RotDev→spinW ✓、常量 4/2.25/1.5/0.25/8.33/3/0.3499/0.15 全落位 ✓、possess_check 4.0/3.5 ✓、game 主图 Start Timer ×2 间隔 0.11999999731779099（=0.12 float32）✓。
