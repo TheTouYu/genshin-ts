@@ -35,15 +35,20 @@
 
 | 文件 | 角色 |
 |---|---|
-| `src/logic.ts`（图 1073741825） | 逻辑层根图 + tab 参数表复合 ballTabKick |
-| `src/render.ts`（图 1073741829，**新图需挂载**） | 渲染层根图（零图变量纯消费者） |
+| `src/logic.ts`（图 1073741825） | 逻辑层根图（初始化 + ball_reset/ball_set_state 信号入口 + phys_loop/goal_reset 定时器） |
+| `src/input.ts`（图 1073741826，**新图**） | 使用层输入图（tab 踢球直调链 + ball_impulse 信号入口；2026-08-31 预算分载拆出——ballApplyImmediate 复合展开 914/实例，多实例同图触发拒载线） |
+| `src/render.ts`（图 1073741829，新图） | 渲染层根图（零图变量纯消费者） |
 | `src/dribble-v5.ts`（图 1073741828） | 带球决策根图 + 决策拍复合 ballDribbleDecide |
 | `src/composites/ball-state.ts` | ballStateTransition（唯一状态写者+循环编排） |
 | `src/composites/ball-phys.ts` | 积分器族（分发器+FLY/ROLL/SLIDE/CARRIED 分支+墙碰撞黑板版+IMMEDIATE 路径+复位流程） |
 | `src/composites/ball-render.ts` | ballRenderFrame / ballRenderHalt |
-| `src/resources/signals.ts` | v5 信号协议（+5 新信号；football_kick/push/push_req 死信号已删） |
+| `src/resources/signals.ts` | v5 信号协议（编译后由提取器从地图自动回写） |
 | v4 复用（未改） | physics.ts 纯数据复合 / dribble-field.ts 的 getRole+compute / state.ts 的 possessCheck / motion.ts 的 instant |
 | v4 退役（*.v4.ts） | game.v4.ts / dribble-field.v4.ts / kick.v4.ts（entries 排除编译，保留回滚） |
+
+**预算分载实测（2026-08-31）**：全部入口挤 logic 单图 → 预测 7448（拒载）；tab+impulse 拆 input 图后
+825 预测 622（mainExpanded 1035），四图全部 <2000 生产红线。ball_kick 信号 handler 首版裁撤
+（tab 直调链为主路径，信号 def 已注册，外部图需要时加回）。
 
 ## 三、信号协议
 
