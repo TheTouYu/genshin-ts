@@ -1119,6 +1119,15 @@
 > 6e870ac / 重求值 3fb7098 + pos 同族物化），详见 retrospective-2026-08-31-football-v5-triple-race.md；
 > 用户游戏核验进行中。技能已迭代（dsl-nodegraph-development +2 条目：跨图重求值物化、覆盖式队列）。
 
+> 2026-08-31 深夜追加（O-31-03 续二，第五轮）：第四轮测试球完全不动——1c5fea0 架构收编自身的
+> DSL 声明缺陷：ballDribbleDecideAtomic 含 exec（drivePrev 写回）却未声明 outflows，注入器按
+> def 接口裁掉调用点 exec 出边，CARRIED 链后半段全部孤儿（日志 3069 帧级铁证 + .gia/.gil 对照）。
+> 修复 e348612（decide 补 outflows + 同族修 applyImmediate render_now 孤儿）；读图核验全过，
+> **第五轮游戏核验 pending**。详见 retrospective-2026-08-31-football-v5-round5-outflow-trim.md；
+> 技能已迭代（dsl +1 铁律：含 exec 复合必须声明 outflows；gil-reading Step 3.5 +1 必跑项）。
+> 知识树待录（交维护者，并前两条）：①含 exec 复合必须 outflows 声明否则注入器裁调用点出边；
+> ②失败信号清单应含"该动没动"类（帧的有无）而非仅数值类。
+
 ## O-2026-08-31-04 计算通道同步机制（zt-lane）——已验证，扩展项待做
 
 - 来源：retrospective-2026-08-31-compute-lane-sync.md（提交 a9303e8..bfa36a4；日志 3062/3064/3067）。
@@ -1133,3 +1142,16 @@
 - 知识树待录（交维护者）：①seqlock 门+单写者 dispatcher 模式与实测数字；②getCorrespondingValueFromList
   客户端/服务端参数序相反；③同实体多图定时器事件广播（名单制分发纪律）；④setCustomVariable≈3~4 节点/次的
   预算成本公式；⑤信号注册表编辑器信号容错（e3bcd12）。
+
+### O-2026-08-31-05 足球第五轮修复附带：def 残留债务清理 + 编译期防线 + render 悬空分支（2026-08-31 复盘登记）
+
+- 来源：retrospective-2026-08-31-football-v5-round5-outflow-trim.md（修复 e348612 后核验发现）。
+- 待做 ① **def-clean 一轮**：地图 1073741908 复合目录有 8 处"残留 def 引用被本次注入覆盖"标记
+  （旧版 ball_dribble_decide / ball_apply_immediate 旧版段等）+ 2 个 ball_render_halt(1) 副本
+  （2000000000 段）——接口未变、已证可加载（第四轮三图运行），但属 2026-08-30 拒载同族债务，
+  建议按 gil-node-graph-editing def-clean 流程清一轮。
+- 待做 ② **编译期防线**：对"build 含 exec 语句但未声明 outflows"的 defineComposite 报 warning
+  （本轮 IR/.gia 全静默，唯一暴露点在注入后读图——防线位置与作者注意力错位）。
+- 待做 ③ **render 图悬空分支**：编译警告 GSTS-DANGLING-EXEC-NODE（_GSTS_render IR 24 double_branch
+  有出边无入边）——先轮遗留非本轮引入，查是否死代码并清理。
+- 状态：均不阻塞第五轮核验；第五轮结果出来前不动地图。

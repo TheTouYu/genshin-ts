@@ -214,6 +214,7 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
   outflow，必须有 InFlow 入口；纯事件复合如 trigger 接口全空是正常的）
 - 执行流条数：MB 分支 → 子复合调用的边应逐条可见；"外部入口 InFlow → MB →
   各分支"结构完整；执行流条数 = 分支数 + 后续链数
+- **改动复合调用点执行边存活核验（2026-08-31 足球第五轮实证，强制，无"低风险豁免"）**：本轮新增/改接口的复合（尤其补 outflows）或改过调用链后，对**每个涉及复合的宿主** `read --composite <宿主defId>` 逐个确认调用节点 `OutFlow[cpi] → 下游 InFlow` 边存在——注入器按 def 接口裁调用点引脚（.gia 有边 .gil 丢边），本轮"carried 原子链未逐帧复核——低风险"的豁免让整轮用户测试白费（决策帧止于复合内 drivePrev 写回，写 tmpVel/积分/发布/transition 全部孤儿，球完全不动；修复 e348612 = 给 ball_dribble_decide_atomic 补 outflows 声明）。
 - **执行边健康（2026-08-20 日志 2777 后新增，强制）**：用 `parse --json` 的 `flow` 列表核对：
   - 每个普通 exec 节点（start_timer / set_list_value / set_node_graph_variable 等）**最多一条 InFlow 入边**；
     复合调用 done 因 auto-chain 可能额外拉一条入边，导致同一节点执行两次（日志特征：Start Timer 同节点两帧）。
