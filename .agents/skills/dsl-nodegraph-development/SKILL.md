@@ -134,6 +134,29 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 6. **回归先 diff 自己最近一轮改动**：出现回归先 git diff 自己最近一轮改动，而不是从零排查
    （2956 黑块回归由 37584a8 引入）。
 
+### 信号工作流（新增/改信号必读，2026-08-31 足球 state_changed 实证）
+
+「注册」有两个，缺一不可，顺序固定——**地图注册是编译的硬前置**（否则
+`signal is not registered in target map` 直接编译失败）：
+
+1. **TS 侧**：`resources/signals.ts`（`// @gsts:signals` 头）加 `defineSignal('名', [[参,类型]…])`
+   ——只定义编译期 schema，不产生节点 ID。
+2. **地图侧**（写真实 .gil，破坏性操作需用户确认）：`gsts assets:signals register
+   --map-id <地图ID> --name <名> --param <名>:<类型> … --write`。注意：
+   - 只认 `--map-id`/`--gil`，**不认 `--config`**（传了会打 usage）；
+   - **重复非 str 参数需要 donor**（如两个 int：builtin 每类型只有一个布局）——donor 是
+     任一地图里已有 ≥2 个同类型参数的信号，找法：遍历 Save_Level 的 .gil 跑
+     `assets:signals inspect --gil <文件>`，grep `params=.*int.*int`（足球轮找到
+     rubik3x3_solve[1073741899.gil]）；加 `--template-gil <donor地图> --template-signal <名>`。
+3. **模型侧不碰真实地图的验证通道**：`GSTS_LOCALLOW_DIR=<工作区副本目录>` 指向一个
+   复制的目录树（…/BeyondLocal/<playerId>/Beyond_Local_Save_Level/<mapId>.gil），
+   在副本上 register+编译+decode 核验，全部通过后再向用户申请正式注册+注入（一次确认打包）。
+4. **命名小坑**：同文件多个 build 函数里的局部 const 共享作用域检查——`sc/cg/cc` 这类
+   通用缩写会与既有变量 TS2451 重名（足球轮 sc 撞 scored 写入，改名 sCommit 解）。
+
+### 信号工作流结束
+
+
 ## DSL 受限子集速查
 
 | 能力 | 状态 | 说明 |
