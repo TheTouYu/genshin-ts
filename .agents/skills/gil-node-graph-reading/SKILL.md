@@ -33,7 +33,7 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `tools/check-gil-composite-refs.ts` | **全量复合引用完整性**：impl 图引用复合 ID 0 悬空；`--incoming <本次.gia>` 检测残留 def 引用被注入覆盖（类型错位事故模式）——**注入后必跑**（2026-08-20 新增） | `<地图.gil> [--incoming <game.gia>] [--json]` |
 | `tools/decode-gia.ts`（项目根） | **编译产物 `.gia` 解码**（accessories 复合 def + graph 主图 + compositePins；配 jq 查询）——验证 .gia 用这个，不用本技能其他工具 | `<file.gia> 2>/dev/null \| jq '[.accessories[] \| select(.which==12).name]'` |
 
-运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。
+运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 子命令在 DSH/WSL 环境优先用 `node bin/gsts.mjs <子命令>`——`npx tsx src/cli/gsts.ts` 在该环境可能因 tsconfig 从 `$HOME` 解析而炸出超大错误堆栈（2026-08-31 实证，污染上下文），原生环境两者皆可。
 
 ## 追踪 playbook（按顺序，需要才深入）
 
@@ -237,7 +237,9 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
      这类问题编译期不报错，必须读 `flow`/`boundary` 才能发现（2026-08-20 日志 2777 实证）。
    - 编译器 bug：节点爆炸（函数内联×分支/常量当变量读）、capture 链异常、值类型错、
      丢边（.gia 有边 .gil 丢边——注入器按 CompositeDef 裁剪调用点引脚）
-6. **.gia 值定位与常量浮点形态速查（2026-08-31 足球四点合一实证）**——核"常量折叠落位"时：
+6. **.gia 值定位与常量浮点形态速查（2026-08-31 足球四点合一实证）**——核"常量折叠落位"时，
+   **首选一条命令：`npx tsx tools/gia-verify-pin.ts <file.gia> --vals 0.12,3.5 [--composite <名>] [--data]`**
+   （常量落位 + 信号三件套 + 复合名录 + 执行序 dump 一次出全；手写扫描器的原理速记如下，工具不可用时兜底）：
    - **TS 常量 → float32 形态**：0.12→`0.11999999731779099`、0.35→`0.3499999940395355`、
      0.15→`0.15000000596448`、8.333→`8.333333015441895`。**字符串 grep "0.12" 会 0 命中**
      （0.11999… 不含子串 "0.12"）——必须数值扫描，不能字符串匹配。
