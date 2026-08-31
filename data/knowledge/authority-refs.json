@@ -1522,6 +1522,21 @@
       ]
     },
     {
+      "id": "aref_3ae2cdf08e72432ce0d23a7b00",
+      "path": "tools/gia-verify-pin.ts",
+      "locator": "文件头注释 + scanNumbers（float32 容差匹配 + GID_NAMES 常用节点表）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "fb4cf96f9d413df3c4502f123ec0925488abce3f73cc4c2ebdd72a569f810a72",
+      "claim_ids": [
+        "clm_FDB76FEF6D4CED36974DBCFFB2"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_3b5c48ac4b7894f2eec3c83ff6",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 47-图片控件",
@@ -5009,6 +5024,21 @@
       ]
     },
     {
+      "id": "aref_cec918498a82630b38362f2459",
+      "path": "src/compiler/ir_to_gia_transform/build_signal_definition.ts",
+      "locator": "finalizeSignalEncoding：'signal is not registered in target map' 抛出点（signalRegistry 来自目标地图 .gil）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c897dd6fc278e2315306ebb897ba6becf13ff70fc7779ab9616ed3757c6133ab",
+      "claim_ids": [
+        "clm_5A9BAF613A81B6EFA775598714"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_cedc9b577a15faabf95dbeea13",
       "path": "docs/docs/zh/doc/cli/config.md",
       "locator": "1ff4d6a:staticPrefabUpdates 章节",
@@ -5039,6 +5069,21 @@
       ]
     },
     {
+      "id": "aref_cf6ac3285120d1fbf37377c8b8",
+      "path": ".agents/skills/dsl-nodegraph-development/SKILL.md",
+      "locator": "### 信号工作流（新增/改信号必读，2026-08-31 足球 state_changed 实证）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c0f0ada6b8d5bf4428568bcd0f29ca367795283a797a6846a2ef938c005d5738",
+      "claim_ids": [
+        "clm_5A9BAF613A81B6EFA775598714"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_cfe345e54d5210ac2f6f495c37",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-28-regression-fix.md",
       "locator": "系统性根因 #1 修复方案反模式",
@@ -5051,6 +5096,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_d22fefa2d401a17bf4bd7cd51a",
+      "path": ".agents/skills/gil-node-graph-reading/SKILL.md",
+      "locator": "Step 3.6 第 6 条：.gia 值定位与常量浮点形态速查（2026-08-31 足球四点合一实证）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "721b4c03dc4e562a830170aa769ff400caa69791e539139dabf1ea61aac6709b",
+      "claim_ids": [
+        "clm_FDB76FEF6D4CED36974DBCFFB2"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

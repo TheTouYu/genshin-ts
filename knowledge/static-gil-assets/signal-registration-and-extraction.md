@@ -25,3 +25,15 @@ gsts assets:signals 向地图 GIL 注册新信号：参数布局来源两路—�
 证据为真实 GIL 观察 + 编辑器保存字节对比 + 游戏内验证；不解释定义侧 f3/f4 类型编码细节（含列表嵌套 102 字段，工具克隆条目无需理解）。
 
 <!-- CLAIM:END clm_EB98A0BAEA640B8ECB6577B16C -->
+
+<!-- CLAIM:START clm_5A9BAF613A81B6EFA775598714 -->
+
+### 新增信号的双注册工作流：地图 .gil 注册是编译硬前置（2026-08-31 足球 state_changed 实证）
+
+在 Genshin-TS 里新增可编译的信号需要两级注册且顺序固定：(1) TS 侧 resources/signals.ts 加 defineSignal 只定义编译期 schema；(2) 目标地图 .gil 必须先用 `gsts assets:signals register --map-id <id> --name <名> --param <名>:<类型> [--template-gil <donor地图> --template-signal <名>] --write` 注册出 send/monitor/server 三节点 ID——编译器从目标地图读信号注册表（createSignalRegistry(readRegisteredSignalsFromGil)），未注册直接报 'signal is not registered in target map' 编译失败。register 子命令只认 --map-id/--gil 不认 --config；重复非 str 参数（如两个 int）受 builtin 每类型单布局限制，必须从其他地图找含 ≥2 个同类型参数的信号做 donor。模型侧验证可用 GSTS_LOCALLOW_DIR 指向地图副本目录树，在副本上 register+编译+decode 核验完全不碰真实游戏文件，通过后再打包申请正式注册+注入。
+
+#### 适用边界
+
+适用于 Genshin-TS gsts CLI 信号工作流（2026-08-31 state_changed 注册实证：donor=rubik3x3_solve，send/mon/srv=1610612753/754/755）。不覆盖信号编码 wire 细节（见 signal-node-instance-encoding 族 claim）；正式注册/注入写真实地图仍需用户确认（破坏性操作边界）。
+
+<!-- CLAIM:END clm_5A9BAF613A81B6EFA775598714 -->
