@@ -48,8 +48,10 @@ try {
   fs.rmSync(output, { force: true })
 }
 
-// 46de408 builtin 布局池：重复同类型参数由内置生成器覆盖（str send +4k、monitor/server +k），
-// 不再依赖 donor 提供 N 套真实布局 → 不再 fail-closed 报错。
+// donor 池跨信号聚合（football-v2 R2.1）：donor 地图全部信号的同型槽都进池
+// （cube_turn face[12]/direction[16] + 信号测试全参数.文本[12]/工具_系列 str 槽），
+// 3 个 str 参数借前三个槽 [12],[16],[12]——同槽被多参数引用是编辑器共享槽形态
+// （工具_系列），引擎不校验 pin 唯一性（2026-09-02 差分，见 gil_signal_registrations.ts）。
 const tooMany = registerSignalInGil({
   bytes: target,
   templateBytes: donor,
@@ -63,6 +65,7 @@ const tooMany = registerSignalInGil({
     ]
   }
 })
+assert.equal(tooMany.templateSignalName, 'cube_turn')
 const tooManyOut = `/tmp/gsts-signal-too-many-${process.pid}.gil`
 fs.writeFileSync(tooManyOut, tooMany.bytes)
 try {
@@ -71,13 +74,80 @@ try {
   assert.deepEqual(
     sig.params.map((param) => [param.sendPinIndex, param.monitorPinIndex, param.serverPinIndex]),
     [
-      [111, 132, 145],
+      [12, 34, 40],
       [16, 35, 41],
-      [20, 36, 42]
+      [12, 34, 40]
     ]
   )
 } finally {
   fs.rmSync(tooManyOut, { force: true })
+}
+
+// builtin fallback 路径（无 donor，2026-09-02 还债后任意同型重复不再 fail-closed）：
+// pin +1k 连续分配（旧 str send +4 系 cube_turn 复制巧合，作废）。重复 float 是
+// 能力债核心场景（历史编辑器从未出现、无 donor 也可注册）。target mapPool 已有
+// 2 个 float 槽（信号_1.参数_2 / 信号_全部参数测试.参数_2）优先复用，第 3 个
+// float 由 builtin 生成（基数 90/109/122 + startK=2 → 92/111/124）；int 复用
+// mapPool 第 1 槽。
+const builtinRepeat = registerSignalInGil({
+  bytes: target,
+  signal: {
+    name: 'builtin_repeats',
+    params: [
+      { name: 'a', type: 'float' },
+      { name: 'b', type: 'float' },
+      { name: 'c', type: 'float' },
+      { name: 'd', type: 'int' }
+    ]
+  }
+})
+assert.equal(builtinRepeat.templateSignalName, 'builtin-layouts')
+const builtinOut = `/tmp/gsts-signal-builtin-repeat-${process.pid}.gil`
+fs.writeFileSync(builtinOut, builtinRepeat.bytes)
+try {
+  const sig = readRegisteredSignalsFromGil(builtinOut).find((s) => s.name === 'builtin_repeats')
+  assert.ok(sig)
+  assert.deepEqual(
+    sig.params.map((param) => [param.sendPinIndex, param.monitorPinIndex, param.serverPinIndex]),
+    [
+      [38, 53, 66],
+      [87, 125, 138],
+      [92, 111, 124],
+      [37, 52, 65]
+    ]
+  )
+} finally {
+  fs.rmSync(builtinOut, { force: true })
+}
+
+// 共享槽去重（2026-09-02 还债补丁）：mapPool 聚合的跨信号共享槽（donor fixture 里
+// 信号测试全参数/工具_全参数/工具_混合 三个信号的 float 都引用 90/109/122）不能让
+// 同一信号的两个参数拿到相同 pin——编辑器无此形态（R1-R4 每参数独立 pin），引擎
+// 未验证。去重后第 2 个 float 由 builtin 生成 91/110/123。
+const dedupeCheck = registerSignalInGil({
+  bytes: donor,
+  signal: {
+    name: 'dedupe_shared_slots',
+    params: [
+      { name: 'p', type: 'float' },
+      { name: 'q', type: 'float' }
+    ]
+  }
+})
+const dedupeOut = `/tmp/gsts-signal-dedupe-${process.pid}.gil`
+fs.writeFileSync(dedupeOut, dedupeCheck.bytes)
+try {
+  const sig = readRegisteredSignalsFromGil(dedupeOut).find((s) => s.name === 'dedupe_shared_slots')
+  assert.ok(sig)
+  assert.deepEqual(
+    sig.params.map((param) => [param.sendPinIndex, param.monitorPinIndex, param.serverPinIndex]),
+    [
+      [90, 109, 122],
+      [91, 110, 123]
+    ]
+  )
+} finally {
+  fs.rmSync(dedupeOut, { force: true })
 }
 
 console.log('signal repeated-type donor layouts: PASS')

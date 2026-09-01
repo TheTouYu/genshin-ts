@@ -44,7 +44,7 @@ function usage(exitCode = 1): never {
     '  --template-signal <name> optional donor signal (builtin layouts cover all types; donor overrides)',
     '  --target-signal <name>   existing signal to update or repair in place',
     '  --name <name>            resulting signal name',
-    '  --param <name:type>      new signal parameter (repeatable, <=12; repeated non-str types need a donor)',
+    '  --param <name:type>      new signal parameter (repeatable, <=12; any type repeats allowed)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
     '  --server-id <id>         new signal server identity node ID (auto when omitted)',

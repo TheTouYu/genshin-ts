@@ -59,7 +59,9 @@ const p1 = parseWireMessage(e1[0].value as Uint8Array)!
   .map((f) => f.value as Uint8Array)
 assert.equal(p1.length, 2)
 assert.deepEqual([pinOf(p1[0], 4), pinOf(p1[0], 5), pinOf(p1[0], 6)], [12, 34, 40])
-assert.deepEqual([pinOf(p1[1], 4), pinOf(p1[1], 5), pinOf(p1[1], 6)], [16, 35, 41])
+// 2026-09-02 差分后步长统一 +1k：第 2 个 str send = 13（旧 16 系 cube_turn 复制
+// 巧合的 +4 规律，作废；引擎不校验 pin 具体值，见 gil_signal_registrations.ts 注释）
+assert.deepEqual([pinOf(p1[1], 4), pinOf(p1[1], 5), pinOf(p1[1], 6)], [13, 35, 41])
 for (const id of [r1.signal.sendId, r1.signal.monitorId, r1.signal.serverId]) {
   assert.ok(defOf(t1, id), 'definition present for ' + id)
 }
@@ -70,7 +72,9 @@ const rb1 = readRegisteredSignalsFromGil(f1).find((entry) => entry.name === 'ver
 assert.ok(rb1, 'read-back entry')
 assert.equal(rb1!.params.map((p) => p.name + ':' + p.type).join('|'), 'msg:str|tag:str')
 
-// ── 2. byte-parity: donor path vs builtin path on a real map with same bases ──
+// ── 2. donor path vs builtin path on a real map: both register validly ────────
+// 2026-09-02 起 builtin 用 +1k 连续 pin，与 donor 抄来的编辑器槽位值不同属预期
+// （引擎不校验 pin 数值），不再要求两条路径逐字节相等；各自成功注册即可。
 if (REAL_MAP && existsSync(REAL_MAP)) {
   const real = new Uint8Array(readFileSync(REAL_MAP))
   const donorResult = registerSignalInGil({
@@ -83,11 +87,25 @@ if (REAL_MAP && existsSync(REAL_MAP)) {
     signal: { name: 'verify_ping2', params: [{ name: 'msg', type: 'str' }, { name: 'tag', type: 'str' }] }
   })
   assert.equal(builtinResult.templateSignalName, 'builtin-layouts')
-  assert.ok(
-    Buffer.from(donorResult.bytes).equals(Buffer.from(builtinResult.bytes)),
-    'builtin bytes must equal donor-cloned bytes when the map reuses the same bases'
-  )
-  console.log('byte-parity with donor path: OK (' + REAL_MAP + ')')
+  const parityDir = mkdtempSync(join(tmpdir(), 'gsts-signal-test-'))
+  const parityMap = join(parityDir, 'map.gil')
+  for (const [label, result] of [
+    ['donor', donorResult],
+    ['builtin', builtinResult]
+  ] as const) {
+    writeFileSync(parityMap, result.bytes)
+    const readBack = readRegisteredSignalsFromGil(parityMap).find(
+      (entry) => entry.name === 'verify_ping2'
+    )
+    assert.ok(readBack, label + ' path read-back entry')
+    assert.equal(
+      readBack!.params.map((p) => p.name + ':' + p.type).join('|'),
+      'msg:str|tag:str',
+      label + ' path params'
+    )
+  }
+  rmSync(parityDir, { recursive: true, force: true })
+  console.log('donor/builtin dual-path registration: OK (' + REAL_MAP + ')')
 }
 
 // ── 3. fresh map, multi-type (int + entity + str + int_list) ──────────────────
@@ -129,14 +147,26 @@ const rb3 = readRegisteredSignalsFromGil(f3).find((entry) => entry.name === 'mul
 assert.ok(rb3)
 assert.equal(rb3!.params.map((p) => p.name + ':' + p.type).join('|'), 'a:int|b:entity|c:str|d:int_list')
 
-// ── 4. repeated non-str type fails closed ─────────────────────────────────────
-assert.throws(
-  () =>
-    registerSignalInGil({
-      bytes: freshBytes,
-      signal: { name: 'bad', params: [{ name: 'x', type: 'int' }, { name: 'y', type: 'int' }] }
-    }),
-  /needs 2 distinct layouts/
+// ── 4. repeated non-str type registers without a donor ────────────────────────
+// 2026-09-02 四轮编辑器差分（模型比对 1849）：同型重复参数不再 fail-closed。
+// pin +1k 连续（引擎不校验具体值）；n3 field2 = 全局序号（int 重复 R4 实证：
+// send 0(省略)/1、monitor 3/4）。
+const r4 = registerSignalInGil({
+  bytes: freshBytes,
+  signal: { name: 'two_ints', params: [{ name: 'x', type: 'int' }, { name: 'y', type: 'int' }] }
+})
+const f4dir = mkdtempSync(join(tmpdir(), 'gsts-signal-test-'))
+const f4 = join(f4dir, 'map.gil')
+writeFileSync(f4, r4.bytes)
+const rb4 = readRegisteredSignalsFromGil(f4).find((entry) => entry.name === 'two_ints')
+assert.ok(rb4)
+assert.equal(rb4!.params.map((p) => p.name + ':' + p.type).join('|'), 'x:int|y:int')
+assert.deepEqual(
+  rb4!.params.map((p) => [p.sendPinIndex, p.monitorPinIndex, p.serverPinIndex]),
+  [
+    [68, 76, 83],
+    [69, 77, 84]
+  ]
 )
 
 // ── 5. n3 field2 = 参数全局序号（2026-08-16 灯阵差分实证）──────────────
