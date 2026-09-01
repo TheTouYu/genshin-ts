@@ -42,7 +42,7 @@ node bin/gsts.mjs assets:skill-config create --gil "$MAP" --id <28段ID≥119118
   --name <技能名> --template 28 --skill-type instant --graph-id <A> --write   # root20 联动自动
 node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --entity --gil "$MAP" --write
 ```
-**20007 图 CLI 建不了**（自动节点未采样 fail closed）→ 编辑器建空图（自动 ID=段内 max+1，核实际值）。
+20007 决策图同命令创建（2026-09-02 接入）：`assets:node-graphs create --gil "$MAP" --type 20007 --graph-id <D> --name _GSTS_xxDecision --write`（自动节点与 20009 同族 200126/4000+f11，folderId 58/6600，1915 同构验证）；编辑器手建的默认名图注入前仍需 patch graph-clear。
 
 ### ③ 源码回填真实 ID → 编译（--noinject）
 改 templates 里的图 ID/信号名/configId → `node bin/gsts.mjs -c gsts.zaowu.config.ts --noinject`

@@ -2,6 +2,13 @@
 
 ## 最近轮次
 
+- 2026-09-02（**客户端算力最小通路 E1 配置+注入 4/4 完成**，REBUILD-V2-PLAN R1 主线，未做物理移植，待用户编辑器配置+日志验证）：
+  - **资产全链**（全部新 ID，旧四图未动）：CLI 写回 1908 七项——信号 fb_echo(tag:str,e:int,c:int)=1610612771/772/773（内置三参布局，无需 donor）；客户端图 1082130433(fb-phys,20008)/1082130434(fb-status,20009)/**1082130435(fb-decision,20007)**；服务端 fb-server=1073741830 挂关卡实体 1094713345；技能配置 1191182337（28 自定义造物+瞬发，body-78-f4 绑 433）；寄存器 fb_epoch/fb_ack/fb_sum/fb_t1..t8（11 个 int，玩家模板实体 1086324737，单副本边界=多人需逐副本同步，E1 单人够用）。
+  - **源码与产物**：`src-fb/` 五件套（照抄 zt-lane 缩比 8 载荷+E2 计数器 fb_tick——单名局部变量 tick.set(tick.value+1n)，编译产物 Get/Set 执行序已断言）+ `gsts.fb-client.config.ts`（隔离编译，dist-fb/）。节点预算：fb-phys 34+fb-status 2+fb-server 79+fb-decision 2=117 << 2000。
+  - **20007 CLI 接入**（顺手闭环用户早前教学）：GRAPH_TYPES 加行（folderId 58/typeValue 6600，自动节点与 20009 同族 200126/4000+f11）——1915 真实图 1082130438 逐字节同构验证（f11=`5a070801a206020801`）后 build+commit 1da3fae；client 技能三处"20007 建不了"旧文案已同步更新。
+  - **核验（结构层）**：四图注入 ok 4/0；Temp 双 SHA 一致；composite-refs ×4 = 0 悬空；图清单回读节点数与编译产物一致；fb-phys wire 断言（入口 200042+8 载荷读+三 sendSignal(773)；fb-server onSignal(772) 监听+定时器名单制空分支）。
+  - **待办两步**：①用户编辑器配造物 4 项（小体型模型+技能引用 CD 0.01s+忽略公共冷却+自主逻辑模板_1+决策图 1082130435 绑定）；②进图 1 分钟留 Beyond_Debug_Log 验四层签名：fb:armed → f8=4194308 → fb:ack → fb:cnt 逐拍 +1（E2 图变量跨拍保持=R1 最高风险点；失败兜底=物理降频 5Hz）。
+
 - 2026-09-01（**重建 v2 R0 盘点与裁决**：客户端算力基座 + 球独立物理体，未动代码未动地图，交付 `REBUILD-V2-PLAN.md` 待用户裁决）：
   - **通读**：client-nodegraph-development 技能全文 / PROGRESS 近轮 / PORTING-MAP / 目录 AGENTS / retrospective-2026-08-31-compute-lane-sync（另补读 ARCHITECTURE-V5.md）。
   - **静态盘点（新证据）**：客户端图节点面（src/definitions/client_nodes.ts）**无** setCustomVariable / addBasicMotionDevice / setEntityLocation（有 getEntityLocation 只读、setLocalVariable、getControlMotorCurrentVelocity）→ ①(b) 客户端图直驱运动器**静态判死**（保留编辑器 10 秒差分反证口），视觉驱动收敛 (a) 回传-服务端挂运动器；②客户端球态必须图内自持（每拍读服务端变量 0~1s 复制延迟不可行）；③R4 玩家速度可客户端直取。
