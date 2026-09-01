@@ -2,7 +2,7 @@
 
 > 状态：部分已验证
 > 来源：真实 GIL/GIA 相邻快照 + 用户编辑器说明 + 当前源码 reader 对照
-> 最近校验：2026-08-05
+> 最近校验：2026-09-02（阅读顺序全量核对，补录 8 个成文章节）
 > 适用范围：从真实关卡文件逐步还原游戏引擎规则
 > 命名说明：本索引命名为 AGENTS.md（原 index.md）——代理工具读写本目录文件时会自动注入本文件，避免导航入口不被读到。
 
@@ -19,23 +19,31 @@
 5. [组件](components.md)
 6. [运动器（Motion Device）运行时行为](motion-devices.md)
 7. [屏幕控件与 UI](ui-controls.md)
-8. [镜头系统](camera-system.md)
-9. [节点图挂载与生命周期](graph-mounting.md)
-10. [调试日志格式（Beyond_Debug_Log）](debug-log-format.md)
-11. [节点图与拓扑](node-graphs.md)
-12. [参数类型](parameter-types.md)
-13. [变量与作用域](variables.md)
-14. [控制流](control-flow.md)
-15. [数据流与连接](data-flow.md)
-16. [信号知识](signals.md)
-17. [信号生产红灯修复清单](signal-production-red-lights.md)
-18. [GIA 生产链路与可复现性](gia-generation-chain.md)
-19. [信号实验事实](signals/README.md)
-20. [复合节点](composite-nodes.md)
-21. [游戏引擎知识与项目编译管线](project-pipeline.md)
-22. [验证与规则学习流程](validation-workflow.md)
-23. [素材库注入](library-injection.md)
-24. [复盘档案（按主题检索历史经验）](#复盘档案)
+8. [UI 能力覆盖探索登记本](ui-coverage-exploration-log.md)
+9. [富版悬浮交互页创建](ui-floating-page-rich-create.md)
+10. [镜头系统](camera-system.md)
+11. [节点图挂载与生命周期](graph-mounting.md)
+12. [调试日志格式（Beyond_Debug_Log）](debug-log-format.md)
+13. [节点图与拓扑](node-graphs.md)
+14. [参数类型](parameter-types.md)
+15. [变量与作用域](variables.md)
+16. [变量类型变体专题（float/int 分裂）](variable-scopes.md)
+17. [控制流](control-flow.md)
+18. [数据流与连接](data-flow.md)
+19. [信号知识](signals.md)
+20. [信号生产红灯修复清单](signal-production-red-lights.md)
+21. [节点负载参考](node-load-reference.md)
+22. [GIA 生产链路与可复现性](gia-generation-chain.md)
+23. [信号实验事实](signals/README.md)
+24. [复合节点](composite-nodes.md)
+25. [复合节点使用指南](composite-usage-guide.md)
+26. [游戏引擎知识与项目编译管线](project-pipeline.md)
+27. [验证与规则学习流程](validation-workflow.md)
+28. [素材库注入](library-injection.md)
+29. [地形/草皮规则](terrain-grass.md)
+30. [足球带球速度场吸附算法](football-dribble-velocity-field.md)
+31. [魔方自动还原作战手册](rubik-autosolve-playbook.md)
+32. [复盘档案（按主题检索历史经验）](#复盘档案)
 
 ## 知识关系图
 
@@ -190,6 +198,8 @@ GIL 整体结构与语义树
 > [根因族二级卡片](root-cause-family-cards-v2.md)（逐案例：现象/日志帧签名/根因子类/防线）/ [地图×图型矩阵](map-graph-type-matrix.md) /
 > [覆盖率矩阵](coverage-matrix-v2.md)（文档×族×五沉淀层，红格=0）。执行过程元复盘：[二轮复盘任务复盘](retrospective-2026-08-29-meta-retro-round2.md)。
 > 第一轮总纲 [2026-08-22~29](retrospective-weekly-2026-08-22-29.md) 已标历史记录（被 v2 取代）。
+> 登记口径：归档登记截至 **2026-08-30 批次**；2026-08-31 之后新增的复盘尚未入册（可按
+> `retrospective-*.md` 文件名直查，含 08-31 足球 v5 三篇/客户端链路、09-01~09-03 六篇，待补登记）。
 
 - **魔方 rubik-2x2/3x3**：整体性能与预算 [08-14](retrospective-2026-08-14.md)、
   [P0/P1](retrospective-2026-08-21-rubik-performance-p0-1.md)、[记录上限 3000f](retrospective-2026-08-22-rubik-record-limit-fixes.md)、

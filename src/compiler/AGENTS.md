@@ -24,6 +24,7 @@
 - 进程间阶段执行应保持隔离，不依赖共享可变状态。
 - IR 是唯一的类型化跨阶段交接；修改 IR 形状时检查生产者、消费者、合并逻辑和回归。
 - 修改共享语义（capture、timer、Composite、special-arg、信号）时，必须同时检查 Stage 1 转换、ESLint 限制、Stage 3 编码和对应 focused 回归，不能只放宽一层。
+- 新增 tsx spawn、CLI 入口或改 tsconfig/类型配置时，遵守根 CLAUDE.md「类型与运行时单副本」：每个 tsx spawn 注入 `TSX_TSCONFIG_PATH`（路径用 `resolveTsxConfigPath(__dirname)`，不写死相对层级），并验证解析方向。
 
 ## 验证
 

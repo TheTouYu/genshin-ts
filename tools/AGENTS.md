@@ -6,8 +6,8 @@
 
 ## 关键入口
 
-- GIA 解码/追踪：`decode-gia.ts`、`analyze-composite-gia.ts`、`trace-gia-exec-flow.ts`、`trace-gia-dataflow.ts`。
-- GIL 节点图/信号/变量：`parse-gil-node-graph.ts`、`explain-gil-node-graph.ts`、`decode-gil-raw.ts`、`scan-gil-signals.ts`、`inspect-gil-custom-variables.ts`。
+- GIA 解码/结构：`decode-gia.ts`、`analyze-composite-gia.ts`、`parse-gia-graphs.ts`、`inventory-gia-units.ts`。
+- GIL 节点图/追踪/信号/变量：`parse-gil-node-graph.ts`、`explain-gil-node-graph.ts`、`trace-gil-exec-flow.ts`、`trace-gil-dataflow.ts`、`list-gil-node-graphs.ts`、`compare-gil-node-graph.ts`、`wire-inspect.ts`、`decode-gil-raw.ts`、`scan-gil-signals.ts`、`inspect-gil-custom-variables.ts`。
 - 差分/布局：`diff-gil-files.ts`、`dump-layout.ts`、`topology.ts`。
 - PKC：`pkc.py`、`evaluate_pkc_retrieval.py`、`validate_pkc_bundle.py`（知识树操作，不是游戏分析工具）。
 
