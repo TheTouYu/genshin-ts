@@ -264,7 +264,11 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
     const t = it as { type_server?: { kind?: number } }
     if (t.type_server && t.type_server.kind === 0) delete t.type_server.kind
   }
-  const normalizePinInner = (e: unknown, keepNonDefaultAlreadySetVal = false) => {
+  const normalizePinInner = (
+    e: unknown,
+    keepNonDefaultAlreadySetVal = false,
+    explicitBoolFalse = false
+  ) => {
     if (!e || typeof e !== 'object') return
     const ev = e as {
       alreadySetVal?: boolean
@@ -286,6 +290,13 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       (ev.bInt && nonZero(ev.bInt.val)) ||
       (ev.bFloat && nonZero(ev.bFloat.val)) ||
       (ev.bEnum && ev.bEnum.val != null && ev.bEnum.val !== false && nonZero(ev.bEnum.val)) ||
+      // 2026-09-01 铁证（rubik-3x3-client 3074 rec58）：set_node_graph_variable/set_custom_variable
+      // 的 value pin 显式写 bool false（bEnum.val=0/false）时，0 是"已设置的值"而非"未设置"。
+      // 若按默认值零清 alreadySetVal → 引擎视为未设置 → 回退 true → unlock 把 lock 写成 true。
+      // 参照物 1899：显式 false 内层 alreadySetVal=true + bEnum{}（无 val）；引擎认这个形态。
+      // 仅对 set 族 value pin（keepNonDefaultAlreadySetVal=true）生效，不改变默认值锚/其它族。
+      // bEnum.val 可能是 boolean false 或 number 0（两者都表示显式 false）
+      (explicitBoolFalse && ev.bEnum && (ev.bEnum.val === false || ev.bEnum.val === 0)) ||
       (ev.bString && ev.bString.val != null && ev.bString.val !== '') ||
       (ev.bId && nonZero(ev.bId.val)) ||
       (vec !== undefined && (nonZero(vec.x) || nonZero(vec.y) || nonZero(vec.z))) ||
@@ -366,7 +377,15 @@ function normalizeNodePinValuesEditorWire(nodes: unknown[] | undefined): void {
       }
       if (cv.class !== 10000 || !cv.bConcreteValue) continue
       const isGetIn0 = gid === 18 && pinI1?.kind === 3 && (pinI1?.index ?? 0) === 0
-      normalizePinInner(cv.bConcreteValue.value, isGetIn0)
+      // set_node_graph_variable(323)/set_custom_variable(22) 的 R<T> value pin 是显式赋值语义：
+      // 即使写 false/0 也必须保留 alreadySetVal，否则引擎按"未设置"回退默认（true）。
+      // 只对 InParam value pin 生效；OutParam（如 gid18 输出锚）不受影响。
+      const isSetValuePin =
+        (gid === 323 || gid === 22) &&
+        pinI1?.kind === 3 &&
+        (pinI1?.index ?? 0) === (gid === 323 ? 1 : 2)
+      // isGetIn0 保留 gid18 默认锚语义（false 清空）；isSetValuePin 单独触发显式 bool false 保留
+      normalizePinInner(cv.bConcreteValue.value, isGetIn0, isSetValuePin)
       if (gid === 18 || gid === 19) {
         const vt = (cv.bConcreteValue.value as
           | { itemType?: { type_server?: { type?: number } } }
