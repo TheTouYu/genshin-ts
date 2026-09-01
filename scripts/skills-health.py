@@ -5,10 +5,14 @@
 但那个"全局副本"是指向项目目录的软链接——删除后 dsh-session-history / dsh-plugin-search
 两个技能静默死亡 9 天，AGENTS.md 路由表每天注入死引用，直到用户 09-01 会话中爆发才定位。
 
-本脚本回答三个问题：
+本脚本回答四个问题：
   1. AGENTS.md / CLAUDE.md 里反引号引用的技能，是否都能解析到真实 SKILL.md？
   2. 全局 ~/.agents/skills/ 下的软链接是否有悬空？
   3. 项目与全局是否存在同名重复实体（结构漂移预警）？
+  4. SKILL.md frontmatter 是否能通过 DSH 加载器的解析（YAML 陷阱/name 一致性）？
+     （2026-09-04 事故催生：editor-incremental-gia-investigator 的 description 值内
+     含英文冒号+空格 "closed: the"，YAML 单行 plain scalar 被判嵌套映射，frontmatter
+     解析失败被 DSH 静默忽略——文件在、体检 PASS，但技能从会话目录消失多日。）
 
 用法：
   python3 scripts/skills-health.py            # 体检，死引用/悬空链接时 exit 1
@@ -50,6 +54,65 @@ def has_skillmd(name: str) -> tuple[bool, str]:
     return False, "项目/全局均无 SKILL.md"
 
 
+def lint_frontmatter(name: str) -> str | None:
+    """模拟 DSH 加载器（dsh-skill-filesystem parseSkillFile）对 SKILL.md 的解析失败分支。
+
+    返回 None = 通过；返回字符串 = 会被 DSH 静默忽略的原因。
+    零依赖启发式：不追求完整 YAML，只覆盖已知致命陷阱：
+      - 缺 frontmatter（首行 --- / 闭合 ---）
+      - 单行 plain scalar 值内出现 "冒号+空格"（判嵌套映射，2026-09-04 事故）
+      - 引号值首尾不配对 / 引号外有多余内容
+      - 缺 name 或 description / name 与目录名不一致
+    """
+    path = None
+    for base in (PROJECT_SKILLS, GLOBAL_SKILLS):
+        candidate = base / name / "SKILL.md"
+        if candidate.is_file():
+            path = candidate
+            break
+    if path is None:
+        return None  # 实体缺失由死引用检查负责，不重复报
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0].strip() != "---":
+        return "缺 YAML frontmatter（首行不是 ---）"
+    try:
+        closing = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+    except StopIteration:
+        return "frontmatter 未闭合（缺 --- 结束行）"
+    fields: dict[str, str] = {}
+    for line in lines[1:closing]:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if ":" not in stripped:
+            return f"frontmatter 行无法按 key: value 解析：{stripped[:60]!r}"
+        key, _, value = stripped.partition(":")
+        key, value = key.strip(), value.strip()
+        if not key:
+            return f"frontmatter 键为空：{stripped[:60]!r}"
+        if value.startswith(('"', "'")):
+            quote = value[0]
+            if len(value) < 2 or not value.endswith(quote) or value[-2] == "\\" and quote == '"':
+                return f"{key} 引号值未正确闭合（{quote}...{quote}）"
+            value = value[1:-1]
+        elif value.startswith(("|", ">")):
+            fields[key] = "(block scalar)"  # 块标量：内容在后续行，跳过值检查，仅标记非空
+            continue
+        elif ": " in value:
+            return (
+                f"{key} 值内含 '冒号+空格'（{value.find(': ')} 字符处）——"
+                "YAML 判嵌套映射，DSH 加载器会静默忽略本技能；改全角冒号/破折号或整体加引号"
+            )
+        fields[key] = value
+    if not fields.get("name"):
+        return "缺 name 字段"
+    if not fields.get("description", "").strip():
+        return "缺 description 字段或为空"
+    if fields["name"] != name:
+        return f"name 字段 {fields['name']!r} 与目录名 {name!r} 不一致"
+    return None
+
+
 def collect_refs() -> dict[str, list[str]]:
     refs: dict[str, list[str]] = {}
     for doc in DOCS:
@@ -83,20 +146,29 @@ def main() -> int:
             if entry.is_symlink() and not entry.exists():
                 dangling.append((entry.name, os.readlink(entry)))
 
+    badfm: list[tuple[str, str]] = []
+    for name in ok:
+        problem = lint_frontmatter(name)
+        if problem:
+            badfm.append((name, problem))
+
     print(f"技能引用体检：AGENTS.md/CLAUDE.md 共 {len(refs)} 个 kebab 引用")
     if show_all:
         for name in ok:
             print(f"  OK   {name}")
     for name, why in dead:
         print(f"  DEAD {name} — {why}")
+    for name, why in badfm:
+        print(f"  BADFM {name} — {why}")
     for name in dupes:
         print(f"  NOTE {name} — 项目/全局双实体，注意同步")
     for name, target in dangling:
         print(f"  DANGLING 全局软链接 {name} -> {target} 目标不存在")
 
-    if dead or dangling:
-        print(f"\n结果：FAIL（{len(dead)} 死引用，{len(dangling)} 悬空链接）")
+    if dead or dangling or badfm:
+        print(f"\n结果：FAIL（{len(dead)} 死引用，{len(dangling)} 悬空链接，{len(badfm)} frontmatter 不可加载）")
         print("处理：先确认引用是否仍在用（在用→恢复实体），删除/改链接属破坏性操作须用户确认。")
+        print("BADFM = 文件在但 DSH 加载器会静默忽略（YAML 陷阱/字段缺失/name 错位），按提示改 frontmatter。")
         return 1
     print(f"\n结果：PASS（{len(ok)} 技能引用全部可解析，0 悬空链接）")
     return 0
