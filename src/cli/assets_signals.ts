@@ -24,7 +24,9 @@ import { sha256Bytes } from './static_assembly/json.js'
 type Command = 'inspect' | 'register' | 'repair' | 'update'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
-const MAX_PARAMS = 9
+// Engine accepts 12+ param signals (official「绘制圆弧」12-param signal in 1073741912);
+// this cap only guards runaway CLI input, so align it with the proven editor max.
+const MAX_PARAMS = 12
 const PARAM_TYPES = new Set<string>(
   Object.keys(PARAM_TYPE_CODES).filter((type) => type !== 'faction' && type !== 'faction_list')
 )
@@ -42,7 +44,7 @@ function usage(exitCode = 1): never {
     '  --template-signal <name> optional donor signal (builtin layouts cover all types; donor overrides)',
     '  --target-signal <name>   existing signal to update or repair in place',
     '  --name <name>            resulting signal name',
-    '  --param <name:type>      new signal parameter (repeatable, <=9; repeated non-str types need a donor)',
+    '  --param <name:type>      new signal parameter (repeatable, <=12; repeated non-str types need a donor)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
     '  --server-id <id>         new signal server identity node ID (auto when omitted)',
