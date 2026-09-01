@@ -70,7 +70,12 @@ const HOME_ST = 4
 // ———— 复合：邮箱投递（t1..t8 + 闭式 sum + epoch；三调用点=种子/进球复位/R3 踢球入口） ————
 // sum=Σtᵢ 在投递时点求值（载荷随任务不同而不同；撕裂检测由 fb-phys 端同式求和比对，
 // 同任务重复投递幂等；节点预算纪律：7 个加法节点替代逐任务手写闭式）。
+// 复合 def ID 显式分配 1610700040..43（04 票注入预检发现：默认顺序分配 1610700000..03
+// 会覆盖地图上旧 v5 家族 def（dribble_field_get_role/ball_render_frame/ball_render_halt），
+// 旧图 825/828/829 仍挂载在引用它们 → 类型错位=拒载。目录现占用 1610700000..32，
+// 40..43 空闲（impl 图 1610710040..43 同空闲），零行为变化仅 ID 锚定）
 const fbMailPost = g.defineComposite('fb_mail_post', {
+  id: 1610700040,
   inputs: {
     owner: { type: 'entity' },
     pe: { type: 'int' },
@@ -122,6 +127,7 @@ const fbMailPost = g.defineComposite('fb_mail_post', {
 
 // ———— 复合：镜像提交（first-wins 应用拍；镜像 11 写 + gate 关门，12 连写一条链） ————
 const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
+  id: 1610700041,
   inputs: {
     ball: { type: 'entity' },
     nt: { type: 'int' },
@@ -171,6 +177,7 @@ const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
 // 实体当前位=引擎权威视觉位（R2-DESIGN §1 主案：插值从球真实所在位置追到 t+0.2s 预测位，
 // 抵消环路延迟；区别于 2026-08-27 反例——彼处逻辑速度才是真相故禁反推，此处镜像即真相）。
 const fbDrive = g.defineComposite('fb_drive', {
+  id: 1610700042,
   inputs: {
     ball: { type: 'entity' },
     pos: { type: 'vec3' }
@@ -193,6 +200,7 @@ const fbDrive = g.defineComposite('fb_drive', {
 
 // ———— 复合：瞬移（RESET 应用后首拍；INSTANT 定点运动器，防百米条纹） ————
 const fbTeleport = g.defineComposite('fb_teleport', {
+  id: 1610700043,
   inputs: {
     ball: { type: 'entity' },
     pos: { type: 'vec3' }
