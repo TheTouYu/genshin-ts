@@ -5,6 +5,8 @@ executeSkill → 造物技能(28+瞬发) → 20008 客户端图 → 信号回传
 
 ## templates/（照抄起步，改占位符）
 
+**基础 5 件套 `templates/zaowu-basic/`**（与仓库 `verify/zaowu-client/` 工作版本同源）：
+
 | 文件 | 作用 | 必改占位符 |
 |---|---|---|
 | `signals.ts` | 回传信号定义 | 信号名 zaowu_probe（register 时同名） |
@@ -14,7 +16,8 @@ executeSkill → 造物技能(28+瞬发) → 20008 客户端图 → 信号回传
 | `zaowu-server.ts` | 服务端监听图（挂载关卡实体） | 图 ID 1073741830、信号名 |
 | `gsts.zaowu.config.ts` | 隔离编译配置（dist-zaowu，批量注入按 .gia 内 ID 路由） | mapId 1073741915 |
 
-源码原型：仓库 `verify/zaowu-client/`（工作版本）。
+**可靠性层 `templates/zt-lane/`**（六件套：seqlock 门控/dispatcher/邮箱生产者/信号/配置）——
+多变量批量任务/并发写者才需要，见 SKILL.md 五D 与下文「计算通道同步机制」节。
 
 ## 全链 runbook（每步的命令与纪律）
 
@@ -44,9 +47,13 @@ node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --en
 ### ③ 源码回填真实 ID → 编译（--noinject）
 改 templates 里的图 ID/信号名/configId → `node bin/gsts.mjs -c gsts.zaowu.config.ts --noinject`
 （config 的 inject.mapId 必须指向目标地图——信号注册表从真实地图解析）。
+**⚠ 编译前置铁律（2026-09-01 足球会话实证）**：信号必须已用 `--write` **真实写回地图**——
+干跑 `--output` 候选不算，干跑状态下编译直接报信号编码错误，白烧一轮。
 
 ### ④ wire 断言（编译 ≠ wire 正确）
 `npx tsx tools/decode-gia.ts dist-zaowu/.../*.gia -o /tmp/x.json` 逐图核对：
+**节点通常在 `.graph.graph.inner.graph.nodes[]`，类型在 `genericId.nodeId`**（先照这条路径取，
+别上来徒手逐层 keys() 探测；完整 playbook 见 gil-node-graph-reading 技能 Step 3.5/3.6）。
 20008=开始节点(200042)→发信号节点（genericId=信号 server 身份 ID）+参数字面量；
 20009=入口(200126)→execute_skill(技能序号字面量)；20007=入口(200126)→switch(configId=状态图ID)。
 **字节模式断言先用正样本回测模式**（f11 块 = `5a 07 08 01 a2 06 02 08 01`，f100 键是 a2 06 不是 a0 06）。
@@ -102,7 +109,13 @@ node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --en
 | 邮箱挂载实体 | pa/pb 与 dispatcher 同实体挂载 | 保持同实体（轮询读自己实体变量） |
 
 信号注册注意：**重复的非 str 参数类型必须提供 donor**——双 int 布局会被 fail-closed，
-用 (tag:str, e:int) 找现成同构信号当 donor（1916 d2cv）。
+用 (tag:str, e:int) 找现成同构信号当 donor（1916 d2cv）。三参 (str,int,int) 实测可注册
+（足球 fb_echo 1610612771/772/773，2026-09-01）——多 int 需 donor 的口径不变。
+
+**紧凑变体（2026-09-01 足球最小通路实证）**：dispatcher 可并入服务端监听图（fb-server
+一张 20000 图 = 1s 轮询 + 4s 看门狗 + onSignal，79 节点，挂关卡实体）——比 zt-lane 三图分离
+（zt-main 独立）更省图位，任务量小时优先用；20008 门控图缩到 34 节点（seqlock 门+图内
+计数器）可行。同表面积下的取舍：并图省资产、分图好隔离排障。
 
 ## 证据与工作版本
 
