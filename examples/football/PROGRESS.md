@@ -2,6 +2,12 @@
 
 ## 最近轮次
 
+- 2026-09-03（**重建 v2 R2.3 fb-phys 扩建（票 03）：六态物理客户端半边交付**；编译 0 error、断言门禁 42/42、执行流健康全过；内容注入归 04 票，游戏行为层零验证）：
+  - **交付（34→503 节点，预估带 850~1250 之下——如实入账；≤2000 红线余量 75%）**：①拍门（gate=1 ∧ epoch==ack 才计算——防任务在途时旧镜像计算顶掉任务回传）；②球寻址 E5 主链 getSelfEntity→fb_ball_entity→球变量（观测链降级：getEntityType 客户端 f 面无此方法→位置对账 fb_echo tag='e5' 回传 mm 差）；③镜像 11+tick 二读防撕裂（撕裂→任务拍 tearE 不 ack 交看门狗重提交/拍门拍 'T' 不应用重算）+参数 19 当拍物化（不变量 1）；④任务三分支：KICK（vel/spin 覆盖）、RESET（pos/vel/state 覆盖+spin 清零）、未知类型跳过应用仍 ack（02 契约）；**ack 延迟到镜像一致后**（防丢任务闭环设计）；⑤六态积分单拍闭式：飞行（重力+KD·|v|v+KM·ω×v+kw_air）/地面（滑滚同构、减速率按态选择、自旋收敛纯滚目标+y 独立 kw_gnd）/门柱×2+横梁+网+四面墙+地面反弹/分类器（停4>弹1>空0>滑入2>滑滞回>滚3，sim 枚举）；⑥回传 'P'（base_tick=镜像 tick）+E5 观测。
+  - **结构层核验（decode-gia 全对账）**：断言门禁 **42/42**（str：P/T/e5/ok×2/tearE×2/tearH+fb_ball_gate/tick×2/entity+fb_p_* 19+fb_epoch×2/ack/sum/t1..t8；float：52.5×2/3.6×4/2.5×4/1000×13/-55×4/60×4——**图内零物理参数字面量**，全部走变量）；执行流：入口 200042 单源、0 环 0 不可达、8 个多入边全为互斥 else 链合法汇流（goal 五连写汇流/墙分支缝/顺序链）、ack(120)→P(494)→E5(500) 执行序断言过；TS 源码零 +=、min/max 对称式（max(s,0)=(s+|s|)/2）、本图无复合无 outflows 义务。
+  - **已知标定张力（05 收证口径）**：8m/s 平踢按现参数（slide_enter 4.5/slide_decel 4.41）滚停 ≈8~11m < §7 校准带 15~35m（PORTING-MAP #2 slip 判据 R4 才上）；复测若失准编辑器热调 fb_p_slide_enter（→9 平踢纯滚 32m 入带）即时生效。另备案：fb_drive 无自旋设备（“旋转可见”依赖球 basicMotion 自转或补运动器）、vec3 信号参数运行时行为、帧数实测——皆 05 游戏内收证。
+  - **客户端面差异沉淀（编译坑规避实录）**：_3dVectorZoom(标量,向量) 与服务端 (向量,标量) **反序**；getEntityType 七段皆无；f.localVariable 支持 float/vec3/entity（物化通道）；dv/b2f 箭头助手跨分支闭包内联编译通过（×13 展开实证）。
+  - **下一步 R2.4（票 04）**：build+sim 31 门+全链 decode+变量注册表初始值核对+确认制注入+读图核验+Temp 双 SHA；05 复测协议随后。
 - 2026-09-03（**R2.2 补丁：fb_ball_state 信号形态修正——引擎参数上限 10 → 6 参 vec3 定稿**（用户知识输入）；编译 0 error、14 断言回读全过、地图 SHA 51f60721→**ecdd679c** Temp 双 SHA）：
   - **用户知识**：引擎信号参数上限=**10**；超限信号注册表可写入（工具 MAX_PARAMS=12 放行）但运行不可用。**首版实为 12 参**（str+int+9float+int——票 01"11 参"标签系计数笔误，编译器 schema 对照报"registered map has 12 param(s)"实证），用户"12 个超过了"计数正确。
   - **定稿方案（用户建议）**：浮点九连合并 vec3 → `(tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int)` **6 参**。ID 774/775/776 保号原位 update（同型 vec3×3/int×2 经 e231402 共享槽去重生成器落地）；消费端 fb-server onSignal 改 split3dVector 拆分量（+3 节点），fbDrive/fbTeleport 改 pos:vec3 直传（各 -1 节点），镜像 11 标量变量**不动**（球实体状态容器结构稳定）。
