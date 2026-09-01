@@ -29,6 +29,23 @@ serverId
 
 这些 ID 和 pinIndex 必须从当前 GIL 的注册定义读取，不能由相邻 ID、参数序号或历史样本推算。当前项目规范读取入口是 `src/cli/gil_signals.ts` 的 `readRegisteredSignalsFromGil()`；它返回三套参数 pinIndex、server definition VarType、signalVersion、send/monitor 信号名 pinIndex和三份原始 definition bytes。旧 accessory 扫描器返回 0 不能证明地图没有注册信号。
 
+## 信号参数数量上限与超限合并（2026-09-03）
+
+- **引擎信号参数上限 = 10**（用户知识输入，2026-09-03）。超出上限的信号**注册表可以写入**
+  （工具 MAX_PARAMS=12 会放行），但运行不可用——注册成功 ≠ 引擎可用。
+- 实证样本：足球 1908 `fb_ball_state` 首版 **12 参**（1 str + 1 int + 9 float + 1 int——票 01
+  标注"11 参"系计数笔误，注册表实测 12）注册成功，2026-09-03 按用户知识改为 6 参。
+- **超限合并模式：同组浮点标量 → vec3**。`fb_ball_state` 定稿形态 =
+  `(tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int)` 6 参（ID 保号原位 update，
+  同型重复 vec3×3/int×2 经共享槽去重生成器落地，commit e231402 能力）。
+- 服务端消费侧拆分量：`f.split3dVector(evt.params.pos).xComponent` 等（Split 为普通数据
+  节点输出，多点消费稳定）；编译器信号 schema 对照（编码期 vs 注册表）会 fail-closed 拦
+  形态不匹配（实证：12 参注册表 vs 6 参消费直接报 `signal schema mismatch`）。
+- **验证层级**：6 参 vec3 形态已注册+编译通过（结构层）；**vec3 信号参数的发送/监听运行时
+  行为未游戏验证**（足球 04/05 票顺带收证——注册表内另有单 vec3 参信号 football_push 先例）。
+- **待澄清**：官方「绘制圆弧」12 参信号与引擎上限 10 的关系（12 是注册表容量上限还是该信号
+  特例）——影响 CLI MAX_PARAMS 防呆是否应从 12 收紧到 10，待用户澄清后定。
+
 ## 已验证的发送节点骨架
 
 真实基线来自地图 `1073741849.gil`、节点图 `1073741841`「信号调试-发送信号」。未绑定的普通发送节点使用 `SysCall 300000`；绑定信号时，编辑器会重建节点，`nodeIndex` 可以变化。

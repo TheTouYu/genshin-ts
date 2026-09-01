@@ -24,7 +24,7 @@
 - **状态枚举定稿**：0=Airborne 1=Bouncing 2=Sliding 3=Rolling 4=Rest 5=DribbleControlled（单一事实源 `sim/src/state.ts`；fb-server 已按 Rest=4 停拍——fb-phys 六态积分必须同枚举回传）
 - **唤醒契约**：真实任务（fb_t1∈{1=KICK, 2=RESET}）的 ack 才 startTimer(fb_beat)；RESET ack 额外置瞬移门+清 fb_scored。dispatcher 测试载荷 t1=pe*1000+1 恒为未知类型——**03 的 fb-phys 按未知类型跳过应用但仍走 seqlock/ack**（E1 观测面不断链）
 - **fb_sum 语义变化**：E1 闭式 pe*8000+36 仅 dispatcher 测试载荷路径保留；种子/进球走 fb_mail_post 复合 sum=Σtᵢ 投递时求值——03 求和校验式不变（同式求和比对）
-- **服务端消费契约**：tag='P' 且 base_tick==镜像 tick 才应用（first-wins；dup='P' 同 base / tear=tag='T' 均不应用只打点）；回传参数序=注册序（tag,tick,px..sz,state）
+- **服务端消费契约**：tag='P' 且 base_tick==镜像 tick 才应用（first-wins；dup='P' 同 base / tear=tag='T' 均不应用只打点）；**回传参数序=注册序（tag,tick,pos:vec3,vel:vec3,spin:vec3,state）——09-03 用户知识修正（引擎信号参数上限 10，首版 12 参标量超限）后定稿 6 参 vec3 形态**，03 票回传打包即 `sendSignalToServerNodeGraph(fb_ball_state, 'P', tick, posVec, velVec, spinVec, state)`；服务端拆分量 split3dVector 消费、镜像 11 变量维持标量不动
 - **视觉归服务端**：'fb_phys' 运动器（常态 fb_drive 0.25s 同名顶替；RESET 应用后首拍 INSTANT 瞬移防百米条纹——瞬移门在 RESET 的 ack 置位、首个应用拍消费）——03 不碰运动器
 - **镜像写者=服务端唯一**：fb-phys 只读镜像+回传，勿写 fb_ball_*（gate 由 beat/看门狗/first-wins 管理）
 - **挪挂已完成**：fb-server 1073741830 已挂球实体 1077936135（与旧四图同实体，双向定时器名单制已核）；球实体 gate/镜像 11 由本图 getSelfEntity 直写

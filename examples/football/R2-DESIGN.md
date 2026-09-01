@@ -208,13 +208,20 @@ E5 风险归零；球实体挂载为未来多球扩展预留）**：
 且 E2 定论下图内局部变量当拍内可用）；核验口径变化：decode-gia 不再有参数常量扫描，
 改为 .gil 变量注册表**初始值核验**（19 项逐一对照 PORTING-MAP）。
 
-## 5. 回传信号 fb_ball_state（形态按 E3 结果三档降级）
+## 5. 回传信号 fb_ball_state（形态按 E3 结果三档降级；**09-03 用户知识修正定稿 vec3 合并**）
+
+> **定案（2026-09-03，推翻原首选档）**：引擎信号参数上限=10（用户知识），原首选 12 参标量
+> 形态（1 str+2 int+9 float——原标注"11 参"系计数笔误）超限（注册成功/运行不可用）→
+> 浮点九连合并 vec3，定稿 **`(tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int)`
+> 6 参**，ID 774/775/776 保号原位 update；服务端 split3dVector 拆分量消费，镜像 11 标量变量
+> 不动。vec3 信号参数运行时行为待 04/05 游戏内收证（注册表有单 vec3 参信号先例 football_push）。
 
 | 档 | 形态 | 前提 |
 |---|---|---|
-| **首选** | `(tag:str, tick:int, px,py,pz,vx,vy,vz,sx,sy,sz:float, state:int)` = 1 str+2 int+9 float，11 参 | E3 float+多参过 + donor 在位 |
-| 次选 | 同上全 int 定点 ×1000（±60m/±50m/s/±80rad/s → int32 宽裕） | float 败 |
-| 兜底 | 拆双信号：`fb_ball_pv(tag,tick,px,py,pz,vx,vy,vz)` 8 参 + `fb_ball_ss(tag,tick,sx,sy,sz,state)` 6 参，服务端按 tick 配对 | 多参上限 <11；spin 仍超限→先裁 spin 三参（镜像 spin 由 KICK 任务写入+客户端衰减拍回传降频携带） |
+| **定稿** | `(tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int)` 6 参 | 09-03 用户知识：上限 10 → vec3 合并 |
+| 历史·原首选（已废） | `(tag:str, tick:int, px..sz:float, state:int)` 12 参标量 | 注册成功但超引擎上限 10，运行不可用 |
+| 次选 | 全 int 定点 ×1000 + 同样 vec3 合并（pos/vel/spin 各 vec3 int 化不可→维持 vec3 float 或拆参）——仅当 vec3 信号参数运行时验证失败时启用全标量 6 参以内形态 | vec3 败 |
+| 兜底 | 拆双信号：`fb_ball_pv(tag,tick,pos:vec3,vel:vec3)` 5 参 + `fb_ball_ss(tag,tick,spin:vec3,state)` 5 参，服务端按 tick 配对 | vec3+多参双败 |
 
 tag 语义：'P'=物理拍提交 / 'T'=撕裂（二读不一致，服务端不应用该拍） / 复用 fb_echo 观测打点不合并。
 

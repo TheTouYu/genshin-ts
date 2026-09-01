@@ -28,3 +28,10 @@ PORTING-MAP 定稿值挂在球实体上（用户编辑器边测边调的通道�
 - **镜像/gate/参数全挂球实体**（服务端图挂球 getSelfEntity 直写，02 票挪挂载）；fb-phys 读链：getSelfEntity（丘丘人）→ fb_ball_entity 球引用 → 球变量（E5 主链）；丘丘人 def=1082130433（算力丘丘），5 实体 1082130437..441
 - vec3 镜像化议题：用户提议评估，结论=R2 按标量定稿走（float 读已验 E1/1915，vec3 客户端读无已验记录），vec3 读并入 03 票 E5 观测分支顺带验证，验过后 R3+ 再迁移
 - CLI 经验：地图定位 `node ./bin/gsts.mjs maps`（游戏目录 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level）；tsx 沙箱故障时 bin 通道是替代路径；entity 型变量 --vars 语法必须带值（`name:entity=0`）
+
+> **09-03 修正（用户知识，推翻本票两处口径）**：①上表"参数序"行的 11 参标量形态实为 **12 参**
+> （str+int+9float+int——"11 参"系计数笔误，注册表实测 12），且**引擎信号参数上限=10**，
+> 12 参注册成功但运行不可用；②已原位 update 为 **6 参 vec3 形态**：
+> `tag, tick, pos:vec3, vel:vec3, spin:vec3, state`（ID 774/775/776 保号，同型 vec3×3 经
+> e231402 去重生成器落地）。vec3 镜像化议题结论同步反转：**信号层已 vec3 化**（超限合并），
+> 球实体镜像 11 变量维持标量不动（消费端 split 拆分量）。详见 signals.md「信号参数数量上限」节。

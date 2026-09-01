@@ -133,7 +133,7 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
 |---|---|---|---|
 | S→C 触发 | 技能施放（本技能主线） | ✅ 6+瞬发+20002 闭环 | 36+20010 需操控状态 |
 | S→C 数据 | 自定义变量共享（手段 3） | ✅ 3008 闭环 | 客户端读须预注册（三-8）；N 变量批量+同步保障走五D seqlock 门 |
-| C→S 数据 | 信号 sendSignalToServerNodeGraph（手段 4） | ✅ str/int 已验；float 11 参信号已注册+服务端消费图已编译（2026-09-03 R2.2 fb_ball_state，游戏内端到端待验）；vec3 未验 | 20008 图内运行时合法（1915 实证） |
+| C→S 数据 | 信号 sendSignalToServerNodeGraph（手段 4） | ✅ str/int 已验；**引擎信号参数上限=10（用户知识 2026-09-03），超限注册可过但运行不可用——超限合并同组浮点为 vec3**（fb_ball_state 12 参标量→6 参 vec3 定稿，已注册+服务端消费图编译过，端到端待 04/05 游戏收证）；vec3 参信号注册表有先例（football_push） | 20008 图内运行时合法（1915 实证）；服务端拆分量 f.split3dVector(params.x).xComponent |
 | C→S 持续计算结果 | **拍门握手**（服务端 0.2s 定时器置 gate 变量 → 客户端 15Hz 拍读 gate 开才积分 → 信号回传 → 服务端 first-wins 提交镜像+驱动视觉） | 结构层已验（2026-09-03 R2.2，fb-server 222 节点）；行为层待注入复测 | 参照实现 `examples/football/src-fb/fb-server.ts` + `.scratch/football-v2/issues/02` 执行备注（枚举/唤醒/瞬移门契约）；与五D seqlock 互补：五D=任务下发可靠性，拍门=结果回传节拍 |
 | C→S 事件 | notifyServerNodeGraph（手段 4b） | ✅ 3011 闭环 | 三字面量参数 |
 | — | 操控状态（手段 2） | ❌ 未闭环 | 勿走 |

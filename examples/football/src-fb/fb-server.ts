@@ -24,7 +24,8 @@
 //   · onSignal(fb_echo)（E1 first-wins 保留 + 任务应用唤醒）：ack 前进 + 读邮箱 t1，
 //     type∈{KICK,RESET} 才 startTimer(fb_beat)（垃圾测试载荷不唤醒，REST 期≈0）；
 //     RESET 应用置瞬移门 fb_tp_pending + 清 fb_scored
-//   · onSignal(fb_ball_state)：tag='P' 且 base_tick==镜像 tick（first-wins）→ 镜像 11 写
+//   · onSignal(fb_ball_state 6 参 vec3 形态，引擎参数上限 10——09-03 用户知识修正)：
+//     tag='P' 且 base_tick==镜像 tick（first-wins）→ 镜像 11 写
 //     （tick+1）+ gate=0 + 视觉驱动 + state==Rest→stopTimer + 进球判定简版；
 //     dup（同代重复回传）打点；tag='T' 撕裂拍不应用（gate 保持开，下一拍重算）
 // 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（速度=(新位−实体当前位)/0.25s，
@@ -172,16 +173,13 @@ const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
 const fbDrive = g.defineComposite('fb_drive', {
   inputs: {
     ball: { type: 'entity' },
-    nx: { type: 'float' },
-    ny: { type: 'float' },
-    nz: { type: 'float' }
+    pos: { type: 'vec3' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ ball, nx, ny, nz }, f) => {
-    const target = f.create3dVector(nx, ny, nz)
+  build: ({ ball, pos }, f) => {
     const loc = f.getEntityLocationAndRotation(ball).location
-    const vel = f._3dVectorZoom(f._3dVectorSubtraction(target, loc), DRIVE_GAIN)
+    const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), DRIVE_GAIN)
     const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       ball,
       new str('fb_phys'),
@@ -197,19 +195,17 @@ const fbDrive = g.defineComposite('fb_drive', {
 const fbTeleport = g.defineComposite('fb_teleport', {
   inputs: {
     ball: { type: 'entity' },
-    nx: { type: 'float' },
-    ny: { type: 'float' },
-    nz: { type: 'float' }
+    pos: { type: 'vec3' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ ball, nx, ny, nz }, f) => {
+  build: ({ ball, pos }, f) => {
     const tail = f.registerExecNode('activate_fixed_point_motion_device', [
       ball,
       new str('fb_phys'),
       MovementMode.InstantMovement,
       new float(0),
-      f.create3dVector(nx, ny, nz),
+      pos,
       f.create3dVector(0, 0, 0),
       new bool(false),
       FixedMotionParameterType.FixedSpeed,
@@ -361,40 +357,35 @@ const graph = g
     const cur = f.getCustomVariable(ball, 'fb_ball_tick').asType('int')
     const isP = f.equal(evt.params.tag, 'P')
     const base = f.equal(evt.params.tick, cur)
+    // vec3 参数拆分量（信号 6 参形态：tag,tick,pos,vel,spin,state——引擎参数上限 10，
+    // 09-03 用户知识修正；Split 节点输出为普通数据 pin，多点消费稳定无重求值陷阱）
+    const posS = f.split3dVector(evt.params.pos)
+    const velS = f.split3dVector(evt.params.vel)
+    const spinS = f.split3dVector(evt.params.spin)
     f.doubleBranch(f.logicalAndOperation(isP, base), () => {
       // —— first-wins 应用：镜像 11 写（tick+1）+ gate=0 ——
       const nt = cur + 1n
       f.callComposite(fbMirrorApply, {
         ball,
         nt,
-        px: evt.params.px,
-        py: evt.params.py,
-        pz: evt.params.pz,
-        vx: evt.params.vx,
-        vy: evt.params.vy,
-        vz: evt.params.vz,
-        sx: evt.params.sx,
-        sy: evt.params.sy,
-        sz: evt.params.sz,
+        px: posS.xComponent,
+        py: posS.yComponent,
+        pz: posS.zComponent,
+        vx: velS.xComponent,
+        vy: velS.yComponent,
+        vz: velS.zComponent,
+        sx: spinS.xComponent,
+        sy: spinS.yComponent,
+        sz: spinS.zComponent,
         st: evt.params.state
       })
-      // —— 视觉驱动：瞬移门分支（RESET 首拍 INSTANT，常态拍预测插值） ——
+      // —— 视觉驱动：瞬移门分支（RESET 首拍 INSTANT，常态拍预测插值）——
       const tp = f.getNodeGraphVariable('fb_tp_pending').asType('bool')
       f.doubleBranch(tp, () => {
         f.setNodeGraphVariable('fb_tp_pending', new bool(false), false)
-        f.callComposite(fbTeleport, {
-          ball,
-          nx: evt.params.px,
-          ny: evt.params.py,
-          nz: evt.params.pz
-        })
+        f.callComposite(fbTeleport, { ball, pos: evt.params.pos })
       }, () => {
-        f.callComposite(fbDrive, {
-          ball,
-          nx: evt.params.px,
-          ny: evt.params.py,
-          nz: evt.params.pz
-        })
+        f.callComposite(fbDrive, { ball, pos: evt.params.pos })
       })
       // —— Rest → 停拍（静止零定时器基线） ——
       f.doubleBranch(f.equal(evt.params.state, ST_REST), () => {
@@ -404,16 +395,16 @@ const graph = g
       // —— 进球判定简版：镜像 pos 过门线（去重）→ 打点帧值 + RESET 任务回中圈 ——
       const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
       const scored = f.getNodeGraphVariable('fb_scored').asType('bool')
-      const xOk = f.greaterThan(f.absoluteValueOperation(evt.params.px), new float(GOAL_LINE_X))
-      const zOk = f.lessThan(f.absoluteValueOperation(evt.params.pz), new float(GOAL_MOUTH_Z))
-      const yOk = f.lessThan(evt.params.py, new float(GOAL_BAR_Y))
+      const xOk = f.greaterThan(f.absoluteValueOperation(posS.xComponent), new float(GOAL_LINE_X))
+      const zOk = f.lessThan(f.absoluteValueOperation(posS.zComponent), new float(GOAL_MOUTH_Z))
+      const yOk = f.lessThan(posS.yComponent, new float(GOAL_BAR_Y))
       const inMouth = f.logicalAndOperation(f.logicalAndOperation(xOk, zOk), yOk)
       const go = f.logicalAndOperation(inMouth, f.logicalNotOperation(scored))
       f.doubleBranch(go, () => {
         f.printString('fb:goal')
-        f.printString(f.dataTypeConversion(evt.params.px, 'str'))
-        f.printString(f.dataTypeConversion(evt.params.pz, 'str'))
-        f.printString(f.dataTypeConversion(evt.params.py, 'str'))
+        f.printString(f.dataTypeConversion(posS.xComponent, 'str'))
+        f.printString(f.dataTypeConversion(posS.zComponent, 'str'))
+        f.printString(f.dataTypeConversion(posS.yComponent, 'str'))
         const pe = f.getCustomVariable(owner, 'fb_epoch').asType('int') + 1n
         f.callComposite(fbMailPost, {
           owner,

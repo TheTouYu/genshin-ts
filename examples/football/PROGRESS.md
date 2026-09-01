@@ -2,6 +2,13 @@
 
 ## 最近轮次
 
+- 2026-09-03（**R2.2 补丁：fb_ball_state 信号形态修正——引擎参数上限 10 → 6 参 vec3 定稿**（用户知识输入）；编译 0 error、14 断言回读全过、地图 SHA 51f60721→**ecdd679c** Temp 双 SHA）：
+  - **用户知识**：引擎信号参数上限=**10**；超限信号注册表可写入（工具 MAX_PARAMS=12 放行）但运行不可用。**首版实为 12 参**（str+int+9float+int——票 01"11 参"标签系计数笔误，编译器 schema 对照报"registered map has 12 param(s)"实证），用户"12 个超过了"计数正确。
+  - **定稿方案（用户建议）**：浮点九连合并 vec3 → `(tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int)` **6 参**。ID 774/775/776 保号原位 update（同型 vec3×3/int×2 经 e231402 共享槽去重生成器落地）；消费端 fb-server onSignal 改 split3dVector 拆分量（+3 节点），fbDrive/fbTeleport 改 pos:vec3 直传（各 -1 节点），镜像 11 标量变量**不动**（球实体状态容器结构稳定）。
+  - **验证（结构层）**：编译 0 error（编译器信号 schema fail-closed 对照新注册表通过——修正前曾以 `signal schema mismatch` 拦住 6 参消费 vs 12 参旧表，保护机制实测有效）；decode-gia 新扫描器 14 断言全过；主图 169→172、复合展开 223≤2000；执行边无重复入边无环。候选零改动验证（挂载/图内容 CMP-SAME，信号 diff 仅 fb_ball_state 一条）→ 写后 SHA=候选 → Temp 双 SHA。
+  - **幸运窗口**：fb_ball_state 零已注入消费者（旧 fb-server 只监听 fb_echo），原位改形态无兼容包袱；03 票客户端半边未开写零返工。**vec3 信号参数运行时行为未游戏验证**（04/05 顺带收证；注册表有单 vec3 参信号 football_push 先例）。
+  - **知识更正落盘**：signals.md 新增「信号参数数量上限与超限合并」节（含待澄清：官方「绘制圆弧」12 参与上限 10 关系→影响 CLI MAX_PARAMS 是否收紧）；R2-DESIGN §5 定稿表重写；BOARD/票 01（追加修正注）/票 02 备注契约更新；client 技能矩阵行更正。
+  - **下一步不变 R2.3（票 03）**：fb-phys 扩建——回传打包按新 6 参契约 `sendSignalToServerNodeGraph(fb_ball_state, 'P', tick, posVec, velVec, spinVec, state)`。
 - 2026-09-03（**重建 v2 R2.2 fb-server 扩建（票 02）：T3 握手节拍服务端半边交付 + 挪挂球实体**；编译 0 error、decode-gia 结构核验通过、地图 SHA 4ce87ed5→51f60721 Temp 双 SHA；内容注入归 04 票，游戏行为层零验证）：
   - **交付（79→主图 169+复合展开 222 节点，预算带 310~410 下沿以下——四复合去重邮箱连写，如实入账；≤2000 红线余量 89%）**：①会话种子=5 丘丘人实例逐个写 fb_ball_entity=球（def 1082130433=模板不写）+ 初始 RESET 进邮箱（t1=2，pos=(0,2.25,0)×1000，state=Airborne——§7 首行 2m 落体校准锚点，会话启动即自动全程跑链）；②fb_beat 0.2s loop 拍门置 gate=1（名单制第 3 名）+ fb_wd 并入 gate 死锁重开（gate=1→0，4s 粒度实现 0.8s 口径）+ REST 回传 stopTimer + **任务应用唤醒=ack 时读邮箱 t1、type∈{KICK,RESET} 才 startTimer**（dispatcher 垃圾测试载荷不唤醒，REST 期≈0）；③onSignal(fb_ball_state) first-wins（tag='P' ∧ base_tick==镜像 tick）→ fb_mirror_apply 复合 12 连写（镜像 11+gate=0，tick+1）+ 视觉驱动 + 进球判定；dup/tear 只打点。④进球简版：|px|>52.5 ∧ |pz|<3.66 ∧ py<2.5（fb_scored 去重）→ print 帧值 + RESET 回中圈 (0,0.25,0) Rest。
   - **视觉驱动两形态（防百米条纹，本轮设计新增）**：常态拍 fb_drive=速度(新位−实体当前位)/0.25s 同名 'fb_phys' 顶替（时长 0.25>拍距 0.2 防断档；区别于 2026-08-27 反例——彼处逻辑速度是真相禁反推，此处镜像即真相+实体位为插值起点）；**RESET 应用后首拍 fbTeleport INSTANT 瞬移**（瞬移门在 RESET 的 ack 置位、首个应用拍消费——直接投递时置位会在投递~应用间的普通拍误触发，时序铁证推理）。'fb_phys' 与旧图 'physics'/'spin' 不同名避同名级联。

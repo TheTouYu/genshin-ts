@@ -8,7 +8,7 @@
 
 - 地图 **1073741908「真实足球」**（勿进「足球/足球_2」）；球实体 **1077936135**（basicMotion 已配）；玩家模板实体 **1086324737**；操作台 1077936137（tabBar 9 选项）
 - 已注入图：fb-phys=20008/**1082130433**（34 节点，**03 票扩建中**）· fb-status=20009/1082130434 · fb-decision=20007/1082130435 · fb-server=**1073741830**（**02 票已挪挂球实体 1077936135**，getSelfEntity=球；图上现仍为 E1 79 节点旧内容，新 222 节点内容 04 票注入；dist-fb/fb-server.gia 就绪）
-- 信号 fb_echo=1610612771/772/773 · **fb_ball_state=1610612774/775/776（11 参：tag:str, tick:int, px..sz:float×9, state:int）**；**球实体 1077936135 = R2 状态容器：fb_ball_gate + 镜像 11（tick/px/py/pz/vx/vy/vz/sx/sy/sz/state）+ fb_p_* 参数 19（定稿值，编辑器热调）；丘丘人 def 1082130433 + 5 实体（437..441）各带 fb_ball_entity:entity=0（球引用，运行时 fb-server 种子写）**；寄存器 fb_epoch/ack/sum/t1..t8 挂玩家实体（E1 遗产）；技能配置 1191182337；5 造物已放置
+- 信号 fb_echo=1610612771/772/773 · **fb_ball_state=1610612774/775/776（09-03 定稿 6 参：tag:str, tick:int, pos:vec3, vel:vec3, spin:vec3, state:int——引擎信号参数上限 10（用户知识），首版 12 参标量超限已原位 update，镜像/驱动消费端同步改造；vec3 信号参数运行时行为待 04/05 游戏内收证）**；**球实体 1077936135 = R2 状态容器：fb_ball_gate + 镜像 11（tick/px/py/pz/vx/vy/vz/sx/sy/sz/state，维持标量变量不动）+ fb_p_* 参数 19（定稿值，编辑器热调）；丘丘人 def 1082130433 + 5 实体（437..441）各带 fb_ball_entity:entity=0（球引用，运行时 fb-server 种子写）**；寄存器 fb_epoch/ack/sum/t1..t8 挂玩家实体（E1 遗产）；技能配置 1191182337；5 造物已放置
 - 旧四图 825/826/828/829：**R5 退役前勿动一个字节**（01 票写回后已验证零改动）
 - R2 设计权威：`examples/football/R2-DESIGN.md`（§1 节拍 T3 / §4 变量 / §5 信号 / §9 顺序）
 

@@ -12,24 +12,20 @@ export const FbSignal = {
     ['e', 'int'],
     ['c', 'int']
   ]),
-  // R2 物理拍回传（票 01 注册终态，send/monitor/server=1610612774/775/776）：
+  // R2 物理拍回传（票 01 注册 → **09-03 用户知识修正后改 6 参 vec3 形态**：
+  //   引擎信号参数上限=10，11 参标量形态超限（注册可过/运行不行）→ 浮点九连合并
+  //   pos/vel/spin 三个 vec3，send/monitor/server=1610612774/775/776 不变）：
   //   tag='P' 物理拍提交 / 'T' 撕裂（二读不一致，服务端不应用该拍）
-  //   tick   = 计算所基于的镜像 tick（base_tick，first-wins 仲裁键）
-  //   px..sz = 本拍积分后的 pos/vel/spin（t+0.2s 预测值）
-  //   state  = 六态枚举（sim/src/state.ts：0=Airborne 1=Bouncing 2=Sliding 3=Rolling
-  //            4=Rest 5=DribbleControlled——03 票 fb-phys 必须同枚举）
+  //   tick  = 计算所基于的镜像 tick（base_tick，first-wins 仲裁键）
+  //   pos/vel/spin = 本拍积分后的位置/速度/自旋（t+0.2s 预测值）
+  //   state = 六态枚举（sim/src/state.ts：0=Airborne 1=Bouncing 2=Sliding 3=Rolling
+  //           4=Rest 5=DribbleControlled——03 票 fb-phys 必须同枚举）
   fb_ball_state: defineSignal('fb_ball_state', [
     ['tag', 'str'],
     ['tick', 'int'],
-    ['px', 'float'],
-    ['py', 'float'],
-    ['pz', 'float'],
-    ['vx', 'float'],
-    ['vy', 'float'],
-    ['vz', 'float'],
-    ['sx', 'float'],
-    ['sy', 'float'],
-    ['sz', 'float'],
+    ['pos', 'vec3'],
+    ['vel', 'vec3'],
+    ['spin', 'vec3'],
     ['state', 'int']
   ])
 } as const
