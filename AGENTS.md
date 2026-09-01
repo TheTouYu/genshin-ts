@@ -29,6 +29,9 @@
 3. **完成小点主动提交**：一个独立小点（一个文档/一个技能改动/一个脚本/一条知识）完成后主动 `git commit`，commit message 写清范围、只提交本次相关文件（见「安全与 Git」自主提交范围）；破坏性操作仍需确认。
 4. **完成小任务主动复盘沉淀**：一个可归因小任务闭环后，主动用 `task-retrospective` 复盘，防经验流失。
 5. **迭代一轮写入知识树**：可复用规则主动录入 PKC（`pkc-project-operator`），不只写文档。
+6. **多轮执行类任务走票据驱动**（2026-09-03 用户定调）：动手前先建票建看板
+   （`/to-tickets`，规范 `docs/maintenance/ticket-driven-workflow.md`），逐票用一句话启动器
+   执行，收轮三件套（勾票+PROGRESS 下一步+精确 commit）——不说完就立马开干。
 
 - **复盘**：一波任务闭环后，用 `task-retrospective` 系统复盘（历史检索 → 错误谱系 → 复盘文档 → 迭代），防止经验流失。
 - **知识落盘**：可复用的引擎规则/方法论落盘到 `docs/game-engine-knowledge/` 与 PKC 知识树（`pkc-project-operator`）；只写已证实、可复用、可行动的规则，更新到适用范围最小的文件。

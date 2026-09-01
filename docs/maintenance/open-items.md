@@ -1214,3 +1214,15 @@
   （progressive-query 给出的候选挂载点与 new-claim 校验不一致），按 pkc-project-operator
   流程排查后补录。
 
+### O-2026-09-03-01 票据驱动工作流待关账验证后推广（2026-09-03）
+- 规范已定稿 `docs/maintenance/ticket-driven-workflow.md`（当前推荐）；首个应用足球 v2
+  `.scratch/football-v2/`（9 票）。**升级条件**：足球 v2 九票全部划掉（关账）→ 状态升
+  "已验证"→ 评估推广其他 examples（rubik/lights-out 等）。失败则按票内教训修订规范。
+
+### O-2026-09-03-02 to-tickets（用户级技能）看板实践回灌待用户确认（2026-09-03）
+- `~/.agents/skills/to-tickets` 为用户级技能，本轮实践补充（BOARD.md 四区导航层：资产速查/
+  当前前沿/票据清单/已完成划掉区；一票一文件不变）未直接改动，待用户确认后回灌。
+
+### O-2026-09-03-03 票据驱动工作流 PKC claim 录入（2026-09-03）
+- 一条 claim：进度管理=票据看板单一事实源+AGENTS 注入层只放引用（挂 project-workflow 类
+  topic；跟随 O-2026-09-02-01 的 new-claim 归属问题一并排查）。
