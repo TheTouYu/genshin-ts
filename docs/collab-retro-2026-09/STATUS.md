@@ -17,12 +17,14 @@
 
 | 轮 | 状态 | 产物 |
 |---|---|---|
-| R0 数据收集 | ✅ 完成 | `timeline-draft-R0.md`（时间线草表）· `metrics-R0.md`（指标五项初值+反常数字）· `vector-coverage-R0.md`（六类载体覆盖度）· `user-pattern-hits.txt` / `raw-timeline-6sessions.txt`（原始扫描）· `extract_timeline.py` / `scan_user_patterns.py`（可重跑脚本）· handoff 抢救→`docs/handoffs-archived/` |
-| R1 协作时间线重建 | ⏳ 待做 | 全窗（8/14 起长趋势）时间线 + **足球专项深挖**（见上）+ 元复盘文档去重（先读 `retrospective-2026-08-29-meta-retro-round2.md`、`retrospective-weekly-v2-2026-08-14-29.md`） |
-| R2 四象限分析 | 待做 | findings-*.md，证据锚定，假设 ≤1/3 |
-| R3 AI 七问专项 | 待做 | 每问真实会话案例 |
-| R4 落地计划 | 待做 | 六类载体映射表 + 执行顺序依赖图 + 首批立即落地清单 |
+| R0 数据收集 | ✅ `ef2c97e` | `timeline-draft-R0.md` · `metrics-R0.md` · `vector-coverage-R0.md` · 原始扫描与脚本 · handoff 抢救 |
+| R1 时间线重建+足球深挖 | ✅ `7787d36` | `timeline-R1.md`（规则注入×复发矩阵/双项目节奏）· `football-deep-dive-R1.md`（七代谱系/不变量丢失三铁证/13 轮代价表/sim 分叉/失望证据链） |
+| R2 四象限分析 | ✅ `16f8004` | `findings-R2.md`（资产 6 / 大坑 8 / 盲区 5，假设 2/19） |
+| R3 AI 七问专项 | ✅ 本轮 | `findings-R3-seven-questions.md`（七问全实证+自我风险表+门禁落点） |
+| R4 落地计划 | ⏳ 下一步 | 六类载体映射表 + 执行顺序依赖图 + 首批立即落地清单 |
 | R5 首批落地+验证 | 待做 | 用户裁决后执行，当场验证注入生效 |
+
+**R3 新增实证**：fc449599 21:02-21:03 技能加载失败全程（skill 调用失败→SKILL.md not found→静默裸命令兜底，未上报）；approval=never 后 7 秒即注入（09:53:25→09:53:32）；1d44d374 反问两次→爆发→从头扫 3 分钟得根因的完整成本差。
 
 ## R0 关键数字速览
 
