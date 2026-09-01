@@ -4212,6 +4212,24 @@
       ]
     },
     {
+      "id": "aref_ac2cde5bf96e3fd96b0e6477dc",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "## 同型重复参数与 pin 分配规律（2026-09-02 四轮编辑器差分，能力债偿还）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "dd8566f87585aafa2d926def126242de4f79d7ce43ef3739f86cea5b350c1453",
+      "claim_ids": [
+        "clm_93DF427F6ABE72F3EDD55B4B6A"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior",
+        "evidence_scope",
+        "external_game_evidence",
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_ac80ab3ccb2e6b0e716bcb70a9",
       "path": "docs/project-intelligence/knowledge-capture-common-errors.md",
       "locator": "sections 1-8: reusable command, preflight, evidence, approval, and verification errors",

@@ -37,3 +37,15 @@ gsts assets:signals 向地图 GIL 注册新信号：参数布局来源两路—�
 适用于 Genshin-TS gsts CLI 信号工作流（2026-08-31 state_changed 注册实证：donor=rubik3x3_solve，send/mon/srv=1610612753/754/755）。不覆盖信号编码 wire 细节（见 signal-node-instance-encoding 族 claim）；正式注册/注入写真实地图仍需用户确认（破坏性操作边界）。
 
 <!-- CLAIM:END clm_5A9BAF613A81B6EFA775598714 -->
+
+<!-- CLAIM:START clm_93DF427F6ABE72F3EDD55B4B6A -->
+
+### 同型重复信号参数：field2=全局序号、n4=类型模板、pin=计数器副产物引擎不校验（fail-closed 作废）
+
+2026-09-02 四轮编辑器差分（地图「模型比对」1073741849，用户连续会话原子操作，evidence ~/genshin-ts-evidence/node-graph-logic/signals/2026-09-02-repeat-param-pins/ raw/R1-R4+SHA）：① n3 field2=参数全局序号，跨类型连续（send/ser 0-based 省略 0；monitor=3+序号），同型重复参数不例外——R4 混合 float,float,int,int 序号 0-3 铁证；② n4=纯类型模板字节，与参数序号/信号无关；③ 编辑器 pin 分配=内部全局计数器副产物，无固定步长公式（R1 send 89/111/121/127/170 乱跳而 mon/ser 连续、R2 追加参数 mon+52/ser+47、R3 新建信号三空间各自连续块且起点=R2 最大号 230+1，连续保存排除会话重置解释），旧「str send +4k」系 cube_turn 复制巧合非规则；④ 引擎不校验 pin 数值——跨信号共享 pin（工具_全参数/工具_混合共享 90/109/122）、编辑器任意新号（ts_d 系列）、跨地图抄号（cube_turn 1849→1848）均游戏正常；⑤ 编辑器新建信号/加参数=每参数开新槽，复制信号=保留原槽引用；⑥ 同信号定义内 pin 唯一是编辑器恒定形态，CLI 保守约束为同信号参数 pin 互不相同（跨信号共享有先例，同信号内共享无先例且未验证）。工程结论（commit e231402）：mergePoolFor 删除非 str fail-closed 并新增 dedupeByPins 共享槽去重无条件回写、builtinTemplatesFor 步长统一 +1k，任意同型重复参数无需 donor 即可注册；回归 signal_registration_builtin/repeated_type 全绿。真实地图写回：cli_debt_test（2 float+1 int，speed=[90/109/122] 复用编辑器槽、delta=[127/176/182] 去重取下一真实槽）已 --write 写回 1073741849（SHA 430bf31d，Temp 已同步），编辑器显示与游戏行为待用户核验。
+
+#### 适用边界
+
+仅覆盖信号注册定义参数槽（三份 CompositeDef #102/#103 参数条目与注册表条目 f4/5/6 pinIndex），不推广到 Composite 普通参数或图内节点 pin；证据层级=真实编辑器相邻快照（结构层）+ CLI 回读断言 + 自动回归；「引擎不校验 pin 数值」含历史游戏正常旁证（工具_系列/cube_turn 跨地图），但 CLI 生成候选的编辑器导入与游戏行为在录入时待用户核验
+
+<!-- CLAIM:END clm_93DF427F6ABE72F3EDD55B4B6A -->
