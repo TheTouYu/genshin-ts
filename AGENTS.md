@@ -73,6 +73,7 @@
 | 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center`（全局技能） |
 | 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
 | 建/改技能 | `skill-creator` |
+| 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 | 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`（引用 vs 实体对照，死引用/悬空链接报警，2026-09-01 事故催生）；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须用户确认。**技能加载失败=基础设施故障，当轮必须向用户报告（附报错原文），静默用裸命令绕过禁止**（2026-08-31 实证：技能被误删后静默降级多日才暴露） |
 
