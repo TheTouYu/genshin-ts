@@ -1202,3 +1202,15 @@
   数值类行为等价可暂缓，但若遇枚举类/entity 显式 0 需复查。
 - 待做 ② **注入后核验补"常量断言"**：注入回读不只核对变化的 wire，还应断言关键常量
   （unlock 值/默认值等），防止"老 bug 被新注入掩盖"（本轮 O02 的教训）。
+
+### O-2026-09-02-01 客户端算力通路三条 claim 待补录 PKC（2026-09-02）
+
+- 来源：retrospective-2026-09-02-client-compute-lane-e1.md（E1+多造物收口复盘）。
+- 已闭合：知识已全部落盘技能与文档（1481218/553ac5c/825db79/6002091）。技能=生效载体，
+  PKC 缺失不影响下次任务自动加载。
+- 待做：PKC new-claim 三条（①2008 局部变量不跨施放+距离节流 ②按图开详情日志+f8 多实例
+  分化 ③first-wins 并发应用）报 topic metadata is only valid when creating a new topic——
+  node game-engine-knowledge + topic node-graph-creation-skillconfig 归属组合待查
+  （progressive-query 给出的候选挂载点与 new-claim 校验不一致），按 pkc-project-operator
+  流程排查后补录。
+

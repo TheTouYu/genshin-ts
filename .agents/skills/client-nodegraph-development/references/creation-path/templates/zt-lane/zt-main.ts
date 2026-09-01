@@ -280,7 +280,9 @@ g.server({ id: 1073741830, name: '_GSTS_ztMain' })
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
     const cur = f.getCustomVariable(owner, 'zt_ack').asType('int')
     f.doubleBranch(f.equal(evt.params.tag, 'ok'), () => {
-      f.doubleBranch(f.lessThan(evt.params.e, cur), () => {
+      // first-wins（1908 fb-server 2026-09-02 实测）：e<=cur 全拦（旧回声+同代 dup）——
+      // 多门控图/多造物部署下同代并发回声只应用第一个；需 dup 单独统计时用 fb-server 三分支形态
+      f.doubleBranch(f.lessThan(evt.params.e, cur + 1n), () => {
         f.printString('lane:stale')
       }, () => {
         f.setCustomVariable(owner, 'zt_ack', evt.params.e, false)

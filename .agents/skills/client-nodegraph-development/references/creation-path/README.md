@@ -67,7 +67,9 @@ node bin/gsts.mjs assets:mounts attach <关卡实体1094713345> --graph <S> --en
 
 ### ⑥ 注入后检查（verify-injection 纪律）
 `check-gil-composite-refs <map> --incoming <gia>` ×N = 0 悬空；top10 内部 f5 后保留 (7,0)；
-`parse-gil-node-graph --graph <id>` 语义回读节点链；`list-gil-node-graphs` 节点数符合。
+`parse-gil-node-graph --graph <id>` 语义回读节点链；`list-gil-node-graphs` 节点数符合；
+**Temp 双 SHA 必查**（`sha256sum` 主图与 `../Temp/<mapId>.gil` 前缀一致——每次重注入后 Temp
+都不会自动同步，2026-09-02 复盘实证又漏一次后才入清单；不同步即 `cp` 后复验）。
 
 ### ⑦ 用户编辑器配置（一次性 ~2 分钟，这是唯一的人工环节）
 1. 元件库 → 复杂造物 → **选小体型模型**（带宽=模型！打手丘丘人级 15~16/s，遗迹守卫 7.5/s）→ 放出生点附近
