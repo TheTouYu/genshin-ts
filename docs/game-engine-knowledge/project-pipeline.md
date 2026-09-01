@@ -140,4 +140,4 @@ GIA 和 GIL 的资产边界见[资产、关卡保存与导出文件](assets-and-
 - 节点、参数、引脚和连接编码：后续写入具体编码主题文件。
 - 编译层实现：写入项目架构文档、源码和测试。
 - GIA/GIL 验证：写入[验证与规则学习流程](validation-workflow.md)。
-- 文件之间的关联：登记到[index.md](index.md)。
+- 文件之间的关联：登记到[AGENTS.md](AGENTS.md)。

@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | `docs/architecture/` | 编译器、注入器、DSL、GIL 资产、Composite 当前实现 | `documentation-map.md` |
 | `docs/game-engine-knowledge/` | 真实 GIA/GIL 增量逆向与引擎语义 Authority | `gil-structure-semantics.md`、`variables.md` |
-| `docs/composite-ir/` | Composite/Stage 3 逆向与重构材料；`handover/` 仅历史 | `composite-ir/index.md` |
+| `docs/composite-ir/` | Composite/Stage 3 逆向与重构材料；`handover/` 仅历史 | `composite-ir/AGENTS.md` |
 | `docs/adr/` | 已确认的架构决策，改动需记录 why | 按日期编号 |
 | `docs/maintenance/`、`docs/operations/` | 工具链缺口、开放问题、操作流程 | `open-items.md` |
 | `docs/project-intelligence/` | PKC/知识树/上下文与 Bundle 治理 | `bundle-governance.md` |

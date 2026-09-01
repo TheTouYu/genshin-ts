@@ -13,7 +13,7 @@
 
 ## 导航入口
 
-- [`docs/composite-ir/index.md`](composite-ir/index.md) — 复合 IR 知识体系总入口（最活跃、最权威）
+- [`docs/composite-ir/AGENTS.md`](composite-ir/AGENTS.md) — 复合 IR 知识体系总入口（最活跃、最权威）
 - [`docs/architecture/`](architecture/) — 编译管线架构文档
 
 ## 用户文档和内部文档边界

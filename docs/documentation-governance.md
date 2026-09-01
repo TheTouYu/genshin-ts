@@ -46,7 +46,7 @@
 - 低层手动控制流 DSL：[`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md)
 - 复合节点用户面 API：[`architecture/composite/dsl-api.md`](architecture/composite/dsl-api.md)
 - GIA 工具索引：[`gia-tools-reference.md`](gia-tools-reference.md)
-- 真实 GIA 逆向入口：[`composite-ir/index.md`](composite-ir/index.md)
+- 真实 GIA 逆向入口：[`composite-ir/AGENTS.md`](composite-ir/AGENTS.md)
 - 历史 handover 入口：[`composite-ir/handover/README.md`](composite-ir/handover/README.md)
 
 ## API 名称迁移
