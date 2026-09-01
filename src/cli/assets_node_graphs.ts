@@ -132,12 +132,15 @@ export const GRAPH_TYPES: GraphTypeSpec[] = [
   { type: 20001, name: '布尔过滤器', defaultName: '新建过滤器节点图', folderId: 13, kind: 'filter', filterGeneric: 200000 },
   { type: 20002, name: '角色技能', defaultName: '新建角色技能节点图', folderId: 14, kind: 'skill' },
   { type: 20006, name: '整数过滤器', defaultName: '新建过滤器节点图', folderId: 57, kind: 'filter', filterGeneric: 200122 },
+  // 20007 自动节点与 20009 同族（200126/4000 + f11={1:1,100:{1:1}} + f100=1）——
+  // 2026-08-31 C0.3 编辑器差分闭合样本，2026-09-01 补实现（此前 fail closed）
+  { type: 20007, name: '造物状态决策', defaultName: '新建造物状态决策节点图', folderId: 58, kind: 'status' },
   { type: 20008, name: '造物技能', defaultName: '新建造物技能节点图', folderId: 59, kind: 'skill' },
   { type: 20009, name: '造物状态', defaultName: '新建造物状态节点图', folderId: 60, kind: 'status' },
   { type: 20010, name: '角色操控技能', defaultName: '新建角色操控技能节点图', folderId: 67, kind: 'skill' }
 ]
 
-// 未采样自动节点结构的类型：20003 状态 / 20004 ClassNode / 20005 ItemNode / 20007 造物状态决策 → fail closed
+// 未采样自动节点结构的类型：20003 状态 / 20004 ClassNode / 20005 ItemNode → fail closed
 function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
   const spec = GRAPH_TYPES.find((s) =>
     typeof typeOrName === 'number'
@@ -149,7 +152,7 @@ function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
     const known = /^\d+$/.test(input) ? Number(input) : undefined
     if (known !== undefined && known >= 20000 && known <= 20010) {
       throw new Error(
-        `[error] 图类型 ${known} 的自动节点结构未采样（20003/20004/20005/20007），fail closed；` +
+        `[error] 图类型 ${known} 的自动节点结构未采样（20003/20004/20005），fail closed；` +
           `可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
       )
     }
@@ -225,7 +228,7 @@ function usage(exitCode = 0): never {
     '  --name <string>   create: new NodeGraph name (default: 按类型默认名，如 新建角色操控技能节点图)',
     '  --graph-id <id>  create: 显式图 ID（缺省自动：服务端=全图 max+1，客户端=段内 max+1，段空=1082130433）',
     '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20006 整数过滤器/',
-    '                      20008 造物技能/20009 造物状态/20010 角色操控技能；20003/20004/20005/20007 自动节点未采样 fail closed）',
+    '                      20007 造物状态决策/20008 造物技能/20009 造物状态/20010 角色操控技能；20003/20004/20005 自动节点未采样 fail closed）',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
     '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
