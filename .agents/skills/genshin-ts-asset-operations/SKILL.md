@@ -54,11 +54,12 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺序走：
 
+0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在 `/mnt/c/Users/<用户>/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（Windows 挂载盘，glob/find home 找不到），Temp 缓存在同级 `../Temp/`。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
 1. **只读盘点并锁定源 SHA**：`sha256sum <map.gil>`，导出当前相关资源（变量 `--list`、挂载 `assets:mounts list`、UI `assets:ui list`、实体 `assets:entities --format json`），确认目标 ID 空闲、类型/容器正确。ID 分配遵守 `static-gil-model-builder` 的 ID 纪律（新元件/实体 ID 必须 ≥1077936129，且 root4/5/6 双查）。
 2. **生成候选（优先 `--output`）**：先不直接写源，用 `--output <new-file>` 生成不存在的候选，独立回读候选，确认只出现计划字段。
 3. **展示安全门并取得确认**：真实既有地图写回前展示 目标地图/路径、源 SHA、候选 SHA/大小、目标 ID、修改范围、备份位置、回滚方式。用户已明确给出“直接写/用 --write”的指令时，可把该指令作为本轮确认。
-4. **`--write` 写回**：CLI 自动在同级 `.gsts/backups/` 建带时间戳备份并校验源 SHA；记录备份路径。
-5. **写后独立回读**：用与写前相同的只读命令回读，对比只差目标字段；写后 SHA 不等于写前，且等于写回产物。
+4. **`--write` 写回**：CLI 自动在同级 `.gsts/backups/` 建带时间戳备份并校验源 SHA；记录备份路径。**批量撤销已写回内容 = 恢复最早备份**（第一个时间戳 .bak=写前原状，恢复后按新方案重写），禁止手写 wire 删除脚本（09-03 实证驯化两轮未成，恢复路径 1 分钟搞定；CLI 变量操作全 upsert 无删除命令）。
+5. **写后独立回读**：用与写前相同的只读命令回读，对比只差目标字段；写后 SHA 不等于写前，且等于写回产物。**对比工具输出先 diff 看差异本质再定性**——`node-graphs read --json` 含 `"gil"` 源路径字段，直接 sha256 对比会假报"图被改动"（09-03 实证，须 `grep -v '"gil"'` 排除）。
 6. **通知用户重新加载地图再保存**：旧编辑器内存保存会覆盖磁盘写回结果（写后“变更消失”的已知根因）。先核对 hash 是否等于写回后 hash，相等就请用户重载编辑器，不要重做注入。
 7. **分层报告**：`候选就绪` → `写回成功` → `编辑器可见/游戏核验`，前一层不能冒充后一层。
 
@@ -130,6 +131,8 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   见 `references/asset-cli-reference.md` §1「预注册前置红线」。
 - 关卡变量：`gsts assets:level-variables create --name <n> --type <t> [--value <v>] [--entity <id>]`（默认关卡实体 1094713345）；`list` / `update` 同理。
 - 任意场景实体变量（含新建实体）：`gsts assets:custom-variables --entity <id> --vars "name:type=value;..." --write`，回读用 `--list --format json`。declaration 是 upsert：同名同类型更新，缺失追加，不会动其它变量。
+  - **每条 entry 必须带 `=值`（09-03 实证）**：`name:entity` 无值形态报 `invalid --vars entry`；entity/guid 等引用型写 `name:entity=0`（0=空引用占位，运行时由图 `setCustomVariable` 动态赋值——实体 GUID 不硬编码进资产初始值）。
+  - **CLI 无变量删除命令**（全 upsert）——需要撤销时走通用流程 step 4 的最早备份恢复，勿手写 wire 删除。
 - 元件/玩家/角色初始变量：`gsts.config.ts` 的 `assets.customVariables` 声明，`assets:custom-variables --write`（无 `--entity` 时走配置路径）；`syncInstances: true` 会补齐明确引用模板的实例容器（玩家模板通常需要“顶层定义 + 实例容器同步”两处都写才可见）。
 - **推荐串联**：`assets:entities import` 建实体（自动继承元件定义变量容器）→ `assets:custom-variables --entity <id> --vars ...` 写变量 → `--list` 回读。
 - dict 语法：`name:dict=k1=abc&k2=[a,b]&k3=[1.5,2.5]&k4=[1,2,3]|4,5,6`；dict 值支持 str/int/float/str_list/int_list/bool_list/float_list/vec3_list。marker 公式与完整表见 reference。
