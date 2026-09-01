@@ -1165,3 +1165,30 @@
 > clm_213B9BC24 中"节点<3000 拒载"口径 → 2000。附带发现：r4 地图 fly/roll/slide 缺
 > goalCollide 调用节点（上一会话构建产物缺陷，飞行球门碰撞/计分从未生效——r5 忠实
 > 构建已补上，待游戏内验证）。
+
+### O-2026-09-01-01 定时器引脚语义修复轮的维护债（2026-09-01 复盘登记）
+
+- 来源：retrospective-2026-09-01-timer-pin-semantics-regression.md（修复 c7c263a 后登记）。
+- 待做 ① **1914 def-clean**：地图复合目录残留死 def `solver_cross_mask`（impl 1610700051，
+  引用 1610700050×4 现指向 solver_edge_state）——08-30 备份比对确认旧有、主图零调用、
+  3070/3071 两场加载实证容忍；按 gil-node-graph-editing def-clean 流程专项清理。
+- 待做 ② **gen 漂移对齐**：`npm run gen` 相对提交产物有 3000+ 行历史漂移（nodes.ts 4585 行
+  格式/文案追平），迫使 definitions 外科手术式手改（b8b97ff 与 c7c263a 两轮先例）——需专项
+  消化并让 scripts/AGENTS「不手改生成物」规则回归可执行。
+- 待做 ③ **注入备份触发条件查证**：08-31 起三轮 1914 注入均未产生 `.gsts/backups` 新 .bak
+  （08-29/30 有）——回滚面存疑，查 injector 备份逻辑。
+- 待做 ④ **PKC 待录**：定时器事件引脚种类分岔定论（OUT3=多槽槽位号 / OUT4=重复型计数）+
+  「取证结论须覆盖全部行为品种」方法论 + 本轮 durable_candidates 其余项。
+- 附带核对：rubik-2x2 地图在 b8b97ff..c7c263a 窗口内疑似未被重注入（无证据发生，多槽消费
+  修复后语义自动正确）——低风险备查不行动。
+
+### O-2026-09-01-02 「r1 转面后后续交互无响应」——回归修复轮遗留新症状（未定位）
+
+- 现象：用户 2026-09-01 复测（日志 3073/3074）确认 R 面转已修复，但 r 之后其他交互无响应。
+- 首要嫌疑：unlock/lock 释放链——game.ts dispatch 在 lock=true 时空分支吞掉所有输入；
+  unlock 依赖 visual 图 view_turn_unlock_if_last（slot==turnLastSlot=8，B 通道 base5+seq3）
+  给实体 1077936201 起 'unlock' 定时器 → turn 图 'unlock' 分支复位 lock。
+- 第一步：重锁地图 SHA（游戏 09:57 退出保存在注入后，可能回写）+ 复查 seq wire 仍在
+  index3；然后 3073/3074 records/frames 分析（判读顺序：后续按键有无到达 game dispatch →
+  unlock 定时器记录是否存在 → turn 'unlock' 分支是否执行）。
+- 详细恢复包见 /tmp/rubik3x3-timer-fix-handoff-2026-09-01.md。
