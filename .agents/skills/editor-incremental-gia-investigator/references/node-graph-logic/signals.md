@@ -80,7 +80,7 @@ str 例外 connect2=3：1a 04 08 04 10 03
 
 ## 修改信号与创建信号复用
 
-“修改信号”不是全局文本替换，而是创建信号的原位替换变体。复用 `src/cli/gil_signal_registrations.ts` 的参数模板池、`buildIndexEntry()`、`buildDefinition()` 和严格结构回读：
+“修改信号”不是全局文本替换，而是创建信号的原位替换变体。复用 `src/cli/gil_signal_registrations.ts` 的参数模板池、`buildIndexEntry()`、`buildDefinition()` 和严格结构回读。2026-09-02 起（e231402）同型重复参数任意组合**不再需要 donor**（四轮差分闭合：field2=全局序号、n4=类型模板、pin 引擎不校验，fallback 路径共享槽已去重），donor 池聚合仅作优先复用真实槽的来源：
 
 ```bash
 npx tsx src/cli/assets_signals.ts update \

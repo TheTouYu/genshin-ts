@@ -100,6 +100,17 @@
 
 ## 未落地（OPEN）
 
+### O-2026-09-02-01 donor 聚合借槽路径同信号重复 pin 未去重（引擎接受度未验证）【OPEN】
+
+- 证据：`registerSignalInGil` donor 路径（`src/cli/gil_signal_registrations.ts` L1465
+  buildParamPool 聚合 donor 地图全部信号）借槽不去重——too_many_strings 案例 3 str 借到
+  [[12],[16],[12]]，第 1/3 参数同 pin；编辑器无同信号同 pin 形态（2026-09-02 四轮差分 R1-R4
+  恒每参数独立 pin），引擎对"同信号定义内两参数共享 pin"接受度无验证样本。football-v2
+  fb_ball_state（9 float 跨 11 槽拼装）在用但无显式游戏验证记录。
+- 待办：给 donor 路径复用 dedupeByPins（fallback 路径 2026-09-02 已修，e231402），或做一次
+  donor 借槽重复 pin 信号的游戏核验再定去留；若遇信号类拒载优先查此处。
+- 关联：docs/game-engine-knowledge/retrospective-2026-09-02-signal-repeat-param-debt.md 第五节
+
 ### O-2026-08-30-14 4 条七月遗留 stash 待评估清理（fork-api-and-layout WIP）【OPEN】
 
 - 证据：`git stash list`——`stash@{0}` "ds"（07-08，本次 pop 冲突源，内容已被 build_composite_layout.ts
