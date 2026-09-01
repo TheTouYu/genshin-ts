@@ -65,6 +65,16 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 **setTimeout 的 delayMs 单位是毫秒**（DSL 内部转秒）。事故：`[200]` 以为是 200ms 实为 **200 秒**，
 日志 57 秒内定时器从未触发。自查：对照同族已验证调用（如 dribble 的 `[LOCK_MS]`，注释写明"秒"）。
 
+**定时器事件字段按定时器种类选用（2026-09-01 引脚回归实证，必守）**：`evt.timerSequenceId`
+（OUT3）只在**延迟列表多槽**定时器触发时携带槽位号；`evt.numberOfLoops`（OUT4）只在**重复型**
+定时器携带计数——用错字段读恒空值（rubik 九槽动画曾因此坍缩到 2 块，b8b97ff→c7c263a 修复）。
+多槽槽位消费用 timerSequenceId；重复型每 tick 计数用 numberOfLoops。
+
+**注入后烟囱交互（2026-09-01 36 小时回归盲窗教训）**：编译器/definitions 层任何变更 + 地图
+重注入后，除当轮特性测试外，必须跑一次**该图族最便宜的端到端探针**（rubik = 一次面转；
+3026/3070 只测当轮特性，3071 首次面转即崩）。核验门分层「编译 0 错 ≠ 注入正确 ≠ 游戏行为
+正确」里，"游戏行为"层永远要有最小探针项。
+
 **官方节点依赖 buff 的降级方案（2026-08-28 足球带球实证）**：
 `queryCharacterSCurrentMovementSpd` 等官方节点**仅当角色挂对应单位状态效果（buff）时才能查询**，
 buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0:Float=空`/`OUT1:Vector=(0,0,0)` = buff 未挂。

@@ -47,6 +47,17 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
 
+### 服务端日志·定时器事件引脚与日志目录族（2026-09-01 引脚回归复盘实证）
+
+- **When Timer Is Triggered（gid 83）OUT3/OUT4 填充按定时器种类分岔**：OUT3（序列序号）仅
+  「延迟列表多槽」定时器触发时携带槽位号；OUT4（循环次数）仅「重复型」定时器携带计数
+  （3067 dsp=1..19 实证），非重复定时器**双空**。日志里 `OUT3/4:Integer=` 空显示 ≠ 值 0
+  （真 0 会显示 `Integer=0`）——排查「多槽动画全落槽 0」先查消费线接的是哪个引脚
+  （详情见 game-engine-knowledge/node-graphs.md 定时器节；修复 c7c263a）。
+- **日志目录族**：`Beyond_Performance_Report/*.gia` 与 `Beyond_Debug_Log/*.gia` 同会话号成对，
+  但前者**无 f21 记录**（records/frames 解析为空报错属正常）；Debug_Log 会被游戏侧滚动清理
+  （2026-09-01 实证只保留最近 ~28 个）——**关键现场日志要当场摘录帧值**，别指望文件还在。
+
 ### 客户端日志（2026-08-28 魔方-客户端优化版本会话 2979 实证，完整细节见 debug-log-format.md）
 
 - **识别**：records 里 graph=客户端图 ID（如 1082130436）、f8=**2097154(0x200002)** 恒值、无 f22 文本——

@@ -231,6 +231,12 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
 （节点爆炸/漏节点/捕获错误）都要靠读回真实图核验，尽早发现，不浪费用户游戏测试轮次。
 顺序：`decode-gia.ts 解码 .gia` → 注入 → `list-gil-node-graphs 全景` → `explain 人读式核对` → 定点检查。
 
+**引脚路由回归 → 参照物地图 wire 差分（2026-09-01 定时器引脚回归实证，首选手法）**：
+怀疑「编译产物把某条数据线接到错误引脚」时，找**同图族的历史已知正确地图**（如 1899 对
+1914）做逐字段 wire diff——`parse --json` 取两图同名图，对比可疑节点的
+`inputs[].sources[].pin`（如 `{'kind':4,'index':3}` vs `index:4`）。事件节点逐字段一致而
+唯一连线差异即病灶，一轮定位；比逐帧追运行值快一个量级。前提：参照物地图别动（勿注入勿保存）。
+
 1. **.gia 解码核预期**（注入前）：`tools/decode-gia.ts <file.gia>` —— 复合 def 集合（accessories
    which=12 的名字列表）、主图节点/连线、compositePins——核对"我写了 N 个复合、M 条逻辑"都生成；
    节点数异常（膨胀）在这里就看出来。
