@@ -7,6 +7,7 @@
   - **静态盘点（新证据）**：客户端图节点面（src/definitions/client_nodes.ts）**无** setCustomVariable / addBasicMotionDevice / setEntityLocation（有 getEntityLocation 只读、setLocalVariable、getControlMotorCurrentVelocity）→ ①(b) 客户端图直驱运动器**静态判死**（保留编辑器 10 秒差分反证口），视觉驱动收敛 (a) 回传-服务端挂运动器；②客户端球态必须图内自持（每拍读服务端变量 0~1s 复制延迟不可行）；③R4 玩家速度可客户端直取。
   - **交付四件**（REBUILD-V2-PLAN.md）：①退役 10 项/继承 16 项两清单（逐条注替代物与来源）；②架构骨架 v6（计算层 20008×15Hz/同步层 seqlock/真相层 fb-server；双通道意图分流=踢球走 20002 即时、缓变参数走 seqlock；两笔账 fb-phys 700~1100 节点、fb-server 500~800 均预算内；服务端帧负载预估降 75~90%）；③旧四图退役方案（改名 RETIRED-v6-+摘挂载与新图同批+活图盘点先行）；④用户编辑器一次性配置清单草稿。
   - **R1 实验设计**：E1 最小闭环（照抄 zaowu+zt-lane 模板）+ E2 图内变量跨拍保持（**最高风险未验点**，失败兜底=物理降频 5Hz）+ E3 float/多参信号验证 + E4 (a) 视觉链路端到端（15Hz vs 5Hz 降频对比）。
+  - **用户输入（同日）**：客户端走造物路径运算 + **服务端把球实体引用写进造物实体变量** → 客户端 getSelfEntity 后读出引用即可查球位置/球变量。静态查证落地：getSelfEntity 在 20008 supported（官方样本背书）、queryEntityByGuid 在 20008 partial supported（备选路径）——骨架新增 §2.7-B'（实体寻址三路径，用户方案为主，新验证点=E5 entity 型变量 S 写 C 读）与 §2.7-B''（位置真相两模式：P1 自持+对账 vs P2 每拍读实体闭环反馈，P2 为用户方案推论=漂移结构性归零，E4 对比定产）；E4 扩为 P1/P2 对比。
   - **裁决点六项待用户拍板**：A ROLL_DECEL 1.0 vs 2.0（建议 1.0 sim 基准）；B 带球参数继承 v4 调优值（建议继承）；C 旧信号 def 保留（建议保留）；D 退役命名（RETIRED-v6-/*.v5.ts）；E 回传频率 15Hz 起步；F 两清单整体确认。确认后才进 R1。
 
 - 2026-08-31（第三阶段 R4 手感三调，R3 复测反馈驱动，已注入+全核验，待用户复测）：

@@ -85,16 +85,19 @@
 ### 2.2 数据流（常态一拍，15Hz）
 
 ```
+【会话种子·一次性】fb-server whenEntityIsCreated
+  → 写造物实体变量 fb_ball_entity = 球实体引用（entity 类型）【E5 验】
+  → 写初始任务（球 vel/spin/state 种子）进邮箱
 [C] 20008 触发（造物技能施放，~66ms/拍）
+  → getSelfEntity() → getCustomVariable(self, fb_ball_entity) → 球实体引用【E5 验】
   → 门：读 fb_epoch/fb_ack（玩家实体变量，预注册）
   → 有新任务：读 fb_task_* 全量 → Σ校验 fb_sum → 二读 fb_epoch → 应用（冲量/参数/复位）
-  → 六态积分一拍（sim 公式按 PORTING-MAP 四分法移植）
+  → 读球位置（P1 自持 / P2 getEntityLocation(球实体)——两模式 E4 对比，见 2.7-B'）
+  → 六态积分一拍（sim 公式按 PORTING-MAP 四分法移植；vel/spin/state 图内自持【E2 验】）
   → sendSignal(fb_ball_state, tag='ok', epoch, px,py,pz, vx,vy,vz, state[, spin])
 [S] onSignal → ack 只前进 → 镜像写球实体变量 → 挂运动器（速度=(回传位−当前位)/时长）
   → 进球判定（服务端独立，防客户端漂移）→ 比分+复位任务
 ```
-
-会话启动种子：fb-server whenEntityIsCreated → 写初始任务（球 pos/vel 种子）进邮箱 → 客户端首拍初始化自持态（对齐幽灵球教训：种子+周期对账，见 §2.7-D）。
 
 ### 2.3 图与资产清单（全部新 ID，不改旧四图）
 
@@ -115,6 +118,10 @@
 **寄存器（挂玩家实体，int 为主，全部预注册）**——单写者=fb-server dispatcher：
 `fb_t0..fb_t7`（任务载荷：type + kick vel/spin 定点 int×6 或复位坐标）、`fb_sum`、`fb_epoch`、`fb_ack`。
 邮箱 `fb_mq_*`（同构一套，挂 fb-server 图实体=球实体）。闭式 sum 压缩纪律照抄（防 2437>2000 事故）。
+
+**实体引用变量（挂造物实体，entity 类型，预注册）**：`fb_ball_entity`——服务端会话启动写入球实体引用，
+客户端 getSelfEntity()+getCustomVariable 读出（用户 2026-09-01 方案；见 §2.7-B'）。后续门柱/操作台等
+任意实体寻址同模式扩展。
 
 **真相镜像（挂球实体 1077936135）**：`pos/vel/spin:vec3、state:int、goalCount:int`——仅 fb-server onSignal 写。
 
@@ -146,8 +153,12 @@
 
 ### 2.7 关键架构决策与证据（R0 定盘）
 
-- **A. 客户端自持连续状态（非每拍从服务端读）**：15Hz 要求上拍状态 <70ms 可用，变量复制实测延迟 0~1s【已验 3064】不可用；客户端又无 setCustomVariable【静态】→ 唯一位置=20008 图内变量（setLocalVariable）。**风险：图变量跨技能施放是否保持未验（zt-lane 客户端无跨拍状态先例）→ R1 E2 最高优先验证**。失败兜底：物理降频至 seqlock 通道可支撑的 ~5Hz（计算仍在客户端，负载收益保留，手感损失 R1 评估）。
+- **A. 客户端自持连续状态（非每拍从服务端读）**：15Hz 要求上拍状态 <70ms 可用，变量复制实测延迟 0~1s【已验 3064】不可用；客户端又无 setCustomVariable【静态】→ 唯一位置=20008 图内变量（setLocalVariable）。**风险：图变量跨技能施放是否保持未验（zt-lane 客户端无跨拍状态先例）→ R1 E2 最高优先验证**。用户方案（B'）落地后自持状态量从 10 个缩至 7 个（vel/spin/state，位置见 P2 模式）。失败兜底：物理降频至 seqlock 通道可支撑的 ~5Hz（计算仍在客户端，负载收益保留，手感损失 R1 评估）。
+- **B'. 客户端球实体寻址 = 服务端写实体引用进造物变量（用户 2026-09-01 方案）**：链路
+  `getSelfEntity() → getCustomVariable(self, fb_ball_entity) → getEntityLocation(球)/getCustomVariable(球,…)`。
+  静态支撑【R0 查证】：getSelfEntity 在 creation_skill(20008) supported（beyond+classic，官方样本"造物技能节点图\查询复杂造物的预设状态值"）；getCustomVariable/getEntityLocation 在客户端节点面在位。**唯一新验证点=entity 值类型自定义变量 S 写 C 读（E5）**。优点：绕开 GUID 查询行为差异；实体引用传递是通用模式（后续任意实体寻址复用）。备选路径：queryEntityByGuid 在 20008 亦 partial supported【静态】（球=静态物件，服务端已验物件可查；客户端行为随 E5 一并验）——两路任一通即可，用户方案优先（引用传递不依赖查询语义）。
 - **B. 视觉驱动走 (a) 回传-服务端挂运动器**：(b) 客户端图内直驱运动器**静态判死**——client_nodes.ts 节点面【静态】无 addBasicMotionDevice/setEntityLocation 类方法（有 getEntityLocation 只读；characterBlink/tacticMove 是角色与造物自身移动，不适用球物件）。保留 10 秒编辑器差分反证口：用户在编辑器任一客户端图节点库搜"运动/位置"类节点，若存在则 (b) 复活重评。**R1 主实验= (a) 全链量化**（E4）。
+- **B''. 位置真相两模式（E4 对比定产）**：**P1 自持+对账**——客户端图内积分位置为准，实体位置仅周期对账（R0 原案）；**P2 实体闭环（用户方案推论）**——客户端每拍 getEntityLocation(球实体) 读实时位置作积分输入，计算→回传→服务端运动器→实体位置变→下拍读回，反馈环每拍锚定实体位置=**累积漂移自动归零（幽灵球结构性防线）**、自持状态量最少。P2 风险：客户端读到的是本地表现位置（含网络同步/插值延迟 δ），反弹等位置突变沿可能有 1~2 拍过冲——E4 日志量化 δ 与观感后定产。
 - **C. 双通道意图分流**：踢球/复位（手感延迟敏感）走 20002 单次触发（cast 链同记录完成【已验 3044】）；带球速度场参数（缓变）走 seqlock。避免 seqlock 0~1s 复制延迟伤踢球手感。
 - **D. 幽灵球防线**：真相镜像（服务端）与客户端自持态（计算）是两个真相域——服务端不做位置纠偏回写（会打架），只在 GOAL 复位/会话种子时经任务通道单向重置客户端态；进球判定用服务端镜像独立做（防客户端漂移误判）。
 - **E. 服务端"静止零定时器"仍成立**：dispatcher 1s 轮询是唯一常驻定时器（低频；可评估 whenCustomVariableChanges 事件驱动替代——open item，非 R1）。
@@ -161,9 +172,10 @@
 | # | 实验 | 方法 | 通过判据 | 失败兜底 |
 |---|---|---|---|---|
 | E1 | 最小闭环全链 | 服务端写任务→寄存器→客户端 15Hz 门读→sendSignal→onSignal 提交+print（照抄模板，足球地图新图新 ID） | 客户端链路四层成功签名全齐（服务端 print/决策帧/f8=2097154/onSignal）+ 11/11 零丢失零撕裂量级复现 | 按技能决策树排查（禁锢第一嫌疑） |
-| E2 | 图内变量跨拍保持 | 20008 图内 setLocalVariable 写计数器/上拍 pos，下拍读回比对（日志帧值） | 连续拍读回上拍值 | 物理降频 5Hz；或状态外置方案重议 |
+| E2 | 图内变量跨拍保持 | 20008 图内 setLocalVariable 写计数器/上拍 vel，下拍读回比对（日志帧值） | 连续拍读回上拍值 | 物理降频 5Hz；或状态外置方案重议 |
 | E3 | 信号参数形态 | ①float 参数信号最小验证 ②8 int 多参信号注册+回传 | 服务端 onSignal 收到且帧值类型正确 | float 弃用→int 定点 ×1000；多参不行→拆信号/裁参数 |
-| E4 | (a) 视觉链路端到端 | 15Hz 回传 pos→服务端挂同名运动器（0.1s 级）驱动球实体；对比变体 5Hz+0.25s | 球连续平滑移动；日志量化回传→运动器帧延迟；用户观感 | 调运动器时长/回传频率；(b) 若编辑器差分复活则对比再定 |
+| E5 | 实体引用传递（用户方案） | 服务端写 fb_ball_entity(entity 型) 进造物实体变量 → 客户端 getSelfEntity+getCustomVariable 读出 → getEntityType/getEntityLocation 帧值比对；附带 queryEntityByGuid(球 GUID) 物件行为 | 读出实体类型/位置与真实球一致 | 走 queryEntityByGuid 直查；再不行重议寻址 |
+| E4 | (a) 视觉链路端到端 + 位置模式对比 | 15Hz 回传 pos→服务端挂同名运动器（0.1s 级）驱动球实体；**P1 自持 vs P2 每拍读实体闭环**两模式各跑一段；对比变体 5Hz+0.25s | 球连续平滑移动；日志量化回传→运动器帧延迟、P2 反馈环滞后 δ、反弹过冲；用户观感 | 调运动器时长/回传频率/选 P1；(b) 若编辑器差分复活则对比再定 |
 | E0 | 阳性对照 | 不重跑 1915/1916，仅对照配置字节 | — | 排查时用跨地图对照法 |
 
 R1 明确不做：物理公式移植（R2）、踢球意图（R3）、带球（R4）。
@@ -216,6 +228,9 @@ R1 明确不做：物理公式移植（R2）、踢球意图（R3）、带球（R
 | `grep -ril "motionDevice\|BasicMotion\|addMotion" src/definitions/` | 仅服务端定义命中；client_* 零命中 |
 | `src/definitions/client_nodes.ts` 方法枚举 | 有 getEntityLocation/getCustomVariable/setLocalVariable/getControlMotorCurrentVelocity；**无** setCustomVariable/addBasicMotionDevice/setEntityLocation |
 | `src/definitions/client_graph_modes.ts` | 客户端图 7 子类型（character_skill/character_control_skill/creation_skill/creation_status/creation_status_decision/bool_filter/int_filter） |
+| `src/definitions/client_scoped_globals.ts` self 段 | **getSelfEntity 在 creation_skill(20008) supported**（beyond+classic，官方样本"造物技能节点图\查询复杂造物的预设状态值_连线.gia"）——用户方案（实体引用经造物变量传递）链路静态成立 |
+| `src/definitions/client_scoped_globals.ts` GameObject.Find 段 | **queryEntityByGuid 在 creation_skill partial supported**（beyond+classic，官方样本"造物技能节点图\获取单位攻击目标_连线.gia"）；另有 getEntityListByUnitTag（tag 寻址）——客户端实体寻址共三条候选路径 |
+| `src/definitions/nodes.ts:1817` | 服务端 setCustomVariable 泛型（entity 值类型可写；C 读 entity 型=S 写 C 读待 E5 游戏内验证） |
 | `examples/football/gsts.config.ts` | v5 注释态：entries 排除 *.v4.ts；inject→1073741825；skipSafeCheck=true（弹球图遗留，新架构需复核此项是否仍适用） |
 | `.agents/skills/client-nodegraph-development/references/creation-path/templates/{,zt-lane/}` | 模板 5 源码+zt-lane 全套在位可抄 |
 | `verify/zaowu-client/ verify/zt-lane/ verify/d2-client/` | 工作源码副本在位 |
