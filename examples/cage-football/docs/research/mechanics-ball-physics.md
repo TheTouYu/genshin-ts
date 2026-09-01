@@ -8,7 +8,8 @@
 ### R2.M1 球速量级（真实世界官方标定）
 
 - **机制描述**（真实参照）：世界杯 2022 官方用球 Al Rihla 内置 IMU 以 500Hz 回传，可精确测射门点、飞行距离与球速——机制层面说明"球速是可精确测量的公开量"。
-- **关键数值**：世界杯 2022 最快进球：Chávez 任意球 **121.69 km/h（≈33.8 m/s）**、距离 29.19m；Doan 120.04、Füllkrug 118.00、C 罗 117.39、Kane 115.86 km/h（来源：[El Financiero 引 FIFA 官方数据](https://www.elfinanciero.com.mx/mundial-qatar-2022/2022/12/07/gol-del-mexicano-luis-chavez-el-mas-potente-en-la-copa-del-mundo-2022-supera-a-kylian-mbappe/)，转述 FIFA 官方 IMU 数据）。即：**世界级大力射门 32~34 m/s，顶级职业常规射程 25~32 m/s**。游戏内球速数值：未查到官方公开。
+- **关键数值**：世界杯 2022 最快进球：Chávez 任意球 **121.69 km/h（≈33.8 m/s）**、距离 29.19m；Doan 120.04、Füllkrug 118.00、C 罗 117.39、Kane 115.86 km/h。即：**世界级大力射门 32~34 m/s，顶级职业常规射程 25~32 m/s**。游戏内球速数值：未查到官方公开。
+- **来源**：[El Financiero 报道（转述 FIFA 官方 Al Rihla IMU 500Hz 测速数据）](https://www.elfinanciero.com.mx/mundial-qatar-2022/2022/12/07/gol-del-mexicano-luis-chavez-el-mas-potente-en-la-copa-del-mundo-2022-supera-a-kylian-mbappe/)（真实数据机构）。
 - **引擎映射**：**【可还原】**——自制物理为显式速度积分，数值可任意标定；草稿速度上限 clamp 30 m/s（≈108 km/h）恰落在"顶级职业常规射程"上沿，蓄力踢 12~26 m/s（43~94 km/h）覆盖"普通推射→大力抽射"区间，量级标定合理。
 - **差异提示**：无缺口；强射 24 m/s（86 km/h）偏"职业联赛平均大力射"水平，符合预期。
 
