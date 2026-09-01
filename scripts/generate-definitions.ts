@@ -482,17 +482,15 @@ function buildEvents() {
       }
     }
 
-    // 引擎运行时输出顺序修正（2026-08-30 帧铁证，Beyond_Debug_Log 2998）：
-    // whenTimerIsTriggered 的编辑器/vendor 定义顺序（…定时器序列序号, 循环次数）
-    // 与引擎运行时输出顺序相反——帧参数自报 index：OUT3 恒空、OUT4 按定时器各自
-    // 计数（d2lv:1,2,3 / d2skill:1,2,3）。连线按运行时顺序解释，timerSequenceId
-    // 必须排 index 4（dyn 动态 init 连 index 3 实测读空）。vendor 数据保持官方
-    // 顺序，此处仅对生成产物换序。
-    if (e.name === 'whenTimerIsTriggered' && paramLines.length >= 5) {
-      const p3 = paramLines[3]
-      paramLines[3] = paramLines[4]
-      paramLines[4] = p3
-    }
+    // 定时器事件输出引脚语义按定时器种类分岔（2026-08-31 撤销 b8b97ff 整体换序，
+    // 回归复盘日志 3071 + 原图 1899 wire 双铁证；b8b97ff 取证只有重复型样本）：
+    // - OUT3（定时器序列序号）：仅「延迟列表多槽」定时器触发时携带槽位号——
+    //   rubik 面转九槽动画依赖（1899 图 seq 消费线连 index 3 + 2960 会话视觉正确）；
+    // - OUT4（循环次数）：仅「重复型」定时器携带计数（2998 d2lv 1,2,3 / 3067 dsp 1..19），
+    //   非重复定时器恒空。
+    // 两类各自填自己的引脚、另一引脚恒空——不存在全局换序。多槽槽位消费用
+    // timerSequenceId（OUT3），重复型计数消费用 numberOfLoops（OUT4）。
+    // vendor 官方顺序（序列序号@3、循环次数@4）即正确顺序，不做换序。
 
     lines.push(`${e.name}: [`)
     lines.push(...paramLines)

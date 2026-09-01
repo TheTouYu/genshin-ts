@@ -4,9 +4,11 @@ const config: GstsConfig = {
   compileRoot: '.',
   entries: ['./src'],
   outDir: './dist',
-  // 2026-08-31 B1 实测回归：shared vendor Graph 后端的列表字面量编码（bArray 内层
-  // alreadySetVal=false）注入后 cases 丢失（多分支全断，日志 3013 IN1:List= 空）。
-  // 显式回退 legacy 后端直至 vendor 后端字面量 wire 修复。
+  // 注：stage3 默认即 shared-vendor-impl-graph 后端（stage3_backend.ts）；
+  // `vendorImplGraphBeta: true` 与默认等价（选择 vendor），`false` 才是回退 legacy。
+  // 2026-08-30 44a18d8 曾在此注释称"显式回退 legacy"但值写成了 true（未实际回退）。
+  // 3013 cases 丢失已由 44a18d8 的 asv 修复闭环（3067/3071 多分支正常），此开关
+  // 维持 vendor 后端不变——本轮（定时器引脚语义修复）不引入后端变量。
   options: {
     stage3: {
       vendorImplGraphBeta: true

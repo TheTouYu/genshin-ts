@@ -36,10 +36,11 @@ g.server({ id: 1073741842, name: 'verify-c2s-cv' })
     f.doubleBranch(
       f.equal(evt.timerName, 'cv_write'),
       () => {
-        // 写玩家自定义变量（动态创建 d2c_counter）
-        f.setCustomVariable(owner, 'd2c_counter', evt.timerSequenceId, false)
+        // 写玩家自定义变量（动态创建 d2c_counter）。cv_write 是重复型定时器——
+        // 计数走 numberOfLoops（OUT4）；timerSequenceId（OUT3）仅多槽定时器携带槽位号。
+        f.setCustomVariable(owner, 'd2c_counter', evt.numberOfLoops, false)
         f.printString('d2cv|w|')
-        f.printString(f.dataTypeConversion(evt.timerSequenceId, 'str'))
+        f.printString(f.dataTypeConversion(evt.numberOfLoops, 'str'))
       },
       () => {
         // 施放链：角色实体 + 配置 1098907660（6 模板瞬发，绑客户端图 1082130433）

@@ -11,7 +11,7 @@ import { g } from 'genshin-ts/runtime/core'
 //   d2lv|set|   → 101    同身份多 Set（S7）：100 → +1（读 value 锚再更新）
 //   d2lv|len|   → 3      列表字面量 [1,2,3] → 拼装节点值保留，长度 = 3
 //   d2lv|elem0| → 1      下标 0 元素 = 1（0-based）
-//   d2lv|dyn|   → N      动态 init（timerSequenceId）→ get(empty)+set(expr)，值 = tick 序号
+//   d2lv|dyn|   → N      动态 init（重复型定时器 numberOfLoops）→ get(empty)+set(expr)，值 = tick 计数
 g.server({ id: 1073741840, name: 'verify-d2-lv' })
   .on('whenEntityIsCreated', (_evt, f) => {
     f.startTimer(f.getSelfEntity(), 'd2lv_tick', true, [5])
@@ -32,8 +32,9 @@ g.server({ id: 1073741840, name: 'verify-d2-lv' })
     f.printString(f.dataTypeConversion(f.getListLength(list.value), 'str'))
     f.printString('d2lv|elem0|')
     f.printString(f.dataTypeConversion(f.getCorrespondingValueFromList(list.value, 0n), 'str'))
-    // ④ 动态 init（get+set）：timerSequenceId = tick 序号（0,1,2,...）
-    const dyn = f.localVariable('int', evt.timerSequenceId)
+    // ④ 动态 init（get+set）：重复型定时器计数走 numberOfLoops（OUT4）——
+    // timerSequenceId（OUT3）只有延迟列表多槽定时器才携带槽位号，重复型恒空。
+    const dyn = f.localVariable('int', evt.numberOfLoops)
     f.printString('d2lv|dyn|')
     f.printString(f.dataTypeConversion(dyn.value, 'str'))
   })

@@ -696,3 +696,65 @@
 - CLI `assets:node-graphs create --type 20007`（样本已闭合待实现）；复杂造物槽 80/81/82
   知识回填 gil-structure 文档；f8 客户端记录中 20007/20009 是否留痕待日志确认。
 - 知识落盘：client-nodegraph-development 技能「造物技能路径」章节（本轮已加）。
+
+---
+
+## 回归修复：面转视觉坍缩（2026-08-31 晚，日志 3071）
+
+> 用户裁定优先修复回归再继续造物优化。r1 交互面旋转不对 → 帧级定位 → 根因 =
+> 编译器 b8b97ff（08-30 07:20）定时器事件输出引脚全局换序。本轮修复待注入+用户复测。
+
+### 现象与帧级定位链（3071，1914，会话 21:01）
+
+- sec15 r1 交互：tabId=1 → op3 val=1（R 面）→ turn 图 flowDoMove 逻辑全量执行（rec38
+  93KB，logic_apply_face 循环正常）→ visual×18 动画记录。
+- **设备表铁证**：18 条 visual 记录里只有两个实体收到设备——E34（=blocks[24]=R 中心，
+  5 条）与 E17（=blocks[7]，4 条）；**9 槽位全部坍缩到 slot0/slot5**（A 通道恒 E34、
+  B 通道恒 E17），7 块零动画。
+- 顺带排除的假线索：orbit1 速度 (0,0,0) 是 R 中心块在旋转轴上的数学正确值；vels1/vels2
+  图变量读回空是 1899 时代已知短物化（orbit2 二段靠 E17 的非零速度证明计算链活着）。
+- **决定性帧**：rec39 帧[0] `When Timer Is Triggered: OUT3:Integer=（空）OUT4:Integer=（空）`
+  ——timerSequenceId 引脚运行时无值 → `seq` 恒 0 → `slot = base + 0`。
+
+### 根因（三层证据闭合）
+
+1. **wire 对比**：1914（坏）visual 图 `seq ← 事件 OUT4`；1899（最后已知正确，2960 会话
+   实际载体）`seq ← 事件 OUT3`。两图事件节点逐字段一致，唯一差异就是这条连线。
+2. **引擎语义分岔**（3067 zt-lane 同引擎差分）：重复型定时器 OUT4=计数（dsp=1..19、
+   2998 d2lv=1,2,3）；非重复定时器（含多槽延迟列表）OUT3/OUT4 双空；多槽槽位号走 OUT3
+   （1899 wire + 2960 视觉正确推论）。
+3. **b8b97ff 错误归因**：其 2998 取证样本全是重复型（d2lv/d2skill），把「OUT3 恒空」误判
+   为「引擎运行时把序号换到 OUT4」并全局换序——rubik 视觉图九槽动画（多槽非重复）从此
+   读恒空。08-30 后无人转过面（3026 只测 op99 探针、3070 只测 cast 链），3071 首次暴露。
+
+### 修复（一个可归因变更：定时器引脚语义修正）
+
+- `scripts/generate-definitions.ts`：删除 whenTimerIsTriggered 全局换序 override（vendor
+  官方顺序即正确：序列序号@3、循环次数@4），注释写明种类分岔语义。
+- `src/definitions/events.ts` / `events-payload.ts`：换回 vendor 顺序（外科手术式只动
+  timer 段，与 `npm run gen` 产物逐字节一致；gen 全量 diff 的 3000+ 行历史漂移未吸收，
+  沿 b8b97ff 先例，登记 open-items）。
+- 重复型计数消费者改用 `evt.numberOfLoops`（OUT4）：`verify/d2-lv/d2-lv.ts`、
+  `verify/c2s-cv/c2s-cv.ts`（rubik 全部消费是多槽型，源码零改动自动回到 OUT3）。
+- 知识修正：`docs/game-engine-knowledge/node-graphs.md` 定时器节章节重写（撤销
+  927e2c8 的"运行时换序"结论，记录取证教训：**引脚语义结论必须覆盖全部定时器种类**）。
+- `gsts.config.ts` 注释纠错：44a18d8 注释称"回退 legacy"但 `vendorImplGraphBeta: true`
+  实为选择 vendor 后端（与默认等价）；仅改注释，后端维持 vendor 不引入新变量。
+
+### 模型侧核验（全部已跑，提交前）
+
+- `npm run build` exit 0；rubik 10 GIA 编译 0 错；verify 一次性配置编译 d2-lv/c2s-cv 全 [ok]
+  （c2s-cv 需指向 1916 读信号注册表）。
+- **.gia 解码核验**：visual 图 `view_handle_timer_event` 的 seq 输入连线 `→ 事件 {kind:4,
+  index:3}` = OUT3，与 1899 已知正确版完全一致（编译通过 ≠ 注入正确，注入后还要回读 .gil）。
+- `npm run test:client-transform` 全绿；`local_variable_d2_api_test` exit 0；
+  `timer_composite_control_flow_callbacks_test` exit 1 **为 HEAD 既有失败**（stash 基线
+  复现同栈，与本次无关，如实登记）。
+- e348612..HEAD 无编译器/运行时/定义改动（仅 docs/football/CLI 预算常量）——重注入相对
+  当前地图的唯一语义差异 = 本修复。
+
+### 待用户确认后执行
+
+1. 编辑器/游戏全关 → SHA 锁定 → 批量注入 10 GIA → 回读 .gil 核对 seq wire=index3 →
+   `check-gil-composite-refs --incoming` ×10 → Temp 双副本 md5。
+2. 用户复测 r1（期望：9 块动画、视觉与逻辑一致）→ 新日志验收（9 个不同实体收到设备）。

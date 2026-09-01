@@ -192,11 +192,13 @@ export const ServerEventMetadata = {
     { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
     { name: 'eventSourceGuid', typeBase: guid, typeName: 'guid', isArray: false },
     { name: 'timerName', typeBase: str, typeName: 'str', isArray: false },
-    // 引擎运行时输出顺序修正（2998 帧铁证，见 scripts/generate-definitions.ts
-    // buildEvents override）：vendor 定义顺序为（…序列序号, 循环次数），但引擎
-    // 运行时 OUT3 恒空、OUT4 按定时器计数——timerSequenceId 必须排 index 4。
-    { name: 'numberOfLoops', typeBase: int, typeName: 'int', isArray: false },
-    { name: 'timerSequenceId', typeBase: int, typeName: 'int', isArray: false }
+    // 引擎按定时器种类填不同引脚（2026-08-31 回归复盘定论，撤销 b8b97ff 的全局
+    // 换序——其 2998 取证只有重复型定时器样本）：OUT3（序列序号）仅「延迟列表多槽」
+    // 定时器触发时携带槽位号（1899 图 wire + 2960 会话视觉正确双铁证）；OUT4（循环
+    // 次数）仅「重复型」定时器携带计数（2998 d2lv / 3067 dsp），非重复恒空。
+    // 多槽槽位消费用 timerSequenceId，重复型计数消费用 numberOfLoops。
+    { name: 'timerSequenceId', typeBase: int, typeName: 'int', isArray: false },
+    { name: 'numberOfLoops', typeBase: int, typeName: 'int', isArray: false }
   ],
   whenGlobalTimerIsTriggered: [
     { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
