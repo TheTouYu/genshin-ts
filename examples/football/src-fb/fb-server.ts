@@ -57,17 +57,24 @@ g
     })
   })
   .onSignal(FbSignal.fb_echo, (evt, f) => {
+    // first-wins 三分支（多造物部署 2026-09-02：5 造物同代并发回声，只应用第一个）
+    //   e < cur → stale 拦下；e == cur → dup 丢弃（打点供并发统计）；e > cur → 应用
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
     const cur = f.getCustomVariable(owner, 'fb_ack').asType('int')
     f.doubleBranch(f.equal(evt.params.tag, 'ok'), () => {
       f.doubleBranch(f.lessThan(evt.params.e, cur), () => {
         f.printString('fb:stale')
       }, () => {
-        f.setCustomVariable(owner, 'fb_ack', evt.params.e, false)
-        f.printString('fb:ack')
-        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
-        f.printString('fb:cnt')
-        f.printString(f.dataTypeConversion(evt.params.c, 'str'))
+        f.doubleBranch(f.equal(evt.params.e, cur), () => {
+          f.printString('fb:dup')
+          f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+        }, () => {
+          f.setCustomVariable(owner, 'fb_ack', evt.params.e, false)
+          f.printString('fb:ack')
+          f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+          f.printString('fb:cnt')
+          f.printString(f.dataTypeConversion(evt.params.c, 'str'))
+        })
       })
     }, () => {
       f.printString('fb:tear')

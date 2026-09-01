@@ -14,6 +14,11 @@ export const Signal = {
     ['next', 'int'],
     ['vel', 'vec3']
   ]),
+  fb_echo: defineSignal('fb_echo', [
+    ['tag', 'str'],
+    ['e', 'int'],
+    ['c', 'int']
+  ]),
   football_kick: defineSignal('football_kick', [['tabId', 'int']]),
   football_push: defineSignal('football_push', [['hitPoint', 'vec3']]),
   football_push_req: defineSignal('football_push_req', [['hitPoint', 'vec3']]),
