@@ -22,7 +22,13 @@
 | R2 四象限分析 | ✅ `16f8004` | `findings-R2.md`（资产 6 / 大坑 8 / 盲区 5，假设 2/19） |
 | R3 AI 七问专项 | ✅ 本轮 | `findings-R3-seven-questions.md`（七问全实证+自我风险表+门禁落点） |
 | R4 落地计划 | ✅ `05a5b9a` | `optimization-plan-R4.md`（F1-F7 立即落地 / D1-D4 需裁决 / H1-H4 用户习惯 / 依赖图+执行序 / 无悬空项闭环声明） |
-| R5 首批落地+验证 | ⏳ 等用户裁决 | 推荐执行序 F3→F5→F4→F6→F1→F2；每项带验收命令/行为观察点，落地后当场验证注入生效 |
+| R5 首批落地+验证 | ✅ `d39366b`/`4416a32`/`a5b5413` | 用户裁决：F1-F6 全执行 + D1 采纳（D2/D3 搁置，D4 未裁决不执行）。F1/F2 目录 AGENTS.md **注入当场验证生效**（创建后 system-reminder 即注入，截图级证据在会话流）；F3-F6 grep 验收全命中；skills-health PASS 24/24；D1=collaboration-discipline topic 4 claims（bundle `bnd_aa9a78c3…`）+ collaboration context（progressive-query 路由验证命中）。 |
+
+## 最终验收状态（2026-09-01）
+
+- **交付物 A（分析报告）**：`findings-R2.md`（象限 1-3，19 结论/2 假设）+ `findings-R3-seven-questions.md`（象限 4 七问）——待用户逐条裁决（同意/不同意/没说到点上）。
+- **交付物 B（落地计划）**：`optimization-plan-R4.md`——已裁决并执行首批（F1-F6+D1）；D2/D3 搁置、D4 依赖 F1 可下批、F7 可选、H1-H4 归用户习惯。
+- **遗留观察点**：①F5/F6 行为层验证（下个排查会话是否按层输出/技能失败是否报告）②D1 验收短语"协作 授权 复测"排序 0（换词"授权 重写 不变量"5 命中，rank1 正确——检索调优可后续用 update-topic）。
 
 **R3 新增实证**：fc449599 21:02-21:03 技能加载失败全程（skill 调用失败→SKILL.md not found→静默裸命令兜底，未上报）；approval=never 后 7 秒即注入（09:53:25→09:53:32）；1d44d374 反问两次→爆发→从头扫 3 分钟得根因的完整成本差。
 
