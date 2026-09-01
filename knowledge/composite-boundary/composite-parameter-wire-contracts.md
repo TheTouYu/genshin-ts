@@ -30,3 +30,15 @@ Current Composite contracts derive build callback inputs and callComposite/decla
 This is a TypeScript/runtime contract and focused automatic regression only. It does not prove editor pin restrictions, protobuf encoding, GIA import, or game behavior; generic/value connections remain checked at the later runtime/IR boundary.
 
 <!-- CLAIM:END clm_BF84AB9A43CCFE104C55B93EE9 -->
+
+<!-- CLAIM:START clm_01M1DGQ6Z8TFHHQWM90SEWPEG3 -->
+
+### set 族变量 value pin 显式 bool false 必须保留内层 alreadySetVal（引擎按未设置回退默认 true）
+
+set_node_graph_variable(323)/set_custom_variable(22) 的 R<T> value pin 是显式赋值语义：即使写 bool false（bEnum.val=0/false），内层 alreadySetVal 必须为 true。若 alreadySetVal 缺失/0，引擎视为值未设置 → 回退该类型默认值（bool 默认 true）→ 显式写 false 实际变 true。int 0/float 0/string 空串与默认等价不受影响，只有 bool 会暴露。参照物形态：1899 地图 set lock=false = alreadySetVal:true + bEnum{}；编译器修复前 = alreadySetVal:false + bEnum{val:0}（3074 rec58 铁证）。
+
+#### 适用边界
+
+已验证场景：rubik-3x3-client 1914 turn 图 unlock 分支 set lock=false（e7fe704 修复，日志 3074 rec58 + 1899 参照物差分 + local_variable_editor_wire_test 回归）。未逐一枚举其它 bConcreteValue 包裹节点族（math/vec/assembly）的显式零值，数值类行为等价暂缓（O-2026-09-01-03）。
+
+<!-- CLAIM:END clm_01M1DGQ6Z8TFHHQWM90SEWPEG3 -->
