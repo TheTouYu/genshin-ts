@@ -758,3 +758,15 @@
 1. 编辑器/游戏全关 → SHA 锁定 → 批量注入 10 GIA → 回读 .gil 核对 seq wire=index3 →
    `check-gil-composite-refs --incoming` ×10 → Temp 双副本 md5。
 2. 用户复测 r1（期望：9 块动画、视觉与逻辑一致）→ 新日志验收（9 个不同实体收到设备）。
+
+### 注入与复测结果（2026-09-01 上午）
+
+- 注入 10/10（用户确认）；注入后 SHA `aaa34897…`；**回读 .gil：seq ← {kind:4,index:3} ✓**；
+  refs ×10 = 9 绿 + solverEPlan 的 `solver_cross_mask` 残留（08-30 备份比对确认**旧有死条目**，
+  3070/3071 加载实证容忍——登记 open-item 待专项 def-clean，不在修复轮处理）；Temp md5 一致。
+- **用户复测（日志 3073/3074，09-01 09:56/09:57）：R 面转修复确认 ✓**。
+- **新症状（本轮未闭环）**：r1 之后**后续交互操作无响应**——疑似 unlock/lock 链未释放
+  （game.ts lock=true 时 dispatch 空分支吞掉所有输入；unlock 由 view_turn_unlock_if_last
+  在 slot==turnLastSlot(8) 起定时器、turn 图 'unlock' 分支复位）。**下一步：分析 3073/3074**
+  定位 unlock 是否触发/是否被处理。注意游戏退出保存发生在 09:57（注入后地图可能被回写，
+  下轮先重锁 SHA + 复查 seq wire 是否仍在）。
