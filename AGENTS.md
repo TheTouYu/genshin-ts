@@ -91,3 +91,10 @@
 - 优先针对性验证：TypeScript 生产代码改动通常还需 `npm run build`；`npm test`/`quicktest` 必须保持 `--noinject`；验证命令与产物约定见根 `CLAUDE.md`。
 - 游戏核验 → 加载 `verify-injection`；派独立/单独模型 → 必须用 `isolated-model-evaluator` 技能，禁止绕过技能裸跑 `pi -p`；知识录入/PKC → 按 `pkc-project-operator` 技能执行。
 - 权威文档更新原则：区分当前实现 / 自动回归 / 真实 GIA / 用户游戏验证 / 历史记录；知识落盘与每轮复盘闭环见"自进化与反思"节。
+
+## 进度存档·临时（2026-09-01 深夜——20007 CLI 支持移交足球窗口，完结后删除本节）
+
+- **任务链**：总任务=完成这个游戏 → 第一卡点=最小物理足球（球独立物理体）→ 前置卡点=**客户端运算力（当前）**。足球窗口（eabeed8e 会话）已按造物路线注入 fb-phys(20008)/fb-status(20009)/fb-server(含 dispatcher)，源码 `examples/football/src-fb/`；只差 20007 决策图（等 CLI 支持）+ 用户编辑器配置 + 游戏日志验证。
+- **20007 CLI 半成品在工作树（`src/cli/assets_node_graphs.ts`，未 build 未验证，勿误扫提交）**：已改 3 处 = GRAPH_TYPES 加 `{type:20007,name:'造物状态决策',folderId:58,kind:'status'}` + fail-closed 名单（注释/报错/usage）去掉 20007。剩：`npm run build` → 干跑 `node bin/gsts.mjs assets:node-graphs create --type 20007 --output` 对照 20009 产物同构（自动节点 200126/4000+f11，wire 样本 2026-08-31 C0.3 已闭合，详见 `~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md`）→ 提交；**完成后同步** client-nodegraph-development 技能三处"20007 建不了"文案（SKILL.md 〇章/五C + creation-path README ②⑦）。
+- **本会话已提交**：c7d6afa client 技能「〇、路线选型与最小通路」章 + zaowu-basic 模板包（README 指空修复）；5cd4bda dsh-session-history v2 检索（scan 60s 超时→毫秒级）。选型/前置/断言速查直接读技能 SKILL.md 〇章。
+- **3x3 线**：A 线 cast 链已验收（日志 3070，PROGRESS B0.10）；旋转计算转造物任务书全文在会话 fc449599 首条消息（用 dsh-session-history 取），该会话被定时器回归修复占用，造物 R0 未启动。
