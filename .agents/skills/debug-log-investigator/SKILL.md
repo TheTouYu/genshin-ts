@@ -58,6 +58,19 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
   但前者**无 f21 记录**（records/frames 解析为空报错属正常）；Debug_Log 会被游戏侧滚动清理
   （2026-09-01 实证只保留最近 ~28 个）——**关键现场日志要当场摘录帧值**，别指望文件还在。
 
+### 服务端日志·「显式写布尔值却被回退」判读门（2026-09-01 bool false 实证）
+
+- **症状**：某分支显式 set 变量=false（如 unlock 分支复位 lock），但运行日志帧显示
+  Set Node Graph Variable | IN2:Boolean=1（写入 true）→ 后续逻辑被锁死（如交互无响应）。
+- **根因方向（编译器 alreadySetVal 语义）**：编译器产物 value pin 内层 alreadySetVal:false
+  会被引擎视为"值未设置"→ 回退该类型默认值（bool 默认 true！）。int/float/string 默认=0/空
+  恰好与显式 0/空等价，只有 bool 会暴露差异。
+- **判读顺序**：① 确认该分支定时器/信号确实触发（事件记录在）；② 看 Set 帧的 IN2 值是否与
+  源码意图相反；③ 若相反 → 回读 .gil 该节点 value pin：enum:0 但内层 alreadySetVal 缺失/0
+  = 编译器 bug（参照物：正常形态是 alreadySetVal:true，见 e7fe704 修复）。
+- **铁证原则**：运行日志是唯一铁证——.gil 字节显示 0 但日志显示 1，就是"引擎不认该编码形态"，
+  不要用"注入没替换/地图被改写"的静态推断替代（2026-09-01 3074 rec58 实证）。
+
 ### 客户端日志（2026-08-28 魔方-客户端优化版本会话 2979 实证，完整细节见 debug-log-format.md）
 
 - **识别**：records 里 graph=客户端图 ID（如 1082130436）、f8=**2097154(0x200002)** 恒值、无 f22 文本——

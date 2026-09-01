@@ -221,6 +221,12 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
   - 公共 merge/done 节点**不得回到分支入口**（否则 execution flow loop，游戏直接报循环）。
   - 链尾节点应通过 `boundary` 映射到复合 `done` outflow，或显式连到后续节点。
 - 事件复合：事件入口 → MB 分发 → case 各分支完整（trigger 应为 10 条执行流）
+- **关键常量断言（2026-09-01 bool false 实证，勿漏）**：注入后回读不只核对"变化的 wire/连线"，
+  还要断言**本应不变的语义常量**（unlock 复位值、默认值、模式开关等）。实测教训：c7c263a 只验
+  seq wire（OUT3）→ 老 bug（unlock 的 lock 值 = 引擎回退 true）被新注入掩盖，表现为"R 转后
+  后续交互无响应"（日志 3074 rec58）。判读法：parse --json 查目标节点 value pin 的
+  bConcreteValue.value.alreadySetVal——编译器显式 false 必须是 true（1899 参照物形态），
+  缺失/0 = 引擎视为未设置回退默认（bool→true）。参照物差分（1899 vs 1914）是定位此类问题的最快路径。
 - 判定标准详见 docs/game-engine-knowledge/composite-nodes.md #20 章节验证命令
 读图自检发现问题 → 直接修（不浪费用户测试轮次）；读图技能覆盖面不足无法定位 →
 记录技能缺口（覆盖范围、缺什么），再查 debug-log-investigator 日志。
