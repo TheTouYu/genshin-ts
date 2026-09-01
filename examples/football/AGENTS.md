@@ -57,3 +57,9 @@
 `genshin-ts-asset-operations` 安全流程（SHA 锁定→候选回读→写回→回读→Temp 同步）。
 headless sim（`sim/`）只覆盖物理数学层，**不覆盖**跨图时序/注入裁边/预算/设备语义——
 sim PASS 不得表述为游戏可用。
+
+## 进度存档·临时（2026-09-01 深夜——客户端算力最小通路，完结后删除本节）
+
+- **任务链**：总任务=完成本游戏 → 第一卡点=最小物理足球（球独立物理体）→ 前置卡点=**客户端算力（当前，造物路线）**。
+- **fb 算力通路已注入 3/4**：fb-phys(20008=1082130433)/fb-status(20009=1082130434)/fb-server(1073741830，含 1s dispatcher+4s 看门狗+onSignal，挂 1094713345)；源码 `src-fb/`、配置 `gsts.fb-client.config.ts`、产物 `dist-fb/`；信号 fb_echo=1610612771/772/773，寄存器 fb_* 挂玩家实体 1086324737。**剩三步**：①2007 决策图——CLI 支持半成品在编译器项目 `src/cli/assets_node_graphs.ts`（未 build 未验证，勿误扫提交；wire 依据 `~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md`；完成者须同步 client 技能三处"20007 建不了"文案），建图后补注入 fb-decision；②用户编辑器配造物 4 项（小体型模型+技能引用 CD 0.01s+忽略公共冷却+自主逻辑模板_1+决策图绑定）；③进图 1 分钟留日志，验四层签名：fb:armed → f8=4194308 客户端记录 → fb:ack → fb:cnt 逐拍 +1（=图变量跨拍保持成立）；失败兜底=物理降频 5Hz。
+- **方法论（先读再用）**：编译器项目 `client-nodegraph-development` 技能——〇章=路线选型/编译前置铁律（信号必须先真实 `--write` 注册）/断言速查（decode 节点路径 `.graph.graph.inner.graph.nodes`）；runbook+模板包在同技能 `references/creation-path/`（zaowu-basic 基础/zt-lane 可靠性层）。
