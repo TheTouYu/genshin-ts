@@ -106,7 +106,10 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 2. **能力预验证**：要用不熟悉的能力（循环、循环内 setTimeout、capture 某类型、dict 操作）前，
    先写最小用例编译（10-30 行），确认编译器支持再写正式代码（P4 实证：循环方案先验证才敢用，避免返工）。
 3. **实现**：按受限子集写；每轮只改一个可归因变量（五轮修复链 v5→v5.5 每轮一个根因）。
-4. **编译 + IR 断言**：用**正式 CLI** `node ./bin/gsts.mjs dev --config <cfg> --noinject`（或 `npm run dev`）编译，
+4. **编译 + IR 断言**：用**正式 CLI** `node ./bin/gsts.mjs -c <cfg> --noinject`（默认动作即编译；
+   ⚠️ **不要用 `dev` 子命令**——它是 watch 模式，交互/agent 会话里会永久挂死（2026-09-03 用户纠正，
+   足球 R2.2 实证）；也没有 `build` 子命令——`gsts build` 会把 "build" 当文件参数报
+   `file not found`）编译，
    检查 `dist/**/*.json` 节点统计（总数、关键节点族）；节点总数须 < 2000。
    ⚠️ **不要用 `npx tsx src/cli/gsts.ts` 直接跑源码 CLI**——gs.ts 的包名 import
    （`'genshin-ts/runtime/core'`）经 Node self-reference 解析到 **dist 发布包实例**，而源码 CLI
@@ -178,6 +181,7 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 | 批量创建/遍历 | ✅ `f.listIterationLoop` / `.forEach` | `f.listIterationLoop(f.assemblyList([...], '类型'), (v, _breakLoop) => …)` 或 `list('类型', [...]).forEach(cb)`（Stage1 转换；prefabId/位置可动态算，50 个手写 createPrefab → 3 节点）；编译环境须能解析全局 `list` 类型声明 |
 | 循环内 setTimeout | ✅ | 回调可 capture 循环变量（int） |
 | setTimeout/setInterval | ✅ | 回调 `(evt, f)`；evt 无 timerName 等字段（编译器类型缺口）；⚠️ **回调不能 capture entity 变量**——编译器报 `unsupported timer capture type for "x": any`（2026-08-31 魔方 cast 链实证），回调内用 `entity(id)` 字面量重建（静态实体）或节点现取（动态实体） |
+| **entity() 参数必须字面量** | ⚠️ | `entity(ENTS[i])` 数组索引被 TS→GS 改写为 `entity(gsts.f.getCorrespondingValueFromList(ENTS, i))` → `Generic parameter not matched` 编译失败（2026-09-03 足球 R2.2 实证）。多实体=多行字面量调用 `entity(1082130437n)`；与「数组字面量/vec3 字面量」改写同族——**转换器只认字面量形态** |
 | **实体寻址三态** | ⚠️ **写前必查** | ①静态物件/控制器：`entity(id)` 字面量 ✅（编译成 Query Entity by GUID）；②**角色实体：GUID 查询无效**——必须 `getListOfPlayerEntitiesOnTheField()[0]` → `getAllCharacterEntitiesOfSpecifiedPlayer(p)[0]` 动态取（官方玩家-界面模式）；③运行时创建实体：创建返回值/实体列表（B1 blocks 模式）。角色实体用 GUID 字面量 = 编译不报错、运行期静默失效（2026-08-31 用户三次指正实证，复盘 2026-08-31 坑 8） |
 | **实体自定义变量** | ⚠️ **未注册=读不到** | `set/getCustomVariable` 的变量名必须**编辑器里注册过**；未注册变量 set 后 get 返回空（2026-08-31 clientProbeSkillId 实证；与 B1 轮"turn 图无 blocks 图变量"同族复发）。跨节点传值优先用**节点返回值数据流直连**（如 createCustomSkillInstance 返回值直接喂 castSpecifiedSkillInstance——零变量零注册） |
 | 图变量 | ✅ | bool/entity/vec3/list/dict（`dict([{k,v}])` 初始条目推断类型） |
@@ -486,9 +490,10 @@ viewOrbitTrigger 复合内的 f.on 是非活跃残留——误改浪费一轮注
 | TS2307 Cannot find module | import 路径错误（如 `genshin-ts/runtime/definitions/nodes` 不存在） | 查真实导出（`grep -rn "export" src/`），用正确路径 |
 | Invalid value type: int | float 传给 int 参数（字典 key/循环变量） | bigint 循环 + 字面量 key；避免 number 运算 |
 | unsupported timer capture type: any | capture 了 DSL 方法返回值（类型推断为 any） | 图变量/字典中转 |
-| Generic parameter not matched | 表达式混型（如 `dot(x) * (1 - c)` 泛型推断失败） | 变形公式避免混合表达式（如罗德里格斯改 `u·dot + (v−u·dot)·c + (u×v)·s`） |
+| Generic parameter not matched | 表达式混型（如 `dot(x) * (1 - c)` 泛型推断失败）；或 **`entity(ENTS[i])` 数组索引**——TS→GS 把 `X[i]` 改写为运行时列表取值节点 `entity(gsts.f.getCorrespondingValueFromList(ENTS, i))`，把整个 TS 数组当泛型参数传节点（2026-09-03 足球 R2.2 实证） | 变形公式避免混合表达式（如罗德里格斯改 `u·dot + (v−u·dot)·c + (u×v)·s`）；entity() **只接 bigint 字面量**，多实体写多行调用（`entity(1082130437n)` 逐个写，勿用数组+索引） |
 | `gsts.f is only available in server_* ctxType (current: javascript)` | 事件/分支回调内写了 `new vec3([x,y,z])`——转换器改写为 `new vec3(gsts.f.assemblyList([...]))`，`gsts.f` 只能在 `server_*` ctx 访问 | 回调内用 `f.create3dVector(x, y, z)`；变量声明区 `new vec3([...])` 不受影响（2026-08-22 足球实证） |
-| 编译全通过但 `game.json = []`（`All GIA generated (0)`，无报错） | `npx tsx src/cli/gsts.ts` 直跑源码 CLI：gs.ts 包名 import → dist 实例（self-reference），runner → src 实例，注册/读取分离 | 用正式 CLI `node ./bin/gsts.mjs dev`（或 `npm run dev`），两者同实例（2026-08-22 足球实证） |
+| CLI 编译命令挂死 / `file not found: build` | `dev` 子命令=watch 模式（交互会话挂死）；`build` 子命令不存在（被当文件参数） | 一次性编译用默认动作：`node ./bin/gsts.mjs -c <cfg> --noinject`（2026-09-03 用户纠正 + 足球 R2.2 实证） |
+| 编译全通过但 `game.json = []`（`All GIA generated (0)`，无报错） | `npx tsx src/cli/gsts.ts` 直跑源码 CLI：gs.ts 包名 import → dist 实例（self-reference），runner → src 实例，注册/读取分离 | 用正式 CLI `node ./bin/gsts.mjs -c <cfg> --noinject`（默认动作；dev=watch 勿用），两者同实例（2026-08-22 足球实证） |
 | 实体不动但节点执行 | 缺 basicMotion 组件（type 4）或作用空实体 | 组件差分检查 + 日志查运动器 IN0 实体 |
 | 一次调用计两次/计数翻倍 | 纯数据表达式被 ≥2 处消费，引擎每个消费点重新求值（消费间写入图变量 → 第二次读新值） | set 后**重新 get** 再比较；ESLint `gsts/server-repeated-evaluation` 会警告（详见 data-flow.md 缺陷 6 节） |
 | 位置漂移/朝向错乱 | 公式压缩平行分量 / 轴语义（局部轴） | 见 game-engine-knowledge/motion-devices.md |

@@ -269,9 +269,17 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
    - **TS 常量 → float32 形态**：0.12→`0.11999999731779099`、0.35→`0.3499999940395355`、
      0.15→`0.15000000596448`、8.333→`8.333333015441895`。**字符串 grep "0.12" 会 0 命中**
      （0.11999… 不含子串 "0.12"）——必须数值扫描，不能字符串匹配。
-   - **值在 JSON 里的位置（两套键名，勿混）**：decode-gia 输出 =
-     `pins[N].value.bConcreteValue.value`；parse --json 输出 = `inputs[N].value.value`
-     （纯浮点，直接 `isinstance(o,float)` 全树扫）。
+   - **值在 JSON 里的位置（decode-gia 有两种形态，2026-09-03 实证单层扫描漏报）**：
+     ①直接层 `pins[N].value.bString/bFloat/bInt`；②嵌套层 `pins[N].value.bConcreteValue.value.bXxx`
+     （带 indexOfConcrete，事件字面量参数多走此形态）。parse --json 输出 = `inputs[N].value.value`。
+     另两个 json.loads 陷阱：**无小数点的 float（`val:4`）解析成 int**——按来源键（bFloat/bInt）
+     分类而非 isinstance；**Assembly List 泛型节点带大量 alreadySet=false 占位 pin**——只计
+     alreadySetVal=true 的真实落位值（结构默认值会污染计数）。**布局坐标污染**：node 的 x/y
+     是 float，递归全树扫描会把坐标误计为常量——只扫 pins[].value 路径。
+   - **str/int 常量计数对账 + 复合调用点/impl 节点数统计**：现成脚本（免手写扫描器，
+     2026-09-03 足球 R2.2 沉淀）：
+     `python3 .agents/skills/gil-node-graph-reading/references/decode-gia-constant-scan.py <decoded.json> --assert str:fb_beat:4 float:0.2:2 int:2250:1`
+     （断言缺=exit 1 可作门禁；输入=decode-gia 的 JSON 重定向文件；本轮回归 12 断言全过）
    - **accessories 索引→复合名映射**：`jq -r '.accessories[] | select(.name!=null) | "\(.name) id=\(.id.id // "")"'`；
      每个 composite def 成对出现（def+impl，偶数=def 奇数=impl），常量/结构在 **impl** 里查。
    - **信号三件套定位**：accessories 里 name=发送信号/监听信号/向服务器节点图发送信号 的三个单元

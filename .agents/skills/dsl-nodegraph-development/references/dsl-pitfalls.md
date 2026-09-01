@@ -144,9 +144,9 @@
   - 两个 core 模块实例：gs.ts 注册到 dist 实例的 `serverRegistries`，runner 读 src 实例 → 空。
 - 验证链：`node --import tsx` + dist core import game.gs.ts → docs:1；同环境 src core → docs:0；
   `mv dist/src/runtime/core.js` 后 runner 报 `ERR_MODULE_NOT_FOUND`（self-reference 无回退）。
-- 修复：用正式 CLI `node ./bin/gsts.mjs dev --config <cfg>`（dist CLI：runner 的
-  `../../runtime/core.js` 编译后指向 dist/src/runtime/core.js，与 gs.ts 同实例）或 `npm run dev`
-  （= `npm run build && node ./bin/gsts.mjs dev`）。
+- 修复：用正式 CLI `node ./bin/gsts.mjs -c <cfg> --noinject`（默认动作即编译；dist CLI：runner 的
+  `../../runtime/core.js` 编译后指向 dist/src/runtime/core.js，与 gs.ts 同实例）。⚠️ `dev` 子命令=
+  watch 模式，交互/agent 会话会永久挂死（2026-09-03 用户纠正）；`build` 子命令不存在（被当文件参数）。
 - 诊断口诀：`game.json = []` 且 GIA generated 0 时，先确认编译入口是 `bin/gsts.mjs`（dist）
   而不是 tsx 直跑 src；src 与 dist 不同实例时 IR 静默为空，**这不是 gs 代码问题**。
 

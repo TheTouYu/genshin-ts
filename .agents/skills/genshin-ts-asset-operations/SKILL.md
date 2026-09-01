@@ -83,6 +83,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
     .gia 内嵌图 ID，必须**同步改 DSL g.server({id}) + 配置 inject.nodeGraphId + 重新挂载**到新 ID；旧挂载需用编辑器清理残引用。
   - 多图协作首选**单信号 + op/val 参数**（2026-08-23 实证），少建多个信号；根图事件回调改变量用高层 `f.setNodeGraphVariable`。
 - 挂载：`gsts assets:mounts attach <target-id> --graph <gid> [--entity|--def] --gil <map> --write`；`list [<target-id>]` 查挂载关系；`detach <target-id> --graph <gid>` 卸下（最后一条卸完保留空 `08036a00` 槽）。
+- **挪挂（A→B 实体）两步候选链（2026-09-03 足球 R2.2 实证）**：`detach A --graph G --gil <map> --output cand1` → `attach B --graph G --entity --gil cand1 --output cand2` → 回读 cand2 挂载关系 + `node-graphs read --json`（排除 `"gil"` 源路径字段）与原图 **CMP-SAME 零改动验证** → 两步 `--write`（各自动备份）→ 写后 SHA==cand2 → Temp 同步双 SHA。挪挂改变图内 `getSelfEntity()` 语义（A→B）——挪前核对 B 上既有图的**定时器名单制分发**（A/B 两实体全部 whenTimerIsTriggered 的 else 均空才不串扰）。
 - **挂载目标用普通场景实体**。⚠️ 关卡实体（1094713345，官方 defId=10003004）由游戏运行时默认创建，**禁止手动 import 添加**——手动加会导致游戏“地图异常”。需要挂载对象时先用 `assets:entities import`/`static-assemblies` 建普通实体。
 - **特殊实体挂载（玩家/角色模板，2026-08-30 用户编辑器教学差分实证）**：玩家模板 1086324737（root4 def + root5 九副本 737–745）/ 角色编辑实体 1090519041（def + 实体）；挂载条目 wire = `{1:1, 2:图GID, 501:20000}` 与普通实体同构（root5 f6 / root4 f7）。**编辑器挂模板 def = root4 f7 + root5 全部副本 f6 自动同步**；CLI `--def` 只同步 root8（元件）**不同步 root5 副本**——复现编辑器形态须 `attach --def` + 循环 `attach --entity`（每副本）。事件定向：`whenSkillNodeIsCalled` 需挂角色侧（详见 graph-mounting.md「特殊实体的节点图挂载」）。
 - 多人语义：挂到玩家/角色实体上的图按玩家分别执行；需要“全局只执行一次”时自行加去重门控，不能默认一次。
