@@ -206,8 +206,9 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 
 节点图逻辑和资产一样是可复刻能力，主线五块：
 
-1. **节点预算（先算后写）**：单图上限 **3000**（所有复合 impl 递归展开之和，实测 4043 拒载）；
-   预算检查 `gsts assets:node-graphs nodes --gil <map.gil>`（implTotal < 3000 为硬门槛，
+1. **节点预算（先算后写）**：单图上限 **2000**（所有复合 impl 递归展开之和；2026-08-31 用户强制更正：
+   引擎拒载线 = 2000，实测 gameNodeCount 2465 拒载——旧 3000 口径作废）；
+   预算检查 `gsts assets:node-graphs nodes --gil <map.gil>`（gameNodeCount ≤2000 为硬门槛，
    direct 物理节点数作优化指标）。超限拆多图用信号/变量变更事件跨图触发。
 2. **膨胀模式（性能杀手）**：helper 函数被 N 分支调用 = N 份展开；**变量代替条件展开**
    （定时器用 `evt.timerSequenceId` 当索引单次调用，8 分支→1 调用，1846→753 节点）；

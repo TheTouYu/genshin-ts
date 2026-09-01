@@ -716,7 +716,7 @@ function appendRoot10Category(payload: Uint8Array, recordBlob: Uint8Array): Uint
   return applyReplacement(payload, fields, top10, emitWireMessage(out))
 }
 
-// ---- 节点预算（复合调用递归展开计数；2026-08-19 闭合：游戏按"所有复合展开节点总数"限 3000）----
+// ---- 节点预算（复合调用递归展开计数；2026-08-31 用户强制更正：游戏按"所有复合展开节点总数"限 2000）----
 
 export type NodeBudgetEntry = { id: number; name?: string; direct: number; expanded: number; reachable?: boolean }
 

@@ -231,7 +231,7 @@ function usage(exitCode = 0): never {
     '  --node <n>        read: single node detail',
     '  --composite <id|name>  read: composite def detail (含分类)',
     '  --category <name>    read: 仅列出指定分类下的复合',
-    '  nodes                  节点预算：复合调用递归展开计数（游戏限制 3000）',
+    '  nodes                  节点预算：复合调用递归展开计数（游戏限制 2000）',
     '  --json            read: machine-readable output',
     '  --output <file>   patch/def-clean: write result to a new file (no overwrite)',
     '  --write           patch/def-clean: write source GIL after backup',
@@ -979,7 +979,9 @@ function runRead(bytes: Uint8Array, gil: string, args: Args): void {
 function runNodes(bytes: Uint8Array, gil: string, args: Args): void {
   const root = args.graph ? Number(args.graph) : 1073741825
   const budget = compositeNodeBudget(bytes, root)
-  const LIMIT = 3000
+  // 2026-08-31 用户强制更正：引擎单节点图上限 = 2000（第五轮实证 gameNodeCount 2465 拒载、
+  // 2005 侥幸加载；此前 3000 口径作废）
+  const LIMIT = 2000
   if (args.json) {
     console.log(JSON.stringify({ gil, rootGraphId: root, limit: LIMIT, ...budget }, null, 2))
     return
