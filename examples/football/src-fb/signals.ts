@@ -11,5 +11,25 @@ export const FbSignal = {
     ['tag', 'str'],
     ['e', 'int'],
     ['c', 'int']
+  ]),
+  // R2 物理拍回传（票 01 注册终态，send/monitor/server=1610612774/775/776）：
+  //   tag='P' 物理拍提交 / 'T' 撕裂（二读不一致，服务端不应用该拍）
+  //   tick   = 计算所基于的镜像 tick（base_tick，first-wins 仲裁键）
+  //   px..sz = 本拍积分后的 pos/vel/spin（t+0.2s 预测值）
+  //   state  = 六态枚举（sim/src/state.ts：0=Airborne 1=Bouncing 2=Sliding 3=Rolling
+  //            4=Rest 5=DribbleControlled——03 票 fb-phys 必须同枚举）
+  fb_ball_state: defineSignal('fb_ball_state', [
+    ['tag', 'str'],
+    ['tick', 'int'],
+    ['px', 'float'],
+    ['py', 'float'],
+    ['pz', 'float'],
+    ['vx', 'float'],
+    ['vy', 'float'],
+    ['vz', 'float'],
+    ['sx', 'float'],
+    ['sy', 'float'],
+    ['sz', 'float'],
+    ['state', 'int']
   ])
 } as const
