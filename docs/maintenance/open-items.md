@@ -1155,3 +1155,13 @@
 - 待做 ③ **render 图悬空分支**：编译警告 GSTS-DANGLING-EXEC-NODE（_GSTS_render IR 24 double_branch
   有出边无入边）——先轮遗留非本轮引入，查是否死代码并清理。
 - 状态：均不阻塞第五轮核验；第五轮结果出来前不动地图。
+
+> 2026-08-31 深夜追加（O-31-05 续）：第五轮拒载实锤——826（input 图）gameNodeCount 2465
+> 超限（**用户强制更正：引擎单节点图上限 = 2000，"3000 拒载阈值"旧口径作废**；r4 的
+> 2005 为缺 goalCollide 调用残缺构建的侥幸加载）。修复 34f5388：applyImmediate 移除当拍
+> ballPhysTick 调用（双实例化 936 节点子树是 826 肥胖源），826 崩至 mainExpanded 253 /
+> implTotal 191，四图全部 ≤2000。上限 3000→2000 已全局更正（工具 LIMIT/AGENTS/dsl/
+> game-from-scratch 技能，提交 c070e6a）。**PKC 待维护者更正**：clm_645571FF 与
+> clm_213B9BC24 中"节点<3000 拒载"口径 → 2000。附带发现：r4 地图 fly/roll/slide 缺
+> goalCollide 调用节点（上一会话构建产物缺陷，飞行球门碰撞/计分从未生效——r5 忠实
+> 构建已补上，待游戏内验证）。
