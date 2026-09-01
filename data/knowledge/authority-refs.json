@@ -1553,6 +1553,21 @@
       ]
     },
     {
+      "id": "aref_3b3d44d8a4574aead2b4a321d7",
+      "path": ".agents/skills/debug-log-investigator/SKILL.md",
+      "locator": "玩法逻辑调试流程 → 步骤 6（三栏+行为预期句式）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "baaab7f5bb8c0d2cb70853086b3724bbc9c25a139b8b81fb323473c99da1fab8",
+      "claim_ids": [
+        "clm_41AEAEB38840EF5C7E5D9781AD"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_3b5c48ac4b7894f2eec3c83ff6",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 47-图片控件",
@@ -1670,6 +1685,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3ce0c1a92e7746991d78272645",
+      "path": "examples/football/AGENTS.md",
+      "locator": "二、重写/重构前置（不可跳过）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "339a009037f7c0920912e0cd5b8f88ebd0e3de5f63d10f7bb567f4d4cda8ab89",
+      "claim_ids": [
+        "clm_0372769CC54BBB6AA63F06E6FD"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1925,6 +1955,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_44730dbc61bfb6e34ccb33a96d",
+      "path": "AGENTS.md",
+      "locator": "安全与 Git → 一次性授权边界（2026-09-01）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ca7a0f5050eb59909b8286d74c47afc5a4a9be09b80efbc0459af1194c32ff10",
+      "claim_ids": [
+        "clm_CE09F96E6A2AF90A5C1647EC24"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -6075,6 +6120,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_f9a9845b13dc46ea0f6c8aa06c",
+      "path": ".agents/skills/debug-log-investigator/SKILL.md",
+      "locator": "玩法逻辑调试流程 → 0.5 分层推演规程",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "baaab7f5bb8c0d2cb70853086b3724bbc9c25a139b8b81fb323473c99da1fab8",
+      "claim_ids": [
+        "clm_EDCB0C09A1D007294FE7933831"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

@@ -1523,6 +1523,17 @@
         "马格努斯"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "collaboration-discipline",
+      "node_id": "project-evolution",
+      "title": "协作纪律（注入授权/重写前置/报告门禁/排查规程）",
+      "path": "knowledge/project-evolution/collaboration-discipline.md",
+      "summary": "2026-08-25~09-01 双样本协作复盘固化的协作规则：由用户裁决采纳，证据锚定会话与提交",
+      "keywords": [
+        "协作,授权,重写,不变量,复测,排查,分层,三栏"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3335,6 +3346,26 @@
     "clm_276702E81BB5423E74080CE609": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_CE09F96E6A2AF90A5C1647EC24": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_0372769CC54BBB6AA63F06E6FD": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_41AEAEB38840EF5C7E5D9781AD": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_EDCB0C09A1D007294FE7933831": {
+      "fact_classes": [
+        "documented_contract"
       ]
     }
   }
