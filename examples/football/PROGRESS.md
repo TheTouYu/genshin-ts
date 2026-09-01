@@ -2,6 +2,11 @@
 
 ## 最近轮次
 
+- 2026-09-03（**R2.4 注入前全链核验（票 04 前半）+ 复合 def ID 冲突修复；停在注入确认门**）：
+  - 全绿项：build 0 error；sim **31/31 PASS**；主配置全图编译 0 error；fb-phys 断言 42/42 复过 + fb-server 16/16（内容零变化）；**.gil 变量注册表 fb_p_* 19/19 对照 PORTING-MAP**（float32 形态精确命中）+ 镜像 11/gate 初始 0 + fb_ball_state 6 参 vec3 注册表在位；挂载互斥盘点=球实体五图（旧四图静止无 loop，v5 基线）。
+  - **注入预检逮住真问题（composite-refs --incoming）**：fb-server 四复合默认 def ID 1610700000..03 会覆盖地图旧 v5 家族 def（dribble_field_get_role/ball_render_frame/ball_render_halt），残留复合 ball_dribble_decide(_atomic) 引用 → 类型错位=拒载（08-30 事故模式）。修复=defineComposite 显式 id **1610700040..43**（目录占用 0..32；impl 1610710040..43 同空闲；commit e3782a5 零行为变化）。复查覆盖冲突清零，剩余 4 条「注入后缺失」=新 def 待落位正常态。
+  - 注入清单已展示（fb-phys 34→503 / fb-server 79→222 展开 / status+decision 原样；前置 SHA 438c2bcf Temp 已同步）——**待用户确认后执行**，注入后一条龙核验（整段输出/composite-refs 复查/var-pins/.gil 定点回读/Temp 双 SHA）。
+  - 05 复测协议已备好（票 05 文件：会话自动链/观察要点/四层签名排查序/已知张力预告）。
 - 2026-09-03（**重建 v2 R2.3 fb-phys 扩建（票 03）：六态物理客户端半边交付**；编译 0 error、断言门禁 42/42、执行流健康全过；内容注入归 04 票，游戏行为层零验证）：
   - **交付（34→503 节点，预估带 850~1250 之下——如实入账；≤2000 红线余量 75%）**：①拍门（gate=1 ∧ epoch==ack 才计算——防任务在途时旧镜像计算顶掉任务回传）；②球寻址 E5 主链 getSelfEntity→fb_ball_entity→球变量（观测链降级：getEntityType 客户端 f 面无此方法→位置对账 fb_echo tag='e5' 回传 mm 差）；③镜像 11+tick 二读防撕裂（撕裂→任务拍 tearE 不 ack 交看门狗重提交/拍门拍 'T' 不应用重算）+参数 19 当拍物化（不变量 1）；④任务三分支：KICK（vel/spin 覆盖）、RESET（pos/vel/state 覆盖+spin 清零）、未知类型跳过应用仍 ack（02 契约）；**ack 延迟到镜像一致后**（防丢任务闭环设计）；⑤六态积分单拍闭式：飞行（重力+KD·|v|v+KM·ω×v+kw_air）/地面（滑滚同构、减速率按态选择、自旋收敛纯滚目标+y 独立 kw_gnd）/门柱×2+横梁+网+四面墙+地面反弹/分类器（停4>弹1>空0>滑入2>滑滞回>滚3，sim 枚举）；⑥回传 'P'（base_tick=镜像 tick）+E5 观测。
   - **结构层核验（decode-gia 全对账）**：断言门禁 **42/42**（str：P/T/e5/ok×2/tearE×2/tearH+fb_ball_gate/tick×2/entity+fb_p_* 19+fb_epoch×2/ack/sum/t1..t8；float：52.5×2/3.6×4/2.5×4/1000×13/-55×4/60×4——**图内零物理参数字面量**，全部走变量）；执行流：入口 200042 单源、0 环 0 不可达、8 个多入边全为互斥 else 链合法汇流（goal 五连写汇流/墙分支缝/顺序链）、ack(120)→P(494)→E5(500) 执行序断言过；TS 源码零 +=、min/max 对称式（max(s,0)=(s+|s|)/2）、本图无复合无 outflows 义务。
