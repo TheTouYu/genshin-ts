@@ -119,7 +119,7 @@ const TYPE_BY_CODE: Readonly<Record<number, CustomVariableType>> = {
   27: 'dict'
 }
 
-function fieldsOf(buf: Uint8Array): WireField[] {
+export function fieldsOf(buf: Uint8Array): WireField[] {
   const fields: WireField[] = []
   let offset = 0
   while (offset < buf.length) {
@@ -555,7 +555,7 @@ function typeFieldForCode(typeCode: number): number | undefined {
 /** 变量容器路径：prefab 元件定义 = root4.1[*].8.11，场景实体 = root5.1[entity].7.11 */
 type VariableContainerPath = { root: 4 | 5; container: 8 | 7 }
 const PREFAB_PATH: VariableContainerPath = { root: 4, container: 8 }
-const ENTITY_PATH: VariableContainerPath = { root: 5, container: 7 }
+export const ENTITY_PATH: VariableContainerPath = { root: 5, container: 7 }
 
 function ownerEntriesFor(payload: Uint8Array, fields: LenField[], path: VariableContainerPath): LenField[] {
   return fields.filter((field) => field.depth === 2 && field.p0 === path.root && field.p1 === 1)
@@ -574,7 +574,7 @@ function variableContainerFor(fields: LenField[], owner: LenField, path: Variabl
   )
 }
 
-function variableFieldsFor(fields: LenField[], owner: LenField, path: VariableContainerPath): LenField[] {
+export function variableFieldsFor(fields: LenField[], owner: LenField, path: VariableContainerPath): LenField[] {
   return fields.filter(
     (field) =>
       field.depth === 5 &&
@@ -614,7 +614,7 @@ function variableFieldsInOwner(fields: LenField[], owner: LenField): LenField[] 
   return variableFieldsFor(fields, owner, PREFAB_PATH)
 }
 
-function parseDefinition(
+export function parseDefinition(
   payload: Uint8Array,
   field: LenField
 ): CustomVariableDefinition | undefined {
@@ -932,7 +932,7 @@ export function applyCustomPrefabInitialCustomVariableUpdates(params: {
   return { bytes: rebuildGilFile(params.gilPath, nextPayload), changed, unchanged }
 }
 
-function entityOwnerFor(payload: Uint8Array, fields: LenField[], entityId: number): LenField | undefined {
+export function entityOwnerFor(payload: Uint8Array, fields: LenField[], entityId: number): LenField | undefined {
   return ownerEntriesFor(payload, fields, ENTITY_PATH).find((entry) => {
     const id = varintField(fieldsOf(payload.subarray(entry.dataStart, entry.dataEnd)), 1)
     return id === entityId
@@ -1099,7 +1099,7 @@ function parsePayloadFields(payload: Uint8Array): LenField[] {
   return fields
 }
 
-function rebuildGilFile(gilPath: string, payload: Uint8Array): Uint8Array {
+export function rebuildGilFile(gilPath: string, payload: Uint8Array): Uint8Array {
   return rebuildGilFileFromSource(new Uint8Array(fs.readFileSync(gilPath)), payload)
 }
 

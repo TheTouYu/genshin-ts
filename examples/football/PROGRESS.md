@@ -2,6 +2,13 @@
 
 ## 最近轮次
 
+- 2026-09-03（**重建 v2 R2.1 资产注册（票 01，两段式）**：fb_ball_state 信号 + 球实体状态容器 31 变量 + 丘丘人球引用落图；终版地图 SHA 4ce87ed5，Temp 双 SHA，六图零改动；R2.2 可开写）：
+  - **信号**：`fb_ball_state` 11 参主案——(tag:str, tick:int, 9×float, state:int)，send/monitor/server=**1610612774/775/776**，builtin 布局无 donor。降级链未动用：donor 扫描（全库 117 信号）float 最多仅 4 参，主案被**工具**而非引擎卡住——两处工具债当轮偿还：①CLI MAX_PARAMS 9→12（b6cf894，官方「绘制圆弧」12 参背书）；②非 str 同型重复 fail-closed 解除（e231402，四轮编辑器差分"引擎不校验 pin 值、n3 field2=参数全局序号"+dedupeByPins）。E3 游戏内终验（float 信号端到端）并入 R2.3/R2.5。
+  - **挂载定案（用户三轮修正裁决，推翻 R2-DESIGN §4 挂玩家实体——多人 1~8 不定逐副本维护不合理）**：**球实体 1077936135 = 唯一状态容器**（fb_ball_gate + 镜像 11 + fb_p_* 19 参数含 PORTING-MAP 定稿值，一次 --vars 31 个写入；服务端图挂球 getSelfEntity 直写=v4 成熟先例，02 票 fb-server 挪挂球）；**丘丘人 def 1082130433 + 5 实体 437..441 各带 fb_ball_entity:entity=0**（球引用，运行时 fb-server 会话种子逐实体写；fb-phys 读链 getSelfEntity→球引用→球变量=E5 主链原样）；玩家九副本零 fb_ball*（E1 寄存器 11 个保留）。§4"镜像组 12"系计数笔误（名字清单实 11），已备案。
+  - **写回两轮**：首轮 11 步（挂玩家九副本，安全门用户确认）→ 用户挂载修正 → **备份恢复**（最早备份=写前原状 a0dae9e5，恢复后核验九副本/球归零、E1 完好、信号回 11）→ 终版候选链 8 步全量回读 → 8 步 CLI --write → 写后 SHA=候选 **4ce87ed5** → Temp 双 SHA。**六图零改动**（`node-graphs read --json` 内容摘要排除源路径字段，写前备份 vs 写后逐一一致；中途踩坑：JSON 含 gil 路径字段，不排除会误报差异）。
+  - **vec3 镜像化议题（用户提议，已评估）**：R2 按标量定稿走（float 变量读已验 E1/1915，vec3 客户端读无已验记录），vec3 读并入 03 票顺带验证，验过后 R3+ 再迁移；fb_p_* 无向量语义+编辑器一行一参数调参体验，维持标量。
+  - **CLI 经验**：`node ./bin/gsts.mjs maps`=地图定位正道（游戏目录 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level）；tsx 沙箱故障时 bin 通道是替代路径；--vars entity 型必须带值 `name:entity=0`；**批量撤销已写回内容优先用最早备份恢复**（.gsts/backups 第一个时间戳=写前原状），别手写 wire 删除脚本（本轮教训：脚本驯了两轮未成，恢复路径 1 分钟搞定）；CLI 变量操作无删除命令（全 upsert）。
+  - **下一步 R2.2（票 02）**：fb-server 扩建并挪挂球实体——会话种子（fb_ball_entity 逐丘丘人写+初始 RESET 任务）+ beat 定时器链 + onSignal(fb_ball_state) first-wins 提交（球 31 变量写+预测式运动器）+ 进球判定简版。
 - 2026-09-02 深夜（**重建 v2 R2 第 0 轮：设计稿+三前置收口**，交付 `R2-DESIGN.md`，零代码零注入，R2.1 待执行）：
   - **新静态判据（决定节拍机制）**：`getCurrentClientTime` 仅在 character_skill/character_control_skill/bool_filter/int_filter 四段声明，**creation_skill(20008) 段无** → 客户端时间戳降频不可用 → 节拍三候选（T1 常驻门/T2 自速 dt 回写/T3 活动期握手门）收敛 **T3 主案**：服务端 fb_beat 0.2s loop 仅球活动期运行置 gate=1 → 客户端 15Hz 拍读 gate 开才积分（DT 固定 0.2s）→ 回传 → 服务端 first-wins（base_tick==镜像 tick）应用+关门+挂运动器（预测式插值）；REST stopTimer 保静止零定时器；看门狗防 gate 死锁；多造物并发与 E1 收口同构。服务端运动期负载预估 ~750 帧/s（旧 ~6900，降 ~89%）。
   - **用户五输入（定性级，已回灌设计稿 §0.4）**：①运动器（加速度/加旋转）**仅服务端有节点**→(b) 客户端直驱判死关闭（反证口随之关闭）；②信号参数支持完善→E3 降级顺手验证；③旧架构 0.5s/0.2s 低频纯为压日志洪泛非物理需要→T3 服务端 5Hz 轻门可承受；④R4 前瞻：触球判定移客户端（15Hz+ 采样）；⑤**物理参数一律挂球实体自定义变量+初始值**（fb_p_* 19 个，两端可拿+编辑器边测边调即时生效，PARAM 任务通道降级预留）。
