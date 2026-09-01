@@ -180,6 +180,28 @@
         },
         "validation_gate": "pkc validate && pkc knowledge-check && git diff --check",
         "current_recovery": "docs/project-intelligence/contexts/game-engine-rules.md"
+      },
+      {
+        "id": "collaboration",
+        "default": false,
+        "lifecycle": "active",
+        "goal": "人机协作纪律查询：注入授权边界（口头宽授权仅当轮）、重写前置（目录不变量清单）、修复报告三栏+行为预期句式、分层排查规程（先穷尽工件再问人）与用户复测协议。",
+        "recovery_role": "current_recovery",
+        "priority": 5,
+        "applies_to": {
+          "paths": [
+            "knowledge/project-evolution/collaboration-discipline.md",
+            "AGENTS.md",
+            "examples/football/AGENTS.md",
+            "examples/rubik-3x3-client/AGENTS.md",
+            ".agents/skills/debug-log-investigator/SKILL.md",
+            "docs/collab-retro-2026-09/**"
+          ],
+          "workspaces": [],
+          "branches": []
+        },
+        "validation_gate": "pkc validate && pkc knowledge-check && git diff --check",
+        "current_recovery": "docs/project-intelligence/contexts/collaboration.md"
       }
     ],
     "startup_budget": {
