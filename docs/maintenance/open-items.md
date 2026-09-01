@@ -743,6 +743,7 @@
 - 本轮实证：2×2 `gstsDoWhole` 若 start_timer 用 `f.registerExecNode()`（auto-chain 从当前 tail 串一条）同时又有 `connect(t7→startTimer)`，会形成两条 InFlow，同一节点执行两次（日志特征：Start Timer 同节点两帧）。当前靠 `gil-node-graph-reading` 读 `flow` 列表人工核对。
 - 落地（2026-08-30，提交 edfcac3）：新增 `GSTS-DUPLICATE-EXEC-INPUT` warning——同一 target 收到 ≥2 条同 source_index 且不同非入口来源的 exec 边即告警。豁免：事件入口 fan-in（timer dispatch 聚合）、同 from 多边（分支 join）、复合 inflow 目标、分支 join（来源 from 唯一入边来自同一分支节点）。6 场景回归 PASS；真实项目告警量：rubik-3x3 9 / football 1（测试合并图 41 为聚合特殊性）。
 - 证据：`examples/rubik-2x2/src/game.ts` 修复注释（2026-08-21）、`docs/game-engine-knowledge/retrospective-2026-08-21-dangling-exec-fix.md` 第二节、`tests/ir_lint_dangling_exec_test.ts`。
+- **增强（2026-09-01，足球 applyRefl 实证）**：原检测漏两类——① 同一 from+同 source_index 出现 ≥2 条边（registerExecNode auto-chain 与显式 f.connect 双写同一目标，`Set<from>` 去重漏检）；② 多级嵌套分支汇聚（ball_state_transition 的 35/38 经不同分支链汇到 39）被误报。已修：统计边数而非来源去重 + `isBranchJoin` 递归回溯公共分支祖先豁免。验证：bug 版 12 告警 / 修复版 0。
 
 ### O-2026-08-22-1. 复合节点 enum 类型输入无法用于 enumerationsEqual（编译器 bug）【已修复 2026-08-30】
 
@@ -1182,13 +1183,22 @@
 - 附带核对：rubik-2x2 地图在 b8b97ff..c7c263a 窗口内疑似未被重注入（无证据发生，多槽消费
   修复后语义自动正确）——低风险备查不行动。
 
-### O-2026-09-01-02 「r1 转面后后续交互无响应」——回归修复轮遗留新症状（未定位）
+### O-2026-09-01-02 「r1 转面后后续交互无响应」——已闭环（2026-09-01）
 
-- 现象：用户 2026-09-01 复测（日志 3073/3074）确认 R 面转已修复，但 r 之后其他交互无响应。
-- 首要嫌疑：unlock/lock 释放链——game.ts dispatch 在 lock=true 时空分支吞掉所有输入；
-  unlock 依赖 visual 图 view_turn_unlock_if_last（slot==turnLastSlot=8，B 通道 base5+seq3）
-  给实体 1077936201 起 'unlock' 定时器 → turn 图 'unlock' 分支复位 lock。
-- 第一步：重锁地图 SHA（游戏 09:57 退出保存在注入后，可能回写）+ 复查 seq wire 仍在
-  index3；然后 3073/3074 records/frames 分析（判读顺序：后续按键有无到达 game dispatch →
-  unlock 定时器记录是否存在 → turn 'unlock' 分支是否执行）。
-- 详细恢复包见 /tmp/rubik3x3-timer-fix-handoff-2026-09-01.md。
+- 根因（e7fe704）：编译器 normalizeNodePinValuesEditorWire 把 set 族 value pin 的显式 bool false
+  （bEnum.val=0）当默认值零清 alreadySetVal → 引擎视为"未设置"回退 true → unlock 把 lock 写成 true。
+- 铁证链：3074 rec58 unlock 执行写 IN2=1；1899 参照物 asv=true+bEnum{}；1914 地图 enum:1。
+- 修复：set 族（323/22）value pin 显式 false 保留 alreadySetVal（独立 explicitBoolFalse 参数）。
+- 注入：10/10，回读 unlock enum:0 + seq wire OUT3 + 复合引用 0 悬空 + Temp md5 一致。
+- 游戏复测：待用户确认（预期 R 转后后续交互恢复）。
+
+### O-2026-09-01-03 编译器 normalize 函数「显式零值」语义登记（2026-09-01）
+
+- 来源：retrospective-2026-09-01-bool-false-alreadySetVal.md（修复 e7fe704 后登记）。
+- 已闭合：bool false 显式赋值在 set 族 value pin 保留 alreadySetVal；int 0/float 0/string ''
+  显式赋值行为等价（引擎默认=0/空）不受影响。
+- 待做 ① **同族扫描**：normalizeNodePinValuesEditorWire 其余 bConcreteValue 包裹节点族
+  （math/vec/assembly 等）的"显式零值需保留 alreadySetVal"是否还有遗漏——本次已覆盖 bool；
+  数值类行为等价可暂缓，但若遇枚举类/entity 显式 0 需复查。
+- 待做 ② **注入后核验补"常量断言"**：注入回读不只核对变化的 wire，还应断言关键常量
+  （unlock 值/默认值等），防止"老 bug 被新注入掩盖"（本轮 O02 的教训）。
