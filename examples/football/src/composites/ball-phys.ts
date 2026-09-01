@@ -172,8 +172,12 @@ export const ballPhysTick = g.defineComposite('ball_phys_tick', {
     const velSum = f._3dVectorAddition(boardVel, impVel)
     const mag = f._3dVectorModuloOperation(velSum)
     const magClamped = maxF(f, mag, f.multiplication(MAX_SPEED, -1))
+    // 2026-09-01 第六轮修正：原式外层是 addition（= max(magClamped,24)），把每个 <24 的
+    // 速度归一化吹到恰好 24 m/s（日志 3073 帧级铁证：vel(0.92,0,0.96) 模 1.33 →
+    // 缩放比 24/1.33=18 → tmpVel=(16.63,17.30)）。min(a,b)=(a+b−|a−b|)/2，外层必须
+    // 是 subtraction。同族：下方 applyImmediate 同款笔误同批修。
     const magFinal = f.division(
-      f.addition(f.addition(magClamped, MAX_SPEED), f.absoluteValueOperation(f.subtraction(magClamped, MAX_SPEED))),
+      f.subtraction(f.addition(magClamped, MAX_SPEED), f.absoluteValueOperation(f.subtraction(magClamped, MAX_SPEED))),
       2
     )
     const velDrained = f._3dVectorZoom(velSum, f.division(magFinal, f.addition(mag, 0.0001)))
@@ -512,10 +516,10 @@ export const ballApplyImmediate = g.defineComposite('ball_apply_immediate', {
   outputs: {},
   outflows: ['done'],
   build: ({ e, vel, spin }, f) => {
-    // clamp 速度上限 24 m/s（v4 clampSpeed 同式：min(|v|,24)/|v| 缩放）
+    // clamp 速度上限 24 m/s（min(|v|,24)/|v| 缩放；2026-09-01 修正同款 max/min 笔误）
     const mag = f._3dVectorModuloOperation(vel)
     const magFinal = f.division(
-      f.addition(f.addition(mag, MAX_SPEED), f.absoluteValueOperation(f.subtraction(mag, MAX_SPEED))),
+      f.subtraction(f.addition(mag, MAX_SPEED), f.absoluteValueOperation(f.subtraction(mag, MAX_SPEED))),
       2
     )
     const velC = f._3dVectorZoom(vel, f.division(magFinal, f.addition(mag, 0.0001)))
