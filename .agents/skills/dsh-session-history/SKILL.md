@@ -46,30 +46,44 @@ DSH（DeepSeek Harness）的每次对话保存在 `~/.dsh/sessions/` 下的 **zs
 - **当前会话隔离**：环境变量 `DSH_SESSION_ID`、`DSH_SESSION_JSONL` 指向当前正在写入的会话；
   回溯过去来源时先排除它，否则刚执行的 status/diff 会伪装成历史证据。
 
-## 检索流程（配套脚本 scripts/search_dsh_sessions.py）
+## 检索流程（配套脚本 scripts/search_dsh_sessions.py，v2 快速版 2026-09-01）
+
+> v2 性能（119 会话/537MB 压缩实测）：scan 首次建索引约 1 分钟（并行+前缀过滤），**之后毫秒级**；
+> search 全项目并行流式秒级出命中。v1 的"每会话全量解压+逐行 json 解析+串行"在 60s 工具超时内必挂。
+> 加速原理：①噪声行（chunk 类）纯字节跳过 ②并行（索引 ProcessPool / 搜索 ThreadPool）
+> ③增量索引缓存（mtime+size 失效）④正则先在原始行上跑（C 速度），**命中行才 json.loads**
+> ⑤默认最新优先（找"昨天的会话"不用翻全量）。
 
 ```bash
-# 0. 定位会话根（默认 ~/.dsh/sessions，DSH_HOME 生效）
+# 0. 定位会话根（默认 ~/.dsh/sessions，DSH_HOME 生效）——毫秒级
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dirs
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dirs /home/h/genshin-ts
 
-# 1. 扫项目会话全景：每个会话的 标题 + 时间 + user 消息摘要（判断哪次会话相关，免解压全文）
+# 1. 会话全景：标题+时间+user 摘要（走索引；默认最新 30 条，--all 全量，--limit N 调）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan ~/.dsh/sessions/--home-h-genshin-ts--
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan <会话目录> --limit 10
 
-# 2. 关键词搜索（正则；自动流式解压；小文件优先；--context 控制片段长度）
+# 1b. 显式建/重建索引（scan/todos 自动增量补；--rebuild 强制全量；删缓存文件即重置）
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py index ~/.dsh/sessions/--home-h-genshin-ts--
+
+# 2. 关键词搜索（正则；并行+最新优先+命中行才解析；--context 片段长 --max-hits 上限 --jobs 并行度）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py search "static-assemblies" ~/.dsh/sessions/--home-h-genshin-ts-- --max-hits 20
-python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py search "structureFile" <会话目录> --context 400
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py search "造物|客户端计算" <会话目录> --context 400
 
-# 3. 深入单个会话：按时间顺序浏览消息序列（user/assistant 正文 + 工具调用概要 + 思考片段）
+# 3. 深入单个会话：按时间顺序浏览消息序列（U 用户 / A 助手 / C 工具调用 / R 结果 / R[ERROR]）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py show <会话目录> --tail 20
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py show <会话目录> 0 50
 
-# 4. 【新增】错误定位：列出会话中所有 isError=true 的工具结果（模型犯过的错误的第一手清单）
+# 4. 错误定位：isError=true 的工具结果清单（'"isError":true' 字面前置过滤+并行）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py errors <会话目录或目录>
 
-# 5. 【新增】未完成任务检测：找出 turn/end reason 非 completed、或会话尾部没有结论的会话
+# 5. 未完成任务检测（走索引，秒级）：turn 中断 / 无 end-seed / 尾部停在工具调用
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py todos ~/.dsh/sessions/--home-h-genshin-ts--
 ```
+
+缓存：按序探测 `~/.cache` → `$DSH_HOME/.cache` → `/tmp` 下的 `dsh-session-history/index.json`
+（只读环境自动降级 /tmp，功能不变只损失持久化）。当前会话自动排除。单文件解压预算自适应
+（10s + 1s/MB 压缩，封顶 60s），个别怪物会话不拖垮全局。
 
 ### 用户原话优先（意图提取最快路径）
 
