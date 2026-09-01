@@ -550,12 +550,14 @@ export const ballApplyImmediate = g.defineComposite('ball_apply_immediate', {
     // transition.done 之后（其 def 有 done 出口，边可存活）；此时 vel 交接已上
     // 黑板，渲染当拍即读到新速度）
     f.sendSignal(Signal.render_now)
-    // 当拍积分（render_now 后执行——loop 可能尚未启动，此拍即首拍。tick 保持
-    // 链尾：ballPhysTick def 无 outflow，本复合 done 锚点注入后悬空——现无调用方
-    // 在 ap 之后接链（input.ts 两处均不接）故无害；未来要链 done 须先给
-    // ballPhysTick 声明真实链尾 outflow）
-    const tick = f.callComposite(ballPhysTick, { e })
-    f.outflow('done', tick as never, 0)
+    // （2026-08-31 第五轮拒载修正）移除当拍 ballPhysTick 调用：其展开子树（936 节点）
+    // 经本复合在 826（input 图）双实例化，把 826「可达 impl 展开之和」顶过 3000 拒载线
+    // （2696→3265；对照备份 1788181022874——r4 地图缺 goalCollide 调用的残缺构建才
+    // 侥幸在 2696）。首拍积分由 transition 启动的 phys_loop 首次触发承担（欧拉闭式
+    // pos0+v·dt，墙钟对齐反而优于旧「当拍积分+0.5s 首火」的提前半拍结构）；
+    // 当帧视觉由上方 render_now 挂设备覆盖。done 锚点改挂 transition（carried_tick
+    // 同款收尾；done 现无调用方消费，语义 = transition 完成，signal 随后同拍发出）。
+    f.outflow('done', tr as never, 0)
     return {}
   }
 })
