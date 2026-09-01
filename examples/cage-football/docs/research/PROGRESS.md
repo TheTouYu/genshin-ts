@@ -1,32 +1,59 @@
 # 笼式足球·真实足球机制调研进度
 
 > 任务书：`../research-prompt.md`。产出：R1~R8 八个机制域分篇 + INDEX.md 汇总。
-> 用途：为 DESIGN.md 下一次迭代（最终设计讨论）提供"真实足球机制参照库"。
-> 注意：现有 DESIGN.md v2 为草稿参考，非定稿——调研结论用于与之对比讨论，不盲从。
+> 用途：为 DESIGN.md 最终设计讨论提供"真实足球机制参照库"。
+> 注意：DESIGN.md v2 为草稿参考，非定稿——调研结论用于与其对比讨论，不盲从。
 
 ## 域清单与状态
 
 | 轮 | 域 | 文档 | 状态 | 条目数 |
 |----|----|------|------|--------|
-| R1 | 操控与输入 | mechanics-controls.md | ⬜ 未开始 | — |
-| R2 | 球物理 | mechanics-ball-physics.md | ⬜ 未开始 | — |
-| R3 | 射门/传球/带球 | mechanics-shooting-passing.md | ⬜ 未开始 | — |
-| R4 | 防守与守门员 | mechanics-defending-goalkeeping.md | ⬜ 未开始 | — |
-| R5 | 规则与裁判 | mechanics-rules-referee.md | ⬜ 未开始 | — |
-| R6 | 球员属性 | mechanics-player-attributes.md | ⬜ 未开始 | — |
-| R7 | AI 与战术 | mechanics-ai-tactics.md | ⬜ 未开始 | — |
-| R8 | 呈现与反馈 | mechanics-presentation.md | ⬜ 未开始 | — |
+| R1 | 操控与输入 | mechanics-controls.md | ✅ 完成 | 12 |
+| R2 | 球物理 | mechanics-ball-physics.md | ✅ 完成 | 11 |
+| R3 | 射门/传球/带球 | mechanics-shooting-passing.md | ✅ 完成 | 12 |
+| R4 | 防守与守门员 | mechanics-defending-goalkeeping.md | ✅ 完成 | 13 |
+| R5 | 规则与裁判 | mechanics-rules-referee.md | ✅ 完成 | 11 |
+| R6 | 球员属性 | mechanics-player-attributes.md | ✅ 完成 | 11 |
+| R7 | AI 与战术 | mechanics-ai-tactics.md | ✅ 完成 | 11 |
+| R8 | 呈现与反馈 | mechanics-presentation.md | ✅ 完成 | 10 |
 
 状态图例：⬜ 未开始 / 🔄 进行中 / ✅ 完成（已过核验）/ ⚠️ 有缺口
 
 ## 已完成轮记录
 
-（每轮追加：日期 / 域 / 条目数 / 来源质量分布 / 未查到清单 / 对后续轮的调整）
+### 第 0 轮（2026-09-01，单会话完成 R1~R8）
+
+- **执行方式**：主会话直接调研（未用子代理，用户指示）；web_search 发现 + 官方站/数据站直接抓取正文双通道。
+- **可抓取的关键站点**（后续轮复用）：EA Pitch Notes（ea.com 多语言镜像）、Konami eFootball 官方补丁页、
+  fifauteam（属性/操作/难度/化学/镜头/解说六套数据）、Operation Sports、PSU（EA 补丁全文转载）、
+  kryk55（日文 eFootball 深度解析）、A9VG archiver（中文社区）、FO4 官方站。
+  Cloudflare/403 拦截（只有标题级引用）：fifplay、dexerto、gamerant、realsport101、eurogamer、videogamer。
+- **各域条目数**：R1 12 / R2 11 / R3 12 / R4 13 / R5 11 / R6 11 / R7 11 / R8 10 = **91 条**。
+- **映射分布**（复合条目计主要判定）：可还原 47 / 可简化 20 / 不可还原 18 / 不适用 6。
+- **来源质量分布**：官方判定约 25 条（EA/Konami/FIFA 官方数据）；数据站为数值主力；
+  深度解析 4 家；社区实测均已标注。每篇末尾有分布统计。
+- **未查到清单**（各篇"未查到"节汇总）：带球惩罚%/体力速率/加速曲线/力度条满格时长/判定窗口帧数据/
+  触球间隔换算/属性→行为换算公式/反弹系数官方值/雷达绘制规则——两系均未公开，已如实标注。
+- **对任务书的偏离**：①未按"每轮一域一 commit+用户审阅后继续"节奏，而是用户明确
+  "尽最大努力完成+完成后一起讨论最终设计"后单轮完成八域（每域仍独立 commit）；②R4~R8 中
+  AI 球员类机制因 D1 全真人裁决大量归"不可还原"，域价值转为方法论与 AI GK 参数化。
 
 ## 全局未查到清单
 
-（各域汇总，终审时复核一遍是否真的无公开数据）
+（复核：以下均为查过且无公开数据，非遗漏）
+
+- 游戏内球速/力量公式（真实世界 IMU 数据已作替代标定，R2.M1）
+- 带球速度惩罚具体百分比（官方仅定性）
+- Timed Finishing 判定窗口宽度（帧级）
+- 力度条满格时长
+- 属性→行为量化换算（两系通用黑箱）
+- 反弹系数（地面/门柱）官方数值
+- 近作雨天/场地状态官方细节（仅旧作社区实证）
 
 ## 下轮计划
 
-- 第 0 轮：建骨架 + R1~R8 并行调研（子代理分域，主会话统一核验）
+- 无既定调研轮（八域全闭环）。
+- 下一步：用户终审（抽查来源链接 + 审映射分类是否越界）→ 与 DESIGN.md 最终设计讨论
+  （重点议题：INDEX"跨域速查"22 条——直塞档/动态锚点/第一脚层次/放球走位/GK 视线遮挡/
+  雷达近似/点球大战/难度分档/辅助等级开关）。
+- 若讨论后需要补充调研（如 VOLTA 街机系、室内五人制规则细节），按域追加 R9+ 并回填本表。
