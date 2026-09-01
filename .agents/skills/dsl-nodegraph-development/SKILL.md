@@ -391,6 +391,15 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 - **需要“显式连线、作为链中/链尾/公共 merge”的节点** → `f.node` + `f.connect`。
 - 写完必须读图确认：同一节点只有一条 InFlow 入边；公共 done 不回到分支入口。
 
+**🔴 setNodeGraphVariable / setCustomVariable 显式写 bool false（2026-09-01 实证，勿踩）**：
+f.setNodeGraphVariable('lock', false, false) 是显式赋值，编译器产物 value pin 内层必须保留
+alreadySetVal=true（引擎认的形态，参照物 1899）。若内层 alreadySetVal 缺失/0，引擎视为
+"值未设置"→ 回退该类型默认值（bool 默认 true），表现为"显式写 false 实际变 true"（e7fe704
+修复前 rubik unlock 把 lock 写 true，R 转后交互无响应，日志 3074 rec58）。判读：注入后回读 .gil
+该节点 value pin bConcreteValue.value.alreadySetVal；int 0/float 0/string '' 显式设置与默认等价
+不受影响，只有 bool 会暴露。修复已内建（e7fe704），写代码无需变，但排查"写 false 变 true"时
+先查这个语义。
+
 ### 跨图拆分逻辑（2026-08-21 规划，依赖编译器复合 ID 稳定性）
 
 当单图接近 2000（引擎拒载线=生产红线，2026-08-31 更正）且职责边界清晰时，可拆到第二个节点图：
