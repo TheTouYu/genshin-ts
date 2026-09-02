@@ -21,9 +21,12 @@
 //     pos=(0,2.25,0) vel=0 state=Airborne）——05 复测修正，躲进图实体风暴期）
 //   · fb_dsp 1s 轮询（E1 保留，观测面）：寄存器空闲则发测试载荷（t1=pe*1000+1 恒为未知
 //     类型，03 票 fb-phys 按未知类型跳过应用但仍走 seqlock/ack——E1 观测面不断链）
-//   · fb_wd 4s 看门狗（E1 重提交 + gate 死锁重开）：在途超时重提交 (sum+epoch) 对（单写者
-//     不变量：载荷已原子写全，重发只需门值）；gate=1 → 置 0 重开下一拍（4s 粒度实现
-//     "0.8s 阈值"设计口径，幂等最多丢 1 拍——beat 每 0.2s 重开门，回传丢失天然重试）
+//   · fb_wd 4s 看门狗（票 10 定案=仅 gate 死锁重开）：原「在途超时重提交 (sum+epoch) 对」已删
+//     ——3104 铁证（frames rec8931）：公式 e*8000+36 只对 dispatcher 测试载荷成立，会把
+//     真实任务（KICK/RESET，fbMailPost 同式求和）的 fb_sum 覆写成错值 → 客户端永久 tearH
+//     死锁到下一任务覆盖才恢复。载荷单写者原子写全 + 客户端每 cast 轮询重试，重发本无必要
+//     （详见票 10）。gate=1 → 置 0 重开下一拍（4s 粒度实现"0.8s 阈值"设计口径，幂等最多
+//     丢 1 拍——beat 每 0.2s 重开门，回传丢失天然重试）
 //   · fb_beat 0.2s loop（T3 拍门，仅球活动期）：置 fb_ball_gate=1
 //   · onSignal(fb_echo)（E1 first-wins 保留 + 任务应用唤醒）：ack 前进 + 读邮箱 t1，
 //     type∈{KICK,RESET} 才 startTimer(fb_beat)（垃圾测试载荷不唤醒，REST 期≈0）；
@@ -319,16 +322,8 @@ const graph = g
       })
     }, () => {
       f.doubleBranch(f.equal(evt.timerName, 'fb_wd'), () => {
-        const owner2 = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
-        const e2 = f.getCustomVariable(owner2, 'fb_epoch').asType('int')
-        const a2 = f.getCustomVariable(owner2, 'fb_ack').asType('int')
-        f.doubleBranch(f.equal(e2, a2), () => {
-        }, () => {
-          f.setCustomVariable(owner2, 'fb_sum', e2 * 8000n + 36n, false)
-          f.setCustomVariable(owner2, 'fb_epoch', e2, false)
-          f.printString('fb:repub')
-        })
-        // gate 死锁看门狗（独立检查，不与重提交互斥）：gate=1 → 置 0 重开下一拍
+        // gate 死锁看门狗（票 10 定案：删 E1 sum/epoch 重提交——见文件头注释）：
+        // gate=1 → 置 0 重开下一拍
         const ballW = f.getSelfEntity()
         const gate = f.getCustomVariable(ballW, 'fb_ball_gate').asType('int')
         f.doubleBranch(f.equal(gate, 1n), () => {
