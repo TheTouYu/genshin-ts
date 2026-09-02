@@ -28,8 +28,9 @@
 
 ## 当前前沿
 
-**→ 票03 设计稿（v0.2 推演全绿，待用户裁决冻结）**：缺口清零——A7=用户权威（悬浮页不进布局/普通控件三面通用），
-E3=轮66 默认选择序号 varint，G3=轮65 官方单条两件套；placement 表更新至 ui/DESIGN.md + ui/mappings.md；推演 ui/design-trace.md 51✅→56✅（5⚠ 全清，1 非阻塞增强）。
+**→ 票04 CLI：语义化 List + 玩家改动识别 v1（待开工）**：按 ui/DESIGN.md L1 + ui/mappings.md §7 实现——
+概念树 schema（id/path/role/kind/geometry/children/refs/props/unknown）→ 类型注册表（判别=签名+parent 上下文+placement）→
+list 树/平面视图 → diff --anchor（玩家改动识别）→ 真实样本回读断言。交接：ui/HANDOFF.md。
 
 学习基线：重启轮66 快照 .gsts/diff-exp/ui学习/1073741909.after-重启66-默认页签2-7468eadd.gil，SHA 7468eadd…。## 已完成（划掉区）
 
