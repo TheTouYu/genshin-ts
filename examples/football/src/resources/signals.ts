@@ -14,6 +14,14 @@ export const Signal = {
     ['next', 'int'],
     ['vel', 'vec3']
   ]),
+  fb_ball_state: defineSignal('fb_ball_state', [
+    ['tag', 'str'],
+    ['tick', 'int'],
+    ['pos', 'vec3'],
+    ['vel', 'vec3'],
+    ['spin', 'vec3'],
+    ['state', 'int']
+  ]),
   fb_echo: defineSignal('fb_echo', [
     ['tag', 'str'],
     ['e', 'int'],

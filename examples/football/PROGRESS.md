@@ -2,6 +2,12 @@
 
 ## 最近轮次
 
+- 2026-09-03（**R2.4 全链注入完成（票 04 收口）**：用户架构评审两轮 + 确认注入 ok 4/0 + 注入后全套核验；地图 SHA 438c2bcf→**958a4020** Temp 双 SHA；下一步=05 用户复测）：
+  - **用户架构评审定案两条**：①逻辑真相/渲染呈现分层确认——引擎运动器即持续渲染层（60fps 自插值），重定目标挂采纳信号（最新鲜零采样抖动），独立渲染定时器留作 10Hz+ 限频开关；**逻辑帧率瓶颈=环路延迟（估 ~150ms 未实测），0.2s 基线先行，05 日志量出延迟后两分钟小轮升 10Hz**（beat 0.1/DRIVE 0.12~0.15 重编译 + dt/kw_air 0.980391/kw_gnd 0.943875/bounce_vy 0.5 编辑器热调）。②**fb_drive 补 fb_spin 旋转设备**（用户指正"位置和旋转必须都挂载"）：世界自旋轴经实体朝向转局部轴（v4 2832 教训 YXZ 内旋式）+INSTANT 瞬移不叠旋转（同链互断教训）+lockRotation=false 复位朝向（4c59554）。
+  - **注入（用户确认制过门）**：`All injections done (ok 4, fail 0, total 4)` 整行核对全输出零 error——fb-phys 34→503、fb-server 79→172 主图+复合、status/decision 原样。
+  - **注入后核验（读图红线全套）**：composite-refs --incoming **0 错**（30 impl 图 0 悬空，新 def 1610700040-43 落位，旧 v5 家族零影响）；scan-gil-var-pins 228 变量节点**全完整**；list 回读 fb-phys=503/_GSTS_fbPhysSkill、fb-server=172/_GSTS_fbServer；explain 执行流与源码意图一致（入口→tick/eEq 物化→seqlock→ack→19 参数链→门柱五连→墙四连→8 信号节点）；Temp 手动同步 cmp 逐字节一致 **958a4020**。
+  - **顺手回填**：注入流程重提取 signals.ts（+fb_ball_state 6 参定义，01 票注册后本地资源文件首次同步）。
+  - **下一步 R2.5（票 05）**：用户复测——进对图 1073741908/重载/详情日志只开 1082130433；主验收任意冲量全程 + 校准锚点 + 负载锚点；协议与四层签名排查序在 05 票内。
 - 2026-09-03（**R2.4 注入前全链核验（票 04 前半）+ 复合 def ID 冲突修复；停在注入确认门**）：
   - 全绿项：build 0 error；sim **31/31 PASS**；主配置全图编译 0 error；fb-phys 断言 42/42 复过 + fb-server 16/16（内容零变化）；**.gil 变量注册表 fb_p_* 19/19 对照 PORTING-MAP**（float32 形态精确命中）+ 镜像 11/gate 初始 0 + fb_ball_state 6 参 vec3 注册表在位；挂载互斥盘点=球实体五图（旧四图静止无 loop，v5 基线）。
   - **注入预检逮住真问题（composite-refs --incoming）**：fb-server 四复合默认 def ID 1610700000..03 会覆盖地图旧 v5 家族 def（dribble_field_get_role/ball_render_frame/ball_render_halt），残留复合 ball_dribble_decide(_atomic) 引用 → 类型错位=拒载（08-30 事故模式）。修复=defineComposite 显式 id **1610700040..43**（目录占用 0..32；impl 1610710040..43 同空闲；commit e3782a5 零行为变化）。复查覆盖冲突清零，剩余 4 条「注入后缺失」=新 def 待落位正常态。
