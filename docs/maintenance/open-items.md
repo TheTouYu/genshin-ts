@@ -574,3 +574,30 @@
 - 证据：W2 派活（2026-08-16）主代理误用 `patch --entities <json>` 形态；子代理 9d6603cb
   读源码 assets_entities.ts 确认：`patch <entity-id> --position x,y,z` 为单实体操作，
   `--entities` 仅 import 专用。两次 patch 串联可改多实体。
+- 影响：派活/文档中该命令形态需用单实体形式；灯阵实体位置调整已按正确形态完成
+  （灯柱/灯头 → [5,0,5]/[5,0.95,5]，写回 SHA e09f6e2a…）。
+- 何时做：下次 assets:entities 相关派活/文档维护时同步（production-workflow 或
+  static-gil-model-builder 参考补命令形态）。
+
+### O-2026-08-16-13. DSL 无法传实体字面量（entityLiteral IR=null）——编译器能力缺口
+
+- 证据：游戏开发子代理（b914c930）三关实现 trace（2026-08-15）——尝试在 DSL 中引用指定实体
+  （按 ID 获取/字面量），grep ir_builder/toIRLiteral/declaredGuid 多处后实测 entityLiteral IR=null；
+  绕路：锁定/解锁全部由灯柱 self 完成，管理图纯信号编排。
+- 影响：无法在节点图代码中定向引用场景实体，设计被逼用信号回执/self 模式。
+- 方向：评估 DSL 增加实体字面量/按 GUID 引用能力，或文档明确限制 + 提供推荐模式。
+
+### O-2026-08-16-14. 屏幕 UI 控件 CLI 无创建入口——编译器能力缺口
+
+> 状态：已解决（2026-08-19 复核：`assets:ui create/clone/update/template` 已存在）。
+
+- 原始证据：同 trace——当时查 ui-controls.md + src/cli/ui.ts 确认 CLI 无屏幕 UI 创建能力；
+  用选项卡（tabBar）替代开始界面。
+- 当前实现：`gsts assets:ui list|clone|create|update|template`（root9 文本框/交互按钮/自定义按钮），
+  入口在 `src/cli/assets_ui.ts`，已收入 `genshin-ts-asset-operations` 技能。
+- 仍待验证：UI 控件运行时显示/隐藏/禁用差异、按钮事件进角色、多人隔离；这些属于游戏行为验证，不是 CLI 缺口。
+
+### O-2026-08-16-15. 注入覆盖陷阱：多图注入需分别建占位图——流程/技能缺口
+
+- 证据：同 trace——四图（1073741825-28）逐图注入时发现注入互相覆盖，需分别建占位图+逐图注入。
+- 影响：多图项目注入流程摩擦；技能未覆盖。
