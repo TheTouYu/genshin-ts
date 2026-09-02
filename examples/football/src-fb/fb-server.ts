@@ -13,8 +13,9 @@
 //   RESET：t2..t4=pos 定点×1000，t5..t7=vel 定点×1000，t8=state。
 //
 // 职责（服务端唯一常驻 = 1s 轮询 + 4s 看门狗 + 0.2s 拍门（仅球活动期）：
-//   · 会话种子（whenEntityIsCreated）：5 丘丘人写球引用 + 初始 RESET 任务进邮箱
-//     （2m 落体校准锚点 R2-DESIGN §7 首行：pos=(0,2.25,0) vel=0 state=Airborne）
+//   · 会话种子（whenEntityIsCreated 只留 armed + 5s 一次性 fb_seed 定时器；种子逻辑
+//     在 fb_seed 回调：5 丘丘人写球引用 + 初始 RESET 任务进邮箱（2m 落体锚点
+//     pos=(0,2.25,0) vel=0 state=Airborne）——05 复测修正，躲进图实体风暴期）
 //   · fb_dsp 1s 轮询（E1 保留，观测面）：寄存器空闲则发测试载荷（t1=pe*1000+1 恒为未知
 //     类型，03 票 fb-phys 按未知类型跳过应用但仍走 seqlock/ack——E1 观测面不断链）
 //   · fb_wd 4s 看门狗（E1 重提交 + gate 死锁重开）：在途超时重提交 (sum+epoch) 对（单写者
@@ -55,6 +56,7 @@ const BEAT_S = 0.2
 const DRIVE_S = 0.25
 const DRIVE_GAIN = 4
 const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s（旋转设备角速度单位）
+const SEED_DELAY_S = 5 // 种子后移秒数（进图实体风暴期规避，05 复测修正）
 // 球门线几何（FIFA 105×68：门线 x=±52.5；门宽 7.32→|z|<3.66；横梁高 2.5）
 const GOAL_LINE_X = 52.5
 const GOAL_MOUTH_Z = 3.66
@@ -262,34 +264,14 @@ const graph = g
   })
   // ================================================================
   // 会话种子：丘丘人球引用 + 初始 RESET 任务（2m 落体校准锚点）+ 常驻定时器
+  // 05 复测修正（用户指正）：whenEntityIsCreated 落在进图实体风暴期——跨实体变量写
+  // （5 丘丘人）与邮箱投递太早有丢失/时序风险。创建事件只留轻打点+5s 一次性
+  // fb_seed 定时器，种子逻辑整体后移（定时器回调时全部实体已就绪）。
   // ================================================================
   .on('whenEntityIsCreated', (_evt, f) => {
     f.printString('fb:armed')
     const ball = f.getSelfEntity()
-    // 球引用种子：5 丘丘人实例逐个写（fb-phys 读链 getSelfEntity→fb_ball_entity→球变量）
-    f.setCustomVariable(entity(1082130437n), 'fb_ball_entity', ball, false)
-    f.setCustomVariable(entity(1082130438n), 'fb_ball_entity', ball, false)
-    f.setCustomVariable(entity(1082130439n), 'fb_ball_entity', ball, false)
-    f.setCustomVariable(entity(1082130440n), 'fb_ball_entity', ball, false)
-    f.setCustomVariable(entity(1082130441n), 'fb_ball_entity', ball, false)
-    // 初始 RESET 任务进邮箱（seqlock 单槽；应用后由 ack 分支唤醒拍门+置瞬移门）
-    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
-    const pe = f.getCustomVariable(owner, 'fb_epoch').asType('int') + 1n
-    f.callComposite(fbMailPost, {
-      owner,
-      pe,
-      t1: new int(TT_RESET),
-      t2: new int(SEED_POS_X),
-      t3: new int(SEED_POS_Y),
-      t4: new int(SEED_POS_X),
-      t5: new int(0),
-      t6: new int(0),
-      t7: new int(0),
-      t8: new int(SEED_ST)
-    })
-    f.printString('fb:seed')
-    f.startTimer(ball, 'fb_dsp', true, [1])
-    f.startTimer(ball, 'fb_wd', true, [4])
+    f.startTimer(ball, 'fb_seed', false, [SEED_DELAY_S])
   })
   // ================================================================
   // 定时器名单制分发：fb_dsp（1s 轮询）/ fb_wd（4s 看门狗）/ fb_beat（0.2s 拍门）
@@ -339,6 +321,38 @@ const graph = g
           const ballB = f.getSelfEntity()
           f.setCustomVariable(ballB, 'fb_ball_gate', 1n, false)
         }, () => {
+          // fb_seed（一次性 5s）：种子逻辑后移落位（实体风暴规避，见文件头）
+          f.doubleBranch(f.equal(evt.timerName, 'fb_seed'), () => {
+            const ball = f.getSelfEntity()
+            // 球引用种子：5 丘丘人实例逐个写（fb-phys 读链 getSelfEntity→fb_ball_entity→球变量）
+            f.setCustomVariable(entity(1082130437n), 'fb_ball_entity', ball, false)
+            f.setCustomVariable(entity(1082130438n), 'fb_ball_entity', ball, false)
+            f.setCustomVariable(entity(1082130439n), 'fb_ball_entity', ball, false)
+            f.setCustomVariable(entity(1082130440n), 'fb_ball_entity', ball, false)
+            f.setCustomVariable(entity(1082130441n), 'fb_ball_entity', ball, false)
+            // 初始 RESET 任务进邮箱（seqlock 单槽；应用后由 ack 分支唤醒拍门+置瞬移门）
+            const owner = f.getCorrespondingValueFromList(
+              f.getListOfPlayerEntitiesOnTheField(),
+              0n
+            )
+            const pe = f.getCustomVariable(owner, 'fb_epoch').asType('int') + 1n
+            f.callComposite(fbMailPost, {
+              owner,
+              pe,
+              t1: new int(TT_RESET),
+              t2: new int(SEED_POS_X),
+              t3: new int(SEED_POS_Y),
+              t4: new int(SEED_POS_X),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(SEED_ST)
+            })
+            f.printString('fb:seed')
+            f.startTimer(ball, 'fb_dsp', true, [1])
+            f.startTimer(ball, 'fb_wd', true, [4])
+          }, () => {
+          })
         })
       })
     })
@@ -354,14 +368,12 @@ const graph = g
         f.printString('fb:stale')
       }, () => {
         f.doubleBranch(f.equal(evt.params.e, cur), () => {
+          // 05 复测修正：高频路径打点瘦身——dup/ack 去值行（多造物回声×每任务≈打点洪泛）
           f.printString('fb:dup')
-          f.printString(f.dataTypeConversion(evt.params.e, 'str'))
         }, () => {
           f.setCustomVariable(owner, 'fb_ack', evt.params.e, false)
           f.printString('fb:ack')
           f.printString(f.dataTypeConversion(evt.params.e, 'str'))
-          f.printString('fb:cnt')
-          f.printString(f.dataTypeConversion(evt.params.c, 'str'))
           // 任务应用唤醒：读邮箱 t1（同 handler 内无并发写者），真实任务类型才开拍门
           const ball = f.getSelfEntity()
           const t1 = f.getCustomVariable(owner, 'fb_t1').asType('int')
@@ -456,12 +468,11 @@ const graph = g
       })
     }, () => {
       // —— 非应用拍：dup（同代重复回传，多造物并发统计）/ tear（撕裂拍不应用） ——
+      // 05 复测修正：运动期 5Hz×多造物 dup 打点去值行（打点洪泛拖卡）
       f.doubleBranch(isP, () => {
         f.printString('fb:dup')
-        f.printString(f.dataTypeConversion(evt.params.tick, 'str'))
       }, () => {
         f.printString('fb:tear')
-        f.printString(f.dataTypeConversion(evt.params.tick, 'str'))
       })
     })
   })

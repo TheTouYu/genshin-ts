@@ -559,18 +559,19 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
         nextSt
       )
 
-      // ============ ⑭ E5 观测链（对账非关键路径；失败零阻塞可删） ============
-      // 实体位 vs 镜像位差（mm）经 fb_echo 回传：服务端打 fb:tear <dmm> 打点、
-      // 客户端详情日志可见发送帧值。getEntityType 客户端 f 面无此方法——只用位置对账。
-      const eloc = f.getEntityLocation(ballRef.value)
-      const dmm = f.dataTypeConversion(
-        f.multiplication(
-          f._3dVectorModuloOperation(f._3dVectorSubtraction(eloc, mPos.value)),
-          FIXK
-        ),
-        'int'
-      )
-      f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'e5', dmm, tick.value)
+      // ============ ⑭ E5 观测链（仅任务拍发送——04 注入实测每计算拍发=5Hz 服务端打点 ×2，  ============
+      // 洪泛拖卡；任务拍每会话个位数次，证据足够。对账非关键路径；失败零阻塞可删）
+      f.doubleBranch(hasTask, () => {
+        const eloc = f.getEntityLocation(ballRef.value)
+        const dmm = f.dataTypeConversion(
+          f.multiplication(
+            f._3dVectorModuloOperation(f._3dVectorSubtraction(eloc, mPos.value)),
+            FIXK
+          ),
+          'int'
+        )
+        f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'e5', dmm, tick.value)
+      }, () => {})
     }, () => {
       // —— 镜像撕裂：任务拍 tearE（不 ack → 看门狗重提交）；拍门拍 'T'（不应用，重算） ——
       f.doubleBranch(hasTask, () => {

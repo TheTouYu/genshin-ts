@@ -92,7 +92,11 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 1. 数复合调用次数（如 auto_check_tick 帧数）确认定时器是否真的触发——别只看结果埋点（埋点可能只在条件分支里）
 2. 对比同族定时器（同图/同实体/同参数）的日志 IN3 延迟值与触发次数
 3. 核对 startTimer 实体参数 vs 图挂载实体（`assets:mounts list` + When Timer Is Triggered 的 OUT0/OUT1）
-4. 实体创建太早（whenEntityIsCreated time 0~1）时定时器可能注册失败——setTimeout 延迟几秒再启动
+4. 实体创建太早（whenEntityIsCreated time 0~1）时定时器可能注册失败——setTimeout 延迟几秒再启动。
+   **实体风暴扩展（2026-09-03 足球 05 复测实证，用户指正）**：进图创建事件落在批量实体创建期
+   ——不止定时器注册，**跨实体操作（给他实体写自定义变量/邮箱投递）同样可能太早**，目标实体
+   未建好即写=丢失/时序乱。模式：创建事件只留轻打点 + startTimer(一次性 ~5s)，种子逻辑
+   （跨实体写/投递/常驻定时器启动）全部后移进定时器回调（参照 fb-server fb_seed 形态）。
 5. **最后才怀疑引擎**——引擎稳定，先怀疑参数/实体/时序
 
 ## 核心流程（每轮一个可归因变量）
@@ -388,6 +392,7 @@ buff 是编辑器手动挂载、易丢失、不可代码校验。日志里 `OUT0
 | `f.callComposite(...)` 之后的**链尾 exec 节点**（如 start_timer） | `f.registerExecNode('start_timer', ...)`（会被 auto-chain 从复合调用 done 再拉一条入边，导致同一节点执行两次） | `f.node('start_timer', ...)` + 显式 `f.connect(前置, 0, t, 0)` |
 | 循环体/分支回调的**第一个 exec 节点** | `f.node(...)`（detached，不会自动挂进执行链） | `f.registerExecNode(...)` 或高层 flow API（这是 `registerExecNode` 的正确使用场景） |
 | `f.doubleBranch` 的 **false 分支**第一个 exec 节点（兜底/else 路径） | `f.node(...)`（detached，false 分支边丢失，兜底失效） | `f.registerExecNode(...)`。**注意**：true 分支常以 `f.callComposite` 开头（自动设 headNodeId，边正常），false 分支常是单节点兜底，最容易漏——写 else 兜底时先自查这一行 |
+| **doubleBranch 分支体内的 exec 节点**（反射/写回等） | `f.registerExecNode(...)` 后**又** `f.connect(前置, 0, 该节点, 0)` ——registerExecNode 已 auto-chain 到分支尾，再 connect 让该节点有**两条入边**，引擎两条路径都执行（2026-09-01 足球 applyRefl 实证：netHit=false 也跑 ×0.25，日志 3077 rec52 [757]） | 分支体内只写 `f.registerExecNode(...)`，**不要**再手动 connect（auto-chain 已接好）；编译器会报 `GSTS-DUPLICATE-EXEC-INPUT`（同来源同出口重复边） |
 
 判断口诀：
 
