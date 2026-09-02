@@ -3,10 +3,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import type { GstsConfig } from '../compiler/gsts_config.js'
-import type { GstsInjectConfig } from '../compiler/gsts_config.js'
+import { mapIdFromGil } from '../../ui/src/anchor.js'
+import {
+  parseUiSemanticCommand,
+  runUiSemanticCommand,
+  type UiSemanticCliContext
+} from '../../ui/src/cli.js'
+import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
-import { resyncMap } from './maps.js'
 import {
   cloneTemplate,
   cloneUiControl,
@@ -27,16 +31,19 @@ import {
   type UiCreateType,
   type UiUpdateOptions
 } from './gil_ui.js'
+import { resyncMap } from './maps.js'
 import { prettyStableJson } from './static_assembly/json.js'
 import { cssColorToArgb } from './static_assembly/library_css.js'
-import { mapIdFromGil } from '../../ui/src/anchor.js'
-import {
-  parseUiSemanticCommand,
-  runUiSemanticCommand,
-  type UiSemanticCliContext
-} from '../../ui/src/cli.js'
 
-type Command = 'list' | 'clone' | 'update' | 'template' | 'create' | 'delete' | 'variables' | 'states'
+type Command =
+  | 'list'
+  | 'clone'
+  | 'update'
+  | 'template'
+  | 'create'
+  | 'delete'
+  | 'variables'
+  | 'states'
 type TemplateSub = 'list' | 'clone' | 'create'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
@@ -55,10 +62,10 @@ function usage(exitCode = 1): never {
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
     '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [options]',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
-  '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
+    '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
     '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
-  '  template create: gsts assets:ui template create --id <模板ID> --asset <素材索引ID> [--name <n>] [--position <x,y>] [--size <w,h>]',
+    '  template create: gsts assets:ui template create --id <模板ID> --asset <素材索引ID> [--name <n>] [--position <x,y>] [--size <w,h>]',
     '  variables list: gsts assets:ui variables list [--gil <file>] [--page <悬浮交互页ID>] [--format json]',
     '  states: gsts assets:ui states --id <自定义按钮ID> [--gil <file>] [--format json]',
     '  variables list: gsts assets:ui variables list [--page <悬浮交互页ID>] [--gil <file>] [--format json]',
@@ -70,8 +77,8 @@ function usage(exitCode = 1): never {
     '  --write                 atomically write source GIL after backup',
     '  --name <name>           set control name',
     '  --content <text>        set display content (textbox path)',
-  '  --asset <id>            image control: 素材索引 ID (= 素材库容器 ID)',
-  '  --layout <id>           image control: 目标布局 ID (default 1073741825 默认布局)',
+    '  --asset <id>            image control: 素材索引 ID (= 素材库容器 ID)',
+    '  --layout <id>           image control: 目标布局 ID (default 1073741825 默认布局)',
     '  --position <x,y>        set position (screen-center offset)',
     '  --size <w,h>            set size (width,height)',
     '  --format <text|json>    output format (default: text)',
@@ -172,61 +179,118 @@ function parseArgs(argv: readonly string[]) {
       const raw = value(argv, index++)
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
-    } else if (arg === '--id') { const v = nonNegativeId(value(argv, index++), '--id'); newId = v; if (command === 'states') targetId = v }
-    else if (arg === '--page') pageId = nonNegativeId(value(argv, index++), '--page')
+    } else if (arg === '--id') {
+      const v = nonNegativeId(value(argv, index++), '--id')
+      newId = v
+      if (command === 'states') targetId = v
+    } else if (arg === '--page') pageId = nonNegativeId(value(argv, index++), '--page')
     else if (arg === '--rich') rich = true
     else if (arg === '--variable') {
       const raw = value(argv, index++)
       const [vname, vtype] = raw.split(':')
       const typeMap: Record<string, number> = { int: 0, float: 1, str: 2, text: 3 }
       const vtypeNum = typeMap[vtype ?? '']
-      if (!vname || vtypeNum === undefined) throw new Error(`[error] --variable 格式: 名:int|float|str|text`)
+      if (!vname || vtypeNum === undefined)
+        throw new Error(`[error] --variable 格式: 名:int|float|str|text`)
       ;(variables ??= []).push({ name: vname, type: vtypeNum })
-    }
-    else if (arg === '--name') name = value(argv, index++)
+    } else if (arg === '--name') name = value(argv, index++)
     else if (arg === '--content') content = value(argv, index++)
     else if (arg === '--position') position = parseVector2(value(argv, index++), '--position')
     else if (arg === '--size') size = parseVector2(value(argv, index++), '--size')
     else if (arg === '--type') {
       const raw = value(argv, index++)
-      if (raw !== 'textbox' && raw !== 'interactive-button' && raw !== 'custom-button' && raw !== 'image' && raw !== 'floating-page') {
-        throw new Error('[error] --type must be textbox, interactive-button, custom-button, image or floating-page')
+      if (
+        raw !== 'textbox' &&
+        raw !== 'interactive-button' &&
+        raw !== 'custom-button' &&
+        raw !== 'image' &&
+        raw !== 'floating-page'
+      ) {
+        throw new Error(
+          '[error] --type must be textbox, interactive-button, custom-button, image or floating-page'
+        )
       }
       createType = raw
     } else if (arg === '--asset') assetId = nonNegativeId(value(argv, index++), '--asset')
     else if (arg === '--color') color = value(argv, index++)
     else if (arg === '--layout') layoutId = nonNegativeId(value(argv, index++), '--layout')
     else if (arg === '--help' || arg === '-h') usage(0)
-    else if (command !== 'list' && command !== 'variables' && command !== 'states' && targetId === undefined) {
+    else if (
+      command !== 'list' &&
+      command !== 'variables' &&
+      command !== 'states' &&
+      targetId === undefined
+    ) {
       targetId = nonNegativeId(arg, 'control-id')
     } else usage()
   }
-  if (command === 'clone' && targetId === undefined) throw new Error('[error] clone requires <source-id>')
-  if (command === 'clone' && newId === undefined) throw new Error('[error] clone requires --id <new-id>')
+  if (command === 'clone' && targetId === undefined)
+    throw new Error('[error] clone requires <source-id>')
+  if (command === 'clone' && newId === undefined)
+    throw new Error('[error] clone requires --id <new-id>')
   if (command === 'create' && createType === undefined)
-    throw new Error('[error] create requires --type <textbox|interactive-button|custom-button|image|floating-page>')
+    throw new Error(
+      '[error] create requires --type <textbox|interactive-button|custom-button|image|floating-page>'
+    )
   if (command === 'create' && createType === 'image' && assetId === undefined)
     throw new Error('[error] create --type image requires --asset <素材索引ID>')
-  if (command === 'create' && newId === undefined) throw new Error('[error] create requires --id <new-id>')
-  if (command === 'states' && targetId === undefined) throw new Error('[error] states requires --id <自定义按钮ID>')
-  if (command === 'update' && targetId === undefined) throw new Error('[error] update requires <control-id>')
-  if (command === 'delete' && targetId === undefined) throw new Error('[error] delete requires <control-id>')
+  if (command === 'create' && newId === undefined)
+    throw new Error('[error] create requires --id <new-id>')
+  if (command === 'states' && targetId === undefined)
+    throw new Error('[error] states requires --id <自定义按钮ID>')
+  if (command === 'update' && targetId === undefined)
+    throw new Error('[error] update requires <control-id>')
+  if (command === 'delete' && targetId === undefined)
+    throw new Error('[error] delete requires <control-id>')
   if (command === 'template' && templateSub === 'create' && newId === undefined)
     throw new Error('[error] template create requires --id <模板ID>')
   if (command === 'template' && templateSub === 'create' && assetId === undefined)
     throw new Error('[error] template create requires --asset <素材索引ID>')
-  if (command === 'update' && name === undefined && content === undefined && position === undefined && size === undefined && assetId === undefined && color === undefined) {
-    throw new Error('[error] update requires at least one of --name/--content/--position/--size/--asset/--color')
+  if (
+    command === 'update' &&
+    name === undefined &&
+    content === undefined &&
+    position === undefined &&
+    size === undefined &&
+    assetId === undefined &&
+    color === undefined
+  ) {
+    throw new Error(
+      '[error] update requires at least one of --name/--content/--position/--size/--asset/--color'
+    )
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, pageId, name, content, position, size, createType, rich, variables, assetId, layoutId, color }
+  return {
+    command,
+    templateSub,
+    gilPath,
+    donorGilPath,
+    outputPath,
+    write,
+    format,
+    targetId,
+    newId,
+    pageId,
+    name,
+    content,
+    position,
+    size,
+    createType,
+    rich,
+    variables,
+    assetId,
+    layoutId,
+    color
+  }
 }
 
 function resolveGilPath(args: { gilPath?: string }, projectConfig: GstsConfig | undefined): string {
   if (args.gilPath) return path.resolve(args.gilPath)
   const inject: GstsInjectConfig = { ...(projectConfig?.inject ?? {}) }
   if (inject.mapId === undefined) {
-    throw new Error('[error] mapId is required; use --gil, or provide a project config with inject.mapId')
+    throw new Error(
+      '[error] mapId is required; use --gil, or provide a project config with inject.mapId'
+    )
   }
   return resolveGilTarget(inject).gilPath
 }
@@ -250,10 +314,17 @@ function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(Buffer.from(bytes)).digest('hex')
 }
 
-function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string, mapId?: number): string {
+function writeBack(
+  gilPath: string,
+  candidate: Uint8Array,
+  sourceHash: string,
+  mapId?: number
+): string {
   const currentHash = sha256(new Uint8Array(fs.readFileSync(gilPath)))
   if (currentHash !== sourceHash) {
-    throw new Error(`[error] source changed during operation: expected ${sourceHash}, got ${currentHash}`)
+    throw new Error(
+      `[error] source changed during operation: expected ${sourceHash}, got ${currentHash}`
+    )
   }
   const backup = backupPath(gilPath)
   fs.copyFileSync(gilPath, backup)
@@ -321,11 +392,18 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-list', records }))
     } else {
       const kindOrder: Record<string, string> = {
-        layout: '布局', asset: '素材', 'asset-group': '素材组', template: '控件模板',
-        instance: '控件实例', official: '官方预制控件', unknown: '其他'
+        layout: '布局',
+        asset: '素材',
+        'asset-group': '素材组',
+        template: '控件模板',
+        instance: '控件实例',
+        official: '官方预制控件',
+        unknown: '其他'
       }
       for (const r of records)
-        log(`${r.id} [${kindOrder[r.kind] ?? r.kind}] name=${r.name || '(空)'} parent=${r.parentId ?? '-'}`)
+        log(
+          `${r.id} [${kindOrder[r.kind] ?? r.kind}] name=${r.name || '(空)'} parent=${r.parentId ?? '-'}`
+        )
     }
     return
   }
@@ -365,7 +443,9 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     if (args.templateSub === 'list') {
       const templates = listTemplates(sourceBytes)
       if (jsonMode) {
-        process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-template-list', templates }))
+        process.stdout.write(
+          prettyStableJson({ schemaVersion: 1, kind: 'ui-template-list', templates })
+        )
       } else {
         for (const t of templates) log(`id=${t.id} name=${t.name} category=${t.category}`)
       }
@@ -465,7 +545,14 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   if (args.command === 'states') {
     const states = listButtonStates(sourceBytes, args.targetId!)
     if (jsonMode) {
-      process.stdout.write(prettyStableJson({ schemaVersion: 1, kind: 'ui-button-states', buttonId: args.targetId, states }))
+      process.stdout.write(
+        prettyStableJson({
+          schemaVersion: 1,
+          kind: 'ui-button-states',
+          buttonId: args.targetId,
+          states
+        })
+      )
     } else {
       log(`按钮 ${args.targetId} 状态:`)
       for (const s of states) {
@@ -578,7 +665,11 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
 
   let candidate: Uint8Array
-  const summary: Record<string, unknown> = { schemaVersion: 1, kind: `ui-${args.command}`, sourceSha256: sourceHash }
+  const summary: Record<string, unknown> = {
+    schemaVersion: 1,
+    kind: `ui-${args.command}`,
+    sourceSha256: sourceHash
+  }
 
   if (args.command === 'clone') {
     const donorBytes = args.donorGilPath
@@ -642,7 +733,9 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     summary.previewOnly = true
     log('preview only; use --write to apply after backup, or --output for a candidate')
   }
-  log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
+  log(
+    'editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving'
+  )
   if (jsonMode) process.stdout.write(prettyStableJson(summary))
 }
 

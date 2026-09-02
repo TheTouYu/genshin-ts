@@ -237,11 +237,24 @@ export function extractGeometry(
       const pos = f502m?.find((x) => x.number === 504 && x.wire === 2)
       const size = f502m?.find((x) => x.number === 505 && x.wire === 2)
       const pair = (data: Uint8Array | undefined): [number, number] | undefined => {
-        if (!data || data.length < 8) return undefined
-        return [Buffer.from(data).readFloatLE(0), Buffer.from(data).readFloatLE(4)]
+        if (!data) return undefined
+        const m = parseWireMessage(data)
+        const x = m?.find((f) => f.number === 501 && f.wire === 5)
+        const y = m?.find((f) => f.number === 502 && f.wire === 5)
+        if (x && y) {
+          return [
+            Buffer.from(x.value as Uint8Array).readFloatLE(0),
+            Buffer.from(y.value as Uint8Array).readFloatLE(0)
+          ]
+        }
+        if (data.length >= 8) {
+          return [Buffer.from(data).readFloatLE(0), Buffer.from(data).readFloatLE(4)]
+        }
+        return undefined
       }
+      const decodedPos = pair(pos?.value as Uint8Array | undefined)
       return {
-        position: pair(pos?.value as Uint8Array | undefined),
+        position: decodedPos ? [decodedPos[0] + 800, decodedPos[1] + 450] : undefined,
         size: pair(size?.value as Uint8Array | undefined)
       }
     }
@@ -402,12 +415,17 @@ export function extractMessageEntries(comp79: WireField[], unknown: string[]): u
     unknown.push('queue.type79.undecoded')
     return []
   }
-  const entries = m.filter((x) => x.wire === 2)
-  if (entries.length === 0) return []
-  return entries.map((entry, index) => {
+  // 轮61/62 闭合：type79.f503 → f71(消息项列表) → 条目(f501 重复)；
+  // 条目内 f503 varint = 样式序号（1-based），f501 = 名称组件。
+  const listField = m.find((x) => x.number === 71 && x.wire === 2)
+  const listFields = listField ? parseWireMessage(listField.value as Uint8Array) : undefined
+  const entries = (listFields ?? []).filter((x) => x.wire === 2)
+  const source = entries.length > 0 ? entries : m.filter((x) => x.wire === 2)
+  if (source.length === 0) return []
+  return source.map((entry, index) => {
     const texts = collectWireTexts(entry.value as Uint8Array)
     const fields = parseWireMessage(entry.value as Uint8Array)
-    const styleIndex = firstVarint(fields, 502)
+    const styleIndex = firstVarint(fields, 503)
     return {
       index: index + 1,
       name: texts[0] ?? `消息项_${index + 1}`,

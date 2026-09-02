@@ -198,10 +198,14 @@ export function buildSemanticView(
         : meta.name || kindLabel(kind)
     const path =
       parentKind === 'none'
-        ? `${kindLabel(kind)}:${name}`
-        : kind === 'container' && name
-          ? `${parentPath}:${name}#${ordinal}`
-          : `${parentPath}:${kindLabel(kind)}#${ordinal}`
+        ? meta.familyTypes.includes(4)
+          ? `控件模板:${name}`
+          : `${kindLabel(kind)}:${name}`
+        : parentKind === 'unattached'
+          ? `${parentPath}:${kindLabel(kind)}#${ordinal}`
+          : kind === 'container' && name
+            ? `${parentPath}:${name}#${ordinal}`
+            : `${parentPath}:${kindLabel(kind)}#${ordinal}`
     const node: UiSemanticNode = {
       id,
       path: id === LIBRARY_CONTAINER_ID ? '控件组库' : path,
@@ -352,7 +356,13 @@ export function buildSemanticView(
   const pushFlat = (node: UiSemanticNode) => {
     if (!options.flatOnly) flat.push(node)
     else flat.push(node)
-    for (const child of node.children) pushFlat(child)
+    for (const child of node.children) {
+      if (!child) {
+        console.error(`[ui-tree] undefined child under ${node.path}`)
+        continue
+      }
+      pushFlat(child)
+    }
   }
 
   // 布局面
@@ -396,14 +406,10 @@ export function buildSemanticView(
     pushFlat(root)
   }
 
-  // 模板侧与孤儿
+  // 模板侧（所有 family=4 记录，含按钮/输入框/队列模板）与孤儿
   const reachable = new Set<number>(visited)
-  // 收集模板/孤儿根
   const templateRoots = parsed.records.filter(
-    (r) =>
-      !reachable.has(r.id) &&
-      (r.kind === 'template' || r.kind === 'floating-page') &&
-      !recordsById.get(r.id)?.parentId
+    (r) => !reachable.has(r.id) && !r.parentId && r.familyTypes.includes(4)
   )
   const orphanRoots = parsed.records.filter(
     (r) =>
@@ -419,19 +425,8 @@ export function buildSemanticView(
   for (const tpl of templateRoots) {
     const ord = (templateCounters.get('template') ?? 0) + 1
     templateCounters.set('template', ord)
-    visited.add(tpl.id)
-    const root = buildNode(tpl.id, 'none', 'none', ord)!
-    // 模板侧容器（模板 floating-page 的 t42）
-    if (root.kind === 'floating-page') {
-      const containers = extractContainerRefs(tpl.fields)
-      const counters = new Map<string, number>()
-      for (const containerId of containers) {
-        const ord2 = (counters.get('container') ?? 0) + 1
-        counters.set('container', ord2)
-        const child = buildTreeNode(containerId, root.path, 'floating-page', ord2)
-        if (child) root.children.push(child)
-      }
-    }
+    // buildTreeNode 会递归带出按钮状态组/队列样式组/悬浮页容器（自身加入 visited）
+    const root = buildTreeNode(tpl.id, 'none', 'none', ord)!
     tree.push(root)
     pushFlat(root)
   }
@@ -444,6 +439,37 @@ export function buildSemanticView(
       buildGroupNode(orphan.id, '未归属残留', ord) ?? buildNode(orphan.id, 'none', 'none', ord)!
     tree.push(root)
     pushFlat(root)
+  }
+
+  // 兜底：任何仍未出现在 flat 的记录进「未归属」（保证每条 root9 记录都被列出）
+  const emittedIds = new Set<number>()
+  for (const node of flat) if (typeof node.id === 'number') emittedIds.add(node.id)
+  const missingRecords = parsed.records.filter((r) => !emittedIds.has(r.id))
+  if (missingRecords.length > 0) {
+    const unattachedRoot: UiSemanticNode = {
+      id: '未归属',
+      path: '未归属',
+      role: 'unknown',
+      kind: 'unknown',
+      name: '未归属',
+      children: [],
+      refs: {},
+      props: {},
+      unknown: []
+    }
+    const counters = new Map<string, number>()
+    for (const rec of missingRecords) {
+      const groupLike = ['asset', 'asset-group', 'material-group', 'style-group'].includes(rec.kind)
+      const kindKey = stringOf(rec.kind)
+      const ord = (counters.get(kindKey) ?? 0) + 1
+      counters.set(kindKey, ord)
+      const child = groupLike
+        ? buildGroupNode(rec.id, '未归属', ord)
+        : buildTreeNode(rec.id, '未归属', 'unattached', ord)
+      if (child) unattachedRoot.children.push(child)
+    }
+    tree.push(unattachedRoot)
+    pushFlat(unattachedRoot)
   }
 
   const allRecords = parsed.records

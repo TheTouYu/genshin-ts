@@ -23,5 +23,12 @@
     playerChanges 判定 = 布局/悬浮页实例侧 + 玩家可编辑字段；孤儿素材组仅报告）
   - 真实样本断言 9/9 PASS：轮4/19/26/29/51/54/64 判别/属性 + 轮13 玩家拖动 diff（仅 2032 geometry + playerChanges）
     + anchor 往返；`npm run build` PASS；CLI 冒烟 list/anchor/diff 只读（hash 不变）
+- 2026-09-03 · 加严核验（全量快照）：
+  - `ui/tests/exhaustive-snapshot-verify.ts`：80 个快照 × 通用完整性（每条记录出现在 flat、无重复、无 unknown 误归类）
+    + 47 项逐轮语义对照（重启1-66 key kind/role/path/props + 旧轮概念）→ **127/127 PASS**
+  - 真实 CLI `assets:ui list --flat/--tree --format json` 逐个跑 80 个快照 → **FAIL=0**
+  - 修复：family 槽（f502）与内容组件（f505）双层判别；模板根按 family=4 纳入；未归属兜底根；
+    几何 f505[f502=12]→f502→f504/f505 嵌套 f32 pair 解析（2032/2034/2097/2132 值与人工一致）；
+    消息项样式序号 type79→f71→条目→f503；孤儿判定=未索引且无引用
 
 ## 轮次记录
