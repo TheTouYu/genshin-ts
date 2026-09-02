@@ -40,3 +40,7 @@
 - 重启轮4（2026-09-03）· 唯一变化=默认布局添加官方自定义按钮 1073742032（全默认）· before 76ed6ae3 → after e645aefb
   - 规则：官方预置单条记录（963B，非模板/实例）+布局 f503 追加；判别组件 t50/t52/t54（List 语义关键，跨悬浮页体系一致）；ID 内部计数器跳变 +14 不可外推
   - 落盘：references/ui-controls.md「布局内官方自定义按钮」
+
+- 重启轮5（2026-09-03）· 唯一变化=默认布局官方按钮 2032 保存为自定义模板 · before e645aefb → after 7e62741d
+  - 规则：+template 2033（type4 槽 f14 back-ref、插最前）+ 原 2032 原地转 instance（type3 槽 f13=2033、补 subtype6）；布局引用与组件原样
+  - 落盘：references/ui-controls.md「官方控件保存为自定义模板」
