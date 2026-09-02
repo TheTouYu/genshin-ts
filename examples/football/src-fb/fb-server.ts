@@ -21,15 +21,12 @@
 //     pos=(0,2.25,0) vel=0 state=Airborne）——05 复测修正，躲进图实体风暴期）
 //   · fb_dsp 1s 轮询（E1 保留，观测面）：寄存器空闲则发测试载荷（t1=pe*1000+1 恒为未知
 //     类型，03 票 fb-phys 按未知类型跳过应用但仍走 seqlock/ack——E1 观测面不断链）
-//   · fb_wd 4s 看门狗已整体退役（票 10 R2 定案）：R1 已删 sum/epoch 重提交（3104 铁证
-//     rec8931：E1 公式覆写真实任务 checksum→永久 tearH）；R2 删 gate 复位——3107 双日志
-//     实证 wdgate 采样到的是正常开合（gate 开在 beat 与 P 之间是常态），复位反而制造/加重
-//     单拍丢拍（10 次两拍间隙中约半数与其同窗口）。丢拍由 fb_beat 续命兜底（见下）。
-//   · fb_beat 0.2s loop（T3 拍门 + 丢拍续命，仅球活动期）：
-//       1) 读 gate：仍开=上一拍无 P 应用 → fb_miss+1；已关=正常 → fb_miss 清零；
-//       2) fb_miss≤1 时用镜像速度/自旋补同名运动器 'fb_phys'/'fb_spin' 一拍
-//          （3107 实证 10 次设备空档 ~0.17s 小卡；正常拍随后被 P 的 fbDrive 同名顶替）；
-//       3) 连续 2 拍以上无 P 停续（防无限漂移，回到静止安全态）；4) 置 fb_ball_gate=1
+//   · fb_wd 4s 看门狗保持退役（票 10 定案）：R1 删 sum/epoch 重提交（3104 rec8931 铁证）；
+//     R2 删 gate 复位——3107 双日志实证 wdgate 采样到的是正常开合，复位制造/加重单拍丢拍。
+//     fb:repub / fb:wdgate 打点均不再存在（口径见票 10）。
+//   · fb_beat 拍门（T3；间隔=球变量 fb_p_dt，默认 0.2s，任务 ack 时按当前值启动）：
+//     置 fb_ball_gate=1。R2 的「每拍镜像速度续命」已回退——3108 帧值实证反弹点
+//     H(旧速度向上) 与 D(位置修正向下) 交替打架产生震荡；改走参数化调参线（票 10 R3）
 //   · onSignal(fb_echo)（E1 first-wins 保留 + 任务应用唤醒）：ack 前进 + 读邮箱 t1，
 //     type∈{KICK,RESET} 才 startTimer(fb_beat)（垃圾测试载荷不唤醒，REST 期≈0）；
 //     RESET 应用置瞬移门 fb_tp_pending + 清 fb_scored
@@ -37,8 +34,9 @@
 //     tag='P' 且 base_tick==镜像 tick（first-wins）→ 镜像 11 写
 //     （tick+1）+ gate=0 + 视觉驱动 + state==Rest→stopTimer + 进球判定简版；
 //     dup（同代重复回传）打点；tag='T' 撕裂拍不应用（gate 保持开，下一拍重算）
-// 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（速度=(新位−实体当前位)/0.25s，
-//   同名 'fb_phys' 顶替，时长 0.25s 略大于拍距 0.2s 防断档）；RESET 应用后的首拍 fbTeleport
+// 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（速度=(新位−实体当前位)/fb_p_drive，
+//   同名 'fb_phys' 顶替，时长=fb_p_drive，需略大于拍距 fb_p_dt 防断档）；RESET 应用后的首拍
+//   fbTeleport
 //   （INSTANT 瞬移——否则实体残留位与镜像差几十米，预测插值会以百米每秒速度拉条纹）。
 //   瞬移门时序：RESET 的 ack 到达时置位（非投递时——投递与应用间还有普通拍，提前置位会
 //   误瞬移），首个 first-wins 应用拍消费并复位。
@@ -59,10 +57,10 @@ const TT_RESET = 2n
 // 丘丘人球引用持有者实例（票 01 终态；def 1082130433 为模板不运行时写）。
 // entity() 必须接字面量（数组索引会被 TS→GS 改写成运行时列表取值，编译实证 09-03）：
 // 1082130437 / 1082130438 / 1082130439 / 1082130440 / 1082130441
-// T3 节拍：拍距 0.2s；运动器同名顶替时长 0.25s（略大于拍距）；速度换算 1/0.25=4
-const BEAT_S = 0.2
-const DRIVE_S = 0.25
-const DRIVE_GAIN = 4
+// T3 节拍参数化（票 10 R3 用户定，2026-09-02）：
+//   拍距 = 球实体变量 fb_p_dt（默认 0.2；客户端物理步长同源，两处必须一致才不变速）；
+//   运动器同名顶替时长 = 球实体变量 fb_p_drive（默认 0.25，须 > 拍距留余量；速度换算 1/dur 实时算）。
+//   两个变量均可编辑器热调：fb_p_dt 自下一任务 ack 起生效；fb_p_drive 每应用拍即时生效。
 const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s（旋转设备角速度单位）
 const SEED_DELAY_S = 5 // 种子后移秒数（进图实体风暴期规避，05 复测修正）
 // 球门线几何（FIFA 105×68：门线 x=±52.5；门宽 7.32→|z|<3.66；横梁高 2.5）
@@ -217,12 +215,15 @@ const fbDrive = g.defineComposite('fb_drive', {
   outputs: {},
   outflows: ['done'],
   build: ({ ball, pos, spin }, f) => {
+    // 时长参数化（球变量 fb_p_drive；速度换算=1/dur，与时长联动，勿只改一端）
+    const dur = f.getCustomVariable(ball, 'fb_p_drive').asType('float')
+    const gain = f.division(1, dur)
     const loc = f.getEntityLocationAndRotation(ball).location
-    const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), DRIVE_GAIN)
+    const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), gain)
     const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       ball,
       new str('fb_phys'),
-      new float(DRIVE_S),
+      dur,
       vel
     ])
     const axis = f._3dVectorNormalization(spin)
@@ -238,7 +239,7 @@ const fbDrive = g.defineComposite('fb_drive', {
     const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
       ball,
       new str('fb_spin'),
-      new float(DRIVE_S),
+      dur,
       angVel,
       localAxis
     ])
@@ -274,50 +275,6 @@ const fbTeleport = g.defineComposite('fb_teleport', {
   }
 })
 
-// ———— 复合：丢拍续命（票 10 R2；fb_beat 每拍兜底补同名运动器） ————
-// 输入=镜像速度/自旋（实体变量），不走位置插值：丢拍窗口内保持上一物理速度/自旋前进，
-// 消除 0.25s 设备到期后 ~0.17s 空档小卡（3107 双日志：10 次两拍间隙帧值铁证）。
-// 正常拍随后被 P 的 fbDrive（位置插值驱动）同名顶替（<0.2s 内替换，视觉等效）；
-// 自旋世界轴→局部轴转换链与 fbDrive 同构（YXZ 内旋，v4 2832 教训）。
-const fbHoldDrive = g.defineComposite('fb_hold_drive', {
-  id: 1610700044,
-  inputs: {
-    ball: { type: 'entity' },
-    vel: { type: 'vec3' },
-    spin: { type: 'vec3' }
-  },
-  outputs: {},
-  outflows: ['done'],
-  build: ({ ball, vel, spin }, f) => {
-    const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
-      ball,
-      new str('fb_phys'),
-      new float(DRIVE_S),
-      vel
-    ])
-    const axis = f._3dVectorNormalization(spin)
-    const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
-    const rot = f.getEntityLocationAndRotation(ball).rotate
-    const r = f.split3dVector(rot)
-    const negX = f.multiplication(r.xComponent, -1)
-    const negY = f.multiplication(r.yComponent, -1)
-    const negZ = f.multiplication(r.zComponent, -1)
-    const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
-    const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
-    const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
-    const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
-      ball,
-      new str('fb_spin'),
-      new float(DRIVE_S),
-      angVel,
-      localAxis
-    ])
-    f.connect(lin, 0, rotDev, 0)
-    f.outflow('done', rotDev, 0)
-    return {}
-  }
-})
-
 const graph = g
   .server({
     id: 1073741830,
@@ -328,9 +285,7 @@ const graph = g
       // 瞬移门：RESET 应用 ack 置位 → 首个应用拍消费（瞬移）并复位
       fb_tp_pending: new bool(false),
       // R3 自动锚点队列指针：0=off；1..7=下一任务（球 Rest 应用拍弹下一任务；用户按任意选项即清零）
-      fb_auto: new int(0),
-      // 丢拍续命计数（票 10 R2）：连续 gate 未关拍数；0=正常，≥2 停续防漂移
-      fb_miss: new int(0)
+      fb_auto: new int(0)
     }
   })
   // ================================================================
@@ -345,7 +300,7 @@ const graph = g
     f.startTimer(ball, 'fb_seed', false, [SEED_DELAY_S])
   })
   // ================================================================
-  // 定时器名单制分发：fb_dsp（1s 轮询）/ fb_beat（0.2s 拍门+丢拍续命）/ fb_seed（一次性）
+  // 定时器名单制分发：fb_dsp（1s 轮询）/ fb_beat（拍门，间隔=fb_p_dt）/ fb_seed（一次性）
   // ================================================================
   .on('whenTimerIsTriggered', (evt, f) => {
     f.doubleBranch(f.equal(evt.timerName, 'fb_dsp'), () => {
@@ -371,39 +326,6 @@ const graph = g
     }, () => {
       f.doubleBranch(f.equal(evt.timerName, 'fb_beat'), () => {
         const ballB = f.getSelfEntity()
-        // —— 丢拍续命（票 10 R2）：gate 仍开=上一拍无 P 应用 ——
-        const gateNow = f.getCustomVariable(ballB, 'fb_ball_gate').asType('int')
-        const missCur = f.getNodeGraphVariable('fb_miss').asType('int')
-        const wasOpen = f.equal(gateNow, 1n)
-        const missNext = missCur + 1n
-        // 算术在分支外预计算；hold 条件：正常拍(miss 清零)恒续命，连续丢拍 missCur≥1 时停续
-        const holdOk = f.logicalAndOperation(
-          f.logicalOrOperation(
-            f.logicalNotOperation(wasOpen),
-            f.equal(missCur, 0n)
-          ),
-          // 瞬移门期间不续命：RESET 首拍即将 INSTANT 瞬移，防旧速度先漂一段再被拉回
-          f.logicalNotOperation(f.getNodeGraphVariable('fb_tp_pending').asType('bool'))
-        )
-        f.doubleBranch(holdOk, () => {
-          const vx = f.getCustomVariable(ballB, 'fb_ball_vx').asType('float')
-          const vy = f.getCustomVariable(ballB, 'fb_ball_vy').asType('float')
-          const vz = f.getCustomVariable(ballB, 'fb_ball_vz').asType('float')
-          const sx = f.getCustomVariable(ballB, 'fb_ball_sx').asType('float')
-          const sy = f.getCustomVariable(ballB, 'fb_ball_sy').asType('float')
-          const sz = f.getCustomVariable(ballB, 'fb_ball_sz').asType('float')
-          f.callComposite(fbHoldDrive, {
-            ball: ballB,
-            vel: f.create3dVector(vx, vy, vz),
-            spin: f.create3dVector(sx, sy, sz)
-          })
-        }, () => {
-        })
-        f.doubleBranch(wasOpen, () => {
-          f.setNodeGraphVariable('fb_miss', missNext, false)
-        }, () => {
-          f.setNodeGraphVariable('fb_miss', new int(0), false)
-        })
         f.setCustomVariable(ballB, 'fb_ball_gate', 1n, false)
       }, () => {
           // fb_seed（一次性 5s）：种子逻辑后移落位（实体风暴规避，见文件头）
@@ -547,17 +469,20 @@ const graph = g
           // fb:ack 只在真实任务唤醒时打（关键状态入口；测试载荷回执静默）
           const ball = f.getSelfEntity()
           const t1 = f.getCustomVariable(owner, 'fb_t1').asType('int')
+          // 拍门间隔参数化：任务 ack 时按球变量 fb_p_dt 当前值启动 fb_beat
+          // （与客户端物理步长同源；改后下一轮任务生效）
+          const beatDt = f.getCustomVariable(ball, 'fb_p_dt').asType('float')
           f.doubleBranch(f.equal(t1, TT_RESET), () => {
             f.printString('fb:ack')
             f.printString(f.dataTypeConversion(evt.params.e, 'str'))
             f.setNodeGraphVariable('fb_tp_pending', new bool(true), false)
             f.setNodeGraphVariable('fb_scored', new bool(false), false)
-            f.startTimer(ball, 'fb_beat', true, f.assemblyList([BEAT_S], 'float'))
+            f.startTimer(ball, 'fb_beat', true, f.assemblyList([beatDt], 'float'))
           }, () => {
             f.doubleBranch(f.equal(t1, TT_KICK), () => {
               f.printString('fb:ack')
               f.printString(f.dataTypeConversion(evt.params.e, 'str'))
-              f.startTimer(ball, 'fb_beat', true, f.assemblyList([BEAT_S], 'float'))
+              f.startTimer(ball, 'fb_beat', true, f.assemblyList([beatDt], 'float'))
             }, () => {
             })
           })
