@@ -32,3 +32,7 @@
 - 重启轮2（2026-09-03）· 唯一变化=再新增自定义布局 1073742004（自动命名「自定义布局_1」）· before 987a4388 → after 872ec254
   - 双样本一致 → 重启轮1 的 OBSERVED 全部升 CONFIRMED（克隆集恒定 14 官方 / 克隆仅 ID 差 / layout 同构 / 块插布局段末 / ID=max+1 / 自动命名去重）
   - 落盘：references/ui-controls.md「自定义布局创建」（双样本 CONFIRMED）
+
+- 重启轮3（2026-09-03）· 唯一变化=删除控件组库全部自定义模板详情（悬浮交互页/主菜单/测试菜单/最小测试）· before 872ec254 → after 76ed6ae3
+  - 规则：整组删除=递归删 template+instance+详情组树+素材组；容器 1840 f503 与顶层索引同步收缩（18→6）；无 dangling；布局官方预置零改动（单样本 OBSERVED）
+  - 落盘：references/ui-controls.md「删除界面控件组库自定义模板」
