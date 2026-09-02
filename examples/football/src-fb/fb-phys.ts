@@ -499,7 +499,11 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
         impact.set(false)
       })
 
-      // ============ ⑫ 状态分类（sim 枚举；优先级 停>弹>空>滑>滚） ============
+      // ============ ⑫ 状态分类（sim 枚举；优先级 停>落地>活弹>空中） ============
+      // 05 复测修正（不动点陷阱，日志 3096 铁证 tick161/py=0.25/vy=0.8086/state=1）：
+      // 离散反弹映射 v→e·(g·DT−v) 有稳定不动点 e·g·DT/(1+e)≈0.808——该点 dead=true
+      // 但 impact 恒真，若弹跳标记优先于落地分类，球永卡 33mm 微弹（视觉=原地振动）。
+      // 修正：贴地∧dead → 落地转滑/滚（不动点逃逸口）；impact 且未落地静 → 活弹标记。
       const fp = f.split3dVector(posF.value)
       const fv = f.split3dVector(velF.value)
       const grounded = f.lessThan(fp.yComponent, f.addition(pR.value, GROUND_EPS))
@@ -515,18 +519,22 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
       // 落地/Rest 唤醒分类（踢平球入滑）；滑态滞回（v4 slide-tick）；滚态保持
       const flyLand = f.logicalOrOperation(goFly, f.equal(stIn.value, 4))
       const slideIn = f.equal(stIn.value, 2)
+      const groundDead = f.logicalAndOperation(grounded, dead)
+      const bounceLive = f.logicalAndOperation(
+        impact.value,
+        f.logicalNotOperation(groundDead)
+      )
       const bStop = b2f(stop)
-      const bImp = b2f(impact.value)
-      const bNG = b2f(f.logicalNotOperation(grounded))
+      const bGD = b2f(groundDead)
+      const bImp = b2f(bounceLive)
       const bFL = b2f(flyLand)
       const bSlide = b2f(slideEntry)
-      const bDead = b2f(dead)
       const bRoll = b2f(toRoll)
       const bSlIn = b2f(slideIn)
       const notB = (x: number) => f.subtraction(1, x)
       const landPart = f.addition(
         f.multiplication(bSlide, 2),
-        f.multiplication(notB(bSlide), f.multiplication(bDead, 3))
+        f.multiplication(notB(bSlide), 3)
       )
       const groundPart = f.addition(
         f.multiplication(bSlIn, f.addition(f.multiplication(bRoll, 3), f.multiplication(notB(bRoll), 2))),
@@ -541,8 +549,8 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
         f.multiplication(
           notB(bStop),
           f.addition(
-            f.multiplication(bImp, 1),
-            f.multiplication(notB(bImp), f.multiplication(notB(bNG), inner))
+            f.multiplication(bGD, inner),
+            f.multiplication(notB(bGD), bImp)
           )
         )
       )
