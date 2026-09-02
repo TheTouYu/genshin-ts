@@ -11,6 +11,12 @@
 
 ## 已落地（DONE）
 
+### 2026-09-03 足球 R3 四条 claim 录入 PKC（bnd_992240d12，commit 88fa950）
+
+- 四条：①离散 0.2s 步长 vy≤2 无可见弹跳（3104 实测 46.7m）②5Hz 首落提前→x=20m 锚点测点失效（15m 中段 2.9m 入带）③反弹冲击拍不改自旋（PORTING-MAP #3 缺口）④v6 踢球分流口径（tab 直投邮箱/20002 不承担球物理）。
+- 路径：knowledge/game-engine-knowledge/football-physics-model.md（①②③）+ knowledge/project-intelligence/football-game-design.md（④）；refs 指向已提交票 06/PORTING-MAP。
+- 用户批准录入；撕裂风暴机制候选未入（根因未定案，票 10 后补）。
+
 ### 2026-08-30 git 现场修复：stash pop 冲突被误判为「他人未完成 merge」（composite.ts UU）
 
 | 发现 | 证据 | 落地方式 |
@@ -120,7 +126,7 @@
 - 证据：3104 K2/K3 首落 ~19-20m；K3 px=20 恰逢落地反弹（z≈−5.0 边界外），px=15 中段 z≈−2.9 入带。
 - 待办：票 12 改锚点协议（15m 中段口径或参数微调）；票 11（落地摩擦改自旋）落地后重测。
 
-### O-2026-09-03-04 足球 R3 五条 durable candidates 待 PKC 转正审核【OPEN】
+### O-2026-09-03-04 足球 R3 durable candidates——已录入 4/5，剩撕裂风暴机制 1 条【部分 DONE，见 DONE 区 2026-09-03】
 
 - 候选：①撕裂风暴看门狗缺口（O-09-03-01 同源）②vy≤2 一拍拍吃平 ③5Hz 首落提前 ④弹跳摩擦不改变自旋
   （=PORTING-MAP #3 缺口，用户指正）⑤§2.7-C 分流在 v6 的执行口径（踢球=tab 直投邮箱；20002 因 (b) 判死+
@@ -568,30 +574,3 @@
 - 证据：W2 派活（2026-08-16）主代理误用 `patch --entities <json>` 形态；子代理 9d6603cb
   读源码 assets_entities.ts 确认：`patch <entity-id> --position x,y,z` 为单实体操作，
   `--entities` 仅 import 专用。两次 patch 串联可改多实体。
-- 影响：派活/文档中该命令形态需用单实体形式；灯阵实体位置调整已按正确形态完成
-  （灯柱/灯头 → [5,0,5]/[5,0.95,5]，写回 SHA e09f6e2a…）。
-- 何时做：下次 assets:entities 相关派活/文档维护时同步（production-workflow 或
-  static-gil-model-builder 参考补命令形态）。
-
-### O-2026-08-16-13. DSL 无法传实体字面量（entityLiteral IR=null）——编译器能力缺口
-
-- 证据：游戏开发子代理（b914c930）三关实现 trace（2026-08-15）——尝试在 DSL 中引用指定实体
-  （按 ID 获取/字面量），grep ir_builder/toIRLiteral/declaredGuid 多处后实测 entityLiteral IR=null；
-  绕路：锁定/解锁全部由灯柱 self 完成，管理图纯信号编排。
-- 影响：无法在节点图代码中定向引用场景实体，设计被逼用信号回执/self 模式。
-- 方向：评估 DSL 增加实体字面量/按 GUID 引用能力，或文档明确限制 + 提供推荐模式。
-
-### O-2026-08-16-14. 屏幕 UI 控件 CLI 无创建入口——编译器能力缺口
-
-> 状态：已解决（2026-08-19 复核：`assets:ui create/clone/update/template` 已存在）。
-
-- 原始证据：同 trace——当时查 ui-controls.md + src/cli/ui.ts 确认 CLI 无屏幕 UI 创建能力；
-  用选项卡（tabBar）替代开始界面。
-- 当前实现：`gsts assets:ui list|clone|create|update|template`（root9 文本框/交互按钮/自定义按钮），
-  入口在 `src/cli/assets_ui.ts`，已收入 `genshin-ts-asset-operations` 技能。
-- 仍待验证：UI 控件运行时显示/隐藏/禁用差异、按钮事件进角色、多人隔离；这些属于游戏行为验证，不是 CLI 缺口。
-
-### O-2026-08-16-15. 注入覆盖陷阱：多图注入需分别建占位图——流程/技能缺口
-
-- 证据：同 trace——四图（1073741825-28）逐图注入时发现注入互相覆盖，需分别建占位图+逐图注入。
-- 影响：多图项目注入流程摩擦；技能未覆盖。
