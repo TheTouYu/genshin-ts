@@ -36,6 +36,36 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存）。**仅支持 .gil 地图**；编译产物 .gia 验证用项目根 `tools/decode-gia.ts` |
 | `scripts/gia_log_flow.py` | **事件线高亮+数据倒查（2026-08-28 新增，双模式）**：控制流节点全显带走向、数据节点折叠、循环重复块自动折叠(×N)、同节点连续机制帧合并(×N)、--trace-node 沿 dataflow 倒查来源链到源头。多分支标注**实际命中 case**（控制值匹配 case 列表→`命中 case[N]`，无匹配→`default`）；双分支标注 **TRUE/FALSE 走向**（按条件值推断，2026-08-30 O-28-09 改进）。`--client`=客户端图模式；缺省=服务端图模式（head 首字节→主图节点、节点链标注来自 gia_log.py） | `<日志> --gil <地图> --rec <n> [--client] [--trace-node <idx>]` |
  | `scripts/gia_log_activity.py` | **活动分布画像（2026-09-03 足球不动点排查沉淀）**：不解码帧，按会话秒聚合每图记录条数/大记录数(>--big)/字节量+体积桶指纹——**记录体积聚类=执行路径指纹**（1KB=空转拍、3-10KB=中拍、30KB+=重计算拍）。一眼回答「计算何时开始/停止/频率多少」，冻结类问题（链活着吗）第一工具 | `<日志> [--graph <id>] [--big 3000] [--gil <地图>]` |
+| `scripts/gia_log_align.py` | **多图合并时间线（2026-09-02 3093 角块打乱十字沉淀）**：输入多份 `frames --graph <id>` dump 文件，提取五类关键事件（MASK 状态机写入 / LOOKUP 查表参数 / PUBLISH 握手发布 / EXEC 信号发码 BigInt / STATE 状态发布 List 负值还原），按 rec 号合并成单表——「规划→发布→执行→回读」多图协作问题一眼锁定回退发生在哪一轮。变量名可配（--mask-var/--lookup-vars/--publish-vars/--state-vars），--types 过滤事件类型 | `gia_log_align.py <dump1.txt> <dump2.txt> ... [--types MASK EXEC]` |
+
+### 多图协作问题查询 playbook（2026-09-02 3093 实证：求解器角块阶段打乱十字）
+
+「规划图→执行图→转动图→状态回读」多图协作类问题（求解器/状态机/队列），五步走：
+
+1. **定位与快照**：`ls -lt 日志目录 | head` 锁定最新 → 快照进**工作区** `.gsts/evidence/<主题>/` + sha256
+   （home 目录可能只读；Debug_Log 滚动清理只留 ~28 个，快照要趁早）。
+2. **概览**：`records --gil <地图> --summary` 看图分布/规模/秒范围——判断会话覆盖哪些图。
+3. **按图 dump（工作区！）**：每图一份 `frames --graph <id> > 文件`（大日志 5 万+ 行必须落文件；
+   /tmp 不跨命令持久）。**多图协作问题的 dump 至少含规划图+执行图+状态发布图三份**。
+4. **合并对齐**：`gia_log_align.py` 合并成单表（上表）。回退/破坏轮次一眼锁定；注意
+   「Integer 显示(空)」可能是有效值 0——定性前与源码表值离线对照。
+5. **离线对照三件套**（区分「表错 / 编译错 / 图结构错」三层）：
+   - **表数据对照**：日志读到的表值 vs 源码 `*Tables.ts`（python 解析 bigint[] 数组）；
+   - **编译产物对照**：`tools/decode-gia.ts` 数 entries/节点/MB 数（新旧 gia 对比，结构变化
+     与源码改动一一对应的最轻量核验）；
+   - **根因逻辑离线复现**：把假设根因写成代码跑模拟，**逐位复现**日志错误序列 → 根因实锤；
+     配套「新逻辑模拟 = 期望序列」双验证（见流程 2.7）。
+
+**图结构核验工具速记**（3093 实证，JSON 层勿手搓）：
+- `tools/explain-gil-node-graph.ts <map.gil> --graph <id> --depth 2`：MB 节点的 case 列表显示为
+  `L ← 字面量 [0,1,2,…]`——**case 数直接数列表长度**（比任何自写解析都快）；default 出边直读。
+- `tools/trace-gil-dataflow.ts <map.gil> --graph <id> --node <n> --all-inputs`：值来源链直读
+  （用法：--node 指定节点号，必须带 --all-inputs 或 --input，无位置参数形式）。
+- decode-gia 的 JSON 只适合数 entries/找声明；**重建控制流邻接别在 JSON 层手搓**（3093 绕路 4 轮），
+  直接用上面两个官方工具。
+
+**提取正则坑**：写 sed/awk/grep 提取前**先看 3 行原始输出**确认字段格式（`|` 是帧行分隔符，
+正则里未转义会静默不匹配）；负整数解析一律 python BigInt（见「负整数双显示坑」定则）。
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 

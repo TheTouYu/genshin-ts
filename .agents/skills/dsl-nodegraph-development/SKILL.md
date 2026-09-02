@@ -256,6 +256,29 @@ print**；需要完整数据请用户按图开详情日志（Beyond_Debug_Log �
     solverPlan 角块分支的 16-case（08-23 CFOP 移植期存量）带病运行 6 天后才以「逻辑值残留」症状复发
     （mCode 残留旧值 → 宏后半段错乱）。**每闭合一条「存量代码可能违反」的引擎限制，当轮对全部
     src 图源码做静态扫描**（数 MB 直接子 case，排除嵌套误报；3093 扫描确认其余图安全）。
+    回扫模板（直接子 case 精确统计，嵌套 case 不误报）：
+    ```bash
+    python3 - <<'PY'
+    import re, glob
+    for fn in sorted(glob.glob('src/*.ts') + glob.glob('src/composites/*.ts')):
+        lines = open(fn).read().splitlines()
+        for i, ln in enumerate(lines):
+            if 'multipleBranches(' not in ln: continue
+            k = i
+            while '{' not in lines[k]: k += 1
+            base = len(lines[k+1]) - len(lines[k+1].lstrip())
+            cases, j = [], k + 2
+            while j <= len(lines):
+                s, ind = lines[j-1].strip(), len(lines[j-1]) - len(lines[j-1].lstrip())
+                if ind < base and s.startswith('}'): break
+                if ind == base:
+                    m = re.match(r"(\d+|default|'[^']*')\s*:", s)
+                    if m: cases.append(m.group(1))
+                j += 1
+            named = [c for c in cases if c != 'default']
+            if len(named) > 10: print(f'{fn}:{i+1} cases={len(named)} ❌超限')
+    PY
+    ```
 - **重置计数型缓冲必须清空数组（2026-08-27 3×3 solveBuf 残留实锤）**：「预分配数组 + 长度计数 + set_list_value 覆盖追加」
   模式重置时**只改长度计数不够**——新序列展开步数少于旧序列时，数组尾部残留旧元素，发布时被读成长度内
   的有效步 → 执行错误步骤。症状：求解 mask 在 2↔3 振荡不收敛、同一序列反复执行（日志 2931）。
