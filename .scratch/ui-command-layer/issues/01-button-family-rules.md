@@ -44,3 +44,7 @@
 - 重启轮5（2026-09-03）· 唯一变化=默认布局官方按钮 2032 保存为自定义模板 · before e645aefb → after 7e62741d
   - 规则：+template 2033（type4 槽 f14 back-ref、插最前）+ 原 2032 原地转 instance（type3 槽 f13=2033、补 subtype6）；布局引用与组件原样
   - 落盘：references/ui-controls.md「官方控件保存为自定义模板」
+
+- 重启轮6（2026-09-03）· 唯一变化=控件组库对模板 2033 点保存，详情自动新增按钮实例 2034 · before 7e62741d → after cb6c78ae
+  - 规则：库保存=克隆实例 2034（995B 与布局实例同构，f504=1840）+容器 f503 追加+模板 f14 back-ref 追加；物理插 1840 后
+  - 落盘：references/ui-controls.md「控件组库保存模板→自动生成详情实例」
