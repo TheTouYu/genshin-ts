@@ -368,21 +368,24 @@ const graph = g
         f.printString('fb:stale')
       }, () => {
         f.doubleBranch(f.equal(evt.params.e, cur), () => {
-          // 05 复测修正：高频路径打点瘦身——dup/ack 去值行（多造物回声×每任务≈打点洪泛）
-          f.printString('fb:dup')
+          // 打印纪律（用户 2026-09-03 定则）：dup=多造物回声常态，零打印——
+          // 常规排查靠详情日志（逐节点分毫不差），print 只留关键状态入口
         }, () => {
           f.setCustomVariable(owner, 'fb_ack', evt.params.e, false)
-          f.printString('fb:ack')
-          f.printString(f.dataTypeConversion(evt.params.e, 'str'))
-          // 任务应用唤醒：读邮箱 t1（同 handler 内无并发写者），真实任务类型才开拍门
+          // 任务应用唤醒：读邮箱 t1（同 handler 内无并发写者），真实任务类型才开拍门；
+          // fb:ack 只在真实任务唤醒时打（关键状态入口；测试载荷回执静默）
           const ball = f.getSelfEntity()
           const t1 = f.getCustomVariable(owner, 'fb_t1').asType('int')
           f.doubleBranch(f.equal(t1, TT_RESET), () => {
+            f.printString('fb:ack')
+            f.printString(f.dataTypeConversion(evt.params.e, 'str'))
             f.setNodeGraphVariable('fb_tp_pending', new bool(true), false)
             f.setNodeGraphVariable('fb_scored', new bool(false), false)
             f.startTimer(ball, 'fb_beat', true, f.assemblyList([BEAT_S], 'float'))
           }, () => {
             f.doubleBranch(f.equal(t1, TT_KICK), () => {
+              f.printString('fb:ack')
+              f.printString(f.dataTypeConversion(evt.params.e, 'str'))
               f.startTimer(ball, 'fb_beat', true, f.assemblyList([BEAT_S], 'float'))
             }, () => {
             })
@@ -390,8 +393,14 @@ const graph = g
         })
       })
     }, () => {
-      f.printString('fb:tear')
-      f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+      // 非 'ok' 回声：E5 观测（tag='e5'，任务拍限频）与真实撕裂分开口径，防日志误读
+      f.doubleBranch(f.equal(evt.params.tag, 'e5'), () => {
+        f.printString('fb:e5')
+        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+      }, () => {
+        f.printString('fb:tear')
+        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+      })
     })
   })
   // ================================================================
@@ -467,10 +476,8 @@ const graph = g
       }, () => {
       })
     }, () => {
-      // —— 非应用拍：dup（同代重复回传，多造物并发统计）/ tear（撕裂拍不应用） ——
-      // 05 复测修正：运动期 5Hz×多造物 dup 打点去值行（打点洪泛拖卡）
+      // —— 非应用拍：dup（同代重复回传）零打印（多造物常态，打印纪律）；tear 罕见保留 ——
       f.doubleBranch(isP, () => {
-        f.printString('fb:dup')
       }, () => {
         f.printString('fb:tear')
       })
