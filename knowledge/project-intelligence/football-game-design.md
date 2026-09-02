@@ -13,3 +13,15 @@ examples/football（地图1073741901，占位节点图1073741825）玩法设计 
 仅 examples/football v1 设计；官方角色可操作性与 tabBar 挂角色（H2-H4）未验证；队友静态无 AI；未覆盖对抗/双人/UI 比分；实体 GUID 系统分配不硬编码。
 
 <!-- CLAIM:END clm_CCDC89BB579A261BE1ACD24C09 -->
+
+<!-- CLAIM:START clm_D37B06B5956796377E116A0FAF -->
+
+### v6 踢球意图分流执行口径=tab 直投邮箱 KICK（20002 不承担球物理）
+
+v6（2026-09，票 06 用户确认）踢球意图执行口径：whenTabIsSelected 直投邮箱 KICK/RESET 任务（不经 dispatcher 1s 轮询，REBUILD-V2-PLAN §2.7-C「手感敏感走即时」以事件直投实现）；20002 角色图不承担球物理应用——客户端图无 setCustomVariable/无运动器节点（(b) 直驱判死），球物理唯一执行点=20008 fb-phys。
+
+#### 适用边界
+
+仅 v6 足球（R2/R3 实现，地图 1073741908）；R5 若实测延迟成痛点可再议 20002/直写镜像；旧 v1/v5 输入架构不在本 claim。
+
+<!-- CLAIM:END clm_D37B06B5956796377E116A0FAF -->

@@ -3375,6 +3375,26 @@
         "external_game_evidence",
         "runtime_behavior"
       ]
+    },
+    "clm_0F5FF1193A2EC523A2328A7364": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_4CC20CC3E91287F7F962C62E8E": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_7B91758761F00CE5F0CADE7223": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D37B06B5956796377E116A0FAF": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }

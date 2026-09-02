@@ -696,6 +696,21 @@
       ]
     },
     {
+      "id": "aref_1c815ed8537b2ae6a73e7870b9",
+      "path": ".scratch/football-v2/issues/06-r3-kick-entry.md",
+      "locator": "执行备注 §1 分流定案",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5202ad813adfa86ad8766baf3a116681603f4954b0b9a1835d98ec5c12a334e8",
+      "claim_ids": [
+        "clm_D37B06B5956796377E116A0FAF"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_1cab3a8b0f86096cf369ea4f10",
       "path": "docs/ui-tutorial/official-guide-nodes-server.md",
       "locator": "事件节点",
@@ -2033,6 +2048,21 @@
       ]
     },
     {
+      "id": "aref_4927245ab4f41c185417685c78",
+      "path": "examples/football/sim/PORTING-MAP.md",
+      "locator": "§3 #3 接触摩擦改自旋（暂缓/R2 后评估）",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7283f8621b2855db0e7ea4a8b0af03888ae1585d5bc78ad30fb0f03a502f0f3e",
+      "claim_ids": [
+        "clm_7B91758761F00CE5F0CADE7223"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_4ac3f390ab75c2f8324827fbea",
       "path": "tests/static_assembly_package_consumer.ts",
       "locator": "real tarball starter, .js subpath, schema, and template-tool consumer regression",
@@ -2243,6 +2273,21 @@
       ]
     },
     {
+      "id": "aref_54e05378c25c305e3385568159",
+      "path": ".scratch/football-v2/issues/06-r3-kick-entry.md",
+      "locator": "Status 判读收口（K1 46.7m 滑滚/vy=2 一拍拍平）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5202ad813adfa86ad8766baf3a116681603f4954b0b9a1835d98ec5c12a334e8",
+      "claim_ids": [
+        "clm_0F5FF1193A2EC523A2328A7364"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_55ba8ec09c3e5da64a79b681f2",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "功能 → 铭牌/文本气泡/小地图标识/扫描标签",
@@ -2255,6 +2300,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_56755c5ebb25e63c680d3267c0",
+      "path": ".scratch/football-v2/issues/06-r3-kick-entry.md",
+      "locator": "Status 判读收口（K3 15m 2.9m 入带 / 20m ≈5.0m 边界，首落提前至 ~19m）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5202ad813adfa86ad8766baf3a116681603f4954b0b9a1835d98ec5c12a334e8",
+      "claim_ids": [
+        "clm_4CC20CC3E91287F7F962C62E8E"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
