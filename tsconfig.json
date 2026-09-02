@@ -33,6 +33,7 @@
     "src",
     "src/**/*.d.ts",
     "src/**/*.json",
+    "ui/src",
     "scripts",
     "examples",
     "tests",

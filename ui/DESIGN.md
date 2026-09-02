@@ -1,6 +1,6 @@
 # ui/ 设计全稿 V2（UI 编辑器命令层 DESIGN）
 
-> 票 03 主产出 · 状态：**v0.2 待用户裁决**（2026-09-03；V2 = 领域模型修正 + 推演验证法）
+> 票 03 主产出 · 状态：**v0.2 FROZEN**（2026-09-03 用户确认冻结；V2 = 领域模型修正 + 推演验证法）
 > 配套：`ui/mappings.md`（规则→命令映射）；`ui/design-trace.md`（56 条规则推演表）；`ui/AGENTS.md`（常驻约束）
 > V2 变更：①引入「放置面 Surface」领域模型（用户指点：页签不能进布局；悬浮页=容器面宿主）②推演验证法正式化（每条规则→命令，trace 表驱动命令面）
 > 一切 wire 细节以知识权威为准（`.agents/skills/editor-incremental-gia-investigator/references/ui-controls.md`），冲突以最新差分轮为准。
