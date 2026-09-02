@@ -235,6 +235,8 @@ GIL 整体结构与语义树
   [Stage3 复合 pin 路由](retrospective-2026-08-23-stage3-composite-pin-routing.md)、
   [UI CLI 扩展](retrospective-2026-08-27-ui-cli-development.md)、
   [富版悬浮页贪心事故](retrospective-2026-08-27-rich-floating-page-greedy.md)、
+  [63 轮差分波（方法三律）](retrospective-2026-09-03-ui-diff-restart-63-rounds.md)、
+  [票03 设计 V2（领域约束/推演法）](retrospective-2026-09-03-ui-command-design-v2.md)、
   [变量系统 M1+核验矩阵](retrospective-2026-08-29-variable-game-verify-matrix.md)
 - **静态模型/朝向**：[静态与动态预制体](retrospective-2026-08-20-static-dynamic-prefabs.md)、
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
