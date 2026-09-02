@@ -28,8 +28,8 @@
 
 | 控件 kind | 可放置面 | 证据 |
 |---|---|---|
-| custom-button / textbox / image / input-box / message-queue 等官方控件 | layout ✅；floating-page 容器面 ✅（按钮轮26/28 实证；输入框/队列进容器面待样本） | 轮4/19/51/26 |
-| floating-page | library ✅；layout（老版本 ✅；**新版布局内形态待差分**） | 轮24；A7 |
+| custom-button / textbox / image / input-box / message-queue 等普通控件 | **三面通用：layout ✅ / 悬浮页容器面 ✅（用户权威 + 轮64 实证：文本框/图片/图文输入框/按钮/页签）** | 轮4/19/51/26/64；用户 2026-09-03 |
+| floating-page | **library ✅（库管理页添加）；layout ❌（用户权威：悬浮页不进布局，内部自带容器面）** | 轮24；用户 2026-09-03 |
 | tab（页签） | **仅 floating-page 容器面**（固有容器/页面容器）；layout ❌ | 轮29/34；用户 V2 |
 | container（页面容器） | 仅属 floating-page（实体 t42 列表）；layout ❌ | 轮33 |
 | 关闭按钮/固有容器 | 悬浮页创建时自动（体系内部），不单独放置 | 轮24 |

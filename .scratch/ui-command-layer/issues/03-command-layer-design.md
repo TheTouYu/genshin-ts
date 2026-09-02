@@ -12,7 +12,8 @@
 **Status:** ready-for-agent
 
 - [x] 规则→命令映射表（**`ui/mappings.md`** §0-8：判别/路径/清理/边界）
-- [ ] 设计稿落盘（**`ui/DESIGN.md` v0.2 + `ui/mappings.md` + `ui/design-trace.md`**，2026-09-03 产出）+ 用户裁决通过
+- [x] 设计稿落盘（**`ui/DESIGN.md` v0.2 + `ui/mappings.md` + `ui/design-trace.md`**；推演 56/56 全绿，缺口 A7/E3/G3 补齐轮64-66）
+- [ ] 用户裁决通过（2026-09-03 已初步认可 V2 方向，待冻结确认）
 - [ ] 核验方法定案（字节级对比命令 + 游戏验收句式）
 - [ ] 收轮三件套
 
