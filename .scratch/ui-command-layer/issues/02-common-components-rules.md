@@ -91,3 +91,6 @@
 - 重启轮36（2026-09-03）· 唯一变化=页签1 设默认选择 · before 6d09888c → after bf9da2c4（-9B）
   - 规则：标记在 t47 项区（哨兵 ff×9 01 → 紧凑编码）；语义未闭合（反向实验可闭合）；实例侧未同步
   - 落盘：references/ui-controls.md「页签默认选择配置」
+- 重启轮37（2026-09-03）· 唯一变化=两个页签项开「返回服务端事件」 · before bf9da2c4 → after 2e34d008（+6B）
+  - 规则：t47 项区 +3B/项（字段未指认）；API 对照=whenFloatingInteractionPageIsTriggered（已定义 payload/listIndex/selectedListItem）
+  - 落盘：references/ui-controls.md「页签项返回服务器事件开关」

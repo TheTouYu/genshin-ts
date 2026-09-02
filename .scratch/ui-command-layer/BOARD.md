@@ -27,9 +27,10 @@
   素材索引段 `0x40000000+`；悬浮页 kind 330001/330002、按钮默认样式 50888、subtype 6=自定义按钮
 
 ## 当前前沿
-**→ 03 UI 命令层设计稿（待开工）**：页签默认选择= t47 项区 9B 哨兵重写（2097 -9B；语义未闭合，反向实验可闭合）。
-after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启36-页签默认选择-bf9da2c4.gil，SHA bf9da2c4…。
-下一步：开工票03 设计稿（36 轮规则）。
+**→ 03 UI 命令层设计稿（待开工）**：页签「返回服务器事件」开关 wire（t47 项 +3B/项）+ 官方 API 对照闭合
+（whenFloatingInteractionPageIsTriggered payload 结构）；行为层 payload 帧值待游戏验证。
+after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启37-页签服务端事件-2e34d008.gil，SHA 2e34d008…。
+下一步：开工票03 设计稿 or 行为层验证轮（可选）。
 
 ## 票据清单
 

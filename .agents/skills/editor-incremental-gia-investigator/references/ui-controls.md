@@ -1042,3 +1042,28 @@ f505[f502=38]            ← 图片源组件（type 38）
 ### CLI 含义
 
 - 页签默认选择的读/写路径已定位到 t47 项区（9B 哨兵区）；编码语义闭合前 Edit 命令 fail-closed
+## 页签项「返回服务器事件」开关（t47 项区 +3B/项）+ 官方 API 对照（2026-09-03 重启轮37 差分）
+
+> 样本：1073741909 before bf9da2c4…（56130B）→ after 2e34d008…（56136B，+6B）
+> 唯一变化：页签（2097）两个页面项都打开「返回服务端事件」开关
+
+### 规则（本样本）
+
+1. changed = 实例侧页签 2097（1222→1228B，**+6B = 每页签项 +3B**）；变化集中在 t47 页签项配置区（group 编码段多处位移）
+   ——旧缺口 O-2026-08-27-13「页签项内部含返回服务器事件开关」确认：开关就在 t47 项配置内，每项 +3B（精确字段未指认，fail-closed）。
+2. 其余页签（模板侧/副本）零改动（实例侧操作未同步）。
+
+### 官方 API 对照（用户 2026-09-03 建议核查，已闭合）
+
+1. 编辑器开关名 =【返回服务器事件】（官方教程 docs/ui-tutorial/official-ui-tutorial.md L2129、docs/ui-tutorial/ugc-svg/ui-controls.md L768/L1386）。
+2. 触发事件 = `whenFloatingInteractionPageIsTriggered`（悬浮交互页操作触发时）——页签/单选项视窗确认交互后发给对应玩家实体的服务端节点图；
+   关闭按钮/交互按钮/道具展示/自定义按钮也会触发。
+3. 代码定义已收录（generated）：events-payload.ts L872-909 payload = playerEntity/playerGuid/floatingInteractionPageIndex/
+   interactiveItemIndex/listIndex[](列表索引，与选中项一一对应)/selectedListItem[]；server_on_overloads.d.ts L384-389 挂载方式；
+   zh_aliases 中文别名可用。
+4. 出参语义：listIndex/selectedListItem 覆盖悬浮页内所有页签/单选项视窗的当前选中态——「玩家点了哪个页签项」由该对列表读出。
+
+### 未闭合
+
+- t47 项内开关的精确字段号（反向关/开差分可指认）；同步对开关的复制行为（模板侧页签同步后是否带开关）
+- 服务端事件 payload 帧值验证（挂 whenFloatingInteractionPageIsTriggered 监听后游戏内点页签，读 Beyond_Debug_Log）——行为层待验
