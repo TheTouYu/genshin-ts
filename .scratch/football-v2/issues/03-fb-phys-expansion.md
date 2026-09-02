@@ -7,13 +7,58 @@
 
 **Blocked by:** 02（单变量轮次纪律：先服务端半边收口，客户端半边单独一轮可归因）
 
-**Status:** ready-for-agent
+**Status:** ✅ done（2026-09-03；34→**503 节点**（预估带 850~1250 之下——统一管线+
+物化策略免双实例化，如实入账；≤2000 红线余量 75%）；编译 0 error；decode-gia 断言门禁
+42/42；执行流 0 环 0 不可达 0 重复针脚。内容注入归 04 票）
 
-- [ ] 拍门：读 fb_ball_gate，0=空转 / 1=进入计算（空转拍成本对齐 E1 实测 ~450B）
-- [ ] 球寻址观测链（E5 顺带验证）：getCustomVariable(owner, fb_ball_entity)→getEntityType/getEntityLocation 帧值回传；失败=删模块不阻塞
-- [ ] 镜像读 12 变量（挂玩家实体，owner 链已验）+ 参数组读取 19 项（经 fb_ball_entity 读球实体）→ 当拍物化快照（图内局部变量，多消费点先物化——不变量 1）
-- [ ] 任务应用三分支：KICK（vel/spin 定点 ×1000 解码）/ RESET（pos/vel/state/tick 种子）/ PARAM=预留不实现（热调走编辑器直改变量）
-- [ ] 六态积分一拍：sim core 单拍闭式移植（无循环），常量全部来自物化快照（图内零参数字面量）；六态机 FREE/FLY/BOUNCE→/SLIDE/ROLL/REST/GOAL 自动切换——「任意冲量对，全程连续无瞬移」
-- [ ] 回传打包：fb_ball_state sendSignal（01 注册的形态；tag='P'/'T'）
-- [ ] 结构层核验：全图编译 0 error；节点数 850~1250 ≤2000；decode-gia 积分链/门链形态回读；TS 源码不变量对照（min/max 对称、无 +=、outflows 声明）
-- [ ] 收轮：勾票+看板+PROGRESS「下一步=04」+精确 commit
+- [x] 拍门：读 fb_ball_gate，0=空转 / 1=进入计算（空转拍成本对齐 E1 实测 ~450B）
+  （空转 ≈ 4 变量读（ack/epoch/gate/entity 引用）+2 比较+分支，E1 同量级）
+- [x] 球寻址观测链（E5 顺带验证）：getCustomVariable(owner, fb_ball_entity)→getEntityType/getEntityLocation 帧值回传；失败=删模块不阻塞
+  （getEntityType 客户端 f 面无此方法（client_nodes 七段皆无）→ 降级为位置对账：
+  getEntityLocation(球) 与镜像位差 mm 经 fb_echo tag='e5' 回传，服务端打 fb:tear <dmm>；
+  计算拍 5Hz 限频；主链本身（引用→球变量）就是 E5 证据）
+- [x] 镜像读 12 变量（挂玩家实体，owner 链已验）+ 参数组读取 19 项（经 fb_ball_entity 读球实体）→ 当拍物化快照（图内局部变量，多消费点先物化——不变量 1）
+  （票文"挂玩家实体"系 01 前旧案；终态=球实体 1077936135（票 01 裁决），读链
+  getSelfEntity→fb_ball_entity→球变量；镜像 tick 二读防撕裂+gate/寄存器双重门；
+  参数 19 全物化（R2-DESIGN §4 纪律），镜像 9 标量单消费点直连 vec3 装配不重复求值）
+- [x] 任务应用三分支：KICK（vel/spin 定点 ×1000 解码）/ RESET（pos/vel/state/tick 种子）/ PARAM=预留不实现（热调走编辑器直改变量）
+  （KICK：vel/spin 覆盖+镜像 pos/state；RESET：pos/vel/state 覆盖+spin 清零；
+  未知类型跳过应用当场 ack（02 契约）。**ack 延迟到镜像一致后**——任务拍镜像撕裂
+  则 tearE 不 ack，fb_wd 看门狗 4s 重提交，任务零丢失）
+- [x] 六态积分一拍：sim core 单拍闭式移植（无循环），常量全部来自物化快照（图内零参数字面量）；六态机 FREE/FLY/BOUNCE→/SLIDE/ROLL/REST/GOAL 自动切换——「任意冲量对，全程连续无瞬移」
+  （v4 物理复合族结构（PORTING-MAP §0 已对齐清单）+ sim 枚举重编号：飞行/地面双管线
+  数据选择路由（滑滚同构仅减速率按态选择）+门柱×2/横梁/网/四面墙/地面反弹+分类器
+  （停>弹>空>滑入>滑滞回>滚）；Bouncing=反弹冲击拍瞬态标记；GOAL 不进客户端状态机
+  （进球判定=服务端镜像侧职责，02 已在位）；decode-gia 确认图内零物理参数字面量）
+- [x] 回传打包：fb_ball_state sendSignal（01 注册的形态；tag='P'/'T'）
+  （'P'=物理拍提交（base_tick=镜像 tick，未+1）；'T'=镜像二读撕裂（服务端不应用
+  gate 保持开重算）；执行序断言 ack→P→E5）
+- [x] 结构层核验：全图编译 0 error；节点数 850~1250 ≤2000；decode-gia 积分链/门链形态回读；TS 源码不变量对照（min/max 对称、无 +=、outflows 声明）
+  （503 节点（低于预估带，统一管线设计省双实例）；断言 42/42：6 tag/19 参数变量名/
+  镜像 12 读/邮箱/几何浮点 float32 形态；执行流：入口 200042→0 环 0 不可达，
+  8 个多入边=互斥 else 链合法汇流；本图无复合=无 outflows 义务；min/max 对称式
+  （max(s,0)=(s+|s|)/2）+零 += 源码确认）
+- [x] 收轮：勾票+看板+PROGRESS「下一步=04」+精确 commit
+
+## 执行备注（给 04/05 票的接口事实）
+
+- **计算拍条件**：tPend>0（本拍有真实任务）∨（gate=1 ∧ epoch==ack（拍门开且寄存器空闲））。
+  后者防任务在途/撕裂未决时从旧镜像计算顶掉任务回传（first-wins 掉拍）；测试载荷
+  （未知类型）在途时最多损失一个 15Hz 槽，gate 电平触发下一拍自愈。
+- **任务拍时序**：邮箱 sum 过→物化解码→镜像一致才 ack→应用+积分一拍→'P'（服务端
+  ack 唤醒 beat，0.2s 后首开门；'P' 先到先应用 tick+1，后续拍从新镜像继续）。
+  RESET 首拍经服务端瞬移门 INSTANT 落位（02 已在位）。
+- **KICK 入口分类**：踢球带 |vy|≥fb_p_bounce_vy 走飞行管线，平踢走地面管线
+  （分类器按 hSpd>slide_enter 判滑入——**已知标定张力**：8m/s 平踢按现参数
+  （slide_enter 4.5/slide_decel 4.41）滚停 ≈8~11m，低于 §7 校准带 15~35m；
+  05 复测若失准，编辑器热调 fb_p_slide_enter（如 →9 让平踢直接纯滚 32m）即时生效，
+  或按单变量族开修正票）。
+- **Rest 冻结**：Rest 态走地面管线自然冻结（spd≈0→ratio=0），回传 Rest→服务端停拍。
+- **E5 观测**：fb_echo(tag='e5', e=|实体位−镜像位|mm, c=tick)；服务端打点 fb:tear <dmm>
+  （tag≠'ok' 无状态副作用）；客户端详情日志（只开 1082130433）可见发送帧值。
+- **遗留观察项（05 收证）**：①vec3 信号参数运行时行为（02 已标注）；②旋转可见性——
+  **04 轮用户架构评审指正后已补齐**（fb_drive 双设备：'fb_phys' 线性+'fb_spin' 旋转，
+  世界轴→局部轴换算 v4 已验形态，commit 4c59554）；③帧数实测（结构层估 ~1~1.5k 帧/
+  计算拍 <3000，日志实测归 05）。
+- 编译：主配置全图（单 entry 必失败）；客户端面差异——_3dVectorZoom(标量,向量) 与
+  服务端反序、getEntityType 不存在、f.localVariable 支持 float/vec3/entity（物化用）。

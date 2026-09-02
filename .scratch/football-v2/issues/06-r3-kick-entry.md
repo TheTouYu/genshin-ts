@@ -7,7 +7,7 @@
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** ready-for-agent（05 收口遗留第 0 步：**注入打印纪律版 fb-server**——dist-fb 已编译（fb-server 含打印纪律、fb-phys=f516e23 修复版），需用户确认游戏会话已退出，走 04 票同款注入通道（`node ./bin/gsts.mjs -c examples/football/gsts.fb-client.config.ts` 整段核对 ok 4/fail 0）+ Temp 同步 + composite-refs/var-pins 快检；地图当前 SHA fada77c9）
 
 - [ ] 入口设计定案：tab 意图→服务端组任务包（轻链）；踢球即时性 vs seqlock 0~1s 复制延迟的分流决策（引用 REBUILD-V2-PLAN §2.7-C）
 - [ ] 九选项冲量标定表（旧 kick.ts 力度/转速移植，上界核对 limits.maxSpeed=50/maxAngSpeed=70）
