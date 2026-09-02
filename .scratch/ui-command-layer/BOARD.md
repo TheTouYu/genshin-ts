@@ -28,9 +28,9 @@
 
 ## 当前前沿
 
-**→ 票03 设计稿（v0.1 待用户裁决）**：`ui/DESIGN.md`（约束12条+命令面 L1-L4+分派表+验收4层+风险清单）
-+ `ui/mappings.md`（§0-8 规则→命令映射：通用属性/布局/按钮族/图文输入框/悬浮页+页签/消息队列/删除/玩家改动/ID 分配）——
-裁决后为票 04-07 唯一实现依据。
+**→ 票03 设计稿（v0.2 待用户裁决）**：V2 = 领域模型修正（Surface 放置面：页签仅悬浮页容器/容器∈悬浮页/官方控件∈布局——用户 V2 指点）
++ 推演验证法（ui/design-trace.md：56 条规则逐条→命令，51✅/5⚠）；命令面 v2（placement 校验/container add/variable add/preset-tab-switch 宏）。
+配套：ui/DESIGN.md + ui/mappings.md + ui/design-trace.md。
 
 学习基线：重启轮63 快照 .gsts/diff-exp/ui学习/1073741909.after-重启63-队列存模板同步-5572a5f9.gil，SHA 5572a5f9…。## 票据清单
 

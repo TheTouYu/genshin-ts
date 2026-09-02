@@ -18,20 +18,32 @@
 | 颜色 | `--color #RRGGBB` | f19.f510 varint ARGB（0xFFRRGGBB）；f511 第二色按体系联动与否各异 | 轮6/9/20 |
 | 素材引用 | （按控件表） | t38 图片源三池：素材库 f6.f4 / 官方基础图形 f31.f2(100006 类) / 官方静态资源 f31.f2=101078 | 轮7/8/22 |
 
+## 0.1 放置面（Surface）与 placement 规则（V2 领域模型；用户 2026-09-03 指点）
+
+| kind | 合法放置面 | 证据 |
+|---|---|---|
+| 官方控件（button/textbox/input-box/message-queue/image…） | layout；悬浮页容器面（按钮✅ 轮26/28；输入框/队列进容器面待样本） | 轮4/19/51/26 |
+| floating-page | library（库管理页添加）；layout 老版本✅、新版形态**待差分** | 轮24；A7 |
+| tab（页签） | **仅悬浮页容器面（固有/页面容器）；layout ❌** | 轮29/34；用户 V2 |
+| container（页面容器） | 仅属悬浮页（实体 t42 列表） | 轮33 |
+| 悬浮页自动子件（固有容器/关闭按钮） | 创建时自动，不单独放置 | 轮24 |
+
+`--on` 参数语义 = 放置面寻址（layout:名称 / library / 悬浮页:容器名）。create/clone 执行前先做 placement 校验。
+
 ## 1. 布局族（layout）
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
 | 列出布局与成员 | `list --tree` | layout f503 packed=成员；官方克隆/实例 parent=f504=布局 | 布局创建节 |
-| 创建布局 | `create --type layout` | 克隆默认布局 14 官方预置全集（当前版本行为）；新 layout 入索引；名字自动去重 | 轮1+2 |
-| 布局内添加官方控件 | `create --type <t> --layout <id>` | 官方单条记录 + layout f503 追加（成员位末尾） | 轮4/19/51 |
+| 创建布局 | `create --type layout --name` | 克隆默认布局 14 官方预置全集（当前版本行为）；新 layout 入索引；名字自动去重 | 轮1+2 |
+| 布局内添加官方控件 | `create --type <t> --on layout:<id>` | 官方单条记录 + layout f503 追加（成员位末尾）；tab 会被 placement 拒绝 | 轮4/19/51 |
 | 删除布局 | （无样本） | 整树递归 + f503/索引清理（参照删除模板节模型，先差分轮） | 轮3/14 类推 |
 
 ## 2. 按钮族（判别：comps 含 t50/52/54；布局官方版无 t37/t62-64，悬浮页版有）
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
-| 创建（官方单条） | `create --type custom-button` | 官方 type5 单条 963B（全默认）；无素材组伴随 | 轮4 |
+| 创建（官方单条） | `create --type custom-button --on layout:<id>` | 官方 type5 单条 963B（全默认）；无素材组伴随 | 轮4 |
 | 创建后直接配置常态文本 | `create --text ... --color ...` | member 树按需建：组+member 一步到位 | 轮8/16 |
 | 保存为模板 | `template create <id>` | 模板化：new template(type4 f14=backref) + 原记录升格 instance(+subtype+type3) + 布局成员位不变 | 轮5/23/63 |
 | 库保存模板→详情实例 | `template instantiate <tpl> --into library` | 新 instance 挂库容器 1840 + 容器 f503 追加 + 模板 f14 back-ref 追加 | 轮6 |
@@ -47,7 +59,7 @@
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
-| 创建 | `create --type input-box` | 官方单条 622B 挂布局 | 轮19 |
+| 创建 | `create --type input-box --on layout:<id>` | 官方单条 622B 挂布局 | 轮19 |
 | 文本/颜色 | `update --text/--color` | type45.f503.f19（文本框同款：f502 字号/f503 对齐/f505 文本/f510 颜色） | 轮20/59 |
 | 富文本插图 | `update --text '{5:img_1}...'` + `--rich-image <资源ID>` | 文本插值 + f19.f62 数据块（f501 内层 f1=宿主/f3=资源 ID/f8=0/f9=1.0f/f10=1, f502=1.0f） | 轮21 |
 | 换图 | `--rich-image <id>` | f62 内层 f3 单点 varint | 轮22 |
@@ -60,12 +72,12 @@
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
-| 添加悬浮页 | `create --type floating-page` | 3 条单条族 + 库容器 f503 追加 + 索引 | 轮24 |
+| 添加悬浮页 | `create --type floating-page --on library` | 3 条单条族 + 库容器 f503 追加 + 索引（布局内悬浮页=A7 待差分） | 轮24 |
 | 同步生成模板 | `sync --target <实体>` | 拆双份：模板树克隆 + 实例侧补 subtype 槽（实体+14B 类）；t42/t44 两侧一致 | 轮25 |
-| 详情添加元素 | `create --into <容器id> --type button\|tab\|...` | 新记录挂**实例侧容器**（f503 追加）；未同步不动模板侧 | 轮26/29 |
+| 详情添加元素 | `create --type button\|tab\|... --on <悬浮页>:<容器名\|id>` | 新记录挂**实例侧容器**（f503 追加）；未同步不动模板侧；tab 仅此面合法 | 轮26/29 |
 | 按钮素材/状态 | 同 §2 素材命令（跨体系同构） | type55 组树/t50 块引用/member t25 | 轮28 |
 | 新增页面容器 | `container add --page <实体>` | 顶层容器记录（comps 11/43）+ 实体 t42 引用列表追加 | 轮33 |
-| 复制控件到容器 | `clone <源> --into <容器>` | 基础记录副本（内容保留；不带 subtype 槽）+ 容器 f503 追加 | 轮34 |
+| 复制控件到容器 | `clone <源> --into <悬浮页容器>` | 基础记录副本（内容保留；不带 subtype 槽）+ 容器 f503 追加 | 轮34 |
 | 悬浮页同步（增量补齐） | `sync --target <实体>` | 模板侧补齐：新增项=模板侧对应副本/树；实例侧新增对象补 subtype 槽；素材树=克隆新树换引用（旧树移索引留孤儿——**不物理清理**，重复同步膨胀可提示） | 轮27/32b/35/47/50 |
 | 容器初始生效 | `container active --container <id> on\|off` | 容器名字后 b01f01 增删（f502=1；有=生效） | 轮48-50 |
 
@@ -73,7 +85,7 @@
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
-| 添加页签 | `create --type tab` | 页签记录（t15/23/12/46/47/48/49/58/37；kind 320001）挂容器 | 轮29 |
+| 添加页签 | `create --type tab --on <悬浮页>:<容器>` | 页签记录（t15/23/12/46/47/48/49/58/37；kind 320001）挂容器；**不允许 layout 面** | 轮29 + 用户 V2 |
 | 页面项改名/文本 | `tab page set --tab <id> --page <n> --name/--text` | t47 条目内 name/text UTF-8（含 group 编码区，walker 需支持或字节定位） | 轮30 |
 | 添加页面 | `tab page add --tab <id> [--name]` | t47 条目内联追加（无新记录） | 轮30/43 |
 | 默认选择 | `tab page default --tab <id> --page <n>` | t47 区 9B 哨兵重写（ff×9 01 → 紧凑编码）；**语义未全闭合→先读后写** | 轮36 |
@@ -92,7 +104,7 @@
 
 | 操作 | 命令 | wire / 语义 | 证据 |
 |---|---|---|---|
-| 创建 | `create --type message-queue` | 官方单条 859B 挂布局 | 轮51 |
+| 创建 | `create --type message-queue --on layout:<id>` | 官方单条 859B 挂布局 | 轮51 |
 | type76 显示配置 | `update --target <队列> --max-items N` | type76.f503.f68.f513 varint（默认 5） | 轮55 |
 | 限时显示 | `queue timed-show on --seconds <s>` | f68.f511=1 开关 + f68.f512 fixed32 秒（默认 5.0） | 轮56 |
 | 插入位置 | `queue insert head\|tail` | f68.f510=1 存在=尾（默认）；删除=头 | 轮57 |
