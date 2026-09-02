@@ -39,6 +39,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | `scripts/gia_log_align.py` | **多图合并时间线（2026-09-02 3093 角块打乱十字沉淀）**：输入多份 `frames --graph <id>` dump 文件，提取五类关键事件（MASK 状态机写入 / LOOKUP 查表参数 / PUBLISH 握手发布 / EXEC 信号发码 BigInt / STATE 状态发布 List 负值还原），按 rec 号合并成单表——「规划→发布→执行→回读」多图协作问题一眼锁定回退发生在哪一轮。变量名可配（--mask-var/--lookup-vars/--publish-vars/--state-vars），--types 过滤事件类型 | `gia_log_align.py <dump1.txt> <dump2.txt> ... [--types MASK EXEC]` |
 
 | `scripts/gia_log_pivot.py` | **帧透视表（2026-09-02 足球弹跳链沉淀）**：把 frames dump 中「按变量名序列写值」的复合调用（镜像应用/状态发布类）透视成一行一拍的 TSV 轨迹表——状态机轨迹/冻结类问题第一视图，替代逐记录翻帧；配合离线复现脚本可逐位对照 | `gia_log_pivot.py <dump.txt> --composite <名> --rows <键变量> --cols <列变量,...>` |
+| `scripts/gia_log_markers.py` | **f22 标记秒级时间轴（2026-09-03 足球 R3 收口沉淀）**：f22-only 记录（服务端打印/信号应答）frames --rec 无输出属正常——本脚本一次性输出 rec 号 + f3 会话秒 + 命中的打印串（--markers 逗号分隔）+ 可选独立 1-6 位数字串（--digits，任务 epoch/dmm 值），rec 号可与 text 输出对照。踢球链路延迟/冻结窗口量化的第一工具 | `gia_log_markers.py <日志> [--markers fb:tab,fb:ack,fb:wdgate,fb:tear] [--digits] [--limit N]` |
 
 ### 多图协作问题查询 playbook（2026-09-02 3093 实证：求解器角块阶段打乱十字）
 
@@ -97,7 +98,21 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 > **脚本位置**：本技能脚本在 `<技能目录>/scripts/` 下（绝对路径 `/home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/`），**不在** `/home/h/genshin-ts/scripts/`（旧位置）。运行前先 `ls` 确认，或用 `scripts/gia_log.py` 相对本文件目录解析（2026-08-12 复盘：子代理曾 find 3 轮才定位）。
 
+### 踢球链路事件时间轴判读 playbook（2026-09-03 足球 R3 收口实证：选项→任务→ack→镜像量化）
+
+「按键/事件→任务→客户端应用→镜像」链路（踢球延迟、停距、侧旋横偏、冻结窗口）五步走：
+
+1. **标记秒级时间轴（第一工具）**：`gia_log_markers.py <日志> --markers fb:tab,fb:ack,fb:auto1,fb:auto3,fb:auto5,fb:auto7,fb:wdgate,fb:tear,fb:repub --digits`——
+   tab→ack 同秒=即时；wdgate（gate 开 ≥4s 无有效回传）与同 epoch 连续 fb:tear（撕裂风暴）是**两族冻结签名**，先列全部窗口再逐窗看帧。
+2. **text 对照**：`gia_log.py text` 拿完整 f22 流（含 e5 对账 mm 值等未列串），rec 号与步骤 1 对齐。
+3. **两图 frames dump 落文件**：服务端镜像应用复合（如 fb_mirror_apply）+ 客户端计算图各一份（大日志必须落文件再分析）。
+4. **镜像轨迹透视表**：`gia_log_pivot.py --composite fb_mirror_apply --rows fb_ball_tick --cols fb_ball_px,...,fb_ball_state frames.txt > t.csv`——
+   一行一拍轨迹；停距=同段末帧 px−踢出帧 px；横偏=x 目标处对相邻两帧插值 z。
+5. **pivot 输出坑（本轮实证，必看）**：引擎**零值分量省略**（Vector=(0,1.85,0) 的 x/z OUT 显示空、px=0 的行整格空）——
+   用 awk 数空格列**必错位**，一律 python csv 按 header 解析；**列空≠无值，是 0**。
+
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
+
 
 ### 服务端日志·定时器事件引脚与日志目录族（2026-09-01 引脚回归复盘实证）
 
