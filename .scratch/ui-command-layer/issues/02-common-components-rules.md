@@ -100,3 +100,6 @@
 - 重启轮39（2026-09-03）· 唯一变化=页签1 开容器状态设置（容器1 显/容器2 隐）· before aab35adf → after a175224e（+26B）
   - 规则：t47 项区 +26B（容器引用 2084/2107 + b01f01×2）；官方语义对照（official-ui-tutorial L2143）；显隐映射待反向
   - 落盘：references/ui-controls.md「页签项容器状态设置」
+- 重启轮40（2026-09-03）· 唯一变化=容器2 改显示（反向）· before a175224e → after 7ac2b185（-3B）
+  - 规则（闭合）：容器 entry 内 b01f01=隐藏/无=显示；f502(w2) 结构；len 联动
+  - 落盘：references/ui-controls.md「容器状态设置显隐映射闭合」
