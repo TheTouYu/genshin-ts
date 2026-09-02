@@ -28,3 +28,7 @@
   - 规则：layout=默认布局同构（f503 packed 成员/名字/f502 自引用槽）；克隆=原件仅 5×自身 ID + 父布局 ID 差异（214B==214B 逐字节验证）
   - 物理位置：新块插默认布局官方块后、容器段前；ID=max+1 起连续（均 OBSERVED，待同型第二样本）
   - 落盘：references/ui-controls.md「自定义布局创建」
+
+- 重启轮2（2026-09-03）· 唯一变化=再新增自定义布局 1073742004（自动命名「自定义布局_1」）· before 987a4388 → after 872ec254
+  - 双样本一致 → 重启轮1 的 OBSERVED 全部升 CONFIRMED（克隆集恒定 14 官方 / 克隆仅 ID 差 / layout 同构 / 块插布局段末 / ID=max+1 / 自动命名去重）
+  - 落盘：references/ui-controls.md「自定义布局创建」（双样本 CONFIRMED）
