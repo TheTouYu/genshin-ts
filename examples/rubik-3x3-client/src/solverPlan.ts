@@ -290,6 +290,12 @@ const graph = g
                   },
                   2: () => {
                     const p = f.getNodeGraphVariable('mP').asType('int')
+                    // 引擎 Multiple Branches 命名 case 上限 10（fcc7663 实证：>10 的 case 成孤立链）。
+                    // 角块宏最长 16 codes（LEN 表 40..59 区），16-case 会让 mIdx>=10 全走 default、
+                    // mCode 残留上一次的值 → 宏后半段错乱 → 破坏十字与已拼角块（2026-09-02 日志 3093
+                    // 实锤：宏 48 前 11 步正确、第 12 步起全变残留 face 2）。拆两段：0..9 直取，
+                    // 10..15 走 default 内嵌第二段 MB（control = mIdx-10）。
+                    // 2026-09-04 自服务端主线 3207ca5 回流（客户端分支此前漏同步）。
                     f.multipleBranches(mIdx, {
                       0: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C0_c0').asType('int_list'), p), false),
                       1: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C1_c0').asType('int_list'), p), false),
@@ -301,13 +307,20 @@ const graph = g
                       7: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C7_c0').asType('int_list'), p), false),
                       8: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C8_c0').asType('int_list'), p), false),
                       9: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C9_c0').asType('int_list'), p), false),
-                      10: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C10_c0').asType('int_list'), p), false),
-                      11: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C11_c0').asType('int_list'), p), false),
-                      12: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C12_c0').asType('int_list'), p), false),
-                      13: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C13_c0').asType('int_list'), p), false),
-                      14: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C14_c0').asType('int_list'), p), false),
-                      15: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C15_c0').asType('int_list'), p), false),
-                      default: () => {}
+                      default: () => {
+                        // mIdx 10..15：第二段查 C10..C15。控制值重新读 mIdx 图变量（不复用外层
+                        // 物化，防分支内二次物化读旧值——同 negDone 2899 教训）。
+                        const mIdx2 = f.getNodeGraphVariable('mIdx').asType('int')
+                        f.multipleBranches(f.subtraction(mIdx2, 10n), {
+                          0: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C10_c0').asType('int_list'), p), false),
+                          1: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C11_c0').asType('int_list'), p), false),
+                          2: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C12_c0').asType('int_list'), p), false),
+                          3: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C13_c0').asType('int_list'), p), false),
+                          4: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C14_c0').asType('int_list'), p), false),
+                          5: () => f.setNodeGraphVariable('mCode', f.getCorrespondingValueFromList(f.getNodeGraphVariable('CF_CORNER_MACRO_C15_c0').asType('int_list'), p), false),
+                          default: () => {}
+                        })
+                      }
                     })
                   },
                   default: () => {}
