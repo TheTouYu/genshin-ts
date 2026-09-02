@@ -29,6 +29,12 @@ import {
 } from './gil_ui.js'
 import { prettyStableJson } from './static_assembly/json.js'
 import { cssColorToArgb } from './static_assembly/library_css.js'
+import { mapIdFromGil } from '../../ui/src/anchor.js'
+import {
+  parseUiSemanticCommand,
+  runUiSemanticCommand,
+  type UiSemanticCliContext
+} from '../../ui/src/cli.js'
 
 type Command = 'list' | 'clone' | 'update' | 'template' | 'create' | 'delete' | 'variables' | 'states'
 type TemplateSub = 'list' | 'clone' | 'create'
@@ -39,9 +45,13 @@ function usage(exitCode = 1): never {
   const output = [
     'List, clone (create) or update screen UI controls and templates (root 9).',
     '',
-    'Usage: gsts assets:ui [list|clone|create|update|template] [options]',
+    'Usage: gsts assets:ui [list|anchor|diff|clone|create|update|template] [options]',
     '',
-    '  list: gsts assets:ui list [--gil <file>] [--format json]',
+    '  list: gsts assets:ui list [--tree|--flat] [--kind <kind>] [--path <path>] [--gil <file>] [--format text|json]',
+    '  anchor save: gsts assets:ui anchor save --label <名> [--gil <file>] [--format text|json]',
+    '  anchor list: gsts assets:ui anchor list [--format text|json]',
+    '  diff: gsts assets:ui diff --anchor <label|file> [--gil <file>] [--format text|json]',
+    '  legacy list: gsts assets:ui list --gil <file> --format json (records 级列表，语义视图见 --tree/--flat)',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
     '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [options]',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
@@ -78,6 +88,13 @@ function value(argv: readonly string[], index: number): string {
   const result = argv[index + 1]
   if (!result || result.startsWith('--')) usage()
   return result
+}
+
+function argvValue(argv: readonly string[], option: string): string | undefined {
+  const index = argv.indexOf(option)
+  if (index < 0) return undefined
+  const result = argv[index + 1]
+  return result && !result.startsWith('--') ? result : undefined
 }
 
 function nonNegativeId(raw: string, option: string): number {
@@ -205,7 +222,7 @@ function parseArgs(argv: readonly string[]) {
   return { command, templateSub, gilPath, donorGilPath, outputPath, write, format, targetId, newId, pageId, name, content, position, size, createType, rich, variables, assetId, layoutId, color }
 }
 
-function resolveGilPath(args: ReturnType<typeof parseArgs>, projectConfig: GstsConfig | undefined): string {
+function resolveGilPath(args: { gilPath?: string }, projectConfig: GstsConfig | undefined): string {
   if (args.gilPath) return path.resolve(args.gilPath)
   const inject: GstsInjectConfig = { ...(projectConfig?.inject ?? {}) }
   if (inject.mapId === undefined) {
@@ -255,6 +272,39 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string, m
 }
 
 async function execute(argv: readonly string[], projectConfig: GstsConfig | undefined) {
+  // 票 04 语义命令面（list/anchor/diff）：先于旧命令解析，只读
+  if (argv[0] === 'list' || argv[0] === 'anchor' || argv[0] === 'diff') {
+    const command = parseUiSemanticCommand(argv)
+    // anchor list 不需要 GIL 文件（只读本地锚点目录）
+    if (command.name === 'anchor-list') {
+      await runUiSemanticCommand(command, {
+        gilPath: '',
+        sourceBytes: new Uint8Array(),
+        sourceSha256: ''
+      })
+      return
+    }
+    const gilArg = argvValue(argv, '--gil')
+    const gilPath = gilArg
+      ? path.resolve(gilArg)
+      : resolveGilPath({ gilPath: undefined }, projectConfig)
+    if (!fs.existsSync(gilPath) || !fs.statSync(gilPath).isFile()) {
+      throw new Error(`[error] gil not found: ${gilPath}`)
+    }
+    const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
+    const sourceSha256 = sha256(sourceBytes)
+    const context: UiSemanticCliContext = {
+      gilPath,
+      mapId:
+        projectConfig?.inject?.mapId !== undefined
+          ? String(projectConfig.inject.mapId)
+          : mapIdFromGil(gilPath),
+      sourceBytes,
+      sourceSha256
+    }
+    await runUiSemanticCommand(command, context)
+    return
+  }
   const args = parseArgs(argv)
   const gilPath = resolveGilPath(args, projectConfig)
   if (!fs.existsSync(gilPath) || !fs.statSync(gilPath).isFile()) {

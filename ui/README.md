@@ -8,9 +8,10 @@
 ```text
 ui/
 ├── AGENTS.md   高频约束（铁律 8 条 / 分层 L1-L4 / 概念与递归 / 坐标速记）——每次进入必加载
-├── DESIGN.md   设计全稿（设计约束 → 命令面定义 → 规则-命令映射 → 验收；票 03 产出地）
+├── DESIGN.md   设计全稿（设计约束 → 命令面定义 → 规则-命令映射 → 验收；票 03 产出地，v0.2 FROZEN）
 ├── README.md   本文件（索引 / 资源家谱 / 现状 / 路线）
-└── （后续：实现代码/测试将落位于此或按其阶段指向 src/）
+├── src/        实现代码（票 04 起：语义层 list/anchor/diff；TS 随根 tsconfig 编译到 dist/ui/src）
+└── tests/      本地快照断言（ui/tests/semantic-list.snapshot-assert.ts，依赖 .gsts 留存快照，9/9 PASS）
 ```
 
 ## 资源家谱（按权威度与新旧排列，工作前先对号）
@@ -34,7 +35,8 @@ ui/
 
 ## 票据与进度
 
-- 看板：`.scratch/ui-command-layer/BOARD.md`；票 01（按钮族）✅；票 02（常见组件）✅/收尾；**票 03（设计稿）= 当前**；票 04-07（CLI list/create/edit/delete）；票 08（游戏内验收）。
+- 看板：`.scratch/ui-command-layer/BOARD.md`；票 01（按钮族）✅；票 02（常见组件）✅；票 03（设计稿）✅；**票 04（CLI list+diff）✅**；票 05-07（CLI create/edit/delete）；票 08（游戏内验收）。
+- 实现代码：`ui/src/`（list/anchor/diff 语义层，票 04 起）；CLI 接线在 `src/cli/assets_ui.ts`（只读命令委托 ui/src）。
 - 分层路线与实现顺序见 `ui/AGENTS.md`「分层路线」。
 
 ## 模块建立决策记录（2026-09-03）
