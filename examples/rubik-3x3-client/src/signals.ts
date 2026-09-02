@@ -8,5 +8,7 @@ export const RubikSignal = {
   // op 3 求解器→主图 执行一步(val=moveId)；4 主图→求解器 该步完成；5 求解器→主图 完成(val=ok)
   rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']]),
   // 第 1 轮客户端图实验探针：客户端图经「向服务器节点图发送信号」回传
-  rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [['check', 'str'], ['val', 'str']])
+  rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [['check', 'str'], ['val', 'str']]),
+  // 客户端负载分载（票 03）：十字计算单元回传（tag: c0/c1/c2=宏表码 / xd=完成 / xr=撕裂）
+  rbx_echo: defineSignal('rbx_echo', [['tag', 'str'], ['e', 'int']])
 } as const

@@ -791,3 +791,12 @@
 - 盘点补充：1914 客户端段现状（433/434/441=clientProbe 遗留；435 空 20008/438 空 20009/439 空 20007
   为用户预建第一单元图位；下一空闲 ID=1082130442）；1914 solverPlan=259 节点修复前版本（本票源码已修，
   待 #04 注入）。unlock 修复记载欠账仍待补（用户已确认修复，PROGRESS 尾部 09-01 记载过时——登记 open-item）。
+
+### 分载 Round 1：票 02/03 完成——通道资产 + 十字单元三图 + solverPlan v2（2026-09-04）
+
+- **票 02（通道资产）**：rbx_echo(tag:str,e:int) 已真实写图（1610612765/66/67，主图 SHA=干跑候选 081ffc9a，Temp 手动同步复验）；28+瞬发技能配置**复用现存 1191182338**（与足球 1908 游戏实证 GSTS-fb-calc 逐字段同构：body-78-f5+model 10005001+f45_2=52）零新建；图位=用户预建 435/438/439。
+- **票 03（十字单元）**：新增 rbCrossSkill(20008,435)/rbStatus(20009,438)/rbDecision(20007,439) 三图 + solverPlan v2（pStep1-stage1 → rbLanePost 复合[def 1610700090] 投递任务；onSignal(rbx_echo) 收 c0/c1/c2 码经现行 solverAppendCode 展开 + xd first-wins[laneOpen 门] + xr 撕裂自愈；stage-1 死分支与十字表变量全删）。
+- **预算实测**（GSTS_BEYOND_LOCAL_ROOT 沙箱注入干跑 + nodes 预测）：solverPlan v2 初版 2219 ❌ → 瘦身后 **1159 ✅**（较改前 1765 净降：十字段搬走收益）；rbCrossSkill 20 ✅。
+- **客户端图 DSL 编译期新实证 6 条**（票 03 踩坑闭合，已写入源码注释）：20008 无 variables（表数据走宿主实体注册变量烘焙值）；禁可变外层捕获（localVariable 累加）；finiteLoop 循环变量是运行时值（禁 BigInt(s)/模块级数组索引，算术显式 f.addition）；无 moduloOperation（a-(a/b)*b 等价式）；无 multipleBranches（嵌套 doubleBranch）；模块级标识符进 handler 会被泛型捕获（字面量内联）。
+- **待 #04**：变量注册（宿主×13+玩家×5，tools/gen-rbt-vars.mjs 生成）→ 批量注入（含票 01 solverPlan）→ 读图核验 → 用户编辑器造物 4 项配置（引用 1191182338 瞬发版）→ 30s 复测定 E1 与十字正确性。
+- **下一步 = 票 04**。
