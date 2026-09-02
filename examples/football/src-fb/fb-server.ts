@@ -54,6 +54,7 @@ const TT_RESET = 2n
 const BEAT_S = 0.2
 const DRIVE_S = 0.25
 const DRIVE_GAIN = 4
+const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s（旋转设备角速度单位）
 // 球门线几何（FIFA 105×68：门线 x=±52.5；门宽 7.32→|z|<3.66；横梁高 2.5）
 const GOAL_LINE_X = 52.5
 const GOAL_MOUTH_Z = 3.66
@@ -173,27 +174,51 @@ const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
   }
 })
 
-// ———— 复合：预测插值驱动（常态拍；速度=(新位−实体当前位)/0.25s，同名 'fb_phys' 顶替） ————
-// 实体当前位=引擎权威视觉位（R2-DESIGN §1 主案：插值从球真实所在位置追到 t+0.2s 预测位，
-// 抵消环路延迟；区别于 2026-08-27 反例——彼处逻辑速度才是真相故禁反推，此处镜像即真相）。
+// ———— 复合：预测插值驱动（常态拍；位置+旋转双设备，04 轮用户指正补齐旋转） ————
+// 位置：速度=(新位−实体当前位)/0.25s，同名 'fb_phys' 顶替（实体当前位=引擎权威视觉位，
+// R2-DESIGN §1 主案；区别于 2026-08-27 反例——彼处逻辑速度才是真相故禁反推，此处镜像即真相）。
+// 旋转：'fb_spin' 匀速旋转设备（axis+°/s）——与线性设备可叠加（v4 实证：定点 INSTANT 与
+// 旋转同链互断，匀速直线性设备不互断）；世界自旋轴必须经实体当前朝向转回局部轴
+// （v4 2832 日志教训：local = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，YXZ 内旋，否则横传/
+// 曲线球旋转方向错）。spin≈0 时 axis=normalize(0)=零速设备=自然停转（v4 同形态）。
+// 'fb_phys'/'fb_spin' 与旧图 'physics'/'spin' 均不同名（避免同名顶替级联）。
 const fbDrive = g.defineComposite('fb_drive', {
   id: 1610700042,
   inputs: {
     ball: { type: 'entity' },
-    pos: { type: 'vec3' }
+    pos: { type: 'vec3' },
+    spin: { type: 'vec3' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ ball, pos }, f) => {
+  build: ({ ball, pos, spin }, f) => {
     const loc = f.getEntityLocationAndRotation(ball).location
     const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), DRIVE_GAIN)
-    const tail = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+    const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
       ball,
       new str('fb_phys'),
       new float(DRIVE_S),
       vel
     ])
-    f.outflow('done', tail, 0)
+    const axis = f._3dVectorNormalization(spin)
+    const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
+    const rot = f.getEntityLocationAndRotation(ball).rotate
+    const r = f.split3dVector(rot)
+    const negX = f.multiplication(r.xComponent, -1)
+    const negY = f.multiplication(r.yComponent, -1)
+    const negZ = f.multiplication(r.zComponent, -1)
+    const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
+    const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
+    const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
+    const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
+      ball,
+      new str('fb_spin'),
+      new float(DRIVE_S),
+      angVel,
+      localAxis
+    ])
+    f.connect(lin, 0, rotDev, 0)
+    f.outflow('done', rotDev, 0)
     return {}
   }
 })
@@ -393,7 +418,7 @@ const graph = g
         f.setNodeGraphVariable('fb_tp_pending', new bool(false), false)
         f.callComposite(fbTeleport, { ball, pos: evt.params.pos })
       }, () => {
-        f.callComposite(fbDrive, { ball, pos: evt.params.pos })
+        f.callComposite(fbDrive, { ball, pos: evt.params.pos, spin: evt.params.spin })
       })
       // —— Rest → 停拍（静止零定时器基线） ——
       f.doubleBranch(f.equal(evt.params.state, ST_REST), () => {
