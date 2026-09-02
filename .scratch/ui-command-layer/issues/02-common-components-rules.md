@@ -20,3 +20,7 @@
 - 重启轮19（2026-09-03）· 唯一变化=自定义布局 1989 加官方图文输入框 2079 · before 2bed515e → after a81cbfbf
   - 规则：官方单条 622B（name/t23/t12/type45）；判别=type45；布局 f503 追加；type45 内部待属性轮解码
   - 落盘：references/ui-controls.md「图文输入框」
+
+- 重启轮20（2026-09-03）· 唯一变化=图文输入框文字「这是文字」+颜色 · before a81cbfbf → after e805d0cc
+  - 规则：type45.f503.f19=文本框同构（f505 文本/f510 ARGB 0xFF386A3F/f513=1/f62）；图文输入框编辑路径闭合
+  - 落盘：references/ui-controls.md「图文输入框文字/颜色属性」
