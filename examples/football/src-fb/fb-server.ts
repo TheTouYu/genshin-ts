@@ -13,6 +13,9 @@
 //   RESET：t2..t4=pos 定点×1000，t5..t7=vel 定点×1000，t8=state。
 //
 // 职责（服务端唯一常驻 = 1s 轮询 + 4s 看门狗 + 0.2s 拍门（仅球活动期）：
+//   · R3（票 06）：操作台踢球入口 whenTabIsSelected（tabBar 挂球实体自身）→ 邮箱直投
+//     KICK/RESET（轻链不经 1s 轮询；九选项表=旧 kick 表移植）+ 自动锚点复测序列
+//     （fb_test_mode 门控：种子落体 Rest 后快踢→斜射→侧旋→8m/s 滚停逐段自动下发）：
 //   · 会话种子（whenEntityIsCreated 只留 armed + 5s 一次性 fb_seed 定时器；种子逻辑
 //     在 fb_seed 回调：5 丘丘人写球引用 + 初始 RESET 任务进邮箱（2m 落体锚点
 //     pos=(0,2.25,0) vel=0 state=Airborne）——05 复测修正，躲进图实体风暴期）
@@ -69,6 +72,21 @@ const SEED_ST = 0
 const HOME_X = 0
 const HOME_Y = 250
 const HOME_ST = 4
+
+// ———— R3 踢球入口（票 06，2026-09-03）：球实体自带 tabBar「足球操作」9 选项（r=5m）————
+// 分流定案（REBUILD-V2-PLAN §2.7-C 意图 + v6 现实推导，详见票 06 执行备注）：踢球=手感敏感，
+// 不经 dispatcher 1s 轮询——whenTabIsSelected 内直投邮箱 KICK 任务（fbMailPost，与种子/进球
+// 复位同形态，03 票 fb-phys KICK 解码应用链已在位）；20002 角色图路径不建（客户端图无
+// setCustomVariable/无运动器节点=路径 (b) 判死，球物理唯一执行点=fb-phys，cast 不能缩短
+// S→C 状态复制瓶颈）。tab 1..8=施力预设 / 9=复位（RESET 中圈 Rest）。
+// 九选项施力表 = 旧 kick 表移植（vel m/s、spin rad/s 世界轴；图内常量=玩法标定不参数化，
+// PORTING-MAP §1.6；上界核对 |v|max=24.51≤maxSpeed=50、|ω|max=10≤maxAngSpeed=70 无超限）
+// 逐项字面量写在 whenTabIsSelected 分支内（DSL 闭包禁数组索引，勿提回模块表）
+// 自动锚点序列（R3 复测载荷；球实体变量 fb_test_mode=1 时会话种子后排队，用户按任意选项终止）：
+// 队列 1..7：1=快踢(24.5,2,0) 2=RESET 3=斜射 25m/s@15°(24148,6471,0) 4=RESET
+// 5=侧旋 25@15°+8rev/s(0,50265,0)——+ŷ 自旋沿 +X 预期朝 −Z 弯（ω×v，20m 处 |偏移|≈3.7m 入带）
+// 6=RESET 7=滚停 8m/s(8000,0,0)。RESET 段=中圈 Rest（HOME 常量，与进球复位同参）
+const AUTO_FIXK = 1000
 
 // ———— 复合：邮箱投递（t1..t8 + 闭式 sum + epoch；三调用点=种子/进球复位/R3 踢球入口） ————
 // sum=Σtᵢ 在投递时点求值（载荷随任务不同而不同；撕裂检测由 fb-phys 端同式求和比对，
@@ -259,7 +277,9 @@ const graph = g
       // 进球去重（复位应用时清零；防止球在网内多拍连续触发）
       fb_scored: new bool(false),
       // 瞬移门：RESET 应用 ack 置位 → 首个应用拍消费（瞬移）并复位
-      fb_tp_pending: new bool(false)
+      fb_tp_pending: new bool(false),
+      // R3 自动锚点队列指针：0=off；1..7=下一任务（球 Rest 应用拍弹下一任务；用户按任意选项即清零）
+      fb_auto: new int(0)
     }
   })
   // ================================================================
@@ -351,9 +371,96 @@ const graph = g
             f.printString('fb:seed')
             f.startTimer(ball, 'fb_dsp', true, [1])
             f.startTimer(ball, 'fb_wd', true, [4])
+            // R3 自动锚点序列武装（fb_test_mode=1；2m 落体种子 Rest 后自动开跑）
+            const tm = f.getCustomVariable(ball, 'fb_test_mode').asType('int')
+            f.doubleBranch(f.equal(tm, 1n), () => {
+              f.setNodeGraphVariable('fb_auto', new int(1), false)
+              f.printString('fb:autoarm')
+            }, () => {
+              f.setNodeGraphVariable('fb_auto', new int(0), false)
+            })
           }, () => {
           })
         })
+      })
+    })
+  })
+  // ================================================================
+  // R3 操作台踢球入口（票 06）：whenTabIsSelected（tabBar 挂球实体自身，同实体 826
+  // 旧输入图已摘挂载防双踢）→ 直投邮箱（轻链，不经 1s dispatcher 轮询）：
+  //   tab 1..8：KICK 任务（t2..t4=vel×1000 / t5..t7=spin×1000，九选项表数据选择求和）
+  //   tab 9：RESET 任务（中圈 Rest，同进球复位）
+  // 用户接管即终止自动锚点序列（fb_auto=0）；打印 fb:tab + tabId（按次，关键状态入口）
+  // ================================================================
+  .on('whenTabIsSelected', (evt, f) => {
+    f.setNodeGraphVariable('fb_auto', new int(0), false)
+    f.printString('fb:tab')
+    f.printString(f.dataTypeConversion(evt.tabId, 'str'))
+    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const cur = f.getCustomVariable(owner, 'fb_epoch').asType('int')
+    const peT = cur + 1n // 算术在分支 ctx 外预计算（多分支闭包内元对象 +1n 会字符串化）
+    f.doubleBranch(f.equal(evt.tabId, 9n), () => {
+      f.callComposite(fbMailPost, {
+        owner,
+        pe: peT,
+        t1: new int(TT_RESET),
+        t2: new int(HOME_X),
+        t3: new int(HOME_Y),
+        t4: new int(HOME_X),
+        t5: new int(0),
+        t6: new int(0),
+        t7: new int(0),
+        t8: new int(HOME_ST)
+      })
+    }, () => {
+      // 九选项标定（与 TAB 注释表一一对应）：vel m/s / spin rad/s，世界轴 v4 旧表移植。
+      // 数据选择求和（hit_i∈{0,1} 互斥，input_tab_kick 同构）；字面量展开（数组索引在
+      // DSL 闭包内会变成运行时列表取值——02 编译坑，勿回退成循环/索引）
+      const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+      const h1 = b2f(f.equal(evt.tabId, new int(1)))
+      const h2 = b2f(f.equal(evt.tabId, new int(2)))
+      const h3 = b2f(f.equal(evt.tabId, new int(3)))
+      const h4 = b2f(f.equal(evt.tabId, new int(4)))
+      const h5 = b2f(f.equal(evt.tabId, new int(5)))
+      const h6 = b2f(f.equal(evt.tabId, new int(6)))
+      const h7 = b2f(f.equal(evt.tabId, new int(7)))
+      const h8 = b2f(f.equal(evt.tabId, new int(8)))
+      // 1 轻射(-14,4,6, 内旋0,-6,0) 2 重射(-24,5,0, 0,-8,0) 3 高吊(-15,14,0, 上旋0,0,6)
+      // 4 内旋弧(-16,6,12, 0,-9,0) 5 外旋弧(-16,6,-12, 0,9,0) 6 上旋低平(18,4,12, 0,0,10)
+      // 7 下旋(-14,5,8, 0,0,-8) 8 横传(4,6,18, 6,0,0)（注释顺序=选项卡位 1..8，9=复位）
+      let velAcc: any = f.create3dVector(0, 0, 0)
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-14, 4, 6), h1))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-24, 5, 0), h2))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-15, 14, 0), h3))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-16, 6, 12), h4))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-16, 6, -12), h5))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(18, 4, 12), h6))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(-14, 5, 8), h7))
+      velAcc = f._3dVectorAddition(velAcc, f._3dVectorZoom(f.create3dVector(4, 6, 18), h8))
+      let spinAcc: any = f.create3dVector(0, 0, 0)
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, -6, 0), h1))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, -8, 0), h2))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, 0, 6), h3))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, -9, 0), h4))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, 9, 0), h5))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, 0, 10), h6))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(0, 0, -8), h7))
+      spinAcc = f._3dVectorAddition(spinAcc, f._3dVectorZoom(f.create3dVector(6, 0, 0), h8))
+      const v = f.split3dVector(velAcc)
+      const s = f.split3dVector(spinAcc)
+      const toInt = (x: any) =>
+        f.dataTypeConversion(f.multiplication(x, new float(AUTO_FIXK)), 'int')
+      f.callComposite(fbMailPost, {
+        owner,
+        pe: peT,
+        t1: new int(TT_KICK),
+        t2: toInt(v.xComponent),
+        t3: toInt(v.yComponent),
+        t4: toInt(v.zComponent),
+        t5: toInt(s.xComponent),
+        t6: toInt(s.yComponent),
+        t7: toInt(s.zComponent),
+        t8: new int(0)
       })
     })
   })
@@ -441,9 +548,126 @@ const graph = g
       }, () => {
         f.callComposite(fbDrive, { ball, pos: evt.params.pos, spin: evt.params.spin })
       })
-      // —— Rest → 停拍（静止零定时器基线） ——
+      // —— Rest → 停拍（静止零定时器基线）+ R3 自动锚点队列弹下一任务 ——
       f.doubleBranch(f.equal(evt.params.state, ST_REST), () => {
         f.stopTimer(ball, 'fb_beat')
+        const auto = f.getNodeGraphVariable('fb_auto').asType('int')
+        const ow = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+        // 算术（epoch+1）在分支 ctx 外预计算：多分支 case 闭包内元对象 +1n 会字符串化
+        const peN = f.getCustomVariable(ow, 'fb_epoch').asType('int') + 1n
+        // 执行序：先置下一指针再投递（本 handler 原子，防同事件重复弹）
+        f.multipleBranches(auto, {
+          1: () => {
+            f.printString('fb:auto1')
+            f.setNodeGraphVariable('fb_auto', new int(2), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_KICK),
+              t2: new int(24500),
+              t3: new int(2000),
+              t4: new int(0),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(0)
+            })
+          },
+          2: () => {
+            f.setNodeGraphVariable('fb_auto', new int(3), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_RESET),
+              t2: new int(HOME_X),
+              t3: new int(HOME_Y),
+              t4: new int(HOME_X),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(HOME_ST)
+            })
+          },
+          3: () => {
+            f.printString('fb:auto3')
+            f.setNodeGraphVariable('fb_auto', new int(4), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_KICK),
+              t2: new int(24148),
+              t3: new int(6471),
+              t4: new int(0),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(0)
+            })
+          },
+          4: () => {
+            f.setNodeGraphVariable('fb_auto', new int(5), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_RESET),
+              t2: new int(HOME_X),
+              t3: new int(HOME_Y),
+              t4: new int(HOME_X),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(HOME_ST)
+            })
+          },
+          5: () => {
+            f.printString('fb:auto5')
+            f.setNodeGraphVariable('fb_auto', new int(6), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_KICK),
+              t2: new int(24148),
+              t3: new int(6471),
+              t4: new int(0),
+              t5: new int(0),
+              t6: new int(50265),
+              t7: new int(0),
+              t8: new int(0)
+            })
+          },
+          6: () => {
+            f.setNodeGraphVariable('fb_auto', new int(7), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_RESET),
+              t2: new int(HOME_X),
+              t3: new int(HOME_Y),
+              t4: new int(HOME_X),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(HOME_ST)
+            })
+          },
+          7: () => {
+            f.printString('fb:auto7')
+            f.setNodeGraphVariable('fb_auto', new int(0), false)
+            f.callComposite(fbMailPost, {
+              owner: ow,
+              pe: peN,
+              t1: new int(TT_KICK),
+              t2: new int(8000),
+              t3: new int(0),
+              t4: new int(0),
+              t5: new int(0),
+              t6: new int(0),
+              t7: new int(0),
+              t8: new int(0)
+            })
+          },
+          default: () => {}
+        })
       }, () => {
       })
       // —— 进球判定简版：镜像 pos 过门线（去重）→ 打点帧值 + RESET 任务回中圈 ——
