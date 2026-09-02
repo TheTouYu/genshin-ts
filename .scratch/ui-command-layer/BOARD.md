@@ -27,10 +27,10 @@
   素材索引段 `0x40000000+`；悬浮页 kind 330001/330002、按钮默认样式 50888、subtype 6=自定义按钮
 
 ## 当前前沿
-**→ 03 UI 命令层设计稿（待开工）**：页签「返回服务器事件」开关 wire（t47 项 +3B/项）+ 官方 API 对照闭合
-（whenFloatingInteractionPageIsTriggered payload 结构）；行为层 payload 帧值待游戏验证。
-after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启37-页签服务端事件-2e34d008.gil，SHA 2e34d008…。
-下一步：开工票03 设计稿 or 行为层验证轮（可选）。
+**→ 03 UI 命令层设计稿（待开工）**：页签项开关精确指认（f504=1 / c0 1f 01 紧跟项名，开=有/关=无 ±3B）；
+API 对照=whenFloatingInteractionPageIsTriggered（payload listIndex/selectedListItem）。
+after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启38-关闭一项开关-aab35adf.gil，SHA aab35adf…。
+下一步：开工票03 设计稿 or 同步验证开关复制。
 
 ## 票据清单
 

@@ -94,3 +94,6 @@
 - 重启轮37（2026-09-03）· 唯一变化=两个页签项开「返回服务端事件」 · before bf9da2c4 → after 2e34d008（+6B）
   - 规则：t47 项区 +3B/项（字段未指认）；API 对照=whenFloatingInteractionPageIsTriggered（已定义 payload/listIndex/selectedListItem）
   - 落盘：references/ui-controls.md「页签项返回服务器事件开关」
+- 重启轮38（2026-09-03）· 唯一变化=关掉页签1 开关 · before 2e34d008 → after aab35adf（-3B）
+  - 规则（O-2026-08-27-13 开关闭合）：f504=1（c0 1f 01）紧跟页签项名称；开=有/关=无 ±3B；当前页签2 ON/页签1 OFF
+  - 落盘：references/ui-controls.md「页签项开关精确指认」
