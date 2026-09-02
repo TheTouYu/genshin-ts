@@ -220,6 +220,10 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
     复合调用 done 因 auto-chain 可能额外拉一条入边，导致同一节点执行两次（日志特征：Start Timer 同节点两帧）。
   - 公共 merge/done 节点**不得回到分支入口**（否则 execution flow loop，游戏直接报循环）。
   - 链尾节点应通过 `boundary` 映射到复合 `done` outflow，或显式连到后续节点。
+  - **decode-gia JSON 直读形态（2026-09-03 足球 fb-phys 503 节点实证）**：注入前对 .gia 做
+    执行边分析同样可行——节点无 `id` 字段用 **`nodeIndex`** 当标识；exec 边挂 **`pins[].connects`**
+    （不是 value 内层），`connect.kind==1` 为执行边；同节点多入边≠违规，**互斥 else 链汇流**
+    （true/false 双出边汇聚到下一语句）是合法 join——判违规只看同针脚重复执行与环（DFS 三色）。
 - 事件复合：事件入口 → MB 分发 → case 各分支完整（trigger 应为 10 条执行流）
 - **关键常量断言（2026-09-01 bool false 实证，勿漏）**：注入后回读不只核对"变化的 wire/连线"，
   还要断言**本应不变的语义常量**（unlock 复位值、默认值、模式开关等）。实测教训：c7c263a 只验

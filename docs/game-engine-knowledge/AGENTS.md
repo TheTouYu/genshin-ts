@@ -220,7 +220,9 @@ GIL 整体结构与语义树
   [auto_check 定时器链](retrospective-2026-08-27-football-auto-timer-chain.md)、
   [带球测速 buff 依赖](retrospective-2026-08-28-football-dribble-speed.md)、
   [第一阶段物理核心工程规则](football-physics-core.md)（headless 确定性引擎）、
-  [第一阶段交付复盘](retrospective-2026-08-31-football-physics-core-delivery.md)（22 错误谱系+三规律）
+  [第一阶段交付复盘](retrospective-2026-08-31-football-physics-core-delivery.md)（22 错误谱系+三规律）、
+  [R2 客户端物理半边复盘](retrospective-2026-09-03-football-r2-client-physics.md)
+  （03→04→05 三票+两轮复测修正：def ID 冲突/旋转缺口/日志洪泛/实体风暴/反弹不动点 六错谱系+三规律）
 - **客户端图与日志**：[客户端图读法](retrospective-2026-08-28-rubik-client-graph-reading.md)、
   [服务端↔客户端调用链](retrospective-2026-08-28-client-server-call-chain.md)、
   [事件线工具闭环](retrospective-2026-08-28-client-log-flow.md)、
