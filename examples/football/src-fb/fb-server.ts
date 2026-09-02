@@ -34,9 +34,9 @@
 //     tag='P' 且 base_tick==镜像 tick（first-wins）→ 镜像 11 写
 //     （tick+1）+ gate=0 + 视觉驱动 + state==Rest→stopTimer + 进球判定简版；
 //     dup（同代重复回传）打点；tag='T' 撕裂拍不应用（gate 保持开，下一拍重算）
-// 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（速度=(新位−实体当前位)/fb_p_drive，
-//   同名 'fb_phys' 顶替，时长=fb_p_drive，需略大于拍距 fb_p_dt 防断档）；RESET 应用后的首拍
-//   fbTeleport
+// 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（普通拍速度=(新位−实体当前位)/fb_p_dt，
+//   设备时长=fb_p_drive 仅当保险丝：正常每拍被同名顶替，丢拍时按最后指令速度续滑；state=Rest
+//   停球拍改用 /fb_p_drive 精确到点停）；RESET 应用后的首拍 fbTeleport
 //   （INSTANT 瞬移——否则实体残留位与镜像差几十米，预测插值会以百米每秒速度拉条纹）。
 //   瞬移门时序：RESET 的 ack 到达时置位（非投递时——投递与应用间还有普通拍，提前置位会
 //   误瞬移），首个 first-wins 应用拍消费并复位。
@@ -57,9 +57,10 @@ const TT_RESET = 2n
 // 丘丘人球引用持有者实例（票 01 终态；def 1082130433 为模板不运行时写）。
 // entity() 必须接字面量（数组索引会被 TS→GS 改写成运行时列表取值，编译实证 09-03）：
 // 1082130437 / 1082130438 / 1082130439 / 1082130440 / 1082130441
-// T3 节拍参数化（票 10 R3 用户定，2026-09-02）：
+// T3 节拍参数化（票 10 R3 用户模型定，2026-09-02）：
 //   拍距 = 球实体变量 fb_p_dt（默认 0.2；客户端物理步长同源，两处必须一致才不变速）；
-//   运动器同名顶替时长 = 球实体变量 fb_p_drive（默认 0.25，须 > 拍距留余量；速度换算 1/dur 实时算）。
+//   运动器时长 = 球实体变量 fb_p_drive（默认 0.5）= 纯保险丝：正常每拍被顶替不参与速度，
+//   丢拍时旧设备按最后指令速度续滑；停球拍(Rest)用 1/fb_p_drive 精确收尾（见 fbDrive）。
 //   两个变量均可编辑器热调：fb_p_dt 自下一任务 ack 起生效；fb_p_drive 每应用拍即时生效。
 const RAD2DEG = 57.29577951308232 // 180/π，rad/s → °/s（旋转设备角速度单位）
 const SEED_DELAY_S = 5 // 种子后移秒数（进图实体风暴期规避，05 复测修正）
@@ -198,8 +199,10 @@ const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
 })
 
 // ———— 复合：预测插值驱动（常态拍；位置+旋转双设备，04 轮用户指正补齐旋转） ————
-// 位置：速度=(新位−实体当前位)/0.25s，同名 'fb_phys' 顶替（实体当前位=引擎权威视觉位，
-// R2-DESIGN §1 主案；区别于 2026-08-27 反例——彼处逻辑速度才是真相故禁反推，此处镜像即真相）。
+// 位置：普通拍速度=(新位−实体当前位)/fb_p_dt（跟拍距走，设备时长不参与正常速度）；
+//   同名 'fb_phys' 顶替，时长=fb_p_drive 仅当保险丝——正常每拍被顶替，丢拍时旧设备按最后
+//   指令速度续滑（用户模型 2026-09-02 定）；state=Rest 停球拍 st=4 时改除 fb_p_drive，
+//   保证最后一台设备到点精确停下（恒速设备否则会冲过停点）。
 // 旋转：'fb_spin' 匀速旋转设备（axis+°/s）——与线性设备可叠加（v4 实证：定点 INSTANT 与
 // 旋转同链互断，匀速直线性设备不互断）；世界自旋轴必须经实体当前朝向转回局部轴
 // （v4 2832 日志教训：local = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，YXZ 内旋，否则横传/
@@ -210,14 +213,21 @@ const fbDrive = g.defineComposite('fb_drive', {
   inputs: {
     ball: { type: 'entity' },
     pos: { type: 'vec3' },
-    spin: { type: 'vec3' }
+    spin: { type: 'vec3' },
+    st: { type: 'int' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ ball, pos, spin }, f) => {
-    // 时长参数化（球变量 fb_p_drive；速度换算=1/dur，与时长联动，勿只改一端）
+  build: ({ ball, pos, spin, st }, f) => {
     const dur = f.getCustomVariable(ball, 'fb_p_drive').asType('float')
-    const gain = f.division(1, dur)
+    const pdt = f.getCustomVariable(ball, 'fb_p_dt').asType('float')
+    // 分母选择：停球拍(Rest)=dur（精确到点停）；普通拍=pdt（跟拍距，时长只当保险丝）
+    const bRest = f.dataTypeConversion(f.dataTypeConversion(f.equal(st, ST_REST), 'int'), 'float')
+    const denom = f.addition(
+      f.multiplication(dur, bRest),
+      f.multiplication(pdt, f.subtraction(1, bRest))
+    )
+    const gain = f.division(1, denom)
     const loc = f.getEntityLocationAndRotation(ball).location
     const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), gain)
     const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
@@ -535,7 +545,7 @@ const graph = g
         f.setNodeGraphVariable('fb_tp_pending', new bool(false), false)
         f.callComposite(fbTeleport, { ball, pos: evt.params.pos })
       }, () => {
-        f.callComposite(fbDrive, { ball, pos: evt.params.pos, spin: evt.params.spin })
+        f.callComposite(fbDrive, { ball, pos: evt.params.pos, spin: evt.params.spin, st: evt.params.state })
       })
       // —— Rest → 停拍（静止零定时器基线）+ R3 自动锚点队列弹下一任务 ——
       f.doubleBranch(f.equal(evt.params.state, ST_REST), () => {
