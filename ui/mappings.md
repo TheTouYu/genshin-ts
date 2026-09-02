@@ -22,7 +22,7 @@
 
 | kind | 合法放置面 | 证据 |
 |---|---|---|
-| 官方控件（button/textbox/input-box/message-queue/image…） | layout；悬浮页容器面（按钮✅ 轮26/28；输入框/队列进容器面待样本） | 轮4/19/51/26 |
+| 官方控件（button/textbox/input-box/message-queue/image…） | layout；悬浮页容器面（按钮✅轮26/28；文本框/图片/图文输入框✅轮64；队列待样本） | 轮4/19/51/26/64 |
 | floating-page | library（库管理页添加）；layout 老版本✅、新版形态**待差分** | 轮24；A7 |
 | tab（页签） | **仅悬浮页容器面（固有/页面容器）；layout ❌** | 轮29/34；用户 V2 |
 | container（页面容器） | 仅属悬浮页（实体 t42 列表） | 轮33 |
