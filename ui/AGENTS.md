@@ -26,6 +26,10 @@
 7. **写回红线与确认制**：SHA 锁定 → 候选 → diff 断言 → 读回；破坏性操作（删除/同步/模板化）先 dry-run 展示差异再执行；
    快照即 undo（编辑器 undo 不可依赖）。操作游戏文件前先获用户确认。
 8. **fail-closed**：未知结构标记不猜；产出"未解码字段清单"供后续差分轮定向补。
+9. **全量验收 + 可复查（2026-09-03 用户核验纠偏后固化）**：L1 语义 list/anchor/diff 的验收必须对全部差分快照
+   （当前 80 个 `.gsts/diff-exp/ui学习/*.gil`）逐个执行**真实 CLI** + 断言
+   （`ui/tests/exhaustive-snapshot-verify.ts`、`semantic-list.snapshot-assert.ts`），禁止只抽查代表样本；
+   重要输出落盘为可复现样例（`ui/verification/`）。未知结构沿用 fail-closed 并登记 open-items。
 
 ## 分层路线（实现顺序 = 用户定级）
 

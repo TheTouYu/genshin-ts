@@ -11,6 +11,14 @@
 
 ## 已落地（DONE）
 
+### 2026-09-03 UI 票04 语义化 List + 玩家改动识别 v1（加严全量核验，commits f8b5c8b..ccfb071）
+
+- 实现：`ui/src` 语义层（list/anchor/diff）+ `assets:ui` 接线；**全量核验**：80 快照 127/127 断言 + 真 CLI 80/80 FAIL=0。
+- 错误谱系（详见 `retrospective-2026-09-03-ui-ticket04-verification.md`）：family/内容组件双层判别、flat 覆盖缺失、
+  孤儿重复挂载、几何嵌套 f32 pair、消息项样式序号、diff 重锚误报、`--gil` 消费、anchor-list 免 gil——全部修复并断言回归。
+- 方法论（用户两轮纠偏）：全量枚举 + 通用不变量 + 人工结论对照；真实命令端到端；输出落盘可复查。
+- 未闭合语义已登记 OPEN（O-2026-09-03-05/06/07）。
+
 ### 2026-09-03 足球 R3 四条 claim 录入 PKC（bnd_992240d12，commit 88fa950）
 
 - 四条：①离散 0.2s 步长 vy≤2 无可见弹跳（3104 实测 46.7m）②5Hz 首落提前→x=20m 锚点测点失效（15m 中段 2.9m 入带）③反弹冲击拍不改自旋（PORTING-MAP #3 缺口）④v6 踢球分流口径（tab 直投邮箱/20002 不承担球物理）。
@@ -105,6 +113,22 @@
 - `205b88f` cases/node-copy/graph-var-add ops + 图变量注册/Str 变体 Set/DoubleBranch 语义闭合
 
 ## 未落地（OPEN）
+
+### O-2026-09-03-05 UI 语义 list：页签 t47 group 编码，页面名/数量/默认选择仅 best-effort【OPEN】
+
+- 现象：group 编码区未完整解码时进 `unknown[]`；页面名可能取到非预期文本（轮29 快照报 2 页）。
+- 证据：`ui/tests/exhaustive-snapshot-verify.ts` 只断言 tab kind/kindNumber，未断言页名精确值；复盘 §五。
+- 落地方向：票05+ 补 t47 group 解码差分轮；写前保持 fail-closed。
+
+### O-2026-09-03-06 UI 语义 list：type78 块 / 容器-控件显隐（轮39-46）/ 容器初始生效（轮48-50）未做字段级语义【OPEN】
+
+- 证据：`queue.type78.undecoded(只读透传)`；轮39-50 只验证概念出现，未验证 props 字段。
+- 落地方向：随差分轮定向补，禁止凭记忆猜字节。
+
+### O-2026-09-03-07 写回类命令（票05+ create/clone/三合一/sync/delete）尚未建立"全量快照"验收基线【OPEN】
+
+- 证据：票04 的 `ui/tests/exhaustive-snapshot-verify.ts`（通用不变量 + 逐轮人工对照）可作为模板；写回命令尚无同标准断言。
+- 落地方向：票05 开工先搭"基线快照 → 候选 → 回读断言"全量校验框架。
 
 ### O-2026-09-03-01 邮箱撕裂风暴后看门狗不重写载荷——卡死至新任务覆盖才恢复【OPEN】
 

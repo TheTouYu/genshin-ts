@@ -7,11 +7,12 @@
 
 ```text
 ui/
-├── AGENTS.md   高频约束（铁律 8 条 / 分层 L1-L4 / 概念与递归 / 坐标速记）——每次进入必加载
+├── AGENTS.md   高频约束（铁律 9 条 / 分层 L1-L4 / 概念与递归 / 坐标速记）——每次进入必加载
 ├── DESIGN.md   设计全稿（设计约束 → 命令面定义 → 规则-命令映射 → 验收；票 03 产出地，v0.2 FROZEN）
 ├── README.md   本文件（索引 / 资源家谱 / 现状 / 路线）
 ├── src/        实现代码（票 04 起：语义层 list/anchor/diff；TS 随根 tsconfig 编译到 dist/ui/src）
-└── tests/      本地快照断言（ui/tests/semantic-list.snapshot-assert.ts，依赖 .gsts 留存快照，9/9 PASS）
+├── tests/      全量快照断言（exhaustive-snapshot-verify.ts 80 快照 127/127；semantic-list 9/9）
+└── verification/  输出样例（ticket04-command-output-samples.md，可复现命令记录）
 ```
 
 ## 资源家谱（按权威度与新旧排列，工作前先对号）
@@ -32,6 +33,14 @@ ui/
 - 快照与 manifest：`.gsts/diff-exp/ui学习/`（gitignored）：`1073741909.after-重启<N>-<语义>-<hash8>.gil` +
   `restart-manifest.md`（LOCKED 链）+ `coordinator/`（root-wire diff JSON）。
 - 差分流程技能：`editor-incremental-gia-investigator`（SKILL.md 含 2026-09-03 回灌方法：归因顺序律/语义分层/difflib 小片段/三方对照/同构复用）。
+
+## 验收与核验（票 04 全量核验后固化）
+
+- 全量语义断言：`ui/tests/exhaustive-snapshot-verify.ts`——80 个快照 ×（通用完整性：每条记录在 flat、无重复、无 unknown 误归类；+ 47 项逐轮人工结论对照）→ **127/127 PASS**。
+- 核心样本断言：`ui/tests/semantic-list.snapshot-assert.ts`（9/9 PASS）。
+- CLI 端到端：真 `assets:ui list --flat/--tree --format json` 对 80 快照逐个执行 → FAIL=0；源 .gil sha 前后一致（只读）。
+- 输出样例：`ui/verification/ticket04-command-output-samples.md`（真实命令输出 + 复现命令）。
+- 断言脚本依赖本地 `.gsts/diff-exp/ui学习/` 快照（gitignored）；缺失时脚本 SKIP。
 
 ## 票据与进度
 

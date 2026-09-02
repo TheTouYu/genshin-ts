@@ -95,4 +95,5 @@
 
 - 优先针对性验证：TypeScript 生产代码改动通常还需 `npm run build`；`npm test`/`quicktest` 必须保持 `--noinject`；验证命令与产物约定见根 `CLAUDE.md`。
 - 游戏核验 → 加载 `verify-injection`；派独立/单独模型 → 必须用 `isolated-model-evaluator` 技能，禁止绕过技能裸跑 `pi -p`；知识录入/PKC → 按 `pkc-project-operator` 技能执行。
+- **快照/样本类验证（2026-09-03 用户核验纠偏固化）**：先枚举**全量样本清单**再断言（禁止只抽查代表样本）；验证走**真实命令入口**（CLI 端到端），并以可复现产物落盘（断言脚本/输出样例）；未闭合语义登记 open-items，不虚构。
 - 权威文档更新原则：区分当前实现 / 自动回归 / 真实 GIA / 用户游戏验证 / 历史记录；知识落盘与每轮复盘闭环见"自进化与反思"节。
