@@ -61,6 +61,7 @@
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
+| UI 命令层模块设计/知识（ui 模块，票03+） | 直接读 `ui/AGENTS.md`（常驻约束）+ `ui/DESIGN.md` + `ui/mappings.md` + `ui/design-trace.md` |
 | 游戏内最小注入核验 | `verify-injection` |
 | 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
 | Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（**知识文档，直接 read 引用**，不在技能加载列表，勿用 skill 工具加载） |
