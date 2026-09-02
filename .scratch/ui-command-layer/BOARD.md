@@ -27,10 +27,10 @@
   素材索引段 `0x40000000+`；悬浮页 kind 330001/330002、按钮默认样式 50888、subtype 6=自定义按钮
 
 ## 当前前沿
-**→ 03 UI 命令层设计稿（待开工）**：页签项开关精确指认（f504=1 / c0 1f 01 紧跟项名，开=有/关=无 ±3B）；
-API 对照=whenFloatingInteractionPageIsTriggered（payload listIndex/selectedListItem）。
-after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启38-关闭一项开关-aab35adf.gil，SHA aab35adf…。
-下一步：开工票03 设计稿 or 同步验证开关复制。
+**→ 03 UI 命令层设计稿（待开工）**：页签项容器状态设置 = t47 项区 +26B（容器 2084/2107 引用 + b01f01 状态字节×2）；
+显隐映射待反向实验；官方教程语义已对照。
+after 快照即下一轮 before：.gsts/diff-exp/ui学习/1073741909.after-重启39-容器状态设置-a175224e.gil，SHA a175224e…。
+下一步：反向实验闭合显隐映射 or 开工票03 设计稿。
 
 ## 票据清单
 
