@@ -386,3 +386,12 @@
   - 离线验证：verify-top-layer.mjs 20000 样本 ALL PASS（平均 4.2 宏 / 46 codes，每宏 ≤22 codes < solveBuf 25 项）。
   - 新增复合：longListGetInt6/9（6/9 块长列表查询）、llFindPos/llPermIdx（位置查找/阶乘进制排列索引）。
   - 已注入（ok 9 fail 0）+ resync md5 一致（81cd8127）+ 读图核验通过（变量 pin 完整/信号 op 分发正确/预算 1025<2000）。**待用户游戏复测**：完整打乱→自动还原应能一路解到顶层完成。
+- 2026-09-02（角块阶段打乱十字——16-case MB 超引擎上限，日志 3093 帧级实锤；提交 3207ca5）：
+  - 现象：自动还原步骤 1 十字正常收敛；步骤 2 角块阶段执行长宏后十字被破坏、角块 mask 3→2 回退后循环。
+  - 取证链（日志 3093）：十字 mask 0,0,1,1,3,3,7,15 正常 → 角块 mask 0,0,1,1,3,2,3 回退。轮5 查表全正常（mask=3、idx=75、p=c0[75]=48、mLen=15），但执行序列 = 表展开前 11 步 + 第 12 步起全变残留 face 2（mCode 未更新）。该轮执行后（rec2044）角块 4 离位（cp[4]=1）+ 十字棱 7 离位翻转（ep[7]=10、eo[7]=1）。
+  - 根因：solverPlan pStep4 角块分支 `multipleBranches(mIdx)` 有 **16 个命名 case，超引擎 10-case 上限**（fcc7663 已闭合规则）→ mIdx≥10 的 case 成孤立链、全走 default → mCode 残留上一次值 → LEN 40..59 长宏（12~16 codes）后半段错乱。短宏（≤10 codes）不触发，故此前轮次正常。离线 verify-corner-macros 只验表数据不含图结构，未拦截。
+  - 修复（用户方案）：拆两段——第一段 case 0..9，default 内嵌第二段 MB（control=Subtraction(Get(mIdx),10)，case 0..5→C10..C15）；控制值在 default 内重新读 mIdx 图变量（防分支内二次物化）。
+  - 已验证：编译 9 GIA 全绿（主图 259→262 节点、MB 10→11）；离线模拟新逻辑展开宏 48 = 表期望完整序列、旧逻辑模拟 = 日志实际序列（根因模型闭环）；verify-corner-macros 2000 样本 / verify-3x3-logic-state 10000 样本全绿。
+  - 已注入（ok 9 fail 0）+ resync + md5 一致（db9d6b85）+ 读图核验（n=174 case[0..9]+default→n=177；n=177 控制值=Subtraction←Get(mIdx) 直连、case[0..5]→C10..C15 查表链 mP 索引直连；var pins 全绿；mainExpanded 1169/engineExpanded 2024——超项目保守线 2000 属既有状态 2021 的延续，gameNodeCount 口径 ≈1765 <2000 拒载线）。
+  - **待用户游戏复测**：打乱→自动还原，角块阶段不应再破坏十字（mask 单调不回退）；若仍回退即失败，取日志复验。
+  - 证据快照：`.gsts/evidence/3093-corner-breaks-cross.gia`（sha256 597272f6…）。
