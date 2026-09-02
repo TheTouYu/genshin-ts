@@ -1253,3 +1253,16 @@
   （生效载体 ✓）：打印纪律（dsl/client）、实体风暴种子后移（dsl）、观测事件门控（client）、
   不动点谱系+行为排查 playbook（debug）。PKC new-claim 跟随 O-2026-09-02-01 归属问题
   一并排查后补录（不阻塞生效）。
+
+### O-2026-09-04-01 MB >10 case 编译期断言缺失（2026-09-02 日志 3093 实锤后登记）
+- 引擎 Multiple Branches 命名 case 硬上限 10（fcc7663/3093 两案同族）目前**无编译期拦截**——
+  solverPlan 角块分支 16-case 静默丢失 6 个 case 导致角块阶段打乱十字（复盘
+  retrospective-2026-09-02-mb-case-limit-residual.md）。修复为 default 嵌套第二段 MB（3207ca5）。
+- 待办：ir_to_gia 阶段加断言（GIA 化前 IR 层 >10 命名 case 报错或编译器自动拆分）；
+  本轮静态扫描（直接子 case 精确统计）确认其余图全部安全。
+
+### O-2026-09-04-02 日志「Integer 空 vs 0」判读语义待闭合（2026-09-02）
+- 3093 会话观察：p=0 有效表值显示 `Get OUT0:Integer=`（空）；`Set IN2:Integer=`（空）写入后
+  DTC int→str 显示 "0"——与技能既有判读门「空 ≠ 0（真 0 显示 Integer=0）」三种表现并存，
+  当轮两次误导根因判断（后被离线对照推翻）。待受控差分实验（同值经 Get/Set/DTC/表读取四路径
+  显示对照）后写入 debug-log-format.md 判读门；在此之前**不要单凭空/0 显示定性**。
