@@ -1266,3 +1266,7 @@
   DTC int→str 显示 "0"——与技能既有判读门「空 ≠ 0（真 0 显示 Integer=0）」三种表现并存，
   当轮两次误导根因判断（后被离线对照推翻）。待受控差分实验（同值经 Get/Set/DTC/表读取四路径
   显示对照）后写入 debug-log-format.md 判读门；在此之前**不要单凭空/0 显示定性**。
+  - PKC claim 待补录：new-claim 对已存在 topic（composite-boundary/node-family-exceptions）
+    报 "topic metadata is only valid when creating a new topic"（2026-09-02 两次重试同错）——
+    与 09-03 足球会话记录的 new-claim 归属问题同族，跟随排查后补录；知识已先落
+    dsl/debug 两技能与复盘文档（生效载体不受阻塞）。
