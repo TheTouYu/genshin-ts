@@ -30,3 +30,8 @@
 
 注入 1914 前按确认制 + 一次性授权边界（根 AGENTS.md）；写回走 `genshin-ts-asset-operations`
 安全流程。1899 参照图与 3071 原始日志勿动。
+
+## 五、推进看板（2026-09-04 起）
+
+- 客户端负载分载（多轮执行任务）：看板 `.scratch/rubik3x3-client-offload/BOARD.md`，一票一文件在
+  `issues/`。进度细节一律进看板/PROGRESS，本文件只留引用。
