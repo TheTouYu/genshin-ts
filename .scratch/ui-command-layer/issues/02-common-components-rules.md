@@ -103,3 +103,6 @@
 - 重启轮40（2026-09-03）· 唯一变化=容器2 改显示（反向）· before a175224e → after 7ac2b185（-3B）
   - 规则（闭合）：容器 entry 内 b01f01=隐藏/无=显示；f502(w2) 结构；len 联动
   - 落盘：references/ui-controls.md「容器状态设置显隐映射闭合」
+- 重启轮41（2026-09-03）· 唯一变化=容器状态设置只控容器1 · before 7ac2b185 → after 74e0d49b（-10B）
+  - 规则：容器列表 entry 增删 + 长度前缀联动；顺序与 t42 一致
+  - 落盘：references/ui-controls.md「容器状态设置列表移除容器」
