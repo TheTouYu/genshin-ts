@@ -1,0 +1,378 @@
+/**
+ * ui/src/create.ts — assets:ui create 候选生成核心（票 05 首轮）
+ *
+ * 范围（与交接书一致）：布局面/悬浮页容器面的「自定义按钮」官方单条候选生成，
+ * 产物=整文件候选字节（--output 只读用），不做任何 .gil 写回。
+ *
+ * wire 依据（知识权威 ui-controls.md）：
+ * - 布局官方自定义按钮 = 单条 502 记录（f504=布局，无模板/实例分离、无伴随素材组）——重启轮4；
+ * - 悬浮页详情按钮 = 挂实例侧容器（宿主 f503 追加成员；未同步不动模板侧）——重启轮26；
+ * - 按钮判别 t50/t52/t54；placement 表见 ui/types.ts UI_KIND_REGISTRY（DESIGN 1.2 用户权威）；
+ * - ID 分配禁止 max+1 直推：候选=扫描已用 ID（记录/索引/成员/引用）后取尾部相邻空闲段
+ *   最高位（编辑器跳变留下的空洞，mappings §8 例 2031），无空洞才取 maxUsed+1；
+ * - 未解码字节一律透传/不猜：donor 字节缺失时显式报错（fail-closed，铁律 8）。
+ */
+
+import { buildFile, encodeVarint, readUint32BE } from '../../src/injector/binary.js'
+import {
+  emitWireMessage,
+  parseWireMessage,
+  type WireField
+} from '../../src/cli/static_assembly/wire.js'
+import {
+  remapUiRecordVarints,
+  setUiControlName,
+  setUiControlTransform
+} from '../../src/cli/gil_ui.js'
+import { createDonor } from './create-donors.js'
+import {
+  DEFAULT_LAYOUT_ID,
+  extractContainerRefs,
+  extractMemberIds,
+  firstVarint,
+  packedVarints,
+  parseRoot9,
+  recordNameOf
+} from './record.js'
+import { UI_KIND_REGISTRY } from './types.js'
+import type { ParsedRoot9 } from './record.js'
+
+export type CreateSurface =
+  | { kind: 'layout'; layoutId: number }
+  | { kind: 'container'; containerId: number }
+
+export interface CreateButtonOptions {
+  /** 目标放置面（已解析；写命令前必须 placement 校验） */
+  surface: CreateSurface
+  /** 未指定 → allocateControlId 避让分配（禁止 max+1 直推） */
+  id?: number
+  /** 控件名（默认沿用 donor 的编辑器默认名「自定义按钮」） */
+  name?: string
+  /** 位置=控件中心绝对坐标（1600×900；内部换算 wire=C−(800,450)） */
+  position?: readonly [number, number]
+  size?: readonly [number, number]
+  /** 物理插入锚点：插到该记录之后（与编辑器样本逐字节对拍时用）；默认追加 502 段尾 */
+  insertAfterId?: number
+}
+
+export interface CreateCandidateResult {
+  /** 整文件候选字节（可直接 --output 落盘 / diff / 回读断言） */
+  bytes: Uint8Array
+  kind: 'custom-button'
+  surface: CreateSurface
+  parentId: number
+  newId: number
+  /** donor 溯源（真实编辑器样本） */
+  donorSource: string
+  donorSelfId: number
+  donorParentId: number
+  insertAfterId?: number
+}
+
+/** 放置面对应的 placement 键（registry SurfacePlacement） */
+export function placementKeyOf(surface: CreateSurface): 'layout' | 'container' {
+  return surface.kind === 'layout' ? 'layout' : 'container'
+}
+
+/** placement 校验（DESIGN 1.2 / 用户权威：普通控件三面通用；tab 仅容器面…） */
+export function assertPlacement(kind: 'custom-button', surface: CreateSurface): void {
+  const spec = UI_KIND_REGISTRY[kind]
+  const placement = placementKeyOf(surface)
+  if (!spec.placement.includes(placement)) {
+    const faces = spec.placement
+      .map((face) => (face === 'layout' ? '布局' : face === 'container' ? '悬浮页容器' : '控件组库'))
+      .join(' / ')
+    throw new Error(`[error] ${spec.label} 仅可放置于 ${faces}（当前目标=该面之外的放置面）`)
+  }
+}
+
+function requireRecord(parsed: ParsedRoot9, id: number, what: string) {
+  const record = parsed.recordsById.get(id)
+  if (!record) throw new Error(`[error] ${what}记录不存在: ${id}`)
+  return record
+}
+
+/** 容器记录是否带 f503 成员列表（宿主追加语义的前提） */
+function hasMemberList(parsed: ParsedRoot9, id: number): boolean {
+  const record = parsed.recordsById.get(id)
+  return record !== undefined && record.fields.some((f) => f.number === 503 && f.wire === 2)
+}
+
+/** 容器归属悬浮页：找到 t42 引用该容器的悬浮页实体（实例侧/页面容器均须在册） */
+export function ownerFloatingPageId(parsed: ParsedRoot9, containerId: number): number | undefined {
+  for (const record of parsed.records) {
+    if (record.kind !== 'floating-page') continue
+    if (extractContainerRefs(record.fields).includes(containerId)) return record.id
+  }
+  return undefined
+}
+
+/**
+ * 解析 `--on` 放置面文本 → CreateSurface。
+ * 支持：layout:<ID|名称> / container:<容器ID> / 悬浮页:<悬浮页ID|名称>:<容器ID>。
+ * 校验在解析时完成（fail-closed：找不到/不属于悬浮页一律报错，不猜）。
+ */
+export function resolveSurfaceTarget(parsed: ParsedRoot9, raw: string): CreateSurface {
+  const parts = raw.split(':').map((part) => part.trim())
+  if (parts.length < 2 || parts.some((part) => part === '')) {
+    throw new Error(
+      '[error] --on 格式须为 layout:<ID|名称>、container:<容器ID> 或 悬浮页:<悬浮页ID|名称>:<容器ID>'
+    )
+  }
+  if (parts[0] === 'layout') {
+    const numeric = Number(parts[1])
+    let layoutId: number
+    if (Number.isSafeInteger(numeric) && parts[1] !== '') {
+      layoutId = numeric
+      requireRecord(parsed, layoutId, '布局')
+    } else {
+      const matches = parsed.records.filter(
+        (r) => r.kind === 'layout' && recordNameOf(r.fields, r.raw) === parts[1]
+      )
+      if (matches.length === 0)
+        throw new Error(`[error] 布局不存在: ${parts[1]}（可用 list --tree 查名/ID）`)
+      if (matches.length > 1) throw new Error(`[error] 布局名不唯一: ${parts[1]}，请用 layout:<ID>`)
+      layoutId = matches[0].id
+    }
+    const layout = requireRecord(parsed, layoutId, '布局')
+    if (layout.kind !== 'layout') throw new Error(`[error] ${layoutId} 不是布局记录`)
+    return { kind: 'layout', layoutId }
+  }
+  if (parts[0] === 'container') {
+    const containerId = Number(parts[1])
+    if (!Number.isSafeInteger(containerId))
+      throw new Error('[error] container 面需数字容器 ID（悬浮页容器/固有容器组）')
+    return validateContainerSurface(parsed, containerId)
+  }
+  if (parts[0] === '悬浮页') {
+    if (parts.length < 3) {
+      throw new Error('[error] 悬浮页面格式须为 悬浮页:<悬浮页ID|名称>:<容器ID>')
+    }
+    const pageNumeric = Number(parts[1])
+    let pageId: number
+    if (Number.isSafeInteger(pageNumeric) && parts[1] !== '') {
+      pageId = pageNumeric
+    } else {
+      const matches = parsed.records.filter(
+        (r) => r.kind === 'floating-page' && recordNameOf(r.fields, r.raw) === parts[1]
+      )
+      if (matches.length === 0)
+        throw new Error(`[error] 悬浮页不存在: ${parts[1]}（可用 list --tree 查名/ID）`)
+      if (matches.length > 1) throw new Error(`[error] 悬浮页名不唯一: ${parts[1]}，请用 ID`)
+      pageId = matches[0].id
+    }
+    const page = requireRecord(parsed, pageId, '悬浮页')
+    if (page.kind !== 'floating-page') throw new Error(`[error] ${pageId} 不是悬浮页记录`)
+    const containerId = Number(parts[2])
+    if (!Number.isSafeInteger(containerId))
+      throw new Error('[error] 悬浮页面容器需数字容器 ID')
+    const refs = extractContainerRefs(page.fields)
+    if (!refs.includes(containerId))
+      throw new Error(`[error] 容器 ${containerId} 不在悬浮页 ${pageId} 的容器列表（t42）中`)
+    return validateContainerSurface(parsed, containerId)
+  }
+  throw new Error(
+    '[error] --on 首段须为 layout / container / 悬浮页（当前: ' + parts[0] + '）'
+  )
+}
+
+/** 控件类 kind（判别含 parent 上下文；容器面校验时排除，容器=非控件的宿主记录） */
+const CONTROL_KINDS = new Set([
+  'custom-button',
+  'interactive-button',
+  'custom-switch',
+  'textbox',
+  'image',
+  'input-box',
+  'message-queue',
+  'tab',
+  'close-button',
+  'material-member',
+  'layout',
+  'floating-page'
+])
+
+function validateContainerSurface(parsed: ParsedRoot9, containerId: number): CreateSurface {
+  const record = requireRecord(parsed, containerId, '容器')
+  // 容器语义 = 宿主（非控件类记录）+ f503 成员列表 + 属于某悬浮页 t42
+  // （固有容器组/页面容器可能被分类为 asset-group/container/unknown，不允许按 kind 白名单硬判）
+  if (CONTROL_KINDS.has(record.kind)) {
+    throw new Error(`[error] ${containerId} 不是悬浮页容器（kind=${record.kind} 属控件/布局类）`)
+  }
+  if (!hasMemberList(parsed, containerId)) {
+    throw new Error(`[error] 容器 ${containerId} 缺少 f503 成员列表（宿主追加语义不成立）`)
+  }
+  if (ownerFloatingPageId(parsed, containerId) === undefined) {
+    throw new Error(`[error] 容器 ${containerId} 不属于任何悬浮页（t42 未引用）——只允许挂悬浮页容器`)
+  }
+  return { kind: 'container', containerId }
+}
+
+/**
+ * 收集 root9 全部已用控制 ID（记录 ID + 顶层索引 + 宿主 f503 成员 + 记录顶层
+ * 0x40000000 段 varint——父引用等），供避让分配（不回扫深层嵌套，够用且不过判）。
+ */
+export function collectUsedControlIds(parsed: ParsedRoot9): Set<number> {
+  const used = new Set<number>()
+  const ID_ZONE_MIN = 1073741824
+  const ID_ZONE_MAX = 2147483647
+  for (const record of parsed.records) {
+    used.add(record.id)
+    for (const member of extractMemberIds(record.fields)) used.add(member)
+    for (const v of record.fields) {
+      if (v.wire !== 0 || v.value === undefined) continue
+      const value = v.value as number
+      if (value >= ID_ZONE_MIN && value <= ID_ZONE_MAX) used.add(value)
+    }
+  }
+  for (const id of parsed.indexIds) used.add(id)
+  return used
+}
+
+/**
+ * ID 避让分配（mappings §8；禁止 max+1 直推 = 禁止把编辑器内部计数器当连续）：
+ * 1. 尾部相邻空闲段（编辑器跳变留下的空洞，如轮4 的 2019..2031）→ 取其中最高位（贴近
+ *    maxUsed 的缺口，例 2031）；
+ * 2. 无空洞（连续到顶）→ 取 maxUsed+1（对当前文件无冲突的尾部接续）。
+ */
+export function allocateControlId(parsed: ParsedRoot9, explicitId?: number): number {
+  const used = collectUsedControlIds(parsed)
+  if (explicitId !== undefined) {
+    if (!Number.isSafeInteger(explicitId) || explicitId < 0) {
+      throw new Error('[error] --id 须为非负安全整数')
+    }
+    if (used.has(explicitId)) {
+      throw new Error(`[error] --id ${explicitId} 已被占用（记录/索引/引用冲突），请避让或另选`)
+    }
+    return explicitId
+  }
+  const ID_FLOOR = 1073741843 // 系统容器 1840-1842 / 默认布局 1825 之上
+  if (used.size === 0) return ID_FLOOR
+  const maxUsed = Math.max(...used)
+  for (let id = maxUsed - 1; id >= ID_FLOOR; id--) {
+    if (!used.has(id)) return id
+  }
+  return maxUsed + 1
+}
+
+function encodePackedVarints(values: readonly number[]): Uint8Array {
+  return Uint8Array.from(values.flatMap((value) => Array.from(encodeVarint(value))))
+}
+
+function ownIdOf(field: WireField): number | undefined {
+  if (field.number !== 502 || field.wire !== 2) return undefined
+  const fields = parseWireMessage(field.value as Uint8Array)
+  return fields ? firstVarint(fields, 501) : undefined
+}
+
+/**
+ * 低层装配：root9 502 段插入新记录 + 宿主记录 f503 packed 追加 + 整文件重建。
+ * 全程 parse/emit 保真（未触碰的字段原样透传），插入位置可用 insertAfterId 指定。
+ */
+function applySectionChanges(
+  bytes: Uint8Array,
+  ops: { record: Uint8Array; recordId: number; parentId: number; insertAfterId?: number }
+): Uint8Array {
+  const top = parseWireMessage(bytes.subarray(20, bytes.length - 4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 section missing')
+  const section = parseWireMessage(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 9 section')
+  const ownerIndex = section.findIndex((f) => ownIdOf(f) === ops.parentId)
+  if (ownerIndex < 0) throw new Error(`[error] 宿主记录不存在: ${ops.parentId}`)
+  const ownerField = section[ownerIndex]
+  const owner = parseWireMessage(ownerField.value as Uint8Array)
+  if (!owner) throw new Error(`[error] 宿主记录解析失败: ${ops.parentId}`)
+  const members = owner.find((f) => f.number === 503 && f.wire === 2)
+  if (!members) throw new Error(`[error] 宿主记录缺少 f503 成员列表: ${ops.parentId}`)
+  const ids = packedVarints(members.value as Uint8Array)
+  if (ids.includes(ops.recordId)) {
+    throw new Error(`[error] 宿主记录已包含成员 ${ops.recordId}`)
+  }
+  ids.push(ops.recordId)
+  members.value = encodePackedVarints(ids)
+  ownerField.value = emitWireMessage(owner)
+  let at = section.length
+  if (ops.insertAfterId !== undefined) {
+    const anchorIndex = section.findIndex((f) => ownIdOf(f) === ops.insertAfterId)
+    if (anchorIndex < 0) {
+      throw new Error(`[error] 插入锚点记录不存在: ${ops.insertAfterId}`)
+    }
+    at = anchorIndex + 1
+  }
+  section.splice(at, 0, { number: 502, wire: 2, value: ops.record })
+  root9.value = emitWireMessage(section)
+  return buildFile(emitWireMessage(top), {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
+}
+
+/**
+ * 生成「自定义按钮」候选（布局面 / 悬浮页容器面；编辑器官方单条形态，字节级 donor 装配）。
+ * 只读：返回整文件候选字节，不写盘。
+ */
+export function createButtonCandidate(
+  bytes: Uint8Array,
+  options: CreateButtonOptions
+): CreateCandidateResult {
+  assertPlacement('custom-button', options.surface)
+  const parsed = parseRoot9(bytes)
+  const parentId =
+    options.surface.kind === 'layout' ? options.surface.layoutId : options.surface.containerId
+  requireRecord(parsed, parentId, options.surface.kind === 'layout' ? '布局' : '容器')
+  if (options.surface.kind === 'container') {
+    validateContainerSurface(parsed, parentId)
+  } else {
+    const parent = parsed.recordsById.get(parentId)
+    if (!parent || parent.kind !== 'layout') {
+      throw new Error(`[error] ${parentId} 不是布局记录`)
+    }
+  }
+  if (!hasMemberList(parsed, parentId)) {
+    throw new Error(`[error] 宿主 ${parentId} 缺少 f503 成员列表`)
+  }
+  const newId = allocateControlId(parsed, options.id)
+  const donor = createDonor(
+    options.surface.kind === 'layout' ? 'custom-button.layout' : 'custom-button.container'
+  )
+  let record: Uint8Array = Buffer.from(donor.hex, 'hex')
+  const map: Record<number, number> = {}
+  if (donor.selfId !== newId) map[donor.selfId] = newId
+  if (donor.parentId !== parentId) map[donor.parentId] = parentId
+  record = remapUiRecordVarints(record, map)
+  if (options.name !== undefined) record = setUiControlName(record, options.name)
+  if (options.position !== undefined || options.size !== undefined) {
+    record = setUiControlTransform(record, {
+      ...(options.position !== undefined ? { position: options.position } : {}),
+      ...(options.size !== undefined ? { size: options.size } : {})
+    })
+  }
+  const candidateBytes = applySectionChanges(bytes, {
+    record,
+    recordId: newId,
+    parentId,
+    ...(options.insertAfterId !== undefined ? { insertAfterId: options.insertAfterId } : {})
+  })
+  return {
+    bytes: candidateBytes,
+    kind: 'custom-button',
+    surface: options.surface,
+    parentId,
+    newId,
+    donorSource: donor.sourceSnapshot,
+    donorSelfId: donor.selfId,
+    donorParentId: donor.parentId,
+    ...(options.insertAfterId !== undefined ? { insertAfterId: options.insertAfterId } : {})
+  }
+}
+
+/** 便捷默认：--on 缺省 = 默认布局（与旧 create 行为一致，改按 ID 定位不按名字） */
+export function defaultButtonSurface(): CreateSurface {
+  return { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID }
+}
+
+export { DEFAULT_LAYOUT_ID }

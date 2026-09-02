@@ -5,6 +5,12 @@ import { pathToFileURL } from 'node:url'
 
 import { mapIdFromGil } from '../../ui/src/anchor.js'
 import {
+  createButtonCandidate,
+  defaultButtonSurface,
+  resolveSurfaceTarget
+} from '../../ui/src/create.js'
+import { parseRoot9 } from '../../ui/src/record.js'
+import {
   parseUiSemanticCommand,
   runUiSemanticCommand,
   type UiSemanticCliContext
@@ -61,6 +67,9 @@ function usage(exitCode = 1): never {
     '  legacy list: gsts assets:ui list --gil <file> --format json (records 级列表，语义视图见 --tree/--flat)',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
     '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [options]',
+    '  create (L2, 票05): gsts assets:ui create --type custom-button --on layout:<ID|名称>|container:<容器ID>|悬浮页:<页ID|名>:<容器ID>',
+    '                     [--id <new-id>] [--name <n>] [--position <x,y>] [--size <w,h>] [--output <file>]',
+    '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
     '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
@@ -77,6 +86,7 @@ function usage(exitCode = 1): never {
     '  --write                 atomically write source GIL after backup',
     '  --name <name>           set control name',
     '  --content <text>        set display content (textbox path)',
+    '  --text <text>           L2 create: button display text (fail-closed this round)',
     '  --asset <id>            image control: 素材索引 ID (= 素材库容器 ID)',
     '  --layout <id>           image control: 目标布局 ID (default 1073741825 默认布局)',
     '  --position <x,y>        set position (screen-center offset)',
@@ -141,6 +151,9 @@ function parseArgs(argv: readonly string[]) {
   let assetId: number | undefined
   let layoutId: number | undefined
   let color: string | undefined
+  let onRaw: string | undefined
+  let text: string | undefined
+  let fontSize: number | undefined
   let index = 0
   if (
     argv[0] === 'list' ||
@@ -214,7 +227,15 @@ function parseArgs(argv: readonly string[]) {
     } else if (arg === '--asset') assetId = nonNegativeId(value(argv, index++), '--asset')
     else if (arg === '--color') color = value(argv, index++)
     else if (arg === '--layout') layoutId = nonNegativeId(value(argv, index++), '--layout')
-    else if (arg === '--help' || arg === '-h') usage(0)
+    else if (arg === '--on') onRaw = value(argv, index++)
+    else if (arg === '--text') text = value(argv, index++)
+    else if (arg === '--font-size') {
+      const raw = value(argv, index++)
+      const parsed = Number(raw)
+      if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed))
+        throw new Error('[error] --font-size 须为正整数')
+      fontSize = parsed
+    } else if (arg === '--help' || arg === '-h') usage(0)
     else if (
       command !== 'list' &&
       command !== 'variables' &&
@@ -234,7 +255,12 @@ function parseArgs(argv: readonly string[]) {
     )
   if (command === 'create' && createType === 'image' && assetId === undefined)
     throw new Error('[error] create --type image requires --asset <素材索引ID>')
-  if (command === 'create' && newId === undefined)
+  // 票05 L2：custom-button 允许不指定 --id（候选分配器避让扫描）；其余类型维持旧契约
+  if (
+    command === 'create' &&
+    newId === undefined &&
+    createType !== 'custom-button'
+  )
     throw new Error('[error] create requires --id <new-id>')
   if (command === 'states' && targetId === undefined)
     throw new Error('[error] states requires --id <自定义按钮ID>')
@@ -280,7 +306,10 @@ function parseArgs(argv: readonly string[]) {
     variables,
     assetId,
     layoutId,
-    color
+    color,
+    on: onRaw,
+    text,
+    fontSize
   }
 }
 
@@ -564,6 +593,65 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
 
   if (args.command === 'create') {
+    if (args.createType === 'custom-button') {
+      // 票05 L2 语义面：布局/悬浮页容器内官方单条按钮（donor 字节级装配，只读候选）
+      const parsed = parseRoot9(sourceBytes)
+      const surface =
+        args.on !== undefined ? resolveSurfaceTarget(parsed, args.on) : defaultButtonSurface()
+      if (
+        args.text !== undefined ||
+        args.fontSize !== undefined ||
+        args.color !== undefined ||
+        args.content !== undefined
+      ) {
+        throw new Error(
+          '[error] create custom-button 本轮候选=编辑器默认形态（--text/--color/--font-size/' +
+            '--content 需状态素材或内容载体 donor，尚未差分闭合，见 ' +
+            '.scratch/ui-command-layer/issues/05 open-items）；' +
+            '请先 create 默认按钮，再用后续 edit/state/material 命令配置'
+        )
+      }
+      const result = createButtonCandidate(sourceBytes, {
+        surface,
+        ...(args.newId !== undefined ? { id: args.newId } : {}),
+        ...(args.name !== undefined ? { name: args.name } : {}),
+        ...(args.position !== undefined ? { position: args.position } : {}),
+        ...(args.size !== undefined ? { size: args.size } : {})
+      })
+      const summary: Record<string, unknown> = {
+        schemaVersion: 1,
+        kind: 'ui-create-button-candidate',
+        sourceSha256: sourceHash,
+        surface: result.surface,
+        parentId: result.parentId,
+        newId: result.newId,
+        donorSource: result.donorSource,
+        donorSelfId: result.donorSelfId,
+        donorParentId: result.donorParentId,
+        ...(result.insertAfterId !== undefined ? { insertAfterId: result.insertAfterId } : {})
+      }
+      const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+      log2(`surface=${JSON.stringify(result.surface)}`)
+      log2(`parentId=${result.parentId}`)
+      log2(`newId=${result.newId}`)
+      log2(`donor=${result.donorSource} (${result.donorSelfId}->${result.newId})`)
+      summary.candidateSha256 = sha256(result.bytes)
+      log2(`candidateSha256=${summary.candidateSha256}`)
+      if (args.outputPath) {
+        summary.candidate = writeNew(args.outputPath, result.bytes)
+        log2(`candidate=${summary.candidate}`)
+      } else if (args.write) {
+        // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
+        summary.writeRequiresUserConfirm = true
+        log2('writeRequiresUserConfirm=true (未执行：需用户确认目标地图/容器后单独授权)')
+      } else {
+        summary.previewOnly = true
+        log2('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
+      }
+      log2('editorOrGameValidation=not-performed')
+      if (jsonMode) process.stdout.write(prettyStableJson(summary))
+      return
+    }
     if (args.createType === 'floating-page') {
       const result = args.rich
         ? createFloatingPageRich(sourceBytes, {

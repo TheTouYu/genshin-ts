@@ -246,6 +246,53 @@ function emitVector2(value: readonly [number, number]): Uint8Array {
   ])
 }
 
+/** 供 ui/src create 语义层复用的定点编辑原语（单源实现，避免双份漂移） */
+export function setUiControlName(record: Uint8Array, name: string): Uint8Array {
+  return setUiName(record, name)
+}
+
+/** 供 ui/src create 语义层复用：位置/尺寸按编辑器绝对坐标（1600×900）换算并写回 t12 载体 */
+export function setUiControlTransform(record: Uint8Array, transform: UiTransform): Uint8Array {
+  return setUiTransform(record, transform)
+}
+
+/**
+ * 字节级 ID 重映射：把记录原始字节中所有等于 map 键编码的 varint 片段原位替换为
+ * map 值编码（与 createFloatingPage 的 remapVarintBytes 同款安全语义）。
+ * 约束：from/to 必须等 varint 宽（本仓库 UI 控制 ID 均在 0x40000000..2^31 段，宽 5B；
+ * 越界即报错，fail-closed）。不改动任何未知结构字节——未解码内容原样透传。
+ * 供 ui/src create 候选装配复用（布局/悬浮页按钮自身 ID 与父引用重映射）。
+ */
+export function remapUiRecordVarints(
+  record: Uint8Array,
+  map: Readonly<Record<number, number>>
+): Uint8Array {
+  const entries = Object.entries(map)
+    .map(([key, value]) => [Number(key), value] as const)
+    .filter(([key, value]) => key !== value)
+  if (entries.length === 0) return record
+  let out = Buffer.from(record)
+  for (const [from, to] of entries) {
+    const fromBytes = Buffer.from(encodeVarint(from))
+    const toBytes = Buffer.from(encodeVarint(to))
+    if (fromBytes.length !== toBytes.length) {
+      throw new Error('[error] UI ID remap requires equal varint width（目标 ID 区间越界）')
+    }
+    let cursor = 0
+    for (;;) {
+      const at = out.indexOf(fromBytes, cursor)
+      if (at < 0) break
+      out = Buffer.concat([
+        out.subarray(0, at),
+        toBytes,
+        out.subarray(at + fromBytes.length)
+      ])
+      cursor = at + toBytes.length
+    }
+  }
+  return out
+}
+
 function appendLayoutControlId(top: readonly WireField[], controlId: number): void {
   const root9 = top.find((field) => field.number === 9 && field.wire === 2)
   if (!root9) throw new Error('[error] root 9 not found')
