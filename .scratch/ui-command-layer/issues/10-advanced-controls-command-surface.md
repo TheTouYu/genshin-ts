@@ -9,19 +9,36 @@ templateize 素材树克隆（09 R5 根因）、队列消息项/样式族写入�
 **Blocked by:** 票08 关账（复盘/PKC 先把 09 教训落库，10 开跑前读取）；09 backlog（见
 ui/verification/ticket09-verification-report.md §D 未验证项与本文件下方清单）。
 
-**Status:** ready-for-agent（用户 2026-09-03 定：09 之外的高级控件走本票执行）
+**Status:** 🔶 代码层主体完成（2026-09-03 票10 第一轮：5/8 项字节级闭合 + CLI 全量接线；
+剩 templateize 克隆 / sync / 游戏核验——见文末轮次记录）
 
 ## 范围清单（承接 09 实测暴露 + 设计已定义未实现）
 
-- [ ] 悬浮交互页富版创建/核验（轮24-35 学习资产；老 gil_ui BUILTIN vs 新单条族不一致 → 按新链路 donor 重验）
-- [ ] 页签（tab）体系：页面项/两容器显隐/控件状态/初始生效（轮39-50 规则已闭合，命令未接线）
-- [ ] 素材组成员 add/update 命令（`assets:ui state material add/remove`、`update --target <实例>.<素材树>:<member>`；
-      引擎已具 remove=R3、text/color 改写=R2 patchTextMember，add 待接线）
-- [ ] rich-image 内联图片素材配置（09 R4：图文输入框 create 无图片素材，用户手工补 {5:img_1}）
-- [ ] templateize 素材树克隆（09 R5 根因：模板与实例共享组→删实例后悬空；编辑器语义=模板侧素材副本+同步）
-- [ ] 队列消息项/样式写入（design queue style/message；09 B1d 空队列通过但内容写入未测）
-- [ ] 同步广播 `sync`（layout-instance 整树替换 / floating-page 增量补齐）
-- [ ] 高级控件游戏内核验（同 09 流程：候选→SHA→备份→写回→用户游戏确认→list/anchor/diff 读回）
+- [x] 悬浮交互页富版创建（代码层）：create 重写为新单条族 3 条（轮24 donor，root9 全等重放；
+      旧 BUILTIN 合并形态不再产出）+ container add（轮33）+ 初始生效（轮48/49）+ variable add（轮3）
+      —— floating-page-assert 13/13 PASS；游戏核验并入第 8 项
+- [x] 页签（tab）体系（代码层）：tab create（轮29）+ page add/rename/text（轮30）+ default（轮36/66）
+      + server-event（轮37/38）+ container/control-state（轮39-46，entry 分组序修正）+ CLI 全接线
+      —— tab-assert 19/19 PASS（15 个重放事件 root9 全等）
+- [x] 素材组成员 add/update（代码层）：add（已有组追加=轮15 / 建组+成员=轮16，root9 全等×2）+
+      update（f19 文本/颜色，轮9 复合轮如实降级为自洽断言）+ remove 复用 R3 —— 10/10 PASS
+- [x] rich-image 内联图片素材配置（代码层，09 R4 闭合）：f62 完整块插入（轮21）+ f3 单点换资源
+      （轮22）双 root9 全等 —— 5/5 PASS
+- [ ] templateize 素材树克隆（**未开工**——09 R5 根因仍在，clearButtonStateRefs 兜底在位；
+      donor=轮63/补充2 S5-S10 就绪，引擎设计已定：三侧私有树+旧树物理删除）
+- [x] 队列消息项/样式写入（代码层，09 B1d 闭合）：style add（轮53/54，首空位填充语义）+
+      message add（轮61 前插）+ message style（轮62）+ props（轮55-58 全链）—— 12/12 PASS
+- [ ] 同步广播 `sync`（**未开工**——按钮族整树替换轮17/12 + 悬浮页增量补齐轮25-50 donor 就绪）
+- [ ] 高级控件游戏内核验（待执行——需用户在场；1073741917 候选链已可产出，CLI 冒烟全绿）
+
+## 轮次记录
+
+**第一轮（2026-09-03）**：6 commits——4eb50a0 悬浮页基础 / 5ed2217 页签+wire-safe+L1 升级 /
+3054f17 素材成员 / 217e273 rich-image / 9d5ca08 队列 / f48bc8d CLI 全量接线（+知识回灌 commit）。
+223 断言全绿（59 新 + 164 既有回归）；12 个编辑器事件 root9 逐字节全等重放。
+新基础设施：wire-safe 大值安全层（哨兵/大 varint 往返保真）、section-ops 共享装配内核。
+**下一步**：① templateize 素材树克隆（修 R5 根因）；② sync 双策略；③ 游戏核验批次
+（1073741917：悬浮页富版组合/页签切换/素材成员/rich-image/队列内容/templateize+删除/sync）。
 
 ## 09 移交证据（勿重做）
 
