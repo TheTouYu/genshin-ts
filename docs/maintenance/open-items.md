@@ -666,3 +666,26 @@
 - 待录 claim 方向：①技能变量=全局存储/跨施放保持/服务端零读路径 ②客户端读方向 ~10/s 硬上限与锁步模型
   ③客户端图族写通道节点清单（9 个）④施放节流每造物独立 ⑤服务端定时器 ~0.09s 粒度。
 - 何时做：知识维护者下次处理 football-v2 批次。
+
+### O-2026-09-04-01. 实例层变量声明规则待录 PKC【OPEN-转交知识维护者】
+
+- 证据：复盘 docs/game-engine-knowledge/retrospective-2026-09-04-client-cross-offload.md；CLI 84819bb；
+  日志 3137/3138/3141/3143（用户确认行为层）；probe_var 差分 SHA f66309d7。
+- 待录 claim 方向：①root4 元件 def 声明不传导 root5 场景实例（客户端可见性断层）②场景实例变量 wire
+  = root5.1[entity].7{f1=1}.11（与 root4 定义同构、容器不同）③CLI --entity 自动识别两层级+建槽+sync
+  传导 ④读空排查三连问（声明层级→实体寻址→值落位）。
+- 何时做：知识维护者下次批次。
+
+### O-2026-09-04-02. build 被 football WIP 语法错误阻塞【OPEN】
+
+- 证据：examples/football/src-fb/fb-phys2.ts（'}' expected）+ src-fb/fb-loop-chan.ts 等 unresolved name；
+  tsc 产物滞留 dist.tmp，&& 链不换新 dist。
+- 影响：npm run build 不可用（本轮手动 mv dist.tmp→dist 临时通道）；rubik/其它分支构建依赖此修复。
+- 何时做：football 会话处理其 WIP 后复验正常 build。
+
+### O-2026-09-04-03. 授权≠编辑器已关：注入覆盖事故纪律【OPEN】
+
+- 证据：本会话注入被用户编辑器保存覆盖一次（图回退 259/1 节点，SHA 3e357799→5a4b5af4）；复盘 #1。
+- 教训：此前授权/确认不构成「编辑器当前关闭」的证明；写图前必须当场确认编辑器状态（分支 AGENTS
+  复测协议已有「不得时间重叠」，执行层仍漏——需把确认做成写前固定步骤）。
+- 何时做：下次注入前按此执行；如需固化为通用纪律再议是否升级 AGENTS.md。
