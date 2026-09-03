@@ -176,6 +176,27 @@ references/ui-controls.md 轮18 CLI 含义警示、assets_ui --position 帮助�
   游戏内按钮显示/位置/点击/悬浮页事件（行为层，票 08 等价验收，**用户按验收句式确认**）；
   `--text/--color/--font-size`（素材骨架 donor 未闭合）；容器面 `--position/--size` 字节级
   同参对拍（无编辑器同参样本，仅语义回读）。
-- 波 2（模板化+样式微调）、波 3（运行时显示链路）排期中；全量 npm run build 被 football WIP
-  阻塞的说明见 §4。
+- 波 2 进展：模板化 B1（按钮轮4→5）/B4（库实例轮5→6）/B2（输入框三合一轮22→23）已字节级
+  重放全等（ui/tests/templateize-replay-assert.ts 5/5，提交 56d5d6f）；B3（消息队列轮63 三合一+
+  样式树克隆）与样式微调仍在排期；全量 npm run build 被 football WIP 阻塞的说明见 §4。
 - 本样例全部命令均为只读（候选落 /tmp）；候选文件与 80 快照逐字节对拍见 §2/§3。
+
+## 8. 波 2 · 模板化重放样例（2026-09-03）
+
+```bash
+npx tsx ui/tests/templateize-replay-assert.ts   # 期望 PASS 5 templateize-replay assertions
+```
+
+```
+ok 1 - 模板化重放: 按钮官方单条→模板（轮4→轮5；root9 全等）
+ok 2 - 实例化重放: 模板→库详情实例（轮5→轮6；root9 全等）
+ok 3 - 模板化重放: 图文输入框三合一含自动库实例（轮22→轮23；root9 全等）
+ok 4 - fail-closed: 非官方单条不可模板化（实例/模板拒绝）
+ok 5 - fail-closed: 无 subtype 变体样本的 kind 拒绝（消息队列模板化待轮63 差分）
+PASS 5 templateize-replay assertions
+```
+
+命令面：`assets:ui template create <官方控件ID>`（kind=custom-button→仅模板+升格；kind=input-box→
+三合一自动库实例）；legacy `template create --id --asset` 路径保留。写入规则要点：模板插模板簇末、
+索引插索引头模板簇后、库实例插 1840 成员簇后（轮23 有前置 2034 时在其后）、空容器 f503 缺失时
+新建字段（轮6 +8B 实证）、输入框深链 505.503.19.62.501:1 重指向、subtype 槽家族变体 v1/v2。
