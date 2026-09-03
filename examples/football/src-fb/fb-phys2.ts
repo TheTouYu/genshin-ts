@@ -31,7 +31,7 @@
 //   （getCorrespondingValueFromList(iD, list)；_3dVectorZoom(标量, 向量) 同理反序）。
 import { g } from 'genshin-ts/runtime/core'
 
-import { chanReadF, chanReadF32Group, chanWriteF } from './channels.js'
+import { chanIncr, chanReadF, chanReadF32Group, chanSelfId, chanWriteF } from './channels.js'
 import { FbSignal } from './signals.js'
 
 // ———— 空载形态开关（票 19 两阶段：4.1 注入=IDLE 发 fb_idle_state'V'——fb_server
@@ -74,6 +74,21 @@ const CFG_SX = 1207959576n
 const CFG_SY = 1207959577n
 const CFG_SZ = 1207959578n
 const CFG_ST = 1207959579n
+
+// ———— 5.2b 施放计数槽（相位坍缩破除——用户方案：技能变量协调等新值再动手）————
+// 每实例独占槽（单写者无竞态，chanIncr 纪律）：CR1..4=实验造物 1082130447..450
+// （18-entity-ids 帧值实测）；未知实例共享 CO 溢出槽（并发丢步=backlog 低估=
+// 安全降级，机制不破坏）。backlog=total-tick 自纠：簇内旧值读只延迟一簇收敛，
+// 稳态步率≈总施放率，与相位/距离解耦（CD 错峰路线 3142 实测 7.4/s 判废依据）。
+const CFG_C1 = 1207959580n
+const CFG_C2 = 1207959581n
+const CFG_C3 = 1207959582n
+const CFG_C4 = 1207959583n
+const CFG_CO = 1207959584n
+const CR1 = 1082130447n
+const CR2 = 1082130448n
+const CR3 = 1082130449n
+const CR4 = 1082130450n
 
 g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f) => {
   // ============ ① E2 计数器（观测面保留；E2 定论=每拍复位，恒 1） ============
@@ -193,27 +208,48 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         chanWriteF(f, CFG_ST, f.dataTypeConversion(bSt, 'float'))
       }, () => {})
     }, () => {})
-    // 输入物化（自持组单点读；bootstrap 拍写入后同拍读零延迟——14 票 776/776 实证）。
-    // 组读=前 10 分量（引擎 assemblyList 上限 10——codec"10 分量"的真实约束）；st 单读
-    const g = chanReadF32Group(f, CFG_T, 10)
-    const mTick = f.localVariable('int')
-    const mPos = f.localVariable('vec3')
-    const mVel = f.localVariable('vec3')
-    const mSpin = f.localVariable('vec3')
-    const mSt = f.localVariable('int')
-    mTick.set(f.dataTypeConversion(g[0], 'int'))
-    mPos.set(f.create3dVector(g[1], g[2], g[3]))
-    mVel.set(f.create3dVector(g[4], g[5], g[6]))
-    mSpin.set(f.create3dVector(g[7], g[8], g[9]))
-    mSt.set(f.dataTypeConversion(chanReadF(f, CFG_ST), 'int'))
-    const tick2 = f.dataTypeConversion(chanReadF(f, CFG_T), 'int')
-    f.doubleBranch(f.equal(tick2, mTick.value), () => {
-      // —— 镜像一致：真实任务此时才 ack（撕裂则 tearE，看门狗 4s 重提交不丢任务） ——
-      f.doubleBranch(hasTask, () => {
-        f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'ok', e1, tick.value)
-      }, () => {})
+    // ============ ⑤b 施放计数与积压步数（5.2b 相位坍缩破除） ============
+    // 每实例独占计数槽本拍 +1；backlog = 总施放数 - 当前 tick = 待补步数。
+    // 钳 [1,4]：下界保每拍至少推进 1 步（tick 追 total 不落后），上界限单拍最坏
+    // 负载（≤4×内核）；簇内同拍旧值读只延迟一簇收敛（下簇看到积压逐拍补齐），
+    // 冗余成员的重复发送由服务端 first-wins 拒收，无害。
+    const myGuid = chanSelfId(f)
+    f.doubleBranch(f.equal(myGuid, CR1), () => {
+      chanIncr(f, CFG_C1)
+    }, () => {
+      f.doubleBranch(f.equal(myGuid, CR2), () => {
+        chanIncr(f, CFG_C2)
+      }, () => {
+        f.doubleBranch(f.equal(myGuid, CR3), () => {
+          chanIncr(f, CFG_C3)
+        }, () => {
+          f.doubleBranch(f.equal(myGuid, CR4), () => {
+            chanIncr(f, CFG_C4)
+          }, () => {
+            chanIncr(f, CFG_CO)
+          })
+        })
+      })
+    })
+    const c1 = f.dataTypeConversion(chanReadF(f, CFG_C1), 'int')
+    const c2 = f.dataTypeConversion(chanReadF(f, CFG_C2), 'int')
+    const c3 = f.dataTypeConversion(chanReadF(f, CFG_C3), 'int')
+    const c4 = f.dataTypeConversion(chanReadF(f, CFG_C4), 'int')
+    const co = f.dataTypeConversion(chanReadF(f, CFG_CO), 'int')
+    const totalCasts = c1 + c2 + c3 + c4 + co
+    const tickNow = f.dataTypeConversion(chanReadF(f, CFG_T), 'int')
+    const backlog = f.localVariable('int')
+    backlog.set(f.subtraction(totalCasts, tickNow))
+    const steps = f.localVariable('int')
+    steps.set(backlog.value)
+    f.doubleBranch(f.lessThan(backlog.value, 1n), () => {
+      steps.set(1n)
+    }, () => {})
+    f.doubleBranch(f.greaterThan(backlog.value, 4n), () => {
+      steps.set(4n)
+    }, () => {})
 
-      // ============ ⑥ 参数组 19 当拍物化（不变量 1：多消费点先物化快照） ============
+    // ============ ⑥ 参数组 19 物化（5.2b 上提每施放一次；循环步共享，免 19×K 慢读） ============
       const pv = (name: string) => f.getCustomVariable(ballRef.value, name).asType('float')
       const pDt = f.localVariable('float')
       const pR = f.localVariable('float')
@@ -254,46 +290,87 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       pRefl.set(pv('fb_p_post_refl'))
       pNet.set(pv('fb_p_net_damp'))
 
-      // ============ ⑦ 输入选择（任务覆盖镜像；物化后下游零重读） ============
-      const b2f = (b: boolean) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
-      const bKick = b2f(f.equal(tPend.value, 1n))
-      const bReset = b2f(f.equal(tPend.value, 2n))
-      const bTask = f.addition(bKick, bReset) // 互斥 → 0/1
-      const posIn = f.localVariable('vec3')
-      const velIn = f.localVariable('vec3')
-      const spinIn = f.localVariable('vec3')
-      const stIn = f.localVariable('float')
-      posIn.set(
+    // ============ ⑦b 任务预应用（任务边界条件直写自持组；原⑦混合式的等价改写） ============
+    // 任务拍一次性把覆盖态写进组（KICK 速度/自旋覆盖；RESET 位置/速度/状态覆盖+自旋
+    // 清零——式子与原⑦逐项相同），ack 移至写组后（整组覆写后即一致）。任务=人手
+    // 速率低频，与并发步写的碰撞窗口可忽略（如实标注）；循环步从组态续算。
+    // 任务混合系数（每施放一次；⑦b 预应用与内核 ⑧ kickLoft 路由共用）
+    const b2f = (b: boolean) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
+    const bKick = b2f(f.equal(tPend.value, 1n))
+    const bReset = b2f(f.equal(tPend.value, 2n))
+    const bTask = f.addition(bKick, bReset) // 互斥 → 0/1
+    f.doubleBranch(hasTask, () => {
+      const g0 = chanReadF32Group(f, CFG_T, 10)
+      const gv = (i: bigint) => f.getCorrespondingValueFromList(i, g0)
+      const p0 = f.create3dVector(gv(1n), gv(2n), gv(3n))
+      const v0 = f.create3dVector(gv(4n), gv(5n), gv(6n))
+      const s0 = f.create3dVector(gv(7n), gv(8n), gv(9n))
+      const st0 = f.dataTypeConversion(chanReadF(f, CFG_ST), 'int')
+      const po = f.split3dVector(
         f._3dVectorAddition(
           f._3dVectorZoom(bReset, tPos.value),
-          f._3dVectorZoom(f.subtraction(1, bReset), mPos.value)
+          f._3dVectorZoom(f.subtraction(1, bReset), p0)
         )
       )
-      velIn.set(
+      const vo = f.split3dVector(
         f._3dVectorAddition(
           f._3dVectorZoom(bTask, tVel.value),
-          f._3dVectorZoom(f.subtraction(1, bTask), mVel.value)
+          f._3dVectorZoom(f.subtraction(1, bTask), v0)
         )
       )
       // RESET 自旋清零（载荷无自旋字段）；KICK 用任务自旋；否则镜像
-      spinIn.set(
+      const so = f.split3dVector(
         f._3dVectorAddition(
           f._3dVectorZoom(bKick, tSpin.value),
           f._3dVectorZoom(
             f.subtraction(1, bKick),
-            f._3dVectorZoom(f.subtraction(1, bReset), mSpin.value)
+            f._3dVectorZoom(f.subtraction(1, bReset), s0)
           )
         )
       )
-      stIn.set(
-        f.addition(
-          f.multiplication(bReset, f.dataTypeConversion(tSt.value, 'float')),
-          f.multiplication(
-            f.subtraction(1, bReset),
-            f.dataTypeConversion(mSt.value, 'float')
-          )
-        )
+      const stO = f.addition(
+        f.multiplication(bReset, f.dataTypeConversion(tSt.value, 'float')),
+        f.multiplication(f.subtraction(1, bReset), f.dataTypeConversion(st0, 'float'))
       )
+      chanWriteF(f, CFG_PX, po.xComponent)
+      chanWriteF(f, CFG_PY, po.yComponent)
+      chanWriteF(f, CFG_PZ, po.zComponent)
+      chanWriteF(f, CFG_VX, vo.xComponent)
+      chanWriteF(f, CFG_VY, vo.yComponent)
+      chanWriteF(f, CFG_VZ, vo.zComponent)
+      chanWriteF(f, CFG_SX, so.xComponent)
+      chanWriteF(f, CFG_SY, so.yComponent)
+      chanWriteF(f, CFG_SZ, so.zComponent)
+      chanWriteF(f, CFG_ST, stO)
+      f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'ok', e1, tick.value)
+    }, () => {})
+
+    // ============ ⑤c 逐步循环（每步=一完整物理拍：组读→撕裂门→内核→发送→写回） ============
+    // 组态每步重读（跨步状态经自持组传递）；上界动态（steps=backlog 钳 [1,4]）。
+    f.finiteLoop(0n, f.subtraction(steps.value, 1n), () => {
+      const g = chanReadF32Group(f, CFG_T, 10)
+      const gv = (i: bigint) => f.getCorrespondingValueFromList(i, g)
+      const mTick = f.localVariable('int')
+      const mPos = f.localVariable('vec3')
+      const mVel = f.localVariable('vec3')
+      const mSpin = f.localVariable('vec3')
+      const mSt = f.localVariable('int')
+      mTick.set(f.dataTypeConversion(gv(0n), 'int'))
+      mPos.set(f.create3dVector(gv(1n), gv(2n), gv(3n)))
+      mVel.set(f.create3dVector(gv(4n), gv(5n), gv(6n)))
+      mSpin.set(f.create3dVector(gv(7n), gv(8n), gv(9n)))
+      mSt.set(f.dataTypeConversion(chanReadF(f, CFG_ST), 'int'))
+      const tick2 = f.dataTypeConversion(chanReadF(f, CFG_T), 'int')
+      f.doubleBranch(f.equal(tick2, mTick.value), () => {
+      // ============ ⑦' 步输入直通（任务已预应用进组；原混合式由 ⑦b 等价承接） ============
+      const posIn = f.localVariable('vec3')
+      const velIn = f.localVariable('vec3')
+      const spinIn = f.localVariable('vec3')
+      const stIn = f.localVariable('float')
+      posIn.set(mPos.value)
+      velIn.set(mVel.value)
+      spinIn.set(mSpin.value)
+      stIn.set(f.dataTypeConversion(mSt.value, 'float'))
 
       // ============ ⑧ 六态积分一拍（无循环全闭式；双管线数据选择路由） ============
       // 路由：镜像态<2（Airborne/Bouncing）走飞行管线；踢球带 vy 分量也走飞行
@@ -641,19 +718,6 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       chanWriteF(f, CFG_SZ, ss.zComponent)
       chanWriteF(f, CFG_ST, f.dataTypeConversion(nextSt, 'float'))
 
-      // ============ ⑭ E5 观测链（仅任务拍发送——04 注入实测每计算拍发=5Hz 服务端打点 ×2，  ============
-      // 洪泛拖卡；任务拍每会话个位数次，证据足够。对账非关键路径；失败零阻塞可删）
-      f.doubleBranch(hasTask, () => {
-        const eloc = f.getEntityLocation(ballRef.value)
-        const dmm = f.dataTypeConversion(
-          f.multiplication(
-            f._3dVectorModuloOperation(f._3dVectorSubtraction(eloc, mPos.value)),
-            FIXK
-          ),
-          'int'
-        )
-        f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'e5', dmm, tick.value)
-      }, () => {})
     }, () => {
       // —— 镜像撕裂：任务拍 tearE（不 ack → 看门狗重提交）；拍门拍 'T'（不应用，重算） ——
       f.doubleBranch(hasTask, () => {
@@ -670,5 +734,19 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         )
       })
     })
+    }) // —— ⑤c 逐步循环闭 ——
+    // ============ ⑭ E5 观测链（每施放一次，组态现读——5.2b 自循环上提；仅任务拍） ============
+    f.doubleBranch(hasTask, () => {
+      const eloc = f.getEntityLocation(ballRef.value)
+      const ePos = f.create3dVector(chanReadF(f, CFG_PX), chanReadF(f, CFG_PY), chanReadF(f, CFG_PZ))
+      const dmm = f.dataTypeConversion(
+        f.multiplication(
+          f._3dVectorModuloOperation(f._3dVectorSubtraction(eloc, ePos)),
+          FIXK
+        ),
+        'int'
+      )
+      f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'e5', dmm, tick.value)
+    }, () => {})
   }, () => {})
 })
