@@ -27,8 +27,6 @@ import {
   TT_RESET
 } from './fb-shared.js'
 
-// 渲染定时器请求间隔（0.09s——实测粒度 ~0.045-0.09 抖动，0.05 会飙 ~20/s；0.09 封顶 ~10/s）
-const RENDER_INT_S = 0.09
 // 瞬移判定阈值：镜像新位置与实体当前位置差 >10m = RESET/进球复位大跳（INSTANT 瞬移防
 // 百米条纹）；常态飞行 30m/s×0.09s≈2.7m/渲染拍远小于阈值；丢拍续滑恢复也走瞬移（跳回
 // 优于拉条纹）。30m/s 是选项表上界 24.51 之上留余量。
@@ -87,7 +85,10 @@ const graph = g
         t8: new int(SEED_ST)
       })
       f.printString('fb:seed')
-      f.startTimer(ball, 'fb_render', true, [RENDER_INT_S])
+      // 渲染节拍参数化（用户 2026-09-03 定：不写死；按球实体变量 fb_p_drive 设置走，
+      // 与 fbDrive 设备时长同源 → 间隔=时长匀速分段平滑；改变量后重进图生效）
+      const renderInt = f.getCustomVariable(ball, 'fb_p_drive').asType('float')
+      f.startTimer(ball, 'fb_render', true, f.assemblyList([renderInt], 'float'))
       // R3 自动锚点序列武装（fb_test_mode=1；2m 落体种子 Rest 后自动开跑）
       const tm = f.getCustomVariable(ball, 'fb_test_mode').asType('int')
       f.doubleBranch(f.equal(tm, 1n), () => {
