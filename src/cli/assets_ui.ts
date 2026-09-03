@@ -746,9 +746,17 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
           summary.candidate = writeNew(args.outputPath, result.bytes)
           log2(`candidate=${summary.candidate}`)
         } else if (args.write) {
-          // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
-          summary.writeRequiresUserConfirm = true
-          log2('writeRequiresUserConfirm=true (未执行：需用户确认目标地图后单独授权)')
+          if (!args.yes) {
+            // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
+            summary.writeRequiresUserConfirm = true
+            log2('writeRequiresUserConfirm=true (未执行：--write 须附 --yes，授权窗口仅限本票确认的目标地图)')
+          } else {
+            const mapId = projectConfig?.inject?.mapId
+            summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+            summary.writePerformed = true
+            log2(`backup=${summary.backup}`)
+            log2('writePerformed=true')
+          }
         } else {
           summary.previewOnly = true
           log2('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
@@ -813,9 +821,17 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         summary.candidate = writeNew(args.outputPath, result.bytes)
         log2(`candidate=${summary.candidate}`)
       } else if (args.write) {
-        // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
-        summary.writeRequiresUserConfirm = true
-        log2('writeRequiresUserConfirm=true (未执行：需用户确认目标地图/容器后单独授权)')
+        if (!args.yes) {
+          // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
+          summary.writeRequiresUserConfirm = true
+          log2('writeRequiresUserConfirm=true (未执行：--write 须附 --yes，授权窗口仅限本票确认的目标地图/容器)')
+        } else {
+          const mapId = projectConfig?.inject?.mapId
+          summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+          summary.writePerformed = true
+          log2(`backup=${summary.backup}`)
+          log2('writePerformed=true')
+        }
       } else {
         summary.previewOnly = true
         log2('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
