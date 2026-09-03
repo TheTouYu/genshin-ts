@@ -573,7 +573,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         posF.set(f.create3dVector(wp.xComponent, pR.value, wp.zComponent))
         // —— 5.3f 反弹冲量（sim resolveImpact 全套：法向 e 反射 + 切向库仑摩擦 μ=0.45） ——
         // 滑移（接触点切向）：slipX = vx + ωz·r；slipZ = vz − ωx·r（ωy 不参与——地面
-        // 摩擦不产生垂直轴扭矩，物理正确）；实心球 m·r/I=2.5/r → Δωx=scale·slipZ/r,
+        // 摩擦不产生垂直轴扭矩，物理正确）；薄壁壳 m·r/I=1.5/r → Δωx=0.6·scale·slipZ/r,
         // Δωz=−scale·slipX/r；切向冲量 v−=0.4·scale·slip；预算钳制
         // scale=min(1, μ·(1+e)·|vy|/(0.4·slipMag))，μ/0.4=1.125（μ=0.45 sim 硬地）
         const s0 = f.split3dVector(spinSel)
@@ -613,17 +613,19 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
             )
           )
         )
-        // 摩擦把切向滑移转成自旋（反弹吃草效应：带旋球落地滚向改变）
+        // 摩擦把切向滑移转成自旋（反弹吃草效应：带旋球落地滚向改变）。
+        // 5.3f2 惯量修正：实心球 0.4·m·r² → 薄壁球壳 2/3·m·r²（sim/真实足球），
+        // Δω = r·J/I 且 J=−0.4·m·slip → 系数 = 0.4/(2/3) = 0.6（原 1.0 偏大 40%）
         spinOut.set(
           f.create3dVector(
             f.addition(
               s0.xComponent,
-              f.division(f.multiplication(scale.value, slipZ), pR.value)
+              f.division(f.multiplication(f.multiplication(new float(0.6), scale.value), slipZ), pR.value)
             ),
             s0.yComponent,
             f.subtraction(
               s0.zComponent,
-              f.division(f.multiplication(scale.value, slipX), pR.value)
+              f.division(f.multiplication(f.multiplication(new float(0.6), scale.value), slipX), pR.value)
             )
           )
         )
