@@ -152,13 +152,20 @@ ERROR: [error] 1073742085 不是悬浮页容器（kind=close-button 属控件/�
 
 ```
 baseSha:   7f425bf2da5e7bf000b9fcc280c377c312d16994ef025d818a27b5f0b6d6c1a2  (live 现态)
-candSha:   285a13be7f57d3413398f1c09e06b86bc85ab6e4ed7898174551dbdcdd873762
+candSha:   285a13be7f57d3413398f1c09e06b86bc85ab6e4ed7898174551dbdcdd873762   ← 当前 live（初版位置）
 写入内容:  布局「游戏主菜单」1073742164（克隆默认布局 14 官方预置 2165..2178）
           + 标题文本框 2155 / 玩家名输入框 2141 / 开始游戏 2140 / 设置 2139 / 退出 2138
 backup:    Beyond_Local_Save_Level/.gsts/backups/1073741909.gil.<stamp>.wave1.bak
 readback:  records 108→128，layouts=4，语义路径 布局:游戏主菜单:* 全 PASS
 temp sync: Temp/1073741909.gil 已同步
 ```
+
+⚠️ **位置方向修正（2026-09-03 用户纠偏）**：编辑器坐标系 y 向上（0=屏幕底/900=顶，知识权威
+轮18 已写明「左下角原点、x 右 y 上」）——初版按 y 向下写（230→580）导致菜单整列镜像。
+修正候选已生成未写回：`/tmp/wave1-menu-fix.gil`（SHA `5be57b90…`，五个控件位置
+670/570/470/395/320，语义回读 PASS）；**live 当前仍是初版倒置位置（285a13be…），
+写回待用户指令**。方向约定已同步：ui/AGENTS.md 坐标速记、mappings §0、
+references/ui-controls.md 轮18 CLI 含义警示、assets_ui --position 帮助、create.ts 参数注释。
 
 验收：编辑器打开 → 界面控件组管理 → 布局「游戏主菜单」看排版（AI 默认摆位仅供细排起点，
 玩家拖动后 AI 可用 diff 识别改动）。

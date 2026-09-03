@@ -66,7 +66,8 @@ export interface CreateUiCandidateOptions {
   id?: number
   /** 控件名（默认沿用 donor 的编辑器默认名，如「自定义按钮/文本框/图文输入框…」） */
   name?: string
-  /** 位置=控件中心绝对坐标（1600×900；内部换算 wire=C−(800,450)） */
+  /** 位置=控件中心绝对坐标（1600×900；编辑器坐标 y 向上：0=屏幕底、900=屏幕顶，视觉越靠上 y 越大；
+   *  内部换算 wire=C−(800,450)——轮18 贴边公式 上缘中心 y=900−h/2−m 同口径） */
   position?: readonly [number, number]
   size?: readonly [number, number]
   /** 物理插入锚点：插到该记录之后（与编辑器样本逐字节对拍时用）；默认追加 502 段尾 */

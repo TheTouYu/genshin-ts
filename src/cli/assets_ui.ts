@@ -106,7 +106,7 @@ function usage(exitCode = 1): never {
     '  --text <text>           L2 create: button display text (fail-closed this round)',
     '  --asset <id>            image control: 素材索引 ID (= 素材库容器 ID)',
     '  --layout <id>           image control: 目标布局 ID (default 1073741825 默认布局)',
-    '  --position <x,y>        set position (screen-center offset)',
+    '  --position <x,y>        set center position (editor coords; y 向上: 0=bottom, 900=top)',
     '  --size <w,h>            set size (width,height)',
     '  --format <text|json>    output format (default: text)',
     '  -h, --help              show help',
