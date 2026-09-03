@@ -105,6 +105,18 @@ const graph = g
         const ld = f.getNodeGraphVariable('fb_last_drv').asType('int')
         f.doubleBranch(f.logicalNotOperation(f.equal(mt, ld)), () => {
           f.setNodeGraphVariable('fb_last_drv', mt, false)
+          const mSt = f.getCustomVariable(ballR, 'fb_ball_state').asType('int')
+          const ldSt = f.getNodeGraphVariable('fb_prev_st').asType('int')
+          // —— 5.3f 静止稳态提前停：state=Rest 且上拍也是 Rest → 跳过整条驱动链
+          //（读 pos/spin/实体位/距离/驱动 ~80f→0；Rest 连续回传 tick 照变但视觉零动作；
+          //  运动进入拍 state≠Rest 自然走全链，prev_st 语义不变）——
+          const restSteady = f.logicalAndOperation(
+            f.equal(mSt, ST_REST),
+            f.equal(ldSt, ST_REST)
+          )
+          f.doubleBranch(restSteady, () => {
+            // 零动作：只推进 prev_st 维护（保持 Rest）
+          }, () => {
           const mPos = f.create3dVector(
             f.getCustomVariable(ballR, 'fb_ball_px').asType('float'),
             f.getCustomVariable(ballR, 'fb_ball_py').asType('float'),
@@ -115,7 +127,6 @@ const graph = g
             f.getCustomVariable(ballR, 'fb_ball_sy').asType('float'),
             f.getCustomVariable(ballR, 'fb_ball_sz').asType('float')
           )
-          const mSt = f.getCustomVariable(ballR, 'fb_ball_state').asType('int')
           const loc = f.getEntityLocationAndRotation(ballR).location
           // —— Rest 到位跳过：state=Rest 且实体已贴镜像位 → 零驱动（静止零设备）——
           const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(mPos, loc))
@@ -295,6 +306,7 @@ const graph = g
             f.setNodeGraphVariable('fb_scored', new bool(true), false)
           }, () => {
           })
+          }) // —— restSteady false 分支闭（全链尾） ——
         }, () => {
           // —— 镜像未变：零动作（静止零定时器之外的最轻闲置）——
         })

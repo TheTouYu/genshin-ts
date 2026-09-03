@@ -253,7 +253,6 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const pKwA = f.localVariable('float')
       const pKwG = f.localVariable('float')
       const pE = f.localVariable('float')
-      const pFx = f.localVariable('float')
       const pWall = f.localVariable('float')
       const pSlide = f.localVariable('float')
       const pRoll = f.localVariable('float')
@@ -272,7 +271,6 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       pKwA.set(pv('fb_p_kw_air'))
       pKwG.set(pv('fb_p_kw_gnd'))
       pE.set(pv('fb_p_ground_e'))
-      pFx.set(pv('fb_p_ground_fx'))
       pWall.set(pv('fb_p_wall_e'))
       pSlide.set(pv('fb_p_slide_decel'))
       pRoll.set(pv('fb_p_roll_decel'))
@@ -569,20 +567,71 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       )
       const posF = f.localVariable('vec3')
       const velF = f.localVariable('vec3')
+      const spinOut = f.localVariable('vec3')
       const impact = f.localVariable('bool')
       f.doubleBranch(gHit, () => {
         posF.set(f.create3dVector(wp.xComponent, pR.value, wp.zComponent))
+        // —— 5.3f 反弹冲量（sim resolveImpact 全套：法向 e 反射 + 切向库仑摩擦 μ=0.45） ——
+        // 滑移（接触点切向）：slipX = vx + ωz·r；slipZ = vz − ωx·r（ωy 不参与——地面
+        // 摩擦不产生垂直轴扭矩，物理正确）；实心球 m·r/I=2.5/r → Δωx=scale·slipZ/r,
+        // Δωz=−scale·slipX/r；切向冲量 v−=0.4·scale·slip；预算钳制
+        // scale=min(1, μ·(1+e)·|vy|/(0.4·slipMag))，μ/0.4=1.125（μ=0.45 sim 硬地）
+        const s0 = f.split3dVector(spinSel)
+        const slipX = f.addition(wv.xComponent, f.multiplication(s0.zComponent, pR.value))
+        const slipZ = f.subtraction(wv.zComponent, f.multiplication(s0.xComponent, pR.value))
+        const slipMag = f._3dVectorModuloOperation(f.create3dVector(slipX, 0, slipZ))
+        const ratio = f.division(
+          f.multiplication(
+            new float(1.125),
+            f.multiplication(
+              f.absoluteValueOperation(wv.yComponent),
+              f.addition(new float(1), pE.value)
+            )
+          ),
+          slipMag
+        )
+        const scale = f.localVariable('float')
+        f.doubleBranch(f.greaterThan(slipMag, new float(0.0001)), () => {
+          f.doubleBranch(f.greaterThan(ratio, new float(1)), () => {
+            scale.set(new float(1))
+          }, () => {
+            scale.set(ratio)
+          })
+        }, () => {
+          scale.set(new float(0))
+        })
         velF.set(
           f.create3dVector(
-            f.multiplication(wv.xComponent, pFx.value),
+            f.subtraction(
+              wv.xComponent,
+              f.multiplication(f.multiplication(new float(0.4), scale.value), slipX)
+            ),
             f.multiplication(wv.yComponent, f.subtraction(0, pE.value)),
-            f.multiplication(wv.zComponent, pFx.value)
+            f.subtraction(
+              wv.zComponent,
+              f.multiplication(f.multiplication(new float(0.4), scale.value), slipZ)
+            )
+          )
+        )
+        // 摩擦把切向滑移转成自旋（反弹吃草效应：带旋球落地滚向改变）
+        spinOut.set(
+          f.create3dVector(
+            f.addition(
+              s0.xComponent,
+              f.division(f.multiplication(scale.value, slipZ), pR.value)
+            ),
+            s0.yComponent,
+            f.subtraction(
+              s0.zComponent,
+              f.division(f.multiplication(scale.value, slipX), pR.value)
+            )
           )
         )
         impact.set(true)
       }, () => {
         posF.set(posW.value)
         velF.set(velW.value)
+        spinOut.set(spinSel)
         impact.set(false)
       })
 
@@ -650,7 +699,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         mTick.value,
         posF.value,
         velF.value,
-        spinSel,
+        spinOut.value,
         nextSt
       )
 
@@ -665,7 +714,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       chanWriteF(f, CFG_VX, fv.xComponent)
       chanWriteF(f, CFG_VY, fv.yComponent)
       chanWriteF(f, CFG_VZ, fv.zComponent)
-      const ss = f.split3dVector(spinSel)
+      const ss = f.split3dVector(spinOut.value)
       chanWriteF(f, CFG_SX, ss.xComponent)
       chanWriteF(f, CFG_SY, ss.yComponent)
       chanWriteF(f, CFG_SZ, ss.zComponent)
