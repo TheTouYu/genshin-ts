@@ -32,6 +32,7 @@ import { CREATE_DONORS } from '../src/create-donors.js'
 import type { UiCreateDonor } from '../src/create-donors.js'
 import {
   allocateControlId,
+  createLayoutCandidate,
   createUiCandidate,
   ownerFloatingPageId,
   resolveSurfaceTarget
@@ -537,6 +538,81 @@ ok('fail-closed: message-queue 容器面无样本 → 显式报错（不猜字�
       }),
     /message-queue 容器面无编辑器新建样本/
   )
+})
+
+// ============ H. 布局创建（轮1/2 双样本重放 + 全量冒烟） ============
+const ROUND1_BEFORE = '1073741909.before-重启1-60a8692d.gil'
+const ROUND1_AFTER = '1073741909.after-重启1-自定义布局-987a4388.gil'
+const ROUND2_BEFORE = ROUND1_AFTER
+const ROUND2_AFTER = '1073741909.after-重启2-自定义布局2-872ec254.gil'
+
+ok('布局创建: 轮0→轮1 重放（新布局 1989 + 14 官方克隆，root9 全等 + root46 审计登记）', () => {
+  const before = load(ROUND1_BEFORE)
+  const after = load(ROUND1_AFTER)
+  const result = createLayoutCandidate(before, { name: '自定义布局' })
+  assert.equal(result.layoutId, 1073741989)
+  assert.equal(result.officialsCount, 14)
+  assert.equal(result.memberIds.length, 14)
+  assert.equal(result.memberIds[0], 1073741990)
+  assert.equal(result.memberIds[13], 1073742003)
+  assertReplayEquals(result.bytes, after, '布局创建 轮1')
+})
+
+ok('布局创建: 轮1→轮2 重放（重名自动去重 _1，新布局 2004 + 14 克隆）', () => {
+  const before = load(ROUND2_BEFORE)
+  const after = load(ROUND2_AFTER)
+  const result = createLayoutCandidate(before, { name: '自定义布局' })
+  assert.equal(result.name, '自定义布局_1')
+  assert.equal(result.layoutId, 1073742004)
+  assert.equal(result.memberIds.length, 14)
+  assert.equal(result.memberIds[13], 1073742018)
+  assertReplayEquals(result.bytes, after, '布局创建 轮2')
+})
+
+ok('全量快照: 80 个文件逐一布局创建冒烟（+1+14 记录/成员/父引用/其余零改动）', () => {
+  const files = fs
+    .readdirSync(FIXTURES)
+    .filter((f) => f.endsWith('.gil'))
+    .sort()
+  assert.equal(files.length, 80)
+  for (const file of files) {
+    const before = load(file)
+    const beforeParsed = parse(before)
+    const defaultMeta = beforeParsed.recordsById.get(DEFAULT_LAYOUT_ID)
+    assert.ok(defaultMeta, `${file}: 无默认布局`)
+    const f503 = defaultMeta!.fields.find((f) => f.number === 503 && f.wire === 2)
+    assert.ok(f503, `${file}: 默认布局无成员`)
+    const members = f503 ? packed(f503.value as Uint8Array) : []
+    const officialCount = members.filter(
+      (id) => beforeParsed.recordsById.get(id)?.kind === 'official'
+    ).length
+    assert.ok(officialCount >= 1, `${file}: 无官方预置`)
+    const result = createLayoutCandidate(before, { name: `布局冒烟${file.slice(0, 4)}` })
+    const afterParsed = parse(result.bytes)
+    assert.ok(afterParsed.recordsById.has(result.layoutId), `${file}: 布局记录缺失`)
+    assert.equal(
+      afterParsed.records.length,
+      beforeParsed.records.length + 1 + result.memberIds.length,
+      `${file}: 记录数增量错误`
+    )
+    // 新布局成员 = 克隆 ID；克隆父引用 = 新布局
+    const layoutRec = afterParsed.recordsById.get(result.layoutId)!
+    const memberField = layoutRec.fields.find((f) => f.number === 503 && f.wire === 2)!
+    const layoutMembers = packed(memberField.value as Uint8Array)
+    assert.deepEqual(layoutMembers, result.memberIds, `${file}: 成员列表`)
+    for (const id of result.memberIds) {
+      const clone = afterParsed.recordsById.get(id)
+      assert.ok(clone, `${file}: 克隆缺失 ${id}`)
+      assert.equal(clone.parentId, result.layoutId, `${file}: 克隆父引用 ${id}`)
+      assert.equal(clone.kind, 'official', `${file}: 克隆 kind ${id}`)
+    }
+    // 既有记录逐字节零改动（索引字段非 502 记录，不在 records 集合内）
+    for (const r of beforeParsed.records) {
+      const same = afterParsed.recordsById.get(r.id)
+      assert.ok(same, `${file}: 既有记录消失 ${r.id}`)
+      assert.equal(Buffer.from(same.raw).equals(Buffer.from(r.raw)), true, `${file}: 既有记录被改动`)
+    }
+  }
 })
 
 function packed(data: Uint8Array): number[] {

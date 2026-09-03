@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 
 import { mapIdFromGil } from '../../ui/src/anchor.js'
 import {
+  createLayoutCandidate,
   createUiCandidate,
   defaultCreateSurface,
   resolveSurfaceTarget
@@ -54,15 +55,16 @@ type TemplateSub = 'list' | 'clone' | 'create'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
 
-/** create --type 可接受 token（legacy + 票05 L2 语义 kind） */
-type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue'
+/** create --type 可接受 token（legacy + 票05 L2 语义 kind + 布局创建） */
+type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue' | 'layout'
 /** L2 语义 create 路由 kind（donor 支持矩阵见 ui/src/create.ts）；其余走 legacy 旧契约 */
 const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
   'custom-button',
   'textbox',
   'image',
   'input-box',
-  'message-queue'
+  'message-queue',
+  'layout'
 ])
 
 function usage(exitCode = 1): never {
@@ -81,6 +83,8 @@ function usage(exitCode = 1): never {
     '  create (L2, 票05): gsts assets:ui create --type custom-button|textbox|image|input-box|message-queue',
     '                     --on layout:<ID|名称>|container:<容器ID>|悬浮页:<页ID|名>:<容器ID>',
     '                     [--id <new-id>] [--name <n>] [--position <x,y>] [--size <w,h>] [--output <file>]',
+    '  create layout:    gsts assets:ui create --type layout [--name <布局名>] [--id <起始ID>] [--output <file>]',
+    '                     # 新建布局=克隆默认布局官方预置全集（轮1/2）；名字重名自动 _1/_2',
     '                     # donor 支持矩阵=真实编辑器样本：按钮 轮4/26；输入框 轮19/64；文本框/图片 轮64；队列 轮51(仅布局)',
     '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
@@ -232,11 +236,12 @@ function parseArgs(argv: readonly string[]) {
         raw !== 'image' &&
         raw !== 'floating-page' &&
         raw !== 'input-box' &&
-        raw !== 'message-queue'
+        raw !== 'message-queue' &&
+        raw !== 'layout'
       ) {
         throw new Error(
           '[error] --type must be textbox, interactive-button, custom-button, image, ' +
-            'floating-page, input-box or message-queue'
+            'floating-page, input-box, message-queue or layout'
         )
       }
       createType = raw
@@ -276,7 +281,10 @@ function parseArgs(argv: readonly string[]) {
   // 票05 L2：语义 kind 允许不指定 --id（候选分配器避让扫描）；
   // custom-button/input-box/message-queue 默认布局直达；textbox/image 需显式 --on 才走语义路径
   const semanticAutoId =
-    createType === 'custom-button' || createType === 'input-box' || createType === 'message-queue'
+    createType === 'custom-button' ||
+    createType === 'input-box' ||
+    createType === 'message-queue' ||
+    createType === 'layout'
   const semanticViaOn =
     onRaw !== undefined && (createType === 'textbox' || createType === 'image')
   if (command === 'create' && newId === undefined && !(semanticAutoId || semanticViaOn)) {
@@ -615,13 +623,56 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   if (args.command === 'create') {
     const createKind = args.createType
     const semanticAuto =
-      createKind === 'custom-button' || createKind === 'input-box' || createKind === 'message-queue'
+      createKind === 'custom-button' ||
+      createKind === 'input-box' ||
+      createKind === 'message-queue' ||
+      createKind === 'layout'
     const semanticOn =
       createKind !== undefined &&
       (createKind === 'textbox' || createKind === 'image') &&
       args.on !== undefined &&
       args.assetId === undefined
     if (createKind !== undefined && (semanticAuto || semanticOn)) {
+      if (createKind === 'layout') {
+        // 新建布局：克隆默认布局官方预置全集（轮1/2 双样本）；不落放置面
+        if (args.on !== undefined || args.position !== undefined || args.size !== undefined) {
+          throw new Error('[error] create --type layout 不接受 --on/--position/--size（布局非放置面控件）')
+        }
+        const result = createLayoutCandidate(sourceBytes, {
+          ...(args.name !== undefined ? { name: args.name } : {}),
+          ...(args.newId !== undefined ? { id: args.newId } : {})
+        })
+        const summary: Record<string, unknown> = {
+          schemaVersion: 1,
+          kind: 'ui-create-layout-candidate',
+          sourceSha256: sourceHash,
+          name: result.name,
+          layoutId: result.layoutId,
+          memberIds: result.memberIds,
+          officialsCount: result.officialsCount
+        }
+        const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+        log2(`name=${result.name}`)
+        log2(`layoutId=${result.layoutId}`)
+        log2(`officialsCount=${result.officialsCount}`)
+        log2(`memberIds=${result.memberIds.join(',')}`)
+        summary.candidateSha256 = sha256(result.bytes)
+        log2(`candidateSha256=${summary.candidateSha256}`)
+        if (args.outputPath) {
+          summary.candidate = writeNew(args.outputPath, result.bytes)
+          log2(`candidate=${summary.candidate}`)
+        } else if (args.write) {
+          // 真实写回只允许在用户确认目标/环境后执行（票05 安全门：SHA→候选→确认→写回→回读）
+          summary.writeRequiresUserConfirm = true
+          log2('writeRequiresUserConfirm=true (未执行：需用户确认目标地图后单独授权)')
+        } else {
+          summary.previewOnly = true
+          log2('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
+        }
+        log2('editorOrGameValidation=not-performed')
+        if (jsonMode) process.stdout.write(prettyStableJson(summary))
+        return
+      }
       // 票05 L2 语义面：官方单条 donor 装配（--on 放置面；--id 缺省=避让分配）
       const parsed = parseRoot9(sourceBytes)
       const surface =

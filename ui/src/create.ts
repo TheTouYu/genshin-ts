@@ -9,6 +9,8 @@
  *     （轮64 规则 2：官方控件内容与放置面无关、仅 f504 不同——输入框 2079/2157 已实测同构）
  *   - image：container（轮64）；layout 面同上回退
  *   - message-queue：layout（轮51）；container 面无样本 → fail-closed
+ *   - layout（新建布局）：克隆默认布局官方预置全集（轮1/2 双样本；成员实例/模板不克隆，
+ *     物理块插 1839/1840 之间、索引插 1840 之前、ID 尾段连续）——波1 主菜单布局
  *
  * wire 依据（知识权威 ui-controls.md）：
  * - 官方预置控件 = 单条 502 记录（f504=宿主布局/容器；无模板/实例分离）——轮4/19/51/64；
@@ -37,11 +39,13 @@ import {
   extractContainerRefs,
   extractMemberIds,
   firstVarint,
+  LIBRARY_CONTAINER_ID,
   packedVarints,
   parseRoot9,
   recordNameOf
 } from './record.js'
 import { UI_KIND_REGISTRY } from './types.js'
+import type { UiRecordMeta } from './types.js'
 import type { ParsedRoot9 } from './record.js'
 
 export type CreateControlKind = Extract<
@@ -422,6 +426,168 @@ export function createUiCandidate(
 /** 便捷默认：--on 缺省 = 默认布局（按 ID 定位，不按名字） */
 export function defaultCreateSurface(): CreateSurface {
   return { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID }
+}
+
+export interface CreateLayoutOptions {
+  /** 布局名（缺省「自定义布局」；与现布局重名自动加 _1/_2…，编辑器去重模式轮1/2） */
+  name?: string
+  /** 布局 ID（缺省=尾部连续段首；克隆成员 ID 依序 +1..+N） */
+  id?: number
+}
+
+export interface CreateLayoutResult {
+  /** 整文件候选字节（--output 只读） */
+  bytes: Uint8Array
+  kind: 'layout'
+  name: string
+  layoutId: number
+  /** 新布局 f503 成员 = 克隆的官方预置记录 ID（编辑器克隆序） */
+  memberIds: number[]
+  /** 被克隆的默认布局官方预置记录数（编辑器=克隆官方预置全集，实例/模板不克隆） */
+  officialsCount: number
+}
+
+/**
+ * 连续 ID 段分配（布局+克隆族专用；轮1/2 双样本：编辑器=当前最大记录 ID+1 起连续）。
+ * 仅布局克隆使用此尾段规则；普通单控件仍走 allocateControlId 空洞避让。
+ */
+function allocateConsecutiveRun(parsed: ParsedRoot9, count: number, layoutId?: number): number[] {
+  const used = collectUsedControlIds(parsed)
+  const start = layoutId ?? (used.size === 0 ? 1073741843 : Math.max(...used) + 1)
+  if (!Number.isSafeInteger(start) || start < 0) {
+    throw new Error('[error] 布局 ID 段起点非法')
+  }
+  const ids: number[] = []
+  for (let i = 0; i < count; i++) {
+    const id = start + i
+    if (used.has(id)) {
+      throw new Error(`[error] 布局克隆 ID 段与现存冲突: ${id}（可 --id 指定空闲起点）`)
+    }
+    ids.push(id)
+  }
+  return ids
+}
+
+/**
+ * 新建自定义布局候选 = 克隆默认布局「官方预置全集」（轮1/2 双样本 CONFIRMED）：
+ *   - 新 layout 记录 = 默认布局记录字节克隆（f501/自引用/成员列表重映射 + 名字替换）；
+ *   - 官方预置成员逐条克隆（自身 ID + f504 父布局重映射；名字/几何随克隆保留）；
+ *   - 物理插入：整块插在 1839（最后官方预置）之后、1840（控件组库容器）之前——
+ *     布局记录在前、14 克隆按成员序（轮1/2 after 快照取证）；
+ *   - 顶层索引：新布局 ID 插到 1840 之前（索引按创建序，1825,1989,2004,1840…）；
+ *   - 实例/模板成员不克隆（自定义布局=官方预置全集，轮1/2 证据）。
+ * 只读：返回整文件候选字节，不写盘。
+ */
+export function createLayoutCandidate(
+  bytes: Uint8Array,
+  options: CreateLayoutOptions = {}
+): CreateLayoutResult {
+  const parsed = parseRoot9(bytes)
+  const defaultLayout = parsed.recordsById.get(DEFAULT_LAYOUT_ID)
+  if (!defaultLayout || defaultLayout.kind !== 'layout') {
+    throw new Error(`[error] 默认布局 ${DEFAULT_LAYOUT_ID} 不存在或非布局记录`)
+  }
+  const memberIds = extractMemberIds(defaultLayout.fields)
+  const officials = memberIds
+    .map((id) => parsed.recordsById.get(id))
+    .filter(
+      (record): record is UiRecordMeta =>
+        record !== undefined && record.kind === 'official' && record.parentId === DEFAULT_LAYOUT_ID
+    )
+  if (officials.length === 0) {
+    throw new Error('[error] 默认布局无官方预置成员可克隆（克隆语义不成立）')
+  }
+  // 名字去重（编辑器模式：已存在则追加 _1/_2…，轮2 样本 自定义布局_1）
+  const baseName = options.name ?? '自定义布局'
+  const layoutNames = new Set(
+    parsed.records.filter((r) => r.kind === 'layout').map((r) => recordNameOf(r.fields, r.raw))
+  )
+  let name = baseName
+  let suffix = 1
+  while (layoutNames.has(name)) {
+    name = `${baseName}_${suffix}`
+    suffix += 1
+  }
+  // ID 段：布局 + N 克隆（连续，轮1/2 编辑器行为）
+  const ids = allocateConsecutiveRun(parsed, 1 + officials.length, options.id)
+  const layoutId = ids[0]
+  const cloneIds = ids.slice(1)
+  // 1) 布局记录克隆：自身 ID 重映射 + 成员表改写为克隆 ID（官方预置全集；非官方成员
+  //    （实例/模板，如轮5+ 默认布局里的实例按钮）不克隆——实例复制属模板化语义（波2），
+  //    无编辑器样本不猜，见 ui/types.ts 口径与票据 open-items）
+  const layoutMap: Record<number, number> = {
+    [DEFAULT_LAYOUT_ID]: layoutId
+  }
+  let layoutRecord = remapUiRecordVarints(defaultLayout.raw, layoutMap)
+  layoutRecord = rewriteRecordMemberIds(layoutRecord, cloneIds)
+  layoutRecord = setUiControlName(layoutRecord, name)
+  // 2) 官方预置成员克隆：自身 ID + 父布局重映射
+  const cloneRecords = officials.map((official, index) =>
+    remapUiRecordVarints(official.raw, {
+      [official.id]: cloneIds[index],
+      [DEFAULT_LAYOUT_ID]: layoutId
+    })
+  )
+  // 3) 物理插入 + 索引更新 + 整文件重建
+  const block: WireField[] = [
+    { number: 502, wire: 2, value: layoutRecord },
+    ...cloneRecords.map((value) => ({ number: 502, wire: 2, value }))
+  ]
+  const candidateBytes = applyLayoutInsert(bytes, block, layoutId)
+  return {
+    bytes: candidateBytes,
+    kind: 'layout',
+    name,
+    layoutId,
+    memberIds: cloneIds,
+    officialsCount: officials.length
+  }
+}
+
+/** 记录成员表改写：把宿主记录的顶层 f503 packed 整体替换为 ids（布局克隆专用） */
+function rewriteRecordMemberIds(recordRaw: Uint8Array, ids: readonly number[]): Uint8Array {
+  const fields = parseWireMessage(recordRaw)
+  if (!fields) throw new Error('[error] 布局记录解析失败')
+  const members = fields.find((f) => f.number === 503 && f.wire === 2)
+  if (!members) throw new Error('[error] 布局记录缺少 f503 成员列表')
+  members.value = encodePackedVarints(ids)
+  return emitWireMessage(fields)
+}
+
+/** 低层装配：整块插到 1840 之前 + 顶层索引插入 layoutId（1840 之前）+ 整文件重建 */
+function applyLayoutInsert(
+  bytes: Uint8Array,
+  block: WireField[],
+  layoutId: number
+): Uint8Array {
+  const top = parseWireMessage(bytes.subarray(20, bytes.length - 4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 section missing')
+  const section = parseWireMessage(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 9 section')
+  const anchor = section.findIndex((f) => ownIdOf(f) === LIBRARY_CONTAINER_ID)
+  if (anchor < 0) {
+    throw new Error(`[error] 控件组库容器 ${LIBRARY_CONTAINER_ID} 不存在（布局块锚点缺失）`)
+  }
+  section.splice(anchor, 0, ...block)
+  // 顶层索引：layoutId 插到 1840 之前（索引创建序 1825,1989,2004,1840…）
+  const indexField = section.find((f) => f.number === 501 && f.wire === 2)
+  if (!indexField) throw new Error('[error] root9 顶层索引缺失')
+  const indexIds = packedVarints(indexField.value as Uint8Array)
+  const at = indexIds.indexOf(LIBRARY_CONTAINER_ID)
+  if (at < 0) {
+    throw new Error(`[error] 顶层索引缺 1840（无法定位布局插入位）`)
+  }
+  indexIds.splice(at, 0, layoutId)
+  indexField.value = encodePackedVarints(indexIds)
+  root9.value = emitWireMessage(section)
+  return buildFile(emitWireMessage(top), {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
 }
 
 export { DEFAULT_LAYOUT_ID }
