@@ -9,9 +9,10 @@
 
 **Status:** ready-for-agent
 
-- [x] Create 命令落地（布局按钮 + 悬浮页内按钮，含 ID 分配与引用注册）——**候选层落地（--output 只读）**；
+- [x] Create 命令落地（用户范围扩展后多 kind：custom-button/textbox/image/input-box/message-queue，
+      布局/悬浮页容器面，含 ID 分配与引用注册）——**候选层落地（--output 只读）**；
       `--write` 未启用（需用户定目标/ID 后单独授权）
-- [x] 候选 vs 编辑器样本字节级同步核验 PASS（root9 字段级重放对拍 + 全量快照冒烟 14/14；root46
+- [x] 候选 vs 编辑器样本字节级同步核验 PASS（重放对拍 + 全量快照冒烟 **25/25**；root46
       保存审计=预期差异，已登记；样例见 ui/verification/ticket05-create-candidates.md）
 - [ ] 写回安全流程（备份/回读/防旧内存覆盖提醒）执行（blocked：目标地图/容器/ID 未定；全量 build 待 football 收口）
 - [ ] 游戏内核验：出现/位置/点击/事件（用户确认）
@@ -19,39 +20,48 @@
 
 ## 轮次记录
 
-### 首轮开发（只读候选；2026-09 会话续接）
+### 首轮+范围扩展（只读候选；2026-09 会话）
 
 已落地（代码层）：
-- `ui/src/create.ts`：placement 校验（registry）+ `--on` 解析（layout/container/悬浮页:页:容器，
-  t42 归属与 f503 宿主校验）+ ID 避让分配（空洞取最高空闲，mappings §8 例 2031；无空洞才尾部接续，
-  禁 max+1 直推预测）+ donor 字节装配（自身 ID/父引用定宽字节重映射 → name/几何 patch → 宿主 f503 追加）
-  + `--output` 候选（整文件字节，不写盘）。
-- `ui/src/create-donors.ts`：donor 注册表；`ui/tests/extract-create-donors.ts` 从真实快照提取
-  （轮4 布局按钮 1073742032=963B / 轮26 悬浮页按钮 1073742089=1156B）后覆写注册表。
-- `ui/tests/create-candidates-assert.ts`：A donor 防漂移 / B 重放对拍 / C 分配器 / D 参数 patch 语义回读。
+- `ui/src/create.ts`：多 kind 泛化（custom-button/textbox/image/input-box/message-queue）；placement
+  校验（registry）+ `--on` 解析（layout/container/悬浮页:页:容器，t42 归属与 f503 宿主校验）+
+  ID 避让分配（空洞取最高空闲，mappings §8 例 2031）+ donor 字节装配（自身 ID/父引用定宽字节
+  重映射 → name/几何 patch → 宿主 f503 追加）+ 跨面 donor 回退（textbox/image 布局面用容器 donor
+  + f504 重映射，donorFallback 标记）+ `--output` 候选（整文件字节，不写盘）。
+- `ui/src/create-donors.ts`：donor 注册表 **7 样本**（=80 快照内全部单条新建事件）；
+  `ui/tests/extract-create-donors.ts` 逐样本断言 kind/parent/长度后覆写。
+- `ui/tests/create-candidates-assert.ts`：A donor 防漂移 ×7 / B 单件新建事件重放 ×4
+  （按钮布局轮3→4、按钮容器轮25→26、输入框轮18→19、消息队列轮50→51）+ B2 容器三件套
+  轮63→64 / C 跨面同构实证（2079↔2157 remap 字节相等）/ D 分配器 / E 参数 patch + donor
+  回退标记 / F surface 校验 / G 全量 80×5kind 布局面 + 45×4kind 容器面冒烟。
 - `src/cli/gil_ui.ts`：导出定点编辑原语（setUiControlName/Transform/remapUiRecordVarints，单源）。
-- `src/cli/assets_ui.ts`：create 新路由（custom-button + `--on`/`--id` 可选），其余类型维持旧契约。
+- `src/cli/assets_ui.ts`：create 语义路由（5 kind：custom-button/textbox/image/input-box/
+  message-queue；textbox/image 需 `--on` 才走语义 donor 路径，其余旧契约保留如 image --asset）。
 
 动态门禁结果（2026-09-02 实跑，样例落 ui/verification/ticket05-create-candidates.md）：
-- donor 提取 PASS（963/1156B 与知识权威一致）；create-candidates-assert **14/14 PASS**
-  （含全量快照冒烟：80×layout 面 + 45×container 面逐一候选，禁抽查）；
+- donor 提取 7/7 PASS（长度与知识权威一致：963/1156/622×2/604/591/859）；create-candidates-assert
+  **25/25 PASS**（含 4 组单件事件 root9 全等重放 + 容器三件套逐件重放 + 跨面同构实证 +
+  全量快照冒烟 80×5 kind 布局面 / 45×4 kind 容器面，禁抽查）；
   exhaustive 80 快照 **127/127 PASS**；真 CLI list 80/80 FAIL=0；`git diff --check` OK；
-  子集 tsc（src+ui/src）**EXIT 0**；create 冒烟（布局/容器双面）候选落盘 + 语义回读 CHECK PASS + 负例全拒。
+  子集 tsc（src+ui/src）**EXIT 0**；create 冒烟多 kind 候选落盘 + fail-closed 负例全拒。
 - 全量 `npm run build` EXIT 2 = **唯一错误在 examples/football/src-fb/fb-phys.ts(121,35)**（交接书 §3
   无关 dirty 路径、football 票13 WIP，本票未触碰）——football 收口后重跑全量复核。
 - 方法学修正（假设审计）：编辑器保存会**等长改写 root46 审计段**——对拍由整文件逐字节改为顶层字段级
   （root9 全等 + 其余等值 + root46 等长登记为预期差异），与「逐字节一致或仅预期字段差异」验收口径对齐。
 
 open-items（本轮 fail-closed，未越界猜字节）：
-- `--text/--color/--font-size/--content`：按钮状态素材骨架（type55 组+member/t50 块引用）无同参编辑器
-  create 样本，需状态素材 donor（轮8/28 编辑样本）差分闭合后再启用；
-- 容器面参数 patch（位置/尺寸）尚无字节级同参对拍样本（仅语义回读断言）；
+- `--text/--color/--font-size/--content`：状态素材骨架/内容载体无「同参编辑器 create 样本」
+  （编辑器创建恒为默认形态，配置是第二步）——需差分闭合 donor（轮8/20/28 编辑样本）后再启用；
+- 容器面参数 patch（位置/尺寸）无字节级同参对拍样本（仅语义回读断言；输入框跨面同构已实证）；
+- textbox/image 布局面无编辑器新建样本：用容器 donor + f504 重映射生成（donorFallback 标记），
+  同构规则已由 input-box 2079/2157 双真实样本 remap 逐字节相等实证；
+- message-queue 容器面无样本 → fail-closed（待容器面差分轮）；
 - `--write` 在 create 新路径仅提示不执行（需用户定目标/ID 授权后单独启用；写回红线流程待跑）；
 - 游戏行为（出现/位置/点击/事件）需用户游戏内验收（票 08 等价）。
 
 ### 执行配方（2026-09-02 已按此执行；保留供复查/复跑）
 
-> 实际结果：donor 提取 ✅ / 断言 12/12 ✅ / 127/127 ✅ / CLI80 FAIL=0 ✅ / 子集 tsc EXIT 0 ✅ /
+> 实际结果：donor 提取 7/7 ✅ / 断言 25/25 ✅ / 127/127 ✅ / CLI80 FAIL=0 ✅ / 子集 tsc EXIT 0 ✅ /
 > 全量 npm run build 被 examples/football WIP（fb-phys.ts TS2551，无关 dirty 路径）阻塞 —— 见上方动态门禁结果。
 
 ```bash
@@ -59,7 +69,7 @@ cd /home/h/genshin-ts
 git log --oneline -1                       # 期望含票04 7 提交于历史
 git status --short -- ui/src ui/tests ui/verification src/cli/assets_ui.ts src/cli/gil_ui.ts \
   tsconfig.json .scratch/ui-command-layer/issues/05-cli-create.md   # 核对本次改动文件清单
-npx tsx ui/tests/extract-create-donors.ts  # 期望 extracted 2 donors + wrote ui/src/create-donors.ts
+npx tsx ui/tests/extract-create-donors.ts  # 期望 extracted 7 donors + wrote ui/src/create-donors.ts
 npx tsx ui/tests/create-candidates-assert.ts   # 期望 PASS N create-candidate assertions
 npx tsx ui/tests/exhaustive-snapshot-verify.ts 2>&1 | tail -2   # 期望 PASS 127 snapshot assertions over 80 files
 npm run build                               # 期望 exit 0

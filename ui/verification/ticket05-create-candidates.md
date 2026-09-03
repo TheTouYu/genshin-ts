@@ -14,44 +14,55 @@ npx tsx ui/tests/extract-create-donors.ts
 ```
 extracted custom-button.layout: 1073741909.after-重启4-默认布局自定义按钮-e645aefb.gil record=1073742032 len=963 sha256=cbf4739df5a1cfc7...
 extracted custom-button.container: 1073741909.after-重启26-悬浮页加按钮-f0ddb622.gil record=1073742089 len=1156 sha256=dbcdd91b30569ba0...
+extracted input-box.layout: 1073741909.after-重启19-图文输入框-a81cbfbf.gil record=1073742079 len=622 sha256=69d3d25dec23781f...
+extracted input-box.container: 1073741909.after-重启64-容器三控件-e4c92e39.gil record=1073742157 len=622 sha256=00743f5fd8aad247...
+extracted textbox.container: 1073741909.after-重启64-容器三控件-e4c92e39.gil record=1073742155 len=604 sha256=d35f61c566e45310...
+extracted image.container: 1073741909.after-重启64-容器三控件-e4c92e39.gil record=1073742156 len=591 sha256=ef74578087681808...
+extracted message-queue.layout: 1073741909.after-重启51-消息队列-536528cb.gil record=1073742132 len=859 sha256=20e65841ddd0c04d...
 wrote /home/h/genshin-ts/ui/src/create-donors.ts
 next: npx tsx ui/tests/create-candidates-assert.ts
 ```
 
-字节长度与知识权威（references/ui-controls.md 轮4=963B / 轮26=1156B）一致。
+donor 矩阵（kind × 放置面）= 80 快照内该控件**首次新建事件**（新建当轮字节，非后续编辑态）：
+按钮 轮4 963B / 轮26 1156B；图文输入框 轮19 622B(布局1989) / 轮64 622B(容器)；
+文本框 轮64 604B(容器)；图片 轮64 591B(容器)；消息队列 轮51 859B(默认布局)。
+文本框/图片「布局面」无编辑器新建样本——create 层回退容器 donor + f504 重映射
+（跨面同构已被 input-box 双真实样本互 remap 逐字节相等实证，见 §2 ok 14）。
 
-## 2. 候选字节级断言（12/12 PASS）
+## 2. 候选字节级断言（25/25 PASS）
 
 ```bash
 npx tsx ui/tests/create-candidates-assert.ts
 ```
 
 ```
-ok 1 - donor 防漂移: custom-button.layout ...
-ok 2 - donor 防漂移: custom-button.container ...
-ok 3 - donor 集齐两个放置面（布局/容器）
-ok 4 - 重放对拍: 布局按钮（轮4 ... → ...；root9 全等 + root46 审计登记）
-ok 5 - 重放对拍: 悬浮页容器按钮（轮25 → 轮26；root9 全等 + root46 审计登记）
-ok 6 - 分配器: 编辑器跳变空洞取最高空闲（轮4 after → 2031，mappings §8 例）
-ok 7 - 分配器: 结果不与任何记录/索引/引用冲突
-ok 8 - 分配器: 显式 --id 已被占用时报错
-ok 9 - 分配器: 确定性（同文件两次一致）
-ok 10 - resolveSurfaceTarget: container 面归属校验（非容器记录拒绝）
-ok 11 - resolveSurfaceTarget: 悬浮页:容器 双段校验（页-容器配对）
-ok 12 - 参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余记录零改动
-ok 13 - 全量快照: 80 个文件逐一 layout 面候选冒烟（+1/宿主成员/其余零改动/ID 非冲突）
-  (container 面覆盖 45 个快照，跳过 35 个无 2084/无归属)
-ok 14 - 全量快照: 含悬浮页固有容器 2084 的快照逐一 container 面候选冒烟
-PASS 14 create-candidate assertions
+ok 1-7  - donor 防漂移 ×7（kind/parent/长度/sha256/hex 全对）
+ok 8    - donor 集齐支持矩阵（7 样本 = 80 快照内全部单条新建事件）
+ok 9    - 重放对拍: 布局自定义按钮（轮3→轮4；root9 全等 + root46 审计登记）
+ok 10   - 重放对拍: 悬浮页容器自定义按钮（轮25→轮26）
+ok 11   - 重放对拍: 图文输入框→自定义布局1989（轮18→轮19）
+ok 12   - 重放对拍: 消息队列→默认布局（轮50→轮51）
+ok 13   - 重放对拍: 容器面 textbox/image/input-box（轮63→64 三件套逐件重放）
+ok 14   - 跨面同构: input-box 布局 2079 ↔ 容器 2157 互 remap 逐字节相等
+ok 15-18- 分配器（空洞 2031 / 不冲突 / 占用报错 / 确定性）
+ok 19   - 参数 patch: custom-button --name/--position/--size 语义回读
+ok 20   - donor 回退: textbox/image 布局面 = 容器 donor + f504 重映射
+ok 21-22- resolveSurfaceTarget 归属/配对校验
+ok 23   - 全量快照: 80 个文件 × 5 kind 逐一 layout 面候选冒烟（禁抽查）
+ok 24   - 全量快照: 含容器 2084 的快照 × 4 kind 逐一 container 面候选冒烟
+        (container 面覆盖 45 个快照，跳过 35 个无 2084/无归属)
+ok 25   - fail-closed: message-queue 容器面无样本 → 显式报错
+PASS 25 create-candidate assertions
 ```
 
 对拍方法学（本轮修正）：编辑器每次保存会**等长改写 root46 审计段**（差分笔记「root46 等长
 审计」的实义=长度不变、内容变化）。因此整文件逐字节对拍改为**顶层字段级**：root9 段逐字节
 相等（记录/顺序/宿主 f503 全覆盖），其余字段等值，root46 仅等长校验并登记为预期差异。
 
-全量快照逐文件冒烟（禁抽查）：80 个 `.gil` 每个都在默认布局面生成一次只读候选并断言
-（+1 记录 / 宿主 f503 含新 ID / 其余记录零改动 / 分配 ID 非冲突）；其中 45 个含悬浮页固有
-容器 2084 的快照额外做 container 面候选（35 个快照为轮24 前或无归属容器，跳过=样本外合法）。
+全量快照逐文件冒烟（禁抽查）：80 个 `.gil` 每个都生成 **5 kind（custom-button/textbox/image/
+input-box/message-queue）× 布局面**只读候选并断言（+1 记录 / 宿主 f503 含新 ID / 其余记录
+零改动 / 分配 ID 非冲突）；其中 45 个含悬浮页固有容器 2084 的快照额外做 **4 kind × container 面**
+候选（35 个快照为轮24 前或无归属容器，跳过=样本外合法）。
 
 ## 3. 全量语义回归（80 快照，硬门禁）
 
