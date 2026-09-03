@@ -134,7 +134,7 @@ if (which === 'json') {
   ]
   console.log(vars.join(';'))
 } else if (which === 'player') {
-  console.log('rbv_epoch:int=0;rbv_ack:int=0')
+  console.log('rbv_epoch:int=0;rbv_ack:int=0;rbv_host:entity=0')
 } else {
   console.error('usage: npx tsx tools/gen-rbv-vars.mjs host|player|json')
   process.exit(1)

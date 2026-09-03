@@ -724,9 +724,13 @@ export const rbRenderPost = g.defineComposite('rb_render_post', {
     f.connect(m1, 0, m2, 0)
     const m3 = f.node('set_custom_variable', [visualHost, new str('rbv_n'), n, new bool(false)])
     f.connect(m2, 0, m3, 0)
-    const m4 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
+    // 票 06 修复（3148 实证）：rbv 链独立宿主引用——rb_host 只由 rbx 十字任务写，空 host 会让
+    // 客户端读到空表并回传空包（piece=None、vel 全 0）
+    const m4 = f.node('set_custom_variable', [owner, new str('rbv_host'), host, new bool(false)])
     f.connect(m3, 0, m4, 0)
-    f.outflow('done', m4, 0)
+    const m5 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
+    f.connect(m4, 0, m5, 0)
+    f.outflow('done', m5, 0)
     return {}
   }
 })

@@ -7,7 +7,7 @@
 //
 // 链路（复用票 03/04 rbx_ 通道形态，新前缀 rbv_）：
 //   服务端 flowDoMove 视觉分支把任务写到宿主 1077936201（rbv_move/rbv_orient）+ 玩家
-//   （rbv_epoch），本图由造物 AI 15Hz 自主施放触发，每拍：
+//   （rbv_epoch/rbv_host），本图由造物 AI 15Hz 自主施放触发，每拍：
 //     空转（epoch==ack）直接返回 → 任务拍：读宿主 solver_cp/ep/ct（物理排列 P，flowAfterTurn
 //     发布，负折叠面转期间 P 不变=实体真实排列）+ rbv_move/orient → 槽位→全局格点（烘焙
 //     rbv_slotsF/M/W）→ P 直取块号（不读实体、不含实体寻址）→ 逐槽算 spin 轴/两段速度 →
@@ -38,7 +38,7 @@ g.creationSkill({ id: 1082130443, name: '_GSTS_rbRenderSkill' }).on('start', (_e
   const e1 = f.getCustomVariable(owner, 'rbv_epoch').asType('int')
   f.doubleBranch(f.logicalNotOperation(f.equal(e1, ack)), () => {
     // —— 宿主引用 + 任务/状态读取 ——
-    const host = f.getCustomVariable(owner, 'rb_host').asType('entity')
+    const host = f.getCustomVariable(owner, 'rbv_host').asType('entity') // rbv 链独立宿主引用（rb_host 仅 rbx 链写）
     const mv = f.getCustomVariable(host, 'rbv_move').asType('int')
     const orientL = f.getCustomVariable(host, 'rbv_orient').asType('int_list')
     const cpL = f.getCustomVariable(host, 'solver_cp').asType('int_list')

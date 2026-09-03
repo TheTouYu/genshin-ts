@@ -39,7 +39,7 @@
 - 信号：rbv_echo（C→S，7 参：tag:'s'/e:epoch/slot/piece/axis:vec3/vel1:vec3/vel2:vec3）+ rbv_go
   （S→S，e:epoch；visual 图收齐后通知 turn 图起定时器）。vec3 参数需先在 1914 注册（donor 沿
   football_push 先例/CLI 直注）。
-- 寄存器：玩家 rbv_epoch/rbv_ack（host 引用沿用 rb_host）；宿主 1077936201 任务字段 rbv_move（signed
+- 寄存器：玩家 rbv_epoch/rbv_ack/rbv_host（独立宿主引用——3148 实证 rb_host 仅 rbx 链写、空 host→空包；修复后 rbRenderPost 每任务写 rbv_host=6201）；宿主 1077936201 任务字段 rbv_move（signed
   moveId）/rbv_orient（26，转动前 blockOrientPre 快照）。**不再发布 rows/tempP 行快照**——
   客户端按「槽位→全局格点（烘焙表）→ solver_cp/ep/ct（P 排列）直取块号」计算；负折叠面转的
   交错序与旧实现不同但动的是同一 9 块集合、几何正确（S4 独立校验），对拍口径已更新。
