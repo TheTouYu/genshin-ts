@@ -205,8 +205,9 @@ export function addStateMaterialMemberCandidate(
   return { bytes, groupId: groupId!, memberId, createdGroup }
 }
 
-/** 组记录 f503 成员列表整体改写（组记录字段 = 小 varint + packed，unsafe 层安全） */
-function rewriteGroupMembers(recordRaw: Uint8Array, ids: readonly number[]): Uint8Array {
+/** 组记录 f503 成员列表整体改写（组记录字段 = 小 varint + packed，unsafe 层安全）。
+ *  票10 队列样式组复用（队列样式组同为「默认状态素材组」创建形态） */
+export function rewriteGroupMembers(recordRaw: Uint8Array, ids: readonly number[]): Uint8Array {
   const m = parseWireMessage(recordRaw)
   if (!m) throw new Error('[error] 组记录解析失败')
   const membersField = m.find((f) => f.number === 503 && f.wire === 2)
@@ -215,8 +216,8 @@ function rewriteGroupMembers(recordRaw: Uint8Array, ids: readonly number[]): Uin
   return emitWireMessage(m)
 }
 
-/** 组记录名改写（t15 → f12.f501 utf8；组名字段为小 varint+utf8，unsafe 层安全） */
-function setRecordNameLocal(recordRaw: Uint8Array, name: string): Uint8Array {
+/** 组记录名改写（t15 → f12.f501 utf8；组名字段为小 varint+utf8，unsafe 层安全）。票10 复用 */
+export function setRecordNameLocal(recordRaw: Uint8Array, name: string): Uint8Array {
   const m = parseWireMessage(recordRaw)
   if (!m) throw new Error('[error] 组记录解析失败')
   const nameBytes = new Uint8Array(Buffer.from(name, 'utf8'))
