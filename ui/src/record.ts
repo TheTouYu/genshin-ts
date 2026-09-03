@@ -15,6 +15,7 @@ import {
   type WireField
 } from '../../src/cli/static_assembly/wire.js'
 import { readVarint } from '../../src/injector/binary.js'
+import { parseSafe, safeNum } from './wire-safe.js'
 import {
   UI_KIND_REGISTRY,
   type UiGeometry,
@@ -436,7 +437,11 @@ export function extractMessageEntries(comp79: WireField[], unknown: string[]): u
   })
 }
 
-/** 页签 t47 页面项（尽力而为；group 编码未完全解码时标记 unknown） */
+/** 页签 t47 页面项（票10 全解码：comp47.f503.f40 = 页面项列表 + 尾部默认选择 varint）。
+ *  页面项 = {f501: 名字容器 {f501:名字,[f504:1=serverEvent]}, f502: 文本配置,
+ *  f503: 容器状态块, f504: 控件状态块, f505: 序号, f506:1}；f40 尾部 f502 varint =
+ *  默认选择（2^64-1 哨兵=未设，否则 1-based 序号；轮29/30/36/66 证据）。
+ *  大值哨兵经共享 readVarint 会失真——默认选择读取用长度判别（≥5B varint=哨兵）。 */
 export function extractTabPages(
   fields: readonly WireField[],
   unknown: string[]
@@ -454,22 +459,32 @@ export function extractTabPages(
     unknown.push('tab.t47.groupEncoded(页名/配置未解码)')
     return { pageCount: unknownPageCount(raw) }
   }
-  const entries = m.filter((x) => x.wire === 2)
-  if (entries.length === 0) return { pageCount: 0 }
-  const pages = entries.map((entry, index) => {
-    const texts = collectWireTexts(entry.value as Uint8Array)
-    const fields = parseWireMessage(entry.value as Uint8Array)
-    const serverEvent = firstVarint(fields, 504)
+  const f40 = m.find((x) => x.number === 40 && x.wire === 2)
+  if (!f40) return { pageCount: 0 }
+  const f40m = parseWireMessage(f40.value as Uint8Array)
+  if (!f40m) return { pageCount: unknownPageCount(f40.value as Uint8Array) }
+  const pageEntries = f40m.filter((x) => x.number === 501 && x.wire === 2)
+  const pages = pageEntries.map((entry, index) => {
+    const entryFields = parseWireMessage(entry.value as Uint8Array) ?? []
+    const nameContainer = entryFields.find((x) => x.number === 501 && x.wire === 2)
+    const nameContainerFields = nameContainer ? parseWireMessage(nameContainer.value as Uint8Array) : undefined
+    const nameField = nameContainerFields?.find((x) => x.number === 501 && x.wire === 2)
+    const serverEvent = nameContainerFields?.some((x) => x.number === 504 && x.wire === 0)
+    const ordinal = firstVarint(entryFields, 505)
     return {
-      index: index + 1,
-      name: texts[0] ?? `页面${index + 1}`,
-      ...(serverEvent !== undefined ? { serverEvent: true } : {})
+      index: typeof ordinal === 'number' && ordinal >= 1 ? ordinal : index + 1,
+      name: nameField ? new TextDecoder().decode(nameField.value as Uint8Array) : `页面${index + 1}`,
+      ...(serverEvent ? { serverEvent: true } : {})
     }
   })
-  // 默认选择序号（1-based varint 在 t47 区；轮 66 闭合）
-  const rawVarints = collectWireVarints(raw)
-  const candidates = rawVarints.filter((v) => v >= 1 && v <= pages.length)
-  const defaultIndex = candidates.length === 1 ? candidates[0] : undefined
+  // 默认选择 = f40 尾部 f502 varint（哨兵大值=未设；轮66 闭合）。经 wire-safe 读：
+  // 哨兵 2^64-1 为 BigInt（>2^53 → safeNum 返回 undefined）；小序号为 number
+  const f40Safe = parseSafe(f40.value as Uint8Array)
+  const defaultIndex = (() => {
+    if (!f40Safe || !f40Safe.some((x) => x.number === 502 && x.wire === 0)) return undefined
+    const v = safeNum(f40Safe, 502)
+    return v !== undefined && v >= 1 && v <= pages.length ? v : undefined
+  })()
   return { pageCount: pages.length, pages, ...(defaultIndex !== undefined ? { defaultIndex } : {}) }
 }
 
