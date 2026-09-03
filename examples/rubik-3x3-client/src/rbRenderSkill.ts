@@ -106,35 +106,43 @@ g.creationSkill({ id: 1082130443, name: '_GSTS_rbRenderSkill' }).on('start', (_e
           f._3dVectorZoom(dirF, spinAx.value), vel1, vel2
         )
       }
+      // —— 06-R7 分片发送（3165 实证：全量 18-52 条/拍超引擎投递容量→积压爆量被踢）——
+      // 每拍只发服务端窗口 [rbv_c, rbv_c+2]∩[0,n) 三槽：客户端零跨拍记忆，窗口由服务端
+      // viewRcvPkg 顺序推进（收到 slot==rbv_c 才 +1）；丢槽时 c 停→下拍重发该窗口自愈。
+      // 每拍只重算 3 槽（记录 103KB→~15KB），突发 2 实例×3=6 条/拍（与 fb 回传同量级）。
+      const cWin = f.getCustomVariable(owner, 'rbv_c').asType('int')
       // 类型分派（嵌套 doubleBranch；无 multipleBranches）：面 1..6 / 中 7..9 / 整 10..12
       const isFace = f.logicalAndOperation(
         f.greaterThan(mInt, 0n), f.logicalNotOperation(f.greaterThan(mInt, 6n))
       )
+      // 窗口三槽发射（k<N 才发；slot 即窗口槽号）
+      const window = (n: bigint, tblBase: any, tbl: any, kvF: any) => {
+        const k0 = cWin
+        f.doubleBranch(f.lessThan(k0, n), () => {
+          emit(k0, f.getCorrespondingValueFromList(f.addition(tblBase, k0), tbl), kvF)
+        }, () => {})
+        const k1 = f.addition(cWin, 1n)
+        f.doubleBranch(f.lessThan(k1, n), () => {
+          emit(k1, f.getCorrespondingValueFromList(f.addition(tblBase, k1), tbl), kvF)
+        }, () => {})
+        const k2 = f.addition(cWin, 2n)
+        f.doubleBranch(f.lessThan(k2, n), () => {
+          emit(k2, f.getCorrespondingValueFromList(f.addition(tblBase, k2), tbl), kvF)
+        }, () => {})
+      }
       f.doubleBranch(isFace, () => {
-        // 面：9 槽（slot0=面心格点，其后 8 行视觉顺序）；kVel=10（flowDoMove 面转常量搬迁）
-        f.finiteLoop(0n, 8n, (k: any) => {
-          const spot = f.getCorrespondingValueFromList(
-            f.addition(f.multiplication(f.subtraction(mInt, 1n), 9n), k), slotsFL)
-          emit(k, spot, 10)
-        })
+        // 面：9 槽（slot0=面心格点，其后 8 行视觉顺序）；kVel=10；3 拍收齐≈0.2s≈动画时长
+        window(9n, f.multiplication(f.subtraction(mInt, 1n), 9n), slotsFL, 10)
       }, () => {
         const isMid = f.logicalAndOperation(
           f.greaterThan(mInt, 6n), f.logicalNotOperation(f.greaterThan(mInt, 9n))
         )
         f.doubleBranch(isMid, () => {
           // 中层：8 槽；kVel=6.6667
-          f.finiteLoop(0n, 7n, (k: any) => {
-            const spot = f.getCorrespondingValueFromList(
-              f.addition(f.multiplication(f.subtraction(mInt, 7n), 8n), k), slotsML)
-            emit(k, spot, 6.6667)
-          })
+          window(8n, f.multiplication(f.subtraction(mInt, 7n), 8n), slotsML, 6.6667)
         }, () => {
-          // 整转：26 槽；kVel=2.0（单拍全量，客户端记录帧上限待 E1 复测；超限拆拍属后续轮）
-          f.finiteLoop(0n, 25n, (k: any) => {
-            const spot = f.getCorrespondingValueFromList(
-              f.addition(f.multiplication(f.subtraction(mInt, 10n), 26n), k), slotsWL)
-            emit(k, spot, 2)
-          })
+          // 整转：26 槽；kVel=2.0（9 拍≈0.6s 收齐，整转动画 1.0s 前摇可接受）
+          window(26n, f.multiplication(f.subtraction(mInt, 10n), 26n), slotsWL, 2)
         })
       })
     }, () => {})
