@@ -11,12 +11,20 @@ import {
   resolveSurfaceTarget
 } from '../../ui/src/create.js'
 import { createTemplateCandidate, templateizeTargetInfo } from '../../ui/src/templateize.js'
+import { createFloatingPageCandidate } from '../../ui/src/floating-page.js'
+import { createTabCandidate } from '../../ui/src/tab.js'
+import { collectUsedControlIds } from '../../ui/src/create.js'
 import { parseRoot9 } from '../../ui/src/record.js'
 import {
   parseUiSemanticCommand,
   runUiSemanticCommand,
   type UiSemanticCliContext
 } from '../../ui/src/cli.js'
+import {
+  buildUiAdvancedCandidate,
+  isUiAdvancedArgv0,
+  parseUiAdvancedCommand
+} from './assets_ui_advanced.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import {
@@ -57,7 +65,7 @@ type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
 
 /** create --type 可接受 token（legacy + 票05 L2 语义 kind + 布局创建） */
-type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue' | 'layout'
+type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue' | 'tab' | 'layout'
 /** L2 语义 create 路由 kind（donor 支持矩阵见 ui/src/create.ts）；其余走 legacy 旧契约 */
 const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
   'custom-button',
@@ -97,6 +105,29 @@ function usage(exitCode = 1): never {
     '  states: gsts assets:ui states --id <自定义按钮ID> [--gil <file>] [--format json]',
     '  variables list: gsts assets:ui variables list [--page <悬浮交互页ID>] [--gil <file>] [--format json]',
     '',
+    '  高级控件命令面（票10 · donor 驱动字节级闭合；默认 dry-run，写回须 --write --yes）：',
+    '  create --type floating-page --on library [--name <n>] [--id <实体ID>]',
+    '        # 纯添加 3 条单条族（轮24 形态；旧 BUILTIN 合并形态不再产出）',
+    '  create --type tab --on container:<容器ID>|悬浮页:<页ID>:<容器ID> [--name] [--id]',
+    '  floating-page variable add --page <实体ID> --name <n> --type int|float|str|text',
+    '  container add --page <实体ID> [--id <容器ID>] [--active on|off]',
+    '  container active --container <容器ID> on|off',
+    '  tab page add --tab <页签ID> [--name <n>] [--text <s>]',
+    '  tab page rename --tab <页签ID> --page <n> [--name <n>] [--text <s>]',
+    '  tab page default --tab <页签ID> --page <n>',
+    '  tab page server-event --tab <页签ID> --page <n> on|off',
+    '  tab page container-state --tab <页签ID> --page <n> [--container <ID>:show|hide]... [--remove <ID>] [--enable|--disable]',
+    '  tab page control-state  --tab <页签ID> --page <n> [--control <ID>:show|hide]... [--remove <ID>] [--enable|--disable]',
+    '  state material add --target <按钮ID> --state normal|hover|press --member text|image [--text] [--color #RRGGBB]',
+    '  state material remove --target <组ID> --member <成员ID>',
+    '  material update --target <成员ID> [--text <s>] [--color #RRGGBB]',
+    '  rich-image set --target <输入框ID> --resource <官方图形ID> [--text <含{5:img_1}的富文本>]',
+    '  queue style add --target <队列ID> --material text|image [--text] [--color] [--font-size N]',
+    '  queue message add --target <队列ID> [--name <n>]',
+    '  queue message style --target <队列ID> --message <n> --style <n>',
+    '  queue timed-show --target <队列ID> on|off [--seconds F]',
+    '  queue insert --target <队列ID> head|tail',
+    '',
     'Options:',
     '  --gil <file>            explicit GIL source',
     '  --donor-gil <file>      donor GIL containing the source control (clone only)',
@@ -130,6 +161,20 @@ function argvValue(argv: readonly string[], option: string): string | undefined 
   if (index < 0) return undefined
   const result = argv[index + 1]
   return result && !result.startsWith('--') ? result : undefined
+}
+
+/** 票10 create floating-page 显式三元组 ID（--id 实体，容器/关闭按钮顺延；须全空闲） */
+function idTripleCli(
+  parsed: ReturnType<typeof parseRoot9>,
+  rawId: number
+): { entity: number; container: number; closeButton: number } {
+  const entity = rawId
+  const triple = { entity, container: entity + 1, closeButton: entity + 2 }
+  const used = collectUsedControlIds(parsed)
+  for (const [key, id] of Object.entries(triple)) {
+    if (used.has(id)) throw new Error(`[error] --id 三元组 ${key}=${id} 已被占用，请避让`)
+  }
+  return triple
 }
 
 function nonNegativeId(raw: string, option: string): number {
@@ -240,11 +285,12 @@ function parseArgs(argv: readonly string[]) {
         raw !== 'floating-page' &&
         raw !== 'input-box' &&
         raw !== 'message-queue' &&
+        raw !== 'tab' &&
         raw !== 'layout'
       ) {
         throw new Error(
           '[error] --type must be textbox, interactive-button, custom-button, image, ' +
-            'floating-page, input-box, message-queue or layout'
+            'floating-page, input-box, message-queue, tab or layout'
         )
       }
       createType = raw
@@ -293,6 +339,8 @@ function parseArgs(argv: readonly string[]) {
     createType === 'custom-button' ||
     createType === 'input-box' ||
     createType === 'message-queue' ||
+    createType === 'tab' ||
+    createType === 'floating-page' ||
     createType === 'layout'
   const semanticViaOn =
     onRaw !== undefined && (createType === 'textbox' || createType === 'image')
@@ -454,6 +502,61 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     await runUiSemanticCommand(command, context)
     return
   }
+  // 票10 高级控件命令面（floating-page/container/tab/state/material/rich-image/queue）
+  // 自带 gil 解析（先于 legacy parseArgs——其命令表不含高级根命令）
+  if (isUiAdvancedArgv0(argv[0])) {
+    const gilAdvArg = argvValue(argv, '--gil')
+    const gilAdvPath = gilAdvArg
+      ? path.resolve(gilAdvArg)
+      : resolveGilPath({ gilPath: undefined }, projectConfig)
+    if (!fs.existsSync(gilAdvPath) || !fs.statSync(gilAdvPath).isFile()) {
+      throw new Error(`[error] gil not found: ${gilAdvPath}`)
+    }
+    const sourceAdvBytes = new Uint8Array(fs.readFileSync(gilAdvPath))
+    const sourceAdvHash = sha256(sourceAdvBytes)
+    const command = parseUiAdvancedCommand(argv)
+    const candidate = buildUiAdvancedCandidate(sourceAdvBytes, command)
+    const jsonAdv = argv.includes('--format') && argv[argv.indexOf('--format') + 1] === 'json'
+    const log2 = (line: string) => (jsonAdv ? console.error(line) : console.log(line))
+    const summary: Record<string, unknown> = {
+      schemaVersion: 1,
+      kind: candidate.summary.kind ?? 'ui-advanced-candidate',
+      op: candidate.op,
+      sourceSha256: sourceAdvHash,
+      ...candidate.summary
+    }
+    summary.candidateSha256 = sha256(candidate.bytes)
+    log2(`op=${candidate.op}`)
+    for (const [k, v] of Object.entries(candidate.summary)) log2(`${k}=${String(v)}`)
+    log2(`candidateSha256=${summary.candidateSha256}`)
+    const outputIdx = argv.indexOf('--output')
+    const wantWrite = argv.includes('--write')
+    const wantYes = argv.includes('--yes')
+    if (outputIdx >= 0) {
+      const outPath = path.resolve(argv[outputIdx + 1])
+      fs.writeFileSync(outPath, candidate.bytes)
+      summary.candidate = outPath
+      log2(`candidate=${outPath}`)
+    } else if (wantWrite) {
+      if (!wantYes) {
+        summary.writeRequiresUserConfirm = true
+        log2('writeRequiresUserConfirm=true (未执行：--write 须附 --yes，授权窗口仅限本票确认的目标地图)')
+      } else {
+        const mapId10 = projectConfig?.inject?.mapId
+        summary.backup = writeBack(gilAdvPath, candidate.bytes, sourceAdvHash, mapId10)
+        summary.writePerformed = true
+        log2(`backup=${summary.backup}`)
+        log2('writePerformed=true')
+      }
+    } else {
+      summary.previewOnly = true
+      log2('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
+    }
+    log2('editorOrGameValidation=not-performed')
+    if (jsonAdv) process.stdout.write(prettyStableJson(summary))
+    return
+  }
+
   const args = parseArgs(argv)
   const gilPath = resolveGilPath(args, projectConfig)
   if (!fs.existsSync(gilPath) || !fs.statSync(gilPath).isFile()) {
@@ -462,6 +565,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
   const sourceHash = sha256(sourceBytes)
   const jsonMode = args.format === 'json'
+
   const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
 
   if (args.command === 'list') {
@@ -710,10 +814,12 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       createKind === 'custom-button' ||
       createKind === 'input-box' ||
       createKind === 'message-queue' ||
+      createKind === 'tab' ||
+      createKind === 'floating-page' ||
       createKind === 'layout'
     const semanticOn =
       createKind !== undefined &&
-      (createKind === 'textbox' || createKind === 'image') &&
+      (createKind === 'textbox' || createKind === 'image' || createKind === 'tab') &&
       args.on !== undefined &&
       args.assetId === undefined
     if (createKind !== undefined && (semanticAuto || semanticOn)) {
@@ -765,6 +871,78 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         if (jsonMode) process.stdout.write(prettyStableJson(summary))
         return
       }
+      // 票10：floating-page（纯添加 3 条单条族，轮24 形态——旧 BUILTIN 为合并形态不再产出）
+      // 与 tab（仅容器面）走专用引擎
+      if (createKind === 'floating-page' || createKind === 'tab') {
+        const parsed10 = parseRoot9(sourceBytes)
+        let result10: { bytes: Uint8Array; summary: Record<string, unknown> }
+        if (createKind === 'floating-page') {
+          if (args.on !== undefined && args.on !== 'library') {
+            throw new Error('[error] floating-page 放置面=界面控件组库（--on library，或省略）')
+          }
+          const r = createFloatingPageCandidate(sourceBytes, {
+            ...(args.name !== undefined ? { name: args.name } : {}),
+            ...(args.newId !== undefined ? { ids: idTripleCli(parsed10, args.newId) } : {})
+          })
+          result10 = {
+            bytes: r.bytes,
+            summary: {
+              kind: 'ui-floating-page-create',
+              entityId: r.entityId,
+              containerId: r.containerId,
+              closeButtonId: r.closeButtonId,
+              note: '纯添加 3 条单条族（轮24）；富版组合走 container/tab/variable 命令'
+            }
+          }
+        } else {
+          if (args.on === undefined) {
+            throw new Error('[error] tab 仅可放置于悬浮页容器（--on container:<ID> 或 悬浮页:<页>:<容器>）')
+          }
+          const surface10 = resolveSurfaceTarget(parsed10, args.on)
+          if (surface10.kind !== 'container') {
+            throw new Error('[error] tab 仅可放置于悬浮页容器（当前目标=非容器面）')
+          }
+          const r = createTabCandidate(sourceBytes, {
+            containerId: surface10.containerId,
+            ...(args.name !== undefined ? { name: args.name } : {}),
+            ...(args.newId !== undefined ? { id: args.newId } : {})
+          })
+          result10 = {
+            bytes: r.bytes,
+            summary: { kind: 'ui-tab-create', tabId: r.tabId, pageCount: r.pageCount }
+          }
+        }
+        const log10 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+        const summary10: Record<string, unknown> = {
+          schemaVersion: 1,
+          sourceSha256: sourceHash,
+          ...result10.summary
+        }
+        for (const [k, v] of Object.entries(result10.summary)) log10(`${k}=${String(v)}`)
+        summary10.candidateSha256 = sha256(result10.bytes)
+        log10(`candidateSha256=${summary10.candidateSha256}`)
+        if (args.outputPath) {
+          summary10.candidate = writeNew(args.outputPath, result10.bytes)
+          log10(`candidate=${summary10.candidate}`)
+        } else if (args.write) {
+          if (!args.yes) {
+            summary10.writeRequiresUserConfirm = true
+            log10('writeRequiresUserConfirm=true (未执行：--write 须附 --yes)')
+          } else {
+            summary10.backup = writeBack(gilPath, result10.bytes, sourceHash, projectConfig?.inject?.mapId)
+            summary10.writePerformed = true
+            log10(`backup=${summary10.backup}`)
+            log10('writePerformed=true')
+          }
+        } else {
+          summary10.previewOnly = true
+          log10('preview only; 使用 --output <file> 落盘候选')
+        }
+        log10('editorOrGameValidation=not-performed')
+        if (jsonMode) process.stdout.write(prettyStableJson(summary10))
+        return
+      }
+
       // 票05 L2 语义面：官方单条 donor 装配（--on 放置面；--id 缺省=避让分配）
       const parsed = parseRoot9(sourceBytes)
       const surface =
