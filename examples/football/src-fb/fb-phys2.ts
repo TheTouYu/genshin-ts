@@ -30,6 +30,7 @@
 // 编译硬前置：主配置全图编译（单 entry 必失败）；客户端参数序与服务端相反
 //   （getCorrespondingValueFromList(iD, list)；_3dVectorZoom(标量, 向量) 同理反序）。
 import { g } from 'genshin-ts/runtime/core'
+import { float } from 'genshin-ts/runtime/value'
 
 import { chanReadF, chanReadF32Group, chanWriteF } from './channels.js'
 import { FbSignal } from './signals.js'
@@ -74,6 +75,9 @@ const CFG_SX = 1207959576n
 const CFG_SY = 1207959577n
 const CFG_SZ = 1207959578n
 const CFG_ST = 1207959579n
+
+// ———— 5.3c AI 射程维持计数槽（实例隔离自持；用户建的 40 变量段 580 空闲位） ————
+const CFG_JUMP_CT = 1207959580n
 
 g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f) => {
   // ============ ① E2 计数器（观测面保留；E2 定论=每拍复位，恒 1） ============
@@ -206,6 +210,28 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
     mVel.set(f.create3dVector(g[4], g[5], g[6]))
     mSpin.set(f.create3dVector(g[7], g[8], g[9]))
     mSt.set(f.dataTypeConversion(chanReadF(f, CFG_ST), 'int'))
+    // ============ ⑤a AI 射程维持——造物周期贴球瞬移（5.3c 用户方案） ============
+    // 背景：施放率被"造物-球距离"调制（3152 实测：球被踢飞远 → ~1.6/s → 镜像冻结）。
+    // 修法：每 2 次施放判一次造物-球距（实例隔离自持槽 580 计数，无取模用乘除判偶），
+    // >6m 则把造物自身瞬移到球模拟位置旁（mPos 与镜像同源，零额外读；偏移 +2x 防叠点）。
+    const jc = f.dataTypeConversion(chanReadF(f, CFG_JUMP_CT), 'int')
+    chanWriteF(f, CFG_JUMP_CT, f.dataTypeConversion(f.addition(jc, 1n), 'float'))
+    const jcF = f.dataTypeConversion(jc, 'float')
+    const evenJump = f.equal(
+      f.multiplication(f.division(jcF, new float(2)), new float(2)),
+      jcF
+    )
+    f.doubleBranch(evenJump, () => {
+      const eloc = f.getEntityLocation(f.getSelfEntity())
+      const toBall = f._3dVectorSubtraction(mPos.value, eloc)
+      const d = f._3dVectorModuloOperation(toBall)
+      f.doubleBranch(f.greaterThan(d, new float(6)), () => {
+        f.complexCreationTeleport(
+          f._3dVectorAddition(mPos.value, f.create3dVector(2, 0, 0)),
+          f.create3dVector(0, 0, 0)
+        )
+      }, () => {})
+    }, () => {})
     const tick2 = f.dataTypeConversion(chanReadF(f, CFG_T), 'int')
     f.doubleBranch(f.equal(tick2, mTick.value), () => {
       // —— 镜像一致：真实任务此时才 ack（撕裂则 tearE，看门狗 4s 重提交不丢任务） ——
