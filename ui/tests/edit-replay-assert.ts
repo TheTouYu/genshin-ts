@@ -114,4 +114,53 @@ ok('fail-closed: 字号越界（513）拒绝', () => {
   assert.throws(() => updateUiControl(load(S13), INPUT, { textStyle: { fontSize: 513 } }), /1\.\.512/)
 })
 
+// 轮19→20：输入框文本内容（f505 缺失→插入）与文字颜色同参重放
+const UILEARN = path.join(ROOT, '.gsts', 'diff-exp', 'ui学习')
+if (fs.existsSync(UILEARN)) {
+  const loadU = (f: string): Uint8Array =>
+    new Uint8Array(fs.readFileSync(path.join(UILEARN, f)))
+  ok('编辑重放: 输入框文本+颜色（轮19→轮20；root9 全等；field45 颜色历史=预期差异登记）', () => {
+    const r = updateUiControl(
+      loadU('1073741909.after-重启19-图文输入框-a81cbfbf.gil'),
+      INPUT,
+      { content: '这是文字', textStyle: { color: '#386A3F' } }
+    )
+    const edit = loadU('1073741909.after-重启20-输入框文字颜色-e805d0cc.gil')
+    // root9 全等 + root46 等长
+    const parseTop = (b: Uint8Array) => parseWireMessage(b.subarray(20, b.length - 4))!
+    const a = parseTop(r.bytes)
+    const b = parseTop(edit)
+    for (const n of [9, 46]) {
+      const av = a.find((f) => f.number === n)
+      const bv = b.find((f) => f.number === n)
+      assert.ok(av && bv, `field ${n} missing`)
+      if (n === 46) {
+        assert.equal(
+          (av.value as Uint8Array).length,
+          (bv.value as Uint8Array).length,
+          'root46 len'
+        )
+        continue
+      }
+      assert.equal(
+        Buffer.from(av.value as Uint8Array).equals(Buffer.from(bv.value as Uint8Array)),
+        true,
+        'root9 应全等'
+      )
+    }
+    // field45 颜色历史：编辑器把 {新色,?} 条目(10B)置顶并重写长度前缀（open-item，单样本）
+    // 断言：长度 +10，且候选旧内容整体作为编辑器后缀保留（12 偏移之后逐字节相等）
+    const fa = a.find((f) => f.number === 45)!.value as Uint8Array
+    const fb = b.find((f) => f.number === 45)!.value as Uint8Array
+    assert.equal(fb.length - fa.length, 10, '颜色历史 +10B')
+    assert.equal(
+      Buffer.from(fb.subarray(22)).equals(Buffer.from(fa.subarray(12))),
+      true,
+      'field45 旧内容后缀完整保留'
+    )
+  })
+} else {
+  console.log('skip 1 - ui学习 快照目录缺失')
+}
+
 console.log(`PASS ${passed} edit-replay assertions`)

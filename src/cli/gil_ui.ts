@@ -138,18 +138,31 @@ function setUiContent(record: Uint8Array, content: string): Uint8Array {
     const f19 = f503msg.find((child) => child.number === 19 && child.wire === 2)
     if (f19) {
       const f19msg = parseMessageFields(f19.value as Uint8Array)
-      const f505 = f19msg?.find((child) => child.number === 505 && child.wire === 2)
+      if (!f19msg) throw new Error('[error] invalid f19 container')
+      const f505 = f19msg.find((child) => child.number === 505 && child.wire === 2)
       const f505msg = f505 ? parseMessageFields(f505.value as Uint8Array) : undefined
       const textField = f505msg?.find((child) => child.number === 501 && child.wire === 2)
-      if (textField) {
-        f505!.value = emitWireMessage(
+      if (f505 && textField) {
+        f505.value = emitWireMessage(
           f505msg!.map((child) => (child === textField ? { ...child, value: utf8(content) } : child))
         )
-        f19.value = emitWireMessage(f19msg!)
+        f19.value = emitWireMessage(f19msg)
         f503.value = emitWireMessage(f503msg)
         changed = true
         return { ...field, value: emitWireMessage(sub) }
       }
+      // 无文本字段：编辑器样本=按字段号升序插入/重建 f505{f501=text}（轮19→20 实证）
+      const f505New = emitWireMessage([{ number: 501, wire: 2, value: utf8(content) }])
+      if (f505) {
+        f505.value = f505New
+      } else {
+        const at = f19msg.findIndex((child) => child.number > 505)
+        f19msg.splice(at < 0 ? f19msg.length : at, 0, { number: 505, wire: 2, value: f505New })
+      }
+      f19.value = emitWireMessage(f19msg)
+      f503.value = emitWireMessage(f503msg)
+      changed = true
+      return { ...field, value: emitWireMessage(sub) }
     }
     // 按钮路径
     const f43 = f503msg.find((child) => child.number === 43 && child.wire === 2)
