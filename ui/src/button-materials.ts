@@ -56,8 +56,9 @@ function usedIdSet(parsed: ReturnType<typeof parseRoot9>): Set<number> {
   return used
 }
 
-/** 连续分配 n 个未占用 ID（尾部接续；本票地图无编辑器空洞，与 create 分配器同向） */
-function allocateIds(used: Set<number>, n: number): number[] {
+/** 连续分配 n 个未占用 ID（尾部接续；本票地图无编辑器空洞，与 create 分配器同向）。
+ *  票10 起导出复用：素材成员/组 ID 分配（组+成员连续对 = 轮16 编辑器形态） */
+export function allocateIds(used: Set<number>, n: number): number[] {
   const out: number[] = []
   let cursor = Math.max(1073741840, ...used) + 1
   while (out.length < n) {
@@ -87,8 +88,9 @@ function f32pair(x: number, y: number): Uint8Array {
   ])
 }
 
-/** 素材成员 = 内联官方文本框控件：把 t25 组件 f19 里的文本(f505)与颜色(f510) 改写 */
-function patchTextMember(raw: Uint8Array, text: string, color: number): Uint8Array {
+/** 素材成员 = 内联官方文本框控件：把 t25 组件 f19 里的文本(f505)与颜色(f510) 改写
+ *  （票10 起导出复用：素材成员 update 命令与 add 命令共用同一改写原语） */
+export function patchTextMember(raw: Uint8Array, text: string, color: number): Uint8Array {
   const m = parseWireMessage(raw)
   if (!m) throw new Error('[error] member record parse failed')
   let hit = false

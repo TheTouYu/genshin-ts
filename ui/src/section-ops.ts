@@ -67,17 +67,27 @@ export function insertIntoIndex(section: WireField[], newId: number, afterId?: n
   indexField.value = encodePacked(ids)
 }
 
-/** section 内记录物理插入：在 afterId 之后插入整块（缺省=段尾追加） */
+/** section 内记录物理插入：在 afterId 之后插入整块（缺省=最后一条记录之后——
+ *  section 尾部常驻非记录字段（f503 审计等）保持殿后，轮16 铁证） */
 export function insertRecords(
   section: WireField[],
   records: readonly Uint8Array[],
   insertAfterId?: number
 ): void {
-  let at = section.length
+  let at: number
   if (insertAfterId !== undefined) {
     const anchor = section.findIndex((f) => ownIdOf(f) === insertAfterId)
     if (anchor < 0) throw new Error(`[error] 物理插入锚点记录不存在: ${insertAfterId}`)
     at = anchor + 1
+  } else {
+    at = -1
+    for (let i = section.length - 1; i >= 0; i--) {
+      if (section[i].number === 502 && section[i].wire === 2) {
+        at = i + 1
+        break
+      }
+    }
+    if (at < 0) at = section.length
   }
   section.splice(at, 0, ...records.map((value) => ({ number: 502, wire: 2, value })))
 }
