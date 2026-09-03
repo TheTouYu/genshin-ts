@@ -73,18 +73,22 @@ const graph = g
   .on('whenTimerIsTriggered', (evt: any, ef: any) => {
     // 分支只构造变量参数，join 后单次调用统一处理器（设备壳：读缓冲 + 加设备）
     ef.multipleBranches(evt.timerName as never, {
+      // 06-R7 批量化：turnblock/orbit2 每通道 1 事件，事件内串行 count 槽（count=rbv_nA/nB）
       'turnblock': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', ef.getCustomVariable(entity(1077936203n), new str('rbv_nA')).asType('int'), false)
       },
-      // 面转 B 通道：槽 5..8（与 A 并行、orbit2 相位 +0.1 对齐）
+      // 面转 B 通道：槽 5..8
       'turnblockB': () => {
         ef.setNodeGraphVariable('handlerBase', 5n, false)
-        ef.setNodeGraphVariable('handlerMode', 0n, false)
+        ef.setNodeGraphVariable('handlerMode', 3n, false)
+        ef.setNodeGraphVariable('handlerCount', ef.getCustomVariable(entity(1077936203n), new str('rbv_nB')).asType('int'), false)
       },
       'orbit2B': () => {
         ef.setNodeGraphVariable('handlerBase', 5n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', ef.getCustomVariable(entity(1077936203n), new str('rbv_nB')).asType('int'), false)
       },
       'turnblock0': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
@@ -108,7 +112,8 @@ const graph = g
       },
       'orbit2': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
-        ef.setNodeGraphVariable('handlerMode', 1n, false)
+        ef.setNodeGraphVariable('handlerMode', 4n, false)
+        ef.setNodeGraphVariable('handlerCount', ef.getCustomVariable(entity(1077936203n), new str('rbv_nA')).asType('int'), false)
       },
       // 整转 orbit2 批量：只保留 2 个定时器（orbit20=槽0..13 / orbit21=槽14..25）。
       // 根图 multipleBranches 上限 10 case —— fd40432 教训保留

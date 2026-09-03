@@ -233,7 +233,8 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
       const post = f.callComposite(rbRenderPost, {
         moveId: base, n: new int(8), target,
-        lastSlot: new int(7), dur: new float(0.3), seg: new float(0.15), completion: new float(0.35), av: new float(300)
+        lastSlot: new int(7), dur: new float(0.3), seg: new float(0.15), completion: new float(0.35), av: new float(300),
+        nA: new int(8), nB: new int(0)
       })
       f.outflow('done', post as never, 0)
     }, () => {
@@ -265,7 +266,8 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
           f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
           const post = f.callComposite(rbRenderPost, {
             moveId, n: new int(9), target,
-            lastSlot: new int(8), dur: new float(0.2), seg: new float(0.1), completion: new float(0.25), av: new float(450)
+            lastSlot: new int(8), dur: new float(0.2), seg: new float(0.1), completion: new float(0.25), av: new float(450),
+            nA: new int(5), nB: new int(4)
           })
           f.outflow('done', post as never, 0)
         })
@@ -646,7 +648,8 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
       moveId: f.getNodeGraphVariable('curMove').asType('int'),
       n: new int(26),
       target,
-      lastSlot: new int(25), dur: new float(1.0), seg: new float(0.5), completion: new float(1.15), av: new float(90)
+      lastSlot: new int(25), dur: new float(1.0), seg: new float(0.5), completion: new float(1.15), av: new float(90),
+      nA: new int(0), nB: new int(0)
     })
     f.outflow('done', post as never, 0)
     return {}
@@ -690,11 +693,13 @@ export const rbRenderPost = g.defineComposite('rb_render_post', {
     dur: { type: 'float' },
     seg: { type: 'float' },
     completion: { type: 'float' },
-    av: { type: 'float' }
+    av: { type: 'float' },
+    nA: { type: 'int' },
+    nB: { type: 'int' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ moveId, n, target, lastSlot, dur, seg, completion, av }, f) => {
+  build: ({ moveId, n, target, lastSlot, dur, seg, completion, av, nA, nB }, f) => {
     const host = entity(1077936201n)
     const visualHost = entity(1077936203n)
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
@@ -707,10 +712,15 @@ export const rbRenderPost = g.defineComposite('rb_render_post', {
     f.connect(m1, 0, m2, 0)
     const m3 = f.node('set_custom_variable', [visualHost, new str('rbv_n'), n, new bool(false)])
     f.connect(m2, 0, m3, 0)
+    // 06-R7: 批量通道槽数（设备事件批量化：turnblock/orbit2 每通道 1 事件串行处理）
+    const m3a = f.node('set_custom_variable', [visualHost, new str('rbv_nA'), nA, new bool(false)])
+    f.connect(m3, 0, m3a, 0)
+    const m3b = f.node('set_custom_variable', [visualHost, new str('rbv_nB'), nB, new bool(false)])
+    f.connect(m3a, 0, m3b, 0)
     // 票 06 修复（3148 实证）：rbv 链独立宿主引用——rb_host 只由 rbx 十字任务写，空 host 会让
     // 客户端读到空表并回传空包（piece=None、vel 全 0）
     const m4 = f.node('set_custom_variable', [owner, new str('rbv_host'), host, new bool(false)])
-    f.connect(m3, 0, m4, 0)
+    f.connect(m3b, 0, m4, 0)
     // 06-R7：分片窗口起点归零（客户端每拍只发 [rbv_c, rbv_c+2] 三槽）
     const m4b = f.node('set_custom_variable', [owner, new str('rbv_c'), new int(0), new bool(false)])
     f.connect(m4, 0, m4b, 0)
@@ -737,18 +747,13 @@ export const rbRenderStartTimers = g.defineComposite('rb_render_start_timers', {
       f.logicalNotOperation(f.greaterThan(base, 6))
     )
     f.doubleBranch(isFace, () => {
-      const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
-      const timesB = f.getNodeGraphVariable('faceTurnTimesB').asType('float_list')
-      const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
-      const orbit2B = f.getNodeGraphVariable('faceOrbit2TimesB').asType('float_list')
-      // 2026-09-03 修复（3155 rec2321 实证）：首节点必须 registerExecNode 挂分支执行流——
-      // f.node 是 detached，无上游连接时整条起表链永不执行（832 全程 0 记录）
-      const t1 = f.registerExecNode('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-      const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), timesB])
+      // 06-R7 批量化：每通道 1 事件（0.01/0.02s 起 A/B；orbit2 0.11/0.12s），事件内串行处理整通道
+      const t1 = f.registerExecNode('start_timer', [visualHost, new str('turnblock'), new bool(false), f.assemblyList([new float(0.01)], 'float')])
+      const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), f.assemblyList([new float(0.02)], 'float')])
       f.connect(t1, 0, t1b, 0)
-      const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
+      const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), f.assemblyList([new float(0.11)], 'float')])
       f.connect(t1b, 0, t2, 0)
-      const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), orbit2B])
+      const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), f.assemblyList([new float(0.12)], 'float')])
       f.connect(t2, 0, t2b, 0)
       f.outflow('done', t2b, 0)
     }, () => {
@@ -772,11 +777,9 @@ export const rbRenderStartTimers = g.defineComposite('rb_render_start_timers', {
         f.connect(o0, 0, o1, 0)
         f.outflow('done', o1, 0)
       }, () => {
-        // 中层：8 槽单通道
-        const times = f.getNodeGraphVariable('middleTurnTimes').asType('float_list')
-        const orbit2 = f.getNodeGraphVariable('middleOrbit2Times').asType('float_list')
-        const t1 = f.registerExecNode('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-        const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
+        // 中层：8 槽单通道批量（1 事件内串行 8 槽）
+        const t1 = f.registerExecNode('start_timer', [visualHost, new str('turnblock'), new bool(false), f.assemblyList([new float(0.01)], 'float')])
+        const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), f.assemblyList([new float(0.11)], 'float')])
         f.connect(t1, 0, t2, 0)
         f.outflow('done', t2, 0)
       })
