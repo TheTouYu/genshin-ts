@@ -1,0 +1,8 @@
+# 票08 端到端演练（dry-run，只读；基线 1073741909.after-重启66-默认页签2-7468eadd.gil）
+
+[PASS] List: 语义解析全景 — 106 records 可解析
+[PASS] Create: 实例源模板化 — 新模板 1073742158，无孤儿引用
+[PASS] Edit: 对齐+字号 — 基线无带 f19 的 text/input，跳过
+[PASS] Delete: 容器成员删除 — removed 1073742157 (input-box)，无孤儿引用
+
+PASS 4 steps
