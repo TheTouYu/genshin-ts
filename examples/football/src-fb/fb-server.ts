@@ -407,8 +407,9 @@ const graph = g
             })
             f.printString('fb:seed')
             f.startTimer(ball, 'fb_dsp', true, [1])
-            // 5.2d 渲染定时器（常驻；请求 0.05s——服务端实测粒度 ~0.09s → 实际 ~11/s）
-            f.startTimer(ball, 'fb_render', true, [0.05])
+            // 5.2d 渲染定时器（常驻；5.2e 请求 0.09s——实测粒度 ~0.045-0.09 抖动，
+            // 0.05 请求实测可飙到 ~20/s 加重负载；0.09 封顶 ~10/s）
+            f.startTimer(ball, 'fb_render', true, [0.09])
             // fb_wd 已退役（票 10 R2）：丢拍由 fb_beat 续命兜底，见文件头
             // R3 自动锚点序列武装（fb_test_mode=1；2m 落体种子 Rest 后自动开跑）
             const tm = f.getCustomVariable(ball, 'fb_test_mode').asType('int')
@@ -561,13 +562,17 @@ const graph = g
     const isP = f.equal(evt.params.tag, 'P')
     // 5.2d 快照门：只接受比镜像更新的 tick（客户端各实例自持 tick 连续、
     // 同确定性轨迹——任意流的下一个连续 tick 均可续接镜像，流间自动交替）
-    const fresh = f.greaterThan(evt.params.tick, cur)
-    // vec3 参数拆分量（信号 6 参形态：tag,tick,pos,vel,spin,state——引擎参数上限 10，
-    // 09-03 用户知识修正；Split 节点输出为普通数据 pin，多点消费稳定无重求值陷阱）
-    const posS = f.split3dVector(evt.params.pos)
-    const velS = f.split3dVector(evt.params.vel)
-    const spinS = f.split3dVector(evt.params.spin)
-    f.doubleBranch(f.logicalAndOperation(isP, fresh), () => {
+    // 5.2e 减载：cur 读与 vec3 拆分全部移进门内（被拒重复流只付 isP+门成本 ~6f，
+    // 不再付 3×split ~14f——多造物重复流是到达主体，4.6× 去重实测）
+    f.doubleBranch(isP, () => {
+      const cur = f.getCustomVariable(ball, 'fb_ball_tick').asType('int')
+      const fresh = f.greaterThan(evt.params.tick, cur)
+      f.doubleBranch(fresh, () => {
+      // vec3 参数拆分量（信号 6 参形态：tag,tick,pos,vel,spin,state——引擎参数上限 10，
+      // 09-03 用户知识修正；Split 节点输出为普通数据 pin，多点消费稳定无重求值陷阱）
+      const posS = f.split3dVector(evt.params.pos)
+      const velS = f.split3dVector(evt.params.vel)
+      const spinS = f.split3dVector(evt.params.spin)
       // —— 5.2d 快照应用：镜像 11 写（tick=客户端 tick，快照语义不重编号）+ gate=0 ——
       const nt = evt.params.tick
       f.callComposite(fbMirrorApply, {
@@ -746,12 +751,12 @@ const graph = g
         f.setNodeGraphVariable('fb_scored', new bool(true), false)
       }, () => {
       })
-    }, () => {
-      // —— 非应用拍：dup（同代重复回传）零打印（多造物常态，打印纪律）；tear 罕见保留 ——
-      f.doubleBranch(isP, () => {
       }, () => {
-        f.printString('fb:tear')
+        // —— fresh 门未过：同代/过期重复回传（多造物常态）零打印（打印纪律）——
       })
+    }, () => {
+      // —— 非 P 拍（tag='T' 撕裂哨兵）：零应用；打点保留（罕见）——
+      f.printString('fb:tear')
     })
   })
 
