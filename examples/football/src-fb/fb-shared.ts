@@ -131,10 +131,11 @@ export const fbMirrorApply = g.defineComposite('fb_mirror_apply', {
 })
 
 // ———— 复合：预测插值驱动（渲染定时器调用；位置+旋转双设备，04 轮用户指正补齐旋转） ————
-// 位置：速度=(新位−实体当前位)/fb_p_dt（跟拍距走，设备时长不参与正常速度）；
-//   同名 'fb_phys' 顶替，时长=fb_p_drive 仅当保险丝——正常被顶替，丢拍时旧设备按最后
-//   指令速度续滑（用户模型 2026-09-02 定）；state=Rest 停球拍 st=4 时改除 fb_p_drive，
-//   保证最后一台设备到点精确停下（恒速设备否则会冲过停点）。
+// 位置：速度=(新位−实体当前位)/fb_p_drive —— 5.3e 修正：分母恒=设备时长（渲染节拍同源），
+//   每根设备匀速恰好在节拍内到位，零过冲零振荡（旧实现分母=fb_p_dt 物理步长：设备按
+//   "1/dt 速度"跑 dur 时长 → 冲过 dur/dt 倍 → 节拍驱动下来回振荡——实测复现）。
+//   语义链：fb_render 节拍=fb_p_drive（5.3b 参数化）→ 每节拍一根设备匀速到点 → 丢拍=
+//   设备自然到点停（原"续滑保险丝"设计退役，更稳）。st 参数保留（到位跳过判定在调用侧）。
 // 旋转：'fb_spin' 匀速旋转设备（axis+°/s）——与线性设备可叠加；世界自旋轴必须经实体
 // 当前朝向转回局部轴（local = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，YXZ 内旋）。
 // 'fb_phys'/'fb_spin' 与旧图 'physics'/'spin' 均不同名（避免同名顶替级联）。
@@ -148,15 +149,10 @@ export const fbDrive = g.defineComposite('fb_drive', {
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ ball, pos, spin, st }, f) => {
+  build: ({ ball, pos, spin }, f) => {
     const dur = f.getCustomVariable(ball, 'fb_p_drive').asType('float')
-    const pdt = f.getCustomVariable(ball, 'fb_p_dt').asType('float')
-    // 分母选择：停球拍(Rest)=dur（精确到点停）；普通拍=pdt（跟拍距，时长只当保险丝）
-    const bRest = f.dataTypeConversion(f.dataTypeConversion(f.equal(st, ST_REST), 'int'), 'float')
-    const denom = f.addition(
-      f.multiplication(dur, bRest),
-      f.multiplication(pdt, f.subtraction(1, bRest))
-    )
+    // 5.3e：分母恒=dur（设备时长=渲染节拍）——到点精确停，无过冲
+    const denom = dur
     const gain = f.division(1, denom)
     const loc = f.getEntityLocationAndRotation(ball).location
     const vel = f._3dVectorZoom(f._3dVectorSubtraction(pos, loc), gain)
