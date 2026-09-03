@@ -172,6 +172,7 @@ function parseArgs(argv: readonly string[]) {
   let onRaw: string | undefined
   let text: string | undefined
   let fontSize: number | undefined
+  let align: 'left' | 'center' | 'right' | undefined
   let index = 0
   if (
     argv[0] === 'list' ||
@@ -257,6 +258,11 @@ function parseArgs(argv: readonly string[]) {
       if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed))
         throw new Error('[error] --font-size 须为正整数')
       fontSize = parsed
+    } else if (arg === '--align') {
+      const raw = value(argv, index++)
+      if (raw !== 'left' && raw !== 'center' && raw !== 'right')
+        throw new Error('[error] --align must be left, center or right')
+      align = raw
     } else if (arg === '--help' || arg === '-h') usage(0)
     else if (
       command !== 'list' &&
@@ -316,7 +322,9 @@ function parseArgs(argv: readonly string[]) {
     position === undefined &&
     size === undefined &&
     assetId === undefined &&
-    color === undefined
+    color === undefined &&
+    fontSize === undefined &&
+    align === undefined
   ) {
     throw new Error(
       '[error] update requires at least one of --name/--content/--position/--size/--asset/--color'
@@ -346,7 +354,8 @@ function parseArgs(argv: readonly string[]) {
     color,
     on: onRaw,
     text,
-    fontSize
+    fontSize,
+    align
   }
 }
 
@@ -945,13 +954,43 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     summary.newId = result.id
     if (donorBytes) summary.donorGil = args.donorGilPath
     log(`newId=${result.id}`)
-  } else if (args.color !== undefined) {
-    // 改素材颜色（含分类副本的所有图元组）
-    const argb = cssColorToArgb(args.color, 1)
-    const result = setAssetColor(sourceBytes, args.targetId!, argb)
+  } else if (args.command === 'update' && (args.fontSize !== undefined || args.align !== undefined)) {
+    // 票06：文本样式定点编辑（f19 字号/对齐；队列内容对齐 f68）
+    const info = templateizeTargetInfo(sourceBytes, args.targetId!)
+    const textKinds = ['textbox', 'input-box']
+    if (!textKinds.includes(info.kind) && info.kind !== 'message-queue') {
+      throw new Error(`[error] update --font-size/--align 支持 kind=textbox/input-box/message-queue，目标=${info.kind}`)
+    }
+    if (args.fontSize !== undefined && !textKinds.includes(info.kind)) {
+      throw new Error('[error] --font-size 仅支持 textbox/input-box（队列字号在样式成员文本框上编辑）')
+    }
+    const options: UiUpdateOptions = {
+      textStyle: {
+        ...(args.fontSize !== undefined ? { fontSize: args.fontSize } : {}),
+        ...(args.align !== undefined ? { align: args.align } : {})
+      }
+    }
+    const result = updateUiControl(sourceBytes, args.targetId!, options)
+    candidate = result.bytes
+    summary.changed = result.changed
+    log(`changed=${result.changed.join(',')}`)
+  } else if (args.command === 'update' && args.color !== undefined) {
+    const info = templateizeTargetInfo(sourceBytes, args.targetId!)
+    if (info.kind === 'textbox' || info.kind === 'input-box') {
+      // 票06：文字颜色 f19.f510（0xFFRRGGBB）
+      const options: UiUpdateOptions = { textStyle: { color: args.color } }
+      const result = updateUiControl(sourceBytes, args.targetId!, options)
+      candidate = result.bytes
+      summary.changed = result.changed
+      log(`changed=${result.changed.join(',')}`)
+    } else {
+      // 素材颜色（含分类副本的所有图元组）
+      const argb = cssColorToArgb(args.color, 1)
+      const result = setAssetColor(sourceBytes, args.targetId!, argb)
     candidate = result.bytes
     summary.changedIds = result.changedIds
     log(`changedIds=${result.changedIds.join(',')}`)
+    }
   } else if (args.assetId !== undefined) {
     // 改素材引用（模板会同步所有实例）
     const result = updateUiAssetReference(sourceBytes, args.targetId!, args.assetId)

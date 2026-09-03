@@ -1,4 +1,5 @@
 import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
+import { cssColorToArgb } from './static_assembly/library_css.js'
 import {
   emitWireMessage,
   parseWireMessage,
@@ -21,6 +22,7 @@ export type UiTransform = {
 export type UiUpdateOptions = UiTransform & {
   name?: string
   content?: string
+  textStyle?: UiTextStyleOptions
 }
 
 export type UiCloneOptions = UiUpdateOptions & {
@@ -175,6 +177,92 @@ function setUiContent(record: Uint8Array, content: string): Uint8Array {
     return field
   })
   if (!changed) throw new Error('[error] UI control content path not found')
+  return emitWireMessage(out)
+}
+
+export interface UiTextStyleOptions {
+  /** 字号（f19.f502；1..512） */
+  fontSize?: number
+  /** 文本/内容对齐：左=移除字段，中/右=varint 1/2（文本框/输入框 f19.f503；队列内容 f68.f506） */
+  align?: 'left' | 'center' | 'right'
+  /** 文字颜色 '#RRGGBB'（f19.f510 varint 0xFFRRGGBB） */
+  color?: string
+}
+
+type StyleMsg = { number: number; wire: number; value: number | Uint8Array }
+
+function styleSetVarint(msg: StyleMsg[], fieldNo: number, value: number): StyleMsg[] {
+  const idx = msg.findIndex((f) => f.number === fieldNo && f.wire === 0)
+  if (idx >= 0) {
+    msg[idx] = { ...msg[idx], value }
+    return msg
+  }
+  const insertAt = msg.findIndex((f) => f.number > fieldNo)
+  msg.splice(insertAt < 0 ? msg.length : insertAt, 0, { number: fieldNo, wire: 0, value })
+  return msg
+}
+
+/** f19/f68 文本样式定点编辑（surgical patch：只重建命中的容器消息，其余字节透传）。
+ * f19 容器字段：字号 502/对齐 503/颜色 510；f68（队列内容）仅对齐 506。 */
+export function setUiTextStyle(record: Uint8Array, options: UiTextStyleOptions): Uint8Array {
+  if (options.fontSize === undefined && options.align === undefined && options.color === undefined) {
+    return record
+  }
+  const fields = parseMessageFields(record)
+  if (!fields) throw new Error('[error] invalid UI control record')
+  let changed = false
+  const out = fields.map((field) => {
+    if (changed || field.number !== 505 || field.wire !== 2) return field
+    const sub = parseMessageFields(field.value as Uint8Array)
+    if (!sub) return field
+    const f503 = sub.find((child) => child.number === 503 && child.wire === 2)
+    if (!f503) return field
+    const f503msg = parseMessageFields(f503.value as Uint8Array)
+    if (!f503msg) return field
+    // f19（文本框/输入框）优先；无则 f68（消息队列内容）
+    let style = f503msg.find((child) => child.number === 19 && child.wire === 2)
+    let alignField = 503
+    if (!style) {
+      style = f503msg.find((child) => child.number === 68 && child.wire === 2)
+      alignField = 506
+    }
+    if (!style) return field
+    const msg = parseMessageFields(style.value as Uint8Array)
+    if (!msg) return field
+    if (options.fontSize !== undefined) {
+      if (style.number === 68) throw new Error('[error] 队列内容无字号字段（样式文本字号在成员文本框上编辑）')
+      if (options.fontSize < 1 || options.fontSize > 512 || !Number.isInteger(options.fontSize)) {
+        throw new Error('[error] --font-size 须为 1..512 整数（编辑器上限）')
+      }
+      styleSetVarint(msg, 502, options.fontSize)
+    }
+    if (options.align !== undefined) {
+      const value = options.align === 'left' ? undefined : options.align === 'center' ? 1 : 2
+      const idx = msg.findIndex((f) => f.number === alignField && f.wire === 0)
+      if (value === undefined) {
+        if (idx >= 0) msg.splice(idx, 1)
+      } else if (idx >= 0) {
+        msg[idx] = { ...msg[idx], value }
+      } else {
+        const insertAt = msg.findIndex((f) => f.number > alignField)
+        msg.splice(insertAt < 0 ? msg.length : insertAt, 0, {
+          number: alignField,
+          wire: 0,
+          value
+        })
+      }
+    }
+    if (options.color !== undefined) {
+      if (style.number === 68) throw new Error('[error] 队列内容无文字颜色（样式文本颜色在成员文本框上编辑）')
+      const argb = cssColorToArgb(options.color, 1) >>> 0
+      styleSetVarint(msg, 510, argb)
+    }
+    style.value = emitWireMessage(msg)
+    f503.value = emitWireMessage(f503msg)
+    changed = true
+    return { ...field, value: emitWireMessage(sub) }
+  })
+  if (!changed) throw new Error('[error] UI control f19/f68 text-style container not found')
   return emitWireMessage(out)
 }
 
@@ -418,6 +506,10 @@ export function updateUiControl(
   if (options.position !== undefined || options.size !== undefined) {
     record = setUiTransform(record, { position: options.position, size: options.size })
     changed.push('transform')
+  }
+  if (options.textStyle !== undefined) {
+    record = setUiTextStyle(record, options.textStyle)
+    changed.push('text-style')
   }
   const root9 = top.find((f) => f.number === 9 && f.wire === 2)!
   const section = parseMessageFields(root9.value as Uint8Array)!
