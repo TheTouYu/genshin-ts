@@ -210,10 +210,11 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
     mVel.set(f.create3dVector(g[4], g[5], g[6]))
     mSpin.set(f.create3dVector(g[7], g[8], g[9]))
     mSt.set(f.dataTypeConversion(chanReadF(f, CFG_ST), 'int'))
-    // ============ ⑤a AI 射程维持——造物周期贴球瞬移（5.3c 用户方案） ============
-    // 背景：施放率被"造物-球距离"调制（3152 实测：球被踢飞远 → ~1.6/s → 镜像冻结）。
-    // 修法：每 2 次施放判一次造物-球距（实例隔离自持槽 580 计数，无取模用乘除判偶），
-    // >6m 则把造物自身瞬移到球模拟位置旁（mPos 与镜像同源，零额外读；偏移 +2x 防叠点）。
+    // ============ ⑤a AI 射程维持——造物贴玩家瞬移（5.3c 用户方案，5.3d 实测修正） ============
+    // 背景：施放率被"造物-玩家距离"调制（用户实测修正：球距推论作废——玩家远→降频）。
+    // 修法：每 2 次施放判一次造物-玩家距（实例隔离自持槽 580 计数，无取模用乘除判偶），
+    // >4m 则把造物自身瞬移到玩家旁（x,z 取玩家位 +2x 偏移；**y 保持造物当前 y 不动**）。
+    // owner=②段 E1 玩家实体（同会话作用域，复用免再取列表）。
     const jc = f.dataTypeConversion(chanReadF(f, CFG_JUMP_CT), 'int')
     chanWriteF(f, CFG_JUMP_CT, f.dataTypeConversion(f.addition(jc, 1n), 'float'))
     const jcF = f.dataTypeConversion(jc, 'float')
@@ -223,11 +224,14 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
     )
     f.doubleBranch(evenJump, () => {
       const eloc = f.getEntityLocation(f.getSelfEntity())
-      const toBall = f._3dVectorSubtraction(mPos.value, eloc)
-      const d = f._3dVectorModuloOperation(toBall)
-      f.doubleBranch(f.greaterThan(d, new float(6)), () => {
+      const ploc = f.getEntityLocation(owner)
+      const toP = f._3dVectorSubtraction(ploc, eloc)
+      const d = f._3dVectorModuloOperation(toP)
+      f.doubleBranch(f.greaterThan(d, new float(4)), () => {
+        const es = f.split3dVector(eloc)
+        const ps = f.split3dVector(ploc)
         f.complexCreationTeleport(
-          f._3dVectorAddition(mPos.value, f.create3dVector(2, 0, 0)),
+          f.create3dVector(f.addition(ps.xComponent, new float(2)), es.yComponent, ps.zComponent),
           f.create3dVector(0, 0, 0)
         )
       }, () => {})
