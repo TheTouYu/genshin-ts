@@ -14,7 +14,9 @@
  *      占用/越权显式报错；确定性；
  *   D. 参数 patch（名字/位置/尺寸）语义回读：kind/role/name/geometry/parent 正确、
  *      宿主成员追加、其余记录字节零改动（patch 的字节级对拍无同参编辑器样本，
- *      属结构层证据，行为层留待编辑器/游戏核验）。
+ *      属结构层证据，行为层留待编辑器/游戏核验）；
+ *   E. 全量快照冒烟（禁抽查）：80 个 .gil 逐文件生成 layout 面候选；含悬浮页固有容器 2084
+ *      的快照逐一生成 container 面候选——各断言 +1 记录 / 宿主 f503 含新 ID / 其余记录零改动。
  */
 
 import assert from 'node:assert/strict'
@@ -26,6 +28,7 @@ import { CREATE_DONORS } from '../src/create-donors.js'
 import {
   allocateControlId,
   createButtonCandidate,
+  ownerFloatingPageId,
   resolveSurfaceTarget
 } from '../src/create.js'
 import { parseRoot9 } from '../src/record.js'
@@ -289,6 +292,75 @@ ok('参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余�
     assert.ok(same, `既有记录消失: ${r.id}`)
     assert.equal(Buffer.from(same.raw).equals(Buffer.from(r.raw)), true, `既有记录被改动: ${r.id}`)
   }
+})
+
+// ============ E. 全量 80 快照逐文件 create 冒烟（只读候选，禁止抽查） ============
+/** 对单个快照做一次候选生成并做最小不变式断言：+1 记录 / 宿主 f503 含新 ID / 其余记录零改动 */
+function assertCandidateInvariants(file: string, surfaceLabel: string): void {
+  const before = load(file)
+  const beforeParsed = parse(before)
+  const parentId = surfaceLabel === 'layout' ? DEFAULT_LAYOUT_ID : CONTAINER_2084
+  const id = allocateControlId(beforeParsed)
+  const result = createButtonCandidate(before, {
+    surface:
+      surfaceLabel === 'layout'
+        ? { kind: 'layout', layoutId: parentId }
+        : { kind: 'container', containerId: parentId }
+  })
+  const afterParsed = parse(result.bytes)
+  assert.ok(afterParsed.recordsById.has(id), `${file}: 候选记录缺失 ${id}`)
+  assert.equal(
+    afterParsed.records.length,
+    beforeParsed.records.length + 1,
+    `${file}: 记录数未 +1`
+  )
+  const owner = afterParsed.recordsById.get(parentId)
+  assert.ok(owner, `${file}: 宿主记录缺失 ${parentId}`)
+  const memberField = owner.fields.find((f) => f.number === 503 && f.wire === 2)
+  assert.ok(memberField, `${file}: 宿主无 f503`)
+  assert.ok(packed(memberField.value as Uint8Array).includes(id), `${file}: f503 未含 ${id}`)
+  for (const r of beforeParsed.records) {
+    if (r.id === parentId) continue
+    const same = afterParsed.recordsById.get(r.id)
+    assert.ok(same, `${file}: 既有记录消失 ${r.id}`)
+    assert.equal(
+      Buffer.from(same.raw).equals(Buffer.from(r.raw)),
+      true,
+      `${file}: 既有记录被改动 ${r.id}`
+    )
+  }
+}
+
+ok('全量快照: 80 个文件逐一 layout 面候选冒烟（+1/宿主成员/其余零改动/ID 非冲突）', () => {
+  const files = fs
+    .readdirSync(FIXTURES)
+    .filter((f) => f.endsWith('.gil'))
+    .sort()
+  assert.equal(files.length, 80, `快照数 != 80（实际 ${files.length}）`)
+  for (const file of files) assertCandidateInvariants(file, 'layout')
+})
+
+ok('全量快照: 含悬浮页固有容器 2084 的快照逐一 container 面候选冒烟', () => {
+  const files = fs
+    .readdirSync(FIXTURES)
+    .filter((f) => f.endsWith('.gil'))
+    .sort()
+  let covered = 0
+  let skipped = 0
+  for (const file of files) {
+    const parsed = parse(load(file))
+    if (!parsed.recordsById.has(CONTAINER_2084)) {
+      skipped += 1
+      continue
+    }
+    if (ownerFloatingPageId(parsed, CONTAINER_2084) === undefined) {
+      skipped += 1
+      continue
+    }
+    assertCandidateInvariants(file, 'container')
+    covered += 1
+  }
+  console.log(`  (container 面覆盖 ${covered} 个快照，跳过 ${skipped} 个无 2084/无归属)`)
 })
 
 function packed(data: Uint8Array): number[] {
