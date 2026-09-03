@@ -31,15 +31,21 @@
 //     type∈{KICK,RESET} 才 startTimer(fb_beat)（垃圾测试载荷不唤醒，REST 期≈0）；
 //     RESET 应用置瞬移门 fb_tp_pending + 清 fb_scored
 //   · onSignal(fb_ball_state 6 参 vec3 形态，引擎参数上限 10——09-03 用户知识修正)：
-//     tag='P' 且 base_tick==镜像 tick（first-wins）→ 镜像 11 写
-//     （tick+1）+ gate=0 + 视觉驱动 + state==Rest→stopTimer + 进球判定简版；
-//     dup（同代重复回传）打点；tag='T' 撕裂拍不应用（gate 保持开，下一拍重算）
-// 视觉驱动两形态（防"百米条纹"）：常态拍预测插值 fbDrive（普通拍速度=(新位−实体当前位)/fb_p_dt，
-//   设备时长=fb_p_drive 仅当保险丝：正常每拍被同名顶替，丢拍时按最后指令速度续滑；state=Rest
-//   停球拍改用 /fb_p_drive 精确到点停）；RESET 应用后的首拍 fbTeleport
-//   （INSTANT 瞬移——否则实体残留位与镜像差几十米，预测插值会以百米每秒速度拉条纹）。
-//   瞬移门时序：RESET 的 ack 到达时置位（非投递时——投递与应用间还有普通拍，提前置位会
-//   误瞬移），首个 first-wins 应用拍消费并复位。
+//     tag='P' 且 tick>镜像 tick（5.2d 快照语义：接受更新的 tick——客户端各实例
+//     自持模拟器 tick 连续、流间可交替续接；不再要求 base==cur 连续 +1）→ 镜像
+//     11 写（tick=客户端 tick，不再服务端重编号）+ gate=0 + 进球判定简版；
+//     Rest 进入拍（prev≠Rest）stopTimer(fb_beat)+R3 自动锚点弹下一任务；
+//     dup（同代重复回传）零打点；tag='T' 撕裂拍不应用
+//   · fb_render 渲染定时器（5.2d，用户模型：接收只写变量、渲染独立调频）：
+//     服务端定时器粒度 ~0.09s → 请求 0.05 实际 ~11/s；镜像 tick 变化才驱动可见球
+//     （fb_tp_pending→fbTeleport 瞬移 / 常态 fbDrive 预测插值），无新 tick 零动作
+//     ——接收路径不再逐条驱动（per-apply fb_drive 30 帧移出热路径）
+// 视觉驱动两形态（5.2d 起由 fb_render 定时器调用；防"百米条纹"）：常态拍预测插值
+//   fbDrive（速度=(新位−实体当前位)/fb_p_dt，设备时长=fb_p_drive 仅当保险丝：正常
+//   被同名顶替，丢拍时按最后指令速度续滑；state=Rest 停球拍改除 fb_p_drive 精确到点
+//   停）；RESET 应用首拍 fbTeleport（INSTANT 瞬移——防残留位与镜像差几十米拉条纹）。
+//   瞬移门时序：RESET 的 ack 到达时置位（非投递时——投递与应用间还有普通拍，提前置位
+//   会误瞬移），fb_render 消费（首个新 tick 渲染拍）并复位。
 // 定时器名单制：本图只认 fb_dsp/fb_beat（+一次性 fb_seed），else 一律空分支（球实体上另有旧四图
 //   825/826/828/829 的定时器广播不吃进；反向已核对四图分发 else 均空，互不串扰）。
 // 运动器名 'fb_phys' 与旧图 'physics'/'spin' 不同名（避免同名顶替级联，2026-08-31 教训）。
@@ -292,10 +298,15 @@ const graph = g
     variables: {
       // 进球去重（复位应用时清零；防止球在网内多拍连续触发）
       fb_scored: new bool(false),
-      // 瞬移门：RESET 应用 ack 置位 → 首个应用拍消费（瞬移）并复位
+      // 瞬移门：RESET 应用 ack 置位 → fb_render 首个新 tick 渲染拍消费（瞬移）并复位
       fb_tp_pending: new bool(false),
-      // R3 自动锚点队列指针：0=off；1..7=下一任务（球 Rest 应用拍弹下一任务；用户按任意选项即清零）
-      fb_auto: new int(0)
+      // R3 自动锚点队列指针：0=off；1..7=下一任务（球 Rest 进入拍弹下一任务；用户按任意选项即清零）
+      fb_auto: new int(0),
+      // 5.2d：fb_render 上次已驱动镜像 tick（无新 tick 零动作）；fb_prev_st=上次应用状态
+      // （Rest 进入拍判定：连续 Rest 拍不重复触发 stopTimer/自动队列——旧链静止停发
+      // 天然只进一次，新链 Rest 连续回传需显式去重）
+      fb_last_drv: new int(0),
+      fb_prev_st: new int(0)
     }
   })
   // ================================================================
@@ -338,6 +349,35 @@ const graph = g
         const ballB = f.getSelfEntity()
         f.setCustomVariable(ballB, 'fb_ball_gate', 1n, false)
       }, () => {
+        f.doubleBranch(f.equal(evt.timerName, 'fb_render'), () => {
+          // —— 渲染定时器（5.2d）：镜像有新 tick 才驱动可见球；无新 tick 零动作 ——
+          const ballR = f.getSelfEntity()
+          const mt = f.getCustomVariable(ballR, 'fb_ball_tick').asType('int')
+          const ld = f.getNodeGraphVariable('fb_last_drv').asType('int')
+          f.doubleBranch(f.logicalNotOperation(f.equal(mt, ld)), () => {
+            f.setNodeGraphVariable('fb_last_drv', mt, false)
+            const mPos = f.create3dVector(
+              f.getCustomVariable(ballR, 'fb_ball_px').asType('float'),
+              f.getCustomVariable(ballR, 'fb_ball_py').asType('float'),
+              f.getCustomVariable(ballR, 'fb_ball_pz').asType('float')
+            )
+            const mSpin = f.create3dVector(
+              f.getCustomVariable(ballR, 'fb_ball_sx').asType('float'),
+              f.getCustomVariable(ballR, 'fb_ball_sy').asType('float'),
+              f.getCustomVariable(ballR, 'fb_ball_sz').asType('float')
+            )
+            const mSt = f.getCustomVariable(ballR, 'fb_ball_state').asType('int')
+            // 瞬移门：RESET ack 置位 → 本拍瞬移（INSTANT）并复位；常态=预测插值驱动
+            const tp = f.getNodeGraphVariable('fb_tp_pending').asType('bool')
+            f.doubleBranch(tp, () => {
+              f.setNodeGraphVariable('fb_tp_pending', new bool(false), false)
+              f.callComposite(fbTeleport, { ball: ballR, pos: mPos })
+            }, () => {
+              f.callComposite(fbDrive, { ball: ballR, pos: mPos, spin: mSpin, st: mSt })
+            })
+          }, () => {
+          })
+        }, () => {
           // fb_seed（一次性 5s）：种子逻辑后移落位（实体风暴规避，见文件头）
           f.doubleBranch(f.equal(evt.timerName, 'fb_seed'), () => {
             const ball = f.getSelfEntity()
@@ -367,6 +407,8 @@ const graph = g
             })
             f.printString('fb:seed')
             f.startTimer(ball, 'fb_dsp', true, [1])
+            // 5.2d 渲染定时器（常驻；请求 0.05s——服务端实测粒度 ~0.09s → 实际 ~11/s）
+            f.startTimer(ball, 'fb_render', true, [0.05])
             // fb_wd 已退役（票 10 R2）：丢拍由 fb_beat 续命兜底，见文件头
             // R3 自动锚点序列武装（fb_test_mode=1；2m 落体种子 Rest 后自动开跑）
             const tm = f.getCustomVariable(ball, 'fb_test_mode').asType('int')
@@ -378,6 +420,7 @@ const graph = g
             })
           }, () => {
           })
+          }) // —— fb_render 分支闭（render else 内含 fb_seed） ——
         })
     })
   })
@@ -516,15 +559,17 @@ const graph = g
     const ball = f.getSelfEntity()
     const cur = f.getCustomVariable(ball, 'fb_ball_tick').asType('int')
     const isP = f.equal(evt.params.tag, 'P')
-    const base = f.equal(evt.params.tick, cur)
+    // 5.2d 快照门：只接受比镜像更新的 tick（客户端各实例自持 tick 连续、
+    // 同确定性轨迹——任意流的下一个连续 tick 均可续接镜像，流间自动交替）
+    const fresh = f.greaterThan(evt.params.tick, cur)
     // vec3 参数拆分量（信号 6 参形态：tag,tick,pos,vel,spin,state——引擎参数上限 10，
     // 09-03 用户知识修正；Split 节点输出为普通数据 pin，多点消费稳定无重求值陷阱）
     const posS = f.split3dVector(evt.params.pos)
     const velS = f.split3dVector(evt.params.vel)
     const spinS = f.split3dVector(evt.params.spin)
-    f.doubleBranch(f.logicalAndOperation(isP, base), () => {
-      // —— first-wins 应用：镜像 11 写（tick+1）+ gate=0 ——
-      const nt = cur + 1n
+    f.doubleBranch(f.logicalAndOperation(isP, fresh), () => {
+      // —— 5.2d 快照应用：镜像 11 写（tick=客户端 tick，快照语义不重编号）+ gate=0 ——
+      const nt = evt.params.tick
       f.callComposite(fbMirrorApply, {
         ball,
         nt,
@@ -539,16 +584,17 @@ const graph = g
         sz: spinS.zComponent,
         st: evt.params.state
       })
-      // —— 视觉驱动：瞬移门分支（RESET 首拍 INSTANT，常态拍预测插值）——
-      const tp = f.getNodeGraphVariable('fb_tp_pending').asType('bool')
-      f.doubleBranch(tp, () => {
-        f.setNodeGraphVariable('fb_tp_pending', new bool(false), false)
-        f.callComposite(fbTeleport, { ball, pos: evt.params.pos })
-      }, () => {
-        f.callComposite(fbDrive, { ball, pos: evt.params.pos, spin: evt.params.spin, st: evt.params.state })
-      })
-      // —— Rest → 停拍（静止零定时器基线）+ R3 自动锚点队列弹下一任务 ——
-      f.doubleBranch(f.equal(evt.params.state, ST_REST), () => {
+      // —— Rest 进入拍（prev≠Rest）→ 停拍 + R3 自动锚点队列弹下一任务 ——
+      // （新链 Rest 连续回传，需按进入拍去重——旧链 Rest 停发天然只进一次；
+      //  内联条件形态——bisect：const 物化形态曾触发编译器 withExecBranch 报错）
+      f.doubleBranch(
+        f.logicalAndOperation(
+          f.equal(evt.params.state, ST_REST),
+          f.logicalNotOperation(
+            f.equal(f.getNodeGraphVariable('fb_prev_st').asType('int'), ST_REST)
+          )
+        ),
+        () => {
         f.stopTimer(ball, 'fb_beat')
         const auto = f.getNodeGraphVariable('fb_auto').asType('int')
         const ow = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
@@ -669,6 +715,8 @@ const graph = g
         })
       }, () => {
       })
+      // —— prev 状态更新（每应用拍；restEnter 条件已在上方消费旧值） ——
+      f.setNodeGraphVariable('fb_prev_st', evt.params.state, false)
       // —— 进球判定简版：镜像 pos 过门线（去重）→ 打点帧值 + RESET 任务回中圈 ——
       const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
       const scored = f.getNodeGraphVariable('fb_scored').asType('bool')
