@@ -141,3 +141,10 @@
 
 **流程优化（已验证 SOP 提速）**：
 - .gia 资产现在 3 步出结论（inventory → parse-gia-graphs → DSL grep），无需手写脚本
+
+
+## 2026-09-03 票09 游戏内核验（新图 1073741917）
+- 覆盖：create/edit/delete 语义命令真实写回 + 用户游戏逐条确认；对齐右码 f503/f506=2 闭合（record.ts 解码补丁）；
+  R2 按钮三态文字素材 donor 克隆 / R3 素材组成员删除 / R5 模板悬空引用清理（引擎 ui/src/button-materials.ts、material-groups.ts）。
+- 记录：ui/verification/ticket09-verification-report.md（三栏）；复盘 retro-2026-09-03-ticket09-game-verification.md。
+- open：高级控件/素材成员 add-update/rich-image/templateize 素材克隆/队列消息样式/sync -> 票10。

@@ -28,11 +28,9 @@
 
 ## 当前前沿
 
-**→ 票08 关账（待统一执行）**：09 游戏内核验已通过并回灌（2026-09-03）。剩：复盘（task-retrospective）、
-规则入 PKC、差分技能 UI 模块与资产操作技能回灌、知识书与覆盖登记更新、看板全部划掉、精确 commit。
-前置：09 完成 = A 基座/B 命令/C 玩家读回全过，修复轮 R1-R5 闭环。
-后续票：**票10 高级控件命令面**（悬浮交互页富版/页签/素材成员 add-update/rich-image/templateize 素材克隆/
-队列消息样式/sync——issues/10-advanced-controls-command-surface.md，用户 2026-09-03 定走本票）
+**→ 票10 高级控件命令面（后续，待发跑）**：悬浮交互页富版/页签/素材成员 add-update/rich-image/
+templateize 素材克隆/队列消息样式/sync（issues/10-advanced-controls-command-surface.md）。
+前置：票08 关账完成（2026-09-03：复盘/PKC bnd_6c003c/技能知识回灌/覆盖登记/看板划掉/commit 全落地）。
 
 > 注（2026-09-03）：分级计划树因 L1 大类 4 标题空串被污染且无法解锁（界面无审核弹窗），经用户确认
 > **以本 BOARD + issues/ 为唯一推进记录**（板外不另立进度），计划树暂停使用。
@@ -41,6 +39,7 @@
 
 ## 已完成（划掉区）
 
+- ~~**08 · 游戏内总验收 + 关账沉淀**~~（2026-09-03：总验收由票09 承担通过；复盘/PKC（bundle bnd_6c003c… 已 apply/commit）/references+mappings 回灌/覆盖登记/看板/commit 完成）
 - ~~**09 · 游戏内核验（新地图）**~~（2026-09-03：1073741917「UI核验09」A/B/C 全过；Create 5/Edit 6/Delete 1
   游戏确认；修复轮 R1（--yes 写回启用）/R2（三态文字素材）/R3（素材组成员删除）/R4（rich-image backlog 登记）/
   R5（模板悬空引用清理）；报告 ui/verification/ticket09-verification-report.md；结果回灌票08）
