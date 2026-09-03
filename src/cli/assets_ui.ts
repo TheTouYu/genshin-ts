@@ -10,6 +10,7 @@ import {
   defaultCreateSurface,
   resolveSurfaceTarget
 } from '../../ui/src/create.js'
+import { createTemplateCandidate } from '../../ui/src/templateize.js'
 import { parseRoot9 } from '../../ui/src/record.js'
 import {
   parseUiSemanticCommand,
@@ -296,10 +297,18 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] update requires <control-id>')
   if (command === 'delete' && targetId === undefined)
     throw new Error('[error] delete requires <control-id>')
-  if (command === 'template' && templateSub === 'create' && newId === undefined)
-    throw new Error('[error] template create requires --id <模板ID>')
-  if (command === 'template' && templateSub === 'create' && assetId === undefined)
-    throw new Error('[error] template create requires --asset <素材索引ID>')
+  const semanticTemplateCreate =
+    command === 'template' &&
+    templateSub === 'create' &&
+    newId === undefined &&
+    targetId !== undefined &&
+    assetId === undefined
+  if (command === 'template' && templateSub === 'create' && !semanticTemplateCreate) {
+    if (newId === undefined)
+      throw new Error('[error] template create requires --id <模板ID>（legacy）或 <官方控件ID>（语义路径，票05波2）')
+    if (assetId === undefined)
+      throw new Error('[error] template create requires --asset <素材索引ID>（legacy；语义路径用 <官方控件ID>）')
+  }
   if (
     command === 'update' &&
     name === undefined &&
@@ -506,6 +515,54 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       } else {
         for (const t of templates) log(`id=${t.id} name=${t.name} category=${t.category}`)
       }
+    } else if (args.templateSub === 'create' && args.targetId !== undefined) {
+      // 票05 波2 语义路径：官方单条 → 模板（autoLibrary 由 kind 决定：input-box=轮23 三合一）
+      const parsed = parseRoot9(sourceBytes)
+      const target = parsed.recordsById.get(args.targetId)
+      if (!target) throw new Error(`[error] 官方控件不存在: ${args.targetId}`)
+      if (target.kind !== 'custom-button' && target.kind !== 'input-box') {
+        throw new Error(
+          `[error] 模板化未支持 kind=${target.kind}（仅按钮/输入框有 subtype 样本；队列/文本框等 fail-closed，待对应差分轮）`
+        )
+      }
+      const result = createTemplateCandidate(sourceBytes, {
+        targetId: args.targetId,
+        autoLibrary: target.kind === 'input-box'
+      })
+      const summary: Record<string, unknown> = {
+        schemaVersion: 1,
+        kind: 'ui-templateize-candidate',
+        sourceSha256: sourceHash,
+        kindOf: target.kind,
+        templateId: result.templateId,
+        instanceId: result.instanceId,
+        ...(result.libraryInstanceId !== undefined
+          ? { libraryInstanceId: result.libraryInstanceId }
+          : {})
+      }
+      const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+      log2(`kind=${target.kind}`)
+      log2(`templateId=${result.templateId}`)
+      log2(`instanceId=${result.instanceId}`)
+      if (result.libraryInstanceId !== undefined)
+        log2(`libraryInstanceId=${result.libraryInstanceId}`)
+      summary.candidateSha256 = sha256(result.bytes)
+      log2(`candidateSha256=${sha256(result.bytes)}`)
+      if (args.outputPath) {
+        summary.candidate = writeNew(args.outputPath, result.bytes)
+        log2(`candidate=${summary.candidate}`)
+      } else if (args.write) {
+        const mapId = projectConfig?.inject?.mapId
+        summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+        summary.writePerformed = true
+        log2(`backup=${summary.backup}`)
+        log2('writePerformed=true')
+      } else {
+        summary.previewOnly = true
+        log2('preview only; use --write to apply after backup, or --output for a candidate')
+      }
+      if (jsonMode) process.stdout.write(prettyStableJson(summary))
+      return
     } else if (args.templateSub === 'create') {
       const result = createUiTemplate(sourceBytes, {
         id: args.newId!,
