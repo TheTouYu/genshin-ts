@@ -184,7 +184,7 @@ references/ui-controls.md 轮18 CLI 含义警示、assets_ui --position 帮助�
 ## 8. 波 2 · 模板化重放样例（2026-09-03）
 
 ```bash
-npx tsx ui/tests/templateize-replay-assert.ts   # 期望 PASS 5 templateize-replay assertions
+npx tsx ui/tests/templateize-replay-assert.ts   # 期望 PASS 6 templateize-replay assertions
 ```
 
 ```
@@ -192,11 +192,14 @@ ok 1 - 模板化重放: 按钮官方单条→模板（轮4→轮5；root9 全等
 ok 2 - 实例化重放: 模板→库详情实例（轮5→轮6；root9 全等）
 ok 3 - 模板化重放: 图文输入框三合一含自动库实例（轮22→轮23；root9 全等）
 ok 4 - fail-closed: 非官方单条不可模板化（实例/模板拒绝）
-ok 5 - fail-closed: 无 subtype 变体样本的 kind 拒绝（消息队列模板化待轮63 差分）
-PASS 5 templateize-replay assertions
+ok 5 - 模板化重放: 消息队列三合一（轮62→轮63；记录级 104/104 全等，索引合并序 open-item）
+ok 6 - fail-closed: 队列族模板化拒绝非三合一（autoLibrary=false）
+PASS 6 templateize-replay assertions
 ```
 
-命令面：`assets:ui template create <官方控件ID>`（kind=custom-button→仅模板+升格；kind=input-box→
-三合一自动库实例）；legacy `template create --id --asset` 路径保留。写入规则要点：模板插模板簇末、
-索引插索引头模板簇后、库实例插 1840 成员簇后（轮23 有前置 2034 时在其后）、空容器 f503 缺失时
-新建字段（轮6 +8B 实证）、输入框深链 505.503.19.62.501:1 重指向、subtype 槽家族变体 v1/v2。
+命令面：`assets:ui template create <官方控件ID>`（custom-button→仅模板+升格；input-box→三合一
+自动库实例；message-queue→结构记录级已闭合但 CLI 暂不开放，索引合并序待第二样本）。写入规则要点：
+模板插模板簇末、索引插索引头模板簇后、库实例插 1840 成员簇后、空容器 f503 缺失时新建字段、
+输入框深链 505.503.19.62.501:1 重指向、subtype 槽家族变体 v1/v2/v3、队列三侧样式树克隆
+（组槽序归一 [15,45]、组 f503 成员 backlink 重映射、旧树物理删除、样式引用 505.503.69…:4 重指向）。
+减法方法论：round63 大组合经轮52→53/54（+2 记录）最小样本分解；索引合并序仍为单样本 open-item。
