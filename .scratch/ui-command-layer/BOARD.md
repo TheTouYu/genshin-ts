@@ -28,10 +28,12 @@
 
 ## 当前前沿
 
-**→ 票05 CLI：create 语义层（L2 创建/克隆/三合一 + placement 校验）**：按 ui/DESIGN.md L1-L2 实现——
-`create --type --on`（placement 校验）、`container add`、`template create` 三合一、`create-from-template`、`clone`、
-`floating-page variable add`；全部走写回红线（SHA→dry-run→确认→写回→回读→提醒重载）。
-交接：本板下方「已完成」票04 说明 + ui/src 语义模块（票04 已把只读命令面落地）。
+**→ 票06 CLI：Edit（属性编辑）**：f19 文本/字号/对齐/颜色定点编辑（textbox/input-box）、队列内容对齐
+f68.f506、t12 几何位置/尺寸；字节级对拍用补充2 S11-17 与轮6/20/11/13/18/52 样本；锚点保留玩家细排。
+前置：票05 代码层完成（模板化矩阵 6/6 root9 全等 + CLI 语义路由；写回/游戏核验并入票08 攒批验收）。
+
+> 注（2026-09-03）：分级计划树因 L1 大类 4 标题空串被污染且无法解锁（界面无审核弹窗），经用户确认
+> **以本 BOARD + issues/ 为唯一推进记录**（板外不另立进度），计划树暂停使用。
 
 学习基线：重启轮66 快照 .gsts/diff-exp/ui学习/1073741909.after-重启66-默认页签2-7468eadd.gil，SHA 7468eadd…。
 
@@ -41,3 +43,5 @@
   `gsts maps` 定位地图；重启 before 物理快照 + SHA-256 复核；manifest 落盘）
 - ~~**04 · CLI：语义化 List + 玩家改动识别 v1**~~（2026-09-03：ui/src 独立模块落地；list 树/平面/JSON schema、
   anchor save/list、diff --anchor（字段级+playerChanges+重锚）；真实样本断言 9/9 PASS；构建/CLI 冒烟通过）
+- ~~**05 · CLI：Create + 模板化（代码层）**~~（2026-09-03：多 kind create + 模板化矩阵 6/6 root9 全等
+  （按钮/输入框/官方无样式队列/实例源×2）；CLI 语义路由；写回与游戏核验并入票08 攒批）

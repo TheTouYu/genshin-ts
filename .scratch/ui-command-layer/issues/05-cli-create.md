@@ -7,16 +7,17 @@
 
 **Blocked by:** 04（先有 List 共识层；并消费 01 创建链路与 04 悬浮页规则）
 
-**Status:** ready-for-agent
+**Status:** 代码层完成（写回/游戏核验随票08 攒批总验收）
 
 - [x] Create 命令落地（用户范围扩展后多 kind：custom-button/textbox/image/input-box/message-queue，
       布局/悬浮页容器面，含 ID 分配与引用注册）——**候选层落地（--output 只读）**；
       `--write` 未启用（需用户定目标/ID 后单独授权）
 - [x] 候选 vs 编辑器样本字节级同步核验 PASS（重放对拍 + 全量快照冒烟 **25/25**；root46
       保存审计=预期差异，已登记；样例见 ui/verification/ticket05-create-candidates.md）
-- [ ] 写回安全流程（备份/回读/防旧内存覆盖提醒）执行（blocked：目标地图/容器/ID 未定；全量 build 待 football 收口）
+- [x] 模板化语义路径（官方无样式队列/实例源×无样式/×3样式）字节级全等重放 PASS（补充2 S2/S6/S10；断言 9/9，提交 7b95e07）
+- [ ] 写回安全流程执行 + 游戏内核验（并入票08 攒批总验收；写回需用户定目标/ID）
 - [ ] 游戏内核验：出现/位置/点击/事件（用户确认）
-- [ ] 收轮三件套（feat/docs 两枚 commit 本轮已完成；完整 task-retrospective 复盘另轮补）
+- [x] 收轮三件套：模板化 feat 56d5d6f/79bc3b5/7b95e07 + docs 931fa77/82f2076；05 复盘简述见文末「复盘记录」
 
 ## 轮次记录
 
@@ -95,3 +96,26 @@ node bin/gsts.mjs assets:ui create --type custom-button --on layout:1073741825 \
 node bin/gsts.mjs assets:ui list --flat --gil /tmp/ui05-cand.gil --format json >/dev/null  # exit 0
 ```
 首检/断言失配即停即报（交接纪律）；通过后执行 git add 上述精确文件并 commit（三件套），再做复盘沉淀。
+
+
+## 波 2 收尾（2026-09-03；模板化矩阵 + 05 复盘）
+
+- 模板化矩阵字节级状态：按钮(轮4→5)/库实例(轮5→6)/输入框三合一(轮22→23)/官方无样式队列
+  (补充2-2)/实例源×无样式(补充2-6)/实例源×3样式(补充2-10) = **root9 全字段相等 6/6**；
+  官方×带样式队列(轮63)=记录级 104/104，物理插入位单样本 open-item → CLI fail-closed。
+- subtype6 槽序数=家族标识（官方首次=maxVisible+1；实例源=继承源家族）——非 kind 常量（修正
+  早期 v1/v2/v3 误读）；实例源=新建模板+重绑 f13+旧模板 f14 清实例+模板侧整树克隆（源树保留）。
+- CLI：template create 支持 custom-button/input-box/官方无样式队列/队列实例源；官方带样式队列
+  拦截（原因清晰）；templateId 钉选项供重放（编辑器计数器空洞）。
+- 补充2 采样 manifest：.gsts/diff-exp/ui补充/notes/manifest.md（跟踪副本 ui/verification/
+  supplement2-queue-manifest.md）；17 组干净快照 + 对齐/字号规则闭合（mappings §0 更新）。
+
+## 复盘记录（票05 收尾简述；完整复盘随票08 关账统一做）
+
+- 本轮关键教训（已落入知识）：① 减法差分优于硬解大组合（轮63 拆到 52/53/54 最小样本）；
+  ② subtype 槽内值不是 kind 常量而是编辑器家族序数——「单字节差异」也要质疑语义归类；
+  ③ 索引==parentless 物理序，物理插入位决定索引；
+  ④ 实例源模板化与官方源是不同语义路径（重绑 vs 升格）；
+  ⑤ 样本窗口必须干净（用户额外操作=样本作废，宁可重补）。
+- 未决（open-items，fail-closed）：官方×带样式队列物理插入位（需一轮编辑器复刻样本）；
+  --text/--color 等 create 参数仍无同参样本（编辑类样本归票06 使用 S 系列）；写回/游戏核验归 08。
