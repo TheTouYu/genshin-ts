@@ -522,23 +522,55 @@ export function buildSkillConfig(payload: Uint8Array, opts: CreateOptions): Uint
   let next = appendRootRecord(payload, 15, buildRecord(template, false, opts))
   next = appendRootRecord(next, 16, buildRecord(template, true, opts))
   if (template === 'creation') {
-    // root20 造物模型容器（28 模板联动；用户确认固定造物模型合法）：
-    // 创建=1970B（地图无 root20 或已为创建态时保持/补齐），绑定=替换 2955B；
-    // 其它 root20 状态（如既有绑定态容器）未采样 → fail closed
+    // root20 造物模型容器（28 模板联动；用户确认固定造物模型合法）。
+    // 条目语义（2026-09-04 票 19 解码实证）：每张被绑定的 20008 图一条 982B 模型条目
+    // （field1=图 ID，field8=模型 30005001）；容器随绑定数递增（创建采样 2 条/绑定采样 3 条）。
+    // 旧逻辑按固定模板整替——只在"新绑定恰好=模板预采样的下一张图"时正确，容器被编辑器
+    // 侧操作增长（如票 18 后 4 条目态）即 fail closed。
+    // 新逻辑：非空容器 + 单图绑定 → 克隆既有条目换 field1 后追加（幂等：同图条目已存在
+    // 则原样保留）；无绑定创建 + 非空容器 → 保持不动；缺失/空容器 → 沿用模板。
     const r20 = root.find((f) => f.number === 20 && f.wire === 2)
     const r20bytes = r20 ? (r20.value as Uint8Array) : undefined
     const createdHex = hexToBytes(ROOT20_CREATED)
     const boundHex = hexToBytes(ROOT20_BOUND)
-    // root20 状态：缺失 / 空占位（len 0，28 创建前） / 创建态 1970B / 绑定态 2955B（多技能共用，用户确认合法）
-    const isEmpty = r20bytes !== undefined && r20bytes.length === 0
-    const isCreated = r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(createdHex))
-    const isBound = r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(boundHex))
-    if (r20bytes && !isEmpty && !isCreated && !isBound) {
-      throw new Error(
-        '[error] root20 造物模型容器状态未采样（非空占位/创建态/绑定态模板），28 模板创建 fail closed'
-      )
+    let targetR20: Uint8Array
+    if (r20bytes && r20bytes.length > 0 && opts.graphIds.length === 1) {
+      const inner20 = parseWireMessage(r20bytes)!
+      const entries = inner20.filter((f) => f.number === 1 && f.wire === 2)
+      const gid = opts.graphIds[0]
+      const alreadyBound = entries.some((e) => {
+        const rec = parseWireMessage(e.value as Uint8Array)!
+        const f1 = rec.find((f) => f.number === 1)
+        return f1 !== undefined && BigInt(f1.value as number | bigint) === BigInt(gid)
+      })
+      if (alreadyBound) {
+        targetR20 = r20bytes
+      } else if (entries.length > 0) {
+        const donor = entries[entries.length - 1].value as Uint8Array
+        const donorRec = parseWireMessage(donor)!.map((f) =>
+          f.number === 1 ? { ...f, value: gid } : f
+        )
+        targetR20 = emitWireMessage([
+          ...inner20,
+          { number: 1, wire: 2, value: emitWireMessage(donorRec) }
+        ])
+      } else {
+        targetR20 = boundHex
+      }
+    } else if (r20bytes && r20bytes.length > 0 && opts.graphIds.length === 0) {
+      targetR20 = r20bytes
+    } else {
+      const isCreated =
+        r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(createdHex))
+      const isBound =
+        r20bytes !== undefined && Buffer.from(r20bytes).equals(Buffer.from(boundHex))
+      if (r20bytes && r20bytes.length > 0 && !isCreated && !isBound) {
+        throw new Error(
+          '[error] root20 造物模型容器状态未采样（非创建态/绑定态模板）且非单图绑定追加路径，28 模板创建 fail closed'
+        )
+      }
+      targetR20 = opts.graphIds.length > 0 ? boundHex : createdHex
     }
-    const targetR20 = opts.graphIds.length > 0 ? boundHex : createdHex
     next = emitWireMessage(
       (parseWireMessage(next)!).map((field) => {
         if (field.number !== 20) return field
