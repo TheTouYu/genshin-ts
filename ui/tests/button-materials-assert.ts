@@ -15,6 +15,7 @@ import { parseRoot9 } from '../src/record.js'
 import { parseWireMessage } from '../../src/cli/static_assembly/wire.js'
 import { listButtonStates } from '../../src/cli/gil_ui.js'
 import { buildButtonMaterialCandidate } from '../src/button-materials.js'
+import { removeMaterialGroupMember } from '../src/material-groups.js'
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..')
 const WORK = path.join(ROOT, '.gsts', 'diff-exp', 'UI核验09', 'work-7128e03b.gil')
@@ -137,9 +138,34 @@ function main(): void {
     /已有素材/
   )
 
+  // 7) 素材组成员删除（R3：常态去掉图片成员，只留文字）
+  const cand2 = parseRoot9(result.bytes)
+  const g0 = cand2.recordsById.get(result.stateGroupIds[0])!
+  const imageMember = cand2.records.find(
+    (r) => r.parentId === g0.id && r.kind === 'image'
+  )
+  assert.ok(imageMember, '常态组应有 image 成员待删除')
+  const afterRemove = removeMaterialGroupMember(result.bytes, {
+    groupId: g0.id,
+    memberId: imageMember.id
+  })
+  const cand3 = parseRoot9(afterRemove.bytes)
+  const g0b = cand3.recordsById.get(g0.id)!
+  assert.ok(g0b, '组仍在')
+  const members0 = cand3.records.filter((r) => r.parentId === g0.id)
+  assert.equal(members0.length, 1, '常态组只剩 1 成员')
+  assert.equal(members0[0]?.kind, 'textbox', '剩员应为文本框')
+  assert.ok(!cand3.recordsById.has(imageMember.id), 'image 成员记录已物理移除')
+  // 悬停/按下组与状态引用不受影响
+  const states3 = listButtonStates(afterRemove.bytes, TARGET)
+  assert.equal(states3[0]?.materialGroupId, result.stateGroupIds[0])
+  assert.equal(states3[1]?.materialGroupId, result.stateGroupIds[1])
+  assert.equal(states3[2]?.materialGroupId, result.stateGroupIds[2])
+
   console.log(
     `PASS button-material-assert: states=${states.map((s) => s.materialGroupId ?? '∅').join('/')} ` +
-      `groups=${result.stateGroupIds.join(',')} scale=${scales.map((v) => v.toFixed(2)).join('/')}`
+      `groups=${result.stateGroupIds.join(',')} scale=${scales.map((v) => v.toFixed(2)).join('/')} ` +
+      `removeImage=OK`
   )
 }
 
