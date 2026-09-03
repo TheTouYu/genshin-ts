@@ -14,27 +14,22 @@
 //     fb-svlisten 均不订阅 → 空载阶段服务端重逻辑零执行；同形态=验证的正是接管
 //     数据路径。接管（阶段 2）=fb-phys2 改发 fb_ball_state 'P' 重编译注入（回退/
 //     切换路径见 4.3 回退文档）。
-// ⚠️ 图 ID 1073741897 为占位——4.1 注入前用 assets:node-graphs create 分配真实 ID
-//   后回填本文件再编译（占位 ID 禁止注入红线）。挂载目标=球实体 1077936135
-//   （getSelfEntity=球；本图零定时器，与同实体 fb-server/fb-svlisten 名单制零串扰）。
+// ⚠️ 图 ID 1073741832 = 真实分配（2026-09-04 assets:node-graphs create --type 20000，
+//   候选→写回→回读过；注入对象=本图 + fb-phys2，四件套红线另守）。挂载目标=球实体
+//   1077936135（getSelfEntity=球；本图零定时器，与同实体 fb-server/fb-svlisten
+//   名单制零串扰）。
 // 计数器=图变量（DSL 声明即生效免注册，fb-server fb_auto 同款）；≈3-4 帧/echo
 // （vs 3133 判读面 13.8 帧/echo；纯空 handler 的到达记录可见性未实证，计数器=
 // 保底观测面，每 echo 必有可判读帧）。
-import { g, defineSignal } from 'genshin-ts/runtime/core'
+import { g } from 'genshin-ts/runtime/core'
 import { int } from 'genshin-ts/runtime/value'
 
-// 本地信号定义（地图已注册 1610612780-82；不进 signals.ts=零触碰共享文件）
-const IdleSignal = defineSignal('fb_idle_state', [
-  ['tag', 'str'],
-  ['tick', 'int'],
-  ['pos', 'vec3'],
-  ['vel', 'vec3'],
-  ['spin', 'vec3'],
-  ['state', 'int']
-])
+import { FbSignal } from './signals.js'
 
-g.server({ id: 1073741897, name: '_GSTS_fbIdleListen', variables: { fb_idle_cnt: new int(0) } }).onSignal(
-  IdleSignal,
+// 信号定义在 signals.ts（fb_idle_state，共享单一事实源——fb-phys2 发送侧同用）
+
+g.server({ id: 1073741832, name: '_GSTS_fbIdleListen', variables: { fb_idle_cnt: new int(0) } }).onSignal(
+  FbSignal.fb_idle_state,
   (_evt, f) => {
     // 最小到达标记：图变量 +1（IN 参数数据正确性从帧流判读，不在此消耗算力）
     const cnt = f.getNodeGraphVariable('fb_idle_cnt').asType('int')

@@ -34,5 +34,17 @@ export const FbSignal = {
   fb_sv_echo: defineSignal('fb_sv_echo', [
     ['tag', 'str'],
     ['e', 'int']
+  ]),
+  // 票 19 空载验证信号（2026-09-03 注册 1610612780/781/782，donor=fb_ball_state 同
+  //   6 参 vec3 形态）：隔离策略=现网 fb_server/fb-svlisten 均不订阅 → 空载阶段
+  //   服务端重逻辑零执行；wire 形态与 fb_ball_state 全同=验证的正是接管数据路径。
+  //   发送侧 fb-phys2 空载形态 tag='V'（tear='TV'）；消费侧 fb-idle-listen 仅计数
+  fb_idle_state: defineSignal('fb_idle_state', [
+    ['tag', 'str'],
+    ['tick', 'int'],
+    ['pos', 'vec3'],
+    ['vel', 'vec3'],
+    ['spin', 'vec3'],
+    ['state', 'int']
   ])
 } as const
