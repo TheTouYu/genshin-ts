@@ -19,9 +19,57 @@
 - 无（优先于票 05；05 角块单元顺延——本票同构地实证第二客户端单元）
 
 ## 验收项（seam 按 spec）
-- [ ] 数学对拍：执行包生成 JS 离线模拟 vs 服务端现行复合输出一致（新建最小工具）
+- [x] 数学对拍：rbv-math-kernel 464/464 PASS（S0~S4 几何锚 + 288 组正向全槽 A/B 对拍 + 96 组负折叠；样本留档）
 - [ ] 帧级协议：客户端任务拍回传信号 vs 服务端每槽设备帧参数逐槽一致
 - [ ] 行为对拍（用户）：面转/自动还原 9 块两段轨道+自旋+节奏与现在一致（失败判据=视觉坍缩/少块/节奏错乱）
 - [ ] 负载验收：开详情日志转动段 perf 对比 3143 基线，turn+visual 记录字节 ↓≥60%、全程不被踢
-- [ ] 预算：服务端 turn/visual 删数学后 engineExpanded ≤1300/图；客户端渲染单元 ≤2000（沙箱实测）
-- [ ] 三栏报告 + PROGRESS 记轮 + 精确 commit
+- [x] 预算（沙箱注入干跑 + recursive-count 规则预测，与票 03 同口径）：visual 217 / turn 838（≤1300✅，删数学前基线为负载大头）；rbRenderSkill 218 / status 2 / decision 2（≤2000✅）
+- [x] 三栏报告 + PROGRESS 记轮 + 精确 commit（本轮代码+资产+注入；帧级/行为/负载 seam 待用户侧，见注记）
+
+## 阶段①执行注记（2026-09-05 开工，随轮更新）
+
+### 范围裁定（用户）
+- 阶段①一次全搬三种运动类型（面 9 槽/中层 8 槽/整转 26 槽）的 turnblock 数学；orbit2 段的
+  延时编排/定时器列表构造仍属阶段②（服务端现有 orbit2 定时器机械消费包内 vel2）。
+- 本轮直通真图写回+注入（用户确认 approval=never；真图破坏性步骤仍按确认制逐项报告）。
+
+### 链形态（复用票 03/04 rbx_ 通道，新前缀 rbv_；实现注记 2026-09-05 定稿）
+- 客户端单元：20008 rbRenderSkill（1082130443，实空位从 443 起——1082130442 已被 03 轮探针占用）+ 20009 rbVStatus（1082130444）+ 20007
+  rbVDecision（1082130445）；28+瞬发技能配置 1191182340（绑 1082130443；1191182339 已被 Round3 探针占用）。
+- 信号：rbv_echo（C→S，7 参：tag:'s'/e:epoch/slot/piece/axis:vec3/vel1:vec3/vel2:vec3）+ rbv_go
+  （S→S，e:epoch；visual 图收齐后通知 turn 图起定时器）。vec3 参数需先在 1914 注册（donor 沿
+  football_push 先例/CLI 直注）。
+- 寄存器：玩家 rbv_epoch/rbv_ack（host 引用沿用 rb_host）；宿主 1077936201 任务字段 rbv_move（signed
+  moveId）/rbv_orient（26，转动前 blockOrientPre 快照）。**不再发布 rows/tempP 行快照**——
+  客户端按「槽位→全局格点（烘焙表）→ solver_cp/ep/ct（P 排列）直取块号」计算；负折叠面转的
+  交错序与旧实现不同但动的是同一 9 块集合、几何正确（S4 独立校验），对拍口径已更新。
+- 烘焙表（gen-rbv-vars.mjs 输出并写 tools/rbv-render-tables.json）：rbv_slotsF(54)/slotsM(24)/slotsW(78)
+  槽位→格点、rbv_off(26 vec3 格点偏移)、rbv_axes(13)、rbv_ax0/1/2(96×3，localAxis 288 分块)。
+- 槽位缓冲（visual 图图变量 rbvPiece/rbvAxis/rbvVel1/rbvVel2/rbvFlags + rbvRcvd/rbvDone）：
+  onSignal(rbv_echo) 逐槽写入（flags first-wins 吸收 dup 实例），收齐 N 槽 → 玩家 rbv_ack=e +
+  sendSignal(rbv_go,e)；turn 图 onSignal(rbv_go) 校验 epoch 后按 |curMove| 起既有定时器
+  （面 A/B×2 段 / 中 1×2 / 整 4 批量 turnblock + 2 批量 orbit2）。
+- 数学常量归属：kVel（面 10/中 6.6667/整 2.0）随数学搬客户端（rbRenderSkill 内字面量）；
+  dur/seg/av/turnLastSlot/turnCompletionDelay 仍服务端（flowDoMove 按类型 set，rbRenderPost 发布到
+  visualHost，visual 首事件同步图变量，设备壳机械使用）。
+- 服务端保留：logic_apply_face 与发布、设备调用、start_timer（收齐包后）、unlock/lock、事件分派、
+  wholeTurn 拆段/批量事件结构；删除：viewTurnLookup 槽位查表、motion_orbit_prep/step/velocity/store
+  数学与 C1/S1、localAxis/axes/vels1/visualP/centerPos/tempP 相关变量与发布（publishShared 移除）。
+
+### 数学对拍 seam 口径（tools/rbv-math-kernel.mjs）
+- S0/S1/S2/S3 独立锚：格点=spawn 坐标；+90° 绕轴=move 表 to 行；-90°≡三次 +90°（负折叠等价）；
+  轨道 45° 落位=罗德里格斯；localAxis 抽取 288。
+- A（服务端现行复合 JS 转写：rows 行快照→块 + 实体格点 loc）vs B（客户端新算法：槽→格点→P 直取）
+  正向 move 全槽执行包（piece/axis/av/dur/vel1/vel2）全等；负折叠 move 断言「同一 9 块集合」+
+  S4 落点独立校验（交错序差异如实登记，不冒充等价）。
+- 结构层（编译 wire 断言）+ 帧级（客户端任务拍 vs 服务端设备帧）分层验收，不互相冒充。
+
+### 写回/注入顺序（编译需真图信号注册表先行）
+1. SHA 锁定 + 备份 → 注册 rbv_echo/rbv_go（CLI assets:signals register，vec3 donor 沿 football 先例）
+   → 提取更新 src/resources/signals.ts；
+2. 宿主 1077936201 + 玩家实体变量注册（gen-rbv-vars.mjs host|player 输出）；
+3. 全图编译（registry 读真图）→ wire 断言 → 沙箱预算干跑；
+4. assets:node-graphs create 1082130443/444/445 + assets:skill-config create 1191182339（28+瞬发绑 443）；
+5. 批量注入 → 回读核验（composite-refs/var-pins/图名节点数/Temp md5）；
+6. 用户编辑器：第二造物（小体型近出生点）配置（决策图=444、技能管理引用 1191182339、CD 忽略公共
+   冷却）+ 游戏对拍/负载日志。

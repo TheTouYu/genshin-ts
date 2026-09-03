@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleLayer2, flowWholeTail } from './composites/flow.js'
+import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleLayer2, flowWholeTail, rbRenderStartTimers } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -276,6 +276,16 @@ const graph = g
       },
       default: () => {}
     })
+  })
+
+  // —— 票 06：渲染执行包收齐（visual 图 rbv_echo 逐槽缓冲满 → rbv_go）→ 按 curMove 起定时器 ——
+  // 门：e 必须等于玩家 rbv_epoch（当前任务）；陈旧/重复回声丢弃（visual 侧 first-wins 已挡，双保险）
+  .onSignal(RubikSignal.rbv_go, (evt: any, f: any) => {
+    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
+    f.doubleBranch(f.equal(evt.params.e, cur), () => {
+      f.callComposite(rbRenderStartTimers, {})
+    }, () => {})
   })
 
 export default graph

@@ -222,30 +222,7 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.logicalNotOperation(f.greaterThan(base, 9))
     )
     const isWhole = f.greaterThan(base, 9)
-    // 视觉图挂载在独立实体上，定时器/共享状态都发到该实体，避免同一实体节点数合并超限
-    const visualHost = entity(1077936203n)
-
-    // 把视觉图需要的共享状态发布到视觉控制器实体自定义变量
-    // （2026-08-26 减负：主控制器副本无消费者——视觉图只从事件源实体=visualHost 读，省 30 节点/图）
-    const publishShared = (tail: Flow, _target: any, visualHost: any): Flow => {
-      const mk = (name: string, value: any) => {
-        const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
-        f.connect(tail, 0, n2, 0)
-        tail = n2
-      }
-      mk('tempP', f.getNodeGraphVariable('tempP').asType('int_list'))
-      mk('centerPos', f.getNodeGraphVariable('centerPos').asType('int_list'))
-      mk('curMove', f.getNodeGraphVariable('curMove').asType('int'))
-      mk('turnLastSlot', f.getNodeGraphVariable('turnLastSlot').asType('int'))
-      mk('turnCompletionDelay', f.getNodeGraphVariable('turnCompletionDelay').asType('float'))
-      mk('turnDuration', f.getNodeGraphVariable('turnDuration').asType('float'))
-      mk('segmentDuration', f.getNodeGraphVariable('segmentDuration').asType('float'))
-      mk('orbitKVel', f.getNodeGraphVariable('orbitKVel').asType('float'))
-      mk('angularVelocity', f.getNodeGraphVariable('angularVelocity').asType('float'))
-      // 视觉层需要“转动前”的朝向：发布 blockOrientPre 快照（blockOrient 已被逻辑层更新为转动后）
-      mk('blockOrient', f.getNodeGraphVariable('blockOrientPre').asType('int_list'))
-      return tail
-    }
+    // 视觉图挂载在独立实体上（票 06：设备壳事件仍走 visualHost 1077936203；共享参数由 rbRenderPost 发布）
 
     // 2026-08-26：移除 moveId 合法性守卫（所有来源——求解折叠面转/手动 1..12/打乱 1..6——均构造安全；
     // 腾出的节点预算用于整体转单事件拆分，防 2889 帧事件超引擎单次执行数上限被静默截断）
@@ -263,14 +240,10 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.connect(s4, 0, s5, 0)
       const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.35), new bool(false)])
       f.connect(s5, 0, s6, 0)
-      const times = f.getNodeGraphVariable('middleTurnTimes').asType('float_list')
-      const orbit2 = f.getNodeGraphVariable('middleOrbit2Times').asType('float_list')
-      const ptail = publishShared(s6, target, visualHost)
-      const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-      f.connect(ptail, 0, t1, 0)
-      const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
-      f.connect(t1, 0, t2, 0)
-      f.outflow('done', t2, 0)
+      // 票 06：不再直接起定时器——投递渲染任务（客户端算执行包，rbv_go 收齐后再起表）
+      const post = f.callComposite(rbRenderPost, { moveId: base, n: new int(8), target })
+      f.connect(s6, 0, post as never, 0)
+      f.outflow('done', post as never, 0)
     }, () => {
       f.doubleBranch(isWhole, () => {
         // 2026-08-26 单事件执行数拆分：整转逻辑 A 段在本事件，B 段+参数+发布+8 定时器
@@ -307,20 +280,10 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
           f.connect(s4, 0, s5, 0)
           const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.25), new bool(false)])
           f.connect(s5, 0, s6, 0)
-          const ptail = publishShared(s6, target, visualHost)
-          const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
-          const timesB = f.getNodeGraphVariable('faceTurnTimesB').asType('float_list')
-          const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
-          const orbit2B = f.getNodeGraphVariable('faceOrbit2TimesB').asType('float_list')
-          const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-          f.connect(ptail, 0, t1, 0)
-          const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), timesB])
-          f.connect(t1, 0, t1b, 0)
-          const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
-          f.connect(t1b, 0, t2, 0)
-          const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), orbit2B])
-          f.connect(t2, 0, t2b, 0)
-          f.outflow('done', t2b, 0)
+          // 票 06：投递渲染任务（9 槽=面心+8 行；负折叠保持符号），rbv_go 收齐后再起 A/B 双通道定时器
+          const post = f.callComposite(rbRenderPost, { moveId, n: new int(9), target })
+          f.connect(s6, 0, post as never, 0)
+          f.outflow('done', post as never, 0)
         })
       })
     })
@@ -705,42 +668,127 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
     f.connect(s4, 0, s5, 0)
     const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(1.15), new bool(false)])
     f.connect(s5, 0, s6, 0)
-    // 发布共享状态（仅视觉宿主；视觉图只从事件源实体读）
-    const mk = (tail: Flow, name: string, value: any): Flow => {
-      const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
-      f.connect(tail, 0, n2, 0)
-      return n2
-    }
-    let ptail = mk(s6, 'tempP', f.getNodeGraphVariable('tempP').asType('int_list'))
-    ptail = mk(ptail, 'curMove', f.getNodeGraphVariable('curMove').asType('int'))
-    ptail = mk(ptail, 'turnLastSlot', f.getNodeGraphVariable('turnLastSlot').asType('int'))
-    ptail = mk(ptail, 'turnCompletionDelay', f.getNodeGraphVariable('turnCompletionDelay').asType('float'))
-    ptail = mk(ptail, 'turnDuration', f.getNodeGraphVariable('turnDuration').asType('float'))
-    ptail = mk(ptail, 'segmentDuration', f.getNodeGraphVariable('segmentDuration').asType('float'))
-    ptail = mk(ptail, 'orbitKVel', f.getNodeGraphVariable('orbitKVel').asType('float'))
-    ptail = mk(ptail, 'angularVelocity', f.getNodeGraphVariable('angularVelocity').asType('float'))
-    ptail = mk(ptail, 'blockOrient', f.getNodeGraphVariable('blockOrientPre').asType('int_list'))
-    const times0 = f.getNodeGraphVariable('wholeTurnTimes0').asType('float_list')
-    const times1 = f.getNodeGraphVariable('wholeTurnTimes1').asType('float_list')
-    const times2 = f.getNodeGraphVariable('wholeTurnTimes2').asType('float_list')
-    const times3 = f.getNodeGraphVariable('wholeTurnTimes3').asType('float_list')
-    const orbit0 = f.getNodeGraphVariable('wholeOrbit2Times0').asType('float_list')
-    const orbit1 = f.getNodeGraphVariable('wholeOrbit2Times1').asType('float_list')
-    const t0 = f.node('start_timer', [visualHost, new str('turnblock0'), new bool(false), times0])
-    f.connect(ptail, 0, t0, 0)
-    const t1 = f.node('start_timer', [visualHost, new str('turnblock1'), new bool(false), times1])
-    f.connect(t0, 0, t1, 0)
-    const t2 = f.node('start_timer', [visualHost, new str('turnblock2'), new bool(false), times2])
-    f.connect(t1, 0, t2, 0)
-    const t3 = f.node('start_timer', [visualHost, new str('turnblock3'), new bool(false), times3])
-    f.connect(t2, 0, t3, 0)
-    // 整转 orbit2 只发 2 个批量定时器（orbit20=槽0..13 / orbit21=槽14..25）。
-    // 不能拆 4 个：视觉根图 multipleBranches 上限 10 case，orbit22/orbit23 会被丢成孤立链（2927 回归）
-    const o0 = f.node('start_timer', [visualHost, new str('orbit20'), new bool(false), orbit0])
-    f.connect(t3, 0, o0, 0)
-    const o1 = f.node('start_timer', [visualHost, new str('orbit21'), new bool(false), orbit1])
-    f.connect(o0, 0, o1, 0)
-    f.outflow('done', o1, 0)
+    // 票 06：投递整转渲染任务（26 槽）；起表等 rbv_go（rbRenderStartTimers 整转分支）
+    const post = f.callComposite(rbRenderPost, {
+      moveId: f.getNodeGraphVariable('curMove').asType('int'),
+      n: new int(26),
+      target
+    })
+    f.connect(s6, 0, post as never, 0)
+    f.outflow('done', post as never, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 票 06（2026-09-05）：渲染负载分载——服务端只留「添加运动器」。
+//   rbRenderPost：把渲染任务投到宿主/玩家寄存器（客户端 rbRenderSkill 20008 算执行包）；
+//   rbRenderStartTimers：收到 visual 图 rbv_go(e)（执行包收齐）后按 curMove 类型起既有定时器。
+//   旧的「execMove 内直接起定时器」全部移除（数学已搬迁客户端，起表必须等执行包）。
+// ================================================================
+
+// 面/中/整 各运动参数发布裁剪版（只保留 visual 设备壳需要的 5 个量；
+// tempP/blockOrientPre/centerPos/curMove/orbitKVel 不再发布——视觉不再查表/算数学）
+// 首节点用 registerExecNode 挂到本复合入口，其后显式 connect 串链（不能用 f.entry() 作 connect 头）
+const publishVisualParams = (f: any, visualHost: any): Flow => {
+  const s1 = f.registerExecNode('set_custom_variable', [visualHost, new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
+  const mk = (prev: Flow, name: string, value: any): Flow => {
+    const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
+    f.connect(prev, 0, n2, 0)
+    return n2
+  }
+  const s2 = mk(s1, 'turnCompletionDelay', f.getNodeGraphVariable('turnCompletionDelay').asType('float'))
+  const s3 = mk(s2, 'turnDuration', f.getNodeGraphVariable('turnDuration').asType('float'))
+  const s4 = mk(s3, 'segmentDuration', f.getNodeGraphVariable('segmentDuration').asType('float'))
+  const s5 = mk(s4, 'angularVelocity', f.getNodeGraphVariable('angularVelocity').asType('float'))
+  return s5
+}
+
+// 渲染任务投递（exec）：宿主 rbv_move/orient + visualHost rbv_n + 玩家 rbv_epoch++
+// 输入 moveId 已含符号（负=折叠面转）；n=执行包槽数（面 9/中 8/整 26）。
+export const rbRenderPost = g.defineComposite('rb_render_post', {
+    id: 1610700091,
+  inputs: { moveId: { type: 'int' }, n: { type: 'int' }, target: { type: 'entity' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ moveId, n, target }, f) => {
+    const host = entity(1077936201n)
+    const visualHost = entity(1077936203n)
+    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
+    const next = f.addition(cur, 1n)
+    const ptail = publishVisualParams(f, visualHost)
+    const m1 = f.node('set_custom_variable', [host, new str('rbv_move'), moveId, new bool(false)])
+    f.connect(ptail, 0, m1, 0)
+    const m2 = f.node('set_custom_variable', [host, new str('rbv_orient'), f.getNodeGraphVariable('blockOrientPre').asType('int_list'), new bool(false)])
+    f.connect(m1, 0, m2, 0)
+    const m3 = f.node('set_custom_variable', [visualHost, new str('rbv_n'), n, new bool(false)])
+    f.connect(m2, 0, m3, 0)
+    const m4 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
+    f.connect(m3, 0, m4, 0)
+    f.outflow('done', m4, 0)
+    return {}
+  }
+})
+
+// 按 curMove 类型起既有定时器（exec；curMove=有符号 moveId）。面：A/B 双通道×2 段；
+// 中：turnblock+orbit2 单通道 8 槽；整：4×turnblock 批量 + 2×orbit2 批量。
+export const rbRenderStartTimers = g.defineComposite('rb_render_start_timers', {
+    id: 1610700092,
+  inputs: {},
+  outputs: {},
+  outflows: ['done'],
+  build: (_i, f) => {
+    const visualHost = entity(1077936203n)
+    const mv = f.getNodeGraphVariable('curMove').asType('int')
+    const base = f.absoluteValueOperation(mv)
+    const isFace = f.logicalAndOperation(
+      f.greaterThan(base, 0),
+      f.logicalNotOperation(f.greaterThan(base, 6))
+    )
+    f.doubleBranch(isFace, () => {
+      const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
+      const timesB = f.getNodeGraphVariable('faceTurnTimesB').asType('float_list')
+      const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
+      const orbit2B = f.getNodeGraphVariable('faceOrbit2TimesB').asType('float_list')
+      const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
+      const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), timesB])
+      f.connect(t1, 0, t1b, 0)
+      const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
+      f.connect(t1b, 0, t2, 0)
+      const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), orbit2B])
+      f.connect(t2, 0, t2b, 0)
+      f.outflow('done', t2b, 0)
+    }, () => {
+      f.doubleBranch(f.greaterThan(base, 9), () => {
+        const times0 = f.getNodeGraphVariable('wholeTurnTimes0').asType('float_list')
+        const times1 = f.getNodeGraphVariable('wholeTurnTimes1').asType('float_list')
+        const times2 = f.getNodeGraphVariable('wholeTurnTimes2').asType('float_list')
+        const times3 = f.getNodeGraphVariable('wholeTurnTimes3').asType('float_list')
+        const orbit0 = f.getNodeGraphVariable('wholeOrbit2Times0').asType('float_list')
+        const orbit1 = f.getNodeGraphVariable('wholeOrbit2Times1').asType('float_list')
+        const t0 = f.node('start_timer', [visualHost, new str('turnblock0'), new bool(false), times0])
+        const t1 = f.node('start_timer', [visualHost, new str('turnblock1'), new bool(false), times1])
+        f.connect(t0, 0, t1, 0)
+        const t2 = f.node('start_timer', [visualHost, new str('turnblock2'), new bool(false), times2])
+        f.connect(t1, 0, t2, 0)
+        const t3 = f.node('start_timer', [visualHost, new str('turnblock3'), new bool(false), times3])
+        f.connect(t2, 0, t3, 0)
+        const o0 = f.node('start_timer', [visualHost, new str('orbit20'), new bool(false), orbit0])
+        f.connect(t3, 0, o0, 0)
+        const o1 = f.node('start_timer', [visualHost, new str('orbit21'), new bool(false), orbit1])
+        f.connect(o0, 0, o1, 0)
+        f.outflow('done', o1, 0)
+      }, () => {
+        // 中层：8 槽单通道
+        const times = f.getNodeGraphVariable('middleTurnTimes').asType('float_list')
+        const orbit2 = f.getNodeGraphVariable('middleOrbit2Times').asType('float_list')
+        const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
+        const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
+        f.connect(t1, 0, t2, 0)
+        f.outflow('done', t2, 0)
+      })
+    })
     return {}
   }
 })

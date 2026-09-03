@@ -10,5 +10,13 @@ export const RubikSignal = {
   // 第 1 轮客户端图实验探针：客户端图经「向服务器节点图发送信号」回传
   rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [['check', 'str'], ['val', 'str']]),
   // 客户端负载分载（票 03）：十字计算单元回传（tag: c0/c1/c2=宏表码 / xd=完成 / xr=撕裂）
-  rbx_echo: defineSignal('rbx_echo', [['tag', 'str'], ['e', 'int']])
+  rbx_echo: defineSignal('rbx_echo', [['tag', 'str'], ['e', 'int']]),
+  // 客户端负载分载（票 06）：渲染参数单元回传（每槽一条：tag='s'、e=epoch、slot、piece、
+  // spin 轴 axis + 两段轨道速度 vel1/vel2，vec3 均计 1 参，共 6 参 ≤10）
+  rbv_echo: defineSignal('rbv_echo', [
+    ['tag', 'str'], ['e', 'int'], ['slot', 'int'], ['piece', 'int'],
+    ['axis', 'vec3'], ['vel1', 'vec3'], ['vel2', 'vec3']
+  ]),
+  // 票 06：服务端图内信号——visual 图收齐执行包后通知 turn 图按包起定时器（e=epoch）
+  rbv_go: defineSignal('rbv_go', [['e', 'int']])
 } as const

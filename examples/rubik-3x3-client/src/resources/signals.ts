@@ -3,6 +3,16 @@
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const Signal = {
+  rbv_echo: defineSignal('rbv_echo', [
+    ['tag', 'str'],
+    ['e', 'int'],
+    ['slot', 'int'],
+    ['piece', 'int'],
+    ['axis', 'vec3'],
+    ['vel1', 'vec3'],
+    ['vel2', 'vec3']
+  ]),
+  rbv_go: defineSignal('rbv_go', [['e', 'int']]),
   rbx_echo: defineSignal('rbx_echo', [
     ['tag', 'str'],
     ['val', 'int']

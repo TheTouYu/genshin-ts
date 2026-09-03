@@ -1,84 +1,77 @@
-// 视觉调度节点图：只处理 turnblock/orbit2 定时器与视觉顺序/运动
-// 2026-08-21 重构：根图只做“timerName → 变量参数”，join 后单次调用统一处理器。
-// 原 278 直接节点 → 目标 ~24 直接节点；复杂逻辑全部下沉到 view_handle_* 复合。
+// 视觉调度节点图（票 06 重写版，2026-09-05）：服务端只留「添加运动器」。
+// 职责收缩为：
+//   1) onSignal(rbv_echo)：客户端渲染单元逐槽执行包 → 图变量缓冲（piece/axis/vel1/vel2）
+//      收齐 N 槽 → 玩家 rbv_ack=e + rbv_go(e)（turn 图按 curMove 起既有定时器）
+//   2) whenTimerIsTriggered（turnblock/orbit2 及整转批量）：机械读缓冲 → 添加运动器设备
+// 全部表查询/向量数学已删除（localAxis/axes/vels/visualP/centerPos 等不再存在）。
+// unlock 定时器仍由 turn 图处理（逻辑发布权威侧）。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { viewHandleTimerEvent } from './composites/view.js'
-import { localAxisTable0, localAxisTable1, localAxisTable2 } from './orientTables.js'
+import { viewHandleTimerEvent, viewRcvPkg } from './composites/view.js'
+import { RubikSignal } from './signals.js'
 
 const graph = g
   .server({
     id: 1073741832,
     variables: {
       // 定时器事件统一处理器参数（由根图 multipleBranches 构造）
-      handlerMode: new int(0), // 0=turn 1=orbit（unlock 由主图处理）
-      handlerBase: new int(0), // 整体转 chunk 偏移：0/7/14/21
+      handlerMode: new int(0), // 0=turn 1=orbit 2=noop 3=整转 turnblock 批量 4=整转 orbit2 批量
+      handlerBase: new int(0),
+      handlerCount: new int(0),
 
-      blocks: [
-        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
-        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
-        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
-        entity(0), entity(0)
+      // —— 执行包缓冲（onSignal 写 / 定时器事件读；按槽位索引）——
+      rbvPiece: [
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
       ],
-      tempP: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n],
-      blockOrient: [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n],
-      localAxisTable0,
-      localAxisTable1,
-      localAxisTable2,
-      centerPos: [0n, 1n, 2n, 3n, 4n, 5n],
-      curMove: new int(0),
+      rbvAxis: [
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0])
+      ],
+      rbvVel1: [
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0])
+      ],
+      rbvVel2: [
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
+        vec3([0, 0, 0])
+      ],
+      rbvFlags: [
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n,
+        0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n
+      ],
+      rbvRcvd: new int(0),
+      rbvDone: new int(-1),
+
+      // 收包暂存（根图 onSignal 逐信号写入，viewRcvPkg 复合读取）
+      rbvTmpSlot: new int(-1),
+      rbvTmpPiece: new int(-1),
+      rbvTmpAxis: vec3([0, 0, 0]),
+      rbvTmpVel1: vec3([0, 0, 0]),
+      rbvTmpVel2: vec3([0, 0, 0]),
+
+      // 设备壳参数（turn 图 rbRenderPost 每次发布到本实体自定义变量，首事件同步到图变量）
       turnLastSlot: new int(7),
       turnCompletionDelay: new float(0.35),
       turnDuration: new float(0.3),
       segmentDuration: new float(0.15),
-      orbitKVel: new float(6.6667),
-      angularVelocity: new float(300),
-      visualP: [1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 15n, 16n, 17n, 18n, 19n, 20n, 21n, 22n, 23n, 24n, 25n, 26n],
-      vels1: [
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0])
-      ],
-      vels2: [
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]), vec3([0, 0, 0]),
-        vec3([0, 0, 0]), vec3([0, 0, 0])
-      ],
-      axes: [
-        vec3([0, 0, 0]), vec3([-1, 0, 0]), vec3([1, 0, 0]), vec3([0, -1, 0]),
-        vec3([0, 1, 0]), vec3([0, 0, -1]), vec3([0, 0, 1]), vec3([1, 0, 0]),
-        vec3([0, 1, 0]), vec3([0, 0, -1]), vec3([-1, 0, 0]), vec3([0, -1, 0]),
-        vec3([0, 0, -1])
-      ],
-      faceVisualOrder: [
-        0n, 4n, 1n, 6n, 3n, 5n, 2n, 7n,
-        0n, 4n, 1n, 6n, 3n, 5n, 2n, 7n,
-        0n, 7n, 2n, 4n, 3n, 5n, 1n, 6n,
-        0n, 7n, 2n, 4n, 3n, 5n, 1n, 6n,
-        0n, 4n, 1n, 5n, 3n, 6n, 2n, 7n,
-        0n, 4n, 1n, 5n, 3n, 6n, 2n, 7n
-      ],
-      middleVisualOrder: [4n, 0n, 6n, 2n, 5n, 3n, 7n, 1n],
-      wholeVisualOrder: [
-        0n, 8n, 20n, 18n, 1n, 9n, 21n, 19n,
-        2n, 10n, 22n, 16n, 3n, 11n, 23n, 17n,
-        4n, 12n, 24n, 5n, 13n, 25n, 6n, 14n,
-        7n, 15n
-      ],
-      faceCenterIndex: [0n, 4n, 5n, 0n, 1n, 2n, 3n],
-      handlerCount: new int(0)
+      angularVelocity: new float(300)
     }
   })
   .on('whenTimerIsTriggered', (evt: any, ef: any) => {
-    // 分支只构造变量参数，不调用任何复合；multipleBranches join 后单次调用统一处理器。
+    // 分支只构造变量参数，join 后单次调用统一处理器（设备壳：读缓冲 + 加设备）
     ef.multipleBranches(evt.timerName as never, {
       'turnblock': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
@@ -118,8 +111,7 @@ const graph = g
         ef.setNodeGraphVariable('handlerMode', 1n, false)
       },
       // 整转 orbit2 批量：只保留 2 个定时器（orbit20=槽0..13 / orbit21=槽14..25）。
-      // 根图 multipleBranches 上限 10 case —— fd40432 加 turnblockB/orbit2B 后曾到 12 case，
-      // orbit22/orbit23 被丢成孤立链，整转后 12 块缺二段运动（2927 回归，本轮修复）
+      // 根图 multipleBranches 上限 10 case —— fd40432 教训保留
       'orbit20': () => {
         ef.setNodeGraphVariable('handlerBase', 0n, false)
         ef.setNodeGraphVariable('handlerMode', 4n, false)
@@ -130,9 +122,7 @@ const graph = g
         ef.setNodeGraphVariable('handlerMode', 4n, false)
         ef.setNodeGraphVariable('handlerCount', 12n, false)
       },
-      // execMove / unlock 等非视觉定时器：handlerMode 置 2（无匹配分支），
-      // 下面 join 后仍会调用 view_handle_timer_event，但其内部 multipleBranches
-      // 对 mode=2 走 default 空操作，避免把 execMove 误当成一次 slot=0 的转动。
+      // execMove / unlock 等非视觉定时器：handlerMode 置 2（无匹配分支）→ view 处理器 default 空操作
       default: () => {
         ef.setNodeGraphVariable('handlerMode', 2n, false)
       }
@@ -141,6 +131,26 @@ const graph = g
     ef.callComposite(viewHandleTimerEvent, {
       target: evt.eventSourceEntity,
       seq: evt.timerSequenceId as never
+    })
+  })
+
+  // —— 票 06：执行包逐槽收包（tag='s'；dup 实例回声 same-epoch 值相同，flags first-wins）——
+  // 委托 viewRcvPkg 复合处理（复合体内节点数组形态与旧设备链一致，规避 handler 分支包裹差异）
+  .onSignal(RubikSignal.rbv_echo, (evt: any, f: any) => {
+    f.multipleBranches(evt.params.tag as never, {
+      's': () => {
+        const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+        const ep = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
+        f.doubleBranch(f.equal(evt.params.e, ep), () => {
+          f.setNodeGraphVariable('rbvTmpSlot', evt.params.slot, false)
+          f.setNodeGraphVariable('rbvTmpPiece', evt.params.piece, false)
+          f.setNodeGraphVariable('rbvTmpAxis', evt.params.axis, false)
+          f.setNodeGraphVariable('rbvTmpVel1', evt.params.vel1, false)
+          f.setNodeGraphVariable('rbvTmpVel2', evt.params.vel2, false)
+          f.callComposite(viewRcvPkg, { owner, e: evt.params.e })
+        }, () => {})
+      },
+      default: () => {}
     })
   })
 
