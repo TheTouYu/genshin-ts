@@ -41,7 +41,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 列出/解析 元件资源（root4 自定义定义 + root8 官方/静态实例）与摆放实体（root5） | `assets:resources list [--gil <map>]` |
 | 创建自定义元件 / 静态元件 / 切换静态/动态 / 挂装饰物 | `assets:prefabs create [--static]` / `assets:prefabs convert` / `assets:aux attach` |
 | 关卡变量（root5 关卡实体） | `assets:level-variables list\|create\|update` |
-| 任意场景实体变量 / CustomPrefab / 玩家 / 角色变量 | `assets:custom-variables --entity <id>` 或配置 `assets.customVariables` |
+| 任意场景实体变量 / CustomPrefab / 玩家 / 角色变量 | `assets:custom-variables --entity <id>` 或配置 `assets.customVariables`（2026-09-04 起 **--entity 自动识别元件 root4 与场景实例 root5**，无变量组件槽时从零创建；配置 `syncInstances` 传导元件修改到引用实例——84819bb；注意：声明层级=客户端可见性决定因素，客户端要读的变量须声明在实例本层，见 client-nodegraph-development 三-9） |
 | 把图挂到实体/元件，或查挂载关系 | `assets:mounts attach\|list\|detach` |
 | 地图还没有目标图，注入找不到图 | `assets:node-graphs create`（空图占位） |
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
