@@ -58,19 +58,22 @@ const WALL_Z_MAX = 60
 const GROUND_EPS = 0.05 // 贴地判定余量（结构常量，v4 同值）
 const DIV_GUARD = 0.0001 // 除零保护（结构常量，v4 同值）
 const FIXK = 1000 // 定点编码 ×1000（R2-DESIGN §4 载荷编码）
-// ———— 自持组技能变量（codec §1 映射序；ID 递增假设 1207959558~568，注入前核对） ————
+// ———— 自持组技能变量（codec §1 映射序；实测段 1207959569~579，注入前核对） ————
 // 调用点 cfgId 仅 const/字面量直传（算术会变 IR pin 被 config_id 拒——channels 铁律）
-const CFG_T = 1207959558n
-const CFG_PX = 1207959559n
-const CFG_PY = 1207959560n
-const CFG_PZ = 1207959561n
-const CFG_VX = 1207959562n
-const CFG_VY = 1207959563n
-const CFG_VZ = 1207959564n
-const CFG_SX = 1207959565n
-const CFG_SY = 1207959566n
-const CFG_SZ = 1207959567n
-const CFG_ST = 1207959568n
+// ⚠️ 首测段 558~568 已废弃：宿主造物（447~450）无 fb_ball_entity 种子 → bootstrap
+// 镜像读空值 → NaN 进组（tick 因写回 empty+1=1 引擎算术幸存 1..456 链）；换新鲜段
+// =t 哨兵归零自动重 bootstrap，免手动清变量
+const CFG_T = 1207959569n
+const CFG_PX = 1207959570n
+const CFG_PY = 1207959571n
+const CFG_PZ = 1207959572n
+const CFG_VX = 1207959573n
+const CFG_VY = 1207959574n
+const CFG_VZ = 1207959575n
+const CFG_SX = 1207959576n
+const CFG_SY = 1207959577n
+const CFG_SZ = 1207959578n
+const CFG_ST = 1207959579n
 
 g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f) => {
   // ============ ① E2 计数器（观测面保留；E2 定论=每拍复位，恒 1） ============
@@ -132,9 +135,11 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
   }, () => {})
 
   // ============ ④ 球寻址（E5 主链）+ 计算门（票 19：拍门退役，自由跑） ============
-  const self = f.getSelfEntity()
+  // 球寻址=实体字面量直连（首测教训：实验造物 447~450 无 fb_ball_entity 种子——
+  // 引用读空 → bootstrap/参数全空 NaN；fb-loop BALL_GUID 同款先例，框架不再依赖种子）
+  const BALL_GUID = 1077936135n
   const ballRef = f.localVariable('entity')
-  ballRef.set(f.getCustomVariable(self, 'fb_ball_entity').asType('entity'))
+  ballRef.set(entity(BALL_GUID))
   // 球实体变量读辅助（bootstrap 镜像读/参数 19 物化共用；原⑤段定义，随替换面上移）
   const rv = (name: string) => f.getCustomVariable(ballRef.value, name)
 
