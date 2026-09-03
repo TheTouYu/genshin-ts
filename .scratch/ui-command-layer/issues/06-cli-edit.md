@@ -6,12 +6,26 @@
 
 **Blocked by:** 05（写回管线先就绪；消费 01 属性路径规则）
 
-**Status:** ready-for-agent
+**Status:** in-progress（v1：f19/f68 文本样式已字节级闭合 9/9；几何与玩家保留下一小类）
 
-- [ ] Edit 命令落地（属性定位 + 原地最小修改，两路径）
-- [ ] 字节级同步核验 PASS（对照编辑器同操作样本）
+- [x] Edit 命令落地 v1：--font-size/--align/--color(文字) 定点修改（f19 两路径 + f68 队列内容对齐）——提交 7d14225
+- [x] 字节级同步核验 v1 PASS：edit-replay-assert 9/9（S11-17 六组 root9 全等 + 颜色幂等 + 负例）
 - [ ] 玩家细排字段保留验证（编辑前后玩家改动不丢）
 - [ ] 游戏内核验（用户确认）
 - [ ] 收轮三件套
 
 ## 轮次记录
+
+
+## 轮次记录
+
+### v1（2026-09-03）：f19/f68 文本样式定点编辑
+- gil_ui.setUiTextStyle（surgical patch）：f19 容器（文本框/图文输入框共用）字号 502/对齐 503/颜色 510；
+  f68 容器（队列内容）对齐 506；字段增删按号升序插入/原位移除；颜色 0xFFRRGGBB varint。
+- CLI：update --font-size（1..512，编辑器上限）/ --align left|center|right（text 类 kind + queue）/
+  --color（textbox/input-box 文字色；其它 kind 保持素材色语义）。
+- 对拍证据：补充2 S11/12（输入框对齐右/左）、S13/14/15（字号 12/512 两路径）、S16/17（队列内容对齐）
+  ——六组 root9 全等；颜色幂等（#FFFFFF 重设不变）；fail-closed：队列记录字号/字号 513 拒绝。
+- 回归：templateize 9/9、create 28/28、快照 127/127、diff OK；CLI 冒烟 align 两路由。
+- 未决：文字颜色缺「同参编辑器样本」对拍（仅幂等/编码断言；候补：后续让用户改一次字色即可收样本）；
+  文本内容 f505 写入用既有 setUiContent 路径（样本轮6/20 对拍未跑，下一小类补）。
