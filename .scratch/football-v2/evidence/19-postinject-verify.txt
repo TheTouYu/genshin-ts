@@ -1,0 +1,26 @@
+=== ① composite-refs --incoming（fb-phys2 + fb-idle-listen 双份）===
+[info] 残留复合 fb_hold_drive(impl 1610700044) 引用自洽（死代码，无害）
+✓ 复合引用完整（31 个 impl 图，0 悬空）
+✓ 复合引用完整（31 个 impl 图，0 悬空）
+
+=== ② scan-gil-var-pins（全图）===
+scan-gil-var-pins /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741908.gil sha256=cadd042bbf54 graphs=47 var-nodes=261
+result: ok（全部变量名 pin 完整）
+
+=== ②b var-pins 定点 fb-phys2/fb-idle-listen ===
+scan-gil-var-pins /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741908.gil sha256=cadd042bbf54 graphs=1 var-nodes=0
+result: ok（全部变量名 pin 完整）
+scan-gil-var-pins /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741908.gil sha256=cadd042bbf54 graphs=1 var-nodes=2
+result: ok（全部变量名 pin 完整）
+
+=== ③ mounts 球实体 ===
+target=1077936135 kind=entity graphs=1073741825,1073741828,1073741829,1073741830,1073741831,1073741832
+names=1073741825(_GSTS_logic) 1073741828(_GSTS_dribble-v5) 1073741829(_GSTS_render) 1073741830(_GSTS_fbServer) 1073741831(_GSTS_fbSvlisten) 1073741832(_GSTS_fbIdleListen)
+
+=== ④ skill-config list ===
+id=1191182337 template=28(自定义造物) name=GSTS-fb-calc skillType=instant f45_2=52 f45_16=undefined model=10005001
+  bind body-78-f4 graphId=1082130433 trackPoint=1073741825 trigger=- beat=-
+id=1191182338 template=28(自定义造物) name=GSTS-fb-loop-exp skillType=instant f45_2=52 f45_16=undefined model=10005001
+  bind body-78-f4 graphId=1082130436 trackPoint=1073741825 trigger=- beat=-
+id=1191182339 template=28(自定义造物) name=GSTS-fb-calc2 skillType=instant f45_2=52 f45_16=undefined model=10005001
+  bind body-78-f4 graphId=1082130437 trackPoint=1073741825 trigger=- beat=-
