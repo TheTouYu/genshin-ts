@@ -294,7 +294,7 @@ export function extractTextConfig(
   const text = textM?.find((x) => x.number === 501 && x.wire === 2)
   if (text) props.text = new TextDecoder().decode(text.value as Uint8Array)
   if (fontSize !== undefined) props.fontSize = fontSize
-  if (align !== undefined) props.align = align === 1 ? 'center' : `unknown:${align}`
+  if (align !== undefined) props.align = align === 1 ? 'center' : align === 2 ? 'right' : `unknown:${align}`
   if (color !== undefined) props.color = argbToHex(color)
   const f62 = f19m.find((x) => x.number === 62 && x.wire === 2)
   if (f62) props.richImages = countRichImages(f62.value as Uint8Array)
@@ -343,7 +343,7 @@ export function extractQueueProps(
     const insertTail = firstVarint(f68m, 510)
     const timedShow = firstVarint(f68m, 511)
     const maxItems = firstVarint(f68m, 513)
-    if (align !== undefined) props.align = align === 1 ? 'center' : `unknown:${align}`
+    if (align !== undefined) props.align = align === 1 ? 'center' : align === 2 ? 'right' : `unknown:${align}`
     if (insertTail !== undefined) props.insertAt = 'tail'
     else props.insertAt = 'head'
     if (timedShow !== undefined) props.timedShow = true
