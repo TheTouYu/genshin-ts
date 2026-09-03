@@ -263,6 +263,9 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const pBvy = f.localVariable('float')
       const pRefl = f.localVariable('float')
       const pNet = f.localVariable('float')
+      const pMu = f.localVariable('float')
+      const pTanK = f.localVariable('float')
+      const pSpinK = f.localVariable('float')
       pDt.set(pv('fb_p_dt'))
       pR.set(pv('fb_p_ball_r'))
       pG.set(pv('fb_p_g'))
@@ -281,6 +284,9 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       pBvy.set(pv('fb_p_bounce_vy'))
       pRefl.set(pv('fb_p_post_refl'))
       pNet.set(pv('fb_p_net_damp'))
+      pMu.set(pv('fb_p_ground_mu'))
+      pTanK.set(pv('fb_p_tan_k'))
+      pSpinK.set(pv('fb_p_spin_k'))
 
       // ============ ⑦ 输入选择（任务覆盖镜像；物化后下游零重读） ============
       const b2f = (b: boolean) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
@@ -580,15 +586,13 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         const slipX = f.addition(wv.xComponent, f.multiplication(s0.zComponent, pR.value))
         const slipZ = f.subtraction(wv.zComponent, f.multiplication(s0.xComponent, pR.value))
         const slipMag = f._3dVectorModuloOperation(f.create3dVector(slipX, 0, slipZ))
+        // ratio = μ·(1+e)·|vy| / (k_tan·slipMag) —— 5.3f3 手感参数化（μ=fb_p_ground_mu）
         const ratio = f.division(
           f.multiplication(
-            new float(1.125),
-            f.multiplication(
-              f.absoluteValueOperation(wv.yComponent),
-              f.addition(new float(1), pE.value)
-            )
+            f.multiplication(pMu.value, f.absoluteValueOperation(wv.yComponent)),
+            f.addition(new float(1), pE.value)
           ),
-          slipMag
+          f.multiplication(pTanK.value, slipMag)
         )
         const scale = f.localVariable('float')
         f.doubleBranch(f.greaterThan(slipMag, new float(0.0001)), () => {
@@ -604,12 +608,12 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
           f.create3dVector(
             f.subtraction(
               wv.xComponent,
-              f.multiplication(f.multiplication(new float(0.4), scale.value), slipX)
+              f.multiplication(f.multiplication(pTanK.value, scale.value), slipX)
             ),
             f.multiplication(wv.yComponent, f.subtraction(0, pE.value)),
             f.subtraction(
               wv.zComponent,
-              f.multiplication(f.multiplication(new float(0.4), scale.value), slipZ)
+              f.multiplication(f.multiplication(pTanK.value, scale.value), slipZ)
             )
           )
         )
@@ -620,12 +624,12 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
           f.create3dVector(
             f.addition(
               s0.xComponent,
-              f.division(f.multiplication(f.multiplication(new float(0.6), scale.value), slipZ), pR.value)
+              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new float(1.5), pTanK.value), pSpinK.value), scale.value), slipZ), pR.value)
             ),
             s0.yComponent,
             f.subtraction(
               s0.zComponent,
-              f.division(f.multiplication(f.multiplication(new float(0.6), scale.value), slipX), pR.value)
+              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new float(1.5), pTanK.value), pSpinK.value), scale.value), slipX), pR.value)
             )
           )
         )
