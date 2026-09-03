@@ -817,6 +817,21 @@
       ]
     },
     {
+      "id": "aref_236b91bdc91d89387e5165663f",
+      "path": "ui/verification/ticket09-verification-report.md",
+      "locator": "§B 命令记录 / 修复轮 R1-R5 / §D 三栏汇总",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "3c782caa5dd6ea0e10111aa3e5cd7ca7dbb2f76844572c8125e9b687799690ef",
+      "claim_ids": [
+        "clm_405B8DE48C55CF97E60D1BC5E5"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_24a4adc72cb752bfa821a9809c",
       "path": "docs/ui-tutorial/official-guide-editor-interface.md",
       "locator": "战斗预设",
@@ -2348,6 +2363,21 @@
       ]
     },
     {
+      "id": "aref_58348acf2bce1bd33be81f92a0",
+      "path": "ui/src/button-materials.ts",
+      "locator": "buildButtonMaterialCandidate (三态文字素材 donor 克隆)",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "8cf99644ed961086fc9f838da4cd5ed68675d83ee1916d56987c655d44a58017",
+      "claim_ids": [
+        "clm_405B8DE48C55CF97E60D1BC5E5"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
+      ]
+    },
+    {
       "id": "aref_59dedb0f935668a36ba8ac426c",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "概念语义（2026-08-20 用户澄清，核心）",
@@ -2695,6 +2725,21 @@
       ]
     },
     {
+      "id": "aref_633d6b83821b676d81c62f2734",
+      "path": "ui/src/record.ts",
+      "locator": "extractTextConfig align label (f19.f503 / f68.f506, center=1/right=2)",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ab0c5952dd02a030ae3d79288d485250f03de4827dae01353d80abb817e3e741",
+      "claim_ids": [
+        "clm_29F59CE0D141770DAE88411622"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_6367efe361c8a4dd1d19e0b9dc",
       "path": "src/cli/gil_signal_registrations.ts",
       "locator": "versionFloor 实现（≈L739-744，f(N)=max(3,ceil(3N/4))）+ register 全表回填",
@@ -2812,6 +2857,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6ab90484980e9f53407d18b369",
+      "path": "ui/src/material-groups.ts",
+      "locator": "removeMaterialGroupMember / clearButtonStateRefs",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "153d78b8906017c041518c44e975add7438e2fa487a9f773cb648a9b3fc544ae",
+      "claim_ids": [
+        "clm_405B8DE48C55CF97E60D1BC5E5"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
       ]
     },
     {
@@ -3862,6 +3922,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_97c4ce0e109be09538d566b472",
+      "path": "ui/mappings.md",
+      "locator": "票09 实测追加（对齐右码 + 命令层缺口）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "8c98d569d090946547508740c4ff0a9bfc008328aadb62fc23f4b952aa46c67f",
+      "claim_ids": [
+        "clm_29F59CE0D141770DAE88411622"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

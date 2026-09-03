@@ -1534,6 +1534,23 @@
         "协作,授权,重写,不变量,复测,排查,分层,三栏"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "ui-command-layer-wire",
+      "node_id": "game-engine-knowledge",
+      "title": "UI 命令层 wire 与实测规则（对齐码/素材组/创建默认形态）",
+      "path": "knowledge/game-engine-knowledge/ui-command-layer-wire.md",
+      "summary": "票09 游戏核验落盘的 UI wire 结论：文本对齐码值、create 默认形态可用性缺口、素材组与模板化坑、可复用 CLI 引擎。",
+      "keywords": [
+        "create 默认形态",
+        "f503",
+        "f506",
+        "templateize",
+        "对齐",
+        "素材组",
+        "自定义按钮"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3394,6 +3411,18 @@
     "clm_D37B06B5956796377E116A0FAF": {
       "fact_classes": [
         "documented_contract"
+      ]
+    },
+    "clm_29F59CE0D141770DAE88411622": {
+      "fact_classes": [
+        "cli_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_405B8DE48C55CF97E60D1BC5E5": {
+      "fact_classes": [
+        "evidence_scope",
+        "writeback_behavior"
       ]
     }
   }
