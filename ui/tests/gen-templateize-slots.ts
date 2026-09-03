@@ -167,17 +167,22 @@ if (!fs.existsSync(FIXTURES)) {
 const after5 = load('1073741909.after-重启5-按钮保存为模板-7e62741d.gil')
 const after6 = load('1073741909.after-重启6-模板保存入库-cb6c78ae.gil')
 const after23 = load('1073741909.after-重启23-输入框存模板-2ac5a0b8.gil')
+const after63 = load('1073741909.after-重启63-队列存模板同步-5572a5f9.gil')
 const inst5 = after5.recordsById.get(1073742032)!
 const tpl5 = after5.recordsById.get(1073742033)!
 const tpl6 = after6.recordsById.get(1073742033)!
 const inputUpgraded = after23.recordsById.get(1073742079)!
+const queueUpgraded = after63.recordsById.get(1073742132)!
+const queueTpl = after63.recordsById.get(1073742137)!
 
 const subtype = findSlot(tpl5.raw, 6)
 const subtypeV2 = findSlot(inputUpgraded.raw, 6)
+const subtypeV3 = findSlot(queueUpgraded.raw, 6)
 const type3 = findSlot(inst5.raw, 3)
 const type4single = findSlot(tpl5.raw, 4)
 const type4double = findSlot(tpl6.raw, 4)
-if (!subtype || !subtypeV2 || !type3 || !type4single || !type4double) {
+const type4queueDouble = findSlot(queueTpl.raw, 4)
+if (!subtype || !subtypeV2 || !subtypeV3 || !type3 || !type4single || !type4double || !type4queueDouble) {
   throw new Error('槽定位失败')
 }
 
@@ -201,9 +206,11 @@ const out =
   `export const TPL_SLOTS = {\n` +
   line('SUBTYPE', subtype, tpl5.raw, '轮5 2033/2032 subtype6 槽（按钮族 v1）') +
   line('SUBTYPE_V2', subtypeV2, inputUpgraded.raw, '轮23 2079 subtype6 槽（输入框族 v2）') +
+  line('SUBTYPE_V3', subtypeV3, queueUpgraded.raw, '轮63 2132 subtype6 槽（队列族 v3）') +
   line('TYPE3_SINGLE', type3, inst5.raw, '轮5 2032 instance type3 槽(f13→2033)') +
   line('TYPE4_SINGLE', type4single, tpl5.raw, '轮5 2033 template type4 槽(f14=[2032])') +
   line('TYPE4_DOUBLE', type4double, tpl6.raw, '轮6 2033 template type4 槽(f14=[2032,2034])') +
+  line('TYPE4_QUEUE_DOUBLE', type4queueDouble, queueTpl.raw, '轮63 2137 template type4 槽(队列双引用)') +
   `} as const\n`
 fs.writeFileSync(OUT, out)
 console.log(`wrote ${OUT}`)

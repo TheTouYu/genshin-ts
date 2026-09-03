@@ -522,7 +522,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       if (!target) throw new Error(`[error] 官方控件不存在: ${args.targetId}`)
       if (target.kind !== 'custom-button' && target.kind !== 'input-box') {
         throw new Error(
-          `[error] 模板化未支持 kind=${target.kind}（仅按钮/输入框有 subtype 样本；队列/文本框等 fail-closed，待对应差分轮）`
+          `[error] template create 暂不支持 kind=${target.kind}` +
+            '（队列族三合一结构/记录级已闭合，顶层索引合并序为单样本 open-item，待第二样本复核后开放；其余 kind 无样本 fail-closed）'
         )
       }
       const result = createTemplateCandidate(sourceBytes, {

@@ -109,15 +109,70 @@ ok('fail-closed: 非官方单条不可模板化（实例/模板拒绝）', () =>
   )
 })
 
-ok('fail-closed: 无 subtype 变体样本的 kind 拒绝（消息队列模板化待轮63 差分）', () => {
-  // 轮51 快照含官方消息队列（kind=message-queue）——其模板化（轮63 含样式树克隆）未实现，须显式拒绝
+ok('模板化重放: 消息队列三合一（轮62→轮63；**记录级 104/104 全等**，索引合并序 open-item）', () => {
+  const result = createTemplateCandidate(
+    load('1073741909.after-重启62-消息配置样式-a5a14a7f.gil'),
+    { targetId: 1073742132, autoLibrary: true }
+  )
+  assert.equal(result.templateId, 1073742137)
+  assert.equal(result.libraryInstanceId, 1073742142)
+  const cand = result.bytes
+  const edit = load('1073741909.after-重启63-队列存模板同步-5572a5f9.gil')
+  // 记录级逐字节全等（结构/槽/样式树克隆/引用/删除）
+  const recsOf = (b: Uint8Array): Map<number, Uint8Array> => {
+    const top = parseWireMessage(b.subarray(20, b.length - 4))!
+    const sec = parseWireMessage(top.find((f) => f.number === 9)!.value as Uint8Array)!
+    const m = new Map<number, Uint8Array>()
+    for (const f of sec) {
+      if (f.number !== 502) continue
+      const inner = parseWireMessage(f.value as Uint8Array)
+      const id = inner?.find((x) => x.number === 501 && x.wire === 0)?.value
+      if (typeof id === 'number') m.set(id, f.value as Uint8Array)
+    }
+    return m
+  }
+  const rc = recsOf(cand)
+  const re = recsOf(edit)
+  assert.equal(rc.size, re.size)
+  const bad: number[] = []
+  for (const [id, a] of rc) {
+    const b = re.get(id)
+    if (!b || !Buffer.from(a).equals(Buffer.from(b))) bad.push(id)
+  }
+  assert.deepEqual(bad, [], '队列族记录级不等')
+  // 顶层索引 id 集一致（顺序差异=单样本编辑器内部合并序，登记 open-item）
+  const packedOf = (b: Uint8Array): number[] => {
+    const top = parseWireMessage(b.subarray(20, b.length - 4))!
+    const sec = parseWireMessage(top.find((f) => f.number === 9)!.value as Uint8Array)!
+    const d = sec.find((f) => f.number === 501 && f.wire === 2)!.value as Uint8Array
+    const out: number[] = []
+    let o = 0
+    while (o < d.length) {
+      let v = 0
+      let s = 0
+      while (o < d.length) {
+        const b2 = d[o++]
+        v |= (b2 & 0x7f) << s
+        if (b2 < 0x80) break
+        s += 7
+      }
+      out.push(v)
+    }
+    return out
+  }
+  const ic = packedOf(cand).slice().sort((x, y) => x - y)
+  const ie = packedOf(edit).slice().sort((x, y) => x - y)
+  assert.deepEqual(ic, ie, '索引 id 集不一致')
+})
+
+ok('fail-closed: 队列族模板化拒绝非三合一（autoLibrary=false）', () => {
   assert.throws(
     () =>
-      createTemplateCandidate(load('1073741909.after-重启51-消息队列-536528cb.gil'), {
-        targetId: 1073742132,
-        autoLibrary: true
-      }),
-    /模板化未支持 kind=message-queue/
+      createTemplateCandidate(
+        load('1073741909.after-重启62-消息配置样式-a5a14a7f.gil'),
+        { targetId: 1073742132, autoLibrary: false }
+      ),
+    /队列族模板化样本=三合一/
   )
 })
 

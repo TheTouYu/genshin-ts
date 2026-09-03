@@ -111,12 +111,13 @@ function dropParentAndSetId(raw: Uint8Array, selfId: number): Uint8Array {
   return spliceRecordSlots(raw, { selfId, dropParent: true })
 }
 
-/** subtype6 槽按家族取真实样本变体（按钮族 v1 / 输入框族 v2；其余无样本 fail-closed） */
+/** subtype6 槽按家族取真实样本变体（按钮 v1 / 输入框 v2 / 队列 v3=0x0a；其余无样本 fail-closed） */
 function subtypeSlotByKind(kind: string): Uint8Array {
   if (kind === 'input-box') return slotPayload(TPL_SLOTS.SUBTYPE_V2)
+  if (kind === 'message-queue') return slotPayload(TPL_SLOTS.SUBTYPE_V3)
   if (kind === 'custom-button') return slotPayload(TPL_SLOTS.SUBTYPE)
   throw new Error(
-    `[error] 模板化未支持 kind=${kind} 的 subtype 槽变体（仅按钮/输入框有样本；其余 fail-closed）`
+    `[error] 模板化未支持 kind=${kind} 的 subtype 槽变体（仅按钮/输入框/队列有样本；其余 fail-closed）`
   )
 }
 
@@ -319,6 +320,202 @@ export interface TemplateizeResult {
   libraryInstanceId?: number
 }
 
+/** 队列组克隆槽序归一化（轮63 实证：克隆组两个 f502 槽按 payload 长度升序 [15,45]，旧组为 [45,15]） */
+function normalizeGroupSlots(raw: Uint8Array): Uint8Array {
+  const fields = parseWireMessage(raw)
+  if (!fields) throw new Error('[error] 组记录解析失败')
+  const slotIndexes: number[] = []
+  fields.forEach((f, i) => {
+    if (f.number === 502 && f.wire === 2) slotIndexes.push(i)
+  })
+  if (slotIndexes.length < 2) return raw
+  const slots = slotIndexes
+    .map((i) => fields[i])
+    .sort((a, b) => (a.value as Uint8Array).length - (b.value as Uint8Array).length)
+  const out = fields.filter((_, i) => !slotIndexes.includes(i))
+  out.splice(Math.min(...slotIndexes), 0, ...slots)
+  return emitWireMessage(out)
+}
+
+/**
+ * 队列族三合一（轮62→63 单样本 OBSERVED）：模板 + 布局实例升格 + 库实例 + **三侧私有样式树
+ * 克隆**（布局/模板/库各一套） + 旧树物理删除 + 内部引用重映射（内容深链 505.503.69…:4）。
+ * ⚠️ 单样本登记：ID 分配含 4 个幻影号（2138-2141，编辑器内部动作痕迹）——按样本复刻，
+ * 待第二轮样本复核（见 issue open-items）。
+ */
+function queueTemplateizeCandidate(bytes: Uint8Array, targetId: number): TemplateizeResult {
+  const parsed = parseRoot9(bytes)
+  const target = parsed.recordsById.get(targetId)
+  if (!target) throw new Error(`[error] 目标记录不存在: ${targetId}`)
+  // 旧私有样式组：内容路径 505.503.69 子树内 field4 两次出现（image 组在前、text 组在后，由成员判别）
+  const fields = parseWireMessage(target.raw)
+  if (!fields) throw new Error('[error] 队列记录解析失败')
+  const f505s = fields.filter((f) => f.number === 505 && f.wire === 2)
+  const styleRefs: number[] = []
+  for (const f505 of f505s) {
+    const m505 = parseWireMessage(f505.value as Uint8Array)
+    if (!m505) continue
+    const f503s = m505.filter((f) => f.number === 503 && f.wire === 2)
+    for (const f503 of f503s) {
+      const m503 = parseWireMessage(f503.value as Uint8Array)
+      if (!m503) continue
+      const f69s = m503.filter((f) => f.number === 69 && f.wire === 2)
+      const collect = (list: WireField[]): void => {
+        for (const f of list) {
+          if (f.wire === 0 && f.number === 4) styleRefs.push(f.value as number)
+          if (f.wire === 2) {
+            const sub = parseWireMessage(f.value as Uint8Array)
+            if (sub) collect(sub)
+          }
+        }
+      }
+      for (const f69 of f69s) {
+        const m69 = parseWireMessage(f69.value as Uint8Array)
+        if (m69) collect(m69)
+      }
+    }
+  }
+  if (styleRefs.length !== 2) {
+    throw new Error(`[error] 队列样式组引用解析失败（${styleRefs.length} 个，期望 2）——样本外形态 fail-closed`)
+  }
+  // 角色判别：成员 kind=image/textbox
+  const roleOf = (gid: number): 'image' | 'textbox' => {
+    const member = parsed.records.find((r) => r.parentId === gid)
+    if (!member) throw new Error(`[error] 样式组 ${gid} 无成员`)
+    if (member.kind === 'image' || member.kind === 'textbox') return member.kind
+    throw new Error(`[error] 样式组 ${gid} 成员 kind=${member.kind}（样本外）`)
+  }
+  const oldImage = roleOf(styleRefs[0]) === 'image' ? styleRefs[0] : styleRefs[1]
+  const oldText = oldImage === styleRefs[0] ? styleRefs[1] : styleRefs[0]
+  const oldGroups = [oldImage, oldText]
+  const oldMembers = oldGroups.map((g) => {
+    const members = parsed.records.filter((r) => r.parentId === g)
+    if (members.length !== 1) throw new Error(`[error] 样式组 ${g} 成员数=${members.length}（样本外）`)
+    return members[0].id
+  })
+  // ID 分配：T + 幻影4 + L + 三侧树（每侧 Gimg,Mimg,Gtxt,Mtxt）——18 连续（轮63 实证）
+  const run = tailIds(bytes, 18)
+  const templateId = run[0]
+  const libraryId = run[5]
+  const pools: Array<{ gImg: number; mImg: number; gTxt: number; mTxt: number }> = [
+    { gImg: run[6], mImg: run[7], gTxt: run[8], mTxt: run[9] }, // lib 侧（2143-2146）
+    { gImg: run[10], mImg: run[11], gTxt: run[12], mTxt: run[13] }, // tpl 侧（2147-2150）
+    { gImg: run[14], mImg: run[15], gTxt: run[16], mTxt: run[17] } // 布局侧（2151-2154）
+  ]
+  const oldSelf = targetId
+  const oldParentRaw = parsed.recordsById.get(targetId)!.parentId
+  if (oldParentRaw == null) throw new Error('[error] 官方队列缺 f504 父引用')
+  const oldParent: number = oldParentRaw
+  const type3Payload = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE3_SINGLE), {
+    1073742033: templateId
+  })
+  const subtype = subtypeSlotByKind('message-queue')
+  const type4Queue = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE4_QUEUE_DOUBLE), {
+    1073742132: targetId,
+    1073742142: libraryId
+  })
+  const sideRefs = (raw: Uint8Array, pool: (typeof pools)[number]): Uint8Array =>
+    remapUiRecordVarints(raw, { [oldImage]: pool.gImg, [oldText]: pool.gTxt })
+  // 升级实例（布局侧 2132）：槽 + 样式引用→布局池
+  const upgraded = sideRefs(
+    spliceRecordSlots(target.raw, { slots: [subtype, type3Payload] }),
+    pools[2]
+  )
+  // 模板（2137）：去 f504/自引用→T + subtype v3 + 队列双引用 + 样式引用→模板池
+  const tplBody = remapUiRecordVarints(dropParentAndSetId(target.raw, templateId), {
+    [oldSelf]: templateId
+  })
+  const tplRecord = sideRefs(
+    spliceRecordSlots(tplBody, { slots: [subtype, type4Queue] }),
+    pools[1]
+  )
+  // 库实例（2142）：官方内容副本，f504=1840/自引用→L + subtype+type3 + 样式引用→库池
+  const libRaw = remapUiRecordVarints(target.raw, {
+    [oldSelf]: libraryId,
+    [oldParent]: LIBRARY_CONTAINER_ID
+  })
+  const libRecord = sideRefs(
+    spliceRecordSlots(libRaw, { slots: [subtype, type3Payload] }),
+    pools[0]
+  )
+  // 树克隆
+  const cloneTree = (pool: (typeof pools)[number]): Uint8Array[] => {
+    const out: Uint8Array[] = []
+    for (let i = 0; i < 2; i++) {
+      const gNew = i === 0 ? pool.gImg : pool.gTxt
+      const mNew = i === 0 ? pool.mImg : pool.mTxt
+      const gOld = oldGroups[i]
+      const mOld = oldMembers[i]
+      const g = parsed.recordsById.get(gOld)!
+      const m = parsed.recordsById.get(mOld)!
+      out.push(
+        remapUiRecordVarints(normalizeGroupSlots(g.raw), { [gOld]: gNew, [mOld]: mNew })
+      )
+      out.push(remapUiRecordVarints(m.raw, { [mOld]: mNew, [gOld]: gNew }))
+    }
+    return out
+  }
+  const oldTreeIds = new Set([...oldGroups, ...oldMembers])
+  // 轮63 物理序：L、模板侧树、布局侧树、库侧树（orderB: 2142,2147-50,2151-54,2143-46）
+  const block: Uint8Array[] = [
+    libRecord,
+    ...cloneTree(pools[1]),
+    ...cloneTree(pools[2]),
+    ...cloneTree(pools[0])
+  ]
+
+  const out = rebuildRoot9(bytes, (section) => {
+    const outFields: WireField[] = []
+    for (let i = 0; i < section.length; i++) {
+      const field = section[i]
+      if (field.number !== 502 || field.wire !== 2) {
+        outFields.push(field)
+        continue
+      }
+      const id = recordIdOf(field.value as Uint8Array)
+      if (id === undefined) {
+        outFields.push(field)
+        continue
+      }
+      if (oldTreeIds.has(id)) continue // 旧树物理删除
+      if (id === targetId) {
+        outFields.push({ number: 502, wire: 2, value: upgraded })
+        for (const raw of block) outFields.push({ number: 502, wire: 2, value: raw })
+        continue
+      }
+      outFields.push(field)
+    }
+    // 模板插「模板簇」末尾：从首个 502 记录起连续 type4 模板之后（轮5 无前置→0；轮23/63 有前置→其后）
+    let clusterStart = outFields.findIndex((f) => f.number === 502 && f.wire === 2)
+    if (clusterStart < 0) clusterStart = outFields.length
+    let insertAt = clusterStart
+    for (let i = clusterStart; i < outFields.length; i++) {
+      const f = outFields[i]
+      if (f.number !== 502 || f.wire !== 2) break
+      if (recordHasSlotType(f.value as Uint8Array, 4)) insertAt = i + 1
+      else break
+    }
+    outFields.splice(insertAt, 0, { number: 502, wire: 2, value: tplRecord })
+    appendToContainerMembers(outFields, LIBRARY_CONTAINER_ID, libraryId)
+    // 顶层索引重建：parentless（无 f504）记录按最终物理序（轮63 证据：组/模板/容器随物理序）
+    const indexIds2: number[] = []
+    for (const f of outFields) {
+      if (f.number !== 502 || f.wire !== 2) continue
+      const raw = f.value as Uint8Array
+      if (parentIdOf(raw) === undefined) {
+        const id2 = recordIdOf(raw)
+        if (id2 !== undefined) indexIds2.push(id2)
+      }
+    }
+    const indexField = outFields.find((f) => f.number === 501 && f.wire === 2)
+    if (!indexField) throw new Error('[error] 顶层索引缺失')
+    indexField.value = encodePackedVarints(indexIds2)
+    section.length = 0
+    section.push(...outFields)
+  })
+  return { bytes: out, templateId, instanceId: targetId, libraryInstanceId: libraryId }
+}
+
 /**
  * 官方单条 → 模板（可选自动库实例）。只读候选。
  */
@@ -333,6 +530,12 @@ export function createTemplateCandidate(
     throw new Error(
       `[error] 目标 ${options.targetId} 非官方单条（须仅含 type5 槽，实例/模板带 type3/type4 槽）——模板化起点须为官方单条`
     )
+  }
+  if (target.kind === 'message-queue') {
+    if (!options.autoLibrary) {
+      throw new Error('[error] 队列族模板化样本=三合一（轮63），须 autoLibrary=true')
+    }
+    return queueTemplateizeCandidate(bytes, options.targetId)
   }
   const ids = tailIds(bytes, options.autoLibrary ? 2 : 1)
   const templateId = ids[0]
