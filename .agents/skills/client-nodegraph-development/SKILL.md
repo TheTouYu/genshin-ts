@@ -298,6 +298,32 @@ gil-node-graph-reading（Step 2.8 客户端图读法）；注入纪律 → verif
 - **负载纪律**：20008 每施放全量计算 + 详情日志 ≈25KB/拍；80/s≈2MB/s 会触发引擎负载踢出。
   高频实验先预算日志体积（活动画像粗测），勿整轮全开详情。
 
+## 五E、原生写通道与锁步破除（2026-09-03 足球 14/18 票实测，3132/3133）
+
+> 完整复盘：`docs/game-engine-knowledge/retrospective-2026-09-03-native-write-channel.md`；
+> 框架设计件：`.scratch/football-v2/issues/19-{codec-protocol,channel-api,replacement-plan}.md`。
+
+- **锁步真凶=读方向**：客户端读服务端数据（镜像/自定义变量）存在 **~10/s 硬上限**（用户实测口径）；
+  C→S 信号送达快（几十/s）。破锁步=客户端不再读服务端状态，改**自写自读自持存储**+计算结果信号回传。
+- **技能变量=客户端自持存储**（路线一核心）：全局存储（系统菜单【技能变量管理】创建，配置 ID 字面量
+  引用——assertClientLiteralValue）、**跨施放保持**+**同拍写读零延迟**（3132 实证 776/776）；
+  **服务端零读路径**（节点/事件全无）——服务端消费必须走信号回传。
+- **客户端图族只能读自定义变量**（getCustomVariable 在列），**不能写**（setCustomVariable 全客户端
+  定义零命中）——"客户端写实体变量→服务端读"路线不可行（14 票 §7）。
+- **HP 结算写通道**：recoverCreationSHp(任意实体, float, bool 仅字面量)→服务端 whenHpIsRecovered 事件
+  （出参实际恢复量；满血=0 需扣血循环维持）+getObjectAttribute 轮询——53/s 实测（3133）。
+- **瞬移通道**：complexCreationTeleport(pos vec3, rot vec3)——双端可读（客户端 getEntityLocation/
+  服务端 getEntityLocationAndRotation→location/rotate 注意字段名）、6 float/拍、位置天然跨拍持久——
+  **写通道节点全清单见 14 票 §8**（9 个：瞬移/位移/转向/HP/技能变量/冷却/单位状态/攻击盒/投射物）——
+  **调研勿只查票面候选，全枚举节点表**（用户 09-03 纠正）。
+- **并发堆率**：施放节流=**每造物独立 ~15/s**（4 实例各 13.4/s 并存实证，非全局共享）；多实例身份区分=
+  queryGuidByEntity(getSelfEntity())+嵌套 doubleBranch+equal(GUID 字面量)，**每个分支显式 equal、
+  else 留空**（兜底分支会让陌生实例污染数据——18 票 decode 断言逮住）。
+- **一实例一 cfg**：并发写同一技能变量会丢步（读改写竞态）；值语义要求高时按实例分配独立 cfg。
+- **服务端定时器粒度 ~0.09s**（0.06s 请求实测 11/s，O-2026-09-03-05）——轮询读回上限 11/s，高频读回
+  优先事件/信号路。
+- **4 并发服务端处理面 ~5000 帧/s**（3133 实测用户体感压力）——集成并发度按需选（20Hz 需 2 实例）。
+
 ## 成长机制
 
 新发现（新图类型 folder 值、新信号参数类型验证、新状态拦截案例）按 debug-log-investigator
