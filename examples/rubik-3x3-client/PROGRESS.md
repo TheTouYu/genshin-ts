@@ -808,3 +808,16 @@
 - **注册**：宿主 def 1077936200 ×13（solver_*×5 + rbt_*×8，**策略表偏置+1**——CLI 默认值禁负数，图内 -1 还原）；玩家 1086324737/738 ×5（rbx_* + rb_host:entity）。
 - **注入 13/13 ok**（SHA 3e357799）；活图核验：预算 solverPlan 1159✅/十字图 30✅、composite-refs 0 悬空、var-pins 736 全绿、四图名/节点数对位；Temp 已同步。
 - **待用户**：编辑器造物 4 项配置（引用 1191182338 瞬发版）→ 30s 试玩（打乱→自动还原→日志）→ E1 定论。
+
+### 分载 Round 3：客户端读空根因闭环 + CLI 实例变量能力修复（2026-09-04）
+
+- **根因链（日志 3137/3138 帧级实证）**：客户端读 `solver_ep/eo` 返回 None → 撕裂门恒拒（'xr' 回执 489 vs h=0）→ 十字不动。用户编辑器实验（实体上建 int_list 变量、图 1082130442 测试读回 [4,2]）证明**客户端完全支持 int_list 读**；真因 = **变量声明在 prefab def（root4）不传导到场景实例（root5）**，而 CLI 对场景实例报"custom prefab not found"。
+- **wire 实证（用户 probe_var 编辑器差分）**：场景实例变量 = root5.1[entity].7{f1=1,f2=1}.11{f1{f2=名字,f3=类型码,f4=初值}}——与代码既有 ENTITY_PATH 注释一致，缺的是「组件槽不存在时创建」。
+- **CLI 三处修复**（用户定调：实例+元件都必须支持，不支持就修）：
+  ① `ensureEntityVariableContainerInPlace`：实体无变量组件槽时创建（f7{f1=1,f2=1,f11{}} 追加实例记录末尾）；
+  ② CLI 兜底只在「scene entity not found」时降级 prefab 注册表，不再掩蔽真错；
+  ③ sync 实例匹配支持 f2{f1=defRef} 普通实例形态（原只认 f1==prefabId 的玩家模板形态）+ 同步循环内建容器创建；调试修正 fieldsOf 切片相对偏移误用（错位切片解析为空 → 匹配恒假）。
+  验证（沙箱）：无槽实体创建 ✓、直接注册 13 变量 ✓、sync 传导 def→实例 ✓。
+- **build 卡点如实报告**：`npm run build` exit 2 被 football WIP 语法错误（examples/football/src-fb/fb-phys2.ts '}' expected）阻断——tsc 产物已写 dist.tmp 但 && 链不执行改名；本轮手动 `mv dist.tmp dist` 等效完成（非 football 文件未动，待足球会话自理）。
+- **真图落位**：13 变量（solver_*×5 + rbt_*×8 偏置表）注册到**实例 1077936201**（回读 14 项含 probe_var ✓，Temp 同步 1fb69ed2，四图 264/246/2/2 完好——无需重注入）。
+- **下一步**：用户复测（打乱→等停→自动还原），预期十字阶段开始转动；日志验证 'c0/c1/c2/xd' 回传链。

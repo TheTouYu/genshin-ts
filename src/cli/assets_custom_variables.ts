@@ -330,8 +330,13 @@ export async function runAssetsCustomVariables(argv: readonly string[] = process
     let variables: readonly CustomVariableDefinition[]
     try {
       variables = readEntityCustomVariables({ gilPath: sourcePath, entityId: args.entityId }).variables
-    } catch {
-      variables = readCustomPrefabInitialCustomVariables({ gilPath: sourcePath, prefabId: args.entityId }).variables
+    } catch (error) {
+      // 仅当「实体不存在」才降级 prefab 注册表；其余错误（如容器缺失）如实上抛，不掩蔽
+      if (String((error as Error)?.message ?? '').includes('scene entity not found')) {
+        variables = readCustomPrefabInitialCustomVariables({ gilPath: sourcePath, prefabId: args.entityId }).variables
+      } else {
+        throw error
+      }
     }
     const rows = variables.map((definition) => ({
       name: definition.name,
@@ -365,12 +370,17 @@ export async function runAssetsCustomVariables(argv: readonly string[] = process
           entityId: args.entityId,
           declarations
         })
-      } catch {
-        result = applyCustomPrefabInitialCustomVariableDeclarations({
-          gilPath: temporary,
-          prefabId: args.entityId,
-          declarations
-        })
+      } catch (error) {
+        // 仅当「实体不存在」才降级 prefab 注册表；其余错误（如容器缺失）如实上抛，不掩蔽
+        if (String((error as Error)?.message ?? '').includes('scene entity not found')) {
+          result = applyCustomPrefabInitialCustomVariableDeclarations({
+            gilPath: temporary,
+            prefabId: args.entityId,
+            declarations
+          })
+        } else {
+          throw error
+        }
       }
       fs.writeFileSync(temporary, result.bytes)
       changed += result.changed.length

@@ -745,13 +745,25 @@ export function syncPrefabCustomVariableDeclarations(params: {
   const unchanged: string[] = []
 
   while (true) {
+    // 2026-09-04 修复：实例匹配支持两种形态——
+    //  ① 记录 f1 == prefabId（玩家/角色模板特有形态，原逻辑）
+    //  ② 记录 f2{f1=defRef} == prefabId（普通摆放实例形态：f1=自身实例ID + f2 引用元件 def）
+    const instanceReferencesPrefab = (recordField: LenField): boolean => {
+      // 注意：fieldsOf 返回的偏移相对「传入切片」——defRef 的偏移要回到记录切片上再切，
+      // 不能直接用于 payload 全局空间（2026-09-04 调试实证：错位切片解析为空 → 匹配恒假）
+      const recordBytes = payload.subarray(recordField.dataStart, recordField.dataEnd)
+      const record = fieldsOf(recordBytes)
+      if (varintField(record, 1) === params.prefabId) return true
+      const defRef = record.find((field) => field.field === 2 && field.wire === 2)
+      if (!defRef) return false
+      return (
+        varintField(fieldsOf(recordBytes.subarray(defRef.dataStart, defRef.dataEnd)), 1) ===
+        params.prefabId
+      )
+    }
     const instances = fields.filter(
       (field) =>
-        field.depth === 2 &&
-        field.p0 === 5 &&
-        field.p1 === 1 &&
-        varintField(fieldsOf(payload.subarray(field.dataStart, field.dataEnd)), 1) ===
-          params.prefabId
+        field.depth === 2 && field.p0 === 5 && field.p1 === 1 && instanceReferencesPrefab(field)
     )
     const instance = instances.find((candidate) => {
       const namesInInstance = new Set(
@@ -783,7 +795,20 @@ export function syncPrefabCustomVariableDeclarations(params: {
         field.dataEnd <= instance.dataEnd
     )
     const container = containers[0]
-    if (!container) break
+    if (!container) {
+      // 2026-09-04：实例无变量组件槽时创建（wire 同 ensureEntityVariableContainerInPlace：
+      // f7{f1=1, f2=1, f11{}} 追加到实例记录末尾），而不是静默跳过该实例
+      const emptyContainer = encodeLengthField(11, Buffer.alloc(0))
+      const slot = Buffer.concat([encodeVarintField(1, 1), encodeVarintField(2, 1), emptyContainer])
+      const slotField = encodeLengthField(7, slot)
+      const appendedInstance = Buffer.concat([
+        Buffer.from(payload.subarray(instance.dataStart, instance.dataEnd)),
+        slotField
+      ])
+      payload = Uint8Array.from(applyReplacement(payload, fields, instance, appendedInstance))
+      fields = parsePayloadFields(payload)
+      continue
+    }
     const existing = fields
       .filter(
         (field) =>
@@ -1042,6 +1067,11 @@ export function applyEntityCustomVariableDeclarations(params: {
   entityId: number
   declarations: readonly CustomVariableDeclaration[]
 }): ApplyCustomVariableUpdatesResult {
+  // 2026-09-04 修复：实体无变量组件槽时先创建（wire 来自编辑器 probe_var 差分实证：
+  // 组件槽 f7{f1=1(类型码), f2=1, f11{f1{f2=名字, f3=类型码, f4=初值}}}）。
+  // 此前容器缺失直接抛错，被 CLI 的 prefab 兜底掩蔽成 "custom prefab not found"。
+  ensureEntityVariableContainerInPlace(params.gilPath, params.entityId)
+
   const existing = readEntityCustomVariables({
     gilPath: params.gilPath,
     entityId: params.entityId
@@ -1081,8 +1111,29 @@ export function applyEntityCustomVariableDeclarations(params: {
   }
 }
 
-function typeFieldAsPayloadField(variableField: LenField, local: WireField): LenField {
-  if (local.lenStart === undefined)
+/**
+ * 确保场景实体存在自定义变量组件槽（root5.1[entity].7{f1=1}.11）；缺失则创建并写回 gilPath。
+ * wire 实证：2026-09-04 用户编辑器在 1077936201 上新建 int_list 变量的字节差分——
+ * 槽编码 = f7{ f1=1(组件类型码), f2=1, f11{ …f1 变量条目 } }，追加到实体记录末尾。
+ */
+export function ensureEntityVariableContainerInPlace(gilPath: string, entityId: number): boolean {
+  const { payload, fields } = readGilPayloadFields(gilPath)
+  const owner = entityOwnerFor(payload, fields, entityId)
+  if (!owner) throw new Error(`[error] scene entity not found: ${entityId}`)
+  if (variableContainerFor(fields, owner, ENTITY_PATH)) return false
+  const emptyContainer = encodeLengthField(11, Buffer.alloc(0))
+  const slot = Buffer.concat([encodeVarintField(1, 1), encodeVarintField(2, 1), emptyContainer])
+  const slotField = encodeLengthField(7, slot)
+  const appendedOwner = Buffer.concat([
+    Buffer.from(payload.subarray(owner.dataStart, owner.dataEnd)),
+    slotField
+  ])
+  const nextPayload = applyReplacement(payload, fields, owner, appendedOwner)
+  fs.writeFileSync(gilPath, rebuildGilFile(gilPath, nextPayload))
+  return true
+}
+
+function typeFieldAsPayloadField(variableField: LenField, local: WireField): LenField {  if (local.lenStart === undefined)
     throw new Error('[error] expected length-delimited type payload')
   return {
     ...variableField,
