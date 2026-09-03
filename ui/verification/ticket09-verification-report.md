@@ -33,31 +33,30 @@
 | 项 | 候选 SHA | 备份路径 | 写回后 SHA | 回读摘要 | 用户游戏确认原文 | 结论 |
 |---|---|---|---|---|---|---|
 | B1a 按钮 | 7128e03b… | …/Save_Level/.gsts/backups/1073741917.gil.2026-09-03T05-40-57-833Z.bak | 7128e03b… | 布局成员 14→15；custom-button `核验按钮09` id=1073741843 path=布局:默认布局:自定义按钮#1 pos=[250,120] size=180×52 槽4；Temp 同步一致 | ❌「只有空按钮。三种状态的素材没配置，空按钮不能算核验通过。」 | **不通过**（行为层）；R2 修复中 |
-| B1b 文本框 | | | | | | |
-| B1c 图文输入框 | | | | | | |
-| B1d 消息队列 | | | | | | |
-| B1e 存为模板 | | | | | | |
-| B2a 改名 | | | | | | |
-| B2b 文本 | | | | | | |
-| B2c 字号 | | | | | | |
-| B2d 对齐(左/中/右) | | | | | | |
-| B2e 文字颜色 | | | | | | |
-| B2f 位置 | | | | | | |
-| B3 Delete(预览 removed) | | | | | | |
+| B1b 文本框 | 17a333ee…（create）/ 066ffd3f…（内容补写） | …/1073741917.gil.2026-09-03T08-17-28-236Z.bak；内容补写备份 …/2026-09-03T08-24-32-041Z.bak | 17a333ee… → 066ffd3f… | textbox `核验文本框09` id=1073741848 path=布局:默认布局:文本框#1 pos=[800,120] size=100×40；内容补写后 props=text「文本框09 内容示例」color #FFFFFF fontSize 20（f505 写入路径=票06 对拍路径） | ⏳ 待用户游戏确认（显示+内容+可输入） | 结构PASS/行为待确认 |
+| B1c 图文输入框 | 8cb13b77…（create）/ a18dd69b…（内容补写） | …/2026-09-03T08-25-56-867Z.bak；内容 …/2026-09-03T08-26-04-350Z.bak | 8cb13b77… → a18dd69b… → 用户保存 c63c9e36 | input-box `核验图文09` id=1073741851；AI 侧无图片素材（仅图元槽）→ 用户编辑器补 {5:img_1}；现 text=「{5:img_1}图文输入09 内容示例」 | ✅「1，2」：通过（用户补充图片后）；**AI 缺口登记 R4：rich-image 素材配置（design `update --rich-image` L4 未实现）backlog** | ✅ 通过（R4 登记） |
+| B1d 消息队列 | 650676ed… | …/1073741917.gil.2026-09-03T08-32-25-981Z.bak | 650676ed… | message-queue `核验队列09` id=1073741852 path=布局:默认布局:消息队列#1 pos=[800,780] size=150×150；props=maxItems 5 / messages[1] 消息项_1 / styles[样式_1] / timedShow 5s（官方无样式 donor） | ⏳ 待用户游戏确认（显示/位置/队列渲染） | 结构PASS/行为待确认 |
+| B1e 存为模板 | 36bf8523… | …/1073741917.gil.2026-09-03T08-34-48-509Z.bak | 36bf8523… | template create 1843（官方源，素材侧实例）：template `核验按钮09` id=1073741853 路径 控件模板:核验按钮09；实例 1843 三态素材保留（1844/1845/1846）；未自动克隆模板侧素材（=编辑器语义：需「同步到模板」才生成模板侧素材） | ⏳ 待用户游戏/编辑器确认 | 结构PASS/行为待确认 |
+| B2a 改名 | b77b0bb4… | …/2026-09-03T08-36-30-263Z.bak | b77b0bb4… | 实例 1843 name→核验按钮09-改名（模板 1853 名不变，实例/模板名独立） | ✅「是」 | ✅ 通过 |
+| B2b 文本 | 65a345a0… | …/2026-09-03T08-38-55-496Z.bak | 65a345a0…（其后用户 resize 保存 1ff85e22） | text 文本框09 内容示例→文本框09 文字已修改 | ✅（尺寸太小展示不出→用户顺手调大，resize 记为玩家动作） | ✅ 通过 |
+| B2c 字号 | e6d8d6ad… | …/2026-09-03T08-41-22-377Z.bak | e6d8d6ad… | fontSize 20→36（用户 resize 后 size=145×70） | ✅「通过」 | ✅ 通过 |
+| B2d 对齐(左/中/右) | left/center/right 三次写回（末次 23126a5e…） | （三次自动备份在位） | 23126a5e… | align 左(缺省)→center→right；list 回读 right 曾显示 unknown:2 → 解码补丁（record.ts 2=right，编辑器样本第12步 f503=2 铁证） | ⏳ 一次性核验（最终=右对齐） | 结构PASS/list可见/行为待批次 |
+| B2e 文字颜色 | 20b53ebe… | …/2026-09-03T08-46-03-862Z.bak | 20b53ebe… | color #FFFFFF→#FF0000 | ⏳ 一次性核验 | 结构PASS/list可见/行为待批次 |
+| B2f 位置 | e46fa0e7… | …/2026-09-03T08-46-05-600Z.bak | e46fa0e7… | textbox pos→[500,650]（size 145×70 保持用户 resize） | ⏳ 一次性核验 | 结构PASS/list可见/行为待批次 |
+| B3 Delete(预览 removed) | ada4889c…（+R5 ee1e08b8…） | …/2026-09-03T08-50-08-945Z.bak；R5 …/16-51-09-022Z.bak | ada4889c… → ee1e08b8… | 删按钮1843+素材树 7 条；**发现模板1853 悬空引用实例素材组** → R5 清空模板态引用（恢复空素材模板合法态） | ⏳ 一次性核验（按钮消失/无报错/模板在） | 结构PASS/行为待批次 |
 
 ## 2. §C 玩家细排读回对照
 
-- 用户动作清单（原文/自述）：动作1=`待填`；动作2=`待填`；…（≥2 类）
-- 动作前锚点：`assets:ui anchor save` 路径/标签=`待填`
-- diff 输出：`.gsts/ui-anchors/<mapId>.json` + diff 摘要=`待填`
+- 用户动作清单（自述）：「B1c 图文输入框没看到图片素材，我补充了一下（加图片），现在有了」
+- 动作前 AI 侧锚点：`after-B1c-AI`（由 8cb13b77 备份确定性重放内容写回 = a18dd69b 语义态，锚点 hash 同 live 校验）
+- diff 输出：`assets:ui diff --anchor after-B1c-AI --gil <live>`（.gsts/ui-anchors/1073741917.json）
 
 | 用户动作 | list --flat 读回 | diff playerChanges | 对上? |
 |---|---|---|---|
-| 动作1 | | | 待填 |
-| 动作2 | | | 待填 |
-| … | | | 待填 |
+| 图文输入框 1851：加内联图片素材（text 出现 {5:img_1}）+ 移动/改尺寸（1144,173 / 188×145） | props.text={5:img_1}图文输入09 内容示例；geometry 已变 | PLAYER fields=geometry,props | ✅ 用户复核通过 |
+| 文本框 1848：几何调整（AI 态 pos=[800,120] 100×40 → 现 position 缺失/变） | geometry 已变（position 缺失） | PLAYER fields=geometry | ✅ 用户复核通过（确认动过） |
 
-- 用户复核结论（原文）：`待填`
+- 用户复核结论（原文）：「1，2」（①B1c 通过+②C 读回逐项对上）
 
 ## 3. §D 三栏汇总 + 修复轮
 
@@ -71,6 +70,7 @@
 |---|---|---|---|---|---|
 | R1 | L2 语义 create 带 `--write` 被拒：`writeRequiresUserConfirm=true (未执行)` | live SHA 未变=写被代码闸拦截（非结构损坏） | 设计层遗留：票05 open-item「create 新路径 --write 待用户定目标/ID 后单独启用」，代码未实现启用分支 | `src/cli/assets_ui.ts`：layout create 与语义 create 两处 `--write` 分支改为「须附 `--yes`」→ 走既有 `writeBack`（SHA 门+自动备份+Temp 同步）；无 `--yes` 保持拒绝（消息更新） | 无 `--yes` → 仍 writeRequiresUserConfirm；带 `--yes` → writePerformed=true、live SHA==candidate、Temp 同步、回读 PASS（=B1a） |
 | R2 | B1a 游戏内为空按钮（素材未配置） | live SHA==写回后（结构在），非覆盖假象 | 用法/设计层 gap：create 复刻「编辑器新建默认形态」=素材空（票05 open-item：素材/文本配置 donor 未启用）；CLI 无「给按钮状态配素材」命令 | 用户确认方案=文字标签三态。取证 donor：重启7→8（常态组2041=文本框+图片）、重启26→28（悬浮组2044=单文本框；块缩放 悬停1.1/按下0.9 样本字节）。新实现 ui/src/button-materials.ts + button-material-donors.ts（donor 提取自真实快照）+ 断言/runner（ui/tests/button-materials-assert.ts、ui/verification/ticket09-r2-candidate.ts）：常态白字/悬停黄字(样本色)+1.1/按下灰字+0.9 | **候选写回 PASS**（live=Temp=`b2e3aa7b…`；备份 …/1073741917.gil.2026-09-03T16-06-45-106Z.bak；回读 常态1844/悬停1845/按下1846/禁用∅；断言 PASS；类型零错）。游戏复验反馈：常态混入图片成员→移交 R3 |
+| R5 | B3 删除后模板 1853 悬空引用已删素材组 1844-46（残留） | live SHA==删除后（结构按清理清单执行） | 设计/实现层：B1e templateize 未给模板侧克隆素材树（编辑器「保存为模板」语义），模板与实例共享组→删实例后悬空；delete 清理按实例私树执行 | 新增 clearButtonStateRefs（material-groups.ts）：清 t50 三态 f501 引用为空（保留尺寸/缩放），恢复「空素材模板」合法态 | **写回 PASS**（live=Temp=`ee1e08b8…`；备份 16-51-09-022Z.bak；模板 states 全 未配置，无悬空）。backlog：templateize 素材树克隆（feature）待补 |
 | R3 | R2 复验反馈：常态素材组混入「文本框+图片」两成员，需区分/能单独编辑素材成员 | live SHA==写回后（结构在） | 用法/能力层：整组克隆无法单独编辑组内成员；设计稿（DESIGN §3.4 / mappings / trace C1-2）已定义 `state material add/remove` 与 member 寻址 `update`，L4 未实现 | 用户定常态=仅文字。新增 ui/src/material-groups.ts（removeMaterialGroupMember 引擎：组 f503 packed 去成员+物理删记录+重建文件）+ 断言用例 | **写回 PASS**（live=Temp=`7e65a1b1…`；备份 …/1073741917.gil.2026-09-03T16-13-17-270Z.bak；组1844=仅文本框1847，悬停/按下不变；锚点 after-B1a-R3）。⏳ 待用户游戏复验 B1a（常态仅文字） |
 | | | | | | |
 
