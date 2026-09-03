@@ -10,6 +10,7 @@ import path from 'node:path'
 
 import { updateUiControl } from '../../src/cli/gil_ui.js'
 import { parseWireMessage } from '../../src/cli/static_assembly/wire.js'
+import { extractGeometry, extractTextConfig, parseRoot9 } from '../src/record.js'
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..')
 const SUPP = path.join(ROOT, '.gsts', 'diff-exp', 'ui补充')
@@ -158,6 +159,32 @@ if (fs.existsSync(UILEARN)) {
       true,
       'field45 旧内容后缀完整保留'
     )
+  })
+} else {
+  console.log('skip 1 - ui学习 快照目录缺失')
+}
+
+if (fs.existsSync(UILEARN)) {
+  const loadU = (f: string): Uint8Array =>
+    new Uint8Array(fs.readFileSync(path.join(UILEARN, f)))
+  ok('编辑重放: 位置移动（轮17→轮18；root9 全等；t12 等长路径）', () => {
+    const before = loadU('1073741909.after-重启17-同步三态树-0a5ebfa7.gil')
+    const after = loadU('1073741909.after-重启18-右下角位置-2bed515e.gil')
+    const geo = extractGeometry(parseRoot9(after).recordsById.get(1073742034)!.fields, [])
+    assert.ok(geo?.position, 'after 需有 position')
+    const r = updateUiControl(before, 1073742034, { position: geo!.position })
+    assertTopEquals(r.bytes, after, 'move 轮17→18')
+  })
+
+  ok('字段保留: 几何编辑后文本/样式配置不变（动态 textbox；t12 只动几何）', () => {
+    const before = loadU('1073741909.after-重启19-图文输入框-a81cbfbf.gil')
+    const parsed = parseRoot9(before)
+    const textbox = parsed.records.find((r) => r.kind === 'textbox' && extractGeometry(r.fields, []))
+    assert.ok(textbox, '需存在 textbox')
+    const r = updateUiControl(before, textbox!.id, { position: [500, 500] })
+    const textOf = (b: Uint8Array) =>
+      JSON.stringify(extractTextConfig(parseRoot9(b).recordsById.get(textbox!.id)!.fields, []))
+    assert.equal(textOf(r.bytes), textOf(before), '文本配置应保持不变')
   })
 } else {
   console.log('skip 1 - ui学习 快照目录缺失')
