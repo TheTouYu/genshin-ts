@@ -107,9 +107,10 @@ g.creationSkill({ id: 1082130435, name: '_GSTS_rbCrossSkill' }).on('start', (_ev
             const p2 = f.getCorrespondingValueFromList(off, f.getCustomVariable(host, 'rbt_xp2').asType('int_list'))
             const p3 = f.getCorrespondingValueFromList(off, f.getCustomVariable(host, 'rbt_xp3').asType('int_list'))
             const picked = f.localVariable('int')
-            f.doubleBranch(f.equal(chunk, 0n), () => { picked.set(p0) }, () => {
-              f.doubleBranch(f.equal(chunk, 1n), () => { picked.set(p1) }, () => {
-                f.doubleBranch(f.equal(chunk, 2n), () => { picked.set(p2) }, () => { picked.set(p3) })
+            // 策略表注册值偏置 +1（CLI 默认值禁负数，2026-09-04 实证），此处统一 -1 还原
+            f.doubleBranch(f.equal(chunk, 0n), () => { picked.set(f.subtraction(p0, 1n)) }, () => {
+              f.doubleBranch(f.equal(chunk, 1n), () => { picked.set(f.subtraction(p1, 1n)) }, () => {
+                f.doubleBranch(f.equal(chunk, 2n), () => { picked.set(f.subtraction(p2, 1n)) }, () => { picked.set(f.subtraction(p3, 1n)) })
               })
             })
             // —— 宏参数（LEN + 三段表码）——

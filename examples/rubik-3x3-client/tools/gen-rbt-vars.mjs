@@ -18,10 +18,12 @@ if (which === 'host') {
     'solver_ct:int_list=' + list([0n, 1n, 2n, 3n, 4n, 5n]),
     'solver_cp:int_list=' + list(Array.from({ length: 8 }, (_, i) => BigInt(i))),
     'solver_co:int_list=' + list(Array.from({ length: 8 }, () => 0n)),
-    'rbt_xp0:int_list=' + list(CF_X_POLICY_c0),
-    'rbt_xp1:int_list=' + list(CF_X_POLICY_c1),
-    'rbt_xp2:int_list=' + list(CF_X_POLICY_c2),
-    'rbt_xp3:int_list=' + list(CF_X_POLICY_c3),
+    // 策略表偏置 +1（原值 -1..38 → 0..39）：CLI 注册默认值禁负数（2026-09-04 实证），
+    // 图内查表后 -1 解码（rbCrossSkill picked 分支 f.subtraction）。
+    'rbt_xp0:int_list=' + list(CF_X_POLICY_c0.map((v) => v + 1n)),
+    'rbt_xp1:int_list=' + list(CF_X_POLICY_c1.map((v) => v + 1n)),
+    'rbt_xp2:int_list=' + list(CF_X_POLICY_c2.map((v) => v + 1n)),
+    'rbt_xp3:int_list=' + list(CF_X_POLICY_c3.map((v) => v + 1n)),
     'rbt_xlen:int_list=' + list(CF_X_MACRO_LEN_c0),
     'rbt_xc0:int_list=' + list(CF_X_MACRO_C0_c0),
     'rbt_xc1:int_list=' + list(CF_X_MACRO_C1_c0),

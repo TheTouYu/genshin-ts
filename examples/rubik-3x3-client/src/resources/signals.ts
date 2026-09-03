@@ -3,6 +3,10 @@
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const Signal = {
+  rbx_echo: defineSignal('rbx_echo', [
+    ['tag', 'str'],
+    ['val', 'int']
+  ]),
   rubik3x3_client_probe: defineSignal('rubik3x3_client_probe', [
     ['check', 'str'],
     ['val', 'str']

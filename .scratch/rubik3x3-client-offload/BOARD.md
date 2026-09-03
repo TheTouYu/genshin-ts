@@ -14,6 +14,7 @@
 | 客户端段 | 433/434/441=clientProbe 遗留；**435 空 20008、438 空 20009、439 空 20007（用户预建，第一单元图位）**；436/437/440 空占位；下一空闲 ID=1082130442 |
 | 求解状态变量 | solver 实体 1077936230 自定义变量 solver_cp/co/ep/eo/ct（每回合后 flowAfterTurn 发布；客户端可读性=03 票预检项） |
 | 任务寄存器约定 | 挂玩家实体，前缀 rbx_（十字）/rbk_（角块）：epoch/ack/sum + 任务字段；回传信号 (tag:str,e:int) e=idx*10+code |
+| 技能变量（用户已建） | **ID 段 1207959553~1207959652（100 个 float，起始固定）**——E1 判负时分步模式客户端跨拍游标用（setSkillVariable/querySkillVariableValue 字面量引用） |
 | 参照实现 | examples/football/src-fb/（fb-server/fb-phys/fb-decision/fb-status）；技能 references/creation-path/（runbook ①~⑧） |
 | 帧上限事实 | 服务端单记录 >3000 帧截断（2870）；一次完整宏规划服务端等价 ≈3382 帧——客户端上限未知=E1 |
 
