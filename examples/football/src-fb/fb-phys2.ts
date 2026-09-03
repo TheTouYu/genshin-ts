@@ -38,9 +38,9 @@ import { FbSignal } from './signals.js'
 // 零订阅=服务端重逻辑零执行；5.2 接管=本三行切回 fb_ball_state+'P'/'T' 重编译重注入，
 // 见 4.3 回退文档。tear 分支同切（否则空载阶段 fb_server 收 fb_ball_state 非 P tag
 // 走 fb:tear 打印洪泛——2.2 隔离定案否决项） ————
-const OUT_SIG = FbSignal.fb_idle_state
-const OUT_TAG = 'V'
-const OUT_TAG_TEAR = 'TV'
+const OUT_SIG = FbSignal.fb_ball_state
+const OUT_TAG = 'P'
+const OUT_TAG_TEAR = 'T'
 
 // ———— 状态枚举（sim/src/state.ts 单一事实源，图内按数值字面量使用）与任务类型 ————
 // 0=Airborne 1=Bouncing 2=Sliding 3=Rolling 4=Rest 5=DribbleControlled
@@ -613,7 +613,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       )
       const nextSt = f.dataTypeConversion(nextStF, 'int')
 
-      // ============ ⑬ 回传打包（base_tick + 预测值 t+DT；空载形态=fb_idle_state'V'） ============
+      // ============ ⑬ 回传打包（base_tick + 预测值 t+DT；信号/tag 由顶部三常量开关） ============
       f.sendSignalToServerNodeGraph(
         OUT_SIG,
         OUT_TAG,
