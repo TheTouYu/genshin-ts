@@ -252,17 +252,18 @@ export const viewRcvPkg = g.defineComposite('view_rcv_pkg', {
     const vel1 = f.getNodeGraphVariable('rbvTmpVel1').asType('vec3')
     const vel2 = f.getNodeGraphVariable('rbvTmpVel2').asType('vec3')
     const done = f.getNodeGraphVariable('rbvDone').asType('int')
-    // 新任务拍（epoch 变化）：复位计数与已收标记
+    const n = f.getCustomVariable(entity(1077936203n), new str('rbv_n')).asType('int')
+    // 新任务拍（epoch 变化）：复位计数/窗口与已收标记（只清 0..n-1，不空清 26——06-R7 负载项 4）
     f.doubleBranch(f.logicalNotOperation(f.equal(e, done)), () => {
       f.setNodeGraphVariable('rbvDone', e, false)
       f.setNodeGraphVariable('rbvRcvd', new int(0), false)
-      f.finiteLoop(0n, 25n, (i: any) => {
+      f.registerExecNode('set_custom_variable', [owner, new str('rbv_c'), new int(0), new bool(false)])
+      f.finiteLoop(0n, f.subtraction(n, 1n), (i: any) => {
         f.registerExecNode('set_list_value', [f.getNodeGraphVariable('rbvFlags').asType('int_list'), i, new int(0)])
       })
     }, () => {})
     const flag = f.getCorrespondingValueFromList(f.getNodeGraphVariable('rbvFlags').asType('int_list'), slot)
     f.doubleBranch(f.equal(flag, 0n), () => {
-      const n = f.getCustomVariable(entity(1077936203n), new str('rbv_n')).asType('int')
       f.registerExecNode('set_list_value', [f.getNodeGraphVariable('rbvFlags').asType('int_list'), slot, new int(1)])
       const rc = f.addition(f.getNodeGraphVariable('rbvRcvd').asType('int'), 1n)
       f.setNodeGraphVariable('rbvRcvd', rc, false)
@@ -270,6 +271,13 @@ export const viewRcvPkg = g.defineComposite('view_rcv_pkg', {
       f.registerExecNode('set_list_value', [f.getNodeGraphVariable('rbvAxis').asType('vec3_list'), slot, axis])
       f.registerExecNode('set_list_value', [f.getNodeGraphVariable('rbvVel1').asType('vec3_list'), slot, vel1])
       f.registerExecNode('set_list_value', [f.getNodeGraphVariable('rbvVel2').asType('vec3_list'), slot, vel2])
+      // 窗口推进（06-R7 分片协议）：仅当收到当前窗口首槽（slot==rbv_c）且该槽为最后到达时
+      // 向前移到下一个未收槽（线性扫描 0..n-1 首缺口）；否则 c 停住→客户端重发该窗口自愈。
+      // 近似实现：slot==c 时 c+1；乱序/缺口由客户端补发窗口覆盖（flags 幂等）。
+      const cur = f.getCustomVariable(owner, new str('rbv_c')).asType('int')
+      f.doubleBranch(f.equal(slot, cur), () => {
+        f.registerExecNode('set_custom_variable', [owner, new str('rbv_c'), f.addition(cur, 1n), new bool(false)])
+      }, () => {})
       f.doubleBranch(f.equal(rc, n), () => {
         f.registerExecNode('set_custom_variable', [owner, new str('rbv_ack'), e, new bool(false)])
         f.sendSignal(new str('rbv_go'), e)

@@ -711,8 +711,11 @@ export const rbRenderPost = g.defineComposite('rb_render_post', {
     // 客户端读到空表并回传空包（piece=None、vel 全 0）
     const m4 = f.node('set_custom_variable', [owner, new str('rbv_host'), host, new bool(false)])
     f.connect(m3, 0, m4, 0)
+    // 06-R7：分片窗口起点归零（客户端每拍只发 [rbv_c, rbv_c+2] 三槽）
+    const m4b = f.node('set_custom_variable', [owner, new str('rbv_c'), new int(0), new bool(false)])
+    f.connect(m4, 0, m4b, 0)
     const m5 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
-    f.connect(m4, 0, m5, 0)
+    f.connect(m4b, 0, m5, 0)
     f.outflow('done', m5, 0)
     return {}
   }
