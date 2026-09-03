@@ -16,13 +16,15 @@
 //     **调用点 cfgId 只能传 const 引用或字面量**，偏移计算留给库内部
 //     （库内是原生 JS bigint 运算，安全）。
 //
-// 原语清单（12 条目 = 10 代码函数 + 2 约定条目；另附 1 个对偶读组函数）：
+// 原语清单（13 条目 = 10 代码函数 + 3 约定条目；另附 1 个对偶读组函数）：
 //   ① 写（4）：chanWriteF / chanReadF / chanIncr / chanWriteF32Group
 //   ② 读回（4）：chanSendScalar / chanSendState6 / chanOnHpPulse[约定] / chanPollStart
 //   ③ 节拍（3）：chanGate + 28 模板瞬发配置约定[约定] + 距离节流约定[约定]
 //   ④ 身份（2）：chanSelfId / chanDispatch
 //   附：chanReadF32Group——chanWriteF32Group 的对偶读组（19-channel-api.md
 //       示例形态 chanReadGroup(f, CFG) 的实现）。
+//   （19-channel-api.md 自检行口径「12 个（写4/读回4/节拍3/身份2-1）」= 13 条目
+//     扣减 chanSelfId 单行包装；此处按全条目 13 如实入账）
 //
 // 与 19-channel-api.md 签名的两处编译实证偏差（如实入账）：
 //   · chanWriteF32Group：values 形参在调用点会被 Stage 1 自动包成 assemblyList，
