@@ -27,5 +27,12 @@ export const FbSignal = {
     ['vel', 'vec3'],
     ['spin', 'vec3'],
     ['state', 'int']
+  ]),
+  // 票 14 原生写通道实验回传（2026-09-03 注册 1610612777/778/779，内置布局两参数）：
+  //   tag='SVA' 技能变量立即读回值（跨施放保持+零延迟验证）
+  //   tag='SVT' 客户端自读瞬移位置 x×100（与服务端 fb_tp_seen_x 对照=复制延迟直读）
+  fb_sv_echo: defineSignal('fb_sv_echo', [
+    ['tag', 'str'],
+    ['e', 'int']
   ])
 } as const
