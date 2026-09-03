@@ -44,22 +44,22 @@ export const logicApplyFace = g.defineComposite('logic_apply_face', {
     }).out
 
     // 角：phase 1 读入 tempP[0..3]/tempT[0..3]
-    f.finiteLoop(0n, 3n, (s) => {
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 1n), 4n), s)
       const from = f.getCorrespondingValueFromList(faceCornerFromVar, idx)
       const piece = f.getCorrespondingValueFromList(cornerPos, from)
       const twist = f.getCorrespondingValueFromList(cornerOrient, from)
-      const setP = f.registerExecNode('set_list_value', [tempP, s, piece])
-      const setT = f.registerExecNode('set_list_value', [tempT, s, twist])
+      const setP = f.registerExecNode('set_list_value', [tempP, new int(s), piece])
+      const setT = f.registerExecNode('set_list_value', [tempT, new int(s), twist])
       f.connect(setP, 0, setT, 0)
-    })
+    }
     // 角：phase 2 写回（同步增量更新 blockOrient）
-    f.finiteLoop(0n, 3n, (s) => {
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 1n), 4n), s)
       const to = f.getCorrespondingValueFromList(faceCornerToVar, idx)
       const twIdx = f.addition(
         f.addition(f.multiplication(f.subtraction(moveId, 1n), 12n), f.multiplication(s, 3n)),
-        f.getCorrespondingValueFromList(tempT, s)
+        f.getCorrespondingValueFromList(tempT, new int(s))
       )
       const tw = f.getCorrespondingValueFromList(faceCornerTwistVar, twIdx)
       const piece = f.getCorrespondingValueFromList(tempP, s)
@@ -70,9 +70,9 @@ export const logicApplyFace = g.defineComposite('logic_apply_face', {
       const setBO = f.registerExecNode('set_list_value', [blockOrient, piece, newOrient])
       f.connect(setPos, 0, setOrient, 0)
       f.connect(setOrient, 0, setBO, 0)
-    })
+    }
     // 棱：temp 槽 4..7，全局块索引 = 8 + 本地棱号
-    f.finiteLoop(0n, 3n, (s) => {
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 1n), 4n), s)
       const slot = f.addition(s, 4n)
       const from = f.getCorrespondingValueFromList(faceEdgeFromVar, idx)
@@ -82,8 +82,8 @@ export const logicApplyFace = g.defineComposite('logic_apply_face', {
       const setP = f.registerExecNode('set_list_value', [tempP, slot, globalPiece])
       const setT = f.registerExecNode('set_list_value', [tempT, slot, flip])
       f.connect(setP, 0, setT, 0)
-    })
-    f.finiteLoop(0n, 3n, (s) => {
+    }
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 1n), 4n), s)
       const slot = f.addition(s, 4n)
       const to = f.getCorrespondingValueFromList(faceEdgeToVar, idx)
@@ -101,7 +101,7 @@ export const logicApplyFace = g.defineComposite('logic_apply_face', {
       const setBO = f.registerExecNode('set_list_value', [blockOrient, globalPiece, newOrient])
       f.connect(setPos, 0, setOrient, 0)
       f.connect(setOrient, 0, setBO, 0)
-    })
+    }
     // 面心：不位移但绕面法线自旋，同样更新 blockOrient
     const centerIdx = f.getCorrespondingValueFromList(faceCenterIndexVar, moveId)
     const centerLocal = f.getCorrespondingValueFromList(centerPos, centerIdx)
@@ -148,22 +148,22 @@ export const logicApplyMiddle = g.defineComposite('logic_apply_middle', {
     }).out
 
     // 棱：temp 槽 0..3，全局块索引 = 8 + 本地棱号
-    f.finiteLoop(0n, 3n, (s) => {
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 7n), 4n), s)
       const from = f.getCorrespondingValueFromList(middleEdgeFromVar, idx)
       const piece = f.getCorrespondingValueFromList(edgePos, from)
       const flip = f.getCorrespondingValueFromList(edgeOrient, from)
       const globalPiece = f.addition(piece, 8n)
-      const setP = f.registerExecNode('set_list_value', [tempP, s, globalPiece])
-      const setT = f.registerExecNode('set_list_value', [tempT, s, flip])
+      const setP = f.registerExecNode('set_list_value', [tempP, new int(s), globalPiece])
+      const setT = f.registerExecNode('set_list_value', [tempT, new int(s), flip])
       f.connect(setP, 0, setT, 0)
-    })
-    f.finiteLoop(0n, 3n, (s) => {
+    }
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 7n), 4n), s)
       const to = f.getCorrespondingValueFromList(middleEdgeToVar, idx)
       const flIdx = f.addition(
         f.addition(f.multiplication(f.subtraction(moveId, 7n), 8n), f.multiplication(s, 2n)),
-        f.getCorrespondingValueFromList(tempT, s)
+        f.getCorrespondingValueFromList(tempT, new int(s))
       )
       const fl = f.getCorrespondingValueFromList(middleEdgeFlipVar, flIdx)
       const globalPiece = f.getCorrespondingValueFromList(tempP, s)
@@ -175,17 +175,17 @@ export const logicApplyMiddle = g.defineComposite('logic_apply_middle', {
       const setBO = f.registerExecNode('set_list_value', [blockOrient, globalPiece, newOrient])
       f.connect(setPos, 0, setOrient, 0)
       f.connect(setOrient, 0, setBO, 0)
-    })
+    }
     // 心：temp 槽 4..7，全局块索引 = 20 + 本地心号；心也随转更新朝向
-    f.finiteLoop(0n, 3n, (s) => {
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 7n), 4n), s)
       const slot = f.addition(s, 4n)
       const from = f.getCorrespondingValueFromList(middleCenterFromVar, idx)
       const piece = f.getCorrespondingValueFromList(centerPos, from)
       const globalPiece = f.addition(piece, 20n)
       const setP = f.registerExecNode('set_list_value', [tempP, slot, globalPiece])
-    })
-    f.finiteLoop(0n, 3n, (s) => {
+    }
+        for (let s = 0; s < 4; s++) {
       const idx = f.addition(f.multiplication(f.subtraction(moveId, 7n), 4n), s)
       const slot = f.addition(s, 4n)
       const to = f.getCorrespondingValueFromList(middleCenterToVar, idx)
@@ -196,7 +196,7 @@ export const logicApplyMiddle = g.defineComposite('logic_apply_middle', {
       const newOrient = nextOrient(oldOrient)
       const setBO = f.registerExecNode('set_list_value', [blockOrient, globalPiece, newOrient])
       f.connect(setPos, 0, setBO, 0)
-    })
+    }
 
     const doneNode = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
     f.outflow('done', doneNode, 0)
