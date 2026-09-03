@@ -1,22 +1,26 @@
 /**
- * ui/tests/create-candidates-assert.ts — create 候选字节级断言（票 05）
+ * ui/tests/create-candidates-assert.ts — create 候选字节级断言（票 05，多 kind）
  *
  * 运行：npx tsx ui/tests/create-candidates-assert.ts
  * 依赖：本地快照 .gsts/diff-exp/ui学习/（缺 SKIP，与 exhaustive 同约定）+ donor 已提取
  *       （先跑 npx tsx ui/tests/extract-create-donors.ts）。
  *
  * 断言层级（由强到弱）：
- *   A. donor 防漂移：CREATE_DONORS.hex 与来源快照记录原始字节逐字节一致（sha256 兜底）；
- *   B. 重放对拍（最严）：在 before 快照上用编辑器实际 ID + 实际插入锚点重放 create
- *      → root9 段与编辑器 after 快照**逐字节相等**、其余顶层字段等值
- *      （唯一预期差异=root46 保存审计段等长改写，差分轮笔记已登记）；布局轮4 / 悬浮页轮26 各一对；
- *   C. 分配器：空洞取最高空闲（轮4 after 文件的 2019..2031 → 2031，mappings §8 例）；
- *      占用/越权显式报错；确定性；
- *   D. 参数 patch（名字/位置/尺寸）语义回读：kind/role/name/geometry/parent 正确、
- *      宿主成员追加、其余记录字节零改动（patch 的字节级对拍无同参编辑器样本，
- *      属结构层证据，行为层留待编辑器/游戏核验）；
- *   E. 全量快照冒烟（禁抽查）：80 个 .gil 逐文件生成 layout 面候选；含悬浮页固有容器 2084
- *      的快照逐一生成 container 面候选——各断言 +1 记录 / 宿主 f503 含新 ID / 其余记录零改动。
+ *   A. donor 防漂移：CREATE_DONORS.hex 与来源快照记录原始字节逐字节一致（sha256 兜底），
+ *      kind/parent/长度与样本事件结论一致；
+ *   B. 重放对拍（最严）：80 快照内**单控件新建事件**全部重放——在 before 快照上用编辑器实际
+ *      ID + 实际插入锚点重放 create → root9 段与编辑器 after 快照**逐字节相等**、其余顶层
+ *      字段等值（唯一预期差异=root46 保存审计段等长改写）。事件清单：按钮 轮4(布局)/轮26(容器)、
+ *      图文输入框 轮18→19(自定义布局 1989)、消息队列 轮50→51(默认布局)；
+ *   B2. 容器面三件套（轮63→64 一次新建 3 控件，非单件事件）：textbox/image/input-box 各自
+ *      重放后逐记录断言 + 宿主成员与编辑器一致；
+ *   C. 跨面同构实证（轮64 规则 2）：input-box 布局 2079 与容器 2157 两真实样本互 remap 后
+ *      字节相等——证明「内容与放置面无关、仅 f504 不同」；
+ *   D. 分配器：空洞取最高空闲（轮4 after → 2031，mappings §8 例）；占用/越权报错；确定性；
+ *   E. 参数 patch 语义回读 + textbox 布局面 donor 回退标记；
+ *   F. resolveSurfaceTarget 归属/配对校验；
+ *   G. 全量快照冒烟（禁抽查）：80 个 .gil × 5 kind 逐一 layout 面候选；含容器 2084 的快照
+ *      × 3 kind 逐一 container 面候选；message-queue 容器面显式 fail-closed。
  */
 
 import assert from 'node:assert/strict'
@@ -25,15 +29,18 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { CREATE_DONORS } from '../src/create-donors.js'
+import type { UiCreateDonor } from '../src/create-donors.js'
 import {
   allocateControlId,
-  createButtonCandidate,
+  createUiCandidate,
   ownerFloatingPageId,
   resolveSurfaceTarget
 } from '../src/create.js'
+import type { CreateControlKind } from '../src/create.js'
 import { parseRoot9 } from '../src/record.js'
 import { buildSemanticView } from '../src/tree.js'
 import { parseWireMessage } from '../../src/cli/static_assembly/wire.js'
+import { remapUiRecordVarints } from '../../src/cli/gil_ui.js'
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..')
 const FIXTURES = path.join(ROOT, '.gsts', 'diff-exp', 'ui学习')
@@ -110,11 +117,7 @@ function assertReplayEquals(candidate: Uint8Array, editor: Uint8Array, label: st
       assert.equal(avLen, bvLen, `${label}: root46 长度不一致`)
       continue
     }
-    assert.equal(
-      sameValue(av, bv),
-      true,
-      `${label}: 顶层字段 ${num} 不一致（wire ${av.wire}）`
-    )
+    assert.equal(sameValue(av, bv), true, `${label}: 顶层字段 ${num} 不一致（wire ${av.wire}）`)
   }
 }
 
@@ -130,29 +133,57 @@ function ok(label: string, fn: () => void): void {
 }
 
 const DEFAULT_LAYOUT_ID = 1073741825
+const LAYOUT_1989_ID = 1073741989
 const CONTAINER_2084 = 1073742084
 const ROUND4_AFTER = '1073741909.after-重启4-默认布局自定义按钮-e645aefb.gil'
 const ROUND4_BEFORE = '1073741909.after-重启3-删除控件组详情-76ed6ae3.gil'
+const ROUND19_AFTER = '1073741909.after-重启19-图文输入框-a81cbfbf.gil'
+const ROUND19_BEFORE = '1073741909.after-重启18-右下角位置-2bed515e.gil'
 const ROUND26_AFTER = '1073741909.after-重启26-悬浮页加按钮-f0ddb622.gil'
 const ROUND26_BEFORE = '1073741909.after-重启25-悬浮页同步模板-a5cd7b9e.gil'
+const ROUND51_AFTER = '1073741909.after-重启51-消息队列-536528cb.gil'
+const ROUND51_BEFORE = '1073741909.after-重启50-同步初始生效-ad3a8d80.gil'
+const ROUND64_AFTER = '1073741909.after-重启64-容器三控件-e4c92e39.gil'
+const ROUND64_BEFORE = '1073741909.after-重启63-队列存模板同步-5572a5f9.gil'
 
-// ============ A. donor 防漂移 ============
+function donorOf(id: UiCreateDonor['id']): UiCreateDonor {
+  const donor = CREATE_DONORS.find((d) => d.id === id)
+  assert.ok(donor, `donor 缺失: ${id}`)
+  return donor
+}
+
+// ============ A. donor 防漂移（7 个真实样本） ============
 for (const donor of CREATE_DONORS) {
   ok(`donor 防漂移: ${donor.id} (${donor.sourceSnapshot} #${donor.selfId})`, () => {
     const parsed = parse(load(donor.sourceSnapshot))
     const record = parsed.recordsById.get(donor.selfId)
     assert.ok(record, `donor 记录缺失: ${donor.selfId}`)
+    assert.equal(record.kind, donor.kind, `kind 漂移: ${record.kind}`)
+    assert.equal(record.parentId, donor.parentId, 'parent 漂移')
     assert.equal(record.raw.length, donor.hex.length / 2, 'donor hex 长度 != 快照记录')
     assert.equal(Buffer.from(donor.hex, 'hex').equals(Buffer.from(record.raw)), true, 'hex 漂移')
     assert.equal(sha256(record.raw), donor.sha256, 'sha256 漂移')
   })
 }
 
-// ============ B. 整文件重放 ============
+ok('donor 集齐支持矩阵（7 样本 = 80 快照内全部单条新建事件）', () => {
+  const ids = CREATE_DONORS.map((d) => d.id).sort()
+  assert.deepEqual(ids, [
+    'custom-button.container',
+    'custom-button.layout',
+    'image.container',
+    'input-box.container',
+    'input-box.layout',
+    'message-queue.layout',
+    'textbox.container'
+  ])
+})
+
+// ============ B. 单件新建事件整段重放（最严） ============
 /** 取 after 快照中 recordId 的物理前驱（编辑器真实插入锚点），再在 before 快照上重放 */
 function replayExact(
   label: string,
-  donor: { id: 'custom-button.layout' | 'custom-button.container'; selfId: number },
+  donor: UiCreateDonor,
   beforeFile: string,
   afterFile: string,
   surface: { kind: 'layout'; layoutId: number } | { kind: 'container'; containerId: number }
@@ -166,7 +197,8 @@ function replayExact(
     assert.ok(at >= 0, `after 快照无记录 ${donor.selfId}`)
     assert.ok(at > 0, `after 快照中 ${donor.selfId} 是首条记录，无前驱锚点`)
     const anchor = afterOrder[at - 1]
-    const result = createButtonCandidate(before, {
+    const result = createUiCandidate(before, {
+      kind: donor.kind,
       surface,
       id: donor.selfId,
       insertAfterId: anchor
@@ -175,31 +207,128 @@ function replayExact(
   })
 }
 
-ok('donor 集齐两个放置面（布局/容器）', () => {
-  const ids = CREATE_DONORS.map((d) => d.id).sort()
-  assert.deepEqual(ids, ['custom-button.container', 'custom-button.layout'])
-})
-
-const layoutDonor = CREATE_DONORS.find((d) => d.id === 'custom-button.layout')!
-const containerDonor = CREATE_DONORS.find((d) => d.id === 'custom-button.container')!
-
 replayExact(
-  `重放对拍: 布局按钮（轮4 ${ROUND4_BEFORE} → ${ROUND4_AFTER}；root9 全等 + root46 审计登记）`,
-  layoutDonor,
+  `重放对拍: 布局自定义按钮（轮3→轮4；root9 全等 + root46 审计登记）`,
+  donorOf('custom-button.layout'),
   ROUND4_BEFORE,
   ROUND4_AFTER,
   { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID }
 )
 
 replayExact(
-  `重放对拍: 悬浮页容器按钮（轮25 → 轮26；root9 全等 + root46 审计登记）`,
-  containerDonor,
+  `重放对拍: 悬浮页容器自定义按钮（轮25→轮26）`,
+  donorOf('custom-button.container'),
   ROUND26_BEFORE,
   ROUND26_AFTER,
   { kind: 'container', containerId: CONTAINER_2084 }
 )
 
-// ============ C. 分配器 ============
+replayExact(
+  `重放对拍: 图文输入框→自定义布局1989（轮18→轮19）`,
+  donorOf('input-box.layout'),
+  ROUND19_BEFORE,
+  ROUND19_AFTER,
+  { kind: 'layout', layoutId: LAYOUT_1989_ID }
+)
+
+replayExact(
+  `重放对拍: 消息队列→默认布局（轮50→轮51）`,
+  donorOf('message-queue.layout'),
+  ROUND51_BEFORE,
+  ROUND51_AFTER,
+  { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID }
+)
+
+// ============ B2. 容器面三件套（轮63→64 一次新建 3 控件） ============
+ok('重放对拍: 容器面 textbox/image/input-box（轮63→64 三件套逐件重放）', () => {
+  const before = load(ROUND64_BEFORE)
+  const beforeParsed = parse(before)
+  const beforeIds = new Set(beforeParsed.records.map((r) => r.id))
+  const afterParsed = parse(load(ROUND64_AFTER))
+  const afterOrder = afterParsed.records.map((r) => r.id)
+  const trios = ['textbox.container', 'image.container', 'input-box.container'] as const
+  const siblings = new Set(trios.map((id) => donorOf(id).selfId))
+  for (const donorId of trios) {
+    const donor = donorOf(donorId)
+    // 锚点 = after 序中该记录之前、且存在于 before 的最近记录（兄弟新记录不可作锚点）
+    const at = afterOrder.indexOf(donor.selfId)
+    let anchor: number | undefined
+    for (let i = at - 1; i >= 0; i--) {
+      if (beforeIds.has(afterOrder[i])) {
+        anchor = afterOrder[i]
+        break
+      }
+    }
+    assert.ok(anchor !== undefined, `${donor.id}: before 中无可用锚点`)
+    const result = createUiCandidate(before, {
+      kind: donor.kind,
+      surface: { kind: 'container', containerId: CONTAINER_2084 },
+      id: donor.selfId,
+      insertAfterId: anchor
+    })
+    const candParsed = parse(result.bytes)
+    const afterRecord = afterParsed.recordsById.get(donor.selfId)
+    const candRecord = candParsed.recordsById.get(donor.selfId)
+    assert.ok(afterRecord && candRecord, `${donor.id}: 记录缺失`)
+    // 新记录与编辑器样本逐字节一致（donor 同源 + 插入/宿主更新无副作用）
+    assert.equal(
+      Buffer.from(candRecord.raw).equals(Buffer.from(afterRecord.raw)),
+      true,
+      `${donor.id}: 候选记录 ≠ 编辑器样本`
+    )
+    // 宿主容器 2084 成员：候选=before+1；编辑器=before+3；候选 == 编辑器成员剔除两个兄弟 ID
+    const beforeMembers = packed(
+      parse(before).recordsById.get(CONTAINER_2084)!.fields.find((f) => f.number === 503)!
+        .value as Uint8Array
+    )
+    const candMembers = packed(
+      candParsed.recordsById.get(CONTAINER_2084)!.fields.find((f) => f.number === 503)!
+        .value as Uint8Array
+    )
+    const afterMembers = packed(
+      afterParsed.recordsById.get(CONTAINER_2084)!.fields.find((f) => f.number === 503)!
+        .value as Uint8Array
+    )
+    assert.deepEqual(candMembers, [...beforeMembers, donor.selfId])
+    const withoutSiblings = afterMembers.filter(
+      (m) => !siblings.has(m) || m === donor.selfId
+    )
+    assert.deepEqual(
+      candMembers,
+      withoutSiblings,
+      `${donor.id}: 候选宿主成员 ≠ 编辑器成员剔除兄弟`
+    )
+    // 其余既有记录零改动
+    for (const r of parse(before).records) {
+      if (r.id === CONTAINER_2084) continue
+      const same = candParsed.recordsById.get(r.id)
+      assert.ok(same, `${donor.id}: 既有记录消失 ${r.id}`)
+      assert.equal(
+        Buffer.from(same.raw).equals(Buffer.from(r.raw)),
+        true,
+        `${donor.id}: 既有记录被改动 ${r.id}`
+      )
+    }
+  }
+})
+
+// ============ C. 跨面同构实证（轮64 规则 2） ============
+ok('跨面同构: input-box 布局 2079 ↔ 容器 2157 互 remap 后逐字节相等（仅 f504/自身 ID 差）', () => {
+  const layoutDonor = donorOf('input-box.layout')
+  const containerDonor = donorOf('input-box.container')
+  // 容器样本 → 布局样本：自身 ID 2157→2079、父 2084→1989
+  const remapped = remapUiRecordVarints(Buffer.from(containerDonor.hex, 'hex'), {
+    [containerDonor.selfId]: layoutDonor.selfId,
+    [containerDonor.parentId]: layoutDonor.parentId
+  })
+  assert.equal(
+    Buffer.from(remapped).equals(Buffer.from(layoutDonor.hex, 'hex')),
+    true,
+    '容器样本 remap ≠ 布局样本（跨面同构不成立）'
+  )
+})
+
+// ============ D. 分配器 ============
 ok('分配器: 编辑器跳变空洞取最高空闲（轮4 after → 2031，mappings §8 例）', () => {
   const parsed = parse(load(ROUND4_AFTER))
   const id = allocateControlId(parsed)
@@ -215,7 +344,7 @@ ok('分配器: 结果不与任何记录/索引/引用冲突', () => {
 
 ok('分配器: 显式 --id 已被占用时报错', () => {
   const parsed = parse(load(ROUND26_AFTER))
-  assert.throws(() => allocateControlId(parsed, containerDonor.selfId), /已被占用/)
+  assert.throws(() => allocateControlId(parsed, donorOf('custom-button.container').selfId), /已被占用/)
 })
 
 ok('分配器: 确定性（同文件两次一致）', () => {
@@ -223,42 +352,14 @@ ok('分配器: 确定性（同文件两次一致）', () => {
   assert.equal(allocateControlId(parsed), allocateControlId(parse(load(ROUND26_BEFORE))))
 })
 
-// ============ D. 参数 patch 语义回读 ============
-ok('resolveSurfaceTarget: container 面归属校验（非容器记录拒绝）', () => {
-  const parsed = parse(load(ROUND4_AFTER))
-  // 默认布局 1825 是布局（控件/布局类）→ 拒绝
-  assert.throws(() => resolveSurfaceTarget(parsed, `container:${DEFAULT_LAYOUT_ID}`), /不是悬浮页容器/)
-  // 关闭按钮 2085 是控件记录 → 拒绝
-  const parsed26 = parse(load(ROUND26_BEFORE))
-  assert.throws(() => resolveSurfaceTarget(parsed26, 'container:1073742085'), /不是悬浮页容器/)
-})
-
-ok('resolveSurfaceTarget: 悬浮页:容器 双段校验（页-容器配对）', () => {
-  const parsed = parse(load(ROUND26_BEFORE))
-  const surface = resolveSurfaceTarget(parsed, `container:${CONTAINER_2084}`)
-  assert.deepEqual(surface, { kind: 'container', containerId: CONTAINER_2084 })
-  // 实例页 2083 ↔ 容器 2084 配对合法
-  const paired = resolveSurfaceTarget(parsed, '悬浮页:1073742083:1073742084')
-  assert.deepEqual(paired, { kind: 'container', containerId: CONTAINER_2084 })
-  // 模板页 2086 的容器是 2087——把实例容器 2084 配给模板页必须拒绝
-  assert.throws(
-    () => resolveSurfaceTarget(parsed, '悬浮页:1073742086:1073742084'),
-    /不在悬浮页 .* 的容器列表/
-  )
-  // 素材组（如轮28 的 2091）不是悬浮页容器：控件类拒绝或 t42 无归属，任一即拒绝
-  const parsed28 = parse(load('1073741909.after-重启28-悬浮按钮状态素材-127e82c2.gil'))
-  assert.throws(
-    () => resolveSurfaceTarget(parsed28, 'container:1073742091'),
-    /不是悬浮页容器|不属于任何悬浮页/
-  )
-})
-
-ok('参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余记录零改动', () => {
+// ============ E. 参数 patch + 回退标记 ============
+ok('参数 patch: custom-button --name/--position/--size 语义回读 + 宿主成员 + 其余零改动', () => {
   const before = load(ROUND4_BEFORE)
   const beforeParsed = parse(before)
   const id = allocateControlId(beforeParsed)
-  assert.ok(id !== layoutDonor.selfId)
-  const result = createButtonCandidate(before, {
+  assert.ok(id !== donorOf('custom-button.layout').selfId)
+  const result = createUiCandidate(before, {
+    kind: 'custom-button',
     surface: { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID },
     id,
     name: '测试按钮甲',
@@ -271,12 +372,10 @@ ok('参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余�
   assert.equal(record.kind, 'custom-button')
   assert.equal(record.name, '测试按钮甲')
   assert.equal(record.parentId, DEFAULT_LAYOUT_ID)
-  const layout = after.recordsById.get(DEFAULT_LAYOUT_ID)!
-  // 成员断言用语义读回（layout f503 packed）
-  const memberField = layout.fields.find((f) => f.number === 503 && f.wire === 2)!
-  const members = packed(memberField.value as Uint8Array)
-  assert.ok(members.includes(id), `布局 f503 未含 ${id}`)
-  // 几何语义回读（tree 层，读侧与写侧独立实现）
+  const memberField = after.recordsById.get(DEFAULT_LAYOUT_ID)!.fields.find(
+    (f) => f.number === 503 && f.wire === 2
+  )!
+  assert.ok(packed(memberField.value as Uint8Array).includes(id), `布局 f503 未含 ${id}`)
   const view = buildSemanticView(result.bytes)
   const node = view.flat.find((n) => n.id === id)
   assert.ok(node?.geometry, `geometry 缺失 id=${id}`)
@@ -284,7 +383,6 @@ ok('参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余�
   assert.ok(Math.abs(node.geometry!.position![1] - 300) < 0.05, 'position.y')
   assert.ok(Math.abs(node.geometry!.size![0] - 240) < 0.05, 'size.w')
   assert.ok(Math.abs(node.geometry!.size![1] - 80) < 0.05, 'size.h')
-  // 其余记录逐字节零改动（宿主布局 1825 自身成员追加属预期变化，排除在外）
   assert.equal(after.records.length, beforeParsed.records.length + 1)
   for (const r of beforeParsed.records) {
     if (r.id === DEFAULT_LAYOUT_ID) continue
@@ -294,53 +392,120 @@ ok('参数 patch: --name/--position/--size 语义回读 + 宿主成员 + 其余�
   }
 })
 
-// ============ E. 全量 80 快照逐文件 create 冒烟（只读候选，禁止抽查） ============
-/** 对单个快照做一次候选生成并做最小不变式断言：+1 记录 / 宿主 f503 含新 ID / 其余记录零改动 */
-function assertCandidateInvariants(file: string, surfaceLabel: string): void {
+ok('donor 回退: textbox/image 布局面 = 容器 donor + f504 重映射（跨面同构轮64 规则 2）', () => {
+  const before = load(ROUND4_BEFORE)
+  for (const kind of ['textbox', 'image'] as const) {
+    const result = createUiCandidate(before, {
+      kind,
+      surface: { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID },
+      name: kind === 'textbox' ? '测试文本框' : '测试图片'
+    })
+    assert.equal(result.donorSurface, 'container', `${kind}: 应回退容器 donor`)
+    assert.equal(result.donorFallback, true, `${kind}: 应带回退标记`)
+    const after = parse(result.bytes)
+    const record = after.recordsById.get(result.newId)
+    assert.ok(record, `${kind}: 候选记录缺失`)
+    assert.equal(record.kind, kind)
+    assert.equal(record.parentId, DEFAULT_LAYOUT_ID)
+    assert.equal(record.name, kind === 'textbox' ? '测试文本框' : '测试图片')
+    const memberField = after.recordsById.get(DEFAULT_LAYOUT_ID)!.fields.find(
+      (f) => f.number === 503 && f.wire === 2
+    )!
+    assert.ok(packed(memberField.value as Uint8Array).includes(result.newId), `${kind}: f503 未含`)
+  }
+})
+
+// ============ F. Surface 解析校验 ============
+ok('resolveSurfaceTarget: container 面归属校验（非容器记录拒绝）', () => {
+  const parsed = parse(load(ROUND4_AFTER))
+  assert.throws(
+    () => resolveSurfaceTarget(parsed, `container:${DEFAULT_LAYOUT_ID}`),
+    /不是悬浮页容器/
+  )
+  const parsed26 = parse(load(ROUND26_BEFORE))
+  assert.throws(() => resolveSurfaceTarget(parsed26, 'container:1073742085'), /不是悬浮页容器/)
+})
+
+ok('resolveSurfaceTarget: 悬浮页:容器 双段校验（页-容器配对）', () => {
+  const parsed = parse(load(ROUND26_BEFORE))
+  const surface = resolveSurfaceTarget(parsed, `container:${CONTAINER_2084}`)
+  assert.deepEqual(surface, { kind: 'container', containerId: CONTAINER_2084 })
+  const paired = resolveSurfaceTarget(parsed, '悬浮页:1073742083:1073742084')
+  assert.deepEqual(paired, { kind: 'container', containerId: CONTAINER_2084 })
+  assert.throws(
+    () => resolveSurfaceTarget(parsed, '悬浮页:1073742086:1073742084'),
+    /不在悬浮页 .* 的容器列表/
+  )
+  const parsed28 = parse(load('1073741909.after-重启28-悬浮按钮状态素材-127e82c2.gil'))
+  assert.throws(
+    () => resolveSurfaceTarget(parsed28, 'container:1073742091'),
+    /不是悬浮页容器|不属于任何悬浮页/
+  )
+})
+
+// ============ G. 全量 80 快照逐文件冒烟（禁抽查） ============
+/** 对单个快照做一次候选生成并断言不变式：+1 记录 / 宿主 f503 含新 ID / 其余记录零改动 */
+function assertCandidateInvariants(
+  file: string,
+  kind: CreateControlKind,
+  parentId: number
+): void {
   const before = load(file)
   const beforeParsed = parse(before)
-  const parentId = surfaceLabel === 'layout' ? DEFAULT_LAYOUT_ID : CONTAINER_2084
   const id = allocateControlId(beforeParsed)
-  const result = createButtonCandidate(before, {
-    surface:
-      surfaceLabel === 'layout'
-        ? { kind: 'layout', layoutId: parentId }
-        : { kind: 'container', containerId: parentId }
+  const result = createUiCandidate(before, {
+    kind,
+    surface: parentId === DEFAULT_LAYOUT_ID
+      ? { kind: 'layout', layoutId: parentId }
+      : { kind: 'container', containerId: parentId }
   })
   const afterParsed = parse(result.bytes)
-  assert.ok(afterParsed.recordsById.has(id), `${file}: 候选记录缺失 ${id}`)
+  assert.ok(afterParsed.recordsById.has(id), `${file}/${kind}: 候选记录缺失 ${id}`)
   assert.equal(
     afterParsed.records.length,
     beforeParsed.records.length + 1,
-    `${file}: 记录数未 +1`
+    `${file}/${kind}: 记录数未 +1`
   )
   const owner = afterParsed.recordsById.get(parentId)
-  assert.ok(owner, `${file}: 宿主记录缺失 ${parentId}`)
+  assert.ok(owner, `${file}/${kind}: 宿主记录缺失 ${parentId}`)
   const memberField = owner.fields.find((f) => f.number === 503 && f.wire === 2)
-  assert.ok(memberField, `${file}: 宿主无 f503`)
-  assert.ok(packed(memberField.value as Uint8Array).includes(id), `${file}: f503 未含 ${id}`)
+  assert.ok(memberField, `${file}/${kind}: 宿主无 f503`)
+  assert.ok(packed(memberField.value as Uint8Array).includes(id), `${file}/${kind}: f503 未含`)
   for (const r of beforeParsed.records) {
     if (r.id === parentId) continue
     const same = afterParsed.recordsById.get(r.id)
-    assert.ok(same, `${file}: 既有记录消失 ${r.id}`)
+    assert.ok(same, `${file}/${kind}: 既有记录消失 ${r.id}`)
     assert.equal(
       Buffer.from(same.raw).equals(Buffer.from(r.raw)),
       true,
-      `${file}: 既有记录被改动 ${r.id}`
+      `${file}/${kind}: 既有记录被改动 ${r.id}`
     )
   }
 }
 
-ok('全量快照: 80 个文件逐一 layout 面候选冒烟（+1/宿主成员/其余零改动/ID 非冲突）', () => {
+const LAYOUT_KINDS: readonly CreateControlKind[] = [
+  'custom-button',
+  'textbox',
+  'image',
+  'input-box',
+  'message-queue'
+]
+const CONTAINER_KINDS: readonly CreateControlKind[] = ['custom-button', 'textbox', 'image', 'input-box']
+
+ok('全量快照: 80 个文件 × 5 kind 逐一 layout 面候选冒烟（禁抽查）', () => {
   const files = fs
     .readdirSync(FIXTURES)
     .filter((f) => f.endsWith('.gil'))
     .sort()
   assert.equal(files.length, 80, `快照数 != 80（实际 ${files.length}）`)
-  for (const file of files) assertCandidateInvariants(file, 'layout')
+  for (const file of files) {
+    for (const kind of LAYOUT_KINDS) {
+      assertCandidateInvariants(file, kind, DEFAULT_LAYOUT_ID)
+    }
+  }
 })
 
-ok('全量快照: 含悬浮页固有容器 2084 的快照逐一 container 面候选冒烟', () => {
+ok('全量快照: 含悬浮页固有容器 2084 的快照 × 4 kind 逐一 container 面候选冒烟', () => {
   const files = fs
     .readdirSync(FIXTURES)
     .filter((f) => f.endsWith('.gil'))
@@ -349,18 +514,29 @@ ok('全量快照: 含悬浮页固有容器 2084 的快照逐一 container 面候
   let skipped = 0
   for (const file of files) {
     const parsed = parse(load(file))
-    if (!parsed.recordsById.has(CONTAINER_2084)) {
+    if (!parsed.recordsById.has(CONTAINER_2084) || ownerFloatingPageId(parsed, CONTAINER_2084) === undefined) {
       skipped += 1
       continue
     }
-    if (ownerFloatingPageId(parsed, CONTAINER_2084) === undefined) {
-      skipped += 1
-      continue
+    for (const kind of CONTAINER_KINDS) {
+      assertCandidateInvariants(file, kind, CONTAINER_2084)
     }
-    assertCandidateInvariants(file, 'container')
     covered += 1
   }
   console.log(`  (container 面覆盖 ${covered} 个快照，跳过 ${skipped} 个无 2084/无归属)`)
+})
+
+ok('fail-closed: message-queue 容器面无样本 → 显式报错（不猜字节）', () => {
+  const parsed = parse(load(ROUND51_AFTER))
+  assert.ok(ownerFloatingPageId(parsed, CONTAINER_2084) !== undefined)
+  assert.throws(
+    () =>
+      createUiCandidate(load(ROUND51_AFTER), {
+        kind: 'message-queue',
+        surface: { kind: 'container', containerId: CONTAINER_2084 }
+      }),
+    /message-queue 容器面无编辑器新建样本/
+  )
 })
 
 function packed(data: Uint8Array): number[] {

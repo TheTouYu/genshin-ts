@@ -5,8 +5,8 @@ import { pathToFileURL } from 'node:url'
 
 import { mapIdFromGil } from '../../ui/src/anchor.js'
 import {
-  createButtonCandidate,
-  defaultButtonSurface,
+  createUiCandidate,
+  defaultCreateSurface,
   resolveSurfaceTarget
 } from '../../ui/src/create.js'
 import { parseRoot9 } from '../../ui/src/record.js'
@@ -54,6 +54,17 @@ type TemplateSub = 'list' | 'clone' | 'create'
 type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
 
+/** create --type 可接受 token（legacy + 票05 L2 语义 kind） */
+type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue'
+/** L2 语义 create 路由 kind（donor 支持矩阵见 ui/src/create.ts）；其余走 legacy 旧契约 */
+const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
+  'custom-button',
+  'textbox',
+  'image',
+  'input-box',
+  'message-queue'
+])
+
 function usage(exitCode = 1): never {
   const output = [
     'List, clone (create) or update screen UI controls and templates (root 9).',
@@ -67,8 +78,10 @@ function usage(exitCode = 1): never {
     '  legacy list: gsts assets:ui list --gil <file> --format json (records 级列表，语义视图见 --tree/--flat)',
     '  clone: gsts assets:ui clone <source-id> --id <new-id> [options]',
     '  create: gsts assets:ui create --type textbox|interactive-button|custom-button|image|floating-page --id <new-id> [options]',
-    '  create (L2, 票05): gsts assets:ui create --type custom-button --on layout:<ID|名称>|container:<容器ID>|悬浮页:<页ID|名>:<容器ID>',
+    '  create (L2, 票05): gsts assets:ui create --type custom-button|textbox|image|input-box|message-queue',
+    '                     --on layout:<ID|名称>|container:<容器ID>|悬浮页:<页ID|名>:<容器ID>',
     '                     [--id <new-id>] [--name <n>] [--position <x,y>] [--size <w,h>] [--output <file>]',
+    '                     # donor 支持矩阵=真实编辑器样本：按钮 轮4/26；输入框 轮19/64；文本框/图片 轮64；队列 轮51(仅布局)',
     '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
     '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
     '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
@@ -145,7 +158,7 @@ function parseArgs(argv: readonly string[]) {
   let content: string | undefined
   let position: Vector2 | undefined
   let size: Vector2 | undefined
-  let createType: (UiCreateType | 'image') | undefined
+  let createType: CreateCliType | undefined
   let rich = false
   let variables: Array<{ name: string; type: number }> | undefined
   let assetId: number | undefined
@@ -217,10 +230,13 @@ function parseArgs(argv: readonly string[]) {
         raw !== 'interactive-button' &&
         raw !== 'custom-button' &&
         raw !== 'image' &&
-        raw !== 'floating-page'
+        raw !== 'floating-page' &&
+        raw !== 'input-box' &&
+        raw !== 'message-queue'
       ) {
         throw new Error(
-          '[error] --type must be textbox, interactive-button, custom-button, image or floating-page'
+          '[error] --type must be textbox, interactive-button, custom-button, image, ' +
+            'floating-page, input-box or message-queue'
         )
       }
       createType = raw
@@ -251,17 +267,21 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] clone requires --id <new-id>')
   if (command === 'create' && createType === undefined)
     throw new Error(
-      '[error] create requires --type <textbox|interactive-button|custom-button|image|floating-page>'
+      '[error] create requires --type <textbox|interactive-button|custom-button|image|' +
+        'floating-page|input-box|message-queue>'
     )
-  if (command === 'create' && createType === 'image' && assetId === undefined)
-    throw new Error('[error] create --type image requires --asset <素材索引ID>')
-  // 票05 L2：custom-button 允许不指定 --id（候选分配器避让扫描）；其余类型维持旧契约
-  if (
-    command === 'create' &&
-    newId === undefined &&
-    createType !== 'custom-button'
-  )
+  // 旧契约：image（legacy，无 --on）需要 --asset；语义路径（--on）用编辑器默认图片形态
+  if (command === 'create' && createType === 'image' && assetId === undefined && onRaw === undefined)
+    throw new Error('[error] create --type image requires --asset <素材索引ID>（或使用 --on 走语义路径）')
+  // 票05 L2：语义 kind 允许不指定 --id（候选分配器避让扫描）；
+  // custom-button/input-box/message-queue 默认布局直达；textbox/image 需显式 --on 才走语义路径
+  const semanticAutoId =
+    createType === 'custom-button' || createType === 'input-box' || createType === 'message-queue'
+  const semanticViaOn =
+    onRaw !== undefined && (createType === 'textbox' || createType === 'image')
+  if (command === 'create' && newId === undefined && !(semanticAutoId || semanticViaOn)) {
     throw new Error('[error] create requires --id <new-id>')
+  }
   if (command === 'states' && targetId === undefined)
     throw new Error('[error] states requires --id <自定义按钮ID>')
   if (command === 'update' && targetId === undefined)
@@ -593,11 +613,19 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
 
   if (args.command === 'create') {
-    if (args.createType === 'custom-button') {
-      // 票05 L2 语义面：布局/悬浮页容器内官方单条按钮（donor 字节级装配，只读候选）
+    const createKind = args.createType
+    const semanticAuto =
+      createKind === 'custom-button' || createKind === 'input-box' || createKind === 'message-queue'
+    const semanticOn =
+      createKind !== undefined &&
+      (createKind === 'textbox' || createKind === 'image') &&
+      args.on !== undefined &&
+      args.assetId === undefined
+    if (createKind !== undefined && (semanticAuto || semanticOn)) {
+      // 票05 L2 语义面：官方单条 donor 装配（--on 放置面；--id 缺省=避让分配）
       const parsed = parseRoot9(sourceBytes)
       const surface =
-        args.on !== undefined ? resolveSurfaceTarget(parsed, args.on) : defaultButtonSurface()
+        args.on !== undefined ? resolveSurfaceTarget(parsed, args.on) : defaultCreateSurface()
       if (
         args.text !== undefined ||
         args.fontSize !== undefined ||
@@ -605,13 +633,14 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         args.content !== undefined
       ) {
         throw new Error(
-          '[error] create custom-button 本轮候选=编辑器默认形态（--text/--color/--font-size/' +
-            '--content 需状态素材或内容载体 donor，尚未差分闭合，见 ' +
+          '[error] create 本轮候选=编辑器默认形态（--text/--color/--font-size/' +
+            '--content 需素材/内容载体 donor，尚未差分闭合，见 ' +
             '.scratch/ui-command-layer/issues/05 open-items）；' +
-            '请先 create 默认按钮，再用后续 edit/state/material 命令配置'
+            '请先 create 默认控件，再用后续 edit/state/material 命令配置'
         )
       }
-      const result = createButtonCandidate(sourceBytes, {
+      const result = createUiCandidate(sourceBytes, {
+        kind: createKind,
         surface,
         ...(args.newId !== undefined ? { id: args.newId } : {}),
         ...(args.name !== undefined ? { name: args.name } : {}),
@@ -620,21 +649,29 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       })
       const summary: Record<string, unknown> = {
         schemaVersion: 1,
-        kind: 'ui-create-button-candidate',
+        kind: 'ui-create-candidate',
         sourceSha256: sourceHash,
+        kindOf: result.kind,
         surface: result.surface,
         parentId: result.parentId,
         newId: result.newId,
         donorSource: result.donorSource,
+        donorKind: result.donorKind,
         donorSelfId: result.donorSelfId,
         donorParentId: result.donorParentId,
+        donorSurface: result.donorSurface,
+        ...(result.donorFallback === true ? { donorFallback: true } : {}),
         ...(result.insertAfterId !== undefined ? { insertAfterId: result.insertAfterId } : {})
       }
       const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+      log2(`kind=${result.kind}`)
       log2(`surface=${JSON.stringify(result.surface)}`)
       log2(`parentId=${result.parentId}`)
       log2(`newId=${result.newId}`)
-      log2(`donor=${result.donorSource} (${result.donorSelfId}->${result.newId})`)
+      log2(
+        `donor=${result.donorSource} (${result.donorKind} ${result.donorSelfId}->${result.newId}` +
+          `${result.donorFallback === true ? ', 容器donor跨面回退' : ''})`
+      )
       summary.candidateSha256 = sha256(result.bytes)
       log2(`candidateSha256=${summary.candidateSha256}`)
       if (args.outputPath) {
@@ -707,8 +744,17 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       if (jsonMode) process.stdout.write(prettyStableJson(summary))
       return
     }
+    // 剩余可到达 = legacy image（带 --asset 且无 --on）或 legacy textbox/interactive-button
+    if (
+      args.createType !== 'image' &&
+      args.createType !== 'textbox' &&
+      args.createType !== 'interactive-button'
+    ) {
+      throw new Error(`[error] create kind 未支持（无 legacy/语义路径）: ${String(args.createType)}`)
+    }
+    const legacyType = args.createType
     const result =
-      args.createType === 'image'
+      legacyType === 'image'
         ? createUiImageControl(sourceBytes, {
             id: args.newId!,
             assetId: args.assetId!,
@@ -718,7 +764,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
             ...(args.size !== undefined ? { size: args.size } : {})
           })
         : createUiControl(sourceBytes, {
-            type: args.createType!,
+            type: legacyType,
             id: args.newId!,
             ...(args.name !== undefined ? { name: args.name } : {}),
             ...(args.content !== undefined ? { content: args.content } : {}),

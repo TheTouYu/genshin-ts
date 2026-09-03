@@ -1,16 +1,22 @@
 /**
- * ui/src/create.ts — assets:ui create 候选生成核心（票 05 首轮）
+ * ui/src/create.ts — assets:ui create 候选生成核心（票 05）
  *
- * 范围（与交接书一致）：布局面/悬浮页容器面的「自定义按钮」官方单条候选生成，
- * 产物=整文件候选字节（--output 只读用），不做任何 .gil 写回。
+ * 范围：布局面/悬浮页容器面的编辑器「官方单条」控件候选生成（只读 --output，不做 .gil 写回）。
+ * 支持 kind（donor 支持矩阵 = 80 快照内真实编辑器新建事件的存在性，见 create-donors.ts）：
+ *   - custom-button：layout（轮4）/ container（轮26）
+ *   - input-box：layout（轮19）/ container（轮64）
+ *   - textbox：container（轮64）；layout 面以容器 donor + f504 重映射生成
+ *     （轮64 规则 2：官方控件内容与放置面无关、仅 f504 不同——输入框 2079/2157 已实测同构）
+ *   - image：container（轮64）；layout 面同上回退
+ *   - message-queue：layout（轮51）；container 面无样本 → fail-closed
  *
  * wire 依据（知识权威 ui-controls.md）：
- * - 布局官方自定义按钮 = 单条 502 记录（f504=布局，无模板/实例分离、无伴随素材组）——重启轮4；
- * - 悬浮页详情按钮 = 挂实例侧容器（宿主 f503 追加成员；未同步不动模板侧）——重启轮26；
- * - 按钮判别 t50/t52/t54；placement 表见 ui/types.ts UI_KIND_REGISTRY（DESIGN 1.2 用户权威）；
- * - ID 分配禁止 max+1 直推：候选=扫描已用 ID（记录/索引/成员/引用）后取尾部相邻空闲段
- *   最高位（编辑器跳变留下的空洞，mappings §8 例 2031），无空洞才取 maxUsed+1；
- * - 未解码字节一律透传/不猜：donor 字节缺失时显式报错（fail-closed，铁律 8）。
+ * - 官方预置控件 = 单条 502 记录（f504=宿主布局/容器；无模板/实例分离）——轮4/19/51/64；
+ * - 悬浮页详情元素挂实例侧容器（宿主 f503 追加成员；未同步不动模板侧）——轮26/64；
+ * - 判别器需 parent 上下文（轮64）；placement 表见 ui/types.ts UI_KIND_REGISTRY；
+ * - ID 分配禁止 max+1 直推：扫描已用 ID 取尾部空洞最高空闲（mappings §8 例 2031），
+ *   无空洞才 maxUsed+1；
+ * - 未解码字节一律透传/不猜：donor 缺失或面无样本时显式报错（fail-closed，铁律 8）。
  */
 
 import { buildFile, encodeVarint, readUint32BE } from '../../src/injector/binary.js'
@@ -24,7 +30,8 @@ import {
   setUiControlName,
   setUiControlTransform
 } from '../../src/cli/gil_ui.js'
-import { createDonor } from './create-donors.js'
+import { CREATE_DONORS, createDonor } from './create-donors.js'
+import type { UiCreateDonor, UiCreateDonorKind } from './create-donors.js'
 import {
   DEFAULT_LAYOUT_ID,
   extractContainerRefs,
@@ -37,16 +44,23 @@ import {
 import { UI_KIND_REGISTRY } from './types.js'
 import type { ParsedRoot9 } from './record.js'
 
+export type CreateControlKind = Extract<
+  UiCreateDonorKind,
+  'custom-button' | 'textbox' | 'image' | 'input-box' | 'message-queue'
+>
+
 export type CreateSurface =
   | { kind: 'layout'; layoutId: number }
   | { kind: 'container'; containerId: number }
 
-export interface CreateButtonOptions {
-  /** 目标放置面（已解析；写命令前必须 placement 校验） */
+export interface CreateUiCandidateOptions {
+  /** 控件 kind（支持矩阵见文件头） */
+  kind: CreateControlKind
+  /** 目标放置面（写命令前必须 placement 校验） */
   surface: CreateSurface
   /** 未指定 → allocateControlId 避让分配（禁止 max+1 直推） */
   id?: number
-  /** 控件名（默认沿用 donor 的编辑器默认名「自定义按钮」） */
+  /** 控件名（默认沿用 donor 的编辑器默认名，如「自定义按钮/文本框/图文输入框…」） */
   name?: string
   /** 位置=控件中心绝对坐标（1600×900；内部换算 wire=C−(800,450)） */
   position?: readonly [number, number]
@@ -55,17 +69,22 @@ export interface CreateButtonOptions {
   insertAfterId?: number
 }
 
-export interface CreateCandidateResult {
+export interface CreateUiCandidateResult {
   /** 整文件候选字节（可直接 --output 落盘 / diff / 回读断言） */
   bytes: Uint8Array
-  kind: 'custom-button'
+  kind: CreateControlKind
   surface: CreateSurface
   parentId: number
   newId: number
   /** donor 溯源（真实编辑器样本） */
   donorSource: string
+  donorKind: UiCreateDonorKind
   donorSelfId: number
   donorParentId: number
+  /** donor 实际放置面（textbox/image 布局面回退自容器 donor 时 = 'container'） */
+  donorSurface: 'layout' | 'container'
+  /** 布局面使用了容器面 donor（跨面同构回退；输入框对 2079/2157 同构已断言实证） */
+  donorFallback?: boolean
   insertAfterId?: number
 }
 
@@ -75,7 +94,7 @@ export function placementKeyOf(surface: CreateSurface): 'layout' | 'container' {
 }
 
 /** placement 校验（DESIGN 1.2 / 用户权威：普通控件三面通用；tab 仅容器面…） */
-export function assertPlacement(kind: 'custom-button', surface: CreateSurface): void {
+export function assertPlacement(kind: CreateControlKind, surface: CreateSurface): void {
   const spec = UI_KIND_REGISTRY[kind]
   const placement = placementKeyOf(surface)
   if (!spec.placement.includes(placement)) {
@@ -84,6 +103,36 @@ export function assertPlacement(kind: 'custom-button', surface: CreateSurface): 
       .join(' / ')
     throw new Error(`[error] ${spec.label} 仅可放置于 ${faces}（当前目标=该面之外的放置面）`)
   }
+}
+
+/**
+ * donor 解析（支持矩阵 = 真实编辑器新建样本）：
+ * - 同 kind 同面样本直接命中；
+ * - textbox/image 的布局面：80 快照无布局新建样本 → 回退容器面 donor（跨面同构轮64 规则 2）；
+ * - message-queue 容器面：无样本 → fail-closed（不猜字节）。
+ */
+export function resolveDonor(kind: CreateControlKind, placement: 'layout' | 'container'): {
+  donor: UiCreateDonor
+  donorSurface: 'layout' | 'container'
+  fallback: boolean
+} {
+  const directId = `${kind}.${placement}` as UiCreateDonor['id']
+  if (CREATE_DONORS.some((item) => item.id === directId)) {
+    const donor = createDonor(directId)
+    return { donor, donorSurface: donor.surface, fallback: false }
+  }
+  if (placement === 'layout' && (kind === 'textbox' || kind === 'image')) {
+    const donor = createDonor(kind === 'textbox' ? 'textbox.container' : 'image.container')
+    return { donor, donorSurface: donor.surface, fallback: true }
+  }
+  if (placement === 'container' && kind === 'message-queue') {
+    throw new Error(
+      '[error] message-queue 容器面无编辑器新建样本（80 快照内队列仅轮51 布局面样本）——' +
+        '本轮 fail-closed；待容器面差分轮后再启用'
+    )
+  }
+  const donor = createDonor(directId)
+  return { donor, donorSurface: donor.surface, fallback: false }
 }
 
 function requireRecord(parsed: ParsedRoot9, id: number, what: string) {
@@ -171,9 +220,7 @@ export function resolveSurfaceTarget(parsed: ParsedRoot9, raw: string): CreateSu
       throw new Error(`[error] 容器 ${containerId} 不在悬浮页 ${pageId} 的容器列表（t42）中`)
     return validateContainerSurface(parsed, containerId)
   }
-  throw new Error(
-    '[error] --on 首段须为 layout / container / 悬浮页（当前: ' + parts[0] + '）'
-  )
+  throw new Error('[error] --on 首段须为 layout / container / 悬浮页（当前: ' + parts[0] + '）')
 }
 
 /** 控件类 kind（判别含 parent 上下文；容器面校验时排除，容器=非控件的宿主记录） */
@@ -312,14 +359,15 @@ function applySectionChanges(
 }
 
 /**
- * 生成「自定义按钮」候选（布局面 / 悬浮页容器面；编辑器官方单条形态，字节级 donor 装配）。
+ * 生成官方单条控件候选（支持矩阵 kind × 放置面，见文件头；字节级 donor 装配）。
  * 只读：返回整文件候选字节，不写盘。
  */
-export function createButtonCandidate(
+export function createUiCandidate(
   bytes: Uint8Array,
-  options: CreateButtonOptions
-): CreateCandidateResult {
-  assertPlacement('custom-button', options.surface)
+  options: CreateUiCandidateOptions
+): CreateUiCandidateResult {
+  const placement = placementKeyOf(options.surface)
+  assertPlacement(options.kind, options.surface)
   const parsed = parseRoot9(bytes)
   const parentId =
     options.surface.kind === 'layout' ? options.surface.layoutId : options.surface.containerId
@@ -336,9 +384,7 @@ export function createButtonCandidate(
     throw new Error(`[error] 宿主 ${parentId} 缺少 f503 成员列表`)
   }
   const newId = allocateControlId(parsed, options.id)
-  const donor = createDonor(
-    options.surface.kind === 'layout' ? 'custom-button.layout' : 'custom-button.container'
-  )
+  const { donor, donorSurface, fallback } = resolveDonor(options.kind, placement)
   let record: Uint8Array = Buffer.from(donor.hex, 'hex')
   const map: Record<number, number> = {}
   if (donor.selfId !== newId) map[donor.selfId] = newId
@@ -359,19 +405,22 @@ export function createButtonCandidate(
   })
   return {
     bytes: candidateBytes,
-    kind: 'custom-button',
+    kind: options.kind,
     surface: options.surface,
     parentId,
     newId,
     donorSource: donor.sourceSnapshot,
+    donorKind: donor.kind,
     donorSelfId: donor.selfId,
     donorParentId: donor.parentId,
+    donorSurface,
+    ...(fallback ? { donorFallback: true } : {}),
     ...(options.insertAfterId !== undefined ? { insertAfterId: options.insertAfterId } : {})
   }
 }
 
-/** 便捷默认：--on 缺省 = 默认布局（与旧 create 行为一致，改按 ID 定位不按名字） */
-export function defaultButtonSurface(): CreateSurface {
+/** 便捷默认：--on 缺省 = 默认布局（按 ID 定位，不按名字） */
+export function defaultCreateSurface(): CreateSurface {
   return { kind: 'layout', layoutId: DEFAULT_LAYOUT_ID }
 }
 
