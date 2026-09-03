@@ -45,8 +45,10 @@
 |---|---|---|---|
 | 创建（官方单条） | `create --type custom-button --on layout:<id>` | 官方 type5 单条 963B（全默认）；无素材组伴随 | 轮4 |
 | 创建后直接配置常态文本 | `create --text ... --color ...` | member 树按需建：组+member 一步到位 | 轮8/16 |
-| 保存为模板 | `template create <id>` | 模板化：new template(type4 f14=backref) + 原记录升格 instance(+subtype+type3) + 布局成员位不变 | 轮5/23/63 |
+| 保存为模板 | `template create <id>` | 官方单条（type5-only）：new template(type4 f14=backref) + 原记录升格 instance(+subtype+type3) + 布局成员位不变；**实例源（type3）：模板+实例重绑 f13+旧模板 f14 清实例+（有样式树时）模板侧整树克隆**，源树保留无删除 | 轮5/23/63；补充2-2/6/10 |
 | 库保存模板→详情实例 | `template instantiate <tpl> --into library` | 新 instance 挂库容器 1840 + 容器 f503 追加 + 模板 f14 back-ref 追加 | 轮6 |
+| subtype 槽序数 | （内部） | subtype6 槽 f12 内序数=**家族标识**：同家族模板/实例共享；官方首次模板化=文件可见最大+1；实例源再存=继承源家族（非 kind 常量——v1/v2/v3 实为按钮/输入框/队列的家族序数） | 补充2-2/6/10 解码 |
+| 模板化命名 | （内部） | 队列官方存模板时若存在同名其它队列：实例+模板同取「原名_1」；实例源每次再存：实例+新模板同取「原名_1」（迭代后缀） | 补充2-2/6/10 |
 | 实例化到布局 | `create-from-template <tpl> --layout <id>` | 同三步联动但容器=布局（样本=轮5 原地升格路径，新实例入布局样本=图片控件模板 08 月） | 08月/轮5 |
 | 编辑实例（不广播） | `update --target <instance> ...` | 只变实例及其私有素材树（不同步对照） | 轮9/11/13 |
 | 玩家直接拖 | （diff 检测，见 §7） | 布局实例 t12 原地改（等长）；模板/库实例零动 | 轮13 |
