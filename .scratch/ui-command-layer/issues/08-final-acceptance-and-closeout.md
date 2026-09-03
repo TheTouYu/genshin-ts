@@ -7,11 +7,11 @@
 
 **Blocked by:** 04, 05, 06, 07
 
-**Status:** 代码层完成 → 等待用户总验收（编辑器+游戏）
+**Status:** 09 已承担总验收并完成（2026-09-03）→ 本票剩统一关账（复盘/PKC/技能回灌/知识书/看板/commit）
 
 - [x] 端到端 dry-run 演练脚本 PASS 4/4（ui/tests/ticket08-e2e-dryrun-assert.ts + ui/verification/ticket08-e2e-dryrun.txt）
-- [ ] 总验收场景全部通过（用户在编辑器与游戏内核验——待执行）
-- [ ] 复盘/PKC/技能回灌完成
+- [x] 总验收场景全部通过（由票09 承担：1073741917「UI核验09」A/B/C 全过 + 修复轮 R1-R5；报告 ui/verification/ticket09-verification-report.md）
+- [ ] 复盘/PKC/技能回灌完成（复盘文档已落 ui/verification/retro-2026-09-03-ticket09-game-verification.md；PKC/技能回灌待执行）
 - [ ] 知识书与覆盖登记同步
 - [ ] 看板关账 + 精确 commit
 
