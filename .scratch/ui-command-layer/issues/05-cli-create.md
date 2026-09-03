@@ -11,8 +11,8 @@
 
 - [x] Create 命令落地（布局按钮 + 悬浮页内按钮，含 ID 分配与引用注册）——**候选层落地（--output 只读）**；
       `--write` 未启用（需用户定目标/ID 后单独授权）
-- [x] 候选 vs 编辑器样本字节级同步核验 PASS（root9 字段级重放对拍 12/12；root46 保存审计=预期差异，
-      已登记；样例见 ui/verification/ticket05-create-candidates.md）
+- [x] 候选 vs 编辑器样本字节级同步核验 PASS（root9 字段级重放对拍 + 全量快照冒烟 14/14；root46
+      保存审计=预期差异，已登记；样例见 ui/verification/ticket05-create-candidates.md）
 - [ ] 写回安全流程（备份/回读/防旧内存覆盖提醒）执行（blocked：目标地图/容器/ID 未定；全量 build 待 football 收口）
 - [ ] 游戏内核验：出现/位置/点击/事件（用户确认）
 - [ ] 收轮三件套（feat/docs 两枚 commit 本轮已完成；完整 task-retrospective 复盘另轮补）
@@ -33,7 +33,8 @@
 - `src/cli/assets_ui.ts`：create 新路由（custom-button + `--on`/`--id` 可选），其余类型维持旧契约。
 
 动态门禁结果（2026-09-02 实跑，样例落 ui/verification/ticket05-create-candidates.md）：
-- donor 提取 PASS（963/1156B 与知识权威一致）；create-candidates-assert **12/12 PASS**；
+- donor 提取 PASS（963/1156B 与知识权威一致）；create-candidates-assert **14/14 PASS**
+  （含全量快照冒烟：80×layout 面 + 45×container 面逐一候选，禁抽查）；
   exhaustive 80 快照 **127/127 PASS**；真 CLI list 80/80 FAIL=0；`git diff --check` OK；
   子集 tsc（src+ui/src）**EXIT 0**；create 冒烟（布局/容器双面）候选落盘 + 语义回读 CHECK PASS + 负例全拒。
 - 全量 `npm run build` EXIT 2 = **唯一错误在 examples/football/src-fb/fb-phys.ts(121,35)**（交接书 §3
