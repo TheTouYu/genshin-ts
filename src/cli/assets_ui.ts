@@ -27,7 +27,7 @@ import {
   createUiControl,
   createUiImageControl,
   createUiTemplate,
-  deleteUiRecord,
+  deleteUiControl,
   listButtonStates,
   listPageVariables,
   listTemplates,
@@ -173,6 +173,7 @@ function parseArgs(argv: readonly string[]) {
   let text: string | undefined
   let fontSize: number | undefined
   let align: 'left' | 'center' | 'right' | undefined
+  let yes = false
   let index = 0
   if (
     argv[0] === 'list' ||
@@ -258,7 +259,8 @@ function parseArgs(argv: readonly string[]) {
       if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed))
         throw new Error('[error] --font-size 须为正整数')
       fontSize = parsed
-    } else if (arg === '--align') {
+    } else if (arg === '--yes') yes = true
+    else if (arg === '--align') {
       const raw = value(argv, index++)
       if (raw !== 'left' && raw !== 'center' && raw !== 'right')
         throw new Error('[error] --align must be left, center or right')
@@ -355,7 +357,8 @@ function parseArgs(argv: readonly string[]) {
     on: onRaw,
     text,
     fontSize,
-    align
+    align,
+    yes
   }
 }
 
@@ -484,17 +487,20 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
 
   if (args.command === 'delete') {
-    const result = deleteUiRecord(sourceBytes, args.targetId!)
+    if (args.write && !args.yes) {
+      throw new Error('[error] delete 是破坏性操作：--write 须附 --yes 确认（先不带 --write 预览 removed 清单）')
+    }
+    const result = deleteUiControl(sourceBytes, args.targetId!)
     const summary: Record<string, unknown> = {
       schemaVersion: 1,
       kind: 'ui-delete',
       sourceSha256: sourceHash,
       removedIds: result.removedIds,
-      removedKind: result.kind
+      removedCount: result.removedIds.length
     }
     const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
-    log2(`removedKind=${result.kind}`)
-    log2(`removedIds=${result.removedIds.join(',')}`)
+    log2(`removed=${result.removedIds.join(',')}`)
+    log2(`removedCount=${result.removedIds.length}`)
     summary.candidateSha256 = sha256(result.bytes)
     log2(`candidateSha256=${summary.candidateSha256}`)
     if (args.outputPath) {

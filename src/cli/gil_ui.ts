@@ -546,6 +546,19 @@ export function updateUiControl(
   }
 }
 
+function recordHasSlotMarker(record: Uint8Array, marker: number): boolean {
+  return (
+    parseMessageFields(record)?.some(
+      (f) =>
+        f.number === 502 &&
+        f.wire === 2 &&
+        parseMessageFields(f.value as Uint8Array)?.some(
+          (x) => x.number === 502 && x.wire === 0 && x.value === marker
+        )
+    ) ?? false
+  )
+}
+
 function root9Field501Ids(top: readonly WireField[]): number[] {
   const root9 = top.find((field) => field.number === 9 && field.wire === 2)
   if (!root9) return []
@@ -553,6 +566,151 @@ function root9Field501Ids(top: readonly WireField[]): number[] {
   const f501 = section?.find((field) => field.number === 501 && field.wire === 2)
   if (!f501) return []
   return parsePackedVarints(f501.value as Uint8Array)
+}
+
+function containsVarintBytes(raw: Uint8Array, value: number): boolean {
+  const needle = Buffer.from(encodeVarint(value))
+  return Buffer.from(raw).includes(needle)
+}
+
+function recordParentless(record: Uint8Array): boolean {
+  return parseMessageFields(record)?.some((f) => f.number === 504 && f.wire === 0) !== true
+}
+
+function rebuildTemplateInstanceList(record: Uint8Array, removedId: number): Uint8Array | undefined {
+  const fields = parseMessageFields(record)
+  if (!fields) return undefined
+  let done = false
+  const out = fields.map((field) => {
+    if (done || field.number !== 502 || field.wire !== 2) return field
+    const slot = parseMessageFields(field.value as Uint8Array)
+    const f14 = slot?.find((x) => x.number === 14 && x.wire === 2)
+    if (!f14) return field
+    const m14 = parseMessageFields(f14.value as Uint8Array)
+    const packed = m14?.find((x) => x.number === 501 && x.wire === 2)
+    if (!packed) return field
+    const ids = parsePackedVarints(packed.value as Uint8Array)
+    if (!ids.includes(removedId)) return field
+    const rest = ids.filter((x) => x !== removedId)
+    f14.value =
+      rest.length === 0
+        ? new Uint8Array(0)
+        : emitWireMessage([{ number: 501, wire: 2, value: encodePackedVarints(rest) }])
+    field.value = emitWireMessage(slot!)
+    done = true
+    return field
+  })
+  return done ? emitWireMessage(out) : undefined
+}
+
+export interface UiDeleteResult {
+  bytes: Uint8Array
+  removedIds: number[]
+  parentId?: number
+  changed: string[]
+}
+
+/**
+ * 票07：删除宿主下的控件（实例/官方单条/容器成员）。
+ * 清理清单（编辑器样本）：目标记录 + 其私有素材树（组 parentless + 成员）+ 宿主 f503 成员列表 +
+ * 模板 type4 f14 backref（轮14）；顶层索引=parentless 物理序重建（删除后）。
+ * fail-closed：无宿主（模板/布局/容器本体）删除无样本 → 拒绝。
+ */
+export function deleteUiControl(bytes: Uint8Array, id: number): UiDeleteResult {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const target = findRecord(top, id)
+  if (!target) throw new Error(`[error] UI control not found: ${id}`)
+  const targetFields = parseMessageFields(target.value as Uint8Array)
+  const parentId = firstVarint(targetFields, 504)
+  if (parentId === undefined) {
+    throw new Error('[error] 无宿主记录（模板/布局/容器本体）删除无样本——fail-closed')
+  }
+  const all = root9Records(top)
+  const childrenOf = (g: number): number[] =>
+    all
+      .filter((r) => firstVarint(parseMessageFields(r.value as Uint8Array), 504) === g)
+      .map((r) => recordIdOf(r.value as Uint8Array) as number)
+  // 私有素材树：parentless 素材组（槽标记 5/55 系，排除家族 3/4/6）、非目标祖先、目标字节内引用
+  const removed = new Set<number>([id])
+  for (const r of all) {
+    const gid = recordIdOf(r.value as Uint8Array)
+    if (gid === undefined || gid === id) continue
+    const raw = r.value as Uint8Array
+    if (!recordParentless(raw)) continue
+    if (recordHasSlotMarker(raw, 3) || recordHasSlotMarker(raw, 4) || recordHasSlotMarker(raw, 6)) {
+      continue
+    }
+    const members = childrenOf(gid)
+    if (members.includes(id)) continue // 祖先（宿主容器/布局）不是私有树
+    if (containsVarintBytes(target.value as Uint8Array, gid)) {
+      removed.add(gid)
+      for (const m of members) removed.add(m)
+    }
+  }
+  const changed: string[] = []
+  const section = parseMessageFields(top.find((f) => f.number === 9 && f.wire === 2)!.value as Uint8Array)!
+  const outFields: WireField[] = []
+  for (const field of section) {
+    if (field.number !== 502 || field.wire !== 2) {
+      outFields.push(field)
+      continue
+    }
+    const rid = recordIdOf(field.value as Uint8Array)
+    if (rid === undefined) {
+      outFields.push(field)
+      continue
+    }
+    if (removed.has(rid)) {
+      changed.push(`removed:${rid}`)
+      continue
+    }
+    let value = field.value as Uint8Array
+    if (rid === parentId) {
+      // 宿主成员列表收缩
+      const recFields = parseMessageFields(value)
+      const listField = recFields?.find((f) => f.number === 503 && f.wire === 2)
+      if (listField) {
+        const ids = parsePackedVarints(listField.value as Uint8Array)
+        if (ids.includes(id)) {
+          listField.value = encodePackedVarints(ids.filter((x) => x !== id))
+          value = emitWireMessage(recFields!)
+          changed.push(`host-members:${rid}`)
+        }
+      }
+    }
+    const tpl = rebuildTemplateInstanceList(value, id)
+    if (tpl !== undefined) {
+      value = tpl
+      changed.push(`template-backref:${rid}`)
+    }
+    outFields.push({ number: 502, wire: 2, value })
+  }
+  // 顶层索引 = parentless 物理序重建
+  const indexField = outFields.find((f) => f.number === 501 && f.wire === 2)
+  if (!indexField) throw new Error('[error] 顶层索引缺失')
+  const idx: number[] = []
+  for (const f of outFields) {
+    if (f.number !== 502 || f.wire !== 2) continue
+    const raw = f.value as Uint8Array
+    if (recordParentless(raw)) {
+      const rid = recordIdOf(raw)
+      if (rid !== undefined) idx.push(rid)
+    }
+  }
+  indexField.value = encodePackedVarints(idx)
+  top.find((f) => f.number === 9 && f.wire === 2)!.value = emitWireMessage(outFields)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    removedIds: [...removed],
+    parentId,
+    changed
+  }
 }
 
 export function listTemplates(bytes: Uint8Array): UiControlInfo[] {
