@@ -10,7 +10,7 @@ import {
   defaultCreateSurface,
   resolveSurfaceTarget
 } from '../../ui/src/create.js'
-import { createTemplateCandidate } from '../../ui/src/templateize.js'
+import { createTemplateCandidate, templateizeTargetInfo } from '../../ui/src/templateize.js'
 import { parseRoot9 } from '../../ui/src/record.js'
 import {
   parseUiSemanticCommand,
@@ -516,25 +516,36 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         for (const t of templates) log(`id=${t.id} name=${t.name} category=${t.category}`)
       }
     } else if (args.templateSub === 'create' && args.targetId !== undefined) {
-      // 票05 波2 语义路径：官方单条 → 模板（autoLibrary 由 kind 决定：input-box=轮23 三合一）
-      const parsed = parseRoot9(sourceBytes)
-      const target = parsed.recordsById.get(args.targetId)
-      if (!target) throw new Error(`[error] 官方控件不存在: ${args.targetId}`)
-      if (target.kind !== 'custom-button' && target.kind !== 'input-box') {
-        throw new Error(
-          `[error] template create 暂不支持 kind=${target.kind}` +
-            '（队列族三合一结构/记录级已闭合，顶层索引合并序为单样本 open-item，待第二样本复核后开放；其余 kind 无样本 fail-closed）'
-        )
+      // 票05 波2 语义路径：官方单条/实例 → 模板（autoLibrary 由 kind 决定；队列规则见 info）
+      const info = templateizeTargetInfo(sourceBytes, args.targetId)
+      const autoLibrary = info.kind === 'input-box'
+      if (info.kind !== 'custom-button' && info.kind !== 'input-box' && info.kind !== 'message-queue') {
+        throw new Error(`[error] template create 暂不支持 kind=${info.kind}（无样本 fail-closed）`)
+      }
+      if (info.kind === 'message-queue') {
+        if (info.role === 'instance') {
+          // 补充2-6/10 字节级闭合：实例源（无样式/带样式树）→ 模板+重绑+模板侧树克隆
+        } else if (info.role === 'official') {
+          if (info.queueStyleCount > 0) {
+            throw new Error(
+              '[error] 官方×带样式队列模板化（轮63 三合一）仅记录级闭合，物理插入位单样本 open-item——CLI 暂不开放'
+            )
+          }
+          // 补充2-2 字节级闭合：官方×无样式 → 模板+升格
+        } else {
+          throw new Error(`[error] template create 目标 role=${info.role} 不支持`)
+        }
       }
       const result = createTemplateCandidate(sourceBytes, {
         targetId: args.targetId,
-        autoLibrary: target.kind === 'input-box'
+        autoLibrary
       })
       const summary: Record<string, unknown> = {
         schemaVersion: 1,
         kind: 'ui-templateize-candidate',
         sourceSha256: sourceHash,
-        kindOf: target.kind,
+        kindOf: info.kind,
+        role: info.role,
         templateId: result.templateId,
         instanceId: result.instanceId,
         ...(result.libraryInstanceId !== undefined
@@ -542,7 +553,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
           : {})
       }
       const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
-      log2(`kind=${target.kind}`)
+      log2(`kind=${info.kind}`)
       log2(`templateId=${result.templateId}`)
       log2(`instanceId=${result.instanceId}`)
       if (result.libraryInstanceId !== undefined)

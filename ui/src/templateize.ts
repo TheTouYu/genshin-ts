@@ -17,7 +17,7 @@ import {
   parseWireMessage,
   type WireField
 } from '../../src/cli/static_assembly/wire.js'
-import { remapUiRecordVarints } from '../../src/cli/gil_ui.js'
+import { remapUiRecordVarints, setUiControlName } from '../../src/cli/gil_ui.js'
 import { TPL_SLOTS } from './templateize-slots.js'
 import { LIBRARY_CONTAINER_ID, firstVarint, packedVarints, parseRoot9 } from './record.js'
 import { collectUsedControlIds } from './create.js'
@@ -111,14 +111,38 @@ function dropParentAndSetId(raw: Uint8Array, selfId: number): Uint8Array {
   return spliceRecordSlots(raw, { selfId, dropParent: true })
 }
 
-/** subtype6 槽按家族取真实样本变体（按钮 v1 / 输入框 v2 / 队列 v3=0x0a；其余无样本 fail-closed） */
-function subtypeSlotByKind(kind: string): Uint8Array {
-  if (kind === 'input-box') return slotPayload(TPL_SLOTS.SUBTYPE_V2)
-  if (kind === 'message-queue') return slotPayload(TPL_SLOTS.SUBTYPE_V3)
-  if (kind === 'custom-button') return slotPayload(TPL_SLOTS.SUBTYPE)
-  throw new Error(
-    `[error] 模板化未支持 kind=${kind} 的 subtype 槽变体（仅按钮/输入框/队列有样本；其余 fail-closed）`
-  )
+/** subtype6 槽序数：家族标识（同模板家族内模板/实例共享；官方首次模板化=文件可见最大+1；实例源再存=继承源家族）。 */
+function readSubtypeOrdinal(raw: Uint8Array): number | undefined {
+  const fields = parseWireMessage(raw)
+  if (!fields) return undefined
+  for (const f of fields) {
+    if (f.number !== 502 || f.wire !== 2) continue
+    const slot = parseWireMessage(f.value as Uint8Array)
+    if (!slot?.some((x) => x.number === 502 && x.wire === 0 && x.value === 6)) continue
+    const f12 = slot.find((x) => x.number === 12 && x.wire === 2)
+    if (!f12) continue
+    const m12 = parseWireMessage(f12.value as Uint8Array)
+    return m12?.find((x) => x.wire === 0)?.value as number | undefined
+  }
+  return undefined
+}
+
+function subtypeSlotPayload(ordinal: number): Uint8Array {
+  return emitWireMessage([
+    { number: 12, wire: 2, value: emitWireMessage([{ number: 501, wire: 0, value: ordinal }]) },
+    { number: 501, wire: 0, value: 2 },
+    { number: 502, wire: 0, value: 6 }
+  ])
+}
+
+function maxVisibleFamilyOrdinal(bytes: Uint8Array): number {
+  const parsed = parseRoot9(bytes)
+  let max = 0
+  for (const r of parsed.records) {
+    const ord = readSubtypeOrdinal(r.raw)
+    if (ord !== undefined && ord > max) max = ord
+  }
+  return max
 }
 
 /** 组件（f505 内容区，跳过 f501/f502 家族槽）内首个等于 from 的 varint → to（输入框族深链样本） */
@@ -194,7 +218,7 @@ function buildTemplateRecord(
   officialRaw: Uint8Array,
   templateId: number,
   instanceId: number,
-  kind: string
+  subtypePayload: Uint8Array
 ): Uint8Array {
   const oldSelf = recordIdOf(officialRaw)
   if (oldSelf === undefined) throw new Error('[error] 官方记录缺 f501')
@@ -204,17 +228,17 @@ function buildTemplateRecord(
     1073742032: instanceId
   })
   return spliceRecordSlots(record, {
-    slots: [subtypeSlotByKind(kind), type4]
+    slots: [subtypePayload, type4]
   })
 }
 
 /** 实例升级：官方记录追加 subtype + type3（f13=templateId） */
-function upgradeToInstance(officialRaw: Uint8Array, templateId: number, kind: string): Uint8Array {
+function upgradeToInstance(officialRaw: Uint8Array, templateId: number, subtypePayload: Uint8Array): Uint8Array {
   const type3 = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE3_SINGLE), {
     1073742033: templateId
   })
   return spliceRecordSlots(officialRaw, {
-    slots: [subtypeSlotByKind(kind), type3]
+    slots: [subtypePayload, type3]
   })
 }
 
@@ -309,6 +333,24 @@ export interface TemplateizeOptions {
   targetId: number
   /** 三合一：自动建库实例（输入框=轮23 是；按钮=轮5 否） */
   autoLibrary: boolean
+  /** 钉新模板 ID（重放样本用：编辑器计数器可能有删除造成的空洞，无法从文件推导） */
+  templateId?: number
+}
+
+/** ID 分配：默认尾段连续；钉 ID 时按钉值起连续（校验不冲突） */
+function allocateIds(bytes: Uint8Array, count: number, pin?: number): number[] {
+  if (pin !== undefined) {
+    const parsed = parseRoot9(bytes)
+    const used = new Set(parsed.records.map((r) => r.id))
+    const ids: number[] = []
+    for (let i = 0; i < count; i++) {
+      const id = pin + i
+      if (used.has(id)) throw new Error(`[error] 钉 ID 冲突: ${id}`)
+      ids.push(id)
+    }
+    return ids
+  }
+  return tailIds(bytes, count)
 }
 
 export interface TemplateizeResult {
@@ -337,6 +379,59 @@ function normalizeGroupSlots(raw: Uint8Array): Uint8Array {
   return emitWireMessage(out)
 }
 
+/** 队列/实例内容里样式组引用收集（路径 505→503→69 子树内 field4 varint，多次出现全收） */
+function collectQueueStyleRefs(raw: Uint8Array): number[] {
+  const fields = parseWireMessage(raw)
+  if (!fields) return []
+  const out: number[] = []
+  const collect = (list: WireField[]): void => {
+    for (const f of list) {
+      if (f.wire === 0 && f.number === 4) out.push(f.value as number)
+      if (f.wire === 2) {
+        const sub = parseWireMessage(f.value as Uint8Array)
+        if (sub) collect(sub)
+      }
+    }
+  }
+  for (const f505 of fields) {
+    if (f505.number !== 505 || f505.wire !== 2) continue
+    const m505 = parseWireMessage(f505.value as Uint8Array)
+    if (!m505) continue
+    for (const f503 of m505.filter((f) => f.number === 503 && f.wire === 2)) {
+      const m503 = parseWireMessage(f503.value as Uint8Array)
+      if (!m503) continue
+      for (const f69 of m503.filter((f) => f.number === 69 && f.wire === 2)) {
+        const m69 = parseWireMessage(f69.value as Uint8Array)
+        if (m69) collect(m69)
+      }
+    }
+  }
+  return out
+}
+
+export interface TemplateizeTargetInfo {
+  kind: string
+  role: 'official' | 'instance' | 'template' | 'none'
+  queueStyleCount: number
+}
+
+/** CLI 用：目标角色与队列样式数探测（fail-closed 依据） */
+export function templateizeTargetInfo(bytes: Uint8Array, targetId: number): TemplateizeTargetInfo {
+  const parsed = parseRoot9(bytes)
+  const target = parsed.recordsById.get(targetId)
+  if (!target) throw new Error(`[error] 官方控件不存在: ${targetId}`)
+  const has3 = recordHasSlotType(target.raw, 3)
+  const has4 = recordHasSlotType(target.raw, 4)
+  const has5 = recordHasSlotType(target.raw, 5)
+  const role: TemplateizeTargetInfo['role'] =
+    has3 && !has4 ? 'instance' : has4 ? 'template' : has5 ? 'official' : 'none'
+  return {
+    kind: target.kind,
+    role,
+    queueStyleCount: target.kind === 'message-queue' ? collectQueueStyleRefs(target.raw).length : 0
+  }
+}
+
 /**
  * 队列族三合一（轮62→63 单样本 OBSERVED）：模板 + 布局实例升格 + 库实例 + **三侧私有样式树
  * 克隆**（布局/模板/库各一套） + 旧树物理删除 + 内部引用重映射（内容深链 505.503.69…:4）。
@@ -348,33 +443,7 @@ function queueTemplateizeCandidate(bytes: Uint8Array, targetId: number): Templat
   const target = parsed.recordsById.get(targetId)
   if (!target) throw new Error(`[error] 目标记录不存在: ${targetId}`)
   // 旧私有样式组：内容路径 505.503.69 子树内 field4 两次出现（image 组在前、text 组在后，由成员判别）
-  const fields = parseWireMessage(target.raw)
-  if (!fields) throw new Error('[error] 队列记录解析失败')
-  const f505s = fields.filter((f) => f.number === 505 && f.wire === 2)
-  const styleRefs: number[] = []
-  for (const f505 of f505s) {
-    const m505 = parseWireMessage(f505.value as Uint8Array)
-    if (!m505) continue
-    const f503s = m505.filter((f) => f.number === 503 && f.wire === 2)
-    for (const f503 of f503s) {
-      const m503 = parseWireMessage(f503.value as Uint8Array)
-      if (!m503) continue
-      const f69s = m503.filter((f) => f.number === 69 && f.wire === 2)
-      const collect = (list: WireField[]): void => {
-        for (const f of list) {
-          if (f.wire === 0 && f.number === 4) styleRefs.push(f.value as number)
-          if (f.wire === 2) {
-            const sub = parseWireMessage(f.value as Uint8Array)
-            if (sub) collect(sub)
-          }
-        }
-      }
-      for (const f69 of f69s) {
-        const m69 = parseWireMessage(f69.value as Uint8Array)
-        if (m69) collect(m69)
-      }
-    }
-  }
+  const styleRefs = collectQueueStyleRefs(target.raw)
   if (styleRefs.length !== 2) {
     throw new Error(`[error] 队列样式组引用解析失败（${styleRefs.length} 个，期望 2）——样本外形态 fail-closed`)
   }
@@ -409,7 +478,7 @@ function queueTemplateizeCandidate(bytes: Uint8Array, targetId: number): Templat
   const type3Payload = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE3_SINGLE), {
     1073742033: templateId
   })
-  const subtype = subtypeSlotByKind('message-queue')
+  const subtype = subtypeSlotPayload(maxVisibleFamilyOrdinal(bytes) + 1)
   const type4Queue = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE4_QUEUE_DOUBLE), {
     1073742132: targetId,
     1073742142: libraryId
@@ -516,8 +585,242 @@ function queueTemplateizeCandidate(bytes: Uint8Array, targetId: number): Templat
   return { bytes: out, templateId, instanceId: targetId, libraryInstanceId: libraryId }
 }
 
+/** 槽内嵌套 id 改写：找 marker=typeCode 的 f502 槽 → 槽 payload 内 field=msgFieldNum 的 msg → 首个 wire0 varint 替换 */
+function setSlotNestedId(raw: Uint8Array, typeCode: number, msgFieldNum: number, newId: number): Uint8Array {
+  const fields = parseWireMessage(raw)
+  if (!fields) throw new Error('[error] 记录解析失败')
+  let done = false
+  const out = fields.map((field) => {
+    if (done || field.number !== 502 || field.wire !== 2) return field
+    const slot = parseWireMessage(field.value as Uint8Array)
+    if (
+      !slot?.some((x) => x.number === 502 && x.wire === 0 && x.value === typeCode)
+    ) {
+      return field
+    }
+    const msgField = slot.find((x) => x.number === msgFieldNum && x.wire === 2)
+    if (!msgField) return field
+    const msg = parseWireMessage(msgField.value as Uint8Array)
+    if (!msg) return field
+    const link = msg.find((x) => x.wire === 0)
+    if (!link) return field
+    link.value = newId
+    msgField.value = emitWireMessage(msg)
+    field.value = emitWireMessage(slot)
+    done = true
+    return field
+  })
+  if (!done) throw new Error(`[error] type${typeCode} 槽嵌套 id 未命中`)
+  return emitWireMessage(out)
+}
+
+/** 模板 type4 槽的 f14 实例列表整体改写（空列表=f14 空 msg 保留，样本 补充2-6） */
+function setTemplateInstanceList(raw: Uint8Array, instanceIds: number[]): Uint8Array {
+  const fields = parseWireMessage(raw)
+  if (!fields) throw new Error('[error] 记录解析失败')
+  let done = false
+  const out = fields.map((field) => {
+    if (done || field.number !== 502 || field.wire !== 2) return field
+    const slot = parseWireMessage(field.value as Uint8Array)
+    if (!slot?.some((x) => x.number === 502 && x.wire === 0 && x.value === 4)) return field
+    const f14 = slot.find((x) => x.number === 14 && x.wire === 2)
+    if (!f14) return field
+    f14.value =
+      instanceIds.length === 0
+        ? new Uint8Array(0)
+        : emitWireMessage([{ number: 501, wire: 2, value: encodePackedVarints(instanceIds) }])
+    field.value = emitWireMessage(slot)
+    done = true
+    return field
+  })
+  if (!done) throw new Error('[error] type4 槽缺失')
+  return emitWireMessage(out)
+}
+
+/** 从实例记录构造模板记录：去 f504/自引用→模板ID + type3 槽换 type4（f14=[实例]） + 样式引用→克隆组 */
+function buildTemplateFromInstance(
+  instanceRaw: Uint8Array,
+  templateId: number,
+  sourceId: number,
+  styleMap: Map<number, number>
+): Uint8Array {
+  const oldSelf = recordIdOf(instanceRaw)
+  if (oldSelf === undefined) throw new Error('[error] 实例记录缺 f501')
+  let record = dropParentAndSetId(instanceRaw, templateId)
+  record = remapUiRecordVarints(record, { [oldSelf]: templateId })
+  const type4 = remapUiRecordVarints(slotPayload(TPL_SLOTS.TYPE4_SINGLE), {
+    1073742032: sourceId
+  })
+  record = replaceSlotPayload(record, 3, type4)
+  const styleRemap: Record<number, number> = {}
+  for (const [g, gNew] of styleMap) styleRemap[g] = gNew
+  return remapUiRecordVarints(record, styleRemap)
+}
+
+export interface InstanceTemplateizeOptions {
+  targetId: number
+}
+
+/**
+ * 实例源「保存为模板」（样本 补充2-第6/10 步；kind=message-queue 已采样，其余 fail-closed）：
+ * 新建模板（type4 f14=[实例]）+ 模板侧整树克隆（若有样式组）+ 实例 f13 重绑新模板 +
+ * 所有旧模板 f14 移除该实例（空列表清空）+ 模板插模板簇末 + 克隆树插「模板树区域末」+
+ * 索引=parentless 物理序重建。无库实例、源实例树保留、无删除。
+ */
+export function createInstanceTemplateCandidate(
+  bytes: Uint8Array,
+  targetId: number,
+  pinTemplateId?: number
+): TemplateizeResult {
+  const parsed = parseRoot9(bytes)
+  const target = parsed.recordsById.get(targetId)
+  if (!target) throw new Error(`[error] 目标记录不存在: ${targetId}`)
+  if (target.kind !== 'message-queue') {
+    throw new Error(
+      `[error] 实例源模板化仅 message-queue 有样本（补充2-6/10）；kind=${target.kind} fail-closed`
+    )
+  }
+  // 样式组及其成员（成员按物理序）
+  const refs = collectQueueStyleRefs(target.raw)
+  interface TreeItem { group: number; members: number[] }
+  const trees: TreeItem[] = refs.map((g) => ({
+    group: g,
+    members: parsed.records.filter((r) => r.parentId === g).map((r) => r.id)
+  }))
+  const cloneCount = trees.reduce((n, t) => n + 1 + t.members.length, 0)
+  const ids = allocateIds(bytes, 1 + cloneCount, pinTemplateId)
+  const templateId = ids[0]
+  let next = 1
+  const styleMap = new Map<number, number>()
+  const clones: Uint8Array[] = []
+  for (const t of trees) {
+    const gOld = t.group
+    const gNew = ids[next++]
+    const g = parsed.recordsById.get(gOld)
+    if (!g) throw new Error(`[error] 样式组缺失 ${gOld}`)
+    const memberMap: Record<number, number> = {}
+    for (const mOld of t.members) {
+      memberMap[mOld] = ids[next++]
+    }
+    clones.push(remapUiRecordVarints(normalizeGroupSlots(g.raw), { [gOld]: gNew, ...memberMap }))
+    styleMap.set(gOld, gNew)
+    for (const mOld of t.members) {
+      const m = parsed.recordsById.get(mOld)
+      if (!m) throw new Error(`[error] 成员缺失 ${mOld}`)
+      clones.push(remapUiRecordVarints(m.raw, { [mOld]: memberMap[mOld], [gOld]: gNew }))
+    }
+  }
+  let templateRecord = buildTemplateFromInstance(target.raw, templateId, targetId, styleMap)
+  let reboundInstance = setSlotNestedId(target.raw, 3, 13, templateId)
+  // 实例源每次再存：实例与新模板同取「原名_1」（补充2-第6/10 步：_1→_1_1→_1_1_1）
+  const newName = `${target.name}_1`
+  templateRecord = setUiControlName(templateRecord, newName)
+  reboundInstance = setUiControlName(reboundInstance, newName)
+  // 旧模板 f14 移除本实例
+  const templateIds: number[] = []
+  for (const r of parsed.records) {
+    if (recordHasSlotType(r.raw, 4) && r.id !== templateId) templateIds.push(r.id)
+  }
+  const out = rebuildRoot9(bytes, (section) => {
+    const outFields: WireField[] = []
+    const updates = new Map<number, Uint8Array>()
+    for (const tplId of templateIds) {
+      const tpl = parsed.recordsById.get(tplId)!
+      const slotMsg = findSlotPayload(tpl.raw, 4)
+      const f14 = slotMsg ? parseWireMessage(slotMsg)?.find((x) => x.number === 14 && x.wire === 2) : undefined
+      const f14msg = f14 ? parseWireMessage(f14.value as Uint8Array) : undefined
+      const packedField = f14msg?.find((x) => x.number === 501 && x.wire === 2)
+      const list = packedField ? packedVarints(packedField.value as Uint8Array) : []
+      if (list.includes(targetId)) {
+        updates.set(tplId, setTemplateInstanceList(tpl.raw, list.filter((x) => x !== targetId)))
+      }
+    }
+    const templateTreeIds = new Set<number>()
+    for (const tplId of templateIds) {
+      const tpl = parsed.recordsById.get(tplId)!
+      for (const g of collectQueueStyleRefs(tpl.raw)) {
+        templateTreeIds.add(g)
+        for (const r of parsed.records) if (r.parentId === g) templateTreeIds.add(r.id)
+      }
+    }
+    // 建 outFields：替换实例字段/旧模板字段，跳过被替换记录的旧引用
+    let lastTemplateTreePos = -1
+    let pos = 0
+    for (const field of section) {
+      if (field.number !== 502 || field.wire !== 2) {
+        outFields.push(field)
+        pos++
+        continue
+      }
+      const id = recordIdOf(field.value as Uint8Array)
+      if (id === undefined) {
+        outFields.push(field)
+        pos++
+        continue
+      }
+      const upd = updates.get(id)
+      if (upd !== undefined) {
+        outFields.push({ number: 502, wire: 2, value: upd })
+        pos++
+        continue
+      }
+      if (id === targetId) {
+        outFields.push({ number: 502, wire: 2, value: reboundInstance })
+        pos++
+        continue
+      }
+      outFields.push(field)
+      if (templateTreeIds.has(id)) lastTemplateTreePos = pos
+      pos++
+    }
+    // 模板插模板簇末
+    let clusterStart = outFields.findIndex((f) => f.number === 502 && f.wire === 2)
+    if (clusterStart < 0) clusterStart = outFields.length
+    let insertAt = clusterStart
+    for (let i = clusterStart; i < outFields.length; i++) {
+      const f = outFields[i]
+      if (f.number !== 502 || f.wire !== 2) break
+      if (recordHasSlotType(f.value as Uint8Array, 4)) insertAt = i + 1
+      else break
+    }
+    outFields.splice(insertAt, 0, { number: 502, wire: 2, value: templateRecord })
+    if (clones.length > 0) {
+      // 模板已插簇首（索引整体 +1）：重扫一遍按最终索引定模板树区域末尾
+      let treeEnd = -1
+      for (let i = clusterStart; i < outFields.length; i++) {
+        const f = outFields[i]
+        if (f.number !== 502 || f.wire !== 2) continue
+        const id = recordIdOf(f.value as Uint8Array)
+        if (id !== undefined && templateTreeIds.has(id)) treeEnd = i + 1
+      }
+      if (treeEnd < 0) treeEnd = insertAt + 1
+      const cloneFields: WireField[] = clones.map((value) => ({ number: 502, wire: 2, value }))
+      outFields.splice(treeEnd, 0, ...cloneFields)
+    }
+    // 索引=parentless 物理序
+    const indexIds2: number[] = []
+    for (const f of outFields) {
+      if (f.number !== 502 || f.wire !== 2) continue
+      const raw = f.value as Uint8Array
+      if (parentIdOf(raw) === undefined) {
+        const id2 = recordIdOf(raw)
+        if (id2 !== undefined) indexIds2.push(id2)
+      }
+    }
+    const indexField = outFields.find((f) => f.number === 501 && f.wire === 2)
+    if (!indexField) throw new Error('[error] 顶层索引缺失')
+    indexField.value = encodePackedVarints(indexIds2)
+    section.length = 0
+    section.push(...outFields)
+  })
+  return { bytes: out, templateId, instanceId: targetId }
+}
+
 /**
  * 官方单条 → 模板（可选自动库实例）。只读候选。
+ * 分派：实例源（type3）→ createInstanceTemplateCandidate；官方×无样式（消息队列）→ 通用
+ * 单条路径（模板+升格）；官方×带样式（消息队列，round63 三合一）→ queueTemplateizeCandidate
+ * （记录级已闭合；物理插入位单样本，CLI 未开放）。
  */
 export function createTemplateCandidate(
   bytes: Uint8Array,
@@ -526,22 +829,49 @@ export function createTemplateCandidate(
   const parsed = parseRoot9(bytes)
   const target = parsed.recordsById.get(options.targetId)
   if (!target) throw new Error(`[error] 目标记录不存在: ${options.targetId}`)
+  // 实例源（type3 槽）：新增模板 + 重绑 + 旧模板 f14 清实例 + （实例带样式树时）模板侧整树克隆
+  if (recordHasSlotType(target.raw, 3) && !recordHasSlotType(target.raw, 4)) {
+    if (options.autoLibrary) {
+      throw new Error('[error] 实例源「保存为模板」无库实例（样本补充2-6/10）；勿设 autoLibrary')
+    }
+    return createInstanceTemplateCandidate(bytes, options.targetId, options.templateId)
+  }
   if (!recordHasSlotType(target.raw, 5) || recordHasSlotType(target.raw, 3) || recordHasSlotType(target.raw, 4)) {
     throw new Error(
       `[error] 目标 ${options.targetId} 非官方单条（须仅含 type5 槽，实例/模板带 type3/type4 槽）——模板化起点须为官方单条`
     )
   }
   if (target.kind === 'message-queue') {
-    if (!options.autoLibrary) {
-      throw new Error('[error] 队列族模板化样本=三合一（轮63），须 autoLibrary=true')
+    const refs = collectQueueStyleRefs(target.raw)
+    if (refs.length === 0) {
+      if (options.autoLibrary) {
+        throw new Error('[error] 官方无样式队列模板化=模板+升格（样本补充2-第2步），无库实例——勿设 autoLibrary')
+      }
+      // 落入下方通用官方路径（subtype v3 自动按 kind 选）
+    } else {
+      if (!options.autoLibrary) {
+        throw new Error('[error] 队列带样式模板化样本=三合一（轮63）须 autoLibrary=true；物理插入位仍单样本待复刻')
+      }
+      return queueTemplateizeCandidate(bytes, options.targetId)
     }
-    return queueTemplateizeCandidate(bytes, options.targetId)
   }
-  const ids = tailIds(bytes, options.autoLibrary ? 2 : 1)
+  const ids = allocateIds(bytes, options.autoLibrary ? 2 : 1, options.templateId)
   const templateId = ids[0]
+  const subtypePayload = subtypeSlotPayload(maxVisibleFamilyOrdinal(bytes) + 1)
 
-  let templateRecord = buildTemplateRecord(target.raw, templateId, options.targetId, target.kind)
-  let upgradedInstance = upgradeToInstance(target.raw, templateId, target.kind)
+  let templateRecord = buildTemplateRecord(target.raw, templateId, options.targetId, subtypePayload)
+  let upgradedInstance = upgradeToInstance(target.raw, templateId, subtypePayload)
+  if (target.kind === 'message-queue') {
+    // 队列升格实例成为运行时实例后与同名既有队列避让（补充2-第2步：消息队列→消息队列_1）
+    const duplicateName = parsed.records.some(
+      (r) => r.id !== options.targetId && r.kind === 'message-queue' && r.name === target.name
+    )
+    if (duplicateName) {
+      const newName = `${target.name}_1`
+      upgradedInstance = setUiControlName(upgradedInstance, newName)
+      templateRecord = setUiControlName(templateRecord, newName)
+    }
+  }
   if (options.autoLibrary && target.kind === 'input-box') {
     // 输入框族三合一深链（轮23 实证路径 505.503.19.62.501）：实例→模板；模板→自动库实例
     const libraryId = ids[1]

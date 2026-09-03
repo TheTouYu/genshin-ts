@@ -102,10 +102,14 @@ ok('模板化重放: 图文输入框三合一含自动库实例（轮22→轮23�
   assertReplayEquals(result.bytes, load(R23_AFTER), '输入框三合一 轮22→23')
 })
 
-ok('fail-closed: 非官方单条不可模板化（实例/模板拒绝）', () => {
+ok('fail-closed: 模板目标（type4）拒绝；非 message-queue 实例源拒绝', () => {
+  assert.throws(
+    () => createTemplateCandidate(load(R5_AFTER), { targetId: 1073742033, autoLibrary: false }),
+    /非官方单条|实例源模板化/
+  )
   assert.throws(
     () => createTemplateCandidate(load(R5_AFTER), { targetId: 1073742032, autoLibrary: false }),
-    /非官方单条/
+    /实例源模板化仅 message-queue/
   )
 })
 
@@ -172,8 +176,55 @@ ok('fail-closed: 队列族模板化拒绝非三合一（autoLibrary=false）', (
         load('1073741909.after-重启62-消息配置样式-a5a14a7f.gil'),
         { targetId: 1073742132, autoLibrary: false }
       ),
-    /队列族模板化样本=三合一/
+    /样本=三合一/
   )
 })
+
+const SUPP = path.join(ROOT, '.gsts', 'diff-exp', 'ui补充')
+function load2(file: string): Uint8Array {
+  return new Uint8Array(fs.readFileSync(path.join(SUPP, file)))
+}
+
+if (fs.existsSync(SUPP)) {
+  ok('补充2-第2步: 官方×无样式队列存模板（root9 全等）', () => {
+    const result = createTemplateCandidate(load2('1073741909.after-补充2-第1步-新官方队列-25875ccf.gil'), {
+      targetId: 1073742179,
+      autoLibrary: false
+    })
+    assert.equal(result.templateId, 1073742180)
+    assertReplayEquals(
+      result.bytes,
+      load2('1073741909.after-补充2-第2步-队列存模板无样式-2a54b780.gil'),
+      '官方无样式队列 补充2-2'
+    )
+  })
+  ok('补充2-第6步: 实例×无样式再存模板（root9 全等；钉 ID 2195）', () => {
+    const result = createTemplateCandidate(load2('1073741909.after-补充2-第5步-单样式存模板-2a411fa8.gil'), {
+      targetId: 1073742179,
+      autoLibrary: false,
+      templateId: 1073742195
+    })
+    assert.equal(result.templateId, 1073742195)
+    assertReplayEquals(
+      result.bytes,
+      load2('1073741909.after-补充2-第6步-实例再存模板-3257cb7f.gil'),
+      '实例无样式 补充2-6'
+    )
+  })
+  ok('补充2-第10步: 实例×3样式存模板（root9 全等；模板侧整树克隆+重绑）', () => {
+    const result = createTemplateCandidate(load2('1073741909.after-补充2-第9步-样式一加素材-8dd0629d.gil'), {
+      targetId: 1073742179,
+      autoLibrary: false
+    })
+    assert.equal(result.templateId, 1073742203)
+    assertReplayEquals(
+      result.bytes,
+      load2('1073741909.after-补充2-第10步-三样式存模板-e50c55b2.gil'),
+      '实例3样式 补充2-10'
+    )
+  })
+} else {
+  console.log('skip 3 - ui补充 快照目录缺失')
+}
 
 console.log(`PASS ${passed} templateize-replay assertions`)
