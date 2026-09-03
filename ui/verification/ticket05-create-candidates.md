@@ -29,7 +29,7 @@ donor 矩阵（kind × 放置面）= 80 快照内该控件**首次新建事件**
 文本框/图片「布局面」无编辑器新建样本——create 层回退容器 donor + f504 重映射
 （跨面同构已被 input-box 双真实样本互 remap 逐字节相等实证，见 §2 ok 14）。
 
-## 2. 候选字节级断言（25/25 PASS）
+## 2. 候选字节级断言（28/28 PASS）
 
 ```bash
 npx tsx ui/tests/create-candidates-assert.ts
@@ -50,9 +50,10 @@ ok 20   - donor 回退: textbox/image 布局面 = 容器 donor + f504 重映射
 ok 21-22- resolveSurfaceTarget 归属/配对校验
 ok 23   - 全量快照: 80 个文件 × 5 kind 逐一 layout 面候选冒烟（禁抽查）
 ok 24   - 全量快照: 含容器 2084 的快照 × 4 kind 逐一 container 面候选冒烟
-        (container 面覆盖 45 个快照，跳过 35 个无 2084/无归属)
 ok 25   - fail-closed: message-queue 容器面无样本 → 显式报错
-PASS 25 create-candidate assertions
+ok 26-27- 布局创建: 轮0→轮1（1989+14 克隆）/ 轮1→轮2（2004+14，重名 _1）root9 全等重放
+ok 28   - 全量快照: 80 文件逐一布局创建冒烟（+1+14 / 成员 / 父引用 / 其余零改动）
+PASS 28 create-candidate assertions
 ```
 
 对拍方法学（本轮修正）：编辑器每次保存会**等长改写 root46 审计段**（差分笔记「root46 等长
@@ -147,9 +148,27 @@ ERROR: [error] create custom-button 本轮候选=编辑器默认形态（--text/
 ERROR: [error] 1073742085 不是悬浮页容器（kind=close-button 属控件/布局类）
 ```
 
-## 6. 未验证/需用户确认（三栏中的后两栏）
+## 6. 波 1 · 真实写回记录（ui学习 live，2026-09-03）
 
-- 尚未验证：真实 `--write` 写回后的编辑器可见/可细排；游戏内按钮显示/位置/点击/悬浮页事件
-  （行为层，票 08 等价验收，**用户按验收句式确认**）；`--text/--color/--font-size`（素材骨架 donor 未闭合）；
-  容器面 `--position/--size` 字节级同参对拍（无编辑器同参样本，仅语义回读）。
+```
+baseSha:   7f425bf2da5e7bf000b9fcc280c377c312d16994ef025d818a27b5f0b6d6c1a2  (live 现态)
+candSha:   285a13be7f57d3413398f1c09e06b86bc85ab6e4ed7898174551dbdcdd873762
+写入内容:  布局「游戏主菜单」1073742164（克隆默认布局 14 官方预置 2165..2178）
+          + 标题文本框 2155 / 玩家名输入框 2141 / 开始游戏 2140 / 设置 2139 / 退出 2138
+backup:    Beyond_Local_Save_Level/.gsts/backups/1073741909.gil.<stamp>.wave1.bak
+readback:  records 108→128，layouts=4，语义路径 布局:游戏主菜单:* 全 PASS
+temp sync: Temp/1073741909.gil 已同步
+```
+
+验收：编辑器打开 → 界面控件组管理 → 布局「游戏主菜单」看排版（AI 默认摆位仅供细排起点，
+玩家拖动后 AI 可用 diff 识别改动）。
+
+## 7. 未验证/需用户确认（三栏中的后两栏）
+
+- 尚未验证：真实 `--write` 写回后的编辑器可见/可细排（波1 已写回，等你编辑器验收）；
+  游戏内按钮显示/位置/点击/悬浮页事件（行为层，票 08 等价验收，**用户按验收句式确认**）；
+  `--text/--color/--font-size`（素材骨架 donor 未闭合）；容器面 `--position/--size` 字节级
+  同参对拍（无编辑器同参样本，仅语义回读）。
+- 波 2（模板化+样式微调）、波 3（运行时显示链路）排期中；全量 npm run build 被 football WIP
+  阻塞的说明见 §4。
 - 本样例全部命令均为只读（候选落 /tmp）；候选文件与 80 快照逐字节对拍见 §2/§3。
