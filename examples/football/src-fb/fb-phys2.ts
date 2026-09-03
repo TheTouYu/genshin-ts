@@ -357,7 +357,12 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const fPos = f._3dVectorAddition(posIn.value, f._3dVectorZoom(pDt.value, fVel))
       const fSpin = f._3dVectorZoom(pKwA.value, spinIn.value)
 
-      // —— 地面管线（滑/滚同构，减速率按输入态选择；Rest 冻结自然成立） ——
+      // —— 地面管线（滑/滚同构：decel 滚动阻力 + 5.3f4 每拍滑移消除耦合） ——
+      // 5.3f4：原实现 spin 向纯滚目标 gain 收敛与 decel 解耦 → 自旋凭空建立（平移不扣）
+      // = 3175 铁证 #93-95：贴地自旋 9.5→27→36→40 rad/s 三拍暴涨而 |v| 几乎不动
+      // （能量不守恒，观感"碰地后突然又快又转"）。改为每拍滑移冲量（与反弹拍同款
+      // 0.4/0.6 薄壁壳配对，比例=pGain）：slip 每拍消 g 比例，v 与 ω 同步转移 → 收敛
+      // 到纯滚 v=−ω·r 且能量守恒（纯滑→纯滚 v 降 0.6 倍，角动量守恒解）。
       const sPos = f.split3dVector(posIn.value)
       const sSpin = f.split3dVector(spinIn.value)
       const hSpdIn = f._3dVectorModuloOperation(
@@ -375,28 +380,35 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         2
       )
       const ratio = f.division(spd2, f.addition(hSpdIn, DIV_GUARD))
-      const gvx = f.multiplication(sVel.xComponent, ratio)
-      const gvz = f.multiplication(sVel.zComponent, ratio)
+      const gvx0 = f.multiplication(sVel.xComponent, ratio)
+      const gvz0 = f.multiplication(sVel.zComponent, ratio)
+      // 接触点滑移（用 decel 后速度；滚动同步后 slip→0 自然零增量；滑/滚同构全量耦合）
+      const slipX = f.addition(gvx0, f.multiplication(sSpin.zComponent, pR.value))
+      const slipZ = f.subtraction(gvz0, f.multiplication(sSpin.xComponent, pR.value))
+      // 每拍冲量比例 g=pGain：Δv=−0.4·g·slip（薄壁壳无滑配对）；Δωx=+0.6·g·slipZ/r；Δωz=−0.6·g·slipX/r
+      const dvx = f.multiplication(f.multiplication(new float(-0.4), pGain.value), slipX)
+      const dvz = f.multiplication(f.multiplication(new float(-0.4), pGain.value), slipZ)
+      const gvx = f.addition(gvx0, dvx)
+      const gvz = f.addition(gvz0, dvz)
       const gPos = f.create3dVector(
         f.addition(sPos.xComponent, f.multiplication(gvx, pDt.value)),
         pR.value,
         f.addition(sPos.zComponent, f.multiplication(gvz, pDt.value))
       )
       const gVel = f.create3dVector(gvx, 0, gvz)
-      // 自旋向纯滚目标 ω=(vz/R, 0, −vx/R) 收敛（gain），y 分量地面更快衰减
-      const invR = f.division(1, pR.value)
-      const tsx = f.multiplication(gvz, invR)
-      const tsz = f.multiplication(f.multiplication(gvx, -1), invR)
+      // 自旋同步转移（y 分量地面更快衰减）；v/ω 配对 Δv=−(2/3)·r·Δω → 收敛纯滚且能量守恒
+      const dSpinX = f.division(
+        f.multiplication(f.multiplication(new float(0.6), pGain.value), slipZ),
+        pR.value
+      )
+      const dSpinZ = f.division(
+        f.multiplication(f.multiplication(new float(-0.6), pGain.value), slipX),
+        pR.value
+      )
       const gSpin = f.create3dVector(
-        f.addition(
-          sSpin.xComponent,
-          f.multiplication(f.subtraction(tsx, sSpin.xComponent), pGain.value)
-        ),
+        f.addition(sSpin.xComponent, dSpinX),
         f.multiplication(sSpin.yComponent, pKwG.value),
-        f.addition(
-          sSpin.zComponent,
-          f.multiplication(f.subtraction(tsz, sSpin.zComponent), pGain.value)
-        )
+        f.addition(sSpin.zComponent, dSpinZ)
       )
 
       // —— 路由选择（物化：下游门框/墙/反弹/分类零重读） ——
