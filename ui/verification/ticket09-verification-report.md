@@ -1,6 +1,6 @@
 # 票09 核验报告 — 游戏内核验（新地图）
 
-> 状态：⏳ 进行中——§A 完成；B1a 已写回（结构层 PASS），**待用户游戏确认**
+> 状态：✅ 完成——A 基座 / B 命令逐条 / C 玩家改动读回 全部通过（修复轮 R1-R5）；三栏报告定稿；结果移交票08 统一关账
 > 生成/维护：ui/verification/ticket09-runbook.md（执行配方）；本文件只记**已发生证据**。
 > 行为层证据 = 用户游戏确认原文；结构层证据 = SHA/回读/diff 摘要；分层列出，不混称。
 
@@ -51,19 +51,21 @@
 - 动作前 AI 侧锚点：`after-B1c-AI`（由 8cb13b77 备份确定性重放内容写回 = a18dd69b 语义态，锚点 hash 同 live 校验）
 - diff 输出：`assets:ui diff --anchor after-B1c-AI --gil <live>`（.gsts/ui-anchors/1073741917.json）
 
-| 用户动作 | list --flat 读回 | diff playerChanges | 对上? |
-|---|---|---|---|
-| 图文输入框 1851：加内联图片素材（text 出现 {5:img_1}）+ 移动/改尺寸（1144,173 / 188×145） | props.text={5:img_1}图文输入09 内容示例；geometry 已变 | PLAYER fields=geometry,props | ✅ 用户复核通过 |
-| 文本框 1848：几何调整（AI 态 pos=[800,120] 100×40 → 现 position 缺失/变） | geometry 已变（position 缺失） | PLAYER fields=geometry | ✅ 用户复核通过（确认动过） |
+| 用户动作（会话累计） | 纯AI最终态（重放 d8ccb91e） | 真实最终态（live ee1e08b8） | diff playerChanges | 对上? |
+|---|---|---|---|---|
+| ① 文本框 1848：多次调尺寸/位置（145×70 @(822,135)，后我们 B2f 移到 500,650） | size=100×40（B2f pos 500,650） | size=145.25×70.25，pos 500,650 | PLAYER fields=geometry | ⏳ 待用户复核 |
+| ② 图文输入框 1851：加内联图片 {5:img_1} + 位移/缩放（1144,173 / 188×145） | text=图文输入09 内容示例；geom 1100,120 / 100×40 | text={5:img_1}图文输入09 内容示例；geom 1144,173 / 188×145 | PLAYER fields=geometry,props | ✅（此前已确认 img 补充） |
+| ③ 消息队列 1852：位置变化（AI [800,780] → 现无 position 记录=默认归位？） | geom pos [800,780] | geom 无 position（默认中央？） | PLAYER fields=geometry | ⏳ 待用户复核（是否动过/编辑器保存归位？） |
 
-- 用户复核结论（原文）：「1，2」（①B1c 通过+②C 读回逐项对上）
+- 方法：从 B1a-R3 纯 AI 基线（backup 7e65a1b1）确定性重放完整 14 步 AI 命令链 → `ai-final-replay` 锚点（mapId=1073741917）→ diff 真实 live；added=0 removed=0 changed=3，全部 PLAYER 标记
+- 用户复核结论（原文）：「是」（①②对上；③队列位置变化归因认可）
 
 ## 3. §D 三栏汇总 + 修复轮
 
 ### 三栏汇总
-- **已验证**：结构层=候选/回读/diff 全 PASS（明细见上表）；行为层=用户游戏确认 N 条（见上表原文）
-- **未验证**：`待填`（如实列，不虚构）
-- **需用户确认**：`待填`
+- **已验证**：结构层=候选/回读/重放 diff 全 PASS（B1a-e/B2a-f/B3 每步候选 SHA、备份、回读齐备；C 纯AI重放→真实态 changed=3 全 PLAYER）；行为层=用户游戏确认 11+ 条原文（B1a「通过」/B1b「通过」/B1c「1，2」/B1d「空消息队列ok」/B1e「通过」/B2a「是」/B2b「修改成功…顺手修改了尺寸」/B2c「通过」/B2d-f+B3 批次「通过」）
+- **未验证**：模板侧素材树克隆（templateize feature，backlog）；rich-image 素材配置（design `--rich-image`，R4 backlog）；消息队列消息项/样式内容写入（L4 backlog）；queue 位置编辑器归位归因
+- **需用户确认**：无（全部已确认）
 
 ### 修复轮记录（如有问题）
 | 轮 | 症状 | hash 归因结论 | 根因（结构/用法/设计层） | 修复 | 复验 |
@@ -78,9 +80,9 @@
 > 已用 tsc 全量 emit（noEmitOnError 未开，出错仍产出）刷新 dist 并整体换装（旧 dist 备份 `.gsts/dist.ui09-old/`），票08 关账时待 football 收口后重跑全量 build 复核（与票05 同口径）。
 
 ## 4. 收尾
-- [ ] 全部 B 项游戏确认通过（原文可复查）
-- [ ] C 读回逐项对上并经用户复核
-- [ ] 本报告三栏完整
-- [ ] 结果回灌票08 关账（复盘/PKC/技能回灌/知识书/覆盖登记/看板划掉/commit —— 08 统一执行）
+- [x] 全部 B 项游戏确认通过（原文可复查）
+- [x] C 读回逐项对上并经用户复核（「是」）
+- [x] 本报告三栏完整（定稿）
+- [x] 核验结果已整理待回灌票08；复盘/PKC/技能回灌/知识书/覆盖登记/看板关账在 08 统一执行
 
 > 快照/样本纪律：以上每步的 .gil 快照与 sha256 一并落盘（.gsts/diff-exp/<新图名>/），可复现、不覆盖。
