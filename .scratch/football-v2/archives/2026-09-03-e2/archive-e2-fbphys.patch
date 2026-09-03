@@ -1,0 +1,67 @@
+diff --git a/examples/football/src-fb/fb-phys.ts b/examples/football/src-fb/fb-phys.ts
+index 28a787b..0c125e0 100644
+--- a/examples/football/src-fb/fb-phys.ts
++++ b/examples/football/src-fb/fb-phys.ts
+@@ -12,13 +12,14 @@
+ //     t2..t4=pos×1000, t5..t7=vel×1000, t8=state）；dispatcher 测试载荷 t1=pe*1000+1
+ //     恒为未知类型——跳过应用但仍走 seqlock/ack（E1 观测面不断链）
+ //   · 回传：sendSignalToServerNodeGraph(fb_ball_state, 'P', base_tick, pos, vel,
+-//     spin, state)；tag='T'=镜像二读撕裂（服务端不应用，gate 保持开重算）
++//     spin, state)；tag='T'=镜像二读撕裂（服务端不应用；E2 后客户端不再依赖 gate 重开）
+ //   · 镜像写者=服务端唯一：本图只读镜像+积分+回传，不写任何 fb_ball_*/运动器
+-// 一拍流程（T3）：
+-//   空转（gate=0 无任务）≈ 4 变量读+比较（E1 实测 ~450B 同量级）；
++// 一拍流程（T3，E2/票17 后客户端不再等 gate 拍门）：
++//   停球空转（state==Rest 且无任务）≈ 变量读+比较，不发 P；
+ //   任务拍（epoch≠ack 且 sum 过）→ 解码物化 → 镜像一致才 ack（否则 tearE 交看门狗
+-//     重提交）→ 应用+积分一拍 → 回传 'P'（服务端收 ack 唤醒 beat 拍门）；
+-//   拍门拍（gate=1 且 epoch==ack）→ 镜像 11+参数 19 当拍物化 → 六态积分一拍 → 回传。
++//     重提交）→ 应用+积分一拍 → 回传 'P'（服务端收 ack 唤醒 beat）；
++//   常开拍（state≠Rest 且 epoch==ack，不再依赖 fb_ball_gate）→ 镜像 11+参数 19 当拍
++//     物化 → 六态积分一拍 → 回传（每施放都试算并发 P，服务端 first-wins 照旧）。
+ // 物理数学：v4 物理复合族结构（PORTING-MAP §0「结构已对齐」）+ 定稿参数值全部来自
+ //   fb_p_* 19 变量快照（图内零参数字面量；几何/编码/枚举字面量不属物理参数——
+ //   PORTING-MAP §1.6 玩法边界/门框几何明确不参数化）。
+@@ -104,19 +105,27 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
+     })
+   }, () => {})
+
+-  // ============ ④ 球寻址（E5 主链）+ 拍门读 ============
++  // ============ ④ 球寻址（E5 主链）+ 停球判定读（E2/票17：gate 拍门退役） ============
+   const self = f.getSelfEntity()
+   const ballRef = f.localVariable('entity')
+   ballRef.set(f.getCustomVariable(self, 'fb_ball_entity').asType('entity'))
+-  const gate = f.getCustomVariable(ballRef.value, 'fb_ball_gate').asType('int')
++  // E2：不再读 fb_ball_gate（服务端拍门关门/重开节流=近距 apply 主瓶颈，票 13 结论）。
++  // Rest 防呆改由镜像 state≠4 承担：球停且无任务时空转不试算，避免每施放空算回传洪泛。
++  // 与 ⑤ 各读一次 state：镜像若在拍间翻转至 Rest，最多多算一拍，服务端 first-wins/
++  // 停拍语义兜底；与旧版 gate 读同为拍内非原子读，不新增撕裂面。
++  const stGate = f.getCustomVariable(ballRef.value, 'fb_ball_state').asType('int')
++  // R1(3129 判读)：常开放行 75% 垃圾 P（tick 空读=None、自旋 nan；服务端 0 nan=发送侧即被拒，负载/异常源）。
++  // 加镜像就绪门 mirrorTick>0（镜像至少应用过一次）；任务拍不受影响（KICK/RESET 照旧）。
++  const mirrorTick = f.getCustomVariable(ballRef.value, 'fb_ball_tick').asType('int')
+
+-  // 计算拍条件：本拍有真实任务 ∨ (拍门开 ∧ 寄存器空闲)。
+-  // 后者防「任务在途/撕裂未决」时从旧镜像计算顶掉任务回传（first-wins 掉拍）。
++  // 计算拍条件：本拍有真实任务 ∨ (镜像 state≠Rest ∧ 镜像已就绪 mirrorTick>0 ∧ 寄存器空闲 e==a)。
++  // e==a 防「任务在途/撕裂未决」时从旧镜像计算顶掉任务回传（first-wins 掉拍）。
+   const hasTask = f.greaterThan(tPend.value, 0n)
+-  const gateOpen = f.equal(gate, 1n)
++  const ballRest = f.equal(stGate, 4n)
++  const mirrorReady = f.greaterThan(mirrorTick, 0n)
+   const shouldCompute = f.logicalOrOperation(
+     hasTask,
+-    f.logicalAndOperation(gateOpen, eEq.value)
++    f.logicalAndOperation(eEq.value, f.logicalAndOperation(f.logicalNotOperation(ballRest), mirrorReady))
+   )
+   f.doubleBranch(shouldCompute, () => {
+     // ============ ⑤ 镜像读 11（tick 二读防撕裂）+ 当拍物化 ============
+@@ -581,7 +590,7 @@ g.creationSkill({ id: 1082130433, name: '_GSTS_fbPhysSkill' }).on('start', (_evt
+         f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'e5', dmm, tick.value)
+       }, () => {})
+     }, () => {
+-      // —— 镜像撕裂：任务拍 tearE（不 ack → 看门狗重提交）；拍门拍 'T'（不应用，重算） ——
++      // —— 镜像撕裂：任务拍 tearE（不 ack → 看门狗重提交）；非任务拍 'T'（不应用，回显镜像待下拍重算） ——
+       f.doubleBranch(hasTask, () => {
+         f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'tearE', e1, tick.value)
+       }, () => {

@@ -223,7 +223,8 @@ GIL 整体结构与语义树
   [第一阶段交付复盘](retrospective-2026-08-31-football-physics-core-delivery.md)（22 错误谱系+三规律）、
   [R2 客户端物理半边复盘](retrospective-2026-09-03-football-r2-client-physics.md)
   （03→04→05 三票+两轮复测修正：def ID 冲突/旋转缺口/日志洪泛/实体风暴/反弹不动点 六错谱系+三规律）、
-  [R3 九选项入口全闭环](retrospective-2026-09-03-football-r3-kick-entry.md)（票 06 收口：撕裂风暴发现链/判读三件套/闭包数组索引与分支句柄算术两新坑）
+  [R3 九选项入口全闭环](retrospective-2026-09-03-football-r3-kick-entry.md)（票 06 收口：撕裂风暴发现链/判读三件套/闭包数组索引与分支句柄算术两新坑）、
+  [E2 gate 常开判负](retrospective-2026-09-03-e2-gate-open-negative.md)（票 17：抬频≠手感/负载代价/20Hz 同步目标重定向，代码归档 .scratch/football-v2/archives/2026-09-03-e2/）
 - **客户端图与日志**：[客户端图读法](retrospective-2026-08-28-rubik-client-graph-reading.md)、
   [服务端↔客户端调用链](retrospective-2026-08-28-client-server-call-chain.md)、
   [事件线工具闭环](retrospective-2026-08-28-client-log-flow.md)、
