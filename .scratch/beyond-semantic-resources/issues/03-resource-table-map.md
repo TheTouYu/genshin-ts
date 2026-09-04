@@ -12,16 +12,20 @@
 
 **Blocked by:** None — 可在票 01/02 并行；产出物为 inventory 文档 + 看板资产速查更新。
 
-**Status:** ⏳ open
+**Status:** ✅ done (2026-09-04)
 
 **验收 checkbox：**
-- [ ] 编辑器 Json 树全量枚举完成（含 Config 内层），产出表地图
-- [ ] 主游戏 StreamingAssets 有界清单完成（beyond/ugc/blk 相关）
-- [ ] 每表标注解析状态 + 疑似域 + 是否 ID→配置目录；候选语义池已标出
-- [ ] 落盘 inventory（如 `docs/game-engine-knowledge/semantic-resource-inventory.md`）
-- [ ] 回填 `semantic-resource-pipeline.md` 表盘点 + BOARD 资产速查
-- [ ] `git diff --check` + 精确提交 + 收轮三件套
+- [x] 编辑器 Json 树全量枚举完成（含 Config 内层），产出表地图
+- [x] 主游戏 StreamingAssets 有界清单完成（beyond/ugc/blk 相关）
+- [x] 每表标注解析状态 + 疑似域 + 是否 ID→配置目录；候选语义池已标出
+- [x] 落盘 inventory（如 `docs/game-engine-knowledge/semantic-resource-inventory.md`）
+- [x] 回填 `semantic-resource-pipeline.md` 表盘点 + BOARD 资产速查
+- [x] `git diff --check` + 精确提交 + 收轮三件套
 
 ## 轮次记录
 
 - （规划 2026-09-04：管线文档已建，见 `docs/game-engine-knowledge/semantic-resource-pipeline.md`）
+- （票03 执行 2026-09-04：全量枚举 Json 树 4098 个 `.mihoyobin`，4098/4098 通过 XOR+protobuf 顶层解析；
+  TextMap 实测 15 语言；新增 `Beyond/Official/` 三族共 3280 文件；效果 ID 1720001/2110001/2010001 varint 扫描 0 命中；
+  主游戏 StreamingAssets 有界清单完成，候选语义池 = 主游戏 blocks/*.blk > BeyondEditor.dll/assets.bin 加密内层；
+  产物 `docs/game-engine-knowledge/semantic-resource-inventory.md`）

@@ -1,6 +1,6 @@
 # 语义资源管线（Semantic Resource Pipeline）规划
 
-> 状态：当前规划（2026-09-04 用户定调，尚未执行）
+> 状态：当前规划（Discover 票03 已产出 inventory；Decode/Integrate 待推进）
 > 来源：2026-09-04 探索——`.mihoyobin` 容器破解 + 多语言 TextMap 发现 + 编译器现有接入链路分析
 > 适用范围：Beyond 编辑器/主游戏的“数字 ID → 语义名/配置”官方资源表
 
@@ -40,14 +40,19 @@
 
 ## 当前已知表族盘点
 
-| 表族 | 路径 | 状态 | 覆盖域 |
-| --- | --- | --- | --- |
-| TextMap | `Resource/Json/TextMap/<语言>/*.mihoyobin` | ✅ 可解（CHS 7743 条） | 节点/pin/枚举/UI 文案（**非效果配置名**） |
-| Node | `Resource/Json/Beyond/Node/*.mihoyobin` | ✅ 可解（799） | 节点定义（genericId/pins/名 hash） |
-| BeyondGlobal | `Resource/Json/Beyond/BeyondGlobal/*.mihoyobin` | ✅ 可解 | 枚举（102，含 Skill Slot 等） |
-| Config/JsonConfig | `ShortCutKey` / `SynonymsLibrary` | 🔶 未深入 | 快捷键/同义词？ |
-| assets.bin | `Resource/BeyondAssets/assets.bin` | 🔒 ZIP + 加密内层 | 未知（编辑器剩余资源候选） |
-| 主游戏数据 | `YuanShen_Data/StreamingAssets/*.blk` | ❌ 未挖 | 效果/配置目录候选（票 01） |
+> 详细 inventory：`semantic-resource-inventory.md`（票 03 全量枚举与候选语义池）
+
+| 表族 | 路径 | 状态 | 覆盖域 | 是否“ID→配置”目录表 |
+| --- | --- | --- | --- | --- |
+| TextMap | `Resource/Json/TextMap/<语言>/*.mihoyobin` | ✅ 可解（15 语言，CHS 7743 条） | 节点/pin/枚举/UI 文案（**非效果配置名**） | 否（hash→多语文案） |
+| Node | `Resource/Json/Beyond/Node/*.mihoyobin` | ✅ 可解（799） | 节点定义（genericId/pins/名 hash） | 是 |
+| BeyondGlobal | `Resource/Json/Beyond/BeyondGlobal/*.mihoyobin` | ✅ 可解 | 枚举（102，含 Skill Slot 等） | 是 |
+| OfficialPrefab | `Resource/Json/Beyond/Official/OfficialPrefab/*.mihoyobin` | 🔶 容器可解、schema 未登记（2484） | 官方预制体/资产模板 | 是（疑似） |
+| OfficialCompoundNode | `Resource/Json/Beyond/Official/Blueprint/OfficialCompoundNode/*.mihoyobin` | 🔶 容器可解、schema 未登记（656） | 官方复合节点蓝图/图定义 | 是（疑似） |
+| Struct | `Resource/Json/Beyond/Official/Struct/*.mihoyobin` | 🔶 容器可解、schema 未登记（140） | 结构体/类型布局 | 是（疑似） |
+| Config/JsonConfig | `ShortCutKey` / `SynonymsLibrary` | ✅ 可解（3 文件，嵌套字符串已读） | 快捷键/同义词搜索库 | 否 |
+| assets.bin / beyondeditorassets.bin | `Resource/BeyondAssets/` | 🔒 ZIP + 加密内层 | 未知（编辑器剩余资源候选） | 未知 |
+| 主游戏数据 | `YuanShen_Data/StreamingAssets/AssetBundles/blocks/*.blk` | ❌ 未挖（1925 块） | 效果/配置目录候选（票 01） | 未知（需解包索引） |
 
 ## 票映射（工程推进入口 `.scratch/beyond-semantic-resources/BOARD.md`）
 

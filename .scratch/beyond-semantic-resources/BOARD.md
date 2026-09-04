@@ -10,12 +10,16 @@
 
 - 知识 Authority：`docs/game-engine-knowledge/beyond-editor-semantics.md`
 - 管线规划：`docs/game-engine-knowledge/semantic-resource-pipeline.md`（Discover/Decode/Integrate 三阶段）
+- 表地图 inventory：`docs/game-engine-knowledge/semantic-resource-inventory.md`（票03 已产出）
 - 本地语义资源根（编辑器）：
   `/mnt/e/ys/Genshin Impact Game/BeyondAssets/BeyondAssistEditor/Resource/Json/`
   - `TextMap/<语言>/<hash>.mihoyobin`：每语言一个；CHS 实测 7743 条节点/枚举名，**不含状态效果名**
   - `Beyond/Node/<hash>.mihoyobin`：每节点一个（genericId=4.1.5；名 hash=206）
   - `Beyond/BeyondGlobal/<hash>.mihoyobin`：枚举容器
-  - `Config/JsonConfig/`：ShortCutKey / SynonymsLibrary（未深入）
+  - `Beyond/Official/OfficialPrefab/<hash>.mihoyobin`：官方预制体（2484，schema 未登记）
+  - `Beyond/Official/Blueprint/OfficialCompoundNode/<hash>.mihoyobin`：官方复合节点蓝图（656，schema 未登记）
+  - `Beyond/Official/Struct/<hash>.mihoyobin`：结构体/类型布局（140，schema 未登记）
+  - `Config/JsonConfig/`：✅ 可解（ShortCutKey 1 文件；SynonymsLibrary CHS/EN 2 文件）
 - 容器格式：`.mihoyobin` = 逐字节 XOR 0xE5 → protobuf。
   解析参照：`scripts/nodegraph/extract-mihoyo-editor-names.ts`（XOR_KEY=0xe5）
 - 已知缺口：
@@ -27,7 +31,7 @@
 
 ## 当前前沿
 
-**→ 票 01 定位并解析状态效果语义目录源**（OPEN，可开工）。
+**→ 票 01 定位并解析状态效果语义目录源**（OPEN，可开工；票03 inventory 底图已就绪，见 `semantic-resource-inventory.md`）。
 
 ## 票据清单
 
@@ -35,9 +39,10 @@
 | --- | --- | --- | --- |
 | 01 | 定位并解析状态效果语义目录源 | None | OPEN |
 | 02 | lookup 检索工具 + DSL 技能接入 | None | OPEN |
-| 03 | 语义资源表地图盘点（Discover） | None | OPEN |
 
 ## 已完成（划掉区）
 
 - ~~**00 · 知识落盘 + 建票（票外，2026-09-04）**~~（`docs/game-engine-knowledge/beyond-editor-semantics.md` 落盘；
   知识书索引/关系图登记；本看板 + 票 01 建立；差分实验快照锁定 v21 不变）
+- ~~**03 · 语义资源表地图盘点（Discover，2026-09-04）**~~（Json 树全量枚举 4098 `.mihoyobin` + StreamingAssets 有界清单；
+  inventory 落盘 `docs/game-engine-knowledge/semantic-resource-inventory.md`；票详情见 `issues/03-resource-table-map.md`）
