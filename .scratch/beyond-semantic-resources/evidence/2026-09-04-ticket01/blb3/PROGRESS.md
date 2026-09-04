@@ -69,3 +69,17 @@
 - 已确认 wire：4字节大端长度 + HAblp 信封 + payload 固定 XOR 0xEA + protobuf
 - XOR 后数据在 ~1.57MB 处命中 1720001/2110001/2120001/2130001/590001 varint
 - 未在已解数据中找到候选 TextMapHash；需继续解析 protobuf schema/抓下拉小消息
+
+## 票01 .NET IL 深挖新增（2026-09-04 续）
+
+- 用 ilspycmd + dnlib + Windows 反射确认：
+  - `CustomRoleStatus=1900` / `OfficialRoleStatus=2000` 的加载器实际是 delegate 链；
+  - `OfficialRoleStatus` → 参数三元组 `(10003, 50004, 51000)`
+  - `CustomRoleStatus` → 参数三元组 `(10003, 50004, 51001)`
+- 该三元组被 `IxxdqjiYXvUxMvfd5Mwm` 静态字典登记为：
+  - key 2 → [10003, 50004, 51000]（Official）
+  - key 3 → [10003, 50004, 51001]（Custom）
+- 证据：`OOZNfNKM3d3pQx6knhPM.f2VPU0KMAFsCU60ufwiU` 内 `Pe0K1rjVuV1`/`YyJK1nFwP3T`；
+  Windows DelegateInspector 输出见 `work/ticket01-effect-catalog-dotnet/notes/`（本地，未提交）。
+- 含义：这是 BeyondEditor 内部“资源分类 ID”，不是文件路径/TextMapHash；
+  BeyondEditor 本地仍不含 `effectID→TextMapHash`，映射应在游戏侧（IPC 服务/IL2CPP/静态 Blb）。
