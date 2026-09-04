@@ -204,8 +204,19 @@ npx tsx tools/list-gil-node-graphs.ts <map.gil>
 ### 已锁定实验的快速续轮
 
 上一轮已锁定 `map path/mapId`、`nodeGraphId`、前快照和下一轮唯一变化时，不重复 PKC 查询、
-`gsts maps`、全图列表或无关文档加载。直接：当前地图 hash 比对 → 复制新快照复核 →
-固定 nodeGraphId 相邻差分 → 更新 manifest 恢复块并约定下一轮唯一变化。
+`gsts maps`、全图列表或无关文档加载。直接一条命令完成本轮取证（2026-09-04 资产化，
+**禁止再粘贴内联解析脚本**）：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/gil-quick-diff.py \
+  <LOCKED_BEFORE 快照> <当前地图.gil> \
+  --capture-dir <实验目录>/raw --snap <语义名-vN> [--record <配置ID>] [--effect-list]
+```
+
+自动完成：hash 门禁（两文件相同 → exit 2，先向用户确认保存）→ 不覆盖捕获新快照+sha256 →
+root 差分 + 子记录级 delta（每条一行紧凑解码）→ 焦点深解码（`--record` 定位 root15/16 资产
+记录、`--effect-list` 对比状态效果列表），尾部直接输出下轮 `LOCKED_BEFORE/LOCKED_HASH` 两行。
+收尾：把两行写回 manifest 并 `sha256sum` 复核一致（替换未命中必被发现，2026-09-04 实证）。
 
 只有以下情况才退出快速续轮重新定位：
 
