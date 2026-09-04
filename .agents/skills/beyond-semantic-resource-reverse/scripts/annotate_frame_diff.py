@@ -25,10 +25,32 @@ def short(v, limit=80):
     return s if len(s) <= limit else s[:limit] + '…'
 
 
-def kind_of(change):
+def decode_varint_list(hex_str):
+    b = bytes.fromhex(hex_str)
+    pos = 0
+    out = []
+    while pos < len(b):
+        v = 0
+        shift = 0
+        start = pos
+        while pos < len(b):
+            byte = b[pos]
+            pos += 1
+            v |= (byte & 0x7f) << shift
+            if not (byte & 0x80):
+                break
+            shift += 7
+            if pos - start > 6:
+                return out
+        out.append(v)
+    return out
+
+
+def kind_of(change, name_by_id=None):
     k = change[0]
     path = change[1]
     payload = change[2:]
+    name_by_id = name_by_id or {}
     if k == 'ADD':
         return f'新增列表项 @ {path}'
     if k == 'REMOVE':
@@ -37,10 +59,16 @@ def kind_of(change):
     old, new = payload[0], payload[1]
     if isinstance(old, str) and isinstance(new, str):
         if re.fullmatch(r'[0-9a-fA-F ]+', old) and re.fullmatch(r'[0-9a-fA-F ]+', new):
-            # byte list growth heuristic
             if new.startswith(old + ' '):
-                added = new[len(old):].strip()
-                return f'字节列表追加 @ {path} (+{added})'
+                added_hex = new[len(old):].strip()
+                ids = decode_varint_list(added_hex)
+                if ids:
+                    labels = []
+                    for i in ids:
+                        n = name_by_id.get(i)
+                        labels.append(f'{i}' + (f'({n})' if n else ''))
+                    return f'packed ID 列表追加 @ {path} (+{[short(x, 40) for x in labels]})'
+                return f'字节列表追加 @ {path} (+{added_hex})'
             return f'字节变化 @ {path}'
         return f'文本变化 @ {path}: {short(old)} → {short(new)}'
     return f'字段变化 @ {path}'
@@ -67,10 +95,13 @@ def main() -> None:
     for c in diff.get('changes', []):
         aid = c['assetId']
         name = name_by_id.get(aid, f'<{aid}>')
+        if aid == 1073741840:
+            title = '控件组容器(未入布局实例列表)'
+            name = title
         lines.append(f'## ${aid} {name}')
         lines.append(f'- {c["from"]} → {c["to"]}')
         for ch in c['changes'][:10]:
-            lines.append(f'  - {kind_of(ch)}')
+            lines.append(f'  - {kind_of(ch, name_by_id)}')
         if c.get('truncated'):
             lines.append(f'  - ...（共 {c["changeCount"]} 条，截断显示）')
         lines.append('')
