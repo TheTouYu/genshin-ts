@@ -77,3 +77,10 @@
   4. animeblkstuff map_helper.json（6.1，21% 覆盖）无 RoleStatus/Beyond 路径名；GI-StaticParser
      常数与该 CN7.0.0 构建不匹配（header-dump 报 could not locate embedded MHY header）。
   结论：官方状态 10100002.. 的静态宿主仍未定位；建议下一步用编辑器“打开官方状态详情/复制为自定义”抓 IPC。）
+- （票01 官方状态→效果全量捕获 2026-09-05：通过 RawCap 多次“复制官方状态为自定义→保存→选中”最小差分，
+  type1017 拿到 10100002..10100017 全部 effectIds：
+  02=[20001](早前直接),03=[400001],04=[380001],05=[510001,2110001],06=[450001],
+  07=[680001],08=[100001],09=[120001],10=[],11=[400007],12=[400003],13=[400004],
+  14=[400006],15=[400005],16=[400002],17=[460001,380001]。
+  机器可读：`resources/official_status_effects.json`、`evidence/.../ipc/official_status_copy_captures.json`。
+  仍未定位 effectID→TextMapHash 映射；下一主攻含 effectID 的 242/255 MiHoYoBinData 对象。）

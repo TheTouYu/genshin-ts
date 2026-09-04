@@ -37,7 +37,9 @@
 
 ## 当前前沿
 
-**→ 票 01 定位并解析状态效果语义目录源**（OPEN；已确认 IPC type1017 只含可用状态 ID 列表+当前自定义状态详情，**官方状态 10100003..10100017 内部效果不在 IPC**；MiHoYoBinData 无 XOR；IL2CPP 静态被 MHY 加密 metadata 挡；BeyondEditor RoleStatus 只到资源三元组。下一步主攻**游戏静态源**（Blb/行表/运行时 metadata），锚点：官方 10100002→effect 20001。证据见 `ipc/PROGRESS-IPC.md`、`type1017_status_catalog_round2.json`、`beyond-editor-semantics.md`、技能 `beyond-semantic-resource-reverse`）。
+**→ 票 01 定位并解析状态效果语义目录源**（OPEN；**官方状态 10100002..10100017 的内部 effect 已通过“复制为自定义→type1017”逐批捕获**：
+`resources/official_status_effects.json` + `evidence/.../ipc/official_status_copy_captures.json`；
+仍缺 effectID→TextMapHash→中英文名的机器可读映射。下一主攻：解析 242/255 MiHoYoBinData 中含 effectID 的对象（pathID 849 等）或编辑器效果列表差分。）
 
 ## 票据清单
 
