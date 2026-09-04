@@ -8,6 +8,22 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 把用户在游戏编辑器中的小变化转换成可复查的相邻快照、定点差分和同构重放证据，并把稳定规则接回 `docs/game-engine-knowledge/`。目标是持续还原游戏引擎，而不是在每个新会话中重新调查，或只为当前生产代码打补丁。
 
+## ⚡ 快速启动（差分）
+
+用户明确要“差分 / 保存初始差异点 / 开始最小编辑实验”时，**不要读下面长文**，直接运行：
+
+```bash
+python3 .agents/skills/editor-incremental-gia-investigator/scripts/quickstart_diff.py <实验名>
+```
+
+该脚本自动完成：
+
+1. 定位当前地图（Beyond_Local_Save_Level 下最近修改的 `.gil`）；
+2. 物理复制 before 快照到 `evidence/<date>-<实验名>/before/` + SHA-256；
+3. 打印 READY 信息，随后告知用户“请在编辑器做一个最小变化并保存”。
+
+之后用户保存后再运行 `scripts/gil-quick-diff.py <before> <after>` 即可进入差分，不需要重新盘点。
+
 ## 硬约束
 
 - 默认全程只读；复制快照到 `/tmp` 不构成真实地图写回。

@@ -9,6 +9,23 @@ metadata:
 
 # Beyond Semantic Resource Reverse
 
+## ⚡ 快速启动（IPC 抓包）
+
+用户明确要“抓 IPC / 抓包 / 轻量启动 / 开始抓数据”时，**不要读下面长文**，直接运行：
+
+```bash
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py <probe名>
+```
+
+该脚本自动完成：
+
+1. 定位当前地图（最近修改的 `.gil`）；
+2. 物理保存 before 快照 + SHA-256；
+3. 启动 RawCap 到 `C:\beyond-ipc\<probe>.pcap`；
+4. 打印 READY 信息，随后把“请做一个最小变化”告诉用户即可。
+
+如果用户还要继续分析，再按下方“入口”加载最小必要上下文，不要重复翻全量文档。
+
 ## 为什么有这个技能
 
 票 01 已经反复证明：这个领域的坑不是“找不到文件”，而是“历史产物状态不可信”和“本地编辑器代码只能证明映射不在本地”。
@@ -76,6 +93,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/process_type1017_capture.py`
+- GIL root9 UI 名称表构建（补 IPC 缺名）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/build_ui_instance_name_table.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
 - 通用官方资产抓取 runbook（预制体/实体/怪物/技能/蓝图等）：
