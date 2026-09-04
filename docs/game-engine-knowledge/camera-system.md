@@ -21,7 +21,7 @@
 
 #### GIL 编码（root 18 镜头容器，真实 GIL 确认）
 
-> 来源：component-investigation exp14/exp17（2026-08-05）；既有结论见 gil-structure-semantics.md“自定义镜头”小节
+> 来源：component-investigation exp14/exp17（2026-08-05）；既有结论见 gil-editor-assets-semantics.md“自定义镜头”节
 
 - **root 18** 是镜头容器，每条 `18.1` record 一个镜头：`{1: 自增ID, 2: {1: UTF-8镜头名, ...参数}}`
 - 新增镜头 = append 一条 record（ID 自增，当前样本 1073741825/26）；**删除镜头 = 移除对应 record**（exp17 实测：删除"自定义镜头_1"后 208B→83B，其余 root 全部不动）
@@ -96,7 +96,7 @@
 接受。自定义镜头 identity、名称和“物件镜头”类型切换已观察到受限 raw 结构；“镜头视野
 检测”在当前物件镜头中对应一个 fixed32 参数候选。显示值 `45`、`60`、`33.83` 分别观察到
 raw `45.0000305`、`60.0`、`33.8265572`，因此 UI 显示值与文件浮点值不能直接视为同一
-精度。完整路径和证据边界见 [GIL 整体结构与语义树](gil-structure-semantics.md) 及证据汇总
+精度。完整路径和证据边界见 [GIL 编辑器资产结构语义](gil-editor-assets-semantics.md) 及证据汇总
 `camera-semantics.json`；本轮没有 round-trip、写回、编辑器导入或游戏行为验证。
 
 ## 与其他知识的关系

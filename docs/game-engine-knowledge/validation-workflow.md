@@ -146,7 +146,7 @@ protobuf 字段缺失、显式空值和显式默认值必须分别记录。当�
 missing/default presence、量化、可逆性或冲突本身是当前问题时追加，并预先说明该附加样本要
 回答什么。附加精度证据不能反过来降低已接受路径的状态。
 
-当前“自由新建 / 自由修改”受限实例见 [GIL 整体结构与语义树](gil-structure-semantics.md)，原始批次证据由独立证据仓库提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；全 root raw-byte 比较对空图创建轮次的等长变化补充由提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。
+当前“自由新建 / 自由修改”受限实例见 [GIL 节点图与图资产结构语义](gil-nodegraph-semantics.md)，原始批次证据由独立证据仓库提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；全 root raw-byte 比较对空图创建轮次的等长变化补充由提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。
 
 ### 重复调查操作的资产化门槛
 

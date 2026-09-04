@@ -14,7 +14,7 @@
 
 1. [游戏运行生命周期](game-lifecycle.md)
 2. [关卡结构](level-structure.md)
-3. [GIL 整体结构与语义树](gil-structure-semantics.md)
+3. [GIL 整体结构与语义树](gil-structure-semantics.md)（结构文档族：[静态场景](gil-static-scene-semantics.md) / [节点图资产](gil-nodegraph-semantics.md) / [编辑器资产](gil-editor-assets-semantics.md) / [单位状态](unit-status.md)）
 4. [资产、关卡保存与导出文件](assets-and-files.md)
 5. [组件](components.md)
 6. [运动器（Motion Device）运行时行为](motion-devices.md)
@@ -63,9 +63,10 @@ GIL 整体结构与语义树
 ├── 已确认两个同类型样本中的 definition → instance → owner 链
 ├── 已确认两个场景实体样本中的 entity → definition reference → owner 链
 ├── 已确认官方预制元件引用 → 自定义元件 → 实体三层链路（root 8 单写/
-│   root 4 定义/root 5 实体 + root 6 页签类别 400/100/200，见 gil-structure-semantics.md）
+│   root 4 定义/root 5 实体 + root 6 页签类别 400/100/200，见 gil-static-scene-semantics.md）
 ├── 已确认默认节点图的自由新建记录、稳定 ID 与显式 UTF-8 名称字段
 ├── 已确认节点图 A 自由新增“关卡开始时”节点的单节点增量
+├── 领域细节按域拆分为静态场景/节点图资产/编辑器资产/单位状态四文档（2026-09-04）
 └── 隔离 root 46 等长同步变化，按章节和编辑器单变化继续闭合未知字段
 
 游戏运行生命周期

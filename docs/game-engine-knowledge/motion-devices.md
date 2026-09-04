@@ -66,7 +66,7 @@ v′ = u·(u·v) + (v − u·(u·v))·cosθ + (u×v)·sinθ
 ### 3.3 欧拉角约定（复用已闭合结论）
 
 编辑器旋转 = **YXZ 内旋**，矩阵 `R = Ry(β)·Rx(α)·Rz(γ)`，面板显示值 = wire 值（直写），
-详见 gil-structure-semantics.md（2026-08-08 用户分步样本 + wire 交叉闭合）。
+详见 gil-static-scene-semantics.md（2026-08-08 用户分步样本 + wire 交叉闭合）。
 组合旋转后 rotation 输出按同一约定反推，与"局部轴右乘"自洽（2026-08-13 复验）。
 
 > ⚠️ 2026-08-21 魔方朝向表事故：`GetEntityLocationAndRotation.rotate` 的返回值顺序是 **(x,y,z)**，
