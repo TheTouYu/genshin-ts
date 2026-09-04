@@ -3,13 +3,16 @@
   "title": "Beyond 官方角色状态 ID → TextMapHash → 中/英文名（部分样本）",
   "source": "用户 2026-09-04 提供 + TextMapCHS/EN CN7.0.0",
   "status": "partial-draft",
-  "coverage": "3 confirmed official role status names from user; full 10100002..10100017 list pending",
+  "coverage": "4 confirmed official role status names from user; full 10100002..10100017 list pending",
   "statuses": [
     {
       "statusId": 10100002,
       "zh": "加速",
       "en": "Accelerate",
-      "textMapHashes": [1810922115, 3485169531],
+      "textMapHashes": [
+        1810922115,
+        3485169531
+      ],
       "note": "用户提供官方状态；TextMapCHS/EN 有两个同文案 hash",
       "evidence": "user 2026-09-04 + TextMapCHS/EN CN7.0.0"
     },
@@ -17,7 +20,10 @@
       "statusId": 10100003,
       "zh": "火元素附着",
       "en": "Pyro Elemental Application",
-      "textMapHashes": [3178288891, 1551895299],
+      "textMapHashes": [
+        3178288891,
+        1551895299
+      ],
       "note": "用户提供官方状态",
       "evidence": "user 2026-09-04 + TextMapCHS/EN CN7.0.0"
     },
@@ -25,13 +31,25 @@
       "statusId": 10100017,
       "zh": "水泡禁锢",
       "en": "Bubbly Prison",
-      "textMapHashes": [2381365875, 823911139],
+      "textMapHashes": [
+        2381365875,
+        823911139
+      ],
       "note": "用户提供官方状态，称 10100002..10100017 为连续官方状态",
       "evidence": "user 2026-09-04 + TextMapCHS/EN CN7.0.0"
+    },
+    {
+      "statusId": 10100005,
+      "zh": "超级跳",
+      "en": "Super Jump",
+      "textMapHashes": [],
+      "note": "用户 2026-09-04/05 提供；TextMap 中‘超级跳’存在多个 hash，尚未确定唯一对应",
+      "evidence": "user 2026-09-05 + IPC 复制官方状态捕获"
     }
   ],
   "openItems": [
     "完整 10100002..10100017 名单待用户提供或从游戏/编辑器源解析",
+    "10100005 的 TextMap hash 待唯一化（TextMap 中“超级跳”多个）",
     "type1017 available list 还包含 10100101..10100116 与自定义大 ID，语义待确认"
   ]
 }

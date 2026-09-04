@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "title": "官方状态→复制为自定义→type1017 捕获（2026-09-05）",
+  "method": "RawCap official_copy.pcap + 编辑器复制官方状态为自定义并保存；type1017 解析新自定义状态定义",
+  "captures": [
+    {
+      "officialStatusId": 10100005,
+      "officialName": "超级跳",
+      "customStatusId": 1077936132,
+      "customName": "官方超级跳",
+      "effectIds": [
+        510001,
+        2110001
+      ],
+      "note": "用户确认复制自 10100005 超级跳，未修改效果"
+    }
+  ],
+  "openItems": [
+    "其余官方状态 10100003/04/06..17 尚未逐个复制捕获",
+    "10100002 已知效果 [20001]（早前 type1017 直接定义）"
+  ]
+}
