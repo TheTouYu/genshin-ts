@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond type1017 status catalog (partial exploratory parse)",
+  "source": "catalog_decoded_type1017_*.bin (IPC type1017 fragments)",
+  "status": "partial-draft",
+  "coverage": "available status ID list + one custom status definition seen in fragments",
+  "sources": [
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos1390.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos1936.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos2488.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos281.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos3052.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos3760.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos4446.bin",
+    ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/catalog_decoded_type1017_pos5152.bin"
+  ],
+  "availableStatusIds": [
+    10100002,
+    10100003,
+    10100004,
+    10100005,
+    10100006,
+    10100007,
+    10100008,
+    10100009,
+    10100010,
+    10100011,
+    10100012,
+    10100013,
+    10100014,
+    10100015,
+    10100016,
+    10100017,
+    10100101,
+    10100102,
+    10100103,
+    10100104,
+    10100105,
+    10100106,
+    10100107,
+    10100108,
+    10100109,
+    10100110,
+    10100111,
+    10100112,
+    10100113,
+    10100114,
+    10100115,
+    10100116,
+    1077936129,
+    1077936130,
+    1098907650,
+    1119879169,
+    1228931073
+  ],
+  "definitions": [
+    {
+      "statusId": 1077936130,
+      "names": [
+        "新建状态"
+      ],
+      "effectIds": [
+        2010001,
+        2060001,
+        2140001,
+        2160001,
+        410001,
+        450001,
+        480001
+      ]
+    }
+  ],
+  "openItems": [
+    "type1017 fragments only contain full definition for the custom status being edited (1077936130); official status 10100002..10100017 and 10100101..10100116 are present only as IDs, not definitions.",
+    "Names for official statuses are not embedded in these fragments; need TextMap hash bridge or further capture."
+  ]
+}
