@@ -621,6 +621,21 @@
       ]
     },
     {
+      "id": "aref_1807f7f944e8c13fed2ab3e898",
+      "path": "docs/game-engine-knowledge/retrospective-2026-09-04-e0-role-carrier-round.md",
+      "locator": "一、错误谱系 #3/#4 与 二、调查链（含 n18(减法).pin1 ← connects[(17,kind4,index1)] 实测样本）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "1f39b43a9e84bf40d6d85802c778d8dfaa7129a4a2253e00470b69f6de8b6abb",
+      "claim_ids": [
+        "clm_692FC355973F5A2FF587070753"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_181a495149699afb9f642c6784",
       "path": "docs/ui-tutorial/ugc-svg/entities.md",
       "locator": "## 05-实体与元件核心规则",
@@ -769,6 +784,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_1e5c69628fc698a0ef3623bcc4",
+      "path": ".agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts",
+      "locator": "文件头“为什么要这个脚本”+ A/B 两块输出实现",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7eec266d57455e52de07967425da10e6fc1f18c9341d21b2770696a2883b7c64",
+      "claim_ids": [
+        "clm_84CED09838A595E9E91D911F67"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
       ]
     },
     {
@@ -3022,6 +3052,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_6f9cd0659832e1af806ac9ae3f",
+      "path": "src/cli/variables_verify.ts",
+      "locator": "PAYLOAD_KEYS / CLIENT_PAYLOAD_BY_CLASS 常量表",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e8e978766e0f7336df9fd06c9334ed9dc1c3156be31ba435da93d39717bb52fd",
+      "claim_ids": [
+        "clm_FDE4D515516C7C959DD0DE89D9"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -6393,6 +6438,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_fc98fd95f1f1c0e4028f91dfb6",
+      "path": "tools/gia-verify-pin.ts",
+      "locator": "scanNumbers() 内键表注释（2026-09-04 票 20 E0 同族补齐 bId/bEnum）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6f2485055bf09e1a5e1578178b16d60a80579205d509f35b05c420aaf111302f",
+      "claim_ids": [
+        "clm_FDE4D515516C7C959DD0DE89D9"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {

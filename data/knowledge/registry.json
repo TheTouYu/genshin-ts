@@ -3462,6 +3462,22 @@
         "documented_contract",
         "evidence_scope"
       ]
+    },
+    "clm_FDE4D515516C7C959DD0DE89D9": {
+      "fact_classes": [
+        "cli_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_692FC355973F5A2FF587070753": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_84CED09838A595E9E91D911F67": {
+      "fact_classes": [
+        "writeback_behavior"
+      ]
     }
   }
 }
