@@ -23,10 +23,120 @@
         450001
       ],
       "note": "用户按 C+ID 命名复制；type1017 定义名称 C10100006"
+    },
+    {
+      "officialStatusId": 10100007,
+      "officialName": "",
+      "customStatusId": 1077936134,
+      "customName": "",
+      "effectIds": [
+        680001
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100008,
+      "officialName": "",
+      "customStatusId": 1077936135,
+      "customName": "",
+      "effectIds": [
+        100001
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100009,
+      "officialName": "",
+      "customStatusId": 1077936136,
+      "customName": "",
+      "effectIds": [
+        120001
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100010,
+      "officialName": "",
+      "customStatusId": 1077936137,
+      "customName": "",
+      "effectIds": [],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100011,
+      "officialName": "",
+      "customStatusId": 1077936138,
+      "customName": "",
+      "effectIds": [
+        400007
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100012,
+      "officialName": "",
+      "customStatusId": 1077936139,
+      "customName": "",
+      "effectIds": [
+        400003
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100013,
+      "officialName": "",
+      "customStatusId": 1077936140,
+      "customName": "",
+      "effectIds": [
+        400004
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100014,
+      "officialName": "",
+      "customStatusId": 1077936141,
+      "customName": "",
+      "effectIds": [
+        400006
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100015,
+      "officialName": "",
+      "customStatusId": 1077936142,
+      "customName": "",
+      "effectIds": [
+        400005
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100016,
+      "officialName": "",
+      "customStatusId": 1077936143,
+      "customName": "",
+      "effectIds": [
+        400002
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
+    },
+    {
+      "officialStatusId": 10100017,
+      "officialName": "水泡禁锢",
+      "customStatusId": 1077936144,
+      "customName": "",
+      "effectIds": [
+        460001,
+        380001
+      ],
+      "note": "批量按顺序 10100007..10100017；用户确认 02-05 未做、06 之前已抓；本映射按顺序推定"
     }
   ],
   "openItems": [
-    "其余官方状态 10100003/04/07..17 尚未逐个复制捕获",
-    "10100002 已知效果 [20001]（早前 type1017 直接定义）"
+    "官方状态 10100003/10100004 尚未捕获（02/05/06/07..17 已捕获）",
+    "10100002 已知效果 [20001]（早前 type1017 直接定义）",
+    "10100101..10100116 语义待后续"
   ]
 }
