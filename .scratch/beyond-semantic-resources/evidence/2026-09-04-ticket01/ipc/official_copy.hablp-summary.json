@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "title": "HAblp type histogram (generic pcap probe)",
+  "source": "/mnt/c/temp/official_copy.pcap",
+  "linktype": 101,
+  "packetCount": 6650,
+  "tcpFlowCount": 222,
+  "flowCountWithHablp": 6,
+  "typeHistogram": [
+    {
+      "type": 0,
+      "count": 109,
+      "flowCount": 6,
+      "payloadLenMin": 0,
+      "payloadLenMax": 0,
+      "payloadLenAvg": 0.0
+    },
+    {
+      "type": 1016,
+      "count": 56,
+      "flowCount": 3,
+      "payloadLenMin": 28,
+      "payloadLenMax": 40,
+      "payloadLenAvg": 33.4
+    },
+    {
+      "type": 1017,
+      "count": 7,
+      "flowCount": 2,
+      "payloadLenMin": 606,
+      "payloadLenMax": 1665,
+      "payloadLenAvg": 1064.0
+    },
+    {
+      "type": 1001,
+      "count": 2,
+      "flowCount": 2,
+      "payloadLenMin": 16,
+      "payloadLenMax": 16,
+      "payloadLenAvg": 16.0
+    },
+    {
+      "type": 1022,
+      "count": 2,
+      "flowCount": 2,
+      "payloadLenMin": 551271,
+      "payloadLenMax": 551271,
+      "payloadLenAvg": 551271.0
+    },
+    {
+      "type": 1025,
+      "count": 2,
+      "flowCount": 2,
+      "payloadLenMin": 10,
+      "payloadLenMax": 10,
+      "payloadLenAvg": 10.0
+    },
+    {
+      "type": 1011,
+      "count": 1,
+      "flowCount": 1,
+      "payloadLenMin": 15,
+      "payloadLenMax": 15,
+      "payloadLenAvg": 15.0
+    }
+  ],
+  "flows": [
+    {
+      "flow": [
+        "127.0.0.1",
+        58341,
+        "127.0.0.1",
+        58339
+      ],
+      "frameCount": 13,
+      "types": {
+        "0": 6,
+        "1016": 7
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        58339,
+        "127.0.0.1",
+        58341
+      ],
+      "frameCount": 6,
+      "types": {
+        "0": 6
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        52564,
+        "127.0.0.1",
+        49317
+      ],
+      "frameCount": 17,
+      "types": {
+        "0": 8,
+        "1001": 1,
+        "1016": 8
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        49317,
+        "127.0.0.1",
+        52564
+      ],
+      "frameCount": 11,
+      "types": {
+        "0": 8,
+        "1017": 1,
+        "1022": 1,
+        "1025": 1
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        54758,
+        "127.0.0.1",
+        54266
+      ],
+      "frameCount": 83,
+      "types": {
+        "0": 41,
+        "1001": 1,
+        "1016": 41
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        54266,
+        "127.0.0.1",
+        54758
+      ],
+      "frameCount": 49,
+      "types": {
+        "0": 40,
+        "1011": 1,
+        "1017": 6,
+        "1022": 1,
+        "1025": 1
+      }
+    }
+  ]
+}
