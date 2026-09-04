@@ -223,5 +223,9 @@ function summarizeProps(node: UiSemanticNode): string {
   if (Array.isArray(pages)) parts.push(`pages=${pages.length}`)
   const states = props.states as Array<Record<string, unknown>> | undefined
   if (Array.isArray(states)) parts.push(`states=${states.map((s) => s.stateName ?? '?').join('/')}`)
+  if (typeof props.presetName === 'string') parts.push(`preset=${props.presetName}`)
+  const presetNames = props.presetNames as string[] | undefined
+  if (Array.isArray(presetNames) && presetNames.length > 0)
+    parts.push(`presets=${presetNames.join('/')}`)
   return parts.length ? ` ${parts.join(' ')}` : ''
 }

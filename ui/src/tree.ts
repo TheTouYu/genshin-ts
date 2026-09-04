@@ -19,6 +19,7 @@ import {
   parseWireMessage,
   type WireField
 } from '../../src/cli/static_assembly/wire.js'
+import { collectPresetNames, PRESET_NAME_BY_ID } from './semantic-names.js'
 import {
   argbToHex,
   collectCompTypes,
@@ -556,15 +557,25 @@ function parsePropsAndRefs(
       .map(([stateName, groupId]) => groupId)
     node.unknown.push(...(states.length === 0 ? [] : []))
     // 状态文本聚合：由 tree 构建时成员文本回填（此处先占位）
+    const buttonPresets = collectPresetNames(collectWireVarints(meta.raw))
+    if (buttonPresets.length > 0) node.props['presetNames'] = buttonPresets
   } else if (node.kind === 'tab') {
     const tabProps = extractTabPages(fields, unknown)
     node.props = { ...node.props, ...tabProps }
     const kindNumber = extractTabKindNumber(fields)
-    if (kindNumber !== undefined) node.props['kindNumber'] = kindNumber
+    if (kindNumber !== undefined) {
+      node.props['kindNumber'] = kindNumber
+      const presetName = PRESET_NAME_BY_ID[kindNumber]
+      if (presetName) node.props['presetName'] = presetName
+    }
   } else if (node.kind === 'floating-page') {
     node.refs['containers'] = extractContainerRefs(fields)
     const kindNumber = extractFloatingPageKindNumber(fields)
-    if (kindNumber !== undefined) node.props['kindNumber'] = kindNumber
+    if (kindNumber !== undefined) {
+      node.props['kindNumber'] = kindNumber
+      const presetName = PRESET_NAME_BY_ID[kindNumber]
+      if (presetName) node.props['presetName'] = presetName
+    }
     const vars = countVariables(bytes, meta.id)
     if (vars.length > 0) node.props['variables'] = vars
   } else if (node.kind === 'container') {
