@@ -306,3 +306,14 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> re
 - 客户端读到的 transform 是**复制态**还是**本地预测态**（§3 第 4 行对照判据）
 - 200247 隐式 i2Index-0 槽的 wire 形态（解码 fb-loop.gia 即可静态先看一眼，执行轮顺手做）
 - `setCustomVariable` 未预注册即写是否静默失败（本轮已先注册，留作对照知识）
+- **E0 第 1 轮新增（2026-09-04，代码已实现但语义未实测，判读时先看这两条是否成立）**：
+  ① **整数除法截断**——抽样门用 `residue = t1 − (t1/1000)·1000` 求秒内余数（20002 无取模节点，
+    票 14 先例套路）；若引擎 int 除法不截断（四舍五入/浮点化），residue 恒 ≠ 预期 →
+    SUB_K/SUB_DT 可能整轮零发射（**不影响 Q1/Q3/Q4 判据**，仅 Q5 观测面缺失，需换形态）；
+  ② **时钟起点/单调性**——`getCurrentClientTimeHighPrecision` 出参 pin0=S/pin1=MS 的
+    选择已按定义断言到产物层（decode 断言「7 条数据边全取 pin1」），但**起点是 0 还是 epoch、
+    是否单调**仍待帧值实测（Q3 本体）。
+- **工具侧债（不属本票实验，登记勿夹带）**：`GSTS-DUPLICATE-EXEC-INPUT` lint 按
+  `source_index` 归组、不看**目标** InFlow 引脚序号 → 把 `break_loop → finite_loop InFlow[1]`
+  的合法回连误报为冲突（对照样本 `verify/inflow-index/inflow-index-repro.ts` 编译报同一条警告）。
+  修法=按 (target, 目标 inflow index) 归组；本票只甄别不修，避免把他人 WIP 图的告警一起搅动。
