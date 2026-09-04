@@ -41,12 +41,18 @@
 `resources/official_status_effects.json` + `evidence/.../ipc/official_status_copy_captures.json`；
 仍缺 effectID→TextMapHash→中英文名的机器可读映射。下一主攻：解析 242/255 MiHoYoBinData 中含 effectID 的对象（pathID 849 等）或编辑器效果列表差分。）
 
+**→ 票 04 物化探针推广到其他只读官方资产**（OPEN；Round 0 基线已验证：
+`parse_official_copy_pcap.py` 复现 10100005→[510001,2110001]；新增通用 HAblp 类型直方图
+`summarize_hablp_pcap.py`；runbook 已去 `/mnt/c/temp`。等待用户抓“官方预制体复制/另存为自定义”单样本，
+再判断消息类型并决定批量解析。）
+
 ## 票据清单
 
 | # | 票名 | blocked by | 状态 |
 | --- | --- | --- | --- |
 | 01 | 定位并解析状态效果语义目录源 | None | OPEN |
 | 02 | lookup 检索工具 + DSL 技能接入 | None | OPEN |
+| 04 | 物化探针推广到其他只读官方资产 + 工作流优化 | None | OPEN |
 
 ## 已完成（划掉区）
 
