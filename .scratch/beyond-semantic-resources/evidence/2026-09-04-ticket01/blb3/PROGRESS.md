@@ -113,3 +113,12 @@
 - 真正“单位状态效果表”尚未定位；242 中大量 effectID 命中也是 QuestDialogue/Avatar/Talk 等，
   说明不能再用“原始字节含 effectID”当判据。
 - 当前 asset index 的 mapped-updated 只覆盖 6.1 标准名，Beyond 单位状态表可能未公开/未命名。
+
+## 2026-09-05 242 全量结构化搜索（结论）
+
+- AssetStudio CLI 成功导出 242 全部 160128 个 MiHoYoBinData（Windows C:\temp\as_242full）。
+- Linux 内存扫描 160129 个对象，按已知 27 个 effectID 检索：仅 107 个对象命中；
+  其中最多命中 2 个 effectID，且多数映射到 QuestDialogue/Avatar/Talk/Route 等无关表或未命名对象。
+- `--export_type JSON` 只是把 RawData 做 Base64 包一层，不解析/不解密。
+- 结论：**242/255 标准 BinOutput/Excel 中不存在可明文检索到的“单位状态效果表”**；
+  真实表要么在未解密的 MiHoYoBinData 对象内（需逐对象解密/二次解码），要么在 Beyond 专属未公开数据/其他块。
