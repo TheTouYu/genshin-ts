@@ -90,6 +90,7 @@
 |---|---|---|---|
 | [retrospective-2026-09-03-football-r3-kick-entry.md](retrospective-2026-09-03-football-r3-kick-entry.md) | 09-03 | 足球 R3 九选项入口全闭环（票 06） | 判读三件套（秒级时间轴/轨迹透视）/撕裂风暴发现链/闭包数组索引与分支句柄算术两新坑；08-31~09-02 其余复盘仍待补登记（见目录 AGENTS.md 复盘档案注记） |
 | [retrospective-2026-09-03-ui-ticket04-verification.md](retrospective-2026-09-03-ui-ticket04-verification.md) | 09-03 | UI 票04 语义化 List + 玩家改动识别 v1 + 80 快照全量核验 | 9 错谱系（family/组件双层判别、flat 覆盖、几何嵌套 pair、消息项样式、diff 重锚…）+ 用户两轮纠偏（全量枚举/真实命令/可复查）→ 127/127 + CLI 80/80 |
+| [retrospective-2026-09-04-beyond-semantic-resources-ticket01.md](retrospective-2026-09-04-beyond-semantic-resources-ticket01.md) | 09-04 | Beyond 语义资源票01 侦察轮（票03后） | 低效点谱系：静态混淆过早深挖/UI宿主进程误判/pktmon不抓loopback/Linux反射WPF受阻/搜索锚点不全/assets.bin误判/Blb新容器卡点；系统性根因：缺资源逆向工作流、证据固化滞后、设计思维利用不足 |
 
 ## §3 使用规则
 

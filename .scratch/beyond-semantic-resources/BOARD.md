@@ -11,6 +11,7 @@
 - 知识 Authority：`docs/game-engine-knowledge/beyond-editor-semantics.md`
 - 管线规划：`docs/game-engine-knowledge/semantic-resource-pipeline.md`（Discover/Decode/Integrate 三阶段）
 - 表地图 inventory：`docs/game-engine-knowledge/semantic-resource-inventory.md`（票03 已产出）
+- 票01 证据固化：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/`（handoff + 解码器 + 脚本）
 - 本地语义资源根（编辑器）：
   `/mnt/e/ys/Genshin Impact Game/BeyondAssets/BeyondAssistEditor/Resource/Json/`
   - `TextMap/<语言>/<hash>.mihoyobin`：每语言一个；CHS 实测 7743 条节点/枚举名，**不含状态效果名**
@@ -31,7 +32,7 @@
 
 ## 当前前沿
 
-**→ 票 01 定位并解析状态效果语义目录源**（OPEN，可开工；票03 inventory 底图已就绪，见 `semantic-resource-inventory.md`）。
+**→ 票 01 定位并解析状态效果语义目录源**（OPEN；已解 assets.bin 密码、排除图标包，确认映射表在当前 `Blb\x03` 块内。下一步：游戏首次启动/首次打开单位状态时 ProcMon 抓 YuanShen 读取的 Blb 块，或先逆向 Blb 容器。证据见 `.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/`）。
 
 ## 票据清单
 

@@ -230,6 +230,10 @@ GIL 整体结构与语义树
   [R3 九选项入口全闭环](retrospective-2026-09-03-football-r3-kick-entry.md)（票 06 收口：撕裂风暴发现链/判读三件套/闭包数组索引与分支句柄算术两新坑）、
   [E2 gate 常开判负](retrospective-2026-09-03-e2-gate-open-negative.md)（票 17：抬频≠手感/负载代价/20Hz 同步目标重定向，代码归档 .scratch/football-v2/archives/2026-09-03-e2/）、
   [票 19 接管收尾（渲染/物理/负载链）](retrospective-2026-09-04-ticket19-takeover.md)（5.2a-f：三图拆分/技能变量实例隔离铁证/节流源=玩家距离/反弹摩擦-滑滚能量耦合/渲染-数据节奏走停根因=用户定位/详情开窗 0.4；九错谱系+三系统性根因）
+  [票 20 E0 角色载体轮（资产→探针→注入→技能回灌）](retrospective-2026-09-04-e0-role-carrier-round.md)
+  （14 错谱系：叙述跑在磁盘前/常量形态 bId-bEnum 误判/数据边方向按 kind 分流/证据与代码同刻重生成；
+   三系统性根因：扫描器各自选形态不抄权威表、写作时点缺口、断言失败先归因三分；
+   盘点先于新建=省用户一轮动作 + 暴露槽位错配；噪音甄别用已知良好样本对照）
 - **客户端图与日志**：[客户端图读法](retrospective-2026-08-28-rubik-client-graph-reading.md)、
   [服务端↔客户端调用链](retrospective-2026-08-28-client-server-call-chain.md)、
   [事件线工具闭环](retrospective-2026-08-28-client-log-flow.md)、
@@ -245,6 +249,7 @@ GIL 整体结构与语义树
   [票03 设计 V2（领域约束/推演法）](retrospective-2026-09-03-ui-command-design-v2.md)、
   [票04 语义化 List + 80 快照全量核验](retrospective-2026-09-03-ui-ticket04-verification.md)、
   [变量系统 M1+核验矩阵](retrospective-2026-08-29-variable-game-verify-matrix.md)
+- **Beyond语义资源**：[票01侦察轮](retrospective-2026-09-04-beyond-semantic-resources-ticket01.md)（低效点谱系+系统性根因：资源逆向工作流缺失/证据固化滞后/设计思维利用不足；Blb新容器卡点）
 - **静态模型/朝向**：[静态与动态预制体](retrospective-2026-08-20-static-dynamic-prefabs.md)、
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
