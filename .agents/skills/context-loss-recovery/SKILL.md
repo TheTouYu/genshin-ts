@@ -75,6 +75,7 @@ If a detail would change the next action if lost, treat it as critical.
      ' | tail -80
      ```
    - Then open the specific range around that last user message to see its tool calls/results (see “Detail recovery techniques” below).
+   - **User-first rule: stay on the user-message list until you know the exact target.** Do not scan/browse assistant messages, tool calls, or tool results broadly—those are huge and will flood context.
 
 3. **Only after step 2 fails, scan the latest sessions.**
    ```bash
@@ -108,18 +109,21 @@ If a detail would change the next action if lost, treat it as critical.
 
 ## Detail recovery techniques
 
+- **Start with a user-only list, not a broad AI search.** Use the compact `user/message` extraction in step 2 to see user wording and exact line numbers first. Only after you have a precise line do you open a narrow range of that round.
 - **Search with the exact literal**, not just a concept:
   ```bash
   ... search "2120001|1739984627|ticket01-disablejump-v27" ...
   ```
-- **Open a range around a user message** to see that round’s tool calls and results:
+- **Open a narrow range around a user message** to see that round’s tool calls/results:
   ```bash
   ... show <session-dir> <start> <end>
   ```
-- **Look for tool/result payloads** containing file content, hashes, JSON, hex dumps, or command outputs; these are primary evidence.
+  Keep the range small (a few dozen lines), not the whole session.
+- **Look for tool/result payloads** containing file content, hashes, JSON, hex dumps, or command outputs; these are primary evidence—but fetch them only after the user line points to the exact round.
 - **Use `errors`** to recover exact failure messages (they often explain why a route was abandoned).
 - **Use `todos`** to find unfinished steps and their wording.
 - **Quote user messages** in the recovery summary so intent is not paraphrased away.
+- **Do not dump assistant/tool/search output just to “refresh” memory.** If you already know the needed numbers/paths, go straight to persistent files (git/handoff/manifest) for validation.
 
 ## Recovery output template
 
@@ -170,6 +174,7 @@ Priority order:
 ## Pitfalls
 
 - **Do not start by loading other sessions.** If compaction happened in this same session, first locate the last `compaction/summary` in `$DSH_SESSION_JSONL` and read the events just before it. The scan tool excludes the current session, so another session can appear to be the “latest” and send you down the wrong path.
+- **Do not search/browse AI messages first.** Directly searching assistant messages, tool calls, or tool results can pull huge chunks and consume the context you are trying to save. First get the compact user-message list; then fetch only a narrow range around the exact user line.
 - Do not start by listing all sessions or grepping the whole repo; use targeted commands against the current session first, then `scan --limit` / `search` only when needed.
 - Do not treat an assistant summary as the user’s original intent; find the user message and quote it.
 - Do not trust a compaction summary that conflicts with git/file evidence; file evidence wins.
