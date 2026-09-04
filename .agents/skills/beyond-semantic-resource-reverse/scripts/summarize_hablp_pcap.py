@@ -30,6 +30,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('pcap', type=Path)
     ap.add_argument('--output', type=Path, default=None)
+    ap.add_argument('--dump-1017-dir', type=Path, default=None)
     args = ap.parse_args()
 
     linktype, packets = parse_pcap(args.pcap)
@@ -46,6 +47,7 @@ def main() -> None:
     type_payload_lens: dict[int, list[int]] = defaultdict(list)
     flow_details = []
 
+    dump_index = 0
     for key, segs in flows.items():
         data = reassemble(segs)
         frames = scan_frames(data)
@@ -61,6 +63,10 @@ def main() -> None:
             type_counter[typ] += 1
             type_flows[typ].add(key)
             type_payload_lens[typ].append(len(payload))
+            if typ == 1017 and args.dump_1017_dir:
+                args.dump_1017_dir.mkdir(parents=True, exist_ok=True)
+                (args.dump_1017_dir / f'frame_{dump_index:03d}_len{len(payload)}.bin').write_bytes(payload)
+                dump_index += 1
 
     out = {
         'schemaVersion': 1,

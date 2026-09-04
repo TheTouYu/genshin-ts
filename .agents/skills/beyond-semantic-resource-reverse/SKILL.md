@@ -66,6 +66,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
+- 一键处理管线（直方图+缓存+解析+映射+简报）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/process_type1017_capture.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
 - 通用官方资产抓取 runbook（预制体/实体/怪物/技能/蓝图等）：

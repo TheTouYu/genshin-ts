@@ -54,6 +54,18 @@ ls -l /mnt/c/beyond-ipc/multi_type_ipc.pcap
 
 > 一个 pcap 可以连续做多个资产；命名/操作顺序会影响后续人工映射，最好记录做了什么。
 
+### 高效采样策略（减少无谓操作）
+
+1. **名称/ID/kindCode 不再需要为每个资产抓包**：`BeyondOfficialEntityExcelConfigData` + TextMap 已覆盖；
+   type1017 摘要只是补充“编辑器侧 source 引用”。
+2. **每类资产只开 1~2 个代表样本拿完整 field11**：
+   - Gadget：空模型 / 瀑布
+   - Monster：打手丘丘人 / 遗迹守卫
+   - Player/模板：默认模版
+   - Avatar：默认模版(角色编辑)
+   - 蓝图/技能：后续确认入口后再选代表
+3. 如果某类已经有完整 field11 样本，后续同类不需要重复抓。
+
 ## 3. 停止抓包
 
 ```bash
@@ -62,33 +74,31 @@ ls -l /mnt/c/beyond-ipc/multi_type_ipc.pcap
   "Start-Process -Verb RunAs -Wait -FilePath 'C:\Windows\System32\taskkill.exe' -ArgumentList '/F /PID <PID>'"
 ```
 
-## 4. 类型直方图（先判断消息类型）
+## 4. 一键处理（推荐）
+
+一条命令完成：类型直方图 → 缓存 type1017 payload → 通用解析 → 官方实体映射 → 简报。
 
 ```bash
-python3 .agents/skills/beyond-semantic-resource-reverse/scripts/summarize_hablp_pcap.py \
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/process_type1017_capture.py \
   /mnt/c/beyond-ipc/multi_type_ipc.pcap \
-  --output .scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/<name>.hablp-summary.json
-```
-
-## 5. 通用 type1017 解析
-
-```bash
-python3 .agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py \
-  /mnt/c/beyond-ipc/multi_type_ipc.pcap \
-  --output .scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/<name>.generic.json
-```
-
-输出：`availableIds` / `definitions` / `sourceEntityIndex`。
-
-## 6. 合并为官方实体映射资源
-
-```bash
-python3 .agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py \
-  --catalog .scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/<name>.generic.json \
+  --prefix .scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/multi_type \
   --entity-data .scratch/beyond-semantic-resources/data/animegamedata-cn7.0.0/beyond_excel/BeyondOfficialEntityExcelConfigData.json \
   --textmap .scratch/beyond-semantic-resources/data/animegamedata-cn7.0.0/TextMapCHS.json \
-  --output resources/official_entity_ipc_mapping.json
+  --mapping-output resources/official_entity_ipc_mapping.json \
+  --report .scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/multi_type.report.md
 ```
+
+产物：
+
+- `<prefix>.hablp-summary.json` — HAblp 类型直方图
+- `<prefix>_1017/` — 缓存后的 type1017 payload（后续解析不再重扫 pcap）
+- `<prefix>.generic.json` — `availableIds` / `definitions` / `sourceEntityIndex`
+- `resources/official_entity_ipc_mapping.json` — 官方实体映射资源
+- `<prefix>.report.md` — 简报
+
+## 5. 逐步命令（仅排查/自定义用）
+
+如果只需要某一步，可分别执行脚本；正常流程用上面的 `process_type1017_capture.py` 即可。
 
 ## 已知注意点
 

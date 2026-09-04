@@ -193,7 +193,7 @@ def parse_payload(payload: bytes, frame_source: str) -> dict:
     return {'source': frame_source, 'records': records}
 
 
-def collect_pcap(pcap: Path) -> list[bytes]:
+def collect_pcap(pcap: Path, dump_dir: Path | None = None) -> list[bytes]:
     linktype, packets = parse_pcap(pcap)
     flows = {}
     for pkt in packets:
@@ -208,6 +208,10 @@ def collect_pcap(pcap: Path) -> list[bytes]:
         for _, _, typ, _, _, payload in scan_frames(data):
             if typ == 1017:
                 out.append(payload)
+    if dump_dir is not None and out:
+        dump_dir.mkdir(parents=True, exist_ok=True)
+        for i, payload in enumerate(out):
+            (dump_dir / f'frame_{i:03d}_len{len(payload)}.bin').write_bytes(payload)
     return out
 
 
@@ -215,12 +219,17 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('inputs', nargs='+', type=Path)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--dump-dir', type=Path, default=None)
     args = ap.parse_args()
 
     frames = []
     for path in args.inputs:
-        if path.suffix == '.pcap':
-            payloads = collect_pcap(path)
+        if path.is_dir():
+            dump_files = sorted(path.glob('frame_*.bin'))
+            for i, fp in enumerate(dump_files):
+                frames.append(parse_payload(fp.read_bytes(), f'{fp.name}:cache{i}'))
+        elif path.suffix == '.pcap':
+            payloads = collect_pcap(path, dump_dir=args.dump_dir)
             for i, payload in enumerate(payloads):
                 frames.append(parse_payload(payload, f'{path.name}:frame{i}'))
         else:
