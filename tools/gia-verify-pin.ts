@@ -72,8 +72,12 @@ function scanNumbers(node: unknown, where: string, hits: Hit[], targets: number[
   }
   if (node === null || typeof node !== 'object') return
   const obj = node as Record<string, unknown>
-  // 已设值容器：bFloat/bInt（decode 形态）或裸数字 value
-  for (const key of ['bFloat', 'bInt']) {
+  // 已设值容器：bFloat/bInt/bId/bEnum（decode 形态）或裸数字 value
+  // bId = config_id 字面量（技能变量槽 / 技能配置 ID / 单位状态 ID），bEnum = 枚举（技能槽位等）。
+  // 2026-09-04 票 20 E0 实证同族漏报：`--vals 1207959581`（技能变量槽，落 wire 为 bId）
+  // 在只扫 bFloat/bInt 时报 **0 命中**，看起来像"常量没折叠进去"，实为形态漏分类
+  // （与 .agents/skills/gil-node-graph-reading/references/decode-gia-constant-scan.py 同族，两处同步修）。
+  for (const key of ['bFloat', 'bInt', 'bId', 'bEnum']) {
     const box = obj[key]
     if (box !== null && typeof box === 'object' && typeof (box as any).val === 'number') {
       const v = (box as any).val as number
