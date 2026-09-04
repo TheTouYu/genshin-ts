@@ -101,3 +101,15 @@
 - 解析后 536 个 block_infos；asset 记录包含 path hash + sub_asset_id，但 sub_asset_id 是容器分组，**不是对象 pathID**。
 - SerializedFile 内 class 1210 含 2069/160129 条“8 位 hex 键 + 两个 u32”的映射表，疑似 AssetBundle container/name-hash 映射，schema 未闭合。
 - 结论：AssetIndex 只能定位 block，不能直接回答“255 内 pathID 849 是哪张表”；还需解 class 1210 或换用 AssetStudio 的 asset name 导出。
+
+## 2026-09-05 AssetStudio 导出 / class1210 突破
+
+- 用 `/mnt/c/temp/AssetStudioCLI` 直接吃 CAB 成功导出 2069 个 MiHoYoBinData（255），
+  `--ai_file current_asset_index.json` 可加载当前 AssetIndex（JSON 由 31049741 生成）。
+- class1210 结构已闭：每条约 32B = `len(4)+8hex key+20B`，解析结果 `(0, pathID, 0, byte_size, 0)`。
+  因此 key ↔ pathID ↔ byte_size 可直接互查。
+- 255 里含 effectID 的对象其实是标准表：pathID 849=DialogExcelConfigData、887=DungeonExcel...、
+  1477=NpcExcel...、1030=GadgetExcel...、1735=RewardExcel... → 之前原始字节搜索命中多为无关/假阳性。
+- 真正“单位状态效果表”尚未定位；242 中大量 effectID 命中也是 QuestDialogue/Avatar/Talk 等，
+  说明不能再用“原始字节含 effectID”当判据。
+- 当前 asset index 的 mapped-updated 只覆盖 6.1 标准名，Beyond 单位状态表可能未公开/未命名。
