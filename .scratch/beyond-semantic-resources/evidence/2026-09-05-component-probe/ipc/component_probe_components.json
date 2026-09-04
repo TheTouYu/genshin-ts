@@ -1,0 +1,387 @@
+{
+  "assetId": 1077936129,
+  "sourceEntityId": 10009001,
+  "groups": {
+    "field6": [
+      {
+        "index": 0,
+        "typeId": 1,
+        "payload": [
+          "f11=msg<1>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 13,
+        "payload": [
+          "f22=msg<1>"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 14,
+        "payload": [
+          "f23=msg<1>"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 38,
+        "payload": [
+          "f48=msg<1>"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 40,
+        "payload": [
+          "f50=empty"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 111,
+        "payload": [
+          "f93=empty"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 61,
+        "payload": [
+          "f65=empty"
+        ]
+      },
+      {
+        "index": 7,
+        "typeId": 62,
+        "payload": [
+          "f66=empty"
+        ]
+      }
+    ],
+    "field7": [
+      {
+        "index": 0,
+        "typeId": 1,
+        "payload": [
+          "f11=msg<4>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 2,
+        "payload": [
+          "f12=empty"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 3,
+        "payload": [
+          "f13=empty"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 4,
+        "payload": [
+          "f14=msg<1>"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 5,
+        "payload": [
+          "f15=msg<2>"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 6,
+        "payload": [
+          "f16=empty"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 7,
+        "payload": [
+          "f17=msg<13>"
+        ]
+      },
+      {
+        "index": 7,
+        "typeId": 8,
+        "payload": [
+          "f18=msg<2>"
+        ]
+      },
+      {
+        "index": 8,
+        "typeId": 11,
+        "payload": [
+          "f21=msg<1>"
+        ]
+      },
+      {
+        "index": 9,
+        "typeId": 12,
+        "payload": [
+          "f22=msg<1>"
+        ]
+      },
+      {
+        "index": 10,
+        "typeId": 16,
+        "payload": [
+          "f26=empty"
+        ]
+      },
+      {
+        "index": 11,
+        "typeId": 17,
+        "payload": [
+          "f27=empty"
+        ]
+      },
+      {
+        "index": 12,
+        "typeId": 19,
+        "payload": [
+          "f29=msg<1>"
+        ]
+      },
+      {
+        "index": 13,
+        "typeId": 20,
+        "payload": [
+          "f30=empty"
+        ]
+      },
+      {
+        "index": 14,
+        "typeId": 22,
+        "payload": [
+          "f32=msg<4>"
+        ]
+      }
+    ],
+    "field8": [
+      {
+        "index": 0,
+        "typeId": 18,
+        "payload": [
+          "f2=1",
+          "f28=msg<3>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 1,
+        "payload": [
+          "f2=1",
+          "f11=msg<2>"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 3,
+        "payload": [
+          "f2=1",
+          "f13=empty"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 19,
+        "payload": [
+          "f2=1",
+          "f29=empty"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 6,
+        "payload": [
+          "f2=1",
+          "f16=msg<1>"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 14,
+        "payload": [
+          "f2=1",
+          "f24=msg<3>"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 4,
+        "payload": [
+          "f2=1",
+          "f14=msg<1>"
+        ]
+      },
+      {
+        "index": 7,
+        "typeId": 17,
+        "payload": [
+          "f2=1",
+          "f27=msg<2>"
+        ]
+      },
+      {
+        "index": 8,
+        "typeId": 5,
+        "payload": [
+          "f2=1",
+          "f15=empty"
+        ]
+      },
+      {
+        "index": 9,
+        "typeId": 15,
+        "payload": [
+          "f2=1",
+          "f25=msg<1>"
+        ]
+      },
+      {
+        "index": 10,
+        "typeId": 16,
+        "payload": [
+          "f2=1",
+          "f26=empty"
+        ]
+      },
+      {
+        "index": 11,
+        "typeId": 8,
+        "payload": [
+          "f2=1",
+          "f18=empty"
+        ]
+      },
+      {
+        "index": 12,
+        "typeId": 21,
+        "payload": [
+          "f2=1",
+          "f32=empty"
+        ]
+      },
+      {
+        "index": 13,
+        "typeId": 23,
+        "payload": [
+          "f2=1",
+          "f34=msg<1>"
+        ]
+      },
+      {
+        "index": 14,
+        "typeId": 29,
+        "payload": [
+          "f2=1",
+          "f40=empty"
+        ]
+      },
+      {
+        "index": 15,
+        "typeId": 27,
+        "payload": [
+          "f2=1",
+          "f38=empty"
+        ]
+      },
+      {
+        "index": 16,
+        "typeId": 28,
+        "payload": [
+          "f2=1",
+          "f39=msg<1>"
+        ]
+      },
+      {
+        "index": 17,
+        "typeId": 33,
+        "payload": [
+          "f2=1",
+          "f44=msg<2>"
+        ]
+      },
+      {
+        "index": 18,
+        "typeId": 37,
+        "payload": [
+          "f2=1",
+          "f48=msg<4>"
+        ]
+      },
+      {
+        "index": 19,
+        "typeId": 35,
+        "payload": [
+          "f2=1",
+          "f46=msg<1>"
+        ]
+      },
+      {
+        "index": 20,
+        "typeId": 39,
+        "payload": [
+          "f2=1",
+          "f50=empty"
+        ]
+      },
+      {
+        "index": 21,
+        "typeId": 32,
+        "payload": [
+          "f2=1",
+          "f43=empty"
+        ]
+      },
+      {
+        "index": 22,
+        "typeId": 38,
+        "payload": [
+          "f2=1",
+          "f49=msg<1>"
+        ]
+      },
+      {
+        "index": 23,
+        "typeId": 41,
+        "payload": [
+          "f2=1",
+          "f52=empty"
+        ]
+      },
+      {
+        "index": 24,
+        "typeId": 13,
+        "payload": [
+          "f2=1",
+          "f23=empty"
+        ]
+      },
+      {
+        "index": 25,
+        "typeId": 45,
+        "payload": [
+          "f2=1",
+          "f56=empty"
+        ]
+      }
+    ]
+  },
+  "entry2Preview": [
+    "f1=1077936129",
+    "f2={ f30151443620172527965=w6 }",
+    "f3={ f8=w6 }",
+    "f5=1402"
+  ]
+}
