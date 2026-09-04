@@ -18,6 +18,80 @@ description: 用 Genshin-TS 的 TypeScript DSL（g.server / gstsServer*）编写
 - DSL 编译报错或生成图异常（节点数超限、值类型错误、capture 失败）
 - 需要把"玩法逻辑"可靠地变成游戏内行为
 
+## 写节点前先查 lookup（铁律）
+
+> 脚本：`.agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts`
+> 能力矩阵：`references/node-lookup-capability-matrix.md`
+> 所有语料只读；查不到 = “不存在/未解析”，禁止臆造 DSL 函数名。
+
+**何时查**：
+- 写 DSL 前遇到编辑器节点/中文名/英文名/genericId，不确定 DSL 是否已暴露；
+- 需要直接跳到 `src/definitions/nodes.ts` / `client_nodes.ts` 的行号与函数签名；
+- 听到像“移动速率调整率（动态）”“定时触发技能”这类词——先查是不是节点，避免把状态效果配置名当节点硬凑。
+
+**命令**：
+```bash
+# 仓库根运行
+npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "添加单位状态"
+npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "addUnitStatus"
+npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "1720001"          # 四态提示
+npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts --samples        # 内置断言样本
+npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts --matrix         # 输出能力矩阵
+```
+
+**四态结论**：
+
+| 态 | 含义 | 下一步 |
+| --- | --- | --- |
+| 一态 `dsl_available` | DSL 可用（server/client/both），输出文件:行号 + 签名摘要 | 直接按签名写 DSL |
+| 二态 `editor_only` | 编辑器/官方教程有，但 DSL 未暴露 | 不要硬编 DSL；如需补齐走能力矩阵/票据评估 |
+| 三态 `not_found` | 本地语料均未解析 | 如实报告，不猜名字 |
+| 四态 `semantic_resource` | 非节点（状态效果配置名等），本地目录未解析 | 见 `.scratch/beyond-semantic-resources/` 票 01，禁止假装能查到 1720001 |
+
+**示例输出（真实样本，2026-09-04 实测）**：
+
+```text
+$ npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "添加单位状态"
+QUERY: 添加单位状态
+STATE: dsl_available — 一态：DSL 可用（both）
+SIDE:  both
+SERVER DSL:
+  src/definitions/nodes.ts:6049  ServerExecutionFlowFunctions.addUnitStatus(applierEntity: EntityValue, applicationTargetEntity: EntityValue, unitStatusConfigId: ConfigIdValue, appliedStacks: IntValue, unitStatusParameterDictionary: dict<'str', 'float'>)
+CLIENT DSL:
+  src/definitions/client_nodes.ts:855  ClientCharacterSkillExecutionFlowFunctions.addUnitStatus(applicationTarget: EntityValue, stacks: IntValue, unitStatusConfigID: ConfigIdValue)
+  ...
+EDITOR NAMES:
+  genericId=297  zh=添加单位状态  en=Add Unit Status  pins=9
+  genericId=200057  zh=添加单位状态  en=Add Unit Status  pins=6
+
+$ npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "打印字符串"
+QUERY: 打印字符串
+STATE: dsl_available — 一态：DSL 可用（server）
+SIDE:  server
+SERVER DSL:
+  src/definitions/nodes.ts:3630  ServerExecutionFlowFunctions.printString(string: StrValue)
+EDITOR NAMES:
+  genericId=1  zh=打印字符串  en=Print String  pins=3
+
+$ npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "设置实体阵营"
+QUERY: 设置实体阵营
+STATE: editor_only — 二态：仅编辑器语料/官方教程/元数据有，DSL 未暴露
+SIDE:  server
+EDITOR NAMES:
+  genericId=250  zh=设置实体阵营  en=Set Entity Faction  pins=4
+
+$ npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "移动速率调整率（动态）"
+QUERY: 移动速率调整率（动态）
+STATE: semantic_resource — 四态：非节点语义资源（状态效果配置名/未解析目录），不做节点检索
+HINT:  这不是节点，属状态效果配置名/语义资源；本地目录尚未解析，见 .scratch/beyond-semantic-resources/ 票 01。禁止臆造 1720001 等 ID。
+
+$ npx tsx .agents/skills/dsl-nodegraph-development/scripts/lookup-node.ts "abcdefghijklm"
+QUERY: abcdefghijklm
+STATE: not_found — 三态：不存在/未解析（本地语料均无命中）
+```
+
+运行 `--samples` 可复现全部断言（添加单位状态 / Add Unit Status / addUnitStatus / 打印字符串 / 设置实体阵营 / 移动速率调整率（动态）/ 定时触发技能 / abcdefghijklm）。
+
 ## 复合节点铁律（用户 5-7 节点标准，违反后果见 2026-08-22 足球事故）
 
 > **「能做成复合节点的，一定往这个方向靠」——即使未被别处使用也不亏。**
