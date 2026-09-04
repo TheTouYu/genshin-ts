@@ -83,3 +83,13 @@
   Windows DelegateInspector 输出见 `work/ticket01-effect-catalog-dotnet/notes/`（本地，未提交）。
 - 含义：这是 BeyondEditor 内部“资源分类 ID”，不是文件路径/TextMapHash；
   BeyondEditor 本地仍不含 `effectID→TextMapHash`，映射应在游戏侧（IPC 服务/IL2CPP/静态 Blb）。
+
+## 2026-09-05 续查（静态源）
+
+- 已解块全量 ID 扫描：255/242/353/310 均未见 10100002/10100003/10100017/10100101/10100116
+  （varint/u32le/u32be/u64le/十进制字符串均试）。
+- 31049740 的 MiHoYoBinData 实为 AssetIndex（type_mapping_count=0x161），非“仅类型名表”。
+- 其他 00 块（00793419/04609653/10654466/11505437/15220321/16511091/10207571）为 Oodle 压缩，
+  本 Python 解包器不支持；只有 35323818(Lua) 与已解 255/242/310 可读。
+- animeblkstuff map_helper.json（6.1）无 RoleStatus/Beyond 资产路径；GI-StaticParser 常数不匹配本 CN7.0.0。
+- 下一步候选：编辑器“打开官方状态详情/复制官方状态为自定义”抓 IPC，或解决 Oodle native 解码后扫 00 全块。

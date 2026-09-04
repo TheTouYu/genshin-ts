@@ -68,3 +68,12 @@
   只解析到官方状态 10100002→effect[20001] 与两个自定义状态详情（1077936130/1077936131）。
   结论：**官方状态 10100003..10100017 的内部效果列表不在 type1017/IPC 中**；
   type1017 只给可用 ID 列表+当前编辑的自定义状态详情。下一轮主攻静态源。）
+- （票01 静态源续查 2026-09-04/05：继续 Blb 静态源。
+  1. 在 255/242/353/310 四个已解 CAB 中按 varint/u32/字符串搜索 10100002..10100017/10100101..10100116 → **0 命中**；
+     效果 20001 有命中但状态→效果表未现。状态 ID 不在这几个主块的可读明文区。
+  2. 其余 00 块多为 Oodle 压缩，Python 解包器无 Oodle native 解码，暂无法全量扫。
+  3. 31049740 的 MiHoYoBinData 实为 **AssetIndex**（非仅类型名表）：开头 type_mapping_count=0x161，
+     结构符合 parsers/ai.py AssetIndex；可据此做 block_id→asset 映射（需 path hash）。
+  4. animeblkstuff map_helper.json（6.1，21% 覆盖）无 RoleStatus/Beyond 路径名；GI-StaticParser
+     常数与该 CN7.0.0 构建不匹配（header-dump 报 could not locate embedded MHY header）。
+  结论：官方状态 10100002.. 的静态宿主仍未定位；建议下一步用编辑器“打开官方状态详情/复制为自定义”抓 IPC。）
