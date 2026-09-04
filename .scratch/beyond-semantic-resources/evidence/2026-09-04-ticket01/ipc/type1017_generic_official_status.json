@@ -1,0 +1,476 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond type1017 generic catalog (exploratory)",
+  "method": "HAblp type1017 -> protobuf; extracts available ID list + definition summaries; field11 full blob shape logged but schema open",
+  "frames": 7,
+  "availableIdCount": 92,
+  "availableIds": [
+    10100002,
+    10100003,
+    10100004,
+    10100005,
+    10100006,
+    10100007,
+    10100008,
+    10100009,
+    10100010,
+    10100011,
+    10100012,
+    10100013,
+    10100014,
+    10100015,
+    10100016,
+    10100017,
+    10100101,
+    10100102,
+    10100103,
+    10100104,
+    10100105,
+    10100106,
+    10100107,
+    10100108,
+    10100109,
+    10100110,
+    10100111,
+    10100112,
+    10100113,
+    10100114,
+    10100115,
+    10100116,
+    1077936129,
+    1077936130,
+    1077936131,
+    1077936132,
+    1077936201,
+    1077936202,
+    1077936203,
+    1077936204,
+    1077936205,
+    1077936206,
+    1077936207,
+    1077936208,
+    1077936209,
+    1077936210,
+    1077936211,
+    1077936212,
+    1077936213,
+    1077936214,
+    1077936215,
+    1077936216,
+    1077936217,
+    1077936218,
+    1077936219,
+    1077936220,
+    1077936221,
+    1077936222,
+    1077936223,
+    1077936224,
+    1077936225,
+    1077936226,
+    1077936227,
+    1077936228,
+    1077936229,
+    1077936230,
+    1077936231,
+    1077936232,
+    1077936260,
+    1077936261,
+    1082130433,
+    1082130435,
+    1082130436,
+    1082130437,
+    1082130438,
+    1082130439,
+    1082130443,
+    1082130444,
+    1086324737,
+    1086324738,
+    1086324739,
+    1086324740,
+    1086324741,
+    1086324742,
+    1086324743,
+    1086324744,
+    1086324745,
+    1090519041,
+    1094713345,
+    1098907650,
+    1119879169,
+    1228931073
+  ],
+  "definitions": [
+    {
+      "assetId": 1077936132,
+      "names": [],
+      "sourceEntityIds": [],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324737,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324738,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324739,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324740,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324741,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324742,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324743,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324744,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324745,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1090519041,
+      "names": [
+        "默认模版(角色编辑)"
+      ],
+      "sourceEntityIds": [
+        1000001
+      ],
+      "fullCount": 0,
+      "summaryCount": 4
+    }
+  ],
+  "sourceEntityIndex": [
+    {
+      "sourceEntityId": 1000000,
+      "assets": [
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 1000001,
+      "assets": [
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        },
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        },
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        },
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        }
+      ]
+    }
+  ],
+  "openItems": [
+    "field11 full definition contains component-serialized payload (field6/7/8) whose component-type schema is not yet decoded.",
+    "Definition names present in IPC are local display labels; they may be TextMap-resolvable via official entity nameTextMapHash."
+  ]
+}

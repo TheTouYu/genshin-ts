@@ -23,8 +23,18 @@
   （0/1016/1017/1001/1022/1025/1011），用于新资产抓包后先判断消息类型。
 - runbook 已去除 `/mnt/c/temp`，改为 `C:\beyond-ipc` 稳定抓包目录；SKILL.md 已登记新脚本。
 
-**下一步（等用户抓包数据）：**
-- 首选抓官方预制体“复制/另存为自定义”单样本；确认消息类型后决定是否批量。
+**Round 1 结构分析（2026-09-05）：**
+- 用户未按“复制官方预制体”提示操作，实际 pcap 为通用 type1017 资源目录/定义快照。
+- 确认 type1017 承载资源目录：2497 个 available ID + 21 个定义；已提取 `assetId -> names -> sourceEntityId`。
+- 官方实体映射：`30007001`=打手丘丘人，`30005001`=遗迹守卫（对照 `BeyondOfficialEntityExcelConfigData` + TextMapCHS）。
+- 完整定义在 `field11`，含 field6/7/8 组件序列化，componentTypeId schema 未闭合。
+- 新增 `parse_type1017_generic.py`，产物见
+  `.scratch/.../ipc/type1017_generic_catalog.json` + `PROGRESS-TYPE1017-GENERIC.md`。
+
+**下一步（根据结构分析决定）：**
+- 解 field11 组件类型（对照 BeyondEditor 反编译/组件表）后，评估是否可从现有 pcap 提炼
+  “官方实体 → 组件/引用/参数”半自动资源。
+- 若需要更准确“复制为自定义”数据，再做真正的最小操作：复制官方实体/预制体为自定义 → 选中 → 抓 full field11。
 - 若预制体无“复制为自定义”入口，改用官方技能蓝图或 Duty/Stuff 蓝图。
 
 **验收 checkbox：**

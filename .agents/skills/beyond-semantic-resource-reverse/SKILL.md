@@ -62,6 +62,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_catalog.py`
 - HAblp 类型直方图（任意 pcap 通用探针）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/summarize_hablp_pcap.py`
+- type1017 通用资源目录/定义解析（不假设状态 schema）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
 - 官方状态复制捕获 runbook：
