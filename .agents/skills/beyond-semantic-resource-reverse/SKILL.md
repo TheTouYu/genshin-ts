@@ -36,6 +36,9 @@ metadata:
   这只是编辑器资源分类 ID，不是 TextMapHash。
 - IPC type1017/type1022 不含 effectID→TextMapHash；type1022 含资源数字 ID + 中文标签目录。
 - `assets.bin` ZIP 密码是 `G16F153D`，内层只是 UI 图标，不是映射表。
+- 官方“角色状态/单位状态”预定义 ID 族约为 10100002 起累加（用户 2026-09-04 提供：
+  10100002=加速、10100003=火元素附着、…、10100017=水泡禁锢）。
+  TextMapCHS/EN 已命中部分名称 hash；Blb 255/242 与编辑器 .mihoyobin 未发现该族目录表。
 
 ## 推荐工作流
 
