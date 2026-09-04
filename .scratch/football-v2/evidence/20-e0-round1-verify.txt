@@ -1,15 +1,18 @@
-# 票 20 · E0 第 1 轮 收轮证据（2026-09-04，未注入）
+# 票 20 · E0 第 1 轮 收轮证据（2026-09-04，**未注入**）
 
-## 1) 资产写回（候选→回读→--write，4 步；备份 4 份）
-源 SHA(写前)  3e952fd75d2ed16f2a3c8f3cd5502f2a4ec1f4fdad129ef167f29e80cb9bf1d2
-源=Temp SHA(写后) c2a856ec3832a808f021be5a09db24813c1b5344fa02101b90af27c7dac7978b
-备份 .gsts/backups/1073741908.gil.2026-09-04T06-14-34-536Z.new-graph.bak (…-35-460 / -36-507 / -37-765)
+## 1) 资产写回（4 步，全部 候选→回读→--write；4 份自动备份）
+写前 源 SHA = Temp SHA = 3e952fd75d2ed16f2a3c8f3cd5502f2a4ec1f4fdad129ef167f29e80cb9bf1d2
+写后 源 SHA = Temp SHA = c2a856ec3832a808f021be5a09db24813c1b5344fa02101b90af27c7dac7978b
+备份 .gsts/backups/1073741908.gil.2026-09-04T06-14-{34-536,35-460,36-507,37-765}Z*.bak
+  1082130439  20002 角色技能图  fb20c-loop      （create --type 20002 系统分配）
+  1073741836  20000 服务端图    fb20c-server    （create --type 20000 系统分配）
+  1610612783/784/785  信号 fb20_echo(tag:str,e:int)（先注册→后编译）
+  1098907653  技能配置 GSTS-fb20c-timer = template 6 + 瞬发，body-f5 绑 1082130439
 
-## 2) 编译（gsts.fb-client.config.ts --noinject，16 图 0 error）
-fb20c-loop.gia  id=1082130439 节点=31（预算<60 ✓）
-fb20c-server.gia id=1073741836 节点=25
+## 2) 编译（node ./bin/gsts.mjs -c examples/football/gsts.fb-client.config.ts --noinject）
+16 图 0 error；fb20c-loop.gia 31 节点（预算 <60 ✓）；fb20c-server.gia 25 节点
 
-## 3) decode 断言门禁 analysis/20-e0-assert.py
+## 3) decode 断言门禁（python3 .scratch/football-v2/analysis/20-e0-assert.py，exit 0）
 == E0 decode 断言：38 通过 / 0 失败 ==
     ✓ 客户端 .gia 图 ID = 1082130439（实得 1082130439）
     ✓ 客户端图节点预算 <60（实得 31）
@@ -50,15 +53,24 @@ fb20c-server.gia id=1073741836 节点=25
     ✓ 服务端图零多入边节点（实得 {}）
     ✓ 图变量三件套在位（实得 ['fb20c_armed', 'fb20c_sig_last', 'fb20c_sig_n']）
 
-## 4) 单位状态盘点（analysis/20-e0-list-unit-status.ts）
-  单位状态 id=1077936132 name="定时触发技能" 效果=[2110001]
-    · 槽11 触发间隔 = 0.0（f13 省略=未配置）→ 用户须设 0.1s
-    · 槽3 技能槽位 = 32 → 自定义技能槽 12（装配链已迁就 CustomSkillSlot12）
-    · 槽10 技能引用 = 空（两条）→ 用户须指到 1098907653
-    · 初始持续时间 = 1.0s → 用户须改无限
-  （另 3 个既有状态：1077936129 监听速度/670001、1077936130 减速/20001、1077936131 动态减速/1720001）
+## 4) 单位状态盘点（analysis/20-e0-list-unit-status.ts，只读）
+  既有状态 4 个：1077936129 监听速度/效果670001 · 1077936130 减速/20001 ·
+                  1077936131 动态减速/1720001 · **1077936132 定时触发技能/2110001**
+  1077936132 参数实测态 →
+    · 槽11 触发间隔 = 0.0（f13 省略未上 wire）→ **用户待配 0.1s**
+    · 槽3  技能槽位 = 32 → 自定义技能槽 12 → 装配链已迁就 CustomSkillSlot12（用户免改）
+    · 槽10 技能引用 = 空（两条）→ **用户待指到 1098907653**
+    · 初始持续时间 = 1.0s → **用户待改无限**（否则状态 1s 到期，Q1 观测窗口只剩 1s）
 
-## 5) lint 噪音甄别
-  _GSTS_fb20cLoop: finite_loop 2 条同 source_index 入边
-  对照=verify/inflow-index/inflow-index-repro.ts（已知良好回归样本）编译 → 报完全相同警告 ⇒ 噪音
-  （fb-phys2×2 / fbRender×1 的警告属他人 WIP，不在本票）
+## 5) lint 噪音甄别（finite_loop 双入边警告）
+  _GSTS_fb20cLoop: 'exec 节点 16（finite_loop）收到 2 条同出口(source_index=0)入边'
+  对照实验=编译**已知良好**回归样本 verify/inflow-index/inflow-index-repro.ts
+    node ./bin/gsts.mjs -c <临时配置 entries=[该文件]> --noinject
+  → 同样报 'exec 节点 3（finite_loop）收到 2 条同出口(source_index=0)入边' ⇒ 判为噪音
+  根因=lint 按 source_index 归组、不看**目标** InFlow 引脚序号 → 把 break→InFlow[1]
+        合法回连误计为冲突（工具侧债已登记设计单 §8，本票不夹带改动）
+  同批他人 WIP 警告（不在本票）：_GSTS_fbPhys2 ×2、_GSTS_fbRender ×1
+
+## 6) 未做（如实报告，结构层 ≠ 行为层）
+  未注入（等用户明确授权 + 四件套）· 未挂载 1073741836 到球实体 1077936135
+  无游戏帧值证据 · E0 五问 Q1-Q5 全部待实测（判据口径已预注册，不改）
