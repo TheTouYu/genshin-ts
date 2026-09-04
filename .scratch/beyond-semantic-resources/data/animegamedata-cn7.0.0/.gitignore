@@ -1,0 +1,3 @@
+# 大体积语料 JSON（47~52MB）仅本地研究用，不进 git；README 记录来源与用途
+*.json
+!README.md
