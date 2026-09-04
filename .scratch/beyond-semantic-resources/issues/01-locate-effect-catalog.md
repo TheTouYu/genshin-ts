@@ -30,3 +30,8 @@
   Procdump/Handle 对 YuanShen 被反作弊挡；编辑器 Json 树 4098 文件无效果 ID 也无 TextMap 哈希；
   社区 AnimeGameData TextMapCHS 命中「造物不可见=1842178763/1272094579」「定时触发技能=3678006995」；
   尚未找到 effectID→hash 映射表，最大嫌疑 `assets.bin` 加密内层/游戏 blk；字符串解密器需 Windows .NET 运行。）
+- （票01 A突破 2026-09-04：Windows 运行 BeyondEditor 字符串解密器，解出 `assets.bin` ZIP 密码 `G16F153D`；
+  解开后内层仍为 ZIP，6453 个文件全部是 UI 图标 PNG，**不是效果映射表**；`beyondeditorassets.bin` 同为图标。
+  另发现当前游戏 `.blk` 使用 `Blb\x03` 新容器（旧版为 `blk\0`），AssetStudio 2.4.1 可解析旧块但无法解析当前块；
+  当前 `00/25539185.blk`（Excel 块）原始扫描命中 1720001/2010001，`00/24230448.blk`（BinOutput 块）命中 1720001/2110001，
+  证明映射表在 Blb 块内，需当代 Blb 解包工具/逆向 Blb 格式。）

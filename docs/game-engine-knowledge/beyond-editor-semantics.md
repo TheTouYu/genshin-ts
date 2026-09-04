@@ -64,6 +64,11 @@ BeyondGlobal（Resource/Json/Beyond/BeyondGlobal/<hash>.mihoyobin）：
   AnimeGameData 候选 Excel/BinOutput 未找到 `effectID→TextMapHash` 映射。
 - 当前最大嫌疑：`BeyondAssistEditor/Resource/BeyondAssets/assets.bin` 加密内层，或主游戏 blk 内未公开映射表。
 - 待办：在 Windows 运行 BeyondEditor 字符串解密器以解 `assets.bin` 密码（Linux 反射被 WPF 依赖阻断）。
+- CONFIRMED：BeyondEditor 字符串解密器解出 `assets.bin` ZIP 密码 = `G16F153D`。
+- CONFIRMED（排除）：解开 `assets.bin` 内层后是 ZIP，6453 个文件全部为 UI 图标 PNG；`beyondeditorassets.bin` 同为图标。
+- CONFIRMED：当前游戏 `.blk` 使用 `Blb\x03` 容器（旧版为 `blk\0`）；AssetStudio 2.4.1 可解析旧块、无法解析当前块。
+- CONFIRMED：当前 `00/25539185.blk`（Excel 块）原始扫描命中效果 ID 1720001/2010001；`00/24230448.blk`（BinOutput 块）命中 1720001/2110001。
+- 结论：`effectID→TextMapHash` 映射表在当前 Blb 块内；下一步需当代 Blb 解包工具或逆向 Blb 容器格式。
 
 ## 关联
 
