@@ -19,7 +19,7 @@ then bring forward the minimum needed to continue—while deliberately protectin
 
 - Compaction summaries can drop nuance, decisions, exact numbers, or commands.
 - DSH stores every user/assistant/tool event under `~/.dsh/sessions/`, so the previous turns are still recoverable.
-- The fastest signal is usually the **most recent session of this project**, not an old generic session.
+- The fastest signal is usually the **current session’s own pre-compaction tail** when the checkpoint happened in this same session; otherwise the **most recent session of this project**, not an old generic session.
 - You should always cross-check recovered claims against git, files, manifests, and current map/data state.
 
 ## What counts as “details” that must not be lost
@@ -43,35 +43,60 @@ If a detail would change the next action if lost, treat it as critical.
 ## Core recovery loop
 
 1. **Identify the current DSH session and project root.**
-   - Current session file: `$DSH_SESSION_JSONL` or `$DSH_SESSION_ID`.
-   - Project session root is normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo; for another repo use `~/.dsh/sessions/<encoded-cwd>--`.
-   - Exclude the current session when searching for history to avoid reading your own in-progress actions.
+   - Current session file: `$DSH_SESSION_JSONL` or `$DSH_SESSION_ID`; project root normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo.
+   - **Do not immediately scan other sessions.** Check first whether the loss happened inside this same session (compaction/summary events exist in `$DSH_SESSION_JSONL`). The history tool excludes the current session by default, so a scan can show a different session as “latest” and mislead you.
+   - Only when the current session has no recoverable previous round (e.g., a fresh session) should you search other sessions.
 
-2. **Scan the latest sessions first.**
+2. **Same-session compaction: locate the previous round in this same session first.**
+   - The current session file is zstd JSONL. Find the latest compaction marker:
+     ```bash
+     zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | grep -n '"type":"compaction/summary"' | tail -5
+     ```
+   - The previous round is the **events immediately before the latest `compaction/summary`**, ending with the last user message and the assistant/tool evidence that preceded it.
+   - To read the current session (bypassing the default current-session exclusion), unset the env vars and use `show`:
+     ```bash
+     env -u DSH_SESSION_ID -u DSH_SESSION_JSONL python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py show "$(dirname "$DSH_SESSION_JSONL")" --tail 120
+     ```
+   - Or extract user messages directly:
+     ```bash
+     zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | python3 -c '
+     import sys,json,datetime
+     for i,line in enumerate(sys.stdin):
+         if line.startswith("{\"type\":\"user/message\""):
+             o=json.loads(line); t=o.get("time") or 0
+             if isinstance(t,(int,float)): t=datetime.datetime.fromtimestamp(t/1000).strftime("%H:%M:%S")
+             txt=o.get("text") or o.get("content") or ""
+             if isinstance(txt,list): txt=" ".join(x.get("text","") for x in txt if isinstance(x,dict))
+             print(f"[{i}] {t} {txt[:500]}")
+     ' | tail -80
+     ```
+   - Then open the specific range around that last user message to see its tool calls/results (see “Detail recovery techniques” below).
+
+3. **Only after step 2 fails, scan the latest sessions.**
    ```bash
    python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan ~/.dsh/sessions/--home-h-genshin-ts-- --limit 20
    ```
    Look for the session whose title/time matches the current task or is immediately before the checkpoint.
 
-3. **Locate the “previous session” and open its tail.**
+4. **Locate the “previous session” and open its tail.**
    ```bash
    python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py show <session-dir> --tail 60
    ```
    Read the last user messages and final assistant conclusions first; that is usually the “last round” you need to continue.
 
-4. **Find exact user messages and key assistant statements.**
+5. **Find exact user messages and key assistant statements.**
    - Use `scan` to see user-message summaries.
    - Use `search` with exact tokens from the task: file names, effect IDs, hashes, commands, or phrases the user actually said.
    ```bash
    python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py search "590001|禁用跳跃|beyondRoleStatusService" ~/.dsh/sessions/--home-h-genshin-ts-- --max-hits 20 --context 400
    ```
 
-5. **Fetch tool evidence only when needed.**
+6. **Fetch tool evidence only when needed.**
    - If a conclusion mentions a command/result, search the same session for the relevant `tool/call` and `tool/result`.
    - If an error occurred, use `errors` to see the failure; if a task was interrupted, use `todos`.
    - Do not re-run large scans or full repo searches just to “refresh”; the history should point you to the precise file/path/command.
 
-6. **Cross-validate details before continuing.**
+7. **Cross-validate details before continuing.**
    - Check `git log --oneline -10` for the latest commits.
    - Read the handoff/manifest/status file named by the previous session if one exists (e.g., `HANDOFF-CONTEXT.md`, `PROGRESS.md`, `manifest.md`).
    - If the task touches real game data, verify current file hashes/paths instead of trusting a memory.
@@ -140,7 +165,8 @@ Priority order:
 
 ## Pitfalls
 
-- Do not start by listing all sessions or grepping the whole repo; use `scan --limit` and targeted `search`.
+- **Do not start by loading other sessions.** If compaction happened in this same session, first locate the last `compaction/summary` in `$DSH_SESSION_JSONL` and read the events just before it. The scan tool excludes the current session, so another session can appear to be the “latest” and send you down the wrong path.
+- Do not start by listing all sessions or grepping the whole repo; use targeted commands against the current session first, then `scan --limit` / `search` only when needed.
 - Do not treat an assistant summary as the user’s original intent; find the user message and quote it.
 - Do not trust a compaction summary that conflicts with git/file evidence; file evidence wins.
 - Do not repeat full exploration that previous sessions already completed—search for the conclusion first, then only fill the remaining gap.
@@ -157,3 +183,9 @@ Recovery steps:
 4. Read `.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/HANDOFF-CONTEXT.md` and the manifest.
 5. Verify git log and current map hash.
 6. Continue from the next action, preserving the exact sample table and commands.
+
+Same-session compaction example (two compactions, still one session):
+1. `zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | grep -n '"type":"compaction/summary"' | tail -3` → see there are two checkpoints in the *current* session.
+2. Do not scan/load other sessions yet; read the events just before the latest checkpoint (`zstd -dc ... | sed -n '...,...p'` or `env -u DSH_SESSION_ID ... show <current-session-dir> --tail 120`).
+3. Quote the last real user message before the checkpoint (e.g., “你现在就可以试试还原压缩之前的细节，自我验证并优化这个技能”) and recover the assistant/tool evidence right before it.
+4. Only if no checkpoint exists in the current session should you move to other sessions.
