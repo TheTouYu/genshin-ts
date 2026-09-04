@@ -12,6 +12,8 @@
 - 管线规划：`docs/game-engine-knowledge/semantic-resource-pipeline.md`（Discover/Decode/Integrate 三阶段）
 - 表地图 inventory：`docs/game-engine-knowledge/semantic-resource-inventory.md`（票03 已产出）
 - 票01 证据固化：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/`（handoff + 解码器 + 脚本 + IPC + INVENTORY）
+- 票01 静态数据轮复盘：`docs/game-engine-knowledge/retrospective-2026-09-04-ticket01-static-data-round.md`
+- 领域技能：`beyond-semantic-resource-reverse`（票01/effectID→TextMapHash/MiHoYoBinData/Blb3/IL2CPP/RoleStatus）
 - 本地语义资源根（编辑器）：
   `/mnt/e/ys/Genshin Impact Game/BeyondAssets/BeyondAssistEditor/Resource/Json/`
   - `TextMap/<语言>/<hash>.mihoyobin`：每语言一个；CHS 实测 7743 条节点/枚举名，**不含状态效果名**
@@ -26,13 +28,16 @@
 - 已知缺口：
   - 状态效果名（1720001=移动速率调整率（动态）/2110001=定时触发技能/2010001=造物不可见）
     不在编辑器 Json 树（CHS TextMap 0 命中）
-  - `Resource/BeyondAssets/assets.bin` = ZIP，内层加密（密码未知）
-  - 候选来源：① BeyondEditor.dll 反编译 ② 游戏主进程（YuanShen_Data/*.blk）③ assets.bin 内层
+  - `Resource/BeyondAssets/assets.bin` = ZIP，内层已解密码 `G16F153D`，但内容只是 UI 图标，非映射表
+  - CN 7.0.0 MiHoYoBinData 原始对象无需 XOR 0x95；但行表 schema 未闭合
+  - 主游戏 `global-metadata.dat` 为 MHY 加密头，静态 IL2CPP/旧 MetadataConverter 不可用
+  - BeyondEditor RoleStatus 加载链止于资源分类三元组 `(10003,50004,51000/51001)`，不含 TextMapHash
+  - 候选来源：① 游戏侧 IPC/Blb/IL2CPP ② 运行时解密 metadata ③ MiHoYoBinData 行表 schema
 - GIL wire 侧 ID 语义：`docs/game-engine-knowledge/unit-status.md`
 
 ## 当前前沿
 
-**→ 票 01 定位并解析状态效果语义目录源**（OPEN；已确认 IPC 通道不含 effectID→TextMapHash：wire=HAblp+XOR0xEA+protobuf，type1017 只给 effectID 列表。下一步主攻游戏静态 Blb/MiHoYoBinData，或先导出 type1017 effectID 全集。证据/清单见 `.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/INVENTORY.md` 与 `ipc/PROGRESS-IPC.md`）。
+**→ 票 01 定位并解析状态效果语义目录源**（OPEN；已确认 IPC 不含 effectID→TextMapHash；MiHoYoBinData 无 XOR；IL2CPP 静态被 MHY 加密 metadata 挡；BeyondEditor RoleStatus 只到资源三元组 `(10003,50004,51000/51001)`。下一步候选：用三元组反查游戏侧 IPC/Blb、运行时解密 metadata、或继续行表 schema。证据见 `blb3/PROGRESS.md`、`beyond-editor-semantics.md`、复盘与技能 `beyond-semantic-resource-reverse`）。
 
 ## 票据清单
 
