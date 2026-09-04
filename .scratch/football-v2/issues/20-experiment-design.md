@@ -313,6 +313,10 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> re
   ② **时钟起点/单调性**——`getCurrentClientTimeHighPrecision` 出参 pin0=S/pin1=MS 的
     选择已按定义断言到产物层（decode 断言「7 条数据边全取 pin1」），但**起点是 0 还是 epoch、
     是否单调**仍待帧值实测（Q3 本体）。
+- **技能变量段真实边界（09-04 字节取证）**：地图 **1908 实际存在 1207959553..602 共 50 个**
+  （不是 1914 复盘文里写的 100 个/553..652 —— 那是 **1914** 地图的段，跨图引用 603..652
+  会命中**不存在**的变量）。取证法=直读 .gil 字节 `raw.count(varint(1207959553+i))`，
+  命中 1 次=仅声明空闲、≥3 次=有图引用。E0 用的 1207959581 已确认在位且空闲。
 - **工具侧债（不属本票实验，登记勿夹带）**：`GSTS-DUPLICATE-EXEC-INPUT` lint 按
   `source_index` 归组、不看**目标** InFlow 引脚序号 → 把 `break_loop → finite_loop InFlow[1]`
   的合法回连误报为冲突（对照样本 `verify/inflow-index/inflow-index-repro.ts` 编译报同一条警告）。
