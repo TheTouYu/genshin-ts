@@ -122,3 +122,13 @@
 - `--export_type JSON` 只是把 RawData 做 Base64 包一层，不解析/不解密。
 - 结论：**242/255 标准 BinOutput/Excel 中不存在可明文检索到的“单位状态效果表”**；
   真实表要么在未解密的 MiHoYoBinData 对象内（需逐对象解密/二次解码），要么在 Beyond 专属未公开数据/其他块。
+
+## 2026-09-05 MiHoYoBinData 逐对象解密（现状卡点）
+
+- 对象 raw（去掉 4B 长度后）不以 `length_prefixed_bitfield` 起始，首 varint 巨大，不直接可解析。
+- `--key 0x00/0x95/0x99/0xe5/0xea` 导出结果完全一致 → 该 AssetStudio 未对 MiHoYoBinData 内容做实际解密。
+- `--export_type JSON` 只是把 RawData Base64 包装，不解析。
+- DataParser（WeedwackerPS）有旧版 2.2 的逐表 .ksy schema，但没有 Beyond/UGC 单位状态效果表；
+  且当前 7.0 raw 是否沿用旧格式/加密未知。
+- 结论：要逐对象解析必须先拿到当前 7.0 的 MiHoYoBinData 解密/解压算法，或运行期内存 dump 明文；
+  当前公开工具链（RazTools Studio / DataParser / paimooon / animeblkstuff）未覆盖这一层。
