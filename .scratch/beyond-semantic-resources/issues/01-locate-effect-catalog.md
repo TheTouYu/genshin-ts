@@ -25,3 +25,8 @@
 
 - （票 00 知识落盘 2026-09-04：.mihoyobin 格式破解 + CHS TextMap 无效果名实证 + assets.bin 加密 + 三候选路线，
   详见 beyond-editor-semantics.md 与会话记录；差分实验快照 v21 保持不变，本票不碰 GIL）
+- （票01 侦察轮 2026-09-04：BeyondEditor = .NET/WPF，由 YuanShen 以 `-autoConnect -sourcepid` 拉起；
+  效果列表 UI 实际在原神主窗口，BeyondEditor 仅辅助窗口；loopback TCP 54562↔61165 存在，但关/开效果列表时不传名字/ID。
+  Procdump/Handle 对 YuanShen 被反作弊挡；编辑器 Json 树 4098 文件无效果 ID 也无 TextMap 哈希；
+  社区 AnimeGameData TextMapCHS 命中「造物不可见=1842178763/1272094579」「定时触发技能=3678006995」；
+  尚未找到 effectID→hash 映射表，最大嫌疑 `assets.bin` 加密内层/游戏 blk；字符串解密器需 Windows .NET 运行。）

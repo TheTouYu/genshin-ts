@@ -46,8 +46,24 @@ BeyondGlobal（Resource/Json/Beyond/BeyondGlobal/<hash>.mihoyobin）：
   ③ assets.bin 加密内层。
 - OPEN：TextMap hash 与效果 ID 之间应隔一张“效果配置表”（effect config 把 1720001 →
   TextMap hash）——表位置未定位。
-- OPEN：方言/语言版本：编辑器 TextMap 有 18 语言，但效果名若来自主游戏 TextMap，
+- OPEN：方言/语言版本：编辑器 TextMap 实测 15 语言，但效果名若来自主游戏 TextMap，
   主游戏 TextMap 在 blk 内且为多语言。
+
+## 2026-09-04 侦察更新（票01，A/B 路线）
+
+- CONFIRMED：BeyondEditor 是 .NET/WPF 程序，由 YuanShen 以 `-autoConnect -sourcepid` 拉起；
+  效果/单位状态列表 UI 实际显示在**原神主窗口**，BeyondEditor 的窗口是辅助/资源/日志窗口。
+- CONFIRMED：YuanShen 监听 `127.0.0.1:54562`，BeyondEditor 通过 loopback TCP 连接；但**关/开效果列表时不传输效果名或效果 ID**，
+  说明效果目录不是编辑器 IPC 实时下发，而是 YuanShen 本地已有/编辑器侧另有来源。
+- OBSERVED：YuanShen 有反作弊/保护：Procdump、Handle、ListDLLs 均无法读取；pktmon 不抓 loopback。
+- CONFIRMED：社区 `AnimeGameData/TextMapCHS.json` 含：
+  - `造物不可见` → `1842178763`、`1272094579`
+  - `定时触发技能` → `3678006995`
+  - `移动速率调整率（动态）` 未命中（可能不是主游戏正式文案）
+- CONFIRMED（排除）：编辑器 Json 树全部 4098 `.mihoyobin` 无效果 ID、无上述 TextMap 哈希；
+  AnimeGameData 候选 Excel/BinOutput 未找到 `effectID→TextMapHash` 映射。
+- 当前最大嫌疑：`BeyondAssistEditor/Resource/BeyondAssets/assets.bin` 加密内层，或主游戏 blk 内未公开映射表。
+- 待办：在 Windows 运行 BeyondEditor 字符串解密器以解 `assets.bin` 密码（Linux 反射被 WPF 依赖阻断）。
 
 ## 关联
 
