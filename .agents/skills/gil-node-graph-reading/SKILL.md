@@ -267,6 +267,16 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
      这类问题编译期不报错，必须读 `flow`/`boundary` 才能发现（2026-08-20 日志 2777 实证）。
    - 编译器 bug：节点爆炸（函数内联×分支/常量当变量读）、capture 链异常、值类型错、
      丢边（.gia 有边 .gil 丢边——注入器按 CompositeDef 裁剪调用点引脚）
+   - **警告/断言失败先归因三分，再动图**（2026-09-04 票 20 E0 实证）：一条红字可能来自
+     ①**图真有缺陷**（改图）②**校验器自身 bug**（形态漏分类、边方向、层级差一层——本轮 5 项
+     断言失败里 4 项属此类）③**工具噪音**（检测器口径不足）。
+     判别法=**拿同形态的已知良好样本跑同一命令做对照**：
+     它同样报 ⇒ 工具的（登记工具债，**不改图**——本轮若据此拆 finiteLoop 就是无谓重构 +
+     白付一轮用户游戏核验）；它不报 ⇒ 我的东西有问题，继续定位。
+     E0 实例：`finite_loop 收到 2 条同 source_index 入边` 警告，编译
+     `verify/inflow-index/inflow-index-repro.ts`（该形态的回归样本）报**完全相同**警告 ⇒ 判噪音；
+     根因=lint 按 `source_index` 归组、不看**目标** InFlow 引脚序号，把 `break→InFlow[1]`
+     合法回连误计冲突（O-2026-09-04-09）。**改断言让它变绿之前，必须先 dump 原始 JSON 证明真值在不在。**
 6. **.gia 值定位与常量浮点形态速查（2026-08-31 足球四点合一实证）**——核"常量折叠落位"时，
    **首选一条命令：`npx tsx tools/gia-verify-pin.ts <file.gia> --vals 0.12,3.5 [--composite <名>] [--data]`**
    （常量落位 + 信号三件套 + 复合名录 + 执行序 dump 一次出全；手写扫描器的原理速记如下，工具不可用时兜底）：
@@ -280,10 +290,10 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
      分类而非 isinstance；**Assembly List 泛型节点带大量 alreadySet=false 占位 pin**——只计
      alreadySetVal=true 的真实落位值（结构默认值会污染计数）。**布局坐标污染**：node 的 x/y
      是 float，递归全树扫描会把坐标误计为常量——只扫 pins[].value 路径。
-   - **str/int 常量计数对账 + 复合调用点/impl 节点数统计**：现成脚本（免手写扫描器，
-     2026-09-03 足球 R2.2 沉淀）：
-     `python3 .agents/skills/gil-node-graph-reading/references/decode-gia-constant-scan.py <decoded.json> --assert str:fb_beat:4 float:0.2:2 int:2250:1`
-     （断言缺=exit 1 可作门禁；输入=decode-gia 的 JSON 重定向文件；本轮回归 12 断言全过）
+   - **str/int/cfg/enum/float 常量计数对账 + 复合调用点/impl 节点数统计**：现成脚本（免手写扫描器，
+     2026-09-03 足球 R2.2 沉淀；2026-09-04 票 20 E0 补 `cfg`/`enum` 两形态）：
+     `python3 .agents/skills/gil-node-graph-reading/references/decode-gia-constant-scan.py <decoded.json> --assert str:fb_beat:4 float:0.2:2 int:2250:1 cfg:1207959581:3 enum:3132:1`
+     （断言缺=exit 1 可作门禁；输入=decode-gia 的 JSON 重定向文件；E0 回归 15 断言全过）
    - **accessories 索引→复合名映射**：`jq -r '.accessories[] | select(.name!=null) | "\(.name) id=\(.id.id // "")"'`；
      每个 composite def 成对出现（def+impl，偶数=def 奇数=impl），常量/结构在 **impl** 里查。
    - **信号三件套定位**：accessories 里 name=发送信号/监听信号/向服务器节点图发送信号 的三个单元
@@ -291,6 +301,26 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
    - **执行序判读**（pin.connects 语义）：连线挂在**源 pin** 上，`connects[].id`=目标节点、
      `connect.connect`=目标 pin(kind,index)；kind=1 是 exec 边、kind=4 是数据边。判"先发信号后写变量"
      这类顺序：看目标 SetVar 节点的 exec 入边来自谁（如 send 节点 out pin → SetVar = 先发后写 ✓）。
+   - **⚠️ decode-gia 两类边挂在不同端点（2026-09-04 票 20 E0 实测，写断言脚本别一把梭）**：
+     **exec 边（kind=1）挂在源节点 pin**、`connects[].id`=**目标**（上一条描述的即此类）；
+     **数据边（kind=4）挂在目的节点 pin**、`connects[].id`=**来源**节点、`connect.index`=来源引脚。
+     实测样本 `n18(减法).pin1 ← connects[(17,kind4,index1)]` = "n18 输入1 来自 n17 的 pin1"——
+     按"连线的 id 一定是目标"建数据流图会把每条数据边反向、误报"输入未连线"
+     （E0 第一版断言脚本因此报「0 条时钟数据边」假阴性）。**先按 kind 分流方向再建图**。
+   - **多输出数据节点"取了哪个输出引脚"值得单独断言**（同次实证）：
+     `获取当前客户端时间（高精度）` 出参 **pin0=秒 / pin1=毫秒**，DSL 里 `.clientTimeMs` vs
+     `.clientTimeS` 编译后唯一差别就是 `connect.index` 的 0/1；选错引脚结构层全绿、
+     **数值差 1000×**（Q3/Q5 全废且不报错）。对这类节点写"全部数据边 connect.index 集合"
+     断言（E0 口径 7/7 均 index1），别只数节点个数。
+   - **常量落位形态三分：`bInt` / `bId`(config_id) / `bEnum`——用错 kind 断言必假报"常量没落位"**
+     （2026-09-04 E0 双处同族实证）：技能变量槽写 `1207959581n` 落 wire 的键是 **bId**
+     （class 1 / type_client 18 config_id），当时按 int 断言报 0 命中，一度误判"编译丢了常量"；
+     枚举参数（CustomSkillSlot12=3132）走 **bEnum**（class 6）。**权威类型码表在
+     `src/cli/variables_verify.ts` 的 `PAYLOAD_KEYS`/`CLIENT_PAYLOAD_BY_CLASS`（含全形态），
+     写任何新扫描器先抄它、别自选三个键**（`tools/gia-verify-pin.ts` 与
+     `references/decode-gia-constant-scan.py` 本轮已同步补齐 bId/bEnum）。
+     槽位/模式这类枚举**要单独上门禁**：装配错槽（3121=槽1 vs 3132=槽12）= 定时触发找不到技能
+     = 结构层全绿、游戏里什么都不发生的静默失效，比缺节点更难查。
 
 
 核验通过才交用户游戏测试；发现问题直接修（改 DSL 或改注入器），不猜测。

@@ -1,6 +1,6 @@
 ---
 name: genshin-ts-asset-operations
-description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）和信号（assets:signals inspect/register/update/repair）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“技能配置/技能资产/创建技能”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
+description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）和信号（assets:signals inspect/register/update/repair）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“技能配置/技能资产/创建技能”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。**写回/引用前的同类资产盘点同样走本技能**（`references/scripts/audit-map-assets.ts`，**从仓库根全路径调用**：技能变量配置 ID 段在位/空闲判定、单位状态是否已存在及其参数是否已配置）——凡涉及"技能变量 ID/单位状态 ID/状态配置/要不要请用户新建资产"的判断，先盘点再动手。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
 compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets:custom-variables / assets:level-variables / assets:mounts / assets:node-graphs / assets:ui / assets:signals), a user-verifiable real map .gil or fixture.
 ---
 
@@ -47,6 +47,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
 | 信号注册/更新/修复/检查 | `assets:signals inspect\|register\|update\|repair` |
 | 技能配置创建/列出（36/6/28 模板×普通/瞬发+绑定） | `assets:skill-config create\|list`（详见 reference 速查；28 模板固定模型遗迹守卫 10005001、root20 联动；28+普通 仅 list） |
+| **写回/引用前：盘点地图既有同类资产**（技能变量段真实边界、单位状态是否已存在及其参数态） | `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>`（只读；2026-09-04 票 20 E0 沉淀） |
 
 命令细节与 dict 编码见 [references/asset-cli-reference.md](references/asset-cli-reference.md)。
 
@@ -56,6 +57,13 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在 `/mnt/c/Users/<用户>/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（Windows 挂载盘，glob/find home 找不到），Temp 缓存在同级 `../Temp/`。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
 1. **只读盘点并锁定源 SHA**：`sha256sum <map.gil>`，导出当前相关资源（变量 `--list`、挂载 `assets:mounts list`、UI `assets:ui list`、实体 `assets:entities --format json`），确认目标 ID 空闲、类型/容器正确。ID 分配遵守 `static-gil-model-builder` 的 ID 纪律（新元件/实体 ID 必须 ≥1077936129，且 root4/5/6 双查）。
+1b. **"要用户在编辑器新建 X"前先跑同类盘点（2026-09-04 票 20 E0 实证，省一轮用户动作）**：
+   `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>` 只读输出 A) 技能变量配置 ID 哪些在位/
+   哪些空闲（字节命中 1 次=仅声明零引用=可用；≥2 次=已被他图引用勿复用）B) 单位状态资产的
+   配置 ID / 名称 / 效果 ID / **关键参数是否已配置**。E0 原计划请用户新建「定时触发技能」状态，
+   盘点后发现**地图里已存在**（id=1077936132）只是参数为空 → 用户动作从"新建+配置"降为"配置 3 项"，
+   并顺带暴露该状态指向**槽位 12**（不是常规槽 1）的错配——若直接按槽 1 装配，定时触发找不到技能
+   = 结构层全绿、游戏里什么都不发生的静默失效。**计划让用户动手之前，先证明那个东西真的不存在。**
 2. **生成候选（优先 `--output`）**：先不直接写源，用 `--output <new-file>` 生成不存在的候选，独立回读候选，确认只出现计划字段。
 3. **展示安全门并取得确认**：真实既有地图写回前展示 目标地图/路径、源 SHA、候选 SHA/大小、目标 ID、修改范围、备份位置、回滚方式。用户已明确给出“直接写/用 --write”的指令时，可把该指令作为本轮确认。
 4. **`--write` 写回**：CLI 自动在同级 `.gsts/backups/` 建带时间戳备份并校验源 SHA；记录备份路径。**批量撤销已写回内容 = 恢复最早备份**（第一个时间戳 .bak=写前原状，恢复后按新方案重写），禁止手写 wire 删除脚本（09-03 实证驯化两轮未成，恢复路径 1 分钟搞定；CLI 变量操作全 upsert 无删除命令）。
