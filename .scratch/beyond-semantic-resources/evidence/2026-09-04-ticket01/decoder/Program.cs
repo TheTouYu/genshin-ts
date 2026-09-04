@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 class Program
@@ -20,6 +21,14 @@ class Program
 
         Console.WriteLine("Loading " + dll);
         Assembly asm = Assembly.LoadFile(dll);
+
+        if (argFile == "--types" || argFile == "types")
+        {
+            string typeOut = args.Length > 1 ? args[1] : "TypesOutput.txt";
+            DumpTypes(asm, typeOut);
+            return;
+        }
+
         Type target = asm.GetType("YlKu2QYfNaDsptndNkxX", false);
         if (target == null) { Console.WriteLine("TYPE_NOT_FOUND"); return; }
 
@@ -62,5 +71,36 @@ class Program
             }
         }
         Console.WriteLine($"DONE ok={ok} err={err} -> {Path.GetFullPath(outFile)}");
+    }
+
+    static void DumpTypes(Assembly asm, string outFile)
+    {
+        string[] needles = { "Effect", "RoleStatus", "UnitStatus", "Status", "State", "Config", "Service", "Beyond" };
+        using var writer = new StreamWriter(outFile, false, System.Text.Encoding.UTF8);
+        int total = 0, hit = 0;
+        Type[] types;
+        try { types = asm.GetTypes(); }
+        catch (ReflectionTypeLoadException ex) { types = ex.Types.Where(t => t != null).ToArray(); }
+
+        foreach (var t in types)
+        {
+            total++;
+            string name = t.FullName ?? t.Name ?? "";
+            if (!needles.Any(n => name.Contains(n, StringComparison.OrdinalIgnoreCase))) continue;
+            hit++;
+            writer.WriteLine("TYPE " + name);
+            try
+            {
+                var members = t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
+                foreach (var m in members)
+                {
+                    string mn = m.Name ?? "";
+                    if (needles.Any(n => mn.Contains(n, StringComparison.OrdinalIgnoreCase)))
+                        writer.WriteLine("  MEM " + m.MemberType + " " + mn);
+                }
+            }
+            catch { }
+        }
+        Console.WriteLine($"TYPES total={total} hit={hit} -> {Path.GetFullPath(outFile)}");
     }
 }
