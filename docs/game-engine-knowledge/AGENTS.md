@@ -210,7 +210,9 @@ GIL 整体结构与语义树
   [stage3 独立图](retrospective-2026-08-27-rubik-stage3-newgraph.md)、[独立测试台](retrospective-2026-08-27-rubik-testbench.md)、
   [视觉根图 10-case](retrospective-2026-08-27-multiple-branches-10-case.md)、[solveSeq 竞态](retrospective-2026-08-28-solveseq-race.md)、
   [修复引入回归](retrospective-2026-08-28-regression-fix.md)、[顶层求解+越界读](retrospective-2026-08-28-top-layer.md)、
-  [漏发 op6](retrospective-2026-08-28-op6-missing.md)、[客户端计算改造第 0 轮](retrospective-2026-08-29-rubik3x3-client-round0.md)
+  [漏发 op6](retrospective-2026-08-28-op6-missing.md)、[客户端计算改造第 0 轮](retrospective-2026-08-29-rubik3x3-client-round0.md)、
+  [client 版角块段时序竞态](retrospective-2026-09-04-rubik-client-timing-race.md)
+  （黄金对照法+显示假象族+竞态判定 playbook；fast 定时器容差 < rbv 链每步耗时 → op5 读旧状态重发宏）
 - **足球**：[真实物理+运动器](retrospective-2026-08-22-football-physics-motion.md)、
   [双触发事件链](retrospective-2026-08-23-football-motion-dual-trigger.md)、
   [三阶段修复](retrospective-2026-08-23-football-motion-and-rolling.md)、

@@ -1551,6 +1551,38 @@
         "自定义按钮"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "display-artifacts",
+      "node_id": "debug-log-format",
+      "title": "日志显示层假象族与黄金对照判读",
+      "path": "knowledge/debug-log-format/display-artifacts.md",
+      "summary": "",
+      "keywords": [
+        "int_list",
+        "假象",
+        "日志",
+        "显示",
+        "负值",
+        "黄金对照"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "timing-race",
+      "node_id": "debug-log-format",
+      "title": "定时器等待竞态判定（触发 rec 序 vs 被等事件 rec 序）",
+      "path": "knowledge/debug-log-format/timing-race.md",
+      "summary": "",
+      "keywords": [
+        "rec",
+        "定时器",
+        "旧状态",
+        "时序",
+        "竞态",
+        "重算"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],

@@ -333,6 +333,25 @@ f21 = {
   OUT0:String=指令码 → Set Local Variable → When Custom Variable Changes → Cast Skill Instance。
 - **f10=组件定义 ID**：8=常规（大世界玩法图挂载）、5=结算合法（全局计时器图挂载）；f8/f3 见上。
 
+## 显示层假象族（2026-09-04 双日志对照实证：3185 病灶 vs 3099 正常，值本身没错）
+
+> 状态：已验证（双源对照）；证据：`examples/rubik-3x3-client/.gsts/evidence/3185-fullrun/` +
+> `examples/rubik-3x3/.gsts/evidence/3099-postfix-fullrun.gia`；
+> 复盘：`retrospective-2026-09-04-rubik-client-timing-race.md`。
+
+- **int_list 负值显示形态**：List 参数里的负值显示为 `[值的uint8, 255×8]`（-1→`255×9`、
+  -2→`254,255×8`）。不是 9 个物理元素、不是残留、不是写入错误——`getCorrespondingValueFromList`
+  按真实索引取值正常（IN1=0 读 -1 显示 uint64 18446744073709551615）。solve_seq/solveBuf 类
+  「看似负值残留」判读先做双日志对照。
+- **int_list 图变量 Get 帧 float 垃圾显示**：部分 int_list 图变量（如 CF_CORNER_POLICY_c2）
+  读出显示 `[0.0001508, 9.982e-18, nan…]`，同一帧下游 `Get Corresponding Value From List` 的
+  IN0 又显示 hex 字节串——显示层按 wire 形态选了不同解码，表内容本身完好（3099 正常还原
+  会话同形态）。
+- **黄金对照判读门**：显示形态与预期内容矛盾时，先找一份**同链路已成功**的日志同字段对照：
+  同形态→假象（跳过破译），不同形态→真异常。2026-09-04 一次对照杀死 3 个错误假设。
+- **Integer 空显示可能是有效 0**（与 OUT3/OUT4 空显示门同族，上下文相关——定性前与源码表值/
+  期望值离线对照，见 O-2026-09-04-02 口径）。
+
 ## 待解问题
 
 - get/set 帧中"类型4=1（0801）"输入的含义（get 第 3 输入 / set 第 4 输入；疑似同步/有效标志，面板不显示）
@@ -340,3 +359,5 @@ f21 = {
 - 类型码 25/26（结构体）内部字段结构；结算合法全局计时器周期/判胜链（读图 1073741854）
 - 记录级字段非单调规律（f2 等）；f7.f1=1 的含义
 - 变量初始值定义位置（推测在 GIL 图数据中，不在日志）
+- 显示层假象族的精确物理成因（255×8 的 wire 编码字节语义；float 垃圾的解码路径）——判读门已可
+  用，成因待破译（低优先）
