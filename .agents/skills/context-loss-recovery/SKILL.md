@@ -61,13 +61,17 @@ If a detail would change the next action if lost, treat it as critical.
      ```bash
      zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | python3 -c '
      import sys,json,datetime
-     for i,line in enumerate(sys.stdin):
-         if line.startswith("{\"type\":\"user/message\""):
-             o=json.loads(line); t=o.get("time") or 0
-             if isinstance(t,(int,float)): t=datetime.datetime.fromtimestamp(t/1000).strftime("%H:%M:%S")
-             txt=o.get("text") or o.get("content") or ""
-             if isinstance(txt,list): txt=" ".join(x.get("text","") for x in txt if isinstance(x,dict))
-             print(f"[{i}] {t} {txt[:500]}")
+     for i,line in enumerate(sys.stdin, start=1):
+         if not line.startswith("{\"type\":\"user/message\""): continue
+         o=json.loads(line); d=o.get("data",{})
+         src=d.get("source",{})
+         if isinstance(src,dict) and src.get("kind")!="user": continue
+         t=d.get("time") or o.get("time") or 0
+         if isinstance(t,(int,float)): t=datetime.datetime.fromtimestamp(t/1000).strftime("%H:%M:%S")
+         content=d.get("content") or []
+         txt=" ".join(x.get("text","") for x in content if isinstance(x,dict)) if isinstance(content,list) else str(content)
+         if txt.startswith("<system-reminder>") or txt.startswith("This is an automatically generated checkpoint"): continue
+         print(f"[line {i}] {t} {txt[:500]}")
      ' | tail -80
      ```
    - Then open the specific range around that last user message to see its tool calls/results (see “Detail recovery techniques” below).
