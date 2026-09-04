@@ -103,6 +103,35 @@ def get_source_entity_id(body):
     return None
 
 
+def get_def_extra(body):
+    """Extract small summary metadata without decoding component payloads."""
+    kind_codes = []
+    source_flags = []
+    has_component_ref = False
+    for f12 in find_msg(body, 12):
+        for sub in f12[2]:
+            if sub[1] != 'msg':
+                continue
+            # name record: field3 contains name + kindCode in field8
+            if sub[0] == 3:
+                k = find_var(sub[2], 8)
+                if k is not None and k not in kind_codes:
+                    kind_codes.append(k)
+            # source record: field1 contains field2 msg {1:source,2:flag}
+            if sub[0] == 1:
+                for x in find_msg(sub[2], 2):
+                    flag = find_var(x[2], 2)
+                    if flag is not None and flag not in source_flags:
+                        source_flags.append(flag)
+                if find_msg(sub[2], 5):
+                    has_component_ref = True
+    return {
+        'kindCodes': kind_codes,
+        'sourceFlags': source_flags,
+        'hasComponentRef': has_component_ref,
+    }
+
+
 def get_full_def_summary(body):
     f11 = find_msg(body, 11)
     if not f11:
@@ -147,11 +176,13 @@ def parse_payload(payload: bytes, frame_source: str) -> dict:
             aid = get_asset_id_from_def(body)
             if aid is None:
                 continue
+            extra = get_def_extra(body)
             defs.append({
                 'assetId': aid,
                 'names': get_names_from_def(body),
                 'sourceEntityId': get_source_entity_id(body),
                 'full': get_full_def_summary(body),
+                **extra,
             })
         records.append({
             'recordIndex': rec_i,
@@ -209,6 +240,9 @@ def main() -> None:
                     'assetId': aid,
                     'names': [],
                     'sourceEntityIds': [],
+                    'kindCodes': [],
+                    'sourceFlags': [],
+                    'hasComponentRef': False,
                     'fullCount': 0,
                     'summaryCount': 0,
                 })
@@ -217,6 +251,14 @@ def main() -> None:
                         ent['names'].append(n)
                 if d['sourceEntityId'] is not None and d['sourceEntityId'] not in ent['sourceEntityIds']:
                     ent['sourceEntityIds'].append(d['sourceEntityId'])
+                for k in d['kindCodes']:
+                    if k not in ent['kindCodes']:
+                        ent['kindCodes'].append(k)
+                for f in d['sourceFlags']:
+                    if f not in ent['sourceFlags']:
+                        ent['sourceFlags'].append(f)
+                if d['hasComponentRef']:
+                    ent['hasComponentRef'] = True
                 if d['full']:
                     ent['fullCount'] += 1
                 else:

@@ -78,9 +78,30 @@ top repeated field1 = 目录/页/集合
 - 通用解析结果：`.scratch/.../ipc/type1017_generic_catalog.json`
 - 旧状态基线对照：`.scratch/.../ipc/type1017_generic_official_status.json`
 
+## 多类型第二轮（2026-09-05）
+
+- pcap：`/mnt/c/beyond-ipc/multi_type_ipc.pcap`（68 个 type1017 帧）。
+- 解析产物：`.scratch/.../ipc/multi_type.generic.json`
+- 资源：`resources/official_entity_ipc_mapping.json`（68 个官方实体映射）。
+
+### kindCode 与 entityType 已闭环（小字段大信息）
+
+| kindCode | entityType | 样本 |
+|---|---|---|
+| 1402 | Gadget | 空模型、瀑布、水体、几何体 |
+| 1403 | Player | 默认模版 |
+| 1404 | Avatar | 默认模版(角色编辑) |
+| 1405 | Monster | 史莱姆/丘丘人/深渊法师/遗迹守卫等 |
+
+即：type1017 摘要定义的 `field12 -> entry3 -> field8` 的 small int 可当作资产 kind 门类。
+
+### 本轮未包含完整 field11
+
+76 个定义全部是摘要（`fullCount=0`），仅有 `sourceEntityId/name/kindCode/sourceFlag/hasComponentRef`。
+要拿到 `field11` 内部组件/引用/参数，仍需触发一次“选中/打开具体资产”的完整物化。
+
 ## 下一步候选
 
 1. 对照 `BeyondEditor.dll` 反编译/组件类型表，解 field6/7/8 的 componentTypeId 含义。
-2. 决定是否用同一 pcap 已有“完整定义”提炼 `sourceEntityId -> 组件/引用/参数` 半自动资源；
-   若不够，再做一次**真正的最小操作**：复制官方实体/预制体为自定义 → 选中 → 抓 full field11。
-3. 把通用解析器并入 runbook/SKILL，逐步替换状态专用假设。
+2. 再做一次**真正的最小操作**：打开/编辑一个具体自定义实体或官方实体，抓 full field11。
+3. 用 `build_official_entity_mapping.py` 把后续每轮新 pcap 一键合并进 `resources/official_entity_ipc_mapping.json`。

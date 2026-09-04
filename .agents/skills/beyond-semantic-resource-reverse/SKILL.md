@@ -64,9 +64,13 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/summarize_hablp_pcap.py`
 - type1017 通用资源目录/定义解析（不假设状态 schema）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py`
+- type1017 → 官方实体映射资源构建：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
-- 官方状态复制捕获 runbook：
+- 通用官方资产抓取 runbook（预制体/实体/怪物/技能/蓝图等）：
+  `.agents/skills/beyond-semantic-resource-reverse/runbooks/capture-official-assets.md`
+- 官方状态专用 runbook（历史，保留）：
   `.agents/skills/beyond-semantic-resource-reverse/runbooks/capture-official-statuses.md`
 - 结果资源：
   `resources/official_status_effects.json`

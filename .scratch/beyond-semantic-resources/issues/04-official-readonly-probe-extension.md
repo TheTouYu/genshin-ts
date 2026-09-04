@@ -31,10 +31,16 @@
 - 新增 `parse_type1017_generic.py`，产物见
   `.scratch/.../ipc/type1017_generic_catalog.json` + `PROGRESS-TYPE1017-GENERIC.md`。
 
+**Round 2 多类型捕获（2026-09-05）：**
+- pcap：`/mnt/c/beyond-ipc/multi_type_ipc.pcap`，68 帧 type1017，76 个摘要定义。
+- 已产出 `resources/official_entity_ipc_mapping.json`（68 个官方实体映射）。
+- 确认 kindCode 对应 entityType：1402=Gadget、1403=Player、1404=Avatar、1405=Monster。
+- 本轮全部为摘要定义，未含 full field11；内部组件 schema 仍需完整物化样本。
+
 **下一步（根据结构分析决定）：**
 - 解 field11 组件类型（对照 BeyondEditor 反编译/组件表）后，评估是否可从现有 pcap 提炼
   “官方实体 → 组件/引用/参数”半自动资源。
-- 若需要更准确“复制为自定义”数据，再做真正的最小操作：复制官方实体/预制体为自定义 → 选中 → 抓 full field11。
+- 若需要内部结构，再做真正的最小操作：打开/编辑一个具体官方实体/自定义实体 → 抓 full field11。
 - 若预制体无“复制为自定义”入口，改用官方技能蓝图或 Duty/Stuff 蓝图。
 
 **验收 checkbox：**

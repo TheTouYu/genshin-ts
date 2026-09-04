@@ -1,0 +1,969 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond official entity -> IPC/type1017 summary mapping",
+  "status": "auto-derived from multi-type capture; kindCode/asset kind not yet semantically decoded",
+  "sourceCatalog": ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/multi_type.generic.json",
+  "count": 68,
+  "mappings": [
+    {
+      "officialEntityId": 1000000,
+      "jsonName": "BeyondGadget_001000000",
+      "entityType": "Player",
+      "name": "默认模版",
+      "nameTextMapHash": 2604446484,
+      "kindCodes": [
+        1403
+      ],
+      "customAssetIds": [
+        1086324737,
+        1086324738,
+        1086324739,
+        1086324740,
+        1086324741,
+        1086324742,
+        1086324743,
+        1086324744,
+        1086324745
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 1000001,
+      "jsonName": "BeyondGadget_001000001",
+      "entityType": "Avatar",
+      "name": "默认模版(角色编辑)",
+      "nameTextMapHash": 3992555132,
+      "kindCodes": [
+        1404
+      ],
+      "customAssetIds": [
+        1090519041
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005018,
+      "jsonName": "BeyondGadget_010005018",
+      "entityType": "Gadget",
+      "name": "空模型",
+      "nameTextMapHash": 3297825735,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936129
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005103,
+      "jsonName": "BeyondGadget_010005103",
+      "entityType": "Gadget",
+      "name": "瀑布",
+      "nameTextMapHash": 3319392039,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936130
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005104,
+      "jsonName": "BeyondGadget_010005104",
+      "entityType": "Gadget",
+      "name": "瀑布",
+      "nameTextMapHash": 1048555519,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936131
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005105,
+      "jsonName": "BeyondGadget_010005105",
+      "entityType": "Gadget",
+      "name": "瀑布顶端",
+      "nameTextMapHash": 2689496855,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936132
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005106,
+      "jsonName": "BeyondGadget_010005106",
+      "entityType": "Gadget",
+      "name": "立方形水体",
+      "nameTextMapHash": 3196508015,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936133
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005107,
+      "jsonName": "BeyondGadget_010005107",
+      "entityType": "Gadget",
+      "name": "圆柱形水体",
+      "nameTextMapHash": 157647679,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936134
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10005108,
+      "jsonName": "BeyondGadget_010005108",
+      "entityType": "Gadget",
+      "name": "圆形水体",
+      "nameTextMapHash": 1865495279,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936135
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009001,
+      "jsonName": "BeyondGadget_010009001",
+      "entityType": "Gadget",
+      "name": "长方体",
+      "nameTextMapHash": 2193344407,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936136
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009002,
+      "jsonName": "BeyondGadget_010009002",
+      "entityType": "Gadget",
+      "name": "球体",
+      "nameTextMapHash": 795030391,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936137
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009003,
+      "jsonName": "BeyondGadget_010009003",
+      "entityType": "Gadget",
+      "name": "平面",
+      "nameTextMapHash": 2531650303,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936138
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009004,
+      "jsonName": "BeyondGadget_010009004",
+      "entityType": "Gadget",
+      "name": "三棱柱",
+      "nameTextMapHash": 2799923063,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936139
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009005,
+      "jsonName": "BeyondGadget_010009005",
+      "entityType": "Gadget",
+      "name": "五棱柱",
+      "nameTextMapHash": 4032203423,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936140
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009006,
+      "jsonName": "BeyondGadget_010009006",
+      "entityType": "Gadget",
+      "name": "三棱锥",
+      "nameTextMapHash": 2653269943,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936141
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009007,
+      "jsonName": "BeyondGadget_010009007",
+      "entityType": "Gadget",
+      "name": "五棱锥",
+      "nameTextMapHash": 2950989703,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936142
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009008,
+      "jsonName": "BeyondGadget_010009008",
+      "entityType": "Gadget",
+      "name": "圆柱",
+      "nameTextMapHash": 462307183,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936143
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009009,
+      "jsonName": "BeyondGadget_010009009",
+      "entityType": "Gadget",
+      "name": "圆锥",
+      "nameTextMapHash": 206948887,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936144
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009010,
+      "jsonName": "BeyondGadget_010009010",
+      "entityType": "Gadget",
+      "name": "线框长方体",
+      "nameTextMapHash": 232857375,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936145
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 10009011,
+      "jsonName": "BeyondGadget_010009011",
+      "entityType": "Gadget",
+      "name": "线框圆柱",
+      "nameTextMapHash": 3727363031,
+      "kindCodes": [
+        1402
+      ],
+      "customAssetIds": [
+        1077936146
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005001,
+      "jsonName": "BeyondMonster_030005001",
+      "entityType": "Monster",
+      "name": "遗迹守卫",
+      "nameTextMapHash": 3332854583,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130473
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005002,
+      "jsonName": "BeyondMonster_030005002",
+      "entityType": "Monster",
+      "name": "火斧丘丘暴徒",
+      "nameTextMapHash": 899605439,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130464
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005003,
+      "jsonName": "BeyondMonster_030005003",
+      "entityType": "Monster",
+      "name": "大型风史莱姆",
+      "nameTextMapHash": 1469654575,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130449
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005004,
+      "jsonName": "BeyondMonster_030005004",
+      "entityType": "Monster",
+      "name": "大型雷史莱姆",
+      "nameTextMapHash": 382085967,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130451
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005005,
+      "jsonName": "BeyondMonster_030005005",
+      "entityType": "Monster",
+      "name": "大型冰史莱姆",
+      "nameTextMapHash": 3607642959,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130455
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005006,
+      "jsonName": "BeyondMonster_030005006",
+      "entityType": "Monster",
+      "name": "大型水史莱姆",
+      "nameTextMapHash": 2260920895,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130447
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005007,
+      "jsonName": "BeyondMonster_030005007",
+      "entityType": "Monster",
+      "name": "大型火史莱姆",
+      "nameTextMapHash": 3698401999,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130445
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005008,
+      "jsonName": "BeyondMonster_030005008",
+      "entityType": "Monster",
+      "name": "大型岩史莱姆",
+      "nameTextMapHash": 3264086895,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130457
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005009,
+      "jsonName": "BeyondMonster_030005009",
+      "entityType": "Monster",
+      "name": "大型草史莱姆",
+      "nameTextMapHash": 4087184255,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130453
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005010,
+      "jsonName": "BeyondMonster_030005010",
+      "entityType": "Monster",
+      "name": "金焰绒翼龙暴君",
+      "nameTextMapHash": 995084271,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130485
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005011,
+      "jsonName": "BeyondMonster_030005011",
+      "entityType": "Monster",
+      "name": "遗迹重机",
+      "nameTextMapHash": 3741270703,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130474
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005012,
+      "jsonName": "BeyondMonster_030005012",
+      "entityType": "Monster",
+      "name": "疾迅勇士·引索客",
+      "nameTextMapHash": 1290882991,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130482
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005013,
+      "jsonName": "BeyondMonster_030005013",
+      "entityType": "Monster",
+      "name": "窟岩·大灵显化身",
+      "nameTextMapHash": 2225927167,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130486
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005014,
+      "jsonName": "BeyondMonster_030005014",
+      "entityType": "Monster",
+      "name": "溯流·大灵显化身",
+      "nameTextMapHash": 1518983071,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130487
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30005015,
+      "jsonName": "BeyondMonster_030005015",
+      "entityType": "Monster",
+      "name": "野林猪",
+      "nameTextMapHash": 2437743311,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130491
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006001,
+      "jsonName": "BeyondMonster_030006001",
+      "entityType": "Monster",
+      "name": "火箭丘丘人",
+      "nameTextMapHash": 586769199,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130462
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006002,
+      "jsonName": "BeyondMonster_030006002",
+      "entityType": "Monster",
+      "name": "丘丘霜铠王",
+      "nameTextMapHash": 538615743,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130465
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006003,
+      "jsonName": "BeyondMonster_030006003",
+      "entityType": "Monster",
+      "name": "雷深渊法师",
+      "nameTextMapHash": 586173983,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130467
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006004,
+      "jsonName": "BeyondMonster_030006004",
+      "entityType": "Monster",
+      "name": "冰深渊法师",
+      "nameTextMapHash": 1281611319,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130468
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006005,
+      "jsonName": "BeyondMonster_030006005",
+      "entityType": "Monster",
+      "name": "木盾丘丘暴徒",
+      "nameTextMapHash": 840603351,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130463
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006006,
+      "jsonName": "BeyondMonster_030006006",
+      "entityType": "Monster",
+      "name": "愚人众先遣队·冰铳重卫士",
+      "nameTextMapHash": 2639097447,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130488
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006007,
+      "jsonName": "BeyondMonster_030006007",
+      "entityType": "Monster",
+      "name": "愚人众先遣队·雷锤前锋军",
+      "nameTextMapHash": 3324570599,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130489
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006008,
+      "jsonName": "BeyondMonster_030006008",
+      "entityType": "Monster",
+      "name": "愚人众先遣队·火铳游击兵",
+      "nameTextMapHash": 3758842407,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130490
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006009,
+      "jsonName": "BeyondMonster_030006009",
+      "entityType": "Monster",
+      "name": "盗宝团·斥候",
+      "nameTextMapHash": 3986445871,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130476
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006010,
+      "jsonName": "BeyondMonster_030006010",
+      "entityType": "Monster",
+      "name": "魔偶剑鬼",
+      "nameTextMapHash": 1127207815,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130475
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006011,
+      "jsonName": "BeyondMonster_030006011",
+      "entityType": "Monster",
+      "name": "镀金旅团·阵前斧手",
+      "nameTextMapHash": 3280349159,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130480
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006012,
+      "jsonName": "BeyondMonster_030006012",
+      "entityType": "Monster",
+      "name": "镀金旅团·沙中净水",
+      "nameTextMapHash": 2508485335,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130481
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006013,
+      "jsonName": "BeyondMonster_030006013",
+      "entityType": "Monster",
+      "name": "深渊使徒·霜落",
+      "nameTextMapHash": 93871943,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130470
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006014,
+      "jsonName": "BeyondMonster_030006014",
+      "entityType": "Monster",
+      "name": "深渊咏者·紫电",
+      "nameTextMapHash": 3417282207,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130472
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006015,
+      "jsonName": "BeyondMonster_030006015",
+      "entityType": "Monster",
+      "name": "深渊使徒·激流",
+      "nameTextMapHash": 2315251415,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130469
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006016,
+      "jsonName": "BeyondMonster_030006016",
+      "entityType": "Monster",
+      "name": "深渊咏者·渊火",
+      "nameTextMapHash": 1186209495,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130471
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006017,
+      "jsonName": "BeyondMonster_030006017",
+      "entityType": "Monster",
+      "name": "贪食匿叶龙山王",
+      "nameTextMapHash": 1126825711,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130484
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30006018,
+      "jsonName": "BeyondMonster_030006018",
+      "entityType": "Monster",
+      "name": "嵴锋龙武士·破岩锐刃",
+      "nameTextMapHash": 2092765815,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130483
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007001,
+      "jsonName": "BeyondMonster_030007001",
+      "entityType": "Monster",
+      "name": "打手丘丘人",
+      "nameTextMapHash": 3424731047,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130461
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007002,
+      "jsonName": "BeyondMonster_030007002",
+      "entityType": "Monster",
+      "name": "水深渊法师",
+      "nameTextMapHash": 1697032023,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130466
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007003,
+      "jsonName": "BeyondMonster_030007003",
+      "entityType": "Monster",
+      "name": "风史莱姆",
+      "nameTextMapHash": 3325633311,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130448
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007004,
+      "jsonName": "BeyondMonster_030007004",
+      "entityType": "Monster",
+      "name": "雷史莱姆",
+      "nameTextMapHash": 2562939423,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130450
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007005,
+      "jsonName": "BeyondMonster_030007005",
+      "entityType": "Monster",
+      "name": "冰史莱姆",
+      "nameTextMapHash": 763220991,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130454
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007006,
+      "jsonName": "BeyondMonster_030007006",
+      "entityType": "Monster",
+      "name": "水史莱姆",
+      "nameTextMapHash": 4192700167,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130446
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007007,
+      "jsonName": "BeyondMonster_030007007",
+      "entityType": "Monster",
+      "name": "火史莱姆",
+      "nameTextMapHash": 3133173583,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130444
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007008,
+      "jsonName": "BeyondMonster_030007008",
+      "entityType": "Monster",
+      "name": "岩史莱姆",
+      "nameTextMapHash": 788927415,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130456
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30007009,
+      "jsonName": "BeyondMonster_030007009",
+      "entityType": "Monster",
+      "name": "草史莱姆",
+      "nameTextMapHash": 78992015,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130452
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008001,
+      "jsonName": "BeyondMonster_030008001",
+      "entityType": "Monster",
+      "name": "野伏·阵刀番",
+      "nameTextMapHash": 3060070191,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130477
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008002,
+      "jsonName": "BeyondMonster_030008002",
+      "entityType": "Monster",
+      "name": "海乱鬼·雷腾",
+      "nameTextMapHash": 2295145367,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130479
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008003,
+      "jsonName": "BeyondMonster_030008003",
+      "entityType": "Monster",
+      "name": "海乱鬼·炎威",
+      "nameTextMapHash": 3291420535,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130478
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008004,
+      "jsonName": "BeyondMonster_030008004",
+      "entityType": "Monster",
+      "name": "蔓结·霜夜灵嗣",
+      "nameTextMapHash": 4176023319,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130459
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008005,
+      "jsonName": "BeyondMonster_030008005",
+      "entityType": "Monster",
+      "name": "驰岚·霜夜灵嗣",
+      "nameTextMapHash": 1890100975,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130458
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    },
+    {
+      "officialEntityId": 30008006,
+      "jsonName": "BeyondMonster_030008006",
+      "entityType": "Monster",
+      "name": "金礞·霜夜灵嗣",
+      "nameTextMapHash": 1389714999,
+      "kindCodes": [
+        1405
+      ],
+      "customAssetIds": [
+        1082130460
+      ],
+      "source": "type1017 generic catalog + BeyondOfficialEntityExcelConfigData"
+    }
+  ]
+}
