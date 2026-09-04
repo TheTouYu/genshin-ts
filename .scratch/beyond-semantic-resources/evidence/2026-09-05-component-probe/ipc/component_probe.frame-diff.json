@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "title": "type1017 per-asset frame diff (IPC differential from packet sequence)",
+  "source": [
+    ".scratch/beyond-semantic-resources/evidence/2026-09-05-component-probe/ipc/component_probe_1017"
+  ],
+  "assetCount": 1,
+  "frameSequence": [
+    {
+      "assetId": 1077936129,
+      "frames": [
+        "frame_032_len30708.bin",
+        "frame_033_len30708.bin"
+      ]
+    }
+  ],
+  "changes": [],
+  "openItems": [
+    "Frame sequence reflects IPC messages, not necessarily one user operation per frame.",
+    "Scene entity transform is NOT carried in type1017; GIL diff remains authoritative for that domain."
+  ]
+}

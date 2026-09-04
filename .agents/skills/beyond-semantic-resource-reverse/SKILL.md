@@ -68,6 +68,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_full_components.py`
 - IPC ↔ GIL 组件类型交叉校验：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/cross_check_component_types.py`
+- type1017 逐帧差分（同资产帧间结构 diff）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：
