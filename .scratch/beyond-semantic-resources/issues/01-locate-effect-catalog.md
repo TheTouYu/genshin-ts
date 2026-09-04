@@ -49,4 +49,9 @@
 - （票01 IPC 阶段收口 2026-09-04：多次抓包（重连/效果目录/地图切换）确认 IPC 不含 TextMapHash；
   type1017 只含 effectID 列表；HAblp+XOR0xEA+protobuf 已解。复盘见
   `docs/game-engine-knowledge/retrospective-2026-09-04-ticket01-ipc-phase.md`；下一步主攻游戏静态 Blb/MiHoYoBinData。）
+- （票01 静态数据/IL2CPP/.NET 轮 2026-09-04 续：确认 `/tmp/mhybins_255` 是误 XOR0x95 产物，原始 MiHoYoBinData 无 XOR；
+  尝试 IL2CPP 静态还原被 MHY 加密 metadata 挡住；社区 MetadataConverter 不兼容 7.0.0；
+  .NET 反编译+Windows 反射追到 OfficialRoleStatus/CustomRoleStatus 加载三元组
+  `(10003,50004,51000)` / `(10003,50004,51001)`，但仍不是 TextMapHash。
+  结论：BeyondEditor 本地不含 effectID→TextMapHash，映射应在游戏侧。证据：blb3/PROGRESS.md、beyond-editor-semantics.md。）
 

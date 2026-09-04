@@ -70,6 +70,29 @@ BeyondGlobal（Resource/Json/Beyond/BeyondGlobal/<hash>.mihoyobin）：
 - CONFIRMED：当前 `00/25539185.blk`（Excel 块）原始扫描命中效果 ID 1720001/2010001；`00/24230448.blk`（BinOutput 块）命中 1720001/2110001。
 - 结论：`effectID→TextMapHash` 映射表在当前 Blb 块内；下一步需当代 Blb 解包工具或逆向 Blb 容器格式。
 
+## 2026-09-04 静态数据/IL2CPP/.NET 深挖更新（票01，C/IL2CPP/.NET 路线）
+
+- CONFIRMED（更正）：CN 7.0.0 的 `MiHoYoBinData` 内容**不需要 XOR 0x95**；
+  旧 `/tmp/mhybins_255/*.bin` 是误用 `--xor 0x95` 导出，不是原始字节。
+  直接读 SerializedFile 中 class 1208 原始对象即含真实 effectID varint。
+  `extract_mihoyo_bin.py` 默认已改为 `--xor 0`。
+- CONFIRMED（排除）：`YuanShen.exe + global-metadata.dat` 的静态 IL2CPP 还原被挡：
+  - `global-metadata.dat` 头为 `MHY\0`（非标准 `AF1BB1FA`），Il2CppDumper 报
+    `Metadata file not found or encrypted`；
+  - 本机无 `GameAssembly.dll` / `UserAssembly.dll`；
+  - 社区 MetadataConverter（XylioG / Zjhyang12335）均不兼容 7.0.0，报
+    `file trimmed or string literal offset/count field invalid`。
+- CONFIRMED（BeyondEditor .NET 反编译+反射）：
+  - 字符串解密得到服务名 `beyondEffectService` / `beyondRoleStatusService` 等；
+  - 通过 delegate 链追到 RoleStatus 加载三元组：
+    - `OfficialRoleStatus` → `(10003, 50004, 51000)`
+    - `CustomRoleStatus` → `(10003, 50004, 51001)`
+  - `IxxdqjiYXvUxMvfd5Mwm` 静态字典登记：key 2 → Official 三元组；key 3 → Custom 三元组。
+- 含义：BeyondEditor 本地仍是“资源分类 ID”，不是文件路径/TextMapHash；
+  `effectID→TextMapHash` 映射不在 BeyondEditor 本地代码/Json 树中，应继续在游戏侧找。
+- 相关证据：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/blb3/PROGRESS.md`；
+  临时工具/日志在 `work/ticket01-effect-catalog-dotnet/notes/`（未提交，供复查）。
+
 ## 关联
 
 - `gil-structure-semantics.md`：为什么 GIL 只存 ID（体积/网络）。

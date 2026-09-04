@@ -92,6 +92,7 @@
 | [retrospective-2026-09-03-ui-ticket04-verification.md](retrospective-2026-09-03-ui-ticket04-verification.md) | 09-03 | UI 票04 语义化 List + 玩家改动识别 v1 + 80 快照全量核验 | 9 错谱系（family/组件双层判别、flat 覆盖、几何嵌套 pair、消息项样式、diff 重锚…）+ 用户两轮纠偏（全量枚举/真实命令/可复查）→ 127/127 + CLI 80/80 |
 | [retrospective-2026-09-04-beyond-semantic-resources-ticket01.md](retrospective-2026-09-04-beyond-semantic-resources-ticket01.md) | 09-04 | Beyond 语义资源票01 侦察轮（票03后） | 低效点谱系：静态混淆过早深挖/UI宿主进程误判/pktmon不抓loopback/Linux反射WPF受阻/搜索锚点不全/assets.bin误判/Blb新容器卡点；系统性根因：缺资源逆向工作流、证据固化滞后、设计思维利用不足 |
 | [retrospective-2026-09-04-ticket01-ipc-phase.md](retrospective-2026-09-04-ticket01-ipc-phase.md) | 09-04 | 票01 IPC 抓包/解包阶段 | 确认 HAblp+XOR0xEA+protobuf；IPC 多次抓包不含 effectID→TextMapHash，type1017 只给 effectID 列表；教训：先反编译判断通道价值再重复抓包 |
+| [retrospective-2026-09-04-ticket01-static-data-round.md](retrospective-2026-09-04-ticket01-static-data-round.md) | 09-04 | 票01 静态数据/IL2CPP/.NET 深挖轮 | mhybins 误 XOR 更正；IL2CPP 被 MHY 加密 metadata 挡；MetadataConverter 不兼容 7.0.0；.NET 反射追到 RoleStatus 三元组 (10003,50004,51000/51001)，仍非 TextMapHash；教训：先核对历史产物状态、先验证社区工具版本、本地代码只能证伪“映射不在这里” |
 
 ## §3 使用规则
 
