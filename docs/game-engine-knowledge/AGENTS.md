@@ -15,7 +15,7 @@
 1. [游戏运行生命周期](game-lifecycle.md)
 2. [关卡结构](level-structure.md)
 3. [GIL 整体结构与语义树](gil-structure-semantics.md)（结构文档族：[静态场景](gil-static-scene-semantics.md) / [节点图资产](gil-nodegraph-semantics.md) / [编辑器资产](gil-editor-assets-semantics.md) / [单位状态](unit-status.md)）
-4. [资产、关卡保存与导出文件](assets-and-files.md)
+4. [资产、关卡保存与导出文件](assets-and-files.md)（编辑器本地语义资源表见 [Beyond 编辑器语义资源](beyond-editor-semantics.md)）
 5. [组件](components.md)
 6. [运动器（Motion Device）运行时行为](motion-devices.md)
 7. [屏幕控件与 UI](ui-controls.md)
@@ -67,6 +67,7 @@ GIL 整体结构与语义树
 ├── 已确认默认节点图的自由新建记录、稳定 ID 与显式 UTF-8 名称字段
 ├── 已确认节点图 A 自由新增“关卡开始时”节点的单节点增量
 ├── 领域细节按域拆分为静态场景/节点图资产/编辑器资产/单位状态四文档（2026-09-04）
+├── 语义名称不在 GIL：编辑器按语言查本地 .mihoyobin（XOR0xE5+protobuf），见 beyond-editor-semantics.md
 └── 隔离 root 46 等长同步变化，按章节和编辑器单变化继续闭合未知字段
 
 游戏运行生命周期
