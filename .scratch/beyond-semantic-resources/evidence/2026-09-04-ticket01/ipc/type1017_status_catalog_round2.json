@@ -1,0 +1,204 @@
+{
+  "snapshots": [
+    {
+      "offset": 1245470,
+      "category": 3,
+      "idsCount": 34,
+      "defs": 1
+    },
+    {
+      "offset": 1246031,
+      "category": 3,
+      "idsCount": 35,
+      "defs": 1
+    },
+    {
+      "offset": 1246531,
+      "category": 4,
+      "idsCount": 36,
+      "defs": 1
+    },
+    {
+      "offset": 1247162,
+      "category": 4,
+      "idsCount": 36,
+      "defs": 1
+    },
+    {
+      "offset": 1247711,
+      "category": 4,
+      "idsCount": 36,
+      "defs": 1
+    },
+    {
+      "offset": 1248288,
+      "category": 4,
+      "idsCount": 36,
+      "defs": 1
+    },
+    {
+      "offset": 1248896,
+      "category": 3,
+      "idsCount": 35,
+      "defs": 1
+    },
+    {
+      "offset": 1249518,
+      "category": 3,
+      "idsCount": 36,
+      "defs": 1
+    },
+    {
+      "offset": 1250035,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1250681,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1251222,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1251770,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1252325,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1252957,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1253544,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1254137,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1254743,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1255545,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1256358,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1257309,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1258262,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1259207,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1260172,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1261154,
+      "category": 4,
+      "idsCount": 37,
+      "defs": 1
+    },
+    {
+      "offset": 1262167,
+      "category": 3,
+      "idsCount": 36,
+      "defs": 1
+    }
+  ],
+  "definitions": [
+    {
+      "statusId": 10100002,
+      "names": [],
+      "effectIds": [
+        20001
+      ],
+      "categories": [
+        3
+      ]
+    },
+    {
+      "statusId": 1077936130,
+      "names": [
+        "新建状态"
+      ],
+      "effectIds": [
+        20001,
+        100001,
+        120001,
+        540001
+      ],
+      "categories": [
+        3,
+        4
+      ]
+    },
+    {
+      "statusId": 1077936131,
+      "names": [
+        "新建状态_1",
+        "新建标签(1)",
+        "新建标签(2)"
+      ],
+      "effectIds": [
+        2010001,
+        2060001,
+        2140001,
+        2170001,
+        2160001,
+        400001,
+        410001,
+        420001
+      ],
+      "categories": [
+        3,
+        4
+      ]
+    }
+  ]
+}
