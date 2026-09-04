@@ -75,3 +75,17 @@ HAblp 信封:
 
 - 第一个消息后剩余数据的应用层帧边界与源码 trailer 不完全吻合；当前用“整体 XOR 剩余数据”探索有效，但正式解析还需按 HAblp 帧正确切分。
 - `G16F153D` 属于 assets.bin ZIP 密码，**不是** IPC XOR 密钥；IPC 密钥是固定 0xEA。
+
+## 子代理复核结论（2026-09-04）
+
+- 对整段 XOR 后数据用 varint/u32le/u32be/u64le/sint32-zigzag 全编码搜索 9 个已知 TextMapHash：**0 命中**。
+- effectID 记录（2110001×2、1720001、2120001、2130001、590001；2010001 未出现）属于“当前对象效果/参数描述”：
+  - `EffectStateRecord { uint32 effectId = 1; repeated ParamDesc params = 2; }`
+  - 参数描述含 typeId、name、selector/value、defaultValue（如 1720001 默认 float -0.098）。
+  - **不含 TextMapHash / 显示名**。
+- effectID 区域最可能属于 type 1017 形态（非 1022 资源目录）；type 1020 帧在 flow 中被截断（len 193307 超出文件），无法确认是否含全量目录。
+- flow.bin 的 TCP seq 有空洞/帧头缺失，整体 XOR 只能作为探索手段。
+- 下一步建议：
+  1. 不要在这条状态同步 IPC 中继续找 TextMapHash。
+  2. 回到“全量效果目录/带 hash 的定义”需要重抓一次**完整无丢包**的 YuanShen→BeyondEditor 流，并重点抓“首次加载效果下拉/效果目录”动作。
+  3. 或从反编译服务 `beyondEffectService/beyondRoleStatusService` 反查哪个 HAblp type 负责发送全量效果目录。
