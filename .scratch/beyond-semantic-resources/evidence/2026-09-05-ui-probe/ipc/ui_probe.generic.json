@@ -1,0 +1,2203 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond type1017 generic catalog (exploratory)",
+  "method": "HAblp type1017 -> protobuf; extracts available ID list + definition summaries; field11 full blob shape logged but schema open",
+  "frames": 92,
+  "availableIdCount": 231,
+  "availableIds": [
+    1073741825,
+    1073741826,
+    1073741827,
+    1073741828,
+    1073741829,
+    1073741830,
+    1073741831,
+    1073741832,
+    1073741833,
+    1073741834,
+    1073741835,
+    1073741836,
+    1073741837,
+    1073741838,
+    1073741839,
+    1073741840,
+    1073741841,
+    1073741842,
+    1073741843,
+    1073741844,
+    1073741845,
+    1073741846,
+    1073741847,
+    1073741848,
+    1073741849,
+    1073741850,
+    1073741851,
+    1073741852,
+    1073741853,
+    1073741854,
+    1073741855,
+    1073741856,
+    1073741857,
+    1073741858,
+    1073741859,
+    1073741860,
+    1073741861,
+    1073741862,
+    1073741863,
+    1073741864,
+    1073741865,
+    1073741866,
+    1073741867,
+    1073741868,
+    1073741869,
+    1073741870,
+    1073741871,
+    1073741872,
+    1073741873,
+    1073741874,
+    1073741875,
+    1073741876,
+    1073741877,
+    1073741878,
+    1073741879,
+    1073741880,
+    1073741881,
+    1073741882,
+    1073741883,
+    1073741884,
+    1073741885,
+    1073741886,
+    1073741887,
+    1073741888,
+    1073741889,
+    1073741890,
+    1073741891,
+    1073741892,
+    1073741893,
+    1073741894,
+    1073741895,
+    1073741896,
+    1073741897,
+    1073741898,
+    1073741899,
+    1073741900,
+    1073741901,
+    1073741902,
+    1073741903,
+    1073741904,
+    1073741905,
+    1073741906,
+    1073741907,
+    1073741908,
+    1073741909,
+    1073741910,
+    1073741911,
+    1073741912,
+    1073741913,
+    1073741914,
+    1073741915,
+    1073741916,
+    1073741917,
+    1073741918,
+    1073741919,
+    1073741920,
+    1073741921,
+    1073741922,
+    1073741923,
+    1073741924,
+    1073741925,
+    1073741926,
+    1073741927,
+    1073741928,
+    1073741929,
+    1073741930,
+    1073741931,
+    1073741932,
+    1073741933,
+    1073741934,
+    1073741935,
+    1073741936,
+    1073741937,
+    1073741938,
+    1073741939,
+    1073741940,
+    1073741941,
+    1073741942,
+    1073741943,
+    1073741944,
+    1073741945,
+    1073741946,
+    1073741947,
+    1073741948,
+    1073741949,
+    1073741950,
+    1073741951,
+    1073741952,
+    1073741953,
+    1073741954,
+    1073741955,
+    1073741956,
+    1073741957,
+    1073741958,
+    1073741959,
+    1073741960,
+    1073741961,
+    1073741962,
+    1073741963,
+    1073741964,
+    1073741965,
+    1073741966,
+    1077936129,
+    1077936130,
+    1077936131,
+    1077936132,
+    1077936133,
+    1077936134,
+    1077936135,
+    1077936136,
+    1077936137,
+    1077936138,
+    1077936139,
+    1077936140,
+    1077936141,
+    1077936142,
+    1077936143,
+    1077936144,
+    1077936145,
+    1077936146,
+    1077936147,
+    1082130433,
+    1082130434,
+    1082130435,
+    1082130436,
+    1082130437,
+    1082130438,
+    1082130439,
+    1082130440,
+    1082130441,
+    1082130442,
+    1082130443,
+    1082130444,
+    1082130445,
+    1082130446,
+    1082130447,
+    1082130448,
+    1082130449,
+    1082130450,
+    1082130451,
+    1082130452,
+    1082130453,
+    1082130454,
+    1082130455,
+    1082130456,
+    1082130457,
+    1082130458,
+    1082130459,
+    1082130460,
+    1082130461,
+    1082130462,
+    1082130463,
+    1082130464,
+    1082130465,
+    1082130466,
+    1082130467,
+    1082130468,
+    1082130469,
+    1082130470,
+    1082130471,
+    1082130472,
+    1082130473,
+    1082130474,
+    1082130475,
+    1082130476,
+    1082130477,
+    1082130478,
+    1082130479,
+    1082130480,
+    1082130481,
+    1082130482,
+    1082130483,
+    1082130484,
+    1082130485,
+    1082130486,
+    1082130487,
+    1082130488,
+    1082130489,
+    1082130490,
+    1082130491,
+    1086324737,
+    1086324738,
+    1086324739,
+    1086324740,
+    1086324741,
+    1086324742,
+    1086324743,
+    1086324744,
+    1086324745,
+    1090519041,
+    1094713345
+  ],
+  "definitions": [
+    {
+      "assetId": 1073741840,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 21,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741841,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 10,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741845,
+      "names": [
+        "自定义布局"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 16,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741846,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741847,
+      "names": [
+        "技能区"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741848,
+      "names": [
+        "队伍信息"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741849,
+      "names": [
+        "角色生命值条"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741850,
+      "names": [
+        "摇杆"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741851,
+      "names": [
+        "造物生命值条"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741852,
+      "names": [
+        "退出按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741853,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741854,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741855,
+      "names": [
+        "聊天按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741856,
+      "names": [
+        "网络状态"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741857,
+      "names": [
+        "挣扎按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741858,
+      "names": [
+        "语音聊天按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741859,
+      "names": [
+        "语音聊天提示队列"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741860,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741861,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741862,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741863,
+      "names": [
+        "全屏界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741864,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741865,
+      "names": [
+        "交互按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741866,
+      "names": [
+        "道具展示"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741867,
+      "names": [
+        "自定义按钮",
+        "文本内容"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741868,
+      "names": [
+        "自定义开关"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741869,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741870,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741871,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741872,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741873,
+      "names": [
+        "图文输入框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741874,
+      "names": [
+        "状态显示区",
+        "样式_1",
+        "状态项_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741875,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741876,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741877,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741878,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741879,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741880,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741881,
+      "names": [
+        "全屏界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741882,
+      "names": [
+        "全屏界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741883,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741884,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741885,
+      "names": [
+        "交互按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741886,
+      "names": [
+        "交互按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741887,
+      "names": [
+        "道具展示"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741888,
+      "names": [
+        "道具展示"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741889,
+      "names": [
+        "自定义按钮",
+        "文本内容"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741890,
+      "names": [
+        "自定义按钮",
+        "文本内容"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741891,
+      "names": [
+        "自定义开关"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741892,
+      "names": [
+        "自定义开关"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741893,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741894,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741895,
+      "names": [
+        "悬浮交互页",
+        "悬浮交互页_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 5,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741896,
+      "names": [
+        "固有容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 4,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741897,
+      "names": [
+        "交互页关闭按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741898,
+      "names": [
+        "悬浮交互页"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 3,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741899,
+      "names": [
+        "固有容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741900,
+      "names": [
+        "交互页关闭按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741901,
+      "names": [
+        "卡牌选择器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 4,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741902,
+      "names": [
+        "标题文本"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741903,
+      "names": [
+        "卡牌选择器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 3,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741904,
+      "names": [
+        "标题文本"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741905,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 4,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741906,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741907,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741908,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741909,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741910,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741911,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741912,
+      "names": [
+        "图文输入框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741913,
+      "names": [
+        "图文输入框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741914,
+      "names": [
+        "状态显示区",
+        "样式_1",
+        "状态项_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741915,
+      "names": [
+        "状态显示区",
+        "样式_1",
+        "状态项_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741916,
+      "names": [
+        "消息队列",
+        "样式_1",
+        "消息项_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741917,
+      "names": [
+        "消息队列",
+        "样式_1",
+        "消息项_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741918,
+      "names": [
+        "订阅奇匠按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 4,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741919,
+      "names": [
+        "订阅奇匠按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741920,
+      "names": [
+        "组合"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741921,
+      "names": [
+        "组合"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741922,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741923,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741924,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741925,
+      "names": [
+        "全屏界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741926,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741927,
+      "names": [
+        "交互按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741928,
+      "names": [
+        "组合",
+        "组合_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741929,
+      "names": [
+        "组合_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741930,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741931,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741932,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741933,
+      "names": [
+        "全屏界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741934,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741935,
+      "names": [
+        "交互按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741936,
+      "names": [
+        "订阅奇匠按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741937,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 4,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741938,
+      "names": [
+        "素材组",
+        "素材组_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 6,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741939,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 3,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741940,
+      "names": [
+        "素材组"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741941,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741942,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741943,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 3,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741944,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 5,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741945,
+      "names": [
+        "素材组_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741946,
+      "names": [
+        "文本框"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741947,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741948,
+      "names": [
+        "特殊数字"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741949,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741950,
+      "names": [
+        "素材组",
+        "素材组_2"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741951,
+      "names": [
+        "素材组_2"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741952,
+      "names": [
+        "界面动效"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741953,
+      "names": [],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 8,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741954,
+      "names": [
+        "素材组"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741955,
+      "names": [
+        "单选项视窗",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741956,
+      "names": [
+        "页签文本",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 3,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741957,
+      "names": [
+        "页面容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 2,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741958,
+      "names": [
+        "单选项视窗",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741959,
+      "names": [
+        "页签文本",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741960,
+      "names": [
+        "页面容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741961,
+      "names": [
+        "悬浮交互页_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741962,
+      "names": [
+        "固有容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741963,
+      "names": [
+        "交互页关闭按钮"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741964,
+      "names": [
+        "单选项视窗",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741965,
+      "names": [
+        "页签文本",
+        "样式_1"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1073741966,
+      "names": [
+        "页面容器"
+      ],
+      "sourceEntityIds": [],
+      "kindCodes": [],
+      "sourceFlags": [],
+      "hasComponentRef": false,
+      "hasUi": true,
+      "uiCount": 1,
+      "fullCount": 0,
+      "summaryCount": 0
+    },
+    {
+      "assetId": 1086324737,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324738,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324739,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324740,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324741,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324742,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324743,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324744,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1086324745,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    },
+    {
+      "assetId": 1090519041,
+      "names": [
+        "默认模版(角色编辑)"
+      ],
+      "sourceEntityIds": [
+        1000001
+      ],
+      "kindCodes": [
+        1404
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "hasUi": false,
+      "uiCount": 0,
+      "fullCount": 0,
+      "summaryCount": 4
+    }
+  ],
+  "sourceEntityIndex": [
+    {
+      "sourceEntityId": 1000000,
+      "assets": [
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 1000001,
+      "assets": [
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        }
+      ]
+    }
+  ],
+  "openItems": [
+    "field11 full definition contains component-serialized payload (field6/7/8) whose component-type schema is not yet decoded.",
+    "Definition names present in IPC are local display labels; they may be TextMap-resolvable via official entity nameTextMapHash."
+  ]
+}

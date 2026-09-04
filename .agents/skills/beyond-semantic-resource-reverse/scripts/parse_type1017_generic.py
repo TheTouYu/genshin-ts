@@ -54,6 +54,20 @@ def find_bytes(node, field):
     return None
 
 
+def collect_all_texts(node):
+    """递归收集可读 UTF-8 字符串，跳过 hex 样式的字节串。"""
+    out = []
+    for f, w, v in node:
+        if w == 'msg':
+            out.extend(collect_all_texts(v))
+        elif w == 'bytes' and isinstance(v, str) and v:
+            stripped = v.replace(' ', '')
+            if stripped and all(c in '0123456789abcdefABCDEF' for c in stripped):
+                continue
+            out.append(v)
+    return out
+
+
 def get_asset_id_from_def(body):
     hdr = find_msg(body, 1)
     if not hdr:
@@ -78,6 +92,11 @@ def get_names_from_def(body):
             n = find_bytes(sub[2], 2)
             if n and n not in names:
                 names.append(n)
+    # field17 UI records: collect readable texts recursively
+    for f17 in find_msg(body, 17):
+        for t in collect_all_texts(f17[2]):
+            if t and t not in names:
+                names.append(t)
     return names
 
 
@@ -182,6 +201,7 @@ def parse_payload(payload: bytes, frame_source: str) -> dict:
                 'names': get_names_from_def(body),
                 'sourceEntityId': get_source_entity_id(body),
                 'full': get_full_def_summary(body),
+                'hasUi': bool(find_msg(body, 17)),
                 **extra,
             })
         records.append({
@@ -252,6 +272,8 @@ def main() -> None:
                     'kindCodes': [],
                     'sourceFlags': [],
                     'hasComponentRef': False,
+                    'hasUi': False,
+                    'uiCount': 0,
                     'fullCount': 0,
                     'summaryCount': 0,
                 })
@@ -268,8 +290,14 @@ def main() -> None:
                         ent['sourceFlags'].append(f)
                 if d['hasComponentRef']:
                     ent['hasComponentRef'] = True
+                if d.get('hasUi'):
+                    ent['hasUi'] = True
+                    ent['uiCount'] += 1
                 if d['full']:
                     ent['fullCount'] += 1
+                elif d.get('hasUi'):
+                    # UI 定义走 field17，不同于 summary/full，单独计数
+                    pass
                 else:
                     ent['summaryCount'] += 1
                 if d['sourceEntityId'] is not None:

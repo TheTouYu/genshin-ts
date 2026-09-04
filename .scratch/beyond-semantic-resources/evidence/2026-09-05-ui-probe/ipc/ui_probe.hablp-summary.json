@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "title": "HAblp type histogram (generic pcap probe)",
+  "source": "/mnt/c/beyond-ipc/ui_probe.pcap",
+  "linktype": 101,
+  "packetCount": 11687,
+  "tcpFlowCount": 727,
+  "flowCountWithHablp": 2,
+  "typeHistogram": [
+    {
+      "type": 0,
+      "count": 736,
+      "flowCount": 2,
+      "payloadLenMin": 0,
+      "payloadLenMax": 0,
+      "payloadLenAvg": 0.0
+    },
+    {
+      "type": 1016,
+      "count": 382,
+      "flowCount": 1,
+      "payloadLenMin": 33,
+      "payloadLenMax": 33,
+      "payloadLenAvg": 33.0
+    },
+    {
+      "type": 1017,
+      "count": 92,
+      "flowCount": 1,
+      "payloadLenMin": 960,
+      "payloadLenMax": 9931,
+      "payloadLenAvg": 2660.0
+    }
+  ],
+  "flows": [
+    {
+      "flow": [
+        "127.0.0.1",
+        58573,
+        "127.0.0.1",
+        50737
+      ],
+      "frameCount": 738,
+      "types": {
+        "0": 356,
+        "1016": 382
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        50737,
+        "127.0.0.1",
+        58573
+      ],
+      "frameCount": 472,
+      "types": {
+        "0": 380,
+        "1017": 92
+      }
+    }
+  ]
+}
