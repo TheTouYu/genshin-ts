@@ -89,3 +89,11 @@ HAblp 信封:
   1. 不要在这条状态同步 IPC 中继续找 TextMapHash。
   2. 回到“全量效果目录/带 hash 的定义”需要重抓一次**完整无丢包**的 YuanShen→BeyondEditor 流，并重点抓“首次加载效果下拉/效果目录”动作。
   3. 或从反编译服务 `beyondEffectService/beyondRoleStatusService` 反查哪个 HAblp type 负责发送全量效果目录。
+
+## 第二次完整目录重抓（2026-09-04）
+
+- pcap：`ipc_full_catalog.pcap`（1.1MB）
+- server->client flow：`catalog_flow_...61061...61086.bin`（6014B）
+- 这次抓到连续的 **type 1017** 消息（多个 500~1000B 分片），疑似“效果目录/可用效果列表”。
+- 解码后 7 处命中 `2010001`（首次出现），但没有命中任何已知 TextMapHash 或中英文名。
+- 结论：**IPC 目录只传 effectID 列表，不传显示名/TextMapHash**；显示名应由 YuanShen/编辑器本地各自从 TextMap 解析，或不在该 IPC 通道。
