@@ -22,15 +22,15 @@
 WSL 里执行：
 
 ```bash
-mkdir -p /mnt/c/temp
-cp .agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe /mnt/c/temp/RawCap.exe
+mkdir -p /mnt/c/beyond-ipc
+cp .agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe /mnt/c/beyond-ipc/RawCap.exe
 ```
 
 ## 1. 启动抓包（Windows 管理员）
 
 ```bash
 /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command \
-  "Start-Process -Verb RunAs -FilePath 'C:\\temp\\RawCap.exe' -ArgumentList '-s 600 127.0.0.1 C:\\temp\\official_copy.pcap'"
+  "Start-Process -Verb RunAs -FilePath 'C:\\beyond-ipc\\RawCap.exe' -ArgumentList '-s 600 127.0.0.1 C:\\beyond-ipc\\official_copy.pcap'"
 ```
 
 验证：
@@ -38,7 +38,7 @@ cp .agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe /mnt/c/temp/
 ```bash
 /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command \
   "Get-Process RawCap -ErrorAction SilentlyContinue | Select-Object Id,ProcessName"
-ls -l /mnt/c/temp/official_copy.pcap
+ls -l /mnt/c/beyond-ipc/official_copy.pcap
 ```
 
 ## 2. 用户在编辑器/游戏内操作
@@ -65,7 +65,7 @@ ls -l /mnt/c/temp/official_copy.pcap
 
 ```bash
 python3 .agents/skills/beyond-semantic-resource-reverse/scripts/parse_official_copy_pcap.py \
-  /mnt/c/temp/official_copy.pcap \
+  /mnt/c/beyond-ipc/official_copy.pcap \
   --output /home/h/genshin-ts/.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/auto_official_copy.json
 ```
 

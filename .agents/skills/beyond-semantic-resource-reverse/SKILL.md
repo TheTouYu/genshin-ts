@@ -60,6 +60,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/decode_ipc.py`
 - type1017 分片目录解析：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_catalog.py`
+- HAblp 类型直方图（任意 pcap 通用探针）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/summarize_hablp_pcap.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
 - 官方状态复制捕获 runbook：

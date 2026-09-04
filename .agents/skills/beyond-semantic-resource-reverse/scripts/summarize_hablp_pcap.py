@@ -52,7 +52,6 @@ def main() -> None:
         if not frames:
             continue
         flow_hits = Counter(f[2] for f in frames)
-        hits = [f for f in frames if f[2] in flow_hits]
         flow_details.append({
             'flow': [key[0], key[1], key[2], key[3]],
             'frameCount': len(frames),
