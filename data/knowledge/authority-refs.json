@@ -591,6 +591,21 @@
       ]
     },
     {
+      "id": "aref_178846c577f4ee8702e3293044",
+      "path": ".scratch/football-v2/issues/21-client-preset-status-write.md",
+      "locator": "票据头部 What to build + 用户裁定原话（Status 节）",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "08ea8b0cf8e5f35b519d3b1795f27e3e960319a257cc6d83cd9fb7fa620a27aa",
+      "claim_ids": [
+        "clm_744C3C55E0C26C6FD8B4BE6CE4"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_17c71855a9c01fc867f43129f0",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "技能 → 职业/单位状态/预设点/护盾/路径/特效器",
@@ -6090,6 +6105,21 @@
       "approved_hash": "4c96747889dd3254863aba417c40932d629542a9844aad0198d0031417edeca1",
       "claim_ids": [
         "clm_0D3DEE29AFBE2DBF1A6FEC01A6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_ef7fb9c21fff75b3f8b8e96f36",
+      "path": "AGENTS.md",
+      "locator": "回复与协作 → 官方文档功能=候选可支持面（2026-09-04 用户定义，根本工作方式）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4900f7edbe16d0407d9ef3fff36b9074da9f3be7c01b883ebe0cde92dfee533f",
+      "claim_ids": [
+        "clm_744C3C55E0C26C6FD8B4BE6CE4"
       ],
       "supports_fact_classes": [
         "documented_contract"

@@ -3456,6 +3456,12 @@
         "evidence_scope",
         "writeback_behavior"
       ]
+    },
+    "clm_744C3C55E0C26C6FD8B4BE6CE4": {
+      "fact_classes": [
+        "documented_contract",
+        "evidence_scope"
+      ]
     }
   }
 }
