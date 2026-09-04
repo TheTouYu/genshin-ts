@@ -151,6 +151,9 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
   （3099 主线正常还原 vs 3185 病灶），同形态 → 假象/正常（跳过破译），不同形态 → 真异常。
   2026-09-04 实证一次对照杀死 3 个错误假设（DIR 表 72 项/POLICY float 垃圾/solve_seq 255×8），
   比逐帧语义推理快一个数量级。
+- **对照日志哪里找**：Debug_Log 滚动清理只留 ~28 个，正常会话日志要靠 evidence 归档——先查
+  `examples/*/.gsts/evidence/*.gia`（如魔方主线 `examples/rubik-3x3/.gsts/evidence/3099-postfix-fullrun.gia`），
+  或当前日志目录里较早的、已知行为正常的会话号。
 - **适用范围**：List/变量"看起来损坏/残留/错乱"类判读；不适用于执行序列值本身（op 参数 IN/OUT
   的 Integer 显示负值用 uint64/uint8 双显示规则，见「负整数双显示坑」）。
 
@@ -171,6 +174,12 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
    →收齐→动画→unlock→发布，实测 ~0.9-1.1s）；快模式系数会把容差打折到竞态区——受物理链路
    约束的等待定时器不参与折扣（solver.ts fixed 化，commit 92d1f69）。
    根治方向=事件驱动（被等事件发完成信号驱动推进），容差放大只是止血。
+5. **可复用脚本（抄走即用）**：`examples/rubik-3x3-client/.gsts/evidence/3185-fullrun/` 下——
+   `replay-3185*.mjs`（表驱动重放：从日志铁证状态逐轮查表+应用，对照发布轨迹找首个偏差轮）、
+   `brute-force-3185.mjs`（执行语义候选穷举：24 种序列/次数组合 vs 实测终态）、
+   `verify-table.mjs`（离线核对查表链 idx→chunk→p→宏）、`log-cp-co.txt`（67 条发布轨迹
+   提取产物）。改表名/起点状态即可复用到其它"规划器读旧状态"类问题；模拟结论需两个独立
+   脚本对拍（单脚本表解析 bug 曾误导一轮）。
 
 
 
@@ -400,6 +409,8 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 | 现象（帧） | 结论 | 下一步 |
 |---|---|---|
+| List/变量显示与预期内容矛盾（负值 `[值uint8,255×8]`、float 垃圾/nan、Integer 空显示） | 大概率显示层假象，值本身没错 | 按「显示层假象族 + 黄金对照判读门」（速查区）找正常会话同字段对照后再定性 |
+| 规划器按旧状态重算/重复发宏/状态回退振荡（跨端链路或快模式定时器） | 定时器容差 < 链路物理耗时的竞态 | 按「竞态判定 playbook」（速查区）比对触发 rec 序 vs 被等发布 rec 序 |
 | Query Dictionary OUT0 = 13=0.0 | 字典未填充/键不存在 | 检查写入节点是否执行（whenEntityIsCreated 填充） |
 | 运动器 IN0:Entity= 空 | 空实体（列表越界/字典空值） | 检查 0-based 下标/字典值 |
 | 运动器设备帧都在、但 `Get Entity Location and Rotation` 连续多 tick 位置不变（只有微旋） | 同一 exec 链里**定点运动器被随后激活的旋转运动器秒停**；逻辑位置照常推进会形成“逻辑位置前进、实体位置纹丝不动”的铁证（2026-08-23 足球日志 2828/2829） | 移动+自旋组合改用 `add_uniform_basic_linear_motion_device` + `add_uniform_basic_rotation_based_motion_device`；直线速度显式算 `(target-loc)/duration`（motion-devices.md §10） |
