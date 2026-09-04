@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "title": "HAblp type histogram (generic pcap probe)",
+  "source": "/mnt/c/beyond-ipc/transform_probe.pcap",
+  "linktype": 101,
+  "packetCount": 14253,
+  "tcpFlowCount": 467,
+  "flowCountWithHablp": 11,
+  "typeHistogram": [
+    {
+      "type": 0,
+      "count": 273,
+      "flowCount": 11,
+      "payloadLenMin": 0,
+      "payloadLenMax": 0,
+      "payloadLenAvg": 0.0
+    },
+    {
+      "type": 1016,
+      "count": 138,
+      "flowCount": 6,
+      "payloadLenMin": 33,
+      "payloadLenMax": 40,
+      "payloadLenAvg": 33.3
+    },
+    {
+      "type": 1025,
+      "count": 8,
+      "flowCount": 3,
+      "payloadLenMin": 10,
+      "payloadLenMax": 10,
+      "payloadLenAvg": 10.0
+    },
+    {
+      "type": 1017,
+      "count": 6,
+      "flowCount": 1,
+      "payloadLenMin": 53,
+      "payloadLenMax": 2085,
+      "payloadLenAvg": 1323.8
+    },
+    {
+      "type": 1001,
+      "count": 5,
+      "flowCount": 5,
+      "payloadLenMin": 16,
+      "payloadLenMax": 16,
+      "payloadLenAvg": 16.0
+    },
+    {
+      "type": 1022,
+      "count": 3,
+      "flowCount": 3,
+      "payloadLenMin": 551271,
+      "payloadLenMax": 551271,
+      "payloadLenAvg": 551271.0
+    },
+    {
+      "type": 1002,
+      "count": 1,
+      "flowCount": 1,
+      "payloadLenMin": 0,
+      "payloadLenMax": 0,
+      "payloadLenAvg": 0.0
+    },
+    {
+      "type": 1014,
+      "count": 1,
+      "flowCount": 1,
+      "payloadLenMin": 22,
+      "payloadLenMax": 22,
+      "payloadLenAvg": 22.0
+    },
+    {
+      "type": 1015,
+      "count": 1,
+      "flowCount": 1,
+      "payloadLenMin": 0,
+      "payloadLenMax": 0,
+      "payloadLenAvg": 0.0
+    }
+  ],
+  "flows": [
+    {
+      "flow": [
+        "127.0.0.1",
+        55231,
+        "127.0.0.1",
+        62207
+      ],
+      "frameCount": 64,
+      "types": {
+        "0": 64
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        62207,
+        "127.0.0.1",
+        55231
+      ],
+      "frameCount": 128,
+      "types": {
+        "0": 64,
+        "1016": 64
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        53497,
+        "127.0.0.1",
+        53494
+      ],
+      "frameCount": 10,
+      "types": {
+        "0": 4,
+        "1001": 1,
+        "1016": 5
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        53494,
+        "127.0.0.1",
+        53497
+      ],
+      "frameCount": 6,
+      "types": {
+        "0": 4,
+        "1022": 1,
+        "1025": 1
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        60321,
+        "127.0.0.1",
+        53494
+      ],
+      "frameCount": 3,
+      "types": {
+        "0": 1,
+        "1001": 1,
+        "1016": 1
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        60326,
+        "127.0.0.1",
+        60322
+      ],
+      "frameCount": 76,
+      "types": {
+        "0": 37,
+        "1001": 1,
+        "1014": 1,
+        "1016": 37
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        60322,
+        "127.0.0.1",
+        60326
+      ],
+      "frameCount": 48,
+      "types": {
+        "0": 35,
+        "1015": 1,
+        "1017": 6,
+        "1022": 1,
+        "1025": 5
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        63912,
+        "127.0.0.1",
+        58808
+      ],
+      "frameCount": 25,
+      "types": {
+        "0": 12,
+        "1001": 1,
+        "1016": 12
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        58808,
+        "127.0.0.1",
+        63912
+      ],
+      "frameCount": 13,
+      "types": {
+        "0": 12,
+        "1002": 1
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        58573,
+        "127.0.0.1",
+        50737
+      ],
+      "frameCount": 40,
+      "types": {
+        "0": 20,
+        "1001": 1,
+        "1016": 19
+      }
+    },
+    {
+      "flow": [
+        "127.0.0.1",
+        50737,
+        "127.0.0.1",
+        58573
+      ],
+      "frameCount": 23,
+      "types": {
+        "0": 20,
+        "1022": 1,
+        "1025": 2
+      }
+    }
+  ]
+}
