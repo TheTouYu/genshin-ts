@@ -70,6 +70,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/cross_check_component_types.py`
 - type1017 逐帧差分（同资产帧间结构 diff）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py`
+- 逐帧差分步骤注释器（diff → 可读步骤）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/annotate_frame_diff.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：
