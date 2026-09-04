@@ -31,6 +31,8 @@ def main() -> None:
     ap.add_argument('pcap', type=Path)
     ap.add_argument('--output', type=Path, default=None)
     ap.add_argument('--dump-1017-dir', type=Path, default=None)
+    ap.add_argument('--frames', action='store_true', default=False,
+                    help='在输出 JSON 中附带逐帧明细（每条 HAblp 帧一行）')
     args = ap.parse_args()
 
     linktype, packets = parse_pcap(args.pcap)
@@ -46,6 +48,8 @@ def main() -> None:
     type_flows: dict[int, set] = defaultdict(set)
     type_payload_lens: dict[int, list[int]] = defaultdict(list)
     flow_details = []
+    frame_details = []
+    frame_index = 0
 
     dump_index = 0
     for key, segs in flows.items():
@@ -59,10 +63,20 @@ def main() -> None:
             'frameCount': len(frames),
             'types': {str(t): c for t, c in sorted(flow_hits.items())},
         })
-        for _, _, typ, _, _, payload in frames:
+        for pos, L, typ, u32, trailer, payload in frames:
             type_counter[typ] += 1
             type_flows[typ].add(key)
             type_payload_lens[typ].append(len(payload))
+            frame_details.append({
+                'index': frame_index,
+                'flow': [key[0], key[1], key[2], key[3]],
+                'offset': pos,
+                'outerLen': L,
+                'type': typ,
+                'payloadLen': len(payload),
+                'trailer': trailer,
+            })
+            frame_index += 1
             if typ == 1017 and args.dump_1017_dir:
                 args.dump_1017_dir.mkdir(parents=True, exist_ok=True)
                 (args.dump_1017_dir / f'frame_{dump_index:03d}_len{len(payload)}.bin').write_bytes(payload)
@@ -89,6 +103,8 @@ def main() -> None:
         ],
         'flows': flow_details,
     }
+    if args.frames:
+        out['frames'] = frame_details
 
     dest = args.output or args.pcap.with_suffix('.hablp-summary.json')
     dest.write_text(json.dumps(out, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
