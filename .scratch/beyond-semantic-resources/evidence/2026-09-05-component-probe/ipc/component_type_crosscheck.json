@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "title": "IPC type1017 vs GIL component type cross-check",
+  "sourceComponents": ".scratch/beyond-semantic-resources/evidence/2026-09-05-component-probe/ipc/component_probe_components.json",
+  "summary": {
+    "OK": 14,
+    "NEW": 12,
+    "MISMATCH": 0
+  },
+  "rows": [
+    {
+      "typeId": 18,
+      "knownName": "模板自带UI不可见(原误判)",
+      "ipcConfigField": 28,
+      "expectedField": 28,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 1,
+      "knownName": "自定义变量组件",
+      "ipcConfigField": 11,
+      "expectedField": 11,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 3,
+      "knownName": "单位状态",
+      "ipcConfigField": 13,
+      "expectedField": 13,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 19,
+      "knownName": "模板自带UI不可见",
+      "ipcConfigField": 29,
+      "expectedField": 29,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 6,
+      "knownName": "特效播放",
+      "ipcConfigField": 16,
+      "expectedField": 16,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 14,
+      "knownName": "模板自带UI不可见",
+      "ipcConfigField": 24,
+      "expectedField": 24,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 4,
+      "knownName": "基础运动器",
+      "ipcConfigField": 14,
+      "expectedField": 14,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 17,
+      "knownName": "选项卡",
+      "ipcConfigField": 27,
+      "expectedField": 27,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 5,
+      "knownName": null,
+      "ipcConfigField": 15,
+      "expectedField": null,
+      "rule": "type+10",
+      "match": "NEW"
+    },
+    {
+      "typeId": 15,
+      "knownName": null,
+      "ipcConfigField": 25,
+      "expectedField": null,
+      "rule": "type+10",
+      "match": "NEW"
+    },
+    {
+      "typeId": 16,
+      "knownName": "全局计时器",
+      "ipcConfigField": 26,
+      "expectedField": 26,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 8,
+      "knownName": null,
+      "ipcConfigField": 18,
+      "expectedField": null,
+      "rule": "type+10",
+      "match": "NEW"
+    },
+    {
+      "typeId": 21,
+      "knownName": null,
+      "ipcConfigField": 32,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 23,
+      "knownName": null,
+      "ipcConfigField": 34,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 29,
+      "knownName": "音效播放器",
+      "ipcConfigField": 40,
+      "expectedField": 40,
+      "rule": "+11",
+      "match": "OK"
+    },
+    {
+      "typeId": 27,
+      "knownName": "铭牌",
+      "ipcConfigField": 38,
+      "expectedField": 38,
+      "rule": "+11",
+      "match": "OK"
+    },
+    {
+      "typeId": 28,
+      "knownName": "文本气泡",
+      "ipcConfigField": 39,
+      "expectedField": 39,
+      "rule": "+11",
+      "match": "OK"
+    },
+    {
+      "typeId": 33,
+      "knownName": null,
+      "ipcConfigField": 44,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 37,
+      "knownName": null,
+      "ipcConfigField": 48,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 35,
+      "knownName": null,
+      "ipcConfigField": 46,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 39,
+      "knownName": null,
+      "ipcConfigField": 50,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 32,
+      "knownName": null,
+      "ipcConfigField": 43,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 38,
+      "knownName": "光源",
+      "ipcConfigField": 49,
+      "expectedField": 49,
+      "rule": "+11",
+      "match": "OK"
+    },
+    {
+      "typeId": 41,
+      "knownName": null,
+      "ipcConfigField": 52,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    },
+    {
+      "typeId": 13,
+      "knownName": "物件镜头组件",
+      "ipcConfigField": 23,
+      "expectedField": 23,
+      "rule": "+10",
+      "match": "OK"
+    },
+    {
+      "typeId": 45,
+      "knownName": null,
+      "ipcConfigField": 56,
+      "expectedField": null,
+      "rule": "type+11",
+      "match": "NEW"
+    }
+  ],
+  "openItems": [
+    "NEW types have config-field rule inferred from type+10/+11, names/params not yet confirmed."
+  ]
+}

@@ -66,6 +66,8 @@ metadata:
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py`
 - type1017 full field11 组件/节点/能力槽解析：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_full_components.py`
+- IPC ↔ GIL 组件类型交叉校验：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/cross_check_component_types.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：

@@ -39,6 +39,12 @@
 
 **配置字段号规律**：普通组件 = 类型码+10（如 12→f22、6→f16、13→f23）；含 501 配置列表的组件（27/28/29/38） = 类型码+11（27→f38、28→f39、29→f40、38→f49）。
 
+**IPC type1017 交叉校验（2026-09-05）**：完整 `field11` 的组件槽（field8）与 GIL 组件槽同构：
+每条 = `f1=类型码、f2=1、f{type+10 或 +11}=配置`；已确认类型 `1/3/4/6/13/14/16/17/18/19/27/28/29/38` 全部命中。
+另观察到未命名新类型 `5/8/15`（type+10）与 `21/23/32/33/35/37/39/41/45`（type+11），名称/参数待定。
+证据：`.scratch/beyond-semantic-resources/evidence/2026-09-05-component-probe/ipc/component_probe_components.json`、
+`component_type_crosscheck.json`。
+
 **CLI 组件白名单（2026-08-16/17/22 扩充）**：`staticAssemblies[].components` / **`structureFile` 的 `components` 字段** / `staticPrefabUpdates[].components`
 现支持 `followMotion`(9)、`basicMotion`(4)、`tabBar`(17)、**`nameplate`(27)**、**`textBubble`(28)**、
 **`lightSource`(38)**。
