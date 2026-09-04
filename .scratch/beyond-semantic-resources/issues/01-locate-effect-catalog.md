@@ -43,3 +43,7 @@
 - （票01 隐藏目录深挖 2026-09-04：用 cmd.exe + Windows dotnet SDK 批量解密 BeyondEditor.dll 2826 条字符串，
   无效果名/ID/hash；发现 beyondEffectService/beyondRoleStatusService；类型反射 19 个关键词类型无直接命中。
   输出 DecoderOutput.txt/TypesOutput.txt 已入库。详见 HANDOFF-CONTEXT.md。）
+- （票01 IPC 抓包/解包 2026-09-04：RawCap 重录 BeyondEditor 重连 IPC；确认 wire=4字节大端长度+HAblp信封+payload XOR 0xEA+protobuf；
+  XOR 后 ~1.57MB 处命中 1720001/2110001/2120001/2130001/590001 varint；未在已解数据中找到候选 TextMapHash。
+  证据：`evidence/2026-09-04-ticket01/ipc/PROGRESS-IPC.md`）
+

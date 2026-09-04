@@ -59,3 +59,10 @@
 - `/tmp/blb3_test_242/out/CAB-...`
 - `/tmp/blb3_test_310/out/CAB-...`
 - `/tmp/mhybins_255/`（Excel MiHoYoBinData 全量 2069 个，72MB，可重新生成）
+
+## IPC 抓包进展（2026-09-04，同票）
+
+- RawCap 重新录制 BeyondEditor 重连 IPC：见 `../ipc/PROGRESS-IPC.md`
+- 已确认 wire：4字节大端长度 + HAblp 信封 + payload 固定 XOR 0xEA + protobuf
+- XOR 后数据在 ~1.57MB 处命中 1720001/2110001/2120001/2130001/590001 varint
+- 未在已解数据中找到候选 TextMapHash；需继续解析 protobuf schema/抓下拉小消息
