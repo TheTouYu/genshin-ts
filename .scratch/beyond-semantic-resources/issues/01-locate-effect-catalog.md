@@ -84,3 +84,5 @@
   14=[400006],15=[400005],16=[400002],17=[460001,380001]。
   机器可读：`resources/official_status_effects.json`、`evidence/.../ipc/official_status_copy_captures.json`。
   仍未定位 effectID→TextMapHash 映射；下一主攻含 effectID 的 242/255 MiHoYoBinData 对象。）
+- （票01 AssetIndex 探索 2026-09-05：31049741 新版 AssetIndex 已解析；块组格式=6字节/条；
+  但 sub_asset_id 不是对象 pathID，class1210 的 8hex→u32 映射表 schema 未闭；静态表名仍未定位。）

@@ -93,3 +93,11 @@
   本 Python 解包器不支持；只有 35323818(Lua) 与已解 255/242/310 可读。
 - animeblkstuff map_helper.json（6.1）无 RoleStatus/Beyond 资产路径；GI-StaticParser 常数不匹配本 CN7.0.0。
 - 下一步候选：编辑器“打开官方状态详情/复制官方状态为自定义”抓 IPC，或解决 Oodle native 解码后扫 00 全块。
+
+## 2026-09-05 Asset Index 31049741 解析（当前进展）
+
+- 31049741.blk 可解，MiHoYoBinData 为**新版 AssetIndex**：type_mapping_count=0、asset_count=238780。
+- 块组格式与旧版不同：`block_group` 条目是 `u4 block_id + u2 flags`（6 字节/条），旧版是 7 字节。
+- 解析后 536 个 block_infos；asset 记录包含 path hash + sub_asset_id，但 sub_asset_id 是容器分组，**不是对象 pathID**。
+- SerializedFile 内 class 1210 含 2069/160129 条“8 位 hex 键 + 两个 u32”的映射表，疑似 AssetBundle container/name-hash 映射，schema 未闭合。
+- 结论：AssetIndex 只能定位 block，不能直接回答“255 内 pathID 849 是哪张表”；还需解 class 1210 或换用 AssetStudio 的 asset name 导出。
