@@ -87,9 +87,15 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 以下任务属于 `bootstrap-only`，不执行冷启动清单：用户明确要新建一张干净地图/空实验对象，且目标是随后由用户逐轮编辑并比较。此阶段只允许：
 
 1. 读取根 `AGENTS.md`；
-2. 查看目标 CLI 的 `--help` 和必要配置；
-3. 在破坏性写入前请求确认；
-4. 创建后记录实际路径、ID、大小、SHA-256，并停止。
+2. **直接运行固化建图链（2026-09-04 实测，不要先探索 --help/源码）**：
+   ```bash
+   MID=$(npx tsx src/cli/gsts.ts maps:create --name "<实验名>" | grep -oE 'created map [0-9]+' | grep -oE '[0-9]+')
+   npx tsx src/cli/gsts.ts maps:init --map-id $MID --write   # root3-49 引擎骨架，自动备份+Temp 同步
+   npx tsx src/cli/gsts.ts maps:resync --map-id $MID         # gip 注册，编辑器列表可见
+   ```
+   仅当链中某步报错才回退查该命令 `--help`；
+3. 在破坏性写入前请求确认（`maps:create` 新建文件在用户已明确要求建图时属直接授权，可直接执行）；
+4. 创建后记录实际路径、ID、大小、SHA-256（v0 快照 + manifest 恢复块），并停止。
 
 不要在初始化前读取 `docs/game-engine-knowledge/index.md`、`project-pipeline.md`、PKC、Composite 导航、完整 Authority、测试或实时地图全量清单。初始化不是规则调查；第一处用户变化保存后，才按下面的续作或冷启动流程加载调查所需的最小模块。
 
