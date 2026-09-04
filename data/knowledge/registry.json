@@ -1583,6 +1583,17 @@
         "重算"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "beyond-editor-semantic-resources",
+      "node_id": "game-engine-knowledge",
+      "title": "Beyond 编辑器语义资源与游戏静态数据解析",
+      "path": "knowledge/game-engine-knowledge/beyond-editor-semantic-resources.md",
+      "summary": "effectID→TextMapHash 目录源探索：.mihoyobin、MiHoYoBinData、Blb、IL2CPP metadata、BeyondEditor RoleStatus 加载链的已确认边界",
+      "keywords": [
+        "BeyondEditor, effectID, TextMapHash, MiHoYoBinData, Blb, RoleStatus, IL2CPP, global-metadata, mihoyobin"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3477,6 +3488,21 @@
     "clm_84CED09838A595E9E91D911F67": {
       "fact_classes": [
         "writeback_behavior"
+      ]
+    },
+    "clm_A914A2C2A7AF5774A609CED409": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_C90393CC66E0ED997F91A39FBD": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_2CD084FB7C9058036423779120": {
+      "fact_classes": [
+        "external_game_evidence"
       ]
     }
   }

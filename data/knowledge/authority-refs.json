@@ -2845,6 +2845,21 @@
       ]
     },
     {
+      "id": "aref_667ece130e10a7a9027eb85f9d",
+      "path": ".scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/blb3/PROGRESS.md",
+      "locator": "关键更正条目与临时产物注记",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "14c625cf86bd961a0e323285b9541ba2eee092cd1f7635d94ea1d34a02036f1c",
+      "claim_ids": [
+        "clm_A914A2C2A7AF5774A609CED409"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_6743904ac2bfb13f8a8b2e4aef",
       "path": "docs/ui-tutorial/ugc-svg/ui-controls.md",
       "locator": "## 50-特殊数字控件",
@@ -3610,6 +3625,21 @@
       ]
     },
     {
+      "id": "aref_8679bd8e09a9d6df58af887313",
+      "path": "docs/game-engine-knowledge/beyond-editor-semantics.md",
+      "locator": "2026-09-04 静态数据/IL2CPP/.NET 深挖更新",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "596e7cb5a6a7437f511bfab722a63a1258552fbec3e941b1e4fb49d8743612c4",
+      "claim_ids": [
+        "clm_2CD084FB7C9058036423779120"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_868dc0d47c2f24dae77320e288",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "#20b",
@@ -3847,6 +3877,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_90ac77cee1729f91cd929658b9",
+      "path": "docs/game-engine-knowledge/beyond-editor-semantics.md",
+      "locator": "2026-09-04 静态数据/IL2CPP/.NET 深挖更新",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "596e7cb5a6a7437f511bfab722a63a1258552fbec3e941b1e4fb49d8743612c4",
+      "claim_ids": [
+        "clm_C90393CC66E0ED997F91A39FBD"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
