@@ -294,7 +294,7 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> re
   统一写载体（transform + 单位状态）仍是必需件 → E1 与 E4（状态 bool 跨实例可见性）**继续做**。
 - 接力 demo 的目标数字改为：载体施放率 × 圈配额 ≥20Hz（负载 <2.5k 帧/s 不变）。
 
-## 9. 待验证登记（不虚构、不推广）
+## 8. 待验证登记（不虚构、不推广）
 
 - **E0 五问全部**（触发间隔下限/6+瞬发可否被定时触发/角色技能变量隔离粒度/公共冷却对角色的影响/子循环负载）——见 §7.1，判据已预注册
 - `queryEntityByGuid` 在 20008 的 bigint 字面量接受度（§2.2 雷 4）

@@ -2,6 +2,26 @@
 
 ## 最近轮次
 
+- 2026-09-04（**票 20 第 0 轮：探索 + 架构定稿 v2**；纯模型侧，**未编译/未注入/未写 .gil**；commit 00b818e）：
+  - **结构层核验**（A 类 9 通道真签名全枚举）：20008 能写"他实体属性"只剩 **HP + 单位状态**（target 均可连、无
+    literal 断言）；`setCustomVariable` 客户端零支持再证；**预设状态=客户端只读**（`setPresetStatus` 仅服务端
+    `nodes.d.ts:1827`）→ 新候选结构层判死；`getEntityLocation/Rotation(任意实体)` 在 20008 合法
+    （`client_nodes.ts:21391/21417`）→ **"A 瞬移自身、B 直读 A"的 transform 黑板**候选成立（新鲜度未测）；
+    瞬移 `API#200247` 帧只印 IN1/IN2、vendor 显式入参 i2Index 从 1 起 → 隐式目标槽存在与否=E2 的 wire 层入口。
+  - **用户裁决三问**：黑板目标=造物自身 transform｜读回**零跳**（HP 因此退出黑板）｜判负线=**2 造物接力 demo
+    实测**（≥20Hz 且负载 <2.5k）。架构定稿 **L0 技能变量=实例私有栈 / L1 黑板=transform(6f)+单位状态(bool) /
+    L2 服务端=一致性点+取证面**。
+  - **用户情报两条（09-04 二轮，核验成立）→ 新增头号实验 E0 角色载体路线**：①单位状态=跨实例统一写 +
+    客户端 bool 直读 + 层数/持续时间可配（官方 concepts:9809-9931）；②状态特殊功能「**定时触发技能**」
+    （auxiliary-appendix:1009）+ **character_skill 独有** `getCurrentClientTime(HighPrecision)`/`addKeyBehavior`
+    （creation_skill 全无，票 15 结论坐实）+ 20002 图内 `castSkillFromSpecifiedSlot/castSpecifiedSkillInstance`
+    自施放 → 触发权脱离造物 AI 距离节流、单次施放内 finiteLoop+时钟做**时间驱动子调度**。
+  - **交付物**：`issues/20-experiment-design.md`（E0 五问探针 + E1/E2 合并轮设计/期望帧签名/判读脚本/资产清单/
+    用户动作/风险与判负出口）+ `issues/20-blackboard-capacity.md`（需求 11 分量×20Hz vs 供给 6N、降维手段、
+    节拍与负载账、判负线写死）+ 票面实验记录区（E0-E5 六行表）+ 候选表补预设状态判死行 + BOARD 前沿刷新。
+  - **下一步**：E0 执行轮（资产=20002 图 `fb20c-loop` + 6 模板瞬发配置 + 用户编辑器新建"定时触发技能"状态；
+    五问含**角色技能变量隔离粒度**——19 票铁证只测造物、角色侧未知，决定 L0 是否可用）→ E1+E2 合并注入轮。
+    注入前仍走四件套；本轮一次性授权已用于 E1/E2 安排，**E0 新资产注入前需再向用户确认**。
 - 2026-09-04（**票 19 收口：接管形态+三图拆分+物理手感链闭环**；地图 Temp 末 SHA a68bfe50，用户修复参数后未再注入；commit 系列 9b1af72..ef9c73f + 收口 commit）：
   - **架构终态（用户模型落地）**：数据图 fb-sink 1073741833（11 节点：只收 P→快照门→写镜像）/ 渲染图 fb-render 1073741834（种子+定时渲染+rest/goal，fb_p_drive 参数化节拍）/ 输入图 fb-input 1073741835（踢球 9 选项+echo 账务+拍门）；旧 fb-server 1830 退役 detach；复合抽 fb-shared.ts（同 ID 幂等）；dsp 测试载荷退役。
   - **关键引擎发现（3145 客户端帧铁证）**：技能变量按**施放实例隔离**（跨实例协调结构性不可行）→ v2 backlog 机制判废、4 造物同相位=假并发（4.6× 重复实测）→ 立研究票 20。
