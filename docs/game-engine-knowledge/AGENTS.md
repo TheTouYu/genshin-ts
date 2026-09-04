@@ -15,7 +15,7 @@
 1. [游戏运行生命周期](game-lifecycle.md)
 2. [关卡结构](level-structure.md)
 3. [GIL 整体结构与语义树](gil-structure-semantics.md)（结构文档族：[静态场景](gil-static-scene-semantics.md) / [节点图资产](gil-nodegraph-semantics.md) / [编辑器资产](gil-editor-assets-semantics.md) / [单位状态](unit-status.md)）
-4. [资产、关卡保存与导出文件](assets-and-files.md)（编辑器本地语义资源表见 [Beyond 编辑器语义资源](beyond-editor-semantics.md)）
+4. [资产、关卡保存与导出文件](assets-and-files.md)（编辑器本地语义资源表见 [Beyond 编辑器语义资源](beyond-editor-semantics.md)；发现/解码/接入规划见 [语义资源管线](semantic-resource-pipeline.md)）
 5. [组件](components.md)
 6. [运动器（Motion Device）运行时行为](motion-devices.md)
 7. [屏幕控件与 UI](ui-controls.md)
