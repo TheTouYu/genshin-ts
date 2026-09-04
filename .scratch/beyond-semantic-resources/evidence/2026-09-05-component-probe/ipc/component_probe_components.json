@@ -1,6 +1,12 @@
 {
+  "schemaVersion": 1,
+  "title": "Beyond type1017 full field11 component slot decoder",
   "assetId": 1077936129,
   "sourceEntityId": 10009001,
+  "frames": [
+    "frame_032_len30708.bin",
+    "frame_033_len30708.bin"
+  ],
   "groups": {
     "field6": [
       {
@@ -380,8 +386,8 @@
   },
   "entry2Preview": [
     "f1=1077936129",
-    "f2={ f30151443620172527965=w6 }",
-    "f3={ f8=w6 }",
+    "f2{ f30151443620172527965=w6 }",
+    "f3{ f8=w6 }",
     "f5=1402"
   ]
 }

@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond type1017 full field11 component slot decoder",
+  "assetId": 1082130433,
+  "sourceEntityId": 30007001,
+  "frames": [
+    "frame_017_len29066.bin"
+  ],
+  "groups": {
+    "field6": [
+      {
+        "index": 0,
+        "typeId": 1,
+        "payload": [
+          "f11=msg<1>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 13,
+        "payload": [
+          "f22=msg<1>"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 38,
+        "payload": [
+          "f48=msg<2>"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 40,
+        "payload": [
+          "f50=empty"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 111,
+        "payload": [
+          "f93=empty"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 61,
+        "payload": [
+          "f65=empty"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 62,
+        "payload": [
+          "f66=empty"
+        ]
+      },
+      {
+        "index": 7,
+        "typeId": 80,
+        "payload": [
+          "f79=msg<1>"
+        ]
+      },
+      {
+        "index": 8,
+        "typeId": 81,
+        "payload": [
+          "f80=msg<1>"
+        ]
+      },
+      {
+        "index": 9,
+        "typeId": 65,
+        "payload": [
+          "f70=msg<1>"
+        ]
+      },
+      {
+        "index": 10,
+        "typeId": 82,
+        "payload": [
+          "f81=msg<1>"
+        ]
+      }
+    ],
+    "field7": [
+      {
+        "index": 0,
+        "typeId": 1,
+        "payload": [
+          "f11=msg<4>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 3,
+        "payload": [
+          "f13=empty"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 4,
+        "payload": [
+          "f14=msg<1>"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 6,
+        "payload": [
+          "f16=empty"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 7,
+        "payload": [
+          "f17=msg<13>"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 11,
+        "payload": [
+          "f21=msg<8>"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 12,
+        "payload": [
+          "f22=msg<1>"
+        ]
+      },
+      {
+        "index": 7,
+        "typeId": 16,
+        "payload": [
+          "f26=empty"
+        ]
+      },
+      {
+        "index": 8,
+        "typeId": 17,
+        "payload": [
+          "f27=empty"
+        ]
+      },
+      {
+        "index": 9,
+        "typeId": 19,
+        "payload": [
+          "f29=msg<1>"
+        ]
+      },
+      {
+        "index": 10,
+        "typeId": 20,
+        "payload": [
+          "f30=empty"
+        ]
+      },
+      {
+        "index": 11,
+        "typeId": 21,
+        "payload": [
+          "f31=msg<1>"
+        ]
+      }
+    ],
+    "field8": [
+      {
+        "index": 0,
+        "typeId": 18,
+        "payload": [
+          "f2=1",
+          "f28=msg<2>"
+        ]
+      },
+      {
+        "index": 1,
+        "typeId": 1,
+        "payload": [
+          "f2=1",
+          "f11=empty"
+        ]
+      },
+      {
+        "index": 2,
+        "typeId": 42,
+        "payload": [
+          "f2=1",
+          "f53=msg<1>"
+        ]
+      },
+      {
+        "index": 3,
+        "typeId": 3,
+        "payload": [
+          "f2=1",
+          "f13=empty"
+        ]
+      },
+      {
+        "index": 4,
+        "typeId": 6,
+        "payload": [
+          "f2=1",
+          "f16=empty"
+        ]
+      },
+      {
+        "index": 5,
+        "typeId": 14,
+        "payload": [
+          "f2=1",
+          "f24=empty"
+        ]
+      },
+      {
+        "index": 6,
+        "typeId": 26,
+        "payload": [
+          "f2=1",
+          "f37=empty"
+        ]
+      }
+    ]
+  },
+  "entry2Preview": [
+    "f1=1082130433",
+    "f3{ f8=w6 }",
+    "f5=1405",
+    "f8=4"
+  ]
+}
