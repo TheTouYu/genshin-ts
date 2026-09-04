@@ -9,8 +9,6 @@
 票 01：建立机器可读映射 `effectID → TextMapHash → zh/en`，至少覆盖：
 1720001 / 2110001 / 2010001 / 2120001 / 2130001 / 590001。
 
-## 当前结论（最新优先）
-
 1. **效果名在游戏主 TextMapCHS/EN**，不在编辑器本地 TextMap（7743 条）中。
 2. **编辑器本地 `.mihoyobin`（4098 个）全部扫过**：XOR 0xE5 后无效果 ID/hash。
 3. **BeyondEditor.dll 加密字符串全部解出（2826 条）**：
@@ -24,6 +22,11 @@
    - 原始对象中可搜到部分 1720001/2010001；**搜不到 2120001/2130001/590001 及对应 TextMapHash**
 5. **当前 7.0.0 不要用 XOR 0x95**（旧社区版本才用）。
 6. UI 控件名“图文输入框/消息队列”在主游戏资源查不到；UI 名属编辑器本地，不是票01入口。
+7. **IPC 通道已排除**（2026-09-04 多次抓包）：
+   - wire：4B 大端长度 + HAblp + payload XOR 0xEA + protobuf
+   - type1017 只传 effectID/参数，不传 TextMapHash/显示名
+   - type1022 = 资源/图标/路径目录
+   - 资源清点：`evidence/2026-09-04-ticket01/INVENTORY.md`
 
 ## 已确认样本（写入 `blb3/effect_samples.json`）
 

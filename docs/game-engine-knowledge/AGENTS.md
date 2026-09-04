@@ -250,6 +250,7 @@ GIL 整体结构与语义树
   [票04 语义化 List + 80 快照全量核验](retrospective-2026-09-03-ui-ticket04-verification.md)、
   [变量系统 M1+核验矩阵](retrospective-2026-08-29-variable-game-verify-matrix.md)
 - **Beyond语义资源**：[票01侦察轮](retrospective-2026-09-04-beyond-semantic-resources-ticket01.md)（低效点谱系+系统性根因：资源逆向工作流缺失/证据固化滞后/设计思维利用不足；Blb新容器卡点）
+  - [票01 IPC阶段](retrospective-2026-09-04-ticket01-ipc-phase.md)（HAblp+XOR0xEA+protobuf；IPC不含TextMapHash；先判通道价值再抓包）
 - **静态模型/朝向**：[静态与动态预制体](retrospective-2026-08-20-static-dynamic-prefabs.md)、
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、

@@ -1,0 +1,3 @@
+# Large capture/decoded binaries are local evidence; not committed.
+*.pcap
+*.bin
