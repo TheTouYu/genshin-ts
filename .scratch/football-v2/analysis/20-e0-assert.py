@@ -174,6 +174,7 @@ def main():
     check(cnt == 3, f'技能变量 cfg {CFG_R} 落位 3 次（实得 {cnt}）')
 
     # Q5 双闸常量
+    # 常量落位（bInt/bId/bEnum 三形态，literal_pins 已兼容嵌套层）
     vals = [v for n in gl['nodes'] for v in literal_pins(n).values()]
     check(LOOP_CAP in vals, f'Q5 圈数上界 {LOOP_CAP} 落位')
     check(BUDGET_MS in vals, f'Q5 时钟预算 {BUDGET_MS}ms 落位')
@@ -251,8 +252,7 @@ def main():
     # 技能配置 ID 落位
     svl = [v for n in gsv['nodes'] for v in literal_pins(n).values()]
     check(SKILL_CFG in svl, f'技能配置 ID {SKILL_CFG} 落位')
-    numeric = sorted({v for v in svl if isinstance(v, (int, float))})
-    check(STATUS_CFG in svl, f'单位状态 ID {STATUS_CFG} 落位（实得数值集={numeric}）')
+    check(STATUS_CFG in svl, f'单位状态 ID {STATUS_CFG} 落位（bId 形态）')
     # 装配槽位必须 = 状态实测指向的 CustomSkillSlot12（3121=槽1，会静默不触发）
     addEnums = [v for n in node_by_gid(gsv, 395) for v in literal_pins(n).values()]
     check(SLOT12_ENUM in addEnums, f'装配槽位 = 3132(槽12)（实得 {addEnums}）')

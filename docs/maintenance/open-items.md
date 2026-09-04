@@ -711,3 +711,35 @@
 - 证据：主线 rubik-3x3 solver.ts 同构 mkTimer（fast×0.4）；主线无 rbv 往返链路每步 ≈0.7s，
   fast emitTick=0.61s **临界负余量**——主线开快速模式自动还原可能偶发同款角块振荡。
 - 何时做：主线复用 92d1f69 修复（emit/done fixed 化）；下次主线 fast 模式复测前完成。
+
+### O-2026-09-04-07. 单位状态触发间隔 f13 的 wire 表述与样本不符【OPEN-知识文档待精修】
+
+- 证据：`docs/game-engine-knowledge/unit-status.md` 写「`2110001` 槽 11 触发间隔 f13.2=f32，
+  默认 0.0 时**整个 f13 省略不上 wire**」（据 1918 差分）；1908 既有状态 id=1077936132 实测
+  参数条目 = `{1:11, 10:len0, 12:len0, 13:len0}` —— **f13 上了 wire 但内部为空**。
+- 影响：两种形态 proto3 语义等价（间隔值缺失=0.0=未配置），**结论与判据均不变**；
+  仅"省略"表述与样本不符，可能误导后续按"字段不存在"写判定逻辑。
+- 何时做：下次编辑器差分（10 秒改一次间隔值）定论三态（未设/0.0/非 0），再改 unit-status.md；
+  单样本跨图，本波不擅改 authority 文档。
+
+### O-2026-09-04-08. decode 常量扫描器两处并存、形态表未共享【OPEN-工具收敛】
+
+- 证据：`tools/gia-verify-pin.ts` 与
+  `.agents/skills/gil-node-graph-reading/references/decode-gia-constant-scan.py` 各自硬编码
+  「按 wire 键分类值」的键表，同一缺陷（漏 `bId`=config_id、`bEnum`=枚举）在两处独立存在，
+  本波已同步补齐（实测 `--vals 1207959581` 0 命中 → 3 命中）。权威表在
+  `src/cli/variables_verify.ts` 的 `PAYLOAD_KEYS`/`CLIENT_PAYLOAD_BY_CLASS`。
+- 残留：两扫描器**仍各自实现**；`bVector`(vec3) / `bStruct` 形态两者都还不识别（本波图未用到）。
+- 何时做：抽成单一共享模块（或让 py 版直接读 ts 版导出的键表）；含 vec3/struct 断言的图首次出现时。
+
+### O-2026-09-04-09. DUPLICATE-EXEC-INPUT lint 不看目标 InFlow 引脚序号【OPEN-工具债】
+
+- 证据：`src/compiler/ir_lint_dangling_exec.ts` 的重复入边检测按 `target → source_index → from`
+  归组（行 ~149-160），**不使用目标 InFlow 引脚序号**；于是
+  `break_loop → finite_loop InFlow[1]` 的合法回连（引擎 break 语义载体，
+  `verify/inflow-index/inflow-index-repro.ts` 即其回归样本）被计为「2 条同出口入边」冲突。
+  对照实验：编译该**已知良好**样本 → 报完全相同警告（票 20 E0 轮，2026-09-04）。
+- 影响：真缺陷（auto-chain + 显式 connect 双写）与该合法形态**无法区分**，噪音掩盖信号；
+  本轮靠对照实验判定，未改代码（避免搅动他人 WIP 图上的既有告警）。
+- 何时做：归组键改为 `(target, 目标 inflow index)`；改后须回归 fb-phys2/fbRender 现存 3 条告警
+  是否仍为真问题（那 3 条属他人 WIP，未逐条核实）。
