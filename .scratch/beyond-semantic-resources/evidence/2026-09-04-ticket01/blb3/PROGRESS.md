@@ -23,6 +23,9 @@
    - 24230448：160131 对象 / 160129 MiHoYoBinData
    - 31049740：3 对象 / 1 MiHoYoBinData（类型名表，不是文件路径表）
 4. **关键更正：当前数据不需要 XOR 0x95**（0x95 是旧社区版本用 key）。直接按 MiHoYoBinData 原始二进制搜索即可。
+5. **2026-09-05 复核修正：`/tmp/mhybins_255/*.bin` 是误用 `--xor 0x95` 导出的文件，不是原始字节。**
+   直接读取 SerializedFile 中 MiHoYoBinData 对象时，pathID=1059/1735 的原始字节（无 XOR）即含真实 effectID varint；
+   脚本 `extract_mihoyo_bin.py` 已改为默认 `--xor 0`（CN 7.0.0 正确导出方式）。复核命令/结论记录在本次会话与后续脚本。
 
 ## 二进制搜索初步结果
 
@@ -58,7 +61,7 @@
 - `/tmp/blb3_test_255/out/CAB-...`
 - `/tmp/blb3_test_242/out/CAB-...`
 - `/tmp/blb3_test_310/out/CAB-...`
-- `/tmp/mhybins_255/`（Excel MiHoYoBinData 全量 2069 个，72MB，可重新生成）
+- `/tmp/mhybins_255/`（Excel MiHoYoBinData 全量 2069 个，72MB，可重新生成；**注意现存文件是 `--xor 0x95` 产物**，如需原始字节请用 `--xor 0` 重新导出）
 
 ## IPC 抓包进展（2026-09-04，同票）
 

@@ -5,8 +5,12 @@ Extract MiHoYoBinData (classID 1208) objects from a Unity SerializedFile.
 Supports the CN 7.0.0 Excel block output:
   version=17, endian=0, type-tree disabled.
 
+IMPORTANT (2026-09-04 corrected): CN 7.0.0 MiHoYoBinData content is NOT XORed.
+The earlier 0x95 key is only for old community versions. Use --xor 0 (default now)
+to obtain the raw object bytes that contain the real effectID varints.
+
 Usage:
-  python3 extract_mihoyo_bin.py <serialized.bin> [output_dir] [--xor 0x95]
+  python3 extract_mihoyo_bin.py <serialized.bin> [output_dir] [--xor 0]
 """
 from __future__ import annotations
 
@@ -69,7 +73,7 @@ class Reader:
             self.pos += alignment - mod
 
 
-def parse_serialized(data: bytes, xor_key: int = 0x95):
+def parse_serialized(data: bytes, xor_key: int = 0):
     # Header is big-endian in the standard serialized file layout
     r = Reader(data, '>')
     metadata_size = r.u32()
@@ -150,7 +154,7 @@ def parse_serialized(data: bytes, xor_key: int = 0x95):
     return version, data_offset, objects, mhy_objects
 
 
-def extract_object_data(data: bytes, obj: dict, xor_key: int = 0x95) -> bytes:
+def extract_object_data(data: bytes, obj: dict, xor_key: int = 0) -> bytes:
     start = obj['byte_start']
     size = obj['byte_size']
     if size < 4:
@@ -170,8 +174,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('input', type=Path)
     ap.add_argument('output', type=Path, nargs='?', default=None)
-    ap.add_argument('--xor', type=lambda x: int(x, 0), default=0x95,
-                    help='XOR key for MiHoYoBinData content (default 0x95)')
+    ap.add_argument('--xor', type=lambda x: int(x, 0), default=0,
+                    help='XOR key for old MiHoYoBinData content (default 0 = no XOR for CN 7.0.0)')
     args = ap.parse_args()
 
     data = args.input.read_bytes()
