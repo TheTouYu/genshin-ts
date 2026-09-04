@@ -88,9 +88,15 @@ BeyondGlobal（Resource/Json/Beyond/BeyondGlobal/<hash>.mihoyobin）：
     - `OfficialRoleStatus` → `(10003, 50004, 51000)`
     - `CustomRoleStatus` → `(10003, 50004, 51001)`
   - `IxxdqjiYXvUxMvfd5Mwm` 静态字典登记：key 2 → Official 三元组；key 3 → Custom 三元组。
+- CONFIRMED（IPC type1017 重审）：type1017 是“可用状态 ID 列表 + 当前自定义状态详情”；
+  不是只含 effectID 列表。官方状态 ID `10100002..10100017` 与 `10100101..10100116` 都在列表中。
+- CONFIRMED（排除）：完整抓包第二轮（地图切换+多操作）只解析到
+  官方 `10100002 → effect 20001` 与两个自定义状态详情；
+  **官方状态 10100003..10100017 的内部效果列表不在 type1017/IPC 中**。
 - 含义：BeyondEditor 本地仍是“资源分类 ID”，不是文件路径/TextMapHash；
   `effectID→TextMapHash` 映射不在 BeyondEditor 本地代码/Json 树中，应继续在游戏侧找。
-- 相关证据：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/blb3/PROGRESS.md`；
+- 相关证据：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/blb3/PROGRESS.md`、
+  `.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/ipc/PROGRESS-IPC.md`；
   临时工具/日志在 `work/ticket01-effect-catalog-dotnet/notes/`（未提交，供复查）。
 
 ## 关联
