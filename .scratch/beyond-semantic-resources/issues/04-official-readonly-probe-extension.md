@@ -43,8 +43,43 @@
 - 若需要内部结构，再做真正的最小操作：打开/编辑一个具体官方实体/自定义实体 → 抓 full field11。
 - 若预制体无“复制为自定义”入口，改用官方技能蓝图或 Duty/Stuff 蓝图。
 
-**验收 checkbox：**
-- [ ] 至少 1 类新官方资产批量解析落盘
-- [ ] 产出该类“官方 ID/模板 → 内部结构/引用/参数”机器可读资源
-- [ ] runbook 泛化到“不只官方状态”并被 SKILL.md 引用
-- [ ] 脚本/runbook 无临时目录依赖
+**Round 3 · UI IPC 帧差分 × UI 规律语义融合（2026-09-05，收轮）：**
+- 数据：`evidence/2026-09-05-ui-probe/`（map 1073741918 单样本）。UI 定义在 type1017 field17；
+  IPC 定义体 = f17→f1→（f501..f505 记录字段族），成员列表 = f503 packed bytes。
+- 闭环产物（全部可复现命令见 skill runbook §6）：
+  - `diff_type1017_frames.py` v1.1：每条 change 携带**字段号链 chain**（[fieldA,fieldB,idx] 逐消息层），
+    位置路径 + 真实字段号双轨；ADD/REMOVE/CHANGE 全覆盖。回归：资产 134/变更组 145 与 v1 一致。
+  - `annotate_frame_diff.py` v2：默认模式与 v1 逐字节一致（基线 hash d9de9a99…）；
+    语义层 = GIL 名称回填 + 布局/容器 f503 成员追加解码（链式签名 f17→f1→f503，
+    仅 1825/1840/1845 角色资产，counter-example：1841 同链不同义→role 门控必要性）+ raw 统计。
+  - 名称表修复：`build_ui_instance_name_table.py` 名称改走**严格 raw wire 切片**（parse_message
+    宽松部分解析会把可伪解析 UTF-8 文本如 '图片' 误判为 msg 子树）→ 133 条记录命名 93→**124**，
+    与 `tools/wire-inspect.ts --list --json` 归一化后 **0 差异**；无名仅 9 条
+    （含 diff 涉及的 1841/1939——记录内确无名称组件/文本，非提取缺口）。
+  - 规则账本：`resources/ui_ipc_diff_rules.json` + skill references
+    `ui-ipc-diff-rules.md`（r-ui-mem-append OBSERVED / remove·replace·text·image needs-sample）。
+- 量化（基线 ui_steps.baseline-v0.md vs 新 ui_steps.md）：
+  - 位置路径 raw 叶子 **801 → 0**（回退行全部转字段号链面包屑 `链 f17→f1→f505#4…`）；
+  - 无名资产标题 9 → 2（1841/1939，双源确无存储名）；
+  - 成员追加语义化 0 → 32 行（35 个成员链叶子中 32 前缀追加可解码，3 条 fail-closed 留 raw）。
+  - 全量叶子 3188（CHANGE 2540 / REMOVE 369 / ADD 279），71% 含“mix”错位步
+    （两侧字段号不同 = 结构重排/前位插入）→ 位置路径不可靠的量化证据，后续规则必须链式化。
+- open-items（fail-closed）：
+  - 剩余 769 叶子按链签名归 376 类；字段级动作（名称/文本/几何/素材引用/显隐等）需逐链对照
+    单操作差分样本后闭合；1841 的 f505 槽 ADD/REMOVE 大重排语义未解。
+  - r-ui-mem-remove / -replace 无样本；模板-实例绑定（type3.f13/type4.f14）本 probe 无操作样本。
+  - 1841/1939 等无存储名资产的显示名来源（若有）待查官方模板/TextMap 族。
+- 下一轮候选：① 用“mix”占比高的事实驱动改进 diff（按字段号对齐后再 diff，消除 71% 噪音）；
+  ② 对 1875/1877/1881 等控件做编辑器单操作差分（改名/改字/换图/几何）闭合字段级链签名；
+  ③ 官方技能/预制体/蓝图类另抓 full field11（Round 2 遗留）。
+
+**验收 checkbox（UI/控件类样本已闭合，跨类仍 OPEN；勾选带范围注明）：**
+- [x] 至少 1 类新官方资产批量解析落盘 —— **UI 控件/布局/容器类**：type1017 field17 目录+定义
+      （`ui_probe.generic.json`，134 定义）与 GIL root9 名称表（`resources/ui_instance_name_table.json`）
+- [x] 产出该类“官方 ID/模板 → 内部结构/引用/参数”机器可读资源 —— UI 类：
+      `resources/ui_instance_name_table.json` + `resources/ui_ipc_diff_rules.json`（r-ui-mem-*）
+- [x] runbook 泛化到“不只官方状态”并被 SKILL.md 引用 —— `runbooks/capture-official-assets.md` §6
+      UI 帧差分管线 + SKILL.md 速记/脚本清单
+- [x] 脚本/runbook 无临时目录依赖 —— 全部输入输出在仓库 evidence/resources/skill 内
+- （跨类 OPEN：官方预制体/技能/Duty/Stuff/复合节点蓝图的 field11 物化与批量解析未开始，
+  见 Round 2 下一步 + Round 3 下一轮候选③）

@@ -66,3 +66,46 @@
 - `ui_probe.generic.json`
 - `ui_probe.hablp-summary.json`
 - `ui_probe.report.md`
+
+## 差分体系语义融合（票04 Round 3 收轮，2026-09-05）
+
+目标：把“IPC 帧序列 + 已解析 UI 规律”融合为可复用差分体系（为 `assets:ui` 批量支持铺路）。
+
+### 本轮回合产物（命令见 skill runbook §6）
+
+| 资产 | 内容 | 验证 |
+|---|---|---|
+| `diff_type1017_frames.py` v1.1 | change 携带字段号链 chain（[fa,fb,idx] 逐消息层） | 资产 134/组 145 与 v1 一致；首叶链 [[17,17,1],[1,1,0],[503,503,3]] |
+| `annotate_frame_diff.py` v2 | 默认模式=v1 逐字节；语义层=名称回填+成员追加解码+统计 | 基线 hash d9de9a99…回归 PASS ×2 |
+| `build_ui_instance_name_table.py` | 名称改严格 raw wire 切片（修复 parse_message 宽松部分解析误判 '图片' 等文本为 msg） | 133 记录命名 93→124；与 wire-inspect.ts 归一化 0 差异 |
+| `resources/ui_instance_name_table.json` | GIL root9 名称表（重生成） | 无名仅 9（1840/1841/1842/1896/1899/1957/1960/1962/1966） |
+| `resources/ui_ipc_diff_rules.json` + skill references `ui-ipc-diff-rules.md` | 路径→动作规则账本 | r-ui-mem-append OBSERVED；其余 needs-sample |
+
+### 量化对比（`ui_steps.baseline-v0.md` → `ui_steps.md`）
+
+| 指标 | baseline | 语义版 |
+|---|---|---|
+| 位置路径 raw 叶子行 | 801 | **0**（回退行转字段号链面包屑） |
+| 无名资产标题（资产去重） | 9 | 2（1841/1939：GIL+IPC 双源确无存储名） |
+| 布局/容器 f503 成员追加（语义行） | 0 | 32 |
+| 全量叶子 | — | 3188（CHANGE 2540/REMOVE 369/ADD 279）；71% 含 mix 错位步（结构重排信号） |
+
+### 语义规则速记（本轮闭合）
+
+- IPC UI 定义体 = **f17 → f1**（记录字段族 f501..f505）；成员列表 = **f503** packed bytes。
+- 布局/容器成员追加链式签名 = `f17#1→f1→f503#3`，但**必须按角色门控**（1825/1840/1845）：
+  1841 同链不同义（非成员语义），counter-example 实证。
+- GIL root9 记录名位置 = `f505[f502=15].f12.f501`（type15 名称组件）；40 条“老解析无名”中 31 条
+  是解析缺陷（漏名），真无名仅 9 条。
+
+### open-items（fail-closed）
+
+- 剩余叶子按链分 376 类；字段级动作（名称/文本/几何/素材引用/显隐）需编辑器单操作差分逐链闭合。
+- 71% mix 步说明位置路径不可靠 → 下一轮先做“按字段号对齐后再 diff”消除重排噪音。
+- 移除/替换/模板绑定/图片换源形态无样本；1841 的 f505 槽重排语义未解。
+
+### 下一步
+
+1. diff 改进：字段号对齐后再 diff（消除 71% mix 噪音），链式签名固化进规则 JSON。
+2. 控件单操作差分（改名/字号/颜色/换图/几何）→ 闭合字段级链签名（1875/1877/1881 等现成样本资产）。
+3. 官方技能/预制体/蓝图类 full field11 物化（票04 Round 2 遗留）。

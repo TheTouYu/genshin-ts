@@ -13,6 +13,9 @@
 - 表地图 inventory：`docs/game-engine-knowledge/semantic-resource-inventory.md`（票03 已产出）
 - 票01 证据固化：`.scratch/beyond-semantic-resources/evidence/2026-09-04-ticket01/`（handoff + 解码器 + 脚本 + IPC + INVENTORY）
 - 票01 静态数据轮复盘：`docs/game-engine-knowledge/retrospective-2026-09-04-ticket01-static-data-round.md`
+- 票04 UI 差分体系（Round 3）：`evidence/2026-09-05-ui-probe/PROGRESS.md` + `issues/04-…` Round 3 节；
+  规则账本 `resources/ui_ipc_diff_rules.json` + skill references `ui-ipc-diff-rules.md`；
+  差分/注释/名称表脚本在 `beyond-semantic-resource-reverse/scripts/`，管线见 runbook `capture-official-assets.md` §6
 - 领域技能：`beyond-semantic-resource-reverse`（票01/effectID→TextMapHash/MiHoYoBinData/Blb3/IL2CPP/RoleStatus）
 - 本地语义资源根（编辑器）：
   `/mnt/e/ys/Genshin Impact Game/BeyondAssets/BeyondAssistEditor/Resource/Json/`
@@ -41,10 +44,13 @@
 `resources/official_status_effects.json` + `evidence/.../ipc/official_status_copy_captures.json`；
 仍缺 effectID→TextMapHash→中英文名的机器可读映射。下一主攻：解析 242/255 MiHoYoBinData 中含 effectID 的对象（pathID 849 等）或编辑器效果列表差分。）
 
-**→ 票 04 物化探针推广到其他只读官方资产**（OPEN；Round 0 基线已验证：
-`parse_official_copy_pcap.py` 复现 10100005→[510001,2110001]；新增通用 HAblp 类型直方图
-`summarize_hablp_pcap.py`；runbook 已去 `/mnt/c/temp`。等待用户抓“官方预制体复制/另存为自定义”单样本，
-再判断消息类型并决定批量解析。）
+**→ 票 04 UI 资产探针 + IPC 帧差分×UI 规律语义融合**（OPEN；Round 3 收轮 2026-09-05）：
+UI/布局/容器类已批量解析（type1017 field17 + GIL root9 名称表，134 定义/133 记录）；
+差分体系闭环：字段号链 v1.1 diff + 语义注释器 v2（名称回填、f503 成员追加解码、raw 面包屑化：
+位置路径 801→0 行）；名称表修复 93→124 命名（与 wire-inspect 0 差异）；
+规则账本 `resources/ui_ipc_diff_rules.json` + skill references `ui-ipc-diff-rules.md` + runbook §6。
+下一主攻：按字段号对齐的 diff（71% 叶子含 mix 重排噪音）+ 控件字段级单操作差分；
+跨类（预制体/技能/蓝图）full field11 物化仍 OPEN（Round 2 下一步）。
 
 ## 票据清单
 

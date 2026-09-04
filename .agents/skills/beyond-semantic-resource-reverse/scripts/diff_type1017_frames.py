@@ -7,6 +7,15 @@ diff_type1017_frames.py — 从 type1017 帧序列中做“同一资产逐帧结
   即使一次抓包包含多个变更，也能按 assetId 还原“帧与帧之间改了哪些字段”，
   从而把包序列当作 IPC 差分源。
 
+字段号链（v1.1，2026-09-05 票04 UI 差分轮）:
+  位置路径（如 [1][2][0][2][3][2]）随解析树形态变化会错位（msg↔bytes 翻转、
+  槽位增删），语义标注需要每层“真实字段号 + 组内序号”。
+  每条 change 追加第 4/5 元素 chain：
+    CHANGE:   [kind, path, old, new, chain]
+    ADD/REMOVE:[kind, path, payload, chain]
+  chain = [[fieldA, fieldB, idx], ...]：按消息层从根到叶；fieldA==fieldB 表示两侧
+  同字段号（直接用 fieldA），不同 = 该层发生了字段错位（结构重排信号）。
+
 用法:
   python3 diff_type1017_frames.py <cache目录> --output diff.json
   python3 diff_type1017_frames.py <cache目录> --asset 1077936129 --output diff.json
@@ -50,21 +59,44 @@ def norm_node(node):
     return out
 
 
-def diff(a, b, path=''):
-    changes = []
-    if isinstance(a, list) and isinstance(b, list):
-        for i in range(max(len(a), len(b))):
-            p = f'{path}[{i}]'
-            if i >= len(a):
-                changes.append(['ADD', p, b[i]])
-            elif i >= len(b):
-                changes.append(['REMOVE', p, a[i]])
-            else:
-                changes.extend(diff(a[i], b[i], p))
-    elif type(a) != type(b):
-        changes.append(['CHANGE', path, a, b])
-    elif a != b:
-        changes.append(['CHANGE', path, a, b])
+def _chain_step(node_a, node_b, idx):
+    """chain 一步：两侧同字段号用单值，不同保留两侧（错位信号）。"""
+    fa = node_a[0] if node_a is not None else None
+    fb = node_b[0] if node_b is not None else None
+    return [fa, fb, idx]
+
+
+def diff_fields(la, lb, path, chain, out):
+    """la/lb = 同一消息层的字段列表（元素 = [f,w,v] 节点）。"""
+    for i in range(max(len(la), len(lb))):
+        p = f'{path}[{i}]'
+        if i >= len(la):
+            out.append(['ADD', p, lb[i], chain + [_chain_step(None, lb[i], i)]])
+        elif i >= len(lb):
+            out.append(['REMOVE', p, la[i], chain + [_chain_step(la[i], None, i)]])
+        else:
+            if la[i] == lb[i]:
+                continue
+            diff_node(la[i], lb[i], p, chain + [_chain_step(la[i], lb[i], i)], out)
+
+
+def diff_node(a, b, path, chain, out):
+    """a/b = 节点 [f,w,v]；逐槽比较，msg 值继续进 diff_fields。"""
+    for j in range(3):
+        p = f'{path}[{j}]'
+        va, vb = a[j], b[j]
+        if va == vb:
+            continue
+        if isinstance(va, list) and isinstance(vb, list):
+            diff_fields(va, vb, p, chain, out)
+        else:
+            out.append(['CHANGE', p, va, vb, chain])
+
+
+def diff(a, b, path='', chain=None, out=None):
+    """保持 v1 位置路径语义的树差分；chain 记录 msg 层字段号链。"""
+    changes = [] if out is None else out
+    diff_fields(a, b, path, chain if chain is not None else [], changes)
     return changes
 
 

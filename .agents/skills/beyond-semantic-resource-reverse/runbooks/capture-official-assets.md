@@ -12,6 +12,10 @@
 |---|---|
 | HAblp 类型直方图 | `.agents/skills/beyond-semantic-resource-reverse/scripts/summarize_hablp_pcap.py` |
 | type1017 通用解析 | `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_generic.py` |
+| type1017 逐帧差分 | `.agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py` |
+| 逐帧差分语义注释 | `.agents/skills/beyond-semantic-resource-reverse/scripts/annotate_frame_diff.py` |
+| GIL root9 名称表构建 | `.agents/skills/beyond-semantic-resource-reverse/scripts/build_ui_instance_name_table.py` |
+| UI 规则账本/名称表 | `resources/ui_ipc_diff_rules.json` / `resources/ui_instance_name_table.json` |
 | 官方实体映射构建 | `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py` |
 | 旧 type1017 状态专用解析 | `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_official_copy_pcap.py` |
 | RawCap.exe | `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe` |
@@ -69,10 +73,11 @@ ls -l /mnt/c/beyond-ipc/multi_type_ipc.pcap
 ## 3. 停止抓包
 
 ```bash
-# PID 换成实际 RawCap PID
-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command \
-  "Start-Process -Verb RunAs -Wait -FilePath 'C:\Windows\System32\taskkill.exe' -ArgumentList '/F /PID <PID>'"
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py --finish <probe名>
 ```
+
+`--finish` 会自动停止 RawCap（必要时弹 UAC），并把最终 pcap 复制到
+`evidence/<date>-<probe>-probe/ipc/` + sha256。若只想停止不复制，用 `--stop`。
 
 ## 4. 一键处理（推荐）
 
@@ -99,6 +104,42 @@ python3 .agents/skills/beyond-semantic-resource-reverse/scripts/process_type1017
 ## 5. 逐步命令（仅排查/自定义用）
 
 如果只需要某一步，可分别执行脚本；正常流程用上面的 `process_type1017_capture.py` 即可。
+
+## 6. UI 资产帧差分管线（抓包后处理；不再需要 Windows 操作）
+
+适用：UI 控件/布局/容器探针（样本见
+`.scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/`，UI 定义在 type1017 field17）。
+全部输入/输出都在仓库内，可重复运行（diff→annotate 确定性重放）。
+
+```bash
+# (1) 名称表：after GIL root9 → resources/ui_instance_name_table.json（与 wire-inspect 同口径；
+#     名称必须用严格 raw wire 切片，勿用 parse_message 宽松解析——会把 '图片' 等文本误判为 msg。
+#     本样本预期输出：records=133 named=124 unnamed=9）
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/build_ui_instance_name_table.py \
+  .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/after/1073741918.gil \
+  --output resources/ui_instance_name_table.json
+
+# (1b) 交叉核对名称表与 TS 工具输出（records 应一致；仅人工核对，不落盘大文件）
+npx tsx tools/wire-inspect.ts \
+  .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/after/1073741918.gil \
+  --list --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["records"]),"records")'
+
+# (2) 逐帧差分（缓存 frame_*.bin → frame-diff，字段号链随 change 输出）
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py \
+  .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/ipc/ui_probe_1017 \
+  --output .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/ipc/ui_probe.frame-diff.json
+
+# (3) 语义注释（v1 回归 = 不带 --names/--rules；语义版 = 全参数）
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/annotate_frame_diff.py \
+  --diff .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/ipc/ui_probe.frame-diff.json \
+  --catalog .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/ipc/ui_probe.generic.json \
+  --names resources/ui_instance_name_table.json \
+  --rules resources/ui_ipc_diff_rules.json \
+  --output .scratch/beyond-semantic-resources/evidence/2026-09-05-ui-probe/ipc/ui_steps.md
+```
+
+产物：`ui_steps.md`（自动语义步骤版；文末附语义化统计），规则账本与名称表为后续
+`assets:ui` 批量识别的机器可读输入。
 
 ## 已知注意点
 

@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "title": "UI type1017 IPC 逐帧 diff：路径 → 语义动作规则账本（票04 Round 0）",
+  "generated": "2026-09-05",
+  "scope": "type1017 UI 资产定义逐帧差分；样本 = evidence/2026-09-05-ui-probe（map 1073741918，单次探针）。",
+  "evidencePolicy": "仅列有样本或已文档闭合的形态；未验证形态一律 status=needs-sample，不写成已确认规则。",
+  "consumers": [
+    "annotate_frame_diff.py（语义层启发式与此账本同步维护，r-ui-mem-append 已实现）",
+    "assets:ui 批量支持（后续轮：按规则批量识别/回放 UI 操作）"
+  ],
+  "knownAssets": [
+    { "id": 1073741825, "role": "默认布局", "memberList": "f503 packed 成员", "basis": "ui-controls.md 布局引用规律（默认布局 1073741825: f503 = 14 官方预置 + 用户新增实例）" },
+    { "id": 1073741840, "role": "控件组容器(库)", "memberList": "f503 packed 成员", "basis": "ui-controls.md 布局引用规律（控件组容器 1073741840: f503 = 尚未放入布局的实例列表）" },
+    { "id": 1073741845, "role": "自定义布局", "memberList": "f503 packed 成员", "basis": "本轮 ui_steps v1 样本：frame_000→001 起逐帧追加成员（1860 文本框…1874 状态显示区）" }
+  ],
+  "rules": [
+    {
+      "id": "r-ui-mem-append",
+      "summary": "布局/容器 f503 packed 成员列表追加一个新 UI 实例 ID",
+      "status": "OBSERVED（单样本 map 1073741918；跨地图待复验）",
+      "match": {
+        "kinds": ["CHANGE"],
+        "leafPath": "[1][2][0][2][3][2]",
+        "chainSig": [[17, 17, 1], [1, 1, 0], [503, 503, 3]],
+        "assetIds": [1073741825, 1073741840, 1073741845],
+        "valueShape": "old 为 new 的逐字节前缀，差值段=packed varint 列表"
+      },
+      "decode": "差值段逐 varint → 新成员 ID；名称回填 = GIL root9 名称表优先、IPC 目录名回退",
+      "action": "{role} f503 成员追加: +{id(名称)}",
+      "basis": [
+        "ui/mappings.md §1 布局族：list --tree 布局 f503 packed=成员",
+        ".agents/skills/editor-incremental-gia-investigator/references/ui-controls.md「布局引用规律」（L35-44）",
+        "evidence/2026-09-05-ui-probe/PROGRESS.md 语义对齐实验：高频路径 [1][2][0][2][3][2] = 容器 f503 packed 成员列表"
+      ],
+      "samples": [
+        { "assetId": 1073741840, "from": "frame_017_len1372.bin", "to": "frame_019_len1388.bin", "delta": "+1073741877（IPC 无名字 → GIL 名称表回填点）" },
+        { "assetId": 1073741840, "from": "frame_019_len1388.bin", "to": "frame_021_len1400.bin", "delta": "+1073741879(界面动效)" },
+        { "assetId": 1073741845, "from": "frame_000_len3113.bin", "to": "frame_001_len1310.bin", "delta": "+1073741860(文本框)" }
+      ],
+      "openItems": [
+        "2026-09-05 v1.1 重放：35 个成员链叶子（角色资产）中 32 个前缀追加可精确解码，3 条非纯前缀留 raw（fail-closed）",
+        "counter-example：资产 1841 同链 f17→f1→f503 但非成员语义 → 链签名必须与角色门控一起用",
+        "leafPath 位置路径仅在 v1 回归/旧文件兼容时使用；新 diff 一律用 chainSig"
+      ]
+    },
+    {
+      "id": "r-ui-mem-remove",
+      "summary": "布局/容器 f503 packed 成员列表移除（尾部收缩）",
+      "status": "needs-sample（解码逻辑就绪，无移除样本前 annotator 不输出该语义，保持 raw）",
+      "match": {
+        "kinds": ["CHANGE"],
+        "leafPath": "[1][2][0][2][3][2]",
+        "chainSig": [[17, 17, 1], [1, 1, 0], [503, 503, 3]],
+        "assetIds": [1073741825, 1073741840, 1073741845],
+        "valueShape": "new 为 old 的逐字节前缀（尾部收缩）"
+      },
+      "decode": "old-new 差集 packed varint → 被移除成员 ID",
+      "action": "{role} f503 成员移除: -{id(名称)}",
+      "basis": ["ui/mappings.md §6 删除与清理（布局实例删除需宿主布局 f503 packed 清理）"],
+      "samples": [],
+      "openItems": ["无移除样本：编辑器侧删除布局成员的一次探针后闭合"]
+    },
+    {
+      "id": "r-ui-mem-replace",
+      "summary": "布局/容器 f503 packed 成员列表中段替换/重排",
+      "status": "needs-sample",
+      "match": {
+        "kinds": ["CHANGE"],
+        "leafPath": "[1][2][0][2][3][2]",
+        "chainSig": [[17, 17, 1], [1, 1, 0], [503, 503, 3]],
+        "assetIds": [1073741825, 1073741840, 1073741845],
+        "valueShape": "两侧 packed varint 列表既非追加也非尾部移除"
+      },
+      "decode": "前后列表逐项对比输出 增/删/序变",
+      "action": "{role} f503 成员重排/替换（差异明细）",
+      "basis": [],
+      "samples": [],
+      "openItems": []
+    },
+    {
+      "id": "r-ui-role-header",
+      "summary": "变更组资产角色标注（布局/容器/控件实例）",
+      "status": "OBSERVED（名称表回填后标题不再裸 ID）",
+      "match": { "kinds": ["*"], "leafPath": "*", "chainSig": null, "assetIds": null, "valueShape": null },
+      "decode": "id → KNOWN_ROLES → GIL root9 名称 → IPC 目录名 → <id>",
+      "action": "## ${id} ${label}",
+      "basis": [
+        "docs/game-engine-knowledge/ui-controls.md root9 三段（素材段/控件段/布局段）",
+        "wire-inspect.ts parseRec（f501=id/f504=parent/f505→f12→f501=名称）"
+      ],
+      "samples": [{ "assetId": 1073741841, "note": "IPC 无名 → GIL 名称表回填后标题不再为 <1073741841>" }],
+      "openItems": ["无名称记录（GIL+IPC 双缺）按 <id> 保留并计入统计"]
+    }
+  ],
+  "openItems": [
+    "模板-实例绑定（f502[type3].f13 引用模板 / type4.f14 back-ref 追加）形态：ui-controls.md 已文档闭合，但本 probe 无该操作样本 → 待编辑器模板化探针后补 r-* 行",
+    "f505 图片源引用（f505[f502=38].f503.f31.f6.f4）变化形态：知识已闭合，本 probe 无换图操作样本 → 待样本",
+    "文本/字号/颜色变化（t25/type45 f19 区）：知识已闭合，IPC 侧叶子形态待 diff 字段号链对照 GIL 后确认",
+    "剩余 raw 叶子已全部链化（位置路径 801→0）；字段级语义按 376 类链签名待逐类对照单操作差分样本闭合（1841 f505 槽重排、1875 f505/type 槽等）",
+    "71% 叶子含 mix 错位步（两侧字段号不同 = 前位插入/结构重排）→ 位置路径不可靠，后续 diff 应先按字段号对齐",
+    "GIL 记录名提取修复：parse_message 宽松部分解析会把可伪解析 UTF-8 文本（'图片' 等）误判为 msg 子树；名称必须走严格 raw wire 切片（f505→f12→f501）。修复后命名 93→124/133，与 wire-inspect 归一化 0 差异；真无名仅 9 条"
+  ]
+}

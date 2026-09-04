@@ -1,6 +1,6 @@
 ---
 name: beyond-semantic-resource-reverse
-description: 定位 Beyond/千星编辑器与主游戏“数字 ID → 语义名/TextMapHash”目录源时使用。适用票 01、effectID→TextMapHash、状态效果名、BeyondEditor 语义资源、MiHoYoBinData、Blb3、global-metadata/IL2CPP、RoleStatus 资源分类三元组等场景；即使只提到“继续票01/效果目录/状态效果映射”也应触发。
+description: 定位 Beyond/千星编辑器与主游戏“数字 ID → 语义名/TextMapHash”目录源时使用。适用票 01、effectID→TextMapHash、状态效果名、BeyondEditor 语义资源、MiHoYoBinData、Blb3、global-metadata/IL2CPP、RoleStatus 资源分类三元组等场景；即使只提到“继续票01/效果目录/状态效果映射”也应触发。用户说“直接轻量启动差分和抓包 / 差分+抓包 / diff+抓包”时也使用本技能（组合脚本一次 READY，收尾自动停 RawCap）。
 license: MIT
 compatibility: Requires Bash/Python/dotnet tooling; Windows dotnet SDK optional for .NET reflection.
 metadata:
@@ -9,20 +9,40 @@ metadata:
 
 # Beyond Semantic Resource Reverse
 
-## ⚡ 快速启动（IPC 抓包）
+## ⚡ 快速启动（IPC 抓包 / 差分+抓包）
 
-用户明确要“抓 IPC / 抓包 / 轻量启动 / 开始抓数据”时，**不要读下面长文**，直接运行：
+用户明确要“抓 IPC / 抓包 / 轻量启动 / 开始抓数据”时，**不要读下面长文、不要查看板猜探针名**，直接运行：
+
+只抓包：
 
 ```bash
-python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py <probe名>
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py [probe名]
 ```
 
-该脚本自动完成：
+差分 + IPC 抓包（“直接轻量启动差分和抓包 / 差分+抓包”）：直接运行组合脚本，一次 READY：
+
+```bash
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_diff_ipc.py [probe名]
+```
+
+probe 名可省略，脚本自动生成 `probe_YYYYmmdd_HHMMSS`；**不要为了取名去读 BOARD/issues/PROGRESS**。
+脚本自动完成：
 
 1. 定位当前地图（最近修改的 `.gil`）；
 2. 物理保存 before 快照 + SHA-256；
 3. 启动 RawCap 到 `C:\beyond-ipc\<probe>.pcap`；
 4. 打印 READY 信息，随后把“请做一个最小变化”告诉用户即可。
+
+用户做完变化后收尾（停止 RawCap + 固化 pcap）：
+
+```bash
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py --finish <probe名>
+# 组合模式用：
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_diff_ipc.py --finish <probe名>
+```
+
+probe 名只是目录标签，**不要用它推断实验内容**；实际变化以用户口述为准。
+名字与操作不符时（例如启动名是 prefab，实际新增状态），在 PROGRESS 里记录实际内容即可，不要为改名重抓。
 
 如果用户还要继续分析，再按下方“入口”加载最小必要上下文，不要重复翻全量文档。
 
@@ -71,6 +91,10 @@ python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_p
 
 ## 可复用脚本与 runbook（已入库，不依赖 /tmp）
 
+- 差分+IPC 一次启动/收尾（“轻量启动差分和抓包”）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_diff_ipc.py`
+- IPC 抓包启动/停止/收尾：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py`
 - pcap → type1017 一键解析：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_official_copy_pcap.py`
 - HAblp 帧解码：
@@ -85,15 +109,15 @@ python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_p
   `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_full_components.py`
 - IPC ↔ GIL 组件类型交叉校验：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/cross_check_component_types.py`
-- type1017 逐帧差分（同资产帧间结构 diff）：
+- type1017 逐帧差分（同资产帧间结构 diff；v1.1 起每条 change 带字段号链 chain=[fa,fb,idx] 逐消息层）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py`
-- 逐帧差分步骤注释器（diff → 可读步骤）：
+- 逐帧差分步骤注释器（diff → 可读步骤；v2 语义层=GIL root9 名称回填 + 布局/容器 f503 成员追加解码）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/annotate_frame_diff.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/process_type1017_capture.py`
-- GIL root9 UI 名称表构建（补 IPC 缺名）：
+- GIL root9 UI 名称表构建（补 IPC 缺名；名称走严格 raw wire 切片，勿用 parse_message 宽松解析）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_ui_instance_name_table.py`
 - RawCap.exe：
   `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
@@ -103,6 +127,20 @@ python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_p
   `.agents/skills/beyond-semantic-resource-reverse/runbooks/capture-official-statuses.md`
 - 结果资源：
   `resources/official_status_effects.json`
+- UI IPC 路径→语义动作规则账本（票04，含 r-ui-mem-append 等）：
+  `resources/ui_ipc_diff_rules.json`
+- UI IPC 规则表人工版（同内容，含可复现命令/open-items）：
+  `.agents/skills/beyond-semantic-resource-reverse/references/ui-ipc-diff-rules.md`
+- UI 实例名称表（GIL root9 提取产物，map 1073741918 快照）：
+  `resources/ui_instance_name_table.json`
+
+## type1017 UI 差分体系速记（票04 Round 0，map 1073741918 单样本）
+
+- type1017 的 UI 资产定义走 **field17 形态**（非 field11/12），可直接与 GIL root9 UI 记录交叉。
+- IPC 目录只给部分 UI 显示名；**GIL root9 记录名（f505→f12→f501）可回填 IPC 缺名**。
+- 布局/容器 f503 packed 成员列表：v1 位置路径 `[1][2][0][2][3][2]`，
+  v1.1 链式签名 `f17#1→f1→f503#3`；语义=“成员追加”，须与角色门控（1825/1840/1845）组合
+  （counter-example：1841 同链不同义）。名称表修复后命名 124/133（与 wire-inspect 0 差异）。
 
 ## 当前未闭合方向（供下一轮选）
 

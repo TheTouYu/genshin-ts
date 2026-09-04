@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -36,11 +37,6 @@ from parse_official_copy_pcap import parse_message, read_varint  # noqa: E402
 
 GIL_HEADER = 20
 GIL_TRAILER = 4
-HEX_CHARS = set('0123456789abcdefABCDEF ')
-
-
-def is_hexlike(s: str) -> bool:
-    return bool(s) and all(c in HEX_CHARS for c in s)
 
 
 def raw_walk_fields(data: bytes, start: int, end: int):
@@ -94,30 +90,47 @@ def type_codes_of(m):
     return out
 
 
-def name_of(m):
-    """镜像 wire-inspect.nameOf：f505(msg) → f12(msg) → f501(bytes)=UTF-8 名称。"""
-    for f in m:
-        if f[0] != 505 or f[1] != 'msg':
+def _text_of_seg(seg: bytes) -> str:
+    """镜像 wire-inspect textOf：UTF-8（容错）+ 可打印/中文 + <80 字符。"""
+    t = seg.decode('utf-8', 'replace')
+    if 0 < len(t) < 80 and re.fullmatch(r'[\x20-\x7e\u4e00-\u9fff]+', t):
+        return t
+    return ''
+
+
+def raw_name_of(rec_bytes: bytes) -> str:
+    """镜像 wire-inspect.nameOf 的 raw 版：f505(wire2) → f12(wire2) → f501(wire2)=文本。
+
+    用严格 raw 切片遍历（raw_walk_fields 不搞部分解析），与 TS parseWireMessage
+    “整段可解析才算 msg、否则保留 bytes”的口径对齐。
+    """
+    for f, seg in raw_walk_fields(rec_bytes, 0, len(rec_bytes)):
+        if f != 505:
             continue
-        for s in f[2]:
-            if s[0] != 12 or s[1] != 'msg':
+        for f2, seg2 in raw_walk_fields(seg, 0, len(seg)):
+            if f2 != 12:
                 continue
-            for s2 in s[2]:
-                if s2[0] == 501 and s2[1] == 'bytes' and isinstance(s2[2], str):
-                    t = s2[2]
-                    if 0 < len(t) < 80 and not is_hexlike(t):
-                        return t
+            for f3, seg3 in raw_walk_fields(seg2, 0, len(seg2)):
+                if f3 != 501:
+                    continue
+                t = _text_of_seg(seg3)
+                if t:
+                    return t
     return ''
 
 
 def parse_rec(rec_bytes: bytes) -> dict:
-    """镜像 wire-inspect.parseRec；size = 记录原始字节长。"""
+    """镜像 wire-inspect.parseRec；size = 记录原始字节长。
+
+    注意：名称必须走 raw_name_of（严格 raw 切片），不能用 parse_message 树——
+    parse_message 会把恰好可伪解析的 UTF-8 文本（如 '图片'）误判为 msg 子树导致漏名。
+    """
     m = parse_message(rec_bytes, 0, len(rec_bytes)) or []
     id_field = next((x for x in m if x[0] == 501 and x[1] == 'var'), None)
     parent_field = next((x for x in m if x[0] == 504 and x[1] == 'var'), None)
     return {
         'id': id_field[2] if id_field is not None else None,
-        'name': name_of(m),
+        'name': raw_name_of(rec_bytes),
         'types': type_codes_of(m),
         'parent': parent_field[2] if parent_field is not None else None,
         'size': len(rec_bytes),
