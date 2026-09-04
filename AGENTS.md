@@ -77,6 +77,7 @@
 | 建/改技能 | `skill-creator` |
 | 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
+| Beyond/千星语义资源（票01/effectID→TextMapHash/状态效果名/MiHoYoBinData/Blb3/global-metadata/IL2CPP/RoleStatus 资源分类） | `beyond-semantic-resource-reverse` |
 | 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`（引用 vs 实体对照，死引用/悬空链接报警，2026-09-01 事故催生）；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须用户确认。**技能加载失败=基础设施故障，当轮必须向用户报告（附报错原文），静默用裸命令绕过禁止**（2026-08-31 实证：技能被误删后静默降级多日才暴露） |
 
 ## 写回真实地图红线（高频违规点）
