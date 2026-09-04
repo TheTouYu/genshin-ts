@@ -35,3 +35,11 @@
   另发现当前游戏 `.blk` 使用 `Blb\x03` 新容器（旧版为 `blk\0`），AssetStudio 2.4.1 可解析旧块但无法解析当前块；
   当前 `00/25539185.blk`（Excel 块）原始扫描命中 1720001/2010001，`00/24230448.blk`（BinOutput 块）命中 1720001/2110001，
   证明映射表在 Blb 块内，需当代 Blb 解包工具/逆向 Blb 格式。）
+- （票01 2026-09-04 后段：Blb3 解包 + SerializedFile 解析成功；25539185/24230448/31049740 均解出；
+  全量 MiHoYoBinData 原始搜索：Excel 命中 1720001/2010001，BinOutput 命中 1720001，未命中候选 TextMapHash；
+  当前 7.0.0 不应 XOR 0x95。TextMapCHS/EN 已入仓库 data/animegamedata-cn7.0.0。）
+- （票01 效果差分采集 2026-09-04：map 1073741918「差分实验」v22→v27，新增 2120001=调整动画速度、
+  2130001=调整冷却时间、590001=禁用跳跃；连同旧样本写入 blb3/effect_samples.json。）
+- （票01 隐藏目录深挖 2026-09-04：用 cmd.exe + Windows dotnet SDK 批量解密 BeyondEditor.dll 2826 条字符串，
+  无效果名/ID/hash；发现 beyondEffectService/beyondRoleStatusService；类型反射 19 个关键词类型无直接命中。
+  输出 DecoderOutput.txt/TypesOutput.txt 已入库。详见 HANDOFF-CONTEXT.md。）
