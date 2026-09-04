@@ -97,3 +97,9 @@ HAblp 信封:
 - 这次抓到连续的 **type 1017** 消息（多个 500~1000B 分片），疑似“效果目录/可用效果列表”。
 - 解码后 7 处命中 `2010001`（首次出现），但没有命中任何已知 TextMapHash 或中英文名。
 - 结论：**IPC 目录只传 effectID 列表，不传显示名/TextMapHash**；显示名应由 YuanShen/编辑器本地各自从 TextMap 解析，或不在该 IPC 通道。
+
+## 地图切换抓包（2026-09-04）
+
+- pcap：`ipc_mapswitch.pcap`（2.6MB），YuanShen 54864 -> BeyondEditor 54873（1.75MB）
+- 首帧仍为 type1022 资源/路径目录（与首次抓包同构），未发现已知 effectID/TextMapHash/效果名。
+- 结论：地图切换主要下发编辑器资源/路径目录，不含效果名映射。
