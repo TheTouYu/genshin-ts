@@ -9,6 +9,7 @@
 ## 资产速查
 
 - 知识 Authority：`docs/game-engine-knowledge/beyond-editor-semantics.md`
+- 管线规划：`docs/game-engine-knowledge/semantic-resource-pipeline.md`（Discover/Decode/Integrate 三阶段）
 - 本地语义资源根（编辑器）：
   `/mnt/e/ys/Genshin Impact Game/BeyondAssets/BeyondAssistEditor/Resource/Json/`
   - `TextMap/<语言>/<hash>.mihoyobin`：每语言一个；CHS 实测 7743 条节点/枚举名，**不含状态效果名**
@@ -33,6 +34,8 @@
 | # | 票名 | blocked by | 状态 |
 | --- | --- | --- | --- |
 | 01 | 定位并解析状态效果语义目录源 | None | OPEN |
+| 02 | lookup 检索工具 + DSL 技能接入 | None | OPEN |
+| 03 | 语义资源表地图盘点（Discover） | None | OPEN |
 
 ## 已完成（划掉区）
 
