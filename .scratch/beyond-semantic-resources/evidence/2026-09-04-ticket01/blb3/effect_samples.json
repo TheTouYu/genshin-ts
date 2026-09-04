@@ -1,0 +1,67 @@
+{
+  "source": "差分实验地图 1073741918 + TextMapCHS/EN CN7.0.0",
+  "samples": [
+    {
+      "effectId": 2010001,
+      "zh": "造物不可见",
+      "en": "Creation Invisible",
+      "textMapHashes": [
+        1842178763,
+        1272094579
+      ],
+      "evidence": "既有差分 v9/文档"
+    },
+    {
+      "effectId": 2110001,
+      "zh": "定时触发技能",
+      "en": "Trigger Skill on Timer",
+      "textMapHashes": [
+        3678006995
+      ],
+      "evidence": "既有差分 v11-v20/文档"
+    },
+    {
+      "effectId": 1720001,
+      "zh": "移动速度调整率（动态）",
+      "en": "Movement SPD Adjustment Rate (Dynamic)",
+      "textMapHashes": [
+        1475323595,
+        2039318347
+      ],
+      "note": "用户口述曾为移动速率调整率（动态），TextMap 中为移动速度调整率（动态）；待核验",
+      "evidence": "既有差分 v21/文档"
+    },
+    {
+      "effectId": 2120001,
+      "zh": "调整动画速度",
+      "en": "Adjust Animation Speed",
+      "textMapHashes": [
+        1739984627
+      ],
+      "parameters": "默认两个参数：类型10、类型11（均空）",
+      "evidence": "2026-09-04 用户新增差分 v23"
+    },
+    {
+      "effectId": 2130001,
+      "zh": "调整冷却时间",
+      "en": "Adjust Cooldown",
+      "textMapHashes": [
+        571354851
+      ],
+      "parameters": "默认两个空参数：类型10、类型11（与2120001同形态）",
+      "evidence": "2026-09-04 用户新增差分 v26"
+    },
+    {
+      "effectId": 590001,
+      "zh": "禁用跳跃",
+      "en": "Jump Disabled",
+      "textMapHashes": [
+        3885732523,
+        196650779
+      ],
+      "parameters": "无参数（空效果条目）",
+      "note": "ID 与 2xxxxx 不同，落入 59xxxx 段，疑似另一族状态开关效果",
+      "evidence": "2026-09-04 用户新增差分 v27"
+    }
+  ]
+}

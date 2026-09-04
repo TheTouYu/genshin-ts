@@ -4,10 +4,13 @@ using System.Reflection;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
         string dir = @"E:\ys\Genshin Impact Game\BeyondAssets\BeyondAssistEditor";
         string dll = Path.Combine(dir, "BeyondEditor.dll");
+        string argFile = args.Length > 0 ? args[0] : "DecoderArgs.txt";
+        string outFile = args.Length > 1 ? args[1] : "DecoderOutput.txt";
+
         AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
         {
             string name = new AssemblyName(e.Name).Name + ".dll";
@@ -28,33 +31,36 @@ class Program
         try { del = field.GetValue(null); Console.WriteLine("DEL_OK " + del?.GetType()); }
         catch (Exception ex) { Console.WriteLine("DEL_ERR " + ex); return; }
 
-        // Constants observed around ZipInputStream/assets.bin loading and common decoder call sites.
-        int[] args = {
-            0x45AFE705 ^ 0x45AE48AF,          // candidate 1 (path?)
-            0x30120A8F ^ 0x3013A561,          // candidate 2 (password?)
-            0x30120A8F ^ 0x30120B21,
-            -637382682 ^ -637382682,
-            -830285908 ^ -830285892,
-            -1185114171 ^ -1184964129,
-            0x7ECDCC0B ^ 0x7ECFBAA5,
-            -1347725427 ^ 0x5054A55D,
-            0x45AFE705 ^ 0x45AE48AF,
-            -531691220 ^ -531691220,
-            0x64040753 ^ 0x6404034D,
-            0x76DD0BC3 ^ 0x76DD0887,
-        };
-
-        foreach (var a in args)
+        if (!File.Exists(argFile))
         {
+            Console.WriteLine("ARGS_FILE_NOT_FOUND " + Path.GetFullPath(argFile));
+            return;
+        }
+
+        string[] lines = File.ReadAllLines(argFile);
+        using var writer = new StreamWriter(outFile, false, System.Text.Encoding.UTF8);
+        int ok = 0, err = 0;
+        foreach (var raw in lines)
+        {
+            var text = raw.Trim();
+            if (text.Length == 0 || text.StartsWith("#")) continue;
+            if (!int.TryParse(text, out int a))
+            {
+                Console.WriteLine("BAD_ARG " + text);
+                continue;
+            }
             try
             {
                 object res = method.Invoke(null, new object[] { a, del });
-                Console.WriteLine("ARG " + a + " (0x" + ((uint)a).ToString("X8") + ") => " + res);
+                writer.WriteLine(a + "\t" + res);
+                ok++;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ARG " + a + " ERR " + ex.Message);
+                writer.WriteLine(a + "\tERR " + ex.Message);
+                err++;
             }
         }
+        Console.WriteLine($"DONE ok={ok} err={err} -> {Path.GetFullPath(outFile)}");
     }
 }
