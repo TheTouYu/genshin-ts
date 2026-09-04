@@ -36,9 +36,9 @@ metadata:
   这只是编辑器资源分类 ID，不是 TextMapHash。
 - IPC type1022 含资源数字 ID + 中文标签目录；type1017 是**状态/效果目录混合消息**（不是“只含 effectID 列表”），
   含官方状态 10100002..10100017、10100101..10100116、自定义大 ID（1077936129 等）与 field3 状态定义 blob。
-- CONFIRMED（排除）：完整抓包第二轮显示 type1017 只给“可用状态 ID 列表 + 当前自定义状态详情”；
-  官方状态 10100003..10100017 的内部效果列表不在 type1017/IPC 中。
-  目前唯一官方定义锚点：10100002 → effect 20001。
+- **只读 type1017 不会下发官方状态详情**；但把官方状态“复制为自定义状态”后，type1017 会下发实体化后的完整定义。
+  已用该方法拿到 `10100002..10100017` 全部 effectIds，结果见 `resources/official_status_effects.json`。
+- type1017/IPC 不含 effect 显示名与 TextMapHash；名字仍走 TextMap/静态源。
 - `assets.bin` ZIP 密码是 `G16F153D`，内层只是 UI 图标，不是映射表。
 - 官方“角色状态/单位状态”预定义 ID 族约为 10100002 起累加（用户 2026-09-04 提供：
   10100002=加速、10100003=火元素附着、…、10100017=水泡禁锢）。
@@ -52,11 +52,27 @@ metadata:
 4. **.NET 混淆 delegate 用 Windows 反射**：dnlib 找字段名 → Windows 小 console `RuntimeHelpers.RunClassConstructor` + `Delegate.Method` 拿真实方法名，比纯 C# 反编译快。
 5. **本地代码只能证伪“映射不在这里”**：一旦追到资源分类 ID，应把该 ID 作为游戏侧 IPC/Blb/IL2CPP 的检索锚点。
 
+## 可复用脚本与 runbook（已入库，不依赖 /tmp）
+
+- pcap → type1017 一键解析：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_official_copy_pcap.py`
+- HAblp 帧解码：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/decode_ipc.py`
+- type1017 分片目录解析：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/parse_type1017_catalog.py`
+- RawCap.exe：
+  `.agents/skills/beyond-semantic-resource-reverse/tools/RawCap.exe`
+- 官方状态复制捕获 runbook：
+  `.agents/skills/beyond-semantic-resource-reverse/runbooks/capture-official-statuses.md`
+- 结果资源：
+  `resources/official_status_effects.json`
+
 ## 当前未闭合方向（供下一轮选）
 
 - 用三元组 `(10003,50004,51000/51001)` 在游戏侧 IPC/静态数据反查。
 - 获取解密后的 `global-metadata.dat`（运行时 dump）或同版本已解密文件后走 Il2CppDumper。
 - 继续解析 Blb/MiHoYoBinData 行表 schema。
+- 用同一“复制为自定义”物化探针扩展到 `10100101..10100116`、职业/技能/预制体等只读官方资产。
 
 ## 铁律
 
