@@ -94,11 +94,12 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
 - **UI 控件事件触发已预置技能（2026-09-05 用户实测修正，直接抄）**：
   - UI 控件事件（`whenUiControlGroupIsTriggered`）的接收图**必须挂载在玩家模板/玩家实体**上
     （玩家模板 def 1086324737 + 1086324737..745 副本），**不是角色侧**；角色侧挂载收不到 UI 事件。
-  - 技能应先“创建/保存为节点图”（技能配置 + 20002 客户端图绑定已存在），并**预置到角色技能槽**
-    （编辑器/职业默认配置/一次性装配持久化）；收到 UI 事件时在玩家图里取该玩家的角色，直接调
-    `castSkillFromSpecifiedPanelSlot(角色, CustomSkillSlotX, false)`。
-  - **不要**在每次 UI 点击里 `addCharacterSkill` + `createCustomSkillInstance` + `castSpecifiedSkillInstance`
-    ——那是“服务端主动按需施放未预置技能”的形态；UI 事件触发已预置技能时不需要 addCharacterSkill。
+  - 技能应先“创建/保存为节点图”（技能配置 + 20002 客户端图绑定已存在），并在角色就绪后
+    **一次性 `createCustomSkillInstance` 拿到实例 ID** 保存（图变量/玩家变量）；收到 UI 事件时
+    在玩家图里取该玩家的角色，只用已存 ID 调 `castSpecifiedSkillInstance(角色, ID, false)`。
+  - **不要**每次 UI 点击都 `addCharacterSkill` + `createCustomSkillInstance` + `castSpecifiedSkillInstance`
+    一条龙；也不要用 `castSkillFromSpecifiedPanelSlot` 代替已存实例 ID 的 cast。
+    （技能已预置到角色时不需要 `addCharacterSkill`。）
   - 参照实现：`examples/football/src-fb/fb20d-ui.ts`（2026-09-05 已按此修正并注入）。
 
 - **第二条触发通道：引擎侧「定时触发技能」单位状态（结构在位、行为未验，2026-09-04 票 20 E0）**

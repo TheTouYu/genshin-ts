@@ -142,8 +142,10 @@ root9 同时承载三段，都是 field 502 记录，按记录结构区分：
 → 玩家节点图按需取该玩家的角色并触发/转发逻辑
 ```
 
-若按钮最终要释放角色技能：技能应先“创建/保存为节点图”并预置到角色技能槽；玩家节点图收到事件后
-直接 `castSkillFromSpecifiedPanelSlot(角色, 技能槽位, false)`，不需要每次 addCharacterSkill/create 实例。
+若按钮最终要释放角色技能：技能应先“创建/保存为节点图”并预置到角色技能槽；角色就绪后
+**一次性 `createCustomSkillInstance` 拿到实例 ID** 保存。玩家节点图收到事件后，只用已存实例 ID
+调 `castSpecifiedSkillInstance(角色, ID, false)`——不是每次点击 create，也不是按槽位直接 cast；
+技能已预置到角色时不需要 `addCharacterSkill`。
 
 ## 转发到其他实体
 
