@@ -76,6 +76,7 @@
 | 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
 | 建/改技能 | `skill-creator` |
 | 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
+| 文档治理/状态头/doc_health 拦截修复/PROGRESS 归档 | `document-governance` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 | Beyond/千星语义资源（票01/effectID→TextMapHash/状态效果名/MiHoYoBinData/Blb3/global-metadata/IL2CPP/RoleStatus 资源分类） | `beyond-semantic-resource-reverse` |
 | 差分+抓包学 wire 并快速开发/扩展 `gsts assets:*` CLI（框架先行，donor 按需补） | `diff-capture-cli-builder` |
