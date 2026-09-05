@@ -28,7 +28,10 @@ import { g } from 'genshin-ts/runtime/core'
 import { Fb20Signal } from './signals20.js'
 
 const CFG_RUN = 1207959582n // 跨施放保持的 run id（角色侧 L0 技能变量，E0-Q4 已证）
-const LOOP_ITERS = 20000n // 期望循环体执行次数
+// ⚠️ 2026-09-05 用户实测：20000 圈单次同步大循环会让客户端卡住。
+// 先回到已知安全基线 500 圈（E0 3190 曾跑 500 圈不卡，仅详情开窗时单记录帧数大）；
+// 若 500 圈能正常收 START/DONE 且耗时太短，再按 1000/2000 逐级上调找上限。
+const LOOP_ITERS = 500n // 期望循环体执行次数
 const LOOP_END = LOOP_ITERS - 1n // finiteLoop 含端点，start=0 end=N-1 ⇒ N 次
 
 g.characterSkill({ id: 1082130440, name: '_GSTS_fb20dCalib' }).on('start', (_evt, f) => {

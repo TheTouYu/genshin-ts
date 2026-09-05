@@ -17,7 +17,7 @@ def has_const(d, typ, val):
 def node_ids(d):
     return [n.get('genericId',{}).get('nodeId') for n in d['graph']['graph']['inner']['graph']['nodes']]
 
-calib=load('/home/h/genshin-ts/.tmp_cube/fb20d-calib.json')
+calib=load('/home/h/genshin-ts/.tmp_cube/fb20d-calib2.json')
 ui=load('/home/h/genshin-ts/.tmp_cube/fb20d-ui3.json')
 checks=[]
 def check(name,cond): checks.append((name,bool(cond)))
@@ -27,7 +27,7 @@ ui_graph=ui['graph']['graph']['inner']['graph']
 check('calib graph id', calib_graph['id']['id']==1082130440)
 check('ui graph id', ui_graph['id']['id']==1073741837)
 check('calib CFG_RUN', has_const(calib,'bId',1207959582))
-check('calib loop end 19999', has_const(calib,'bInt',19999))
+check('calib loop end 499', has_const(calib,'bInt',499))
 check('calib CAL_START', has_const(calib,'bString','CAL_START'))
 check('calib CAL_DONE', has_const(calib,'bString','CAL_DONE'))
 check('calib signal id', 1610612788 in node_ids(calib))
