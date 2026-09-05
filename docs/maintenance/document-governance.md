@@ -117,3 +117,11 @@
 - 活跃/历史文档状态头覆盖率 100%。
 - doc_health 高优先级矛盾输出 0。
 - 派生文件无整段旧头。
+
+## 9. 强制门禁（2026-09-05 起，不靠自觉）
+
+- `scripts/doc_health.py` 已支持自动目录扫描与 `--staged` 模式。
+- 仓库安装 `scripts/git-hooks/pre-commit` 后，**每次 git commit 都会自动运行 `doc_health.py --staged`**；范围文件有问题时提交被拒绝。
+- 安装命令：`bash scripts/install-git-hooks.sh`。
+- 新 clone/新环境必须先安装 hook；未安装时全量体检命令仍可手动运行：`python3 scripts/doc_health.py`。
+- 禁止用 `git commit --no-verify` 绕过文档门禁。
