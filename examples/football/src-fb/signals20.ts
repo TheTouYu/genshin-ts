@@ -1,11 +1,10 @@
-// signals20.ts —— 票 20 E0 轮专用信号本地声明（2026-09-04）
-//
-// ⚠️ 本文件**新建**，不改 src-fb/signals.ts（票 20「不碰清单」在列）。
-// fb20_echo(tag:str, e:int) 已于 2026-09-04 真实写回地图 1073741908：
-//   send=1610612783 monitor=1610612784 server=1610612785
-//   （assets:signals register 候选→回读→--write；两参免 donor，票 14 先例同布局）
-// 编译期铁律（client-nodegraph-development 〇章前置 1）：客户端信号图编译期从**真实地图**
-// 解析信号注册表 → 必须先注册再编译，干跑候选不算数。
+// signals20.ts —— 票 20 E0/E0d 专用信号本地声明（2026-09-04/09-05）
+// @status: active（E0/E0d 实验线信号）
+// 文件级信号总表：
+//   fb20_echo (tag:str, e:int)   E0 五问回传（RTAG1/CTIME/SUB_K…）
+//   fb20d_echo(tag:str, e:int)   E0d 单次大循环校准（CAL_START/CAL_DONE）
+// 注册 ID：fb20_echo=1610612783/784/785（已注册）；fb20d_echo 注册状态以真实回读为准。
+// ⚠️ 本文件**新建**，不改 src-fb/signals.ts；编译期铁律：客户端信号图编译期从真实地图解析信号注册表，先注册再编译。
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const Fb20Signal = {

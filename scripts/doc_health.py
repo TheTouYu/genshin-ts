@@ -56,6 +56,13 @@ SOURCE_STATUS_FILES = [
     "examples/football/src-fb/fb20d-calib.ts",
     "examples/football/src-fb/fb20d-ui.ts",
     "examples/football/src-fb/signals.ts",
+    "examples/football/src-fb/signals20.ts",
+    "examples/football/src-fb/fb-svlisten.ts",
+    "examples/football/src-fb/fb-loop.ts",
+    "examples/football/src-fb/fb-loop-chan.ts",
+    "examples/football/src-fb/chan-selftest.ts",
+    "examples/football/src-fb/fb-status.ts",
+    "examples/football/src-fb/fb-decision.ts",
 ]
 
 # 这些文件要求有状态头；源码注释文件单独用 @status 约定，暂不强制 doc-type。
