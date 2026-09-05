@@ -21,21 +21,27 @@
 //   · finiteLoop 有**圈数上界 + 时钟预算双闸**（LOOP_CAP 与 BUDGET_MS 任一命中即 breakLoop）
 //   · 全程零 print（判读走详情开窗帧流；2026-09-03 打印纪律）
 //   · 观测信号事件门控：RTAG1/CTIME 每拍发（Q1 到达率与 Q3 跨拍间隔的定义即"每拍"）；
-//     SUB_K/SUB_DT **按秒抽样**发（§7.3 风险 3「时钟读数按秒抽样，勿每圈发」）——
-//     抽样门=clientTimeMs 秒内余数 < 250ms（无取模节点，用整除回乘求余；
-//     阈值 250 而非 100 防 0.1s 节拍与 1000ms 共振漏采），实测圈数/秒由
-//     (SUB_K × 抽样拍率) 还原，Q1 主判据不受此影响。
-//   · 单拍 4 信号上限，0.1s 间隔≈40 信号/s（票 18 实测 106 信号/s 面内）
+//     SUB_K/SUB_DT **按拍计数抽样**发（日志 3190 实证修正，2026-09-05）——
+//     原先"按秒抽样门 = clientTimeMs 秒内余数 < 250ms"**设计错误**：getCurrentClientTimeHighPrecision()
+//     的 clientTimeMs 实测是**秒内相位**（本会话 466..666ms，非均匀覆盖 0..999），且单次施放
+//     内该时钟**不推进**（500 圈每圈读回同一 466）→ 门永不命中、SUB_K/SUB_DT 整轮零发射；
+//     又因单次施放内时钟冻结，dt 恒 0、时钟预算永远不触发 → 每拍 finiteLoop 必跑满 LOOP_CAP，
+//     单拍 5031 帧 ≈ **超 3000 帧/记录红线**（日志体积/截断风险）。
+//     → 修正：① 抽样门改用 RTAG1 拍计数 n（`n−(n/4)·4==0` 每 4 拍一发，整除回乘求余无取模节点）；
+//     ② 把 LOOP_CAP 从 500 降到 **100**（单拍 ~1000 帧，红线内）；
+//     ③ SUB_DT 语义改为"本拍实际执行的圈数 K"仍保留，dt 因时钟冻结恒 0 不再回传（避免误导）。
+//     （Q5 真正的结论待下一轮：若单拍时钟确实冻结 ⇒ 引擎不在一次技能执行内推进客户端时间，
+//       时间驱动子调度只能以施放率为拍，不能在图内忙等计时——这是本轮行为层最有价值的未闭合发现）
 import { g } from 'genshin-ts/runtime/core'
 
 import { Fb20Signal } from './signals20.js'
 
 // ———— 技能变量槽（Q1/Q4 共用；一实例一 cfg 纪律，角色载体只有一个实例） ————
 const CFG_R = 1207959581n
-// ———— Q5 子调度预算（圈数上界 / 单拍耗时上界 ms / 抽样余数阈值 ms） ————
-const LOOP_CAP = 500n
+// ———— Q5 子调度预算（圈数上界 / 单拍耗时上界 ms / 抽样间隔拍数） ————
+const LOOP_CAP = 100n
 const BUDGET_MS = 20n
-const SAMPLE_RESIDUE_MS = 250n
+const SUB_SAMPLE_EVERY = 4n
 const SEC_MS = 1000n
 
 g.characterSkill({ id: 1082130439, name: '_GSTS_fb20cLoop' }).on('start', (_evt, f) => {
@@ -50,7 +56,7 @@ g.characterSkill({ id: 1082130439, name: '_GSTS_fb20cLoop' }).on('start', (_evt,
   const rb = f.dataTypeConversion(f.querySkillVariableValue(CFG_R), 'int')
   f.sendSignalToServerNodeGraph(Fb20Signal.fb20_echo, 'RTAG1', rb)
 
-  // ———— Q5：时钟预算驱动的有限子循环（圈数上界 + 耗时上界双闸） ————
+  // ———— Q5：圈数上界有限子循环（时钟预算保留但预期不触发=单拍时钟冻结的测量载体） ————
   const k = f.localVariable('int', 0n, { name: 'fb20_k' })
   f.finiteLoop(0n, LOOP_CAP, (_loopValue, breakLoop) => {
     const tNow = f.getCurrentClientTimeHighPrecision().clientTimeMs
@@ -59,13 +65,10 @@ g.characterSkill({ id: 1082130439, name: '_GSTS_fb20cLoop' }).on('start', (_evt,
     f.doubleBranch(f.greaterThanOrEqualTo(spent, BUDGET_MS), () => breakLoop(), () => {})
   })
 
-  // ———— Q5 回传（按秒抽样门控） ————
-  const t1 = f.getCurrentClientTimeHighPrecision().clientTimeMs
-  const dt = f.subtraction(t1, t0)
-  const sec = f.division(t1, SEC_MS)
-  const residue = f.subtraction(t1, f.multiplication(sec, SEC_MS))
-  f.doubleBranch(f.lessThan(residue, SAMPLE_RESIDUE_MS), () => {
+  // ———— Q5 回传（按拍计数抽样：n−(n/4)·4==0 时发 SUB_K；SUB_DT 因时钟冻结恒 0 不再发） ————
+  const nDiv = f.division(n, SUB_SAMPLE_EVERY)
+  const nResidue = f.subtraction(n, f.multiplication(nDiv, SUB_SAMPLE_EVERY))
+  f.doubleBranch(f.equal(nResidue, 0n), () => {
     f.sendSignalToServerNodeGraph(Fb20Signal.fb20_echo, 'SUB_K', k.value)
-    f.sendSignalToServerNodeGraph(Fb20Signal.fb20_echo, 'SUB_DT', dt)
   }, () => {})
 })

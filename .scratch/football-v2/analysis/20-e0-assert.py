@@ -26,10 +26,9 @@ SERVER_META = 'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Edit
 # 真值（2026-09-04 assets:signals register 回读，写死为断言基准）
 FB20_ECHO = {'send': 1610612783, 'monitor': 1610612784, 'server': 1610612785}
 CFG_R = 1207959581       # 角色侧 L0 技能变量槽
-LOOP_CAP = 500           # Q5 圈数上界
-BUDGET_MS = 20           # Q5 时钟预算上界（ms）
-SAMPLE_RESIDUE = 250     # 抽样门余数阈值（ms）
-SEC_MS = 1000            # 秒换算
+LOOP_CAP = 100           # Q5 圈数上界（日志 3190 实证：500 圈单拍 5031 帧超 3000 红线→降到 100）
+BUDGET_MS = 20           # Q5 时钟预算上界（ms；单拍时钟冻结预期不触发=测量载体）
+SUB_SAMPLE_EVERY = 4     # Q5 抽样间隔拍数（按 RTAG1 计数，非按秒——3190 实证秒相位门永不命中）
 SKILL_CFG = 1098907653   # 6 + 瞬发，body-f5 绑 20002 图
 STATUS_CFG = 1077936132  # 单位状态「定时触发技能」（地图已存在资产，实测盘点回填）
 SLOT12_ENUM = 3132       # CharacterSkillSlot.CustomSkillSlot12 的枚举字面量
@@ -155,7 +154,7 @@ def main():
           f'发送信号节点 ID = fb20_echo serverId {FB20_ECHO["server"]}（实得 {names.get("向服务器节点图发送信号")}）')
     sends = [n for n in gl['nodes']
              if n.get('genericId', {}).get('nodeId') == FB20_ECHO['server']]
-    check(len(sends) == 4, f'发送节点 4 个（CTIME/RTAG1/SUB_K/SUB_DT，实得 {len(sends)}）')
+    check(len(sends) == 3, f'发送节点 3 个（CTIME/RTAG1/SUB_K；SUB_DT 已废弃——单拍时钟冻结 dt 恒 0，实得 {len(sends)}）')
 
     # 四个 tag 常量各落位一次
     tags = set()
@@ -163,7 +162,7 @@ def main():
         for pi, v in literal_pins(n).items():
             if isinstance(v, str) and v in ('CTIME', 'RTAG1', 'SUB_K', 'SUB_DT'):
                 tags.add(v)
-    check(tags == {'CTIME', 'RTAG1', 'SUB_K', 'SUB_DT'}, f'四 tag 常量落位（实得 {sorted(tags)}）')
+    check(tags == {'CTIME', 'RTAG1', 'SUB_K'}, f'三 tag 常量落位（实得 {sorted(tags)}）')
 
     # cfg 字面量三处（query/set/query）——Q4 探针身份
     cnt = 0
@@ -178,12 +177,11 @@ def main():
     vals = [v for n in gl['nodes'] for v in literal_pins(n).values()]
     check(LOOP_CAP in vals, f'Q5 圈数上界 {LOOP_CAP} 落位')
     check(BUDGET_MS in vals, f'Q5 时钟预算 {BUDGET_MS}ms 落位')
-    check(SAMPLE_RESIDUE in vals, f'抽样门阈值 {SAMPLE_RESIDUE}ms 落位')
-    check(SEC_MS in vals, f'秒换算 {SEC_MS}ms 落位')
+    check(SUB_SAMPLE_EVERY in vals, f'抽样间隔 {SUB_SAMPLE_EVERY} 拍落位')
 
     # 时钟节点必须取 clientTimeMs（pin index 1，取 0=S 会让 Q3/Q5 差 1000×）
     clocks = node_by_gid(gl, 200270)
-    check(len(clocks) == 3, f'高精度时钟节点 3 处（t0/循环内/t1，实得 {len(clocks)}）')
+    check(len(clocks) == 2, f'高精度时钟节点 2 处（t0/循环内；SUB_DT 废弃后无 t1，实得 {len(clocks)}）')
     # 数据边挂在**目的 pin** 上、connects[].id=来源节点、connect.index=来源引脚
     # （exec 边相反挂源 pin——decode 两种方向，2026-09-04 本图实证）
     clock_idx = {n['nodeIndex'] for n in clocks}
@@ -217,9 +215,9 @@ def main():
     check(len(ge) == 1, f'预算比较节点（是否大于等于）1 个（实得 {len(ge)}）')
 
     # 除/乘/减三件套在（抽样门=整除回乘求余）
-    check(len(node_by_gid(gl, 200014)) == 1, '除法（秒整除）1 个')
-    check(len(node_by_gid(gl, 200013)) == 1, '乘法（秒回乘）1 个')
-    check(len(node_by_gid(gl, 200012)) >= 2, '减法（dt / residue）≥2 个')
+    check(len(node_by_gid(gl, 200014)) == 1, '除法（拍整除）1 个')
+    check(len(node_by_gid(gl, 200013)) == 1, '乘法（拍回乘）1 个')
+    check(len(node_by_gid(gl, 200012)) == 2, '减法 2 个（spent + nResidue，实得 {len(node_by_gid(gl, 200012))}）')
 
     # 局部变量 fb20_k 三处（init/set body/get），名字必须一致，否则 Q5 读到空
     lv_names = set()
