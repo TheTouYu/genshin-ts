@@ -43,6 +43,19 @@ DEFAULT_FILES = [
     "docs/maintenance/document-governance.md",
 ]
 
+# 源码注释文件：要求前几行含 @status 或 @derived-from（当前在飞/共享核心文件）
+SOURCE_STATUS_FILES = [
+    "examples/football/src-fb/fb-phys.ts",
+    "examples/football/src-fb/fb-phys2.ts",
+    "examples/football/src-fb/fb20c-loop.ts",
+    "examples/football/src-fb/channels.ts",
+    "examples/football/src-fb/fb-sink.ts",
+    "examples/football/src-fb/fb-render.ts",
+    "examples/football/src-fb/fb-idle-listen.ts",
+    "examples/football/src-fb/fb20c-server.ts",
+    "examples/football/src-fb/signals.ts",
+]
+
 # 这些文件要求有状态头；源码注释文件单独用 @status 约定，暂不强制 doc-type。
 HEADER_REQUIRED = {
     "examples/football/AGENTS.md",
@@ -85,6 +98,10 @@ def check_header(path: Path) -> list[str]:
         for key in keys:
             if key not in head:
                 problems.append(f"缺少状态头字段 {key!r}（前 15 行内）")
+    if rel in SOURCE_STATUS_FILES:
+        head5 = "\n".join(path.read_text(encoding="utf-8").splitlines()[:5])
+        if "@status:" not in head5 and "@derived-from:" not in head5:
+            problems.append("缺少 @status/@derived-from 状态标记（前 5 行内）")
     return problems
 
 
@@ -107,7 +124,7 @@ def main() -> int:
     parser.add_argument("files", nargs="*", help="额外检查的文件（相对仓库根）")
     args = parser.parse_args()
 
-    files = list(DEFAULT_FILES)
+    files = list(DEFAULT_FILES) + list(SOURCE_STATUS_FILES)
     files.extend(args.files)
 
     total_problems = 0
