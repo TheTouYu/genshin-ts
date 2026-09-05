@@ -1,88 +1,80 @@
 #!/usr/bin/env python3
-"""doc_health.py — 文档治理健康检查（P2 基础版）
+"""doc_health.py — 文档治理强制门禁（不靠自觉）
 
-检查目标：
-1. 活跃/历史文档是否带状态头（doc-type/status/updated）。
-2. 是否残留已知过时/占位表述（占位、候选、旧 ID 假设、复制头特征）。
+模式：
+    python3 scripts/doc_health.py                # 全量体检（返回非 0 = 有问题）
+    python3 scripts/doc_health.py --staged       # 只检查 git 暂存区文件（pre-commit 用）
 
-用法：
-    python3 scripts/doc_health.py               # 扫描内置默认清单
-    python3 scripts/doc_health.py <file>...     # 追加指定文件
+自动扫描范围：
+- examples/football/ 顶层 .md（AGENTS/ARCHITECTURE*/DESIGN/R2/REBUILD/REFACTOR/PROGRESS）
+- .scratch/football-v2/BOARD.md
+- .scratch/football-v2/issues/ 下当前治理票 20*.md；staged 模式覆盖任意新增/修改 issue
+- examples/football/src-fb/*.ts（要求 @status 或 @derived-from）
+- docs/maintenance/document-governance.md
 
-说明：
-- 本脚本是文档治理的可重复检查器，不修改任何文件。
-- 内置默认清单是足球项目文档治理范围；新文档可自行加入。
+强制检查：
+1. 治理文档状态头（doc-type/status/updated；docs/ 下用中文标签）
+2. 源码 @status / @derived-from
+3. 陈旧表述残留
+4. 大小阈值：AGENTS.md <=16KB、CLAUDE.md <=12KB、PROGRESS.md <=20KB
+5. BOARD.md 顶部 HEAD 必须等于当前 git HEAD（防看板滞后）
 """
 
 from __future__ import annotations
 
 import argparse
-import os
+import re
+import subprocess
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-DEFAULT_FILES = [
-    # 注入规则
-    "examples/football/AGENTS.md",
-    # 历史/设计文档
-    "examples/football/ARCHITECTURE.md",
-    "examples/football/ARCHITECTURE-V5.md",
-    "examples/football/DESIGN.md",
-    "examples/football/R2-DESIGN.md",
-    "examples/football/REBUILD-V2-PLAN.md",
-    "examples/football/REFACTOR-PLAN.md",
-    "examples/football/PROGRESS.md",
-    # 推进/票文档
-    ".scratch/football-v2/BOARD.md",
-    ".scratch/football-v2/issues/20-blackboard-capacity.md",
-    ".scratch/football-v2/issues/20-experiment-design.md",
-    ".scratch/football-v2/issues/20-multi-creature-orchestration.md",
-    # 治理方案
-    "docs/maintenance/document-governance.md",
-]
+# ———— 自动扫描范围 ————
 
-# 源码注释文件：要求前几行含 @status 或 @derived-from（当前在飞/共享核心文件）
-SOURCE_STATUS_FILES = [
-    "examples/football/src-fb/fb-phys.ts",
-    "examples/football/src-fb/fb-phys2.ts",
-    "examples/football/src-fb/fb20c-loop.ts",
-    "examples/football/src-fb/channels.ts",
-    "examples/football/src-fb/fb-sink.ts",
-    "examples/football/src-fb/fb-render.ts",
-    "examples/football/src-fb/fb-idle-listen.ts",
-    "examples/football/src-fb/fb20c-server.ts",
-    "examples/football/src-fb/fb20d-calib.ts",
-    "examples/football/src-fb/fb20d-ui.ts",
-    "examples/football/src-fb/signals.ts",
-    "examples/football/src-fb/signals20.ts",
-    "examples/football/src-fb/fb-svlisten.ts",
-    "examples/football/src-fb/fb-loop.ts",
-    "examples/football/src-fb/fb-loop-chan.ts",
-    "examples/football/src-fb/chan-selftest.ts",
-    "examples/football/src-fb/fb-status.ts",
-    "examples/football/src-fb/fb-decision.ts",
-]
+FOOTBALL_MD = "examples/football"
+BOARD = ".scratch/football-v2/BOARD.md"
+ISSUES = ".scratch/football-v2/issues"
+SRC_FB = "examples/football/src-fb"
+GOV_DOC = "docs/maintenance/document-governance.md"
 
-# 这些文件要求有状态头；源码注释文件单独用 @status 约定，暂不强制 doc-type。
-HEADER_REQUIRED = {
-    "examples/football/AGENTS.md",
-    "examples/football/ARCHITECTURE.md",
-    "examples/football/ARCHITECTURE-V5.md",
-    "examples/football/DESIGN.md",
-    "examples/football/R2-DESIGN.md",
-    "examples/football/REBUILD-V2-PLAN.md",
-    "examples/football/REFACTOR-PLAN.md",
-    "examples/football/PROGRESS.md",
-    ".scratch/football-v2/BOARD.md",
-    ".scratch/football-v2/issues/20-blackboard-capacity.md",
-    ".scratch/football-v2/issues/20-experiment-design.md",
-    ".scratch/football-v2/issues/20-multi-creature-orchestration.md",
-    "docs/maintenance/document-governance.md",
-}
+# 当前已治理的 issue 前缀；全量模式只查这些，避免历史债一次阻断。
+GOVERNED_ISSUE_PREFIX = "20"
 
-# 陈旧/过时表述特征 -> 说明
+
+def in_scope_md(rel: str) -> bool:
+    if rel == GOV_DOC:
+        return True
+    if rel == BOARD:
+        return True
+    if rel.startswith(ISSUES + "/") and rel.endswith(".md"):
+        return True
+    if rel.startswith(FOOTBALL_MD + "/") and rel.endswith(".md"):
+        return True
+    return False
+
+
+def is_governed_doc(rel: str) -> bool:
+    """全量模式要求状态头的文档（已治理集合）。"""
+    if rel == GOV_DOC:
+        return True
+    if rel == BOARD:
+        return True
+    if rel.startswith(FOOTBALL_MD + "/") and rel.endswith(".md"):
+        # football 顶层 md（src-fb 子目录不算）
+        return rel.count("/") == 2
+    if rel.startswith(ISSUES + "/") and rel.endswith(".md"):
+        name = Path(rel).name
+        return name.startswith(GOVERNED_ISSUE_PREFIX)
+    return False
+
+
+def in_scope_src(rel: str) -> bool:
+    return rel.startswith(SRC_FB + "/") and rel.endswith(".ts")
+
+
+# ———— 陈旧表述 ————
+
 STALE_MARKERS = [
     ("占位：注入按 config.nodeGraphId 改写", "仍写“占位”但图可能已是真实 ID"),
     ("dribble-v5.ts:107", "失效行号引用"),
@@ -91,69 +83,175 @@ STALE_MARKERS = [
     ("40..43 空闲", "fb-shared 旧 ID 占用说明（40..43 已被本文件占用）"),
 ]
 
+# 大小阈值（字节）
+SIZE_LIMITS = {
+    "AGENTS.md": 16 * 1024,
+    "CLAUDE.md": 12 * 1024,
+    "examples/football/PROGRESS.md": 20 * 1024,
+}
 
-def check_header(path: Path) -> list[str]:
-    """检查文件前 15 行是否包含状态头。返回问题列表。"""
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=REPO_ROOT, text=True).strip()
+
+
+def staged_files() -> set[str]:
+    out = git("diff", "--cached", "--name-only", "--diff-filter=ACMR")
+    return {p for p in out.splitlines() if p}
+
+
+def check_doc_header(path: Path, rel: str) -> list[str]:
+    """检查文档状态头。"""
     problems: list[str] = []
     try:
         head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:15])
     except Exception as exc:  # noqa: BLE001
         return [f"无法读取: {exc}"]
 
-    rel = path.relative_to(REPO_ROOT).as_posix()
-    if rel in HEADER_REQUIRED:
-        # docs/ 目录遵循 docs/AGENTS.md 的中文状态标签；其余文件遵循英文 doc-type 协议。
-        keys = ("状态：", "最近校验：") if rel.startswith("docs/") else ("doc-type:", "status:", "updated:")
-        for key in keys:
-            if key not in head:
-                problems.append(f"缺少状态头字段 {key!r}（前 15 行内）")
-    if rel in SOURCE_STATUS_FILES:
-        head5 = "\n".join(path.read_text(encoding="utf-8").splitlines()[:5])
-        if "@status:" not in head5 and "@derived-from:" not in head5:
-            problems.append("缺少 @status/@derived-from 状态标记（前 5 行内）")
+    # docs/ 目录遵循 docs/AGENTS.md 中文标签；其余治理文档用英文 doc-type 协议。
+    if rel.startswith("docs/"):
+        keys = ("状态：", "最近校验：")
+    else:
+        keys = ("doc-type:", "status:", "updated:")
+    for key in keys:
+        if key not in head:
+            problems.append(f"缺少状态头字段 {key!r}（前 15 行内）")
     return problems
 
 
+def check_src_status(path: Path) -> list[str]:
+    """检查源码 @status / @derived-from。"""
+    try:
+        head5 = "\n".join(path.read_text(encoding="utf-8").splitlines()[:5])
+    except Exception as exc:  # noqa: BLE001
+        return [f"无法读取: {exc}"]
+    if "@status:" not in head5 and "@derived-from:" not in head5:
+        return ["缺少 @status/@derived-from 状态标记（前 5 行内）"]
+    return []
+
+
 def check_stale(path: Path) -> list[str]:
-    """检查整份文件是否残留陈旧表述。"""
     problems: list[str] = []
     try:
         text = path.read_text(encoding="utf-8")
     except Exception as exc:  # noqa: BLE001
         return [f"无法读取: {exc}"]
-
     for marker, why in STALE_MARKERS:
         if marker in text:
             problems.append(f"残留陈旧表述 {marker!r}: {why}")
     return problems
 
 
+def check_size(path: Path, rel: str) -> list[str]:
+    limit = SIZE_LIMITS.get(rel)
+    if limit is None:
+        return []
+    size = path.stat().st_size
+    if size > limit:
+        return [f"文件过大 {size}B > 阈值 {limit}B（需要归档/瘦身）"]
+    return []
+
+
+def check_board_head(path: Path) -> list[str]:
+    """BOARD 顶部 HEAD 必须等于当前 git HEAD。"""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        return [f"无法读取: {exc}"]
+    m = re.search(r">\s*HEAD[：:]\s*`([0-9a-f]{7,40})", text)
+    if not m:
+        return ["BOARD 顶部缺少 `> HEAD：<hash>` 行，无法做滞后检查"]
+    board_head = m.group(1)
+    current_head = git("rev-parse", "--short", "HEAD")
+    if not board_head.startswith(current_head) and not current_head.startswith(board_head):
+        return [f"BOARD HEAD 滞后：board={board_head} 但当前 git HEAD={current_head}；请更新 BOARD 顶部"]
+    return []
+
+
+def check_one(rel: str, staged: bool) -> list[str]:
+    path = (REPO_ROOT / rel).resolve()
+    if not path.exists():
+        return [f"文件不存在: {rel}"]
+    problems: list[str] = []
+
+    if in_scope_src(rel):
+        problems += check_src_status(path)
+    elif in_scope_md(rel) and (is_governed_doc(rel) or staged):
+        # staged 模式下新增/修改的 issue 等任何 in-scope md 都必须带状态头
+        problems += check_doc_header(path, rel)
+
+    # 陈旧/大小检查适用于范围内文档与根注入文件
+    if rel == "AGENTS.md" or rel == "CLAUDE.md" or in_scope_md(rel) or in_scope_src(rel):
+        problems += check_stale(path)
+        problems += check_size(path, rel)
+
+    if rel == BOARD:
+        problems += check_board_head(path)
+
+    return problems
+
+
+def discover_full() -> list[str]:
+    rels: set[str] = set()
+
+    # football 顶层 md
+    fb_dir = REPO_ROOT / FOOTBALL_MD
+    if fb_dir.exists():
+        for p in fb_dir.glob("*.md"):
+            rels.add(p.relative_to(REPO_ROOT).as_posix())
+
+    # BOARD + 治理 issue 前缀
+    for rel in (BOARD,):
+        if (REPO_ROOT / rel).exists():
+            rels.add(rel)
+    issues_dir = REPO_ROOT / ISSUES
+    if issues_dir.exists():
+        for p in issues_dir.glob("*.md"):
+            rel = p.relative_to(REPO_ROOT).as_posix()
+            if Path(rel).name.startswith(GOVERNED_ISSUE_PREFIX):
+                rels.add(rel)
+
+    # src-fb 全部 ts
+    src_dir = REPO_ROOT / SRC_FB
+    if src_dir.exists():
+        for p in src_dir.glob("*.ts"):
+            rels.add(p.relative_to(REPO_ROOT).as_posix())
+
+    # 治理方案文档
+    if (REPO_ROOT / GOV_DOC).exists():
+        rels.add(GOV_DOC)
+
+    return sorted(rels)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("files", nargs="*", help="额外检查的文件（相对仓库根）")
+    parser.add_argument("--staged", action="store_true", help="只检查 git 暂存区文件（pre-commit）")
     args = parser.parse_args()
 
-    files = list(DEFAULT_FILES) + list(SOURCE_STATUS_FILES)
-    files.extend(args.files)
+    if args.staged:
+        files = sorted(staged_files())
+        # 只保留本脚本范围内文件
+        files = [f for f in files if in_scope_md(f) or in_scope_src(f) or f in ("AGENTS.md", "CLAUDE.md")]
+        if not files:
+            print("doc_health: no in-scope staged files; PASS")
+            return 0
+    else:
+        files = discover_full()
 
-    total_problems = 0
+    total = 0
     for rel in files:
-        path = (REPO_ROOT / rel).resolve()
-        if not path.exists():
-            print(f"SKIP  {rel}: 文件不存在")
-            continue
-
-        problems = check_header(path) + check_stale(path)
+        problems = check_one(rel, staged=args.staged)
         if problems:
-            total_problems += len(problems)
+            total += len(problems)
             print(f"FAIL  {rel}")
             for p in problems:
                 print(f"      - {p}")
         else:
             print(f"PASS  {rel}")
 
-    print(f"\n{total_problems} problem(s) found.")
-    return 1 if total_problems else 0
+    print(f"\n{total} problem(s) found.")
+    return 1 if total else 0
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+// @status: active（服务端输入图 1073741835，已挂载球实体）
 // fb-input.ts —— 输入图（票 19 三图拆分，2026-09-03）：低频/事件驱动功能收容
 // 职责：R3 操作台踢球入口（whenTabIsSelected 9 选项→邮箱直投 KICK/RESET）+ E1 回声
 // 账务（onSignal(fb_echo)：stale/dup/ack/tear 分口径 + 任务类型唤醒拍门）+ fb_beat
@@ -15,7 +16,7 @@ const AUTO_FIXK = 1000
 
 const graph = g
   .server({
-    id: 1073741835, // 占位：注入按 config.nodeGraphId 改写（单文件注入语义）
+    id: 1073741835, // 真实图 ID（已挂载球实体）；单文件注入若走 config.nodeGraphId 才会改写
     name: '_GSTS_fbInput'
   })
   // ================================================================

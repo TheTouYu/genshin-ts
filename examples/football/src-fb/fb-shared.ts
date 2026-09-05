@@ -1,3 +1,4 @@
+// @status: active（服务端共享复合/常量；仅服务端图 import）
 // fb-shared.ts —— 服务端复合与公共常量（票 19 三图拆分：数据图/渲染图/输入图共享，
 // 2026-09-03）。defineComposite 被 import 的图各自执行声明 → 各 .gia 自带同 ID def，
 // 注入按 ID 覆盖幂等（历史注入器 merge 语义），任意单图注入后 def 目录自足。
