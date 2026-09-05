@@ -1,9 +1,11 @@
-// 足球客户端算力最小通路（E1，2026-09-02，地图 1073741908「真实足球」）
-// 客户端 20008 图回传信号：(tag, epoch, counter)
-//   tag = 'ok' 快照完整已计算 / 'tearH' 哈希不符 / 'tearE' 二读 epoch 变了
-//   e   = 本次计算对应的 epoch（服务端 ack 只前进不回退）
-//   c   = 客户端图内计数器当前值（E2 图变量跨拍保持验证：服务端应看到 c 逐拍 +1 递增）
-// 注册：sendId=1610612771 monitorId=1610612772 serverId=1610612773（本地图 1908，内置布局三参数）
+// src-fb 共享信号单一事实源（地图 1073741908「真实足球」；本地注册 ID 见各 defineSignal 注释）
+// @status: active（fb_echo/fb_ball_state 为主链；fb_sv_echo=票14 实验；fb_idle_state=空载历史形态）
+// 文件级信号总表：
+//   fb_echo        (tag, e, c)     E1 任务/观测回传（ok/tearH/tearE…）
+//   fb_ball_state  (tag,tick,pos,vel,spin,state)  R2 物理拍回传（P/T）
+//   fb_sv_echo     (tag, e)        票14 原生写通道实验回传（SVA*/SVT*）
+//   fb_idle_state  (tag,tick,pos,vel,spin,state)  票19 空载验证（历史/专用）
+// 具体 tag 与消费端见各 defineSignal 注释与 BOARD/issue。
 import { defineSignal } from 'genshin-ts/runtime/core'
 
 export const FbSignal = {
@@ -29,16 +31,15 @@ export const FbSignal = {
     ['state', 'int']
   ]),
   // 票 14 原生写通道实验回传（2026-09-03 注册 1610612777/778/779，内置布局两参数）：
-  //   tag='SVA' 技能变量立即读回值（跨施放保持+零延迟验证）
-  //   tag='SVT' 客户端自读瞬移位置 x×100（与服务端 fb_tp_seen_x 对照=复制延迟直读）
+  //   tag='SVA1..4' 技能变量立即读回值（跨施放保持+零延迟验证，实例编号后缀）
+  //   tag='SVT1..4' 客户端自读瞬移位置 x×100（与服务端 fb_tp_seen_x 对照=复制延迟直读）
   fb_sv_echo: defineSignal('fb_sv_echo', [
     ['tag', 'str'],
     ['e', 'int']
   ]),
   // 票 19 空载验证信号（2026-09-03 注册 1610612780/781/782，donor=fb_ball_state 同
-  //   6 参 vec3 形态）：隔离策略=现网 fb_server/fb-svlisten 均不订阅 → 空载阶段
-  //   服务端重逻辑零执行；wire 形态与 fb_ball_state 全同=验证的正是接管数据路径。
-  //   发送侧 fb-phys2 空载形态 tag='V'（tear='TV'）；消费侧 fb-idle-listen 仅计数
+  //   6 参 vec3 形态）：空载阶段消费侧 fb-idle-listen 仅计数；wire 与 fb_ball_state 同构。
+  //   ⚠️ 当前 fb-phys2 已接管为 fb_ball_state/'P'/'T'，本信号仅用于历史/空载专用场景。
   fb_idle_state: defineSignal('fb_idle_state', [
     ['tag', 'str'],
     ['tick', 'int'],
