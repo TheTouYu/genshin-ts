@@ -134,6 +134,20 @@ DSL 写 `whenTabIsSelected` / `whenKeyIsPressed` / `whenEntityInteract` 等输�
 - 典型事故：`flow_do_move` 把 `turnblock/orbit2` 发到 `visualHost=1077936203`，但视觉图挂在主控制器 `1077936201` → 图永远收不到槽位定时器，只有跨实体发错时漏进来的一发事件，表现为“只看到一个块动/完全没反应”。
 - 判断字段：日志里 `When Timer Is Triggered` 事件的 `OUT0/OUT1(entity/guid)` = 定时器 target 实体；对比 `assets:mounts list` 中监听的图挂载实体。
 
+**全局计时器组件前置（2026-09-05 差分/抓包实证，`GlobalTick` 例）**：凡 DSL 里使用
+`getCurrentGlobalTimerTime` / `startGlobalTimer` / `pauseGlobalTimer` / `recoverGlobalTimer`
+等全局计时器节点，目标实体**必须已挂“全局计时器组件”且配置引用 root12 里的计时器名**，否则读不到时间/事件。
+- root12 计时器定义：`f1=名`、`f2=f32 时长`、`f3 missing=正计时 / 1=倒计时`、`f501=1`
+- 实体组件槽（root5 f7）：`f1=16`（全局计时器）、`f2=1`、`f26={f1="计时器名"}`
+- CLI：
+  ```bash
+  gsts assets:global-timers list --gil <map>
+  gsts assets:global-timers create --name GlobalTick --duration 5 --positive --gil <map>
+  gsts assets:global-timers attach --entity <实体ID> --name GlobalTick --gil <map>
+  ```
+- 节点图里 `GetCurrentGlobalTimerTime(self, "GlobalTick")` 的 `self` 必须是有该组件的实体；
+  挂载图实体与持有组件实体不一致时会静默读空。
+
 **定时器延迟单位：f.startTimer 用秒、setTimeout 用毫秒（2026-08-27 足球实证，必守）**：
 `f.startTimer(e, name, loop, [延迟])` 的延迟参数单位是**秒**（日志 IN3 实证：push_lock `[0.25]`=250ms）；
 **setTimeout 的 delayMs 单位是毫秒**（DSL 内部转秒）。事故：`[200]` 以为是 200ms 实为 **200 秒**，

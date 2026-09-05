@@ -15,6 +15,8 @@
 | `assets:resources` | 列出/解析 元件资源（root4+root8）与摆放实体（root5） | `assets_resources.ts` |
 | `assets:static-assemblies` | 静态模型拼装写回 | `assets_static_assemblies.ts` |
 | `assets:skill-config` | 技能配置创建/列表（36/6/28 模板×普通/瞬发+绑定） | `assets_skill_config.ts` |
+| `assets:unit-status` | 单位状态创建/列表/加效果（root15/16 双写 + root6 登记） | `assets_unit_status.ts`、`unit_status_data.ts` |
+| `assets:global-timers` | 全局计时器定义/实体组件挂载（root12 + root5 type16） | `assets_global_timers.ts` |
 | `assets:terrain` | 地形/草皮资产 | `assets_terrain.ts`、`gil_terrain.ts` |
 | `assets:ui` / `assets:node-graphs` / `assets:mounts` / `assets:signals` | UI/图挂载/信号 | 对应 `assets_*.ts` |
 | `image:*` | 图片素材导入/导出（SVG/CSS/JSON ↔ GIA image） | `image_editor.ts` |
