@@ -1,36 +1,13 @@
 // fb20c-server.ts —— 票 20 · E0 轮服务端装配图（type 20000，2026-09-04）
-//
-// 职责（**只做一次性装配，零施放节点**——E0 判据的前提就是"图内与服务端都不 cast"，
-// 触发权必须完全在「定时触发技能」单位状态里，见设计单 §7.2）：
-//   ① addCharacterSkill 把技能配置 1098907653（6+瞬发，body-f5 绑 20002 图 1082130439）
-//      装配到角色的**自定义技能槽 12**（= 已存在状态实测指向的槽位，见下）；
-//   ② addUnitStatus 把「定时触发技能」状态（地图已有资产 id=1077936132，非本轮新建）
-//      施加到同一角色。之后角色每触发间隔自动施放一次槽内技能 = 20002 图每拍执行 = Q1-Q5。
-//
-// 挂载（**注入轮执行，本轮未挂**）：目标=球实体 1077936135；磁盘现状该实体挂载
-//   1073741832(_GSTS_fbIdleListen)/1833(fbSink)/1834(fbRender_1)/1835(fbInput)——
-//   同实体定时器名清单 = fb_seed / fb_render / fb_beat（fb-input 起），与本图
-//   fb20c_arm_once 零交集，名单制不串扰（2026-09-04 assets:mounts list 回读）。
-//   注：BOARD 速查里的 1073741830(fbRender)/1831(fbSvlisten) 已被票 19 5.3a 拆分退役，
-//   以本行磁盘回读为准。
-// 寻址铁律（client-nodegraph-development 二-1）：角色实体**不可** entity(字面量)——
-//   必须 玩家列表[0] → getAllCharacterEntitiesOfSpecifiedPlayer(player)[0] 动态取。
-// 节拍：whenEntityIsCreated → **一次性**非循环定时器 2s（等角色就位；非循环=自终止，满足
-//   "定时器必须有停止条件"），单次装配，图变量 fb20c_armed 幂等守卫。
-//   ⚠️ 为何不做「0.5s 循环重补」自愈（盘点实测该状态 初始持续时间=1.0s，1s 后会到期）：
-//   层数上限实测=1，重复 addUnitStatus 的引擎语义（叠层失败/是否重置剩余时长/会不会把
-//   定时触发的计时基准也重置）**未实测**——它可能反过来污染 Q1 要测的施放率。
-//   → 本轮保持单变量：持续时间由用户在编辑器设为**无限**（用户待办已列）；
-//     若用户那边无法设无限，第 2 轮再按实测语义决定重补形态（登记为备选，不当结论用）。
-// 角色寻址铁律（client-nodegraph-development 二-1）：角色实体**不可** entity(字面量)——
-//   必须 玩家列表[0] → getAllCharacterEntitiesOfSpecifiedPlayer(player)[0] 动态取。
-// 打印纪律：装配回执打点=全生命周期 2 行（关键状态入口）；E0 常态数据面零 print
-//   （走 fb20_echo 信号 + 详情开窗帧流）。
-// Q1 判据面（设计单 §7.1）：判据=「服务端事件流到达率」——故本图必须订阅 fb20_echo。
-//   账务形态照设计单 §2.3 + fb-idle-listen 先例：**图变量**总计数（DSL 声明即生效，
-//   免资产预注册）+ 最近值；**分 tag 计数不进变量——判读从帧流取（票 18 口径）**，
-//   零实体变量写、零 print。到达率=帧流里各 tag 的秒桶计数（extract_rates.py 现成件）。
-//   ≈3-4 帧/echo × 40 echo/s ⇒ 本图 ~150 帧/s，远低于 2.5k 负载线（容量账 §带宽）。
+// @status: active（E0 实验线；已注入并挂载球实体，具体以 BOARD/回读为准）
+// 职责：一次性装配技能到角色自定义槽 12，并施加「定时触发技能」状态；收 fb20_echo 计数。
+//   ① addCharacterSkill：技能配置 1098907653 → 角色 CustomSkillSlot12
+//   ② addUnitStatus：状态 1077936132（地图既有，非新建）→ 同一角色
+// 节拍：whenEntityIsCreated → 一次性 2s 定时器 → 装配；fb20c_armed 幂等守卫。
+// 用户待办（状态参数）：触发间隔 0.1s + 技能引用 1098907653 + 持续无限；槽位已迁就 12。
+// 角色寻址：玩家列表[0] → 该玩家角色列表[0]（角色不可 entity 字面量，见 client 技能二-1）。
+// 判据面：订阅 fb20_echo，图变量总计数 + 最近值；分 tag 计数走帧流判读（零 print）。
+// 设计沿革/为何不重补/负载账见 issues/20-*.md，不在源码头保留。
 import { g } from 'genshin-ts/runtime/core'
 import { CharacterSkillSlot, OriginalSlotSkillHandling } from 'genshin-ts/definitions/enum'
 import { int } from 'genshin-ts/runtime/value'
