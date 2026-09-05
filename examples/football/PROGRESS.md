@@ -1,5 +1,9 @@
 # 进度记录 — 真实足球
 
+> doc-type: H（轮次归档）· status: historical-as-log · updated: 2026-09-05
+> **当前状态入口**：`.scratch/football-v2/BOARD.md`（唯一推进看板）；本文件仅作历史轮次追溯，启动不必全文读。
+> **已知滞后**：下方“最近轮次”截至 09-04；09-05 的 E0 第 4-6 轮、fb20d 校准/UI、角色载体物理版（HEAD `7dff6ed`）记录在 `issues/20-multi-creature-orchestration.md` 执行备注与 git log，尚未回填本文件。
+
 ## 最近轮次
 
 - 2026-09-04（**票 20 · E0 第 3 轮：复盘 + 效率优化落技能 + 资产复用**，无新注入）：
