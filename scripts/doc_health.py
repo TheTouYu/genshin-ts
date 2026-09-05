@@ -53,6 +53,8 @@ SOURCE_STATUS_FILES = [
     "examples/football/src-fb/fb-render.ts",
     "examples/football/src-fb/fb-idle-listen.ts",
     "examples/football/src-fb/fb20c-server.ts",
+    "examples/football/src-fb/fb20d-calib.ts",
+    "examples/football/src-fb/fb20d-ui.ts",
     "examples/football/src-fb/signals.ts",
 ]
 
