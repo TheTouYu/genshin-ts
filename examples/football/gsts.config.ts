@@ -2,8 +2,9 @@ import type { GstsConfig } from '../../src/compiler/gsts_config.js'
 
 const config: GstsConfig = {
   compileRoot: '.',
-  // v5 三层架构（2026-09）：logic（1073741825 逻辑层）/ render（1073741829 渲染层）/
-  // dribble-v5（1073741828 带球决策）。*.v4.ts 为退役旧图（排除编译，保留回滚）。
+  // ⚠️ 历史 v5 三层配置（logic 1073741825/render 1073741829/dribble-v5 1073741828）：
+  // 当前主线已迁到 src-fb/ 新链路（用 gsts.fb-client.config.ts 与各 gsts.fb*-inject.config.ts）。
+  // *.v4.ts 仍为退役旧图（排除编译，保留回滚）。
   entries: ['./src', '!./src/**/*.v4.ts'],
   outDir: './dist',
   inject: {
@@ -11,8 +12,8 @@ const config: GstsConfig = {
     playerId: 110170759,
     mapId: 1073741908,
     nodeGraphId: 1073741825,
-    // 弹球图 1073741827 是用户在编辑器手建的非空图（名字非 _GSTS*），
-    // 注入 GIA 覆盖其内容需跳过非空保护（用户已授权弹球逻辑写入该图）
+    // ⚠️ 待核对：skipSafeCheck 注释写“弹球图 1073741827”，但本配置 nodeGraphId=1073741825；
+    // 若 1073741825 也需要跳过非空保护，保留此开关；否则应只对目标图启用并更新注释。
     skipSafeCheck: true
   }
 }
