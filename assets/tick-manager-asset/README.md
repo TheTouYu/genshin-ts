@@ -30,7 +30,7 @@ dist/src/tick-manager.gia  本地编译输出（dist 不入库）
 1. 把 `assets/tick-manager-asset/src/signals.ts` 复制进目标项目 `resources/` 或 `src/`；
 2. 在目标地图注册三档信号：
    `TickUpdate_60/_200/_1000`，参数均为 `manager:entity, now_ms:int, interval_s:float`；
-3. 建一个专用空模型实体/定义作为 TickManager；
+3. 挂载到“持有 GlobalTick 组件的实体”（本次足球测试目标为 `足球` 1077936135）；
 4. 在该实体注册自定义变量 `tm_beat_interval_s`（float，秒，默认建议 `0.06`）——
    主图在实体创建时直接读这个变量启动心跳，用法与足球现有 TickManager 一致；
 5. 挂载编译出的 `tick-manager.gia` 主图到该实体；
