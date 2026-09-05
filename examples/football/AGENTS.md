@@ -1,8 +1,11 @@
 # football 目录规则（探索本目录时自动注入）
 
+> doc-type: R · status: active · updated: 2026-09-05
 > 地图 **1073741908「真实足球」**（名字与"足球/足球_2/变量"相近，复测前先确认进对图——
-> 2026-08-31 曾因此白测一轮）。四图：825 logic / 826 input / 828 dribble-v5 / 829 render。
-> 进度与轮次记录：`PROGRESS.md`；架构：`ARCHITECTURE-V5.md`；v4 隔离区：`src/*.v4.ts`（勿删，纪律参照）。
+> 2026-08-31 曾因此白测一轮）。
+> **当前主线（2026-09-05）**：`src-fb/` 新链路（fb-phys2/fb-sink/fb-render/fb-input 等 + 票 20 实验线）；图/资产真值以 `.scratch/football-v2/BOARD.md` 资产速查与 git HEAD 为准。
+> 旧 v5 四图（825 logic / 826 input / 828 dribble-v5 / 829 render）与 `ARCHITECTURE-V5.md` 已退役为历史，**只读勿动**；v4 隔离区 `src/*.v4.ts` 保留纪律参照。
+> 进度入口：BOARD（唯一入口）→ `PROGRESS.md`（历史轮次）；设计权威：`R2-DESIGN.md`（部分章节已被票 19/20 修订）。
 
 ## 一、不变量清单（改代码/重写前逐条对照，2026-09-01 协作复盘固化）
 
