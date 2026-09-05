@@ -22,7 +22,7 @@
    node ./bin/gsts.mjs assets:mounts attach <挂载实体> --graph <chan-listen图ID> --entity --gil $MAP --write
    ```
 3. 编译：`node ./bin/gsts.mjs -c <fb 族配置> --noinject`（0 error+零 print+节点<2000）
-4. 注入（四件套红线：游戏退出+用户确认+备份+双 SHA）：去掉 `--noinject`；注入后四项核验
+4. 注入（四件套红线：用户确认+备份+双 SHA；用户保证不主动保存旧内存即可直接注入）：去掉 `--noinject`；注入后四项核验
    （`check-gil-composite-refs --incoming` / `scan-gil-var-pins` / mounts / skill-config list）
 5. 用户编辑器：放造物（**小体型模型**=15-16/s 上限；遗迹守卫只有 7.5/s）→ 绑 chan-skill 配置
    （**CD 0.01s + 忽略公共冷却**，缺一被钉 ~1/s）→ 详情只开两张实验图

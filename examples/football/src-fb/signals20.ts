@@ -17,5 +17,13 @@ export const Fb20Signal = {
   fb20_echo: defineSignal('fb20_echo', [
     ['tag', 'str'],
     ['e', 'int']
+  ]),
+  // 2026-09-05 单次释放大循环校准专用信号（与 E0 信号分开，避免污染 fb20c-server 计数）：
+  //   'CAL_START' e=run id（客户端 start 入口发）
+  //   'CAL_DONE'  e=实际循环圈数 k（大 finiteLoop 完成后发）
+  // 真值：send=1610612786 monitor=1610612787 server=1610612788（候选分配，写回后核对）
+  fb20d_echo: defineSignal('fb20d_echo', [
+    ['tag', 'str'],
+    ['e', 'int']
   ])
 } as const
