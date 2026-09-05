@@ -34,7 +34,11 @@ dist/src/tick-manager.gia  本地编译输出（dist 不入库）
 4. 在该实体注册自定义变量 `tm_beat_interval_s`（float，秒，默认建议 `0.06`）——
    主图在实体创建时直接读这个变量启动心跳，用法与足球现有 TickManager 一致；
 5. 挂载编译出的 `tick-manager.gia` 主图到该实体；
-6. 建议在 TickManager 实体上配置全局计时器组件 `GlobalTick`；
+6. 在目标地图的全局计时器管理里配置 `GlobalTick`：
+   - **正计时**：root12.1 `f1="GlobalTick"`, `f2=5.0`, `f3 missing`, `f501=1`
+   - **倒计时**：root12.1 `f1="GlobalTick"`, `f2=200.0`, `f3=1`, `f501=1`
+   - 然后在 TickManager 实体上配置引用 `GlobalTick` 的全局计时器组件；
+   - 组件 wire（2026-09-05 实测）：组件槽 type=16，`f26={f1="GlobalTick"}`
 7. 消费方图里监听自己需要的档位：
    ```ts
    .onSignal(TickManagerSignal.tick200, (evt, f) => {

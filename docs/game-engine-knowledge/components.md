@@ -290,9 +290,18 @@ f2 = 1
 f26 = 配置（0B，空）
 ```
 
-- 添加后无默认配置字段（7B 槽），编辑器内可继续配置属性（待后续实验）
+- 添加后无默认配置字段（7B 槽），编辑器内可继续配置属性
 - 配置字段号 = 类型码+10（16→f26）
-- 证据：mapId 1073741851 元件 1077936129 新增第 10 槽，definition f8 与 instance f7 双写一致，其余槽逐字节未变
+- **配置引用后（2026-09-05 真实差分确认，map 1073741908，实体 1077936135“足球”）**：
+  `f26` 不再为空，而是 `{1: "GlobalTick"}` 子消息：
+  ```text
+  08 10 10 01 d2 01 0c 0a 0a 47 6c 6f 62 61 6c 54 69 63 6b
+  f1=16  f2=1  f26={f1="GlobalTick"}
+  ```
+- 证据：
+  - 空配置 7B：mapId 1073741851 元件 1077936129 新增第 10 槽，definition f8 与 instance f7 双写一致
+  - 配置引用：mapId 1073741908 足球实体 1077936135 给实体添加“全局计时器组件”并选择 `GlobalTick`，
+    root5 记录 +21B；相邻差分见 `.scratch/editor-incremental-evidence/2026-09-05-global-timer-component-attach/raw/global-timer-component-attach-v2.gil`
 
 ## 命中检测（code 12）
 
