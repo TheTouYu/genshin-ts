@@ -1,6 +1,11 @@
 # R2 设计稿 —— 球独立物理上客户端通道（握手节拍 5Hz）
 
-> 状态：**用户已裁决（2026-09-02 夜）——跳过独立实验轮，直接进 R2.1 资产注册**。
+> doc-type: A · status: active（部分章节已被票19/票20修订）· updated: 2026-09-05
+> current-source: .scratch/football-v2/BOARD.md + src-fb/ 源码 + PROGRESS.md 最近轮
+> read-when: design/ticket（R2 契约仍被引用；旧挂载/镜像方案以文内“已废止”注为准）
+> 注意：本稿“挂玩家实体/镜像 12”等早期裁决已被 09-03 球实体状态容器方案推翻，阅读时以 BOARD 资产速查与 src-fb 实现为当前事实。
+
+> 原状态：**用户已裁决（2026-09-02 夜）——跳过独立实验轮，直接进 R2.1 资产注册**。
 > 裁决定案：**A = ROLL_DECEL 1.0（sim 基准）**；**B = 不继承 v4 调优值**（R4 按
 > PORTING-MAP §1.5 连续速度控制器范式参数重定：SPEED_GAIN 1.2 乘性 / DAMP 0.95 /
 > k 连续坡度 0.1→1.2 / PULL_DIST2 2.25 / CARRY 仅语义标志）。

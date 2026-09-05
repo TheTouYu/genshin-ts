@@ -35,7 +35,7 @@ const JUMP_EPS = 10
 
 const graph = g
   .server({
-    id: 1073741834, // 占位：注入按 config.nodeGraphId 改写（单文件注入语义）
+    id: 1073741834, // 真实图 ID（已挂载球实体）；单文件注入若走 config.nodeGraphId 才会改写
     name: '_GSTS_fbRender',
     variables: {
       // 进球去重（restEnter 清；防球在网内多拍连续触发）

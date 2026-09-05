@@ -1,6 +1,11 @@
 # 真实足球 · 阶段 0 架构重构规划（多图 + 复合化）
 
-> 状态：规划中（2026-08-22）
+> doc-type: H · status: historical · updated: 2026-09-05
+> superseded-by: examples/football/ARCHITECTURE-V5.md → REBUILD-V2-PLAN.md
+> read-when: archive-only（历史沿革，勿作为当前架构入口）
+> 当前事实源：.scratch/football-v2/BOARD.md + src-fb/ 源码
+
+> 原状态：规划中（2026-08-22）
 > 目标：把 221 节点"面条图"重构为多图 + 复合化架构，跑通阶段 0 完整流程（挂载 + 组件 + 注入）
 > 参考：`examples/rubik-3x3/`（relay + game 多图模式、composites/ 目录分类、五层分离）
 

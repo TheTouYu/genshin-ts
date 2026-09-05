@@ -1,6 +1,11 @@
 # 足球 v5 三层架构设计（2026-09 定稿交付）
 
-> 状态：代码已交付，编译验证至 Stage 2（IR）。Stage 3（GIA 生成）待资产前置完成后执行
+> doc-type: H · status: historical · updated: 2026-09-05
+> superseded-by: examples/football/REBUILD-V2-PLAN.md（v6/R2）→ .scratch/football-v2/BOARD.md
+> read-when: archive-only（v5 历史设计；v5 Stage 3 不再推进）
+> 当前事实源：.scratch/football-v2/BOARD.md + src-fb/ 源码
+
+> 原状态：代码已交付，编译验证至 Stage 2（IR）。Stage 3（GIA 生成）待资产前置完成后执行
 > （见「资产前置清单」——涉及真实地图写回，需用户确认）。v4 全量保留可回滚。
 
 ## 一、架构总览

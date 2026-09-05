@@ -1,6 +1,11 @@
 # 足球状态机重构 · R0 现状盘点与重构方案（待用户确认）
 
-> 状态：**R0 完成，全部决策已确认（2026-08-30），待用户批准后进入 R1**（R0 交付物：状态所有权矩阵 / 状态机判定表 / 图间接口方案 / 文件改动清单）
+> doc-type: H · status: historical · updated: 2026-09-05
+> superseded-by: examples/football/ARCHITECTURE-V5.md → REBUILD-V2-PLAN.md
+> read-when: archive-only（v4 时代重构计划，已被 v5/v6 取代；仅作根因取证）
+> 当前事实源：.scratch/football-v2/BOARD.md + src-fb/ 源码
+
+> 原状态：**R0 完成，全部决策已确认（2026-08-30），待用户批准后进入 R1**（R0 交付物：状态所有权矩阵 / 状态机判定表 / 图间接口方案 / 文件改动清单）
 > 证据分层：本文件所有"现状"结论均来自真实地图读回（.gil 解析/explain/IR 交叉验证）+ 当前源码，非推测；
 > 标注【需验证】的为引擎语义未闭合项。
 > 权威实现文档后续由 DESIGN.md 同步（见 §5）。

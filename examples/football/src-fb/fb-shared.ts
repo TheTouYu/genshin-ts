@@ -25,12 +25,11 @@ export const HOME_Y = 250
 export const HOME_ST = 4
 
 // ———— 复合：邮箱投递（t1..t8 + 闭式 sum + epoch；调用点=种子/进球复位/R3 踢球入口） ————
-// sum=Σtᵢ 在投递时点求值（载荷随任务不同而不同；撕裂检测由 fb-phys 端同式求和比对，
+// sum=Σtᵢ 在投递时点求值（载荷随任务不同而不同；撕裂检测由任一客户端物理图端同式求和比对，
 // 同任务重复投递幂等；节点预算纪律：7 个加法节点替代逐任务手写闭式）。
-// 复合 def ID 显式分配 1610700040..43（04 票注入预检发现：默认顺序分配 1610700000..03
-// 会覆盖地图上旧 v5 家族 def（dribble_field_get_role/ball_render_frame/ball_render_halt），
-// 旧图 825/828/829 仍挂载在引用它们 → 类型错位=拒载。目录现占用 1610700000..32，
-// 40..43 空闲（impl 图 1610710040..43 同空闲），零行为变化仅 ID 锚定）
+// 复合 def ID 已锚定 1610700040..43（impl 1610710040..43）——勿改回默认 1610700000..03：
+// 04 票注入预检发现默认顺序会覆盖地图旧 v5 家族 def（dribble_field_get_role/ball_render_frame/
+// ball_render_halt），导致类型错位/拒载。冲突细节见 04 票。
 export const fbMailPost = g.defineComposite('fb_mail_post', {
   id: 1610700040,
   inputs: {

@@ -1,6 +1,11 @@
 # 足球重建 v2 —— 客户端算力基座 + 球独立物理体（M0 训练场）· R0 交付
 
-> 状态：**R0 待裁决**（2026-09-01 会话；两清单/骨架/退役方案/配置清单交用户确认后才进 R1）。
+> doc-type: H · status: historical · updated: 2026-09-05
+> superseded-by: examples/football/R2-DESIGN.md → .scratch/football-v2/BOARD.md（R0 已裁决并执行到 R2/票19/票20）
+> read-when: archive-only（R0 规划总纲；当前状态以 BOARD/票档案为准）
+> 当前事实源：.scratch/football-v2/BOARD.md + src-fb/ 源码
+
+> 原状态：**R0 待裁决**（2026-09-01 会话；两清单/骨架/退役方案/配置清单交用户确认后才进 R1）。
 > 架构代号 **v6**（仓库序列，接 v5；任务书称"足球重建 v2"，指第二次整体重建）。
 > 证据分层标注：【已验】=日志/GIL/游戏实测铁证；【静态】=本轮源码定义/配置只读盘点；【设计】=待 R1+ 实验定。
 > 输入材料：client-nodegraph-development 技能全文、PROGRESS.md（08-30~08-31 全轮）、sim/PORTING-MAP.md、

@@ -2,47 +2,16 @@
 // 目标：用「定时触发技能」0.03s 角色 20002 图跑同一套真实物理内核，造物图保持不动。
 // 差异：①图类型 20008→20002、图 ID 1082130437→1082130439；②删除 AI 射程维持段
 //   （造物贴玩家瞬移，角色载体无造物距离节流）；③其余物理内核/信号/变量契约原样。
-// 足球 R2·fb-phys2（20008 造物技能图，票 19 输入段替换实施，2026-09-04，地图 1073741908）
-//
-// === 与 fb-phys.ts（1082130433 现网）的唯一差异=输入段通道化（19-replacement-plan） ===
-//   ⑤ 镜像读 11 → 技能变量自持组读 11 分量（channels 原语；锁步破除：tick 自增
-//     不再等服务端镜像回写）；④ 拍门 gate 读退役（自由跑——apply 同率=cast 率，
-//     服务端 gate 写照旧只是读侧不再节流）；新增 ⑮ 自持写回（t 先写=撕裂哨兵，
-//     任务拍写回即 RESET/KICK 结果直存自持组=双保险）；bootstrap：自持组 t==0
-//     哨兵触发一次性镜像读+写组（tick 二读防撕裂，低频一次性）。
-// === 零改动面（git diff 证明） ===
-//   ③ seqlock 任务/E1 寄存器、⑥ 参数 19 镜像读（编辑器热调通道不动）、
-//   ⑦ 输入选择、⑧-⑫ 六态积分/门框/墙/反弹/状态分类（物理内核一字不动）、
-//   ⑬ P 信号回传、⑭ E5 观测链；新增 ⑮ 自持写回（内核输出直存）。
-// 接口契约（沿自 fb-phys，单一事实源=票 02 执行备注 + 票 01 终态）：
-//   · 球实体 1077936135：fb_ball_gate + 镜像 11（bootstrap/E5/参数仍读）+ fb_p_* 19
-//   · fb_ball_entity:entity 挂丘丘人实例（getSelfEntity→读引用→读球变量 = E5 主链）
-//   · E1 寄存器 fb_epoch/fb_ack/fb_sum/fb_t1..t8 挂玩家实体（owner 链照旧）
-//   · 状态枚举（sim/src/state.ts）：0=Airborne 1=Bouncing 2=Sliding 3=Rolling
-//     4=Rest 5=DribbleControlled——服务端按 Rest=4 停拍，本图同枚举回传
-//   · 任务载荷：t1=type（1=KICK: t2..t4=vel×1000, t5..t7=spin×1000 / 2=RESET:
-//     t2..t4=pos×1000, t5..t7=vel×1000, t8=state）
-//   · 回传：sendSignalToServerNodeGraph(fb_ball_state, 'P', base_tick, pos, vel,
-//     spin, state)；tag='T'=自持组二读不一致（跨实例写交错哨兵，服务端不应用）
-//   · 自持组=技能变量 11 分量（codec §1 映射序 t/px/py/pz/vx/vy/vz/sx/sy/sz/st；
-//     ⚠️ codec 文档行文写"10 分量"但其 §1 表列 11 行——t+9float+st 缺一不可，
-//     state=内核状态机输出必须自持，此处按 11 如实实施）
-//   · ID 递增假设：1207959558~568（现有 5 个=553~57 之后连号；**注入前与用户
-//     核对真实值，不符回填后才注入——占位 ID 禁止注入红线**）
-// 物理数学：v4 物理复合族结构（PORTING-MAP §0）+ 参数全部来自 fb_p_* 19 快照
-//   （图内零参数字面量；几何/编码/枚举字面量不属物理参数）。
-// 编译硬前置：主配置全图编译（单 entry 必失败）；客户端参数序与服务端相反
-//   （getCorrespondingValueFromList(iD, list)；_3dVectorZoom(标量, 向量) 同理反序）。
+// derived-from: examples/football/src-fb/fb-phys2.ts（物理内核/接口契约与 fb-phys2 同源，
+//   不再在此复制上游头部；公共契约、自持组段 1207959569~579、fb_p_* 21 与信号回传口径
+//   以 fb-phys2.ts 头部为准。若物理内核修复，需同步本文件与 fb-phys2.ts。）
 import { g } from 'genshin-ts/runtime/core'
 import { float } from 'genshin-ts/runtime/value'
 
 import { chanReadF, chanReadF32Group, chanWriteF } from './channels.js'
 import { FbSignal } from './signals.js'
 
-// ———— 空载形态开关（票 19 两阶段：4.1 注入=IDLE 发 fb_idle_state'V'——fb_server
-// 零订阅=服务端重逻辑零执行；5.2 接管=本三行切回 fb_ball_state+'P'/'T' 重编译重注入，
-// 见 4.3 回退文档。tear 分支同切（否则空载阶段 fb_server 收 fb_ball_state 非 P tag
-// 走 fb:tear 打印洪泛——2.2 隔离定案否决项） ————
+// ———— 输出信号形态（角色载体版固定 fb_ball_state/'P'/'T'；票 19 空载切换仅属 fb-phys2，本图不涉及） ————
 const OUT_SIG = FbSignal.fb_ball_state
 const OUT_TAG = 'P'
 const OUT_TAG_TEAR = 'T'
@@ -146,7 +115,7 @@ g.characterSkill({ id: 1082130439, name: '_GSTS_fb20cPhysRole' }).on('start', (_
   const BALL_GUID = 1077936135n
   const ballRef = f.localVariable('entity')
   ballRef.set(entity(BALL_GUID))
-  // 球实体变量读辅助（bootstrap 镜像读/参数 19 物化共用；原⑤段定义，随替换面上移）
+  // 球实体变量读辅助（bootstrap 镜像读/参数 21 物化共用；原⑤段定义，随替换面上移）
   const rv = (name: string) => f.getCustomVariable(ballRef.value, name)
 
   // 计算拍条件：本拍有真实任务 ∨ 恒真（自持自由跑——apply 同率=cast 率，票 19 目标
@@ -219,7 +188,7 @@ g.characterSkill({ id: 1082130439, name: '_GSTS_fb20cPhysRole' }).on('start', (_
         f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'ok', e1, tick.value)
       }, () => {})
 
-      // ============ ⑥ 参数组 19 当拍物化（不变量 1：多消费点先物化快照） ============
+      // ============ ⑥ 参数组 21 当拍物化（不变量 1：多消费点先物化快照） ============
       const pv = (name: string) => f.getCustomVariable(ballRef.value, name).asType('float')
       const pDt = f.localVariable('float')
       const pR = f.localVariable('float')
