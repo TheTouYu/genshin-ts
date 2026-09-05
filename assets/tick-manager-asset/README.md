@@ -30,14 +30,20 @@ dist/src/tick-manager.gia  本地编译输出（dist 不入库）
 1. 把 `assets/tick-manager-asset/src/signals.ts` 复制进目标项目 `resources/` 或 `src/`；
 2. 在目标地图注册三档信号：
    `TickUpdate_60/_200/_1000`，参数均为 `manager:entity, now_ms:int, interval_s:float`；
-3. 建一个专用空模型实体/定义作为 TickManager，挂载编译出的 `tick-manager.gia` 主图；
-4. 建议在 TickManager 实体上配置全局计时器组件 `GlobalTick`；
-5. 消费方图里监听自己需要的档位：
+3. 建一个专用空模型实体/定义作为 TickManager；
+4. 在该实体注册自定义变量 `tm_beat_interval_s`（float，秒，默认建议 `0.06`）——
+   主图在实体创建时直接读这个变量启动心跳，用法与足球现有 TickManager 一致；
+5. 挂载编译出的 `tick-manager.gia` 主图到该实体；
+6. 建议在 TickManager 实体上配置全局计时器组件 `GlobalTick`；
+7. 消费方图里监听自己需要的档位：
    ```ts
    .onSignal(TickManagerSignal.tick200, (evt, f) => {
      // evt.params.manager / evt.params.now_ms / evt.params.interval_s
    })
    ```
+
+> 说明：消费方目前推荐直接使用 Genshin-TS 的 `.onSignal`；本资产暂不提供编辑器拖拽式
+> “Update 监听复合”，因为那需要独立的监听器 GraphUnit/复合导出形态，后续可按需补充。
 
 ## 编译
 
