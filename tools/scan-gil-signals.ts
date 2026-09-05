@@ -1,22 +1,23 @@
 // @ts-nocheck
 /**
- * 全量扫描 GIL 中的信号使用：主图 + 复合 impl 图全部节点，按信号名聚合发送/监听/事件定义。
+ * 全量扫描 GIL/GIA 中的信号使用：主图 + 复合 impl 图全部节点，按信号名聚合发送/监听/事件定义。
+ * GIA 输入会完整遍历 Root.f1/f2 的全部 GraphUnit。
  *
  * 信号名的编码位置：节点 ClientExecNode/ClientSignal pin（i1.kind=5/6）的字符串值。
  * 系统复合节点按定义名分类：发送信号 / 监听信号 / 其他（如"向服务器节点图发送信号"）。
  * impl 图（复合实现图）也会扫描——信号节点可能藏在复合内部（如 物理运动控制器、评分）。
  *
  * 用法:
- *   npx tsx tools/scan-gil-signals.ts <map.gil>              # 列出全部信号及使用图数
- *   npx tsx tools/scan-gil-signals.ts <map.gil> --signal 足球 # 指定信号的完整使用清单
- *   npx tsx tools/scan-gil-signals.ts <map.gil> --signal 足球 --json
+ *   npx tsx tools/scan-gil-signals.ts <map.gil|file.gia>              # 列出全部信号及使用图数
+ *   npx tsx tools/scan-gil-signals.ts <map.gil|file.gia> --signal 足球 # 指定信号的完整使用清单
+ *   npx tsx tools/scan-gil-signals.ts <map.gil|file.gia> --signal 足球 --json
  */
 
 import { loadDocument } from './parse-gil-node-graph.js'
 
 function usage(exitCode = 0) {
   const text = [
-    '用法: npx tsx tools/scan-gil-signals.ts <map.gil> [选项]',
+    '用法: npx tsx tools/scan-gil-signals.ts <map.gil|file.gia> [选项]',
     '',
     '选项:',
     '  --signal <名称>   只扫描指定信号（默认列出全部信号及图数）',

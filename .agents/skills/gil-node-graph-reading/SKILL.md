@@ -10,40 +10,42 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 目标是让模型**像读本地代码一样**读懂游戏关卡里真人写的节点图：事件入口是什么、每条执行链做什么、
 分支条件数据从哪来、复合节点内部怎么写、嵌套多深都能追完。工具全是只读分析器，不修改任何图文件。
 
-适用素材：真实关卡 `.gil` 文件（含主图 + 复合 impl 图）。编译器生成的 `.gia` 产物**不是**本技能
-工具链的输入（`explain/parse/list/scan` 等只接受 GIL 地图格式；2026-08-20 实测对 .gia 报"未找到节点图"）——
-验证编译产物 `.gia` 用项目根 `tools/decode-gia.ts`（配 jq，输出 accessories[复合def]+graph[主图]，详见其文件头 jq 速查）；
-`.gia` 注入到地图后才用本技能工具链读注入结果。工具链细节见 `docs/gia-tools-reference.md`；
-引擎规则知识见 `docs/game-engine-knowledge/`（按需取用）。
+适用素材：真实关卡 `.gil` 文件（含主图 + 复合 impl 图），以及 `.gia` 素材/功能元件导出。
+`.gia` 输入已由 `parse-gil-node-graph.ts` 的 `loadDocument` 完整支持：工具会遍历 Root.f1/f2
+的全部 GraphUnit（`decode-gia.ts` 按 proto3 单数语义只保留最后一条 f1，会漏掉 TickInit/Timers/
+TickUpdate 等多主图素材；阅读命令不走那条路径）。`explain/parse/list/trace/scan-signals` 均直接
+接受 `.gia`；验证编译产物 `.gia` 仍可用 `tools/decode-gia.ts`，但完整读图请用本技能命令。
+工具链细节见 `docs/gia-tools-reference.md`；引擎规则知识见 `docs/game-engine-knowledge/`（按需取用）。
 
 ## 工具链速查
 
 | 工具 | 一句话定位 | 常用参数 |
 |---|---|---|
-| `tools/list-gil-node-graphs.ts` | 关卡全景：所有主图 + 复合目录 | `<地图.gil>` |
+| `tools/list-gil-node-graphs.ts` | 关卡/素材全景：主图列表 | `<地图.gil\|文件.gia>` |
 | `tools/explain-gil-node-graph.ts` | **人读式解读**：事件入口/控制流树/参数来源/复合内部 | `--graph <名\|id\|auto>` `--composite <名>` `--depth N` |
 | `tools/scan-gil-signals.ts` | 信号全景清单（主图+impl 图全扫） | `--signal <名>` `--json` |
 | `tools/trace-gil-exec-flow.ts` | 执行流机器级分析 | `--auto` `--json` |
 | `tools/trace-gil-dataflow.ts` | 数据流定点：某节点输入来源 | `--node <id>` `--all-inputs` `--json` |
-| `tools/parse-gil-node-graph.ts` | 底层结构化解析（变量定义/inputs/value/boundary） | `--graph` `--composite` `--json` |
-| `tools/compare-gil-node-graph.ts` | 两个图/文件对比 | 见 `--help` |
+| `tools/parse-gil-node-graph.ts` | 底层结构化解析（变量定义/inputs/value/boundary） | `--graph` `--composite` `--json` `--list` |
+| `tools/compare-gil-node-graph.ts` | 两个图/文件对比（当前 GIL-only） | 见 `--help` |
 | `gsts assets:node-graphs layout --check` | 布局 lint：读图并报告违规（flow-upward/backward、chain-vertical、long-chain、block-order、line-align、data-detached、data-chain-long、island、overlap） | `--gil <地图> --graph <id>` |
 | `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代）；复合分类读取 | `--gil <地图> --graph <id> [--node <n>]`；分类：`[--category <名>]` 过滤、`--composite <id>` 详情含分类、`--json` 带 category |
 | `tools/scan-gil-var-pins.ts` | 变量类节点（Get/Set Custom/Node Graph Variable）变量名 pin 完整性扫描——**交付候选前必跑**（2026-08-12 split2 复盘新增） | `<地图.gil> [--graph <id>] [--json] [--list-names]` |
 | `tools/check-gil-composite-refs.ts` | **全量复合引用完整性**：impl 图引用复合 ID 0 悬空；`--incoming <本次.gia>` 检测残留 def 引用被注入覆盖（类型错位事故模式）——**注入后必跑**（2026-08-20 新增） | `<地图.gil> [--incoming <game.gia>] [--json]` |
-| `tools/decode-gia.ts`（项目根） | **编译产物 `.gia` 解码**（accessories 复合 def + graph 主图 + compositePins；配 jq 查询）——验证 .gia 用这个，不用本技能其他工具 | `<file.gia> 2>/dev/null \| jq '[.accessories[] \| select(.which==12).name]'` |
+| `tools/decode-gia.ts`（项目根） | **编译产物 `.gia` 快速解码**（只保留 Root.f1 最后一条 + accessories；多主图素材会漏图）——常量/信号快速检查可用；完整读图请用上表 parse/explain | `<file.gia> 2>/dev/null \| jq '[.accessories[] \| select(.which==12).name]'` |
 
 运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 子命令在 DSH/WSL 环境优先用 `node bin/gsts.mjs <子命令>`——`npx tsx src/cli/gsts.ts` 在该环境可能因 tsconfig 从 `$HOME` 解析而炸出超大错误堆栈（2026-08-31 实证，污染上下文），原生环境两者皆可。
 
 ## 追踪 playbook（按顺序，需要才深入）
 
-### Step 0 关卡全景
+### Step 0 关卡/素材全景
 ```bash
-npx tsx tools/list-gil-node-graphs.ts <地图.gil>
-npx tsx tools/parse-gil-node-graph.ts <地图.gil> --list   # 全量复合目录（含版本名）
+npx tsx tools/list-gil-node-graphs.ts <地图.gil|文件.gia>
+npx tsx tools/parse-gil-node-graph.ts <地图.gil|文件.gia> --list   # 全量主图 + 复合目录（含版本名）
 ```
-先知道关卡里有几张图、每张多大、有哪些复合。**主图和复合 impl 图是两个容器路径**
-（主图 root10.1.1、复合 impl root10.4.1），list 都列出来。空图（0 节点）忽略。
+先知道文件里有几张主图、每张多大、有哪些复合。GIL 的**主图和复合 impl 图是两个容器路径**
+（主图 root10.1.1、复合 impl root10.4.1），list 都列出来；GIA 的 f1 重复出现时也会全部列出
+（不会再像 decode-gia 只留最后一条）。空图（0 节点）忽略。
 
 **复合目录版本一致性核对（2026-08-26 足球拒载实证，游戏报错与读图矛盾时必做）**：
 `--list` 的复合目录里出现同名复合的多个版本（编辑器/历史注入残留，名字带 `(1)` 后缀、
@@ -54,14 +56,14 @@ id 新分配的副本）时，游戏会校验**目录里全部复合（含零引
 
 ### Step 1 信号全景（事件入口线索）
 ```bash
-npx tsx tools/scan-gil-signals.ts <地图.gil>
+npx tsx tools/scan-gil-signals.ts <地图.gil|文件.gia>
 ```
 信号是跨图协作的主要机制：发送节点在哪张图、监听节点在哪张图、信号带什么参数。
 `--signal <名>` 定点看某个信号的完整使用清单。信号可能藏在复合 impl 内部，scan 会覆盖。
 
 ### Step 2 主图事件树
 ```bash
-npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
+npx tsx tools/explain-gil-node-graph.ts <地图.gil|文件.gia> --graph <图名>
 ```
 一次拿到：事件入口列表 → 控制流树（分支+条件来源）→ 参数来源（每个节点输入）。这就是"读代码"的主视图。
 - 控制流树读不懂或太长时，先看折叠行（线性链已压缩），再按需展开
@@ -83,7 +85,7 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
 
 ### Step 2.6 parse --json 输出键名速查（勿猜结构，2026-08-12 复盘）
 
-魔方重构 eval-main/eval-bindhold 曾反复 `python3 -c "d=json.load(...)"` 探测结构（42 次浪费）；顶层与常用子结构如下（真实输出，`npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json`）：
+魔方重构 eval-main/eval-bindhold 曾反复 `python3 -c "d=json.load(...)"` 探测结构（42 次浪费）；顶层与常用子结构如下（真实输出，`npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia> --graph <id> --json`）：
 
 - 顶层：`input`（path/bytes/sha256）、`target`（kind/id/name/type/selection）、`graph`、`status`、`discovery`（auto_candidates[]）
 - `graph`：`id` / `type` / `name` / `scope` / `node_count` / `variables`（图变量，带初始值）/ `boundary` / `nodes` / `dataflow` / `flow` / `children`（复合子图）
@@ -156,9 +158,9 @@ PY
 
 ### Step 3 追进复合
 ```bash
-npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
-npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2   # 原地展开嵌套
-gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             # 逐节点原始边（环/接口核对金工具）
+npx tsx tools/explain-gil-node-graph.ts <地图.gil|文件.gia> --composite <复合名>
+npx tsx tools/explain-gil-node-graph.ts <地图.gil|文件.gia> --graph <主图> --depth 2   # 原地展开嵌套
+gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             # GIL-only：逐节点原始边（环/接口核对金工具）
 ```
 `--composite` 显示：定义接口（inputs/outputs/inflows/outflows）→ impl 图内部解读（与主图同格式）。
 复合的执行起点显示为【外部入口】（InFlow 驱动），不是孤立链。`--depth N` 递归展开嵌套复合，
@@ -205,7 +207,7 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
   （用 `scan-gil-signals.ts` 确认信号存在且被使用即正常），不是复合图；修复方向见 open-items O-2026-08-21-4。
   - 另一类误报（2026-08-30 实证）：本次 GIA 未注入的旧 def 段（如 2000000000 段 motion_by_vel 等）
     报「注入后在地图中缺失」——那是旧版本注入的 def，本次未覆盖，非本次残留，确认其被主图正常引用即无害。
-- **② 复合目录全量对比**：`npx tsx tools/parse-gil-node-graph.ts <地图.gil> --list`——核对目录里
+- **② 复合目录全量对比**：`npx tsx tools/parse-gil-node-graph.ts <地图.gil|文件.gia> --list`——核对目录里
   **没有多版本残留**（同名 `(1)` 后缀副本、已删除复合的旧 def）。游戏校验目录里全部复合（含零引用残留），
   零引用错误副本照样拒载（2026-08-26 足球实证：删 9 个 (1) 版后游戏正常加载；2026-08-30 足球实证：
   7 个残留含互相引用链 auto_check_tick→dribble_decide，def-clean --force 整体删）。
@@ -337,7 +339,7 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
 
 ### Step 4 数据流定点（查具体节点参数来源）
 ```bash
-npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --all-inputs
+npx tsx tools/trace-gil-dataflow.ts <地图.gil|文件.gia> --graph <图名> --node <id> --all-inputs
 ```
 控制流树只显示"执行顺序"，参数值从哪来要查数据流。`--json` 拿结构化结果（依赖路径/终端来源）。
 

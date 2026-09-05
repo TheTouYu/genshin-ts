@@ -1,15 +1,15 @@
 // @ts-nocheck
 /**
- * 只读解析游戏内 GIL 节点图。
+ * 只读解析游戏内 GIL 节点图；同时支持直接读 .gia 素材/功能元件导出（完整遍历 Root.f1/f2）。
  *
  * 默认解析 _GSTS_main 并输出紧凑节点索引；控制流和数据流分别使用 trace-gil-exec-flow.ts / trace-gil-dataflow.ts。
  * --full 或 --json 才输出低层综合结构，适合调试，不作为生产分析入口。
  *
  * 用法:
- *   npx tsx tools/parse-gil-node-graph.ts <map.gil>
- *   npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph auto
- *   npx tsx tools/parse-gil-node-graph.ts <map.gil> --composite 中心旋转
- *   npx tsx tools/parse-gil-node-graph.ts <map.gil> --list
+ *   npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia>
+ *   npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia> --graph auto
+ *   npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia> --composite 中心旋转
+ *   npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia> --list
  */
 
 import { createHash } from 'node:crypto'
@@ -20,6 +20,7 @@ import { readGilPayloadFields } from 'genshin-ts/cli/gil_extract_utils.js'
 import { NODE_ID } from 'genshin-ts/compiler/gia_vendor.js'
 import { parseMessage, readFieldBytes, readFieldMessages } from 'genshin-ts/injector/binary.js'
 import { loadGiaProto } from 'genshin-ts/injector/proto.js'
+import { parseWireMessage } from '../src/cli/static_assembly/wire.js'
 import { NODE_PIN_RECORDS } from 'genshin-ts/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
 import { CLIENT_NODE_METADATA } from 'genshin-ts/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 
@@ -255,7 +256,73 @@ function interfaceSummary(def) {
   }
 }
 
+function isGiaPath(filePath) {
+  return /\.gia$/i.test(filePath)
+}
+
+/**
+ * 加载 GIA 文件的全部 GraphUnit（Root.f1 + Root.f2）。
+ *
+ * GIA 容器里 Root.f1 在素材/功能元件导出中会重复出现；decode-gia.ts 按 proto3
+ * 单数语义只保留最后一条，导致大量主图（TickInit/Timers/TickUpdate…）被漏掉。
+ * 这里用 parseWireMessage 遍历 f1/f2 原始字段，再逐个 decode GraphUnit，完整建图。
+ */
+function loadGiaDocument(filePath) {
+  const bytes = readFileSync(filePath)
+  const payload = bytes.subarray(20, bytes.length - 4)
+  const top = parseWireMessage(payload)
+  if (!top) throw new Error(`[error] malformed GIA payload: ${filePath}`)
+
+  const proto = loadGiaProto()
+  const GraphUnit = proto.root.lookupType('GraphUnit')
+  const CompositeDefWrapper = proto.root.lookupType('CompositeDefWrapper')
+  const NodeGraphWrapper = proto.root.lookupType('NodeGraphWrapper')
+
+  const graphsById = new Map()
+  const defsById = new Map()
+  const defsByGraphId = new Map()
+  const implGraphsById = new Map()
+
+  for (const field of top) {
+    if (field.wire !== 2 || (field.number !== 1 && field.number !== 2)) continue
+    let unit
+    try {
+      unit = GraphUnit.decode(field.value)
+    } catch (error) {
+      throw new Error(`[error] GraphUnit decode failed in f${field.number}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+    const unitId = asNumber(unit.id?.id)
+    if (unitId === undefined) continue
+
+    if (unit.graph?.inner?.graph) {
+      const graph = unit.graph.inner.graph
+      // 兼容旧/新命名：NodeGraphWrapper 也可能被 protobufjs 解成 NodeGraphWrapper 本身。
+      const nodeGraph = graph.nodes ? graph : unit.graph?.inner?.graph
+      // f1 带名字的 which=9 是主图；f2 的 which=9 一般是复合 impl 图。
+      if (field.number === 1) graphsById.set(unitId, nodeGraph)
+      else implGraphsById.set(unitId, nodeGraph)
+    } else if (unit.compositeDef?.inner?.def) {
+      const def = unit.compositeDef.inner.def
+      defsById.set(unitId, def)
+      const graphId = compositeGraphId(def)
+      if (graphId !== undefined && graphId !== 0) defsByGraphId.set(graphId, def)
+    }
+    // 其它 which（信号/素材/结构定义等）当前读取命令暂不进入主图/复合目录。
+  }
+
+  return {
+    filePath,
+    bytes: bytes.length,
+    sha256: sha256(bytes),
+    graphsById,
+    defsById,
+    defsByGraphId,
+    implGraphsById
+  }
+}
+
 function loadDocument(filePath) {
+  if (isGiaPath(filePath)) return loadGiaDocument(filePath)
   const bytes = readFileSync(filePath)
   const { payload } = readGilPayloadFields(filePath)
   const fields = []
@@ -1071,10 +1138,11 @@ function printGraphIndex(graph) {
 
 function usage(exitCode = 0) {
   const text = [
-    '用法: npx tsx tools/parse-gil-node-graph.ts <map.gil> [选项]',
+    '用法: npx tsx tools/parse-gil-node-graph.ts <map.gil|file.gia> [选项]',
     '',
     '默认:',
     '  解析名称为 _GSTS_main 的主图；找不到时使用文件中的第一个节点图。',
+    '  .gia 输入会完整遍历 Root.f1/f2 的全部 GraphUnit（不再只取 decode-gia 的最后一条）。',
     '',
     '选项:',
     '  --graph <id|name|auto>   解析指定主图；auto 选择唯一非空用户图',

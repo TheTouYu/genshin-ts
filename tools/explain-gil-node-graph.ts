@@ -1,11 +1,12 @@
 // @ts-nocheck
 /**
- * 一键解读 GIL 节点图：事件入口 → 控制流主干 → 每节点参数来源 → 系统/复合节点说明。
+ * 一键解读 GIL/GIA 节点图：事件入口 → 控制流主干 → 每节点参数来源 → 系统/复合节点说明。
  * 内部复用 parse-gil-node-graph 的解析，不重复实现底层解码。
+ * GIA 输入会完整遍历 Root.f1/f2 的全部 GraphUnit。
  *
  * 用法:
- *   npx tsx tools/explain-gil-node-graph.ts <map.gil> --graph <id|名称>
- *   npx tsx tools/explain-gil-node-graph.ts <map.gil> --composite <名称> [--depth N]
+ *   npx tsx tools/explain-gil-node-graph.ts <map.gil|file.gia> --graph <id|名称>
+ *   npx tsx tools/explain-gil-node-graph.ts <map.gil|file.gia> --composite <名称> [--depth N]
  */
 
 import { pathToFileURL } from 'node:url'
@@ -15,7 +16,7 @@ import { ENUM_VALUE } from 'genshin-ts/thirdparty/Genshin-Impact-Miliastra-Wonde
 
 function usage(exitCode = 0) {
   const text = [
-    '用法: npx tsx tools/explain-gil-node-graph.ts <map.gil> [选项]',
+    '用法: npx tsx tools/explain-gil-node-graph.ts <map.gil|file.gia> [选项]',
     '',
     '选项:',
     '  --graph <id|name|auto>   选择主图；auto 选择唯一非空用户图',

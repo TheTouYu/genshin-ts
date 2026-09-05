@@ -10,7 +10,7 @@ const COMPOSITE_KIND = 'SysGraph'
 
 function usage(exitCode = 0) {
   const text = [
-    '用法: npx tsx tools/trace-gil-exec-flow.ts <map.gil> [选项]',
+    '用法: npx tsx tools/trace-gil-exec-flow.ts <map.gil|file.gia> [选项]',
     '',
     '选项:',
     '  --graph <id|name|auto>   选择主图；auto 选择唯一非空用户图',
