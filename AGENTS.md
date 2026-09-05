@@ -41,13 +41,13 @@
 
 ## 信息检索优先级（缺关键信息/上下文/历史记忆时，2026-08-22 强制）
 
-**高频触发——节点预算/帧数超限（先查规则再动刀，2026-08-23 复盘补；2026-08-27 用户更正红线；2026-08-31 用户强制更正引擎上限）**：遇到「节点数超限拒载 / 单记录帧 >3000 截断 / 图预算超限/超标」类问题，第一步**不要直接拆图、注入测量或读预算源码**，先 `pkc query "预算 2000 有限循环 截断 拒载" --level 2` 读硬限与公式口径（注意 clm_213B9BC24 等 3000 旧口径已被 2026-08-31 更正取代），再 `dsh-session-history` 找该地图的历史定稿预算公式；本地测量是第二步的取证动作，不是第一反应（Sa296f579 08-22 白耗约 40 分钟的教训）。**引擎单节点图上限 = 2000（用户 2026-08-31 强制要求；第五轮实证 gameNodeCount 2465 拒载、2005 侥幸加载——此前"3000 拒载阈值"口径作废），生产红线同为单图 gameNodeCount ≤2000**——超 2000 直接按职责拆新图，不要硬塞。
+**高频触发——节点预算/帧数超限（先查规则再动刀）**：遇到节点数超限/拒载/图预算超限，第一步**先查规则**：`pkc query` 读硬限与公式口径（命令见 CLAUDE「PKC 查询」），再 `dsh-session-history` 找该地图历史定稿公式；本地测量是第二取证动作。**引擎单图上限=2000（生产红线），超 2000 直接按职责拆新图**；单 tick 帧数预算 <3000 帧/记录。旧“3000 拒载阈值”口径已作废（历史见 PKC/复盘，勿再引用）。
 
 **负载设计铁律（2026-08-24 用户定义）**：按「事件驱动 → 低频定时器（0.7~1s 级）→ 高频轮询」顺序选择；**0.06s/触发的频率本身即高负载，禁止长期运行**。定时器必须有停止条件；单 tick 内要把重计算拆成小复合/小步，禁止把多个有限循环叠在一条链上。写图前先算两笔账：`assets:node-graphs nodes` 节点预算 + 单 tick 帧数预算（<3000 帧/记录）。**打印纪律（2026-09-03 用户定则）**：print 只留关键状态入口（生命周期/任务唤醒/异常标记），高频路径（每秒多次的 onSignal/timer 分支/回声）零 print；完整数据请用户按图开详情日志（分毫不差且比 print 全）。
 
-1. **先查知识树 PKC**（只读，无需确认）：`python tools/pkc.py progressive-query --context <ctx> --intent "<问题>" --max-level 2 --limit 3`（有明确 context 时）或 `python tools/pkc.py query "<关键词1 关键词2 关键词3>" --level 2`（全库 claim 检索；**必须带 `--level 2`——默认 level 1 只搜 13 个节点标题，不搜 300+ 条 claim 内容，2026-08-22 实测「负载」默认 0 命中、level 2 命中**；并 3~5 个不同层面关键词召回更高）。context 清单见 `project-intelligence.json` 的 `memory.contexts`（compiler-diagnostics / static-gil-assembly-production / official-guide / game-engine-rules——游戏引擎实测规则查这个，2026-08-29 新增）。
-2. `progressive-query` 报 coverage gap（中文长句常见，2026-08-22 实测）→ **立即降级全库 `query "<关键词…>" --level 2`（并 3~5 个不同层面关键词，中英混排，如 `"physical pin compositePins 缺失"`）**；仍空再换词：短词→同义词→英文/官方术语→`--status any`→`knowledge-search --semantic "<完整问题>"`（向量化语义检索，hybrid 模式，中文长句意图用它命中率更高）；**bounded miss ≠ 仓库级缺失**。
-3. 仍未命中 → 才允许 `dsh-session-history`（历史会话）/ `codebase-memory`（代码结构）/ 项目搜索兜底；缺口记入知识树 pending-capture（`pkc-project-operator`）。
+1. **先查知识树 PKC**（只读）：命令与 context 清单见 `CLAUDE.md`「PKC 知识树查询」；`query` 必须带 `--level 2`，中英多关键词召回更高。
+2. `progressive-query` 报 coverage gap → 降级 `query`（多关键词/中英混排）→ `knowledge-search --semantic`；**bounded miss ≠ 仓库级缺失**。
+3. 仍未命中 → 才允许 `dsh-session-history` / `codebase-memory` / 项目搜索兜底；缺口记 pending-capture（`pkc-project-operator`）。
 
 ## 技能路由速查（按任务直接加载，不要凭记忆猜）
 
