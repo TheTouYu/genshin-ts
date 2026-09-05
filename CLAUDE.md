@@ -89,6 +89,9 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
 - **tsx 运行时**（gsts 管线 spawn 的 runner）：统一 **dist 单副本**（与 CLI 本体一致）。tsx 会读
   tsconfig.json 的 paths，必须给每个 tsx spawn 注入 `TSX_TSCONFIG_PATH=tsconfig.tsx.json`（无 paths 配置，
   现有 3 处：`gs_to_ir_json_transform/index.ts`、`ir_to_gia_pipeline.ts`、`config_loader.ts`）。
+  路径必须用 `resolveTsxConfigPath(__dirname)`（`src/compiler/tsx_config_path.ts`，向上查找仓库根），
+  不要写死相对层级——src（`src/compiler`，上 2 级）与 dist（`dist/src/compiler`，上 3 级）深度不同，
+  写死会在 `npx tsx src/...` 直跑时错位到仓库外（报 `Cannot resolve tsconfig at path: /home/h/tsconfig.tsx.json`）。
   否则 .gs.ts 包 import 走 src 与 CLI 的 dist 双副本，`kCtxStack` unique symbol 分裂 →
   `gsts.f is only available in server_* ctxType (current: javascript)`。
 - **新增 tsx spawn / CLI 入口必须带 TSX_TSCONFIG_PATH**；改 tsconfig/类型配置后验证解析方向：
