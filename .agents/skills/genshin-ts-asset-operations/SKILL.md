@@ -152,15 +152,19 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 ### C. 屏幕 UI 控件（UI 空间）
 
-屏幕控件在固定屏幕坐标空间，不在 3D 世界；按钮事件先进玩家对应的角色节点图。
+屏幕控件在固定屏幕坐标空间，不在 3D 世界；**按钮事件只有挂载在玩家模板/玩家实体上的节点图能收到**
+（2026-09-05 用户实测修正：不是角色侧；玩家图收到后再转发给角色/其他实体）。
 
 - `gsts assets:ui list --gil <map> --format json`（枚举 root9 控件）
 - `gsts assets:ui clone <source-id> --id <new-id> [--name <n>] [--donor-gil <file>] --write`
 - `gsts assets:ui create --type textbox|interactive-button|custom-button --id <new-id> [--name <n>] [--content <text>] [--position <x,y>] [--size <w,h>] --write`
+  - ⚠️ **create 只给“编辑器默认形态”**：自定义按钮目前只有一个常态素材组 + 文本；要用于交互/技能还缺
+    **按键类型（交互事件/技能/道具）、技能槽位/冷却、键鼠/手柄映射、是否可点击、悬停/按下/禁用素材**
+    等基本配置，需在编辑器或后续 CLI 补齐；`assets:ui list` 的 props 目前也不解码这些字段（只列几何/文本/状态素材）。
 - `gsts assets:ui create --type image --id <new-id> --asset <素材索引ID> [--layout <布局ID>] [--name <n>] [--position <x,y>] [--size <w,h>] --write`（官方预制图片控件引用素材；`--asset` = 素材库容器 ID，见 `assets:library-inject`）
 - `gsts assets:ui update <control-id> [--name|--content|--position|--size] --write`
 - 模板：`gsts assets:ui template list|clone`（复用已存在的控件组模板）。
-- position 是屏幕中心偏移、size 是宽高（像素语义）。控件只做资产写回；显示/隐藏/禁用运行时行为、按钮事件如何进角色图，属于节点图/运行时逻辑，不要混写进静态资产步骤。
+- position 是屏幕中心偏移、size 是宽高（像素语义）。控件只做资产写回；显示/隐藏/禁用运行时行为、按钮事件如何进玩家节点图，属于节点图/运行时逻辑，不要混写进静态资产步骤。
 - **选项卡组件（tabBar，type 17）标准配置流程**（2026-08-22 足球事故反馈，非配不可测）
   - **命令**：`gsts assets:static-assemblies tab-options <instance-id> --name <预期组件名> --options <a,b,c> [--region-type box|sphere + --region-size/--region-radius + --region-center] --write`
   - **region 是生效范围**：选项卡只在玩家**进入 region** 时才显示。球体示例（rubik-2x2）`--region-type sphere --region-radius 3 --region-center 0.1,0,0`；盒体用 `--region-type box --region-size w,h,d --region-center x,y,z`。

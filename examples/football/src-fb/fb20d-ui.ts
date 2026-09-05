@@ -1,30 +1,31 @@
 // fb20d-ui.ts —— 单次释放实验的 UI 按钮服务端触发图（type 20000，2026-09-05）
 //
 // 职责：监听自定义按钮「跑一次」（id=1073741843）的「界面控件组触发时」，
-// 收到后对**当前角色**执行一次 add→create→cast（6+瞬发配置 1098907654，
-// body-f5 绑 20002 图 1082130440），并在收到 CAL_START / CAL_DONE 时打印生命周期。
+// 收到后**直接触发角色 CustomSkillSlot1 上已预置的技能**（6+瞬发配置
+// 1098907654，body-f5 绑 20002 图 1082130440），并在收到 CAL_START/CAL_DONE 时打印。
 //
-// 挂载（注入轮执行）：**角色侧** 1090519041 def + entity。
-// 依据（graph-mounting.md / camera-ui-rules.md）：屏幕 UI 按钮事件首先发给
-// 该玩家对应的**角色**挂载节点图；挂角色侧 def+实体是已核验形态
-// （whenSkillNodeIsCalled 3011 同族），不要挂玩家九副本。
+// ⚠️ 2026-09-05 用户实测修正（已写入技能知识）：
+//   · UI 控件事件只有挂载在【玩家模板/玩家实体】上的节点图能收到，不是角色侧。
+//   · 技能应先“创建/保存为节点图”并预置到角色技能槽；收到 UI 事件时用
+//     castSkillFromSpecifiedPanelSlot 直接触发，**不要**每次点击 addCharacterSkill
+//     + createCustomSkillInstance + castSpecifiedSkillInstance，也不需要 addCharacterSkill。
+//
+// 挂载（用户已修改）：玩家模板 1086324737 def + 1086324737..745 entity 副本。
 //
 // 触发链路：
 //   UI 点击 → whenUiControlGroupIsTriggered(uiControlGroupIndex=按钮ID)
-//   → addCharacterSkill(CustomSkillSlot1, Destroy) → createCustomSkillInstance
-//   → castSpecifiedSkillInstance(实例ID, false) → 客户端 20002 图 start
+//   → castSkillFromSpecifiedPanelSlot(CustomSkillSlot1, false) → 客户端 20002 图 start
 //   → 客户端发 CAL_START/CAL_DONE → 本图 onSignal 打印
 //
 // 防重入：fb20d_busy=1 期间忽略再次点击，直到收到 CAL_DONE 才复位。
 // 打印纪律：仅生命周期 3 行（cast/start/done），不 print 高频数据。
 import { g } from 'genshin-ts/runtime/core'
-import { CharacterSkillSlot, OriginalSlotSkillHandling } from 'genshin-ts/definitions/enum'
+import { CharacterSkillSlot } from 'genshin-ts/definitions/enum'
 import { int } from 'genshin-ts/runtime/value'
 
 import { Fb20Signal } from './signals20.js'
 
 const BUTTON_ID = 1073741843n // 自定义按钮「跑一次」（UI CLI 候选分配 ID）
-const SKILL_CFG = 1098907654n // GSTS-fb20d-calib：template 6 + 瞬发，body-f5 绑 1082130440
 
 g.server({
   id: 1073741837,
@@ -36,23 +37,20 @@ g.server({
   }
 })
   .on('whenUiControlGroupIsTriggered', (evt, f) => {
-    const role = f.getSelfEntity()
+    // 图已挂玩家模板/玩家实体：self=玩家实体，需取该玩家当前角色来 cast
+    const player = f.getSelfEntity()
     const busy = f.getNodeGraphVariable('fb20d_busy').asType('int')
     f.doubleBranch(f.equal(busy, 0n), () => {
       // 只认我们创建的按钮 ID；UI 控件组事件可能还有官方控件，名单制过滤
       f.doubleBranch(f.equal(evt.uiControlGroupIndex, BUTTON_ID), () => {
-        f.setNodeGraphVariable('fb20d_busy', 1n, false)
-        // 角色实体=挂载本图的角色（self），无需玩家列表动态寻址；
-        // 6+瞬发装配到 CustomSkillSlot1，与 E0 状态用的槽 12 错开，互不干扰。
-        f.addCharacterSkill(
-          role,
-          configId(SKILL_CFG),
-          CharacterSkillSlot.CustomSkillSlot1,
-          OriginalSlotSkillHandling.Destroy
+        const role = f.getCorrespondingValueFromList(
+          f.getAllCharacterEntitiesOfSpecifiedPlayer(player),
+          0n
         )
-        const inst = f.createCustomSkillInstance(role, configId(SKILL_CFG))
-        f.setNodeGraphVariable('fb20d_last_run', inst, false)
-        f.castSpecifiedSkillInstance(role, inst, false)
+        f.setNodeGraphVariable('fb20d_busy', 1n, false)
+        // 直接触发槽位技能：技能已“创建保存为节点图”并预置在 CustomSkillSlot1；
+        // 不在事件里创建实例，也不 addCharacterSkill。
+        f.castSkillFromSpecifiedPanelSlot(role, CharacterSkillSlot.CustomSkillSlot1, false)
         f.printString('fb20d:cast')
       }, () => {})
     }, () => {})
