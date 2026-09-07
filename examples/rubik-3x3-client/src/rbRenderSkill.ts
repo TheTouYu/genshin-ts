@@ -10,10 +10,13 @@
 //   （rbv_epoch/rbv_host），本图由造物 AI 15Hz 自主施放触发，每拍：
 //     空转（epoch==ack）直接返回 → 任务拍：读宿主 solver_cp/ep/ct（物理排列 P，flowAfterTurn
 //     发布，负折叠面转期间 P 不变=实体真实排列）+ rbv_move/orient → 槽位→全局格点（烘焙
-//     rbv_slotsF/M/W）→ P 直取块号（不读实体、不含实体寻址）→ 逐槽算 spin 轴/两段速度 →
-//     每槽一条 rbv_echo 回传（tag='s', e=epoch, slot, piece, axis, vel1, vel2，6 参 ≤10）
-//   服务端 visual 图收齐 N 槽 → rbv_go(e) 通知 turn 图按 curMove 类型起既有定时器 → 设备机械执行。
-//   撕裂/陈旧自愈：epoch 二读不符或 ack 未回 → 本拍不发，下拍自动重试同 epoch（服务端零重发）。
+//     rbv_slotsF/M/W）→ P 直取块号（不读实体、不含实体寻址）→ 逐槽算 spin 轴 →
+//     每槽一条 rbv_echo 回传（tag='s', e=epoch, slot, piece, axis；vel1/vel2 wire 兼容恒零）
+//   R2（2026-09-07 用户负载定则：服务端只做最小运动器操作）：发送进度由本图自持
+//   （技能变量 553/554 槽：任务 epoch / 已发槽计数——跨施放保持、同拍写读零延迟），
+//   服务端零窗口推进/零计数/零缓冲；发完最后窗口本图直接发 rbv_go(e)
+//   （turn 图回 ack 停发 + 起 unlock）。
+//   撕裂自愈：epoch 二读不符 → 本拍不发，下拍自动重试同 epoch（服务端零重发）。
 //
 // 客户端 DSL 约束沿用票 03 六条 + 本票实证：_3dVectorZoom 客户端参数序=(标量, 向量)；
 // getCorrespondingValueFromList 客户端参数序=(iD, list)；表数据全部走宿主注册变量烘焙值；
@@ -62,8 +65,8 @@ g.creationSkill({ id: 1082130443, name: '_GSTS_rbRenderSkill' }).on('start', (_e
 
     // —— 撕裂门：二读 epoch 必须一致 ——
     f.doubleBranch(f.equal(e2, e1), () => {
-      // 逐槽发射器：spot=全局格点（0..25）；P 直取块号；localAxis 分块查 + dir 符号；两段轨道速度
-      const emit = (k: any, spot: any, kvF: any) => {
+      // 逐槽发射器：spot=全局格点（0..25）；P 直取块号；localAxis 分块查 + dir 符号
+      const emit = (k: any, spot: any) => {
         const pv = f.localVariable('int')
         // 块号 = 格点上当前块（solver_* 即 pos→piece；无实体寻址）
         f.doubleBranch(f.lessThan(spot, 8n), () => {
@@ -102,44 +105,61 @@ g.creationSkill({ id: 1082130443, name: '_GSTS_rbRenderSkill' }).on('start', (_e
         )
       }
       // —— 06-R7 分片发送（3165 实证：全量 18-52 条/拍超引擎投递容量→积压爆量被踢）——
-      // 每拍只发服务端窗口 [rbv_c, rbv_c+2]∩[0,n) 三槽：客户端零跨拍记忆，窗口由服务端
-      // viewRcvPkg 顺序推进（收到 slot==rbv_c 才 +1）；丢槽时 c 停→下拍重发该窗口自愈。
-      // 每拍只重算 3 槽（记录 103KB→~15KB），突发 2 实例×3=6 条/拍（与 fb 回传同量级）。
-      const cWin = f.getCustomVariable(owner, 'rbv_c').asType('int')
+      // 每拍只发 [sent, sent+3)∩[0,n) 三槽。R2：进度计数在客户端技能变量（553=任务 epoch、
+      // 554=已发槽数；槽位字节审计全空闲），新任务拍归零；服务端不再维护 rbv_c 窗口。
+      const stE = f.dataTypeConversion(f.querySkillVariableValue(1207959553n), 'int')
+      f.doubleBranch(f.logicalNotOperation(f.equal(stE, e1)), () => {
+        f.setSkillVariable(1207959553n, f.dataTypeConversion(e1, 'float'))
+        f.setSkillVariable(1207959554n, f.dataTypeConversion(0n, 'float'))
+      }, () => {})
+      const cWin = f.dataTypeConversion(f.querySkillVariableValue(1207959554n), 'int')
       // 类型分派（嵌套 doubleBranch；无 multipleBranches）：面 1..6 / 中 7..9 / 整 10..12
       const isFace = f.logicalAndOperation(
         f.greaterThan(mInt, 0n), f.logicalNotOperation(f.greaterThan(mInt, 6n))
       )
       // 窗口三槽发射（k<N 才发；slot 即窗口槽号）
-      const window = (n: bigint, tblBase: any, tbl: any, kvF: any) => {
+      const window = (n: bigint, tblBase: any, tbl: any) => {
         const k0 = cWin
         f.doubleBranch(f.lessThan(k0, n), () => {
-          emit(k0, f.getCorrespondingValueFromList(f.addition(tblBase, k0), tbl), kvF)
+          emit(k0, f.getCorrespondingValueFromList(f.addition(tblBase, k0), tbl))
         }, () => {})
         const k1 = f.addition(cWin, 1n)
         f.doubleBranch(f.lessThan(k1, n), () => {
-          emit(k1, f.getCorrespondingValueFromList(f.addition(tblBase, k1), tbl), kvF)
+          emit(k1, f.getCorrespondingValueFromList(f.addition(tblBase, k1), tbl))
         }, () => {})
         const k2 = f.addition(cWin, 2n)
         f.doubleBranch(f.lessThan(k2, n), () => {
-          emit(k2, f.getCorrespondingValueFromList(f.addition(tblBase, k2), tbl), kvF)
+          emit(k2, f.getCorrespondingValueFromList(f.addition(tblBase, k2), tbl))
         }, () => {})
       }
+      // 本拍任务的槽数 N（面 9/中 8/整 26）：窗口发射与完成判定共用
+      const nLv = f.localVariable('int')
       f.doubleBranch(isFace, () => {
-        // 面：9 槽（slot0=面心格点，其后 8 行视觉顺序）；kVel=10；3 拍收齐≈0.2s≈动画时长
-        window(9n, f.multiplication(f.subtraction(mInt, 1n), 9n), slotsFL, 10)
+        // 面：9 槽（slot0=面心格点，其后 8 行视觉顺序）；3 拍发完≈0.2s≈动画时长
+        nLv.set(9n)
+        window(9n, f.multiplication(f.subtraction(mInt, 1n), 9n), slotsFL)
       }, () => {
         const isMid = f.logicalAndOperation(
           f.greaterThan(mInt, 6n), f.logicalNotOperation(f.greaterThan(mInt, 9n))
         )
         f.doubleBranch(isMid, () => {
-          // 中层：8 槽；kVel=6.6667
-          window(8n, f.multiplication(f.subtraction(mInt, 7n), 8n), slotsML, 6.6667)
+          // 中层：8 槽
+          nLv.set(8n)
+          window(8n, f.multiplication(f.subtraction(mInt, 7n), 8n), slotsML)
         }, () => {
-          // 整转：26 槽；kVel=2.0（9 拍≈0.6s 收齐，整转动画 1.0s 前摇可接受）
-          window(26n, f.multiplication(f.subtraction(mInt, 10n), 26n), slotsWL, 2)
+          // 整转：26 槽（9 拍≈0.6s 发完，整转动画 1.0s 前摇可接受）
+          nLv.set(26n)
+          window(26n, f.multiplication(f.subtraction(mInt, 10n), 26n), slotsWL)
         })
       })
+      // —— R2 完成自报：本拍有活且窗口越过 N → rbv_go（turn 回 ack + 起 unlock）——
+      // hadWork 门防重复 go（ack 复制延迟窗口内 cWin 已=N，不再重发）。
+      const hadWork = f.lessThan(cWin, nLv.value)
+      const fin = f.logicalNotOperation(f.lessThan(f.addition(cWin, 3n), nLv.value))
+      f.doubleBranch(f.logicalAndOperation(hadWork, fin), () => {
+        f.sendSignalToServerNodeGraph(RubikSignal.rbv_go, e1)
+      }, () => {})
+      f.setSkillVariable(1207959554n, f.dataTypeConversion(f.addition(cWin, 3n), 'float'))
     }, () => {})
   }, () => {})
 })

@@ -232,9 +232,8 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       // 全链走 auto-chain（registerExecNode/callComposite 依序自动串），杜绝 f.node 孤立链
       f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
       const post = f.callComposite(rbRenderPost, {
-        moveId: base, n: new int(8), target,
-        lastSlot: new int(7), dur: new float(0.3), seg: new float(0.15), completion: new float(0.35), av: new float(300),
-        nA: new int(8), nB: new int(0)
+        moveId: base, target,
+        dur: new float(0.3), completion: new float(0.35), av: new float(300)
       })
       f.outflow('done', post as never, 0)
     }, () => {
@@ -265,9 +264,8 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
           // 参数由 rbRenderPost 入参直传（图变量 set 只留 turnLastSlot 锚，全链 auto-chain）
           f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
           const post = f.callComposite(rbRenderPost, {
-            moveId, n: new int(9), target,
-            lastSlot: new int(8), dur: new float(0.2), seg: new float(0.1), completion: new float(0.25), av: new float(450),
-            nA: new int(5), nB: new int(4)
+            moveId, target,
+            dur: new float(0.2), completion: new float(0.25), av: new float(450)
           })
           f.outflow('done', post as never, 0)
         })
@@ -648,10 +646,8 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
     f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(25), new bool(false)])
     const post = f.callComposite(rbRenderPost, {
       moveId: f.getNodeGraphVariable('curMove').asType('int'),
-      n: new int(26),
       target,
-      lastSlot: new int(25), dur: new float(1.0), seg: new float(0.5), completion: new float(1.15), av: new float(90),
-      nA: new int(0), nB: new int(0)
+      dur: new float(1.0), completion: new float(1.15), av: new float(90)
     })
     f.outflow('done', post as never, 0)
     return {}
@@ -659,97 +655,59 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
 })
 
 // ================================================================
-// 票 06（2026-09-05）：渲染负载分载——服务端只留「添加运动器」。
-//   rbRenderPost：把渲染任务投到宿主/玩家寄存器（客户端 rbRenderSkill 20008 算执行包）；
-//   rbRenderStartTimers：收到 visual 图 rbv_go(e)（执行包收齐）后按 curMove 类型起既有定时器。
-//   旧的「execMove 内直接起定时器」全部移除（数学已搬迁客户端，起表必须等执行包）。
+// 票 06（2026-09-05）→ 球跟随 R2（2026-09-07 用户负载定则重设计）：
+//   rbRenderPost：渲染任务投递（宿主 rbv_move/orient + 玩家 rbv_epoch++ + 运动标量发布）。
+//   服务端写变量每转 13→7 次：删 rbv_n/rbv_nA/rbv_nB/turnLastSlot/segmentDuration
+//   （计数/窗口/双通道全部退役——客户端技能变量自持进度、逐球信号直达 ballvisual）。
+//   旧 rbRenderStartTimers（ballturn 定时器）删除：设备在 onSignal 即时添加，零定时器。
 // ================================================================
 
-// 面/中/整 各运动参数发布（只保留 visual 设备壳需要的 5 个量）。
+// 运动/完成标量发布（ballvisual 与 turn 的 rbv_go 处理器按需读，读廉价不复制）。
 // 2026-09-03 修复（3162 帧序铁证）：参数以复合入参直传——此前读图变量会因参数链被
 // auto-chain 孤立裁掉而发布陈旧默认值（face 拿到 0.3/0.15 超调错乱）。
 // 首节点用 registerExecNode 挂到本复合入口，其后显式 connect 串链。
 const publishVisualParams = (f: any, visualHost: any, p: any): Flow => {
-  const s1 = f.registerExecNode('set_custom_variable', [visualHost, new str('turnLastSlot'), p.lastSlot, new bool(false)])
+  const s1 = f.registerExecNode('set_custom_variable', [visualHost, new str('turnDuration'), p.dur, new bool(false)])
   const mk = (prev: Flow, name: string, value: any): Flow => {
     const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
     f.connect(prev, 0, n2, 0)
     return n2
   }
   const s2 = mk(s1, 'turnCompletionDelay', p.completion)
-  const s3 = mk(s2, 'turnDuration', p.dur)
-  const s4 = mk(s3, 'segmentDuration', p.seg)
-  const s5 = mk(s4, 'angularVelocity', p.av)
-  return s5
+  const s3 = mk(s2, 'angularVelocity', p.av)
+  return s3
 }
 
-// 渲染任务投递（exec）：宿主 rbv_move/orient + visualHost rbv_n + 玩家 rbv_epoch++
-// 输入 moveId 已含符号（负=折叠面转）；n=执行包槽数（面 9/中 8/整 26）。
+// 渲染任务投递（exec）：宿主 rbv_move/orient + 玩家 rbv_epoch++（R2：7 写/转）
 export const rbRenderPost = g.defineComposite('rb_render_post', {
     id: 1610700091,
   inputs: {
     moveId: { type: 'int' },
-    n: { type: 'int' },
     target: { type: 'entity' },
-    lastSlot: { type: 'int' },
     dur: { type: 'float' },
-    seg: { type: 'float' },
     completion: { type: 'float' },
-    av: { type: 'float' },
-    nA: { type: 'int' },
-    nB: { type: 'int' }
+    av: { type: 'float' }
   },
   outputs: {},
   outflows: ['done'],
-  build: ({ moveId, n, target, lastSlot, dur, seg, completion, av, nA, nB }, f) => {
+  build: ({ moveId, target, dur, completion, av }, f) => {
     const host = entity(1077936201n)
     const visualHost = entity(1077936203n)
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
     const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
     const next = f.addition(cur, 1n)
-    const ptail = publishVisualParams(f, visualHost, { lastSlot, dur, seg, completion, av })
+    const ptail = publishVisualParams(f, visualHost, { dur, completion, av })
     const m1 = f.node('set_custom_variable', [host, new str('rbv_move'), moveId, new bool(false)])
     f.connect(ptail, 0, m1, 0)
     const m2 = f.node('set_custom_variable', [host, new str('rbv_orient'), f.getNodeGraphVariable('blockOrientPre').asType('int_list'), new bool(false)])
     f.connect(m1, 0, m2, 0)
-    const m3 = f.node('set_custom_variable', [visualHost, new str('rbv_n'), n, new bool(false)])
-    f.connect(m2, 0, m3, 0)
-    // 06-R7: 批量通道槽数（设备事件批量化：turnblock/orbit2 每通道 1 事件串行处理）
-    const m3a = f.node('set_custom_variable', [visualHost, new str('rbv_nA'), nA, new bool(false)])
-    f.connect(m3, 0, m3a, 0)
-    const m3b = f.node('set_custom_variable', [visualHost, new str('rbv_nB'), nB, new bool(false)])
-    f.connect(m3a, 0, m3b, 0)
     // 票 06 修复（3148 实证）：rbv 链独立宿主引用——rb_host 只由 rbx 十字任务写，空 host 会让
     // 客户端读到空表并回传空包（piece=None、vel 全 0）
     const m4 = f.node('set_custom_variable', [owner, new str('rbv_host'), host, new bool(false)])
-    f.connect(m3b, 0, m4, 0)
-    // 06-R7：分片窗口起点归零（客户端每拍只发 [rbv_c, rbv_c+2] 三槽）
-    const m4b = f.node('set_custom_variable', [owner, new str('rbv_c'), new int(0), new bool(false)])
-    f.connect(m4, 0, m4b, 0)
+    f.connect(m2, 0, m4, 0)
     const m5 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
-    f.connect(m4b, 0, m5, 0)
+    f.connect(m4, 0, m5, 0)
     f.outflow('done', m5, 0)
-    return {}
-  }
-})
-
-// 按 curMove 类型起定时器（exec；curMove=有符号 moveId）。
-// 球跟随（2026-09-07）：面/中/整统一为单一 ballturn 定时器——执行包收齐后 0.01s
-// 由 ballvisual 图逐槽给中心球加旋转型基础运动器；旧 turnblock/orbit2 双段编排退役。
-export const rbRenderStartTimers = g.defineComposite('rb_render_start_timers', {
-    id: 1610700092,
-  inputs: {},
-  outputs: {},
-  outflows: ['done'],
-  build: (_i, f) => {
-    const visualHost = entity(1077936203n)
-    const t1 = f.registerExecNode('start_timer', [
-      visualHost,
-      new str('ballturn'),
-      new bool(false),
-      f.assemblyList([new float(0.01)], 'float')
-    ])
-    f.outflow('done', t1, 0)
     return {}
   }
 })

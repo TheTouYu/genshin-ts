@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleLayer2, flowWholeTail, rbRenderStartTimers } from './composites/flow.js'
+import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleLayer2, flowWholeTail } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -278,13 +278,20 @@ const graph = g
     })
   })
 
-  // —— 票 06：渲染执行包收齐（visual 图 rbv_echo 逐槽缓冲满 → rbv_go）→ 按 curMove 起定时器 ——
-  // 门：e 必须等于玩家 rbv_epoch（当前任务）；陈旧/重复回声丢弃（visual 侧 first-wins 已挡，双保险）
+  // —— 球跟随 R2 完成链（2026-09-07 断链修复 + 负载重构）：客户端发完全部执行包后
+  // 自己发 rbv_go(e)（服务端零计数）。本处理器只做两件最小事：
+  //   ① 回写玩家 rbv_ack=e（唯一变量写——让客户端停发）；
+  //   ② 起 unlock 定时器（turnCompletionDelay，rbRenderPost 每回合发布在宿主自定义变量；
+  //     旧链由 visual(832) viewTurnUnlockIfLast 在 turnblock 末槽起，832 摘除后无人起——
+  //     3228 日志实证：lock/autoMode 永久卡死、打乱队列 20 步只走 1 步、op3 全被吞）。
+  // 门：e 必须等于玩家 rbv_epoch（陈旧/重复回声丢弃）。
   .onSignal(RubikSignal.rbv_go, (evt: any, f: any) => {
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
     const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
     f.doubleBranch(f.equal(evt.params.e, cur), () => {
-      f.callComposite(rbRenderStartTimers, {})
+      f.setCustomVariable(owner, new str('rbv_ack'), evt.params.e, false)
+      const delay = f.getCustomVariable(entity(1077936203n), new str('turnCompletionDelay')).asType('float')
+      f.startTimer(f.getSelfEntity(), new str('unlock'), false, [delay])
     }, () => {})
   })
 
