@@ -74,6 +74,7 @@
 | 派独立模型/评估技能 | `isolated-model-evaluator`（全局技能） |
 | 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center`（全局技能） |
 | 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
+| 写"一轮出项目"生成类提示词（one-shot 应用 / vibe coding / 单指令 agent 长跑；示例检索+决策点自检） | `oneshot-prompt-builder`（全局技能，2026-09-07 新建） |
 | 建/改技能 | `skill-creator` |
 | 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
 | 文档治理/状态头/doc_health 拦截修复/PROGRESS 归档 | `document-governance` |
