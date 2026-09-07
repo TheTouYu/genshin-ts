@@ -90,20 +90,15 @@ g.creationSkill({ id: 1082130443, name: '_GSTS_rbRenderSkill' }).on('start', (_e
             spinAx.set(f.getCorrespondingValueFromList(rem, ax2L))
           })
         })
-        // 轨道速度分解（motionOrbitPrep/Step 同式，C1/S1=0.7071068、C2=0、S2=1）
-        const v0 = f.getCorrespondingValueFromList(spot, offL)
-        const tAxis = f._3dVectorZoom(dirF, f.getCorrespondingValueFromList(mInt, axesL))
-        const vp = f._3dVectorZoom(f._3dVectorDotProduct(tAxis, v0), tAxis)
-        const vPerp = f._3dVectorSubtraction(v0, vp)
-        const axv = f._3dVectorCrossProduct(tAxis, vPerp)
-        const p1 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(0.7071068, vPerp), f._3dVectorZoom(0.7071068, axv)))
-        const vel1 = f._3dVectorZoom(kvF, f._3dVectorSubtraction(p1, v0))
-        const p2 = f._3dVectorAddition(vp, f._3dVectorZoom(1, axv))
-        const vel2 = f._3dVectorZoom(kvF, f._3dVectorSubtraction(p2, p1))
+        // 球跟随（2026-09-07）：轨道速度退役——块由跟随运动器组件自动公转+自转，服务端
+        // ballvisual 只给中心球加旋转型基础运动器（piece=块索引=球索引、axis=球局部轴，
+        // 局部轴数学与旧自旋轴完全同源：球朝向历史≡块朝向历史）。vel1/vel2 保留信号
+        // 7 参 wire 兼容，恒发零向量（服务端不消费）。
+        const zv = f.create3dVector(0, 0, 0)
         // 每槽一条回传（≤10 参：tag/e/slot/piece + 3×vec3）
         f.sendSignalToServerNodeGraph(
           RubikSignal.rbv_echo, 's', e1, k, pv.value,
-          f._3dVectorZoom(dirF, spinAx.value), vel1, vel2
+          f._3dVectorZoom(dirF, spinAx.value), zv, zv
         )
       }
       // —— 06-R7 分片发送（3165 实证：全量 18-52 条/拍超引擎投递容量→积压爆量被踢）——

@@ -6,7 +6,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { CharacterSkillSlot, OriginalSlotSkillHandling } from 'genshin-ts/definitions/enum'
-import { flowSpawnRubik, flowSolve } from './composites/flow.js'
+import { flowSpawnBalls, flowBindBalls, flowSpawnRubik, flowSolve } from './composites/flow.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
 import {
@@ -129,6 +129,23 @@ const graph = g
         entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
         entity(0), entity(0)
       ],
+      // —— 球跟随（2026-09-07）：中心球实体列表（块索引序 b0..b25）+ 绑定偏移表 ——
+      // 偏移=初始格位向量（gen-rbv-vars off[26]，运行时中心=spawn(3,3,3)）；绑定一次终身有效。
+      balls: [
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0)
+      ],
+      ballOff: [
+        vec3([-1, 1, -1]), vec3([1, 1, -1]), vec3([-1, 1, 1]), vec3([1, 1, 1]),
+        vec3([-1, -1, -1]), vec3([1, -1, -1]), vec3([-1, -1, 1]), vec3([1, -1, 1]),
+        vec3([0, 1, 1]), vec3([1, 1, 0]), vec3([0, 1, -1]), vec3([-1, 1, 0]),
+        vec3([0, -1, 1]), vec3([1, -1, 0]), vec3([0, -1, -1]), vec3([-1, -1, 0]),
+        vec3([1, 0, 1]), vec3([-1, 0, 1]), vec3([1, 0, -1]), vec3([-1, 0, -1]),
+        vec3([0, 1, 0]), vec3([0, -1, 0]), vec3([0, 0, 1]), vec3([0, 0, -1]),
+        vec3([1, 0, 0]), vec3([-1, 0, 0])
+      ],
       axes: [
         vec3([0, 0, 0]), // 0 占位
         vec3([-1, 0, 0]), // 1 R（与 logic ROT.R=-90°X 一致）
@@ -216,6 +233,33 @@ const graph = g
         cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
         cubes.c24, cubes.c25
       ], false)
+      // —— 球跟随（2026-09-07）：生成 27 中心球（全部摆魔方中心 spawn(3,3,3)，缩放 0.01
+      // 来自球 def 模板）→ 发布球列表（块索引序）到图变量/两宿主 → 一次性绑定 26 块。
+      // 绑定=完全跟随/相对坐标系/GI_RootNode/位置偏移=初始格位向量；此后运行时不再变更绑定。
+      const ballsRes = f.callComposite(flowSpawnBalls, { stage })
+      f.setNodeGraphVariable('balls', [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(self, new str('balls'), [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(entity(1077936203n), new str('balls'), [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(entity(1077936203n), new str('coreBall'), ballsRes.b26, false)
+      f.callComposite(flowBindBalls, {})
       // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
       // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
       // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
