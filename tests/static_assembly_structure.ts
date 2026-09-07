@@ -102,7 +102,11 @@ function rejects(name: string, value: unknown, pattern: RegExp): void {
 
 rejects('malformed JSON', '{', /model\.json.*invalid JSON/i)
 rejects('unknown schema version', { ...valid, schemaVersion: 2 }, /schemaVersion.*1/i)
-rejects('empty items', { ...valid, items: [] }, /items.*at least one/i)
+// 零装饰物合法（2026-09-07 球跟随负载优化）：纯基础资源元件（官方球体作运动宿主）
+writeFileSync(structurePath, JSON.stringify({ ...valid, items: [] }))
+const emptyItems = loadStaticAssemblyStructure('./model.json', directory)
+assert.deepEqual(emptyItems.items, [], 'empty items must load')
+rejects('non-array items', { ...valid, items: 'x' }, /items.*must be an array/i)
 rejects(
   'non-finite transform',
   { ...valid, items: [{ resourceId: 1, position: [0, 'Infinity', 0] }] },

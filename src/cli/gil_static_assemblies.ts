@@ -931,7 +931,9 @@ function validateAssembly(assembly: GstsResolvedStaticAssembly): void {
     throw new Error('[error] templateInstanceId must be a non-negative integer')
   }
   if (!assembly.templateName) throw new Error('[error] templateName is required')
-  if (!assembly.items.length) throw new Error('[error] assembly requires at least one item')
+  // 零装饰物合法（2026-09-07 球跟随负载优化）：纯基础资源元件（如官方球体作运动宿主）
+  // def+inst 无 aux 闭包；下游按 items.entries() 循环，空数组结构安全。
+  // 本地模板分支对模板自身 aux 的检查（template has no decoration items）不受影响。
   if (
     assembly.definitionAuxiliaryIds.length !== assembly.items.length ||
     assembly.instanceAuxiliaryIds.length !== assembly.items.length

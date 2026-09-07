@@ -314,8 +314,8 @@ export function loadStaticAssemblyStructure(
   const source = object(filePath, '', parsed)
   exactFields(filePath, '', source, ['$schema', 'schemaVersion', 'color', 'components', 'items'])
   if (source.schemaVersion !== 1) fail(filePath, 'schemaVersion', 'must be 1')
-  if (!Array.isArray(source.items) || source.items.length === 0) {
-    fail(filePath, 'items', 'must contain at least one item')
+  if (!Array.isArray(source.items)) {
+    fail(filePath, 'items', 'must be an array')
   }
   if (source.$schema !== undefined && typeof source.$schema !== 'string') {
     fail(filePath, '$schema', 'must be a string')
