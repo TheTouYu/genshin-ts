@@ -743,3 +743,20 @@
   本轮靠对照实验判定，未改代码（避免搅动他人 WIP 图上的既有告警）。
 - 何时做：归组键改为 `(target, 目标 inflow index)`；改后须回归 fb-phys2/fbRender 现存 3 条告警
   是否仍为真问题（那 3 条属他人 WIP，未逐条核实）。
+
+### O-2026-09-07-01. createPrefab 运动组件复制规则自相矛盾【OPEN-裁决实验已注入】
+
+- 现象：`components.md` 229 记「createPrefab 不复制运动组件（type 4 无效，2026-08-16 灯阵双证据）」；
+  但 3x3 魔方块为 createPrefab 动态实体（def 带 type 4）自 2026-08-20 起转动正常。
+- 裁决实验：球跟随轮（测试图 1073741919）——26 块 def 已配 type 9 跟随组件，运行时 createPrefab
+  生成后若绑定生效 = def 侧组件可复制（旧结论限定实例侧/旧版本）；若块纹丝不动 = 旧结论成立，
+  球跟随需回退静态实例路径。结果回填 components.md 该节。
+- 关联：`retrospective-2026-09-07-ball-follow-lane.md`；提交 49bac9e。
+
+### O-2026-09-07-02. HEAD `npm run build` 预存 3974 类型错、dist 停在 2026-09-03【OPEN-构建债务】
+
+- 现象：全量 tsc 报 3974 错——examples/football/dist-fb/*.gs.ts 生成物（~3960）+ src/runtime/core.ts 4 处
+  setTimeout/clearTimeout 类型转换；tests/variables_definition_test.ts 缺 import 已顺手修（b7bc385）。
+  dist 因此停在 09-03，所有 CLI 改动无法走正式构建，只能"旧 dist + tsx（会双副本分裂）"窄路验证。
+- 何时做：football dist-fb 生成物应移出 tsconfig include 或排除生成目录；core.ts 4 错按 TS 提示
+  `as unknown as` 收口；修后 `npm run build` 必须回绿再谈其他 CLI 变更的正式发布。
