@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "name": "演出假人A",
+      "id": 1077936137,
+      "definitionId": 1077936131,
+      "position": [5, 0, 1],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "演出假人B",
+      "id": 1077936141,
+      "definitionId": 1077936131,
+      "position": [30, 0, 2],
+      "rotation": [0, 180, 0],
+      "scale": [1, 1, 1]
+    }
+  ]
+}

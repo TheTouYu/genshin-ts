@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "components": [],
+  "items": [
+    {
+      "resourceId": 10009001,
+      "position": [0, 0.75, 0],
+      "rotation": [0, 0, 0],
+      "scale": [0.5, 1.5, 0.35],
+      "color": { "enabled": true, "rgb": 3829413, "opacity": 100, "overlay": "overwrite" }
+    },
+    {
+      "resourceId": 10009002,
+      "position": [0, 1.72, 0],
+      "rotation": [0, 0, 0],
+      "scale": [0.44, 0.44, 0.44],
+      "color": { "enabled": true, "rgb": 16767392, "opacity": 100, "overlay": "overwrite" }
+    }
+  ]
+}
