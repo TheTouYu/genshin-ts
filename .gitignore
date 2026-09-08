@@ -63,3 +63,12 @@ examples/*/.gsts/
 dist.tmp/
 dist.bak-src/
 examples/*/dist-*/
+
+# 2026-09-08 清理：编译产物只允许进 dist/；大体积本地证据归档不进 git
+src/**/*.js
+src/**/*.js.map
+ui/src/**/*.js
+ui/src/**/*.js.map
+.scratch/_archive/
+/Logfile.CSV
+/Logfile.PML
