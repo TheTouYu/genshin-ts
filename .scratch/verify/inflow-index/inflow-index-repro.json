@@ -1,0 +1,131 @@
+[
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "server",
+      "mode": "beyond",
+      "sub_type": "entity",
+      "id": 1073741825,
+      "name": "_GSTS_inflow-index-repro"
+    },
+    "variables": [],
+    "nodes": [
+      {
+        "id": 1,
+        "type": "when_entity_is_created",
+        "next": [
+          2
+        ]
+      },
+      {
+        "id": 2,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "verify-before-loop"
+          }
+        ],
+        "next": [
+          3
+        ]
+      },
+      {
+        "id": 3,
+        "type": "finite_loop",
+        "args": [
+          {
+            "type": "int",
+            "value": 0
+          },
+          {
+            "type": "int",
+            "value": 2
+          }
+        ],
+        "next": [
+          {
+            "node_id": 4,
+            "source_index": 0
+          },
+          {
+            "node_id": 8,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "verify-loop-body"
+          }
+        ],
+        "next": [
+          6
+        ]
+      },
+      {
+        "id": 6,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 5,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 7,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "type": "break_loop",
+        "next": [
+          {
+            "node_id": 3,
+            "target_index": 1
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "str",
+            "value": "verify-after-loop"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "int"
+            }
+          },
+          {
+            "type": "int",
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }
+]

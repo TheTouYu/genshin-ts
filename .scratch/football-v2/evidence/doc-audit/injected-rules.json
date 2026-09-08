@@ -1,0 +1,161 @@
+[
+  {
+    "path": "/home/h/genshin-ts/AGENTS.md",
+    "role": "根级行为纪律与技能路由注入文件，每次会话常驻，决定代理怎么执行任务与遵守红线。",
+    "sizeBytes": 15016,
+    "structure": "头部自述精简原则后依次为愿景、回复协作、自进化、信息检索优先级、技能路由速查、写回红线、安全Git、验证落盘，多为带日期和案例的长段落。",
+    "issues": [
+      {
+        "location": "全文开头及行42-46",
+        "problem": "文件开头声明“务必精简”，但实际15KB高密度；当前规则夹带复盘日期、旧口径与教训（行44仍写入3000旧口径、clm_213B9BC24、Sa296f579白耗40分钟等），启动上下文成本与自述目标矛盾。",
+        "why": "该文件每次会话全文注入，历史叙事占用上下文并让新代理误以为旧阈值仍相关；维护时也容易只改新口径而漏删旧叙事。"
+      },
+      {
+        "location": "行48-50「信息检索优先级」与根CLAUDE.md行30-40",
+        "problem": "PKC命令、--level 2原因和context清单在AGENTS.md与CLAUDE.md两份常驻文件中重复出现，属于同一知识写了两遍。",
+        "why": "两份文件同时注入时重复token；日后新增context或改命令若只改一处，会造成口径漂移。"
+      },
+      {
+        "location": "行52-83「技能路由速查」",
+        "problem": "路由表20余行常驻，每行带解释性括号、技能组合与触发场景，与当前会话技能目录的触发描述大量重叠，表体偏长。",
+        "why": "技能目录本身已提供触发描述，常驻再完整展开一遍是重复上下文；路由表需要维护项也增多。"
+      },
+      {
+        "location": "行23-41「自进化与反思」",
+        "problem": "任务迭代节奏6条与后面的复盘、知识落盘、技能迭代条目反复表述同一闭环；大量条目像复盘纪要（日期、票据、教训）而非可执行规则。",
+        "why": "常驻加载下重复表述稀释重点，新代理难以判断哪条是当前必须执行的流程。"
+      },
+      {
+        "location": "行44-46「节点预算/帧数」",
+        "problem": "同段混用2000节点上限与3000帧/记录预算，并写“3000旧口径已被更正取代”，未清晰区分“单图gameNodeCount≤2000”和“单tick帧预算<3000”两个不同量纲。",
+        "why": "代理按数字匹配时容易把3000帧预算误当节点红线，或在节点超限时套错阈值。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "归档历史叙事，只留当前规则",
+        "detail": "重写行44为“引擎单图gameNodeCount≤2000，超限拆图；动手前先pkc query查预算公式；本地测量是第二取证动作”，删除3000旧口径、clm_*、Sa296f579等历史说明，把完整证据链移到docs/maintenance或PKC。"
+      },
+      {
+        "action": "PKC命令与AGENTS去重",
+        "detail": "命令和context清单只保留在根CLAUDE.md（或单独docs/memory-commands.md）；AGENTS行48-50只保留触发条件与检索顺序，并写明“命令见CLAUDE.md常用命令/PKC”。"
+      },
+      {
+        "action": "增加文件状态行",
+        "detail": "文件头加一行“最近复核2026-09-05；仅含当前规则；历史复盘/证据见docs/与PKC”，方便后续审计判断是否过时。"
+      },
+      {
+        "action": "压缩技能路由表",
+        "detail": "将行52-83每行的解释括号移入对应技能本体，表只留“任务短语|技能名”；并加注“最终以当前会话可用技能清单为准”，减少与技能目录重复。"
+      }
+    ],
+    "priority": "high",
+    "risk": "多数日期和案例是用户明确裁决或复盘证据，直接删会丢失可追溯性；必须先归档到docs/maintenance或PKC后再精简，不能只做文字删减。"
+  },
+  {
+    "path": "/home/h/genshin-ts/CLAUDE.md",
+    "role": "根级仓库知识注入文件，常驻提供命令、架构、DSL语法与类型/构建约束。",
+    "sizeBytes": 9410,
+    "structure": "头部角色分工声明后依次为常用命令、PKC查询、架构概览、DSL速记、类型与运行时单副本专题、修改约束，总体为速查型但含部分深层实现细节。",
+    "issues": [
+      {
+        "location": "行75「主要源码区域 examples/」",
+        "problem": "只列出rubik-2x2、rubik-3x3、lights-out、football、cube-replica-c4五个示例；实际examples目录已有cage-football、rubik-3x3-client、composite-replica、ui-interact-test、capture-set-repro等10余个目录。",
+        "why": "常驻知识给出不全清单会让代理漏掉真实demo；且未指路examples/AGENTS.md，新代理可能不知道进入examples要先看该路由。"
+      },
+      {
+        "location": "行30-40「PKC知识树查询」",
+        "problem": "PKC命令、--level 2注释、context清单与根AGENTS.md行48-50重复；其中“必须带--level 2（默认只搜标题）”在同一份常驻上下文出现两次。",
+        "why": "每会话重复消耗token，且context清单更新时容易出现只改一处、另一份仍旧的维护遗漏。"
+      },
+      {
+        "location": "行84-101「类型与运行时单副本」",
+        "problem": "该节约18行，包含dist双副本断裂888错、Cannot resolve报错原文、解析验证命令等深层实现细节；对大多数不触碰类型/构建配置的会话并无价值却常驻注入。",
+        "why": "每次会话都付出这段上下文成本；维护时细节与历史修复原因混杂，非专业读者难快速提取当前必做项。"
+      },
+      {
+        "location": "行106「修改约束」与根AGENTS.md行18",
+        "problem": "“改DSL/编译/注入后必须先回读真实.gil核验执行流”在CLAUDE.md中重复完整动作，而该文件开头部已声明行为纪律不重复、见AGENTS.md。",
+        "why": "行为红线写了两处，后续若在AGENTS强化或调整细则需要同步两文件，容易漂移。"
+      },
+      {
+        "location": "全文（行1-109）",
+        "problem": "缺少“最近复核/与源码同步状态”标记；examples清单已实证过时，但没有一处提示“此列表可能需对照examples/AGENTS.md复核”。",
+        "why": "常驻知识文件没有状态标记时，每次启动无法快速判断其可信度，过时条目会长期保留。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "更新或弱化examples列举",
+        "detail": "将行75改为“examples/：每个子目录独立demo，入口与状态以examples/AGENTS.md为准（当前含10余目录）”，不再枚举易过时的目录名单。"
+      },
+      {
+        "action": "PKC命令收敛到单一权威",
+        "detail": "若CLAUDE.md保留PKC命令块，则删除AGENTS.md内的命令展开并改指针；至少删除两文件重复的“默认level 1只搜节点标题”解释与context清单注释。"
+      },
+      {
+        "action": "将单副本专题降级为按需文档",
+        "detail": "把行84-101全文移到docs/architecture/type-runtime-single-copy.md，CLAUDE.md只保留一行“改类型/构建配置或新增tsx spawn时读docs/architecture/type-runtime-single-copy.md”。"
+      },
+      {
+        "action": "去除与AGENTS重复的红线",
+        "detail": "行106只保留“改DSL/编译/注入后回读.gil，细则见根AGENTS.md读图核验红线”，删除自行展开的执行细节。"
+      }
+    ],
+    "priority": "high",
+    "risk": "类型与运行时单副本内容是编译构建的救命细节，若只移走不建新文档或链接断裂会导致类型类任务缺关键上下文；移动时必须同步检查src/compiler/AGENTS.md等引用。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/AGENTS.md",
+    "role": "football目录进入即注入的领域规则与状态入口，保护不变量并指引当前看板/设计文档。",
+    "sizeBytes": 5013,
+    "structure": "头部地图与图ID声明、不变量清单、重写前置、验收参照、修复报告模板、复测协议、安全边界、看板指针，正文大量引用v4/v5历史版本。",
+    "issues": [
+      {
+        "location": "行3-5文件头",
+        "problem": "把825/826/828/829四图和dribble-v5/ARCHITECTURE-V5写成当前架构；而仓库根.scratch/football-v2/BOARD.md（09-05更新）显示当前已迁移到fb-*新链路（如1082130433/34/35/36/39等）并已完成旧四图5.3a detach退役。",
+        "why": "该文件是football自动注入的第一段，代理会被引导去操作已退役旧图或旧架构，与当前真值冲突，直接浪费启动和排查成本。"
+      },
+      {
+        "location": "行5与行66",
+        "problem": "同一文件前部把ARCHITECTURE-V5.md称为架构，末尾又把R2-DESIGN.md和REBUILD-V2-PLAN.md列为权威，v4/v5/v6/R2多层版本并存但无“当前可改/历史只读”的状态标记。",
+        "why": "新会话启动需自行推断哪个版本是当前实现；版本切换恰是文件自身记载的高风险教训。"
+      },
+      {
+        "location": "行27-35「二、重写/重构前置」",
+        "problem": "前置条件仍指向v4孤儿文件和v5重写教训，却未提src-fb/当前实现、BOARD和R2-DESIGN作为参照，标题术语停留在v5时代。",
+        "why": "不变量内容本身仍有效，但参照物和目录名过时，代理可能对照错误代码集。"
+      },
+      {
+        "location": "行41-59「四、修复报告模板」与「六、安全边界」",
+        "problem": "三栏门禁、确认制、SHA锁定→回读→Temp同步等与根AGENTS.md重复；football文件把根级规则再次完整写出，只新增行为预期句式和地图/重载细节。",
+        "why": "根AGENTS.md与football/AGENTS.md同时注入，完整重复根规则增加上下文；两处规则若不同步更新会冲突。"
+      },
+      {
+        "location": "行61-65「进度与推进」",
+        "problem": "看板路径写作“.scratch/football-v2/BOARD.md”但未标仓库根；实际文件在仓库根.scratch下，本文件在examples/football下，按相对理解会指向不存在的examples/football/.scratch。",
+        "why": "入口是文件给代理最重要的第一条路径，锚点不清会找错文件或多轮搜索。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "重写文件头为当前状态块",
+        "detail": "行3-5改为：当前迁移到football-v2/R2新链路（src-fb/，资产ID与图ID以仓库根.scratch/football-v2/BOARD.md为准）；旧825/826/828/829与src/*.v4.ts、dribble-v5.ts、ARCHITECTURE-V5.md仅供考古，禁止作为当前操作入口。"
+      },
+      {
+        "action": "统一版本权威标注",
+        "detail": "在文件头或“进度与推进”节显式列一行“当前权威：BOARD.md + R2-DESIGN.md + REBUILD-V2-PLAN.md；ARCHITECTURE-V5.md/旧四图=历史只读”，并删除行5把ARCHITECTURE-V5当作当前架构的表述。"
+      },
+      {
+        "action": "更新重写前置的参照物",
+        "detail": "行29-35增加“对照src-fb/当前实现与BOARD当前票，而不是只对照v4文件”；把v4/v5引用限定为“历史教训只读区”。"
+      },
+      {
+        "action": "路径加根锚点并压缩重复规则",
+        "detail": "所有“.scratch/football-v2/…”改为“仓库根.scratch/football-v2/…”，并写明示例相对路径“../../.scratch/football-v2/BOARD.md”；四、六节只保留football特有增量，根级通用规则改为引用根AGENTS.md。"
+      }
+    ],
+    "priority": "high",
+    "risk": "不变量清单及其commit证据是用户付出复测代价换来的存活纪律，重写时应完整保留行7-26内容；只更新头部状态、版本指针和路径锚点，不建议把不变量本身移到外部。"
+  }
+]

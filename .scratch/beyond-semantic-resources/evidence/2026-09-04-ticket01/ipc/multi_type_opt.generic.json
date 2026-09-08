@@ -1,0 +1,2229 @@
+{
+  "schemaVersion": 1,
+  "title": "Beyond type1017 generic catalog (exploratory)",
+  "method": "HAblp type1017 -> protobuf; extracts available ID list + definition summaries; field11 full blob shape logged but schema open",
+  "frames": 68,
+  "availableIdCount": 88,
+  "availableIds": [
+    1077936129,
+    1077936130,
+    1077936131,
+    1077936132,
+    1077936133,
+    1077936134,
+    1077936135,
+    1077936136,
+    1077936137,
+    1077936138,
+    1077936139,
+    1077936140,
+    1077936141,
+    1077936142,
+    1077936143,
+    1077936144,
+    1077936145,
+    1077936146,
+    1082130433,
+    1082130434,
+    1082130435,
+    1082130436,
+    1082130437,
+    1082130438,
+    1082130439,
+    1082130440,
+    1082130441,
+    1082130442,
+    1082130443,
+    1082130444,
+    1082130445,
+    1082130446,
+    1082130447,
+    1082130448,
+    1082130449,
+    1082130450,
+    1082130451,
+    1082130452,
+    1082130453,
+    1082130454,
+    1082130455,
+    1082130456,
+    1082130457,
+    1082130458,
+    1082130459,
+    1082130460,
+    1082130461,
+    1082130462,
+    1082130463,
+    1082130464,
+    1082130465,
+    1082130466,
+    1082130467,
+    1082130468,
+    1082130469,
+    1082130470,
+    1082130471,
+    1082130472,
+    1082130473,
+    1082130474,
+    1082130475,
+    1082130476,
+    1082130477,
+    1082130478,
+    1082130479,
+    1082130480,
+    1082130481,
+    1082130482,
+    1082130483,
+    1082130484,
+    1082130485,
+    1082130486,
+    1082130487,
+    1082130488,
+    1082130489,
+    1082130490,
+    1082130491,
+    1086324737,
+    1086324738,
+    1086324739,
+    1086324740,
+    1086324741,
+    1086324742,
+    1086324743,
+    1086324744,
+    1086324745,
+    1090519041,
+    1094713345
+  ],
+  "definitions": [
+    {
+      "assetId": 1077936129,
+      "names": [
+        "空模型"
+      ],
+      "sourceEntityIds": [
+        10005018
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936130,
+      "names": [
+        "瀑布"
+      ],
+      "sourceEntityIds": [
+        10005103
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936131,
+      "names": [
+        "瀑布"
+      ],
+      "sourceEntityIds": [
+        10005104
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936132,
+      "names": [
+        "瀑布顶端"
+      ],
+      "sourceEntityIds": [
+        10005105
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936133,
+      "names": [
+        "立方形水体"
+      ],
+      "sourceEntityIds": [
+        10005106
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936134,
+      "names": [
+        "圆柱形水体"
+      ],
+      "sourceEntityIds": [
+        10005107
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936135,
+      "names": [
+        "圆形水体"
+      ],
+      "sourceEntityIds": [
+        10005108
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936136,
+      "names": [],
+      "sourceEntityIds": [
+        10009001
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936137,
+      "names": [
+        "球体"
+      ],
+      "sourceEntityIds": [
+        10009002
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936138,
+      "names": [],
+      "sourceEntityIds": [
+        10009003
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936139,
+      "names": [
+        "三棱柱"
+      ],
+      "sourceEntityIds": [
+        10009004
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936140,
+      "names": [
+        "五棱柱"
+      ],
+      "sourceEntityIds": [
+        10009005
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936141,
+      "names": [
+        "三棱锥"
+      ],
+      "sourceEntityIds": [
+        10009006
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936142,
+      "names": [
+        "五棱锥"
+      ],
+      "sourceEntityIds": [
+        10009007
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936143,
+      "names": [],
+      "sourceEntityIds": [
+        10009008
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936144,
+      "names": [],
+      "sourceEntityIds": [
+        10009009
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936145,
+      "names": [
+        "线框长方体"
+      ],
+      "sourceEntityIds": [
+        10009010
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1077936146,
+      "names": [
+        "线框圆柱"
+      ],
+      "sourceEntityIds": [
+        10009011
+      ],
+      "kindCodes": [
+        1402
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130444,
+      "names": [
+        "火史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007007
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130445,
+      "names": [
+        "大型火史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005007
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130446,
+      "names": [
+        "水史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007006
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130447,
+      "names": [
+        "大型水史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005006
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130448,
+      "names": [
+        "风史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007003
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130449,
+      "names": [
+        "大型风史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005003
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130450,
+      "names": [
+        "雷史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007004
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130451,
+      "names": [
+        "大型雷史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005004
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130452,
+      "names": [
+        "草史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007009
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130453,
+      "names": [
+        "大型草史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005009
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130454,
+      "names": [
+        "冰史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007005
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130455,
+      "names": [
+        "大型冰史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005005
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130456,
+      "names": [
+        "岩史莱姆"
+      ],
+      "sourceEntityIds": [
+        30007008
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130457,
+      "names": [
+        "大型岩史莱姆"
+      ],
+      "sourceEntityIds": [
+        30005008
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130458,
+      "names": [
+        "驰岚·霜夜灵嗣"
+      ],
+      "sourceEntityIds": [
+        30008005
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130459,
+      "names": [
+        "蔓结·霜夜灵嗣"
+      ],
+      "sourceEntityIds": [
+        30008004
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130460,
+      "names": [
+        "金礞·霜夜灵嗣"
+      ],
+      "sourceEntityIds": [
+        30008006
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130461,
+      "names": [
+        "打手丘丘人"
+      ],
+      "sourceEntityIds": [
+        30007001
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130462,
+      "names": [
+        "火箭丘丘人"
+      ],
+      "sourceEntityIds": [
+        30006001
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130463,
+      "names": [
+        "木盾丘丘暴徒"
+      ],
+      "sourceEntityIds": [
+        30006005
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130464,
+      "names": [
+        "火斧丘丘暴徒"
+      ],
+      "sourceEntityIds": [
+        30005002
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130465,
+      "names": [
+        "丘丘霜铠王"
+      ],
+      "sourceEntityIds": [
+        30006002
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130466,
+      "names": [
+        "水深渊法师"
+      ],
+      "sourceEntityIds": [
+        30007002
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130467,
+      "names": [
+        "雷深渊法师"
+      ],
+      "sourceEntityIds": [
+        30006003
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130468,
+      "names": [
+        "冰深渊法师"
+      ],
+      "sourceEntityIds": [
+        30006004
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130469,
+      "names": [
+        "深渊使徒·激流"
+      ],
+      "sourceEntityIds": [
+        30006015
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130470,
+      "names": [
+        "深渊使徒·霜落"
+      ],
+      "sourceEntityIds": [
+        30006013
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130471,
+      "names": [
+        "深渊咏者·渊火"
+      ],
+      "sourceEntityIds": [
+        30006016
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130472,
+      "names": [
+        "深渊咏者·紫电"
+      ],
+      "sourceEntityIds": [
+        30006014
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130473,
+      "names": [
+        "遗迹守卫"
+      ],
+      "sourceEntityIds": [
+        30005001
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130474,
+      "names": [
+        "遗迹重机"
+      ],
+      "sourceEntityIds": [
+        30005011
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130475,
+      "names": [
+        "魔偶剑鬼"
+      ],
+      "sourceEntityIds": [
+        30006010
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130476,
+      "names": [
+        "盗宝团·斥候"
+      ],
+      "sourceEntityIds": [
+        30006009
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130477,
+      "names": [
+        "野伏·阵刀番"
+      ],
+      "sourceEntityIds": [
+        30008001
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130478,
+      "names": [
+        "海乱鬼·炎威"
+      ],
+      "sourceEntityIds": [
+        30008003
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130479,
+      "names": [
+        "海乱鬼·雷腾"
+      ],
+      "sourceEntityIds": [
+        30008002
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130480,
+      "names": [
+        "镀金旅团·阵前斧手"
+      ],
+      "sourceEntityIds": [
+        30006011
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130481,
+      "names": [
+        "镀金旅团·沙中净水"
+      ],
+      "sourceEntityIds": [
+        30006012
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130482,
+      "names": [
+        "疾迅勇士·引索客"
+      ],
+      "sourceEntityIds": [
+        30005012
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130483,
+      "names": [
+        "嵴锋龙武士·破岩锐刃"
+      ],
+      "sourceEntityIds": [
+        30006018
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130484,
+      "names": [
+        "贪食匿叶龙山王"
+      ],
+      "sourceEntityIds": [
+        30006017
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130485,
+      "names": [
+        "金焰绒翼龙暴君"
+      ],
+      "sourceEntityIds": [
+        30005010
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130486,
+      "names": [
+        "窟岩·大灵显化身"
+      ],
+      "sourceEntityIds": [
+        30005013
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130487,
+      "names": [
+        "溯流·大灵显化身"
+      ],
+      "sourceEntityIds": [
+        30005014
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130488,
+      "names": [
+        "愚人众先遣队·冰铳重卫士"
+      ],
+      "sourceEntityIds": [
+        30006006
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130489,
+      "names": [
+        "愚人众先遣队·雷锤前锋军"
+      ],
+      "sourceEntityIds": [
+        30006007
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130490,
+      "names": [
+        "愚人众先遣队·火铳游击兵"
+      ],
+      "sourceEntityIds": [
+        30006008
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1082130491,
+      "names": [],
+      "sourceEntityIds": [
+        30005015
+      ],
+      "kindCodes": [
+        1405
+      ],
+      "sourceFlags": [
+        1
+      ],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 1
+    },
+    {
+      "assetId": 1086324737,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324738,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324739,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324740,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324741,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324742,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324743,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324744,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1086324745,
+      "names": [
+        "默认模版"
+      ],
+      "sourceEntityIds": [
+        1000000
+      ],
+      "kindCodes": [
+        1403
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    },
+    {
+      "assetId": 1090519041,
+      "names": [
+        "默认模版(角色编辑)"
+      ],
+      "sourceEntityIds": [
+        1000001
+      ],
+      "kindCodes": [
+        1404
+      ],
+      "sourceFlags": [],
+      "hasComponentRef": true,
+      "fullCount": 0,
+      "summaryCount": 2
+    }
+  ],
+  "sourceEntityIndex": [
+    {
+      "sourceEntityId": 1000000,
+      "assets": [
+        {
+          "assetId": 1086324737,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324738,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324739,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324740,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324741,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324742,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324743,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324744,
+          "names": [
+            "默认模版"
+          ]
+        },
+        {
+          "assetId": 1086324745,
+          "names": [
+            "默认模版"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 1000001,
+      "assets": [
+        {
+          "assetId": 1090519041,
+          "names": [
+            "默认模版(角色编辑)"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005018,
+      "assets": [
+        {
+          "assetId": 1077936129,
+          "names": [
+            "空模型"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005103,
+      "assets": [
+        {
+          "assetId": 1077936130,
+          "names": [
+            "瀑布"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005104,
+      "assets": [
+        {
+          "assetId": 1077936131,
+          "names": [
+            "瀑布"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005105,
+      "assets": [
+        {
+          "assetId": 1077936132,
+          "names": [
+            "瀑布顶端"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005106,
+      "assets": [
+        {
+          "assetId": 1077936133,
+          "names": [
+            "立方形水体"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005107,
+      "assets": [
+        {
+          "assetId": 1077936134,
+          "names": [
+            "圆柱形水体"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10005108,
+      "assets": [
+        {
+          "assetId": 1077936135,
+          "names": [
+            "圆形水体"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009001,
+      "assets": [
+        {
+          "assetId": 1077936136,
+          "names": []
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009002,
+      "assets": [
+        {
+          "assetId": 1077936137,
+          "names": [
+            "球体"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009003,
+      "assets": [
+        {
+          "assetId": 1077936138,
+          "names": []
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009004,
+      "assets": [
+        {
+          "assetId": 1077936139,
+          "names": [
+            "三棱柱"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009005,
+      "assets": [
+        {
+          "assetId": 1077936140,
+          "names": [
+            "五棱柱"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009006,
+      "assets": [
+        {
+          "assetId": 1077936141,
+          "names": [
+            "三棱锥"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009007,
+      "assets": [
+        {
+          "assetId": 1077936142,
+          "names": [
+            "五棱锥"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009008,
+      "assets": [
+        {
+          "assetId": 1077936143,
+          "names": []
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009009,
+      "assets": [
+        {
+          "assetId": 1077936144,
+          "names": []
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009010,
+      "assets": [
+        {
+          "assetId": 1077936145,
+          "names": [
+            "线框长方体"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 10009011,
+      "assets": [
+        {
+          "assetId": 1077936146,
+          "names": [
+            "线框圆柱"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005001,
+      "assets": [
+        {
+          "assetId": 1082130473,
+          "names": [
+            "遗迹守卫"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005002,
+      "assets": [
+        {
+          "assetId": 1082130464,
+          "names": [
+            "火斧丘丘暴徒"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005003,
+      "assets": [
+        {
+          "assetId": 1082130449,
+          "names": [
+            "大型风史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005004,
+      "assets": [
+        {
+          "assetId": 1082130451,
+          "names": [
+            "大型雷史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005005,
+      "assets": [
+        {
+          "assetId": 1082130455,
+          "names": [
+            "大型冰史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005006,
+      "assets": [
+        {
+          "assetId": 1082130447,
+          "names": [
+            "大型水史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005007,
+      "assets": [
+        {
+          "assetId": 1082130445,
+          "names": [
+            "大型火史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005008,
+      "assets": [
+        {
+          "assetId": 1082130457,
+          "names": [
+            "大型岩史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005009,
+      "assets": [
+        {
+          "assetId": 1082130453,
+          "names": [
+            "大型草史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005010,
+      "assets": [
+        {
+          "assetId": 1082130485,
+          "names": [
+            "金焰绒翼龙暴君"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005011,
+      "assets": [
+        {
+          "assetId": 1082130474,
+          "names": [
+            "遗迹重机"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005012,
+      "assets": [
+        {
+          "assetId": 1082130482,
+          "names": [
+            "疾迅勇士·引索客"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005013,
+      "assets": [
+        {
+          "assetId": 1082130486,
+          "names": [
+            "窟岩·大灵显化身"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005014,
+      "assets": [
+        {
+          "assetId": 1082130487,
+          "names": [
+            "溯流·大灵显化身"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30005015,
+      "assets": [
+        {
+          "assetId": 1082130491,
+          "names": []
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006001,
+      "assets": [
+        {
+          "assetId": 1082130462,
+          "names": [
+            "火箭丘丘人"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006002,
+      "assets": [
+        {
+          "assetId": 1082130465,
+          "names": [
+            "丘丘霜铠王"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006003,
+      "assets": [
+        {
+          "assetId": 1082130467,
+          "names": [
+            "雷深渊法师"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006004,
+      "assets": [
+        {
+          "assetId": 1082130468,
+          "names": [
+            "冰深渊法师"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006005,
+      "assets": [
+        {
+          "assetId": 1082130463,
+          "names": [
+            "木盾丘丘暴徒"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006006,
+      "assets": [
+        {
+          "assetId": 1082130488,
+          "names": [
+            "愚人众先遣队·冰铳重卫士"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006007,
+      "assets": [
+        {
+          "assetId": 1082130489,
+          "names": [
+            "愚人众先遣队·雷锤前锋军"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006008,
+      "assets": [
+        {
+          "assetId": 1082130490,
+          "names": [
+            "愚人众先遣队·火铳游击兵"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006009,
+      "assets": [
+        {
+          "assetId": 1082130476,
+          "names": [
+            "盗宝团·斥候"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006010,
+      "assets": [
+        {
+          "assetId": 1082130475,
+          "names": [
+            "魔偶剑鬼"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006011,
+      "assets": [
+        {
+          "assetId": 1082130480,
+          "names": [
+            "镀金旅团·阵前斧手"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006012,
+      "assets": [
+        {
+          "assetId": 1082130481,
+          "names": [
+            "镀金旅团·沙中净水"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006013,
+      "assets": [
+        {
+          "assetId": 1082130470,
+          "names": [
+            "深渊使徒·霜落"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006014,
+      "assets": [
+        {
+          "assetId": 1082130472,
+          "names": [
+            "深渊咏者·紫电"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006015,
+      "assets": [
+        {
+          "assetId": 1082130469,
+          "names": [
+            "深渊使徒·激流"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006016,
+      "assets": [
+        {
+          "assetId": 1082130471,
+          "names": [
+            "深渊咏者·渊火"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006017,
+      "assets": [
+        {
+          "assetId": 1082130484,
+          "names": [
+            "贪食匿叶龙山王"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30006018,
+      "assets": [
+        {
+          "assetId": 1082130483,
+          "names": [
+            "嵴锋龙武士·破岩锐刃"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007001,
+      "assets": [
+        {
+          "assetId": 1082130461,
+          "names": [
+            "打手丘丘人"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007002,
+      "assets": [
+        {
+          "assetId": 1082130466,
+          "names": [
+            "水深渊法师"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007003,
+      "assets": [
+        {
+          "assetId": 1082130448,
+          "names": [
+            "风史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007004,
+      "assets": [
+        {
+          "assetId": 1082130450,
+          "names": [
+            "雷史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007005,
+      "assets": [
+        {
+          "assetId": 1082130454,
+          "names": [
+            "冰史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007006,
+      "assets": [
+        {
+          "assetId": 1082130446,
+          "names": [
+            "水史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007007,
+      "assets": [
+        {
+          "assetId": 1082130444,
+          "names": [
+            "火史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007008,
+      "assets": [
+        {
+          "assetId": 1082130456,
+          "names": [
+            "岩史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30007009,
+      "assets": [
+        {
+          "assetId": 1082130452,
+          "names": [
+            "草史莱姆"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008001,
+      "assets": [
+        {
+          "assetId": 1082130477,
+          "names": [
+            "野伏·阵刀番"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008002,
+      "assets": [
+        {
+          "assetId": 1082130479,
+          "names": [
+            "海乱鬼·雷腾"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008003,
+      "assets": [
+        {
+          "assetId": 1082130478,
+          "names": [
+            "海乱鬼·炎威"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008004,
+      "assets": [
+        {
+          "assetId": 1082130459,
+          "names": [
+            "蔓结·霜夜灵嗣"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008005,
+      "assets": [
+        {
+          "assetId": 1082130458,
+          "names": [
+            "驰岚·霜夜灵嗣"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceEntityId": 30008006,
+      "assets": [
+        {
+          "assetId": 1082130460,
+          "names": [
+            "金礞·霜夜灵嗣"
+          ]
+        }
+      ]
+    }
+  ],
+  "openItems": [
+    "field11 full definition contains component-serialized payload (field6/7/8) whose component-type schema is not yet decoded.",
+    "Definition names present in IPC are local display labels; they may be TextMap-resolvable via official entity nameTextMapHash."
+  ]
+}

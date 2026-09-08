@@ -1,0 +1,1054 @@
+npm notice run genshin-ts@0.2.0 npx
+npm notice run 'tsx' tools/explain-gil-node-graph.ts /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/魔方-客户端优化版本.gil --graph 指令-
+=== 图解读: 指令->旋转魔方块实体+旋转信息_运动魔方块附加单位状态 (id=1082130436, scope=main) ===
+文件: /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/魔方-客户端优化版本.gil
+SHA-256: f90ac5438c3211f8782e39706945ecbaa205b6a30cb2dd2c19339361c604c5e1
+
+图: 指令->旋转魔方块实体+旋转信息_运动魔方块附加单位状态 (id=1082130436, 191 节点)
+连线: 171 条数据流, 254 条执行流
+
+【系统/复合节点】(2)
+  n=115 系统:向服务器节点图发送信号：系统节点，无内部图；信号名 0，参数行为由信号名决定
+  n=116 系统:向服务器节点图发送信号：系统节点，无内部图；信号名 0，参数行为由信号名决定
+
+【事件入口】(8)
+  n=6 When Custom Variable Changes  List GUID
+  n=21 When Custom Variable Changes  List Int
+  n=41 When Custom Variable Changes  Bool
+  n=105 When Custom Variable Changes  Bool
+  n=121 When Custom Variable Changes  List GUID
+  n=122 When Custom Variable Changes  List GUID
+  n=168 When Custom Variable Changes  List GUID
+  n=172 When Custom Variable Changes  List GUID
+
+【控制流】从事件入口出发的执行主干（分支条件注明数据来源）
+事件: n=6 When Custom Variable Changes  List GUID（未连线，无执行出边）
+事件: n=21 When Custom Variable Changes  List Int（未连线，无执行出边）
+事件: n=41 When Custom Variable Changes  Bool（未连线，无执行出边）
+事件: n=105 When Custom Variable Changes  Bool（未连线，无执行出边）
+事件: n=121 When Custom Variable Changes  List GUID（未连线，无执行出边）
+事件: n=122 When Custom Variable Changes  List GUID（未连线，无执行出边）
+事件: n=168 When Custom Variable Changes  List GUID（未连线，无执行出边）
+事件: n=172 When Custom Variable Changes  List GUID（未连线，无执行出边）
+
+孤立执行链（不挂任何事件入口，1 条）：
+入口: n=1 Set Custom Variable  Dict Str List Bool
+  Branch[0] → n=114 Set Custom Variable  Dict Str List Int
+    Branch[0] → n=22 Set Custom Variable  Dict Str List Int
+      Branch[0] → n=28 Set Custom Variable  Dict Str List Int
+        Branch[0] → n=29 Set Custom Variable  Dict Str List Int
+          Branch[0] → n=30 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=31 Set Custom Variable  Dict Str List Int
+              Branch[0] → n=32 Set Custom Variable  Dict Str List Int
+                Branch[0] → n=33 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=116 系统:向服务器节点图发送信号 [信号=0]
+                  Branch[1] → n=18 Set Custom Variable  Dict Str List Int
+                    Branch[0] → n=37 Set Custom Variable  Dict Str List Int
+                      Branch[0] → n=103 Set Custom Variable  Dict Str List Int
+                        Branch[0] → n=51 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=7 Set Custom Variable  Dict Str List Int
+                            Branch[0] → n=62 Set Custom Variable  Dict Str List Int
+                              Branch[0] → n=78 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=61 Set Custom Variable  Dict Str List Int
+                                    Branch[0] → n=45 Set Custom Variable  Dict Str List Int
+                                      Branch[0] → n=165 Set Custom Variable  Dict Str List Int
+                                        Branch[0] → n=111 Set Custom Variable  Dict Str List Int
+                                          Branch[0] → n=109 Set Custom Variable  Dict Str List Int
+                                            Branch[0] → n=108 Set Custom Variable  Dict Str List Int
+                                              Branch[0] → n=136 Set Custom Variable  Dict Str List Int
+                                                Branch[0] → n=175 Set Custom Variable  Dict Str List Int
+                                                  Branch[0] → n=176 Set Custom Variable  Dict Str List Int
+                                                    Branch[0] → n=4 Set Custom Variable  Dict Str List Int
+                                                      Branch[0] → n=115 系统:向服务器节点图发送信号 [信号=0]
+                                                      Branch[1] → n=16 Set Custom Variable  Dict Str List Int
+                                                        Branch[1] → n=85 Set Custom Variable  Dict Str List Int
+                                                          Branch[0] → n=48 Set Custom Variable  Dict Str List Int
+                                                        Branch[2] → n=88 Set Custom Variable  Dict Str List Int
+                                                          Branch[0] → n=48 Set Custom Variable  Dict Str List Int
+                                                          (与上方路径合并/循环，不再展开)
+                                                        Branch[3] → n=93 Set Custom Variable  Dict Str List Int
+                                                          Branch[0] → n=48 Set Custom Variable  Dict Str List Int
+                                                          (与上方路径合并/循环，不再展开)
+                                                      Branch[1] → n=229 Set Custom Variable  Dict Str List Int
+                                                        Branch[0] → n=224 Set Custom Variable  Dict Str List Int
+                                                          Branch[0] → n=160 Set Custom Variable  Dict Str List Int
+                                                            Branch[0] → n=230 Set Custom Variable  Dict Str List Int
+                                                            Branch[1] → n=224 Set Custom Variable  Dict Str List Int
+                                                            (与上方路径合并/循环，不再展开)
+                                                          Branch[1] → n=2 Set Custom Variable  Dict Str List Int
+                                                            Branch[0] → n=117 Set Custom Variable  Dict Str List Int
+                                                Branch[1] → n=135 Set Custom Variable  Dict Str List Int
+                                                  Branch[0] → n=175 Set Custom Variable  Dict Str List Int
+                                                  (与上方路径合并/循环，不再展开)
+                                                Branch[2] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[3] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[4] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[5] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[6] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[7] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[8] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                                Branch[9] → n=135 Set Custom Variable  Dict Str List Int
+                                                (与上方路径合并/循环，不再展开)
+                                              Branch[1] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                              Branch[2] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                              Branch[3] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                              Branch[4] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                              Branch[5] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                              Branch[6] → n=135 Set Custom Variable  Dict Str List Int
+                                              (与上方路径合并/循环，不再展开)
+                                            Branch[1] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                            Branch[2] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                            Branch[3] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                            Branch[4] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                            Branch[5] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                            Branch[6] → n=135 Set Custom Variable  Dict Str List Int
+                                            (与上方路径合并/循环，不再展开)
+                                          Branch[1] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                          Branch[2] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                          Branch[3] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                          Branch[4] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                          Branch[5] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                          Branch[6] → n=135 Set Custom Variable  Dict Str List Int
+                                          (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=61 Set Custom Variable  Dict Str List Int
+                                  (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=59 Set Custom Variable  Dict Str List Int
+                                    Branch[0] → n=45 Set Custom Variable  Dict Str List Int
+                                    (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=59 Set Custom Variable  Dict Str List Int
+                                  (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=60 Set Custom Variable  Dict Str List Int
+                                    Branch[0] → n=45 Set Custom Variable  Dict Str List Int
+                                    (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=132 Set Custom Variable  Dict Str List Int
+                                  Branch[0] → n=60 Set Custom Variable  Dict Str List Int
+                                  (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=101 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[7] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[8] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[9] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=72 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[7] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[8] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[9] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=73 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[7] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[8] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[9] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=74 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=77 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=134 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=128 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=132 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                              Branch[0] → n=99 Set Custom Variable  Dict Str List Int
+                                Branch[1] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[2] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[3] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[4] → n=130 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[5] → n=131 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                                Branch[6] → n=133 Set Custom Variable  Dict Str List Int
+                                (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=43 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=57 Set Custom Variable  Dict Str List Int
+                            Branch[0] → n=62 Set Custom Variable  Dict Str List Int
+                            (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=49 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=53 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[7] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[8] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[9] → n=57 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=54 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[7] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[8] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[9] → n=7 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=52 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=56 Set Custom Variable  Dict Str List Int
+                            Branch[0] → n=62 Set Custom Variable  Dict Str List Int
+                            (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[7] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[8] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[9] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                        Branch[0] → n=44 Set Custom Variable  Dict Str List Int
+                          Branch[1] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[2] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[3] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[4] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[5] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                          Branch[6] → n=56 Set Custom Variable  Dict Str List Int
+                          (与上方路径合并/循环，不再展开)
+                  Branch[2] → n=18 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                  Branch[3] → n=18 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                  Branch[4] → n=18 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                  Branch[5] → n=18 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                  Branch[6] → n=18 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                Branch[1] → n=65 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                    Branch[0] → n=103 Set Custom Variable  Dict Str List Int
+                    (与上方路径合并/循环，不再展开)
+                Branch[2] → n=36 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                Branch[3] → n=69 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                Branch[4] → n=68 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                Branch[5] → n=47 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+                Branch[6] → n=66 Set Custom Variable  Dict Str List Int
+                  Branch[0] → n=24 Set Custom Variable  Dict Str List Int
+                  (与上方路径合并/循环，不再展开)
+              Branch[1] → n=65 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+              Branch[2] → n=36 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+              Branch[3] → n=69 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+              Branch[4] → n=68 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+              Branch[5] → n=47 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+              Branch[6] → n=66 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+            Branch[1] → n=65 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+            Branch[2] → n=36 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+            Branch[3] → n=69 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+            Branch[4] → n=68 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+            Branch[5] → n=47 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+            Branch[6] → n=66 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[1] → n=34 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+              Branch[0] → n=103 Set Custom Variable  Dict Str List Int
+              (与上方路径合并/循环，不再展开)
+          Branch[2] → n=64 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[3] → n=70 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[4] → n=71 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[5] → n=63 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[6] → n=67 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=23 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[7] → n=19 Set Custom Variable  Dict Str List Int
+            Branch[0] → n=37 Set Custom Variable  Dict Str List Int
+            (与上方路径合并/循环，不再展开)
+          Branch[8] → n=19 Set Custom Variable  Dict Str List Int
+          (与上方路径合并/循环，不再展开)
+          Branch[9] → n=19 Set Custom Variable  Dict Str List Int
+          (与上方路径合并/循环，不再展开)
+        Branch[1] → n=34 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[2] → n=64 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[3] → n=70 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[4] → n=71 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[5] → n=63 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[6] → n=67 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[7] → n=19 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[8] → n=19 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+        Branch[9] → n=19 Set Custom Variable  Dict Str List Int
+        (与上方路径合并/循环，不再展开)
+      Branch[1] → n=34 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[2] → n=64 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[3] → n=70 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[4] → n=71 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[5] → n=63 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[6] → n=67 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[7] → n=19 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[8] → n=19 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+      Branch[9] → n=19 Set Custom Variable  Dict Str List Int
+      (与上方路径合并/循环，不再展开)
+
+【参数来源】每个节点的输入参数从哪来
+  n=1 Set Custom Variable  Dict Str List Bool
+    (无参数输入)
+  n=2 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=8 3D Vector Zoom.Vec
+  n=3 Set or Add Key Value Pairs to Dictionary  Faction Faction
+    InParam[0] ← 字面量 1073741825
+  n=4 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=3 Set or Add Key Value Pairs to Dictionary  Faction Faction.OutParam[0]
+  n=5 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "相等数值个数"
+  n=6 When Custom Variable Changes  List GUID
+    InParam[0] ← n=4 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← 字面量 "位置"
+  n=7 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转角度"
+    InParam[1] ← 字面量 90
+  n=8 3D Vector Zoom
+    Vec:Vec ← 字面量 ComparisonOperators_EqualTo(100)
+    Flt:Flt ← n=5 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← 字面量 3
+  n=9 Set or Add Key Value Pairs to Dictionary  Faction Float
+    (无参数输入)
+  n=10 Set or Add Key Value Pairs to Dictionary  Int List Str
+    InParam[0] ← n=9 Set or Add Key Value Pairs to Dictionary  Faction Float.OutParam[0]
+  n=16 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=35 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["x","y","z"]
+  n=18 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转层数"
+    InParam[1] ← 字面量 3
+  n=19 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转层数"
+    InParam[1] ← 字面量 1
+  n=21 When Custom Variable Changes  List Int
+    InParam[0] ← n=10 Set or Add Key Value Pairs to Dictionary  Int List Str.OutParam[0]
+    InParam[1] ← 字面量 "指令"
+  n=22 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F","B","R","L","U","D","E","M","S"]
+  n=23 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转层数"
+    InParam[1] ← 字面量 1
+  n=24 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转层数"
+    InParam[1] ← 字面量 2
+  n=28 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F'","B'","R'","L'","U'","D'","E'","M'","S'"]
+  n=29 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F2","B2","R2","L2","U2","D2","E2","M2","S2"]
+  n=30 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f","b","r","l","u","d"]
+  n=31 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f'","b'","r'","l'","u'","d'"]
+  n=32 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f2","b2","r2","l2","u2","d2"]
+  n=33 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=40 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["x","y","z","x'","y'","z'"]
+  n=34 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0, -1)
+  n=35 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转轴向"
+  n=36 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0, 0.5)
+  n=37 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0, 0)
+  n=40 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "指令"
+  n=41 When Custom Variable Changes  Bool
+    InParam[0] ← n=125 Set or Add Key Value Pairs to Dictionary  Int List Str.OutParam[0]
+    InParam[1] ← 字面量 "旋转时长"
+  n=42 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转角度"
+  n=43 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["x","y","z","x'","y'","z'"]
+  n=44 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f2","b2","r2","l2","u2","d2"]
+  n=45 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转角速度"
+    InParam[1] ← n=46 Set Custom Variable  List Entity.OutParam[0]
+  n=46 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Division(303)
+    InParam[1] ← n=42 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← n=41 When Custom Variable Changes  Bool.OutParam[0]
+  n=47 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0.5, 0)
+  n=48 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=4 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← 字面量 1
+    InParam[2] ← 字面量 1077936131
+  n=49 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f'","b'","r'","l'","u'","d'"]
+  n=50 Get Corresponding Value From List  Vec
+    InParam[0] ← n=6 When Custom Variable Changes  List GUID.OutParam[0]
+  n=51 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f","b","r","l","u","d"]
+  n=52 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F2","B2","R2","L2","U2","D2","E2","M2","S2"]
+  n=53 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F'","B'","R'","L'","U'","D'","E'","M'","S'"]
+  n=54 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=55 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F","B","R","L","U","D","E","M","S"]
+  n=55 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "指令"
+  n=56 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转角度"
+    InParam[1] ← 字面量 180
+  n=57 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转角度"
+    InParam[1] ← 字面量 -90
+  n=59 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴向"
+    InParam[1] ← 字面量 "x"
+  n=60 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴向"
+    InParam[1] ← 字面量 "y"
+  n=61 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴向"
+    InParam[1] ← 字面量 "z"
+  n=62 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 True(1)
+  n=63 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 1, 0)
+  n=64 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0, 1)
+  n=65 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, 0, -0.5)
+  n=66 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, -0.5, 0)
+  n=67 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0, -1, 0)
+  n=68 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (-0.5, 0, 0)
+  n=69 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (0.5, 0, 0)
+  n=70 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (1, 0, 0)
+  n=71 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "范围中心相对位置"
+    InParam[1] ← 字面量 (-1, 0, 0)
+  n=72 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F'","B'","R'","L'","U'","D'","E'","M'","S'"]
+  n=73 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F2","B2","R2","L2","U2","D2","E2","M2","S2"]
+  n=74 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f'","b'","r'","l'","u'","d'"]
+  n=75 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转层数"
+  n=76 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Addition(300)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[0]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=77 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f2","b2","r2","l2","u2","d2"]
+  n=78 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f","b","r","l","u","d"]
+  n=79 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Subtraction(301)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[0]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=80 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "范围中心相对位置"
+  n=81 Get Corresponding Value From List  Vec
+    InParam[0] ← n=80 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=82 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_LessThan(101)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[0]
+    InParam[2] ← n=76 Set Custom Variable  List Entity.OutParam[0]
+  n=83 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_GreaterThan(103)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[0]
+    InParam[2] ← n=79 Set Custom Variable  List Entity.OutParam[0]
+  n=84 Print String
+    Str:Str ← n=82 3D Vector Angle.Flt
+    InParam[1] ← n=83 3D Vector Angle.Flt
+  n=85 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=84 Print String.OutParam[0]
+  n=86 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Division(303)
+    InParam[1] ← n=75 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← 字面量 2
+  n=87 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Subtraction(301)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[1]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=88 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=89 Print String.OutParam[0]
+  n=89 Print String
+    Str:Str ← n=91 3D Vector Angle.Flt
+    InParam[1] ← n=90 3D Vector Angle.Flt
+  n=90 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_GreaterThan(103)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[1]
+    InParam[2] ← n=87 Set Custom Variable  List Entity.OutParam[0]
+  n=91 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_LessThan(101)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[1]
+    InParam[2] ← n=92 Set Custom Variable  List Entity.OutParam[0]
+  n=92 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Addition(300)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[1]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=93 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=97 Print String.OutParam[0]
+  n=94 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Subtraction(301)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[2]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=95 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_LessThan(101)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[2]
+    InParam[2] ← n=98 Set Custom Variable  List Entity.OutParam[0]
+  n=96 3D Vector Angle
+    Vec:Vec ← 字面量 ComparisonOperators_GreaterThan(103)
+    Vec:Vec ← n=50 Get Corresponding Value From List  Vec.OutParam[2]
+    InParam[2] ← n=94 Set Custom Variable  List Entity.OutParam[0]
+  n=97 Print String
+    Str:Str ← n=95 3D Vector Angle.Flt
+    InParam[1] ← n=96 3D Vector Angle.Flt
+  n=98 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Addition(300)
+    InParam[1] ← n=81 Get Corresponding Value From List  Vec.OutParam[2]
+    InParam[2] ← n=86 Set Custom Variable  List Entity.OutParam[0]
+  n=99 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["x","y","z","x'","y'","z'"]
+  n=100 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "指令"
+  n=101 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=100 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["F","B","R","L","U","D","E","M","S"]
+  n=102 Set or Add Key Value Pairs to Dictionary  Faction Float
+    (无参数输入)
+  n=103 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 True(1)
+  n=104 Set or Add Key Value Pairs to Dictionary  Int List Str
+    InParam[0] ← n=102 Set or Add Key Value Pairs to Dictionary  Faction Float.OutParam[0]
+  n=105 When Custom Variable Changes  Bool
+    InParam[0] ← n=104 Set or Add Key Value Pairs to Dictionary  Int List Str.OutParam[0]
+    InParam[1] ← 字面量 "旋转时长"
+  n=108 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=137 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["x","y","z","x'","y'","z'"]
+  n=109 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=137 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f2","b2","r2","l2","u2","d2"]
+  n=111 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=137 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["f'","b'","r'","l'","u'","d'"]
+  n=114 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "指令"
+    InParam[1] ← n=21 When Custom Variable Changes  List Int.OutParam[0]
+  n=115 系统:向服务器节点图发送信号
+    旋转时长:GUIDList ← n=105 When Custom Variable Changes  Bool.OutParam[0]
+    旋转角度:StringList ← n=166 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    是否还原:Float ← n=119 3D Vector Zoom.Vec
+    魔方整体向前向量:StringList ← n=173 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    魔方整体向上向量:StringList ← n=174 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    指令异常:Float ← 字面量 Default(0)
+  n=116 系统:向服务器节点图发送信号
+    旋转时长:GUIDList ← 字面量 0
+    旋转角度:StringList ← 字面量 (0, 0, 0)
+    是否还原:Float ← 字面量 Default(0)
+    魔方整体向前向量:StringList ← 字面量 (0, 0, 0)
+    魔方整体向上向量:StringList ← 字面量 (0, 0, 0)
+    指令异常:Float ← 字面量 True(1)
+  n=117 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "已还原魔方块个数"
+    InParam[1] ← n=162 Set Custom Variable  List Str.OutParam[0]
+  n=118 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "已还原魔方块个数"
+  n=119 3D Vector Zoom
+    Vec:Vec ← 字面量 ComparisonOperators_EqualTo(100)
+    Flt:Flt ← n=118 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← 字面量 26
+  n=120 Set or Add Key Value Pairs to Dictionary  Faction Float
+    (无参数输入)
+  n=121 When Custom Variable Changes  List GUID
+    InParam[0] ← n=120 Set or Add Key Value Pairs to Dictionary  Faction Float.OutParam[0]
+    InParam[1] ← 字面量 "魔方整体向前向量"
+  n=122 When Custom Variable Changes  List GUID
+    InParam[0] ← n=123 Set or Add Key Value Pairs to Dictionary  Faction Float.OutParam[0]
+    InParam[1] ← 字面量 "魔方整体向上向量"
+  n=123 Set or Add Key Value Pairs to Dictionary  Faction Float
+    (无参数输入)
+  n=124 Insert Value Into List  Str
+    InParam[0] ← n=121 When Custom Variable Changes  List GUID.OutParam[0]
+    InParam[1] ← n=159 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+  n=125 Set or Add Key Value Pairs to Dictionary  Int List Str
+    InParam[0] ← n=126 Set or Add Key Value Pairs to Dictionary  Faction Float.OutParam[0]
+  n=126 Set or Add Key Value Pairs to Dictionary  Faction Float
+    (无参数输入)
+  n=127 Insert Value Into List  Str
+    InParam[0] ← n=122 When Custom Variable Changes  List GUID.OutParam[0]
+    InParam[1] ← n=159 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+  n=128 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (-1, 0, 0)
+  n=130 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (1, 0, 0)
+  n=131 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (0, 1, 0)
+  n=132 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (0, -1, 0)
+  n=133 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (0, 0, -1)
+  n=134 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转轴"
+    InParam[1] ← 字面量 (0, 0, 1)
+  n=135 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "是否整体旋转"
+    InParam[1] ← 字面量 True(1)
+  n=136 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=137 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← 字面量 ["E","M","S","E'","M'","S'","E2","M2","S2"]
+  n=137 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "指令"
+  n=138 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "是否整体旋转"
+  n=139 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转角度"
+  n=140 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转轴"
+  n=141 Get Corresponding Value From List  Vec
+    InParam[0] ← n=140 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=142 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=141 Get Corresponding Value From List  Vec.OutParam[0]
+    InParam[2] ← n=139 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=143 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=141 Get Corresponding Value From List  Vec.OutParam[1]
+    InParam[2] ← n=139 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=144 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=141 Get Corresponding Value From List  Vec.OutParam[2]
+    InParam[2] ← n=139 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=145 Set or Add Key Value Pairs to Dictionary  Str List Faction
+    InParam[0] ← n=148 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[1] ← n=151 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=164 Get Corresponding Value From List  Entity.OutParam[0]
+  n=146 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_BooleanToInteger(805)
+    InParam[1] ← n=138 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=147 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=142 Set Custom Variable  List Entity.OutParam[0]
+  n=148 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=147 Get Corresponding Value From List  Entity.OutParam[0]
+  n=149 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=146 Get Corresponding Value From List  Entity.OutParam[0]
+  n=150 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=149 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=153 Get Corresponding Value From List  Vec.OutParam[0]
+  n=151 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=152 Get Corresponding Value From List  Entity.OutParam[0]
+  n=152 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=143 Set Custom Variable  List Entity.OutParam[0]
+  n=153 Get Corresponding Value From List  Vec
+    InParam[0] ← n=167 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=155 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=149 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=153 Get Corresponding Value From List  Vec.OutParam[1]
+  n=158 Set Custom Variable  List Entity
+    InParam[0] ← 字面量 MathematicalOperators_Multiplication(302)
+    InParam[1] ← n=149 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=153 Get Corresponding Value From List  Vec.OutParam[2]
+  n=159 Set or Add Key Value Pairs to Dictionary  Str List Faction
+    InParam[0] ← n=150 Set Custom Variable  List Entity.OutParam[0]
+    InParam[1] ← n=155 Set Custom Variable  List Entity.OutParam[0]
+    InParam[2] ← n=158 Set Custom Variable  List Entity.OutParam[0]
+  n=160 Set Custom Variable  Dict Str List Int
+    InParam[0] ← n=171 Equal  Vec.OutParam[0]
+  n=161 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "已还原魔方块个数"
+  n=162 Set Custom Variable  List Str
+    InParam[0] ← 字面量 MathematicalOperators_Addition(300)
+    InParam[1] ← n=161 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← 字面量 1
+  n=163 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=144 Set Custom Variable  List Entity.OutParam[0]
+  n=164 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=163 Get Corresponding Value From List  Entity.OutParam[0]
+  n=165 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "旋转角度"
+    InParam[1] ← n=145 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+  n=166 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转角度"
+  n=167 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转角度"
+  n=168 When Custom Variable Changes  List GUID
+    InParam[0] ← n=4 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← n=226 Get Custom Variable  List Bool.OutParam[0]
+  n=169 Insert Value Into List  Str
+    InParam[0] ← n=168 When Custom Variable Changes  List GUID.OutParam[0]
+    InParam[1] ← n=170 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=170 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "旋转角度"
+  n=171 Equal  Vec
+    InParam[0] ← 字面量 ComparisonOperators_EqualTo(100)
+    InParam[1] ← n=200 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+    InParam[2] ← n=172 When Custom Variable Changes  List GUID.OutParam[0]
+  n=172 When Custom Variable Changes  List GUID
+    InParam[0] ← n=4 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← n=227 Get Custom Variable  List Bool.OutParam[0]
+  n=173 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "魔方整体向前向量"
+  n=174 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "魔方整体向上向量"
+  n=175 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "魔方整体向前向量"
+    InParam[1] ← n=184 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+  n=176 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "魔方整体向上向量"
+    InParam[1] ← n=187 Set or Add Key Value Pairs to Dictionary  Str List Faction.OutParam[0]
+  n=178 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=179 Get Corresponding Value From List  Entity.OutParam[0]
+  n=179 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=185 Get Corresponding Value From List  Vec.OutParam[2]
+  n=180 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=185 Get Corresponding Value From List  Vec.OutParam[1]
+  n=181 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=180 Get Corresponding Value From List  Entity.OutParam[0]
+  n=182 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=183 Get Corresponding Value From List  Entity.OutParam[0]
+  n=183 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=185 Get Corresponding Value From List  Vec.OutParam[0]
+  n=184 Set or Add Key Value Pairs to Dictionary  Str List Faction
+    InParam[0] ← n=182 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[1] ← n=181 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=178 Get Corresponding Value From List  Entity.OutParam[0]
+  n=185 Get Corresponding Value From List  Vec
+    InParam[0] ← n=124 Insert Value Into List  Str.OutParam[0]
+  n=186 Get Corresponding Value From List  Vec
+    InParam[0] ← n=127 Insert Value Into List  Str.OutParam[0]
+  n=187 Set or Add Key Value Pairs to Dictionary  Str List Faction
+    InParam[0] ← n=189 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[1] ← n=190 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=193 Get Corresponding Value From List  Entity.OutParam[0]
+  n=188 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=186 Get Corresponding Value From List  Vec.OutParam[0]
+  n=189 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=188 Get Corresponding Value From List  Entity.OutParam[0]
+  n=190 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=191 Get Corresponding Value From List  Entity.OutParam[0]
+  n=191 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=186 Get Corresponding Value From List  Vec.OutParam[1]
+  n=192 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=186 Get Corresponding Value From List  Vec.OutParam[2]
+  n=193 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=192 Get Corresponding Value From List  Entity.OutParam[0]
+  n=194 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=195 Get Corresponding Value From List  Entity.OutParam[0]
+  n=195 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=201 Get Corresponding Value From List  Vec.OutParam[2]
+  n=196 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=201 Get Corresponding Value From List  Vec.OutParam[1]
+  n=197 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=196 Get Corresponding Value From List  Entity.OutParam[0]
+  n=198 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_IntegerToFloatingPoint(801)
+    InParam[1] ← n=199 Get Corresponding Value From List  Entity.OutParam[0]
+  n=199 Get Corresponding Value From List  Entity
+    InParam[0] ← 字面量 TypeConversions_FloatingPointToInteger(807)
+    InParam[1] ← n=201 Get Corresponding Value From List  Vec.OutParam[0]
+  n=200 Set or Add Key Value Pairs to Dictionary  Str List Faction
+    InParam[0] ← n=198 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[1] ← n=197 Get Corresponding Value From List  Entity.OutParam[0]
+    InParam[2] ← n=194 Get Corresponding Value From List  Entity.OutParam[0]
+  n=201 Get Corresponding Value From List  Vec
+    InParam[0] ← n=205 Insert Value Into List  Str.OutParam[0]
+  n=202 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "魔方整体向前向量"
+  n=203 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "魔方整体向上向量"
+  n=204 Insert Value Into List  Float
+    InParam[0] ← n=202 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[1] ← n=203 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+  n=205 Insert Value Into List  Str
+    InParam[0] ← n=169 Insert Value Into List  Str.OutParam[0]
+    InParam[1] ← n=204 Insert Value Into List  Float.OutParam[0]
+  n=223 Set or Add Key Value Pairs to Dictionary  Faction GUID
+    InParam[0] ← 字面量 3
+    InParam[1] ← 字面量 "位置"
+    InParam[2] ← 字面量 "向前向量"
+    InParam[3] ← 字面量 "向上向量"
+    InParam[4] ← 字面量 ""
+    InParam[5] ← 字面量 ""
+    InParam[6] ← 字面量 ""
+    InParam[7] ← 字面量 ""
+    InParam[8] ← 字面量 ""
+    InParam[9] ← 字面量 ""
+    InParam[10] ← 字面量 ""
+  n=224 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 0
+    InParam[1] ← 字面量 2
+  n=225 Set or Add Key Value Pairs to Dictionary  Faction GUID
+    InParam[0] ← 字面量 3
+    InParam[1] ← 字面量 "初始位置"
+    InParam[2] ← 字面量 "初始向前向量"
+    InParam[3] ← 字面量 "向上向量"
+    InParam[4] ← 字面量 ""
+    InParam[5] ← 字面量 ""
+    InParam[6] ← 字面量 ""
+    InParam[7] ← 字面量 ""
+    InParam[8] ← 字面量 ""
+    InParam[9] ← 字面量 ""
+    InParam[10] ← 字面量 ""
+  n=226 Get Custom Variable  List Bool
+    InParam[0] ← n=224 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← n=223 Set or Add Key Value Pairs to Dictionary  Faction GUID.OutParam[0]
+  n=227 Get Custom Variable  List Bool
+    InParam[0] ← n=224 Set Custom Variable  Dict Str List Int.OutParam[0]
+    InParam[1] ← n=225 Set or Add Key Value Pairs to Dictionary  Faction GUID.OutParam[0]
+  n=228 Set or Add Key Value Pairs to Dictionary  Faction Config
+    InParam[0] ← 字面量 "相等数值个数"
+  n=229 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "相等数值个数"
+    InParam[1] ← 字面量 0
+  n=230 Set Custom Variable  Dict Str List Int
+    InParam[0] ← 字面量 "相等数值个数"
+    InParam[1] ← n=231 Set Custom Variable  List Str.OutParam[0]
+  n=231 Set Custom Variable  List Str
+    InParam[0] ← 字面量 MathematicalOperators_Addition(300)
+    InParam[1] ← n=228 Set or Add Key Value Pairs to Dictionary  Faction Config.OutParam[0]
+    InParam[2] ← 字面量 1
+(node:27) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

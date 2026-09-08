@@ -1,0 +1,821 @@
+[
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-sink.ts",
+    "role": "客户端算好的球状态通过信号写入服务端镜像变量的快照门数据图。",
+    "sizeBytes": 2508,
+    "structure": "头部职责注释 + 单一 g.server.onSignal(fb_ball_state) handler，内含 isP 门和 fresh 门。",
+    "issues": [
+      {
+        "location": "顶部注释 L1-7",
+        "problem": "把票号、2026-09-03 拆图、5.2e 减载帧数测算等过程性内容塞进头部，当前职责只需一两句。",
+        "why": "AI 每次启动读文件头都要解析历史票号与性能账，无法快速得到当前图做什么。"
+      },
+      {
+        "location": "L21-22 与 L46/L49",
+        "problem": "快照门原理在长注释里写一遍，两个空分支又各配一句注释，小文件里重复表达同一语义。",
+        "why": "注释密度高但信息增量低，增加逐行阅读负担。"
+      },
+      {
+        "location": "L14 占位注释",
+        "problem": "只说“注入按 config.nodeGraphId 改写”，没有当前是否已注入/仍在占位的状态标记。",
+        "why": "新会话无法判断该文件是事实真值还是待改写占位。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "头部压缩为 2-3 行",
+        "detail": "保留职责、信号名、两扇门，把票号/性能测算移到 issue/design 文档。"
+      },
+      {
+        "action": "合并空分支注释",
+        "detail": "把 L46/L49 的空分支解释并入 L21-22 的门语义，只在门处留一句。"
+      },
+      {
+        "action": "补状态字段",
+        "detail": "文件头加“状态: 已注入/active?”一行，注明由哪个 config 的 nodeGraphId 驱动。"
+      }
+    ],
+    "priority": "low",
+    "risk": "注释内包含减载决策依据，删除前可移到 docs；代码逻辑本身无需动。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-render.ts",
+    "role": "服务端渲染图：启动种子、按镜像新 tick 驱动可见球，并处理 Rest/进球/R3 自动锚点队列。",
+    "sizeBytes": 14849,
+    "structure": "头注释与常量 + whenEntityIsCreated 启动 fb_seed + whenTimerIsTriggered 名单制分发（fb_seed/fb_render），内嵌 Rest 稳态、瞬移/驱动、自动锚点与进球判定。",
+    "issues": [
+      {
+        "location": "L30-32",
+        "problem": "JUMP_EPS=10 的注释引用“选项表上界 24.51”这类外部数值，若选项表变化会与代码真值脱节。",
+        "why": "维护时容易只改表不改注释，AI 会把过期余量当成当前设计。"
+      },
+      {
+        "location": "L110-112 / L131-132 / L146",
+        "problem": "Rest 相关的静止稳态、Rest 到位跳过、Rest 进入拍三处语义分散且部分重叠，注释读起来像多次解释同一状态。",
+        "why": "大函数内读者难快速建立统一的 Rest 状态机模型。"
+      },
+      {
+        "location": "L1-7",
+        "problem": "头部混入“用户模型第 2 点”“票 19 三图拆分”等历史定位，缺少当前挂载/图状态标记。",
+        "why": "每次启动需从历史叙述反推该图是否现网生效。"
+      },
+      {
+        "location": "L66-71",
+        "problem": "种子写 5 个丘丘人实例的注释与实体列表写死，但没有说明这些实例 ID 的来源与过期检查方式。",
+        "why": "若场景实例变化，AI 只能把 437..441 当魔法数。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "把 JUMP_EPS 的理由移到常量上方或设计文档",
+        "detail": "注释保留“>10m 视为 RESET/复位大跳”，去掉外部表上界数字。"
+      },
+      {
+        "action": "抽一个统一 Rest 状态注释块",
+        "detail": "在 render tick 入口说明 Rest 三种情况（稳态提前停、到位停、进入拍），后续分支只写“见块”减少重复。"
+      },
+      {
+        "action": "头部加状态/挂载行",
+        "detail": "写“挂球 1077936135，图 1073741834，当前 active/未注入”等字段。"
+      },
+      {
+        "action": "给 5 个丘丘人 ID 注释补出处",
+        "detail": "注明来自哪个 assets 盘点文件或写成常量数组。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "文件是复杂行为核心；注释整理应保持分支语义说明，不能顺带改执行顺序。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-input.ts",
+    "role": "低频输入与事件收容图：R3 操作台踢球、E1 回声账务、fb_beat 拍门置位。",
+    "sizeBytes": 8876,
+    "structure": "头注释 + whenTabIsSelected（9=RESET、1..8=力度表求和） + onSignal(fb_echo) + whenTimerIsTriggered(fb_beat)。",
+    "issues": [
+      {
+        "location": "L25-29",
+        "problem": "用户接管自动锚点段的注释是一段未闭合的探索记录，含“？——改为……？先按旧语义近似……实测为准”，没有结论。",
+        "why": "看起来像未完成 TODO，AI 可能据此误判当前行为或尝试改逻辑。"
+      },
+      {
+        "location": "L5-6",
+        "problem": "fb_dsp 退役的说明夹在职责头里，属于历史变更记录，不是当前文件结构的一部分。",
+        "why": "头部信息越多，入口定位越慢。"
+      },
+      {
+        "location": "L63-65",
+        "problem": "力度表注释与下方 8 段字面量重复，注释是唯一表格化说明，但行内没有指向校验来源（如 R2-DESIGN）。",
+        "why": "表值若改，注释表格和代码必须同步，易漏。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "把 L25-29 换成当前定论",
+        "detail": "若仍无定论则移到 issue/PROGRESS，文件里只写一行“用户接管与 auto 并发问题见 XX；当前语义=…”"
+      },
+      {
+        "action": "删除 fb_dsp 退役句或移到 changelog",
+        "detail": "头部只留当前三项职责。"
+      },
+      {
+        "action": "力度表注释保留但加出处",
+        "detail": "写“与 R2-DESIGN §4 同表；改动两处须同步”。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "未闭合注释可能反映真实未决设计；修改时应先向用户确认当前语义，不要顺手“定案”。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-idle-listen.ts",
+    "role": "空载验证最小消费图：收 fb_idle_state 信号并做图变量计数。",
+    "sizeBytes": 2695,
+    "structure": "超长设计/隔离策略头注释 + 一个 g.server.onSignal(fb_idle_state) 简单 handler。",
+    "issues": [
+      {
+        "location": "全文头部 L1-23",
+        "problem": "29 行注释对应 8 行代码，包含票 19 阶段、fb-server 消费结构、两路否决与定案过程，严重头重脚轻。",
+        "why": "AI 为读 8 行代码要消化整段历史决策，启动成本高。"
+      },
+      {
+        "location": "L1 “compile-only 至 4.1 注入” vs L17-20 “真实分配/挂载目标”",
+        "problem": "状态表述自相矛盾：一句像仍在 compile-only，另一句又像已分配真值并写回。",
+        "why": "新会话无法判断该图是否已在现网，可能误注入或误删除。"
+      },
+      {
+        "location": "L8/L19/L21",
+        "problem": "多处引用“现网 fb-server.ts”“fb-server fb_auto 同款”，但当前仓库 src-fb 已无 fb-server.ts 源码，历史引用断链。",
+        "why": "读者会按注释去找不存在的文件，浪费检索。"
+      },
+      {
+        "location": "L12-15",
+        "problem": "信号 ID（1610612780/781/782）和 donor 说明与 signals.ts 重复，且发送侧阶段描述可能已随 fb-phys2 切换而过期。",
+        "why": "两份维护点易不一致，信号真值应以 signals.ts 为唯一源。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "重写头部为 3-5 行当前事实",
+        "detail": "保留：职责、信号名与参数、图 ID/挂载实体、当前状态；删掉隔离决策过程。"
+      },
+      {
+        "action": "加明确状态行",
+        "detail": "例如“状态: compile-only（未注入）”或“已注入并挂载球实体 1077936135”+日期。"
+      },
+      {
+        "action": "清除 fb-server.ts 行号引用",
+        "detail": "把“读现网 fb-server.ts L515-707”替换为可检索的 issue/文档路径或删除。"
+      },
+      {
+        "action": "信号定义指向 signals.ts",
+        "detail": "只写“信号定义见 signals.ts”，不重复 ID 和 wire 说明。"
+      }
+    ],
+    "priority": "high",
+    "risk": "若该图在空载阶段确已真实注入，重写时须保留图 ID、挂载实体与信号注册事实；只清注释不清状态。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-svlisten.ts",
+    "role": "票 18 服务端读回图：多造物 echo 计数、位置/HP 轮询与 HP 事件记录。",
+    "sizeBytes": 4477,
+    "structure": "票 18 设计头 + 常量 + whenEntityIsCreated 启两个定时器 + whenTimerIsTriggered 分发 + whenHpIsRecovered + onSignal(fb_sv_echo)。",
+    "issues": [
+      {
+        "location": "L1-12",
+        "problem": "头部大量票 18 多实例适配设计说明和“票 14 遗留修复”历史，当前图 ID/挂载信息反而埋在其中。",
+        "why": "代理要区分现网真值、设计决策和历史错误。"
+      },
+      {
+        "location": "L4",
+        "problem": "“与 fb-server（fb_dsp/fb_beat/fb_seed）及旧四图零串扰”引用当前仓库已不存在的 fb-server 源，串扰清单无法核验。",
+        "why": "断链引用让读者怀疑注释过时。"
+      },
+      {
+        "location": "L18-21",
+        "problem": "实体 ID 常量已写在代码中，头部又用文字复述 447..450，两处需同步。",
+        "why": "增删实体时可能只改一处。"
+      },
+      {
+        "location": "全文无状态行",
+        "problem": "未标“现网/实验/已退役”，票 18 验证图可能在票 19 后被替代。",
+        "why": "AI 不知道是否应继续维护该图。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "压缩头部",
+        "detail": "头部改为图 ID/挂载/职责/定时器名/信号 tag 五要素，把 8 路 tag 设计移到 18-design.md。"
+      },
+      {
+        "action": "去掉 fb-server 断链引用",
+        "detail": "串扰清单改写为“同实体本图 timer 名 + 当前同挂图清单见 assets:mounts 回读”。"
+      },
+      {
+        "action": "实体 ID 只维护代码常量",
+        "detail": "注释不再复述 447..450，写“见下方常量”。"
+      },
+      {
+        "action": "补状态行",
+        "detail": "根据当前票 18/19 归属标注 active/退役。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "文件可能是已写回现网图的源码；压缩注释时不得改动图 ID/实体 ID/信号语义。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-loop.ts",
+    "role": "票 18 客户端 20008 实验图：4 个造物各自执行探针链并回传服务端。",
+    "sizeBytes": 5798,
+    "structure": "设计头 + 图/实体常量 + creationSkill.on(start) 内按 GUID 四分支重复探针链。",
+    "issues": [
+      {
+        "location": "L7-8",
+        "problem": "明确告知“4 份探针链同构手写必须同步改”，但没有防止漂移的检查或同步工具。",
+        "why": "维护靠人记，改一处漏三处是高频事故点。"
+      },
+      {
+        "location": "L1/L16/L21",
+        "problem": "多处引用 18-design.md、18-entity-ids.md 但未给相对路径，代理需全库搜。",
+        "why": "入口不清增加定位成本。"
+      },
+      {
+        "location": "L10",
+        "problem": "“cfg：1207959553~56，1207959557 备用”是重要真值但夹在打印纪律同段，未形成显式状态清单。",
+        "why": "真值容易被当普通注释跳读。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "在头部集中列真值表",
+        "detail": "实体 ID、cfg、tag SVA/SVT、z 常量在一张表；分支内只留一句“同构，见表”。"
+      },
+      {
+        "action": "补文档相对路径",
+        "detail": "如 docs/analysis/18-design.md，避免全库搜索。"
+      },
+      {
+        "action": "增加防漂移提示或校验",
+        "detail": "在注释中给出“改分支时对 4 份 diff”的检查清单，或建议加编译期断言。"
+      },
+      {
+        "action": "补状态行",
+        "detail": "标 active/experimental/是否仍在现网挂载。"
+      }
+    ],
+    "priority": "low",
+    "risk": "代码本身四分支重复，是票 18 刻意设计；注释优化不要误以为可以合并逻辑。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-loop-chan.ts",
+    "role": "channels 原语等价重构自证文件（compile-only）：客户端探针和服务端读回的 channels 版。",
+    "sizeBytes": 6851,
+    "structure": "等价性说明头 + 客户端 20008 占位图 + 服务端 20000 占位图（后者基本克隆 fb-svlisten）。",
+    "issues": [
+      {
+        "location": "L84-142",
+        "problem": "服务端半边整段复制 fb-svlisten 逻辑到 compile-only 文件，没有同步/漂移检测机制。",
+        "why": "原版更新后克隆体会静默过期，文件越长维护负担越大。"
+      },
+      {
+        "location": "L3/L85 “R5 前零字节红线”",
+        "problem": "“零字节红线”等票内术语未解释，新代理无法知道为何不能动原文件。",
+        "why": "专用黑话增加阅读门槛。"
+      },
+      {
+        "location": "L1-12",
+        "problem": "头部同时承担“等价证明”和“禁止注入”职责，缺少文件级状态栏（compile-only 已在但无验证日期）。",
+        "why": "无法判断该自证是否已跑过主配置 0 error。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "服务端克隆改为简短引用",
+        "detail": "若只是证明原语可用，服务端段可只放关键差异片段并指向 fb-svlisten.ts，不必整图复制。"
+      },
+      {
+        "action": "术语加注",
+        "detail": "“零字节红线”注释为“该图已注入现网，源码不得再改导致产物漂移”。"
+      },
+      {
+        "action": "加“最近编译验证”状态",
+        "detail": "注明验证命令与日期，如“npm run build:examples --noinject 0 error 2026-09-05”。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "该文件是编译自证资产，若删除服务端克隆需先确认原语证明仍能覆盖服务端上下文。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/chan-selftest.ts",
+    "role": "channels 原语在真实 DSL 图中的编译自证样板（compile-only，禁止注入）。",
+    "sizeBytes": 3414,
+    "structure": "自证目的头 + 常量 + 客户端 20008 图调用写/读回/身份原语 + 服务端 20000 图覆盖节拍原语。",
+    "issues": [
+      {
+        "location": "L4 “12 原语条目”",
+        "problem": "channels.ts 头已写明旧口径 12 与现口径 13 的差异，本文件仍沿用旧数字。",
+        "why": "同一仓库两处计数不一致，AI 会选错事实源。"
+      },
+      {
+        "location": "L35-80 注释编号 ①②④",
+        "problem": "客户端段从①写、②读回直接跳到④身份，缺③也无说明；服务端段才补节拍，编号让人误以为漏段。",
+        "why": "阅读时需脑补编号规则，增加理解成本。"
+      },
+      {
+        "location": "L27",
+        "problem": "“cfg 段取票 19 假设区间”与常量注释里的“复用现网实体值”混用，未区分哪些是假设哪些是现网真值。",
+        "why": "compile-only 文件里的“真/假”边界模糊，可能被误当生产值引用。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "把原语计数改为引用 channels.ts",
+        "detail": "不重复数字，写“覆盖 channels.ts 全部代码原语；条目口径见 channels.ts 头”。"
+      },
+      {
+        "action": "重排或补③编号",
+        "detail": "客户端段在身份前标“③ 节拍见下方服务端段”，避免断号。"
+      },
+      {
+        "action": "常量注释显式区分",
+        "detail": "每个 CFG/E_D 标“假设区间，仅供编译”或“现网真值，无运行效应”。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "compile-only 文件改动无运行时风险；但更新计数时应与 channels.ts/19-channel-api.md 保持同一口径。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-status.ts",
+    "role": "20009 造物状态图：持续执行技能序号 1，由决策图切入后驱动。",
+    "sizeBytes": 730,
+    "structure": "7 行头部说明 + 一个 g.creationStatus().on('start1') 调用 executeSkill。",
+    "issues": [
+      {
+        "location": "L1-7",
+        "problem": "全部头部都是 E1 历史/模板说明，缺少“当前是否 active/被哪张图使用/是否退役”状态。",
+        "why": "E1 链路后来有多轮改造，新代理无法确认这张旧图是否仍现网。"
+      },
+      {
+        "location": "L7",
+        "problem": "“照抄 zaowu-status-graph 模板（1915 已验证形态）”只有晦涩模板编号，没有路径。",
+        "why": "读者无法核验模板。"
+      },
+      {
+        "location": "L6",
+        "problem": "“CLI 创建的 1191182337「GSTS-fb-calc」”只出现在注释，未在代码中，属于外部资产描述；若技能配置改名会过期。",
+        "why": "外部真值写在源码注释里缺少可维护单一源。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "补状态行",
+        "detail": "加“当前链路: E1?/已退役?/被 1082130435 决策图引用?”。"
+      },
+      {
+        "action": "补模板路径或删除编号",
+        "detail": "写完整相对路径，若模板已不可考则删掉。"
+      },
+      {
+        "action": "把外部技能配置真值放链接",
+        "detail": "指向 assets 清单/issue 而不是裸 ID。"
+      }
+    ],
+    "priority": "low",
+    "risk": "代码极简，改动只在注释；若仍现网勿误标退役。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb-decision.ts",
+    "role": "20007 造物状态决策图：无条件切换到造物状态图执行。",
+    "sizeBytes": 1139,
+    "structure": "头部解释 CLI 无法创建/参数含义 + 单个 g.creationStatusDecision().on('start1')。",
+    "issues": [
+      {
+        "location": "L9-10",
+        "problem": "“1908 客户端段当前空图占用…下一张=预期 1082130435”是当时 ID 分配过程，而代码已实际使用 1082130435。",
+        "why": "当前事实与历史预期混在同一注释，读者误以为 ID 尚未确认。"
+      },
+      {
+        "location": "L8",
+        "problem": "“本图 CLI 建不了、用户在编辑器建空图”是重要的手动前置，但没有“是否已建/已回填”状态。",
+        "why": "代理不知道现在是否仍需用户手动操作。"
+      },
+      {
+        "location": "L1",
+        "problem": "标题只写 E1 时间点，未标注是否在 v5/三图拆分后被替代。",
+        "why": "若旧链路退役，缺退役标记会误导维护。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "把 L9-10 改为“实际已占用 1082130435”",
+        "detail": "删除“下一张=预期”的历史推算，只保留编辑器建空图这一事实。"
+      },
+      {
+        "action": "补状态",
+        "detail": "加“编辑器状态: 已建空图并回填 ID?”及日期。"
+      },
+      {
+        "action": "标注当前链路",
+        "detail": "若 E1 旧链路已不参与现网，加 deprecated 横幅。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "若该决策图仍在用户地图中，状态标错会误导后续注入；ID 不可改。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb20c-server.ts",
+    "role": "票 20 E0 服务端一次性装配图：装配技能配置到角色并施加定时触发状态，同时收 fb20_echo 计数。",
+    "sizeBytes": 7584,
+    "structure": "30 余行头注释/真值 + g.server 常量 + whenEntityIsCreated→一次性定时器→whenTimerIsTriggered 装配 + onSignal(fb20_echo) 计数。",
+    "issues": [
+      {
+        "location": "L1-33 头部",
+        "problem": "注释超长，混合当前职责、用户待办、备选方案、为什么不重补的决策过程，导致入口信息被淹没。",
+        "why": "AI 启动读此文件要先读完大半屏历史与开放式问题才能见到 import。"
+      },
+      {
+        "location": "L16-17 与 L25-26",
+        "problem": "“角色寻址铁律”整块重复两次，完全冗余。",
+        "why": "纯重复占上下文且维护时要改两处。"
+      },
+      {
+        "location": "L20-24",
+        "problem": "“为何不做 0.5s 循环重补”和“若用户无法设无限第 2 轮再定”是设计讨论记录，不属于当前代码契约。",
+        "why": "开放问题留在源码注释里会让代理误以为功能缺失/未完成。"
+      },
+      {
+        "location": "L10 “本轮未挂”",
+        "problem": "状态标记没有日期/当前值，无法知道是否仍“本轮未挂”。",
+        "why": "审计与后续注入都依赖该状态，过期会误导。"
+      },
+      {
+        "location": "L29/L32 引用“设计单 §7.1/§2.3”",
+        "problem": "未给文档路径，代理需自行搜索才能获得上下文。",
+        "why": "入口不清晰。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "重写头部为 6 行当前事实",
+        "detail": "保留职责、图 ID、挂载球实体、装配目标/槽位、状态、设计文档链接；删除备选方案叙述。"
+      },
+      {
+        "action": "删除重复的寻址铁律块",
+        "detail": "只保留一段，最好放在装配代码 L74-80 上方。"
+      },
+      {
+        "action": "把“不重补”讨论移到 issue/设计单",
+        "detail": "源码里只写一句“当前不做重补；原因见 20 设计单”。"
+      },
+      {
+        "action": "状态改为可更新时间戳",
+        "detail": "如“注入状态: 未注入/已注入/已挂载（YYYY-MM-DD）”。"
+      }
+    ],
+    "priority": "high",
+    "risk": "文件是 E0 现网装配逻辑真值，任何注释清理不得改 STATUS_CFG/SKILL_CFG/槽位或装配行为。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb20d-calib.ts",
+    "role": "客户端 20002 校准探针：单次技能内跑大 finiteLoop，以 CAL_START/CAL_DONE 信号测量循环节拍。",
+    "sizeBytes": 3202,
+    "structure": "目标/用法/真值/负载纪律头 + 常量 CFG_RUN/LOOP_ITERS + g.characterSkill.on('start') 一次发送+大循环+DONE。",
+    "issues": [
+      {
+        "location": "L16-20 与 signals20.ts L24",
+        "problem": "真值标为“CLI 候选分配，写回前勿改”，但实际是否已写回无状态；signals20 又写“候选分配，写回后核对”。",
+        "why": "两个文件状态不一致，代理无法判断哪些 ID 是可信真值。"
+      },
+      {
+        "location": "L23 “超 3000 帧截断”",
+        "problem": "引用旧帧数口径；项目知识中该阈值有过更正/口径区分，注释未标注依据。",
+        "why": "若按旧阈值维护可能误判日志截断原因。"
+      },
+      {
+        "location": "L31-34",
+        "problem": "用户实测“20000 圈卡住→回到 500 圈”是重要经验，但与常量 LOOP_ITERS 之间没有“若调到多少需重测”的防呆注释。",
+        "why": "后人可能随意改大常量再次卡客户端。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "统一真值状态",
+        "detail": "在本文件和 signals20.ts 都加“已写回/未写回+日期”，候选与真值分开标注。"
+      },
+      {
+        "action": "复核 3000 口径",
+        "detail": "按项目当前日志/节点上限知识改写为可验证描述，或指向 debug-log 技能规则。"
+      },
+      {
+        "action": "给 LOOP_ITERS 加警戒注释",
+        "detail": "注明“>500 需逐级实测，20000 曾致客户端卡住”。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "若校准信号已真实注册写回，改注释时不能动 ID 和 LOOP 常量；阈值口径需与项目权威规则核对。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/fb20d-ui.ts",
+    "role": "单次释放实验的 UI 服务端图：先创建一次技能实例，按钮点击时 cast 实例并处理 CAL 信号。",
+    "sizeBytes": 4889,
+    "structure": "职责/用户实测/挂载头 + g.server 常量 + 2s 一次性创建实例 + 按钮事件 cast + onSignal 打印 start/done。",
+    "issues": [
+      {
+        "location": "L15",
+        "problem": "源文件头写“挂载：玩家模板 1086324737 def + 1086324737..745 entity 副本”，但 gsts.fb20d-ui-inject.config.ts L8-10 写“角色侧 1090519041 def + entity”。",
+        "why": "同一 UI 图两处挂载目标冲突，代理无法确定正确挂载对象，注入风险高。"
+      },
+      {
+        "location": "L9-14",
+        "problem": "“用户实测/指正”以历史教训形式占头部，源码内重复技能知识库内容。",
+        "why": "每次读文件都读一遍纠错过程，入口变重。"
+      },
+      {
+        "location": "L29 “UI CLI 候选分配 ID”",
+        "problem": "按钮 ID 状态标为“候选分配”，但没有“已建/已挂 UI 控件”状态，和 L15 “用户已修改”形成模糊状态。",
+        "why": "无法判断按钮是否已存在。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "先核对并统一挂载目标",
+        "detail": "用 assets:mounts list / UI 控件回读确认是 1086324737 还是 1090519041，源文件头与 inject config 写同一值。"
+      },
+      {
+        "action": "把用户实测压缩为一行链接",
+        "detail": "如“UI 事件必须挂玩家模板，正确 cast 方式见 client-nodegraph-development 技能”。"
+      },
+      {
+        "action": "补 UI/注入状态行",
+        "detail": "注明按钮 1073741843 是否已建、该图是否已挂、日期。"
+      }
+    ],
+    "priority": "high",
+    "risk": "这是真实注入对象；挂载目标不能靠注释猜测，必须先回读地图/UI 资产再改文档。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/signals.ts",
+    "role": "足球 src-fb 侧共享信号单一事实源：定义 fb_echo/fb_ball_state/fb_sv_echo/fb_idle_state。",
+    "sizeBytes": 2635,
+    "structure": "E1 信号头注释 + defineSignal 对象，每信号附带注册 ID 与语义说明。",
+    "issues": [
+      {
+        "location": "L1-6 文件级头",
+        "problem": "头部只描述 E1 的 fb_echo，而文件实际已含四个票种信号；缺少文件级索引/当前状态表。",
+        "why": "新代理以为该文件只管 E1，忽略后续信号。"
+      },
+      {
+        "location": "L32-33 fb_sv_echo 注释",
+        "problem": "写 tag='SVA'/'SVT'，但实际消费/发送代码使用 SVA1..4/SVT1..4。",
+        "why": "注释与真值不一致，会让人以为只有两个 tag。"
+      },
+      {
+        "location": "L39-41 fb_idle_state 注释",
+        "problem": "说“发送侧 fb-phys2 空载形态 tag='V'”，但当前 fb-phys2.ts 的 OUT_SIG/OUT_TAG 是 fb_ball_state/'P'/'T'，注释只描述某一阶段。",
+        "why": "阶段化状态没有日期标记，易被当成当前事实。"
+      },
+      {
+        "location": "各信号内嵌注册 ID",
+        "problem": "send/monitor/server ID 分散在每个信号注释里，且与 fb-idle-listen/fb20d-calib 等文件重复。",
+        "why": "真值多处维护，注册变更时易漏改。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "文件头加信号总表",
+        "detail": "列出 fb_echo、fb_ball_state、fb_sv_echo、fb_idle_state 的 tag 概要与状态（active/实验/空载），再进入各 defineSignal。"
+      },
+      {
+        "action": "fb_sv_echo 注释改精确 tag",
+        "detail": "写 SVA1..4/SVT1..4，或说明“SVA* 为实例编号，见 fb-loop”。"
+      },
+      {
+        "action": "fb_idle_state 注释加阶段/日期",
+        "detail": "注明当前 fb-phys2 实际输出以 fb-phys2 顶部开关为准，注释不写死阶段值。"
+      },
+      {
+        "action": "注册 ID 收敛",
+        "detail": "只在此文件维护 ID，其他文件引用“见 signals.ts”。"
+      }
+    ],
+    "priority": "high",
+    "risk": "信号定义本身与真实地图注册相关；只改注释/文档不碰 defineSignal 内容和已注册 ID。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/src-fb/signals20.ts",
+    "role": "票 20 专用信号声明：fb20_echo 与单次校准 fb20d_echo。",
+    "sizeBytes": 1649,
+    "structure": "票 20 头注释 + defineSignal 对象包含两个信号及其注册 ID。",
+    "issues": [
+      {
+        "location": "L1 “票 20 E0 轮专用信号本地声明”",
+        "problem": "文件同时包含 2026-09-05 的 fb20d_echo（单次释放校准），标题只写 E0 轮，作用域表述过窄。",
+        "why": "代理会忽略文件里的 E0d 信号或认为放错文件。"
+      },
+      {
+        "location": "L24 fb20d_echo",
+        "problem": "写“候选分配，写回后核对”，没有当前是否已写回状态；与 fb20d-calib.ts 的“写回前勿改”不一致。",
+        "why": "ID 真值状态模糊。"
+      },
+      {
+        "location": "L3-4",
+        "problem": "“本文件新建，不改 signals.ts”是当时的仓库约束；当前是否仍需分文件保存缺少理由。",
+        "why": "新代理可能疑惑为何不合并进 signals.ts。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "文件头改为“票 20 E0/E0d 信号声明”",
+        "detail": "列出两个信号用途，避免作用域误导。"
+      },
+      {
+        "action": "统一写回状态",
+        "detail": "按 assets:signals list/read 回读结果标“已注册/未注册+日期”。"
+      },
+      {
+        "action": "解释分文件原因或建议合并",
+        "detail": "若票 20 约束已结束，可评估合并到 signals.ts；至少注明当初“不碰 signals.ts”的理由。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "信号已真实写回地图时，任何改动不得改动 ID 与参数布局。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.fb-client.config.ts",
+    "role": "足球 src-fb 客户端链路主编译/默认注入配置。",
+    "sizeBytes": 1004,
+    "structure": "头部前置说明 + GstsConfig（compileRoot/entries/outDir/inject）。",
+    "issues": [
+      {
+        "location": "L4",
+        "problem": "“entries 只含 src-fb（客户端三图 + 服务端 fb-server）”与实际目录严重不符：src-fb 现含 fb-svlisten/fb-loop/chan-*/fb20c/fb20d/sink/render/input 等大量文件，且没有 fb-server.ts 源文件。",
+        "why": "入口描述过期会让代理误判编译产物集合和该配置的维护范围。"
+      },
+      {
+        "location": "L5-8",
+        "problem": "“CLI 资产已 --write”“变量已预注册”等前置条件没有完成时间/当前状态，且与 src-fb 中大量 compile-only 占位图并存，读者无法知道哪些前置仍有效。",
+        "why": "资产状态过期是注入类事故的高发源。"
+      },
+      {
+        "location": "L8 “20007 决策图（1082130435 预期）”",
+        "problem": "src-fb/fb-decision.ts 已使用 1082130435，注释却仍说“预期/回填后核对”。",
+        "why": "当前事实与历史预期混在一起。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "重写 L4 的 entries 说明",
+        "detail": "说明 src-fb 包含 active 图、compile-only 图与占位图；如需要精确产物，应列出 include/exclude 规则或指到各文件头状态。"
+      },
+      {
+        "action": "前置条件改为“已核验日期+命令”",
+        "detail": "例如“2026-09-04 assets:mounts list 回读…”，或链接资产盘点文档。"
+      },
+      {
+        "action": "删除“预期”表述",
+        "detail": "决策图 ID 按当前源码 1082130435 写实际状态。"
+      }
+    ],
+    "priority": "high",
+    "risk": "这是主编译配置；改动注释安全，但若要改 entries/排除 compile-only 文件会影响产物，应先确认编译语义。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.fb20c-loop-inject.config.ts",
+    "role": "票 20 E0 客户端 20002 图（1082130439）定点注入配置。",
+    "sizeBytes": 1232,
+    "structure": "注入用途头 + 用法命令 + GstsConfig 锚定 1082130439。",
+    "issues": [
+      {
+        "location": "L13-14",
+        "problem": "“注入序：先本图，后 fb20c-server”放在单文件注入配置中，但该配置命令只注入本图，读者需自行执行第二个配置才知道后序。",
+        "why": "入口流程分散，代理可能只注入一半。"
+      },
+      {
+        "location": "全文无状态行",
+        "problem": "未标“当前已注入/未注入/技能配置 body-f5 是否已绑”，无法从配置判断 E0 进度。",
+        "why": "审计与续跑需要外部文档反推。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "把注入序改为两条命令",
+        "detail": "在本文件头同时写 loop 和 server 两个 config 的完整命令，避免“先…后…”但只给一条。"
+      },
+      {
+        "action": "补状态字段",
+        "detail": "“注入状态: 未注入/已注入+日期”及是否已装配技能配置。"
+      }
+    ],
+    "priority": "low",
+    "risk": "配置本身极小；只改注释不影响注入行为。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.fb20c-server-inject.config.ts",
+    "role": "票 20 E0 服务端装配图（1073741836）定点注入配置。",
+    "sizeBytes": 988,
+    "structure": "注入用途头 + 用法/挂载命令 + GstsConfig 锚定 1073741836。",
+    "issues": [
+      {
+        "location": "L3-4",
+        "problem": "头部说明锚定 1073741836 与源码一致，但未写“注入后挂载”状态是否已执行；fb20c-server.ts 头又说“本轮未挂”。",
+        "why": "两文件状态没有同步点，续跑者不知道当前到哪一步。"
+      },
+      {
+        "location": "L9-11",
+        "problem": "挂载命令换行后的 entity 参数与注释“须挂载才执行”清晰，但缺少执行成功后的回读验证提示。",
+        "why": "代理可能只 attach 不 mounts list 回读。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "加状态行",
+        "detail": "“已注入? 已 attach? 回读日期?”。"
+      },
+      {
+        "action": "命令后补回读校验",
+        "detail": "加一行 assets:mounts list 验证 1073741836 挂球实体 1077936135。"
+      }
+    ],
+    "priority": "low",
+    "risk": "纯注释/命令文档，不影响配置内容。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.fb20d-calib-inject.config.ts",
+    "role": "E0d 客户端 20002 校准图（1082130440）定点注入配置。",
+    "sizeBytes": 713,
+    "structure": "简短用途头 + 用法命令 + GstsConfig 锚定 1082130440。",
+    "issues": [
+      {
+        "location": "全文",
+        "problem": "未标注图 ID/技能配置/信号是否已写回，与 fb20d-calib.ts“候选分配”状态脱节。",
+        "why": "代理无法判断该配置是否已可用于注入。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "补资产状态行",
+        "detail": "按 fb20d-calib.ts/signals20.ts 统一标注“已建图/已注册信号/已写回”的当前状态。"
+      }
+    ],
+    "priority": "low",
+    "risk": "注释更新前需回读资产，避免把候选标成已写回。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.fb20d-ui-inject.config.ts",
+    "role": "E0d UI 触发服务端图（1073741837）定点注入配置。",
+    "sizeBytes": 902,
+    "structure": "用途头 + 用法/挂载命令 + GstsConfig 锚定 1073741837。",
+    "issues": [
+      {
+        "location": "L8-10",
+        "problem": "挂载目标写“角色侧 1090519041 def + entity”，与 fb20d-ui.ts L15“玩家模板 1086324737 def + entity 副本”冲突；且 UI 事件能否由角色侧收到正是该文件头部强调过的坑。",
+        "why": "配置与源码互相矛盾，照任一执行都可能把 UI 图挂到收不到事件的位置。"
+      },
+      {
+        "location": "L4",
+        "problem": "没有状态行说明按钮 1073741843 是否已建、图是否已注入。",
+        "why": "续跑者无法判断该配置是否已完成使命。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "统一挂载目标",
+        "detail": "先 assets:mounts list/UI 控件回读确认实际挂载对象，然后同步修改 fb20d-ui.ts 头与这里。"
+      },
+      {
+        "action": "加状态行",
+        "detail": "“已注入? 已 attach def/entity? 已点按钮实测?”。"
+      }
+    ],
+    "priority": "high",
+    "risk": "挂载对象是真实地图操作核心；不能只按注释猜，必须回读后同步两处文档。"
+  },
+  {
+    "path": "/home/h/genshin-ts/examples/football/gsts.config.ts",
+    "role": "足球示例根配置（v5 三层：logic/render/dribble-v5），用于 src 编译/注入。",
+    "sizeBytes": 751,
+    "structure": "简短 GstsConfig，entries 编译 src 并排除 *.v4.ts，inject 默认锚定逻辑图 1073741825。",
+    "issues": [
+      {
+        "location": "L14-16",
+        "problem": "注释解释 skipSafeCheck 是因为“弹球图 1073741827”非空，但当前 config 的 inject.nodeGraphId 是 1073741825，且仓库中未找到 1073741827 源/图定义。",
+        "why": "理由与配置目标不一致，疑似旧迁移残留；AI 会误以为每次注入都需全局跳过安全检查。"
+      },
+      {
+        "location": "L5-6",
+        "problem": "v5 三层注释列了三个图 ID 但未标注哪些是已建/需挂载/需注入状态；虽短，仍缺状态。",
+        "why": "代理需要额外查 assets 才知道当前图位是否可覆盖。"
+      }
+    ],
+    "suggestions": [
+      {
+        "action": "核实 skipSafeCheck 的真实目标",
+        "detail": "若现网只覆盖逻辑图 1073741825，注释改为该图需跳过的原因；若 1073741827 已不存在，删除该段或改指向设计文档。"
+      },
+      {
+        "action": "状态化三层注释",
+        "detail": "标注 1073741825/1828/1829 的挂载/注入状态与最近回读日期。"
+      }
+    ],
+    "priority": "medium",
+    "risk": "skipSafeCheck=true 会影响注入安全门；改动前必须先确认哪些图确实需要跳过，不能仅删注释而不改行为。"
+  }
+]
