@@ -18,11 +18,12 @@ function run(args) {
 
 // 1) 图节点数（G2 迁移=donor 逐张；G3 合法演进：turn +2=op11 分支（方案 B 用户裁决）、
 //    solverPlan +9/EPlan +9=seq-ready 提示门、LPlan 不变（门在 llPublishSeq 复合 impl）、
-//    rgState 116→118=op7 兜底清旗标、rgHint 11/rgInput 11 新图（2026-09-09 提示机制轮））
+//    rgState 116→118=op7 兜底清旗标、rgHint 11/rgInput 11 新图（2026-09-09 提示机制轮）；
+//    G4 合法演进：rgWin 27 新图（胜利自旋，1838）→ 总 1144）
 const expectedNodes = {
   1073741825: 85, 1073741826: 8, 1073741827: 30, 1073741828: 72, 1073741829: 271,
   1073741830: 44, 1073741831: 161, 1073741832: 8, 1073741833: 298, 1073741835: 118,
-  1073741836: 11, 1073741837: 11
+  1073741836: 11, 1073741837: 11, 1073741838: 27
 }
 const graphLines = run(['assets:node-graphs', 'read', '--gil', GIL])
   .split('\n').filter((l) => /^graph 10737418/.test(l))
@@ -35,8 +36,8 @@ for (const [id, n] of Object.entries(expectedNodes)) {
 const total = graphLines
   .filter((l) => !l.includes('1834'))
   .reduce((s, l) => s + Number(l.match(/nodes=(\d+)/)?.[1] ?? 0), 0)
-if (total === 1117) {
-  ok('graph node total=1117')
+if (total === 1144) {
+  ok('graph node total=1144')
 } else {
   bad('node total', `got=${total}`)
 }
