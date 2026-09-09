@@ -6,10 +6,10 @@
 ## 一、资产速查（donor 1899 与红线）
 
 - **本游戏 MAP_ID=1073741920「魔方残局挑战」**（2026-09-09 maps:create+init 36 骨架 roots+temp 同步；工程=examples/rubik-game/，占位主图 1073741825 已编译通过）
-- 地图 1073741899（用户复测通过 2026-09-02）；26 块 prefab 1077936149..174；控制器 prefab 1077936200
-- 实体：A=1077936201、B=1077936203、测试台=1077936231、solver=1077936230
-- 图×9：1825 主玩法/1826 中继/1827 视觉/1830 game/1833 solver/1835 turn(满预算~1988)/1836 EPlan/1837 testPanel/1838 LPlan
-- 挂载：1077936201=game+turn；1077936203=relay+visual；1077936230=solver+solverPlan(E/L)
+- 地图 1073741899（用户复测通过 2026-09-02）；**实测资产清单见 MIGRATION.md**（2026-09-09 CLI 盘点：26 块 prefab=1077936204..229 v2 段；控制器 prefab 200/202；元件组 230；实体 6 个 6201/6203/6230/6231/6260/6261；图 10 张 1830..1839 含 solverPlan 262 节点与切换镜头；信号 7 条 rubik3x3_*）
+- 实体（6）：A=1077936201、B=1077936203、solver=1077936230、测试台=1077936231、空模型=1077936260、物件镜头=1077936261
+- 图×10：1830 game(85)/1831 relay(8)/1832 visual(30)/1833 solver(72)/1834 solverPlan(262)/1835 turn(42 逻辑帧满预算~1988)/1836 solverEPlan(152)/1837 testPanel(8)/1838 solverLPlan(298)/1839 切换镜头(8)
+- 挂载：6201=game+turn；6203=relay+visual；6230=solver+solverPlan+solverEPlan+solverLPlan（4图）；6231=testPanel；6261=切换镜头
 - op：5=重算/6=序列就绪/7=最终完成/13=stage2→E/14=E→L
 - 红线：单图≤2000 节点；帧<3000；零高频轮询；MB≤10 case；solveBuf≤100；全 0 int_list 哨兵；finiteLoop N-1；先写回再读回；注入看「All injections done (ok N)」；新 ID≥1077936129
 - 环境：dist/src/cli/gsts.js 可用；足球 WIP 未提交——只定向构建；游戏地图目录 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/
@@ -17,7 +17,7 @@
 
 ## 二、当前前沿
 
-**票 02（新地图骨架）**——G1 已收口，下一步创建新地图+MAP_ID 落档。
+**票 03（资产迁移+视觉等价）**——票02 已收口（1073741920 骨架就绪），当前步=donor 1899 资产盘点+MIGRATION.md 映射表。
 
 ## 三、票据清单
 

@@ -1,6 +1,6 @@
 # 票02：新地图骨架与目录（G2 前半）
 
-**Status**: ⬜ Open（前沿）
+**Status**: ✅ Done 2026-09-09
 **Blocked by**: 01
 
 ## What
