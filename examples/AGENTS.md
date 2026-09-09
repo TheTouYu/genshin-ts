@@ -7,6 +7,7 @@
 | --- | --- | --- | --- |
 | football/ | 真实物理足球（主线） | 活跃 | AGENTS.md（含不变量清单+看板指针） |
 | rubik-3x3/ | 3×3 魔方自动还原主线 | 活跃 | AGENTS.md、PROGRESS.md |
+| rubik-game/ | 魔方残局挑战游戏化（1899 donor 复制） | 活跃 | PROGRESS.md（设计=根 .scratch/rubik-game/RG-DESIGN.md） |
 | rubik-3x3-client/ | 魔方客户端计算改造（3x3 复制） | 活跃 | AGENTS.md |
 | cage-football/ | 笼式足球实验 | 活跃（实验） | CONTEXT.md、DESIGN.md |
 | rubik-2x2/ | 2×2 魔方（game-from-scratch 参照样板） | 静默（08-23 后） | README.md、PROGRESS.md |
