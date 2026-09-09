@@ -753,6 +753,17 @@
   球跟随需回退静态实例路径。结果回填 components.md 该节。
 - 关联：`retrospective-2026-09-07-ball-follow-lane.md`；提交 49bac9e。
 
+### O-2026-09-09-01. PKC `query --level 2` 全库返回 0 claims（knowledge-search 正常）【OPEN-知识树检索】
+
+- 现象：2026-09-09 rubik-game 复盘入树后验证检索：`python tools/pkc.py query "信号 注册 参数" --level 2`
+  基线词也返回 `claims: 0`（树内 95 topic）；`knowledge-search`（lexical/semantic）与 `show-claim` 正常命中。
+  新入树 topic `task-declaration-discipline` 同样 query 不中（其 keywords 曾误存单字符串已修数组，修后仍不中
+  ——非该 topic 特有，是 query 通道整体问题）。
+- 影响：AGENTS.md「信息检索优先级」第 1 步 `pkc query` 对 claim 级检索失效，实际只能靠 knowledge-search 兜底。
+- 何时做：查 pkc.py query 的 claims 装载/过滤逻辑（是否只读某索引文件、或 status 过滤把 internal 全滤掉）；
+  修复后用基线词「信号 注册 参数」+「声明 纪律」双验证。
+- 关联：`retrospective-2026-09-09-rubik-game-gamification.md` §五；提交 0af1d14。
+
 ### O-2026-09-07-02. HEAD `npm run build` 预存 3974 类型错、dist 停在 2026-09-03【OPEN-构建债务】
 
 - 现象：全量 tsc 报 3974 错——examples/football/dist-fb/*.gs.ts 生成物（~3960）+ src/runtime/core.ts 4 处
