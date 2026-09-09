@@ -19,6 +19,7 @@ const graph = g
       moves: new int(0),
       hintUsed: new int(0),
       stars: new int(0),
+      nextLvl: new int(0), // 下一关目标档位（23 专用暂存）
       started: false // whenEntityIsCreated 去重门（重复触发实证）
     }
   })
@@ -81,28 +82,66 @@ const graph = g
             f.setNodeGraphVariable('moves', mv, false)
             f.setCustomVariable(self, new str('rg_moves'), mv, false)
             f.sendSignal(RgSignal.rubikgame_state, 3n, mv)
+          }, () => {})
+        }, () => {})
+        // 重开 21：PLAYING/SETTLED 且有档位 → 原档位重打乱（结算页「重试」同此）
+        f.doubleBranch(f.equal(btn, 21n), () => {
+          const inGame = f.logicalOrOperation(
+            f.equal(f.getNodeGraphVariable('stage').asType('int'), 3n),
+            f.equal(f.getNodeGraphVariable('stage').asType('int'), 4n)
+          )
+          f.doubleBranch(inGame, () => {
+            f.doubleBranch(f.greaterThan(f.getNodeGraphVariable('level').asType('int'), 0n), () => {
+              f.setNodeGraphVariable('moves', new int(0), false)
+              f.setNodeGraphVariable('hintUsed', new int(0), false)
+              f.setNodeGraphVariable('stage', new int(2), false)
+              f.setCustomVariable(self, new str('rg_moves'), new int(0), false)
+              f.setCustomVariable(self, new str('rg_stage'), new int(2), false)
+              f.sendSignal(RgSignal.rubikgame_state, 1n, 2n)
+              f.sendSignal(RubikSignal.rubik3x3_solve, 11n, f.getNodeGraphVariable('level').asType('int'))
+            }, () => {})
+          }, () => {})
+        }, () => {
+          // 菜单 22：任意时刻回选关
+          f.doubleBranch(f.equal(btn, 22n), () => {
+            f.setNodeGraphVariable('stage', new int(1), false)
+            f.setCustomVariable(self, new str('rg_stage'), new int(1), false)
+            f.sendSignal(RgSignal.rubikgame_state, 1n, 1n)
           }, () => {
-            // 重开 21：有档位则重打乱
-            f.doubleBranch(f.equal(btn, 21n), () => {
-              f.doubleBranch(f.greaterThan(f.getNodeGraphVariable('level').asType('int'), 0n), () => {
+            // 下一关 23：档位 3→5→8→12 递进重开；12 档后回选关
+            f.doubleBranch(f.equal(btn, 23n), () => {
+              f.setNodeGraphVariable('nextLvl', new int(0), false)
+              const lv = f.getNodeGraphVariable('level').asType('int')
+              f.doubleBranch(f.equal(lv, 3n), () => {
+                f.setNodeGraphVariable('nextLvl', new int(5), false)
+              }, () => {})
+              f.doubleBranch(f.equal(lv, 5n), () => {
+                f.setNodeGraphVariable('nextLvl', new int(8), false)
+              }, () => {})
+              f.doubleBranch(f.equal(lv, 8n), () => {
+                f.setNodeGraphVariable('nextLvl', new int(12), false)
+              }, () => {})
+              f.doubleBranch(f.greaterThan(f.getNodeGraphVariable('nextLvl').asType('int'), 0n), () => {
+                const nl = f.getNodeGraphVariable('nextLvl').asType('int')
+                f.setNodeGraphVariable('level', nl, false)
+                f.setNodeGraphVariable('par', nl, false)
                 f.setNodeGraphVariable('moves', new int(0), false)
                 f.setNodeGraphVariable('hintUsed', new int(0), false)
                 f.setNodeGraphVariable('stage', new int(2), false)
+                f.setCustomVariable(self, new str('rg_level'), nl, false)
+                f.setCustomVariable(self, new str('rg_par'), nl, false)
                 f.setCustomVariable(self, new str('rg_moves'), new int(0), false)
                 f.setCustomVariable(self, new str('rg_stage'), new int(2), false)
                 f.sendSignal(RgSignal.rubikgame_state, 1n, 2n)
-                f.sendSignal(RubikSignal.rubik3x3_solve, 11n, f.getNodeGraphVariable('level').asType('int'))
-              }, () => {})
-            }, () => {
-              // 菜单 22：回选关
-              f.doubleBranch(f.equal(btn, 22n), () => {
+                f.sendSignal(RubikSignal.rubik3x3_solve, 11n, nl)
+              }, () => {
                 f.setNodeGraphVariable('stage', new int(1), false)
                 f.setCustomVariable(self, new str('rg_stage'), new int(1), false)
                 f.sendSignal(RgSignal.rubikgame_state, 1n, 1n)
-              }, () => {})
-            })
+              })
+            }, () => {})
           })
-        }, () => {})
+        })
       })
     })
   })
@@ -131,6 +170,7 @@ const graph = g
         const self = f.getSelfEntity()
         f.doubleBranch(three, () => {
           f.setNodeGraphVariable('stars', new int(3), false)
+          f.setCustomVariable(self, new str('rg_stars'), new int(3), false)
           f.setNodeGraphVariable('stage', new int(4), false)
           f.setCustomVariable(self, new str('rg_stage'), new int(4), false)
           f.sendSignal(RgSignal.rubikgame_state, 4n, 3n)
@@ -138,11 +178,13 @@ const graph = g
           const two = f.logicalNotOperation(f.greaterThan(mv, par3))
           f.doubleBranch(two, () => {
             f.setNodeGraphVariable('stars', new int(2), false)
+            f.setCustomVariable(self, new str('rg_stars'), new int(2), false)
             f.setNodeGraphVariable('stage', new int(4), false)
             f.setCustomVariable(self, new str('rg_stage'), new int(4), false)
             f.sendSignal(RgSignal.rubikgame_state, 4n, 2n)
           }, () => {
             f.setNodeGraphVariable('stars', new int(1), false)
+            f.setCustomVariable(self, new str('rg_stars'), new int(1), false)
             f.setNodeGraphVariable('stage', new int(4), false)
             f.setCustomVariable(self, new str('rg_stage'), new int(4), false)
             f.sendSignal(RgSignal.rubikgame_state, 4n, 1n)
