@@ -62,6 +62,8 @@ rubik3x3_solve[op,val] / rubik3x3_solve_ack[] / rubik3x3_solve_done[ok] / rubik3
 
 ## 不迁移项
 
+tabBar 决策修正（2026-09-09 用户实锤 bug）：原「实体定义里的组件槽结构保留原样」决策错误——A 控制器 15 项 tabBar 超单实体 10 项上限，游戏拒载「存在实体使用选项且数量超过10个」。用户已手动移除 A 的 tabBar；B 控制器 7 项合法保留（临时操作入口，G4 UI v3 退役）。教训：迁移=玩法语义迁移而非字节等价——已被新设计退役的组件必须在迁移变换里剔除，拒载硬规则要进迁移检查清单（checks/g2-map.mjs 已加 tabBar>10 回归断言）。
+
 切换镜头 1834 处置：无 src（editor-made）——G4 美术期用 gil:parse-node-graph 从 donor 1839 提取 8 节点结构重写 DSL 编译注入；本轮占位悬空不挂载（6261 物件镜头实体已在位，挂载矩阵可后补）。
 
 - tabBar 组件配置（UI v3 退役；但实体定义里的组件槽结构保留原样——turn 图 tabBar 事件分支仍在，仅无 UI 入口，方案 B 手术时再定）
