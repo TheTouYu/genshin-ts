@@ -149,5 +149,20 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 10009001
    */
-  魔方控制器3x3: 1077936200
+  魔方控制器3x3: 1077936200,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  竞技场基座: 1077936350,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  竞技场聚光: 1077936351,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  竞技场铭牌: 1077936352
 }
