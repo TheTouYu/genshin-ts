@@ -1594,6 +1594,22 @@
         "BeyondEditor, effectID, TextMapHash, MiHoYoBinData, Blb, RoleStatus, IL2CPP, global-metadata, mihoyobin"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "task-declaration-discipline",
+      "node_id": "game-engine-knowledge",
+      "title": "任务声明预测纪律",
+      "path": "knowledge/game-engine-knowledge/task-declaration-discipline.md",
+      "summary": "超级任务 declare/converge 对账的预测值形态规则（rubik-game 7 次回炉谱系收敛）",
+      "keywords": [
+        "declare",
+        "回炉",
+        "声明",
+        "对账",
+        "纪律",
+        "预测"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3503,6 +3519,11 @@
     "clm_2CD084FB7C9058036423779120": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_809A44ABAD890B9A3852BEFF08": {
+      "fact_classes": [
+        "runtime_behavior"
       ]
     }
   }

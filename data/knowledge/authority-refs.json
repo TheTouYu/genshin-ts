@@ -4106,6 +4106,21 @@
       ]
     },
     {
+      "id": "aref_995e4fd179cfe220140df3ecea",
+      "path": "docs/game-engine-knowledge/retrospective-2026-09-09-rubik-game-gamification.md",
+      "locator": "一、错误谱系总览（A 族声明纪律 7 次回炉表）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "077869efb32e3b02dc80d38c2c6a0f27026d578e2af0080811aabe1ca3a170cb",
+      "claim_ids": [
+        "clm_809A44ABAD890B9A3852BEFF08"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_997f9cdb4d03cf87deb6f2c42b",
       "path": ".agents/skills/miliastra-knowledge/references/tools.md",
       "locator": "已知坑 6. query.sh 大响应会 Argument list too long",
