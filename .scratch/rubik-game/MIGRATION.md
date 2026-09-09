@@ -21,6 +21,8 @@
 
 ## 实体（root5，共 6 个自定义）
 
+**已导入（2026-09-09 实测读回 6/6；导入形态陷阱三条）**：①必须带 `import` 子命令动词（默认=export，缺动词静默导出现状零写入）；②export/import color 往返不对称（导={enabled:false} 对象形、入='#RRGGBB' 字符串校验）——prepare-entities-import.mjs 滤模版实体（17→6）+删禁用 color 字段绕过；③export 含 11 个模版实体，直接导入会与 init 模版冲突，必须滤 62xx 段。
+
 | donor ID | 名称 | definitionId | 挂载图 |
 |---|---|---|---|
 | 1077936201 | 魔方控制器3x3（A） | 1077936200 | 1830 game + 1835 turn |
@@ -32,22 +34,26 @@
 
 ## 节点图（root10，共 10 张）
 
-| donor ID | 名称 | nodeCount | 迁移 |
-|---|---|---|---|
-| 1073741830 | _GSTS_game | 85 | ✅（主玩法） |
-| 1073741831 | _GSTS_relay | 8 | ✅ |
-| 1073741832 | _GSTS_visual | 30 | ✅ |
-| 1073741833 | _GSTS_solver | 72 | ✅（票06 提示改造点） |
-| 1073741834 | _GSTS_solverPlan | 262 | ✅ |
-| 1073741835 | _GSTS_turn | 42 | ✅（零改动原则） |
-| 1073741836 | _GSTS_solverEPlan | 152 | ✅ |
-| 1073741837 | _GSTS_testPanel | 8 | ✅ |
-| 1073741838 | _GSTS_solverLPlan | 298 | ✅ |
-| 1073741839 | 切换镜头 | 8 | ✅（镜头功能，用户在用） |
+**新图占位已建（2026-09-09 实测读回，id 映射=donor−5）**：
+
+| donor ID | 新图 ID | 名称 | nodeCount | 迁移 |
+|---|---|---|---|---|
+| 1073741830 | 1073741825 | _GSTS_game | 85 | ✅（主玩法） |
+| 1073741831 | 1073741826 | _GSTS_relay | 8 | ✅ |
+| 1073741832 | 1073741827 | _GSTS_visual | 30 | ✅ |
+| 1073741833 | 1073741828 | _GSTS_solver | 72 | ✅（票06 提示改造点） |
+| 1073741834 | 1073741829 | _GSTS_solverPlan | 262 | ✅ |
+| 1073741835 | 1073741830 | _GSTS_turn | 42 | ✅（零改动原则） |
+| 1073741836 | 1073741831 | _GSTS_solverEPlan | 152 | ✅ |
+| 1073741837 | 1073741832 | _GSTS_testPanel | 8 | ✅ |
+| 1073741838 | 1073741833 | _GSTS_solverLPlan | 298 | ✅ |
+| 1073741839 | 1073741834 | 切换镜头 | 8 | ✅（无 src，DSL 重建或缓做） |
 
 ## 信号（7 条，全迁移；新图信号注册后核验 v/defs 一致性）
 
-rubik3x3_solve[op,val] / rubik3x3_solve_ack[] / rubik3x3_solve_done[ok] / rubik3x3_solve_move[moveId] / rubik3x3_solve_ready[] / rubik3x3_solve_req[] / rubik3x3_tab[tabId]
+rubik3x3_solve[op,val] / rubik3x3_solve_ack[] / rubik3x3_solve_done[ok] / rubik3x3_solve_move[moveId] / rubik3x3_solve_ready[] / rubik3x3_solve_req[] / **rubik3x3_tab[tabId]**（注意：非 solve_tab——donor 实名 rubik3x3_tab）
+
+**已注册（2026-09-09，2026-09-09 实测）**：7 条全带正确参数；注册形态必须 `register --template-gil donor --template-signal X --name X --param 名:型... --write` 一次性完成（**--param 必须显式**：模板只拷布局不拷参数；先无参注册后 update/repair 均无法补——update 拒模板、双 int 参数需 2 布局内建不足、repair 锁名、register 拒重名、无 delete——唯一修复=回滚备份重注册，已实操）。send/monitor/server 三件套 id=1610612741..761。
 
 ## 变量
 

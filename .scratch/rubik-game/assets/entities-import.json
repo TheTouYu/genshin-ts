@@ -1,0 +1,240 @@
+{
+  "entities": [
+    {
+      "auxIds": [
+        1073741940
+      ],
+      "components": [
+        {
+          "options": [
+            "R1",
+            "L",
+            "U",
+            "D",
+            "F",
+            "B",
+            "M",
+            "E",
+            "S"
+          ],
+          "regionCenter": [
+            0,
+            0,
+            0
+          ],
+          "regionName": "魔方3x3",
+          "regionRadius": 3,
+          "regionType": "sphere",
+          "type": "tabBar"
+        },
+        {
+          "preset": "default",
+          "type": "nameplate"
+        }
+      ],
+      "definitionId": 1077936200,
+      "id": 1077936201,
+      "name": "魔方控制器3x3",
+      "position": [
+        -0.5335445404052734,
+        1.2000000476837158,
+        -0.6390348672866821
+      ],
+      "resourceId": 10009001,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "auxIds": [
+        1073742051
+      ],
+      "components": [
+        {
+          "options": [
+            "整体转X",
+            "整体转Y",
+            "整体转Z",
+            "自动打乱",
+            "自动还原",
+            "重置",
+            "反向旋转"
+          ],
+          "regionCenter": [
+            0,
+            0,
+            0
+          ],
+          "regionName": "魔方3x3-B",
+          "regionRadius": 3,
+          "regionType": "sphere",
+          "type": "tabBar"
+        }
+      ],
+      "definitionId": 1077936202,
+      "id": 1077936203,
+      "name": "魔方控制器3x3-B",
+      "position": [
+        1.2491233348846436,
+        0.08022260665893555,
+        -1.9523663520812988
+      ],
+      "resourceId": 10009001,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "auxIds": [
+        1073742052
+      ],
+      "components": [
+        {
+          "preset": "default",
+          "type": "textBubble"
+        },
+        {
+          "options": [
+            "整体转X",
+            "整体转Y",
+            "整体转Z",
+            "自动打乱",
+            "自动还原",
+            "重置",
+            "反向旋转"
+          ],
+          "regionCenter": [
+            0,
+            0,
+            0
+          ],
+          "regionName": "魔方3x3-B",
+          "regionRadius": 3,
+          "regionType": "sphere",
+          "type": "tabBar"
+        }
+      ],
+      "definitionId": 1077936202,
+      "id": 1077936230,
+      "name": "魔方自动求解",
+      "position": [
+        -8.514910697937012,
+        -0.7934590578079224,
+        1.9240976572036743
+      ],
+      "resourceId": 10009001,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "auxIds": [
+        1073742053
+      ],
+      "components": [
+        {
+          "options": [
+            "二层测试状态",
+            "切换自动复原转动的速度"
+          ],
+          "regionCenter": [
+            0,
+            0,
+            0
+          ],
+          "regionName": "魔方3x3-B",
+          "regionRadius": 3,
+          "regionType": "sphere",
+          "type": "tabBar"
+        }
+      ],
+      "definitionId": 1077936202,
+      "id": 1077936231,
+      "name": "魔方测试台3x3",
+      "position": [
+        1.2491233348846436,
+        0.08022260665893555,
+        2.1804757118225098
+      ],
+      "resourceId": 10009001,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "auxIds": [],
+      "components": [],
+      "definitionId": 10005018,
+      "id": 1077936260,
+      "name": "空模型",
+      "position": [
+        -0.5163707733154297,
+        0,
+        0
+      ],
+      "resourceId": 10005018,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        10,
+        0.10000000149011612,
+        10
+      ]
+    },
+    {
+      "auxIds": [],
+      "components": [],
+      "definitionId": 10005018,
+      "id": 1077936261,
+      "name": "物件镜头",
+      "position": [
+        4.024033069610596,
+        0.5690641403198242,
+        -6.484256267547607
+      ],
+      "resourceId": 10005018,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "schemaVersion": 1
+}
