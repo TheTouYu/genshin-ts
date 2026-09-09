@@ -26,12 +26,13 @@
 
 | 图 | id | 类型 | 用途 | 节点预算 | 帧预算 |
 |---|---|---|---|---|---|
-| _GSTS_rg_input | 玩家图段（create --type 自动分配） | 玩家节点图 | UI 事件入口（控件组触发/悬浮页操作）→ rubikgame_input 信号 | ≤300 | 事件驱动单 tick<100 帧 |
+| _GSTS_rg_input | 1073741837 | 服务端（挂玩家模板） | UI 事件入口（控件组触发/悬浮页操作）→ rubikgame_input 信号 | ≤300 | 事件驱动单 tick<100 帧 |
 | _GSTS_rg_state | 1073741835 | 服务端 | 对局状态机（选档→打乱调度→计步→星级→结算→解锁；监听 solve_done/input） | ≤900 | 打乱 12 步≈12 tick×<200 帧；零轮询 |
 | _GSTS_rg_hint | 1073741836 | 服务端 | 提示（inverseTables 12 move 逆表接线+当前态求解单步）+自由模式计步 | ≤500 | 事件驱动单 tick<200 帧 |
 
-- 1835/1836 分配依据：root10 当前 max=1834 → 下一=1835 顺序；不与 aux 1941+ 段冲突（root 隔离，donor 同构先例）。
-- 挂载：rg_input→玩家（玩家图专属）；rg_state/rg_hint→实体 1077936260（空模型锚点，donor 语义）。
+- 1835/1836/1837 分配依据：root10 当前 max=1834 → 顺序分配；不与 aux 1941+ 段冲突（root 隔离，donor 同构先例）。
+- **玩家节点图实证（2026-09-09，genshin-ts-asset-operations SKILL.md:96/155）**：玩家节点图=普通 20000 服务端图，挂玩家模板 1086324737（root4 def+root5 九副本 737..745）；挂载=`attach --def`+循环 `attach --entity` 每副本（CLI --def 只同步 root8 不同步 root5 副本）；per-player 执行——全局一次语义须去重门控。
+- 挂载：rg_input 1837→玩家模板 def+9 副本；rg_state 1835/rg_hint 1836→实体 1077936260（空模型锚点，donor 语义）。
 - 预算红线：单图 gameNodeCount≤2000、单记录<3000 帧、零高频轮询（全事件驱动）；写图前 `assets:node-graphs nodes` 复核。
 
 ## 信号清单（新增 2 + 复用 3）
