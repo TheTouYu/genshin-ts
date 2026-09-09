@@ -8,12 +8,19 @@ import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
 import { RubikSignal } from './signals.js'
 
-const mkTimer = (id: number, name: string, timerName: string, delay: number) => g.defineComposite(name, {
+const mkTimer = (id: number, name: string, timerName: string, delay: number, fixed = false) => g.defineComposite(name, {
     id,
   inputs: { target: { type: 'entity' } },
   outputs: {},
   outflows: ['done'],
   build: ({ target }, f) => {
+    // fixed=true：延时固定不参与 fast/慢速折扣——只用于必须盖住物理链路耗时的定时器
+    // （emit/done 类；详见下方 3185 根因注释）。
+    if (fixed) {
+      const tf = f.registerExecNode('start_timer', [target, new str(timerName), new bool(false), f.assemblyList([new float(delay)], 'float')])
+      f.outflow('done', tf, 0)
+      return {}
+    }
     // 速度切换（测试台 tab2）：快速=×0.4（缩短 60%，日常演示）；慢速=×1.3（+30%，日志收集降负载）
     // 从主控制器 1077936201 的自定义变量读取；factor = 1.3 - 0.9×fast（fast=1→0.4，fast=0→1.3）
     const fast = f.getCustomVariable(entity(1077936201n), new str('rubik3x3_fast_mode')).asType('bool')
@@ -28,9 +35,17 @@ const mkTimer = (id: number, name: string, timerName: string, delay: number) => 
 })
 
 // 面转：步间/触发后 1.52s（动画 ~0.2s + 旋转后余量）
-const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.52)
-// 面转：宏尾 2.01s（面转完成 + 余量）
-const solverStartDoneTick = mkTimer(1610700061, 'solver_start_done_tick', 'doneTick', 2.01)
+// 2026-09-04 日志 3185 实证（fixed 化）：票 06 客户端渲染分载后每步面转 =
+// 任务发布→客户端 15Hz 拍→分片回传(9 槽 3 拍≈0.2s)→rbv_go→动画 0.3s→unlock→solver_cp 发布，
+// 合计 ≈0.9~1.1s 物理下限。fast×0.4 后 emitTick=0.61s / doneTick=0.80s 早于宏尾步发布到期：
+// doneTick→op5 时 solver_cp 仍旧值 → 规划器按旧状态重发同一宏 → 宏在已更新状态上执行
+// → 破坏已拼角块（3185 角块 mask 9→1 振荡；轮2 按十字尾旧状态重发轮1 宏 [17,2,15] 帧级实锤：
+// 轮2 查表 rec2862 读 scp=[6,0,2,1,5,3,4,7]，而轮1 第3 步发布 rec3107 才更新 solver_cp）。
+// 故 emit/done 固定为普通速度值，fast 收益只保留在 preTick/planTick/whole 组。
+// open-item：根治方案=事件驱动（turn 图每步 unlock 后发步完成信号驱动 emit），登记于看板。
+const solverStartEmitTick = mkTimer(1610700058, 'solver_start_emit_tick', 'emitTick', 1.52, true)
+// 面转：宏尾 2.01s（面转完成 + 余量）——同上固定（必须 > 宏尾步 op3→solver_cp 发布 ~1.1s）
+const solverStartDoneTick = mkTimer(1610700061, 'solver_start_done_tick', 'doneTick', 2.01, true)
 // 面转：触发前/动画前 1.66s
 const solverStartPreTick = mkTimer(1610700069, 'solver_start_pre_tick', 'preTick', 1.66)
 // 整转：触发前 7.18s、步间 6.6s、宏尾 10.45s（负载 ~3x → 间隔放大，降平均负载）

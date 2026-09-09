@@ -1,7 +1,7 @@
 // 流程层（输入锁/模式/队列/打乱/复原/重置）
 // 命名前缀：flow_*
 import { g } from 'genshin-ts/runtime/core'
-import { SettlementStatus } from 'genshin-ts/definitions/enum'
+import { FollowCoordinateSystem, FollowLocationType, SettlementStatus } from 'genshin-ts/definitions/enum'
 import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 import { logicApplyFace, logicApplyMiddle, logicApplyWholeA, logicApplyWholeB, logicIsSolved, logicReset } from './logic.js'
 import { RgSignal } from '../signals.js'
@@ -223,55 +223,20 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
       f.logicalNotOperation(f.greaterThan(base, 9))
     )
     const isWhole = f.greaterThan(base, 9)
-    // 视觉图挂载在独立实体上，定时器/共享状态都发到该实体，避免同一实体节点数合并超限
-    const visualHost = entity(1077936203n)
-
-    // 把视觉图需要的共享状态发布到视觉控制器实体自定义变量
-    // （2026-08-26 减负：主控制器副本无消费者——视觉图只从事件源实体=visualHost 读，省 30 节点/图）
-    const publishShared = (tail: Flow, _target: any, visualHost: any): Flow => {
-      const mk = (name: string, value: any) => {
-        const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
-        f.connect(tail, 0, n2, 0)
-        tail = n2
-      }
-      mk('tempP', f.getNodeGraphVariable('tempP').asType('int_list'))
-      mk('centerPos', f.getNodeGraphVariable('centerPos').asType('int_list'))
-      mk('curMove', f.getNodeGraphVariable('curMove').asType('int'))
-      mk('turnLastSlot', f.getNodeGraphVariable('turnLastSlot').asType('int'))
-      mk('turnCompletionDelay', f.getNodeGraphVariable('turnCompletionDelay').asType('float'))
-      mk('turnDuration', f.getNodeGraphVariable('turnDuration').asType('float'))
-      mk('segmentDuration', f.getNodeGraphVariable('segmentDuration').asType('float'))
-      mk('orbitKVel', f.getNodeGraphVariable('orbitKVel').asType('float'))
-      mk('angularVelocity', f.getNodeGraphVariable('angularVelocity').asType('float'))
-      // 视觉层需要“转动前”的朝向：发布 blockOrientPre 快照（blockOrient 已被逻辑层更新为转动后）
-      mk('blockOrient', f.getNodeGraphVariable('blockOrientPre').asType('int_list'))
-      return tail
-    }
+    // 视觉图挂载在独立实体上（票 06：设备壳事件仍走 visualHost 1077936203；共享参数由 rbRenderPost 发布）
 
     // 2026-08-26：移除 moveId 合法性守卫（所有来源——求解折叠面转/手动 1..12/打乱 1..6——均构造安全；
     // 腾出的节点预算用于整体转单事件拆分，防 2889 帧事件超引擎单次执行数上限被静默截断）
     f.doubleBranch(isMiddle, () => {
       const logic = f.callComposite(logicApplyMiddle, { moveId: base })
-      const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
-      f.connect(logic as never, 0, s1, 0)
-      const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.3), new bool(false)])
-      f.connect(s1, 0, s2, 0)
-      const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.15), new bool(false)])
-      f.connect(s2, 0, s3, 0)
-      const s4 = f.node('set_node_graph_variable', [new str('orbitKVel'), new float(6.6667), new bool(false)])
-      f.connect(s3, 0, s4, 0)
-      const s5 = f.node('set_node_graph_variable', [new str('angularVelocity'), new float(300), new bool(false)])
-      f.connect(s4, 0, s5, 0)
-      const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.35), new bool(false)])
-      f.connect(s5, 0, s6, 0)
-      const times = f.getNodeGraphVariable('middleTurnTimes').asType('float_list')
-      const orbit2 = f.getNodeGraphVariable('middleOrbit2Times').asType('float_list')
-      const ptail = publishShared(s6, target, visualHost)
-      const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-      f.connect(ptail, 0, t1, 0)
-      const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
-      f.connect(t1, 0, t2, 0)
-      f.outflow('done', t2, 0)
+      // 票 06：图变量参数 set 收敛为单锚（turnLastSlot 字面量），设备参数由 rbRenderPost 入参直传；
+      // 全链走 auto-chain（registerExecNode/callComposite 依序自动串），杜绝 f.node 孤立链
+      f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(7), new bool(false)])
+      const post = f.callComposite(rbRenderPost, {
+        moveId: base, target,
+        dur: new float(0.3), completion: new float(0.35), av: new float(300)
+      })
+      f.outflow('done', post as never, 0)
     }, () => {
       f.doubleBranch(isWhole, () => {
         // 2026-08-26 单事件执行数拆分：整转逻辑 A 段在本事件，B 段+参数+发布+8 定时器
@@ -296,32 +261,14 @@ export const flowDoMove = g.defineComposite('flow_do_move', {
           f.connect(off, 0, t, 0)
           f.outflow('done', t, 0)
         }, () => {
-          const s1 = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
-          // 2026-08-26 面转动画 0.2s（turnDuration 0.2 / segment 0.1×2 / 90°→450°/s / kVel 10）
-          const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(0.2), new bool(false)])
-          f.connect(s1, 0, s2, 0)
-          const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.1), new bool(false)])
-          f.connect(s2, 0, s3, 0)
-          const s4 = f.node('set_node_graph_variable', [new str('orbitKVel'), new float(10.0), new bool(false)])
-          f.connect(s3, 0, s4, 0)
-          const s5 = f.node('set_node_graph_variable', [new str('angularVelocity'), new float(450), new bool(false)])
-          f.connect(s4, 0, s5, 0)
-          const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(0.25), new bool(false)])
-          f.connect(s5, 0, s6, 0)
-          const ptail = publishShared(s6, target, visualHost)
-          const times = f.getNodeGraphVariable('faceTurnTimes').asType('float_list')
-          const timesB = f.getNodeGraphVariable('faceTurnTimesB').asType('float_list')
-          const orbit2 = f.getNodeGraphVariable('faceOrbit2Times').asType('float_list')
-          const orbit2B = f.getNodeGraphVariable('faceOrbit2TimesB').asType('float_list')
-          const t1 = f.node('start_timer', [visualHost, new str('turnblock'), new bool(false), times])
-          f.connect(ptail, 0, t1, 0)
-          const t1b = f.node('start_timer', [visualHost, new str('turnblockB'), new bool(false), timesB])
-          f.connect(t1, 0, t1b, 0)
-          const t2 = f.node('start_timer', [visualHost, new str('orbit2'), new bool(false), orbit2])
-          f.connect(t1b, 0, t2, 0)
-          const t2b = f.node('start_timer', [visualHost, new str('orbit2B'), new bool(false), orbit2B])
-          f.connect(t2, 0, t2b, 0)
-          f.outflow('done', t2b, 0)
+          // 票 06：面转动画 0.2s（dur 0.2 / seg 0.1×2 / 90°→450°/s / kVel 客户端 10）——
+          // 参数由 rbRenderPost 入参直传（图变量 set 只留 turnLastSlot 锚，全链 auto-chain）
+          f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(8), new bool(false)])
+          const post = f.callComposite(rbRenderPost, {
+            moveId, target,
+            dur: new float(0.2), completion: new float(0.25), av: new float(450)
+          })
+          f.outflow('done', post as never, 0)
         })
       })
     })
@@ -568,6 +515,8 @@ export const flowResetPublish = g.defineComposite('flow_reset_publish', {
     f.registerExecNode('set_node_graph_variable', [new str('blocks'), blocks, new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('blocks'), blocks, new bool(false)])
     f.registerExecNode('set_custom_variable', [entity(1077936203n), new str('blocks'), blocks, new bool(false)])
+    // 球跟随（2026-09-07）：重置销毁重建 26 块 → 新实体须重新绑定到中心球（球不重建，绑定关系随块实体销毁）
+    f.callComposite(flowBindBalls, {})
     const done = f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), f.getNodeGraphVariable('turnLastSlot').asType('int'), new bool(false)])
     f.outflow('done', done, 0)
     return {}
@@ -738,54 +687,160 @@ export const flowWholeTail = g.defineComposite('flow_whole_tail', {
   build: ({ target }, f) => {
     const visualHost = entity(1077936203n)
     const logic = f.callComposite(logicApplyWholeB, { moveId: f.getNodeGraphVariable('curMove').asType('int') })
-    const s1 = f.node('set_node_graph_variable', [new str('turnLastSlot'), new int(25), new bool(false)])
-    f.connect(logic as never, 0, s1, 0)
-    const s2 = f.node('set_node_graph_variable', [new str('turnDuration'), new float(1.0), new bool(false)])
-    f.connect(s1, 0, s2, 0)
-    const s3 = f.node('set_node_graph_variable', [new str('segmentDuration'), new float(0.5), new bool(false)])
-    f.connect(s2, 0, s3, 0)
-    const s4 = f.node('set_node_graph_variable', [new str('orbitKVel'), new float(2.0), new bool(false)])
-    f.connect(s3, 0, s4, 0)
-    const s5 = f.node('set_node_graph_variable', [new str('angularVelocity'), new float(90), new bool(false)])
-    f.connect(s4, 0, s5, 0)
-    const s6 = f.node('set_node_graph_variable', [new str('turnCompletionDelay'), new float(1.15), new bool(false)])
-    f.connect(s5, 0, s6, 0)
-    // 发布共享状态（仅视觉宿主；视觉图只从事件源实体读）
-    const mk = (tail: Flow, name: string, value: any): Flow => {
-      const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
-      f.connect(tail, 0, n2, 0)
-      return n2
+    // 票 06：整转动画 1.0s（dur 1.0 / seg 0.5×2 / 90°→90°/s）——参数由 rbRenderPost 入参直传
+    f.registerExecNode('set_node_graph_variable', [new str('turnLastSlot'), new int(25), new bool(false)])
+    const post = f.callComposite(rbRenderPost, {
+      moveId: f.getNodeGraphVariable('curMove').asType('int'),
+      target,
+      dur: new float(1.0), completion: new float(1.15), av: new float(90)
+    })
+    f.outflow('done', post as never, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 票 06（2026-09-05）→ 球跟随 R2（2026-09-07 用户负载定则重设计）：
+//   rbRenderPost：渲染任务投递（宿主 rbv_move/orient + 玩家 rbv_epoch++ + 运动标量发布）。
+//   服务端写变量每转 13→7 次：删 rbv_n/rbv_nA/rbv_nB/turnLastSlot/segmentDuration
+//   （计数/窗口/双通道全部退役——客户端技能变量自持进度、逐球信号直达 ballvisual）。
+//   旧 rbRenderStartTimers（ballturn 定时器）删除：设备在 onSignal 即时添加，零定时器。
+// ================================================================
+
+// 运动/完成标量发布（ballvisual 与 turn 的 rbv_go 处理器按需读，读廉价不复制）。
+// 2026-09-03 修复（3162 帧序铁证）：参数以复合入参直传——此前读图变量会因参数链被
+// auto-chain 孤立裁掉而发布陈旧默认值（face 拿到 0.3/0.15 超调错乱）。
+// 首节点用 registerExecNode 挂到本复合入口，其后显式 connect 串链。
+const publishVisualParams = (f: any, visualHost: any, p: any): Flow => {
+  const s1 = f.registerExecNode('set_custom_variable', [visualHost, new str('turnDuration'), p.dur, new bool(false)])
+  const mk = (prev: Flow, name: string, value: any): Flow => {
+    const n2 = f.node('set_custom_variable', [visualHost, new str(name), value, new bool(false)])
+    f.connect(prev, 0, n2, 0)
+    return n2
+  }
+  const s2 = mk(s1, 'turnCompletionDelay', p.completion)
+  const s3 = mk(s2, 'angularVelocity', p.av)
+  return s3
+}
+
+// 渲染任务投递（exec）：宿主 rbv_move/orient + 玩家 rbv_epoch++（R2：7 写/转）
+export const rbRenderPost = g.defineComposite('rb_render_post', {
+    id: 1610700091,
+  inputs: {
+    moveId: { type: 'int' },
+    target: { type: 'entity' },
+    dur: { type: 'float' },
+    completion: { type: 'float' },
+    av: { type: 'float' }
+  },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ moveId, target, dur, completion, av }, f) => {
+    const host = entity(1077936201n)
+    const visualHost = entity(1077936203n)
+    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
+    const next = f.addition(cur, 1n)
+    const ptail = publishVisualParams(f, visualHost, { dur, completion, av })
+    const m1 = f.node('set_custom_variable', [host, new str('rbv_move'), moveId, new bool(false)])
+    f.connect(ptail, 0, m1, 0)
+    const m2 = f.node('set_custom_variable', [host, new str('rbv_orient'), f.getNodeGraphVariable('blockOrientPre').asType('int_list'), new bool(false)])
+    f.connect(m1, 0, m2, 0)
+    // 票 06 修复（3148 实证）：rbv 链独立宿主引用——rb_host 只由 rbx 十字任务写，空 host 会让
+    // 客户端读到空表并回传空包（piece=None、vel 全 0）
+    const m4 = f.node('set_custom_variable', [owner, new str('rbv_host'), host, new bool(false)])
+    f.connect(m2, 0, m4, 0)
+    const m5 = f.node('set_custom_variable', [owner, new str('rbv_epoch'), next, new bool(false)])
+    f.connect(m4, 0, m5, 0)
+    f.outflow('done', m5, 0)
+    return {}
+  }
+})
+
+// ================================================================
+// 球跟随负载优化（2026-09-07）：27 个中心球 + 一次性跟随绑定。
+//   运行时块为 createPrefab 动态实体（组件从 def 复制；块 def 已配 type 9 跟随）；
+//   球同样 createPrefab 生成（def 1077936233..259 已配 type 4），全部摆魔方中心
+//   spawn 坐标 (3,3,3)（UBL(2,4,2)=中心+(-1,1,-1) 逐轴核实，与 gen-rbv-vars off 表一致）。
+//   绑定一次终身有效：偏移在球局部系恒定，球累积旋转自动带块到新格位。
+// ================================================================
+
+// 生成 27 球（exec）：b0..b25 按块索引序（ARCHITECTURE 角0..7/棱8..19/心20..25 配同标签球），
+// b26=CORE（核心球，整体转/备用）。球 def ID 由 gen 侧球-块标签配对表换算。
+export const flowSpawnBalls = g.defineComposite('flow_spawn_balls', {
+    id: 1610700093,
+  inputs: { stage: { type: 'entity' } },
+  outputs: {
+    b0: { type: 'entity' }, b1: { type: 'entity' }, b2: { type: 'entity' }, b3: { type: 'entity' },
+    b4: { type: 'entity' }, b5: { type: 'entity' }, b6: { type: 'entity' }, b7: { type: 'entity' },
+    b8: { type: 'entity' }, b9: { type: 'entity' }, b10: { type: 'entity' }, b11: { type: 'entity' },
+    b12: { type: 'entity' }, b13: { type: 'entity' }, b14: { type: 'entity' }, b15: { type: 'entity' },
+    b16: { type: 'entity' }, b17: { type: 'entity' }, b18: { type: 'entity' }, b19: { type: 'entity' },
+    b20: { type: 'entity' }, b21: { type: 'entity' }, b22: { type: 'entity' }, b23: { type: 'entity' },
+    b24: { type: 'entity' }, b25: { type: 'entity' }, b26: { type: 'entity' }
+  },
+  outflows: ['done'],
+  build: ({ stage }, f) => {
+    // 块索引序球 def（标签配对）：UBL UBR UFL UFR DBL DBR DFL DFR / 棱 UF UR UB UL DF DR DB DL
+    // FR FL BR BL / 心 U D F B R L / CORE；全部摆在魔方中心 (3,3,3)。
+    const pids = [
+      1077936239n, 1077936241n, 1077936233n, 1077936235n, 1077936256n, 1077936258n, 1077936250n,
+      1077936252n, 1077936234n, 1077936238n, 1077936240n, 1077936236n, 1077936251n, 1077936255n,
+      1077936257n, 1077936253n, 1077936244n, 1077936242n, 1077936249n, 1077936247n, 1077936237n,
+      1077936254n, 1077936243n, 1077936248n, 1077936246n, 1077936245n, 1077936259n
+    ]
+    let tail: Flow = f.entry()
+    const outs: any = {}
+    const names = [
+      'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13',
+      'b14', 'b15', 'b16', 'b17', 'b18', 'b19', 'b20', 'b21', 'b22', 'b23', 'b24', 'b25', 'b26'
+    ]
+    for (let k = 0; k < 27; k++) {
+      const call = f.callComposite(flowCreateBlock, {
+        pid: pids[k], stage, x: 3, y: 3, z: 3
+      })
+      outs[names[k]] = call.e
+      if (k === 0) tail = call as never
+      else f.connect(tail, 0, call as never, 0)
+      tail = call as never
     }
-    let ptail = mk(s6, 'tempP', f.getNodeGraphVariable('tempP').asType('int_list'))
-    ptail = mk(ptail, 'curMove', f.getNodeGraphVariable('curMove').asType('int'))
-    ptail = mk(ptail, 'turnLastSlot', f.getNodeGraphVariable('turnLastSlot').asType('int'))
-    ptail = mk(ptail, 'turnCompletionDelay', f.getNodeGraphVariable('turnCompletionDelay').asType('float'))
-    ptail = mk(ptail, 'turnDuration', f.getNodeGraphVariable('turnDuration').asType('float'))
-    ptail = mk(ptail, 'segmentDuration', f.getNodeGraphVariable('segmentDuration').asType('float'))
-    ptail = mk(ptail, 'orbitKVel', f.getNodeGraphVariable('orbitKVel').asType('float'))
-    ptail = mk(ptail, 'angularVelocity', f.getNodeGraphVariable('angularVelocity').asType('float'))
-    ptail = mk(ptail, 'blockOrient', f.getNodeGraphVariable('blockOrientPre').asType('int_list'))
-    const times0 = f.getNodeGraphVariable('wholeTurnTimes0').asType('float_list')
-    const times1 = f.getNodeGraphVariable('wholeTurnTimes1').asType('float_list')
-    const times2 = f.getNodeGraphVariable('wholeTurnTimes2').asType('float_list')
-    const times3 = f.getNodeGraphVariable('wholeTurnTimes3').asType('float_list')
-    const orbit0 = f.getNodeGraphVariable('wholeOrbit2Times0').asType('float_list')
-    const orbit1 = f.getNodeGraphVariable('wholeOrbit2Times1').asType('float_list')
-    const t0 = f.node('start_timer', [visualHost, new str('turnblock0'), new bool(false), times0])
-    f.connect(ptail, 0, t0, 0)
-    const t1 = f.node('start_timer', [visualHost, new str('turnblock1'), new bool(false), times1])
-    f.connect(t0, 0, t1, 0)
-    const t2 = f.node('start_timer', [visualHost, new str('turnblock2'), new bool(false), times2])
-    f.connect(t1, 0, t2, 0)
-    const t3 = f.node('start_timer', [visualHost, new str('turnblock3'), new bool(false), times3])
-    f.connect(t2, 0, t3, 0)
-    // 整转 orbit2 只发 2 个批量定时器（orbit20=槽0..13 / orbit21=槽14..25）。
-    // 不能拆 4 个：视觉根图 multipleBranches 上限 10 case，orbit22/orbit23 会被丢成孤立链（2927 回归）
-    const o0 = f.node('start_timer', [visualHost, new str('orbit20'), new bool(false), orbit0])
-    f.connect(t3, 0, o0, 0)
-    const o1 = f.node('start_timer', [visualHost, new str('orbit21'), new bool(false), orbit1])
-    f.connect(o0, 0, o1, 0)
-    f.outflow('done', o1, 0)
+    // 显式收尾：链尾接到本复合 done 出口（caller 侧 auto-chain 依赖 OutFlow[0]）
+    f.outflow('done', tail as never, 0)
+    return outs
+  }
+})
+
+// 一次性跟随绑定（exec）：块 i → 球 i（完全跟随/相对坐标系/挂接点 GI_RootNode），
+// 位置偏移=初始格位向量（图变量 ballOff，26 项 vec3），旋转偏移 0。绑定后不再变更。
+export const flowBindBalls = g.defineComposite('flow_bind_balls', {
+    id: 1610700094,
+  inputs: {},
+  outputs: {},
+  outflows: ['done'],
+  build: (_i, f) => {
+    const blocks = f.getNodeGraphVariable('blocks').asType('entity_list')
+    const balls = f.getNodeGraphVariable('balls').asType('entity_list')
+    const offs = f.getNodeGraphVariable('ballOff').asType('vec3_list')
+    f.finiteLoop(0n, 25n, (i: any) => {
+      const blk = f.getCorrespondingValueFromList(blocks, i)
+      const bal = f.getCorrespondingValueFromList(balls, i)
+      const off = f.getCorrespondingValueFromList(offs, i)
+      f.registerExecNode('switch_follow_motion_device_target_by_entity', [
+        blk,
+        bal,
+        new str('GI_RootNode'),
+        off,
+        f.create3dVector(0, 0, 0),
+        FollowCoordinateSystem.RelativeCoordinateSystem,
+        FollowLocationType.CompletelyFollow
+      ])
+    })
+    const done = f.registerExecNode('set_node_graph_variable', [
+      new str('turnLastSlot'),
+      f.getNodeGraphVariable('turnLastSlot').asType('int'),
+      new bool(false)
+    ])
+    f.outflow('done', done, 0)
     return {}
   }
 })

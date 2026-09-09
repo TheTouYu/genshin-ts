@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-oll-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-oll-tables.mjs —— 勿手改
 // 顶层 OLL 表（CubeLib 约定）：紧凑索引 sig=(co0*9+co1*3+co2)*8+(eo0*4+eo1*2+eo2)
 // action=a1+(a2+1)*64；token 0/1/2=U/U2/U'，3+j=逆公式j
 export const CF_OLL_ACT_c0: bigint[] = [-1n, 30n, 775n, 581n, 520n, 530n, 59n, 22n, 1364n, 31n, 45n, 265n, 950n, 438n, 44n, 285n, 452n, 437n, 497n, 38n, 485n, 920n, 435n, 20n, 404n, 41n, 418n, 648n, 42n, 39n, 711n, 609n, 403n, 13n, 555n, 559n, 513n, 672n, 625n, 5n, 25n, 392n, 924n, 457n, 1134n, 752n, 35n, 412n, 2889n, 264n, 267n, 416n, 48n, 46n, 1290n, 279n, 390n, 724n, 659n, 398n, 698n, 33n, 663n, 1143n, 27n, 10n, 768n, 570n, 1632n, 790n, 16n, 450n, 259n, 272n, 487n, 760n, 748n, 34n, 461n, 810n, 654n, 646n, 680n, 1093n, 486n, 612n, 596n, 677n, 28n, 491n, 1483n, 564n, 565n, 11n, 8n, 449n, 737n, 814n, 395n, 1294n]

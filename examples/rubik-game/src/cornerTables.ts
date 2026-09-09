@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-corner-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-corner-tables.mjs —— 勿手改
 // 第一层(D面)角块策略（游戏角块顺序：UBL UBR UFL UFR DBL DBR DFL DFR）
 // 状态: slot*3+twist；宏: move code 0..17；未填 policy=-1
 export const CF_CORNER_MACRO_LEN_c0: bigint[] = [3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 3n, 7n, 4n, 4n, 3n, 3n, 3n, 3n, 3n, 3n, 7n, 4n, 4n, 3n, 3n, 3n, 3n, 3n, 3n, 7n, 4n, 4n, 3n, 3n, 3n, 3n, 3n, 3n, 7n, 4n, 4n, 12n, 16n, 13n, 14n, 15n, 12n, 16n, 13n, 14n, 15n, 12n, 16n, 13n, 14n, 15n, 12n, 16n, 13n, 14n, 15n]

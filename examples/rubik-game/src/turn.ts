@@ -259,8 +259,45 @@ const graph = g
         // 二层测试打乱：只动 U/E（保持第一层完整），完成后自动接自动还原
         f.callComposite(flowScrambleLayer2, { target: f.getSelfEntity() })
       },
+      99: () => {
+        // B1 设备语义实验（2026-08-31 perf 任务）：对 blocks[0] 加朝向目标旋转型运动器。
+        // blocks[0] 世界位置 (2,4,2) = 中心 (3,3,3) + 偏移 (-1,+1,-1)，初始朝向 (0,0,0)。
+        // 判定表：绕中心转到 (2,4,4) = 语义含魔方中心锚点（官方模式可用）；
+        // 原地自转 = 纯朝向插值；绕世界原点飞出 = 绕原点语义（官方另有机遇）。
+        // 2026-08-31 二修：turn 图没有 blocks 图变量（那是 game/visual 图的）——
+        // 块实体列表由 game 图开局写到本实体（1077936201）的自定义变量 blocks，
+        // 3018 日志实证图变量读法返回 26 个 0（Entity 空，设备加到空实体）。
+        const b0 = f.getCorrespondingValueFromList(
+          f.getCustomVariable(f.getSelfEntity(), new str('blocks')).asType('entity_list'),
+          0n
+        )
+        f.addTargetOrientedRotationBasedMotionDevice(
+          b0,
+          new str('b1probe'),
+          1.0,
+          f.create3dVector(0, 90, 0)
+        )
+        f.printString('b1-probe-fired')
+      },
       default: () => {}
     })
+  })
+
+  // —— 球跟随 R2 完成链（2026-09-07 断链修复 + 负载重构）：客户端发完全部执行包后
+  // 自己发 rbv_go(e)（服务端零计数）。本处理器只做两件最小事：
+  //   ① 回写玩家 rbv_ack=e（唯一变量写——让客户端停发）；
+  //   ② 起 unlock 定时器（turnCompletionDelay，rbRenderPost 每回合发布在宿主自定义变量；
+  //     旧链由 visual(832) viewTurnUnlockIfLast 在 turnblock 末槽起，832 摘除后无人起——
+  //     3228 日志实证：lock/autoMode 永久卡死、打乱队列 20 步只走 1 步、op3 全被吞）。
+  // 门：e 必须等于玩家 rbv_epoch（陈旧/重复回声丢弃）。
+  .onSignal(RubikSignal.rbv_go, (evt: any, f: any) => {
+    const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const cur = f.getCustomVariable(owner, new str('rbv_epoch')).asType('int')
+    f.doubleBranch(f.equal(evt.params.e, cur), () => {
+      f.setCustomVariable(owner, new str('rbv_ack'), evt.params.e, false)
+      const delay = f.getCustomVariable(entity(1077936203n), new str('turnCompletionDelay')).asType('float')
+      f.startTimer(f.getSelfEntity(), new str('unlock'), false, [delay])
+    }, () => {})
   })
 
 export default graph

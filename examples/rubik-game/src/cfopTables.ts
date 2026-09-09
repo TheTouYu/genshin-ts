@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-cfop-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-cfop-tables.mjs —— 勿手改
 // CFOP 求解器静态表（CubeLib 约定），单块 ≤100，长表拆 _c0/_c1/_c2…
 export const CF_MOVE_CODE_FACE: bigint[] = [3n, 3n, 3n, 4n, 4n, 4n, 5n, 5n, 5n, 6n, 6n, 6n, 1n, 1n, 1n, 2n, 2n, 2n]
 export const CF_MOVE_CODE_CNT: bigint[] = [1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n, 1n, 2n, 3n]

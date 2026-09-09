@@ -6,7 +6,18 @@ export const RubikSignal = {
   // 单一求解信号：op 区分阶段，val 携带参数
   // op 1 求解器→主图 请求状态；2 主图→求解器 状态已发布；
   // op 3 求解器→主图 执行一步(val=moveId)；4 主图→求解器 该步完成；5 求解器→主图 完成(val=ok)
-  rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']])
+  rubik3x3_solve: defineSignal('rubik3x3_solve', [['op', 'int'], ['val', 'int']]),
+  // 客户端算力分载（W3 自 rubik-3x3-client 移植，2026-09-09 注册于 1920）：
+  // 十字计算单元回传（tag: c0/c1/c2=宏表码 / xd=完成 / xr=撕裂）
+  rbx_echo: defineSignal('rbx_echo', [['tag', 'str'], ['e', 'int']]),
+  // 渲染参数单元回传（每槽一条：tag='s'、e=epoch、slot、piece、spin 轴 axis + 两段轨道速度
+  // vel1/vel2，vec3 均计 1 参，共 6 参 ≤10；球跟随链 vel1/vel2 恒零保 wire 兼容）
+  rbv_echo: defineSignal('rbv_echo', [
+    ['tag', 'str'], ['e', 'int'], ['slot', 'int'], ['piece', 'int'],
+    ['axis', 'vec3'], ['vel1', 'vec3'], ['vel2', 'vec3']
+  ]),
+  // visual 图收齐执行包后通知 turn 图按包起定时器（e=epoch）
+  rbv_go: defineSignal('rbv_go', [['e', 'int']])
 } as const
 
 // rubik-game 对局信号（2026-09-09 注册于 1920，G3）

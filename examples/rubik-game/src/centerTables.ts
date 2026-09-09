@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-center-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-center-tables.mjs —— 勿手改
 // 整体旋转归一化表（只用正方向 x/y/z，moveId 10/11/12；执行器逐条 append）
 export const CF_CENTER_LOOKUP: bigint[] = [-1n, -1n, 0n, 1n, 2n, 3n, -1n, -1n, 4n, 5n, 6n, 7n, 8n, 9n, -1n, -1n, 10n, 11n, 12n, 13n, -1n, -1n, 14n, 15n, 16n, 17n, 18n, 19n, -1n, -1n, 20n, 21n, 22n, 23n, -1n, -1n]
 export const CF_CENTER_MACRO_C0: bigint[] = [0n, 11n, 11n, 11n, 12n, 10n, 10n, 11n, 10n, 10n, 10n, 12n, 10n, 10n, 10n, 11n, 10n, 10n, 12n, 10n, 10n, 10n, 12n, 10n]

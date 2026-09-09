@@ -5,7 +5,8 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowSpawnRubik, flowSolve } from './composites/flow.js'
+import { CharacterSkillSlot, OriginalSlotSkillHandling } from 'genshin-ts/definitions/enum'
+import { flowSpawnBalls, flowBindBalls, flowSpawnRubik, flowSolve } from './composites/flow.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
 import {
@@ -45,6 +46,9 @@ const graph = g
       solvedFlag: false,
       qLen: new int(0),
       qIdx: new int(0),
+      // A 线客户端探针 v5：技能实例 ID 跨 tick 中转（create 在 2s、cast 在 4s，
+      // 照官方 3030 的"create 初始化 + cast 后续操作"分 tick 模式）。图变量 DSL 声明即生效。
+      clientProbeSkillId: new int(0),
       lastMove: new int(0),
       queue: dict([{ k: 0, v: new int(0) }]),
       curMove: new int(0),
@@ -124,6 +128,23 @@ const graph = g
         entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
         entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
         entity(0), entity(0)
+      ],
+      // —— 球跟随（2026-09-07）：中心球实体列表（块索引序 b0..b25）+ 绑定偏移表 ——
+      // 偏移=初始格位向量（gen-rbv-vars off[26]，运行时中心=spawn(3,3,3)）；绑定一次终身有效。
+      balls: [
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0),
+        entity(0), entity(0)
+      ],
+      ballOff: [
+        vec3([-1, 1, -1]), vec3([1, 1, -1]), vec3([-1, 1, 1]), vec3([1, 1, 1]),
+        vec3([-1, -1, -1]), vec3([1, -1, -1]), vec3([-1, -1, 1]), vec3([1, -1, 1]),
+        vec3([0, 1, 1]), vec3([1, 1, 0]), vec3([0, 1, -1]), vec3([-1, 1, 0]),
+        vec3([0, -1, 1]), vec3([1, -1, 0]), vec3([0, -1, -1]), vec3([-1, -1, 0]),
+        vec3([1, 0, 1]), vec3([-1, 0, 1]), vec3([1, 0, -1]), vec3([-1, 0, -1]),
+        vec3([0, 1, 0]), vec3([0, -1, 0]), vec3([0, 0, 1]), vec3([0, 0, -1]),
+        vec3([1, 0, 0]), vec3([-1, 0, 0])
       ],
       axes: [
         vec3([0, 0, 0]), // 0 占位
@@ -212,6 +233,33 @@ const graph = g
         cubes.c16, cubes.c17, cubes.c18, cubes.c19, cubes.c20, cubes.c21, cubes.c22, cubes.c23,
         cubes.c24, cubes.c25
       ], false)
+      // —— 球跟随（2026-09-07）：生成 27 中心球（全部摆魔方中心 spawn(3,3,3)，缩放 0.01
+      // 来自球 def 模板）→ 发布球列表（块索引序）到图变量/两宿主 → 一次性绑定 26 块。
+      // 绑定=完全跟随/相对坐标系/GI_RootNode/位置偏移=初始格位向量；此后运行时不再变更绑定。
+      const ballsRes = f.callComposite(flowSpawnBalls, { stage })
+      f.setNodeGraphVariable('balls', [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(self, new str('balls'), [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(entity(1077936203n), new str('balls'), [
+        ballsRes.b0, ballsRes.b1, ballsRes.b2, ballsRes.b3, ballsRes.b4, ballsRes.b5,
+        ballsRes.b6, ballsRes.b7, ballsRes.b8, ballsRes.b9, ballsRes.b10, ballsRes.b11,
+        ballsRes.b12, ballsRes.b13, ballsRes.b14, ballsRes.b15, ballsRes.b16, ballsRes.b17,
+        ballsRes.b18, ballsRes.b19, ballsRes.b20, ballsRes.b21, ballsRes.b22, ballsRes.b23,
+        ballsRes.b24, ballsRes.b25
+      ], false)
+      f.setCustomVariable(entity(1077936203n), new str('coreBall'), ballsRes.b26, false)
+      f.callComposite(flowBindBalls, {})
       // 引擎对“全 0 int_list”图变量只物化出很短的长度（日志实证 cornerOrient 只有 2、
       // edgeOrient 只有 3），必须用 logicReset 显式 set_list_value 写满长度，否则首次转动
       // 读取越界（“列表索引越界”）且胜利判定读到错误状态。
@@ -219,6 +267,37 @@ const graph = g
       setTimeout(() => {
         f.sendSignal(RubikSignal.rubik3x3_solve, 8n, 0n)
       }, new float(5000))
+      // 2026-08-31 B 轮 A 线 v6：根因闭合（用户提供'变量'地图 1073741915 成功链路比对，
+      // 日志 3040 rec25 帧级 + verify/d2-client/d2-skill.ts 源码）——**create 前提 =
+      // 角色已装配该技能配置**（addCharacterSkill 到技能槽；官方 1913 角色经编辑器战斗
+      // 预设装配故链路里看不到；变量地图运行时补装配，同 tick add→create→cast 全链成功）。
+      // v4/v5 失败归因：角色未装配 1098907651 → create 返回 ID 但 cast 静默落空。
+      // v6 = 2s 回调内 create 前加 addCharacterSkill(CustomSkillSlot1, Destroy 原槽位)。
+      f.printString('client-probe-armed')
+      setTimeout(() => {
+        const players = f.getListOfPlayerEntitiesOnTheField()
+        const player0 = f.getCorrespondingValueFromList(players, 0n)
+        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+        const charE = f.getCorrespondingValueFromList(chars, 0n)
+        f.addCharacterSkill(
+          charE,
+          configId(1098907651n),
+          CharacterSkillSlot.CustomSkillSlot1,
+          OriginalSlotSkillHandling.Destroy
+        )
+        const skillId = f.createCustomSkillInstance(charE, configId(1098907651n))
+        f.setNodeGraphVariable('clientProbeSkillId', skillId, false)
+        f.printString('client-probe-created')
+      }, new float(2000))
+      setTimeout(() => {
+        const players = f.getListOfPlayerEntitiesOnTheField()
+        const player0 = f.getCorrespondingValueFromList(players, 0n)
+        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+        const charE = f.getCorrespondingValueFromList(chars, 0n)
+        const skillId = f.getNodeGraphVariable('clientProbeSkillId').asType('int')
+        f.castSpecifiedSkillInstance(charE, skillId, new bool(false))
+        f.printString('client-probe-cast-fired')
+      }, new float(4000))
     }, () => {})
   })
   .on('whenTimerIsTriggered', (evt, f) => {
@@ -320,6 +399,8 @@ const graph = g
     f.setNodeGraphVariable('pendingTab', evt.params.tabId, false)
     f.callComposite(mainStartDispatch, { target })
   })
+
+// （W3 移植注）原 rubik3x3_client_probe 探针监听已删：探针图未移植、1920 无该信号注册。
 
 
 export default graph

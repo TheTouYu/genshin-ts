@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-inverse-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-inverse-tables.mjs —— 勿手改
 // 12 个 move 的反向一步逻辑表（from/to/orientMap 与正表同构）
 // 方向约定：反向 move = 正 move 连做 3 次的逆映射；供反向旋转接口使用。
 export const invFaceCornerFrom: bigint[] = [1n, 3n, 5n, 7n, 0n, 2n, 4n, 6n, 0n, 1n, 2n, 3n, 4n, 5n, 6n, 7n, 2n, 3n, 6n, 7n, 0n, 1n, 4n, 5n]

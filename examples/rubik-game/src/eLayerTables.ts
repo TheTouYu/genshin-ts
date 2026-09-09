@@ -1,4 +1,4 @@
-// 自动生成：node examples/rubik-3x3/tools/gen-e-layer-tables.mjs —— 勿手改
+// 自动生成：node examples/rubik-3x3-client/tools/gen-e-layer-tables.mjs —— 勿手改
 // 中二层(E层)棱块策略：E 棱 = ep 索引 8..11（FR/FL/BR/BL）；state=pos*2+eo；宏: move code 0..17；未填 policy=-1
 export const CF_E_MACRO_LEN_c0: bigint[] = [1n, 1n, 1n, 8n, 8n, 8n, 8n, 8n, 8n, 8n, 8n, 8n, 8n, 8n, 8n]
 export const CF_E_MACRO_C0_c0: bigint[] = [0n, 1n, 2n, 8n, 6n, 9n, 11n, 0n, 2n, 2n, 0n, 2n, 0n, 0n, 2n]
