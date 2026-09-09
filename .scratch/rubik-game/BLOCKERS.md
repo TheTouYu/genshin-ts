@@ -15,4 +15,9 @@
 
 ## 已绕行记录
 
-（执行中追加）
+- **B4 已闭合（2026-09-09）**：client 源码零造物 GUID 字面量（executeSkill 序号制）——无需回填。
+- **环境注（2026-09-09）**：`npm run build` 被既有损伤阻断（tests/ WIP 类型错 + orientTables 类型漂移×全 demo + core.ts 定时器类型噪声）；
+  dist 已用 `tsconfig.build-cli.json`（src+ui/src 收窄）重建——tsc 默认带错 emit，CLI 面 b7bc385 空元件修复已生效。
+  根因修复留待用户指导批次。
+- **结构层进展**：信号×3/变量（宿主23+玩家9实体×9）/27球+26块组件/技能配置×2/图槽 14 个全部落位；
+  20 gia 编译 0 错 + 二进制哨兵断言全绿（turn op11 门/ballvisual 1839+ballspin/plan 双门/decision configId）。
