@@ -87,6 +87,8 @@ rubik3x3_solve[op,val] / rubik3x3_solve_ack[] / rubik3x3_solve_done[ok] / rubik3
 
 ### 侦察陷阱记录（实据）
 
+缺口通道：①A 控制器 1077936200 不在 assemblies 导出面（27 条= B 控制器+26 块）——用库内计划 examples/rubik-3x3/assets/plans/controller-config.mjs 对 1920 二次 apply（prefabId 6200 保留；其 aux id 1938/1939 与迁移变换的 1941+ 段无冲突；tabBar 15 项与 donor 现状一致性执行期读回核验）；②元件组 1077936230（resource 10008001 页面模型组）——root4 定义由通道B entities import 的 --definitions-gil 兜底合并（wireRecordId 去重仅补缺），root8 页面呈现缺省不影响玩法（仅编辑器摆件菜单差异，G4 美术期若需再补）。
+
 - **commander help 低报**：`assets:entities --help` 不列 `--definitions-gil`，但运行时支持（src/cli/assets_entities.ts:54/156/482-496；dist 引用×2 探针 defgil_hits=2；gsts.ts:1854 `allowUnknownOption(true)` 裸 argv 转交自定义解析器）。判 CLI 能力以 src 实现+dist 实跑为准，勿信 help 全集。
 - **`assets:node-graphs` 无子命令默认=注入预览**（危险误触面，本次误跑无 --write 未写入）；`nodes` 子命令=节点预算计算非列举；图列举用 `npx tsx tools/list-gil-node-graphs.ts <gil>`（donor=10 张，探针 graph_count=10；表外空占位 1840「新建节点图」不计、不迁移）。
 - **donor src 图 id≠新占位 id**（donor 1830..1839 vs 新 1825..1834）：GIA 内嵌图 id，src 改 id 重编译为 canonical 路径；图间只靠信号/挂载关联（MIGRATION 实测），改 id 安全。

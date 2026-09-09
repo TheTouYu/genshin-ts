@@ -1,0 +1,2178 @@
+{
+  "assemblies": [
+    {
+      "components": [
+        {
+          "options": [
+            "整体转X",
+            "整体转Y",
+            "整体转Z",
+            "自动打乱",
+            "自动还原",
+            "重置",
+            "反向旋转"
+          ],
+          "regionCenter": [
+            0,
+            0,
+            0
+          ],
+          "regionName": "魔方3x3-B",
+          "regionRadius": 3,
+          "regionType": "sphere",
+          "type": "tabBar"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            0,
+            0.5099999904632568,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.800000011920929,
+            0.019999999552965164,
+            0.800000011920929
+          ]
+        }
+      ],
+      "name": "魔方控制器3x3-B",
+      "position": [
+        2,
+        1.2000000476837158,
+        4
+      ],
+      "prefabId": 1077936202,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "templateInstanceId": 1077936202,
+      "templateName": "魔方控制器3x3-B",
+      "templatePrefabId": 1077936202,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UFL",
+      "position": [
+        -1,
+        2.700000047683716,
+        1
+      ],
+      "prefabId": 1077936204,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936204,
+      "templateName": "星枢3x3块_v2_UFL",
+      "templatePrefabId": 1077936204,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UF",
+      "position": [
+        0,
+        2.700000047683716,
+        1
+      ],
+      "prefabId": 1077936205,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936205,
+      "templateName": "星枢3x3块_v2_UF",
+      "templatePrefabId": 1077936205,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UFR",
+      "position": [
+        1,
+        2.700000047683716,
+        1
+      ],
+      "prefabId": 1077936206,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936206,
+      "templateName": "星枢3x3块_v2_UFR",
+      "templatePrefabId": 1077936206,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UL",
+      "position": [
+        -1,
+        2.700000047683716,
+        0
+      ],
+      "prefabId": 1077936207,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936207,
+      "templateName": "星枢3x3块_v2_UL",
+      "templatePrefabId": 1077936207,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_U",
+      "position": [
+        0,
+        2.700000047683716,
+        0
+      ],
+      "prefabId": 1077936208,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936208,
+      "templateName": "星枢3x3块_v2_U",
+      "templatePrefabId": 1077936208,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UR",
+      "position": [
+        1,
+        2.700000047683716,
+        0
+      ],
+      "prefabId": 1077936209,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936209,
+      "templateName": "星枢3x3块_v2_UR",
+      "templatePrefabId": 1077936209,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UBL",
+      "position": [
+        -1,
+        2.700000047683716,
+        -1
+      ],
+      "prefabId": 1077936210,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936210,
+      "templateName": "星枢3x3块_v2_UBL",
+      "templatePrefabId": 1077936210,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UB",
+      "position": [
+        0,
+        2.700000047683716,
+        -1
+      ],
+      "prefabId": 1077936211,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936211,
+      "templateName": "星枢3x3块_v2_UB",
+      "templatePrefabId": 1077936211,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 49.80392074584961,
+            "overlay": "overwrite",
+            "rgb": 16119802
+          },
+          "position": [
+            0,
+            0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_UBR",
+      "position": [
+        1,
+        2.700000047683716,
+        -1
+      ],
+      "prefabId": 1077936212,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936212,
+      "templateName": "星枢3x3块_v2_UBR",
+      "templatePrefabId": 1077936212,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_FL",
+      "position": [
+        -1,
+        1.7000000476837158,
+        1
+      ],
+      "prefabId": 1077936213,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936213,
+      "templateName": "星枢3x3块_v2_FL",
+      "templatePrefabId": 1077936213,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_F",
+      "position": [
+        0,
+        1.7000000476837158,
+        1
+      ],
+      "prefabId": 1077936214,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936214,
+      "templateName": "星枢3x3块_v2_F",
+      "templatePrefabId": 1077936214,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_FR",
+      "position": [
+        1,
+        1.7000000476837158,
+        1
+      ],
+      "prefabId": 1077936215,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936215,
+      "templateName": "星枢3x3块_v2_FR",
+      "templatePrefabId": 1077936215,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_L",
+      "position": [
+        -1,
+        1.7000000476837158,
+        0
+      ],
+      "prefabId": 1077936216,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936216,
+      "templateName": "星枢3x3块_v2_L",
+      "templatePrefabId": 1077936216,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_R",
+      "position": [
+        1,
+        1.7000000476837158,
+        0
+      ],
+      "prefabId": 1077936217,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936217,
+      "templateName": "星枢3x3块_v2_R",
+      "templatePrefabId": 1077936217,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_BL",
+      "position": [
+        -1,
+        1.7000000476837158,
+        -1
+      ],
+      "prefabId": 1077936218,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936218,
+      "templateName": "星枢3x3块_v2_BL",
+      "templatePrefabId": 1077936218,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_B",
+      "position": [
+        0,
+        1.7000000476837158,
+        -1
+      ],
+      "prefabId": 1077936219,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936219,
+      "templateName": "星枢3x3块_v2_B",
+      "templatePrefabId": 1077936219,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_BR",
+      "position": [
+        1,
+        1.7000000476837158,
+        -1
+      ],
+      "prefabId": 1077936220,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936220,
+      "templateName": "星枢3x3块_v2_BR",
+      "templatePrefabId": 1077936220,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DFL",
+      "position": [
+        -1,
+        0.699999988079071,
+        1
+      ],
+      "prefabId": 1077936221,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936221,
+      "templateName": "星枢3x3块_v2_DFL",
+      "templatePrefabId": 1077936221,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DF",
+      "position": [
+        0,
+        0.699999988079071,
+        1
+      ],
+      "prefabId": 1077936222,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936222,
+      "templateName": "星枢3x3块_v2_DF",
+      "templatePrefabId": 1077936222,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 3524975
+          },
+          "position": [
+            0,
+            0,
+            0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DFR",
+      "position": [
+        1,
+        0.699999988079071,
+        1
+      ],
+      "prefabId": 1077936223,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936223,
+      "templateName": "星枢3x3块_v2_DFR",
+      "templatePrefabId": 1077936223,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DL",
+      "position": [
+        -1,
+        0.699999988079071,
+        0
+      ],
+      "prefabId": 1077936224,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936224,
+      "templateName": "星枢3x3块_v2_DL",
+      "templatePrefabId": 1077936224,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_D",
+      "position": [
+        0,
+        0.699999988079071,
+        0
+      ],
+      "prefabId": 1077936225,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936225,
+      "templateName": "星枢3x3块_v2_D",
+      "templatePrefabId": 1077936225,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DR",
+      "position": [
+        1,
+        0.699999988079071,
+        0
+      ],
+      "prefabId": 1077936226,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936226,
+      "templateName": "星枢3x3块_v2_DR",
+      "templatePrefabId": 1077936226,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16747060
+          },
+          "position": [
+            -0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DBL",
+      "position": [
+        -1,
+        0.699999988079071,
+        -1
+      ],
+      "prefabId": 1077936227,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936227,
+      "templateName": "星枢3x3块_v2_DBL",
+      "templatePrefabId": 1077936227,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DB",
+      "position": [
+        0,
+        0.699999988079071,
+        -1
+      ],
+      "prefabId": 1077936228,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936228,
+      "templateName": "星枢3x3块_v2_DB",
+      "templatePrefabId": 1077936228,
+      "templateResourceId": 10009001
+    },
+    {
+      "components": [
+        {
+          "preset": "default",
+          "type": "basicMotion"
+        }
+      ],
+      "items": [
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 16766011
+          },
+          "position": [
+            0,
+            -0.5199999809265137,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.02500000037252903,
+            0.8999999761581421
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 4029695
+          },
+          "position": [
+            0,
+            0,
+            -0.5199999809265137
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.02500000037252903
+          ]
+        },
+        {
+          "color": {
+            "enabled": true,
+            "opacity": 100,
+            "overlay": "overwrite",
+            "rgb": 15746116
+          },
+          "position": [
+            0.5199999809265137,
+            0,
+            0
+          ],
+          "resourceId": 10009001,
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            0.02500000037252903,
+            0.8999999761581421,
+            0.8999999761581421
+          ]
+        }
+      ],
+      "name": "星枢3x3块_v2_DBR",
+      "position": [
+        1,
+        0.699999988079071,
+        -1
+      ],
+      "prefabId": 1077936229,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.9649999737739563,
+        0.9649999737739563,
+        0.9649999737739563
+      ],
+      "templateInstanceId": 1077936229,
+      "templateName": "星枢3x3块_v2_DBR",
+      "templatePrefabId": 1077936229,
+      "templateResourceId": 10009001
+    }
+  ],
+  "schemaVersion": 1
+}
