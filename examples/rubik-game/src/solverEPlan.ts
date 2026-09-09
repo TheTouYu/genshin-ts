@@ -174,9 +174,16 @@ const graph = g
               () => {
                 f.setCustomVariable(f.getSelfEntity(), new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), false)
                 f.setCustomVariable(f.getSelfEntity(), new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), false)
-                f.setNodeGraphVariable('phase', new int(2), false)
                 f.setNodeGraphVariable('dbgTag', new str('DBG_RUBIK_SOLVE'), false)
                 f.setNodeGraphVariable('dbgVal', new str('seq-ready'), false)
+                // rg_hint_mode=1（单步提示，rgHint 置位）：截断序列为一步 + 熄火续算链 + 复位旗标
+                f.doubleBranch(f.equal(f.getCustomVariable(f.getSelfEntity(), new str('rg_hint_mode')).asType('int'), 1n), () => {
+                  f.setCustomVariable(f.getSelfEntity(), new str('solve_len'), new int(1), false)
+                  f.setNodeGraphVariable('phase', new int(0), false)
+                  f.setCustomVariable(f.getSelfEntity(), new str('rg_hint_mode'), new int(0), false)
+                }, () => {
+                  f.setNodeGraphVariable('phase', new int(2), false)
+                })
                 f.sendSignal(RubikSignal.rubik3x3_solve, 6n, 0n)
               }
             )

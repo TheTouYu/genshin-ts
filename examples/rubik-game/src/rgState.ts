@@ -119,6 +119,8 @@ const graph = g
   .onSignal(RubikSignal.rubik3x3_solve, (evt: any, f: any) => {
     // op7=最终完成（solver 语义）→ 星级结算
     f.doubleBranch(f.equal(evt.params.op, 7n), () => {
+      // 兜底清提示旗标（悬挂防护：hint 起算后未达 seq-ready 的路径）
+      f.setCustomVariable(entity(1077936230n), new str('rg_hint_mode'), new int(0), false)
       f.doubleBranch(f.equal(f.getNodeGraphVariable('stage').asType('int'), 3n), () => {
         const mv = f.getNodeGraphVariable('moves').asType('int')
         const par = f.getNodeGraphVariable('par').asType('int')

@@ -63,7 +63,14 @@ const llPublishSeq = g.defineComposite('ll_publish_seq', {
   build: ({ target }, f) => {
     f.registerExecNode('set_custom_variable', [target, new str('solve_seq'), f.getNodeGraphVariable('solveBuf').asType('int_list'), new bool(false)])
     f.registerExecNode('set_custom_variable', [target, new str('solve_len'), f.getNodeGraphVariable('solveLen').asType('int'), new bool(false)])
-    f.registerExecNode('set_node_graph_variable', [new str('phase'), new int(2), new bool(false)])
+    // rg_hint_mode=1（单步提示，rgHint 置位）：截断序列为一步 + 熄火续算链 + 复位旗标
+    f.doubleBranch(f.equal(f.getCustomVariable(target, new str('rg_hint_mode')).asType('int'), 1n), () => {
+      f.registerExecNode('set_custom_variable', [target, new str('solve_len'), new int(1), new bool(false)])
+      f.registerExecNode('set_node_graph_variable', [new str('phase'), new int(0), new bool(false)])
+      f.registerExecNode('set_custom_variable', [target, new str('rg_hint_mode'), new int(0), new bool(false)])
+    }, () => {
+      f.registerExecNode('set_node_graph_variable', [new str('phase'), new int(2), new bool(false)])
+    })
     const send = f.registerExecNode('send_signal', [new str('rubik3x3_solve'), new int(6n), new int(0n)])
     f.outflow('done', send, 0)
     return {}
