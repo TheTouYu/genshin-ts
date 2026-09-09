@@ -12,5 +12,10 @@ export const Signal = {
   rubik3x3_solve_move: defineSignal('rubik3x3_solve_move', [['moveId', 'int']]),
   rubik3x3_solve_ready: defineSignal('rubik3x3_solve_ready', []),
   rubik3x3_solve_req: defineSignal('rubik3x3_solve_req', []),
-  rubik3x3_tab: defineSignal('rubik3x3_tab', [['tabId', 'int']])
+  rubik3x3_tab: defineSignal('rubik3x3_tab', [['tabId', 'int']]),
+  rubikgame_input: defineSignal('rubikgame_input', [['btnId', 'int']]),
+  rubikgame_state: defineSignal('rubikgame_state', [
+    ['ev', 'int'],
+    ['val', 'int']
+  ])
 } as const
