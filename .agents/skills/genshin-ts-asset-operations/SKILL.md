@@ -187,6 +187,15 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   报成功但选项不变；排查手法 = 直接调 dist 函数 + exportEntities 回读（size 不变即函数 bug）。修复已过
   导出回读验证，**编辑器/游戏核验待做**（2026-08-27 rubik 测试台复测时观察）。
 
+### C2. 悬浮交互页与高级控件候选链（2026-09-09 rubik-game 全流程实证）
+
+- **高级命令面比 help 头部宽**：`assets:ui create --type` 除 textbox/interactive-button/custom-button/image 外支持 `floating-page --on library`（显式三元组 ID：实体/容器/关闭按钮顺延）；另有 `container add`、`tab page add/rename/default`、`floating-page variable add`、`state material add` 等票10 命令（commander help 低报——判 CLI 能力看 `src/cli/assets_ui.ts` 的 usage 字符串，同 commander 低报先例）。
+- **tab create 自动带默认页「页签项_1」**（pages=4 陷阱）：目标 N 页签的正确姿势 = create tab（默认页#1）→ `tab page rename --page 1` 改为首目标页 → `tab page add` 其余 N-1 页。**无 tab page remove 命令**，多页只能重建链。
+- **custom-button 默认布局直达**（省 --on）；textbox/image 需显式 `--on layout:<ID|名称>`。
+- **entities import JSON 形态（复踩 2 次的坑）**：顶层必须 `{"schemaVersion": 1, "entities": [...]}`；`color` 必须字符串 `"#RRGGBB"`（export 输出对象形 `{enabled:...}`——**导出/导入不对称，不能拿 export 结果直接回灌 import**）。
+- **`assets:node-graphs read` 用 `--graph`（非 `--id`）**；read --json 对泛型 `R<T>` 引脚显示「ConcreteBase N」**不含常量值**——常量落位核验必须 `tools/gia-verify-pin.ts --vals` + `tools/explain-gil-node-graph.ts`（字面量显示）双通道。
+- **候选链纪律（UI 批量产出标准路径）**：全部 `--output` 链式迭代（每步以链尾为源，候选不覆盖旧文件——撞名换新名）→ 结构回读（`assets:ui list --gil 候选`）→ 用户确认 → **整包应用**：SHA 锁定→手工备份→cp 候选到真图→`maps:resync`→双址 SHA 一致断言→`list` 真图复核。前提自检：链起点后真图无写入、用户未保存（不符则重建链）。
+
 ### D2. 技能配置（2026-08-29 CLI 落地，证据见 docs/game-engine-knowledge/gil-structure-semantics.md「技能配置资产」）
 
 - `gsts assets:skill-config create --id <必填> --name <名> --template 普通技能|36|自定义技能|6|自定义造物|28 --skill-type 瞬发|普通 [--graph-id <图ID,...>] [--output <候选>|--write]`

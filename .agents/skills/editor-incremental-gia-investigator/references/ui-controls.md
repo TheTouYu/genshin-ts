@@ -327,16 +327,20 @@ f505[f502=38]            ← 图片源组件（type 38）
 2. **创建（第二优先级）**：帮玩家省掉手动创建大模板的步骤。
 3. **编辑（第三优先级）**：创建后的精确修改（改某模板的某些控件）。学到知识就能做，尽量做。
 
-### 悬浮交互页 CLI 能力现状（2026-08-27）
+### 悬浮交互页 CLI 能力现状（2026-09-09 rubik-game 实证更新）
+
+> 2026-09-09 更新：页签/容器/形式变量/三状态素材的 create 已全部实证可用（rubik-game UI 31 控件
+> 全流程，证据 docs/game-engine-knowledge/retrospective-2026-09-09-rubik-game-gamification.md）。
+> commander help 头部低报——完整命令面看 `src/cli/assets_ui.ts` 的 usage 字符串。
 
 | 功能点 | List | Create | Edit |
 | --- | --- | --- | --- |
 | 文本框/交互按钮/自定义按钮/图片 | ✅ list | ✅ create | ✅ update |
-| **悬浮交互页** | ✅ list/variables | ✅ create | ❌ 页签/视窗/变量/三状态 |
-| **形式变量** | ✅ `variables list` | ❌ | ❌ |
-| **按钮三状态** | ✅ `states` | ❌ | ❌ |
-| 页签/视窗 | ✅ 分类识别 | ❌ | ❌ |
-| 素材组 type55 | ✅ 分类识别 | ❌ | ❌ |
+| **悬浮交互页** | ✅ list/variables | ✅ create（`--on library` 三元组 ID） | ✅ `container add` |
+| **页签** | ✅ 分类识别 | ✅ `tab page add/rename/default`（create 自动带默认页，无 remove） | ✅ rename/default |
+| **形式变量** | ✅ `variables list` | ✅ `floating-page variable add` | ❌ |
+| **按钮三状态素材** | ✅ `states` | ✅ `state material add`（需遮罩素材路径） | ❌ |
+| 素材组 type55 | ✅ 分类识别 | ✅ 素材 gia 导入链 | ❌ |
 | 同步到模板 | ❌ | ❌ | ❌ |
 
 ### 悬浮交互页创建规范（2026-08-27 轮9-10 实读，用户修复版）
