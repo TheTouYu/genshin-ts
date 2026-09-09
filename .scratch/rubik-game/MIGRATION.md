@@ -62,6 +62,8 @@ rubik3x3_solve[op,val] / rubik3x3_solve_ack[] / rubik3x3_solve_done[ok] / rubik3
 
 ## 不迁移项
 
+切换镜头 1834 处置：无 src（editor-made）——G4 美术期用 gil:parse-node-graph 从 donor 1839 提取 8 节点结构重写 DSL 编译注入；本轮占位悬空不挂载（6261 物件镜头实体已在位，挂载矩阵可后补）。
+
 - tabBar 组件配置（UI v3 退役；但实体定义里的组件槽结构保留原样——turn 图 tabBar 事件分支仍在，仅无 UI 入口，方案 B 手术时再定）
 - 编辑器默认模版（1086324737/1090519041 段，init 模板自带）
 
