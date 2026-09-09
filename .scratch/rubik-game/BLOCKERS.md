@@ -21,3 +21,5 @@
   根因修复留待用户指导批次。
 - **结构层进展**：信号×3/变量（宿主23+玩家9实体×9）/27球+26块组件/技能配置×2/图槽 14 个全部落位；
   20 gia 编译 0 错 + 二进制哨兵断言全绿（turn op11 门/ballvisual 1839+ballspin/plan 双门/decision configId）。
+- **B5 静态元件删除通道缺失（2026-09-09 绕行）**：CLI 无 static assembly/def 删除子命令（仅 inspect/plan/export/apply）；
+  绕行=实例缩 0.01 隐藏（353 基座）+def 留存无害。待用户裁决是否需要删除能力。
