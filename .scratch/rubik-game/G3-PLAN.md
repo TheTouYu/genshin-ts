@@ -8,7 +8,7 @@
 依据：①turn 图零改动原则（用户裁决基线，不污染主线参照结构）；②rubik3x3_solve[op,val] 通道已实测可驱动任意面转序列（solver 还原即此模式）；③打乱与玩家转动同构=发 move 序列。
 - 打乱：对局图生成随机序列（避免连续同面互逆）→ 逐 move 发 rubik3x3_solve → par=序列长度（3/5/8/12 档）。
 - 玩家转动：HUD 按钮 → 玩家输入图（玩家节点图，UI 事件专属）→ 新信号 rubikgame_input[btnId] → 对局图计数（moves+1）→ 转发 rubik3x3_solve。
-- 方案 B（turn 图入口手术）仅当 A 通道行为层受阻（打乱序列与 solver 节拍冲突）才启用，启用前须用户确认。
+- 方案 B（turn 图入口手术）**已于 2026-09-09 获用户裁决启用**：1920 副本 turn 图加 op11 分支（val=步数，flowScrambleN 复用队列/autoMode 机制自随机 1..6），完成经 rg_scr_notify 门发 rubikgame_state[ev=2]；donor 1899 不动，既有分支零触碰（op10 路径 rg_scr_notify 缺省=false 零行为变化）。
 
 ## 状态机变量表（关卡变量，HUD 文本框插值实时刷新依赖）
 

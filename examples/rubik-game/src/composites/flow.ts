@@ -4,6 +4,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { SettlementStatus } from 'genshin-ts/definitions/enum'
 import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 import { logicApplyFace, logicApplyMiddle, logicApplyWholeA, logicApplyWholeB, logicIsSolved, logicReset } from './logic.js'
+import { RgSignal } from '../signals.js'
 
 const SCRAMBLE_LEN = 20n
 type Flow = any
@@ -391,6 +392,19 @@ export const flowAfterTurn = g.defineComposite('flow_after_turn', {
         f.link(brMore, 1, offAuto, 0)
         const offScr = f.node('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(false), new bool(false)])
         f.link(offAuto, 0, offScr, 0)
+        // rubik-game（G3 方案 B，2026-09-09 用户裁决）：对局档位打乱（op11）完成时通知对局图。
+        // 门控自定义变量 rg_scr_notify 默认不存在（=false）→ donor 路径（op10）零行为变化。
+        const notify = f.equal(
+          f.getCustomVariable(target, new str('rg_scr_notify')).asType('bool'),
+          true
+        )
+        const brNotify = f.node('double_branch', [notify])
+        f.link(offScr, 0, brNotify, 0)
+        f.connectOutFlow(brNotify, 0, () => {
+          const offNotify = f.node('set_custom_variable', [target, new str('rg_scr_notify'), new bool(false), new bool(false)])
+          f.link(brNotify, 0, offNotify, 0)
+          f.sendSignal(RgSignal.rubikgame_state, 2n, 0n)
+        })
       })
     })
     f.connectOutFlow(brAuto, 1, () => {
@@ -471,6 +485,37 @@ export const flowScramble = g.defineComposite('flow_scramble', {
     f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
     // 标记打乱进行中，主图在打乱期间忽略自动复原请求（防并发）
     f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
+    const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
+    f.callComposite(flowRequestMove, { moveId: mv0, target })
+    return {}
+  }
+})
+
+// rubik-game（G3 方案 B）：对局档位打乱——长度外部可变（op11 val=len），其余与 flowScramble 同构。
+// 完成通知走 flowAfterTurn 的 rg_scr_notify 门（打乱队列播完发 rubikgame_state[ev=2]）。
+export const flowScrambleN = g.defineComposite('flow_scramble_n', {
+    id: 1610700161,
+  inputs: { target: { type: 'entity' }, len: { type: 'int' } },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ target, len }, f) => {
+    const setLen = f.node('set_node_graph_variable', [new str('qLen'), len, new bool(false)])
+    f.link(f.entry(), 0, setLen, 0)
+    // 与 flowScramble 同规则：每项独立 getRandomInteger(1..6) 直写 queue[i]，不打乱中心
+    f.finiteLoop(0n, 11n, (i, _br) => {
+      const inRange = f.logicalNotOperation(f.greaterThan(i, f.subtraction(len, 1n)))
+      f.doubleBranch(inRange, () => {
+        const mv = f.getRandomInteger(1n, 6n)
+        f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+          f.getNodeGraphVariable('queue').asDict('int', 'int'), i, mv
+        ])
+      }, () => {})
+    })
+    f.registerExecNode('set_node_graph_variable', [new str('autoMode'), new bool(true), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('qIdx'), new int(0), new bool(false)])
+    f.registerExecNode('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('rubik3x3_scrambling'), new bool(true), new bool(false)])
+    f.registerExecNode('set_custom_variable', [target, new str('rg_scr_notify'), new bool(true), new bool(false)])
     const mv0 = f.queryDictionaryValueByKey(f.getNodeGraphVariable('queue').asDict('int', 'int'), new int(0))
     f.callComposite(flowRequestMove, { moveId: mv0, target })
     return {}

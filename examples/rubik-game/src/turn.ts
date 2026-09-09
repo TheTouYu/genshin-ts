@@ -5,7 +5,7 @@
 // 性能设计：N 块统一定时器（turnblock + orbit2），timerSequenceId 即槽位，避免 per-block 分支。
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float, int, str } from 'genshin-ts/runtime/value'
-import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleLayer2, flowWholeTail } from './composites/flow.js'
+import { flowDoMove, flowAfterTurn, flowRequestMove, flowTabLock, flowScramble, flowScrambleN, flowScrambleLayer2, flowWholeTail } from './composites/flow.js'
 import { logicReset } from './composites/logic.js'
 import { RubikSignal } from './signals.js'
 import { orientIndexByEuler, moveOrientTransition0, moveOrientTransition1, moveOrientTransition2, wholeOrientTransition } from './orientTables.js'
@@ -249,6 +249,11 @@ const graph = g
       10: () => {
         // 打乱：由 turn 图统一维护 queue/lock/autoMode
         f.callComposite(flowScramble, { target: f.getSelfEntity() })
+      },
+      11: () => {
+        // rubik-game（G3 方案 B，2026-09-09 用户裁决）：对局档位打乱——val=步数(3/5/8/12)，
+        // 完成后经 rg_scr_notify 门发 rubikgame_state[ev=2] 通知对局图
+        f.callComposite(flowScrambleN, { target: f.getSelfEntity(), len: evt.params.val })
       },
       18: () => {
         // 二层测试打乱：只动 U/E（保持第一层完整），完成后自动接自动还原
