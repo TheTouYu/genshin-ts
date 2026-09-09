@@ -16,10 +16,10 @@ function run(args) {
   return execFileSync('node', [GSTS, ...args], { cwd: '/home/h/genshin-ts', encoding: 'utf8' })
 }
 
-// 1) 九图节点数（donor 逐张）
+// 1) 图节点数（G2 迁移=donor 逐张；G3 合法演进：turn +2=op11 分支（方案 B 用户裁决）、rgState 116 新图）
 const expectedNodes = {
   1073741825: 85, 1073741826: 8, 1073741827: 30, 1073741828: 72, 1073741829: 262,
-  1073741830: 42, 1073741831: 152, 1073741832: 8, 1073741833: 298
+  1073741830: 44, 1073741831: 152, 1073741832: 8, 1073741833: 298, 1073741835: 116
 }
 const graphLines = run(['assets:node-graphs', 'read', '--gil', GIL])
   .split('\n').filter((l) => /^graph 10737418/.test(l))
@@ -32,8 +32,8 @@ for (const [id, n] of Object.entries(expectedNodes)) {
 const total = graphLines
   .filter((l) => !l.includes('1834'))
   .reduce((s, l) => s + Number(l.match(/nodes=(\d+)/)?.[1] ?? 0), 0)
-if (total === 957) {
-  ok('nine-graph node total=957')
+if (total === 1075) {
+  ok('graph node total=1075')
 } else {
   bad('node total', `got=${total}`)
 }
@@ -51,13 +51,30 @@ for (const w of wantMounts) {
   else bad('mount', w)
 }
 
-// 3) 信号 7 条带参
+// 3) 信号带参（G2 落账时=7；G3 合法新增 rubikgame_input/state → 现值 9）
 const sig = run(['assets:signals', 'inspect', '--gil', GIL])
 const sigCount = Number(sig.match(/^signals=(\d+)/m)?.[1] ?? 0)
-if (sigCount === 7) {
-  ok('signals=7')
+if (sigCount === 9) {
+  ok('signals=9')
 } else {
   bad('signals', `got=${sigCount}`)
+}
+// 3b) tabBar 拒载门回归（2026-09-09 用户实锤 bug：选项>10 拒载；B 控制器 7 项合法保留至 G4 退役）
+const asmJson = JSON.parse(execFileSync('node', [GSTS, 'assets:static-assemblies', 'export', '--gil', GIL, '--format', 'json'], { cwd: '/home/h/genshin-ts', encoding: 'utf8' }))
+let overLimit = 0
+let tabBarCount = 0
+for (const a of asmJson.assemblies ?? []) {
+  for (const c of a.components ?? []) {
+    if (c.type === 'tabBar') {
+      tabBarCount++
+      if ((c.options ?? []).length > 10) overLimit++
+    }
+  }
+}
+if (overLimit === 0) {
+  ok(`tabBar load-gate (found ${tabBarCount}, none >10 options)`)
+} else {
+  bad('tabBar load-gate', `over10=${overLimit}`)
 }
 for (const [name, p] of [
   ['rubik3x3_solve', 'params=[op:int val:int]'],
