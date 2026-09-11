@@ -1047,7 +1047,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     if (args.createType === 'floating-page') {
       if (!args.rich) {
         throw new Error(
-          '[error] 旧形态 createFloatingPage（非 rich）已停用——rubik-game W1 事故根因：不注册控件组库（path=未归属）+假容器+悬空 t42 引用。规范路径：create --type floating-page --on library（轮24 三条单条族+入库注册）'
+          '[error] 旧形态 createFloatingPage（非 rich）已弃用停用——rubik-game W1 事故根因：不注册控件组库（path=未归属）+假容器+悬空 t42 引用。规范路径：create --type floating-page --on library（轮24 三条单条族+入库注册）'
         )
       }
       const result = args.rich
