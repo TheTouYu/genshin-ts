@@ -23,5 +23,5 @@
   20 gia 编译 0 错 + 二进制哨兵断言全绿（turn op11 门/ballvisual 1839+ballspin/plan 双门/decision configId）。
 - **B5 静态元件删除通道缺失（2026-09-09 绕行）**：CLI 无 static assembly/def 删除子命令（仅 inspect/plan/export/apply）；
   绕行=实例缩 0.01 隐藏（353 基座）+def 留存无害。待用户裁决是否需要删除能力。
-- **B6 悬浮页内容 CLI 缺口（2026-09-09 fail-closed）**：CLI 无法把控件放进悬浮页——①tab create 只认页面容器，官方 wire 是挂固有容器素材组（ui-controls L121）；②container add 产出的页面容器缺 f503 成员列表（控件追加语义不成立，疑似 CLI 实现缺口）；③按钮 create --on container: 会静默错投布局官方预制槽（868-870 已清，866/867 成孤儿删不掉=无宿主记录 fail-closed，编辑器可删）。
+- **B6 悬浮页内容 CLI 缺口（✅ 2026-09-11 已闭——根因重判+引擎补齐）**：W1 三条当时判断全部误诊/已补：①官方 wire 确实挂固有容器素材组，但**固有容器正是规范宿主**（轮26），挂法=`create --type custom-button --on 悬浮页:<实体>:<固有容器>`；②container add 产出的页面容器空白无 f503 是**轮33 文档正常态**，非 CLI 缺口；③错投真因=旧形态 createFloatingPage 建页（未注册库+假容器+t42 悬空引用）+ 无 --on 创建落默认布局——旧路径已加弃用护栏（8c26fa8），deleteFloatingPageFamily+--orphan-ok 落地，12 条坏页家族已清理（live==Temp==候选 5e25500b 逐字节）。重建两页走票10 规范路径（2161/2164 入库，d54095b）。
   绕行=编辑器轮用户按规格单往两页加控件（选关 5 按钮+结算 3 按钮+2 文本框），我读回 wire 后接线。规格单见 PROGRESS W1 节。

@@ -1,6 +1,6 @@
 ---
 name: editor-incremental-gia-investigator
-description: "Investigate and accumulate Genshin editor engine rules through user-saved, adjacent map snapshots. Always use this skill when adding a game-engine feature, studying how a level asset/node/pin/connection/parameter/component/UI/variable is encoded, comparing before/after GIL files, or preparing a learned rule for Genshin-TS implementation. Also use it whenever a bug investigation gets stuck or a production rule is not yet closed — the first move must be a minimal editor diff (10-second change) to learn the real wire, never static guessing in production code. It first reads the project's human-readable game-engine knowledge graph to reuse known concepts and evidence, then performs only the missing incremental experiment, preserves immutable snapshots and hashes, derives bounded rules, hand-replays them in temporary GIA/GIL, and keeps real-map writes behind explicit or scoped standing authorization."
+description: "Investigate and accumulate Genshin editor engine rules through user-saved, adjacent map snapshots. Always use this skill when adding a game-engine feature, studying how a level asset/node/pin/connection/parameter/component/UI/variable is encoded, comparing before/after GIL files, or preparing a learned rule for Genshin-TS implementation. Also use it whenever a bug investigation gets stuck or a production rule is not yet closed — the first move must be a minimal editor diff (10-second change) to learn the real wire, never static guessing in production code. It first reads the project's human-readable game-engine knowledge graph to reuse known concepts and evidence, then performs only the missing incremental experiment, preserves immutable snapshots and hashes, derives bounded rules, hand-replays them in temporary GIA/GIL, and keeps real-map writes behind explicit or scoped standing authorization. When the user says 直接轻量启动差分和抓包 / 差分+抓包 / diff+抓包, run the combined quickstart_diff_ipc.py for one-shot GIL before + RawCap READY."
 compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list-gil-node-graphs.ts, and tools/compare-gil-node-graph.ts.
 ---
 
@@ -8,21 +8,53 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 把用户在游戏编辑器中的小变化转换成可复查的相邻快照、定点差分和同构重放证据，并把稳定规则接回 `docs/game-engine-knowledge/`。目标是持续还原游戏引擎，而不是在每个新会话中重新调查，或只为当前生产代码打补丁。
 
-## ⚡ 快速启动（差分）
+## ⚡ 快速启动（差分 / 差分+抓包）
 
-用户明确要“差分 / 保存初始差异点 / 开始最小编辑实验”时，**不要读下面长文**，直接运行：
+用户明确要“差分 / 保存初始差异点 / 开始最小编辑实验”，或“直接轻量启动差分和抓包 / 差分+抓包”时，
+**不要读下面长文、不要查看板猜实验名**，直接运行：
+
+只差分：
 
 ```bash
-python3 .agents/skills/editor-incremental-gia-investigator/scripts/quickstart_diff.py <实验名>
+python3 .agents/skills/editor-incremental-gia-investigator/scripts/quickstart_diff.py [实验名]
 ```
 
-该脚本自动完成：
+差分 + IPC 抓包（一次编辑器变化同时收 GIL before 和 RawCap pcap，推荐用于“轻量启动差分和抓包”）：
+
+```bash
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_diff_ipc.py [实验名]
+```
+
+实验名可省略，脚本自动生成 `probe_YYYYmmdd_HHMMSS`；**不要为了取名去读 BOARD/issues/PROGRESS**。
+脚本自动完成：
 
 1. 定位当前地图（Beyond_Local_Save_Level 下最近修改的 `.gil`）；
 2. 物理复制 before 快照到 `evidence/<date>-<实验名>/before/` + SHA-256；
-3. 打印 READY 信息，随后告知用户“请在编辑器做一个最小变化并保存”。
+3. 差分+抓包模式还会启动 RawCap 并打印 READY；
+4. 随后告知用户“请在编辑器做一个最小变化并保存”。
 
 之后用户保存后再运行 `scripts/gil-quick-diff.py <before> <after>` 即可进入差分，不需要重新盘点。
+抓包收尾用 `quickstart_diff_ipc.py --finish <实验名>`（自动停止 RawCap + 固化 pcap）。
+
+probe/实验名只是目录标签，**不要用它推断实验内容**；实际变化以用户口述为准。
+名字与操作不符（例如启动名是 prefab，实际新增状态）时，在 PROGRESS 里记录实际内容即可，不要为改名重抓。
+
+## 🚧 差分前置闸（2026-09-11 用户纠偏回灌，硬规则）
+
+**启动任何差分轮之前，先查存量知识是否已覆盖该概念**——本项目 65+ 轮差分已沉淀大量规则，
+重复差分 = 浪费用户配合成本（2026-09-11 实锤：rg-fp-button 两轮全部重演已闭合的轮4/5/8）。
+
+1. **UI 控件类**（按钮/悬浮页/页签/素材/队列/布局/模板/同步/删除）：先 grep
+   `references/ui-controls.md`（本技能）+ `ui/mappings.md`；命令面已有实现就先查 `src/cli/assets_ui.ts` usage。
+2. **其它资产类**：先查 `docs/game-engine-knowledge/` 对应文档 + PKC（`python tools/pkc.py query "<关键词>" --level 2`）。
+3. 已覆盖 → 直接用存量结论做实现，不做差分；真未知（知识标注 OBSERVED/未闭合）→ 才进差分轮，
+   且差分目标应瞄准该未闭合项，不重学已闭合区。
+4. 用户说「之前就有记录了/不要做重复的事情」时，本闸升级为最高优先——先系统性读完存量再动手。
+
+
+同时抓了 IPC 时，**抓包帧流自带差分属性**（2026-09-05 用户纠正）：type1017 相邻帧差异就是最小差分，
+一次连续抓包可拆出多次小步骤；“每轮一个唯一变化”的纪律适用于纯 GIL 差分/落盘锚点，不限制 IPC 连续操作。
+不要把“抓包期间多次编辑”当无效样本，应优先做帧级差分。
 
 ## 硬约束
 

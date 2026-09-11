@@ -189,6 +189,10 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 ### C2. 悬浮交互页与高级控件候选链（2026-09-09 rubik-game 全流程实证）
 
+- **悬浮页规范创建三件事（W1 事故回灌，2026-09-11，最高优先）**：
+  1. **唯一规范路径 = `create --type floating-page --on library`**（轮24 三条单条族：实体+固有容器+关闭按钮，**自动注册进控件组库 1073741840** → `assets:ui list` 显示 `path=控件组库:悬浮交互页#N`，库序=showFloatingInteractionPage 页索引）。旧 `createFloatingPage` 4 条合并形态已停用（护栏报错）——W1 实锤其产出「未归属+假容器+t42 悬空引用」三重废品。
+  2. **详情控件（按钮/文本框/页签）挂固有容器**：`create --type custom-button --on 悬浮页:<实体ID>:<固有容器ID> --name ... --position X,Y`（固有容器含关闭按钮成员→f503 在位→校验通过）。**容器空白无 f503 是轮33 文档正常态**，不要误判 CLI 缺口；`container add` 建的页面容器仅多容器布局需要。
+  3. **delete 已闭环**：`assets:ui delete <悬浮页实体ID>` 自动整族删除（t42 容器树+素材组+假宿主空后回收）；孤儿记录加 `--orphan-ok`（rubik-game 2026-09-11 12 条清理实证，live==Temp==候选逐字节）。
 - **高级命令面比 help 头部宽**：`assets:ui create --type` 除 textbox/interactive-button/custom-button/image 外支持 `floating-page --on library`（显式三元组 ID：实体/容器/关闭按钮顺延）；另有 `container add`、`tab page add/rename/default`、`floating-page variable add`、`state material add` 等票10 命令（commander help 低报——判 CLI 能力看 `src/cli/assets_ui.ts` 的 usage 字符串，同 commander 低报先例）。
 - **tab create 自动带默认页「页签项_1」**（pages=4 陷阱）：目标 N 页签的正确姿势 = create tab（默认页#1）→ `tab page rename --page 1` 改为首目标页 → `tab page add` 其余 N-1 页。**无 tab page remove 命令**，多页只能重建链。
 - **custom-button 默认布局直达**（省 --on）；textbox/image 需显式 `--on layout:<ID|名称>`。

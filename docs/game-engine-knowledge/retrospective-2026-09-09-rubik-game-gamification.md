@@ -84,3 +84,29 @@
 - **PKC**：新 claim「预测声明值四条铁律（相等核验语义）」（node=game-engine-knowledge，topic=task-declaration-discipline，plan pln_6ee0e14fa7d48d391504eccebd finalize）。
 - **提交**：2f9cf67..9a46179 共 24 笔（按票据/组推进）+ 本轮复盘三笔（技能/文档/复盘）。
 - **初始文件同步检查**：examples/AGENTS.md 已含 rubik-game 行（941bfc7）；根 AGENTS/CLAUDE 无需迭代（预测纪律属超级任务模式域，落 PKC+技能即可，非全仓高频）。
+
+## 七、W1-UI 事故复盘补遗（2026-09-11 修复波，用户裁定「知识在库≠知识被注入」）
+
+### 事故链（三连环用法错误，全部有存量知识却全部踩中）
+
+1. **建页走旧形态**：旧 `createFloatingPage`（4 条合并族）产出「未归属+假容器 1863+t42 悬空引用（1077936301/04 计划 ID 直接写进 wire）」三重废品；票10 规范路径 `create --type floating-page --on library`（轮24）早在 2026-09-03 落地——**但当时 dist 是 Sep 3 旧构建，语义路径未接线，静默落入 legacy 分支**。
+2. **误判「container add 缺 f503=CLI 缺口」**：轮33 明文记载新页面容器初始空白无 f503 是正常态——知识在库里，我没读到。
+3. **`--on container:2161` 被 fail-closed 正确拒绝后，无 --on 创建按钮落默认布局**（1866/1867 实锤躺在 HUD (600,600)/(1000,600)）。
+4. **差分轮重复劳动**：rg-fp-button 两轮全部重演已闭合的轮4/5/8——用户纠偏「之前就有记录了，有大量的资料，只是可能被遗忘了」。
+
+### 系统性根因（用户定性：文档/技能/上下文注入存在问题，修注入面而非怪模型）
+
+| 根因 | 修复 | 位置 |
+| --- | --- | --- |
+| **知识在库≠知识被注入**：ui-controls.md 65+ 轮规则存在，但 W1 时未进上下文 | 路由触发词扩面「往任何游戏地图写屏幕控件/悬浮交互页/按钮/页签/素材」 | 根 AGENTS.md 技能路由表 |
+| **CLI footgun**：旧形态建页路径无护栏，错误静默 | 弃用护栏（报错+指路规范路径） | src/cli/assets_ui.ts（8c26fa8） |
+| **技能缺规范入口**：C2 节有命令面无规范形态 | 「悬浮页规范创建三件事」置顶（--on library 注册入 1840 / 固有容器=规范宿主 / 空白容器=正常态 / delete 已闭环） | genshin-ts-asset-operations C2 |
+| **差分无前置闸**：技能未强制先查存量 | 「差分前置闸」硬规则（先 grep references/ui-controls.md+PKC，已覆盖即停） | editor-incremental-gia-investigator SKILL.md |
+| **stale dist**：bin/gsts.mjs 走旧构建 | W3 已重建（tsconfig.build-cli.json 直编）；教训已在案 | 环境注 |
+| **悬浮页删除 fail-closed 缺口** | deleteFloatingPageFamily + --orphan-ok 引擎落地，mappings §6 更新 | src/cli/gil_ui.ts + ui/mappings.md |
+
+### 修复波交付（同日）
+
+- 清理 12 条坏页家族（live==Temp==候选 5e25500b 逐字节，w1-cleanup 8 断言）；重建两页规范形态（2161 残局挑战=库序0 / 2164 结算=库序1，24 组三状态素材，文本插值在位，w1-rebuild 8 断言）。
+- 提交：8c26fa8（引擎+清理）/ d54095b（重建+判据）/ 本节（注入面四修复）。
+- 遗留：用户游戏核验（选关五档/结算三按钮/星级插值/B3 块动裁决/三校准点 compositeIdx 基数·页索引·item 计数）。
