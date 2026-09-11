@@ -41,24 +41,27 @@ const ok = (name, cond, detail = '') => {
   console.log(`${cond ? 'PASS' : 'FAIL'} ${name}${detail ? ' ' + detail : ''}`)
 }
 
-// 1) 记录数
-ok('records_after=122', parsed.records.length === 122, `实际=${parsed.records.length}`)
-// 2) 索引数
-ok('index_after=46', parsed.indexIds.size === 46, `实际=${parsed.indexIds.size}`)
-// 3) 布局成员数
+// 1-3) 规模计数：G1 清理时点值（2026-09-11，SHA 5e25500b）——G2 重建后记录数自然增长，
+//      默认只断不变式；--phase1 才核冻结计数（回归考古用）
+const PHASE1 = process.argv.includes('--phase1')
 const layout = parsed.recordsById.get(DEFAULT_LAYOUT_ID)
 const members = extractMemberIds(layout.fields)
-ok('layout_members_after=31', members.length === 31, `实际=${members.length}`)
-// 4) removed 全部不存在
-const stillThere = [...REMOVED].filter((id) => parsed.recordsById.has(id))
-ok('removed_12_absent', stillThere.length === 0, stillThat(stillThere))
-function stillThat(x) { return x.length ? `残留=${x.join(',')}` : '' }
-// 5) 零残留引用（任意记录字节含 removed id 的 varint）
-const refHits = []
-for (const r of parsed.records) {
-  for (const id of REMOVED) if (rawContains(r.raw, id)) { refHits.push(`${r.id}→${id}`); break }
+if (PHASE1) {
+  ok('records_after=122', parsed.records.length === 122, `实际=${parsed.records.length}`)
+  ok('index_after=46', parsed.indexIds.size === 46, `实际=${parsed.indexIds.size}`)
 }
-ok('zero_dangling_refs_to_removed', refHits.length === 0, refHits.slice(0, 5).join(' '))
+ok('layout_members_after=31', members.length === 31, `实际=${members.length}`)
+// 4-5) 时点断言（仅 phase1）：G2 重建后避让分配器合法复用 2161+ 空洞，永久面不核
+function stillThat(x) { return x.length ? `残留=${x.join(',')}` : '' }
+if (PHASE1) {
+  const stillThere = [...REMOVED].filter((id) => parsed.recordsById.has(id))
+  ok('removed_12_absent', stillThere.length === 0, stillThat(stillThere))
+  const refHits = []
+  for (const r of parsed.records) {
+    for (const id of REMOVED) if (rawContains(r.raw, id)) { refHits.push(`${r.id}→${id}`); break }
+  }
+  ok('zero_dangling_refs_to_removed', refHits.length === 0, refHits.slice(0, 5).join(' '))
+}
 // 6) 全库 t42 悬空引用=0（所有记录的容器引用都存在）
 const danglings = []
 for (const r of parsed.records) {
