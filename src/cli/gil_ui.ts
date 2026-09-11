@@ -616,15 +616,21 @@ export interface UiDeleteResult {
  * 模板 type4 f14 backref（轮14）；顶层索引=parentless 物理序重建（删除后）。
  * fail-closed：无宿主（模板/布局/容器本体）删除无样本 → 拒绝。
  */
-export function deleteUiControl(bytes: Uint8Array, id: number): UiDeleteResult {
+export function deleteUiControl(
+  bytes: Uint8Array,
+  id: number,
+  opts?: { orphanOk?: boolean }
+): UiDeleteResult {
   const top = parseMessageFields(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
   const target = findRecord(top, id)
   if (!target) throw new Error(`[error] UI control not found: ${id}`)
   const targetFields = parseMessageFields(target.value as Uint8Array)
   const parentId = firstVarint(targetFields, 504)
-  if (parentId === undefined) {
-    throw new Error('[error] 无宿主记录（模板/布局/容器本体）删除无样本——fail-closed')
+  if (parentId === undefined && !opts?.orphanOk) {
+    throw new Error(
+      '[error] 无宿主记录（模板/布局/容器本体）删除无样本——fail-closed；确认为孤儿记录请加 --orphan-ok'
+    )
   }
   const all = root9Records(top)
   const childrenOf = (g: number): number[] =>
@@ -709,6 +715,215 @@ export function deleteUiControl(bytes: Uint8Array, id: number): UiDeleteResult {
     }),
     removedIds: [...removed],
     parentId,
+    changed
+  }
+}
+
+/** t42 组件（f505 f502=42）→ f503 → f36 → f501 packed = 悬浮页容器引用列表（与 ui/src/record.ts extractContainerRefs 同路径） */
+function recordContainerRefs(record: Uint8Array): number[] {
+  const fields = parseMessageFields(record)
+  if (!fields) return []
+  for (const f of fields) {
+    if (f.number !== 505 || f.wire !== 2) continue
+    const comp = parseMessageFields(f.value as Uint8Array)
+    if (!comp) continue
+    if (!comp.some((x) => x.number === 502 && x.wire === 0 && x.value === 42)) continue
+    const f503 = comp.find((x) => x.number === 503 && x.wire === 2)
+    const f503m = f503 ? parseMessageFields(f503.value as Uint8Array) : undefined
+    const f36 = f503m?.find((x) => x.number === 36 && x.wire === 2)
+    const f36m = f36 ? parseMessageFields(f36.value as Uint8Array) : undefined
+    const f501 = f36m?.find((x) => x.number === 501 && x.wire === 2)
+    return f501 ? parsePackedVarints(f501.value as Uint8Array) : []
+  }
+  return []
+}
+
+export interface FloatingPageDeleteResult {
+  bytes: Uint8Array
+  entityId: number
+  removedIds: number[]
+  /** t42 引用指向不存在记录（悬空引用随实体删除，仅报告） */
+  danglingContainerRefs: number[]
+  /** 宿主容器：收缩保留（真库 1840）；空后连带删除的记 host-removed */
+  hostIds: number[]
+  changed: string[]
+}
+
+/**
+ * 删除悬浮交互页整族（轮24/25/26/33 模型 + 轮3/14/65 清理件数归纳）：
+ * 实体 + t42 引用的全部容器（含成员控件递归 + 控件私有素材组树）+ 宿主容器收缩
+ * （假容器清空且 parentless 且非真库 1840 → 连带删除）+ 顶层索引 parentless 物理序重建。
+ * t42 悬空引用（指向不存在记录）只报告不视为失败——随实体删除自然消失。
+ */
+export function deleteFloatingPageFamily(
+  bytes: Uint8Array,
+  id: number
+): FloatingPageDeleteResult {
+  const top = parseMessageFields(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const target = findRecord(top, id)
+  if (!target) throw new Error(`[error] UI record not found: ${id}`)
+  const targetRaw = target.value as Uint8Array
+  const targetFields = parseMessageFields(targetRaw)
+  const isFloatingPage = (targetFields ?? []).some((f) => {
+    if (f.number !== 505 || f.wire !== 2) return false
+    const comp = parseMessageFields(f.value as Uint8Array)
+    return comp?.some((x) => x.number === 502 && x.wire === 0 && x.value === 44) === true
+  })
+  if (!isFloatingPage) {
+    throw new Error(`[error] ${id} 不是悬浮交互页（无 t44 kind 组件）——单控件删除走 delete <id>`)
+  }
+  const all = root9Records(top)
+  const byId = new Map<number, WireField>()
+  for (const r of all) {
+    const rid = recordIdOf(r.value as Uint8Array)
+    if (rid !== undefined) byId.set(rid, r)
+  }
+  const rawOf = (rid: number): Uint8Array | undefined =>
+    byId.get(rid)?.value as Uint8Array | undefined
+  const memberIdsOf = (raw: Uint8Array): number[] => {
+    const fs = parseMessageFields(raw)
+    const list = fs?.find((f) => f.number === 503 && f.wire === 2)
+    return list ? parsePackedVarints(list.value as Uint8Array) : []
+  }
+  const childrenOf = (g: number): number[] =>
+    all
+      .filter((r) => firstVarint(parseMessageFields(r.value as Uint8Array), 504) === g)
+      .map((r) => recordIdOf(r.value as Uint8Array) as number)
+
+  const removed = new Set<number>([id])
+  const dangling: number[] = []
+  const changed: string[] = []
+  const hostIds: number[] = []
+
+  // 控件：自身 + 私有素材组树（parentless 且槽标记 55 且被控件字节引用 → 组+组成员）
+  const collectControl = (raw: Uint8Array): void => {
+    const rid = recordIdOf(raw)
+    if (rid === undefined) return
+    removed.add(rid)
+    for (const r of all) {
+      const gid = recordIdOf(r.value as Uint8Array)
+      if (gid === undefined || removed.has(gid)) continue
+      const gRaw = r.value as Uint8Array
+      if (!recordParentless(gRaw)) continue
+      if (recordHasSlotMarker(gRaw, 55) && containsVarintBytes(raw, gid)) {
+        removed.add(gid)
+        for (const m of memberIdsOf(gRaw)) removed.add(m)
+        for (const c of childrenOf(gid)) removed.add(c)
+      }
+    }
+    for (const c of childrenOf(rid)) {
+      if (removed.has(c)) continue
+      const cRaw = rawOf(c)
+      if (cRaw) collectControl(cRaw)
+    }
+  }
+  // 容器：自身 + f503 成员递归（成员缺失=悬空，报告）
+  const collectContainer = (cRaw: Uint8Array): void => {
+    const cid = recordIdOf(cRaw)
+    if (cid === undefined || removed.has(cid)) return
+    removed.add(cid)
+    for (const m of memberIdsOf(cRaw)) {
+      const mRaw = rawOf(m)
+      if (!mRaw) {
+        dangling.push(m)
+        continue
+      }
+      collectControl(mRaw)
+    }
+    for (const c of childrenOf(cid)) {
+      if (removed.has(c)) continue
+      const ccRaw = rawOf(c)
+      if (ccRaw) collectContainer(ccRaw)
+    }
+  }
+  for (const ref of recordContainerRefs(targetRaw)) {
+    const cRaw = rawOf(ref)
+    if (!cRaw) {
+      dangling.push(ref)
+      continue
+    }
+    collectContainer(cRaw)
+  }
+
+  // 宿主容器：实体在其 f503 → 收缩；假容器清空且 parentless 且非真库 → 连带删除
+  const hostId = firstVarint(targetFields!, 504)
+  if (hostId !== undefined && !removed.has(hostId)) {
+    const hostRaw = rawOf(hostId)
+    if (hostRaw && memberIdsOf(hostRaw).includes(id)) {
+      const rest = memberIdsOf(hostRaw).filter((x) => x !== id)
+      if (hostId !== 1073741840 && rest.length === 0 && recordParentless(hostRaw)) {
+        removed.add(hostId)
+        changed.push(`host-removed:${hostId}`)
+      } else {
+        hostIds.push(hostId)
+      }
+    }
+  }
+
+  const section = parseMessageFields(
+    top.find((f) => f.number === 9 && f.wire === 2)!.value as Uint8Array
+  )!
+  const outFields: WireField[] = []
+  for (const field of section) {
+    if (field.number !== 502 || field.wire !== 2) {
+      outFields.push(field)
+      continue
+    }
+    const rid = recordIdOf(field.value as Uint8Array)
+    if (rid === undefined) {
+      outFields.push(field)
+      continue
+    }
+    if (removed.has(rid)) {
+      changed.push(`removed:${rid}`)
+      continue
+    }
+    let value = field.value as Uint8Array
+    if (hostIds.includes(rid)) {
+      const recFields = parseMessageFields(value)
+      const listField = recFields?.find((f) => f.number === 503 && f.wire === 2)
+      if (listField) {
+        const ids = parsePackedVarints(listField.value as Uint8Array)
+        if (ids.includes(id)) {
+          listField.value = encodePackedVarints(ids.filter((x) => x !== id))
+          value = emitWireMessage(recFields!)
+          changed.push(`host-members:${rid}`)
+        }
+      }
+    }
+    const tpl = rebuildTemplateInstanceList(value, id)
+    if (tpl !== undefined) {
+      value = tpl
+      changed.push(`template-backref:${rid}`)
+    }
+    outFields.push({ number: 502, wire: 2, value })
+  }
+  // 顶层索引 = parentless 物理序重建
+  const indexField = outFields.find((f) => f.number === 501 && f.wire === 2)
+  if (!indexField) throw new Error('[error] 顶层索引缺失')
+  const idx: number[] = []
+  for (const f of outFields) {
+    if (f.number !== 502 || f.wire !== 2) continue
+    const raw = f.value as Uint8Array
+    if (recordParentless(raw)) {
+      const rid = recordIdOf(raw)
+      if (rid !== undefined) idx.push(rid)
+    }
+  }
+  indexField.value = encodePackedVarints(idx)
+  top.find((f) => f.number === 9 && f.wire === 2)!.value = emitWireMessage(outFields)
+  return {
+    bytes: buildFile(emitWireMessage(top), {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    entityId: id,
+    removedIds: [...removed],
+    danglingContainerRefs: dangling,
+    hostIds,
     changed
   }
 }

@@ -35,6 +35,7 @@ import {
   createUiControl,
   createUiImageControl,
   createUiTemplate,
+  deleteFloatingPageFamily,
   deleteUiControl,
   listButtonStates,
   listPageVariables,
@@ -219,6 +220,7 @@ function parseArgs(argv: readonly string[]) {
   let fontSize: number | undefined
   let align: 'left' | 'center' | 'right' | undefined
   let yes = false
+  let orphanOk = false
   let index = 0
   if (
     argv[0] === 'list' ||
@@ -306,6 +308,7 @@ function parseArgs(argv: readonly string[]) {
         throw new Error('[error] --font-size 须为正整数')
       fontSize = parsed
     } else if (arg === '--yes') yes = true
+    else if (arg === '--orphan-ok') orphanOk = true
     else if (arg === '--align') {
       const raw = value(argv, index++)
       if (raw !== 'left' && raw !== 'center' && raw !== 'right')
@@ -406,7 +409,8 @@ function parseArgs(argv: readonly string[]) {
     text,
     fontSize,
     align,
-    yes
+    yes,
+    orphanOk
   }
 }
 
@@ -594,25 +598,47 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     if (args.write && !args.yes) {
       throw new Error('[error] delete 是破坏性操作：--write 须附 --yes 确认（先不带 --write 预览 removed 清单）')
     }
-    const result = deleteUiControl(sourceBytes, args.targetId!)
+    // 路由：悬浮交互页实体（t44 kind 组件）→ 整族删除；其余 → 单控件删除（--orphan-ok 允许无宿主孤儿）
+    const parsedDel = parseRoot9(sourceBytes)
+    const recDel = parsedDel.recordsById.get(args.targetId!)
+    const isFloatingPageEntity = recDel !== undefined && recDel.compTypes.includes(44)
     const summary: Record<string, unknown> = {
       schemaVersion: 1,
-      kind: 'ui-delete',
-      sourceSha256: sourceHash,
-      removedIds: result.removedIds,
-      removedCount: result.removedIds.length
+      sourceSha256: sourceHash
     }
+    let resultBytes: Uint8Array
+    let removedIds: number[]
+    if (isFloatingPageEntity) {
+      const r = deleteFloatingPageFamily(sourceBytes, args.targetId!)
+      resultBytes = r.bytes
+      removedIds = r.removedIds
+      summary.kind = 'ui-delete-family'
+      summary.entityId = r.entityId
+      summary.danglingContainerRefs = r.danglingContainerRefs
+      summary.hostIds = r.hostIds
+      summary.changed = r.changed
+    } else {
+      const r = deleteUiControl(sourceBytes, args.targetId!, { orphanOk: args.orphanOk })
+      resultBytes = r.bytes
+      removedIds = r.removedIds
+      summary.kind = 'ui-delete'
+    }
+    summary.removedIds = removedIds
+    summary.removedCount = removedIds.length
     const log2 = (line: string) => (jsonMode ? console.error(line) : console.log(line))
-    log2(`removed=${result.removedIds.join(',')}`)
-    log2(`removedCount=${result.removedIds.length}`)
-    summary.candidateSha256 = sha256(result.bytes)
+    log2(`removed=${removedIds.join(',')}`)
+    log2(`removedCount=${removedIds.length}`)
+    if (summary.danglingContainerRefs !== undefined) {
+      log2(`danglingContainerRefs=${(summary.danglingContainerRefs as number[]).join(',') || '无'}`)
+    }
+    summary.candidateSha256 = sha256(resultBytes)
     log2(`candidateSha256=${summary.candidateSha256}`)
     if (args.outputPath) {
-      summary.candidate = writeNew(args.outputPath, result.bytes)
+      summary.candidate = writeNew(args.outputPath, resultBytes)
       log2(`candidate=${summary.candidate}`)
     } else if (args.write) {
       const mapId = projectConfig?.inject?.mapId
-      summary.backup = writeBack(gilPath, result.bytes, sourceHash, mapId)
+      summary.backup = writeBack(gilPath, resultBytes, sourceHash, mapId)
       summary.writePerformed = true
       log2(`backup=${summary.backup}`)
       log2('writePerformed=true')
@@ -1019,6 +1045,11 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       return
     }
     if (args.createType === 'floating-page') {
+      if (!args.rich) {
+        throw new Error(
+          '[error] 旧形态 createFloatingPage（非 rich）已停用——rubik-game W1 事故根因：不注册控件组库（path=未归属）+假容器+悬空 t42 引用。规范路径：create --type floating-page --on library（轮24 三条单条族+入库注册）'
+        )
+      }
       const result = args.rich
         ? createFloatingPageRich(sourceBytes, {
             id: args.newId!,
