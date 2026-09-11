@@ -56,10 +56,11 @@ ls -l /mnt/c/beyond-ipc/official_copy.pcap
 ## 3. 停止抓包
 
 ```bash
-# PID 换成实际 RawCap PID
-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command \
-  "Start-Process -Verb RunAs -Wait -FilePath 'C:\\Windows\\System32\\taskkill.exe' -ArgumentList '/F /PID <PID>'"
+python3 .agents/skills/beyond-semantic-resource-reverse/scripts/quickstart_ipc_probe.py --finish <probe名>
 ```
+
+`--finish` 会自动停止 RawCap（必要时弹 UAC），并把最终 pcap 复制到
+`evidence/<date>-<probe>-probe/ipc/` + sha256。若只想停止不复制，用 `--stop`。
 
 ## 4. 一键解析
 

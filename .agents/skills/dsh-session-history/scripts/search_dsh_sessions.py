@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
-"""DSH 会话记录（聊天历史）检索工具 v2 —— 快速版（2026-09-01 重写）。
+"""DSH 会话记录（聊天历史）检索工具 v3 —— 安全版（2026-09-10 加防卡死护栏）。
 
-v1 痛点：scan/search 全量解压 + 逐行 json.loads，119 会话/537MB 压缩语料下 60s 必超时。
+v3 事故复盘（必须读）：v2 的 search 默认 --jobs 8 且**默认扫全库**。在 505 会话/1.2GB
+压缩语料下等于同时开 8 个 zstd 全量解压 —— 实测把一台 7.9GB 的 WSL 直接推到 OOM 边缘、
+整机卡死。根因不是机器弱，是**没加过滤条件就全库扫描**。
+v3 铁律（写进默认值，不靠使用者自觉）：
+  1. **默认只扫最新 10 个会话**（--all 才全量 / --newest N / --since-min M 调整），
+     并在输出里明确打印作用域——"没命中"必须能区分是"真没有"还是"没扫到"。
+  2. **--budget-mb 硬预算**（默认 150MB 压缩量）：按 mtime 新→旧累加，超预算就停。
+  3. **--jobs 默认 2**（v2 是 8）；每个 zstd 都套 `nice -n 19 ionice -c3`（idle IO 类），
+     即使扫描很重也把交互优先权让出去。
+  4. **--max-size 跳过怪物会话**（单文件压缩体积上限）。
+  5. `recent` 子命令是"查最新的大模型活动"的**首选入口**（不是 search 全库）：
+     取最新几个会话，直接给出「模型当时在跑什么命令」的活动时间线。
+  6. 关键词要搜**活动**（命令/工具名/路径/报错串），不要搜**症状**（"卡/OOM/内存"）——
+     历史记录的是模型做了什么，症状词几乎不出现，搜症状必然空手而归。
+
 v2 优化（顺序即收益排序）：
   1. 前缀过滤：只对 {"type":"user/message"|"assistant/message"|"tool/call"|"tool/result"|
      "turn/end"|"session/title"|"session"|"session/end-seed"|"agent/inbox/spliced"} 开头的行
@@ -16,26 +30,38 @@ v2 优化（顺序即收益排序）：
      scan 默认 --limit 30，--all 看全量。
   6. 单文件硬超时：按压缩体量自适应（10s + 1s/MB，上限 60s），怪物会话不阻塞全局。
 
-用法（与 v1 兼容 + 新增）：
+用法（v3；带 [scope] 的选项对所有扫描型命令都生效）：
   search_dsh_sessions.py dirs [<cwd>]                    列出会话目录（毫秒级）
-  search_dsh_sessions.py index [<root|dir>] [--rebuild] [--jobs N]   建增量索引
+  search_dsh_sessions.py recent [<root>] [--since-min M] [--newest N] [--grep PAT] [--full]
+                                                         【首选】最新大模型活动时间线
+                                                         （U 真人/A 助手/C 工具调用含命令/R 结果/E 报错 + 统计）
+  search_dsh_sessions.py search <pattern> [<root|dir>] [scope 选项] [--context N] [--max-hits N] [--jobs N]
+                                                         关键词搜索（正则）——**默认只扫最新 10 个会话**
   search_dsh_sessions.py scan [<root|dir>] [--limit N] [--all] [--oldest-first] [--rebuild]
                                                          会话全景：标题+时间+user摘要（走索引）
-  search_dsh_sessions.py search <pattern> [<root|dir>] [--context N] [--max-hits N] [--jobs N]
-                                                         关键词搜索（正则；最新优先；命中行才解析）
+  search_dsh_sessions.py index [<root|dir>] [--rebuild] [--jobs N]   建增量索引
   search_dsh_sessions.py show <session-dir> [<start>] [<count>] [--tail N] [--max-len N]
-                                                         按消息序号浏览（含思考/工具/错误标记）
-  search_dsh_sessions.py errors [<dir|root>] [--jobs N] 列出所有 isError=true 的工具结果
+                                                         按消息序号浏览（单会话，无风险）
+  search_dsh_sessions.py errors [<dir|root>] [scope 选项] [--jobs N] 列出 isError=true 的工具结果
   search_dsh_sessions.py todos [<session-root>]          未完成任务检测（走索引）
 
+scope 选项（安全护栏，可组合）：
+  --all             真·全量扫描（危险：505 会话/1.2GB，只在确知要考古时用）
+  --newest N        只看 mtime 最新的 N 个会话
+  --since-min M     只看最近 M 分钟内被写过的会话
+  --max-size MB     跳过压缩体积 > MB 的"怪物会话"（单文件上限）
+  --budget-mb MB    本次运行解压总量预算（默认 150；按新→旧累加，超了停）
+  --jobs N          并行度（默认 2；**不要调高**，每路都是一个 zstd 解压）
+
 环境：DSH_HOME（默认 ~/.dsh）；DSH_SESSION_JSONL/DSH_SESSION_ID 标识当前会话（自动排除）。
-依赖：zstd CLI。缓存：~/.cache/dsh-session-history/index.json（删掉即重建）。
+依赖：zstd CLI（建议同时有 nice/ionice，会自动降优先级）。缓存：~/.cache/dsh-session-history/index.json。
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -46,6 +72,17 @@ from pathlib import Path
 DEFAULT_ROOT = Path(os.environ.get("DSH_HOME", "~/.dsh")).expanduser() / "sessions"
 CURRENT_JSONL = os.environ.get("DSH_SESSION_JSONL", "")
 CURRENT_SESSION_ID = os.environ.get("DSH_SESSION_ID", "")
+
+# v3 安全护栏默认值（改这里就等于改全局默认；不要在调用点硬编码高值）
+DEFAULT_NEWEST = 10        # search/errors 默认只看最新 N 个会话
+DEFAULT_BUDGET_MB = 150    # 单次运行解压总量上限（压缩字节）
+DEFAULT_JOBS = 2           # 并行度上限——每一路都是一个 zstd 全量解压
+SCAN_MAX_SIZE_MB = 0       # search 默认不按体积过滤（recent 另有更保守默认）
+
+# v3：所有 zstd 子进程降级（nice 19 + ionice idle），扫描再重也不抢交互
+_NICE = ["nice", "-n", "19"] if shutil.which("nice") else []
+_IONICE = ["ionice", "-c3"] if shutil.which("ionice") else []
+ZSTD_PREFIX = _NICE + _IONICE + ["zstd", "-d", "-c"]
 
 
 def _resolve_cache_dir() -> Path:
@@ -97,11 +134,12 @@ def file_timeout_sec(zstd_path: Path) -> float:
 
 
 def stream_lines(zstd_path: Path):
-    """流式解压 yield 原始行（bytes）；超时/缺失安静终止。"""
+    """流式解压 yield 原始行（bytes）；超时/缺失安静终止。
+    v3：zstd 套 nice19+ionice-idle，避免扫描把整机拖卡。"""
     if not zstd_path.exists():
         return
     p = subprocess.Popen(
-        ["zstd", "-d", "-c", str(zstd_path)],
+        ZSTD_PREFIX + [str(zstd_path)],
         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
     )
     deadline = time.monotonic() + file_timeout_sec(zstd_path)
@@ -315,6 +353,73 @@ def collect_session_dirs(path: Path):
     return sorted(out, key=lambda d: (d / "session.jsonl.zstd").stat().st_mtime, reverse=True)
 
 
+def _zsize(d: Path) -> int:
+    try:
+        return (d / "session.jsonl.zstd").stat().st_size
+    except OSError:
+        return 0
+
+
+def _zmtime(d: Path) -> float:
+    try:
+        return (d / "session.jsonl.zstd").stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+def select_dirs(root: Path, since_min=0, newest=0, all_flag=False,
+                max_size_mb=0, budget_mb=DEFAULT_BUDGET_MB,
+                default_newest=DEFAULT_NEWEST):
+    """v3 安全选盘：**默认只取最新 N 个会话**，绝不静默全库扫描。
+
+    优先级：--since-min > （--all 全量 / --newest N / 默认最新 default_newest）。
+    再叠加 --max-size（单文件体积上限）与 --budget-mb（总量预算，按新→旧累加）。
+    返回 (dirs, notes)——notes 必须打印，让"没命中"能区分真没有 vs 没扫到。
+    """
+    dirs = [d for d in collect_session_dirs(root) if not is_current(d.name)]
+    notes = []
+    total_all = len(dirs)
+
+    if since_min > 0:
+        cutoff = time.time() - since_min * 60
+        dirs = [d for d in dirs if _zmtime(d) >= cutoff]
+        notes.append("--since-min %d（命中 %d/%d 会话）" % (since_min, len(dirs), total_all))
+    elif all_flag:
+        notes.append("--all 全量 %d 会话（危险模式）" % len(dirs))
+    else:
+        n = newest or default_newest
+        if len(dirs) > n:
+            notes.append("默认只扫最新 %d/%d 个会话（全量用 --all；窗口用 --since-min M）"
+                         % (n, total_all))
+            dirs = dirs[:n]
+        else:
+            notes.append("扫描 %d 个会话（全库共 %d 个）" % (len(dirs), total_all))
+
+    if max_size_mb > 0:
+        kept = [d for d in dirs if _zsize(d) <= max_size_mb * 1e6]
+        if len(kept) != len(dirs):
+            notes.append("跳过 %d 个大文件(>%dMB)" % (len(dirs) - len(kept), max_size_mb))
+        dirs = kept
+
+    if budget_mb > 0:
+        kept, used = [], 0
+        for d in dirs:
+            sz = _zsize(d)
+            if kept and used + sz > budget_mb * 1e6:
+                notes.append("预算封顶 %dMB：舍弃更旧的 %d 个会话" % (budget_mb, len(dirs) - len(kept)))
+                break
+            kept.append(d)
+            used += sz
+        dirs = kept
+
+    return dirs, notes
+
+
+def print_scope(notes, n_dirs, cmd):
+    """作用域必须显式可见——静默截断会把"没扫到"伪装成"不存在"。"""
+    print("[scope:%s] 实际扫描 %d 个会话 | %s" % (cmd, n_dirs, " ; ".join(notes) if notes else "-"))
+
+
 def build_index(roots, rebuild=False, jobs=None, max_lines=20000):
     """增量构建索引；返回 {abs_dir: meta}（只含本次 roots 覆盖的会话也无妨——全量字典）。"""
     cache = {"version": 2, "sessions": {}} if rebuild else load_cache()
@@ -332,7 +437,8 @@ def build_index(roots, rebuild=False, jobs=None, max_lines=20000):
                 continue
             tasks.append((abs_dir, max_lines))
     if tasks:
-        jobs = jobs or min(len(tasks), max(4, (os.cpu_count() or 4)))
+        # v3：并行度默认 2（v2 是 max(4, cpu_count)——首次全库建索引等于开满核解压）
+        jobs = jobs or min(len(tasks), DEFAULT_JOBS)
         with ProcessPoolExecutor(max_workers=jobs) as ex:
             for meta in ex.map(index_one, tasks):
                 sessions[meta["dir"]] = meta
@@ -488,16 +594,21 @@ def _search_one(args):
     return hits
 
 
-def cmd_search(pattern_str, path_str, context, max_hits, jobs):
+def cmd_search(pattern_str, path_str, context, max_hits, jobs,
+               since_min=0, newest=0, all_flag=False, max_size=0,
+               budget_mb=DEFAULT_BUDGET_MB):
     try:
         re.compile(pattern_str)
     except re.error as e:
         print("[error] 正则无效: " + str(e))
         return 1
     root = _resolve_path(path_str)
-    dirs = [d for d in collect_session_dirs(root) if not is_current(d.name)]
+    dirs, notes = select_dirs(root, since_min=since_min, newest=newest, all_flag=all_flag,
+                              max_size_mb=max_size, budget_mb=budget_mb)
+    print_scope(notes, len(dirs), "search")
     if not dirs:
-        print("[warn] 未找到会话: " + str(root))
+        print("[warn] 作用域内无会话: " + str(root))
+        print("       提示：放宽窗口 --since-min 1440 / --all，或指定具体会话目录")
         return 1
     # 索引只为输出标题/时间上下文；没有也不阻塞
     try:
@@ -507,7 +618,7 @@ def cmd_search(pattern_str, path_str, context, max_hits, jobs):
     per_file = max(3, max_hits)
     tasks = [(str(d), pattern_str, per_file) for d in dirs]
     total, t0 = 0, time.time()
-    with ThreadPoolExecutor(max_workers=jobs or 8) as ex:
+    with ThreadPoolExecutor(max_workers=jobs or DEFAULT_JOBS) as ex:
         for abs_dir, hits in zip([t[0] for t in tasks],
                                  ex.map(_search_one, tasks)):
             if not hits:
@@ -525,6 +636,139 @@ def cmd_search(pattern_str, path_str, context, max_hits, jobs):
                 break
     print("共 %d 处命中（扫 %d 会话，%.1fs）" % (total, len(dirs), time.time() - t0))
     return 0
+
+
+# ---------------------------------------------------------------- recent（v3 首选入口）
+
+def _type_of(raw: bytes) -> bytes:
+    """不解析 JSON，只抠 type 名——用于统计事件构成（成本 O(1) per line）。"""
+    i = raw.find(b'"type":"')
+    if i < 0:
+        return b"?"
+    j = raw.find(b'"', i + 8)
+    return raw[i + 8:j] if j > 0 else b"?"
+
+
+def _tool_cmd(name: str, args: str) -> str:
+    """工具调用摘要：bash/exec 类抠出真实命令——"模型当时在跑什么"的关键证据。"""
+    s = args or ""
+    if name in ("bash", "pwsh", "shell", "exec", "run"):
+        try:
+            obj = json.loads(s)
+            for k in ("command", "cmd", "script"):
+                if isinstance(obj.get(k), str):
+                    s = obj[k]
+                    break
+        except Exception:
+            pass
+    return " ".join(s.split())[:240]
+
+
+def cmd_recent(path_str, since_min, newest, grep, full, max_lines, budget_mb, all_flag=False,
+               max_size=0):
+    """【首选】最新的大模型活动时间线：模型跑了什么命令、改了什么、报了什么错。
+    只解压作用域内的少数会话（默认最新 3 个），并用 nice/ionice 降级。"""
+    root = _resolve_path(path_str)
+    dirs, notes = select_dirs(root, since_min=since_min, newest=newest, all_flag=all_flag,
+                              max_size_mb=max_size, budget_mb=budget_mb, default_newest=3)
+    print_scope(notes, len(dirs), "recent")
+    if not dirs:
+        print("[warn] 作用域内无会话: " + str(root))
+        return 1
+    pat = None
+    if grep:
+        try:
+            pat = re.compile(grep, re.IGNORECASE)
+        except re.error as e:
+            print("[error] --grep 正则无效: " + str(e))
+            return 1
+
+    for d in dirs:
+        z = d / "session.jsonl.zstd"
+        kinds, events, timeline = {}, [], []
+        for raw in stream_lines(z):
+            t = _type_of(raw)
+            k = kinds.setdefault(t, [0, 0])
+            k[0] += 1
+            k[1] += len(raw)
+            if not raw.startswith(_INTERESTING):
+                continue
+            try:
+                obj = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            tp, data = obj.get("type"), (obj.get("data") or {})
+            tm = obj.get("time")
+            if tp == "session":
+                timeline.append(("meta", tm, "cwd=%s created=%s" % (data.get("cwd"), fmt_ms(data.get("createdAt")))))
+            elif tp == "session/title":
+                timeline.append(("meta", tm, "title: " + str(data.get("title"))))
+            elif tp == "user/message":
+                if (data.get("source") or {}).get("kind") != "user":
+                    continue
+                txt = "".join(x[1] for x in parse_content(data.get("content")) if x[0] == "text")
+                if txt.strip():
+                    timeline.append(("U", tm, txt.strip()))
+            elif tp == "assistant/message":
+                msg = data.get("message") or {}
+                parts = parse_content(msg.get("content"))
+                txt = "".join(x[1] for x in parts if x[0] == "text")
+                calls = [x[1] for x in parts if x[0] == "toolcall"]
+                if txt.strip():
+                    timeline.append(("A", tm, txt.strip()))
+                for c in calls:
+                    timeline.append(("C", tm, c))
+            elif tp == "tool/call":
+                timeline.append(("C:" + str(data.get("name", "?")), tm,
+                                 _tool_cmd(str(data.get("name", "")), str(data.get("arguments", "")))))
+            elif tp == "tool/result":
+                msg = data.get("message") or {}
+                err, txts = False, []
+                for kind, *rest in parse_content(msg.get("content")):
+                    if kind == "toolresult":
+                        txts.append(rest[0])
+                        err = err or bool(rest[1])
+                timeline.append(("E" if err else "R", tm, "".join(txts).strip()))
+            elif tp == "turn/end":
+                r = str(data.get("reason"))
+                if "completed" not in r:
+                    timeline.append(("!", tm, "turn 中断: " + r[:80]))
+            elif tp == "session/end-seed":
+                timeline.append(("M", tm, "end-seed（会话被加载/重放）"))
+            if len(timeline) > 20000:  # 内存护栏：单会话时间线封顶
+                timeline.append(("meta", tm, "... 时间线截断（>20000 条）"))
+                break
+
+        sz = _zsize(d)
+        tot_b = sum(v[1] for v in kinds.values()) or 1
+        top = sorted(kinds.items(), key=lambda kv: -kv[1][1])[:8]
+        print("\n=== " + d.name + "  [" + fmt_ms(_zmtime(d) * 1000) + " 最后活动]"
+              "  压缩 %.1fMB / 解压 %.1fMB" % (sz / 1e6, tot_b / 1e6))
+        print("    事件构成: " + " | ".join(
+            "%s %d条/%.1fMB(%.0f%%)" % (k.decode(), v[0], v[1] / 1e6, 100.0 * v[1] / tot_b)
+            for k, v in top))
+        tool_calls = kinds.get(b"tool/call", [0])[0]
+        print("    工具调用 %d 次 | 时间线条目 %d" % (tool_calls, len(timeline)))
+
+        if pat:
+            shown = [e for e in timeline if pat.search(e[2] or "")]
+            print("    --grep 命中 %d 条：" % len(shown))
+            if len(shown) > max_lines:  # 输出护栏：只留最近 max_lines 条
+                print("    （保留最近 %d 条；--max-lines N 调整）" % max_lines)
+                shown = shown[-max_lines:]
+        else:
+            shown = timeline if full else timeline[-max_lines:]
+            if not full and len(timeline) > max_lines:
+                print("    （尾部 %d 条；--full 全量）" % max_lines)
+        for label, tm, body in shown:
+            body = " ".join(str(body).split())
+            if not body:
+                continue
+            lim = 400 if full else 200
+            print("      [%s] (%s) %s%s" % (fmt_ms(tm) if tm else "--", label,
+                                            body[:lim], "..." if len(body) > lim else ""))
+    return 0
+
 
 
 def _errors_one(args):
@@ -551,14 +795,17 @@ def _errors_one(args):
     return found
 
 
-def cmd_errors(path_str, jobs, cap=10):
+def cmd_errors(path_str, jobs, cap=10, since_min=0, newest=0, all_flag=False,
+               max_size=0, budget_mb=DEFAULT_BUDGET_MB):
     path = Path(path_str).expanduser() if path_str else DEFAULT_ROOT
-    dirs = [d for d in collect_session_dirs(path) if not is_current(d.name)]
+    dirs, notes = select_dirs(_resolve_path(str(path)), since_min=since_min, newest=newest,
+                              all_flag=all_flag, max_size_mb=max_size, budget_mb=budget_mb)
+    print_scope(notes, len(dirs), "errors")
     if not dirs:
-        print("[warn] 未找到会话: " + str(path))
+        print("[warn] 作用域内无会话: " + str(path))
         return 1
     total, t0 = 0, time.time()
-    with ThreadPoolExecutor(max_workers=jobs or 8) as ex:
+    with ThreadPoolExecutor(max_workers=jobs or DEFAULT_JOBS) as ex:
         for abs_dir, found in zip([str(d) for d in dirs],
                                   ex.map(_errors_one, [(str(d), cap) for d in dirs])):
             if found:
@@ -566,7 +813,7 @@ def cmd_errors(path_str, jobs, cap=10):
                 for seq, txt in found[:cap]:
                     print("  (seq %s) %s" % (seq, txt[:300].replace("\n", " ")))
                 total += len(found)
-    print("共 %d 个 isError 工具结果（%.1fs）" % (total, time.time() - t0))
+    print("共 %d 个 isError 工具结果（扫 %d 会话，%.1fs）" % (total, len(dirs), time.time() - t0))
     return 0
 
 
@@ -641,8 +888,9 @@ def cmd_todos(path_str):
     return 0
 
 
-_VALUED = {"--limit", "--context", "--max-hits", "--jobs", "--max-len", "--tail", "--max-lines"}
-_FLAGS = {"--rebuild", "--oldest-first", "--all"}
+_VALUED = {"--limit", "--context", "--max-hits", "--jobs", "--max-len", "--tail", "--max-lines",
+           "--since-min", "--newest", "--max-size", "--budget-mb", "--grep"}
+_FLAGS = {"--rebuild", "--oldest-first", "--all", "--full"}
 
 
 def parse_args(args):
@@ -676,6 +924,11 @@ def main(argv):
         except (KeyError, ValueError):
             return default
 
+    # v3：作用域护栏参数对所有"扫描类"命令统一生效
+    scope = dict(since_min=opt_int("--since-min", 0), newest=opt_int("--newest", 0),
+                 all_flag=bool(opts.get("--all")), max_size=opt_int("--max-size", 0),
+                 budget_mb=opt_int("--budget-mb", DEFAULT_BUDGET_MB))
+
     if cmd == "dirs":
         return cmd_dirs(pos[0] if pos else None)
     if cmd == "index":
@@ -687,12 +940,19 @@ def main(argv):
         return cmd_scan(pos[0] if pos else None, limit,
                         oldest_first=bool(opts.get("--oldest-first")),
                         rebuild=bool(opts.get("--rebuild")))
+    if cmd == "recent":
+        return cmd_recent(pos[0] if pos else None,
+                          since_min=scope["since_min"], newest=scope["newest"],
+                          grep=opts.get("--grep"), full=bool(opts.get("--full")),
+                          max_lines=opt_int("--max-lines", 40),
+                          budget_mb=scope["budget_mb"], all_flag=scope["all_flag"],
+                          max_size=scope["max_size"])
     if cmd == "search":
         if not pos:
             print("[error] search 需要 pattern"); return 1
         return cmd_search(pos[0], pos[1] if len(pos) > 1 else None,
                           opt_int("--context", 200), opt_int("--max-hits", 20),
-                          opt_int("--jobs", 8))
+                          opt_int("--jobs", DEFAULT_JOBS), **scope)
     if cmd == "show":
         if not pos:
             print("[error] show 需要会话目录"); return 1
@@ -701,7 +961,7 @@ def main(argv):
         return cmd_show(pos[0], start, count,
                         tail=opt_int("--tail", 0), max_len=opt_int("--max-len", 2000))
     if cmd == "errors":
-        return cmd_errors(pos[0] if pos else None, jobs=opt_int("--jobs", 8))
+        return cmd_errors(pos[0] if pos else None, jobs=opt_int("--jobs", DEFAULT_JOBS), **scope)
     if cmd == "todos":
         return cmd_todos(pos[0] if pos else None)
     print("[error] 未知命令: " + cmd)

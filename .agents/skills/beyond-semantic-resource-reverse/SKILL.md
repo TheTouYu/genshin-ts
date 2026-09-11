@@ -88,6 +88,10 @@ probe 名只是目录标签，**不要用它推断实验内容**；实际变化�
 3. **社区工具先看版本**：MHY metadata 解密工具多为 2022 年前；运行前先看 README/提交日期/目标版本，不兼容立刻停止。
 4. **.NET 混淆 delegate 用 Windows 反射**：dnlib 找字段名 → Windows 小 console `RuntimeHelpers.RunClassConstructor` + `Delegate.Method` 拿真实方法名，比纯 C# 反编译快。
 5. **本地代码只能证伪“映射不在这里”**：一旦追到资源分类 ID，应把该 ID 作为游戏侧 IPC/Blb/IL2CPP 的检索锚点。
+6. **抓包自带差分属性**（2026-09-05 用户纠正）：type1017 帧流里相邻帧差异就是最小差分，
+   一次连续抓包 = 多次最小差分，不需要“每步操作都保存一次 GIL”。GIL before/after 只做最终落盘锚点；
+   连续操作时保留 pcap，用 `diff_type1017_frames.py`（结构级）或语义帧差分（状态效果逐帧追加）
+   拆分步骤。不要把“抓包期间多次编辑”当无效样本。
 
 ## 可复用脚本与 runbook（已入库，不依赖 /tmp）
 
@@ -111,8 +115,12 @@ probe 名只是目录标签，**不要用它推断实验内容**；实际变化�
   `.agents/skills/beyond-semantic-resource-reverse/scripts/cross_check_component_types.py`
 - type1017 逐帧差分（同资产帧间结构 diff；v1.1 起每条 change 带字段号链 chain=[fa,fb,idx] 逐消息层）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/diff_type1017_frames.py`
+- type1017 状态帧流语义差分（每帧解析 statusId→names/effectIds，输出连续操作步骤）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/status_frame_diff.py`
 - 逐帧差分步骤注释器（diff → 可读步骤；v2 语义层=GIL root9 名称回填 + 布局/容器 f503 成员追加解码）：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/annotate_frame_diff.py`
+- ui_steps ↔ `assets:ui list` 交叉核对（IPC 步骤 vs CLI 终态语义树：成员归属/名称/孪生重映射）：
+  `.agents/skills/beyond-semantic-resource-reverse/scripts/crosscheck_ui_steps_cli.py`
 - type1017 → 官方实体映射资源构建：
   `.agents/skills/beyond-semantic-resource-reverse/scripts/build_official_entity_mapping.py`
 - 一键处理管线（直方图+缓存+解析+映射+简报）：

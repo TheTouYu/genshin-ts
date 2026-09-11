@@ -250,6 +250,7 @@ def main(argv):
         if dst.exists():
             print(f'[error] 快照已存在，不允许覆盖: {dst}')
             return 3
+        dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_bytes(after_raw)
         (Path(cap_dir) / f'{snap}.gil.sha256').write_text(f'{ha}  {dst.name}\n')
         print(f'快照: {dst}')
