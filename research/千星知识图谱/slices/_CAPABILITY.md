@@ -37,8 +37,11 @@
 |---|---|---|
 | 静态模型拼装 | ✅ | `assets:static-assemblies`（skill `static-gil-model-builder`） |
 | 实体变换/配色/挂接 | ✅ | `src/cli/assets_entities.ts:216` patch 支持 `--color/--position/--rotation/--scale/--attach-aux/--detach-aux/--remove-component/--tab-options` |
-| **镜像（mirror）** | 🔴 | 上述 patch 无 mirror 选项 |
-| UI 控件（20 种） | 🟡 | `assets:ui list/clone/create/update/template`；控件差分知识在 `.agents/skills/editor-incremental-gia-investigator/references/ui-controls.md` |
+| **批量创建场景实体（几何）** | ✅ | `assets:entities --entities <json>` import；输入 schema `{schemaVersion:1, entities:[{name,definitionId,position,rotation,scale,color}]}`，**`id` 可省略**由 CLI 自动分配（`src/cli/gil_entities.ts:44`）。T12 实测：一次 import 150 实体（126 墙 + 20 造景 + 4 隐藏） |
+| **白盒物件元件常量** | ✅ | `10009001` 长方体 … `10009011` 线框圆柱（基础几何体 `resourceId == definitionId`）。T12 实测枚举 20 张图，见 `ATOMIC-RULES.md` R11 |
+| 地形 | ✅ | `assets:terrain` |
+| **镜像（mirror）/ 阵列生成** | 🔴 | patch 无 mirror 选项、无阵列命令。T12 的绕过法：**用脚本算坐标批量生成 import JSON**——阵列在工具链里缺，但在脚本层等价可实现 |
+| **实体通用组件新增（addComponent）** | 🔴 | `grep -rn "addComponent\|add-component" src/cli/*.ts` = 0；只有 `removeEntityComponents`（`src/cli/gil_entities.ts:997`）。**T12 实测影响**：隐藏收集物需要选项卡/碰撞触发器组件才能被交互，`EntityImport` schema 里**没有 components 字段** → 组件只能靠编辑器手工或 `patch --tab-options` 补 |
 | 单位状态资产 | ✅ | `assets:unit-status list/create/add-effect`（root15/16 + root6） |
 | 技能配置 | ✅ | `assets:skill-config create/list` |
 | 资源（道具/装备/货币/背包/商店） | 🟡 | `assets:resources` 在位，覆盖面见 `docs/capability-coverage-map.md:49` |

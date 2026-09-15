@@ -252,6 +252,20 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
 1. **.gia 解码核预期**（注入前）：`tools/decode-gia.ts <file.gia>` —— 复合 def 集合（accessories
    which=12 的名字列表）、主图节点/连线、compositePins——核对"我写了 N 个复合、M 条逻辑"都生成；
    节点数异常（膨胀）在这里就看出来。
+   - ⚠️ **但 .gia 核不了「节点身份」**（2026-09-15 T12 实证）：`.gia` 把节点编码成常量三元组
+     `genericId {class,type,kind,nodeId}`（如 `nodeId: 307/306/323`），节点名不在里面——
+     想核对"事件是不是我写的那个、分支有没有写反"会一无所获（中文变量名倒是在）。
+   - ✅ **核节点身份请读 IR 中间产物** `dist/src/<name>.json`：它保留**可读节点类型**，
+     一张 9 节点的图能直接列出
+     `when_tab_is_selected / activate_disable_tab / activate_disable_model_display /
+      set_node_graph_variable / double_branch / addition / greater_than_or_equal_to`
+     —— 与源码意图逐条对账，一轮完成。
+   - **分工**：`.gia` 核**规模与结构**（节点数/复合集合/连线），`IR json` 核**语义与意图**（谁是谁、写反没有）。
+     两个都看才算核完；只解码 `.gia` 会误判"核验通过"。
+   - 配套：若编译阶段就报 `gsts.f is only available in server_* ctxType`，那不是图写错了，
+     是**调用路径**问题——必须用 `node ./bin/gsts.mjs -c <config>`，不能 `npx tsx src/cli/gsts.ts`
+     （src/dist 双副本，`kCtxStack` 是 Symbol 两份各持一个；最小复现是空图也失败）。
+     详见 `examples/maze-repro/PROGRESS.md` 与 PKC claim「编译节点图必须走正规入口」。
 2. **注入后全景**：`tools/list-gil-node-graphs.ts <地图.gil>`——目标图存在、图名被替换为
    `_GSTS_<gia基名>`、节点数 > 0。
 3. **人读式核对**：`tools/explain-gil-node-graph.ts --graph <名> --composite <名>`——按
