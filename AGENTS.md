@@ -54,6 +54,7 @@
 | 任务 | 技能 |
 | --- | --- |
 | 从零做一个完整 demo / 游戏全流程 | `game-from-scratch` |
+| B站视频 → 知识（学教程/取字幕/爬评论/批量建语料库） | `bilibili-learn`（2026-09-15 补：原路由表漏收录，而 T01/T02 整轮都在用它） |
 | 复杂静态模型/元件/实体/装饰物拼装 | `static-gil-model-builder` |
 | 变量/挂载/UI/信号等 .gil 资源写回 | `genshin-ts-asset-operations` |
 | 读/改节点图内部逻辑 | `gil-node-graph-reading` / `gil-node-graph-editing` |
