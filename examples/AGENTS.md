@@ -16,6 +16,7 @@
 | composite-replica/ | 复合复现实验 | 实验 | README.md |
 | ui-interact-test/ | UI 交互测试 | 实验 | 无文档，看 src |
 | capture-set-repro/ | 捕获集复现 | 实验 | 无文档，看 src |
+| maze-repro/ | T12 端到端复现（《空中花园》式迷宫） | 进行中（卡注入确认） | PROGRESS.md |
 
 规则：
 
