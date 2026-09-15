@@ -154,6 +154,31 @@ def main() -> int:
           "- 官方指南/KB 的硬规则逐节补进 D 轴（当前 D 轴偏薄，多为语料二手转述）",
           "- 缺 ASR 的 10 个源按需补转写",
           "- 终验收：端到端复现一款真实存在的优质玩法", ""]
+    # 专题文档索引（扫描实际文件，不手写——避免地图与实体脱节）
+    L += ["", "## 九、专题文档索引（已写成的域/专题）", "",
+          "> 本表由 `mappify.py` 扫描 `docs/knowledge-graph/{k,d}/` 生成，**不手写**，",
+          "> 保证地图与实际文件不脱节。每篇七段式：定义 / 源绑定 / 规则与做法 / 节点资产命令 /",
+          "> 我方覆盖度 / 诊断路径 / 缺口与待验证。", "",
+          "| 专题 | 文件 | 行 | 源数 | 硬规则提及 | 官方锚点 | 时间戳引文 |",
+          "|---|---|---|---|---|---|---|"]
+    import re as _re
+    for sub, label in (("k", "K 轴 · 优质度面"), ("d", "D 轴 · 能力面")):
+        sd = os.path.join(a.out, sub)
+        if not os.path.isdir(sd):
+            continue
+        L.append(f"| **{label}** | | | | | | |")
+        for fn in sorted(os.listdir(sd)):
+            if not fn.endswith(".md"):
+                continue
+            t = open(os.path.join(sd, fn), encoding="utf-8").read()
+            n_src = len(set(_re.findall(r"BV[0-9A-Za-z]{10}", t)))
+            n_hr = len(_re.findall(r"硬规则", t))
+            n_an = (len(_re.findall(r"official-guide-[a-z-]+\.md:\d+", t))
+                    + len(_re.findall(r"official-ui-tutorial\.md:\d+", t)))
+            n_ts = len(_re.findall(r"`?\[\d{2}:\d{2}:\d{2}\]`?", t))
+            L.append(f"| {fn[:-3]} | `{sub}/{fn}` | {len(t.splitlines())} | {n_src} | "
+                     f"{n_hr} | {n_an} | {n_ts} |")
+
     os.makedirs(a.out, exist_ok=True)
     p = os.path.join(a.out, "MAP.md")
     with open(p, "w", encoding="utf-8") as f:
