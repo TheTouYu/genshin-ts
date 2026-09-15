@@ -38,6 +38,9 @@ ISSUES = ".scratch/football-v2/issues"
 SRC_FB = "examples/football/src-fb"
 GOV_DOC = "docs/maintenance/document-governance.md"
 
+# 纳入治理门禁的权威知识文档目录（rglob *.md，仅查状态头字段）
+KNOWLEDGE_DOC_DIRS = ("docs/knowledge-graph",)
+
 # 当前已治理的 issue 前缀；全量模式只查这些，避免历史债一次阻断。
 GOVERNED_ISSUE_PREFIX = "20"
 
@@ -220,6 +223,16 @@ def discover_full() -> list[str]:
     # 治理方案文档
     if (REPO_ROOT / GOV_DOC).exists():
         rels.add(GOV_DOC)
+
+    # 权威知识文档目录（2026-09-15 补）：
+    # 原扫描范围写死为 football 相关，导致新建的 docs/knowledge-graph/ 完全在门禁之外——
+    # 我建该目录时漏了「最近校验：」状态头字段（docs/ 规则要求前 15 行含「状态：」+「最近校验：」），
+    # 而门禁不报，直到主动按 doc_health 的真实规则手写脚本复验才发现。补入以防复发。
+    for extra in KNOWLEDGE_DOC_DIRS:
+        d = REPO_ROOT / extra
+        if d.exists():
+            for p2 in d.rglob("*.md"):
+                rels.add(p2.relative_to(REPO_ROOT).as_posix())
 
     return sorted(rels)
 
