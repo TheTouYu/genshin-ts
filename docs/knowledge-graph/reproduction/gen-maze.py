@@ -82,7 +82,10 @@ def main() -> int:
         ents.append(e)
 
     # ---- 墙 ----
-    GRAY, GREEN = 0xFF9AA0A6, 0xFF6B8E5A
+    # ⚠️ assets:entities import 的输入 schema 要 '#RRGGBB' 字符串
+    # （实测报错 entities[0].color must be '#RRGGBB'），CLI 再解析为 0xAARRGGBB。
+    # 实体导出时读到的是整数，两者不是同一种表示——生成器必须写字符串。
+    GRAY, GREEN = '#9AA0A6', '#6B8E5A'
     for r in range(H):
         for c in range(W):
             if not wall[r][c]:
@@ -97,7 +100,7 @@ def main() -> int:
         if i % 5:
             continue
         kind = (CYLINDER, SPHERE, CONE)[(i // 5) % 3]
-        col = (0xFFE8B84B, 0xFF7FB3D5, 0xFFD98880)[(i // 5) % 3]
+        col = ('#E8B84B', '#7FB3D5', '#D98880')[(i // 5) % 3]
         add(f"造景_{r}_{c}", kind, c * GRID, 0.6, r * GRID,
             scale=(0.4, 1.2, 0.4), color=col)
     notes.append(f"造景 {len([e for e in ents if e['name'].startswith('造景')])} 处"
@@ -113,7 +116,7 @@ def main() -> int:
     dead = [p for p in dead if p not in ((0, 1), (H - 1, W - 2))][:4]
     for i, (r, c) in enumerate(dead):
         add(f"隐藏_{i+1}", SPHERE, c * GRID, 1.0, r * GRID,
-            scale=(0.35, 0.35, 0.35), color=0xFFFFD700)
+            scale=(0.35, 0.35, 0.35), color='#FFD700')
     notes.append(f"隐藏收集物 {len(dead)} 个，全部位于死路尽头"
                  f"（决策4；决策5 的『明晃晃放路中间』变体：第 1 个放在最靠近入口的死路上）")
 

@@ -255,12 +255,15 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
    - ⚠️ **但 .gia 核不了「节点身份」**（2026-09-15 T12 实证）：`.gia` 把节点编码成常量三元组
      `genericId {class,type,kind,nodeId}`（如 `nodeId: 307/306/323`），节点名不在里面——
      想核对"事件是不是我写的那个、分支有没有写反"会一无所获（中文变量名倒是在）。
-   - ✅ **核节点身份请读 IR 中间产物** `dist/src/<name>.json`：它保留**可读节点类型**，
-     一张 9 节点的图能直接列出
-     `when_tab_is_selected / activate_disable_tab / activate_disable_model_display /
-      set_node_graph_variable / double_branch / addition / greater_than_or_equal_to`
-     —— 与源码意图逐条对账，一轮完成。
-   - **分工**：`.gia` 核**规模与结构**（节点数/复合集合/连线），`IR json` 核**语义与意图**（谁是谁、写反没有）。
+   - ✅ **注入前**核节点身份：读 IR 中间产物 `dist/src/<name>.json`，它保留可读节点类型
+     （`when_tab_is_selected / addition / double_branch / ...`），与源码意图逐条对账。
+   - ✅ **注入后**核节点身份：`tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json`，
+     读节点的 **`api` 字段**（如 `"api": "When Tab Is Selected"`、`generic_id: 307`）。
+     ⚠️ **别读 `kind` 字段**——它对所有系统调用都返回 `SysCall` 泛名，看不出身份；
+     这正是"读了工具输出却核不出东西"的坑（T12 第一次核验就踩了，换 `api` 后一轮通过）。
+     `explain-gil-node-graph.ts` 是同一信息的人读版，二者取一即可。
+   - **分工**：`.gia` 核**规模与结构**（节点数/复合集合/连线），
+     `IR json`（注入前）与 `parse --json 的 api 字段`（注入后）核**语义与意图**。
      两个都看才算核完；只解码 `.gia` 会误判"核验通过"。
    - 配套：若编译阶段就报 `gsts.f is only available in server_* ctxType`，那不是图写错了，
      是**调用路径**问题——必须用 `node ./bin/gsts.mjs -c <config>`，不能 `npx tsx src/cli/gsts.ts`

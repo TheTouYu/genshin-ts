@@ -154,6 +154,35 @@
 - **证据等级**：硬规则（编译器强制）
 - **影响面**：含信号的所有图（跨图通信、事件解耦设计）；施工顺序与地图选择
 
+
+### R14 实体 import 的输入颜色是字符串，导出读到的是整数
+
+- **断言**：`assets:entities import` 的输入 JSON 里 `color` 必须是 **`'#RRGGBB'` 字符串**，
+  写成整数（哪怕语义等价的 0xAARRGGBB）会被直接拒绝：
+  `[error] entities[0].color must be '#RRGGBB'`。
+  而**导出**出来的实体里 `color` 是**整数** `rgb: 4288323750`（= 0xAARRGGBB）。
+  **导入与导出的颜色表示不是同一种** —— 拿导出样本当 import 模板会踩。
+- **边界**：`'#RRGGBB'` 无 alpha；导入后 CLI 解析成 `0xFFRRGGBB`（alpha 固定 FF）。
+- **锚点**：`src/cli/gil_entities.ts:42` `EntityImport` 类型注释
+  「0xAARRGGBB（解析自 '#RRGGBB'）」；实测报错与产物核验见
+  `docs/knowledge-graph/reproduction/gen-maze.py` 注释与 `examples/maze-repro/PROGRESS.md`
+- **证据等级**：我方实测（2026-09-15 T12 几何导入）
+- **影响面**：所有用脚本批量造实体的场合
+
+### R15 `assets:entities` 省略子命令时不报错，而是静默产出错误的小文件
+
+- **断言**：`gsts assets:entities --gil X --entities Y.json --output Z.gil`（**不写 `import`**）
+  不会报错，会产出一个约 6.7KB 的**残缺文件**（实体数读回为 0），而不是完整地图。
+  必须显式写子命令：`gsts assets:entities import --gil X --entities Y.json --output Z.gil`。
+- **边界**：本项目实测；子命令族为 `[export|import|patch|apply-candidate]`，
+  但顶层 `--help` 的短用法行（`Usage: gsts assets:entities [options]`）**看不出需要子命令**。
+- **锚点**：`src/cli/assets_entities.ts:49-51`（用法行与子命令列表分列两处）；
+  实测：无子命令产出 6,709 字节 / 实体 0，带 `import` 产出 492,983 字节 / 实体 166
+- **证据等级**：我方实测
+- **影响面**：所有 assets: 子命令的调用（**用前先确认子命令名**，别被短用法行误导）
+- **配套**：核验产物要**读回数字**（实体数/字节数），不能只看命令有没有报错
+  —— 这次正是"没报错但产出错"的典型
+
 ## 二、待裁决（不判死，按根 AGENTS.md「官方文档功能=候选可支持面」）
 
 | 项 | 官方依据 | 我方缺口 | 处置 |
@@ -167,7 +196,7 @@
 ## 三、本次回灌范围
 
 按 `pkc-project-operator` 快速通道（纯增量 ≤4 claim / 每 claim 带 authority ref）分批录入。
-**已入库 12 条**：批 A（R1/R3）、批 B（R4/R8）、批 C（R2/R5/R9/R10）、批 D（R6/R7）、批 E（R12/R13）。
+**已入库 13 条**：批 A（R1/R3）、批 B（R4/R8）、批 C（R2/R5/R9/R10）、批 D（R6/R7）、批 E（R12/R13）。
 PKC claims 389 → **401**（5 个 bundle），每条均以自然语言查询验证可检索。
 **待入库**：R6（客户端图三类硬限制）、R7（过滤器图无执行节点）——与已入库的「客户端只读变量」同 topic，可并入。
 R11（白盒常量表）为本会话 T12 实测新增，**待下一批入库**。

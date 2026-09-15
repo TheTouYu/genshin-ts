@@ -16,8 +16,30 @@
 | 设计 | ✅ | `docs/knowledge-graph/reproduction/T12-design.md` |
 | 几何 | ✅ | `reproduction/gen-maze.py` → 150 实体；BFS 验证 99 格全连通/出口可达/4 隐藏物可达/92 格有回头路 |
 | 节点 | ✅ | `src/maze-collect.ts` → `.gia` id=1073741931，9 节点；IR 核验 9/9 与意图一致 |
-| 注入 | ⬜ **需用户确认 mapId** | 本工程刻意不写 `inject` 段 |
+| 注入 | ✅ **已在夹具上端到端验证** | 见下「夹具验证」；注入真实地图仍需用户确认 mapId |
 | 游戏内核验 | ⬜ 需用户 | —— |
+
+## 夹具端到端验证（2026-09-15，**不碰任何真实地图**）
+
+注入真实地图需用户确认 mapId（红线）。但"注入这一段能不能通"可以用仓库既有夹具验证——
+用 `tests/fixtures/cube-e1-base.gil`（真 .gil，含 type 20000 图）复制到 `.gsts/tmp/`，
+全程 `--output` 非破坏输出。结果：
+
+| 段 | 手段 | 核验（读回数字，不只看有没有报错） |
+|---|---|---|
+| 注入 | `injectGilFile({gilPath, giaPath, targetId:1073741825, outPath})`（`src/injector/index.ts:521`） | 图 1073741825 改名 `_GSTS_maze-collect`；`node_count=9`；变量 `已收集数`(Integer,0) / `已集齐`(Boolean) 都在 |
+| 读图核验 | `gil:parse-node-graph --graph 1073741825 --json` → 读节点 **`api` 字段** | 9/9 对账：`When Tab Is Selected` / `Activate/Disable Tab` / `Activate/Disable Model Display` / `Get·Set Node Graph Variable` / `Addition` / `Greater Than or Equal To` / `Double Branch`；dataflow 7 / flow 5 |
+| 几何 | `assets:entities import --gil <copy> --entities maze-entities.json --output <out>` | 实体 16 → **166**（+150）；126 墙 / 20 造景 / 4 隐藏；126 个 def=10009001 |
+
+**输入夹具 sha256 全程未变**（69fe51b254cada0f）——隔离性可核。
+
+### 这段验证额外挖出两条规则（已写入 ATOMIC-RULES）
+
+- **R14**：`assets:entities import` 的输入 `color` 必须是 **`'#RRGGBB'` 字符串**，
+  写整数会被拒（`entities[0].color must be '#RRGGBB'`）；而**导出**给的是整数 0xAARRGGBB
+  —— 拿导出样本当 import 模板会踩。
+- **R15**：`assets:entities` **省略子命令不报错**，会静默产出 6.7KB 残缺文件（实体 0）。
+  必须写 `import`。核验要**读回数字**，不能只看命令有没有红字——这正是"没报错但产出错"的典型。
 
 ## 两条施工硬规则（踩过才写下来）
 
