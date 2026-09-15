@@ -23,7 +23,13 @@
 T12 进度：✅ 设计书（9 决策全引图谱 + 5 图谱缺口 + 4 能力缺口）
 ✅ 几何（150 实体，BFS 验证 99 格全连通/出口可达/4 隐藏物可达/92 格有回头路）
 ✅ R11 白盒元件常量表（10009001-10009011，本会话实测枚举 20 张图）
-⬜ 逻辑层（下一步）/ ⬜ 注入（需用户确认 mapId）/ ⬜ 游戏内核验（需用户）
+✅ 节点层（.gia id=1073741931，9 节点，IR 核验 9/9 与意图一致）
+⬜ **注入（阻塞：需用户确认 mapId）** / ⬜ 游戏内核验（需用户）
+
+**T12 剩余全部卡在用户确认 mapId**（AGENTS.md 红线）。确认后三步：
+① 补 inject 段 → `node ./bin/gsts.mjs -c examples/maze-repro/gsts.config.ts`
+② 几何 import maze-entities.json（150 实体）
+③ `assets:signals register` 注册「迷宫_隐藏集齐」→ 恢复信号版集齐惊喜
 
 **逻辑层已知入口（不用重新探）**：
 - 事件：`whenTabIsSelected`（选项卡选中时，`src/definitions/zh_aliases.ts:63`）
