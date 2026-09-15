@@ -138,7 +138,7 @@ B 站 AI 字幕对千星术语系统性误识别。语料**保留原文**（取�
 - **收益判断**：A 组 4 源合计仅增 3–5K 字（相对既有 210,496 字为边际），
   故本轮**登记不执行**；若后续某专题在这批源覆盖的主题上确实薄弱，再按需跑 A 组（成本仅约 4 分钟 GPU）。
 - **转写必须带领域 initial_prompt**（`bilibili-learn` 技能实测：无 prompt 时 Python 被识别成「拍損」×5），
-  术语表与脚本已备好：`.scratch/t12-asr/transcribe.py`（未提交，属临时产物）
+  术语表与脚本已备好：**`research/千星知识图谱/scripts/bili-asr.py`**（含千星领域 initial_prompt，可直接跑：下载音频后设好 `LD_LIBRARY_PATH` 环境变量执行）
 
 ## 五、复现
 
