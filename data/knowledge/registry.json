@@ -3525,6 +3525,18 @@
       "fact_classes": [
         "runtime_behavior"
       ]
+    },
+    "clm_77D5C9AF05A0621AFCF373747F": {
+      "fact_classes": [
+        "cli_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_D4754E31C0571EB2E7856B2FA6": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
     }
   }
 }

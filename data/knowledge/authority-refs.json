@@ -756,6 +756,21 @@
       ]
     },
     {
+      "id": "aref_1ce750f06be68af84e3cc98ba0",
+      "path": "src/definitions/client_method_modes.ts",
+      "locator": "客户端图 subType 方法模式表（setCustomVariable 零命中）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "cd00e9d79c781f5e5e5184e142d6bd38a2fdf5502bbfd3c25d52631f25f9e262",
+      "claim_ids": [
+        "clm_D4754E31C0571EB2E7856B2FA6"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_1d83f273a108d9d4824b48df84",
       "path": "docs/game-engine-knowledge/rubik-autosolve-playbook.md",
       "locator": "section 三、错误谱系（A/B/C 三类）+ 四、已验证模式 4/5/6",
@@ -2090,6 +2105,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_4727da76261620016d902424a4",
+      "path": "src/cli/assets_node_graphs.ts",
+      "locator": "nodes 子命令帮助文本『节点预算：复合调用递归展开计数（游戏限制 2000）』（第 237 行）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "1e98b8ab88949c5c324c56d4588eccd0d801782ed39bc3f886a0f44406cc35b0",
+      "claim_ids": [
+        "clm_77D5C9AF05A0621AFCF373747F"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -4196,6 +4226,21 @@
       ]
     },
     {
+      "id": "aref_9c7f71e2e33ab8a8619a887c24",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "客户端节点全集（六类节点图，均无设置自定义变量节点）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_D4754E31C0571EB2E7856B2FA6"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_9cfc44db14d32517b2ee985bbc",
       "path": "docs/game-engine-knowledge/retrospective-weekly-2026-08-22-29.md",
       "locator": "1. 跨主题错误谱系总表",
@@ -6017,6 +6062,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_e82c616b2fda84b4eabd88613e",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "编辑项范围限制 / 单张节点图节点最大数量 3000（第 2056 行）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_77D5C9AF05A0621AFCF373747F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
