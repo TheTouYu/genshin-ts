@@ -61,3 +61,15 @@ Set Custom Variable（节点 22）按值类型选择变体存储：写 number �
 证据=2026-08-15 灯阵胜利 bug 实证（日志 2712）+ probe（0→float cid26、0n→int cid22）+ 源码佐证（src/runtime/server_globals.ts:331 asType('int') 读变量）+ docs/game-engine-knowledge/variable-scopes.md（commit 476f9c8）；适用于当前编辑器版本；其他变量类型（float 写 float 读、字符串等）的变体分裂未在本 claim 断言
 
 <!-- CLAIM:END clm_EFBFB1B399A65BADA32F540774 -->
+
+<!-- CLAIM:START clm_E41BAF37BAB0E3FE9348D7CF82 -->
+
+### 变量变化事件的触发条件与重复赋值语义
+
+容器的『变量变化时』事件只有通过『设置自定义变量』节点才会触发；通过列表操作节点（插入、设置值等）修改不会触发该事件。此外，重复设置相同的变量值仍会触发变量更改事件，因此可以把变量监听当作函数调用通道使用（非阻塞式约 2 个节点，阻塞式多约 4 个节点）。
+
+#### 适用边界
+
+适用于自定义变量与其变化事件；源自视频实测复现，非官方文档记载的条文。不同版本实现可能变化，实现前应在本版本复测。
+
+<!-- CLAIM:END clm_E41BAF37BAB0E3FE9348D7CF82 -->

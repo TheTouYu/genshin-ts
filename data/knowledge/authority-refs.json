@@ -1463,6 +1463,21 @@
       ]
     },
     {
+      "id": "aref_37979d7446e1b1e91cc2708f8f",
+      "path": "docs/knowledge-graph/d/d3a-节点图基础与执行流.md",
+      "locator": "变量与事件语义一节（源 BV164CEBfE1L，变量监听当函数调用通道）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "4e2da8b95aef8410eb9b8a8a055b241e346b8a6fa8ae414227925a56108b79f5",
+      "claim_ids": [
+        "clm_E41BAF37BAB0E3FE9348D7CF82"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_380339b8f8e61db2fdabdd9d1f",
       "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
       "locator": "颜色按块索引渐变节",
@@ -1970,6 +1985,21 @@
       ],
       "supports_fact_classes": [
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_427979a686806b71d377907c33",
+      "path": "docs/knowledge-graph/d/d5-表现层.md",
+      "locator": "悬浮交互页与页签一节（页内控件显隐硬边界，源 BV1s6LB6WEF4）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "611b1095dde476d0bc383052340ce4f80962d5b8c98dba3aef890193dcc8b472",
+      "claim_ids": [
+        "clm_1E78AF7BEBBCAD01848B6D7BE4"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -4451,6 +4481,21 @@
       ]
     },
     {
+      "id": "aref_a61db37a124093b1fbf2d8d990",
+      "path": "docs/ui-tutorial/official-guide-auxiliary-appendix.md",
+      "locator": "附录 / 编辑项范围限制（第 1996-2160 行；碰撞触发器上限见第 1998-2040 行，通用上限表见第 2125-2160 行）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "28fc786c1a9699f95f6b471d2c4674f1c450db28100163e0ac1c706baaff6a97",
+      "claim_ids": [
+        "clm_8690FB67023491760C0FDE03F4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_a677a7dd1d86af1ecef3ef66d5",
       "path": ".agents/skills/verify-injection/references/verified-cases.md",
       "locator": "ef6189b:verify-u4-color-change",
@@ -4858,6 +4903,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b87ed34d4ba11910eefa586609",
+      "path": "research/千星知识图谱/learn/BV1K4tH6GE4k/ALL.md",
+      "locator": "程序架构与拆解讲次（负载三大来源与对策，变量写入负载排序）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ed9c380d2a6b2d44d1a6e24d3d69f4e09fe07cac1a199b0d875867312f77ec40",
+      "claim_ids": [
+        "clm_77E101886A50EB12DAD42B586A"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
