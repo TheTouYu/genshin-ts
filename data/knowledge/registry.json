@@ -3590,6 +3590,12 @@
         "cli_behavior",
         "documented_contract"
       ]
+    },
+    "clm_FC64FA664CE94068969D625264": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
     }
   }
 }

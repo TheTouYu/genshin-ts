@@ -3250,6 +3250,21 @@
       ]
     },
     {
+      "id": "aref_72bc668f6504f463cbd95acf08",
+      "path": "docs/knowledge-graph/reproduction/gen-maze.py",
+      "locator": "方块常量段 CUBOID/SPHERE/CYLINDER/CONE = 10009001/10009002/10009008/10009009（实际用于生成迷宫几何）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a536756d2c322f9c4662d32213104914a1edebafe04235269fea267ae1fc96dc",
+      "claim_ids": [
+        "clm_FC64FA664CE94068969D625264"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_73e10dbf9c711d5f48dee250aa",
       "path": "examples/football/DESIGN.md",
       "locator": "5. 物理模型（5.1飞行/5.2碰撞/5.3控球/5.4出球参数/5.5 5Hz实现方案）",
@@ -3274,6 +3289,21 @@
       "approved_hash": "d4c055b27cf0f92bb1aba0a63cbcf59acc63d389c8fee39a734120a18942bd28",
       "claim_ids": [
         "clm_86FA2AA93CFE545B5F202BE249"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_74d187c38995054b1e68b86a0b",
+      "path": "docs/knowledge-graph/ATOMIC-RULES.md",
+      "locator": "R11 白盒物件 11 种基础几何体的元件常量表（含派生件 resourceId/definitionId 差异说明）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e4cb1d05f7e9c2248bfd4e6af7eeb0853ea4eef243f86fc569bee8e61f3180ba",
+      "claim_ids": [
+        "clm_FC64FA664CE94068969D625264"
       ],
       "supports_fact_classes": [
         "documented_contract"
