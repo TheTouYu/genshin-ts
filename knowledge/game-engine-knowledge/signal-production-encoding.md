@@ -121,3 +121,15 @@ CompositeDef 中每个信号参数条目的 n3 描述符 field2 = 该参数在�
 证据=三信号差分闭环（signal-rebuild-1890 v0-v3 快照）+ CLI 候选与编辑器重建 3/3 逐字节一致 + 用户游戏核验（2026-08-16）；未验证更大参数组合（如 3+ 参数、entity/guid 多参）；适用于当前引擎/CLI 版本
 
 <!-- CLAIM:END clm_ABB786BA502CA6C75C5758CB90 -->
+
+<!-- CLAIM:START clm_191E506EC6081B0E4C768820DA -->
+
+### 信号节点受编译期约束：必须有目标地图的注册表
+
+图中一旦使用信号节点，GIA 生成阶段就要求目标地图的信号注册表：缺注册表时报『signal registry is required when encoding signal nodes』；即使有注册表，信号名未在其中注册也会报『signal is not registered in target map』。这是编译期约束而非运行期，因此含信号的图不能『先写图、后挑地图』——必须先确定 mapId 并完成信号注册。同一张图去掉信号后即可正常编译。
+
+#### 适用边界
+
+约束适用于服务端图与客户端图两条编码路径。不含信号的图不受影响。信号注册需写入目标地图，属需要用户确认的操作。
+
+<!-- CLAIM:END clm_191E506EC6081B0E4C768820DA -->

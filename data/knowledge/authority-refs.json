@@ -1132,6 +1132,21 @@
       ]
     },
     {
+      "id": "aref_2b2fe283ce6357d9a09a325cae",
+      "path": "docs/knowledge-graph/ATOMIC-RULES.md",
+      "locator": "R13 信号节点需要目标地图的注册表（含实测条件与影响面）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0e316e6c15221251fff872064ac0e385371a3163873c17ada06cbe4579408347",
+      "claim_ids": [
+        "clm_191E506EC6081B0E4C768820DA"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2bc0f343edc7f37ce9aa062b90",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-26-rubik-negative-moveid-series.md",
       "locator": "错误谱系总览 #1 3027f 截断",
@@ -3805,6 +3820,21 @@
       ]
     },
     {
+      "id": "aref_8adc550096f121ef8d4f10396a",
+      "path": "src/compiler/ir_to_gia_transform/build_signal_definition.ts",
+      "locator": "finalizeSignalEncoding：缺注册表抛错与信号名未注册抛错两处（约第 867 行与第 871 行）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c897dd6fc278e2315306ebb897ba6becf13ff70fc7779ab9616ed3757c6133ab",
+      "claim_ids": [
+        "clm_191E506EC6081B0E4C768820DA"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_8b7285873faee7f5947f6f9750",
       "path": "docs/game-engine-knowledge/node-graphs.md",
       "locator": "客户端图 20010 wire 配方 + folder typeValue 全表",
@@ -4539,6 +4569,21 @@
       "supports_fact_classes": [
         "documented_contract",
         "evidence_scope"
+      ]
+    },
+    {
+      "id": "aref_a747fdf24facea4416c84ee4f4",
+      "path": "bin/gsts.mjs",
+      "locator": "第 3 行：import '../dist/src/cli/gsts.js'（正规入口指向构建产物）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "89a281c1d512da1c93526463e13f6d71f8feb182d5a977595878d068ac524f53",
+      "claim_ids": [
+        "clm_ED56B777D6BF1FB7F270F98D2B"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -5296,6 +5341,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_c7b4896f6eea42a3e110313ef1",
+      "path": "src/runtime/core.ts",
+      "locator": "ensureGsts 中的上下文栈：const stack = (g[kCtxStack] ??= [])（kCtxStack 为 Symbol，双副本下不共享）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0f82748e7411877b15cf5d865d5785719c14ecfd081821452657e4d7e4f888d9",
+      "claim_ids": [
+        "clm_ED56B777D6BF1FB7F270F98D2B"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {

@@ -39,3 +39,15 @@ maybeInjectGia（src/cli/gsts.ts:1505）：--noinject 或无 gilCfg 时直接返
 来自 src/cli/gsts.ts 当前实现；注入目标定位与安全语义见 nodegraph-injection-target-and-safety；以 committed 源码为准。
 
 <!-- CLAIM:END clm_078E7ECF2469F2E0CDAEA91267 -->
+
+<!-- CLAIM:START clm_ED56B777D6BF1FB7F270F98D2B -->
+
+### 编译节点图必须走正规入口 node ./bin/gsts.mjs，不能直跑 src 下的 CLI
+
+编译节点图必须使用正规入口 node ./bin/gsts.mjs -c <config>（其转发到 dist/src/cli/gsts.js）。用 npx tsx src/cli/gsts.ts -c <config> 会在 GIA 生成阶段抛『gsts.f is only available in server_* ctxType (current: javascript)』。根因是运行时上下文栈用 Symbol 作键，src 与 dist 两份 core.ts 各持一个不同的 Symbol，一侧压入的上下文另一侧读不到。该故障与图内容无关——最小复现是一张只做图变量读写的空图同样失败。
+
+#### 适用边界
+
+约束的是本地编译/注入的调用路径，不改变 DSL 写法。诊断法：node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"，输出 src/ 即落到了类型检查侧副本。tsx 直跑仅适用于调试与类型检查。
+
+<!-- CLAIM:END clm_ED56B777D6BF1FB7F270F98D2B -->
