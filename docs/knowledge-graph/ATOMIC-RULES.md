@@ -131,6 +131,8 @@
 
 ### R12 编译节点图必须走正规入口 `node ./bin/gsts.mjs`
 
+> 来源定性更正（2026-09-15 复盘）：本条不是本会话新发现——dsl-nodegraph-development 技能 SKILL.md:645 早已逐字记载同一故障与正解。本会话因未加载该技能而重复发现。保留本条是因为 PKC 侧原缺此 claim（技能与 PKC 是两个载体），但不得记为「新发现」。
+
 - **断言**：编译节点图必须用 `node ./bin/gsts.mjs -c <config>`（= `dist/src/cli/gsts.js`）。
   用 `npx tsx src/cli/gsts.ts -c <config>` 会因为 src/dist 双副本问题，
   在 GIA 生成阶段抛 `[error] gsts.f is only available in server_* ctxType (current: javascript)`。
@@ -143,6 +145,8 @@
 - **影响面**：所有本地编译/注入操作；用 tsx 直跑 CLI 的脚本全部受影响
 
 ### R13 信号节点需要目标地图的注册表，无地图编译不了
+
+> 来源定性更正（2026-09-15 复盘）：同上——该技能 SKILL.md:251-252 已记载「地图注册是编译的硬前置」，且 :3 还给了更省事的 GSTS_LOCALLOW_DIR 副本验证通道（本会话未看到，自己从零重新发明了夹具法）。
 
 - **断言**：图中一旦使用信号节点（如 `f.sendSignal`），GIA 生成阶段会要求**目标地图的信号注册表**：
   `[error] signal registry is required when encoding signal nodes`；即使注册表在，
