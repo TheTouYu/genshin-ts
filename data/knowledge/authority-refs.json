@@ -2288,6 +2288,21 @@
       ]
     },
     {
+      "id": "aref_507c6b84777dcd670ecd8fb78c",
+      "path": "docs/ui-tutorial/official-guide-nodes-server.md",
+      "locator": "拼接列表节点（唯一的拼接类节点，作用于列表）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "330d6f975206cd15a5916fe9209c07bc59449848b180c6c1fe1470a049d73737",
+      "claim_ids": [
+        "clm_600544D2F757AB18F4FDE823A5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_509fb718cdeac1df78a4b01532",
       "path": "docs/game-engine-knowledge/composite-usage-guide.md",
       "locator": "asset section (section 7)",
@@ -4060,6 +4075,21 @@
       ]
     },
     {
+      "id": "aref_97255a8ac56a7d657f51cc827a",
+      "path": "src/runtime/value.ts",
+      "locator": "字符串与列表的值语义实现（无字符串拼接实现）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bc3c8bb717cf09214f6bb6aab4a4a561f821a048f0139b03e5da0e46436151f2",
+      "claim_ids": [
+        "clm_600544D2F757AB18F4FDE823A5"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_97c4ce0e109be09538d566b472",
       "path": "ui/mappings.md",
       "locator": "票09 实测追加（对齐右码 + 命令层缺口）",
@@ -4768,6 +4798,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_b77817dc51619035caa8a696fd",
+      "path": "docs/ui-tutorial/official-guide-concepts.md",
+      "locator": "其它概念 / 局内存档（第 10542-10590 行：定义、需用结构体+自定义变量、每次只能启用一个模板；第 10566 行不支持类型清单）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "35a1e5892371b5b52f30b7d99a834147c5414e7854eb2e569feb70da4af2de20",
+      "claim_ids": [
+        "clm_63F848555DBDE5E908DB91A9E5"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

@@ -3537,6 +3537,17 @@
         "documented_contract",
         "runtime_behavior"
       ]
+    },
+    "clm_600544D2F757AB18F4FDE823A5": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_63F848555DBDE5E908DB91A9E5": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }
