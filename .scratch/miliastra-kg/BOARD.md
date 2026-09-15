@@ -18,7 +18,19 @@
 
 ## 二、当前前沿
 
-**前沿 = T12 端到端复现**（T11 首批已收轮 2026-09-15）。
+**前沿 = T12 端到端复现 · 逻辑层**（T12 设计与几何已完成 2026-09-15）。
+
+T12 进度：✅ 设计书（9 决策全引图谱 + 5 图谱缺口 + 4 能力缺口）
+✅ 几何（150 实体，BFS 验证 99 格全连通/出口可达/4 隐藏物可达/92 格有回头路）
+✅ R11 白盒元件常量表（10009001-10009011，本会话实测枚举 20 张图）
+⬜ 逻辑层（下一步）/ ⬜ 注入（需用户确认 mapId）/ ⬜ 游戏内核验（需用户）
+
+**逻辑层已知入口（不用重新探）**：
+- 事件：`whenTabIsSelected`（选项卡选中时，`src/definitions/zh_aliases.ts:63`）
+- DSL 形态：`g.server({id, lang:'en', mode:'beyond'}).on('事件名', (evt, f) => {...})`
+  参考 `tests/manual_verify_all_new_server_nodes.ts:7-30`
+- 可选路径：隐藏物挂选项卡组件（`assets:entities patch --tab-options`，`src/cli/assets_entities.ts:74`）
+- ⚠️ 障碍：`addComponent` 🔴 → 碰撞触发器组件加不了，只能走选项卡路径
 
 T11 首批战果：经 pkc-project-operator 快速通道录入 **4 条原子规则 / 2 个 bundle / 7 条 authority ref**，
 PKC claims 389→**393**，rebuild+validate 干净，**4 条全部可被自然语言检索（3 条排第 1）**。
