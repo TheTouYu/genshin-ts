@@ -2303,6 +2303,21 @@
       ]
     },
     {
+      "id": "aref_4e610335f07e306818a2da879e",
+      "path": "docs/knowledge-graph/d/d3b-客户端图与通信.md",
+      "locator": "客户端图硬限制集中登记（源 BV1oaDrBuE11 [00:03:02]，硬规则级）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "77165cbdfd2c786aa7174cf9d5ad16ec5b3243568c7ebc2f94e8704f2aef550b",
+      "claim_ids": [
+        "clm_A77342ED870DCBDEDAD2A5F34A"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_4fd7f1d7a3129bc6c89799f0e7",
       "path": "docs/ui-tutorial/official-guide-concepts.md",
       "locator": "关卡",
@@ -6333,6 +6348,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_ecf2c5eeaed54acdb4f40b1d57",
+      "path": "docs/ui-tutorial/official-guide-nodes-client.md",
+      "locator": "过滤器节点图章节（节点族仅 查询 11741 / 运算 12606 / 其它 13261，无执行与流程控制）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "59f47b8ddb68a526cd8a2a39a58d13e9a6e414e96098f3837421ce8027ae8573",
+      "claim_ids": [
+        "clm_3648BACF48E6823FA0A4A8239E"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

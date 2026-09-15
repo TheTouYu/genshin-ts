@@ -3568,6 +3568,16 @@
       "fact_classes": [
         "runtime_behavior"
       ]
+    },
+    "clm_A77342ED870DCBDEDAD2A5F34A": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_3648BACF48E6823FA0A4A8239E": {
+      "fact_classes": [
+        "documented_contract"
+      ]
     }
   }
 }
