@@ -3040,6 +3040,21 @@
       ]
     },
     {
+      "id": "aref_6c3904ed12ac326d6fdebc816c",
+      "path": "docs/knowledge-graph/ATOMIC-RULES.md",
+      "locator": "R14 实体 import 的输入颜色是字符串，导出读到的是整数",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7af99efdf350c4127f64b84fd3ecf6a434283173dacada51181b4c1bea064e83",
+      "claim_ids": [
+        "clm_4E6B4004C26AA352234B6DFD1F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_6c51fe160e3417c5a88408af7a",
       "path": ".agents/skills/game-from-scratch/references/composite-authoring.md",
       "locator": "asset catalog (section 5)",
@@ -3907,6 +3922,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_8c91f14db51b61480c0b5a3db0",
+      "path": "src/cli/gil_entities.ts",
+      "locator": "EntityImport 类型定义（color 字段注释：0xAARRGGBB，解析自 '#RRGGBB'）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a47bbf44b833f23b1a5f260215c6f5bc77eb20175720f942c989937574960591",
+      "claim_ids": [
+        "clm_4E6B4004C26AA352234B6DFD1F"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -4813,6 +4843,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_b1333962034c4118574354de11",
+      "path": "src/cli/assets_entities.ts",
+      "locator": "用法行（Usage: gsts assets:entities [options]）与子命令清单（[export|import|patch|apply-candidate]）分列两处",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "5d92bcddd3d615152e8b23133995781df1d7ebeadf70a93653000a32cc6de812",
+      "claim_ids": [
+        "clm_EFD30ED344E248542B400AF528"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {

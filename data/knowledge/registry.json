@@ -3596,6 +3596,17 @@
         "documented_contract",
         "runtime_behavior"
       ]
+    },
+    "clm_4E6B4004C26AA352234B6DFD1F": {
+      "fact_classes": [
+        "cli_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_EFD30ED344E248542B400AF528": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
     }
   }
 }

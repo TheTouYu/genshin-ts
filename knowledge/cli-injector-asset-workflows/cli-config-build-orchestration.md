@@ -51,3 +51,15 @@ maybeInjectGia（src/cli/gsts.ts:1505）：--noinject 或无 gilCfg 时直接返
 约束的是本地编译/注入的调用路径，不改变 DSL 写法。诊断法：node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"，输出 src/ 即落到了类型检查侧副本。tsx 直跑仅适用于调试与类型检查。
 
 <!-- CLAIM:END clm_ED56B777D6BF1FB7F270F98D2B -->
+
+<!-- CLAIM:START clm_EFD30ED344E248542B400AF528 -->
+
+### assets 子命令省略子命令名时不报错，会静默产出残缺文件
+
+对 assets:entities 只给选项、不写子命令名（例如不写 import）时，命令不会报错，而是产出一个残缺的小文件（实测 6,709 字节，按实体读回为 0 条），而非完整地图。补上显式 import 后同一组参数产出 492,983 字节 / 166 条实体。顶层帮助的短用法行（Usage: gsts assets:entities [options]）看不出需要子命令，子命令清单另列在扩展帮助里。
+
+#### 适用边界
+
+实测于 assets:entities；其它 assets 子命令族（同一 CLI 分发风格）应默认假定存在同类风险，用前先确认子命令名。核验要点：不能只看命令有没有报错，必须读回产物里的数字（实体数/字节数）。
+
+<!-- CLAIM:END clm_EFD30ED344E248542B400AF528 -->
