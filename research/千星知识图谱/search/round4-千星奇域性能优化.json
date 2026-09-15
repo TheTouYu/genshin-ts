@@ -1,0 +1,1334 @@
+[
+ {
+  "bvid": "BV1EPQdBUEtf",
+  "title": "千星奇域负载居然是这样算的（修改版）",
+  "author": "大绿葱今天下班了吗",
+  "duration": "12:37",
+  "stats": [
+   "2122",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV12sSXBSE4v",
+  "title": "千星奇域AI开发游戏教程, 第一弹",
+  "author": "国服第一海豹",
+  "duration": "02:16:51",
+  "stats": [
+   "1.4万",
+   "13"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1aL1xBMEuJ",
+  "title": "【千星奇域】原神UGC优化策略分享-《千星矿工》项目1.01-1.02版本优化记录",
+  "author": "Aetheriel_",
+  "duration": "06:58",
+  "stats": [
+   "2887",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV19emEBZEC3",
+  "title": "【千星奇域】一个实现33帧（0.03秒）定时器的trick",
+  "author": "Aetheriel_",
+  "duration": "00:44",
+  "stats": [
+   "1643",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1mLMr6QESr",
+  "title": "千星奇域7.0更新优化，控件引用变量的体验终于优化下来了！沙箱功能更新这里都有~【原神千星奇域创作体验服】",
+  "author": "戀祈",
+  "duration": "03:18",
+  "stats": [
+   "9572",
+   "8"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1jE1eBMEnn",
+  "title": "千星奇域的极限是多大的图？性能优化远超预期，这都能跑得动。",
+  "author": "爱音丿未来",
+  "duration": "06:26",
+  "stats": [
+   "5050",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1iRCJBbE9K",
+  "title": "【千星奇域】千星沙箱资源占用过大关卡崩溃的罪魁祸首！",
+  "author": "hfohn",
+  "duration": "04:27",
+  "stats": [
+   "2.7万",
+   "16"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1qrZwBLEiN",
+  "title": "【千星奇域】自从加了这个，性能提升了300%！！！",
+  "author": "PPPlatelet",
+  "duration": "03:14",
+  "stats": [
+   "2450",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1xFu26AER3",
+  "title": "千星奇遇顶级UI框架讲解（包含制作思路，框架实现，已经踩雷经验）",
+  "author": "白澤-原辅导",
+  "duration": "21:09",
+  "stats": [
+   "4555",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1GfqJBKEGi",
+  "title": "【千星奇域】《千星音效编辑器》V1.0.2 更新日志：性能优化、新增配置复制&amp;粘贴功能",
+  "author": "Aetheriel_",
+  "duration": "01:07",
+  "stats": [
+   "2026",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1SDUKBpEvb",
+  "title": "[原神&amp;Minecraft]原神伤害跳字渲染顺序测试，以及无尽深空伤害跳字渲染顺序优化",
+  "author": "是如梦呀rumeng2233",
+  "duration": "04:23",
+  "stats": [
+   "641",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1s6LB6WEF4",
+  "title": "千星奇域 UI自适应、音量调节、历史对话、脱离卡死、游玩时长、黑屏渐变传送、拾取道具同步给队友并显示提示、使用道具后关闭背包",
+  "author": "月羽衔蝉",
+  "duration": "04:25",
+  "stats": [
+   "2561",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1LuygBAE8n",
+  "title": "日常优化，开局引导，滤镜，计分板功能",
+  "author": "打工皇帝薇薇安",
+  "duration": "01:18",
+  "stats": [
+   "1915",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1Uq6vBLEJP",
+  "title": "千星奇域首页推荐机制-让我破防了.原辅导区UP主真实疑惑月之四千星奇域为何仍然是这样的奇域上新推荐机制",
+  "author": "眨眼过去",
+  "duration": "28:53",
+  "stats": [
+   "7762",
+   "16"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1Nbo8BNEy7",
+  "title": "感觉画面可以再优化一下",
+  "author": "棱工-Loring",
+  "duration": "10:04",
+  "stats": [
+   "60",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV12gSkBJETb",
+  "title": "【千星奇域】别优化了，你可能白干了！定量测试一下千星沙箱的实际性能&amp;定时器机制",
+  "author": "Aetheriel_",
+  "duration": "07:38",
+  "stats": [
+   "1.1万",
+   "8"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1NWYE6LEDz",
+  "title": "从夯到拉！锐评千星奇域玩法分类第二期-客观+主观全面创作向硬核分析1.0，完结后分享资料",
+  "author": "眨眼过去",
+  "duration": "25:54",
+  "stats": [
+   "1044",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV18Ken6bEwT",
+  "title": "【从夯到拉】锐评千星奇域玩法分类第三期-客观+主观全面创作向硬核分析1.0，完结后分享资料",
+  "author": "眨眼过去",
+  "duration": "21:35",
+  "stats": [
+   "244",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1HdY96gEqV",
+  "title": "都快7.1版本了！来了个月之二版本质量的奇域，克苟没有嫌弃，依旧很耐心的指出这个奇域的问题出在哪！这也许就是克苟奇域评测能经久不衰的原因吧！以真心待真心！",
+  "author": "双刀纸袋布",
+  "duration": "18:30",
+  "stats": [
+   "1.7万",
+   "19"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1z1GP6GE3W",
+  "title": "读取点击相对于控件的位置 拾色器-千星奇域",
+  "author": "11280223",
+  "duration": "00:50",
+  "stats": [
+   "787",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1H8QKBmEE3",
+  "title": "游戏时间检测—负载的产生以及如何处理",
+  "author": "白澤-原辅导",
+  "duration": "11:40",
+  "stats": [
+   "943",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1Autu6KE3q",
+  "title": "超级简单的光标拖拽，没有乱七八糟的信号和空模型。无负载压力。",
+  "author": "白澤-原辅导",
+  "duration": "08:16",
+  "stats": [
+   "1494",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1aKztB8EJp",
+  "title": "千星游戏开发最后优化阶段给自己整麻了",
+  "author": "轮回者不出工厂不改名",
+  "duration": "21:28",
+  "stats": [
+   "1688",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV16C1TBKEx6",
+  "title": "聊一聊为什么原神一定要把解帧工具踢出千星奇域",
+  "author": "蒸馍你不符器",
+  "duration": "08:27",
+  "stats": [
+   "10.6万",
+   "334"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV11RASzzELv",
+  "title": "【首发AI+自研】游戏帧数直接翻倍？我把几十种优化做成了软件，一键全能优化游戏帧数！",
+  "author": "智宇丶817",
+  "duration": "08:56",
+  "stats": [
+   "12.8万",
+   "27"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1fSDJB7Emi",
+  "title": "【千星奇域】知识库问答Skill，配合WorkBuddy提升开发效率",
+  "author": "神奇嘟嘟可",
+  "duration": "02:21",
+  "stats": [
+   "2104",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1rdxdzkEi3",
+  "title": "如果你不想和我一样，就小心这款编辑器~【原神UGC编辑器超前测试体验】",
+  "author": "渡姆DooM",
+  "duration": "10:31",
+  "stats": [
+   "1.7万",
+   "34"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1nzcwztEcj",
+  "title": "新发现&amp;优化，60.90证明一下自己",
+  "author": "湮_滅",
+  "duration": "01:14",
+  "stats": [
+   "98",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1DsYi6qE7j",
+  "title": "【原神】别没苦硬吃！6.0到7.1这些优化还有多少人不知道？六周年从夯到拉优化盘点！剧情/千星奇域/砺行修远/无主的命星/材料/联机/树脂/寻宝罗盘/圣遗物",
+  "author": "浪浪团长",
+  "duration": "06:42",
+  "stats": [
+   "6.4万",
+   "370"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1ZoT16jE4W",
+  "title": "用进度条设计你的关卡专属自定义动画",
+  "author": "夜芊瑶",
+  "duration": "02:33",
+  "stats": [
+   "1607",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1K6CMBgEGe",
+  "title": "【千星奇域】这次可以算东方+雷电？对攻击模式和弹幕的再次优化",
+  "author": "梦华符",
+  "duration": "02:20",
+  "stats": [
+   "488",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1RYYv6VEG2",
+  "title": "2D游戏创作起飞！？千星编辑器这次是真的开闸了！",
+  "author": "夜芊瑶",
+  "duration": "07:38",
+  "stats": [
+   "1.2万",
+   "7"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1KNU1BtExS",
+  "title": "可能是你见过的最拟人的属性界面？打磨大半天UI的成果展示",
+  "author": "理性智慧",
+  "duration": "03:01",
+  "stats": [
+   "1.3万",
+   "8"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1dNkDBgEUn",
+  "title": "【千星奇域】教程：用邪修方法实现字符串拼接",
+  "author": "电獭Official",
+  "duration": "04:42",
+  "stats": [
+   "5407",
+   "82"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1iBXdBJEdz",
+  "title": "【扫雷】扫雷-加载快-易操作优化分析-原神千星奇域一对一原辅导",
+  "author": "眨眼过去",
+  "duration": "09:42",
+  "stats": [
+   "354",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1Fa1yBuEAj",
+  "title": "没点BUG能叫玩家自制么【原神】千星奇域",
+  "author": "卢诺米阿玛斯宾",
+  "duration": "07:43",
+  "stats": [
+   "2.7万",
+   "163"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV11UBsBgEEL",
+  "title": "【原神千星奇域】歹徒逃亡-自制奇域优化第四期",
+  "author": "简澜Wind",
+  "duration": "01:23",
+  "stats": [
+   "141",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1WXY96GETB",
+  "title": "克苟：锐评一下我的奇域吧？200热度就上了官方推荐？？哦哟！玩法简单，体验畅快，不愧是官方推荐的奇域啊！继续加油吧！",
+  "author": "双刀纸袋布",
+  "duration": "08:51",
+  "stats": [
+   "1.4万",
+   "9"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1vAYT6FExi",
+  "title": "什么？能在原神玩都市模拟了？这还是原神吗？",
+  "author": "风落雪run",
+  "duration": "05:38",
+  "stats": [
+   "615",
+   "7"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 1
+ },
+ {
+  "bvid": "BV1d1UYB6EtS",
+  "title": "【千星奇域】原了个神卡牌生成逻辑开源啦~从数据到流程，带你不踩坑！",
+  "author": "乐则行-",
+  "duration": "04:54",
+  "stats": [
+   "9759",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1GdY16MEoJ",
+  "title": "一周之内，DLSS 5 和 XeSS 全被社区攻破：技术护城河变水沟 老显卡焕发第二春「5060 开六倍吊打 4090」的笑话彻底消失！",
+  "author": "沧海游戏",
+  "duration": "06:41",
+  "stats": [
+   "10.9万",
+   "57"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1NwUXBkEsF",
+  "title": "【千星奇遇】一个基本可玩的回旋修正",
+  "author": "__unused",
+  "duration": "03:07",
+  "stats": [
+   "5026",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1TT3k6ZEKV",
+  "title": "【顶尖大作】原猎：玩偶危机-天花板级别奇域优化分析-月之八原神千星奇域原辅导",
+  "author": "眨眼过去",
+  "duration": "25:50",
+  "stats": [
+   "616",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1h1qeBgEnt",
+  "title": "【千星奇域】什么叫一张节点图实现所有镜头动画？镜头动画系统资产分享与使用说明",
+  "author": "门怎么关了",
+  "duration": "06:44",
+  "stats": [
+   "2.6万",
+   "22"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1prrjB9EDv",
+  "title": "【原神千星奇域】自制奇域优化第六期",
+  "author": "简澜Wind",
+  "duration": "00:31",
+  "stats": [
+   "449",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1L6416oER1",
+  "title": "神中神！UI，动画！动效！克苟在奇域里遇到神仙了！芙宁娜奖！这就是五万热度，99.1%推荐的含金量啊：这是什么啊？好恐怖的奇域啊！这是能直接进应用商店级别的",
+  "author": "双刀纸袋布",
+  "duration": "09:50",
+  "stats": [
+   "15.7万",
+   "287"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1qdrTBpEQw",
+  "title": "使用Typescript进行千星奇遇开发, ai开发节点图",
+  "author": "国服第一海豹",
+  "duration": "12:04",
+  "stats": [
+   "6.5万",
+   "10"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1aDbN6yE5R",
+  "title": "我把Rust编译成原神节点图了？",
+  "author": "mzTech",
+  "duration": "01:35",
+  "stats": [
+   "4101",
+   "11"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1fDqdBjEj3",
+  "title": "原神千星减速带地图 7.7w热度 42天收益有2.8w？！",
+  "author": "l是梦终空l",
+  "duration": "08:08",
+  "stats": [
+   "9.4万",
+   "18"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1VjUxBEEs1",
+  "title": "【原神UGC】角色属性修改",
+  "author": "夏默Notes",
+  "duration": "19:43",
+  "stats": [
+   "3399",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1XzyeBfESz",
+  "title": "在千星奇域里实现双摆",
+  "author": "镜光天",
+  "duration": "02:27",
+  "stats": [
+   "4.9万",
+   "33"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1oYPxz8EwC",
+  "title": "千星全新优化来袭！玩家体验直线上升！",
+  "author": "夜芊瑶",
+  "duration": "00:32",
+  "stats": [
+   "1729",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1m4Ye6tEhR",
+  "title": "你们做奇域给我做好了啊！避雷60秒在深渊降临之后！！！",
+  "author": "风落雪run",
+  "duration": "16:52",
+  "stats": [
+   "439",
+   "13"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1Qx8Q63Eg4",
+  "title": "原神3D视角MOBA尝试~还不错！",
+  "author": "thetops",
+  "duration": "13:40",
+  "stats": [
+   "795",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1YeYH6NEiH",
+  "title": "来自民间开发者的APP，一款集游戏优化、系统调优、显卡画质调节于一体的电脑性能优化软件，通过智能检测与参数调优，有效提升游戏帧数并降低卡顿。",
+  "author": "宝藏青临",
+  "duration": "01:44",
+  "stats": [
+   "578",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1Y3YR6FEvr",
+  "title": "这才是真工程效果！deepseekv4.1flash在真实安卓硬件驱动开发的真实效果体验",
+  "author": "仁风6",
+  "duration": "06:49",
+  "stats": [
+   "2.3万",
+   "5"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1n4ctzaEzF",
+  "title": "【消除类】原滑爱消除优化分析-原神千星奇域一对一原辅导",
+  "author": "眨眼过去",
+  "duration": "12:23",
+  "stats": [
+   "436",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1L3CBBrEJ2",
+  "title": "千星奇域普通超远索敌原来这么简单，然而优化了一下游戏，被内存发出了拒绝……",
+  "author": "子仙352",
+  "duration": "07:44",
+  "stats": [
+   "507",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1dwUgBrEYn",
+  "title": "【千星奇域】“奇匠二向箔”详解，负载降低210%",
+  "author": "电卡_",
+  "duration": "01:25",
+  "stats": [
+   "8564",
+   "58"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1qkYa6zEVP",
+  "title": "可挂载客户端脚本的控件是什么意思？协作模式倒是好理解，从个人开发升级到团队开发嘛，千星奇域真是越来越好了，现在已经有了很多达到小游戏水准的关卡",
+  "author": "零之原点",
+  "duration": "01:36",
+  "stats": [
+   "1159",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1a1ctzJEGi",
+  "title": "【剧情体验】崩铁4.0优化分析-原神千星奇域一对一原辅导",
+  "author": "眨眼过去",
+  "duration": "19:27",
+  "stats": [
+   "1002",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1HaNw6oEda",
+  "title": "克苟：原神千星奇域得感谢腾讯挡下全球最火两款UGC，虽然起步晚，但千星的全球影响力是可观的【克利咕咕兰/原神】",
+  "author": "爱看美少女吃刀的凛夜",
+  "duration": "06:17",
+  "stats": [
+   "4.1万",
+   "6"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1jHNGzsEFn",
+  "title": "奇域的AI已经这么强了吗！【原神·千星奇域】",
+  "author": "咩小绵羊",
+  "duration": "03:59",
+  "stats": [
+   "3771",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1sKw8zmEmv",
+  "title": "【原推荐】系列 很有趣的消消乐，推荐优化体验，避免弱化爽感。",
+  "author": "月冕冕",
+  "duration": "28:03",
+  "stats": [
+   "472",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1CL3d6fEZJ",
+  "title": "「原神」千星奇域 经典/偏移镜头无缝运镜 与 禁止玩家移动",
+  "author": "不是佳节",
+  "duration": "03:00",
+  "stats": [
+   "1949",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV169FszpEVZ",
+  "title": "【千星奇域】跟随挂接有延迟的特性做了跳跃检测",
+  "author": "原来真的有",
+  "duration": "01:22",
+  "stats": [
+   "498",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV11m1LBvEar",
+  "title": "原神UGC太粗糙？如何做出好看又好玩的关卡？",
+  "author": "荧月游兔",
+  "duration": "05:17",
+  "stats": [
+   "7.3万",
+   "128"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1KXzZB6EJi",
+  "title": "千星奇域大学习8：不会失效的定点运动器pro",
+  "author": "如星在水",
+  "duration": "01:14",
+  "stats": [
+   "1547",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1Lo2mBkE6R",
+  "title": "【原神千星奇域】自制奇域优化第二期-数独",
+  "author": "简澜Wind",
+  "duration": "00:49",
+  "stats": [
+   "162",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1C83E6REs5",
+  "title": "游戏性能优化工具，这个免费神器让CPU大小核不再“摆烂”，电脑性能完全释放",
+  "author": "一棍打晕背走",
+  "duration": "01:12",
+  "stats": [
+   "2094",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1Fxen61EVE",
+  "title": "独门首创盛怒法球甘，数值正是成为王的理由",
+  "author": "イリヤちゃん_",
+  "duration": "15:17",
+  "stats": [
+   "133",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV197bn6pEgM",
+  "title": "拼拼？！3.0",
+  "author": "逆天的小鱼fish",
+  "duration": "04:01",
+  "stats": [
+   "315",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1yzspzHEbT",
+  "title": "【原神千星奇域】手机CPU性能测试",
+  "author": "量子跳跳糖",
+  "duration": "01:17",
+  "stats": [
+   "2.9万",
+   "12"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1MVYj65EoV",
+  "title": "千星奇域丨通过页签控制悬浮页元素显隐，制作简单结算动画",
+  "author": "星棋玩一会",
+  "duration": "02:00",
+  "stats": [
+   "243",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1sqi7BmELg",
+  "title": "千星奇域，但是大幅增强了界面（",
+  "author": "WMProject1217",
+  "duration": "04:39",
+  "stats": [
+   "1394",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1x9h369E84",
+  "title": "原神版Nullscape完整流程演示，三种职业可选",
+  "author": "白鸟icefrog",
+  "duration": "07:00",
+  "stats": [
+   "7530",
+   "3"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1TkPkzbEUe",
+  "title": "【原神千星奇域】开发日志3：模型迭代与老关卡的优化",
+  "author": "沧海丶扬尘",
+  "duration": "03:17",
+  "stats": [
+   "533",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1ysqPBGEYy",
+  "title": "【千星奇域】首页维持怪物数量有误？优化方案解析",
+  "author": "FUNFORTIME",
+  "duration": "02:38",
+  "stats": [
+   "140",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1jWwEzqEUN",
+  "title": "波斯王子v3.3更新：跑酷、探索优化【原神千星奇域】",
+  "author": "大脑飞行中",
+  "duration": "02:47",
+  "stats": [
+   "867",
+   "3"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1zhrSB6E4y",
+  "title": "再次优化！《原的世界》",
+  "author": "_1027gyc",
+  "duration": "01:13",
+  "stats": [
+   "469",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 2
+ },
+ {
+  "bvid": "BV1sUCvBUEiQ",
+  "title": "这破千星快优化吧！！！",
+  "author": "小奇诺诺的",
+  "duration": "06:56",
+  "stats": [
+   "6788",
+   "22"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1TxkXBvEn6",
+  "title": "【千星奇域】分流器+大规模工厂优化思路+自由放置和传送带实现原理",
+  "author": "Colter_null",
+  "duration": "04:17",
+  "stats": [
+   "4.5万",
+   "48"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1ULMr6QEwf",
+  "title": "游戏内也有新星榜了！编辑器也有部分实用功能优化！7.0编辑器更新内容速览【千星奇域创体服】",
+  "author": "happy_hhhh",
+  "duration": "01:49",
+  "stats": [
+   "1821",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1c9Yh6VEt7",
+  "title": "【原神刷本技巧】必出极品!每月上百双暴! 趁官方没改抓紧学会,300万体力统计,原神7.1前瞻必看",
+  "author": "玉刻鼠鼠",
+  "duration": "08:59",
+  "stats": [
+   "10.6万",
+   "356"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV166i1BJEhy",
+  "title": "【千星奇域】第一个奇域的优化日志",
+  "author": "ZeroLifeFun",
+  "duration": "00:47",
+  "stats": [
+   "137",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1HHtB6SEGF",
+  "title": "至冬7.0瓦蕾莎大加强！零命无限夜魂跑法大世界爽到爆【原神】",
+  "author": "凌霄舞乾坤",
+  "duration": "02:01",
+  "stats": [
+   "11.8万",
+   "87"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV17hVV6iEoG",
+  "title": "克苟强推奇域！100%好评，但是仅有185的热度，封面真的太朴素啦：真心希望大家来玩一玩这个啊！技术力很高的！我又被冲了？？听出茧子了我都！",
+  "author": "双刀纸袋布",
+  "duration": "13:48",
+  "stats": [
+   "1.1万",
+   "7"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV15RYo6BEUK",
+  "title": "GPT6-astra 从零创作千星奇域关卡",
+  "author": "况霂CR",
+  "duration": "05:46",
+  "stats": [
+   "2104",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1uDt66BEdS",
+  "title": "千星奇域即将1周年，千字优化建议",
+  "author": "遗式之键主-XY",
+  "duration": "04:36",
+  "stats": [
+   "4445",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1RccnzKECg",
+  "title": "【千星奇域】图片转元件工具！自动化拼好模网站使用教程",
+  "author": "神奇嘟嘟可",
+  "duration": "02:23",
+  "stats": [
+   "2453",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1ungZ63EDf",
+  "title": "【千星奇域#24】战斗场景更新：露天剧场！外带交互细节优化",
+  "author": "造化割昏晓",
+  "duration": "01:45",
+  "stats": [
+   "196",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1qzeV6XEmk",
+  "title": "原神都变这样了嘛---璃月铁路港",
+  "author": "风落雪run",
+  "duration": "01:17",
+  "stats": [
+   "177",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1EBfQBsExH",
+  "title": "千星区域多段技能制做(复杂)",
+  "author": "自动对焦吃",
+  "duration": "18:03",
+  "stats": [
+   "737",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1KgY26ZEaG",
+  "title": "【千星关卡分享】一个bug是bug，一堆bug能work",
+  "author": "RLlvYf-林",
+  "duration": "01:05",
+  "stats": [
+   "367",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1MF2dB9Edg",
+  "title": "【原神千星奇域】生成随机出怪列表和随机刷新--技术成果展示",
+  "author": "sfionshg磊哥",
+  "duration": "08:36",
+  "stats": [
+   "737",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV136Yy68EKD",
+  "title": "[原神/外网]外网很多玩家认为千星奇域存在没有意义，不会为了60原石去玩千星奇域",
+  "author": "欢愉星の神",
+  "duration": "01:34",
+  "stats": [
+   "9.1万",
+   "39"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1M4tA68Ezy",
+  "title": "原神[千星奇域]8×4/4.T-T-D-(SD)l底盘运行测试",
+  "author": "时光狼ときのおかみ",
+  "duration": "03:04",
+  "stats": [
+   "682",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1YvYH6eEg3",
+  "title": "【千星奇域】千万别让手中的蛋糕掉到地上？没想到顾客竟是草史莱姆！",
+  "author": "列寻小社",
+  "duration": "07:42",
+  "stats": [
+   "2244",
+   "52"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV13HRgBnESp",
+  "title": "手搓的神秘技能",
+  "author": "白日梦潇霖",
+  "duration": "00:36",
+  "stats": [
+   "1884",
+   "2"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1MuCtBAE1t",
+  "title": "原神UGC版寂静村再度优化！克苟盛赞：这枪模还做得有模有样的！这次真的改得太好了！该考虑平衡啦！",
+  "author": "双刀纸袋布",
+  "duration": "11:02",
+  "stats": [
+   "1.9万",
+   "8"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1eZ5X65E7F",
+  "title": "【更卷的数独】新数独2D优化分析-月之六原神千星奇域一对一原辅导",
+  "author": "眨眼过去",
+  "duration": "07:33",
+  "stats": [
+   "468",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV18QeV6yEce",
+  "title": "回能氛围桩的正确用法",
+  "author": "水沐的小迷妹",
+  "duration": "01:32",
+  "stats": [
+   "3434",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV14uYv6fEUq",
+  "title": "FGO老玩家必玩奇域！千星真的是越发的超模了！树海直呼泪目了：居然把盖提亚的灭世炮都做出来了啊！FGO老玩家泪目了啊！所以有些人这么早就开始开香槟早了点吧？",
+  "author": "双刀纸袋布",
+  "duration": "16:40",
+  "stats": [
+   "3.2万",
+   "30"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1eVxPznE9t",
+  "title": "【千星奇域】作为过来人的建议：不要过来！",
+  "author": "新三笑话吧Official",
+  "duration": "18:31",
+  "stats": [
+   "473",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV15MgW6HEmo",
+  "title": "千星奇域 破势之锋 镜头反馈优化",
+  "author": "掷威",
+  "duration": "03:14",
+  "stats": [
+   "114",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1QYBsBnEMp",
+  "title": "设备不够优秀千星奇域不许搭特别精细",
+  "author": "熬夜狂肝真菌",
+  "duration": "03:45",
+  "stats": [
+   "5924",
+   "6"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1LS1qBCEtU",
+  "title": "【千星奇域】DeepSeek能做大摆锤吗？",
+  "author": "电卡_",
+  "duration": "01:09",
+  "stats": [
+   "5288",
+   "10"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1Kcu56GEXK",
+  "title": "神中神！奇域版城镇叠叠乐！又一个拼途级别的神级奇域！织城！毫无悬念的获得芙宁娜奖！克苟连连惊叹：这是现在的千星奇域能够达到的成绩吗？这绝对是经过了细致打磨了的呀",
+  "author": "双刀纸袋布",
+  "duration": "31:45",
+  "stats": [
+   "1.2万",
+   "3"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV129en6xEta",
+  "title": "【千星奇域】搭了一张moba地图但是解压小游戏",
+  "author": "幼托大人",
+  "duration": "03:56",
+  "stats": [
+   "33",
+   "0"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1Bejw61EC2",
+  "title": "千星奇遇部分优化以及至冬射击游戏玩法前瞻",
+  "author": "猫耳阿拉蕾",
+  "duration": "05:12",
+  "stats": [
+   "46",
+   "1"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ },
+ {
+  "bvid": "BV1XgC1BsENy",
+  "title": "在千星奇域里做了三星期Moba，大家帮我看看这模式有没有前途？",
+  "author": "X馒-SteamedBunX",
+  "duration": "08:49",
+  "stats": [
+   "2.4万",
+   "40"
+  ],
+  "keyword": "千星奇域性能优化",
+  "page": 3
+ }
+]
