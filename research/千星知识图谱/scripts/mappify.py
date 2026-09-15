@@ -69,6 +69,7 @@ def main() -> int:
 
     L = ["# MAP — 千星奇域「做优质游戏」知识图谱", "",
          "> 状态：**当前实现**（2026-09-15 建）｜来源：40 个 B站教程源 822 条知识条目 + 官方指南/KB 目录",
+         "> 最近校验：2026-09-15（docs/ 治理要求的状态头字段，见 docs/AGENTS.md）",
          "> 上游：`research/千星知识图谱/`（SOURCES / KEYWORDS / CORPUS / COMMENTS-INSIGHTS / extract/）",
          "> 本图是**导航 + 覆盖度视图**，条目的正文在 `aggregate.json` 与 `extract/<BV>.md`（不在此复制）", "",
          "## 零、怎么用这张图", "",

@@ -142,6 +142,8 @@ def main() -> int:
         json.dump(data, f, ensure_ascii=False, indent=1)
 
     lines = ["# 迷宫俯视图（T12 候选几何）", "",
+             "> 状态：**当前实现**（2026-09-15 建）｜来源：`gen-maze.py` 生成，非手写",
+             "> 最近校验：2026-09-15（docs/ 治理要求的状态头字段，见 docs/AGENTS.md）", "",
              f"格阵 {W}×{H}（逻辑 {a.cells}×{a.cells}），seed={a.seed}，1 格 = 1 米，墙高 {WALL_H} 米", "",
              "图例：`#`=墙  `.`=通路  `S`=入口  `E`=出口  `*`=隐藏收集物  `o`=造景  `G`=决策2 引导点", "",
              "```"]

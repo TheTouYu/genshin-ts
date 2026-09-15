@@ -1,6 +1,7 @@
 # DELIVERY — 交付核对表（逐条对照 objective）
 
 > 状态：**当前实现**（2026-09-15）｜用途：objective 每条要求的**可复现证据**，不是自述
+> 最近校验：2026-09-15
 > 复现：`python3 docs/knowledge-graph/audit.py`（本表由该脚本生成，不手写）
 
 ## 一、逐条对照

@@ -1,6 +1,7 @@
 # D3b 客户端图与通信
 
 > 状态：**当前实现**（2026-09-15 建）
+> 最近校验：2026-09-15
 > 官方权威：`docs/ui-tutorial/official-guide-nodes-client.md`（13293 行，六类客户端图全量节点表）｜接收侧 `docs/ui-tutorial/official-guide-nodes-server.md`
 > 语料：**8 个源 / 41 条正文条目**（切片 24 条 + 回语料补 17 条）
 > 证据分级：**硬规则（官方）> 我方实测 > 实测 > 经验共识 > 个人经验**

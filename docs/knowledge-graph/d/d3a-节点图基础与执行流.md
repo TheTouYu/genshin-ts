@@ -1,6 +1,7 @@
 # D3a · 节点图基础与执行流
 
 > 状态：**当前实现**（2026-09-15 建）
+> 最近校验：2026-09-15
 > 官方权威：`docs/ui-tutorial/official-guide-nodes-server.md`、`docs/ui-tutorial/official-guide-auxiliary-appendix.md`
 > 语料：**22 个源 / 132 条条目**（20 个视频源 + 2 个官方文件）
 > 上游切片：`research/千星知识图谱/slices/d3-D3.md`（只取原始维度 = `D3 逻辑编写`(127) + `执行流语义⊕`(5)；不含 `客户端算力⊕ / 客户端通信⊕ / 数据同步⊕ / 程序架构⊕ / 架构设计⊕ / 技能插件化⊕ / 物理约束⊕ / 打表映射⊕`，那些归其他作者）

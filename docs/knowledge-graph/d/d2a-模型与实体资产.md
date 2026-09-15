@@ -1,6 +1,7 @@
 # D2a 编辑器资产（上）：模型拼装 · 实体摆放 · 场景与关卡搭建
 
 > 状态：**当前实现**（2026-09-15 建）
+> 最近校验：2026-09-15
 > 官方权威：`docs/ui-tutorial/official-guide-editor-interface.md:170-1099`（地形编辑/实体摆放/元件库）、
 > `docs/ui-tutorial/official-guide-editor-interface.md:2293-2570`（编辑工具）、
 > `docs/ui-tutorial/official-guide-concepts.md:1185-1235`（白盒物件）、`official-guide-concepts.md:1417-1636`（变换/碰撞/模型/装饰物）
