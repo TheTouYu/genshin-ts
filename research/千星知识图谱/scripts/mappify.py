@@ -179,6 +179,19 @@ def main() -> int:
             L.append(f"| {fn[:-3]} | `{sub}/{fn}` | {len(t.splitlines())} | {n_src} | "
                      f"{n_hr} | {n_an} | {n_ts} |")
 
+    # 十、复现工程与能力参照（保持图谱自洽：从地图能一步到验收现场）
+    L += ["", "## 十、终验收现场与能力参照", "",
+          "> 图谱的用法终点是**用它做出一款游戏**。以下是从地图直达验收现场的入口。", "",
+          "| 入口 | 内容 |", "|---|---|",
+          "| `reproduction/T12-design.md` | 端到端复现设计书：9 条决策**每条都引图谱条目**（对图谱可用性的实测）+ 5 项图谱缺口 + 4 项能力缺口 |",
+          "| `reproduction/maze-layout.md` | 迷宫俯视图与设计原则落点标注（造景即路标/惯性引导/手累坑/隐藏物） |",
+          "| `reproduction/gen-maze.py` | 几何生成器（可复现，150 实体；自带 BFS 验证） |",
+          "| `research/千星知识图谱/slices/_CAPABILITY.md` | **能力覆盖三档判定**（✅可做/🟡部分/🔴缺），每项带 `文件:行` 或命令证据 |",
+          "| `docs/knowledge-graph/ATOMIC-RULES.md` | 可复用原子规则候选（13 条已回灌 PKC） |",
+          "| `examples/maze-repro/PROGRESS.md` | 复现工程进度与两条施工硬规则 |", "",
+          "**复现当前状态**：设计 ✅ / 几何 ✅ / 节点 ✅（`.gia` id=1073741931，IR 核验 9/9） / "
+          "**注入 ⬜（需确认目标 mapId）** / 游戏内核验 ⬜（需用户在游戏内执行）", ""]
+
     os.makedirs(a.out, exist_ok=True)
     p = os.path.join(a.out, "MAP.md")
     with open(p, "w", encoding="utf-8") as f:
