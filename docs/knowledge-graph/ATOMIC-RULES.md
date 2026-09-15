@@ -128,6 +128,32 @@
 - **配套事实**：`EntityImport.id` **可省略**，CLI 自动分配下一个空闲系统 GUID（≥1077936129）
   —— 见 `src/cli/gil_entities.ts:44` 注释。所以批量生成**不需要也不应该**硬编码 GUID（AGENTS.md 红线）。
 
+
+### R12 编译节点图必须走正规入口 `node ./bin/gsts.mjs`
+
+- **断言**：编译节点图必须用 `node ./bin/gsts.mjs -c <config>`（= `dist/src/cli/gsts.js`）。
+  用 `npx tsx src/cli/gsts.ts -c <config>` 会因为 src/dist 双副本问题，
+  在 GIA 生成阶段抛 `[error] gsts.f is only available in server_* ctxType (current: javascript)`。
+- **边界**：最小复现是「只做 `f.get`/`f.set` 的空图也失败」，所以与图内容无关，是加载路径问题。
+  诊断法（根 CLAUDE.md 记载）：`node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`
+  —— 输出 `src/...` 即落到类型检查侧副本。
+- **锚点**：`bin/gsts.mjs:3`（`import '../dist/src/cli/gsts.js'`）；
+  `src/runtime/core.ts:670-673`（`kCtxStack` 是 `Symbol()`，两份 core.ts 各持一个 → 栈不共享）
+- **证据等级**：我方实测（2026-09-15 T12 复现第一次编译即撞）
+- **影响面**：所有本地编译/注入操作；用 tsx 直跑 CLI 的脚本全部受影响
+
+### R13 信号节点需要目标地图的注册表，无地图编译不了
+
+- **断言**：图中一旦使用信号节点（如 `f.sendSignal`），GIA 生成阶段会要求**目标地图的信号注册表**：
+  `[error] signal registry is required when encoding signal nodes`；即使注册表在，
+  未注册的信号名也会报 `signal is not registered in target map`。
+- **边界**：这是**编译期**约束，不是运行期。故"先写图、后挑地图"的顺序对含信号的图不成立。
+  无信号的可编译（T12 实测：去掉 `f.sendSignal` 后同图编译通过）。
+- **锚点**：`src/compiler/ir_to_gia_transform/build_signal_definition.ts:867`（缺注册表抛错）、
+  `:871`（信号名未注册抛错）；`src/compiler/ir_to_gia_transform/client_graph.ts:1355`
+- **证据等级**：硬规则（编译器强制）
+- **影响面**：含信号的所有图（跨图通信、事件解耦设计）；施工顺序与地图选择
+
 ## 二、待裁决（不判死，按根 AGENTS.md「官方文档功能=候选可支持面」）
 
 | 项 | 官方依据 | 我方缺口 | 处置 |
