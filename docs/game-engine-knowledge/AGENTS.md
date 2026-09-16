@@ -2,7 +2,7 @@
 
 > 状态：部分已验证
 > 来源：真实 GIL/GIA 相邻快照 + 用户编辑器说明 + 当前源码 reader 对照
-> 最近校验：2026-09-02（阅读顺序全量核对，补录 8 个成文章节）
+> 最近校验：2026-09-16（补录 [结构体资产 wire 语义](struct-assets.md)；阅读顺序重编号至 33 条）
 > 适用范围：从真实关卡文件逐步还原游戏引擎规则
 > 命名说明：本索引命名为 AGENTS.md（原 index.md）——代理工具读写本目录文件时会自动注入本文件，避免导航入口不被读到。
 
@@ -28,22 +28,23 @@
 14. [参数类型](parameter-types.md)
 15. [变量与作用域](variables.md)
 16. [变量类型变体专题（float/int 分裂）](variable-scopes.md)
-17. [控制流](control-flow.md)
-18. [数据流与连接](data-flow.md)
-19. [信号知识](signals.md)
-20. [信号生产红灯修复清单](signal-production-red-lights.md)
-21. [节点负载参考](node-load-reference.md)
-22. [GIA 生产链路与可复现性](gia-generation-chain.md)
-23. [信号实验事实](signals/README.md)
-24. [复合节点](composite-nodes.md)
-25. [复合节点使用指南](composite-usage-guide.md)
-26. [游戏引擎知识与项目编译管线](project-pipeline.md)
-27. [验证与规则学习流程](validation-workflow.md)
-28. [素材库注入](library-injection.md)
-29. [地形/草皮规则](terrain-grass.md)
-30. [足球带球速度场吸附算法](football-dribble-velocity-field.md)
-31. [魔方自动还原作战手册](rubik-autosolve-playbook.md)
-32. [复盘档案（按主题检索历史经验）](#复盘档案)
+17. [结构体资产 wire 语义](struct-assets.md)（地图级资产；root6 folder 注册 + root10 `f6` 定义 + 成员默认值编码 + 节点族物化；2026-09-16 五轮差分 + 用户澄清闭合）
+18. [控制流](control-flow.md)
+19. [数据流与连接](data-flow.md)
+20. [信号知识](signals.md)
+21. [信号生产红灯修复清单](signal-production-red-lights.md)
+22. [节点负载参考](node-load-reference.md)
+23. [GIA 生产链路与可复现性](gia-generation-chain.md)
+24. [信号实验事实](signals/README.md)
+25. [复合节点](composite-nodes.md)
+26. [复合节点使用指南](composite-usage-guide.md)
+27. [游戏引擎知识与项目编译管线](project-pipeline.md)
+28. [验证与规则学习流程](validation-workflow.md)
+29. [素材库注入](library-injection.md)
+30. [地形/草皮规则](terrain-grass.md)
+31. [足球带球速度场吸附算法](football-dribble-velocity-field.md)
+32. [魔方自动还原作战手册](rubik-autosolve-playbook.md)
+33. [复盘档案（按主题检索历史经验）](#复盘档案)
 
 ## 知识关系图
 
