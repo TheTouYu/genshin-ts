@@ -155,6 +155,8 @@ const TYPE_NAMES: Record<string, UiVarType> = {
   config_id_list: 'config_id_list',
   prefab_id_list: 'prefab_id_list',
   faction_list: 'faction_list',
+  struct: 'struct',
+  struct_list: 'struct_list',
   dict: 'dict'
 }
 

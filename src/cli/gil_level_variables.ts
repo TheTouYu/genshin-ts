@@ -523,6 +523,8 @@ export type UiVarType =
   | 'config_id_list'
   | 'prefab_id_list'
   | 'faction_list'
+  | 'struct'
+  | 'struct_list'
   | 'dict'
 export type UiDictValueType =
   | 'str' | 'int' | 'float'
@@ -580,6 +582,13 @@ function typeCodeOf(type: UiVarType): number {
       config_id_list: 22,
       prefab_id_list: 23,
       faction_list: 24,
+      // 25 / 26 = 结构体 / 结构体列表（2026-09-16 补，票 17 D7）。
+      // ⚠️ 这是本仓库**第三份**独立的类型→码表（另两份在 gil_custom_variables.ts 的
+      //    TYPE_BY_CODE 与 assets_* 的 CLI 白名单）。实测已发生漂移：只改一份时
+      //    `--type struct` 能通过 CLI 校验，却在 typeCodeOf 返回 undefined → 写出垃圾 entry
+      //    （回读为 `type=list value=null`）。票 17 D4 决策：收敛这三处为单一权威表。
+      struct: 25,
+      struct_list: 26,
       dict: 27
     } as Record<UiVarType, number>
   )[type]
@@ -609,6 +618,8 @@ export function uiVarTypeFromCode(code: number): UiVarType | undefined {
       22: 'config_id_list',
       23: 'prefab_id_list',
       24: 'faction_list',
+      25: 'struct',
+      26: 'struct_list',
       27: 'dict'
     } as Record<number, UiVarType>
   )[code]
@@ -845,6 +856,16 @@ function buildTypedValueWire(
   _entityBase?: number,
   _entityIds?: readonly number[]
 ): Uint8Array {
+  // 结构体类默认值的 wire 必须携带「引用哪个结构体定义」的引用（见 struct-assets.md 第六/七节），
+  // 不是标量 0 也不是空列表。此前类型码表缺 25/26，导致 struct 落到下方 list 分支、
+  // **静默写出 `type=list value=null` 的垃圾 entry**。这里显式 fail closed，
+  // 等票 17 的 struct 编码器落地后再放开。
+  if (type === 'struct' || type === 'struct_list') {
+    throw new Error(
+      `[error] ${type} 类型变量的默认值编码尚未实现（需携带结构体定义引用）；` +
+        '当前支持读取/列出，写入请等票 17 的 struct 编码器落地'
+    )
+  }
   const code = typeCodeOf(type)
   if (type === 'dict') {
     const pairs = (value as UiDictPair[]) ?? []

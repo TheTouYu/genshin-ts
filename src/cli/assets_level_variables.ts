@@ -42,6 +42,8 @@ const TYPE_CODES: Record<string, UiVarType> = {
   config_id_list: 'config_id_list',
   prefab_id_list: 'prefab_id_list',
   faction_list: 'faction_list',
+  struct: 'struct',
+  struct_list: 'struct_list',
   dict: 'dict'
 }
 
@@ -182,6 +184,11 @@ export function parseCreateValue(type: UiVarType, raw: string | undefined): unkn
   if (type === 'bool') return raw === 'true' || raw === '1'
   if (type === 'str') return raw
   if (type === 'vec3') return raw.split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
+  // 结构体 / 结构体列表（2026-09-16 补，票 17 D7）。
+  // ⚠️ 这两份类型白名单与 gil_custom_variables.ts 的 TYPE_BY_CODE 是**三处独立清单**，
+  //    本会话已实测到它们会漂移（改了一处，--type 校验仍拒 struct）。
+  //    票 17 D4 决策：成员编码器与变量默认值编码器应共用同一套类型映射，收敛这三处。
+  // ⚠️ struct_list 不在此列：其元素是消息（结构体实例），不是原始标量，不能走 packed 编码。
   if (type === 'int_list' || type === 'bool_list' || type === 'float_list' || type === 'guid_list' || type === 'entity_list' || type === 'config_id_list' || type === 'prefab_id_list' || type === 'faction_list')
     return raw
       .split(',')

@@ -38,6 +38,8 @@ export type CustomVariableType =
   | 'config_id_list'
   | 'prefab_id_list'
   | 'faction_list'
+  | 'struct'
+  | 'struct_list'
   | 'dict'
   | 'unknown'
 
@@ -116,6 +118,12 @@ const TYPE_BY_CODE: Readonly<Record<number, CustomVariableType>> = {
   22: 'config_id_list',
   23: 'prefab_id_list',
   24: 'faction_list',
+  // 25 / 26 = 结构体 / 结构体列表（2026-09-16 补）。
+  // 来源：docs/game-engine-knowledge/struct-assets.md + debug-log-format.md:328
+  //（调试日志侧的独立记载：「类型码 25/26（结构体，局内存档 1_chip_1/2）」）——
+  // 两条独立知识线互证；此前的 1..24 + 27 恰好跳过这两格，属类型映射面缺口。
+  25: 'struct',
+  26: 'struct_list',
   27: 'dict'
 }
 
@@ -332,7 +340,8 @@ const LIST_TYPES = new Set<CustomVariableType>([
   'vec3_list',
   'config_id_list',
   'prefab_id_list',
-  'faction_list'
+  'faction_list',
+  'struct_list'
 ])
 
 /** 原始标量列表：编辑器/游戏使用 protobuf packed 编码（f<type+10> = 单个 {field1 length-delimited}）。 */
@@ -348,6 +357,14 @@ const PACKED_LIST_TYPES = new Set<CustomVariableType>([
 ])
 
 function defaultInitialValue(type: CustomVariableType): CustomVariableInitialValue {
+  // 结构体的默认值必须携带「引用哪个结构体定义」的 wire 引用（见 struct-assets.md 第六/七节），
+  // 不是标量 0，因此这里 fail closed：读/列已可用，写侧等票 17 的编码器落地。
+  if (type === 'struct') {
+    throw new Error(
+      '[error] struct 类型变量的默认值编码尚未实现（需携带结构体定义引用）；' +
+        '当前仅支持读取/列出，写入请等票 17 的 struct 编码器落地'
+    )
+  }
   if (type === 'bool') return false
   if (type === 'vec3') return [0, 0, 0]
   if (type === 'str') return ''
