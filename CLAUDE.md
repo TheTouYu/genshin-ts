@@ -96,7 +96,17 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
     因此 `prebuild` 里先把 **`dist` 整个 `cpSync` 到 `dist.tmp`** 再让 tsc 增量更新，
     保证被替换的始终是完整目录。
   - ⚠️ **`dist` 缺失时必须清缓存**：否则 tsc 认为「输出已是最新」不 emit，
-    而 dist.tmp 又是空的 → 同样丢产物。prebuild 里已加该分支（缺失则删 tsbuildinfo 强制全量）。
+    而 dist.tmp 又是空的 → 同样丢产物。`scripts/build.mjs` 里已加该分支（缺失则删 tsbuildinfo 强制全量）。
+  - 🔴 **增量状态必须与 `dist` 描述同一份产物（2026-09-16 修复的静默丢改动事故，改构建入口前必读）**：
+    原先 `tsc ... && rm -rf dist && rename` 的链里，**tsc 失败时仍会推进 tsbuildinfo**，
+    而 prebuild 下次会删掉 dist.tmp 重新从**旧的 dist** 播种 →
+    下一次构建信任 tsbuildinfo 而**跳过 emit** → 整目录替换后，
+    **被丢弃的那次 emit 永久消失，且构建报成功**。
+    复现：改源码 A + 引入一个**其它文件**的类型错误 → 构建失败 → 修掉错误 → 再构建
+    → A 的改动不在 dist（实测 `grep -c` = 0）。
+    → 修复：**`tsc` 写暂存增量态（staging），只有 `dist.tmp → dist` 替换成功后才提升为提交态**；
+    任何一步失败即丢弃 staging，提交态始终精确描述当前 `dist`，下次构建会**重新 emit** 变更文件。
+    实现见 `scripts/build.mjs`（构建链已从 package.json 内联 shell 迁到该脚本）。
   - ⚠️ **已知代价：陈旧产物会残留**（删掉某个 .ts 后，它旧的 .js 仍留在 dist，因为增量 emit 不删输出）。
     需要**精确**的产物树时用 **`npm run build:clean`**（先删 dist + 缓存再全量构建，~66 秒）。
     发布/交付走 clean，日常迭代走 `build`。
