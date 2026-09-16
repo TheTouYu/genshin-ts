@@ -152,6 +152,11 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
 5. **信号类客户端图编译期需 inject 指向目标 gil**（读信号注册表），主配置 inject 已含 mapId 即可。
 6. **str/int/bool 是全局转换函数**：从 'genshin-ts/runtime/value' 导入得到类构造器，运行时报
    `Class constructor str cannot be invoked without 'new'` —— 用客户端图 DSL 上下文的全局版。
+   （**反向同样成立**，2026-09-16 足球实测：客户端图源码写 `new float(2)` 这种值类构造器形态，Stage-2 直接
+   `TypeError: float is not a constructor` 中断编译，报错点可能在任意 `new float(…)` 而非只在 `.set` 站点；
+   修法=值类 import 起别名 `import { float as floatValue }`，字面量位置改用全局 `float(2)`。改后
+   `examples/football/src-fb/{fb-phys2,fb20c-loop}.ts` 客户端主配置编译 exit 0（17 IR / All GIA generated (19)），
+   IR 里 `set_local_variable` 给 float 局部变量的实参为 `{"type":"float","value":1}`。）
 7. **entity helper 无参陷阱**：`f.getPlayerEntityToWhichTheCharacterBelongs()` 无参 self 版
    只在 interface 声明、类实现只有带参版——TS 不报错但运行时 undefined → `Invalid value type:
    entity`。客户端图拿玩家实体用 `f.getCurrentCharacter()` + 带参版。
