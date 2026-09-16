@@ -45,6 +45,7 @@ import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSkillConfig } from './assets_skill_config.js'
 import { runAssetsUnitStatus } from './assets_unit_status.js'
 import { runAssetsGlobalTimers } from './assets_global_timers.js'
+import { runAssetsStructs } from './assets_structs.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runVariablesVerify } from './variables_verify.js'
 import { runImageEditor } from './image_editor.js'
@@ -2084,6 +2085,26 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsGlobalTimers(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:structs')
+    .description(
+      'list/inspect/create/update map-level structures (root10 f6 defs + root6 folder 29/33)'
+    )
+    .option('--config <file>', 'project config (for --map-id resolution)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--output <file>', 'create/update output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:structs')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsStructs(args, { projectConfigPath })
     })
 
   program
