@@ -1,55 +1,40 @@
 import { g } from 'genshin-ts/runtime/core'
-import { int } from 'genshin-ts/runtime/value'
+import { Signal } from './signals.js'
 
 /**
- * T12 复现 · 《空中花园》式迷宫 —— 隐藏收集物逻辑
+ * T12 复现 · 《空中花园》式迷宫 —— 隐藏收集物「拾取」图（图 id 1073741825）
  *
- * 设计依据（逐条对应 docs/knowledge-graph/reproduction/T12-design.md）：
- *   决策 4：正常走出 = 正常通关；拿齐全部收集物 = 额外回馈
- *   决策 5：**不用动态文字**告诉玩家"有几个隐藏"——改用空间布局（几何层已落地）
- *   决策 8：不设单向门，本图不做任何封锁
+ * ## 本图必须挂 4 份（这是设计约束，不是选择）
  *
- * 实现要点（都取自图谱，不是拍脑袋）：
- *   - 事件用 `whenTabIsSelected`（选项卡选中时）——`src/definitions/zh_aliases.ts:63`
- *   - **不做"已收集列表"判重**：收集后立刻 `activateDisableTab` 关掉该实体的选项卡，
- *     同一隐藏物就点不到第二次，省掉一个容器（对应 D7 的容器负载提醒）
- *   - 即时反馈用 `activateDisableModelDisplay` 关掉该隐藏物模型
+ * `docs/game-engine-knowledge/components.md:111`（2026-08-13 魔方 P4 最小实验闭合）：
+ *   > 事件名 **whenTabIsSelected**；节点图**挂载在挂载选项卡组件的实体上**触发
  *
- * 编译与注入（两条硬事实，都踩过）：
- *   1. **必须走正规入口** `node ./bin/gsts.mjs -c <config>`。
- *      `npx tsx src/cli/gsts.ts` 会因 src/dist 双副本导致
- *      `gsts.f is only available in server_* ctxType` 断言失败
+ * 4 个隐藏物各自带 tabBar 组件 → **每个实体上都要挂这张图**，否则那个隐藏物点不动。
+ *
+ * ## 所以本图刻意做成「无状态」
+ *
+ * 项目已闭合规则：**节点图变量不跨实例**（同一模板摆两个的图变量不互通）。
+ * 若在本图里用 `已收集数` 计数，4 份实例会各数各的 → 永远到不了 4 → 集齐回馈永不触发。
+ * （2026-09-16 在注入阶段抓到这条，见 PROGRESS.md「架构修正」节。）
+ *
+ * 因此本图只做两件**只依赖自身**的事，计数交给 `maze-counter.ts`（单实例）：
+ *   ① 关掉自己的选项卡 + 模型（判重 + 即时反馈）
+ *   ② 发一个信号出去
+ *
+ * 判重仍不需要容器：关掉选项卡后同一隐藏物就点不到第二次（对应 D7 容器负载提醒）。
+ *
+ * ## 编译与注入的两条硬事实（都踩过）
+ *   1. **必须走正规入口** `node ./bin/gsts.mjs -c <config>`；`npx tsx src/cli/gsts.ts`
+ *      会因 src/dist 双副本抛 `gsts.f is only available in server_* ctxType`
  *      （`kCtxStack` 是 `Symbol`，两份 core.ts 各持一个）——见根 CLAUDE.md「类型与运行时单副本」。
- *   2. **信号节点需要目标地图的注册表**（`signal registry is required when encoding signal nodes`，
- *      `src/compiler/ir_to_gia_transform/build_signal_definition.ts:867`）。
- *      所以"集齐后发信号触发场景惊喜"这一步**无目标地图就编译不了**，
- *      必须等用户确认 mapId 并 `assets:signals register` 之后才能恢复。
- *      ——这是 T12 复现链上第一个真正需要用户输入的点，已在设计书 §六 登记。
+ *   2. **信号是编译期强前置**（R13，`build_signal_definition.ts:867`）——
+ *      信号未在目标地图注册则编译直接失败，故 `.gia` 与 mapId 绑定，不能先写图后挑图。
  */
-
-/** 隐藏收集物总数（与 gen-maze.py 产出的「隐藏_*」实体数一致） */
-const TOTAL = 4n
-
-g.server({
-  id: 1073741931,
-  variables: {
-    /** 已收集数量：仅用于判定集齐 */
-    已收集数: new int(0),
-    /** 集齐后置真（供后续接入信号/惊喜逻辑时做幂等，当前仅记录状态） */
-    已集齐: false
-  }
-}).on('whenTabIsSelected', (evt, f) => {
-  // ① 判重 + 即时反馈：关掉该隐藏物的选项卡与模型，玩家立刻看到"收到了"
+g.server({ id: 1073741825 }).on('whenTabIsSelected', (evt, f) => {
+  // ① 判重 + 即时反馈：关掉该隐藏物的选项卡与模型，玩家立刻看到「收到了」
   f.activateDisableTab(evt.eventSourceEntity, evt.tabId, false)
   f.activateDisableModelDisplay(evt.eventSourceEntity, false)
 
-  // ② 计数
-  const collected = f.get('已收集数') + 1n
-  f.set('已收集数', collected)
-
-  // ③ 集齐判定：置标志位
-  //    注：这里的"场景小惊喜"取信号方案时需要目标地图的信号注册表，故留待注入阶段接入。
-  if (collected >= TOTAL) {
-    f.set('已集齐', true)
-  }
+  // ② 上报：由中心图（maze-counter）累加与判定集齐
+  f.sendSignal(Signal.T12隐藏物已拾取, evt.tabId)
 })
