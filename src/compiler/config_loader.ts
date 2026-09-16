@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { GstsConfig } from './gsts_config.js'
+import { resolveTsxConfigPath } from './tsx_config_path.js'
 
 export type GstsConfigProfile = 'compile' | 'project' | 'static-assemblies'
 
@@ -114,7 +115,7 @@ export async function loadGstsConfig(
       const res = spawnSync(process.execPath, [tsxCli, tmp, absolutePath], {
         env: {
           ...process.env,
-          TSX_TSCONFIG_PATH: path.join(__dirname, '..', '..', '..', 'tsconfig.tsx.json')
+          TSX_TSCONFIG_PATH: resolveTsxConfigPath(__dirname)
         },
         encoding: 'utf8',
         windowsHide: true
