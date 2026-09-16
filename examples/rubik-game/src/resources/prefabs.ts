@@ -2,11 +2,6 @@
 
 export const CustomPrefab = {
   /**
-   * Based on prefabId 10009001
-   */
-  魔方控制器3x3: 1077936200,
-
-  /**
    * Based on prefabId 1000000
    */
   默认模版: 1086324737,
@@ -15,6 +10,11 @@ export const CustomPrefab = {
    * Based on prefabId 1000001
    */
   '默认模版(角色编辑)': 1090519041,
+
+  /**
+   * Based on prefabId 10009001
+   */
+  '魔方控制器3x3-B': 1077936202,
 
   /**
    * Based on prefabId 10009001
@@ -149,17 +149,22 @@ export const CustomPrefab = {
   /**
    * Based on prefabId 10009001
    */
-  '魔方控制器3x3-B': 1077936202,
+  魔方控制器3x3: 1077936200,
 
   /**
-   * Based on prefabId 10008001
+   * Based on prefabId 10005018
    */
-  元件组魔方摆放: 1077936230,
+  竞技场基座: 1077936350,
 
   /**
-   * Based on prefabId 30007001
+   * Based on prefabId 10005018
    */
-  '打手丘丘-魔方算力': 1082130433,
+  竞技场聚光: 1077936351,
+
+  /**
+   * Based on prefabId 10005018
+   */
+  竞技场铭牌: 1077936352,
 
   /**
    * Based on prefabId 10009002
