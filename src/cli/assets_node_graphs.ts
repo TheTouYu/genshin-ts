@@ -145,6 +145,14 @@ export const GRAPH_TYPES: GraphTypeSpec[] = [
   //      + 本会话 .gsts/tmp/t19-extract.ts 逐字节复核；folderId 16 为 20004 的新增测量值
   { type: 20003, name: '状态', defaultName: '新建状态节点图', folderId: 15, kind: 'server' },
   { type: 20004, name: '职业', defaultName: '新建职业节点图', folderId: 16, kind: 'server' },
+  // 20005 道具（ItemNode）：2026-09-16 用户编辑器单变化差分闭合（差分实验 1073741918）——
+  // 唯一变化 = 节点图管理界面新建一个道具节点图；Δ+51B；roots 6/10/29/46 变化：
+  //   · root6 folderId=**20** 新增条目 f5={f1: 4300(typeValue), f2: 图ID}，写在 **f3「未分类页签」内**
+  //   · root10 新增 {1:{1: Id{1:10000, 2:20005, 3:21001, 5:gid}, 2: "新建节点图"}} ——
+  //     **只有 f1/f2，无 f100、无自动节点**，与 20000/20003/20004 同构 → 走服务端 appendGraphWrapper
+  //   · 默认图名 = "新建节点图"（编辑器实际产物）
+  // 证据：.scratch/editor-incremental-evidence/2026-09-16-itemnode20005/
+  { type: 20005, name: '道具', defaultName: '新建节点图', folderId: 20, kind: 'server' },
   { type: 20006, name: '整数过滤器', defaultName: '新建过滤器节点图', folderId: 57, kind: 'filter', filterGeneric: 200122 },
   // 20007 自动节点与 20009 同族（200126/4000 + f11={1:1,100:{1:1}} + f100=1）——
   // 2026-08-31 C0.3 编辑器差分闭合样本，2026-09-01 补实现（此前 fail closed）
@@ -154,8 +162,8 @@ export const GRAPH_TYPES: GraphTypeSpec[] = [
   { type: 20010, name: '角色操控技能', defaultName: '新建角色操控技能节点图', folderId: 67, kind: 'skill' }
 ]
 
-// 仍未闭合：20005 道具节点图（ItemNode，typeValue 4300）——样本结构未见，保持 fail closed（见 docs/maintenance/open-items.md）
-const UNSUPPORTED_TYPES: readonly number[] = [20005]
+// 20000-20010 十一个服务端/客户端图类型至此**全部支持**（20005 于 2026-09-16 差分闭合）。
+// 历史上的 UNSUPPORTED_TYPES fail-closed 分支已随最后一个类型闭合而移除。
 function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
   const spec = GRAPH_TYPES.find((s) =>
     typeof typeOrName === 'number'
@@ -164,13 +172,6 @@ function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
   )
   if (!spec) {
     const input = String(typeOrName)
-    const known = /^\d+$/.test(input) ? Number(input) : undefined
-    if (known !== undefined && UNSUPPORTED_TYPES.includes(known)) {
-      throw new Error(
-        `[error] 图类型 ${known} 的自动节点结构未采样（20005 道具），fail closed；` +
-          `可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
-      )
-    }
     throw new Error(
       `[error] unknown graph type: ${input}；可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
     )
@@ -243,8 +244,8 @@ function usage(exitCode = 0): never {
     '  --name <string>   create: new NodeGraph name (default: 按类型默认名，如 新建角色操控技能节点图)',
     '  --graph-id <id>  create: 显式图 ID（缺省自动：服务端=全图 max+1，客户端=段内 max+1，段空=1082130433）',
     '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20003 状态/',
-    '                      20004 职业/20006 整数过滤器/20007 造物状态决策/20008 造物技能/20009 造物状态/',
-    '                      20010 角色操控技能；20005 道具节点图结构未见 fail closed）',
+    '                      20004 职业/20005 道具/20006 整数过滤器/20007 造物状态决策/20008 造物技能/',
+    '                      20009 造物状态/20010 角色操控技能 —— 20000-20010 全部支持）',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
     '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
