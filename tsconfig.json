@@ -49,6 +49,9 @@
     "tests/composite",
     "src/runtime/server_globals.d.ts",
     "examples/**/*.fragment.ts",
-    "examples/rubik-2x2"
+    "examples/rubik-2x2",
+    "examples/*/dist",
+    "examples/*/dist-*",
+    "examples/*/.gsts"
   ]
 }

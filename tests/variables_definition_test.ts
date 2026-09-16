@@ -1,5 +1,4 @@
 import { g } from 'genshin-ts/runtime/core'
-import { configId, dict, entity, faction, guid, list, prefabId, str, vec3 } from 'genshin-ts/runtime/value'
 
 g.server({
   id: 1073741857,
