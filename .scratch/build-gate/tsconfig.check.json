@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "composite": false },
+  "include": [
+    "../../tests/variables_definition_test.ts",
+    "../../examples/rubik-game/src/rgInput.ts",
+    "../../examples/football/src-fb/fb-phys2.ts",
+    "../../examples/football/src-fb/fb20c-loop.ts"
+  ]
+}

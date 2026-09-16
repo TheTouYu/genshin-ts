@@ -1,0 +1,24 @@
+构建门禁事故取证（2026-09-16）
+================================
+对应提交：3c2c575（门禁转绿）/ 94e8d05（football IR 等价修复）/ 64ccdb4（prebuild ambient 守卫）
+
+server_globals.d.ts.clobbered
+  src/runtime/server_globals.d.ts 被覆盖后的 50 行内容（sha256 12c67a03ce643966…），与
+  dist/src/runtime/server_globals.d.ts 逐字节相同 = "被 tsc 发射产物覆盖"的铁证。
+
+复现配置（gsts config）
+  gsts.probe.config.ts      自制探针（验证 float(...) 在 .gs.ts 里的落位）
+  ab-examples.config.ts     三个示例文件（rgInput/fb-phys2/fb20c-loop）编译入口
+  fb-client-ab.config.ts    足球客户端主配置同形（entries=./src-fb）——产出 IR 等价证据之一
+  rg-full.config.ts         rubik-game 主配置同形（entries=./src）——产出 rgInput IR 证据
+  ab-orig.config.ts / ab-cur.config.ts  测试文件的遮蔽 import 前后 A/B
+  注意：单文件 entry 编客户端图必报 ctxType（技能 client-nodegraph-development 三-1），必须用主配置。
+
+ab-orig/variables_definition_test.ts
+  HEAD 版 tests/variables_definition_test.ts 副本（保留遮蔽 import 的对照件）。
+tsconfig.check.json / check-before.txt / check-after.txt
+  4 个错误文件的 focused 检查配置与前后日志（69 → 0）。
+
+体积大、未入库的日志：tsc-warm.txt(5367 错) / tsc-head-globals.txt(69 错) / build-run.log /
+quicktest.log / fb-base3.log / fb-fix2.log，以及 ab-run / fb-fixed / fb-baseline2 / rg-full 的 IR json 快照
+（任一时刻可用上列 config 重新产出；IR 等价的 sha256 记在提交 94e8d05 的信息里）。

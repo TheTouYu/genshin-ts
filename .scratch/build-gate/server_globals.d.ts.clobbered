@@ -1,0 +1,50 @@
+import type { clientEntity as ClientEntityValue } from '../definitions/client_entity_helpers.js';
+import { type PlayerEntity } from '../definitions/entity_helpers.js';
+import type { SignalDefinition, SignalParamValues } from './core.js';
+import { BoolValue, configId, ConfigIdValue, DictKeyType, DictValueType, entity, EntityValue, faction, FactionValue, FloatValue, guid, GuidValue, IntValue, prefabId, PrefabIdValue, ReadonlyDict, RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap, StrValue, vec3, Vec3Value } from './value.js';
+type TimerKind = 'timeout' | 'interval';
+export type TimerCaptureSpec = {
+    name: string;
+    dictVar: string;
+    valueType: DictValueType;
+    value: unknown;
+};
+/** Stage 1 转换器传给 setTimeout/setInterval 的内部元数据（对应 server_globals.d.ts 的 meta 参数）。 */
+export type TimerOptions = {
+    __gstsTimer: true;
+    kind: TimerKind;
+    poolNames: string[];
+    indexVar?: string;
+    captures: TimerCaptureSpec[];
+    __gstsTimerDedupKey: string;
+};
+export type ServerGlobalFactories = {
+    raw: <T>(v: T) => T;
+    bool: (v: BoolValue | IntValue) => boolean;
+    int: (v: IntValue | BoolValue | FloatValue) => bigint;
+    idx: (v: IntValue) => number;
+    float: (v: FloatValue | IntValue) => number;
+    str: (v: StrValue | BoolValue | IntValue | FloatValue | GuidValue | EntityValue | FactionValue | Vec3Value) => string;
+    vec3: (v: Vec3Value) => vec3;
+    guid: (v: GuidValue) => guid;
+    prefabId: (v: PrefabIdValue) => prefabId;
+    configId: (v: ConfigIdValue) => configId;
+    faction: (v: FactionValue) => faction;
+    entity: (guidOrEntity: GuidValue | EntityValue | null) => entity;
+    clientEntity: (guidOrEntity: GuidValue | EntityValue | null) => ClientEntityValue;
+    dict: (<K extends DictKeyType, V extends DictValueType>(keyType: K, valueType: V, value: null | 0) => ReadonlyDict<K, V>) & ((value: null | 0) => ReadonlyDict) & (<V extends DictValueType>(obj: Record<string, RuntimeParameterValueTypeMap[V]>) => ReadonlyDict<'str', V>) & (<K extends DictKeyType, V extends DictValueType>(pairs: {
+        k: RuntimeParameterValueTypeMap[K];
+        v: RuntimeParameterValueTypeMap[V];
+    }[]) => ReadonlyDict<K, V>);
+    list: <T extends 'bool' | 'config_id' | 'entity' | 'faction' | 'float' | 'guid' | 'int' | 'prefab_id' | 'str' | 'vec3'>(type: T | null | 0, items?: RuntimeParameterValueTypeMap[T][] | null | 0) => RuntimeReturnValueTypeMap[`${T}_list`];
+    print: (string: StrValue) => void;
+    send: (<S extends SignalDefinition>(signalName: S, ...params: SignalParamValues<S>) => void) & ((signalName: StrValue, ...params: any[]) => void);
+    player: (playerId: IntValue) => PlayerEntity;
+    setTimeout: (handler: (evt: unknown, f: unknown) => void, delayMs?: FloatValue) => string;
+    setInterval: (handler: (evt: unknown, f: unknown) => void, delayMs?: FloatValue) => string;
+    clearTimeout: (timerName: StrValue) => void;
+    clearInterval: (timerName: StrValue) => void;
+};
+export declare function installServerGlobals(): () => void;
+export declare function installScopedServerGlobals(): () => void;
+export {};

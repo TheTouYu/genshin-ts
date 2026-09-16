@@ -1,0 +1,634 @@
+npm notice run genshin-ts@0.2.0 npx
+npm notice run 'tsc' -p .scratch/build-gate/tsconfig.check.json --noEmit
+examples/football/src-fb/fb-phys2.ts(30,57): error TS6307: File '/home/h/genshin-ts/examples/football/src-fb/channels.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './channels.js' from file '/home/h/genshin-ts/examples/football/src-fb/fb-phys2.ts'
+    Imported via './channels.js' from file '/home/h/genshin-ts/examples/football/src-fb/fb20c-loop.ts'
+examples/football/src-fb/fb-phys2.ts(31,26): error TS6307: File '/home/h/genshin-ts/examples/football/src-fb/signals.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './signals.js' from file '/home/h/genshin-ts/examples/football/src-fb/fb-phys2.ts'
+    Imported via './signals.js' from file '/home/h/genshin-ts/examples/football/src-fb/fb20c-loop.ts'
+examples/football/src-fb/fb-phys2.ts(625,23): error TS2345: Argument of type 'float' is not assignable to parameter of type 'number'.
+examples/football/src-fb/fb-phys2.ts(630,21): error TS2345: Argument of type 'float' is not assignable to parameter of type 'number'.
+examples/football/src-fb/fb20c-loop.ts(578,23): error TS2345: Argument of type 'float' is not assignable to parameter of type 'number'.
+examples/football/src-fb/fb20c-loop.ts(583,21): error TS2345: Argument of type 'float' is not assignable to parameter of type 'number'.
+examples/rubik-game/src/rgInput.ts(15,26): error TS6307: File '/home/h/genshin-ts/examples/rubik-game/src/signals.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+examples/rubik-game/src/rgInput.ts(22,31): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'listLiteral<"int">' is not assignable to type 'string | number | bigint | boolean | [number, number, number] | entity | bool | int | float | str | vec3 | guid | prefabId | ... 17 more ... | FactionValue[]'.
+      Type 'listLiteral<"int">' is not assignable to type 'CreationEntity'.
+        Property '__entityRuntimeBrand' is missing in type 'listLiteral<"int">' but required in type 'EntityRuntimeBase'.
+examples/rubik-game/src/rgInput.ts(22,58): error TS2322: Type 'int' is not assignable to type 'bigint'.
+examples/rubik-game/src/rgInput.ts(31,90): error TS2554: Expected 2 arguments, but got 0.
+src/cli/assets_custom_variables.ts(12,44): error TS6307: File '/home/h/genshin-ts/src/cli/gil_level_variables.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './gil_level_variables.js' from file '/home/h/genshin-ts/src/cli/assets_custom_variables.ts'
+    Imported via './gil_level_variables.js' from file '/home/h/genshin-ts/src/cli/assets_custom_variables.ts'
+    Imported via './gil_level_variables.js' from file '/home/h/genshin-ts/src/cli/gil_custom_variables.ts'
+src/cli/assets_custom_variables.ts(14,34): error TS6307: File '/home/h/genshin-ts/src/cli/gil_paths.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/cli/assets_custom_variables.ts(26,8): error TS6307: File '/home/h/genshin-ts/src/cli/gil_custom_variables.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './gil_custom_variables.js' from file '/home/h/genshin-ts/src/cli/assets_custom_variables.ts'
+    Imported via './cli/gil_custom_variables.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './cli/gil_custom_variables.js' from file '/home/h/genshin-ts/src/index.ts'
+src/cli/assets_custom_variables.ts(27,34): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/json.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './static_assembly/json.js' from file '/home/h/genshin-ts/src/cli/assets_custom_variables.ts'
+    Imported via './json.js' from file '/home/h/genshin-ts/src/cli/static_assembly/inspection.ts'
+    Imported via './json.js' from file '/home/h/genshin-ts/src/cli/static_assembly/plan.ts'
+src/cli/gil_custom_variables.ts(11,38): error TS6307: File '/home/h/genshin-ts/src/cli/gil_extract_utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/cli/gil_entities.ts(11,48): error TS6307: File '/home/h/genshin-ts/src/cli/gil_static_assemblies.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './gil_static_assemblies.js' from file '/home/h/genshin-ts/src/cli/gil_entities.ts'
+    Imported via './gil_static_assemblies.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_updates.ts'
+src/cli/gil_static_prefab_updates.ts(8,63): error TS6307: File '/home/h/genshin-ts/src/cli/gil_entities.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/cli/static_assembly/closure.ts(1,74): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/map_index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './map_index.js' from file '/home/h/genshin-ts/src/cli/static_assembly/closure.ts'
+    Imported via './map_index.js' from file '/home/h/genshin-ts/src/cli/static_assembly/inspection.ts'
+    Imported via './map_index.js' from file '/home/h/genshin-ts/src/cli/static_assembly/plan.ts'
+src/cli/static_assembly/inspection.ts(2,46): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/closure.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './closure.js' from file '/home/h/genshin-ts/src/cli/static_assembly/inspection.ts'
+    Imported via './closure.js' from file '/home/h/genshin-ts/src/cli/static_assembly/plan.ts'
+src/cli/static_assembly/plan.ts(9,38): error TS6307: File '/home/h/genshin-ts/src/cli/official_prefabs.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../official_prefabs.js' from file '/home/h/genshin-ts/src/cli/static_assembly/plan.ts'
+    Imported via './official_prefabs.js' from file '/home/h/genshin-ts/src/cli/gil_entities.ts'
+    Imported via './official_prefabs.js' from file '/home/h/genshin-ts/src/cli/gil_static_assemblies.ts'
+src/cli/static_assembly/wire.ts(1,42): error TS6307: File '/home/h/genshin-ts/src/injector/binary.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../../injector/binary.js' from file '/home/h/genshin-ts/src/cli/static_assembly/wire.ts'
+    Imported via '../../injector/binary.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts'
+    Imported via './binary.js' from file '/home/h/genshin-ts/src/injector/index.ts'
+    Imported via './binary.js' from file '/home/h/genshin-ts/src/injector/folder.ts'
+    Imported via './binary.js' from file '/home/h/genshin-ts/src/injector/node_graph.ts'
+    Imported via './binary.js' from file '/home/h/genshin-ts/src/injector/signal_nodes.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_level_variables.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_custom_variables.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_extract_utils.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_extract_utils.ts'
+    Imported via '../../injector/binary.js' from file '/home/h/genshin-ts/src/cli/static_assembly/map_index.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_categories.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_updates.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_entities.ts'
+    Imported via '../injector/binary.js' from file '/home/h/genshin-ts/src/cli/gil_static_assemblies.ts'
+src/compiler/config_loader.ts(9,38): error TS6307: File '/home/h/genshin-ts/src/compiler/tsx_config_path.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './tsx_config_path.js' from file '/home/h/genshin-ts/src/compiler/config_loader.ts'
+    Imported via '../tsx_config_path.js' from file '/home/h/genshin-ts/src/compiler/gs_to_ir_json_transform/index.ts'
+    Imported via './tsx_config_path.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts'
+src/compiler/ir_to_gia_pipeline.ts(7,68): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/shared.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './ir_to_gia_transform/shared.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts'
+    Imported via './ir_to_gia_transform/shared.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts'
+    Imported via './ir_to_gia_transform/shared.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts'
+src/compiler/ir_to_gia_transform/build_composite_pins.ts(11,36): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/normalize_capture.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './normalize_capture.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_composite_pins.ts'
+    Imported via './normalize_capture.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+src/compiler/ir_to_gia_transform/build_signal_definition.ts(24,51): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/wire.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../../cli/static_assembly/wire.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/gil_level_variables.ts'
+    Imported via './wire.js' from file '/home/h/genshin-ts/src/cli/static_assembly/map_index.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/official_prefabs.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_categories.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/gil_static_assemblies.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/gil_entities.ts'
+    Imported via './static_assembly/wire.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_updates.ts'
+src/compiler/ir_to_gia_transform/build_signal_definition.ts(41,45): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_composite_definition.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './build_composite_definition.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts'
+    Imported via './build_composite_definition.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+src/compiler/ir_to_gia_transform/build_signal_definition.ts(42,34): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/mappings.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/node_id.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/resolved_node.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pins.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts'
+    Imported via './mappings.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts'
+src/compiler/ir_to_gia_transform/client_graph.ts(17,8): error TS6307: File '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/client_graph.ts(66,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_nodes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/client_graph.ts(68,54): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/layout.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './layout.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './layout.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_composite_layout.ts'
+    Imported via './layout.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+src/compiler/ir_to_gia_transform/client_nodes.ts(4,43): error TS6307: File '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/client_nodes.ts(9,8): error TS6307: File '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_variable_specialization.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/client_nodes.ts(10,29): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/types.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_nodes.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/node_id.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/layout.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+src/compiler/ir_to_gia_transform/index.ts(15,31): error TS6307: File '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+    Imported via '../gia_gen/nodes.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/helpers.ts'
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.ts'
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/extract.ts'
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/graph.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/special_arg_adapter.ts'
+src/compiler/ir_to_gia_transform/index.ts(31,8): error TS6307: File '/home/h/genshin-ts/src/compiler/gia_vendor.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/mappings.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/ordinary_graph_materializer.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/ordinary_node_factory.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pins.ts'
+    Imported via '../gia_vendor.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/special_arg_adapter.ts'
+    Imported via '../../compiler/gia_vendor.js' from file '/home/h/genshin-ts/src/image-editor/gia/template.ts'
+src/compiler/ir_to_gia_transform/index.ts(36,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './build_signal_definition.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+    Imported via './build_signal_definition.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './build_signal_definition.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+src/compiler/ir_to_gia_transform/index.ts(37,31): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/index.ts(38,43): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/index.ts(46,48): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/optimize_timer_dispatch.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/index.ts(64,36): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/preprocess.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/layout.ts(2,38): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/node_id.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './node_id.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/layout.ts'
+    Imported via './node_id.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/resolved_node.ts'
+    Imported via './node_id.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './node_id.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+src/compiler/ir_to_gia_transform/node_id.ts(11,62): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/resolved_node.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './resolved_node.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/node_id.ts'
+    Imported via './resolved_node.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts'
+    Imported via './resolved_node.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './resolved_node.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts'
+src/compiler/ir_to_gia_transform/ordinary_node_factory.ts(4,53): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pins.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './pins.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/ordinary_node_factory.ts'
+    Imported via './pins.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/special_arg_adapter.ts'
+    Imported via './pins.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './pins.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pin_hole_adapter.ts'
+    Imported via './pins.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+src/compiler/ir_to_gia_transform/ordinary_node_factory.ts(8,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/special_arg_adapter.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './special_arg_adapter.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/ordinary_node_factory.ts'
+    Imported via './special_arg_adapter.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './special_arg_adapter.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './special_arg_adapter.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './special_arg_adapter.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts(22,41): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/stage3_backend.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './stage3_backend.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts'
+    Imported via './stage3_backend.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts'
+    Imported via './stage3_backend.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './stage3_backend.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './stage3_backend.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+src/compiler/ir_to_gia_transform/shared.ts(4,35): error TS6307: File '/home/h/genshin-ts/src/injector/proto.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../../injector/proto.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/shared.ts'
+    Imported via '../../injector/proto.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+    Imported via '../../injector/proto.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './proto.js' from file '/home/h/genshin-ts/src/injector/index.ts'
+src/compiler/ir_to_gia_transform/shared.ts(7,37): error TS6307: File '/home/h/genshin-ts/src/compiler/signal_registry.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../signal_registry.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/shared.ts'
+    Imported via '../signal_registry.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts'
+    Imported via '../signal_registry.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/build_signal_definition.ts'
+    Imported via '../signal_registry.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './signal_registry.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts'
+src/compiler/ir_to_gia_transform/shared.ts(8,39): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_lint_dangling_exec.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/shared.ts(9,52): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_lint_composite_reuse.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ir_to_gia_transform/shared.ts(10,25): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './index.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/shared.ts'
+    Imported via './index.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './index.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pins.ts'
+src/compiler/ir_to_gia_transform/special_arg_adapter.ts(18,59): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/special_arg_adapter.ts'
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/pin_hole_adapter.ts'
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts'
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+    Imported via './root_ordinary_capability_inventory.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/composite.ts'
+src/compiler/ts_to_gs_pipeline.ts(7,55): error TS6307: File '/home/h/genshin-ts/src/compiler/config_loader.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './config_loader.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_pipeline.ts'
+    Imported via '../compiler/config_loader.js' from file '/home/h/genshin-ts/src/cli/gil_paths.ts'
+src/compiler/ts_to_gs_pipeline.ts(9,54): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/builtins.ts(3,49): error TS6307: File '/home/h/genshin-ts/src/definitions/client_math.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/builtins.ts(11,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts'
+    Imported via './list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_methods.ts'
+    Imported via './list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+src/compiler/ts_to_gs_transform/errors.ts(3,26): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/types.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/errors.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/utils.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expression_semantics.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/local_variable_lowering.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_methods.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/loops.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+src/compiler/ts_to_gs_transform/expr.ts(7,76): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/expr.ts(14,44): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_methods.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/expression_semantics.ts(3,66): error TS6307: File '/home/h/genshin-ts/src/shared/ts_list_utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../../shared/ts_list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expression_semantics.ts'
+    Imported via '../../shared/ts_list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts'
+    Imported via '../../shared/ts_list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via '../../shared/ts_list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via '../../shared/ts_list_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+src/compiler/ts_to_gs_transform/expression_semantics.ts(4,74): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './lists.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expression_semantics.ts'
+    Imported via './lists.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './lists.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts'
+    Imported via './lists.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './lists.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+src/compiler/ts_to_gs_transform/expression_semantics.ts(5,31): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './matcher.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expression_semantics.ts'
+    Imported via './matcher.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via './matcher.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './matcher.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via './ts_to_gs_transform/matcher.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_pipeline.ts'
+src/compiler/ts_to_gs_transform/index.ts(8,22): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/errors.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/utils.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/local_variable_lowering.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_methods.ts'
+    Imported via './errors.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/loops.ts'
+src/compiler/ts_to_gs_transform/index.ts(10,42): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/ops.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './ops.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via './ops.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './ops.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+src/compiler/ts_to_gs_transform/index.ts(11,63): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './stmt.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via './stmt.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+src/compiler/ts_to_gs_transform/list_utils.ts(12,44): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/local_variable_lowering.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './local_variable_lowering.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './local_variable_lowering.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './local_variable_lowering.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+src/compiler/ts_to_gs_transform/lists.ts(11,27): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/local_variable_lowering.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/builtins.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_methods.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/loops.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via './utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+src/compiler/ts_to_gs_transform/stmt.ts(9,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/const_eval.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/stmt.ts(18,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './expr.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via './expr.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/loops.ts'
+src/compiler/ts_to_gs_transform/stmt.ts(36,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/loops.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/compiler/ts_to_gs_transform/types.ts(7,66): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expression_semantics.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './expression_semantics.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/types.ts'
+    Imported via './expression_semantics.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/list_utils.ts'
+    Imported via './expression_semantics.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/local_variable_lowering.ts'
+    Imported via './expression_semantics.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via './expression_semantics.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+src/definitions/client_entity_helpers.ts(5,48): error TS6307: File '/home/h/genshin-ts/src/definitions/client_nodes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './client_nodes.js' from file '/home/h/genshin-ts/src/definitions/client_entity_helpers.ts'
+    Imported via './client_nodes.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './client_nodes.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './client_nodes.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+src/definitions/client_graph_modes.ts(3,41): error TS6307: File '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/definitions/client_graph_modes.ts'
+    Imported via '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/definitions/client_method_modes.ts'
+    Imported via '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/definitions/client_scoped_globals.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/types.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts'
+    Imported via '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/definitions/client_math.ts'
+    Imported via '../node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts'
+    Imported via './client_node_metadata.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via './client_node_metadata.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts'
+    Imported via '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_nodes.ts'
+    Imported via './client_node_metadata.js' from file '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_variable_specialization.ts'
+src/definitions/client_nodes.ts(75,8): error TS6307: File '/home/h/genshin-ts/src/definitions/client_enums.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './client_enums.js' from file '/home/h/genshin-ts/src/definitions/client_nodes.ts'
+    Imported via './client_enums.js' from file '/home/h/genshin-ts/src/definitions/enum.ts'
+src/definitions/client_nodes.ts(113,8): error TS6307: File '/home/h/genshin-ts/src/definitions/enum.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './enum.js' from file '/home/h/genshin-ts/src/definitions/client_nodes.ts'
+    Imported via './enum.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './enum.js' from file '/home/h/genshin-ts/src/definitions/events-payload.ts'
+    Imported via './enum.js' from file '/home/h/genshin-ts/src/definitions/entity_helpers.ts'
+    Imported via '../definitions/enum.js' from file '/home/h/genshin-ts/src/runtime/value.ts'
+    Imported via '../definitions/enum.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via '../definitions/enum.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+src/definitions/client_nodes.ts(114,88): error TS6307: File '/home/h/genshin-ts/src/definitions/nodes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/definitions/client_nodes.ts'
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/definitions/entity_helpers.ts'
+    Imported via '../definitions/nodes.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './nodes.js' from file '/home/h/genshin-ts/src/definitions/zh_aliases.ts'
+    Imported via '../definitions/nodes.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via '../definitions/nodes.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+    Imported via '../definitions/nodes.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+src/definitions/entity_helpers.ts(27,8): error TS6307: File '/home/h/genshin-ts/src/definitions/client_entity_helpers.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './client_entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/entity_helpers.ts'
+    Imported via './client_entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/client_nodes.ts'
+    Imported via '../definitions/client_entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+    Imported via '../definitions/client_entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+    Imported via './definitions/client_entity_helpers.js' from file '/home/h/genshin-ts/src/index.ts'
+src/definitions/nodes.ts(3,19): error TS6307: File '/home/h/genshin-ts/src/i18n/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../i18n/index.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via '../../i18n/index.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+    Imported via '../i18n/index.js' from file '/home/h/genshin-ts/src/injector/index.ts'
+src/definitions/nodes.ts(8,8): error TS6307: File '/home/h/genshin-ts/src/runtime/composite_registry.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../runtime/composite_registry.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './composite_registry.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './runtime/composite_registry.js' from file '/home/h/genshin-ts/src/index.ts'
+src/definitions/nodes.ts(33,35): error TS6307: File '/home/h/genshin-ts/src/runtime/runtime_config.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../runtime/runtime_config.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './runtime_config.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+src/definitions/nodes.ts(140,42): error TS6307: File '/home/h/genshin-ts/src/definitions/events-payload.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './events-payload.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './events-payload.js' from file '/home/h/genshin-ts/src/definitions/events-payload-mode.ts'
+    Imported via '../definitions/events-payload.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './events-payload.js' from file '/home/h/genshin-ts/src/definitions/server_on_overloads.d.ts'
+    Imported via '../definitions/events-payload.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+src/definitions/nodes.ts(141,42): error TS6307: File '/home/h/genshin-ts/src/definitions/node_modes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './node_modes.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via '../definitions/node_modes.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './node_modes.js' from file '/home/h/genshin-ts/src/definitions/server_on_overloads.d.ts'
+src/image-editor/exporters.ts(6,58): error TS6307: File '/home/h/genshin-ts/src/image-editor/geometry.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './geometry.js' from file '/home/h/genshin-ts/src/image-editor/exporters.ts'
+    Imported via './geometry.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './geometry.js' from file '/home/h/genshin-ts/src/image-editor/normalize.ts'
+src/image-editor/exporters.ts(7,30): error TS6307: File '/home/h/genshin-ts/src/image-editor/color.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './color.js' from file '/home/h/genshin-ts/src/image-editor/exporters.ts'
+    Imported via './color.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './color.js' from file '/home/h/genshin-ts/src/image-editor/normalize.ts'
+    Imported via './color.js' from file '/home/h/genshin-ts/src/image-editor/importers.ts'
+src/image-editor/geometry.ts(6,40): error TS6307: File '/home/h/genshin-ts/src/image-editor/types.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/geometry.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/color.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/exporters.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/constants.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/normalize.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/image-editor/importers.ts'
+src/image-editor/gia/image_mode.ts(33,8): error TS6307: File '/home/h/genshin-ts/src/image-editor/gia/wire.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/image-editor/index.ts(11,42): error TS6307: File '/home/h/genshin-ts/src/image-editor/gia/template.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './gia/template.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './gia/template.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+src/image-editor/index.ts(12,52): error TS6307: File '/home/h/genshin-ts/src/image-editor/gia/image_mode.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './gia/image_mode.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './gia/image_mode.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+src/image-editor/index.ts(13,36): error TS6307: File '/home/h/genshin-ts/src/image-editor/exporters.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './exporters.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './exporters.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+src/image-editor/index.ts(17,15): error TS6307: File '/home/h/genshin-ts/src/image-editor/constants.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './constants.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './constants.js' from file '/home/h/genshin-ts/src/image-editor/normalize.ts'
+    Imported via './constants.js' from file '/home/h/genshin-ts/src/image-editor/importers.ts'
+src/image-editor/index.ts(37,8): error TS6307: File '/home/h/genshin-ts/src/image-editor/normalize.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './normalize.js' from file '/home/h/genshin-ts/src/image-editor/index.ts'
+    Imported via './normalize.js' from file '/home/h/genshin-ts/src/image-editor/importers.ts'
+src/image-editor/index.ts(43,8): error TS6307: File '/home/h/genshin-ts/src/image-editor/importers.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(20,8): error TS6307: File '/home/h/genshin-ts/src/compiler/gsts_config.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './compiler/gsts_config.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './gsts_config.js' from file '/home/h/genshin-ts/src/compiler/config_loader.ts'
+    Imported via './gsts_config.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_pipeline.ts'
+    Imported via '../gsts_config.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/types.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/assets_custom_variables.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/gil_paths.ts'
+    Imported via '../../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/static_assembly/inspection.ts'
+    Imported via '../../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/static_assembly/plan.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_categories.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/gil_static_prefab_updates.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/gil_entities.ts'
+    Imported via '../compiler/gsts_config.js' from file '/home/h/genshin-ts/src/cli/gil_static_assemblies.ts'
+src/index.ts(28,56): error TS6307: File '/home/h/genshin-ts/src/compiler/ts_to_gs_pipeline.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(34,8): error TS6307: File '/home/h/genshin-ts/src/compiler/gs_to_ir_json_transform/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(40,8): error TS6307: File '/home/h/genshin-ts/src/compiler/ir_to_gia_pipeline.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(42,63): error TS6307: File '/home/h/genshin-ts/src/injector/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './injector/index.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './injector/index.js' from file '/home/h/genshin-ts/src/index.ts'
+src/index.ts(43,42): error TS6307: File '/home/h/genshin-ts/src/cli/assets_custom_variables.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(44,42): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/inspection.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(45,42): error TS6307: File '/home/h/genshin-ts/src/cli/static_assembly/plan.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(46,45): error TS6307: File '/home/h/genshin-ts/src/cli/gil_static_prefab_categories.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './cli/gil_static_prefab_categories.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './cli/gil_static_prefab_categories.js' from file '/home/h/genshin-ts/src/index.ts'
+src/index.ts(48,41): error TS6307: File '/home/h/genshin-ts/src/cli/gil_static_prefab_updates.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './cli/gil_static_prefab_updates.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './cli/gil_static_prefab_updates.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './cli/gil_static_prefab_updates.js' from file '/home/h/genshin-ts/src/index.ts'
+    Imported via './cli/gil_static_prefab_updates.js' from file '/home/h/genshin-ts/src/index.ts'
+src/index.ts(91,15): error TS6307: File '/home/h/genshin-ts/src/definitions/prefabs.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/index.ts(94,15): error TS6307: File '/home/h/genshin-ts/src/image-editor/index.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/injector/binary.ts(1,38): error TS6307: File '/home/h/genshin-ts/src/injector/types.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './types.js' from file '/home/h/genshin-ts/src/injector/binary.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/injector/folder.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/injector/node_graph.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/injector/signal_nodes.ts'
+    Imported via './types.js' from file '/home/h/genshin-ts/src/injector/index.ts'
+    Imported via '../injector/types.js' from file '/home/h/genshin-ts/src/cli/gil_custom_variables.ts'
+    Imported via '../injector/types.js' from file '/home/h/genshin-ts/src/cli/gil_extract_utils.ts'
+src/injector/index.ts(19,8): error TS6307: File '/home/h/genshin-ts/src/injector/folder.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/injector/index.ts(30,8): error TS6307: File '/home/h/genshin-ts/src/injector/node_graph.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/injector/index.ts(32,57): error TS6307: File '/home/h/genshin-ts/src/injector/signal_nodes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/client_graph_support.ts(11,47): error TS6307: File '/home/h/genshin-ts/src/definitions/client_zh_aliases.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../definitions/client_zh_aliases.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via '../../definitions/client_zh_aliases.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts'
+src/runtime/client_scoped_globals.ts(5,8): error TS6307: File '/home/h/genshin-ts/src/definitions/client_scoped_globals.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/core.ts(1,53): error TS6307: File '/home/h/genshin-ts/src/definitions/client_graph_modes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './client_graph_modes.js' from file '/home/h/genshin-ts/src/definitions/entity_helpers.ts'
+    Imported via '../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/runtime/active_graph_functions.ts'
+    Imported via '../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via '../../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/index.ts'
+    Imported via '../../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/utils.ts'
+    Imported via '../../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/matcher.ts'
+    Imported via './client_graph_modes.js' from file '/home/h/genshin-ts/src/definitions/client_math.ts'
+    Imported via '../../definitions/client_graph_modes.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+src/runtime/core.ts(2,43): error TS6307: File '/home/h/genshin-ts/src/definitions/client_method_modes.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../definitions/client_method_modes.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via '../definitions/client_method_modes.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via '../../definitions/client_method_modes.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/utils.ts'
+    Imported via './client_method_modes.js' from file '/home/h/genshin-ts/src/definitions/client_math.ts'
+    Imported via '../../definitions/client_method_modes.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_nodes.ts'
+src/runtime/core.ts(5,48): error TS6307: File '/home/h/genshin-ts/src/definitions/events-payload-mode.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../definitions/events-payload-mode.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './events-payload-mode.js' from file '/home/h/genshin-ts/src/definitions/server_on_overloads.d.ts'
+src/runtime/core.ts(11,8): error TS6307: File '/home/h/genshin-ts/src/definitions/events.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/core.ts(51,8): error TS6307: File '/home/h/genshin-ts/src/runtime/client_graph_support.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/core.ts(52,44): error TS6307: File '/home/h/genshin-ts/src/runtime/client_scoped_globals.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/core.ts(65,8): error TS6307: File '/home/h/genshin-ts/src/runtime/execution_flow_types.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './execution_flow_types.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './execution_flow_types.js' from file '/home/h/genshin-ts/src/runtime/ir_builder.ts'
+src/runtime/core.ts(69,8): error TS6307: File '/home/h/genshin-ts/src/runtime/graph_defaults.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './graph_defaults.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './graph_defaults.js' from file '/home/h/genshin-ts/src/runtime/ir_builder.ts'
+    Imported via '../../runtime/graph_defaults.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/shared.ts'
+    Imported via '../../runtime/graph_defaults.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+src/runtime/core.ts(70,33): error TS6307: File '/home/h/genshin-ts/src/runtime/ir_builder.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+src/runtime/core.ts(91,66): error TS6307: File '/home/h/genshin-ts/src/runtime/server_globals.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './server_globals.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './server_globals.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+src/runtime/value.ts(9,8): error TS6307: File '/home/h/genshin-ts/src/definitions/entity_helpers.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../definitions/entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/value.ts'
+    Imported via './entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via './entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/client_entity_helpers.ts'
+    Imported via '../definitions/entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via './entity_helpers.js' from file '/home/h/genshin-ts/src/definitions/events-payload-mode.ts'
+    Imported via '../definitions/entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+    Imported via '../definitions/entity_helpers.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+src/runtime/value.ts(11,58): error TS6307: File '/home/h/genshin-ts/src/shared/client_capability_errors.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via '../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/runtime/value.ts'
+    Imported via '../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/runtime/active_graph_functions.ts'
+    Imported via '../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/runtime/core.ts'
+    Imported via '../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via '../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/runtime/client_scoped_globals.ts'
+    Imported via '../../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_graph.ts'
+    Imported via '../../shared/client_capability_errors.js' from file '/home/h/genshin-ts/src/compiler/ir_to_gia_transform/client_nodes.ts'
+src/runtime/value.ts(12,41): error TS6307: File '/home/h/genshin-ts/src/runtime/active_graph_functions.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './active_graph_functions.js' from file '/home/h/genshin-ts/src/runtime/value.ts'
+    Imported via './active_graph_functions.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+src/shared/ts_list_utils.ts(3,34): error TS6307: File '/home/h/genshin-ts/src/shared/ts_type_utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './ts_type_utils.js' from file '/home/h/genshin-ts/src/shared/ts_list_utils.ts'
+    Imported via '../../shared/ts_type_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/stmt.ts'
+    Imported via '../../shared/ts_type_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/expr.ts'
+src/shared/ts_type_utils.ts(3,43): error TS6307: File '/home/h/genshin-ts/src/shared/type_string_utils.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via './type_string_utils.js' from file '/home/h/genshin-ts/src/shared/ts_type_utils.ts'
+    Imported via './type_string_utils.js' from file '/home/h/genshin-ts/src/shared/ts_list_utils.ts'
+    Imported via '../../shared/type_string_utils.js' from file '/home/h/genshin-ts/src/compiler/ts_to_gs_transform/lists.ts'
+tests/variables_definition_test.ts(1,19): error TS6307: File '/home/h/genshin-ts/src/runtime/core.ts' is not listed within the file list of project '/home/h/genshin-ts/.scratch/build-gate/tsconfig.check.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/tests/variables_definition_test.ts'
+    Imported via '../runtime/core.js' from file '/home/h/genshin-ts/src/definitions/client_nodes.ts'
+    Imported via '../runtime/core.js' from file '/home/h/genshin-ts/src/definitions/nodes.ts'
+    Imported via '../runtime/core.js' from file '/home/h/genshin-ts/src/definitions/server_on_overloads.d.ts'
+    Imported via './core.js' from file '/home/h/genshin-ts/src/runtime/client_graph_support.ts'
+    Imported via './core.js' from file '/home/h/genshin-ts/src/runtime/server_globals.ts'
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/examples/rubik-game/src/rgInput.ts'
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/examples/rubik-game/src/signals.ts'
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/examples/football/src-fb/fb-phys2.ts'
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/examples/football/src-fb/signals.ts'
+    Imported via 'genshin-ts/runtime/core' from file '/home/h/genshin-ts/examples/football/src-fb/fb20c-loop.ts'
+    Imported via './core.js' from file '/home/h/genshin-ts/src/runtime/server_globals.d.ts'
+    Imported via '../runtime/core.js' from file '/home/h/genshin-ts/src/compiler/signal_registry.ts'
+    Imported via './runtime/core.js' from file '/home/h/genshin-ts/src/index.ts'
+tests/variables_definition_test.ts(11,13): error TS2348: Value of type 'typeof vec3' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(12,13): error TS2348: Value of type 'typeof guid' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(13,15): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(14,15): error TS2348: Value of type 'typeof prefabId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(15,16): error TS2348: Value of type 'typeof faction' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(16,15): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(19,10): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(20,10): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(25,16): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(25,29): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(26,20): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(26,31): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(26,42): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(27,18): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(28,20): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(29,16): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(31,16): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(32,16): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(33,19): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(33,30): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(34,19): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(34,38): error TS2348: Value of type 'typeof entity' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(35,23): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(36,24): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(36,47): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(37,22): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(44,29): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(50,30): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(51,20): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(52,20): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(53,20): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(54,20): error TS2348: Value of type 'typeof list' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(56,14): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(57,21): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(57,34): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(58,21): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(58,34): error TS2348: Value of type 'typeof configId' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(60,16): error TS2348: Value of type 'typeof dict' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(90,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(92,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(94,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(100,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(101,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(102,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(106,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(107,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(116,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(117,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(118,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(119,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(120,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(121,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
+tests/variables_definition_test.ts(122,17): error TS2348: Value of type 'typeof str' is not callable. Did you mean to include 'new'?
