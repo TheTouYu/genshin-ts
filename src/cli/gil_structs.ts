@@ -196,3 +196,186 @@ export function nextStructId(defs: readonly StructDef[]): number {
 }
 
 export { varintOf as structVarintOf, textOf as structTextOf, emitWireMessage, encodeVarint, readVarint }
+
+// ───────────────────────── 写回：新建结构体 ─────────────────────────
+
+/** 空 message（proto3 里「字段存在但内容为空」与「字段省略」语义不同，编辑器写的是前者） */
+const EMPTY_MSG = new Uint8Array(0)
+
+/**
+ * 成员的三个块（与编辑器产物逐字节同构）：
+ *   f1 = { 1: 类型码, 2: <引用包裹 或 空> }
+ *   f3 = { 1: 类型码, 2: <与 f1 同形的类型包裹>, <类型码+10>: 默认值 }
+ */
+function buildMemberFields(m: { name: string; typeCode: number; order: number }, refId?: number): WireField[] {
+  const t = m.typeCode
+  const refInner =
+    refId !== undefined
+      ? emitWireMessage([{ number: 1, wire: 0, value: 1 }, { number: 2, wire: 0, value: refId }])
+      : EMPTY_MSG
+  const typeBytes = emitWireMessage([
+    { number: 1, wire: 0, value: t },
+    { number: 2, wire: 2, value: refInner }
+  ])
+  const f3 = emitWireMessage([
+    { number: 1, wire: 0, value: t },
+    { number: 2, wire: 2, value: typeBytes },
+    { number: t + 10, wire: 2, value: EMPTY_MSG }
+  ])
+  const nameBytes = Buffer.from(m.name, 'utf8')
+  return [
+    { number: 1, wire: 2, value: typeBytes },
+    { number: 3, wire: 2, value: f3 },
+    { number: 5, wire: 2, value: nameBytes },
+    { number: 501, wire: 2, value: nameBytes },
+    { number: 502, wire: 0, value: t },
+    { number: 503, wire: 0, value: m.order }
+  ]
+}
+
+export type NewStructMember = { name: string; typeCode: number; refStructId?: number }
+
+/** 构造 root10 `f6` 里的一条结构体记录：{ 1:DefBlock 2:镜像 3:改写计数 4:成员数 5:1 } */
+export function buildStructDefRecord(
+  id: number,
+  name: string,
+  members: readonly NewStructMember[],
+  rewriteCounter: number
+): Uint8Array {
+  for (const m of members) {
+    if (m.typeCode === TYPE_CODE_STRUCT || m.typeCode === TYPE_CODE_STRUCT_LIST) {
+      throw new Error(
+        `[error] 成员 "${m.name}" 是 ${m.typeCode === TYPE_CODE_STRUCT ? '结构体' : '结构体列表'}，` +
+          '其默认值需要把被引用结构体的成员逐个展开（深度递归，字节模板尚未闭合）。' +
+          '先支持标量/列表成员；结构体成员的默认值展开待补差分后开放。'
+      )
+    }
+  }
+  const memberFields = members.map((m, i) => ({
+    number: 3,
+    wire: 2 as const,
+    value: emitWireMessage(buildMemberFields({ name: m.name, typeCode: m.typeCode, order: i + 1 }, m.refStructId))
+  }))
+  const block = emitWireMessage([
+    { number: 1, wire: 0, value: id },
+    ...memberFields,
+    { number: 501, wire: 2, value: Buffer.from(name, 'utf8') },
+    { number: 502, wire: 0, value: 1 },
+    { number: 503, wire: 0, value: rewriteCounter }
+  ])
+  return emitWireMessage([
+    { number: 1, wire: 2, value: block },
+    { number: 2, wire: 2, value: block },
+    { number: 3, wire: 0, value: rewriteCounter },
+    { number: 4, wire: 0, value: members.length },
+    { number: 5, wire: 0, value: 1 }
+  ])
+}
+
+/** 把 root 的某个容器字段替换为新的字节（保持其它字段与顺序不变） */
+function withContainer(root: readonly WireField[], number: number, newBytes: Uint8Array): Uint8Array {
+  let done = false
+  const next = root.map((f) => {
+    if (!done && f.number === number && f.wire === 2) {
+      done = true
+      return { number: f.number, wire: 2 as const, value: newBytes }
+    }
+    return f
+  })
+  if (!done) next.push({ number, wire: 2, value: newBytes })
+  return emitWireMessage(next)
+}
+
+export type AppendResult = { payload: Uint8Array; changed: string[] }
+
+/**
+ * 新建一个基础/存档结构体：三条改动一次完成。
+ *  ① root10.f6 追加一条定义记录（f1 与 f2 为等长镜像）
+ *  ② 既有结构体的改写计数 +1（编辑器整表改写语义，C11/C-D69）
+ *  ③ root6 的对应 folder 记录（f1=29 基础 / 33 存档）在其 f3「未分类页签」下追加 f5 条目
+ */
+export function appendStruct(payload: Uint8Array, opts: {
+  id: number
+  name: string
+  members: readonly NewStructMember[]
+  archived: boolean
+}): AppendResult {
+  const root = parseWireMessage(payload)
+  if (!root) throw new Error('[error] malformed GIL payload')
+  const changed: string[] = []
+
+  // ① root10：每个结构体 = 一个独立的 f6 字段，字段内容 = { 1:DefBlock 2:镜像 3:计数 4:成员数 5:1 }
+  //    （既有结构体要整表改写：其 f6 字段内容的 f3 与 DefBlock.f503 各 +1）
+  const r10 = rootContainer(root, 10)
+  if (!r10) throw new Error('[error] 地图缺少 root10（节点图容器），无法登记结构体')
+  const bumpBlock = (bytes: Uint8Array): Uint8Array => {
+    const blk = parseWireMessage(bytes) ?? []
+    return emitWireMessage(
+      blk.map((y) => (y.number === 503 && y.wire === 0 ? { number: 503, wire: 0 as const, value: (y.value as number) + 1 } : y))
+    )
+  }
+  let existing = 0
+  const rewritten = r10.map((f) => {
+    if (f.number !== 6 || f.wire !== 2) return f
+    const content = parseWireMessage(f.value as Uint8Array)
+    if (!content) return f
+    existing += 1
+    const next = content.map((x) => {
+      if (x.number === 3 && x.wire === 0) return { number: 3, wire: 0 as const, value: (x.value as number) + 1 }
+      if ((x.number === 1 || x.number === 2) && x.wire === 2) {
+        return { number: x.number, wire: 2 as const, value: bumpBlock(x.value as Uint8Array) }
+      }
+      return x
+    })
+    return { number: 6, wire: 2 as const, value: emitWireMessage(next) }
+  })
+  // 新建的记录：f503 写 2（编辑器语义 = 2 + 之后创建数，新建时为 2）
+  const newRecord = buildStructDefRecord(opts.id, opts.name, opts.members, 2)
+  const r10Bytes = emitWireMessage([...rewritten, { number: 6, wire: 2 as const, value: newRecord }])
+  let nextPayload = withContainer(root, 10, r10Bytes)
+  changed.push(`root10 追加结构体 [${opts.id}] "${opts.name}"（${opts.members.length} 成员）`)
+  if (existing > 0) changed.push(`既有 ${existing} 条结构体的改写计数 +1`)
+
+  // ③ root6 folder 条目
+  const folderId = opts.archived ? STRUCT_FOLDER_ARCHIVED : STRUCT_FOLDER_BASIC
+  const typeValue = opts.archived ? STRUCT_TYPE_VALUE_ARCHIVED : STRUCT_TYPE_VALUE_BASIC
+  const root6 = rootContainer(parseWireMessage(nextPayload)!, 6)
+  if (!root6) throw new Error('[error] 地图缺少 root6（资产目录），无法登记结构体')
+  let appended = false
+  const recs = root6.map((rec) => {
+    if (rec.number !== 1 || rec.wire !== 2) return rec
+    const inner = parseWireMessage(rec.value as Uint8Array)
+    if (!inner || varintOf(inner, 1) !== folderId) return rec
+    const entry = emitWireMessage([{ number: 1, wire: 0, value: typeValue }, { number: 2, wire: 0, value: opts.id }])
+    const mapped = inner.map((f) => {
+      if (f.number === 3 && f.wire === 2) {
+        const tab = parseWireMessage(f.value as Uint8Array) ?? []
+        appended = true
+        return { number: 3, wire: 2 as const, value: emitWireMessage([...tab, { number: 5, wire: 2, value: entry }]) }
+      }
+      return f
+    })
+    return { number: 1, wire: 2 as const, value: emitWireMessage(mapped) }
+  })
+  if (!appended) {
+    throw new Error(
+      `[error] root6 里没有 folderId=${folderId} 的记录（地图骨架缺该 folder）。` +
+        '已知 folder 记录由地图骨架提供；缺失时不擅自新建字节，请先用编辑器在本图建一个同类结构体再重试。'
+    )
+  }
+  nextPayload = withContainer(parseWireMessage(nextPayload)!, 6, emitWireMessage(recs))
+  changed.push(`root6 folder ${folderId} 追加条目 { typeValue=${typeValue}, structId=${opts.id} }`)
+
+  return { payload: nextPayload, changed }
+}
+
+/** GIL 文件重建：20B 头 + 载荷 + 4B 尾（与 gil_custom_variables.rebuildGilFileFromSource 同构） */
+export function rebuildGil(source: Uint8Array, newPayload: Uint8Array): Uint8Array {
+  const out = Buffer.alloc(newPayload.length + 24)
+  Buffer.from(source).copy(out, 0, 0, 20)
+  new DataView(out.buffer, out.byteOffset, out.byteLength).setUint32(0, newPayload.length + 20, false)
+  new DataView(out.buffer, out.byteOffset, out.byteLength).setUint32(16, newPayload.length, false)
+  Buffer.from(newPayload).copy(out, 20)
+  Buffer.from(source).copy(out, out.length - 4, source.length - 4)
+  return out
+}

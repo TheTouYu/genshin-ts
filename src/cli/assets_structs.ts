@@ -32,6 +32,8 @@ import {
   readStructDefs,
   readStructFolderEntries,
   nextStructId,
+  appendStruct,
+  rebuildGil,
   STRUCT_FOLDER_ARCHIVED,
   STRUCT_FOLDER_BASIC,
   STRUCT_TYPE_VALUE_ARCHIVED,
@@ -284,10 +286,44 @@ export async function runAssetsStructs(
   const sourceSha = sha256Bytes(sourceBytes)
   if (args.sub === 'create') {
     preflightCreate(args, defs)
-    printCreatePlan(args, defs, gil, sourceSha)
+    if (!args.outputPath && !args.write) {
+      printCreatePlan(args, defs, gil, sourceSha)
+      return
+    }
+    const id = nextStructId(defs)
+    const structName = args.name ?? ''
+    const res = appendStruct(payloadOf(sourceBytes), {
+      id,
+      name: structName,
+      archived: args.archived,
+      members: args.members.map((m) => ({ name: m.name, typeCode: m.typeCode }))
+    })
+    const outBytes = rebuildGil(sourceBytes, res.payload)
+    // 回读断言：写出的字节必须能被自己的读侧解出同一个结构体（不是「CLI 说成功」）
+    const readBack = readStructDefs(outBytes).find((d) => d.id === id)
+    if (!readBack || readBack.name !== structName || readBack.members.length !== args.members.length) {
+      throw new Error(
+        `[error] 回读核对失败：写入后未读到 [${id}] "${structName}" 的 ${args.members.length} 个成员。已放弃写盘。`
+      )
+    }
+    const entry = readStructFolderEntries(outBytes).find((e) => e.structId === id)
+    if (!entry) throw new Error(`[error] 回读核对失败：root6 folder 里没有 [${id}] 的登记条目。已放弃写盘。`)
+    console.log(`结构体创建计划 → 已写入`)
+    console.log(`  目标地图    : ${gil}`)
+    console.log(`  写入前 sha  : ${sourceSha}`)
+    console.log(`  新建        : [${id}] "${structName}"  ${args.archived ? '局内存档结构体' : '基础结构体'}`)
+    console.log(`  成员        : ${args.members.map((m) => `${m.name}:${typeNameOfCode(m.typeCode)}`).join('、')}`)
+    for (const c of res.changed) console.log(`  · ${c}`)
+    console.log(`  回读核对    : 结构体 ✓（${readBack.members.length} 成员）  folder 条目 ✓（folderId=${entry.folderId} typeValue=${entry.typeValue}）`)
+    emitBytesOrWrite(outBytes, gil, args)
     return
   }
   printUpdatePlan(args, defs, gil, sourceSha)
+}
+
+/** 取 GIL 载荷（20B 头 + 载荷 + 4B 尾） */
+function payloadOf(bytes: Uint8Array): Uint8Array {
+  return bytes.slice(20, -4)
 }
 
 /** D9：官方限制 + D8 重名 的前置校验（超限在建之前就拒绝，不产出编辑器打不开的中间态） */
