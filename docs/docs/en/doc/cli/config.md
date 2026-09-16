@@ -61,7 +61,22 @@ export default config
 
 The assembly Transform uses scene coordinates; item Transforms are local to its origin. `scale: [1, 1, 1]` means the resource's original size and does not guarantee a universal in-game 1×1×1 size. Template definition and instance IDs are not guaranteed to match and must be confirmed separately. Colors use `0xRRGGBB`, an opacity from 0–100, and an `overwrite` or `multiply` overlay; `enabled: false` disables custom color. Omitting `color` inherits the template snapshot while preserving other unknown fields such as material settings.
 
-`components` currently supports two conservative snapshots. `{ type: 'followMotion', preset: 'fullFollow' }` adds Follow Motion—Full Follow to both the definition and instance, following target position and orientation. `{ type: 'basicMotion', preset: 'default' }` adds the default Basic Motion snapshot (2026-08-13 fix: real type code is **4**, 9-byte slot `080410017203c81f01`; the previous implementation wrongly emitted the template's built-in type-18 slot, so in-game motion devices never took effect). Omitting `components` adds nothing and preserves all template components. Follow Motion has real-GIL, regression, bounded-writeback, and user-confirmed game evidence. Basic Motion's type code was confirmed by two user-added editor diffs plus a controller in-game comparison on 2026-08-13; the fix awaits in-game verification. Neither snapshot exposes unverified fine-grained meanings for its internal numeric fields.
+`components` accepts the following snapshots (`type` + `preset`; `tabBar` takes no preset):
+
+| `type` | `preset` | Notes |
+|---|---|---|
+| `followMotion` | `fullFollow` | Follow Motion—Full Follow (position + orientation) |
+| `basicMotion` | `default` | Basic Motion default snapshot (type code **4**) |
+| `nameplate` | `default` | Nameplate, with `content` / `range` |
+| `textBubble` | `default` | Text bubble |
+| `lightSource` | `default` | Light source, with `radius` / `intensity` |
+| `hitDetection` | `default` | Hit detection |
+| `tabBar` | — | Tab bar, with `regionName` / `options` / `regionType`(`box`\|`sphere`) / `regionSize` / `regionRadius` / `regionCenter` |
+
+> Updated 2026-09-16: this section previously said "two conservative snapshots"; the implementation supports **7**.
+> Known fail-closed boundary: `regionCenter` is unsupported when `regionType` is `'box'` (rejected explicitly).
+
+Original wording retained below.  `{ type: 'followMotion', preset: 'fullFollow' }` adds Follow Motion—Full Follow to both the definition and instance, following target position and orientation. `{ type: 'basicMotion', preset: 'default' }` adds the default Basic Motion snapshot (2026-08-13 fix: real type code is **4**, 9-byte slot `080410017203c81f01`; the previous implementation wrongly emitted the template's built-in type-18 slot, so in-game motion devices never took effect). Omitting `components` adds nothing and preserves all template components. Follow Motion has real-GIL, regression, bounded-writeback, and user-confirmed game evidence. Basic Motion's type code was confirmed by two user-added editor diffs plus a controller in-game comparison on 2026-08-13; the fix awaits in-game verification. Neither snapshot exposes unverified fine-grained meanings for its internal numeric fields.
 
 Prefab categories support both updating existing tabs and creating new tabs. Set `create: true` to create one; when `id` is omitted, the tool reads the largest category ID under `root` and adds one. The display name is written to category `field 1`, and the category ID to `field 3`. For example:
 

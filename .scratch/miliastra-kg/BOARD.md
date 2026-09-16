@@ -57,7 +57,7 @@ T12 进度：✅ 设计书（9 决策全引图谱 + 5 图谱缺口 + 4 能力缺
 - DSL 形态：`g.server({id, lang:'en', mode:'beyond'}).on('事件名', (evt, f) => {...})`
   参考 `tests/manual_verify_all_new_server_nodes.ts:7-30`
 - 可选路径：隐藏物挂选项卡组件（`assets:entities patch --tab-options`，`src/cli/assets_entities.ts:74`）
-- ⚠️ 障碍：`addComponent` 🔴 → 碰撞触发器组件加不了，只能走选项卡路径
+- ⚠️ 障碍（**2026-09-16 更正**）：原写「`addComponent` 🔴 — 碰撞触发器组件加不了」是**错误断言**（搜了不存在的函数名）。真相：配置项 `components:` 支持 7 种含 `tabBar`(17)；真正缺的是**场景实体侧**（`EntityImport` 无 `components` 字段）→ 隐藏物走元件路径或 `patch --tab-options`
 
 T11 首批战果：经 pkc-project-operator 快速通道录入 **4 条原子规则 / 2 个 bundle / 7 条 authority ref**，
 PKC claims 389→**393**，rebuild+validate 干净，**4 条全部可被自然语言检索（3 条排第 1）**。

@@ -90,5 +90,5 @@
 2. 补回 `inject` 段 → `node ./bin/gsts.mjs -c examples/maze-repro/gsts.config.ts`
 3. 几何 import：`gsts assets:entities --entities docs/knowledge-graph/reproduction/maze-entities.json --map-id <id> --write`
 4. `assets:signals register 迷宫_隐藏集齐` → 恢复信号版回馈
-5. 用户游戏内核验（隐藏物是否需要挂选项卡组件：`addComponent` 我方 🔴，只能走
+5. 用户游戏内核验（隐藏物挂选项卡组件：**2026-09-16 更正**——`components:` 元件路径 ✅ 支持 `tabBar`(17)，场景实体路径确实无 `components` 字段，只能走
    `assets:entities patch --tab-options` 或编辑器手工）

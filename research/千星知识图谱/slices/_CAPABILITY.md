@@ -29,7 +29,7 @@
 | 实体/元件/预制/地形资产操作 | ✅ | `assets:entities` / `prefabs` / `terrain` |
 | 变量体系（21 类型 + dict） | ✅ | `src/cli/gil_level_variables.ts:505-526` `UiVarType` 含 dict |
 | **结构体类型创建** | 🔴 | `UiVarType` 无 `struct`/`struct_list`；`grep -rn "struct" src/cli/gil_custom_variables.ts src/cli/gil_level_variables.ts` = 0 |
-| 组件（通用组件）新增 | 🔴 | `grep -rn "addComponent\|add-component" src/cli/*.ts` = 0；只有 `removeEntityComponents`（`src/cli/gil_entities.ts:997`）；全局计时器 attach 是单项特例 |
+| **组件（通用组件）新增** | ✅ | **配置面** `components:` 支持 **7 种**：`followMotion`(9) / `basicMotion`(4) / `nameplate`(27) / `textBubble`(28) / `lightSource`(38) / `hitDetection`(12) / **`tabBar`(17，带 regionName/options/regionType/regionSize/regionRadius/regionCenter)**。证据：`src/cli/gil_static_assemblies.ts:487 componentSnapshot()`（7 种分支 `:490-508`）+ 配置面 `src/compiler/gsts_config.ts:286`（类型定义）`:475/:531`（staticAssemblies / staticPrefabUpdates）。cfg 位：`staticAssemblies[].components` / `staticPrefabUpdates[].components`。<br>⚠️ **本条曾在 2026-09-15 被错误标为 🔴**（依据 `grep addComponent` = 0 命中）——**根因是搜了一个根本不存在的函数名**；真实入口是配置项。已在票 15 纠正。 |
 
 ### D2 编辑器资产
 
@@ -41,7 +41,7 @@
 | **白盒物件元件常量** | ✅ | `10009001` 长方体 … `10009011` 线框圆柱（基础几何体 `resourceId == definitionId`）。T12 实测枚举 20 张图，见 `ATOMIC-RULES.md` R11 |
 | 地形 | ✅ | `assets:terrain` |
 | **镜像（mirror）/ 阵列生成** | 🔴 | patch 无 mirror 选项、无阵列命令。T12 的绕过法：**用脚本算坐标批量生成 import JSON**——阵列在工具链里缺，但在脚本层等价可实现 |
-| **实体通用组件新增（addComponent）** | 🔴 | `grep -rn "addComponent\|add-component" src/cli/*.ts` = 0；只有 `removeEntityComponents`（`src/cli/gil_entities.ts:997`）。**T12 实测影响**：隐藏收集物需要选项卡/碰撞触发器组件才能被交互，`EntityImport` schema 里**没有 components 字段** → 组件只能靠编辑器手工或 `patch --tab-options` 补 |
+| **实体通用组件新增** | ✅ 元件路径 / 🔴 场景实体路径 | **元件路径可行**：`components:` 支持 7 种含 `tabBar`(17)，见上一行。<br>**场景实体路径确实没有**：`EntityImport`（`src/cli/gil_entities.ts:42-54`）schema 只有 `name/id/definitionId/sourceDefinitionId/position/rotation/scale/color`，**无 `components` 字段** → `assets:entities import` 能批量建实体但加不上组件。<br>**T12 影响**：4 个隐藏物要么改成元件（走 staticAssemblies）再摆实例，要么用 `patch --tab-options`。 |
 | 单位状态资产 | ✅ | `assets:unit-status list/create/add-effect`（root15/16 + root6） |
 | 技能配置 | ✅ | `assets:skill-config create/list` |
 | 资源（道具/装备/货币/背包/商店） | 🟡 | `assets:resources` 在位，覆盖面见 `docs/capability-coverage-map.md:49` |

@@ -271,7 +271,7 @@
 | 结构体拼装 / 拆分（打表的记录载体） | 🔴 | struct 为空占位 `src/runtime/value.ts:458-467`；节点定义在 `src/definitions/nodes.ts:8260` / `:11911` / `:11925`——**有节点定义、无 DSL 封装** |
 | 力场 / 角色扰动装置（物理约束） | 🟡 | 节点定义与中文别名存在：`src/definitions/nodes.ts`、`src/definitions/zh_aliases.ts`、`src/definitions/entity_helpers.ts`、`src/definitions/enum.ts`（含 `client_*` 侧）→ **能在图里调用**；但**没有 CLI 往实体上新增/改造扰动装置组件**，只能手工在编辑器配置组件参数 |
 | 基础运动器组件 | 🟡 | 同上：节点可调；组件本身（运动器数量、路径）需编辑器侧配置；官方限定它只作用于**物件实体**（`official-guide-concepts.md:3194`） |
-| 实体通用组件新增 | 🔴 | `grep -rn "addComponent\|add-component" src/cli/*.ts` = 0；只有删除：`src/cli/gil_entities.ts:997` `removeEntityComponents`（经 `removeStaticAssemblyComponents`） |
+| 实体通用组件新增 | ⚠️ 元件✅ / 场景实体🔴 | **2026-09-16 更正**：原判 🔴 的依据是搜了不存在的函数名 `addComponent`。真相=配置项 `components:`（`followMotion`(9) / `basicMotion`(4) / `nameplate`(27) / `textBubble`(28) / `lightSource`(38) / `hitDetection`(12) / `tabBar`(17)），证据 `src/cli/gil_static_assemblies.ts:487 componentSnapshot()`（分支 `:490-508`）；只有删除侧才走 `removeEntityComponents`（`src/cli/gil_entities.ts:997`） |
 | 地形 / 空气墙（物理约束的几何载体） | ✅ | `src/cli/assets_terrain.ts`、`src/cli/gil_terrain.ts`（`gsts assets:terrain`）→ 静态几何可写；**但"0.2 卡位空间"是编辑器里手摆空气墙的经验值，不是命令参数** |
 | 服务端图子类型创建（entity/status/class/item） | 🟡 | `src/runtime/IR.d.ts:37`；注入类型表 `src/injector/folder.ts:5-15` 含 20003/20004/20005，但 CLI 建空图 **fail closed** |
 | 信号（架构里的模块间通信） | ✅ | `gsts assets:signals`（inspect/register/update/repair） |
@@ -344,7 +344,7 @@
 ### 7.2 我方工具链缺口（登记待裁决，不判死）
 
 1. **结构体类型创建 + DSL 拼装/拆分 API** — 节点定义已在 `src/definitions/nodes.ts:8260/11911/11925`，缺类型与 DSL 封装（`src/runtime/value.ts:458-467` 为空占位）。打表映射的记录载体就靠它。
-2. **组件级新增（含角色扰动装置、通用组件）** — `grep -rn "addComponent" src/cli/*.ts` = 0，只有 `removeEntityComponents`（`src/cli/gil_entities.ts:997`）。目前物理约束类玩法只能手工在编辑器配组件。
+2. **组件级新增（含角色扰动装置、通用组件）** — **2026-09-16 更正**：此前写「`grep addComponent` = 0 故只能手工配」是**错误断言**（该函数名不存在）。真相=配置项 `components:` 支持 7 种（元件路径），见 `_CAPABILITY.md` D2 节。真正缺的是**场景实体侧**（`EntityImport` 无 `components` 字段）。
 3. **服务端图子类型创建（20003/20004/20005 单位/职业/道具）** — 注入类型表已有（`src/injector/folder.ts:5-15`），CLI 建空图 fail closed。
 4. **节点图变量（含向关卡暴露/覆写）的 DSL 一等封装** — 官方能力明确（`official-guide-auxiliary-appendix.md:1226-1252`），我方未封装；当前模块化拆分只能靠自定义变量模拟。
 

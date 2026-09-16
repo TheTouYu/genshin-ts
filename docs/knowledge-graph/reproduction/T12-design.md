@@ -111,7 +111,7 @@
 |---|---|---|---|
 | C1 | 批量创建场景实体（几何） | 待验 | `assets:entities` 有 import 入口，未实测 |
 | C2 | 镜像 / 阵列生成 | 🔴 | `_CAPABILITY.md`（17 个子命令无 mirror）→ **手工逐个摆位，工程量由设计规模决定** |
-| C3 | 实体通用组件新增 | 🔴 | 同上（无 `addComponent`） |
+| C3 | 实体通用组件新增 | ⚠️ **元件✅ / 场景实体🔴** | **2026-09-16 更正**：原写「🔴 无 `addComponent`」是**错误断言**（搜了不存在的函数名）。真相=配置项 `components:` 支持 7 种含 `tabBar`(17)，`src/cli/gil_static_assemblies.ts:487 componentSnapshot()`（7 种分支 `:490-508`）+ 配置面 `src/compiler/gsts_config.ts:286`（类型定义）`:475/:531`（staticAssemblies / staticPrefabUpdates）；但 `EntityImport` schema 确无 `components` 字段 → **隐藏物需走元件路径或 `patch --tab-options`** |
 | C4 | 局内存档 | 🔴 | R8，已规避 |
 
 **C2 是本复现最大的工程量风险**：迷宫墙体若要"阵列生成"，我方无此命令，只能生成 JSON 由脚本批量算坐标后一次 import——这恰好绕开了 CLI 缺阵列的问题（**用脚本补工具链**）。本设计采用该方案。

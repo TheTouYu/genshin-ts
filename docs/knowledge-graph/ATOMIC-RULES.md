@@ -194,7 +194,7 @@
 |---|---|---|---|
 | 单张节点图节点上限口径 | 官方 3000 | 我方红线 2000 | 两条并存，实现取严（R1） |
 | 结构体列表元素可直接引用 | 官方 7.0（`BV1mLMr6QESr` 转述） | `_CAPABILITY.md` 三处 🔴 | 知识缺口·待裁决 |
-| 实体通用组件新增 | 官方编辑器可加 | `grep addComponent src/cli/*.ts` = 0 | 增强空间 |
+| ~~实体通用组件新增~~ **（本条 2026-09-16 作废）** | ~~官方编辑器可加~~ | **原判据作废**：当时 grep 的是一个**不存在的函数名** `addComponent` | **真相**：组件通道是配置项 `components:`，支持 7 种含 `tabBar`(17)（`src/cli/gil_static_assemblies.ts:487 componentSnapshot()`（7 种分支 `:490-508`）+ 配置面 `src/compiler/gsts_config.ts:286`（类型定义）`:475/:531`（staticAssemblies / staticPrefabUpdates））。教训：「grep 不到」≠「不存在」，能力类断言必须先查文档面 `docs/docs/*/doc/cli/` |
 | 实体布设组/复苏点/出生点 | 官方有 | 17 个 assets 子命令无 | 增强空间（新增第 9 项） |
 | 局内存档结构体不支持实体/实体列表/字典 | `concepts.md:10566` | — | 设计约束，须写进玩法选型 |
 
