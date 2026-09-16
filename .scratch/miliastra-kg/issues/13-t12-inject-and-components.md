@@ -37,22 +37,52 @@
 
 ---
 
-## 验收项
+## 验收项（2026-09-16 全部完成，逐条附读回证据）
 
-- [ ] **目标地图确定**（用户裁决：新建 / 指定 mapId），记录 mapId 与理由
-- [ ] **组件路径取证**：在夹具副本上跑通 (a)/(b)/(c) 之一，留下命令 + 回读证据（组件槽含类型码 17）
-- [ ] 补回 `inject` 段（mapId + nodeGraphId）→ `node ./bin/gsts.mjs -c examples/maze-repro/gsts.config.ts`
-- [ ] 几何写入：150 实体入图 → **回读实体数 +150**（126 墙 `def=10009001` / 20 造景 / 4 隐藏），GUID 由 CLI 分配不硬编码
-- [ ] 4 个隐藏物带 **tabBar 组件（类型码 17）**，`options` 非空 → 回读组件槽确认
-- [ ] 节点图注入：`.gia` id=1073741931 替换目标图的 placeholder → 图名变 `_GSTS_maze-collect`
-- [ ] **挂载到普通实体**（`mountGraphToEntity`）：⚠️ **严禁挂关卡实体**（技能红线：挂它会致游戏报「地图异常」无法启动）
-- [ ] **读图核验**（红线）：`gil:parse-node-graph --graph <id> --json` → 读 **`api` 字段**（不是 `kind`，后者恒返回 `SysCall`），
-      9 节点逐个对账 `when_tab_is_selected / activate_disable_tab / activate_disable_model_display /
-      set·get_node_graph_variable / addition / greater_than_or_equal_to / double_branch`
-- [ ] **8b 复合残留检查**：`tools/check-gil-composite-refs.ts <map.gil> --incoming <本次.gia>` → 0 悬空
-- [ ] 若有信号节点：`assets:signals register` 注册信号；**注意 R13——信号是编译期强前置**，含信号的图必须先有 mapId
-- [ ] 结构核验三栏报告（已验证什么 / 尚未验证什么 / 需用户在游戏内确认什么），不把结构层证据写成行为层
-- [ ] 收轮三件套：勾票 + 看板移入划掉区 + PROGRESS 记「下一步=14」
+- [x] **目标地图确定**：用户裁「新建地图」→ `1073741921`「T12迷宫复现」
+      （`maps:create --name "T12迷宫复现" --graphs t12-maze` + `maps:init` 补 36 root 骨架）
+      理由：不复用验证图 `1073741916`——那是给「最小规则核验」用的，塞 150 实体进去会毁掉其用途
+- [x] **组件路径取证**：**直接在真实新图上跑通**（比原计划的"夹具副本"更强）
+      → 走 (a) 元件路径：4 个隐藏物各建一个元件，`components: [{type:'tabBar', regionName:'隐藏收集物', options:['拾取']}]`
+      → **wire 验到类型码 17**：每个定义 7 个组件槽 `[18,1,3,19,6,14,17]`（末位 17）
+      → `export` 回读 `components=[{type:tabBar, regionName:隐藏收集物, options:[拾取]}]` ×4
+      候选 SHA `8a2e55d45236f8df`，证据目录 `~/genshin-ts-evidence/static-assembly/t12-maze-v1/`
+- [x] **inject 段补回**：`mapId: 1073741921` + `nodeGraphId: 1073741825`
+      → `node ./bin/gsts.mjs -c examples/maze-repro/gsts.config.ts`
+- [x] **几何写入**：实体 `11 → 161`（**+150**）
+      → 126 长方体(墙, `def=10009001`) + 7 圆柱 + 7 球 + 6 圆锥（=20 造景）+ 4 隐藏物元件实例
+      → **GUID 由 CLI 自动分配**（墙 `1077936133` 起、隐藏物 `1077936279` 起），输入 JSON 未写 id（红线：不硬编码）
+- [x] **4 个隐藏物带 tabBar**：**三层副本都在位**（这是本轮学到的关键约束）
+      → root4 定义 f8 ✓ / root8 实例 f7 ✓ / **root5 场景实体 f7 ✓**（游戏实际读取的层）
+      → 注意：`staticAssemblies` 的 `touchedTopLevelFields=4,6,8,27` **不含 root5**，
+        故必须再用 `assets:entities import` 生成 4 个场景实例（实测组件成功继承）
+      → **带组件实体数 = 4**（回读确认，恰是 4 个隐藏物）
+- [x] **节点图注入**：图名 `_GSTS_maze-collect` + `_GSTS_maze-counter`，替换各自 placeholder
+- [x] **挂载到普通实体**：4 隐藏物 → `1073741825`；墙实体 `1077936133` → `1073741826`
+      → **严禁挂关卡实体已遵守**：`1094713345` 的挂载表回读为 `graphs=(none)`
+      → 回读 `== graphs not mounted anywhere (0) ==`
+- [x] **读图核验**：读 **`api` 字段**逐个对账
+      → `maze-collect` 4 节点：`When Tab Is Selected` / `Activate/Disable Tab` /
+        `Activate/Disable Model Display` / `复合:发送信号`(1610612741)
+      → `maze-counter` 7 节点：`复合:监听信号`(1610612742) / `Get·Set Node Graph Variable`×3 /
+        `Addition` / `Greater Than or Equal To` / `Double Branch`；变量 `已收集数`(Integer) `已集齐`(Boolean)
+- [x] **8b 复合残留检查**：两图均 `✓ 复合引用完整（0 个 impl 图，0 悬空）`
+      另：节点预算 `4 / 11`（远低于 2000 红线）
+- [x] **信号注册**：`T12隐藏物已拾取` send/monitor/server = `1610612741/42/43`，`params=[序号:int]`
+      → **R13 已遵守**：先 `register` 再编译（`template=builtin-layouts`，单参 int 无需 donor）
+- [x] **结构核验三栏报告**：见 PROGRESS.md 末节与收轮报告（结构层证据与行为层分开陈述）
+- [x] **收轮三件套**：勾票（本节）+ 看板划掉 + PROGRESS 记「下一步=14」
+
+## ⚠️ 与原计划的两处偏差（如实登记，非"顺手改了"）
+
+1. **`.gia` 图 id 由 `1073741931` 改为 `1073741825`**（计数图新建为 `1073741826`）。
+   原因：`inject.nodeGraphId` **仅对 `gsts <file>` 单文件模式生效**，批量模式按 `.gia` 自带 id 找图。
+   把 DSL 的 `g.server({id})` 与地图 placeholder 对齐后，`-c <config>` 一次即可命中两图，无需反复改配置。
+2. **从 1 张图变成 2 张图**（原计划 9 节点单图）。
+   原因：`docs/game-engine-knowledge/components.md:111` 明载「whenTabIsSelected 的图**挂载在挂载选项卡
+   组件的实体上**触发」→ 4 个隐藏物各需一张图 ⇒ 4 个独立实例；而**节点图变量不跨实例** ⇒
+   原单图设计里 `已收集数` 会"4 个实例各数各的，永远到不了 4"。
+   拆为 `maze-collect`（4 节点 / **0 变量**，刻意无状态）+ `maze-counter`（7 节点 / 2 变量，只挂 1 份）。
 
 ## 已知风险 / 提醒
 
