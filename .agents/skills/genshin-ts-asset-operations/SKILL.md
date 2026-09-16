@@ -261,5 +261,16 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 
 - [asset-cli-reference.md](references/asset-cli-reference.md)：全部命令签名、变量类型码、dict 语法与 marker 表、已知坑、Authority 链接。
 - 知识 Authority：`docs/game-engine-knowledge/variables.md`、`graph-mounting.md`、`gia-generation-chain.md`、`ui-controls.md`、`signals.md`；自定义变量架构：`docs/architecture/gil-custom-variables.md`；节点图读改：`docs/architecture/gil-node-graph-edit.md`。
+  - ⚠️ **节点图创建/类型相关必读（2026-09-16 补，此前漏列导致实测事故）**：
+    **`docs/game-engine-knowledge/node-graphs.md`** —— 含 **folder typeValue 表**（20000→800 / 20001→2100 /
+    20002→2200 / **20003→2300** / 20004→2400 / 20005→4300 / …）与 **folderId 类型级常量表**
+    （20000→4 / 20001→13 / 20002→14 / **20003→15** / 20006→57 / …），以及**空图自动节点
+    因图类别而异**的逐字节配方；**`gil-nodegraph-semantics.md`**（NodeGraph 语义树）；
+    **`map-graph-type-matrix.md`**（地图×图型矩阵：哪张地图有哪类图、叫什么、几个节点）。
+  - **纪律**：**在动手做任何「定义/创建/差分」之前，先读本行列出的对应 Authority**——
+    2026-09-16 实证：创建 20003/20004 节点图时未先读 `node-graphs.md`，直接去字节级挖 folderId，
+    结果挖出来的（20003→15、typeValue 2300）**文档里早有**，白耗多轮；用户一句
+    「权威文档有看吗」才发现。**本会话第三次同类失误**（前两次见 `dsl-nodegraph-development`
+    的 R12/R13 重复发现）。
 - 静态模型/ID 纪律与写回安全门：`static-gil-model-builder`。
 - 游戏内核验最小注入通道：`verify-injection`。
