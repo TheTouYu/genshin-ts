@@ -79,6 +79,16 @@ T01 战果：4 轮 / 123 次检索 / **1948 个去重源**；收敛证据双判�
 交付：`research/千星知识图谱/{SOURCES.md, KEYWORDS.md, COMMENTS-INSIGHTS.md}` + `scripts/` 4 个可复现脚本。
 **关键涌现**：优质度轴从评论里自己长出来 9 条（引导UI/体验基线/完成度/分工/项目管理/性能/受众匹配/合规门槛/迭代路径）。
 
+
+**票 16 基线已就绪（2026-09-16）**：struct16 实验已锁定，专用实验图 `1073741918`「差分实验」，
+before sha `3ce595fa…`（与上次 20005 差分的 after 一致 → 基线连续）。
+**用户本轮唯一变化 = 在编辑器创建一个结构体（2 成员 int+str，命名 T16_probe），只做这一件事就保存。**
+续作恢复块与目标字段见 `.scratch/editor-incremental-evidence/2026-09-16-struct16/manifest.md`。
+
+**为何必须用户差分（已穷尽工件）**：① `parameter-types.md:45-48` 自认「全部类型在 GIL 各作用域的
+逐个 wire 样本」未覆盖（类型码 25/26 已知但无编码样本）；② 穷尽 40 张真实地图的
+`custom-variables --list` 与 `level-variables --list`，**无一张存在 struct 变量**；③ 无天然实验可做。
+
 ## 三、票据清单
 
 | # | 票名 | Blocked by | 状态 |
