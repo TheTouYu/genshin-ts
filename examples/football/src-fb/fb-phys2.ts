@@ -25,7 +25,8 @@
 // 编译硬前置：主配置全图编译（单 entry 必失败）；客户端参数序与服务端相反
 //   （getCorrespondingValueFromList(iD, list)；_3dVectorZoom(标量, 向量) 同理反序）。
 import { g } from 'genshin-ts/runtime/core'
-import { float } from 'genshin-ts/runtime/value'
+// float 值类改别名：裸名 float 是 DSL 全局转换函数（见 src/runtime/server_globals.d.ts）
+import { float as floatValue } from 'genshin-ts/runtime/value'
 
 import { chanReadF, chanReadF32Group, chanWriteF } from './channels.js'
 import { FbSignal } from './signals.js'
@@ -39,6 +40,7 @@ const OUT_TAG_TEAR = 'T'
 // 0=Airborne 1=Bouncing 2=Sliding 3=Rolling 4=Rest 5=DribbleControlled
 const TT_KICK = 1n
 const TT_RESET = 2n
+const TT_DROP = 3n // 票 23 演出：带旋落体（pos+spin+state，vel=0）
 // ———— 几何/玩法字面量（PORTING-MAP §1.6 明确不参数化项；非物理参数） ————
 const POST_Z = 3.6 // 门柱中心 z 偏移
 const POST_R = 0.06 // 门柱/横梁半径
@@ -71,6 +73,14 @@ const CFG_ST = 1207959579n
 // ———— 5.3c AI 射程维持计数槽（实例隔离自持；用户建的 40 变量段 580 空闲位） ————
 const CFG_JUMP_CT = 1207959580n
 
+// ———— 票23 v2 变化门控/驱动包槽（实例隔离自持；用户 40 变量段 581~585 空闲位） ————
+const CFG_LSX = 1207959581n
+const CFG_LSY = 1207959582n
+const CFG_LSZ = 1207959583n
+const CFG_LST = 1207959584n
+const CFG_KA = 1207959585n
+const DRIVE_SIG = FbSignal.fb_ball_drive
+
 g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f) => {
   // ============ ① E2 计数器（观测面保留；E2 定论=每拍复位，恒 1） ============
   const tick = f.localVariable('int')
@@ -84,7 +94,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
   eEq.set(f.equal(e1, ack))
 
   // ============ ③ 任务物化局部（seqlock 分支写入，计算分支消费） ============
-  const tPend = f.localVariable('int') // 0=无 1=KICK 2=RESET
+  const tPend = f.localVariable('int') // 0=无 1=KICK 2=RESET 3=DROP
   const tVel = f.localVariable('vec3')
   const tSpin = f.localVariable('vec3')
   const tPos = f.localVariable('vec3')
@@ -119,7 +129,15 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
             tSt.set(v8)
             tPend.set(2n)
           }, () => {
-            f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'ok', e1, tick.value)
+            f.doubleBranch(f.equal(v1, TT_DROP), () => {
+              // 票 23 演出 DROP：pos+spin+state（vel=0）——带旋落体
+              tPos.set(f.create3dVector(dv(v2), dv(v3), dv(v4)))
+              tSpin.set(f.create3dVector(dv(v5), dv(v6), dv(v7)))
+              tSt.set(v8)
+              tPend.set(3n)
+            }, () => {
+              f.sendSignalToServerNodeGraph(FbSignal.fb_echo, 'ok', e1, tick.value)
+            })
           })
         })
       }, () => {
@@ -211,7 +229,7 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
     chanWriteF(f, CFG_JUMP_CT, f.dataTypeConversion(f.addition(jc, 1n), 'float'))
     const jcF = f.dataTypeConversion(jc, 'float')
     const evenJump = f.equal(
-      f.multiplication(f.division(jcF, new float(2)), new float(2)),
+      f.multiplication(f.division(jcF, new floatValue(2)), new floatValue(2)),
       jcF
     )
     f.doubleBranch(evenJump, () => {
@@ -219,11 +237,11 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const ploc = f.getEntityLocation(owner)
       const toP = f._3dVectorSubtraction(ploc, eloc)
       const d = f._3dVectorModuloOperation(toP)
-      f.doubleBranch(f.greaterThan(d, new float(4)), () => {
+      f.doubleBranch(f.greaterThan(d, new floatValue(4)), () => {
         const es = f.split3dVector(eloc)
         const ps = f.split3dVector(ploc)
         f.complexCreationTeleport(
-          f.create3dVector(f.addition(ps.xComponent, new float(2)), es.yComponent, ps.zComponent),
+          f.create3dVector(f.addition(ps.xComponent, new floatValue(2)), es.yComponent, ps.zComponent),
           f.create3dVector(0, 0, 0)
         )
       }, () => {})
@@ -284,15 +302,17 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const b2f = (b: boolean) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
       const bKick = b2f(f.equal(tPend.value, 1n))
       const bReset = b2f(f.equal(tPend.value, 2n))
-      const bTask = f.addition(bKick, bReset) // 互斥 → 0/1
+      const bDrop = b2f(f.equal(tPend.value, 3n))
+      const bTask = f.addition(f.addition(bKick, bReset), bDrop) // 互斥 → 0/1
       const posIn = f.localVariable('vec3')
       const velIn = f.localVariable('vec3')
       const spinIn = f.localVariable('vec3')
       const stIn = f.localVariable('float')
+      const bPlace = f.addition(bReset, bDrop) // DROP/RESET 都做位置置位
       posIn.set(
         f._3dVectorAddition(
-          f._3dVectorZoom(bReset, tPos.value),
-          f._3dVectorZoom(f.subtraction(1, bReset), mPos.value)
+          f._3dVectorZoom(bPlace, tPos.value),
+          f._3dVectorZoom(f.subtraction(1, bPlace), mPos.value)
         )
       )
       velIn.set(
@@ -302,20 +322,22 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         )
       )
       // RESET 自旋清零（载荷无自旋字段）；KICK 用任务自旋；否则镜像
+      const bSpinT = f.addition(bKick, bDrop) // KICK/DROP 都带任务自旋
       spinIn.set(
         f._3dVectorAddition(
-          f._3dVectorZoom(bKick, tSpin.value),
+          f._3dVectorZoom(bSpinT, tSpin.value),
           f._3dVectorZoom(
-            f.subtraction(1, bKick),
+            f.subtraction(1, bSpinT),
             f._3dVectorZoom(f.subtraction(1, bReset), mSpin.value)
           )
         )
       )
+      const bState = f.addition(bReset, bDrop) // RESET/DROP 都带任务状态
       stIn.set(
         f.addition(
-          f.multiplication(bReset, f.dataTypeConversion(tSt.value, 'float')),
+          f.multiplication(bState, f.dataTypeConversion(tSt.value, 'float')),
           f.multiplication(
-            f.subtraction(1, bReset),
+            f.subtraction(1, bState),
             f.dataTypeConversion(mSt.value, 'float')
           )
         )
@@ -378,8 +400,8 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const slipX = f.addition(gvx0, f.multiplication(sSpin.zComponent, pR.value))
       const slipZ = f.subtraction(gvz0, f.multiplication(sSpin.xComponent, pR.value))
       // 每拍冲量比例 g=pGain：Δv=−0.4·g·slip（薄壁壳无滑配对）；Δωx=+0.6·g·slipZ/r；Δωz=−0.6·g·slipX/r
-      const dvx = f.multiplication(f.multiplication(new float(-0.4), pGain.value), slipX)
-      const dvz = f.multiplication(f.multiplication(new float(-0.4), pGain.value), slipZ)
+      const dvx = f.multiplication(f.multiplication(new floatValue(-0.4), pGain.value), slipX)
+      const dvz = f.multiplication(f.multiplication(new floatValue(-0.4), pGain.value), slipZ)
       const gvx = f.addition(gvx0, dvx)
       const gvz = f.addition(gvz0, dvz)
       const gPos = f.create3dVector(
@@ -390,11 +412,11 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       const gVel = f.create3dVector(gvx, 0, gvz)
       // 自旋同步转移（y 分量地面更快衰减）；v/ω 配对 Δv=−(2/3)·r·Δω → 收敛纯滚且能量守恒
       const dSpinX = f.division(
-        f.multiplication(f.multiplication(new float(0.6), pGain.value), slipZ),
+        f.multiplication(f.multiplication(new floatValue(0.6), pGain.value), slipZ),
         pR.value
       )
       const dSpinZ = f.division(
-        f.multiplication(f.multiplication(new float(-0.6), pGain.value), slipX),
+        f.multiplication(f.multiplication(new floatValue(-0.6), pGain.value), slipX),
         pR.value
       )
       const gSpin = f.create3dVector(
@@ -594,19 +616,19 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
         const ratio = f.division(
           f.multiplication(
             f.multiplication(pMu.value, f.absoluteValueOperation(wv.yComponent)),
-            f.addition(new float(1), pE.value)
+            f.addition(new floatValue(1), pE.value)
           ),
           f.multiplication(pTanK.value, slipMag)
         )
         const scale = f.localVariable('float')
-        f.doubleBranch(f.greaterThan(slipMag, new float(0.0001)), () => {
-          f.doubleBranch(f.greaterThan(ratio, new float(1)), () => {
-            scale.set(new float(1))
+        f.doubleBranch(f.greaterThan(slipMag, new floatValue(0.0001)), () => {
+          f.doubleBranch(f.greaterThan(ratio, new floatValue(1)), () => {
+            scale.set(float(1))
           }, () => {
             scale.set(ratio)
           })
         }, () => {
-          scale.set(new float(0))
+          scale.set(float(0))
         })
         velF.set(
           f.create3dVector(
@@ -628,12 +650,12 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
           f.create3dVector(
             f.addition(
               s0.xComponent,
-              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new float(1.5), pTanK.value), pSpinK.value), scale.value), slipZ), pR.value)
+              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new floatValue(1.5), pTanK.value), pSpinK.value), scale.value), slipZ), pR.value)
             ),
             s0.yComponent,
             f.subtraction(
               s0.zComponent,
-              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new float(1.5), pTanK.value), pSpinK.value), scale.value), slipX), pR.value)
+              f.division(f.multiplication(f.multiplication(f.multiplication(f.multiplication(new floatValue(1.5), pTanK.value), pSpinK.value), scale.value), slipX), pR.value)
             )
           )
         )
@@ -702,16 +724,43 @@ g.creationSkill({ id: 1082130437, name: '_GSTS_fbPhys2' }).on('start', (_evt, f)
       )
       const nextSt = f.dataTypeConversion(nextStF, 'int')
 
-      // ============ ⑬ 回传打包（base_tick + 预测值 t+DT；信号/tag 由顶部三常量开关） ============
-      f.sendSignalToServerNodeGraph(
-        OUT_SIG,
-        OUT_TAG,
-        mTick.value,
-        posF.value,
-        velF.value,
-        spinOut.value,
-        nextSt
+      // ============ ⑬ 回传打包（票23 v2：变化门控 + 驱动包直发；空闲 Rest 零发送） ============
+      // 变化门控（镜像对比版）：与球实体镜像现值比，变了/任务拍/32 拍 keepalive 才发
+      const mpx = f.getCustomVariable(ballRef.value, 'fb_ball_px').asType('float')
+      const mpy = f.getCustomVariable(ballRef.value, 'fb_ball_py').asType('float')
+      const mpz = f.getCustomVariable(ballRef.value, 'fb_ball_pz').asType('float')
+      const mst = f.getCustomVariable(ballRef.value, 'fb_ball_state').asType('int')
+      const dVec = f.create3dVector(
+        f.subtraction(fp.xComponent, mpx),
+        f.subtraction(fp.yComponent, mpy),
+        f.subtraction(fp.zComponent, mpz)
       )
+      const posMoved = f.greaterThan(f._3dVectorModuloOperation(dVec), new floatValue(0.02))
+      const stChanged = f.logicalNotOperation(f.equal(nextSt, mst))
+      const kaWrap = f.equal(
+        f.multiplication(f.division(f.dataTypeConversion(mTick.value, 'float'), new floatValue(32)), new floatValue(32)),
+        f.dataTypeConversion(mTick.value, 'float')
+      )
+      const gate = f.logicalOrOperation(
+        f.logicalOrOperation(posMoved, stChanged),
+        kaWrap
+      )
+      f.doubleBranch(gate, () => {
+        f.sendSignalToServerNodeGraph(OUT_SIG, OUT_TAG, mTick.value, posF.value, velF.value, spinOut.value, nextSt)
+      }, () => {})
+      // —— 驱动包：需要视觉移动的拍直发（双 Rest 不发；|velDevice|>80 服务端走瞬移） ——
+      const durD = f.getCustomVariable(ballRef.value, 'fb_p_drive').asType('float')
+      const invD = f.division(new floatValue(1), durD)
+      const mSp = f.split3dVector(mPos.value)
+      const driveVel = f.create3dVector(
+        f.multiplication(f.subtraction(fp.xComponent, mSp.xComponent), invD),
+        f.multiplication(f.subtraction(fp.yComponent, mSp.yComponent), invD),
+        f.multiplication(f.subtraction(fp.zComponent, mSp.zComponent), invD)
+      )
+      const settled = f.logicalAndOperation(f.equal(nextSt, 4n), f.equal(mSt.value, 4n))
+      f.doubleBranch(f.logicalNotOperation(settled), () => {
+        f.sendSignalToServerNodeGraph(DRIVE_SIG, mTick.value, driveVel, spinOut.value, posF.value)
+      }, () => {})
 
       // ============ ⑮ 自持写回（票 19 新增段；t 先写=跨实例撕裂哨兵） ============
       // 内核输出直存自持组：tick=mTick+1（P 回传的是 base_tick，组内已是下一拍状态）；
