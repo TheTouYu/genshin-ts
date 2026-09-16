@@ -33,6 +33,7 @@ import {
   readStructFolderEntries,
   nextStructId,
   appendStruct,
+  updateStruct,
   rebuildGil,
   STRUCT_FOLDER_ARCHIVED,
   STRUCT_FOLDER_BASIC,
@@ -318,7 +319,40 @@ export async function runAssetsStructs(
     emitBytesOrWrite(outBytes, gil, args)
     return
   }
-  printUpdatePlan(args, defs, gil, sourceSha)
+  if (!args.outputPath && !args.write) {
+    printUpdatePlan(args, defs, gil, sourceSha)
+    return
+  }
+  const target = defs.find((d) => d.name === args.name || String(d.id) === args.name)
+  if (!target) throw new Error(`[error] structure not found: ${args.name}`)
+  const res = updateStruct(payloadOf(sourceBytes), {
+    id: target.id,
+    addMembers: args.addMembers.map((m) => ({ name: m.name, typeCode: m.typeCode })),
+    removeNames: args.removeMembers,
+    rename: args.rename ? [args.rename[0], args.rename[1]] : undefined
+  })
+  const outBytes = rebuildGil(sourceBytes, res.payload)
+  // 回读断言：目标结构体的成员数与预期一致（不是「CLI 说成功」）
+  const after = readStructDefs(outBytes).find((d) => d.id === target.id)
+  // 期望成员名序列：删掉待删的、把重命名的换掉、末尾接上新增的
+  const expectNames = target.members
+    .map((m) => m.name)
+    .filter((n) => !args.removeMembers.includes(n))
+    .map((n) => (args.rename && args.rename[0] === n ? args.rename[1] : n))
+    .concat(args.addMembers.map((m) => m.name))
+  const actualNames = after?.members.map((m) => m.name) ?? []
+  if (!after || actualNames.length !== expectNames.length || actualNames.some((n, i) => n !== expectNames[i])) {
+    throw new Error(
+      `[error] 回读核对失败：更新后 [${target.id}] 成员为 [${actualNames.join('、')}]，期望 [${expectNames.join('、')}]。已放弃写盘。`
+    )
+  }
+  console.log(`结构体更新 → 已写入`)
+  console.log(`  目标地图    : ${gil}`)
+  console.log(`  写入前 sha  : ${sourceSha}`)
+  console.log(`  目标结构体  : [${target.id}] "${target.name}"  ${target.members.length} → ${after.members.length} 成员`)
+  for (const c of res.changed) console.log(`  · ${c}`)
+  console.log(`  回读核对    : ✓ ${after.members.length} 成员（${after.members.map((m) => `${m.name}:${m.typeCode}`).join('、')}）`)
+  emitBytesOrWrite(outBytes, gil, args)
 }
 
 /** 取 GIL 载荷（20B 头 + 载荷 + 4B 尾） */

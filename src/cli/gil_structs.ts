@@ -379,3 +379,156 @@ export function rebuildGil(source: Uint8Array, newPayload: Uint8Array): Uint8Arr
   Buffer.from(source).copy(out, out.length - 4, source.length - 4)
   return out
 }
+
+/**
+ * 修改既有结构体的成员。
+ *
+ * 计数器规律（v3→v4 差分实测）：**每次写入，所有结构体 +1；被写入的那个再 +1**。
+ *   · create：新结构体 0+1+1 = 2 ✓（与编辑器一致）
+ *   · update：目标 2+1+1 = 4 ✓
+ * 成员改动**不动 root6**（v3→v4 的 roots 只有 10/46）。
+ */
+export function updateStruct(payload: Uint8Array, opts: {
+  id: number
+  addMembers?: readonly NewStructMember[]
+  removeNames?: readonly string[]
+  rename?: readonly [string, string]
+}): AppendResult {
+  const root = parseWireMessage(payload)
+  if (!root) throw new Error('[error] malformed GIL payload')
+  const r10 = rootContainer(root, 10)
+  if (!r10) throw new Error('[error] 地图缺少 root10（节点图容器）')
+  const decode = (bytes: Uint8Array) => parseWireMessage(bytes) ?? []
+  const idOf = (content: readonly WireField[]): number | undefined => {
+    const blk = content.find((x) => x.number === 1 && x.wire === 2)
+    if (!blk) return undefined
+    const b = decode(blk.value as Uint8Array)
+    const f = b.find((x) => x.number === 1 && x.wire === 0)
+    return typeof f?.value === 'number' ? f.value : undefined
+  }
+  const target = r10.filter((f) => f.number === 6 && f.wire === 2).find((f) => idOf(decode(f.value as Uint8Array)) === opts.id)
+  if (!target) throw new Error(`[error] 地图内没有结构体 id=${opts.id}`)
+
+  const bumpBlock = (bytes: Uint8Array, extra: boolean): Uint8Array => {
+    const blk = decode(bytes)
+    return emitWireMessage(
+      blk.map((y) =>
+        y.number === 503 && y.wire === 0
+          ? { number: 503, wire: 0 as const, value: (y.value as number) + 1 + (extra ? 1 : 0) }
+          : y
+      )
+    )
+  }
+
+  const changed: string[] = []
+  let memberDelta = 0
+  let newMemberCount: number | null = null
+  const rewritten = r10.map((f) => {
+    if (f.number !== 6 || f.wire !== 2) return f
+    const content = decode(f.value as Uint8Array)
+    const isTarget = idOf(content) === opts.id
+    const mapped = content.map((x) => {
+      if (x.number === 3 && x.wire === 0) {
+        return { number: 3, wire: 0 as const, value: (x.value as number) + 1 + (isTarget ? 1 : 0) }
+      }
+      if ((x.number === 1 || x.number === 2) && x.wire === 2) {
+        const blk = decode(x.value as Uint8Array)
+        if (!isTarget) return { number: x.number, wire: 2 as const, value: bumpBlock(x.value as Uint8Array, false) }
+        // 目标结构体：改成员 + 计数器 +2
+        const nameOfMember = (m: WireField): string | undefined => {
+          const mm = decode(m.value as Uint8Array)
+          const nm = mm.find((y) => y.number === 501 && y.wire === 2)
+          return nm ? printableWireText(nm.value as Uint8Array) : undefined
+        }
+        const allMembers = blk.filter((y) => y.number === 3 && y.wire === 2)
+        // 目标名不存在时直接报错，不要静默无操作（打错名字看不出来是反模式）
+        const existingNames = allMembers.map((m) => nameOfMember(m)).filter((n): n is string => n !== undefined)
+        for (const want of [...(opts.removeNames ?? []), ...(opts.rename ? [opts.rename[0]] : [])]) {
+          if (!existingNames.includes(want)) {
+            throw new Error(
+              `[error] 结构体 [${opts.id}] 没有名为 "${want}" 的成员（现有：${existingNames.join('、') || '（无）'}）`
+            )
+          }
+        }
+        const keep: WireField[] = []
+        const removed = new Set<WireField>()
+        for (const m of allMembers) {
+          const nm = nameOfMember(m)
+          if (opts.removeNames?.length && nm !== undefined && opts.removeNames.includes(nm)) {
+            removed.add(m)
+            continue
+          }
+          keep.push(m)
+        }
+        // 重命名：算出「原字段 → 新字段」的替换表（不能只算不换——踩过一次）
+        const renamed = new Map<WireField, WireField>()
+        keep.forEach((m) => {
+          if (!opts.rename) return
+          const [from, to] = opts.rename
+          if (nameOfMember(m) !== from) return
+          const buf = Buffer.from(to, 'utf8')
+          const mm = decode(m.value as Uint8Array)
+          renamed.set(m, {
+            number: 3,
+            wire: 2 as const,
+            value: emitWireMessage(
+              mm.map((y) => (y.number === 5 || y.number === 501 ? { number: y.number, wire: 2 as const, value: buf } : y))
+            )
+          })
+        })
+        const startOrder = keep.length
+        const addedFields = (opts.addMembers ?? []).map((m, i) => {
+          if (m.typeCode === TYPE_CODE_STRUCT || m.typeCode === TYPE_CODE_STRUCT_LIST) {
+            throw new Error(`[error] 成员 "${m.name}" 是结构体/结构体列表，其默认值展开的字节模板尚未闭合，拒绝写入。`)
+          }
+          memberDelta += 1
+          return {
+            number: 3,
+            wire: 2 as const,
+            value: emitWireMessage(buildMemberFields({ name: m.name, typeCode: m.typeCode, order: startOrder + i + 1 }))
+          }
+        })
+        // 保持编辑器字段序：删掉的成员直接跳过；新成员插在最后一个保留成员之后
+        const keepSet = new Set(keep)
+        const lastKeepIdx = blk.reduce<number>((acc, y, i) => (keepSet.has(y) ? i : acc), -1)
+        const blkNext: WireField[] = []
+        blk.forEach((y, i) => {
+          if (removed.has(y)) return
+          blkNext.push(renamed.get(y) ?? y)
+          if (keepSet.has(y) && i === lastKeepIdx) blkNext.push(...addedFields)
+        })
+        if (lastKeepIdx === -1) blkNext.splice(1, 0, ...addedFields)
+        newMemberCount = keep.length + addedFields.length
+        // DefBlock 内的 f503 与 content 层的 f3 是同一个改写计数，两者都要 +2（目标）
+        const blkBumped = blkNext.map((y) =>
+          y.number === 503 && y.wire === 0 ? { number: 503, wire: 0 as const, value: (y.value as number) + 2 } : y
+        )
+        return { number: x.number, wire: 2 as const, value: emitWireMessage(blkBumped) }
+      }
+      return x
+    })
+    const nc: number | null = isTarget ? newMemberCount : null
+    if (nc === null) {
+      return { number: 6, wire: 2 as const, value: emitWireMessage(mapped) }
+    }
+    // f4（成员数）属于 f6 字段的内容层，不在 DefBlock 里；0 成员时编辑器省略该字段
+    let withCount: WireField[]
+    if (nc === 0) {
+      withCount = mapped.filter((y) => !(y.number === 4 && y.wire === 0))
+    } else if (mapped.some((y) => y.number === 4 && y.wire === 0)) {
+      withCount = mapped.map((y) => (y.number === 4 && y.wire === 0 ? { number: 4, wire: 0 as const, value: nc } : y))
+    } else {
+      // 原本 0 成员（无 f4）→ 插在 f5 之前，保持 { 1 2 3 4 5 } 顺序
+      const at = mapped.findIndex((y) => y.number === 5 && y.wire === 0)
+      const ins: WireField = { number: 4, wire: 0, value: nc }
+      withCount = at === -1 ? [...mapped, ins] : [...mapped.slice(0, at), ins, ...mapped.slice(at)]
+    }
+    return { number: 6, wire: 2 as const, value: emitWireMessage(withCount) }
+  })
+
+  const total = r10.filter((f) => f.number === 6 && f.wire === 2).length
+  changed.push(`结构体 [${opts.id}] 成员更新（新增 ${opts.addMembers?.length ?? 0}、删除 ${opts.removeNames?.length ?? 0}${opts.rename ? '、重命名 1' : ''}）`)
+  changed.push(`整表改写：全部 ${total} 条 +1，目标条再 +1（共 +2）`)
+  void memberDelta
+  return { payload: withContainer(root, 10, emitWireMessage(rewritten)), changed }
+}
