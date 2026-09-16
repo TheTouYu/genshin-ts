@@ -21,7 +21,7 @@
 //   → 客户端 20002 图 start → 客户端发 CAL_START/CAL_DONE → 本图 onSignal 打印
 //
 // 防重入：fb20d_busy=1 期间忽略再次点击，直到收到 CAL_DONE 才复位。
-// 打印纪律：仅生命周期 4 行（created/cast/start/done），不 print 高频数据。
+// 打印纪律：零 print（2026 用户要求移除全部打印节点）；观测走 fb20d_echo 帧流与图变量。
 import { g } from 'genshin-ts/runtime/core'
 import { int } from 'genshin-ts/runtime/value'
 
@@ -59,8 +59,7 @@ g.server({
         const inst = f.createCustomSkillInstance(role, configId(SKILL_CFG))
         f.setNodeGraphVariable('fb20d_skill_id', inst, false)
         f.setNodeGraphVariable('fb20d_armed', 1n, false)
-        f.printString('fb20d:created')
-        f.printString(f.dataTypeConversion(inst, 'str'))
+        // created 事实=fb20d_armed=1 + 后续点击触发 cast 帧（零 print）
       }, () => {})
     }, () => {})
   })
@@ -80,7 +79,6 @@ g.server({
           f.setNodeGraphVariable('fb20d_busy', 1n, false)
           // 只用已创建的实例 ID 触发，不再创建
           f.castSpecifiedSkillInstance(role, skillId, false)
-          f.printString('fb20d:cast')
         }, () => {})
       }, () => {})
     }, () => {})
@@ -89,14 +87,10 @@ g.server({
     const tag = evt.params.tag
     f.doubleBranch(f.equal(tag, 'CAL_START'), () => {
       f.setNodeGraphVariable('fb20d_last_run', evt.params.e, false)
-      f.printString('fb20d:start')
-      f.printString(f.dataTypeConversion(evt.params.e, 'str'))
     }, () => {
       f.doubleBranch(f.equal(tag, 'CAL_DONE'), () => {
         f.setNodeGraphVariable('fb20d_last_k', evt.params.e, false)
         f.setNodeGraphVariable('fb20d_busy', 0n, false)
-        f.printString('fb20d:done')
-        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
       }, () => {})
     })
   })

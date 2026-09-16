@@ -1,5 +1,9 @@
 # 物理足球 · 第一阶段物理表现核验报告
 
+> doc-type: T · status: active · updated: 2026-09-16 · owner: football-v2
+> 生成物：由 `npm run football:sim` 产出（勿手改；重跑即覆盖）· read-when: ticket
+> derived-from: examples/football/sim/verify/report.ts（数字部分确定性=同平台同构建逐位一致）
+
 > 验收口径：`soccer-physics-phase1-verification-prompt.md`（足球游戏·第一阶段物理核验标准）
 > 生成命令：`npm run football:sim`
 > 环境：Node v26.7.0 / linux x64（确定性声明：同平台同构建逐位一致）
@@ -44,7 +48,7 @@
 | D1 | `npm run football:sim -- --gate D` | seed=12345，射门/冲量/传球/冲量 @tick 60/900/3000/5400 | hash 相等 + CSV 逐字节相等 | hash 1c1057c0d0948b43 vs 1c1057c0d0948b43；CSV 逐字节一致（7201 条记录） | ✅ Pass |
 | D2-1 | `npm run football:sim -- --gate D` | 60s 剧本，快照点 tick 3000 | 1c1057c0d0948b43 | 1c1057c0d0948b43 ✓ | ✅ Pass |
 | D2-2 | `npm run football:sim -- --gate D` | 60s 剧本，快照点 tick 6000 | 1c1057c0d0948b43 | 1c1057c0d0948b43 ✓ | ✅ Pass |
-| D3 | `npm run football:sim -- --gate D` | B4 场景 1200 tick / 22 球 600 帧 | 中位 & p99 双达标 | 单球 中位 0.0067ms p99 0.0264ms；22球/帧 中位 0.2698ms p99 0.8864ms | ✅ Pass |
+| D3 | `npm run football:sim -- --gate D` | B4 场景 1200 tick / 22 球 600 帧 | 中位 & p99 双达标 | 单球 中位 0.0066ms p99 0.0335ms；22球/帧 中位 0.2460ms p99 0.8631ms | ✅ Pass |
 | D4 | `npm run football:sim` | 本 CLI 运行自身 | 覆盖 A1/A2/A3/A4/A5/B1/B2/B3/B4/B5/B6/C1/C2/C3/C4/C5/C6/C7/D1/D2/D3，退出码 0=PASS/1=FAIL | 本进程已 headless 执行 31 项用例（无渲染/无游戏依赖），覆盖 A1+A2+A3+A4+A5+B1+B2+B3+B4+B5+B6+C1+C2+C3+C4+C5+C6+C7+D1+D2+D3；退出码即判分结果 | ✅ Pass |
 
 

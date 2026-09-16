@@ -10,6 +10,7 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 export const ST_REST = 4n // 六态枚举（sim/src/state.ts 单一事实源）
 export const TT_KICK = 1n
 export const TT_RESET = 2n
+export const TT_DROP = 3n // 票 23 演出：带旋落体（pos+spin+state，vel=0）
 export const RAD2DEG = 57.29577951308232 // 180/π（旋转设备角速度单位）
 // 球门线几何（FIFA 105×68：门线 x=±52.5；门宽 7.32→|z|<3.66；横梁高 2.5）
 export const GOAL_LINE_X = 52.5
@@ -162,25 +163,32 @@ export const fbDrive = g.defineComposite('fb_drive', {
       dur,
       vel
     ])
-    const axis = f._3dVectorNormalization(spin)
-    const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
-    const rot = f.getEntityLocationAndRotation(ball).rotate
-    const r = f.split3dVector(rot)
-    const negX = f.multiplication(r.xComponent, -1)
-    const negY = f.multiplication(r.yComponent, -1)
-    const negZ = f.multiplication(r.zComponent, -1)
-    const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
-    const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
-    const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
-    const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
-      ball,
-      new str('fb_spin'),
-      dur,
-      angVel,
-      localAxis
-    ])
-    f.connect(lin, 0, rotDev, 0)
-    f.outflow('done', rotDev, 0)
+    // —— 自旋设备（票 23 优化）：|spin| 近零时整条旋转链路跳过（无旋帧省归一化/3 次旋转变换/旋转设备）——
+    const spd = f._3dVectorModuloOperation(spin)
+    const hasSpin = f.greaterThan(spd, new float(0.001))
+    f.doubleBranch(hasSpin, () => {
+      const axis = f._3dVectorNormalization(spin)
+      const angVel = f.multiplication(f._3dVectorModuloOperation(spin), RAD2DEG)
+      const rot = f.getEntityLocationAndRotation(ball).rotate
+      const r = f.split3dVector(rot)
+      const negX = f.multiplication(r.xComponent, -1)
+      const negY = f.multiplication(r.yComponent, -1)
+      const negZ = f.multiplication(r.zComponent, -1)
+      const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
+      const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
+      const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
+      const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
+        ball,
+        new str('fb_spin'),
+        dur,
+        angVel,
+        localAxis
+      ])
+      f.connect(lin, 0, rotDev, 0)
+      f.outflow('done', rotDev, 0)
+    }, () => {
+      f.outflow('done', lin, 0)
+    })
     return {}
   }
 })
@@ -207,6 +215,53 @@ export const fbTeleport = g.defineComposite('fb_teleport', {
       new float(0)
     ])
     f.outflow('done', tail, 0)
+    return {}
+  }
+})
+
+// ———— 复合：哑驱动（票 23 v2：客户端已把 速度向量/dur 预算好，服务端零计算直加设备） ————
+// vel 已含 /fb_p_drive；spin≈0 跳过旋转设备（无旋帧省整条旋转链）。
+export const fbDriveDirect = g.defineComposite('fb_drive_direct', {
+  id: 1610700044,
+  inputs: {
+    ball: { type: 'entity' },
+    dur: { type: 'float' },
+    vel: { type: 'vec3' },
+    spin: { type: 'vec3' }
+  },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ ball, dur, vel, spin }, f) => {
+    const lin = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+      ball,
+      new str('fb_phys'),
+      dur,
+      vel
+    ])
+    const spd = f._3dVectorModuloOperation(spin)
+    f.doubleBranch(f.greaterThan(spd, new float(0.001)), () => {
+      const axis = f._3dVectorNormalization(spin)
+      const angVel = f.multiplication(spd, RAD2DEG)
+      const rot = f.getEntityLocationAndRotation(ball).rotate
+      const r = f.split3dVector(rot)
+      const negX = f.multiplication(r.xComponent, -1)
+      const negY = f.multiplication(r.yComponent, -1)
+      const negZ = f.multiplication(r.zComponent, -1)
+      const afterY = f._3dVectorRotation(f.create3dVector(0, negY, 0), axis)
+      const afterX = f._3dVectorRotation(f.create3dVector(negX, 0, 0), afterY)
+      const localAxis = f._3dVectorRotation(f.create3dVector(0, 0, negZ), afterX)
+      const rotDev = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
+        ball,
+        new str('fb_spin'),
+        dur,
+        angVel,
+        localAxis
+      ])
+      f.connect(lin, 0, rotDev, 0)
+      f.outflow('done', rotDev, 0)
+    }, () => {
+      f.outflow('done', lin, 0)
+    })
     return {}
   }
 })

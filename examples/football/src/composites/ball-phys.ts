@@ -196,7 +196,9 @@ export const ballPhysTick = g.defineComposite('ball_phys_tick', {
     // 分支内复合调用由 MB 分支出口驱动（语句序 auto-chain），不做手动 connect——
     // 2026-08-31 实证：手动 connect(分支复合, done, c2) 与 auto-chain 的 c2→MB 相连
     // 构成执行流环（c2→MB→分支复合→c2，引擎报"ball_phys_tick 有执行流循环"）。
-    const state = f.getNodeGraphVariable('state').asType('int')
+    // 2026-09-01 修复：状态分发改读实体自定义变量（图变量每图独立——826 踢球把
+    // state 写成 FLY 时 825 读不到自己图变量；跨图事实源 = 球实体自定义变量 state）
+    const state = f.getCustomVariable(e, new str('state')).asType('int')
     f.multipleBranches(state, {
       [BALL_FLY]: () => {
         f.callComposite(ballPhysFlyTick, { e })
@@ -229,6 +231,9 @@ export const ballPhysFlyTick = g.defineComposite('ball_phys_fly_tick', {
   build: ({ e }, f) => {
     // 黑板读 + 物化（pos 来自黑板；vel/spin 来自 drain 后的图变量 tmp*）
     const pos0 = f.getCustomVariable(e, new str('pos')).asType('vec3')
+    // 物化快照（O-2026-08-27-02/e463c1c 同族）：integ 输出只消费一次写 tmp*，
+    // 后续全部读 tmp 图变量——多输出复合按每个输出 conn 重新求值，直接引用
+    // integ.npos/nvel/nspin 会导致同一拍二次积分（日志 3077 rec52 实测 21 帧重复）
     const integ = f.callComposite(physIntegrate, { pos: pos0, vel: f.getNodeGraphVariable('tmpVel').asType('vec3'), spin: f.getNodeGraphVariable('tmpSpin').asType('vec3') })
     const sPos = f.registerExecNode('set_node_graph_variable', [new str('tmpPos'), integ.npos, new bool(false)])
     const sVel = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), integ.nvel, new bool(false)])
@@ -243,8 +248,10 @@ export const ballPhysFlyTick = g.defineComposite('ball_phys_fly_tick', {
     // 门柱/横梁/网反射（写 tmpVel）
     const applyRefl = (hit: any, nvel: any, tail: any) => {
       f.doubleBranch(hit, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
-        f.connect(tail as never, 0, gv as never, 0)
+        // 2026-09-01 修复：registerExecNode 已自动串联当前 tail（scoreTail 链），
+        // 再加 f.connect(tail,0,gv,0) 会让 gv 有两条 InFlow 入边 → 引擎两条路径
+        // 都执行 → netHit=false 也跑 ×0.25（日志 3077 rec52 [757] 铁证）。
+        f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
       }, () => {})
     }
     applyRefl(goal.hitPost1, goal.nvelPost1, scoreTail)
@@ -265,17 +272,20 @@ export const ballPhysFlyTick = g.defineComposite('ball_phys_fly_tick', {
       f.connect(gp, 0, gv, 0)
     }, () => {})
 
-    // 落地分流判定（v4 同构）：GOAL > 停 > 贴地打滑(3) > 贴地弹跳死(2) > 空中(1)
+    // 落地分流判定（2026-09-01 修正——日志 3079/3081 铁证）：
+    //   GOAL > 停 > 贴地打滑(3) > 贴地滚动(2) > 空中(1)
+    //   旧版 v4 语义「贴地弹跳死(2)/继续飞(1)」删除：bounceDead 用反弹后 vy 判 FLY，
+    //   强踢落地反弹 vy>1 → 判继续飞 → transition 同态跳过 → 黑板 vel 带反弹 vy
+    //   → 渲染设备每拍上下跳（弹跳死循环）。足球落地应贴地滚，不再弹跳。
     const posFinal = f.getNodeGraphVariable('tmpPos').asType('vec3')
     const velFinal = f.getNodeGraphVariable('tmpVel').asType('vec3')
     const stop = f.callComposite(physStopCheck, { pos: posFinal, vel: velFinal })
     const pp = f.split3dVector(posFinal)
     const vv = f.split3dVector(velFinal)
     const grounded = f.lessThan(pp.yComponent, f.addition(BALL_R, 0.05))
-    const bounceDead = f.lessThan(f.absoluteValueOperation(vv.yComponent), 1.0)
     const hSpd = f._3dVectorModuloOperation(f.create3dVector(vv.xComponent, 0, vv.zComponent))
     const slideEntry = f.logicalAndOperation(
-      f.logicalAndOperation(grounded, bounceDead),
+      grounded,
       f.greaterThan(hSpd, 4.5)
     )
     const b2f = (b: any) => f.dataTypeConversion(f.dataTypeConversion(b, 'int'), 'float')
@@ -283,14 +293,12 @@ export const ballPhysFlyTick = g.defineComposite('ball_phys_fly_tick', {
     const bStop = b2f(stop.isStop)
     const bGround = b2f(grounded)
     const bSlide = b2f(slideEntry)
-    const bDead = b2f(bounceDead)
     const notStop = f.subtraction(1, bStop)
     const notSlide = f.subtraction(1, bSlide)
-    const notDead = f.subtraction(1, bDead)
     const notGround = f.subtraction(1, bGround)
     const groundedPart = f.addition(
       f.multiplication(bSlide, 3),
-      f.multiplication(notSlide, f.addition(f.multiplication(bDead, 2), f.multiplication(notDead, 1)))
+      f.multiplication(notSlide, 2)
     )
     const normal = f.multiplication(
       notStop,
@@ -299,9 +307,18 @@ export const ballPhysFlyTick = g.defineComposite('ball_phys_fly_tick', {
     const nextF = f.addition(f.multiplication(bGoal, 5), f.multiplication(f.subtraction(1, bGoal), normal))
     const nextState = f.dataTypeConversion(nextF, 'int')
 
-    // 发布黑板 + 状态转移
+    // 落地投影：贴地（grounded）时垂直速度清零，只保留水平速度（滚动/滑动语义）。
+    // 数据选择（无分支）：y' = vy × (grounded ? 0 : 1)；空中保留原 y，贴地归零。
+    // transition(FLY→ROLL/SLIDE) 必非跳过 → vel 交接必生效，黑板 vel.y 贴地恒 0。
+    const velLanded = f.create3dVector(
+      vv.xComponent,
+      f.multiplication(vv.yComponent, b2f(f.logicalNotOperation(grounded))),
+      vv.zComponent
+    )
+
+    // 发布黑板 + 状态转移（vel 交接用贴地投影速度）
     const pub = f.callComposite(ballPhysPublish, { e })
-    const tr = f.callComposite(ballStateTransition, { e, next: nextState, vel: velFinal })
+    const tr = f.callComposite(ballStateTransition, { e, next: nextState, vel: velLanded })
     f.connect(pub as never, 0, tr as never, 0)
     f.outflow('done', tr as never, 0)
     return {}
@@ -328,8 +345,10 @@ export const ballPhysRollTick = g.defineComposite('ball_phys_roll_tick', {
     const scoreTail = goalScoreBlock(f, e, goal)
     const applyRefl = (hit: any, nvel: any, tail: any) => {
       f.doubleBranch(hit, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
-        f.connect(tail as never, 0, gv as never, 0)
+        // 2026-09-01 修复：registerExecNode 已自动串联当前 tail（scoreTail 链），
+        // 再加 f.connect(tail,0,gv,0) 会让 gv 有两条 InFlow 入边 → 引擎两条路径
+        // 都执行 → netHit=false 也跑 ×0.25（日志 3077 rec52 [757] 铁证）。
+        f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
       }, () => {})
     }
     applyRefl(goal.hitPost1, goal.nvelPost1, scoreTail)
@@ -381,8 +400,10 @@ export const ballPhysSlideTick = g.defineComposite('ball_phys_slide_tick', {
     const scoreTail = goalScoreBlock(f, e, goal)
     const applyRefl = (hit: any, nvel: any, tail: any) => {
       f.doubleBranch(hit, () => {
-        const gv = f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
-        f.connect(tail as never, 0, gv as never, 0)
+        // 2026-09-01 修复：registerExecNode 已自动串联当前 tail（scoreTail 链），
+        // 再加 f.connect(tail,0,gv,0) 会让 gv 有两条 InFlow 入边 → 引擎两条路径
+        // 都执行 → netHit=false 也跑 ×0.25（日志 3077 rec52 [757] 铁证）。
+        f.registerExecNode('set_node_graph_variable', [new str('tmpVel'), nvel, new bool(false)])
       }, () => {})
     }
     applyRefl(goal.hitPost1, goal.nvelPost1, scoreTail)
@@ -463,11 +484,12 @@ export const ballPhysCarriedTick = g.defineComposite('ball_phys_carried_tick', {
     f.connect(sPos, 0, sSpin, 0)
 
     // 脱手几何判定（v4 dribbleFieldTick 移植；lostTicks 图变量计数）
-    const roleC = f.callComposite(dribbleFieldGetRole, {  })
-    const roleLoc = f.getEntityLocationAndRotation(roleC.role)
-    const D = f._3dVectorSubtraction(npos, roleLoc.location)
+    // 2026-09-01 修复：复用决策输出的 playerPos/playerFwd（决策与脱手共用同一拍
+    // 角色位姿快照——原独立 dribbleFieldGetRole 二次求值读到不同玩家位置，
+    // 脱手判定失效；日志 3082 铁证：决策 dist²=14.38 但脱手 dist²=0.063）
+    const D = f._3dVectorSubtraction(npos, dec.playerPos)
     const Dn = f._3dVectorNormalization(D)
-    const fwd = f._3dVectorDotProduct(f.getEntityForwardVector(roleC.role), Dn)
+    const fwd = f._3dVectorDotProduct(dec.playerFwd, Dn)
     const dist2 = f._3dVectorDotProduct(D, D)
     const carriedFar = f.greaterThan(dist2, DROP_DIST2)
     const notFwdOk = f.logicalNotOperation(f.greaterThan(fwd, PULL_FWD_MIN))
@@ -615,7 +637,14 @@ export const ballResetFlow = g.defineComposite('ball_reset_flow', {
 // ================================================================
 export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_atomic', {
   inputs: { e: { type: 'entity' }, vel: { type: 'vec3' } },
-  outputs: { newVel: { type: 'vec3' } },
+  // playerPos/playerFwd 输出：复用决策内部已获取的角色位姿（调用方脱手判定共用，
+  // 消除 role 被二次求值读到不同玩家位置——2026-09-01 日志 3082 铁证：
+  // 决策 dist²=14.38 但脱手 dist²=0.063，同拍玩家位置不同）
+  outputs: {
+    newVel: { type: 'vec3' },
+    playerPos: { type: 'vec3' },
+    playerFwd: { type: 'vec3' }
+  },
   // outflows 必须声明（2026-08-31 第四轮日志 3069 修正）：本复合内含 exec 节点
   // （drivePrev 写回）却未声明 outflows 时，注入器按 def 接口裁掉调用点的 exec
   // 出边——ballPhysCarriedTick 在本复合之后的链（写 tmpVel/积分/发布/transition）
@@ -626,7 +655,11 @@ export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_at
     const role = roleC.role
     const roleLoc = f.getEntityLocationAndRotation(role)
     const playerFwd = f.getEntityForwardVector(role)
-    const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
+    const spdRaw = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
+    // 2026-09-01 修复：玩家静止时 currentSpeed 返回空值（非 0），空值在算术链传播
+    // → vTarget=空 → newVel=0 → 球不驱动（日志 3084 铁证：玩家贴球 0.19m、drive=1、
+    // playerSpd=空、newVel=(0,0,0)）。addition(x,0) 强制物化为数值，空→0。
+    const playerSpd = f.addition(spdRaw, 0)
     const boardPos = f.getCustomVariable(e, new str('pos')).asType('vec3')
     const comp = f.callComposite(dribbleFieldCompute, {
       playerPos: roleLoc.location, playerFwd, playerSpd, ballPos: boardPos
@@ -657,6 +690,10 @@ export const ballDribbleDecideAtomic = g.defineComposite('ball_dribble_decide_at
     // 依赖本 def 的 OutFlow 引脚存活；锚在链尾 exec 节点上语义 = 决策+记忆写完才继续）
     const sPrev = f.registerExecNode('set_node_graph_variable', [new str('drivePrev'), drive, new bool(false)])
     f.outflow('done', sPrev, 0)
-    return { newVel: f.create3dVector(nvx, 0, nvz) }
+    return {
+      newVel: f.create3dVector(nvx, 0, nvz),
+      playerPos: roleLoc.location,
+      playerFwd
+    }
   }
 })

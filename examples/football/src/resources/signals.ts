@@ -27,6 +27,18 @@ export const Signal = {
     ['e', 'int'],
     ['c', 'int']
   ]),
+  fb_idle_state: defineSignal('fb_idle_state', [
+    ['tag', 'str'],
+    ['tick', 'int'],
+    ['pos', 'vec3'],
+    ['vel', 'vec3'],
+    ['spin', 'vec3'],
+    ['state', 'int']
+  ]),
+  fb_sv_echo: defineSignal('fb_sv_echo', [
+    ['tag', 'str'],
+    ['e', 'int']
+  ]),
   football_kick: defineSignal('football_kick', [['tabId', 'int']]),
   football_push: defineSignal('football_push', [['hitPoint', 'vec3']]),
   football_push_req: defineSignal('football_push_req', [['hitPoint', 'vec3']]),

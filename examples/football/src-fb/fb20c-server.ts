@@ -65,16 +65,8 @@ g.server({
           OriginalSlotSkillHandling.Destroy
         )
         // ② 施加「定时触发技能」状态（施加者=角色自身，1 层，参数字典空）
-        const res = f.addUnitStatus(
-          character,
-          character,
-          configId(STATUS_CFG),
-          1n,
-          dict(0)
-        )
-        // 一次性装配回执（slotId=0 ⇒ 状态施加失败，优先怀疑 STATUS_CFG 未回填/状态配置非法）
-        f.printString('fb20c:armed')
-        f.printString(f.dataTypeConversion(res.slotId, 'str'))
+        f.addUnitStatus(character, character, configId(STATUS_CFG), 1n, dict(0))
+        // 一次性装配（零 print）：slotId=0 ⇒ 施加失败，证据走 addUnitStatus 帧与状态层回读
       }, () => {})
     }, () => {})
   })

@@ -14,6 +14,9 @@ export function generateReport(
   const L: string[] = []
   L.push('# 物理足球 · 第一阶段物理表现核验报告')
   L.push('')
+  L.push('> doc-type: T · status: active · updated: ' + new Date().toISOString().slice(0, 10) + ' · owner: football-v2')
+  L.push('> 生成物：由 `npm run football:sim` 产出（勿手改；重跑即覆盖）· read-when: ticket')
+  L.push('> derived-from: examples/football/sim/verify/report.ts（数字部分确定性=同平台同构建逐位一致）')
   L.push('> 验收口径：`soccer-physics-phase1-verification-prompt.md`（足球游戏·第一阶段物理核验标准）')
   L.push('> 生成命令：`' + meta.command + '`')
   L.push('> 环境：Node ' + meta.nodeVersion + ' / ' + meta.platform + '（确定性声明：同平台同构建逐位一致）')

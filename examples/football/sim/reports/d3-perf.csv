@@ -1,5 +1,5 @@
 metric,value_ms
-single_median,0.00671
-single_p99,0.02637
-b22_median,0.26983
-b22_p99,0.88637
+single_median,0.00662
+single_p99,0.03351
+b22_median,0.24597
+b22_p99,0.86308

@@ -55,7 +55,9 @@ export const ballStateTransition = g.defineComposite('ball_state_transition', {
   outputs: {},
   outflows: ['done'],
   build: ({ e, next, vel }, f) => {
-    const prev = f.getNodeGraphVariable('state').asType('int')
+    // 2026-09-01 修复：prev 改读实体自定义变量（图变量每图独立——826 踢球/825 物理
+    // 各自维护图变量 state 会撕裂守卫判断；跨图事实源 = 球实体自定义变量 state）
+    const prev = f.getCustomVariable(e, new str('state')).asType('int')
 
     // —— 守卫（纯数据）——
     // 同态：跳过（不写不发，杜绝重复风暴）

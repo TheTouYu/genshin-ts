@@ -170,7 +170,8 @@ export const dribbleFieldTick = g.defineComposite('dribble_field_tick', {
     const role = roleC.role
     const roleLoc = f.getEntityLocationAndRotation(role)
     const ballLoc = f.getEntityLocationAndRotation(e)
-    const playerSpd = f.queryCharacterSCurrentMovementSpd(role).currentSpeed
+    // 2026-09-01 修复（同 ball-phys.ts）：静止时 currentSpeed 空值 → addition(x,0) 保底为 0
+    const playerSpd = f.addition(f.queryCharacterSCurrentMovementSpd(role).currentSpeed, 0)
 
     // 球状态（跨图共享自定义变量，状态机图写）：FREE(0)/CARRIED(4)=场独占驱动——
     // 连续控制器不等获得判定（几何即门，无延时）；CARRIED 仅为踢球语义标志。

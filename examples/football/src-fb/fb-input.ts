@@ -6,6 +6,7 @@
 // 静态大节点（踢球力度表 ~150 节点）收在这里——数据/渲染图测试时不用开它日志。
 // fb_dsp（E1 测试载荷轮询）随三图拆分退役：其回声噪音 > 观测价值（19 收口观测面关闭）。
 // 复合 fbMailPost 来自 fb-shared.ts。
+// 零 print（2026 用户要求移除全部打印节点）：tab 入口/回声分口径的取证一律走帧流。
 import { g } from 'genshin-ts/runtime/core'
 import { float, int } from 'genshin-ts/runtime/value'
 import { FbSignal } from './signals.js'
@@ -30,8 +31,6 @@ const graph = g
   // 会让 auto 序列失步（epoch 前进），渲染图 auto 推进受 seqlock ack 门约束，实测为准）
   // ================================================================
   .on('whenTabIsSelected', (evt, f) => {
-    f.printString('fb:tab')
-    f.printString(f.dataTypeConversion(evt.tabId, 'str'))
     const owner = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
     const cur = f.getCustomVariable(owner, 'fb_epoch').asType('int')
     const peT = cur + 1n // 算术在分支 ctx 外预计算（多分支闭包内元对象 +1n 会字符串化）
@@ -108,25 +107,21 @@ const graph = g
     const cur = f.getCustomVariable(owner, 'fb_ack').asType('int')
     f.doubleBranch(f.equal(evt.params.tag, 'ok'), () => {
       f.doubleBranch(f.lessThan(evt.params.e, cur), () => {
-        f.printString('fb:stale')
+        // stale=迟到回声（多造物常态）：零动作零 print，取证走帧流
       }, () => {
         f.doubleBranch(f.equal(evt.params.e, cur), () => {
           // 打印纪律（用户 2026-09-03 定则）：dup=多造物回声常态，零打印
         }, () => {
           f.setCustomVariable(owner, 'fb_ack', evt.params.e, false)
           // 任务应用唤醒：读邮箱 t1（同 handler 内无并发写者），真实任务类型才开拍门；
-          // fb:ack 只在真实任务唤醒时打（关键状态入口）
+          // 零 print（2026 用户要求）：唤醒事实=startTimer 帧 + 后续 echo 流
           const ball = f.getSelfEntity()
           const t1 = f.getCustomVariable(owner, 'fb_t1').asType('int')
           const beatDt = f.getCustomVariable(ball, 'fb_p_dt').asType('float')
           f.doubleBranch(f.equal(t1, TT_RESET), () => {
-            f.printString('fb:ack')
-            f.printString(f.dataTypeConversion(evt.params.e, 'str'))
             f.startTimer(ball, 'fb_beat', true, f.assemblyList([beatDt], 'float'))
           }, () => {
             f.doubleBranch(f.equal(t1, TT_KICK), () => {
-              f.printString('fb:ack')
-              f.printString(f.dataTypeConversion(evt.params.e, 'str'))
               f.startTimer(ball, 'fb_beat', true, f.assemblyList([beatDt], 'float'))
             }, () => {
             })
@@ -136,11 +131,9 @@ const graph = g
     }, () => {
       // 非 'ok' 回声：E5 观测（tag='e5'，任务拍限频）与真实撕裂分开口径
       f.doubleBranch(f.equal(evt.params.tag, 'e5'), () => {
-        f.printString('fb:e5')
-        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+        // E5 观测打点（tag='e5'）：零动作零 print，取值走帧流
       }, () => {
-        f.printString('fb:tear')
-        f.printString(f.dataTypeConversion(evt.params.e, 'str'))
+        // 撕裂分口径（tag 非 ok/e5）：零动作零 print，撕裂取证走 sink 'T' 拒收帧
       })
     })
   })

@@ -47,5 +47,15 @@ export const FbSignal = {
     ['vel', 'vec3'],
     ['spin', 'vec3'],
     ['state', 'int']
+  ]),
+  // 票 23 v2 驱动包（客户端预算好的"该不该动+怎么动"）：render 变哑执行器
+  //   tick  = 计算基 tick；vel = 设备速度向量（已含 /fb_p_drive）；spin = 可视自旋；
+  //   pos   = 目标位（|vel|>80 阈值时服务端改走瞬移到 pos）
+  //   ⚠️ 需先 assets:signals register 到地图（预注册红线），再注入消费端 render。
+  fb_ball_drive: defineSignal('fb_ball_drive', [
+    ['tick', 'int'],
+    ['vel', 'vec3'],
+    ['spin', 'vec3'],
+    ['pos', 'vec3']
   ])
 } as const
