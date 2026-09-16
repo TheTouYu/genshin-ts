@@ -6,7 +6,7 @@
 ## 常用命令
 
 ```bash
-npm run build                        # tsc 编译（prebuild 清空 dist）
+npm run build                        # tsc 编译（prebuild：ambient 守卫 → 清空 dist.tmp；成功后 dist.tmp→dist）
 npm test                             # 构建 + 生成测试用例 + 完整 GIA 测试配置（--noinject）
 npm run quicktest                    # 构建后直接执行已有测试（快速验证）
 npm run dev                          # gsts CLI 增量开发模式
