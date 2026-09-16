@@ -82,17 +82,20 @@ export function lintExecGraphForDangling(
   const entryIds = opts.entryNodeIds ?? new Set<number>()
   const pins = opts.compositePins ?? []
 
-  // 所有入边目标集合（出现在任何边的 value 中的节点 = 有人指向它）
+  // 所有入边目标集合（出现在任何边的 value 中的节点 = 有人指向它）。
+  // 入口来源（when_*/monitor_signal 等）的出边也代表目标有入边（事件→dispatch 是真实执行流），
+  // 必须计入 incoming——否则事件入口后的 double_branch 被误报悬空（render.ts 2026-09-01 实证）。
   const incoming = new Set<number>()
   // 入边明细（非入口来源）：target → { from, sourceIndex }[]，用于分支 join 豁免判定
   const inEdgeByTarget = new Map<number, Array<{ from: number; sourceIndex: number }>>()
   for (const [fromStr, connections] of Object.entries(edges)) {
     const from = Number(fromStr)
     const fromType = nodeTypeById.get(from)
-    if (isEntryNodeType(fromType)) continue
+    const isEntry = isEntryNodeType(fromType)
     for (const conn of connections) {
       const target = typeof conn === 'number' ? conn : conn.node_id
       incoming.add(target)
+      if (isEntry) continue // 入口来源不计入 join 判定（广播性质）
       const sourceIndex = typeof conn === 'number' ? 0 : (conn.source_index ?? 0)
       let list = inEdgeByTarget.get(target)
       if (!list) {
@@ -141,7 +144,9 @@ export function lintExecGraphForDangling(
   //   ③ target 是复合 inflow 引脚（外部流入 + impl 内部互连合法）；
   //   ④ 分支 join：多个来源 from 各自唯一入边来自同一分支节点（double_branch /
   //      multiple_branches 等），是 true/false 分支汇聚（互斥触发，实测测试图大量存在）。
-  const inputSources = new Map<number, Map<string, Set<number>>>() // target → source_index → from 集合
+  // target → source_index → 来源明细（含重复边：同一 from+source_index 出现两次 =
+  // auto-chain 与显式 connect 双写，2026-09-01 足球 applyRefl 实证 n18 两入边）
+  const inputSources = new Map<number, Map<string, Map<number, number>>>() // target → source_index → from → 边数
   for (const [fromStr, connections] of Object.entries(edges)) {
     const from = Number(fromStr)
     const fromType = nodeTypeById.get(from)
@@ -158,26 +163,67 @@ export function lintExecGraphForDangling(
       }
       let sources = byIndex.get(key)
       if (!sources) {
-        sources = new Set()
+        sources = new Map()
         byIndex.set(key, sources)
       }
-      sources.add(from)
+      sources.set(from, (sources.get(from) ?? 0) + 1)
     }
   }
-  const isBranchJoin = (sources: Set<number>): boolean => {
+  // 收集节点到根的所有分支祖先（递归向上，途经的分支节点集合）：
+  // 所有来源共享同一分支祖先 = 互斥汇聚（多级嵌套分支合法 join，引擎按分支互斥执行不重复。
+  // 2026-09-01 增强：ball_state_transition 的 35/38 分别来自 toMotion 真/假分支（经 34/37），
+  //   公共分支祖先是 toMotion 的 double_branch(30)——原实现只查「最近分支」漏掉多级）
+  const branchAncestors = (nodeId: number, depth = 0, seen = new Set<number>()): Set<number> => {
+    const acc = new Set<number>()
+    if (depth > 12 || seen.has(nodeId)) return acc
+    seen.add(nodeId)
+    const ins = inEdgeByTarget.get(nodeId)
+    if (!ins || ins.length === 0) return acc
+    if (ins.length > 1) return acc // 多入边节点不能唯一归因
+    const from = ins[0].from
+    const fromType = nodeTypeById.get(from)
+    if (fromType === 'double_branch' || fromType === 'multiple_branches') acc.add(from)
+    for (const anc of branchAncestors(from, depth + 1, seen)) acc.add(anc)
+    return acc
+  }
+  const isBranchJoin = (sources: Map<number, number>): boolean => {
     if (sources.size < 2) return false
-    let branchFrom: number | undefined
-    for (const from of sources) {
-      const ins = inEdgeByTarget.get(from)
-      // 分支体链尾节点：唯一入边（来自分支节点）；链尾也可能无入边（悬空分支）——不算 join
-      if (!ins || ins.length !== 1) return false
-      if (branchFrom === undefined) branchFrom = ins[0].from
-      else if (branchFrom !== ins[0].from) return false
+    let common: Set<number> | undefined
+    for (const from of sources.keys()) {
+      const ancs = branchAncestors(from)
+      if (ancs.size === 0) return false
+      if (common === undefined) common = ancs
+      else common = new Set([...common].filter((x) => ancs.has(x)))
+      if (common.size === 0) return false
     }
-    return branchFrom !== undefined
+    return common !== undefined && common.size > 0
   }
   for (const [target, byIndex] of inputSources) {
     for (const [index, sources] of byIndex) {
+      // ① 同一 from + 同 source_index 出现 >=2 条边 = auto-chain + connect 双写
+      //   （2026-09-01 足球 applyRefl 实证：registerExecNode 自动串联 + f.connect
+      //   各写一条边 -> 引擎两条路径都执行 -> netHit=false 也跑 x0.25）
+      for (const [from, count] of sources) {
+        if (count < 2) continue
+        diagnostics.push({
+          code: 'GSTS-DUPLICATE-EXEC-INPUT',
+          severity: 'warning',
+          source: 'user',
+          message:
+            'exec 节点 ' + target + '（' + (nodeTypeById.get(target) ?? 'unknown') + '）收到 ' +
+            count + ' 条同来源同出口入边（from=' + from + ', source_index=' + index + '）：' +
+            'f.registerExecNode() auto-chain 与显式 f.connect() 双写会让该节点重复执行',
+          suggestion:
+            '检查分支/链尾的 f.registerExecNode() 是否又显式 f.connect(前置,0,该节点,0)；' +
+            'registerExecNode 已自动串联当前 tail，删掉重复的显式 connect（保留单条入口）',
+          graphId: opts.graphId,
+          graphName,
+          nodeId: target,
+          nodeType: nodeTypeById.get(target),
+          originKind: 'user',
+        })
+      }
+      // ② 多来源同出口（原检测，保留）
       if (sources.size < 2) continue
       if (isBranchJoin(sources)) continue
       diagnostics.push({
@@ -185,9 +231,9 @@ export function lintExecGraphForDangling(
         severity: 'warning',
         source: 'user',
         message:
-          `exec 节点 ${target}（${nodeTypeById.get(target) ?? 'unknown'}）收到 ` +
-          `${sources.size} 条同出口(source_index=${index})入边（来源：${[...sources].join(', ')}）：` +
-          `auto-chain 与显式 connect 冲突会让该节点重复执行`,
+          'exec 节点 ' + target + '（' + (nodeTypeById.get(target) ?? 'unknown') + '）收到 ' +
+          sources.size + ' 条同出口(source_index=' + index + ')入边（来源：' + [...sources.keys()].join(', ') + '）：' +
+          'auto-chain 与显式 connect 冲突会让该节点重复执行',
         suggestion:
           '检查 f.registerExecNode() auto-chain 与 f.connect()/f.link() 是否同时接线；' +
           '保留单条入口（推荐 f.registerExecNode 自动串联，显式 connect 改为高层 API）',
