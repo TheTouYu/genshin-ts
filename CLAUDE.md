@@ -6,7 +6,8 @@
 ## 常用命令
 
 ```bash
-npm run build                        # tsc 编译（prebuild：ambient 守卫 → 清空 dist.tmp；成功后 dist.tmp→dist）
+npm run build                        # tsc 编译（prebuild：ambient 守卫 → 清空 dist.tmp；成功后 dist.tmp→dist；
+                                     #   增量缓存见「类型与运行时单副本」节，改一个文件约 5~6 秒）
 npm test                             # 构建 + 生成测试用例 + 完整 GIA 测试配置（--noinject）
 npm run quicktest                    # 构建后直接执行已有测试（快速验证）
 npm run dev                          # gsts CLI 增量开发模式
@@ -83,6 +84,14 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
 
 ## 类型与运行时单副本（2026-08-30 修复，改类型/构建配置必读）
 
+- **构建增量缓存（2026-09-16 修，勿回退）**：tsbuildinfo 落在
+  **`node_modules/.cache/gsts/tsconfig.tsbuildinfo`**（不在 `dist.tmp/` 里）。
+  原因：`build` 结尾把 `dist.tmp` 改名成 `dist`，缓存若放 `dist.tmp/` 就会**每次被 prebuild 连带删掉**，
+  而 `prebuild` 又清空 `dist.tmp` → **每次都退化成全量冷编译 1244 个 .ts**。
+  **实测**（本仓库）：改一个文件后 `npm run build` **67 秒 → 5~6 秒**（约 11×）；冷构建仍 ~66 秒。
+  **安全前提已验证**：增量构建照常捕获类型错误（注入 `TS2322` 后 exit=2 并逐行报出）。
+  → 改构建配置时**不要**把 tsBuildInfoFile 挪回 `dist.tmp/`，也**不要**在 prebuild 里删缓存目录；
+  清缓存请只删 `node_modules/.cache/gsts/`（下次构建会重建，代价是一次冷构建）。
 - tsc 类型检查统一走 **src 单副本**；tsx 运行时统一走 **dist 单副本**（src/dist 双副本会导致 branded 类型不兼容）。
 - 新增 tsx spawn / CLI 入口必须给 runner 注入 `TSX_TSCONFIG_PATH=tsconfig.tsx.json`，路径用 `resolveTsxConfigPath(__dirname)`，不要写死相对层级。
 - 改 tsconfig/类型配置后验证解析方向：`node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`——输出 `src/...`=类型检查侧；`dist/...`=运行时侧。
