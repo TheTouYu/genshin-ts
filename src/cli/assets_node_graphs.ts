@@ -117,6 +117,7 @@ const F32_0_3 = new Uint8Array([0x9a, 0x99, 0x99, 0x3e])
  * 客户端图类型规格（2026-08-29 1073741914 快照差分闭合，见 docs/game-engine-knowledge/node-graphs.md）。
  * folderId 是类型级常量（v0 已存在空记录，新建图=重写空记录追加条目；1073741914/1073741913 双地图一致）。
  * kind：skill=节点图开始(200042/2001)+f8{kind:6}；status=造物状态节点(200126/4000)+f11；filter=过滤节点(200000|200122)+参数块。
+ * server=服务端族无自动节点（20000 实体 / 20003 状态 / 20004 职业），走 appendGraphWrapper 并占用服务端 ID 段。
  */
 type GraphTypeSpec = {
   type: number
@@ -131,6 +132,19 @@ export const GRAPH_TYPES: GraphTypeSpec[] = [
   { type: 20000, name: '服务端图', defaultName: '新建节点图', folderId: 4, kind: 'server' },
   { type: 20001, name: '布尔过滤器', defaultName: '新建过滤器节点图', folderId: 13, kind: 'filter', filterGeneric: 200000 },
   { type: 20002, name: '角色技能', defaultName: '新建角色技能节点图', folderId: 14, kind: 'skill' },
+  // 20003 状态 / 20004 职业（ClassNode）：官方分类同属「服务端节点图」（服务端=实体/状态/职业/道具），
+  // 与 20000 实体图**逐字节同构**——实测 5 张地图 9 个样本（20003×7 / 20004×2）：
+  //   · 无自动节点：NodeGraph 顶层字段无 f100（entrySlotIndex），全部节点 genericId 属 10001/20000 实体图族，
+  //     而非自动节点族（200042 技能 / 200126 状态 / 200000|200122 过滤器）
+  //   · 无 contextDeclaration f8、无 f11
+  //   · 与技能类共享常量 GRAPH_CLASS=10000 / GRAPH_KIND=21001，仅 Id.f2=类型号不同
+  //   · ID 落在服务端段（1073741824+），非客户端段（段首 1082130433）
+  // → 走 appendGraphWrapper（服务端那条路）即可，无需新自动节点模板。
+  // 证据：docs/game-engine-knowledge/node-graphs.md:296-311（自动节点逐类别表，20003/20004 不在其中）
+  //      + map-graph-type-matrix.md（20003 见 1826/1835/1912/1913；20004 见 1835/1912）
+  //      + 本会话 .gsts/tmp/t19-extract.ts 逐字节复核；folderId 16 为 20004 的新增测量值
+  { type: 20003, name: '状态', defaultName: '新建状态节点图', folderId: 15, kind: 'server' },
+  { type: 20004, name: '职业', defaultName: '新建职业节点图', folderId: 16, kind: 'server' },
   { type: 20006, name: '整数过滤器', defaultName: '新建过滤器节点图', folderId: 57, kind: 'filter', filterGeneric: 200122 },
   // 20007 自动节点与 20009 同族（200126/4000 + f11={1:1,100:{1:1}} + f100=1）——
   // 2026-08-31 C0.3 编辑器差分闭合样本，2026-09-01 补实现（此前 fail closed）
@@ -140,7 +154,8 @@ export const GRAPH_TYPES: GraphTypeSpec[] = [
   { type: 20010, name: '角色操控技能', defaultName: '新建角色操控技能节点图', folderId: 67, kind: 'skill' }
 ]
 
-// 未采样自动节点结构的类型：20003 状态 / 20004 ClassNode / 20005 ItemNode → fail closed
+// 仍未闭合：20005 道具节点图（ItemNode，typeValue 4300）——样本结构未见，保持 fail closed（见 docs/maintenance/open-items.md）
+const UNSUPPORTED_TYPES: readonly number[] = [20005]
 function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
   const spec = GRAPH_TYPES.find((s) =>
     typeof typeOrName === 'number'
@@ -150,9 +165,9 @@ function graphTypeSpec(typeOrName: string | number): GraphTypeSpec {
   if (!spec) {
     const input = String(typeOrName)
     const known = /^\d+$/.test(input) ? Number(input) : undefined
-    if (known !== undefined && known >= 20000 && known <= 20010) {
+    if (known !== undefined && UNSUPPORTED_TYPES.includes(known)) {
       throw new Error(
-        `[error] 图类型 ${known} 的自动节点结构未采样（20003/20004/20005），fail closed；` +
+        `[error] 图类型 ${known} 的自动节点结构未采样（20005 道具），fail closed；` +
           `可用类型：${GRAPH_TYPES.map((s) => `${s.type}(${s.name})`).join('、')}`
       )
     }
@@ -227,8 +242,9 @@ function usage(exitCode = 0): never {
     '  --map-id <id>     target map ID (location only; requires project config)',
     '  --name <string>   create: new NodeGraph name (default: 按类型默认名，如 新建角色操控技能节点图)',
     '  --graph-id <id>  create: 显式图 ID（缺省自动：服务端=全图 max+1，客户端=段内 max+1，段空=1082130433）',
-    '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20006 整数过滤器/',
-    '                      20007 造物状态决策/20008 造物技能/20009 造物状态/20010 角色操控技能；20003/20004/20005 自动节点未采样 fail closed）',
+    '  --type <id|中文名> create: 图类型（默认 20000 服务端图；支持 20001 布尔过滤器/20002 角色技能/20003 状态/',
+    '                      20004 职业/20006 整数过滤器/20007 造物状态决策/20008 造物技能/20009 造物状态/',
+    '                      20010 角色操控技能；20005 道具节点图结构未见 fail closed）',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
     '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
@@ -446,10 +462,15 @@ function nextClientGraphId(payload: Uint8Array): number {
   return ids.length ? Math.max(...ids) + 1 : CLIENT_GRAPH_ID_START
 }
 
-function appendGraphWrapper(root10: WireField[], graphId: number, name: string): WireField[] {
+function appendGraphWrapper(
+  root10: WireField[],
+  graphId: number,
+  name: string,
+  graphType: number = GRAPH_TYPE
+): WireField[] {
   const idMsg: WireField[] = [
     { number: 1, wire: 0, value: GRAPH_CLASS },
-    { number: 2, wire: 0, value: GRAPH_TYPE },
+    { number: 2, wire: 0, value: graphType },
     { number: 3, wire: 0, value: GRAPH_KIND },
     { number: 5, wire: 0, value: graphId }
   ]
@@ -695,13 +716,21 @@ export function buildEmptyNodeGraph(
       )
       if (hasId) throw new Error(`[error] graph ${graphId} already exists in root 10`)
       if (spec.kind === 'server') {
-        return { ...field, value: emitWireMessage(appendGraphWrapper(root10, graphId, name)) }
+        // 服务端族（20000/20003/20004）共用 wrapper，但 Id.f2 必须是各自的类型号——
+        // 原实现写死 GRAPH_TYPE(20000)，会让 create --type 20003 产出 type=20000 的图
+        // （CLI 却报 “type=20003(状态)”，属“输出长得像成功”）。实测参考样本 Id.f2 = 20003/20004。
+        return {
+          ...field,
+          value: emitWireMessage(appendGraphWrapper(root10, graphId, name, spec.type))
+        }
       }
       return { ...field, value: emitWireMessage(appendClientGraphWrapper(root10, graphId, name, spec)) }
     }
     if (field.number === 6) {
       const root6 = parseWireMessage(field.value as Uint8Array)!
-      const typeValue = spec.kind === 'server' ? FOLDER_TYPE_SERVER_GRAPH : typeValueFor(spec.type)
+      // 统一走 DEFAULT_GRAPH_TYPE_VALUES（含 20000→800 与 20003→2300 / 20004→2400）。
+      // 原实现把 kind==='server' 硬编码成 800，导致 20003/20004 接进服务端路径后 typeValue 会写错。
+      const typeValue = typeValueFor(spec.type)
       return { ...field, value: emitWireMessage(appendFolderEntryTo(root6, spec.folderId, typeValue, graphId)) }
     }
     return field
@@ -715,35 +744,75 @@ function typeValueFor(graphType: number): number {
   return value
 }
 
-function verifyNodeGraphReadBack(bytes: Uint8Array, graphId: number, folderId = 4): void {
+function verifyNodeGraphReadBack(
+  bytes: Uint8Array,
+  graphId: number,
+  folderId = 4,
+  graphType?: number
+): void {
   const root = readRoot(bytes.slice(20, -4))
   const top10Field = root.find((f) => f.number === 10 && f.wire === 2)
   if (!top10Field) throw new Error('[error] read-back: root 10 missing after create')
   const top10 = parseWireMessage(top10Field.value as Uint8Array)!
-  const found = top10
+  const wrapper = top10
     .filter((f) => f.number === 1 && f.wire === 2)
-    .some((f) => graphIdOf(f.value as Uint8Array) === graphId)
-  if (!found) throw new Error('[error] read-back: graph wrapper missing in root 10')
+    .find((f) => graphIdOf(f.value as Uint8Array) === graphId)
+  if (!wrapper) throw new Error('[error] read-back: graph wrapper missing in root 10')
+  // 类型号必须回读核对：Id 消息 = {1: 10000(CLASS), 2: 类型号, 3: 21001(KIND), 5: graphId}。
+  // 2026-09-16 实证：原检测只验「图存在」+「folder 有条目」，因此 create --type 20003
+  // 写出 Id.f2=20000 时**照样通过**（CLI 还报 “type=20003(状态)”）——
+  // 属于「核验读了输出却没核到关键字段」，与 kind=SysCall 是同一族错误。
+  if (graphType !== undefined) {
+    // 层级（与 graphIdOf 一致）：wrapper.value → {1: NodeGraph}；NodeGraph → {1: Id, 2: name}；
+    // Id → {1: CLASS=10000, 2: 类型号, 3: KIND=21001, 5: graphId}
+    const ng = parseWireMessage(
+      parseWireMessage(wrapper.value as Uint8Array)?.find((f) => f.number === 1 && f.wire === 2)
+        ?.value as Uint8Array
+    )
+    const idMsg = parseWireMessage(
+      ng?.find((f) => f.number === 1 && f.wire === 2)?.value as Uint8Array
+    )
+    const actualClass = varintOf(idMsg ?? [], 1)
+    const actualType = varintOf(idMsg ?? [], 2)
+    const actualKind = varintOf(idMsg ?? [], 3)
+    if (actualType !== graphType) {
+      throw new Error(
+        `[error] read-back: graph ${graphId} type mismatch: expected ${graphType}, got ${actualType}` +
+          `（Id 消息 class=${actualClass} type=${actualType} kind=${actualKind}）`
+      )
+    }
+  }
   const top6Field = root.find((f) => f.number === 6 && f.wire === 2)
   if (!top6Field) throw new Error('[error] read-back: root 6 missing after create')
   const top6 = parseWireMessage(top6Field.value as Uint8Array)!
-  const hasFolder = top6
-    .filter((f) => f.number === 1 && f.wire === 2)
-    .some((f) => {
-      const inner = parseWireMessage(f.value as Uint8Array)
-      if (varintOf(inner ?? [], 1) !== folderId) return false
-      const tab = inner?.find((g) => g.number === 3 && g.wire === 2)
-      const tabMsg = tab ? parseWireMessage(tab.value as Uint8Array) : undefined
-      return tabMsg?.some(
-        (g) =>
-          g.number === 5 &&
-          g.wire === 2 &&
-          parseWireMessage(g.value as Uint8Array)?.some(
-            (e) => e.number === 2 && e.wire === 0 && e.value === graphId
-          )
+  type FolderHit = { found: boolean; typeValue?: number }
+  const folderHit: FolderHit = { found: false }
+  for (const f of top6.filter((x) => x.number === 1 && x.wire === 2)) {
+    const inner = parseWireMessage(f.value as Uint8Array)
+    if (varintOf(inner ?? [], 1) !== folderId) continue
+    const tab = inner?.find((g) => g.number === 3 && g.wire === 2)
+    const tabMsg = tab ? parseWireMessage(tab.value as Uint8Array) : undefined
+    for (const g of tabMsg ?? []) {
+      if (g.number !== 5 || g.wire !== 2) continue
+      const entry = parseWireMessage(g.value as Uint8Array)
+      if (entry?.some((e) => e.number === 2 && e.wire === 0 && e.value === graphId)) {
+        folderHit.found = true
+        folderHit.typeValue = varintOf(entry, 1)
+      }
+    }
+  }
+  if (!folderHit.found) throw new Error('[error] read-back: folder entry missing in root 6')
+  // typeValue 也必须核对（2026-09-16 补）：folder 条目的 f5={f1: typeValue, f2: graphId}。
+  // 同类缺口——原检测只认 graphId，若 typeValue 写错（例如给 20003 写 800）依然通过。
+  if (graphType !== undefined) {
+    const expected = typeValueFor(graphType)
+    if (folderHit.typeValue !== expected) {
+      throw new Error(
+        `[error] read-back: folder typeValue mismatch for graph ${graphId}: ` +
+          `expected ${expected}, got ${folderHit.typeValue}（folderId=${folderId}）`
       )
-    })
-  if (!hasFolder) throw new Error('[error] read-back: folder entry missing in root 6')
+    }
+  }
 }
 
 function resolveGilPath(
@@ -827,7 +896,7 @@ export async function runAssetsNodeGraphs(
   }
   const newFile = buildFile(result, header)
   const candidateSha = sha256Bytes(newFile)
-  verifyNodeGraphReadBack(newFile, graphId, spec.folderId)
+  verifyNodeGraphReadBack(newFile, graphId, spec.folderId, spec.type)
 
   if (args.write) {
     const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
