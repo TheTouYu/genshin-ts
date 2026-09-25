@@ -65,6 +65,7 @@ type Args = {
   addMembers: MemberSpec[]
   removeMembers: string[]
   rename?: [string, string]
+  setDefault?: string
   outputPath?: string
   write: boolean
   json: boolean
@@ -117,6 +118,14 @@ function usage(exitCode = 1): never {
   process.exit(exitCode)
 }
 
+/** "--set-default <成员名>=<值>" → [名, 值] */
+function splitDefault(raw: string | undefined): [string, string] | undefined {
+  if (!raw) return undefined
+  const at = raw.indexOf('=')
+  if (at <= 0) throw new Error(`[error] bad --set-default "${raw}"；格式 <成员名>=<值>`)
+  return [raw.slice(0, at), raw.slice(at + 1)]
+}
+
 function parseMemberSpec(raw: string): MemberSpec {
   const [head, ref] = raw.split('=')
   const [name, typeName] = (head ?? '').split(':')
@@ -163,7 +172,8 @@ function parseArgv(argv: readonly string[]): Args {
       const [from, to] = value(rest, ++i).split('=')
       if (!from || !to) throw new Error('[error] --rename-member 格式 <旧名>=<新名>')
       args.rename = [from, to]
-    } else if (arg === '--output') args.outputPath = value(rest, ++i)
+    } else if (arg === '--set-default') args.setDefault = value(rest, ++i)
+    else if (arg === '--output') args.outputPath = value(rest, ++i)
     else if (arg === '--write') args.write = true
     else if (arg === '--json') args.json = true
     else if (arg === '--help' || arg === '-h') usage(0)
@@ -329,7 +339,8 @@ export async function runAssetsStructs(
     id: target.id,
     addMembers: args.addMembers.map((m) => ({ name: m.name, typeCode: m.typeCode })),
     removeNames: args.removeMembers,
-    rename: args.rename ? [args.rename[0], args.rename[1]] : undefined
+    rename: args.rename ? [args.rename[0], args.rename[1]] : undefined,
+    setDefault: splitDefault(args.setDefault)
   })
   const outBytes = rebuildGil(sourceBytes, res.payload)
   // 回读断言：目标结构体的成员数与预期一致（不是「CLI 说成功」）
