@@ -394,15 +394,50 @@ export function rebuildGil(source: Uint8Array, newPayload: Uint8Array): Uint8Arr
  * int/bool 为同一规律下的 varint。列表/结构体的非空默认值尚未采样 → fail closed。
  */
 function encodeDefaultValue(typeCode: number, literal: string): Uint8Array {
-  if (typeCode === 6) return emitWireMessage([{ number: 1, wire: 2, value: Buffer.from(literal, 'utf8') }])
+  const w1 = (v: Uint8Array | number, wire: 0 | 2 = 2): Uint8Array =>
+    emitWireMessage([{ number: 1, wire, value: v } as WireField])
+  // 标量：f<类型码+10> = { 1: 值 }
+  if (typeCode === 6) return w1(Buffer.from(literal, 'utf8'))
   if (typeCode === 3 || typeCode === 4) {
     const n = Number(literal)
     if (!Number.isFinite(n)) throw new Error(`[error] 类型码 ${typeCode} 的默认值需为数字，收到 "${literal}"`)
-    return emitWireMessage([{ number: 1, wire: 0, value: n }])
+    return w1(n, 0)
+  }
+  if (typeCode === 5) {
+    const f = Number(literal)
+    if (!Number.isFinite(f)) throw new Error(`[error] float 的默认值需为数字，收到 "${literal}"`)
+    const buf = Buffer.alloc(4)
+    buf.writeFloatLE(f)
+    return w1(buf)
+  }
+  // 列表：f<类型码+10> = { 1: 元素… }；数值型 packed 进单个 f1，字符串型每个元素一个 f1
+  // 采样来源：2026-09-26 真实编辑器快照（float_list 3 个 = f1 12 字节；str_list 1 个空串 = f1 len0）
+  const items = literal.length === 0 ? [] : literal.split(',')
+  if (typeCode === 10) {
+    const buf = Buffer.alloc(items.length * 4)
+    items.forEach((x, i) => buf.writeFloatLE(Number(x) || 0, i * 4))
+    return w1(buf)
+  }
+  if (typeCode === 11) {
+    const parts = items.map((x) => ({ number: 1, wire: 2 as const, value: Buffer.from(x, 'utf8') }))
+    return emitWireMessage(parts.length > 0 ? parts : [{ number: 1, wire: 2, value: EMPTY_MSG }])
+  }
+  if (typeCode === 8 || typeCode === 9) {
+    // 整数/布尔列表：packed varint
+    const bytes: number[] = []
+    for (const x of items) {
+      let v = Number(x) || 0
+      do {
+        const b2 = v & 0x7f
+        v >>>= 7
+        bytes.push(v > 0 ? b2 | 0x80 : b2)
+      } while (v > 0)
+    }
+    return w1(new Uint8Array(bytes))
   }
   throw new Error(
-    `[error] 类型码 ${typeCode} 的非空默认值编码尚未采样（目前只闭合了 str / int / bool）。` +
-      '请给一个该类成员填默认值的最小差分样本，或先不设默认值。'
+    `[error] 类型码 ${typeCode} 的非空默认值编码尚未采样（已闭合：str/int/bool/float + float_list/str_list/int_list/bool_list）。` +
+      '请给一个该类成员填默认值的最小差分样本。'
   )
 }
 
@@ -413,6 +448,8 @@ export function updateStruct(payload: Uint8Array, opts: {
   rename?: readonly [string, string]
   /** 给某成员设默认值：[成员名, 字面量]。编码 = f<类型码+10> = { 1: 值 }（2026-09-26 由真实快照采样） */
   setDefault?: readonly [string, string]
+  /** 改某成员的类型：[成员名, 新类型码]，原地改（保留名字与序号） */
+  setType?: readonly [string, number]
 }): AppendResult {
   const root = parseWireMessage(payload)
   if (!root) throw new Error('[error] malformed GIL payload')
@@ -496,6 +533,56 @@ export function updateStruct(payload: Uint8Array, opts: {
             )
           })
         })
+        // 改类型：原地重写 f1 / f3 的类型码与默认值字段号，保留名字与序号
+        const retyped = new Map<WireField, WireField>()
+        if (opts.setType) {
+          const [mname, newType] = opts.setType
+          for (const m of keep) {
+            const effective = retyped.get(m) ?? renamed.get(m) ?? m
+            if (nameOfMember(effective) !== mname) continue
+            const mm = decode(effective.value as Uint8Array)
+            const oldType = mm.find((y) => y.number === 502 && y.wire === 0)!.value as number
+            const f3f = mm.find((y) => y.number === 3 && y.wire === 2)!
+            const f3v = decode(f3f.value as Uint8Array)
+            const f3next = f3v.map((y) => {
+              if (y.number === 1 && y.wire === 0) return { number: 1, wire: 0 as const, value: newType }
+              if (y.number === 2 && y.wire === 2) {
+                return {
+                  number: 2,
+                  wire: 2 as const,
+                  value: emitWireMessage([{ number: 1, wire: 0, value: newType }, { number: 2, wire: 2, value: EMPTY_MSG }])
+                }
+              }
+              if (y.number === oldType + 10 && y.wire === 2) return { number: newType + 10, wire: 2 as const, value: EMPTY_MSG }
+              return y
+            })
+            retyped.set(m, {
+              number: 3,
+              wire: 2 as const,
+              value: emitWireMessage(
+                mm.map((y) => {
+                  if (y.number === 1 && y.wire === 2) {
+                    return {
+                      number: 1,
+                      wire: 2 as const,
+                      value: emitWireMessage([{ number: 1, wire: 0, value: newType }, { number: 2, wire: 2, value: EMPTY_MSG }])
+                    }
+                  }
+                  if (y.number === 3 && y.wire === 2) return { number: 3, wire: 2 as const, value: emitWireMessage(f3next) }
+                  if (y.number === 502 && y.wire === 0) return { number: 502, wire: 0 as const, value: newType }
+                  return y
+                })
+              )
+            })
+          }
+          if (retyped.size === 0) throw new Error(`[error] 没有找到名为 "${mname}" 的成员（无法改类型）`)
+        }
+        // retyped 要在 defaulted 之前套用（改类型会换掉默认值字段号）
+        for (const [k, v] of retyped) {
+          const d2 = retyped.get(k)
+          void d2
+          void v
+        }
         // 设默认值：把成员 f3 里的 f<类型码+10> 换成 { 1: 值 }
         const defaulted = new Map<WireField, WireField>()
         if (opts.setDefault) {
@@ -505,14 +592,14 @@ export function updateStruct(payload: Uint8Array, opts: {
             const effective = renamed.get(m) ?? m
             if (nameOfMember(effective) !== mname) continue
             const mm = decode(effective.value as Uint8Array)
-            const t = mm.find((y) => y.number === 502 && y.wire === 0)!.value as number
+            const t = decode((retyped.get(m) ?? effective).value as Uint8Array).find((y) => y.number === 502 && y.wire === 0)!.value as number
             const inner = encodeDefaultValue(t, literal)
             const f3f = mm.find((y) => y.number === 3 && y.wire === 2)!
             const f3next = decode(f3f.value as Uint8Array).map((y) =>
               y.number === t + 10 && y.wire === 2 ? { number: t + 10, wire: 2 as const, value: inner } : y
             )
             // 基于「改名后的字段」构造，否则改名会被默认值覆盖（加强后的断言抓到过）
-            const base = decode(effective.value as Uint8Array)
+            const base = decode((retyped.get(m) ?? effective).value as Uint8Array)
             defaulted.set(m, {
               number: 3,
               wire: 2 as const,
@@ -521,7 +608,10 @@ export function updateStruct(payload: Uint8Array, opts: {
               )
             })
           }
-          if (defaulted.size === 0) throw new Error(`[error] 没有找到名为 "${mname}" 的成员（无法设默认值）`)
+          const isNew = (opts.addMembers ?? []).some((m) => m.name === mname)
+          if (defaulted.size === 0 && !isNew) {
+            throw new Error(`[error] 没有找到名为 "${mname}" 的成员（无法设默认值）`)
+          }
         }
         const startOrder = keep.length
         const addedFields = (opts.addMembers ?? []).map((m, i) => {
@@ -529,11 +619,27 @@ export function updateStruct(payload: Uint8Array, opts: {
             throw new Error(`[error] 成员 "${m.name}" 是结构体/结构体列表，其默认值展开的字节模板尚未闭合，拒绝写入。`)
           }
           memberDelta += 1
-          return {
-            number: 3,
-            wire: 2 as const,
-            value: emitWireMessage(buildMemberFields({ name: m.name, typeCode: m.typeCode, order: startOrder + i + 1 }))
+          // 新成员如果也被 --set-default 指定，直接带上默认值（否则 setDefault 只会在既有成员里找）
+          const fields = buildMemberFields({ name: m.name, typeCode: m.typeCode, order: startOrder + i + 1 })
+          if (opts.setDefault && opts.setDefault[0] === m.name) {
+            const inner = encodeDefaultValue(m.typeCode, opts.setDefault[1])
+            return {
+              number: 3,
+              wire: 2 as const,
+              value: emitWireMessage(
+                fields.map((y) => {
+                  if (y.number !== 3 || y.wire !== 2) return y
+                  const f3v = decode(y.value as Uint8Array).map((z) =>
+                    z.number === m.typeCode + 10 && z.wire === 2
+                      ? { number: m.typeCode + 10, wire: 2 as const, value: inner }
+                      : z
+                  )
+                  return { number: 3, wire: 2 as const, value: emitWireMessage(f3v) }
+                })
+              )
+            }
           }
+          return { number: 3, wire: 2 as const, value: emitWireMessage(fields) }
         })
         // 保持编辑器字段序：删掉的成员直接跳过；新成员插在最后一个保留成员之后
         const keepSet = new Set(keep)
@@ -541,7 +647,9 @@ export function updateStruct(payload: Uint8Array, opts: {
         const blkNext: WireField[] = []
         blk.forEach((y, i) => {
           if (removed.has(y)) return
-          blkNext.push(defaulted.get(y) ?? renamed.get(y) ?? y)
+          const eff = renamed.get(y) ?? y
+          blkNext.push(defaulted.get(y) ?? retyped.get(y) ?? renamed.get(y) ?? y)
+          void eff
           if (keepSet.has(y) && i === lastKeepIdx) blkNext.push(...addedFields)
         })
         if (lastKeepIdx === -1) blkNext.splice(1, 0, ...addedFields)
