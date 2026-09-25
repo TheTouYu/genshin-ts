@@ -450,6 +450,8 @@ export function updateStruct(payload: Uint8Array, opts: {
   setDefault?: readonly [string, string]
   /** 改某成员的类型：[成员名, 新类型码]，原地改（保留名字与序号） */
   setType?: readonly [string, number]
+  /** 改结构体自己的名字（DefBlock.f501，两个镜像块都要改） */
+  renameStruct?: string
 }): AppendResult {
   const root = parseWireMessage(payload)
   if (!root) throw new Error('[error] malformed GIL payload')
@@ -491,6 +493,18 @@ export function updateStruct(payload: Uint8Array, opts: {
       if ((x.number === 1 || x.number === 2) && x.wire === 2) {
         const blk = decode(x.value as Uint8Array)
         if (!isTarget) return { number: x.number, wire: 2 as const, value: bumpBlock(x.value as Uint8Array, false) }
+        if (opts.renameStruct) {
+          const buf = Buffer.from(opts.renameStruct, 'utf8')
+          const renamedBlk = blk.map((y) =>
+            y.number === 501 && y.wire === 2 ? { number: 501, wire: 2 as const, value: buf } : y
+          )
+          // 改名本身也算一次修改 → 计数器仍走 +2
+          const withCtr = renamedBlk.map((y) =>
+            y.number === 503 && y.wire === 0 ? { number: 503, wire: 0 as const, value: (y.value as number) + 2 } : y
+          )
+          newMemberCount = null
+          return { number: x.number, wire: 2 as const, value: emitWireMessage(withCtr) }
+        }
         // 目标结构体：改成员 + 计数器 +2
         const nameOfMember = (m: WireField): string | undefined => {
           const mm = decode(m.value as Uint8Array)

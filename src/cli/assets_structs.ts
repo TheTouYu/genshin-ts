@@ -67,6 +67,7 @@ type Args = {
   rename?: [string, string]
   setDefault?: string
   setType?: string
+  renameStruct?: string
   outputPath?: string
   write: boolean
   json: boolean
@@ -183,6 +184,7 @@ function parseArgv(argv: readonly string[]): Args {
       args.rename = [from, to]
     } else if (arg === '--set-default') args.setDefault = value(rest, ++i)
     else if (arg === '--set-type') args.setType = value(rest, ++i)
+    else if (arg === '--rename-struct') args.renameStruct = value(rest, ++i)
     else if (arg === '--output') args.outputPath = value(rest, ++i)
     else if (arg === '--write') args.write = true
     else if (arg === '--json') args.json = true
@@ -351,7 +353,8 @@ export async function runAssetsStructs(
     removeNames: args.removeMembers,
     rename: args.rename ? [args.rename[0], args.rename[1]] : undefined,
     setDefault: splitDefault(args.setDefault),
-    setType: splitTypeArg(args.setType)
+    setType: splitTypeArg(args.setType),
+    renameStruct: args.renameStruct
   })
   const outBytes = rebuildGil(sourceBytes, res.payload)
   // 回读断言：目标结构体的成员数与预期一致（不是「CLI 说成功」）
@@ -362,6 +365,9 @@ export async function runAssetsStructs(
     .filter((n) => !args.removeMembers.includes(n))
     .map((n) => (args.rename && args.rename[0] === n ? args.rename[1] : n))
     .concat(args.addMembers.map((m) => m.name))
+  if (args.renameStruct && after?.name !== args.renameStruct) {
+    throw new Error(`[error] 回读核对失败：改名后读回的是 "${after?.name}"，期望 "${args.renameStruct}"。已放弃写盘。`)
+  }
   const actualNames = after?.members.map((m) => m.name) ?? []
   if (!after || actualNames.length !== expectNames.length || actualNames.some((n, i) => n !== expectNames[i])) {
     throw new Error(
