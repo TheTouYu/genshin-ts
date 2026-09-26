@@ -36,6 +36,10 @@ export type StructMember = {
   refStructId?: number
   /** struct_list 成员的默认元素个数 */
   listLength?: number
+  /** dict 成员的键类型码（定义记录 f1.f2.f502） */
+  keyTypeCode?: number
+  /** dict 成员的值类型码（定义记录 f1.f2.f503） */
+  valueTypeCode?: number
 }
 
 export type StructDef = {
@@ -135,6 +139,11 @@ function readMembers(main: readonly WireField[]): StructMember[] {
       const ref = parseWireMessage(refMsg.value as Uint8Array)
       const refId = ref ? varintOf(ref, 2) : undefined
       if (refId !== undefined) member.refStructId = refId
+      // dict(27)：键/值类型在同一层（实测 1077936139 三个样本：f502=键 f503=值）
+      if (typeCode === 27 && ref) {
+        member.keyTypeCode = varintOf(ref, 502)
+        member.valueTypeCode = varintOf(ref, 503)
+      }
     }
     const defMsg = m.find((x) => x.number === 3 && x.wire === 2)
     const def = defMsg ? parseWireMessage(defMsg.value as Uint8Array) : undefined
@@ -277,7 +286,14 @@ function buildMemberFields(m: { name: string; typeCode: number; order: number },
   ]
 }
 
-export type NewStructMember = { name: string; typeCode: number; refStructId?: number }
+export type NewStructMember = {
+  name: string
+  typeCode: number
+  refStructId?: number
+  /** dict(27) 的键/值类型码 */
+  keyTypeCode?: number
+  valueTypeCode?: number
+}
 
 /** 构造 root10 `f6` 里的一条结构体记录：{ 1:DefBlock 2:镜像 3:改写计数 4:成员数 5:1 } */
 export function buildStructDefRecord(
@@ -384,7 +400,9 @@ export function appendStruct(payload: Uint8Array, opts: {
       name: m.name,
       typeCode: m.typeCode,
       order: i + 1,
-      refStructId: m.refStructId
+      refStructId: m.refStructId,
+      keyTypeCode: m.keyTypeCode,
+      valueTypeCode: m.valueTypeCode
     })),
     opts.id,
     ext.maxDefId + 1,

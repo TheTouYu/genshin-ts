@@ -43,7 +43,14 @@ const CLIENT_CODES: Record<number, number> = {
   1: 1, 2: 14, 3: 3, 4: 5, 5: 7, 6: 9, 7: 15, 8: 4, 9: 6, 10: 8, 11: 10,
   12: 11, 13: 2, 15: 12, 17: 16, 20: 18, 21: 19,
   25: 22, // struct：服务端 25 → 其余三类图 22（实测 def 1610612831）
-  26: 23 // struct_list：同上 +1（实测 def 1610612740 系列）
+  26: 23, // struct_list：同上 +1（实测 def 1610612740 系列）
+  27: 24, // dict：服务端 27 → 其余三类图 24（实测结构体_3 1077936139）
+  // 以下三种客户端码实测于结构体_2 (1077936138) 的 20001 拆分 def：
+  22: 20, // config_list
+  23: 21, // prefab_list
+  24: 25 // faction_list（0x19 = 25；我第一次读成了 19 —— 十六进制/十进制看串）
+  // 注：与 id 类标量并非简单偏移（config_id 20→18、prefab_id 21→19 是 −2，
+  //     而 faction 17→16 是 −1、faction_list 24→19 是 −5）→ 只能逐项实测
 }
 
 /** `f4.f1`：引脚类型档。**四类图相同**；entity 省略、列表统一 10002。 */
@@ -76,6 +83,9 @@ export type GenPin = {
   forceIndexSeq?: boolean
   /** `f5` 的值（实测：修改 def 各引脚 13/14/15/16；拼装/拆分的结构体引脚 13；其余无） */
   f5Value?: number
+  /** dict 成员的键/值类型码（来自定义记录 f1.f2.f502/f503） */
+  keyTypeCode?: number
+  valueTypeCode?: number
 }
 
 /** 列表类型 → 元素类型码 */
@@ -102,7 +112,9 @@ function descriptor(
   mappedCode: number,
   refStructId: number | undefined,
   graphType: number,
-  depth = 0
+  depth = 0,
+  keyTypeCode?: number,
+  valueTypeCode?: number
 ): WireField[] {
   const out: WireField[] = []
   if (slot !== undefined) out.push({ number: 1, wire: 0, value: slot })
@@ -115,6 +127,21 @@ function descriptor(
       wire: 2,
       value: emitWireMessage([{ number: 1, wire: 0, value: graphType === 20000 ? 1 : 200001 }])
     })
+  }
+  if (varTypeCode === 27) {
+    // dict：`105 = {3:<键类型>, 4:<值类型>, 6:1, 7:<图族 1|2>}`（实测三样本，C71b）
+    const codes2 = graphType === 20000 ? SERVER_CODES : CLIENT_CODES
+    out.push({
+      number: 105,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 3, wire: 0, value: codes2[keyTypeCode ?? 6] ?? keyTypeCode ?? 6 },
+        { number: 4, wire: 0, value: codes2[valueTypeCode ?? 6] ?? valueTypeCode ?? 6 },
+        { number: 6, wire: 0, value: 1 },
+        { number: 7, wire: 0, value: graphType === 20000 ? 1 : 2 }
+      ])
+    })
+    return out
   }
   if (varTypeCode === 25) {
     // struct：104 在**顶层**
@@ -172,7 +199,9 @@ function pinField(pin: GenPin, pinIndex: number, graphType: number): WireField[]
       number: 4,
       wire: 2,
       // 注意：f4.f1（引脚类型档）按**原始**类型码查表，f4.f3/f4.f4 用**映射后**的类型码
-      value: emitWireMessage(descriptor(pin.typeCode, pinTypeSlot(pin.typeCode), mapped, pin.refStructId, graphType))
+      value: emitWireMessage(
+        descriptor(pin.typeCode, pinTypeSlot(pin.typeCode), mapped, pin.refStructId, graphType, 0, pin.keyTypeCode, pin.valueTypeCode)
+      )
     })
     // 注：int 等原始类型引脚**没有 f5**；只有结构体类型引脚才有（实测 {1:13}）
     // 注意：**成员引脚没有 f5**，哪怕它的类型是 struct（实测 def 1610612737 引脚 2）。
@@ -287,7 +316,7 @@ export function buildStructComposites(
           number: 102,
           value: emitWireMessage(
             pinField(
-              { kind: 'in', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, indexSeq: i + 1 },
+              { kind: 'in', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, keyTypeCode: m.keyTypeCode, valueTypeCode: m.valueTypeCode, indexSeq: i + 1 },
               idxs[i],
               graphType
             )
@@ -322,7 +351,7 @@ export function buildStructComposites(
           number: 103,
           value: emitWireMessage(
             pinField(
-              { kind: 'out', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, indexSeq: i + 1 },
+              { kind: 'out', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, keyTypeCode: m.keyTypeCode, valueTypeCode: m.valueTypeCode, indexSeq: i + 1 },
               idxs[i + 1],
               graphType
             )
@@ -363,7 +392,7 @@ export function buildStructComposites(
             number: 102,
             wire: 2,
             value: emitWireMessage(
-              pinField({ kind: 'in', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, indexSeq: 2 * i + 1, forceIndexSeq: true, f5Value: 15 }, idxs[4 + 2 * i], gt)
+              pinField({ kind: 'in', name: m.name, typeCode: m.typeCode, refStructId: m.refStructId, keyTypeCode: m.keyTypeCode, valueTypeCode: m.valueTypeCode, indexSeq: 2 * i + 1, forceIndexSeq: true, f5Value: 15 }, idxs[4 + 2 * i], gt)
             )
           })
           body.push({
