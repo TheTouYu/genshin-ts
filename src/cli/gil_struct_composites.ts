@@ -49,7 +49,7 @@ const CLIENT_CODES: Record<number, number> = {
 /** `f4.f1`：引脚类型档。**四类图相同**；entity 省略、列表统一 10002。 */
 function pinTypeSlot(varTypeCode: number): number | undefined {
   if (varTypeCode === 1) return undefined // entity：字段省略
-  if ([7, 8, 9, 10, 11, 13, 15, 26].includes(varTypeCode)) return 10002 // 各类列表
+  if ([7, 8, 9, 10, 11, 13, 15, 22, 23, 24, 26].includes(varTypeCode)) return 10002 // 各类列表
   if ([2, 17, 20, 21].includes(varTypeCode)) return 1
   if (varTypeCode === 3) return 2
   if (varTypeCode === 5) return 4
@@ -57,6 +57,7 @@ function pinTypeSlot(varTypeCode: number): number | undefined {
   if (varTypeCode === 4) return 6
   if (varTypeCode === 12) return 7
   if (varTypeCode === 25) return 10001 // struct 引用
+  if (varTypeCode === 27) return 10003 // dict（实测 def 1610612846 引脚 22）
   return undefined
 }
 

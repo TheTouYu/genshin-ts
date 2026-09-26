@@ -231,8 +231,13 @@ function zeroDefaultFor(typeCode: number): Uint8Array {
   }
   if (typeCode === 10) return wrap(Buffer.alloc(4)) // 一个 float 零（packed）
   if (typeCode === 11 || typeCode === 15) return wrap(EMPTY_MSG) // 一个空元素（message）
-  // 未采样的列表/复合类型：按最近的已采样同类处理，并在注释里标明是推断
-  if (typeCode === 22 || typeCode === 23 || typeCode === 24) return wrap(Buffer.from([0])) // 推断：同 id 类列表
+  // 以下三种**各不相同**，实测（结构体_2 1077936138 的成员 16/18/20）：
+  //   config_list(22)  → `{1: 空}` = 0a00
+  //   prefab_list(23)  → **空 message**
+  //   faction_list(24) → **空 message**
+  // 我曾按「id 类列表同形」把三者都写成 0a0100 —— 三个全错。**兄弟类型不能互相外推。**
+  if (typeCode === 22) return wrap(EMPTY_MSG)
+  if (typeCode === 23 || typeCode === 24) return EMPTY_MSG
   if (typeCode === 25 || typeCode === 26) {
     throw new Error(
       `[error] 类型码 ${typeCode}（struct / struct_list）的默认值展开需要逐层实例化，字节模板尚未闭合，拒绝写入`
