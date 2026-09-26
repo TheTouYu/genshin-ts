@@ -10,6 +10,7 @@
 
 import { parseWireMessage, printableWireText, emitWireMessage, type WireField } from './static_assembly/wire.js'
 import { readVarint, encodeVarint } from '../injector/binary.js'
+import { buildStructComposites, readCompositeExtremes } from './gil_struct_composites.js'
 
 export const STRUCT_FOLDER_BASIC = 29
 export const STRUCT_FOLDER_ARCHIVED = 33
@@ -369,9 +370,32 @@ export function appendStruct(payload: Uint8Array, opts: {
   })
   // 新建的记录：f503 写 2（编辑器语义 = 2 + 之后创建数，新建时为 2）
   const newRecord = buildStructDefRecord(opts.id, opts.name, opts.members, 2)
-  const r10Bytes = emitWireMessage([...rewritten, { number: 6, wire: 2 as const, value: newRecord }])
+  // ② 物化节点族：9 条复合定义（拼装×4 + 拆分×4 + 修改×1）。
+  //    **缺这些时结构体在编辑器节点图里选不中**（实测，见 FINDINGS C63）。
+  const ext = readCompositeExtremes(payload)
+  const comps = buildStructComposites(
+    opts.name,
+    opts.members.map((m, i) => ({
+      name: m.name,
+      typeCode: m.typeCode,
+      order: i + 1,
+      refStructId: m.refStructId
+    })),
+    opts.id,
+    ext.maxDefId + 1,
+    ext.maxPinIndex + 1
+  )
+  const r10Bytes = emitWireMessage([
+    ...rewritten,
+    { number: 6, wire: 2 as const, value: newRecord },
+    ...comps.map((c) => ({ number: 2, wire: 2 as const, value: c.bytes }))
+  ])
   let nextPayload = withContainer(root, 10, r10Bytes)
   changed.push(`root10 追加结构体 [${opts.id}] "${opts.name}"（${opts.members.length} 成员）`)
+  changed.push(
+    `root10 物化节点族 ${comps.length} 条（def ${comps[0].defId}–${comps[comps.length - 1].defId}，` +
+      `pinIndex 起 ${ext.maxPinIndex + 1}）`
+  )
   if (existing > 0) changed.push(`既有 ${existing} 条结构体的改写计数 +1`)
 
   // ③ root6 folder 条目

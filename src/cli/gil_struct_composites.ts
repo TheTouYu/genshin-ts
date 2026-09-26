@@ -13,7 +13,7 @@
  * 并由 N=1 / N=2 / N=17 三种规模交叉验证。
  */
 
-import { emitWireMessage, type WireField } from './static_assembly/wire.js'
+import { emitWireMessage, parseWireMessage, type WireField } from './static_assembly/wire.js'
 import type { StructMember } from './gil_structs.js'
 
 /** 物化覆盖的四个图类型，顺序固定（编辑器产物实测） */
@@ -379,3 +379,36 @@ export function buildStructComposites(
   return out
 }
 
+
+/** 扫描现有复合定义，取 def id 与 pinIndex 的全局最大值（新建结构体从这里往后分配） */
+export function readCompositeExtremes(payload: Uint8Array): { maxDefId: number; maxPinIndex: number } {
+  const root = parseWireMessage(payload)
+  if (!root) throw new Error('[error] malformed GIL payload')
+  const r10 = root.find((f) => f.number === 10 && f.wire === 2)
+  if (!r10) return { maxDefId: 0, maxPinIndex: 0 }
+  const inner = parseWireMessage(r10.value as Uint8Array) ?? []
+  let maxDefId = 0
+  let maxPinIndex = 0
+  for (const f of inner) {
+    if (f.number !== 2 || f.wire !== 2) continue
+    const def = parseWireMessage(f.value as Uint8Array) ?? []
+    const one = def.find((x) => x.number === 1 && x.wire === 2)
+    const body = one ? parseWireMessage(one.value as Uint8Array) : undefined
+    if (!body) continue
+    const idm = body.find((x) => x.number === 4 && x.wire === 2)
+    if (idm) {
+      const idMsg = parseWireMessage(idm.value as Uint8Array) ?? []
+      const g1 = idMsg.find((x) => x.number === 1 && x.wire === 2)
+      const g = g1 ? parseWireMessage(g1.value as Uint8Array) : undefined
+      const v = g?.find((x) => x.number === 5 && x.wire === 0)?.value
+      if (typeof v === 'number' && v > maxDefId) maxDefId = v
+    }
+    for (const pin of body) {
+      if (![100, 101, 102, 103].includes(pin.number) || pin.wire !== 2) continue
+      const pm = parseWireMessage(pin.value as Uint8Array) ?? []
+      const idx = pm.find((x) => x.number === 8 && x.wire === 0)?.value
+      if (typeof idx === 'number' && idx > maxPinIndex) maxPinIndex = idx
+    }
+  }
+  return { maxDefId, maxPinIndex }
+}
