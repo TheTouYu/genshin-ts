@@ -203,6 +203,44 @@ export { varintOf as structVarintOf, textOf as structTextOf, emitWireMessage, en
 const EMPTY_MSG = new Uint8Array(0)
 
 /**
+ * 成员的**默认值字段内容** `f<类型码+10>`。
+ *
+ * ⚠️ 2026-09-26 修正（用户实测 + 差分）：**空列表不是空 message**。
+ * 编辑器对每个成员都写一个「零值实例」，实测（服务端图，全类型结构体 T17全类型V2）：
+ *
+ * | 类型 | 内容 | 字节 |
+ * |---|---|---|
+ * | int/bool/float/str/entity/guid/faction | **空 message** | 0B |
+ * | vec3(12) / config_id(20) / prefab_id(21) | `{ 1: 空 }` | `0a00` |
+ * | int_list/bool_list/entity_list/guid_list | `{ 1: 零值 }` | `0a0100` |
+ * | float_list | `{ 1: 一个 float 零 }` | `0a0400000000` |
+ * | str_list / vec3_list | `{ 1: 空 }` | `0a00` |
+ *
+ * 依据：`docs/game-engine-knowledge/struct-assets.md` + FINDINGS C62。
+ * 我原先一律写空 message，导致 CLI 建的结构体**在编辑器节点图里加载不出来**。
+ */
+function zeroDefaultFor(typeCode: number): Uint8Array {
+  const PRIMITIVE = new Set([1, 2, 3, 4, 5, 6, 17])
+  if (PRIMITIVE.has(typeCode)) return EMPTY_MSG
+  const wrap = (inner: Uint8Array): Uint8Array =>
+    emitWireMessage([{ number: 1, wire: 2, value: inner }])
+  if (typeCode === 12 || typeCode === 20 || typeCode === 21) return wrap(EMPTY_MSG)
+  if (typeCode === 8 || typeCode === 9 || typeCode === 7 || typeCode === 13) {
+    return wrap(Buffer.from([0])) // 一个零值元素（varint 0）
+  }
+  if (typeCode === 10) return wrap(Buffer.alloc(4)) // 一个 float 零（packed）
+  if (typeCode === 11 || typeCode === 15) return wrap(EMPTY_MSG) // 一个空元素（message）
+  // 未采样的列表/复合类型：按最近的已采样同类处理，并在注释里标明是推断
+  if (typeCode === 22 || typeCode === 23 || typeCode === 24) return wrap(Buffer.from([0])) // 推断：同 id 类列表
+  if (typeCode === 25 || typeCode === 26) {
+    throw new Error(
+      `[error] 类型码 ${typeCode}（struct / struct_list）的默认值展开需要逐层实例化，字节模板尚未闭合，拒绝写入`
+    )
+  }
+  throw new Error(`[error] 类型码 ${typeCode} 的默认值编码尚未采样，拒绝写入`)
+}
+
+/**
  * 成员的三个块（与编辑器产物逐字节同构）：
  *   f1 = { 1: 类型码, 2: <引用包裹 或 空> }
  *   f3 = { 1: 类型码, 2: <与 f1 同形的类型包裹>, <类型码+10>: 默认值 }
@@ -220,7 +258,7 @@ function buildMemberFields(m: { name: string; typeCode: number; order: number },
   const f3 = emitWireMessage([
     { number: 1, wire: 0, value: t },
     { number: 2, wire: 2, value: typeBytes },
-    { number: t + 10, wire: 2, value: EMPTY_MSG }
+    { number: t + 10, wire: 2, value: zeroDefaultFor(t) }
   ])
   const nameBytes = Buffer.from(m.name, 'utf8')
   return [
