@@ -42,8 +42,8 @@ const SERVER_CODES: Record<number, number> = {
 const CLIENT_CODES: Record<number, number> = {
   1: 1, 2: 14, 3: 3, 4: 5, 5: 7, 6: 9, 7: 15, 8: 4, 9: 6, 10: 8, 11: 10,
   12: 11, 13: 2, 15: 12, 17: 16, 20: 18, 21: 19,
-  25: 22 // struct：服务端 25 → 其余三类图 22（实测 def 1610612831）
-  // 26 struct_list → 23 为推断，未采样
+  25: 22, // struct：服务端 25 → 其余三类图 22（实测 def 1610612831）
+  26: 23 // struct_list：同上 +1（实测 def 1610612740 系列）
 }
 
 /** `f4.f1`：引脚类型档。**四类图相同**；entity 省略、列表统一 10002。 */
@@ -115,7 +115,8 @@ function descriptor(
       value: emitWireMessage([{ number: 1, wire: 0, value: graphType === 20000 ? 1 : 200001 }])
     })
   }
-  if (varTypeCode === 25 || varTypeCode === 26) {
+  if (varTypeCode === 25) {
+    // struct：104 在**顶层**
     if (refStructId !== undefined) {
       out.push({
         number: 104,
@@ -123,9 +124,12 @@ function descriptor(
         value: emitWireMessage([{ number: 2, wire: 0, value: refStructId }])
       })
     }
-  } else if (LIST_ELEMENT[varTypeCode] !== undefined && depth === 0) {
+  } else if (LIST_ELEMENT[varTypeCode] !== undefined) {
+    // 列表（含 struct_list 26）：元素描述符嵌在 102 里；
+    // **struct_list 的 104 要跟着元素走**（实测 def 1610612737 引脚 3），不能放顶层
     const el = LIST_ELEMENT[varTypeCode]
     const codes = graphType === 20000 ? SERVER_CODES : CLIENT_CODES
+    const elRef = varTypeCode === 26 ? refStructId : undefined
     out.push({
       number: 102,
       wire: 2,
@@ -133,7 +137,7 @@ function descriptor(
         {
           number: 1,
           wire: 2,
-          value: emitWireMessage(descriptor(el, pinTypeSlot(el), codes[el] ?? el, undefined, graphType, depth + 1))
+          value: emitWireMessage(descriptor(el, pinTypeSlot(el), codes[el] ?? el, elRef, graphType, depth + 1))
         }
       ])
     })
@@ -170,7 +174,9 @@ function pinField(pin: GenPin, pinIndex: number, graphType: number): WireField[]
       value: emitWireMessage(descriptor(pin.typeCode, pinTypeSlot(pin.typeCode), mapped, pin.refStructId, graphType))
     })
     // 注：int 等原始类型引脚**没有 f5**；只有结构体类型引脚才有（实测 {1:13}）
-    const f5 = pin.f5Value ?? (pin.refStructId !== undefined || pin.typeCode === 25 ? 13 : undefined)
+    // 注意：**成员引脚没有 f5**，哪怕它的类型是 struct（实测 def 1610612737 引脚 2）。
+    // f5 只出现在「代表整个结构体」的引脚上（拼装输出 / 拆分输入 / 修改的三个位置）。
+    const f5 = pin.f5Value
     if (f5 !== undefined) {
       fields.push({ number: 5, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: f5 }]) })
     }
@@ -291,7 +297,7 @@ export function buildStructComposites(
             number: 103,
             value: emitWireMessage(
               pinField(
-                { kind: 'out', name: structName, typeCode: 25, refStructId: structId, indexSeq: 1 },
+                { kind: 'out', name: structName, typeCode: 25, refStructId: structId, indexSeq: 1, f5Value: 13 },
                 idxs[members.length],
                 graphType
               )
@@ -307,7 +313,7 @@ export function buildStructComposites(
         {
           number: 102,
           value: emitWireMessage(
-            pinField({ kind: 'in', name: structName, typeCode: 25, refStructId: structId, indexSeq: 1 }, idxs[0], graphType)
+            pinField({ kind: 'in', name: structName, typeCode: 25, refStructId: structId, indexSeq: 1, f5Value: 13 }, idxs[0], graphType)
           )
         }
       ].concat(
