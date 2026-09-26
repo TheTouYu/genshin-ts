@@ -26,6 +26,8 @@ const ARCHIVED_MARKER = 2
 /** 结构体类型码（变量类型空间里的 25 / 26） */
 export const TYPE_CODE_STRUCT = 25
 export const TYPE_CODE_STRUCT_LIST = 26
+/** 字典 */
+export const TYPE_CODE_DICT = 27
 
 export type StructMember = {
   name: string
@@ -260,16 +262,94 @@ function zeroDefaultFor(typeCode: number): Uint8Array {
  *   f1 = { 1: 类型码, 2: <引用包裹 或 空> }
  *   f3 = { 1: 类型码, 2: <与 f1 同形的类型包裹>, <类型码+10>: 默认值 }
  */
-function buildMemberFields(m: { name: string; typeCode: number; order: number }, refId?: number): WireField[] {
+function buildMemberFields(
+  m: { name: string; typeCode: number; order: number },
+  refId?: number,
+  dict?: { typeId: number; key: number; value: number; uid: number }
+): WireField[] {
   const t = m.typeCode
+  const typeWrap = (code: number, inner: Uint8Array): Uint8Array =>
+    emitWireMessage([{ number: 1, wire: 0, value: code }, { number: 2, wire: 2, value: inner }])
+  if (t === TYPE_CODE_DICT) {
+    if (!dict) {
+      throw new Error(
+        `[error] 成员 "${m.name}" 是字典，但未提供 dictTypeId/键值类型。` +
+          '字典的类型 id 是「(键,值) 去重注册表」里的条目号，新组合无法推算，必须复用地图里已有的同组合字典。'
+      )
+    }
+    // f1.f2 与 f37.f1.f2 都是 { f2: <dictTypeId>, f502: 键码, f503: 值码 }（实测 C72/C73）
+    const dictType = emitWireMessage([
+      { number: 2, wire: 0, value: dict.typeId },
+      { number: 502, wire: 0, value: dict.key },
+      { number: 503, wire: 0, value: dict.value }
+    ])
+    /** 键/值默认值块，与普通成员同形：{1:码, 2:<类型包裹>, <码+10>:<值>} */
+    const defaultBlock = (code: number, valueBytes: Uint8Array): Uint8Array =>
+      emitWireMessage([
+        { number: 1, wire: 0, value: code },
+        { number: 2, wire: 2, value: typeWrap(code, EMPTY_MSG) },
+        { number: code + 10, wire: 2, value: valueBytes }
+      ])
+    // 键默认值 = 该类型的「1」：str 是字符串 "1"，数值类是数字 1（实测 str/int；
+    // guid / config_id / prefab_id 按数值同形推断）
+    const one = (code: number): Uint8Array =>
+      code === 6
+        ? emitWireMessage([{ number: 1, wire: 2, value: Buffer.from('1', 'utf8') }])
+        : emitWireMessage([{ number: 1, wire: 0, value: 1 }])
+    const keyDefault = defaultBlock(dict.key, one(dict.key))
+    const valueDefault = defaultBlock(dict.value, zeroDefaultFor(dict.value))
+    const f37 = emitWireMessage([
+      {
+        number: 1,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 0, value: 25 },
+          { number: 2, wire: 2, value: typeWrap(25, dictType) },
+          {
+            number: 35,
+            wire: 2,
+            value: emitWireMessage([
+              { number: 1, wire: 2, value: keyDefault },
+              { number: 1, wire: 2, value: valueDefault },
+              { number: 501, wire: 0, value: dict.typeId },
+              {
+                number: 502,
+                wire: 2,
+                value: emitWireMessage([
+                  { number: 2, wire: 0, value: 28 },
+                  { number: 4, wire: 0, value: dict.uid }
+                ])
+              }
+            ])
+          }
+        ])
+      },
+      { number: 501, wire: 2, value: keyDefault },
+      { number: 502, wire: 2, value: valueDefault },
+      { number: 503, wire: 0, value: dict.key },
+      { number: 504, wire: 0, value: dict.value }
+    ])
+    const f1d = typeWrap(27, dictType)
+    const f3d = emitWireMessage([
+      { number: 1, wire: 0, value: 27 },
+      { number: 2, wire: 2, value: f1d },
+      { number: 37, wire: 2, value: f37 }
+    ])
+    const nm = Buffer.from(m.name, 'utf8')
+    return [
+      { number: 1, wire: 2, value: f1d },
+      { number: 3, wire: 2, value: f3d },
+      { number: 5, wire: 2, value: nm },
+      { number: 501, wire: 2, value: nm },
+      { number: 502, wire: 0, value: 27 },
+      { number: 503, wire: 0, value: m.order }
+    ]
+  }
   const refInner =
     refId !== undefined
       ? emitWireMessage([{ number: 1, wire: 0, value: 1 }, { number: 2, wire: 0, value: refId }])
       : EMPTY_MSG
-  const typeBytes = emitWireMessage([
-    { number: 1, wire: 0, value: t },
-    { number: 2, wire: 2, value: refInner }
-  ])
+  const typeBytes = typeWrap(t, refInner)
   const f3 = emitWireMessage([
     { number: 1, wire: 0, value: t },
     { number: 2, wire: 2, value: typeBytes },
@@ -300,7 +380,8 @@ export function buildStructDefRecord(
   id: number,
   name: string,
   members: readonly NewStructMember[],
-  rewriteCounter: number
+  rewriteCounter: number,
+  dictReg?: { typeIdOf: Map<string, number>; maxUid: number }
 ): Uint8Array {
   for (const m of members) {
     if (m.typeCode === TYPE_CODE_STRUCT || m.typeCode === TYPE_CODE_STRUCT_LIST) {
@@ -311,11 +392,40 @@ export function buildStructDefRecord(
       )
     }
   }
-  const memberFields = members.map((m, i) => ({
-    number: 3,
-    wire: 2 as const,
-    value: emitWireMessage(buildMemberFields({ name: m.name, typeCode: m.typeCode, order: i + 1 }, m.refStructId))
-  }))
+  const memberFields = members.map((m, i) => {
+    let dict: { typeId: number; key: number; value: number; uid: number } | undefined
+    if (m.typeCode === TYPE_CODE_DICT) {
+      const k = m.keyTypeCode
+      const v = m.valueTypeCode
+      if (k === undefined || v === undefined) {
+        throw new Error(`[error] 字典成员 "${m.name}" 必须指定键与值类型`)
+      }
+      // 键限 str/int/元件id/guid（用户 2026-09-26 定的范围）；值按普通成员处理
+      const ALLOWED_KEY = new Set([2, 3, 6, 20, 21])
+      if (!ALLOWED_KEY.has(k)) {
+        throw new Error(
+          `[error] 字典成员 "${m.name}" 的键类型 ${k} 暂不支持；` +
+            '支持 str(6) / int(3) / guid(2) / config_id(20) / prefab_id(21)'
+        )
+      }
+      const tid = dictReg?.typeIdOf.get(`${k},${v}`)
+      if (tid === undefined) {
+        throw new Error(
+          `[error] 地图里还没有 (键=${k}, 值=${v}) 组合的字典，无法确定其类型 id。\n` +
+            '字典的类型 id 是「(键,值) 去重注册表」的条目号，新组合推算不出来（实测 C73）。\n' +
+            '请先用编辑器在本图建一个该组合的字典（任意结构体里放一个即可），再重试。'
+        )
+      }
+      dict = { typeId: tid, key: k, value: v, uid: (dictReg?.maxUid ?? 0) + 1 + i }
+    }
+    return {
+      number: 3,
+      wire: 2 as const,
+      value: emitWireMessage(
+        buildMemberFields({ name: m.name, typeCode: m.typeCode, order: i + 1 }, m.refStructId, dict)
+      )
+    }
+  })
   const block = emitWireMessage([
     { number: 1, wire: 0, value: id },
     ...memberFields,
@@ -330,6 +440,55 @@ export function buildStructDefRecord(
     { number: 4, wire: 0, value: members.length },
     { number: 5, wire: 0, value: 1 }
   ])
+}
+
+/**
+ * 扫描地图里已有的 dict 成员，返回：
+ *   - `typeIdOf`：`(键,值) → dictTypeId` 的查找表（同组合必同号，实测 C73）
+ *   - `maxUid`：实例 uid 的最大值（单调递增，实测 C73）
+ */
+export function scanDictRegistry(payload: Uint8Array): {
+  typeIdOf: Map<string, number>
+  maxUid: number
+} {
+  const typeIdOf = new Map<string, number>()
+  let maxUid = 0
+  const root = parseWireMessage(payload)
+  const r10 = root ? rootContainer(root, 10) : undefined
+  if (!r10) return { typeIdOf, maxUid }
+  for (const f of r10.filter((x) => x.number === 6 && x.wire === 2)) {
+    const c = parseWireMessage(f.value as Uint8Array)
+    const main = c?.find((x) => x.number === 1 && x.wire === 2)
+    const blk = main ? parseWireMessage(main.value as Uint8Array) : undefined
+    if (!blk) continue
+    for (const m of blk.filter((x) => x.number === 3 && x.wire === 2)) {
+      const mm = parseWireMessage(m.value as Uint8Array)
+      if (!mm || varintOf(mm, 502) !== TYPE_CODE_DICT) continue
+      const f1 = mm.find((x) => x.number === 1 && x.wire === 2)
+      const f1m = f1 ? parseWireMessage(f1.value as Uint8Array) : undefined
+      const inner = f1m?.find((x) => x.number === 2 && x.wire === 2)
+      const tm = inner ? parseWireMessage(inner.value as Uint8Array) : undefined
+      if (!tm) continue
+      const tid = varintOf(tm, 2)
+      const k = varintOf(tm, 502)
+      const v = varintOf(tm, 503)
+      if (tid !== undefined && k !== undefined && v !== undefined) typeIdOf.set(`${k},${v}`, tid)
+      // uid 在 f3.f37.f1.f35.f502.f4
+      const f3 = mm.find((x) => x.number === 3 && x.wire === 2)
+      const f3m = f3 ? parseWireMessage(f3.value as Uint8Array) : undefined
+      const f37 = f3m?.find((x) => x.number === 37 && x.wire === 2)
+      const f37m = f37 ? parseWireMessage(f37.value as Uint8Array) : undefined
+      const inst = f37m?.find((x) => x.number === 1 && x.wire === 2)
+      const instM = inst ? parseWireMessage(inst.value as Uint8Array) : undefined
+      const f35 = instM?.find((x) => x.number === 35 && x.wire === 2)
+      const f35M = f35 ? parseWireMessage(f35.value as Uint8Array) : undefined
+      const ref = f35M?.find((x) => x.number === 502 && x.wire === 2)
+      const refM = ref ? parseWireMessage(ref.value as Uint8Array) : undefined
+      const uid = refM ? varintOf(refM, 4) : undefined
+      if (uid !== undefined && uid > maxUid) maxUid = uid
+    }
+  }
+  return { typeIdOf, maxUid }
 }
 
 /** 把 root 的某个容器字段替换为新的字节（保持其它字段与顺序不变） */
@@ -390,7 +549,7 @@ export function appendStruct(payload: Uint8Array, opts: {
     return { number: 6, wire: 2 as const, value: emitWireMessage(next) }
   })
   // 新建的记录：f503 写 2（编辑器语义 = 2 + 之后创建数，新建时为 2）
-  const newRecord = buildStructDefRecord(opts.id, opts.name, opts.members, 2)
+  const newRecord = buildStructDefRecord(opts.id, opts.name, opts.members, 2, scanDictRegistry(payload))
   // ② 物化节点族：9 条复合定义（拼装×4 + 拆分×4 + 修改×1）。
   //    **缺这些时结构体在编辑器节点图里选不中**（实测，见 FINDINGS C63）。
   const ext = readCompositeExtremes(payload)

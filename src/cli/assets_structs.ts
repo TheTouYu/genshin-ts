@@ -53,6 +53,10 @@ type MemberSpec = {
   ref?: string
   /** struct_list 成员的默认元素个数 */
   listLength?: number
+  /** 字典成员的键类型码（`dict<键,值>` 语法） */
+  keyTypeCode?: number
+  /** 字典成员的值类型码 */
+  valueTypeCode?: number
 }
 
 type Args = {
@@ -112,6 +116,7 @@ function usage(exitCode = 1): never {
     '  list    [--gil <file>|--map-id <id>] [--json]',
     '  inspect --name <名> [--gil <file>|--map-id <id>] [--json]',
     '  create  --name <名> --member <名>:<类型>[=<引用>] … [--archived]',
+  '          字典成员写法：--member "d:dict<str,int>"（键限 str/int/guid/config_id/prefab_id）',
     '          [--gil <file>|--map-id <id>] [--output <file>|--write]',
     '  update  --name <名> [--add-member <名>:<类型>]… [--remove-member <名>]…',
     '          [--rename-member <旧>=<新>] [--gil <file>|--map-id <id>]',
@@ -146,6 +151,16 @@ function parseMemberSpec(raw: string): MemberSpec {
   const [name, typeName] = (head ?? '').split(':')
   if (!name || !typeName) {
     throw new Error(`[error] bad --member "${raw}"；格式 <名>:<类型>[=<结构体名或id>]`)
+  }
+  // 字典语法：`d:dict<str,int>`（键限 str/int/guid/config_id/prefab_id；值按普通类型）
+  const dictMatch = /^dict<([^,]+),([^>]+)>$/.exec(typeName)
+  if (dictMatch) {
+    return {
+      name,
+      typeCode: 27,
+      keyTypeCode: typeCodeOfName(dictMatch[1]),
+      valueTypeCode: typeCodeOfName(dictMatch[2])
+    }
   }
   const typeCode = typeCodeOfName(typeName)
   const spec: MemberSpec = { name, typeCode }
@@ -324,7 +339,12 @@ export async function runAssetsStructs(
       id,
       name: structName,
       archived: args.archived,
-      members: args.members.map((m) => ({ name: m.name, typeCode: m.typeCode }))
+      members: args.members.map((m) => ({
+        name: m.name,
+        typeCode: m.typeCode,
+        keyTypeCode: m.keyTypeCode,
+        valueTypeCode: m.valueTypeCode
+      }))
     })
     const outBytes = rebuildGil(sourceBytes, res.payload)
     // 回读断言：写出的字节必须能被自己的读侧解出同一个结构体（不是「CLI 说成功」）
