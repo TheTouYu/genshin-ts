@@ -74,12 +74,17 @@ type Args = {
 }
 
 /** 变量类型码空间（与 assets:custom-variables / assets:level-variables 共用，1..27） */
+// ⚠️ 严格照抄 docs/game-engine-knowledge/parameter-types.md:14-46 的 VarType 表，不凭记忆/推断。
+// 2026-09-26 事故：我把 entity_list 写成 16，而 16 其实是 local_variable ——
+// 结果 CLI 建的结构体在编辑器**节点图里加载不出来**（用户实测），被编辑器自动纠正为 1。
+// 教训：**建类型映射时必须回查权威表**；我甚至引用过那张表，却仍是靠记忆写的。
 const TYPE_NAME_TO_CODE = new Map<string, number>([
   ['entity', 1], ['guid', 2], ['int', 3], ['bool', 4], ['float', 5], ['str', 6],
-  ['vec3', 12], ['faction', 17], ['config_id', 20], ['prefab_id', 21],
-  ['int_list', 8], ['bool_list', 9], ['float_list', 10], ['str_list', 11],
-  ['vec3_list', 15], ['entity_list', 16], ['guid_list', 7],
-  ['struct', 25], ['struct_list', 26]
+  ['guid_list', 7], ['int_list', 8], ['bool_list', 9], ['float_list', 10], ['str_list', 11],
+  ['vec3', 12], ['entity_list', 13], ['enum_item', 14], ['vec3_list', 15],
+  ['local_variable', 16], ['faction', 17], ['config_id', 20], ['prefab_id', 21],
+  ['config_list', 22], ['prefab_list', 23], ['faction_list', 24],
+  ['struct', 25], ['struct_list', 26], ['dict', 27], ['variable_snapshot', 28]
 ])
 const CODE_TO_TYPE_NAME = new Map([...TYPE_NAME_TO_CODE].map(([k, v]) => [v, k]))
 
