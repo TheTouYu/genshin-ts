@@ -1,0 +1,1012 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 4.26,
+      "to": 4.74,
+      "sid": 1,
+      "location": 2,
+      "content": "大家好",
+      "music": 0.0
+    },
+    {
+      "from": 4.74,
+      "to": 6.94,
+      "sid": 2,
+      "location": 2,
+      "content": "我是技术策划土豆",
+      "music": 0.0
+    },
+    {
+      "from": 6.94,
+      "to": 7.82,
+      "sid": 3,
+      "location": 2,
+      "content": "大家好",
+      "music": 0.0
+    },
+    {
+      "from": 7.82,
+      "to": 9.93,
+      "sid": 4,
+      "location": 2,
+      "content": "我是系统策划牛男",
+      "music": 0.0
+    },
+    {
+      "from": 9.93,
+      "to": 11.31,
+      "sid": 5,
+      "location": 2,
+      "content": "亿载风华",
+      "music": 0.0
+    },
+    {
+      "from": 11.31,
+      "to": 12.65,
+      "sid": 6,
+      "location": 2,
+      "content": "星辉璀璨",
+      "music": 0.0
+    },
+    {
+      "from": 12.65,
+      "to": 15.37,
+      "sid": 7,
+      "location": 2,
+      "content": "我们即将迎来千星奇遇玩法发布",
+      "music": 0.0
+    },
+    {
+      "from": 15.37,
+      "to": 17.189,
+      "sid": 8,
+      "location": 2,
+      "content": "一年的里程碑节点",
+      "music": 0.0
+    },
+    {
+      "from": 17.189,
+      "to": 19.909,
+      "sid": 9,
+      "location": 2,
+      "content": "接下来将为大家带来7.1版本",
+      "music": 0.0
+    },
+    {
+      "from": 19.909,
+      "to": 22.86,
+      "sid": 10,
+      "location": 2,
+      "content": "奇遇中即将更新的精彩内容",
+      "music": 0.0
+    },
+    {
+      "from": 23.02,
+      "to": 26.04,
+      "sid": 11,
+      "location": 2,
+      "content": "首先为您介绍的是新版本的奇遇大厅",
+      "music": 0.0
+    },
+    {
+      "from": 26.04,
+      "to": 27.68,
+      "sid": 12,
+      "location": 2,
+      "content": "与全新系列装扮",
+      "music": 0.0
+    },
+    {
+      "from": 27.68,
+      "to": 31.02,
+      "sid": 13,
+      "location": 2,
+      "content": "让我们通过一则短片来了解一下",
+      "music": 0.0
+    },
+    {
+      "from": 93.28,
+      "to": 96.2,
+      "sid": 14,
+      "location": 2,
+      "content": "可以看到这次的主题大厅与装扮",
+      "music": 0.0
+    },
+    {
+      "from": 96.2,
+      "to": 98.21,
+      "sid": 15,
+      "location": 2,
+      "content": "又是焕然一新的风格",
+      "music": 0.0
+    },
+    {
+      "from": 98.21,
+      "to": 100.91,
+      "sid": 16,
+      "location": 2,
+      "content": "我们邀请到了项目组的特约记者",
+      "music": 0.0
+    },
+    {
+      "from": 100.91,
+      "to": 102.87,
+      "sid": 17,
+      "location": 2,
+      "content": "来为我们进行设计分享",
+      "music": 0.0
+    },
+    {
+      "from": 102.87,
+      "to": 105.29,
+      "sid": 18,
+      "location": 2,
+      "content": "让我们现场连线一下",
+      "music": 0.0
+    },
+    {
+      "from": 105.67,
+      "to": 106.71,
+      "sid": 19,
+      "location": 2,
+      "content": "你好HELEN",
+      "music": 0.0
+    },
+    {
+      "from": 107.75,
+      "to": 109.21,
+      "sid": 20,
+      "location": 2,
+      "content": "你好土豆",
+      "music": 0.0
+    },
+    {
+      "from": 109.49,
+      "to": 112.77,
+      "sid": 21,
+      "location": 2,
+      "content": "请为我们分享一下新版本的一些设计思路吧",
+      "music": 0.0
+    },
+    {
+      "from": 112.77,
+      "to": 114.34,
+      "sid": 22,
+      "location": 2,
+      "content": "好的土豆",
+      "music": 0.0
+    },
+    {
+      "from": 114.34,
+      "to": 116.3,
+      "sid": 23,
+      "location": 2,
+      "content": "正如大家所看到的那样",
+      "music": 0.0
+    },
+    {
+      "from": 116.3,
+      "to": 120.16,
+      "sid": 24,
+      "location": 2,
+      "content": "新版本将会是一个以清虚贵殿为主题的大厅",
+      "music": 0.0
+    },
+    {
+      "from": 120.16,
+      "to": 121.92,
+      "sid": 25,
+      "location": 2,
+      "content": "在大厅的一角凉亭内",
+      "music": 0.0
+    },
+    {
+      "from": 121.92,
+      "to": 125.25,
+      "sid": 26,
+      "location": 2,
+      "content": "一只忙碌的月兔正在捣药并洒落药尘",
+      "music": 0.0
+    },
+    {
+      "from": 125.25,
+      "to": 128.73,
+      "sid": 27,
+      "location": 2,
+      "content": "玩家朋友们拾取之后会出现特别的表现",
+      "music": 0.0
+    },
+    {
+      "from": 128.73,
+      "to": 132.15,
+      "sid": 28,
+      "location": 2,
+      "content": "我们一直想要尝试更多元的装扮风格",
+      "music": 0.0
+    },
+    {
+      "from": 132.15,
+      "to": 133.31,
+      "sid": 29,
+      "location": 2,
+      "content": "恰逢秋日",
+      "music": 0.0
+    },
+    {
+      "from": 133.31,
+      "to": 136.03,
+      "sid": 30,
+      "location": 2,
+      "content": "美术同学以桂花和月亮为主题",
+      "music": 0.0
+    },
+    {
+      "from": 136.03,
+      "to": 139.01,
+      "sid": 31,
+      "location": 2,
+      "content": "设计了一套古色古香的传说装扮",
+      "music": 0.0
+    },
+    {
+      "from": 139.01,
+      "to": 141.63,
+      "sid": 32,
+      "location": 2,
+      "content": "并以拨云见月这一意象为灵感",
+      "music": 0.0
+    },
+    {
+      "from": 141.63,
+      "to": 143.91,
+      "sid": 33,
+      "location": 2,
+      "content": "制作了独特的生恋特效",
+      "music": 0.0
+    },
+    {
+      "from": 143.91,
+      "to": 146.87,
+      "sid": 34,
+      "location": 2,
+      "content": "新版本还将更新一系列特色装扮",
+      "music": 0.0
+    },
+    {
+      "from": 146.87,
+      "to": 151.61,
+      "sid": 35,
+      "location": 2,
+      "content": "此外该版本更新的直售装扮将畅享盛会特惠",
+      "music": 0.0
+    },
+    {
+      "from": 151.61,
+      "to": 154.25,
+      "sid": 36,
+      "location": 2,
+      "content": "玩家朋友们还可以通过参与活动",
+      "music": 0.0
+    },
+    {
+      "from": 154.25,
+      "to": 159.6,
+      "sid": 37,
+      "location": 2,
+      "content": "免费获取一套清新靓丽的卓越套装等等",
+      "music": 0.0
+    },
+    {
+      "from": 159.6,
+      "to": 161.04,
+      "sid": 38,
+      "location": 2,
+      "content": "刚刚直播画面中",
+      "music": 0.0
+    },
+    {
+      "from": 161.04,
+      "to": 163.25,
+      "sid": 39,
+      "location": 2,
+      "content": "似乎有什么奇怪的家伙跑过去了",
+      "music": 0.0
+    },
+    {
+      "from": 163.25,
+      "to": 164.35,
+      "sid": 40,
+      "location": 2,
+      "content": "没错",
+      "music": 0.0
+    },
+    {
+      "from": 164.35,
+      "to": 167.84,
+      "sid": 41,
+      "location": 2,
+      "content": "我们把一位奇怪的丘丘人做进了星星奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 167.84,
+      "to": 169.8,
+      "sid": 42,
+      "location": 2,
+      "content": "在7.1版本更新之后",
+      "music": 0.0
+    },
+    {
+      "from": 169.8,
+      "to": 173.86,
+      "sid": 43,
+      "location": 2,
+      "content": "我们将向玩家朋友们赠送这款别具风味的奇怪",
+      "music": 0.0
+    },
+    {
+      "from": 173.86,
+      "to": 176.0,
+      "sid": 44,
+      "location": 2,
+      "content": "丘丘面具头饰",
+      "music": 0.0
+    },
+    {
+      "from": 178.52,
+      "to": 179.6,
+      "sid": 45,
+      "location": 2,
+      "content": "Helen helen",
+      "music": 0.0
+    },
+    {
+      "from": 179.6,
+      "to": 180.56,
+      "sid": 46,
+      "location": 2,
+      "content": "你这边还在吗",
+      "music": 0.0
+    },
+    {
+      "from": 180.56,
+      "to": 183.28,
+      "sid": 47,
+      "location": 2,
+      "content": "现场的网络似乎出现了一些意外状况",
+      "music": 0.0
+    },
+    {
+      "from": 183.28,
+      "to": 185.2,
+      "sid": 48,
+      "location": 2,
+      "content": "为了不影响直播的正常进行",
+      "music": 0.0
+    },
+    {
+      "from": 185.2,
+      "to": 187.58,
+      "sid": 49,
+      "location": 2,
+      "content": "让我们快速进行到下一阶段吧",
+      "music": 0.0
+    },
+    {
+      "from": 189.78,
+      "to": 192.06,
+      "sid": 50,
+      "location": 2,
+      "content": "为了庆祝千星奇遇的发展",
+      "music": 0.0
+    },
+    {
+      "from": 192.06,
+      "to": 195.46,
+      "sid": 51,
+      "location": 2,
+      "content": "一场名为启星盛会的活动正在筹备中",
+      "music": 0.0
+    },
+    {
+      "from": 195.46,
+      "to": 198.62,
+      "sid": 52,
+      "location": 2,
+      "content": "让我们一起来看看活动的特别资讯",
+      "music": 0.0
+    },
+    {
+      "from": 198.67,
+      "to": 200.31,
+      "sid": 53,
+      "location": 2,
+      "content": "在7.1版本",
+      "music": 0.0
+    },
+    {
+      "from": 200.31,
+      "to": 204.86,
+      "sid": 54,
+      "location": 2,
+      "content": "七心奇遇将首次开启试项宁河额外赠礼活动",
+      "music": 0.0
+    },
+    {
+      "from": 204.86,
+      "to": 208.08,
+      "sid": 55,
+      "location": 2,
+      "content": "所有购买档位将提供首充赠礼",
+      "music": 0.0
+    },
+    {
+      "from": 208.08,
+      "to": 212.019,
+      "sid": 56,
+      "location": 2,
+      "content": "第一次购买可额外获得四项宁和盛会",
+      "music": 0.0
+    },
+    {
+      "from": 212.019,
+      "to": 213.219,
+      "sid": 57,
+      "location": 2,
+      "content": "与此同时",
+      "music": 0.0
+    },
+    {
+      "from": 213.219,
+      "to": 216.059,
+      "sid": 58,
+      "location": 2,
+      "content": "月之二版本的幻夜游竹活动送月",
+      "music": 0.0
+    },
+    {
+      "from": 216.059,
+      "to": 220.59,
+      "sid": 59,
+      "location": 2,
+      "content": "还有同期商城中的诸多装扮也将重返千心奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 220.59,
+      "to": 222.61,
+      "sid": 60,
+      "location": 2,
+      "content": "据可靠资料显示",
+      "music": 0.0
+    },
+    {
+      "from": 222.61,
+      "to": 225.52,
+      "sid": 61,
+      "location": 2,
+      "content": "装扮返场活动将为长期计划",
+      "music": 0.0
+    },
+    {
+      "from": 225.52,
+      "to": 229.23,
+      "sid": 62,
+      "location": 2,
+      "content": "玩家朋友们可持续期待后续版本更新内容",
+      "music": 0.0
+    },
+    {
+      "from": 229.23,
+      "to": 230.91,
+      "sid": 63,
+      "location": 2,
+      "content": "是的不仅如此",
+      "music": 0.0
+    },
+    {
+      "from": 230.91,
+      "to": 234.73,
+      "sid": 64,
+      "location": 2,
+      "content": "众多玩家朋友们期待的常驻送院获取方式优化",
+      "music": 0.0
+    },
+    {
+      "from": 234.73,
+      "to": 236.19,
+      "sid": 65,
+      "location": 2,
+      "content": "也在日程当中了",
+      "music": 0.0
+    },
+    {
+      "from": 236.19,
+      "to": 238.72,
+      "sid": 66,
+      "location": 2,
+      "content": "预计将在今年内与大家见面",
+      "music": 0.0
+    },
+    {
+      "from": 238.72,
+      "to": 240.68,
+      "sid": 67,
+      "location": 2,
+      "content": "自玩法上线以来",
+      "music": 0.0
+    },
+    {
+      "from": 240.68,
+      "to": 244.53,
+      "sid": 68,
+      "location": 2,
+      "content": "奇匠们的智慧是千星奇遇发展的绚烂多彩",
+      "music": 0.0
+    },
+    {
+      "from": 244.53,
+      "to": 246.11,
+      "sid": 69,
+      "location": 2,
+      "content": "值此盛会之际",
+      "music": 0.0
+    },
+    {
+      "from": 246.11,
+      "to": 249.03,
+      "sid": 70,
+      "location": 2,
+      "content": "我们邀请玩家朋友们参与启星盛会",
+      "music": 0.0
+    },
+    {
+      "from": 249.03,
+      "to": 250.51,
+      "sid": 71,
+      "location": 2,
+      "content": "奇遇加选活动",
+      "music": 0.0
+    },
+    {
+      "from": 250.51,
+      "to": 253.79,
+      "sid": 72,
+      "location": 2,
+      "content": "选出大家心目中最具代表性的佳品",
+      "music": 0.0
+    },
+    {
+      "from": 253.79,
+      "to": 255.79,
+      "sid": 73,
+      "location": 2,
+      "content": "通过完成聚会目标",
+      "music": 0.0
+    },
+    {
+      "from": 255.79,
+      "to": 257.41,
+      "sid": 74,
+      "location": 2,
+      "content": "积累社会人气",
+      "music": 0.0
+    },
+    {
+      "from": 257.41,
+      "to": 260.74,
+      "sid": 75,
+      "location": 2,
+      "content": "玩家朋友们可解锁包括冰史莱姆原帽",
+      "music": 0.0
+    },
+    {
+      "from": 260.74,
+      "to": 264.909,
+      "sid": 76,
+      "location": 2,
+      "content": "头饰原石重现金簇在内的多重奖励",
+      "music": 0.0
+    },
+    {
+      "from": 265.189,
+      "to": 269.089,
+      "sid": 77,
+      "location": 2,
+      "content": "在游玩参评奇遇关卡并满足一定条件后",
+      "music": 0.0
+    },
+    {
+      "from": 269.089,
+      "to": 272.85,
+      "sid": 78,
+      "location": 2,
+      "content": "玩家朋友们可以为认可的奇遇进行投票",
+      "music": 0.0
+    },
+    {
+      "from": 273.09,
+      "to": 274.37,
+      "sid": 79,
+      "location": 2,
+      "content": "活动结束后",
+      "music": 0.0
+    },
+    {
+      "from": 274.37,
+      "to": 275.95,
+      "sid": 80,
+      "location": 2,
+      "content": "综合票数得分",
+      "music": 0.0
+    },
+    {
+      "from": 275.95,
+      "to": 278.85,
+      "sid": 81,
+      "location": 2,
+      "content": "奇遇质量等多重因素将诞生",
+      "music": 0.0
+    },
+    {
+      "from": 278.85,
+      "to": 282.15,
+      "sid": 82,
+      "location": 2,
+      "content": "首届启星盛会的20个年度奇遇关卡",
+      "music": 0.0
+    },
+    {
+      "from": 282.15,
+      "to": 283.23,
+      "sid": 83,
+      "location": 2,
+      "content": "除此之外",
+      "music": 0.0
+    },
+    {
+      "from": 283.23,
+      "to": 284.21,
+      "sid": 84,
+      "location": 2,
+      "content": "千心之约",
+      "music": 0.0
+    },
+    {
+      "from": 287.97,
+      "to": 289.53,
+      "sid": 85,
+      "location": 2,
+      "content": "也将于新版本登场",
+      "music": 0.0
+    },
+    {
+      "from": 289.53,
+      "to": 291.23,
+      "sid": 86,
+      "location": 2,
+      "content": "敬请期待",
+      "music": 0.0
+    },
+    {
+      "from": 292.53,
+      "to": 294.55,
+      "sid": 87,
+      "location": 2,
+      "content": "自月之二版本至今",
+      "music": 0.0
+    },
+    {
+      "from": 294.55,
+      "to": 296.81,
+      "sid": 88,
+      "location": 2,
+      "content": "千星奇遇已经吸引了全球",
+      "music": 0.0
+    },
+    {
+      "from": 296.81,
+      "to": 299.09,
+      "sid": 89,
+      "location": 2,
+      "content": "超过9万名奇将参与创作",
+      "music": 0.0
+    },
+    {
+      "from": 299.09,
+      "to": 302.21,
+      "sid": 90,
+      "location": 2,
+      "content": "诞生了累计超过12万个奇遇关卡",
+      "music": 0.0
+    },
+    {
+      "from": 302.21,
+      "to": 304.13,
+      "sid": 91,
+      "location": 2,
+      "content": "我们非常欣喜地看到",
+      "music": 0.0
+    },
+    {
+      "from": 304.13,
+      "to": 305.67,
+      "sid": 92,
+      "location": 2,
+      "content": "其余发生的一系列变化",
+      "music": 0.0
+    },
+    {
+      "from": 305.67,
+      "to": 309.49,
+      "sid": 93,
+      "location": 2,
+      "content": "也将持续为其家们提供崭新的编辑器能力",
+      "music": 0.0
+    },
+    {
+      "from": 309.49,
+      "to": 313.72,
+      "sid": 94,
+      "location": 2,
+      "content": "在新版本编辑器将会有一系列更新",
+      "music": 0.0
+    },
+    {
+      "from": 313.72,
+      "to": 316.0,
+      "sid": 95,
+      "location": 2,
+      "content": "首先在界面编辑中",
+      "music": 0.0
+    },
+    {
+      "from": 316.0,
+      "to": 319.22,
+      "sid": 96,
+      "location": 2,
+      "content": "新增一类可挂载客户端脚本的控件",
+      "music": 0.0
+    },
+    {
+      "from": 319.22,
+      "to": 320.26,
+      "sid": 97,
+      "location": 2,
+      "content": "这也意味着",
+      "music": 0.0
+    },
+    {
+      "from": 320.26,
+      "to": 324.09,
+      "sid": 98,
+      "location": 2,
+      "content": "奇遇关卡的创作自由度将再次迎来大幅提升",
+      "music": 0.0
+    },
+    {
+      "from": 324.09,
+      "to": 327.41,
+      "sid": 99,
+      "location": 2,
+      "content": "漆匠们将可以自由地发挥自己的想象力",
+      "music": 0.0
+    },
+    {
+      "from": 327.41,
+      "to": 329.82,
+      "sid": 100,
+      "location": 2,
+      "content": "创作更多意想不到的内容",
+      "music": 0.0
+    },
+    {
+      "from": 329.82,
+      "to": 333.22,
+      "sid": 101,
+      "location": 2,
+      "content": "另外新版本将上线协作模式功能",
+      "music": 0.0
+    },
+    {
+      "from": 333.22,
+      "to": 336.06,
+      "sid": 102,
+      "location": 2,
+      "content": "起匠们可以邀请伙伴一起编辑存档",
+      "music": 0.0
+    },
+    {
+      "from": 336.06,
+      "to": 337.14,
+      "sid": 103,
+      "location": 2,
+      "content": "分工协作",
+      "music": 0.0
+    },
+    {
+      "from": 337.14,
+      "to": 338.36,
+      "sid": 104,
+      "location": 2,
+      "content": "各展所长",
+      "music": 0.0
+    },
+    {
+      "from": 338.36,
+      "to": 340.34,
+      "sid": 105,
+      "location": 2,
+      "content": "最终将大家的灵感合并",
+      "music": 0.0
+    },
+    {
+      "from": 340.34,
+      "to": 342.78,
+      "sid": 106,
+      "location": 2,
+      "content": "创造全新的奇遇世界",
+      "music": 0.0
+    },
+    {
+      "from": 342.78,
+      "to": 347.59,
+      "sid": 107,
+      "location": 2,
+      "content": "同时也有一批新的场景素材进入潜行奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 347.79,
+      "to": 348.75,
+      "sid": 108,
+      "location": 2,
+      "content": "在未来",
+      "music": 0.0
+    },
+    {
+      "from": 348.75,
+      "to": 351.85,
+      "sid": 109,
+      "location": 2,
+      "content": "我们将继续提供更多元的编辑器能力",
+      "music": 0.0
+    },
+    {
+      "from": 351.85,
+      "to": 354.5,
+      "sid": 110,
+      "location": 2,
+      "content": "包括超限人数上限扩充",
+      "music": 0.0
+    },
+    {
+      "from": 354.5,
+      "to": 358.04,
+      "sid": 111,
+      "location": 2,
+      "content": "对射击玩法以及异步交互玩法的功能支持",
+      "music": 0.0
+    },
+    {
+      "from": 358.04,
+      "to": 359.81,
+      "sid": 112,
+      "location": 2,
+      "content": "都在稳步开发中",
+      "music": 0.0
+    },
+    {
+      "from": 359.81,
+      "to": 360.95,
+      "sid": 113,
+      "location": 2,
+      "content": "不仅如此",
+      "music": 0.0
+    },
+    {
+      "from": 360.95,
+      "to": 364.69,
+      "sid": 114,
+      "location": 2,
+      "content": "对于创作生态的支持与建设也会持续升级",
+      "music": 0.0
+    },
+    {
+      "from": 364.69,
+      "to": 368.49,
+      "sid": 115,
+      "location": 2,
+      "content": "针对新手开发者与专业开发者的专项计划",
+      "music": 0.0
+    },
+    {
+      "from": 368.49,
+      "to": 369.74,
+      "sid": 116,
+      "location": 2,
+      "content": "将陆续推出",
+      "music": 0.0
+    },
+    {
+      "from": 369.74,
+      "to": 374.34,
+      "sid": 117,
+      "location": 2,
+      "content": "为不同成长阶段的起降提供差异化的扶持政策",
+      "music": 0.0
+    },
+    {
+      "from": 374.72,
+      "to": 376.28,
+      "sid": 118,
+      "location": 2,
+      "content": "其余内的流量分配",
+      "music": 0.0
+    },
+    {
+      "from": 376.28,
+      "to": 380.11,
+      "sid": 119,
+      "location": 2,
+      "content": "也将围绕玩家真实体验与游玩兴趣进行优化",
+      "music": 0.0
+    },
+    {
+      "from": 380.11,
+      "to": 384.75,
+      "sid": 120,
+      "location": 2,
+      "content": "帮助玩家更高效快速地找到自己所喜爱的内容",
+      "music": 0.0
+    },
+    {
+      "from": 385.56,
+      "to": 388.0,
+      "sid": 121,
+      "location": 2,
+      "content": "感谢玩家朋友与奇将朋友们",
+      "music": 0.0
+    },
+    {
+      "from": 388.0,
+      "to": 389.64,
+      "sid": 122,
+      "location": 2,
+      "content": "对于千星奇遇的支持",
+      "music": 0.0
+    },
+    {
+      "from": 389.64,
+      "to": 392.72,
+      "sid": 123,
+      "location": 2,
+      "content": "让我们一起创造更多惊喜吧",
+      "music": 0.0
+    },
+    {
+      "from": 392.72,
+      "to": 394.06,
+      "sid": 124,
+      "location": 2,
+      "content": "亲爱的朋友们",
+      "music": 0.0
+    },
+    {
+      "from": 394.06,
+      "to": 395.92,
+      "sid": 125,
+      "location": 2,
+      "content": "让我们下次再见",
+      "music": 0.0
+    }
+  ]
+}
