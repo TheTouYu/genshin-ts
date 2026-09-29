@@ -1,0 +1,1628 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.04,
+      "to": 2.36,
+      "sid": 1,
+      "location": 2,
+      "content": "千行奇遇带来了革命性的更新",
+      "music": 0.0
+    },
+    {
+      "from": 2.36,
+      "to": 6.38,
+      "sid": 2,
+      "location": 2,
+      "content": "在新的版本不仅可以创作更多2D交互游戏",
+      "music": 0.0
+    },
+    {
+      "from": 6.38,
+      "to": 9.5,
+      "sid": 3,
+      "location": 2,
+      "content": "还可以制作更多有趣好玩的动画效果",
+      "music": 0.0
+    },
+    {
+      "from": 9.5,
+      "to": 13.54,
+      "sid": 4,
+      "location": 2,
+      "content": "接下来便让我们看看编辑器的主要更新内容吧",
+      "music": 0.0
+    },
+    {
+      "from": 13.54,
+      "to": 16.7,
+      "sid": 5,
+      "location": 2,
+      "content": "首先来介绍的便是这个版本的重头功能",
+      "music": 0.0
+    },
+    {
+      "from": 16.7,
+      "to": 18.41,
+      "sid": 6,
+      "location": 2,
+      "content": "客户端控件容器",
+      "music": 0.0
+    },
+    {
+      "from": 18.41,
+      "to": 21.65,
+      "sid": 7,
+      "location": 2,
+      "content": "客户端控件容器是一个新的界面控件",
+      "music": 0.1268656669079973
+    },
+    {
+      "from": 21.65,
+      "to": 25.39,
+      "sid": 8,
+      "location": 2,
+      "content": "在界面控件组库中作为服务器控件模板存在",
+      "music": 0.0
+    },
+    {
+      "from": 25.39,
+      "to": 27.87,
+      "sid": 9,
+      "location": 2,
+      "content": "它的生成依然是通过节点图生成",
+      "music": 0.15740740012002935
+    },
+    {
+      "from": 27.87,
+      "to": 31.66,
+      "sid": 10,
+      "location": 2,
+      "content": "但它的内部逻辑全都是交由客户端脚本执行",
+      "music": 0.0
+    },
+    {
+      "from": 31.66,
+      "to": 33.22,
+      "sid": 11,
+      "location": 2,
+      "content": "进入编辑界面",
+      "music": 0.0
+    },
+    {
+      "from": 33.22,
+      "to": 35.44,
+      "sid": 12,
+      "location": 2,
+      "content": "左侧层级与以前的层级不同",
+      "music": 0.0
+    },
+    {
+      "from": 35.44,
+      "to": 38.94,
+      "sid": 13,
+      "location": 2,
+      "content": "客户端控件容器存在父子节点的层级关系",
+      "music": 0.06329113723762307
+    },
+    {
+      "from": 38.94,
+      "to": 41.92,
+      "sid": 14,
+      "location": 2,
+      "content": "会更加偏向一般的游戏引擎的逻辑",
+      "music": 0.0
+    },
+    {
+      "from": 41.92,
+      "to": 43.44,
+      "sid": 15,
+      "location": 2,
+      "content": "而在控件的属性栏",
+      "music": 0.0
+    },
+    {
+      "from": 43.44,
+      "to": 45.87,
+      "sid": 16,
+      "location": 2,
+      "content": "这里能看见多了一个脚本的选项",
+      "music": 0.0
+    },
+    {
+      "from": 45.87,
+      "to": 47.07,
+      "sid": 17,
+      "location": 2,
+      "content": "我们来到沙箱",
+      "music": 0.0
+    },
+    {
+      "from": 47.07,
+      "to": 50.35,
+      "sid": 18,
+      "location": 2,
+      "content": "在左上角多出了客户端脚本资源管理器选项",
+      "music": 0.0
+    },
+    {
+      "from": 50.35,
+      "to": 52.9,
+      "sid": 19,
+      "location": 2,
+      "content": "我们所有的脚本都在这里管理",
+      "music": 0.0
+    },
+    {
+      "from": 52.9,
+      "to": 56.22,
+      "sid": 20,
+      "location": 2,
+      "content": "在空白处右键即可添加脚本",
+      "music": 0.0
+    },
+    {
+      "from": 57.01,
+      "to": 58.81,
+      "sid": 21,
+      "location": 2,
+      "content": "脚本的实际单独存档",
+      "music": 0.2545454391184584
+    },
+    {
+      "from": 58.81,
+      "to": 61.05,
+      "sid": 22,
+      "location": 2,
+      "content": "在我们的磁盘位置创建后",
+      "music": 0.0
+    },
+    {
+      "from": 61.05,
+      "to": 63.09,
+      "sid": 23,
+      "location": 2,
+      "content": "双击即可打开脚本进行编写",
+      "music": 0.0
+    },
+    {
+      "from": 63.09,
+      "to": 65.87,
+      "sid": 24,
+      "location": 2,
+      "content": "由于暂时不能展示文档内容",
+      "music": 0.0
+    },
+    {
+      "from": 65.87,
+      "to": 68.27,
+      "sid": 25,
+      "location": 2,
+      "content": "因此本视频将不作为教程介绍",
+      "music": 0.37313430979431467
+    },
+    {
+      "from": 68.27,
+      "to": 71.05,
+      "sid": 26,
+      "location": 2,
+      "content": "为pi内容仅做简单的概念介绍",
+      "music": 0.3526970808009551
+    },
+    {
+      "from": 71.05,
+      "to": 73.67,
+      "sid": 27,
+      "location": 2,
+      "content": "我会在下面的示例中写上注释",
+      "music": 0.0
+    },
+    {
+      "from": 73.67,
+      "to": 77.23,
+      "sid": 28,
+      "location": 2,
+      "content": "感兴趣的奇酱可以在网上搜索洛E语言教程",
+      "music": 0.207667724994638
+    },
+    {
+      "from": 77.23,
+      "to": 78.37,
+      "sid": 29,
+      "location": 2,
+      "content": "学习基本概念",
+      "music": 0.5533980045244583
+    },
+    {
+      "from": 78.37,
+      "to": 81.75,
+      "sid": 30,
+      "location": 2,
+      "content": "我们把刚才创建的脚本挂在在容器节点上",
+      "music": 0.0
+    },
+    {
+      "from": 81.75,
+      "to": 84.68,
+      "sid": 31,
+      "location": 2,
+      "content": "脚本的逻辑实际上和节点图类似",
+      "music": 0.13559321459350582
+    },
+    {
+      "from": 84.68,
+      "to": 87.66,
+      "sid": 32,
+      "location": 2,
+      "content": "官方定义了一些公共事件和公共方法",
+      "music": 0.0
+    },
+    {
+      "from": 87.66,
+      "to": 90.44,
+      "sid": 33,
+      "location": 2,
+      "content": "例如在脚本中写下UNSTLE函数",
+      "music": 0.0
+    },
+    {
+      "from": 90.44,
+      "to": 92.52,
+      "sid": 34,
+      "location": 2,
+      "content": "可执行控件生成时事件",
+      "music": 0.0
+    },
+    {
+      "from": 92.52,
+      "to": 95.729,
+      "sid": 35,
+      "location": 2,
+      "content": "r und sty则是控件销毁时的事件",
+      "music": 0.0
+    },
+    {
+      "from": 95.969,
+      "to": 99.329,
+      "sid": 36,
+      "location": 2,
+      "content": "我们在函数内写下由官方提供的pin函数",
+      "music": 0.0
+    },
+    {
+      "from": 99.329,
+      "to": 101.87,
+      "sid": 37,
+      "location": 2,
+      "content": "便可以执行打印日志的行为",
+      "music": 0.0
+    },
+    {
+      "from": 101.87,
+      "to": 105.19,
+      "sid": 38,
+      "location": 2,
+      "content": "结合起来能看到进入试玩和退出试玩",
+      "music": 0.0
+    },
+    {
+      "from": 105.19,
+      "to": 107.31,
+      "sid": 39,
+      "location": 2,
+      "content": "分别输出了一次日志",
+      "music": 0.0
+    },
+    {
+      "from": 110.02,
+      "to": 112.3,
+      "sid": 40,
+      "location": 2,
+      "content": "脚本拥有脚本变量管理区域",
+      "music": 0.0
+    },
+    {
+      "from": 112.3,
+      "to": 116.74,
+      "sid": 41,
+      "location": 2,
+      "content": "类似节点图变量可以创建变量后供脚本读取",
+      "music": 0.0
+    },
+    {
+      "from": 120.44,
+      "to": 122.12,
+      "sid": 42,
+      "location": 2,
+      "content": "也可以选择公开变量",
+      "music": 0.0
+    },
+    {
+      "from": 122.12,
+      "to": 125.2,
+      "sid": 43,
+      "location": 2,
+      "content": "在控件的脚本区域选择编辑变量",
+      "music": 0.0
+    },
+    {
+      "from": 133.98,
+      "to": 136.5,
+      "sid": 44,
+      "location": 2,
+      "content": "客户端的控件除了基本的文本框",
+      "music": 0.0
+    },
+    {
+      "from": 136.5,
+      "to": 137.24,
+      "sid": 45,
+      "location": 2,
+      "content": "图片等",
+      "music": 0.0
+    },
+    {
+      "from": 137.24,
+      "to": 139.16,
+      "sid": 46,
+      "location": 2,
+      "content": "将更多逻辑拆分开来了",
+      "music": 0.0
+    },
+    {
+      "from": 139.16,
+      "to": 142.09,
+      "sid": 47,
+      "location": 2,
+      "content": "例如单独的按键提示和网格视窗",
+      "music": 0.0
+    },
+    {
+      "from": 142.09,
+      "to": 143.29,
+      "sid": 48,
+      "location": 2,
+      "content": "在交互这块",
+      "music": 0.0
+    },
+    {
+      "from": 143.29,
+      "to": 145.11,
+      "sid": 49,
+      "location": 2,
+      "content": "它不再是由按钮设置按键",
+      "music": 0.0
+    },
+    {
+      "from": 145.11,
+      "to": 147.95,
+      "sid": 50,
+      "location": 2,
+      "content": "而是转为在脚本中设置按键的监听",
+      "music": 0.11811023157046818
+    },
+    {
+      "from": 147.95,
+      "to": 150.41,
+      "sid": 51,
+      "location": 2,
+      "content": "监听按钮触发并执行行为",
+      "music": 0.0
+    },
+    {
+      "from": 150.41,
+      "to": 152.47,
+      "sid": 52,
+      "location": 2,
+      "content": "因此我们需要一个按键提示",
+      "music": 0.0
+    },
+    {
+      "from": 152.47,
+      "to": 156.22,
+      "sid": 53,
+      "location": 2,
+      "content": "来提醒玩家使用哪个按键触发行为",
+      "music": 0.0
+    },
+    {
+      "from": 168.06,
+      "to": 170.36,
+      "sid": 54,
+      "location": 2,
+      "content": "特别的光标检测区域",
+      "music": 0.0
+    },
+    {
+      "from": 170.36,
+      "to": 171.74,
+      "sid": 55,
+      "location": 2,
+      "content": "作为全新的控件",
+      "music": 0.0
+    },
+    {
+      "from": 171.74,
+      "to": 174.4,
+      "sid": 56,
+      "location": 2,
+      "content": "它可以检测该控件区域内的光标事件",
+      "music": 0.0
+    },
+    {
+      "from": 174.4,
+      "to": 175.72,
+      "sid": 57,
+      "location": 2,
+      "content": "或鼠标事件",
+      "music": 0.0
+    },
+    {
+      "from": 175.72,
+      "to": 177.04,
+      "sid": 58,
+      "location": 2,
+      "content": "支持多点触控",
+      "music": 0.0
+    },
+    {
+      "from": 177.04,
+      "to": 179.56,
+      "sid": 59,
+      "location": 2,
+      "content": "便能提供光标的位置信息",
+      "music": 0.05376343796971946
+    },
+    {
+      "from": 183.62,
+      "to": 186.74,
+      "sid": 60,
+      "location": 2,
+      "content": "而模板引用控件将可以直接引用客户端",
+      "music": 0.0
+    },
+    {
+      "from": 186.74,
+      "to": 188.9,
+      "sid": 61,
+      "location": 2,
+      "content": "模板控件内的控件",
+      "music": 0.0
+    },
+    {
+      "from": 193.22,
+      "to": 195.3,
+      "sid": 62,
+      "location": 2,
+      "content": "它的作用类似素材组",
+      "music": 0.4444444170096019
+    },
+    {
+      "from": 195.3,
+      "to": 198.0,
+      "sid": 63,
+      "location": 2,
+      "content": "但是实际上在游戏中表现",
+      "music": 0.08571428163265674
+    },
+    {
+      "from": 198.0,
+      "to": 199.96,
+      "sid": 64,
+      "location": 2,
+      "content": "其实是将控件引用进来",
+      "music": 0.0
+    },
+    {
+      "from": 199.96,
+      "to": 201.99,
+      "sid": 65,
+      "location": 2,
+      "content": "可以查询到子节点",
+      "music": 0.0
+    },
+    {
+      "from": 207.16,
+      "to": 208.2,
+      "sid": 66,
+      "location": 2,
+      "content": "特别的是",
+      "music": 0.0
+    },
+    {
+      "from": 208.2,
+      "to": 211.44,
+      "sid": 67,
+      "location": 2,
+      "content": "脚本之间是可以通过require函数进行引用的",
+      "music": 0.0
+    },
+    {
+      "from": 211.44,
+      "to": 212.77,
+      "sid": 68,
+      "location": 2,
+      "content": "这个非常重要",
+      "music": 0.0
+    },
+    {
+      "from": 212.77,
+      "to": 214.59,
+      "sid": 69,
+      "location": 2,
+      "content": "相当于是复合节点的功能",
+      "music": 0.0
+    },
+    {
+      "from": 214.59,
+      "to": 217.15,
+      "sid": 70,
+      "location": 2,
+      "content": "可以便捷的引用方法或者数据",
+      "music": 0.0
+    },
+    {
+      "from": 217.15,
+      "to": 218.97,
+      "sid": 71,
+      "location": 2,
+      "content": "美华儿的实际入餐",
+      "music": 0.0
+    },
+    {
+      "from": 218.97,
+      "to": 221.76,
+      "sid": 72,
+      "location": 2,
+      "content": "为客户端脚本中显示的文件路径",
+      "music": 0.0
+    },
+    {
+      "from": 221.76,
+      "to": 225.62,
+      "sid": 73,
+      "location": 2,
+      "content": "例如我这里引用类文件夹下的log模块",
+      "music": 0.0
+    },
+    {
+      "from": 225.62,
+      "to": 228.16,
+      "sid": 74,
+      "location": 2,
+      "content": "触发long模块的debug函数",
+      "music": 0.0
+    },
+    {
+      "from": 228.16,
+      "to": 230.68,
+      "sid": 75,
+      "location": 2,
+      "content": "即可执行相应的行为",
+      "music": 0.0
+    },
+    {
+      "from": 232.74,
+      "to": 235.44,
+      "sid": 76,
+      "location": 2,
+      "content": "而在下的版本中让我非常惊喜",
+      "music": 0.0
+    },
+    {
+      "from": 235.44,
+      "to": 237.519,
+      "sid": 77,
+      "location": 2,
+      "content": "则是不见动画功能",
+      "music": 0.0
+    },
+    {
+      "from": 237.719,
+      "to": 239.159,
+      "sid": 78,
+      "location": 2,
+      "content": "但是我自己用了一会",
+      "music": 0.0
+    },
+    {
+      "from": 239.159,
+      "to": 239.719,
+      "sid": 79,
+      "location": 2,
+      "content": "发现",
+      "music": 0.0
+    },
+    {
+      "from": 239.719,
+      "to": 241.719,
+      "sid": 80,
+      "location": 2,
+      "content": "我想要通过代码创建动画",
+      "music": 0.0
+    },
+    {
+      "from": 241.719,
+      "to": 243.579,
+      "sid": 81,
+      "location": 2,
+      "content": "也不是非常容易的事情",
+      "music": 0.0
+    },
+    {
+      "from": 243.579,
+      "to": 246.299,
+      "sid": 82,
+      "location": 2,
+      "content": "想写win sequence就要写一长串代码",
+      "music": 0.0
+    },
+    {
+      "from": 246.299,
+      "to": 247.579,
+      "sid": 83,
+      "location": 2,
+      "content": "非常不优雅",
+      "music": 0.0
+    },
+    {
+      "from": 247.579,
+      "to": 249.479,
+      "sid": 84,
+      "location": 2,
+      "content": "因此我们发动传统异能",
+      "music": 0.0
+    },
+    {
+      "from": 249.479,
+      "to": 250.859,
+      "sid": 85,
+      "location": 2,
+      "content": "无论是多小的事情",
+      "music": 0.0
+    },
+    {
+      "from": 250.859,
+      "to": 252.56,
+      "sid": 86,
+      "location": 2,
+      "content": "都要先制作一份工具",
+      "music": 0.13689252998681573
+    },
+    {
+      "from": 252.56,
+      "to": 254.44,
+      "sid": 87,
+      "location": 2,
+      "content": "因此我和百里一起",
+      "music": 0.38028166336044394
+    },
+    {
+      "from": 254.44,
+      "to": 256.56,
+      "sid": 88,
+      "location": 2,
+      "content": "共同制作和优化了一份在线的工具",
+      "music": 0.20754716002135887
+    },
+    {
+      "from": 256.56,
+      "to": 258.769,
+      "sid": 89,
+      "location": 2,
+      "content": "客户端UI动画编辑器",
+      "music": 0.13253011249820043
+    },
+    {
+      "from": 258.769,
+      "to": 262.149,
+      "sid": 90,
+      "location": 2,
+      "content": "在这份工具中可以便捷的预览修改动画",
+      "music": 0.0
+    },
+    {
+      "from": 262.149,
+      "to": 264.23,
+      "sid": 91,
+      "location": 2,
+      "content": "导出动画数据给游戏使用",
+      "music": 0.17045453576960368
+    },
+    {
+      "from": 264.23,
+      "to": 266.93,
+      "sid": 92,
+      "location": 2,
+      "content": "在视频开头给大家演示的露米快跑",
+      "music": 0.21951218619870178
+    },
+    {
+      "from": 266.93,
+      "to": 269.59,
+      "sid": 93,
+      "location": 2,
+      "content": "同样是百里在这份编辑器中制作后得到的",
+      "music": 0.0
+    },
+    {
+      "from": 269.59,
+      "to": 270.9,
+      "sid": 94,
+      "location": 2,
+      "content": "动画数据",
+      "music": 0.2197801956285314
+    },
+    {
+      "from": 270.9,
+      "to": 273.2,
+      "sid": 95,
+      "location": 2,
+      "content": "目前仍然在调优阶段",
+      "music": 0.12195121207613546
+    },
+    {
+      "from": 273.2,
+      "to": 276.06,
+      "sid": 96,
+      "location": 2,
+      "content": "大家可以收藏这个网址或者关注我",
+      "music": 0.0
+    },
+    {
+      "from": 276.06,
+      "to": 278.44,
+      "sid": 97,
+      "location": 2,
+      "content": "未来我会发一个网页的使用教程里",
+      "music": 0.0
+    },
+    {
+      "from": 278.44,
+      "to": 281.6,
+      "sid": 98,
+      "location": 2,
+      "content": "同时有了补间动画语对话模板",
+      "music": 0.0
+    },
+    {
+      "from": 281.6,
+      "to": 283.57,
+      "sid": 99,
+      "location": 2,
+      "content": "也终于迎来了它的更新",
+      "music": 0.20512819197895737
+    },
+    {
+      "from": 283.57,
+      "to": 286.93,
+      "sid": 100,
+      "location": 2,
+      "content": "除了将所有的以外迁移至客户端以外",
+      "music": 0.13127412620562093
+    },
+    {
+      "from": 286.93,
+      "to": 289.59,
+      "sid": 101,
+      "location": 2,
+      "content": "还提供了更加还原元宝本身的历史对话",
+      "music": 0.0
+    },
+    {
+      "from": 289.59,
+      "to": 290.47,
+      "sid": 102,
+      "location": 2,
+      "content": "隐藏对话",
+      "music": 0.0
+    },
+    {
+      "from": 290.47,
+      "to": 292.4,
+      "sid": 103,
+      "location": 2,
+      "content": "自动对话等功能",
+      "music": 0.0
+    },
+    {
+      "from": 292.84,
+      "to": 296.24,
+      "sid": 104,
+      "location": 2,
+      "content": "并实现了镜头与试点分离的镜头系统",
+      "music": 0.0
+    },
+    {
+      "from": 300.04,
+      "to": 302.76,
+      "sid": 105,
+      "location": 2,
+      "content": "还添加了简易的任务系统",
+      "music": 0.0
+    },
+    {
+      "from": 314.46,
+      "to": 317.48,
+      "sid": 106,
+      "location": 2,
+      "content": "而这次的对话数据将通过在线工具",
+      "music": 0.0
+    },
+    {
+      "from": 317.48,
+      "to": 319.82,
+      "sid": 107,
+      "location": 2,
+      "content": "网页对话模板编辑器进行编辑",
+      "music": 0.0
+    },
+    {
+      "from": 319.82,
+      "to": 322.94,
+      "sid": 108,
+      "location": 2,
+      "content": "导出数据提供了文本流和节点图功能",
+      "music": 0.0
+    },
+    {
+      "from": 322.94,
+      "to": 327.16,
+      "sid": 109,
+      "location": 2,
+      "content": "在节点图中可以时间轴的方式配置事件",
+      "music": 0.0
+    },
+    {
+      "from": 328.72,
+      "to": 331.74,
+      "sid": 110,
+      "location": 2,
+      "content": "同时也提供了任务的配置方式",
+      "music": 0.0
+    },
+    {
+      "from": 331.74,
+      "to": 333.96,
+      "sid": 111,
+      "location": 2,
+      "content": "目前网页样式仍在调整",
+      "music": 0.0
+    },
+    {
+      "from": 333.96,
+      "to": 335.52,
+      "sid": 112,
+      "location": 2,
+      "content": "在正式服更新之后",
+      "music": 0.0
+    },
+    {
+      "from": 335.52,
+      "to": 337.65,
+      "sid": 113,
+      "location": 2,
+      "content": "我也会同步更新模板的教程",
+      "music": 0.0
+    },
+    {
+      "from": 337.75,
+      "to": 342.289,
+      "sid": 114,
+      "location": 2,
+      "content": "同时有了LOL将使扩展对话的样式变得更加容易",
+      "music": 0.0
+    },
+    {
+      "from": 342.289,
+      "to": 344.669,
+      "sid": 115,
+      "location": 2,
+      "content": "目前对话样式选项卡样式",
+      "music": 0.0
+    },
+    {
+      "from": 344.669,
+      "to": 347.55,
+      "sid": 116,
+      "location": 2,
+      "content": "任务样式都实现了接口可以扩展",
+      "music": 0.0
+    },
+    {
+      "from": 347.55,
+      "to": 351.04,
+      "sid": 117,
+      "location": 2,
+      "content": "在之后我也会出扩展自定义样式的教程",
+      "music": 0.0
+    },
+    {
+      "from": 351.04,
+      "to": 354.12,
+      "sid": 118,
+      "location": 2,
+      "content": "同时由无边老大制作的多级切换教程",
+      "music": 0.0
+    },
+    {
+      "from": 354.12,
+      "to": 356.06,
+      "sid": 119,
+      "location": 2,
+      "content": "UI资产也会同步更新",
+      "music": 0.0
+    },
+    {
+      "from": 356.06,
+      "to": 358.06,
+      "sid": 120,
+      "location": 2,
+      "content": "在有了客户端游玩后",
+      "music": 0.0
+    },
+    {
+      "from": 358.06,
+      "to": 359.8,
+      "sid": 121,
+      "location": 2,
+      "content": "将使编辑教程更加容易",
+      "music": 0.0
+    },
+    {
+      "from": 359.8,
+      "to": 362.42,
+      "sid": 122,
+      "location": 2,
+      "content": "接下来便是另一个重要的功能",
+      "music": 0.0
+    },
+    {
+      "from": 362.42,
+      "to": 363.73,
+      "sid": 123,
+      "location": 2,
+      "content": "协作模式",
+      "music": 0.0
+    },
+    {
+      "from": 363.73,
+      "to": 366.73,
+      "sid": 124,
+      "location": 2,
+      "content": "协作模式可以通过创建存档的时候",
+      "music": 0.0
+    },
+    {
+      "from": 366.73,
+      "to": 368.38,
+      "sid": 125,
+      "location": 2,
+      "content": "选择创作为协作模式",
+      "music": 0.0
+    },
+    {
+      "from": 368.38,
+      "to": 372.3,
+      "sid": 126,
+      "location": 2,
+      "content": "或者是普通存档中在关卡设置找到协作模式",
+      "music": 0.0
+    },
+    {
+      "from": 372.3,
+      "to": 374.11,
+      "sid": 127,
+      "location": 2,
+      "content": "转成协作模式",
+      "music": 0.0
+    },
+    {
+      "from": 374.31,
+      "to": 375.67,
+      "sid": 128,
+      "location": 2,
+      "content": "在协作模式下",
+      "music": 0.0
+    },
+    {
+      "from": 375.67,
+      "to": 378.73,
+      "sid": 129,
+      "location": 2,
+      "content": "我们能看到存在64个写作部分",
+      "music": 0.0
+    },
+    {
+      "from": 378.73,
+      "to": 382.36,
+      "sid": 130,
+      "location": 2,
+      "content": "相当于是把一个存档拆成了64个部分",
+      "music": 0.0
+    },
+    {
+      "from": 382.36,
+      "to": 383.82,
+      "sid": 131,
+      "location": 2,
+      "content": "在存档路径下",
+      "music": 0.0
+    },
+    {
+      "from": 383.82,
+      "to": 386.8,
+      "sid": 132,
+      "location": 2,
+      "content": "我们能看到同样是分为了64的写作文件",
+      "music": 0.0
+    },
+    {
+      "from": 386.8,
+      "to": 387.98,
+      "sid": 133,
+      "location": 2,
+      "content": "写作模式下",
+      "music": 0.0
+    },
+    {
+      "from": 387.98,
+      "to": 390.92,
+      "sid": 134,
+      "location": 2,
+      "content": "右下角会显示当前编辑的写作部分",
+      "music": 0.0
+    },
+    {
+      "from": 390.92,
+      "to": 394.82,
+      "sid": 135,
+      "location": 2,
+      "content": "例如我这里是协作一协作部分的原理是",
+      "music": 0.0
+    },
+    {
+      "from": 394.82,
+      "to": 396.98,
+      "sid": 136,
+      "location": 2,
+      "content": "当我创建了任意资产后",
+      "music": 0.0
+    },
+    {
+      "from": 396.98,
+      "to": 399.72,
+      "sid": 137,
+      "location": 2,
+      "content": "该资产将会归属于该协作部分",
+      "music": 0.0
+    },
+    {
+      "from": 399.72,
+      "to": 402.62,
+      "sid": 138,
+      "location": 2,
+      "content": "当我们切换其他协作部分编辑的时候",
+      "music": 0.0
+    },
+    {
+      "from": 402.62,
+      "to": 406.23,
+      "sid": 139,
+      "location": 2,
+      "content": "创建的新资产将会属于新的写作部分",
+      "music": 0.0
+    },
+    {
+      "from": 406.23,
+      "to": 409.91,
+      "sid": 140,
+      "location": 2,
+      "content": "但如果我们去编辑不属于自己编辑部分的资产",
+      "music": 0.0
+    },
+    {
+      "from": 409.91,
+      "to": 413.08,
+      "sid": 141,
+      "location": 2,
+      "content": "例如我们协作二去修改协作一的内容",
+      "music": 0.0
+    },
+    {
+      "from": 413.08,
+      "to": 416.02,
+      "sid": 142,
+      "location": 2,
+      "content": "他的更改将归属于原有协作编辑的更改",
+      "music": 0.0
+    },
+    {
+      "from": 416.02,
+      "to": 417.48,
+      "sid": 143,
+      "location": 2,
+      "content": "即为协作一的修改",
+      "music": 0.0
+    },
+    {
+      "from": 417.48,
+      "to": 419.36,
+      "sid": 144,
+      "location": 2,
+      "content": "而非协作二的修改",
+      "music": 0.0
+    },
+    {
+      "from": 419.36,
+      "to": 422.86,
+      "sid": 145,
+      "location": 2,
+      "content": "这种时候当我们同步协作二的修改的时候",
+      "music": 0.0
+    },
+    {
+      "from": 422.86,
+      "to": 425.82,
+      "sid": 146,
+      "location": 2,
+      "content": "可能两边对协作一的资产内容出现分歧",
+      "music": 0.0
+    },
+    {
+      "from": 425.82,
+      "to": 427.02,
+      "sid": 147,
+      "location": 2,
+      "content": "容易出现冲突",
+      "music": 0.0
+    },
+    {
+      "from": 427.02,
+      "to": 428.21,
+      "sid": 148,
+      "location": 2,
+      "content": "需要特别注意",
+      "music": 0.0
+    },
+    {
+      "from": 428.21,
+      "to": 431.38,
+      "sid": 149,
+      "location": 2,
+      "content": "接下来讲解一下如何进行多人写作",
+      "music": 0.0
+    },
+    {
+      "from": 431.38,
+      "to": 432.56,
+      "sid": 150,
+      "location": 2,
+      "content": "首先第一步",
+      "music": 0.0
+    },
+    {
+      "from": 432.56,
+      "to": 435.96,
+      "sid": 151,
+      "location": 2,
+      "content": "我们依然是把存档导出发送给我们的小伙伴",
+      "music": 0.0
+    },
+    {
+      "from": 435.96,
+      "to": 438.82,
+      "sid": 152,
+      "location": 2,
+      "content": "在小伙伴收到文件后导入游戏",
+      "music": 0.0
+    },
+    {
+      "from": 438.82,
+      "to": 443.539,
+      "sid": 153,
+      "location": 2,
+      "content": "导入后在关卡设置的协作模式中切换协作存档",
+      "music": 0.0
+    },
+    {
+      "from": 443.779,
+      "to": 445.719,
+      "sid": 154,
+      "location": 2,
+      "content": "这样子我们编辑协作模式一",
+      "music": 0.0
+    },
+    {
+      "from": 445.719,
+      "to": 447.779,
+      "sid": 155,
+      "location": 2,
+      "content": "而小伙伴编辑协作模式二",
+      "music": 0.0
+    },
+    {
+      "from": 447.779,
+      "to": 449.679,
+      "sid": 156,
+      "location": 2,
+      "content": "假设我们的是主存档",
+      "music": 0.0
+    },
+    {
+      "from": 449.679,
+      "to": 451.62,
+      "sid": 157,
+      "location": 2,
+      "content": "而小伙伴是协作者",
+      "music": 0.0
+    },
+    {
+      "from": 451.62,
+      "to": 453.18,
+      "sid": 158,
+      "location": 2,
+      "content": "我们各自编辑好后",
+      "music": 0.0
+    },
+    {
+      "from": 453.18,
+      "to": 455.06,
+      "sid": 159,
+      "location": 2,
+      "content": "小伙伴可以进入存档路径",
+      "music": 0.0
+    },
+    {
+      "from": 455.06,
+      "to": 458.85,
+      "sid": 160,
+      "location": 2,
+      "content": "让自己修改的协作文件发送给我们",
+      "music": 0.0
+    },
+    {
+      "from": 458.85,
+      "to": 460.73,
+      "sid": 161,
+      "location": 2,
+      "content": "我们接收到以后",
+      "music": 0.0
+    },
+    {
+      "from": 460.73,
+      "to": 464.45,
+      "sid": 162,
+      "location": 2,
+      "content": "将文件拷贝到资产导入导出中的文件路径",
+      "music": 0.0
+    },
+    {
+      "from": 466.62,
+      "to": 468.94,
+      "sid": 163,
+      "location": 2,
+      "content": "在右上方切换协作模式导入",
+      "music": 0.0
+    },
+    {
+      "from": 468.94,
+      "to": 470.1,
+      "sid": 164,
+      "location": 2,
+      "content": "重新读取",
+      "music": 0.0
+    },
+    {
+      "from": 470.1,
+      "to": 472.6,
+      "sid": 165,
+      "location": 2,
+      "content": "会发现出现该存档的协作文件",
+      "music": 0.0
+    },
+    {
+      "from": 472.6,
+      "to": 475.26,
+      "sid": 166,
+      "location": 2,
+      "content": "此时点击进行读取即可",
+      "music": 0.0
+    },
+    {
+      "from": 475.26,
+      "to": 478.26,
+      "sid": 167,
+      "location": 2,
+      "content": "它默认会给我们的旧写作文件进行备份",
+      "music": 0.0
+    },
+    {
+      "from": 478.26,
+      "to": 481.13,
+      "sid": 168,
+      "location": 2,
+      "content": "防止因覆盖错误导致无法复原",
+      "music": 0.0
+    },
+    {
+      "from": 481.41,
+      "to": 482.07,
+      "sid": 169,
+      "location": 2,
+      "content": "佟丽",
+      "music": 0.0
+    },
+    {
+      "from": 482.07,
+      "to": 484.97,
+      "sid": 170,
+      "location": 2,
+      "content": "我们可以将协作一修改的部分发送回给小伙伴",
+      "music": 0.0
+    },
+    {
+      "from": 484.97,
+      "to": 486.49,
+      "sid": 171,
+      "location": 2,
+      "content": "同步存档",
+      "music": 0.0
+    },
+    {
+      "from": 489.6,
+      "to": 492.78,
+      "sid": 172,
+      "location": 2,
+      "content": "接下来就是一些零碎功能的更新介绍",
+      "music": 0.0
+    },
+    {
+      "from": 492.78,
+      "to": 495.87,
+      "sid": 173,
+      "location": 2,
+      "content": "首先是新增了更多的技能动作模组",
+      "music": 0.0
+    },
+    {
+      "from": 495.87,
+      "to": 498.76,
+      "sid": 174,
+      "location": 2,
+      "content": "包括走路思考等演出行为模组",
+      "music": 0.0
+    },
+    {
+      "from": 498.76,
+      "to": 501.2,
+      "sid": 175,
+      "location": 2,
+      "content": "然后是箭头允许忽略碰撞",
+      "music": 0.0
+    },
+    {
+      "from": 501.2,
+      "to": 503.14,
+      "sid": 176,
+      "location": 2,
+      "content": "允许给箭头设置忽略",
+      "music": 0.0
+    },
+    {
+      "from": 503.14,
+      "to": 506.27,
+      "sid": 177,
+      "location": 2,
+      "content": "或者给单独的碰撞箱设置忽略",
+      "music": 0.0
+    },
+    {
+      "from": 506.27,
+      "to": 508.81,
+      "sid": 178,
+      "location": 2,
+      "content": "背景音乐第一次迎来了它的扩充",
+      "music": 0.0
+    },
+    {
+      "from": 508.81,
+      "to": 511.99,
+      "sid": 179,
+      "location": 2,
+      "content": "主要为诺德卡莱地区的音乐单位状态",
+      "music": 0.0
+    },
+    {
+      "from": 511.99,
+      "to": 513.659,
+      "sid": 180,
+      "location": 2,
+      "content": "新增角色禁止移动",
+      "music": 0.0
+    },
+    {
+      "from": 513.659,
+      "to": 516.059,
+      "sid": 181,
+      "location": 2,
+      "content": "当奇遇为纯2D玩法时",
+      "music": 0.0
+    },
+    {
+      "from": 516.059,
+      "to": 517.439,
+      "sid": 182,
+      "location": 2,
+      "content": "通过该单位状态",
+      "music": 0.0
+    },
+    {
+      "from": 517.439,
+      "to": 521.11,
+      "sid": 183,
+      "location": 2,
+      "content": "以防玩家输入SWUD时穿透到玩家移动",
+      "music": 0.0
+    },
+    {
+      "from": 522.97,
+      "to": 525.06,
+      "sid": 184,
+      "location": 2,
+      "content": "可以制作滞空的怪物啦",
+      "music": 0.0
+    },
+    {
+      "from": 525.06,
+      "to": 528.05,
+      "sid": 185,
+      "location": 2,
+      "content": "其次是日志新增清除其他日志",
+      "music": 0.0
+    },
+    {
+      "from": 528.05,
+      "to": 531.51,
+      "sid": 186,
+      "location": 2,
+      "content": "选择下次试玩会主动取消选中历史的日志",
+      "music": 0.0
+    },
+    {
+      "from": 531.51,
+      "to": 533.42,
+      "sid": 187,
+      "location": 2,
+      "content": "战斗功能有了部分优化",
+      "music": 0.0
+    },
+    {
+      "from": 533.42,
+      "to": 536.04,
+      "sid": 188,
+      "location": 2,
+      "content": "受到攻击时支持查询是否暴击",
+      "music": 0.15384614727153592
+    },
+    {
+      "from": 536.04,
+      "to": 538.98,
+      "sid": 189,
+      "location": 2,
+      "content": "发起攻击节点新增能力单元归属实体",
+      "music": 0.0
+    },
+    {
+      "from": 538.98,
+      "to": 541.73,
+      "sid": 190,
+      "location": 2,
+      "content": "入参资产导入导出功能",
+      "music": 0.0
+    },
+    {
+      "from": 541.73,
+      "to": 543.52,
+      "sid": 191,
+      "location": 2,
+      "content": "实现更多对象的导出",
+      "music": 0.0
+    },
+    {
+      "from": 543.52,
+      "to": 544.76,
+      "sid": 192,
+      "location": 2,
+      "content": "包括存档模板",
+      "music": 0.0
+    },
+    {
+      "from": 544.76,
+      "to": 546.9,
+      "sid": 193,
+      "location": 2,
+      "content": "存档数据与关卡设置等等",
+      "music": 0.0
+    },
+    {
+      "from": 546.9,
+      "to": 548.72,
+      "sid": 194,
+      "location": 2,
+      "content": "复杂造物继续扩充",
+      "music": 0.0
+    },
+    {
+      "from": 548.72,
+      "to": 550.38,
+      "sid": 195,
+      "location": 2,
+      "content": "更新了大量动物",
+      "music": 0.0
+    },
+    {
+      "from": 550.38,
+      "to": 554.06,
+      "sid": 196,
+      "location": 2,
+      "content": "那么以上就是本次千星沙箱的更新内容啦",
+      "music": 0.0
+    },
+    {
+      "from": 554.06,
+      "to": 556.58,
+      "sid": 197,
+      "location": 2,
+      "content": "官方这次的更新力度真的非常大",
+      "music": 0.0
+    },
+    {
+      "from": 556.58,
+      "to": 559.13,
+      "sid": 198,
+      "location": 2,
+      "content": "我也是真的非常喜欢这次的更新",
+      "music": 0.0
+    },
+    {
+      "from": 559.13,
+      "to": 561.41,
+      "sid": 199,
+      "location": 2,
+      "content": "期待大家也能通过这次的更新",
+      "music": 0.09803921088039369
+    },
+    {
+      "from": 561.41,
+      "to": 563.63,
+      "sid": 200,
+      "location": 2,
+      "content": "创作出更多好玩有趣的奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 563.63,
+      "to": 564.97,
+      "sid": 201,
+      "location": 2,
+      "content": "主播有什么想法",
+      "music": 0.0
+    },
+    {
+      "from": 564.97,
+      "to": 567.38,
+      "sid": 202,
+      "location": 2,
+      "content": "欢迎大家在评论区一起讨论",
+      "music": 0.0
+    }
+  ]
+}

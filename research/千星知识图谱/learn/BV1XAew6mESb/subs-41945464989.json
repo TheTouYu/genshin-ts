@@ -1,0 +1,236 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.0,
+      "to": 2.06,
+      "sid": 1,
+      "location": 2,
+      "content": "up主微细配SOA车模式",
+      "music": 0.0
+    },
+    {
+      "from": 2.06,
+      "to": 5.76,
+      "sid": 2,
+      "location": 2,
+      "content": "自己搓了一个更贴近更便捷的背包",
+      "music": 0.0
+    },
+    {
+      "from": 6.09,
+      "to": 10.12,
+      "sid": 3,
+      "location": 2,
+      "content": "背包可以同时显示物品和当前装备及属性",
+      "music": 0.0
+    },
+    {
+      "from": 10.24,
+      "to": 13.64,
+      "sid": 4,
+      "location": 2,
+      "content": "物品格子分成了药剂区域和非药剂区域",
+      "music": 0.0
+    },
+    {
+      "from": 13.64,
+      "to": 15.96,
+      "sid": 5,
+      "location": 2,
+      "content": "前两个区域不互通方剂",
+      "music": 0.0
+    },
+    {
+      "from": 15.96,
+      "to": 18.84,
+      "sid": 6,
+      "location": 2,
+      "content": "在药剂中的药剂续配了快捷栏",
+      "music": 0.0
+    },
+    {
+      "from": 19.12,
+      "to": 20.68,
+      "sid": 7,
+      "location": 2,
+      "content": "在打开物资箱后",
+      "music": 0.0
+    },
+    {
+      "from": 20.68,
+      "to": 23.0,
+      "sid": 8,
+      "location": 2,
+      "content": "我们可以双击物品或点击物品",
+      "music": 0.0
+    },
+    {
+      "from": 23.0,
+      "to": 25.68,
+      "sid": 9,
+      "location": 2,
+      "content": "再点击一个空格子来转移物品",
+      "music": 0.0
+    },
+    {
+      "from": 25.68,
+      "to": 27.36,
+      "sid": 10,
+      "location": 2,
+      "content": "每次点击物品图标",
+      "music": 0.0
+    },
+    {
+      "from": 27.36,
+      "to": 30.49,
+      "sid": 11,
+      "location": 2,
+      "content": "都会在右侧的小窗口显示物品名称",
+      "music": 0.0
+    },
+    {
+      "from": 30.49,
+      "to": 32.19,
+      "sid": 12,
+      "location": 2,
+      "content": "在选择装备物品后",
+      "music": 0.0
+    },
+    {
+      "from": 32.19,
+      "to": 36.05,
+      "sid": 13,
+      "location": 2,
+      "content": "可以点击右侧的装备按钮进行快速装备",
+      "music": 0.0
+    },
+    {
+      "from": 37.74,
+      "to": 39.14,
+      "sid": 14,
+      "location": 2,
+      "content": "在吸取药剂后",
+      "music": 0.0
+    },
+    {
+      "from": 39.14,
+      "to": 42.26,
+      "sid": 15,
+      "location": 2,
+      "content": "药剂会被放入单独的药剂区域",
+      "music": 0.0
+    },
+    {
+      "from": 48.48,
+      "to": 51.04,
+      "sid": 16,
+      "location": 2,
+      "content": "药剂同样可以在药剂区域里移动",
+      "music": 0.0
+    },
+    {
+      "from": 52.28,
+      "to": 56.24,
+      "sid": 17,
+      "location": 2,
+      "content": "药剂在前八个格子里会被快捷栏自动识别到",
+      "music": 0.0
+    },
+    {
+      "from": 56.74,
+      "to": 58.82,
+      "sid": 18,
+      "location": 2,
+      "content": "长按五键便可以呼出轮盘",
+      "music": 0.0
+    },
+    {
+      "from": 58.82,
+      "to": 59.82,
+      "sid": 19,
+      "location": 2,
+      "content": "选择药剂",
+      "music": 0.0
+    },
+    {
+      "from": 59.82,
+      "to": 60.96,
+      "sid": 20,
+      "location": 2,
+      "content": "选择完成后",
+      "music": 0.0
+    },
+    {
+      "from": 60.96,
+      "to": 63.62,
+      "sid": 21,
+      "location": 2,
+      "content": "单点五键则可以使用药剂",
+      "music": 0.0
+    },
+    {
+      "from": 64.79,
+      "to": 66.89,
+      "sid": 22,
+      "location": 2,
+      "content": "背包里有快速丢弃功能",
+      "music": 0.0
+    },
+    {
+      "from": 66.89,
+      "to": 68.13,
+      "sid": 23,
+      "location": 2,
+      "content": "在选择物品后",
+      "music": 0.0
+    },
+    {
+      "from": 68.13,
+      "to": 69.71,
+      "sid": 24,
+      "location": 2,
+      "content": "单击右下角的垃圾桶",
+      "music": 0.0
+    },
+    {
+      "from": 69.71,
+      "to": 71.87,
+      "sid": 25,
+      "location": 2,
+      "content": "物品就会被清除",
+      "music": 0.0
+    },
+    {
+      "from": 72.64,
+      "to": 74.48,
+      "sid": 26,
+      "location": 2,
+      "content": "延续到这里就结束了",
+      "music": 0.0
+    },
+    {
+      "from": 74.48,
+      "to": 75.88,
+      "sid": 27,
+      "location": 2,
+      "content": "在7.1更新后",
+      "music": 0.0
+    },
+    {
+      "from": 75.88,
+      "to": 78.48,
+      "sid": 28,
+      "location": 2,
+      "content": "这个背包系统估计就用不上了",
+      "music": 0.0
+    }
+  ]
+}

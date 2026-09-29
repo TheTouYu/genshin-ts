@@ -1,0 +1,884 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.04,
+      "to": 1.2,
+      "sid": 1,
+      "location": 2,
+      "content": "你一定不敢相信",
+      "music": 0.0
+    },
+    {
+      "from": 1.2,
+      "to": 4.779,
+      "sid": 2,
+      "location": 2,
+      "content": "这些游戏画面全部来自原神的7.1版本",
+      "music": 0.0
+    },
+    {
+      "from": 4.779,
+      "to": 6.979,
+      "sid": 3,
+      "location": 2,
+      "content": "可以自由拖拽和移动的UI",
+      "music": 0.0
+    },
+    {
+      "from": 6.979,
+      "to": 9.819,
+      "sid": 4,
+      "location": 2,
+      "content": "宣告几乎所有的阿里玩法都可以实现",
+      "music": 0.0
+    },
+    {
+      "from": 9.819,
+      "to": 14.17,
+      "sid": 5,
+      "location": 2,
+      "content": "而其中最让我惊叹的作品是这部银梦奇旅",
+      "music": 0.0
+    },
+    {
+      "from": 33.54,
+      "to": 36.64,
+      "sid": 6,
+      "location": 2,
+      "content": "但我觉得你可能更不敢相信",
+      "music": 0.0
+    },
+    {
+      "from": 36.64,
+      "to": 41.38,
+      "sid": 7,
+      "location": 2,
+      "content": "就是以上的这些关卡其实都是AI做的",
+      "music": 0.0
+    },
+    {
+      "from": 61.7,
+      "to": 63.6,
+      "sid": 8,
+      "location": 2,
+      "content": "下版本新增的客户端控件",
+      "music": 0.0
+    },
+    {
+      "from": 63.6,
+      "to": 65.0,
+      "sid": 9,
+      "location": 2,
+      "content": "可以算是目前为止",
+      "music": 0.0
+    },
+    {
+      "from": 65.0,
+      "to": 67.62,
+      "sid": 10,
+      "location": 2,
+      "content": "千心奇遇最具有变革的一个更新了",
+      "music": 0.0
+    },
+    {
+      "from": 67.62,
+      "to": 69.96,
+      "sid": 11,
+      "location": 2,
+      "content": "基本上所有的阿D游戏都可以用它制作",
+      "music": 0.0
+    },
+    {
+      "from": 69.96,
+      "to": 73.32,
+      "sid": 12,
+      "location": 2,
+      "content": "并且效果可以达到和原版游戏几乎一模一样",
+      "music": 0.0
+    },
+    {
+      "from": 73.32,
+      "to": 75.26,
+      "sid": 13,
+      "location": 2,
+      "content": "由于引入了客户端脚本",
+      "music": 0.0
+    },
+    {
+      "from": 75.26,
+      "to": 77.18,
+      "sid": 14,
+      "location": 2,
+      "content": "而这个脚本不同于节点图",
+      "music": 0.0
+    },
+    {
+      "from": 77.18,
+      "to": 79.06,
+      "sid": 15,
+      "location": 2,
+      "content": "是属于编程代码相关的",
+      "music": 0.0
+    },
+    {
+      "from": 79.06,
+      "to": 81.3,
+      "sid": 16,
+      "location": 2,
+      "content": "有别于主流的Python和C语言",
+      "music": 0.0
+    },
+    {
+      "from": 81.3,
+      "to": 84.28,
+      "sid": 17,
+      "location": 2,
+      "content": "铅芯使用的是更加简单易学的LUA语言",
+      "music": 0.0
+    },
+    {
+      "from": 84.28,
+      "to": 86.76,
+      "sid": 18,
+      "location": 2,
+      "content": "也就是下版本可以在铅芯写代码了",
+      "music": 0.0
+    },
+    {
+      "from": 86.76,
+      "to": 89.3,
+      "sid": 19,
+      "location": 2,
+      "content": "那对于懂编程的人绝对是一件好事",
+      "music": 0.0
+    },
+    {
+      "from": 89.3,
+      "to": 92.3,
+      "sid": 20,
+      "location": 2,
+      "content": "但实际上困扰更多的可能是纯小白",
+      "music": 0.0
+    },
+    {
+      "from": 92.3,
+      "to": 94.72,
+      "sid": 21,
+      "location": 2,
+      "content": "难道不会编程就要被淘汰了吗",
+      "music": 0.0
+    },
+    {
+      "from": 94.72,
+      "to": 96.8,
+      "sid": 22,
+      "location": 2,
+      "content": "因此我们需要借助AI的力量",
+      "music": 0.0
+    },
+    {
+      "from": 96.8,
+      "to": 98.5,
+      "sid": 23,
+      "location": 2,
+      "content": "在当下AI盛行的时代",
+      "music": 0.0
+    },
+    {
+      "from": 98.5,
+      "to": 100.06,
+      "sid": 24,
+      "location": 2,
+      "content": "他能帮我我们办许多事",
+      "music": 0.0
+    },
+    {
+      "from": 100.06,
+      "to": 104.32,
+      "sid": 25,
+      "location": 2,
+      "content": "而现在我们真的可以依靠AI去制作潜心奇遇了",
+      "music": 0.0
+    },
+    {
+      "from": 104.32,
+      "to": 106.44,
+      "sid": 26,
+      "location": 2,
+      "content": "那么接下来我将为你简单展示",
+      "music": 0.0
+    },
+    {
+      "from": 106.44,
+      "to": 109.06,
+      "sid": 27,
+      "location": 2,
+      "content": "如何使用AI去完成一个奇遇的制作",
+      "music": 0.0
+    },
+    {
+      "from": 109.06,
+      "to": 110.38,
+      "sid": 28,
+      "location": 2,
+      "content": "那在正式服上线后",
+      "music": 0.0
+    },
+    {
+      "from": 110.38,
+      "to": 113.0,
+      "sid": 29,
+      "location": 2,
+      "content": "有兴趣的也可以以这期视频作为一个参考",
+      "music": 0.0
+    },
+    {
+      "from": 113.0,
+      "to": 116.41,
+      "sid": 30,
+      "location": 2,
+      "content": "那我们就以官方前瞻中的这个台球游戏为例",
+      "music": 0.0
+    },
+    {
+      "from": 116.41,
+      "to": 118.79,
+      "sid": 31,
+      "location": 2,
+      "content": "这里我选择的模型是chat gbt",
+      "music": 0.0
+    },
+    {
+      "from": 118.79,
+      "to": 120.25,
+      "sid": 32,
+      "location": 2,
+      "content": "给他提供图片素材",
+      "music": 0.0
+    },
+    {
+      "from": 120.25,
+      "to": 123.539,
+      "sid": 33,
+      "location": 2,
+      "content": "并且写清楚整个玩法里包含的主要内容",
+      "music": 0.0
+    },
+    {
+      "from": 123.539,
+      "to": 125.459,
+      "sid": 34,
+      "location": 2,
+      "content": "现在开始让它自己生成",
+      "music": 0.0
+    },
+    {
+      "from": 125.459,
+      "to": 126.799,
+      "sid": 35,
+      "location": 2,
+      "content": "大家也可以猜一猜",
+      "music": 0.0
+    },
+    {
+      "from": 126.799,
+      "to": 130.17,
+      "sid": 36,
+      "location": 2,
+      "content": "这整个游戏制作完毕会花多长时间",
+      "music": 0.0
+    },
+    {
+      "from": 130.17,
+      "to": 131.47,
+      "sid": 37,
+      "location": 2,
+      "content": "大约8分钟",
+      "music": 0.0
+    },
+    {
+      "from": 131.47,
+      "to": 133.15,
+      "sid": 38,
+      "location": 2,
+      "content": "AI完成了基本的工作",
+      "music": 0.0
+    },
+    {
+      "from": 133.15,
+      "to": 136.08,
+      "sid": 39,
+      "location": 2,
+      "content": "并给我列出了需要我进行操作的步骤",
+      "music": 0.0
+    },
+    {
+      "from": 136.08,
+      "to": 139.44,
+      "sid": 40,
+      "location": 2,
+      "content": "在界面布局里添加一个客户端控件容器",
+      "music": 0.0
+    },
+    {
+      "from": 139.44,
+      "to": 142.66,
+      "sid": 41,
+      "location": 2,
+      "content": "在客户端控件模板添加光标检测区域",
+      "music": 0.0
+    },
+    {
+      "from": 142.66,
+      "to": 145.09,
+      "sid": 42,
+      "location": 2,
+      "content": "图片容器节点和文本框",
+      "music": 0.0
+    },
+    {
+      "from": 145.09,
+      "to": 148.17,
+      "sid": 43,
+      "location": 2,
+      "content": "再给他这五项的索引id",
+      "music": 0.0
+    },
+    {
+      "from": 148.95,
+      "to": 151.53,
+      "sid": 44,
+      "location": 2,
+      "content": "不到3分钟就生成好了完整的脚本",
+      "music": 0.0
+    },
+    {
+      "from": 151.53,
+      "to": 154.21,
+      "sid": 45,
+      "location": 2,
+      "content": "接下来我再按照步骤开启光标常驻",
+      "music": 0.0
+    },
+    {
+      "from": 154.21,
+      "to": 156.79,
+      "sid": 46,
+      "location": 2,
+      "content": "给角色添加一个静止移动的单位状态",
+      "music": 0.0
+    },
+    {
+      "from": 156.79,
+      "to": 159.6,
+      "sid": 47,
+      "location": 2,
+      "content": "最后来到客户端脚本资源管理器",
+      "music": 0.0
+    },
+    {
+      "from": 159.6,
+      "to": 161.16,
+      "sid": 48,
+      "location": 2,
+      "content": "新建一个客户端脚本",
+      "music": 0.0
+    },
+    {
+      "from": 161.16,
+      "to": 163.32,
+      "sid": 49,
+      "location": 2,
+      "content": "将刚刚它生成的脚本给导入",
+      "music": 0.0
+    },
+    {
+      "from": 163.32,
+      "to": 165.5,
+      "sid": 50,
+      "location": 2,
+      "content": "再回到客户端控件容器里",
+      "music": 0.0
+    },
+    {
+      "from": 165.5,
+      "to": 167.22,
+      "sid": 51,
+      "location": 2,
+      "content": "挂载上这个脚本",
+      "music": 0.0
+    },
+    {
+      "from": 167.22,
+      "to": 168.42,
+      "sid": 52,
+      "location": 2,
+      "content": "点击试玩",
+      "music": 0.0
+    },
+    {
+      "from": 168.42,
+      "to": 169.36,
+      "sid": 53,
+      "location": 2,
+      "content": "是的",
+      "music": 0.0
+    },
+    {
+      "from": 169.36,
+      "to": 172.5,
+      "sid": 54,
+      "location": 2,
+      "content": "这个游戏已经做完了",
+      "music": 0.0
+    },
+    {
+      "from": 174.46,
+      "to": 176.04,
+      "sid": 55,
+      "location": 2,
+      "content": "但还是有一些瑕疵",
+      "music": 0.0
+    },
+    {
+      "from": 176.04,
+      "to": 177.94,
+      "sid": 56,
+      "location": 2,
+      "content": "比如初始的球少了三颗球",
+      "music": 0.0
+    },
+    {
+      "from": 177.94,
+      "to": 178.56,
+      "sid": 57,
+      "location": 2,
+      "content": "没有高光",
+      "music": 0.0
+    },
+    {
+      "from": 178.56,
+      "to": 179.5,
+      "sid": 58,
+      "location": 2,
+      "content": "显得没有质感",
+      "music": 0.0
+    },
+    {
+      "from": 179.5,
+      "to": 181.6,
+      "sid": 59,
+      "location": 2,
+      "content": "那么这些问题一股脑丢给AI",
+      "music": 0.0
+    },
+    {
+      "from": 181.6,
+      "to": 184.13,
+      "sid": 60,
+      "location": 2,
+      "content": "让它重新优化并生成新的脚本",
+      "music": 0.0
+    },
+    {
+      "from": 184.13,
+      "to": 186.03,
+      "sid": 61,
+      "location": 2,
+      "content": "这一次花了七分多钟",
+      "music": 0.0
+    },
+    {
+      "from": 186.03,
+      "to": 187.25,
+      "sid": 62,
+      "location": 2,
+      "content": "那么这个台球游戏",
+      "music": 0.0
+    },
+    {
+      "from": 187.25,
+      "to": 190.62,
+      "sid": 63,
+      "location": 2,
+      "content": "最后总耗时仅仅只有20分钟",
+      "music": 0.0
+    },
+    {
+      "from": 190.62,
+      "to": 192.6,
+      "sid": 64,
+      "location": 2,
+      "content": "其中18分钟是AI在思考",
+      "music": 0.0
+    },
+    {
+      "from": 192.6,
+      "to": 194.12,
+      "sid": 65,
+      "location": 2,
+      "content": "只有2分钟的时间",
+      "music": 0.0
+    },
+    {
+      "from": 194.12,
+      "to": 195.7,
+      "sid": 66,
+      "location": 2,
+      "content": "是我需要操作的地方",
+      "music": 0.0
+    },
+    {
+      "from": 195.7,
+      "to": 198.57,
+      "sid": 67,
+      "location": 2,
+      "content": "不知道这个速度大家感觉如何呢",
+      "music": 0.0
+    },
+    {
+      "from": 198.57,
+      "to": 201.17,
+      "sid": 68,
+      "location": 2,
+      "content": "反正我是真的被震惊到了",
+      "music": 0.0
+    },
+    {
+      "from": 201.17,
+      "to": 202.25,
+      "sid": 69,
+      "location": 2,
+      "content": "那借由这个案例",
+      "music": 0.0
+    },
+    {
+      "from": 202.25,
+      "to": 203.23,
+      "sid": 70,
+      "location": 2,
+      "content": "我们不难看出",
+      "music": 0.0
+    },
+    {
+      "from": 203.23,
+      "to": 206.82,
+      "sid": 71,
+      "location": 2,
+      "content": "LUA脚本的加入对本身就会编程的是一件好事",
+      "music": 0.0
+    },
+    {
+      "from": 206.82,
+      "to": 208.46,
+      "sid": 72,
+      "location": 2,
+      "content": "而不会编程的创作者",
+      "music": 0.0
+    },
+    {
+      "from": 208.46,
+      "to": 211.48,
+      "sid": 73,
+      "location": 2,
+      "content": "在新版本与其从零开始学习LUA语言",
+      "music": 0.0
+    },
+    {
+      "from": 211.48,
+      "to": 212.54,
+      "sid": 74,
+      "location": 2,
+      "content": "调试好AI",
+      "music": 0.0
+    },
+    {
+      "from": 212.54,
+      "to": 214.97,
+      "sid": 75,
+      "location": 2,
+      "content": "让AI帮我们完成脚本的编写",
+      "music": 0.0
+    },
+    {
+      "from": 214.97,
+      "to": 217.09,
+      "sid": 76,
+      "location": 2,
+      "content": "才应该是更加明确的方向",
+      "music": 0.0
+    },
+    {
+      "from": 217.09,
+      "to": 218.25,
+      "sid": 77,
+      "location": 2,
+      "content": "但值得注意的是",
+      "music": 0.0
+    },
+    {
+      "from": 218.25,
+      "to": 221.14,
+      "sid": 78,
+      "location": 2,
+      "content": "AI没有办法帮我们一键完成所有的工作",
+      "music": 0.0
+    },
+    {
+      "from": 221.14,
+      "to": 224.62,
+      "sid": 79,
+      "location": 2,
+      "content": "绝对少不了抽卡和不断调试等人为介入",
+      "music": 0.0
+    },
+    {
+      "from": 224.62,
+      "to": 227.7,
+      "sid": 80,
+      "location": 2,
+      "content": "那么最后呢也有幸请到了助兴级团队的负责人",
+      "music": 0.0
+    },
+    {
+      "from": 227.7,
+      "to": 229.26,
+      "sid": 81,
+      "location": 2,
+      "content": "进行一些经验性的分享",
+      "music": 0.0
+    },
+    {
+      "from": 229.26,
+      "to": 232.06,
+      "sid": 82,
+      "location": 2,
+      "content": "客户端脚本能够实现的不仅是游戏逻辑",
+      "music": 0.0
+    },
+    {
+      "from": 232.06,
+      "to": 233.23,
+      "sid": 83,
+      "location": 2,
+      "content": "运行上的功能",
+      "music": 0.0
+    },
+    {
+      "from": 233.23,
+      "to": 234.57,
+      "sid": 84,
+      "location": 2,
+      "content": "对于美术方面",
+      "music": 0.0
+    },
+    {
+      "from": 234.57,
+      "to": 237.83,
+      "sid": 85,
+      "location": 2,
+      "content": "脚本可以控制图片等组件的位置变换",
+      "music": 0.0
+    },
+    {
+      "from": 237.83,
+      "to": 239.92,
+      "sid": 86,
+      "location": 2,
+      "content": "以及新增的补间动画功能",
+      "music": 0.0
+    },
+    {
+      "from": 239.92,
+      "to": 243.74,
+      "sid": 87,
+      "location": 2,
+      "content": "所以也可以直接使用AI编写脚本来拼好UI",
+      "music": 0.0
+    },
+    {
+      "from": 243.74,
+      "to": 245.3,
+      "sid": 88,
+      "location": 2,
+      "content": "直接拼出好看的UI",
+      "music": 0.0
+    },
+    {
+      "from": 245.3,
+      "to": 247.36,
+      "sid": 89,
+      "location": 2,
+      "content": "甚至是带有流畅动画的UI",
+      "music": 0.0
+    },
+    {
+      "from": 247.36,
+      "to": 248.12,
+      "sid": 90,
+      "location": 2,
+      "content": "总的来说",
+      "music": 0.0
+    },
+    {
+      "from": 248.12,
+      "to": 249.62,
+      "sid": 91,
+      "location": 2,
+      "content": "目前版本的千金奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 249.62,
+      "to": 252.7,
+      "sid": 92,
+      "location": 2,
+      "content": "足以制作出许多制作精美的2D游戏",
+      "music": 0.0
+    },
+    {
+      "from": 252.7,
+      "to": 255.34,
+      "sid": 93,
+      "location": 2,
+      "content": "类似于银梦奇旅这种质量的作品",
+      "music": 0.0
+    },
+    {
+      "from": 255.34,
+      "to": 256.98,
+      "sid": 94,
+      "location": 2,
+      "content": "也必然会层出不穷",
+      "music": 0.0
+    },
+    {
+      "from": 256.98,
+      "to": 260.579,
+      "sid": 95,
+      "location": 2,
+      "content": "每一张图都将拉高玩家们的想象和铅薪的上限",
+      "music": 0.0
+    },
+    {
+      "from": 260.579,
+      "to": 261.699,
+      "sid": 96,
+      "location": 2,
+      "content": "或许在不久的将来",
+      "music": 0.0
+    },
+    {
+      "from": 261.699,
+      "to": 263.699,
+      "sid": 97,
+      "location": 2,
+      "content": "我们真的能在原神千星中看到",
+      "music": 0.0
+    },
+    {
+      "from": 263.699,
+      "to": 265.619,
+      "sid": 98,
+      "location": 2,
+      "content": "有大佬做出像星露谷物语",
+      "music": 0.0
+    },
+    {
+      "from": 265.619,
+      "to": 268.289,
+      "sid": 99,
+      "location": 2,
+      "content": "死亡细胞等高质量的2D游戏",
+      "music": 0.0
+    },
+    {
+      "from": 268.289,
+      "to": 270.309,
+      "sid": 100,
+      "location": 2,
+      "content": "作为原神周的UGC玩法",
+      "music": 0.0
+    },
+    {
+      "from": 270.309,
+      "to": 272.289,
+      "sid": 101,
+      "location": 2,
+      "content": "当编辑器的上限不断提高",
+      "music": 0.0
+    },
+    {
+      "from": 272.289,
+      "to": 274.349,
+      "sid": 102,
+      "location": 2,
+      "content": "越来越多好的作品出现时",
+      "music": 0.0
+    },
+    {
+      "from": 274.349,
+      "to": 277.039,
+      "sid": 103,
+      "location": 2,
+      "content": "千心奇遇一定会让大家刮目相看",
+      "music": 0.0
+    },
+    {
+      "from": 277.039,
+      "to": 279.119,
+      "sid": 104,
+      "location": 2,
+      "content": "那么以上就是本期视频的全部内容了",
+      "music": 0.0
+    },
+    {
+      "from": 279.119,
+      "to": 280.219,
+      "sid": 105,
+      "location": 2,
+      "content": "如果觉得视频还不错",
+      "music": 0.0
+    },
+    {
+      "from": 280.219,
+      "to": 282.959,
+      "sid": 106,
+      "location": 2,
+      "content": "或者想了解更多有关千心奇遇的内容",
+      "music": 0.0
+    },
+    {
+      "from": 282.959,
+      "to": 283.939,
+      "sid": 107,
+      "location": 2,
+      "content": "记得关注我",
+      "music": 0.0
+    },
+    {
+      "from": 283.939,
+      "to": 284.639,
+      "sid": 108,
+      "location": 2,
+      "content": "我是小号",
+      "music": 0.0
+    },
+    {
+      "from": 284.639,
+      "to": 286.26,
+      "sid": 109,
+      "location": 2,
+      "content": "我们下期视频再见",
+      "music": 0.0
+    }
+  ]
+}

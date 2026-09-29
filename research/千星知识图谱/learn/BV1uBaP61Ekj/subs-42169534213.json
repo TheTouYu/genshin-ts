@@ -1,0 +1,940 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 1.62,
+      "to": 8.219,
+      "sid": 1,
+      "location": 2,
+      "content": "昨天综合指南更新了7.1版本的新增内容",
+      "music": 0.0
+    },
+    {
+      "from": 8.219,
+      "to": 12.739,
+      "sid": 2,
+      "location": 2,
+      "content": "主要针对客户端控件以及客户端脚本相关内容",
+      "music": 0.0
+    },
+    {
+      "from": 12.739,
+      "to": 16.18,
+      "sid": 3,
+      "location": 2,
+      "content": "客户端控件和客户端脚脚本",
+      "music": 0.0
+    },
+    {
+      "from": 16.18,
+      "to": 18.56,
+      "sid": 4,
+      "location": 2,
+      "content": "客户端控件API",
+      "music": 0.0
+    },
+    {
+      "from": 18.56,
+      "to": 21.88,
+      "sid": 5,
+      "location": 2,
+      "content": "其中这个客户端控件API文档是很有用",
+      "music": 0.0
+    },
+    {
+      "from": 21.88,
+      "to": 23.22,
+      "sid": 6,
+      "location": 2,
+      "content": "需要下载的",
+      "music": 0.0
+    },
+    {
+      "from": 23.22,
+      "to": 26.3,
+      "sid": 7,
+      "location": 2,
+      "content": "但是这里",
+      "music": 0.0
+    },
+    {
+      "from": 28.46,
+      "to": 31.66,
+      "sid": 8,
+      "location": 2,
+      "content": "官方是没有提供下载途径的",
+      "music": 0.0
+    },
+    {
+      "from": 31.66,
+      "to": 35.06,
+      "sid": 9,
+      "location": 2,
+      "content": "然后需要自己去想办法爬一下",
+      "music": 0.0
+    },
+    {
+      "from": 35.06,
+      "to": 42.64,
+      "sid": 10,
+      "location": 2,
+      "content": "或者是嗯用其他的办法去拿到这个文档",
+      "music": 0.0
+    },
+    {
+      "from": 42.64,
+      "to": 46.8,
+      "sid": 11,
+      "location": 2,
+      "content": "才可以让AI去去进行一个学习",
+      "music": 0.0
+    },
+    {
+      "from": 46.8,
+      "to": 52.739,
+      "sid": 12,
+      "location": 2,
+      "content": "然后我把文档会放到嗯视频的简介里面",
+      "music": 0.0
+    },
+    {
+      "from": 52.739,
+      "to": 54.319,
+      "sid": 13,
+      "location": 2,
+      "content": "供大家下载",
+      "music": 0.0
+    },
+    {
+      "from": 55.329,
+      "to": 59.329,
+      "sid": 14,
+      "location": 2,
+      "content": "然后我们教一下如何在",
+      "music": 0.0
+    },
+    {
+      "from": 61.06,
+      "to": 64.42,
+      "sid": 15,
+      "location": 2,
+      "content": "原神里面使用它这个东西啊",
+      "music": 0.0
+    },
+    {
+      "from": 65.8,
+      "to": 69.76,
+      "sid": 16,
+      "location": 2,
+      "content": "是在界面控件组里面有一个界面布局",
+      "music": 0.0
+    },
+    {
+      "from": 69.76,
+      "to": 72.88,
+      "sid": 17,
+      "location": 2,
+      "content": "我们需要在里面新增",
+      "music": 0.0
+    },
+    {
+      "from": 73.08,
+      "to": 77.24,
+      "sid": 18,
+      "location": 2,
+      "content": "在预制里面有一个客户端控件容器",
+      "music": 0.0
+    },
+    {
+      "from": 77.24,
+      "to": 79.76,
+      "sid": 19,
+      "location": 2,
+      "content": "然后它下面有一个画布设置",
+      "music": 0.0
+    },
+    {
+      "from": 79.76,
+      "to": 84.23,
+      "sid": 20,
+      "location": 2,
+      "content": "里面前往编辑可以看到右边差",
+      "music": 0.0
+    },
+    {
+      "from": 84.23,
+      "to": 86.91,
+      "sid": 21,
+      "location": 2,
+      "content": "这里面是有一个基础和脚本",
+      "music": 0.0
+    },
+    {
+      "from": 86.91,
+      "to": 88.43,
+      "sid": 22,
+      "location": 2,
+      "content": "然后这里添加脚本",
+      "music": 0.0
+    },
+    {
+      "from": 88.43,
+      "to": 90.55,
+      "sid": 23,
+      "location": 2,
+      "content": "选择我们的脚本就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 90.55,
+      "to": 92.27,
+      "sid": 24,
+      "location": 2,
+      "content": "这里有我添加好的",
+      "music": 0.0
+    },
+    {
+      "from": 92.27,
+      "to": 94.31,
+      "sid": 25,
+      "location": 2,
+      "content": "然后给你们看一下",
+      "music": 0.0
+    },
+    {
+      "from": 95.86,
+      "to": 97.66,
+      "sid": 26,
+      "location": 2,
+      "content": "就这样的",
+      "music": 0.0
+    },
+    {
+      "from": 98.55,
+      "to": 102.25,
+      "sid": 27,
+      "location": 2,
+      "content": "而我们在千金沙箱里面要找到客户端",
+      "music": 0.0
+    },
+    {
+      "from": 102.25,
+      "to": 104.55,
+      "sid": 28,
+      "location": 2,
+      "content": "脚本资源管理器",
+      "music": 0.0
+    },
+    {
+      "from": 105.19,
+      "to": 111.95,
+      "sid": 29,
+      "location": 2,
+      "content": "在客户端脚本映射里面新建一个客户端脚本",
+      "music": 0.0
+    },
+    {
+      "from": 120.44,
+      "to": 126.8,
+      "sid": 30,
+      "location": 2,
+      "content": "最好嗯设置一个较能方便理解的一个名字",
+      "music": 0.0
+    },
+    {
+      "from": 126.8,
+      "to": 128.22,
+      "sid": 31,
+      "location": 2,
+      "content": "方便之后找嘛",
+      "music": 0.0
+    },
+    {
+      "from": 128.22,
+      "to": 130.74,
+      "sid": 32,
+      "location": 2,
+      "content": "然后这里需要选择一个文件路径",
+      "music": 0.0
+    },
+    {
+      "from": 130.74,
+      "to": 134.16,
+      "sid": 33,
+      "location": 2,
+      "content": "他这个是必须放在他这个指定文件路径下",
+      "music": 0.0
+    },
+    {
+      "from": 134.16,
+      "to": 135.1,
+      "sid": 34,
+      "location": 2,
+      "content": "才行的",
+      "music": 0.0
+    },
+    {
+      "from": 135.1,
+      "to": 137.85,
+      "sid": 35,
+      "location": 2,
+      "content": "你可以把文件复制粘贴进来",
+      "music": 0.0
+    },
+    {
+      "from": 137.85,
+      "to": 139.27,
+      "sid": 36,
+      "location": 2,
+      "content": "然后去选中它",
+      "music": 0.0
+    },
+    {
+      "from": 139.27,
+      "to": 142.05,
+      "sid": 37,
+      "location": 2,
+      "content": "打开就会在这儿显示的",
+      "music": 0.0
+    },
+    {
+      "from": 143.66,
+      "to": 149.3,
+      "sid": 38,
+      "location": 2,
+      "content": "然后我们需要把需要把那个脚本挂在这个地方",
+      "music": 0.0
+    },
+    {
+      "from": 149.74,
+      "to": 151.709,
+      "sid": 39,
+      "location": 2,
+      "content": "现在就显示的是这个",
+      "music": 0.0
+    },
+    {
+      "from": 151.709,
+      "to": 153.849,
+      "sid": 40,
+      "location": 2,
+      "content": "然后你让他去做的话",
+      "music": 0.0
+    },
+    {
+      "from": 153.849,
+      "to": 156.569,
+      "sid": 41,
+      "location": 2,
+      "content": "他可能会要你一些索引id",
+      "music": 0.0
+    },
+    {
+      "from": 156.569,
+      "to": 160.39,
+      "sid": 42,
+      "location": 2,
+      "content": "像这个客户端控件容积的索引id一般是要的",
+      "music": 0.0
+    },
+    {
+      "from": 160.39,
+      "to": 163.75,
+      "sid": 43,
+      "location": 2,
+      "content": "他如果问你要其他的文本框啊",
+      "music": 0.0
+    },
+    {
+      "from": 163.75,
+      "to": 165.47,
+      "sid": 44,
+      "location": 2,
+      "content": "图片什么的索引id",
+      "music": 0.0
+    },
+    {
+      "from": 165.47,
+      "to": 167.11,
+      "sid": 45,
+      "location": 2,
+      "content": "需要注意的是",
+      "music": 0.0
+    },
+    {
+      "from": 167.11,
+      "to": 172.7,
+      "sid": 46,
+      "location": 2,
+      "content": "你应该去在客户端控件模板里面进行一个添加",
+      "music": 0.0
+    },
+    {
+      "from": 172.7,
+      "to": 173.9,
+      "sid": 47,
+      "location": 2,
+      "content": "像在这里的话",
+      "music": 0.0
+    },
+    {
+      "from": 173.9,
+      "to": 176.33,
+      "sid": 48,
+      "location": 2,
+      "content": "它是没有办法去用的",
+      "music": 0.0
+    },
+    {
+      "from": 176.33,
+      "to": 178.709,
+      "sid": 49,
+      "location": 2,
+      "content": "它是一个客户端的空间了",
+      "music": 0.0
+    },
+    {
+      "from": 178.709,
+      "to": 180.989,
+      "sid": 50,
+      "location": 2,
+      "content": "在这里面拼的东西也不可以用",
+      "music": 0.0
+    },
+    {
+      "from": 180.989,
+      "to": 185.709,
+      "sid": 51,
+      "location": 2,
+      "content": "就像你如果在素材库里面去拼什么素材的话",
+      "music": 0.0
+    },
+    {
+      "from": 185.709,
+      "to": 188.214,
+      "sid": 52,
+      "location": 2,
+      "content": "我们在这儿新建一个",
+      "music": 0.0
+    },
+    {
+      "from": 201.22,
+      "to": 204.02,
+      "sid": 53,
+      "location": 2,
+      "content": "你可以看到在这里引用图片的时候",
+      "music": 0.0
+    },
+    {
+      "from": 204.02,
+      "to": 207.4,
+      "sid": 54,
+      "location": 2,
+      "content": "它是没有最上面的那一个自定义的",
+      "music": 0.0
+    },
+    {
+      "from": 207.4,
+      "to": 211.04,
+      "sid": 55,
+      "location": 2,
+      "content": "你像在客户端如果去新建一个图片的话",
+      "music": 0.0
+    },
+    {
+      "from": 211.04,
+      "to": 213.72,
+      "sid": 56,
+      "location": 2,
+      "content": "它是上面有一个自定义素材",
+      "music": 0.0
+    },
+    {
+      "from": 213.72,
+      "to": 214.44,
+      "sid": 57,
+      "location": 2,
+      "content": "就可以引用",
+      "music": 0.0
+    },
+    {
+      "from": 214.44,
+      "to": 218.22,
+      "sid": 58,
+      "location": 2,
+      "content": "我们刚才在图片库里面创建的这个自定义的",
+      "music": 0.0
+    },
+    {
+      "from": 218.22,
+      "to": 220.12,
+      "sid": 59,
+      "location": 2,
+      "content": "所以我们如果要拼东西的话",
+      "music": 0.0
+    },
+    {
+      "from": 220.12,
+      "to": 222.82,
+      "sid": 60,
+      "location": 2,
+      "content": "需要在这个地方拼",
+      "music": 0.0
+    },
+    {
+      "from": 231.52,
+      "to": 233.94,
+      "sid": 61,
+      "location": 2,
+      "content": "然后我的这些素材的话",
+      "music": 0.0
+    },
+    {
+      "from": 233.94,
+      "to": 236.52,
+      "sid": 62,
+      "location": 2,
+      "content": "是在就是在这里拼的关卡",
+      "music": 0.0
+    },
+    {
+      "from": 236.52,
+      "to": 238.87,
+      "sid": 63,
+      "location": 2,
+      "content": "选择的界面什么的",
+      "music": 0.0
+    },
+    {
+      "from": 239.53,
+      "to": 243.13,
+      "sid": 64,
+      "location": 2,
+      "content": "然后还有一个是我们在日志里面",
+      "music": 0.0
+    },
+    {
+      "from": 245.92,
+      "to": 249.6,
+      "sid": 65,
+      "location": 2,
+      "content": "它在最下面有一个客户端脚本",
+      "music": 0.0
+    },
+    {
+      "from": 250.28,
+      "to": 252.42,
+      "sid": 66,
+      "location": 2,
+      "content": "然后这个版本新加了一个试",
+      "music": 0.0
+    },
+    {
+      "from": 252.42,
+      "to": 255.4,
+      "sid": 67,
+      "location": 2,
+      "content": "好像新加了一个试玩时清除其他的日志",
+      "music": 0.0
+    },
+    {
+      "from": 255.4,
+      "to": 256.96,
+      "sid": 68,
+      "location": 2,
+      "content": "选择加入这个的话",
+      "music": 0.0
+    },
+    {
+      "from": 256.96,
+      "to": 260.489,
+      "sid": 69,
+      "location": 2,
+      "content": "我们就方便去进行一个操作啊",
+      "music": 0.0
+    },
+    {
+      "from": 260.489,
+      "to": 262.609,
+      "sid": 70,
+      "location": 2,
+      "content": "我们现在开始试玩",
+      "music": 0.0
+    },
+    {
+      "from": 274.74,
+      "to": 277.82,
+      "sid": 71,
+      "location": 2,
+      "content": "而我们可以看到这里我们就拿到了很多事件",
+      "music": 0.0
+    },
+    {
+      "from": 277.82,
+      "to": 281.22,
+      "sid": 72,
+      "location": 2,
+      "content": "他这里可以一键去复制",
+      "music": 0.0
+    },
+    {
+      "from": 283.4,
+      "to": 287.38,
+      "sid": 73,
+      "location": 2,
+      "content": "这也可以拿到脚本日志的详细情况",
+      "music": 0.0
+    },
+    {
+      "from": 287.38,
+      "to": 291.019,
+      "sid": 74,
+      "location": 2,
+      "content": "然后怎么中途报错啊",
+      "music": 0.0
+    },
+    {
+      "from": 291.019,
+      "to": 293.519,
+      "sid": 75,
+      "location": 2,
+      "content": "然后可以直接一键复制所有早本日子",
+      "music": 0.0
+    },
+    {
+      "from": 293.519,
+      "to": 295.739,
+      "sid": 76,
+      "location": 2,
+      "content": "我们把这个东西交给AI之后",
+      "music": 0.0
+    },
+    {
+      "from": 295.739,
+      "to": 300.98,
+      "sid": 77,
+      "location": 2,
+      "content": "AI就可以照着这些去给我们进行一个修改了",
+      "music": 0.0
+    },
+    {
+      "from": 301.3,
+      "to": 304.3,
+      "sid": 78,
+      "location": 2,
+      "content": "就现在我们说了如何去挂脚本",
+      "music": 0.0
+    },
+    {
+      "from": 304.3,
+      "to": 306.92,
+      "sid": 79,
+      "location": 2,
+      "content": "如何去改一个素材",
+      "music": 0.0
+    },
+    {
+      "from": 306.92,
+      "to": 309.48,
+      "sid": 80,
+      "location": 2,
+      "content": "然后我们去说一下",
+      "music": 0.0
+    },
+    {
+      "from": 309.48,
+      "to": 314.12,
+      "sid": 81,
+      "location": 2,
+      "content": "如和去在里面做存档和",
+      "music": 0.0
+    },
+    {
+      "from": 315.5,
+      "to": 317.1,
+      "sid": 82,
+      "location": 2,
+      "content": "结算的内容啊",
+      "music": 0.0
+    },
+    {
+      "from": 317.1,
+      "to": 319.1,
+      "sid": 83,
+      "location": 2,
+      "content": "这些都是关卡必须要有的",
+      "music": 0.0
+    },
+    {
+      "from": 319.1,
+      "to": 322.01,
+      "sid": 84,
+      "location": 2,
+      "content": "但是在这界面控件里面",
+      "music": 0.0
+    },
+    {
+      "from": 322.01,
+      "to": 326.05,
+      "sid": 85,
+      "location": 2,
+      "content": "客户端里面它是没有办法进行一个实现的",
+      "music": 0.0
+    },
+    {
+      "from": 334.42,
+      "to": 337.26,
+      "sid": 86,
+      "location": 2,
+      "content": "这是一个存档的逻辑",
+      "music": 0.0
+    },
+    {
+      "from": 338.23,
+      "to": 341.81,
+      "sid": 87,
+      "location": 2,
+      "content": "需要用到的是发送客户端脚本信号",
+      "music": 0.0
+    },
+    {
+      "from": 341.81,
+      "to": 344.68,
+      "sid": 88,
+      "location": 2,
+      "content": "和去监听一个信号啊",
+      "music": 0.0
+    },
+    {
+      "from": 344.68,
+      "to": 347.58,
+      "sid": 89,
+      "location": 2,
+      "content": "我这里是他发了这个信号之后",
+      "music": 0.0
+    },
+    {
+      "from": 347.58,
+      "to": 349.64,
+      "sid": 90,
+      "location": 2,
+      "content": "那个结算按钮才会出来",
+      "music": 0.0
+    },
+    {
+      "from": 349.64,
+      "to": 353.57,
+      "sid": 91,
+      "location": 2,
+      "content": "就到时间之后去给客户端脚本发的这个信号",
+      "music": 0.0
+    },
+    {
+      "from": 353.57,
+      "to": 356.23,
+      "sid": 92,
+      "location": 2,
+      "content": "他收到之后才会出现那个结算按钮",
+      "music": 0.0
+    },
+    {
+      "from": 356.23,
+      "to": 357.37,
+      "sid": 93,
+      "location": 2,
+      "content": "像我的游戏",
+      "music": 0.0
+    },
+    {
+      "from": 357.37,
+      "to": 359.96,
+      "sid": 94,
+      "location": 2,
+      "content": "它一开始是没有结算的",
+      "music": 0.0
+    },
+    {
+      "from": 360.52,
+      "to": 364.939,
+      "sid": 95,
+      "location": 2,
+      "content": "然后如果是通从客户端脚本发过来的",
+      "music": 0.0
+    },
+    {
+      "from": 364.939,
+      "to": 367.35,
+      "sid": 96,
+      "location": 2,
+      "content": "我们直接去监听一个信号就行",
+      "music": 0.0
+    },
+    {
+      "from": 367.35,
+      "to": 371.09,
+      "sid": 97,
+      "location": 2,
+      "content": "这里是监听到结算的信号",
+      "music": 0.0
+    },
+    {
+      "from": 371.09,
+      "to": 374.31,
+      "sid": 98,
+      "location": 2,
+      "content": "去完成一个结算",
+      "music": 0.0
+    },
+    {
+      "from": 375.04,
+      "to": 376.52,
+      "sid": 99,
+      "location": 2,
+      "content": "现在存了个档嘛",
+      "music": 0.0
+    },
+    {
+      "from": 376.52,
+      "to": 379.4,
+      "sid": 100,
+      "location": 2,
+      "content": "然后这是信号",
+      "music": 0.0
+    },
+    {
+      "from": 381.08,
+      "to": 382.72,
+      "sid": 101,
+      "location": 2,
+      "content": "像陈旧也是一样",
+      "music": 0.0
+    },
+    {
+      "from": 382.72,
+      "to": 388.04,
+      "sid": 102,
+      "location": 2,
+      "content": "你需要两边去用一个新号进行一个中端处理",
+      "music": 0.0
+    },
+    {
+      "from": 392.0,
+      "to": 395.68,
+      "sid": 103,
+      "location": 2,
+      "content": "这是存那个记录的信号",
+      "music": 0.0
+    },
+    {
+      "from": 395.68,
+      "to": 398.18,
+      "sid": 104,
+      "location": 2,
+      "content": "就在关卡上面监听这到信号",
+      "music": 0.0
+    },
+    {
+      "from": 398.18,
+      "to": 402.84,
+      "sid": 105,
+      "location": 2,
+      "content": "然后去在里面存这个自定义变量",
+      "music": 0.0
+    },
+    {
+      "from": 404.84,
+      "to": 407.6,
+      "sid": 106,
+      "location": 2,
+      "content": "这是一个关卡的存档",
+      "music": 0.0
+    },
+    {
+      "from": 408.13,
+      "to": 412.21,
+      "sid": 107,
+      "location": 2,
+      "content": "这是取局外变量的一个存档",
+      "music": 0.0
+    },
+    {
+      "from": 412.96,
+      "to": 415.1,
+      "sid": 108,
+      "location": 2,
+      "content": "另外需要注意的就是",
+      "music": 0.0
+    },
+    {
+      "from": 415.1,
+      "to": 419.88,
+      "sid": 109,
+      "location": 2,
+      "content": "它本身是不会进行一个存档的嘛",
+      "music": 0.0
+    },
+    {
+      "from": 419.88,
+      "to": 422.78,
+      "sid": 110,
+      "location": 2,
+      "content": "他AI一般做出来都是局内存的",
+      "music": 0.0
+    },
+    {
+      "from": 422.78,
+      "to": 424.66,
+      "sid": 111,
+      "location": 2,
+      "content": "这些东西需要你去跟他说",
+      "music": 0.0
+    },
+    {
+      "from": 424.66,
+      "to": 425.66,
+      "sid": 112,
+      "location": 2,
+      "content": "然后去做",
+      "music": 0.0
+    },
+    {
+      "from": 425.66,
+      "to": 428.24,
+      "sid": 113,
+      "location": 2,
+      "content": "你去连好截点图去跟他",
+      "music": 0.0
+    },
+    {
+      "from": 431.44,
+      "to": 434.06,
+      "sid": 114,
+      "location": 2,
+      "content": "这次就先到这里了",
+      "music": 0.0
+    },
+    {
+      "from": 434.06,
+      "to": 437.48,
+      "sid": 115,
+      "location": 2,
+      "content": "还有关于那个嗯",
+      "music": 0.0
+    },
+    {
+      "from": 438.6,
+      "to": 442.78,
+      "sid": 116,
+      "location": 2,
+      "content": "文档的话还是可以去群里面进行一个下载的",
+      "music": 0.0
+    }
+  ]
+}

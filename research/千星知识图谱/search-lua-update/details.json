@@ -1,0 +1,162 @@
+[
+ {
+  "bvid": "BV1YGaq6rEab",
+  "title": "在原神里做了个极其流畅的贪吃蛇——有了客户端控件容器，制作2D关卡简单了太多，很多想法可以付诸行动了",
+  "pub": "2026-09-28",
+  "dur": 206,
+  "pages": 1,
+  "view": 206,
+  "owner": "胡思乱想001",
+  "desc": "关卡名：元素贪吃蛇_纯色信仰 / 关卡GUID：28489951765 /  / 这是元素贪吃蛇的经典版本，克制了很多，没有多少花里胡哨的东西，每种元素连吃达到10之后都会有不同的效果，可以自己去体验一下哦~ / 元素粒最多存在20枚，要得高分的话，请规划好吃元素粒的顺序哦~ /  / 是的，说起元素，怎么能没有元素反应呢"
+ },
+ {
+  "bvid": "BV1ZGaa6KEMp",
+  "title": "【千星奇域】让AI帮你写LUA脚本！2D提示词使用指南",
+  "pub": "2026-09-27",
+  "dur": 80,
+  "pages": 1,
+  "view": 817,
+  "owner": "是兔头呀",
+  "desc": "文档链接：https://lcnt3i8hbzkj.feishu.cn/wiki/IkR8w4vT7ikWPtkydJ4cpTutnYc"
+ },
+ {
+  "bvid": "BV1Fkh96AEVg",
+  "title": "原神7.1！千星迎来质变升级！可量产所有小游戏了啊！克苟：这就是客户端游戏啊！真的是2D游戏解放了！这丝滑到无法想象！",
+  "pub": "2026-09-26",
+  "dur": 246,
+  "pages": 1,
+  "view": 9546,
+  "owner": "双刀纸袋布",
+  "desc": "已获授权 /  / 关注克利咕咕兰谢谢喵：https://space.bilibili.com/809048?spm_id_from=333.337.0.0 /  / 克利咕咕兰的直播间：https://live.bilibili.com/518647?live_from=8200"
+ },
+ {
+  "bvid": "BV1N1hX63E1K",
+  "title": "让编译器提示千星LUA API",
+  "pub": "2026-09-26",
+  "dur": 194,
+  "pages": 1,
+  "view": 270,
+  "owner": "NULL_60",
+  "desc": ""
+ },
+ {
+  "bvid": "BV1uXag68Edh",
+  "title": "【千星奇域教程】AI辅助创作客户端控件",
+  "pub": "2026-09-25",
+  "dur": 292,
+  "pages": 1,
+  "view": 2066,
+  "owner": "神仙请带路",
+  "desc": ""
+ },
+ {
+  "bvid": "BV1dVau6TE2q",
+  "title": "千星奇域客户端脚本类型注解来了",
+  "pub": "2026-09-25",
+  "dur": 171,
+  "pages": 1,
+  "view": 1265,
+  "owner": "鸢汐Shine",
+  "desc": "视频中的类型注解文件所在仓库：https://github.com/DreamedWorker/miliastra-lua-types"
+ },
+ {
+  "bvid": "BV1uBaP61Ekj",
+  "title": "用lua脚本做一个完整的2D玩法",
+  "pub": "2026-09-24",
+  "dur": 448,
+  "pages": 1,
+  "view": 3624,
+  "owner": "夜芊瑶",
+  "desc": "通过网盘分享的文件：客户端控件API文档.md / 链接: https://pan.baidu.com/s/1TizxGHMFPagvufstTPbg-A?pwd=7im3 提取码: 7im3"
+ },
+ {
+  "bvid": "BV1AqaN6KEBp",
+  "title": "使用千星lua脚本显示3d模型",
+  "pub": "2026-09-24",
+  "dur": 25,
+  "pages": 1,
+  "view": 3384,
+  "owner": "饮泣拦路雨",
+  "desc": "使用千星的图片组件模拟三角面，读取FBX格式，用lua脚本动态创建元件并显示。"
+ },
+ {
+  "bvid": "BV1rxhf6EEHb",
+  "title": "【千星沙箱模拟器】AI直接试玩lua奇域 + 知识库系统更新说明",
+  "pub": "2026-09-24",
+  "dur": 131,
+  "pages": 1,
+  "view": 5782,
+  "owner": "神奇嘟嘟可",
+  "desc": "https://github.com/1475505/miliastra-beyond-simulator"
+ },
+ {
+  "bvid": "BV1RVhW6zEHQ",
+  "title": "【千星奇域】基于Lua的你画我猜经典版",
+  "pub": "2026-09-23",
+  "dur": 151,
+  "pages": 1,
+  "view": 4923,
+  "owner": "hfohn",
+  "desc": "基于7.1版本重制的《你画我猜经典版》功能演示"
+ },
+ {
+  "bvid": "BV1qYeF6nEiq",
+  "title": "原神7.1千星奇域革命性更新，年轻人的第一款lua编辑器，支持全新UI补间动画与2D玩法，，协作模式更新",
+  "pub": "2026-09-16",
+  "dur": 568,
+  "pages": 1,
+  "view": 29908,
+  "owner": "戀祈",
+  "desc": "视频内提及的动画编辑器网址：tool.xiaomol444.xyz/ClientUIAnimationEditor"
+ },
+ {
+  "bvid": "BV1Zten6VEeD",
+  "title": "终于支持Lua脚本编程了，千星奇域3.0即将到来！！7.1编辑器更新内容速览【千星奇域创体服】",
+  "pub": "2026-09-16",
+  "dur": 298,
+  "pages": 1,
+  "view": 4158,
+  "owner": "happy_hhhh",
+  "desc": "千星奇域也是支持Lua脚本编程了，不仅如此，在新版本中还增加了合作编辑、禁止玩家移动、镜头忽略物体碰撞等等功能！想了解详细更新内容的话就点开视频来看看吧~ / 本视频素材均录制于创作体验服，目前各种内容仍在开发中，最终以正式服上线为准，如果大家有什么疑问也可以在评论区留言"
+ },
+ {
+  "bvid": "BV1rKeH67EMj",
+  "title": "你将能在原神玩到这么多2D游戏！这还是原神吗？【原神千星奇域创体服】",
+  "pub": "2026-09-16",
+  "dur": 287,
+  "pages": 1,
+  "view": 152841,
+  "owner": "小问号Official",
+  "desc": "内容来自创体服，以正式上线为准。"
+ },
+ {
+  "bvid": "BV1dqeF62EbP",
+  "title": "客户端控件与脚本简介【原神7.1创作者体验服】",
+  "pub": "2026-09-16",
+  "dur": 268,
+  "pages": 1,
+  "view": 1297,
+  "owner": "和裕茶客",
+  "desc": "视频内容来自于创作者体验服，关卡均为创作者开发中的测试版本，实际内容以正式上线为准。 / 在原神千星奇域使用客户端控件和脚本制作用于简单介绍常用的客户端控件，以及补间动画、动画序列、输入和本地状态等通用能力的奇域。"
+ },
+ {
+  "bvid": "BV1XAew6mESb",
+  "title": "【千星奇域】在7.1编程时代更新前完成的搜打撤背包系统-更新日志",
+  "pub": "2026-09-16",
+  "dur": 81,
+  "pages": 1,
+  "view": 4254,
+  "owner": "九黎香",
+  "desc": ""
+ },
+ {
+  "bvid": "BV1HHXkBXEDR",
+  "title": "千星奇域「月之六」编辑器新功能介绍③技能&特效器&物件镜头【原神千星奇域创作体验服】",
+  "pub": "2026-04-01",
+  "dur": 1164,
+  "pages": 1,
+  "view": 5161,
+  "owner": "小猪之最Thepig",
+  "desc": "【内容均来自于创作体验服，关卡为创作者制作的测试版本，以正式上线为准】 /  / 千星奇域「月之六」版本编辑器更新了自由度更高的技能编辑系统、可高度自定义特效时序逻辑的特效器功能以及跟随物件/造物的物件镜头功能。 / BGM：HOYO-MiX - 如生之不竭 Life Is Inexhaustible / 千星奇域"
+ }
+]

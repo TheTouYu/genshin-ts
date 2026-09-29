@@ -1,0 +1,1882 @@
+{
+ "千星奇域 lua": [
+  {
+   "bvid": "BV1qYeF6nEiq",
+   "title": "原神7.1千星奇域革命性更新，年轻人的第一款lua编辑器，支持全新UI补间动画与2D玩法，，协作模式更新",
+   "author": "戀祈",
+   "duration": "09:28",
+   "stats": [
+    "3万",
+    "25"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ZGaa6KEMp",
+   "title": "【千星奇域】让AI帮你写LUA脚本！2D提示词使用指南",
+   "author": "是兔头呀",
+   "duration": "01:20",
+   "stats": [
+    "816",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uBaP61Ekj",
+   "title": "用lua脚本做一个完整的2D玩法",
+   "author": "夜芊瑶",
+   "duration": "07:28",
+   "stats": [
+    "3624",
+    "1"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1oGaa6KEfW",
+   "title": "使用ai编写lua脚本制作2d玩法遇到的问题（仅供参考）",
+   "author": "夜芊瑶",
+   "duration": "05:36",
+   "stats": [
+    "1335",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BYeF6JEPg",
+   "title": "千星奇域终于能写代码了？！【原神千星奇域7.1版本创作体验服】",
+   "author": "小猪之最Thepig",
+   "duration": "06:34",
+   "stats": [
+    "9985",
+    "2"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1aRhQ6LEHx",
+   "title": "【千星奇域】在能写代码后，如何借助现代化工具提高奇域开发效率",
+   "author": "残阳灬落月",
+   "duration": "09:32",
+   "stats": [
+    "1757",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uXag68Edh",
+   "title": "【千星奇域教程】AI辅助创作客户端控件",
+   "author": "神仙请带路",
+   "duration": "04:52",
+   "stats": [
+    "2066",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UAaL6MEci",
+   "title": "【千星奇域】lua动态背景预览",
+   "author": "crimekal",
+   "duration": "00:39",
+   "stats": [
+    "71",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1rxhf6EEHb",
+   "title": "【千星沙箱模拟器】AI直接试玩lua奇域 + 知识库系统更新说明",
+   "author": "神奇嘟嘟可",
+   "duration": "02:11",
+   "stats": [
+    "5782",
+    "1"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1N1hX63E1K",
+   "title": "让编译器提示千星LUA API",
+   "author": "NULL_60",
+   "duration": "03:14",
+   "stats": [
+    "270",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1SWat6GEtm",
+   "title": "原神没有光追？我拿一万多个控件硬算，实机跑到25帧",
+   "author": "柚子漂流中",
+   "duration": "01:37",
+   "stats": [
+    "9825",
+    "31"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1dVau6TE2q",
+   "title": "千星奇域客户端脚本类型注解来了",
+   "author": "鸢汐Shine",
+   "duration": "02:51",
+   "stats": [
+    "1265",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Zten6VEeD",
+   "title": "终于支持Lua脚本编程了，千星奇域3.0即将到来！！7.1编辑器更新内容速览【千星奇域创体服】",
+   "author": "happy_hhhh",
+   "duration": "04:58",
+   "stats": [
+    "4158",
+    "1"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV18peJ6ZEUQ",
+   "title": "🤚千星沙箱，自己开发✋【原神千星奇域创作体验服】",
+   "author": "瓦不露甜",
+   "duration": "06:29",
+   "stats": [
+    "4831",
+    "5"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RVhW6zEHQ",
+   "title": "【千星奇域】基于Lua的你画我猜经典版",
+   "author": "hfohn",
+   "duration": "02:31",
+   "stats": [
+    "4923",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Ceh96qErs",
+   "title": "原神千星奇域能玩电脑了？还塞了个246万参数的离线AI，一字一顿真在算",
+   "author": "柚子漂流中",
+   "duration": "05:50",
+   "stats": [
+    "6.4万",
+    "84"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1GYaL6UEbX",
+   "title": "【原神】千星奇域随录#10-螺旋塔观景跑酷",
+   "author": "Alriune",
+   "duration": "06:21",
+   "stats": [
+    "172",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Fkh96AEVg",
+   "title": "原神7.1！千星迎来质变升级！可量产所有小游戏了啊！克苟：这就是客户端游戏啊！真的是2D游戏解放了！这丝滑到无法想象！",
+   "author": "双刀纸袋布",
+   "duration": "04:06",
+   "stats": [
+    "9546",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Jraq6QEgE",
+   "title": "原神里跑原版DOOM：一台原版，一台翻成Lua，你猜得出哪台是翻的吗",
+   "author": "柚子漂流中",
+   "duration": "02:27",
+   "stats": [
+    "3059",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1F9hU6JEMb",
+   "title": "千星奇域LUA脚本0基础加AI做关卡02",
+   "author": "谎言渣",
+   "duration": "02:00",
+   "stats": [
+    "622",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1CUht6wE7s",
+   "title": "是心室？还是心事？——「千星奇域关卡推荐」",
+   "author": "原神千星奇域",
+   "duration": "01:19",
+   "stats": [
+    "11.3万",
+    "24"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1YGaq6rEab",
+   "title": "在原神里做了个极其流畅的贪吃蛇——有了客户端控件容器，制作2D关卡简单了太多，很多想法可以付诸行动了",
+   "author": "胡思乱想001",
+   "duration": "03:26",
+   "stats": [
+    "206",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1NRho6DEL6",
+   "title": "在千星奇域完美还原了DOOM？！克苟大受震撼：这是怎么做到的？太还原了吧！",
+   "author": "破局の弓矢",
+   "duration": "04:36",
+   "stats": [
+    "5.7万",
+    "21"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1djhZ6vE22",
+   "title": "原神·千星奇域大厅 BGM 收集计划丨7.1版本「霄练赛季」主题限定大厅 BGM「清虚桂殿 Osmanthus Retreat」无缝循环纯享版：千星奇域一岁啦！",
+   "author": "游戏里的你真的很强大",
+   "duration": "37:52",
+   "stats": [
+    "408",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ebaL6nEia",
+   "title": "【原神】千星奇域随录#11-枕头大作战！",
+   "author": "Alriune",
+   "duration": "18:40",
+   "stats": [
+    "101",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1eWqUBQEAd",
+   "title": "全自动AI节点编写工具！教程来啦！【原神千星奇域】",
+   "author": "Ayaya小王",
+   "duration": "08:57",
+   "stats": [
+    "5.2万",
+    "409"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1rKeH67EMj",
+   "title": "你将能在原神玩到这么多2D游戏！这还是原神吗？【原神千星奇域创体服】",
+   "author": "小问号Official",
+   "duration": "04:47",
+   "stats": [
+    "15.3万",
+    "583"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1AqaN6KEBp",
+   "title": "使用千星lua脚本显示3d模型",
+   "author": "饮泣拦路雨",
+   "duration": "00:25",
+   "stats": [
+    "3384",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1SSag6hEsi",
+   "title": "千星奇域新赛季的黑暗乒乓球",
+   "author": "花败吖",
+   "duration": "08:31",
+   "stats": [
+    "110",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1HZaL6hEJb",
+   "title": "千星奇域推荐  派蒙两米八零",
+   "author": "423725",
+   "duration": "02:49",
+   "stats": [
+    "261",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV16Vae65Erm",
+   "title": "和AI聊了一晚上做的精彩游戏",
+   "author": "白萝卜精灵",
+   "duration": "02:22",
+   "stats": [
+    "116",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Lbez6xELe",
+   "title": "不会编程、不会 AI，普通奇匠会被淘汰吗？【原神千星奇域7.1 AI编程前瞻解析】",
+   "author": "眨眼过去",
+   "duration": "07:43",
+   "stats": [
+    "3394",
+    "1"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1XTaY6bExb",
+   "title": "开放了代码权限！千星彻底解放上限！树海惊呼：现在千星已经这么恐怖了吗？光追？我的世界？马里奥？？",
+   "author": "双刀纸袋布",
+   "duration": "02:00",
+   "stats": [
+    "9502",
+    "1"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1TUa76jEPb",
+   "title": "原神千星奇域 错位坐标",
+   "author": "和谐星光",
+   "duration": "06:59",
+   "stats": [
+    "12",
+    "0"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1VThK6DEBu",
+   "title": "捞钱就跑？千星奇域最恶心的作者！",
+   "author": "TRUST_落星",
+   "duration": "02:42",
+   "stats": [
+    "9.7万",
+    "14"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UNhR6jEmh",
+   "title": "琵琶曲 | 千星奇域纯像素复刻版，第一届原神渲染大赛",
+   "author": "Dexphase",
+   "duration": "01:08",
+   "stats": [
+    "3572",
+    "3"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ZJCHBcErz",
+   "title": "【原神千星奇域】保姆级入门教程｜真·零基础小白也能学会",
+   "author": "小问号Official",
+   "duration": "03:52:14",
+   "stats": [
+    "33.8万",
+    "1139"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1cbhf67EsF",
+   "title": "【原神】在千星奇域中运行200万参数的语言模型",
+   "author": "Yume_Lyra",
+   "duration": "02:53",
+   "stats": [
+    "2万",
+    "6"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1KFgF6zEtk",
+   "title": "Deepseek Harness接入原神千星沙箱知识库",
+   "author": "神奇嘟嘟可",
+   "duration": "01:50",
+   "stats": [
+    "1.4万",
+    "6"
+   ],
+   "keyword": "千星奇域 lua",
+   "page": 1
+  }
+ ],
+ "千星奇域 客户端lua": [
+  {
+   "bvid": "BV1ZGaa6KEMp",
+   "title": "【千星奇域】让AI帮你写LUA脚本！2D提示词使用指南",
+   "author": "是兔头呀",
+   "duration": "01:20",
+   "stats": [
+    "816",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uBaP61Ekj",
+   "title": "用lua脚本做一个完整的2D玩法",
+   "author": "夜芊瑶",
+   "duration": "07:28",
+   "stats": [
+    "3624",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1qYeF6nEiq",
+   "title": "原神7.1千星奇域革命性更新，年轻人的第一款lua编辑器，支持全新UI补间动画与2D玩法，，协作模式更新",
+   "author": "戀祈",
+   "duration": "09:28",
+   "stats": [
+    "3万",
+    "25"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UAaL6MEci",
+   "title": "【千星奇域】lua动态背景预览",
+   "author": "crimekal",
+   "duration": "00:39",
+   "stats": [
+    "71",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1oGaa6KEfW",
+   "title": "使用ai编写lua脚本制作2d玩法遇到的问题（仅供参考）",
+   "author": "夜芊瑶",
+   "duration": "05:36",
+   "stats": [
+    "1335",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1N1hX63E1K",
+   "title": "让编译器提示千星LUA API",
+   "author": "NULL_60",
+   "duration": "03:14",
+   "stats": [
+    "270",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1AcfLYvEEc",
+   "title": "Lua教程零基础-如何配置Lua和安装环境",
+   "author": "六月新开始",
+   "duration": "22:22",
+   "stats": [
+    "6709",
+    "4"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1aRhQ6LEHx",
+   "title": "【千星奇域】在能写代码后，如何借助现代化工具提高奇域开发效率",
+   "author": "残阳灬落月",
+   "duration": "09:32",
+   "stats": [
+    "1757",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BYeF6JEPg",
+   "title": "千星奇域终于能写代码了？！【原神千星奇域7.1版本创作体验服】",
+   "author": "小猪之最Thepig",
+   "duration": "06:34",
+   "stats": [
+    "9985",
+    "2"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uXag68Edh",
+   "title": "【千星奇域教程】AI辅助创作客户端控件",
+   "author": "神仙请带路",
+   "duration": "04:52",
+   "stats": [
+    "2066",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1dVau6TE2q",
+   "title": "千星奇域客户端脚本类型注解来了",
+   "author": "鸢汐Shine",
+   "duration": "02:51",
+   "stats": [
+    "1265",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1SWat6GEtm",
+   "title": "原神没有光追？我拿一万多个控件硬算，实机跑到25帧",
+   "author": "柚子漂流中",
+   "duration": "01:37",
+   "stats": [
+    "9825",
+    "31"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RDaq61Eff",
+   "title": "【千星奇域】完全由AI编写的象棋揭棋游戏",
+   "author": "不负仙人",
+   "duration": "01:28",
+   "stats": [
+    "195",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1djhZ6vE22",
+   "title": "原神·千星奇域大厅 BGM 收集计划丨7.1版本「霄练赛季」主题限定大厅 BGM「清虚桂殿 Osmanthus Retreat」无缝循环纯享版：千星奇域一岁啦！",
+   "author": "游戏里的你真的很强大",
+   "duration": "37:52",
+   "stats": [
+    "408",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1AqaN6KEBp",
+   "title": "使用千星lua脚本显示3d模型",
+   "author": "饮泣拦路雨",
+   "duration": "00:25",
+   "stats": [
+    "3384",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1YGaq6rEab",
+   "title": "在原神里做了个极其流畅的贪吃蛇——有了客户端控件容器，制作2D关卡简单了太多，很多想法可以付诸行动了",
+   "author": "胡思乱想001",
+   "duration": "03:26",
+   "stats": [
+    "206",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1dqeF62EbP",
+   "title": "客户端控件与脚本简介【原神7.1创作者体验服】",
+   "author": "和裕茶客",
+   "duration": "04:28",
+   "stats": [
+    "1297",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV18peJ6ZEUQ",
+   "title": "🤚千星沙箱，自己开发✋【原神千星奇域创作体验服】",
+   "author": "瓦不露甜",
+   "duration": "06:29",
+   "stats": [
+    "4831",
+    "5"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1rxhf6EEHb",
+   "title": "【千星沙箱模拟器】AI直接试玩lua奇域 + 知识库系统更新说明",
+   "author": "神奇嘟嘟可",
+   "duration": "02:11",
+   "stats": [
+    "5782",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Zten6VEeD",
+   "title": "终于支持Lua脚本编程了，千星奇域3.0即将到来！！7.1编辑器更新内容速览【千星奇域创体服】",
+   "author": "happy_hhhh",
+   "duration": "04:58",
+   "stats": [
+    "4158",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1QdaQeuEgb",
+   "title": "Windows配置Lua环境",
+   "author": "kllmctrl",
+   "duration": "02:12",
+   "stats": [
+    "2895",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1gq2YBFEr5",
+   "title": "VSCode配置Lua",
+   "author": "未命名_cpp",
+   "duration": "03:18",
+   "stats": [
+    "3309",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Jraq6QEgE",
+   "title": "原神里跑原版DOOM：一台原版，一台翻成Lua，你猜得出哪台是翻的吗",
+   "author": "柚子漂流中",
+   "duration": "02:27",
+   "stats": [
+    "3059",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Ceh96qErs",
+   "title": "原神千星奇域能玩电脑了？还塞了个246万参数的离线AI，一字一顿真在算",
+   "author": "柚子漂流中",
+   "duration": "05:50",
+   "stats": [
+    "6.4万",
+    "84"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RVhW6zEHQ",
+   "title": "【千星奇域】基于Lua的你画我猜经典版",
+   "author": "hfohn",
+   "duration": "02:31",
+   "stats": [
+    "4923",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1XAew6mESb",
+   "title": "【千星奇域】在7.1编程时代更新前完成的搜打撤背包系统-更新日志",
+   "author": "九黎香",
+   "duration": "01:21",
+   "stats": [
+    "4254",
+    "1"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1taeH68EJ6",
+   "title": "千星降临者峡谷偶遇挂哥",
+   "author": "Thecutepaimon",
+   "duration": "00:20",
+   "stats": [
+    "392",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1f7ht6pEnc",
+   "title": "原神7.1-幽境危战N6丘林（千星奇域模拟）01木00奥10八10沃-艰难战胜！",
+   "author": "keny-op",
+   "duration": "02:02",
+   "stats": [
+    "2768",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uyab6mETh",
+   "title": "【千星奇域】在千星奇域播放视频的可行性研究 (大雾",
+   "author": "猫大头",
+   "duration": "03:34",
+   "stats": [
+    "4732",
+    "2"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Nehy62EaA",
+   "title": "【千星奇域】日历拼图新增求解器（不知道AI干了什么，看起来能用",
+   "author": "有洞洞的头",
+   "duration": "00:17",
+   "stats": [
+    "68",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1zPBjBuEVK",
+   "title": "千星奇域字符串拼接的一种方法",
+   "author": "游神星",
+   "duration": "04:47",
+   "stats": [
+    "1414",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RwRsB8Eis",
+   "title": "【千星奇域】调参boss/危战复刻（合集）上线",
+   "author": "sto无名orz",
+   "duration": "03:09",
+   "stats": [
+    "2129",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1S8aZenEGc",
+   "title": "『FNF lua』 仿Forever Engine HUD的lua（带链接）",
+   "author": "小晟-SHENG",
+   "duration": "01:57",
+   "stats": [
+    "2121",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV12WszziEpF",
+   "title": "移动端也可以创建千星奇域的地图",
+   "author": "饿了烤土豆和蛋挞",
+   "duration": "03:00",
+   "stats": [
+    "1万",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1C9yaBrEvx",
+   "title": "【原神】千星奇域里做数学题....自定义血条制作 与 原神伤害值转换为自定义血条伤害的方式",
+   "author": "Trotws",
+   "duration": "01:52",
+   "stats": [
+    "2533",
+    "3"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1doMS6dE13",
+   "title": "AndLua 极致强度的 Lua vm + Lua2C 防护丨开源项目发布",
+   "author": "MLXINGC",
+   "duration": "00:52",
+   "stats": [
+    "598",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1gQM86bEv5",
+   "title": "如何用lua芯片做些更有趣的物品",
+   "author": "-CALDEFHNTYNEXT-",
+   "duration": "07:32",
+   "stats": [
+    "873",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV1toei6zEJV",
+   "title": "Protohax + Apollon Client = 100% Win !!!! ( Download Now ) Best&#x27; Client for MCP",
+   "author": "Finix01",
+   "duration": "00:30",
+   "stats": [
+    "456",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  },
+  {
+   "bvid": "BV14R41z4Eks",
+   "title": "蛋仔lua:蛋仔lua环境的配置",
+   "author": "云口算",
+   "duration": "10:35",
+   "stats": [
+    "1272",
+    "0"
+   ],
+   "keyword": "千星奇域 客户端lua",
+   "page": 1
+  }
+ ],
+ "千星奇域 更新": [
+  {
+   "bvid": "BV1qYeF6nEiq",
+   "title": "原神7.1千星奇域革命性更新，年轻人的第一款lua编辑器，支持全新UI补间动画与2D玩法，，协作模式更新",
+   "author": "戀祈",
+   "duration": "09:28",
+   "stats": [
+    "3万",
+    "25"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UAaL6MEci",
+   "title": "【千星奇域】lua动态背景预览",
+   "author": "crimekal",
+   "duration": "00:39",
+   "stats": [
+    "71",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1i7a36GEK2",
+   "title": "一年之期 千星奇域现在进化到了什么样子？",
+   "author": "克利咕咕兰",
+   "duration": "14:46",
+   "stats": [
+    "4.3万",
+    "111"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1CUht6wE7s",
+   "title": "是心室？还是心事？——「千星奇域关卡推荐」",
+   "author": "原神千星奇域",
+   "duration": "01:19",
+   "stats": [
+    "11.3万",
+    "24"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1aRhQ6LEHx",
+   "title": "【千星奇域】在能写代码后，如何借助现代化工具提高奇域开发效率",
+   "author": "残阳灬落月",
+   "duration": "09:32",
+   "stats": [
+    "1757",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1mLMr6QESr",
+   "title": "千星奇域7.0更新优化，控件引用变量的体验终于优化下来了！沙箱功能更新这里都有~【原神千星奇域创作体验服】",
+   "author": "戀祈",
+   "duration": "03:18",
+   "stats": [
+    "9837",
+    "8"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ZGaa6KEMp",
+   "title": "【千星奇域】让AI帮你写LUA脚本！2D提示词使用指南",
+   "author": "是兔头呀",
+   "duration": "01:20",
+   "stats": [
+    "816",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1nUYL6hEga",
+   "title": "《原神》千星奇域 - 7.1版本开发前瞻",
+   "author": "原神千星奇域",
+   "duration": "06:49",
+   "stats": [
+    "27.8万",
+    "433"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uyab6mETh",
+   "title": "【千星奇域】在千星奇域播放视频的可行性研究 (大雾",
+   "author": "猫大头",
+   "duration": "03:34",
+   "stats": [
+    "4732",
+    "2"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1f7ht6pEnc",
+   "title": "原神7.1-幽境危战N6丘林（千星奇域模拟）01木00奥10八10沃-艰难战胜！",
+   "author": "keny-op",
+   "duration": "02:02",
+   "stats": [
+    "2768",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1NRho6DEL6",
+   "title": "在千星奇域完美还原了DOOM？！克苟大受震撼：这是怎么做到的？太还原了吧！",
+   "author": "破局の弓矢",
+   "duration": "04:36",
+   "stats": [
+    "5.7万",
+    "21"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1vuaq6CEj3",
+   "title": "时停奇域重大更新：慢动作！",
+   "author": "-朝灯-",
+   "duration": "00:24",
+   "stats": [
+    "158",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BYeF6JEPg",
+   "title": "千星奇域终于能写代码了？！【原神千星奇域7.1版本创作体验服】",
+   "author": "小猪之最Thepig",
+   "duration": "06:34",
+   "stats": [
+    "9985",
+    "2"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1XAew6mESb",
+   "title": "【千星奇域】在7.1编程时代更新前完成的搜打撤背包系统-更新日志",
+   "author": "九黎香",
+   "duration": "01:21",
+   "stats": [
+    "4254",
+    "1"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV18Kho6WEBQ",
+   "title": "重大表彰7.1卡池及千星奇域！！！",
+   "author": "Cloudy_阿云",
+   "duration": "01:08",
+   "stats": [
+    "579",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Zten6VEeD",
+   "title": "终于支持Lua脚本编程了，千星奇域3.0即将到来！！7.1编辑器更新内容速览【千星奇域创体服】",
+   "author": "happy_hhhh",
+   "duration": "04:58",
+   "stats": [
+    "4158",
+    "1"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV11WhQ6iEgA",
+   "title": "千星7.1初种拔草，卡池放心抽，直售先观望",
+   "author": "遗式之键主-XY",
+   "duration": "04:08",
+   "stats": [
+    "6775",
+    "10"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1VThK6DEBu",
+   "title": "捞钱就跑？千星奇域最恶心的作者！",
+   "author": "TRUST_落星",
+   "duration": "02:42",
+   "stats": [
+    "9.7万",
+    "14"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1sjen6QEwE",
+   "title": "【千星奇域】7.1千星新衣服提前看?千字详细汇总，提前种拔草!",
+   "author": "十二分知泽",
+   "duration": "04:57",
+   "stats": [
+    "6429",
+    "45"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1iaun65EtH",
+   "title": "【千星奇域】奇域更新啦",
+   "author": "可鲁贝洛喵",
+   "duration": "01:53",
+   "stats": [
+    "466",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1a2ew6EECM",
+   "title": "我在千星奇域还原了Windows操作系统【原神千星奇域创体服】",
+   "author": "砂塘学徒",
+   "duration": "01:40",
+   "stats": [
+    "23.1万",
+    "625"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ykhx6tEzt",
+   "title": "【千星奇域】这期能仿搭KAITO",
+   "author": "Mosig磨西鸽",
+   "duration": "00:39",
+   "stats": [
+    "8071",
+    "5"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1cShx69EsB",
+   "title": "【原神·千星奇遇】常驻卡池 三星装扮 第二次更新",
+   "author": "于浅希",
+   "duration": "08:35",
+   "stats": [
+    "840",
+    "3"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uXag68Edh",
+   "title": "【千星奇域教程】AI辅助创作客户端控件",
+   "author": "神仙请带路",
+   "duration": "04:52",
+   "stats": [
+    "2066",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1djhZ6vE22",
+   "title": "原神·千星奇域大厅 BGM 收集计划丨7.1版本「霄练赛季」主题限定大厅 BGM「清虚桂殿 Osmanthus Retreat」无缝循环纯享版：千星奇域一岁啦！",
+   "author": "游戏里的你真的很强大",
+   "duration": "37:52",
+   "stats": [
+    "408",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RSh964EB7",
+   "title": "【千星知识库】一个月内的成果，重新开放！",
+   "author": "是兔头呀",
+   "duration": "01:07",
+   "stats": [
+    "1359",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UZes6uEmE",
+   "title": "7.1版本千星奇域重大升级",
+   "author": "龙叔long",
+   "duration": "01:00",
+   "stats": [
+    "104",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BXkVBkE5b",
+   "title": "【千星奇域】新特性，技能轨道开始结束事件",
+   "author": "Calmclam",
+   "duration": "01:48",
+   "stats": [
+    "1378",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1kzmMByE2y",
+   "title": "第二期纪游“雪阵纪游”更新，更完善的新版本千星奇域更新了-原神·千星奇域2025-12-03",
+   "author": "美好的一天从早睡开始",
+   "duration": "02:44",
+   "stats": [
+    "258",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ich46LE3S",
+   "title": "以防你不知道大世界也能看月亮//7.1千星男女两套升炼展示",
+   "author": "菲林斯De伏应该不白了",
+   "duration": "02:53",
+   "stats": [
+    "6345",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1eQYo66EdL",
+   "title": "以防你不知道，老米又往千星奇遇塞原石了",
+   "author": "岩龙蜥-章奇",
+   "duration": "00:50",
+   "stats": [
+    "1.3万",
+    "47"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Ceh96qErs",
+   "title": "原神千星奇域能玩电脑了？还塞了个246万参数的离线AI，一字一顿真在算",
+   "author": "柚子漂流中",
+   "duration": "05:50",
+   "stats": [
+    "6.4万",
+    "84"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1EmYV6WEbF",
+   "title": "《原神》千星奇域 - 7.1版本传说套装PV - 桂影霄练",
+   "author": "原神千星奇域",
+   "duration": "01:07",
+   "stats": [
+    "54.8万",
+    "307"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1SMee6eEES",
+   "title": "关于为什么最近几乎没有千星奇域爆料的原因",
+   "author": "挪德卡莱的古龙",
+   "duration": "00:25",
+   "stats": [
+    "7161",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1o9eg61EgE",
+   "title": "还有高手？因缘精灵2.5测来袭？米哈游模拟经营新游崩坏因缘精灵官宣开启第三期保密测试招募！原神千星奇域官宣开启奇域校园星千星萌芽专项计划！",
+   "author": "不当咕咕咕的鸽子",
+   "duration": "01:45",
+   "stats": [
+    "2.6万",
+    "142"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1jNYR6PE2G",
+   "title": "新版本千星前瞻汇总✨所有人停氪等新版本！",
+   "author": "雾散烟魈",
+   "duration": "01:42",
+   "stats": [
+    "7922",
+    "3"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1CWew6PECC",
+   "title": "当千星奇域更新了白模",
+   "author": "鱼冻鱼冻ovo",
+   "duration": "00:28",
+   "stats": [
+    "1685",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1JDa36SEQK",
+   "title": "《千星智客：移动数学》传奇难度训练示范",
+   "author": "KungfuChai",
+   "duration": "02:10",
+   "stats": [
+    "252",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  },
+  {
+   "bvid": "BV1SSag6hEsi",
+   "title": "千星奇域新赛季的黑暗乒乓球",
+   "author": "花败吖",
+   "duration": "08:31",
+   "stats": [
+    "110",
+    "0"
+   ],
+   "keyword": "千星奇域 更新",
+   "page": 1
+  }
+ ],
+ "千星奇域 新功能": [
+  {
+   "bvid": "BV1qYeF6nEiq",
+   "title": "原神7.1千星奇域革命性更新，年轻人的第一款lua编辑器，支持全新UI补间动画与2D玩法，，协作模式更新",
+   "author": "戀祈",
+   "duration": "09:28",
+   "stats": [
+    "3万",
+    "25"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1NJ4wzaEtN",
+   "title": "一个视频告诉你原神千星奇域到底是什么？前瞻玩法功能介绍分析【原神千星奇域】",
+   "author": "凉夏喵",
+   "duration": "08:03",
+   "stats": [
+    "10.5万",
+    "199"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1CUht6wE7s",
+   "title": "是心室？还是心事？——「千星奇域关卡推荐」",
+   "author": "原神千星奇域",
+   "duration": "01:19",
+   "stats": [
+    "11.3万",
+    "24"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1aRhQ6LEHx",
+   "title": "【千星奇域】在能写代码后，如何借助现代化工具提高奇域开发效率",
+   "author": "残阳灬落月",
+   "duration": "09:32",
+   "stats": [
+    "1757",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ZGaa6KEMp",
+   "title": "【千星奇域】让AI帮你写LUA脚本！2D提示词使用指南",
+   "author": "是兔头呀",
+   "duration": "01:20",
+   "stats": [
+    "816",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BYeF6JEPg",
+   "title": "千星奇域终于能写代码了？！【原神千星奇域7.1版本创作体验服】",
+   "author": "小猪之最Thepig",
+   "duration": "06:34",
+   "stats": [
+    "9985",
+    "2"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1nUYL6hEga",
+   "title": "《原神》千星奇域 - 7.1版本开发前瞻",
+   "author": "原神千星奇域",
+   "duration": "06:49",
+   "stats": [
+    "27.8万",
+    "433"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Ceh96qErs",
+   "title": "原神千星奇域能玩电脑了？还塞了个246万参数的离线AI，一字一顿真在算",
+   "author": "柚子漂流中",
+   "duration": "05:50",
+   "stats": [
+    "6.4万",
+    "84"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1a2ew6EECM",
+   "title": "我在千星奇域还原了Windows操作系统【原神千星奇域创体服】",
+   "author": "砂塘学徒",
+   "duration": "01:40",
+   "stats": [
+    "23.1万",
+    "625"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1i7a36GEK2",
+   "title": "一年之期 千星奇域现在进化到了什么样子？",
+   "author": "克利咕咕兰",
+   "duration": "14:46",
+   "stats": [
+    "4.3万",
+    "111"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1uXag68Edh",
+   "title": "【千星奇域教程】AI辅助创作客户端控件",
+   "author": "神仙请带路",
+   "duration": "04:52",
+   "stats": [
+    "2066",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1rKeH67EMj",
+   "title": "你将能在原神玩到这么多2D游戏！这还是原神吗？【原神千星奇域创体服】",
+   "author": "小问号Official",
+   "duration": "04:47",
+   "stats": [
+    "15.3万",
+    "583"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1f7ht6pEnc",
+   "title": "原神7.1-幽境危战N6丘林（千星奇域模拟）01木00奥10八10沃-艰难战胜！",
+   "author": "keny-op",
+   "duration": "02:02",
+   "stats": [
+    "2768",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1UAaL6MEci",
+   "title": "【千星奇域】lua动态背景预览",
+   "author": "crimekal",
+   "duration": "00:39",
+   "stats": [
+    "71",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1VThK6DEBu",
+   "title": "捞钱就跑？千星奇域最恶心的作者！",
+   "author": "TRUST_落星",
+   "duration": "02:42",
+   "stats": [
+    "9.7万",
+    "14"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ich46LE3S",
+   "title": "以防你不知道大世界也能看月亮//7.1千星男女两套升炼展示",
+   "author": "菲林斯De伏应该不白了",
+   "duration": "02:53",
+   "stats": [
+    "6345",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1NRho6DEL6",
+   "title": "在千星奇域完美还原了DOOM？！克苟大受震撼：这是怎么做到的？太还原了吧！",
+   "author": "破局の弓矢",
+   "duration": "04:36",
+   "stats": [
+    "5.7万",
+    "21"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1RSh964EB7",
+   "title": "【千星知识库】一个月内的成果，重新开放！",
+   "author": "是兔头呀",
+   "duration": "01:07",
+   "stats": [
+    "1359",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1ZJCHBcErz",
+   "title": "【原神千星奇域】保姆级入门教程｜真·零基础小白也能学会",
+   "author": "小问号Official",
+   "duration": "03:52:14",
+   "stats": [
+    "33.8万",
+    "1139"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV136Yy68EKD",
+   "title": "[原神/外网]外网很多玩家认为千星奇域存在没有意义，不会为了60原石去玩千星奇域",
+   "author": "欢愉星の神",
+   "duration": "01:34",
+   "stats": [
+    "35.8万",
+    "150"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1DdtH6HEGQ",
+   "title": "千星奇域要笑着玩...",
+   "author": "你的影月月",
+   "duration": "06:01",
+   "stats": [
+    "54.2万",
+    "460"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1QjvzBmEAM",
+   "title": "【千星奇域】奇偶的运动日常",
+   "author": "一太鼓钟一",
+   "duration": "00:27",
+   "stats": [
+    "5328",
+    "101"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1A1t86wEC6",
+   "title": "游戏还是不能太自由",
+   "author": "KL_qiqi_",
+   "duration": "04:38",
+   "stats": [
+    "49.5万",
+    "514"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1APht6AE9B",
+   "title": "一分钟就能拿60原石，怎么有人嫌麻烦？",
+   "author": "排骨炖泡芙",
+   "duration": "01:37",
+   "stats": [
+    "2.8万",
+    "8"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1c38H6gEXC",
+   "title": "【千星奇域】这应该是千星里目前最专业的中国象棋了",
+   "author": "土星皇家交响乐团",
+   "duration": "05:24",
+   "stats": [
+    "4.1万",
+    "120"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1BXkVBkE5b",
+   "title": "【千星奇域】新特性，技能轨道开始结束事件",
+   "author": "Calmclam",
+   "duration": "01:48",
+   "stats": [
+    "1378",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1Zten6VEeD",
+   "title": "终于支持Lua脚本编程了，千星奇域3.0即将到来！！7.1编辑器更新内容速览【千星奇域创体服】",
+   "author": "happy_hhhh",
+   "duration": "04:58",
+   "stats": [
+    "4158",
+    "1"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1djhZ6vE22",
+   "title": "原神·千星奇域大厅 BGM 收集计划丨7.1版本「霄练赛季」主题限定大厅 BGM「清虚桂殿 Osmanthus Retreat」无缝循环纯享版：千星奇域一岁啦！",
+   "author": "游戏里的你真的很强大",
+   "duration": "37:52",
+   "stats": [
+    "408",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1idtq6qEG2",
+   "title": "偷吃蛋卷...被发现了~——「千星奇域关卡推荐」",
+   "author": "原神千星奇域",
+   "duration": "01:08",
+   "stats": [
+    "13.1万",
+    "50"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1hpeh6tEEw",
+   "title": "夺少？！克苟：啥？！！做了一百个技能的千星塔防？？什么啊？方糖守卫？一个防御塔一个技能？",
+   "author": "双刀纸袋布",
+   "duration": "18:56",
+   "stats": [
+    "1.7万",
+    "11"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1cbhf67EsF",
+   "title": "【原神】在千星奇域中运行200万参数的语言模型",
+   "author": "Yume_Lyra",
+   "duration": "02:53",
+   "stats": [
+    "2万",
+    "6"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1HHXkBXEDR",
+   "title": "千星奇域「月之六」编辑器新功能介绍③技能&amp;特效器&amp;物件镜头【原神千星奇域创作体验服】",
+   "author": "小猪之最Thepig",
+   "duration": "19:24",
+   "stats": [
+    "5161",
+    "5"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1TgYZ6tEuY",
+   "title": "千星要有首充打折啦！！千星还能互相送皮肤！！香啊！！",
+   "author": "云吞喵",
+   "duration": "00:59",
+   "stats": [
+    "1.5万",
+    "3"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1sMNA6AE5H",
+   "title": "光标选取并移动实体",
+   "author": "__夜空__",
+   "duration": "03:27",
+   "stats": [
+    "968",
+    "1"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV19hE96xEgq",
+   "title": "【原神】教你如何两分钟速通千星奇域任务",
+   "author": "莽夫骑士",
+   "duration": "02:20",
+   "stats": [
+    "1.9万",
+    "9"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1xBN66TEA7",
+   "title": "原神千星奇域 海岛赛车 新车试驾",
+   "author": "suayu苏羽",
+   "duration": "03:54",
+   "stats": [
+    "3.2万",
+    "62"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1HbsGzJEb7",
+   "title": "千星奇域卸载方法",
+   "author": "爱玩游戏的小沐沐",
+   "duration": "00:40",
+   "stats": [
+    "28.7万",
+    "75"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1oRkwBrE67",
+   "title": "千星奇遇经典模式可拍照啦！【千星奇遇】",
+   "author": "奔跑的小鹿999",
+   "duration": "02:05",
+   "stats": [
+    "1372",
+    "0"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  },
+  {
+   "bvid": "BV1iyhb69EDo",
+   "title": "体力飞行将在千星奇域成神",
+   "author": "鲜虾鱼板烧",
+   "duration": "00:58",
+   "stats": [
+    "1.5万",
+    "5"
+   ],
+   "keyword": "千星奇域 新功能",
+   "page": 1
+  }
+ ]
+}

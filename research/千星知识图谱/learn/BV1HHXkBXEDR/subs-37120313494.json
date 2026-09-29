@@ -1,0 +1,4076 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.2,
+      "to": 0.92,
+      "sid": 1,
+      "location": 2,
+      "content": "哈喽大家好",
+      "music": 0.0
+    },
+    {
+      "from": 0.92,
+      "to": 2.34,
+      "sid": 2,
+      "location": 2,
+      "content": "这里是小猪之最啊",
+      "music": 0.0
+    },
+    {
+      "from": 2.34,
+      "to": 2.76,
+      "sid": 3,
+      "location": 2,
+      "content": "啊",
+      "music": 0.0
+    },
+    {
+      "from": 2.76,
+      "to": 5.37,
+      "sid": 4,
+      "location": 2,
+      "content": "那么我们本期视频还是给大家来介绍一下",
+      "music": 0.0
+    },
+    {
+      "from": 5.37,
+      "to": 8.87,
+      "sid": 5,
+      "location": 2,
+      "content": "我们原神精灵奇遇有月之六版本新增的特性中",
+      "music": 0.0
+    },
+    {
+      "from": 8.87,
+      "to": 11.19,
+      "sid": 6,
+      "location": 2,
+      "content": "有关我们的技能的这一部分",
+      "music": 0.0
+    },
+    {
+      "from": 11.19,
+      "to": 12.31,
+      "sid": 7,
+      "location": 2,
+      "content": "需要注意的是",
+      "music": 0.0
+    },
+    {
+      "from": 12.31,
+      "to": 14.87,
+      "sid": 8,
+      "location": 2,
+      "content": "视频素材来源于创作体验服关卡",
+      "music": 0.0
+    },
+    {
+      "from": 14.87,
+      "to": 16.75,
+      "sid": 9,
+      "location": 2,
+      "content": "为创作者制作的测试版本",
+      "music": 0.0
+    },
+    {
+      "from": 16.75,
+      "to": 20.06,
+      "sid": 10,
+      "location": 2,
+      "content": "所有特性的最终品质请以正式服上线为准",
+      "music": 0.0
+    },
+    {
+      "from": 20.06,
+      "to": 21.78,
+      "sid": 11,
+      "location": 2,
+      "content": "OK那我们现在开始啊",
+      "music": 0.0
+    },
+    {
+      "from": 21.78,
+      "to": 24.32,
+      "sid": 12,
+      "location": 2,
+      "content": "来给大家介绍一下我们技能这一部分呢",
+      "music": 0.0
+    },
+    {
+      "from": 24.32,
+      "to": 26.57,
+      "sid": 13,
+      "location": 2,
+      "content": "新生的内容比较多也比较杂",
+      "music": 0.0
+    },
+    {
+      "from": 26.57,
+      "to": 30.42,
+      "sid": 14,
+      "location": 2,
+      "content": "首先呢是我们的这个角色的自定义技能啊",
+      "music": 0.0
+    },
+    {
+      "from": 30.42,
+      "to": 33.36,
+      "sid": 15,
+      "location": 2,
+      "content": "支持更丰富多样的这么一个类型",
+      "music": 0.0
+    },
+    {
+      "from": 33.36,
+      "to": 36.33,
+      "sid": 16,
+      "location": 2,
+      "content": "首先是这里有一个新增的一个套组技能",
+      "music": 0.0
+    },
+    {
+      "from": 36.33,
+      "to": 39.35,
+      "sid": 17,
+      "location": 2,
+      "content": "目前呢有一个这个蹲伏的一个动作",
+      "music": 0.0
+    },
+    {
+      "from": 39.35,
+      "to": 41.37,
+      "sid": 18,
+      "location": 2,
+      "content": "然后他是一个无限循环的",
+      "music": 0.0
+    },
+    {
+      "from": 41.37,
+      "to": 42.55,
+      "sid": 19,
+      "location": 2,
+      "content": "包括待机的",
+      "music": 0.0
+    },
+    {
+      "from": 42.55,
+      "to": 46.07,
+      "sid": 20,
+      "location": 2,
+      "content": "还有移动的时候可以分阶段啊",
+      "music": 0.0
+    },
+    {
+      "from": 46.07,
+      "to": 50.07,
+      "sid": 21,
+      "location": 2,
+      "content": "去去配置它的这个节点图事件是吧",
+      "music": 0.0
+    },
+    {
+      "from": 50.07,
+      "to": 53.72,
+      "sid": 22,
+      "location": 2,
+      "content": "然后除了这个新增的套组技能以外呢",
+      "music": 0.0
+    },
+    {
+      "from": 53.72,
+      "to": 55.54,
+      "sid": 23,
+      "location": 2,
+      "content": "我们还有普通的技能",
+      "music": 0.0
+    },
+    {
+      "from": 55.54,
+      "to": 58.97,
+      "sid": 24,
+      "location": 2,
+      "content": "我们先改过来他的这些动画素材啊",
+      "music": 0.0
+    },
+    {
+      "from": 58.97,
+      "to": 60.01,
+      "sid": 25,
+      "location": 2,
+      "content": "也有一些扩充",
+      "music": 0.0
+    },
+    {
+      "from": 60.01,
+      "to": 62.57,
+      "sid": 26,
+      "location": 2,
+      "content": "比如说我们的普通攻击",
+      "music": 0.0
+    },
+    {
+      "from": 62.57,
+      "to": 66.06,
+      "sid": 27,
+      "location": 2,
+      "content": "然后后面还有这个4号五号六号的啊",
+      "music": 0.0
+    },
+    {
+      "from": 66.06,
+      "to": 67.5,
+      "sid": 28,
+      "location": 2,
+      "content": "这个是新增的",
+      "music": 0.0
+    },
+    {
+      "from": 67.5,
+      "to": 72.56,
+      "sid": 29,
+      "location": 2,
+      "content": "包括我们的动画呢是可以进行一个前阶段",
+      "music": 0.0
+    },
+    {
+      "from": 72.56,
+      "to": 76.24,
+      "sid": 30,
+      "location": 2,
+      "content": "还有后阶段都是可以都是可以做的",
+      "music": 0.0
+    },
+    {
+      "from": 76.24,
+      "to": 79.08,
+      "sid": 31,
+      "location": 2,
+      "content": "然后这里的栏位呢也可以根据自己的需求",
+      "music": 0.0
+    },
+    {
+      "from": 79.08,
+      "to": 80.98,
+      "sid": 32,
+      "location": 2,
+      "content": "进行一个添加或删除",
+      "music": 0.0
+    },
+    {
+      "from": 80.98,
+      "to": 83.7,
+      "sid": 33,
+      "location": 2,
+      "content": "然后呢在这个动画时间轴外面啊",
+      "music": 0.0
+    },
+    {
+      "from": 83.7,
+      "to": 85.3,
+      "sid": 34,
+      "location": 2,
+      "content": "还有一些性能的参数啊",
+      "music": 0.0
+    },
+    {
+      "from": 85.3,
+      "to": 87.46,
+      "sid": 35,
+      "location": 2,
+      "content": "比如说特殊状态是否可用",
+      "music": 0.0
+    },
+    {
+      "from": 87.46,
+      "to": 89.02,
+      "sid": 36,
+      "location": 2,
+      "content": "受击时是否可用",
+      "music": 0.0
+    },
+    {
+      "from": 89.02,
+      "to": 90.38,
+      "sid": 37,
+      "location": 2,
+      "content": "还有空中受击石啊",
+      "music": 0.0
+    },
+    {
+      "from": 90.38,
+      "to": 91.5,
+      "sid": 38,
+      "location": 2,
+      "content": "还有攀爬的时候",
+      "music": 0.0
+    },
+    {
+      "from": 91.5,
+      "to": 94.17,
+      "sid": 39,
+      "location": 2,
+      "content": "这个是有一个来个注释啊",
+      "music": 0.0
+    },
+    {
+      "from": 94.17,
+      "to": 96.43,
+      "sid": 40,
+      "location": 2,
+      "content": "是普攻是不能生效的",
+      "music": 0.0
+    },
+    {
+      "from": 96.43,
+      "to": 97.05,
+      "sid": 41,
+      "location": 2,
+      "content": "然后呢",
+      "music": 0.0
+    },
+    {
+      "from": 97.05,
+      "to": 100.76,
+      "sid": 42,
+      "location": 2,
+      "content": "就是我们这里有一个叫做技能属性组合",
+      "music": 0.0
+    },
+    {
+      "from": 100.76,
+      "to": 101.48,
+      "sid": 43,
+      "location": 2,
+      "content": "这么一个东西",
+      "music": 0.0
+    },
+    {
+      "from": 101.48,
+      "to": 105.009,
+      "sid": 44,
+      "location": 2,
+      "content": "这个东西呢是跟我们的单位状态有一定的关系",
+      "music": 0.0
+    },
+    {
+      "from": 105.009,
+      "to": 106.849,
+      "sid": 45,
+      "location": 2,
+      "content": "然后除了技能以外的",
+      "music": 0.0
+    },
+    {
+      "from": 106.849,
+      "to": 109.05,
+      "sid": 46,
+      "location": 2,
+      "content": "还有是特效器啊",
+      "music": 0.0
+    },
+    {
+      "from": 109.05,
+      "to": 109.77,
+      "sid": 47,
+      "location": 2,
+      "content": "有这么一个功能",
+      "music": 0.0
+    },
+    {
+      "from": 109.77,
+      "to": 111.89,
+      "sid": 48,
+      "location": 2,
+      "content": "这个功能呢相对来说比较容易理解一点",
+      "music": 0.0
+    },
+    {
+      "from": 111.89,
+      "to": 115.23,
+      "sid": 49,
+      "location": 2,
+      "content": "就是大家可以理解为呃",
+      "music": 0.0
+    },
+    {
+      "from": 115.23,
+      "to": 117.83,
+      "sid": 50,
+      "location": 2,
+      "content": "这边有限时和持续两种类型的特效器",
+      "music": 0.0
+    },
+    {
+      "from": 117.83,
+      "to": 121.17,
+      "sid": 51,
+      "location": 2,
+      "content": "这个特效器其实可以理解为一种特殊的特效",
+      "music": 0.0
+    },
+    {
+      "from": 121.17,
+      "to": 122.85,
+      "sid": 52,
+      "location": 2,
+      "content": "我们可以在这个特效系里面呢",
+      "music": 0.0
+    },
+    {
+      "from": 122.85,
+      "to": 126.18,
+      "sid": 53,
+      "location": 2,
+      "content": "插入插入各种各样的原本的一些特效",
+      "music": 0.0
+    },
+    {
+      "from": 126.18,
+      "to": 128.54,
+      "sid": 54,
+      "location": 2,
+      "content": "比如说呃先放一个普通特效是吧",
+      "music": 0.0
+    },
+    {
+      "from": 128.54,
+      "to": 129.5,
+      "sid": 55,
+      "location": 2,
+      "content": "一个普通的特效",
+      "music": 0.0
+    },
+    {
+      "from": 129.5,
+      "to": 131.66,
+      "sid": 56,
+      "location": 2,
+      "content": "然后除了普通的特效以外呢",
+      "music": 0.0
+    },
+    {
+      "from": 131.66,
+      "to": 134.4,
+      "sid": 57,
+      "location": 2,
+      "content": "还能插插入一些预警特效",
+      "music": 0.0
+    },
+    {
+      "from": 134.4,
+      "to": 138.47,
+      "sid": 58,
+      "location": 2,
+      "content": "这个预警特效是可以调整我们的填充颜色的啊",
+      "music": 0.0
+    },
+    {
+      "from": 138.47,
+      "to": 139.09,
+      "sid": 59,
+      "location": 2,
+      "content": "这个地方",
+      "music": 0.0
+    },
+    {
+      "from": 139.09,
+      "to": 141.27,
+      "sid": 60,
+      "location": 2,
+      "content": "这个地方需要设置一下它的特效资产啊",
+      "music": 0.0
+    },
+    {
+      "from": 141.27,
+      "to": 142.27,
+      "sid": 61,
+      "location": 2,
+      "content": "这里是圆形的",
+      "music": 0.0
+    },
+    {
+      "from": 142.27,
+      "to": 143.23,
+      "sid": 62,
+      "location": 2,
+      "content": "还有矩形的",
+      "music": 0.0
+    },
+    {
+      "from": 143.23,
+      "to": 144.11,
+      "sid": 63,
+      "location": 2,
+      "content": "还有扇形的",
+      "music": 0.0
+    },
+    {
+      "from": 144.11,
+      "to": 145.04,
+      "sid": 64,
+      "location": 2,
+      "content": "都是有的",
+      "music": 0.0
+    },
+    {
+      "from": 145.04,
+      "to": 146.8,
+      "sid": 65,
+      "location": 2,
+      "content": "我们这里以圆形的为例啊",
+      "music": 0.0
+    },
+    {
+      "from": 146.8,
+      "to": 148.96,
+      "sid": 66,
+      "location": 2,
+      "content": "可以设置它的具体一些参数吧",
+      "music": 0.0
+    },
+    {
+      "from": 148.96,
+      "to": 150.92,
+      "sid": 67,
+      "location": 2,
+      "content": "然后还有它的颜色都是可以的",
+      "music": 0.0
+    },
+    {
+      "from": 151.92,
+      "to": 154.45,
+      "sid": 68,
+      "location": 2,
+      "content": "OK比如我们把它设置成蓝色了",
+      "music": 0.0
+    },
+    {
+      "from": 154.45,
+      "to": 155.89,
+      "sid": 69,
+      "location": 2,
+      "content": "就变成这样了是吧",
+      "music": 0.0
+    },
+    {
+      "from": 155.89,
+      "to": 158.579,
+      "sid": 70,
+      "location": 2,
+      "content": "当然这个是跟时间有一定的关系的",
+      "music": 0.0
+    },
+    {
+      "from": 158.579,
+      "to": 160.139,
+      "sid": 71,
+      "location": 2,
+      "content": "可以调整一下",
+      "music": 0.0
+    },
+    {
+      "from": 160.139,
+      "to": 161.139,
+      "sid": 72,
+      "location": 2,
+      "content": "这个是到上限了",
+      "music": 0.0
+    },
+    {
+      "from": 161.139,
+      "to": 165.11,
+      "sid": 73,
+      "location": 2,
+      "content": "我们可以把他的上限延长一点啊",
+      "music": 0.0
+    },
+    {
+      "from": 165.11,
+      "to": 166.77,
+      "sid": 74,
+      "location": 2,
+      "content": "这个就是2.5秒钟",
+      "music": 0.0
+    },
+    {
+      "from": 166.77,
+      "to": 169.35,
+      "sid": 75,
+      "location": 2,
+      "content": "相当于这个填充时间加上保持时间",
+      "music": 0.0
+    },
+    {
+      "from": 169.35,
+      "to": 170.73,
+      "sid": 76,
+      "location": 2,
+      "content": "就是他的资产时长",
+      "music": 0.0
+    },
+    {
+      "from": 170.73,
+      "to": 173.24,
+      "sid": 77,
+      "location": 2,
+      "content": "这个时间是可以自己去设定的",
+      "music": 0.0
+    },
+    {
+      "from": 173.24,
+      "to": 174.269,
+      "sid": 78,
+      "location": 2,
+      "content": "然后呢",
+      "music": 0.0
+    },
+    {
+      "from": 174.269,
+      "to": 176.069,
+      "sid": 79,
+      "location": 2,
+      "content": "我们还可以在这个特效器里面",
+      "music": 0.0
+    },
+    {
+      "from": 176.069,
+      "to": 177.809,
+      "sid": 80,
+      "location": 2,
+      "content": "给它组合一些音效啊",
+      "music": 0.0
+    },
+    {
+      "from": 177.809,
+      "to": 179.109,
+      "sid": 81,
+      "location": 2,
+      "content": "音效也是有的",
+      "music": 0.0
+    },
+    {
+      "from": 179.109,
+      "to": 180.589,
+      "sid": 82,
+      "location": 2,
+      "content": "在这个地方可以选择",
+      "music": 0.0
+    },
+    {
+      "from": 180.589,
+      "to": 182.57,
+      "sid": 83,
+      "location": 2,
+      "content": "我们已经在资产库里面的",
+      "music": 0.0
+    },
+    {
+      "from": 182.57,
+      "to": 184.69,
+      "sid": 84,
+      "location": 2,
+      "content": "这些音效都是可以添加的",
+      "music": 0.0
+    },
+    {
+      "from": 184.69,
+      "to": 186.77,
+      "sid": 85,
+      "location": 2,
+      "content": "好的这个组合下来之后呢",
+      "music": 0.0
+    },
+    {
+      "from": 186.77,
+      "to": 189.23,
+      "sid": 86,
+      "location": 2,
+      "content": "就可以当做一个特殊的特效进行使用啊",
+      "music": 0.0
+    },
+    {
+      "from": 189.23,
+      "to": 192.2,
+      "sid": 87,
+      "location": 2,
+      "content": "比如说我们这里不管添加了什么东西啊",
+      "music": 0.0
+    },
+    {
+      "from": 192.2,
+      "to": 193.62,
+      "sid": 88,
+      "location": 2,
+      "content": "这个音效也加上去了",
+      "music": 0.0
+    },
+    {
+      "from": 193.62,
+      "to": 195.98,
+      "sid": 89,
+      "location": 2,
+      "content": "防止它出现各种各样的错误",
+      "music": 0.0
+    },
+    {
+      "from": 195.98,
+      "to": 199.309,
+      "sid": 90,
+      "location": 2,
+      "content": "嗯啧随便加一个界面的音效",
+      "music": 0.0
+    },
+    {
+      "from": 199.309,
+      "to": 200.369,
+      "sid": 91,
+      "location": 2,
+      "content": "这个特效器",
+      "music": 0.0
+    },
+    {
+      "from": 200.369,
+      "to": 202.459,
+      "sid": 92,
+      "location": 2,
+      "content": "理论上可以在所有的",
+      "music": 0.0
+    },
+    {
+      "from": 202.459,
+      "to": 204.839,
+      "sid": 93,
+      "location": 2,
+      "content": "使用到特效的地方进行使用",
+      "music": 0.0
+    },
+    {
+      "from": 204.839,
+      "to": 206.939,
+      "sid": 94,
+      "location": 2,
+      "content": "就比如说我们这里有一个空模型",
+      "music": 0.0
+    },
+    {
+      "from": 206.939,
+      "to": 208.699,
+      "sid": 95,
+      "location": 2,
+      "content": "然后这里特效播放里面",
+      "music": 0.0
+    },
+    {
+      "from": 208.699,
+      "to": 212.73,
+      "sid": 96,
+      "location": 2,
+      "content": "就可以引用我们的特效器了啊",
+      "music": 0.0
+    },
+    {
+      "from": 212.73,
+      "to": 214.61,
+      "sid": 97,
+      "location": 2,
+      "content": "这个地方就可以引用我们的特效器了",
+      "music": 0.0
+    },
+    {
+      "from": 214.61,
+      "to": 217.61,
+      "sid": 98,
+      "location": 2,
+      "content": "然后这个普通的限时特效也是有一个预览",
+      "music": 0.0
+    },
+    {
+      "from": 217.61,
+      "to": 219.09,
+      "sid": 99,
+      "location": 2,
+      "content": "预览图标在这上面的",
+      "music": 0.0
+    },
+    {
+      "from": 219.09,
+      "to": 221.77,
+      "sid": 100,
+      "location": 2,
+      "content": "这个是有个比较大的优化",
+      "music": 0.0
+    },
+    {
+      "from": 222.339,
+      "to": 224.379,
+      "sid": 101,
+      "location": 2,
+      "content": "包括还有我们的节点图里面啊",
+      "music": 0.0
+    },
+    {
+      "from": 224.379,
+      "to": 226.459,
+      "sid": 102,
+      "location": 2,
+      "content": "节点图里面我们要播放一个特效的话",
+      "music": 0.0
+    },
+    {
+      "from": 226.459,
+      "to": 230.92,
+      "sid": 103,
+      "location": 2,
+      "content": "可以用我们的在特效这一个这一个分类里面",
+      "music": 0.0
+    },
+    {
+      "from": 230.92,
+      "to": 232.36,
+      "sid": 104,
+      "location": 2,
+      "content": "播放限时特效",
+      "music": 0.0
+    },
+    {
+      "from": 232.36,
+      "to": 235.39,
+      "sid": 105,
+      "location": 2,
+      "content": "就可以选择我到我们的特效器了",
+      "music": 0.0
+    },
+    {
+      "from": 235.39,
+      "to": 237.71,
+      "sid": 106,
+      "location": 2,
+      "content": "这个特效器呢是比较好找的",
+      "music": 0.0
+    },
+    {
+      "from": 237.71,
+      "to": 239.67,
+      "sid": 107,
+      "location": 2,
+      "content": "这相比于上面这一堆预制的",
+      "music": 0.0
+    },
+    {
+      "from": 239.67,
+      "to": 242.11,
+      "sid": 108,
+      "location": 2,
+      "content": "这些特效是比较好找",
+      "music": 0.0
+    },
+    {
+      "from": 242.31,
+      "to": 244.23,
+      "sid": 109,
+      "location": 2,
+      "content": "然后如果虚幻特效的话",
+      "music": 0.0
+    },
+    {
+      "from": 244.23,
+      "to": 246.67,
+      "sid": 110,
+      "location": 2,
+      "content": "就是把这个限制特效器改成持续特效器",
+      "music": 0.0
+    },
+    {
+      "from": 246.67,
+      "to": 248.239,
+      "sid": 111,
+      "location": 2,
+      "content": "就可以了啊",
+      "music": 0.0
+    },
+    {
+      "from": 248.239,
+      "to": 250.279,
+      "sid": 112,
+      "location": 2,
+      "content": "这个特效器这一块就是差不多就这个样子",
+      "music": 0.0
+    },
+    {
+      "from": 250.279,
+      "to": 252.499,
+      "sid": 113,
+      "location": 2,
+      "content": "可以自由的去设定它的时间轴",
+      "music": 0.0
+    },
+    {
+      "from": 252.499,
+      "to": 255.98,
+      "sid": 114,
+      "location": 2,
+      "content": "然后是包括是要播放的音效啊等等",
+      "music": 0.0
+    },
+    {
+      "from": 255.98,
+      "to": 257.7,
+      "sid": 115,
+      "location": 2,
+      "content": "可以把不同的特效组合到一起",
+      "music": 0.0
+    },
+    {
+      "from": 257.7,
+      "to": 260.3,
+      "sid": 116,
+      "location": 2,
+      "content": "我们这边的月之六版本更新之后",
+      "music": 0.0
+    },
+    {
+      "from": 260.3,
+      "to": 261.82,
+      "sid": 117,
+      "location": 2,
+      "content": "我们这边的技能啊",
+      "music": 0.0
+    },
+    {
+      "from": 261.82,
+      "to": 263.86,
+      "sid": 118,
+      "location": 2,
+      "content": "还有是特效器",
+      "music": 0.0
+    },
+    {
+      "from": 263.86,
+      "to": 268.79,
+      "sid": 119,
+      "location": 2,
+      "content": "这个时间轴它都是可以启用一个循环节的啊",
+      "music": 0.0
+    },
+    {
+      "from": 268.79,
+      "to": 270.61,
+      "sid": 120,
+      "location": 2,
+      "content": "这个循环节是什么意思呢",
+      "music": 0.0
+    },
+    {
+      "from": 270.61,
+      "to": 273.65,
+      "sid": 121,
+      "location": 2,
+      "content": "就是比如说我们这边有一段技能动画是吧",
+      "music": 0.0
+    },
+    {
+      "from": 273.65,
+      "to": 278.48,
+      "sid": 122,
+      "location": 2,
+      "content": "比如说假设是一个哦一个持续施法的",
+      "music": 0.0
+    },
+    {
+      "from": 278.48,
+      "to": 280.549,
+      "sid": 123,
+      "location": 2,
+      "content": "也是一个持续施法的",
+      "music": 0.0
+    },
+    {
+      "from": 280.949,
+      "to": 282.529,
+      "sid": 124,
+      "location": 2,
+      "content": "如果我们只需要一段啊",
+      "music": 0.0
+    },
+    {
+      "from": 282.529,
+      "to": 284.029,
+      "sid": 125,
+      "location": 2,
+      "content": "不是不是无限循环的话",
+      "music": 0.0
+    },
+    {
+      "from": 284.029,
+      "to": 284.909,
+      "sid": 126,
+      "location": 2,
+      "content": "只是只需要一段",
+      "music": 0.0
+    },
+    {
+      "from": 284.909,
+      "to": 288.57,
+      "sid": 127,
+      "location": 2,
+      "content": "就比如说这边有一个训完动画",
+      "music": 0.0
+    },
+    {
+      "from": 288.57,
+      "to": 290.49,
+      "sid": 128,
+      "location": 2,
+      "content": "然后这边再加个后摇",
+      "music": 0.0
+    },
+    {
+      "from": 292.98,
+      "to": 294.42,
+      "sid": 129,
+      "location": 2,
+      "content": "这个释放就不要了",
+      "music": 0.0
+    },
+    {
+      "from": 294.42,
+      "to": 299.82,
+      "sid": 130,
+      "location": 2,
+      "content": "就就直接改成后摇哎后摇",
+      "music": 0.0
+    },
+    {
+      "from": 299.82,
+      "to": 301.8,
+      "sid": 131,
+      "location": 2,
+      "content": "然后这边假设我们这一段中间",
+      "music": 0.0
+    },
+    {
+      "from": 301.8,
+      "to": 305.04,
+      "sid": 132,
+      "location": 2,
+      "content": "这一段需要多次去执行同一个事件的话",
+      "music": 0.0
+    },
+    {
+      "from": 305.04,
+      "to": 306.28,
+      "sid": 133,
+      "location": 2,
+      "content": "就可以把我们的节点图",
+      "music": 0.0
+    },
+    {
+      "from": 306.28,
+      "to": 309.25,
+      "sid": 134,
+      "location": 2,
+      "content": "时间轨道改成这个循环节的这么一个模式",
+      "music": 0.0
+    },
+    {
+      "from": 309.25,
+      "to": 312.69,
+      "sid": 135,
+      "location": 2,
+      "content": "然后这个把他的开始的时间点",
+      "music": 0.0
+    },
+    {
+      "from": 312.69,
+      "to": 315.18,
+      "sid": 136,
+      "location": 2,
+      "content": "改到我们要开始的这个地方",
+      "music": 0.0
+    },
+    {
+      "from": 315.18,
+      "to": 319.28,
+      "sid": 137,
+      "location": 2,
+      "content": "然后后面的话就是在这一段加一个电点图",
+      "music": 0.0
+    },
+    {
+      "from": 319.28,
+      "to": 322.69,
+      "sid": 138,
+      "location": 2,
+      "content": "然后我们把这边的循环次数给他改一下",
+      "music": 0.0
+    },
+    {
+      "from": 322.69,
+      "to": 324.15,
+      "sid": 139,
+      "location": 2,
+      "content": "比如改个十次",
+      "music": 0.0
+    },
+    {
+      "from": 324.15,
+      "to": 325.89,
+      "sid": 140,
+      "location": 2,
+      "content": "我们就可以自动添上了",
+      "music": 0.0
+    },
+    {
+      "from": 325.89,
+      "to": 328.98,
+      "sid": 141,
+      "location": 2,
+      "content": "可以把这个时长改改短一点嗯",
+      "music": 0.0
+    },
+    {
+      "from": 328.98,
+      "to": 330.7,
+      "sid": 142,
+      "location": 2,
+      "content": "改短一点哦",
+      "music": 0.0
+    },
+    {
+      "from": 330.7,
+      "to": 332.84,
+      "sid": 143,
+      "location": 2,
+      "content": "就符合我们的要求就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 332.84,
+      "to": 335.62,
+      "sid": 144,
+      "location": 2,
+      "content": "这个是一个新增的这个循环节的功能",
+      "music": 0.0
+    },
+    {
+      "from": 335.62,
+      "to": 339.8,
+      "sid": 145,
+      "location": 2,
+      "content": "可以更加方便的去创建重复的一些事件啊",
+      "music": 0.0
+    },
+    {
+      "from": 339.8,
+      "to": 340.68,
+      "sid": 146,
+      "location": 2,
+      "content": "像我们之前的版本",
+      "music": 0.0
+    },
+    {
+      "from": 340.68,
+      "to": 342.92,
+      "sid": 147,
+      "location": 2,
+      "content": "只能去一个一个手填上去是吧",
+      "music": 0.0
+    },
+    {
+      "from": 342.92,
+      "to": 345.82,
+      "sid": 148,
+      "location": 2,
+      "content": "新版本可以直接用循环节来实现这个功能",
+      "music": 0.0
+    },
+    {
+      "from": 345.82,
+      "to": 347.64,
+      "sid": 149,
+      "location": 2,
+      "content": "然后技能这一边呢",
+      "music": 0.0
+    },
+    {
+      "from": 347.64,
+      "to": 351.2,
+      "sid": 150,
+      "location": 2,
+      "content": "除了这个他本体上的一些改动以外",
+      "music": 0.0
+    },
+    {
+      "from": 351.2,
+      "to": 353.7,
+      "sid": 151,
+      "location": 2,
+      "content": "还有一些比如说这个技能变量是吧",
+      "music": 0.0
+    },
+    {
+      "from": 353.7,
+      "to": 357.39,
+      "sid": 152,
+      "location": 2,
+      "content": "然后我们技能有关这个客户端节点图",
+      "music": 0.0
+    },
+    {
+      "from": 357.39,
+      "to": 359.95,
+      "sid": 153,
+      "location": 2,
+      "content": "就是可以有一个比较大的修改",
+      "music": 0.0
+    },
+    {
+      "from": 359.95,
+      "to": 361.69,
+      "sid": 154,
+      "location": 2,
+      "content": "那么多了很多的节点",
+      "music": 0.0
+    },
+    {
+      "from": 361.69,
+      "to": 363.25,
+      "sid": 155,
+      "location": 2,
+      "content": "首先是这边的查询节点",
+      "music": 0.0
+    },
+    {
+      "from": 363.25,
+      "to": 364.97,
+      "sid": 156,
+      "location": 2,
+      "content": "我们的玩家与角色相关里面",
+      "music": 0.0
+    },
+    {
+      "from": 364.97,
+      "to": 366.73,
+      "sid": 157,
+      "location": 2,
+      "content": "这边可以查到关键行为",
+      "music": 0.0
+    },
+    {
+      "from": 366.73,
+      "to": 368.06,
+      "sid": 158,
+      "location": 2,
+      "content": "这个是一个列表",
+      "music": 0.0
+    },
+    {
+      "from": 368.06,
+      "to": 371.26,
+      "sid": 159,
+      "location": 2,
+      "content": "这个列表呢是可以通过角色技能里面",
+      "music": 0.0
+    },
+    {
+      "from": 371.26,
+      "to": 375.29,
+      "sid": 160,
+      "location": 2,
+      "content": "这边有一个叫做比较难找",
+      "music": 0.0
+    },
+    {
+      "from": 375.29,
+      "to": 376.19,
+      "sid": 161,
+      "location": 2,
+      "content": "添加关键行为",
+      "music": 0.0
+    },
+    {
+      "from": 376.19,
+      "to": 378.25,
+      "sid": 162,
+      "location": 2,
+      "content": "这个id就随便填一个就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 378.25,
+      "to": 380.19,
+      "sid": 163,
+      "location": 2,
+      "content": "id是随是随便你填的",
+      "music": 0.0
+    },
+    {
+      "from": 380.19,
+      "to": 381.27,
+      "sid": 164,
+      "location": 2,
+      "content": "然后添加的时候",
+      "music": 0.0
+    },
+    {
+      "from": 381.27,
+      "to": 384.04,
+      "sid": 165,
+      "location": 2,
+      "content": "他就会记录下我们的录入时间啊",
+      "music": 0.0
+    },
+    {
+      "from": 384.04,
+      "to": 385.66,
+      "sid": 166,
+      "location": 2,
+      "content": "还有他的id",
+      "music": 0.0
+    },
+    {
+      "from": 385.66,
+      "to": 387.6,
+      "sid": 167,
+      "location": 2,
+      "content": "这个id不用预先定义的啊",
+      "music": 0.0
+    },
+    {
+      "from": 387.6,
+      "to": 388.76,
+      "sid": 168,
+      "location": 2,
+      "content": "就随便填就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 388.76,
+      "to": 391.569,
+      "sid": 169,
+      "location": 2,
+      "content": "然后这个东西呢呃具体有什么用",
+      "music": 0.0
+    },
+    {
+      "from": 391.569,
+      "to": 393.81,
+      "sid": 170,
+      "location": 2,
+      "content": "我就等大家去发掘了啊",
+      "music": 0.0
+    },
+    {
+      "from": 393.81,
+      "to": 395.29,
+      "sid": 171,
+      "location": 2,
+      "content": "然后除了关键行为以外呢",
+      "music": 0.0
+    },
+    {
+      "from": 395.29,
+      "to": 397.35,
+      "sid": 172,
+      "location": 2,
+      "content": "还可以获得我们的客户端时间啊",
+      "music": 0.0
+    },
+    {
+      "from": 397.35,
+      "to": 398.55,
+      "sid": 173,
+      "location": 2,
+      "content": "还有高精度版本的",
+      "music": 0.0
+    },
+    {
+      "from": 398.55,
+      "to": 400.7,
+      "sid": 174,
+      "location": 2,
+      "content": "这个是秒加上毫秒啊",
+      "music": 0.0
+    },
+    {
+      "from": 400.755,
+      "to": 402.98,
+      "sid": 175,
+      "location": 2,
+      "content": "啊关键行为也有高精度的版本",
+      "music": 0.0
+    },
+    {
+      "from": 402.98,
+      "to": 404.22,
+      "sid": 176,
+      "location": 2,
+      "content": "还有秒或者毫秒",
+      "music": 0.0
+    },
+    {
+      "from": 404.22,
+      "to": 405.78,
+      "sid": 177,
+      "location": 2,
+      "content": "或者有",
+      "music": 0.0
+    },
+    {
+      "from": 406.3,
+      "to": 408.9,
+      "sid": 178,
+      "location": 2,
+      "content": "然后还可以获取玩家的这个移动输入啊",
+      "music": 0.0
+    },
+    {
+      "from": 408.9,
+      "to": 412.94,
+      "sid": 179,
+      "location": 2,
+      "content": "这个东西也是看起来也是比较比较高深的",
+      "music": 0.0
+    },
+    {
+      "from": 412.94,
+      "to": 414.3,
+      "sid": 180,
+      "location": 2,
+      "content": "一些操作啊",
+      "music": 0.0
+    },
+    {
+      "from": 414.3,
+      "to": 415.74,
+      "sid": 181,
+      "location": 2,
+      "content": "还有技能实力啊",
+      "music": 0.0
+    },
+    {
+      "from": 415.74,
+      "to": 419.1,
+      "sid": 182,
+      "location": 2,
+      "content": "这个技能实力呢是我们在技能这一栏里面啊",
+      "music": 0.0
+    },
+    {
+      "from": 419.1,
+      "to": 421.32,
+      "sid": 183,
+      "location": 2,
+      "content": "在服务器电图这一技能技能这一栏里面",
+      "music": 0.0
+    },
+    {
+      "from": 421.32,
+      "to": 424.4,
+      "sid": 184,
+      "location": 2,
+      "content": "可以创建自定义的技能实力",
+      "music": 0.0
+    },
+    {
+      "from": 424.4,
+      "to": 425.9,
+      "sid": 185,
+      "location": 2,
+      "content": "就是你的角色的技能",
+      "music": 0.0
+    },
+    {
+      "from": 425.9,
+      "to": 429.56,
+      "sid": 186,
+      "location": 2,
+      "content": "不一定要绑到你的那个你那个按键上去了",
+      "music": 0.0
+    },
+    {
+      "from": 429.56,
+      "to": 431.5,
+      "sid": 187,
+      "location": 2,
+      "content": "可以直接连上角色的实体",
+      "music": 0.0
+    },
+    {
+      "from": 431.5,
+      "to": 432.46,
+      "sid": 188,
+      "location": 2,
+      "content": "还有技能的配置id",
+      "music": 0.0
+    },
+    {
+      "from": 432.46,
+      "to": 434.26,
+      "sid": 189,
+      "location": 2,
+      "content": "就可以生成一个技能实力的id了",
+      "music": 0.0
+    },
+    {
+      "from": 434.26,
+      "to": 437.1,
+      "sid": 190,
+      "location": 2,
+      "content": "然后如果要让这个角色释放自定义的技能",
+      "music": 0.0
+    },
+    {
+      "from": 437.1,
+      "to": 437.62,
+      "sid": 191,
+      "location": 2,
+      "content": "实力的话",
+      "music": 0.0
+    },
+    {
+      "from": 437.62,
+      "to": 441.61,
+      "sid": 192,
+      "location": 2,
+      "content": "就是可以通过我们的释放指定技能实例啊",
+      "music": 0.0
+    },
+    {
+      "from": 441.61,
+      "to": 443.57,
+      "sid": 193,
+      "location": 2,
+      "content": "就可以把这个就相当于这样子",
+      "music": 0.0
+    },
+    {
+      "from": 443.57,
+      "to": 444.57,
+      "sid": 194,
+      "location": 2,
+      "content": "直接连过去就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 444.57,
+      "to": 446.73,
+      "sid": 195,
+      "location": 2,
+      "content": "或者是把它把它存在一个自定义变量里面",
+      "music": 0.0
+    },
+    {
+      "from": 446.73,
+      "to": 449.32,
+      "sid": 196,
+      "location": 2,
+      "content": "然后通过自定义变量去释放这个技能",
+      "music": 0.0
+    },
+    {
+      "from": 449.32,
+      "to": 450.84,
+      "sid": 197,
+      "location": 2,
+      "content": "然后还然后还可以",
+      "music": 0.0
+    },
+    {
+      "from": 450.84,
+      "to": 452.28,
+      "sid": 198,
+      "location": 2,
+      "content": "那按键可用",
+      "music": 0.0
+    },
+    {
+      "from": 452.28,
+      "to": 454.58,
+      "sid": 199,
+      "location": 2,
+      "content": "这边可以设置是否是否对",
+      "music": 0.0
+    },
+    {
+      "from": 454.58,
+      "to": 455.78,
+      "sid": 200,
+      "location": 2,
+      "content": "如果要强制释放的话",
+      "music": 0.0
+    },
+    {
+      "from": 455.78,
+      "to": 457.46,
+      "sid": 201,
+      "location": 2,
+      "content": "基本就是设置成否了啊",
+      "music": 0.0
+    },
+    {
+      "from": 457.46,
+      "to": 458.4,
+      "sid": 202,
+      "location": 2,
+      "content": "除了这个以外呢",
+      "music": 0.0
+    },
+    {
+      "from": 458.4,
+      "to": 460.71,
+      "sid": 203,
+      "location": 2,
+      "content": "我们还有这个技能变量是吧",
+      "music": 0.0
+    },
+    {
+      "from": 460.71,
+      "to": 462.75,
+      "sid": 204,
+      "location": 2,
+      "content": "技能变量是只能是浮点数啊",
+      "music": 0.0
+    },
+    {
+      "from": 462.75,
+      "to": 466.77,
+      "sid": 205,
+      "location": 2,
+      "content": "啊可以可以跨节点图传递参数的",
+      "music": 0.0
+    },
+    {
+      "from": 466.77,
+      "to": 470.129,
+      "sid": 206,
+      "location": 2,
+      "content": "然后我们这边就可以用这个角色技能",
+      "music": 0.0
+    },
+    {
+      "from": 470.129,
+      "to": 473.589,
+      "sid": 207,
+      "location": 2,
+      "content": "这一栏里面可以设置设置技能变量",
+      "music": 0.0
+    },
+    {
+      "from": 473.589,
+      "to": 475.169,
+      "sid": 208,
+      "location": 2,
+      "content": "可以选择我们的技能变量",
+      "music": 0.0
+    },
+    {
+      "from": 475.169,
+      "to": 476.539,
+      "sid": 209,
+      "location": 2,
+      "content": "然后设置一个值",
+      "music": 0.0
+    },
+    {
+      "from": 477.93,
+      "to": 479.37,
+      "sid": 210,
+      "location": 2,
+      "content": "除了设置以外呢",
+      "music": 0.0
+    },
+    {
+      "from": 479.37,
+      "to": 481.43,
+      "sid": 211,
+      "location": 2,
+      "content": "应该还有一个增加技能变量值",
+      "music": 0.0
+    },
+    {
+      "from": 481.43,
+      "to": 482.67,
+      "sid": 212,
+      "location": 2,
+      "content": "这个是一个是set",
+      "music": 0.0
+    },
+    {
+      "from": 482.67,
+      "to": 483.65,
+      "sid": 213,
+      "location": 2,
+      "content": "一个是ADD",
+      "music": 0.0
+    },
+    {
+      "from": 483.65,
+      "to": 487.03,
+      "sid": 214,
+      "location": 2,
+      "content": "然后要获取的话就是在查询节点里面啊",
+      "music": 0.0
+    },
+    {
+      "from": 487.03,
+      "to": 488.81,
+      "sid": 215,
+      "location": 2,
+      "content": "也是在玩家与角色相关这一栏",
+      "music": 0.0
+    },
+    {
+      "from": 488.81,
+      "to": 491.59,
+      "sid": 216,
+      "location": 2,
+      "content": "查询技能变量的对应值都是可以查到的",
+      "music": 0.0
+    },
+    {
+      "from": 491.59,
+      "to": 492.59,
+      "sid": 217,
+      "location": 2,
+      "content": "它只能是浮点数啊",
+      "music": 0.0
+    },
+    {
+      "from": 492.59,
+      "to": 493.53,
+      "sid": 218,
+      "location": 2,
+      "content": "不能是别的类型",
+      "music": 0.0
+    },
+    {
+      "from": 493.53,
+      "to": 495.69,
+      "sid": 219,
+      "location": 2,
+      "content": "然后单位状态这一边呢",
+      "music": 0.0
+    },
+    {
+      "from": 495.69,
+      "to": 499.95,
+      "sid": 220,
+      "location": 2,
+      "content": "也有关于技能方面的一些新的状态效果啊",
+      "music": 0.0
+    },
+    {
+      "from": 499.95,
+      "to": 502.51,
+      "sid": 221,
+      "location": 2,
+      "content": "这边先创建一个无限时长的",
+      "music": 0.0
+    },
+    {
+      "from": 502.51,
+      "to": 506.01,
+      "sid": 222,
+      "location": 2,
+      "content": "然后效果相机信息里面这边有一个特殊功能",
+      "music": 0.0
+    },
+    {
+      "from": 506.01,
+      "to": 507.52,
+      "sid": 223,
+      "location": 2,
+      "content": "然后里面有这个",
+      "music": 0.0
+    },
+    {
+      "from": 507.52,
+      "to": 509.76,
+      "sid": 224,
+      "location": 2,
+      "content": "比如说定时触发技能是吧",
+      "music": 0.0
+    },
+    {
+      "from": 509.76,
+      "to": 512.14,
+      "sid": 225,
+      "location": 2,
+      "content": "然后这个是这个定时触发技能",
+      "music": 0.0
+    },
+    {
+      "from": 512.14,
+      "to": 513.34,
+      "sid": 226,
+      "location": 2,
+      "content": "可以当定时器使用啊",
+      "music": 0.0
+    },
+    {
+      "from": 513.34,
+      "to": 515.5,
+      "sid": 227,
+      "location": 2,
+      "content": "我觉得客户端定时器应该是可以",
+      "music": 0.0
+    },
+    {
+      "from": 515.5,
+      "to": 517.16,
+      "sid": 228,
+      "location": 2,
+      "content": "是可以这么用的啊",
+      "music": 0.0
+    },
+    {
+      "from": 517.16,
+      "to": 519.42,
+      "sid": 229,
+      "location": 2,
+      "content": "然后可以选择技能槽位",
+      "music": 0.0
+    },
+    {
+      "from": 519.42,
+      "to": 521.56,
+      "sid": 230,
+      "location": 2,
+      "content": "然后是是否校验按键可用",
+      "music": 0.0
+    },
+    {
+      "from": 521.56,
+      "to": 522.64,
+      "sid": 231,
+      "location": 2,
+      "content": "还有本地过滤器",
+      "music": 0.0
+    },
+    {
+      "from": 522.64,
+      "to": 524.48,
+      "sid": 232,
+      "location": 2,
+      "content": "这个是不是都是有的",
+      "music": 0.0
+    },
+    {
+      "from": 524.48,
+      "to": 526.579,
+      "sid": 233,
+      "location": 2,
+      "content": "然后这边可以配置我们的技能",
+      "music": 0.0
+    },
+    {
+      "from": 526.579,
+      "to": 528.839,
+      "sid": 234,
+      "location": 2,
+      "content": "可以当做一个本地的定时器来用的",
+      "music": 0.0
+    },
+    {
+      "from": 528.839,
+      "to": 532.959,
+      "sid": 235,
+      "location": 2,
+      "content": "然后下面就有一个调整动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 532.959,
+      "to": 534.599,
+      "sid": 236,
+      "location": 2,
+      "content": "以及调整冷却时间啊",
+      "music": 0.0
+    },
+    {
+      "from": 534.599,
+      "to": 537.56,
+      "sid": 237,
+      "location": 2,
+      "content": "这个是需要我们选择一个属性组",
+      "music": 0.0
+    },
+    {
+      "from": 537.56,
+      "to": 539.42,
+      "sid": 238,
+      "location": 2,
+      "content": "就是我们刚刚在技能这边介绍到的",
+      "music": 0.0
+    },
+    {
+      "from": 539.42,
+      "to": 540.94,
+      "sid": 239,
+      "location": 2,
+      "content": "这个技能属性组啊",
+      "music": 0.0
+    },
+    {
+      "from": 540.94,
+      "to": 544.26,
+      "sid": 240,
+      "location": 2,
+      "content": "技能属性组里面也包含了这个冷却时间的倍率",
+      "music": 0.0
+    },
+    {
+      "from": 544.26,
+      "to": 545.78,
+      "sid": 241,
+      "location": 2,
+      "content": "还有动画速度的倍率啊",
+      "music": 0.0
+    },
+    {
+      "from": 547.02,
+      "to": 549.59,
+      "sid": 242,
+      "location": 2,
+      "content": "就在我们这个菜单里面",
+      "music": 0.0
+    },
+    {
+      "from": 549.59,
+      "to": 552.05,
+      "sid": 243,
+      "location": 2,
+      "content": "找到我们的技能资源管理啊",
+      "music": 0.0
+    },
+    {
+      "from": 552.05,
+      "to": 553.81,
+      "sid": 244,
+      "location": 2,
+      "content": "在这个地方技能资源管理",
+      "music": 0.0
+    },
+    {
+      "from": 553.81,
+      "to": 555.89,
+      "sid": 245,
+      "location": 2,
+      "content": "这里除了之前就有的技能资源以外",
+      "music": 0.0
+    },
+    {
+      "from": 555.89,
+      "to": 557.68,
+      "sid": 246,
+      "location": 2,
+      "content": "还有我们的技能属性组",
+      "music": 0.0
+    },
+    {
+      "from": 557.68,
+      "to": 559.08,
+      "sid": 247,
+      "location": 2,
+      "content": "新建技能属性组",
+      "music": 0.0
+    },
+    {
+      "from": 559.08,
+      "to": 560.8,
+      "sid": 248,
+      "location": 2,
+      "content": "这个里面就有我们的动画速度倍率",
+      "music": 0.0
+    },
+    {
+      "from": 560.8,
+      "to": 562.0,
+      "sid": 249,
+      "location": 2,
+      "content": "还有冷却时间倍率",
+      "music": 0.0
+    },
+    {
+      "from": 562.0,
+      "to": 564.44,
+      "sid": 250,
+      "location": 2,
+      "content": "两种不同的技能属性组的类型",
+      "music": 0.0
+    },
+    {
+      "from": 564.84,
+      "to": 566.86,
+      "sid": 251,
+      "location": 2,
+      "content": "然后默认可以调整为1.00",
+      "music": 0.0
+    },
+    {
+      "from": 566.86,
+      "to": 569.04,
+      "sid": 252,
+      "location": 2,
+      "content": "然后如果需要我就举个例子吧",
+      "music": 0.0
+    },
+    {
+      "from": 569.04,
+      "to": 572.17,
+      "sid": 253,
+      "location": 2,
+      "content": "比如说啊动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 572.17,
+      "to": 574.21,
+      "sid": 254,
+      "location": 2,
+      "content": "然后还有这个CD啊",
+      "music": 0.0
+    },
+    {
+      "from": 574.21,
+      "to": 577.01,
+      "sid": 255,
+      "location": 2,
+      "content": "CD我就就冷却时间就简称CD了",
+      "music": 0.0
+    },
+    {
+      "from": 577.01,
+      "to": 580.21,
+      "sid": 256,
+      "location": 2,
+      "content": "然后冷却时间的倍率1.00默认",
+      "music": 0.0
+    },
+    {
+      "from": 580.21,
+      "to": 584.19,
+      "sid": 257,
+      "location": 2,
+      "content": "然后这个技能可以把它加到属性组里面去啊",
+      "music": 0.0
+    },
+    {
+      "from": 584.19,
+      "to": 584.91,
+      "sid": 258,
+      "location": 2,
+      "content": "这个是CD",
+      "music": 0.0
+    },
+    {
+      "from": 584.91,
+      "to": 585.99,
+      "sid": 259,
+      "location": 2,
+      "content": "然后这个是动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 585.99,
+      "to": 588.43,
+      "sid": 260,
+      "location": 2,
+      "content": "如果你不同的技能可以加到不同的属性组里面",
+      "music": 0.0
+    },
+    {
+      "from": 588.43,
+      "to": 590.34,
+      "sid": 261,
+      "location": 2,
+      "content": "然后去通过我们的单位状态",
+      "music": 0.0
+    },
+    {
+      "from": 590.34,
+      "to": 594.77,
+      "sid": 262,
+      "location": 2,
+      "content": "去调整这个技能的动画速度或者是冷却时间啊",
+      "music": 0.0
+    },
+    {
+      "from": 594.77,
+      "to": 596.25,
+      "sid": 263,
+      "location": 2,
+      "content": "比如说我们这边有一个动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 596.25,
+      "to": 598.05,
+      "sid": 264,
+      "location": 2,
+      "content": "可以调整成二是吧",
+      "music": 0.0
+    },
+    {
+      "from": 598.05,
+      "to": 600.01,
+      "sid": 265,
+      "location": 2,
+      "content": "冷却时间调整为嗯",
+      "music": 0.0
+    },
+    {
+      "from": 600.01,
+      "to": 602.65,
+      "sid": 266,
+      "location": 2,
+      "content": "调整为那个调明显一点吧",
+      "music": 0.0
+    },
+    {
+      "from": 602.65,
+      "to": 604.03,
+      "sid": 267,
+      "location": 2,
+      "content": "调整调调个五吧",
+      "music": 0.0
+    },
+    {
+      "from": 604.03,
+      "to": 607.09,
+      "sid": 268,
+      "location": 2,
+      "content": "然后这个默认的冷却时间我就调个一秒钟",
+      "music": 0.0
+    },
+    {
+      "from": 607.09,
+      "to": 608.99,
+      "sid": 269,
+      "location": 2,
+      "content": "然后弄一个动画",
+      "music": 0.0
+    },
+    {
+      "from": 608.99,
+      "to": 611.93,
+      "sid": 270,
+      "location": 2,
+      "content": "单手剑普通攻击的这个动画嗯",
+      "music": 0.0
+    },
+    {
+      "from": 611.93,
+      "to": 614.01,
+      "sid": 271,
+      "location": 2,
+      "content": "哼然后我直接直接做成连段吧",
+      "music": 0.0
+    },
+    {
+      "from": 614.01,
+      "to": 615.77,
+      "sid": 272,
+      "location": 2,
+      "content": "要不直接做成连段技能",
+      "music": 0.0
+    },
+    {
+      "from": 615.77,
+      "to": 617.65,
+      "sid": 273,
+      "location": 2,
+      "content": "然后这个技能还有一个点呢",
+      "music": 0.0
+    },
+    {
+      "from": 617.65,
+      "to": 618.77,
+      "sid": 274,
+      "location": 2,
+      "content": "就是这个编辑的时候",
+      "music": 0.0
+    },
+    {
+      "from": 618.77,
+      "to": 620.45,
+      "sid": 275,
+      "location": 2,
+      "content": "它是可以进行一个自动吸附的",
+      "music": 0.0
+    },
+    {
+      "from": 620.45,
+      "to": 622.1,
+      "sid": 276,
+      "location": 2,
+      "content": "比如说我们这里添加一个事件",
+      "music": 0.0
+    },
+    {
+      "from": 622.1,
+      "to": 625.86,
+      "sid": 277,
+      "location": 2,
+      "content": "它是可以自动往这个这个标线上面去吸附的",
+      "music": 0.0
+    },
+    {
+      "from": 625.86,
+      "to": 628.67,
+      "sid": 278,
+      "location": 2,
+      "content": "嗯就不用去再去对那个轴了是吧",
+      "music": 0.0
+    },
+    {
+      "from": 628.67,
+      "to": 630.09,
+      "sid": 279,
+      "location": 2,
+      "content": "就可以直接去吸附了",
+      "music": 0.0
+    },
+    {
+      "from": 630.09,
+      "to": 632.35,
+      "sid": 280,
+      "location": 2,
+      "content": "但这个设置里面在这个地方自动吸附",
+      "music": 0.0
+    },
+    {
+      "from": 632.35,
+      "to": 633.59,
+      "sid": 281,
+      "location": 2,
+      "content": "在这个地方啊",
+      "music": 0.0
+    },
+    {
+      "from": 633.59,
+      "to": 635.13,
+      "sid": 282,
+      "location": 2,
+      "content": "这是一个普攻的动画",
+      "music": 0.0
+    },
+    {
+      "from": 635.13,
+      "to": 639.24,
+      "sid": 283,
+      "location": 2,
+      "content": "然后我们这边弄一个这个物件啊",
+      "music": 0.0
+    },
+    {
+      "from": 639.24,
+      "to": 639.9,
+      "sid": 284,
+      "location": 2,
+      "content": "这个物件",
+      "music": 0.0
+    },
+    {
+      "from": 639.9,
+      "to": 642.94,
+      "sid": 285,
+      "location": 2,
+      "content": "然后节点图里面写选项卡",
+      "music": 0.0
+    },
+    {
+      "from": 642.94,
+      "to": 647.63,
+      "sid": 286,
+      "location": 2,
+      "content": "选中时去给我们的角色挂一个单位状态",
+      "music": 0.0
+    },
+    {
+      "from": 647.63,
+      "to": 650.99,
+      "sid": 287,
+      "location": 2,
+      "content": "然后配置id是我们刚刚这边添加的这个",
+      "music": 0.0
+    },
+    {
+      "from": 650.99,
+      "to": 652.33,
+      "sid": 288,
+      "location": 2,
+      "content": "这个是无限时长的",
+      "music": 0.0
+    },
+    {
+      "from": 652.33,
+      "to": 653.77,
+      "sid": 289,
+      "location": 2,
+      "content": "记得保存",
+      "music": 0.0
+    },
+    {
+      "from": 654.58,
+      "to": 655.66,
+      "sid": 290,
+      "location": 2,
+      "content": "OK保存完了",
+      "music": 0.0
+    },
+    {
+      "from": 655.66,
+      "to": 657.5,
+      "sid": 291,
+      "location": 2,
+      "content": "保存完了之后把节点图挂在这个上面",
+      "music": 0.0
+    },
+    {
+      "from": 657.5,
+      "to": 658.22,
+      "sid": 292,
+      "location": 2,
+      "content": "这个是必要的",
+      "music": 0.0
+    },
+    {
+      "from": 658.22,
+      "to": 658.52,
+      "sid": 293,
+      "location": 2,
+      "content": "步骤",
+      "music": 0.0
+    },
+    {
+      "from": 658.52,
+      "to": 659.38,
+      "sid": 294,
+      "location": 2,
+      "content": "不可省的",
+      "music": 0.0
+    },
+    {
+      "from": 659.38,
+      "to": 663.46,
+      "sid": 295,
+      "location": 2,
+      "content": "然后嗯我们可以测试一下这个技能",
+      "music": 0.0
+    },
+    {
+      "from": 663.46,
+      "to": 666.579,
+      "sid": 296,
+      "location": 2,
+      "content": "在挂上这个单位状态之前以及之后啊",
+      "music": 0.0
+    },
+    {
+      "from": 666.579,
+      "to": 668.419,
+      "sid": 297,
+      "location": 2,
+      "content": "啊这个冷却时间就可能不太管用了啊",
+      "music": 0.0
+    },
+    {
+      "from": 668.419,
+      "to": 670.139,
+      "sid": 298,
+      "location": 2,
+      "content": "我们冷却时间单独再开一个技能吧",
+      "music": 0.0
+    },
+    {
+      "from": 670.139,
+      "to": 672.12,
+      "sid": 299,
+      "location": 2,
+      "content": "一个一个是普攻",
+      "music": 0.0
+    },
+    {
+      "from": 672.48,
+      "to": 673.28,
+      "sid": 300,
+      "location": 2,
+      "content": "一个是普攻",
+      "music": 0.0
+    },
+    {
+      "from": 673.28,
+      "to": 675.0,
+      "sid": 301,
+      "location": 2,
+      "content": "然后一个是一个是E技能",
+      "music": 0.0
+    },
+    {
+      "from": 676.24,
+      "to": 677.599,
+      "sid": 302,
+      "location": 2,
+      "content": "一个是E技能",
+      "music": 0.0
+    },
+    {
+      "from": 677.599,
+      "to": 679.339,
+      "sid": 303,
+      "location": 2,
+      "content": "感觉时间设置为一秒钟",
+      "music": 0.0
+    },
+    {
+      "from": 679.339,
+      "to": 682.199,
+      "sid": 304,
+      "location": 2,
+      "content": "这边的动画随便随便加一个",
+      "music": 0.0
+    },
+    {
+      "from": 682.199,
+      "to": 683.359,
+      "sid": 305,
+      "location": 2,
+      "content": "然后这边进入属性组",
+      "music": 0.0
+    },
+    {
+      "from": 683.359,
+      "to": 685.92,
+      "sid": 306,
+      "location": 2,
+      "content": "记得记得配置一下优化速度啊",
+      "music": 0.0
+    },
+    {
+      "from": 685.92,
+      "to": 688.52,
+      "sid": 307,
+      "location": 2,
+      "content": "冷却时间费时间哦",
+      "music": 0.0
+    },
+    {
+      "from": 688.52,
+      "to": 691.079,
+      "sid": 308,
+      "location": 2,
+      "content": "可以给角色默认就给他挂上去",
+      "music": 0.0
+    },
+    {
+      "from": 691.079,
+      "to": 694.14,
+      "sid": 309,
+      "location": 2,
+      "content": "我们这边的单位状态记得要在这个里面",
+      "music": 0.0
+    },
+    {
+      "from": 694.14,
+      "to": 696.58,
+      "sid": 310,
+      "location": 2,
+      "content": "记得要在这个动画效果里面去填",
+      "music": 0.0
+    },
+    {
+      "from": 696.58,
+      "to": 697.46,
+      "sid": 311,
+      "location": 2,
+      "content": "我们的属性组啊",
+      "music": 0.0
+    },
+    {
+      "from": 697.46,
+      "to": 698.84,
+      "sid": 312,
+      "location": 2,
+      "content": "不然是没有效果的",
+      "music": 0.0
+    },
+    {
+      "from": 698.84,
+      "to": 701.399,
+      "sid": 313,
+      "location": 2,
+      "content": "要填我们的属性组好",
+      "music": 0.0
+    },
+    {
+      "from": 701.399,
+      "to": 702.759,
+      "sid": 314,
+      "location": 2,
+      "content": "填完之后我们开始试玩",
+      "music": 0.0
+    },
+    {
+      "from": 702.759,
+      "to": 704.559,
+      "sid": 315,
+      "location": 2,
+      "content": "就可以看到我们的效果了",
+      "music": 0.0
+    },
+    {
+      "from": 704.559,
+      "to": 705.999,
+      "sid": 316,
+      "location": 2,
+      "content": "我们调的CD是五倍啊",
+      "music": 0.0
+    },
+    {
+      "from": 705.999,
+      "to": 708.06,
+      "sid": 317,
+      "location": 2,
+      "content": "动画速度是两倍嗯",
+      "music": 0.0
+    },
+    {
+      "from": 708.86,
+      "to": 712.78,
+      "sid": 318,
+      "location": 2,
+      "content": "我这里选一个来看一下正常的动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 712.78,
+      "to": 716.36,
+      "sid": 319,
+      "location": 2,
+      "content": "还有正常的CD就是一技能CD是一秒钟",
+      "music": 0.0
+    },
+    {
+      "from": 716.36,
+      "to": 718.04,
+      "sid": 320,
+      "location": 2,
+      "content": "然后这里点一下这个",
+      "music": 0.0
+    },
+    {
+      "from": 719.04,
+      "to": 720.54,
+      "sid": 321,
+      "location": 2,
+      "content": "然后一技能变成六秒钟了是吧",
+      "music": 0.0
+    },
+    {
+      "from": 720.54,
+      "to": 722.36,
+      "sid": 322,
+      "location": 2,
+      "content": "一技能变成六秒钟了",
+      "music": 0.0
+    },
+    {
+      "from": 722.36,
+      "to": 724.76,
+      "sid": 323,
+      "location": 2,
+      "content": "这是加了五倍的这个CD啊",
+      "music": 0.0
+    },
+    {
+      "from": 724.76,
+      "to": 729.04,
+      "sid": 324,
+      "location": 2,
+      "content": "然后动画速度呢是哇这么快这么快啊",
+      "music": 0.0
+    },
+    {
+      "from": 729.04,
+      "to": 731.919,
+      "sid": 325,
+      "location": 2,
+      "content": "这么快有有有一点快了呃",
+      "music": 0.0
+    },
+    {
+      "from": 731.919,
+      "to": 733.279,
+      "sid": 326,
+      "location": 2,
+      "content": "这个是加了五倍啊",
+      "music": 0.0
+    },
+    {
+      "from": 733.279,
+      "to": 735.77,
+      "sid": 327,
+      "location": 2,
+      "content": "然后那个动画速度",
+      "music": 0.0
+    },
+    {
+      "from": 735.77,
+      "to": 737.71,
+      "sid": 328,
+      "location": 2,
+      "content": "我不知道是加了两倍还是变成两倍",
+      "music": 0.0
+    },
+    {
+      "from": 737.71,
+      "to": 738.95,
+      "sid": 329,
+      "location": 2,
+      "content": "应该应该也是加了两倍",
+      "music": 0.0
+    },
+    {
+      "from": 738.95,
+      "to": 742.12,
+      "sid": 330,
+      "location": 2,
+      "content": "不然不然应该没这么快的啊",
+      "music": 0.0
+    },
+    {
+      "from": 742.12,
+      "to": 744.84,
+      "sid": 331,
+      "location": 2,
+      "content": "这就是一个技能的状态的这么一个设置啊",
+      "music": 0.0
+    },
+    {
+      "from": 744.84,
+      "to": 746.22,
+      "sid": 332,
+      "location": 2,
+      "content": "在修改时就是加是吧",
+      "music": 0.0
+    },
+    {
+      "from": 746.22,
+      "to": 746.98,
+      "sid": 333,
+      "location": 2,
+      "content": "修改时是加",
+      "music": 0.0
+    },
+    {
+      "from": 746.98,
+      "to": 749.76,
+      "sid": 334,
+      "location": 2,
+      "content": "然后设置时就是是设置为set",
+      "music": 0.0
+    },
+    {
+      "from": 749.76,
+      "to": 753.04,
+      "sid": 335,
+      "location": 2,
+      "content": "修改是ADD这个千金的这些用词",
+      "music": 0.0
+    },
+    {
+      "from": 753.04,
+      "to": 755.78,
+      "sid": 336,
+      "location": 2,
+      "content": "要要注意建立一个映射啊",
+      "music": 0.0
+    },
+    {
+      "from": 755.78,
+      "to": 757.02,
+      "sid": 337,
+      "location": 2,
+      "content": "然后这边的复写标签呢",
+      "music": 0.0
+    },
+    {
+      "from": 757.02,
+      "to": 759.98,
+      "sid": 338,
+      "location": 2,
+      "content": "就是在我们的单位状态给予的节点图里面",
+      "music": 0.0
+    },
+    {
+      "from": 759.98,
+      "to": 762.1,
+      "sid": 339,
+      "location": 2,
+      "content": "这边可以加一个字典啊",
+      "music": 0.0
+    },
+    {
+      "from": 762.1,
+      "to": 765.58,
+      "sid": 340,
+      "location": 2,
+      "content": "字典里面可以去拼装一下这个字符串",
+      "music": 0.0
+    },
+    {
+      "from": 765.58,
+      "to": 766.74,
+      "sid": 341,
+      "location": 2,
+      "content": "就是里面的复写标签啊",
+      "music": 0.0
+    },
+    {
+      "from": 766.74,
+      "to": 768.99,
+      "sid": 342,
+      "location": 2,
+      "content": "比如说四个R还有五个R",
+      "music": 0.0
+    },
+    {
+      "from": 768.99,
+      "to": 772.51,
+      "sid": 343,
+      "location": 2,
+      "content": "四个R就可以填上我们的自定义的值",
+      "music": 0.0
+    },
+    {
+      "from": 772.51,
+      "to": 775.069,
+      "sid": 344,
+      "location": 2,
+      "content": "可以复写掉这个里面的修改值了",
+      "music": 0.0
+    },
+    {
+      "from": 775.069,
+      "to": 777.429,
+      "sid": 345,
+      "location": 2,
+      "content": "也就这个是之前版本的一些内容",
+      "music": 0.0
+    },
+    {
+      "from": 777.429,
+      "to": 779.47,
+      "sid": 346,
+      "location": 2,
+      "content": "就不给不给大家演示了啊",
+      "music": 0.0
+    },
+    {
+      "from": 779.47,
+      "to": 781.03,
+      "sid": 347,
+      "location": 2,
+      "content": "啊我们在这个新版本里面呢",
+      "music": 0.0
+    },
+    {
+      "from": 781.03,
+      "to": 782.31,
+      "sid": 348,
+      "location": 2,
+      "content": "还可以做一些这个",
+      "music": 0.0
+    },
+    {
+      "from": 782.31,
+      "to": 785.81,
+      "sid": 349,
+      "location": 2,
+      "content": "比如说下落攻击的这么一些操作",
+      "music": 0.0
+    },
+    {
+      "from": 785.81,
+      "to": 787.45,
+      "sid": 350,
+      "location": 2,
+      "content": "比如说这里有个空中技能是吧",
+      "music": 0.0
+    },
+    {
+      "from": 787.45,
+      "to": 789.37,
+      "sid": 351,
+      "location": 2,
+      "content": "这个空中技能里面也有一个",
+      "music": 0.0
+    },
+    {
+      "from": 789.37,
+      "to": 791.31,
+      "sid": 352,
+      "location": 2,
+      "content": "可以可以去做下落攻击啊",
+      "music": 0.0
+    },
+    {
+      "from": 791.31,
+      "to": 794.05,
+      "sid": 353,
+      "location": 2,
+      "content": "然后这个里面冷却时间可以可以给它关掉",
+      "music": 0.0
+    },
+    {
+      "from": 794.05,
+      "to": 797.33,
+      "sid": 354,
+      "location": 2,
+      "content": "然后这个里面有一个落地分支",
+      "music": 0.0
+    },
+    {
+      "from": 797.33,
+      "to": 799.21,
+      "sid": 355,
+      "location": 2,
+      "content": "就是可以做下落攻击的",
+      "music": 0.0
+    },
+    {
+      "from": 799.21,
+      "to": 800.79,
+      "sid": 356,
+      "location": 2,
+      "content": "有无限循环",
+      "music": 0.0
+    },
+    {
+      "from": 800.79,
+      "to": 803.47,
+      "sid": 357,
+      "location": 2,
+      "content": "那我我直接搜下落攻击吧",
+      "music": 0.0
+    },
+    {
+      "from": 803.77,
+      "to": 811.65,
+      "sid": 358,
+      "location": 2,
+      "content": "下落下落攻击前摇落地后摇还是前摇",
+      "music": 0.0
+    },
+    {
+      "from": 812.31,
+      "to": 814.55,
+      "sid": 359,
+      "location": 2,
+      "content": "下落攻击循环动画",
+      "music": 0.0
+    },
+    {
+      "from": 814.95,
+      "to": 816.55,
+      "sid": 360,
+      "location": 2,
+      "content": "然后还有一个落地分支啊",
+      "music": 0.0
+    },
+    {
+      "from": 816.55,
+      "to": 820.43,
+      "sid": 361,
+      "location": 2,
+      "content": "落地分支之后就是一个后摇了啊",
+      "music": 0.0
+    },
+    {
+      "from": 820.43,
+      "to": 821.79,
+      "sid": 362,
+      "location": 2,
+      "content": "落地落地",
+      "music": 0.0
+    },
+    {
+      "from": 821.79,
+      "to": 823.39,
+      "sid": 363,
+      "location": 2,
+      "content": "然后在后摇",
+      "music": 0.0
+    },
+    {
+      "from": 827.02,
+      "to": 827.42,
+      "sid": 364,
+      "location": 2,
+      "content": "好",
+      "music": 0.0
+    },
+    {
+      "from": 827.42,
+      "to": 829.52,
+      "sid": 365,
+      "location": 2,
+      "content": "我们可以在这个里面给它添加一个",
+      "music": 0.0
+    },
+    {
+      "from": 829.52,
+      "to": 831.82,
+      "sid": 366,
+      "location": 2,
+      "content": "进入落地分支的这个",
+      "music": 0.0
+    },
+    {
+      "from": 833.92,
+      "to": 835.96,
+      "sid": 367,
+      "location": 2,
+      "content": "好可以给他吸附到这个无限循环",
+      "music": 0.0
+    },
+    {
+      "from": 835.96,
+      "to": 838.65,
+      "sid": 368,
+      "location": 2,
+      "content": "这个阶段上面去啊",
+      "music": 0.0
+    },
+    {
+      "from": 838.65,
+      "to": 840.67,
+      "sid": 369,
+      "location": 2,
+      "content": "然后呢这边就是一个E技能",
+      "music": 0.0
+    },
+    {
+      "from": 840.67,
+      "to": 842.29,
+      "sid": 370,
+      "location": 2,
+      "content": "我们可以给他改个名字",
+      "music": 0.0
+    },
+    {
+      "from": 842.29,
+      "to": 843.93,
+      "sid": 371,
+      "location": 2,
+      "content": "改成下落攻击",
+      "music": 0.0
+    },
+    {
+      "from": 844.7,
+      "to": 849.53,
+      "sid": 372,
+      "location": 2,
+      "content": "然后这边这边我们可以跟给普攻",
+      "music": 0.0
+    },
+    {
+      "from": 849.53,
+      "to": 850.97,
+      "sid": 373,
+      "location": 2,
+      "content": "绑在同一个按键上面啊",
+      "music": 0.0
+    },
+    {
+      "from": 850.97,
+      "to": 854.73,
+      "sid": 374,
+      "location": 2,
+      "content": "我们这里假设普攻是一个是一个普攻键是吧",
+      "music": 0.0
+    },
+    {
+      "from": 854.73,
+      "to": 858.03,
+      "sid": 375,
+      "location": 2,
+      "content": "然后我们可以把这个下落攻击给绑到",
+      "music": 0.0
+    },
+    {
+      "from": 858.03,
+      "to": 860.55,
+      "sid": 376,
+      "location": 2,
+      "content": "也是也是绑到普攻键这个上面啊",
+      "music": 0.0
+    },
+    {
+      "from": 860.55,
+      "to": 862.31,
+      "sid": 377,
+      "location": 2,
+      "content": "添加角色技能",
+      "music": 0.0
+    },
+    {
+      "from": 862.31,
+      "to": 865.09,
+      "sid": 378,
+      "location": 2,
+      "content": "普通攻击保留槽位关系",
+      "music": 0.0
+    },
+    {
+      "from": 865.09,
+      "to": 869.23,
+      "sid": 379,
+      "location": 2,
+      "content": "然后尸体就是连这边的选择者就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 869.23,
+      "to": 871.41,
+      "sid": 380,
+      "location": 2,
+      "content": "技能配置i id是这边下落攻击",
+      "music": 0.0
+    },
+    {
+      "from": 871.41,
+      "to": 874.21,
+      "sid": 381,
+      "location": 2,
+      "content": "然后那我们可能需要搭一个高啊",
+      "music": 0.0
+    },
+    {
+      "from": 874.21,
+      "to": 877.79,
+      "sid": 382,
+      "location": 2,
+      "content": "需要搭一个高点试下我们的空中技能",
+      "music": 0.0
+    },
+    {
+      "from": 877.79,
+      "to": 881.78,
+      "sid": 383,
+      "location": 2,
+      "content": "这边的节点图是确定是配置好的",
+      "music": 0.0
+    },
+    {
+      "from": 882.5,
+      "to": 884.64,
+      "sid": 384,
+      "location": 2,
+      "content": "我这边选择选项卡之后啊",
+      "music": 0.0
+    },
+    {
+      "from": 884.64,
+      "to": 888.14,
+      "sid": 385,
+      "location": 2,
+      "content": "我去卡到这个高位上",
+      "music": 0.0
+    },
+    {
+      "from": 889.78,
+      "to": 892.38,
+      "sid": 386,
+      "location": 2,
+      "content": "诶嘿这边我们的下落攻击啊",
+      "music": 0.0
+    },
+    {
+      "from": 892.38,
+      "to": 894.69,
+      "sid": 387,
+      "location": 2,
+      "content": "就可以可以把它完成了",
+      "music": 0.0
+    },
+    {
+      "from": 894.69,
+      "to": 897.22,
+      "sid": 388,
+      "location": 2,
+      "content": "虽然看起来这个效果不是呵呵",
+      "music": 0.0
+    },
+    {
+      "from": 897.22,
+      "to": 898.54,
+      "sid": 389,
+      "location": 2,
+      "content": "这个效果有点有点怪",
+      "music": 0.0
+    },
+    {
+      "from": 898.54,
+      "to": 900.22,
+      "sid": 390,
+      "location": 2,
+      "content": "但是他实际上是有分支的",
+      "music": 0.0
+    },
+    {
+      "from": 900.22,
+      "to": 901.86,
+      "sid": 391,
+      "location": 2,
+      "content": "我们没有在空中的时候",
+      "music": 0.0
+    },
+    {
+      "from": 901.86,
+      "to": 903.37,
+      "sid": 392,
+      "location": 2,
+      "content": "就是正常的普攻是吧",
+      "music": 0.0
+    },
+    {
+      "from": 903.37,
+      "to": 906.25,
+      "sid": 393,
+      "location": 2,
+      "content": "然后如果是在空中放这个普攻的话",
+      "music": 0.0
+    },
+    {
+      "from": 906.25,
+      "to": 907.87,
+      "sid": 394,
+      "location": 2,
+      "content": "就是下落攻击",
+      "music": 0.0
+    },
+    {
+      "from": 908.31,
+      "to": 911.71,
+      "sid": 395,
+      "location": 2,
+      "content": "这边落地分支我们可以把它全部给拉上",
+      "music": 0.0
+    },
+    {
+      "from": 914.76,
+      "to": 917.42,
+      "sid": 396,
+      "location": 2,
+      "content": "哎这个这个就流畅多了呀",
+      "music": 0.0
+    },
+    {
+      "from": 917.42,
+      "to": 918.64,
+      "sid": 397,
+      "location": 2,
+      "content": "是不是流畅多了",
+      "music": 0.0
+    },
+    {
+      "from": 918.64,
+      "to": 921.97,
+      "sid": 398,
+      "location": 2,
+      "content": "刚刚那个刚那个下落攻击的那个条啊",
+      "music": 0.0
+    },
+    {
+      "from": 921.97,
+      "to": 925.569,
+      "sid": 399,
+      "location": 2,
+      "content": "没有拉到开头那一那一段没拉就没那么流畅啊",
+      "music": 0.0
+    },
+    {
+      "from": 925.569,
+      "to": 926.269,
+      "sid": 400,
+      "location": 2,
+      "content": "这个是没有",
+      "music": 0.0
+    },
+    {
+      "from": 926.269,
+      "to": 927.189,
+      "sid": 401,
+      "location": 2,
+      "content": "这个我没有加特效",
+      "music": 0.0
+    },
+    {
+      "from": 927.189,
+      "to": 930.48,
+      "sid": 402,
+      "location": 2,
+      "content": "就是就是这个效果差不多啊",
+      "music": 0.0
+    },
+    {
+      "from": 930.48,
+      "to": 931.52,
+      "sid": 403,
+      "location": 2,
+      "content": "嗯好了",
+      "music": 0.0
+    },
+    {
+      "from": 931.52,
+      "to": 933.44,
+      "sid": 404,
+      "location": 2,
+      "content": "最后呢我们还有一个这个功能",
+      "music": 0.0
+    },
+    {
+      "from": 933.44,
+      "to": 936.15,
+      "sid": 405,
+      "location": 2,
+      "content": "就是我们的也是新版本新增的这一个",
+      "music": 0.0
+    },
+    {
+      "from": 936.15,
+      "to": 937.89,
+      "sid": 406,
+      "location": 2,
+      "content": "物件镜头的这么一个功能",
+      "music": 0.0
+    },
+    {
+      "from": 937.89,
+      "to": 939.15,
+      "sid": 407,
+      "location": 2,
+      "content": "这个物件镜头呢",
+      "music": 0.0
+    },
+    {
+      "from": 939.15,
+      "to": 942.19,
+      "sid": 408,
+      "location": 2,
+      "content": "就是可以让我们的这个镜头跟随我们的物件啊",
+      "music": 0.0
+    },
+    {
+      "from": 942.19,
+      "to": 943.61,
+      "sid": 409,
+      "location": 2,
+      "content": "不再是角色了",
+      "music": 0.0
+    },
+    {
+      "from": 943.61,
+      "to": 945.93,
+      "sid": 410,
+      "location": 2,
+      "content": "在我们这个主镜头管理里面啊",
+      "music": 0.0
+    },
+    {
+      "from": 945.93,
+      "to": 948.55,
+      "sid": 411,
+      "location": 2,
+      "content": "这里有一个镜头类型要改成物件镜头",
+      "music": 0.0
+    },
+    {
+      "from": 948.55,
+      "to": 949.57,
+      "sid": 412,
+      "location": 2,
+      "content": "而不是角色镜头",
+      "music": 0.0
+    },
+    {
+      "from": 949.57,
+      "to": 950.78,
+      "sid": 413,
+      "location": 2,
+      "content": "是物件镜头",
+      "music": 0.0
+    },
+    {
+      "from": 950.78,
+      "to": 952.72,
+      "sid": 414,
+      "location": 2,
+      "content": "然后这里的模式只能选第三人称",
+      "music": 0.0
+    },
+    {
+      "from": 952.72,
+      "to": 956.36,
+      "sid": 415,
+      "location": 2,
+      "content": "然后这里的是跟随物件或者造物啊",
+      "music": 0.0
+    },
+    {
+      "from": 956.36,
+      "to": 960.02,
+      "sid": 416,
+      "location": 2,
+      "content": "这边的详细设置就是可以去配置一些啊",
+      "music": 0.0
+    },
+    {
+      "from": 960.02,
+      "to": 961.2,
+      "sid": 417,
+      "location": 2,
+      "content": "视视距范围呀",
+      "music": 0.0
+    },
+    {
+      "from": 961.2,
+      "to": 963.12,
+      "sid": 418,
+      "location": 2,
+      "content": "然后是水平俯仰角之类的",
+      "music": 0.0
+    },
+    {
+      "from": 963.12,
+      "to": 965.47,
+      "sid": 419,
+      "location": 2,
+      "content": "都是可以自己配置的",
+      "music": 0.0
+    },
+    {
+      "from": 966.2,
+      "to": 968.76,
+      "sid": 420,
+      "location": 2,
+      "content": "我们可以让这个水平角度给它固定住啊",
+      "music": 0.0
+    },
+    {
+      "from": 968.76,
+      "to": 971.24,
+      "sid": 421,
+      "location": 2,
+      "content": "比如说固定在零度这个地方",
+      "music": 0.0
+    },
+    {
+      "from": 971.24,
+      "to": 976.4,
+      "sid": 422,
+      "location": 2,
+      "content": "然后俯仰角也固定住在那个89是吧",
+      "music": 0.0
+    },
+    {
+      "from": 976.4,
+      "to": 977.16,
+      "sid": 423,
+      "location": 2,
+      "content": "这是一个俯视",
+      "music": 0.0
+    },
+    {
+      "from": 977.16,
+      "to": 978.76,
+      "sid": 424,
+      "location": 2,
+      "content": "这是一个俯视的状态嗯",
+      "music": 0.0
+    },
+    {
+      "from": 978.76,
+      "to": 980.4,
+      "sid": 425,
+      "location": 2,
+      "content": "一个俯视的状态",
+      "music": 0.0
+    },
+    {
+      "from": 980.62,
+      "to": 982.42,
+      "sid": 426,
+      "location": 2,
+      "content": "然后这边是一个JT啊",
+      "music": 0.0
+    },
+    {
+      "from": 982.42,
+      "to": 983.06,
+      "sid": 427,
+      "location": 2,
+      "content": "一个JT",
+      "music": 0.0
+    },
+    {
+      "from": 983.06,
+      "to": 984.88,
+      "sid": 428,
+      "location": 2,
+      "content": "然后我们在我们的物件上",
+      "music": 0.0
+    },
+    {
+      "from": 984.88,
+      "to": 986.22,
+      "sid": 429,
+      "location": 2,
+      "content": "就比如说这个元素火炬",
+      "music": 0.0
+    },
+    {
+      "from": 986.22,
+      "to": 988.14,
+      "sid": 430,
+      "location": 2,
+      "content": "在这个物件上添加一个物件",
+      "music": 0.0
+    },
+    {
+      "from": 988.14,
+      "to": 991.18,
+      "sid": 431,
+      "location": 2,
+      "content": "镜头的这个组件来详细编辑一下",
+      "music": 0.0
+    },
+    {
+      "from": 991.18,
+      "to": 995.22,
+      "sid": 432,
+      "location": 2,
+      "content": "这边是可以选择我们的JT的这个固件镜头",
+      "music": 0.0
+    },
+    {
+      "from": 995.22,
+      "to": 996.7,
+      "sid": 433,
+      "location": 2,
+      "content": "然后这边可以改个名字啊",
+      "music": 0.0
+    },
+    {
+      "from": 996.7,
+      "to": 999.4,
+      "sid": 434,
+      "location": 2,
+      "content": "改个名字就叫camera camera",
+      "music": 0.0
+    },
+    {
+      "from": 999.4,
+      "to": 1002.47,
+      "sid": 435,
+      "location": 2,
+      "content": "然后这边我们的进行沙箱里面接电图",
+      "music": 0.0
+    },
+    {
+      "from": 1002.47,
+      "to": 1005.39,
+      "sid": 436,
+      "location": 2,
+      "content": "这里我们要写要写一个啊",
+      "music": 0.0
+    },
+    {
+      "from": 1005.39,
+      "to": 1007.85,
+      "sid": 437,
+      "location": 2,
+      "content": "设置玩家镜头跟随实体",
+      "music": 0.0
+    },
+    {
+      "from": 1007.85,
+      "to": 1009.91,
+      "sid": 438,
+      "location": 2,
+      "content": "在这个镜头这一类里面",
+      "music": 0.0
+    },
+    {
+      "from": 1009.91,
+      "to": 1011.19,
+      "sid": 439,
+      "location": 2,
+      "content": "镜头设置里面有个设置",
+      "music": 0.0
+    },
+    {
+      "from": 1011.19,
+      "to": 1013.68,
+      "sid": 440,
+      "location": 2,
+      "content": "玩家镜头跟随实体这么一个选项",
+      "music": 0.0
+    },
+    {
+      "from": 1013.68,
+      "to": 1017.9,
+      "sid": 441,
+      "location": 2,
+      "content": "然后这边玩家就是就是连我们要操作这个玩家",
+      "music": 0.0
+    },
+    {
+      "from": 1017.9,
+      "to": 1018.62,
+      "sid": 442,
+      "location": 2,
+      "content": "然后跟随实体",
+      "music": 0.0
+    },
+    {
+      "from": 1018.62,
+      "to": 1022.38,
+      "sid": 443,
+      "location": 2,
+      "content": "就是连挂了我们这个镜头的组件的这个实体",
+      "music": 0.0
+    },
+    {
+      "from": 1022.38,
+      "to": 1024.81,
+      "sid": 444,
+      "location": 2,
+      "content": "那这个在这个例子里面呢",
+      "music": 0.0
+    },
+    {
+      "from": 1024.81,
+      "to": 1027.59,
+      "sid": 445,
+      "location": 2,
+      "content": "我们是跟这个选项卡在同一个设计上面的",
+      "music": 0.0
+    },
+    {
+      "from": 1027.59,
+      "to": 1029.43,
+      "sid": 446,
+      "location": 2,
+      "content": "所以就直接点自身就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 1029.43,
+      "to": 1031.11,
+      "sid": 447,
+      "location": 2,
+      "content": "然后镜头模板名称",
+      "music": 0.0
+    },
+    {
+      "from": 1031.11,
+      "to": 1033.21,
+      "sid": 448,
+      "location": 2,
+      "content": "这里是填我们这个地方的名称啊",
+      "music": 0.0
+    },
+    {
+      "from": 1033.21,
+      "to": 1035.19,
+      "sid": 449,
+      "location": 2,
+      "content": "这个这个camera是不是JT啊",
+      "music": 0.0
+    },
+    {
+      "from": 1035.19,
+      "to": 1036.97,
+      "sid": 450,
+      "location": 2,
+      "content": "是camera camera",
+      "music": 0.0
+    },
+    {
+      "from": 1036.97,
+      "to": 1040.62,
+      "sid": 451,
+      "location": 2,
+      "content": "然后要保存一下好",
+      "music": 0.0
+    },
+    {
+      "from": 1040.62,
+      "to": 1041.16,
+      "sid": 452,
+      "location": 2,
+      "content": "这个接线图",
+      "music": 0.0
+    },
+    {
+      "from": 1041.16,
+      "to": 1041.68,
+      "sid": 453,
+      "location": 2,
+      "content": "在这个上面",
+      "music": 0.0
+    },
+    {
+      "from": 1041.68,
+      "to": 1042.76,
+      "sid": 454,
+      "location": 2,
+      "content": "我们可以给大家演示一下",
+      "music": 0.0
+    },
+    {
+      "from": 1042.76,
+      "to": 1045.26,
+      "sid": 455,
+      "location": 2,
+      "content": "这个镜头是怎么一个工作流程",
+      "music": 0.0
+    },
+    {
+      "from": 1045.26,
+      "to": 1049.109,
+      "sid": 456,
+      "location": 2,
+      "content": "就是我们再把这个玩家的镜头",
+      "music": 0.0
+    },
+    {
+      "from": 1049.109,
+      "to": 1051.42,
+      "sid": 457,
+      "location": 2,
+      "content": "切换到物件身上之后啊",
+      "music": 0.0
+    },
+    {
+      "from": 1051.42,
+      "to": 1054.22,
+      "sid": 458,
+      "location": 2,
+      "content": "就是这样子F切完之后",
+      "music": 0.0
+    },
+    {
+      "from": 1054.22,
+      "to": 1056.54,
+      "sid": 459,
+      "location": 2,
+      "content": "这个镜头就可以只跟随这个物件身上了",
+      "music": 0.0
+    },
+    {
+      "from": 1056.54,
+      "to": 1057.78,
+      "sid": 460,
+      "location": 2,
+      "content": "就不用再跟随角色了",
+      "music": 0.0
+    },
+    {
+      "from": 1057.78,
+      "to": 1061.46,
+      "sid": 461,
+      "location": 2,
+      "content": "包括你在这个物件身上放什么基础运动器啊",
+      "music": 0.0
+    },
+    {
+      "from": 1061.46,
+      "to": 1061.7,
+      "sid": 462,
+      "location": 2,
+      "content": "之类的",
+      "music": 0.0
+    },
+    {
+      "from": 1061.7,
+      "to": 1063.32,
+      "sid": 463,
+      "location": 2,
+      "content": "都是可以进行一个跟随的",
+      "music": 0.0
+    },
+    {
+      "from": 1063.32,
+      "to": 1064.62,
+      "sid": 464,
+      "location": 2,
+      "content": "换一个基础运动器",
+      "music": 0.0
+    },
+    {
+      "from": 1064.62,
+      "to": 1066.98,
+      "sid": 465,
+      "location": 2,
+      "content": "然后弄一个定点运动器啊",
+      "music": 0.0
+    },
+    {
+      "from": 1066.98,
+      "to": 1070.369,
+      "sid": 466,
+      "location": 2,
+      "content": "定点运动器就是直接把那个目标点给他弄",
+      "music": 0.0
+    },
+    {
+      "from": 1070.369,
+      "to": 1071.83,
+      "sid": 467,
+      "location": 2,
+      "content": "弄一下吧",
+      "music": 0.0
+    },
+    {
+      "from": 1072.11,
+      "to": 1072.91,
+      "sid": 468,
+      "location": 2,
+      "content": "拖到这里来",
+      "music": 0.0
+    },
+    {
+      "from": 1072.91,
+      "to": 1073.91,
+      "sid": 469,
+      "location": 2,
+      "content": "然后让它转一转",
+      "music": 0.0
+    },
+    {
+      "from": 1073.91,
+      "to": 1075.45,
+      "sid": 470,
+      "location": 2,
+      "content": "一个90度啊",
+      "music": 0.0
+    },
+    {
+      "from": 1075.45,
+      "to": 1076.95,
+      "sid": 471,
+      "location": 2,
+      "content": "转个90度运动系",
+      "music": 0.0
+    },
+    {
+      "from": 1076.95,
+      "to": 1080.14,
+      "sid": 472,
+      "location": 2,
+      "content": "我就叫做啊move move",
+      "music": 0.0
+    },
+    {
+      "from": 1080.14,
+      "to": 1083.14,
+      "sid": 473,
+      "location": 2,
+      "content": "然后这边我们这个选项卡选中时",
+      "music": 0.0
+    },
+    {
+      "from": 1083.14,
+      "to": 1086.66,
+      "sid": 474,
+      "location": 2,
+      "content": "这里的选卡序号给他进行一个多分支处理嗯",
+      "music": 0.0
+    },
+    {
+      "from": 1087.9,
+      "to": 1089.4,
+      "sid": 475,
+      "location": 2,
+      "content": "然后是一和二",
+      "music": 0.0
+    },
+    {
+      "from": 1089.4,
+      "to": 1091.76,
+      "sid": 476,
+      "location": 2,
+      "content": "一就是跟随",
+      "music": 0.0
+    },
+    {
+      "from": 1091.76,
+      "to": 1093.98,
+      "sid": 477,
+      "location": 2,
+      "content": "然后二就是移动",
+      "music": 0.0
+    },
+    {
+      "from": 1095.34,
+      "to": 1097.82,
+      "sid": 478,
+      "location": 2,
+      "content": "好这边是move",
+      "music": 0.0
+    },
+    {
+      "from": 1100.76,
+      "to": 1102.86,
+      "sid": 479,
+      "location": 2,
+      "content": "啊这个运动器和这个镜头都有了",
+      "music": 0.0
+    },
+    {
+      "from": 1102.86,
+      "to": 1106.76,
+      "sid": 480,
+      "location": 2,
+      "content": "我们可以把这个镜头的这个视距范围给他弄",
+      "music": 0.0
+    },
+    {
+      "from": 1106.76,
+      "to": 1107.54,
+      "sid": 481,
+      "location": 2,
+      "content": "弄大一点",
+      "music": 0.0
+    },
+    {
+      "from": 1107.54,
+      "to": 1108.8,
+      "sid": 482,
+      "location": 2,
+      "content": "给弄大一点",
+      "music": 0.0
+    },
+    {
+      "from": 1108.8,
+      "to": 1110.36,
+      "sid": 483,
+      "location": 2,
+      "content": "不用不用这么大吧",
+      "music": 0.0
+    },
+    {
+      "from": 1110.36,
+      "to": 1112.86,
+      "sid": 484,
+      "location": 2,
+      "content": "就差不多这个范围就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 1113.45,
+      "to": 1115.09,
+      "sid": 485,
+      "location": 2,
+      "content": "然后给他加一个选项卡",
+      "music": 0.0
+    },
+    {
+      "from": 1115.09,
+      "to": 1116.95,
+      "sid": 486,
+      "location": 2,
+      "content": "因为我们这里配置了两个选项卡",
+      "music": 0.0
+    },
+    {
+      "from": 1116.95,
+      "to": 1118.31,
+      "sid": 487,
+      "location": 2,
+      "content": "一个是camera",
+      "music": 0.0
+    },
+    {
+      "from": 1118.31,
+      "to": 1120.92,
+      "sid": 488,
+      "location": 2,
+      "content": "第二个是move",
+      "music": 0.0
+    },
+    {
+      "from": 1130.06,
+      "to": 1133.2,
+      "sid": 489,
+      "location": 2,
+      "content": "喂我们先按第一个camera的这个按钮",
+      "music": 0.0
+    },
+    {
+      "from": 1133.2,
+      "to": 1134.82,
+      "sid": 490,
+      "location": 2,
+      "content": "就切换到我们的物件尽头了",
+      "music": 0.0
+    },
+    {
+      "from": 1134.82,
+      "to": 1137.24,
+      "sid": 491,
+      "location": 2,
+      "content": "然后操作这个move诶",
+      "music": 0.0
+    },
+    {
+      "from": 1137.24,
+      "to": 1138.22,
+      "sid": 492,
+      "location": 2,
+      "content": "可以看到我们的镜头",
+      "music": 0.0
+    },
+    {
+      "from": 1138.22,
+      "to": 1139.46,
+      "sid": 493,
+      "location": 2,
+      "content": "跟着这个物件一起动起来了",
+      "music": 0.0
+    },
+    {
+      "from": 1139.46,
+      "to": 1142.19,
+      "sid": 494,
+      "location": 2,
+      "content": "然后旋转也是一直一起转的啊",
+      "music": 0.0
+    },
+    {
+      "from": 1142.55,
+      "to": 1144.24,
+      "sid": 495,
+      "location": 2,
+      "content": "就是这个时间有点慢啊",
+      "music": 0.0
+    },
+    {
+      "from": 1144.24,
+      "to": 1146.06,
+      "sid": 496,
+      "location": 2,
+      "content": "这个是刚运动器里面的一些配置",
+      "music": 0.0
+    },
+    {
+      "from": 1146.06,
+      "to": 1147.36,
+      "sid": 497,
+      "location": 2,
+      "content": "那关于物件镜头这一块呢",
+      "music": 0.0
+    },
+    {
+      "from": 1147.36,
+      "to": 1148.52,
+      "sid": 498,
+      "location": 2,
+      "content": "就给大家演示到这里啊",
+      "music": 0.0
+    },
+    {
+      "from": 1148.52,
+      "to": 1151.42,
+      "sid": 499,
+      "location": 2,
+      "content": "我们这个版本主要就更新了这个UIR",
+      "music": 0.0
+    },
+    {
+      "from": 1151.42,
+      "to": 1152.65,
+      "sid": 500,
+      "location": 2,
+      "content": "然后是技能",
+      "music": 0.0
+    },
+    {
+      "from": 1152.65,
+      "to": 1154.25,
+      "sid": 501,
+      "location": 2,
+      "content": "还有物件镜头这些东西啊",
+      "music": 0.0
+    },
+    {
+      "from": 1154.25,
+      "to": 1155.63,
+      "sid": 502,
+      "location": 2,
+      "content": "还有我们的环境配置",
+      "music": 0.0
+    },
+    {
+      "from": 1155.63,
+      "to": 1157.39,
+      "sid": 503,
+      "location": 2,
+      "content": "这个主要的就是这四点啊",
+      "music": 0.0
+    },
+    {
+      "from": 1157.39,
+      "to": 1160.35,
+      "sid": 504,
+      "location": 2,
+      "content": "已经在这几期视频里面给大家全部介绍完了",
+      "music": 0.0
+    },
+    {
+      "from": 1160.35,
+      "to": 1160.87,
+      "sid": 505,
+      "location": 2,
+      "content": "好的",
+      "music": 0.0
+    },
+    {
+      "from": 1160.87,
+      "to": 1161.87,
+      "sid": 506,
+      "location": 2,
+      "content": "这里是小猪之最",
+      "music": 0.0
+    },
+    {
+      "from": 1161.87,
+      "to": 1162.95,
+      "sid": 507,
+      "location": 2,
+      "content": "我们下一期视频再见",
+      "music": 0.0
+    },
+    {
+      "from": 1162.95,
+      "to": 1163.84,
+      "sid": 508,
+      "location": 2,
+      "content": "大家拜拜",
+      "music": 0.0
+    }
+  ]
+}

@@ -1,0 +1,324 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 1.52,
+      "to": 2.88,
+      "sid": 1,
+      "location": 2,
+      "content": "和大家分享一下",
+      "music": 0.0
+    },
+    {
+      "from": 2.88,
+      "to": 8.709,
+      "sid": 2,
+      "location": 2,
+      "content": "怎么就是写这个先生书的LOALOA的时候",
+      "music": 0.0
+    },
+    {
+      "from": 8.709,
+      "to": 12.36,
+      "sid": 3,
+      "location": 2,
+      "content": "怎么让这个编译器启动它专用的API提示",
+      "music": 0.0
+    },
+    {
+      "from": 12.36,
+      "to": 17.309,
+      "sid": 4,
+      "location": 2,
+      "content": "现在嗯去访问这个全局变量的这个成员",
+      "music": 0.0
+    },
+    {
+      "from": 17.309,
+      "to": 19.489,
+      "sid": 5,
+      "location": 2,
+      "content": "是没有专用提示的",
+      "music": 0.0
+    },
+    {
+      "from": 19.489,
+      "to": 24.24,
+      "sid": 6,
+      "location": 2,
+      "content": "然后这只是这个官方的文档里面",
+      "music": 0.0
+    },
+    {
+      "from": 24.24,
+      "to": 28.12,
+      "sid": 7,
+      "location": 2,
+      "content": "去查他的AHM会比较麻烦",
+      "music": 0.0
+    },
+    {
+      "from": 37.16,
+      "to": 42.56,
+      "sid": 8,
+      "location": 2,
+      "content": "这里这里有官方的这个专用的LUAAPI嗯",
+      "music": 0.0
+    },
+    {
+      "from": 42.56,
+      "to": 46.1,
+      "sid": 9,
+      "location": 2,
+      "content": "然后如果要让编译器去提供",
+      "music": 0.0
+    },
+    {
+      "from": 46.1,
+      "to": 47.94,
+      "sid": 10,
+      "location": 2,
+      "content": "这些专用的提示的话",
+      "music": 0.0
+    },
+    {
+      "from": 47.94,
+      "to": 52.93,
+      "sid": 11,
+      "location": 2,
+      "content": "可以是把他这个元素给复制起来",
+      "music": 0.0
+    },
+    {
+      "from": 55.84,
+      "to": 57.96,
+      "sid": 12,
+      "location": 2,
+      "content": "买个这个吧",
+      "music": 0.0
+    },
+    {
+      "from": 61.8,
+      "to": 64.08,
+      "sid": 13,
+      "location": 2,
+      "content": "然后在桌面随便找个地方",
+      "music": 0.0
+    },
+    {
+      "from": 65.2,
+      "to": 68.08,
+      "sid": 14,
+      "location": 2,
+      "content": "把它保存成一个文本文档",
+      "music": 0.0
+    },
+    {
+      "from": 69.74,
+      "to": 74.66,
+      "sid": 15,
+      "location": 2,
+      "content": "这个是那个XPML",
+      "music": 0.0
+    },
+    {
+      "from": 76.42,
+      "to": 78.78,
+      "sid": 16,
+      "location": 2,
+      "content": "好多的HTML发的这个AI",
+      "music": 0.0
+    },
+    {
+      "from": 78.78,
+      "to": 83.08,
+      "sid": 17,
+      "location": 2,
+      "content": "然后让他这是我用的提示词",
+      "music": 0.0
+    },
+    {
+      "from": 83.08,
+      "to": 85.6,
+      "sid": 18,
+      "location": 2,
+      "content": "让他去写一个这个声明文件",
+      "music": 0.0
+    },
+    {
+      "from": 85.6,
+      "to": 90.0,
+      "sid": 19,
+      "location": 2,
+      "content": "然后呢把他的这个这个文件给下载下来",
+      "music": 0.0
+    },
+    {
+      "from": 90.0,
+      "to": 93.18,
+      "sid": 20,
+      "location": 2,
+      "content": "然后我说我这边已经把它下载下来",
+      "music": 0.0
+    },
+    {
+      "from": 93.18,
+      "to": 98.8,
+      "sid": 21,
+      "location": 2,
+      "content": "就是这个文件把它放置在这个项目",
+      "music": 0.0
+    },
+    {
+      "from": 99.92,
+      "to": 103.88,
+      "sid": 22,
+      "location": 2,
+      "content": "那么我的这个铜这个铜钱位置下",
+      "music": 0.0
+    },
+    {
+      "from": 105.15,
+      "to": 110.27,
+      "sid": 23,
+      "location": 2,
+      "content": "然后现在开编编译器就可以提供这个",
+      "music": 0.0
+    },
+    {
+      "from": 111.55,
+      "to": 116.78,
+      "sid": 24,
+      "location": 2,
+      "content": "专用的都是电能提示了321PL的提示嗯",
+      "music": 0.0
+    },
+    {
+      "from": 116.78,
+      "to": 121.26,
+      "sid": 25,
+      "location": 2,
+      "content": "这就自定义的变量也是可以提供专用提示的",
+      "music": 0.0
+    },
+    {
+      "from": 121.26,
+      "to": 129.07,
+      "sid": 26,
+      "location": 2,
+      "content": "比如说我现在写一个这个UI这个自定义变量",
+      "music": 0.0
+    },
+    {
+      "from": 129.659,
+      "to": 133.59,
+      "sid": 27,
+      "location": 2,
+      "content": "然后先需要声明他的类型",
+      "music": 0.0
+    },
+    {
+      "from": 133.95,
+      "to": 138.21,
+      "sid": 28,
+      "location": 2,
+      "content": "给他声明一层客户端UI被主控件",
+      "music": 0.0
+    },
+    {
+      "from": 138.21,
+      "to": 145.15,
+      "sid": 29,
+      "location": 2,
+      "content": "然后都可以访问他的这个客户端基础控件",
+      "music": 0.0
+    },
+    {
+      "from": 145.15,
+      "to": 147.13,
+      "sid": 30,
+      "location": 2,
+      "content": "这个成为",
+      "music": 0.0
+    },
+    {
+      "from": 149.0,
+      "to": 153.2,
+      "sid": 31,
+      "location": 2,
+      "content": "函数参数也是可以提供专用提示的",
+      "music": 0.0
+    },
+    {
+      "from": 154.32,
+      "to": 157.82,
+      "sid": 32,
+      "location": 2,
+      "content": "这边先声明一个函数",
+      "music": 0.0
+    },
+    {
+      "from": 160.5,
+      "to": 162.78,
+      "sid": 33,
+      "location": 2,
+      "content": "然后还是UI吧",
+      "music": 0.0
+    },
+    {
+      "from": 163.94,
+      "to": 169.94,
+      "sid": 34,
+      "location": 2,
+      "content": "先声明这个函数的类型是用com声明",
+      "music": 0.0
+    },
+    {
+      "from": 169.94,
+      "to": 172.68,
+      "sid": 35,
+      "location": 2,
+      "content": "跟那个自定义变量不太一样",
+      "music": 0.0
+    },
+    {
+      "from": 172.68,
+      "to": 176.23,
+      "sid": 36,
+      "location": 2,
+      "content": "然后就有这个参数",
+      "music": 0.0
+    },
+    {
+      "from": 176.23,
+      "to": 180.8,
+      "sid": 37,
+      "location": 2,
+      "content": "还设定于它为客户端基础控件",
+      "music": 0.0
+    },
+    {
+      "from": 182.36,
+      "to": 185.079,
+      "sid": 38,
+      "location": 2,
+      "content": "然后在这个函数体内",
+      "music": 0.0
+    },
+    {
+      "from": 185.439,
+      "to": 190.68,
+      "sid": 39,
+      "location": 2,
+      "content": "就可以访问这个类型的成员",
+      "music": 0.0
+    }
+  ]
+}

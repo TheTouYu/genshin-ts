@@ -1,0 +1,412 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.14,
+      "to": 3.82,
+      "sid": 1,
+      "location": 2,
+      "content": "新增的客户端控件可以用AI辅助创作奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 3.82,
+      "to": 6.52,
+      "sid": 2,
+      "location": 2,
+      "content": "这些都是用客户端控件实现的",
+      "music": 0.0
+    },
+    {
+      "from": 6.52,
+      "to": 9.44,
+      "sid": 3,
+      "location": 2,
+      "content": "也有很多大佬分享了如何使用",
+      "music": 0.0
+    },
+    {
+      "from": 9.44,
+      "to": 11.56,
+      "sid": 4,
+      "location": 2,
+      "content": "但是没有萌新视角的教程",
+      "music": 0.0
+    },
+    {
+      "from": 11.56,
+      "to": 14.32,
+      "sid": 5,
+      "location": 2,
+      "content": "所以我来弥补一下这个空白",
+      "music": 0.0
+    },
+    {
+      "from": 14.78,
+      "to": 16.34,
+      "sid": 6,
+      "location": 2,
+      "content": "打开深度思考",
+      "music": 0.0
+    },
+    {
+      "from": 16.34,
+      "to": 19.86,
+      "sid": 7,
+      "location": 2,
+      "content": "关键提示词是这个我应该做哪些配置",
+      "music": 0.0
+    },
+    {
+      "from": 19.86,
+      "to": 22.66,
+      "sid": 8,
+      "location": 2,
+      "content": "底下的网址是官方文档",
+      "music": 0.0
+    },
+    {
+      "from": 24.23,
+      "to": 26.25,
+      "sid": 9,
+      "location": 2,
+      "content": "由于官方网页有些特殊",
+      "music": 0.0
+    },
+    {
+      "from": 26.25,
+      "to": 28.39,
+      "sid": 10,
+      "location": 2,
+      "content": "并没有读到什么有用的东西",
+      "music": 0.0
+    },
+    {
+      "from": 28.39,
+      "to": 31.91,
+      "sid": 11,
+      "location": 2,
+      "content": "不过模型在网上查了各种资料",
+      "music": 0.0
+    },
+    {
+      "from": 33.76,
+      "to": 37.08,
+      "sid": 12,
+      "location": 2,
+      "content": "关键是这里由于没有找到官方的API",
+      "music": 0.0
+    },
+    {
+      "from": 37.08,
+      "to": 39.4,
+      "sid": 13,
+      "location": 2,
+      "content": "所以他自己编了一些",
+      "music": 0.0
+    },
+    {
+      "from": 40.16,
+      "to": 43.04,
+      "sid": 14,
+      "location": 2,
+      "content": "这里我们把官方的API文档发给他",
+      "music": 0.0
+    },
+    {
+      "from": 43.04,
+      "to": 47.44,
+      "sid": 15,
+      "location": 2,
+      "content": "这个文档可以在官方群的群文件里找到",
+      "music": 0.0
+    },
+    {
+      "from": 48.77,
+      "to": 51.31,
+      "sid": 16,
+      "location": 2,
+      "content": "大佬已经为你准备了关键道具",
+      "music": 0.0
+    },
+    {
+      "from": 51.31,
+      "to": 53.03,
+      "sid": 17,
+      "location": 2,
+      "content": "经过重新思考后",
+      "music": 0.0
+    },
+    {
+      "from": 53.03,
+      "to": 55.29,
+      "sid": 18,
+      "location": 2,
+      "content": "这个脚本就能用了",
+      "music": 0.0
+    },
+    {
+      "from": 56.34,
+      "to": 59.1,
+      "sid": 19,
+      "location": 2,
+      "content": "根据操作提示进行配置",
+      "music": 0.0
+    },
+    {
+      "from": 80.66,
+      "to": 82.34,
+      "sid": 20,
+      "location": 2,
+      "content": "预设按钮是空白的",
+      "music": 0.0
+    },
+    {
+      "from": 82.34,
+      "to": 84.42,
+      "sid": 21,
+      "location": 2,
+      "content": "需要自行添加",
+      "music": 0.0
+    },
+    {
+      "from": 91.12,
+      "to": 93.64,
+      "sid": 22,
+      "location": 2,
+      "content": "将图片拖到按钮上",
+      "music": 0.0
+    },
+    {
+      "from": 105.12,
+      "to": 106.88,
+      "sid": 23,
+      "location": 2,
+      "content": "脚本的位置",
+      "music": 0.0
+    },
+    {
+      "from": 117.28,
+      "to": 118.56,
+      "sid": 24,
+      "location": 2,
+      "content": "直接粘贴保存",
+      "music": 0.0
+    },
+    {
+      "from": 121.24,
+      "to": 122.92,
+      "sid": 25,
+      "location": 2,
+      "content": "挂载脚本",
+      "music": 0.0
+    },
+    {
+      "from": 129.34,
+      "to": 131.46,
+      "sid": 26,
+      "location": 2,
+      "content": "打开光标强柱",
+      "music": 0.0
+    },
+    {
+      "from": 138.72,
+      "to": 140.96,
+      "sid": 27,
+      "location": 2,
+      "content": "这样最基础的逻辑就跑通了",
+      "music": 0.0
+    },
+    {
+      "from": 140.96,
+      "to": 145.08,
+      "sid": 28,
+      "location": 2,
+      "content": "接下来是进阶制作个简单的贪吃蛇",
+      "music": 0.0
+    },
+    {
+      "from": 151.62,
+      "to": 156.02,
+      "sid": 29,
+      "location": 2,
+      "content": "新建存档根据之前的经验做相关配置",
+      "music": 0.0
+    },
+    {
+      "from": 175.92,
+      "to": 179.38,
+      "sid": 30,
+      "location": 2,
+      "content": "逻辑复杂后就会出现各种各样的问题",
+      "music": 0.0
+    },
+    {
+      "from": 179.38,
+      "to": 182.06,
+      "sid": 31,
+      "location": 2,
+      "content": "比如说这里贪吃蛇不会动",
+      "music": 0.0
+    },
+    {
+      "from": 182.06,
+      "to": 184.01,
+      "sid": 32,
+      "location": 2,
+      "content": "也无法操作",
+      "music": 0.0
+    },
+    {
+      "from": 184.17,
+      "to": 187.77,
+      "sid": 33,
+      "location": 2,
+      "content": "进行询问后给了个诊断脚本",
+      "music": 0.0
+    },
+    {
+      "from": 206.7,
+      "to": 208.82,
+      "sid": 34,
+      "location": 2,
+      "content": "运行后把日志发给AI",
+      "music": 0.0
+    },
+    {
+      "from": 208.82,
+      "to": 210.48,
+      "sid": 35,
+      "location": 2,
+      "content": "然后就会进行优化",
+      "music": 0.0
+    },
+    {
+      "from": 210.48,
+      "to": 212.42,
+      "sid": 36,
+      "location": 2,
+      "content": "接着再测试",
+      "music": 0.0
+    },
+    {
+      "from": 230.22,
+      "to": 231.98,
+      "sid": 37,
+      "location": 2,
+      "content": "这里贪吃蛇可以动了",
+      "music": 0.0
+    },
+    {
+      "from": 231.98,
+      "to": 233.86,
+      "sid": 38,
+      "location": 2,
+      "content": "但是一直检测不到移动",
+      "music": 0.0
+    },
+    {
+      "from": 233.86,
+      "to": 235.24,
+      "sid": 39,
+      "location": 2,
+      "content": "所以切换了思路",
+      "music": 0.0
+    },
+    {
+      "from": 235.24,
+      "to": 237.74,
+      "sid": 40,
+      "location": 2,
+      "content": "用按钮实现改变方向",
+      "music": 0.0
+    },
+    {
+      "from": 256.74,
+      "to": 261.82,
+      "sid": 41,
+      "location": 2,
+      "content": "最后配置完成就是这样添加一个背景",
+      "music": 0.0
+    },
+    {
+      "from": 273.88,
+      "to": 275.52,
+      "sid": 42,
+      "location": 2,
+      "content": "额虽然怪怪的",
+      "music": 0.0
+    },
+    {
+      "from": 275.52,
+      "to": 278.52,
+      "sid": 43,
+      "location": 2,
+      "content": "但是动画跟逻辑都完美运行了",
+      "music": 0.0
+    },
+    {
+      "from": 280.96,
+      "to": 282.5,
+      "sid": 44,
+      "location": 2,
+      "content": "所谓万事开头难",
+      "music": 0.0
+    },
+    {
+      "from": 282.5,
+      "to": 284.32,
+      "sid": 45,
+      "location": 2,
+      "content": "相信大家跑通逻辑后",
+      "music": 0.0
+    },
+    {
+      "from": 284.32,
+      "to": 287.21,
+      "sid": 46,
+      "location": 2,
+      "content": "都能利用AI制作出自己的妙妙奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 287.21,
+      "to": 288.85,
+      "sid": 47,
+      "location": 2,
+      "content": "最后有任何疑问",
+      "music": 0.0
+    },
+    {
+      "from": 288.85,
+      "to": 289.73,
+      "sid": 48,
+      "location": 2,
+      "content": "或许有想实现的功能",
+      "music": 0.0
+    },
+    {
+      "from": 289.73,
+      "to": 290.57,
+      "sid": 49,
+      "location": 2,
+      "content": "欢迎在评论区留言",
+      "music": 0.0
+    },
+    {
+      "from": 290.57,
+      "to": 291.4,
+      "sid": 50,
+      "location": 2,
+      "content": "我会单独出教程",
+      "music": 0.0
+    }
+  ]
+}

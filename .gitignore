@@ -82,3 +82,6 @@ ui/src/**/*.js.map
 .scratch/rubik-game/patch-*.diff
 # gsts CLI 运行时落盘的警告临时目录
 .scratch/tmp/
+
+# B站学习音频（ASR 原料，不入库；转写 md 入库）
+research/**/*.m4a

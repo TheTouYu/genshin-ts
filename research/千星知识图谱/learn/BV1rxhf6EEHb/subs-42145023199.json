@@ -1,0 +1,340 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.52,
+      "to": 1.58,
+      "sid": 1,
+      "location": 2,
+      "content": "大家好呀",
+      "music": 0.0
+    },
+    {
+      "from": 1.58,
+      "to": 2.6,
+      "sid": 2,
+      "location": 2,
+      "content": "天心奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 2.6,
+      "to": 6.71,
+      "sid": 3,
+      "location": 2,
+      "content": "7.1版本更新了2D加LUA编程的功能",
+      "music": 0.0
+    },
+    {
+      "from": 6.71,
+      "to": 10.45,
+      "sid": 4,
+      "location": 2,
+      "content": "视频中所展示的就是我的奇遇执念程序",
+      "music": 0.0
+    },
+    {
+      "from": 10.45,
+      "to": 15.65,
+      "sid": 5,
+      "location": 2,
+      "content": "这个奇遇完全是通过我的AI工具所制作出来的",
+      "music": 0.0
+    },
+    {
+      "from": 16.53,
+      "to": 19.67,
+      "sid": 6,
+      "location": 2,
+      "content": "这就是我的AI工具天星沙箱模拟器",
+      "music": 0.0
+    },
+    {
+      "from": 19.67,
+      "to": 23.7,
+      "sid": 7,
+      "location": 2,
+      "content": "它可以让AI直接试玩",
+      "music": 0.0
+    },
+    {
+      "from": 23.7,
+      "to": 27.1,
+      "sid": 8,
+      "location": 2,
+      "content": "他说游玩的程序不需要再打开",
+      "music": 0.0
+    },
+    {
+      "from": 27.1,
+      "to": 28.21,
+      "sid": 9,
+      "location": 2,
+      "content": "轻轻刷虾了",
+      "music": 0.0
+    },
+    {
+      "from": 28.21,
+      "to": 31.07,
+      "sid": 10,
+      "location": 2,
+      "content": "你也可以直接看到它的显示效果",
+      "music": 0.0
+    },
+    {
+      "from": 31.07,
+      "to": 35.29,
+      "sid": 11,
+      "location": 2,
+      "content": "以及验证它的逻辑是否是正常的",
+      "music": 0.0
+    },
+    {
+      "from": 35.61,
+      "to": 36.85,
+      "sid": 12,
+      "location": 2,
+      "content": "有了这个工具",
+      "music": 0.0
+    },
+    {
+      "from": 36.85,
+      "to": 39.53,
+      "sid": 13,
+      "location": 2,
+      "content": "相信大家可以很快的把奇遇",
+      "music": 0.0
+    },
+    {
+      "from": 39.53,
+      "to": 42.49,
+      "sid": 14,
+      "location": 2,
+      "content": "从零做到及格线的水平",
+      "music": 0.0
+    },
+    {
+      "from": 42.92,
+      "to": 46.62,
+      "sid": 15,
+      "location": 2,
+      "content": "他这里还附带了我的一个A卷的工作流",
+      "music": 0.0
+    },
+    {
+      "from": 46.62,
+      "to": 50.68,
+      "sid": 16,
+      "location": 2,
+      "content": "包含了从策划案编排到美术资源获取",
+      "music": 0.0
+    },
+    {
+      "from": 50.68,
+      "to": 55.67,
+      "sid": 17,
+      "location": 2,
+      "content": "以及生成导入的资产这些步骤",
+      "music": 0.0
+    },
+    {
+      "from": 57.64,
+      "to": 60.36,
+      "sid": 18,
+      "location": 2,
+      "content": "因为我也拿不到米哈游官方的源码",
+      "music": 0.0
+    },
+    {
+      "from": 60.36,
+      "to": 63.76,
+      "sid": 19,
+      "location": 2,
+      "content": "所以这个模拟器有很多的行为是推测的",
+      "music": 0.0
+    },
+    {
+      "from": 63.76,
+      "to": 66.24,
+      "sid": 20,
+      "location": 2,
+      "content": "和官方的实际行为有出入",
+      "music": 0.0
+    },
+    {
+      "from": 66.24,
+      "to": 68.6,
+      "sid": 21,
+      "location": 2,
+      "content": "大家等到最后交付阶段",
+      "music": 0.0
+    },
+    {
+      "from": 68.6,
+      "to": 71.36,
+      "sid": 22,
+      "location": 2,
+      "content": "还需要和甄姬去比对一下",
+      "music": 0.0
+    },
+    {
+      "from": 71.77,
+      "to": 74.01,
+      "sid": 23,
+      "location": 2,
+      "content": "在界面控件组上的模拟器",
+      "music": 0.0
+    },
+    {
+      "from": 74.01,
+      "to": 77.17,
+      "sid": 24,
+      "location": 2,
+      "content": "也有和UI编辑所匹配的功能",
+      "music": 0.0
+    },
+    {
+      "from": 77.17,
+      "to": 80.19,
+      "sid": 25,
+      "location": 2,
+      "content": "大家可以直接查看对应的效果",
+      "music": 0.0
+    },
+    {
+      "from": 80.19,
+      "to": 82.51,
+      "sid": 26,
+      "location": 2,
+      "content": "以及在右上角导出资产包",
+      "music": 0.0
+    },
+    {
+      "from": 82.51,
+      "to": 84.01,
+      "sid": 27,
+      "location": 2,
+      "content": "卷A转投包之后",
+      "music": 0.0
+    },
+    {
+      "from": 84.01,
+      "to": 87.96,
+      "sid": 28,
+      "location": 2,
+      "content": "在沙箱里转存就可以了",
+      "music": 0.0
+    },
+    {
+      "from": 87.96,
+      "to": 92.92,
+      "sid": 29,
+      "location": 2,
+      "content": "这个模拟器已经开源到这个仓库里边了",
+      "music": 0.0
+    },
+    {
+      "from": 92.92,
+      "to": 96.86,
+      "sid": 30,
+      "location": 2,
+      "content": "大家可以通过dev c pages插件直接安装使用",
+      "music": 0.0
+    },
+    {
+      "from": 96.86,
+      "to": 99.949,
+      "sid": 31,
+      "location": 2,
+      "content": "以及支持web洋CP等方式",
+      "music": 0.0
+    },
+    {
+      "from": 99.949,
+      "to": 103.89,
+      "sid": 32,
+      "location": 2,
+      "content": "也就是说可以导入到codex等其他工具里",
+      "music": 0.0
+    },
+    {
+      "from": 104.49,
+      "to": 108.05,
+      "sid": 33,
+      "location": 2,
+      "content": "这个大家呃让AI去读我的插件就好了",
+      "music": 0.0
+    },
+    {
+      "from": 108.05,
+      "to": 111.02,
+      "sid": 34,
+      "location": 2,
+      "content": "另外由于规划原因",
+      "music": 0.0
+    },
+    {
+      "from": 111.02,
+      "to": 112.66,
+      "sid": 35,
+      "location": 2,
+      "content": "迁移提取工具箱的知识库",
+      "music": 0.0
+    },
+    {
+      "from": 112.66,
+      "to": 113.8,
+      "sid": 36,
+      "location": 2,
+      "content": "问答功能呢",
+      "music": 0.0
+    },
+    {
+      "from": 113.8,
+      "to": 118.45,
+      "sid": 37,
+      "location": 2,
+      "content": "就不会再重复的支持LUA相关的问答了",
+      "music": 0.0
+    },
+    {
+      "from": 119.45,
+      "to": 123.17,
+      "sid": 38,
+      "location": 2,
+      "content": "大家可以以后只问与实体相关的内容",
+      "music": 0.0
+    },
+    {
+      "from": 123.17,
+      "to": 124.49,
+      "sid": 39,
+      "location": 2,
+      "content": "具体更多信息呢",
+      "music": 0.0
+    },
+    {
+      "from": 124.49,
+      "to": 126.89,
+      "sid": 40,
+      "location": 2,
+      "content": "我会在后续出更多的实用指南",
+      "music": 0.0
+    },
+    {
+      "from": 126.89,
+      "to": 129.699,
+      "sid": 41,
+      "location": 2,
+      "content": "来指导大家如何的去使用这些工具",
+      "music": 0.0
+    }
+  ]
+}

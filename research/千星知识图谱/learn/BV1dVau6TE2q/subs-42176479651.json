@@ -1,0 +1,372 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.04,
+      "to": 0.88,
+      "sid": 1,
+      "location": 2,
+      "content": "大家好",
+      "music": 0.0
+    },
+    {
+      "from": 0.88,
+      "to": 3.809,
+      "sid": 2,
+      "location": 2,
+      "content": "刚刚更新的原神7.1版本",
+      "music": 0.0
+    },
+    {
+      "from": 3.809,
+      "to": 8.09,
+      "sid": 3,
+      "location": 2,
+      "content": "官方在千星奇遇编辑上引入了针对2D部分",
+      "music": 0.0
+    },
+    {
+      "from": 8.09,
+      "to": 11.67,
+      "sid": 4,
+      "location": 2,
+      "content": "主要是UI的客户端脚本开发模式",
+      "music": 0.0
+    },
+    {
+      "from": 11.67,
+      "to": 15.65,
+      "sid": 5,
+      "location": 2,
+      "content": "也就是通过LUA脚本可以与节点图交互",
+      "music": 0.0
+    },
+    {
+      "from": 15.65,
+      "to": 17.39,
+      "sid": 6,
+      "location": 2,
+      "content": "或单独发挥作用",
+      "music": 0.0
+    },
+    {
+      "from": 17.39,
+      "to": 21.36,
+      "sid": 7,
+      "location": 2,
+      "content": "但我们也知道LUA语言是弱类型的脚本语言",
+      "music": 0.0
+    },
+    {
+      "from": 21.36,
+      "to": 25.94,
+      "sid": 8,
+      "location": 2,
+      "content": "虽然我们看官方在文档里对各个变量类和方法",
+      "music": 0.0
+    },
+    {
+      "from": 25.94,
+      "to": 28.21,
+      "sid": 9,
+      "location": 2,
+      "content": "都做了非常详尽的描述",
+      "music": 0.0
+    },
+    {
+      "from": 28.21,
+      "to": 31.73,
+      "sid": 10,
+      "location": 2,
+      "content": "但有IDE的智能代码提示与补全",
+      "music": 0.0
+    },
+    {
+      "from": 31.73,
+      "to": 33.55,
+      "sid": 11,
+      "location": 2,
+      "content": "肯定还是最方便的",
+      "music": 0.0
+    },
+    {
+      "from": 33.55,
+      "to": 38.53,
+      "sid": 12,
+      "location": 2,
+      "content": "于是我根据官方的API文档保留注释和类型信息",
+      "music": 0.0
+    },
+    {
+      "from": 38.53,
+      "to": 40.73,
+      "sid": 13,
+      "location": 2,
+      "content": "写了这个类型注解文件",
+      "music": 0.0
+    },
+    {
+      "from": 40.73,
+      "to": 44.57,
+      "sid": 14,
+      "location": 2,
+      "content": "希望能为各位棋将再创造奇遇的过程",
+      "music": 0.0
+    },
+    {
+      "from": 44.57,
+      "to": 47.01,
+      "sid": 15,
+      "location": 2,
+      "content": "有更行云流水的编码体验",
+      "music": 0.0
+    },
+    {
+      "from": 47.01,
+      "to": 49.35,
+      "sid": 16,
+      "location": 2,
+      "content": "在项目的GITHUB仓库里",
+      "music": 0.0
+    },
+    {
+      "from": 49.35,
+      "to": 52.63,
+      "sid": 17,
+      "location": 2,
+      "content": "我对基本用法做了比较详尽的说明",
+      "music": 0.0
+    },
+    {
+      "from": 52.63,
+      "to": 54.05,
+      "sid": 18,
+      "location": 2,
+      "content": "在如何使用上",
+      "music": 0.0
+    },
+    {
+      "from": 54.05,
+      "to": 56.87,
+      "sid": 19,
+      "location": 2,
+      "content": "我比较推荐将类型注解文件",
+      "music": 0.0
+    },
+    {
+      "from": 56.87,
+      "to": 60.7,
+      "sid": 20,
+      "location": 2,
+      "content": "也就是这个咦DLUA结尾的文件",
+      "music": 0.0
+    },
+    {
+      "from": 60.7,
+      "to": 64.259,
+      "sid": 21,
+      "location": 2,
+      "content": "放在你的其余的脚本文件夹的根目录里",
+      "music": 0.0
+    },
+    {
+      "from": 64.259,
+      "to": 69.099,
+      "sid": 22,
+      "location": 2,
+      "content": "那么现在我们打开vs code来实际演示一下",
+      "music": 0.0
+    },
+    {
+      "from": 69.48,
+      "to": 73.36,
+      "sid": 23,
+      "location": 2,
+      "content": "我们首先要准备好类型注解文件",
+      "music": 0.0
+    },
+    {
+      "from": 78.7,
+      "to": 80.24,
+      "sid": 24,
+      "location": 2,
+      "content": "你可以直接下载",
+      "music": 0.0
+    },
+    {
+      "from": 80.24,
+      "to": 82.58,
+      "sid": 25,
+      "location": 2,
+      "content": "也可以克隆仓库",
+      "music": 0.0
+    },
+    {
+      "from": 86.5,
+      "to": 90.95,
+      "sid": 26,
+      "location": 2,
+      "content": "然后我们需要先下载LUA语言的插件",
+      "music": 0.0
+    },
+    {
+      "from": 90.95,
+      "to": 93.97,
+      "sid": 27,
+      "location": 2,
+      "content": "注意插件的发布者不要下载错了",
+      "music": 0.0
+    },
+    {
+      "from": 93.97,
+      "to": 97.37,
+      "sid": 28,
+      "location": 2,
+      "content": "插件下载完成后就可以打开文件夹了",
+      "music": 0.0
+    },
+    {
+      "from": 97.37,
+      "to": 100.99,
+      "sid": 29,
+      "location": 2,
+      "content": "即打开奇遇脚本文件夹",
+      "music": 0.0
+    },
+    {
+      "from": 101.23,
+      "to": 105.09,
+      "sid": 30,
+      "location": 2,
+      "content": "打开之后把我们的类型注解文件放进去",
+      "music": 0.0
+    },
+    {
+      "from": 105.09,
+      "to": 108.639,
+      "sid": 31,
+      "location": 2,
+      "content": "插件提供的语言服务器会自动解析",
+      "music": 0.0
+    },
+    {
+      "from": 108.639,
+      "to": 111.219,
+      "sid": 32,
+      "location": 2,
+      "content": "并为你提供类型注解功能了",
+      "music": 0.0
+    },
+    {
+      "from": 111.219,
+      "to": 114.38,
+      "sid": 33,
+      "location": 2,
+      "content": "这里我事先写了一个简单的脚本",
+      "music": 0.0
+    },
+    {
+      "from": 114.38,
+      "to": 115.64,
+      "sid": 34,
+      "location": 2,
+      "content": "我们可以看到",
+      "music": 0.0
+    },
+    {
+      "from": 115.64,
+      "to": 116.98,
+      "sid": 35,
+      "location": 2,
+      "content": "当我们赋值变量",
+      "music": 0.0
+    },
+    {
+      "from": 116.98,
+      "to": 120.29,
+      "sid": 36,
+      "location": 2,
+      "content": "调用方法都能得到比较明确的类型",
+      "music": 0.0
+    },
+    {
+      "from": 120.29,
+      "to": 123.93,
+      "sid": 37,
+      "location": 2,
+      "content": "提示了官方在文档中标记的any类型",
+      "music": 0.0
+    },
+    {
+      "from": 123.93,
+      "to": 126.8,
+      "sid": 38,
+      "location": 2,
+      "content": "比如script的get paralt方法",
+      "music": 0.0
+    },
+    {
+      "from": 126.8,
+      "to": 130.0,
+      "sid": 39,
+      "location": 2,
+      "content": "就不会有明确的类型提示",
+      "music": 0.0
+    },
+    {
+      "from": 130.5,
+      "to": 136.18,
+      "sid": 40,
+      "location": 2,
+      "content": "点调用和冒号引调用都可以在候选框中选择",
+      "music": 0.0
+    },
+    {
+      "from": 145.84,
+      "to": 149.88,
+      "sid": 41,
+      "location": 2,
+      "content": "并且每个方法的作用也都有提示",
+      "music": 0.0
+    },
+    {
+      "from": 159.44,
+      "to": 161.399,
+      "sid": 42,
+      "location": 2,
+      "content": "好了演示就到这里",
+      "music": 0.0
+    },
+    {
+      "from": 161.399,
+      "to": 164.719,
+      "sid": 43,
+      "location": 2,
+      "content": "剩下的还期待各位棋将自行体验",
+      "music": 0.0
+    },
+    {
+      "from": 164.719,
+      "to": 168.29,
+      "sid": 44,
+      "location": 2,
+      "content": "如果觉得这个仓库给你带来了一些帮助",
+      "music": 0.0
+    },
+    {
+      "from": 168.29,
+      "to": 170.7,
+      "sid": 45,
+      "location": 2,
+      "content": "还希望可以给他点一个star",
+      "music": 0.0
+    }
+  ]
+}

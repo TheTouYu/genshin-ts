@@ -1,0 +1,388 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.04,
+      "to": 1.46,
+      "sid": 1,
+      "location": 2,
+      "content": "亲爱的观众朋友们",
+      "music": 0.0
+    },
+    {
+      "from": 1.46,
+      "to": 2.72,
+      "sid": 2,
+      "location": 2,
+      "content": "大家好呀",
+      "music": 0.0
+    },
+    {
+      "from": 2.72,
+      "to": 3.94,
+      "sid": 3,
+      "location": 2,
+      "content": "众所周知",
+      "music": 0.0
+    },
+    {
+      "from": 3.94,
+      "to": 7.05,
+      "sid": 4,
+      "location": 2,
+      "content": "千心奇遇7.1版本迎来重磅更新",
+      "music": 0.0
+    },
+    {
+      "from": 7.05,
+      "to": 9.13,
+      "sid": 5,
+      "location": 2,
+      "content": "新增客户端控件容器",
+      "music": 0.0
+    },
+    {
+      "from": 9.13,
+      "to": 12.11,
+      "sid": 6,
+      "location": 2,
+      "content": "还继续在客户端内用LUA脚本开发",
+      "music": 0.0
+    },
+    {
+      "from": 12.11,
+      "to": 15.08,
+      "sid": 7,
+      "location": 2,
+      "content": "很荣幸我拿到了7.1测试服资格",
+      "music": 0.0
+    },
+    {
+      "from": 15.08,
+      "to": 19.0,
+      "sid": 8,
+      "location": 2,
+      "content": "并且基于新功能优化重启了你画我猜经典版",
+      "music": 0.0
+    },
+    {
+      "from": 19.0,
+      "to": 22.46,
+      "sid": 9,
+      "location": 2,
+      "content": "接下来给大家简单演示一下画笔手感",
+      "music": 0.0
+    },
+    {
+      "from": 22.46,
+      "to": 25.1,
+      "sid": 10,
+      "location": 2,
+      "content": "迎来了前所未有的流畅度与自由度",
+      "music": 0.0
+    },
+    {
+      "from": 25.1,
+      "to": 27.04,
+      "sid": 11,
+      "location": 2,
+      "content": "落笔线条丝滑连贯",
+      "music": 0.0
+    },
+    {
+      "from": 27.04,
+      "to": 29.2,
+      "sid": 12,
+      "location": 2,
+      "content": "新增五档粗细调节功能",
+      "music": 0.0
+    },
+    {
+      "from": 29.2,
+      "to": 31.34,
+      "sid": 13,
+      "location": 2,
+      "content": "可用来修改笔迹粗细形状",
+      "music": 0.0
+    },
+    {
+      "from": 31.34,
+      "to": 34.54,
+      "sid": 14,
+      "location": 2,
+      "content": "线条粗细以及橡皮擦尺寸形状模式",
+      "music": 0.0
+    },
+    {
+      "from": 34.54,
+      "to": 38.209,
+      "sid": 15,
+      "location": 2,
+      "content": "新增妥协模型区分机前的椭圆模型",
+      "music": 0.0
+    },
+    {
+      "from": 38.209,
+      "to": 40.35,
+      "sid": 16,
+      "location": 2,
+      "content": "可绘制椭圆线框",
+      "music": 0.0
+    },
+    {
+      "from": 40.35,
+      "to": 43.07,
+      "sid": 17,
+      "location": 2,
+      "content": "椭圆模式改为汇聚实心椭圆",
+      "music": 0.0
+    },
+    {
+      "from": 43.07,
+      "to": 45.95,
+      "sid": 18,
+      "location": 2,
+      "content": "优化了极限与椭圆模式的表现",
+      "music": 0.0
+    },
+    {
+      "from": 45.95,
+      "to": 47.51,
+      "sid": 19,
+      "location": 2,
+      "content": "形状线段完整",
+      "music": 0.0
+    },
+    {
+      "from": 47.51,
+      "to": 48.23,
+      "sid": 20,
+      "location": 2,
+      "content": "连续拖拽",
+      "music": 0.0
+    },
+    {
+      "from": 48.23,
+      "to": 49.15,
+      "sid": 21,
+      "location": 2,
+      "content": "手感丝滑",
+      "music": 0.0
+    },
+    {
+      "from": 49.15,
+      "to": 51.51,
+      "sid": 22,
+      "location": 2,
+      "content": "真正做到预览所见即所得",
+      "music": 0.0
+    },
+    {
+      "from": 51.51,
+      "to": 53.83,
+      "sid": 23,
+      "location": 2,
+      "content": "同时大幅提升了笔墨上限",
+      "music": 0.0
+    },
+    {
+      "from": 53.83,
+      "to": 55.89,
+      "sid": 24,
+      "location": 2,
+      "content": "御强作画几乎用不完",
+      "music": 0.0
+    },
+    {
+      "from": 55.89,
+      "to": 59.31,
+      "sid": 25,
+      "location": 2,
+      "content": "想画精细内容再也不会被笔墨余量限制",
+      "music": 0.0
+    },
+    {
+      "from": 59.31,
+      "to": 61.67,
+      "sid": 26,
+      "location": 2,
+      "content": "修复了此前部分设备上取色版",
+      "music": 0.0
+    },
+    {
+      "from": 61.67,
+      "to": 64.74,
+      "sid": 27,
+      "location": 2,
+      "content": "实际取色与选景预览颜色不符的问题",
+      "music": 0.0
+    },
+    {
+      "from": 64.74,
+      "to": 67.58,
+      "sid": 28,
+      "location": 2,
+      "content": "现在取色版可完美适配所有设备",
+      "music": 0.0
+    },
+    {
+      "from": 67.58,
+      "to": 69.96,
+      "sid": 29,
+      "location": 2,
+      "content": "新增画布缩放与移动功能",
+      "music": 0.0
+    },
+    {
+      "from": 69.96,
+      "to": 73.06,
+      "sid": 30,
+      "location": 2,
+      "content": "触屏设备可通过双指胶合缩放画布",
+      "music": 0.0
+    },
+    {
+      "from": 73.06,
+      "to": 75.32,
+      "sid": 31,
+      "location": 2,
+      "content": "双指拖拽即可平移画布",
+      "music": 0.0
+    },
+    {
+      "from": 77.6,
+      "to": 78.98,
+      "sid": 32,
+      "location": 2,
+      "content": "鼠标滚轮接口",
+      "music": 0.0
+    },
+    {
+      "from": 78.98,
+      "to": 82.0,
+      "sid": 33,
+      "location": 2,
+      "content": "目前仅能通过拖拽屏幕中下边缘的滑条",
+      "music": 0.0
+    },
+    {
+      "from": 82.0,
+      "to": 83.2,
+      "sid": 34,
+      "location": 2,
+      "content": "来缩放画布",
+      "music": 0.0
+    },
+    {
+      "from": 83.2,
+      "to": 86.2,
+      "sid": 35,
+      "location": 2,
+      "content": "按住鼠标右键拖拽即可平移画布",
+      "music": 0.0
+    },
+    {
+      "from": 86.2,
+      "to": 87.08,
+      "sid": 36,
+      "location": 2,
+      "content": "撤回按钮",
+      "music": 0.0
+    },
+    {
+      "from": 87.08,
+      "to": 89.18,
+      "sid": 37,
+      "location": 2,
+      "content": "完成优化及其十步以内",
+      "music": 0.0
+    },
+    {
+      "from": 89.18,
+      "to": 90.96,
+      "sid": 38,
+      "location": 2,
+      "content": "除清空画布外的任意操作",
+      "music": 0.0
+    },
+    {
+      "from": 90.96,
+      "to": 92.97,
+      "sid": 39,
+      "location": 2,
+      "content": "撤回清空画布后",
+      "music": 0.0
+    },
+    {
+      "from": 92.97,
+      "to": 95.3,
+      "sid": 40,
+      "location": 2,
+      "content": "残留笔迹的bug也已完美修复",
+      "music": 0.0
+    },
+    {
+      "from": 95.3,
+      "to": 98.1,
+      "sid": 41,
+      "location": 2,
+      "content": "相信全新版本的你画我猜经典版",
+      "music": 0.0
+    },
+    {
+      "from": 98.1,
+      "to": 101.4,
+      "sid": 42,
+      "location": 2,
+      "content": "终于可以让各位小伙伴方便又自由的作画",
+      "music": 0.0
+    },
+    {
+      "from": 101.4,
+      "to": 102.84,
+      "sid": 43,
+      "location": 2,
+      "content": "尽情发挥创意",
+      "music": 0.0
+    },
+    {
+      "from": 102.84,
+      "to": 105.1,
+      "sid": 44,
+      "location": 2,
+      "content": "画出自己想象中的题目内容",
+      "music": 0.0
+    },
+    {
+      "from": 105.1,
+      "to": 106.98,
+      "sid": 45,
+      "location": 2,
+      "content": "欢迎各位小伙伴来玩",
+      "music": 0.0
+    },
+    {
+      "from": 106.98,
+      "to": 108.24,
+      "sid": 46,
+      "location": 2,
+      "content": "感谢大家",
+      "music": 0.0
+    },
+    {
+      "from": 108.24,
+      "to": 111.0,
+      "sid": 47,
+      "location": 2,
+      "content": "祝你有个美好的一天再见",
+      "music": 0.0
+    }
+  ]
+}

@@ -1,0 +1,756 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0.04,
+      "to": 1.92,
+      "sid": 1,
+      "location": 2,
+      "content": "哇那这个新版本之后",
+      "music": 0.0
+    },
+    {
+      "from": 1.92,
+      "to": 3.68,
+      "sid": 2,
+      "location": 2,
+      "content": "这个新版本之后",
+      "music": 0.0
+    },
+    {
+      "from": 3.68,
+      "to": 6.189,
+      "sid": 3,
+      "location": 2,
+      "content": "这个千心奇遇就完全可以",
+      "music": 0.0
+    },
+    {
+      "from": 6.214,
+      "to": 9.549,
+      "sid": 4,
+      "location": 2,
+      "content": "新版本的潜行骑士可以量产所有的游戏了呀",
+      "music": 0.0
+    },
+    {
+      "from": 9.549,
+      "to": 11.389,
+      "sid": 5,
+      "location": 2,
+      "content": "这好家伙",
+      "music": 0.0
+    },
+    {
+      "from": 11.389,
+      "to": 14.88,
+      "sid": 6,
+      "location": 2,
+      "content": "这这要放以前的那个奇遇里面",
+      "music": 0.0
+    },
+    {
+      "from": 14.88,
+      "to": 19.86,
+      "sid": 7,
+      "location": 2,
+      "content": "你这个用框图来做特别的慢的提瓦特连连看",
+      "music": 0.0
+    },
+    {
+      "from": 19.86,
+      "to": 24.199,
+      "sid": 8,
+      "location": 2,
+      "content": "这个是难道坏了",
+      "music": 0.0
+    },
+    {
+      "from": 24.199,
+      "to": 27.54,
+      "sid": 9,
+      "location": 2,
+      "content": "还真是还真是",
+      "music": 0.0
+    },
+    {
+      "from": 29.82,
+      "to": 31.66,
+      "sid": 10,
+      "location": 2,
+      "content": "来吧看看吧",
+      "music": 0.0
+    },
+    {
+      "from": 33.52,
+      "to": 34.76,
+      "sid": 11,
+      "location": 2,
+      "content": "短信还是打电话",
+      "music": 0.0
+    },
+    {
+      "from": 34.76,
+      "to": 37.16,
+      "sid": 12,
+      "location": 2,
+      "content": "一般来讲都是那个一般来讲都是那个",
+      "music": 0.0
+    },
+    {
+      "from": 37.16,
+      "to": 38.98,
+      "sid": 13,
+      "location": 2,
+      "content": "短信或者电话吧",
+      "music": 0.0
+    },
+    {
+      "from": 38.98,
+      "to": 40.74,
+      "sid": 14,
+      "location": 2,
+      "content": "说了跟没说一样",
+      "music": 0.0
+    },
+    {
+      "from": 40.74,
+      "to": 45.23,
+      "sid": 15,
+      "location": 2,
+      "content": "这个难道就是那个这流畅的速度",
+      "music": 0.0
+    },
+    {
+      "from": 46.55,
+      "to": 48.21,
+      "sid": 16,
+      "location": 2,
+      "content": "这个流畅的响应",
+      "music": 0.0
+    },
+    {
+      "from": 48.21,
+      "to": 50.07,
+      "sid": 17,
+      "location": 2,
+      "content": "这个超快的反应速度",
+      "music": 0.0
+    },
+    {
+      "from": 50.07,
+      "to": 52.31,
+      "sid": 18,
+      "location": 2,
+      "content": "这个就是本地客户端的游戏吧",
+      "music": 0.0
+    },
+    {
+      "from": 52.74,
+      "to": 58.22,
+      "sid": 19,
+      "location": 2,
+      "content": "唉这不会真有人还要教这个对",
+      "music": 0.0
+    },
+    {
+      "from": 61.08,
+      "to": 64.16,
+      "sid": 20,
+      "location": 2,
+      "content": "这个流畅的",
+      "music": 0.0
+    },
+    {
+      "from": 67.24,
+      "to": 69.5,
+      "sid": 21,
+      "location": 2,
+      "content": "对这个这个速度这还用说吗",
+      "music": 0.0
+    },
+    {
+      "from": 69.5,
+      "to": 71.4,
+      "sid": 22,
+      "location": 2,
+      "content": "剩余时间",
+      "music": 0.0
+    },
+    {
+      "from": 72.88,
+      "to": 74.58,
+      "sid": 23,
+      "location": 2,
+      "content": "UNFORDABLE啊",
+      "music": 0.0
+    },
+    {
+      "from": 74.58,
+      "to": 75.8,
+      "sid": 24,
+      "location": 2,
+      "content": "使用后可以加一点",
+      "music": 0.0
+    },
+    {
+      "from": 76.96,
+      "to": 80.05,
+      "sid": 25,
+      "location": 2,
+      "content": "每过一关可以随机获得两样道具",
+      "music": 0.0
+    },
+    {
+      "from": 80.33,
+      "to": 81.37,
+      "sid": 26,
+      "location": 2,
+      "content": "教学完毕",
+      "music": 0.0
+    },
+    {
+      "from": 81.37,
+      "to": 84.17,
+      "sid": 27,
+      "location": 2,
+      "content": "将下剩余的东西哇",
+      "music": 0.0
+    },
+    {
+      "from": 84.17,
+      "to": 85.65,
+      "sid": 28,
+      "location": 2,
+      "content": "那这个新版本之后",
+      "music": 0.0
+    },
+    {
+      "from": 85.65,
+      "to": 87.45,
+      "sid": 29,
+      "location": 2,
+      "content": "这个新版本之后",
+      "music": 0.0
+    },
+    {
+      "from": 87.45,
+      "to": 89.98,
+      "sid": 30,
+      "location": 2,
+      "content": "这个千心奇遇就完全可以",
+      "music": 0.0
+    },
+    {
+      "from": 90.5,
+      "to": 93.3,
+      "sid": 31,
+      "location": 2,
+      "content": "新版本的潜行骑士可以量产所有的游戏了呀",
+      "music": 0.0
+    },
+    {
+      "from": 93.3,
+      "to": 95.14,
+      "sid": 32,
+      "location": 2,
+      "content": "这好家伙",
+      "music": 0.0
+    },
+    {
+      "from": 95.14,
+      "to": 98.65,
+      "sid": 33,
+      "location": 2,
+      "content": "这这要放以前的那个奇遇里面",
+      "music": 0.0
+    },
+    {
+      "from": 98.65,
+      "to": 102.33,
+      "sid": 34,
+      "location": 2,
+      "content": "你这个用框图来做特别的慢的",
+      "music": 0.0
+    },
+    {
+      "from": 104.42,
+      "to": 106.34,
+      "sid": 35,
+      "location": 2,
+      "content": "模拟台球",
+      "music": 0.0
+    },
+    {
+      "from": 106.94,
+      "to": 108.16,
+      "sid": 36,
+      "location": 2,
+      "content": "你看这个动效",
+      "music": 0.0
+    },
+    {
+      "from": 108.16,
+      "to": 109.46,
+      "sid": 37,
+      "location": 2,
+      "content": "你看这个响应速度",
+      "music": 0.0
+    },
+    {
+      "from": 109.46,
+      "to": 111.54,
+      "sid": 38,
+      "location": 2,
+      "content": "你看这个动画的这个响应速度",
+      "music": 0.0
+    },
+    {
+      "from": 111.54,
+      "to": 112.62,
+      "sid": 39,
+      "location": 2,
+      "content": "这个很明显",
+      "music": 0.0
+    },
+    {
+      "from": 112.62,
+      "to": 115.11,
+      "sid": 40,
+      "location": 2,
+      "content": "放以前的框图是很难做的",
+      "music": 0.0
+    },
+    {
+      "from": 115.11,
+      "to": 118.63,
+      "sid": 41,
+      "location": 2,
+      "content": "你现在这边有那个什么本地客户端脚本之后",
+      "music": 0.0
+    },
+    {
+      "from": 118.63,
+      "to": 120.71,
+      "sid": 42,
+      "location": 2,
+      "content": "这些东西做起来就非常简单了",
+      "music": 0.0
+    },
+    {
+      "from": 120.71,
+      "to": 122.81,
+      "sid": 43,
+      "location": 2,
+      "content": "换言之就是从7.1开始",
+      "music": 0.0
+    },
+    {
+      "from": 122.81,
+      "to": 126.96,
+      "sid": 44,
+      "location": 2,
+      "content": "千星起义这边的2D游戏就没有什么难度了",
+      "music": 0.0
+    },
+    {
+      "from": 126.96,
+      "to": 129.8,
+      "sid": 45,
+      "location": 2,
+      "content": "你看这个动效这些不过怎么说呢",
+      "music": 0.0
+    },
+    {
+      "from": 129.8,
+      "to": 132.579,
+      "sid": 46,
+      "location": 2,
+      "content": "就是由于连连看这个游戏过于的成熟",
+      "music": 0.0
+    },
+    {
+      "from": 132.579,
+      "to": 133.259,
+      "sid": 47,
+      "location": 2,
+      "content": "你看吧",
+      "music": 0.0
+    },
+    {
+      "from": 133.259,
+      "to": 135.459,
+      "sid": 48,
+      "location": 2,
+      "content": "就是这个优点我就不说了啊",
+      "music": 0.0
+    },
+    {
+      "from": 135.459,
+      "to": 137.67,
+      "sid": 49,
+      "location": 2,
+      "content": "这个优点我就不说了啊",
+      "music": 0.0
+    },
+    {
+      "from": 137.67,
+      "to": 139.45,
+      "sid": 50,
+      "location": 2,
+      "content": "这种类型的游戏也没有什么缺点",
+      "music": 0.0
+    },
+    {
+      "from": 139.45,
+      "to": 141.19,
+      "sid": 51,
+      "location": 2,
+      "content": "但是这样的话也会产生一个问题",
+      "music": 0.0
+    },
+    {
+      "from": 141.19,
+      "to": 145.109,
+      "sid": 52,
+      "location": 2,
+      "content": "就是这个东西它他就是个小游戏啊",
+      "music": 0.0
+    },
+    {
+      "from": 145.109,
+      "to": 146.129,
+      "sid": 53,
+      "location": 2,
+      "content": "它就是个小游戏",
+      "music": 0.0
+    },
+    {
+      "from": 146.129,
+      "to": 148.549,
+      "sid": 54,
+      "location": 2,
+      "content": "跟原神都没有什么关系了",
+      "music": 0.0
+    },
+    {
+      "from": 149.3,
+      "to": 153.04,
+      "sid": 55,
+      "location": 2,
+      "content": "它就是个单独的独立的游戏",
+      "music": 0.0
+    },
+    {
+      "from": 153.04,
+      "to": 155.92,
+      "sid": 56,
+      "location": 2,
+      "content": "只不过你有的时候是在手机的那个微信",
+      "music": 0.0
+    },
+    {
+      "from": 155.92,
+      "to": 156.98,
+      "sid": 57,
+      "location": 2,
+      "content": "小游戏里面启动",
+      "music": 0.0
+    },
+    {
+      "from": 156.98,
+      "to": 159.08,
+      "sid": 58,
+      "location": 2,
+      "content": "有的时候你是在QQ游戏里面启动",
+      "music": 0.0
+    },
+    {
+      "from": 159.08,
+      "to": 163.57,
+      "sid": 59,
+      "location": 2,
+      "content": "而现在你可以在千星里面千心奇遇里面启动啊",
+      "music": 0.0
+    },
+    {
+      "from": 163.57,
+      "to": 166.91,
+      "sid": 60,
+      "location": 2,
+      "content": "就这样就最多也就图标有点关系",
+      "music": 0.0
+    },
+    {
+      "from": 166.91,
+      "to": 169.47,
+      "sid": 61,
+      "location": 2,
+      "content": "你看这就图标有点关系的",
+      "music": 0.0
+    },
+    {
+      "from": 169.91,
+      "to": 170.51,
+      "sid": 62,
+      "location": 2,
+      "content": "你看吧",
+      "music": 0.0
+    },
+    {
+      "from": 170.51,
+      "to": 173.71,
+      "sid": 63,
+      "location": 2,
+      "content": "这个东西你把它换成任何东西都可以",
+      "music": 0.0
+    },
+    {
+      "from": 174.84,
+      "to": 175.96,
+      "sid": 64,
+      "location": 2,
+      "content": "哎呀该说不说",
+      "music": 0.0
+    },
+    {
+      "from": 175.96,
+      "to": 176.28,
+      "sid": 65,
+      "location": 2,
+      "content": "兄弟们",
+      "music": 0.0
+    },
+    {
+      "from": 176.28,
+      "to": 179.51,
+      "sid": 66,
+      "location": 2,
+      "content": "这个到底是技术含量上来了",
+      "music": 0.0
+    },
+    {
+      "from": 179.51,
+      "to": 182.35,
+      "sid": 67,
+      "location": 2,
+      "content": "还是说这个游戏量产更加困难了",
+      "music": 0.0
+    },
+    {
+      "from": 182.35,
+      "to": 183.67,
+      "sid": 68,
+      "location": 2,
+      "content": "呃更加简单了",
+      "music": 0.0
+    },
+    {
+      "from": 183.67,
+      "to": 184.769,
+      "sid": 69,
+      "location": 2,
+      "content": "你看吧",
+      "music": 0.0
+    },
+    {
+      "from": 184.769,
+      "to": 186.569,
+      "sid": 70,
+      "location": 2,
+      "content": "这个我都不知道怎么提意见",
+      "music": 0.0
+    },
+    {
+      "from": 186.569,
+      "to": 188.889,
+      "sid": 71,
+      "location": 2,
+      "content": "我都不知道怎么提意见",
+      "music": 0.0
+    },
+    {
+      "from": 191.52,
+      "to": 193.0,
+      "sid": 72,
+      "location": 2,
+      "content": "我都不知道怎么提意见",
+      "music": 0.0
+    },
+    {
+      "from": 193.0,
+      "to": 196.04,
+      "sid": 73,
+      "location": 2,
+      "content": "就他的这个就他的这个玩法",
+      "music": 0.0
+    },
+    {
+      "from": 196.04,
+      "to": 199.34,
+      "sid": 74,
+      "location": 2,
+      "content": "你看他的这个什么反应速度响应",
+      "music": 0.0
+    },
+    {
+      "from": 199.74,
+      "to": 201.9,
+      "sid": 75,
+      "location": 2,
+      "content": "这这这其实就是连连看",
+      "music": 0.0
+    },
+    {
+      "from": 201.9,
+      "to": 204.34,
+      "sid": 76,
+      "location": 2,
+      "content": "因为用的是原神的素材",
+      "music": 0.0
+    },
+    {
+      "from": 204.34,
+      "to": 206.26,
+      "sid": 77,
+      "location": 2,
+      "content": "所以说加了个提瓦特连连看",
+      "music": 0.0
+    },
+    {
+      "from": 207.38,
+      "to": 208.22,
+      "sid": 78,
+      "location": 2,
+      "content": "这个就结算吧",
+      "music": 0.0
+    },
+    {
+      "from": 208.22,
+      "to": 210.87,
+      "sid": 79,
+      "location": 2,
+      "content": "啊你看这个结算完之后",
+      "music": 0.0
+    },
+    {
+      "from": 210.87,
+      "to": 213.75,
+      "sid": 80,
+      "location": 2,
+      "content": "也没有那个什么小人站着客户端游戏",
+      "music": 0.0
+    },
+    {
+      "from": 213.75,
+      "to": 216.31,
+      "sid": 81,
+      "location": 2,
+      "content": "这个是本地客户端游戏了",
+      "music": 0.0
+    },
+    {
+      "from": 217.11,
+      "to": 218.23,
+      "sid": 82,
+      "location": 2,
+      "content": "就给个好评吧",
+      "music": 0.0
+    },
+    {
+      "from": 218.23,
+      "to": 218.95,
+      "sid": 83,
+      "location": 2,
+      "content": "给个好评吧",
+      "music": 0.0
+    },
+    {
+      "from": 220.19,
+      "to": 225.41,
+      "sid": 84,
+      "location": 2,
+      "content": "对那个响应奇快对吧",
+      "music": 0.0
+    },
+    {
+      "from": 225.41,
+      "to": 226.41,
+      "sid": 85,
+      "location": 2,
+      "content": "响应奇快",
+      "music": 0.0
+    },
+    {
+      "from": 226.41,
+      "to": 228.13,
+      "sid": 86,
+      "location": 2,
+      "content": "然后响应奇快",
+      "music": 0.0
+    },
+    {
+      "from": 228.13,
+      "to": 232.649,
+      "sid": 87,
+      "location": 2,
+      "content": "然后就是完全标准的完全标准的连连看游戏",
+      "music": 0.0
+    },
+    {
+      "from": 232.649,
+      "to": 236.189,
+      "sid": 88,
+      "location": 2,
+      "content": "就这个很明显就是客户端的本地客户端了",
+      "music": 0.0
+    },
+    {
+      "from": 236.189,
+      "to": 237.929,
+      "sid": 89,
+      "location": 2,
+      "content": "本地客户端脚本",
+      "music": 0.0
+    },
+    {
+      "from": 237.929,
+      "to": 240.169,
+      "sid": 90,
+      "location": 2,
+      "content": "就本地客户端脚本里面它是有代码的",
+      "music": 0.0
+    },
+    {
+      "from": 240.169,
+      "to": 241.93,
+      "sid": 91,
+      "location": 2,
+      "content": "是可以写代码的",
+      "music": 0.0
+    },
+    {
+      "from": 242.17,
+      "to": 243.17,
+      "sid": 92,
+      "location": 2,
+      "content": "感谢大家啊",
+      "music": 0.0
+    },
+    {
+      "from": 243.17,
+      "to": 245.12,
+      "sid": 93,
+      "location": 2,
+      "content": "我们这边就拜拜",
+      "music": 0.0
+    }
+  ]
+}
