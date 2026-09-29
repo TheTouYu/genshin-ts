@@ -1,0 +1,9 @@
+apply:cap-basic
+call:hp_echo:hello-hotplug
+call:hp_echo:omit-tool-name
+dispose:cap-basic
+--- ctx-probe apply ---
+ctx = baseUrl:string, events:object, extend:function, fiber:object, intercept:function, isolate:function, logger:function, reflect:object, registry:object, root:object
+config = capability:string, defineTool:function, hotplug:boolean, inject:function
+ctx.tools = applyFinalContent:function, callerCancelled:function, cancellationResult:function, cancellationStates:object, canonicalResults:object, collapseSection:function, collapses:function, completeScheduledExecution:function, concludingExecutions:object, contentFinalizers:object, contentProjectors:object, createExecution:function, createSuccessResult:function, ctx:object, defaultMode:string, deferredContexts:object, dispatchScheduledExecution:function, dispatchToolBody:function, execute:function, executionMode:function, finalizeScheduledExecution:function, finishScheduledExecution:function, get:function, guard:function, guardReason:function, layers:object, markCanonical:function, materializeFinalResult:function, maxParallelSubCalls:number, modeFor:function, name:string, normalizeDispatchResult:function, notifyResult:function, postExecute:function, prepareExecution:function, prepareScheduledExecution:function, presentAs:function, ptcTransport:undefined, register:function, requirePtcRuntime:function, requirePtcTransport:function, resolveExecution:function, restrict:function, schemaOf:function, schemas:function, sdkSchemas:function, sdkSection:function, serviceAsk:function, shapeDispatchLog:function, view:function, wireSchemas:function
+prestep:handler-registered
