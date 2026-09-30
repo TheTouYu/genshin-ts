@@ -19,6 +19,13 @@
 
 `script:EnableUpdate(enabled: boolean)`（:484）：控制当前脚本 Tick 更新，false 关闭 true 重开。
 
+**实测补充（2026-09-30 沙箱模拟器全量探测，`research/a2-lua-gen/模拟器API实测.mjs`，125 项全绿）**：
+- API 存在性 100% 覆盖：生命周期 7/game 26/ServerSignal 20/Tween 11/TweenSequence 15/Script 7/控件基类 36/Color 4/EnumItem 3 字段全在
+- 模拟器生命周期顺序：OnInit → OnEnable → OnStart
+- **OnUpdate 默认关闭**：模拟器 `updateEnabled:false`（runtime.js:1163），须 `script:EnableUpdate(true)` 显式开启——**官方文档未写默认值**（文档缺口，真机默认待验证）
+- 时停语义实测一致：`game.PauseLevelTime(true)` 后 OnUpdate 继续、OnLevelUpdate 停
+- Tween 目标属性名=控件属性名（如 `anchoredPositionX`），非通用 x/y；枚举经 `Enum.EaseType.Linear` 访问
+
 ## 二、全局 API（:494-660）
 
 | 函数 | 返回 | 语义 |
