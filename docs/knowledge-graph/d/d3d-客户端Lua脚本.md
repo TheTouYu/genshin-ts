@@ -1,8 +1,8 @@
 # D3d 客户端 Lua 脚本
 
-> 状态：**已验证**（2026-09-29 建，初版；7.1 创体服口径，正式服或有变化）
+> 状态：**已验证**（2026-09-29 建，初版；**正式服已上线**——用户 2026-09-29 确认，创体服→正式服遗留差异复核项见 §八）
 > 最近校验：2026-09-29
-> 官方权威：《Lua客户端UI脚本API》（**我方未持有原件**——经第三方工程引用确认存在，属知识缺口）；7.1 开发前瞻 BV1nUYL6hEga（已学，2026-09-29）
+> 官方权威：《客户端控件API文档》**官方 web 版已镜像到手**（`research/千星知识图谱/learn-lua71/官方API文档-客户端控件.md`，48.5K 全文，源 https://act.mihoyo.com/ys/ugc/tutorial/detail/mhtakr07vej4）+ 官方教程《客户端控件和客户端脚本》（同目录）+ 7.1 开发前瞻 BV1nUYL6hEga（已学）
 > 语料：12 源视频学习（`research/千星知识图谱/learn-lua71/`）+ 沙箱模拟器源码研究（`/home/h/miliastra-beyond-simulator`，GitHub 1475505/miliastra-beyond-simulator）
 > 证据分级：硬规则（官方）> **第三方真机回传**（模拟器 observed-contract）> 实测 > 经验共识 > 个人经验；ASR 听写结论一律标「待验证」
 > 上游：`research/千星知识图谱/learn-lua71/知识提炼.md`（40+ 条术语校正表）、`沙箱模拟器研究.md`
@@ -24,6 +24,8 @@
 
 | 源 | 分级 | 类型 | 覆盖 | 证据等级 |
 |---|---|---|---|---|
+| **官方《客户端控件API文档》web 版**（mhtakr07vej4，48.5K 全文镜像） | **官方权威**（本篇准绳） | 官方 wiki（SPA 渲染抓取，2026-09-29） | 生命周期/全局函数/颜色/Script/game/服务器信号/补间动画/输入事件/手柄导航/全部控件类型及枚举的**精确签名** | **硬规则** |
+| **官方教程《客户端控件和客户端脚本》**（mhbgxf0nynww） | 官方权威 | 同上 | 服务器控件 vs 客户端控件定义/入口/挂载模型/上传规则/模板索引与运行时ID | **硬规则** |
 | 模拟器 `client/lua-runtime/docs/observed-contract.md` | **契约权威**（本篇主源） | 第三方工程文档（官方API文档表面+三轮真机探针 7.0.50+用户真机回传） | 20 条编号契约：生命周期/沙箱裁剪/字段标识/层序/字号校验 | **第三方真机回传** |
 | 模拟器 `client/lua-runtime/docs/architecture.md` | 契约权威 | 同上 | 已观察契约表（真机 7.0.50）+ 模拟器策略声明 | 第三方真机回传 |
 | `BV1qYeF6nEiq`（戀祈 9:28 综述） | S 级 | 视频（ASR） | 7.1 能力全景：Lua 客户端脚本+控件+AnimationClip | 待验证（听写） |
@@ -48,7 +50,7 @@
 
 ## 四、API 语义（模拟器契约+architecture，第三方真机回传）
 
-- **HR-06｜`game` 全局表点号调用 + 参数个数核对**：真机回传 `game:GetClientUIRoots()` 报 `bad argument count ... (0 expected, got 1)`（2026-09-25 日记脚本）。冒号调用产生的隐式 self 实参即错。
+- **HR-06｜调用形式三分**（官方 API 文档签名原文证实）：`game` 全局表函数用**点号**（`game.GetClientUIRoots()`、`game.Tween(object, tweenDataTable, duration) → Tween`、`game.InstantiateClientUIControl(controlPrefabIndex: integer, parent: ClientUIBaseControl)`）；`script` 对象方法用**冒号**（`script:GetParam(paramName: string)`）；控件方法冒号。真机回传 `game:GetClientUIRoots()` 报 `bad argument count ... (0 expected, got 1)`（2026-09-25）——冒号给 game 传了隐式 self 即错。
 - **HR-07｜控件标识字段名**（首字母大写）：`Id` / `prefabIndex`；脚本字段 `scriptMappingId`（GetScript 参数同名）；grid `itemPrefabIndex`；reference `referencedPrefabIndex`。旧 probe 的 `control.id`/`prefabId` 是旧版接口，不作兼容口径。
 - **HR-08｜控件 userdata 按类型封死**：当前类型没有的字段读 nil、写报 `cannot set <field>, no such field`。光标监听只挂预设按钮/光标检测区。`imageType` 虽文档标读写，但 Instantiate 后赋值真机被拒——保守跟拒绝路径。
 - **HR-09｜Tween 默认绝对**；`SetRelative(true)` 才增量；Linear 按时间线性（对照过真机）。非 Linear Ease 为模拟器 Penner 公式（策略，非官方证明）。
@@ -83,9 +85,9 @@
 
 | 缺口 | 状态 | 补齐路径 |
 |---|---|---|
-| 《Lua客户端UI脚本API》官方文档原件 | **知识缺口·待裁决** | 夜芊瑶网盘（提取码 7im3）/官方群群文件；到手后本篇 HR 清单可升格「硬规则」 |
+| 《Lua客户端UI脚本API》官方文档原件 | ✅ **已闭合**（2026-09-29）：官方 wiki《客户端控件API文档》web 版 48.5K 全文镜像到手（`learn-lua71/官方API文档-客户端控件.md`），HR 清单可逐条升格硬规则；夜芊瑶网盘版弃用 | 待办：对照镜像把 HR-01~23 逐条核签并标注官方行号 |
 | 官方前瞻 BV1nUYL6hEga 内容 | ✅ 已补学（2026-09-29，ai-zh 字幕，官方口径入 §一） | —— |
-| 正式服 vs 创体服差异 | 未知 | 正式服 7.1 上线后复核 |
+| 正式服 vs 创体服差异 | 正式服已上线（用户 2026-09-29 确认）；模拟器契约含 2026-09-27 正式服 PC 真机回传（script.path/fontSize）——**主体已正式服口径**；遗留：具体客户端版本号未登记、web 版 API 文档的更新节奏未跟踪 | 复核点集中登记 |
 | ASR 听写的 API 名（onStart 大小写等） | 已被模拟器契约交叉校正（§3-6） | —— |
 | 旧月之六视频口径 | 已过时 | 不再引用（降维打击叙事见 K6） |
 
