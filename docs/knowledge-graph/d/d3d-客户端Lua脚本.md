@@ -81,7 +81,9 @@
 - **生态位**（K6 侧补充）：7.1 后社区分层——通用 Lua 教程（VSCode/零基础）不属本域；领域内生态=官方前瞻、社区类型注解（miliastra-lua-types）、沙箱模拟器（DSH 插件+MCP+Web 三形态）、AI 辅助教程。AI 成本数据：两奇域 AI 制作全程约 40 美元（BV1oGaa6KEfW，实测自述）。
 - **沙箱模拟器的工程范式值得我方借鉴**：证据分级 `runtime=html|simulator|device`（与我方三栏门禁同构）、expectedRevision 乐观并发、runCase 回放断言、双截图分工（编辑器静态 vs Runtime 帧）、「未知语义标策略或明确失败，不伪造」的反编造政策、按需读取的七步 Skill 设计。
 
-## 八、知识缺口与待验证
+## 八、我方覆盖度与知识缺口
+
+> **覆盖度总判定**（2026-09-29，逐条证据见 `learn-lua71/能力缺口.md`）：**客户端 Lua 编译/挂载通道 🔴 我方尚无**（genshin-ts 是 TS→节点图工具链，无 Lua 前端）；**GIA wire 侧 🟡**（模拟器已实证 `GraphUnit.script=35`/`ScriptMapping` 结构，我方 injector 未覆盖 2000x 控件域但结构可参照）；**知识面 ✅**（官方 API 文档 48.5K 镜像 + 模拟器契约表 + 12 源语料在库）。
 
 | 缺口 | 状态 | 补齐路径 |
 |---|---|---|
