@@ -26,6 +26,12 @@
 - 时停语义实测一致：`game.PauseLevelTime(true)` 后 OnUpdate 继续、OnLevelUpdate 停
 - Tween 目标属性名=控件属性名（如 `anchoredPositionX`），非通用 x/y；枚举经 `Enum.EaseType.Linear` 访问
 
+**调用契约实测补充（2026-09-30 demo-counter.py 全闭环验证）**：
+1. **ServerSignal 的 Add 族不可链式**——AddInt 等返回 nil，`sig:AddInt(x):SendSignal()` 会 index nil 报错；必须分步 `local sig=game.ServerSignal(n); sig:AddInt(x); sig:SendSignal()`（与 Tween 的链式风格不统一，API 风格陷阱）。
+2. **变量变化回调不带 value**（:922 官方原文）——回调签名仅 `(entityType, customVariableName)` 两参，「当前值需通过 game.GetGlobalCustomVariableValue 读取」。
+3. **光标事件门**——按钮/光标区域的 `AddCursorEventListener` 要生效，须祖先链上有 container 且 `showCursor===true`（默认 false，点击静默无效不报错）；脚本可 `script.object.showCursor = true` 开启。
+4. **信号回传在模拟器内是同步的**（SendSignal 后服务端立即写变量并触发回调，无延迟）——真机有网络延迟，时序敏感逻辑勿依赖。
+
 ## 二、全局 API（:494-660）
 
 | 函数 | 返回 | 语义 |
