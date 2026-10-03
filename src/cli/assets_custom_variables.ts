@@ -11,7 +11,7 @@ import type {
 } from '../compiler/gsts_config.js'
 import type { UiDictPair, UiVarType } from './gil_level_variables.js'
 import { dictKeyOf } from './gil_level_variables.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
 import {
   applyCustomPrefabInitialCustomVariableDeclarations,
   applyEntityCustomVariableDeclarations,
@@ -117,7 +117,7 @@ function validateOperation(operation: GstsCustomVariableOperation): void {
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)

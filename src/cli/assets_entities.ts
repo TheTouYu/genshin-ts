@@ -7,7 +7,7 @@ import type { GstsConfig } from '../compiler/gsts_config.js'
 import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import { resyncMap } from './maps.js'
 import {
   applyEntities,
@@ -273,7 +273,7 @@ function writeNew(outputPath: string, contents: string | Uint8Array): string {
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
@@ -288,7 +288,7 @@ function syncEditorTemp(
 ): void {
   if (mapId === undefined) return
   try {
-    const result = resyncMap(path.dirname(gilPath), mapId)
+    const result = resyncMap(saveLevelDirOf(gilPath), mapId)
     if (result.tempPath) log(`temp=${result.tempPath}`)
   } catch (error) {
     log(`temp-sync-skipped=${(error as Error).message}`)
@@ -332,7 +332,7 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
     fs.rmSync(temporary, { force: true })
   }
   // 编辑器活动目录 Temp 同步（编辑器列表/内容以 Temp 为准，2026-08-09 实测）
-  syncGilToTemp(path.dirname(gilPath), path.basename(gilPath))
+  syncGilToTemp(saveLevelDirOf(gilPath), path.basename(gilPath))
   return backup
 }
 

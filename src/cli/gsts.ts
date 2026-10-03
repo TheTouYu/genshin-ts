@@ -53,7 +53,7 @@ import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { runLibraryInject } from './static_assembly/library_inject.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
-import { resolveGilFolder, resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { gilPathInSaveLevel, resolveGilFolder, resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { DEFAULT_RESOURCES_PATH, extractCustomResourcesFromGil } from './gil_resources.js'
 import {
   DEFAULT_SIGNALS_PATH,
@@ -1389,7 +1389,10 @@ async function runMapsInit(
   if (!Number.isSafeInteger(mapId) || mapId < 0) {
     throw new Error(`[error] invalid map id: ${commandOptions.mapId}`)
   }
-  const gilPath = path.join(resolved.saveLevelDir, `${mapId}.gil`)
+  // 子目录式/平铺两种布局都认（票 24）；缺失时报错文案与旧版一致
+  const gilPath =
+    gilPathInSaveLevel(resolved.saveLevelDir, mapId) ??
+    path.join(resolved.saveLevelDir, `${mapId}.gil`)
   if (!fs.existsSync(gilPath)) {
     throw new Error(`[error] map file not found: ${gilPath}`)
   }

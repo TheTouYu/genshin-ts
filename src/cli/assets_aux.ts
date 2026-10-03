@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
 import { attachAuxiliary } from './gil_aux.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
@@ -113,7 +113,7 @@ async function execute(argv: readonly string[], cfg: GstsConfig | undefined) {
     summary.candidate = abs
     log(`candidate=${abs}`)
   } else if (args.write) {
-    const backupDir = path.join(path.dirname(gilPath), '.gsts', 'backups')
+    const backupDir = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
     fs.mkdirSync(backupDir, { recursive: true })
     const bak = path.join(
       backupDir,

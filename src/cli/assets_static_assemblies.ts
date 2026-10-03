@@ -14,7 +14,7 @@ import type {
   StaticAssemblySourceLocator
 } from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import { resyncMap } from './maps.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
 import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
@@ -227,7 +227,7 @@ function resolveGilPath(
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
@@ -458,14 +458,14 @@ async function runPreview(
       fs.copyFileSync(temporary, resultPath)
       const writeInfo: NonNullable<typeof summary.write> = { backup }
       log(`backup=${backup}`)
-      const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
+      const tempCopied = syncGilToTemp(saveLevelDirOf(source.path), path.basename(source.path))
       if (tempCopied) {
         writeInfo.tempSync = tempCopied
         log(`temp-sync=${tempCopied}`)
       }
       if (args.mapId !== undefined) {
         try {
-          const result = resyncMap(path.dirname(source.path), args.mapId)
+          const result = resyncMap(saveLevelDirOf(source.path), args.mapId)
           if (result.tempPath) {
             writeInfo.temp = result.tempPath
             log(`temp=${result.tempPath}`)
@@ -598,14 +598,14 @@ async function runTabOptions(
       fs.copyFileSync(temporary, source.path)
       const writeInfo: NonNullable<typeof summary.write> = { backup }
       log(`backup=${backup}`)
-      const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
+      const tempCopied = syncGilToTemp(saveLevelDirOf(source.path), path.basename(source.path))
       if (tempCopied) {
         writeInfo.tempSync = tempCopied
         log(`temp-sync=${tempCopied}`)
       }
       if (args.mapId !== undefined) {
         try {
-          const result = resyncMap(path.dirname(source.path), args.mapId)
+          const result = resyncMap(saveLevelDirOf(source.path), args.mapId)
           if (result.tempPath) {
             writeInfo.temp = result.tempPath
             log(`temp=${result.tempPath}`)

@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
-import { syncGilToTemp, tempDirOf } from './gil_paths.js'
+import { gilPathInSaveLevel, syncGilToTemp, tempDirOf } from './gil_paths.js'
 import { buildEmptyNodeGraph, ensureMinimalContainers, nextGraphId } from './assets_node_graphs.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
@@ -43,8 +43,41 @@ export function listMaps(
   const readFile = dependencies.readFile ?? fs.readFileSync
   const now = (dependencies.now ?? Date.now)()
   const warn = dependencies.warn ?? (() => {})
-  const maps = readdir(saveLevelDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.gil'))
+  const entryOf = (mapId: number, fullPath: string) => {
+    const metadata = stat(fullPath)
+    return {
+      mapId,
+      ...(options.includeName ? { name: readMapName(fullPath, warn) } : {}),
+      modifiedAt: new Date(metadata.mtimeMs).toISOString(),
+      modifiedAtMs: metadata.mtimeMs,
+      size: metadata.size,
+      recent: now - metadata.mtimeMs <= 30 * 60 * 1000,
+      ...(options.includeHash
+        ? { sha256: createHash('sha256').update(readFile(fullPath)).digest('hex') }
+        : {}),
+      locator: { kind: 'mapId' as const, mapId }
+    }
+  }
+  const entries = readdir(saveLevelDir, { withFileTypes: true })
+  // 新版存档子目录式布局（票 24 实测）：Save_Level/<mapId>/<mapId>.gil——数字目录内
+  // 有同名 .gil 即视为地图。与平铺同名并存时只收子目录式（较新写入，与
+  // gilPathInSaveLevel 的优先序一致），否则 maps:create 会算出撞 ID 的 nextId。
+  const nestedIds = entries
+    .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
+    .filter((entry) => {
+      try {
+        return stat(path.join(saveLevelDir, entry.name, `${entry.name}.gil`)).isFile()
+      } catch {
+        return false
+      }
+    })
+    .map((entry) => entry.name)
+  const nestedIdSet = new Set(nestedIds)
+  const maps = entries
+    .filter((entry) => {
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.gil')) return false
+      return !nestedIdSet.has(entry.name.replace(/\.gil$/i, ''))
+    })
     .flatMap((entry) => {
       const rawId = entry.name.replace(/\.gil$/i, '')
       const mapId = Number(rawId)
@@ -52,23 +85,9 @@ export function listMaps(
         warn(`skipping invalid map filename: ${entry.name}`)
         return []
       }
-      const fullPath = path.join(saveLevelDir, entry.name)
-      const metadata = stat(fullPath)
-      return [
-        {
-          mapId,
-          ...(options.includeName ? { name: readMapName(fullPath, warn) } : {}),
-          modifiedAt: new Date(metadata.mtimeMs).toISOString(),
-          modifiedAtMs: metadata.mtimeMs,
-          size: metadata.size,
-          recent: now - metadata.mtimeMs <= 30 * 60 * 1000,
-          ...(options.includeHash
-            ? { sha256: createHash('sha256').update(readFile(fullPath)).digest('hex') }
-            : {}),
-          locator: { kind: 'mapId' as const, mapId }
-        }
-      ]
+      return [entryOf(mapId, path.join(saveLevelDir, entry.name))]
     })
+    .concat(nestedIds.map((id) => entryOf(Number(id), path.join(saveLevelDir, id, `${id}.gil`))))
     .sort((a, b) => b.modifiedAtMs - a.modifiedAtMs || a.mapId - b.mapId)
   return { schemaVersion: 1, kind: 'gsts.maps', maps }
 }
@@ -250,7 +269,8 @@ export function renameMap(
   dependencies: ListMapsDependencies = {}
 ): RenameMapResult {
   const warn = dependencies.warn ?? (() => {})
-  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
+  // 子目录式/平铺两种布局都认（票 24）；不存在时回退平铺路径，让 ENOENT 报错与旧版一致
+  const gilPath = gilPathInSaveLevel(saveLevelDir, mapId) ?? path.join(saveLevelDir, `${mapId}.gil`)
   const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
   const sourceSha = createHash('sha256').update(sourceBytes).digest('hex')
   const { payload, fields } = readGilPayloadFields(gilPath)
@@ -322,9 +342,9 @@ export function resyncMap(
   dependencies: ListMapsDependencies = {}
 ): { mapId: number; name: string; gilPath: string; size: number; tempPath: string | null } {
   const warn = dependencies.warn ?? (() => {})
-  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
-  if (!fs.existsSync(gilPath)) {
-    throw new Error(`[error] map file not found: ${gilPath}`)
+  const gilPath = gilPathInSaveLevel(saveLevelDir, mapId)
+  if (!gilPath) {
+    throw new Error(`[error] map file not found: ${path.join(saveLevelDir, `${mapId}.gil`)}`)
   }
   const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
   const { payload, fields } = readGilPayloadFields(gilPath)

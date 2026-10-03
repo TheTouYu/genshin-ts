@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url'
 
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { loadGstsConfig } from '../compiler/config_loader.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import { patchGilRecord } from './static_assembly/patch.js'
 import {
   emitWireMessage as emit,
@@ -409,7 +409,7 @@ function writeNew(outputPath: string, contents: Uint8Array): string {
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
@@ -495,7 +495,7 @@ async function runMounts(
     fs.copyFileSync(source.path, backup)
     fs.writeFileSync(source.path, bytes)
     try {
-      syncGilToTemp(path.dirname(source.path), path.basename(source.path))
+      syncGilToTemp(saveLevelDirOf(source.path), path.basename(source.path))
     } catch {
       // best-effort temp sync
     }

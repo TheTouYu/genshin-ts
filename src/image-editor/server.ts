@@ -50,7 +50,11 @@ import {
 } from './index.js'
 import { ProtoReader, WireType, parseResourceEntry, findVarint } from './gia/wire.js'
 import type { SceneDocumentModel } from './types.js'
-import { detectGameRegion, listBeyondLocalExportDirs } from '../cli/gil_paths.js'
+import {
+  detectGameRegion,
+  gilPathInSaveLevel,
+  listBeyondLocalExportDirs
+} from '../cli/gil_paths.js'
 import { listMaps, resyncMap } from '../cli/maps.js'
 import { extractTemplate } from '../cli/static_assembly/library_template.js'
 import { parseCssAsset, type CssAsset } from '../cli/static_assembly/library_css.js'
@@ -665,7 +669,9 @@ function injectLibraryToMap(
   if (!saveLevelDir) {
     throw new Error('未找到 Beyond_Local_Save_Level 目录（地图目录）')
   }
-  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
+  // 子目录式/平铺两种布局都认（票 24）；缺失时报错文案与旧版一致
+  const gilPath =
+    gilPathInSaveLevel(saveLevelDir, mapId) ?? path.join(saveLevelDir, `${mapId}.gil`)
   if (!fs.existsSync(gilPath)) {
     throw new Error(`地图文件不存在: ${gilPath}`)
   }

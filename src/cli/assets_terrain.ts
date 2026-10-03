@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto'
 
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { loadGstsConfig } from '../compiler/config_loader.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
 import { readTerrainTiles, setTerrainRange } from './gil_terrain.js'
 
 type Command = 'set-range' | 'list'
@@ -135,7 +135,7 @@ export async function runAssetsTerrain(argv: string[]): Promise<void> {
 
   if (args['write'] === 'true') {
     // 备份 + 原子写回（镜像 assets:entities apply-candidate 的安全语义）
-    const dir = path.dirname(gilPath)
+    const dir = saveLevelDirOf(gilPath)
     const backups = path.join(dir, '.gsts', 'backups')
     fs.mkdirSync(backups, { recursive: true })
     const ts = new Date().toISOString().replace(/[:.]/g, '-')

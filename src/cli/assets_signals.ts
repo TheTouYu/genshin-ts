@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import type { SignalParamType } from '../runtime/core.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
 import {
   PARAM_TYPE_CODES,
   registerSignalInGil,
@@ -191,7 +191,7 @@ function resolveGilPath(
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)

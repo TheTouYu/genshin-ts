@@ -173,12 +173,37 @@ export function resolveGilTarget(cfg: GstsInjectConfig): ResolvedGilTarget {
     throw new Error('[error] mapId is required')
   }
 
-  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
-  if (!exists(gilPath)) {
-    throw new Error(`[error] target gil not found: ${gilPath}`)
+  const gilPath = gilPathInSaveLevel(saveLevelDir, mapId)
+  if (!gilPath) {
+    throw new Error(
+      `[error] target gil not found: ${path.join(saveLevelDir, String(mapId), `${mapId}.gil`)} or ${path.join(saveLevelDir, `${mapId}.gil`)}`
+    )
   }
 
   return { region, beyondLocalRoot, playerId, saveLevelDir, mapId, gilPath }
+}
+
+// 新版存档布局（2026-09-30 wine 实测，票 24 / O-2026-09-30-01）：编辑器把地图存为
+// 子目录式 Save_Level/<mapId>/<mapId>.gil（同级常带空 external_lua_file/ 目录）；旧版为
+// 平铺 Save_Level/<mapId>.gil。解析时两种都认，子目录式优先——它只可能出自新版编辑器
+// 之手，二者并存时（CLI 平铺建图后编辑器另存）子目录式总是较新的写入。
+export function gilPathInSaveLevel(saveLevelDir: string, mapId: number): string | null {
+  const fileName = `${mapId}.gil`
+  const nested = path.join(saveLevelDir, String(mapId), fileName)
+  if (exists(nested)) return nested
+  const flat = path.join(saveLevelDir, fileName)
+  if (exists(flat)) return flat
+  return null
+}
+
+// 从已解析的 .gil 绝对路径反推 Save_Level 根目录（两种布局）：
+// 平铺 <saveLevelDir>/<id>.gil → <saveLevelDir>；子目录式 <saveLevelDir>/<id>/<id>.gil →
+// <saveLevelDir>。assets_* 写回链（备份目录/Temp 同步/gip 注册）都以 saveLevelDir 为
+// 基准，此前一律 path.dirname(gilPath)，子目录式布局下会把 Temp/gip/备份算到错误位置。
+export function saveLevelDirOf(gilPath: string): string {
+  const dir = path.dirname(gilPath)
+  const fileStem = path.basename(gilPath).replace(/\.gil$/i, '')
+  return path.basename(dir) === fileStem && /^\d+$/.test(fileStem) ? path.dirname(dir) : dir
 }
 
 export function resolveGilFolder(cfg: GstsInjectConfig): ResolvedGilFolder {
@@ -196,9 +221,14 @@ export function tempDirOf(saveLevelDir: string): string {
 export function syncGilToTemp(saveLevelDir: string, fileName: string): string | null {
   const tempDir = tempDirOf(saveLevelDir)
   if (!existsDir(tempDir)) return null
-  const src = path.join(saveLevelDir, fileName)
-  if (!exists(src)) return null
+  // 新版存档里 .gil 位于 <mapId>/ 子目录（Temp 侧仍是平铺，票 24 实测）；
+  // 非数字文件名退回平铺直连，保持旧契约
+  const rawId = fileName.replace(/\.gil$/i, '')
+  const mapId = Number(rawId)
+  const src = /^\d+$/.test(rawId) ? gilPathInSaveLevel(saveLevelDir, mapId) : null
+  const resolvedSrc = src ?? path.join(saveLevelDir, fileName)
+  if (!exists(resolvedSrc)) return null
   const dst = path.join(tempDir, fileName)
-  fs.copyFileSync(src, dst)
+  fs.copyFileSync(resolvedSrc, dst)
   return dst
 }

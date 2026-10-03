@@ -26,7 +26,7 @@ import {
   parseUiAdvancedCommand
 } from './assets_ui_advanced.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
   cloneTemplate,
   cloneUiControl,
@@ -434,7 +434,7 @@ function writeNew(outputPath: string, contents: Uint8Array): string {
 }
 
 function backupPath(gilPath: string): string {
-  const directory = path.join(path.dirname(gilPath), '.gsts', 'backups')
+  const directory = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
@@ -461,10 +461,10 @@ function writeBack(
   fs.writeFileSync(gilPath, candidate)
   try {
     if (mapId !== undefined) {
-      resyncMap(path.dirname(gilPath), mapId)
+      resyncMap(saveLevelDirOf(gilPath), mapId)
     } else {
       // --gil 直接指定路径时无 mapId，仍同步 Temp 文件（编辑器活动目录）
-      syncGilToTemp(path.dirname(gilPath), path.basename(gilPath))
+      syncGilToTemp(saveLevelDirOf(gilPath), path.basename(gilPath))
     }
   } catch {
     // best-effort temp sync
