@@ -772,13 +772,19 @@
 - 何时做：football dist-fb 生成物应移出 tsconfig include 或排除生成目录；core.ts 4 错按 TS 提示
   `as unknown as` 收口；修后 `npm run build` 必须回绿再谈其他 CLI 变更的正式发布。
 
-### O-2026-09-30-01. 新版存档目录布局 `Save_Level/<mapId>/<mapId>.gil`（子目录式）未被 gil_paths 兼容【OPEN-工具链缺口】
+### O-2026-09-30-01. 新版存档目录布局 `Save_Level/<mapId>/<mapId>.gil`（子目录式）未被 gil_paths 兼容【CLOSED 2026-10-03 · 8e00f8a】
 
 - 现象：换机（WSL2→Arch+wine 独立游戏路径）后新版存档为子目录式布局——
   `Beyond_Local_Save_Level/1073741825/1073741825.gil`（另含 external_lua_file/ 目录）；而
   `src/cli/gil_paths.ts:176` resolveGilTarget 只认平铺 `<mapId>.gil`，新版地图定位失败。
 - 新环境事实：GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
   （China 区拼 miHoYo/原神/BeyondLocal 与 gil_paths.ts:84 一致）；玩家 110170759 不变。
-- 何时做：resolveGilTarget 加 fallback 检查 `<mapId>/<mapId>.gil`；Temp 同步逻辑（syncGilToTemp/resyncMap）
-  同步核对子目录式路径；改后用 1073741825 空图实测定位+Temp 双向同步。
+- 修复（提交 8e00f8a）：gil_paths 新增 `gilPathInSaveLevel`（双布局解析，子目录式优先——
+  它只可能出自新版编辑器，二者并存时总是较新写入）与 `saveLevelDirOf`（gil 绝对路径反推
+  Save_Level 根）；resolveGilTarget/syncGilToTemp/listMaps（子目录式识别+平铺同名去重，防
+  maps:create 撞 ID）/renameMap/resyncMap/gsts·image-editor 解析点/assets_* 备份与 Temp·gip
+  同步基准全部改双布局。验证=build 绿+tests/cli_maps_layout.ts 新回归+cli_maps_json.ts 回归+
+  真存档只读实测（maps 列表与 resolveGilTarget 均指向嵌套路径）。
+- 遗留：Temp 侧仍为平铺（新版编辑器自身行为，实测 1073741825 Temp 副本即平铺），无需适配；
+  tests/cli_maps_ops.ts 依赖旧机 ~/genshin-ts-evidence 夹具，Arch 上无法运行（环境性，另案）。
 - 关联：足球票 24（换机重建）；环境探测证据见 `.scratch/football-v2/issues/24-env-rebuild-wine.md`。

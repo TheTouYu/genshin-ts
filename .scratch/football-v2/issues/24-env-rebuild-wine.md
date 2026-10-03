@@ -1,6 +1,6 @@
 # 票 24 · 换机重建：Arch+wine 独立游戏路径 + 空图存档重建足球全部资产
 
-> doc-type: A · status: draft（用户三项裁决已录，待开工）· updated: 2026-09-30
+> doc-type: A · status: in-progress（A 完成 8e00f8a；待 B 用户裁决）· updated: 2026-10-03
 > 用户裁决原话（2026-09-30）：
 >   ①「我们直接从空节点图建立存档。我们使用独立的游戏路径，使用wine运行的，你可以查看当前进程」
 >   ② codebase-memory 技能退役（已完成提交 2f8c39a）
@@ -36,10 +36,19 @@
 
 ## 2. 执行阶段
 
-- **A 工具链适配**：gil_paths 子目录式 fallback + Temp 同步核对（O-2026-09-30-01）；
-  GSTS_LOCALLOW_DIR 落到 shell 配置或项目 .env 约定；用 1073741825 空图实测 maps 定位。
-- **B 地图决策（需用户确认）**：足球重建落点——沿用 1073741825（现为近空、含 lua 目录）
-  还是 maps create 新建 1073741908 同号重建；确认后锁定 SHA 基线。
+- **A 工具链适配 ✅（2026-10-03 提交 8e00f8a）**：gil_paths 新增 gilPathInSaveLevel
+  （双布局解析，子目录式优先）+ saveLevelDirOf（gil 路径反推 Save_Level 根）；
+  resolveGilTarget/syncGilToTemp/listMaps（含去重防 createMap 撞 ID）/renameMap/resyncMap/
+  gsts·image-editor 解析点/assets_* 备份与 Temp·gip 同步基准全部改双布局。
+  验证：build 绿 + tests/cli_maps_layout.ts（新回归）+ cli_maps_json.ts PASS + 真存档只读
+  实测（maps 列表见「未分类页签_存档」，resolveGilTarget 指向嵌套路径，saveLevelDirOf 正确）。
+  关闭 O-2026-09-30-01。附带修复：node_modules/.bin 18 个坏符号链接（换机遗留，
+  0 字节文件需先删再 npm install 重建）；tests/cli_maps_ops.ts 依赖旧机
+  ~/genshin-ts-evidence 夹具，Arch 无法运行（环境性遗留，非本次改动引入）。
+  GSTS_LOCALLOW_DIR 尚未固化到 shell 配置（当前会话内 export；B 确认后随重建脚本落 .env 约定）。
+- **B 地图决策（需用户确认，当前前沿）**：足球重建落点——沿用 1073741825（现为近空、
+  含 lua 目录、图名「未分类页签_存档」）还是 maps create 新建（会从 1073741826 起号，
+  旧号 1073741908 已不可复活：新存档 nextId 机制=现有最大 ID+1）；确认后锁定 SHA 基线。
 - **C 资产重建**（按 01→02→03→04 票顺序复刻，ID 尽量沿用旧号便于源码零改动）：
   信号注册 → 球实体变量 31+ → 挂载四服务端图 → 技能配置+客户端图注入 → 丘丘人+球引用
   → 假人资产（gsts.fb-dummy.config.mjs）→ 单位状态 1077936132 参数三件套（用户编辑器侧）。
