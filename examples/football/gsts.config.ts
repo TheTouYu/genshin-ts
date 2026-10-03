@@ -10,7 +10,7 @@ const config: GstsConfig = {
   inject: {
     gameRegion: 'China',
     playerId: 110170759,
-    mapId: 1073741908,
+    mapId: 1073741825,
     nodeGraphId: 1073741825,
     // ⚠️ 待核对：skipSafeCheck 注释写“弹球图 1073741827”，但本配置 nodeGraphId=1073741825；
     // 若 1073741825 也需要跳过非空保护，保留此开关；否则应只对目标图启用并更新注释。

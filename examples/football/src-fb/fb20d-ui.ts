@@ -27,7 +27,9 @@ import { int } from 'genshin-ts/runtime/value'
 
 import { Fb20Signal } from './signals20.js'
 
-const BUTTON_ID = 1073741843n // 自定义按钮「跑一次」（UI CLI 候选分配 ID）
+// 票 24-C（2026-10-03）：新图 1073741825 的 UI 注册表多 4 个 official HierarchyRoot
+// （1841-1844），旧按钮 ID 1073741843 被占用 → 按钮改 1073741845。
+const BUTTON_ID = 1073741845n // 自定义按钮「跑一次」（UI CLI 候选分配 ID）
 const SKILL_CFG = 1098907654n // GSTS-fb20d-calib：template 6 + 瞬发，body-f5 绑 1082130440
 
 g.server({
