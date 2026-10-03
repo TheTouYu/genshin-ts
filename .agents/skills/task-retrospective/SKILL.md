@@ -114,9 +114,9 @@ description: 完成一波任务后的系统性复盘与自我进化（含修复�
 
 复盘前先问：**这个 bug 的"同类边界"是什么？** 单点修复不是终点——枚举同族风险点，一次修一组。
 
-- **快速定位（图优先，rg 兜底）**：`trace_path {function_name, direction: inbound, depth: 2}`
-  找出共享同一修复函数的**所有入口**；决策矩阵：结构/调用关系 → codebase-memory 图；
-  字面量/错误串/单文件细节 → rg/read。图结果必须用 `read` 落回真实源码确认后才改代码。
+- **快速定位（rg 优先）**：rg `<函数名>` 找出共享同一修复函数的**所有调用点**；
+  决策矩阵：结构/调用关系 → rg 调用点 + read 落回；
+  字面量/错误串/单文件细节 → rg/read。结果必须用 `read` 落回真实源码确认后才改代码。
 - **按 bug 类型选检查清单**：
   - 参数边界类：同一 API 所有参数处理点是否都防御（裸值/句柄/null）？
   - 类型推断类：同一类型族的变体选择是否全链路（IR→GIA→pin 编码）？
@@ -196,6 +196,5 @@ R3 验证提交：矩阵复核 + 断言脚本 + delta/finalize + diff --check + 
 ## 关联技能
 
 - `dsh-session-history`：跨会话历史检索（scan/search/show/errors）
-- `codebase-memory`：同族扩展的图查询（索引/搜索/trace/架构）
 - `editor-incremental-gia-investigator`：需要真实 GIA 证据时走差分实验
 - `task-command-center`：任务收尾的调度层（何时用本技能、何时分流子代理）

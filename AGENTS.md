@@ -49,7 +49,7 @@
 
 1. **先查知识树 PKC**（只读）：命令与 context 清单见 `CLAUDE.md`「PKC 知识树查询」；`query` 必须带 `--level 2`，中英多关键词召回更高。
 2. `progressive-query` 报 coverage gap → 降级 `query`（多关键词/中英混排）→ `knowledge-search --semantic`；**bounded miss ≠ 仓库级缺失**。
-3. 仍未命中 → 才允许 `dsh-session-history` / `codebase-memory` / 项目搜索兜底；缺口记 pending-capture（`pkc-project-operator`）。
+3. 仍未命中 → 才允许 `dsh-session-history` / 项目搜索兜底；缺口记 pending-capture（`pkc-project-operator`）。
 
 ## 技能路由速查（按任务直接加载，不要凭记忆猜）
 
@@ -70,7 +70,6 @@
 | 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
 | Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（**知识文档，直接 read 引用**，不在技能加载列表，勿用 skill 工具加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
-| 代码结构/调用关系/影响面分析 | `codebase-memory` |
 | 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |

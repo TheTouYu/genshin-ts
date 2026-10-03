@@ -20,4 +20,4 @@ Use this module for routine node maintenance, generated definitions, vendor upda
 - Run focused checks before broad build/test/release checks.
 - Do not mix unrelated generated output, game files, or cleanup into a maintenance commit.
 
-For documentation changes, also load `composite-docs-maintainer`; for code structure exploration, load `codebase-memory`.
+For documentation changes, also load `composite-docs-maintainer`; for code structure exploration, use precise search over the source tree.

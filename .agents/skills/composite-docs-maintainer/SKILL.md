@@ -5,12 +5,11 @@ description: Maintain and synchronize the Genshin-TS project knowledge system af
 
 # Genshin-TS knowledge-system maintainer
 
-Maintain the project’s authoritative documentation and navigation system. This skill writes and synchronizes knowledge; it does not replace the navigator, codebase-memory, or the project source of truth.
+Maintain the project’s authoritative documentation and navigation system. This skill writes and synchronizes knowledge; it does not replace the navigator or the project source of truth.
 
 ## Responsibilities and boundaries
 
 - `composite-docs-navigator`: reads knowledge, routes tasks, and selects the smallest relevant modules.
-- `codebase-memory`: discovers code structure and impact; use it when architecture or callers are unclear.
 - `composite-docs-maintainer` (this skill): selects authoritative documentation destinations, updates them, synchronizes indexes and references, and validates the result.
 - `skill-creator`: changes the skills themselves and evaluates their triggering/behavior.
 
