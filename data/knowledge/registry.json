@@ -1610,6 +1610,24 @@
         "预测"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "map-save-layout",
+      "node_id": "game-map-writeback",
+      "title": "Map save layout and target resolution",
+      "path": "knowledge/game-map-writeback/map-save-layout.md",
+      "summary": "新版编辑器子目录式 Save_Level/<mapId>/<mapId>.gil 与旧版平铺并存的双布局解析、Temp/gip 布局事实与 gsts 定位/建图约束。",
+      "keywords": [
+        "Save_Level",
+        "Temp gip",
+        "gilPathInSaveLevel",
+        "maps list",
+        "saveLevelDirOf",
+        "wine 存档",
+        "子目录式",
+        "存档布局"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -3606,6 +3624,18 @@
     "clm_EFD30ED344E248542B400AF528": {
       "fact_classes": [
         "cli_behavior"
+      ]
+    },
+    "clm_83B7580642D70CC2613843FC9C": {
+      "fact_classes": [
+        "cli_behavior",
+        "external_game_evidence"
+      ]
+    },
+    "clm_92F5CE2AB74E6D308FDF08FA7C": {
+      "fact_classes": [
+        "cli_behavior",
+        "writeback_behavior"
       ]
     }
   }

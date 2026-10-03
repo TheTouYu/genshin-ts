@@ -32,6 +32,22 @@
       ]
     },
     {
+      "id": "aref_02363e81b1b39810629f144586",
+      "path": "tests/cli_maps_layout.ts",
+      "locator": "双布局解析/去重/createMap 不撞 ID/syncGilToTemp/resyncMap 回归断言",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "2aee2eaa5fc554e46b1137679cace00b7f721f38da1135079e394e0625637596",
+      "claim_ids": [
+        "clm_92F5CE2AB74E6D308FDF08FA7C"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior",
+        "writeback_behavior"
+      ]
+    },
+    {
       "id": "aref_025ea9e5e8403b16de8038e56b",
       "path": "docs/game-engine-knowledge/retrospective-2026-08-16-signal-registration-series.md",
       "locator": "三版本差分结论（lamp_toggle 逐字节对比）",
@@ -3835,6 +3851,21 @@
       ]
     },
     {
+      "id": "aref_885fea395b00319a982fd27179",
+      "path": "src/cli/maps.ts",
+      "locator": "listMaps 子目录式识别+平铺同名去重；createMap nextId 起算",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e575f6aad56b08c89b6781b31226d81e47cfaf3fca0cedcf61cf7f5fd9b2ccb9",
+      "claim_ids": [
+        "clm_83B7580642D70CC2613843FC9C"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_8a73d3cf6dce0ca3a5b098f446",
       "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/connections.md",
       "locator": "数据流：目标新增 InParam（单线或 --wires 多线一次保存）",
@@ -3892,6 +3923,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_8b882922a5b10b7f0a6da087f0",
+      "path": "src/cli/gil_paths.ts",
+      "locator": "gilPathInSaveLevel / syncGilToTemp 双布局解析与注释（票 24 实测说明）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "43f98dc130c2e830a106a474c6983a03026c9e9d47450568ed013f1e63b98978",
+      "claim_ids": [
+        "clm_83B7580642D70CC2613843FC9C"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -4725,6 +4771,21 @@
       ]
     },
     {
+      "id": "aref_ac5689e9bea9b4536dd379aadc",
+      "path": "src/cli/gil_paths.ts",
+      "locator": "saveLevelDirOf 实现与注释（assets_* 写回链基准修正）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "43f98dc130c2e830a106a474c6983a03026c9e9d47450568ed013f1e63b98978",
+      "claim_ids": [
+        "clm_92F5CE2AB74E6D308FDF08FA7C"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_ac80ab3ccb2e6b0e716bcb70a9",
       "path": "docs/project-intelligence/knowledge-capture-common-errors.md",
       "locator": "sections 1-8: reusable command, preflight, evidence, approval, and verification errors",
@@ -4858,6 +4919,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_b237ff15129eb87b055d38e746",
+      "path": ".scratch/football-v2/issues/24-env-rebuild-wine.md",
+      "locator": "§0 环境事实（子目录式布局实测）+ §2 A 段验证证据",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "de3fea05c9edef741ad0e847586dba9c635284cc58981118863cbf4015525f06",
+      "claim_ids": [
+        "clm_83B7580642D70CC2613843FC9C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
