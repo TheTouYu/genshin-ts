@@ -771,3 +771,14 @@
   dist 因此停在 09-03，所有 CLI 改动无法走正式构建，只能"旧 dist + tsx（会双副本分裂）"窄路验证。
 - 何时做：football dist-fb 生成物应移出 tsconfig include 或排除生成目录；core.ts 4 错按 TS 提示
   `as unknown as` 收口；修后 `npm run build` 必须回绿再谈其他 CLI 变更的正式发布。
+
+### O-2026-09-30-01. 新版存档目录布局 `Save_Level/<mapId>/<mapId>.gil`（子目录式）未被 gil_paths 兼容【OPEN-工具链缺口】
+
+- 现象：换机（WSL2→Arch+wine 独立游戏路径）后新版存档为子目录式布局——
+  `Beyond_Local_Save_Level/1073741825/1073741825.gil`（另含 external_lua_file/ 目录）；而
+  `src/cli/gil_paths.ts:176` resolveGilTarget 只认平铺 `<mapId>.gil`，新版地图定位失败。
+- 新环境事实：GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
+  （China 区拼 miHoYo/原神/BeyondLocal 与 gil_paths.ts:84 一致）；玩家 110170759 不变。
+- 何时做：resolveGilTarget 加 fallback 检查 `<mapId>/<mapId>.gil`；Temp 同步逻辑（syncGilToTemp/resyncMap）
+  同步核对子目录式路径；改后用 1073741825 空图实测定位+Temp 双向同步。
+- 关联：足球票 24（换机重建）；环境探测证据见 `.scratch/football-v2/issues/24-env-rebuild-wine.md`。
