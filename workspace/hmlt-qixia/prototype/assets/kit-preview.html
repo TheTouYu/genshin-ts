@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>③ 视觉全套预览·两角色机制对应（裁决页）</title>
+<style>
+  body{font:14px/1.6 system-ui;background:#10141c;color:#dfe7f2;margin:0;padding:24px}
+  h1{font-size:20px} h2{margin:34px 0 6px;font-size:17px}
+  .sub{color:#8fa2ba;font-size:12px;margin-bottom:14px}
+  .row{display:flex;flex-wrap:wrap;gap:14px;margin:12px 0}
+  .cell{background:#1a2130;border:1px solid #2a3548;border-radius:8px;padding:10px;min-width:150px}
+  .cell .imgbox{background:#e9eef5;border-radius:6px;display:flex;align-items:center;justify-content:center;min-height:70px;padding:8px}
+  .cell img{max-width:100%}
+  .cell .nm{font-weight:600;margin-top:8px}
+  .cell .sz{color:#8fd3a8;font-size:12px}
+  .cell .parts{color:#93a7c0;font-size:11px;margin-top:4px;white-space:pre-line}
+  .scene{background:#070a10;border:1px solid #233046;border-radius:8px;margin:10px 0;padding:10px;position:relative;overflow:hidden}
+  .scene .tag{position:absolute;top:6px;right:10px;color:#5f7592;font-size:11px;z-index:5}
+  .note{color:#8fa2ba;font-size:12px;margin:4px 0 0}
+  /* 虹猫 */
+  #orbitWrap{height:130px;display:flex;align-items:center;justify-content:center}
+  #orbit{position:relative;width:110px;height:110px;animation:spin 3s linear infinite}
+  #orbit img{position:absolute;width:26px}
+  #orbit .o1{top:0;left:42px} #orbit .o2{bottom:6px;left:6px} #orbit .o3{bottom:6px;right:6px}
+  #centerShip{position:absolute;top:39px;left:37px;width:36px;filter:brightness(1.25)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #sweep{height:64px}
+  #sweep img{width:444px;position:absolute;top:6px;left:0;animation:sweep 1.8s ease-in infinite}
+  @keyframes sweep{0%{transform:translateX(-460px);opacity:0}15%{opacity:1}70%{transform:translateX(0);opacity:1}100%{transform:translateX(30px);opacity:0}}
+  #burnBox{height:90px;display:flex;align-items:center;justify-content:center;gap:26px}
+  #burnBox .grp{position:relative}
+  #burnBox .grp img.e{width:44px}
+  #burnBox .grp img.f{position:absolute;top:-14px;right:-4px;width:13px;animation:flick .5s ease-in-out infinite alternate}
+  @keyframes flick{from{opacity:.55;transform:scale(.9)}to{opacity:1;transform:scale(1.12)}}
+  #fengP{height:84px}
+  #fengP img{position:absolute;left:-100px;top:6px;width:74px;animation:fly 3.2s linear infinite}
+  @keyframes fly{to{transform:translateX(620px)}}
+  /* 蓝兔 */
+  #stackBox{height:120px;display:flex;align-items:center;justify-content:center;gap:30px}
+  #stack{position:relative;width:60px;height:110px}
+  #stack img{position:absolute;left:0;width:26px;animation:glint 2.4s infinite}
+  #stack .n1{top:2px;animation-delay:0s} #stack .n2{top:24px;animation-delay:.2s}
+  #stack .n3{top:46px;animation-delay:.4s} #stack .n4{top:68px;animation-delay:.6s}
+  #stack .n5{top:90px;animation-delay:.8s}
+  @keyframes glint{0%,15%{opacity:.12}30%,100%{opacity:1}}
+  #stackBox img.ship{width:40px}
+  #wall{height:130px}
+  #wall img{position:absolute;left:-40px;width:26px;animation:wallmove 2.1s linear infinite}
+  @keyframes wallmove{to{transform:translateX(540px)}}
+  #frost{height:110px}
+  #frost .bul{position:absolute;width:16px}
+  #frost .fz{position:absolute;inset:0;background-size:contain;opacity:0;animation:frz 3s ease-in-out infinite}
+  #frost img.o{transition:opacity .4s;animation:out 3s infinite}
+  #frost img.i{animation:in 3s infinite}
+  @keyframes frz{0%,25%{opacity:0}45%,80%{opacity:.55}100%{opacity:0}}
+  @keyframes out{0%,30%{opacity:1}50%,100%{opacity:0}}
+  @keyframes in{0%,30%{opacity:0}50%,100%{opacity:1}}
+  #shatBox{height:96px;display:flex;align-items:center;justify-content:center;gap:40px}
+  #shatBox .grp{position:relative}
+  #shatBox img.e{width:44px;filter:saturate(.25) brightness(1.15) hue-rotate(160deg)}
+  #shatBox img.s{position:absolute;width:14px;animation:burst .9s ease-out infinite}
+  #shatBox .s1{top:-8px;left:-10px} #shatBox .s2{top:8px;right:-12px;animation-delay:.08s} #shatBox .s3{bottom:-8px;left:8px;animation-delay:.16s}
+  @keyframes burst{0%{opacity:0;transform:scale(.3)}25%{opacity:1}100%{opacity:0;transform:scale(1.5) translateY(-8px)}}
+  .verdict{margin-top:26px;background:#141b28;border:1px dashed #3a4a66;border-radius:8px;padding:12px;font-size:13px;color:#aebfd6}
+</style>
+</head>
+<body>
+<h1>③ 视觉全套预览 · 两角色机制对应</h1>
+<p class="sub">视觉语言：虹猫=<b style="color:#FFB13D">暖金·剑气</b>（橙金主色+白热芯+硬朗刃线）｜蓝兔=<b style="color:#9FD8F2">冰蓝·针晶</b>（银蓝渐变+冰晶质感+锋锐尖芒）。动画为 CSS 模拟，游戏内由渲染层实现同节奏。</p>
+
+<h2>虹猫（僚机灌注 / 长虹贯日 / 点燃 / 火凤燎原）</h2>
+<div class="row">
+  <div class="cell"><div class="imgbox"><img src="changhong.svg" style="width:150px"></div>
+    <div class="nm">长虹剑 v2（已在役）</div><div class="sz">战斗 36×11</div>
+    <div class="parts">①双刃剑身 ②中脊单线 ③云头剑格 ④缠绳柄 ⑤剑首红穗 ⑥两道尾焰</div></div>
+  <div class="cell"><div class="imgbox"><img src="guanri.svg" style="width:100%"></div>
+    <div class="nm">贯日剑气 guanri</div><div class="sz">全屏 444×(18+15×僚机数)，lv5≈78 高</div>
+    <div class="parts">①主气刃(左钝右尖) ②白热芯 ③上缘焰 ④下缘深焰 ⑤右端残影×2</div></div>
+  <div class="cell"><div class="imgbox"><img src="huofeng.svg" style="width:96px"></div>
+    <div class="nm">火凤 huofeng</div><div class="sz">90×70</div>
+    <div class="parts">①三层翅(深/中/金) ②身+高光 ③头冠喙目 ④尾羽流火×3</div></div>
+  <div class="cell"><div class="imgbox"><img src="dianran.svg" style="width:15px"></div>
+    <div class="nm">点燃标记 dianran</div><div class="sz">14×18，敌头顶挂 3s</div>
+    <div class="parts">①外焰 ②内焰 ③白芯（火凤对其 ×1.5）</div></div>
+</div>
+<div class="scene" id="orbitWrap"><span class="tag">场景·僚机灌注（蓄力期）</span>
+  <div id="orbit">
+    <img class="o1" src="fudaiji-new.svg"><img class="o2" src="fudaiji-new.svg"><img class="o3" src="fudaiji-new.svg">
+    <img id="centerShip" src="../../research/extract/assets/shapes/551.svg">
+  </div>
+</div>
+<p class="note">蓄力期：僚机停火、环绕机体注能（机体增亮），松手贯日——宽度=基础+15×僚机数。</p>
+<div class="scene" id="sweep"><span class="tag">场景·长虹贯日（满蓄松手）</span><img src="guanri.svg"></div>
+<div id="burnBox" class="scene"><span class="tag">场景·点燃 dot（贯日命中）</span>
+  <div class="grp"><img class="e" src="../../research/extract/assets/shapes/345.svg"><img class="f" src="dianran.svg"></div>
+  <div class="grp"><img class="e" src="../../research/extract/assets/shapes/357.svg"><img class="f" src="dianran.svg" style="animation-delay:.25s"></div>
+</div>
+<div class="scene" id="fengP"><span class="tag">场景·火凤燎原（K 大招）</span><img src="huofeng.svg"></div>
+
+<h2>蓝兔（冰魄银针 / 针墙齐射 / 冰封千里 / 冻→碎）</h2>
+<div class="row">
+  <div class="cell"><div class="imgbox"><img src="icebolt.svg" style="width:110px"></div>
+    <div class="nm">冰晶弹 icebolt（已在役）</div><div class="sz">34×12</div>
+    <div class="parts">①三棱冰锥 ②棱面折光 ③侧枝雪枝 ④霜雾尾迹 ⑤寒晕</div></div>
+  <div class="cell"><div class="imgbox"><img src="yinzhen.svg" style="width:120px"></div>
+    <div class="nm">冰魄银针 yinzhen</div><div class="sz">28×8；针列纵排于机体后方，上限 4+lv</div>
+    <div class="parts">①银蓝针体 ②针尖白芒 ③针尾三棱冰晶 ④寒雾×2</div></div>
+  <div class="cell"><div class="imgbox"><img src="../../research/extract/assets/shapes/518.svg" style="width:130px"></div>
+    <div class="nm">冰魄剑（原版 518 沿用）</div><div class="sz">46×14 ×3 把</div>
+    <div class="parts">原版素材；剑哺针：每命中 1 敌回收 1 针</div></div>
+  <div class="cell"><div class="imgbox"><img src="bingjing.svg" style="width:44px"></div>
+    <div class="nm">冻结弹 bingjing</div><div class="sz">12×12，冻结期敌弹替身</div>
+    <div class="parts">①六角冰晶 ②晶面折线 ③寒晕</div></div>
+  <div class="cell"><div class="imgbox"><img src="suibing.svg" style="width:44px"></div>
+    <div class="nm">碎冰 suibing</div><div class="sz">16×16，冻→碎 ×2 演出</div>
+    <div class="parts">①五边碎片 ②晶面线 ③高光点</div></div>
+  <div class="cell"><div class="imgbox"><img src="bingfeng.svg" style="width:96px"></div>
+    <div class="nm">冰封千里 bingfeng</div><div class="sz">200×200 → 全屏霜爆覆盖</div>
+    <div class="parts">①中心六角晶核(双层) ②六向霜枝+分叉 ③外环霜圈 ④四角碎霜</div></div>
+</div>
+<div id="stackBox" class="scene"><span class="tag">场景·针列挂针（每 3 发普攻 +1）</span>
+  <div id="stack">
+    <img class="n1" src="yinzhen.svg"><img class="n2" src="yinzhen.svg"><img class="n3" src="yinzhen.svg"><img class="n4" src="yinzhen.svg"><img class="n5" src="yinzhen.svg">
+  </div>
+  <img class="ship" src="../../research/extract/assets/shapes/603.svg">
+</div>
+<div class="scene" id="wall"><span class="tag">场景·针墙齐射（满 8 自动）</span>
+  <img style="top:6px" src="yinzhen.svg"><img style="top:22px;animation-delay:.05s" src="yinzhen.svg">
+  <img style="top:38px;animation-delay:.1s" src="yinzhen.svg"><img style="top:54px;animation-delay:.15s" src="yinzhen.svg">
+  <img style="top:70px;animation-delay:.2s" src="yinzhen.svg"><img style="top:86px;animation-delay:.25s" src="yinzhen.svg">
+  <img style="top:102px;animation-delay:.3s" src="yinzhen.svg"><img style="top:118px;animation-delay:.35s" src="yinzhen.svg">
+</div>
+<div class="scene" id="frost"><span class="tag">场景·冰封千里（K 大招：弹幕冻结）</span>
+  <img class="bul o" style="left:120px;top:22px" src="../../research/extract/assets/shapes/490.svg">
+  <img class="bul o" style="left:220px;top:60px" src="../../research/extract/assets/shapes/490.svg">
+  <img class="bul o" style="left:320px;top:34px" src="../../research/extract/assets/shapes/490.svg">
+  <img class="bul i" style="left:120px;top:22px;width:12px" src="bingjing.svg">
+  <img class="bul i" style="left:220px;top:60px;width:12px" src="bingjing.svg">
+  <img class="bul i" style="left:320px;top:34px;width:12px" src="bingjing.svg">
+  <div class="fz" style="background-image:url('bingfeng.svg');background-position:center;background-repeat:no-repeat"></div>
+</div>
+<div id="shatBox" class="scene"><span class="tag">场景·冻→碎（冰魄剑命中冻结目标 ×2）</span>
+  <div class="grp"><img class="e" src="../../research/extract/assets/shapes/345.svg"><img class="s s1" src="suibing.svg"><img class="s s2" src="suibing.svg"><img class="s s3" src="suibing.svg"></div>
+  <div class="grp"><img class="e" src="../../research/extract/assets/shapes/321.svg"><img class="s s1" src="suibing.svg" style="animation-delay:.2s"><img class="s s2" src="suibing.svg" style="animation-delay:.28s"></div>
+</div>
+
+<div class="verdict">裁决方式：逐素材/逐场景 打勾或指出改哪里（结构清单序号报改）。通过后接线进游戏（ART+渲染层），数值钩子按 GDD 待实测平衡。</div>
+</body>
+</html>

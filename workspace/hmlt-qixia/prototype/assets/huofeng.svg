@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 70">
+  <!-- 尾羽流火三缕（左下拖曳） -->
+  <path d="M30,42 Q10,52 2,64" stroke="#C2571A" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <path d="M26,44 Q6,50 0,58" stroke="#F28C28" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M32,40 Q14,44 6,48" stroke="#FFB13D" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- 翅三层：深→中→金，上扬后掠 -->
+  <path d="M52,34 Q40,16 22,10 Q34,14 44,22 Q50,28 56,34 Z" fill="#8C3A10"/>
+  <path d="M54,34 Q46,14 30,6 Q40,12 50,24 Q54,30 58,34 Z" fill="#F28C28"/>
+  <path d="M56,34 Q54,16 42,4 Q48,12 54,26 Z" fill="#FFB13D"/>
+  <!-- 身体 -->
+  <path d="M32,38 Q46,30 62,32 Q74,34 80,38 Q72,42 60,42 Q44,42 32,38 Z" fill="#C2571A"/>
+  <path d="M38,38 Q50,34 62,36 Q50,38 38,39 Z" fill="#FFB13D" opacity=".6"/>
+  <!-- 头+冠+喙+目 -->
+  <path d="M78,33 Q84,29 88,33 Q86,40 80,40 Z" fill="#C2571A"/>
+  <path d="M80,31 Q82,25 87,23" stroke="#F28C28" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M87,34 L90,36.5 L86,38 Z" fill="#FFB13D"/>
+  <circle cx="84" cy="35" r="1" fill="#2A1206"/>
+</svg>

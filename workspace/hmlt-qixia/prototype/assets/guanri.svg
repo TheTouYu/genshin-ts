@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 444 48">
+  <defs>
+    <linearGradient id="gx" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F28C28" stop-opacity="0"/>
+      <stop offset=".18" stop-color="#FFB13D" stop-opacity=".85"/>
+      <stop offset=".45" stop-color="#FFE9C4"/>
+      <stop offset=".5" stop-color="#FFFFFF"/>
+      <stop offset=".55" stop-color="#FFE9C4"/>
+      <stop offset=".82" stop-color="#FFB13D" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#F28C28" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- 主气刃：左钝右尖横向透镜 -->
+  <path d="M2,25 Q150,8 300,13 Q395,17 442,23 Q395,27 300,29 Q150,35 2,27 Z" fill="url(#gx)"/>
+  <!-- 白热芯 -->
+  <path d="M40,25 Q200,16 420,23 Q200,21.5 40,26 Z" fill="#FFFFFF" opacity=".9"/>
+  <!-- 上缘焰 -->
+  <path d="M20,22 Q160,4 300,9 Q380,12 430,20 Q340,10 200,10 Q80,12 20,24 Z" fill="#FFB13D" opacity=".35"/>
+  <!-- 下缘焰（深） -->
+  <path d="M20,28 Q160,37 300,32 Q380,29 430,25 Q340,34 200,36 Q80,34 20,30 Z" fill="#C2571A" opacity=".3"/>
+  <!-- 右端尖残影 -->
+  <path d="M380,15 Q420,12 443,22" stroke="#FFE9C4" stroke-width="1.2" fill="none" opacity=".5"/>
+  <path d="M380,33 Q418,30 437,26" stroke="#FFB13D" stroke-width="1" fill="none" opacity=".5"/>
+</svg>

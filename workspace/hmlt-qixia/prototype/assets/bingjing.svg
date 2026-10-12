@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+  <!-- 冻结敌弹：六角冰晶替身 -->
+  <circle cx="6" cy="6" r="5.4" fill="#C9E9FA" opacity=".25"/>
+  <polygon points="6,0.8 10.4,3.4 10.4,8.6 6,11.2 1.6,8.6 1.6,3.4" fill="#9FD8F2" stroke="#6FB6E8" stroke-width=".6"/>
+  <path d="M6,0.8 L6,11.2 M1.6,3.4 L6,6 L10.4,3.4 M1.6,8.6 L6,6 L10.4,8.6" stroke="#EAF8FF" stroke-width=".45" fill="none" opacity=".7"/>
+</svg>

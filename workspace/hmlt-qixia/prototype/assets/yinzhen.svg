@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 8">
+  <defs>
+    <linearGradient id="ny" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAF8FF"/>
+      <stop offset=".5" stop-color="#9FD8F2"/>
+      <stop offset="1" stop-color="#6FB6E8"/>
+    </linearGradient>
+  </defs>
+  <!-- 针体：银蓝渐变细锥 -->
+  <path d="M6,4 L22,3.1 L27,4 L22,4.9 Z" fill="url(#ny)"/>
+  <!-- 针尖白芒 -->
+  <path d="M24,3.4 L27,4 L24,4.6 Z" fill="#FFFFFF"/>
+  <!-- 针尾三棱冰晶 -->
+  <path d="M6,4 L1,1.4 L4.2,4 Z" fill="#9FD8F2"/>
+  <path d="M6,4 L0,4 L4.2,4 Z" fill="#C9E9FA"/>
+  <path d="M6,4 L1,6.6 L4.2,4 Z" fill="#9FD8F2"/>
+  <!-- 寒雾 -->
+  <circle cx="4" cy="4" r="1" fill="#EAF8FF" opacity=".5"/>
+  <circle cx="2" cy="2.2" r=".6" fill="#EAF8FF" opacity=".4"/>
+</svg>

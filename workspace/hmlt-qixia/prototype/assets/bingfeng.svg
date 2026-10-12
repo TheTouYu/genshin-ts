@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <g id="sp">
+      <path d="M100,84 L100,28 L105.5,36 L100,32 L94.5,36 Z" fill="#9FD8F2" opacity=".9"/>
+      <path d="M100,52 L109,45 L101,50 Z" fill="#C9E9FA"/>
+      <path d="M100,66 L92,60 L99,64 Z" fill="#C9E9FA"/>
+    </g>
+  </defs>
+  <!-- 中心六角晶核 -->
+  <polygon points="100,86 112,93 112,107 100,114 88,107 88,93" fill="#C9E9FA" stroke="#6FB6E8" stroke-width="1.2"/>
+  <polygon points="100,93 106,96.5 106,103.5 100,107 94,103.5 94,96.5" fill="#FFFFFF" opacity=".85"/>
+  <!-- 六向霜枝 -->
+  <use href="#sp" transform="rotate(0 100 100)"/>
+  <use href="#sp" transform="rotate(60 100 100)"/>
+  <use href="#sp" transform="rotate(120 100 100)"/>
+  <use href="#sp" transform="rotate(180 100 100)"/>
+  <use href="#sp" transform="rotate(240 100 100)"/>
+  <use href="#sp" transform="rotate(300 100 100)"/>
+  <!-- 外环霜圈 -->
+  <circle cx="100" cy="100" r="86" fill="none" stroke="#9FD8F2" stroke-width="1" opacity=".35" stroke-dasharray="6 8"/>
+  <!-- 四角碎霜 -->
+  <polygon points="14,10 20,14 14,18 8,14" fill="#C9E9FA" opacity=".25"/>
+  <polygon points="186,10 192,14 186,18 180,14" fill="#C9E9FA" opacity=".25"/>
+  <polygon points="14,182 20,186 14,190 8,186" fill="#C9E9FA" opacity=".25"/>
+  <polygon points="186,182 192,186 186,190 180,186" fill="#C9E9FA" opacity=".25"/>
+</svg>
