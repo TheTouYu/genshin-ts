@@ -345,35 +345,34 @@ class Game{
   }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship, tier=this.chargeTier||1;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
-    if(cfg.chargeType==='guanri'){ // v12 长虹贯日：巨剑前推扫场（随lv更大更深）+僚机S阵列
-      const n=this.wings.length;
-      const tier=this.chargeTier||1;                                     // v13 两档：满蓄100%/45%档30%
-      this.guanri={t:3.2,x:S.x+20,w:Math.round((64+22*this.lv+18*n)*(0.6+0.4*tier)),y:S.y,
-        dmg:Math.round((60+35*this.lv)*tier),hit:new Set()};
+    if(cfg.chargeType==='guanri'){ // v15 长虹贯日：巨剑=本体剑起成长（lv2=36px→lv5=400%=144px）；不满蓄=无剑
+      const n=this.wings.length, tier=this.chargeTier||1;
+      if(tier<1){ this.wingBurst2=2.4*0.3;                           // 不满蓄惩罚：僚机弹量骤减（30%）+无飞剑
+        this.say('长虹未满·仅僚机齐射'); this.log('charge_weak'); return; }
+      this.guanri={t:3.2,x:S.x+20,w:36*(this.lv-1),y:S.y,            // 成长曲线：lv-1 倍（1/2/3/4）
+        dmg:60+35*this.lv,hit:new Set()};
       if(n>=3) this.unlock('guanri_full');
-      this.wingBurst2=2.4*tier;                                 // v13 S 阵列窗 2.4s×两档（近身高风险高dps）
+      this.wingBurst2=2.4;                                          // 满档：完整 S 阵列（近身高风险高dps）
       this.jieJian=0.5; this.say('长虹贯日!'); return; }
     else { // v12 蓝兔蓄力=冰魄剑（高单体·不穿透·被小怪挡=需先清场）+银针齐发（范围·列序）
       const tgt=this.enemies.filter(e=>!e.dead&&e.x>S.x).sort((a,b)=>a.x-b.x)[0];
       const ang=clamp(tgt?Math.atan2(tgt.y-S.y,tgt.x-S.x):0,-0.5,0.5);
-      const cnt=Math.max(1,Math.round(this.lv*tier));                    // v13 两档：把数随档
+      const cnt=Math.max(1,Math.round(this.lv*tier));                    // v15 两档：满蓄全额 / 70%档=25% 把数
       for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.14;
         this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,
           aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
           dmg:Math.round((50+30*this.lv)*tier),maxD:200,dist:0,art:'bingpoj'}); }
-      this.say(tier===1?'冰魄剑!':'冰魄剑·小成'); this.loopMark.sword=this.t;
-      this.needleBarrage(tier>=1?(tier===1.5?2.2:1.6):0.3, tier>=1); } }
-  needleBarrage(mult=1,big=false){ const S=this.ship, n=this.needles, rows=this.lv, per=2+this.lv; // v13：mult=伤害倍率 big=放大版
+      this.say(tier===1?'冰魄剑!':'冰魄剑·残形'); this.loopMark.sword=this.t;
+      this.needleBarrage(tier===1?1.6:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
+  needleBarrage(mult=1,big=false,keep=1){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
     if(n===0) return;
-    // v12 列序齐发：从右到左、列内从上到下（伤害总时长拉长+位置预判；发射后不跟随玩家）
-    for(let i=0;i<n;i++){ const row=Math.floor(i/per), col=i%per;
-      setTimeout(()=>{ if(game!==this||this.state!=='playing') return;
-        this.bullets.push({x:S.x-10,y:S.y+(row-(rows-1)/2)*11,vx:560,vy:(row-(rows-1)/2)*18,
-          w:30,h:9,aw:(big?44+5*this.lv:26),ah:(big?10+this.lv:8),dmg:Math.round((12+7*this.lv)*mult),
-          pierce:true,art:'yinzhen',wallId:++this.wallSeq});
-        SFX.play('fireL',0.2); }, ((per-1-col)*rows+row)*70); }
-    this.needles=0; this.say('冰魄银针·齐发!'); this.log('needle_wall');
-    this.loopMark.wall=this.t;
+    const fire=Math.max(1,Math.ceil(n*keep)), gone=n-fire;
+    this.needleSalvo={x:S.x,y:S.y,n:fire,mult,big,int:0.07,rows:this.lv};
+    for(let i=0;i<gone;i++)                                        // 不满蓄：未达阈值的银针当场消散（火花）
+      this.booms.push({x:S.x+(Math.random()-.5)*54,y:S.y+(Math.random()-.5)*38,t:.3,spark:true});
+    this.needles=0;
+    this.say(gone>0?'银针消散·残阵齐发!':(big?'冰魄银针·齐发!':'冰魄银针·速发'));
+    this.log('needle_wall'); this.loopMark.wall=this.t;
     if(this.t-this.loopMark.shot<12) this.unlock('bing_lun'); }
   addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
   dropPowAtPlayer(){ this.items.push(this.mkItem('pow',this.ship.x+60,this.ship.y)); }
@@ -538,7 +537,7 @@ class Game{
       else { this.chargeFull=false; this.chargeMax=false; } }
     if(this.neng<=0) this.chargeGraze=0;
     if(!firing&&this.neng>0){
-      if(this.neng>=0.45*cfg.ps){ this.chargeTier=this.neng>=cfg.ps*1.5?1.5:this.neng>=cfg.ps?1:0.3; this.releaseCharge(); } // v14 三档：45%→30% / 满蓄→100% / 过载→150%
+      if(this.neng>=0.7*cfg.ps){ this.chargeTier=this.neng>=cfg.ps*1.5?1:0.25; this.releaseCharge(); } // v15 两档：70%黄环→25%收益 / 150%红环→100%收益
       this.neng=0;
     }
     if(this.wingBurst>0) this.wingBurst-=dt;
@@ -550,6 +549,16 @@ class Game{
 
     // 僚机：平时由 fireVolley 同步齐射；蓄力期=虹猫环绕灌注/蓝兔针座贴身；S 阵列窗
     const charging=this.lv>1&&this.neng>0&&this.fashez<=0;
+    if(this.needleSalvo){ const sv=this.needleSalvo;                  // v15 固化针阵：原地 70ms/发 逐发放出
+      sv.int-=dt;
+      if(sv.int<=0&&sv.n>0){ sv.int=0.07; sv.n--;
+        const row=sv.n%sv.rows;
+        this.bullets.push({x:sv.x,y:sv.y+(row-(sv.rows-1)/2)*11,vx:560,vy:(row-(sv.rows-1)/2)*18,
+          w:30,h:9,aw:(sv.big?44+5*this.lv:22),ah:(sv.big?10+this.lv:7),
+          dmg:Math.round((12+7*this.lv)*sv.mult),pierce:!!sv.big,    // 小银针不穿透；大银针穿透
+          art:'yinzhen',wallId:++this.wallSeq});
+        SFX.play('fireL',0.2); }
+      if(sv.n<=0) this.needleSalvo=null; }
     if(this.wingBurst2>0) this.wingBurst2-=dt;
     for(let i=0;i<this.wings.length;i++){ const w=this.wings[i]; let tx,ty;
       if(charging&&this.shipKey==='hongmao'){ const a=this.t*4+i*6.28/Math.max(1,this.wings.length);  // 环绕注能
@@ -797,6 +806,10 @@ class Game{
     if(this.phoenix){ const p=this.phoenix;
       drawArt(ctx,'phoenix',p.x,p.y,46,52,-0.2); ctx.globalAlpha=0.4;
       drawArt(ctx,'phoenix',p.x-18,p.y,46,52,-0.35); ctx.globalAlpha=1; }
+    if(this.needleSalvo){ const sv=this.needleSalvo;                  // v15 固化针阵：待发针悬停原位
+      for(let i=0;i<sv.n;i++){ const row=i%sv.rows;
+        drawArt(ctx,'yinzhen',sv.x-Math.floor(i/sv.rows)*10,sv.y+(row-(sv.rows-1)/2)*11,
+          sv.big?32:20,sv.big?9:6); } }
     // 玩家 + 僚机 + 焰
     const S=this.ship;
     if(this.invuln<=0||Math.floor(this.t*12)%2===0){
