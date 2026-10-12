@@ -17,3 +17,8 @@ _（runtime=simulator 记录区）_
 ## 步骤 7 真机 — 未开始
 
 _（runtime=device 记录区）_
+
+### 2026-10-12 首轮反馈（用户，browser-run: user）
+
+1. **键盘 Colemak+拼音 IME：a 可用，d/j/k 失效** —— 根因：IME 拦截下 `e.key='Process'`，字母匹配失效；a 恰好物理位同位幸存。处置：normKey() 双通道（e.key 字母优先 → e.code 物理 Colemak 映射兜底），keydown/keyup 同路径。待用户复测。
+2. **蓝兔素材错认成大奔** —— 568（fj1 主体）视觉为大奔，非蓝兔。处置：contact-sheet.html 五机体 shape 对照表（fj0..fj4 全部主体 shape），待用户指认蓝兔编号后替换 ART.lantu。待用户指认。

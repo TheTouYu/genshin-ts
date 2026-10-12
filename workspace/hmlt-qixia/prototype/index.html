@@ -74,16 +74,29 @@ const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3
 ];
 
 // ---------- 输入 ----------
+// Colemak+拼音 IME 兼容：IME 拦截时 e.key='Process'，改用物理键位 e.code 经 Colemak 映射还原字母；
+// 无 IME 时 e.key 即布局字符（任意布局都对）。
+const COLEMAK_CODE = {KeyQ:'q',KeyW:'w',KeyE:'f',KeyR:'p',KeyT:'g',KeyY:'j',KeyU:'l',KeyI:'u',KeyO:'y',
+  KeyA:'a',KeyS:'r',KeyD:'s',KeyF:'t',KeyG:'d',KeyH:'h',KeyJ:'n',KeyK:'e',KeyL:'i',
+  KeyZ:'z',KeyX:'x',KeyC:'c',KeyV:'v',KeyB:'b',KeyN:'k',KeyM:'m'};
+function normKey(e){
+  const k = e.key.toLowerCase();
+  if(/^[a-z]$/.test(k)) return k;                 // 布局字符直接可用
+  const cm = COLEMAK_CODE[e.code];
+  if(cm) return cm;                                // IME 'Process'：物理位→Colemak 字母
+  if(/^Key[A-Z]$/.test(e.code)) return e.code[3].toLowerCase(); // QWERTY 物理位兜底
+  return k;                                        // 方向键/回车等原样
+}
 const keys = {}; let jEdge=false, kEdge=false;
 addEventListener('keydown', e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-  const k = e.key.toLowerCase();
+  const k = normKey(e);
   if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
   keys[k]=true;
   if(game){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer(); }
   if(k==='r' && game && game.state!=='select') restart();
 });
-addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
+addEventListener('keyup', e=>keys[normKey(e)]=false);
 // 触屏：拖动移动 + 自动开火 + 炸弹按钮
 let touch={on:false,x:0,y:0};
 const cv=document.getElementById('cv');
