@@ -44,7 +44,7 @@
 <div id="hint"><b style="color:#ffd166">[v12·僚机体系+大招造势]</b> WASD/J/K 键帽位 · J 慢节奏重击（虹猫0.7s/蓝兔0.4s，僚机每拍同步齐射）· 长按蓄力满松手：虹猫=贯日巨剑+S阵列弹海 / 蓝兔=冰魄剑(高单体)+银针列序齐发 · K 大招（时停+震动+火凤/冰封）· C 领悟图鉴 · 过关捡完掉落 K 续关 · 调试:1-5 B+宝 P+Pow R重开</div></div>
 <div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
 <button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
-<div id="codex"><h2>领悟图鉴 <span id="codexN"></span></h2><div id="codexList"></div><p>C 或点击任意处关闭 · 初始只显名字，触发后解锁详情</p></div>
+<div id="codex"><h2>领悟图鉴 <span id="codexN"></span></h2><div id="codexList"></div><p>C 或点击任意处关闭 · 初始只显名字，触发后解锁详情 · 按 T 重置特性解锁</p></div>
 <div id="result"></div>
 <script>
 'use strict';
@@ -230,7 +230,7 @@ const TRAITS=[ // v21 隐藏特性（全四字名）：效果常驻不告人；�
  ['yizhen','一针见血','蓝兔','敌人被冰封千里冻住时，银针暴击率 +50%——满蓄释放要压在大招之后'],
  ['zhenman','针满则锐','蓝兔','银针攒满一匣时，蓄力速度 +30%，针匣泛起寒光——攒满再蓄，快人一步'],
  ['guiqia','飞针归匣','蓝兔','贴身命中的银针会被蓝兔收回针匣——近身作战，银针取之不竭'],
- ['fengzhu','风助火势','虹猫','长虹剑打中燃烧的敌人时，暴击率 +50%——先用大招或贯日点燃，再挥剑收割'],
+ ['fengzhu','风助火势','虹猫','火凤燎原点燃的敌人，会被长虹贯日以 +50% 暴击率斩击——大招点火，满蓄收割'],
  ['renjian','人剑合一','虹猫','蓄力或大招的长虹剑命中后 0.3 秒内按下普攻：追发两柄小长虹剑（一次释放最多两次）'],
  ['qiudao','险中求道','虹猫','蓄力时贴着敌弹走：自动挥出一剑，并额外凝聚剑气'],
  ['beishui','背水一战','通用','只剩最后一条命时：暴击率 +20%，射速与移速 +20%——七侠不惧生死']];
@@ -252,6 +252,7 @@ addEventListener('keydown', e=>{
   if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
   keys[k]=true;
   if(game && game.state!=='select'){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer();
+    if(k==='t'){ traitsSeen={}; try{ localStorage.removeItem('hmlt-traits'); }catch(e){} game.say('特性已重置·重新体验首次触发'); } // v24
     if(k==='m'){ SFX.mode=SFX.mode==='classic'?'full':'classic'; game.say('音效:'+(SFX.mode==='classic'?'原版3音':'完整(再创)')); } }
   if(k==='r' && game && game.state!=='select') restart();
   if(k==='c') toggleCodex();
@@ -400,7 +401,6 @@ class Game{
   traitBulletDmg(b,e){ let d=b.dmg; // v21 特性暴击体系：基础5%×2；条件加成见 critRate
     const kind=b.wallId?'needle':(b.art==='changhong'?'sword':(b.art==='bingpoj'?'blade':'wing'));
     if(kind==='needle'&&this.shipKey==='lantu'&&this.freezeT>0) this.traitFire('yizhen'); // 一针见血
-    if(kind==='sword'&&this.shipKey==='hongmao'&&e.burn>0) this.traitFire('fengzhu');    // 风助火势
     const crit=Math.random()<this.critRate(kind,e);
     if(crit){ d*=2; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); }
     this.dmgFloat(e,d,kind==='blade'?'frost':'normal',crit);
@@ -408,7 +408,7 @@ class Game{
   critRate(kind,e){ let r=0.05; // v21 暴击率：基础5%；背水+20%；一针见血/风助火势条件+50%
     if(this.life===1) r+=0.2;
     if(kind==='needle'&&this.shipKey==='lantu'&&this.freezeT>0) r+=0.5;
-    if(kind==='sword'&&this.shipKey==='hongmao'&&e&&e.burn>0) r+=0.5;
+    if(kind==='guanri'&&this.shipKey==='hongmao'&&e&&e.burn>0&&e.burnSrc==='phoenix') r+=0.5; // v24 风助火势：火凤点火+满蓄贯日收割
     return Math.min(r,0.95); }
   traitFx(id){ if(id) this.fxAura[id]=0.6; } // v21 角色光环：触发时亮起
   fireSmallSwords(n,fxId){ const cfg=N.ships[this.shipKey], S=this.ship; // v21 追发小长虹剑（人剑合一/险中求道）
@@ -449,21 +449,20 @@ class Game{
     if(e.hp<=0&&!e.dead&&e.isBoss&&e.phases&&e.phaseIdx<e.phases.length-1){   // v13 boss 分相（boss3/jxjq/black/boss2）
       e.phaseIdx++; e.hp=e.phases[e.phaseIdx]; this.score+=1000; this.log('score '+this.score);
       this.ebullets.length=0; this.say(e.kind+' 变形!'); e.flash=0.15;
-      if(e.kind==='black') this.items.push(this.mkItem('pow',e.x,e.y));       // black 阶段间掉 pow
-      return; }
+      return; } // v24 阶段间不再掉 pow（稀缺化）
     if(e.hp<=0 && !e.dead){ e.dead=true; this.onKill(e); } }
   onKill(e){
     this.score+=e.def.score; this.stats.kills++; this.log('score '+this.score);
     SFX.play(e.kind==='bsx'?'bs':'boomE');
     this.booms.push({x:e.x,y:e.y,t:0.5,big:e.isBoss});
     if(this.ship&&Math.hypot(e.x-this.ship.x,e.y-this.ship.y)<40) this.unlock('tie_lian'); // 悟九·贴脸斩
-    if(e.kind==='dj3'||e.isBoss||e.isMid){ this.items.push(this.mkItem('pow',e.x,e.y)); this.say('能量块出现!'); }
+    if(e.isMid){ this.items.push(this.mkItem('pow',e.x,e.y)); this.say('能量块出现!'); } // v24 稀缺化：dj3 波次怪/boss 双掉全收
     if(e.kind==='dj2'){ this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); }
     if(e.kind==='dj4'&&Math.random()<.5) this.items.push(this.mkItem('bs',e.x,e.y));
     if(e.kind==='nq'||e.kind==='nq2') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); // nq/nq2 掉 bs×2
     if(e.kind==='jxr1') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y));
     if(e.kind==='dgp'){ for(let i=0;i<3;i++) this.items.push(this.mkItem('bs',e.x,e.y)); }
-    if(e.kind==='cw'){ for(let i=0;i<3;i++) this.items.push(this.mkItem('pow',e.x+i*14-14,e.y)); } // 速杀才有
+    if(e.kind==='cw'){ this.items.push(this.mkItem('pow',e.x,e.y)); } // v24 速杀奖励收敛 1 个
     if(e.kind==='lsfj') this.items.push(this.mkItem('bs',e.x,e.y));
     if(e.kind==='jbdj'){ if(Math.random()<.3) this.items.push(this.mkItem('pow',e.x,e.y));      // f16 diao<3→pow 30%
       else for(let i=0;i<3;i++) this.items.push(this.mkItem('bs',e.x,e.y)); }
@@ -758,10 +757,10 @@ class Game{
       for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&Math.abs(e.x-g.x)*2<g.w+(e.w||30)&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){ // v23 剑身x判定：未到不伤
         g.hit.add(e);
         let gd=e.isBoss?g.dmg*1.5:g.dmg, gc=false;                          // v16 巨剑对 boss ×1.5 终结技
-        if(e.burn>0){ this.traitFire('fengzhu');                           // v21 风助火势：蓄力剑打燃烧敌
-          if(Math.random()<this.critRate('sword',e)){ gd*=2; gc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
+        if(e.burn>0&&e.burnSrc==='phoenix'){ this.traitFire('fengzhu');    // v24 风助火势：仅火凤点的火
+          if(Math.random()<this.critRate('guanri',e)){ gd*=2; gc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
         this.dmgFloat(e,gd,'skill',gc); this.damage(e,Math.round(gd)); // v22 金色技能数字
-        e.burn=12; e.burnTick=3;                                            // v21 燃烧重构：12s×每3s一跳35（共140<旧150）
+        e.burn=12; e.burnTick=3; e.burnSrc='guanri';                        // v24 标记燃源
         if(this.renjianLeft>0&&this.t>this.renjianCd&&this.fireCd<=0) this.renjianWin=0.3; // v23 窗只在普攻就绪时开=需刻意等CD,连按无效
         this.booms.push({x:e.x,y:e.y,t:.25,spark:true}); }
       if(g.t<=0||g.x>FIELD_W+160) this.guanri=null; }
@@ -771,7 +770,7 @@ class Game{
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
       for(const e of tgts) if(!e.dead&&Math.abs(e.x-p.x)<52&&Math.abs(e.y-p.y)<40){ // v23 盒=视觉尺寸(74×41)
         if(e.burn>0) this.unlock('rifeng');
-        if(!p.hit.has(e)){ p.hit.add(e); e.burn=12; e.burnTick=3;          // v21 燃烧重构
+        if(!p.hit.has(e)){ p.hit.add(e); e.burn=12; e.burnTick=3; e.burnSrc='phoenix'; // v24 标记燃源
           if(this.renjianLeft>0&&this.t>this.renjianCd&&this.fireCd<=0) this.renjianWin=0.3; } // v23 同贯日
         const pd=(e.burn>0?220:150)*dt; this.damage(e,pd);           // 火凤 dps（原逻辑不丢）
         this.dmgAcc.set(e,(this.dmgAcc.get(e)||0)+pd); }              // v22 聚合显示
