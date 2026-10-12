@@ -98,7 +98,7 @@ const N = {
   chargeRate:35,                       // v16 蓄力提速（满档 3.0s/2.8s——鼓励蓄力循环）
   ships:{
     hongmao:{bullet:'changhong', bspeed:420, fireCd:0.7, dmgMul:4.3, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'guanri',  bombDj:50, bombBoss:50},  // ③ 虹猫蓄力=长虹贯日（僚机灌注）
-    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:2.1, ps:65, range:240, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
+    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:2.1, ps:65, range:178, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
   },
   enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:220, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
           dj3:{hp:420, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
@@ -557,7 +557,7 @@ class Game{
         this.bullets.push({x:sv.x,y:sv.y+(row-(sv.rows-1)/2)*11,vx:560,vy:(row-(sv.rows-1)/2)*18,
           w:30,h:9,aw:(sv.big?44+5*this.lv:22),ah:(sv.big?10+this.lv:7),
           dmg:Math.round((12+7*this.lv)*sv.mult),pierce:!!sv.big,    // 小银针不穿透；大银针穿透
-          art:'yinzhen',wallId:++this.wallSeq});
+          art:'yinzhen',maxD:sv.big?240:300,dist:0,wallId:++this.wallSeq}); // v17 银针射程：大240/小300
         SFX.play('fireL',0.2); }
       if(sv.n<=0) this.needleSalvo=null; }
     if(this.wingBurst2>0) this.wingBurst2-=dt;
