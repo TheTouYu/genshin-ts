@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>蓝兔·冰晶弹 预览确认</title>
+<style>
+  body { background:#0d0d1c; color:#eee; font-family:sans-serif; padding:20px; max-width:980px; margin:auto; }
+  h1 { color:#7fd8ff; } h2 { color:#7fd8ff; border-bottom:1px solid #345; padding-bottom:4px; margin-top:28px; }
+  .panel { border:1px solid #345; border-radius:10px; padding:14px; margin:10px 0; }
+  .dark { background:radial-gradient(ellipse at center,#14203a,#0d0d1c); }
+  .light { background:#eef4fb; }
+  .tag { font-size:12px; color:#9ab; }
+  .row { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  .big { filter:drop-shadow(0 0 16px rgba(127,216,255,.5)); }
+  .lane { position:relative; height:120px; overflow:hidden; border-radius:8px;
+    background:linear-gradient(90deg,#0d0d1c,#13203a 60%,#0d0d1c); }
+  .fly { position:absolute; top:50%; left:-80px; animation:fly 2.6s linear infinite; }
+  @keyframes fly { 0%{ transform:translate(0,-50%);} 100%{ transform:translate(1150px,-50%);} }
+  table { border-collapse:collapse; font-size:13px; }
+  td,th { border:1px solid #345; padding:6px 10px; }
+</style>
+</head>
+<body>
+<h1>❄ 蓝兔·冰晶弹 v1 · 预览确认</h1>
+<p class="tag">气质基准=她的全家福：机体 603 冰蓝白 / 冰魄剑 518 寒光 / 满蓄 ❄。裁决项：弹形（三棱冰锥+侧枝雪枝）、色（冰蓝→白芯）、霜雾尾迹、实际尺寸可读性。回复「通过」或报序号+方向。</p>
+
+<h2>1. 定妆照（×4，游戏底色）</h2>
+<div class="panel dark" style="text-align:center">
+  <img src="icebolt.svg" width="272" class="big">
+</div>
+
+<h2>2. 浅底看轮廓（×4）</h2>
+<div class="panel light" style="text-align:center">
+  <img src="icebolt.svg" width="272">
+</div>
+
+<h2>3. 实际游戏尺寸：新冰晶弹 vs 旧激光（jezd 618）</h2>
+<div class="panel dark row">
+  <div style="text-align:center"><img src="icebolt.svg" width="48"><div class="tag">冰晶弹 24×8（0.22s/发）</div></div>
+  <div style="text-align:center"><img src="../../research/extract/assets/shapes/618.svg" width="24"><div class="tag">旧 jezd 19×6（对照·简陋）</div></div>
+  <div style="text-align:center"><img src="icebolt.svg" width="24"><div class="tag">同尺寸不带放大，可读性判据</div></div>
+</div>
+
+<h2>4. 飞行模拟（霜雾尾迹+寒光晕）</h2>
+<div class="lane panel">
+  <div class="fly"><img src="icebolt.svg" width="82"></div>
+</div>
+
+<h2>5. 全家福气质协调检查（蓝兔套件）</h2>
+<div class="panel dark row" style="justify-content:space-around">
+  <div style="text-align:center"><img src="../../research/extract/assets/shapes/603.svg" width="36"><div class="tag">机体 603</div></div>
+  <div style="text-align:center"><img src="icebolt.svg" width="48"><div class="tag">普攻·冰晶弹（本页裁决）</div></div>
+  <div style="text-align:center"><img src="../../research/extract/assets/shapes/518.svg" width="46"><div class="tag">蓄力·冰魄剑 518</div></div>
+  <div style="text-align:center;font-size:26px;color:#7fd8ff;filter:drop-shadow(0 0 8px #7fd8ff)">❄<div class="tag">满蓄提示（已定稿）</div></div>
+</div>
+
+<h2>6. 结构清单（说改哪条报序号即可）</h2>
+<table>
+<tr><th>#</th><th>部件</th><th>现设计</th></tr>
+<tr><td>1</td><td>主弹体</td><td>三棱冰锥（尾粗头锐），冰蓝→白芯横向渐变</td></tr>
+<tr><td>2</td><td>棱面折光</td><td>两条纵向高光棱线（晶体感来源）</td></tr>
+<tr><td>3</td><td>侧枝雪枝</td><td>三根短冰枝（雪花枝意象，上二下一）</td></tr>
+<tr><td>4</td><td>霜雾尾迹</td><td>三粒渐散雪晶+淡蓝雾线</td></tr>
+<tr><td>5</td><td>寒光晕</td><td>冰蓝椭圆辉光（低透明度）</td></tr>
+</table>
+<p class="tag">页面：prototype/assets/lantu-preview.html · 通过后接线进游戏（jezd→icebolt）</p>
+</body>
+</html>
