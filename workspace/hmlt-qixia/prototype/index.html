@@ -230,7 +230,7 @@ const TRAITS=[ // v21 隐藏特性（全四字名）：效果常驻不告人；�
  ['yizhen','一针见血','蓝兔','敌人被冰封千里冻住时，银针暴击率 +50%——满蓄释放要压在大招之后'],
  ['zhenman','针满则锐','蓝兔','银针攒满一匣时，蓄力速度 +30%，针匣泛起寒光——攒满再蓄，快人一步'],
  ['guiqia','飞针归匣','蓝兔','贴身命中的银针会被蓝兔收回针匣——近身作战，银针取之不竭'],
- ['fengzhu','风助火势','虹猫','火凤燎原点燃的敌人，会被长虹贯日以 +50% 暴击率斩击——大招点火，满蓄收割'],
+ ['xinhuo','薪火相传','虹猫','燃烧中的敌人被击杀时，火种飞溅点燃附近的敌人——一火燎原，越杀越烧'],
  ['renjian','人剑合一','虹猫','蓄力或大招的长虹剑命中后 0.3 秒内按下普攻：追发两柄小长虹剑（一次释放最多两次）'],
  ['qiudao','险中求道','虹猫','蓄力时贴着敌弹走：自动挥出一剑，并额外凝聚剑气'],
  ['beishui','背水一战','通用','只剩最后一条命时：暴击率 +20%，射速与移速 +20%——七侠不惧生死']];
@@ -308,7 +308,7 @@ class Game{
     this.stats={kills:0,hits:0,pick:0,time:0};
     this.needles=0; this.shotN=0; this.wallSeq=0; this.wallHits={};
     this.guanri=null; this.phoenix2=null; this.freezeT=0; this.jieJian=0; this.chargeGraze=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[];
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
@@ -330,7 +330,7 @@ class Game{
     this.wave=-1; this.levelT=0; this.waveGap=0; this.boss=null;
     this.enemies.length=0; this.ebullets.length=0; this.items.length=0; this.booms.length=0;
     this.needles=0; this.neng=0; this.guanri=null; this.phoenix2=null; this.freezeT=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[];
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.scrollSpd=N.scroll; this.envTimer=1.5; this.bgKey=L.bg; this.bgW=ART[L.bg][1];
@@ -408,7 +408,6 @@ class Game{
   critRate(kind,e){ let r=0.05; // v21 暴击率：基础5%；背水+20%；一针见血/风助火势条件+50%
     if(this.life===1) r+=0.2;
     if(kind==='needle'&&this.shipKey==='lantu'&&this.freezeT>0) r+=0.5;
-    if(kind==='guanri'&&this.shipKey==='hongmao'&&e&&e.burn>0&&e.burnSrc==='phoenix') r+=0.5; // v24 风助火势：火凤点火+满蓄贯日收割
     return Math.min(r,0.95); }
   traitFx(id){ if(id) this.fxAura[id]=0.6; } // v21 角色光环：触发时亮起
   fireSmallSwords(n,fxId){ const cfg=N.ships[this.shipKey], S=this.ship; // v21 追发小长虹剑（人剑合一/险中求道）
@@ -456,7 +455,11 @@ class Game{
     SFX.play(e.kind==='bsx'?'bs':'boomE');
     this.booms.push({x:e.x,y:e.y,t:0.5,big:e.isBoss});
     if(this.ship&&Math.hypot(e.x-this.ship.x,e.y-this.ship.y)<40) this.unlock('tie_lian'); // 悟九·贴脸斩
-    if(e.isMid){ this.items.push(this.mkItem('pow',e.x,e.y)); this.say('能量块出现!'); } // v24 稀缺化：dj3 波次怪/boss 双掉全收
+    if(e.isMid){ this.items.push(this.mkItem('pow',e.x,e.y)); this.say('能量块出现!'); } // v24 稀缺化
+    if(this.shipKey==='hongmao'&&e.burn>0){                                  // v25 薪火相传：燃者死→火种飞溅
+      const tgt=this.enemies.filter(x=>!x.dead&&!x.gone&&!(x.burn>0)&&x!==e&&Math.hypot(x.x-e.x,x.y-e.y)<90)
+        .sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];
+      if(tgt) this.sparkSeeds.push({x:e.x,y:e.y,tx:tgt,sp:320}); }
     if(e.kind==='dj2'){ this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); }
     if(e.kind==='dj4'&&Math.random()<.5) this.items.push(this.mkItem('bs',e.x,e.y));
     if(e.kind==='nq'||e.kind==='nq2') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); // nq/nq2 掉 bs×2
@@ -537,6 +540,12 @@ class Game{
   update(dt){
     if(this.traitCard) return; // v20 特性教学暂停：时间冻结
     this.t+=dt; this.stats.time+=dt; for(const m of this.msgs) m.t+=dt; this.msgs=this.msgs.filter(m=>m.t<m.life);
+    for(const sd of this.sparkSeeds){ const dx=sd.tx.x-sd.x, dy=sd.tx.y-sd.y, L=Math.hypot(dx,dy)||1; // v25 火种追踪
+      sd.x+=dx/L*sd.sp*dt; sd.y+=dy/L*sd.sp*dt;
+      if(L<14){ sd.done=true; if(!sd.tx.dead){ sd.tx.burn=12; sd.tx.burnTick=3; sd.tx.burnSrc='xinhuo';
+        this.booms.push({x:sd.tx.x,y:sd.tx.y,t:0.25,burnT:true});
+        this.traitFire('xinhuo'); this.traitFx('xinhuo'); } } }
+    this.sparkSeeds=this.sparkSeeds.filter(sd=>!sd.done);
     if(this.state==='select'){ if(jEdge||keys['enter']) this.startRun();
       if(keys['a']||keys['arrowleft']) this.selIdx=0; if(keys['d']||keys['arrowright']) this.selIdx=1;
       return; }
@@ -757,8 +766,7 @@ class Game{
       for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&Math.abs(e.x-g.x)*2<g.w+(e.w||30)&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){ // v23 剑身x判定：未到不伤
         g.hit.add(e);
         let gd=e.isBoss?g.dmg*1.5:g.dmg, gc=false;                          // v16 巨剑对 boss ×1.5 终结技
-        if(e.burn>0&&e.burnSrc==='phoenix'){ this.traitFire('fengzhu');    // v24 风助火势：仅火凤点的火
-          if(Math.random()<this.critRate('guanri',e)){ gd*=2; gc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
+        if(Math.random()<this.critRate('guanri',e)){ gd*=2; gc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } // v25 基础暴击
         this.dmgFloat(e,gd,'skill',gc); this.damage(e,Math.round(gd)); // v22 金色技能数字
         e.burn=12; e.burnTick=3; e.burnSrc='guanri';                        // v24 标记燃源
         if(this.renjianLeft>0&&this.t>this.renjianCd&&this.fireCd<=0) this.renjianWin=0.3; // v23 窗只在普攻就绪时开=需刻意等CD,连按无效
@@ -947,7 +955,7 @@ class Game{
       ctx.globalAlpha=a;
       ctx.fillStyle='#ffe08a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
       ctx.fillText(m.txt,FIELD_W/2,FIELD_H-100-i*18); ctx.globalAlpha=1; }); // v23 堆叠：每条上移18px
-    { const aS=this.ship, AC={yizhen:'#7fd8ff',guiqia:'#8fffe0',fengzhu:'#ffb366',renjian:'#ffd166',qiudao:'#ffffff',zhenman:'#9fe8ff',beishui:'#ff6b6b'};
+    { const aS=this.ship, AC={yizhen:'#7fd8ff',guiqia:'#8fffe0',xinhuo:'#ffb366',renjian:'#ffd166',qiudao:'#ffffff',zhenman:'#9fe8ff',beishui:'#ff6b6b'};
       const ring=(c,r)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.55; ctx.lineWidth=2;
         ctx.beginPath(); ctx.arc(aS.x,aS.y,r,0,7); ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1; };
       for(const id in this.fxAura) if(this.fxAura[id]>0&&AC[id]) ring(AC[id],20+Math.sin(this.t*6)*3); // v21 触发光环
@@ -957,6 +965,10 @@ class Game{
           ctx.font='bold 15px system-ui'; ctx.fillText('暴击',bm.x-14,bm.y-14); ctx.globalAlpha=1; }
         if(bm.recyc){ ctx.strokeStyle='#8fffe0'; ctx.globalAlpha=bm.t/0.3; ctx.beginPath();          // v21 飞针归匣：回针轨迹
           ctx.moveTo(bm.x,bm.y); ctx.lineTo(aS.x+10,aS.y); ctx.stroke(); ctx.globalAlpha=1; } } }
+    for(const sd of this.sparkSeeds){ ctx.fillStyle='#ffb366'; ctx.globalAlpha=0.9;                // v25 薪火相传：火种流星
+      ctx.beginPath(); ctx.arc(sd.x,sd.y,4,0,7); ctx.fill();
+      ctx.globalAlpha=0.35; ctx.beginPath(); ctx.arc(sd.x-(sd.tx.x-sd.x)*0.04,sd.y-(sd.tx.y-sd.y)*0.04,7,0,7); ctx.fill();
+      ctx.globalAlpha=1; }
     for(const f of this.floaters){ ctx.globalAlpha=Math.min(1,f.t/0.3); ctx.textAlign='center'; // v22 伤害数字
       ctx.font='bold '+f.sz+'px system-ui';
       ctx.strokeStyle='rgba(8,12,24,.85)'; ctx.lineWidth=3; ctx.strokeText(f.txt,f.x,f.y);
