@@ -632,11 +632,6 @@ class Game{
         w.fireCd=2.4/(8+2*this.lv); } }
 
     // 卷轴
-    if(this.bombFx){ this.bombFx.t-=dt; this.bombFx.tick-=dt;
-      if(this.bombFx.tick<=0&&this.bombFx.tickN<4){ this.bombFx.tick=0.4; this.bombFx.tickN++;
-        for(const e of this.enemies){ this.damage(e,cfg.bombDj,true); this.dmgFloat(e,cfg.bombDj,'skill',false); } // 机体分档：虹猫50/蓝兔30
-        if(this.boss){ this.damage(this.boss,cfg.bombBoss,true); this.dmgFloat(this.boss,cfg.bombBoss,'skill',false); } }
-      if(this.bombFx.t<=0) this.bombFx=null; }
     if(this.flashT>0) this.flashT-=dt;
     this.scrollX+=this.scrollSpd*dt;
 
