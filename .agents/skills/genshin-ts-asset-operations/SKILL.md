@@ -71,6 +71,11 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
      报错指路）。import 的 `--output` 生成 **GIL 候选**（与 static-assemblies/terrain 一致，
      可独立回读）；export 的 `--output` 才是导出实体 JSON。真写入判据=输出含
      `writePerformed=true` + `backup=` 两行。
+    - ⚠️ **`assets:static-assemblies --output` 对已存在 def = 静默 no-op（2026-10-12 足球白模实证）**：
+      候选=源文件原样拷贝，exit 0 照常打印 candidateSha256——「候选 SHA==盘面 SHA」**不是**更新
+      成功的证据（极易误读）。改既有 def 的正确路径=回滚到该 def 写入前备份→干净重写，或记录级
+      patch；**落盘判据=字节级验证**（候选/终态里 grep 目标值如配色 ARGB varint，旧值应归零）——
+      结构回读（prefabs/entities 计数）不区分新旧内容。
 3. **展示安全门并取得确认**：真实既有地图写回前展示 目标地图/路径、源 SHA、候选 SHA/大小、目标 ID、修改范围、备份位置、回滚方式。用户已明确给出“直接写/用 --write”的指令时，可把该指令作为本轮确认。
 4. **`--write` 写回**：CLI 自动在同级 `.gsts/backups/` 建带时间戳备份并校验源 SHA；记录备份路径。**批量撤销已写回内容 = 恢复最早备份**（第一个时间戳 .bak=写前原状，恢复后按新方案重写），禁止手写 wire 删除脚本（09-03 实证驯化两轮未成，恢复路径 1 分钟搞定；CLI 变量操作全 upsert 无删除命令）。
 5. **写后独立回读**：用与写前相同的只读命令回读，对比只差目标字段；写后 SHA 不等于写前，且等于写回产物。**对比工具输出先 diff 看差异本质再定性**——`node-graphs read --json` 含 `"gil"` 源路径字段，直接 sha256 对比会假报"图被改动"（09-03 实证，须 `grep -v '"gil"'` 排除）。
