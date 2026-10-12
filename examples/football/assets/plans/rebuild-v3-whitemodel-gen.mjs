@@ -5,8 +5,11 @@ import { writeFileSync } from 'node:fs'
 
 const BOX = 10009001, CYL = 10009008
 const C = {
-  step: 0xc8c8c8, upper: 0xbababa, roof: 0xf0f0f0, col: 0xdcdcdc, seat: 0x3d7bff,
-  wall: 0xdadada, mast: 0xc8c8c8, panel: 0xf5f5f5, pole: 0xf0f0f0, red: 0xd94040
+  // 配色锚定 donor 已过审值（球门 0xb8c0c8/0xa8beb4，场线 0xD0D0D0）——带色偏中灰，
+  // 禁纯白/近白（魔方轮教训：0xE8E8E8 即刺眼）；点缀降饱和
+  step1: 0xb0b8c0, step2: 0xaab2ba, step3: 0xa4acb4,  // 下层台阶逐级压暗（深度层次）
+  upper: 0x9aa4ac, roof: 0xc4ccd2, col: 0xa8b0b8, seat: 0x3a5f8a,
+  wall: 0xa8b0b6, mast: 0x9aa2aa, panel: 0xc0c8ce, pole: 0xb8b8b8, red: 0xa84838
 }
 const items = []
 const box = (position, scale, rgb, rotation = [0, 0, 0]) =>
@@ -17,7 +20,7 @@ const cyl = (position, scale, rgb) =>
 // ── 侧看台 ×2（Highbury 双层：下层 3 级台阶 + 上层收窄 + 薄板顶棚悬挑）──
 for (const s of [1, -1]) {
   for (let k = 1; k <= 3; k++) {
-    box([0, k / 2, s * (38.75 + 2.5 * k)], [100, k, 2.5], C.step)          // 下层台阶（实心体量）
+    box([0, k / 2, s * (38.75 + 2.5 * k)], [100, k, 2.5], k === 1 ? C.step1 : k === 2 ? C.step2 : C.step3)          // 下层台阶（实心体量）
     box([0, k + 0.04, s * (39.5 + 2.5 * k)], [100, 0.08, 0.9], C.seat)    // 蓝坐席贴条
   }
   box([0, 4.25, s * 48.75], [80, 2.5, 2.5], C.upper)                       // 上层
@@ -46,7 +49,7 @@ for (const [x, z, yaw] of [[58, 52, 225], [58, -52, 135], [-58, 52, 315], [-58, 
 
 // ── 替补席 ×2（技术区：矮台阶+背墙+小平顶棚+双柱）──
 for (const sx of [1, -1]) {
-  box([sx * 12, 0.25, 38.3], [6, 0.5, 1.6], C.step)
+  box([sx * 12, 0.25, 38.3], [6, 0.5, 1.6], C.step2)
   box([sx * 12, 0.8, 39.2], [6, 1.6, 0.25], C.upper)
   box([sx * 12, 2.0, 38.6], [6.6, 0.18, 2.4], C.roof)
   cyl([sx * 12 - 2.7, 1.0, 39.2], [0.12, 2, 0.12], C.col)
