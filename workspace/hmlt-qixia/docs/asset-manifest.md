@@ -8,6 +8,7 @@
 | # | 项 | 素材源 | 规格 | 状态 | 千星入口 |
 | --- | --- | --- | --- | --- | --- |
 | 1.1 | 虹猫弹 wzd | shape 610 | 47×15，500px/s | ✅ | imageId（步骤 4 拟合） |
+| 1.1b | 长虹剑（虹猫弹，② 手绘裁决） | `prototype/assets/changhong.svg` 手绘 v1 | 150×44 御剑全套（双刃/中脊/剑格/剑穗/尾焰/星芒），弹速 420 | ✅demo | image-css-builder 拟合 5-8 图元 |
 | 1.2 | 蓝兔激光 jezd | shape 618 | 500px/s | ✅ | imageId |
 | 1.3 | 僚机弹 fdzd | shape 504 | 散射窗 vx 500-750 | ✅ | imageId |
 | 1.4 | **冰魄剑** | **shape 518**（jedfhm→519→518） | 3 把·穿透·瞄准扇 ±7°·750px/s·射程 178px·15×lv×3 | ✅ v8 | imageId |
