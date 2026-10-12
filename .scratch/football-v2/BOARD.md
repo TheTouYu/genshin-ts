@@ -10,7 +10,7 @@
 > **环境已换**：WSL2 → Arch（wine 独立游戏路径，GSTS_LOCALLOW_DIR=anime-game-launcher prefix 下
 > LocalLow）。旧存档不可达，**足球地图 1073741908 在新存档不存在**（仅近空图 1073741825，
 > 子目录式布局——gil_paths 兼容缺口已修：O-2026-09-30-01 CLOSED（8e00f8a））。用户裁决：从空节点图重建（票 24）。
-> HEAD：`510d1de hmlt v5`（下一笔=hmlt v6 点射模型）
+> HEAD：`6f655e7 hmlt v6 徽章`（下一笔=hmlt v7 数值对齐）
 > 在飞：**票 24 换机重建（当前票）——A ✅ B ✅，前沿=C 资产重建（地图 1073741825「真实足球」，
 > SHA 基线 5ab667e8…4442 已锁定）**；票 22/23 动作暂停待 C 就位后恢复
 > 代码基线：票 23 v2 哑执行器在飞改动已入库（fe2d5d3；build/quicktest 曾绿、游戏内未验证）；

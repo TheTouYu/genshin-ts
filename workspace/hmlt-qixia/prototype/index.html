@@ -19,7 +19,7 @@
 </head>
 <body>
 <div id="wrap"><canvas id="cv" width="444" height="250"></canvas>
-<div id="hint"><b style="color:#ffd166">[v6·原版点射]</b> WASD/J/K 按<b>键帽印刷位</b> · J 一按=一段点射，长按转纯蓄力，满后**松手**放角色专属招（虹猫=僚机散射/蓝兔=金凤凰）· K 放宝 · 开局捡能量块升LV2 · 调试:1-5级 B+宝 P+Pow R重开</div></div>
+<div id="hint"><b style="color:#ffd166">[v6·原版点射]</b> WASD/J/K 按<b>键帽印刷位</b> · J 一按=一段点射，长按转纯蓄力，满后**松手**放角色专属招（虹猫=僚机散射/蓝兔=金凤凰）· K 放宝 · M 切音效(默认原版3音) · 开局捡能量块升LV2 · 调试:1-5级 B+宝 P+Pow R重开</div></div>
 <div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
 <button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
 <script>
@@ -59,12 +59,12 @@ const N = {
   ps:{hongmao:70, lantu:65},           // 蓄能阈值
   chargeRate:25,                       // neng++/帧
   ships:{
-    hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'burst'},   // 虹猫蓄力=僚机散射弹幕窗（原版 fudaiji frame_46-49）
-    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'phoenix'}, // 蓝兔蓄力=金凤凰持续伤害（原版 jedfhm fhm2 -5*lv/帧）
+    hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'burst',   bombDj:50, bombBoss:50},  // 虹猫散射窗（fudaiji f46-96：50帧24发）
+    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'phoenix', bombDj:30, bombBoss:30}, // 蓝兔金凤凰（jedfhm 12帧静态爆破）
   },
-  enemy:{ dj1:{hp:1, spd:200, score:10}, dj2:{hp:300, zdsd:200, score:300},
-          dj3:{hp:500, zdsd:200, score:300}, dj4:{hp:200, zdsd:125, score:300},
-          boss1:{hp:3000, zdsd:163, score:1000} },
+  enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:250, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
+          dj3:{hp:500, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
+          boss1:{hp:3000, zdsd:150, score:1000} },
   bombDmg:50, phoenixDps:50, scroll:100, scrollBoss:175, bsHpMax:8,
 };
 const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3×2→dj2×1×4→dj4→boss1
@@ -88,21 +88,22 @@ addEventListener('keydown', e=>{
   const k = normKey(e);
   if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
   keys[k]=true;
-  if(game){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer(); }
+  if(game){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer();
+    if(k==='m'){ SFX.mode=SFX.mode==='classic'?'full':'classic'; game.say('音效:'+(SFX.mode==='classic'?'原版3音':'完整(再创)')); } }
   if(k==='r' && game && game.state!=='select') restart();
 });
 addEventListener('keyup', e=>keys[normKey(e)]=false);
 
 // ---------- 音效（原版 DefineSound 导出 mp3；具名 4 个实证，数字 id 为占位可换） ----------
-const SFX = { ctx:null, buf:{}, last:{},
+const SFX = { ctx:null, buf:{}, last:{}, mode:'classic', // classic=原版仅 3 音（up/wudao/cjb），M 键切 full 再创音效
   map:{ fire:'573.mp3', fireL:'560.mp3', boomE:'4_boom.mp3', boomP:'3_aida.mp3', pow:'1_up.mp3',
-        bomb:'295.mp3', phoenix:'982.mp3', bs:'5_cjb.mp3', sel:'1_up.mp3', boss:'694.mp3' },
+        bomb:'295.mp3', phoenix:'982.mp3', bs:'5_cjb.mp3', sel:'1_up.mp3', boss:'694.mp3', wudao:'2_wudao.mp3' },
   init(){ if(this.ctx){ this.ctx.resume && this.ctx.resume(); return; }
     try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
     for(const [k,f] of Object.entries(this.map)){
       fetch('../research/extract/assets/sounds/'+f).then(r=>r.arrayBuffer())
         .then(b=>this.ctx.decodeAudioData(b)).then(d=>this.buf[k]=d).catch(()=>{}); } },
-  play(k, gain=0.35, thr=80){ if(!this.ctx || !this.buf[k]) return;
+  play(k, gain=0.35, thr=80){ if(this.mode!=='full' && !['pow','bs','wudao'].includes(k)) return; if(!this.ctx || !this.buf[k]) return;
     const now=performance.now(); if(this.last[k] && now-this.last[k]<thr) return; this.last[k]=now;
     const s=this.ctx.createBufferSource(); s.buffer=this.buf[k];
     const g=this.ctx.createGain(); g.gain.value=gain;
@@ -160,13 +161,14 @@ class Game{
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
     if(cfg.chargeType==='burst'){ this.wingBurst=2.0; this.say('僚机散射弹幕!'); }        // 虹猫：50 帧五向散射
-    else { this.phoenix={x:(this.wings[0]||S).x,y:(this.wings[0]||S).y,t:8,w:40,h:44,
-        dps:125*this.lv,tint:'gold'}; this.say('金凤凰出击!'); } }                        // 蓝兔：fhm2 -5*lv/帧=125*lv/s
+    else { this.phoenix={x:S.x+22,y:S.y,t:0.48,w:74,h:41,static:true,tint:'gold'}; // jedfhm：12帧寿命、fj.x+20 静态定位、不拦弹
+      this.say('金凤凰·爆破!'); } }                                                     // 伤害按敌型 15/10/30×lv 每帧（下 damage 块）
   addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
   dropPowAtPlayer(){ this.items.push(this.mkItem('pow',this.ship.x+60,this.ship.y)); }
   syncWings(){ // 僚机 = lv-1 个（死亡 lv=1 全散；白皮书 §2.3）
     const want=this.lv-1;
-    while(this.wings.length<want) this.wings.push({x:this.ship.x-20,y:this.ship.y,fireCd:0});
+    while(this.wings.length<want) this.wings.push({x:this.ship.x-20,y:this.ship.y,fireCd:0,
+      bspd:250+Math.random()*100, k:0.6+Math.random()*0.8}); // 原版 zdsd=r(5)+10 / sd=r(10)+5 个体随机
     while(this.wings.length>want) this.wings.pop();
   }
   mkItem(kind,x,y){ return {kind,x,y,w:kind==='bs'?16:20,h:kind==='bs'?16:12,vx:(Math.random()-.5)*50,vy:(Math.random()-.5)*50,life:10,
@@ -194,7 +196,7 @@ class Game{
   fail(){ this.state='fail'; this.log('fail life'); this.showPanel('任务失败','得分 '+this.score+' · 按 R 重来'); }
   showPanel(t,s){ const p=document.getElementById('panel');
     document.getElementById('panelTitle').textContent=t;
-    document.getElementById('panelSub').textContent=s; p.style.display='flex';
+    document.getElementById('panelSub').textContent=s; p.style.display='flex'; SFX.play('wudao',0.4);
     document.getElementById('bombBtn').style.display='none'; }
   selectClick(p){ // 点左侧选虹猫，右侧选蓝兔
     this.selIdx = p.x>FIELD_W/2?1:0; this.startRun(); }
@@ -256,36 +258,39 @@ class Game{
     }
     if(this.wingBurst>0) this.wingBurst-=dt;
     if(kEdge) this.tryBomb();
-    if(this.phoenix){ const p=this.phoenix; p.t-=dt; const w0=this.wings[0]||{x:S.x,y:S.y};
-      p.x+=(w0.x+20-p.x)*Math.min(1,dt*3); p.y+=(w0.y-p.y)*Math.min(1,dt*3);
+    if(this.phoenix){ const p=this.phoenix; p.t-=dt;
+      if(!p.static){ const w0=this.wings[0]||{x:S.x,y:S.y};
+        p.x+=(w0.x+20-p.x)*Math.min(1,dt*3); p.y+=(w0.y-p.y)*Math.min(1,dt*3); }
       if(p.t<=0) this.phoenix=null; }
 
     // 僚机跟随（fudaiji frame_10 比例逼近）+ 开火
     for(let i=0;i<this.wings.length;i++){ const w=this.wings[i];
-      const tx=S.x-26-i*16, ty=S.y-10; const k=Math.min(1,dt*5);
+      const tx=S.x-26-i*16, ty=S.y-10; const k=Math.min(1,dt*5*(w.k||1)); // 个体跟随速度
       w.x+=(tx-w.x)*k*1.4; w.y+=(ty-w.y)*k;
       w.fireCd-=dt;
-      if(firing&&w.fireCd<=0&&this.lock<=0){ const spread=this.wingBurst>0?[-0.6,-0.3,0,0.3,0.6]:[0];
-        for(const a of spread) this.bullets.push({x:w.x+10,y:w.y,vx:cfg.wingSpeed,
-          vy:Math.sin(a)*cfg.wingSpeed+(this.wingBurst>0?(Math.random()-.5)*160:0), // 原版 zdfx/zdjl 纵向摇摆
-          w:12,h:5,dmg:N.zdlv[this.lv-1],art:'fdzd'});
-        w.fireCd=this.wingBurst>0?0.15:0.3; } }
+      if((this.wingBurst>0||firing)&&w.fireCd<=0&&this.lock<=0){ // 散射窗=僚机时间轴自跑（原版 f46-96 与按键无关）
+        if(this.wingBurst>0){ // 虹猫释放窗：24 发/50 帧（每 2 帧一发），速 random(10)+20px/帧，zdfx×zdjl 纵向摇摆
+          this.bullets.push({x:w.x+10,y:w.y,vx:500+Math.random()*250,
+            vy:(Math.random()<.5?-1:1)*Math.random()*100, w:12,h:5,dmg:N.zdlv[this.lv-1],art:'fdzd'});
+          w.fireCd=2.0/24; }
+        else { this.bullets.push({x:w.x+10,y:w.y,vx:w.bspd||cfg.wingSpeed,vy:0, // 僚机个体弹速 zdsd=random(5)+10
+          w:12,h:5,dmg:N.zdlv[this.lv-1],art:cfg.wingBullet}); w.fireCd=0.3; } } }
 
     // 卷轴
     if(this.bombFx){ this.bombFx.t-=dt; this.bombFx.tick-=dt;
       if(this.bombFx.tick<=0&&this.bombFx.tickN<4){ this.bombFx.tick=0.4; this.bombFx.tickN++;
-        for(const e of this.enemies) this.damage(e,N.bombDmg,true);
-        if(this.boss) this.damage(this.boss,150,true); }
+        for(const e of this.enemies) this.damage(e,cfg.bombDj,true);   // 机体分档：虹猫50/蓝兔30
+        if(this.boss) this.damage(this.boss,cfg.bombBoss,true); }
       if(this.bombFx.t<=0) this.bombFx=null; }
     if(this.flashT>0) this.flashT-=dt;
     this.scrollX+=this.scrollSpd*dt;
 
     // dj1 杂兵刷屏器（372：无限刷，不计波次门闩）
     this.dj1Timer-=dt;
-    if(this.dj1Timer<=0&&this.enemies.length+ (this.boss?1:0)<14){ this.dj1Timer=2.0+Math.random()*1.2;
-      const y=40+Math.random()*150;
+    if(this.dj1Timer<=0&&this.enemies.length+(this.boss?1:0)<14){ this.dj1Timer=0.12; // 372：3帧一掷 10%≈0.83只/s
+      if(Math.random()<0.1){ const y=40+Math.random()*150;
       this.enemies.push({kind:'dj1',def:N.enemy.dj1,hp:1,x:FIELD_W+20,y,w:34,h:14,t:0,dead:false,
-        spd:200+Math.random()*100, fired:false, fireT:99}); }
+        spd:200+Math.random()*100, fired:false, fireT:99}); } }
 
     // 波次门闩（diren<=0 才进下一波）
     const gateClear=this.enemies.filter(e=>e.kind!=='dj1').length===0 && !this.boss;
@@ -329,9 +334,11 @@ class Game{
       if(this.invuln<=0&&this.lock<=0&&hit(b,S)) this.playerHit(); }
 
     // 凤凰持续伤害（无敌伤害场，-2/帧→50/s）
-    if(this.phoenix){ const p=this.phoenix; p.w=40; p.h=44;
-      for(const e of this.enemies) if(hit(p,e)) this.damage(e,p.dps*dt);
-      if(this.boss&&hit(p,this.boss)) this.damage(this.boss,p.dps*dt); }
+    if(this.phoenix){ const p=this.phoenix; p.w=p.w||74; p.h=p.h||41;
+      if(p.static){ const mul=e=>(e.kind==='dj1'||e.kind==='dj3')?15:(e.kind==='dj2'||e.kind==='dj4')?10:30;
+        for(const e of this.enemies) if(hit(p,e)) this.damage(e,mul(e)*this.lv*25*dt);
+        if(this.boss&&hit(p,this.boss)) this.damage(this.boss,30*this.lv*25*dt); }
+      else { for(const e of this.enemies) if(hit(p,e)) this.damage(e,p.dps*dt); } }
 
     // 玩家弹
     for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
@@ -372,6 +379,7 @@ class Game{
     this.lv=1; this.wings.length=0; this.neng=0; this.phoenix=null; this.wingBurst=0;
     this.items.push(this.mkItem('pow',this.ship.x,this.ship.y));
     this.life--; this.log('life '+Math.max(this.life,0)); this.log('respawn');
+    this.bomm=3; this.shield=1.2; // 重生三件套（die f23-25）：炸弹回满+白送 30 帧护盾
     this.ship.x=-20; this.ship.y=100; this.invuln=1.8; this.flyIn=true;
     if(this.life<0) this.fail();
   }
