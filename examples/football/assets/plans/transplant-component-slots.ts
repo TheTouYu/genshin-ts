@@ -43,7 +43,7 @@ function loadTop(bytes: Uint8Array) {
 }
 
 // 容器内 field1 记录列表（可变 WireField 数组视图）
-function sectionOf(top: ReturnType<typeof parse>!, fieldNo: number) {
+function sectionOf(top: NonNullable<ReturnType<typeof parse>>, fieldNo: number) {
   const container = top!.find(f => f.number === fieldNo && f.wire === 2)
   if (!container) throw new Error(`root${fieldNo} 容器缺失`)
   let section = parse(container.value as Uint8Array)

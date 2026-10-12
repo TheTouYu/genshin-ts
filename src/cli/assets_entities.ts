@@ -193,6 +193,23 @@ function parseArgs(argv: readonly string[]) {
     if (expectedSourceHash === undefined)
       throw new Error('[error] apply-candidate requires --expect-source-hash <sha256>')
   }
+  if (command === 'export') {
+    // 2026-10-12 足球 v3 A 批实证：漏写 import 子命令时默认走只读 export，
+    // --entities/--write 被静默忽略（exit 0、零写入）——用户/代理误判已写入。
+    // 这里 fail closed：出现写侧参数必须显式给子命令。
+    if (entitiesPath !== undefined)
+      throw new Error(
+        '[error] --entities requires the import subcommand: assets:entities import --entities <file> [--write | --output <candidate>]'
+      )
+    if (write)
+      throw new Error(
+        '[error] --write requires a write subcommand (import/patch/apply-candidate); bare assets:entities is read-only export'
+      )
+    if (candidatePath !== undefined || expectedSourceHash !== undefined || definitionsGilPath !== undefined)
+      throw new Error(
+        '[error] --candidate/--expect-source-hash/--definitions-gil require their subcommands (apply-candidate/import)'
+      )
+  }
   if (command === 'patch') {
     if (entityId === undefined) throw new Error('[error] patch requires <entity-id>')
     if (auxId !== undefined) {

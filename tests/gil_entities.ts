@@ -571,4 +571,21 @@ assert.deepEqual(exportEntities(noop.bytes).find((entity) => entity.id === 10779
   { type: 'lightSource', preset: 'default' }
 ])
 
+// 2026-10-12 足球 v3 A 批实证：漏写 import 子命令时默认走只读 export，
+// --entities/--write 被静默忽略（exit 0、零写入零备份）——极易误判已写入。
+// 现为 fail closed：写侧参数出现在 export 模式必须显式报错指路。
+await assert.rejects(
+  runAssetsEntities(['--entities', 'x.json', '--map-id', '1']),
+  /--entities requires the import subcommand/
+)
+await assert.rejects(
+  runAssetsEntities(['--entities', 'x.json', '--write', '--output', 'cand.gil', '--map-id', '1']),
+  /--entities requires the import subcommand/
+)
+await assert.rejects(runAssetsEntities(['--write', '--map-id', '1']), /--write requires a write subcommand/)
+await assert.rejects(
+  runAssetsEntities(['--candidate', 'c.gil', '--expect-source-hash', '0'.repeat(64), '--map-id', '1']),
+  /require their subcommands/
+)
+
 console.log('gil entities tests passed')
