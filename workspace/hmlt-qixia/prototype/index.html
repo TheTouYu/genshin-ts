@@ -34,9 +34,9 @@ const FIELD_W = 444, FIELD_H = 250;
 const SVG = id => `../research/extract/assets/shapes/${id}.svg`;
 // shape id → [文件id, 显示宽, 显示高]（显示尺寸来自白皮书或按 bounding box 缩放）
 const ART = {
-  hongmao:[551,34,36], lantu:[568,34,37], flame:[556,12,13],
-  wingA:[521,13,27], wingB:[531,21,24],            // 僚机：虹猫 fudaiji / 蓝兔 ldfdj
-  wzd:[610,19,6], ldzd:[614,26,6], fdzd:[504,12,5], // 玩家弹（fdzd=504，508 是嵌套精灵）
+  hongmao:[551,34,36], lantu:[603,36,29], flame:[556,12,13],
+  wingA:[521,13,27], wingB:[541,22,25],            // 僚机：虹猫 fudaiji / 蓝兔 jedfdj(541)
+  wzd:[610,19,6], jezd:[618,26,6], fdzd:[504,12,5], // 玩家弹（蓝兔=fj2 激光弹 jezd；fdzd=504，508 是嵌套精灵）
   szd:[490,10,7], szd2:[496,8,8],                   // 敌弹：瞄准弹 / boss 弹
   dj1:[389,42,18], dj2:[357,38,39], dj3:[345,46,20], dj4:[321,34,33],
   boss1:[300,91,112],                               // 白皮书 §3: boss1 91×112
@@ -60,7 +60,7 @@ const N = {
   chargeRate:25,                       // neng++/帧
   ships:{
     hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:500, bombName:'普通爆'},
-    lantu:  {bullet:'ldzd',bspeed:500, ps:65, wing:'wingB', wingBullet:'ldzd', wingSpeed:500, bombName:'雷电爆'},
+    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:500, bombName:'激光爆'},
   },
   enemy:{ dj1:{hp:1, spd:200, score:10}, dj2:{hp:300, zdsd:200, score:300},
           dj3:{hp:500, zdsd:200, score:300}, dj4:{hp:200, zdsd:125, score:300},
@@ -396,7 +396,7 @@ class Game{
     ctx.fillText('选择侠士', FIELD_W/2, FIELD_H-28);
     ctx.font='10px sans-serif'; ctx.fillStyle='#9ab';
     ctx.fillText('A/D 或 ←/→ 切换 · J 或点击确认', FIELD_W/2, 14);
-    const cards=[{k:'hongmao',n:'虹猫',d:'弹速 30px/帧 · 蓄能70'},{k:'lantu',n:'蓝兔',d:'雷电弹 · 蓄能65'}];
+    const cards=[{k:'hongmao',n:'虹猫',d:'弹速 30px/帧 · 蓄能70'},{k:'lantu',n:'蓝兔',d:'激光弹 · 蓄能~65'}];
     cards.forEach((c,i)=>{ const cx=FIELD_W/4+i*FIELD_W/2, cy=FIELD_H/2-6, on=this.selIdx===i;
       ctx.globalAlpha=on?1:0.45;
       ctx.strokeStyle=on?'#ffd23f':'#567'; ctx.lineWidth=on?2.5:1;

@@ -22,3 +22,8 @@ _（runtime=device 记录区）_
 
 1. **键盘 Colemak+拼音 IME：a 可用，d/j/k 失效** —— 根因：IME 拦截下 `e.key='Process'`，字母匹配失效；a 恰好物理位同位幸存。处置：normKey() 双通道（e.key 字母优先 → e.code 物理 Colemak 映射兜底），keydown/keyup 同路径。待用户复测。
 2. **蓝兔素材错认成大奔** —— 568（fj1 主体）视觉为大奔，非蓝兔。处置：contact-sheet.html 五机体 shape 对照表（fj0..fj4 全部主体 shape），待用户指认蓝兔编号后替换 ART.lantu。待用户指认。
+
+### 2026-10-12 五机体指认（用户，contact-sheet.html）
+
+fj0=虹猫 / fj1=大奔 / **fj2=蓝兔** / fj3=豆豆(含装备) / fj4=虹猫皮肤。
+处置：demo ART 蓝兔换 603（机体）+541（僚机 jedfdj）+618（jezd 激光弹）；GDD 决策①修正（蓝兔武器组=jezd/jedbom/ps≈65，雷电弹 ldzd 属大奔）。
