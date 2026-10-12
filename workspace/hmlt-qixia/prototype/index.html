@@ -871,9 +871,9 @@ class Game{
     this.items.push(this.mkItem('pow',this.ship.x,this.ship.y));
     this.life--; this.log('life '+Math.max(this.life,0)); this.log('respawn');
     if(this.life===1){ this.traitFire('beishui'); this.traitFx('beishui'); } // v21 背水一战
+    if(this.life<=0){ this.fail(); return; } // v29 最后一条命死=直接终局（life 0 不再算一条命）
     this.bomm=3; this.shield=1.2; // 重生三件套（die f23-25）：炸弹回满+白送 30 帧护盾
     this.ship.x=-20; this.ship.y=100; this.invuln=1.8; this.flyIn=true;
-    if(this.life<0) this.fail();
   }
 
   // ---------- 渲染 ----------

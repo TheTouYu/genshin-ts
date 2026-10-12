@@ -238,3 +238,9 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - **架构发现①**：释放窗口锁 fashez（释放后 2s 清零 neng 不可再蓄，D157 原版结构）是设计非 bug——探针两轮释放间隔必须 >2s 或显式 fashez=0。
 - **架构发现②**：命中环有**两条伤害路径**——pierce 分支（大针/冰魄）内联 `let d=b.dmg; damage(e,d)` 不走 traitBulletDmg；非穿透小针+boss 行走 traitBulletDmg。**特性伤害钩子必须两条都挂**（v28 首版只挂 traitBulletDmg，大针全绕开，靠 disarmed=false 暴露）。
 - 探针教训：①localStorage 特性库跨轮残留（上轮标记 zhenman 已见→本轮只飘字不弹卡，探针开头必须 removeItem）；②断言用 some(q=>q.id===…) 而非 length===1——同一发近身针会顺带触发飞针归匣，队列多条是合法状态。
+
+### 2026-10-13 第三十轮 · v29 背水一战死亡边界修复（用户报 bug）
+
+- 病根：playerHit 用 `life<0` 才 fail——life 0 仍算一条命可玩（原版口径 5 条命）；背水一战在 life===1 触发，死后 life=0 还活着，语义错位。
+- 修：`life<=0` 直接终局；fail 判定挪到重生三件套（bomm 回满/护盾/飞入）之前——最后一条命死了不再白送重生资源。总命数 4→4 次死亡机会收敛为「4 条命就是 4 条」，背水一战=货真价实的最后一条命。
+- CDP 双绿：2→1 背水触发+照常重生；1→0 直接 state=fail 不重生。
