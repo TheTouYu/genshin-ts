@@ -19,7 +19,7 @@
 </head>
 <body>
 <div id="wrap"><canvas id="cv" width="444" height="250"></canvas>
-<div id="hint">A/D/W/S 或方向键移动 · J 开枪(按住蓄能) · K 放宝 · 调试:1-5武器级 B+宝 P+Pow R重开</div></div>
+<div id="hint">WASD/J/K 按<b>键帽印刷位</b>（物理位，任意布局/输入法通用）· J 按住连发+蓄能 · K 放宝 · 调试:1-5级 B+宝 P+Pow R重开</div></div>
 <div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
 <button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
 <script>
@@ -74,18 +74,12 @@ const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3
 ];
 
 // ---------- 输入 ----------
-// Colemak+拼音 IME 兼容：IME 拦截时 e.key='Process'，改用物理键位 e.code 经 Colemak 映射还原字母；
-// 无 IME 时 e.key 即布局字符（任意布局都对）。
-const COLEMAK_CODE = {KeyQ:'q',KeyW:'w',KeyE:'f',KeyR:'p',KeyT:'g',KeyY:'j',KeyU:'l',KeyI:'u',KeyO:'y',
-  KeyA:'a',KeyS:'r',KeyD:'s',KeyF:'t',KeyG:'d',KeyH:'h',KeyJ:'n',KeyK:'e',KeyL:'i',
-  KeyZ:'z',KeyX:'x',KeyC:'c',KeyV:'v',KeyB:'b',KeyN:'k',KeyM:'m'};
+// 键盘=物理键位映射（e.code）：与布局（Colemak/QWERTY）和输入法（拼音 IME）无关——
+// 键帽印 D 就右移、印 J 就开枪。实测教训：布局字母通道在 Colemak+IME 下必然错乱。
 function normKey(e){
-  const k = e.key.toLowerCase();
-  if(/^[a-z]$/.test(k)) return k;                 // 布局字符直接可用
-  const cm = COLEMAK_CODE[e.code];
-  if(cm) return cm;                                // IME 'Process'：物理位→Colemak 字母
-  if(/^Key[A-Z]$/.test(e.code)) return e.code[3].toLowerCase(); // QWERTY 物理位兜底
-  return k;                                        // 方向键/回车等原样
+  const m = e.code && /^Key([A-Z])$/.exec(e.code);
+  if(m) return m[1].toLowerCase();   // 物理位字母（KeyD→'d'）
+  return e.key.toLowerCase();        // 方向键/回车等
 }
 const keys = {}; let jEdge=false, kEdge=false;
 addEventListener('keydown', e=>{
@@ -97,6 +91,23 @@ addEventListener('keydown', e=>{
   if(k==='r' && game && game.state!=='select') restart();
 });
 addEventListener('keyup', e=>keys[normKey(e)]=false);
+
+// ---------- 音效（原版 DefineSound 导出 mp3；具名 4 个实证，数字 id 为占位可换） ----------
+const SFX = { ctx:null, buf:{}, last:{},
+  map:{ fire:'573.mp3', boomE:'4_boom.mp3', boomP:'3_aida.mp3', pow:'1_up.mp3',
+        bomb:'384.mp3', phoenix:'982.mp3', bs:'5_cjb.mp3', sel:'1_up.mp3', boss:'694.mp3' },
+  init(){ if(this.ctx){ this.ctx.resume && this.ctx.resume(); return; }
+    try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+    for(const [k,f] of Object.entries(this.map)){
+      fetch('../research/extract/assets/sounds/'+f).then(r=>r.arrayBuffer())
+        .then(b=>this.ctx.decodeAudioData(b)).then(d=>this.buf[k]=d).catch(()=>{}); } },
+  play(k, gain=0.35, thr=80){ if(!this.ctx || !this.buf[k]) return;
+    const now=performance.now(); if(this.last[k] && now-this.last[k]<thr) return; this.last[k]=now;
+    const s=this.ctx.createBufferSource(); s.buffer=this.buf[k];
+    const g=this.ctx.createGain(); g.gain.value=gain;
+    s.connect(g); g.connect(this.ctx.destination); s.start(); } };
+addEventListener('keydown', ()=>SFX.init());
+addEventListener('pointerdown', ()=>SFX.init());
 // 触屏：拖动移动 + 自动开火 + 炸弹按钮
 let touch={on:false,x:0,y:0};
 const cv=document.getElementById('cv');
@@ -129,7 +140,7 @@ class Game{
   startRun(){
     this.state='playing'; this.shipKey=this.selIdx?'lantu':'hongmao';
     this.ship={x:45,y:100,w:10,h:8}; this.fireCd=0; this.neng=0;
-    this.log('game_start'); this.log('char_select '+this.shipKey);
+    this.log('game_start'); this.log('char_select '+this.shipKey); SFX.play('sel');
     document.getElementById('bombBtn').style.display='block';
   }
   log(s){ if(game===this) console.log('[hmlt]',s); } // 与 tests-trace.md 词汇表对齐
@@ -146,7 +157,7 @@ class Game{
     tx:20+Math.random()*350, ty:20+Math.random()*200}; }
   tryBomb(){
     if(this.state!=='playing'||this.lock>0||this.bomm<=0) return;
-    this.bomm--; this.shield=1.2; this.log('bomb '+this.bomm);
+    this.bomm--; this.shield=1.2; this.log('bomb '+this.bomm); SFX.play('bomb',0.5);
     this.ebullets.length=0; // 护盾+全屏爆清弹（fanghu 30帧清敌弹 + bom1 清场）
     this.booms.push({x:FIELD_W/2,y:FIELD_H/2,t:0.8,big:true});
     for(const e of this.enemies.concat(this.boss?[this.boss]:[])) this.damage(e,N.bombDmg,true);
@@ -155,6 +166,7 @@ class Game{
     if(e.hp<=0 && !e.dead){ e.dead=true; this.onKill(e); } }
   onKill(e){
     this.score+=e.def.score; this.log('score '+this.score);
+    SFX.play(e.kind==='bsx'?'bs':'boomE');
     this.booms.push({x:e.x,y:e.y,t:0.5,big:e.isBoss});
     if(e.kind==='dj3'||e.isBoss) this.items.push(this.mkItem('pow',e.x,e.y));
     if(e.kind==='dj2'){ this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); }
@@ -177,7 +189,7 @@ class Game{
     const w=wavesDef[this.wave];
     if(w.boss){ this.boss={kind:'boss1',def:N.enemy.boss1,hp:N.enemy.boss1.hp,x:FIELD_W+70,y:125,w:80,h:100,
       isBoss:true,phase:'enter',pt:0,patT:0,pat:0,dead:false};
-      this.scrollSpd=N.scrollBoss; this.lock=1.0; this.ebullets.length=0; this.log('boss_spawn'); return; }
+      this.scrollSpd=N.scrollBoss; this.lock=1.0; this.ebullets.length=0; this.log('boss_spawn'); SFX.play('boss',0.5); return; }
     for(const [kind,y] of w.spawns){
       const def=N.enemy[kind];
       this.enemies.push({kind,def,hp:def.hp,x:FIELD_W+30,y,w:30,h:22,t:0,fireT:1+Math.random(),dead:false,
@@ -220,13 +232,14 @@ class Game{
           this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,dmg}); } }
       else { for(const dy of [1,0,-1]) this.bullets.push({x:S.x+16,y:S.y+dy*8,vx:sp,vy:dy*sp*0.22,w:bw,h:bh,dmg}); }
       this.fireCd=[0.26,0.22,0.2,0.18,0.1][this.lv-1];
+      SFX.play('fire',0.18);
       this.log('fire');
     }
     // 蓄能（lv>1 按住 J；满→凤凰）
     if(firing&&this.lv>1&&!this.phoenix){ this.neng=Math.min(this.neng+N.chargeRate*dt,cfg.ps);
       if(this.neng>=cfg.ps){ this.neng=0;
         const wx=this.wings.length?this.wings[0].x:S.x, wy=this.wings.length?this.wings[0].y:S.y;
-        this.phoenix={x:wx,y:wy,t:0.9}; this.log('phoenix '+this.lv); } }
+        this.phoenix={x:wx,y:wy,t:0.9}; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5); } }
     else if(!firing) this.neng=Math.max(0,this.neng-N.chargeRate*dt*0.5); // 松开缓慢回落
     if(kEdge) this.tryBomb();
     if(this.phoenix){ this.phoenix.x+=780*dt; this.phoenix.t-=dt;
@@ -315,9 +328,9 @@ class Game{
         if(Math.hypot(it.tx-it.x,it.ty-it.y)<6){ it.tx=20+Math.random()*350; it.ty=20+Math.random()*200; } }
       if(hit(it,{x:S.x,y:S.y,w:26,h:20})){
         it.life=-1;
-        if(it.kind==='pow'){ if(this.lv<5){ this.lv++; this.syncWings(); this.log('pow '+this.lv); }
+        if(it.kind==='pow'){ SFX.play('pow'); if(this.lv<5){ this.lv++; this.syncWings(); this.log('pow '+this.lv); }
           else { this.score+=1000; this.log('score '+this.score); } }
-        else if(it.kind==='bom1'){ this.bomm=Math.min(this.bomm+1,7); this.log('bomb '+this.bomm); }
+        else if(it.kind==='bom1'){ SFX.play('pow'); this.bomm=Math.min(this.bomm+1,7); this.log('bomb '+this.bomm); }
         else if(it.kind==='bs'){ const b={kind:'bsx',hp:1,def:{score:500},x:it.x,y:it.y,w:14,h:14,dead:false};
           this.onKill(b); } }
     }
@@ -331,6 +344,7 @@ class Game{
   playerHit(){ // 死亡循环：lv=1 僚机自散 + 原地掉 pow 补偿 + life-1 重生
     if(this.invuln>0||this.lock>0) return;
     this.booms.push({x:this.ship.x,y:this.ship.y,t:0.6,big:true});
+    SFX.play('boomP',0.5);
     this.lv=1; this.wings.length=0; this.neng=0;
     this.items.push(this.mkItem('pow',this.ship.x,this.ship.y));
     this.life--; this.log('life '+Math.max(this.life,0)); this.log('respawn');

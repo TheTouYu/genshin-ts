@@ -161,3 +161,42 @@
 f7 槽镜像差异（丘丘实体基板块差异随 def 修复由引擎按 def 生效，用户裁决不动）。
 **工具链缺口**：assets:static-assemblies / entities import 重建 def 需「复杂造物基础元件」
 选项+非白名单槽保留；本轮以字节移植绕过。
+
+## 7. 复测判读 + 三层槽修复（2026-10-12，§6 消失案定谳）
+
+**复测日志判读**（10:03/10:09/10:30 三会话形态一致，玩家 110170759）：4 图活
+（1838 TickManager ~11拍/s/1821 showdir/1835 input/1837 fb20dUi 实体创建×2）、
+6 图零记录（1833/1830/1836/437 phys2/439 20c-loop/440 calib），perf 无超载。
+
+**两个根因**：
+1. **1836 装配器未挂载**（donor 终版也未挂=演出停用态照抄的后果）→ 装配不发生 →
+   6132 状态不在 → 无定时施放 → 439/437 静默 → phys2 不发信号 → sink/render 零输入。
+   用户裁决方案 B：已 `mounts attach 1077936135 --graph 1073741836 --entity --write`
+   （球现挂 5 图：833/835/830/1821/1836）。
+2. **§6 修复被引擎回写洗掉**（本票最大教训）：§6 的 /tmp 脚本只写 Save_Level（a3703aad）
+   **未同步 Temp** → 用户 10-12 进图，引擎从 Temp 旧副本（425a9ffc 态）加载，退出时
+   双地址回写 e6c4688d → type12 命中检测槽三层全缺 + basicMotion 槽 9B 被引擎规范化为
+   11B。**tabBar 点击零事件（whenTabIsSelected 零帧）即此因**——三层铁律：游戏实际读
+   root5 实体 f7，def 层修复不达实体层/不达 Temp 都白修。
+   次生发现：用户点球 9 选项无反应；1835 图 whenTabIsSelected 节点在位+挂载对+def 槽对，
+   但事件零到达=事件链组件（命中检测）缺失。
+
+**§7 修复（三层槽字节对齐 donor，12/12 目标幂等验证通过）**：
+工具 `examples/football/assets/plans/transplant-component-slots.ts`（官方 WireField 模式，
+同 setTabBarOptions；round-trip 自检 emit(parse(payload)) 逐字节一致才执行——实证原字节
+透传无损失，D131「parse→re-encode 有损」仅指组件级白名单往返）。
+修复面：root4 def 6138 f8 + root8 实例 6138 f7 补回 type12（71B）+basicMotion 9B；
+root5 实体：球 6135 补 type12（76B 实体版）+basicMotion 9B、操作台 6139 补 type16、
+丘丘×7（437-441/444/445）type18 槽 101B→66B+补 type26+去多余 type19、1090519041 两槽
+对齐。CLI 通道边界实证：hitDetectionComponent()=81B 默认快照（f3=2101）≠donor 定制
+71B（f3=2103/0.4s/2002），定制槽必须 donor 字节移植；实体层无通用加槽命令。
+终态双址 SHA **855ddd98…**（Save_Level=Temp）。备份 plans/backups/1073741825-pre-slots-*
++ .gsts/backups/*.2026-10-12T03-20-34-195Z.bak（mounts attach 自动备份）。
+
+**待用户二次复测验收信号**：
+① 进图后新会话日志 439/437 应出现记录（装配链活）；
+② 点球 9 选项：whenTabIsSelected 应出帧 + 球应被踢动（tab1..8）/复位（tab9）；
+③ 若选项仍无反应且 whenTabIsSelected 仍零帧 → 槽修复不充分，嫌疑转 UI 注册层（root13）。
+
+**悬而未决**：donor 停挂 1836 是否有意（演出干扰？）——复测若 439/437 活了但演出异常
+（进图 2s 自动演出）需再裁决摘挂。
