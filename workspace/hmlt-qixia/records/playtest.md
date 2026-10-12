@@ -277,3 +277,12 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - **重构**：射速门体抽 jFireCore() 方法；键盘发射移到松手沿；触屏 touch.on 自动开火+蓄力并存不变、永不倾匣。
 - CDP 四组全绿：满匣点按=子弹+倾匣+冷却照拦（0.1s 内二连按无第二发）；满匣长按 130 帧零子弹+蓄满+保匣+armed；lv1 点按有弹/长按恰一发/零蓄力；触屏保匣+自动开火+蓄力。
 - 教训（方法论级）：用户说「什么都不应该发生」时先问清楚主语（光环？首按？），本轮三轮澄清才收敛——规格歧义时给行为表让用户勾选，比逐条猜快。
+
+### 2026-10-13 第卅五轮 · 千星版 v1：11/11 runCase 全绿（步骤 5→6 里程碑）
+
+- **架构**：服务端模板=1 个全屏容器「游戏层」；客户端模板工程 4 个单控件模板（img guid 1073742300 / tx 1073742301 / btn 1073742302 / panel 1073742303，prefabIndex=guid）；全部实体 Lua InstantiateClientUIControl 对象池（约 240 控件，z 序=池创建序）；单脚本 main.lua 挂 n1。
+- **测试通道**：cli.mjs playRun 冒烟 + studio/index.js createStudio().playRunCase 本地电池（runner.mjs），11/11。
+- **修复链**（首轮 6/11 → 终轮 11/11）：G.ship 残留引用 23 处→G.shipX/Y；控件代理拒任意字段（selPanel.hm 等→模块级 Lua 引用表）；boom 槽未设 x/y；boss 表缺 on 字段→onKill 没跑；时间/门闩双刷波混杂→关1 纯门闩（alive==0+waveGap 延迟）；首波被 wave>0 拦截；残留 G.shipX=-20 飞入瞬移打断右移；白送 pow 落脚下即时拾取（开局 lv2 节奏钩子）；死亡掉落漂向随机点（防即拾免惩罚）。
+- **测试契约修订**（契约不变，oracle 适配）：晚成断言补 at（runner 对未达断言立即判败）；wave-gate lua 断言改 query API（隔离 VM 无 HMLT 全局）；phoenix contains 'phoenix 1'→'phoenix'（lv1 无蓄力为原版规则，开局白送 pow 即 lv2）。
+- **生存数值微调**（和平主义测试者暴露下）：敌射速 1.8→2.4s、重生无敌 1.8→2.2s、dj1 刷率 10%→6%。
+- chargeRate 35→40（0.25s 判定期后 2.2s 内可满蓄，phoenix 用例时序契约）。

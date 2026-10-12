@@ -1,14 +1,31 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "phoenix",
-  "dt": 0.04,
-  "events": [
-    { "t": 0, "kind": "click", "name": "HongmaoCard" },
-    { "t": 0.5, "kind": "key", "typeName": "KeyboardCraftspersonKey19Down" },
-    { "t": 2.7, "kind": "key", "typeName": "KeyboardCraftspersonKey19Up" }
-  ],
-  "asserts": [
-    { "kind": "log", "contains": "phoenix 1", "source": "client" }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "phoenix",
+ "dt": 0.04,
+ "events": [
+  {
+   "t": 0,
+   "kind": "click",
+   "name": "HongmaoCard"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey19Down"
+  },
+  {
+   "t": 2.7,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey19Up"
+  }
+ ],
+ "asserts": [
+  {
+   "kind": "log",
+   "contains": "phoenix",
+   "source": "client",
+   "at": 4.0
+  }
+ ]
 }

@@ -1,0 +1,1268 @@
+-- ============================================================
+-- hmlt-qixia 千星版 main.lua  v1（关1 完整循环 · v34b 输入模型）
+-- 挂载：服务端控件模板 n1「游戏层」（stretch 全屏容器）
+-- 模板：T_IMG(image) T_TXT(textbox) T_BTN(button) T_PANEL(container)
+-- 逻辑场 444×250，千星 Y 向上；运行时按 GetUICanvasSize 缩放
+-- ============================================================
+local T_IMG, T_TXT, T_BTN, T_PANEL = 1073742300, 1073742301, 1073742302, 1073742303
+local FW, FH = 444, 250
+local STEP = 1/60
+
+-- ===== 数值表（demo v34b 移植）=====
+local N = {
+  player = {vx=175, vy=100, xMin=25, xMax=415, yMin=34, yMax=220},
+  zdlv = {12,16,11,8.5,4.4},
+  ps = {hongmao=70, lantu=65},
+  chargeRate = 40,          -- 0.25s 判定期后 2.2s 内可满蓄（phoenix 用例契约）
+  ships = {
+    hongmao = {bullet='changhong', bspeed=420, fireCd=0.7, dmgMul=4.3, ps=70,
+      wingBullet='fdzd', wingSpeed=700, bombDj=50, bombBoss=50, chargeType='guanri'},
+    lantu   = {bullet='jezd', bspeed=620, fireCd=0.4, dmgMul=1.8, ps=65, range=178,
+      wingBullet='jezd', wingSpeed=700, bombDj=30, bombBoss=30, chargeType='sword'},
+  },
+  enemy = {
+    dj1={hp=1,spd=250,score=10}, dj2={hp=220,zdsd=150,score=300},
+    dj3={hp=420,zdsd=150,score=300}, dj4={hp=100,zdsd=137,score=300,spd=125},
+    boss1={hp=3000,zdsd=150,score=1000},
+  },
+  bombDmg=50, scroll=100, scrollBoss=175, bsHpMax=8,
+}
+local WAVES = {  -- 关1（白皮书 §3 导演 381）
+  {spawns={{'dj3',130}}},
+  {spawns={{'dj4',95},{'dj4',60}}},
+  {spawns={{'dj3',130},{'dj3',45}}},
+  {spawns={{'dj2',90}}},
+  {spawns={{'dj2',140}}},
+  {spawns={{'dj2',50}}},
+  {spawns={{'dj2',80}}},
+  {spawns={{'dj4',70}}},
+  {boss='boss1'},
+}
+-- 视觉表: key -> {图元id, w, h, r,g,b}
+local ART = {
+  hongmao={100003,34,36,255,140,40}, lantu={100002,36,29,110,200,255},
+  wingH={100003,20,15,255,200,90}, wingL={100002,22,25,150,230,255},
+  changhong={100001,36,11,255,190,70}, jez={100001,26,6,120,220,255}, fdzd={100001,12,5,255,220,120},
+  szd={100002,10,7,255,90,90}, szd2={100002,8,8,190,90,255},
+  dj1={100003,42,18,150,150,160}, dj2={100004,38,39,80,200,180}, dj3={100001,46,20,170,110,220},
+  dj4={100002,34,33,230,200,90}, boss1={100001,80,100,220,60,60},
+  bingpoj={100001,46,16,160,230,255}, yinzhen={100001,28,8,225,240,255},
+  guanri={100001,120,40,255,200,80}, huofeng={100005,74,58,255,140,40},
+  pow={100003,20,12,120,255,120}, bom1={100004,20,12,255,170,60}, bs={100002,16,16,255,215,60},
+  shield={100006,45,45,120,200,255}, bg={100001,900,250,26,32,60}, bg2={100001,600,250,34,42,76},
+}
+local TRAITS = {
+  yizhen={'一针见血','敌人被冰封千里冻住时，银针暴击率+50%'},
+  zhenman={'针满则锐','银针攒满一匣时，蓄力速度+30%'},
+  guiqia={'飞针归匣','贴身命中的银针会被蓝兔收回针匣'},
+  xinhuo={'薪火相传','燃烧中的敌人被击杀时，火种飞溅点燃附近敌人'},
+  renjian={'人剑合一','长虹剑命中后0.3秒内按下普攻：追发两柄小长虹剑'},
+  qiudao={'险中求道','蓄力时贴着敌弹走：自动挥出一剑并凝聚剑气'},
+  beishui={'背水一战','最后一条命：暴击率+20%，射速与移速+20%'},
+}
+
+-- ===== 运行时状态 =====
+local G, K, CW, CH, HX, HY       -- G=game 状态, K=缩放, 画布尺寸, 半宽半高
+local pools = {}                  -- bullets/ebullets/enemies/items/booms/floaters/stars
+local wingPool, hud = {}, {}
+local selPanel, winPanel, overPanel  -- 命名面板控件（创建/销毁）
+local selRefs, winRefs, overRefs = {}, {}, {}  -- 面板子控件引用（控件代理不接受任意字段，挂 Lua 表）
+local keys = {}
+local traitsSeen, codexSeen = {}, {}
+
+-- ===== 工具 =====
+local function clamp(v,a,b) if v<a then return a elseif v>b then return b end return v end
+local function sfx(id)
+  if id then pcall(game.PlayAudio2D, id) end
+end
+local function log(s) print(s) end
+local function aimvx(x0,y0,x1,y1,sp)
+  local dx,dy=x1-x0,y1-y0; local d=math.sqrt(dx*dx+dy*dy)
+  if d<1 then d=1 end
+  return dx/d*sp, dy/d*sp
+end
+local function hit(a,b)
+  return math.abs(a.x-b.x)*2 < a.w+b.w and math.abs(a.y-b.y)*2 < a.h+b.h
+end
+
+-- ===== 控件工厂 =====
+local function mkc(prefab, name, parent)
+  local c = game.InstantiateClientUIControl(prefab, parent or script.object)
+  if c then c.name = name end
+  return c
+end
+local function imgc(artKey, name)
+  local a = ART[artKey]
+  local c = mkc(T_IMG, name or 'img')
+  c:SetImage(Enum.ImageSource.StaticReference, a[1])
+  c.imageColor = Color(a[4],a[5],a[6],255)
+  c:SetSizeDelta(a[2]*K, a[3]*K)
+  return c
+end
+local function txtc(str, size, r,g,b, name)
+  local c = mkc(T_TXT, name or 'tx')
+  c.text = str or ''
+  c.fontSize = math.max(10, math.floor(size*K+0.5))
+  c.fontColor = Color(r,g,b,255)
+  c.bgColor = Color(0,0,0,0)
+  c.enableOutline = true
+  return c
+end
+local function place(c, gx, gy)         -- 逻辑坐标 → 画布锚定偏移
+  c:SetAnchoredPosition(gx*K-HX, gy*K-HY)
+end
+local function placeSize(c, gx, gy, w, h)
+  place(c, gx, gy)
+  c:SetSizeDelta(w*K, h*K)
+end
+local function setVis(c, artKey)
+  local a = ART[artKey]
+  c:SetImage(Enum.ImageSource.StaticReference, a[1])
+  c.imageColor = Color(a[4],a[5],a[6],255)
+  c:SetSizeDelta(a[2]*K, a[3]*K)
+end
+
+-- ===== 池 =====
+local function mkpool(n, maker)
+  local p = {}
+  for i=1,n do
+    local slot = {on=false, c=maker(i)}
+    if slot.c then slot.c:SetActive(false) end
+    table.insert(p, slot)
+  end
+  return p
+end
+local function alloc(pool)
+  for i=1,#pool do
+    if not pool[i].on then pool[i].on=true return pool[i] end
+  end
+  return nil
+end
+local function freePools()
+  for _,pool in ipairs({pools.bullets,pools.ebullets,pools.enemies,pools.items,pools.booms,pools.floaters}) do
+    for _,s in ipairs(pool) do if s.on then s.on=false s.c:SetActive(false) end end
+  end
+end
+
+-- ===== 消息/飘字 =====
+local function say(txt)
+  local s = alloc(pools.msgs) or pools.msgs[1]
+  s.on, s.t, s.life = true, 0, 2.5
+  s.c.text = txt
+  s.c:SetActive(true)
+  place(s.c, FW/2, 60)
+end
+local function dmgFloat(x, y, d, kind, crit)
+  local s = alloc(pools.floaters) if not s then return end
+  local col = {normal={230,240,255}, crit={255,90,90}, frost={130,220,255}, burn={255,160,70}, skill={255,210,100}}
+  local cc = col[kind] or col.normal
+  s.on=true s.t=0 s.life=0.7 s.x=x+(math.random()-0.5)*18 s.y=y+6 s.vy=60
+  local sz = math.min(11+d*0.1, 40)*(crit and 1.15 or 1)
+  s.size = math.max(10, math.floor(sz+0.5))
+  s.c.text = string.format('%d', math.floor(d+0.5))
+  s.c.fontSize = math.max(10, math.floor(s.size*K+0.5))
+  s.c.fontColor = Color(cc[1],cc[2],cc[3],255)
+  s.c:SetActive(true)
+end
+
+-- ===== 特性 =====
+local function traitFire(id)
+  if G.state~='playing' then return end
+  local t = TRAITS[id] if not t then return end
+  if not traitsSeen[id] and not G.traitQ[id] then
+    G.traitQ[id] = 2.5
+    log('trait_arm '..id)
+  elseif traitsSeen[id] and (G.traitT[id] or 0) < G.t then
+    G.traitT[id] = G.t+4
+    say(t[1]..'!')
+    log('trait '..id)
+  end
+end
+local function unlockCodex(id) end -- 悟之录 v1 简化（in-memory）
+
+local function critRate(kind)
+  local r = 0.05
+  if G.life==1 then r=r+0.2 end
+  if kind=='needle' and G.shipKey=='lantu' and G.freezeT>0 then r=r+0.5 end
+  return math.min(r, 0.95)
+end
+local function traitBulletDmg(b, e)
+  local d = b.dmg
+  local kind = b.wallId and 'needle' or (b.art=='changhong' and 'sword' or (b.art=='bingpoj' and 'blade' or 'wing'))
+  if kind=='needle' and G.shipKey=='lantu' and G.freezeT>0 then traitFire('yizhen') end
+  if kind=='needle' and b.zm then traitFire('zhenman') end
+  local crit = math.random() < critRate(kind)
+  if crit then
+    d = d*2
+    local s = alloc(pools.booms)
+    if s then s.on,s.t,s.life,s.crit,s.x,s.y=true,0,0.25,true,e.x,e.y s.c:SetActive(true) end
+  end
+  dmgFloat(e.x, e.y, d, kind=='blade' and 'frost' or 'normal', crit)
+  return math.floor(d+0.5)
+end
+
+-- ===== 敌弹 =====
+local function eshoot(e, vx, vy, art)
+  local s = alloc(pools.ebullets) if not s then return end
+  local a = ART[art or 'szd']
+  s.on=true s.x=e.x s.y=e.y s.vx=vx s.vy=vy s.w=a[2] s.h=a[3] s.art=art or 'szd'
+  s.frozen=false
+  setVis(s.c, art or 'szd')
+  s.c:SetActive(true)
+end
+
+-- ===== 波次 =====
+local function spawnEnemy(kind, y)
+  local def = N.enemy[kind]
+  local s = alloc(pools.enemies) if not s then return end
+  s.on=true s.kind=kind s.def=def s.hp=def.hp s.x=FW+30 s.y=y
+  s.w = ART[kind][2] s.h = ART[kind][3]
+  s.t=0 s.bob=math.random()*6.28 s.fireT=1+math.random()
+  s.hoverX=320+math.random()*60 s.dead=false s.gone=false s.flash=0 s.burn=0 s.spd=def.spd or 0
+  setVis(s.c, kind)
+  s.c:SetActive(true)
+  return s
+end
+local function spawnWave()
+  G.wave = G.wave + 1
+  if G.wave > #WAVES then return end
+  local w = WAVES[G.wave]
+  if w.boss then
+    local def = N.enemy[w.boss]
+    G.boss = {kind=w.boss, def=def, hp=def.hp, x=FW+70, y=150, w=80, h=100,
+      phase='enter', pt=0, patT=0, pat=0, dead=false, flash=0, burn=0, isBoss=true, on=true,
+      c=imgc(w.boss, 'Boss')}
+    log('boss_spawn')
+    G.scrollSpd = N.scrollBoss
+    G.lock = 1.0
+    return
+  end
+  for _,sp in ipairs(w.spawns) do spawnEnemy(sp[1], sp[2]) end
+  log('wave '..G.wave)
+end
+
+-- ===== 输入（v34b 三铁律）=====
+local jEdge, kEdge, jUp = false, false, false
+local function onKey(name, down)
+  if name=='j' then
+    if down then if not keys.j then keys.j=true jEdge=true end else keys.j=false jUp=true end
+  elseif name=='k' then
+    if down then if not keys.k then keys.k=true kEdge=true end else keys.k=false end
+  elseif name=='left' then keys.left = down or nil
+  elseif name=='right' then keys.right = down or nil
+  elseif name=='up' then keys.up = down or nil
+  elseif name=='down' then keys.down = down or nil
+  end
+end
+
+-- ===== 发射核心 =====
+local function fireVolley()
+  local cfg = N.ships[G.shipKey]
+  local dmg = math.floor(N.zdlv[G.lv]*(cfg.dmgMul or 1)+0.5)
+  local sp = cfg.bspeed
+  local fan = cfg.bullet=='changhong'
+  local offs
+  if fan then
+    offs = G.lv<=2 and {{0,0}} or G.lv==3 and {{0,-50},{0,50}}
+      or G.lv==4 and {{0,-70},{0,0},{0,70}}
+      or {{0,-105},{0,-63},{0,-21},{0,21},{0,63},{0,105}}
+  else
+    offs = G.lv<=2 and {{0,0}} or G.lv==3 and {{-4,0},{4,0}}
+      or G.lv==4 and {{-8,0},{0,0},{8,0}}
+      or {{-15,0},{-9,0},{-3,0},{3,0},{9,0},{15,0}}
+  end
+  for _,o in ipairs(offs) do
+    local s = alloc(pools.bullets) if not s then break end
+    local bw = cfg.bullet=='jezd' and 24+G.lv*2 or (fan and 28 or 27)
+    local bh = cfg.bullet=='jezd' and 8 or (fan and 9 or 12)
+    s.on=true s.x=G.shipX+16 s.y=G.shipY+o[1] s.vx=sp s.vy=0
+    s.w=bw s.h=bh s.dmg=dmg s.art=cfg.bullet s.maxD=cfg.range or 0 s.dist=0
+    setVis(s.c, cfg.bullet) s.c:SetActive(true)
+  end
+  sfx(50888)
+  if G.shipKey=='hongmao' then
+    for i,wslot in ipairs(wingPool) do
+      if wslot.on then
+        local s = alloc(pools.bullets)
+        if s then
+          s.on=true s.x=wslot.x+10 s.y=wslot.y s.vx=N.ships.hongmao.wingSpeed s.vy=0
+          s.w=16 s.h=7 s.dmg=math.floor(N.zdlv[G.lv]*1.2+0.5) s.art='fdzd' s.maxD=0 s.dist=0
+          setVis(s.c, 'fdzd') s.c:SetActive(true)
+        end
+      end
+    end
+  elseif G.needles < G.lv*(2+G.lv) then
+    G.needles = G.needles + 1
+  end
+end
+local function jFireCore()
+  fireVolley()
+  local cfg = N.ships[G.shipKey]
+  G.fireCd = (cfg.fireCd or 0.3)/(G.life==1 and 1.2 or 1)
+  -- 人剑合一：0.3s 窗内按下普攻
+  if G.renjianWin>0 and G.renjianLeft>0 and G.shipKey=='hongmao' then
+    G.renjianLeft=G.renjianLeft-1 G.renjianWin=0
+    traitFire('renjian')
+    for i=1,2 do
+      local s=alloc(pools.bullets)
+      if s then
+        s.on=true s.x=G.shipX s.y=G.shipY+(i==1 and 14 or -14) s.vx=650 s.vy=0
+        s.w=28 s.h=9 s.dmg=math.floor(N.zdlv[G.lv]*2+0.5) s.art='changhong' s.maxD=0 s.dist=0
+        setVis(s.c, 'changhong') s.c:SetActive(true)
+      end
+    end
+  end
+end
+
+-- ===== 银针齐发（salvo 状态机：固化原位逐发）=====
+local function needleBarrage(mult, big, keep, zm)
+  if G.needles==0 then return end
+  local n = G.needles
+  local fire = math.max(1, math.ceil(n*keep))
+  local gone = n - fire
+  G.salvo = {x=G.shipX, y=G.shipY, n=fire, mult=mult or 1, big=big, int=0, zm=zm and true or false}
+  for i=1,gone do
+    local s=alloc(pools.booms)
+    if s then s.on,s.t,s.life=true,0,0.3 s.spark=true s.c:SetActive(true)
+      place(s.c, G.shipX+(math.random()-0.5)*54, G.shipY+(math.random()-0.5)*38) end
+  end
+  G.needles = 0
+  log('needle_wall')
+end
+
+-- ===== 蓄力释放 =====
+local function releaseCharge()
+  local cfg = N.ships[G.shipKey]
+  local tier = G.chargeTier or 1
+  G.fashez = 2.0
+  log('phoenix '..G.lv)
+  if cfg.chargeType=='guanri' then
+    if tier < 1 then
+      G.wingBurst2 = 2.4*0.3
+      say('长虹未满·仅僚机齐射')
+      return
+    end
+    G.guanri = {t=3.2, x=G.shipX+20, w=12+7*(G.lv-2), y=G.shipY, dmg=95+28*G.lv, hit={}}
+    G.wingBurst2 = 2.4
+    G.renjianLeft = 2
+    say('长虹贯日!')
+  else
+    local tgt
+    local bd = 1e9
+    for _,e in ipairs(pools.enemies) do
+      if e.on and not e.dead and e.x>G.shipX then
+        local dxx = e.x-G.shipX
+        if dxx < bd then bd=dxx tgt=e end
+      end
+    end
+    local ang = 0
+    if tgt then ang = clamp(math.atan(tgt.y-G.shipY, tgt.x-G.shipX), -0.5, 0.5) end
+    local cnt = math.max(1, math.floor(G.lv*tier+0.5))
+    for k2=1,cnt do
+      local a = ang + (k2-(cnt+1)/2)*0.09
+      local s = alloc(pools.bullets) if not s then break end
+      local full = G.needles/(G.lv*(2+G.lv))
+      s.on=true s.x=G.shipX+16 s.y=G.shipY
+      s.vx=math.cos(a)*750 s.vy=math.sin(a)*750
+      s.w=40 s.h=24 s.dmg=math.floor((95+40*G.lv)*tier*(0.4+0.6*full)+0.5)
+      s.art='bingpoj' s.maxD=200 s.dist=0
+      setVis(s.c, 'bingpoj') s.c:SetActive(true)
+    end
+    say(tier==1 and '冰魄剑!' or '冰魄剑·残形')
+    needleBarrage(tier==1 and 2.0 or 0.6, true, tier==1 and 1 or 0.25, G.zmArmed)
+    G.zmArmed = false
+  end
+end
+
+-- ===== 放宝 =====
+local function tryBomb()
+  if G.state~='playing' or G.lock>0 or G.bomm<=0 then return end
+  G.bomm = G.bomm - 1
+  G.shield = 2.0
+  log('bomb '..G.bomm)
+  G.flashT = 0.4
+  G.slowT = 0.8 G.slowK = 0.08
+  sfx(50888)
+  if G.shipKey=='hongmao' then
+    G.phoenix2 = {x=G.shipX+20, y=G.shipY, vx=240, t=5, hit={}}
+    for _,b in ipairs(pools.ebullets) do if b.on then b.on=false b.c:SetActive(false) end end
+    log('bomb_clear')
+    say('火凤燎原!')
+  else
+    G.freezeT = 4
+    log('bomb_clear')
+    say('冰封千里!')
+    for _,b in ipairs(pools.ebullets) do
+      if b.on then b.vx=0 b.vy=0 b.frozen=true end
+    end
+  end
+end
+
+-- ===== 伤害/击杀 =====
+local function onKill(e)
+  G.score = G.score + e.def.score
+  log('score '..G.score)
+  local s = alloc(pools.booms)
+  if s then s.on,s.t,s.life,s.big,s.x,s.y=true,0,0.5,e.isBoss,e.x,e.y s.c:SetActive(true) end
+  -- 薪火相传：燃者死→火种飞溅
+  if G.shipKey=='hongmao' and (e.burn or 0)>0 then
+    local tgt, bd = nil, 90
+    for _,x in ipairs(pools.enemies) do
+      if x.on and not x.dead and (x.burn or 0)<=0 and x~=e then
+        local d = math.sqrt((x.x-e.x)^2+(x.y-e.y)^2)
+        if d<bd then bd=d tgt=x end
+      end
+    end
+    if tgt then
+      local sp = alloc(pools.booms)
+      if sp then sp.on,sp.t,sp.life,sp.spark,sp.x,sp.y=true,0,0.5,true,e.x,e.y sp.c:SetActive(true) end
+      tgt.burn = 6
+      traitFire('xinhuo')
+    end
+  end
+  -- 掉落
+  local function dropItem(kind, dx, dy)
+    local it = alloc(pools.items) if not it then return end
+    local a = ART[kind]
+    it.on=true it.kind=kind it.x=e.x+(dx or 0) it.y=e.y+(dy or 0)
+    it.vx=(math.random()-0.5)*50 it.vy=(math.random()-0.5)*50
+    it.life = kind=='bs' and 10 or 4
+    it.tx=20+math.random()*350 it.ty=20+math.random()*200
+    it.w=a[2] it.h=a[3]
+    setVis(it.c, kind) it.c:SetActive(true)
+  end
+  if e.kind=='dj2' then dropItem('bs') dropItem('bs') end
+  if e.kind=='dj4' and math.random()<0.5 then dropItem('bs') end
+  if e.isBoss then
+    G.boss = nil
+    for _,b in ipairs(pools.ebullets) do if b.on then b.on=false b.c:SetActive(false) end end
+    dropItem('pow', -20, 10)
+    dropItem('bom1', 20, 10)
+    G.invuln = 99
+    G.winPending = 6
+    return
+  end
+end
+local function damage(e, dmg)
+  e.hp = e.hp - dmg
+  e.flash = 0.09
+  if e.hp<=0 and not e.dead then
+    e.dead = true
+    if e.on then onKill(e) end
+  end
+end
+
+-- ===== 死亡循环 =====
+local function playerHit()
+  if G.invuln>0 or G.lock>0 then return end
+  G.life = G.life - 1
+  log('life '..G.life)
+  if G.life<=0 then
+    G.state = 'fail'
+    log('fail lives')
+    overPanel = mkc(T_PANEL, 'GameOverPanel')
+    local t1 = txtc('游戏结束', 40, 255,90,90, 'GOText')
+    local t2 = txtc('点击「重新开始」再战', 18, 230,230,230, 'GOHint')
+    overRefs = {t1=t1, t2=t2}
+    place(overPanel, FW/2, FH/2)
+    place(t1, FW/2, FH/2+30)
+    place(t2, FW/2, FH/2-20)
+    return
+  end
+  -- 死亡循环：降级+清僚机+原地掉 pow 补偿+重生
+  G.lv = 1
+  log('pow 1')
+  syncWings()
+  local it = alloc(pools.items)
+  if it then
+    local a=ART.pow
+    it.on=true it.kind='pow' it.x=G.shipX it.y=G.shipY
+    it.vx=(math.random()-.5)*50 it.vy=(math.random()-.5)*50
+    it.life=4 it.tx=40+math.random()*300 it.ty=40+math.random()*160
+    it.w=a[2] it.h=a[3]
+    setVis(it.c, 'pow')
+    it.c:SetActive(true)
+  end
+  G.invuln = 1.8
+  G.shipX = -20
+  log('respawn')
+end
+
+-- ===== 僚机 =====
+function syncWings()
+  local want = G.shipKey=='lantu' and math.max(1, G.lv-1) or math.max(0, G.lv-1)
+  for i,ws in ipairs(wingPool) do
+    if i<=want then
+      ws.on = true
+      ws.bspd = 250+math.random()*100
+      ws.k = 0.6+math.random()*0.8
+      local a = G.shipKey=='lantu' and ART.wingL or ART.wingH
+      ws.c:SetActive(true)
+      ws.c.imageColor = Color(a[4],a[5],a[6],255)
+    else
+      ws.on = false
+      ws.c:SetActive(false)
+    end
+  end
+end
+
+-- ===== 选人 =====
+local function destroySel()
+  if selPanel then
+    for _,c in pairs(selRefs) do pcall(game.DestroyClientUIControl, c) end
+    pcall(game.DestroyClientUIControl, selPanel)
+    selPanel, selRefs = nil, {}
+  end
+end
+local function buildSelect()
+  selPanel = mkc(T_PANEL, 'CharSelectPanel')
+  local title = txtc('虹猫蓝兔 · 长虹出鞘', 30, 255,220,140, 'SelTitle')
+  local hint = txtc('选择你的侠客', 16, 200,200,210, 'SelHint')
+  place(title, FW/2, 190)
+  place(hint, FW/2, 160)
+  local hm = mkc(T_BTN, 'HongmaoCard')
+  local lt = mkc(T_BTN, 'LantuCard')
+  placeSize(hm, 130, 90, 70, 100)
+  placeSize(lt, 314, 90, 70, 100)
+  local hmTx = txtc('虹猫·长虹剑', 16, 255,190,120, 'HmTx')
+  local ltTx = txtc('蓝兔·冰魄针', 16, 140,220,255, 'LtTx')
+  place(hmTx, 130, 32)
+  place(ltTx, 314, 32)
+  selRefs = {hm=hm, lt=lt, title=title, hint=hint, hmTx=hmTx, ltTx=ltTx}
+  hm:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()
+    if G.state~='select' then return end
+    startRun('hongmao')
+  end)
+  lt:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()
+    if G.state~='select' then return end
+    startRun('lantu')
+  end)
+end
+
+-- ===== 开局 =====
+function startRun(charKey)
+  G.shipKey = charKey
+  log('char_select '..charKey)
+  destroySel()
+  -- 局内状态
+  G.state='playing' G.t=0 G.score=0 G.life=4 G.bomm=3 G.lv=1
+  G.wave=0 G.waveGap=1.2 G.boss=nil G.scrollSpd=N.scroll
+  G.fireCd=0 G.neng=0 G.fashez=0 G.needles=0 G.zmArmed=false G.zmFull=false
+  G.invuln=1.5 G.lock=0 G.shipX=40 G.shipY=125
+  G.chargeFull=false G.chargeMax=false G.chargeTier=0
+  G.freezeT=0 G.shield=0 G.slowT=0 G.flashT=0
+  G.guanri=nil G.phoenix2=nil G.salvo=nil
+  G.traitQ={} G.traitT={} G.dj1T=0 G.envT=0
+  G.jTapT=0 G.jHeld=false G.jPressFull=false G.holdT=0 G.lastHold=0
+  G.renjianWin=0 G.renjianLeft=0 G.qiudaoCd=0
+  G.wingBurst2=0 G.autoPlay=false
+  freePools()
+  syncWings()
+  -- 玩家本体
+  local a = ART[charKey]
+  G.shipC:SetActive(true)
+  G.shipC.imageColor = Color(a[4],a[5],a[6],255)
+  G.shipC:SetSizeDelta(a[2]*K, a[3]*K)
+  -- 开局白送 1 个 pow（原版节奏钩子）
+  local it = alloc(pools.items)
+  if it then
+    it.on=true it.kind='pow' it.x=G.shipX+14 it.y=G.shipY
+    it.vx=0 it.vy=0 it.life=6 it.tx=G.shipX+14 it.ty=G.shipY
+    it.w=ART.pow[2] it.h=ART.pow[3]
+    it.c:SetActive(true)
+    it.c.imageColor=Color(ART.pow[4],ART.pow[5],ART.pow[6],255)
+  end
+  log('game_start')
+end
+local function restartToSelect()
+  log('restart')
+  if winPanel then
+    for _,c in pairs(winRefs) do pcall(game.DestroyClientUIControl, c) end
+    pcall(game.DestroyClientUIControl, winPanel)
+    winPanel, winRefs = nil, {}
+  end
+  if overPanel then
+    for _,c in pairs(overRefs) do pcall(game.DestroyClientUIControl, c) end
+    pcall(game.DestroyClientUIControl, overPanel)
+    overPanel, overRefs = nil, {}
+  end
+  G.state='select'
+  G.shipC:SetActive(false)
+  freePools()
+  for i,ws in ipairs(wingPool) do ws.on=false ws.c:SetActive(false) end
+  buildSelect()
+end
+
+-- ===== 命中环（两路径：pierce / 非 pierce）=====
+local function bulletHits()
+  local S = {x=G.shipX, y=G.shipY, w=14, h=10}
+  -- guanri 巨剑独立命中场（每 tick 一次，不随子弹数放大）
+  if G.guanri then
+    local g = G.guanri
+    for _,e in ipairs(pools.enemies) do
+      if e.on and not e.dead and not g.hit[e] and math.abs(e.x-g.x)*2 < g.w+e.w then
+        g.hit[e] = true
+        damage(e, g.dmg*STEP*10)
+        dmgFloat(e.x, e.y, g.dmg, 'skill', false)
+      end
+    end
+    if G.boss and not G.boss.dead and math.abs(G.boss.x-g.x)*2 < g.w+G.boss.w then
+      damage(G.boss, g.dmg*STEP*10)
+    end
+  end
+  -- 火凤接触场（每 tick 一次）
+  if G.phoenix2 then
+    local p = G.phoenix2
+    for _,e in ipairs(pools.enemies) do
+      if e.on and not e.dead and not p.hit[e] and math.abs(e.x-p.x)*2<52+e.w and math.abs(e.y-p.y)*2<40+e.h then
+        p.hit[e]=true e.burn=6
+      end
+    end
+    if G.boss and not G.boss.dead and math.abs(G.boss.x-p.x)*2<52+G.boss.w and math.abs(G.boss.y-p.y)*2<40+G.boss.h then
+      G.boss.burn = 6
+    end
+  end
+  for _,b in ipairs(pools.bullets) do
+    if b.on then
+      for _,e in ipairs(pools.enemies) do
+        if e.on and not e.dead and hit(b,e) then
+          local d = traitBulletDmg(b, e)
+          damage(e, d)
+          -- 剑哺针：冰魄命中回填
+          if b.art=='bingpoj' then
+            G.needles = math.min(G.lv*(2+G.lv), G.needles+1)
+          end
+          -- 飞针归匣：贴身银针回收
+          if b.wallId and G.shipKey=='lantu'
+             and math.sqrt((e.x-G.shipX)^2+(e.y-G.shipY)^2)<90 then
+            G.recyc = (G.recyc or 0)+1
+            traitFire('guiqia')
+            if G.recyc%2==0 then
+              G.needles = math.min(G.lv*(2+G.lv), G.needles+1)
+            end
+          end
+          if not b.pierce then b.on=false b.c:SetActive(false) break end
+        end
+      end
+      if b.on and G.boss and not G.boss.dead and hit(b, G.boss) then
+        damage(G.boss, traitBulletDmg(b, G.boss))
+        if not b.pierce then b.on=false b.c:SetActive(false) end
+      end
+    end
+  end
+end
+
+-- ===== 主 tick =====
+local acc = 0
+local function tick(dt)
+  G.t = G.t + dt
+  -- 慢镜（造势）
+  local fs = 1
+  if G.slowT>0 then G.slowT=G.slowT-dt fs=G.slowK end
+  if G.flashT>0 then G.flashT=G.flashT-dt end
+  -- 特性卡队列
+  for id,tt in pairs(G.traitQ) do
+    if tt>0 then
+      G.traitQ[id]=tt-dt
+      if G.traitQ[id]<=0 then
+        G.traitCard = id
+        traitsSeen[id]=true
+        G.traitQ[id]=nil
+      end
+    end
+  end
+  -- 特性卡暂停（任意键关）
+  if G.traitCard then
+    if kEdge then
+      G.traitCard=nil
+      G.invuln = math.max(G.invuln, 1.5)
+    end
+    kEdge=false jEdge=false jUp=false
+    return
+  end
+  -- 状态分支
+  if G.state~='playing' then
+    kEdge=false jEdge=false jUp=false
+    return
+  end
+  -- ===== 输入 v34b =====
+  local jNow = keys.j == true
+  if G.autoPlay then jNow = true end
+  local firing = jNow
+  if firing then G.holdT = G.holdT + dt
+  else
+    if G.holdT>0 then G.lastHold=G.holdT end
+    G.holdT = 0
+  end
+  if jNow and not G.jHeld then
+    G.jTapT = G.t + 0.25
+    G.jPressFull = (G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv))
+    if G.lock<=0 and G.fireCd<=0 then jFireCore() end
+  end
+  if not jNow and G.jHeld and G.jTapT>0 then
+    G.jTapT = 0
+    if G.jPressFull and G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then
+      needleBarrage(0.7, false, 1, false)
+    end
+  end
+  G.jHeld = jNow
+  if G.jTapT>0 and G.t>=G.jTapT then G.jTapT=0 end
+  -- K 放宝
+  if kEdge then tryBomb() end
+  -- 移动
+  local mvx, mvy = 0, 0
+  if G.autoPlay then
+    mvx = G.shipX<200 and 1 or (G.shipX>380 and -1 or 0)
+    mvy = G.shipY<80 and 1 or (G.shipY>180 and -1 or 0)
+  else
+    if keys.left then mvx=-1 elseif keys.right then mvx=1 end
+    if keys.up then mvy=1 elseif keys.down then mvy=-1 end
+  end
+  local spd = (G.life==1 and 1.2 or 1)
+  G.shipX = clamp(G.shipX + mvx*N.player.vx*spd*dt, N.player.xMin, N.player.xMax)
+  G.shipY = clamp(G.shipY + mvy*N.player.vy*spd*dt, N.player.yMin, N.player.yMax)
+  if mvx<0 and G.shipX<=N.player.xMin then
+    if not G.boundL then log('bound left') end G.boundL=true
+  else G.boundL=false end
+  if mvx>0 and G.shipX>=N.player.xMax then
+    if not G.boundR then log('bound right') end G.boundR=true
+  else G.boundR=false end
+  if mvy>0 and G.shipY>=N.player.yMax then
+    if not G.boundU then log('bound up') end G.boundU=true
+  else G.boundU=false end
+  if mvy<0 and G.shipY<=N.player.yMin then
+    if not G.boundD then log('bound down') end G.boundD=true
+  else G.boundD=false end
+  -- 冷却/蓄力
+  G.fireCd = G.fireCd - dt
+  if G.fashez>0 then G.fashez=G.fashez-dt G.neng=0
+  elseif firing and G.lv>1 and G.holdT>=0.25 then
+    local cr = N.chargeRate
+    if G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then
+      cr = cr*1.3
+      if not G.zmFull then traitFire('zhenman') end
+    end
+    G.neng = math.min(G.neng + cr*dt, N.ships[G.shipKey].ps*1.5)
+  end
+  local ps = N.ships[G.shipKey].ps
+  if G.lv>1 then
+    if G.neng>=ps and not G.chargeFull then
+      G.chargeFull=true
+      if G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then G.zmArmed=true end
+    end
+    if G.neng<ps then G.chargeFull=false end
+  end
+  -- 释放（松手）
+  if not firing and G.neng>0 and G.lastHold>=0.25 then
+    if G.neng >= 0.7*ps then
+      G.chargeTier = G.neng>=ps*1.5 and 1 or 0.25
+      releaseCharge()
+    else
+      G.neng = 0
+    end
+  end
+  -- 满匣泛光
+  if G.shipKey=='lantu' then
+    local full = G.needles>=G.lv*(2+G.lv)
+    if full and not G.zmFull then say('针匣已满：点按倾匣 · 长按蓄力') end
+    G.zmFull = full
+  end
+  -- ===== 敌机 =====
+  G.waveGap = G.waveGap - dt
+  -- dj1 环境刷怪
+  G.envT = G.envT + dt
+  if G.envT>0.12 and G.wave>0 and not G.boss then
+    G.envT = 0
+    if math.random()<0.1 then
+      local s = spawnEnemy('dj1', 40+math.random()*150)
+      if s then s.spd = 200+math.random()*100 s.hoverX=-999 end
+    end
+  end
+  -- 波次门闩：非 dj1 清零→下一波
+  local alive = 0
+  for _,e in ipairs(pools.enemies) do
+    if e.on and not e.dead and e.kind~='dj1' then alive=alive+1 end
+  end
+  if alive==0 and G.waveGap<=0 and G.wave<#WAVES and not G.boss then
+    spawnWave()
+    G.waveGap = 2.2
+  end
+  -- 敌机更新
+  for _,e in ipairs(pools.enemies) do
+    if e.on and not e.dead then
+      e.t = e.t + dt*fs
+      if e.flash>0 then e.flash=e.flash-dt end
+      if (e.burn or 0)>0 then
+        e.burn = e.burn - dt
+        damage(e, 25*dt)
+      end
+      if e.kind=='dj1' then
+        e.x = e.x - (e.spd or 250)*dt*fs
+        if e.x < -40 then e.dead=true e.gone=true end
+      else
+        if e.x > e.hoverX then
+          e.x = e.x - (e.def.spd or 120)*dt*fs
+        else
+          e.x = math.max(180, e.hoverX + math.sin(e.t*0.7+e.bob)*18)
+        end
+        e.fireT = e.fireT - dt*fs
+        if e.fireT<=0 and e.x<FW and G.lock<=0 and G.freezeT<=0 then
+          e.fireT = 1.8
+          local vx,vy = aimvx(e.x,e.y,G.shipX,G.shipY,e.def.zdsd or 150)
+          eshoot(e, vx, vy)
+        end
+      end
+      if G.invuln<=0 and G.lock<=0 and hit(e,{x=G.shipX,y=G.shipY,w=14,h=10}) then playerHit() end
+    end
+    if e.on and (e.dead or e.gone) then e.on=false e.c:SetActive(false) end
+  end
+  -- boss
+  if G.boss then
+    local b = G.boss
+    local bfs = G.freezeT>0 and 0 or 1
+    b.pt = b.pt + dt*bfs
+    b.patT = b.patT + dt*bfs
+    if (b.burn or 0)>0 then b.burn=b.burn-dt damage(b, 25*dt) end
+    if b.flash>0 then b.flash=b.flash-dt end
+    if b.phase=='enter' then
+      b.x = b.x - 90*dt
+      if b.x<=360 then b.x=360 b.phase='fight' G.scrollSpd=N.scroll end
+    else
+      b.y = 125 + math.sin(b.pt*0.9)*30
+      if b.patT>2.4 and G.lock<=0 and G.freezeT<=0 then
+        b.patT=0 b.pat=(b.pat+1)%3
+        if b.pat==0 then
+          for _,a in ipairs({-0.22,0,0.22}) do
+            local vx,vy = aimvx(b.x,b.y,G.shipX,G.shipY,163)
+            local c,s2 = math.cos(a), math.sin(a)
+            eshoot(b, vx*c-vy*s2, vx*s2+vy*c)
+          end
+        elseif b.pat==1 then
+          for i=0,9 do
+            local a = i/10*6.28 + b.pt
+            eshoot(b, math.cos(a)*120, math.sin(a)*120, 'szd2')
+          end
+        else
+          for i=0,2 do
+            local vx,vy = aimvx(b.x,b.y,G.shipX+i*30-30,G.shipY,175)
+            eshoot(b, vx, vy)
+          end
+        end
+      end
+      if G.invuln<=0 and G.lock<=0 and hit(b,{x=G.shipX,y=G.shipY,w=14,h=10}) then playerHit() end
+    end
+    if b.dead then
+      G.boss = nil
+    end
+  end
+  -- guanri 巨剑推进
+  if G.guanri then
+    G.guanri.t = G.guanri.t - dt
+    G.guanri.x = G.guanri.x + 156*dt
+    G.guanri.y = G.shipY
+    if G.guanri.t<=0 or G.guanri.x>FW+80 then G.guanri=nil end
+  end
+  -- 火凤推进
+  if G.phoenix2 then
+    local p=G.phoenix2
+    p.t=p.t-dt p.x=p.x+p.vx*dt p.y=G.shipY+math.sin(G.t*3)*30
+    if p.t<=0 or p.x>FW+60 then G.phoenix2=nil end
+  end
+  -- 银针 salvo 逐发
+  if G.salvo then
+    G.salvo.int = G.salvo.int - dt
+    while G.salvo.n>0 and G.salvo.int<=0 do
+      G.salvo.int = G.salvo.int + 0.12
+      G.salvo.n = G.salvo.n - 1
+      local s = alloc(pools.bullets)
+      if s then
+        s.on=true s.x=G.salvo.x s.y=G.salvo.y
+        s.vx=520 s.vy=(math.random()-0.5)*60
+        s.w=22 s.h=7 s.wallId=true s.zm=G.salvo.zm
+        s.dmg=math.floor(N.zdlv[G.lv]*(G.salvo.big and (G.salvo.mult or 1) or 0.7)+0.5)
+        s.pierce=G.salvo.big
+        s.art='yinzhen' s.maxD=0 s.dist=0
+        setVis(s.c, 'yinzhen') s.c:SetActive(true)
+      end
+    end
+    if G.salvo.n<=0 then G.salvo=nil end
+  end
+  -- 僚机
+  for i,ws in ipairs(wingPool) do
+    if ws.on then
+      local tx, ty
+      if G.shipKey=='lantu' then
+        tx = G.shipX-26-(i-1)*15
+        ty = G.shipY-8-(i-1)*11+math.sin(G.t*2.2+i)*3
+      else
+        tx = G.shipX-26-(i-1)*16
+        ty = G.shipY-10
+      end
+      ws.x = ws.x + (tx-ws.x)*math.min(1, dt*5*(ws.k or 1))
+      ws.y = ws.y + (ty-ws.y)*math.min(1, dt*5*(ws.k or 1))
+    end
+  end
+  -- 僚机 S 阵列窗（贯日）
+  if G.wingBurst2>0 then
+    G.wingBurst2 = G.wingBurst2 - dt
+    for i,ws in ipairs(wingPool) do
+      if ws.on and math.random()<dt*6 then
+        local s=alloc(pools.bullets)
+        if s then
+          s.on=true s.x=ws.x s.y=ws.y
+          s.vx=360+math.random()*140 s.vy=(math.random()-0.5)*160
+          s.w=16 s.h=7 s.dmg=math.floor(N.zdlv[G.lv]*0.9+0.5) s.art='fdzd'
+          s.maxD=0 s.dist=0 s.sine={amp=110+math.random()*40, freq=3.5+math.random(), ph=math.random()*6.28}
+          setVis(s.c, 'fdzd') s.c:SetActive(true)
+        end
+      end
+    end
+  end
+  -- 子弹推进+命中
+  for _,b in ipairs(pools.bullets) do
+    if b.on then
+      b.x=b.x+b.vx*dt b.y=b.y+b.vy*dt
+      if b.sine then b.sine.ph=b.sine.ph+dt*b.sine.freq b.y=b.y+math.cos(b.sine.ph)*b.sine.amp*dt end
+      if b.pierce or b.maxD>0 then b.dist=(b.dist or 0)+math.sqrt(b.vx^2+b.vy^2)*dt end
+      if b.x>FW+30 or b.x<-30 or b.y<-20 or b.y>FH+20 or (b.maxD>0 and b.dist>b.maxD) then
+        b.on=false b.c:SetActive(false)
+      end
+    end
+  end
+  bulletHits()
+  -- 敌弹推进
+  for _,b in ipairs(pools.ebullets) do
+    if b.on then
+      if not b.frozen then
+        b.x=b.x+b.vx*dt b.y=b.y+b.vy*dt
+      end
+      if b.x<-30 or b.x>FW+30 or b.y<-20 or b.y>FH+20 then
+        b.on=false b.c:SetActive(false)
+      end
+    end
+  end
+  -- 道具
+  for _,it in ipairs(pools.items) do
+    if it.on then
+      it.life = it.life - dt
+      local dx,dy = it.tx-it.x, it.ty-it.y
+      local d = math.sqrt(dx*dx+dy*dy)
+      if d>4 then it.x=it.x+dx/d*40*dt it.y=it.y+dy/d*40*dt end
+      if it.life<=0 or it.x<-20 then it.on=false it.c:SetActive(false) end
+      if it.on and math.abs(it.x-G.shipX)*2<it.w+18 and math.abs(it.y-G.shipY)*2<it.h+16 then
+        it.on=false it.c:SetActive(false)
+        if it.kind=='pow' then
+          G.lv = clamp(G.lv+1, 1, 5)
+          log('pow '..G.lv)
+          syncWings()
+        elseif it.kind=='bom1' then
+          G.bomm = math.min(8, G.bomm+1)
+        elseif it.kind=='bs' then
+          G.score = G.score + 500
+          log('score '..G.score)
+        end
+      end
+    end
+  end
+  -- 特效
+  for _,s in ipairs(pools.booms) do
+    if s.on then
+      s.t=s.t+dt
+      if s.t>=(s.life or 0.5) then s.on=false s.c:SetActive(false) end
+    end
+  end
+  for _,s in ipairs(pools.floaters) do
+    if s.on then
+      s.t=s.t+dt s.y=s.y+s.vy*dt
+      if s.t>=(s.life or 0.7) then s.on=false s.c:SetActive(false) end
+    end
+  end
+  -- 胜利倒计时
+  if G.winPending then
+    G.winPending = G.winPending - dt
+    if G.winPending<=0 then
+      G.winPending=nil
+      G.state='win'
+      log('level_clear')
+      log('game_win')
+      winPanel = mkc(T_PANEL, 'WinPanel')
+      local t1 = txtc('长虹出鞘 · 通关!', 36, 255,215,120, 'WinText')
+      local t2 = txtc('得分 '..G.score, 20, 230,230,230, 'WinScore')
+      winRefs = {t1=t1, t2=t2}
+      place(winPanel, FW/2, FH/2)
+      place(t1, FW/2, FH/2+26)
+      place(t2, FW/2, FH/2-16)
+    end
+  end
+  -- 燃烧伤害已在敌机段
+  -- 计时器衰减
+  if G.invuln>0 and G.invuln<90 then G.invuln=G.invuln-dt end
+  if G.shield>0 then G.shield=G.shield-dt end
+  if G.freezeT>0 then G.freezeT=G.freezeT-dt end
+  if G.renjianWin>0 then G.renjianWin=G.renjianWin-dt end
+  -- 擦弹（险中求道）
+  if G.neng>0 and G.shipKey=='hongmao' then
+    for _,b in ipairs(pools.ebullets) do
+      if b.on and not b.frozen and math.sqrt((b.x-G.shipX)^2+(b.y-G.shipY)^2)<16 then
+        G.graze=(G.graze or 0)+1
+        if G.t>G.qiudaoCd then
+          G.qiudaoCd = G.t+0.5
+          G.neng = math.min(G.neng+ps*0.15, ps*1.5)
+          traitFire('qiudao')
+        end
+        break
+      end
+    end
+  end
+  -- 边沿清理
+  jEdge=false kEdge=false jUp=false
+end
+
+-- ===== 渲染同步（每帧：位置/可见性/HUD）=====
+local function render()
+  if G.state=='select' then return end
+  -- 玩家
+  place(G.shipC, G.shipX, G.shipY)
+  local blink = G.invuln>0 and (math.floor(G.t*12)%2==0)
+  G.shipC:SetVisible(not blink)
+  for i,ws in ipairs(wingPool) do
+    if ws.on then place(ws.c, ws.x, ws.y) end
+  end
+  for _,pool in ipairs({pools.bullets,pools.ebullets,pools.enemies,pools.items,pools.booms}) do
+    for _,s in ipairs(pool) do
+      if s.on then place(s.c, s.x, s.y) end
+    end
+  end
+  for _,s in ipairs(pools.floaters) do
+    if s.on then place(s.c, s.x, s.y) end
+  end
+  if G.guanri then
+    placeSize(G.guanriC, G.guanri.x, G.guanri.y, G.guanri.w, 40)
+    G.guanriC:SetActive(true)
+  else G.guanriC:SetActive(false) end
+  if G.phoenix2 then
+    place(G.huofengC, G.phoenix2.x, G.phoenix2.y)
+    G.huofengC:SetActive(true)
+  else G.huofengC:SetActive(false) end
+  if G.shield>0 then
+    place(G.shieldC, G.shipX, G.shipY)
+    G.shieldC:SetActive(true)
+  else G.shieldC:SetActive(false) end
+  -- 敌机受击白闪
+  for _,e in ipairs(pools.enemies) do
+    if e.on then
+      local a = ART[e.kind]
+      if e.flash>0 then e.c.imageColor = Color(255,255,255,255)
+      else e.c.imageColor = Color(a[4],a[5],a[6],255) end
+    end
+  end
+  -- HUD 文本（脏检查）
+  local sTxt = tostring(G.score)
+  if hud.score.text ~= sTxt then hud.score.text = sTxt end
+  local lTxt = 'LV'..G.lv
+  if hud.lv.text ~= lTxt then hud.lv.text = lTxt end
+  local bTxt = '宝×'..G.bomm
+  if hud.bomb.text ~= bTxt then hud.bomb.text = bTxt end
+  local fTxt = '命×'..math.max(0,G.life)
+  if hud.life.text ~= fTxt then hud.life.text = fTxt end
+  local wTxt = tostring(math.max(1,G.wave))
+  if hud.wave.text ~= wTxt then hud.wave.text = wTxt end
+  -- 蓄力条/血条填充
+  if G.state=='playing' then
+    local ps = N.ships[G.shipKey].ps
+    hud.charge:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.neng/(ps*1.5),0,1))
+    hud.hp:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.life/4,0,1))
+    if G.boss then
+      hud.bossBar:SetActive(true)
+      hud.bossBar:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.boss.hp/G.boss.def.hp,0,1))
+    else
+      hud.bossBar:SetActive(false)
+    end
+  end
+end
+
+-- ===== Debug 信号 =====
+local function regDebug()
+  local function reg(name, fn)
+    script:RegisterServerSignalHandler(name, function(sig, params)
+      pcall(fn, params or {})
+    end)
+  end
+  reg('DebugAutoPlay', function(p) G.autoPlay = (p[1] or 1)==1 if G.autoPlay then G.invuln=99 end end)
+  reg('DebugSkipToBoss', function()
+    for _,e in ipairs(pools.enemies) do if e.on then e.on=false e.c:SetActive(false) end end
+    G.wave = #WAVES - 1
+    spawnWave()
+    G.waveGap = 999
+  end)
+  reg('DebugKillBoss', function()
+    if G.boss then damage(G.boss, 1e9) end
+  end)
+  reg('DebugDamage', function(p) local d = p[1] or 1
+    G.invuln=0 playerHitRaw(d) end)
+  reg('DebugSetLife', function(p) G.life = p[1] or 4 end)
+  reg('DebugGrantPow', function(p) G.lv = clamp(p[1] or 1,1,5) log('pow '..G.lv) syncWings() end)
+  reg('DebugGrantBomb', function(p) G.bomm = p[1] or 3 end)
+  reg('DebugNoop', function() end)
+end
+function playerHitRaw(d)
+  -- 调试直伤：绕过无敌，走完整死亡循环
+  G.life = G.life - 1
+  log('life '..G.life)
+  if G.life<=0 then
+    G.state='fail'
+    log('fail lives')
+    overPanel = mkc(T_PANEL, 'GameOverPanel')
+    local t1 = txtc('游戏结束', 40, 255,90,90, 'GOText')
+    local t2 = txtc('点击「重新开始」再战', 18, 230,230,230, 'GOHint')
+    overRefs = {t1=t1, t2=t2}
+    place(overPanel, FW/2, FH/2)
+    place(t1, FW/2, FH/2+30)
+    place(t2, FW/2, FH/2-20)
+    return
+  end
+  G.lv = 1
+  log('pow 1')
+  syncWings()
+  local it = alloc(pools.items)
+  if it then
+    local a=ART.pow
+    it.on=true it.kind='pow' it.x=G.shipX it.y=G.shipY
+    it.vx=(math.random()-.5)*50 it.vy=(math.random()-.5)*50
+    it.life=4 it.tx=40+math.random()*300 it.ty=40+math.random()*160
+    it.w=a[2] it.h=a[3]
+    setVis(it.c, 'pow')
+    it.c:SetActive(true)
+  end
+  G.invuln = 1.8
+  log('respawn')
+end
+
+-- ===== 生命周期 =====
+function OnInit()
+  CW, CH = game.GetUICanvasSize()
+  K = CW / FW
+  HX, HY = CW/2, CH/2
+end
+function OnStart()
+  script.object.showCursor = true
+  CW, CH = game.GetUICanvasSize()
+  K = CW / FW
+  HX, HY = CW/2, CH/2
+  -- 全局初始化
+  G = {state='select', t=0, score=0, life=4, bomm=3, lv=1, wave=0, waveGap=1.2,
+    shipX=40, shipY=125, shipKey='hongmao', fireCd=0, neng=0, fashez=0, needles=0,
+    invuln=0, lock=0, traitQ={}, traitT={}, freezeT=0, shield=0, slowT=0, flashT=0,
+    renjianWin=0, renjianLeft=0, qiudaoCd=0, wingBurst2=0, autoPlay=false, graze=0,
+    holdT=0, lastHold=0, jTapT=0, jHeld=false, jPressFull=false, chargeTier=0}
+  -- ===== 池构建（z 序：背景→敌→道具→僚机→玩家→弹→敌弹→特效→飘字→HUD）=====
+  pools.stars = {}
+  for i=1,6 do
+    local c = imgc('bg2', 'star'..i)
+    c:SetSizeDelta(3*K, 3*K)
+    table.insert(pools.stars, {c=c, x=math.random()*FW, y=math.random()*FH, sp=20+math.random()*40})
+    c:SetActive(true)
+  end
+  pools.enemies = mkpool(16, function() return imgc('dj1','enemy') end)
+  pools.items = mkpool(10, function() return imgc('pow','item') end)
+  wingPool = {}
+  for i=1,4 do
+    local c = imgc('wingH', i==1 and 'OptionControl' or 'wing'..i)
+    table.insert(wingPool, {c=c, x=0, y=0, on=false})
+  end
+  G.shipC = imgc('hongmao', 'Player')
+  G.shipC:SetActive(false)
+  pools.bullets = mkpool(72, function() return imgc('changhong','pbullet') end)
+  pools.ebullets = mkpool(80, function() return imgc('szd','ebullet') end)
+  pools.booms = mkpool(24, function() return imgc('pow','fx') end)
+  pools.floaters = mkpool(12, function() return txtc('', 12, 255,255,255,'floater') end)
+  G.guanriC = imgc('guanri', 'GuanriSword')
+  G.guanriC:SetActive(false)
+  G.huofengC = imgc('huofeng', 'PhoenixFire')
+  G.huofengC:SetActive(false)
+  G.shieldC = imgc('shield', 'ShieldFx')
+  G.shieldC:SetActive(false)
+  -- ebullet 池视觉默认 szd
+  -- ===== HUD =====
+  hud.score = txtc('0', 15, 255,255,255, 'ScoreText')
+  place(hud.score, 50, 236)
+  hud.lv = txtc('LV1', 15, 255,220,140, 'LvText')
+  place(hud.lv, 110, 236)
+  hud.wave = txtc('1', 13, 180,180,200, 'WaveText')
+  place(hud.wave, FW-30, 236)
+  hud.bomb = txtc('宝×3', 14, 255,200,120, 'BombText')
+  place(hud.bomb, 170, 236)
+  hud.life = txtc('命×4', 14, 255,140,140, 'LifeText')
+  place(hud.life, 240, 236)
+  -- 蓄力条（fill）
+  local cbg = imgc('pow', 'ChargeBg')
+  cbg.imageColor = Color(40,48,70,255)
+  placeSize(cbg, 60, 224, 120, 8)
+  hud.charge = imgc('pow', 'ChargeFill')
+  hud.charge.imageColor = Color(120,200,255,255)
+  placeSize(hud.charge, 60, 224, 120, 8)
+  -- 玩家血条
+  local hbg = imgc('pow', 'HpBg')
+  hbg.imageColor = Color(40,48,70,255)
+  placeSize(hbg, FW/2, 236, 100, 8)
+  hud.hp = imgc('pow', 'HpBar')
+  hud.hp.imageColor = Color(120,255,140,255)
+  placeSize(hud.hp, FW/2, 236, 100, 8)
+  -- boss 血条
+  local bbg = imgc('pow', 'BossBg')
+  bbg.imageColor = Color(60,30,40,255)
+  placeSize(bbg, FW/2, 12, 300, 10)
+  hud.bossBar = imgc('pow', 'BossFill')
+  hud.bossBar.imageColor = Color(255,80,80,255)
+  placeSize(hud.bossBar, FW/2, 12, 300, 10)
+  hud.bossBar:SetActive(false)
+  -- 消息
+  pools.msgs = {}
+  for i=1,3 do
+    local c = txtc('', 14, 255,255,255, 'msg'..i)
+    c:SetActive(false)
+    table.insert(pools.msgs, {c=c, on=false, t=0, life=0})
+  end
+  -- 重开按钮（常驻）
+  local rb = mkc(T_BTN, 'RestartBtn')
+  placeSize(rb, FW-40, FH-20, 60, 26)
+  rb:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()
+    if G.state=='playing' or G.state=='fail' or G.state=='win' then restartToSelect() end
+  end)
+  -- 键盘监听
+  local KE = Enum.KeyEventType
+  local keyMap = {
+    {KE.KeyboardCraftspersonKey19Down, 'j', true}, {KE.KeyboardCraftspersonKey19Up, 'j', false},
+    {KE.KeyboardCraftspersonKey20Down, 'k', true}, {KE.KeyboardCraftspersonKey20Up, 'k', false},
+    {KE.KeyboardMoveLeftKeyDown, 'left', true}, {KE.KeyboardMoveLeftKeyUp, 'left', false},
+    {KE.KeyboardMoveRightKeyDown, 'right', true}, {KE.KeyboardMoveRightKeyUp, 'right', false},
+    {KE.KeyboardMoveForwardKeyDown, 'up', true}, {KE.KeyboardMoveForwardKeyUp, 'up', false},
+    {KE.KeyboardMoveBackwardKeyDown, 'down', true}, {KE.KeyboardMoveBackwardKeyUp, 'down', false},
+    {KE.KeyboardCraftspersonKey36Down, 'up', true}, {KE.KeyboardCraftspersonKey36Up, 'up', false},
+    {KE.KeyboardCraftspersonKey37Down, 'down', true}, {KE.KeyboardCraftspersonKey37Up, 'down', false},
+    {KE.KeyboardCraftspersonKey38Down, 'left', true}, {KE.KeyboardCraftspersonKey38Up, 'left', false},
+    {KE.KeyboardCraftspersonKey39Down, 'right', true}, {KE.KeyboardCraftspersonKey39Up, 'right', false},
+  }
+  for _,m in ipairs(keyMap) do
+    local nm, dn = m[2], m[3]
+    script.object:AddKeyEventListener(m[1], function() onKey(nm, dn) return false end)
+  end
+  -- Debug 信号
+  regDebug()
+  -- 选人面板
+  buildSelect()
+  log('game_start')
+  log('boot ok')
+  script:EnableUpdate(true)
+end
+function OnUpdate(dt)
+  if dt > 0.1 then dt = 0.1 end
+  acc = acc + dt
+  local n = 0
+  while acc >= STEP and n < 4 do
+    tick(STEP)
+    acc = acc - STEP
+    n = n + 1
+  end
+  render()
+end

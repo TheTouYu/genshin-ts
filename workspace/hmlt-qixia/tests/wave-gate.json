@@ -1,14 +1,32 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "wave-gate",
-  "dt": 0.04,
-  "events": [
-    { "t": 0, "kind": "click", "name": "HongmaoCard" },
-    { "t": 15.0, "kind": "serverSend", "name": "DebugNoop", "params": [] }
-  ],
-  "asserts": [
-    { "kind": "log", "contains": "wave 1", "source": "client" },
-    { "kind": "lua", "source": "return HMLT ~= nil and HMLT.wave == 1", "at": 15.2 }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "wave-gate",
+ "dt": 0.04,
+ "events": [
+  {
+   "t": 0,
+   "kind": "click",
+   "name": "HongmaoCard"
+  },
+  {
+   "t": 15.0,
+   "kind": "serverSend",
+   "name": "DebugNoop",
+   "params": []
+  }
+ ],
+ "asserts": [
+  {
+   "kind": "log",
+   "contains": "wave 1",
+   "source": "client",
+   "at": 2.0
+  },
+  {
+   "kind": "lua",
+   "source": "local c=query.control('WaveText'); return c~=nil and c.text=='1'",
+   "at": 15.2
+  }
+ ]
 }

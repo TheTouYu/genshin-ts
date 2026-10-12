@@ -1,23 +1,79 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "movement-bounds",
-  "dt": 0.04,
-  "events": [
-    { "t": 0, "kind": "click", "name": "HongmaoCard" },
-    { "t": 0.5, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 4.0, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" },
-    { "t": 4.5, "kind": "key", "typeName": "KeyboardMoveRightKeyDown" },
-    { "t": 8.0, "kind": "key", "typeName": "KeyboardMoveRightKeyUp" },
-    { "t": 8.5, "kind": "key", "typeName": "KeyboardCraftspersonKey36Down" },
-    { "t": 12.0, "kind": "key", "typeName": "KeyboardCraftspersonKey36Up" },
-    { "t": 12.5, "kind": "key", "typeName": "KeyboardCraftspersonKey37Down" },
-    { "t": 16.0, "kind": "key", "typeName": "KeyboardCraftspersonKey37Up" }
-  ],
-  "asserts": [
-    { "kind": "log", "contains": "bound left", "source": "client" },
-    { "kind": "log", "contains": "bound right", "source": "client" },
-    { "kind": "log", "contains": "bound up", "source": "client" },
-    { "kind": "log", "contains": "bound down", "source": "client" }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "movement-bounds",
+ "dt": 0.04,
+ "events": [
+  {
+   "t": 0,
+   "kind": "click",
+   "name": "HongmaoCard"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 4.0,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  },
+  {
+   "t": 4.5,
+   "kind": "key",
+   "typeName": "KeyboardMoveRightKeyDown"
+  },
+  {
+   "t": 8.0,
+   "kind": "key",
+   "typeName": "KeyboardMoveRightKeyUp"
+  },
+  {
+   "t": 8.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey36Down"
+  },
+  {
+   "t": 12.0,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey36Up"
+  },
+  {
+   "t": 12.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey37Down"
+  },
+  {
+   "t": 16.0,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey37Up"
+  }
+ ],
+ "asserts": [
+  {
+   "kind": "log",
+   "contains": "bound left",
+   "source": "client",
+   "at": 17.0
+  },
+  {
+   "kind": "log",
+   "contains": "bound right",
+   "source": "client",
+   "at": 17.0
+  },
+  {
+   "kind": "log",
+   "contains": "bound up",
+   "source": "client",
+   "at": 17.0
+  },
+  {
+   "kind": "log",
+   "contains": "bound down",
+   "source": "client",
+   "at": 17.0
+  }
+ ]
 }

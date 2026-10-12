@@ -1,0 +1,1125 @@
+{
+ "format": "qxqy-simulator-save",
+ "version": 4,
+ "meta": {
+  "name": "hmlt-qixia"
+ },
+ "activeAssetType": "server-control-template",
+ "serverLogic": {
+  "version": 1,
+  "rules": []
+ },
+ "controlGuidChanges": [],
+ "scriptSync": null,
+ "assets": {
+  "server": {
+   "layoutSchemaVersion": 2,
+   "version": 1,
+   "meta": {
+    "assetType": "server-control-template",
+    "name": "hmlt-qixia 界面",
+    "sourceFormat": "authoring",
+    "sourceFile": ""
+   },
+   "canvasId": "mobile-16-9",
+   "selectedId": "n1",
+   "root": {
+    "id": "sc1",
+    "kind": "server-container",
+    "name": "客户端控件容器",
+    "guid": 1073741850,
+    "giaRelatedGuids": [],
+    "active": true,
+    "visible": true,
+    "canControllerFocus": false,
+    "syncAllDevices": true,
+    "giaRaw": {
+     "genericField501": 0,
+     "footerField505": 0
+    },
+    "transformByPlatform": {
+     "KEYBOARD": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "TOUCHSCREEN": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_CONSOLE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_MOBILE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     }
+    },
+    "children": [
+     {
+      "id": "n1",
+      "guid": 1073741851,
+      "kind": "container",
+      "name": "游戏层",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "isolateNavigation": false,
+      "disableKeyEventPassthrough": false,
+      "disableCursorEventPassthrough": false,
+      "showCursor": true,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0
+      }
+     }
+    ],
+    "scriptMappingIds": []
+   }
+  },
+  "client": {
+   "layoutSchemaVersion": 2,
+   "version": 1,
+   "meta": {
+    "assetType": "client-control-template",
+    "name": "hmlt-qixia 实体模板",
+    "sourceFormat": "authoring",
+    "sourceFile": ""
+   },
+   "canvasId": "mobile-16-9",
+   "selectedId": "t1",
+   "root": {
+    "id": "sc1",
+    "guid": 1073741850,
+    "kind": "server-container",
+    "name": "客户端控件模板",
+    "active": true,
+    "visible": true,
+    "canControllerFocus": false,
+    "syncAllDevices": true,
+    "transformByPlatform": {
+     "KEYBOARD": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "TOUCHSCREEN": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_CONSOLE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_MOBILE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     }
+    },
+    "children": [
+     {
+      "id": "t1",
+      "guid": 1073742300,
+      "kind": "image",
+      "name": "img",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "imageSource": "StaticReference",
+      "imageType": null,
+      "imageId": 100001,
+      "imageColor": 4294967295,
+      "enableMask": false,
+      "enableSoftEdge": false,
+      "softEdgeMode": "Percentage",
+      "softEdgeWidthX": 8,
+      "softEdgeWidthY": 8,
+      "horizontalSoftRange": 85,
+      "verticalSoftRange": 85,
+      "enableFill": true,
+      "fillType": "Horizontal",
+      "fillHorizontalType": "Left",
+      "fillVerticalType": "Bottom",
+      "fillRadial90Type": "BottomLeft",
+      "fillRadialType": "Bottom",
+      "fillAmount": 1,
+      "reverseMaskArea": false,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0,
+       "imageSlotType": 0,
+       "imageField502": 1,
+       "imageField504": 1,
+       "imageField505": 1,
+       "imageField507": 2,
+       "imageFillType": 1
+      }
+     },
+     {
+      "id": "t2",
+      "guid": 1073742301,
+      "kind": "textbox",
+      "name": "tx",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "fontSize": 20,
+      "adaptiveFontSize": false,
+      "minimumFontSize": 20,
+      "fontColor": 4294967295,
+      "bgColor": 0,
+      "enableOutline": true,
+      "outlineColor": 858993459,
+      "horizontalAlignment": "Middle",
+      "verticalAlignment": "Middle",
+      "text": "",
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0,
+       "textField501": 20,
+       "textField503": 12,
+       "textAlign": 0,
+       "textField511": 1
+      }
+     },
+     {
+      "id": "t3",
+      "guid": 1073742302,
+      "kind": "button",
+      "name": "btn",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "raycastTarget": true,
+      "interactable": true,
+      "clickAudioId": 50888,
+      "unavailableChildId": null,
+      "hoverChildId": null,
+      "pressedChildId": null,
+      "selectedChildId": null,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0
+      }
+     },
+     {
+      "id": "t4",
+      "guid": 1073742303,
+      "kind": "container",
+      "name": "panel",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "isolateNavigation": false,
+      "disableKeyEventPassthrough": false,
+      "disableCursorEventPassthrough": false,
+      "showCursor": false,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0
+      }
+     }
+    ],
+    "scriptMappingIds": []
+   }
+  },
+  "scripts": [
+   {
+    "id": "main",
+    "guid": 1073742400,
+    "path": "main",
+    "source": "-- ============================================================\n-- hmlt-qixia 千星版 main.lua  v1（关1 完整循环 · v34b 输入模型）\n-- 挂载：服务端控件模板 n1「游戏层」（stretch 全屏容器）\n-- 模板：T_IMG(image) T_TXT(textbox) T_BTN(button) T_PANEL(container)\n-- 逻辑场 444×250，千星 Y 向上；运行时按 GetUICanvasSize 缩放\n-- ============================================================\nlocal T_IMG, T_TXT, T_BTN, T_PANEL = 1073742300, 1073742301, 1073742302, 1073742303\nlocal FW, FH = 444, 250\nlocal STEP = 1/60\n\n-- ===== 数值表（demo v34b 移植）=====\nlocal N = {\n  player = {vx=175, vy=100, xMin=25, xMax=415, yMin=34, yMax=220},\n  zdlv = {12,16,11,8.5,4.4},\n  ps = {hongmao=70, lantu=65},\n  chargeRate = 40,          -- 0.25s 判定期后 2.2s 内可满蓄（phoenix 用例契约）\n  ships = {\n    hongmao = {bullet='changhong', bspeed=420, fireCd=0.7, dmgMul=4.3, ps=70,\n      wingBullet='fdzd', wingSpeed=700, bombDj=50, bombBoss=50, chargeType='guanri'},\n    lantu   = {bullet='jezd', bspeed=620, fireCd=0.4, dmgMul=1.8, ps=65, range=178,\n      wingBullet='jezd', wingSpeed=700, bombDj=30, bombBoss=30, chargeType='sword'},\n  },\n  enemy = {\n    dj1={hp=1,spd=250,score=10}, dj2={hp=220,zdsd=150,score=300},\n    dj3={hp=420,zdsd=150,score=300}, dj4={hp=100,zdsd=137,score=300,spd=125},\n    boss1={hp=3000,zdsd=150,score=1000},\n  },\n  bombDmg=50, scroll=100, scrollBoss=175, bsHpMax=8,\n}\nlocal WAVES = {  -- 关1（白皮书 §3 导演 381）\n  {spawns={{'dj3',130}}},\n  {spawns={{'dj4',95},{'dj4',60}}},\n  {spawns={{'dj3',130},{'dj3',45}}},\n  {spawns={{'dj2',90}}},\n  {spawns={{'dj2',140}}},\n  {spawns={{'dj2',50}}},\n  {spawns={{'dj2',80}}},\n  {spawns={{'dj4',70}}},\n  {boss='boss1'},\n}\n-- 视觉表: key -> {图元id, w, h, r,g,b}\nlocal ART = {\n  hongmao={100003,34,36,255,140,40}, lantu={100002,36,29,110,200,255},\n  wingH={100003,20,15,255,200,90}, wingL={100002,22,25,150,230,255},\n  changhong={100001,36,11,255,190,70}, jez={100001,26,6,120,220,255}, fdzd={100001,12,5,255,220,120},\n  szd={100002,10,7,255,90,90}, szd2={100002,8,8,190,90,255},\n  dj1={100003,42,18,150,150,160}, dj2={100004,38,39,80,200,180}, dj3={100001,46,20,170,110,220},\n  dj4={100002,34,33,230,200,90}, boss1={100001,80,100,220,60,60},\n  bingpoj={100001,46,16,160,230,255}, yinzhen={100001,28,8,225,240,255},\n  guanri={100001,120,40,255,200,80}, huofeng={100005,74,58,255,140,40},\n  pow={100003,20,12,120,255,120}, bom1={100004,20,12,255,170,60}, bs={100002,16,16,255,215,60},\n  shield={100006,45,45,120,200,255}, bg={100001,900,250,26,32,60}, bg2={100001,600,250,34,42,76},\n}\nlocal TRAITS = {\n  yizhen={'一针见血','敌人被冰封千里冻住时，银针暴击率+50%'},\n  zhenman={'针满则锐','银针攒满一匣时，蓄力速度+30%'},\n  guiqia={'飞针归匣','贴身命中的银针会被蓝兔收回针匣'},\n  xinhuo={'薪火相传','燃烧中的敌人被击杀时，火种飞溅点燃附近敌人'},\n  renjian={'人剑合一','长虹剑命中后0.3秒内按下普攻：追发两柄小长虹剑'},\n  qiudao={'险中求道','蓄力时贴着敌弹走：自动挥出一剑并凝聚剑气'},\n  beishui={'背水一战','最后一条命：暴击率+20%，射速与移速+20%'},\n}\n\n-- ===== 运行时状态 =====\nlocal G, K, CW, CH, HX, HY       -- G=game 状态, K=缩放, 画布尺寸, 半宽半高\nlocal pools = {}                  -- bullets/ebullets/enemies/items/booms/floaters/stars\nlocal wingPool, hud = {}, {}\nlocal selPanel, winPanel, overPanel  -- 命名面板控件（创建/销毁）\nlocal selRefs, winRefs, overRefs = {}, {}, {}  -- 面板子控件引用（控件代理不接受任意字段，挂 Lua 表）\nlocal keys = {}\nlocal traitsSeen, codexSeen = {}, {}\n\n-- ===== 工具 =====\nlocal function clamp(v,a,b) if v<a then return a elseif v>b then return b end return v end\nlocal function sfx(id)\n  if id then pcall(game.PlayAudio2D, id) end\nend\nlocal function log(s) print(s) end\nlocal function aimvx(x0,y0,x1,y1,sp)\n  local dx,dy=x1-x0,y1-y0; local d=math.sqrt(dx*dx+dy*dy)\n  if d<1 then d=1 end\n  return dx/d*sp, dy/d*sp\nend\nlocal function hit(a,b)\n  return math.abs(a.x-b.x)*2 < a.w+b.w and math.abs(a.y-b.y)*2 < a.h+b.h\nend\n\n-- ===== 控件工厂 =====\nlocal function mkc(prefab, name, parent)\n  local c = game.InstantiateClientUIControl(prefab, parent or script.object)\n  if c then c.name = name end\n  return c\nend\nlocal function imgc(artKey, name)\n  local a = ART[artKey]\n  local c = mkc(T_IMG, name or 'img')\n  c:SetImage(Enum.ImageSource.StaticReference, a[1])\n  c.imageColor = Color(a[4],a[5],a[6],255)\n  c:SetSizeDelta(a[2]*K, a[3]*K)\n  return c\nend\nlocal function txtc(str, size, r,g,b, name)\n  local c = mkc(T_TXT, name or 'tx')\n  c.text = str or ''\n  c.fontSize = math.max(10, math.floor(size*K+0.5))\n  c.fontColor = Color(r,g,b,255)\n  c.bgColor = Color(0,0,0,0)\n  c.enableOutline = true\n  return c\nend\nlocal function place(c, gx, gy)         -- 逻辑坐标 → 画布锚定偏移\n  c:SetAnchoredPosition(gx*K-HX, gy*K-HY)\nend\nlocal function placeSize(c, gx, gy, w, h)\n  place(c, gx, gy)\n  c:SetSizeDelta(w*K, h*K)\nend\nlocal function setVis(c, artKey)\n  local a = ART[artKey]\n  c:SetImage(Enum.ImageSource.StaticReference, a[1])\n  c.imageColor = Color(a[4],a[5],a[6],255)\n  c:SetSizeDelta(a[2]*K, a[3]*K)\nend\n\n-- ===== 池 =====\nlocal function mkpool(n, maker)\n  local p = {}\n  for i=1,n do\n    local slot = {on=false, c=maker(i)}\n    if slot.c then slot.c:SetActive(false) end\n    table.insert(p, slot)\n  end\n  return p\nend\nlocal function alloc(pool)\n  for i=1,#pool do\n    if not pool[i].on then pool[i].on=true return pool[i] end\n  end\n  return nil\nend\nlocal function freePools()\n  for _,pool in ipairs({pools.bullets,pools.ebullets,pools.enemies,pools.items,pools.booms,pools.floaters}) do\n    for _,s in ipairs(pool) do if s.on then s.on=false s.c:SetActive(false) end end\n  end\nend\n\n-- ===== 消息/飘字 =====\nlocal function say(txt)\n  local s = alloc(pools.msgs) or pools.msgs[1]\n  s.on, s.t, s.life = true, 0, 2.5\n  s.c.text = txt\n  s.c:SetActive(true)\n  place(s.c, FW/2, 60)\nend\nlocal function dmgFloat(x, y, d, kind, crit)\n  local s = alloc(pools.floaters) if not s then return end\n  local col = {normal={230,240,255}, crit={255,90,90}, frost={130,220,255}, burn={255,160,70}, skill={255,210,100}}\n  local cc = col[kind] or col.normal\n  s.on=true s.t=0 s.life=0.7 s.x=x+(math.random()-0.5)*18 s.y=y+6 s.vy=60\n  local sz = math.min(11+d*0.1, 40)*(crit and 1.15 or 1)\n  s.size = math.max(10, math.floor(sz+0.5))\n  s.c.text = string.format('%d', math.floor(d+0.5))\n  s.c.fontSize = math.max(10, math.floor(s.size*K+0.5))\n  s.c.fontColor = Color(cc[1],cc[2],cc[3],255)\n  s.c:SetActive(true)\nend\n\n-- ===== 特性 =====\nlocal function traitFire(id)\n  if G.state~='playing' then return end\n  local t = TRAITS[id] if not t then return end\n  if not traitsSeen[id] and not G.traitQ[id] then\n    G.traitQ[id] = 2.5\n    log('trait_arm '..id)\n  elseif traitsSeen[id] and (G.traitT[id] or 0) < G.t then\n    G.traitT[id] = G.t+4\n    say(t[1]..'!')\n    log('trait '..id)\n  end\nend\nlocal function unlockCodex(id) end -- 悟之录 v1 简化（in-memory）\n\nlocal function critRate(kind)\n  local r = 0.05\n  if G.life==1 then r=r+0.2 end\n  if kind=='needle' and G.shipKey=='lantu' and G.freezeT>0 then r=r+0.5 end\n  return math.min(r, 0.95)\nend\nlocal function traitBulletDmg(b, e)\n  local d = b.dmg\n  local kind = b.wallId and 'needle' or (b.art=='changhong' and 'sword' or (b.art=='bingpoj' and 'blade' or 'wing'))\n  if kind=='needle' and G.shipKey=='lantu' and G.freezeT>0 then traitFire('yizhen') end\n  if kind=='needle' and b.zm then traitFire('zhenman') end\n  local crit = math.random() < critRate(kind)\n  if crit then\n    d = d*2\n    local s = alloc(pools.booms)\n    if s then s.on,s.t,s.life,s.crit,s.x,s.y=true,0,0.25,true,e.x,e.y s.c:SetActive(true) end\n  end\n  dmgFloat(e.x, e.y, d, kind=='blade' and 'frost' or 'normal', crit)\n  return math.floor(d+0.5)\nend\n\n-- ===== 敌弹 =====\nlocal function eshoot(e, vx, vy, art)\n  local s = alloc(pools.ebullets) if not s then return end\n  local a = ART[art or 'szd']\n  s.on=true s.x=e.x s.y=e.y s.vx=vx s.vy=vy s.w=a[2] s.h=a[3] s.art=art or 'szd'\n  s.frozen=false\n  setVis(s.c, art or 'szd')\n  s.c:SetActive(true)\nend\n\n-- ===== 波次 =====\nlocal function spawnEnemy(kind, y)\n  local def = N.enemy[kind]\n  local s = alloc(pools.enemies) if not s then return end\n  s.on=true s.kind=kind s.def=def s.hp=def.hp s.x=FW+30 s.y=y\n  s.w = ART[kind][2] s.h = ART[kind][3]\n  s.t=0 s.bob=math.random()*6.28 s.fireT=1+math.random()\n  s.hoverX=320+math.random()*60 s.dead=false s.gone=false s.flash=0 s.burn=0 s.spd=def.spd or 0\n  setVis(s.c, kind)\n  s.c:SetActive(true)\n  return s\nend\nlocal function spawnWave()\n  G.wave = G.wave + 1\n  if G.wave > #WAVES then return end\n  local w = WAVES[G.wave]\n  if w.boss then\n    local def = N.enemy[w.boss]\n    G.boss = {kind=w.boss, def=def, hp=def.hp, x=FW+70, y=150, w=80, h=100,\n      phase='enter', pt=0, patT=0, pat=0, dead=false, flash=0, burn=0, isBoss=true, on=true,\n      c=imgc(w.boss, 'Boss')}\n    log('boss_spawn')\n    G.scrollSpd = N.scrollBoss\n    G.lock = 1.0\n    return\n  end\n  for _,sp in ipairs(w.spawns) do spawnEnemy(sp[1], sp[2]) end\n  log('wave '..G.wave)\nend\n\n-- ===== 输入（v34b 三铁律）=====\nlocal jEdge, kEdge, jUp = false, false, false\nlocal function onKey(name, down)\n  if name=='j' then\n    if down then if not keys.j then keys.j=true jEdge=true end else keys.j=false jUp=true end\n  elseif name=='k' then\n    if down then if not keys.k then keys.k=true kEdge=true end else keys.k=false end\n  elseif name=='left' then keys.left = down or nil\n  elseif name=='right' then keys.right = down or nil\n  elseif name=='up' then keys.up = down or nil\n  elseif name=='down' then keys.down = down or nil\n  end\nend\n\n-- ===== 发射核心 =====\nlocal function fireVolley()\n  local cfg = N.ships[G.shipKey]\n  local dmg = math.floor(N.zdlv[G.lv]*(cfg.dmgMul or 1)+0.5)\n  local sp = cfg.bspeed\n  local fan = cfg.bullet=='changhong'\n  local offs\n  if fan then\n    offs = G.lv<=2 and {{0,0}} or G.lv==3 and {{0,-50},{0,50}}\n      or G.lv==4 and {{0,-70},{0,0},{0,70}}\n      or {{0,-105},{0,-63},{0,-21},{0,21},{0,63},{0,105}}\n  else\n    offs = G.lv<=2 and {{0,0}} or G.lv==3 and {{-4,0},{4,0}}\n      or G.lv==4 and {{-8,0},{0,0},{8,0}}\n      or {{-15,0},{-9,0},{-3,0},{3,0},{9,0},{15,0}}\n  end\n  for _,o in ipairs(offs) do\n    local s = alloc(pools.bullets) if not s then break end\n    local bw = cfg.bullet=='jezd' and 24+G.lv*2 or (fan and 28 or 27)\n    local bh = cfg.bullet=='jezd' and 8 or (fan and 9 or 12)\n    s.on=true s.x=G.shipX+16 s.y=G.shipY+o[1] s.vx=sp s.vy=0\n    s.w=bw s.h=bh s.dmg=dmg s.art=cfg.bullet s.maxD=cfg.range or 0 s.dist=0\n    setVis(s.c, cfg.bullet) s.c:SetActive(true)\n  end\n  sfx(50888)\n  if G.shipKey=='hongmao' then\n    for i,wslot in ipairs(wingPool) do\n      if wslot.on then\n        local s = alloc(pools.bullets)\n        if s then\n          s.on=true s.x=wslot.x+10 s.y=wslot.y s.vx=N.ships.hongmao.wingSpeed s.vy=0\n          s.w=16 s.h=7 s.dmg=math.floor(N.zdlv[G.lv]*1.2+0.5) s.art='fdzd' s.maxD=0 s.dist=0\n          setVis(s.c, 'fdzd') s.c:SetActive(true)\n        end\n      end\n    end\n  elseif G.needles < G.lv*(2+G.lv) then\n    G.needles = G.needles + 1\n  end\nend\nlocal function jFireCore()\n  fireVolley()\n  local cfg = N.ships[G.shipKey]\n  G.fireCd = (cfg.fireCd or 0.3)/(G.life==1 and 1.2 or 1)\n  -- 人剑合一：0.3s 窗内按下普攻\n  if G.renjianWin>0 and G.renjianLeft>0 and G.shipKey=='hongmao' then\n    G.renjianLeft=G.renjianLeft-1 G.renjianWin=0\n    traitFire('renjian')\n    for i=1,2 do\n      local s=alloc(pools.bullets)\n      if s then\n        s.on=true s.x=G.shipX s.y=G.shipY+(i==1 and 14 or -14) s.vx=650 s.vy=0\n        s.w=28 s.h=9 s.dmg=math.floor(N.zdlv[G.lv]*2+0.5) s.art='changhong' s.maxD=0 s.dist=0\n        setVis(s.c, 'changhong') s.c:SetActive(true)\n      end\n    end\n  end\nend\n\n-- ===== 银针齐发（salvo 状态机：固化原位逐发）=====\nlocal function needleBarrage(mult, big, keep, zm)\n  if G.needles==0 then return end\n  local n = G.needles\n  local fire = math.max(1, math.ceil(n*keep))\n  local gone = n - fire\n  G.salvo = {x=G.shipX, y=G.shipY, n=fire, mult=mult or 1, big=big, int=0, zm=zm and true or false}\n  for i=1,gone do\n    local s=alloc(pools.booms)\n    if s then s.on,s.t,s.life=true,0,0.3 s.spark=true s.c:SetActive(true)\n      place(s.c, G.shipX+(math.random()-0.5)*54, G.shipY+(math.random()-0.5)*38) end\n  end\n  G.needles = 0\n  log('needle_wall')\nend\n\n-- ===== 蓄力释放 =====\nlocal function releaseCharge()\n  local cfg = N.ships[G.shipKey]\n  local tier = G.chargeTier or 1\n  G.fashez = 2.0\n  log('phoenix '..G.lv)\n  if cfg.chargeType=='guanri' then\n    if tier < 1 then\n      G.wingBurst2 = 2.4*0.3\n      say('长虹未满·仅僚机齐射')\n      return\n    end\n    G.guanri = {t=3.2, x=G.shipX+20, w=12+7*(G.lv-2), y=G.shipY, dmg=95+28*G.lv, hit={}}\n    G.wingBurst2 = 2.4\n    G.renjianLeft = 2\n    say('长虹贯日!')\n  else\n    local tgt\n    local bd = 1e9\n    for _,e in ipairs(pools.enemies) do\n      if e.on and not e.dead and e.x>G.shipX then\n        local dxx = e.x-G.shipX\n        if dxx < bd then bd=dxx tgt=e end\n      end\n    end\n    local ang = 0\n    if tgt then ang = clamp(math.atan(tgt.y-G.shipY, tgt.x-G.shipX), -0.5, 0.5) end\n    local cnt = math.max(1, math.floor(G.lv*tier+0.5))\n    for k2=1,cnt do\n      local a = ang + (k2-(cnt+1)/2)*0.09\n      local s = alloc(pools.bullets) if not s then break end\n      local full = G.needles/(G.lv*(2+G.lv))\n      s.on=true s.x=G.shipX+16 s.y=G.shipY\n      s.vx=math.cos(a)*750 s.vy=math.sin(a)*750\n      s.w=40 s.h=24 s.dmg=math.floor((95+40*G.lv)*tier*(0.4+0.6*full)+0.5)\n      s.art='bingpoj' s.maxD=200 s.dist=0\n      setVis(s.c, 'bingpoj') s.c:SetActive(true)\n    end\n    say(tier==1 and '冰魄剑!' or '冰魄剑·残形')\n    needleBarrage(tier==1 and 2.0 or 0.6, true, tier==1 and 1 or 0.25, G.zmArmed)\n    G.zmArmed = false\n  end\nend\n\n-- ===== 放宝 =====\nlocal function tryBomb()\n  if G.state~='playing' or G.lock>0 or G.bomm<=0 then return end\n  G.bomm = G.bomm - 1\n  G.shield = 2.0\n  log('bomb '..G.bomm)\n  G.flashT = 0.4\n  G.slowT = 0.8 G.slowK = 0.08\n  sfx(50888)\n  if G.shipKey=='hongmao' then\n    G.phoenix2 = {x=G.shipX+20, y=G.shipY, vx=240, t=5, hit={}}\n    for _,b in ipairs(pools.ebullets) do if b.on then b.on=false b.c:SetActive(false) end end\n    log('bomb_clear')\n    say('火凤燎原!')\n  else\n    G.freezeT = 4\n    log('bomb_clear')\n    say('冰封千里!')\n    for _,b in ipairs(pools.ebullets) do\n      if b.on then b.vx=0 b.vy=0 b.frozen=true end\n    end\n  end\nend\n\n-- ===== 伤害/击杀 =====\nlocal function onKill(e)\n  G.score = G.score + e.def.score\n  log('score '..G.score)\n  local s = alloc(pools.booms)\n  if s then s.on,s.t,s.life,s.big,s.x,s.y=true,0,0.5,e.isBoss,e.x,e.y s.c:SetActive(true) end\n  -- 薪火相传：燃者死→火种飞溅\n  if G.shipKey=='hongmao' and (e.burn or 0)>0 then\n    local tgt, bd = nil, 90\n    for _,x in ipairs(pools.enemies) do\n      if x.on and not x.dead and (x.burn or 0)<=0 and x~=e then\n        local d = math.sqrt((x.x-e.x)^2+(x.y-e.y)^2)\n        if d<bd then bd=d tgt=x end\n      end\n    end\n    if tgt then\n      local sp = alloc(pools.booms)\n      if sp then sp.on,sp.t,sp.life,sp.spark,sp.x,sp.y=true,0,0.5,true,e.x,e.y sp.c:SetActive(true) end\n      tgt.burn = 6\n      traitFire('xinhuo')\n    end\n  end\n  -- 掉落\n  local function dropItem(kind, dx, dy)\n    local it = alloc(pools.items) if not it then return end\n    local a = ART[kind]\n    it.on=true it.kind=kind it.x=e.x+(dx or 0) it.y=e.y+(dy or 0)\n    it.vx=(math.random()-0.5)*50 it.vy=(math.random()-0.5)*50\n    it.life = kind=='bs' and 10 or 4\n    it.tx=20+math.random()*350 it.ty=20+math.random()*200\n    it.w=a[2] it.h=a[3]\n    setVis(it.c, kind) it.c:SetActive(true)\n  end\n  if e.kind=='dj2' then dropItem('bs') dropItem('bs') end\n  if e.kind=='dj4' and math.random()<0.5 then dropItem('bs') end\n  if e.isBoss then\n    G.boss = nil\n    for _,b in ipairs(pools.ebullets) do if b.on then b.on=false b.c:SetActive(false) end end\n    dropItem('pow', -20, 10)\n    dropItem('bom1', 20, 10)\n    G.invuln = 99\n    G.winPending = 6\n    return\n  end\nend\nlocal function damage(e, dmg)\n  e.hp = e.hp - dmg\n  e.flash = 0.09\n  if e.hp<=0 and not e.dead then\n    e.dead = true\n    if e.on then onKill(e) end\n  end\nend\n\n-- ===== 死亡循环 =====\nlocal function playerHit()\n  if G.invuln>0 or G.lock>0 then return end\n  G.life = G.life - 1\n  log('life '..G.life)\n  if G.life<=0 then\n    G.state = 'fail'\n    log('fail lives')\n    overPanel = mkc(T_PANEL, 'GameOverPanel')\n    local t1 = txtc('游戏结束', 40, 255,90,90, 'GOText')\n    local t2 = txtc('点击「重新开始」再战', 18, 230,230,230, 'GOHint')\n    overRefs = {t1=t1, t2=t2}\n    place(overPanel, FW/2, FH/2)\n    place(t1, FW/2, FH/2+30)\n    place(t2, FW/2, FH/2-20)\n    return\n  end\n  -- 死亡循环：降级+清僚机+原地掉 pow 补偿+重生\n  G.lv = 1\n  log('pow 1')\n  syncWings()\n  local it = alloc(pools.items)\n  if it then\n    local a=ART.pow\n    it.on=true it.kind='pow' it.x=G.shipX it.y=G.shipY\n    it.vx=(math.random()-.5)*50 it.vy=(math.random()-.5)*50\n    it.life=4 it.tx=40+math.random()*300 it.ty=40+math.random()*160\n    it.w=a[2] it.h=a[3]\n    setVis(it.c, 'pow')\n    it.c:SetActive(true)\n  end\n  G.invuln = 2.2\n  log('respawn')\nend\n\n-- ===== 僚机 =====\nfunction syncWings()\n  local want = G.shipKey=='lantu' and math.max(1, G.lv-1) or math.max(0, G.lv-1)\n  for i,ws in ipairs(wingPool) do\n    if i<=want then\n      ws.on = true\n      ws.bspd = 250+math.random()*100\n      ws.k = 0.6+math.random()*0.8\n      local a = G.shipKey=='lantu' and ART.wingL or ART.wingH\n      ws.c:SetActive(true)\n      ws.c.imageColor = Color(a[4],a[5],a[6],255)\n    else\n      ws.on = false\n      ws.c:SetActive(false)\n    end\n  end\nend\n\n-- ===== 选人 =====\nlocal function destroySel()\n  if selPanel then\n    for _,c in pairs(selRefs) do pcall(game.DestroyClientUIControl, c) end\n    pcall(game.DestroyClientUIControl, selPanel)\n    selPanel, selRefs = nil, {}\n  end\nend\nlocal function buildSelect()\n  selPanel = mkc(T_PANEL, 'CharSelectPanel')\n  local title = txtc('虹猫蓝兔 · 长虹出鞘', 30, 255,220,140, 'SelTitle')\n  local hint = txtc('选择你的侠客', 16, 200,200,210, 'SelHint')\n  place(title, FW/2, 190)\n  place(hint, FW/2, 160)\n  local hm = mkc(T_BTN, 'HongmaoCard')\n  local lt = mkc(T_BTN, 'LantuCard')\n  placeSize(hm, 130, 90, 70, 100)\n  placeSize(lt, 314, 90, 70, 100)\n  local hmTx = txtc('虹猫·长虹剑', 16, 255,190,120, 'HmTx')\n  local ltTx = txtc('蓝兔·冰魄针', 16, 140,220,255, 'LtTx')\n  place(hmTx, 130, 32)\n  place(ltTx, 314, 32)\n  selRefs = {hm=hm, lt=lt, title=title, hint=hint, hmTx=hmTx, ltTx=ltTx}\n  hm:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()\n    if G.state~='select' then return end\n    startRun('hongmao')\n  end)\n  lt:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()\n    if G.state~='select' then return end\n    startRun('lantu')\n  end)\nend\n\n-- ===== 开局 =====\nfunction startRun(charKey)\n  G.shipKey = charKey\n  log('char_select '..charKey)\n  destroySel()\n  -- 局内状态\n  G.state='playing' G.t=0 G.score=0 G.life=4 G.bomm=3 G.lv=1\n  G.wave=0 G.waveGap=1.2 G.boss=nil G.scrollSpd=N.scroll\n  G.fireCd=0 G.neng=0 G.fashez=0 G.needles=0 G.zmArmed=false G.zmFull=false\n  G.invuln=1.5 G.lock=0 G.shipX=40 G.shipY=125\n  G.chargeFull=false G.chargeMax=false G.chargeTier=0\n  G.freezeT=0 G.shield=0 G.slowT=0 G.flashT=0\n  G.guanri=nil G.phoenix2=nil G.salvo=nil\n  G.traitQ={} G.traitT={} G.dj1T=0 G.envT=0\n  G.jTapT=0 G.jHeld=false G.jPressFull=false G.holdT=0 G.lastHold=0\n  G.renjianWin=0 G.renjianLeft=0 G.qiudaoCd=0\n  G.wingBurst2=0 G.autoPlay=false\n  freePools()\n  syncWings()\n  -- 玩家本体\n  local a = ART[charKey]\n  G.shipC:SetActive(true)\n  G.shipC.imageColor = Color(a[4],a[5],a[6],255)\n  G.shipC:SetSizeDelta(a[2]*K, a[3]*K)\n  -- 开局白送 1 个 pow（原版节奏钩子）\n  local it = alloc(pools.items)\n  if it then\n    it.on=true it.kind='pow' it.x=G.shipX+14 it.y=G.shipY\n    it.vx=0 it.vy=0 it.life=6 it.tx=G.shipX+14 it.ty=G.shipY\n    it.w=ART.pow[2] it.h=ART.pow[3]\n    it.c:SetActive(true)\n    it.c.imageColor=Color(ART.pow[4],ART.pow[5],ART.pow[6],255)\n  end\n  log('game_start')\nend\nlocal function restartToSelect()\n  log('restart')\n  if winPanel then\n    for _,c in pairs(winRefs) do pcall(game.DestroyClientUIControl, c) end\n    pcall(game.DestroyClientUIControl, winPanel)\n    winPanel, winRefs = nil, {}\n  end\n  if overPanel then\n    for _,c in pairs(overRefs) do pcall(game.DestroyClientUIControl, c) end\n    pcall(game.DestroyClientUIControl, overPanel)\n    overPanel, overRefs = nil, {}\n  end\n  G.state='select'\n  G.shipC:SetActive(false)\n  freePools()\n  for i,ws in ipairs(wingPool) do ws.on=false ws.c:SetActive(false) end\n  buildSelect()\nend\n\n-- ===== 命中环（两路径：pierce / 非 pierce）=====\nlocal function bulletHits()\n  local S = {x=G.shipX, y=G.shipY, w=14, h=10}\n  -- guanri 巨剑独立命中场（每 tick 一次，不随子弹数放大）\n  if G.guanri then\n    local g = G.guanri\n    for _,e in ipairs(pools.enemies) do\n      if e.on and not e.dead and not g.hit[e] and math.abs(e.x-g.x)*2 < g.w+e.w then\n        g.hit[e] = true\n        damage(e, g.dmg*STEP*10)\n        dmgFloat(e.x, e.y, g.dmg, 'skill', false)\n      end\n    end\n    if G.boss and not G.boss.dead and math.abs(G.boss.x-g.x)*2 < g.w+G.boss.w then\n      damage(G.boss, g.dmg*STEP*10)\n    end\n  end\n  -- 火凤接触场（每 tick 一次）\n  if G.phoenix2 then\n    local p = G.phoenix2\n    for _,e in ipairs(pools.enemies) do\n      if e.on and not e.dead and not p.hit[e] and math.abs(e.x-p.x)*2<52+e.w and math.abs(e.y-p.y)*2<40+e.h then\n        p.hit[e]=true e.burn=6\n      end\n    end\n    if G.boss and not G.boss.dead and math.abs(G.boss.x-p.x)*2<52+G.boss.w and math.abs(G.boss.y-p.y)*2<40+G.boss.h then\n      G.boss.burn = 6\n    end\n  end\n  for _,b in ipairs(pools.bullets) do\n    if b.on then\n      for _,e in ipairs(pools.enemies) do\n        if e.on and not e.dead and hit(b,e) then\n          local d = traitBulletDmg(b, e)\n          damage(e, d)\n          -- 剑哺针：冰魄命中回填\n          if b.art=='bingpoj' then\n            G.needles = math.min(G.lv*(2+G.lv), G.needles+1)\n          end\n          -- 飞针归匣：贴身银针回收\n          if b.wallId and G.shipKey=='lantu'\n             and math.sqrt((e.x-G.shipX)^2+(e.y-G.shipY)^2)<90 then\n            G.recyc = (G.recyc or 0)+1\n            traitFire('guiqia')\n            if G.recyc%2==0 then\n              G.needles = math.min(G.lv*(2+G.lv), G.needles+1)\n            end\n          end\n          if not b.pierce then b.on=false b.c:SetActive(false) break end\n        end\n      end\n      if b.on and G.boss and not G.boss.dead and hit(b, G.boss) then\n        damage(G.boss, traitBulletDmg(b, G.boss))\n        if not b.pierce then b.on=false b.c:SetActive(false) end\n      end\n    end\n  end\nend\n\n-- ===== 主 tick =====\nlocal acc = 0\nlocal function tick(dt)\n  G.t = G.t + dt\n  -- 慢镜（造势）\n  local fs = 1\n  if G.slowT>0 then G.slowT=G.slowT-dt fs=G.slowK end\n  if G.flashT>0 then G.flashT=G.flashT-dt end\n  -- 特性卡队列\n  for id,tt in pairs(G.traitQ) do\n    if tt>0 then\n      G.traitQ[id]=tt-dt\n      if G.traitQ[id]<=0 then\n        G.traitCard = id\n        traitsSeen[id]=true\n        G.traitQ[id]=nil\n      end\n    end\n  end\n  -- 特性卡暂停（任意键关）\n  if G.traitCard then\n    if kEdge then\n      G.traitCard=nil\n      G.invuln = math.max(G.invuln, 1.5)\n    end\n    kEdge=false jEdge=false jUp=false\n    return\n  end\n  -- 状态分支\n  if G.state~='playing' then\n    kEdge=false jEdge=false jUp=false\n    return\n  end\n  -- ===== 输入 v34b =====\n  local jNow = keys.j == true\n  if G.autoPlay then jNow = true end\n  local firing = jNow\n  if firing then G.holdT = G.holdT + dt\n  else\n    if G.holdT>0 then G.lastHold=G.holdT end\n    G.holdT = 0\n  end\n  if jNow and not G.jHeld then\n    G.jTapT = G.t + 0.25\n    G.jPressFull = (G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv))\n    if G.lock<=0 and G.fireCd<=0 then jFireCore() end\n  end\n  if not jNow and G.jHeld and G.jTapT>0 then\n    G.jTapT = 0\n    if G.jPressFull and G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then\n      needleBarrage(0.7, false, 1, false)\n    end\n  end\n  G.jHeld = jNow\n  if G.jTapT>0 and G.t>=G.jTapT then G.jTapT=0 end\n  -- K 放宝\n  if kEdge then tryBomb() end\n  -- 移动\n  local mvx, mvy = 0, 0\n  if G.autoPlay then\n    mvx = G.shipX<200 and 1 or (G.shipX>380 and -1 or 0)\n    mvy = G.shipY<80 and 1 or (G.shipY>180 and -1 or 0)\n  else\n    if keys.left then mvx=-1 elseif keys.right then mvx=1 end\n    if keys.up then mvy=1 elseif keys.down then mvy=-1 end\n  end\n  local spd = (G.life==1 and 1.2 or 1)\n  G.shipX = clamp(G.shipX + mvx*N.player.vx*spd*dt, N.player.xMin, N.player.xMax)\n  G.shipY = clamp(G.shipY + mvy*N.player.vy*spd*dt, N.player.yMin, N.player.yMax)\n  if mvx<0 and G.shipX<=N.player.xMin then\n    if not G.boundL then log('bound left') end G.boundL=true\n  else G.boundL=false end\n  if mvx>0 and G.shipX>=N.player.xMax then\n    if not G.boundR then log('bound right') end G.boundR=true\n  else G.boundR=false end\n  if mvy>0 and G.shipY>=N.player.yMax then\n    if not G.boundU then log('bound up') end G.boundU=true\n  else G.boundU=false end\n  if mvy<0 and G.shipY<=N.player.yMin then\n    if not G.boundD then log('bound down') end G.boundD=true\n  else G.boundD=false end\n  -- 冷却/蓄力\n  G.fireCd = G.fireCd - dt\n  if G.fashez>0 then G.fashez=G.fashez-dt G.neng=0\n  elseif firing and G.lv>1 and G.holdT>=0.25 then\n    local cr = N.chargeRate\n    if G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then\n      cr = cr*1.3\n      if not G.zmFull then traitFire('zhenman') end\n    end\n    G.neng = math.min(G.neng + cr*dt, N.ships[G.shipKey].ps*1.5)\n  end\n  local ps = N.ships[G.shipKey].ps\n  if G.lv>1 then\n    if G.neng>=ps and not G.chargeFull then\n      G.chargeFull=true\n      if G.shipKey=='lantu' and G.needles>=G.lv*(2+G.lv) then G.zmArmed=true end\n    end\n    if G.neng<ps then G.chargeFull=false end\n  end\n  -- 释放（松手）\n  if not firing and G.neng>0 and G.lastHold>=0.25 then\n    if G.neng >= 0.7*ps then\n      G.chargeTier = G.neng>=ps*1.5 and 1 or 0.25\n      releaseCharge()\n    else\n      G.neng = 0\n    end\n  end\n  -- 满匣泛光\n  if G.shipKey=='lantu' then\n    local full = G.needles>=G.lv*(2+G.lv)\n    if full and not G.zmFull then say('针匣已满：点按倾匣 · 长按蓄力') end\n    G.zmFull = full\n  end\n  -- ===== 敌机 =====\n  G.waveGap = G.waveGap - dt\n  -- dj1 环境刷怪\n  G.envT = G.envT + dt\n  if G.envT>0.12 and G.wave>0 and not G.boss then\n    G.envT = 0\n    if math.random()<0.06 then\n      local s = spawnEnemy('dj1', 40+math.random()*150)\n      if s then s.spd = 200+math.random()*100 s.hoverX=-999 end\n    end\n  end\n  -- 波次门闩：非 dj1 清零→下一波\n  local alive = 0\n  for _,e in ipairs(pools.enemies) do\n    if e.on and not e.dead and e.kind~='dj1' then alive=alive+1 end\n  end\n  if alive==0 and G.waveGap<=0 and G.wave<#WAVES and not G.boss then\n    spawnWave()\n    G.waveGap = 2.2\n  end\n  -- 敌机更新\n  for _,e in ipairs(pools.enemies) do\n    if e.on and not e.dead then\n      e.t = e.t + dt*fs\n      if e.flash>0 then e.flash=e.flash-dt end\n      if (e.burn or 0)>0 then\n        e.burn = e.burn - dt\n        damage(e, 25*dt)\n      end\n      if e.kind=='dj1' then\n        e.x = e.x - (e.spd or 250)*dt*fs\n        if e.x < -40 then e.dead=true e.gone=true end\n      else\n        if e.x > e.hoverX then\n          e.x = e.x - (e.def.spd or 120)*dt*fs\n        else\n          e.x = math.max(180, e.hoverX + math.sin(e.t*0.7+e.bob)*18)\n        end\n        e.fireT = e.fireT - dt*fs\n        if e.fireT<=0 and e.x<FW and G.lock<=0 and G.freezeT<=0 then\n          e.fireT = 2.4\n          local vx,vy = aimvx(e.x,e.y,G.shipX,G.shipY,e.def.zdsd or 150)\n          eshoot(e, vx, vy)\n        end\n      end\n      if G.invuln<=0 and G.lock<=0 and hit(e,{x=G.shipX,y=G.shipY,w=14,h=10}) then playerHit() end\n    end\n    if e.on and (e.dead or e.gone) then e.on=false e.c:SetActive(false) end\n  end\n  -- boss\n  if G.boss then\n    local b = G.boss\n    local bfs = G.freezeT>0 and 0 or 1\n    b.pt = b.pt + dt*bfs\n    b.patT = b.patT + dt*bfs\n    if (b.burn or 0)>0 then b.burn=b.burn-dt damage(b, 25*dt) end\n    if b.flash>0 then b.flash=b.flash-dt end\n    if b.phase=='enter' then\n      b.x = b.x - 90*dt\n      if b.x<=360 then b.x=360 b.phase='fight' G.scrollSpd=N.scroll end\n    else\n      b.y = 125 + math.sin(b.pt*0.9)*30\n      if b.patT>2.4 and G.lock<=0 and G.freezeT<=0 then\n        b.patT=0 b.pat=(b.pat+1)%3\n        if b.pat==0 then\n          for _,a in ipairs({-0.22,0,0.22}) do\n            local vx,vy = aimvx(b.x,b.y,G.shipX,G.shipY,163)\n            local c,s2 = math.cos(a), math.sin(a)\n            eshoot(b, vx*c-vy*s2, vx*s2+vy*c)\n          end\n        elseif b.pat==1 then\n          for i=0,9 do\n            local a = i/10*6.28 + b.pt\n            eshoot(b, math.cos(a)*120, math.sin(a)*120, 'szd2')\n          end\n        else\n          for i=0,2 do\n            local vx,vy = aimvx(b.x,b.y,G.shipX+i*30-30,G.shipY,175)\n            eshoot(b, vx, vy)\n          end\n        end\n      end\n      if G.invuln<=0 and G.lock<=0 and hit(b,{x=G.shipX,y=G.shipY,w=14,h=10}) then playerHit() end\n    end\n    if b.dead then\n      G.boss = nil\n    end\n  end\n  -- guanri 巨剑推进\n  if G.guanri then\n    G.guanri.t = G.guanri.t - dt\n    G.guanri.x = G.guanri.x + 156*dt\n    G.guanri.y = G.shipY\n    if G.guanri.t<=0 or G.guanri.x>FW+80 then G.guanri=nil end\n  end\n  -- 火凤推进\n  if G.phoenix2 then\n    local p=G.phoenix2\n    p.t=p.t-dt p.x=p.x+p.vx*dt p.y=G.shipY+math.sin(G.t*3)*30\n    if p.t<=0 or p.x>FW+60 then G.phoenix2=nil end\n  end\n  -- 银针 salvo 逐发\n  if G.salvo then\n    G.salvo.int = G.salvo.int - dt\n    while G.salvo.n>0 and G.salvo.int<=0 do\n      G.salvo.int = G.salvo.int + 0.12\n      G.salvo.n = G.salvo.n - 1\n      local s = alloc(pools.bullets)\n      if s then\n        s.on=true s.x=G.salvo.x s.y=G.salvo.y\n        s.vx=520 s.vy=(math.random()-0.5)*60\n        s.w=22 s.h=7 s.wallId=true s.zm=G.salvo.zm\n        s.dmg=math.floor(N.zdlv[G.lv]*(G.salvo.big and (G.salvo.mult or 1) or 0.7)+0.5)\n        s.pierce=G.salvo.big\n        s.art='yinzhen' s.maxD=0 s.dist=0\n        setVis(s.c, 'yinzhen') s.c:SetActive(true)\n      end\n    end\n    if G.salvo.n<=0 then G.salvo=nil end\n  end\n  -- 僚机\n  for i,ws in ipairs(wingPool) do\n    if ws.on then\n      local tx, ty\n      if G.shipKey=='lantu' then\n        tx = G.shipX-26-(i-1)*15\n        ty = G.shipY-8-(i-1)*11+math.sin(G.t*2.2+i)*3\n      else\n        tx = G.shipX-26-(i-1)*16\n        ty = G.shipY-10\n      end\n      ws.x = ws.x + (tx-ws.x)*math.min(1, dt*5*(ws.k or 1))\n      ws.y = ws.y + (ty-ws.y)*math.min(1, dt*5*(ws.k or 1))\n    end\n  end\n  -- 僚机 S 阵列窗（贯日）\n  if G.wingBurst2>0 then\n    G.wingBurst2 = G.wingBurst2 - dt\n    for i,ws in ipairs(wingPool) do\n      if ws.on and math.random()<dt*6 then\n        local s=alloc(pools.bullets)\n        if s then\n          s.on=true s.x=ws.x s.y=ws.y\n          s.vx=360+math.random()*140 s.vy=(math.random()-0.5)*160\n          s.w=16 s.h=7 s.dmg=math.floor(N.zdlv[G.lv]*0.9+0.5) s.art='fdzd'\n          s.maxD=0 s.dist=0 s.sine={amp=110+math.random()*40, freq=3.5+math.random(), ph=math.random()*6.28}\n          setVis(s.c, 'fdzd') s.c:SetActive(true)\n        end\n      end\n    end\n  end\n  -- 子弹推进+命中\n  for _,b in ipairs(pools.bullets) do\n    if b.on then\n      b.x=b.x+b.vx*dt b.y=b.y+b.vy*dt\n      if b.sine then b.sine.ph=b.sine.ph+dt*b.sine.freq b.y=b.y+math.cos(b.sine.ph)*b.sine.amp*dt end\n      if b.pierce or b.maxD>0 then b.dist=(b.dist or 0)+math.sqrt(b.vx^2+b.vy^2)*dt end\n      if b.x>FW+30 or b.x<-30 or b.y<-20 or b.y>FH+20 or (b.maxD>0 and b.dist>b.maxD) then\n        b.on=false b.c:SetActive(false)\n      end\n    end\n  end\n  bulletHits()\n  -- 敌弹推进\n  for _,b in ipairs(pools.ebullets) do\n    if b.on then\n      if not b.frozen then\n        b.x=b.x+b.vx*dt b.y=b.y+b.vy*dt\n      end\n      if b.x<-30 or b.x>FW+30 or b.y<-20 or b.y>FH+20 then\n        b.on=false b.c:SetActive(false)\n      end\n    end\n  end\n  -- 道具\n  for _,it in ipairs(pools.items) do\n    if it.on then\n      it.life = it.life - dt\n      local dx,dy = it.tx-it.x, it.ty-it.y\n      local d = math.sqrt(dx*dx+dy*dy)\n      if d>4 then it.x=it.x+dx/d*40*dt it.y=it.y+dy/d*40*dt end\n      if it.life<=0 or it.x<-20 then it.on=false it.c:SetActive(false) end\n      if it.on and math.abs(it.x-G.shipX)*2<it.w+18 and math.abs(it.y-G.shipY)*2<it.h+16 then\n        it.on=false it.c:SetActive(false)\n        if it.kind=='pow' then\n          G.lv = clamp(G.lv+1, 1, 5)\n          log('pow '..G.lv)\n          syncWings()\n        elseif it.kind=='bom1' then\n          G.bomm = math.min(8, G.bomm+1)\n        elseif it.kind=='bs' then\n          G.score = G.score + 500\n          log('score '..G.score)\n        end\n      end\n    end\n  end\n  -- 特效\n  for _,s in ipairs(pools.booms) do\n    if s.on then\n      s.t=s.t+dt\n      if s.t>=(s.life or 0.5) then s.on=false s.c:SetActive(false) end\n    end\n  end\n  for _,s in ipairs(pools.floaters) do\n    if s.on then\n      s.t=s.t+dt s.y=s.y+s.vy*dt\n      if s.t>=(s.life or 0.7) then s.on=false s.c:SetActive(false) end\n    end\n  end\n  -- 胜利倒计时\n  if G.winPending then\n    G.winPending = G.winPending - dt\n    if G.winPending<=0 then\n      G.winPending=nil\n      G.state='win'\n      log('level_clear')\n      log('game_win')\n      winPanel = mkc(T_PANEL, 'WinPanel')\n      local t1 = txtc('长虹出鞘 · 通关!', 36, 255,215,120, 'WinText')\n      local t2 = txtc('得分 '..G.score, 20, 230,230,230, 'WinScore')\n      winRefs = {t1=t1, t2=t2}\n      place(winPanel, FW/2, FH/2)\n      place(t1, FW/2, FH/2+26)\n      place(t2, FW/2, FH/2-16)\n    end\n  end\n  -- 燃烧伤害已在敌机段\n  -- 计时器衰减\n  if G.invuln>0 and G.invuln<90 then G.invuln=G.invuln-dt end\n  if G.shield>0 then G.shield=G.shield-dt end\n  if G.freezeT>0 then G.freezeT=G.freezeT-dt end\n  if G.renjianWin>0 then G.renjianWin=G.renjianWin-dt end\n  -- 擦弹（险中求道）\n  if G.neng>0 and G.shipKey=='hongmao' then\n    for _,b in ipairs(pools.ebullets) do\n      if b.on and not b.frozen and math.sqrt((b.x-G.shipX)^2+(b.y-G.shipY)^2)<16 then\n        G.graze=(G.graze or 0)+1\n        if G.t>G.qiudaoCd then\n          G.qiudaoCd = G.t+0.5\n          G.neng = math.min(G.neng+ps*0.15, ps*1.5)\n          traitFire('qiudao')\n        end\n        break\n      end\n    end\n  end\n  -- 边沿清理\n  jEdge=false kEdge=false jUp=false\nend\n\n-- ===== 渲染同步（每帧：位置/可见性/HUD）=====\nlocal function render()\n  if G.state=='select' then return end\n  -- 玩家\n  place(G.shipC, G.shipX, G.shipY)\n  local blink = G.invuln>0 and (math.floor(G.t*12)%2==0)\n  G.shipC:SetVisible(not blink)\n  for i,ws in ipairs(wingPool) do\n    if ws.on then place(ws.c, ws.x, ws.y) end\n  end\n  for _,pool in ipairs({pools.bullets,pools.ebullets,pools.enemies,pools.items,pools.booms}) do\n    for _,s in ipairs(pool) do\n      if s.on then place(s.c, s.x, s.y) end\n    end\n  end\n  for _,s in ipairs(pools.floaters) do\n    if s.on then place(s.c, s.x, s.y) end\n  end\n  if G.guanri then\n    placeSize(G.guanriC, G.guanri.x, G.guanri.y, G.guanri.w, 40)\n    G.guanriC:SetActive(true)\n  else G.guanriC:SetActive(false) end\n  if G.phoenix2 then\n    place(G.huofengC, G.phoenix2.x, G.phoenix2.y)\n    G.huofengC:SetActive(true)\n  else G.huofengC:SetActive(false) end\n  if G.shield>0 then\n    place(G.shieldC, G.shipX, G.shipY)\n    G.shieldC:SetActive(true)\n  else G.shieldC:SetActive(false) end\n  -- 敌机受击白闪\n  for _,e in ipairs(pools.enemies) do\n    if e.on then\n      local a = ART[e.kind]\n      if e.flash>0 then e.c.imageColor = Color(255,255,255,255)\n      else e.c.imageColor = Color(a[4],a[5],a[6],255) end\n    end\n  end\n  -- HUD 文本（脏检查）\n  local sTxt = tostring(G.score)\n  if hud.score.text ~= sTxt then hud.score.text = sTxt end\n  local lTxt = 'LV'..G.lv\n  if hud.lv.text ~= lTxt then hud.lv.text = lTxt end\n  local bTxt = '宝×'..G.bomm\n  if hud.bomb.text ~= bTxt then hud.bomb.text = bTxt end\n  local fTxt = '命×'..math.max(0,G.life)\n  if hud.life.text ~= fTxt then hud.life.text = fTxt end\n  local wTxt = tostring(math.max(1,G.wave))\n  if hud.wave.text ~= wTxt then hud.wave.text = wTxt end\n  -- 蓄力条/血条填充\n  if G.state=='playing' then\n    local ps = N.ships[G.shipKey].ps\n    hud.charge:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.neng/(ps*1.5),0,1))\n    hud.hp:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.life/4,0,1))\n    if G.boss then\n      hud.bossBar:SetActive(true)\n      hud.bossBar:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, clamp(G.boss.hp/G.boss.def.hp,0,1))\n    else\n      hud.bossBar:SetActive(false)\n    end\n  end\nend\n\n-- ===== Debug 信号 =====\nlocal function regDebug()\n  local function reg(name, fn)\n    script:RegisterServerSignalHandler(name, function(sig, params)\n      pcall(fn, params or {})\n    end)\n  end\n  reg('DebugAutoPlay', function(p) G.autoPlay = (p[1] or 1)==1 if G.autoPlay then G.invuln=99 end end)\n  reg('DebugSkipToBoss', function()\n    for _,e in ipairs(pools.enemies) do if e.on then e.on=false e.c:SetActive(false) end end\n    G.wave = #WAVES - 1\n    spawnWave()\n    G.waveGap = 999\n  end)\n  reg('DebugKillBoss', function()\n    if G.boss then damage(G.boss, 1e9) end\n  end)\n  reg('DebugDamage', function(p) local d = p[1] or 1\n    G.invuln=0 playerHitRaw(d) end)\n  reg('DebugSetLife', function(p) G.life = p[1] or 4 end)\n  reg('DebugGrantPow', function(p) G.lv = clamp(p[1] or 1,1,5) log('pow '..G.lv) syncWings() end)\n  reg('DebugGrantBomb', function(p) G.bomm = p[1] or 3 end)\n  reg('DebugNoop', function() end)\nend\nfunction playerHitRaw(d)\n  -- 调试直伤：绕过无敌，走完整死亡循环\n  G.life = G.life - 1\n  log('life '..G.life)\n  if G.life<=0 then\n    G.state='fail'\n    log('fail lives')\n    overPanel = mkc(T_PANEL, 'GameOverPanel')\n    local t1 = txtc('游戏结束', 40, 255,90,90, 'GOText')\n    local t2 = txtc('点击「重新开始」再战', 18, 230,230,230, 'GOHint')\n    overRefs = {t1=t1, t2=t2}\n    place(overPanel, FW/2, FH/2)\n    place(t1, FW/2, FH/2+30)\n    place(t2, FW/2, FH/2-20)\n    return\n  end\n  G.lv = 1\n  log('pow 1')\n  syncWings()\n  local it = alloc(pools.items)\n  if it then\n    local a=ART.pow\n    it.on=true it.kind='pow' it.x=G.shipX it.y=G.shipY\n    it.vx=(math.random()-.5)*50 it.vy=(math.random()-.5)*50\n    it.life=4 it.tx=40+math.random()*300 it.ty=40+math.random()*160\n    it.w=a[2] it.h=a[3]\n    setVis(it.c, 'pow')\n    it.c:SetActive(true)\n  end\n  G.invuln = 2.2\n  log('respawn')\nend\n\n-- ===== 生命周期 =====\nfunction OnInit()\n  CW, CH = game.GetUICanvasSize()\n  K = CW / FW\n  HX, HY = CW/2, CH/2\nend\nfunction OnStart()\n  script.object.showCursor = true\n  CW, CH = game.GetUICanvasSize()\n  K = CW / FW\n  HX, HY = CW/2, CH/2\n  -- 全局初始化\n  G = {state='select', t=0, score=0, life=4, bomm=3, lv=1, wave=0, waveGap=1.2,\n    shipX=40, shipY=125, shipKey='hongmao', fireCd=0, neng=0, fashez=0, needles=0,\n    invuln=0, lock=0, traitQ={}, traitT={}, freezeT=0, shield=0, slowT=0, flashT=0,\n    renjianWin=0, renjianLeft=0, qiudaoCd=0, wingBurst2=0, autoPlay=false, graze=0,\n    holdT=0, lastHold=0, jTapT=0, jHeld=false, jPressFull=false, chargeTier=0}\n  -- ===== 池构建（z 序：背景→敌→道具→僚机→玩家→弹→敌弹→特效→飘字→HUD）=====\n  pools.stars = {}\n  for i=1,6 do\n    local c = imgc('bg2', 'star'..i)\n    c:SetSizeDelta(3*K, 3*K)\n    table.insert(pools.stars, {c=c, x=math.random()*FW, y=math.random()*FH, sp=20+math.random()*40})\n    c:SetActive(true)\n  end\n  pools.enemies = mkpool(16, function() return imgc('dj1','enemy') end)\n  pools.items = mkpool(10, function() return imgc('pow','item') end)\n  wingPool = {}\n  for i=1,4 do\n    local c = imgc('wingH', i==1 and 'OptionControl' or 'wing'..i)\n    table.insert(wingPool, {c=c, x=0, y=0, on=false})\n  end\n  G.shipC = imgc('hongmao', 'Player')\n  G.shipC:SetActive(false)\n  pools.bullets = mkpool(72, function() return imgc('changhong','pbullet') end)\n  pools.ebullets = mkpool(80, function() return imgc('szd','ebullet') end)\n  pools.booms = mkpool(24, function() return imgc('pow','fx') end)\n  pools.floaters = mkpool(12, function() return txtc('', 12, 255,255,255,'floater') end)\n  G.guanriC = imgc('guanri', 'GuanriSword')\n  G.guanriC:SetActive(false)\n  G.huofengC = imgc('huofeng', 'PhoenixFire')\n  G.huofengC:SetActive(false)\n  G.shieldC = imgc('shield', 'ShieldFx')\n  G.shieldC:SetActive(false)\n  -- ebullet 池视觉默认 szd\n  -- ===== HUD =====\n  hud.score = txtc('0', 15, 255,255,255, 'ScoreText')\n  place(hud.score, 50, 236)\n  hud.lv = txtc('LV1', 15, 255,220,140, 'LvText')\n  place(hud.lv, 110, 236)\n  hud.wave = txtc('1', 13, 180,180,200, 'WaveText')\n  place(hud.wave, FW-30, 236)\n  hud.bomb = txtc('宝×3', 14, 255,200,120, 'BombText')\n  place(hud.bomb, 170, 236)\n  hud.life = txtc('命×4', 14, 255,140,140, 'LifeText')\n  place(hud.life, 240, 236)\n  -- 蓄力条（fill）\n  local cbg = imgc('pow', 'ChargeBg')\n  cbg.imageColor = Color(40,48,70,255)\n  placeSize(cbg, 60, 224, 120, 8)\n  hud.charge = imgc('pow', 'ChargeFill')\n  hud.charge.imageColor = Color(120,200,255,255)\n  placeSize(hud.charge, 60, 224, 120, 8)\n  -- 玩家血条\n  local hbg = imgc('pow', 'HpBg')\n  hbg.imageColor = Color(40,48,70,255)\n  placeSize(hbg, FW/2, 236, 100, 8)\n  hud.hp = imgc('pow', 'HpBar')\n  hud.hp.imageColor = Color(120,255,140,255)\n  placeSize(hud.hp, FW/2, 236, 100, 8)\n  -- boss 血条\n  local bbg = imgc('pow', 'BossBg')\n  bbg.imageColor = Color(60,30,40,255)\n  placeSize(bbg, FW/2, 12, 300, 10)\n  hud.bossBar = imgc('pow', 'BossFill')\n  hud.bossBar.imageColor = Color(255,80,80,255)\n  placeSize(hud.bossBar, FW/2, 12, 300, 10)\n  hud.bossBar:SetActive(false)\n  -- 消息\n  pools.msgs = {}\n  for i=1,3 do\n    local c = txtc('', 14, 255,255,255, 'msg'..i)\n    c:SetActive(false)\n    table.insert(pools.msgs, {c=c, on=false, t=0, life=0})\n  end\n  -- 重开按钮（常驻）\n  local rb = mkc(T_BTN, 'RestartBtn')\n  placeSize(rb, FW-40, FH-20, 60, 26)\n  rb:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()\n    if G.state=='playing' or G.state=='fail' or G.state=='win' then restartToSelect() end\n  end)\n  -- 键盘监听\n  local KE = Enum.KeyEventType\n  local keyMap = {\n    {KE.KeyboardCraftspersonKey19Down, 'j', true}, {KE.KeyboardCraftspersonKey19Up, 'j', false},\n    {KE.KeyboardCraftspersonKey20Down, 'k', true}, {KE.KeyboardCraftspersonKey20Up, 'k', false},\n    {KE.KeyboardMoveLeftKeyDown, 'left', true}, {KE.KeyboardMoveLeftKeyUp, 'left', false},\n    {KE.KeyboardMoveRightKeyDown, 'right', true}, {KE.KeyboardMoveRightKeyUp, 'right', false},\n    {KE.KeyboardMoveForwardKeyDown, 'up', true}, {KE.KeyboardMoveForwardKeyUp, 'up', false},\n    {KE.KeyboardMoveBackwardKeyDown, 'down', true}, {KE.KeyboardMoveBackwardKeyUp, 'down', false},\n    {KE.KeyboardCraftspersonKey36Down, 'up', true}, {KE.KeyboardCraftspersonKey36Up, 'up', false},\n    {KE.KeyboardCraftspersonKey37Down, 'down', true}, {KE.KeyboardCraftspersonKey37Up, 'down', false},\n    {KE.KeyboardCraftspersonKey38Down, 'left', true}, {KE.KeyboardCraftspersonKey38Up, 'left', false},\n    {KE.KeyboardCraftspersonKey39Down, 'right', true}, {KE.KeyboardCraftspersonKey39Up, 'right', false},\n  }\n  for _,m in ipairs(keyMap) do\n    local nm, dn = m[2], m[3]\n    script.object:AddKeyEventListener(m[1], function() onKey(nm, dn) return false end)\n  end\n  -- Debug 信号\n  regDebug()\n  -- 选人面板\n  buildSelect()\n  log('game_start')\n  log('boot ok')\n  script:EnableUpdate(true)\nend\nfunction OnUpdate(dt)\n  if dt > 0.1 then dt = 0.1 end\n  acc = acc + dt\n  local n = 0\n  while acc >= STEP and n < 4 do\n    tick(STEP)\n    acc = acc - STEP\n    n = n + 1\n  end\n  render()\nend\n",
+    "controlId": "n1",
+    "controlAsset": "server-control-template"
+   }
+  ]
+ }
+}
