@@ -308,7 +308,7 @@ class Game{
     this.stats={kills:0,hits:0,pick:0,time:0};
     this.needles=0; this.shotN=0; this.wallSeq=0; this.wallHits={};
     this.guanri=null; this.phoenix2=null; this.freezeT=0; this.jieJian=0; this.chargeGraze=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[];
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
@@ -330,7 +330,7 @@ class Game{
     this.wave=-1; this.levelT=0; this.waveGap=0; this.boss=null;
     this.enemies.length=0; this.ebullets.length=0; this.items.length=0; this.booms.length=0;
     this.needles=0; this.neng=0; this.guanri=null; this.phoenix2=null; this.freezeT=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[];
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.scrollSpd=N.scroll; this.envTimer=1.5; this.bgKey=L.bg; this.bgW=ART[L.bg][1];
@@ -395,12 +395,12 @@ class Game{
     if(this.t-this.loopMark.shot<12) this.unlock('bing_lun'); }
   addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
   traitFire(id){ const t=TRAITS.find(x=>x[0]===id); if(!t||this.state!=='playing') return; // v20 特性触发
-    if(!traitsSeen[id]){ traitsSeen[id]=1; try{ localStorage.setItem('hmlt-traits',JSON.stringify(traitsSeen)); }catch(e){}
-      this.traitCard={id}; this.log('trait_unlock '+id); SFX.play('phoenix',0.4); }
-    else if((this.traitT[id]||0)<this.t){ this.traitT[id]=this.t+4; this.say(t[1]+'!'); this.log('trait '+id); } }
+    if(!traitsSeen[id]&&!this.traitQ.find(q=>q.id===id)){ this.traitQ.push({id,t:2.5}); this.log('trait_arm '+id); } // v27 爽感先行：首触入队，2.5s 后才弹卡
+    else if(traitsSeen[id]&&(this.traitT[id]||0)<this.t){ this.traitT[id]=this.t+4; this.say(t[1]+'!'); this.log('trait '+id); } }
   traitBulletDmg(b,e){ let d=b.dmg; // v21 特性暴击体系：基础5%×2；条件加成见 critRate
     const kind=b.wallId?'needle':(b.art==='changhong'?'sword':(b.art==='bingpoj'?'blade':'wing'));
     if(kind==='needle'&&this.shipKey==='lantu'&&this.freezeT>0) this.traitFire('yizhen'); // 一针见血
+    if(kind==='needle'&&this.shipKey==='lantu'&&this.zmArmed){ this.zmArmed=false; this.traitFire('zhenman'); this.traitFx('zhenman'); } // v28 针满则锐：加速蓄出的针真打出伤害→2.5s 后弹卡
     const crit=Math.random()<this.critRate(kind,e);
     if(crit){ d*=2; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); }
     this.dmgFloat(e,d,kind==='blade'?'frost':'normal',crit);
@@ -539,6 +539,10 @@ class Game{
 
   update(dt){
     if(this.traitCard) return; // v20 特性教学暂停：时间冻结
+    if(this.traitQ.length){ for(const q of this.traitQ) q.t-=dt;                     // v27 教学卡延迟队列
+      if(this.traitQ[0].t<=0){ const q=this.traitQ.shift(); traitsSeen[q.id]=1;
+        try{ localStorage.setItem('hmlt-traits',JSON.stringify(traitsSeen)); }catch(e){}
+        this.traitCard={id:q.id}; this.log('trait_unlock '+q.id); SFX.play('phoenix',0.4); return; } }
     this.t+=dt; this.stats.time+=dt; for(const m of this.msgs) m.t+=dt; this.msgs=this.msgs.filter(m=>m.t<m.life);
     for(const sd of this.sparkSeeds){ const dx=sd.tx.x-sd.x, dy=sd.tx.y-sd.y, L=Math.hypot(dx,dy)||1; // v25 火种追踪
       sd.x+=dx/L*sd.sp*dt; sd.y+=dy/L*sd.sp*dt;
@@ -596,7 +600,7 @@ class Game{
       if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) cr*=1.3; // v21 针满则锐：提速常驻；v26 卡改到满针满蓄时弹
       this.neng=Math.min(this.neng+cr*dt,cfg.ps*1.5); } // v14 可过载至 150%
     if(this.lv>1){ if(this.neng>=cfg.ps){ if(!this.chargeFull){ this.chargeFull=true; SFX.play('phoenix',0.28); SFX.play('full',0.2); // 满蓄双音
-        if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)){ this.traitFire('zhenman'); this.traitFx('zhenman'); } // v26 针满则锐：满针状态完成满蓄才领悟
+        if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) this.zmArmed=true; // v28 针满则锐：满针满蓄=上膛，等真打出伤害再领悟
         if(this.chargeGraze>=3) this.unlock('xuli_zouwei'); this.chargeGraze=0; }
       if(this.neng>=cfg.ps*1.5&&!this.chargeMax){ this.chargeMax=true; SFX.play('boss',0.3); this.say('过载!'); } } // v14 150% 红环
       else { this.chargeFull=false; this.chargeMax=false; } }
@@ -800,6 +804,7 @@ class Game{
         if(b.pierce){ if(!b.hitSet) b.hitSet=new Set(); if(b.hitSet.has(e)) continue; b.hitSet.add(e);
           let d=b.dmg, nc=false;
           if(b.wallId){ if(this.shipKey==='lantu'&&this.freezeT>0) this.traitFire('yizhen'); // v21 一针见血
+            if(this.shipKey==='lantu'&&this.zmArmed){ this.zmArmed=false; this.traitFire('zhenman'); this.traitFx('zhenman'); } // v28 针满则锐：pierce 大针出伤路径
             if(Math.random()<this.critRate('needle',e)){ d*=2; nc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
           this.dmgFloat(e,d,b.art==='bingpoj'?'frost':'normal',nc); // v22 数字
           if(this.freezeT>0&&b.art==='bingpoj'){ d*=2; this.unlock('dong_sui'); // 冻→碎 ×2
