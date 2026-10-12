@@ -4,6 +4,17 @@
 > 当前状态入口：`.scratch/football-v2/BOARD.md`（唯一推进看板）
 > 本文件不再保存长轮次正文；已完成轮次归档见下。
 
+## 当前状态（2026-10-12）
+
+- 24 票 §7 复测判读+修复完成（提交 d2ddf55）：复测日志判读 4 图活/6 图零记录——根因①
+  1836 装配器未挂载（方案 B 已挂回球实体）；根因② §6 def 移植被引擎回写洗掉（只写
+  Save_Level 未同步 Temp）→ tabBar 点击零事件（whenTabIsSelected 零帧）。三层组件槽
+  字节对齐 donor（root4 f8+root8 f7+root5 f7，12/12 目标幂等），终态 SHA 855ddd98…
+  双址一致。工具=plans/transplant-component-slots.ts + football-v2/tools-slot-*.ts。
+- **下一步：用户二次复测**（验收信号=issues/24 §7 末三条：439/437 出记录；点 9 选项
+  whenTabIsSelected 出帧+球动；仍零帧则转查 UI 注册层）→ 通过后恢复暂停区（22 票 A 线
+  条件确认/23 票演出目视/20 票 E0 后段）。
+
 ## 当前状态（2026-10-03）
 
 - 票 24 C/D 可执行部分完成（提交 581cef7/7cae426）：新图 1073741825「真实足球」空存档
