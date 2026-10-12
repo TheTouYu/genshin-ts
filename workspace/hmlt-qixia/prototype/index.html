@@ -95,10 +95,10 @@ const N = {
   player: {vx:175, vy:100, xMin:25, xMax:415, yMin:34, yMax:220},  // ±7/±4px 帧，宽屏 xMax 373→415
   zdlv:[12,16,11,9,6.5],               // v14 lv2..5 理论dps 100→137→175→200%：弹数 1/2/3/5，单发 52/69/47/39/28
   ps:{hongmao:70, lantu:65},           // 蓄能阈值
-  chargeRate:25,                       // neng++/帧
+  chargeRate:35,                       // v16 蓄力提速（满档 3.0s/2.8s——鼓励蓄力循环）
   ships:{
     hongmao:{bullet:'changhong', bspeed:420, fireCd:0.7, dmgMul:4.3, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'guanri',  bombDj:50, bombBoss:50},  // ③ 虹猫蓄力=长虹贯日（僚机灌注）
-    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:2.1, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
+    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:2.1, ps:65, range:240, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
   },
   enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:220, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
           dj3:{hp:420, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
@@ -332,7 +332,8 @@ class Game{
       ? (this.lv<=2?[[0,0]]:this.lv===3?[[0,-50],[0,50]]:this.lv===4?[[0,-70],[0,0],[0,70]]:[[0,-90],[0,-45],[0,0],[0,45],[0,90]])
       : (this.lv<=2?[[0,0]]:this.lv===3?[[-4,0],[4,0]]:this.lv===4?[[-8,0],[8,0]]:[[-12,0],[-4,0],[4,0],[12,0]]); // 蓝兔直线纵排
     const aw=cfg.bullet==='changhong'?36:bw, ah=cfg.bullet==='changhong'?11:bh; // 视觉尺寸（飞剑大弹）
-    for(const [oy,vy] of offs) this.bullets.push({x:S.x+16,y:S.y+oy,vx:sp,vy,w:bw,h:bh,aw,ah,dmg,art:cfg.bullet});
+    for(const [oy,vy] of offs) this.bullets.push({x:S.x+16,y:S.y+oy,vx:sp,vy,w:bw,h:bh,aw,ah,dmg,art:cfg.bullet,
+      maxD:cfg.range||0,dist:0});                                  // v16 蓝兔射程 240：超程蒸发（近战换高 dps）
     SFX.play(cfg.sfx||'fire',0.18); this.log('fire');
     this.loopMark.shot=this.t;
     if(this.jieJian>0){ this.jieJian=0; this.unlock('jiejian'); }   // 悟二·贯日接剑
@@ -358,10 +359,10 @@ class Game{
       const tgt=this.enemies.filter(e=>!e.dead&&e.x>S.x).sort((a,b)=>a.x-b.x)[0];
       const ang=clamp(tgt?Math.atan2(tgt.y-S.y,tgt.x-S.x):0,-0.5,0.5);
       const cnt=Math.max(1,Math.round(this.lv*tier));                    // v15 两档：满蓄全额 / 70%档=25% 把数
-      for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.14;
+      for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.09;   // v16 扇形收窄：贴脸 boss 全把命中
         this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,
           aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
-          dmg:Math.round((50+30*this.lv)*tier),maxD:200,dist:0,art:'bingpoj'}); }
+          dmg:Math.round((70+45*this.lv)*tier),maxD:200,dist:0,art:'bingpoj'}); } // v16 单发加高（对单占比↑）
       this.say(tier===1?'冰魄剑!':'冰魄剑·残形'); this.loopMark.sword=this.t;
       this.needleBarrage(tier===1?1.6:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
   needleBarrage(mult=1,big=false,keep=1){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
@@ -702,7 +703,7 @@ class Game{
     if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=260*dt;   // v13 慢剑：可感知+操作空间   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
       for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&e.x>S.x-20&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){
-        g.hit.add(e); this.damage(e,g.dmg); e.burn=6;
+        g.hit.add(e); this.damage(e, e.isBoss?Math.round(g.dmg*1.5):g.dmg); e.burn=6; // v16 巨剑对 boss ×1.5 终结技
         this.booms.push({x:e.x,y:e.y,t:.25,spark:true}); }
       if(g.t<=0||g.x>FIELD_W+160) this.guanri=null; }
     // ③ 火凤燎原：掠场点燃+持续伤害（对点燃×1.5）
@@ -725,7 +726,7 @@ class Game{
     // 玩家弹
     for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
       if(b.sine){ b.sine.ph+=dt*b.sine.freq; b.y+=Math.cos(b.sine.ph)*b.sine.amp*dt; } // S 阵列
-      if(b.pierce) b.dist+=Math.hypot(b.vx,b.vy)*dt;
+      if(b.pierce||b.maxD) b.dist+=Math.hypot(b.vx,b.vy)*dt;    // v16 射程弹也计程
       for(const e of this.enemies) if(!e.dead&&!e.hazard&&hit(b,e)){ SFX.play('hit');
         if(b.pierce){ if(!b.hitSet) b.hitSet=new Set(); if(b.hitSet.has(e)) continue; b.hitSet.add(e);
           let d=b.dmg;
