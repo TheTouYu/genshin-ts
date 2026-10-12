@@ -308,7 +308,7 @@ class Game{
     this.stats={kills:0,hits:0,pick:0,time:0};
     this.needles=0; this.shotN=0; this.wallSeq=0; this.wallHits={};
     this.guanri=null; this.phoenix2=null; this.freezeT=0; this.jieJian=0; this.chargeGraze=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0; this.zmFull=false; this.zmPrompted=false; this.holdT=0; this.lastHold=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmFull=false; this.jTapT=0; this.jHeld=false; this.holdT=0; this.lastHold=0;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
@@ -330,7 +330,7 @@ class Game{
     this.wave=-1; this.levelT=0; this.waveGap=0; this.boss=null;
     this.enemies.length=0; this.ebullets.length=0; this.items.length=0; this.booms.length=0;
     this.needles=0; this.neng=0; this.guanri=null; this.phoenix2=null; this.freezeT=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0; this.zmFull=false; this.zmPrompted=false; this.holdT=0; this.lastHold=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmFull=false; this.jTapT=0; this.jHeld=false; this.holdT=0; this.lastHold=0;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.scrollSpd=N.scroll; this.envTimer=1.5; this.bgKey=L.bg; this.bgW=ART[L.bg][1];
@@ -537,6 +537,11 @@ class Game{
     this.log('wave '+(this.wave+1));
   }
 
+  jFireCore(){ const cfg=N.ships[this.shipKey];                                  // v34 发射核心：子弹+冷却（射速冷却原封未动）
+    this.fireVolley(); this.fireCd=(cfg.fireCd||0.3)/(this.life===1?1.2:1); // v21 背水一战：射速+20%
+    if(this.renjianWin>0&&this.renjianLeft>0&&this.shipKey==='hongmao'){    // v21 人剑合一：剑命中0.3s内按普攻
+      this.renjianLeft--; this.renjianWin=0; this.renjianCd=this.t+1.2;     // 一次释放最多2次+触发CD1.2s
+      this.traitFire('renjian'); this.fireSmallSwords(2,'renjian'); } }
   update(dt){
     if(this.traitCard) return; // v20 特性教学暂停：时间冻结
     if(this.traitQ.length){ for(const q of this.traitQ) q.t-=dt;                     // v27 教学卡延迟队列
@@ -583,27 +588,25 @@ class Game{
     // 开枪（原版 D159 点射模型）：J 一按=一段 3 连点射（an 门闩锁到松手），长按无连发→转纯蓄力；触屏保留自动连发（再创偏差）
     const firing=keys['j']||touch.on;
     if(firing) this.holdT+=dt; else { if(this.holdT>0) this.lastHold=this.holdT; this.holdT=0; } // v32 按住计时：<0.25s=点按（不蓄不释）
-    if(jEdge&&this.state==='playing'&&this.lock<=0&&this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)){ // v33 满匣两段式：首按只提示（什么都不发生），再按才分流
-      if(!this.zmPrompted){ this.zmPrompted=true; this.traitFx('zhenman'); this.say('针匣已满：长按蓄力 · 再按一下倾匣'); }
-      else this.zmTapT=this.t+0.25; } // 再按：0.25s 内松手=倾匣 / 按住=蓄力保匣；触屏拖动永不自动倾匣
+    const jNow=!!keys['j'];
+    if(jNow&&!this.jHeld) this.jTapT=this.t+0.25;                          // v34 按下沿：0.25s 判定期，不立即发射
+    if(!jNow&&this.jHeld&&this.jTapT>0){ this.jTapT=0;                      // v34 松手沿=点按：发射子弹（守射速冷却）+满匣同时倾匣
+      if(this.lock<=0&&this.state==='playing'&&this.fireCd<=0) this.jFireCore();
+      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) this.needleBarrage(0.7,false,1,false); }
+    this.jHeld=jNow;
+    if(this.jTapT>0&&this.t>=this.jTapT){ this.jTapT=0;                     // v34 按住满 0.25s=长按：lv>1 纯蓄力（不发射不积攒）；lv1 无蓄力补一发点射
+      if(this.lv<=1&&this.lock<=0&&this.state==='playing'&&this.fireCd<=0) this.jFireCore(); }
     const wasCd=this.fireCd;
     this.fireCd-=dt;
     if(wasCd>0&&this.fireCd<=0&&this.state==='playing') this.readyFx=0.14; // 冷却完成=剑已出鞘节拍点
-    if((jEdge||touch.on)&&this.lock<=0&&this.state==='playing'&&this.fireCd<=0){
-      this.fireVolley(); this.fireCd=(cfg.fireCd||0.3)/(this.life===1?1.2:1); // v21 背水一战：射速+20%
-      if(this.renjianWin>0&&this.renjianLeft>0&&this.shipKey==='hongmao'){    // v21 人剑合一：剑命中0.3s内按普攻
-        this.renjianLeft--; this.renjianWin=0; this.renjianCd=this.t+1.2;     // 一次释放最多2次+触发CD1.2s
-        this.traitFire('renjian'); this.fireSmallSwords(2,'renjian'); }
-      } // 射速门到此（v33 满匣两段式移出——不依赖射速冷却）
+    if(touch.on&&this.lock<=0&&this.state==='playing'&&this.fireCd<=0) this.jFireCore(); // v34 触屏自动开火；键盘发射在松手沿（jTapT 状态机）
     if(this.readyFx>0) this.readyFx-=dt;
     if(this.renjianWin>0) this.renjianWin-=dt;  // v21 人剑合一 0.3s 追剑窗
     for(const k in this.fxAura) if(this.fxAura[k]>0) this.fxAura[k]-=dt; // v21 特性光环衰减
     // 蓄力（原版结构 D157+D159）：首轮点射后长按=纯蓄力（惩罚期无额外攻击）；松手瞬间清零；
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
-    if(this.shipKey==='lantu'){ const full=this.needles>=this.lv*(2+this.lv);   // v31/v33 针匣充满=只泛光；首按 J 才出提示
-      if(full&&!this.zmFull) this.traitFx('zhenman'); this.zmFull=full; if(!full) this.zmPrompted=false; }
-    if(this.zmTapT>0){ if(!keys['j']){ this.zmTapT=0; this.zmPrompted=false; this.needleBarrage(0.7,false,1,false); } // v33 倾匣即复位两段式（防同帧回满跳过提示）
-      else if(this.t>=this.zmTapT) this.zmTapT=0; }                        // 按住超过 0.25s=蓄力→保匣
+    if(this.shipKey==='lantu'){ const full=this.needles>=this.lv*(2+this.lv);   // v34 针匣充满=光环+提示；点按=子弹+倾匣，长按=纯蓄力
+      if(full&&!this.zmFull){ this.traitFx('zhenman'); this.say('针匣已满：点按倾匣 · 长按蓄力'); } this.zmFull=full; }
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
     else if(firing&&this.lv>1&&this.holdT>=0.25){ let cr=N.chargeRate; // v32 长按才蓄力
       if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) cr*=1.3; // v21 针满则锐：提速常驻；v26 卡改到满针满蓄时弹
