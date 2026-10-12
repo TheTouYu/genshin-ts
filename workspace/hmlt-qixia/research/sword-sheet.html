@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>长虹剑素材对照表</title>
+<style>
+  body { background:#141428; color:#eee; font-family:sans-serif; padding:16px; }
+  h2 { border-bottom:1px solid #445; padding-bottom:4px; }
+  .grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .card { background:#222240; border:1px solid #448; border-radius:8px; padding:8px; width:150px; text-align:center; }
+  .card .imgbox { height:110px; display:flex; align-items:center; justify-content:center;
+    background:repeating-conic-gradient(#1b1b34 0 25%, #23234a 0 50%) 0 0/16px 16px; border-radius:4px; }
+  .card img, .card svg { max-width:130px; max-height:100px; filter:drop-shadow(0 0 4px #000); }
+  .card .lbl { margin-top:6px; font-size:12px; color:#9ab; }
+  .card .lbl b { color:#ffd479; font-size:14px; }
+  .hint { color:#889; font-size:13px; margin:4px 0 10px; }
+</style>
+</head>
+<body>
+<h1>长虹剑素材对照表（虹猫普攻弹/蓄力表现候选）</h1>
+<p class="hint">你看图给答案：报编号即可。原版候选是 SWF 内部无名长条形素材；「已知参考」是现在已用的；「手绘三案」是我按"七侠正气+橙金长虹"画的。所有图均为原始朝向。</p>
+
+<h2>A. 原版候选（无名内部件，按长宽比降序）</h2>
+<div class="grid" id="cands"></div>
+
+<h2>B. 已知参考（现在用的）</h2>
+<div class="grid">
+  <div class="card"><div class="imgbox"><img src="extract/assets/shapes/610.svg"></div><div class="lbl"><b>610</b> wzd 虹猫现弹</div></div>
+  <div class="card"><div class="imgbox"><img src="extract/assets/shapes/518.svg"></div><div class="lbl"><b>518</b> 冰魄剑（蓝兔）</div></div>
+  <div class="card"><div class="imgbox"><img src="extract/assets/shapes/618.svg"></div><div class="lbl"><b>618</b> jezd 蓝兔激光</div></div>
+</div>
+
+<h2>C. 手绘三案（可调色/调形，说方向就行）</h2>
+<div class="grid">
+  <div class="card"><div class="imgbox">
+    <svg width="130" height="40" viewBox="0 0 130 40">
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7a4a12"/><stop offset=".35" stop-color="#ffb347"/>
+        <stop offset=".8" stop-color="#fff3d6"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>
+      <path d="M8 20 L28 20 L30 17 L44 17 L44 23 L30 23 L28 20" fill="#c8862a"/>
+      <rect x="30" y="16.5" width="4" height="7" rx="1" fill="#ffd479"/>
+      <rect x="34" y="14" width="84" height="12" rx="2" fill="url(#g1)"/>
+      <path d="M118 20 L130 20" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <path d="M34 20 L112 20" stroke="#fff" stroke-width="1.6" opacity=".8"/>
+      <ellipse cx="44" cy="20" rx="12" ry="7" fill="#ffb347" opacity=".25"/>
+    </svg></div><div class="lbl"><b>H1</b> 长刃剑·橙金渐变+白芯</div></div>
+  <div class="card"><div class="imgbox">
+    <svg width="120" height="50" viewBox="0 0 120 50">
+      <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ff7a00"/><stop offset="1" stop-color="#ffd479"/></linearGradient></defs>
+      <path d="M6 8 Q60 4 104 26 Q60 40 14 40 Q34 24 6 8 Z" fill="url(#g2)" opacity=".9"/>
+      <path d="M18 18 Q56 16 90 30" stroke="#fff" stroke-width="2" fill="none" opacity=".85"/>
+    </svg></div><div class="lbl"><b>H2</b> 剑气·月牙弧光（蓄力满释放）</div></div>
+  <div class="card"><div class="imgbox">
+    <svg width="120" height="50" viewBox="0 0 120 50">
+      <ellipse cx="52" cy="25" rx="46" ry="7" fill="#ffb347" opacity=".35"/>
+      <ellipse cx="52" cy="25" rx="38" ry="4" fill="#fff3d6" opacity=".8"/>
+      <path d="M96 25 L118 25 M52 11 L52 39 M40 14 L64 36 M64 14 L40 36" stroke="#ffd479" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="52" cy="25" r="5" fill="#fff"/>
+    </svg></div><div class="lbl"><b>H3</b> 十字剑光·弹头光矢</div></div>
+</div>
+
+<h2>D. 疑似动画帧序列（同尺寸 14 连号 670-692）</h2>
+<p class="hint">这批 98×43 同尺寸连号大图疑似一套动画帧（挥剑/凤凰/爆点？）——若你看中其中一帧或整段，可整段取。</p>
+<div class="grid" id="anim"></div>
+
+<script>
+const CANDS=[['655','93×9 超细长'],['654','101×19 长条'],['340','9×45 竖条'],['263','10×42 竖条'],
+['698','45×11'],['716','45×11（对）'],['724','36×9'],['737','36×9（对）'],['619','58×15 与jezd同宽族'],
+['611','42×13 与wzd同族'],['826','29×9'],['524','103×39 大件31KB'],['534','103×39 大件31KB（对）']];
+const ANIM=[670,672,674,676,678,680,682,684,686,688,690,692];
+const el=(src,lab)=>`<div class="card"><div class="imgbox"><img src="extract/assets/shapes/${src}.svg"></div><div class="lbl"><b>${src}</b> ${lab}</div></div>`;
+document.getElementById('cands').innerHTML=CANDS.map(c=>el(c[0],c[1])).join('');
+document.getElementById('anim').innerHTML=ANIM.map(i=>el(i,'98×43')).join('');
+</script>
+</body>
+</html>

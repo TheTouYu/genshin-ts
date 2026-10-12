@@ -37,6 +37,7 @@ const ART = {
   hongmao:[551,34,36], lantu:[603,36,29], flame:[556,12,13],
   wingA:[521,13,27], wingB:[541,22,25],            // 僚机：虹猫 fudaiji / 蓝兔 jedfdj(541)
   wzd:[610,19,6], jezd:[618,26,6], fdzd:[504,12,5], // 玩家弹（蓝兔=fj2 激光弹 jezd；fdzd=504，508 是嵌套精灵）
+  changhong:['assets/changhong.svg',36,11],        // 长虹剑·手绘飞剑（② 用户裁决：复用弃，手绘方向）
   szd:[490,10,7], szd2:[496,8,8],                   // 敌弹：瞄准弹 / boss 弹
   dj1:[389,42,18], dj2:[357,38,39], dj3:[345,46,20], dj4:[321,34,33],
   boss1:[300,91,112],                               // 白皮书 §3: boss1 91×112
@@ -49,7 +50,7 @@ const ART = {
 const imgs = {}; let imgsLeft = 0, imgTimer = null;
 for (const k in ART) { imgsLeft++; const im = new Image();
   im.onload = im.onerror = () => imgsLeft--;
-  im.src = SVG(ART[k][0]); imgs[k] = im; }
+  im.src = (typeof ART[k][0]==='string') ? ART[k][0] : SVG(ART[k][0]); imgs[k] = im; }
 const drawArt = (ctx,k,x,y,w,h,rot)=>{ const im=imgs[k]; if(!im.complete||!im.naturalWidth) return;
   ctx.save(); ctx.translate(x, FIELD_H-y); if(rot) ctx.rotate(rot);
   ctx.drawImage(im, -(w||ART[k][1])/2, -(h||ART[k][2])/2, w||ART[k][1], h||ART[k][2]); ctx.restore(); };
@@ -61,8 +62,8 @@ const N = {
   ps:{hongmao:70, lantu:65},           // 蓄能阈值
   chargeRate:25,                       // neng++/帧
   ships:{
-    hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'burst',   bombDj:50, bombBoss:50},  // 虹猫散射窗（fudaiji f46-96：50帧24发）
-    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
+    hongmao:{bullet:'changhong', bspeed:420, fireCd:0.35, dmgMul:1.8, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'burst',   bombDj:50, bombBoss:50},  // 虹猫散射窗（fudaiji f46-96：50帧24发）
+    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.22, dmgMul:0.9, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
   },
   enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:250, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
           dj3:{hp:500, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
@@ -154,11 +155,13 @@ class Game{
   say(s){ this.msg=s; this.msgT=1.6; }
   setLv(n){ this.lv=clamp(n,1,5); this.syncWings(); this.neng=0; this.say('武器 LV'+this.lv+(this.lv>1?' · 按住J蓄力，满后松手释放':'')); }
   fireVolley(){ const S=this.ship, cfg=N.ships[this.shipKey];
-    const dmg=N.zdlv[this.lv-1], sp=cfg.bspeed;
-    const bw=cfg.bullet==='jezd'?24+this.lv*2:27, bh=cfg.bullet==='jezd'?8:[10,15,12,15,15][this.lv-1]; // 原版 wzd 宽27/高按lv
+    const dmg=Math.round(N.zdlv[this.lv-1]*(cfg.dmgMul||1)), sp=cfg.bspeed; // ① ×1.8/×0.9 分角色
+    const bw=cfg.bullet==='jezd'?24+this.lv*2:cfg.bullet==='changhong'?28:27,
+          bh=cfg.bullet==='jezd'?8:cfg.bullet==='changhong'?9:[10,15,12,15,15][this.lv-1]; // 碰撞盒略小于视觉（原版 aaaa 口径）
     const glow=this.lv>=3;
     const offs=this.lv<=2?[0]:this.lv<=4?[-2,2]:[-4,0,4]; // 原版 lv3/4 双发 czjl±0.5、lv5 三发 _Y±1（直射纵排非扇形）
-    for(const off of offs) this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,dmg,glow,art:cfg.bullet});
+    const aw=cfg.bullet==='changhong'?36:bw, ah=cfg.bullet==='changhong'?11:bh; // 视觉尺寸（飞剑大弹）
+    for(const off of offs) this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,aw,ah,dmg,glow,art:cfg.bullet});
     SFX.play(cfg.sfx||'fire',0.18); this.log('fire');
   }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship;
@@ -250,11 +253,12 @@ class Game{
 
     // 开枪（原版 D159 点射模型）：J 一按=一段 3 连点射（an 门闩锁到松手），长按无连发→转纯蓄力；触屏保留自动连发（再创偏差）
     const firing=keys['j']||touch.on;
+    const wasCd=this.fireCd;
     this.fireCd-=dt;
-    if(jEdge&&this.lock<=0&&this.state==='playing'){ this.burst=3; this.burstCd=0; } // 一按=一段
-    if(this.burst>0){ this.burstCd-=dt;
-      if(this.burstCd<=0){ this.fireVolley(); this.burst--; this.burstCd=0.1; } }
-    if(touch.on&&this.lock<=0&&this.fireCd<=0){ this.fireVolley(); this.fireCd=0.3; }
+    if(wasCd>0&&this.fireCd<=0&&this.state==='playing') this.readyFx=0.14; // 冷却完成=剑已出鞘节拍点
+    if((jEdge||touch.on)&&this.lock<=0&&this.state==='playing'&&this.fireCd<=0){
+      this.fireVolley(); this.fireCd=cfg.fireCd||0.3; } // ① 节奏化：虹猫0.35重剑/蓝兔0.22快射，连点无收益
+    if(this.readyFx>0) this.readyFx-=dt;
     // 蓄力（原版结构 D157+D159）：首轮点射后长按=纯蓄力（惩罚期无额外攻击）；松手瞬间清零；
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
@@ -421,10 +425,15 @@ class Game{
       drawArt(ctx,this.shipKey,S.x,S.y); }
     if(this.shield>0){ ctx.globalAlpha=clamp(this.shield/0.4,0,1)*0.8;
       drawArt(ctx,'shield',S.x,S.y,45,45); ctx.globalAlpha=1; }
+    if(this.readyFx>0){ const k=1-this.readyFx/0.14; ctx.save(); ctx.translate(S.x+16,FIELD_H-S.y);
+      ctx.strokeStyle='rgba(255,212,121,'+(0.9*(1-k)).toFixed(2)+')'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(0,0,3+k*11,0,6.29); ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,'+(0.8*(1-k)).toFixed(2)+')';
+      ctx.beginPath(); ctx.arc(0,0,2.4-k*1.6,0,6.29); ctx.fill(); ctx.restore(); }
     // 子弹
     for(const b of this.bullets){ if(b.glow){ ctx.globalAlpha=0.32; ctx.fillStyle='#8fdcff';
         ctx.beginPath(); ctx.ellipse(b.x,FIELD_H-b.y,b.w*0.9,b.h*1.1,0,0,6.29); ctx.fill(); ctx.globalAlpha=1; }
-      drawArt(ctx,b.art||N.ships[this.shipKey].bullet,b.x,b.y,b.w,b.h); }
+      drawArt(ctx,b.art||N.ships[this.shipKey].bullet,b.x,b.y,b.aw||b.w,b.ah||b.h); }
     for(const b of this.ebullets) drawArt(ctx,b.art||'szd',b.x,b.y);
     // 爆炸
     for(const bm of this.booms){ const k=1-bm.t/(bm.big?0.8:0.5);
@@ -466,7 +475,7 @@ class Game{
     ctx.fillText('选择侠士', FIELD_W/2, FIELD_H-28);
     ctx.font='10px sans-serif'; ctx.fillStyle='#9ab';
     ctx.fillText('A/D 或 ←/→ 切换 · J 或点击确认', FIELD_W/2, 14);
-    const cards=[{k:'hongmao',n:'虹猫',d:'弹速快 · 蓄力→僚机散射弹幕'},{k:'lantu',n:'蓝兔',d:'激光弹 · 蓄力→冰魄剑(穿透飞刀)'}];
+    const cards=[{k:'hongmao',n:'虹猫',d:'长虹剑 · 节奏重击 · 蓄力→僚机散射'},{k:'lantu',n:'蓝兔',d:'激光快射 · 蓄力→冰魄剑(穿透飞刀)'}];
     cards.forEach((c,i)=>{ const cx=FIELD_W/4+i*FIELD_W/2, cy=FIELD_H/2-6, on=this.selIdx===i;
       ctx.globalAlpha=on?1:0.45;
       ctx.strokeStyle=on?'#ffd23f':'#567'; ctx.lineWidth=on?2.5:1;
