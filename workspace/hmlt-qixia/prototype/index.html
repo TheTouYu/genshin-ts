@@ -69,7 +69,7 @@ const N = {
 };
 const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3×2→dj2×1×4→dj4→boss1
   // 出生 y=千星系(左下原点)；带内 [70,190] 保证玩家可达（教训：勿照抄 Flash 顶左 y）
-  {spawns:[['dj3',170]]}, {spawns:[['dj4',95],['dj4',60]]}, {spawns:[['dj3',130],['dj3',45]]},
+  {spawns:[['dj3',130]]}, {spawns:[['dj4',95],['dj4',60]]}, {spawns:[['dj3',130],['dj3',45]]},
   {spawns:[['dj2',90]]}, {spawns:[['dj2',140]]}, {spawns:[['dj2',50]]}, {spawns:[['dj2',80]]},
   {spawns:[['dj4',70]]}, {boss:'boss1'},
 ];
@@ -141,13 +141,22 @@ class Game{
   }
   startRun(){
     this.state='playing'; this.shipKey=this.selIdx?'lantu':'hongmao';
-    this.ship={x:45,y:100,w:10,h:8}; this.fireCd=0; this.neng=0;
+    this.ship={x:45,y:100,w:10,h:8}; this.fireCd=0; this.neng=0; this.burst=0; this.burstCd=0;
+    this.items.push(this.mkItem('pow',130,110)); // 原版 one frame_1 开局白送 1 个 pow（入场即升 lv2 节奏钩子）
     this.log('game_start'); this.log('char_select '+this.shipKey); SFX.play('sel');
     document.getElementById('bombBtn').style.display='block';
   }
   log(s){ if(game===this) console.log('[hmlt]',s); } // 与 tests-trace.md 词汇表对齐
   say(s){ this.msg=s; this.msgT=1.6; }
   setLv(n){ this.lv=clamp(n,1,5); this.syncWings(); this.neng=0; this.say('武器 LV'+this.lv+(this.lv>1?' · 按住J蓄力，满后松手释放':'')); }
+  fireVolley(){ const S=this.ship, cfg=N.ships[this.shipKey];
+    const dmg=N.zdlv[this.lv-1], sp=cfg.bspeed;
+    const bw=cfg.bullet==='jezd'?24+this.lv*2:27, bh=cfg.bullet==='jezd'?8:[10,15,12,15,15][this.lv-1]; // 原版 wzd 宽27/高按lv
+    const glow=this.lv>=3;
+    const offs=this.lv<=2?[0]:this.lv<=4?[-2,2]:[-4,0,4]; // 原版 lv3/4 双发 czjl±0.5、lv5 三发 _Y±1（直射纵排非扇形）
+    for(const off of offs) this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,dmg,glow,art:cfg.bullet});
+    SFX.play(cfg.sfx||'fire',0.18); this.log('fire');
+  }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
     if(cfg.chargeType==='burst'){ this.wingBurst=2.0; this.say('僚机散射弹幕!'); }        // 虹猫：50 帧五向散射
@@ -194,7 +203,7 @@ class Game{
     this.wave++;
     if(this.wave>=wavesDef.length) return;
     const w=wavesDef[this.wave];
-    if(w.boss){ this.boss={kind:'boss1',def:N.enemy.boss1,hp:N.enemy.boss1.hp,x:FIELD_W+70,y:125,w:80,h:100,
+    if(w.boss){ this.boss={kind:'boss1',def:N.enemy.boss1,hp:N.enemy.boss1.hp,x:FIELD_W+70,y:150,w:80,h:100, // 原版 (250,100)→千星y150
       isBoss:true,phase:'enter',pt:0,patT:0,pat:0,dead:false};
       this.scrollSpd=N.scrollBoss; this.lock=1.0; this.ebullets.length=0; this.log('boss_spawn'); SFX.play('boss',0.5); return; }
     for(const [kind,y] of w.spawns){
@@ -230,20 +239,14 @@ class Game{
     if(mvx||mvy){ if(S.x===N.player.xMin)this.log('bound left'); if(S.x===N.player.xMax)this.log('bound right');
       if(S.y===N.player.yMin)this.log('bound down'); if(S.y===N.player.yMax)this.log('bound up'); }
 
-    // 开枪（自动连发 + 蓄能 + 凤凰）与放宝
+    // 开枪（原版 D159 点射模型）：J 一按=一段 3 连点射（an 门闩锁到松手），长按无连发→转纯蓄力；触屏保留自动连发（再创偏差）
     const firing=keys['j']||touch.on;
     this.fireCd-=dt;
-    if(firing&&this.lock<=0&&this.fireCd<=0){
-      const n=[1,2,3,4,3][this.lv-1], dmg=N.zdlv[this.lv-1], sp=cfg.bspeed;
-      const bw=cfg.bullet==='jezd'?24+this.lv*2:15+this.lv*3, bh=cfg.bullet==='jezd'?8:9+this.lv*1.8, glow=this.lv>=3;
-      if(this.lv<5){ for(let i=0;i<n;i++){ const off=(i-(n-1)/2)*10;
-          this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,dmg,glow,art:cfg.bullet}); } }
-      else { for(const dy of [1,0,-1]) this.bullets.push({x:S.x+16,y:S.y+dy*8,vx:sp,vy:dy*sp*0.22,w:bw,h:bh,dmg,glow:true,art:cfg.bullet}); }
-      this.fireCd=[0.26,0.22,0.2,0.18,0.1][this.lv-1];
-      SFX.play(cfg.sfx||'fire',0.18);
-      this.log('fire');
-    }
-    // 蓄力（原版结构 D157）：按住J边发普通弹边蓄（不互斥，无额外攻击=惩罚期）；松手瞬间清零；
+    if(jEdge&&this.lock<=0&&this.state==='playing'){ this.burst=3; this.burstCd=0; } // 一按=一段
+    if(this.burst>0){ this.burstCd-=dt;
+      if(this.burstCd<=0){ this.fireVolley(); this.burst--; this.burstCd=0.1; } }
+    if(touch.on&&this.lock<=0&&this.fireCd<=0){ this.fireVolley(); this.fireCd=0.3; }
+    // 蓄力（原版结构 D157+D159）：首轮点射后长按=纯蓄力（惩罚期无额外攻击）；松手瞬间清零；
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
     else if(firing&&this.lv>1) this.neng=Math.min(this.neng+N.chargeRate*dt,cfg.ps);
