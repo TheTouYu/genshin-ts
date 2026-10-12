@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>长虹剑·预览确认</title>
+<style>
+  body { background:#0d0d1c; color:#eee; font-family:sans-serif; padding:20px; max-width:980px; margin:auto; }
+  h2 { color:#ffd479; border-bottom:1px solid #334; padding-bottom:4px; margin-top:28px; }
+  .panel { border:1px solid #334; border-radius:10px; padding:14px; margin:10px 0; }
+  .dark { background:radial-gradient(ellipse at center,#1c1c3a,#0d0d1c); }
+  .light { background:#f2ead8; }
+  .row { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  .tag { font-size:12px; color:#9ab; }
+  .big { filter:drop-shadow(0 0 18px rgba(255,179,71,.45)); }
+  /* 飞行模拟：剑从左到右巡航，尾焰拉伸 */
+  .lane { position:relative; height:120px; overflow:hidden; border-radius:8px;
+    background:linear-gradient(90deg,#0d0d1c,#151530 60%,#0d0d1c); }
+  .fly { position:absolute; top:50%; left:-160px; animation:fly 3.2s linear infinite; }
+  @keyframes fly { 0%{ transform:translate(0,-50%);} 100%{ transform:translate(1150px,-50%);} }
+  .stars { position:absolute; inset:0; }
+  .stars i { position:absolute; width:2px; height:2px; background:#889; border-radius:50%; }
+  table { border-collapse:collapse; font-size:13px; }
+  td,th { border:1px solid #334; padding:6px 10px; }
+</style>
+</head>
+<body>
+<h1>⚔️ 长虹剑 v2（减法版） · 预览确认</h1>
+<p class="tag">v2 改动：删剑尖十字星芒、删铭纹、双穗→单缕、三道尾焰→两道、血槽双线→单线中脊。裁决项：形/色/穗/尾焰。回复「通过」或指出要改的部位+方向。</p>
+
+<h2>1. 定妆照（×3 放大，游戏底色）</h2>
+<div class="panel dark" style="text-align:center">
+  <img src="changhong.svg" width="450" class="big">
+</div>
+
+<h2>2. 浅底看轮廓（×3）</h2>
+<div class="panel light" style="text-align:center">
+  <img src="changhong.svg" width="450">
+</div>
+
+<h2>3. 实际游戏尺寸：新剑 vs 旧弹（wzd 610）</h2>
+<div class="panel dark row">
+  <div style="text-align:center"><img src="changhong.svg" width="54"><div class="tag">长虹剑 36×11（弹速420）</div></div>
+  <div style="text-align:center"><img src="../../research/extract/assets/shapes/610.svg" width="29"><div class="tag">旧 wzd 19×6（对照）</div></div>
+  <div style="text-align:center"><img src="changhong.svg" width="36"><div class="tag">同尺寸不带放大，可读性判据</div></div>
+</div>
+
+<h2>4. 飞行模拟（气质验收：尾焰/星芒/穗飘）</h2>
+<div class="lane panel">
+  <div class="stars" id="st"></div>
+  <div class="fly"><img src="changhong.svg" width="135"></div>
+</div>
+
+<h2>5. 结构清单（说改哪条报序号即可）</h5>
+<table>
+<tr><th>#</th><th>部件</th><th>现设计</th></tr>
+<tr><td>1</td><td>剑身</td><td>双刃八面体，中脊起棱+血槽双线，橙金→白芯渐变</td></tr>
+<tr><td>2</td><td>剑格</td><td>云头格（金渐变+菱形Boss）</td></tr>
+<tr><td>3</td><td>剑柄/剑首</td><td>缠绳柄+圆首，占全长 ~18%</td></tr>
+<tr><td>4</td><td>剑穗</td><td>红穗两缕向左飘+金珠</td></tr>
+<tr><td>5</td><td>尾焰</td><td>三道渐隐流光+橙晕</td></tr>
+<tr><td>6</td><td>剑尖星芒</td><td>十字白芒+芯点</td></tr>
+<tr><td>7</td><td>铭纹</td><td>剑身根部两枚菱形纹（ opacity .55）</td></tr>
+</table>
+<script>
+const st=document.getElementById('st');
+for(let i=0;i<40;i++){const s=document.createElement('i');
+  s.style.left=(Math.random()*100)+'%'; s.style.top=(Math.random()*100)+'%';
+  s.style.opacity=.3+Math.random()*.5; st.appendChild(s);}
+</script>
+</body>
+</html>

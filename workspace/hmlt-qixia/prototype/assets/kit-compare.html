@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>双角色攻击/蓄力 对比预览</title>
+<style>
+  body { background:#0d0d1c; color:#eee; font-family:sans-serif; padding:20px; max-width:1080px; margin:auto; }
+  h1 { color:#ffd479; } h2 { color:#ffd479; border-bottom:1px solid #334; padding-bottom:4px; margin-top:26px; }
+  .cols { display:flex; gap:16px; flex-wrap:wrap; }
+  .col { flex:1 1 460px; border:1px solid #334; border-radius:10px; padding:14px; background:linear-gradient(#16162e,#0d0d1c); }
+  .col h3 { margin:2px 0 10px; }
+  .hm { border-top:3px solid #ffb347; } .lt { border-top:3px solid #7fd8ff; }
+  .tag { font-size:12px; color:#9ab; }
+  .stage { display:flex; gap:10px; margin-top:10px; }
+  .scene { flex:1; position:relative; height:110px; border-radius:8px; overflow:hidden;
+    background:linear-gradient(90deg,#0d0d1c,#181838 55%,#0d0d1c); border:1px solid #2a2a4a; }
+  .scene .cap { position:absolute; left:6px; top:4px; font-size:11px; color:#8fa3c8; }
+  .ship { position:absolute; }
+  table { border-collapse:collapse; font-size:12.5px; margin-top:8px; width:100%; }
+  td,th { border:1px solid #334; padding:4px 8px; text-align:left; } th { color:#cde; }
+  .num { color:#ffd479; }
+  .badge { font-size:11px; padding:1px 7px; border-radius:8px; background:#5a2a10; color:#ffb347; }
+</style>
+</head>
+<body>
+<h1>⚖️ 攻击 &amp; 蓄力表现对比（虹猫 vs 蓝兔）</h1>
+<p class="tag">判据：两角色机制类型不得重叠（用户设计红线）。虹猫蓄力/大招在 ③ 将整体重设计——本页先摆现状差异，供裁决新方案时对照。</p>
+
+<div class="cols">
+  <!-- 虹猫 -->
+  <div class="col hm">
+    <h3>虹猫 · 普攻主力型 <span class="badge">蓄力表现 ③ 待重设计</span></h3>
+    <div style="text-align:center;background:radial-gradient(ellipse,#1c1c3a,#0d0d1c);border-radius:8px;padding:10px">
+      <img src="changhong.svg" width="234" style="filter:drop-shadow(0 0 12px rgba(255,179,71,.5))">
+      <div class="tag">长虹剑（手绘 v2） 36×11 · 实际尺寸 <img src="changhong.svg" width="36" style="vertical-align:middle"> </div>
+    </div>
+    <table>
+      <tr><th>节奏</th><td>0.35s/剑（冷静却门）· 每剑要打得准</td></tr>
+      <tr><th>单发</th><td class="num">16（lv×1.8）</td></tr>
+      <tr><th>弹速</th><td class="num">420 px/s（看得清飞行轨迹）</td></tr>
+      <tr><th>身份</th><td>单发重剑流：一剑一个准，节奏感</td></tr>
+    </table>
+    <h2 style="font-size:14px">蓄力现状（将被替换）</h2>
+    <div class="stage">
+      <div class="scene"><span class="cap">按住J蓄能…</span>
+        <img class="ship" src="../../research/extract/assets/shapes/551.svg" style="left:22px;top:41px" width="42">
+        <div style="position:absolute;left:70px;top:50px;width:70px;height:6px;background:#222;border-radius:3px"><div style="width:46%;height:100%;background:linear-gradient(90deg,#7a5,#ffd479);border-radius:3px"></div></div>
+      </div>
+      <div class="scene"><span class="cap">满蓄：僚机贴身</span>
+        <img class="ship" src="../../research/extract/assets/shapes/551.svg" style="left:28px;top:41px" width="42">
+        <img class="ship" src="fudaiji-new.svg" style="left:72px;top:33px" width="20">
+        <img class="ship" src="fudaiji-new.svg" style="left:72px;top:63px" width="20">
+      </div>
+      <div class="scene"><span class="cap">释放：僚机散射窗</span>
+        <img class="ship" src="../../research/extract/assets/shapes/551.svg" style="left:14px;top:41px" width="42">
+        <img class="ship" src="fudaiji-new.svg" style="left:58px;top:48px" width="20">
+        <img src="../../research/extract/assets/shapes/504.svg" style="position:absolute;left:92px;top:18px;width:14px;transform:rotate(-24deg)">
+        <img src="../../research/extract/assets/shapes/504.svg" style="position:absolute;left:96px;top:44px;width:14px">
+        <img src="../../research/extract/assets/shapes/504.svg" style="position:absolute;left:92px;top:70px;width:14px;transform:rotate(24deg)">
+      </div>
+    </div>
+    <p class="tag">现状问题：满蓄奖励=更多弹（同类型增益，与普攻重叠）→ ③ 重设计的靶子。僚机已换剑形随行符重绘候选（原版 fudaiji 用户判定丑）。</p>
+  </div>
+
+  <!-- 蓝兔 -->
+  <div class="col lt">
+    <h3>蓝兔 · 射手+爆发型</h3>
+    <div style="text-align:center;background:radial-gradient(ellipse,#1c2a3a,#0d0d1c);border-radius:8px;padding:10px">
+      <img src="../../research/extract/assets/shapes/618.svg" width="234" style="filter:drop-shadow(0 0 12px rgba(127,216,255,.45))">
+      <div class="tag">jezd 激光弹（原版素材） 24×8 · 实际尺寸 <img src="../../research/extract/assets/shapes/618.svg" width="24" style="vertical-align:middle"> </div>
+    </div>
+    <table>
+      <tr><th>节奏</th><td>0.22s/发（高频）</td></tr>
+      <tr><th>单发</th><td class="num">8（lv×0.9）</td></tr>
+      <tr><th>弹速</th><td class="num">620 px/s</td></tr>
+      <tr><th>身份</th><td>射手型普攻 + 爆发型蓄力（身份分工）</td></tr>
+    </table>
+    <h2 style="font-size:14px">蓄力：冰魄剑（保留，打磨中）</h2>
+    <div class="stage">
+      <div class="scene"><span class="cap">按住J蓄能…</span>
+        <img class="ship" src="../../research/extract/assets/shapes/603.svg" style="left:24px;top:41px" width="36">
+        <div style="position:absolute;left:66px;top:50px;width:70px;height:6px;background:#222;border-radius:3px"><div style="width:46%;height:100%;background:linear-gradient(90deg,#48a,#7fd8ff);border-radius:3px"></div></div>
+      </div>
+      <div class="scene"><span class="cap">满蓄：蓝焰提示</span>
+        <img class="ship" src="../../research/extract/assets/shapes/603.svg" style="left:30px;top:41px" width="36">
+        <div style="position:absolute;left:58px;top:34px;color:#7fd8ff;font-size:20px;filter:drop-shadow(0 0 6px #7fd8ff)">❄</div>
+      </div>
+      <div class="scene"><span class="cap">释放：三剑穿透</span>
+        <img class="ship" src="../../research/extract/assets/shapes/603.svg" style="left:12px;top:43px" width="34">
+        <img src="../../research/extract/assets/shapes/518.svg" style="position:absolute;left:56px;top:12px;width:46px;transform:rotate(-8deg)">
+        <img src="../../research/extract/assets/shapes/518.svg" style="position:absolute;left:56px;top:48px;width:46px">
+        <img src="../../research/extract/assets/shapes/518.svg" style="position:absolute;left:56px;top:82px;width:46px;transform:rotate(8deg)">
+        <span class="tag" style="position:absolute;right:6px;bottom:4px">15×lv ×3把 · 750px/s · 穿透</span>
+      </div>
+    </div>
+    <p class="tag">类型=大范围穿透斩（与普攻类型不同 ✓）。提案：伤害 15→20×lv×3。</p>
+  </div>
+</div>
+
+<h2>并排一眼结论</h2>
+<table>
+  <tr><th></th><th>虹猫</th><th>蓝兔</th></tr>
+  <tr><th>普攻类型</th><td>重剑低频高单发</td><td>激光高频低单发</td></tr>
+  <tr><th>蓄力类型</th><td>散射增益（同类型 ✗ → ③ 重设计）</td><td>冰魄剑穿透斩（异类型 ✓）</td></tr>
+  <tr><th>理论 DPS（lv1 普攻）</th><td class="num">45.7</td><td class="num">36.4</td></tr>
+  <tr><th>满蓄收益（lv2）</th><td class="num">净 +54（v8 测）</td><td class="num">+90×命中数（贴脸 270）</td></tr>
+</table>
+<p class="tag">页面：prototype/assets/kit-compare.html · 素材：551/521/504/603/518/618 均原版导出 + changhong v2 手绘</p>
+</body>
+</html>
