@@ -93,7 +93,7 @@ const drawArt = (ctx,k,x,y,w,h,rot)=>{ const im=imgs[k]; if(!im.complete||!im.na
 // ---------- 数值总表（白皮书 §7，px/帧 → px/s ×25） ----------
 const N = {
   player: {vx:175, vy:100, xMin:25, xMax:415, yMin:34, yMax:220},  // ±7/±4px 帧，宽屏 xMax 373→415
-  zdlv:[12,16,11,9,6.5],               // v14 lv2..5 理论dps 100→137→175→200%：弹数 1/2/3/5，单发 52/69/47/39/28
+  zdlv:[12,16,11,8.5,4.4],               // v14 lv2..5 理论dps 100→137→175→200%：弹数 1/2/3/5，单发 52/69/47/39/28
   ps:{hongmao:70, lantu:65},           // 蓄能阈值
   chargeRate:35,                       // v16 蓄力提速（满档 3.0s/2.8s——鼓励蓄力循环）
   ships:{
@@ -213,7 +213,7 @@ const LEVELS = [
 ];
 // ---------- ⑤ 领悟图鉴（用户设计：初始只显名字，触发后解锁详情；纯展示无 buff） ----------
 const CODEX = [
-  ['guanri_full','满编贯日','僚机≥3 时蓄力释放长虹贯日','剑气宽度=基础18+15×僚机数，满编≈2.6倍'],
+  ['guanri_full','满编贯日','僚机≥3 时蓄力释放长虹贯日','剑宽=12+7×(等级-2)：手臂粗→虹猫本体大'],
   ['jiejian','贯日接剑','贯日释放后 0.5 秒内接射','释放后普攻冷却清零，立即再射'],
   ['rifeng','日凤连环','火凤命中已点燃的目标','对点燃目标伤害 ×1.5'],
   ['xuli_zouwei','蓄力走位','一次蓄力期间贴身躲过 3 发敌弹','无伤蓄满=全额回报'],
@@ -329,8 +329,8 @@ class Game{
           bh=cfg.bullet==='jezd'?8:cfg.bullet==='changhong'?9:[10,15,12,15,15][this.lv-1]; // 碰撞盒略小于视觉（原版 aaaa 口径）
     const fan=cfg.bullet==='changhong'; // v11：虹猫升 lv 出扇形、蓝兔加纵距（取消光晕）
     const offs=fan
-      ? (this.lv<=2?[[0,0]]:this.lv===3?[[0,-50],[0,50]]:this.lv===4?[[0,-70],[0,0],[0,70]]:[[0,-90],[0,-45],[0,0],[0,45],[0,90]])
-      : (this.lv<=2?[[0,0]]:this.lv===3?[[-4,0],[4,0]]:this.lv===4?[[-8,0],[0,0],[8,0]]:[[-12,0],[-4,0],[4,0],[12,0]]); // 蓝兔直线纵排
+      ? (this.lv<=2?[[0,0]]:this.lv===3?[[0,-50],[0,50]]:this.lv===4?[[0,-70],[0,0],[0,70]]:[[0,-105],[0,-63],[0,-21],[0,21],[0,63],[0,105]])
+      : (this.lv<=2?[[0,0]]:this.lv===3?[[-4,0],[4,0]]:this.lv===4?[[-8,0],[0,0],[8,0]]:[[-15,0],[-9,0],[-3,0],[3,0],[9,0],[15,0]]); // 蓝兔直线纵排
     const aw=cfg.bullet==='changhong'?36:bw, ah=cfg.bullet==='changhong'?11:bh; // 视觉尺寸（飞剑大弹）
     for(const [oy,vy] of offs) this.bullets.push({x:S.x+16,y:S.y+oy,vx:sp,vy,w:bw,h:bh,aw,ah,dmg,art:cfg.bullet,
       maxD:cfg.range||0,dist:0});                                  // v16 蓝兔射程 240：超程蒸发（近战换高 dps）
@@ -342,7 +342,7 @@ class Game{
         w:16,h:7,dmg:Math.round(N.zdlv[this.lv-1]*1.2),art:cfg.wingBullet});
         this.booms.push({x:w.x+13,y:w.y,t:.08,spark:true}); } }
     else if(this.needles<this.lv*(2+this.lv)) this.needles++;      // v14 修复：v13 丢了积累行→银针消失
-    else this.needleBarrage(0.7,false); // v18 速发小针×0.7（普攻弱档）
+    else this.needleBarrage(0.5,false); // v18 速发小针×0.7（普攻弱档）
   }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship, tier=this.chargeTier||1;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
@@ -350,8 +350,8 @@ class Game{
       const n=this.wings.length, tier=this.chargeTier||1;
       if(tier<1){ this.wingBurst2=2.4*0.3;                           // 不满蓄惩罚：僚机弹量骤减（30%）+无飞剑
         this.say('长虹未满·仅僚机齐射'); this.log('charge_weak'); return; }
-      this.guanri={t:3.2,x:S.x+20,w:36*(this.lv-1),y:S.y,            // 成长曲线：lv-1 倍（1/2/3/4）
-        dmg:60+35*this.lv,hit:new Set()};
+      this.guanri={t:3.2,x:S.x+20,w:12+7*(this.lv-2),y:S.y,            // v19 成长曲线：手臂粗(12)→虹猫本体(33)
+        dmg:95+28*this.lv,hit:new Set()};
       if(n>=3) this.unlock('guanri_full');
       this.wingBurst2=2.4;                                          // 满档：完整 S 阵列（近身高风险高dps）
       this.jieJian=0.5; this.say('长虹贯日!'); return; }
@@ -362,13 +362,13 @@ class Game{
       for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.09;   // v16 扇形收窄：贴脸 boss 全把命中
         this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,
           aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
-          dmg:Math.round((70+45*this.lv)*tier*(0.4+0.6*this.needles/(this.lv*(2+this.lv)))),maxD:200,dist:0,art:'bingpoj'}); } // v18 冰魄×存量（对单占比↑）
+          dmg:Math.round((95+40*this.lv)*tier*(0.4+0.6*this.needles/(this.lv*(2+this.lv)))),maxD:200,dist:0,art:'bingpoj'}); } // v18 冰魄×存量（对单占比↑）
       this.say(tier===1?'冰魄剑!':'冰魄剑·残形'); this.loopMark.sword=this.t;
-      this.needleBarrage(tier===1?1.8:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
+      this.needleBarrage(tier===1?2.0:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
   needleBarrage(mult=1,big=false,keep=1){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
     if(n===0) return;
     const fire=Math.max(1,Math.ceil(n*keep)), gone=n-fire;
-    this.needleSalvo={x:S.x,y:S.y,n:fire,mult,big,int:0.07,rows:this.lv};
+    this.needleSalvo={x:S.x,y:S.y,n:fire,mult,big,int:0.12,rows:this.lv};
     for(let i=0;i<gone;i++)                                        // 不满蓄：未达阈值的银针当场消散（火花）
       this.booms.push({x:S.x+(Math.random()-.5)*54,y:S.y+(Math.random()-.5)*38,t:.3,spark:true});
     this.needles=0;
@@ -565,6 +565,7 @@ class Game{
       if(charging&&this.shipKey==='hongmao'){ const a=this.t*4+i*6.28/Math.max(1,this.wings.length);  // 环绕注能
         tx=S.x+Math.cos(a)*26; ty=S.y+Math.sin(a)*26; }
       else if(charging){ tx=S.x+22-i*10; ty=S.y+(i%2?6:-6); }                              // 蓝兔针座贴身
+      else if(this.shipKey==='lantu'){ tx=S.x-26-i*15; ty=S.y-8-i*11+Math.sin(this.t*2.2+i)*3; } // v19 针座阶梯斜阵
       else { tx=S.x-26-i*16; ty=S.y-10; }
       const k=Math.min(1,dt*5*(w.k||1));
       w.x+=(tx-w.x)*k*1.4; w.y+=(ty-w.y)*k;
@@ -700,7 +701,7 @@ class Game{
       if(this.invuln<=0&&this.lock<=0&&hit(b,S)) this.playerHit(); }
 
     // ③ 长虹贯日：全屏剑气（宽度=18+15×僚机），命中点燃 3s
-    if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=260*dt;   // v13 慢剑：可感知+操作空间   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
+    if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=156*dt;   // v19 慢剑 40%：可感知+操作空间   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
       for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&e.x>S.x-20&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){
         g.hit.add(e); this.damage(e, e.isBoss?Math.round(g.dmg*1.5):g.dmg); e.burn=6; // v16 巨剑对 boss ×1.5 终结技
@@ -838,9 +839,9 @@ class Game{
     for(const b of this.bullets) drawArt(ctx,b.art||N.ships[this.shipKey].bullet,b.x,b.y,b.aw||b.w,b.ah||b.h);
     for(const b of this.ebullets){ if(b.frozen&&this.freezeT<1&&Math.floor(this.t*10)%2===0) continue; // 渐融闪烁
       drawArt(ctx,b.frozen?'bingjing':(b.art||'szd'),b.x,b.y); }
-    if(this.guanri){ const g=this.guanri, sc=1+0.28*this.lv;          // v13 贯日=巨剑本体（旧剑气带已弃）
-      ctx.globalAlpha=0.35; drawArt(ctx,'changhong',g.x-70*sc,g.y,150*sc*0.8,46*sc*0.8); // 残影
-      ctx.globalAlpha=1; drawArt(ctx,'changhong',g.x,g.y,150*sc,46*sc); }
+    if(this.guanri){ const g=this.guanri; const th=Math.max(12,g.w*1.15); // v19 剑体厚度=命中带×1.15（lv2 手臂→lv5 本体）
+      ctx.globalAlpha=0.35; drawArt(ctx,'changhong',g.x-64,g.y,136,th);   // 残影
+      ctx.globalAlpha=1; drawArt(ctx,'changhong',g.x,g.y,164,th); }
     if(this.phoenix2){ const p=this.phoenix2; ctx.globalAlpha=.35; drawArt(ctx,'huofeng',p.x-26,p.y,120,94,-0.15); ctx.globalAlpha=1; // ③ 火凤（残影+本体+火羽拖尾）
       drawArt(ctx,'huofeng',p.x,p.y,120,94,-0.08);
       for(let i=1;i<=4;i++){ ctx.globalAlpha=.5-.1*i; drawArt(ctx,'huofeng',p.x-40*i-20,p.y+8*i*(i%2?1:-1),90-14*i,70-10*i,-0.2); } ctx.globalAlpha=1; }
