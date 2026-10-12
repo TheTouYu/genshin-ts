@@ -246,7 +246,7 @@ function normKey(e){
 }
 const keys = {}; let jEdge=false, kEdge=false;
 addEventListener('keydown', e=>{
-  if(game&&game.traitCard){ game.traitCard=null; game.invuln=Math.max(game.invuln,1.5); return; } // v20 特性卡：任意键关闭+1.5s无敌
+  if(game&&game.traitCard){ if(normKey(e)==='k'){ game.traitCard=null; game.invuln=Math.max(game.invuln,1.5); } return; } // v22 特性卡：仅 K 关闭（防没看清误触）+1.5s无敌
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   const k = normKey(e);
   if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
@@ -359,7 +359,7 @@ class Game{
         w:16,h:7,dmg:Math.round(N.zdlv[this.lv-1]*1.2),art:cfg.wingBullet});
         this.booms.push({x:w.x+13,y:w.y,t:.08,spark:true}); } }
     else if(this.needles<this.lv*(2+this.lv)) this.needles++;      // v14 修复：v13 丢了积累行→银针消失
-    else this.needleBarrage(0.5,false); // v18 速发小针×0.7（普攻弱档）
+    // v22 满匣不再自动倾匣（与针满则锐冲突）：满匣=保留增益，只有蓄力释放才花针
   }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship, tier=this.chargeTier||1;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
@@ -967,7 +967,7 @@ class Game{
       ctx.textAlign='center'; ctx.fillStyle='#ffd166'; ctx.font='bold 24px system-ui';
       ctx.fillText('✦ 特性 · '+t[1], FIELD_W/2, FIELD_H/2-36);
       ctx.fillStyle='#8fd3a8'; ctx.font='13px system-ui'; ctx.fillText('『'+t[2]+'』 '+t[3], FIELD_W/2, FIELD_H/2-8);
-      ctx.fillStyle='#8fa2ba'; ctx.font='12px system-ui'; ctx.fillText('按任意键继续 · 已获 1.5 秒无敌', FIELD_W/2, FIELD_H/2+26);
+      ctx.fillStyle='#8fa2ba'; ctx.font='12px system-ui'; ctx.fillText('按 K 继续（触屏点击）· 已获 1.5 秒无敌', FIELD_W/2, FIELD_H/2+26);
       ctx.textAlign='left'; }
     if(this.unlockFx){ const u=this.unlockFx, k=1-u.t/2.5;      // 悟·大字上浮渐隐
       ctx.globalAlpha=clamp(u.t,0,1); ctx.textAlign='center';
