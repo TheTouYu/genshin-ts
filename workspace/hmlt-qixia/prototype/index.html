@@ -98,7 +98,7 @@ const N = {
   chargeRate:35,                       // v16 蓄力提速（满档 3.0s/2.8s——鼓励蓄力循环）
   ships:{
     hongmao:{bullet:'changhong', bspeed:420, fireCd:0.7, dmgMul:4.3, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'guanri',  bombDj:50, bombBoss:50},  // ③ 虹猫蓄力=长虹贯日（僚机灌注）
-    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:2.1, ps:65, range:178, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
+    lantu:  {bullet:'jezd',bspeed:620, fireCd:0.4, dmgMul:1.8, ps:65, range:178, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
   },
   enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:220, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
           dj3:{hp:420, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
@@ -330,7 +330,7 @@ class Game{
     const fan=cfg.bullet==='changhong'; // v11：虹猫升 lv 出扇形、蓝兔加纵距（取消光晕）
     const offs=fan
       ? (this.lv<=2?[[0,0]]:this.lv===3?[[0,-50],[0,50]]:this.lv===4?[[0,-70],[0,0],[0,70]]:[[0,-90],[0,-45],[0,0],[0,45],[0,90]])
-      : (this.lv<=2?[[0,0]]:this.lv===3?[[-4,0],[4,0]]:this.lv===4?[[-8,0],[8,0]]:[[-12,0],[-4,0],[4,0],[12,0]]); // 蓝兔直线纵排
+      : (this.lv<=2?[[0,0]]:this.lv===3?[[-4,0],[4,0]]:this.lv===4?[[-8,0],[0,0],[8,0]]:[[-12,0],[-4,0],[4,0],[12,0]]); // 蓝兔直线纵排
     const aw=cfg.bullet==='changhong'?36:bw, ah=cfg.bullet==='changhong'?11:bh; // 视觉尺寸（飞剑大弹）
     for(const [oy,vy] of offs) this.bullets.push({x:S.x+16,y:S.y+oy,vx:sp,vy,w:bw,h:bh,aw,ah,dmg,art:cfg.bullet,
       maxD:cfg.range||0,dist:0});                                  // v16 蓝兔射程 240：超程蒸发（近战换高 dps）
@@ -342,7 +342,7 @@ class Game{
         w:16,h:7,dmg:Math.round(N.zdlv[this.lv-1]*1.2),art:cfg.wingBullet});
         this.booms.push({x:w.x+13,y:w.y,t:.08,spark:true}); } }
     else if(this.needles<this.lv*(2+this.lv)) this.needles++;      // v14 修复：v13 丢了积累行→银针消失
-    else this.needleBarrage(1,false);   // 满后再积累=自动齐发（原尺寸）
+    else this.needleBarrage(0.7,false); // v18 速发小针×0.7（普攻弱档）
   }
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship, tier=this.chargeTier||1;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
@@ -362,9 +362,9 @@ class Game{
       for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.09;   // v16 扇形收窄：贴脸 boss 全把命中
         this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,
           aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
-          dmg:Math.round((70+45*this.lv)*tier),maxD:200,dist:0,art:'bingpoj'}); } // v16 单发加高（对单占比↑）
+          dmg:Math.round((70+45*this.lv)*tier*(0.4+0.6*this.needles/(this.lv*(2+this.lv)))),maxD:200,dist:0,art:'bingpoj'}); } // v18 冰魄×存量（对单占比↑）
       this.say(tier===1?'冰魄剑!':'冰魄剑·残形'); this.loopMark.sword=this.t;
-      this.needleBarrage(tier===1?1.6:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
+      this.needleBarrage(tier===1?1.8:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
   needleBarrage(mult=1,big=false,keep=1){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
     if(n===0) return;
     const fire=Math.max(1,Math.ceil(n*keep)), gone=n-fire;
