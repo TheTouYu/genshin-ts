@@ -91,7 +91,7 @@ addEventListener('keydown', e=>{
   const k = normKey(e);
   if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
   keys[k]=true;
-  if(game){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer();
+  if(game && game.state!=='select'){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer();
     if(k==='m'){ SFX.mode=SFX.mode==='classic'?'full':'classic'; game.say('音效:'+(SFX.mode==='classic'?'原版3音':'完整(再创)')); } }
   if(k==='r' && game && game.state!=='select') restart();
 });
