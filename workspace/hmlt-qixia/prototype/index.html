@@ -308,7 +308,7 @@ class Game{
     this.stats={kills:0,hits:0,pick:0,time:0};
     this.needles=0; this.shotN=0; this.wallSeq=0; this.wallHits={};
     this.guanri=null; this.phoenix2=null; this.freezeT=0; this.jieJian=0; this.chargeGraze=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
@@ -330,7 +330,7 @@ class Game{
     this.wave=-1; this.levelT=0; this.waveGap=0; this.boss=null;
     this.enemies.length=0; this.ebullets.length=0; this.items.length=0; this.booms.length=0;
     this.needles=0; this.neng=0; this.guanri=null; this.phoenix2=null; this.freezeT=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.scrollSpd=N.scroll; this.envTimer=1.5; this.bgKey=L.bg; this.bgW=ART[L.bg][1];
@@ -382,15 +382,15 @@ class Game{
           aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
           dmg:Math.round((95+40*this.lv)*tier*(0.4+0.6*this.needles/(this.lv*(2+this.lv)))),maxD:200,dist:0,art:'bingpoj'}); } // v18 冰魄×存量（对单占比↑）
       this.say(tier===1?'冰魄剑!':'冰魄剑·残形'); this.loopMark.sword=this.t;
-      this.needleBarrage(tier===1?2.0:0.6, true, tier===1?1:0.25); } }   // v15：不满蓄=只发25%大针，余者消散
-  needleBarrage(mult=1,big=false,keep=1){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
+      this.needleBarrage(tier===1?2.0:0.6, true, tier===1?1:0.25, this.zmArmed); this.zmArmed=false; } } // v30：针满则锐标签绑定本次释放即消耗
+  needleBarrage(mult=1,big=false,keep=1,zm=false){ const S=this.ship, n=this.needles; // v15：salvo 状态机——发射瞬间固化在原地，逐发飞出（不跟随玩家）
     if(n===0) return;
     const fire=Math.max(1,Math.ceil(n*keep)), gone=n-fire;
-    this.needleSalvo={x:S.x,y:S.y,n:fire,mult,big,int:0.12,rows:this.lv};
+    this.needleSalvo={x:S.x,y:S.y,n:fire,mult,big,int:0.12,rows:this.lv,zm:!!zm}; // v30 zm=这一匣是否满蓄达成
     for(let i=0;i<gone;i++)                                        // 不满蓄：未达阈值的银针当场消散（火花）
       this.booms.push({x:S.x+(Math.random()-.5)*54,y:S.y+(Math.random()-.5)*38,t:.3,spark:true});
     this.needles=0;
-    this.say(gone>0?'银针消散·残阵齐发!':(big?'冰魄银针·齐发!':'冰魄银针·速发'));
+    if(big||gone>0) this.say(gone>0?'银针消散·残阵齐发!':'冰魄银针·齐发!'); // v30 普攻自动小针不刷屏
     this.log('needle_wall'); this.loopMark.wall=this.t;
     if(this.t-this.loopMark.shot<12) this.unlock('bing_lun'); }
   addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
@@ -400,7 +400,7 @@ class Game{
   traitBulletDmg(b,e){ let d=b.dmg; // v21 特性暴击体系：基础5%×2；条件加成见 critRate
     const kind=b.wallId?'needle':(b.art==='changhong'?'sword':(b.art==='bingpoj'?'blade':'wing'));
     if(kind==='needle'&&this.shipKey==='lantu'&&this.freezeT>0) this.traitFire('yizhen'); // 一针见血
-    if(kind==='needle'&&this.shipKey==='lantu'&&this.zmArmed){ this.zmArmed=false; this.traitFire('zhenman'); this.traitFx('zhenman'); } // v28 针满则锐：加速蓄出的针真打出伤害→2.5s 后弹卡
+    if(kind==='needle'&&b.zm){ this.traitFire('zhenman'); this.traitFx('zhenman'); } // v30 针满则锐：满蓄那匣的针出伤→2.5s 后弹卡
     const crit=Math.random()<this.critRate(kind,e);
     if(crit){ d*=2; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); }
     this.dmgFloat(e,d,kind==='blade'?'frost':'normal',crit);
@@ -589,12 +589,17 @@ class Game{
       this.fireVolley(); this.fireCd=(cfg.fireCd||0.3)/(this.life===1?1.2:1); // v21 背水一战：射速+20%
       if(this.renjianWin>0&&this.renjianLeft>0&&this.shipKey==='hongmao'){    // v21 人剑合一：剑命中0.3s内按普攻
         this.renjianLeft--; this.renjianWin=0; this.renjianCd=this.t+1.2;     // 一次释放最多2次+触发CD1.2s
-        this.traitFire('renjian'); this.fireSmallSwords(2,'renjian'); } } // v12：虹猫0.7重剑/蓝兔0.4
+        this.traitFire('renjian'); this.fireSmallSwords(2,'renjian'); }
+      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)){        // v30 满匣普攻小针（恢复 v18）：点按/按住分流
+        if(touch.on&&!jEdge) this.needleBarrage(0.7,false,1,false);
+        else if(jEdge&&this.neng<=0) this.zmTapT=this.t+0.25; } } // 按下记时：0.25s 内松手=点按倾匣；按住=蓄力保匣
     if(this.readyFx>0) this.readyFx-=dt;
     if(this.renjianWin>0) this.renjianWin-=dt;  // v21 人剑合一 0.3s 追剑窗
     for(const k in this.fxAura) if(this.fxAura[k]>0) this.fxAura[k]-=dt; // v21 特性光环衰减
     // 蓄力（原版结构 D157+D159）：首轮点射后长按=纯蓄力（惩罚期无额外攻击）；松手瞬间清零；
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
+    if(this.zmTapT>0){ if(!keys['j']){ this.zmTapT=0; this.needleBarrage(0.7,false,1,false); } // v30 快速松手=点按→满匣小针倾发
+      else if(this.t>=this.zmTapT) this.zmTapT=0; }                        // 按住超过 0.25s=蓄力→保匣
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
     else if(firing&&this.lv>1){ let cr=N.chargeRate;
       if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) cr*=1.3; // v21 针满则锐：提速常驻；v26 卡改到满针满蓄时弹
@@ -625,7 +630,7 @@ class Game{
         this.bullets.push({x:sv.x,y:sv.y+(row-(sv.rows-1)/2)*11,vx:560,vy:(row-(sv.rows-1)/2)*18,
           w:30,h:9,aw:(sv.big?44+5*this.lv:22),ah:(sv.big?10+this.lv:7),
           dmg:Math.round((12+7*this.lv)*sv.mult),pierce:!!sv.big,    // 小银针不穿透；大银针穿透
-          art:'yinzhen',maxD:sv.big?240:300,dist:0,wallId:++this.wallSeq}); // v17 银针射程：大240/小300
+          art:'yinzhen',maxD:sv.big?240:300,dist:0,wallId:++this.wallSeq,zm:!!sv.zm}); // v17 射程；v30 zm 标签
         SFX.play('fireL',0.2); }
       if(sv.n<=0) this.needleSalvo=null; }
     if(this.wingBurst2>0) this.wingBurst2-=dt;
@@ -804,7 +809,7 @@ class Game{
         if(b.pierce){ if(!b.hitSet) b.hitSet=new Set(); if(b.hitSet.has(e)) continue; b.hitSet.add(e);
           let d=b.dmg, nc=false;
           if(b.wallId){ if(this.shipKey==='lantu'&&this.freezeT>0) this.traitFire('yizhen'); // v21 一针见血
-            if(this.shipKey==='lantu'&&this.zmArmed){ this.zmArmed=false; this.traitFire('zhenman'); this.traitFx('zhenman'); } // v28 针满则锐：pierce 大针出伤路径
+            if(b.zm){ this.traitFire('zhenman'); this.traitFx('zhenman'); } // v30 针满则锐：满蓄那匣出伤（pierce 路径）
             if(Math.random()<this.critRate('needle',e)){ d*=2; nc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
           this.dmgFloat(e,d,b.art==='bingpoj'?'frost':'normal',nc); // v22 数字
           if(this.freezeT>0&&b.art==='bingpoj'){ d*=2; this.unlock('dong_sui'); // 冻→碎 ×2
