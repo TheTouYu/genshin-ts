@@ -55,14 +55,54 @@
   <div class="fly"><img src="changhong.svg" width="72" style="filter:drop-shadow(0 0 8px rgba(255,150,50,.6))"></div>
 </div>
 
-<h2>5. ③ 待重设计：蓄力释放与凤凰（现状展示）</h2>
+<h2>5. 升级链 lv1→lv5（弹道 + 僚机编队，与代码一致）</h2>
+<table>
+<tr><th>LV</th><th>弹道（正视示意，间距放大×3）</th><th>单发伤害</th><th>僚机</th><th>备注</th></tr>
+<tr><td>1</td><td><img src="changhong.svg" width="30" style="vertical-align:middle"></td><td>16</td><td>0</td><td>开局节奏钩子：入场白送 pow → 快速升 2</td></tr>
+<tr><td>2</td><td><img src="changhong.svg" width="30" style="vertical-align:middle"></td><td>16</td><td>1 台</td><td>解锁蓄力（按住 J）</td></tr>
+<tr><td>3</td><td><div style="display:flex;flex-direction:column;gap:2px"><img src="changhong.svg" width="30"><img src="changhong.svg" width="30"></div></td><td>11</td><td>2 台</td><td>双发纵排；弹体金光晕亮起</td></tr>
+<tr><td>4</td><td><div style="display:flex;flex-direction:column;gap:2px"><img src="changhong.svg" width="30"><img src="changhong.svg" width="30"></div></td><td>13</td><td>3 台</td><td>双发纵排</td></tr>
+<tr><td>5</td><td><div style="display:flex;flex-direction:column;gap:2px"><img src="changhong.svg" width="30"><img src="changhong.svg" width="30"><img src="changhong.svg" width="30"></div></td><td>11</td><td>4 台</td><td>三发纵排（原版 _Y±1 直射非扇形）；僚机满编</td></tr>
+</table>
+<p class="tag">伤害=原版 zdlv(9/9/6/7/6)×1.8 虹猫系数；僚机各自独立开火（0.3s/发，504 弹，个体弹速 250-350 随机=原版 zdsd 个体随机）。满级再吃 pow=+1000 分。</p>
+
+<h2>6. 蓄力全过程（lv≥2 可用）</h2>
+<div class="panel dark row" style="justify-content:space-between">
+  <div class="cell" style="position:relative;width:150px;height:110px;border:1px dashed #453;border-radius:6px">
+    <div class="tag" style="position:absolute;left:6px;top:4px">① 按住 J 蓄能</div>
+    <img src="../../research/extract/assets/shapes/551.svg" width="34" style="position:absolute;left:18px;top:44px">
+    <div style="position:absolute;left:16px;top:88px;width:60px;height:8px;border:1px solid #a86"><div style="width:60%;height:100%;background:linear-gradient(90deg,#d8942f,#ffe9b0)"></div></div>
+    <div class="tag" style="position:absolute;left:84px;top:90px">蓄能条 60%</div>
+  </div>
+  <div class="cell" style="position:relative;width:150px;height:110px;border:1px dashed #453;border-radius:6px">
+    <div class="tag" style="position:absolute;left:6px;top:4px">② 满蓄：金环+僚机贴身</div>
+    <img src="../../research/extract/assets/shapes/551.svg" width="34" style="position:absolute;left:18px;top:42px">
+    <div style="position:absolute;left:12px;top:50px;width:46px;height:16px;border:2px solid #ffe9b0;border-radius:50%;box-shadow:0 0 10px #ffb347"></div>
+    <img src="fudaiji-new.svg" width="18" style="position:absolute;left:56px;top:36px">
+    <img src="fudaiji-new.svg" width="18" style="position:absolute;left:56px;top:66px">
+    <div class="tag" style="position:absolute;left:78px;top:88px">提示音后可松手</div>
+  </div>
+  <div class="cell" style="position:relative;width:170px;height:110px;border:1px dashed #453;border-radius:6px">
+    <div class="tag" style="position:absolute;left:6px;top:4px">③ 释放：僚机散射窗 2s</div>
+    <img src="fudaiji-new.svg" width="18" style="position:absolute;left:52px;top:50px">
+    <img src="../../research/extract/assets/shapes/504.svg" width="12" style="position:absolute;left:80px;top:18px">
+    <img src="../../research/extract/assets/shapes/504.svg" width="12" style="position:absolute;left:92px;top:34px">
+    <img src="../../research/extract/assets/shapes/504.svg" width="12" style="position:absolute;left:96px;top:52px">
+    <img src="../../research/extract/assets/shapes/504.svg" width="12" style="position:absolute;left:92px;top:70px">
+    <img src="../../research/extract/assets/shapes/504.svg" width="12" style="position:absolute;left:80px;top:86px">
+    <div class="tag" style="position:absolute;left:36px;top:96px">五向 ±0.6rad，24 发/2s</div>
+  </div>
+</div>
+<p class="tag">蓄力期间照常移动（高风险走位）；满蓄不松=持续待发。散射窗自跑与按键无关（原版僚机时间轴独立）。⚠ 此整段就是 ③ 判决的「同类型增益」——方案里将换成异类型大招。</p>
+
+<h2>7. ③ 待重设计：蓄力释放与凤凰（现状展示）</h2>
 <div class="panel dark row" style="justify-content:space-around">
   <div class="cell"><img src="../../research/extract/assets/shapes/510.svg" width="46"><div class="st todo">1. 凤凰 510=雷电凤凰(ldfhm)<br>属大奔的素材，虹猫沿用违和</div></div>
   <div class="cell"><img src="../../research/extract/assets/shapes/504.svg" width="14"><div class="st todo">2. 散射窗弹幕=fdzd 同款弹<br>「同类型增益」判决的靶子</div></div>
   <div class="cell"><img src="../../research/extract/assets/shapes/402.svg" width="60"><div class="st orig">3. 炸弹爆风 die 402<br>通用爆炸，可保留</div></div>
 </div>
 
-<h2>6. 状态台账（裁决后勾销）</h2>
+<h2>8. 状态台账（裁决后勾销）</h2>
 <table>
 <tr><th>#</th><th>部件</th><th>素材</th><th>状态</th></tr>
 <tr><td>1</td><td>机体</td><td>551 原版</td><td>🟢 暂用原版（要重绘请说）</td></tr>
