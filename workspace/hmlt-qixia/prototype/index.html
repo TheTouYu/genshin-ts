@@ -41,7 +41,7 @@
 </head>
 <body>
 <div id="wrap"><canvas id="cv" width="444" height="250"></canvas>
-<div id="hint"><b style="color:#ffd166">[v12·僚机体系+大招造势]</b> WASD/J/K 键帽位 · J 慢节奏重击（虹猫0.7s/蓝兔0.4s，僚机每拍同步齐射）· 长按蓄力满松手：虹猫=贯日巨剑+S阵列弹海 / 蓝兔=冰魄剑(高单体)+银针列序齐发 · K 大招（时停+震动+火凤/冰封）· C 领悟图鉴 · 过关捡完掉落 J 续关 · 调试:1-5 B+宝 P+Pow R重开</div></div>
+<div id="hint"><b style="color:#ffd166">[v12·僚机体系+大招造势]</b> WASD/J/K 键帽位 · J 慢节奏重击（虹猫0.7s/蓝兔0.4s，僚机每拍同步齐射）· 长按蓄力满松手：虹猫=贯日巨剑+S阵列弹海 / 蓝兔=冰魄剑(高单体)+银针列序齐发 · K 大招（时停+震动+火凤/冰封）· C 领悟图鉴 · 过关捡完掉落 K 续关 · 调试:1-5 B+宝 P+Pow R重开</div></div>
 <div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
 <button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
 <div id="codex"><h2>领悟图鉴 <span id="codexN"></span></h2><div id="codexList"></div><p>C 或点击任意处关闭 · 初始只显名字，触发后解锁详情</p></div>
@@ -73,6 +73,10 @@ const ART = {
   bg2:[446,1486,250],                                  // 关2 背景 cj2(447→446)
   nq:[195,28,29], lsfj:[80,30,42], jbdj:[186,66,47], lfj:[218,35,15],   // 关2 怪（真身 shape）
   jbfjg:[179,132,91], boss2:[49,80,86], boss2b:[48,60,140],             // 中boss/尾boss P1/P2
+  nq2:[208,30,30], jxr1:[90,68,58], dgp:[171,82,34], dxdd:[622,43,16],   // 关3-5 新怪
+  jdlj:[101,46,90], hzz:[24,40,56], cw:[137,90,86],                      // 中boss：金蛟/黑猪妖/黑翼蛟
+  boss3:[151,146,82], jxjq:[311,180,122], black:[116,77,121],            // 尾boss：三头蛟/机械巨蜥/灰蓝魔神
+  bg3:[443,1333,250], bg4:[449,1333,250], bg5:[440,1333,250], bg6:[437,1333,250],
   guanri:['assets/guanri.svg',444,48], huofeng:['assets/huofeng.svg',74,58],
   dianran:['assets/dianran.svg',14,18], yinzhen:['assets/yinzhen.svg',28,8],
   bingfeng:['assets/bingfeng.svg',200,200], bingjing:['assets/bingjing.svg',12,12],
@@ -104,7 +108,18 @@ const N = {
           lfj:{hp:1, score:15, w:30,h:12},
           jbfjg:{hp:1700, zdsd:175, score:2000, w:104,h:64, drop:'jbfjg'},
           boss1:{hp:3000, zdsd:150, score:1000},
-          boss2:{hp:4000, zdsd:150, score:1500} },
+          boss2:{hp:4000, zdsd:150, score:1500, phases:[2000,2000]},
+          nq2:{hp:150, zdsd:150, score:350, w:30,h:30},
+          jxr1:{hp:300, zdsd:160, score:250, w:50,h:40},
+          dgp:{hp:400, zdsd:170, score:300, w:60,h:26, roller:true},
+          dxdd:{hp:99999, score:0, w:43,h:16, hazard:true},
+          jdlj:{hp:3000, zdsd:170, score:1000, w:46,h:88},
+          hzz:{hp:2500, zdsd:180, score:1000, w:40,h:54},
+          cw:{hp:2500, zdsd:170, score:1000, w:70,h:60},
+          boss3:{hp:5500, zdsd:180, score:1500, phases:[2500,3000]},
+          jxjq:{hp:6500, zdsd:170, score:1500, phases:[3500,3000]},
+          black:{hp:7700, zdsd:180, score:5000, phases:[3000,2200,2500]},
+          cw1:{hp:2500, zdsd:170, score:1000} },
   bombDmg:50, phoenixDps:50, scroll:100, scrollBoss:175, bsHpMax:8,
 };
 const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3×2→dj2×1×4→dj4→boss1
@@ -128,9 +143,54 @@ const wavesDef2 = [ // 关2（导演 249 纯时间表；t=帧/25，y=250-Flash�
   {t:16.8, spawns:[['lsfj',200],['lsfj',70]]}, {t:18.0, spawns:[['dj3',120]]},
   {t:19.4, boss:'boss2'},                          // f384 dong=2 前奏 + f419 bjsd 7 提速
 ];
+const wavesDef3 = [ // 关3（导演 292 混合驱动→时间表口径；中boss 门闩保留）
+  {t:0.4,spawns:[['jxr1',60],['lsfj',80]]}, {t:2.0,spawns:[['lsfj',200],['lsfj',130]]},
+  {t:4.0,spawns:[['dj4',130],['dj4',60]]}, {t:6.0,spawns:[['jxr1',60]]},
+  {t:7.6,spawns:[['jxr1',140],['jxr1',70]]}, {t:10.0,spawns:[['dj3',50],['nq2',100],['nq2',160]]},
+  {t:12.4,midBoss:'jdlj'},
+  {t:14.5,spawns:[['dgp',45]]}, {t:16.5,spawns:[['dgp',45]]},
+  {t:19.0,spawns:[['nq2',190],['nq2',150],['nq2',100],['nq2',50]]},
+  {t:24.0,spawns:[['nq2',130],['nq2',60],['nq',100]]},
+  {t:27.0,spawns:[['dj3',100],['dj4',50],['dj4',150]]},
+  {t:29.5,spawns:[['dgp',45]]}, {t:32.0,spawns:[['jxr1',180],['jxr1',70]]},
+  {t:34.5,spawns:[['dj4',190],['dj4',50]]},
+  {t:37.0,boss:'boss3'},
+];
+const wavesDef4 = [ // 关4（导演 298 纯时间表；jxjq 从屏底入场）
+  {t:0.4,spawns:[['nq2',80],['nq2',150]]}, {t:2.6,spawns:[['nq',190],['nq',50]]},
+  {t:5.4,spawns:[['dgp',45]]}, {t:9.4,spawns:[['dgp',45]]},
+  {t:10.4,spawns:[['dj3',110]]}, {t:11.6,spawns:[['nq2',50],['nq2',200],['nq2',100]]},
+  {t:13.2,spawns:[['lsfj',120],['lsfj',50],['lsfj',150]]}, {t:15.6,spawns:[['lsfj',190],['lsfj',80]]},
+  {t:17.2,spawns:[['dj3',120]]}, {t:18.0,spawns:[['nq2',50],['nq2',200],['nq2',120]]},
+  {t:19.6,spawns:[['nq',80],['nq',170]]},
+  {t:21.0,midBoss:'jbfjg'},
+  {t:23.5,spawns:[['dgp',45]]}, {t:25.5,spawns:[['dgp',45]]}, {t:27.5,spawns:[['dgp',45]]},
+  {t:29.5,spawns:[['dj3',50]]},
+  {t:32.0,boss:'jxjq'},
+];
+const wavesDef5 = [ // 关5（导演 281：中boss 车轮战 jbfjg→cw逃脱→jdlj→hzz→black；env=dxdd 鱼雷）
+  {t:0.4,spawns:[['nq2',100],['nq2',150]]},
+  {t:2.2,midBoss:'jbfjg'},
+  {t:4.1,midBoss:'cw'},                        // 15.6s 逃脱演出（杀不死=原版设计；速杀掉 pow×3）
+  {t:20.5,midBoss:'jdlj'},
+  {t:23.5,midBoss:'hzz'},
+  {t:26.5,spawns:[['nq2',110],['nq2',170]]}, {t:28.5,spawns:[['dj3',110]]},
+  {t:30.5,spawns:[['dj4',50],['dj4',200]]}, {t:32.5,spawns:[['dgp',45]]},
+  {t:34.5,spawns:[['lsfj',50]]}, {t:36.5,spawns:[['lsfj',120]]},
+  {t:38.5,spawns:[['nq2',50],['nq2',200]]}, {t:40.5,spawns:[['nq',100],['nq',150]]},
+  {t:44.0,boss:'black'},
+];
+const wavesDef6 = (()=>{ const w=[]; // 关6（导演 387 弹雨：4 轮×52 pass 压缩为 21 拍 + cw1）
+  for(let i=0;i<21;i++){ const y=()=>40+Math.random()*160|0;
+    w.push({t:0.4+i*0.42,spawns:[['xkl',y()],['xkl',y()],['bsrain',y()]]}); }
+  w.push({t:11.0,boss:'cw1'}); return w; })();
 const LEVELS = [
   {name:'第一关 · 长虹出鞘', bg:'bg',  waves:wavesDef,  mode:'gate'},
   {name:'第二关 · 冰魄试炼', bg:'bg2', waves:wavesDef2, mode:'time', env:'lfj'},
+  {name:'第三关 · 蛟龙怒涛', bg:'bg3', waves:wavesDef3, mode:'time'},
+  {name:'第四关 · 机械咆哮', bg:'bg4', waves:wavesDef4, mode:'time'},
+  {name:'第五关 · 魔神降临', bg:'bg5', waves:wavesDef5, mode:'time', env:'dxdd'},
+  {name:'终关 · 弹雨终局',   bg:'bg6', waves:wavesDef6, mode:'time'},
 ];
 // ---------- ⑤ 领悟图鉴（用户设计：初始只显名字，触发后解锁详情；纯展示无 buff） ----------
 const CODEX = [
@@ -261,31 +321,35 @@ class Game{
       for(const w of this.wings){ this.bullets.push({x:w.x+10,y:w.y,vx:w.bspd||cfg.wingSpeed,vy:0,
         w:16,h:7,dmg:Math.round(N.zdlv[this.lv-1]*1.2),art:cfg.wingBullet});
         this.booms.push({x:w.x+13,y:w.y,t:.08,spark:true}); } }
-    else if(this.needles<this.lv*(2+this.lv)) this.needles++; // v12：每发+1针，容量=lv×(2+lv)=3~35
+    else { this.needleBarrage(1,false); } // v13：满后再积累=自动齐发（原尺寸）；蓄力触发=放大版
   }
-  releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship;
+  releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship, tier=this.chargeTier||1;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
     if(cfg.chargeType==='guanri'){ // v12 长虹贯日：巨剑前推扫场（随lv更大更深）+僚机S阵列
       const n=this.wings.length;
-      this.guanri={t:1.4,x:S.x+20,w:64+22*this.lv+18*n,y:S.y,dmg:60+35*this.lv,hit:new Set()};
+      const tier=this.chargeTier||1;                                     // v13 两档：满蓄100%/45%档30%
+      this.guanri={t:3.2,x:S.x+20,w:Math.round((64+22*this.lv+18*n)*(0.6+0.4*tier)),y:S.y,
+        dmg:Math.round((60+35*this.lv)*tier),hit:new Set()};
       if(n>=3) this.unlock('guanri_full');
-      this.wingBurst2=1.2;                                       // 每僚机 5+lv 发 S 形正弦弹
+      this.wingBurst2=2.4*tier;                                 // v13 S 阵列窗 2.4s×两档（近身高风险高dps）
       this.jieJian=0.5; this.say('长虹贯日!'); return; }
     else { // v12 蓝兔蓄力=冰魄剑（高单体·不穿透·被小怪挡=需先清场）+银针齐发（范围·列序）
       const tgt=this.enemies.filter(e=>!e.dead&&e.x>S.x).sort((a,b)=>a.x-b.x)[0];
       const ang=clamp(tgt?Math.atan2(tgt.y-S.y,tgt.x-S.x):0,-0.5,0.5);
-      for(let k=0;k<this.lv;k++){ const a=ang+(k-(this.lv-1)/2)*0.14;   // 把数=lv，大小/伤害随 lv
+      const cnt=Math.max(1,Math.round(this.lv*tier));                    // v13 两档：把数随档
+      for(let k=0;k<cnt;k++){ const a=ang+(k-(cnt-1)/2)*0.14;
         this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,
-          aw:46+6*this.lv,ah:14+2*this.lv,dmg:50+30*this.lv,maxD:200,dist:0,art:'bingpoj'}); }
-      this.say('冰魄剑!'); this.loopMark.sword=this.t;
-      this.needleBarrage(); } }
-  needleBarrage(){ const S=this.ship, n=this.needles, rows=this.lv, per=2+this.lv;
+          aw:Math.round((46+6*this.lv)*(0.6+0.4*tier)),ah:Math.round((14+2*this.lv)*(0.6+0.4*tier)),
+          dmg:Math.round((50+30*this.lv)*tier),maxD:200,dist:0,art:'bingpoj'}); }
+      this.say(tier===1?'冰魄剑!':'冰魄剑·小成'); this.loopMark.sword=this.t;
+      this.needleBarrage(tier===1?1.6:0.3, tier===1); } }
+  needleBarrage(mult=1,big=false){ const S=this.ship, n=this.needles, rows=this.lv, per=2+this.lv; // v13：mult=伤害倍率 big=放大版
     if(n===0) return;
     // v12 列序齐发：从右到左、列内从上到下（伤害总时长拉长+位置预判；发射后不跟随玩家）
     for(let i=0;i<n;i++){ const row=Math.floor(i/per), col=i%per;
       setTimeout(()=>{ if(game!==this||this.state!=='playing') return;
         this.bullets.push({x:S.x-10,y:S.y+(row-(rows-1)/2)*11,vx:560,vy:(row-(rows-1)/2)*18,
-          w:30,h:9,aw:44+5*this.lv,ah:10+this.lv,dmg:12+7*this.lv,
+          w:30,h:9,aw:(big?44+5*this.lv:26),ah:(big?10+this.lv:8),dmg:Math.round((12+7*this.lv)*mult),
           pierce:true,art:'yinzhen',wallId:++this.wallSeq});
         SFX.play('fireL',0.2); }, ((per-1-col)*rows+row)*70); }
     this.needles=0; this.say('冰魄银针·齐发!'); this.log('needle_wall');
@@ -304,9 +368,9 @@ class Game{
   tryBomb(){
     if(this.state!=='playing'||this.lock>0||this.bomm<=0) return;
     this.bomm--; this.shield=2.0; this.log('bomb '+this.bomm); this.flashT=0.4;
-    this.slowT=0.5; this.slowK=0.08; this.shake=0.7;        // v12 造势：时停+画面震动
+    this.slowT=0.8; this.slowK=0.08; this.shake=0.7;        // v13 造势：时停 0.8s+画面震动
     this.tintFx={t:1.3, c:this.shipKey==='hongmao'?'255,110,30':'110,190,255'};
-    SFX.play(this.shipKey==='hongmao'?'phoenix':'boss', this.shipKey==='hongmao'?0.5:0.35);
+    SFX.play('boomE',0.55); SFX.play(this.shipKey==='hongmao'?'phoenix':'boss', this.shipKey==='hongmao'?0.5:0.35); // v13 双层气势
     if(this.shipKey==='hongmao'){ // ③ 火凤燎原：火凤掠场，接触点燃+持续伤害（对点燃×1.5）
       this.phoenix2={x:this.ship.x+20,y:this.ship.y,vx:240,t:5,hit:new Set()}; // v11 更久更慢=看清楚
       this.ebullets.length=0; this.say('火凤燎原!'); }
@@ -315,6 +379,11 @@ class Game{
       for(const b of this.ebullets){ b.vx=0; b.vy=0; b.frozen=true; } }
   }
   damage(e,dmg,isBomb){ e.hp-=dmg; e.flash=0.09; // 受击白闪反馈
+    if(e.hp<=0&&!e.dead&&e.isBoss&&e.phases&&e.phaseIdx<e.phases.length-1){   // v13 boss 分相（boss3/jxjq/black/boss2）
+      e.phaseIdx++; e.hp=e.phases[e.phaseIdx]; this.score+=1000; this.log('score '+this.score);
+      this.ebullets.length=0; this.say(e.kind+' 变形!'); e.flash=0.15;
+      if(e.kind==='black') this.items.push(this.mkItem('pow',e.x,e.y));       // black 阶段间掉 pow
+      return; }
     if(e.hp<=0 && !e.dead){ e.dead=true; this.onKill(e); } }
   onKill(e){
     this.score+=e.def.score; this.stats.kills++; this.log('score '+this.score);
@@ -324,16 +393,19 @@ class Game{
     if(e.kind==='dj3'||e.isBoss||e.isMid){ this.items.push(this.mkItem('pow',e.x,e.y)); this.say('能量块出现!'); }
     if(e.kind==='dj2'){ this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); }
     if(e.kind==='dj4'&&Math.random()<.5) this.items.push(this.mkItem('bs',e.x,e.y));
-    if(e.kind==='nq') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y));      // nq f18 掉 bs×2
+    if(e.kind==='nq'||e.kind==='nq2') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); // nq/nq2 掉 bs×2
+    if(e.kind==='jxr1') this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y));
+    if(e.kind==='dgp'){ for(let i=0;i<3;i++) this.items.push(this.mkItem('bs',e.x,e.y)); }
+    if(e.kind==='cw'){ for(let i=0;i<3;i++) this.items.push(this.mkItem('pow',e.x+i*14-14,e.y)); } // 速杀才有
     if(e.kind==='lsfj') this.items.push(this.mkItem('bs',e.x,e.y));
     if(e.kind==='jbdj'){ if(Math.random()<.3) this.items.push(this.mkItem('pow',e.x,e.y));      // f16 diao<3→pow 30%
       else for(let i=0;i<3;i++) this.items.push(this.mkItem('bs',e.x,e.y)); }
     if(e.isMid) this.items.push(this.mkItem('bom1',e.x,e.y));                                    // jbfjg: bom1+pow
-    if(e.isBoss){ const nb=e.kind==='boss2'?6:5;                       // v12：boss 爆升级道具+大招点，6s 拾取缓冲
-      for(let i=0;i<nb;i++){ const it=this.mkItem('bs',e.x,e.y); it.vx=(Math.random()-.5)*160; it.vy=(Math.random()-.5)*120; it.free=true; it.life=9; this.items.push(it); }
-      const pw=this.mkItem('pow',e.x-24,e.y+12); pw.life=9; this.items.push(pw);
-      const bm=this.mkItem('bom1',e.x+24,e.y+12); bm.life=9; this.items.push(bm);
-      this.winPending=6; return; }
+    if(e.isBoss){                                                       // v13：只掉 1 pow + 1 大招点，6s 拾取缓冲
+      this.boss=null; this.ebullets.length=0;                            // 修复：死 boss 残留继续杀玩家
+      const pw=this.mkItem('pow',e.x-20,e.y+10); pw.life=9; this.items.push(pw);
+      const bm=this.mkItem('bom1',e.x+20,e.y+10); bm.life=9; this.items.push(bm);
+      this.invuln=99; this.winPending=6; return; }
   }
   win(){ // v12 过关结算卡片
     this.state='clear'; this.log('level_clear');
@@ -348,8 +420,8 @@ class Game{
         <div class="st"><b>${st.pick}</b><span>拾取</span></div></div>
       <div class="badge b${r}">${r}</div>
       <div class="rw">奖励：+1 命 · 宝回满（当前 命${Math.min(this.life+1,9)} 宝3）</div>
-      <button onclick="game.nextLevel()">${last?'再来一轮 (R)':'下一关 (J)'}</button>
-      ${last?'<div class="rw" style="margin-top:10px">两关全破（2/6）· 总分 '+this.score+' · 关 3-6 等你反馈</div>':''}</div>`); }
+      <button onclick="game.nextLevel()">${last?'再来一轮 (R)':'下一关 (K)'}</button>
+      ${last?'<div class="rw" style="margin-top:10px">六关全破！· 总分 '+this.score+'</div>':''}</div>`); }
   nextLevel(){ this.hideResult();
     if(this.levelIdx>=LEVELS.length-1){ this.state='win'; this.log('game_win'); restart(); return; }
     this.life=Math.min(this.life+1,9); this.bomm=3;               // ④ 过关奖励：+1 命·宝回满
@@ -376,13 +448,19 @@ class Game{
     if(this.wave>=this.waves.length) return;
     const w=this.waves[this.wave];
     if(w.boss){ const def=N.enemy[w.boss];
-      this.boss={kind:w.boss,def,hp:def.hp,x:FIELD_W+70,y:w.boss==='boss2'?135:150,w:80,h:100,
-        isBoss:true,phase:'enter',pt:0,patT:0,pat:0,phase2:false,win18:0,winT:0,dead:false};
+      const sz={boss3:[80,60],jxjq:[150,100],black:[70,105],cw1:[60,55]}[w.boss]||[80,100];
+      this.boss={kind:w.boss,def,hp:def.phases?def.phases[0]:def.hp,phases:def.phases||null,phaseIdx:0,
+        x:w.boss==='jxjq'?330:FIELD_W+70, y:w.boss==='jxjq'?-70:(w.boss==='cw1'?130:150),
+        w:sz[0],h:sz[1],isBoss:true,phase:'enter',pt:0,patT:0,pat:0,phase2:false,win18:0,winT:0,dead:false};
       this.scrollSpd=N.scrollBoss; this.lock=1.0; this.ebullets.length=0; this.log('boss_spawn'); SFX.play('boss',0.5); return; }
-    if(w.midBoss){ const def=N.enemy.jbfjg; // 关2 中boss 金鞭飞蛟（bos 门闩：击杀后续表）
-      this.enemies.push({kind:'jbfjg',def,hp:def.hp,x:FIELD_W+40,y:200,w:def.w,h:def.h,t:0,fireT:1.2,dead:false,
-        isMid:true,hoverX:345,bob:0}); this.log('midboss'); SFX.play('boss',0.45); return; }
+    if(w.midBoss){ const mk=w.midBoss, def=N.enemy[mk]; // 中boss（bos 门闩：击杀/逃脱后续表）
+      this.enemies.push({kind:mk,def,hp:def.hp,x:FIELD_W+40,y:mk==='cw'?100:190,w:def.w,h:def.h,t:0,fireT:1.2,dead:false,
+        isMid:true,hoverX:mk==='cw'?260:345,bob:0,escT:mk==='cw'?15.6:undefined});
+      this.log('midboss'); SFX.play('boss',0.45); return; }
     for(const [kind,y] of w.spawns){
+      if(kind==='xkl'){ this.ebullets.push({x:FIELD_W+20,y,vx:-(140+Math.random()*160),vy:(Math.random()-.5)*40,
+        w:14,h:10,art:'szd2'}); continue; }                       // 关6 弹雨：小骷髅弹=敌弹
+      if(kind==='bsrain'){ const it=this.mkItem('bs',FIELD_W-10,y); it.vx=-110; it.free=true; this.items.push(it); continue; } // 金币雨
       const def=N.enemy[kind];
       this.enemies.push({kind,def,hp:def.hp,x:FIELD_W+30,y,w:def.w||30,h:def.h||22,t:0,fireT:1+Math.random(),dead:false,
         hoverX:320+Math.random()*60, bob:Math.random()*6.28});
@@ -395,10 +473,10 @@ class Game{
     if(this.state==='select'){ if(jEdge||keys['enter']) this.startRun();
       if(keys['a']||keys['arrowleft']) this.selIdx=0; if(keys['d']||keys['arrowright']) this.selIdx=1;
       return; }
-    if(this.state==='clear'&&(jEdge||kEdge)){ this.nextLevel(); return; }
+    if(this.state==='clear'&&kEdge){ this.nextLevel(); return; } // v13：K 续关（防误按）
     if(this.state!=='playing') return;
     if(this.slowT>0){ this.slowT-=dt; dt*=this.slowK||0.35; } // 悟/大招·顿帧（时停）
-    if(this.winPending>0){ this.winPending-=dt; if(this.winPending<=0&&this.state==='playing') this.win(); } // boss 掉落拾取缓冲
+    if(this.winPending>0){ this.winPending-=dt; this.invuln=99; if(this.winPending<=0&&this.state==='playing') this.win(); } // boss 掉落拾取缓冲（缓冲期无敌）
     const S=this.ship, cfg=N.ships[this.shipKey];
     if(this.lock>0){ this.lock-=dt; }
     if(this.flyIn){ this.ship.x+=280*dt; if(this.ship.x>=40){ this.ship.x=40; this.flyIn=false; } }
@@ -434,11 +512,11 @@ class Game{
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
     else if(firing&&this.lv>1) this.neng=Math.min(this.neng+N.chargeRate*dt,cfg.ps);
-    if(this.lv>1){ if(this.neng>=cfg.ps){ if(!this.chargeFull){ this.chargeFull=true; SFX.play('full');
+    if(this.lv>1){ if(this.neng>=cfg.ps){ if(!this.chargeFull){ this.chargeFull=true; SFX.play('phoenix',0.28); SFX.play('full',0.2); // v13 满蓄双音
         if(this.chargeGraze>=3) this.unlock('xuli_zouwei'); this.chargeGraze=0; } } else this.chargeFull=false; }
     if(this.neng<=0) this.chargeGraze=0;
     if(!firing&&this.neng>0){
-      if(this.neng>=cfg.ps) this.releaseCharge(); // 满能松手=释放
+      if(this.neng>=0.45*cfg.ps){ this.chargeTier=this.neng>=cfg.ps?1:0.3; this.releaseCharge(); } // v13 两档：满蓄100%/45%档30%
       this.neng=0;
     }
     if(this.wingBurst>0) this.wingBurst-=dt;
@@ -459,11 +537,11 @@ class Game{
       const k=Math.min(1,dt*5*(w.k||1));
       w.x+=(tx-w.x)*k*1.4; w.y+=(ty-w.y)*k;
       w.fireCd-=dt;
-      if(this.wingBurst2>0&&w.fireCd<=0&&this.lock<=0){     // v12 S 阵列：正弦弹道扇海
-        this.bullets.push({x:w.x+10,y:w.y,vx:520+Math.random()*160,vy:0,
-          sine:{amp:55+Math.random()*35,freq:5+Math.random()*2,ph:Math.random()*6.28},
+      if(this.wingBurst2>0&&w.fireCd<=0&&this.lock<=0){     // v13 S 阵列：大扰动慢速长窗
+        this.bullets.push({x:w.x+10,y:w.y,vx:360+Math.random()*140,vy:0,
+          sine:{amp:110+Math.random()*40,freq:3.5+Math.random(),ph:Math.random()*6.28},
           w:14,h:6,dmg:Math.round(N.zdlv[this.lv-1]*0.9),art:'fdzd'});
-        w.fireCd=1.2/(5+this.lv); } }
+        w.fireCd=2.4/(8+2*this.lv); } }
 
     // 卷轴
     if(this.bombFx){ this.bombFx.t-=dt; this.bombFx.tick-=dt;
@@ -474,7 +552,12 @@ class Game{
     if(this.flashT>0) this.flashT-=dt;
     this.scrollX+=this.scrollSpd*dt;
 
-    // 环境刷怪器：关1=dj1(372) / 关2=lfj 蜻蜓(235, 5-7px/帧左漂)
+    // 环境刷怪器：关1=dj1(372) / 关2=lfj 蜻蜓(235) / 关5=dxdd 底部鱼雷(255)
+    if(this.env==='dxdd'){ this.dxddT=(this.dxddT||2.6)-dt;
+      if(this.dxddT<=0){ this.dxddT=2.4+Math.random();
+        const yy=30+Math.random()*150;
+        this.enemies.push({kind:'dxdd',def:N.enemy.dxdd,hp:99999,x:320+Math.random()*100,y:12,w:43,h:16,t:0,dead:false,
+          yy,spp:70+Math.random()*60,sp:300+Math.random()*220,charging:false,fireT:99,hoverX:999,bob:0}); } }
     this.dj1Timer-=dt;
     if(this.dj1Timer<=0&&this.enemies.length+(this.boss?1:0)<14){ this.dj1Timer=0.12;
       if(Math.random()<0.1){ const y=40+Math.random()*150;
@@ -499,7 +582,25 @@ class Game{
       const fs=this.freezeT>0?0:1;                           // v11 冰封千里：完全冻结（真冻住）
       if(e.burn>0){ e.burn-=dt; e.hp-=25*dt;                 // v11 点燃 dot 25/s ×6s
         if(e.hp<=0&&!e.dead){ e.dead=true; this.onKill(e); } }
-      if(e.kind==='dj1'||e.kind==='lfj'){ e.x-=e.spd*dt;
+      if(e.kind==='dxdd'){                                            // 关5 鱼雷：升至 yy 后左冲（子弹打不掉）
+        if(!e.charging){ e.y+=e.spp*dt*fs; if(e.y>=e.yy) e.charging=true; }
+        else e.x-=e.sp*dt*fs;
+        if(e.x<-40) e.dead=true, e.gone=true;
+      } else if(e.roller){                                            // dgp 地滚炮：贴地匀速左移
+        e.x-=110*dt*fs; e.fireT-=dt*fs;
+        if(e.fireT<=0&&e.x<FIELD_W&&this.lock<=0&&this.freezeT<=0){ e.fireT=2.2+Math.random();
+          const v=aimed(e.x,e.y,S.x,S.y,170); this.eshoot(e,v.vx,v.vy); }
+        if(e.x<-40) e.dead=true, e.gone=true;
+      } else if(e.escT!==undefined){                                  // cw 逃脱演出：15.6s 后飞离屏顶（原版设计）
+        if(e.x>e.hoverX) e.x-=140*dt*fs;
+        else if(fs>0) e.x=e.hoverX+Math.sin(e.t*0.7+e.bob)*14;
+        e.escT-=dt*fs;
+        if(e.escT<=0){ e.y+=150*dt; e.fireT=99;
+          if(e.y>270){ e.gone=true; this.say('黑翼蛟遁走了…'); this.log('cw_escape'); } }
+        e.fireT-=dt*fs;
+        if(e.escT>0&&e.fireT<=0&&e.x<FIELD_W&&this.lock<=0&&this.freezeT<=0){ e.fireT=1.8;
+          for(let i=0;i<4;i++) this.eshoot(e,-110,(i-1.5)*38,'szd2'); } // 140 墙扫
+      } else if(e.kind==='dj1'||e.kind==='lfj'){ e.x-=e.spd*dt;
         if(!e.fired&&e.x<S.x){ e.fired=true; } // 玩家飞过其左侧才开火（frame_10→12）
         if(e.fired&&Math.random()<dt*1.2&&e.x<FIELD_W&&e.x>S.x){ // 瞄准弹
           const v=aimed(e.x,e.y,S.x,S.y,150); this.eshoot(e,v.vx,v.vy); }
@@ -518,19 +619,43 @@ class Game{
     }
     this.enemies=this.enemies.filter(e=>!e.dead&&!e.gone);
 
-    // boss（boss1/boss2 招式分家；boss2 两阶段 4000 总血，2000 处换形）
+    // boss（boss1/boss2 保留；v13 新增 boss3/jxjq/black/cw1 通用分相招式）
     if(this.boss){ const b=this.boss; const bfs=this.freezeT>0?0:1; b.pt+=dt*bfs; b.patT+=dt*bfs;
-      if(b.kind==='boss2'&&!b.phase2&&b.hp<=2000){ b.phase2=true; this.score+=1000; this.log('score '+this.score);
-        this.ebullets.length=0; this.say('boss2 变形!'); }
-      if(b.phase==='enter'){ b.x-=90*dt; if(b.x<=360){b.x=360;b.phase='fight';this.scrollSpd=N.scroll;} }
-      else { b.y=125+Math.sin(b.pt*0.9)*30;
-        const cd=b.kind==='boss2'?(b.phase2?1.8:2.2):2.4;
+      if(b.phase==='enter'){
+        if(b.kind==='jxjq'){ b.y+=70*dt; if(b.y>=110){ b.phase='fight'; this.scrollSpd=N.scroll; } } // 屏底入场
+        else { b.x-=90*dt; if(b.x<=360){ b.x=360; b.phase='fight'; this.scrollSpd=N.scroll; } } }
+      else {
+        if(b.kind==='boss3'&&b.phaseIdx>0){                                    // 169：P2 随机悬停漂移 AI
+          if(!b.aiT||b.aiT<=0){ b.aiT=3; b.tx=280+Math.random()*100; b.ty=60+Math.random()*140; }
+          b.aiT-=dt*bfs; b.x+=(b.tx-b.x)*Math.min(1,dt*0.5); b.y+=(b.ty-b.y)*Math.min(1,dt*0.5); }
+        else if(b.kind==='jxjq'){ b.y=110+Math.sin(b.pt*0.5)*16; b.x=300+Math.sin(b.pt*0.3)*24; } // 超大体慢摆
+        else b.y=125+Math.sin(b.pt*0.9)*30;
+        const cd={boss2:(b.phaseIdx>0?1.8:2.2), boss3:1.8, jxjq:2.0, black:(b.phaseIdx===2?1.3:1.6), cw1:2.0}[b.kind]||2.4;
         if(b.patT>cd&&this.lock<=0&&this.freezeT<=0){ b.patT=0; b.pat=(b.pat+1)%3;
           if(b.kind==='boss2'&&b.pat===0){ for(const dy of[-40,0,40]){ // 62 f19：三连瞄准 ±40
-              const v=aimed(b.x,b.y,S.x,S.y+dy,b.phase2?172:150); this.eshoot(b,v.vx,v.vy); } }
+              const v=aimed(b.x,b.y,S.x,S.y+dy,b.phaseIdx>0?172:150); this.eshoot(b,v.vx,v.vy); } }
           else if(b.kind==='boss2'&&b.pat===1){ b.win18=6; b.winT=0; } // 62 f5：6轮×3=18 连发窗
           else if(b.kind==='boss2'){ for(const a of[-0.3,0,0.3]){ const v=aimed(b.x,b.y,S.x,S.y,150);
               const c=Math.cos(a),s2=Math.sin(a); this.eshoot(b,v.vx*c-v.vy*s2,v.vx*s2+v.vy*c); } }
+          else if(b.kind==='boss3'){ // 161/168：瞄准三连/纵向弹墙/P2 环
+            if(b.pat===0){ for(const dy of[-50,0,50]){ const v=aimed(b.x,b.y,S.x,S.y+dy,190); this.eshoot(b,v.vx,v.vy); } }
+            else if(b.pat===1){ for(let i=0;i<6;i++) this.eshoot(b,-120,(i-2.5)*36,'szd2'); }
+            else { const n=b.phaseIdx>0?14:8; for(let i=0;i<n;i++){ const a=i/n*6.28+b.pt;
+              this.eshoot(b,Math.cos(a)*100,Math.sin(a)*100,'szd2'); } } }
+          else if(b.kind==='jxjq'){ // 316：szd3 瞄准三连 ±50/mhb 纵墙/扇
+            if(b.pat===0){ for(const dy of[-50,0,50]){ const v=aimed(b.x,b.y,S.x,S.y+dy,170); this.eshoot(b,v.vx,v.vy); } }
+            else if(b.pat===1){ for(let i=0;i<8;i++) this.eshoot(b,-130,(i-3.5)*34,'szd2'); }
+            else { for(const a of[-0.5,-0.25,0,0.25,0.5]){ const v=aimed(b.x,b.y,S.x,S.y,150);
+              const c=Math.cos(a),s2=Math.sin(a); this.eshoot(b,v.vx*c-v.vy*s2,v.vx*s2+v.vy*c); } } }
+          else if(b.kind==='black'){ // 119：cbb 扇/环形/mhb 密集瞄准
+            if(b.pat===0){ for(let i=0;i<8;i++){ const a=(i-3.5)*0.18; const v=aimed(b.x,b.y,S.x,S.y,130);
+              const c=Math.cos(a),s2=Math.sin(a); this.eshoot(b,v.vx*c-v.vy*s2,v.vx*s2+v.vy*c,'szd2'); } }
+            else if(b.pat===1){ for(let i=0;i<10;i++){ const a=i/10*6.28+b.pt;
+              this.eshoot(b,Math.cos(a)*110,Math.sin(a)*110,'szd2'); } }
+            else { for(const dy of[-30,0,30]){ const v=aimed(b.x,b.y,S.x,S.y+dy,185); this.eshoot(b,v.vx,v.vy); } } }
+          else if(b.kind==='cw1'){ // 140：垂直墙扫/瞄准扇
+            if(b.pat!==1){ for(let i=0;i<5;i++) this.eshoot(b,-110,(i-2)*40,'szd2'); }
+            else { for(const dy of[-40,0,40]){ const v=aimed(b.x,b.y,S.x,S.y+dy,160); this.eshoot(b,v.vx,v.vy); } } }
           else if(b.pat===0){ for(const a of[-0.22,0,0.22]){ // boss1 三向瞄准扇
               const v=aimed(b.x,b.y,S.x,S.y,163); const c=Math.cos(a),s=Math.sin(a);
               this.eshoot(b,v.vx*c-v.vy*s,v.vx*s+v.vy*c); } }
@@ -539,16 +664,16 @@ class Game{
           else { for(let i=0;i<3;i++) setTimeout(()=>{ if(game===this&&this.boss&&!this.boss.dead&&this.state==='playing'&&this.freezeT<=0)
                 { const v=aimed(this.boss.x,this.boss.y,this.ship.x+i*30-30,this.ship.y,175); this.eshoot(this.boss,v.vx,v.vy); } }, i*120); } } }
       if(b.win18>0){ b.winT-=dt; if(b.winT<=0){ b.winT=0.36; b.win18--;   // 18 连发窗：±80 三连×6 轮
-          for(const dy of[-80,0,80]){ const v=aimed(b.x,b.y,S.x,S.y+dy,b.phase2?180:160); this.eshoot(b,v.vx,v.vy); } } }
+          for(const dy of[-80,0,80]){ const v=aimed(b.x,b.y,S.x,S.y+dy,b.phaseIdx>0?180:160); this.eshoot(b,v.vx,v.vy); } } }
       if(this.invuln<=0&&this.lock<=0&&hit(b,S)) this.playerHit(); }
 
     // ③ 长虹贯日：全屏剑气（宽度=18+15×僚机），命中点燃 3s
-    if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=680*dt;   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
+    if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=260*dt;   // v13 慢剑：可感知+操作空间   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
       for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&e.x>S.x-20&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){
         g.hit.add(e); this.damage(e,g.dmg); e.burn=6;
         this.booms.push({x:e.x,y:e.y,t:.25,spark:true}); }
-      if(g.t<=0||g.x>FIELD_W+120) this.guanri=null; }
+      if(g.t<=0||g.x>FIELD_W+160) this.guanri=null; }
     // ③ 火凤燎原：掠场点燃+持续伤害（对点燃×1.5）
     if(this.phoenix2){ const p=this.phoenix2; p.t-=dt; p.x+=p.vx*dt; p.y=S.y+60*Math.sin(this.t*3);
       this.booms.push({x:p.x-50,y:p.y+(Math.random()-.5)*50,t:.35,spark:true}); // 火羽粒子
@@ -570,7 +695,7 @@ class Game{
     for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
       if(b.sine){ b.sine.ph+=dt*b.sine.freq; b.y+=Math.cos(b.sine.ph)*b.sine.amp*dt; } // S 阵列
       if(b.pierce) b.dist+=Math.hypot(b.vx,b.vy)*dt;
-      for(const e of this.enemies) if(!e.dead&&hit(b,e)){ SFX.play('hit');
+      for(const e of this.enemies) if(!e.dead&&!e.hazard&&hit(b,e)){ SFX.play('hit');
         if(b.pierce){ if(!b.hitSet) b.hitSet=new Set(); if(b.hitSet.has(e)) continue; b.hitSet.add(e);
           let d=b.dmg;
           if(this.freezeT>0&&b.art==='bingpoj'){ d*=2; this.unlock('dong_sui'); // 冻→碎 ×2
@@ -644,7 +769,8 @@ class Game{
       if(e.burn>0) drawArt(ctx,'dianran',e.x+11,e.y+17,12,15);           // 点燃标记
       if(fl>0){ ctx.globalAlpha=fl*0.85; ctx.fillStyle='#fff';
         ctx.fillRect(e.x-(e.w||24)/2-2,FIELD_H-e.y-(e.h||20)/2-2,(e.w||24)+4,(e.h||20)+4); ctx.globalAlpha=1; } }
-    if(this.boss) drawArt(ctx,this.boss.kind==='boss2'?(this.boss.phase2?'boss2b':'boss2'):'boss1',this.boss.x,this.boss.y);
+    if(this.boss){ const b=this.boss;
+      drawArt(ctx, b.kind==='boss2'?(b.phaseIdx>0?'boss2b':'boss2'):(b.kind==='cw1'?'cw':b.kind), b.x, b.y); }
     // 凤凰
     if(this.phoenix){ const p=this.phoenix;
       drawArt(ctx,'phoenix',p.x,p.y,46,52,-0.2); ctx.globalAlpha=0.4;
@@ -653,14 +779,20 @@ class Game{
     const S=this.ship;
     if(this.invuln<=0||Math.floor(this.t*12)%2===0){
       for(const w of this.wings) drawArt(ctx,N.ships[this.shipKey].wing,w.x,w.y);
-      if(this.shipKey==='lantu'&&this.needles>0){ const per=2+this.lv, rows=this.lv,
-            sc=1+0.8*clamp(this.neng/Math.max(1,N.ships.lantu.ps),0,1);   // v12 针架：蓄力放大
-        for(let i=0;i<this.needles;i++){ const row=Math.floor(i/per), col=i%per;
-          drawArt(ctx,'yinzhen',S.x-26-(per-1-col)*11,S.y+(row-(rows-1)/2)*13,24*sc,7*sc); } }
+      if(this.shipKey==='lantu'&&this.needles>0) this.drawNeedles(ctx,S,-1);   // v13 环绕针阵：后排（远=小暗）
       drawArt(ctx,'flame',S.x-18,S.y,10+Math.random()*4,11+Math.random()*4);
       drawArt(ctx,this.shipKey,S.x,S.y); }
+    if(this.shipKey==='lantu'&&this.needles>0) this.drawNeedles(ctx,S,1);      // 环绕针阵：前排（近=大亮）
     if(this.shield>0){ ctx.globalAlpha=clamp(this.shield/0.4,0,1)*0.8;
       drawArt(ctx,'shield',S.x,S.y,45,45); ctx.globalAlpha=1; }
+    if(this.chargeFull&&this.state==='playing'){ const cc=this.shipKey==='hongmao'?'255,179,71':'159,216,242'; // v13 满蓄光环
+      for(const ph of[0,3.14]){ const r=20+4*Math.sin(this.t*8+ph);
+        ctx.strokeStyle='rgba('+cc+','+(0.55+0.25*Math.sin(this.t*8)).toFixed(2)+')'; ctx.lineWidth=ph?1.5:2.5;
+        ctx.beginPath(); ctx.arc(S.x,FIELD_H-S.y,r+ph*2,0,6.29); ctx.stroke(); }
+      ctx.save(); ctx.translate(S.x,FIELD_H-S.y); ctx.rotate(this.t*2.4);
+      ctx.strokeStyle='rgba('+cc+',.4)'; ctx.lineWidth=1;
+      for(let i=0;i<4;i++){ ctx.rotate(1.57); ctx.beginPath(); ctx.moveTo(30,-3); ctx.lineTo(38,-3); ctx.stroke(); }
+      ctx.restore(); }
     if(this.readyFx>0){ const k=1-this.readyFx/0.14; ctx.save(); ctx.translate(S.x+16,FIELD_H-S.y);
       ctx.strokeStyle='rgba(255,212,121,'+(0.9*(1-k)).toFixed(2)+')'; ctx.lineWidth=2;
       ctx.beginPath(); ctx.arc(0,0,3+k*11,0,6.29); ctx.stroke();
@@ -670,12 +802,9 @@ class Game{
     for(const b of this.bullets) drawArt(ctx,b.art||N.ships[this.shipKey].bullet,b.x,b.y,b.aw||b.w,b.ah||b.h);
     for(const b of this.ebullets){ if(b.frozen&&this.freezeT<1&&Math.floor(this.t*10)%2===0) continue; // 渐融闪烁
       drawArt(ctx,b.frozen?'bingjing':(b.art||'szd'),b.x,b.y); }
-    if(this.guanri){ const g=this.guanri, sc=1+0.28*this.lv, fade=clamp(g.t/1.4,0,1);  // v12 贯日巨剑+剑气带
-      ctx.globalAlpha=0.5*fade; drawArt(ctx,'guanri',FIELD_W/2,g.y,FIELD_W-10,g.w);      // 剑气带
-      if(this.lv>=4){ ctx.globalAlpha=0.35*fade; drawArt(ctx,'guanri',FIELD_W/2,g.y+3,FIELD_W-10,g.w*1.15); }
-      ctx.globalAlpha=Math.min(1,fade+0.3);
-      drawArt(ctx,'changhong',g.x,g.y,96*sc,29*sc);                                      // 巨剑实体（随lv放大）
-      ctx.globalAlpha=1; }
+    if(this.guanri){ const g=this.guanri, sc=1+0.28*this.lv;          // v13 贯日=巨剑本体（旧剑气带已弃）
+      ctx.globalAlpha=0.35; drawArt(ctx,'changhong',g.x-70*sc,g.y,150*sc*0.8,46*sc*0.8); // 残影
+      ctx.globalAlpha=1; drawArt(ctx,'changhong',g.x,g.y,150*sc,46*sc); }
     if(this.phoenix2){ const p=this.phoenix2; ctx.globalAlpha=.35; drawArt(ctx,'huofeng',p.x-26,p.y,120,94,-0.15); ctx.globalAlpha=1; // ③ 火凤（残影+本体+火羽拖尾）
       drawArt(ctx,'huofeng',p.x,p.y,120,94,-0.08);
       for(let i=1;i<=4;i++){ ctx.globalAlpha=.5-.1*i; drawArt(ctx,'huofeng',p.x-40*i-20,p.y+8*i*(i%2?1:-1),90-14*i,70-10*i,-0.2); } ctx.globalAlpha=1; }
@@ -710,6 +839,13 @@ class Game{
       ctx.beginPath(); ctx.arc(FIELD_W/2,FIELD_H-76-k*30,26+8*Math.sin(k*6.28),0,6.29); ctx.stroke();
       ctx.globalAlpha=1; }
   }
+  drawNeedles(ctx,S,depth){ const n=this.needles,                        // v13 银针环绕（椭圆轨道+深度分层）
+      sc=1+0.5*clamp(this.neng/Math.max(1,N.ships.lantu.ps),0,1);          // 蓄力放大
+    for(let i=0;i<n;i++){ const a=i/Math.max(1,n)*6.28+this.t*1.6;
+      const z=Math.sin(a); if(depth<0?z>=0:z<0) continue;                  // 后排 sin<0 / 前排 sin>=0
+      const x=S.x+Math.cos(a)*40, y=S.y+z*17, k=(z*depth>0?1:0.62)*sc;    // 深度：远端缩小
+      ctx.globalAlpha=depth<0?0.55:1;
+      drawArt(ctx,'yinzhen',x,y,17*k,5*k); ctx.globalAlpha=1; } }
   renderHUD(ctx){
     ctx.save(); ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(0,0,FIELD_W,16);
     ctx.fillStyle='#fff'; ctx.font='9px monospace'; ctx.textAlign='left';
