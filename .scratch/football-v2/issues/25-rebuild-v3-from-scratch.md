@@ -71,3 +71,27 @@
 用户上线后：C 批客户端计算链开工——请用户给第一步配置指导（新地图 ID 段确认 +
 技能配置创建参数），agent 按差分模式执行。A/B 批（场地+球）可在用户不在线时先行
 （纯照搬+CLI 通道，无设计决策）。
+
+## 6. A 批执行记录（2026-10-12 ✅ 结构层完成，待用户进图目视）
+
+- **新地图 1073741827「真实足球v3」**（maps:create 自动分配；与 1825「真实足球」、
+  1826 区分）。执行链：create（113B 骨架，Temp/gip 自动同步）→ maps:init（root3-49
+  补全，SHA 132b6ce3）→ terrain set-range 98-122×98-122（**625 格**，donor 同构）→
+  static-assemblies（plans/rebuild-v3-field.mjs：def 1077936129 场 84aux + def
+  1077936130 门 142aux，触及 root4/6/8/27，SHA 431109a4）→ entities import
+  （plans/rebuild-v3-entities.json：6132 场[0,0,0]aux84 / 6133 左门[-52.5,0,3.66]
+  rot90 aux142 / 6134 右门[52.5,0,-3.66] rot-90 aux142，实体层 aux 自动物化）→
+  maps:resync。
+- **终态**：160989B，双址（Save_Level=Temp）SHA **c17cde18f78b8ba2d22fed0f056adecade
+  276ea39caeda871c6b9f6b7491eace**；prefabs=6（2 场地 def+2 模板+2 root8 实例）、
+  entities=14（11 骨架+3 场地）。donor 3231 零读取写入（只作行为基线）。
+- 备份链（Save_Level/.gsts/backups/1073741827.*）：04-56-15 init 前 / 04-56-29
+  terrain 前 / 04-57-21 assemblies 前 / 04-59-34 entities 前。
+- **CLI 坑两枚（本轮实付）**：①`assets:entities` 无子命令=export 模式——import 必须
+  写 `assets:entities import --entities …`，漏子命令时静默打印 JSON 且 exit 0（无
+  writePerformed/无备份），极易误判已写入；②`--output` 在 entities 上是**导出 JSON**
+  不是 GIL 候选（3971B JSON 当 GIL 读报 malformed GIL payload）——entities 的候选
+  纪律=import --write 自动备份，或 apply-candidate 子命令吃预构建 GIL。
+- 未搬（按裁决）：球 def 6138+实体 6135（B 批）；假人 6131/6137/6141、丘丘
+  433-435/437-445/448、UI 按钮（砍）；空模型 6139+TickManager、信号/图/挂载/技能
+  配置/root15-16（C 批）。
