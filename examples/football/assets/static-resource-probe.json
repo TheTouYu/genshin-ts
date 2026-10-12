@@ -1,0 +1,171 @@
+{
+ "schemaVersion": 1,
+ "source": "user editor placements 2026-10-12 18:47, map 1073741827",
+ "entities": [
+  {
+   "entityId": 1077936153,
+   "name": "乔木",
+   "engineId": 20001200
+  },
+  {
+   "entityId": 1077936154,
+   "name": "石质楼梯",
+   "engineId": 20002151
+  },
+  {
+   "entityId": 1077936155,
+   "name": "石质台阶",
+   "engineId": 20002325
+  },
+  {
+   "entityId": 1077936156,
+   "name": "木质阶梯",
+   "engineId": 20002590
+  },
+  {
+   "entityId": 1077936157,
+   "name": "石质平台",
+   "engineId": 20002751
+  },
+  {
+   "entityId": 1077936158,
+   "name": "石质平台",
+   "engineId": 20003074
+  },
+  {
+   "entityId": 1077936159,
+   "name": "石质台子",
+   "engineId": 20001013
+  },
+  {
+   "entityId": 1077936160,
+   "name": "石质条凳",
+   "engineId": 20001066
+  },
+  {
+   "entityId": 1077936161,
+   "name": "木质棚屋",
+   "engineId": 20003386
+  },
+  {
+   "entityId": 1077936162,
+   "name": "矩形石质平台",
+   "engineId": 20001027
+  },
+  {
+   "entityId": 1077936163,
+   "name": "旗帜",
+   "engineId": 20001160
+  },
+  {
+   "entityId": 1077936164,
+   "name": "布质门帘",
+   "engineId": 20001163
+  },
+  {
+   "entityId": 1077936165,
+   "name": "木质楼梯",
+   "engineId": 20001834
+  },
+  {
+   "entityId": 1077936166,
+   "name": "石质门框",
+   "engineId": 20003086
+  },
+  {
+   "entityId": 1077936167,
+   "name": "折纸乔木",
+   "engineId": 20001415
+  },
+  {
+   "entityId": 1077936168,
+   "name": "乔木",
+   "engineId": 20003160
+  },
+  {
+   "entityId": 1077936169,
+   "name": "树枝",
+   "engineId": 20003191
+  },
+  {
+   "entityId": 1077936170,
+   "name": "石质吊灯",
+   "engineId": 20001064
+  },
+  {
+   "entityId": 1077936171,
+   "name": "金属吊灯",
+   "engineId": 20001054
+  },
+  {
+   "entityId": 1077936172,
+   "name": "石质路灯",
+   "engineId": 20001015
+  },
+  {
+   "entityId": 1077936173,
+   "name": "灯笼",
+   "engineId": 20001172
+  },
+  {
+   "entityId": 1077936174,
+   "name": "灯笼挂饰",
+   "engineId": 20001174
+  },
+  {
+   "entityId": 1077936175,
+   "name": "木质路灯",
+   "engineId": 20001651
+  },
+  {
+   "entityId": 1077936176,
+   "name": "石质条凳",
+   "engineId": 20001066
+  },
+  {
+   "entityId": 1077936177,
+   "name": "木质招牌",
+   "engineId": 20001167
+  },
+  {
+   "entityId": 1077936178,
+   "name": "木质长椅",
+   "engineId": 20001699
+  },
+  {
+   "entityId": 1077936179,
+   "name": "灌木",
+   "engineId": 20001004
+  },
+  {
+   "entityId": 1077936180,
+   "name": "野果",
+   "engineId": 20001005
+  },
+  {
+   "entityId": 1077936181,
+   "name": "木质花箱",
+   "engineId": 20001094
+  },
+  {
+   "entityId": 1077936182,
+   "name": "木质花圃",
+   "engineId": 20001159
+  },
+  {
+   "entityId": 1077936183,
+   "name": "花丛",
+   "engineId": 20001185
+  },
+  {
+   "entityId": 1077936184,
+   "name": "藤蔓",
+   "engineId": 20001195
+  },
+  {
+   "entityId": 1077936185,
+   "name": "盆栽",
+   "engineId": 20001477
+  }
+ ]
+}

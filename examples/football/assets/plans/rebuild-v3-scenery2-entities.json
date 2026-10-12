@@ -1,0 +1,2469 @@
+{
+ "schemaVersion": 1,
+ "entities": [
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    -43.75,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    -43.75,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    -43.75,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    -31.25,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    -31.25,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    -31.25,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    -18.75,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    -18.75,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    -18.75,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    -6.25,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    -6.25,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    -6.25,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    6.25,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    6.25,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    6.25,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    18.75,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    18.75,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    18.75,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    31.25,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    31.25,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    31.25,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_北",
+   "definitionId": 20001027,
+   "position": [
+    43.75,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北a",
+   "definitionId": 20001699,
+   "position": [
+    43.75,
+    2,
+    46.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_北b",
+   "definitionId": 20001699,
+   "position": [
+    43.75,
+    2,
+    48.2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台阶梯_北1",
+   "definitionId": 20002590,
+   "position": [
+    -50,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台阶梯_北2",
+   "definitionId": 20002590,
+   "position": [
+    50,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_北",
+   "definitionId": 20003386,
+   "position": [
+    -30,
+    0,
+    53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_北",
+   "definitionId": 20003386,
+   "position": [
+    0,
+    0,
+    53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_北",
+   "definitionId": 20003386,
+   "position": [
+    30,
+    0,
+    53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_北",
+   "definitionId": 20001160,
+   "position": [
+    -47,
+    0,
+    51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_北",
+   "definitionId": 20001160,
+   "position": [
+    -20,
+    0,
+    51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_北",
+   "definitionId": 20001160,
+   "position": [
+    20,
+    0,
+    51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_北",
+   "definitionId": 20001160,
+   "position": [
+    47,
+    0,
+    51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    -43.75,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    -43.75,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    -43.75,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    -31.25,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    -31.25,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    -31.25,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    -18.75,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    -18.75,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    -18.75,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    -6.25,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    -6.25,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    -6.25,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    6.25,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    6.25,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    6.25,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    18.75,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    18.75,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    18.75,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    31.25,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    31.25,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    31.25,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台平台_南",
+   "definitionId": 20001027,
+   "position": [
+    43.75,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南a",
+   "definitionId": 20001699,
+   "position": [
+    43.75,
+    2,
+    -46.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台长椅_南b",
+   "definitionId": 20001699,
+   "position": [
+    43.75,
+    2,
+    -48.2
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "看台阶梯_南1",
+   "definitionId": 20002590,
+   "position": [
+    -50,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台阶梯_南2",
+   "definitionId": 20002590,
+   "position": [
+    50,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_南",
+   "definitionId": 20003386,
+   "position": [
+    -30,
+    0,
+    -53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_南",
+   "definitionId": 20003386,
+   "position": [
+    0,
+    0,
+    -53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台棚屋_南",
+   "definitionId": 20003386,
+   "position": [
+    30,
+    0,
+    -53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_南",
+   "definitionId": 20001160,
+   "position": [
+    -47,
+    0,
+    -51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_南",
+   "definitionId": 20001160,
+   "position": [
+    -20,
+    0,
+    -51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_南",
+   "definitionId": 20001160,
+   "position": [
+    20,
+    0,
+    -51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "看台旗_南",
+   "definitionId": 20001160,
+   "position": [
+    47,
+    0,
+    -51
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_东",
+   "definitionId": 20001027,
+   "position": [
+    60.5,
+    0,
+    -31.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_东",
+   "definitionId": 20001699,
+   "position": [
+    60.5,
+    2,
+    -31.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_东",
+   "definitionId": 20001027,
+   "position": [
+    60.5,
+    0,
+    -18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_东",
+   "definitionId": 20001699,
+   "position": [
+    60.5,
+    2,
+    -18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_东",
+   "definitionId": 20001027,
+   "position": [
+    60.5,
+    0,
+    -6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_东",
+   "definitionId": 20001699,
+   "position": [
+    60.5,
+    2,
+    -6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_东",
+   "definitionId": 20001027,
+   "position": [
+    60.5,
+    0,
+    6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_东",
+   "definitionId": 20001699,
+   "position": [
+    60.5,
+    2,
+    6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_东",
+   "definitionId": 20001027,
+   "position": [
+    60.5,
+    0,
+    18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_东",
+   "definitionId": 20001699,
+   "position": [
+    60.5,
+    2,
+    18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台阶梯_东1",
+   "definitionId": 20002590,
+   "position": [
+    60.5,
+    0,
+    -36
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台阶梯_东2",
+   "definitionId": 20002590,
+   "position": [
+    60.5,
+    0,
+    36
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台旗_东1",
+   "definitionId": 20001160,
+   "position": [
+    61,
+    0,
+    -37
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "端台旗_东2",
+   "definitionId": 20001160,
+   "position": [
+    61,
+    0,
+    37
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_西",
+   "definitionId": 20001027,
+   "position": [
+    -60.5,
+    0,
+    -31.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_西",
+   "definitionId": 20001699,
+   "position": [
+    -60.5,
+    2,
+    -31.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_西",
+   "definitionId": 20001027,
+   "position": [
+    -60.5,
+    0,
+    -18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_西",
+   "definitionId": 20001699,
+   "position": [
+    -60.5,
+    2,
+    -18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_西",
+   "definitionId": 20001027,
+   "position": [
+    -60.5,
+    0,
+    -6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_西",
+   "definitionId": 20001699,
+   "position": [
+    -60.5,
+    2,
+    -6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_西",
+   "definitionId": 20001027,
+   "position": [
+    -60.5,
+    0,
+    6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_西",
+   "definitionId": 20001699,
+   "position": [
+    -60.5,
+    2,
+    6.25
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台平台_西",
+   "definitionId": 20001027,
+   "position": [
+    -60.5,
+    0,
+    18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台长椅_西",
+   "definitionId": 20001699,
+   "position": [
+    -60.5,
+    2,
+    18.75
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台阶梯_西1",
+   "definitionId": 20002590,
+   "position": [
+    -60.5,
+    0,
+    -36
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台阶梯_西2",
+   "definitionId": 20002590,
+   "position": [
+    -60.5,
+    0,
+    36
+   ],
+   "rotation": [
+    0,
+    90,
+    0
+   ]
+  },
+  {
+   "name": "端台旗_西1",
+   "definitionId": 20001160,
+   "position": [
+    -61,
+    0,
+    -37
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "端台旗_西2",
+   "definitionId": 20001160,
+   "position": [
+    -61,
+    0,
+    37
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "替补席长椅1",
+   "definitionId": 20001699,
+   "position": [
+    -10,
+    0,
+    38
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "替补席长椅2",
+   "definitionId": 20001699,
+   "position": [
+    -14,
+    0,
+    38
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "替补席棚",
+   "definitionId": 20003386,
+   "position": [
+    -12,
+    0,
+    41.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "替补席长椅1",
+   "definitionId": 20001699,
+   "position": [
+    10,
+    0,
+    38
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "替补席长椅2",
+   "definitionId": 20001699,
+   "position": [
+    14,
+    0,
+    38
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "替补席棚",
+   "definitionId": 20003386,
+   "position": [
+    12,
+    0,
+    41.5
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -48,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -48,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -32,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -32,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -16,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -16,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    0,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    0,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    16,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    16,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    32,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    32,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    48,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    48,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    -48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    -48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    -32
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    -32
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    -16
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    -16
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    16
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    16
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    32
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    32
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    64,
+    0,
+    48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "乔木",
+   "definitionId": 20001200,
+   "position": [
+    -64,
+    0,
+    48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    -20,
+    0,
+    54
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    20,
+    0,
+    54
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    -40,
+    0,
+    54
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    40,
+    0,
+    54
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    -30,
+    0,
+    58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    30,
+    0,
+    58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    60,
+    0,
+    20
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    60,
+    0,
+    -20
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    -60,
+    0,
+    20
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灌木",
+   "definitionId": 20001004,
+   "position": [
+    -60,
+    0,
+    -20
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    50,
+    0,
+    50
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    70,
+    0,
+    66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    -50,
+    0,
+    -50
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    -70,
+    0,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    30,
+    0,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    -30,
+    0,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    30,
+    0,
+    -52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花丛",
+   "definitionId": 20001185,
+   "position": [
+    -30,
+    0,
+    -52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "野果",
+   "definitionId": 20001005,
+   "position": [
+    56,
+    0,
+    56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "野果",
+   "definitionId": 20001005,
+   "position": [
+    -56,
+    0,
+    56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "野果",
+   "definitionId": 20001005,
+   "position": [
+    56,
+    0,
+    -56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "野果",
+   "definitionId": 20001005,
+   "position": [
+    -56,
+    0,
+    -56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花圃",
+   "definitionId": 20001159,
+   "position": [
+    47,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花圃",
+   "definitionId": 20001159,
+   "position": [
+    -47,
+    0,
+    47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花圃",
+   "definitionId": 20001159,
+   "position": [
+    47,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "花圃",
+   "definitionId": 20001159,
+   "position": [
+    -47,
+    0,
+    -47
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "路灯",
+   "definitionId": 20001015,
+   "position": [
+    44,
+    0,
+    57
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "路灯",
+   "definitionId": 20001015,
+   "position": [
+    -44,
+    0,
+    57
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "路灯",
+   "definitionId": 20001015,
+   "position": [
+    44,
+    0,
+    -57
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "路灯",
+   "definitionId": 20001015,
+   "position": [
+    -44,
+    0,
+    -57
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场平台",
+   "definitionId": 20003074,
+   "position": [
+    60,
+    0,
+    58
+   ],
+   "rotation": [
+    0,
+    45,
+    0
+   ]
+  },
+  {
+   "name": "入口拱门",
+   "definitionId": 20003086,
+   "position": [
+    60,
+    0,
+    67
+   ],
+   "rotation": [
+    0,
+    225,
+    0
+   ]
+  },
+  {
+   "name": "入口招牌",
+   "definitionId": 20001167,
+   "position": [
+    52,
+    0,
+    50
+   ],
+   "rotation": [
+    0,
+    -45,
+    0
+   ]
+  },
+  {
+   "name": "灯笼挂饰",
+   "definitionId": 20001174,
+   "position": [
+    54,
+    0,
+    53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灯笼挂饰",
+   "definitionId": 20001174,
+   "position": [
+    66,
+    0,
+    63
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场旗",
+   "definitionId": 20001160,
+   "position": [
+    53,
+    0,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场旗",
+   "definitionId": 20001160,
+   "position": [
+    67,
+    0,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场平台",
+   "definitionId": 20003074,
+   "position": [
+    -60,
+    0,
+    -58
+   ],
+   "rotation": [
+    0,
+    45,
+    0
+   ]
+  },
+  {
+   "name": "入口拱门",
+   "definitionId": 20003086,
+   "position": [
+    -60,
+    0,
+    -67
+   ],
+   "rotation": [
+    0,
+    45,
+    0
+   ]
+  },
+  {
+   "name": "入口招牌",
+   "definitionId": 20001167,
+   "position": [
+    -52,
+    0,
+    -50
+   ],
+   "rotation": [
+    0,
+    135,
+    0
+   ]
+  },
+  {
+   "name": "灯笼挂饰",
+   "definitionId": 20001174,
+   "position": [
+    -54,
+    0,
+    -53
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "灯笼挂饰",
+   "definitionId": 20001174,
+   "position": [
+    -66,
+    0,
+    -63
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场旗",
+   "definitionId": 20001160,
+   "position": [
+    -53,
+    0,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "广场旗",
+   "definitionId": 20001160,
+   "position": [
+    -67,
+    0,
+    -52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}
