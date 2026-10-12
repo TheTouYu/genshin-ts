@@ -313,7 +313,7 @@ class Game{
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
     this.shake=0; this.tintFx=null; this.winPending=0; this.wingBurst2=0;
     this.scrollX=0; this.scrollSpd=N.scroll; this.dj1Timer=1.5; this.invuln=0; this.lock=0;
-    this.msg=null; this.msgT=0; this.bgW=ART.bg[1];
+    this.msgs=[]; this.bgW=ART.bg[1];
   }
   startRun(){
     this.state='playing'; this.shipKey=this.selIdx?'lantu':'hongmao';
@@ -338,7 +338,7 @@ class Game{
     try{ localStorage.setItem('hmlt-codex',JSON.stringify(codexUnlocked)); }catch(e){}
     const e=CODEX.find(c=>c[0]===id); this.unlockFx={t:2.5,n:e[1]}; this.slowT=0.5; this.slowK=0.35; SFX.play('full'); this.log('insight '+id); }
   log(s){ if(game===this) console.log('[hmlt]',s); } // 与 tests-trace.md 词汇表对齐
-  say(s){ this.msg=s; this.msgT=1.6; }
+  say(s){ this.msgs.push({txt:s,t:0,life:1.8}); if(this.msgs.length>4) this.msgs.shift(); } // v23 队列：堆叠+淡入淡出
   setLv(n){ this.lv=clamp(n,1,5); this.syncWings(); this.neng=0; this.say('武器 LV'+this.lv+(this.lv>1?' · 按住J蓄力，满后松手释放':'')); }
   fireVolley(){ const S=this.ship, cfg=N.ships[this.shipKey];
     const dmg=Math.round(N.zdlv[this.lv-1]*(cfg.dmgMul||1)), sp=cfg.bspeed; // ① ×1.8/×0.9 分角色
@@ -537,7 +537,7 @@ class Game{
 
   update(dt){
     if(this.traitCard) return; // v20 特性教学暂停：时间冻结
-    this.t+=dt; this.stats.time+=dt; if(this.msgT>0) this.msgT-=dt;
+    this.t+=dt; this.stats.time+=dt; for(const m of this.msgs) m.t+=dt; this.msgs=this.msgs.filter(m=>m.t<m.life);
     if(this.state==='select'){ if(jEdge||keys['enter']) this.startRun();
       if(keys['a']||keys['arrowleft']) this.selIdx=0; if(keys['d']||keys['arrowright']) this.selIdx=1;
       return; }
@@ -755,24 +755,24 @@ class Game{
     // ③ 长虹贯日：全屏剑气（宽度=18+15×僚机），命中点燃 3s
     if(this.guanri){ const g=this.guanri; g.t-=dt; g.x+=156*dt;   // v19 慢剑 40%：可感知+操作空间   // v12 巨剑前推（修复：旧判定用未定义 g.h→NaN 恒假=零伤害）
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
-      for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&e.x>S.x-20&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){
+      for(const e of tgts) if(!e.dead&&!g.hit.has(e)&&Math.abs(e.x-g.x)*2<g.w+(e.w||30)&&Math.abs(e.y-g.y)*2<g.w+(e.h||20)){ // v23 剑身x判定：未到不伤
         g.hit.add(e);
         let gd=e.isBoss?g.dmg*1.5:g.dmg, gc=false;                          // v16 巨剑对 boss ×1.5 终结技
         if(e.burn>0){ this.traitFire('fengzhu');                           // v21 风助火势：蓄力剑打燃烧敌
           if(Math.random()<this.critRate('sword',e)){ gd*=2; gc=true; this.booms.push({x:e.x,y:e.y,t:0.25,crit:true}); } }
         this.dmgFloat(e,gd,'skill',gc); this.damage(e,Math.round(gd)); // v22 金色技能数字
         e.burn=12; e.burnTick=3;                                            // v21 燃烧重构：12s×每3s一跳35（共140<旧150）
-        if(this.renjianLeft>0&&this.t>this.renjianCd) this.renjianWin=0.3; // v21 人剑合一：剑命中开 0.3s 追剑窗
+        if(this.renjianLeft>0&&this.t>this.renjianCd&&this.fireCd<=0) this.renjianWin=0.3; // v23 窗只在普攻就绪时开=需刻意等CD,连按无效
         this.booms.push({x:e.x,y:e.y,t:.25,spark:true}); }
       if(g.t<=0||g.x>FIELD_W+160) this.guanri=null; }
     // ③ 火凤燎原：掠场点燃+持续伤害（对点燃×1.5）
     if(this.phoenix2){ const p=this.phoenix2; p.t-=dt; p.x+=p.vx*dt; p.y=S.y+60*Math.sin(this.t*3);
       this.booms.push({x:p.x-50,y:p.y+(Math.random()-.5)*50,t:.35,spark:true}); // 火羽粒子
       const tgts=[...this.enemies]; if(this.boss&&!this.boss.dead) tgts.push(this.boss);
-      for(const e of tgts) if(!e.dead&&Math.abs(e.x-p.x)<70&&Math.abs(e.y-p.y)<60){
+      for(const e of tgts) if(!e.dead&&Math.abs(e.x-p.x)<52&&Math.abs(e.y-p.y)<40){ // v23 盒=视觉尺寸(74×41)
         if(e.burn>0) this.unlock('rifeng');
         if(!p.hit.has(e)){ p.hit.add(e); e.burn=12; e.burnTick=3;          // v21 燃烧重构
-          if(this.renjianLeft>0&&this.t>this.renjianCd) this.renjianWin=0.3; } // v21 人剑合一：大招命中开窗
+          if(this.renjianLeft>0&&this.t>this.renjianCd&&this.fireCd<=0) this.renjianWin=0.3; } // v23 同贯日
         const pd=(e.burn>0?220:150)*dt; this.damage(e,pd);           // 火凤 dps（原逻辑不丢）
         this.dmgAcc.set(e,(this.dmgAcc.get(e)||0)+pd); }              // v22 聚合显示
       if(p.t<=0||p.x>FIELD_W+60) this.phoenix2=null; }
@@ -944,9 +944,10 @@ class Game{
     if(this.tintFx){ ctx.fillStyle='rgba('+this.tintFx.c+','+(clamp(this.tintFx.t/1.3,0,1)*0.22).toFixed(2)+')';
       ctx.fillRect(0,0,FIELD_W,FIELD_H); }
     this.renderHUD(ctx);
-    if(this.msgT>0){ ctx.globalAlpha=clamp(this.msgT,0,1);
+    this.msgs.forEach((m,i)=>{ const a=clamp(m.t/0.18,0,1)*clamp((m.life-m.t)/0.45,0,1); // v23 淡入0.18s/淡出0.45s
+      ctx.globalAlpha=a;
       ctx.fillStyle='#ffe08a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
-      ctx.fillText(this.msg,FIELD_W/2,FIELD_H-100); ctx.globalAlpha=1; }
+      ctx.fillText(m.txt,FIELD_W/2,FIELD_H-100-i*18); ctx.globalAlpha=1; }); // v23 堆叠：每条上移18px
     { const aS=this.ship, AC={yizhen:'#7fd8ff',guiqia:'#8fffe0',fengzhu:'#ffb366',renjian:'#ffd166',qiudao:'#ffffff',zhenman:'#9fe8ff',beishui:'#ff6b6b'};
       const ring=(c,r)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.55; ctx.lineWidth=2;
         ctx.beginPath(); ctx.arc(aS.x,aS.y,r,0,7); ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1; };
