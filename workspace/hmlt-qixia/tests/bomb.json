@@ -1,0 +1,16 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "bomb",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "serverSend", "name": "DebugGrantBomb", "params": [3] },
+    { "t": 4.0, "kind": "key", "typeName": "KeyboardCraftspersonKey20Down" },
+    { "t": 4.2, "kind": "key", "typeName": "KeyboardCraftspersonKey20Up" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "bomb 2", "source": "client" },
+    { "kind": "log", "contains": "bomb_clear", "source": "client" }
+  ]
+}

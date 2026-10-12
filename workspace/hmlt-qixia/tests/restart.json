@@ -1,0 +1,19 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "restart",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "serverSend", "name": "DebugSetLife", "params": [1] },
+    { "t": 1.0, "kind": "serverSend", "name": "DebugDamage", "params": [9999] },
+    { "t": 3.0, "kind": "click", "name": "RestartBtn" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "fail lives", "source": "client" },
+    { "kind": "log", "contains": "restart", "source": "client" },
+    { "kind": "log", "contains": "game_start", "source": "client" },
+    { "kind": "tree", "name": "GameOverPanel", "exists": false },
+    { "kind": "tree", "name": "CharSelectPanel", "exists": true }
+  ]
+}

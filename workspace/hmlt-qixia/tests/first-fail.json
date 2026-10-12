@@ -1,0 +1,16 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "first-fail",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "serverSend", "name": "DebugSetLife", "params": [1] },
+    { "t": 1.0, "kind": "serverSend", "name": "DebugDamage", "params": [9999] }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "life 0", "source": "client" },
+    { "kind": "log", "contains": "fail lives", "source": "client" },
+    { "kind": "tree", "name": "GameOverPanel", "exists": true }
+  ]
+}

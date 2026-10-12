@@ -1,0 +1,12 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "boot",
+  "dt": 0.04,
+  "events": [],
+  "asserts": [
+    { "kind": "log", "contains": "game_start", "source": "client" },
+    { "kind": "tree", "name": "CharSelectPanel", "exists": true },
+    { "kind": "tree", "name": "ScoreText", "exists": true }
+  ]
+}

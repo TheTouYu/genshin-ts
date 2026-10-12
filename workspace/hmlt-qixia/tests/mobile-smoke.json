@@ -1,0 +1,15 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "mobile-smoke",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "game_start", "source": "client" },
+    { "kind": "log", "contains": "char_select hongmao", "source": "client" },
+    { "kind": "tree", "name": "ScoreText", "exists": true },
+    { "kind": "tree", "name": "HpBar", "exists": true }
+  ]
+}

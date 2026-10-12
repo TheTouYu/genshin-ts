@@ -1,0 +1,17 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "char-select",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 1.0, "kind": "click", "name": "RestartBtn" },
+    { "t": 2.0, "kind": "click", "name": "LantuCard" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "char_select hongmao", "source": "client" },
+    { "kind": "log", "contains": "char_select lantu", "source": "client" },
+    { "kind": "tree", "name": "OptionControl", "exists": true },
+    { "kind": "control", "name": "ScoreText", "field": "text", "equals": "0" }
+  ]
+}

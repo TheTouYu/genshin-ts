@@ -1,0 +1,18 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "first-success",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "serverSend", "name": "DebugAutoPlay", "params": [1] },
+    { "t": 1.0, "kind": "serverSend", "name": "DebugSkipToBoss", "params": [] },
+    { "t": 8.0, "kind": "serverSend", "name": "DebugKillBoss", "params": [] }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "boss_spawn", "source": "client" },
+    { "kind": "log", "contains": "level_clear", "source": "client" },
+    { "kind": "log", "contains": "game_win", "source": "client" },
+    { "kind": "tree", "name": "WinPanel", "exists": true }
+  ]
+}

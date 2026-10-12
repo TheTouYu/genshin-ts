@@ -1,0 +1,17 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "pow-cycle",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "serverSend", "name": "DebugGrantPow", "params": [2] },
+    { "t": 1.0, "kind": "serverSend", "name": "DebugDamage", "params": [9999] }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "pow 2", "source": "client" },
+    { "kind": "log", "contains": "pow 1", "source": "client" },
+    { "kind": "log", "contains": "life 3", "source": "client" },
+    { "kind": "log", "contains": "respawn", "source": "client" }
+  ]
+}

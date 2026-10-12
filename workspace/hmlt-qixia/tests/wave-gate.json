@@ -1,0 +1,14 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "wave-gate",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 15.0, "kind": "serverSend", "name": "DebugNoop", "params": [] }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "wave 1", "source": "client" },
+    { "kind": "lua", "source": "return HMLT ~= nil and HMLT.wave == 1", "at": 15.2 }
+  ]
+}
