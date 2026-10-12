@@ -1,0 +1,25 @@
+{
+ "schemaVersion": 1,
+ "entities": [
+  {
+   "name": "白模_球场设施",
+   "id": 1077936146,
+   "definitionId": 1077936142,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  }
+ ]
+}
