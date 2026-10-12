@@ -19,7 +19,7 @@
 </head>
 <body>
 <div id="wrap"><canvas id="cv" width="444" height="250"></canvas>
-<div id="hint"><b style="color:#ffd166">[v6·原版点射]</b> WASD/J/K 按<b>键帽印刷位</b> · J 一按=一段点射，长按转纯蓄力，满后**松手**放角色专属招（虹猫=僚机散射/蓝兔=金凤凰）· K 放宝 · M 切音效(默认原版3音) · 开局捡能量块升LV2 · 调试:1-5级 B+宝 P+Pow R重开</div></div>
+<div id="hint"><b style="color:#ffd166">[v8·细节全面轮]</b> WASD/J/K 按<b>键帽印刷位</b> · J 一按=一段点射，长按转纯蓄力，满后**松手**放角色专属招（虹猫=僚机散射/蓝兔=冰魄剑）· K 放宝 · M 切音效(默认完整打击音效) · 开局捡能量块升LV2 · 调试:1-5级 B+宝 P+Pow R重开</div></div>
 <div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
 <button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
 <script>
@@ -41,6 +41,8 @@ const ART = {
   dj1:[389,42,18], dj2:[357,38,39], dj3:[345,46,20], dj4:[321,34,33],
   boss1:[300,91,112],                               // 白皮书 §3: boss1 91×112
   phoenix:[510,46,52],                              // ldfhm 雷电凤凰
+  bingpoj:[518,46,16],                              // 冰魄剑（jedfhm→519→shape518）
+  die:[402,64,64],                                  // die1 真身（大爆炸，boss 死亡）
   pow:[414,18,7], bom1:[422,18,7], bs:[337,16,16], shield:[499,45,45],
   boom:[402,56,40], bg:[434,1333,250],              // 背景 1493×280 → 高250 等比
 };
@@ -60,7 +62,7 @@ const N = {
   chargeRate:25,                       // neng++/帧
   ships:{
     hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:700, bombName:'普通爆', sfx:'fire',  chargeType:'burst',   bombDj:50, bombBoss:50},  // 虹猫散射窗（fudaiji f46-96：50帧24发）
-    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'phoenix', bombDj:30, bombBoss:30}, // 蓝兔金凤凰（jedfhm 12帧静态爆破）
+    lantu:  {bullet:'jezd',bspeed:500, ps:65, wing:'wingB', wingBullet:'jezd', wingSpeed:700, bombName:'激光爆', sfx:'fireL', chargeType:'sword', bombDj:30, bombBoss:30}, // 蓝兔冰魄剑（三把穿透飞刀）
   },
   enemy:{ dj1:{hp:1, spd:250, score:10}, dj2:{hp:250, zdsd:150, score:300},   // round1 口径（报告§4）：dj2=250/dj4=100
           dj3:{hp:500, zdsd:150, score:300}, dj4:{hp:100, zdsd:137, score:300},
@@ -95,9 +97,9 @@ addEventListener('keydown', e=>{
 addEventListener('keyup', e=>keys[normKey(e)]=false);
 
 // ---------- 音效（原版 DefineSound 导出 mp3；具名 4 个实证，数字 id 为占位可换） ----------
-const SFX = { ctx:null, buf:{}, last:{}, mode:'classic', // classic=原版仅 3 音（up/wudao/cjb），M 键切 full 再创音效
+const SFX = { ctx:null, buf:{}, last:{}, mode:'full', // classic=原版仅 3 音（up/wudao/cjb），M 键切 full 再创音效
   map:{ fire:'573.mp3', fireL:'560.mp3', boomE:'4_boom.mp3', boomP:'3_aida.mp3', pow:'1_up.mp3',
-        bomb:'295.mp3', phoenix:'982.mp3', bs:'5_cjb.mp3', sel:'1_up.mp3', boss:'694.mp3', wudao:'2_wudao.mp3' },
+        bomb:'295.mp3', phoenix:'982.mp3', bs:'5_cjb.mp3', sel:'1_up.mp3', boss:'694.mp3', wudao:'2_wudao.mp3', full:'529.mp3', hit:'473.mp3' },
   init(){ if(this.ctx){ this.ctx.resume && this.ctx.resume(); return; }
     try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
     for(const [k,f] of Object.entries(this.map)){
@@ -124,6 +126,7 @@ cv.addEventListener('pointermove', ev=>{ if(!touch.on)return; const p=canvasPos(
 addEventListener('pointerup', ()=>touch.on=false);
 
 // ---------- 工具 ----------
+const dmgBig=b=>b.pierce||b.dmg>=50;
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const hit=(a,b)=>Math.abs(a.x-b.x)*2<a.w+b.w && Math.abs(a.y-b.y)*2<a.h+b.h;
 const aimed=(x,y,tx,ty,sp)=>{ const dx=tx-x, dy=ty-y, L=Math.hypot(dx,dy)||1; return {vx:dx/L*sp, vy:dy/L*sp}; };
@@ -161,8 +164,12 @@ class Game{
   releaseCharge(){ const cfg=N.ships[this.shipKey], S=this.ship;
     this.fashez=2.0; this.log('phoenix '+this.lv); SFX.play('phoenix',0.5);
     if(cfg.chargeType==='burst'){ this.wingBurst=2.0; this.say('僚机散射弹幕!'); }        // 虹猫：50 帧五向散射
-    else { this.phoenix={x:S.x+22,y:S.y,t:0.48,w:74,h:41,static:true,tint:'gold'}; // jedfhm：12帧寿命、fj.x+20 静态定位、不拦弹
-      this.say('金凤凰·爆破!'); } }                                                     // 伤害按敌型 15/10/30×lv 每帧（下 damage 块）
+    else { // 冰魄剑（jedfhm→519→shape518）：3 把大型穿透飞刀，射向最近敌 ±7° 扇形，射程≈2/5 地图
+      const tgt=this.enemies.filter(e=>!e.dead&&e.x>S.x).sort((a,b)=>a.x-b.x)[0];
+      const ang=clamp(tgt?Math.atan2(tgt.y-S.y,tgt.x-S.x):0,-0.5,0.5);
+      for(let k=-1;k<=1;k++){ const a=ang+k*0.12;
+        this.bullets.push({x:S.x+16,y:S.y,vx:Math.cos(a)*750,vy:Math.sin(a)*750,w:40,h:24,dmg:15*this.lv*3,pierce:true,maxD:178,dist:0,art:'bingpoj'}); }
+      this.say('冰魄剑!'); } }
   addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
   dropPowAtPlayer(){ this.items.push(this.mkItem('pow',this.ship.x+60,this.ship.y)); }
   syncWings(){ // 僚机 = lv-1 个（死亡 lv=1 全散；白皮书 §2.3）
@@ -171,7 +178,7 @@ class Game{
       bspd:250+Math.random()*100, k:0.6+Math.random()*0.8}); // 原版 zdsd=r(5)+10 / sd=r(10)+5 个体随机
     while(this.wings.length>want) this.wings.pop();
   }
-  mkItem(kind,x,y){ return {kind,x,y,w:kind==='bs'?16:20,h:kind==='bs'?16:12,vx:(Math.random()-.5)*50,vy:(Math.random()-.5)*50,life:10,
+  mkItem(kind,x,y){ return {kind,x,y,w:kind==='bs'?16:20,h:kind==='bs'?16:12,vx:(Math.random()-.5)*50,vy:(Math.random()-.5)*50,life:kind==='bs'?10:2.4,
     tx:20+Math.random()*350, ty:20+Math.random()*200}; }
   tryBomb(){
     if(this.state!=='playing'||this.lock>0||this.bomm<=0) return;
@@ -252,6 +259,7 @@ class Game{
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
     else if(firing&&this.lv>1) this.neng=Math.min(this.neng+N.chargeRate*dt,cfg.ps);
+    if(this.lv>1){ if(this.neng>=cfg.ps){ if(!this.chargeFull){ this.chargeFull=true; SFX.play('full'); } } else this.chargeFull=false; }
     if(!firing&&this.neng>0){
       if(this.neng>=cfg.ps) this.releaseCharge(); // 满能松手=释放
       this.neng=0;
@@ -265,13 +273,13 @@ class Game{
 
     // 僚机跟随（fudaiji frame_10 比例逼近）+ 开火
     for(let i=0;i<this.wings.length;i++){ const w=this.wings[i];
-      const tx=S.x-26-i*16, ty=S.y-10; const k=Math.min(1,dt*5*(w.k||1)); // 个体跟随速度
+      const full=this.lv>1&&this.neng>=cfg.ps; const tx=full?S.x+20-i*14:S.x-26-i*16, ty=full?S.y+(i%2?5:-5):S.y-10; const k=Math.min(1,dt*5*(w.k||1)); // 满蓄=僚机贴身（原版核心信号）
       w.x+=(tx-w.x)*k*1.4; w.y+=(ty-w.y)*k;
       w.fireCd-=dt;
       if((this.wingBurst>0||firing)&&w.fireCd<=0&&this.lock<=0){ // 散射窗=僚机时间轴自跑（原版 f46-96 与按键无关）
         if(this.wingBurst>0){ // 虹猫释放窗：24 发/50 帧（每 2 帧一发），速 random(10)+20px/帧，zdfx×zdjl 纵向摇摆
           this.bullets.push({x:w.x+10,y:w.y,vx:500+Math.random()*250,
-            vy:(Math.random()<.5?-1:1)*Math.random()*100, w:12,h:5,dmg:N.zdlv[this.lv-1],art:'fdzd'});
+            vy:(Math.random()<.5?-1:1)*Math.random()*100, w:12,h:5,dmg:N.zdlv[this.lv-1]*2,art:'fdzd'});
           w.fireCd=2.0/24; }
         else { this.bullets.push({x:w.x+10,y:w.y,vx:w.bspd||cfg.wingSpeed,vy:0, // 僚机个体弹速 zdsd=random(5)+10
           w:12,h:5,dmg:N.zdlv[this.lv-1],art:cfg.wingBullet}); w.fireCd=0.3; } } }
@@ -341,10 +349,13 @@ class Game{
       else { for(const e of this.enemies) if(hit(p,e)) this.damage(e,p.dps*dt); } }
 
     // 玩家弹
-    for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
-      for(const e of this.enemies) if(!e.dead&&hit(b,e)){ this.damage(e,b.dmg); b.x=1e4; break; }
+    for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt; if(b.pierce) b.dist+=Math.hypot(b.vx,b.vy)*dt;
+      for(const e of this.enemies) if(!e.dead&&hit(b,e)){ SFX.play('hit');
+        if(b.pierce){ if(!b.hitSet) b.hitSet=new Set(); if(b.hitSet.has(e)) continue; b.hitSet.add(e); this.damage(e,b.dmg); if(b.dmg>=50) this.booms.push({x:e.x,y:e.y,t:0.18,big:false}); }
+        else { this.damage(e,b.dmg); b.x=1e4; break; } }
       if(this.boss&&!this.boss.dead&&b.x<1e3&&hit(b,this.boss)){ this.damage(this.boss,b.dmg); b.x=1e4; } }
     this.bullets=this.bullets.filter(b=>b.x<FIELD_W+30&&b.y>-20&&b.y<FIELD_H+20);
+    this.bullets=this.bullets.filter(b=>!(b.maxD&&b.dist>b.maxD));
 
     // 敌弹
     for(const b of this.ebullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
@@ -417,7 +428,7 @@ class Game{
     for(const b of this.ebullets) drawArt(ctx,b.art||'szd',b.x,b.y);
     // 爆炸
     for(const bm of this.booms){ const k=1-bm.t/(bm.big?0.8:0.5);
-      ctx.globalAlpha=1-k; drawArt(ctx,'boom',bm.x,bm.y,(bm.big?100:50)*(0.6+k),(bm.big?70:36)*(0.6+k)); ctx.globalAlpha=1; }
+      ctx.globalAlpha=1-k; drawArt(ctx,bm.big?'die':'boom',bm.x,bm.y,(bm.big?115:50)*(0.6+k),(bm.big?115:36)*(0.6+k)); ctx.globalAlpha=1; }
     if(this.bombFx){ const k=1-this.bombFx.t/2;
       ctx.globalAlpha=clamp(1-k,0,1)*0.9; ctx.strokeStyle='#ffd23f'; ctx.lineWidth=5;
       ctx.beginPath(); ctx.arc(FIELD_W/2,FIELD_H/2,k*FIELD_W*0.7,0,6.29); ctx.stroke();
@@ -455,7 +466,7 @@ class Game{
     ctx.fillText('选择侠士', FIELD_W/2, FIELD_H-28);
     ctx.font='10px sans-serif'; ctx.fillStyle='#9ab';
     ctx.fillText('A/D 或 ←/→ 切换 · J 或点击确认', FIELD_W/2, 14);
-    const cards=[{k:'hongmao',n:'虹猫',d:'弹速 30px/帧 · 蓄力→僚机散射'},{k:'lantu',n:'蓝兔',d:'激光弹 · 蓄力→金凤凰'}];
+    const cards=[{k:'hongmao',n:'虹猫',d:'弹速快 · 蓄力→僚机散射弹幕'},{k:'lantu',n:'蓝兔',d:'激光弹 · 蓄力→冰魄剑(穿透飞刀)'}];
     cards.forEach((c,i)=>{ const cx=FIELD_W/4+i*FIELD_W/2, cy=FIELD_H/2-6, on=this.selIdx===i;
       ctx.globalAlpha=on?1:0.45;
       ctx.strokeStyle=on?'#ffd23f':'#567'; ctx.lineWidth=on?2.5:1;
