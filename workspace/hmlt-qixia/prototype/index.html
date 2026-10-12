@@ -308,7 +308,7 @@ class Game{
     this.stats={kills:0,hits:0,pick:0,time:0};
     this.needles=0; this.shotN=0; this.wallSeq=0; this.wallHits={};
     this.guanri=null; this.phoenix2=null; this.freezeT=0; this.jieJian=0; this.chargeGraze=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0; this.zmFull=false;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.loopMark={shot:-99,sword:-99,wall:-99}; this.bgKey='bg'; this.unlockFx=null; this.slowT=0; this.slowK=0.35;
@@ -330,7 +330,7 @@ class Game{
     this.wave=-1; this.levelT=0; this.waveGap=0; this.boss=null;
     this.enemies.length=0; this.ebullets.length=0; this.items.length=0; this.booms.length=0;
     this.needles=0; this.neng=0; this.guanri=null; this.phoenix2=null; this.freezeT=0;
-    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0;
+    this.traitCard=null; this.traitT={}; this.fxAura={}; this.recyc=0; this.sparkSeeds=[]; this.traitQ=[]; this.zmArmed=false; this.zmTapT=0; this.zmFull=false;
     this.floaters=[]; this.dmgAcc=new Map(); this.dmgAccT=0.5; // v22 伤害数字/聚合器
     this.renjianWin=0; this.renjianLeft=0; this.renjianCd=0; this.qiudaoCd=0; // v21 特性状态
     this.scrollSpd=N.scroll; this.envTimer=1.5; this.bgKey=L.bg; this.bgW=ART[L.bg][1];
@@ -590,14 +590,15 @@ class Game{
       if(this.renjianWin>0&&this.renjianLeft>0&&this.shipKey==='hongmao'){    // v21 人剑合一：剑命中0.3s内按普攻
         this.renjianLeft--; this.renjianWin=0; this.renjianCd=this.t+1.2;     // 一次释放最多2次+触发CD1.2s
         this.traitFire('renjian'); this.fireSmallSwords(2,'renjian'); }
-      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)){        // v30 满匣普攻小针（恢复 v18）：点按/按住分流
-        if(touch.on&&!jEdge) this.needleBarrage(0.7,false,1,false);
-        else if(jEdge&&this.neng<=0) this.zmTapT=this.t+0.25; } } // 按下记时：0.25s 内松手=点按倾匣；按住=蓄力保匣
+      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)&&jEdge&&this.neng<=0)
+        this.zmTapT=this.t+0.25; } // v30b 满匣点按小针：仅键盘 J 点按路径（触屏/鼠标拖动永不自动倾匣——那是蓄力路线载体）；0.25s 内松手=点按倾匣，按住=蓄力保匣
     if(this.readyFx>0) this.readyFx-=dt;
     if(this.renjianWin>0) this.renjianWin-=dt;  // v21 人剑合一 0.3s 追剑窗
     for(const k in this.fxAura) if(this.fxAura[k]>0) this.fxAura[k]-=dt; // v21 特性光环衰减
     // 蓄力（原版结构 D157+D159）：首轮点射后长按=纯蓄力（惩罚期无额外攻击）；松手瞬间清零；
     // 蓄满后松手才释放角色专属分支（定时长自动攻击=回馈期）；fashez 释放窗口锁 50 帧（2s）内不可再蓄
+    if(this.shipKey==='lantu'){ const full=this.needles>=this.lv*(2+this.lv);   // v31 针匣充满瞬间泛光（寒光提示）
+      if(full&&!this.zmFull) this.traitFx('zhenman'); this.zmFull=full; }
     if(this.zmTapT>0){ if(!keys['j']){ this.zmTapT=0; this.needleBarrage(0.7,false,1,false); } // v30 快速松手=点按→满匣小针倾发
       else if(this.t>=this.zmTapT) this.zmTapT=0; }                        // 按住超过 0.25s=蓄力→保匣
     if(this.fashez>0){ this.fashez-=dt; this.neng=0; }
@@ -970,7 +971,7 @@ class Game{
       const ring=(c,r)=>{ ctx.strokeStyle=c; ctx.globalAlpha=0.55; ctx.lineWidth=2;
         ctx.beginPath(); ctx.arc(aS.x,aS.y,r,0,7); ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1; };
       for(const id in this.fxAura) if(this.fxAura[id]>0&&AC[id]) ring(AC[id],20+Math.sin(this.t*6)*3); // v21 触发光环
-      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) ring('#9fe8ff',16);  // v21 针满则锐：针匣寒光
+      if(this.shipKey==='lantu'&&this.needles>=this.lv*(2+this.lv)) ring('#9fe8ff',22+Math.sin(this.t*5)*3); // v31 针匣寒光：扩到机体外圈+呼吸
       if(this.life===1) ring('#ff6b6b',24+Math.sin(this.t*6)*3);                         // v21 背水一战：血色光环
       for(const bm of this.booms){ if(bm.crit){ ctx.fillStyle='#ffd166'; ctx.globalAlpha=bm.t/0.25; // v21 暴击飘字
           ctx.font='bold 15px system-ui'; ctx.fillText('暴击',bm.x-14,bm.y-14); ctx.globalAlpha=1; }
