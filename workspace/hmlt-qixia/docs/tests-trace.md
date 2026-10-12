@@ -68,3 +68,10 @@ runCase args：全部用例默认画布 pc-16-9；`mobile-smoke.json` 运行时�
 
 本步骤只做静态/schema 检查（normalizeCase 逐文件跑通），不启动模拟器、不 runCase。
 有效 Red 等步骤 5 骨架运行后由目标行为缺失产生。
+
+## v21 特性日志词汇表（步骤 5 Lua 移植时补用例）
+
+- `trait_unlock <id>`：特性首次触发（暂停教学卡+localStorage 永久解锁）。id∈{yizhen,zhenman,guiqia,fengzhu,renjian,qiudao,beishui}。
+- `trait <id>`：已解锁特性再次触发（飘字，4s 冷却）。
+- `small_sword <n>`：人剑合一/险中求道追发小长虹剑（n=2/1）。
+- 断言锚：CDP 实测值（critRate 数学/燃烧一跳 35/小剑 82×2/回填 每2收1/蓄速 45.5/末命 fireCd 0.5833）见 playtest 第二十一轮。
