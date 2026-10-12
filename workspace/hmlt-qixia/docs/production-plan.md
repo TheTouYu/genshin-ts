@@ -33,3 +33,7 @@
 
 1. 白皮书返回 → 写 `docs/gdd.md`（复刻/再创/升级三栏；平台裁决做硬约束；用户拍板玩法取舍）
 2. → 步骤 2 TDD 用例 → 步骤 3 HTML 展示
+
+## 步骤 3 证据（2026-10-12）
+
+| 3 | HTML demo 搭建中 → 已上线待用户试玩 | prototype/index.html + README.md；JS 语法 node --check OK；22 SVG 素材全 200（http.server 8792，服务已起）；browser-run: user 待反馈（records/playtest.md） | 用户手感反馈 |

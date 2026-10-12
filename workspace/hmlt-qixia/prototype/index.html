@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>虹猫蓝兔七侠传·千星复刻 demo（步骤3 手感验证）</title>
+<style>
+  html,body{margin:0;padding:0;background:#1a1a2e;color:#e8e8f0;font-family:system-ui,sans-serif;height:100%;overflow:hidden}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  canvas{image-rendering:auto;box-shadow:0 0 40px rgba(80,120,255,.25);background:#000}
+  #hint{margin-top:8px;font-size:12px;opacity:.75;text-align:center;line-height:1.7}
+  #panel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,10,20,.72);flex-direction:column;gap:14px}
+  #panel h1{font-size:34px;margin:0;text-shadow:0 2px 12px #48f}
+  #panel p{margin:0;opacity:.85}
+  #panel button{font-size:18px;padding:10px 28px;border-radius:10px;border:1px solid #6af;background:#22345c;color:#fff;cursor:pointer}
+  #panel button:hover{background:#2d4a85}
+  #bombBtn{position:fixed;right:14px;bottom:14px;width:74px;height:74px;border-radius:50%;border:2px solid #fc6;background:rgba(60,40,10,.7);color:#fc6;font-size:15px;display:none;z-index:5;touch-action:manipulation}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="cv" width="444" height="250"></canvas>
+<div id="hint">A/D/W/S 或方向键移动 · J 开枪(按住蓄能) · K 放宝 · 调试:1-5武器级 B+宝 P+Pow R重开</div></div>
+<div id="panel"><h1 id="panelTitle"></h1><p id="panelSub"></p><button onclick="restart()">再来一局 (R)</button></div>
+<button id="bombBtn" ontouchstart="game&&game.tryBomb()">放宝<br>K</button>
+<script>
+'use strict';
+/* ============================================================
+ * 虹猫蓝兔七侠传 千星复刻 HTML demo（步骤3）
+ * 逻辑坐标 = 千星系：原点左下、Y 向上、场地 444×250（GDD 宽屏重标定）。
+ * 渲染层才做 y_html = FIELD_H - y 翻转；速度全部 px/秒（原版 px/帧 ×25）。
+ * 素材 = FFDec 提取的原版 shape SVG，路径相对 research/extract。
+ * ============================================================ */
+const FIELD_W = 444, FIELD_H = 250;
+const SVG = id => `../research/extract/assets/shapes/${id}.svg`;
+// shape id → [文件id, 显示宽, 显示高]（显示尺寸来自白皮书或按 bounding box 缩放）
+const ART = {
+  hongmao:[551,34,36], lantu:[568,34,37], flame:[556,12,13],
+  wingA:[521,13,27], wingB:[531,21,24],            // 僚机：虹猫 fudaiji / 蓝兔 ldfdj
+  wzd:[610,19,6], ldzd:[614,26,6], fdzd:[504,12,5], // 玩家弹（fdzd=504，508 是嵌套精灵）
+  szd:[490,10,7], szd2:[496,8,8],                   // 敌弹：瞄准弹 / boss 弹
+  dj1:[389,42,18], dj2:[357,38,39], dj3:[345,46,20], dj4:[321,34,33],
+  boss1:[300,91,112],                               // 白皮书 §3: boss1 91×112
+  phoenix:[510,46,52],                              // ldfhm 雷电凤凰
+  pow:[414,18,7], bom1:[422,18,7], bs:[337,16,16], shield:[499,45,45],
+  boom:[402,56,40], bg:[434,1333,250],              // 背景 1493×280 → 高250 等比
+};
+const imgs = {}; let imgsLeft = 0, imgTimer = null;
+for (const k in ART) { imgsLeft++; const im = new Image();
+  im.onload = im.onerror = () => imgsLeft--;
+  im.src = SVG(ART[k][0]); imgs[k] = im; }
+const drawArt = (ctx,k,x,y,w,h,rot)=>{ const im=imgs[k]; if(!im.complete||!im.naturalWidth) return;
+  ctx.save(); ctx.translate(x, FIELD_H-y); if(rot) ctx.rotate(rot);
+  ctx.drawImage(im, -(w||ART[k][1])/2, -(h||ART[k][2])/2, w||ART[k][1], h||ART[k][2]); ctx.restore(); };
+
+// ---------- 数值总表（白皮书 §7，px/帧 → px/s ×25） ----------
+const N = {
+  player: {vx:175, vy:100, xMin:25, xMax:415, yMin:34, yMax:220},  // ±7/±4px 帧，宽屏 xMax 373→415
+  zdlv:[9,9,6,7,6],                    // lv1..5 单发伤害
+  ps:{hongmao:70, lantu:65},           // 蓄能阈值
+  chargeRate:25,                       // neng++/帧
+  ships:{
+    hongmao:{bullet:'wzd', bspeed:750, ps:70, wing:'wingA', wingBullet:'fdzd', wingSpeed:500, bombName:'普通爆'},
+    lantu:  {bullet:'ldzd',bspeed:500, ps:65, wing:'wingB', wingBullet:'ldzd', wingSpeed:500, bombName:'雷电爆'},
+  },
+  enemy:{ dj1:{hp:1, spd:200, score:10}, dj2:{hp:300, zdsd:200, score:300},
+          dj3:{hp:500, zdsd:200, score:300}, dj4:{hp:200, zdsd:125, score:300},
+          boss1:{hp:3000, zdsd:163, score:1000} },
+  bombDmg:50, phoenixDps:50, scroll:100, scrollBoss:175, bsHpMax:8,
+};
+const wavesDef = [ // 关1（白皮书 §3 导演 381）：dj3×1→dj4×2→dj3×2→dj2×1×4→dj4→boss1
+  {spawns:[['dj3',250]]}, {spawns:[['dj4',150],['dj4',190]]}, {spawns:[['dj3',120],['dj3',210]]},
+  {spawns:[['dj2',160]]}, {spawns:[['dj2',110]]}, {spawns:[['dj2',200]]}, {spawns:[['dj2',150]]},
+  {spawns:[['dj4',170]]}, {boss:'boss1'},
+];
+
+// ---------- 输入 ----------
+const keys = {}; let jEdge=false, kEdge=false;
+addEventListener('keydown', e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  const k = e.key.toLowerCase();
+  if(!keys[k]){ if(k==='j') jEdge=true; if(k==='k') kEdge=true; }
+  keys[k]=true;
+  if(game){ if(k>='1'&&k<='5') game.setLv(+k); if(k==='b') game.addBomb(); if(k==='p') game.dropPowAtPlayer(); }
+  if(k==='r' && game && game.state!=='select') restart();
+});
+addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
+// 触屏：拖动移动 + 自动开火 + 炸弹按钮
+let touch={on:false,x:0,y:0};
+const cv=document.getElementById('cv');
+function canvasPos(ev){ const r=cv.getBoundingClientRect();
+  const px=(ev.clientX-r.left)/r.width*FIELD_W, py=(ev.clientY-r.top)/r.height*FIELD_H;
+  return {x:px, y:FIELD_H-py}; }
+cv.addEventListener('pointerdown', ev=>{ ev.preventDefault();
+  const p=canvasPos(ev);
+  if(game&&game.state==='select'){ game.selectClick(p); return; }
+  touch.on=true; touch.x=p.x; touch.y=p.y; });
+cv.addEventListener('pointermove', ev=>{ if(!touch.on)return; const p=canvasPos(ev); touch.x=p.x; touch.y=p.y; });
+addEventListener('pointerup', ()=>touch.on=false);
+
+// ---------- 工具 ----------
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const hit=(a,b)=>Math.abs(a.x-b.x)*2<a.w+b.w && Math.abs(a.y-b.y)*2<a.h+b.h;
+const aimed=(x,y,tx,ty,sp)=>{ const dx=tx-x, dy=ty-y, L=Math.hypot(dx,dy)||1; return {vx:dx/L*sp, vy:dy/L*sp}; };
+
+// ---------- 游戏主类 ----------
+class Game{
+  constructor(){ this.reset(); }
+  reset(){
+    this.state='select'; this.selIdx=0; this.t=0;
+    this.score=0; this.life=4; this.bomm=3; this.lv=1; this.neng=0;
+    this.ship=null; this.bullets=[]; this.ebullets=[]; this.enemies=[]; this.items=[]; this.booms=[];
+    this.wings=[]; this.phoenix=null; this.shield=0; this.wave=-1; this.waveGap=0; this.boss=null;
+    this.scrollX=0; this.scrollSpd=N.scroll; this.dj1Timer=1.5; this.invuln=0; this.lock=0;
+    this.msg=null; this.msgT=0; this.bgW=ART.bg[1];
+  }
+  startRun(){
+    this.state='playing'; this.shipKey=this.selIdx?'lantu':'hongmao';
+    this.ship={x:45,y:100,w:10,h:8}; this.fireCd=0; this.neng=0;
+    this.log('game_start'); this.log('char_select '+this.shipKey);
+    document.getElementById('bombBtn').style.display='block';
+  }
+  log(s){ if(game===this) console.log('[hmlt]',s); } // 与 tests-trace.md 词汇表对齐
+  say(s){ this.msg=s; this.msgT=1.6; }
+  setLv(n){ this.lv=clamp(n,1,5); this.syncWings(); this.say('调试: lv='+this.lv); }
+  addBomb(){ this.bomm=Math.min(this.bomm+1,7); this.say('调试: 宝='+this.bomm); }
+  dropPowAtPlayer(){ this.items.push(this.mkItem('pow',this.ship.x+60,this.ship.y)); }
+  syncWings(){ // 僚机 = lv-1 个（死亡 lv=1 全散；白皮书 §2.3）
+    const want=this.lv-1;
+    while(this.wings.length<want) this.wings.push({x:this.ship.x-20,y:this.ship.y,fireCd:0});
+    while(this.wings.length>want) this.wings.pop();
+  }
+  mkItem(kind,x,y){ return {kind,x,y,vx:(Math.random()-.5)*50,vy:(Math.random()-.5)*50,life:6,
+    tx:20+Math.random()*350, ty:20+Math.random()*200}; }
+  tryBomb(){
+    if(this.state!=='playing'||this.lock>0||this.bomm<=0) return;
+    this.bomm--; this.shield=1.2; this.log('bomb '+this.bomm);
+    this.ebullets.length=0; // 护盾+全屏爆清弹（fanghu 30帧清敌弹 + bom1 清场）
+    this.booms.push({x:FIELD_W/2,y:FIELD_H/2,t:0.8,big:true});
+    for(const e of this.enemies.concat(this.boss?[this.boss]:[])) this.damage(e,N.bombDmg,true);
+  }
+  damage(e,dmg,isBomb){ e.hp-=dmg;
+    if(e.hp<=0 && !e.dead){ e.dead=true; this.onKill(e); } }
+  onKill(e){
+    this.score+=e.def.score; this.log('score '+this.score);
+    this.booms.push({x:e.x,y:e.y,t:0.5,big:e.isBoss});
+    if(e.kind==='dj3'||e.isBoss) this.items.push(this.mkItem('pow',e.x,e.y));
+    if(e.kind==='dj2'){ this.items.push(this.mkItem('bs',e.x,e.y),this.mkItem('bs',e.x,e.y)); }
+    if(e.kind==='dj4'&&Math.random()<.5) this.items.push(this.mkItem('bs',e.x,e.y));
+    if(e.isBoss){ for(let i=0;i<5;i++){ const it=this.mkItem('bs',e.x,e.y); it.vx=(Math.random()-.5)*160; it.vy=(Math.random()-.5)*120; it.free=true; this.items.push(it); }
+      this.win(); return; }
+  }
+  win(){ this.state='win'; this.log('level_clear'); this.log('game_win'); this.showPanel('第一关 通关！','得分 '+this.score+' · 按 R 再来'); }
+  fail(){ this.state='fail'; this.log('fail life'); this.showPanel('任务失败','得分 '+this.score+' · 按 R 重来'); }
+  showPanel(t,s){ const p=document.getElementById('panel');
+    document.getElementById('panelTitle').textContent=t;
+    document.getElementById('panelSub').textContent=s; p.style.display='flex';
+    document.getElementById('bombBtn').style.display='none'; }
+  selectClick(p){ // 点左侧选虹猫，右侧选蓝兔
+    this.selIdx = p.x>FIELD_W/2?1:0; this.startRun(); }
+
+  spawnWave(){
+    this.wave++;
+    if(this.wave>=wavesDef.length) return;
+    const w=wavesDef[this.wave];
+    if(w.boss){ this.boss={kind:'boss1',def:N.enemy.boss1,hp:N.enemy.boss1.hp,x:FIELD_W+70,y:125,w:80,h:100,
+      isBoss:true,phase:'enter',pt:0,patT:0,pat:0,dead:false};
+      this.scrollSpd=N.scrollBoss; this.lock=1.0; this.ebullets.length=0; this.log('boss_spawn'); return; }
+    for(const [kind,y] of w.spawns){
+      const def=N.enemy[kind];
+      this.enemies.push({kind,def,hp:def.hp,x:FIELD_W+30,y,w:30,h:22,t:0,fireT:1+Math.random(),dead:false,
+        hoverX:320+Math.random()*60, bob:Math.random()*6.28});
+    }
+    this.log('wave '+(this.wave+1));
+  }
+
+  update(dt){
+    this.t+=dt; if(this.msgT>0) this.msgT-=dt;
+    if(this.state==='select'){ if(jEdge||keys['enter']) this.startRun();
+      if(keys['a']||keys['arrowleft']) this.selIdx=0; if(keys['d']||keys['arrowright']) this.selIdx=1;
+      return; }
+    if(this.state!=='playing') return;
+    const S=this.ship, cfg=N.ships[this.shipKey];
+    if(this.lock>0){ this.lock-=dt; } // boss 前奏锁控（dong=2 简化）
+    if(this.invuln>0) this.invuln-=dt;
+    if(this.shield>0) this.shield-=dt;
+
+    // 移动（WASD/方向键/触屏）
+    let mvx=0,mvy=0;
+    if(this.lock<=0){
+      if(keys['a']||keys['arrowleft'])mvx-=1; if(keys['d']||keys['arrowright'])mvx+=1;
+      if(keys['w']||keys['arrowup'])mvy+=1; if(keys['s']||keys['arrowdown'])mvy-=1;
+      if(touch.on){ const dx=touch.x-S.x, dy=touch.y-S.y, L=Math.hypot(dx,dy);
+        if(L>4){mvx=dx/L;mvy=dy/L;} }
+    }
+    S.x=clamp(S.x+mvx*N.player.vx*dt, N.player.xMin, N.player.xMax);
+    S.y=clamp(S.y+mvy*N.player.vy*dt, N.player.yMin, N.player.yMax);
+    if(mvx||mvy){ if(S.x===N.player.xMin)this.log('bound left'); if(S.x===N.player.xMax)this.log('bound right');
+      if(S.y===N.player.yMin)this.log('bound down'); if(S.y===N.player.yMax)this.log('bound up'); }
+
+    // 开枪（自动连发 + 蓄能 + 凤凰）与放宝
+    const firing=keys['j']||touch.on;
+    this.fireCd-=dt;
+    if(firing&&this.lock<=0&&this.fireCd<=0){
+      const n=[1,2,3,4,3][this.lv-1], dmg=N.zdlv[this.lv-1], sp=cfg.bspeed;
+      const bw=15+this.lv*1.2, bh=9+this.lv*1.2;
+      if(this.lv<5){ for(let i=0;i<n;i++){ const off=(i-(n-1)/2)*10;
+          this.bullets.push({x:S.x+16,y:S.y+off,vx:sp,vy:0,w:bw,h:bh,dmg}); } }
+      else { for(const dy of [1,0,-1]) this.bullets.push({x:S.x+16,y:S.y+dy*8,vx:sp,vy:dy*sp*0.22,w:bw,h:bh,dmg}); }
+      this.fireCd=[0.26,0.22,0.2,0.18,0.1][this.lv-1];
+      this.log('fire');
+    }
+    // 蓄能（lv>1 按住 J；满→凤凰）
+    if(firing&&this.lv>1&&!this.phoenix){ this.neng=Math.min(this.neng+N.chargeRate*dt,cfg.ps);
+      if(this.neng>=cfg.ps){ this.neng=0;
+        const wx=this.wings.length?this.wings[0].x:S.x, wy=this.wings.length?this.wings[0].y:S.y;
+        this.phoenix={x:wx,y:wy,t:0.9}; this.log('phoenix '+this.lv); } }
+    else if(!firing) this.neng=Math.max(0,this.neng-N.chargeRate*dt*0.5); // 松开缓慢回落
+    if(kEdge) this.tryBomb();
+    if(this.phoenix){ this.phoenix.x+=780*dt; this.phoenix.t-=dt;
+      if(this.phoenix.t<=0||this.phoenix.x>FIELD_W+60) this.phoenix=null; }
+
+    // 僚机跟随（fudaiji frame_10 比例逼近）+ 开火
+    for(let i=0;i<this.wings.length;i++){ const w=this.wings[i];
+      const tx=S.x-26-i*16, ty=S.y-10; const k=Math.min(1,dt*5);
+      w.x+=(tx-w.x)*k*1.4; w.y+=(ty-w.y)*k;
+      w.fireCd-=dt;
+      if(firing&&w.fireCd<=0&&this.lock<=0){ this.bullets.push({x:w.x+10,y:w.y,vx:cfg.wingSpeed,vy:0,w:12,h:5,dmg:N.zdlv[this.lv-1]});
+        w.fireCd=0.3; } }
+
+    // 卷轴
+    this.scrollX+=this.scrollSpd*dt;
+
+    // dj1 杂兵刷屏器（372：无限刷，不计波次门闩）
+    this.dj1Timer-=dt;
+    if(this.dj1Timer<=0&&this.enemies.length+ (this.boss?1:0)<14){ this.dj1Timer=2.0+Math.random()*1.2;
+      const y=40+Math.random()*150;
+      this.enemies.push({kind:'dj1',def:N.enemy.dj1,hp:1,x:FIELD_W+20,y,w:34,h:14,t:0,dead:false,
+        spd:200+Math.random()*100, fired:false, fireT:99}); }
+
+    // 波次门闩（diren<=0 才进下一波）
+    const gateClear=this.enemies.filter(e=>e.kind!=='dj1').length===0 && !this.boss;
+    this.waveGap-=dt;
+    if(gateClear&&this.wave<wavesDef.length-1&&this.waveGap<=0){ this.spawnWave(); this.waveGap=1.2; }
+
+    // 敌机更新
+    for(const e of this.enemies){
+      e.t+=dt;
+      if(e.kind==='dj1'){ e.x-=e.spd*dt;
+        if(!e.fired&&e.x<S.x){ e.fired=true; } // 玩家飞过其左侧才开火（frame_10→12）
+        if(e.fired&&Math.random()<dt*1.2&&e.x<FIELD_W&&e.x>S.x){ // 瞄准弹
+          const v=aimed(e.x,e.y,S.x,S.y,150); this.eshoot(e,v.vx,v.vy); }
+        if(e.x<-30) e.dead=true, e.gone=true;
+      } else {
+        if(e.x>e.hoverX) e.x-=140*dt; else e.x-=8*dt;
+        e.y+=Math.sin(e.t*1.8+e.bob)*14*dt;
+        e.fireT-=dt;
+        if(e.fireT<=0&&e.x<FIELD_W+5&&this.lock<=0){ e.fireT=1.5+Math.random()*0.9;
+          const sp=e.def.zdsd||150; const v=aimed(e.x,e.y,S.x,S.y,sp); this.eshoot(e,v.vx,v.vy);
+          if(e.kind==='dj2'||e.kind==='dj3'){ const v2=aimed(e.x,e.y,S.x,S.y+40,sp); this.eshoot(e,v2.vx,v2.vy); } }
+        if(e.x<10) e.x=10;
+      }
+      // 敌机撞玩家
+      if(this.invuln<=0&&this.lock<=0&&hit(e,S)) this.playerHit();
+    }
+    this.enemies=this.enemies.filter(e=>!e.dead&&!e.gone);
+
+    // boss1
+    if(this.boss){ const b=this.boss; b.pt+=dt; b.patT+=dt;
+      if(b.phase==='enter'){ b.x-=90*dt; if(b.x<=360){b.x=360;b.phase='fight';this.scrollSpd=N.scroll;} }
+      else { b.y=125+Math.sin(b.pt*0.9)*30;
+        if(b.patT>2.4&&this.lock<=0){ b.patT=0; b.pat=(b.pat+1)%3;
+          if(b.pat===0){ for(const a of[-0.22,0,0.22]){ // 三向瞄准扇
+              const v=aimed(b.x,b.y,S.x,S.y,163); const c=Math.cos(a),s=Math.sin(a);
+              this.eshoot(b,v.vx*c-v.vy*s,v.vx*s+v.vy*c); } }
+          else if(b.pat===1){ for(let i=0;i<10;i++){ const a=i/10*6.28+b.pt; // szd2 环形
+              this.eshoot(b,Math.cos(a)*120,Math.sin(a)*120,'szd2'); } }
+          else { for(let i=0;i<3;i++) setTimeout(()=>{ if(game===this&&this.boss&&!this.boss.dead&&this.state==='playing')
+                { const v=aimed(this.boss.x,this.boss.y,this.ship.x+i*30-30,this.ship.y,175); this.eshoot(this.boss,v.vx,v.vy); } }, i*120); } } }
+      if(this.invuln<=0&&this.lock<=0&&hit(b,S)) this.playerHit(); }
+
+    // 凤凰持续伤害（无敌伤害场，-2/帧→50/s）
+    if(this.phoenix){ const p=this.phoenix;
+      for(const e of this.enemies) if(hit(p,e)) this.damage(e,N.phoenixDps*dt*4);
+      if(this.boss&&hit(p,this.boss)) this.damage(this.boss,N.phoenixDps*dt*4); }
+
+    // 玩家弹
+    for(const b of this.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
+      for(const e of this.enemies) if(!e.dead&&hit(b,e)){ this.damage(e,b.dmg); b.x=1e4; break; }
+      if(this.boss&&!this.boss.dead&&b.x<1e3&&hit(b,this.boss)){ this.damage(this.boss,b.dmg); b.x=1e4; } }
+    this.bullets=this.bullets.filter(b=>b.x<FIELD_W+30&&b.y>-20&&b.y<FIELD_H+20);
+
+    // 敌弹
+    for(const b of this.ebullets){ b.x+=b.vx*dt; b.y+=b.vy*dt;
+      if(this.shield>0&&hit(b,{x:S.x,y:S.y,w:45,h:45})) b.x=1e4;      // 护盾清弹
+      if(this.invuln<=0&&this.lock<=0&&hit(b,S)){ b.x=1e4; this.playerHit(); } }
+    this.ebullets=this.ebullets.filter(b=>b.x>-20&&b.x<FIELD_W+20&&b.y>-20&&b.y<FIELD_H+20);
+
+    // 道具（pow/bom1 漂向随机点，bbb 大拾取框）
+    for(const it of this.items){ it.life-=dt;
+      if(it.kind==='bs'){ if(it.free){ it.x+=it.vx*dt; it.y+=it.vy*dt; it.vx*=0.99; it.vy*=0.99; } }
+      else { const v=aimed(it.x,it.y,it.tx,it.ty,28); it.x+=v.vx*dt; it.y+=v.vy*dt;
+        if(Math.hypot(it.tx-it.x,it.ty-it.y)<6){ it.tx=20+Math.random()*350; it.ty=20+Math.random()*200; } }
+      if(hit(it,{x:S.x,y:S.y,w:26,h:20})){
+        it.life=-1;
+        if(it.kind==='pow'){ if(this.lv<5){ this.lv++; this.syncWings(); this.log('pow '+this.lv); }
+          else { this.score+=1000; this.log('score '+this.score); } }
+        else if(it.kind==='bom1'){ this.bomm=Math.min(this.bomm+1,7); this.log('bomb '+this.bomm); }
+        else if(it.kind==='bs'){ const b={kind:'bsx',hp:1,def:{score:500},x:it.x,y:it.y,w:14,h:14,dead:false};
+          this.onKill(b); } }
+    }
+    this.items=this.items.filter(i=>i.life>0);
+
+    for(const bm of this.booms) bm.t-=dt;
+    this.booms=this.booms.filter(b=>b.t>0);
+  }
+  eshoot(e,vx,vy,art){ if(this.ebullets.length>140) return;
+    this.ebullets.push({x:e.x,y:e.y,vx,vy,w:7,h:7,art:art||'szd'}); }
+  playerHit(){ // 死亡循环：lv=1 僚机自散 + 原地掉 pow 补偿 + life-1 重生
+    if(this.invuln>0||this.lock>0) return;
+    this.booms.push({x:this.ship.x,y:this.ship.y,t:0.6,big:true});
+    this.lv=1; this.wings.length=0; this.neng=0;
+    this.items.push(this.mkItem('pow',this.ship.x,this.ship.y));
+    this.life--; this.log('life '+Math.max(this.life,0)); this.log('respawn');
+    this.ship.x=40; this.ship.y=100; this.invuln=1.2;
+    if(this.life<0) this.fail();
+  }
+
+  // ---------- 渲染 ----------
+  render(ctx){
+    // 背景卷轴（434 原版关1背景带）
+    const bw=this.bgW, off=-(this.scrollX%bw);
+    for(let x=off;x<FIELD_W;x+=bw) drawArt(ctx,'bg',x+bw/2,FIELD_H/2,bw,FIELD_H);
+    if(this.state==='select'){ this.renderSelect(ctx); return; }
+    // 道具
+    for(const it of this.items) drawArt(ctx,it.kind==='bs'?'bs':it.kind,it.x,it.y);
+    // 敌机
+    for(const e of this.enemies) drawArt(ctx,e.kind,e.x,e.y);
+    if(this.boss) drawArt(ctx,'boss1',this.boss.x,this.boss.y);
+    // 凤凰
+    if(this.phoenix){ const p=this.phoenix;
+      drawArt(ctx,'phoenix',p.x,p.y,46,52,-0.2); ctx.globalAlpha=0.4;
+      drawArt(ctx,'phoenix',p.x-18,p.y,46,52,-0.35); ctx.globalAlpha=1; }
+    // 玩家 + 僚机 + 焰
+    const S=this.ship;
+    if(this.invuln<=0||Math.floor(this.t*12)%2===0){
+      for(const w of this.wings) drawArt(ctx,N.ships[this.shipKey].wing,w.x,w.y);
+      drawArt(ctx,'flame',S.x-18,S.y,10+Math.random()*4,11+Math.random()*4);
+      drawArt(ctx,this.shipKey,S.x,S.y); }
+    if(this.shield>0){ ctx.globalAlpha=clamp(this.shield/0.4,0,1)*0.8;
+      drawArt(ctx,'shield',S.x,S.y,45,45); ctx.globalAlpha=1; }
+    // 子弹
+    for(const b of this.bullets) drawArt(ctx,N.ships[this.shipKey].bullet,b.x,b.y,b.w,b.h);
+    for(const b of this.ebullets) drawArt(ctx,b.art||'szd',b.x,b.y);
+    // 爆炸
+    for(const bm of this.booms){ const k=1-bm.t/(bm.big?0.8:0.5);
+      ctx.globalAlpha=1-k; drawArt(ctx,'boom',bm.x,bm.y,(bm.big?100:50)*(0.6+k),(bm.big?70:36)*(0.6+k)); ctx.globalAlpha=1; }
+    this.renderHUD(ctx);
+    if(this.msgT>0){ ctx.globalAlpha=clamp(this.msgT,0,1);
+      ctx.fillStyle='#ffe08a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(this.msg,FIELD_W/2,FIELD_H-100); ctx.globalAlpha=1; }
+  }
+  renderHUD(ctx){
+    ctx.save(); ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(0,0,FIELD_W,16);
+    ctx.fillStyle='#fff'; ctx.font='9px monospace'; ctx.textAlign='left';
+    ctx.fillText('分 '+this.score, 5, 11);
+    ctx.fillText('LV'+this.lv, 70, 11);
+    // 蓄能条
+    const ps=N.ships[this.shipKey].ps, nw=60;
+    ctx.fillStyle='#333'; ctx.fillRect(100,4,nw,7);
+    ctx.fillStyle=this.neng>=ps?'#ffd23f':'#4fa8ff'; ctx.fillRect(100,4,nw*this.neng/ps,7);
+    ctx.strokeStyle='#888'; ctx.strokeRect(100,4,nw,7);
+    // 宝（bom1 图标）与命（小飞机）
+    for(let i=0;i<this.bomm;i++) drawArt(ctx,'bom1',178+i*14,10,12,5);
+    for(let i=0;i<Math.max(this.life,0);i++) drawArt(ctx,this.shipKey,FIELD_W-8-i*13,9,10,11);
+    if(this.boss&&this.boss.phase==='fight'){ // boss 血条
+      ctx.fillStyle='#300'; ctx.fillRect(60,FIELD_H-8,FIELD_W-120,5);
+      ctx.fillStyle='#f44'; ctx.fillRect(60,FIELD_H-8,(FIELD_W-120)*Math.max(this.boss.hp,0)/N.enemy.boss1.hp,5); }
+    ctx.restore();
+  }
+  renderSelect(ctx){
+    ctx.fillStyle='rgba(6,10,26,.82)'; ctx.fillRect(0,0,FIELD_W,FIELD_H);
+    ctx.fillStyle='#ffd23f'; ctx.font='bold 17px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('选择侠士', FIELD_W/2, FIELD_H-28);
+    ctx.font='10px sans-serif'; ctx.fillStyle='#9ab';
+    ctx.fillText('A/D 或 ←/→ 切换 · J 或点击确认', FIELD_W/2, 14);
+    const cards=[{k:'hongmao',n:'虹猫',d:'弹速 30px/帧 · 蓄能70'},{k:'lantu',n:'蓝兔',d:'雷电弹 · 蓄能65'}];
+    cards.forEach((c,i)=>{ const cx=FIELD_W/4+i*FIELD_W/2, cy=FIELD_H/2-6, on=this.selIdx===i;
+      ctx.globalAlpha=on?1:0.45;
+      ctx.strokeStyle=on?'#ffd23f':'#567'; ctx.lineWidth=on?2.5:1;
+      ctx.strokeRect(cx-62,cy-52,124,110);
+      drawArt(ctx,c.k,cx,cy+6,64,68);
+      ctx.fillStyle=on?'#ffd23f':'#9ab'; ctx.font='bold 14px sans-serif';
+      ctx.fillText(c.n,cx,cy-34);
+      ctx.font='9px sans-serif'; ctx.fillStyle='#789'; ctx.fillText(c.d,cx,cy+46);
+      ctx.globalAlpha=1; });
+  }
+}
+function restart(){ document.getElementById('panel').style.display='none';
+  game=new Game(); }
+
+// ---------- 主循环（变步长 px/秒，GDD 再创口径） ----------
+const ctx=cv.getContext('2d');
+let game=new Game(), last=performance.now(), acc=0;
+const STEP=1/60;
+function frame(now){
+  let dt=Math.min((now-last)/1000,0.1); last=now; acc+=dt;
+  while(acc>=STEP){ game.update(STEP); jEdge=false; kEdge=false; acc-=STEP; }
+  game.render(ctx);
+  requestAnimationFrame(frame);
+}
+imgTimer=setInterval(()=>{ if(imgsLeft<=0){ clearInterval(imgTimer);
+  // 加载完成才开始渲染循环（SVG 全就位）
+  } },100);
+requestAnimationFrame(frame);
+
+// 画布自适应窗口
+function fit(){ const s=Math.min(innerWidth/FIELD_W,(innerHeight-40)/FIELD_H);
+  cv.style.width=(FIELD_W*s|0)+'px'; cv.style.height=(FIELD_H*s|0)+'px'; }
+addEventListener('resize',fit); fit();
+if('ontouchstart' in window) document.getElementById('bombBtn').style.display= game.state==='select'?'none':'block';
+</script>
+</body>
+</html>
