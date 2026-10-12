@@ -1,11 +1,25 @@
 # football 目录规则（探索本目录时自动注入）
 
-> doc-type: R · status: active · updated: 2026-09-05
-> 地图 **1073741908「真实足球」**（名字与"足球/足球_2/变量"相近，复测前先确认进对图——
-> 2026-08-31 曾因此白测一轮）。
-> **当前主线（2026-09-05）**：`src-fb/` 新链路（fb-phys2/fb-sink/fb-render/fb-input 等 + 票 20 实验线）；图/资产真值以 `.scratch/football-v2/BOARD.md` 资产速查与 git HEAD 为准。
-> 旧 v5 四图（825 logic / 826 input / 828 dribble-v5 / 829 render）与 `ARCHITECTURE-V5.md` 已退役为历史，**只读勿动**；v4 隔离区 `src/*.v4.ts` 保留纪律参照。
-> 进度入口：BOARD（唯一入口）→ `PROGRESS.md`（历史轮次）；设计权威：`R2-DESIGN.md`（部分章节已被票 19/20 修订）。
+> doc-type: R · status: active · updated: 2026-10-12
+> **v3 现役地图（2026-10-12 起）：1073741827「真实足球v3」**（票 25 A 批已落场地；旧图
+> 1825「真实足球」=票 24 照抄终版退役备件；复测前先确认进对图——2026-08-31 曾因进错图白测一轮）。
+> **当前主线（2026-10-12）**：票 25 v3 从零重构（减法路线，交接文档=`REBUILD-HANDOFF.md`，
+> 看板=`.scratch/football-v2/BOARD.md`）；源码保留 `src-fb/` 只重装配不重写。
+> 旧 v5 四图（825/826/828/829）与 `ARCHITECTURE-V5.md` 已退役为历史，**只读勿动**；
+> v4 隔离区 `src/*.v4.ts` 保留纪律参照。
+> 进度入口：BOARD（唯一入口）→ `PROGRESS.md`（历史轮次）；设计权威：`R2-DESIGN.md`。
+
+## 〇、换机环境（Arch+wine，票 24 §A 开放项 2026-10-12 落地）
+
+- **每条新 shell 命令都要先带**：
+  `export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`
+  （不 export 则 gsts 报 `LOCALAPPDATA not found`；dsh 沙箱对存档目录默认只读报 EROFS，需放行）。
+- 存档双地址：`…/BeyondLocal/110170759/Beyond_Local_Save_Level/<id>.gil`（平铺，maps:create
+  产物）或 `…/Beyond_Local_Save_Level/<id>/<id>.gil`（子目录式，1825 布局）+ `…/Temp/<id>.gil`——
+  任何写回后必查双址 SHA 一致（terrain set-range 不自动同步 Temp，其余 --write 多已内置）。
+- donor 3231 只读行为基线（`.scratch/_archive/football-v2/evidence/ab-22/`），禁止写入；
+  资产完备性判据=票 24 §C 分类表。**GIL 顶层是容器分块表（非裸 protobuf），仓库无 root
+  枚举工具——手写 varint walker 必败，勿再自建**。
 
 ## 一、不变量清单（改代码/重写前逐条对照，2026-09-01 协作复盘固化）
 
@@ -51,12 +65,12 @@
 ## 五、复测协议（降低用户复测成本）
 
 - 多个相互独立的修复可合并一轮复测，报告里分别给预期与信号标记；
-- 用户复测前先确认：进对地图（1073741908）+ 注入后已重载地图（注入与游戏会话不得时间重叠）；
+- 用户复测前先确认：进对地图（v3=**1073741827「真实足球v3」**）+ 注入后已重载地图（注入与游戏会话不得时间重叠）；
 - "待复测"注入若用户当晚未测，下轮会话先回收状态再叠加新注入，避免堆积失配。
 
 ## 六、安全边界
 
-注入 1073741908 前按根 AGENTS.md 确认制 + 一次性授权边界执行；写回走
+注入 1073741827（v3 现役图）前按根 AGENTS.md 确认制 + 一次性授权边界执行；写回走
 `genshin-ts-asset-operations` 安全流程（SHA 锁定→候选回读→写回→回读→Temp 同步）。
 headless sim（`sim/`）只覆盖物理数学层，**不覆盖**跨图时序/注入裁边/预算/设备语义——
 sim PASS 不得表述为游戏可用。
