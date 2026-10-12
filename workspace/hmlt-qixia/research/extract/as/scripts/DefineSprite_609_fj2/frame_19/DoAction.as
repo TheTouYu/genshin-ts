@@ -1,0 +1,11 @@
+_root.attachMovie("jezd","x" + _root.i,_root.i++);
+_root["x" + _root.i]._x = _X + 20;
+_root["x" + _root.i]._y = _Y;
+_root["x" + _root.i]._height = 15;
+_root["x" + _root.i]._width = 27;
+rr = random(2) - 1;
+var spjl = _X + 10 - _X;
+var czjl = _Y + rr - _Y;
+var jl = Math.sqrt(spjl * spjl + czjl * czjl);
+_root["x" + _root.i]._xinc = zdsd * spjl / jl;
+_root["x" + _root.i]._yinc = zdsd * czjl / jl;

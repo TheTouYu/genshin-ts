@@ -1,0 +1,13 @@
+if(_X < 67)
+{
+   _X = _X + 5;
+}
+else
+{
+   _root.bomm = 3;
+   _root.attachMovie("fj2","fj",8000);
+   _root.attachMovie("fanghu","fhm",8001);
+   removeMovieClip(this);
+}
+_root.dong = 0;
+_root.fashez = 0;

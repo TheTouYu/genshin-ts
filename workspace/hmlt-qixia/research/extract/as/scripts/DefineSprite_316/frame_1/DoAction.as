@@ -1,0 +1,17 @@
+fashe = random(20);
+if(fashe == 1)
+{
+   gotoAndPlay(5);
+}
+if(fashe == 2)
+{
+   gotoAndPlay(25);
+}
+if(fashe == 3)
+{
+   gotoAndPlay(60);
+}
+if(fashe == 4)
+{
+   gotoAndPlay(90);
+}

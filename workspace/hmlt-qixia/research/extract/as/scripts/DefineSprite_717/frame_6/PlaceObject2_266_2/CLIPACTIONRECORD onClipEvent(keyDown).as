@@ -1,0 +1,23 @@
+onClipEvent(keyDown){
+   if(Key.isDown(74))
+   {
+      with(_parent._parent)
+      {
+         gotoAndPlay(160);
+      }
+   }
+   if(Key.isDown(83))
+   {
+      with(_parent)
+      {
+         gotoAndPlay(10);
+      }
+   }
+   if(Key.isDown(87))
+   {
+      with(_parent)
+      {
+         gotoAndPlay(1);
+      }
+   }
+}

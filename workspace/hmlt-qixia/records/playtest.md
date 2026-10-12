@@ -286,3 +286,10 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - **测试契约修订**（契约不变，oracle 适配）：晚成断言补 at（runner 对未达断言立即判败）；wave-gate lua 断言改 query API（隔离 VM 无 HMLT 全局）；phoenix contains 'phoenix 1'→'phoenix'（lv1 无蓄力为原版规则，开局白送 pow 即 lv2）。
 - **生存数值微调**（和平主义测试者暴露下）：敌射速 1.8→2.4s、重生无敌 1.8→2.2s、dj1 刷率 10%→6%。
 - chargeRate 35→40（0.25s 判定期后 2.2s 内可满蓄，phoenix 用例时序契约）。
+
+### 2026-10-13 第卅六轮 · MCP 交互全链验证 + 真机导入包产出（夜间收口）
+
+- **MCP 交互验证（runtime=simulator）**：qxqy_studio_load 存档→play start→按名 click HongmaoCard/RestartBtn→key（**参数= args.key**，typeName/type 均报 undefined 陷阱）→MoveRight 实弹 bound right→J 开火（音频实例 50888 真播 0.495s）→长按蓄力→险中求道特性自发触发（trait_arm→2.5s 弹卡暂停→K 关→重复触发飘字 4s 冷却一串）→死亡循环多轮→DebugSkipToBoss→boss_spawn→DebugKillBoss→score 1000→winPending 6s→WinPanel。三张截图入会话存证（对局/Boss/通关）。
+- **真机导入包**（device-package/ 五件套）：整合包.gia（推荐单发导入，48KB）+ 服务器/客户端模板/脚本三件分体（脚本 GIA 不含挂载关系需重挂）+ main.lua。导出器警告全记录在 device-import.md。
+- **GIL 直注未做**：属 genshin-ts 节点图链路，与千星 UI 资产不同轨，需单独开票。
+- docs/tech-architecture.md + docs/device-import.md 落盘。

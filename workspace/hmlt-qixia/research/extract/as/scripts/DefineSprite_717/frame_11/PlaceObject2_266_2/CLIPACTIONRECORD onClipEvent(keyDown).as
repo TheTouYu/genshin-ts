@@ -1,0 +1,25 @@
+onClipEvent(keyDown){
+   if(Key.isDown(74))
+   {
+      _root.pass = 1;
+      stopAllSounds();
+      with(_root)
+      {
+         gotoAndPlay(30);
+      }
+   }
+   if(Key.isDown(83))
+   {
+      with(_parent)
+      {
+         gotoAndPlay(1);
+      }
+   }
+   if(Key.isDown(87))
+   {
+      with(_parent)
+      {
+         gotoAndPlay(5);
+      }
+   }
+}

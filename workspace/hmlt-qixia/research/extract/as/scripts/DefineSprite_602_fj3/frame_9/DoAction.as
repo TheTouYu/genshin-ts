@@ -1,0 +1,10 @@
+_root.attachMovie("ljzd","x" + _root.i,_root.i++);
+_root["x" + _root.i]._x = _X + 20;
+_root["x" + _root.i]._y = _Y;
+_root["x" + _root.i]._height = 10;
+_root["x" + _root.i]._width = 15;
+var spjl = _X + 10 - _X;
+var czjl = _Y - _Y;
+var jl = Math.sqrt(spjl * spjl + czjl * czjl);
+_root["x" + _root.i]._xinc = 20 * spjl / jl;
+_root["x" + _root.i]._yinc = 20 * czjl / jl;

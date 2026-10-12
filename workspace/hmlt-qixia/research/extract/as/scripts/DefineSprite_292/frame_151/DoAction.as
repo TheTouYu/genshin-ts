@@ -1,0 +1,12 @@
+_root.attachMovie("nq2","jxr1" + _root.i,_root.i++);
+_root["jxr1" + _root.i]._x = 430;
+_root["jxr1" + _root.i]._y = 190;
+_root.attachMovie("nq2","jxr1" + _root.i,_root.i++);
+_root["jxr1" + _root.i]._x = 430;
+_root["jxr1" + _root.i]._y = 150;
+_root.attachMovie("nq2","jxr1" + _root.i,_root.i++);
+_root["jxr1" + _root.i]._x = 430;
+_root["jxr1" + _root.i]._y = 100;
+_root.attachMovie("nq2","jxr1" + _root.i,_root.i++);
+_root["jxr1" + _root.i]._x = 430;
+_root["jxr1" + _root.i]._y = 50;

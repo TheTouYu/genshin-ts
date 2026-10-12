@@ -37,3 +37,9 @@
 ## 步骤 3 证据（2026-10-12）
 
 | 3 | HTML demo 搭建中 → 已上线待用户试玩 | prototype/index.html + README.md；JS 语法 node --check OK；22 SVG 素材全 200（http.server 8792，服务已起）；browser-run: user 待反馈（records/playtest.md） | 用户手感反馈 |
+## 2026-10-13 夜 · 步骤 5+6 完成
+
+- 步骤 5（Lua 实现）：✅ 单脚本 main.lua + 4 模板 + 对象池架构；runCase 11/11 全绿（commit 980a3ef）
+- 步骤 6（模拟器测试）：✅ 本地电池 + MCP 交互全链 + 三截图存证
+- 步骤 7（真机）：**待用户**——device-package/ 五件套 + docs/device-import.md 操作单；真机地图导入+试玩待用户在场执行
+- 阻塞项：无技术阻塞；视觉/音频为约定占位（用户口径「不阻塞」）

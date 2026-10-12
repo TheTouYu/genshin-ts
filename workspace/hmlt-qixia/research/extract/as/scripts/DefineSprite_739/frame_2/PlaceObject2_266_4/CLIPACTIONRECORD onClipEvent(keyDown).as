@@ -1,0 +1,29 @@
+onClipEvent(keyDown){
+   with(_parent)
+   {
+      if(Key.isDown(68))
+      {
+         gotoAndPlay(5);
+      }
+      if(Key.isDown(83))
+      {
+         gotoAndPlay(10);
+      }
+      if(Key.isDown(87))
+      {
+         gotoAndPlay(15);
+      }
+      if(Key.isDown(65))
+      {
+         gotoAndPlay(5);
+      }
+      if(Key.isDown(74))
+      {
+         with(_root.zp)
+         {
+            _quality = "medium";
+            gotoAndStop(1);
+         }
+      }
+   }
+}
