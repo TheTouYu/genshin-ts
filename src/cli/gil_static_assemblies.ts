@@ -915,7 +915,10 @@ function assertIdsFree(top: readonly WireField[], ids: readonly number[]): void 
   const conflicts = ids.filter((id) => occupied.has(id))
   if (duplicates.length || conflicts.length) {
     throw new Error(
-      `[error] assembly IDs conflict: ${[...new Set([...duplicates, ...conflicts])].join(', ')}`
+      `[error] assembly IDs conflict: ${[...new Set([...duplicates, ...conflicts])].join(', ')}` +
+        ` — 目标 ID 已存在于地图：新增 def 需换未占用 ID 段；更新既有 def 请用` +
+        ` assets.staticPrefabUpdates，或回滚到该 def 写入前备份后干净重写` +
+        `（--output 与 --write 在此校验上同口径 fail-closed）`
     )
   }
 }

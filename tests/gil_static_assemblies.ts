@@ -304,7 +304,7 @@ assert.throws(
         instanceAuxiliaryIds: [instanceStart]
       }
     }),
-  /assembly IDs conflict/
+  /assembly IDs conflict[\s\S]*staticPrefabUpdates/
 )
 
 console.log(
