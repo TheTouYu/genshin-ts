@@ -246,6 +246,9 @@ local function textW(str, size)
   end
   return u * size
 end
+local function fitText(c, str)
+  c:SetSizeDelta(math.max(textW(str, c.fontSize) + 12*K, c.fontSize*6), c.fontSize*1.7)
+end
 local function txtc(str, size, r,g,b, name)
   local c = mkc(T_TXT, name or 'tx')
   c.text = str or ''
@@ -255,7 +258,14 @@ local function txtc(str, size, r,g,b, name)
   c.enableOutline = true
   c.horizontalAlignment = 'Middle'
   c.verticalAlignment = 'Middle'
-  c:SetSizeDelta(math.max(textW(str, c.fontSize) + 12*K, c.fontSize*6), c.fontSize*1.7)
+  fitText(c, str)
+  return c
+end
+-- 运行时改文本必须重估宽：空串创建的 msgs/特性卡/飘字只有 6em 下限，长文案会被控件裁剪
+local function settxt(c, str)
+  if c.text == str then return end
+  c.text = str
+  fitText(c, str)
   return c
 end
 local function place(c, gx, gy) c:SetAnchoredPosition(gx*K-HX, gy*K-HY) end
@@ -301,7 +311,7 @@ end
 local function say(txt)
   local m = alloc(pools.msgs) or pools.msgs[1]
   m.on, m.t, m.life = true, 0, 1.8
-  m.c.text = txt
+  settxt(m.c, txt)
   m.c:SetActive(true)
 end
 -- ===== 伤害数字（demo v22：暴击红/伤害越高字越大/分色）=====
@@ -313,7 +323,7 @@ local function dmgFloat(x, y, d, kind, crit)
   s.on=true s.t=0.7 s.x=x+(math.random()*18-9) s.y=y-12+(math.random()*12-6) s.vy=26
   local sz = math.min(11+d*0.1, 40)*(crit and 1.15 or 1)
   s.size = math.max(10, math.floor(sz+0.5))
-  s.c.text = string.format('%d', math.floor(d+0.5))
+  settxt(s.c, string.format('%d', math.floor(d+0.5)))
   s.c.fontSize = math.max(10, math.floor(s.size*K+0.5))
   s.c.fontColor = Color(cc[1],cc[2],cc[3],255)
   s.c:SetActive(true)
@@ -1947,7 +1957,7 @@ local function render()
   end
   -- 悟·大字
   if G.unlockFx then
-    G.unlockT.text = '悟 · '..G.unlockFx.n
+    settxt(G.unlockT, '悟 · '..G.unlockFx.n)
     place(G.unlockT, FW/2, math.max(40, FH-70-(1-G.unlockFx.t/2.5)*30))
     G.unlockT:SetActive(true)
   else
@@ -1955,17 +1965,17 @@ local function render()
   end
   -- HUD
   local sTxt = tostring(G.score)
-  if hud.score.text ~= sTxt then hud.score.text = sTxt end
+  if hud.score.text ~= sTxt then settxt(hud.score, sTxt) end
   local lTxt = 'LV'..G.lv
-  if hud.lv.text ~= lTxt then hud.lv.text = lTxt end
+  if hud.lv.text ~= lTxt then settxt(hud.lv, lTxt) end
   local nU = 0
   for _,c in ipairs(CODEX) do if codexUnlocked[c[1]] then nU=nU+1 end end
   local cTxt = '悟 '..nU..'/'..#CODEX
-  if hud.codex.text ~= cTxt then hud.codex.text = cTxt end
+  if hud.codex.text ~= cTxt then settxt(hud.codex, cTxt) end
   local bTxt = '宝×'..G.bomm
-  if hud.bomb.text ~= bTxt then hud.bomb.text = bTxt end
+  if hud.bomb.text ~= bTxt then settxt(hud.bomb, bTxt) end
   local fTxt = '命×'..math.max(0,G.life)
-  if hud.life.text ~= fTxt then hud.life.text = fTxt end
+  if hud.life.text ~= fTxt then settxt(hud.life, fTxt) end
   -- 蓄能条（三段色+按 fill）
   local mx = clamp(G.neng/(ps*1.5),0,1)
   local fc1,fc2,fc3 = 100,100,110
@@ -1980,7 +1990,7 @@ local function render()
   -- 针匣存量
   if G.shipKey=='lantu' then
     local nzTxt = '针'..G.needles..'/'..(G.lv*(2+G.lv))
-    if hud.needle.text ~= nzTxt then hud.needle.text = nzTxt end
+    if hud.needle.text ~= nzTxt then settxt(hud.needle, nzTxt) end
     hud.needle:SetActive(true)
     local full = G.needles>=G.lv*(2+G.lv)
     hud.needle.fontColor = Color(159,232,255, full and 255 or 170)
@@ -2038,9 +2048,9 @@ local function render()
   -- 特性教学卡（定格）
   if G.traitCard then
     local t = TRAITS[G.traitCard]
-    G.tcT1.text = '✦ 特性 · '..t[1]
-    G.tcT2.text = '『'..t[2]..'』 '..t[3]
-    G.tcT3.text = '按 K 继续（触屏点击）· 已获 1.5 秒无敌'
+    settxt(G.tcT1, '✦ 特性 · '..t[1])
+    settxt(G.tcT2, '『'..t[2]..'』 '..t[3])
+    settxt(G.tcT3, '按 K 继续（触屏点击）· 已获 1.5 秒无敌')
     G.tcT1:SetActive(true) G.tcT2:SetActive(true) G.tcT3:SetActive(true)
   else
     G.tcT1:SetActive(false) G.tcT2:SetActive(false) G.tcT3:SetActive(false)
