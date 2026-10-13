@@ -200,7 +200,7 @@ local resultPanel, resultRefs, selPanel, selRefs, codexPanel, codexRefs = nil, {
 local codexOpen = false
 local keys = {}
 local codexUnlocked, traitsSeen = {}, {}   -- 会话内持久（平台无 localStorage；差异已记录）
-local jEdge, kEdge, jUp = false, false, false
+local jEdge, kEdge, jUp, rEdge = false, false, false, false
 local touch = {on=false, x=0, y=0}
 
 -- ===== 工具 =====
@@ -682,6 +682,8 @@ local function onKey(name, down)
   elseif name=='a' then keys.a = down or nil
   elseif name=='d' then keys.d = down or nil
   elseif name=='enter' then keys.enter = down or nil
+  elseif name=='r' then
+    if down and not keys.r then keys.r=true rEdge=true else keys.r=false end
   end
 end
 
@@ -750,6 +752,7 @@ function win()
 end
 function fail()
   G.state = 'fail'
+  G.traitCard = nil G.traitQ = {}
   log('fail lives')
   showResult({
     {'任务失败', 24, 255,90,90},
@@ -1146,7 +1149,7 @@ local function tick(dt)
   -- 选人
   if G.state=='select' then
     if jEdge or keys.enter then jEdge=false startRun() return end
-    if keys.a then G.selIdx=1 elseif keys.d then G.selIdx=2 end
+    if keys.a or keys.left then G.selIdx=1 elseif keys.d or keys.right then G.selIdx=2 end
     return
   end
   if G.state=='clear' then
@@ -1154,6 +1157,7 @@ local function tick(dt)
     kEdge=false jEdge=false return
   end
   if G.state~='playing' then
+    if rEdge then G.restartReq=true end
     if G.restartReq then
       G.restartReq=false
       hideResult() resetState() freePools() destroySelect() buildSelect()
@@ -1751,7 +1755,7 @@ local function tick(dt)
     G.dmgAcc = {}
   end
   -- 边沿清理
-  jEdge=false kEdge=false jUp=false
+  jEdge=false kEdge=false jUp=false rEdge=false
 end
 
 -- ===== 渲染同步 =====
@@ -2292,6 +2296,7 @@ function OnStart()
     {KE.KeyboardCraftspersonKey38Down, 'left', true}, {KE.KeyboardCraftspersonKey38Up, 'left', false},
     {KE.KeyboardCraftspersonKey39Down, 'right', true}, {KE.KeyboardCraftspersonKey39Up, 'right', false},
     {KE.KeyboardCraftspersonKey11Down, 'enter', true}, {KE.KeyboardCraftspersonKey11Up, 'enter', false},
+    {KE.KeyboardCharacterSkill3KeyDown, 'r', true}, {KE.KeyboardCharacterSkill3KeyUp, 'r', false},
     {KE.KeyboardCraftspersonKey1Down, 'dbg1'}, {KE.KeyboardCraftspersonKey2Down, 'dbg2'},
     {KE.KeyboardCraftspersonKey3Down, 'dbg3'}, {KE.KeyboardCraftspersonKey4Down, 'dbg4'},
     {KE.KeyboardCraftspersonKey5Down, 'dbg5'},
@@ -2322,7 +2327,8 @@ function OnUpdate(dt)
   acc = acc + dt
   local n = 0
   while acc >= STEP and n < 4 do
-    tick(STEP)
+    local okT, errT = pcall(tick, STEP)
+    if not okT then log('tick error: '..tostring(errT)) end
     acc = acc - STEP
     n = n + 1
   end

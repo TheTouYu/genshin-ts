@@ -1,0 +1,30 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "repro-tick-death",
+  "dt": 0.04,
+  "events": [
+    { "t": 0.0, "kind": "key", "typeName": "KeyboardCraftspersonKey19Down" },
+    { "t": 0.1, "kind": "key", "typeName": "KeyboardCraftspersonKey19Up" },
+    { "t": 0.8, "kind": "serverSend", "name": "DebugSetLife", "params": [1] },
+    { "t": 1.0, "kind": "serverSend", "name": "DebugDamage", "params": [9999] },
+    { "t": 1.8, "kind": "click", "name": "RestartBtn" },
+    { "t": 2.2, "kind": "key", "typeName": "KeyboardCraftspersonKey19Down" },
+    { "t": 2.3, "kind": "key", "typeName": "KeyboardCraftspersonKey19Up" },
+    { "t": 3.0, "kind": "serverSend", "name": "DebugSetLife", "params": [1] },
+    { "t": 3.2, "kind": "serverSend", "name": "DebugDamage", "params": [9999] },
+    { "t": 4.0, "kind": "click", "name": "RestartBtn" },
+    { "t": 4.4, "kind": "key", "typeName": "KeyboardCraftspersonKey19Down" },
+    { "t": 4.5, "kind": "key", "typeName": "KeyboardCraftspersonKey19Up" },
+    { "t": 5.3, "kind": "serverSend", "name": "DebugSetLife", "params": [1] },
+    { "t": 5.5, "kind": "serverSend", "name": "DebugDamage", "params": [9999] },
+    { "t": 6.3, "kind": "click", "name": "RestartBtn" },
+    { "t": 6.7, "kind": "key", "typeName": "KeyboardCraftspersonKey19Down" },
+    { "t": 6.8, "kind": "key", "typeName": "KeyboardCraftspersonKey19Up" },
+    { "t": 7.2, "kind": "key", "typeName": "KeyboardMoveRightKeyDown" },
+    { "t": 7.6, "kind": "key", "typeName": "KeyboardMoveRightKeyUp" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "char_select", "source": "client", "at": 7.9 }
+  ]
+}
