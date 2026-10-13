@@ -45,6 +45,7 @@
 - [x] 步骤 5：`lua/main.lua` + `qxqy/build.py` 组装存档（v1.1：坐标读法改 GetUIPos 方法 + d.x 字段探测）
 - [x] 步骤 6：模拟器验证（build 冒烟无错；MCP 交互：KEYS 164/164、拖拽 `Dn En Bd(60.0) Dg Up Ed`、DISP=60.0 精确、T 区间显示、键盘注入→line4 显示、CM=NO、d.x=nil）
 - [x] 步骤 7a：device-package 五件套导出（整合包.gia 推荐）+ device-handoff.md + measurement-template.md + tech-architecture.md
+- [x] 步骤 7a2：真机执行包同步 `/home/h/miliastra-beyond-simulator/probes/input-probe/`（整合包.gia + main.lua + measurement-template.md + 自包含 README；落盘未 commit，推送由用户定）
 - [ ] 步骤 7b：**真机测量**（用户/上游作者执行协议 A/B → records/measurement.md）
 - [ ] 步骤 7c：数字回传 miliastra-beyond-simulator（probes/ + session.js 常数 + PR #11 回复）
 
