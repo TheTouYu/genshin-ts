@@ -37,6 +37,7 @@ import { runAssetsTerrain } from './assets_terrain.js'
 import { runAssetsUi } from './assets_ui.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
+import { runAssetsCreations } from './assets_creations.js'
 import { runAssetsAux } from './assets_aux.js'
 import { runAssetsGadgets } from './assets_gadgets.js'
 import { runAssetsResources } from './assets_resources.js'
@@ -290,6 +291,7 @@ const ROOT_SUBCOMMANDS = new Set([
   'assets:library-inject',
   'assets:entities',
   'assets:custom-variables',
+  'assets:creations',
   'open',
   'help'
 ])
@@ -1946,6 +1948,27 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsPrefabs(args, projectConfig)
+    })
+
+  program
+    .command('assets:creations')
+    .description('create a complex creation (复杂造物/造物元件) by byte-cloning an editor-made template')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup (syncs Temp)')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:creations')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsCreations(args, projectConfig)
     })
 
   program

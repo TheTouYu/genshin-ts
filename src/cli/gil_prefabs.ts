@@ -64,7 +64,7 @@ export function createCustomPrefab(
  * - 静态/官方页面模型：type3 组 + {400, instanceID}
  * type6/type3 组结构同构（{1:组号, 2:{1:'root',3:1}, 3:{1:'未分类页签',3:2,5:[条目]}}）。
  */
-function registerElementEntry(
+export function registerElementEntry(
   top: WireField[],
   params: { groupType: number; entryType: number; id: number }
 ): void {
