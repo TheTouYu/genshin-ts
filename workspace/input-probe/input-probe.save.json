@@ -1,0 +1,946 @@
+{
+ "format": "qxqy-simulator-save",
+ "version": 4,
+ "meta": {
+  "name": "input-probe"
+ },
+ "activeAssetType": "server-control-template",
+ "serverLogic": {
+  "version": 1,
+  "rules": []
+ },
+ "controlGuidChanges": [],
+ "scriptSync": null,
+ "assets": {
+  "server": {
+   "layoutSchemaVersion": 2,
+   "version": 1,
+   "meta": {
+    "assetType": "server-control-template",
+    "name": "input-probe 界面",
+    "sourceFormat": "authoring",
+    "sourceFile": ""
+   },
+   "canvasId": "mobile-16-9",
+   "selectedId": "n1",
+   "root": {
+    "id": "sc1",
+    "kind": "server-container",
+    "name": "客户端控件容器",
+    "guid": 1073741850,
+    "giaRelatedGuids": [],
+    "active": true,
+    "visible": true,
+    "canControllerFocus": false,
+    "syncAllDevices": true,
+    "giaRaw": {
+     "genericField501": 0,
+     "footerField505": 0
+    },
+    "transformByPlatform": {
+     "KEYBOARD": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "TOUCHSCREEN": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_CONSOLE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_MOBILE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0,
+       "y": 0
+      },
+      "anchorMax": {
+       "x": 1,
+       "y": 1
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 0,
+       "y": 0
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     }
+    },
+    "children": [
+     {
+      "id": "n1",
+      "guid": 1073741851,
+      "kind": "container",
+      "name": "探针层",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0,
+         "y": 0
+        },
+        "anchorMax": {
+         "x": 1,
+         "y": 1
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 0,
+         "y": 0
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "isolateNavigation": false,
+      "disableKeyEventPassthrough": false,
+      "disableCursorEventPassthrough": false,
+      "showCursor": true,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0
+      }
+     }
+    ],
+    "scriptMappingIds": []
+   }
+  },
+  "client": {
+   "layoutSchemaVersion": 2,
+   "version": 1,
+   "meta": {
+    "assetType": "client-control-template",
+    "name": "input-probe 模板",
+    "sourceFormat": "authoring",
+    "sourceFile": ""
+   },
+   "canvasId": "mobile-16-9",
+   "selectedId": "t5",
+   "root": {
+    "id": "sc1",
+    "guid": 1073741850,
+    "kind": "server-container",
+    "name": "客户端控件模板",
+    "active": true,
+    "visible": true,
+    "canControllerFocus": false,
+    "syncAllDevices": true,
+    "transformByPlatform": {
+     "KEYBOARD": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "TOUCHSCREEN": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_CONSOLE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     },
+     "CONTROLLER_MOBILE": {
+      "scale": {
+       "x": 1,
+       "y": 1,
+       "z": 1
+      },
+      "rotation": {
+       "x": 0,
+       "y": 0,
+       "z": 0
+      },
+      "anchorMin": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "anchorMax": {
+       "x": 0.5,
+       "y": 0.5
+      },
+      "offset": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "x": 100,
+       "y": 100
+      },
+      "pivot": {
+       "x": 0.5,
+       "y": 0.5
+      }
+     }
+    },
+    "children": [
+     {
+      "id": "t2",
+      "guid": 1073742301,
+      "kind": "textbox",
+      "name": "tx",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 60,
+         "y": 20
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "fontSize": 20,
+      "adaptiveFontSize": false,
+      "minimumFontSize": 20,
+      "fontColor": 4294967295,
+      "bgColor": 0,
+      "enableOutline": true,
+      "outlineColor": 858993459,
+      "horizontalAlignment": "Middle",
+      "verticalAlignment": "Middle",
+      "text": "",
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0,
+       "textField501": 20,
+       "textField503": 12,
+       "textAlign": 0,
+       "textField511": 1
+      }
+     },
+     {
+      "id": "t3",
+      "guid": 1073742302,
+      "kind": "button",
+      "name": "btn",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 40
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": [],
+      "raycastTarget": true,
+      "interactable": true,
+      "clickAudioId": 50888,
+      "unavailableChildId": null,
+      "hoverChildId": null,
+      "pressedChildId": null,
+      "selectedChildId": null,
+      "giaRaw": {
+       "genericField501": 0,
+       "footerField505": 0
+      }
+     },
+     {
+      "id": "t5",
+      "guid": 1073742304,
+      "kind": "cursor",
+      "name": "cursor",
+      "active": true,
+      "visible": true,
+      "canControllerFocus": false,
+      "syncAllDevices": true,
+      "transformByPlatform": {
+       "KEYBOARD": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "TOUCHSCREEN": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_CONSOLE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       },
+       "CONTROLLER_MOBILE": {
+        "scale": {
+         "x": 1,
+         "y": 1,
+         "z": 1
+        },
+        "rotation": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "anchorMin": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "anchorMax": {
+         "x": 0.5,
+         "y": 0.5
+        },
+        "offset": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "x": 100,
+         "y": 100
+        },
+        "pivot": {
+         "x": 0.5,
+         "y": 0.5
+        }
+       }
+      },
+      "children": [],
+      "scriptMappingIds": []
+     }
+    ],
+    "scriptMappingIds": []
+   }
+  },
+  "scripts": [
+   {
+    "id": "main",
+    "guid": 1073742400,
+    "path": "main",
+    "source": "-- ============================================================\n-- input-probe 千星真机输入探针 v1\n-- ①真机 CursorClick→CursorBeginDrag 临界位移（校准模拟器 PR#11 5px 死区常数）\n-- ②物理键→Enum.KeyEventType 事件名映射（校准 PR#12 映射表）\n-- ③顺带：SimulateCursorClick 行为 / CursorEnter-Exit / CursorMove 枚举有无 /\n--        game.GetDevice / game.GetCursorUIPos\n-- 挂载：服务端控件模板 n1「探针层」（stretch 全屏容器，showCursor=true）\n-- 模板：T_TXT=1073742301(textbox) T_BTN=1073742302(button) T_AREA=1073742304(cursor)\n-- 逻辑场 444×250，千星 Y 向上；读出=屏上文本行（真机唯一可靠读出）\n-- 统计核心：clickMaxD=所有 Click 的最大抬起位移；dragMinD=所有 BeginDrag 的最小触发位移\n--           阈值 T 满足 clickMaxD ≤ T ≤ dragMinD（自动夹区间，无需人工精确控位移）\n-- ============================================================\nlocal T_TXT, T_BTN, T_AREA = 1073742301, 1073742302, 1073742304\nlocal KE, CE = Enum.KeyEventType, Enum.CursorEventType\nlocal FW, FH = 444, 250\n\n-- ===== 运行时状态 =====\nlocal K, CW, CH, HX, HY\nlocal area\nlocal L = {}                        -- 显示文本控件\nlocal clickN, clickMaxD = 0, -1     -- CursorClick 抬起位移统计\nlocal dragN, dragMinD = 0, 1e9      -- CursorBeginDrag 触发位移统计\nlocal pressTxt, upTxt, upD = '-', '-', '-'\nlocal SEQ_SZ = 10                   -- 事件序列环形缓冲（连续 Drag 折叠一格）\nlocal seq, seqHead, seqCnt = {}, 1, 0\nlocal keyLast1, keyLast2 = '', ''\nlocal keyOkN, keyFailN = 0, 0\nlocal bound = {}\nlocal cmState = '?'                 -- CursorMove 枚举探测结果\nlocal cursorPosTxt = '-'\nlocal uiT = 0\n\n-- ===== 工具 =====\nlocal f1 = function(v) return string.format('%.1f', v) end\n-- 坐标读取：GetUIPos()/GetPressUIPos() 方法为主（hmlt 真机验证路径；模拟器元表只暴露\n-- dragging/touchId 字段，x/y 非字段）。字段探测记录真机 d.x 行为（nil=无字段/数值=有字段）。\nlocal fieldX = nil   -- 'nil' / 'num' / 'ERR'\nlocal function evPos(d)\n  local ok, x, y = pcall(function() return d:GetUIPos() end)\n  if ok and x ~= nil then return x, y end\n  return d.x or 0, d.y or 0\nend\nlocal function evPress(d, fx, fy)\n  local ok, px, py = pcall(function() return d:GetPressUIPos() end)\n  if ok and px ~= nil then return px, py end\n  return d.pressX or fx, d.pressY or fy\nend\nlocal function dispOf(d)\n  local x, y = evPos(d)\n  local px, py = evPress(d, x, y)\n  local dx, dy = x - px, y - py\n  return math.sqrt(dx * dx + dy * dy)\nend\nlocal function probeField(d)\n  if fieldX == nil then\n    local ok, v = pcall(function() return d.x end)\n    if not ok then fieldX = 'ERR'\n    elseif type(v) == 'number' then fieldX = 'num'\n    else fieldX = 'nil' end\n  end\nend\nlocal function ptStr(d)\n  local x, y = evPos(d)\n  return f1(x) .. ',' .. f1(y)\nend\n\n-- ===== 事件序列 =====\nlocal function pushSeq(s)\n  if seqCnt < SEQ_SZ then\n    seq[(seqHead + seqCnt - 1) % SEQ_SZ + 1] = s\n    seqCnt = seqCnt + 1\n  else\n    seq[seqHead] = s\n    seqHead = seqHead % SEQ_SZ + 1\n  end\nend\nlocal function seqText()\n  local t = {}\n  for i = 0, seqCnt - 1 do\n    t[#t + 1] = seq[(seqHead + i - 1) % SEQ_SZ + 1]\n  end\n  return table.concat(t, ' ')\nend\nlocal function lastSeqIs(tag)\n  if seqCnt == 0 then return false end\n  local s = seq[(seqHead + seqCnt - 2) % SEQ_SZ + 1] or ''\n  return string.sub(s, 1, string.len(tag)) == tag\nend\n\n-- ===== 渲染 =====\nlocal function render()\n  local cMax = clickMaxD < 0 and '-' or f1(clickMaxD)\n  local dMin = dragMinD > 1e8 and '-' or f1(dragMinD)\n  local thr\n  if clickMaxD < 0 and dragMinD > 1e8 then thr = '?'\n  elseif dragMinD > 1e8 then thr = '> ' .. cMax\n  elseif clickMaxD < 0 then thr = '< ' .. dMin\n  else thr = '[' .. cMax .. ',' .. dMin .. ']' end\n  L.line1.text = 'PRESS(' .. pressTxt .. ') UP(' .. upTxt .. ') DISP=' .. upD\n  L.line2.text = 'SEQ ' .. seqText()\n  L.line3.text = 'CL n=' .. clickN .. ' max=' .. cMax .. ' | BD n=' .. dragN .. ' min=' .. dMin .. ' | T ' .. thr\n  local k2 = keyLast2 ~= '' and (' ; ' .. keyLast2) or ''\n  L.line4.text = 'KEYS ' .. keyOkN .. '/' .. (keyOkN + keyFailN) .. ' | ' .. keyLast1 .. k2\n  L.line5.text = 'CUR ' .. cursorPosTxt .. ' | CM=' .. cmState .. ' | d.x=' .. (fieldX or '-')\nend\n\n-- ===== 控件工厂 =====\nlocal function mkc(prefab, name)\n  local c = game.InstantiateClientUIControl(prefab, script.object)\n  if c then c.name = name end\n  return c\nend\nlocal function txtc(key, str, size, r, g, b, gx, gy, w, h)\n  local c = mkc(T_TXT, key)\n  c.text = str or ''\n  c.fontSize = math.max(10, math.floor(size * K + 0.5))\n  c.fontColor = Color(r, g, b, 255)\n  c.bgColor = Color(0, 0, 0, 0)\n  c.enableOutline = true\n  c:SetAnchoredPosition(gx * K - HX, gy * K - HY)\n  c:SetSizeDelta(w * K, h * K)\n  L[key] = c\n  return c\nend\n\n-- ===== 键盘绑定 =====\nlocal function onKeyEv(name)\n  keyLast2 = keyLast1\n  keyLast1 = name\n  render()\n  return false\nend\nlocal function bindEv(name, ev)\n  if bound[name] then return end\n  bound[name] = true\n  local ok = pcall(function()\n    script.object:AddKeyEventListener(ev, function() return onKeyEv(name) end)\n  end)\n  if ok then keyOkN = keyOkN + 1 else keyFailN = keyFailN + 1 end\nend\nlocal function bindName(name)\n  if bound[name] then return end\n  local ok, ev = pcall(function() return KE[name] end)\n  if ok and ev then\n    bindEv(name, ev)\n  else\n    bound[name] = true\n    keyFailN = keyFailN + 1\n  end\nend\n\n-- ===== 生命周期 =====\nfunction OnInit()\n  CW, CH = game.GetUICanvasSize()\n  K = CW / FW\n  HX, HY = CW / 2, CH / 2\nend\n\nfunction OnStart()\n  script.object.showCursor = true\n  CW, CH = game.GetUICanvasSize()\n  K = CW / FW\n  HX, HY = CW / 2, CH / 2\n\n  -- 读出行（上半屏，全 ASCII，显式宽度防 textbox 裁剪）\n  local devTxt = '?'\n  local okd, dev = pcall(function() return game.GetDevice() end)\n  if okd and dev and dev.Name then devTxt = dev.Name end\n  txtc('title', 'INPUT-PROBE v1  CANVAS ' .. math.floor(CW + 0.5) .. 'x' .. math.floor(CH + 0.5)\n    .. ' DEV=' .. devTxt, 11, 235, 235, 235, 222, 241, 438, 14)\n  txtc('line1', 'PRESS(-) UP(-) DISP=-', 12, 255, 220, 90, 222, 224, 438, 15)\n  txtc('line2', 'SEQ', 10, 235, 235, 235, 222, 207, 438, 13)\n  txtc('line3', 'CL n=0 max=- | BD n=0 min=- | T ?', 11, 120, 255, 120, 222, 191, 438, 14)\n  txtc('line4', 'KEYS 0/0', 9, 160, 205, 255, 222, 176, 438, 12)\n  txtc('line5', 'CUR - | CM=?', 9, 190, 190, 190, 222, 162, 438, 12)\n  txtc('hint', 'drag test = lower screen | avoid SIM/RST buttons', 8, 170, 170, 170, 222, 149, 438, 11)\n\n  -- 全屏光标区（先建=最底层；读出行在上，按钮最后建=顶层）\n  area = mkc(T_AREA, 'ProbeArea')\n  area:SetAnchoredPosition(0, 0)\n  area:SetSizeDelta(CW, CH)\n\n  local function onCur(tag, d)\n    local disp = dispOf(d)\n    probeField(d)\n    if tag == 'Dn' then\n      local x, y = evPos(d)\n      pressTxt = ptStr(d); upTxt = '-'; upD = '-'\n      pushSeq('Dn(' .. math.floor(x + 0.5) .. ',' .. math.floor(y + 0.5) .. ')')\n    elseif tag == 'Up' then\n      upTxt = ptStr(d); upD = f1(disp)\n      pushSeq('Up(' .. upD .. ')')\n    elseif tag == 'Cl' then\n      clickN = clickN + 1\n      if disp > clickMaxD then clickMaxD = disp end\n      pushSeq('Cl(' .. f1(disp) .. ')')\n    elseif tag == 'Bd' then\n      dragN = dragN + 1\n      if disp < dragMinD then dragMinD = disp end\n      pushSeq('Bd(' .. f1(disp) .. ')')\n    elseif tag == 'Ed' then\n      pushSeq('Ed(' .. f1(disp) .. ')')\n    elseif tag == 'Dg' then\n      local s = 'Dg(' .. f1(disp) .. ')'\n      if lastSeqIs('Dg') then\n        seq[(seqHead + seqCnt - 2) % SEQ_SZ + 1] = s\n      else\n        pushSeq(s)\n      end\n    elseif tag == 'En' or tag == 'Ex' then\n      pushSeq(tag)\n    end\n    render()\n    return false\n  end\n  local CURS = {\n    { 'CursorDown', 'Dn' }, { 'CursorUp', 'Up' }, { 'CursorClick', 'Cl' },\n    { 'CursorBeginDrag', 'Bd' }, { 'CursorEndDrag', 'Ed' }, { 'CursorDrag', 'Dg' },\n    { 'CursorEnter', 'En' }, { 'CursorExit', 'Ex' },\n  }\n  for _, m in ipairs(CURS) do\n    local ev = CE[m[1]]\n    if ev then\n      pcall(function()\n        area:AddCursorEventListener(ev, function(d) return onCur(m[2], d) end)\n      end)\n    end\n  end\n  -- CursorMove 枚举探测：模拟器 enums.js 无此项；真机若有 = 模拟器缺口证据\n  local okm, evm = pcall(function() return CE.CursorMove end)\n  if okm and evm then\n    local okb = pcall(function()\n      area:AddCursorEventListener(evm, function()\n        pushSeq('Mv')\n        render()\n        return false\n      end)\n    end)\n    cmState = okb and 'YES' or 'FAIL'\n  else\n    cmState = 'NO'\n  end\n\n  -- 键盘：核心 20 项静态点号绑定（hmlt 真机验证过的写法；J/K/WASD/方向键）\n  bindEv('KeyboardCraftspersonKey19Down', KE.KeyboardCraftspersonKey19Down)\n  bindEv('KeyboardCraftspersonKey19Up', KE.KeyboardCraftspersonKey19Up)\n  bindEv('KeyboardCraftspersonKey20Down', KE.KeyboardCraftspersonKey20Down)\n  bindEv('KeyboardCraftspersonKey20Up', KE.KeyboardCraftspersonKey20Up)\n  bindEv('KeyboardMoveForwardKeyDown', KE.KeyboardMoveForwardKeyDown)\n  bindEv('KeyboardMoveForwardKeyUp', KE.KeyboardMoveForwardKeyUp)\n  bindEv('KeyboardMoveBackwardKeyDown', KE.KeyboardMoveBackwardKeyDown)\n  bindEv('KeyboardMoveBackwardKeyUp', KE.KeyboardMoveBackwardKeyUp)\n  bindEv('KeyboardMoveLeftKeyDown', KE.KeyboardMoveLeftKeyDown)\n  bindEv('KeyboardMoveLeftKeyUp', KE.KeyboardMoveLeftKeyUp)\n  bindEv('KeyboardMoveRightKeyDown', KE.KeyboardMoveRightKeyDown)\n  bindEv('KeyboardMoveRightKeyUp', KE.KeyboardMoveRightKeyUp)\n  bindEv('KeyboardCraftspersonKey36Down', KE.KeyboardCraftspersonKey36Down)\n  bindEv('KeyboardCraftspersonKey36Up', KE.KeyboardCraftspersonKey36Up)\n  bindEv('KeyboardCraftspersonKey37Down', KE.KeyboardCraftspersonKey37Down)\n  bindEv('KeyboardCraftspersonKey37Up', KE.KeyboardCraftspersonKey37Up)\n  bindEv('KeyboardCraftspersonKey38Down', KE.KeyboardCraftspersonKey38Down)\n  bindEv('KeyboardCraftspersonKey38Up', KE.KeyboardCraftspersonKey38Up)\n  bindEv('KeyboardCraftspersonKey39Down', KE.KeyboardCraftspersonKey39Down)\n  bindEv('KeyboardCraftspersonKey39Up', KE.KeyboardCraftspersonKey39Up)\n  -- 其余全量动态绑定（Craftsperson1-43 / Keyboard 具名 / Controller 全系）\n  for i = 1, 43 do\n    bindName('KeyboardCraftspersonKey' .. i .. 'Down')\n    bindName('KeyboardCraftspersonKey' .. i .. 'Up')\n  end\n  for _, k in ipairs({\n      'MoveForwardKey', 'MoveBackwardKey', 'MoveLeftKey', 'MoveRightKey',\n      'SwitchToWalkOrRunKey', 'SprintKey', 'JumpKey', 'DropKey',\n      'OpenShortcutWheelKey', 'InteractKey', 'NormalAttackKey',\n      'CharacterSkill1Key', 'CharacterSkill2Key', 'CharacterSkill3Key', 'CharacterSkill4Key',\n    }) do\n    bindName('Keyboard' .. k .. 'Down')\n    bindName('Keyboard' .. k .. 'Up')\n  end\n  for i = 1, 14 do\n    bindName('ControllerCraftspersonKey' .. i .. 'Down')\n    bindName('ControllerCraftspersonKey' .. i .. 'Up')\n  end\n  for _, k in ipairs({\n      'SprintKey', 'JumpKey', 'InteractKey', 'NormalAttackKey',\n      'CharacterSkill1Key', 'CharacterSkill2Key', 'CharacterSkill3Key', 'CharacterSkill4Key',\n      'MenuConfirmKey', 'MenuBackKey',\n    }) do\n    bindName('Controller' .. k .. 'Down')\n    bindName('Controller' .. k .. 'Up')\n  end\n\n  -- SIM / RST 按钮（最后建=顶层可点；测试时避开左下角）\n  local sim = mkc(T_BTN, 'SIM')\n  sim:SetAnchoredPosition(38 * K - HX, 16 * K - HY)\n  sim:SetSizeDelta(56 * K, 22 * K)\n  pcall(function()\n    sim:AddCursorEventListener(CE.CursorClick, function()\n      local ok = pcall(function() area:SimulateCursorClick() end)\n      pushSeq(ok and 'SIM' or 'SIM-FAIL')\n      render()\n      return false\n    end)\n  end)\n  local rst = mkc(T_BTN, 'RST')\n  rst:SetAnchoredPosition(104 * K - HX, 16 * K - HY)\n  rst:SetSizeDelta(56 * K, 22 * K)\n  pcall(function()\n    rst:AddCursorEventListener(CE.CursorClick, function()\n      clickN, clickMaxD = 0, -1\n      dragN, dragMinD = 0, 1e9\n      pressTxt, upTxt, upD = '-', '-', '-'\n      seqCnt, seqHead = 0, 1\n      pushSeq('RST')\n      render()\n      return false\n    end)\n  end)\n  txtc('simLbl', 'SIM', 8, 255, 255, 255, 38, 16, 56, 12)\n  txtc('rstLbl', 'RST', 8, 255, 255, 255, 104, 16, 56, 12)\n\n  render()\n  script:EnableUpdate(true)\nend\n\nfunction OnUpdate(dt)\n  uiT = uiT + dt\n  if uiT >= 0.1 then\n    uiT = 0\n    local ok, x, y = pcall(function() return game.GetCursorUIPos() end)\n    if ok and x then\n      cursorPosTxt = f1(x) .. ',' .. f1(y)\n    else\n      cursorPosTxt = 'ERR'\n    end\n    render()\n  end\nend\n",
+    "controlId": "n1",
+    "controlAsset": "server-control-template"
+   }
+  ]
+ }
+}
