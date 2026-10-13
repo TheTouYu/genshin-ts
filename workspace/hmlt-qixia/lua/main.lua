@@ -203,6 +203,9 @@ local VIS = {
   bom1 = { 100001, C(255, 255, 150, 60), 16, 7 },
   bs = { 100002, C(255, 255, 210, 110), 14, 14 },
   shield = { 100006, C(255, 160, 240, 255), 44, 44 },
+  ring = { 100006, C(255, 255, 210, 110), 30, 30 },
+  star = { 100002, C(110, 150, 220, 235), 5, 5 },
+  horizon = { 100001, C(150, 16, 20, 34), 444, 8 },
   guanri = { 100001, C(255, 255, 240, 170), 150, 30 },
   huofeng = { 100004, C(255, 255, 130, 50), 70, 58 },
   boom = { 100002, C(255, 255, 190, 90), 40, 40 },
@@ -272,6 +275,46 @@ local touch = { on = false, x = 0, y = 125 }
 local boundLogT = {}
 local UI = {}
 
+-- 跨局元进度（原版 localStorage 语义：图鉴解锁/特性见过 跨 run 保持，resetGame 不清）
+local META = { codex = {}, traits = {}, insightCount = 0 }
+local function codexCount() local n = 0; for _ in pairs(META.codex) do n = n + 1 end return n end
+
+-- 原版全游戏仅 3 音效（D161）：up 拾取升级 / wudao 悟·横幅 / cjb 金币；射击命中爆炸默认无声
+local SFX_ID = { up = 50888, wudao = 20001, cjb = 10008 }
+local SFX_MUTE = false
+local function sfx(n) if not SFX_MUTE then game.PlayAudio2D(SFX_ID[n]) end end
+
+local BOSSNAME = {
+  boss1 = '魔化黑心虎', boss2 = '寒冰魔蛟', boss3 = '蛟龙·怒涛', jxjq = '机械巨兽',
+  black = '黑魔神', cw1 = '常腕', jbfjg = '剑背飞蛟', jdlj = '巨毒龙虾', hzz = '黑蛛群主', cw = '常腕·影',
+}
+-- 特性光环色（fxAura 渲染）：guiqia 橙 / zhenman 冰蓝 / beishui 血红 / xinhuo 金 / qiudao 紫
+local AURACOL = {
+  guiqia = C(255, 255, 150, 60), zhenman = C(255, 120, 220, 255), beishui = C(255, 255, 60, 60),
+  xinhuo = C(255, 255, 210, 110), qiudao = C(255, 190, 120, 255),
+}
+-- 领悟图鉴详情（D188 用户设计：初始只显名，解锁后显触发+增益；纯展示无 buff）
+local CODEXDESC = {
+  guanri_full = '满编贯日：僚机满编时蓄力贯日，剑体大幅加宽',
+  jiejian = '贯日接剑：贯日命中后立即补一道小剑气',
+  rifeng = '日凤连环：贯日点燃的敌人在火凤内受额外灼烧',
+  xuli_zouwei = '蓄力走位：蓄力期间移动仍保留少量蓄能',
+  jian_bu_zhen = '剑哺针：冰魄剑命中使银针匣回针',
+  dong_sui = '冻碎：冻结敌碎裂时伤害×2',
+  bing_lun = '冰轮舞：连续快射后自动齐射一轮银针墙',
+  yi_xian_chuan = '一线穿：银针墙穿过≥3 敌时全额回收',
+  tie_lian = '贴脸斩：贴身命中伤害加成',
+  man_zhen = '满针预瞄：满针时下一轮齐射变巨型针',
+}
+-- 星带背景两层视差（确定性数据，不用随机）
+local STARS = {}
+do
+  local sy1 = { 228, 200, 236, 188, 210, 222, 192, 205 }
+  local sy2 = { 168, 150, 178, 142, 160, 186, 148, 174, 156, 182 }
+  for i = 1, 8 do STARS[#STARS + 1] = { x = (i - 1) * 58 + 12, y = sy1[i], s = 1.6, v = 12 } end
+  for i = 1, 10 do STARS[#STARS + 1] = { x = (i - 1) * 46 + 25, y = sy2[i], s = 2.2, v = 26 } end
+end
+
 local function log(s) print(s) end
 local function say(g, s)
   g.msgs[#g.msgs + 1] = { txt = s, t = 0, life = 1.8 }
@@ -300,6 +343,7 @@ end
 
 local function resetGame()
   if UI and UI.gameOverPanel then clearGameOverPanel() end
+  if UI and UI.codexPanel then clearCodexPanel() end
   G = {
     state = 'select', selIdx = 0, t = 0,
     score = 0, life = 4, bomm = 3, lv = 1, neng = 0,
@@ -320,7 +364,7 @@ local function resetGame()
     msgs = {}, waves = LEVELS[1].waves,
     autoPlay = false, chargeTier = 0, chargeFull = false, chargeMax = false,
     needleSalvo = nil, readyFx = 0,
-    codexUnlocked = {}, traitsSeen = {}, patDelay = {},
+    codexUnlocked = META.codex, traitsSeen = META.traits, patDelay = {},
     floaters = {}, dmgAcc = {}, dmgAccT = 0.5,
   }
 end
@@ -363,6 +407,7 @@ local function unlock(g, id)
   for _, c in ipairs(CODEX) do if c[1] == id then e = c end end
   g.unlockFx = { t = 2.5, n = e and e[2] or id }
   g.slowT = 0.5; g.slowK = 0.35
+  sfx('wudao')
   log('insight ' .. id)
 end
 
@@ -625,6 +670,7 @@ local function spawnWave(g)
       w = sz[1], h = sz[2], isBoss = true, phase = 'enter', pt = 0, patT = 0, pat = 0,
       win18 = 0, winT = 0, dead = false }
     g.scrollSpd = N.scrollBoss; g.lock = 1.0; g.ebullets = {}
+    say(g, 'BOSS · ' .. (BOSSNAME[nw.boss] or '首领') .. '！')
     log('boss_spawn')
     return
   end
@@ -794,6 +840,10 @@ local function update(g, dt)
   if g.readyFx > 0 then g.readyFx = g.readyFx - dt end
   if g.renjianWin > 0 then g.renjianWin = g.renjianWin - dt end
   for k, v in pairs(g.fxAura) do if v > 0 then g.fxAura[k] = v - dt end end
+  if g.unlockFx then
+    g.unlockFx.t = g.unlockFx.t - dt
+    if g.unlockFx.t <= 0 then g.unlockFx = nil end
+  end
 
   if g.shipKey == 'lantu' then
     local full = g.needles >= g.lv * (2 + g.lv)
@@ -1321,13 +1371,14 @@ local function update(g, dt)
       if it.kind == 'pow' then
         if g.lv < 5 then
           g.lv = g.lv + 1; syncWings(g)
-          log('pow ' .. g.lv); say(g, '武器升级 LV' .. g.lv .. '!')
+          log('pow ' .. g.lv); say(g, '武器升级 LV' .. g.lv .. '!'); sfx('up')
         else
           g.score = g.score + 1000; log('score ' .. g.score); say(g, '满级 +1000 分')
         end
       elseif it.kind == 'bom1' then
         g.bomm = math.min(g.bomm + 1, 7); log('bomb ' .. g.bomm)
       elseif it.kind == 'bs' then
+        sfx('cjb')
         onKill(g, { kind = 'bsx', hp = 1, def = { score = 500 }, x = it.x, y = it.y, w = 14, h = 14, dead = false })
       end
     end
@@ -1355,6 +1406,12 @@ local function render(g)
   poolCursor = 0
   if g.state == 'playing' or g.state == 'clear' then
     local S = g.ship
+    -- 星带两层视差 + 地平线暗带（背景层，最先画）
+    for _, st in ipairs(STARS) do
+      local sx = (st.x - g.t * st.v) % (FIELD_W + 40) - 20
+      draw('star', sx, st.y, st.s * 3, st.s * 3, C(110, 150 + st.v * 2, 220, 235))
+    end
+    draw('horizon', FIELD_W / 2, 4, FIELD_W, 8, C(150, 16, 20, 34))
     for _, it in ipairs(g.items) do draw(it.kind, it.x, it.y) end
     for _, e in ipairs(g.enemies) do
       local col
@@ -1379,6 +1436,21 @@ local function render(g)
       end
     end
     if g.invuln <= 0 or math.floor(g.t * 12) % 2 == 0 then
+      -- 蓄力环（D192 效果外显：≥70% 金环脉动、满蓄红环放大）
+      local ps0 = N.ships[g.shipKey].ps
+      if g.neng > ps0 * 0.3 then
+        local r = 26 + math.sin(g.t * 8) * 3
+        local col = C(255, 255, 210, 110)
+        if g.neng >= ps0 * 1.5 then col = C(255, 255, 90, 74); r = r + 6 + math.sin(g.t * 10) * 3 end
+        draw('ring', S.x, S.y, r, r, col)
+      end
+      -- 特性光环（fxAura 触发 0.6s 内绕玩家渐隐）
+      for k, v in pairs(g.fxAura) do
+        if v > 0 then
+          local r = 30 + (0.6 - v) * 46
+          draw('ring', S.x, S.y, r, r, AURACOL[k] or AURACOL.xinhuo)
+        end
+      end
       for _, w in ipairs(g.wings) do draw(N.ships[g.shipKey].wing, w.x, w.y) end
       draw('flame', S.x - 18, S.y, 10 + math.random() * 4, 11 + math.random() * 4)
       draw(g.shipKey, S.x, S.y)
@@ -1390,18 +1462,34 @@ local function render(g)
       end
     end
     if g.shield > 0 then draw('shield', S.x, S.y) end
-    if g.guanri then draw('guanri', g.guanri.x, g.guanri.y, 164, math.max(12, g.guanri.w * 1.15)) end
-    if g.phoenix2 then draw('huofeng', g.phoenix2.x, g.phoenix2.y, 120, 94) end
+    -- 贯日尾影（2 层淡金）
+    if g.guanri then
+      draw('guanri', g.guanri.x - 26, g.guanri.y, 120, g.guanri.w * 0.9, C(120, 255, 200, 80))
+      draw('guanri', g.guanri.x, g.guanri.y, 164, math.max(12, g.guanri.w * 1.15))
+    end
+    -- 火凤主体 + 3 层残影（暖金渐暗）
+    if g.phoenix2 then
+      for i = 3, 1, -1 do
+        draw('huofeng', g.phoenix2.x - i * 16, g.phoenix2.y + (i % 2 == 0 and 6 or -6),
+          120 - i * 18, 94 - i * 14, C(60 + i * 30, 255, 150 - i * 25, 60))
+      end
+      draw('huofeng', g.phoenix2.x, g.phoenix2.y, 120, 94)
+    end
     for _, bl in ipairs(g.bullets) do
-      if bl.x < 1e3 then draw(bl.art, bl.x, bl.y) end
+      if bl.x < 1e3 then
+        -- 长虹大弹 glow（淡色宽版叠底）
+        if bl.art == 'changhong' then draw('changhong', bl.x - 4, bl.y, 52, 18, C(90, 255, 200, 90)) end
+        draw(bl.art, bl.x, bl.y)
+      end
     end
     for _, bl in ipairs(g.ebullets) do
       if bl.x < 1e3 then draw(bl.frozen and 'bingjing' or (bl.art or 'szd'), bl.x, bl.y) end
     end
     for _, bm in ipairs(g.booms) do
       if bm.spark then draw('spark', bm.x, bm.y)
+      elseif bm.crit then draw('ring', bm.x, bm.y, 16, 16, C(255, 255, 90, 90)); draw('spark', bm.x, bm.y)
       elseif bm.shard then draw('bingjing', bm.x, bm.y, 20, 20)
-      elseif bm.big then draw('die', bm.x, bm.y)
+      elseif bm.big then draw('die', bm.x, bm.y); draw('ring', bm.x, bm.y, 44, 44, C(200, 255, 150, 60))
       else draw('boom', bm.x, bm.y) end
     end
     for _, sd in ipairs(g.sparkSeeds) do draw('xinhuo', sd.x, sd.y) end
@@ -1409,8 +1497,8 @@ local function render(g)
     local wv = math.max(g.wave, 1)
     if UI.lastWave ~= wv then UI.waveText.text = tostring(wv); UI.lastWave = wv end
     if UI.lastLv ~= g.lv then UI.lvText.text = 'LV' .. g.lv; UI.lastLv = g.lv end
-    if UI.lastBomm ~= g.bomm then UI.bommText.text = '宝' .. g.bomm; UI.lastBomm = g.bomm end
-    UI.hpBar:SetSizeDelta(CW * 0.03 * math.max(g.life, 0), 12 * K)
+    if UI.lastBomm ~= g.bomm then UI.bommText.text = tostring(g.bomm); UI.lastBomm = g.bomm end
+    UI.hpBar:SetSizeDelta(13 * math.max(g.life, 0) * K, 12 * K)
     local ps = N.ships[g.shipKey].ps
     local mx = math.min(g.neng / (ps * 1.5), 1)
     UI.chgBar.fillAmount = mx
@@ -1420,7 +1508,7 @@ local function render(g)
     if g.boss and g.boss.phase == 'fight' then
       UI.bossBar:SetVisible(true); UI.bossBarBg:SetVisible(true)
       local full = g.boss.def.phases and g.boss.def.phases[1] or g.boss.def.hp
-      UI.bossBar:SetSizeDelta(CW * 0.7 * math.max(g.boss.hp, 0) / full, 8 * K)
+      UI.bossBar:SetSizeDelta(311 * K * math.max(g.boss.hp, 0) / full, 8 * K)
     else
       UI.bossBar:SetVisible(false); UI.bossBarBg:SetVisible(false)
     end
@@ -1430,9 +1518,39 @@ local function render(g)
   if g.traitCard then
     UI.traitCardT.text = '特性 · ' .. traitName(g.traitCard.id) .. '\n按 K 继续（触屏点击）· 已获 1.5 秒无敌'
   end
+  -- 悟·大字（unlockFx：2.5s 上浮渐隐，金环已由池渲染层画）
+  if UI.unlockT then
+    if g.unlockFx then
+      local fx = g.unlockFx
+      local fade = math.min(1, fx.t / 0.5)
+      local la = math.floor(fade * 12 + 0.5)
+      if UI.unlockLa ~= la then UI.unlockT.fontColor = C(la * 21, 255, 210, 102); UI.unlockLa = la end
+      if UI.unlockLn ~= fx.n then UI.unlockT.text = '悟 · ' .. fx.n; UI.unlockLn = fx.n end
+      local py = 18 * K + (2.5 - fx.t) * 5 * K
+      if UI.unlockLp ~= py then UI.unlockT:SetAnchoredPosition(0, py); UI.unlockLp = py end
+      if not UI.unlockVis then UI.unlockT:SetVisible(true); UI.unlockVis = true end
+    elseif UI.unlockVis then
+      UI.unlockT:SetVisible(false); UI.unlockVis = false
+    end
+  end
   for i = 1, 4 do
     local m = g.msgs[#g.msgs - i + 1]
-    if m then UI.msgs[i].text = m.txt else UI.msgs[i].text = '' end
+    local slot = UI.msgs[i]
+    if m then
+      -- 淡入 0.18s / 淡出 0.45s（D194 v23 口径），alpha 量化 16 档缓存防每帧 setColor
+      local fade = 1
+      if m.t < 0.18 then fade = m.t / 0.18 elseif m.life - m.t < 0.45 then fade = math.max(0, (m.life - m.t) / 0.45) end
+      local la = math.floor(fade * 16 + 0.5)
+      if slot.la ~= la then slot.c.text = m.txt; slot.c.fontColor = C(la * 8 + 7, 255, 224, 138); slot.la = la; slot.lt = m.txt
+      elseif slot.lt ~= m.txt then slot.c.text = m.txt; slot.lt = m.txt end
+    else
+      if slot.la ~= -1 then slot.c.text = ''; slot.la = -1; slot.lt = '' end
+    end
+  end
+  -- 图鉴计数（跨局 META）
+  if UI.codexBtnT then
+    local cc = '悟 ' .. codexCount() .. '/10'
+    if UI.lastCodex ~= cc then UI.codexBtnT.text = cc; UI.lastCodex = cc end
   end
   -- 伤害数字渲染（前 10 条）
   for i = 1, 10 do
@@ -1538,10 +1656,14 @@ function syncScreens()
   UI.traitCardT:SetVisible(G.traitCard ~= nil)
   UI.optionCtrl:SetActive(st == 'playing' and G.shipKey == 'lantu')
   local hud = (st == 'playing' or st == 'clear')
+  UI.portraitHM:SetVisible(st == 'select'); UI.portraitLT:SetVisible(st == 'select')
   UI.hudBg:SetActive(hud)
   UI.scoreText:SetVisible(hud); UI.waveText:SetVisible(hud)
   UI.lvText:SetVisible(hud); UI.bommText:SetVisible(hud); UI.hpBar:SetVisible(hud)
   UI.chgBar:SetVisible(hud)
+  UI.bommIcon:SetVisible(hud)
+  UI.bombBtn:SetActive(hud); UI.bombBtnT:SetVisible(hud)
+  UI.codexBtn:SetActive(st == 'playing'); UI.codexBtnT:SetVisible(st == 'playing')
   if G.traitCard then
     UI.traitCardT.text = '特性 · ' .. traitName(G.traitCard.id) .. '\n按 K 继续 · 已获 1.5 秒无敌'
   end
@@ -1562,12 +1684,46 @@ function mkBg(name, color, w, h, x, y)
   return b
 end
 
+-- 领悟图鉴面板（D188 用户设计：收集式，初始只显名，解锁显详情；纯展示无 buff；动态建/销毁）
+function ensureCodexPanel()
+  if UI.codexPanel then return end
+  UI.codexBg = mkBg('CodexBg', C(235, 12, 16, 26), 400, 240, 0, 0)
+  UI.codexPanel = newInst(T_PANEL, 'CodexPanel')
+  UI.codexPanel:SetSizeDelta(390 * K, 232 * K); UI.codexPanel:SetAnchoredPosition(0, 0)
+  UI.codexTitle = mkTx('CodexTitle', '领悟图鉴', 18, C(255, 255, 210, 102), 200, 30, 0, 100)
+  UI.codexHint = mkTx('CodexHint', '点击任意处关闭 · 实际触发技巧后解锁详情', 10, C(255, 150, 170, 190), 340, 20, 0, -108)
+  UI.codexRows = {}
+  local n = codexCount()
+  for i, e in ipairs(CODEX) do
+    local got = META.codex[e[1]]
+    local txt = got and (e[2] .. ' — ' .. (CODEXDESC[e[1]] or '')) or e[2]
+    local col = got and C(255, 255, 224, 170) or C(150, 158, 168, 180)
+    UI.codexRows[i] = mkTx('CodexRow' .. i, (got and '◆ ' or '◇ ') .. txt, got and 10 or 11,
+      col, 380, 18, -6, 88 - i * 18)
+  end
+  UI.codexCount = mkTx('CodexCount', '已领悟 ' .. n .. '/10', 12, C(255, 255, 210, 102), 120, 22, 140, 100)
+end
+
+function clearCodexPanel()
+  if UI.codexPanel then
+    game.DestroyClientUIControl(UI.codexPanel)
+    UI.codexPanel = nil
+    if UI.codexBg then game.DestroyClientUIControl(UI.codexBg); UI.codexBg = nil end
+    for _, r in ipairs(UI.codexRows or {}) do game.DestroyClientUIControl(r) end
+    UI.codexRows = {}
+    if UI.codexTitle then game.DestroyClientUIControl(UI.codexTitle); UI.codexTitle = nil end
+    if UI.codexHint then game.DestroyClientUIControl(UI.codexHint); UI.codexHint = nil end
+    if UI.codexCount then game.DestroyClientUIControl(UI.codexCount); UI.codexCount = nil end
+  end
+end
+
 local function initScreens()
   -- 触屏场最先建=最底层（不挡后建按钮）
   UI.fieldArea = newInst(T_CURSOR, 'FieldArea')  UI.fieldArea.raycastTarget = true
   UI.fieldArea:SetSizeDelta(CW, CH); UI.fieldArea:SetAnchoredPosition(0, 0)
   UI.fieldArea:AddCursorEventListener('CursorDown', function(ev)
     if G then
+      if G.codexOpen then G.codexOpen = false; clearCodexPanel(); return end
       if G.traitCard then G.traitCard = nil; G.invuln = math.max(G.invuln, 1.5); syncScreens() return end
       if G.state == 'select' then
         local lx = (ev and ev.x or CW / 2) / K
@@ -1589,54 +1745,68 @@ local function initScreens()
 
   -- 面板背景层（container 无背景色，垫深色 image；image 默认穿透不挡触屏）
   UI.selectBg = mkBg('SelectBg', C(215, 10, 14, 30), 444, 250, 0, 0)
-  UI.cardBgHM = mkBg('CardBgHM', C(230, 26, 30, 52), 118, 128, -CW * 0.22 / K, -CH * 0.02 / K)
-  UI.cardBgLT = mkBg('CardBgLT', C(230, 22, 32, 48), 118, 128, CW * 0.22 / K, -CH * 0.02 / K)
-  UI.hudBg = mkBg('HudBg', C(170, 6, 8, 18), 444, 26, 0, CH * 0.44 / K)
+  UI.cardBgHM = mkBg('CardBgHM', C(230, 26, 30, 52), 118, 128, -98, -1)
+  UI.cardBgLT = mkBg('CardBgLT', C(230, 22, 32, 48), 118, 128, 98, -1)
+  UI.hudBg = mkBg('HudBg', C(170, 6, 8, 18), 444, 26, 0, 110)
   UI.winBg = mkBg('WinBg', C(235, 22, 28, 50), 318, 175, 0, 0)
   UI.goBg = nil
-  UI.bossBarBg = mkBg('BossBarBg', C(255, 44, 0, 0), 318, 10, 0, -CH * 0.46 / K)
+  UI.bossBarBg = mkBg('BossBarBg', C(255, 44, 0, 0), 318, 10, 0, -115)
 
   UI.selectPanel = newInst(T_PANEL, 'CharSelectPanel')
-  UI.selectPanel:SetSizeDelta(CW * 0.94, CH * 0.84); UI.selectPanel:SetAnchoredPosition(0, 0)
+  UI.selectPanel:SetSizeDelta(418 * K, 235 * K); UI.selectPanel:SetAnchoredPosition(0, 0)
   UI.hongmaoCard = newInst(T_BTN, 'HongmaoCard')
   UI.hongmaoCard.interactable = true; UI.hongmaoCard.raycastTarget = true
-  UI.hongmaoCard:SetSizeDelta(CW * 0.24, CH * 0.42)
-  UI.hongmaoCard:SetAnchoredPosition(-CW * 0.22, -CH * 0.02)
+  UI.hongmaoCard:SetSizeDelta(107 * K, 105 * K)
+  UI.hongmaoCard:SetAnchoredPosition(-98 * K, -5 * K)
   UI.hongmaoCard:AddCursorEventListener('CursorClick', function()
     if G and G.state == 'select' then selectClick(G, FIELD_W * 0.25) end
   end)
   UI.lantuCard = newInst(T_BTN, 'LantuCard')
   UI.lantuCard.interactable = true; UI.lantuCard.raycastTarget = true
-  UI.lantuCard:SetSizeDelta(CW * 0.24, CH * 0.42)
-  UI.lantuCard:SetAnchoredPosition(CW * 0.22, -CH * 0.02)
+  UI.lantuCard:SetSizeDelta(107 * K, 105 * K)
+  UI.lantuCard:SetAnchoredPosition(98 * K, -5 * K)
   UI.lantuCard:AddCursorEventListener('CursorClick', function()
     if G and G.state == 'select' then selectClick(G, FIELD_W * 0.75) end
   end)
 
-  UI.selTitle = mkTx('SelTitle', '选择侠士', 20, C(255, 255, 210, 63), 200, 34, 0, CH * 0.36)
-  UI.selHint = mkTx('SelHint', 'A/D 或 ←/→ 切换 · J 或点击确认', 11, C(255, 150, 170, 190), 300, 22, 0, CH * 0.42)
-  UI.selHM = mkTx('SelHM', '虹猫\n长虹剑·重击·蓄力贯日\nK=火凤燎原', 11, C(255, 255, 210, 140), 100, 60, -CW * 0.22, -CH * 0.26)
-  UI.selLT = mkTx('SelLT', '蓝兔\n快射·攒银针·冰魄剑\nK=冰封千里', 11, C(255, 150, 210, 255), 100, 60, CW * 0.22, -CH * 0.26)
+  -- 选人画像（图元放大版：虹猫四芒星金 / 蓝兔圆冰蓝）
+  UI.portraitHM = newInst(T_IMG, 'PortraitHM')
+  UI.portraitHM:SetImage('StaticReference', 100004)
+  UI.portraitHM.imageColor = C(255, 255, 190, 90)
+  UI.portraitHM:SetSizeDelta(46 * K, 46 * K); UI.portraitHM:SetAnchoredPosition(-98 * K, 16 * K)
+  UI.portraitLT = newInst(T_IMG, 'PortraitLT')
+  UI.portraitLT:SetImage('StaticReference', 100002)
+  UI.portraitLT.imageColor = C(255, 140, 220, 255)
+  UI.portraitLT:SetSizeDelta(40 * K, 36 * K); UI.portraitLT:SetAnchoredPosition(98 * K, 16 * K)
 
-  UI.scoreText = mkTx('ScoreText', '0', 13, WHITE, 120, 24, -CW * 0.35, CH * 0.44, 'Left')
-  UI.waveText = mkTx('WaveText', '1', 13, WHITE, 40, 24, -CW * 0.05, CH * 0.44, 'Left')
-  UI.lvText = mkTx('LvText', 'LV1', 13, WHITE, 50, 24, CW * 0.05, CH * 0.44)
-  UI.bommText = mkTx('BommText', '宝3', 13, C(255, 255, 200, 120), 50, 24, CW * 0.16, CH * 0.44)
+  UI.selTitle = mkTx('SelTitle', '选择侠士', 20, C(255, 255, 210, 63), 200, 34, 0, 105)
+  UI.selHint = mkTx('SelHint', 'A/D 或 ←/→ 切换 · J 或点击确认', 11, C(255, 150, 170, 190), 300, 22, 0, 92)
+  UI.selHM = mkTx('SelHM', '虹猫\n长虹剑·重击·蓄力贯日\nK=火凤燎原', 11, C(255, 255, 210, 140), 100, 60, -98, -70)
+  UI.selLT = mkTx('SelLT', '蓝兔\n快射·攒银针·冰魄剑\nK=冰封千里', 11, C(255, 150, 210, 255), 100, 60, 98, -70)
+
+  UI.scoreText = mkTx('ScoreText', '0', 13, WHITE, 120, 24, -155, 112, 'Left')
+  UI.waveText = mkTx('WaveText', '1', 13, WHITE, 40, 24, -22, 112, 'Left')
+  UI.lvText = mkTx('LvText', 'LV1', 13, WHITE, 50, 24, 22, 112)
+  UI.bommText = mkTx('BommText', '3', 13, C(255, 255, 200, 120), 30, 24, 72, 112)
+  UI.bommIcon = newInst(T_IMG, 'BommIcon')
+  UI.bommIcon:SetImage('StaticReference', 100004)
+  UI.bommIcon.imageColor = C(255, 255, 200, 120)
+  UI.bommIcon:SetSizeDelta(11 * K, 11 * K); UI.bommIcon:SetAnchoredPosition(56 * K, 112 * K)
   UI.hpBar = newInst(T_IMG, 'HpBar')
   UI.hpBar:SetImage('StaticReference', 100001)
   UI.hpBar.imageColor = C(255, 120, 255, 140)
-  UI.hpBar:SetSizeDelta(CW * 0.12, 12 * K); UI.hpBar:SetAnchoredPosition(CW * 0.38, CH * 0.44)
+  UI.hpBar:SetSizeDelta(13 * 3 * K, 12 * K); UI.hpBar:SetAnchoredPosition(150 * K, 112 * K)
   UI.chgBar = newInst(T_IMG, 'ChargeBar')
   UI.chgBar:SetImage('StaticReference', 100001)
   UI.chgBar.imageColor = C(255, 79, 168, 255); UI.chgBar.fillAmount = 0
-  UI.chgBar:SetSizeDelta(CW * 0.1, 10 * K); UI.chgBar:SetAnchoredPosition(-CW * 0.18, CH * 0.44)
+  UI.chgBar:SetSizeDelta(44 * K, 10 * K); UI.chgBar:SetAnchoredPosition(-80 * K, 112 * K)
   UI.bossBar = newInst(T_IMG, 'BossBar')
   UI.bossBar:SetImage('StaticReference', 100001)
   UI.bossBar.imageColor = C(255, 255, 80, 80)
-  UI.bossBar:SetSizeDelta(CW * 0.7, 8 * K); UI.bossBar:SetAnchoredPosition(0, -CH * 0.46)
+  UI.bossBar:SetSizeDelta(311 * K, 8 * K); UI.bossBar:SetAnchoredPosition(0, -115 * K)
   UI.msgs = {}
   for i = 1, 4 do
-    UI.msgs[i] = mkTx('Msg' .. i, '', 14, C(255, 255, 224, 138), 340, 26, 0, CH * 0.3 - i * 28)
+    UI.msgs[i] = { c = mkTx('Msg' .. i, '', 14, C(255, 255, 224, 138), 340, 26, 0, 75 - i * 10), la = -1, lt = '' }
   end
 
   UI.optionCtrl = newInst(T_CURSOR, 'OptionControl')
@@ -1645,29 +1815,54 @@ local function initScreens()
   UI.optionCtrl:SetActive(false)
 
   UI.winPanel = newInst(T_PANEL, 'WinPanel')
-  UI.winPanel:SetSizeDelta(CW * 0.7, CH * 0.66); UI.winPanel:SetAnchoredPosition(0, 0)
-  UI.winTitle = mkTx('WinTitle', '通 关', 24, C(255, 255, 210, 63), 340, 44, 0, CH * 0.2)
-  UI.winStats = mkTx('WinStats', '', 15, WHITE, 280, 160, 0, -CH * 0.02)
-  UI.nextLabel = mkTx('NextLabel', '下一关 (K)', 15, WHITE, 160, 30, 0, -CH * 0.22)
+  UI.winPanel:SetSizeDelta(311 * K, 165 * K); UI.winPanel:SetAnchoredPosition(0, 0)
+  UI.winTitle = mkTx('WinTitle', '通 关', 24, C(255, 255, 210, 63), 340, 44, 0, 62)
+  UI.winStats = mkTx('WinStats', '', 15, WHITE, 280, 160, 0, -5)
+  UI.nextLabel = mkTx('NextLabel', '下一关 (K)', 15, WHITE, 160, 30, 0, -55)
   UI.nextBtn = newInst(T_BTN, 'NextBtn')
   UI.nextBtn.interactable = true; UI.nextBtn.raycastTarget = true
-  UI.nextBtn:SetSizeDelta(CW * 0.2, CH * 0.12); UI.nextBtn:SetAnchoredPosition(0, -CH * 0.22)
+  UI.nextBtn:SetSizeDelta(89 * K, 30 * K); UI.nextBtn:SetAnchoredPosition(0, -55 * K)
   UI.nextBtn:AddCursorEventListener('CursorClick', function()
     if G and G.state == 'clear' then nextLevel(G) end
   end)
   UI.nextBtn:SetAsLastSibling()
 
   -- GameOverPanel 动态创建/销毁（tree exists=false 断言要求真离树）
-  UI.goTitle = mkTx('GoTitle', '任务失败', 24, C(255, 240, 90, 90), 240, 44, 0, CH * 0.12)
+  UI.goTitle = mkTx('GoTitle', '任务失败', 24, C(255, 240, 90, 90), 240, 44, 0, 30)
   UI.goSub = mkTx('GoSub', '从关 1 重来（街机 run）', 13, C(255, 150, 170, 190), 280, 26, 0, 0)
   UI.restartBtn = newInst(T_BTN, 'RestartBtn')
   UI.restartBtn.interactable = true; UI.restartBtn.raycastTarget = true
-  UI.restartBtn:SetSizeDelta(CW * 0.2, CH * 0.12); UI.restartBtn:SetAnchoredPosition(0, -CH * 0.16)
+  UI.restartBtn:SetSizeDelta(89 * K, 30 * K); UI.restartBtn:SetAnchoredPosition(0, -40 * K)
   UI.restartBtn:AddCursorEventListener('CursorClick', function()
     if G then log('restart'); resetGame(); syncScreens() end
   end)
 
-  UI.traitCardT = mkTx('TraitCardText', '', 20, C(255, 255, 210, 102), CW * 0.9, CH * 0.5, 0, 0)
+  UI.traitCardT = mkTx('TraitCardText', '', 20, C(255, 255, 210, 102), 400, 125, 0, 0)
+
+  -- 悟·大字（unlockFx 渲染，2.5s 上浮渐隐）
+  UI.unlockT = mkTx('UnlockFx', '', 26, C(255, 255, 210, 102), 400, 50, 0, 18)
+  UI.unlockT:SetVisible(false); UI.unlockVis = false; UI.unlockLa = -1; UI.unlockLn = ''; UI.unlockLp = -9e9
+
+  -- 触屏宝按钮（移动端放大招；叠透明 textbox 标签不挡点击）
+  UI.bombBtn = newInst(T_BTN, 'BombBtn')
+  UI.bombBtn.interactable = true; UI.bombBtn.raycastTarget = true
+  UI.bombBtn:SetSizeDelta(44 * K, 26 * K); UI.bombBtn:SetAnchoredPosition(178 * K, -100 * K)
+  UI.bombBtn:AddCursorEventListener('CursorClick', function()
+    if G and G.state == 'playing' and not G.traitCard then kEdge = true end
+  end)
+  UI.bombBtnT = mkTx('BombBtnT', '宝·K', 11, C(255, 255, 200, 150), 44, 26, 178, -100)
+
+  -- 图鉴按钮（左上 HUD，跨局 META 计数；点击开 CodexPanel）
+  UI.codexBtn = newInst(T_BTN, 'CodexBtn')
+  UI.codexBtn.interactable = true; UI.codexBtn.raycastTarget = true
+  UI.codexBtn:SetSizeDelta(52 * K, 16 * K); UI.codexBtn:SetAnchoredPosition(-186 * K, 112 * K)
+  UI.codexBtn:AddCursorEventListener('CursorClick', function()
+    if G and G.state == 'playing' and not G.traitCard then
+      G.codexOpen = true; ensureCodexPanel()
+    end
+  end)
+  UI.codexBtnT = mkTx('CodexBtnT', '悟 0/10', 10, C(255, 255, 210, 140), 52, 16, -186, 112)
+  UI.lastCodex = ''
 
   -- 伤害数字池（D203：暴击红/字大随伤害/分色）
   UI.dmg = {}
@@ -1724,6 +1919,7 @@ local function initDebug()
       loadLevel(G, clamp(p[1] or 1, 1, #LEVELS))
     end
   end)
+  regSignal('DebugSfxMute', function(p) SFX_MUTE = (p[1] == 1) end)
   regSignal('DebugNoop', function() end)
 end
 
@@ -1792,8 +1988,12 @@ function OnUpdate(dt)
     if rEdge and G and G.state ~= 'select' then
       log('restart'); resetGame(); syncScreens()
     end
-    update(G, dt)
-    render(G)
+    if G and G.codexOpen then
+      render(G) -- 图鉴打开：逻辑冻结，渲染保持
+    else
+      update(G, dt)
+      render(G)
+    end
     HMLT.wave = G.wave
     HMLT.bullets = #G.bullets + #G.ebullets
   end)

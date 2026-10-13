@@ -92,6 +92,7 @@ def build_save(lua_src):
     # ---- 服务端工程：sc1 > n1「游戏层」(stretch) ----
     n1 = stretch(make_node('container', 'n1', 1073741851, '游戏层'))
     n1['showCursor'] = True
+    n1['disableKeyEventPassthrough'] = True  # 真机防 WASD/J/K 穿透到 3D 角色移动
     sc1 = base['root']
     sc1['children'] = [n1]
     server = {

@@ -1,0 +1,20 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "codex-panel",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.5, "kind": "click", "name": "CodexBtn" },
+    { "t": 1.5, "kind": "serverSend", "name": "DebugNoop", "params": [] },
+    { "t": 2.5, "kind": "click", "name": "RestartBtn" }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "char_select hongmao", "source": "client", "at": 3.0 },
+    { "kind": "tree", "name": "CodexPanel", "exists": true, "at": 1.6 },
+    { "kind": "tree", "name": "CodexRow10", "exists": true, "at": 1.6 },
+    { "kind": "control", "name": "sp1", "field": "visible", "equals": true, "at": 1.6 },
+    { "kind": "tree", "name": "CodexPanel", "exists": false, "at": 2.6 },
+    { "kind": "log", "contains": "restart", "source": "client", "at": 3.0 }
+  ]
+}
