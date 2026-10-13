@@ -9,10 +9,10 @@
     { "t": 2.6, "kind": "serverSend", "name": "DebugNoop", "params": [] }
   ],
   "asserts": [
-    { "kind": "log", "contains": "char_select hongmao", "source": "client" },
-    { "kind": "log", "contains": "wave 1", "source": "client" },
-    { "kind": "control", "name": "sp1", "field": "visible", "equals": true },
-    { "kind": "control", "name": "sp2", "field": "visible", "equals": true },
-    { "kind": "control", "name": "sp3", "field": "visible", "equals": true }
+    { "kind": "log", "contains": "char_select hongmao", "source": "client", "at": 2.8 },
+    { "kind": "log", "contains": "wave 1", "source": "client", "at": 2.8 },
+    { "kind": "control", "name": "sp1", "field": "visible", "equals": true, "at": 2.8 },
+    { "kind": "control", "name": "sp2", "field": "visible", "equals": true, "at": 2.8 },
+    { "kind": "control", "name": "sp3", "field": "visible", "equals": true, "at": 2.8 }
   ]
 }
