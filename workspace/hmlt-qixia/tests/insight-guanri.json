@@ -1,0 +1,47 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "insight-guanri",
+ "dt": 0.04,
+ "events": [
+  {
+   "t": 0,
+   "kind": "click",
+   "name": "HongmaoCard"
+  },
+  {
+   "t": 0.4,
+   "kind": "serverSend",
+   "name": "DebugGrantPow",
+   "params": [
+    4
+   ]
+  },
+  {
+   "t": 0.45,
+   "kind": "serverSend",
+   "name": "DebugInvuln",
+   "params": [
+    999
+   ]
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey19Down"
+  },
+  {
+   "t": 4.1,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey19Up"
+  }
+ ],
+ "asserts": [
+  {
+   "kind": "log",
+   "contains": "insight guanri_full",
+   "source": "client",
+   "at": 5.4
+  }
+ ]
+}

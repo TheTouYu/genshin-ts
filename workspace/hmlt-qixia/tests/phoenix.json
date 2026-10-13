@@ -10,12 +10,28 @@
    "name": "HongmaoCard"
   },
   {
+   "t": 0.4,
+   "kind": "serverSend",
+   "name": "DebugGrantPow",
+   "params": [
+    2
+   ]
+  },
+  {
+   "t": 0.45,
+   "kind": "serverSend",
+   "name": "DebugInvuln",
+   "params": [
+    999
+   ]
+  },
+  {
    "t": 0.5,
    "kind": "key",
    "typeName": "KeyboardCraftspersonKey19Down"
   },
   {
-   "t": 2.7,
+   "t": 3.3,
    "kind": "key",
    "typeName": "KeyboardCraftspersonKey19Up"
   }
@@ -25,7 +41,7 @@
    "kind": "log",
    "contains": "phoenix",
    "source": "client",
-   "at": 4.0
+   "at": 4.6
   }
  ]
 }

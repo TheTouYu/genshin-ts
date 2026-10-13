@@ -1,0 +1,49 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "cw-escape",
+ "dt": 0.04,
+ "events": [
+  {
+   "t": 0,
+   "kind": "click",
+   "name": "HongmaoCard"
+  },
+  {
+   "t": 0.4,
+   "kind": "serverSend",
+   "name": "DebugInvuln",
+   "params": [
+    999
+   ]
+  },
+  {
+   "t": 1.0,
+   "kind": "serverSend",
+   "name": "DebugGotoLevel",
+   "params": [
+    5
+   ]
+  },
+  {
+   "t": 3.5,
+   "kind": "serverSend",
+   "name": "DebugKillBoss",
+   "params": []
+  }
+ ],
+ "asserts": [
+  {
+   "kind": "log",
+   "contains": "midboss",
+   "source": "client",
+   "at": 5
+  },
+  {
+   "kind": "log",
+   "contains": "cw_escape",
+   "source": "client",
+   "at": 23
+  }
+ ]
+}

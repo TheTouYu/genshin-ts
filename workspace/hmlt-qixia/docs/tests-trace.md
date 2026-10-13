@@ -75,3 +75,11 @@ runCase args：全部用例默认画布 pc-16-9；`mobile-smoke.json` 运行时�
 - `trait <id>`：已解锁特性再次触发（飘字，4s 冷却）。
 - `small_sword <n>`：人剑合一/险中求道追发小长虹剑（n=2/1）。
 - 断言锚：CDP 实测值（critRate 数学/燃烧一跳 35/小剑 82×2/回填 每2收1/蓄速 45.5/末命 fireCd 0.5833）见 playtest 第二十一轮。
+
+## 2026-10-13 v2 全功能对齐轮
+
+- 新增用例：level-chain（六关通关链：每关 SkipToBoss→KillBoss(分相 boss 需 N 连杀)→等 winPending 6s→K 续关→…→game_win+restart）、cw-escape（DebugGotoLevel 5+无敌不还手看 cw 15.6s 逃脱）、insight-guanri（lv4 僚机 3 满蓄贯日→悟·满编贯日）。电池 **14/14**。
+- 新增 Debug 信号：`DebugInvuln[n]`（默认 999，invuln<90 才衰减故常驻）、`DebugGotoLevel[n]`（playing 态直达关卡）；`DebugKillBoss` 扩展为同时击杀中 boss（isMid）。
+- **教训**：v1 有用例靠 fengari 固定种子的随机运气过（开局 pow 漂向玩家）——确定性测试必须走 Debug 信号显式搭建前置，不吃随机红利。
+- v1→v2 契约差异修正：ScoreText=纯分数（关卡并入 WaveText「第N关·波M」）、`bomb_clear`/`fail lives`/`restart`/`pow 1`（死亡降级）日志保留、wave 计数 1-based（spawnWave 先取 next_ 再赋值，杜绝「先自增后索引」越界）。
+- 结构发现：光标事件只挂在 `button`/`cursor` 两类控件（scene.js KIND_METHODS）——容器 script.object 没有 AddCursorEventListener；客户端模板新增 **t5 cursor（1073742304）**，全屏 FieldArea 承接触屏拖动/点选/特性卡关闭。

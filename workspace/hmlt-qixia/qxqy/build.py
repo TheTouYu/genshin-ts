@@ -108,6 +108,7 @@ def build_save(lua_src):
         make_node('textbox',  't2', 1073742301, 'tx',    size=(60, 20)),
         make_node('button',   't3', 1073742302, 'btn',   size=(100, 40)),
         make_node('container','t4', 1073742303, 'panel', size=(100, 100)),
+        make_node('cursor',   't5', 1073742304, 'cursor', size=(100, 100)),
     ]
     client = {
         'layoutSchemaVersion': 2, 'version': 1,

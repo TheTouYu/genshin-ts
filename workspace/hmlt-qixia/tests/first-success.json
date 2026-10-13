@@ -41,19 +41,19 @@
    "kind": "log",
    "contains": "level_clear",
    "source": "client",
-   "at": 15.0
+   "at": 20.5
   },
   {
    "kind": "log",
-   "contains": "game_win",
+   "contains": "level_clear",
    "source": "client",
-   "at": 15.0
+   "at": 20.5
   },
   {
    "kind": "tree",
    "name": "WinPanel",
    "exists": true,
-   "at": 15.0
+   "at": 20.5
   }
  ]
 }

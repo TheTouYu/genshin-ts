@@ -301,3 +301,9 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - **修复（commit 千星模拟器仓库）**：keyEventName 扩全键面——奇匠字母 Key11-22（U Z Y G H I O P J K L V）、方向键 Key36-39、WASD 具名移动键；数字键原样。契约测试同步更新（KeyA→KeyboardMoveLeftKeyDown 等 9 断言）。全量测试 fail 0，三端重建，4173 服务与宿主 dsh-web 插件双面部署。
 - **同通道复绿铁证**：真实键盘 W 按住 2.2s→`bound up`；K→`bomb 2`+`bomb_clear`；A 按住 2.6s→`bound left`——页面→转发层→runtime→Lua 监听→游戏行为全链通。
 - 遗留：上游 PR 未提（与 fd72ecc 同策）；用户需刷新试玩页载新 play-renderer。
+
+### 2026-10-13 下午 v2 全功能对齐轮（用户令：100% 实现全部功能，一个细节不少）
+
+- 对齐范围：HTML demo 1098 行全量移植到 lua/main.lua（六关+中boss车轮战+逃脱+分相boss+环境刷怪+十悟+七特性+暴击+燃烧薪火+银针匣三铁律+贯日/冰魄/火凤/冰封+擦弹+结算+图鉴+触屏）。
+- 电池 14/14（含六关通关链）；MCP 交互冒烟：HongmaoCard 点击→audio 50888 真播→wave 1→死亡循环→pow 回捡全链活；截图 frame 522。
+- 已知欠账（下一步）：①美术仍图元占位（ART 表已按 demo 键名铺好，换 imageId 即升级）②SFX 13 事件全挂 50888 单音（音频轮校准 id）③traitsSeen/codexUnlocked 会话内不持久（平台无 localStorage）④jiejian 悟与 demo 同步处于无触发态（demo 本轮也未接）。
