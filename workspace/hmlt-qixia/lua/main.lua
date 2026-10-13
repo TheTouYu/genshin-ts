@@ -2051,6 +2051,7 @@ local function render()
     settxt(G.tcT1, '✦ 特性 · '..t[1])
     settxt(G.tcT2, '『'..t[2]..'』 '..t[3])
     settxt(G.tcT3, '按 K 继续（触屏点击）· 已获 1.5 秒无敌')
+    place(G.tcT1, FW/2, 148) place(G.tcT2, FW/2, 126) place(G.tcT3, FW/2, 106)
     G.tcT1:SetActive(true) G.tcT2:SetActive(true) G.tcT3:SetActive(true)
   else
     G.tcT1:SetActive(false) G.tcT2:SetActive(false) G.tcT3:SetActive(false)
