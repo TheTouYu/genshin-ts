@@ -422,6 +422,9 @@ function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefi
   if (code === 27) return { type: 'nameplate', preset: 'default' }
   if (code === 28) return { type: 'textBubble', preset: 'default' }
   if (code === 38) return { type: 'lightSource', preset: 'default' }
+  // 命中检测（2026-10-13 补：实体层回读曾漏 type12 → 球/元件挂命中区在实体面显示不出来；
+  // 定义侧 export.ts 一直认此码，两处对齐）
+  if (code === 12) return { type: 'hitDetection', preset: 'default' }
   if (code === 17) {
     const config = fields.find((field) => field.number === 27 && field.wire === 2)
     if (!config) return undefined
