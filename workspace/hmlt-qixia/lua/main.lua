@@ -231,6 +231,21 @@ local function imgc(artKey, name)
   c:SetSizeDelta(a[2]*K, a[3]*K)
   return c
 end
+-- 宿主渲染器按控件宽高 clip 文本（host-png drawTextItem），Lua 侧必须给足宽度；
+-- CJK 全角 1em、半角 0.62em 估算，下限 6em 兜住 HUD 每帧更新的长数字。
+local function textW(str, size)
+  local u = 0
+  if utf8 then
+    for _, code in utf8.codes(str or '') do
+      local full = (code >= 0x2E80 and code <= 0x9FFF) or (code >= 0xF900 and code <= 0xFAFF)
+        or (code >= 0x3000 and code <= 0x303F) or (code >= 0xFF00 and code <= 0xFFEF)
+      u = u + (full and 1.0 or 0.62)
+    end
+  else
+    u = #(str or '') / 3 * 0.9
+  end
+  return u * size
+end
 local function txtc(str, size, r,g,b, name)
   local c = mkc(T_TXT, name or 'tx')
   c.text = str or ''
@@ -238,6 +253,9 @@ local function txtc(str, size, r,g,b, name)
   c.fontColor = Color(r,g,b,255)
   c.bgColor = Color(0,0,0,0)
   c.enableOutline = true
+  c.horizontalAlignment = 'Middle'
+  c.verticalAlignment = 'Middle'
+  c:SetSizeDelta(math.max(textW(str, c.fontSize) + 12*K, c.fontSize*6), c.fontSize*1.7)
   return c
 end
 local function place(c, gx, gy) c:SetAnchoredPosition(gx*K-HX, gy*K-HY) end

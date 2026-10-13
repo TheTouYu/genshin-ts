@@ -307,3 +307,13 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - 对齐范围：HTML demo 1098 行全量移植到 lua/main.lua（六关+中boss车轮战+逃脱+分相boss+环境刷怪+十悟+七特性+暴击+燃烧薪火+银针匣三铁律+贯日/冰魄/火凤/冰封+擦弹+结算+图鉴+触屏）。
 - 电池 14/14（含六关通关链）；MCP 交互冒烟：HongmaoCard 点击→audio 50888 真播→wave 1→死亡循环→pow 回捡全链活；截图 frame 522。
 - 已知欠账（下一步）：①美术仍图元占位（ART 表已按 demo 键名铺好，换 imageId 即升级）②SFX 13 事件全挂 50888 单音（音频轮校准 id）③traitsSeen/codexUnlocked 会话内不持久（平台无 localStorage）④jiejian 悟与 demo 同步处于无触发态（demo 本轮也未接）。
+
+### 2026-10-13 第三十七轮：千星版选人屏中文渲染链修复（模拟器 MCP 截图铁证）
+
+用户判决复现：选人屏乱码+HUD 裸奔+覆盖块。三层根因逐一定谳并修复：
+1. **浏览器 pixi 字体栈**（pixi-renderer.js:246）Inter/YaHei 全未装→fontconfig 替换到 Noto CJK KR 韩文字形→补 "HarmonyOS Sans SC" 排前。
+2. **宿主截图 napi canvas 字体栈**（host-png.js:143 drawTextItem）同栈修法；隔离实验（部署副本 canvas+同栈画全部游戏串）ink 全覆盖→证明字体栈已通。
+3. **真正残余=textbox 宽度裁剪**：drawTextItem 对文本无条件按控件宽高 clip（host-png.js:139-142），Lua txtc 从不 SetSizeDelta→中文全角字形被裁成偏旁碎片（豆腐块窄所以修复前"看似完整"，修复后反而更碎=判别特征）。
+修复：main.lua txtc 增加 textW 估算（CJK 1em/半角 0.62em，utf8 逐字，下限 6em 兜 HUD 长数字）+ horizontalAlignment/verticalAlignment='Middle'（防加宽后左对齐偏移）+ SetSizeDelta(宽+12K, 1.7em)。
+验证：build.py 重建+本地电池 14/14 绿；MCP 装回+play start pc-16-9+截图=标题/副题/双卡三行/提示行全字清晰，HUD 选人屏隐藏，金框选中态正常。runtime=simulator。
+遗留：角色/敌人仍图元占位（美术轮=ART 表换 imageId）。
