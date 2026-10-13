@@ -1079,7 +1079,7 @@ function resetState()
     stats={kills=0,hits=0,pick=0,time=0},
     needles=0, wallSeq=0, wallHits={},
     guanri=nil, phoenix2=nil, freezeT=0, chargeGraze=0,
-    traitCard=nil, traitQ={}, traitT={}, fxAura={}, recyc=0, sparkSeeds={},
+    traitCard=nil, cardT=0, traitQ={}, traitT={}, fxAura={}, recyc=0, sparkSeeds={},
     zmArmed=false, zmFull=false, jTapT=0, jHeld=false, jPressFull=false, holdT=0, lastHold=0,
     dmgAcc={}, dmgAccT=0.5,
     renjianWin=0, renjianLeft=0, renjianCd=0, qiudaoCd=0,
@@ -1100,13 +1100,14 @@ end
 -- ===== 主 tick =====
 local acc = 0
 local function tick(dt)
-  -- 特性教学卡：时间冻结，K/点击关闭
+  -- 特性教学卡：时间冻结；任意键/点击/6s 自动关闭（防键盘焦点丢失=永久冻结）
   if G.traitCard then
-    if kEdge then
-      G.traitCard=nil
+    G.cardT = (G.cardT or 0) + dt
+    if kEdge or jEdge or rEdge or keys.enter or G.cardT>6 then
+      G.traitCard=nil G.cardT=0
       G.invuln = math.max(G.invuln, 1.5)
     end
-    kEdge=false jEdge=false jUp=false
+    kEdge=false jEdge=false jUp=false rEdge=false
     return
   end
   -- 特性卡延迟队列（2.5s 后弹卡）
@@ -1116,7 +1117,7 @@ local function tick(dt)
     if t2 <= 0 then
       G.traitQ[id]=nil
       traitsSeen[id]=1
-      G.traitCard=id
+      G.traitCard=id G.cardT=0
       log('trait_unlock '..id) sfx('phoenix')
       qArmed = true
     else
