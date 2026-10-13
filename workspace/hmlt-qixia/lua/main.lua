@@ -2233,10 +2233,10 @@ function OnStart()
   hud.hbg = imgc('bar', 'HpBg')
   local hbg = hud.hbg
   hbg.imageColor = Color(40,48,70,255)
-  placeSize(hbg, FW/2, 241, 90, 6)
+  placeSize(hbg, FW/2, 231, 90, 6)
   hud.hp = imgc('bar', 'HpBar')
   hud.hp.imageColor = Color(120,255,140,255)
-  placeSize(hud.hp, FW/2, 241, 90, 6)
+  placeSize(hud.hp, FW/2, 231, 90, 6)
   hud.bbg = imgc('bar', 'BossBg')
   local bbg = hud.bbg
   bbg.imageColor = Color(48,26,32,255)
