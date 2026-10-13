@@ -736,8 +736,9 @@ export function entityFromDefinition(
       out.push({ number: 6, wire: 2, value: field.value })
     } else if (field.number === 8) {
       out.push({ number: 7, wire: 2, value: field.value })
-    } else if (field.number === 10 || field.number === 501) {
-      // 元件定义独有：实体样本中不存在。
+    } else if (field.number === 9 || field.number === 10 || field.number === 501) {
+      // 元件定义独有：实体样本中不存在（2026-10-13 造物实证：def f9=4 被照搬到实体
+      // → 实体多出 f9，编辑器对照样本无此字段；f10/501 同族）。
     } else {
       out.push(field)
     }
