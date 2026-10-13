@@ -1,0 +1,1397 @@
+{
+ "schemaVersion": 1,
+ "items": [
+  {
+   "resourceId": 10009008,
+   "position": [
+    62,
+    0.9,
+    56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    62,
+    3.144,
+    56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.2,
+    3.6799999999999997,
+    3.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    70,
+    1.5,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    70,
+    4.638,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.9000000000000004,
+    4.485,
+    3.9000000000000004
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    58,
+    1.3,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    58,
+    4.532,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.6,
+    5.289999999999999,
+    4.6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    74,
+    1.1,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    74,
+    3.6910000000000003,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.5500000000000003,
+    4.0825,
+    3.5500000000000003
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    66,
+    0.9,
+    48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    66,
+    3.585,
+    48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.25,
+    4.887499999999999,
+    4.25
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    56,
+    1.5,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    56,
+    4.344,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.2,
+    3.6799999999999997,
+    3.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -64,
+    1.3,
+    58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -64,
+    4.238,
+    58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.9000000000000004,
+    4.485,
+    3.9000000000000004
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -72,
+    1.1,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -72,
+    4.132,
+    52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.6,
+    5.289999999999999,
+    4.6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -58,
+    0.9,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -58,
+    3.2910000000000004,
+    64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.5500000000000003,
+    4.0825,
+    3.5500000000000003
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -76,
+    1.5,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -76,
+    4.785,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.25,
+    4.887499999999999,
+    4.25
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -68,
+    1.3,
+    46
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -68,
+    3.944,
+    46
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.2,
+    3.6799999999999997,
+    3.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -66,
+    1.1,
+    -56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -66,
+    3.838,
+    -56
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.9000000000000004,
+    4.485,
+    3.9000000000000004
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -74,
+    0.9,
+    -62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -74,
+    3.7319999999999998,
+    -62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.6,
+    5.289999999999999,
+    4.6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -60,
+    1.5,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -60,
+    4.491,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.5500000000000003,
+    4.0825,
+    3.5500000000000003
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -70,
+    1.3,
+    -48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -70,
+    4.385,
+    -48
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.25,
+    4.887499999999999,
+    4.25
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    -56,
+    1.1,
+    -58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -56,
+    3.5440000000000005,
+    -58
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.2,
+    3.6799999999999997,
+    3.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    30,
+    0.9,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    30,
+    3.438,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.9000000000000004,
+    4.485,
+    3.9000000000000004
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    40,
+    1.5,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    40,
+    4.9319999999999995,
+    -64
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.6,
+    5.289999999999999,
+    4.6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    50,
+    1.3,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    50,
+    4.091,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.5500000000000003,
+    4.0825,
+    3.5500000000000003
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    60,
+    1.1,
+    -63
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    60,
+    3.9850000000000003,
+    -63
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.25,
+    4.887499999999999,
+    4.25
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    70,
+    0.9,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    1.8,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    70,
+    3.144,
+    -66
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.2,
+    3.6799999999999997,
+    3.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    78,
+    1.5,
+    18
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    3,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    78,
+    4.638,
+    18
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.9000000000000004,
+    4.485,
+    3.9000000000000004
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    80,
+    1.3,
+    2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.6,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    80,
+    4.532,
+    2
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    4.6,
+    5.289999999999999,
+    4.6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009008,
+   "position": [
+    76,
+    1.1,
+    -14
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.35,
+    2.2,
+    0.35
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 9077880,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    76,
+    3.6910000000000003,
+    -14
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    3.5500000000000003,
+    4.0825,
+    3.5500000000000003
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7239778,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    0,
+    0.45,
+    80
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    110,
+    0.9,
+    1.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    0,
+    0.45,
+    -80
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    110,
+    0.9,
+    1.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    80,
+    0.45,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1.2,
+    0.9,
+    110
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    -80,
+    0.45,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1.2,
+    0.9,
+    110
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    52,
+    0.45,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    40,
+    0.9,
+    1.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    -40,
+    0.45,
+    -72
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    50,
+    0.9,
+    1.2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 7371366,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    88,
+    0.05,
+    10
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    6,
+    0.1,
+    130
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 11579052,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    -20,
+    0.05,
+    -88
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    130,
+    0.1,
+    6
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 11579052,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    98,
+    5,
+    60
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    18,
+    10,
+    14
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 12631740,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009001,
+   "position": [
+    -92,
+    6,
+    -52
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    22,
+    12,
+    16
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 12631740,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "schemaVersion": 1,
+ "entities": [
+  {
+   "name": "景观_外围",
+   "id": 1077936149,
+   "definitionId": 1077936148,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  }
+ ]
+}
