@@ -226,7 +226,7 @@ end
 local T_IMG, T_TX, T_BTN, T_PANEL, T_CURSOR = 1073742300, 1073742301, 1073742302, 1073742303, 1073742304
 local root, K = nil, 1
 local CW, CH = 444, 250
-local pool, poolN = {}, 0
+local pool, poolN, poolCursor = {}, 0, 0
 
 local function newInst(guid, name)
   local n = game.InstantiateClientUIControl(guid, root)
@@ -243,28 +243,24 @@ local function initRender()
     local c = newInst(T_IMG, 'sp' .. i)
     c:SetVisible(false)
     poolN = poolN + 1
-    pool[poolN] = { c = c, used = false, lx = -9e3, ly = -9e3, lw = -1, lh = -1, lcol = -1, lart = '' }
+    pool[poolN] = { c = c, used = false, lvis = false, lx = -9e3, ly = -9e3, lw = -1, lh = -1, lcol = -1, lart = '' }
   end
 end
 
 local function draw(artKey, x, y, w, h, colorOverride)
-  for i = 1, poolN do
-    local p = pool[i]
-    if not p.used then
-      p.used = true
-      local v = VIS[artKey] or VIS.boom
-      w = w or v[3]; h = h or v[4]
-      local col = colorOverride or v[2]
-      local c = p.c
-      if p.lart ~= artKey then c:SetImage('StaticReference', v[1]); p.lart = artKey end
-      if p.lcol ~= col then c.imageColor = col; p.lcol = col end
-      if p.lw ~= w or p.lh ~= h then c:SetSizeDelta(w * K, h * K); p.lw = w; p.lh = h end
-      local px, py = (x - FIELD_W / 2) * K, (y - FIELD_H / 2) * K
-      if p.lx ~= px or p.ly ~= py then c:SetAnchoredPosition(px, py); p.lx = px; p.ly = py end
-      return p
-    end
-  end
-  return nil
+  if poolCursor >= poolN then return nil end
+  poolCursor = poolCursor + 1
+  local p = pool[poolCursor]
+  local v = VIS[artKey] or VIS.boom
+  w = w or v[3]; h = h or v[4]
+  local col = colorOverride or v[2]
+  local c = p.c
+  if p.lart ~= artKey then c:SetImage('StaticReference', v[1]); p.lart = artKey end
+  if p.lcol ~= col then c.imageColor = col; p.lcol = col end
+  if p.lw ~= w or p.lh ~= h then c:SetSizeDelta(w * K, h * K); p.lw = w; p.lh = h end
+  local px, py = (x - FIELD_W / 2) * K, (y - FIELD_H / 2) * K
+  if p.lx ~= px or p.ly ~= py then c:SetAnchoredPosition(px, py); p.lx = px; p.ly = py end
+  return p
 end
 
 -- ============================ 游戏状态 ============================
@@ -324,6 +320,7 @@ local function resetGame()
     autoPlay = false, chargeTier = 0, chargeFull = false, chargeMax = false,
     needleSalvo = nil, readyFx = 0,
     codexUnlocked = {}, traitsSeen = {}, patDelay = {},
+    floaters = {}, dmgAcc = {}, dmgAccT = 0.5,
   }
 end
 
@@ -341,6 +338,7 @@ local function loadLevel(g, i)
   g.scrollSpd = N.scroll; g.dxddT = 2.6
   g.needleSalvo = nil; g.patDelay = {}
   g.winPending = 0
+  g.floaters = {}; g.dmgAcc = {}; g.dmgAccT = 0.5
   say(g, L.name); log('level ' .. i)
 end
 
@@ -374,7 +372,7 @@ end
 
 local function eshoot(g, e, vx, vy, art)
   if #g.ebullets > 140 then return end
-  g.ebullets[#g.ebullets + 1] = { x = e.x, y = e.y, vx = vx, vy = vy, w = 7, h = 7, art = art or 'szd' }
+  g.ebullets[#g.ebullets + 1] = { x = e.x, y = e.y, vx = vx * 0.75, vy = vy * 0.75, w = 6, h = 6, art = art or 'szd' }
 end
 
 local function fireVolley(g)
@@ -431,15 +429,32 @@ local function critRate(g, kind)
   return math.min(r, 0.95)
 end
 
+local DMGCOL = {
+  normal = C(255, 232, 241, 255), crit = C(255, 255, 90, 90),
+  burn = C(255, 255, 154, 61), frost = C(255, 127, 216, 255), skill = C(255, 255, 209, 102),
+}
+local function dmgFloat(g, e, d, kind, crit)
+  if not d or d < 1 or not e or e.x == nil then return end
+  local sz = math.min(11 + d * 0.1, 40) * (crit and 1.15 or 1)
+  g.floaters[#g.floaters + 1] = {
+    x = e.x + (math.random() * 18 - 9), y = e.y - 12 + (math.random() * 12 - 6),
+    txt = tostring(math.floor(d + 0.5)),
+    col = DMGCOL[kind] or DMGCOL.normal, sz = math.floor(sz), t = 0.7,
+  }
+  if #g.floaters > 60 then table.remove(g.floaters, 1) end
+end
+
 local function traitBulletDmg(g, b, e)
   local d = b.dmg
   local kind = b.wallId and 'needle' or (b.art == 'changhong' and 'sword' or (b.art == 'bingpoj' and 'blade' or 'wing'))
   if kind == 'needle' and g.shipKey == 'lantu' and g.freezeT > 0 then traitFire(g, 'yizhen') end
   if kind == 'needle' and b.zm then traitFire(g, 'zhenman'); g.fxAura.zhenman = 0.6 end
-  if math.random() < critRate(g, kind) then
+  local crit = math.random() < critRate(g, kind)
+  if crit then
     d = d * 2
     g.booms[#g.booms + 1] = { x = e.x, y = e.y, t = 0.25, crit = true }
   end
+  dmgFloat(g, e, d, b.art == 'bingpoj' and 'frost' or 'normal', crit)
   return math.floor(d + 0.5)
 end
 
@@ -626,7 +641,7 @@ local function spawnWave(g)
     local kind, y = sp[1], sp[2]
     if kind == 'xkl' then
       g.ebullets[#g.ebullets + 1] = { x = FIELD_W + 20, y = y,
-        vx = -(170 + math.random() * 190), vy = (math.random() - 0.5) * 40, w = 14, h = 10, art = 'szd2' }
+        vx = -(170 + math.random() * 190) * 0.75, vy = (math.random() - 0.5) * 40, w = 13, h = 9, art = 'szd2' }
     elseif kind == 'bsrain' then
       local it = mkItem(g, 'bs', FIELD_W - 10, y); it.vx = -110; it.free = true
       g.items[#g.items + 1] = it
@@ -911,6 +926,7 @@ local function update(g, dt)
       if e.burnTick <= 0 then
         e.burnTick = 3
         damage(g, e, 35)
+        dmgFloat(g, e, 35, 'burn', false)
       end
     end
     if e.kind == 'dxdd' then
@@ -1137,10 +1153,12 @@ local function update(g, dt)
         and math.abs(e.y - gr.y) * 2 < gr.w + (e.h or 20) then
         gr.hitset[e] = true
         local gd = e.isBoss and gr.dmg * 1.5 or gr.dmg
+        local gc = false
         if math.random() < critRate(g, 'guanri') then
-          gd = gd * 2
+          gd = gd * 2; gc = true
           g.booms[#g.booms + 1] = { x = e.x, y = e.y, t = 0.25, crit = true }
         end
+        dmgFloat(g, e, gd, 'skill', gc)
         damage(g, e, math.floor(gd + 0.5))
         e.burn = 12; e.burnTick = 3
         if g.renjianLeft > 0 and g.t > g.renjianCd and g.fireCd <= 0 then g.renjianWin = 0.3 end
@@ -1166,6 +1184,7 @@ local function update(g, dt)
           if g.renjianLeft > 0 and g.t > g.renjianCd and g.fireCd <= 0 then g.renjianWin = 0.3 end
         end
         damage(g, e, ((e.burn or 0) > 0 and 220 or 150) * dt)
+        g.dmgAcc[e] = (g.dmgAcc[e] or 0) + ((e.burn or 0) > 0 and 220 or 150) * dt
       end
     end
     if p.t <= 0 or p.x > FIELD_W + 60 then g.phoenix2 = nil end
@@ -1197,6 +1216,7 @@ local function update(g, dt)
               if g.freezeT > 0 and bl.art == 'bingpoj' then
                 d = d * 2; unlock(g, 'dong_sui')
               end
+              dmgFloat(g, e, d, bl.art == 'bingpoj' and 'frost' or 'normal', false)
               damage(g, e, d)
               if bl.art == 'bingpoj' then
                 g.needles = math.min(g.lv * (2 + g.lv), g.needles + 1)
@@ -1315,11 +1335,23 @@ local function update(g, dt)
 
   for _, bm in ipairs(g.booms) do bm.t = bm.t - dt end
   for i = #g.booms, 1, -1 do if g.booms[i].t <= 0 then table.remove(g.booms, i) end end
+
+  for _, f in ipairs(g.floaters) do f.t = f.t - dt; f.y = f.y + 26 * dt end
+  for i = #g.floaters, 1, -1 do if g.floaters[i].t <= 0 then table.remove(g.floaters, i) end end
+  g.dmgAccT = g.dmgAccT - dt
+  if g.dmgAccT <= 0 then
+    g.dmgAccT = 0.5
+    for e, ad in pairs(g.dmgAcc) do
+      if ad >= 1 and not e.dead then dmgFloat(g, e, ad, 'skill', false) end
+    end
+    g.dmgAcc = {}
+  end
 end
 
 -- ============================ 渲染 ============================
 local function render(g)
   for i = 1, poolN do pool[i].used = false end
+  poolCursor = 0
   if g.state == 'playing' or g.state == 'clear' then
     local S = g.ship
     for _, it in ipairs(g.items) do draw(it.kind, it.x, it.y) end
@@ -1372,10 +1404,11 @@ local function render(g)
       else draw('boom', bm.x, bm.y) end
     end
     for _, sd in ipairs(g.sparkSeeds) do draw('xinhuo', sd.x, sd.y) end
-    UI.scoreText.text = tostring(g.score)
-    UI.waveText.text = tostring(math.max(g.wave, 1))
-    UI.lvText.text = 'LV' .. g.lv
-    UI.bommText.text = '宝' .. g.bomm
+    if UI.lastScore ~= g.score then UI.scoreText.text = tostring(g.score); UI.lastScore = g.score end
+    local wv = math.max(g.wave, 1)
+    if UI.lastWave ~= wv then UI.waveText.text = tostring(wv); UI.lastWave = wv end
+    if UI.lastLv ~= g.lv then UI.lvText.text = 'LV' .. g.lv; UI.lastLv = g.lv end
+    if UI.lastBomm ~= g.bomm then UI.bommText.text = '宝' .. g.bomm; UI.lastBomm = g.bomm end
     UI.hpBar:SetSizeDelta(CW * 0.03 * math.max(g.life, 0), 12 * K)
     local ps = N.ships[g.shipKey].ps
     local mx = math.min(g.neng / (ps * 1.5), 1)
@@ -1384,14 +1417,14 @@ local function render(g)
     elseif g.neng >= ps * 0.7 then UI.chgBar.imageColor = C(255, 255, 210, 63)
     else UI.chgBar.imageColor = C(255, 79, 168, 255) end
     if g.boss and g.boss.phase == 'fight' then
-      UI.bossBar:SetVisible(true)
+      UI.bossBar:SetVisible(true); UI.bossBarBg:SetVisible(true)
       local full = g.boss.def.phases and g.boss.def.phases[1] or g.boss.def.hp
       UI.bossBar:SetSizeDelta(CW * 0.7 * math.max(g.boss.hp, 0) / full, 8 * K)
     else
-      UI.bossBar:SetVisible(false)
+      UI.bossBar:SetVisible(false); UI.bossBarBg:SetVisible(false)
     end
   else
-    UI.bossBar:SetVisible(false)
+    UI.bossBar:SetVisible(false); UI.bossBarBg:SetVisible(false)
   end
   if g.traitCard then
     UI.traitCardT.text = '特性 · ' .. traitName(g.traitCard.id) .. '\n按 K 继续（触屏点击）· 已获 1.5 秒无敌'
@@ -1400,8 +1433,28 @@ local function render(g)
     local m = g.msgs[#g.msgs - i + 1]
     if m then UI.msgs[i].text = m.txt else UI.msgs[i].text = '' end
   end
+  -- 伤害数字渲染（前 10 条）
+  for i = 1, 10 do
+    local slot = UI.dmg[i]
+    local f = g.floaters[i]
+    if f then
+      local px, py = (f.x - FIELD_W / 2) * K, (f.y - FIELD_H / 2) * K
+      local s = math.max(9, math.floor(f.sz * K * 0.55))
+      if slot.lt ~= f.txt then slot.c.text = f.txt; slot.lt = f.txt end
+      if slot.lc ~= f.col then slot.c.fontColor = f.col; slot.lc = f.col end
+      if slot.ls ~= s then slot.c.fontSize = s; slot.ls = s end
+      if slot.lx ~= px or slot.ly ~= py then slot.c:SetAnchoredPosition(px, py); slot.lx = px; slot.ly = py end
+      if not slot.vis then slot.c:SetVisible(true); slot.vis = true end
+    elseif slot.vis then
+      slot.c:SetVisible(false); slot.vis = false
+    end
+  end
   for i = 1, poolN do
-    pool[i].c:SetVisible(pool[i].used)
+    local p = pool[i]
+    if p.used ~= p.lvis then
+      p.c:SetVisible(p.used)
+      p.lvis = p.used
+    end
   end
 end
 
@@ -1448,6 +1501,7 @@ end
 
 function ensureGameOverPanel()
   if not UI.gameOverPanel then
+    UI.goBg = mkBg('GoBg', C(235, 30, 12, 18), 272, 140, 0, 0)
     UI.gameOverPanel = newInst(T_PANEL, 'GameOverPanel')
     UI.gameOverPanel:SetSizeDelta(CW * 0.6, CH * 0.5)
     UI.gameOverPanel:SetAnchoredPosition(0, 0)
@@ -1459,6 +1513,7 @@ function clearGameOverPanel()
   if UI.gameOverPanel then
     game.DestroyClientUIControl(UI.gameOverPanel)
     UI.gameOverPanel = nil
+    if UI.goBg then game.DestroyClientUIControl(UI.goBg); UI.goBg = nil end
     UI.goTitle:SetVisible(false); UI.goSub:SetVisible(false); UI.restartBtn:SetVisible(false)
   end
 end
@@ -1467,11 +1522,14 @@ function syncScreens()
   if not UI.selectPanel or not G then return end
   local st = G.state
   UI.selectPanel:SetActive(st == 'select')
+  UI.selectBg:SetActive(st == 'select')
+  UI.cardBgHM:SetActive(st == 'select'); UI.cardBgLT:SetActive(st == 'select')
   UI.hongmaoCard:SetVisible(st == 'select')
   UI.lantuCard:SetVisible(st == 'select')
   UI.selTitle:SetVisible(st == 'select'); UI.selHint:SetVisible(st == 'select')
   UI.selHM:SetVisible(st == 'select'); UI.selLT:SetVisible(st == 'select')
   UI.winPanel:SetActive(st == 'clear')
+  UI.winBg:SetActive(st == 'clear')
   UI.winTitle:SetVisible(st == 'clear'); UI.winStats:SetVisible(st == 'clear')
   UI.nextBtn:SetVisible(st == 'clear'); UI.nextLabel:SetVisible(st == 'clear')
   UI.goTitle:SetVisible(st == 'fail'); UI.goSub:SetVisible(st == 'fail')
@@ -1479,6 +1537,7 @@ function syncScreens()
   UI.traitCardT:SetVisible(G.traitCard ~= nil)
   UI.optionCtrl:SetActive(st == 'playing' and G.shipKey == 'lantu')
   local hud = (st == 'playing' or st == 'clear')
+  UI.hudBg:SetActive(hud)
   UI.scoreText:SetVisible(hud); UI.waveText:SetVisible(hud)
   UI.lvText:SetVisible(hud); UI.bommText:SetVisible(hud); UI.hpBar:SetVisible(hud)
   UI.chgBar:SetVisible(hud)
@@ -1493,10 +1552,18 @@ local function selectClick(g, px)
   syncScreens()
 end
 
+function mkBg(name, color, w, h, x, y)
+  local b = newInst(T_IMG, name)
+  b:SetImage('StaticReference', 100001)
+  b.imageColor = color
+  b:SetSizeDelta(w * K, h * K)
+  b:SetAnchoredPosition(x * K, y * K)
+  return b
+end
+
 local function initScreens()
   -- 触屏场最先建=最底层（不挡后建按钮）
-  UI.fieldArea = newInst(T_CURSOR, 'FieldArea')
-  UI.fieldArea.raycastTarget = true
+  UI.fieldArea = newInst(T_CURSOR, 'FieldArea')  UI.fieldArea.raycastTarget = true
   UI.fieldArea:SetSizeDelta(CW, CH); UI.fieldArea:SetAnchoredPosition(0, 0)
   UI.fieldArea:AddCursorEventListener('CursorDown', function(ev)
     if G then
@@ -1518,6 +1585,15 @@ local function initScreens()
     end
   end)
   UI.fieldArea:AddCursorEventListener('CursorUp', function() touch.on = false end)
+
+  -- 面板背景层（container 无背景色，垫深色 image；image 默认穿透不挡触屏）
+  UI.selectBg = mkBg('SelectBg', C(215, 10, 14, 30), 444, 250, 0, 0)
+  UI.cardBgHM = mkBg('CardBgHM', C(230, 26, 30, 52), 118, 128, -CW * 0.22 / K, -CH * 0.02 / K)
+  UI.cardBgLT = mkBg('CardBgLT', C(230, 22, 32, 48), 118, 128, CW * 0.22 / K, -CH * 0.02 / K)
+  UI.hudBg = mkBg('HudBg', C(170, 6, 8, 18), 444, 26, 0, CH * 0.44 / K)
+  UI.winBg = mkBg('WinBg', C(235, 22, 28, 50), 318, 175, 0, 0)
+  UI.goBg = nil
+  UI.bossBarBg = mkBg('BossBarBg', C(255, 44, 0, 0), 318, 10, 0, -CH * 0.46 / K)
 
   UI.selectPanel = newInst(T_PANEL, 'CharSelectPanel')
   UI.selectPanel:SetSizeDelta(CW * 0.94, CH * 0.84); UI.selectPanel:SetAnchoredPosition(0, 0)
@@ -1591,6 +1667,20 @@ local function initScreens()
   end)
 
   UI.traitCardT = mkTx('TraitCardText', '', 20, C(255, 255, 210, 102), CW * 0.9, CH * 0.5, 0, 0)
+
+  -- 伤害数字池（D203：暴击红/字大随伤害/分色）
+  UI.dmg = {}
+  for i = 1, 10 do
+    local d = newInst(T_TX, 'DmgFloat' .. i)
+    d.text = ''
+    d.fontSize = 12
+    d.fontColor = WHITE
+    d.horizontalAlignment = 'Middle'
+    d.verticalAlignment = 'Middle'
+    d:SetSizeDelta(120 * K, 46 * K)
+    d:SetVisible(false)
+    UI.dmg[i] = { c = d, lt = '', lc = -1, ls = -1, lx = -9e3, ly = -9e3 }
+  end
   syncScreens()
 end
 
