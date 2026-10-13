@@ -293,3 +293,11 @@ CDP 绿：boss3 两相变形/P2 hp3000、cw 逃脱门闩（跳时测试正确冻
 - **真机导入包**（device-package/ 五件套）：整合包.gia（推荐单发导入，48KB）+ 服务器/客户端模板/脚本三件分体（脚本 GIA 不含挂载关系需重挂）+ main.lua。导出器警告全记录在 device-import.md。
 - **GIL 直注未做**：属 genshin-ts 节点图链路，与千星 UI 资产不同轨，需单独开票。
 - docs/tech-architecture.md + docs/device-import.md 落盘。
+
+### 2026-10-13 第卅七轮 · 交付事故闭环：真实浏览器通道复现→平台修复→同通道复绿
+
+- **复现（用户通道，可信 CDP 键鼠）**：4173/editor/play#repro1 载档→试玩→点虹猫卡进局：鼠标 4 事件全到、数字 1 到（Down+Up）、**W/J 零事件**——Lua 日志停在 wave 1 无任何移动/开火 = 用户「完全不能玩」完整复现。
+- **根因**：browser-session.js keyEventName 只转发 Digit1-9（Digit 外返回空串被丢），官方 58 键面板的字母/方向/WASD 全不可达。宿主页与独立页共用此层。
+- **修复（commit 千星模拟器仓库）**：keyEventName 扩全键面——奇匠字母 Key11-22（U Z Y G H I O P J K L V）、方向键 Key36-39、WASD 具名移动键；数字键原样。契约测试同步更新（KeyA→KeyboardMoveLeftKeyDown 等 9 断言）。全量测试 fail 0，三端重建，4173 服务与宿主 dsh-web 插件双面部署。
+- **同通道复绿铁证**：真实键盘 W 按住 2.2s→`bound up`；K→`bomb 2`+`bomb_clear`；A 按住 2.6s→`bound left`——页面→转发层→runtime→Lua 监听→游戏行为全链通。
+- 遗留：上游 PR 未提（与 fd72ecc 同策）；用户需刷新试玩页载新 play-renderer。
