@@ -147,16 +147,28 @@ local LEVELS = {
   { name = '第五关 · 魔神降临', waves = wavesDef5, mode = 'time', env = 'dxdd', mul = 1.6 },
   { name = '终关 · 弹雨终局', waves = wavesDef6(), mode = 'time', mul = 1.8 },
 }
+-- 四元：id/名/系列/说明（原版 index.html TRAITS 全表照抄——教学卡与图鉴共用）
 local TRAITS = {
-  { 'yizhen', '一针见血' }, { 'zhenman', '针满则锐' }, { 'guiqia', '飞针归匣' },
-  { 'xinhuo', '薪火相传' }, { 'renjian', '人剑合一' }, { 'qiudao', '险中求道' },
-  { 'beishui', '背水一战' },
+  { 'yizhen', '一针见血', '蓝兔', '敌人被冰封千里冻住时，银针暴击率 +50%——满蓄释放要压在大招之后' },
+  { 'zhenman', '针满则锐', '蓝兔', '银针攒满一匣时，蓄力速度 +30%，针匣泛起寒光——攒满再蓄，快人一步' },
+  { 'guiqia', '飞针归匣', '蓝兔', '贴身命中的银针会被蓝兔收回针匣——近身作战，银针取之不竭' },
+  { 'xinhuo', '薪火相传', '虹猫', '燃烧中的敌人被击杀时，火种飞溅点燃附近的敌人——一火燎原，越杀越烧' },
+  { 'renjian', '人剑合一', '虹猫', '蓄力或大招的长虹剑命中后 0.3 秒内按下普攻：追发两柄小长虹剑（一次释放最多两次）' },
+  { 'qiudao', '险中求道', '虹猫', '蓄力时贴着敌弹走：自动挥出一剑，并额外凝聚剑气' },
+  { 'beishui', '背水一战', '通用', '只剩最后一条命时：暴击率 +20%，射速与移速 +20%——七侠不惧生死' },
 }
+-- 四元：id/名/触发/增益（原版 CODEX 全表）
 local CODEX = {
-  { 'guanri_full', '满编贯日' }, { 'jiejian', '贯日接剑' }, { 'rifeng', '日凤连环' },
-  { 'xuli_zouwei', '蓄力走位' }, { 'jian_bu_zhen', '剑哺针' }, { 'dong_sui', '冻碎' },
-  { 'bing_lun', '冰轮舞' }, { 'yi_xian_chuan', '一线穿' }, { 'tie_lian', '贴脸斩' },
-  { 'man_zhen', '满针预瞄' },
+  { 'guanri_full', '满编贯日', '僚机≥3 时蓄力释放长虹贯日', '剑宽=12+7×(等级-2)：手臂粗→虹猫本体大' },
+  { 'jiejian', '贯日接剑', '贯日释放后 0.5 秒内接射', '释放后普攻冷却清零，立即再射' },
+  { 'rifeng', '日凤连环', '火凤命中已点燃的目标', '对点燃目标伤害 ×1.5' },
+  { 'xuli_zouwei', '蓄力走位', '一次蓄力期间贴身躲过 3 发敌弹', '无伤蓄满=全额回报' },
+  { 'jian_bu_zhen', '剑哺针', '冰魄剑一次命中 2 个以上敌人', '每命中 1 敌回收 1 根银针' },
+  { 'dong_sui', '冻→碎', '冰魄剑命中被冰封千里冻结的目标', '伤害 ×2 并碎冰' },
+  { 'bing_lun', '冰轮舞', '10 秒内完成 射→蓄→剑→针墙 全环', '蓝兔循环引擎，输出上限的来源' },
+  { 'yi_xian_chuan', '一线穿', '一根银针穿透 3 个以上敌人', '银针穿透特性' },
+  { 'tie_lian', '贴脸斩', '在极近距离（≤40px）击杀敌人', '近距命中密度最高' },
+  { 'man_zhen', '满针预瞄', '一轮针墙命中 5 个以上敌人', '满针时机=敌群密度峰值' },
 }
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
@@ -294,18 +306,7 @@ local AURACOL = {
   xinhuo = C(255, 255, 210, 110), qiudao = C(255, 190, 120, 255),
 }
 -- 领悟图鉴详情（D188 用户设计：初始只显名，解锁后显触发+增益；纯展示无 buff）
-local CODEXDESC = {
-  guanri_full = '满编贯日：僚机满编时蓄力贯日，剑体大幅加宽',
-  jiejian = '贯日接剑：贯日命中后立即补一道小剑气',
-  rifeng = '日凤连环：贯日点燃的敌人在火凤内受额外灼烧',
-  xuli_zouwei = '蓄力走位：蓄力期间移动仍保留少量蓄能',
-  jian_bu_zhen = '剑哺针：冰魄剑命中使银针匣回针',
-  dong_sui = '冻碎：冻结敌碎裂时伤害×2',
-  bing_lun = '冰轮舞：连续快射后自动齐射一轮银针墙',
-  yi_xian_chuan = '一线穿：银针墙穿过≥3 敌时全额回收',
-  tie_lian = '贴脸斩：贴身命中伤害加成',
-  man_zhen = '满针预瞄：满针时下一轮齐射变巨型针',
-}
+-- 图鉴详情来自 CODEX 四元（原版全表），旧简表退役
 -- 星带背景两层视差（确定性数据，不用随机）
 local STARS = {}
 do
@@ -324,6 +325,11 @@ end
 local function traitName(id)
   for _, t in ipairs(TRAITS) do if t[1] == id then return t[2] end end
   return id
+end
+
+local function traitInfo(id)
+  for _, t in ipairs(TRAITS) do if t[1] == id then return t end end
+  return { id, id, '', '' }
 end
 
 local function syncWings(g)
@@ -484,7 +490,7 @@ local function dmgFloat(g, e, d, kind, crit)
   local sz = math.min(11 + d * 0.1, 40) * (crit and 1.15 or 1)
   g.floaters[#g.floaters + 1] = {
     x = e.x + (math.random() * 18 - 9), y = e.y - 12 + (math.random() * 12 - 6),
-    txt = tostring(math.floor(d + 0.5)),
+    txt = crit and ('暴击 ' .. math.floor(d + 0.5)) or tostring(math.floor(d + 0.5)),
     col = DMGCOL[kind] or DMGCOL.normal, sz = math.floor(sz), t = 0.7,
   }
   if #g.floaters > 60 then table.remove(g.floaters, 1) end
@@ -1283,6 +1289,7 @@ local function update(g, dt)
               if bl.wallId and g.shipKey == 'lantu' and hypot(e.x - S.x, e.y - S.y) < 90 then
                 g.recyc = g.recyc + 1
                 traitFire(g, 'guiqia'); g.fxAura.guiqia = 0.6
+                g.booms[#g.booms + 1] = { x = e.x, y = e.y, t = 0.3, recyc = true }
                 if g.recyc % 2 == 0 then
                   g.needles = math.min(g.lv * (2 + g.lv), g.needles + 1)
                 end
@@ -1293,6 +1300,7 @@ local function update(g, dt)
             if bl.wallId and g.shipKey == 'lantu' and hypot(e.x - S.x, e.y - S.y) < 90 then
               g.recyc = g.recyc + 1
               traitFire(g, 'guiqia'); g.fxAura.guiqia = 0.6
+              g.booms[#g.booms + 1] = { x = e.x, y = e.y, t = 0.3, recyc = true }
               if g.recyc % 2 == 0 then
                 g.needles = math.min(g.lv * (2 + g.lv), g.needles + 1)
               end
@@ -1459,6 +1467,16 @@ local function render(g)
           local a = i / math.max(1, g.needles) * 6.28 + g.t * 1.6
           draw('yinzhen', S.x + math.cos(a) * 40, S.y + math.sin(a) * 17, 17, 5)
         end
+        -- v31 针匣寒光：满针=针匣外圈冰蓝呼吸环（#9fe8ff），攒满提示
+        if g.needles >= g.lv * (2 + g.lv) then
+          local r = 22 + math.sin(g.t * 5) * 3
+          draw('ring', S.x, S.y, r, r, C(255, 159, 232, 255))
+        end
+      end
+      -- v21 背水一战：只剩一命=常驻血红呼吸环
+      if g.life == 1 then
+        local r = 24 + math.sin(g.t * 6) * 3
+        draw('ring', S.x, S.y, r, r, C(255, 255, 107, 107))
       end
     end
     if g.shield > 0 then draw('shield', S.x, S.y) end
@@ -1487,12 +1505,22 @@ local function render(g)
     end
     for _, bm in ipairs(g.booms) do
       if bm.spark then draw('spark', bm.x, bm.y)
+      elseif bm.recyc then
+        -- v21 飞针归匣：命中点→玩家 回针轨迹（淡绿，中点+近玩家两点）
+        local mx, my = (bm.x + S.x) / 2, (bm.y + S.y) / 2
+        draw('bingjing', mx, my, 8, 8, C(180, 143, 255, 224))
+        draw('bingjing', (mx + S.x) / 2, (my + S.y) / 2, 5, 5, C(120, 143, 255, 224))
       elseif bm.crit then draw('ring', bm.x, bm.y, 16, 16, C(255, 255, 90, 90)); draw('spark', bm.x, bm.y)
       elseif bm.shard then draw('bingjing', bm.x, bm.y, 20, 20)
       elseif bm.big then draw('die', bm.x, bm.y); draw('ring', bm.x, bm.y, 44, 44, C(200, 255, 150, 60))
       else draw('boom', bm.x, bm.y) end
     end
-    for _, sd in ipairs(g.sparkSeeds) do draw('xinhuo', sd.x, sd.y) end
+    for _, sd in ipairs(g.sparkSeeds) do
+      -- v25 薪火流星：核心 + 淡色拖尾双层
+      draw('xinhuo', sd.x, sd.y)
+      local tx, ty = sd.tgt.x, sd.tgt.y
+      draw('xinhuo', sd.x - (tx - sd.x) * 0.04, sd.y - (ty - sd.y) * 0.04, 14, 14, C(100, 255, 179, 102))
+    end
     if UI.lastScore ~= g.score then UI.scoreText.text = tostring(g.score); UI.lastScore = g.score end
     local wv = math.max(g.wave, 1)
     if UI.lastWave ~= wv then UI.waveText.text = tostring(wv); UI.lastWave = wv end
@@ -1516,7 +1544,9 @@ local function render(g)
     UI.bossBar:SetVisible(false); UI.bossBarBg:SetVisible(false)
   end
   if g.traitCard then
-    UI.traitCardT.text = '特性 · ' .. traitName(g.traitCard.id) .. '\n按 K 继续（触屏点击）· 已获 1.5 秒无敌'
+    local t = traitInfo(g.traitCard.id)
+    UI.traitCardT.text = '✦ 特性 · ' .. t[2] .. '\n『' .. t[3] .. '』' .. t[4]
+      .. '\n按 K 继续（触屏点击）· 已获 1.5 秒无敌'
   end
   -- 悟·大字（unlockFx：2.5s 上浮渐隐，金环已由池渲染层画）
   if UI.unlockT then
@@ -1654,6 +1684,7 @@ function syncScreens()
   UI.goTitle:SetVisible(st == 'fail'); UI.goSub:SetVisible(st == 'fail')
   UI.restartBtn:SetVisible(st == 'fail')
   UI.traitCardT:SetVisible(G.traitCard ~= nil)
+  if UI.traitCardBg then UI.traitCardBg:SetActive(G.traitCard ~= nil) end
   UI.optionCtrl:SetActive(st == 'playing' and G.shipKey == 'lantu')
   local hud = (st == 'playing' or st == 'clear')
   UI.portraitHM:SetVisible(st == 'select'); UI.portraitLT:SetVisible(st == 'select')
@@ -1665,7 +1696,9 @@ function syncScreens()
   UI.bombBtn:SetActive(hud); UI.bombBtnT:SetVisible(hud)
   UI.codexBtn:SetActive(st == 'playing'); UI.codexBtnT:SetVisible(st == 'playing')
   if G.traitCard then
-    UI.traitCardT.text = '特性 · ' .. traitName(G.traitCard.id) .. '\n按 K 继续 · 已获 1.5 秒无敌'
+    local t = traitInfo(G.traitCard.id)
+    UI.traitCardT.text = '✦ 特性 · ' .. t[2] .. '\n『' .. t[3] .. '』' .. t[4]
+      .. '\n按 K 继续 · 已获 1.5 秒无敌'
   end
 end
 
@@ -1696,10 +1729,10 @@ function ensureCodexPanel()
   local n = codexCount()
   for i, e in ipairs(CODEX) do
     local got = META.codex[e[1]]
-    local txt = got and (e[2] .. ' — ' .. (CODEXDESC[e[1]] or '')) or e[2]
+    local txt = got and (e[2] .. '\n' .. e[3] .. ' → ' .. e[4]) or e[2]
     local col = got and C(255, 255, 224, 170) or C(150, 158, 168, 180)
-    UI.codexRows[i] = mkTx('CodexRow' .. i, (got and '◆ ' or '◇ ') .. txt, got and 10 or 11,
-      col, 380, 18, -6, 88 - i * 18)
+    UI.codexRows[i] = mkTx('CodexRow' .. i, (got and '◆ ' or '◇ ') .. txt, got and 9 or 11,
+      col, 380, 20, -6, 88 - i * 22)
   end
   UI.codexCount = mkTx('CodexCount', '已领悟 ' .. n .. '/10', 12, C(255, 255, 210, 102), 120, 22, 140, 100)
 end
@@ -1749,6 +1782,7 @@ local function initScreens()
   UI.cardBgLT = mkBg('CardBgLT', C(230, 22, 32, 48), 118, 128, 98, -1)
   UI.hudBg = mkBg('HudBg', C(170, 6, 8, 18), 444, 26, 0, 110)
   UI.winBg = mkBg('WinBg', C(235, 22, 28, 50), 318, 175, 0, 0)
+  UI.traitCardBg = mkBg('TraitCardBg', C(210, 6, 10, 20), 444, 250, 0, 0)
   UI.goBg = nil
   UI.bossBarBg = mkBg('BossBarBg', C(255, 44, 0, 0), 318, 10, 0, -115)
 
@@ -1837,7 +1871,7 @@ local function initScreens()
     if G then log('restart'); resetGame(); syncScreens() end
   end)
 
-  UI.traitCardT = mkTx('TraitCardText', '', 20, C(255, 255, 210, 102), 400, 125, 0, 0)
+  UI.traitCardT = mkTx('TraitCardText', '', 16, C(255, 255, 210, 102), 420, 150, 0, 0)
 
   -- 悟·大字（unlockFx 渲染，2.5s 上浮渐隐）
   UI.unlockT = mkTx('UnlockFx', '', 26, C(255, 255, 210, 102), 400, 50, 0, 18)
