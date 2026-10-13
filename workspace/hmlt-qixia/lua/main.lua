@@ -169,6 +169,7 @@ local ART = {
   bingpoj={100001,46,16,160,230,255},
   die={100004,64,64,255,120,50}, boom={100004,56,40,255,160,60},
   pow={100003,18,7,120,255,120}, bom1={100004,18,7,255,170,60}, bs={100002,16,16,255,215,60},
+  bar={100001,10,4,255,255,255},
   shield={100006,45,45,120,200,255},
   bg={100001,1333,250,26,32,60}, bg2={100001,1333,250,34,42,76},
   nq={100004,28,29,200,120,140}, lsfj={100003,30,42,120,190,140}, jbdj={100002,66,47,220,150,90},
@@ -780,33 +781,46 @@ end
 function buildSelect()
   destroySelect()
   selPanel = mkc(T_PANEL, 'CharSelectPanel')
-  local title = txtc('选择侠士', 20, 255,210,63, 'SelTitle')
-  place(title, FW/2, FH-24)
-  local hint = txtc('A/D 或 ←/→ 切换 · J 确认 · 左右点选', 11, 150,170,190, 'SelHint')
-  place(hint, FW/2, 16)
-  selRefs.title=title selRefs.hint=hint
+  local title = txtc('虹猫蓝兔 · 七侠传', 24, 255,210,63, 'SelTitle')
+  place(title, FW/2, FH-28)
+  local sub = txtc('千星弹幕射击 · 选择你的侠士', 11, 175,185,205, 'SelSub')
+  place(sub, FW/2, FH-13)
+  local hint = txtc('A/D 或 ←/→ 切换 · J 确认 · 左右点选屏幕', 11, 150,170,190, 'SelHint')
+  place(hint, FW/2, 12)
+  selRefs.title=title selRefs.sub=sub selRefs.hint=hint
   local cards = {
-    {k='hongmao', n='虹猫', d1='长虹剑·重击0.7s', d2='蓄力→贯日巨剑+僚机S阵列', d3='K 火凤燎原'},
-    {k='lantu',   n='蓝兔', d1='快射0.4s·每发攒银针', d2='蓄力→冰魄剑+针雨齐发', d3='K 冰封千里'},
+    {k='hongmao', n='虹猫', d1='长虹剑 · 重击 0.7s', d2='蓄力→贯日巨剑 + 僚机S阵列', d3='大招 K：火凤燎原', tint={255,180,60}},
+    {k='lantu',   n='蓝兔', d1='快射 0.4s · 每发攒银针', d2='蓄力→冰魄剑 + 针雨齐发', d3='大招 K：冰封千里', tint={120,210,255}},
   }
   for i,c in ipairs(cards) do
     local cx = FW/4 + (i-1)*FW/2
+    local bd = imgc('bar', 'SelCardB'..i)
+    bd.imageColor = Color(96,106,136,190)
+    placeSize(bd, cx, 118, 156, 164)
+    local card = imgc('bar', 'SelCard'..i)
+    card.imageColor = Color(22,28,50,238)
+    placeSize(card, cx, 118, 148, 156)
+    local glow = imgc('ring', 'SelGlow'..i)
+    glow.imageColor = Color(c.tint[1],c.tint[2],c.tint[3],60)
+    placeSize(glow, cx, 148, 96, 96)
     local img = imgc(c.k, 'SelImg'..i)
-    placeSize(img, cx, FH/2+8, 64, 68)
+    placeSize(img, cx, 148, 72, 78)
+    local name = txtc(c.n, 18, 255,210,63, 'SelName'..i)
+    place(name, cx, 97)
+    local d1 = txtc(c.d1, 10, 170,185,210, 'SelD1'..i)
+    place(d1, cx, 80)
+    local d2 = txtc(c.d2, 10, 150,165,190, 'SelD2'..i)
+    place(d2, cx, 68)
+    local d3 = txtc(c.d3, 10, 255,200,120, 'SelD3'..i)
+    place(d3, cx, 54)
+    -- 命中按钮：模板钮不透明，移出屏外仅供自动化点名；真人点击走 FieldArea 半屏判定
     local cardBtn = mkc(T_BTN, i==1 and 'HongmaoCard' or 'LantuCard')
     cardBtn:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()
       if G.state=='select' then G.selIdx=i startRun() end
     end)
-    placeSize(cardBtn, cx, FH/2, 124, 110)
-    local name = txtc(c.n, 16, 255,210,63, 'SelName'..i)
-    place(name, cx, FH/2+54)
-    local d1 = txtc(c.d1, 10, 150,165,190, 'SelD1'..i)
-    place(d1, cx, FH/2-48)
-    local d2 = txtc(c.d2, 10, 150,165,190, 'SelD2'..i)
-    place(d2, cx, FH/2-60)
-    local d3 = txtc(c.d3, 10, 255,200,120, 'SelD3'..i)
-    place(d3, cx, FH/2-72)
-    selRefs['img'..i]=img selRefs['name'..i]=name
+    placeSize(cardBtn, -500, -500, 8, 8)
+    selRefs['img'..i]=img selRefs['name'..i]=name selRefs['glow'..i]=glow
+    selRefs['bd'..i]=bd selRefs['card'..i]=card
     selRefs['d1'..i]=d1 selRefs['d2'..i]=d2 selRefs['d3'..i]=d3
   end
 end
@@ -1713,24 +1727,57 @@ local function tick(dt)
 end
 
 -- ===== 渲染同步 =====
+-- ===== 选人屏隐藏对局 UI（状态沿触发，防对局控件/残留特效裸奔）=====
+local gameplayHidden = false
+local function setHudVis(show)
+  for _,c in pairs(hud) do pcall(function() c:SetActive(show) end) end
+end
+local function setGameplayVis(show)
+  local g = {G.shipC,G.flameC,G.guanriC,G.huofengC,G.shieldC,G.ringC1,G.ringC2,G.readyC,
+    G.zmRingC,G.bsRingC,G.salvoC,G.bossC,G.freezeC,G.unlockT,G.tcT1,G.tcT2,G.tcT3}
+  for _,c in ipairs(g) do if c then pcall(function() c:SetActive(show) end) end end
+  for _,ws in ipairs(wingPool) do pcall(function() ws.c:SetActive(show) end) end
+  for _,pk in ipairs({'enemies','items','bullets','ebullets','booms','floaters','orbit','msgs'}) do
+    for _,s in ipairs(pools[pk] or {}) do pcall(function() s.c:SetActive((show and s.on) or false) end) end
+  end
+end
+local function hideGameplayUI()
+  if gameplayHidden then return end
+  gameplayHidden = true
+  setGameplayVis(false)
+  setHudVis(false)
+end
+local function showGameplayUI()
+  if not gameplayHidden then return end
+  gameplayHidden = false
+  setGameplayVis(true)
+  setHudVis(true)
+end
+
 local function render()
   -- 选人屏
   if G.state=='select' then
+    hideGameplayUI()
     if selPanel then
       for i=1,2 do
         local on = G.selIdx==i
         local img = selRefs['img'..i]
         local nm = selRefs['name'..i]
+        local glow = selRefs['glow'..i]
+        local bd = selRefs['bd'..i]
         if img then
           local a = ART[i==1 and 'hongmao' or 'lantu']
-          img.imageColor = Color(a[4],a[5],a[6], on and 255 or 110)
-          img:SetSizeDelta((on and 64 or 52)*K, (on and 68 or 56)*K)
+          img.imageColor = Color(a[4],a[5],a[6], on and 255 or 130)
+          img:SetSizeDelta((on and 80 or 66)*K, (on and 86 or 72)*K)
         end
-        if nm then nm.fontColor = Color(255,210,63, on and 255 or 120) end
+        if nm then nm.fontColor = Color(255,210,63, on and 255 or 130) end
+        if glow then glow.imageColor = Color(i==1 and 255 or 110, i==1 and 180 or 200, i==1 and 60 or 255, on and 140 or 45) end
+        if bd then bd.imageColor = on and Color(255,210,63,230) or Color(96,106,136,190) end
       end
     end
     return
   end
+  showGameplayUI()
   destroySelect()
   -- 背景卷轴（双帧行走）
   local bw = G.bgW
@@ -2086,6 +2133,8 @@ function OnStart()
   -- 背景
   G.bgC1 = imgc('bg', 'Bg1')
   G.bgC2 = imgc('bg', 'Bg2')
+  placeSize(G.bgC1, FW/2, FH/2, FW, FH)
+  placeSize(G.bgC2, FW/2, FH/2, FW, FH)
   -- 僚机
   wingPool = {}
   for i=1,4 do
@@ -2146,22 +2195,25 @@ function OnStart()
   hud.needle = txtc('针0/3', 10, 159,232,255, 'NeedleText')
   place(hud.needle, 378, 241)
   hud.needle:SetActive(false)
-  local cbg = imgc('pow', 'ChargeBg')
+  hud.cbg = imgc('bar', 'ChargeBg')
+  local cbg = hud.cbg
   cbg.imageColor = Color(40,48,70,255)
   placeSize(cbg, 60, 229, 60, 7)
-  hud.charge = imgc('pow', 'ChargeFill')
+  hud.charge = imgc('bar', 'ChargeFill')
   hud.charge.imageColor = Color(120,200,255,255)
   placeSize(hud.charge, 60, 229, 60, 7)
-  local hbg = imgc('pow', 'HpBg')
+  hud.hbg = imgc('bar', 'HpBg')
+  local hbg = hud.hbg
   hbg.imageColor = Color(40,48,70,255)
   placeSize(hbg, FW/2, 241, 90, 6)
-  hud.hp = imgc('pow', 'HpBar')
+  hud.hp = imgc('bar', 'HpBar')
   hud.hp.imageColor = Color(120,255,140,255)
   placeSize(hud.hp, FW/2, 241, 90, 6)
-  local bbg = imgc('pow', 'BossBg')
+  hud.bbg = imgc('bar', 'BossBg')
+  local bbg = hud.bbg
   bbg.imageColor = Color(48,26,32,255)
   placeSize(bbg, FW/2, 10, 320, 8)
-  hud.bossBar = imgc('pow', 'BossFill')
+  hud.bossBar = imgc('bar', 'BossFill')
   hud.bossBar.imageColor = Color(255,80,80,255)
   placeSize(hud.bossBar, FW/2, 10, 320, 8)
   hud.bossBar:SetActive(false)
@@ -2169,12 +2221,15 @@ function OnStart()
   G.unlockT:SetActive(false)
   -- 悟之录按钮（C 键替代：常驻按钮）
   local cb = mkc(T_BTN, 'CodexBtn')
+  hud.codexBtn = cb
   placeSize(cb, FW-30, FH-14, 46, 18)
   cb:AddCursorEventListener(Enum.CursorEventType.CursorClick, function() toggleCodex() end)
   local cbt = txtc('悟之录', 10, 255,210,63, 'CodexBtnTx')
+  hud.codexBtnTx = cbt
   place(cbt, FW-30, FH-14)
   -- 重开按钮
   local rb = mkc(T_BTN, 'RestartBtn')
+  hud.restartBtn = rb
   placeSize(rb, FW-40, FH-38, 56, 22)
   rb:AddCursorEventListener(Enum.CursorEventType.CursorClick, function()
     if G.state~='select' then
@@ -2184,12 +2239,15 @@ function OnStart()
     end
   end)
   local rbt = txtc('重开', 10, 200,210,230, 'RestartBtnTx')
+  hud.restartBtnTx = rbt
   place(rbt, FW-40, FH-38)
   -- 炸弹按钮（触屏 K 替代）
   local bb = mkc(T_BTN, 'BombBtn')
+  hud.bombBtn = bb
   placeSize(bb, FW-34, 26, 46, 26)
   bb:AddCursorEventListener(Enum.CursorEventType.CursorClick, function() tryBomb() end)
   local bbt = txtc('宝', 12, 255,200,120, 'BombBtnTx')
+  hud.bombBtnTx = bbt
   place(bbt, FW-34, 26)
   -- 键盘监听（全键面）
   local KE = Enum.KeyEventType
