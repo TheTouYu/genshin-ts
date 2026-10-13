@@ -1,0 +1,18 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "render-visibility",
+  "dt": 0.04,
+  "events": [
+    { "t": 0, "kind": "click", "name": "HongmaoCard" },
+    { "t": 0.1, "kind": "serverSend", "name": "DebugInvuln", "params": [30] },
+    { "t": 2.6, "kind": "serverSend", "name": "DebugNoop", "params": [] }
+  ],
+  "asserts": [
+    { "kind": "log", "contains": "char_select hongmao", "source": "client" },
+    { "kind": "log", "contains": "wave 1", "source": "client" },
+    { "kind": "control", "name": "sp1", "field": "visible", "equals": true },
+    { "kind": "control", "name": "sp2", "field": "visible", "equals": true },
+    { "kind": "control", "name": "sp3", "field": "visible", "equals": true }
+  ]
+}

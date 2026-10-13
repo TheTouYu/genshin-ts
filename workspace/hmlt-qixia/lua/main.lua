@@ -251,6 +251,7 @@ local function draw(artKey, x, y, w, h, colorOverride)
   if poolCursor >= poolN then return nil end
   poolCursor = poolCursor + 1
   local p = pool[poolCursor]
+  p.used = true
   local v = VIS[artKey] or VIS.boom
   w = w or v[3]; h = h or v[4]
   local col = colorOverride or v[2]
