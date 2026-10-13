@@ -58,3 +58,11 @@ render() → place(池槽) → HUD SetFillHorizontal/SetActive
 4. 视觉=图元+色板（ART 表换 imageId 即升级）
 5. autopilot 无释放逻辑（仅测试用）
 6. 死亡掉落 pow 原位即拾（demo 有随机漂移，拾取半径内首帧即中）
+
+## 千星 textbox 中文渲染规则（2026-10-13 字体链事故沉淀）
+
+- **任何 textbox 显示中文前必须估宽**：`txtc` 创建时和 `settxt` 运行时都会做（CJK 1em/半角 0.62em + SetSizeDelta + Middle 对齐）。**禁止绕过封装直接 `.text=` 赋值**——宿主渲染器对 textbox 按控件宽高无条件裁剪（host-png.js:139-142），不设尺寸=全角字形被裁成偏旁。
+- 判别特征：整字豆腐/韩文字形=字体栈问题；只见偏旁+标点孤立+修字体后更碎=宽度裁剪问题。
+- 特殊符号先验字形：✦(U+2726) 在 HarmonyOS Sans SC 缺字成 tofu，已改纯文字；新符号上屏前先截图验证。
+- 控件位置=render 每帧同步：新建控件若 render 分支忘记 place，停在画布中心（特性卡三行叠压事故）。
+- 验证链四层：build.py→本地电池（逻辑）→MCP load+交互（行为）→**play_screenshot（渲染终审）**；电池绿≠渲染绿。
