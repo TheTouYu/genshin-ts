@@ -97,7 +97,7 @@ function usage(exitCode = 1): never {
     '                     # 新建布局=克隆默认布局官方预置全集（轮1/2）；名字重名自动 _1/_2',
     '                     # donor 支持矩阵=真实编辑器样本：按钮 轮4/26；输入框 轮19/64；文本框/图片 轮64；队列 轮51(仅布局)',
     '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
-    '  update: gsts assets:ui update <control-id> [--name|--content|--position|--size|--asset <素材ID>]',
+    '  update: gsts assets:ui update <control-id> [--name|--text|--content|--position|--size|--color|--font-size|--align|--asset <素材ID>]',
     '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
     '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
@@ -136,7 +136,7 @@ function usage(exitCode = 1): never {
     '  --write                 atomically write source GIL after backup',
     '  --name <name>           set control name',
     '  --content <text>        set display content (textbox path)',
-    '  --text <text>           L2 create: button display text (fail-closed this round)',
+    '  --text <text>           = --content 别称（update 通用；create 侧 fail-closed 本轮）',
     '  --asset <id>            image control: 素材索引 ID (= 素材库容器 ID)',
     '  --layout <id>           image control: 目标布局 ID (default 1073741825 默认布局)',
     '  --position <x,y>        set center position (editor coords; y 向上: 0=bottom, 900=top)',
@@ -368,6 +368,11 @@ function parseArgs(argv: readonly string[]) {
     if (assetId === undefined)
       throw new Error('[error] template create requires --asset <素材索引ID>（legacy；语义路径用 <官方控件ID>）')
   }
+  // --text = --content 别称（2026-10-14 修复：update 侧此前被静默丢弃）
+  if (text !== undefined && content !== undefined && text !== content) {
+    throw new Error('[error] --text 与 --content 同时给出且不一致（同一参数，二选一）')
+  }
+  if (text !== undefined) content = content ?? text
   if (
     command === 'update' &&
     name === undefined &&
@@ -380,7 +385,7 @@ function parseArgs(argv: readonly string[]) {
     align === undefined
   ) {
     throw new Error(
-      '[error] update requires at least one of --name/--content/--position/--size/--asset/--color'
+      '[error] update requires at least one of --name/--text/--content/--position/--size/--asset/--color'
     )
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
@@ -1165,6 +1170,18 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     sourceSha256: sourceHash
   }
 
+  // update 组合参数修复（2026-10-14）：--text=--content 别称已在解析期归一；此前带
+  // --font-size/--align/--color/--asset 的 update 走专用分支时，content/position/size/name 被静默丢弃
+  const restUpdateOptions = (): UiUpdateOptions | undefined => {
+    const options: UiUpdateOptions = {
+      ...(args.name !== undefined ? { name: args.name } : {}),
+      ...(args.content !== undefined ? { content: args.content } : {}),
+      ...(args.position !== undefined ? { position: args.position } : {}),
+      ...(args.size !== undefined ? { size: args.size } : {})
+    }
+    return Object.keys(options).length > 0 ? options : undefined
+  }
+
   if (args.command === 'clone') {
     const donorBytes = args.donorGilPath
       ? new Uint8Array(fs.readFileSync(path.resolve(args.donorGilPath)))
@@ -1199,7 +1216,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       textStyle: {
         ...(args.fontSize !== undefined ? { fontSize: args.fontSize } : {}),
         ...(args.align !== undefined ? { align: args.align } : {})
-      }
+      },
+      ...(restUpdateOptions() ?? {})
     }
     const result = updateUiControl(sourceBytes, args.targetId!, options)
     candidate = result.bytes
@@ -1208,26 +1226,43 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   } else if (args.command === 'update' && args.color !== undefined) {
     const info = templateizeTargetInfo(sourceBytes, args.targetId!)
     if (info.kind === 'textbox' || info.kind === 'input-box') {
-      // 票06：文字颜色 f19.f510（0xFFRRGGBB）
-      const options: UiUpdateOptions = { textStyle: { color: args.color } }
+      // 票06：文字颜色 f19.f510（0xFFRRGGBB）；组合参数（name/content/position/size）一并生效
+      const options: UiUpdateOptions = {
+        textStyle: { color: args.color },
+        ...(restUpdateOptions() ?? {})
+      }
       const result = updateUiControl(sourceBytes, args.targetId!, options)
       candidate = result.bytes
       summary.changed = result.changed
       log(`changed=${result.changed.join(',')}`)
     } else {
-      // 素材颜色（含分类副本的所有图元组）
+      // 素材颜色（含分类副本的所有图元组）；组合参数在结果上继续定点编辑
       const argb = cssColorToArgb(args.color, 1)
-      const result = setAssetColor(sourceBytes, args.targetId!, argb)
-    candidate = result.bytes
-    summary.changedIds = result.changedIds
-    log(`changedIds=${result.changedIds.join(',')}`)
+      const colored = setAssetColor(sourceBytes, args.targetId!, argb)
+      candidate = colored.bytes
+      summary.changedIds = colored.changedIds
+      log(`changedIds=${colored.changedIds.join(',')}`)
+      const rest = restUpdateOptions()
+      if (rest) {
+        const result = updateUiControl(candidate, args.targetId!, rest)
+        candidate = result.bytes
+        summary.changed = result.changed
+        log(`changed=${result.changed.join(',')}`)
+      }
     }
   } else if (args.assetId !== undefined) {
-    // 改素材引用（模板会同步所有实例）
+    // 改素材引用（模板会同步所有实例）；组合参数在结果上继续定点编辑
     const result = updateUiAssetReference(sourceBytes, args.targetId!, args.assetId)
     candidate = result.bytes
     summary.changedIds = result.changedIds
     log(`changedIds=${result.changedIds.join(',')}`)
+    const rest = restUpdateOptions()
+    if (rest) {
+      const extra = updateUiControl(candidate, args.targetId!, rest)
+      candidate = extra.bytes
+      summary.changed = extra.changed
+      log(`changed=${extra.changed.join(',')}`)
+    }
   } else {
     const options: UiUpdateOptions = {
       ...(args.name !== undefined ? { name: args.name } : {}),
