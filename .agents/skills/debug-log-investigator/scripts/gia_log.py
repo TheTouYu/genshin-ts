@@ -390,7 +390,7 @@ def cmd_records(recs, gil=None, summary=False):
         info = {}
         for f, w, x, _ in walk_fields(r, 0, len(r)):
             if w == 0: info[f] = x
-            elif f in (7, 9, 10, 21, 22):
+            elif f in (7, 9, 10, 21, 22, 23):
                 if f == 7:
                     for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
                         if f2 == 2:
@@ -398,6 +398,16 @@ def cmd_records(recs, gil=None, summary=False):
                             else: info['graph'] = int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
                 elif f == 21: info['f21'] = f'f21:{len(x)}B'
                 elif f == 22: info['f22'] = 'log'
+                elif f == 23:
+                    # f23 = Lua 客户端脚本日志（2026-10-16 真机 hexdump 实证：内嵌 f2{LEN utf8}）
+                    lua_txt = None
+                    for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
+                        if f2 == 2 and w2 == 2:
+                            s2 = decode_str(v2)
+                            if s2 is not None and s2.isprintable():
+                                lua_txt = s2
+                                break
+                    info['lua'] = lua_txt if lua_txt is not None else f'f23:{len(x)}B'
                 else: info[f] = len(x)
         if 'graph' in info and gil:
             info['graph'] = f"{info['graph']}{graph_name(info['graph'], gil)}"
