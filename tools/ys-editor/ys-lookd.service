@@ -1,0 +1,14 @@
+[Unit]
+Description=ys-lookd - 常驻图像识别服务（GPU 常驻，GUI 自动化用）
+After=graphical-session.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:1
+Environment=YS_LOOKD_SOCK=/run/user/1000/ys-lookd.sock
+ExecStart=/usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_lookd.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
