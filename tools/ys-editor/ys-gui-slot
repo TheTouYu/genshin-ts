@@ -31,7 +31,40 @@ esac
 hex_of()  { printf '0x%08x' "$1"; }
 name_of() { xdotool getwindowname "$1" 2>/dev/null || true; }
 focus()   { xdotool getwindowfocus 2>/dev/null || true; }
+# 激活目标窗：KWin 脚本 + **直赋 workspace.activeWindow**
+#   ⚠ 两条实测铁则（2026-10-17）：① `w.activate()` 对 Wine/X11 窗**不存在**
+#   （TypeError: Property 'activate' of object KWin::X11Window is not a function），try 吞掉就永远静默失败；
+#   ② 可行写法 = `workspace.activeWindow = w`。③ 回读必须断言 **activeWindow 真的等于目标**，
+#   只断言"找到了目标窗"会把失败判成成功（本轮踩过）。
+activate_kwin() {
+  local pid nm; pid=$(xdotool getwindowpid "$1" 2>/dev/null || echo 0); nm=$(xdotool getwindowname "$1" 2>/dev/null || true)
+  [ "${pid:-0}" = "0" ] && [ -z "$nm" ] && return 1
+  cat > "$KWIN_JS" << JSEOF
+var list = workspace.windowList(), t = null, pid = $pid, nm = "$nm";
+for (var i = 0; i < list.length; i++) {
+  var w = list[i];
+  if (pid > 0 && w.pid === pid) { t = w; break; }
+  if (!(pid > 0) && nm && String(w.caption || "").indexOf(nm) >= 0) { t = w; break; }
+}
+if (t) {
+  try { workspace.activeWindow = t; } catch (e) { console.info("YS-SLOT-ERR " + e); }
+  if (workspace.activeWindow !== t) { try { t.activate(); } catch (e) {} }
+}
+console.info("YS-SLOT-ACT " + (t ? String(t.caption) : "NOTFOUND") + " ||ACTIVE=" + (workspace.activeWindow ? String(workspace.activeWindow.caption) : "NONE"));
+JSEOF
+  local before; before=$(date '+%Y-%m-%d %H:%M:%S')
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.loadScript "$KWIN_JS" "ysact-$RANDOM" >/dev/null 2>&1
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+  sleep 0.7
+  # 严格判据：回读行的 ||ACTIVE= 必须含目标窗名（不是"找到了"）
+  local out; out=$(journalctl --user --since "$before" 2>/dev/null | grep -a "YS-SLOT-ACT " | tail -1)
+  [ -n "$out" ] && [ -n "$nm" ] && printf '%s' "$out" | sed 's/.*||ACTIVE=//' | grep -qF "$nm"
+}
+
 activate() {
+  activate_kwin "$1" && return 0
   xdotool windowactivate --sync "$1" 2>/dev/null && return 0
   wmctrl -i -a "$(hex_of "$1")" 2>/dev/null && return 0
   return 1

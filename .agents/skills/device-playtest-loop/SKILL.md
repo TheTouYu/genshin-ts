@@ -140,6 +140,19 @@ E/Q/R/T → `KeyboardCharacterSkill1–4`，X → `DropKey`，Tab → `OpenShort
 | 全窗模板匹配（GPU，常驻） | **1.0s**（服务前 4.4s） |
 | 试玩双流程（优化后） | start 8.3s + stop 8.2s = **16.5s**（用户手工宽松基准 43s） |
 
+## 窗口激活铁则（2026-10-17 实测更正；此前误判为"环境阻塞"）
+
+- **可用写法**：KWin 脚本里 **`workspace.activeWindow = t`（直赋）**。
+- **`w.activate()` 对 Wine/X11 窗不存在** —— 报 `TypeError: Property 'activate' of object KWin::X11Window is not a function`；
+  脚本里若写 `try { t.activate(); } catch(e) {}`，这个异常被吞掉 ⇒ **每次"激活"都静默失败，注入打到前台别的窗口**。
+- **回读判据**：必须断言 **`workspace.activeWindow === t`**；只判"找到了目标窗"会把失败判成成功（旧工具就这么写的）。
+- 工具已修：`ys-gui-slot` / `ys-kwin-raise` 改「KWin 直赋优先 + 严格回读」；
+  实测 `ys-gui-slot 0x01400001 3 true` → `已取得焦点｜前焦=20971521（原神）` ✅ ⇒ **无需重登、无需用户动作**。
+- `xdotool search --name` 对 Wine 窗返回空；**已知窗口 id 时** `getwindowname` / `getwindowpid` 可用（激活逻辑依赖这两条）。
+
+**教训（方法论）**：激活失败先分层判别 —— 原生窗与 Wine 窗**同现象**就排除了"Wine 特有/版本回归"，
+再去读脚本自己的异常原文；**别把工具 bug 归因给环境**（本轮为此白写了一条"需重新登录"的阻塞）。
+
 ## 待覆盖（登记；用到这些能力时**先补工具，再依赖**）
 
 | 缺口 | 官方出处 | 现状 |

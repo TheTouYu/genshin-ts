@@ -7,7 +7,7 @@ JS=/tmp/ys-kwin-raise.js
 cat > "$JS" << JS
 var list = workspace.windowList(), t = null;
 for (var i = 0; i < list.length; i++) { if (String(list[i].caption||"").indexOf("$T") >= 0) { t = list[i]; break; } }
-if (t) { t.activate(); }
+if (t) { try { workspace.activeWindow = t; } catch (e) {} if (workspace.activeWindow !== t) { try { t.activate(); } catch (e) {} } }
 var a = workspace.activeWindow;
 console.info("YS-RAISE " + (a ? String(a.caption) : "NONE"));
 JS
