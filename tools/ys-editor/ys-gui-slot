@@ -4,19 +4,22 @@
 #
 # 用法: ys-gui-slot.sh <win> <max-seconds> <command...>
 #   <win> 窗口 id：wmctrl 十六进制(0x01400001) 或 xdotool 十进制(20971521) 均可
-#   环境: YS_GUI_SLOT_FALLBACK = 归还焦点时的兜底窗口（缺省千星沙箱 0x03600008）
+#   环境: YS_GUI_SLOT_FALLBACK_CLASS = 缺省回落窗口的 WM_CLASS 子串（缺省 "firefox"，即 DSH 页面）
 #
-# 归还逻辑（三级，逐步验证，不假设一次就成功）：
-#   1) 原焦点是**有名字的真实窗口** → 还给它；
-#   2) 核验：若目标窗仍持焦点（游戏常自己抢回）→ 激活兜底窗口；
-#   3) 再核验一次，并打印最终焦点 + 占用秒数。
+# 硬不变量（用户 2026-10-16 定义）：
+#   **执行前是什么窗口，执行后就必须是什么窗口**（exact）。
+#   还原链：
+#     1) 前焦是「有名字的 X11 窗口」→ 精确还给它（xdotool windowactivate --sync，重试 3 次）；
+#     2) 前焦不是可用 X11 窗（如无名 phantom 窗 0x200000，或用户在 Wayland 原生窗上）→
+#        回落到缺省窗口 = **firefox（DSH 页面）**，经 KWin 脚本激活（X11 工具够不到 Wayland 窗）；
+#     3) 两级都失败 → **大声报错，退出码 9**（绝不静默留在错误窗口）。
 #
-# 规矩: 所有对用户桌面的注入类操作（ydotool / 坐标点击 / 截图轮询）都必须经由此脚本，
-#       禁止在别处裸调 wmctrl/ydotool。
+# 规矩: 所有对用户桌面的注入类操作（ydotool / 坐标点击 / 截图轮询）都必须经由此脚本。
 set -u
 export DISPLAY="${DISPLAY:-:1}"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
-FALLBACK="${YS_GUI_SLOT_FALLBACK:-0x03600008}"   # 千星沙箱
+FALLBACK_CLASS="${YS_GUI_SLOT_FALLBACK_CLASS:-firefox}"
+KWIN_JS=/tmp/ys-slot-activate.js
 
 if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
 WIN_RAW="$1"; MAX="$2"; shift 2
@@ -25,38 +28,72 @@ case "$WIN_RAW" in
   *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
 esac
 
-hex_of() { printf '0x%08x' "$1"; }
+hex_of()  { printf '0x%08x' "$1"; }
 name_of() { xdotool getwindowname "$1" 2>/dev/null || true; }
+focus()   { xdotool getwindowfocus 2>/dev/null || true; }
+activate() {
+  xdotool windowactivate --sync "$1" 2>/dev/null && return 0
+  wmctrl -i -a "$(hex_of "$1")" 2>/dev/null && return 0
+  return 1
+}
 
-PREV=$(xdotool getwindowfocus 2>/dev/null || true)
-PREV_NAME=""
+# 缺省回落：经 KWin 脚本激活 Wayland 原生窗（X11 工具看不到 firefox 窗）
+activate_fallback() {
+  cat > "$KWIN_JS" << JSEOF
+var list = workspace.windowList(); var t = null;
+for (var i = 0; i < list.length; i++) {
+  var w = list[i];
+  if (String(w.resourceClass || "").toLowerCase().indexOf("$FALLBACK_CLASS") >= 0) { t = w; break; }
+}
+if (t) {
+  try { t.activate(); } catch (e) {}
+  if (workspace.activeWindow !== t) { try { workspace.activeWindow = t; } catch (e) {} }
+}
+console.info("YS-SLOT-ACTIVATED " + (t ? String(workspace.activeWindow && workspace.activeWindow.resourceClass) : "NOTFOUND"));
+JSEOF
+  local before; before=$(date '+%Y-%m-%d %H:%M:%S')
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.loadScript "$KWIN_JS" "ysslot-$RANDOM" >/dev/null 2>&1
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+  sleep 0.9
+  journalctl --user --since "$before" 2>/dev/null | grep -a "YS-SLOT-ACTIVATED" | tail -1
+}
+
+PREV=$(focus); PREV_NAME=""
 [ -n "${PREV:-}" ] && PREV_NAME=$(name_of "$PREV")
-START=$(date +%s)
+START=$(date +%s); CMD_RC=0; RESTORE_RC=0
 
 restore() {
-  local cur
-  # 1) 还回原焦点（仅当它是有名字的真实窗口，且不是目标窗本身）
+  local cur="" done_flag=0
+  # 1) 精确还原 X11 前焦（仅当它是有名字的真实窗，且非目标窗）
   if [ -n "${PREV:-}" ] && [ -n "$PREV_NAME" ] && [ "$PREV" != "$WIN_DEC" ]; then
-    wmctrl -i -a "$(hex_of "$PREV")" 2>/dev/null || true; sleep 0.3
+    for _ in 1 2 3; do
+      activate "$PREV" >/dev/null 2>&1 || true; sleep 0.25
+      cur=$(focus); [ "$cur" = "$PREV" ] && { done_flag=1; break; }
+    done
+    [ "$done_flag" = 1 ] && echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原=$PREV（$PREV_NAME）"
   fi
-  cur=$(xdotool getwindowfocus 2>/dev/null || true)
-  # 2) 目标窗仍占焦（游戏自己抢回 / 原焦点是无名 helper）→ 兜底窗口
-  if [ "$cur" = "$WIN_DEC" ] || [ -z "$cur" ]; then
-    wmctrl -i -a "$FALLBACK" 2>/dev/null || true; sleep 0.4
-    cur=$(xdotool getwindowfocus 2>/dev/null || true)
+  [ "$done_flag" = 1 ] && return
+  # 2) 前焦不可用（phantom / Wayland 窗）→ 回缺省窗口（firefox DSH 页）
+  local r; r=$(activate_fallback)
+  if echo "$r" | grep -qi "$FALLBACK_CLASS"; then
+    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已回落缺省($FALLBACK_CLASS)｜前焦=${PREV:-none}（${PREV_NAME:-无名/不可用}）"
+  else
+    echo "[ys-gui-slot] ⚠️ 还原失败：前=${PREV:-none}（${PREV_NAME:-}）现=$(focus)（$(name_of "$(focus)")）" >&2
+    RESTORE_RC=9
   fi
-  # 3) 报告最终状态
-  echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点=${cur}（$(name_of "$cur")）"
 }
 trap restore EXIT INT TERM HUP
 
-wmctrl -i -a "$WIN_HEX" 2>/dev/null
+activate "$WIN_DEC" >/dev/null 2>&1 || true
 sleep 0.3
-cur=$(xdotool getwindowfocus 2>/dev/null || true)
+cur=$(focus)
 if [ "$cur" != "$WIN_DEC" ]; then
   echo "[ys-gui-slot] 焦点核验失败（当前=$cur 目标=$WIN_DEC）——未执行命令" >&2
   exit 3
 fi
 echo "[ys-gui-slot] 已取得 $WIN_HEX（$(name_of "$WIN_DEC")）焦点｜时限 ${MAX}s"
-timeout --signal=TERM "$MAX" "$@"
-exit $?
+timeout --signal=TERM "$MAX" "$@"; CMD_RC=$?
+[ "$RESTORE_RC" != "0" ] && exit "$RESTORE_RC"
+exit "$CMD_RC"
