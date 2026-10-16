@@ -39,3 +39,26 @@
 - ~~T03 命令面补全~~（2026-10-17：E/F/G 三节进 asset-operations；`src/cli/AGENTS.md` 表对齐 35/35；`client:sim` 进 game-from-scratch；`--help` 机制坑入册）
 - ~~T02 新建 `device-playtest-loop` 技能~~（2026-10-17：六项零吸收能力收拢为可自动加载技能；`game-from-scratch` 阶段 7 挂引用）
 - ~~T01 修「3000→2000」硬错误~~（2026-10-17，`gil-node-graph-reading/SKILL.md:277` 改为「生产红线 implTotal ≤ 2000 / 实测 2465 拒载 / 2026-08-31 作废旧 3000 口径」；全仓残留扫描 0）
+
+---
+
+## ⑤ 关账（2026-10-17）
+
+**六票全闭环**，8 笔提交：
+
+| 票 | 交付 | 提交 |
+|---|---|---|
+| T01 | `gil-node-graph-reading` 节点预算 3000→**2000**（全仓残留 0） | `0b5cfff0` |
+| T02 | **新技能 `device-playtest-loop`**（六项 0 吸收能力 → 可自动加载闭环） | `1b2ebcb1` |
+| T03 | 命令面补全：E/F/G 三节进 asset-operations；`src/cli/AGENTS.md` 表 **35/35 对齐**；`client:sim` 进 game-from-scratch | `0e0a7cd1` `c8055a31` |
+| T04 | 六组重复主题归一（唯一权威 + 指针制）+ 外部 Lua 双通道互指 | `d17d5ddc` |
+| T05 | 卫生：占位符 / 22 .pyc / 9 技能日期标记 / 6 tools 头注释 / 5 examples 说明 / 跨根重名同步 | `fba9eed8` |
+| T06 | 正向表述 sweep：336 处判读，28 处刻意保留，实改 1 处 | `6a56ea63` |
+| — | 职责分离（device-playtest-loop ↔ computer-use）+ 正向表述准则入册 | `b89fb146` |
+| — | 建板 | `29bfca20` |
+
+**遗留（下批候选）**：
+1. **四项待覆盖能力**（日志窗口勾选 / 负载记录报告 / 编辑器重载保存流程 / 沙箱就绪判据）——T02 技能里已登记为"先补工具再依赖"，需单独立项。
+2. `tools/analyze-gia-arch.ts` 顶部硬编码样本路径 → 改 argv。
+3. 插件技能族（`qxqy-game-studio`/`qxqy-simulator`/persona）**本轮按用户裁决不动**；遇到问题时在**我们自己的 fork** 里改 + 按需 PR。
+4. 未虚标日期标记的 9 个游戏技能（保持 mtime 信号）——下轮巡检时补。
