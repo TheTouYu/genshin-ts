@@ -23,6 +23,16 @@
 | `client:sim` | 千星模拟器 headless 桥接（get/patch/playStart/playRun/playStop，spawn 模拟器 studio/cli.mjs） | `client_sim.ts` |
 | `image:*` | 图片素材导入/导出（SVG/CSS/JSON ↔ GIA image） | `image_editor.ts` |
 | `maps` | 地图创建/打开/同步 Temp | `maps.ts`、`gil_paths.ts` |
+| `maps:create` / `maps:init` / `maps:resync` / `maps:rename` | 建图 / 补引擎骨架 root 3-49（首次保存门槛）/ 同步编辑器 Temp + gip 注册 / 改名 | `maps.ts` |
+| `assets:creations` | 字节透传克隆编辑器模板创建复杂造物（造物）+ export-template | `assets_creations.ts` |
+| `assets:aux` | 给实体/元件/模型宿主挂装饰物（root 27 aux） | `assets_aux.ts` |
+| `assets:structs` | 地图级结构体 list/inspect/create/update（root6 注册 + root10 f6 定义，23 成员类型） | `assets_structs.ts` |
+| `assets:library-inject` | 把 assets/images/*.css 资产注入 .gil 素材库 | `assets_library_inject.ts` |
+| `variables:verify` | 按已闭合规律表逐字节核验变量 wire（只读，PASS/DIFF，退出码 0/1） | `variables_verify.ts` |
+
+> ⚠ **子动作不在 `--help` 里**：全部注册为 commander **叶子命令**（`.command('assets:ui')`），子动作是**位置参数**
+> ⇒ `gsts <族> --help` 只打印选项。查动作全集读 `src/cli/*.ts` 的 `usage()`（例外：`assets:node-graphs`、
+> `assets:skill-config` 把动作表写进了 usage）。2026-10-17 实测。
 
 ## 修改前
 

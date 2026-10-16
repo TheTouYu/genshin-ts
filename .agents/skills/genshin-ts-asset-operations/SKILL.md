@@ -248,6 +248,34 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 原位更新：`update --target-signal <name> --name <new> ...`；残缺注册修复：`repair --target-signal <name> --template-gil <verified-donor> --template-signal <name>`
 - 先注册再注入：目标图缺失时先 `assets:node-graphs create` 建空图（见 A 节）。
 
+### E. Lua 脚本资产（`assets:scripts`，2026-10-16 CLI 落地）
+
+地图级 Lua 脚本登记在 **f50 登记表**（两层：顶层 `f50{LEN:容器}` → 容器内 `f1{LEN:{f1:guid, f2:name, f3:file_path, f5:source}}`）。
+
+- `list --gil <map>`：列出已登记脚本（guid / 名字 / 路径 / 源码长度）
+- `register --gil <map> --name <n> [--path <相对路径>] [--source-file <lua>] --write`
+- `update --gil <map> --name <n> [--guid <g>] --source-file <lua> --write`：**原位替换源码**，其余字段字节回放；撞名且无 guid 报 ambiguous
+- 写回**三同步**：GIL 内联 `f5:source` + 外部 `<mapDir>/external_lua_file/<相对路径>`（写 UTF-8 **BOM**，对齐编辑器）+ `Temp/` 活动副本；备份进 `.gsts/backups/`
+- **优先级**：非空**内联 `source` 优先**于外部文件 ⇒ 排查"改了脚本没生效"先核对两者是否一致
+- 平面 `.gil` 用 `externalLuaDest` 槽目录；目录形态地图脚本落 `<mapId>/external_lua_file/`
+
+### F. 结构体资产（`assets:structs`，2026-09-26 落地）
+
+地图级结构体 = root6 folder 注册 + root10 `f6` 定义（**节点面早已齐备、资产面此前为零**）。
+
+- `list` / `inspect --name <n>` / `create --name <n> [--member name:type …] [--set-default …]` / `update [--rename-struct …] [--set-type …] [--set-default …]`（均需 `--gil`，写回加 `--write`）
+- 支持 **23 种成员类型**；wire 规则 + 9 条物化节点族见 `docs/game-engine-knowledge/struct-assets.md`（2026-09-16 五轮差分闭合）
+
+### G. 三个易漏命令：地图骨架 / Temp 同步 / 变量核验
+
+- `maps:init --map-id <id> --write`：**新地图首次保存门槛**——`maps:create` 只写基础 root，缺 root 7 地形与 root 3/9/11-49；`maps:init` 从 `resources/first-save-template.gil` 复制骨架，免人工首次保存（2026-08-21 实证）
+- `maps:resync --map-id <id>`：磁盘 .gil → 编辑器 `Temp/` 活动副本 + gip 注册（修「编辑器看不到地图」）；**每次写回地图后都要做**
+- `variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all]`：按已闭合规律表**逐字节**核验变量 wire（只读，PASS/DIFF，退出码 0/1）
+
+> ⚠ **CLI 可发现性坑（2026-10-17 实测）**：`gsts` 全部注册为 commander **叶子命令**，子动作是**位置参数** ⇒
+> `gsts <族> --help` **只打印选项、不列子动作**。查某族动作全集要读 `src/cli/*.ts` 的 `usage()` 字符串
+> （例外：`assets:node-graphs` / `assets:skill-config` 把动作表写进了 usage）。
+
 ## 已闭合 / 未覆盖（fail closed，不猜字节）
 
 已闭合（有真实样本/回读支撑）：
