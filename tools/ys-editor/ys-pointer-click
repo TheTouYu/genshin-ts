@@ -30,7 +30,7 @@ for i in $(seq 1 12); do
   uy=$(awk -v d="$dy" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
   if [ "$ux" = "0" ] && [ "$uy" = "0" ]; then echo "[ys-pointer-click] 步进过小（剩 $dx,$dy），中止" >&2; exit 4; fi
   ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
-  sleep 0.25
+  sleep 0.08
 done
 echo "[ys-pointer-click] 12 轮未命中（目标 $X,$Y，当前 $cx,$cy）" >&2
 exit 5

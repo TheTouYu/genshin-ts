@@ -1,41 +1,18 @@
 #!/bin/bash
-# ys-playtest-stop — 退出千星试玩（轮询式，2026-10-17 优化版）
-#
-# 设计（遵守全局守则第 5 条：>5s 先优化、单条命令 ≤20s、一次拿焦点跑完整批）：
-#   · 整段流程**只在最外层拿一次焦点**（自我包装进 ys-gui-slot），内部不再切窗；
-#   · 所有等待都用**轮询+像素判据**（不再固定 sleep 2.5/4/5 秒）；
-#   · 判据：试玩暂停菜单/结算页按钮都是**浅色药丸**（R>200,G>190），场景/草地/深色面板都不是。
-#
-# 用法: ys-playtest-stop [窗口id]     预计耗时 5~15s
+# ys-playtest-stop — 退出千星试玩（快速版：判据只截 40x40）
 set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WIN="${1:-0x01400001}"
+WIN="${1:-0x01400001}"; export YS_WIN="$WIN"
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 30 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"; fi
+. "$HERE/_ys-ui.sh"
+click() { "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null 2>&1; }
 
-# ── 外层：拿焦点跑完整段，结束自动还原 ──
-if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
-  exec "$HERE/ys-gui-slot" "$WIN" 25 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"
-fi
-
-SNAP=/tmp/ys-playtest-stop-snap.png
-rgb_at() { import -window "$WIN" "$SNAP" 2>/dev/null; magick "$SNAP" -format "%[pixel:p{$1,$2}]" info: 2>/dev/null | sed -E 's/^[a-z]+\(([0-9]+),([0-9]+),([0-9]+).*/\1 \2 \3/'; }
-is_light() { local r g b; read -r r g b <<< "$(rgb_at "$1" "$2")"; [ -n "${r:-}" ] && [ "$r" -gt 200 ] && [ "$g" -gt 190 ]; }
-wait_light() {  # $1=x $2=y $3=最多轮数（每轮 0.8s）
-  local i=0; while [ "$i" -lt "$3" ]; do is_light "$1" "$2" && return 0; sleep 0.8; i=$((i+1)); done; return 1; }
-
-echo "[stop] ① ESC → 等暂停菜单（≤8s）"
-ydotool key 1:1 1:0
-if wait_light 1280 880 10; then
-  echo "[stop] ② 点「中断挑战」"
-  "$HERE/ys-pointer-click" 1280 880 12 1.7 >/dev/null 2>&1
-  if wait_light 1833 1365 14; then
-    echo "[stop] ③ 点「离开」"
-    "$HERE/ys-pointer-click" 1833 1365 12 1.7 >/dev/null 2>&1
-    echo "[stop] ✓ 已发出退出（日志将在会话结束时落盘）"
-  else
-    echo "[stop] ⚠️ 未等到结算页「离开」按钮（判据 1833,1365 非浅色）" >&2; exit 5
-  fi
-else
-  echo "[stop] ⚠️ 未等到暂停菜单（判据 1280,880 非浅色）——可能不在试玩中" >&2; exit 4
-fi
+echo "[stop] ① ESC"; ydotool key 1:1 1:0
+if wait_light 1280 880 60; then            # ≤ ~15s
+  echo "[stop] ② 中断挑战"; click 1280 880
+  if wait_light 1833 1365 60; then
+    echo "[stop] ③ 离开"; click 1833 1365; echo "[stop] ✓ 已退出"
+  else echo "[stop] ⚠️ 未见结算页「离开」" >&2; exit 5; fi
+else echo "[stop] ⚠️ 未见暂停菜单（可能不在试玩中）" >&2; exit 4; fi

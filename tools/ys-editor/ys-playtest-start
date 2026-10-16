@@ -1,54 +1,35 @@
 #!/bin/bash
-# ys-playtest-start — 开始千星试玩（完整流程，2026-10-17 实测 / 轮询式鲁棒版）
-#
-# 设计原则：
-#   ① **先判后动**：退出试玩后页面通常就在可点状态 → 直接点「试玩」，不切页面（用户 2026-10-17 纠正）
-#   ② **轮询代替固定等待**：真机 UI 响应有 5~25s 的抖动（实测弹窗 7s 后才出现），固定 sleep 必漏
-#   ③ 每步都有可机检判据（像素），失败时报告而不是盲点
-#
-# 页面判据：首页「试玩」磁贴区 (185,320) 亮白(R,G,B>200)
-#   对照：摆放页同点 = srgb(45,71,138) 或选中蓝 srgb(79,128,255)
-# 弹窗判据：深色面板（草地则 G 明显大于 B）
-#   烘焙网格体：采样 (1000,600)｜试玩选项：采样 (900,400)（两者互不干扰）
-#
-# 用法: ys-playtest-start [窗口id]
+# ys-playtest-start — 开始千星试玩（快速版：判据只截 40x40，实测 84ms/次）
+# 设计要点见 computer-use 技能「GUI 流程优化方法」：
+#   ① 截图成本 ∝ 面积（全窗 5893ms → 40x40 判据块 84ms）；
+#   ② 先判后动；③ 轮询间隔≈判据成本；④ 整段只拿一次焦点（自我包装进 ys-gui-slot）。
 set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WIN="${1:-0x01400001}"
-SNAP=/tmp/ys-playtest-start-snap.png
-snap() { import -window "$WIN" "$SNAP" 2>/dev/null; }
-rgb_at() { snap; magick "$SNAP" -format "%[pixel:p{$1,$2}]" info: 2>/dev/null | sed -E 's/^[a-z]+\(([0-9]+),([0-9]+),([0-9]+).*/\1 \2 \3/'; }
-is_home() { local r g b; read -r r g b <<< "$(rgb_at 185 320)"; [ -n "${r:-}" ] && [ "$r" -gt 200 ] && [ "$g" -gt 200 ] && [ "$b" -gt 200 ]; }
-is_dark_panel() { local r g b; read -r r g b <<< "$(rgb_at "$1" "$2")"; [ -z "${r:-}" ] && return 1
-  if [ "$g" -gt "$b" ] && [ $(( g - b )) -gt 25 ]; then return 1; else return 0; fi; }
-press_esc() { "$HERE/ys-gui-slot" "$WIN" 6 bash -c 'ydotool key 1:1 1:0; sleep 1' >/dev/null 2>&1 || true; }
-step_click() { echo "[ys-playtest-start] 点击 $3 @ ($1,$2)"
-  "$HERE/ys-gui-slot" "$WIN" 20 bash -c "$HERE/ys-pointer-click $1 $2 12 1.7" >/dev/null 2>&1 || true; }
-# 轮询等待弹窗：0=烘焙 1=试玩选项 2=超时（$1=最长秒数）
-wait_dialog() { local t=0; while [ "$t" -lt "${1:-30}" ]; do
-    is_dark_panel 1000 600 && return 0
-    is_dark_panel 900 400  && return 1
-    sleep 2; t=$(( t + 2 )); done; return 2; }
+WIN="${1:-0x01400001}"; export YS_WIN="$WIN"
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 40 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"; fi
+. "$HERE/_ys-ui.sh"
+click() { "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null 2>&1; }
 
-echo "[ys-playtest-start] ① 判页面（先判后动）"
-if is_home; then echo "  ✓ 试玩磁贴可见 → 直接点击"
-else
-  echo "  磁贴不可见 → 最小导航（ESC）"; press_esc; sleep 3
-  is_home || { echo "  仍不可见 → 点首页图标(房子,被DXVK遮挡)"; step_click 60 20 "首页图标"; sleep 3; }
-  is_home || { echo "[ys-playtest-start] ✗ 找不到试玩磁贴" >&2; exit 4; }
-  echo "  ✓ 已定位磁贴"
+# ① 判页面：磁贴可见就直接点（退出试玩后通常就在这一页，不要先切页面）
+if ! is_light 185 320; then
+  echo "[start] 磁贴不可见 → ESC"; ydotool key 1:1 1:0; sleep 1
+  is_light 185 320 || { echo "[start] 再点首页图标(房子)"; click 60 20; sleep 1.5; }
+  is_light 185 320 || { echo "[start] ✗ 找不到试玩磁贴" >&2; exit 4; }
 fi
+echo "[start] ② 点「试玩」磁贴"; click 185 336
 
-echo "[ys-playtest-start] ② 点「试玩」磁贴"; step_click 185 336 "「试玩」磁贴"
-echo "[ys-playtest-start] ③ 轮询弹窗（最长 40s）"
-wait_dialog 40; rc=$?
-case $rc in
-  0) echo "  检测到「烘焙网格体」→ 直接上传"; step_click 1444 811 "「直接上传」"
-     echo "  继续轮询「试玩选项」"; wait_dialog 40; rc2=$?
-     [ "$rc2" = 1 ] && { echo "  ✓ 检测到「试玩选项」→ 开始游戏"; step_click 1282 1051 "「开始游戏」"; } ;;
-  1) echo "  ✓ 直接检测到「试玩选项」→ 开始游戏"; step_click 1282 1051 "「开始游戏」" ;;
-  2) echo "  未检测到弹窗（可能已直接开始试玩）" ;;
-esac
-echo "[ys-playtest-start] ④ 完成——等待加载后确认「奇域试玩中…UID」水印"
+# ③ 轮询弹窗：烘焙网格体(1000,600) / 试玩选项(900,400)，每轮 ~0.35s
+i=0
+while [ "$i" -lt 60 ]; do        # ≤ ~20s
+  if is_dark 1000 600; then
+    echo "[start] ③ 烘焙网格体 → 直接上传"; click 1444 811; sleep 0.6
+    i2=0; while [ "$i2" -lt 40 ]; do is_dark 900 400 && break; sleep 0.25; i2=$((i2+1)); done
+    break
+  fi
+  is_dark 900 400 && break
+  sleep 0.25; i=$((i+1))
+done
+if is_dark 900 400; then echo "[start] ④ 试玩选项 → 开始游戏"; click 1282 1051; fi
+echo "[start] ✓ 已发出开始指令"
