@@ -60,17 +60,18 @@
 | 复杂静态模型/元件/实体/装饰物拼装 | `static-gil-model-builder` |
 | 变量/挂载/UI/信号等 .gil 资源写回 | `genshin-ts-asset-operations` |
 | 读/改节点图内部逻辑 | `gil-node-graph-reading` / `gil-node-graph-editing` |
-| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合：变量运算/随机/定时器/实体查询销毁/矩阵/数学几何/长列表/输入锁/定时器调度/循环物化等，有现成的直接抄或套模式） |
+| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合：变量运算/随机/定时器/实体查询销毁/矩阵/数学几何/长列表/输入锁等，有现成的直接抄） |
 | 调试节点图日志/负载 | `debug-log-investigator` |
 | 编辑器/沙箱窗口层故障（点不动/启动不了） | `tools/ys-editor/README.md`（**先查版本+已知 bug**，再白盒） |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
-| UI 命令层模块设计/知识（ui 模块，票03+）；**往任何游戏地图写屏幕控件/悬浮交互页/按钮/页签/素材**（2026-09-11 W1 事故回灌：建页走错旧路径产出废品，因路由未覆盖此场景） | 直接读 `ui/AGENTS.md`（常驻约束）+ `ui/mappings.md`（命令面映射）+ `references/ui-controls.md`（差分知识权威，在 editor-incremental-gia-investigator 技能）；悬浮页创建规范见 genshin-ts-asset-operations 技能 C2 节 |
+| UI 命令层模块设计/知识（ui 模块，票03+）；**往任何游戏地图写屏幕控件/悬浮交互页/按钮/页签/素材**（2026-09-11 W1 事故回灌） | 直接读 `ui/AGENTS.md`（常驻约束）+ `ui/mappings.md`（命令面映射）+ `references/ui-controls.md`（差分知识权威，在 editor-incremental-gia-investigator 技能）；悬浮页创建规范见 genshin-ts-asset-operations 技能 C2 节 |
 | 游戏内最小注入核验 | `verify-injection` |
 | 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
-| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（**知识文档，直接 read 引用**，不在技能加载列表，勿用 skill 工具加载） |
+| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（知识文档，直接 read；勿用 skill 工具加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
+| **千星模拟器 2D UI+Lua 路线**（UI↔JSON/GIA、控件模板、Lua 挂载、runCase） | `simulator-2d-route` + 全局 `qxqy-simulator`/`qxqy-game-studio`（细节参考；改动走我方 fork） |
 | 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
@@ -84,7 +85,7 @@
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 | Beyond/千星语义资源（票01/effectID→TextMapHash/状态效果名/MiHoYoBinData/Blb3/global-metadata/IL2CPP/RoleStatus 资源分类） | `beyond-semantic-resource-reverse` |
 | 差分+抓包学 wire 并快速开发/扩展 `gsts assets:*` CLI（框架先行，donor 按需补） | `diff-capture-cli-builder` |
-| 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`（引用 vs 实体对照，死引用/悬空链接报警，2026-09-01 事故催生）；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须用户确认。**技能加载失败=基础设施故障，当轮必须向用户报告（附报错原文），静默用裸命令绕过禁止**（2026-08-31 实证：技能被误删后静默降级多日才暴露） |
+| 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`（引用 vs 实体对照，死引用/悬空链接报警，2026-09-01 事故催生）；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须用户确认。**技能加载失败=基础设施故障，当轮必须向用户报告（附报错原文）**（2026-08-31 实证：静默降级多日才暴露） |
 
 ## 写回真实地图红线（高频违规点）
 
