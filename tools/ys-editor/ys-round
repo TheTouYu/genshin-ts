@@ -1,0 +1,135 @@
+#!/bin/bash
+# ys-round — 千星「一轮开发迭代」执行器（**每步留证据 + 断言**）
+#
+# 设计目标（用户 2026-10-17 定调：「一开始就设计好系统，在问题出现之前就通过收集的数据优化整个链路」）：
+#   把"改 → 跑 → 取证 → 判定"整条链做成一个**自带仪表**的执行器，而不是每次临时拼脚本。
+#   任何一步失败都能从证据目录里指出**是哪一环、当时的画面是什么**。
+#
+# 关键顺序（2026-10-17 实证，错了会静默丢改动）：
+#   离开我的图 → 写盘 → 切回我的图 → 试玩
+#   （编辑器**离开一张图时会把内存版写回磁盘**；先切走再写盘，才不会被旧内存覆盖）
+#
+# 用法:
+#   ys-round -b "<CLI 构建命令>" [-i "<输入脚本路径>"] [-m "<日志里必须出现的标记>"] [-t 秒]
+# 例:
+#   ys-round -b 'gsts assets:entities import ... --write' -m 'YJ-BOOT'
+#
+# 产物: ~/ys-round/<时间戳>/{report.md,*.png,run.log}
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+export YS_WIN="${YS_WIN:-0x01400001}"
+MAP_ID="${YS_MAP_ID:-1073741832}"
+UID_="${YS_UID:-110170759}"
+LOCALLOW="${GSTS_LOCALLOW_DIR:?需要 GSTS_LOCALLOW_DIR}"
+GIL="$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Local_Save_Level/$MAP_ID/$MAP_ID.gil"
+LOGDIR="$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Debug_Log"
+OUT="$HOME/ys-round/$(date +%m%d-%H%M%S)"; mkdir -p "$OUT"
+LOG="$OUT/run.log"
+exec > >(tee -a "$LOG") 2>&1
+
+BUILD=""; INPUTS=""; MARK=""; TAIL_SEC=45
+while getopts "b:i:m:t:" o; do case $o in
+  b) BUILD="$OPTARG";; i) INPUTS="$OPTARG";; m) MARK="$OPTARG";; t) TAIL_SEC="$OPTARG";; esac; done
+
+say() { echo "[$(date +%H:%M:%S)] $*"; }
+sha() { sha256sum "$GIL" 2>/dev/null | cut -c1-16; }
+shot() { import -window "$YS_WIN" "$OUT/$1.png" 2>/dev/null; magick "$OUT/$1.png" -resize 1100x "$OUT/$1-s.png" 2>/dev/null; }
+newestlog() { ls -t "$LOGDIR"/*.gia 2>/dev/null | head -1; }
+
+say "=== ys-round 开始 → $OUT ==="
+say "地图 $MAP_ID  构建命令: ${BUILD:-（无）}  期望标记: ${MARK:-（无）}"
+
+# ---- 0 基线 ----
+B0=$(sha); L0=$(newestlog); M0=$(stat -c %Y "$GIL" 2>/dev/null)
+say "① 基线: SHA=$B0  mtime=$(date -d @$M0 +%H:%M:%S)  最新日志=$(basename "${L0:-无}")"
+
+# ---- 1 离开我的图（此后编辑器内存不再威胁磁盘）----
+say "② 离开我的图（ys-switch-save）"
+"$HERE/ys-switch-save" 2>&1 | grep -E "state|证据" || true
+cp /tmp/ys-switch-after.png "$OUT/02-left.png" 2>/dev/null
+say "   离开后 SHA=$(sha)"
+
+# ---- 2 构建（CLI 写盘）----
+if [ -n "$BUILD" ]; then
+  say "③ 执行构建: $BUILD"
+  bash -c "$BUILD" 2>&1 | tail -8
+  PB=${PIPESTATUS[0]:-0}
+else
+  say "③ 无构建命令，跳过"
+fi
+B1=$(sha)
+say "   构建后 SHA=$B1  $([ "$B0" != "$B1" ] && echo '✓ 磁盘已变化' || echo '⚠ 磁盘未变化（构建可能没生效）')"
+
+# ---- 3 切回我的图（从磁盘载入）----
+say "④ 切回我的图（从磁盘载入新内容）"
+"$HERE/ys-switch-save" 2>&1 | grep -E "state|证据" || true
+cp /tmp/ys-switch-after.png "$OUT/04-back.png" 2>/dev/null
+B2=$(sha)
+say "   切回后 SHA=$B2  $([ "$B1" = "$B2" ] && echo '✓ 写入未被覆盖' || echo '✗ 被编辑器覆盖了！')"
+
+# ---- 4 试玩 ----
+say "⑤ 试玩（菜单 → 试玩 → 直接上传 → 开始游戏）"
+YS_OUT="$OUT" "$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
+  cd "'"$HERE"'"; . ./_ys-ui.sh; export YS_SLOT_ACTIVE=1
+  O="'"$OUT"'"
+  shot() { import -window 0x01400001 "$O/$1.png" 2>/dev/null; magick "$O/$1.png" -resize 1100x "$O/$1-s.png" 2>/dev/null; }
+  M() { local R G B; R=$(judge 41 99|cut -d" " -f1); G=$(judge 41 99|cut -d" " -f2); B=$(judge 41 99|cut -d" " -f3)
+        [ "${R:-0}" -gt 150 ] && [ "${G:-0}" -gt 150 ] && [ "${B:-0}" -gt 150 ] && echo MENU || echo OTHER; }
+  i=0; while [ "$(M)" != "MENU" ] && [ $i -lt 4 ]; do ydotool key 1:1 1:0 2>/dev/null; sleep 3; i=$((i+1)); done
+  echo "  菜单态=$(M) (ESC $i)"; shot 05-menu
+  ./ys-pointer-click 174 328; sleep 8;  shot 06-tile
+  ./ys-pointer-click 1439 816; sleep 14; shot 07-upload
+  ./ys-pointer-click 1282 1051; sleep 12; shot 08-start
+' 2>&1 | grep -E "菜单态|^\[ys-gui-slot\] 已取得"
+
+say "⑥ 等 ${TAIL_SEC}s 让游戏跑起来"
+sleep "$TAIL_SEC"
+
+# ---- 5 注入输入（若有）----
+YS_OUT="$OUT" "$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
+  export YS_SLOT_ACTIVE=1; O="'"$OUT"'"
+  import -window 0x01400001 "$O/09-ingame.png" 2>/dev/null
+  if [ -n "'"$INPUTS"'" ] && [ -f "'"$INPUTS"'" ]; then bash "'"$INPUTS"'"; else
+    ydotool key 17:1; sleep 2.5; ydotool key 17:0; sleep 0.5
+    for i in 1 2 3 4; do ydotool key 57:1; sleep 0.25; ydotool key 57:0; sleep 1.0; done
+    ydotool key 17:1; sleep 2.5; ydotool key 17:0; sleep 1
+  fi
+  import -window 0x01400001 "$O/10-after-input.png" 2>/dev/null
+  echo "  输入注入完成"
+' 2>&1 | grep -E "输入注入完成"
+magick "$OUT/09-ingame.png" -resize 1100x "$OUT/09-ingame-s.png" 2>/dev/null
+magick "$OUT/10-after-input.png" -resize 1100x "$OUT/10-after-input-s.png" 2>/dev/null
+
+# ---- 6 退出 ----
+say "⑦ 退出试玩"
+"$HERE/ys-playtest-stop" 2>&1 | tail -2
+sleep 5
+
+# ---- 7 判定 ----
+L1=$(newestlog); M1=$(stat -c %Y "$GIL" 2>/dev/null)
+say "⑧ 判定"
+say "   我的图 mtime: $(date -d @$M0 +%H:%M:%S) → $(date -d @$M1 +%H:%M:%S)  $([ "${M1:-0}" -gt "${M0:-0}" ] && echo '✓ 试玩确曾写回我的图' || echo '⚠ 未见写回')"
+say "   最新日志: $(basename "${L1:-无}")  $([ -n "$L1" ] && [ "$L1" != "$L0" ] && echo '✓ 本轮产生了新日志' || echo '⚠ 无新日志')"
+N=0
+if [ -n "$L1" ]; then
+  N=$(python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | wc -l)
+  say "   日志记录数: $N"
+  if [ -n "$MARK" ]; then
+    H=$(python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | grep -c "$MARK")
+    say "   标记 '$MARK' 命中 $H 次  $([ "${H:-0}" -gt 0 ] && echo '✓✓ 图已执行' || echo '✗ 未执行')"
+  fi
+  cp "$L1" "$OUT/debug-log.gia" 2>/dev/null
+  python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | head -40 > "$OUT/records.txt"
+fi
+{
+  echo "# ys-round 报告 $(date '+%F %T')"
+  echo "- 地图: $MAP_ID  构建: ${BUILD:-无}  期望标记: ${MARK:-无}"
+  echo "- SHA: 基线 $B0 → 构建后 $B1 → 切回后 $B2"
+  echo "- 我的图 mtime: $(date -d @$M0 +%T) → $(date -d @${M1:-$M0} +%T)"
+  echo "- 最新日志: $(basename "${L1:-无}") 记录数 $N"
+  echo "- 证据图: 05-menu 06-tile 07-upload 08-start 09-ingame 10-after-input"
+} > "$OUT/report.md"
+say "=== 报告 $OUT/report.md ==="
+cat "$OUT/report.md"

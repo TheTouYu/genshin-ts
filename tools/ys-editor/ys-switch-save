@@ -1,0 +1,69 @@
+#!/bin/bash
+# ys-switch-save — 「我的图 ⇄ 最新别的图」之间切换一次（重载链路的正确原语）
+#
+# ⚠️ 为什么必须这样用（2026-10-17 实测，事故级）：
+#   编辑器把地图常驻内存；**离开一张图时，编辑器会先把内存版写回磁盘**。
+#   于是"切走再切回"式重载会亲手抹掉 CLI 刚写入的改动：
+#     ① 内存=旧 ② CLI 写盘=新 ③ 切走 → 编辑器把旧写回盘（新被抹） ④ 切回 → 载入旧
+#   实测铁证：CLI 写入 SHA d94f733d（实体 x=-6/3/13/23/34/46），
+#             重载后磁盘变成 249af5c7（x=8/18/28/38/49/61 = 旧值），且**全程零报错**。
+#
+# ✅ 正确顺序：
+#     ys-switch-save        # 先离开我的图（此时写回的是旧内存，反正我们要覆盖它）
+#     <CLI 改 .gil / 注入 / 挂载>
+#     ys-switch-save        # 再切回我的图 → 编辑器从磁盘载入【新】内容
+#     → 然后才允许试玩
+#
+# 语义：存档列表排序 = 「当前打开」置顶 + 其余按时间倒序；我的图是最新的 ⇒
+#   · 编辑器在我的图上 → 第 2 位 = 别的图 ⇒ 点它 = **离开**
+#   · 编辑器在别图上   → 第 2 位 = 我的图 ⇒ 点它 = **回来**
+#   两种情况都是"点第 2 位"，故同一动作自然成对。
+#
+# 用法: ys-switch-save        产物 /tmp/ys-switch-{before,after}.png
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+export YS_WIN="${YS_WIN:-0x01400001}"
+
+SAVE_ICON_X=39; SAVE_ICON_Y=176
+CARD2_X=1737;   CARD2_Y=386
+CONFIRM_X=1439; CONFIRM_Y=812
+
+"$HERE/ys-kwin-raise" "原神" >/dev/null 2>&1
+"$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
+  set -u
+  cd "$0"; export YS_SLOT_ACTIVE=1; . ./_ys-ui.sh
+  W="${YS_WIN:-0x01400001}"
+  ICON_X='"$SAVE_ICON_X"'; ICON_Y='"$SAVE_ICON_Y"'
+  C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
+  CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'
+  click() { ./ys-pointer-click "$1" "$2" >/dev/null 2>&1; }
+  j1() { judge "$1" "$2" | cut -d" " -f1; }
+  j2() { judge "$1" "$2" | cut -d" " -f2; }
+  j3() { judge "$1" "$2" | cut -d" " -f3; }
+  st() {
+    local R G B
+    R=$(j1 2273 1357); G=$(j2 2273 1357); B=$(j3 2273 1357)
+    if [ "${R:-0}" -gt 230 ] && [ "${G:-0}" -gt 230 ] && [ "${B:-0}" -gt 230 ]; then echo SAVE; return; fi
+    R=$(j1 41 99); G=$(j2 41 99); B=$(j3 41 99)
+    if [ "${R:-0}" -gt 150 ] && [ "${G:-0}" -gt 150 ] && [ "${B:-0}" -gt 150 ]; then echo MENU; return; fi
+    echo EDITOR; }
+  import -window "$W" /tmp/ys-switch-before.png 2>/dev/null
+  echo "起点 state=$(st)"
+  local_i=0
+  while [ "$(st)" != "SAVE" ] && [ $local_i -lt 6 ]; do
+    if [ "$(st)" = "MENU" ]; then click "$ICON_X" "$ICON_Y"; sleep 4
+    else ydotool key 1:1 1:0 2>/dev/null; sleep 3; fi
+    local_i=$((local_i+1))
+  done
+  echo "到存档页 state=$(st)"
+  click "$C2X" "$C2Y"; sleep 3.5
+  echo "  点第2位卡后 state=$(st)（应为 EDITOR=对话框已开）"
+  click "$CFX" "$CFY"; sleep 22
+  echo "切换后 state=$(st)"
+  import -window "$W" /tmp/ys-switch-after.png 2>/dev/null
+' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$'
+for f in before after; do
+  [ -s "/tmp/ys-switch-$f.png" ] && magick "/tmp/ys-switch-$f.png" -resize 1100x "/tmp/ys-switch-$f-s.png" 2>/dev/null
+done
+echo "[ys-switch-save] 证据图 /tmp/ys-switch-{before,after}-s.png"
