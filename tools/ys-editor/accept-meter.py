@@ -8,7 +8,7 @@
   FAIL(storm)  = 90s 内始终没连上（风暴未收场）
 另记 storm = 本循环 Tcp Connector fail 条数、reconnect_ms、windows(编辑器窗口数)
 """
-import re, os, time, subprocess
+import re, os, time, subprocess, sys
 
 NLOG = os.environ.get('YS_NLOG', '/home/h/.ys/BeyondAssets/BeyondAssistEditor/Log/log.txt')
 OUT  = os.environ.get('YS_ACCEPT_LOG', '/home/h/dsh-plugins/.scratch/ys-accept.log')
@@ -42,6 +42,40 @@ def finish(out, st, verdict):
         rms = round((st['reconn'] - st['t_disc']) * 1000)
     emit(out, "[%s] verdict=%s storm=%d reconnect_ms=%s advance=%s windows=%d"
          % (time.strftime('%T'), verdict, st['storm'], rms, st.get('advance', False), windows()))
+
+USAGE = """ys-trial-accept — 试玩循环验收器
+
+用法:
+  accept-meter.py            看门狗循环（默认）：把判定逐条追加到 $YS_ACCEPT_LOG
+  accept-meter.py -h|--help  打印本用法并退出 0
+  accept-meter.py --check    自证：只检查"这台仪器现在能不能拿到读数"，不进入循环（0=能，1=不能）
+
+判据（依据两个真实样本定稿）:
+  PASS          = 90s 内重连成功 且 重连后 30s 内出现 `level state changed`（状态推进）
+  FAIL(zombie)  = 重连成功但 30s 内零状态推进 ← 故障代签名
+  FAIL(storm)   = 90s 内始终没连上（风暴未收场）
+
+环境变量: YS_NLOG(默认 %s) / YS_ACCEPT_LOG(默认 %s) / YS_ACCEPT_TIMEOUT(90) / YS_ACCEPT_QUIET(30)
+""" % (NLOG, OUT)
+
+
+def check():
+    """仪器自证（2026-10-16 教训：取证脚本必须先证明自己拿得到读数）。"""
+    if not os.path.exists(NLOG):
+        print("NLog         : %s\n  ✗ 不存在 —— 本仪器在读一个不存在的日志，任何判定都是空的" % NLOG)
+        return 1
+    sz = os.path.getsize(NLOG)
+    age = time.time() - os.path.getmtime(NLOG)
+    print("NLog         : %s\n  ✓ 存在，%d 字节，最后写入 %.0f 秒前" % (NLOG, sz, age))
+    with open(NLOG, 'r', errors='replace') as f:
+        lines = f.read()[-4000:].strip().splitlines()
+    if lines:
+        print("  末行: %s" % lines[-1][:120])
+    print("输出日志     : %s" % OUT)
+    print("编辑器窗口数 : %d（-1 = wmctrl 取不到）" % windows())
+    print("自我判定     : %s" % ("可读数 ✓" if sz > 0 else "日志为空 ⇒ 现在还判不了"))
+    return 0
+
 
 def main():
     off = os.path.getsize(NLOG) if os.path.exists(NLOG) else 0
@@ -83,4 +117,11 @@ def main():
                 elif now - st['t_wall'] > T_STORM:
                     finish(out, st, 'FAIL(storm)'); st = {'phase': 'idle'}
 
-main()
+if __name__ == '__main__':
+    argv = sys.argv[1:]
+    if argv and argv[0] in ('-h', '--help'):
+        print(USAGE)
+        sys.exit(0)
+    if argv and argv[0] == '--check':
+        sys.exit(check())
+    main()
