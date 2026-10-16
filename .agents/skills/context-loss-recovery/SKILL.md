@@ -43,14 +43,30 @@ If a detail would change the next action if lost, treat it as critical.
 ## Core recovery loop
 
 1. **Identify the current DSH session and project root.**
-   - Current session file: `$DSH_SESSION_JSONL` or `$DSH_SESSION_ID`; project root normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo.
+   - **本机实测形态（2026-10-17 修正）**：会话是一个**目录** `~/.dsh/sessions/--home-h-genshin-ts--/session-<id>/`，
+     转录文件 = `<该目录>/session.v4.jsonl.zstd`。`$DSH_SESSION_JSONL` 在本机**常为 UNSET**，不要依赖它；
+     用 `$DSH_SESSION_ID` 找同名目录，或 `ls -t ~/.dsh/sessions/--home-h-genshin-ts--/ | head`。
+     ```bash
+     BASE=~/.dsh/sessions/--home-h-genshin-ts--
+     D="$BASE/${DSH_SESSION_ID:-}"                       # ① 有会话 id 就直接用（本机实测该变量有值）
+     [ -d "$D" ] || D=$(ls -dt "$BASE"/session-*/ | head -1)   # ② 否则取**最新**：注意是 `ls -dt`
+     F="${D%/}/session.v4.jsonl.zstd"; ls -la "$F"
+     ```
+     ⚠ **`ls -d ... | head -1` 是按名字排序，会取到错的会话**（2026-10-17 自验证踩到：
+     取到的是一周前那个 1.6MB 的会话，压缩点/用户消息全是别人的）——必须 `-t` 或按 id 定位。
+     project root normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo.
    - **Do not immediately scan other sessions.** Check first whether the loss happened inside this same session (compaction/summary events exist in `$DSH_SESSION_JSONL`). The history tool excludes the current session by default, so a scan can show a different session as “latest” and mislead you.
    - Only when the current session has no recoverable previous round (e.g., a fresh session) should you search other sessions.
 
 2. **Same-session compaction: locate the previous round in this same session first.**
-   - The current session file is zstd JSONL. Find the latest compaction marker:
+   - Find the latest compaction marker **用 JSON 解析，不用 grep**：
+     ⚠ 2026-10-17 实测——`grep '"compaction'` 会被**技能正文**命中（本条技能自己的说明里就有 compaction 字样），
+     输出被刷成数万字符。正确做法：
      ```bash
-     zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | grep -n '"type":"compaction/summary"' | tail -5
+     zstd -dc "$F" | python3 -c 'import sys,json
+     for l in sys.stdin:
+         if not l.startswith("{\"type\":\"compaction"): continue
+         o=json.loads(l); print(o.get("seq"), o.get("type"), json.dumps(o.get("data",{}),ensure_ascii=False)[:110])' | tail -8
      ```
    - The previous round is the **events immediately before the latest `compaction/summary`**, ending with the last user message and the assistant/tool evidence that preceded it.
    - To read the current session (bypassing the default current-session exclusion), unset the env vars and use `show`:
@@ -59,18 +75,20 @@ If a detail would change the next action if lost, treat it as critical.
      ```
    - Or extract user messages directly:
      ```bash
-     zstd -dc "$DSH_SESSION_JSONL" 2>/dev/null | python3 -c '
+     zstd -dc "$F" 2>/dev/null | python3 -c '
      import sys,json,datetime
      for i,line in enumerate(sys.stdin, start=1):
          if not line.startswith("{\"type\":\"user/message\""): continue
          o=json.loads(line); d=o.get("data",{})
          src=d.get("source",{})
+         # ⚠ 只认 kind=="user"：`/skill` 调用会以 kind=="skill-invocation" 的 user/message 出现，
+         #   正文数千字会把真正的用户消息冲掉（2026-10-17 实测）
          if isinstance(src,dict) and src.get("kind")!="user": continue
          t=d.get("time") or o.get("time") or 0
          if isinstance(t,(int,float)): t=datetime.datetime.fromtimestamp(t/1000).strftime("%H:%M:%S")
          content=d.get("content") or []
          txt=" ".join(x.get("text","") for x in content if isinstance(x,dict)) if isinstance(content,list) else str(content)
-         if txt.startswith("<system-reminder>") or txt.startswith("This is an automatically generated checkpoint"): continue
+         if txt.startswith("<system-reminder>") or txt.startswith("<skill_content") or txt.startswith("This is an automatically generated checkpoint"): continue
          print(f"[line {i}] {t} {txt[:500]}")
      ' | tail -80
      ```
@@ -107,6 +125,23 @@ If a detail would change the next action if lost, treat it as critical.
    - If the task touches real game data, verify current file hashes/paths instead of trusting a memory.
    - If a number/path appears in two places (session + file), confirm they match; if they conflict, trust file/git evidence and mark the conflict.
 
+## 用户诉求与指路恢复（2026-10-17 实证：**最高价值、最易丢**）
+
+> 事故：一个区间里有 5 条用户指路（"去 plugins 记忆桶，有更优雅的关闭方式"、"找找原因？"、"你的窗口没打开对"），
+> 压缩时被折成两句技术结论 ⇒ **指路与未答诉求一起消失**，后续连"该去查什么"都想不起来。
+> 教训：**数字好补，指路难补**——数字在文件/日志里能重查，用户指的那条路没人再提醒你。
+
+恢复时按这三条做：
+
+1. **先抽全量用户消息，逐条判「已满足 / 未满足」**（用上面的 user-only 提取器；排掉 skill-invocation 与系统提醒）。
+   - 已满足 = 有落盘证据（提交/文档/日记/tool 结果）；
+   - 未满足 = 问题没答、路没走、验收没做 ⇒ **进恢复报告的显式清单**。
+2. **用户给的指针当场执行**（"去 X 记忆桶 / 看 Y 文件 / 问 Z"）——恢复动作本身就包含这一次查找；
+   查到了就把**结论写进持久层**（技能/文档/日记），不要只写在回复里（回复会被下一次压缩吃掉）。
+3. **恢复报告必须带「用户未满足诉求」栏**，逐字引用用户原话（转述会把指令变成传闻）。
+
+**压制复发**：压缩前先跑 `task-command-center` 技能里的「压缩前必做四步」（同一教训的另一半：预防侧）。
+
 ## Detail recovery techniques
 
 - **Start with a user-only list, not a broad AI search.** Use the compact `user/message` extraction in step 2 to see user wording and exact line numbers first. Only after you have a precise line do you open a narrow range of that round.
@@ -138,6 +173,8 @@ When you recover context, ALWAYS produce this shape:
   - 约束/坑：...
 下一步：<one concrete action>
 待确认：<anything the user must answer>
+用户未满足诉求（逐字引用，标注已满足/未满足）：
+  - "<用户原话>" → 状态 + 已走的指针 + 结论落盘位置
 ```
 
 If you created a handoff file, use the same detail categories and commit it. Do not write “大概”, “好像是”, “可能”; if a detail is missing, mark it `UNKNOWN` and search again before proceeding.
