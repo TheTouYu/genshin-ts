@@ -1,0 +1,40 @@
+#!/bin/bash
+# ys-put — 把指针移到绝对屏幕坐标，**用外部回读验证**（不点，只移动）
+#
+# 血泪来源（2026-10-17，用户点破「你太相信你写的脚本了」）：
+#   前任 `ys-kwin-put` 走 KWin 脚本 `workspace.cursorPos = {x,y}`，并在**脚本内自读自证**，
+#   打印 "OK 801 800" —— 而真实 X 指针**一步没动**（xdotool 回读仍是旧位置）。
+#   更糟：那个 801,800 还是 journalctl 抓到的**上一次运行的陈旧日志行**。
+#   后果：我随后用 `ys-kwin-put` + `ydotool click` 做的**十几次「点击」全部点在同一个点上**，
+#   于是把「仪器没动」误判成「界面上没有该控件」，白白绕了 20+ 轮。
+#
+# 本工具的纪律：**只用外部仪器验证**——`xdotool getmouselocation` 读回真实指针，
+#   不匹配就继续步进；步进用尽仍不匹配 → **非零退出并说明**，绝不打印 OK。
+#
+# 用法: ys-put <x> <y> [容差px=6] [最大轮次=40]
+# 退出码: 0 到位 / 4 未到位（附最后一处实际坐标）
+set -u
+X="${1:?用法: ys-put <x> <y> [容差] [轮次]}"; Y="${2:?}"
+TOL="${3:-6}"; MAX="${4:-40}"
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+
+loc() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x+0, y+0}'; }
+
+read -r cx cy <<< "$(loc)"
+for i in $(seq 1 "$MAX"); do
+  dx=$(( X - cx )); dy=$(( Y - cy ))
+  if [ "${dx#-}" -le "$TOL" ] && [ "${dy#-}" -le "$TOL" ]; then
+    echo "[ys-put] 到位 ($cx,$cy) 目标 ($X,$Y) 第 ${i} 轮"
+    exit 0
+  fi
+  # 相对步进；比例 1.7 为大位移经验值，闭环会自动收敛（指针加速会吃掉线性假设，故要闭环）
+  ux=$(awk -v d="$dx" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/1.7}')
+  uy=$(awk -v d="$dy" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/1.7}')
+  [ "$ux" = "0" ] && [ "$uy" = "0" ] && { echo "[ys-put] 步进过小（剩 $dx,$dy），中止" >&2; exit 4; }
+  ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
+  sleep 0.05
+  read -r cx cy <<< "$(loc)"
+done
+echo "[ys-put] ✗ ${MAX} 轮未到位：目标 ($X,$Y) 实际 ($cx,$cy)" >&2
+exit 4

@@ -9,7 +9,9 @@ export GSTS_LOCALLOW_DIR="$HOME/.local/share/anime-game-launcher/prefix/drive_c/
 # ── 派生路径
 export YS_UID=110170759
 export YS_BEYOND="$GSTS_LOCALLOW_DIR/miHoYo/原神/BeyondLocal"
-export YS_SAVEDIR="$YS_BEYOND/Beyond_Local_Save_Level"
+export YS_PLAYER="$YS_BEYOND/$YS_UID"          # UID 层级（易漏！路径少它必报「没有那个文件」）
+export YS_SAVEDIR="$YS_PLAYER/Beyond_Local_Save_Level"
+export YS_TEMPDIR="$YS_PLAYER/Temp"
 
 # ── 当前项目（游戏①，新建于 2026-10-17 03:56）
 export YS_MAP_ID=1073741832

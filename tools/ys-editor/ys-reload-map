@@ -1,0 +1,88 @@
+#!/bin/bash
+# ys-reload-map — 让编辑器从磁盘**重新加载**存档（CLI 写回 .gil 后必须走这一步）
+#
+# ⚠️ 为什么必须重载（2026-10-17 实测，事故级）：
+#   编辑器打开存档后地图常驻**编辑器内存**；CLI 写进 .gil 的内容对编辑器不可见，
+#   而「试玩」会把**编辑器内存版**烘焙并回写磁盘 —— 实测把 CLI 写入的 6 个实体整段抹平
+#   （自定义实体数 6 → 0，**全程零报错**）。⇒ 硬纪律：**CLI 写回 → 必须重载 → 才允许试玩**。
+#
+# 重载配方（2026-10-17 逐点实测）：
+#   编辑器 --ESC--> 系统菜单 --点侧栏「存档管理」图标--> 存档选择页
+#           --点我的卡「编辑」--> 「加载存档」对话框 --点「确认」--> 从磁盘载入 ✅
+#   存档列表排序 = **「当前打开」置顶 + 其余按时间倒序** ⇒ 我的卡在"非当前"时恒在第 2 位。
+#   故需「切走再切回」两次（当前位置 1 的卡只显示「保存/另存为」，点不到「编辑」）。
+#
+# ⚠️ 工具纪律（本轮血泪）：**不要用 ys-kwin-put**——它走 KWin cursorPos 赋值且**脚本内自证**，
+#   实测**不移动真实指针**却回报 OK，导致十几次"点击"全落在同一点 (1201,1199)。
+#   一律用 `ys-pointer-click`（xdotool 外部回读闭环 + 长按 500ms）。
+#
+# 用法: ys-reload-map
+# 产物: /tmp/ys-reload-{2,3}.png 证据图
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+export YS_WIN="${YS_WIN:-0x01400001}"
+
+SAVE_ICON_X=39;  SAVE_ICON_Y=176   # 侧栏「存档管理」图标（仅系统菜单态存在）
+CARD2_X=1737;    CARD2_Y=386       # 列表第 2 位卡的「编辑」
+CONFIRM_X=1439;  CONFIRM_Y=812     # 「加载存档」对话框「确认」
+
+"$HERE/ys-kwin-raise" "原神" >/dev/null 2>&1
+
+"$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
+  set -u
+  cd "$0"
+  export YS_SLOT_ACTIVE=1
+  . ./_ys-ui.sh
+  W="${YS_WIN:-0x01400001}"
+  ICON_X='"$SAVE_ICON_X"'; ICON_Y='"$SAVE_ICON_Y"'
+  C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
+  CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'
+
+  click() { ./ys-pointer-click "$1" "$2" >/dev/null 2>&1; }
+  rj() { judge "$1" "$2" | cut -d" " -f1; }
+  gj() { judge "$1" "$2" | cut -d" " -f2; }
+  bj() { judge "$1" "$2" | cut -d" " -f3; }
+
+  st() {
+    local R G B
+    R=$(rj 2273 1357); G=$(gj 2273 1357); B=$(bj 2273 1357)
+    if [ "${R:-0}" -gt 230 ] && [ "${G:-0}" -gt 230 ] && [ "${B:-0}" -gt 230 ]; then echo SAVE; return; fi
+    R=$(rj 41 99); G=$(gj 41 99); B=$(bj 41 99)
+    if [ "${R:-0}" -gt 150 ] && [ "${G:-0}" -gt 150 ] && [ "${B:-0}" -gt 150 ]; then echo MENU; return; fi
+    echo EDITOR
+  }
+
+  to_savelist() {
+    local i s
+    for i in $(seq 1 6); do
+      s=$(st)
+      case "$s" in
+        SAVE) return 0 ;;
+        MENU) click "$ICON_X" "$ICON_Y"; sleep 4 ;;
+        *)    ydotool key 1:1 1:0 2>/dev/null; sleep 3 ;;
+      esac
+    done
+    echo "✗ 到不了存档选择页（末态 $(st)）" >&2; return 1
+  }
+
+  load_card2() { click "$C2X" "$C2Y"; sleep 3.5; click "$CFX" "$CFY"; sleep 20; }
+
+  echo "▶ 起点 state=$(st)"
+  to_savelist || exit 4
+  echo "▶ 第 1 段：切到别的存档"
+  load_card2
+  echo "    切走后 state=$(st)"
+  to_savelist || exit 4
+  import -window "$W" /tmp/ys-reload-2.png 2>/dev/null
+  echo "▶ 第 2 段：切回我的存档（= 从磁盘重载）"
+  load_card2
+  echo "    切回后 state=$(st)"
+  import -window "$W" /tmp/ys-reload-3.png 2>/dev/null
+  echo "✓ 重载流程结束"
+' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$' | tail -16
+
+for i in 2 3; do
+  [ -s "/tmp/ys-reload-$i.png" ] && magick "/tmp/ys-reload-$i.png" -resize 1500x "/tmp/ys-reload-$i-s.png" 2>/dev/null
+done
+echo "[ys-reload-map] 证据图 /tmp/ys-reload-{2,3}-s.png"

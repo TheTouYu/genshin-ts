@@ -1,0 +1,38 @@
+#!/bin/bash
+# ys-drag — 绝对坐标拖拽（按下 → 分步移动 → 抬起），用于相机环绕、视野转动、滑块拖动
+#
+# 为什么要有它：
+#   ① 本机 `ydotool mousemove` 是**相对**步进，会被指针加速吃成非线性（2026-10-17 实测：
+#      目标 365,21，8 轮后停在 722,300）——长距离拖动必崩。
+#   ② KWin 的 `workspace.cursorPos` **可写**（ys-kwin-put 已证），可绝对定位。
+#   ③ 真机 5px 拖拽死区：纯 Click 最大位移 2.5 游戏px、BeginDrag 最小 3.1 游戏px
+#      ⇒ 屏幕位移必须 >5px 才会被识别为拖拽（D296/PR#11 实证）。
+#
+# 用法: ys-drag <x1> <y1> <x2> <y2> [步数=12] [按住秒=0.3]
+# 退出码: 0 成功 / 2 参数错 / 5 定位失败
+set -u
+X1="${1:?用法: ys-drag <x1> <y1> <x2> <y2> [步数] [按住秒]}"; Y1="${2:?}"; X2="${3:?}"; Y2="${4:?}"
+STEPS="${5:-12}"; HOLD="${6:-0.3}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+
+# 自包装进硬通道（协议：computer-use「共享桌面默契」）
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-60}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
+fi
+
+put() { "$HERE/ys-kwin-put" "$1" "$2" >/dev/null 2>&1 || { echo "[ys-drag] 定位失败 ($1,$2)" >&2; exit 5; }; }
+
+put "$X1" "$Y1"; sleep 0.2
+echo "[ys-drag] 按下 @ ($X1,$Y1)"
+ydotool click 0x40; sleep "$HOLD"
+dx=$(( (X2 - X1) )); dy=$(( (Y2 - Y1) ))
+for i in $(seq 1 "$STEPS"); do
+  px=$(( X1 + dx * i / STEPS )); py=$(( Y1 + dy * i / STEPS ))
+  put "$px" "$py"
+  sleep 0.03
+done
+put "$X2" "$Y2"; sleep "$HOLD"
+ydotool click 0x80
+echo "[ys-drag] 抬起 @ ($X2,$Y2)（位移 $dx,$dy）"

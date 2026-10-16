@@ -28,12 +28,14 @@ for i in $(seq 1 12); do
   dx=$(( X - cx )); dy=$(( Y - cy ))
   ax=${dx#-}; ay=${dy#-}
   if [ "$ax" -le "$TOL" ] && [ "$ay" -le "$TOL" ]; then
-    # 真人节奏：按下 → ≥120ms → 抬起。Wine 菜单**不接受** 10ms 瞬时点击（2026-10-17 实测坑），
-    # 故默认走慢速；需要快时设 YS_CLICK_FAST=1（如对原生窗口）。
+    # 真人节奏：按下 → 保持 → 抬起。**分层的实测事实（2026-10-17）**：
+    #   Wine 菜单 ≥120ms 即可；**游戏内 UI（6~11 FPS）必须 ≥500ms**——130ms 会被整帧吞掉，
+    #   表现为「点了没反应」（新建存档按钮即因此第一次点击失败）。
+    #   故缺省 0.5s（对两者都安全）；原生窗口求快设 YS_CLICK_FAST=1，需更久设 YS_CLICK_HOLD=<秒>。
     if [ "${YS_CLICK_FAST:-0}" = "1" ]; then
       ydotool click 0xC0
     else
-      ydotool click 0x40; sleep 0.13; ydotool click 0x80
+      ydotool click 0x40; sleep "${YS_CLICK_HOLD:-0.5}"; ydotool click 0x80
     fi
     sleep 0.4
     echo "[ys-pointer-click] 命中 ($cx,$cy) → 已点击（第 ${i} 轮）"
