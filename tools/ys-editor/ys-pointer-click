@@ -1,0 +1,36 @@
+#!/bin/bash
+# ys-pointer-click — 闭环指针定位 + 点击（无绝对定位能力时的通用解法）
+#
+# 背景：本机 Wayland/KWin 下没有可用的绝对指针定位（KWin `cursorPos` 只读；
+#       ydotool `mousemove -a` 无效；XTEST 注入指针在 Xwayland 下无效）。
+#       唯一可用通道 = ydotool 相对移动，但传递比不稳定（实测 1.5~2.6 屏幕px/unit，随速度变）。
+#       ⇒ 用 xdotool 读回指针位置做闭环，逐步逼近目标后再点击。
+#
+# 用法: ys-pointer-click <screen_x> <screen_y> [tolerance_px] [ratio]
+#   缺省 tolerance=12px、ratio=1.7（大位移经验值；小位移约 2.6，闭环会自动收敛）
+# 退出码: 0=命中并已点击 / 4=步进过小 / 5=超过迭代上限未命中
+set -u
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
+TOL="${3:-12}"; RATIO="${4:-1.7}"
+
+get() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x, y}'; }
+
+for i in $(seq 1 12); do
+  read -r cx cy <<< "$(get)"
+  dx=$(( X - cx )); dy=$(( Y - cy ))
+  ax=${dx#-}; ay=${dy#-}
+  if [ "$ax" -le "$TOL" ] && [ "$ay" -le "$TOL" ]; then
+    ydotool click 0xC0; sleep 0.4
+    echo "[ys-pointer-click] 命中 ($cx,$cy) → 已点击（第 ${i} 轮）"
+    exit 0
+  fi
+  ux=$(awk -v d="$dx" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
+  uy=$(awk -v d="$dy" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
+  if [ "$ux" = "0" ] && [ "$uy" = "0" ]; then echo "[ys-pointer-click] 步进过小（剩 $dx,$dy），中止" >&2; exit 4; fi
+  ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
+  sleep 0.25
+done
+echo "[ys-pointer-click] 12 轮未命中（目标 $X,$Y，当前 $cx,$cy）" >&2
+exit 5

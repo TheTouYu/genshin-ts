@@ -1,0 +1,47 @@
+#!/bin/bash
+# ys-playtest-stop — 退出千星沙箱试玩（两段点击流程，2026-10-16 真机跑通并记录）
+#
+# 实测流程（详见 evidence/2026-10-16-input-probe-measure/playtest-exit-flow.md）：
+#   ① 试玩中按 ESC        → 暂停菜单（继续挑战 / 重新挑战 / **中断挑战**）
+#   ② 点「中断挑战」       → 结算页「未完成」
+#   ③ 点「离开」           → 回到千星大厅/编辑器页面（游戏窗无「奇域试玩中」水印）
+#
+# 用法: ys-playtest-stop [窗口id] [canvas_w] [canvas_h]
+#   缺省窗口 0x01400001（原神）、画布 1600x900（实测画布；坐标按窗口几何自动换算）
+#   屏幕坐标 = 窗口原点 + 游戏坐标 × (窗口尺寸/画布尺寸)，Y 轴翻转
+#
+# 依赖: ys-gui-slot（焦点申请/还原）、ys-pointer-click（闭环定位点击）
+# 退出码: 0=已尝试完整流程（需人工/截图确认结果）/ 其他=中途失败
+set -u
+DISPLAY="${DISPLAY:-:1}"; export DISPLAY
+YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
+HERE="$(cd "$(dirname "$0")" && pwd)"
+WIN="${1:-0x01400001}"; CW="${2:-1600}"; CH="${3:-900}"
+
+# 窗口几何 → 游戏坐标换算所需
+read -r WX WY WW WH <<< "$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | awk -F= '/^X=/{x=$2}/^Y=/{y=$2}/^WIDTH=/{w=$2}/^HEIGHT=/{h=$2} END{print x, y, w, h}')"
+if [ -z "${WW:-}" ]; then echo "[ys-playtest-stop] 读不到窗口几何（$WIN）" >&2; exit 2; fi
+to_screen() {  # $1=game_x $2=game_y → 屏幕坐标
+  awk -v gx="$1" -v gy="$2" -v wx="$WX" -v wy="$WY" -v ww="$WW" -v wh="$WH" -v cw="$CW" -v ch="$CH" \
+    'BEGIN{ printf "%d %d", wx + gx*ww/cw, wy + (ch-gy)*wh/ch }'
+}
+
+# 实测目标（游戏坐标，源于 2560x1440 窗口下的截图定位）
+ABORT_GX=800;  ABORT_GY=350      # ESC 菜单「中断挑战」按钮中心
+LEAVE_GX=1146; LEAVE_GY=47       # 结算页「离开」按钮中心
+
+echo "[ys-playtest-stop] 步骤1/3：按 ESC 打开暂停菜单"
+"$HERE/ys-gui-slot" "$WIN" 8 bash -c 'ydotool key 1:1 1:0; sleep 1.5' || true
+sleep 2.5
+
+read -r SX SY <<< "$(to_screen "$ABORT_GX" "$ABORT_GY")"
+echo "[ys-playtest-stop] 步骤2/3：点「中断挑战」 @屏幕 ($SX,$SY)"
+"$HERE/ys-gui-slot" "$WIN" 20 bash -c "$HERE/ys-pointer-click $SX $SY 12 1.7" || true
+sleep 4
+
+read -r SX2 SY2 <<< "$(to_screen "$LEAVE_GX" "$LEAVE_GY")"
+echo "[ys-playtest-stop] 步骤3/3：点「离开」 @屏幕 ($SX2,$SY2)"
+"$HERE/ys-gui-slot" "$WIN" 20 bash -c "$HERE/ys-pointer-click $SX2 $SY2 12 1.7" || true
+sleep 5
+
+echo "[ys-playtest-stop] 流程已执行完毕——请用截图确认：游戏窗应无「奇域试玩中」水印、编辑器页面在前"

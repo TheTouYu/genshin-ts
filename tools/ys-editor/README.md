@@ -16,6 +16,8 @@
 | 文件 | 用途 |
 |---|---|
 | `ys-gui-slot` | **共享桌面「申请制窗口占用」包装器**（2026-10-16 用户令：约定要做成设计，自动保证用完就还）。`ys-gui-slot <win> <max-seconds> <cmd...>`：记下当前焦点 → 激活目标窗并核验 → 硬时限运行命令 → **trap EXIT 无论成败都把焦点还回去**并打印占用秒数。所有注入类操作必须经它，禁止裸调 wmctrl/ydotool |
+| `ys-pointer-click` | **闭环指针定位+点击**（本机无绝对定位能力：KWin `cursorPos` 只读、ydotool `-a` 无效、XTEST 在 Xwayland 下无效）。`ys-pointer-click <x> <y> [tol] [ratio]`：读回指针→按比例步进→逼近容差内→点击 |
+| `ys-playtest-stop` | **退出千星试玩**（实测两段点击：ESC→中断挑战→离开）。坐标按窗口几何自动换算；流程与验证信号见 `evidence/2026-10-16-input-probe-measure/playtest-exit-flow.md` |
 | `ys-selfconnect-vaccine` | 自环疫苗（show/once/daemon）。`ip_local_reserved_ports` 维护 + 日志 |
 | `accept-meter.py` | **构建无关验收器**：试玩循环 PASS/FAIL。`PASS`=重连成功且 30s 内有 `level state changed`；`FAIL(zombie)`=连上后 30s 零推进（故障代签名）；`FAIL(storm)`=90s 没连上 |
 | `ys-stuck-report` | 一键取证：进程/活动窗/指针窗/连接/自环/保留表/NLog 尾部 |
