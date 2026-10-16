@@ -63,6 +63,13 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 |---|---|---|
 | **`ys-preflight`** | **动手前的前提核验器**（铁律 0） | 12 条默认前提一条命令跑完；退出码 1=有 FAIL / 2=有 WARN；实测首次就抓出「挂载 0 个」 |
 | `ys-peek <out.png>` | **抓真值图** | 真抬升窗口 + 全屏 `spectacle` + **自动还原焦点**；被遮挡时 `import -window` 会返回陈旧帧 |
+| `ys-act <脚本> <out.png>` | **「抬升→动作→抓新鲜图→还原」一条龙** | GUI 的主力工作单元；脚本内可用 `_ys-ui.sh` 的判据函数 |
+| `ys-wins` | **KWin 堆叠序**（底→顶） | 判「屏幕上那点是谁」的**唯一权威**；`import -window`/xdotool 都答不了这个 |
+| `ys-put <x> <y>` | 指针绝对定位（**只移动不点**） | **只用外部回读**（`xdotool getmouselocation`）验证，不匹配即非零退出、**绝不打印 OK** |
+| `ys-kwin-cursor` | 读指针位置（逻辑坐标） | X11 回读失效时的权威通道；`ys-kwin-put` 已废弃（自证陷阱），改转发到 `ys-put` |
+| `ys-drag <x1> <y1> <x2> <y2>` | 绝对坐标拖拽 | 按下 → 分步移动 → 抬起；用于相机环绕/视野转动/滑块 |
+| `ys-reload-map` / `ys-reload-keep` | **让编辑器从磁盘重载** | `-keep` 版会**保住 CLI 写入**（快照→离开→还原→重进）；CLI 写回 .gil 后必走 |
+| `ys-esc` / `ys-goto-map enter\|leave` | 发一次 ESC / 确定性切图 | `ys-goto-map` 每步用 `ys-where2` 核验，不靠奇偶 |
 | `ys-ui-state` | 编辑器三态判据 | MENU⇔px(300,300)>200／SAVE⇔px(300,300)暗且px(100,400)暗／EDITOR⇔其余 |
 | `ys-where2` | **当前地图身份** | 系统菜单标题模板匹配（score 0.9999）；须先处于 MENU 态 |
 | `ys-round` | **一轮执行器**（自带证据） | 离开→构建→进入→试玩→注入→退出→判定→`~/ys-round/<ts>/report.md`；判据已改用 `ys-where2` |
