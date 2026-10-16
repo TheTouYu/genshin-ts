@@ -36,3 +36,53 @@
 - **XTEST 指针注入在 Xwayland 下无效**（指针纹丝不动）；键盘注入未验证送达 ⇒ 输入类实验只能由用户真人做。
 - **`/proc/<pid>/fd` 的 mtime ≠ socket 存活证据**（本轮据此下过错误结论，被抓包推翻）——用包/事件行为读数。
 - **取证脚本必须自证拿到读数**：工具存在 + 退出码 + 产物非空；吞 stderr = 盲脚本（本轮因此跑出三次空实验）。
+
+---
+
+# 真机试玩实验 playbook（2026-10-17；一次周期做完所有实验）
+
+> 铁律见根 `AGENTS.md`「真机实验铁律」。**试玩一个进出周期 ≥3 分钟**，所以下面这套流程的全部意义是：**一个周期内把该做的实验全做完**。
+
+## 四件套
+
+| 工具 | 用途 |
+|---|---|
+| `ys-gui-slot <win> <max秒> <命令...>` | 焦点管理：记下原焦点 → 激活并**核验** → 硬时限执行 → `trap EXIT` 严格还原（前焦不可用时回落 firefox/DSH 页）。**一个批次只调一次**，批次内部别再切窗 |
+| `ys-pointer-click <x> <y> [tol] [ratio]` | 闭环定位+点击（本机无绝对定位：KWin `cursorPos` 只读 / `ydotool -a` 无效 / XTEST 在 Xwayland 失效） |
+| `ys-playtest-start [win]` | 开始试玩：判页面（磁贴可见就直接点，不切页面）→ 点「试玩」→ **轮询**弹窗 →「直接上传」→「开始游戏」 |
+| `ys-playtest-stop [win]` | 退出试玩：ESC →「中断挑战」→「离开」 |
+
+## 标准流程（单周期）
+
+```bash
+# ① 开始（轮询式，UI 抖动 5~25s）
+tools/ys-editor/ys-playtest-start
+# ② 一个焦点时段内跑完所有注入批次（示例：键盘 + 鼠标 + 拖拽）
+tools/ys-editor/ys-gui-slot 0x01400001 150 bash -c '/tmp/exp-keys.sh; sleep 1; /tmp/exp-drag.sh'
+# ③ 退出 → Debug_Log 落盘
+tools/ys-editor/ys-playtest-stop
+# ④ 离线解析（不碰桌面）
+python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <最新会话>.gia records \
+  | grep -oP "'lua': '\K\[(key|cur)\][^']*"
+```
+
+## 坐标与像素判据（窗口 0x01400001 / 2560×1440，游戏内 UI 与窗口 1:1）
+
+| 目标 | 坐标 | 判据（像素采样） |
+|---|---|---|
+| 首页图标（房子，**被 DXVK 覆盖层遮挡**） | (60, 20) | — |
+| 「试玩」磁贴 | (185, 336) | 首页成立：采样 (185,320) 亮白 RGB>200；摆放页同点 = srgb(45,71,138) 或 (79,128,255) |
+| 「烘焙网格体」弹窗 | 面板区 (1000, 600) | 深色(~49,53,67)=弹窗在；绿色草地(G≫B)=无 |
+| 「直接上传」按钮 | (1444, 811) | 同弹窗判据（**可能需点两次**——真机点击偶发丢失） |
+| 「试玩选项」弹窗 | 面板区 (900, 400) | 深色(~42,46,61)=弹窗在 |
+| 「开始游戏」按钮 | (1282, 1051) | |
+| 试玩内 ESC 菜单「中断挑战」 | (1280, 880) | 试玩中 |
+| 结算页「离开」 | (1833, 1365) | 试玩结算页 |
+
+## 输入/取数事实（实测）
+
+- **注入通道**：`ydotool`（`YDOTOOL_SOCKET=/run/user/1000/.ydotool_socket`）：`key <evdev>:1 <码>:0`、`click 0xC0/0x41/0x81`（左/右按下抬起）、`mousemove -x dx -y dy`。**XTEST（xdotool）指针注入在 Xwayland 下无效**。
+- **相对移动传递比不稳**（1.5~2.6 屏幕px/单位，随速度变）⇒ 用 `xdotool getmouselocation` 读回做闭环。
+- **屏幕渲染有 2s+ 延迟，空闲时甚至整帧冻结** ⇒ **取数一律走"爆发注入 + 退出试玩让 Debug_Log 落盘 + 离线解析"**，不要逐键截图 OCR。
+- **探针 Lua `print` 落在日志 field 23**（gia_log.py 已支持）；`[cur]` 行含 事件类型/UI坐标/按下点/位移，`[key]` 行含 KeyEventType 名。
+- 实测数据（键盘 43 槽全映射 + 拖拽阈值 ~3 游戏px）：`evidence/2026-10-17-input-probe-experiments/experiments-record.md`。
