@@ -1,0 +1,15 @@
+#!/bin/bash
+# ys-unstick2 — 按 Wine Bug 59965 记录的有效解卡法：最小化 → 稍等 → 恢复
+# （强制 ReleaseCapture + 全窗重绘，重置 Wine 内部坏掉的鼠标捕获状态）
+D=$(pgrep -f '[X]wayland' | head -1)
+XD=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
+XA=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
+export DISPLAY="$XD" XAUTHORITY="$XA"
+wins(){ for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
+    W=$(printf '0x%x' "$id"); nm=$(xprop -id "$W" _NET_WM_NAME 2>/dev/null | sed 's/.*= //;s/"//g')
+    case "$nm" in 千星沙箱|资源管理器|日志) echo "$W|$nm";; esac; done; }
+n=0
+while IFS='|' read -r W nm; do wmctrl -i -b add,hidden -r "$W" && echo "  ① 最小化 $W ($nm)"; n=$((n+1)); done < <(wins)
+sleep 1.5
+while IFS='|' read -r W nm; do wmctrl -i -b remove,hidden -r "$W"; wmctrl -i -a "$W"; echo "  ② 恢复 $W ($nm)"; done < <(wins)
+echo "共处理 $n 个窗口。现在去点一下编辑器，看有没有反应。"

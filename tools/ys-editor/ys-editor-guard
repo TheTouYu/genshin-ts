@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# ys-editor-guard — 千星编辑器「试玩归来僵尸」自愈守护（宿主侧）
+#
+# 案情（2026-10-16 定案链）：
+#   原神内「试玩」→ 游戏拆掉编辑器页（Destory Editor Page）→ 编辑器被孤立：
+#   它的 Tcp Connector 进入重连风暴（实测 4815 次/36s 全 Connection refused），
+#   风暴最终以一次「假连接」告终（ESTAB 但无应用层对端）→ 编辑器主线程空转、
+#   UI 消息泵死亡、进程不退场。之后用户再点试玩 → 游戏拉不起编辑器 →
+#   提示「编辑器没有启动」。用户现有解法=手动强杀沙箱 + 从本体重启（低效）。
+#
+# 本守护把手工强杀自动化：检测到孤立僵尸 → 只杀编辑器进程（绝不碰游戏/wineserver）。
+#
+# 判定（两条，任一命中即判僵尸）：
+#   A 持续性重连风暴：NLog 的 "Tcp Connector fail" 连续 ≥STORM_SECS 秒不断，
+#     且累计 ≥STORM_MIN 条。（健康重连风暴只持续 ~40ms、约 20 条 → 不误杀）
+#   B 断连滞留：该代编辑器曾建立过真连接，之后 ≥NOCONN_SECS 秒没有任何
+#     真连接（真连接 = ESTAB 且本地端口≠对端端口；自环 socket 不算）。
+#
+# 用法：
+#   ys-editor-guard daemon     常驻守护（systemd 用户服务用）
+#   ys-editor-guard check      单次判定并打印结论（不动手）
+#   ys-editor-guard kill       立即强杀当前编辑器进程（手工急救，等于用户旧解法的一半）
+#   ys-editor-guard status     打印当前编辑器进程/连接/风暴读数
+# 环境变量：YS_GUARD_MODE=dry 只记录不动手；YS_GUARD_LOG 覆盖日志路径。
+set -u
+
+NLOG=/home/h/.ys/BeyondAssets/BeyondAssistEditor/Log/log.txt
+GAMELOG="$HOME/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/LocalLog.log"
+LOGF=${YS_GUARD_LOG:-$HOME/.cache/ys-editor-guard.log}
+MODE=${YS_GUARD_MODE:-live}
+STORM_SECS=${YS_GUARD_STORM_SECS:-8}
+STORM_MIN=${YS_GUARD_STORM_MIN:-300}
+NOCONN_SECS=${YS_GUARD_NOCONN_SECS:-20}
+POLL=${YS_GUARD_POLL:-0.5}
+
+log() { printf '[%s] %s\n' "$(date '+%F %T')" "$*" >>"$LOGF"; }
+
+editors() { pgrep -f '[B]eyondEditor' 2>/dev/null | sort -n; }
+
+# 编辑器是否有「真连接」（ESTAB 且本地端口 ≠ 对端端口）
+has_real_conn() {
+  ss -tnp 2>/dev/null | awk '
+    /BeyondEditor/ && $1=="ESTAB" {
+      split($4,a,":"); split($5,b,":")
+      if (a[length(a)] != b[length(b)]) { found=1; exit }
+    } END { exit(found?0:1) }'
+}
+
+# 当前编辑器全部 socket（供日志）
+conn_dump() {
+  ss -tnp 2>/dev/null | grep -E 'BeyondEditor' | sed -E 's/ +/ /g' | awk '{print $1" "$4"->"$5}' | tr '\n' ';'
+}
+
+# 杀编辑器进程（先 TERM 后 KILL），带 cmdline 校验防误杀
+do_kill() {
+  local reason=$1 pids p
+  pids=$(editors)
+  [ -z "$pids" ] && return 0
+  local ok=""
+  for p in $pids; do
+    # 安全校验：目标必须是千星编辑器
+    if tr '\0' ' ' <"/proc/$p/cmdline" 2>/dev/null | grep -q 'BeyondEditor.exe'; then
+      ok="$ok $p"
+    else
+      log "  ! 跳过 pid=$p（cmdline 不含 BeyondEditor.exe，防误杀）"
+    fi
+  done
+  [ -z "${ok// /}" ] && return 0
+  if [ "$MODE" = dry ]; then
+    log "DRY 判定僵尸[$reason] 将杀:$ok"
+    return 0
+  fi
+  log "判定僵尸[$reason] → SIGTERM$ok"
+  kill $ok 2>/dev/null
+  for i in $(seq 1 6); do
+    sleep 0.5
+    local still=""
+    for p in $ok; do [ -d "/proc/$p" ] && still="$still $p"; done
+    [ -z "${still// /}" ] && { log "  ✓ 已退出（TERM 生效）"; return 0; }
+  done
+  log "  TERM 无效 → SIGKILL$ok"
+  kill -9 $ok 2>/dev/null
+  sleep 1
+  local left=""
+  for p in $ok; do [ -d "/proc/$p" ] && left="$left $p"; done
+  if [ -z "${left// /}" ]; then log "  ✓ 已退出（KILL 生效）"; else log "  ✗ 仍存活:$left"; fi
+}
+
+# ---------- 单次采样 ----------
+ONE_PID=""; ONE_ALIVE_SINCE=0; ONE_SEEN_CONN=0; ONE_LAST_CONN=0
+ONE_NL_SIZE=0; ONE_STORM_START=0; ONE_STORM_TOTAL=0
+
+snapshot() { # 输出当前状态行
+  local pids; pids=$(editors | tr '\n' ' ')
+  echo "编辑器进程: ${pids:-（无）}"
+  echo "真连接: $(has_real_conn && echo 有 || echo 无)    socket: $(conn_dump)"
+  [ -f "$NLOG" ] && echo "NLog: $(stat -c'%s bytes, mtime %y' "$NLOG")"
+}
+
+# 读 NLog 增量里的 Tcp Connector fail 计数
+nl_delta_fails() {
+  local sz; sz=$(stat -c%s "$NLOG" 2>/dev/null || echo 0)
+  if [ "$sz" -lt "$ONE_NL_SIZE" ]; then ONE_NL_SIZE=0; fi   # 轮转
+  local n=0
+  if [ "$sz" -gt "$ONE_NL_SIZE" ]; then
+    n=$(tail -c +$((ONE_NL_SIZE+1)) "$NLOG" | grep -c 'Tcp Connector fail')
+    ONE_NL_SIZE=$sz
+  fi
+  echo "$n"
+}
+
+case "${1:-daemon}" in
+  status) snapshot; exit 0 ;;
+  kill)   MODE=live; do_kill "手工命令"; exit 0 ;;
+  check)
+    pids=$(editors)
+    if [ -z "$pids" ]; then echo "无编辑器进程（干净）"; exit 0; fi
+    snapshot
+    if has_real_conn; then echo "→ 结论：健康（有真连接）"; else echo "→ 结论：无真连接（若曾连接过且持续 >${NOCONN_SECS}s 判僵尸）"; fi
+    exit 0 ;;
+esac
+
+# ---------- daemon ----------
+log "=== ys-editor-guard 启动 mode=$MODE storm=${STORM_SECS}s/$STORM_MIN noConn=${NOCONN_SECS}s ==="
+ONE_NL_SIZE=$(stat -c%s "$NLOG" 2>/dev/null || echo 0)
+while :; do
+  now=$(date +%s)
+  pids=$(editors | tr '\n' ' ')
+  if [ -z "${pids// /}" ]; then
+    if [ -n "${ONE_PID// /}" ]; then log "编辑器代际结束（pids=$ONE_PID）"; fi
+    ONE_PID=""; ONE_ALIVE_SINCE=0; ONE_SEEN_CONN=0; ONE_LAST_CONN=0; ONE_STORM_START=0; ONE_STORM_TOTAL=0
+    sleep "$POLL"; continue
+  fi
+  if [ "$pids" != "$ONE_PID" ]; then
+    log "编辑器代际: [${ONE_PID:-无}] → [$pids]  socket=$(conn_dump)"
+    ONE_PID="$pids"; ONE_ALIVE_SINCE=$now; ONE_SEEN_CONN=0; ONE_LAST_CONN=0; ONE_STORM_START=0; ONE_STORM_TOTAL=0
+  fi
+
+  fails=$(nl_delta_fails)
+  if [ "$fails" -gt 0 ]; then
+    [ "$ONE_STORM_START" -eq 0 ] && ONE_STORM_START=$now
+    ONE_STORM_TOTAL=$((ONE_STORM_TOTAL + fails))
+  else
+    if [ "$ONE_STORM_START" -ne 0 ] && [ $((now - ONE_STORM_START)) -lt "$STORM_SECS" ]; then
+      # 短暂风暴（健康路径）→ 清零
+      if [ $((now - ONE_STORM_START)) -ge 2 ]; then
+        log "短风暴结束（持续 $((now-ONE_STORM_START))s / 累计 $ONE_STORM_TOTAL 条）→ 视为健康重连"
+      fi
+      ONE_STORM_START=0; ONE_STORM_TOTAL=0
+    fi
+  fi
+
+  if has_real_conn; then ONE_SEEN_CONN=1; ONE_LAST_CONN=$now; fi
+
+  # 规则 A：持续风暴
+  if [ "$ONE_STORM_START" -ne 0 ] && [ $((now - ONE_STORM_START)) -ge "$STORM_SECS" ] && [ "$ONE_STORM_TOTAL" -ge "$STORM_MIN" ]; then
+    log "风暴读数: 已持续 $((now-ONE_STORM_START))s / 累计 $ONE_STORM_TOTAL 条 / socket=$(conn_dump)"
+    do_kill "持续重连风暴"
+    sleep 2; continue
+  fi
+  # 规则 B：曾连接过但长时间无真连接
+  if [ "$ONE_SEEN_CONN" -eq 1 ] && [ $((now - ONE_LAST_CONN)) -ge "$NOCONN_SECS" ]; then
+    log "断连读数: 最后真连接在 $((now-ONE_LAST_CONN))s 前 / socket=$(conn_dump)"
+    do_kill "断连滞留"
+    sleep 2; continue
+  fi
+  sleep "$POLL"
+done

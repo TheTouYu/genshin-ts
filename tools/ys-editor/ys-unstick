@@ -1,0 +1,27 @@
+#!/bin/bash
+# ys-unstick — 一条命令解卡「千星沙箱」窗：程序化激活 + WM 级 1px 往返（等价于手动拖动，但可脚本化）
+# 用法: ys-unstick [窗口ID]   不给参数=自动找「千星沙箱」
+D=$(pgrep -f '[X]wayland' | head -1)
+XD=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
+XA=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
+export DISPLAY="$XD" XAUTHORITY="$XA"
+W="$1"
+if [ -z "$W" ]; then
+  for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
+    W0=$(printf '0x%x' "$id"); nm=$(xprop -id "$W0" _NET_WM_NAME 2>/dev/null | sed 's/.*= //;s/"//g')
+    [ "$nm" = "千星沙箱" ] && { W="$W0"; break; }
+  done
+fi
+[ -z "$W" ] && { echo "找不到千星沙箱窗口（编辑器没在跑？）"; exit 1; }
+echo "解卡目标: $W"
+echo "  解卡前状态: $(xprop -id "$W" _NET_WM_STATE 2>/dev/null | sed 's/.*= //')  活动窗: $(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | awk '{print $NF}')"
+wmctrl -i -a "$W" && echo "  ① 已发送 activate"
+sleep 0.6
+eval $(xdotool getwindowgeometry --shell "$W" 2>/dev/null)
+if [ -n "${WIDTH:-}" ]; then
+  wmctrl -i -r "$W" -e "0,$((X+1)),$((Y+1)),$WIDTH,$HEIGHT"; sleep 0.5
+  wmctrl -i -r "$W" -e "0,$X,$Y,$WIDTH,$HEIGHT"; sleep 0.3
+  echo "  ② 已做 WM 级 1px 往返（等价于拖动一下再挪回）"
+fi
+echo "  解卡后状态: $(xprop -id "$W" _NET_WM_STATE 2>/dev/null | sed 's/.*= //')  活动窗: $(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | awk '{print $NF}')"
+echo "现在去点一下千星沙箱窗，看有没有反应。"

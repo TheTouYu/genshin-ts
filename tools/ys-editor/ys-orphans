@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# ys-orphans — 清理原神(anime-game-launcher / wine 沙箱)退出后残留的 CEF 孤儿进程
+#
+# 背景：游戏退出时 ZFGameBrowser 内嵌浏览器进程树清不干净（wine/bwrap 沙箱老毛病），
+#       Cr* 进程群被 systemd 收养后躺尸，累积占 swap/内存 → 下次启动卡顿。
+#       2026-10-13 实测 48 个孤儿占 ~11G swap（记忆河流 D68）。
+#
+# 判据（安全边界）：PPID = systemd --user（原父已死被收养）且 comm 为 Cr*（CEF 系）。
+#   活着的游戏内嵌浏览器父进程链完好（PPID 是 wine 进程），不会被命中；
+#   正常 CEF/Electron 应用的子进程父进程是应用主进程，也不会被命中。
+#
+# 用法：
+#   ys-orphans        扫描 + 显示 + 确认后清理
+#   ys-orphans -n     只看不动（dry-run）
+#   ys-orphans -y     跳过确认直接清理
+set -u
+
+SYS=$(pgrep -u "$(id -u)" -x systemd | head -1)
+if [ -z "$SYS" ]; then
+  echo "✗ 找不到 systemd --user 实例"; exit 1
+fi
+
+BEFORE_SWAP=$(LC_ALL=C free -m | awk '/^Swap:/{print $3}')
+BEFORE_AVAIL=$(LC_ALL=C free -m | awk '/^Mem:/{print $7}')
+
+mapfile -t LINES < <(ps -eo pid,ppid,etimes,stat,comm --no-headers | awk -v s="$SYS" '$2==s && $5 ~ /^Cr/')
+
+if [ ${#LINES[@]} -eq 0 ] || [ -z "${LINES[0]}" ]; then
+  echo "✓ 没有 CEF 孤儿，系统干净（可用 $((${BEFORE_AVAIL}/1024))G / swap $((BEFORE_SWAP/1024))G）"
+  exit 0
+fi
+
+TOTAL_SWAP=0; ALIVE=0; ZOMBIE=0
+PIDS=()
+for line in "${LINES[@]}"; do
+  pid=$(awk '{print $1}' <<<"$line")
+  stat=$(awk '{print $4}' <<<"$line")
+  vs=$(awk '/^VmSwap:/{print $2}' "/proc/$pid/status" 2>/dev/null)
+  TOTAL_SWAP=$((TOTAL_SWAP + ${vs:-0}))
+  if [[ "$stat" == Z* ]]; then ZOMBIE=$((ZOMBIE+1)); else PIDS+=("$pid"); ALIVE=$((ALIVE+1)); fi
+done
+
+echo "发现 ${#LINES[@]} 个 CEF 孤儿（活 $ALIVE / 僵尸 $ZOMBIE），VmSwap 合计 $((TOTAL_SWAP/1024))MB"
+echo "出生波次："
+printf '%s\n' "${LINES[@]}" | awk '{h=int($3/3600); c[h]++} END{for(k in c) printf "  %d小时前出生: %d 个\n", k, c[k]}' | sort -n
+echo
+echo "当前: 可用 $((${BEFORE_AVAIL}/1024))G / swap $((BEFORE_SWAP/1024))G"
+
+if [ "${1:-}" = "-n" ]; then echo "（dry-run，未清理）"; exit 0; fi
+
+if [ "${1:-}" != "-y" ]; then
+  read -r -p "清理 $ALIVE 个活孤儿？[y/N] " ans
+  if [[ "$ans" != y && "$ans" != Y ]]; then echo "已取消"; exit 0; fi
+fi
+
+printf '%s\n' "${PIDS[@]}" | xargs -r kill 2>/dev/null
+sleep 3
+printf '%s\n' "${PIDS[@]}" | xargs -r kill -9 2>/dev/null
+sleep 2
+
+AFTER_SWAP=$(LC_ALL=C free -m | awk '/^Swap:/{print $3}')
+AFTER_AVAIL=$(LC_ALL=C free -m | awk '/^Mem:/{print $7}')
+REMAIN=$(ps -eo ppid,comm --no-headers | awk -v s="$SYS" '$1==s && $2 ~ /^Cr/' | wc -l)
+
+echo
+echo "✓ 清理完成（剩余 $REMAIN 个，僵尸随系统自然回收）"
+echo "  可用内存: $((${BEFORE_AVAIL}/1024))G → $((${AFTER_AVAIL}/1024))G"
+echo "  swap:     $((BEFORE_SWAP/1024))G → $((AFTER_SWAP/1024))G"

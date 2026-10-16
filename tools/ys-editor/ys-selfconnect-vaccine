@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# ys-selfconnect-vaccine — 自环疫苗（内核层，需 root）
+#
+# 原理：编辑器「Tcp Connector」在目标端口无人监听时会不停重试；若内核恰好把
+# 「源端口」选成与「目标端口」相同，TCP 同时打开会自连成功（ESTAB，两端同端口）。
+# 应用以为自己连上了，其实对端就是自己 → 主线程空转成活尸，堵死下一次试玩。
+#
+# 把编辑器用过的端口放进 net.ipv4.ip_local_reserved_ports，内核就再也不会拿它们
+# 当自动分配的源端口 → 自环在数学上不可能发生。编辑器只会继续拿到 ECONNREFUSED，
+# 保持「打不通就重试」的可恢复态；等游戏端口回来，它自己就接上了（实测 27ms）。
+#
+# 只影响“自动选端口”：显式 bind 某个端口（游戏监听器）不受影响。
+#
+# 用法：
+#   ys-selfconnect-vaccine show     看保留表与编辑器当前端口
+#   ys-selfconnect-vaccine once     把编辑器当前端口并进保留表
+#   ys-selfconnect-vaccine daemon   常驻采集（每 2s 并一次；systemd 用，需 root）
+set -u
+SYSCTL=/proc/sys/net/ipv4/ip_local_reserved_ports
+LOG=${YS_VACCINE_LOG:-$HOME/.cache/ys-selfconnect-vaccine.log}
+
+ed_ports() {
+  ss -tnp 2>/dev/null | awk '/BeyondEditor/ { split($4,a,":"); split($5,b,":"); print a[length(a)]; print b[length(b)] }' \
+    | grep -E '^[0-9]+$' | sort -un
+}
+current_reserved() { tr ',' '\n' < "$SYSCTL" | grep -E '^[0-9]+$' | sort -un; }
+merged() { { current_reserved; ed_ports; } | sort -un | paste -sd, ; }
+
+case "${1:-show}" in
+  show)
+    echo "保留表   : $(current_reserved | paste -sd, )"
+    echo "编辑器端口: $(ed_ports | paste -sd, )" ;;
+  once)
+    new=$(merged); old=$(current_reserved | paste -sd,)
+    if [ "$new" = "$old" ]; then echo "无变化: $new"; exit 0; fi
+    if echo "$new" > "$SYSCTL"; then
+      echo "已更新: [$old] -> [$new]"
+      echo "[$(date '+%F %T')] 保留表更新: [$old] -> [$new]" >> "$LOG"
+    else
+      echo "写入失败（需要 root）" >&2; exit 1
+    fi ;;
+  daemon)
+    echo "=== ys-selfconnect-vaccine start $(date '+%F %T') ===" >> "$LOG"
+    while :; do
+      new=$(merged); old=$(current_reserved | paste -sd,)
+      if [ "$new" != "$old" ]; then
+        if echo "$new" > "$SYSCTL" 2>/dev/null; then
+          echo "[$(date '+%T')] 保留表更新: [$old] -> [$new]" >> "$LOG"
+        else
+          echo "[$(date '+%T')] 写入失败（需要 root）" >> "$LOG"
+        fi
+      fi
+      sleep 2
+    done ;;
+  *) echo "用法: $0 [show|once|daemon]" >&2; exit 2 ;;
+esac

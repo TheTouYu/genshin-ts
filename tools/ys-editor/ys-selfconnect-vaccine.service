@@ -1,0 +1,14 @@
+[Unit]
+Description=千星编辑器自环疫苗（ip_local_reserved_ports 维护）
+Documentation=file:///home/h/.local/bin/ys-selfconnect-vaccine
+After=network.target
+
+[Service]
+Type=simple
+Environment=YS_VACCINE_LOG=/var/log/ys-selfconnect-vaccine.log
+ExecStart=/home/h/.local/bin/ys-selfconnect-vaccine daemon
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

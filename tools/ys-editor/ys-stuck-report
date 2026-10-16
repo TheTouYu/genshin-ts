@@ -1,0 +1,27 @@
+#!/bin/bash
+# ys-stuck-report — 「千星沙箱窗点不动」瞬间取证：一次性把窗口状态+编辑器活性+连接+日志全 dump
+OUT=${YS_STUCK_DIR:-$HOME/.cache/ys-stuck}/report-$(date +%F_%H%M%S).txt
+mkdir -p "$(dirname "$OUT")"
+XW=$(pgrep -f '[X]wayland' | head -1)
+XD=$(tr '\0' '\n' < /proc/$XW/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
+XA=$(tr '\0' '\n' < /proc/$XW/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
+export DISPLAY="$XD" XAUTHORITY="$XA"
+{
+echo "=== ys-stuck-report $(date '+%F %T') ==="
+echo "--- 编辑器进程（在=没死；看不到=进程没了）---"; pgrep -af 'BeyondEditor' | head -5
+echo "--- 活动窗口 / 指针下的窗口（点击会落到谁身上）---"
+xprop -root _NET_ACTIVE_WINDOW 2>/dev/null
+xdotool getmouselocation --shell 2>/dev/null | grep -E 'WINDOW|X=|Y='
+echo "--- 每个编辑器窗口的属性 ---"
+for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
+  W=$(printf '0x%x' "$id"); echo "  [$W]"
+  xprop -id "$W" _NET_WM_STATE WM_HINTS _NET_WM_NAME 2>/dev/null | sed 's/^/     /'
+  xdotool getwindowgeometry --shell "$W" 2>/dev/null | sed "s/^/     /"
+done
+echo "--- 编辑器↔游戏的连接（有 ESTAB=协议层还连着）---"; ss -tanp 2>/dev/null | grep -i beyond
+echo "--- 自环检测（源端口==目标端口=活尸特征）---"
+ss -tan 2>/dev/null | awk '{split($4,a,":"); split($5,b,":"); if (a[length(a)]==b[length(b)] && $4 ~ /^127\.0\.0\.1:/) print "  ⚠ 自环: "$4" -> "$5}'
+echo "--- 内核保留表（疫苗覆盖）---"; cat /proc/sys/net/ipv4/ip_local_reserved_ports
+echo "--- NLog 尾部 25 行 ---"; tail -25 "$HOME/.ys/BeyondAssets/BeyondAssistEditor/Log/log.txt" | grep -v '^[[:space:]]*$'
+} 2>&1 | tee "$OUT"
+echo; echo "已保存: $OUT"
