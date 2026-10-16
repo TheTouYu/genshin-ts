@@ -1,0 +1,431 @@
+{
+ "gestures": [
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 0.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 1.2
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 1.9
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 1.9
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Up",
+    "Cl"
+   ],
+   "d": 2.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 3.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 3.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 3.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 5.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 5.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 5.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 8.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 9.4
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 9.4
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 19.4
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 21.9
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 21.9
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 36.2
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 37.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 37.5
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 4.4
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 4.4
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 3.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 10.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 10.0
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 10.6
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 53.8
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 56.3
+  },
+  {
+   "events": [
+    "Dn",
+    "Bd",
+    "Dg",
+    "Dg",
+    "Up",
+    "Cl",
+    "Ed"
+   ],
+   "d": 56.3
+  }
+ ],
+ "cl_only_max": 2.5,
+ "bd_min": 3.8
+}
