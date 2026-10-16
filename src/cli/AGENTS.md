@@ -29,6 +29,7 @@
 | `assets:structs` | 地图级结构体 list/inspect/create/update（root6 注册 + root10 f6 定义，23 成员类型） | `assets_structs.ts` |
 | `assets:library-inject` | 把 assets/images/*.css 资产注入 .gil 素材库 | `assets_library_inject.ts` |
 | `variables:verify` | 按已闭合规律表逐字节核验变量 wire（只读，PASS/DIFF，退出码 0/1） | `variables_verify.ts` |
+| `dev` / `open` / `help` | 增量编译监视 / 打开目录（map·backup·data）/ 帮助 | `gsts.ts` |
 
 > ⚠ **子动作不在 `--help` 里**：全部注册为 commander **叶子命令**（`.command('assets:ui')`），子动作是**位置参数**
 > ⇒ `gsts <族> --help` 只打印选项。查动作全集读 `src/cli/*.ts` 的 `usage()`（例外：`assets:node-graphs`、
