@@ -45,11 +45,37 @@ say "地图 $MAP_ID  构建命令: ${BUILD:-（无）}  期望标记: ${MARK:-�
 B0=$(sha); L0=$(newestlog); M0=$(stat -c %Y "$GIL" 2>/dev/null)
 say "① 基线: SHA=$B0  mtime=$(date -d @$M0 +%H:%M:%S)  最新日志=$(basename "${L0:-无}")"
 
+# ---- 判据：切换是否发生了"离开"（写回）= SHA 变化 ----
+# 为什么需要它：ys-switch-save 是**切换**语义，而我事先不知道编辑器"在不在我的图上"。
+#   在 → 切换=离开（编辑器把内存写回磁盘 ⇒ SHA 变）
+#   不在 → 切换=进入（读盘，不写 ⇒ SHA 不变）
+# 2026-10-17 事故：工具默认"第一切=离开"，而实际开局不在我的图上 ⇒
+#   第一切进入、第二切离开 ⇒ 用过期内存覆盖了刚构建的磁盘（SHA 8d5d74d9 覆盖 80c30c7f）。
+leave_map() {   # 循环直到"确认已离开"（一次切换发生了写回）
+  local i S0 S1
+  for i in 1 2 3; do
+    S0=$(sha); "$HERE/ys-switch-save" >/dev/null 2>&1; S1=$(sha)
+    if [ "$S0" != "$S1" ]; then say "   ✓ 已离开我的图（写回发生：$S0 → $S1）"; return 0; fi
+    say "   · 本次未写回（说明刚才是进入），再切一次"
+  done
+  say "   ⚠ 3 次仍未见写回——按已离开继续"; return 0
+}
+enter_map() {   # 循环直到"确认已进入"（一次切换没有写回）
+  local i S0 S1
+  for i in 1 2 3; do
+    S0=$(sha); "$HERE/ys-switch-save" >/dev/null 2>&1; S1=$(sha)
+    if [ "$S0" = "$S1" ]; then say "   ✓ 已进入我的图（无写回，SHA 保持 $S1）"; return 0; fi
+    say "   · 本次发生写回（说明刚才是离开），再切一次"
+  done
+  say "   ⚠ 3 次仍未见稳定——按已进入继续"; return 0
+}
+
 # ---- 1 离开我的图（此后编辑器内存不再威胁磁盘）----
-say "② 离开我的图（ys-switch-save）"
-"$HERE/ys-switch-save" 2>&1 | grep -E "state|证据" || true
+say "② 离开我的图"
+leave_map
 cp /tmp/ys-switch-after.png "$OUT/02-left.png" 2>/dev/null
-say "   离开后 SHA=$(sha)"
+B_after_leave=$(sha)
+say "   离开后 SHA=$B_after_leave"
 
 # ---- 2 构建（CLI 写盘）----
 if [ -n "$BUILD" ]; then
@@ -64,7 +90,7 @@ say "   构建后 SHA=$B1  $([ "$B0" != "$B1" ] && echo '✓ 磁盘已变化' ||
 
 # ---- 3 切回我的图（从磁盘载入）----
 say "④ 切回我的图（从磁盘载入新内容）"
-"$HERE/ys-switch-save" 2>&1 | grep -E "state|证据" || true
+enter_map
 cp /tmp/ys-switch-after.png "$OUT/04-back.png" 2>/dev/null
 B2=$(sha)
 say "   切回后 SHA=$B2  $([ "$B1" = "$B2" ] && echo '✓ 写入未被覆盖' || echo '✗ 被编辑器覆盖了！')"
@@ -75,13 +101,13 @@ YS_OUT="$OUT" "$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
   cd "'"$HERE"'"; . ./_ys-ui.sh; export YS_SLOT_ACTIVE=1
   O="'"$OUT"'"
   shot() { import -window 0x01400001 "$O/$1.png" 2>/dev/null; magick "$O/$1.png" -resize 1100x "$O/$1-s.png" 2>/dev/null; }
-  M() { local R G B; R=$(judge 41 99|cut -d" " -f1); G=$(judge 41 99|cut -d" " -f2); B=$(judge 41 99|cut -d" " -f3)
-        [ "${R:-0}" -gt 150 ] && [ "${G:-0}" -gt 150 ] && [ "${B:-0}" -gt 150 ] && echo MENU || echo OTHER; }
+  M() { local R G B; R=$(judge 300 300|cut -d" " -f1); G=$(judge 300 300|cut -d" " -f2); B=$(judge 300 300|cut -d" " -f3)
+        [ "${R:-0}" -gt 200 ] && [ "${G:-0}" -gt 200 ] && [ "${B:-0}" -gt 200 ] && echo MENU || echo OTHER; }
   i=0; while [ "$(M)" != "MENU" ] && [ $i -lt 4 ]; do ydotool key 1:1 1:0 2>/dev/null; sleep 3; i=$((i+1)); done
   echo "  菜单态=$(M) (ESC $i)"; shot 05-menu
-  ./ys-pointer-click 174 328; sleep 8;  shot 06-tile
-  ./ys-pointer-click 1439 816; sleep 14; shot 07-upload
-  ./ys-pointer-click 1282 1051; sleep 12; shot 08-start
+  ./ys-pointer-click 183 389; sleep 9;  shot 06-tile
+  ./ys-pointer-click 1444 811; sleep 15; shot 07-upload
+  YS_CLICK_HOLD=1.2 ./ys-pointer-click 1280 1052; sleep 14; shot 08-start
 ' 2>&1 | grep -E "菜单态|^\[ys-gui-slot\] 已取得"
 
 say "⑥ 等 ${TAIL_SEC}s 让游戏跑起来"

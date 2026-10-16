@@ -1,0 +1,38 @@
+#!/bin/bash
+# ys-reload-keep — 「保住 CLI 写入」的重载：快照 → 离开我的图 → 还原 → 重进
+#
+# 存在理由（2026-10-17 实测的硬约束）：
+#   编辑器把地图常驻内存，**离开一张图时先把内存版写回磁盘**（实测两次铁证）。
+#   于是「CLI 改了盘 → 直接切走再切回」= 亲手把 CLI 改动抹掉（全程零报错）。
+#   正确顺序是：先离开（让编辑器把旧内存写出去）→ 再写盘 → 再进入。
+#   但 CLI 改动往往在离开之前就做完了 ⇒ 本工具用**快照兜住**：离开前先把磁盘版存下来，
+#   离开动作写回旧内存之后，再把快照盖回去，最后重新进入 = 载入我们想要的版本。
+#
+# 用法: ys-reload-keep [快照路径]
+#   缺省 /tmp/ys-reload-keep.gil
+# 前置: 环境里要有 YS_SAVEDIR / YS_MAP_ID / YS_TEMPDIR（见 .scratch/three-games/env.sh）
+# 产物: 打印每一步的 SHA，可逐行核对
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+SNAP="${1:-/tmp/ys-reload-keep.gil}"
+WIN="${YS_WIN:-0x01400001}"
+G="${YS_SAVEDIR:?需要 YS_SAVEDIR}/${YS_MAP_ID:?需要 YS_MAP_ID}/${YS_MAP_ID}.gil"
+T="${YS_TEMPDIR:?需要 YS_TEMPDIR}/${YS_MAP_ID}.gil"
+
+sha() { [ -f "$1" ] && sha256sum "$1" | cut -c1-16 || echo "(缺)"; }
+
+echo "[1/4] 快照磁盘版: $(sha "$G")  → $SNAP"
+cp -f "$G" "$SNAP" || { echo "快照失败" >&2; exit 3; }
+
+echo "[2/4] 离开我的图（编辑器会写回旧内存，这里正是要被抹掉的一步）"
+"$HERE/ys-switch-save" >/dev/null 2>&1
+echo "      离开后磁盘: $(sha "$G")"
+
+echo "[3/4] 还原快照 → 磁盘 + Temp"
+cp -f "$SNAP" "$G"; [ -d "$(dirname "$T")" ] && cp -f "$SNAP" "$T"
+echo "      还原后磁盘: $(sha "$G")  Temp: $(sha "$T")"
+
+echo "[4/4] 重新进入我的图"
+"$HERE/ys-switch-save" >/dev/null 2>&1
+echo "      进入后磁盘: $(sha "$G")  （应等于还原后的值；若变了说明编辑器又写回了内存版）"

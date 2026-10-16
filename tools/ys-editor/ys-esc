@@ -1,0 +1,9 @@
+#!/bin/bash
+# ys-esc — 发一次 ESC（走硬通道）
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+cat > /tmp/ys-esc-act.sh <<'EOF'
+cd "$HERE"; ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep 2
+EOF
+"$HERE/ys-act" /tmp/ys-esc-act.sh /tmp/ys-esc.png >/dev/null 2>&1

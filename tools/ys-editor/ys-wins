@@ -1,0 +1,32 @@
+#!/bin/bash
+# ys-wins — 列出 KWin 堆叠序（底→顶）的窗口清单：标题 / WM_CLASS / 几何 / 是否活动
+#
+# 为什么要有它（2026-10-17 实测教训）：
+#   `xdotool search` 对 Wine 窗经常返回空或返回**非顶层**的中间窗；而"屏幕上到底是哪个窗口在
+#   我点的那一点"必须按 **stackingOrder**（KWin 语义：末元素=最上层）判定，不能靠猜。
+#   实测被这一点误导过：把"点不动"归因给界面没有该控件，真因是另一个窗口压在上面。
+#
+# 用法: ys-wins
+# 输出: 每行 "  [n] caption | class | x,y WxH | active|top"
+set -u
+TAG="yswins$RANDOM"
+JS="/tmp/ys-wins-$TAG.js"
+cat > "$JS" << JS
+var ord = workspace.stackingOrder;
+for (var i = 0; i < ord.length; i++) {
+  var w = ord[i];
+  var g = w.frameGeometry;
+  console.info("YS-WINS-$TAG [" + i + "] "
+    + String(w.caption || "(无题)") + " | "
+    + String(w.resourceClass || "?") + " | "
+    + Math.round(g.x) + "," + Math.round(g.y) + " " + Math.round(g.width) + "x" + Math.round(g.height)
+    + " | min=" + (w.minimized ? 1 : 0)
+    + (i === ord.length - 1 ? " |TOP" : "")
+    + (w === workspace.activeWindow ? " |ACTIVE" : ""));
+}
+JS
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+sleep 0.9
+journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-WINS-$TAG .*" | sed "s/YS-WINS-$TAG //"
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1

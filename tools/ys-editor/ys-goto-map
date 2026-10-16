@@ -1,0 +1,29 @@
+#!/bin/bash
+# ys-goto-map — 确定性切到/切离「我的图」：每步用 ys-where 核验，不符就再切一次
+#
+# 存在理由（2026-10-17 实测教训）：
+#   ys-switch-save 是**奇偶切换**（点存档列表第 2 位卡 = 在我的图↔别的图之间来回）。
+#   只要有一次切换没按预期发生，奇偶就翻了，之后每一步都反着走——
+#   实测后果：以为在"离开"其实在"进入" ⇒ ①CLI 改动被编辑器写回旧内存抹掉
+#   ②试玩跑的是**另一张空图**（截图证据：空草地 + INPUT-PROBE 水印），白烧一整轮。
+#   ⇒ 只靠奇偶不可靠，必须**每步核验**，判据走 ys-where（标题模板匹配，实测 score 0.9999）。
+#
+# 用法: ys-goto-map enter [最多尝试次数]   # 保证停在「我的图」
+#       ys-goto-map leave [最多尝试次数]   # 保证停在「别的图」（写盘前的安全状态）
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+MODE="${1:?用法: ys-goto-map enter|leave [次数]}"
+TRIES="${2:-4}"
+case "$MODE" in enter) WANT=MY_MAP;; leave) WANT=OTHER_MAP;; *) echo "模式必须是 enter|leave" >&2; exit 2;; esac
+echo "[ys-goto-map] 目标=$WANT（最多 $TRIES 次尝试）"
+for i in $(seq 1 "$TRIES"); do
+  S=$("$HERE/ys-where" 2>/dev/null | tail -1)
+  echo "  第 $i 次探测: $S"
+  if [ "$S" = "$WANT" ]; then echo "[ys-goto-map] ✅ 已到位（$S），尝试 $i 次"; exit 0; fi
+  echo "  不符，执行一次切换…"
+  "$HERE/ys-switch-save" >/dev/null 2>&1
+done
+S=$("$HERE/ys-where" 2>/dev/null | tail -1)
+if [ "$S" = "$WANT" ]; then echo "[ys-goto-map] ✅ 已到位（$S，收尾复检）"; exit 0; fi
+echo "[ys-goto-map] ✗ $TRIES 次仍未到位，最后状态=$S" >&2
+exit 4

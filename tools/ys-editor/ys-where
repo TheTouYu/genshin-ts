@@ -1,0 +1,28 @@
+#!/bin/bash
+# ys-where — 判定千星编辑器**现在打开的是哪张图**
+#
+# 判据（2026-10-17 实测，score 0.9999）：
+#   存档选择页每张卡的标题就是地图名。**位置 1 的卡 = 当前打开的那张**（黄色边框 + 只有它显示「保存/另存为」）。
+#   ⇒ 把我的图标题模板在全屏做匹配：
+#        命中 x < 1000（第 1 列）  → 当前打开的是我的图   → MY_MAP
+#        命中 x > 1000（第 2 列起）→ 当前打开的是别的图   → OTHER_MAP
+#        完全没命中                → 不在存档页          → UNKNOWN
+#   为什么不用像素判据：视口像素受机位影响（实测两图同点都是草绿）；
+#   系统菜单判据 px(41,99) 也不稳（灰 196,200,198 会过、蓝 70,164,229 会挂）。
+#
+# 用法: ys-where
+# 输出: MY_MAP | OTHER_MAP | UNKNOWN（可 source 后读 $STATE）
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+TPL="$HERE/templates/mymap-title.png"
+SHOT=/tmp/ys-where.png
+
+"$HERE/ys-peek" "$SHOT" >/dev/null 2>&1
+LINE=$(timeout 60 python3 "$HERE/ys_look.py" find "$TPL" 0 0 2560 1440 2>/dev/null | tail -1)
+X=$(echo "$LINE" | awk '{print $1}')
+SC=$(echo "$LINE" | awk '{print $3}')
+if [ -z "${X:-}" ] || [ -z "${SC:-}" ]; then echo "UNKNOWN"; exit 2; fi
+# 分数门限 0.9：低于此视为没找到
+if awk "BEGIN{exit !($SC < 0.90)}"; then echo "UNKNOWN"; exit 2; fi
+if [ "$X" -lt 1000 ]; then echo "MY_MAP"; else echo "OTHER_MAP"; fi
