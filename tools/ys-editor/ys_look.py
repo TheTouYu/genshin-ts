@@ -84,9 +84,17 @@ def ncc(I, T):
         return _ncc_np(I, T)
 
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
+LAST_DAEMON_ERROR = None   # 2026-10-17：常驻服务的错误以前被静默吞掉，见 daemon() 注释
 
 def daemon(req, timeout=30):
-    """优先走常驻服务 ys-lookd（省掉 torch import + CUDA 初始化）；连不上返回 None 回退本地"""
+    """优先走常驻服务 ys-lookd（省掉 torch import + CUDA 初始化）；连不上返回 None 回退本地。
+
+    2026-10-17 修：以前服务返回 {"error": …} 时静默返回 None，调用方会**无声地**回落到
+    本地 X11 截屏路径——而本环境（Wayland/Xwayland）那条路径拿不到像素，最终报出
+    「截取失败 (0 != 11059200)」这种与真因无关的错。现在把服务端错误记进 LAST_DAEMON_ERROR，
+    由调用方显式打印：**仪器出错要出声**。
+    """
+    global LAST_DAEMON_ERROR
     if os.environ.get("YS_LOOK_LOCAL") == "1" or not os.path.exists(SOCK):
         return None
     try:
@@ -100,7 +108,10 @@ def daemon(req, timeout=30):
             data += ch
         c.close()
         r = _j.loads(data.decode())
-        return None if "error" in r else r
+        if "error" in r:
+            LAST_DAEMON_ERROR = r["error"]
+            return None
+        return r
     except Exception:
         return None
 
@@ -114,10 +125,19 @@ def main():
         print(f"{int(round(p[0]))} {int(round(p[1]))} {int(round(p[2]))} (local)")
     elif cmd == "find":
         tpl_path = sys.argv[2]
+        # 2026-10-17 修：模板路径**必须绝对化**。
+        # 常驻服务 ys-lookd 在它自己的 cwd 下解析路径 ⇒ 传相对路径时它内部的 identify 失败、
+        # dim 为空、抛 IndexError、错误被吞掉，最后回落到本环境不可用的本地 X11 截屏，
+        # 报出一个与真因无关的「截取失败 (0 != …)」。实测：绝对路径正常，相对路径必炸。
+        tpl_path = os.path.abspath(tpl_path)
+        if not os.path.exists(tpl_path):
+            sys.stderr.write(f"[ys_look] 模板不存在: {tpl_path}\n"); sys.exit(3)
         T = grab(0, 0, 0, 0) if False else None
         img = subprocess.run(["magick", tpl_path, "-depth", "8", "rgb:-"], capture_output=True).stdout
         # 模板：读 PNG 尺寸
         dim = subprocess.run(["identify", "-format", "%w %h", tpl_path], capture_output=True, text=True).stdout.split()
+        if len(dim) < 2:
+            sys.stderr.write(f"[ys_look] identify 读不出尺寸（模板损坏？）: {tpl_path}\n"); sys.exit(3)
         tw, th = int(dim[0]), int(dim[1])
         T = np.frombuffer(img, dtype=np.uint8).reshape(th, tw, 3).astype(np.float32) / 255.0
         if len(sys.argv) > 6:
@@ -129,6 +149,8 @@ def main():
         reg = [X, Y, W, H] if len(sys.argv) > 6 else None
         r = daemon({"cmd": "find", "tpl": tpl_path, "region": reg, "win": WIN})
         if r: print(f"{r['x']} {r['y']} {r['score']} {r['backend']}(daemon)"); return
+        if LAST_DAEMON_ERROR:
+            sys.stderr.write(f"[ys_look] 常驻服务报错（将回退本地，本环境通常不可用）: {LAST_DAEMON_ERROR}\n")
         I = grab(X, Y, W, H)
         x, y, s, backend = ncc(I, T)
         print(f"{X + x + tw // 2} {Y + y + th // 2} {s:.4f} {backend}(local)")
