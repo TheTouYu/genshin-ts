@@ -155,6 +155,23 @@ E/Q/R/T → `KeyboardCharacterSkill1–4`，X → `DropKey`，Tab → `OpenShort
 3. **wineserver 是 prefix 跨会话单例**：不清旧 `wineserver`（与 ZFGameBrowser 残留）就改配置/重启，新会话会被旧环境变量污染；
    另：`pgrep` 匹配到残留/僵尸进程再读 `environ` 会得到**假阴性**。
 
+
+### 编辑器僵尸 / 卡窗处置（**先判后动**；`ys-editor-guard kill` = 用户指认的「优雅清理」）
+
+```bash
+ys-editor-guard status   # 先取读数：编辑器进程 / 连接 / 重连风暴计数
+ys-editor-guard check    # 单次判定并打印结论（不动手）
+ys-editor-guard kill     # 优雅清理：**只杀编辑器进程，绝不碰游戏 / wineserver**
+ys-editor-guard daemon   # 常驻自愈守护（systemd 用户服务用；YS_GUARD_MODE=dry 只记录）
+```
+**判僵尸的两条判据（任一命中）**：A 持续性重连风暴（NLog 的 "Tcp Connector fail" 连续 ≥8s 且累计 ≥300 条；
+健康重连风暴只持续 ~40ms/约 20 条 → 不误杀）；B 断连滞留（该代编辑器曾真连接过，之后 ≥20s 无真连接；
+**真连接 = ESTAB 且本地端口 ≠ 对端端口**，自环 socket 不算）。
+
+**窗口点不动（不是僵尸，只是卡住）**：`ys-unstick`（程序化激活 + WM 级 1px 往返 = 等价于手动拖动，可脚本化）
+／`ys-unstick2`（最小化 → 稍等 → 恢复；Wine bug 59965 的 ReleaseCapture 重置法）。
+**取证**：`ys-stuck-report`（一次性 dump 窗口状态/编辑器活性/连接/日志到 `~/.cache/ys-stuck/`）。
+
 ## 窗口激活铁则（2026-10-17 实测更正；此前误判为"环境阻塞"）
 
 - **可用写法**：KWin 脚本里 **`workspace.activeWindow = t`（直赋）**。
