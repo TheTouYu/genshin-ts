@@ -140,6 +140,21 @@ E/Q/R/T → `KeyboardCharacterSkill1–4`，X → `DropKey`，Tab → `OpenShort
 | 全窗模板匹配（GPU，常驻） | **1.0s**（服务前 4.4s） |
 | 试玩双流程（优化后） | start 8.3s + stop 8.2s = **16.5s**（用户手工宽松基准 43s） |
 
+
+### 日志窗的三个已知坑（来自 2026-10-12 既有记录，**先查再动**）
+
+1. **最大化自伤**：用户/误操作点了日志窗最大化 → `_NET_WM_STATE_MAXIMIZED_HORZ+VERT` 全屏 → **内容点不到**（Wine+WPF+Xwayland 1.5 缩放下该应用的最大化按钮自伤）。
+   **KWin 脚本 3 秒可救，不需要重启应用**：
+   ```js
+   // 选中：stackingOrder 里 caption 含'日志' 且 resourceClass 含 beyondeditor
+   w.setMaximize(false, false);
+   w.maximizedHorizontally = false; w.maximizedVertically = false;   // 属性双保险
+   ```
+   恢复目标几何：**物理 900×800 @ (1660,0) = 逻辑 600×533.33 @ (1106.67,0)**（÷1.5 吻合）。
+2. **KWin 脚本 `start()` 挂在 `/Scripting` 本体**（`org.kde.kwin.Scripting.start` 无参=启动全部已载入脚本）；**不存在 `/Scripting/<名>` 对象**。
+3. **wineserver 是 prefix 跨会话单例**：不清旧 `wineserver`（与 ZFGameBrowser 残留）就改配置/重启，新会话会被旧环境变量污染；
+   另：`pgrep` 匹配到残留/僵尸进程再读 `environ` 会得到**假阴性**。
+
 ## 窗口激活铁则（2026-10-17 实测更正；此前误判为"环境阻塞"）
 
 - **可用写法**：KWin 脚本里 **`workspace.activeWindow = t`（直赋）**。
