@@ -60,9 +60,9 @@
 | 复杂静态模型/元件/实体/装饰物拼装 | `static-gil-model-builder` |
 | 变量/挂载/UI/信号等 .gil 资源写回 | `genshin-ts-asset-operations` |
 | 读/改节点图内部逻辑 | `gil-node-graph-reading` / `gil-node-graph-editing` |
-| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合：变量运算/随机/定时器/实体查询销毁/矩阵/数学几何/长列表/输入锁等，有现成的直接抄） |
+| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合，有现成的直接抄） |
 | 调试节点图日志/负载 | `debug-log-investigator` |
-| 编辑器/沙箱窗口层故障（点不动/启动不了） | `tools/ys-editor/README.md`（**先查版本+已知 bug**，再白盒） |
+| **真机试玩与取数** / 编辑器窗口层故障（点不动、启动不了） | `device-playtest-loop` 技能（开退试玩/批次注入/离线取数）+ `tools/ys-editor/`（先查版本与已知 bug） |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
