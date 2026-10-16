@@ -1,0 +1,8 @@
+起始: KeyboardDropKeyUp ; KeyboardDropKeyDown
+U(ev22) => KeyboardCraftspersonKeyllUp ; KeyboardCraftspersonKeyliDown
+I(ev23) => KeyboardCraftspersonKeyl6Up ; KeyboardCraftspersonKeyl6Down
+J(ev36) => KeyboardCraftspersonKeyl9Up ; KeyboardCraftspersonKeyl9Down
+K(ev37) => KeyboardCraftspersonKey20Up ; KeyboardCraftspersonKey20Down
+A(ev30) => KeyboardMoveLeftKeyUp ; KeyboardMoveLeftKeyDown
+RIGHT(ev106) => KeyboardCraftspersonKey39Up ; KeyboardCraftspersonKey39Down
+1(ev2) => KeyboardCraftspersonKeylUp ; KeyboardCraftspersonKeylDown
