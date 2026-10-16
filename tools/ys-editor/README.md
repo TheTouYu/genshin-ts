@@ -15,6 +15,7 @@
 
 | 文件 | 用途 |
 |---|---|
+| `ys-gui-slot` | **共享桌面「申请制窗口占用」包装器**（2026-10-16 用户令：约定要做成设计，自动保证用完就还）。`ys-gui-slot <win> <max-seconds> <cmd...>`：记下当前焦点 → 激活目标窗并核验 → 硬时限运行命令 → **trap EXIT 无论成败都把焦点还回去**并打印占用秒数。所有注入类操作必须经它，禁止裸调 wmctrl/ydotool |
 | `ys-selfconnect-vaccine` | 自环疫苗（show/once/daemon）。`ip_local_reserved_ports` 维护 + 日志 |
 | `accept-meter.py` | **构建无关验收器**：试玩循环 PASS/FAIL。`PASS`=重连成功且 30s 内有 `level state changed`；`FAIL(zombie)`=连上后 30s 零推进（故障代签名）；`FAIL(storm)`=90s 没连上 |
 | `ys-stuck-report` | 一键取证：进程/活动窗/指针窗/连接/自环/保留表/NLog 尾部 |

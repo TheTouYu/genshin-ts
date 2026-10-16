@@ -5,12 +5,13 @@
 -- ③顺带：SimulateCursorClick 行为 / CursorEnter-Exit / CursorMove 枚举有无 /
 --        game.GetDevice / game.GetCursorUIPos
 -- 挂载：服务端控件模板 n1「探针层」（stretch 全屏容器，showCursor=true）
--- 模板：T_TXT=1073742301(textbox) T_BTN=1073742302(button) T_AREA=1073742304(cursor)
+-- 模板：T_TXT=1073741871(textbox) T_BTN=1073741872(button) T_AREA=1073741873(cursor)
+-- （1829 槽导入重编号 guid，v4 差分定谳；模拟器 save 内为 2301/2302/2304）
 -- 逻辑场 444×250，千星 Y 向上；读出=屏上文本行（真机唯一可靠读出）
 -- 统计核心：clickMaxD=所有 Click 的最大抬起位移；dragMinD=所有 BeginDrag 的最小触发位移
 --           阈值 T 满足 clickMaxD ≤ T ≤ dragMinD（自动夹区间，无需人工精确控位移）
 -- ============================================================
-local T_TXT, T_BTN, T_AREA = 1073742301, 1073742302, 1073742304
+local T_TXT, T_BTN, T_AREA = 1073741854, 1073741855, 1073741856
 local KE, CE = Enum.KeyEventType, Enum.CursorEventType
 local FW, FH = 444, 250
 
@@ -117,8 +118,15 @@ local function txtc(key, str, size, r, g, b, gx, gy, w, h)
   c.fontColor = Color(r, g, b, 255)
   c.bgColor = Color(0, 0, 0, 0)
   c.enableOutline = true
+  -- v11: 模板默认锚点疑似 stretch（sizeDelta 沦为偏移、宽盒推出屏幕=九轮"只有SIM/RST"根因）
+  -- 显式中心点锚 + SetSizeDelta 才是真实盒尺寸（官方 API SetAnchorMin/Max）
+  c:SetAnchorMin(0.5, 0.5)
+  c:SetAnchorMax(0.5, 0.5)
   c:SetAnchoredPosition(gx * K - HX, gy * K - HY)
-  c:SetSizeDelta(w * K, h * K)
+  -- v13: 真机 textbox 按盒高裁剪文字行（v12 实证：盒高/字高 1.25 不可见、1.54 可见）
+  -- 盒高下限 = 字高 × 1.8，杜绝整行被裁
+  local fontPx = math.max(10, math.floor(size * K + 0.5))
+  c:SetSizeDelta(w * K, math.max(h * K, fontPx * 1.8))
   L[key] = c
   return c
 end
@@ -127,6 +135,7 @@ end
 local function onKeyEv(name)
   keyLast2 = keyLast1
   keyLast1 = name
+  print('[key] ' .. name)
   render()
   return false
 end
@@ -159,30 +168,61 @@ end
 function OnStart()
   script.object.showCursor = true
   CW, CH = game.GetUICanvasSize()
+  -- v6 根因修复：宿主实例真机 sizeDelta=0x0（v5 print 实证；模板 stretch 未在实例生效）
+  --   → 运行时强设全屏。after 读回 print 验证；若全行显=闭环。
+  do
+    local ok = pcall(function() script.object:SetSizeDelta(CW, CH) end)
+    local w = 0; local h = 0
+    pcall(function() w = script.object.sizeDeltaX; h = script.object.sizeDeltaY end)
+    print('[probe-parent] before=0,0 after=' .. tostring(w) .. ',' .. tostring(h)
+      .. ' setOk=' .. tostring(ok) .. ' CW=' .. tostring(CW))
+  end
+  -- v7 官方诊断：打印运行时控件树（指南核对：容器激活链/层级/挂载结构一次看清）
+  pcall(function() game.PrintClientUITree() end)
+  do
+    local okn, nm = pcall(function() return script.object.name end)
+    print('[probe-host] name=' .. (okn and tostring(nm) or 'ERR'))
+    end
   K = CW / FW
   HX, HY = CW / 2, CH / 2
 
-  -- 读出行（上半屏，全 ASCII，显式宽度防 textbox 裁剪）
-  local devTxt = '?'
-  local okd, dev = pcall(function() return game.GetDevice() end)
-  if okd and dev and dev.Name then devTxt = dev.Name end
-  txtc('title', 'INPUT-PROBE v1  CANVAS ' .. math.floor(CW + 0.5) .. 'x' .. math.floor(CH + 0.5)
-    .. ' DEV=' .. devTxt, 11, 235, 235, 235, 222, 241, 438, 14)
-  txtc('line1', 'PRESS(-) UP(-) DISP=-', 12, 255, 220, 90, 222, 224, 438, 15)
-  txtc('line2', 'SEQ', 10, 235, 235, 235, 222, 207, 438, 13)
-  txtc('line3', 'CL n=0 max=- | BD n=0 min=- | T ?', 11, 120, 255, 120, 222, 191, 438, 14)
-  txtc('line4', 'KEYS 0/0', 9, 160, 205, 255, 222, 176, 438, 12)
-  txtc('line5', 'CUR - | CM=?', 9, 190, 190, 190, 222, 162, 438, 12)
-  txtc('hint', 'drag test = lower screen | avoid SIM/RST buttons', 8, 170, 170, 170, 222, 149, 438, 11)
+  -- v9: 读出行移至最后创建（z-order 实验：textbox 在光标区/按钮之上）
+  do
+    local ok1, pw = pcall(function() return script.object.sizeDeltaX end)
+    local ok2, ph = pcall(function() return script.object.sizeDeltaY end)
+    print('[probe-parent] size=' .. (ok1 and tostring(pw) or 'ERR') .. ','
+      .. (ok2 and tostring(ph) or 'ERR'))
+  end
+  for _, k in ipairs({ 'title', 'line1', 'line5', 'diagP', 'diagQ', 'simLbl', 'rstLbl' }) do
+    local c = L[k]
+    if c then
+      local ok1, w = pcall(function() return c.sizeDeltaX end)
+      local ok2, h = pcall(function() return c.sizeDeltaY end)
+      print('[probe-geo] ' .. k .. ' size=' .. (ok1 and tostring(w) or 'ERR') .. ','
+        .. (ok2 and tostring(h) or 'ERR'))
+    end
+  end
+  print('[input-probe] OnStart done CW=' .. tostring(CW) .. ' CH=' .. tostring(CH)
+    .. ' K=' .. tostring(K) .. ' DEV=' .. tostring(devTxt))
 
   -- 全屏光标区（先建=最底层；读出行在上，按钮最后建=顶层）
   area = mkc(T_AREA, 'ProbeArea')
+  -- v11: stretch 锚（0,0-1,1）+ 零偏移 = 真全屏（sizeDelta 在 stretch 下是偏移，不再当尺寸用）
+  area:SetAnchorMin(0, 0)
+  area:SetAnchorMax(1, 1)
   area:SetAnchoredPosition(0, 0)
-  area:SetSizeDelta(CW, CH)
+  area:SetSizeDelta(0, 0)
 
   local function onCur(tag, d)
     local disp = dispOf(d)
     probeField(d)
+    -- 测量用打印：每个光标事件的类型/位置/按下点/位移（一次短爆发注入后可离线读 Debug_Log）
+    do
+      local cxp, cyp = evPos(d)
+      local pxp, pyp = evPress(d, cxp, cyp)
+      print('[cur] ' .. tag .. ' x=' .. f1(cxp) .. ' y=' .. f1(cyp)
+        .. ' pr=' .. f1(pxp) .. ',' .. f1(pyp) .. ' d=' .. f1(disp))
+    end
     if tag == 'Dn' then
       local x, y = evPos(d)
       pressTxt = ptStr(d); upTxt = '-'; upD = '-'
@@ -291,6 +331,8 @@ function OnStart()
 
   -- SIM / RST 按钮（最后建=顶层可点；测试时避开左下角）
   local sim = mkc(T_BTN, 'SIM')
+  sim:SetAnchorMin(0.5, 0.5)
+  sim:SetAnchorMax(0.5, 0.5)
   sim:SetAnchoredPosition(38 * K - HX, 16 * K - HY)
   sim:SetSizeDelta(56 * K, 22 * K)
   pcall(function()
@@ -302,6 +344,8 @@ function OnStart()
     end)
   end)
   local rst = mkc(T_BTN, 'RST')
+  rst:SetAnchorMin(0.5, 0.5)
+  rst:SetAnchorMax(0.5, 0.5)
   rst:SetAnchoredPosition(104 * K - HX, 16 * K - HY)
   rst:SetSizeDelta(56 * K, 22 * K)
   pcall(function()
@@ -316,7 +360,50 @@ function OnStart()
     end)
   end)
   txtc('simLbl', 'SIM', 8, 255, 255, 255, 38, 16, 56, 12)
-  txtc('rstLbl', 'RST', 8, 255, 255, 255, 104, 16, 56, 12)
+  txtc('rstLbl', 'RST', 8, 255, 255, 255, 104, 16, 56, 12) -- v4: 回滚 56K（v3 加宽消失=宽度因素证据）
+
+  -- 读出行（下半屏往上排，全 ASCII；v14: 行距按盒高(字高×1.8)重排，消除 v13 重叠）
+  local devTxt = '?'
+  local okd, dev = pcall(function() return game.GetDevice() end)
+  if okd and dev and dev.Name then devTxt = dev.Name end
+  txtc('title', 'INPUT-PROBE v1  CANVAS ' .. math.floor(CW + 0.5) .. 'x' .. math.floor(CH + 0.5)
+    .. ' DEV=' .. devTxt, 11, 235, 235, 235, 222, 32, 438, 14)
+  txtc('line1', 'PRESS(-) UP(-) DISP=-', 12, 255, 220, 90, 222, 54, 438, 15)
+  txtc('line2', 'SEQ', 10, 235, 235, 235, 222, 76, 438, 13)
+  txtc('line3', 'CL n=0 max=- | BD n=0 min=- | T ?', 11, 120, 255, 120, 222, 96, 438, 14)
+  txtc('line4', 'KEYS 0/0', 9, 160, 205, 255, 222, 114, 438, 12)
+  txtc('line5', 'CUR - | CM=?', 9, 190, 190, 190, 222, 130, 438, 12)
+  txtc('hint', 'drag test = upper screen | SIM/RST at bottom-left', 8, 170, 170, 170, 222, 142, 438, 11)
+
+  -- v8 模板索引对照：prefabIndex 只读字段（ClientUIBaseControl）——直接读创建返回值
+    local function describe(tag, c)
+      if not c then print('[probe-mk] ' .. tag .. ' = nil'); return end
+      local a, b, d, p = '?', '?', '?', '?'
+      pcall(function() a = tostring(c.prefabIndex) end)
+      pcall(function() b = tostring(c.id) end)
+      pcall(function() d = tostring(c.alive) end)
+      pcall(function() p = tostring(c:GetParent().name) end)
+      -- v12: 矩形读回诊断（锚点/位置/尺寸 getter——真机可见性排查）
+      local r = {}
+      local function grab(name, fn)
+        local ok, x, y = pcall(fn)
+        r[#r+1] = name .. '=' .. (ok and (tostring(x) .. ',' .. tostring(y)) or 'ERR')
+      end
+      grab('aMin', function() return c:GetAnchorMin() end)
+      grab('aMax', function() return c:GetAnchorMax() end)
+      grab('pos', function() return c:GetAnchoredPosition() end)
+      grab('sz', function() return c:GetSizeDelta() end)
+      local okv, vis = pcall(function() return tostring(c.visible) end)
+      print('[probe-mk] ' .. tag .. ' prefabIndex=' .. a .. ' id=' .. b .. ' alive=' .. d
+        .. ' vis=' .. (okv and vis or 'ERR') .. ' ' .. table.concat(r, ' '))
+    end
+    describe('host', script.object)
+    describe('area', area)
+    describe('sim', sim)
+    describe('rst', rst)
+    describe('title', L.title)
+    describe('line1', L.line1)
+    describe('simLbl', L.simLbl)
 
   render()
   script:EnableUpdate(true)

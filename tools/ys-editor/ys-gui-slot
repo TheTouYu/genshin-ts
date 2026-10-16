@@ -1,0 +1,45 @@
+#!/bin/bash
+# ys-gui-slot — 共享桌面的「申请制窗口占用」包装器
+# （2026-10-16 用户令：约定不能只写在技能里，要做成设计，自动保证「用完就还」）
+#
+# 用法: ys-gui-slot.sh <win> <max-seconds> <command...>
+#   <win> 窗口 id：wmctrl 十六进制(0x01400001) 或 xdotool 十进制(20971521) 均可
+#
+# 行为（对调用者透明地保证三件事）:
+#   1) 记下当前焦点；2) 激活目标窗并**核验**焦点；3) 运行命令（硬时限 max-seconds）；
+#   4) **无论成功/失败/超时/被信号打断，trap EXIT 都把焦点还给原窗口**，并打印实际占用秒数。
+#
+# 规矩: 所有对用户桌面的注入类操作（ydotool / 坐标点击 / 截图轮询）都必须经由此脚本，
+#       禁止在别处裸调 wmctrl/ydotool —— 「忘了切回」在结构上不可能发生。
+set -u
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+
+if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
+WIN_RAW="$1"; MAX="$2"; shift 2
+case "$WIN_RAW" in
+  0x*|0X*) WIN_HEX="$WIN_RAW"; WIN_DEC=$(( WIN_RAW )) ;;
+  *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
+esac
+
+PREV=$(xdotool getwindowfocus 2>/dev/null || true)
+START=$(date +%s)
+restore() {
+  local now; now=$(date +%s)
+  if [ -n "${PREV:-}" ] && [ "$PREV" != "$WIN_DEC" ]; then
+    wmctrl -i -a "$(printf '0x%08x' "$PREV")" 2>/dev/null || true
+  fi
+  echo "[ys-gui-slot] 占用 $(( now - START ))s｜焦点已归还 -> ${PREV:-unknown}"
+}
+trap restore EXIT INT TERM HUP
+
+wmctrl -i -a "$WIN_HEX" 2>/dev/null
+sleep 0.3
+cur=$(xdotool getwindowfocus 2>/dev/null || true)
+if [ "$cur" != "$WIN_DEC" ]; then
+  echo "[ys-gui-slot] 焦点核验失败（当前=$cur 目标=$WIN_DEC）——未执行命令" >&2
+  exit 3
+fi
+echo "[ys-gui-slot] 已取得 $WIN_HEX 焦点｜时限 ${MAX}s"
+timeout --signal=TERM "$MAX" "$@"
+exit $?
