@@ -151,6 +151,8 @@ npx tsx src/cli/gsts.ts assets:node-graphs def-clean --gil <map.gil> <def-id...>
 
 ## 安全流程（写回真实地图的固定步骤）
 
+> **通用门以 `genshin-ts-asset-operations` 的「通用安全写回流程」为准**；本节列节点图编辑特化（快照→候选→回读→写回→报告备份路径）。
+
 ```
 0. 动源图前先导出：parse --json 落盘源图全量结构（复制源 + 对比基准），再开始改
 1. 快照：cp 真实 .gil → ~/genshin-ts-evidence/<实验>/raw/before.gil + sha256sum 记录

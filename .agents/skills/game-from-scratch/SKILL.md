@@ -151,6 +151,8 @@ gsts assets:resources list --gil <map>                             # 列出（st
 
 ## 3. 资产写回 + 视觉核验循环
 
+> 通用写回安全门（定位→盘点锁 SHA→候选→安全门→写回→回读→重载）以 `genshin-ts-asset-operations` 的「通用安全写回流程」为**唯一权威**，本节写本阶段特化。
+
 ```text
 生成器/配置 → plan（status=ready，源 SHA 锁定）→ 候选 → 回读（export 逐 item 核对颜色/Transform/ID）
 → 展示安全门（目标/源 SHA/候选 SHA/新对象/触及 root/备份回滚）→ hash-gated 写回 → 写后回读 → 用户游戏核验
@@ -324,7 +326,7 @@ layout lint）。典型问题：API 写法（连线/参数/引脚错、duplicate
   `--definitions-gil` 已提供。有效自定义定义实体 relation = `{定义ID}` 无 f2:1。
 - **信号注册后必须核验版本一致性**：inspect 输出每信号的 v= 与 defs=[..] 应一致且
   ≥ 阈值（N 个被引用信号 → ≥ max(3, ceil(3N/4))）；CLI register 已全表回填只升不降。
-- **每次写回（register/inject/import/attach）后，用户必须先重新加载编辑器再保存**：
+- **每次写回（register/inject/import/attach）后，用户先重新加载编辑器再保存**（协议见 `genshin-ts-asset-operations`「通用安全写回流程」step 6）：
   编辑器旧内存保存会覆盖磁盘写回（v19 教训复发：灯柱实体两次"消失"、信号 v4 出错版均因此）。
   排查"变更消失"先核对当前 hash 是否等于写回后 hash。
 - **游戏拒载类错误无日志**：进不去地图时 Beyond_Debug_Log 不产生新文件（加载期错误不落

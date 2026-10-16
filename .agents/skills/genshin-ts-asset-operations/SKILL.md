@@ -53,6 +53,8 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 ## 通用安全写回流程（所有资源操作共用）
 
+> **本节是全项目「写回安全门」的唯一权威**（2026-10-17 归一）：其它技能写自己的领域特化（模型拼装/节点图/UI/变量），通用七步以本节为准并引用本节；改通用门只改这里。
+
 CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺序走：
 
 0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在 `/mnt/c/Users/<用户>/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（Windows 挂载盘，glob/find home 找不到），Temp 缓存在同级 `../Temp/`。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
@@ -249,6 +251,8 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 先注册再注入：目标图缺失时先 `assets:node-graphs create` 建空图（见 A 节）。
 
 ### E. Lua 脚本资产（`assets:scripts`，2026-10-16 CLI 落地）
+
+> **两条路线并存**：本节是**仓库 CLI 通道**（f50 登记表 + `external_lua_file`）；模拟器路线在同一批脚本上讲「内联 `scripts[].source` 优先」（见 `qxqy-simulator` / `qxqy-game-studio`）。两套字段不同源，排查脚本不生效时先确认走的是哪条通道。
 
 地图级 Lua 脚本登记在 **f50 登记表**（两层：顶层 `f50{LEN:容器}` → 容器内 `f1{LEN:{f1:guid, f2:name, f3:file_path, f5:source}}`）。
 
