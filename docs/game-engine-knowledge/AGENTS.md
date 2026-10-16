@@ -258,4 +258,6 @@ GIL 整体结构与语义树
 - **静态模型/朝向**：[静态与动态预制体](retrospective-2026-08-20-static-dynamic-prefabs.md)、
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
-  [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)
+  [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)- **工具链与桌面自动化**：[真机输入探针→GUI 流程优化→上游回信](retrospective-2026-10-17-gui-automation-and-input-probe.md)
+  （七错谱系+三系统性根因：**仪器盲区**（全窗判据 5893ms 被误记为"游戏 UI 抖动 7~25s"）/成本链未排序必打错主导项/规则落点错位；
+   双流程 77s→16.5s，GPU 常驻服务 4.4s→1.0s；用户 4 次方法级纠正逐字入档）
