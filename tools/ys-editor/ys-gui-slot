@@ -4,16 +4,19 @@
 #
 # 用法: ys-gui-slot.sh <win> <max-seconds> <command...>
 #   <win> 窗口 id：wmctrl 十六进制(0x01400001) 或 xdotool 十进制(20971521) 均可
+#   环境: YS_GUI_SLOT_FALLBACK = 归还焦点时的兜底窗口（缺省千星沙箱 0x03600008）
 #
-# 行为（对调用者透明地保证三件事）:
-#   1) 记下当前焦点；2) 激活目标窗并**核验**焦点；3) 运行命令（硬时限 max-seconds）；
-#   4) **无论成功/失败/超时/被信号打断，trap EXIT 都把焦点还给原窗口**，并打印实际占用秒数。
+# 归还逻辑（三级，逐步验证，不假设一次就成功）：
+#   1) 原焦点是**有名字的真实窗口** → 还给它；
+#   2) 核验：若目标窗仍持焦点（游戏常自己抢回）→ 激活兜底窗口；
+#   3) 再核验一次，并打印最终焦点 + 占用秒数。
 #
 # 规矩: 所有对用户桌面的注入类操作（ydotool / 坐标点击 / 截图轮询）都必须经由此脚本，
-#       禁止在别处裸调 wmctrl/ydotool —— 「忘了切回」在结构上不可能发生。
+#       禁止在别处裸调 wmctrl/ydotool。
 set -u
 export DISPLAY="${DISPLAY:-:1}"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+FALLBACK="${YS_GUI_SLOT_FALLBACK:-0x03600008}"   # 千星沙箱
 
 if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
 WIN_RAW="$1"; MAX="$2"; shift 2
@@ -22,14 +25,28 @@ case "$WIN_RAW" in
   *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
 esac
 
+hex_of() { printf '0x%08x' "$1"; }
+name_of() { xdotool getwindowname "$1" 2>/dev/null || true; }
+
 PREV=$(xdotool getwindowfocus 2>/dev/null || true)
+PREV_NAME=""
+[ -n "${PREV:-}" ] && PREV_NAME=$(name_of "$PREV")
 START=$(date +%s)
+
 restore() {
-  local now; now=$(date +%s)
-  if [ -n "${PREV:-}" ] && [ "$PREV" != "$WIN_DEC" ]; then
-    wmctrl -i -a "$(printf '0x%08x' "$PREV")" 2>/dev/null || true
+  local cur
+  # 1) 还回原焦点（仅当它是有名字的真实窗口，且不是目标窗本身）
+  if [ -n "${PREV:-}" ] && [ -n "$PREV_NAME" ] && [ "$PREV" != "$WIN_DEC" ]; then
+    wmctrl -i -a "$(hex_of "$PREV")" 2>/dev/null || true; sleep 0.3
   fi
-  echo "[ys-gui-slot] 占用 $(( now - START ))s｜焦点已归还 -> ${PREV:-unknown}"
+  cur=$(xdotool getwindowfocus 2>/dev/null || true)
+  # 2) 目标窗仍占焦（游戏自己抢回 / 原焦点是无名 helper）→ 兜底窗口
+  if [ "$cur" = "$WIN_DEC" ] || [ -z "$cur" ]; then
+    wmctrl -i -a "$FALLBACK" 2>/dev/null || true; sleep 0.4
+    cur=$(xdotool getwindowfocus 2>/dev/null || true)
+  fi
+  # 3) 报告最终状态
+  echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点=${cur}（$(name_of "$cur")）"
 }
 trap restore EXIT INT TERM HUP
 
@@ -40,6 +57,6 @@ if [ "$cur" != "$WIN_DEC" ]; then
   echo "[ys-gui-slot] 焦点核验失败（当前=$cur 目标=$WIN_DEC）——未执行命令" >&2
   exit 3
 fi
-echo "[ys-gui-slot] 已取得 $WIN_HEX 焦点｜时限 ${MAX}s"
+echo "[ys-gui-slot] 已取得 $WIN_HEX（$(name_of "$WIN_DEC")）焦点｜时限 ${MAX}s"
 timeout --signal=TERM "$MAX" "$@"
 exit $?
