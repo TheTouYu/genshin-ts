@@ -1,0 +1,92 @@
+#!/bin/bash
+# ys-preflight — 动手前的「默认前提」核验器（2026-10-17 复盘产出）
+#
+# 存在理由（复盘 retrospective-2026-10-17-autonomous-game-loop.md）：
+#   那一晚 15 个错误里，最大一族是「默认前提未取读数就往下建」——
+#   最常见的是「假设上一步的结果就是我预期的结果」。每一条都白烧 10 分钟以上。
+#   用户的原话是「你又缺少探索就定目标」。
+#   ⇒ 本工具把 14 条默认前提里**可自动核验的 12 条**做成一条命令：
+#     把「要记得先验证」变成「跑一下 ys-preflight」。
+#
+# 用法: ys-preflight                # 全部检查
+#       ys-preflight --quick        # 只跑本地检查（不截图、不查 CLI）
+# 退出码: 0 = 全部 OK / 1 = 有 FAIL（先修再动手）/ 2 = 有 WARN（可继续但有风险）
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+WIN="${YS_WIN:-0x01400001}"
+QUICK=0; [ "${1:-}" = "--quick" ] && QUICK=1
+SHOT=/tmp/ys-preflight.png
+FAIL=0; WARN=0
+ok()   { printf '  [OK]   %-22s %s\n' "$1" "${2:-}"; }
+bad()  { printf '  [FAIL] %-22s %s\n' "$1" "${2:-}"; FAIL=$((FAIL+1)); }
+warn() { printf '  [WARN] %-22s %s\n' "$1" "${2:-}"; WARN=$((WARN+1)); }
+px()   { magick "$SHOT" -format "%[fx:int(255*p{$1,$2}.r)] %[fx:int(255*p{$1,$2}.g)] %[fx:int(255*p{$1,$2}.b)]" info: 2>/dev/null; }
+
+echo "══ ys-preflight $(date '+%F %T') ══"
+
+# ── 1 仪器层：别在坏仪器上取证（对应复盘 #3 #14）
+echo "① 仪器"
+if command -v ydotool >/dev/null 2>&1; then
+  case "$(command -v ydotool)" in
+    *shims*) ok "ydotool 通道" "走 shim（正确：注入需经 ys-act/ys-gui-slot）";;
+    *)       warn "ydotool 通道" "解析到 $(command -v ydotool)（裸调可能被拦，注入请走 ys-act/ys-gui-slot）";;
+  esac
+else bad "ydotool 可执行" "找不到 ydotool"; fi
+for t in ys-peek ys-pointer-click ys-ui-state ys-where2 ys-round; do
+  [ -x "$HERE/$t" ] && ok "$t" || bad "$t" "缺失或不可执行"
+done
+
+# ── 2 焦点/堆叠：看不见的窗口 = 拿不到的读数（对应复盘 #1）
+if [ "$QUICK" = "0" ]; then
+  echo "② 窗口与堆叠"
+  if xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
+    ok "原神窗 $WIN" "$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')"
+  else bad "原神窗 $WIN" "窗口不存在（游戏没开？）"; fi
+  TOP=$("$HERE/ys-wins" 2>/dev/null | head -3 | grep -c "原神" || true)
+  if [ "${TOP:-0}" -gt 0 ]; then ok "堆叠序" "原神在栈顶附近"
+  else warn "堆叠序" "原神不在栈顶 —— 抓图可能拿到陈旧帧，先 ys-peek/ys-kwin-raise"; fi
+fi
+
+# ── 3 画面状态：试玩残留 / 三态 / 地图身份（对应复盘 #5 #6 #7 #13）
+if [ "$QUICK" = "0" ]; then
+  echo "③ 画面状态"
+  "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1
+  if [ -f "$SHOT" ]; then
+    read -r A B C <<<"$(px 1000 600)"; read -r D E F <<<"$(px 1280 700)"
+    if [ "${A:-0}" -gt 250 ] && [ "${B:-0}" -gt 250 ] && [ "${C:-0}" -gt 250 ] && [ "${D:-0}" -lt 80 ] && [ "${F:-0}" -gt 80 ]; then
+      bad "试玩残留" "画面停在结算页（白=${A},${B},${C} 蓝=${D},${E},${F}）—— 先点「离开」(1818,1356) 结束，否则后续一律取不到日志"
+    else ok "试玩残留" "未见结算页"; fi
+    read -r R G B <<<"$(px 300 300)"
+    if [ "${R:-0}" -gt 200 ] && [ "${G:-0}" -gt 200 ] && [ "${B:-0}" -gt 200 ]; then
+      ok "编辑器态" "MENU（面板 ${R},${G},${B}）"
+      S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
+      case "$S" in
+        MY_MAP)    ok "地图身份" "MY_MAP（当前打开的是我的图）";;
+        OTHER_MAP) warn "地图身份" "OTHER_MAP（当前是别的图 —— 别在此状态写盘/试玩）";;
+        *)         warn "地图身份" "UNKNOWN（判据取不到，先确认编辑器不在加载中）";;
+      esac
+    else
+      read -r R2 G2 B2 <<<"$(px 100 400)"
+      if [ "${R:-0}" -lt 60 ] && [ "${R2:-0}" -lt 60 ]; then ok "编辑器态" "SAVE（存档选择页）"
+      else ok "编辑器态" "EDITOR（摆放页）"; fi
+      warn "地图身份" "非菜单态判不了 —— 需要身份时先 ESC 开系统菜单再跑 ys-where2"
+    fi
+  else bad "抓图" "ys-peek 没产出 $SHOT"; fi
+fi
+
+# ── 4 地图资产：挂载在不在（对应复盘 #9 —— 试玩回写会静默抹掉它）
+if [ "$QUICK" = "0" ] && [ -n "${GSTS_LOCALLOW_DIR:-}" ] && [ -n "${YS_MAP_ID:-}" ]; then
+  echo "④ 地图资产（mapId ${YS_MAP_ID}）"
+  G="${YS_SAVEDIR:-}/$YS_MAP_ID/$YS_MAP_ID.gil"
+  [ -f "$G" ] && ok "磁盘 .gil" "SHA $(sha256sum "$G" | cut -c1-16)" || bad "磁盘 .gil" "找不到 $G"
+  N=$(node /home/h/genshin-ts/bin/gsts.mjs assets:mounts list --map-id "$YS_MAP_ID" 2>/dev/null | grep -c "graphs=1073741825" || true)
+  if [ "${N:-0}" -gt 0 ]; then ok "节点图挂载" "$N 个宿主挂了 1073741825"
+  else bad "节点图挂载" "0 个宿主 —— 图不会执行（试玩回写最常见），先重挂"; fi
+fi
+
+echo "───────────────────────────────"
+if [ "$FAIL" -gt 0 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"; exit 1; fi
+if [ "$WARN" -gt 0 ]; then echo "⚠ $WARN 项 WARN —— 可继续，但请确认你已读过每一条"; exit 2; fi
+echo "✓ 全部通过 —— 可以动手"; exit 0
