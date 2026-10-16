@@ -1,17 +1,34 @@
 #!/bin/bash
-# ys-kwin-raise <标题子串> — 用 KWin 脚本把窗口提到前台并激活（wmctrl 对 Wine 窗会静默失败，D136）
-# 回读验证：打印激活后的 activeWindow 标题；成功=含目标子串
+# ys-kwin-raise <标题子串> — 把窗口**提到堆叠最上层 + 激活**（wmctrl 对 Wine 窗会静默失败，D136）
+#
+# 为什么不能只设 activeWindow（2026-10-17 实证）：`workspace.activeWindow = t` 只改焦点、**不改堆叠顺序**——
+# 于是"激活成功"后窗口仍在别的窗口下面，**鼠标点击落在压住它的那个窗口上**（本轮：点编辑器菜单却点到了 Firefox）。
+# 判据也必须双条：① activeWindow == t ② **stackingOrder 最上层 == t**（KWin 里 stackingOrder 末元素=最上层）。
+#
+# 用法: ys-kwin-raise <标题子串>     输出 "OK active=<..> | top=<..>" / "FAIL ..."
 set -u
 T="${1:?用法: ys-kwin-raise <标题子串>}"
-JS=/tmp/ys-kwin-raise.js
+TAG="ysraise$RANDOM"
+JS="/tmp/ys-kwin-raise-$TAG.js"
 cat > "$JS" << JS
 var list = workspace.windowList(), t = null;
-for (var i = 0; i < list.length; i++) { if (String(list[i].caption||"").indexOf("$T") >= 0) { t = list[i]; break; } }
-if (t) { try { workspace.activeWindow = t; } catch (e) {} if (workspace.activeWindow !== t) { try { t.activate(); } catch (e) {} } }
-var a = workspace.activeWindow;
-console.info("YS-RAISE " + (a ? String(a.caption) : "NONE"));
+for (var i = 0; i < list.length; i++) {
+  if (String(list[i].caption || "").indexOf("$T") >= 0) { t = list[i]; break; }
+}
+if (!t) { console.info("YS-RAISE-$TAG FAIL not-found"); }
+else {
+  try { workspace.activeWindow = t; } catch (e) { console.info("YS-RAISE-$TAG ERR active:" + e); }
+  try { workspace.raiseWindow(t); } catch (e) { console.info("YS-RAISE-$TAG ERR raise:" + e); }
+  var ord = workspace.stackingOrder;
+  var top = ord.length ? ord[ord.length - 1] : null;
+  var a = workspace.activeWindow;
+  console.info("YS-RAISE-$TAG OK active=" + (a ? String(a.caption) : "NONE")
+             + " | top=" + (top ? String(top.caption) : "NONE"));
+}
 JS
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "ysraise$RANDOM" >/dev/null 2>&1
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
 gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
 sleep 0.8
-journalctl --user --since "2 seconds ago" 2>/dev/null | grep -o "YS-RAISE .*" | tail -1 | sed 's/^YS-RAISE //'
+OUT=$(journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-RAISE-$TAG .*" | tail -1)
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1
+echo "${OUT#YS-RAISE-$TAG }"

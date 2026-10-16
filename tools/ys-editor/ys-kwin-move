@@ -6,7 +6,7 @@ set -u
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TX="${1:?用法: ys-kwin-move <x> <y> [tol]}"; TY="${2:?}"; TOL="${3:-3}"
-for i in $(seq 1 8); do
+for i in $(seq 1 12); do
   read cx cy <<< "$("$HERE/ys-kwin-cursor")"
   [ -z "${cx:-}" ] && { echo "读数失败" >&2; exit 3; }
   dx=$((TX-cx)); dy=$((TY-cy))
@@ -14,6 +14,6 @@ for i in $(seq 1 8); do
   # 限幅：单步 ≤250 逻辑px（超过会触发加速过冲）
   [ "$dx" -gt 250 ] && dx=250; [ "$dx" -lt -250 ] && dx=-250
   [ "$dy" -gt 250 ] && dy=250; [ "$dy" -lt -250 ] && dy=-250
-  ydotool mousemove -x "$dx" -y "$dy" 2>/dev/null; sleep 0.35
+  ydotool mousemove -x "$dx" -y "$dy" 2>/dev/null; sleep 0.7   # 0.35s 实测回读偏早（读到移动前的值）
 done
 read cx cy <<< "$("$HERE/ys-kwin-cursor")"; echo "未命中（目标 $TX,$TY，当前 $cx,$cy）" >&2; exit 4

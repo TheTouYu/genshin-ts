@@ -1,0 +1,24 @@
+#!/bin/bash
+# ys-kwin-put <x> <y> — 把指针**精确定位**到 KWin 逻辑坐标 (x,y)，一步到位（2026-10-17 建）
+#
+# 为什么不用 ys-kwin-move（相对步进闭环）：实测在焦点回归态下 `ydotool mousemove` 的相对量
+# 会被指针加速吃成非线性（2026-10-17：目标 365,21，8 轮后停在 722,300，X 几乎不动、Y 跑过头）。
+# KWin 脚本的 `workspace.cursorPos` **可写** ⇒ 直接赋值即可，且脚本内立刻回读自证。
+#
+# 用法: ys-kwin-put <x> <y>      输出 "OK <x> <y>"（回读值）或 "FAIL …"
+set -u
+X="${1:?用法: ys-kwin-put <x> <y>}"; Y="${2:?}"
+JS=/tmp/ys-kwin-put.js
+cat > "$JS" << JS
+try { workspace.cursorPos = { x: $X, y: $Y }; }
+catch (e) { console.info("YS-PUT-ERR " + e); }
+var p = workspace.cursorPos;
+console.info("YS-PUT " + Math.round(p.x) + " " + Math.round(p.y));
+JS
+TAG="ysput$RANDOM"
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+sleep 0.6
+OUT=$(journalctl --user --since "2 seconds ago" 2>/dev/null | grep -oE "YS-PUT(-ERR .*| [-0-9]+ [-0-9]+)" | tail -1)
+if [ -z "$OUT" ]; then echo "FAIL 无回读（KWin 脚本未执行？）" >&2; exit 3; fi
+printf 'OK %s\n' "${OUT#YS-PUT }"
