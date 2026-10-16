@@ -1,0 +1,17 @@
+#!/bin/bash
+# ys-kwin-geo — 列出 KWin 眼中所有窗口（逻辑坐标 + 标题），X11 几何不可信时的权威几何
+# 输出: <x> <y> <w> <h> <caption>
+set -u
+JS=/tmp/ys-kwin-geo.js
+cat > "$JS" << 'JS'
+var list = workspace.windowList();
+for (var i = 0; i < list.length; i++) {
+  var w = list[i], g = w.frameGeometry;
+  if (g.width < 40 || g.height < 40) continue;
+  console.info("YS-GEO " + Math.round(g.x) + " " + Math.round(g.y) + " " + Math.round(g.width) + " " + Math.round(g.height) + " " + String(w.caption||"(无名)"));
+}
+JS
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "ysgeo$RANDOM" >/dev/null 2>&1
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+sleep 0.6
+journalctl --user --since "2 seconds ago" 2>/dev/null | grep -o "YS-GEO [-0-9]* [-0-9]* [-0-9]* [-0-9]* .*" | sed 's/^YS-GEO //' | tail -12

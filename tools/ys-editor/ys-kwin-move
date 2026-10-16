@@ -1,0 +1,19 @@
+#!/bin/bash
+# ys-kwin-move <x> <y> [tol] — 把指针移到 KWin 逻辑坐标 (x,y)，闭环小步进
+# 为什么需要它：①X11 位置回读在焦点回归态下会冻死（D280）②大幅步进有指针加速会过冲
+# 依赖: ys-kwin-cursor（合成器读数）
+set -u
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+TX="${1:?用法: ys-kwin-move <x> <y> [tol]}"; TY="${2:?}"; TOL="${3:-3}"
+for i in $(seq 1 8); do
+  read cx cy <<< "$("$HERE/ys-kwin-cursor")"
+  [ -z "${cx:-}" ] && { echo "读数失败" >&2; exit 3; }
+  dx=$((TX-cx)); dy=$((TY-cy))
+  if [ "${dx#-}" -le "$TOL" ] && [ "${dy#-}" -le "$TOL" ]; then echo "命中 $cx,$cy（第 $i 轮）"; exit 0; fi
+  # 限幅：单步 ≤250 逻辑px（超过会触发加速过冲）
+  [ "$dx" -gt 250 ] && dx=250; [ "$dx" -lt -250 ] && dx=-250
+  [ "$dy" -gt 250 ] && dy=250; [ "$dy" -lt -250 ] && dy=-250
+  ydotool mousemove -x "$dx" -y "$dy" 2>/dev/null; sleep 0.35
+done
+read cx cy <<< "$("$HERE/ys-kwin-cursor")"; echo "未命中（目标 $TX,$TY，当前 $cx,$cy）" >&2; exit 4

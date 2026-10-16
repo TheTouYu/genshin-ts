@@ -1,0 +1,14 @@
+#!/bin/bash
+# ys-kwin-cursor — 从 KWin 合成器读指针位置（逻辑坐标），X11 回读失效时的权威通道
+# 用法: ys-kwin-cursor            输出 "x y"
+#   X11(xdotool getmouselocation) 与合成器读数不一致时，以本工具为准（2026-10-17 D280 焦点回归实证）
+set -u
+JS=/tmp/ys-kwin-cursor.js
+cat > "$JS" << 'JS'
+var p = workspace.cursorPos;
+console.info("YS-CURSOR " + Math.round(p.x) + " " + Math.round(p.y));
+JS
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "yscur$RANDOM" >/dev/null 2>&1
+gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+sleep 0.6
+journalctl --user --since "2 seconds ago" 2>/dev/null | grep -o "YS-CURSOR [-0-9]* [-0-9]*" | tail -1 | awk '{print $2, $3}'
