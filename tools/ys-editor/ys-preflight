@@ -69,7 +69,7 @@ if [ "$QUICK" = "0" ]; then
       esac
     else
       read -r R2 G2 B2 <<<"$(px 100 400)"
-      if [ "${R:-0}" -lt 60 ] && [ "${R2:-0}" -lt 60 ]; then ok "编辑器态" "SAVE（存档选择页）"
+      if [ "${R:-0}" -lt 60 ] && [ "${B:-0}" -gt "${G:-0}" ] && [ "${B:-0}" -gt "${R:-0}" ] && [ "${R2:-0}" -lt 60 ]; then ok "编辑器态" "SAVE（存档选择页）"
       else ok "编辑器态" "EDITOR（摆放页）"; fi
       warn "地图身份" "非菜单态判不了 —— 需要身份时先 ESC 开系统菜单再跑 ys-where2"
     fi
