@@ -808,13 +808,21 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
 判据链 ① YAML 可解析 ✅ ② 宿主内存声明含新文本 ✅（组合器 readSpec 回读 9579 字符）③ 新会话 ⏳ 未做。
 用户裁决「没关系」⇒ 标记**已知未验**，不当作已生效；下次开新会话时顺手核一句即可闭环。
 
-### O-2026-10-17-04. 全局技能改动无版本追溯（`~/.agents/skills/` 不在本仓 git）【OPEN-记忆工程风险】
+### O-2026-10-17-04. 全局技能改动无版本追溯（`~/.agents/skills/` 不在本仓 git）【CLOSED 2026-10-17 · 更正：仓已存在，是我改了没提交】
+> **更正（2026-10-17 当晚核实）**：`~/.agents/skills` **本身就是独立 git 仓**（`git -C ~/.agents/skills rev-parse --show-toplevel` → 自身）。
+> 所以"无版本追溯"的定性**是错的**——真问题是**我改完没提交**。已提交 `4bfd72c`（computer-use + task-command-center）。
+> 遗留做法：该仓里常有**并行会话的未提交改动** ⇒ 只精确 `git add` 自己改的文件，不要 `git add -A`。
 本轮改了三个全局技能：`task-command-center`（新增「压缩前必做四步」）、`computer-use`（职责分离段）、
 `context-loss-recovery`（六处，其中该技能在本仓、有提交 `26ebcb2d`）。**前两个只有工作树、没有 diff/回滚能力**。
 - 影响：改坏了无法回滚；"何时改的、改了什么"只能靠日记/复盘文档回溯。
 - 候选动作（待裁决）：给 `~/.agents/skills/` 建独立 git 仓（低风险）；或改前留 `.bak`（成本低但无历史）。
 
-### O-2026-10-17-05. 压缩纪律尚未自动化【OPEN-工具债】
+### O-2026-10-17-05. 压缩纪律尚未自动化【CLOSED 2026-10-17 · 已落地 `ys-memcheck`】
+> **已落地**：`scripts/ys-memcheck.py`（软链 `~/.local/bin/ys-memcheck`）——一条命令列出本会话全部真实用户消息、
+> 标 ★ 指路线索、打印最近压缩点；内置三个踩过的坑（会话目录形态 / 按时间取会话 / 排 `skill-invocation`）。
+> 已接进 `task-command-center`（压缩前四步第 1 步）与 `context-loss-recovery`（用户消息提取）。
+> 配套：`scripts/skill-salvage.py` 查"知识有没有落到生效载体"（真孤儿/非现存名字两类，退出码 1=有真孤儿）。
+> 仍未做的：把提醒挂到 **compress 工具运行时**（需改 dsh 运行时补丁 + 重启 dsh-web，等用户裁决）。
 「压缩前必做四步」目前靠自觉执行。`task-command-center` 里给了自查命令（抽本会话真实用户消息），
 但**没有做成脚本/钩子**。候选：`tools/ys-memcheck.sh` 或全局脚本，输出"未满足的用户诉求清单"，
 供压缩前跑一次（判据：能列出 seq + 原话 + 状态）。

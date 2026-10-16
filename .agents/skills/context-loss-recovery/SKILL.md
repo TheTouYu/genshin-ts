@@ -75,6 +75,13 @@ If a detail would change the next action if lost, treat it as critical.
      ```
    - Or extract user messages directly:
      ```bash
+     **更省事：直接跑 `ys-memcheck`**（2026-10-17 落地件，已装 `~/.local/bin`，源码 `scripts/ys-memcheck.py`）——
+     它自带会话定位（`$DSH_SESSION_ID` → `ls -dt`）、过滤 `skill-invocation`、标 ★ 指路线索、打印最近压缩点：
+     ```bash
+     ys-memcheck -n 30            # 本会话最后 30 条真实用户消息
+     ys-memcheck --since 8300     # 只看某 seq 之后（配合"最近压缩点"用）
+     ```
+     下面是等价的裸命令（`ys-memcheck` 不可用时用）：
      zstd -dc "$F" 2>/dev/null | python3 -c '
      import sys,json,datetime
      for i,line in enumerate(sys.stdin, start=1):
