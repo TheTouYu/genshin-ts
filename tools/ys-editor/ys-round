@@ -51,23 +51,27 @@ say "① 基线: SHA=$B0  mtime=$(date -d @$M0 +%H:%M:%S)  最新日志=$(basena
 #   不在 → 切换=进入（读盘，不写 ⇒ SHA 不变）
 # 2026-10-17 事故：工具默认"第一切=离开"，而实际开局不在我的图上 ⇒
 #   第一切进入、第二切离开 ⇒ 用过期内存覆盖了刚构建的磁盘（SHA 8d5d74d9 覆盖 80c30c7f）。
-leave_map() {   # 循环直到"确认已离开"（一次切换发生了写回）
-  local i S0 S1
-  for i in 1 2 3; do
-    S0=$(sha); "$HERE/ys-switch-save" >/dev/null 2>&1; S1=$(sha)
-    if [ "$S0" != "$S1" ]; then say "   ✓ 已离开我的图（写回发生：$S0 → $S1）"; return 0; fi
-    say "   · 本次未写回（说明刚才是进入），再切一次"
+leave_map() {   # 循环直到确认「当前不在我的图」——判据用 ys-where2（系统菜单标题模板匹配）
+  # 为什么不用 SHA 变化当判据：编辑器内存版与磁盘一致时，离开写回的字节完全相同，SHA 不变
+  # ⇒ SHA 判据在「编辑器没改过任何东西」时必然失效（2026-10-17 实测连报 3 次「未写回」）。
+  local i S
+  for i in 1 2 3 4 5; do
+    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
+    if [ "$S" = "OTHER_MAP" ]; then say "   ✓ 已离开我的图（ys-where2=OTHER_MAP）"; return 0; fi
+    say "   · 当前=$S，切一次"
+    "$HERE/ys-switch-save" >/dev/null 2>&1; sleep 10
   done
-  say "   ⚠ 3 次仍未见写回——按已离开继续"; return 0
+  say "   ⚠ 5 次仍未离开——按已离开继续"; return 0
 }
-enter_map() {   # 循环直到"确认已进入"（一次切换没有写回）
-  local i S0 S1
-  for i in 1 2 3; do
-    S0=$(sha); "$HERE/ys-switch-save" >/dev/null 2>&1; S1=$(sha)
-    if [ "$S0" = "$S1" ]; then say "   ✓ 已进入我的图（无写回，SHA 保持 $S1）"; return 0; fi
-    say "   · 本次发生写回（说明刚才是离开），再切一次"
+enter_map() {   # 循环直到确认「当前在我的图」
+  local i S
+  for i in 1 2 3 4 5; do
+    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
+    if [ "$S" = "MY_MAP" ]; then say "   ✓ 已进入我的图（ys-where2=MY_MAP）"; return 0; fi
+    say "   · 当前=$S，切一次"
+    "$HERE/ys-switch-save" >/dev/null 2>&1; sleep 10
   done
-  say "   ⚠ 3 次仍未见稳定——按已进入继续"; return 0
+  say "   ⚠ 5 次仍未进入——按已进入继续"; return 0
 }
 
 # ---- 1 离开我的图（此后编辑器内存不再威胁磁盘）----
