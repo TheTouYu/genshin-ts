@@ -16,6 +16,10 @@
   - **热生效官方路径** = 改 profile manifest 的 `dsh.profile.bundles` **有序列表**（swap 两行再换回）→ manifest notification → recompose → bundle patch 重读。
   - **生效判据链三段**：① YAML 可解析（`!!js` 标签警告是预期）→ ② 宿主内存声明含新行（组合器 `readSpec` → `readDocument` 回读）→ ③ **新会话**才拿到新 persona（"edits affect subsequently created Agents"）。
   - 已验证 ①：本文件用带 `!!js` 处理的 loader 解析通过，新 persona 在、旧的不在、任务契约段完整。
-  - ②③ **待执行**（需动 profile 配置，已交用户裁决时机）。
+  - **② 已验证 ✅（2026-10-17 01:5x）**：manifest swap 触发热重装配后，走组合器路由回读宿主内存声明——
+    `POST /preset-composer/api` `{"action":"readSpec","args":{"id":"qxqy-river"}}`（环回免 token；**信封是 `{action,args}`**，不是 `{op}`）
+    → 返回 9579 字符声明文本：**含新 persona（全生态/参考与借鉴）= True，含旧 persona（2D+Lua game studio director）= False** ✅
+    （`ok:false / read/no-source` 是**预期**——qxqy-river 非托管，无 compose.source.json；文本仍照常返回。）
+  - ③ **待用户开新会话**才算终验（"edits affect subsequently created Agents"）。
 - [x] 规范核对（`~/dsh-plugins/AGENTS.md` 第 15 条）：**改前留 `.bak` ✅**（`cordis.patch.yml.bak-persona-20261017-014747`）；**"`cordis.patch.yml` 与 `compose.source.json` 的 prefix 逐字一致"不适用**——qxqy-river 无 `compose.source.json`（只有 river-acp / -dev / -skillrec 有）；**块标量编辑用行级替换 + 缩进对齐 + 解析验证 ✅**。
 - [x] 命中度核对（D71）：qxqy-river 是**手写非托管 bundle**，且主 `cordis.yml` 与 bundle 补丁**双定义**、**运行时生效的是 bundle 补丁** ⇒ 我改的正是生效那份 ✅
