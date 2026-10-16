@@ -1,0 +1,61 @@
+{
+ "canvas": {
+  "width": 120,
+  "height": 104,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 60,
+   "y": 52,
+   "width": 112,
+   "height": 96,
+   "color": "#9FE8FF",
+   "opacity": 0.45,
+   "rotation": 0,
+   "name": "冰蓝体",
+   "zIndex": 0,
+   "id": "lantu_0"
+  },
+  {
+   "type": "ring",
+   "x": 60,
+   "y": 52,
+   "width": 84,
+   "height": 72,
+   "color": "#DFF6FF",
+   "opacity": 0.6,
+   "rotation": 0,
+   "name": "内环",
+   "zIndex": 1,
+   "id": "lantu_1"
+  },
+  {
+   "type": "ellipse",
+   "x": 60,
+   "y": 52,
+   "width": 40,
+   "height": 34,
+   "color": "#FFFFFF",
+   "opacity": 0.92,
+   "rotation": 0,
+   "name": "核心白",
+   "zIndex": 2,
+   "id": "lantu_2"
+  },
+  {
+   "type": "four_point_star",
+   "x": 60,
+   "y": 52,
+   "width": 20,
+   "height": 20,
+   "color": "#B3F0FF",
+   "opacity": 0.95,
+   "rotation": 0,
+   "name": "寒光星",
+   "zIndex": 3,
+   "id": "lantu_3"
+  }
+ ]
+}

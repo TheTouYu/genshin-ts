@@ -1,0 +1,48 @@
+{
+ "canvas": {
+  "width": 36,
+  "height": 36,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 18,
+   "y": 18,
+   "width": 34,
+   "height": 34,
+   "color": "#FF3C3C",
+   "opacity": 0.55,
+   "rotation": 0,
+   "name": "红弹体",
+   "zIndex": 0,
+   "id": "szd_0"
+  },
+  {
+   "type": "ellipse",
+   "x": 18,
+   "y": 18,
+   "width": 20,
+   "height": 20,
+   "color": "#FF9A3D",
+   "opacity": 0.9,
+   "rotation": 0,
+   "name": "橙心",
+   "zIndex": 1,
+   "id": "szd_1"
+  },
+  {
+   "type": "ellipse",
+   "x": 18,
+   "y": 18,
+   "width": 9,
+   "height": 9,
+   "color": "#FFE9C4",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "亮核",
+   "zIndex": 2,
+   "id": "szd_2"
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "canvas": {
+  "width": 36,
+  "height": 36,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "four_point_star",
+   "x": 18,
+   "y": 18,
+   "width": 32,
+   "height": 32,
+   "color": "#9FE8FF",
+   "opacity": 0.85,
+   "rotation": 0,
+   "name": "冰晶",
+   "zIndex": 0,
+   "id": "bingjing_0"
+  },
+  {
+   "type": "four_point_star",
+   "x": 18,
+   "y": 18,
+   "width": 16,
+   "height": 16,
+   "color": "#F0FDFF",
+   "opacity": 0.98,
+   "rotation": 45,
+   "name": "内核",
+   "zIndex": 1,
+   "id": "bingjing_1"
+  }
+ ]
+}

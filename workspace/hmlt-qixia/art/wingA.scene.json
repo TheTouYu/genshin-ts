@@ -1,0 +1,48 @@
+{
+ "canvas": {
+  "width": 72,
+  "height": 56,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "triangle",
+   "x": 22,
+   "y": 28,
+   "width": 36,
+   "height": 26,
+   "color": "#FFD98A",
+   "opacity": 0.95,
+   "rotation": 120,
+   "name": "左翼",
+   "zIndex": 0,
+   "id": "wingA_0"
+  },
+  {
+   "type": "triangle",
+   "x": 50,
+   "y": 28,
+   "width": 36,
+   "height": 26,
+   "color": "#FFD98A",
+   "opacity": 0.95,
+   "rotation": 240,
+   "name": "右翼",
+   "zIndex": 1,
+   "id": "wingA_1"
+  },
+  {
+   "type": "four_point_star",
+   "x": 36,
+   "y": 28,
+   "width": 20,
+   "height": 20,
+   "color": "#FFF7E0",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "翼核星",
+   "zIndex": 2,
+   "id": "wingA_2"
+  }
+ ]
+}

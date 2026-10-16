@@ -1,0 +1,48 @@
+{
+ "canvas": {
+  "width": 80,
+  "height": 20,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "rectangle",
+   "x": 36,
+   "y": 10,
+   "width": 56,
+   "height": 3,
+   "color": "#EBFAFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "针身",
+   "zIndex": 0,
+   "id": "yinzhen_0"
+  },
+  {
+   "type": "triangle",
+   "x": 70,
+   "y": 10,
+   "width": 12,
+   "height": 4,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 90,
+   "name": "针尖",
+   "zIndex": 1,
+   "id": "yinzhen_1"
+  },
+  {
+   "type": "ellipse",
+   "x": 12,
+   "y": 10,
+   "width": 12,
+   "height": 6,
+   "color": "#9FE8FF",
+   "opacity": 0.8,
+   "rotation": 0,
+   "name": "针尾冰辉",
+   "zIndex": 2,
+   "id": "yinzhen_2"
+  }
+ ]
+}

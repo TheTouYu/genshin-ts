@@ -1,0 +1,74 @@
+{
+ "canvas": {
+  "width": 160,
+  "height": 56,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 80,
+   "y": 28,
+   "width": 152,
+   "height": 18,
+   "color": "#5AB8FF",
+   "opacity": 0.4,
+   "rotation": 0,
+   "name": "冰雾晕",
+   "zIndex": 0,
+   "id": "bingpoj_0"
+  },
+  {
+   "type": "rectangle",
+   "x": 76,
+   "y": 28,
+   "width": 144,
+   "height": 8,
+   "color": "#9FE8FF",
+   "opacity": 0.9,
+   "rotation": 0,
+   "name": "冰刃",
+   "zIndex": 1,
+   "id": "bingpoj_1"
+  },
+  {
+   "type": "rectangle",
+   "x": 70,
+   "y": 28,
+   "width": 112,
+   "height": 3,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "刃心白",
+   "zIndex": 2,
+   "id": "bingpoj_2"
+  },
+  {
+   "type": "triangle",
+   "x": 150,
+   "y": 28,
+   "width": 14,
+   "height": 12,
+   "color": "#DFF6FF",
+   "opacity": 0.95,
+   "rotation": 90,
+   "name": "锋尖",
+   "zIndex": 3,
+   "id": "bingpoj_3"
+  },
+  {
+   "type": "four_point_star",
+   "x": 24,
+   "y": 28,
+   "width": 16,
+   "height": 16,
+   "color": "#B3F0FF",
+   "opacity": 0.9,
+   "rotation": 0,
+   "name": "柄星",
+   "zIndex": 4,
+   "id": "bingpoj_4"
+  }
+ ]
+}

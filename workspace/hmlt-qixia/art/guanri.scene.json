@@ -1,0 +1,100 @@
+{
+ "canvas": {
+  "width": 216,
+  "height": 80,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 108,
+   "y": 40,
+   "width": 208,
+   "height": 40,
+   "color": "#FF8C1A",
+   "opacity": 0.3,
+   "rotation": 0,
+   "name": "贯日外晕",
+   "zIndex": 0,
+   "id": "guanri_0"
+  },
+  {
+   "type": "ellipse",
+   "x": 110,
+   "y": 40,
+   "width": 200,
+   "height": 26,
+   "color": "#FFB13D",
+   "opacity": 0.75,
+   "rotation": 0,
+   "name": "金焰宽带",
+   "zIndex": 1,
+   "id": "guanri_1"
+  },
+  {
+   "type": "rectangle",
+   "x": 104,
+   "y": 40,
+   "width": 190,
+   "height": 12,
+   "color": "#FFE9C4",
+   "opacity": 0.92,
+   "rotation": 0,
+   "name": "主刃",
+   "zIndex": 2,
+   "id": "guanri_2"
+  },
+  {
+   "type": "rectangle",
+   "x": 96,
+   "y": 40,
+   "width": 150,
+   "height": 5,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "刃心",
+   "zIndex": 3,
+   "id": "guanri_3"
+  },
+  {
+   "type": "four_point_star",
+   "x": 30,
+   "y": 40,
+   "width": 26,
+   "height": 26,
+   "color": "#FFF7E0",
+   "opacity": 0.95,
+   "rotation": 0,
+   "name": "左柄星辉",
+   "zIndex": 4,
+   "id": "guanri_4"
+  },
+  {
+   "type": "triangle",
+   "x": 204,
+   "y": 40,
+   "width": 22,
+   "height": 18,
+   "color": "#FFFFFF",
+   "opacity": 0.95,
+   "rotation": 90,
+   "name": "右锋尖",
+   "zIndex": 5,
+   "id": "guanri_5"
+  },
+  {
+   "type": "ring",
+   "x": 108,
+   "y": 40,
+   "width": 60,
+   "height": 60,
+   "color": "#FFD98A",
+   "opacity": 0.3,
+   "rotation": 0,
+   "name": "剑气场环",
+   "zIndex": 6,
+   "id": "guanri_6"
+  }
+ ]
+}

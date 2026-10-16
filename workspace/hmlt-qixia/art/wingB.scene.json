@@ -1,0 +1,48 @@
+{
+ "canvas": {
+  "width": 64,
+  "height": 64,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ring",
+   "x": 32,
+   "y": 32,
+   "width": 60,
+   "height": 60,
+   "color": "#B3F0FF",
+   "opacity": 0.55,
+   "rotation": 0,
+   "name": "冰珠环",
+   "zIndex": 0,
+   "id": "wingB_0"
+  },
+  {
+   "type": "ellipse",
+   "x": 32,
+   "y": 32,
+   "width": 30,
+   "height": 30,
+   "color": "#E8FAFF",
+   "opacity": 0.95,
+   "rotation": 0,
+   "name": "珠体",
+   "zIndex": 1,
+   "id": "wingB_1"
+  },
+  {
+   "type": "four_point_star",
+   "x": 32,
+   "y": 32,
+   "width": 14,
+   "height": 14,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "闪光",
+   "zIndex": 2,
+   "id": "wingB_2"
+  }
+ ]
+}

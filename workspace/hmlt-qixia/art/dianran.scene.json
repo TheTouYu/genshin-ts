@@ -1,0 +1,48 @@
+{
+ "canvas": {
+  "width": 48,
+  "height": 60,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 24,
+   "y": 30,
+   "width": 44,
+   "height": 50,
+   "color": "#FF6A1A",
+   "opacity": 0.3,
+   "rotation": 0,
+   "name": "火晕",
+   "zIndex": 0,
+   "id": "dianran_0"
+  },
+  {
+   "type": "triangle",
+   "x": 24,
+   "y": 34,
+   "width": 36,
+   "height": 44,
+   "color": "#FF9A3D",
+   "opacity": 0.9,
+   "rotation": 180,
+   "name": "外焰",
+   "zIndex": 1,
+   "id": "dianran_1"
+  },
+  {
+   "type": "triangle",
+   "x": 24,
+   "y": 38,
+   "width": 18,
+   "height": 26,
+   "color": "#FFE9C4",
+   "opacity": 0.95,
+   "rotation": 180,
+   "name": "焰心",
+   "zIndex": 2,
+   "id": "dianran_2"
+  }
+ ]
+}

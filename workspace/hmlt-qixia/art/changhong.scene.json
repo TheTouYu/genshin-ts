@@ -1,0 +1,74 @@
+{
+ "canvas": {
+  "width": 136,
+  "height": 36,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ellipse",
+   "x": 68,
+   "y": 18,
+   "width": 128,
+   "height": 12,
+   "color": "#F28C28",
+   "opacity": 0.35,
+   "rotation": 0,
+   "name": "外焰晕",
+   "zIndex": 0,
+   "id": "changhong_0"
+  },
+  {
+   "type": "ellipse",
+   "x": 70,
+   "y": 18,
+   "width": 122,
+   "height": 8,
+   "color": "#FFB13D",
+   "opacity": 0.85,
+   "rotation": 0,
+   "name": "金焰层",
+   "zIndex": 1,
+   "id": "changhong_1"
+  },
+  {
+   "type": "rectangle",
+   "x": 66,
+   "y": 18,
+   "width": 116,
+   "height": 5,
+   "color": "#FFE9C4",
+   "opacity": 0.92,
+   "rotation": 0,
+   "name": "主刃",
+   "zIndex": 2,
+   "id": "changhong_2"
+  },
+  {
+   "type": "rectangle",
+   "x": 60,
+   "y": 18,
+   "width": 92,
+   "height": 2,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "刃心白线",
+   "zIndex": 3,
+   "id": "changhong_3"
+  },
+  {
+   "type": "triangle",
+   "x": 128,
+   "y": 18,
+   "width": 16,
+   "height": 10,
+   "color": "#FFE9C4",
+   "opacity": 0.95,
+   "rotation": 90,
+   "name": "右锋尖",
+   "zIndex": 4,
+   "id": "changhong_4"
+  }
+ ]
+}

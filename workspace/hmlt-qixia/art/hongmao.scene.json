@@ -1,0 +1,61 @@
+{
+ "canvas": {
+  "width": 120,
+  "height": 120,
+  "background": "#00000000"
+ },
+ "elements": [
+  {
+   "type": "ring",
+   "x": 60,
+   "y": 60,
+   "width": 116,
+   "height": 116,
+   "color": "#FFE9A8",
+   "opacity": 0.35,
+   "rotation": 0,
+   "name": "金环外场",
+   "zIndex": 0,
+   "id": "hongmao_0"
+  },
+  {
+   "type": "four_point_star",
+   "x": 60,
+   "y": 60,
+   "width": 96,
+   "height": 96,
+   "color": "#FFB13D",
+   "opacity": 0.95,
+   "rotation": 0,
+   "name": "主四芒",
+   "zIndex": 1,
+   "id": "hongmao_1"
+  },
+  {
+   "type": "four_point_star",
+   "x": 60,
+   "y": 60,
+   "width": 56,
+   "height": 56,
+   "color": "#FFF7E0",
+   "opacity": 0.95,
+   "rotation": 45,
+   "name": "内四芒转45°",
+   "zIndex": 2,
+   "id": "hongmao_2"
+  },
+  {
+   "type": "ellipse",
+   "x": 60,
+   "y": 60,
+   "width": 18,
+   "height": 18,
+   "color": "#FFFFFF",
+   "opacity": 0.98,
+   "rotation": 0,
+   "name": "核心白",
+   "zIndex": 3,
+   "id": "hongmao_3"
+  }
+ ]
+}
