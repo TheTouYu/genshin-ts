@@ -259,6 +259,9 @@ GIL 整体结构与语义树
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
   [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)
+- **技能体系与预设治理**：[技能族刷新与预设治理](retrospective-2026-10-17-skill-refresh-and-preset-governance.md)
+  （7 错谱系+三系统性根因：**会话身份(persona) > 技能路由**／改配置先问「谁拥有·怎么生效·规范在哪」／落点按「生效载体+字节预算」选；
+   七票 T01–T07 全闭环 + persona 重写 -4113 字符 + 跨桶查到预设规范；用户 8 条纠正逐字入档）
 - **工具链与桌面自动化**：[真机输入探针→GUI 流程优化→上游回信](retrospective-2026-10-17-gui-automation-and-input-probe.md)
   （七错谱系+三系统性根因：**仪器盲区**（全窗判据 5893ms 被误记为"游戏 UI 抖动 7~25s"）/成本链未排序必打错主导项/规则落点错位；
    双流程 77s→16.5s，GPU 常驻服务 4.4s→1.0s；用户 4 次方法级纠正逐字入档）
