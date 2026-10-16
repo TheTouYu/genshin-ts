@@ -19,6 +19,8 @@
 | `assets:global-timers` | 全局计时器定义/实体组件挂载（root12 + root5 type16） | `assets_global_timers.ts` |
 | `assets:terrain` | 地形/草皮资产 | `assets_terrain.ts`、`gil_terrain.ts` |
 | `assets:ui` / `assets:node-graphs` / `assets:mounts` / `assets:signals` | UI/图挂载/信号 | 对应 `assets_*.ts` |
+| `assets:scripts` | Lua 脚本登记表 f50（list/register/update + external_lua_file + Temp 同步） | `assets_scripts.ts`、`gil_scripts.ts` |
+| `client:sim` | 千星模拟器 headless 桥接（get/patch/playStart/playRun/playStop，spawn 模拟器 studio/cli.mjs） | `client_sim.ts` |
 | `image:*` | 图片素材导入/导出（SVG/CSS/JSON ↔ GIA image） | `image_editor.ts` |
 | `maps` | 地图创建/打开/同步 Temp | `maps.ts`、`gil_paths.ts` |
 

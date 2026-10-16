@@ -35,6 +35,7 @@ import { runAssetsCustomVariables } from './assets_custom_variables.js'
 import { runAssetsEntities } from './assets_entities.js'
 import { runAssetsTerrain } from './assets_terrain.js'
 import { runAssetsUi } from './assets_ui.js'
+import { runAssetsScripts } from './assets_scripts.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
 import { runAssetsCreations } from './assets_creations.js'
@@ -46,6 +47,7 @@ import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSkillConfig } from './assets_skill_config.js'
 import { runAssetsUnitStatus } from './assets_unit_status.js'
 import { runAssetsGlobalTimers } from './assets_global_timers.js'
+import { runClientSim } from './client_sim.js'
 import { runAssetsStructs } from './assets_structs.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runVariablesVerify } from './variables_verify.js'
@@ -1908,6 +1910,37 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsUi(args, projectConfig)
+    })
+
+  program
+    .command('assets:scripts')
+    .description('list/register/update lua script assets (registry f50 + external lua files)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:scripts')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsScripts(args, projectConfig)
+    })
+
+  program
+    .command('client:sim')
+    .description('bridge to qxqy simulator headless cli (get/patch/playStart/playRun/playStop)')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('client:sim')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      await runClientSim(args)
     })
 
   program
