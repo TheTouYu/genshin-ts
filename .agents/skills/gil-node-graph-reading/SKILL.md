@@ -274,7 +274,8 @@ gsts assets:node-graphs read --gil <地图.gil> --composite <defId>             
 3. **人读式核对**：`tools/explain-gil-node-graph.ts --graph <名> --composite <名>`——按
    "写的逻辑"逐条核对：事件入口挂对（whenXxx）、分支结构、复合调用展开、关键参数值在位。
 4. **定点检查**（每项都有对应工具）：
-   - 节点预算：`gsts assets:node-graphs nodes --gil <map>`（implTotal < 3000；膨胀在此暴露）
+   - 节点预算：`gsts assets:node-graphs nodes --gil <map>`（**生产红线 implTotal ≤ 2000**；引擎拒载线就是 2000，
+     实测 gameNodeCount 2465 拒载；2026-08-31 用户强制作废旧 3000 口径。膨胀在此暴露）
    - 信号 pin：`tools/scan-gil-signals.ts`（send/monitor/server 编号与注册表一致）
    - 变量 pin：`tools/scan-gil-var-pins.ts`（Get/Set 变量名 pin 完整）
    - 复合引用：`tools/check-gil-composite-refs.ts --incoming <本次.gia>`（0 悬空 + 残留覆盖）
