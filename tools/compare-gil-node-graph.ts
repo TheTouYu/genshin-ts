@@ -1,3 +1,5 @@
+// tools/compare-gil-node-graph.ts — 比较两个 .gil 的节点图差异（按 blob sha256 判定 ADD/REMOVED/CHANGED）。
+
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'

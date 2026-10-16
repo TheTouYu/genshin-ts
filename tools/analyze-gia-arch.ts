@@ -1,3 +1,6 @@
+// tools/analyze-gia-arch.ts — GIA 文件架构分析：dump 顶层与主图结构，配合 jq 看复合/节点分布。
+// ⚠ 顶部 FILES 常量是历史硬编码样本路径（/mnt/c/...），用前改成自己的 argv 或路径——以 argv 传样本是 tools/ 的规范。
+
 import { readFileSync } from 'fs'
 import { decode_gia_file } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.ts'
 import type { GraphNode, Root } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'

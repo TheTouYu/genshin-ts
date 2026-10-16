@@ -1,3 +1,5 @@
+// tools/inspect-gil-custom-variables.ts — 只读列出 .gil 中的自定义变量条目（名字/类型/槽位），用于写回前的同类体检。
+
 import { readFileSync } from 'node:fs'
 
 import { readGilPayloadFields } from '../src/cli/gil_extract_utils.js'

@@ -1,3 +1,5 @@
+// tools/preview_markdown.ts — 在终端预览 Markdown（经 src/cli/markdown_render.ts 渲染成 ANSI），供人读文档时快速查看。
+
 import fs from 'node:fs'
 
 import { renderMarkdownToAnsi } from '../src/cli/markdown_render.js'

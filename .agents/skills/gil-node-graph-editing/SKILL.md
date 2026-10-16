@@ -5,6 +5,8 @@ description: 精准编辑真实地图节点图的专用技能。当用户要求"
 
 # 节点图精准编辑（gil-node-graph-editing）
 
+> 最近校验：2026-10-17（技能族刷新 T01–T05：口径/命令面/权威指针/正向表述）
+
 ## 定位
 
 用 `gsts assets:node-graphs read|patch`（`src/cli/assets_node_graphs.ts` +

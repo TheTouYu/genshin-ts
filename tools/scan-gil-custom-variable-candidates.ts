@@ -1,3 +1,5 @@
+// tools/scan-gil-custom-variable-candidates.ts — 只读扫描 .gil 中「可作为自定义变量」的 wire 槽候选，供新增变量前选空闲位。
+
 import { readGilPayloadFields } from '../src/cli/gil_extract_utils.js'
 import {
   decodeUtf8,

@@ -6,6 +6,8 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 # 游戏引擎增量学习与 GIA/GIL 调查
 
+> 最近校验：2026-10-17（技能族刷新 T01–T05：口径/命令面/权威指针/正向表述）
+
 把用户在游戏编辑器中的小变化转换成可复查的相邻快照、定点差分和同构重放证据，并把稳定规则接回 `docs/game-engine-knowledge/`。目标是持续还原游戏引擎，而不是在每个新会话中重新调查，或只为当前生产代码打补丁。
 
 ## ⚡ 快速启动（差分 / 差分+抓包）

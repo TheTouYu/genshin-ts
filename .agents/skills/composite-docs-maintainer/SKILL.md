@@ -90,7 +90,7 @@ Every new document and every high-risk edited document needs:
 ```md
 > 状态：当前推荐 / 已验证 / 当前实现 / 历史记录 / 部分过期 / 待验证 / 已废弃
 > 来源：真实 GIA 验证 / 当前代码实现 / 历史记录 / 推测
-> 最近校验：YYYY-MM-DD
+> 最近校验：2026-10-17（技能族刷新 T05 巡检；内容未变，仅确认引用有效）
 > 适用范围：gsts 当前输出 / 游戏编辑器真实输出 / 两者都适用
 ```
 

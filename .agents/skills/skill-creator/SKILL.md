@@ -5,6 +5,8 @@ description: Create new skills, modify and improve existing skills, and measure 
 
 # Skill Creator
 
+> 最近校验：2026-10-17（技能族刷新 T01–T05：口径/命令面/权威指针/正向表述）
+
 A skill for creating new skills and iteratively improving them.
 
 At a high level, the process of creating a skill goes like this:

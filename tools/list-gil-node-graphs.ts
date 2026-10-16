@@ -1,3 +1,5 @@
+// tools/list-gil-node-graphs.ts — 只读列出 .gil 内的全部节点图（图 ID / 名称 / 节点数），注入后核对目标图是否在位的第一站。
+
 import { readFileSync } from 'node:fs'
 
 import { readGilPayloadFields } from '../src/cli/gil_extract_utils.js'

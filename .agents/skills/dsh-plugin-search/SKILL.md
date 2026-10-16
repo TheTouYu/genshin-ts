@@ -20,11 +20,13 @@ Find a DSH plugin by sweeping the whole `topic:dsh-plugin` ecosystem (1800+ repo
 ```bash
 node scripts/search.mjs <关键词...> --limit 10          # 模糊匹配标题+描述+话题标签
 node scripts/search.mjs <关键词...> --api "<关键词>"    # 追加 GitHub 全文搜索（含 README）并合并
-node scripts/search.mjs <关键词...> --refresh           # 重抓数据（24h 缓存；10 页 ≈ 70s，未认证限流 10 次/分钟）
+node scripts/search.mjs <关键词...> --refresh           # 重抓数据（24h 缓存）
 node scripts/search.mjs --list                          # 查看缓存规模
 ```
 
 要点：
+- **认证自动提速**：本地 `gh auth login` 过或设了 `GH_TOKEN`/`GITHUB_TOKEN` 时自动带认证（限流 30 次/分钟、翻页零等待）；未认证回退 10 次/分钟（每页等 7.5s）。
+- 缓存落在 `~/.cache/dsh-plugin-search/repos.json`（XDG 规范，不进技能 git 仓）；沙箱只读环境用 `DSH_PLUGIN_SEARCH_CACHE=<可写路径>` 指到工作区，所有路径都不可写时自动降级为只查不缓存（退出码仍 0）。
 - 分数 `≥ 2` 值得看；`--min-score` 调阈值；`--json` 出结构化结果。
 - **名称/描述没命中 ≠ 没有**：`--api` 搜 README 是补网的关键（如 `openrouter` 只在 README 出现）。
 - 中英文一起试：中文走整串/2-gram 匹配，英文走精确/前缀/子串/编辑距离/子序列五级打分。

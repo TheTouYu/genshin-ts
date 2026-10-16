@@ -6,6 +6,8 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 
 # 复杂静态 GIL 模型制作
 
+> 最近校验：2026-10-17（技能族刷新 T01–T05：口径/命令面/权威指针/正向表述）
+
 把复杂模型拆成已知基础几何，先闭合资源局部坐标，再通过正式静态资产 CLI 生成可追溯候选，最后由用户在编辑器/游戏中确认视觉结果。新建复杂 prefab 闭包和已有复杂 prefab/entity 的局部视觉 patch 是两条不同路径，必须先分流；目标是让后续模型复用经过证据验证的生产路径，而不是复制一次性脚本或猜 GIL 字段。
 
 ## 任务边界

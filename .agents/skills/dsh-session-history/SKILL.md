@@ -52,10 +52,18 @@ python3 ~/.agents/skills/dsh-session-history/scripts/last_user.py --list ~/.dsh/
   - `/home/h/genshin-ts` → `--home-h-genshin-ts--`
   - `/home/h/star-cube-nexus` → `--home-h-star-cube-nexus--`
 - 每个会话一个子目录：`<session-id>/session.jsonl.zstd`，会话 ID 形如 `session-abb8cdd4-...`
+  - 目录名两种形态都存在，**都要认**：新式 `session-<uuid>`，早期为裸 `<uuid>`（如 `--home-h-genshin-ts--/81661db9-…/`）
+  - 日志文件名两种形态：**v0 = `session.jsonl.zstd`**；**v3 = `session.v3.jsonl.zstd`**（DSH 0.1.5+ 写出的新格式；旧会话被打开/迁移后原 v0 文件保留、旁边可能出现 v3 文件）
+  - 脚本已内置 `artifact()` 解析器（`ARTIFACT_NAMES = ("session.v3.jsonl.zstd", "session.v3.jsonl", "session.jsonl.zstd", "session.jsonl")`），无需再硬编码文件名
 - **压缩格式**：zstd（非纯文本！）。系统有 `zstd` CLI（v1.5.7）；Python 无 pyzstd/zstandard 库，
   脚本通过 `zstd -d -c` 管道流式解压，**不要落盘解压大文件**（23M 压缩可能对应几百 MB 文本）
+- **读另一个 agent 的会话（跨会话接力/复盘时，2026-10-16 实证）**：`scripts/search_dsh_sessions.py dialog <会话目录> --tail N`
+  能列出该会话的对话，**但它会把非 ASCII 输出成 `\uXXXX` 转义序列**——模型看到的是转义码不是字，
+  **别把转义码抄进报告**。两条出路：对原始文件取尾部读真实文本
+  （`zstd -dc <dir>/session*.jsonl.zstd | tail -c 4000`），或把脚本输出做 `unicode_escape` 解码。
 - **行结构**（每行一个 JSON 事件，与 pi 的 `{"type":"message"}` 完全不同）：
   - `{"type":"session","version":0,"id":"session-...","createdAt":<ms>,"cwd":"...","delegationDepth":0}` 会话头（createdAt 是 **毫秒时间戳**）
+  - **v3 会话头**（0.1.5+）：`{"type":"session","version":3,"id":"session-...","createdAt":<ms>,"cwd":"...","isSeeded":false,"delegationDepth":0,"agentPreset":"standard"}`；事件行新增顶层 `seq` 与 `time`（如 `{"type":"session/title","seq":16,"time":1789138561778,"data":{...}}`），`data` 结构与 v0 一致，故按 `type`/`data` 解析的旧逻辑仍然有效
   - `{"type":"user/message","data":{"content":[{"type":"text","text":...}],"source":{"kind":"user"},"role":"user","id":...}}` 用户消息
   - `{"type":"assistant/message","data":{"turn":N,"step":N,"message":{"role":"assistant","content":[...]}}}` 助手消息；
     content 元素类型：`{"type":"reasoning","text":...}`（思考）/ `{"type":"tool-call","name":...,"arguments":"..."}`（工具调用）/ `{"type":"text","text":...}`（正文）
@@ -69,44 +77,69 @@ python3 ~/.agents/skills/dsh-session-history/scripts/last_user.py --list ~/.dsh/
 - **当前会话隔离**：环境变量 `DSH_SESSION_ID`、`DSH_SESSION_JSONL` 指向当前正在写入的会话；
   回溯过去来源时先排除它，否则刚执行的 status/diff 会伪装成历史证据。
 
-## 检索流程（配套脚本 scripts/search_dsh_sessions.py，**v3 安全版 2026-09-10**）
+## ⚠️ 升级到 DSH 0.1.5+ 后的老会话可读性（2026-09-11 实测）
+
+0.1.5-rc.2 的迁移 worker（`dsh-session-persistence-jsonl/lib/worker.cjs`）会**拒绝**两类 v0 日志，
+报 `SessionFormatUnsupportedMigrationError`，且**原 v0 文件保持不变**（`source v0 artifact remains unchanged`）：
+
+```js
+if (event.type === "subagent/descriptor" && data["version"] !== 3) { ... throw ... }
+```
+
+- **含 `subagent/descriptor` 且 version ≠ 3 的老会话**（本机 540 个 v0 会话中 147 个，占 27%，全是子代理会话）
+  → 在 DSH 0.1.5+ 里**打不开、不能续聊**（`agent_list` 仍会列出它们，`agent_send` 恢复时失败）。
+- 迁移前还会校验"历史事件类型必须在冻结的 v0 清单内"，未知类型同样拒绝迁移。
+- **对检索无影响**：本技能直接读原始文件，不做迁移；实测这些 v0 文件照样 `scan/search/show/last_user` 正常。
+  即：**内容不丢，丢的是"在 GUI 里打开/续聊"**。升级前若要保住可续聊性，只能在旧版本里逐个恢复后重存。
+
+## 检索流程（配套脚本 scripts/search_dsh_sessions.py，**v3.1 提速版 2026-09-12**）
 
 > 🚨 **v3 事故复盘（用户 2026-09-10 纠偏："你这么搜索，刚刚差点卡死了！！！"）**
-> 1. **禁止无过滤全库扫描**：本机 `~/.dsh/sessions` 有 300+ 会话 / 1.2GB 压缩；v2 默认 `--jobs 8`
->    全量并行解压 = 一次自造的 IO/CPU 风暴（在 8 核 7.9GB 的 WSL2 上足以把机器推到 OOM 边缘）。
->    v3 起：**默认只扫最新 10 个**（`recent` 默认最新 3 个），jobs 默认 2，总预算默认 150MB，
+> 1. **禁止无过滤全库扫描**：本机 `~/.dsh/sessions`（2026-10-15 实测 **97 会话 / 93MB** 压缩；事故当年是 300+ 会话 / 1.2GB）；v2 默认 `--jobs 8`
+>    全量并行解压 = 一次自造的 IO/CPU 风暴（本机为 **16 核 / 15GB · Arch Linux**；事故当年那台是 8 核 7.9GB 的 WSL2——规格不同，结论不变）。
+>    v3 起：**默认只扫最新 10 个**（`recent`/`dialog` 默认最新 3 个），jobs 默认 2，总预算默认 150MB，
 >    全程 `nice -n 19 ionice -c3` 降级。要更大范围必须**显式**给 `--since-min`/`--newest`/`--all`。
-> 2. **关键词搜"活动"，不搜"症状"**：历史会话记录的是**模型干了什么**（命令/工具/路径/报错串），
+> 2. **关键词搜"活动"，不搜"症状"**：历史会话记录的是**模型干了什么**（命令/工具名/路径/报错串），
 >    不是系统症状。搜 `OOM|卡顿|很卡|卡死` 必然空手——要搜 `filter-branch`、`git push`、`npm run build`、
 >    `docker`、`ensure-edge.sh`、`zstd -d -c`、`playwright|msedge`、`find /`、`tar` 这类**重型动作**。
-> 3. **方向：这个技能是"查最新的大模型活动"**——优先按**时间窗**取最近几个会话看模型当时在跑什么，
->    而不是全库考古。查"机器为什么卡/谁在占资源"→ 用 `recent`（活动时间线），不是 `search`。
+> 3. **入口分两问（v3.1 定案）**：问「**最新对话说了什么**」（用户要什么/模型答了什么）→ `dialog`；
+>    问「**模型当时在跑什么活动**」（命令/报错/机器为什么卡）→ `recent`。都不是 `search` 全库。
 > 4. **作用域永远可见**：每次输出都打印 `[scope:cmd] 实际扫描 N 个会话 | notes`——
 >    "没命中"必须能区分**真没有** vs **没扫到**（默认截断会伪装成不存在）。
 
-> v2 性能（119 会话/537MB 压缩实测）：scan 首次建索引约 1 分钟（并行+前缀过滤），**之后毫秒级**；
-> search 全项目并行流式秒级出命中。v1 的"每会话全量解压+逐行 json 解析+串行"在 60s 工具超时内必挂。
-> 加速原理：①噪声行（chunk 类）纯字节跳过 ②并行（索引 ProcessPool / 搜索 ThreadPool，v3 上限 2）
-> ③增量索引缓存（mtime+size 失效）④正则先在原始行上跑（C 速度），**命中行才 json.loads**
-> ⑤默认最新优先 + 总量预算封顶（v3）⑥nice/ionice 让检索永远不跟用户抢 CPU/IO。
+> v3.1 提速（用户 2026-09-12 痛点："一扫好几分钟 / 要更快拿到最关键信息"）实测：
+> ① `scan` 旧版冷缓存 = 全项目解压（本项目 165 会话/285MB，>90s 未完成）→ 现默认只索引
+> mtime 最新 30 个 + 跳过 >25MB 怪物，**冷缓存 3.2s**；② 旧版 scan 按 created 排序（今天活跃的
+> 老会话排不到前排）→ 现按**最后活动**排序；③ `recent` 输出先给「速览：最后一条 U / 最后一条 A」，
+> 不用在工具噪声里翻；④ 新增 `dialog` 一条命令拿最新人机对话（实测含 18.8MB 会话 1.5s）。
+> v2 性能备注：scan 首次建索引（全量）约 1 分钟，之后毫秒级；加速原理：①噪声行纯字节跳过
+> ②并行（索引 ProcessPool / 搜索 ThreadPool，上限 2）③增量索引缓存（mtime+size 失效）
+> ④正则先在原始行上跑（C 速度），**命中行才 json.loads** ⑤最新优先 + 总量预算封顶
+> ⑥nice/ionice 让检索永远不跟用户抢 CPU/IO。
 
 ```bash
 # 0. 定位会话根（默认 ~/.dsh/sessions，DSH_HOME 生效）——毫秒级
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dirs
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dirs /home/h/genshin-ts
 
-# 0b.【首选】最新的大模型活动时间线（v3）——"模型刚刚在跑什么/机器为什么卡"先跑这个
+# 0a.【首选①】最新人机对话速览（v3.1 新增）——"最新对话说了什么/用户最后要什么/模型最后答什么"
+#     只列真人原话(U)+助手正文(A)，零工具噪声；默认最新 3 个会话各最后 8 条；--tail K / --grep / --full
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dialog ~/.dsh/sessions/--home-h-genshin-ts--
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dialog <单个会话目录> --tail 12
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py dialog ~/.dsh/sessions --grep "窗外世界" --tail 5
+
+# 0b.【首选②】最新大模型活动时间线——"模型刚刚在跑什么/机器为什么卡"；头部自带速览(最后U/A)
 #     默认只解压最新 3 个会话 | --since-min 分钟窗 | --newest N | --grep 过滤 | --full 全量 | --max-lines 尾部条数
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py recent ~/.dsh/sessions --since-min 120 --max-lines 25
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py recent ~/.dsh/sessions --newest 4 \
   --grep '(ensure-edge|page-probe|page-shots|npm run|docker |zstd -d -c|playwright|msedge|find /|tar |rm -rf)'
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py recent <单个会话目录> --max-size 50
 
-# 1. 会话全景：标题+时间+user 摘要（走索引；默认最新 30 条，--all 全量，--limit N 调）
+# 1. 会话全景（v3.1：**按最后活动排序**；默认只索引/显示最新 30 个 + 跳过 >25MB，冷缓存秒级；--all 全量）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan ~/.dsh/sessions/--home-h-genshin-ts--
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan <会话目录> --limit 10
 
-# 1b. 显式建/重建索引（scan/todos 自动增量补；--rebuild 强制全量；删缓存文件即重置）
+# 1b. 显式建/重建索引（scan/todos 自动增量补；--rebuild 只强制重扫作用域；删缓存文件即重置）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py index ~/.dsh/sessions/--home-h-genshin-ts--
 
 # 2. 关键词搜索（正则；**搜活动不搜症状**；--since-min/--newest/--max-size/--budget-mb 收紧作用域）
@@ -126,14 +159,14 @@ python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py erro
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py todos ~/.dsh/sessions/--home-h-genshin-ts--
 ```
 
-### 作用域参数（v3，所有扫描类命令通用）
+### 作用域参数（v3.1，所有扫描类命令通用）
 
 | 参数 | 含义 | 默认 |
 |---|---|---|
 | `--since-min M` | 只扫最近 M 分钟内活动过的会话（**首选**，最贴近"刚刚/今天"） | 关 |
-| `--newest N` | 只扫最新 N 个会话 | recent=3 / search=10 |
+| `--newest N` | 只扫最新 N 个会话 | dialog/recent=3 / search=10 / **scan/todos=30** |
 | `--all` | 全量（危险模式，脚本会打印警告） | 关 |
-| `--max-size MB` | 单会话压缩体积上限，跳过怪物会话 | 关 |
+| `--max-size MB` | 单会话压缩体积上限，跳过怪物会话 | **scan/todos=25**（其余关） |
 | `--budget-mb MB` | 扫描总量预算，按新→旧累加封顶 | 150 |
 | `--jobs N` | 并行度 | 2 |
 
@@ -231,6 +264,7 @@ python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py rece
 - **arguments 是 JSON 字符串**：`tool/call` 的 `arguments` 字段是字符串形式的 JSON（`"{...}"`），解析时需 `json.loads` 二次解析
 - **注入消息**：`agent/inbox/spliced` 里的 content 也可能是用户消息（如恢复/插件注入）；scan 时一并纳入 user 摘要
 - **当前会话排除**：`$DSH_SESSION_JSONL` 指向当前正在写入的文件，检索过去来源时先排除
+- **工作区目录名以 `--` 开头**（2026-10-15 实证两次）：`ls "--home-h-…"` 会被当成选项报「未识别的选项」，`cd` 同理——一律加 `./` 前缀（`ls -t ./--home-h-…--/`）或用 python `os.listdir`；本技能脚本把目录作为 argv 传入不受影响
 - **不同会话可能对同一能力有不同说法**：以时间最近 + 有提交/源码佐证的为准
 - **会话文件仍可能在写入**：看到自己正在执行的会话内容属正常
 

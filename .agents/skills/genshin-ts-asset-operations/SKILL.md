@@ -6,6 +6,8 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 # Genshin-TS 资源操作（变量 / 节点图挂载 / UI / 信号）
 
+> 最近校验：2026-10-17（技能族刷新 T01–T05：口径/命令面/权威指针/正向表述）
+
 把“改 .gil 里的资源数据”这件事收敛成一条可复用的安全路径。它不是节点图内部逻辑编辑，也不是静态视觉模型拼装，而是以下四类资源操作：
 
 - **设置变量**：关卡变量、实体变量、CustomPrefab/玩家/角色初始变量，含全部类型与 dict；
