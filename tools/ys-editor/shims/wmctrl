@@ -1,0 +1,11 @@
+#!/bin/bash
+REAL=/usr/sbin/wmctrl
+HERE="$(dirname "$(readlink -f "$0")")"   # 跟随符号链接取真实目录（shim 装在 ~/.local/bin）
+if [ "${YS_SLOT_ACTIVE:-0}" = "1" ] || [ "${YS_ALLOW_RAW:-0}" = "1" ]; then exec "$REAL" "$@"; fi
+for a in "$@"; do
+  case "$a" in
+    -l|-d|-m|-p|-x|-G) ;;
+    -*) exec "$HERE/ys-shim-msg" wmctrl "改窗口状态/几何（$a）" ;;
+  esac
+done
+exec "$REAL" "$@"

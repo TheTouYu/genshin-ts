@@ -1,0 +1,5 @@
+#!/bin/bash
+REAL=/usr/sbin/ydotool
+HERE="$(dirname "$(readlink -f "$0")")"   # 跟随符号链接取真实目录（shim 装在 ~/.local/bin）
+if [ "${YS_SLOT_ACTIVE:-0}" = "1" ] || [ "${YS_ALLOW_RAW:-0}" = "1" ]; then exec "$REAL" "$@"; fi
+exec "$HERE/ys-shim-msg" ydotool "输入注入"

@@ -1,4 +1,8 @@
 #!/bin/bash
+# 修复类工具：本工具**就是**要改窗口状态（解卡/救援），硬通道的「前后窗口一致」不适用，
+# 故显式声明逃生口（shim 见 tools/ys-editor/shims/）。
+export YS_ALLOW_RAW=1
+
 # ys-unstick — 一条命令解卡「千星沙箱」窗：程序化激活 + WM 级 1px 往返（等价于手动拖动，但可脚本化）
 # 用法: ys-unstick [窗口ID]   不给参数=自动找「千星沙箱」
 D=$(pgrep -f '[X]wayland' | head -1)

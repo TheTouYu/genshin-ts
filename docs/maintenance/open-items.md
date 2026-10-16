@@ -844,7 +844,10 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
 **风险**：中（改的是 dsh 运行时安装树；但补丁幂等 + 有 upstream merge 脚本兜底 + 改动集中在一处拼接）。
 **预估**：20~30 分钟（含自测 + 一次压缩验证；不含重启等待）。
 
-### O-2026-10-17-07. 桌面注入的机械兜底（PATH shim）【OPEN-机制兜底；用户 2026-10-17 未裁决】
+### O-2026-10-17-07. 桌面注入的机械兜底（PATH shim）【CLOSED 2026-10-17 · 已上线】
+> **已落地**：`tools/ys-editor/shims/{ydotool,wmctrl,xdotool}` + `ys-shim-msg`，软链进 `~/.local/bin`（PATH 第 1 位）。
+> 六条验收：裸调 ydotool/裸 xdotool 动作/改状态 wmctrl → **77**；槽内 ydotool/只读 xdotool/只读 wmctrl → **0**。
+> 提示信息写成可自救形态（为什么/怎么做/在场怎么办/两次即停/逃生口）。工具侧：注入类自包装，修复类显式声明 `YS_ALLOW_RAW=1`。
 **问题**：协议早已要求「所有注入经 `ys-gui-slot`，禁止裸调 `wmctrl`/`ydotool`」，但**写进技能拦不住我**
 （2026-10-17 事故：我裸调 ydotool/KWin 连续十几轮抢桌面，零结果且干扰用户）。
 **候选机制**：把 `ydotool` / `wmctrl` / `xdotool` 在 PATH 前置成 **shim**——只有 `ys-gui-slot` 派生出的子进程放行
@@ -852,6 +855,7 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
 **判据**：裸跑 `ydotool key …` 退出码非 0 且提示硬通道；`ys-gui-slot` 内部调用仍正常。
 **风险**：低（纯本地脚本层）；**代价**：会拦截一切合法裸调用（含排障），需留逃生口（如 `YS_ALLOW_RAW=1` 且要求显式告知用户）。
 
-### O-2026-10-17-08. `ys-shot`：截图前校验窗口 id【OPEN-工具债】
+### O-2026-10-17-08. `ys-shot`：截图前校验窗口 id【CLOSED 2026-10-17 · 已上线】
+> **已落地**：`tools/ys-editor/ys-shot`（id / -t 标题 / -r 区域 三种用法）；实测：有效 id 出图 ✓，**不存在的窗口退 3 且不挂死** ✓。
 2026-10-17 有一条命令跑 60s+：`import -window $(…)` 的子命令失败 → 展开为空 → `import -window` 变成"等用户点窗口"挂死。
 候选：`ys-shot <win|标题子串>`——先解析并**校验**窗口存在（KWin 权威通道），不存在直接退出 3，绝不进 `import` 的交互态。

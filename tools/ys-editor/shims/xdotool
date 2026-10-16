@@ -1,0 +1,9 @@
+#!/bin/bash
+REAL=/usr/sbin/xdotool
+HERE="$(dirname "$(readlink -f "$0")")"   # 跟随符号链接取真实目录（shim 装在 ~/.local/bin）
+if [ "${YS_SLOT_ACTIVE:-0}" = "1" ] || [ "${YS_ALLOW_RAW:-0}" = "1" ]; then exec "$REAL" "$@"; fi
+case "${1:-}" in
+  getmouselocation|getwindowname|getwindowpid|getwindowfocus|getactivewindow|getwindowgeometry|getwindowclassname|getdisplaygeometry|search|help|version) exec "$REAL" "$@" ;;
+  "")  exec "$REAL" "$@" ;;
+  *)   exec "$HERE/ys-shim-msg" xdotool "窗口/指针动作（$1）" ;;
+esac

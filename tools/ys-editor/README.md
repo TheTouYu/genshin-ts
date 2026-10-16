@@ -86,3 +86,28 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <最新会话>.
 - **屏幕渲染有 2s+ 延迟，空闲时甚至整帧冻结** ⇒ **取数一律走"爆发注入 + 退出试玩让 Debug_Log 落盘 + 离线解析"**，不要逐键截图 OCR。
 - **探针 Lua `print` 落在日志 field 23**（gia_log.py 已支持）；`[cur]` 行含 事件类型/UI坐标/按下点/位移，`[key]` 行含 KeyEventType 名。
 - 实测数据（键盘 43 槽全映射 + 拖拽阈值 ~3 游戏px）：`evidence/2026-10-17-input-probe-experiments/experiments-record.md`。
+
+---
+
+## 🛡 机械兜底：注入类命令的 shim（2026-10-17 上线）
+
+**背景**：协议要求所有注入经 `ys-gui-slot`，但"写进技能"拦不住模型（2026-10-17 事故：裸调连续抢桌面十几轮、零结果、干扰用户）。**改为机制拦截**：
+
+```
+~/.local/bin/{ydotool,wmctrl,xdotool}   →   软链到 tools/ys-editor/shims/（仓内版本化）
+```
+（`~/.local/bin` 在 PATH **第 1 位**，因此屏蔽 `/usr/sbin/` 的同名命令。）
+
+| 命令 | 行为 |
+|---|---|
+| `ydotool` | **整条拦**（纯注入）→ 退出码 77 + 提示 |
+| `wmctrl` | 只读放行（`-l/-d/-m/-p/-x/-G`）；`-a/-r/-b/-e/-c` **拦** |
+| `xdotool` | 只读放行（`getmouselocation`/`getwindowname`/`search`…）；`key/click/windowactivate`… **拦** |
+
+**放行条件**：`YS_SLOT_ACTIVE=1`（槽内，由 `ys-gui-slot` 设置）或 `YS_ALLOW_RAW=1`（逃生口，**用前须向用户说明并取得同意**）。
+
+**拦截提示**（`shims/ys-shim-msg`）刻意写成"能救回一个倔强模型"的形态：为什么拦你 / 正确命令（可照抄）/ 用户在场怎么办 / **连续失败 2 次就停** / 逃生口。
+
+**工具侧配合**：注入类工具（`ys-pointer-click` / `ys-playtest-start` / `ys-kwin-move`）**自带自包装**——直接调用会自己进槽（参数校验在包装之前，参数错不抢桌面）；修复类工具（`ys-unstick` / `ys-unstick2` / `ys-editor-rescue.sh`）内部声明 `YS_ALLOW_RAW=1`（它们本来就是要改窗口状态）。
+
+**新工具 `ys-shot`**：`ys-shot <winid> <out.png>` / `-t <标题> <out.png>` / `-r x y w h <out.png>`——**先校验窗口存在再截图**，不存在退 3，绝不进 `import` 的"等用户点窗口"交互态（2026-10-17 那条 60s+ 挂死命令的根因）。

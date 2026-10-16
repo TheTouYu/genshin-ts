@@ -10,9 +10,15 @@
 #   缺省 tolerance=12px、ratio=1.7（大位移经验值；小位移约 2.6，闭环会自动收敛）
 # 退出码: 0=命中并已点击 / 4=步进过小 / 5=超过迭代上限未命中
 set -u
+
 export DISPLAY="${DISPLAY:-:1}"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
+fi
 TOL="${3:-12}"; RATIO="${4:-1.7}"
 
 get() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x, y}'; }

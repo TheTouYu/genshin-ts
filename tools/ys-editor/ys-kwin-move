@@ -3,9 +3,15 @@
 # 为什么需要它：①X11 位置回读在焦点回归态下会冻死（D280）②大幅步进有指针加速会过冲
 # 依赖: ys-kwin-cursor（合成器读数）
 set -u
+
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TX="${1:?用法: ys-kwin-move <x> <y> [tol]}"; TY="${2:?}"; TOL="${3:-3}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
+fi
 for i in $(seq 1 12); do
   read cx cy <<< "$("$HERE/ys-kwin-cursor")"
   [ -z "${cx:-}" ] && { echo "读数失败" >&2; exit 3; }
