@@ -1,47 +1,41 @@
 #!/bin/bash
-# ys-playtest-stop — 退出千星沙箱试玩（两段点击流程，2026-10-16 真机跑通并记录）
+# ys-playtest-stop — 退出千星试玩（轮询式，2026-10-17 优化版）
 #
-# 实测流程（详见 evidence/2026-10-16-input-probe-measure/playtest-exit-flow.md）：
-#   ① 试玩中按 ESC        → 暂停菜单（继续挑战 / 重新挑战 / **中断挑战**）
-#   ② 点「中断挑战」       → 结算页「未完成」
-#   ③ 点「离开」           → 回到千星大厅/编辑器页面（游戏窗无「奇域试玩中」水印）
+# 设计（遵守全局守则第 5 条：>5s 先优化、单条命令 ≤20s、一次拿焦点跑完整批）：
+#   · 整段流程**只在最外层拿一次焦点**（自我包装进 ys-gui-slot），内部不再切窗；
+#   · 所有等待都用**轮询+像素判据**（不再固定 sleep 2.5/4/5 秒）；
+#   · 判据：试玩暂停菜单/结算页按钮都是**浅色药丸**（R>200,G>190），场景/草地/深色面板都不是。
 #
-# 用法: ys-playtest-stop [窗口id] [canvas_w] [canvas_h]
-#   缺省窗口 0x01400001（原神）、画布 1600x900（实测画布；坐标按窗口几何自动换算）
-#   屏幕坐标 = 窗口原点 + 游戏坐标 × (窗口尺寸/画布尺寸)，Y 轴翻转
-#
-# 依赖: ys-gui-slot（焦点申请/还原）、ys-pointer-click（闭环定位点击）
-# 退出码: 0=已尝试完整流程（需人工/截图确认结果）/ 其他=中途失败
+# 用法: ys-playtest-stop [窗口id]     预计耗时 5~15s
 set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WIN="${1:-0x01400001}"; CW="${2:-1600}"; CH="${3:-900}"
+WIN="${1:-0x01400001}"
 
-# 窗口几何 → 游戏坐标换算所需
-read -r WX WY WW WH <<< "$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | awk -F= '/^X=/{x=$2}/^Y=/{y=$2}/^WIDTH=/{w=$2}/^HEIGHT=/{h=$2} END{print x, y, w, h}')"
-if [ -z "${WW:-}" ]; then echo "[ys-playtest-stop] 读不到窗口几何（$WIN）" >&2; exit 2; fi
-to_screen() {  # $1=game_x $2=game_y → 屏幕坐标
-  awk -v gx="$1" -v gy="$2" -v wx="$WX" -v wy="$WY" -v ww="$WW" -v wh="$WH" -v cw="$CW" -v ch="$CH" \
-    'BEGIN{ printf "%d %d", wx + gx*ww/cw, wy + (ch-gy)*wh/ch }'
-}
+# ── 外层：拿焦点跑完整段，结束自动还原 ──
+if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  exec "$HERE/ys-gui-slot" "$WIN" 25 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"
+fi
 
-# 实测目标（游戏坐标，源于 2560x1440 窗口下的截图定位）
-ABORT_GX=800;  ABORT_GY=350      # ESC 菜单「中断挑战」按钮中心
-LEAVE_GX=1146; LEAVE_GY=47       # 结算页「离开」按钮中心
+SNAP=/tmp/ys-playtest-stop-snap.png
+rgb_at() { import -window "$WIN" "$SNAP" 2>/dev/null; magick "$SNAP" -format "%[pixel:p{$1,$2}]" info: 2>/dev/null | sed -E 's/^[a-z]+\(([0-9]+),([0-9]+),([0-9]+).*/\1 \2 \3/'; }
+is_light() { local r g b; read -r r g b <<< "$(rgb_at "$1" "$2")"; [ -n "${r:-}" ] && [ "$r" -gt 200 ] && [ "$g" -gt 190 ]; }
+wait_light() {  # $1=x $2=y $3=最多轮数（每轮 0.8s）
+  local i=0; while [ "$i" -lt "$3" ]; do is_light "$1" "$2" && return 0; sleep 0.8; i=$((i+1)); done; return 1; }
 
-echo "[ys-playtest-stop] 步骤1/3：按 ESC 打开暂停菜单"
-"$HERE/ys-gui-slot" "$WIN" 8 bash -c 'ydotool key 1:1 1:0; sleep 1.5' || true
-sleep 2.5
-
-read -r SX SY <<< "$(to_screen "$ABORT_GX" "$ABORT_GY")"
-echo "[ys-playtest-stop] 步骤2/3：点「中断挑战」 @屏幕 ($SX,$SY)"
-"$HERE/ys-gui-slot" "$WIN" 20 bash -c "$HERE/ys-pointer-click $SX $SY 12 1.7" || true
-sleep 4
-
-read -r SX2 SY2 <<< "$(to_screen "$LEAVE_GX" "$LEAVE_GY")"
-echo "[ys-playtest-stop] 步骤3/3：点「离开」 @屏幕 ($SX2,$SY2)"
-"$HERE/ys-gui-slot" "$WIN" 20 bash -c "$HERE/ys-pointer-click $SX2 $SY2 12 1.7" || true
-sleep 5
-
-echo "[ys-playtest-stop] 流程已执行完毕——请用截图确认：游戏窗应无「奇域试玩中」水印、编辑器页面在前"
+echo "[stop] ① ESC → 等暂停菜单（≤8s）"
+ydotool key 1:1 1:0
+if wait_light 1280 880 10; then
+  echo "[stop] ② 点「中断挑战」"
+  "$HERE/ys-pointer-click" 1280 880 12 1.7 >/dev/null 2>&1
+  if wait_light 1833 1365 14; then
+    echo "[stop] ③ 点「离开」"
+    "$HERE/ys-pointer-click" 1833 1365 12 1.7 >/dev/null 2>&1
+    echo "[stop] ✓ 已发出退出（日志将在会话结束时落盘）"
+  else
+    echo "[stop] ⚠️ 未等到结算页「离开」按钮（判据 1833,1365 非浅色）" >&2; exit 5
+  fi
+else
+  echo "[stop] ⚠️ 未等到暂停菜单（判据 1280,880 非浅色）——可能不在试玩中" >&2; exit 4
+fi
