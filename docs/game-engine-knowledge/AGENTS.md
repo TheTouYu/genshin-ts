@@ -259,6 +259,9 @@ GIL 整体结构与语义树
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
   [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)
+- **记忆工程（压缩/恢复）**：[压缩丢细节事故与双侧修复](retrospective-2026-10-17-compression-loss-and-recovery.md)
+  （8 错谱系+三系统性根因：**压缩的损失模型错了——丢的是指令不是数字**（「数字好补，指路难补」）／知识只在日记不在技能=不生效／
+   恢复技能必须自验证（本轮自验证抓出"取到别的会话"这个会**静默给出别人证据**的 bug））
 - **技能体系与预设治理**：[技能族刷新与预设治理](retrospective-2026-10-17-skill-refresh-and-preset-governance.md)
   （7 错谱系+三系统性根因：**会话身份(persona) > 技能路由**／改配置先问「谁拥有·怎么生效·规范在哪」／落点按「生效载体+字节预算」选；
    七票 T01–T07 全闭环 + persona 重写 -4113 字符 + 跨桶查到预设规范；用户 8 条纠正逐字入档）
