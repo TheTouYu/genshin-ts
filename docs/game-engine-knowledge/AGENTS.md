@@ -259,6 +259,8 @@ GIL 整体结构与语义树
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
   [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)
+- **过程与协作纪律**：[抢桌面事故——协议未读/止损缺失/在场无判据](retrospective-2026-10-17-desktop-grab-incident.md)
+  （8 错谱系；**失败波**：唯一技术收获不应以用户时间为代价。三根因：把协议当背景知识不当现场契约／无止损判据／所有桌面规则隐含"我独占桌面"）
 - **记忆工程（压缩/恢复）**：[压缩丢细节事故与双侧修复](retrospective-2026-10-17-compression-loss-and-recovery.md)
   （8 错谱系+三系统性根因：**压缩的损失模型错了——丢的是指令不是数字**（「数字好补，指路难补」）／知识只在日记不在技能=不生效／
    恢复技能必须自验证（本轮自验证抓出"取到别的会话"这个会**静默给出别人证据**的 bug））
