@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""round-report — 一轮结束时的一页账：本轮的耗时构成 + 教练卡 + 机器可读 round.json。
+
+存在理由（2026-10-17）：cmdmon 能度量、agent-coach 能建议，但**没有人负责在轮末看它**。
+仪器不是"有工具"，是"每轮都被读一次"。这个脚本就是那个读的人（也是验收门槛④
+「证据=能重推结论的最小集」的最小实现：断言 + 观测 + 判据值 + 耗时全落一份 json）。
+
+用法:
+  tools/round-report                  # 近 30 分钟
+  tools/round-report --since 2h
+  tools/round-report --json out.json  # 另存路径（默认 ~/.dsh/cmdlog/round.json）
+退出码: 0 正常（本轮有记录）；1 窗口内无记录
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+from collections import defaultdict
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+LEDGER = os.path.expanduser('~/.dsh/cmdlog/commands.jsonl')
+OUT = os.path.expanduser('~/.dsh/cmdlog/round.json')
+
+
+def parse_since(s):
+    import re
+    m = re.match(r'^(\d+(?:\.\d+)?)([smhd])$', s)
+    if not m:
+        return 1800
+    return int(float(m.group(1)) * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[m.group(2)])
+
+
+def load(since_s):
+    cutoff = (time.time() - since_s) * 1000
+    rows, seen = [], set()
+    if not os.path.exists(LEDGER):
+        return rows
+    for line in open(LEDGER, errors='replace'):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            o = json.loads(line)
+        except Exception:
+            continue
+        if o.get('ts', 0) < cutoff:
+            continue
+        k = o.get('callId')
+        if k in seen:
+            continue
+        seen.add(k)
+        rows.append(o)
+    return rows
+
+
+def fmt(ms):
+    return f'{ms/60000:.1f}m' if ms >= 60000 else f'{ms/1000:.1f}s'
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--since', default='30m')
+    ap.add_argument('--json', default=OUT)
+    ap.add_argument('--no-coach', action='store_true')
+    a = ap.parse_args()
+    since = parse_since(a.since)
+    rows = load(since)
+    if not rows:
+        print(f'窗口 {a.since} 内无调用记录')
+        return 1
+
+    inst = [r for r in rows if r.get('tool') != 'ask_user_question']
+    human = [r for r in rows if r.get('tool') == 'ask_user_question']
+    total = sum(r['dur_ms'] for r in inst)
+    per = defaultdict(lambda: [0, 0])
+    for r in inst:
+        per[r.get('cat', '?')][0] += 1
+        per[r.get('cat', '?')][1] += r['dur_ms']
+
+    fails = [r for r in inst if r.get('is_error') or r.get('exit') not in (None, 0)]
+    import re
+    SLEEP = re.compile(r'\bsleep\s+[0-9]')
+    sleeps = [r for r in inst if r.get('tool') == 'bash' and SLEEP.search(r.get('cmd', ''))]
+    idle = [r for r in inst if r.get('tool') == 'job_output' and r['dur_ms'] >= 60000]
+
+    print(f'=== 本轮账（近 {a.since}）===')
+    print(f'调用 {len(rows)} 次   仪器耗时 {fmt(total)}'
+          + (f'   人等待 {fmt(sum(r["dur_ms"] for r in human))}' if human else ''))
+    top = sorted(per.items(), key=lambda kv: -kv[1][1])[:5]
+    print('  构成: ' + '  '.join(f'{c} {fmt(m)}({100*m/total:.0f}%)' for c, (n, m) in top))
+    print(f'  失败 {len(fails)}   裸 sleep {len(sleeps)}   长等待(≥60s) {len(idle)}')
+    if sleeps:
+        print('  裸 sleep 明细（前 3）:')
+        for r in sleeps[:3]:
+            print(f'    {r["cmd"][:88]}')
+
+    coach = ''
+    if not a.no_coach:
+        try:
+            p = subprocess.run([os.path.join(HERE, 'agent-coach'), '--window', a.since, '--dry-run'],
+                               capture_output=True, text=True, timeout=60)
+            coach = p.stdout.strip()
+            print('\n' + coach)
+        except Exception as e:
+            coach = f'（教练卡生成失败: {e}）'
+
+    rec = {'ts': int(time.time() * 1000), 'since': a.since,
+           'calls': len(rows), 'instrument_ms': total,
+           'human_ms': sum(r['dur_ms'] for r in human),
+           'cats': {c: {'n': v[0], 'ms': v[1]} for c, v in per.items()},
+           'fails': len(fails), 'bare_sleep': len(sleeps), 'idle_wait_60s': len(idle),
+           'coach': coach}
+    with open(a.json, 'w') as f:
+        json.dump(rec, f, ensure_ascii=False, indent=1)
+    print(f'\n证据: {a.json}')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
