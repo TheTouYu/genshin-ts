@@ -12,3 +12,4 @@ domain-selftest	bash tools/ys-editor/tests/domain-selftest.sh	执行域自检（
 identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	证据新鲜度（replay 无 sha/无时刻/sha 不符 ⇒ ERROR）
 resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	动作时解析（同标签两布局/候选0/不唯一/回读不符）
 screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	屏幕摘要（4 帧/23 断言：邻接+遮挡+圆钮两路内部样式）
+layer	bash tools/ys-editor/tests/layer-selftest.sh	层级/模态/scrim（5 帧 9 断言，含 2 负样本）

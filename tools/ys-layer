@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+"""ys-layer — 层级/模态/压暗层识别（"我在第几层？这层怎么退？")
+
+## 存在理由（2026-10-18 未知任务实测，见 O-2026-10-17-14 / O-2026-10-18-01）
+
+"点击无效"的第一嫌疑不是"元素不可点"，而是"你不在你以为的那一层"：
+  · 在 `赛程总览(E2)` 上点只有 `活动详情(E3)` 才有的按钮 → 解析器 rc=4
+  · 结果公布**模态**在场时点其下方 → 全部无效，而模态 ESC/点空白都关不掉
+  · `前往查看` 不是"关闭窗口"，而是去世界里的映影板 → **窗口消失 ≠ 我点错了**
+
+屏只是**一张图**，图里没有"层"。本工具从像素里恢复三件事：
+  1. **scrim**（整屏/局部压暗层）：模态背后的遮罩，其下的控件**点不到**（交互遮挡）
+     —— 与 `ys-screen` 报的**视觉遮挡**（DXVK 叠加层）是两回事，别混。
+  2. **modal / panels**：亮面卡片（居中或贴边）——它是"当前活跃的一层"。
+  3. **close_controls**：这一层的关闭控件（右上角 ✕）——回答"怎么退出去"。
+
+## 判据（为什么这样能区分真假）
+
+· 真 scrim 的两条特征同时成立：**亮度被压低** AND **方差被压平**（背后的文字/纹理几乎看不见）。
+  只看亮度会被"画面本来就是深色"骗到；只看方差会被"大片纯色背景"骗到——所以两者取与。
+· 亮面卡片要求 **面积占比在 8%~88%** 且 **长宽比 0.4~3.2**：太大=整屏面板（不是模态），
+  太小=按钮（不是面板）。
+· 关闭控件 = 卡片/屏**右上角 28%×18% 区域内的紧凑亮块**（圆钮或圆角方钮），要求外接框紧凑且局部对比高。
+
+## 用法
+  tools/ys-layer <png> [--json]
+退出码: 0 正常 / 3 读不到图 / 4 参数错
+机读行: `LAYER-RESULT scrim=<0|1> modal=<0|1> panels=<n> closes=<n> verdict=<PASS|ALERT>`
+"""
+import json
+import os
+import sys
+
+try:
+    from PIL import Image
+    import numpy as np
+except Exception as exc:  # pragma: no cover
+    print('缺少依赖：%s（numpy + Pillow 已是项目既有依赖）' % exc, file=sys.stderr)
+    sys.exit(3)
+
+GX, GY = 16, 9            # 网格单元数（判 scrim/面板够用，且不受局部噪点影响）
+SCRIM_DIM = 0.62          # 单元亮度 < 全局中位数 × 该值 → 候选"暗"
+SCRIM_FLAT = 0.60         # 单元 std < 全局 std 中位数 × 该值 → 候选"平"
+SCRIM_COVER = 0.18        # 暗且平的单元占比 ≥ 该值 才算 scrim
+CARD_MIN, CARD_MAX = 0.08, 0.88   # 亮面卡片面积占比区间
+CLOSE_ZONE = (0.72, 0.20)  # 关闭控件搜索区：右侧 28% × 上方 20%
+
+
+def _cells(lum):
+    """把亮度图压成 GX×GY 网格，返回 (均值, 标准差) 两张表。"""
+    h, w = lum.shape
+    ys = np.linspace(0, h, GY + 1).astype(int)
+    xs = np.linspace(0, w, GX + 1).astype(int)
+    mean = np.zeros((GY, GX), np.float32)
+    std = np.zeros((GY, GX), np.float32)
+    for j in range(GY):
+        for i in range(GX):
+            blk = lum[ys[j]:ys[j + 1], xs[i]:xs[i + 1]]
+            mean[j, i] = float(blk.mean())
+            std[j, i] = float(blk.std())
+    return mean, std
+
+
+def _components(mask):
+    """网格上的 4 邻连通域，返回 [(cells, bbox_i, bbox_j)]。"""
+    seen = np.zeros_like(mask, bool)
+    out = []
+    for j in range(mask.shape[0]):
+        for i in range(mask.shape[1]):
+            if not mask[j, i] or seen[j, i]:
+                continue
+            stack, cells = [(j, i)], []
+            seen[j, i] = True
+            while stack:
+                cj, ci = stack.pop()
+                cells.append((cj, ci))
+                for dj, di in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nj, ni = cj + dj, ci + di
+                    if 0 <= nj < mask.shape[0] and 0 <= ni < mask.shape[1] \
+                            and mask[nj, ni] and not seen[nj, ni]:
+                        seen[nj, ni] = True
+                        stack.append((nj, ni))
+            js = [c[0] for c in cells]
+            is_ = [c[1] for c in cells]
+            out.append((len(cells), (min(is_), min(js), max(is_), max(js))))
+    return out
+
+
+def _close_controls(lum, panel_bbox=None):
+    """找这一层的 ✕：优先在**面板自己的右上角**找，其次屏右上角。
+
+    用 top-hat（原图 − 局部均值）抓"局部对比亮块"，再用紧凑度筛掉文字块。
+    """
+    h, w = lum.shape
+    if panel_bbox:
+        px, py, pw, ph = panel_bbox
+        x0, x1 = int(px + pw * 0.78), int(px + pw)
+        y0, y1 = int(py), int(py + ph * 0.18)
+    else:
+        x0, x1 = int(w * CLOSE_ZONE[0]), w
+        y0, y1 = 0, int(h * CLOSE_ZONE[1])
+    x0, y0 = max(0, x0), max(0, y0)
+    x1, y1 = min(w, x1), min(h, y1)
+    if x1 - x0 < 20 or y1 - y0 < 20:
+        return []
+    reg = lum[y0:y1, x0:x1]
+    # 局部均值（25x25 盒模糊，用整数累计和实现，避免新依赖）
+    k = 25
+    pad = np.pad(reg, k // 2, mode='edge')
+    cs = pad.cumsum(0).cumsum(1)
+    cs = np.pad(cs, ((1, 0), (1, 0)))
+    H, W = reg.shape
+    blur = (cs[k:k + H, k:k + W] - cs[0:H, k:k + W] - cs[k:k + H, 0:W] + cs[0:H, 0:W]) / (k * k)
+    diff = reg - blur
+    mask = diff > 28
+    if mask.sum() < 60:
+        return []
+    ys, xs = np.where(mask)
+    # 网格化连通域（20px 格），只留紧凑块
+    cell = 20
+    gy, gx = H // cell + 1, W // cell + 1
+    grid = np.zeros((gy, gx), np.float32)
+    cnt = np.zeros((gy, gx), np.int32)
+    for y, x in zip(ys, xs):
+        grid[y // cell, x // cell] += diff[y, x]
+        cnt[y // cell, x // cell] += 1
+    act = cnt > 8
+    comps = sorted(_components(act), key=lambda c: -c[0])
+    best = None
+    for n, (i0, j0, i1, j1) in comps[:4]:
+        bw, bh = (i1 - i0 + 1) * cell, (j1 - j0 + 1) * cell
+        if not (14 <= bw <= 0.09 * w and 14 <= bh <= 0.12 * h):
+            continue
+        if not (0.45 <= bw / max(bh, 1) <= 2.2):
+            continue
+        score = float(cnt[j0:j1 + 1, i0:i1 + 1].sum())
+        if best is None or score > best[0]:
+            best = (score, i0, j0, i1, j1, bw, bh)
+    if not best:
+        return []
+    score, i0, j0, i1, j1, bw, bh = best
+    return [{'cx': int(x0 + i0 * cell + bw / 2), 'cy': int(y0 + j0 * cell + bh / 2),
+             'w': int(bw), 'h': int(bh),
+             'confidence': round(min(1.0, 0.5 + score / 4000.0), 2),
+             'evidence': {'zone': 'panel-top-right' if panel_bbox else 'screen-top-right',
+                          'tophat_px': int(score)}}]
+
+
+def analyze(path):
+    img = Image.open(path).convert('RGB')
+    W, H = img.size
+    a = np.asarray(img, dtype=np.float32)
+    lum = 0.2126 * a[:, :, 0] + 0.7152 * a[:, :, 1] + 0.0722 * a[:, :, 2]
+    mean, std = _cells(lum)
+    med_m, med_s = float(np.median(mean)), float(np.median(std))
+    dim_flat = (mean < med_m * SCRIM_DIM) & (std < max(med_s, 1.0) * SCRIM_FLAT)
+    cover = float(dim_flat.mean())
+    # 亮面卡片：网格上"亮"的连通域
+    bright = mean > med_m * 1.15
+    comps = sorted(_components(bright), key=lambda c: -c[0])
+    panels = []
+    cell_area = (W / GX) * (H / GY)
+    for n, (i0, j0, i1, j1) in comps[:3]:
+        area = (i1 - i0 + 1) * (j1 - j0 + 1) * cell_area / (W * H)
+        if area < CARD_MIN:
+            continue
+        bw, bh = (i1 - i0 + 1) * W / GX, (j1 - j0 + 1) * H / GY
+        ar = bw / max(bh, 1)
+        if not (0.4 <= ar <= 3.2):
+            continue
+        panels.append({'bbox': [int(i0 * W / GX), int(j0 * H / GY), int(bw), int(bh)],
+                        'area_ratio': round(area, 3), 'aspect': round(ar, 2),
+                        'full_screen': area > 0.35})
+    # 整屏面板（羊皮纸式）：亮单元占比 ≥55% 时直接按"全屏面板"报
+    plateau = mean >= mean.max() * 0.88
+    frac_bright = float(plateau.mean())
+    if frac_bright >= 0.45 and not panels:
+        bright = plateau
+        js, is_ = np.where(bright)
+        bw = (is_.max() - is_.min() + 1) * W / GX
+        bh = (js.max() - js.min() + 1) * H / GY
+        panels = [{'bbox': [int(is_.min() * W / GX), int(js.min() * H / GY), int(bw), int(bh)],
+                   'area_ratio': round((bw * bh) / (W * H), 3), 'aspect': round(bw / max(bh, 1), 2),
+                   'full_screen': True}]
+    modal = panels[0] if (panels and not panels[0]['full_screen']
+                          and panels[0]['area_ratio'] <= CARD_MAX) else None
+    # scrim：暗且平的单元占比够高，且**不是整屏面板**（整屏面板下整屏都亮/暗，不算遮罩）
+    full_screen = bool(panels and panels[0]['full_screen'])
+    scrim = cover >= SCRIM_COVER and not full_screen and bool(panels)
+    scrim_bbox = None
+    if scrim:
+        cs = sorted(_components(dim_flat), key=lambda c: -c[0])
+        if cs:
+            _, (i0, j0, i1, j1) = cs[0]
+            scrim_bbox = [int(i0 * W / GX), int(j0 * H / GY),
+                          int((i1 - i0 + 1) * W / GX), int((j1 - j0 + 1) * H / GY)]
+    closes = _close_controls(lum, (panels[0]['bbox'] if panels else None))
+    advice = []
+    if scrim:
+        advice.append('存在压暗层（scrim 覆盖 %.0f%%）：其下区域**不可点**，先处理模态。' % (cover * 100))
+    if modal:
+        advice.append('当前活跃层 = 居中/贴边面板 %s（面积 %.0f%%）。' % (modal['bbox'], modal['area_ratio'] * 100))
+    if closes:
+        advice.append('关闭请点 (x=%d, y=%d)（该层 ✕）。' % (closes[0]['cx'], closes[0]['cy']))
+    if not advice:
+        advice.append('未见压暗层与面板：按普通界面处理（可直接点控件）。')
+    return {
+        'path': os.path.abspath(path), 'size': [W, H],
+        'scrim': {'present': scrim, 'coverage': round(cover, 3), 'bbox': scrim_bbox,
+                  'evidence': {'median_cell_lum': round(med_m, 1), 'median_cell_std': round(med_s, 1),
+                               'dim_flat_cells': int(dim_flat.sum())}},
+        'modal': {'present': bool(modal), **(modal or {})},
+        'panels': panels,
+        'close_controls': closes,
+        'advice': ' '.join(advice),
+        'note': '视觉遮挡（叠加层）见 ys-screen.occlusion；本工具报的是**交互**遮挡与层级。',
+    }
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    as_json = '--json' in args
+    args = [a for a in args if a != '--json']
+    if len(args) != 1:
+        print('用法: ys-layer <png> [--json]', file=sys.stderr)
+        return 4
+    if not os.path.exists(args[0]):
+        print('读不到图：%s' % args[0], file=sys.stderr)
+        return 3
+    r = analyze(args[0])
+    if as_json:
+        print(json.dumps(r, ensure_ascii=False, indent=1))
+    else:
+        print('══ ys-layer ══  %s (%dx%d)' % (os.path.basename(r['path']), *r['size']))
+        print('  scrim: %s  覆盖 %.0f%%  bbox=%s' % ('**有**' if r['scrim']['present'] else '无',
+                                                r['scrim']['coverage'] * 100, r['scrim']['bbox']))
+        print('  modal: %s' % ('**有** %s' % (r['modal'].get('bbox'),) if r['modal']['present'] else '无'))
+        for p in r['panels']:
+            print('  panel: bbox=%s 面积=%.0f%% 全屏=%s' % (p['bbox'], p['area_ratio'] * 100, p['full_screen']))
+        for c in r['close_controls']:
+            print('  close: (%d,%d) %dx%d conf=%.2f' % (c['cx'], c['cy'], c['w'], c['h'], c['confidence']))
+        print('  建议: %s' % r['advice'])
+    line = ('LAYER-RESULT scrim=%d modal=%d panels=%d closes=%d verdict=%s'
+            % (int(r['scrim']['present']), int(r['modal']['present']),
+               len(r['panels']), len(r['close_controls']), 'PASS'))
+    print(line, file=sys.stderr if as_json else sys.stdout)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
