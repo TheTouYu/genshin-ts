@@ -97,16 +97,26 @@ def _load_frame(req):
         return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
     if req.get("frame"):                       # 离线/基准：读 PNG（带 (mtime,size) 缓存）
         return _frame_tensor(req["frame"])
-    else:                                      # 在线：抓窗口区域
+    else:                                      # 在线：抓窗口区域（原始像素，无 PNG 编解码）
         if req.get("region"):
             X, Y, W, H = map(int, req["region"])
+            arr = YL.grab(X, Y, W, H)
         else:
-            import subprocess
-            g = dict(l.split("=") for l in subprocess.run(
-                ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
-                capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
-            X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
-        arr = YL.grab(X, Y, W, H).astype(np.float32) / 255.0
+            # 判据坐标系 = 全屏 2560×1440（契约 §5：屏 2560×1440，游戏窗 2561×1440 @(0,0)，
+            # 多出的 1 列在屏外）。**别按窗口 geometry 抓**：实测 2561 宽会让
+            # `import -crop 2561x1440` 只返回 2560×1440×3=11059200 字节，而 grab 的尺寸断言
+            # 期望 2561×1440×3=11063520 ⇒ 抛「截取失败」，活体 --fast 于是静默回退本地（慢 4 倍）。
+            try:
+                YS = ys_state()
+                X, Y, W, H = 0, 0, YS.FRAME_W, YS.FRAME_H
+                arr = YL.grab(X, Y, W, H)
+            except Exception:
+                import subprocess                      # 兜底：窗口真实 geometry（坐标不符由 geom 校验兜住）
+                g = dict(l.split("=") for l in subprocess.run(
+                    ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
+                    capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+                X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
+                arr = YL.grab(X, Y, W, H)
         req["_origin"] = (X, Y)
     return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
 
@@ -208,15 +218,34 @@ def _probe(req):
     name = req.get("name")
     spec = YS.PROBES[YS.PROBE_ALIAS.get(name, name)]
     ox, oy, bw, bh = YS._probe_bbox(spec)
+    t0 = time.time()
     if req.get("frame") or req.get("frame_bin"):
+        path = req.get("frame")
+        cache_hit = False
+        if path:
+            try:
+                st = os.stat(path)
+                hit = _FRAME_CACHE.get(path)
+                cache_hit = bool(hit and hit[0] == (st.st_mtime_ns, st.st_size))
+            except OSError:
+                pass
         It = _load_frame(req)
         H, W = int(It.shape[1]), int(It.shape[2])
         x0, y0 = max(0, min(ox, W - 1)), max(0, min(oy, H - 1))
         sub = It[:, y0:min(H, y0 + bh), x0:min(W, x0 + bw)]
         arr = (sub.permute(1, 2, 0).cpu().numpy() * 255).round().astype("uint8")
-        return YS.probe(name, grabbed=(arr, x0, y0))
-    arr = YL.grab(ox, oy, bw, bh)
-    return YS.probe(name, grabbed=(arr, ox, oy))
+        t_load = time.time()
+        out = YS.probe(name, grabbed=(arr, x0, y0))
+        out.update({"cache_hit": cache_hit, "judge_ms": round((time.time() - t_load) * 1000)})
+    else:
+        arr = YL.grab(ox, oy, bw, bh)
+        t_load = time.time()
+        out = YS.probe(name, grabbed=(arr, ox, oy))
+        out.update({"cache_hit": False, "judge_ms": round((time.time() - t_load) * 1000)})
+    out["ms"] = round((time.time() - t0) * 1000)        # 含抓帧/解码，不是只算判据
+    out["load_ms"] = round((t_load - t0) * 1000)
+    out["via"] = "daemon"
+    return out
 
 
 def handle(req):

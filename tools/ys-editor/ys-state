@@ -69,7 +69,12 @@ MIN_CRITERIA = 2
 
 # ── 几何 / 阈值 / 探针坐标（全仓唯一）───────────────────────────
 FRAME_W, FRAME_H = 2560, 1440       # ys-observe / spectacle 全屏帧；游戏窗 0x01400001 = 2561x1440
-TPL_THRESHOLD = 0.90                # 全帧模板 NCC 阈值（实测：本态 1.000，异态最高 0.864）
+TPL_THRESHOLD = 0.85                # 全帧模板 NCC 阈值。实测标定（2026-10-17，20 张真帧）：
+#   本态：savelist.png 1.000；活体帧 pending/live-20261017-1954.png **0.861**（存档页的另一种呈现）
+#   异态最高：save-card-title 在原神主游戏帧上 0.805（且该帧 SAVELIST/A 像素判据不过 ⇒ 双重挡住）
+#   ⇒ 0.90 会把 0.861 的真存档页判成 UNKNOWN（与 fast 通道矛盾：实测 full=UNKNOWN / fast=SAVELIST）
+TPL_MARGIN_OK = 0.861               # 本态最差命中（回归集最紧的一张）
+TPL_MARGIN_BAD = 0.805              # 异态最高命中
 ANCHOR_THRESHOLD = 0.80             # GPU 锚点阈值（profile 按 worst-case margin 挖：本态最差 0.814，异态最高 0.669）
 FLAT_SPREAD = 8.0                   # LOADING/B：中央区域无纹理（16 点亮度极差 <8 灰阶）
 PANEL_DIFF = 40.0                   # EDITOR/B：左列与中列均值差
@@ -508,6 +513,33 @@ def anchor_readings_from_scores(scores, state_of):
     return R
 
 
+def anchor_scores_local(profile, pix):
+    """daemon 不可用时的**本地兜底**：用 ys_look.ncc（CPU）在本地帧上算锚点分数。
+
+    慢（12 锚点约数秒级）—— 这是兜底不是常态，调用方必须往 stderr 出声。
+    数学仍是 ys_look 那一份（不重写 matcher），阈值仍是本文件的 ANCHOR_THRESHOLD。
+    """
+    sys.path.insert(0, HERE)
+    import numpy as np
+    from ys_look import ncc
+    img = pix.image().astype("float32") / 255.0
+    jobs, state_of = anchor_jobs(profile)
+    scores = {}
+    for job in jobs:
+        x, y, w, h = job["roi"]
+        sub = img[y:y + h, x:x + w]
+        tw, th = frame_geom(job["tpl"])
+        raw = subprocess.run(["magick", job["tpl"], "-depth", "8", "rgb:-"],
+                             capture_output=True).stdout
+        if len(raw) != tw * th * 3 or tw > sub.shape[1] or th > sub.shape[0]:
+            scores[job["id"]] = -1.0
+            continue
+        T = np.frombuffer(raw, dtype=np.uint8).reshape(th, tw, 3).astype("float32") / 255.0
+        _, _, score, _ = ncc(sub, T)
+        scores[job["id"]] = float(score)
+    return scores, state_of
+
+
 def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
     """客户端取数：把锚点 jobs 交给 ys-lookd，拿分数再走同一份判据。"""
     sys.path.insert(0, HERE)
@@ -642,6 +674,16 @@ def daemon_call(req, timeout=30, retry=True):
     return r
 
 
+DAEMON_ERROR = None      # 最近一次常驻服务失败原因（回退时**必须**打印出来）
+
+
+def _daemon_fail(why):
+    """记录并返回失败原因（调用方负责往 stderr 出声）。"""
+    global DAEMON_ERROR
+    DAEMON_ERROR = why
+    return None
+
+
 def daemon_state(frame=None, profile=None):
     """向常驻服务要一次 fast 判定；服务不可用/报错返回 None（由调用方回退本地）。"""
     req = {"cmd": "state", "channel": "fast",
@@ -649,8 +691,12 @@ def daemon_state(frame=None, profile=None):
     if frame:
         req["frame"] = os.path.abspath(frame)
     r = daemon_call(req, timeout=60)
-    if not r or r.get("error") or "state" not in r:
-        return None
+    if not r:
+        return _daemon_fail(f"连不上 {LOOKD_SOCK} 或无响应")
+    if r.get("error"):
+        return _daemon_fail(f"daemon 报错: {str(r['error'])[:200]}")
+    if "state" not in r:
+        return _daemon_fail(f"daemon 响应缺 state 字段: {str(r)[:120]}")
     return r
 
 
@@ -660,9 +706,20 @@ def daemon_probe(name, frame=None):
     if frame:
         req["frame"] = os.path.abspath(frame)
     r = daemon_call(req, timeout=30)
-    if not r or r.get("error") or "visible" not in r:
-        return None
+    if not r:
+        return _daemon_fail(f"连不上 {LOOKD_SOCK} 或无响应")
+    if r.get("error"):
+        return _daemon_fail(f"daemon 报错: {str(r['error'])[:200]}")
+    if "visible" not in r:
+        return _daemon_fail(f"daemon 响应缺 visible 字段: {str(r)[:120]}")
     return r
+
+
+def warn_fallback(what, t0):
+    """回退本地时往 stderr 打一行（铁律：仪器出错要出声，见 D310 仪器自证陷阱）。"""
+    sys.stderr.write(
+        f"[ys-state] ⚠ daemon 不可用，{what}已回退本地"
+        f"（本机实测约多花 200~450ms）：{DAEMON_ERROR}\n")
 
 
 def run_fast(frame=None, profile_path=None):
@@ -681,7 +738,9 @@ def run_fast(frame=None, profile_path=None):
                 "ms": round((time.time() - t0) * 1000)}, frame, None
 
     # ① 常驻通道优先：ys-lookd 一次抓原始像素（无 PNG 编解码）+ 在服务内跑同一份判据
+    tried_daemon = False
     if os.environ.get("YS_STATE_LOCAL") != "1":
+        tried_daemon = True
         d = daemon_state(frame=frame, profile=prof_path)
         if d:
             res = {k: d[k] for k in ("state", "confidence", "ambiguous", "margin", "verdicts",
@@ -694,7 +753,9 @@ def run_fast(frame=None, profile_path=None):
                 fresh = fresh_obj(frame, None)
             return res, frame, fresh
 
-    # ② 回退本地（服务没起/旧版本/报错）——判据仍是同一份代码
+    # ② 回退本地（服务没起/旧版本/报错）——判据仍是同一份代码，但**必须出声**
+    if tried_daemon:
+        warn_fallback("判态", t0)
     if frame:
         try:
             pix = ArrayPixels(decode_frame(frame), source=frame)
@@ -719,13 +780,18 @@ def run_fast(frame=None, profile_path=None):
         readings["GEOM/frame 尺寸 2560x1440"] = {
             "value": f"实际 {pix.w}x{pix.h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
     bin_path = None
+    fallback_note = None
     try:
         if geom_ok(pix.w, pix.h):
-            bin_path, shape = raw_frame_bin(pix)
-            readings.update(anchor_readings(profile, frame_bin=bin_path, shape=shape))
-    except (RuntimeError, OSError) as e:
-        return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
-                "ms": round((time.time() - t0) * 1000)}, frame, None
+            try:
+                bin_path, shape = raw_frame_bin(pix)
+                readings.update(anchor_readings(profile, frame_bin=bin_path, shape=shape))
+            except (RuntimeError, OSError) as e:
+                # 兜底：本地 CPU NCC（同一份数学，慢但正确）——铁律是「仪器出错要出声」
+                sys.stderr.write(f"[ys-state] ⚠ 锚点走本地 CPU 兜底（慢，12 锚点数秒级）：{e}\n")
+                scores, state_of = anchor_scores_local(profile, pix)
+                readings.update(anchor_readings_from_scores(scores, state_of))
+                fallback_note = f"锚点本地 CPU 兜底：{e}"
     finally:
         if bin_path:
             try:
@@ -734,7 +800,9 @@ def run_fast(frame=None, profile_path=None):
                 pass
     res = decide(readings)
     res.update({"channel": "fast", "readings": readings, "via": "local",
-                "ms": round((time.time() - t0) * 1000)})
+                "daemon_error": DAEMON_ERROR, "ms": round((time.time() - t0) * 1000)})
+    if fallback_note:
+        res["fallback_note"] = fallback_note
     if frame:
         return res, frame, fresh_obj(frame, meta)
     # 活体：fast 通道不做堆叠序校验（<150ms 预算内塞不下 ys-atop），用抓帧时刻 + 原始帧 sha 定位
@@ -850,8 +918,9 @@ def probe_once(name, frame=None):
         if d:
             d["via"] = "daemon"
             return d
+        warn_fallback(f"探针 {name} ", time.time())
     out = probe(name, frame=frame)
-    out["via"] = "local"
+    out.update({"via": "local", "daemon_error": DAEMON_ERROR})
     return out
 
 
@@ -862,6 +931,8 @@ def read_point(x, y, frame=None):
     """
     if not frame and os.environ.get("YS_STATE_LOCAL") != "1":
         d = daemon_call({"cmd": "px", "x": x, "y": y, "win": win_id()}, timeout=20)
+        if d and "v" not in d:
+            sys.stderr.write(f"[ys-state] ⚠ daemon px 失败，已回退本地：{str(d)[:160]}\n")
         if d and "v" in d:
             try:
                 return tuple(int(v) for v in str(d["v"]).split())
