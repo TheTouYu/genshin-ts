@@ -1,0 +1,135 @@
+#!/bin/bash
+# ys-observe — 唯一取数入口：读数必须自带「新鲜度证明」（gui-stack 票 01）
+#
+# 存在理由（2026-10-17 实测）：`import -window <id>` 在窗口被别的应用压住时返回**陈旧帧**——
+# 实测按空格前后两帧**字节完全相同**，而我据此推断「输入没生效」，整轮结论作废。
+# 本工具把「拿到可信读数」变成默认行为：
+#   ① 取数前校验窗口存在；② 校验窗口在**堆叠序栈顶**（不在就抬升，仍不在就**拒绝取数**）；
+#   ③ 走**合成器全屏抓图**（spectacle）而不是逐窗缓冲；④ 与上一帧做真实像素差分并写进读数。
+#
+# 语义（诚实优先，宁可报错不给假数据）：
+#   fresh = 这一帧是在「不可能陈旧」的条件下抓到的（窗口 exists 且在栈顶）
+#   atop=false  → fresh=false + NOT_ATOP，退出码 2，**不返回像素值**
+#   diffFromPrev=0 且 atop=true → fresh=true 但 static=true（静止画面是合法的，如实标注不臆断）
+#   `--liveness` 专门回答「这条取数管线还活着吗」：隔 1s 抓两帧，报告是否有任何像素变化
+#
+# 用法:
+#   ys-observe px <x> <y>                 # 单点像素
+#   ys-observe region <x> <y> <w> <h>     # 区域差分（与上一帧比）
+#   ys-observe liveness                   # 管线活性探针
+#   ys-observe --raise px <x> <y>         # 先抬升窗口再取数（会抢焦点，显式才做）
+#   ys-observe --json px 300 300          # （默认即 JSON）
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+WIN="${YS_WIN:-0x01400001}"
+CACHE="${YS_OBSERVE_CACHE:-/tmp/ys-observe}"
+mkdir -p "$CACHE"
+CUR="$CACHE/cur.png"; PREV="$CACHE/prev.png"
+
+die() { printf '{"error":"%s","detail":"%s"}\n' "$1" "${2:-}"; exit "${3:-1}"; }
+
+# ── ① 窗口存在性
+if ! xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
+  die WINDOW_NOT_FOUND "xdotool 找不到 $WIN（游戏没开？）" 3
+fi
+GEOM=$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')
+
+# ── ② 堆叠序：窗口必须在栈顶，否则拒绝取数（这正是今天踩的坑）
+# ⚠️ ys-wins 的输出是「标题 | WM_CLASS | 几何」，**不含窗口 id**——
+#    早期版本的 bug 就是拿 grep "$WIN"（十六进制 id）去匹配这个列表，永远匹配不到，
+#    于是 --raise 明明抬起来了还判 NOT_ATOP。正确判据：栈顶那一行的**标题**含目标标题。
+atop_line() { timeout 20 "$HERE/ys-wins" 2>/dev/null | tail -1; }
+ATOP=false
+case "$(atop_line)" in *"${YS_WIN_TITLE:-原神}"*) ATOP=true;; esac
+# 默认**不**自动抬升：抬升会抢用户正在用的桌面焦点（项目桌面协议）。
+# 需要抬升时由调用方显式 --raise（见下），或在槽内先抬好再调本工具。
+RAISE=0
+for a in "$@"; do [ "$a" = "--raise" ] && RAISE=1; done
+if [ "$ATOP" != "true" ] && [ "$RAISE" = "1" ]; then
+  # ⚠️ ys-kwin-raise 的第一个参数是**标题子串**（如「原神」），不是窗口 id
+  timeout 25 "$HERE/ys-kwin-raise" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1 || true
+  sleep 1
+  case "$(atop_line)" in *"${YS_WIN_TITLE:-原神}"*) ATOP=true;; esac
+fi
+
+# ── ③ 合成器全屏抓图（比逐窗缓冲可信）
+grab() {
+  rm -f "$1"
+  if ! timeout 25 spectacle -b -n -f -o "$1" >/dev/null 2>&1 || [ ! -s "$1" ]; then
+    return 1
+  fi
+  return 0
+}
+
+# --reuse：显式复用上一帧（抓图贵且调用方明确知道画面未变时用）。
+# 必须显式声明，且读数里会带 reused:true —— 不允许"不知不觉用了旧帧"。
+REUSE=0
+_args=()
+for a in "$@"; do if [ "$a" = "--reuse" ]; then REUSE=1; else _args+=("$a"); fi; done
+set -- "${_args[@]:-}"
+MODE="${1:?用法: ys-observe px|region|liveness …}"; shift || true
+
+if [ "$MODE" = "liveness" ]; then
+  [ "$ATOP" != "true" ] && die NOT_ATOP "原神窗不在栈顶——此时『画面有变化』变的是别人的窗口，liveness 无意义" 2
+  grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
+  cp -f "$CUR" "$PREV" 2>/dev/null || true
+  sleep 1
+  grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
+  D=$(magick compare -metric AE "$PREV" "$CUR" null: 2>&1 | head -1 | awk '{print $1}' | tr -dc '0-9' || echo 0)
+  LIVE=false; awk "BEGIN{exit !(${D:-0} > 0)}" && LIVE=true
+  printf '{"kind":"liveness","changed":%s,"diff":%s,"atop":%s,"window":"%s","at":"%s"}\n' \
+    "$LIVE" "${D:-0}" "$ATOP" "$WIN" "$(date -Is)"
+  [ "$LIVE" = "true" ] && exit 0 || exit 2
+fi
+
+if [ "$ATOP" != "true" ]; then
+  die NOT_ATOP "原神窗不在堆叠序栈顶（$GEOM）——抓图可能是陈旧帧，拒绝返回像素值" 2
+fi
+
+REUSED=false
+if [ "$REUSE" = "1" ] && [ -s "$PREV" ]; then
+  cp -f "$PREV" "$CUR"; REUSED=true
+else
+  grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
+fi
+
+# 与上一帧的差分（真实像素差，不是自报常数）
+DIFF=0
+if [ -s "$PREV" ]; then
+  # ⚠️ magick compare 输出形如 "843 (0.000228866)"——只取第一个数，别把括号里的归一化值粘上来
+  DIFF=$(magick compare -metric AE "$PREV" "$CUR" null: 2>&1 | head -1 | awk '{print $1}' | tr -dc '0-9' || echo 0)
+fi
+STATIC=false; awk "BEGIN{exit !(${DIFF:-0} == 0)}" && STATIC=true
+
+FID="f-$(date +%s%N | tail -c 8)"
+AT="$(date -Is)"
+
+case "$MODE" in
+  px)
+    X="${1:?px 需要 x}"; Y="${2:?px 需要 y}"
+    # ⚠️ ImageMagick **会钳制越界坐标**（探针 (9999,9999) 曾返回画面边缘的像素而不报错）——
+    #    必须自己按画面实际尺寸校验，不能依赖 magick 报错。
+    read -r IW IH <<<"$(magick "$CUR" -format "%w %h" info: 2>/dev/null)"
+    if [ "${X:-0}" -ge "${IW:-0}" ] || [ "${Y:-0}" -ge "${IH:-0}" ] || [ "$X" -lt 0 ] || [ "$Y" -lt 0 ]; then
+      die PROBE_OUT_OF_RANGE "探针 ($X,$Y) 超出画面 ${IW}x${IH}" 3
+    fi
+    read -r R G B <<<"$(magick "$CUR" -format "%[fx:int(255*p{$X,$Y}.r)] %[fx:int(255*p{$X,$Y}.g)] %[fx:int(255*p{$X,$Y}.b)]" info: 2>/dev/null)"
+    [ -z "${R:-}" ] && die PROBE_EMPTY "探针 ($X,$Y) 取不到值" 3
+    printf '{"kind":"px","probe":"%s,%s","value":"%s,%s,%s","fresh":true,"reused":%s,"static":%s,"frame":{"id":"%s","diffFromPrev":%s,"window":"%s","atop":%s},"source":"spectacle-fullscreen","at":"%s"}\n' \
+      "$X" "$Y" "$R" "$G" "$B" "$REUSED" "$STATIC" "$FID" "${DIFF:-0}" "$WIN" "$ATOP" "$AT"
+    ;;
+  region)
+    X="${1:?region 需要 x}"; Y="${2:?region 需要 y}"; W="${3:?region 需要 w}"; H="${4:?region 需要 h}"
+    read -r IW IH <<<"$(magick "$CUR" -format "%w %h" info: 2>/dev/null)"
+    if [ $((X + W)) -gt "${IW:-0}" ] || [ $((Y + H)) -gt "${IH:-0}" ]; then
+      die PROBE_OUT_OF_RANGE "区域 ($X,$Y,${W}x$H) 超出画面 ${IW}x${IH}" 3
+    fi
+    printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"spectacle-fullscreen","at":"%s"}\n' \
+      "$X" "$Y" "$W" "$H" "${DIFF:-0}" "$STATIC" "$FID" "$WIN" "$ATOP" "$AT"
+    ;;
+  *) die BAD_MODE "未知模式 $MODE（px|region|liveness）" 3;;
+esac
+
+cp -f "$CUR" "$PREV" 2>/dev/null || true
+exit 0
