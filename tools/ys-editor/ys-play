@@ -1,0 +1,62 @@
+#!/bin/bash
+# ys-play — 「一次试玩周期」轻量执行器：只做「进游戏 → 注入输入 → 退出 → 取日志」
+#
+# 与 ys-round 的分工（2026-10-17 定）：
+#   ys-round = 需要**改磁盘**的轮（离开我的图 → CLI 写 → 切回 → 试玩），一轮 8~10 分钟
+#   ys-play  = **不改磁盘**的轮（图已注入好了，只想跑一次玩法拿日志），一轮 ~3 分钟
+# 之所以要分开：ys-round 的耗时 80% 花在两次「切换存档」上；只验证玩法时那两步纯属浪费。
+#
+# 用法:
+#   ys-play [-i 输入脚本] [-m 标记] [-t 起游戏后等待秒数] [-w 窗口id]
+# 退出码: 0 = 有新日志且标记命中 / 3 = 无新日志 / 4 = 标记未命中 / 5 = 试玩没起来
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export DISPLAY="${DISPLAY:-:1}"
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+. "$HERE/ys-game-env.sh" >/dev/null 2>&1 || true
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+WIN="${YS_WIN:-0x01400001}"
+INPUT=""; MARK=""; WAIT=25
+while getopts "i:m:t:w:" o; do case $o in
+  i) INPUT="$OPTARG";; m) MARK="$OPTARG";; t) WAIT="$OPTARG";; w) WIN="$OPTARG";; esac; done
+
+say() { echo "[$(date +%H:%M:%S)] $*"; }
+LOGDIR="${YS_LOGDIR:?需要 YS_LOGDIR（ys-game-env.sh）}"
+newest() { ls -t "$LOGDIR"/*.gia 2>/dev/null | head -1; }
+
+L0=$(newest)
+say "起始日志: $(basename "${L0:-无}")"
+"$HERE/ys-playtest-start" 2>&1 | tail -2 || true
+say "等 ${WAIT}s 让游戏跑起来"
+sleep "$WAIT"
+
+if [ -n "$INPUT" ] && [ -f "$INPUT" ]; then
+  say "注入输入: $INPUT"
+  "$HERE/ys-gui-slot" "$WIN" 180 bash -c "export YS_SLOT_ACTIVE=1; bash '$INPUT'" 2>&1 | tail -1
+  sleep 2
+else
+  say "无输入脚本"
+fi
+
+say "退出试玩"
+"$HERE/ys-playtest-stop" 2>&1 | tail -1
+sleep 4
+
+L1=$(newest)
+if [ ! -f "${L1:-/nonexistent}" ]; then say "✗ 没有日志文件"; exit 3; fi
+if [ "${L1:-none}" = "${L0:-none}" ]; then
+  say "✗ 没有新日志（本次没有落盘）"; exit 3
+fi
+say "✓ 新日志: $(basename "$L1")  $(stat -c %s "$L1") 字节"
+# printString 载荷只在原始字节里（gia_log.py records 不显示）
+CNT=0
+if [ -n "$MARK" ]; then
+  CNT=$(strings -n 2 "$L1" | grep -c "$MARK" || true)
+  say "标记 '$MARK' 命中 ${CNT} 次"
+fi
+OUT="$HOME/ys-play/$(date +%m%d-%H%M%S)"; mkdir -p "$OUT"
+cp "$L1" "$OUT/debug-log.gia"
+strings -n 2 "$L1" | grep -E "^[A-Z][A-Z0-9-]{1,12}$|^[A-Z]{2}-[A-Z0-9]+$|^-?[0-9]+\.[0-9]+$" > "$OUT/markers.txt" || true
+say "证据: $OUT/debug-log.gia  markers.txt"
+[ -n "$MARK" ] && [ "${CNT:-0}" -eq 0 ] && exit 4
+exit 0
