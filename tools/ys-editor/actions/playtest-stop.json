@@ -24,7 +24,7 @@
     {
       "locate": "pause-abort",
       "do": "click",
-      "wait": 5,
+      "wait": 12,
       "only_if_state": [
         "PAUSE",
         "PLAYTEST"
