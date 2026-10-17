@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""ys-act — 动作 + 自动变化账（把"我点了"和"界面变了没有"写成同一张回执）
+
+## 存在理由（2026-10-18 用户复盘 F-3-05 / O-2026-10-18-03 第 3 条）
+
+现实是两件事分开的：「我点了」是结论，「界面变了没有」是另一个结论——后者靠人**想起来**才做，于是必然漏。
+实证：我投入 1 枚徽记后，`预测奖励` 上新增**红点**（= 新奖励可领），完全没抓。
+
+本工具把三件事绑成一条：
+  1. **动作前的状态**（帧 + 红点集）
+  2. **动作本身**（透传退出码，不吞）
+  3. **动作后的状态**（帧 + 红点集）+ 变化事件
+
+## 判据不复制（门槛⑤）
+
+- 变化判据 → 调 `tools/ys-watch`（ROI 变化事件，63 断言那把尺子）
+- 红点判据 → 调 `tools/ys-afford --json` 的 `badges`（红点权重最高 .30 的实现）
+本工具**不含**任何像素判据实现，只做编排与对账。
+
+## 用法
+
+  # 离线（测试/复算）：直接给前后帧
+  tools/ys-act --before a.png --after b.png [--roi x,y,w,h] [--json]
+
+  # 活体：给抓帧命令（工具自己不含抓屏代码，与 ys-watch 同纪律）
+  tools/ys-act --capture-cmd 'import -window 0x01400001 /tmp/f{seq}.png' --wait 1.5 -- <动作命令...>
+
+退出码：动作命令的 rc 原样透传；编排自身出错时 2（用法）/3（帧不可读）/4（子工具失败）
+机读行：`ACT-RESULT rc=<n> changes=<n> badge_added=<n> verdict=<CHANGED|NO-CHANGE|FAIL|ERROR>`
+"""
+import json
+import os
+import shlex
+import subprocess
+import sys
+import tempfile
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+WATCH = os.path.join(HERE, 'ys-watch')
+AFFORD = os.path.join(HERE, 'ys-afford')
+
+
+def run(cmd, timeout=180):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+def jload(txt, what):
+    try:
+        return json.loads(txt)
+    except Exception:
+        print('ACT-FAIL %s 输出不是合法 JSON' % what, file=sys.stderr)
+        print(txt[:400], file=sys.stderr)
+        return None
+
+
+def badges_of(png):
+    """红点集合：判据来自 ys-afford（不复制实现）。返回 [(cx,cy,w,h)]。"""
+    p = run(['./' + os.path.relpath(AFFORD, os.getcwd()) if AFFORD.startswith(os.getcwd()) else AFFORD,
+             png, '--json'])
+    if p.returncode != 0:
+        print('ACT-WARN ys-afford rc=%d（红点按空集处理）' % p.returncode, file=sys.stderr)
+        return []
+    d = jload(p.stdout, 'ys-afford')
+    if not d:
+        return []
+    return [(b['cx'], b['cy'], b.get('w', 0), b.get('h', 0)) for b in d.get('badges', [])]
+
+
+def changes_of(before, after, roi):
+    """变化事件：判据来自 ys-watch（不复制实现）。"""
+    cmd = ['./tools/ys-watch', '--frames', before, after, '--json', '--no-cache'] \
+        if not os.path.isabs(WATCH) else [WATCH, '--frames', before, after, '--json', '--no-cache']
+    if roi:
+        cmd += ['--roi', roi]
+    else:
+        # ys-watch 默认拒绝整帧帧差（背景动效会淹没信号）；没有 ROI 时让它自己扫砖块定位
+        cmd += ['--auto-roi']
+    p = run(cmd)
+    if p.returncode != 0:
+        print('ACT-FAIL ys-watch rc=%d' % p.returncode, file=sys.stderr)
+        print((p.stderr or p.stdout)[:400], file=sys.stderr)
+        return None
+    d = jload(p.stdout, 'ys-watch')
+    if not d:
+        return None
+    ev = []
+    for pair in d.get('pairs', []):
+        for e in pair.get('events', []):
+            ev.append(e)
+    return {'events': ev, 'verdict': (d.get('pairs') or [{}])[0].get('verdict', 'UNKNOWN')}
+
+
+def badge_delta(a, b, tol=24):
+    """按中心距配对：消失/新增。红点位置在 UI 上很稳定，tol 只用于容忍 1~2px 抖动。"""
+    def match(p, pool):
+        for i, q in enumerate(pool):
+            if abs(p[0] - q[0]) <= tol and abs(p[1] - q[1]) <= tol:
+                return i
+        return None
+    removed, rest = [], list(b)
+    for p in a:
+        i = match(p, rest)
+        if i is None:
+            removed.append(p)
+        else:
+            rest.pop(i)
+    added = rest
+    return {'added': [{'cx': x, 'cy': y, 'w': w, 'h': h} for x, y, w, h in added],
+            'removed': [{'cx': x, 'cy': y, 'w': w, 'h': h} for x, y, w, h in removed]}
+
+
+def main(argv):
+    args = list(argv)
+    as_json = '--json' in args
+    args = [a for a in args if a != '--json']
+    before = after = capture = roi = None
+    wait = 1.2
+    action = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == '--before':
+            before = args[i + 1]; i += 2
+        elif a == '--after':
+            after = args[i + 1]; i += 2
+        elif a == '--capture-cmd':
+            capture = args[i + 1]; i += 2
+        elif a == '--roi':
+            roi = args[i + 1]; i += 2
+        elif a == '--wait':
+            wait = float(args[i + 1]); i += 2
+        elif a == '--':
+            action = args[i + 1:]; break
+        else:
+            print('ACT-USAGE-ERROR 未知参数 %s' % a, file=sys.stderr); return 2
+    if not (before and after) and not capture:
+        print('ACT-USAGE-ERROR 需要 --before/--after 或 --capture-cmd', file=sys.stderr); return 2
+    for p in (before, after):
+        if p and not os.path.exists(p):
+            print('ACT-FRAME-UNREADABLE 缺帧 %s' % p, file=sys.stderr); return 3
+
+    tmpdir = None
+    if capture:
+        tmpdir = tempfile.mkdtemp(prefix='ys-act-')
+        b = os.path.join(tmpdir, 'before.png'); af = os.path.join(tmpdir, 'after.png')
+        for path, seq in ((b, 1), (af, 2)):
+            p = subprocess.run(capture.format(out=path, seq=seq), shell=True,
+                               capture_output=True, text=True)
+            if p.returncode != 0 or not os.path.exists(path):
+                print('ACT-FAIL 抓帧失败 seq=%d rc=%d' % (seq, p.returncode), file=sys.stderr)
+                return 4
+            time.sleep(0.1)
+        before = b
+    rc = 0
+    if action:
+        if capture:                       # 活体：先抓前帧，再动作，等稳定，再抓后帧
+            p = subprocess.run(capture.format(out=before, seq=1), shell=True,
+                               capture_output=True, text=True)
+            if p.returncode != 0:
+                print('ACT-FAIL 前帧抓取失败 rc=%d' % p.returncode, file=sys.stderr); return 4
+        p = subprocess.run(action, capture_output=True, text=True)
+        rc = p.returncode
+        sys.stderr.write((p.stdout or '')[-800:])
+        if p.returncode != 0:
+            sys.stderr.write((p.stderr or '')[-800:])
+        if capture:
+            time.sleep(wait)
+            pp = subprocess.run(capture.format(out=after, seq=2), shell=True,
+                                capture_output=True, text=True)
+            if pp.returncode != 0:
+                print('ACT-FAIL 后帧抓取失败 rc=%d' % pp.returncode, file=sys.stderr); return 4
+    ch = changes_of(before, after, roi)
+    if ch is None:
+        return 4
+    ba, bb = badges_of(before), badges_of(after)
+    if tmpdir is None and after:
+        bb = badges_of(after)
+    delta = badge_delta(ba, bb)
+    n_ev = len(ch['events'])
+    if rc != 0:
+        verdict = 'FAIL'
+    elif n_ev or delta['added'] or delta['removed']:
+        verdict = 'CHANGED'
+    else:
+        verdict = 'NO-CHANGE'
+    out = {
+        'schema': 'ys-act/1',
+        'before': before, 'after': after, 'roi': roi,
+        'action': action, 'action_rc': rc,
+        'changes': ch['events'],
+        'badge_before': len(ba), 'badge_after': len(bb),
+        'badge_delta': delta,
+        'verdict': verdict,
+        'note': '判据不复制：变化来自 ys-watch、红点来自 ys-afford',
+    }
+    if as_json:
+        print(json.dumps(out, ensure_ascii=False, indent=1))
+    else:
+        print('══ ys-act ══  action_rc=%d  verdict=%s' % (rc, verdict))
+        for e in ch['events'][:8]:
+            k = e.get('kind')
+            extra = e.get('text') or e.get('value') or ''
+            print('  · %-14s %s' % (k, str(extra)[:40]))
+        print('  红点: %d → %d  新增 %d / 消失 %d' % (len(ba), len(bb),
+                                                    len(delta['added']), len(delta['removed'])))
+        for b in delta['added'][:4]:
+            print('    + (%d,%d) %dx%d' % (b['cx'], b['cy'], b['w'], b['h']))
+    print('ACT-RESULT rc=%d changes=%d badge_added=%d verdict=%s'
+          % (rc, n_ev, len(delta['added']), verdict), file=sys.stderr if as_json else sys.stdout)
+    if tmpdir:
+        import shutil
+        shutil.rmtree(tmpdir, ignore_errors=True)
+    return rc
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
