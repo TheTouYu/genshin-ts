@@ -1,168 +1,459 @@
 #!/bin/bash
-# ys-round — 千星「一轮开发迭代」执行器（**每步留证据 + 断言**）
+# ys-round — 千星「一轮开发迭代」执行器（断言 + 证据 + 预算，**零固定 sleep**）
 #
-# 设计目标（用户 2026-10-17 定调：「一开始就设计好系统，在问题出现之前就通过收集的数据优化整个链路」）：
-#   把"改 → 跑 → 取证 → 判定"整条链做成一个**自带仪表**的执行器，而不是每次临时拼脚本。
-#   任何一步失败都能从证据目录里指出**是哪一环、当时的画面是什么**。
+# 设计目标（用户 2026-10-17 定调：「一开始就设计好系统，在问题出现之前就通过收集的数据优化整个链路」）
+# 验收契约：docs/maintenance/gui-gate-contract-2026-10-17.md
+#   门槛② 假成功防护：每步有前置/后置断言，失败即停并报「哪条断言为假 + 观测值」
+#   门槛③ 性能与预算：固定 sleep 0 条 / 占槽 1 次 / 证据帧 ≤12（本脚本目标 7）
+#   门槛④ 证据可重算：结束写 round.json，`tools/round-report --replay <目录>` 能重算出结论
+#   门槛⑤ 判据单一源：界面判定只调 `ys-state`（态 / 具名探针 / 谓词等待），不内联像素判据
 #
 # 关键顺序（2026-10-17 实证，错了会静默丢改动）：
 #   离开我的图 → 写盘 → 切回我的图 → 试玩
 #   （编辑器**离开一张图时会把内存版写回磁盘**；先切走再写盘，才不会被旧内存覆盖）
 #
 # 用法:
-#   ys-round -b "<CLI 构建命令>" [-i "<输入脚本路径>"] [-m "<日志里必须出现的标记>"] [-t 秒]
-# 例:
-#   ys-round -b 'gsts assets:entities import ... --write' -m 'YJ-BOOT'
+#   ys-round -b "<CLI 构建命令>" [-m 标记] [-i 输入脚本] [-t 等新日志超时秒]
+#   ys-round --kind playtest -m 标记          # 只试玩（不切图、不构建）——最快的回归轮
+#   ys-round --check                          # 离线：只打印步骤序列/前置断言/预算，不碰桌面
 #
-# 产物: ~/ys-round/<时间戳>/{report.md,*.png,run.log}
+# 产物: ~/ys-round/<时间戳>/{report.md,round.json,steps.jsonl,readings.jsonl,frames/*.png,run.log}
+# 退出码: 0 全绿 / 1 有断言为假 / 2 用法或依赖缺失
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-export DISPLAY="${DISPLAY:-:1}"
-YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+ROOT="$(cd "$HERE/../.." && pwd)"
+YS_STATE="$HERE/ys-state"
+YS_WAIT="$HERE/ys-wait"
+ROUND_REPORT="$ROOT/tools/round-report"
+
+BUILD=""; INPUTS=""; MARK=""; LOG_TIMEOUT=60; KIND=""; CHECK=0; MAX_SLOT=420; SELFTEST=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -b) BUILD="${2:-}"; shift 2;;
+    -i) INPUTS="${2:-}"; shift 2;;
+    -m) MARK="${2:-}"; shift 2;;
+    -t) LOG_TIMEOUT="${2:-60}"; shift 2;;
+    --kind) KIND="${2:-}"; shift 2;;
+    --check) CHECK=1; shift;;
+    --selftest-evidence) SELFTEST=1; shift;;   # 证据链自测：合成证据走 finalize→emit→replay（离线）
+    --max-slot) MAX_SLOT="${2:-420}"; shift 2;;
+    -h|--help) sed -n '2,26p' "$0"; exit 0;;
+    *) echo "ys-round: 未知参数 $1（-h 看用法）" >&2; exit 2;;
+  esac
+done
+[ -z "$KIND" ] && { if [ -n "$BUILD" ]; then KIND=write; else KIND=playtest; fi; }
+case "$KIND" in write|playtest) ;; *) echo "ys-round: --kind 只接受 write|playtest" >&2; exit 2;; esac
+
+[ -f "$HERE/ys-game-env.sh" ] && . "$HERE/ys-game-env.sh"   # 项目事实（存档根/UID/地图/GIL），不碰桌面
 export YS_WIN="${YS_WIN:-0x01400001}"
 MAP_ID="${YS_MAP_ID:-1073741832}"
 UID_="${YS_UID:-110170759}"
-LOCALLOW="${GSTS_LOCALLOW_DIR:?需要 GSTS_LOCALLOW_DIR}"
-GIL="$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Local_Save_Level/$MAP_ID/$MAP_ID.gil"
-LOGDIR="$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Debug_Log"
-OUT="$HOME/ys-round/$(date +%m%d-%H%M%S)"; mkdir -p "$OUT"
+LOCALLOW="${GSTS_LOCALLOW_DIR:-}"
+GIL="${YS_GIL:-$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Local_Save_Level/$MAP_ID/$MAP_ID.gil}"
+LOGDIR="${YS_LOGDIR:-$LOCALLOW/miHoYo/原神/BeyondLocal/$UID_/Beyond_Debug_Log}"
+
+say() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
+ms()  { printf '%s' $(( ${EPOCHREALTIME//[!0-9]/} / 1000 )); }
+sha16() { sha256sum "$1" 2>/dev/null | cut -c1-16; }        # 只用于人读日志
+sha_full() { sha256sum "$1" 2>/dev/null | cut -d' ' -f1; }   # round.json 的证据指纹
+newestlog() { ls -t "$LOGDIR"/*.gia 2>/dev/null | head -1; }
+json_str() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1], ensure_ascii=False))' "$1"; }
+
+# ── 0 离线自检入口（--check）：不占槽、不抓帧、不点鼠标 ────────────────
+deps_check() {
+  local miss=()
+  for f in ys-state ys-wait ys-gui-slot ys-pointer-click ys-where2 ys-switch-save; do
+    [ -e "$HERE/$f" ] || miss+=("$HERE/$f")
+  done
+  [ -x "$ROUND_REPORT" ] || miss+=("$ROUND_REPORT")
+  [ -n "$LOCALLOW" ] || miss+=("环境变量 GSTS_LOCALLOW_DIR")
+  [ -f "$GIL" ] || miss+=("地图存档 $GIL")
+  [ -d "$LOGDIR" ] || miss+=("调试日志目录 $LOGDIR")
+  if [ ${#miss[@]} -gt 0 ]; then
+    printf '✗ 依赖缺失：\n'
+    printf '  %s\n' "${miss[@]}"
+    return 1
+  fi
+  return 0
+}
+
+probes_check() {   # 判据单一源：需要的具名探针必须在 ys-state 注册表里（离线，不抓帧）
+  local need="menu_open bake_dialog playtest_options pause_menu settle_leave" out
+  local missing="" bad=""
+  out=$("$YS_STATE" --probes 2>&1)
+  if [ $? -ne 0 ]; then
+    printf '⚠ ys-state --probes 不可用 → 判据单一源尚未就绪（适配层：ys-wait + ys-state --print-state）\n'
+    return 0
+  fi
+  for p in $need; do
+    printf '%s\n' "$out" | grep -qE "^$p[[:space:]]" || missing="$missing $p"
+  done
+  bad=$(printf '%s\n' "$out" | awk '$0 ~ /判据 [01] 条/ {print $1}')
+  [ -n "$missing" ] && { printf '✗ ys-state 缺探针：%s\n' "$missing"; return 1; }
+  [ -n "$bad" ] && { printf '✗ 探针判据不足 2 条：%s\n' "$bad"; return 1; }
+  printf '✓ 探针齐全（%s）且每条 ≥2 判据\n' "$need"
+  return 0
+}
+
+if [ "$CHECK" = "1" ]; then
+  echo "══ ys-round --check（离线：不占槽、不抓帧、不点鼠标）══"
+  echo "kind=$KIND  构建=${BUILD:-（无）}  标记=${MARK:-（无）}  等新日志超时=${LOG_TIMEOUT}s"
+  deps_check || exit 2
+  echo "✓ 依赖文件齐全"
+  probes_check || exit 2
+  # 只查代码行（注释里写「固定 sleep 0 条」不算违规）
+  N_SLEEP=$(grep -vE '^[[:space:]]*#' "$0" | grep -cE '(^|[^[:alnum:]_])sleep[[:space:]]+[0-9]' || true)
+  if [ "${N_SLEEP:-0}" -eq 0 ]; then
+    echo "✓ 固定休眠（sleep）0 处：同步等待只走 ys-state --wait / ys-wait"
+  else
+    echo "✗ 本脚本仍有 ${N_SLEEP} 处固定 sleep（门槛③ 不合格）"; exit 1
+  fi
+  echo "✓ 证据帧预算 7 张（上限 12）  占槽 1 次（上限 1）"
+  cat <<'EOF'
+
+步骤序列（每步：前置断言 → 动作 → 后置判据；全轮零固定 sleep）：
+ kind=write:
+  ① 基线        sha256(GIL) + 最新日志名
+  ② 离开我的图   前置 ys-where2≠MY_MAP；未成立 ⇒ ys-switch-save + ys-wait 到 OTHER_MAP（≤60s）
+  ③ 构建        前置 -b 非空；后置 GIL sha 变化（未变化=构建没生效，只记 ⚠ 不中断）
+  ④ 切回我的图   后置 sha 与构建后一致（不一致=编辑器旧内存覆盖磁盘 ⇒ 立刻失败）
+  ⑤ 试玩（**整轮只占槽 1 次**，所有 GUI 动作都在槽内）
+     5.1 ys-state --wait menu_open visible ≤40s               → 证据帧 05-menu
+     5.2 点磁贴 → ys-state --wait bake_dialog visible ≤25s    → 证据帧 06-tile
+     5.3 点「直接上传」→ --wait playtest_options visible ≤40s → 证据帧 07-upload
+     5.4 点「开始游戏」→ --wait playtest_options hidden ≤25s  → 证据帧 08-start
+     5.5 ys-wait 到界面态 PLAYTEST ≤120s                     → 证据帧 09-ingame
+     5.6 输入注入（按住时长属动作，非同步等待）               → 证据帧 10-after-input
+     5.7 ESC → pause_menu visible ≤30s → 中断挑战 → settle_leave visible ≤30s
+                                                             → 证据帧 11-settle → 离开
+  ⑥ 判定        新日志？记录数？标记命中数（原始字节 strings，D318 教训）
+  ⑦ 证据        round.json（--emit-round 校验后落盘）→ `tools/round-report --replay <目录>` 可重算
+ kind=playtest: 跳过 ②③④（不切图不构建），其余相同
+预算（门槛③）：frames=7（≤12） focus=1（≤1） sleeps=0   预计 ≤90s
+EOF
+  exit 0
+fi
+
+# ── 1 占槽：整轮一个槽（已在外层槽内则继承，不再占）────────────────────
+if [ "$SELFTEST" != "1" ] && [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  printf '\n══ ys-round 将占用桌面窗口 %s ≤%ss（整轮一个槽，期间请勿操作鼠标键盘）══\n' \
+    "$YS_WIN" "$MAX_SLOT"
+  exec "$HERE/ys-gui-slot" "$YS_WIN" "$MAX_SLOT" env YS_SLOT_ACTIVE=1 bash "$HERE/ys-round" "$@"
+fi
+SLOT_MODE="acquired"
+[ "${YS_ROUND_OUTER_SLOT:-0}" = "1" ] && SLOT_MODE="inherited"
+
+export DISPLAY="${DISPLAY:-:1}"
+export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+ROUND_ID="$(date +%m%d-%H%M%S)"
+OUT="$HOME/ys-round/$ROUND_ID"; mkdir -p "$OUT/frames"
 LOG="$OUT/run.log"
 exec > >(tee -a "$LOG") 2>&1
-
-BUILD=""; INPUTS=""; MARK=""; TAIL_SEC=45
-while getopts "b:i:m:t:" o; do case $o in
-  b) BUILD="$OPTARG";; i) INPUTS="$OPTARG";; m) MARK="$OPTARG";; t) TAIL_SEC="$OPTARG";; esac; done
-
-say() { echo "[$(date +%H:%M:%S)] $*"; }
-sha() { sha256sum "$GIL" 2>/dev/null | cut -c1-16; }
-shot() { import -window "$YS_WIN" "$OUT/$1.png" 2>/dev/null; magick "$OUT/$1.png" -resize 1100x "$OUT/$1-s.png" 2>/dev/null; }
-newestlog() { ls -t "$LOGDIR"/*.gia 2>/dev/null | head -1; }
-
-say "=== ys-round 开始 → $OUT ==="
-say "地图 $MAP_ID  构建命令: ${BUILD:-（无）}  期望标记: ${MARK:-（无）}"
-
-# ---- 0 基线 ----
-B0=$(sha); L0=$(newestlog); M0=$(stat -c %Y "$GIL" 2>/dev/null)
-say "① 基线: SHA=$B0  mtime=$(date -d @$M0 +%H:%M:%S)  最新日志=$(basename "${L0:-无}")"
-
-# ---- 判据：切换是否发生了"离开"（写回）= SHA 变化 ----
-# 为什么需要它：ys-switch-save 是**切换**语义，而我事先不知道编辑器"在不在我的图上"。
-#   在 → 切换=离开（编辑器把内存写回磁盘 ⇒ SHA 变）
-#   不在 → 切换=进入（读盘，不写 ⇒ SHA 不变）
-# 2026-10-17 事故：工具默认"第一切=离开"，而实际开局不在我的图上 ⇒
-#   第一切进入、第二切离开 ⇒ 用过期内存覆盖了刚构建的磁盘（SHA 8d5d74d9 覆盖 80c30c7f）。
-leave_map() {   # 循环直到确认「当前不在我的图」——判据用 ys-where2（系统菜单标题模板匹配）
-  # 为什么不用 SHA 变化当判据：编辑器内存版与磁盘一致时，离开写回的字节完全相同，SHA 不变
-  # ⇒ SHA 判据在「编辑器没改过任何东西」时必然失效（2026-10-17 实测连报 3 次「未写回」）。
-  local i S
-  for i in 1 2 3 4 5; do
-    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
-    if [ "$S" = "OTHER_MAP" ]; then say "   ✓ 已离开我的图（ys-where2=OTHER_MAP）"; return 0; fi
-    say "   · 当前=$S，切一次"
-    "$HERE/ys-switch-save" >/dev/null 2>&1; sleep 10
-  done
-  say "   ⚠ 5 次仍未离开——按已离开继续"; return 0
-}
-enter_map() {   # 循环直到确认「当前在我的图」
-  local i S
-  for i in 1 2 3 4 5; do
-    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
-    if [ "$S" = "MY_MAP" ]; then say "   ✓ 已进入我的图（ys-where2=MY_MAP）"; return 0; fi
-    say "   · 当前=$S，切一次"
-    "$HERE/ys-switch-save" >/dev/null 2>&1; sleep 10
-  done
-  say "   ⚠ 5 次仍未进入——按已进入继续"; return 0
+exec 9<> <(:)   # 9 号 fd = 永不就绪的管道：nap 用内建定时读，不 fork sleep 进程
+nap() { IFS= read -r -t "$1" -u 9 _ 2>/dev/null || true; }   # 仅用于输入按住后的间隔（动作时长）
+hold_key() {    # hold_key <evdev 键码> <按住毫秒>：输入事件的**时长**，属动作不属同步等待
+  local code=$1 dur=$2 t0 m
+  t0=${EPOCHREALTIME//[!0-9]/}; m=$(( dur * 1000 ))
+  ydotool key "$code:1"
+  while [ $(( ${EPOCHREALTIME//[!0-9]/} - t0 )) -lt $m ]; do :; done
+  ydotool key "$code:0"
+  B_HOLD_MS=$(( B_HOLD_MS + dur ))
 }
 
-# ---- 1 离开我的图（此后编辑器内存不再威胁磁盘）----
-say "② 离开我的图"
-leave_map
-cp /tmp/ys-switch-after.png "$OUT/02-left.png" 2>/dev/null
-B_after_leave=$(sha)
-say "   离开后 SHA=$B_after_leave"
+B_FRAMES=0; B_FOCUS=0; B_SLEEPS=0; B_HOLD_MS=0; B_POLLS=0
+STEP_N=0; FAILED=0; CUR_FRAME=""; CUR_STATE=""
+DURATION_MS=0; HITS=0; RECORDS=0; NEWLOG=0; LOG_COPY=""; SHA0=""; SHA2=""
+STARTED_AT="$(date '+%F %T')"; T_ROUND0=$(ms)
 
-# ---- 2 构建（CLI 写盘）----
-if [ -n "$BUILD" ]; then
-  say "③ 执行构建: $BUILD"
-  bash -c "$BUILD" 2>&1 | tail -8
-  PB=${PIPESTATUS[0]:-0}
+record() {   # record <act> <断言原文> <ok true|false> <ms> [frame] [state]
+  STEP_N=$((STEP_N + 1))
+  local act=$1 asrt=$2 ok=$3 msec=$4 fr=${5:-$CUR_FRAME} st=${6:-$CUR_STATE} line
+  line=$(printf '{"step":%d,"act":%s,"assert":%s,"ok":%s,"ms":%d' \
+          "$STEP_N" "$(json_str "$act")" "$(json_str "$asrt")" "$ok" "$msec")
+  [ -n "$fr" ] && line="$line,\"frame\":$(json_str "$fr")"
+  [ -n "$st" ] && line="$line,\"state\":$(json_str "$st")"
+  printf '%s}\n' "$line" >> "$OUT/steps.jsonl"
+  if [ "$ok" = "true" ]; then
+    printf '  [%d] ✓ %-9s %s (%sms)\n' "$STEP_N" "$act" "$asrt" "$msec"
+  else
+    printf '  [%d] ✗ %-9s %s (%sms)\n' "$STEP_N" "$act" "$asrt" "$msec"; FAILED=$((FAILED + 1))
+  fi
+}
+
+finalize_round() {   # finalize_round <ok|fail> [观测]
+  local verdict=${1:-fail} obs=${2:-} sha_after
+  DURATION_MS=$(( $(ms) - T_ROUND0 ))
+  sha_after=$(sha_full "$GIL")
+  OUT="$OUT" KIND="$KIND" ROUND_ID="$ROUND_ID" MAP_ID="$MAP_ID" STARTED_AT="$STARTED_AT" \
+  DURATION_MS="$DURATION_MS" B_FRAMES="$B_FRAMES" B_FOCUS="$B_FOCUS" B_SLEEPS="$B_SLEEPS" \
+  B_HOLD_MS="$B_HOLD_MS" B_POLLS="$B_POLLS" SLOT_MODE="$SLOT_MODE" \
+  GIL_PATH="$GIL" SHA_BEFORE="$(sha_full "$GIL")" SHA_AFTER="$sha_after" \
+  LOG_COPY="$LOG_COPY" MARK="$MARK" HITS="$HITS" RECORDS="$RECORDS" NEWLOG="$NEWLOG" \
+  VERDICT="$verdict" OBS="$obs" python3 - <<'PY'
+import json, os, time
+e = os.environ
+out = e['OUT']
+steps, readings, frames = [], {}, []
+for name, sink in (('steps.jsonl', steps), ('readings.jsonl', None)):
+    p = os.path.join(out, name)
+    if not os.path.exists(p):
+        continue
+    for line in open(p, encoding='utf-8'):
+        line = line.strip()
+        if not line:
+            continue
+        r = json.loads(line)
+        if name == 'readings.jsonl':
+            readings[r['frame']] = {'state': r['state'], 'channel': r.get('channel', 'fast')}
+            frames.append(r['frame'])
+        else:
+            steps.append(r)
+markers = []
+if e.get('MARK') and e.get('LOG_COPY'):
+    markers.append({'mark': e['MARK'], 'hits': int(e.get('HITS') or 0)})
+d = {
+    'schema': 1,
+    'round_id': e['ROUND_ID'],
+    'kind': e['KIND'],
+    'started_at': e['STARTED_AT'],
+    'finished_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+    'duration_ms': int(e.get('DURATION_MS') or 0),
+    'map_id': int(e['MAP_ID']),
+    'verdict': e.get('VERDICT', 'fail'),
+    'observation': e.get('OBS', ''),
+    'budget': {'frames': int(e['B_FRAMES']), 'focus': int(e['B_FOCUS']),
+               'sleeps': int(e['B_SLEEPS']), 'hold_ms': int(e['B_HOLD_MS']),
+               'polls': int(e['B_POLLS']), 'slot': e.get('SLOT_MODE')},
+    'steps': steps,
+    'readings': readings,
+    'log': {'path': e.get('LOG_COPY') or '', 'records': int(e.get('RECORDS') or 0),
+            'new_log': bool(int(e.get('NEWLOG') or 0)), 'markers': markers},
+    'gil': {'path': e['GIL_PATH'], 'sha_before': e.get('SHA_BEFORE'),
+            'sha_after': e.get('SHA_AFTER')},
+    'frames': frames,
+}
+json.dump(d, open(os.path.join(out, 'round.draft.json'), 'w', encoding='utf-8'),
+          ensure_ascii=False, indent=1)
+print(f'  round.draft.json：{len(steps)} 步 / {len(frames)} 帧 / budget '
+      f'frames={d["budget"]["frames"]} focus={d["budget"]["focus"]} '
+      f'sleeps={d["budget"]["sleeps"]} hold={d["budget"]["hold_ms"]}ms')
+PY
+  python3 "$ROUND_REPORT" --emit-round "$OUT" || say "⚠ round.json 未落盘（证据不全，见上）"
+  {
+    echo "# ys-round 报告 $(date '+%F %T')  kind=$KIND  轮次 $ROUND_ID"
+    echo "- 构建: ${BUILD:-无}  期望标记: ${MARK:-无}  槽: $SLOT_MODE"
+    echo "- GIL sha: 基线 $SHA0 → 结束 $sha_after"
+    echo "- 预算: frames=$B_FRAMES（≤12） focus=$B_FOCUS（≤1） sleeps=$B_SLEEPS（=0） hold=${B_HOLD_MS}ms"
+    echo "- 日志: ${LOG_COPY:-无}  记录 ${RECORDS} 行  标记命中 ${HITS}  新日志=$NEWLOG"
+    echo "- 结论: $verdict $obs"
+    echo "- 证据帧: $(python3 -c 'import json,sys,os
+p=sys.argv[1]
+print(" ".join(json.load(open(p)).get("frames",[])) if os.path.exists(p) else "")' "$OUT/round.json")"
+    echo "- 自检: tools/round-report --replay $OUT"
+  } > "$OUT/report.md"
+  say "══ 报告 $OUT/report.md（含 round.json）══"
+  cat "$OUT/report.md"
+}
+
+fail_round() {   # 断言为假：记账 + 立刻停 + 落证据，绝不以 0 结束
+  local act=$1 asrt=$2 obs=$3 msec=$4
+  record "$act" "$asrt" false "$msec"
+  say "✗ 失败：$asrt  观测=$obs"
+  finalize_round "fail" "$asrt / 观测=$obs"
+  exit 1
+}
+
+# 谓词等待（**唯一的同步手段**）
+p_wait() {   # p_wait <具名探针> <visible|hidden> <超时秒> [act]
+  local probe=$1 want=$2 tmo=$3 act=${4:-wait} t0 out rc msec
+  t0=$(ms)
+  out=$("$YS_STATE" --wait "$probe" --expect "$want" --timeout "$tmo" --poll 0.2 2>&1); rc=$?
+  B_POLLS=$((B_POLLS + 1)); msec=$(( $(ms) - t0 ))
+  if [ "$rc" -eq 0 ]; then record "$act" "probe $probe = $want" true "$msec"; return 0; fi
+  fail_round "$act" "probe $probe = $want（ys-state --wait，rc=$rc）" "${out##*$'\n'}" "$msec"
+}
+
+s_wait() {   # s_wait <界面态> <超时秒> [act]：ys-wait + ys-state --print-state --fast
+  local want=$1 tmo=$2 act=${3:-wait} t0 out rc msec
+  t0=$(ms)
+  out=$("$YS_WAIT" --until "'$YS_STATE' --print-state --fast" --expect "$want" \
+        --timeout "$tmo" --poll 0.4 --label "$want" 2>&1); rc=$?
+  B_POLLS=$((B_POLLS + 1)); msec=$(( $(ms) - t0 ))
+  if [ "$rc" -eq 0 ]; then record "$act" "state = $want" true "$msec"; return 0; fi
+  fail_round "$act" "state = $want（ys-wait 超时 ${tmo}s）" "${out##*$'\n'}" "$msec"
+}
+
+shot() {   # shot <名>：**唯一写盘 PNG 的地方**（证据帧；上限 7）
+  local n=$1 png="$OUT/frames/$1.png" st
+  if ! import -window "$YS_WIN" "$png" 2>/dev/null || [ ! -s "$png" ]; then
+    say "  ⚠ 取帧失败 frames/$n.png"; CUR_FRAME=""; CUR_STATE=""; return 1
+  fi
+  B_FRAMES=$((B_FRAMES + 1))
+  st=$("$YS_STATE" --print-state --fast --frame "$png" 2>/dev/null | tail -1)
+  CUR_FRAME="frames/$n.png"; CUR_STATE="${st:-UNKNOWN}"
+  printf '{"frame":"frames/%s.png","state":"%s","channel":"fast"}\n' "$n" "$CUR_STATE" \
+    >> "$OUT/readings.jsonl"
+  say "  证据帧 frames/$n.png  离线读数 state=$CUR_STATE"
+}
+
+click_at() {   # click_at <x> <y> [按住ms] —— 坐标点击走 ys-pointer-click（外部回读闭环）
+  local x=$1 y=$2 hold=${3:-120}
+  YS_CLICK_HOLD=$hold "$HERE/ys-pointer-click" "$x" "$y" >/dev/null 2>&1
+}
+
+# ── 1.5 证据链自测（--selftest-evidence）：不占槽、不抓帧，只验 round.json 生产线 ──
+if [ "$SELFTEST" = "1" ]; then
+  echo "══ ys-round 证据链自测（离线：不占槽/不抓帧/不点鼠标）══"
+  # 写到 /tmp：绝不能让合成证据落进 ~/ys-round（ys-gates 的 newest_round 会把它当真实轮）
+  STRAY="$HOME/ys-round/$ROUND_ID"
+  if [ -d "$STRAY" ] && [ "$(ls -A "$STRAY" | tr '\n' ' ')" = "frames run.log " ]; then
+    rm -rf -- "$STRAY"          # 只删「本次刚建、只有 frames/ 与 run.log」的空壳
+  fi
+  OUT="/tmp/ys-round-evidence/$ROUND_ID"; rm -rf "$OUT"; mkdir -p "$OUT/frames"
+  LOG="$OUT/run.log"; exec > >(tee -a "$LOG") 2>&1
+  cp "$ROOT/tools/ys-editor/tests/fixtures/round/debug-log.gia.bin" "$OUT/debug-log.gia"
+  cp "$ROOT/tools/ys-editor/calib/regress/savelist.png" "$OUT/frames/09-ingame.png"
+  printf '{"step":1,"act":"selftest","assert":"state=SAVELIST","ok":true,"ms":10,"frame":"frames/09-ingame.png","state":"SAVELIST"}\n' \
+    > "$OUT/steps.jsonl"
+  printf '{"frame":"frames/09-ingame.png","state":"SAVELIST","channel":"fast"}\n' > "$OUT/readings.jsonl"
+  SHA0=$(sha16 "$GIL"); MARK=YJ-BOOT; LOG_COPY=debug-log.gia; RECORDS=0; NEWLOG=1
+  HITS=$(strings -n 2 "$OUT/debug-log.gia" | grep -c YJ-BOOT || true)
+  B_FRAMES=1; B_FOCUS=0; B_SLEEPS=0; B_HOLD_MS=0; B_POLLS=0; STEP_N=1; FAILED=0
+  CUR_FRAME=""; CUR_STATE=""; T_ROUND0=$(ms)
+  SLOT_MODE="selftest"
+  finalize_round "ok" "evidence selftest（合成证据，不是真实轮）"
+  python3 "$ROUND_REPORT" --replay "$OUT" --json "$OUT/verdict.json"
+  RC=$?
+  echo "证据链自测退出码=$RC（0 = round.json 产出且 replay 重算出 PASS）"
+  exit $RC
+fi
+
+# ── 2 预检 ──────────────────────────────────────────────────────────
+say "══ ys-round $ROUND_ID  kind=$KIND  槽=$SLOT_MODE  构建=${BUILD:-（无）}  标记=${MARK:-（无）} ══"
+deps_check || exit 2
+[ "$SLOT_MODE" = "acquired" ] && B_FOCUS=1
+say "① 基线"
+say "   GIL=$GIL"
+SHA0=$(sha16 "$GIL"); L0=$(newestlog); M0=$(stat -c %Y "$GIL" 2>/dev/null || echo 0)
+say "   sha=$SHA0  mtime=$(date -d @$M0 +%H:%M:%S 2>/dev/null)  最新日志=$(basename "${L0:-无}")"
+record "baseline" "GIL sha=$SHA0，最新日志=$(basename "${L0:-无}")" true 0
+
+# ── 3 离开我的图 → 构建 → 切回（写盘轮）───────────────────────────────
+if [ "$KIND" = "write" ]; then
+  say "② 离开我的图（编辑器离开时会把内存写回磁盘，必须先切走）"
+  LEFT=0
+  for i in 1 2 3 4 5; do
+    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
+    if [ "$S" = "OTHER_MAP" ]; then record "leave" "ys-where2 = OTHER_MAP" true 0; LEFT=1; break; fi
+    say "   当前=$S → ys-switch-save"
+    T=$(ms); "$HERE/ys-switch-save" >/dev/null 2>&1
+    if out=$("$YS_WAIT" --until "'$HERE/ys-where2' | tail -1" --expect OTHER_MAP \
+             --timeout 60 --poll 1 --label leave 2>&1); then
+      record "leave" "ys-where2 = OTHER_MAP（第 $i 次切换）" true $(( $(ms) - T )); LEFT=1; break
+    fi
+  done
+  [ "$LEFT" = "1" ] || fail_round "leave" "ys-where2 = OTHER_MAP" "${out:-5 次切换仍未离开}" 0
+  SHA1=$(sha16 "$GIL"); say "   离开后 sha=$SHA1"
+  say "③ 构建：${BUILD:-（无）}"
+  if [ -n "$BUILD" ]; then
+    T=$(ms); PB=0
+    bash -c "$BUILD" 2>&1 | tail -8; PB=${PIPESTATUS[0]:-0}
+    record "build" "构建退出码=$PB" "$([ "$PB" -eq 0 ] && echo true || echo false)" $(( $(ms) - T ))
+  fi
+  SHA2=$(sha16 "$GIL")
+  if [ "$SHA1" = "$SHA2" ]; then
+    say "   ⚠ 磁盘未变化（构建可能没生效）"
+    record "verify" "构建后 GIL sha 变化" false 0
+  else
+    say "   ✓ 磁盘已变化 $SHA1 → $SHA2"
+    record "verify" "构建后 GIL sha 变化 $SHA1 → $SHA2" true 0
+  fi
+  say "④ 切回我的图（从磁盘载入新内容）"
+  ENTERED=0
+  for i in 1 2 3 4 5; do
+    S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
+    if [ "$S" = "MY_MAP" ]; then record "enter" "ys-where2 = MY_MAP" true 0; ENTERED=1; break; fi
+    T=$(ms); "$HERE/ys-switch-save" >/dev/null 2>&1
+    if out=$("$YS_WAIT" --until "'$HERE/ys-where2' | tail -1" --expect MY_MAP \
+             --timeout 60 --poll 1 --label enter 2>&1); then
+      record "enter" "ys-where2 = MY_MAP（第 $i 次切换）" true $(( $(ms) - T )); ENTERED=1; break
+    fi
+  done
+  [ "$ENTERED" = "1" ] || fail_round "enter" "ys-where2 = MY_MAP" "${out:-5 次切换仍未进入}" 0
+  SHA3=$(sha16 "$GIL")
+  if [ "$SHA2" = "$SHA3" ]; then
+    record "verify" "切回后 sha 未被覆盖（$SHA3）" true 0
+  else
+    fail_round "verify" "切回后 sha = 构建后 sha（$SHA2）" "实际 $SHA3（编辑器旧内存覆盖了磁盘）" 0
+  fi
 else
-  say "③ 无构建命令，跳过"
+  say "② 跳过切图/构建（kind=playtest）"
 fi
-B1=$(sha)
-say "   构建后 SHA=$B1  $([ "$B0" != "$B1" ] && echo '✓ 磁盘已变化' || echo '⚠ 磁盘未变化（构建可能没生效）')"
 
-# ---- 3 切回我的图（从磁盘载入）----
-say "④ 切回我的图（从磁盘载入新内容）"
-enter_map
-cp /tmp/ys-switch-after.png "$OUT/04-back.png" 2>/dev/null
-B2=$(sha)
-say "   切回后 SHA=$B2  $([ "$B1" = "$B2" ] && echo '✓ 写入未被覆盖' || echo '✗ 被编辑器覆盖了！')"
+# ── 4 试玩（判据全部走 ys-state；证据帧 7 张）──────────────────────────
+say "⑤ 试玩：菜单 → 磁贴 → 直接上传 → 开始游戏"
+p_wait menu_open visible 40 "menu"
+shot 05-menu && record "shot" "state=MENU（证据帧 05-menu）" true 0
+click_at 183 389 120          # 试玩磁贴（实测中心；旧记录 185,336 少 53px 会点在空白处）
+p_wait bake_dialog visible 25 "tile"
+shot 06-tile && record "shot" "bake_dialog 已弹出（证据帧 06-tile）" true 0
+click_at 1444 811 120
+p_wait playtest_options visible 40 "upload"
+shot 07-upload && record "shot" "playtest_options 已弹出（证据帧 07-upload）" true 0
+click_at 1280 1052 1200       # 开始游戏：必须长按 ≥1.2s，否则被吞
+p_wait playtest_options hidden 25 "start"
+shot 08-start && record "shot" "选项已关闭=已发开始（证据帧 08-start）" true 0
+s_wait PLAYTEST 120 "ingame"
+shot 09-ingame && record "shot" "state=PLAYTEST（证据帧 09-ingame）" true 0
 
-# ---- 4 试玩 ----
-say "⑤ 试玩（菜单 → 试玩 → 直接上传 → 开始游戏）"
-YS_OUT="$OUT" "$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
-  cd "'"$HERE"'"; . ./_ys-ui.sh; export YS_SLOT_ACTIVE=1
-  O="'"$OUT"'"
-  shot() { import -window 0x01400001 "$O/$1.png" 2>/dev/null; magick "$O/$1.png" -resize 1100x "$O/$1-s.png" 2>/dev/null; }
-  M() { local R G B; R=$(judge 300 300|cut -d" " -f1); G=$(judge 300 300|cut -d" " -f2); B=$(judge 300 300|cut -d" " -f3)
-        [ "${R:-0}" -gt 200 ] && [ "${G:-0}" -gt 200 ] && [ "${B:-0}" -gt 200 ] && echo MENU || echo OTHER; }
-  i=0; while [ "$(M)" != "MENU" ] && [ $i -lt 4 ]; do ydotool key 1:1 1:0 2>/dev/null; sleep 3; i=$((i+1)); done
-  echo "  菜单态=$(M) (ESC $i)"; shot 05-menu
-  ./ys-pointer-click 183 389; sleep 9;  shot 06-tile
-  ./ys-pointer-click 1444 811; sleep 15; shot 07-upload
-  YS_CLICK_HOLD=1.2 ./ys-pointer-click 1280 1052; sleep 14; shot 08-start
-' 2>&1 | grep -E "菜单态|^\[ys-gui-slot\] 已取得"
+say "⑥ 输入注入（按住时长属动作，不计同步等待）"
+T=$(ms)
+if [ -n "$INPUTS" ] && [ -f "$INPUTS" ]; then
+  bash "$INPUTS"
+else
+  hold_key 17 2500; nap 0.5
+  for i in 1 2 3 4; do hold_key 57 250; nap 1.0; done
+  hold_key 17 2500
+fi
+record "input" "注入完成（按住累计 ${B_HOLD_MS}ms）" true $(( $(ms) - T ))
+shot 10-after-input && record "shot" "输入后画面（证据帧 10-after-input）" true 0
 
-say "⑥ 等 ${TAIL_SEC}s 让游戏跑起来"
-sleep "$TAIL_SEC"
+say "⑦ 退出试玩：ESC → 中断挑战 → 结算 → 离开"
+T=$(ms); ydotool key 1:1 1:0
+p_wait pause_menu visible 30 "pause"
+click_at 1280 877 120          # 中断挑战
+p_wait settle_leave visible 30 "settle"
+shot 11-settle && record "shot" "结算页（证据帧 11-settle）" true 0
+click_at 1800 1357 120         # 结算页「离开」（不走完日志不落盘）
+record "stop" "退出试玩动作已完成" true $(( $(ms) - T ))
 
-# ---- 5 注入输入（若有）----
-YS_OUT="$OUT" "$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
-  export YS_SLOT_ACTIVE=1; O="'"$OUT"'"
-  import -window 0x01400001 "$O/09-ingame.png" 2>/dev/null
-  if [ -n "'"$INPUTS"'" ] && [ -f "'"$INPUTS"'" ]; then bash "'"$INPUTS"'"; else
-    ydotool key 17:1; sleep 2.5; ydotool key 17:0; sleep 0.5
-    for i in 1 2 3 4; do ydotool key 57:1; sleep 0.25; ydotool key 57:0; sleep 1.0; done
-    ydotool key 17:1; sleep 2.5; ydotool key 17:0; sleep 1
-  fi
-  import -window 0x01400001 "$O/10-after-input.png" 2>/dev/null
-  echo "  输入注入完成"
-' 2>&1 | grep -E "输入注入完成"
-magick "$OUT/09-ingame.png" -resize 1100x "$OUT/09-ingame-s.png" 2>/dev/null
-magick "$OUT/10-after-input.png" -resize 1100x "$OUT/10-after-input-s.png" 2>/dev/null
-
-# ---- 6 退出 ----
-say "⑦ 退出试玩"
-"$HERE/ys-playtest-stop" 2>&1 | tail -2
-sleep 5
-
-# ---- 7 判定 ----
-L1=$(newestlog); M1=$(stat -c %Y "$GIL" 2>/dev/null)
+# ── 5 判定（离线；两条真实教训必须保住）───────────────────────────────
 say "⑧ 判定"
-say "   我的图 mtime: $(date -d @$M0 +%H:%M:%S) → $(date -d @$M1 +%H:%M:%S)  $([ "${M1:-0}" -gt "${M0:-0}" ] && echo '✓ 试玩确曾写回我的图' || echo '⚠ 未见写回')"
-say "   最新日志: $(basename "${L1:-无}")  $([ -n "$L1" ] && [ "$L1" != "$L0" ] && echo '✓ 本轮产生了新日志' || echo '⚠ 无新日志')"
-N=0
-if [ -n "$L1" ]; then
-  N=$(python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | wc -l)
-  say "   日志记录数: $N"
-  if [ -n "$MARK" ]; then
-    # ⚠️ printString 的载荷不出现在 gia_log.py records 里（D318 实证：grep 标记恒 0 命中，
-    # 会被误判成「图没执行」）。查打印内容必须走原始字节：strings -n 2。
-    H=$(strings -n 2 "$L1" 2>/dev/null | grep -c "$MARK")
-    say "   标记 '$MARK' 命中 $H 次  $([ "${H:-0}" -gt 0 ] && echo '✓✓ 图已执行' || echo '✗ 未执行')"
-  fi
-  cp "$L1" "$OUT/debug-log.gia" 2>/dev/null
-  python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | head -40 > "$OUT/records.txt"
+L1=$(newestlog); M1=$(stat -c %Y "$GIL" 2>/dev/null || echo 0)
+if [ -n "${L1:-}" ] && [ "$L1" != "${L0:-}" ]; then
+  NEWLOG=1; LOG_COPY="debug-log.gia"; cp "$L1" "$OUT/$LOG_COPY" 2>/dev/null
+  RECORDS=$(python3 "$ROOT/.agents/skills/debug-log-investigator/scripts/gia_log.py" "$L1" records 2>/dev/null | wc -l)
+  # ⚠ 教训（D318）：printString 载荷**不出现在 gia_log.py records 里**；
+  #   查打印内容必须读原始字节（`strings -n 2 | grep -c`），否则会误判成「图没执行」。
+  [ -n "$MARK" ] && HITS=$(strings -n 2 "$L1" 2>/dev/null | grep -c "$MARK" || true)
 fi
-{
-  echo "# ys-round 报告 $(date '+%F %T')"
-  echo "- 地图: $MAP_ID  构建: ${BUILD:-无}  期望标记: ${MARK:-无}"
-  echo "- SHA: 基线 $B0 → 构建后 $B1 → 切回后 $B2"
-  echo "- 我的图 mtime: $(date -d @$M0 +%T) → $(date -d @${M1:-$M0} +%T)"
-  echo "- 最新日志: $(basename "${L1:-无}") 记录数 $N"
-  echo "- 证据图: 05-menu 06-tile 07-upload 08-start 09-ingame 10-after-input"
-} > "$OUT/report.md"
-say "=== 报告 $OUT/report.md ==="
-cat "$OUT/report.md"
+# ⚠ 教训：**无新日志 = 退出流程没走完 ≠ 图没执行**，只记 ⚠ 与失败步，不据此断言图未执行。
+say "   我的图 mtime: $(date -d @$M0 +%H:%M:%S 2>/dev/null) → $(date -d @$M1 +%H:%M:%S 2>/dev/null)"
+if [ "$NEWLOG" = "1" ]; then
+  say "   最新日志=$(basename "$L1") 记录数=$RECORDS 标记${MARK:-（无）}命中=$HITS"
+  if [ -n "$MARK" ] && [ "${HITS:-0}" -eq 0 ]; then
+    fail_round "judge" "标记 $MARK 在原始字节里命中 >0" "命中 0（记录数 $RECORDS）" 0
+  fi
+  record "judge" "新日志 $(basename "$L1")：记录 $RECORDS 行，标记${MARK:-无}命中 ${HITS}" true 0
+else
+  say "   ⚠ 无新日志（= 退出流程没走完，不等于图没执行）"
+  record "judge" "无新日志（退出流程未走完 ≠ 图未执行）" false 0
+fi
+
+if [ "$FAILED" -gt 0 ]; then
+  finalize_round "fail" "$FAILED 步断言为假"
+  exit 1
+fi
+finalize_round "ok" ""
+say "✓ 全绿：$STEP_N 步 / 证据帧 $B_FRAMES / 占槽 $B_FOCUS / 固定 sleep $B_SLEEPS / 用时 ${DURATION_MS}ms"
+exit 0
