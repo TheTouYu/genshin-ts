@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""ys-time-audit — 从会话事件流度量「我的时间花在哪类动作上」。
+
+存在理由（用户 2026-10-17 点拨）：
+  人对时间分配天生不敏感，尤其对没兴趣的操作会没耐心。
+  但**度量它很便宜**——会话事件流里每次 tool/call 都带耗时，
+  按类别一汇总，失衡立刻显形（实测：GUI 类占了绝大部分时间）。
+
+用法:
+  ys-time-audit [session.jsonl]        # 默认取本工作区最新会话
+  ys-time-audit --top 15               # 附带最慢的 N 次调用
+  ys-time-audit --turn 3               # 只看第 3 轮
+
+输出: 类别 / 次数 / 总秒数 / 占比 / 平均，以及最慢若干次。
+"""
+import sys, os, json, glob, subprocess, collections
+
+CAT = {
+    'gui':      ('ys-', 'xdotool', 'ydotool', 'spectacle', 'import -window', 'kwin', 'ys_look',
+                 'ys-pointer', 'ys-peek', 'ys-act', 'ys-put', 'ys-state', 'ys-observe'),
+    'build':    ('npm run build', 'gsts', 'tsc', 'build.mjs'),
+    'test':     ('npm test', 'npx tsx tests/', 'quicktest'),
+    'git':      ('git '),
+    'verify':   ('tools/', 'python3 .agents/skills', '.agents/skills/debug-log'),
+    'memory':   ('memo_',),
+    'context':  ('compress', 'acp_status', 'decompress', 'search_context'),
+}
+TOOL_CAT = {'read': 'fs', 'write': 'fs', 'edit': 'fs', 'glob': 'fs', 'grep': 'fs',
+            'memo_recall': 'memory', 'memo_write': 'memory', 'memo_stats': 'memory',
+            'compress': 'context', 'acp_status': 'context',
+            'subagent': 'delegate', 'workflow': 'delegate', 'subagent_fork': 'delegate'}
+
+
+def classify(name, args):
+    if name in TOOL_CAT:
+        return TOOL_CAT[name]
+    if name != 'bash':
+        return name
+    try:
+        cmd = json.loads(args).get('command', '')
+    except Exception:
+        cmd = str(args)
+    for cat, pats in CAT.items():
+        for p in pats:
+            if p in cmd:
+                return cat
+    return 'bash-other'
+
+
+def load(path):
+    raw = open(path, 'rb').read()
+    if path.endswith('.zstd'):
+        raw = subprocess.run(['zstd', '-dc'], input=raw, capture_output=True).stdout
+    return [json.loads(l) for l in raw.decode('utf-8', 'replace').split('\n') if l.strip()]
+
+
+def latest():
+    c = glob.glob(os.path.expanduser('~/.dsh/sessions/--home-h-genshin-ts--/*/session.v4.jsonl.zstd'))
+    return max(c, key=os.path.getmtime) if c else None
+
+
+def main():
+    argv = sys.argv[1:]
+    top = 10
+    if '--top' in argv:
+        i = argv.index('--top'); top = int(argv[i + 1]); del argv[i:i + 2]
+    only_turn = None
+    if '--turn' in argv:
+        i = argv.index('--turn'); only_turn = int(argv[i + 1]); del argv[i:i + 2]
+    path = argv[0] if argv else latest()
+    if not path:
+        print('找不到会话文件', file=sys.stderr); return 2
+    ev = load(path)
+    calls, done, t0 = {}, {}, None
+    for o in ev:
+        t = o.get('type')
+        if t == 'session':
+            t0 = o.get('createdAt')
+        if t == 'tool/call':
+            d = o['data']
+            if only_turn is not None and d.get('turn') != only_turn:
+                continue
+            calls[d['callId']] = (o['time'], d.get('name', '?'), d.get('arguments', ''), d.get('turn'))
+        elif t == 'tool/result':
+            cid = o['data'].get('message', {}).get('toolCallId')
+            if cid in calls:
+                done[cid] = o['time']
+    agg = collections.defaultdict(lambda: [0, 0.0])
+    rows = []
+    for cid, (ts, name, args, turn) in calls.items():
+        if cid not in done:
+            continue
+        dur = (done[cid] - ts) / 1000.0
+        cat = classify(name, args)
+        agg[cat][0] += 1
+        agg[cat][1] += dur
+        rows.append((dur, cat, name, turn, str(args)[:110]))
+    total = sum(v[1] for v in agg.values()) or 1
+    span = (max(done.values()) - min(v[0] for v in calls.values())) / 1000.0 if calls else 0
+    print(f'session: {os.path.basename(os.path.dirname(path))}')
+    print(f'调用配对: {len(rows)}/{len(calls)}   工具耗时合计: {total/60:.1f} 分钟   会话时长: {span/60:.1f} 分钟   工具占比: {100*total/span if span else 0:.0f}%\n')
+    print(f'{"类别":<12}{"次数":>6}{"耗时(分)":>10}{"占比":>8}{"均时(s)":>9}')
+    print('-' * 48)
+    for cat, (n, sec) in sorted(agg.items(), key=lambda kv: -kv[1][1]):
+        print(f'{cat:<12}{n:>6}{sec/60:>10.1f}{100*sec/total:>7.0f}%{sec/n:>9.1f}')
+    if top:
+        print(f'\n最慢的 {top} 次:')
+        for dur, cat, name, turn, a in sorted(rows, reverse=True)[:top]:
+            print(f'  {dur:7.1f}s  T{turn:<3} {cat:<10} {a[:88]}')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
