@@ -1,0 +1,1127 @@
+#!/usr/bin/env python3
+"""ys-screen — 屏幕摘要层：把一张帧的**像素**变成一台**界面**（文本 + 控件 + 分区 + 邻接 + 遮挡）。
+
+为什么需要它（问题定义，2026-10-17 实证）：
+人看图是"整体"——区域、图标、谁挨着谁、哪块被盖住；机器看图只有"文本列表"。
+于是出现两种**看不见**：
+  · 漏看现成入口：OCR 拿到 `未分类页签_存档_1` 当关键词就算完事，标题右侧 40~170px 的圆形铅笔
+    按钮 (523,96) **在同一张图里却"不存在"**，操作者绕去右键菜单瞎试 40 分钟。
+  · 不知道"那里被挡"：编辑器帧左上角被 DXVK 性能叠加层（半透明）盖住，本地/云端 OCR 都读不到
+    存档名，**也没有任何一层能说出"这块被覆盖了"**。
+本工具的产出就是补上这一层：`text / controls / regions / adjacency / occlusion / digest`。
+其中 **adjacency 是核心**——把"这个名字 → 旁边那个可点的东西"显式化（方位 + 像素间距），
+把"我记得要往标题右边看"变成"机器每次都会告诉我标题右边有什么"。
+
+用法（离线优先，**只读文件，不碰屏幕**）:
+  tools/ys-screen 帧.png                     # 人读摘要（≤10 行）
+  tools/ys-screen 帧.png --json              # 机读 JSON（stdout）
+  tools/ys-screen 帧.png --json --json-out /tmp/s.json --debug
+  tools/ys-screen 帧.png --no-ocr            # 只做像素层（控件/分区/遮挡），~0.4s，调试几何用
+  tools/ys-screen 帧.png --scale 0.5         # OCR 前先缩图（快 ~30%，小字召回略降）
+
+输出字段（schema=ys-screen/1，稳定供下游复用）:
+  text[]      {id,text,cx,cy,bbox,w,h,score,kind}      kind=title|content|action|data|hud|other
+  controls[]  {id,bbox,cx,cy,w,h,shape,confidence,label?,evidence{fills,aspect,mean_rgb,area}}
+              shape ∈ circle|rect|line|unknown
+  regions[]   {name,bbox,why}                          name=顶栏/左侧栏/画布/右侧栏/底栏/主内容区
+  adjacency[] {text,text_id,target,target_id,target_kind,label,dir,gap_px,dx,dy,confidence}
+              dir ∈ right|left|below|above|overlap；gap_px = 两框**边缘**间距（不是中心距）
+  occlusion[] {bbox,confidence,label,why,evidence{...}}  半透明叠加层/被覆盖区，带数值依据
+  digest      人读摘要文本（≤10 行，含"标题在哪 / 旁边有什么可点的 / 哪里被挡"）
+  timing      {load_ms,ocr_ms,pixel_ms,total_ms,ocr_source,ocr_backend}
+
+退出码：0 成功 / 2 用法错 / 3 帧不可读 / 4 OCR 后端缺失（fail-closed） / 5 OCR 跑失败或输出不可解析
+依赖：只用 numpy + PIL（已有）；OCR 走 `tools/ys-editor/ys_ocr.py ocr --json` 子进程（rapidocr venv）。
+缓存：内容寻址（sha256(帧字节) + 后端签名），与 `tools/ys-find` 共用 `.gsts/ys-find-cache/`，
+      所以同一帧被 ys-find 认过之后，这里几乎不花 OCR 时间；可用 `--no-cache` 强制真跑。
+"""
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+YS = os.path.join(HERE, 'ys-editor')
+# OCR venv：与 tools/ys-find 同一口径（可用 YS_RAPIDOCR_PY 覆盖）；缺它就 fail-closed，不静默降级
+RAPIDOCR_PY = os.environ.get(
+    'YS_RAPIDOCR_PY',
+    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+# 内容寻址缓存：与 ys-find 共用同一目录 ⇒ 两个工具互相暖机
+CACHE_DIR = os.environ.get('YS_FIND_CACHE_DIR', os.path.join(HERE, '..', '.gsts', 'ys-find-cache'))
+CACHE_MAX = 64
+
+# 动作词表：只用来**给已检测到的文本框贴标签**（不负责决定"这里能点"）。
+# 放宽了会误标，收窄了会漏标；判定依据始终是"它是不是被某个控件框住/挨着谁"。
+ACTION_WORDS = (
+    '编辑', '保存', '另存为', '新建', '导入', '上传', '下载', '确定', '取消', '关闭',
+    '删除', '重命名', '试玩', '继续', '返回', '应用', '开始', '停止', '退出', '设置',
+    '登录', '切换', '复制', '粘贴', '添加', '移除', '刷新', '确认', '提交', '清空',
+)
+
+# 画面几何阈值（全帧像素口径，实测标定见 tools/ys-editor/tests/screen-digest.selftest.sh）
+MIN_CTRL_AREA = 260          # 控件最小面积（全帧像素；实测 22px 圆钮≈480，取 260 留余量）
+MAX_CTRL_FRAC = 0.18         # 控件 bbox 面积上限（占全帧比例）——超过就是背景/面板
+MIN_CTRL_SIDE = 12           # 控件最短边（像素）
+CTRL_FLAT_STD = 3.2          # 判定"均匀填充面"的 5x5 局部标准差阈值（0..255）
+DOG_CENTER = 3               # DoG 近窗半径（分析尺度像素）
+DOG_SURROUND = 16            # DoG 远窗半径（分析尺度像素）
+DOG_THRESH = 8               # DoG 响应阈值（0..255；实测 8 能抓 22px 圆钮、又不炸出满屏纹理）
+MAX_CONTROLS = 40            # 控件候选上限（下游只读前 N 个）
+ADJ_MAX_ICON = 300           # 文本 → 图标控件 的最大边缘间距
+ADJ_MAX_LABEL = 620          # 文本 → 动作标签按钮 的最大边缘间距
+OCCL_TINY_TEXT_H = 36        # HUD 小字的最大字高（像素）
+OCCL_CLUSTER_GAP = 20        # 小字聚簇最大边缘间距：实测 44 会把标题并进 HUD 簇
+                             # （GPU:50% 距标题左沿仅 34px），20 只并同一个读数组
+REGION_EDGE_COVER = 0.30     # 判定"长直边"的覆盖比阈值
+
+
+# --------------------------------------------------------------------------- 基础
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for blk in iter(lambda: f.read(1 << 20), b''):
+            h.update(blk)
+    return h.hexdigest()
+
+
+def _backend_sig():
+    """后端签名：venv python 换了（升级/重装）⇒ OCR 缓存自动失效。"""
+    try:
+        st = os.stat(RAPIDOCR_PY)
+        return '%s|%d|%d' % (os.path.abspath(RAPIDOCR_PY), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return 'missing'
+
+
+def _prune_cache():
+    try:
+        fs = [(os.path.getmtime(os.path.join(CACHE_DIR, n)), os.path.join(CACHE_DIR, n))
+              for n in os.listdir(CACHE_DIR) if n.endswith('.json')]
+        for _, p in sorted(fs)[:max(0, len(fs) - CACHE_MAX)]:
+            os.unlink(p)
+    except OSError:
+        pass
+
+
+def backend_ok():
+    return os.path.exists(RAPIDOCR_PY), os.path.abspath(RAPIDOCR_PY)
+
+
+def run_ocr(frame, use_cache=True, scale=1.0, debug=False):
+    """整帧 OCR（复用 ys_ocr.py 子进程）。返回 (boxes, meta)。
+
+    boxes: [{text,cx,cy,score,box}]（全帧坐标）；meta: {source,ms,n_total,err}
+    fail-closed：后端缺/跑失败都返回 err，绝不返回空列表冒充"这屏没字"。
+    """
+    src_path, tmp_path = frame, None
+    if abs(scale - 1.0) > 1e-6:
+        from PIL import Image
+        im = Image.open(frame).convert('RGB')
+        tmp_path = os.path.join('/tmp', 'ys-screen-%d-%d.png' % (os.getpid(), int(scale * 1000)))
+        im.resize((max(1, int(im.width * scale)), max(1, int(im.height * scale))),
+                  Image.LANCZOS).save(tmp_path)
+        src_path = tmp_path
+    sha = _sha256(src_path)
+    cpath = os.path.join(CACHE_DIR, sha + '.json') if use_cache else None
+    if cpath and os.path.exists(cpath):
+        try:
+            with open(cpath, 'r', encoding='utf-8') as f:
+                c = json.load(f)
+            if c.get('backend') == _backend_sig() and isinstance(c.get('boxes'), list):
+                boxes = _unscale(c['boxes'], scale)
+                return boxes, {'source': 'cache', 'ms': int(c.get('ms') or 0),
+                               'n_total': int(c.get('n_total') or 0), 'err': None}
+        except (OSError, ValueError):
+            pass
+    ok, py = backend_ok()
+    if not ok:
+        return None, {'source': 'nobackend', 'ms': 0, 'n_total': 0,
+                      'err': 'RapidOCR venv 缺失：%s（可设 YS_RAPIDOCR_PY）' % py}
+    cmd = [py, os.path.join(YS, 'ys_ocr.py'), 'ocr', src_path, '--json']
+    if debug:
+        sys.stderr.write('[ys-screen] OCR: %s\n' % ' '.join(cmd))
+    t0 = time.time()
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    ms = int((time.time() - t0) * 1000)
+    if p.returncode != 0:
+        return None, {'source': 'error', 'ms': ms, 'n_total': 0,
+                      'err': 'OCR 子进程 rc=%d：%s' % (p.returncode, (p.stderr or p.stdout)[-400:])}
+    try:
+        d = json.loads(p.stdout)
+    except ValueError as exc:
+        return None, {'source': 'error', 'ms': ms, 'n_total': 0,
+                      'err': 'OCR 输出不可解析：%s；首 200 字节=%r' % (exc, p.stdout[:200])}
+    boxes = d.get('boxes') or []
+    n_total = int(d.get('n_total') or 0)
+    inproc_ms = int(d.get('ms') or 0)
+    if cpath:
+        try:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            tmp = '%s.tmp%d' % (cpath, os.getpid())
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump({'backend': _backend_sig(), 'boxes': boxes, 'n_total': n_total,
+                           'ms': inproc_ms, 'frame': os.path.abspath(src_path),
+                           'scale': scale}, f, ensure_ascii=False)
+            os.replace(tmp, cpath)
+            _prune_cache()
+        except OSError:
+            pass
+    return _unscale(boxes, scale), {'source': 'run', 'ms': ms, 'n_total': n_total, 'err': None}
+
+
+def _unscale(boxes, scale):
+    if abs(scale - 1.0) < 1e-6:
+        return boxes
+    out = []
+    for b in boxes:
+        nb = dict(b)
+        nb['cx'] = int(round(b['cx'] / scale))
+        nb['cy'] = int(round(b['cy'] / scale))
+        nb['box'] = [[int(round(x / scale)), int(round(y / scale))] for x, y in b['box']]
+        out.append(nb)
+    return out
+
+
+def box_bbox(points):
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    return [int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))]
+
+
+# --------------------------------------------------------------------------- 像素层
+def load_small(path, scale):
+    """读帧并缩到分析尺度（控件/分区/遮挡在缩小图上算：快 + 抗噪，坐标再乘回去）。"""
+    from PIL import Image
+    import numpy as np
+    im = Image.open(path).convert('RGB')
+    W0, H0 = im.size
+    W, H = max(1, int(round(W0 * scale))), max(1, int(round(H0 * scale)))
+    if (W, H) != (W0, H0):
+        im = im.resize((W, H), Image.LANCZOS)
+    arr = np.asarray(im, dtype=np.uint8)
+    return arr, (W0, H0)
+
+
+def _box_filter(x, r):
+    """(2r+1)^2 均值滤波（积分图，纯 numpy）。"""
+    import numpy as np
+    p = np.pad(x, ((r + 1, r), (r + 1, r)), mode='edge')
+    ii = p.cumsum(0).cumsum(1)
+    k = 2 * r + 1
+    return (ii[k:, k:] - ii[:-k, k:] - ii[k:, :-k] + ii[:-k, :-k]) / float(k * k)
+
+
+def _label_mask(mask, max_runs=None):
+    """二进制 4-连通标号。返回 (labels int32, stats[{label,area,bbox}])。
+
+    有 scipy 就走 `scipy.ndimage.label`（C 速度 ~7ms）；缺失则退回纯 numpy 的
+    "逐行游程 + 并查集"（同结果、慢 20~40 倍）。两条路都不装新包：
+    scipy 只在**已安装**时当加速器，缺了自动降级，功能不缺。
+    """
+    import numpy as np
+    try:
+        from scipy import ndimage as _ndi
+        lab, n = _ndi.label(mask)
+        if n == 0:
+            return np.zeros(mask.shape, dtype=np.int32), []
+        areas = np.bincount(lab.ravel())
+        stats = []
+        for i, sl in enumerate(_ndi.find_objects(lab), start=1):
+            if sl is None:
+                continue
+            stats.append({'label': i, 'area': int(areas[i]),
+                          'bbox': [int(sl[1].start), int(sl[0].start),
+                                   int(sl[1].stop), int(sl[0].stop)]})
+        return lab.astype(np.int32), stats
+    except ImportError:
+        pass
+    H, W = mask.shape
+    parent = []
+    runs = []       # (y, x0, x1, id)
+    prev = []       # (x0, x1, id)
+    zero = mask.astype(np.int8)
+
+    def find(a):
+        r = a
+        while parent[r] != r:
+            r = parent[r]
+        while parent[a] != r:
+            parent[a], a = r, parent[a]
+        return r
+
+    for y in range(H):
+        row = zero[y]
+        if not row.any():
+            prev = []
+            continue
+        d = np.diff(row)
+        starts = np.flatnonzero(d == 1) + 1
+        ends = np.flatnonzero(d == -1) + 1
+        if row[0]:
+            starts = np.concatenate(([0], starts))
+        if row[-1]:
+            ends = np.concatenate((ends, [W]))
+        cur = []
+        for s, e in zip(starts.tolist(), ends.tolist()):
+            rid = len(parent)
+            parent.append(rid)
+            cur.append((s, e, rid))
+            runs.append((y, s, e, rid))
+        j = 0
+        for (s, e, rid) in cur:
+            while j < len(prev) and prev[j][1] <= s:
+                j += 1
+            k = j
+            while k < len(prev) and prev[k][0] < e:
+                a, b = find(prev[k][2]), find(rid)
+                if a != b:
+                    if a < b:
+                        parent[b] = a
+                    else:
+                        parent[a] = b
+                k += 1
+        prev = cur
+        if max_runs is not None and len(runs) > max_runs:
+            break
+    if not parent:
+        return np.zeros_like(zero, dtype=np.int32), []
+
+    roots = np.array([find(i) for i in range(len(parent))], dtype=np.int64)
+    uniq = np.unique(roots)
+    remap = np.zeros(int(roots.max()) + 1, dtype=np.int32)
+    remap[uniq] = np.arange(1, uniq.size + 1, dtype=np.int32)
+
+    labels = np.zeros((H, W), dtype=np.int32)
+    ry = np.array([r[0] for r in runs], dtype=np.int64)
+    rx0 = np.array([r[1] for r in runs], dtype=np.int64)
+    rx1 = np.array([r[2] for r in runs], dtype=np.int64)
+    rlab = remap[roots[np.array([r[3] for r in runs], dtype=np.int64)]]
+    for i in range(len(runs)):
+        labels[ry[i], rx0[i]:rx1[i]] = rlab[i]
+    areas = np.bincount(rlab, weights=(rx1 - rx0), minlength=uniq.size + 1).astype(np.int64)
+    stats = []
+    for lb in range(1, uniq.size + 1):
+        sel = rlab == lb
+        if not sel.any():
+            continue
+        stats.append({
+            'label': lb,
+            'area': int(areas[lb]),
+            'bbox': [int(rx0[sel].min()), int(ry[sel].min()),
+                     int(rx1[sel].max()), int(ry[sel].max()) + 1],   # 行号是闭区间，+1 才等于高度口径
+        })
+    return labels, stats
+
+
+def find_controls(arr, scale, W0, H0, text_boxes, debug=False):
+    """非文字控件候选：两路互补线索（只用一路必然漏掉某一种按钮）。
+
+    ① **对比斑块**（DoG = 远窗均值 − 近窗均值）：按钮本体常常与周围**同色系、差一档明度**
+       （实证：标题右侧铅笔钮 = 暗绿圆盘压在绿面板上，灰度 ~50 vs ~72）。"平坦面"法抓不到它
+       —— 在渐变面板上，"均匀"的恰恰是背景；DoG 给的是"这是一块独立的局部色块"。
+    ② **均匀填充面**（局部 5x5 标准差极低）：药丸按钮/卡片/图标底板是纯色填充，DoG 抓不到
+       （它们大到"远窗均值"也落在自己内部）。两路合起来才覆盖 圆钮 + 药丸 + 卡片。
+    形状：细长=line；长宽比 ≥1.45=rect（药丸）；近方形时看**角部填充率**——
+    圆盘四角是空的（≈0.1），方/圆角矩形的四角接近 1。
+    """
+    import numpy as np
+    from PIL import Image as _Img, ImageFilter as _IF
+
+    def _open_mask(b):
+        im = _Img.fromarray((b * 255).astype(np.uint8), 'L')
+        return np.asarray(im.filter(_IF.MinFilter(3)).filter(_IF.MaxFilter(3))) > 127
+
+    g = arr.astype(np.float32).mean(axis=2)
+    tb = [(t['bbox'][0] * scale, t['bbox'][1] * scale, t['bbox'][2] * scale,
+           t['bbox'][3] * scale, t['text']) for t in text_boxes]
+    cands = []
+
+    def _emit(labels, lb, bbox, src):
+        x0, y0, x1, y1 = bbox
+        w, h = x1 - x0, y1 - y0
+        if w < MIN_CTRL_SIDE * scale or h < MIN_CTRL_SIDE * scale:
+            return
+        if w * h > MAX_CTRL_FRAC * arr.shape[0] * arr.shape[1]:
+            return
+        sub = (labels[y0:y1, x0:x1] == lb)
+        n = int(sub.sum())
+        if n < MIN_CTRL_AREA * scale * scale:
+            return
+        if _max_text_cover(x0, y0, x1, y1, tb) >= 0.55:
+            return                      # 框里几乎全是字 ⇒ 那是一个标签，不是控件
+        if _text_union_cover(x0, y0, x1, y1, tb) >= 0.45:
+            return                      # 多个文本框合起来盖掉近半 ⇒ 这是"一堆字"，不是控件
+        fills = n / float(max(1, w * h))
+        aspect = w / float(max(1, h))
+        corner = _corner_fill(sub)
+        shape, conf = _classify(fills, aspect, corner, w, h, scale)
+        if shape == 'unknown':
+            return
+        cands.append({
+            'bbox': [int(x0 / scale), int(y0 / scale), int(x1 / scale), int(y1 / scale)],
+            'cx': int(round((x0 + x1) / 2 / scale)), 'cy': int(round((y0 + y1) / 2 / scale)),
+            'w': int(round(w / scale)), 'h': int(round(h / scale)),
+            'shape': shape, 'confidence': round(conf, 3),
+            'label': _label_inside(x0, y0, x1, y1, tb),
+            'evidence': {'fill': round(fills, 3), 'aspect': round(aspect, 2),
+                         'corner_fill': round(corner, 2),
+                         'area': int(n / (scale * scale)), 'src': src},
+        })
+
+    resp = np.abs(_box_filter(g, DOG_SURROUND) - _box_filter(g, DOG_CENTER))
+    lab1, st1 = _label_mask(_open_mask(resp > DOG_THRESH))
+    for st in st1:
+        _emit(lab1, st['label'], st['bbox'], 'contrast')
+
+    m1 = _box_filter(g, 1)
+    var = _box_filter(g * g, 1) - m1 * m1
+    lab2, st2 = _label_mask(np.sqrt(np.maximum(var, 0)) < CTRL_FLAT_STD)
+    for st in st2:
+        _emit(lab2, st['label'], st['bbox'], 'flat')
+
+    cands.sort(key=lambda c: -c['confidence'])
+    kept = []
+    for c in cands:
+        if any(_iou(c['bbox'], k['bbox']) >= 0.35 for k in kept):
+            continue                    # 同一控件被两路各抓一次，留置信度高的那条
+        kept.append(c)
+    # 去掉"套在别人里面的小图标"：磁贴里的图标笔画是磁贴的一部分，报出来只会把
+    # "标题旁边有什么"挤满（实测：菜单磁贴的内层图标 gap 60 < 铅笔 179，排在前头）。
+    kept = _drop_nested(kept)
+    kept = kept[:MAX_CONTROLS]
+    for i, c in enumerate(kept):
+        c['id'] = 'c%d' % i
+    if debug:
+        sys.stderr.write('[ys-screen] controls=%d\n' % len(kept))
+        for c in kept[:12]:
+            sys.stderr.write('  %s %-6s %s conf=%.2f fill=%.2f corner=%.2f src=%s label=%r\n' % (
+                c['id'], c['shape'], c['bbox'], c['confidence'], c['evidence']['fill'],
+                c['evidence']['corner_fill'], c['evidence']['src'], c['label']))
+    return kept
+
+
+def _drop_nested(ctrls):
+    """剔掉"被另一个更大控件包住 ≥85% 面积"的小控件（磁贴里的图标、药丸里的字块）。"""
+    keep = []
+    for a in ctrls:
+        aa = (a['bbox'][2] - a['bbox'][0]) * (a['bbox'][3] - a['bbox'][1])
+        nested = False
+        for b in ctrls:
+            if b is a:
+                continue
+            bb = (b['bbox'][2] - b['bbox'][0]) * (b['bbox'][3] - b['bbox'][1])
+            if bb < 1.6 * aa or bb > 12 * aa:
+                continue    # 只把"同一量级的容器"算容器：整块面板/底条包里的小图标不算嵌套
+                            # （实测：左侧栏面板把标题旁的铅笔包进去，把该报的入口吃掉了）
+            ix = max(0, min(a['bbox'][2], b['bbox'][2]) - max(a['bbox'][0], b['bbox'][0]))
+            iy = max(0, min(a['bbox'][3], b['bbox'][3]) - max(a['bbox'][1], b['bbox'][1]))
+            if aa > 0 and ix * iy / float(aa) >= 0.85:
+                nested = True
+                break
+        if not nested:
+            keep.append(a)
+    return keep
+
+
+def _corner_fill(sub):
+    """四角 25% 小方块的平均填充率：圆盘≈0.1，方/圆角矩形≈0.9+。"""
+    import numpy as np
+    h, w = sub.shape
+    k = max(1, int(round(min(w, h) * 0.25)))
+    return float(np.mean([sub[0:k, 0:k].mean(), sub[0:k, w - k:w].mean(),
+                          sub[h - k:h, 0:k].mean(), sub[h - k:h, w - k:w].mean()]))
+
+
+def _iou(a, b):
+    ix = max(0, min(a[2], b[2]) - max(a[0], b[0]))
+    iy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / float(max(1, union))
+
+
+def _text_union_cover(x0, y0, x1, y1, tb, pad=2):
+    """一堆文本框的并集覆盖该 bbox 的比例（粗略：按行/列不重叠的近似上限见下）。
+
+    用"逐个框面积相加（先去重像素）"太贵，这里用更稳的口径：把 bbox 内**被任一文本框
+    覆盖的像素数**在一张布尔图上数出来（分析尺度下 bbox 很小，代价可忽略）。
+    """
+    import numpy as np
+    w, h = int(x1 - x0), int(y1 - y0)
+    if w <= 0 or h <= 0:
+        return 1.0
+    mask = np.zeros((h, w), dtype=bool)
+    for (tx0, ty0, tx1, ty1, _) in tb:
+        ax0, ay0 = max(0, int(tx0) - int(x0) - pad), max(0, int(ty0) - int(y0) - pad)
+        ax1 = min(w, int(tx1) - int(x0) + pad)
+        ay1 = min(h, int(ty1) - int(y0) + pad)
+        if ax1 > ax0 and ay1 > ay0:
+            mask[ay0:ay1, ax0:ax1] = True
+    return float(mask.mean())
+
+
+def _max_text_cover(x0, y0, x1, y1, tb):
+    """该 bbox 被单个文本框覆盖的最大比例。"""
+    best = 0.0
+    a = max(1.0, (x1 - x0) * (y1 - y0))
+    for (tx0, ty0, tx1, ty1, _) in tb:
+        ix = max(0.0, min(x1, tx1) - max(x0, tx0))
+        iy = max(0.0, min(y1, ty1) - max(y0, ty0))
+        best = max(best, ix * iy / a)
+    return best
+
+
+def _label_inside(x0, y0, x1, y1, tb):
+    hits = []
+    for (tx0, ty0, tx1, ty1, txt) in tb:
+        cx, cy = (tx0 + tx1) / 2.0, (ty0 + ty1) / 2.0
+        if x0 <= cx <= x1 and y0 <= cy <= y1:
+            hits.append(txt)
+    return ' '.join(hits) if hits else None
+
+
+def _classify(fills, aspect, corner, w, h, scale):
+    """形状判定：细长=line；长宽比>1.45 或四角填满=rect；近方形且四角空=circle。"""
+    short, long_ = min(w, h), max(w, h)
+    if short <= 14 * scale and long_ >= 24 * scale:
+        return 'line', 0.55
+    if long_ / float(max(1, short)) >= 1.45:
+        return 'rect', round(min(0.92, 0.5 + fills * 0.45), 3)
+    if corner >= 0.72:
+        return 'rect', round(min(0.9, 0.45 + corner * 0.45), 3)
+    if corner <= 0.52 and fills >= 0.42:
+        return 'circle', round(min(0.95, 0.55 + (0.72 - corner) * 0.5 + fills * 0.2), 3)
+    return 'unknown', 0.2
+
+
+def find_regions(arr, scale, W0, H0, occl, debug=False):
+    """分区：靠"长直边"定边界（顶栏/左侧栏/右侧栏/底栏），画布靠"大片平坦亮面"。"""
+    import numpy as np
+    g = arr.astype(np.float32).mean(axis=2)
+    H, W = g.shape
+    dx = np.abs(np.diff(g, axis=1))
+    dy = np.abs(np.diff(g, axis=0))
+    colcov = (dx > 28).mean(axis=0)          # 每一列上"有台阶"的行占比
+    rowcov = (dy > 28).mean(axis=1)
+    regions = []
+
+    def pick(profile, lo, hi):
+        lo, hi = max(1, lo), min(len(profile) - 1, hi)
+        if hi <= lo:
+            return None
+        seg = profile[lo:hi]
+        i = int(np.argmax(seg))
+        return (lo + i, float(seg[i])) if seg[i] >= REGION_EDGE_COVER else None
+
+    left = pick(colcov, int(W * 0.02), int(W * 0.35))
+    right = pick(colcov, int(W * 0.65), int(W * 0.98))
+    top = pick(rowcov, int(H * 0.01), int(H * 0.14))
+    bottom = pick(rowcov, int(H * 0.86), int(H * 0.99))
+
+    if top:
+        regions.append({'name': '顶栏', 'bbox': [0, 0, W0, int(round(top[0] / scale))],
+                        'why': '横边长直边 y=%d（覆盖 %.0f%% 宽）' % (
+                            int(top[0] / scale), top[1] * 100)})
+    if left:
+        regions.append({'name': '左侧栏', 'bbox': [0, 0, int(round(left[0] / scale)), H0],
+                        'why': '竖边长直边 x=%d（覆盖 %.0f%% 高）' % (
+                            int(left[0] / scale), left[1] * 100)})
+    if right:
+        regions.append({'name': '右侧栏', 'bbox': [int(round(right[0] / scale)), 0, W0, H0],
+                        'why': '竖边长直边 x=%d（覆盖 %.0f%% 高）' % (
+                            int(right[0] / scale), right[1] * 100)})
+    if bottom:
+        regions.append({'name': '底栏', 'bbox': [0, int(round(bottom[0] / scale)), W0, H0],
+                        'why': '横边长直边 y=%d（覆盖 %.0f%% 宽）' % (
+                            int(bottom[0] / scale), bottom[1] * 100)})
+
+    # 画布：大片"平坦亮面"（编辑器 3D 视口在菜单页是纯白平面）
+    bright = (g > 205) & (_box_filter(g, 2) > 205)
+    if bright.any():
+        labels, stats = _label_mask(bright)
+        big = [s for s in stats if s['area'] > 0.06 * W * H]
+        if big:
+            st = max(big, key=lambda s: s['area'])
+            x0, y0, x1, y1 = st['bbox']
+            regions.append({'name': '画布',
+                            'bbox': [int(x0 / scale), int(y0 / scale),
+                                     int(x1 / scale), int(y1 / scale)],
+                            'why': '最大平坦亮面（面积 %.0f%% 帧）' % (
+                                100.0 * st['area'] / (W * H))})
+    if debug:
+        sys.stderr.write('[ys-screen] regions=%s\n' % [(r['name'], r['bbox']) for r in regions])
+    return regions
+
+
+def region_of(box, regions):
+    """点/框落在哪个分区（中心点命中优先，否则返回 None）。"""
+    cx, cy = (box[0] + box[2]) / 2.0, (box[1] + box[3]) / 2.0
+    for r in regions:
+        x0, y0, x1, y1 = r['bbox']
+        if x0 <= cx <= x1 and y0 <= cy <= y1:
+            return r['name']
+    return None
+
+
+def find_occlusion(arr, scale, W0, H0, text_boxes, debug=False):
+    """遮挡区：**半透明叠加层**（HUD / 录屏读数 / 通知条）。
+
+    判据（2026-10-17 三帧实测标定；DXVK 性能叠加层是典型样本）：
+      ① 自带**小字**：≥2 个 h ≤ 36px 的 OCR 框紧挨成一簇（HUD 读数形态），并贴在画面边角
+         （≤22% 边距）——正文不会这样聚集在角上；
+      ② **低方差**：把簇内文字像素遮掉后，背景 std 明显低（叠加层是平涂色块，
+         实测 DXVK 底 std ≈ 6~8；它盖住的草地/面板纹理 std 20+）；
+      ③ **非纯黑**：背景均值落在 6..210（DXVK 实测 L≈80；纯黑=黑屏，另判）；
+      ④ **纹理对比骤降**：簇背景 std / 紧邻外围环 std ≤ 0.55（叠加层把下面的纹理压平）。
+    bbox = 小字簇外接框（±3px），即"这块被压上了读数"的最小诚实范围。
+    这里**故意不用**"找叠加层矩形边框"的做法：实测那玩意儿的边阶跃不是画面里最强的台阶
+    （全帧最强台阶在存档图标上，x=106，ΔL=73），靠它定位会把叠加层框错成 252×138。
+    """
+    import numpy as np
+    g = arr.astype(np.float32).mean(axis=2)
+    tb = [(t['bbox'][0] * scale, t['bbox'][1] * scale, t['bbox'][2] * scale,
+           t['bbox'][3] * scale) for t in text_boxes]
+    tiny = [t for t in text_boxes if t['h'] <= OCCL_TINY_TEXT_H]
+    out = []
+    for cl, idxs in _cluster_boxes([t['bbox'] for t in tiny], gap=OCCL_CLUSTER_GAP):
+        members = _trim_hud_cluster([tiny[i] for i in idxs])
+        if len(members) < 2:
+            continue
+        # bbox 必须用**裁剪后成员**的并集：原始聚类并集可能连到标题/标签页（实测会把
+        # 遮挡框撑成 332×105，把标题也框进去）
+        x0 = min(m['bbox'][0] for m in members)
+        y0 = min(m['bbox'][1] for m in members)
+        x1 = max(m['bbox'][2] for m in members)
+        y1 = max(m['bbox'][3] for m in members)
+        if (x1 - x0) > 0.30 * W0 or (y1 - y0) > 0.16 * H0:
+            continue                     # 太散：是正文段落，不是 HUD 读数
+        corner, cdist = _nearest_corner([x0, y0, x1, y1], W0, H0)
+        if cdist > 0.12 * max(W0, H0):
+            continue                     # HUD 贴边；画面中央/内容区的小字簇不算遮挡
+                                             # （实测 0.22 会把右上角卡片的"名字+日期"簇误判成 HUD）
+        stats = _bg_stats(g, scale, [x0, y0, x1, y1], tb)
+        ring = _ring_stats(g, scale, [x0, y0, x1, y1])
+        colr = _bg_color(arr, scale, [x0, y0, x1, y1], tb)
+        ratio = stats['std'] / max(ring['std'], 0.5)
+        conf, cues = 0.35, []
+        if len(members) >= 3:
+            conf += 0.14
+            cues.append('小字 %d 框' % len(members))
+        if stats['std'] <= 22:
+            conf += 0.12
+            cues.append('低方差 std=%.1f' % stats['std'])
+        if 6 <= stats['mean'] <= 210:
+            conf += 0.08
+            cues.append('非纯黑 L=%.0f' % stats['mean'])
+        if ratio <= 0.55:
+            conf += 0.16
+            cues.append('纹理对比骤降 std %.1f→%.1f（%.2f×）' % (ring['std'], stats['std'], ratio))
+        if corner in ('左上', '右上') and len(members) >= 3:
+            conf += 0.05
+        if conf < 0.55 or not cues:
+            continue
+        bb = [max(0, x0 - 3), max(0, y0 - 3), min(W0, x1 + 3), min(H0, y1 + 3)]
+        out.append({
+            'bbox': [int(v) for v in bb],
+            'confidence': round(min(0.97, conf), 3),
+            'label': 'hud-overlay',
+            'why': '%s角小字叠加层：%s' % (corner, '，'.join(cues)),
+            'evidence': {
+                'texts': [m['text'] for m in members][:8],
+                'text_ids': [m['id'] for m in members],
+                'n_texts': len(members),
+                'corner': corner, 'corner_dist_px': int(round(cdist)),
+                'bg_mean': round(stats['mean'], 1), 'bg_std': round(stats['std'], 1),
+                'ring_mean': round(ring['mean'], 1), 'ring_std': round(ring['std'], 1),
+                'texture_ratio': round(ratio, 2), 'bg_rgb': colr,
+            },
+        })
+    out.sort(key=lambda o: -o['confidence'])
+    if debug:
+        sys.stderr.write('[ys-screen] occlusion=%d\n' % len(out))
+        for o in out:
+            sys.stderr.write('  occ %s conf=%.2f %s\n' % (o['bbox'], o['confidence'], o['why']))
+    return out
+
+
+def _ring_stats(g, scale, bb, pad=8):
+    """bb 外围一圈（pad 宽、挖掉 bb 本体）的亮度统计——用来比"纹理有没有被压平"。"""
+    import numpy as np
+    x0, y0, x1, y1 = [int(v * scale) for v in bb]
+    H, W = g.shape
+    X0, Y0 = max(0, x0 - pad), max(0, y0 - pad)
+    X1, Y1 = min(W, x1 + pad), min(H, y1 + pad)
+    reg = g[Y0:Y1, X0:X1]
+    keep = np.ones(reg.shape, dtype=bool)
+    keep[max(0, y0 - Y0):max(0, y1 - Y0), max(0, x0 - X0):max(0, x1 - X0)] = False
+    vals = reg[keep]
+    if vals.size == 0:
+        return {'mean': 0.0, 'std': 0.0}
+    return {'mean': float(vals.mean()), 'std': float(vals.std())}
+
+
+def _trim_hud_cluster(members):
+    """把"同一个读数块"和"凑巧挨着的界面文字"分开。
+
+    规则（2026-10-17 实测标定）：HUD 读数是一组**字号接近的短串**，而标题/标签页
+    又长又大。按簇内字高中位数取：只保留 `h ≤ 1.5×中位高` 且 `w ≤ 8×中位高` 的成员。
+    实证：ESC 帧里 HUD 簇原本连到了 8 个框，其中标题「未分类页签_存档_1」h=33、w=231，
+    中位高 20.5 ⇒ 两条规则各自都会把它剔掉（30.75 < 33；164 < 231）。
+    """
+    if len(members) < 2:
+        return members
+    hs = sorted(m['h'] for m in members)
+    med = hs[len(hs) // 2] if len(hs) % 2 else (hs[len(hs) // 2 - 1] + hs[len(hs) // 2]) / 2.0
+    med = max(med, 8.0)
+    keep = [m for m in members if m['h'] <= 1.5 * med and (m['bbox'][2] - m['bbox'][0]) <= 8 * med]
+    return keep if len(keep) >= 2 else members
+
+
+def _center_in(bb, cl):
+    cx, cy = (bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0
+    return cl[0] - 2 <= cx <= cl[2] + 2 and cl[1] - 2 <= cy <= cl[3] + 2
+
+
+def _cluster_boxes(boxes, gap):
+    """按"边缘间距 ≤ gap"做并查集聚类。
+
+    返回 [(并集 bbox, [成员下标…]), …]。**必须返回成员下标**：只返回并集 bbox 会让
+    "落在并集框里但没连上"的框被误当成成员（实测病历：HUD 小字簇的并集框把标题和标签页
+    一起框进去，标题因此被判成"被遮挡的 HUD"，标题识别直接错人）。
+    """
+    n = len(boxes)
+    par = list(range(n))
+
+    def find(a):
+        while par[a] != a:
+            par[a] = par[par[a]]
+            a = par[a]
+        return a
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            a, b = boxes[i], boxes[j]
+            gx = max(0, max(a[0], b[0]) - min(a[2], b[2]))
+            gy = max(0, max(a[1], b[1]) - min(a[3], b[3]))
+            if gx <= gap and gy <= gap:
+                ra, rb = find(i), find(j)
+                if ra != rb:
+                    par[max(ra, rb)] = min(ra, rb)
+    groups = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(i)
+    out = []
+    for idxs in groups.values():
+        g = [boxes[i] for i in idxs]
+        out.append(([min(b[0] for b in g), min(b[1] for b in g),
+                     max(b[2] for b in g), max(b[3] for b in g)], idxs))
+    return out
+
+
+def _nearest_corner(bb, W0, H0):
+    corners = {'左上': (0, 0), '右上': (W0, 0), '左下': (0, H0), '右下': (W0, H0)}
+    best, bd = None, 1e18
+    for name, (cx, cy) in corners.items():
+        dx = max(0, max(bb[0], cx) - min(bb[2], cx)) if bb[2] < cx or bb[0] > cx else 0
+        dy = max(0, max(bb[1], cy) - min(bb[3], cy)) if bb[3] < cy or bb[1] > cy else 0
+        d = (dx * dx + dy * dy) ** 0.5
+        if d < bd:
+            best, bd = name, d
+    return best, bd
+
+
+def _mask_text(g, bb, tb, pad=2):
+    import numpy as np
+    x0, y0, x1, y1 = [int(v) for v in bb]
+    sub = g[y0:y1, x0:x1]
+    keep = np.ones(sub.shape, dtype=bool)
+    for (tx0, ty0, tx1, ty1) in tb:
+        ax0, ay0 = max(0, int(tx0) - x0 - pad), max(0, int(ty0) - y0 - pad)
+        ax1, ay1 = min(sub.shape[1], int(tx1) - x0 + pad), min(sub.shape[0], int(ty1) - y0 + pad)
+        if ax1 > ax0 and ay1 > ay0:
+            keep[ay0:ay1, ax0:ax1] = False
+    return sub, keep
+
+
+def _bg_stats(g, scale, bb, tb):
+    import numpy as np
+    sub, keep = _mask_text(g, [v * scale for v in bb], tb)
+    vals = sub[keep]
+    if vals.size < 16:
+        vals = sub.ravel()
+    return {'mean': float(vals.mean()), 'std': float(vals.std())}
+
+
+def _bg_color(arr, scale, bb, tb):
+    import numpy as np
+    x0, y0, x1, y1 = [int(v * scale) for v in bb]
+    sub = arr[y0:y1, x0:x1].astype(np.float32)
+    gg = sub.mean(axis=2)
+    keep = np.ones(gg.shape, dtype=bool)
+    for (tx0, ty0, tx1, ty1) in tb:
+        ax0, ay0 = max(0, int(tx0) - x0 - 2), max(0, int(ty0) - y0 - 2)
+        ax1, ay1 = min(gg.shape[1], int(tx1) - x0 + 2), min(gg.shape[0], int(ty1) - y0 + 2)
+        if ax1 > ax0 and ay1 > ay0:
+            keep[ay0:ay1, ax0:ax1] = False
+    if keep.sum() < 16:
+        keep[:] = True
+    return [int(v) for v in sub[keep].mean(axis=0)]
+
+
+# --------------------------------------------------------------------------- 语义层
+def _is_action(txt):
+    """动作词判定：**短串** + 词在首/尾。
+
+    只做子串匹配会把长标签误标成按钮（实测 "关卡设置×" 含 "设置"、"资产导入导出管理"
+    含 "导入"），于是"标题旁边有什么可点的"被这些假按钮占满。短串+首尾两条就够了。
+    """
+    s = (txt or '').strip()
+    if not s or len(s) > 5:
+        return False
+    return any(s == w or s.startswith(w) or s.endswith(w) for w in ACTION_WORDS)
+
+
+def classify_texts(text_boxes, regions, occl):
+    """给文本框贴 kind：title / content / action / data / hud / other。
+
+    hud **只按遮挡簇的成员 id 标**（不按"落在遮挡 bbox 里"）——实测过按 bbox 包含判会
+    把紧挨 HUD 的标题一起吞成 hud，于是标题识别认错人（把右上角图标误读的 "S L I" 当标题）。
+    """
+    import re
+    date_re = re.compile(r'\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}:\d{2}|\d+\.\d+\s*(ms|s|%)')
+    hud_ids = set()
+    for o in occl:
+        hud_ids.update(o.get('evidence', {}).get('text_ids') or [])
+    for t in text_boxes:
+        txt = t['text']
+        t['kind'] = 'other'
+        if t['id'] in hud_ids:
+            t['kind'] = 'hud'
+        elif t['h'] <= 1.4 * OCCL_TINY_TEXT_H and any(
+                o['bbox'][0] - 2 <= t['cx'] <= o['bbox'][2] + 2 and
+                o['bbox'][1] - 2 <= t['cy'] <= o['bbox'][3] + 2 for o in occl):
+            # 兜底：簇成员之外的**小字**只要落在遮挡框里也算 HUD（OCR 常把 HUD 的一行
+            # 读成一个大框，实测 "FPSI" h=39 就是这样混进标题候选的）
+            t['kind'] = 'hud'
+        elif _is_action(txt):
+            t['kind'] = 'action'
+        elif date_re.search(txt):
+            t['kind'] = 'data'
+        elif t['h'] >= 20:
+            t['kind'] = 'content'      # 内容名（卡片名/条目名）：字高够，才不是角标读数
+    return text_boxes
+
+
+def pick_title(text_boxes, regions, H0):
+    best = None
+    for t in text_boxes:
+        if t['kind'] in ('hud', 'action'):
+            continue
+        if t['cy'] > 0.30 * H0:
+            continue
+        key = (t['h'], t['score'], -t['cy'])
+        if best is None or key > best[0]:
+            best = (key, t)
+    if not best:
+        return None
+    t = best[1]
+    t['kind'] = 'title'
+    return {'text': t['text'], 'cx': t['cx'], 'cy': t['cy'], 'bbox': t['bbox'],
+            'region': region_of(t['bbox'], regions),
+            'why': '上半屏字高最大（%dpx, score=%.2f）' % (t['h'], t['score'])}
+
+
+def build_targets(controls, text_boxes):
+    """可点目标 = 图标控件（有/无标签） + 动作词文本框。"""
+    targets = []
+    for c in controls:
+        targets.append({'id': c['id'], 'kind': 'icon', 'bbox': c['bbox'],
+                        'label': c['label'], 'shape': c['shape'], 'conf': c['confidence']})
+    for i, t in enumerate(text_boxes):
+        if t['kind'] == 'action':
+            targets.append({'id': 't%d' % i, 'kind': 'label', 'bbox': t['bbox'],
+                            'label': t['text'], 'shape': 'label', 'conf': 0.6,
+                            'text_id': i})
+    return targets
+
+
+def _hit_any(bb, boxes, min_frac=0.5):
+    """bb 是否与任一 boxes 重叠超过 min_frac（按 bb 面积）。"""
+    a = max(1.0, (bb[2] - bb[0]) * (bb[3] - bb[1]))
+    for o in boxes:
+        ix = max(0, min(bb[2], o[2]) - max(bb[0], o[0]))
+        iy = max(0, min(bb[3], o[3]) - max(bb[1], o[1]))
+        if ix * iy / a >= min_frac:
+            return True
+    return False
+
+
+def _dir_gap(a, b):
+    """方位 + 边缘间距。a=锚文本 bbox，b=目标 bbox。"""
+    ax0, ay0, ax1, ay1 = a
+    bx0, by0, bx1, by1 = b
+    gx = max(0, bx0 - ax1, ax0 - bx1)
+    gy = max(0, by0 - ay1, ay0 - by1)
+    dx = (bx0 + bx1) / 2.0 - (ax0 + ax1) / 2.0
+    dy = (by0 + by1) / 2.0 - (ay0 + ay1) / 2.0
+    if gx == 0 and gy == 0:
+        return 'overlap', 0, dx, dy
+    if gx >= gy:
+        return ('right' if dx > 0 else 'left'), gx, dx, dy
+    return ('below' if dy > 0 else 'above'), gy, dx, dy
+
+
+def build_adjacency(text_boxes, targets, W0, H0, hud_boxes=(), limit=24):
+    """核心：把"名字 → 旁边的控件"显式化。
+
+    一条邻接 = 一个**锚文本**（标题 / 内容名；HUD 读数与日期不当锚） + 最近的**可点目标**
+    （图标控件，或动作词按钮文本），带方位与**边缘间距**（不用中心距：中心距会把大按钮算得
+    比实际远，正是"铅笔就在右边却看不见"那类误差的来源）。
+    太大、吞掉半个屏幕的"控件"（面板底条/整条工具栏）不算可点目标。
+    """
+    adj, seen = [], set()
+    prio = {'title': 0, 'content': 1}
+    anchors = [t for t in text_boxes if t['kind'] in prio]
+    anchors.sort(key=lambda t: (prio[t['kind']], -t['h'], t['cy'], t['cx']))
+    for t in anchors:
+        tid = t['id']
+        cands = []
+        for tg in targets:
+            if tg.get('text_id') == tid:
+                continue
+            bw = tg['bbox'][2] - tg['bbox'][0]
+            bh = tg['bbox'][3] - tg['bbox'][1]
+            if bw > 0.45 * W0 or bh > 0.45 * H0:
+                continue                      # 面板/底条，不是按钮
+            if _hit_any(tg['bbox'], hud_boxes):
+                continue                      # HUD 读数簇不是可点目标
+            d, gap, dx, dy = _dir_gap(t['bbox'], tg['bbox'])
+            cap = ADJ_MAX_LABEL if tg['kind'] == 'label' else ADJ_MAX_ICON
+            if gap > cap:
+                continue
+            if t['kind'] == 'content' and tg['kind'] != 'label' and gap > 150:
+                continue                      # 普通正文只跟"真的有按钮挨着"的情况配对
+            cands.append(((gap, 0 if tg['kind'] == 'label' else 1), tg, d, gap, dx, dy))
+        if not cands:
+            continue
+        cands.sort(key=lambda c: (c[0][0], c[0][1]))
+        # 每个锚最多出 3 条：**最近的** + 其它方向的最近几条。
+        # 为什么不是只留最近：标题正上方常常是窗口图标（gap 33），只留最近就把
+        # "标题右侧那个圆钮（gap 179）"整条吞掉——正是本文档开头要根治的那种遗漏。
+        # 排序 = 同一行优先 → 未标文字的控件优先 → 距离近优先。
+        # 为什么这样排：带文字的控件本来就逃不过 OCR，**不带文字的图标才是"人看不见的入口"**
+        # ——标题右侧那颗圆形铅笔就是这类。实测：标题上方 33px 是保存图标、右侧 179px 是铅笔，
+        # 若只按距离排，铅笔会被菜单磁贴挤掉。
+        hh = (t['bbox'][3] - t['bbox'][1])
+
+        def _rank(c):
+            tg = c[1]
+            th = tg['bbox'][3] - tg['bbox'][1]
+            cy_a = (t['bbox'][1] + t['bbox'][3]) / 2.0
+            cy_b = (tg['bbox'][1] + tg['bbox'][3]) / 2.0
+            same_row = 0 if abs(cy_a - cy_b) <= 0.6 * (hh + th) / 2.0 else 1
+            unlabeled = 0 if tg.get('label') is None else 1
+            if t['kind'] == 'title':
+                # 标题旁边：**看不见的图标优先**（带字的按钮 OCR 自己会读到）
+                return (same_row, unlabeled, c[0][0])
+            # 内容名（卡片名/条目名）：**带文字的按钮优先** + **下方优先**。
+            # 为什么压"上方"：卡片名在卡片左上、操作按钮在同一张卡的右下；同名按钮在
+            # 上一行卡片里也有一个，间距常常相等（实测 fighting 到上/下两个【编辑】都是 175px），
+            # 不压上方就会把"上一张卡的按钮"当成这张卡的操作入口。
+            above = 0 if cy_b > cy_a else 1
+            return (0 if tg.get('label') is not None else 1, above, same_row, c[0][0])
+
+        rest = sorted(cands, key=_rank)
+        picks, dirs = [], set()
+        for c in rest:
+            if len(picks) >= 3:
+                break
+            picks.append(c)
+            dirs.add(c[2])
+        for rank, (_, tg, d, gap, dx, dy) in enumerate(picks):
+            sig = (t['text'], tg['id'])
+            if sig in seen:
+                continue
+            seen.add(sig)
+            conf = 0.55 + (0.2 if tg['kind'] == 'label' else 0.0)
+            conf += 0.15 if t['kind'] == 'title' else 0.0
+            conf -= min(0.25, gap / 1200.0)
+            adj.append({
+                'text': t['text'], 'text_id': tid,
+                'target': '%s@(%d,%d)' % (tg['shape'], (tg['bbox'][0] + tg['bbox'][2]) // 2,
+                                          (tg['bbox'][1] + tg['bbox'][3]) // 2),
+                'target_id': tg['id'], 'target_kind': tg['kind'], 'label': tg.get('label'),
+                'anchor_kind': t['kind'], 'rank': rank,
+                'dir': d, 'gap_px': int(round(gap)), 'dx': int(round(dx)), 'dy': int(round(dy)),
+                'confidence': round(max(0.2, min(0.95, conf)), 3),
+            })
+    adj.sort(key=lambda a: (0 if a['anchor_kind'] == 'title' else 1,
+                            a.get('rank', 9), a['gap_px']))
+    return adj[:limit]
+
+
+# --------------------------------------------------------------------------- 摘要
+def render_digest(res, max_lines=10):
+    fr, text, ctrls, regs = res['frame'], res['text'], res['controls'], res['regions']
+    adj, occ, title, tm = res['adjacency'], res['occlusion'], res['title'], res['timing']
+    lines = []
+    lines.append('屏幕 %dx%d · 文本 %d · 控件 %d · 邻接 %d · 遮挡 %d · %dms（OCR %s）' % (
+        fr['w'], fr['h'], len(text), len(ctrls), len(adj), len(occ),
+        tm['total_ms'], {'run': 'run', 'cache': 'cache', 'skip': 'skip', 'nobackend': '缺后端',
+                         'error': '失败'}.get(tm['ocr_source'], tm['ocr_source'])))
+    if title:
+        where = title['region'] or '画面'
+        lines.append('标题「%s」@(%d,%d) %s · 字高 %dpx' % (
+            title['text'], title['cx'], title['cy'], where,
+            text[res['title_text_id']]['h'] if res.get('title_text_id') is not None else 0))
+    else:
+        lines.append('标题：未识别到（上半屏无可读大字）')
+    tadj = [a for a in adj if title and a['text'] == title['text']]
+    lab = [a for a in adj if a['target_kind'] == 'label' and a not in tadj]
+    # 其它条目里优先展示「卡片级动作」（编辑/保存/另存为）——这张卡能干什么的那一条
+    _primary = ('编辑', '保存', '另存为')
+    lab.sort(key=lambda a: (0 if (a.get('label') or '').startswith(_primary) else 1,
+                            a['gap_px']))
+    shown, picked = set(), []
+    for a in (tadj[:3] + lab[:1]):
+        sig = (a['text'], a['target'])
+        if sig in shown:
+            continue
+        shown.add(sig)
+        picked.append(a)
+    for a in picked[:4]:
+        lines.append('邻接「%s」→ %s%s %s %dpx' % (
+            a['text'], a['target'], ('「%s」' % a['label']) if a['label'] else '',
+            {'right': '右侧', 'left': '左侧', 'below': '下方', 'above': '上方',
+             'overlap': '重叠'}[a['dir']], a['gap_px']))
+    # 控件顺序：先"邻接里出现过的"（=就在名字旁边的），再按置信度补
+    by_id = {c['id']: c for c in ctrls}
+    ordered, seen_c = [], set()
+    for a in adj:
+        c = by_id.get(a['target_id'])
+        if c is not None and c['id'] not in seen_c:
+            seen_c.add(c['id'])
+            ordered.append(c)
+    for c in ctrls:
+        if c['id'] not in seen_c:
+            seen_c.add(c['id'])
+            ordered.append(c)
+    ordered = [c for c in ordered if c['shape'] != 'unknown'][:4]
+    if ordered:
+        lines.append('控件: ' + ' | '.join(
+            '%s@(%d,%d)%s' % (c['shape'], c['cx'], c['cy'],
+                              ('「%s」' % c['label']) if c['label'] else '')
+            for c in ordered))
+    if regs:
+        lines.append('区域: ' + ' | '.join('%s %s' % (r['name'], _bs(r['bbox'])) for r in regs))
+    if occ:
+        for o in occ[:1]:
+            lines.append('遮挡 %s %s（conf %.2f）：%s' % (
+                o['bbox'], _bs(o['bbox'], short=True), o['confidence'], o['why']))
+    else:
+        lines.append('遮挡：未发现叠加层/被覆盖区')
+    acts = [t for t in text if t['kind'] == 'action']
+    if acts:
+        lines.append('可点文字 %d 个: %s' % (len(acts), ' / '.join(t['text'] for t in acts[:6])))
+    return '\n'.join(lines[:max_lines])
+
+
+def _bs(bb, short=False):
+    if short:
+        return '(%d,%d)-(%d,%d)' % (bb[0], bb[1], bb[2], bb[3])
+    return '(%d,%d)-(%d,%d)' % (bb[0], bb[1], bb[2], bb[3])
+
+
+# --------------------------------------------------------------------------- 主流程
+def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
+    t0 = time.time()
+    arr, (W0, H0) = load_small(frame, 0.5)
+    t_load = time.time()
+    meta = {'source': 'skip', 'ms': 0, 'n_total': 0, 'err': None}
+    boxes = []
+    if use_ocr:
+        got, meta = run_ocr(frame, use_cache=use_cache, scale=scale, debug=debug)
+        if got is None:
+            sys.stderr.write('[ys-screen] OCR 失败：%s\n' % meta['err'])
+            sys.stderr.write('[ys-screen] 期望：ys_ocr.py 返回 {"boxes":[...]}\n'
+                             '[ys-screen] 实测：%s\n' % meta['err'])
+            # 4 = 后端缺失（fail-closed，不降级成"这屏没字"）；5 = 后端在但跑失败
+            raise SystemExit(4 if meta['source'] == 'nobackend' else 5)
+        boxes = got
+    text = []
+    for i, b in enumerate(boxes):
+        bb = box_bbox(b['box'])
+        text.append({'id': i, 'text': b['text'], 'cx': int(b['cx']), 'cy': int(b['cy']),
+                     'bbox': bb, 'w': bb[2] - bb[0], 'h': bb[3] - bb[1],
+                     'score': float(b['score']), 'kind': 'other'})
+    occ = find_occlusion(arr, 0.5, W0, H0, text, debug=debug)
+    text = classify_texts(text, [], occ)
+    ctrls = find_controls(arr, 0.5, W0, H0, text, debug=debug)
+    regs = find_regions(arr, 0.5, W0, H0, occ, debug=debug)
+    title = pick_title(text, regs, H0)
+    targets = build_targets(ctrls, text)
+    adj = build_adjacency(text, targets, W0, H0,
+                          hud_boxes=[o['bbox'] for o in occ])
+    t_end = time.time()
+    res = {
+        'schema': 'ys-screen/1',
+        'frame': {'path': os.path.abspath(frame), 'sha256': _sha256(frame),
+                  'w': W0, 'h': H0, 'bytes': os.path.getsize(frame)},
+        'title': title,
+        'text': text, 'controls': ctrls, 'regions': regs,
+        'adjacency': adj, 'occlusion': occ,
+        'timing': {'load_ms': int((t_load - t0) * 1000),
+                   'ocr_ms': int(meta['ms']) if meta['source'] == 'run' else 0,
+                   'pixel_ms': int((t_end - t_load) * 1000),
+                   'total_ms': int((t_end - t0) * 1000),
+                   'ocr_source': meta['source'], 'ocr_backend': _backend_sig()},
+        'ocr': {'n_total': meta['n_total'], 'err': meta['err']},
+    }
+    res['title_text_id'] = next((t['id'] for t in text if title and t['text'] == title['text']),
+                                None)
+    res['digest'] = render_digest(res)
+    return res
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description='屏幕摘要层：像素 → 界面（文本/控件/分区/邻接/遮挡 + 人读摘要）')
+    ap.add_argument('frame', help='帧 PNG 路径（离线读文件，不碰屏幕）')
+    ap.add_argument('--json', action='store_true', help='stdout 输出 JSON（含 digest 字段）')
+    ap.add_argument('--json-out', default=None, help='把 JSON 另存到指定路径')
+    ap.add_argument('--no-ocr', action='store_true', help='跳过 OCR（只做像素层，~0.4s）')
+    ap.add_argument('--no-cache', action='store_true', help='忽略 OCR 缓存，强制真跑')
+    ap.add_argument('--scale', type=float, default=1.0, help='OCR 前缩图比例（默认 1.0）')
+    ap.add_argument('--max-lines', type=int, default=10, help='摘要最大行数（默认 10）')
+    ap.add_argument('--debug', action='store_true', help='诊断打到 stderr')
+    a = ap.parse_args(argv)
+    if not os.path.isfile(a.frame):
+        sys.stderr.write('[ys-screen] 帧不存在：%s\n' % os.path.abspath(a.frame))
+        sys.stderr.write('[ys-screen] 期望：可读的 PNG 文件；实测：ENOENT\n')
+        return 3
+    try:
+        res = analyze(a.frame, use_ocr=not a.no_ocr, use_cache=not a.no_cache,
+                      scale=a.scale, debug=a.debug)
+    except SystemExit as exc:
+        return int(exc.code or 0)
+    except OSError as exc:
+        sys.stderr.write('[ys-screen] 读图失败：%s\n' % exc)
+        sys.stderr.write('[ys-screen] 期望：可解码的 PNG；实测：%s\n' % exc)
+        return 3
+    res['digest'] = render_digest(res, max_lines=a.max_lines)
+    if a.json_out:
+        with open(a.json_out, 'w', encoding='utf-8') as f:
+            json.dump(res, f, ensure_ascii=False, indent=1)
+    if a.json:
+        print(json.dumps(res, ensure_ascii=False))
+    else:
+        print(res['digest'])
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
