@@ -45,3 +45,44 @@ tools/cmdmon scan                   # 手动补采（守护已在跑时通常不
 systemctl --user status cmdmon      # 守护状态
 tail -f ~/.dsh/cmdlog/alerts.jsonl  # 实时异常
 ```
+
+---
+
+## 全项目抽样（2026-10-17 首跑，范围 = 30 天内全部会话）
+
+```bash
+tools/cmdmon audit --since-days 30 --top 12 --json /tmp/cmdmon-audit.json
+```
+
+**总账**：160 个会话 / 10 个工作区 / **21274 次调用** / **仪器耗时 28.0 小时**
+/ 失败 **1072** 次（5%）/ 裸 sleep **368** 处 / 慢调用（≥30s）**714** 次。
+
+| 工作区 | 调用 | 耗时 | 占比 | 失败 | 画像（前三项） |
+|---|---:|---:|---:|---:|---|
+| genshin-ts | 8876 | 10.80h | 39% | 422 | job_output 36% · explore 26% · gui 23% |
+| dsh-plugins/dsh-memo-river | 4556 | 7.89h | 28% | 196 | explore 54% · job_output 35% |
+| dsh-plugins | 5775 | 6.98h | 25% | 328 | explore 72% |
+| dsh-plugins/本地模型 | 1181 | 1.67h | 6% | 83 | — |
+
+| 类别 | 次数 | 耗时 | 占比 | 均时 |
+|---|---:|---:|---:|---:|
+| **explore**（grep/ls/cat/find/sed） | 9275 | 13.24h | **47%** | 5.1s |
+| **job_output**（等后台任务） | 206 | 7.28h | **26%** | **2.1 分钟** |
+| gui | 1131 | 2.67h | 10% | 8.5s |
+| build | 689 | 1.08h | 4% | 5.6s |
+
+### 结论（推翻了单会话直觉）
+
+1. **真正的成本不是 GUI，是"探索式命令 + 后台等待"（73%）**。单看今天的 genshin-ts 会话会得到「GUI 占 78%」的相反结论——
+   **单会话有偏，全项目抽样才是真账**。GUI 自动化确实慢（单次 8.5s，是 build 的 1.5 倍），但它只占 10%。
+2. **explore 均 5.1s × 9275 次**：对照同日 `read/grep/glob` 三个内置工具合计 1.1 秒——
+   **同一件事用 shell 做比用内置工具贵两个数量级**（起进程 + 扫全树 vs 直接命中）。
+3. **job_output 均 2.1 分钟 × 206 次**：`wait:true` 阻塞等待是第二大开销，应"先干别的、要结果时再取"。
+4. **裸 sleep 368 处、失败 1072 次**是全项目性缺陷，不是 ys-editor 独有 ⇒ P2 的「禁裸 sleep」应升级为**全项目 lint**。
+
+### 由此调整的优先级
+
+- **P2 升级**：`wait_until` + 禁裸 sleep 从「ys-editor 内部规则」改为**全项目规则**（`cmdmon alerts` 计数 + 提交前 lint）。
+- **新增 P0.5（成本最低、收益最大）**：把"探索"从 shell 迁到内置工具（read/grep/glob），并合并成批；
+  判据：`cmdmon report` 中 explore 占比从 47% 降到 <25%。
+- **新增 P0.6**：`job_output` 只在真正被阻塞时 `wait:true`；其余情况继续做别的事后回来取。

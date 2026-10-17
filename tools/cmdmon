@@ -394,6 +394,145 @@ def cmd_status(args):
     return 0
 
 
+def iter_session_files(workspace=None, since_days=None):
+    pat = os.path.join(HOME, '.dsh', 'sessions', '*', '*', 'session.v4.jsonl.zstd')
+    cutoff = time.time() - since_days * 86400 if since_days else None
+    out = []
+    for f in glob.glob(pat):
+        if workspace and workspace not in f:
+            continue
+        if cutoff and os.path.getmtime(f) < cutoff:
+            continue
+        out.append(f)
+    out.sort(key=os.path.getmtime)
+    return out
+
+
+def stream_events(path):
+    """流式解码一个会话文件，逐行 yield 事件（不整体读入内存）"""
+    if path.endswith('.zstd'):
+        p = subprocess.Popen(['zstd', '-dc', path], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        f = p.stdout
+    else:
+        p = None
+        f = open(path, 'rb')
+    try:
+        for raw in f:
+            line = raw.decode('utf-8', 'replace').strip()
+            if not line:
+                continue
+            try:
+                yield json.loads(line)
+            except Exception:
+                continue
+    finally:
+        if p:
+            p.stdout.close()
+            p.wait()
+
+
+def ws_name(path):
+    parts = path.split(os.sep)
+    for i, x in enumerate(parts):
+        if x == 'sessions' and i + 1 < len(parts):
+            return parts[i + 1].strip('-') or parts[i + 1]
+    return '?'
+
+
+def cmd_audit(args):
+    files = iter_session_files(args.workspace, args.since_days)
+    if not files:
+        print('没有匹配的会话文件', file=sys.stderr)
+        return 2
+    ws_agg = defaultdict(lambda: [0, 0, 0])          # n, ms, fails
+    ws_cat = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+    cat_agg = defaultdict(lambda: [0, 0])
+    tool_agg = defaultdict(lambda: [0, 0])
+    cmd_stat = defaultdict(lambda: [0, 0])            # 命令(前120字符) -> [次数, 耗时]
+    alerts = defaultdict(int)
+    sleeps = fails = 0
+    slow_rows = []
+    total_files = len(files)
+    for idx, path in enumerate(files, 1):
+        ws = ws_name(path)
+        calls, done = {}, {}
+        for o in stream_events(path):
+            t = o.get('type')
+            if t == 'tool/call':
+                d = o.get('data', {})
+                calls[d.get('callId')] = (o.get('time'), d.get('name', '?'), d.get('arguments', ''))
+            elif t == 'tool/result':
+                d = o.get('data', {})
+                m = d.get('message', {}) or {}
+                text = json.dumps(m.get('content', ''), ensure_ascii=False)[:4000]
+                ex = EXIT_RE.search(text)
+                done[m.get('toolCallId')] = (o.get('time'), bool(m.get('isError')),
+                                             int(ex.group(1)) if ex else None)
+        for cid, (ts, name, raw_args) in calls.items():
+            if cid not in done:
+                continue
+            end, is_err, exit_code = done[cid]
+            dur = max(0, end - ts)
+            cat = classify(name, raw_args)
+            if cat == 'wait_human':
+                ws_agg[ws][0] += 1
+                continue
+            failed = is_err or exit_code not in (None, 0)
+            ws_agg[ws][0] += 1; ws_agg[ws][1] += dur; ws_agg[ws][2] += 1 if failed else 0
+            ws_cat[ws][cat][0] += 1; ws_cat[ws][cat][1] += dur
+            cat_agg[cat][0] += 1; cat_agg[cat][1] += dur
+            tool_agg[name][0] += 1; tool_agg[name][1] += dur
+            cmd = (bash_cmd(raw_args) if name == 'bash' else str(raw_args))[:120].replace('\n', ' ')
+            cmd_stat[cmd][0] += 1; cmd_stat[cmd][1] += dur
+            if failed:
+                fails += 1
+            if name == 'bash' and SLEEP_RE.search(cmd):
+                sleeps += 1
+            if dur >= SLOW_MS:
+                slow_rows.append((dur, ws, cat, cmd))
+        if idx % 20 == 0:
+            print(f'  …已扫 {idx}/{total_files} 个会话', file=sys.stderr)
+
+    tot_ms = sum(v[1] for v in ws_agg.values()) or 1
+    tot_n = sum(v[0] for v in ws_agg.values())
+    print(f'=== 全项目审计：{total_files} 个会话 / {len(ws_agg)} 个工作区 / '
+          f'{tot_n} 次调用 ===')
+    print(f'仪器总耗时 {tot_ms/3600000:.1f} 小时    失败 {fails} 次    裸 sleep {sleeps} 处    慢调用(≥30s) {len(slow_rows)} 次\n')
+
+    print(f'{"工作区":<34}{"调用":>7}{"耗时(h)":>10}{"占比":>7}{"失败":>7}')
+    print('-' * 66)
+    for ws, (n, ms, fl) in sorted(ws_agg.items(), key=lambda kv: -kv[1][1])[:args.top]:
+        print(f'{ws[:33]:<34}{n:>7}{ms/3600000:>10.2f}{100*ms/tot_ms:>6.0f}%{fl:>7}')
+
+    for ws, _ in sorted(ws_agg.items(), key=lambda kv: -kv[1][1])[:3]:
+        top3 = sorted(ws_cat[ws].items(), key=lambda kv: -kv[1][1])[:3]
+        line = '  '.join(f'{c} {100*m/ (ws_agg[ws][1] or 1):.0f}%/{fmt_ms(m)}' for c, (n, m) in top3)
+        print(f'  画像 {ws[:28]:<29} {line}')
+
+    print(f'\n{"类别":<12}{"次数":>8}{"耗时(h)":>10}{"占比":>7}{"均时":>8}')
+    print('-' * 48)
+    for cat, (n, ms) in sorted(cat_agg.items(), key=lambda kv: -kv[1][1])[:12]:
+        print(f'{cat:<12}{n:>8}{ms/3600000:>10.2f}{100*ms/tot_ms:>6.0f}%{fmt_ms(ms/n):>8}')
+
+    print(f'\n最慢 {args.top} 次（跨全项目）:')
+    for dur, ws, cat, cmd in sorted(slow_rows, reverse=True)[:args.top]:
+        print(f'  {fmt_ms(dur):>7}  {ws[:18]:<19}{cat:<9} {cmd[:70]}')
+
+    print(f'\n重复最多的命令（≥5 次，跨会话聚合）:')
+    for cmd, (n, ms) in sorted(cmd_stat.items(), key=lambda kv: -kv[1][0])[:8]:
+        if n < 5:
+            break
+        print(f'  ×{n:<4} 合计 {fmt_ms(ms):>8}  {cmd[:80]}')
+
+    if args.json:
+        out = {'files': total_files, 'calls': tot_n, 'ms': tot_ms, 'fails': fails,
+               'sleeps': sleeps, 'workspaces': {k: v for k, v in ws_agg.items()},
+               'cats': {k: v for k, v in cat_agg.items()}}
+        json.dump(out, open(args.json, 'w'), ensure_ascii=False, indent=1)
+        print(f'\n汇总已写 {args.json}')
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog='cmdmon', description='独立命令监控模块')
     sub = ap.add_subparsers(dest='cmd')
@@ -409,13 +548,18 @@ def main():
     p = sub.add_parser('alerts', help='异常清单')
     p.add_argument('--since')
     p.add_argument('--limit', type=int, default=30)
+    p = sub.add_parser('audit', help='全项目抽样审计（跨工作区/跨会话直接扫会话文件）')
+    p.add_argument('--since-days', type=float, default=None)
+    p.add_argument('--workspace')
+    p.add_argument('--top', type=int, default=12)
+    p.add_argument('--json')
     sub.add_parser('status', help='账本状态')
     args = ap.parse_args()
     if not args.cmd:
         ap.print_help()
         return 1
     return {'scan': cmd_scan, 'daemon': cmd_daemon, 'report': cmd_report,
-            'alerts': cmd_alerts, 'status': cmd_status}[args.cmd](args)
+            'alerts': cmd_alerts, 'audit': cmd_audit, 'status': cmd_status}[args.cmd](args)
 
 
 if __name__ == '__main__':
