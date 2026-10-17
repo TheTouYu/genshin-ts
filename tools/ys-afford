@@ -808,8 +808,12 @@ def score_candidate(c, ctx):
     dim = dim_at(lum, cx, cy, w, h, ctx['dim_ref'])
     pen_dim = 1.0 - DIM_WEIGHT * dim
     # 画面主体：bbox 周长上没有"设计边" ⇒ 它是一条有机轮廓（3D 角色/怪物），不是画出来的控件。
-    # 被画面主体包住的部件不算控件（parent_scene 由 analyze() 传播进来）。
+    # 被画面主体包住的部件同样不算控件（parent_scene 由 analyze() 传播进来）。
+    # ⚠️ 文字类候选（动作词/badge_row）的框是**我按文字加的边**，边框上当然量不到设计边——
+    #    那是自己的构造产物，不是世界的证据，所以不参与 scene 判定。
     scene = max(0.0, min(1.0, (SCENE_EDGE_HI - edge_cov) / (SCENE_EDGE_HI - SCENE_EDGE_LO)))
+    if c['src'] in ('action_text', 'badge_row'):
+        scene = 0.0
     scene = max(scene, 0.9 * float(c.get('parent_scene') or 0.0))
     pen_scene = 1.0 - SCENE_WEIGHT * scene
     pen_huge = HUGE_PENALTY if rho > HUGE_RHO else 1.0
@@ -1111,6 +1115,8 @@ def render(out, top):
                                     ('贴到控件 (%d,%d)' % (b['attach']['cx'], b['attach']['cy']))
                                     if b['attach'] else b['role'])
             for b in out['badges'][:6]))
+    if not out['candidates']:
+        L.append('  （候选 0：这屏没有可点控件——不是工具坏了，是像素层没给出任何候选）')
     for s in out['top'][:top]:
         L.append('')
         L.append('#%d  score=%.3f  (%d,%d) %dx%d  %s  来源=%s' % (

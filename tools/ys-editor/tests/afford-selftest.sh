@@ -352,6 +352,42 @@ for name, d in docs.items():
         ok('badge/attach-' + name, '%d/%d 个红点贴到了控件/条目' % (
             sum(1 for b in d['badges'] if b.get('attach')), len(d['badges'])))
 
+# ---------------------------------------------------------------- ⑨ 暗面=不可点（跨帧同点对拍）
+# 判据：**同一个侧栏条目**（砺行修远，屏幕坐标 (425,604)）在两张帧里是同一块 UI，
+# 唯一差别是 claim-before 打开弹窗、侧栏被压暗幕（scrim）盖住。
+#   要求 A：无遮罩帧（events-teams）的可点分 ≥ 有遮罩帧（claim-before）的 1.2 倍
+#   要求 B：原因必须是 dim 惩罚生效（不是别的分量碰巧有差）
+SIDEBAR_ROW = (425, 604)
+
+
+def check_dim(teams, claim):
+    if not teams or not claim:
+        bad('dim/暗面不可点', '两帧都要有候选', 'teams=%s claim=%s' % (bool(teams), bool(claim)))
+        return
+    a, _ = nearest(teams, SIDEBAR_ROW)
+    b, _ = nearest(claim, SIDEBAR_ROW)
+    if a is None or b is None:
+        bad('dim/暗面不可点', '(425,604) 附近两帧都有候选', 'teams=%s claim=%s' % (a, b))
+        return
+    ratio = a['score'] / max(1e-6, b['score'])
+    if ratio >= 1.20:
+        ok('dim/无遮罩更可点', '同一行 events-teams=%.3f / claim-before=%.3f = %.2f×' % (
+            a['score'], b['score'], ratio))
+    else:
+        bad('dim/无遮罩更可点', '同一行在无遮罩帧的分数 ≥ 有遮罩帧 1.20 倍',
+            'events-teams=%.3f claim-before=%.3f = %.2f× | %s | %s' % (
+                a['score'], b['score'], ratio, why(a), why(b)))
+    if a['penalties']['dim'] >= 0.999 and b['penalties']['dim'] < 0.999:
+        ok('dim/原因在 dim', 'events-teams dim×%.2f（无遮罩）/ claim-before dim×%.2f（有遮罩）' % (
+            a['penalties']['dim'], b['penalties']['dim']))
+    else:
+        bad('dim/原因在 dim', '无遮罩帧 dim=1.0 且 有遮罩帧 dim<1.0（差别要来自压暗层判定）',
+            'teams dim×%.2f claim dim×%.2f' % (
+                a['penalties']['dim'], b['penalties']['dim']))
+
+
+check_dim(docs.get('events-teams'), docs.get('claim-before'))
+
 for status, name, expect, actual in results:
     if status == 'PASS':
         print('PASS' + SEP + name + SEP + actual)
