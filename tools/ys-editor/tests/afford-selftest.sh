@@ -137,6 +137,16 @@ def rc_of(name):
         return '?'
 
 
+def why(c):
+    """把候选的**分数构成**摊开——失败时能看出是哪个分量没给分，而不是只知道"没进榜"。"""
+    if c is None:
+        return '（无候选）'
+    parts = ' '.join('%s=%.3f' % (k, v) for k, v in c['parts'].items())
+    pens = ' '.join('%s×%.2f' % (k, v) for k, v in c['penalties'].items() if v < 1.0) or '无惩罚'
+    return 'score=%.3f (%d,%d) src=%s | %s | raw=%.3f | %s' % (
+        c['score'], c['cx'], c['cy'], ','.join(c['sources']), parts, c['raw'], pens)
+
+
 def rank_within(doc, target, tol, n):
     """top-n 里有没有中心落在 target ±tol 内的候选；返回 (rank, 候选|None)。"""
     for c in doc.get('top', [])[:n]:
@@ -228,8 +238,7 @@ if d:
                 c['score'], c['cx'], c['cy'], dd, ','.join(c['sources'])))
         else:
             bad('play/top1±60', 'top-1 中心 = 播放圆钮 (1281,695) ±60px',
-                '(%d,%d) 偏差%.0fpx score=%.3f src=%s' % (
-                    c['cx'], c['cy'], dd, c['score'], ','.join(c['sources'])))
+                '(%d,%d) 偏差%.0fpx；实测 top-1 构成 %s' % (c['cx'], c['cy'], dd, why(c)))
         if 0.6 <= c['w'] / float(c['h']) <= 1.6:
             ok('play/圆形', 'w/h=%.2f' % (c['w'] / float(c['h'])))
         else:
@@ -257,9 +266,7 @@ if d:
     else:
         nn, nd = nearest(d, Q_ICON)
         bad('qicon/top5', '? 图标 (2102,334) 进 top-5（±30px）',
-            '未进；最近候选 rank=%s (%s,%s) 偏差%.0fpx score=%.3f' % (
-                nn['rank'] if nn else '?', nn['cx'] if nn else '?', nn['cy'] if nn else '?',
-                nd, nn['score'] if nn else -1))
+            '未进（偏%.0fpx）；最近候选 rank=%s %s' % (nd, nn['rank'] if nn else '?', why(nn)))
 
 # ---------------------------------------------------------------- ③ claim-before 领取按钮
 d = docs.get('claim-before')
@@ -272,16 +279,15 @@ if d:
         else:
             nn, nd = nearest(d, target)
             bad('claim/%s' % tag, '【领取】%s 中心 %s ±30px 进 top-5' % (tag, target),
-                '未进；最近 (%s,%s) 偏差%.0fpx score=%.3f' % (
-                    nn['cx'] if nn else '?', nn['cy'] if nn else '?', nd,
-                    nn['score'] if nn else -1))
+                '未进（偏%.0fpx）；最近候选 %s' % (nd, why(nn)))
     hit = sum(1 for t in CLAIM_ROWS if in_candidates(d, t, 45) is not None)
     if hit == len(CLAIM_ROWS):
         ok('claim/5行覆盖', '%d/%d 行领取都被检出' % (hit, len(CLAIM_ROWS)))
     else:
         miss = [t for t in CLAIM_ROWS if in_candidates(d, t, 45) is None]
         bad('claim/5行覆盖', '5/5 行【领取】被检出（ys-screen 单路会 0/5 漏掉）',
-            '%d/%d；漏 %s' % (hit, len(CLAIM_ROWS), miss))
+            '%d/%d；漏 %s' % (hit, len(CLAIM_ROWS),
+                              '；'.join('%s → %s' % (t, why(nearest(d, t)[0])) for t in miss)))
 
 # ---------------------------------------------------------------- ④ battle-report 负样本
 d = docs.get('battle-report')
@@ -297,7 +303,7 @@ if d:
             '%.3f(%d,%d)' % (c['score'], c['cx'], c['cy']) for c in top3))
     else:
         bad('battle/top3无角色', 'top-3 不得是 3D 角色/怪物（画面主体不是按钮）',
-            '; '.join(inside))
+            '; '.join(inside) + ' || ' + ' / '.join(why(c) for c in top3))
     # 反向读数 1：角色/怪物必须确实被检出过（否则"没进 top-3"可能只是没看见，等于没验）
     per_actor = []
     for tag, b in ACTORS:
@@ -446,6 +452,76 @@ for st, n, e, a in res:
 PY2
 PY2_RC=$?
 
+# ---------------------------------------------------------------- ⑧ 白盒：numpy 兜底 CCL 与 scipy 逐位一致
+# 本机装了 scipy，`_label_runs`（无 scipy 时的兜底）平时一行都不跑 —— 未跑 = 未验证。
+# 这里把工具当模块 import（复制成 .py 才有 loader），同一批 mask 走两条路，
+# 要求分量数/面积/bbox **完全一致**（bbox 差 1px 就会改变 rho / 对比 / edge_cov）。
+cp "$TOOL" "$TMP/ys_afford_mod.py"
+python3 - "$TMP" "$FIX/events-teams.png" >"$TMP/checks-ccl.txt" <<'PY3AFFORD'
+import importlib.util
+import sys
+
+tmp, frame = sys.argv[1], sys.argv[2]
+SEP = '\x1f'
+spec = importlib.util.spec_from_file_location('ys_afford_mod', tmp + '/ys_afford_mod.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+import numpy as np
+
+res = []
+
+
+def ok(n, a=''):
+    res.append(('PASS', n, '', a))
+
+
+def bad(n, e, a):
+    res.append(('FAIL', n, e, str(a)))
+
+
+try:
+    from scipy import ndimage  # noqa: F401
+    has_scipy = True
+except ImportError:
+    has_scipy = False
+
+if not has_scipy:
+    ok('ccl/fallback', '本机无 scipy：只跑兜底路径，无从对拍（已显式说明）')
+else:
+    arr, lum, sat, val, hue = mod.load_frame(frame)
+    roi = (slice(280, 700), slice(200, 1000))     # 裁 ROI 控制耗时（全帧游程并查集要几秒）
+    masks = {
+        'red': (((hue <= 24) | (hue >= 336)) & (sat >= 0.50) & (val >= 0.40))[roi],
+        'solid': ((sat >= 0.42) & (val >= 0.28))[roi],
+        'luma': (lum[roi] > 130),
+        'synthetic': np.random.default_rng(7).random((180, 260)) > 0.92,
+    }
+    bads = []
+    for tag, mk in masks.items():
+        _, sa = mod.label_mask(mk)
+        _, sb = mod._label_runs(mk)
+        ka = sorted((s['area'], tuple(s['bbox'])) for s in sa)
+        kb = sorted((s['area'], tuple(s['bbox'])) for s in sb)
+        if ka != kb:
+            bads.append('%s: scipy=%d numpy=%d 差异 %s' % (
+                tag, len(ka), len(kb), sorted(set(ka) ^ set(kb))[:2]))
+    if bads:
+        bad('ccl/fallback==scipy', '兜底 CCL 的分量数/面积/bbox 与 scipy 完全一致', '; '.join(bads))
+    else:
+        ok('ccl/fallback==scipy', '%d 个 mask 双路完全一致（分量数/面积/bbox）' % len(masks))
+
+for st, n, e, a in res:
+    if st == 'PASS':
+        print('PASS' + SEP + n + SEP + a)
+    else:
+        print('FAIL' + SEP + n + SEP + e + SEP + a)
+PY3AFFORD
+PY3_RC=$?
+if [ "${PY3_RC:-1}" -ne 0 ] || [ ! -s "$TMP/checks-ccl.txt" ]; then
+  echo "AFFORD-FAIL NO-CHECKS expected=CCL 对拍照常跑完 actual=rc=${PY3_RC:-?}" >&2
+  exit 3
+fi
+
 if [ "${PY_RC:-1}" -ne 0 ]; then
   echo "AFFORD-FAIL NO-CHECKS expected=判据脚本退出码 0 actual=rc=$PY_RC" >&2
   exit 3
@@ -487,7 +563,7 @@ while IFS= read -r line; do
       printf '  \033[31mFAIL\033[0m %-28s\n         期望: %s\n         实测: %s\n' "$name" "$expect" "$actual"
       ;;
   esac
-done <"$TMP/checks-neg.txt"
+done < <(cat "$TMP/checks-neg.txt" "$TMP/checks-ccl.txt")
 
 VERDICT=PASS
 [ "$FAILED" -gt 0 ] && VERDICT=FAIL
