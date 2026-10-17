@@ -71,7 +71,19 @@ DOG_CENTER = 3               # DoG 近窗半径（分析尺度像素）
 DOG_SURROUND = 16            # DoG 远窗半径（分析尺度像素）
 DOG_THRESH = 8               # DoG 响应阈值（0..255；实测 8 能抓 22px 圆钮、又不炸出满屏纹理）
 MAX_CONTROLS = 40            # 控件候选上限（下游只读前 N 个）
-ADJ_MAX_ICON = 300           # 文本 → 图标控件 的最大边缘间距
+RING_R_MIN = 5               # 圆环路径：半径下限（分析尺度像素；0.5 尺度 ⇒ 全帧 10px）
+RING_R_MAX = 12              # 圆环路径：半径上限（全帧 24px ⇒ 直径 ≤48px 的圆钮）
+RING_EDGE_THR = 6.0          # 圆环路径：边缘梯度下限
+RING_POL_MIN = 0.55          # 圆环路径：梯度方向与径向的 |cos| 下限（环上的边必须"朝圆心"）
+RING_COV_MIN = 0.90          # 圆环路径：72 个角度里被强边覆盖的比例下限
+RING_CON_MIN = 10.0          # 圆环路径：环亮度 − 环内外均值的下限
+RING_SIDE_MIN = 8.0          # 圆环路径：环亮度与"内侧""外侧"各自的最小差（两侧都要分得开）
+RING_TOPK = 20000            # 参与径向投票的边缘像素上限（按梯度强度取前 N）
+RING_MAX_CAND = 150          # 进入环验证的候选中心上限
+
+ADJ_MAX_ICON = 380           # 文本 → 图标控件 的最大边缘间距。
+                             # 实测：窄标题「云阶」只有 62px 宽，到右侧圆钮 bbox 边缘 336px；
+                             # 300 会把那颗钮整条吞掉（换真帧后就是它红的）
 ADJ_MAX_LABEL = 620          # 文本 → 动作标签按钮 的最大边缘间距
 OCCL_TINY_TEXT_H = 36        # HUD 小字的最大字高（像素）
 OCCL_CLUSTER_GAP = 20        # 小字聚簇最大边缘间距：实测 44 会把标题并进 HUD 簇
@@ -317,14 +329,130 @@ def _label_mask(mask, max_runs=None):
     return labels, stats
 
 
+def _find_rings(g, debug=False):
+    """第三路：**圆环 / 圆钮**（径向对称投票 + 径向极性一致的环验证）。
+
+    为什么必须单独开一路（2026-10-17 换真帧实测）：同一颗铅笔钮，改名后内部变成
+    "白色圆角方框 + 铅笔"——白色占比更高、内部方差更大，于是
+      ① 平坦填充面法失手：内部不再均匀；
+      ② DoG 斑块法失手：环又细又亮，`MinFilter(3)+MaxFilter(3)` 的开运算把 1~2px 的环
+         整圈腐蚀掉（0.5 分析尺度下，40px 直径的环只剩 1px 粗）。
+    而**圆环边界的径向对称性**与"环里装了什么"无关，所以这一路对"内部被图标填满的圆钮"稳。
+
+    两阶段：
+      1) 每个强边缘像素沿 ±梯度方向、按半径 r 投票到圆心（Loy & Zelinsky 的快速径向对称
+         FRST 的简化版）→ 累加器峰值 = "这里可能有个半径 r 的圆"；
+      2) 对候选圆心做**环验证**：72 个角度里有多少角度在 r±1 上存在"梯度指向圆心"的强边
+         （cov），并要求环亮度与**环内、环外两侧**都明显不同（避免把"两条平行线"、
+         "渐变边缘"当成环）。
+    """
+    import numpy as np
+    gx = np.zeros_like(g)
+    gy = np.zeros_like(g)
+    gx[:, 1:-1] = (g[:, 2:] - g[:, :-2]) / 2.0
+    gy[1:-1, :] = (g[2:, :] - g[:-2, :]) / 2.0
+    mag = np.hypot(gx, gy)
+    ys, xs = np.nonzero(mag > RING_EDGE_THR)
+    if len(ys) == 0:
+        return []
+    if len(ys) > RING_TOPK:
+        keep = np.argsort(-mag[ys, xs])[:RING_TOPK]
+        ys, xs = ys[keep], xs[keep]
+    ux = gx[ys, xs] / (mag[ys, xs] + 1e-6)
+    uy = gy[ys, xs] / (mag[ys, xs] + 1e-6)
+    H, W = g.shape
+    acc = np.zeros((H, W), dtype=np.float32)
+    radii = list(range(RING_R_MIN, RING_R_MAX + 1))
+    for r in radii:
+        a = np.zeros((H, W), dtype=np.float32)
+        for sgn in (1.0, -1.0):
+            cx = np.rint(xs + sgn * r * ux).astype(np.int32)
+            cy = np.rint(ys + sgn * r * uy).astype(np.int32)
+            ok = (cx >= 0) & (cx < W) & (cy >= 0) & (cy < H)
+            np.add.at(a, (cy[ok], cx[ok]), 1.0)
+        acc += a                    # 不除周长：小半径环的票数天生少，除面积会把圆钮压没
+    acc = _box_filter(acc, 2)
+
+    centers = []
+    order = np.argsort(-acc.ravel())[:RING_MAX_CAND * 8]
+    for idx in order:
+        y, x = divmod(int(idx), W)
+        if acc[y, x] < 3.0:
+            break
+        if any((x - c[0]) ** 2 + (y - c[1]) ** 2 <= 81 for c in centers):
+            continue
+        centers.append((x, y))
+        if len(centers) >= RING_MAX_CAND:
+            break
+
+    ang = np.linspace(0.0, 2.0 * np.pi, 72, endpoint=False)
+    ca, sa = np.cos(ang), np.sin(ang)
+    out = []
+    for (x, y) in centers:
+        if x < 2 or y < 2 or x > W - 3 or y > H - 3:
+            continue
+        best = None
+        for r in radii:
+            if x - r - 6 < 0 or y - r - 6 < 0 or x + r + 6 >= W or y + r + 6 >= H:
+                continue
+            hits = np.zeros((3, ang.size), dtype=bool)
+            vals = np.full((3, ang.size), np.nan, dtype=np.float32)
+            for i, dr in enumerate((-1.0, 0.0, 1.0)):
+                rr = r + dr
+                px = np.rint(x + rr * ca).astype(np.int32)
+                py = np.rint(y + rr * sa).astype(np.int32)
+                m = mag[py, px]
+                gxv = gx[py, px]
+                gyv = gy[py, px]
+                pol = np.abs(gxv * ca + gyv * sa) / (m + 1e-6)
+                h = (m >= RING_EDGE_THR) & (pol >= RING_POL_MIN)
+                hits[i] = h
+                vals[i] = np.where(h, g[py, px], np.nan)
+            cov = float(hits.any(axis=0).mean())
+            if cov < RING_COV_MIN:
+                continue
+            ring = float(np.nanmean(vals)) if np.any(~np.isnan(vals)) else float(g[y, x])
+            inside = float(g[y - 2:y + 3, x - 2:x + 3].mean())
+            outs = []
+            for rr in (r + 4.0, r + 5.0):
+                px = np.rint(x + rr * ca[::4]).astype(np.int32)
+                py = np.rint(y + rr * sa[::4]).astype(np.int32)
+                outs.extend(g[py, px].tolist())
+            outside = float(np.mean(outs)) if outs else ring
+            d_in = abs(ring - inside)
+            d_out = abs(ring - outside)
+            if d_in < RING_SIDE_MIN or d_out < RING_SIDE_MIN:
+                continue
+            con = abs(ring - 0.5 * (inside + outside))
+            if con < RING_CON_MIN:
+                continue
+            score = cov * min(1.0, con / RING_CON_MIN)
+            if best is None or score > best[0]:
+                best = (score, r, cov, con, ring, inside, outside)
+        if best is None:
+            continue
+        _, r, cov, con, ring, inside, outside = best
+        out.append({'cx': int(x), 'cy': int(y), 'r': int(r), 'cov': round(cov, 3),
+                    'contrast': round(con, 1), 'ring': round(ring, 1),
+                    'inside': round(inside, 1), 'outside': round(outside, 1)})
+    if debug:
+        sys.stderr.write('[ys-screen] ring candidates=%d\n' % len(out))
+        for c in out[:10]:
+            sys.stderr.write('  ring (%d,%d) r=%d cov=%.2f con=%.1f\n'
+                             % (c['cx'], c['cy'], c['r'], c['cov'], c['contrast']))
+    return out
+
+
 def find_controls(arr, scale, W0, H0, text_boxes, debug=False):
-    """非文字控件候选：两路互补线索（只用一路必然漏掉某一种按钮）。
+    """非文字控件候选：三路互补线索（少任何一路都会漏掉某一种按钮）。
 
     ① **对比斑块**（DoG = 远窗均值 − 近窗均值）：按钮本体常常与周围**同色系、差一档明度**
        （实证：标题右侧铅笔钮 = 暗绿圆盘压在绿面板上，灰度 ~50 vs ~72）。"平坦面"法抓不到它
        —— 在渐变面板上，"均匀"的恰恰是背景；DoG 给的是"这是一块独立的局部色块"。
     ② **均匀填充面**（局部 5x5 标准差极低）：药丸按钮/卡片/图标底板是纯色填充，DoG 抓不到
        （它们大到"远窗均值"也落在自己内部）。两路合起来才覆盖 圆钮 + 药丸 + 卡片。
+    ③ **圆环**（径向对称投票 + 极性与径向一致的环验证）：圆钮里被图标填满时 ①② 都会失手
+       （实测换帧后同一颗铅笔钮内部变成"白框+铅笔"：① 内部不再均匀；② 细亮环被开运算腐蚀掉）。
     形状：细长=line；长宽比 ≥1.45=rect（药丸）；近方形时看**角部填充率**——
     圆盘四角是空的（≈0.1），方/圆角矩形的四角接近 1。
     """
@@ -382,6 +510,33 @@ def find_controls(arr, scale, W0, H0, text_boxes, debug=False):
     lab2, st2 = _label_mask(np.sqrt(np.maximum(var, 0)) < CTRL_FLAT_STD)
     for st in st2:
         _emit(lab2, st['label'], st['bbox'], 'flat')
+
+    # ③ 圆环/圆钮（内部被图标填满也能抓；见 _find_rings 的说明）
+    for rg in _find_rings(g, debug=debug):
+        # bbox 必须关于圆心**对称**：下游 adjacency 用 (x0+x1)//2 当控件中心，
+        # 不对称会得到 cx+1 这种"报出来的坐标对不上控件坐标"的坑（实测踩过）。
+        x0 = max(0, rg['cx'] - rg['r'] - 1)
+        y0 = max(0, rg['cy'] - rg['r'] - 1)
+        x1 = min(arr.shape[1], rg['cx'] + rg['r'] + 1)
+        y1 = min(arr.shape[0], rg['cy'] + rg['r'] + 1)
+        if _max_text_cover(x0, y0, x1, y1, tb) >= 0.55:
+            continue
+        if _text_union_cover(x0, y0, x1, y1, tb) >= 0.45:
+            continue
+        conf = 0.55 + 0.2 * rg['cov'] + min(0.2, abs(rg['contrast']) / 100.0)
+        cands.append({
+            'bbox': [int(x0 / scale), int(y0 / scale), int(x1 / scale), int(y1 / scale)],
+            'cx': int(round(rg['cx'] / scale)), 'cy': int(round(rg['cy'] / scale)),
+            'w': int(round((x1 - x0) / scale)), 'h': int(round((y1 - y0) / scale)),
+            'shape': 'circle', 'confidence': round(min(0.95, conf), 3),
+            'label': _label_inside(x0, y0, x1, y1, tb),
+            'evidence': {'fill': None, 'aspect': 1.0, 'corner_fill': None,
+                         'area': int((x1 - x0) * (y1 - y0) / (scale * scale)),
+                         'src': 'ring', 'ring_r_px': int(round(rg['r'] / scale)),
+                         'cov': rg['cov'], 'contrast': rg['contrast'],
+                         'ring_L': rg['ring'], 'inside_L': rg['inside'],
+                         'outside_L': rg['outside']},
+        })
 
     cands.sort(key=lambda c: -c['confidence'])
     kept = []
@@ -640,7 +795,10 @@ def find_occlusion(arr, scale, W0, H0, text_boxes, debug=False):
                 'texture_ratio': round(ratio, 2), 'bg_rgb': colr,
             },
         })
-    out.sort(key=lambda o: -o['confidence'])
+    # 排序：顶部两角优先（性能 HUD / 录屏条都在顶部），同角再按置信度。
+    # 实测：底部那条「min/max 读数」也会命中判据，但它是界面自身的读数，不该抢头条。
+    out.sort(key=lambda o: (0 if o['evidence']['corner'] in ('左上', '右上') else 1,
+                            -o['confidence']))
     if debug:
         sys.stderr.write('[ys-screen] occlusion=%d\n' % len(out))
         for o in out:
@@ -1019,7 +1177,7 @@ def render_digest(res, max_lines=10):
     if regs:
         lines.append('区域: ' + ' | '.join('%s %s' % (r['name'], _bs(r['bbox'])) for r in regs))
     if occ:
-        for o in occ[:1]:
+        for o in occ[:2]:
             lines.append('遮挡 %s %s（conf %.2f）：%s' % (
                 o['bbox'], _bs(o['bbox'], short=True), o['confidence'], o['why']))
     else:

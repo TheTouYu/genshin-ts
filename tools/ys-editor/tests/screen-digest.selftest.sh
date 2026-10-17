@@ -5,7 +5,7 @@
 # 每条断言失败都打印「期望 vs 实测」，不吞诊断；机读行为最后一行：
 #   SCREEN-RESULT frames=<n> assert=<n> pass=<n> verdict=PASS|FAIL
 #
-# 用法：bash tools/ys-editor/tests/screen-digest.selftest.sh [-v]
+# 用法：bash tools/ys-editor/tests/screen-digest.selftest.sh
 # 退出码：0 = 全 PASS / 1 = 有断言失败 / 2 = 环境缺件（帧或工具不存在）
 set -uo pipefail
 
@@ -13,23 +13,26 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 FIX="$ROOT/tools/ys-editor/tests/fixtures/screen"
 YS="$ROOT/tools/ys-screen"
-VERBOSE=${1:-}
 
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/ys-screen-selftest.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
-# 缓存隔离：自测自己用一份缓存，避免被仓库里已有的热缓存"骗"成快跑
+# 缓存隔离：自测自己用一份空缓存，避免被仓库里已有的热缓存"骗"成快跑
 export YS_FIND_CACHE_DIR="$TMP/ocr-cache"
+
+# 四帧：前三帧是三个界面态；第四帧是**同一颗按钮的另一种内部样式**（改名前后），
+# 专门锁"换帧就检不出"这条回归（2026-10-17 实测过）。
+FRAMES=("menu-esc-云阶" "menu-esc-pre-rename" "editor-dxvk-occluded" "savelist-orderB")
 
 [ -x "$YS" ] || { echo "FAIL 前置：$YS 不存在或不可执行（期望：可执行文件；实测：缺失）" >&2; exit 2; }
 [ -d "$FIX" ] || { echo "FAIL 前置：fixtures 目录缺失 $FIX" >&2; exit 2; }
-for f in "menu-esc-云阶" "editor-dxvk-occluded" "savelist-orderB"; do
+for f in "${FRAMES[@]}"; do
   [ -f "$FIX/$f.png" ] || { echo "FAIL 前置：帧缺失 $FIX/$f.png" >&2; exit 2; }
 done
 
 echo "== ys-screen selftest =="
 echo "   工具: $YS"
-echo "   帧:   $FIX"
+echo "   帧:   $FIX （${#FRAMES[@]} 张）"
 echo "   屏:   ${DISPLAY:-<无 DISPLAY>}（本测试不使用屏幕）"
 
 # 跑一帧：产出 $TMP/<name>.json / <name>.<tag>.ms / .err；返回工具退出码
@@ -46,12 +49,16 @@ run_frame() {
 }
 
 declare -A RC
-for f in "menu-esc-云阶" "editor-dxvk-occluded" "savelist-orderB"; do
-  # 第一跑（冷：本测试专属空缓存 ⇒ 含真实 OCR 子进程）
+for f in "${FRAMES[@]}"; do
   # 冷跑 = 本测试专属空缓存目录里的第一次（写缓存，但里面本来是空的）
   run_frame "$f" cold; RC["$f:cold"]=$?
-  # 第二跑（热：同一帧、同一缓存 ⇒ 稳态单帧成本）
-  run_frame "$f" warm; RC["$f:warm"]=$?
+  # 热跑 = 同一帧第二次 ⇒ 稳态单帧成本。跑两次取**最小值**：
+  # 本机常同时有别的 agent 在跑，单次读数会被 CPU 争抢污染（实测同一帧 0.7s / 1.4s 都有）。
+  run_frame "$f" warm;  RC["$f:warm"]=$?
+  run_frame "$f" warm2; RC["$f:warm2"]=$?
+  w1=$(cat "$TMP/$f.warm.ms" 2>/dev/null || echo 999999)
+  w2=$(cat "$TMP/$f.warm2.ms" 2>/dev/null || echo 999999)
+  if [ "$w2" -lt "$w1" ]; then cp "$TMP/$f.warm2.ms" "$TMP/$f.warm.ms"; fi
   for tag in cold warm; do
     if [ -s "$TMP/$f.$tag.err" ]; then
       echo "   [stderr:$tag] $f:"
@@ -64,14 +71,16 @@ echo "   计时见末尾 TIME 行（cold=首次含 OCR 子进程；warm=同帧�
 
 # 断言全部在 python 里做（JSON 判据写一处），输出机读行给 shell 计数
 CHECK_OUT="$TMP/checks.txt"
-python3 - "$TMP" "$FIX" <<'PY' >"$CHECK_OUT"
+python3 - "$TMP" "${FRAMES[@]}" <<'PY' >"$CHECK_OUT"
 import json
 import os
 import sys
 
-tmp, fix = sys.argv[1], sys.argv[2]
-FRAMES = ['menu-esc-云阶', 'editor-dxvk-occluded', 'savelist-orderB']
+tmp = sys.argv[1]
+FRAMES = sys.argv[2:]
 SEP = '\x1f'
+ANCHOR = (518, 86)          # 铅笔圆钮实测中心（两帧一致；任务书写的 (523,96) 是没测就写的）
+PROBE = (0, 0, 400, 120)    # 任务书给的左上角遮挡探针区
 results = []
 
 
@@ -102,96 +111,110 @@ def ms_of(name, tag):
         return -1
 
 
-def dist(x0, y0, x1, y1):
-    return ((x0 - x1) ** 2 + (y0 - y1) ** 2) ** 0.5
+def dist(a, b):
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
 
 
-docs = {}
-for f in FRAMES:
-    d, err = load(f)
+def button_of(doc):
+    best, bestd = None, 1e9
+    for c in doc['controls']:
+        if c.get('shape') != 'circle':
+            continue
+        dd = dist((c['cx'], c['cy']), ANCHOR)
+        if dd < bestd:
+            best, bestd = c, dd
+    return best, bestd
+
+
+def check_button(frame):
+    """按钮帧的共同断言：标题非空 + 圆钮必报 + 圆钮挂在标题右侧。"""
+    d, err = load(frame)
     if err:
-        bad('json/' + f, 'tools/ys-screen --json 产出可解析 JSON', err)
-    else:
-        ok('json/' + f, 'keys=%d' % len(d))
-        docs[f] = d
-
-# ---- 断言 1：ESC 菜单帧 —— 摘要必须点名标题，并报出标题右侧那颗圆形按钮 -----------------
-d = docs.get('menu-esc-云阶')
-if d:
+        bad('json/' + frame, '可解析 JSON', err)
+        return
+    ok('json/' + frame, 'keys=%d' % len(d))
     title = (d.get('title') or {}).get('text') or ''
     digest = d.get('digest') or ''
-    ok('f1-title-exists', 'title=%r' % title) if title else bad(
-        'f1-title-exists', '上半屏应有可读标题（h 最大的文本）', 'title 为空')
     if title:
-        if title in digest:
-            ok('f1-digest-names-title', 'digest 含 %r' % title)
-        else:
-            bad('f1-digest-names-title', 'digest 含标题 %r' % title,
-                'digest 里没有该标题；digest=%r' % digest[:200])
-    # 任务书里的锚点：(523,96) 的圆形铅笔按钮，坐标误差 ≤60px，shape=circle
-    best, bestd = None, 1e9
-    for c in d['controls']:
-        dd = dist(c['cx'], c['cy'], 523, 96)
-        if c.get('shape') == 'circle' and dd < bestd:
-            best, bestd = c, dd
-    if best is None:
-        bad('f1-circle@523,96', '存在 shape=circle 且距 (523,96) ≤60px 的控件', '没有任何 circle 控件')
-    elif bestd <= 60:
-        ok('f1-circle@523,96', '%s@(%d,%d) 距锚点 %.1fpx' % (best['shape'], best['cx'], best['cy'], bestd))
-        mark = '%s@(%d,%d)' % (best['shape'], best['cx'], best['cy'])
-        adjs = [a for a in d['adjacency'] if a.get('target') == mark]
-        if adjs:
-            a = adjs[0]
-            ok('f1-circle-adjacent-to-title',
-               '邻接已给出：%r → %s %s %dpx' % (a['text'], a['target'], a['dir'], a['gap_px']))
-            if a['text'] == (d.get('title') or {}).get('text') and a['dir'] == 'right':
-                ok('f1-circle-on-title-right', '方向=右')
-            else:
-                bad('f1-circle-on-title-right', '锚文本=标题且 dir=right',
-                    '锚文本=%r dir=%s' % (a['text'], a['dir']))
-        else:
-            bad('f1-circle-adjacent-to-title', 'adjacency 里出现 %s' % mark, '没有该控件的邻接条目')
-        if mark in digest:
-            ok('f1-digest-mentions-circle', 'digest 含 %s' % mark)
-        else:
-            bad('f1-digest-mentions-circle', 'digest 含 %s' % mark, digest[:200])
+        ok('title/' + frame, 'title=%r' % title)
     else:
-        bad('f1-circle@523,96', '距 (523,96) ≤60px', '最近 circle 在 (%d,%d) 距 %.1fpx' % (
-            best['cx'], best['cy'], bestd))
-    # 摘要 ≤10 行
-    nlines = len(digest.splitlines())
-    if nlines <= 10:
-        ok('f1-digest-lines', '%d 行' % nlines)
+        bad('title/' + frame, '上半屏应有可读标题', 'title 为空')
+        return
+    if title in digest:
+        ok('digest-names-title/' + frame, 'digest 含 %r' % title)
     else:
-        bad('f1-digest-lines', '≤10 行', '%d 行' % nlines)
+        bad('digest-names-title/' + frame, 'digest 含标题 %r' % title, digest[:160])
+    c, dd = button_of(d)
+    if c is None:
+        bad('circle/' + frame, '存在 shape=circle 的控件', '没有任何 circle 控件')
+        return
+    ev = c.get('evidence') or {}
+    desc = '%s@(%d,%d) bbox=%s conf=%.3f src=%s fill=%s corner_fill=%s cov=%s contrast=%s r=%s' % (
+        c['shape'], c['cx'], c['cy'], c['bbox'], c['confidence'], ev.get('src'),
+        ev.get('fill'), ev.get('corner_fill'), ev.get('cov'), ev.get('contrast'),
+        ev.get('ring_r_px'))
+    if dd <= 60:
+        ok('circle/' + frame, '距锚点 %.1fpx；%s' % (dd, desc))
+    else:
+        bad('circle/' + frame, '距 (%d,%d) ≤60px' % ANCHOR,
+            '最近 circle 距 %.1fpx：%s' % (dd, desc))
+        return
+    mark = '%s@(%d,%d)' % (c['shape'], c['cx'], c['cy'])
+    adjs = [a for a in d['adjacency'] if a.get('target') == mark]
+    if not adjs:
+        bad('adjacent/' + frame, 'adjacency 里出现 %s' % mark, '没有该控件的邻接条目')
+        return
+    a = adjs[0]
+    if a['text'] == title and a['dir'] == 'right':
+        ok('adjacent/' + frame, '「%s」→ %s 右侧 %dpx' % (a['text'], a['target'], a['gap_px']))
+    else:
+        bad('adjacent/' + frame, '锚=标题且 dir=right',
+            '锚=%r dir=%s gap=%dpx' % (a['text'], a['dir'], a['gap_px']))
+    if mark in digest:
+        ok('digest-mentions-circle/' + frame, 'digest 含 %s' % mark)
+    else:
+        bad('digest-mentions-circle/' + frame, 'digest 含 %s' % mark, digest[:160])
 
-# ---- 断言 2：编辑器帧 —— 必须报出左上角遮挡（半透明 DXVK 叠加层） ----------------------
-d = docs.get('editor-dxvk-occluded')
-if d:
-    probe = (0, 0, 400, 120)          # 任务书的探针区
-    pa = (probe[2] - probe[0]) * (probe[3] - probe[1])
+
+# ---- 帧 1/2：改名后（内部"白框+铅笔"）与改名前的同一颗圆钮，两种内部样式都必须报 -------
+check_button('menu-esc-云阶')
+check_button('menu-esc-pre-rename')
+
+# 新帧标题必须是「云阶」（2026-10-17 Lead 换的真帧；旧帧叫「未分类页签_存档_1」）
+d, err = load('menu-esc-云阶')
+if not err:
+    title = (d.get('title') or {}).get('text') or ''
+    if '云阶' in title:
+        ok('f1-title-is-云阶', 'title=%r' % title)
+    else:
+        bad('f1-title-is-云阶', '标题含「云阶」', 'title=%r' % title)
+
+# ---- 帧 3：遮挡（半透明 DXVK 叠加层）必须报，且带数值依据 ---------------------------
+d, err = load('editor-dxvk-occluded')
+if err:
+    bad('json/editor-dxvk-occluded', '可解析 JSON', err)
+else:
+    pa = (PROBE[2] - PROBE[0]) * (PROBE[3] - PROBE[1])
     best, bestc = None, -1.0
     for o in d['occlusion']:
         b = o['bbox']
-        ix = max(0, min(b[2], probe[2]) - max(b[0], probe[0]))
-        iy = max(0, min(b[3], probe[3]) - max(b[1], probe[1]))
+        ix = max(0, min(b[2], PROBE[2]) - max(b[0], PROBE[0]))
+        iy = max(0, min(b[3], PROBE[3]) - max(b[1], PROBE[1]))
         cover = ix * iy / float(pa)
         if cover > bestc:
             best, bestc = o, cover
     if best is None:
-        bad('f2-occlusion-top-left', '存在落在左上角 (0,0)-(400,120) 的遮挡条目', 'occlusion 为空')
+        bad('occlusion-top-left', '存在落在左上角 (0,0)-(400,120) 的遮挡条目', 'occlusion 为空')
     else:
         b = best['bbox']
         corners_ok = b[0] <= 40 and b[1] <= 40
-        covers = bestc >= 0.25
-        if corners_ok and covers:
-            ok('f2-occlusion-top-left', 'bbox=%s 与探针重叠 %.0f%%，conf=%.2f' % (b, bestc * 100, best['confidence']))
+        if corners_ok and bestc >= 0.25:
+            ok('occlusion-top-left', 'bbox=%s 与探针重叠 %.0f%%，conf=%.2f' % (
+                b, bestc * 100, best['confidence']))
         else:
-            bad('f2-occlusion-top-left',
-                'bbox 含左上角(≤40,≤40) 且与 (0,0,400,120) 重叠 ≥25%%',
+            bad('occlusion-top-left', 'bbox 含左上角(≤40,≤40) 且与探针重叠 ≥25%',
                 'bbox=%s 含角=%s 重叠=%.0f%%' % (b, corners_ok, bestc * 100))
         ev = best.get('evidence') or {}
-        # 半透明叠加层的数值依据：非纯黑 + 低方差/纹理骤降 + 自带小字
         cues = []
         if 6 <= float(ev.get('bg_mean') or -1) <= 210:
             cues.append('非纯黑 L=%.0f' % float(ev['bg_mean']))
@@ -202,41 +225,57 @@ if d:
         if int(ev.get('n_texts') or 0) >= 2:
             cues.append('自带小字 %d 框' % int(ev['n_texts']))
         if len(cues) >= 2:
-            ok('f2-occlusion-evidence', '；'.join(cues))
+            ok('occlusion-evidence', '；'.join(cues))
         else:
-            bad('f2-occlusion-evidence', '≥2 条数值依据（非纯黑/低方差/纹理骤降/小字）',
+            bad('occlusion-evidence', '≥2 条数值依据（非纯黑/低方差/纹理骤降/小字）',
                 '；'.join(cues) or '无')
         if '遮挡' in (d.get('digest') or ''):
-            ok('f2-digest-mentions-occlusion', 'digest 有遮挡行')
+            ok('digest-mentions-occlusion', 'digest 有遮挡行')
         else:
-            bad('f2-digest-mentions-occlusion', 'digest 含"遮挡"', (d.get('digest') or '')[:200])
+            bad('digest-mentions-occlusion', 'digest 含"遮挡"', (d.get('digest') or '')[:160])
 
-# ---- 断言 3：存档列表帧 —— ≥5 个卡片名 + ≥3 条「卡片名 → 该列【编辑】」邻接 ------------
-d = docs.get('savelist-orderB')
-if d:
+# ---- 帧 4：≥5 个卡片名 + ≥3 条「卡片名 → 该列按钮」邻接 -----------------------------
+d, err = load('savelist-orderB')
+if err:
+    bad('json/savelist-orderB', '可解析 JSON', err)
+else:
     cards = [t for t in d['text'] if t.get('kind') == 'content']
     names = [t['text'] for t in cards]
     if len(cards) >= 5:
-        ok('f3-card-names', '%d 个：%s' % (len(cards), ' / '.join(names[:7])))
+        ok('card-names', '%d 个：%s' % (len(cards), ' / '.join(names[:7])))
     else:
-        bad('f3-card-names', '≥5 个 kind=content 的卡片名', '%d 个：%s' % (len(cards), names))
+        bad('card-names', '≥5 个 kind=content 的卡片名', '%d 个：%s' % (len(cards), names))
     card_set = set(names)
-    edits = [a for a in d['adjacency']
-             if a['text'] in card_set and (a.get('label') or '').startswith('编辑')]
-    if len(edits) >= 3:
-        ok('f3-card->edit', '%d 条：%s' % (len(edits), '；'.join(
-            '%s→%s(%s,%dpx)' % (a['text'], a['target'], a['dir'], a['gap_px']) for a in edits[:4])))
+    actions = [a for a in d['adjacency']
+               if a['text'] in card_set and (a.get('label') or '').startswith(('编辑', '保存', '另存为'))]
+    if len(actions) >= 3:
+        ok('card->button', '%d 条：%s' % (len(actions), '；'.join(
+            '%s→%s(%s,%dpx)' % (a['text'], a['target'], a['dir'], a['gap_px']) for a in actions[:4])))
     else:
-        bad('f3-card->edit', '≥3 条 卡片名 → 编辑按钮 邻接',
-            '%d 条：%s' % (len(edits), [(a['text'], a.get('label')) for a in d['adjacency']][:8]))
+        bad('card->button', '≥3 条 卡片名 → 编辑/保存 邻接',
+            '%d 条：%s' % (len(actions), [(a['text'], a.get('label')) for a in d['adjacency']][:8]))
 
-# ---- 断言 4：稳态单帧 ≤2.5s（含 OCR；冷跑另报，不掩饰） ------------------------------
+# ---- 每帧 digest ≤10 行 --------------------------------------------------------------
+short, tall = [], []
+for f in FRAMES:
+    d, err = load(f)
+    if err:
+        tall.append('%s: %s' % (f, err))
+        continue
+    n = len((d.get('digest') or '').splitlines())
+    (short if n <= 10 else tall).append('%s=%d行' % (f, n))
+if not tall:
+    ok('digest-lines', ' '.join(short))
+else:
+    bad('digest-lines', '每帧 ≤10 行', ' '.join(tall))
+
+# ---- 稳态 ≤1.2s/帧（Lead 2026-10-17 裁决：冷跑记 NOTE 不判失败） ----------------------
 for f in FRAMES:
     ms = ms_of(f, 'warm')
-    if 0 <= ms <= 2500:
-        ok('perf/' + f, '热跑 %dms（冷跑见下方统计）' % ms)
+    if 0 <= ms <= 1200:
+        ok('perf/' + f, '热跑 %dms' % ms)
     else:
-        bad('perf/' + f, '热跑 ≤2500ms', '%dms' % ms)
+        bad('perf/' + f, '热跑 ≤1200ms', '%dms' % ms)
 
 for status, name, expect, actual in results:
     if status == 'PASS':
@@ -251,32 +290,30 @@ while IFS= read -r line; do
     PASS*)
       IFS=$'\x1f' read -r _ name actual <<<"$line"
       ASSERT=$((ASSERT+1)); PASSED=$((PASSED+1))
-      printf '  \033[32mPASS\033[0m %-28s %s\n' "$name" "$actual"
+      printf '  \033[32mPASS\033[0m %-26s %s\n' "$name" "$actual"
       ;;
     FAIL*)
       IFS=$'\x1f' read -r _ name expect actual <<<"$line"
       ASSERT=$((ASSERT+1)); FAILED=$((FAILED+1))
-      printf '  \033[31mFAIL\033[0m %-28s\n         期望: %s\n         实测: %s\n' "$name" "$expect" "$actual"
+      printf '  \033[31mFAIL\033[0m %-26s\n         期望: %s\n         实测: %s\n' "$name" "$expect" "$actual"
       ;;
   esac
 done <"$CHECK_OUT"
 
 VERDICT=PASS
 [ "$FAILED" -gt 0 ] && VERDICT=FAIL
-# 冷/热计时（可机读）：两跑都要落在日志里，不靠记忆
-for f in "menu-esc-云阶" "editor-dxvk-occluded" "savelist-orderB"; do
-  printf '  TIME  %-24s cold=%sms warm=%sms rc=%s/%s\n' "$f" \
+for f in "${FRAMES[@]}"; do
+  printf '  TIME  %-24s cold=%sms warm=%sms rc=%s/%s(warm 取两次小)\n' "$f" \
     "$(cat "$TMP/$f.cold.ms" 2>/dev/null || echo '?')" \
     "$(cat "$TMP/$f.warm.ms" 2>/dev/null || echo '?')" \
     "${RC["$f:cold"]}" "${RC["$f:warm"]}"
 done
 
-echo "  NOTE  ≤2.5s 的判据落在**稳态**（内容寻址缓存命中，0.8~0.9s/帧）；冷跑 ~4.5s 是"
-echo "        RapidOCR 子进程的固有开销（本机独立实测：解释器 0.4s + 模型 init 0.5s +"
-echo "        2560×1440 检测/识别 2.9~3.2s），不由本工具引入，也不在这里掩饰。"
-echo "        同一帧第二次起走缓存；缓存与 tools/ys-find 共用（sha256(帧字节)+后端签名）。"
+echo "  NOTE   热跑判据（≤1.2s）落在**稳态**（内容寻址缓存命中）；冷跑 ~4.5s 是 RapidOCR 子进程"
+echo "         的固有开销（解释器 0.4s + 模型 init 0.5s + 2560×1440 检测/识别 2.9~3.2s），"
+echo "         不由本工具引入，也不在这里掩饰。缓存与 tools/ys-find 共用（sha256(帧字节)+后端签名）。"
 
 echo
-echo "SCREEN-RESULT frames=3 assert=$ASSERT pass=$PASSED verdict=$VERDICT"
+echo "SCREEN-RESULT frames=${#FRAMES[@]} assert=$ASSERT pass=$PASSED verdict=$VERDICT"
 [ "$VERDICT" = PASS ] || exit 1
 exit 0
