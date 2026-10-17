@@ -1,0 +1,7 @@
+{
+  "id": "selftest.f1-assert-false-8s",
+  "app": "stub",
+  "steps": [
+    {"act": "assert", "state": "PLAYTEST", "timeout": 8}
+  ]
+}

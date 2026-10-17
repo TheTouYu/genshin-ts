@@ -1,0 +1,7 @@
+{
+  "id": "selftest.f2-resolve-fail",
+  "app": "stub",
+  "steps": [
+    {"act": "click", "target": {"role": "button", "name": "不存在的按钮"}}
+  ]
+}

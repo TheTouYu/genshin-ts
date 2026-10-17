@@ -1,0 +1,5 @@
+# 桩 AT-SPI 树（离线夹具）：`tools/gui run --click-backend stub --tree 本文件`
+# 每行一个元素；find_target 按 name（可选 role）做子串匹配，与 `cu state` 的行语义一致。
+role=button name=绿色
+role=button name=开始游戏
+role=checkbox name=自动上传

@@ -1,38 +1,78 @@
 #!/usr/bin/env python3
-"""gui — 通用 GUI 操作层的最小骨架（G0/G1）。
+"""gui — 通用 GUI 操作层（G0/G1）：技能执行器 + 界面态薄封装。
 
 设计（见 docs/maintenance/design-2026-10-17-gui-operation-assets.md）：
   技能 = 可执行 plan（JSON），步骤用**目标描述**（role+name）而不是坐标；
   解析层（resolver）优先 AT-SPI（`cu`），失败再退坐标；每步强制**效果断言**。
 
+**假成功防护（验收契约 §3，2026-10-17 门槛②）**
+  三类失败各有固定判据、固定输出行、固定退出码：
+    F1 断言为假      ASSERT-FALSE step#N expected=… observed=…      退出码 3
+    F2 目标解析失败  RESOLVE-FAIL step#N target=… 候选=0             退出码 4
+    F3 动作无效果    NO-EFFECT step#N post=… observed序列=…          退出码 3
+  共同硬约束：单步等待上限 ≤10s（缺省 8s，`--max-step-wait/--default-step-wait`）；
+  报告必须含**步骤号 + 断言原文 + 观测值**；失败绝不以退出码 0 结束；
+  **每步落 run.json**（`{act,target,ok,expected,observed,kind,ms,evidence}`），
+  一轮结束前任意时刻被杀也能从 run.json 读出「停在哪一步、当时看到什么」。
+
+**离线可测（不碰活体桌面）**
+  · `--frame PNG`（可重复 = 帧序列，poll 逐张轮转）→ 断言用离线帧判定，不抓屏
+  · `--click-backend stub --tree FILE` → 目标解析读桩树文件，点击只记账不注入
+  两条合起来就能在桌面之外复现 F1/F2/F3（见 tools/ys-editor/tests/fake-success.selftest.sh）。
+
 用法:
   tools/gui run <skill.json> [--json out.json] [--var k=v ...]
+      [--profile P] [--frame PNG]... [--state-backend ys-state|vision|cmd:<sh>]
+      [--click-backend cu|stub] [--tree FILE] [--max-step-wait MS] [--default-step-wait MS]
+      [--poll MS] [--dry-run]
   tools/gui lint <skill.json>          # 校验技能文件（缺 pre/post/steps 即拒）
   tools/gui show <skill.json>
+  tools/gui state [profile] [--profile P] [--frame PNG] [--json FILE] [--print-state]
+      [--channel fast|full] [--legacy]  # 门槛⑤薄封装：只调 ys-state（契约 §1）
 
 技能格式:
 {
   "id": "sandbox.pick-green",
   "app": "app.py",
-  "pre":   {"text": "当前: 无"},                  # 可选：开跑前界面上应有的文本
+  "pre":   {"text": "当前: 无"},               # 可选：开跑前界面上应有的文本/态
   "steps": [
     {"act": "click",  "target": {"role": "button", "name": "绿色"}},
-    {"act": "assert", "text": "当前: 绿色", "timeout": 5}
+    {"act": "assert", "text": "当前: 绿色", "timeout": 5},
+    {"act": "assert", "state": "PLAYTEST", "timeout": 8, "min_score": 0.85}
   ],
-  "post":  {"text": "当前: 绿色"}
+  "post":  {"text": "当前: 绿色"}              # 可选：全部步骤成功后的双向效果断言
 }
 
-退出码: 0 成功 / 2 用法或技能文件错 / 3 断言失败 / 4 目标解析失败 / 5 前置不成立
+退出码: 0 成功 / 2 用法或技能文件错 / 3 断言为假或动作无效果 /
+        4 目标解析失败 / 5 前置不成立 / 6 状态判据不确定（仅 state --legacy 旧通道）
 """
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ENVSH = os.path.join(HERE, 'ys-editor', 'ys-env.sh')   # tools/ys-editor/ys-env.sh
+ENVSH = os.path.join(HERE, 'ys-editor', 'ys-env.sh')
+YS_STATE = os.path.join(HERE, 'ys-editor', 'ys-state')
+
+# 契约 §3：单步等待上限 ≤10s，缺省 8s（改这里要 Lead 确认）
+STEP_WAIT_MAX_MS = 10000
+STEP_WAIT_DEFAULT_MS = 8000
+
+EXIT_OK, EXIT_USAGE, EXIT_ASSERT, EXIT_RESOLVE, EXIT_PRE, EXIT_UNSURE = 0, 2, 3, 4, 5, 6
+
+_FALLBACK_NOTE_PRINTED = set()
+
+
+def note_once(key, msg):
+    """同一条「依赖未就绪」提示只打一次（避免轮询刷屏）。"""
+    if key in _FALLBACK_NOTE_PRINTED:
+        return
+    _FALLBACK_NOTE_PRINTED.add(key)
+    sys.stderr.write(msg.rstrip() + '\n')
 
 
 def load_env():
@@ -51,6 +91,27 @@ def load_env():
         os.environ['XAUTHORITY'] = out[1]
 
 
+# ── 预算计数（契约 §4：执行器自统计；门槛③ 超预算即失败）─────────────────
+class Budget:
+    """一轮/一次执行的取数账。所有数字由执行器自己数，不靠事后估算。"""
+
+    def __init__(self):
+        self.frames = 0          # 抓活体帧（碰桌面）
+        self.frames_offline = 0  # 离线帧判定（不碰桌面）
+        self.focus = 0           # 抢焦点/占槽次数（本执行器永远 0）
+        self.sleeps = 0          # 固定 sleep 条数（谓词等待不算）
+        self.polls = 0           # 判据轮询次数
+        self.desktop_calls = 0   # 注入类调用（xdotool / cu / ydotool）
+
+    def bump(self, key, n=1):
+        setattr(self, key, getattr(self, key) + n)
+
+    def as_dict(self):
+        return {'frames': self.frames, 'frames_offline': self.frames_offline,
+                'focus': self.focus, 'sleeps': self.sleeps, 'polls': self.polls,
+                'desktop_calls': self.desktop_calls}
+
+
 def cu(args, timeout=20):
     t0 = time.time()
     p = subprocess.run(['cu'] + args, capture_output=True, text=True, timeout=timeout)
@@ -61,7 +122,7 @@ _TREE_CACHE = {}          # app -> (ts, text)
 TREE_TTL = 0.8            # 秒：同一步骤内的多次查询复用同一棵树
 
 
-def tree(app, fresh=False):
+def live_tree(app, fresh=False):
     """读一次 AT-SPI 树（带短 TTL 缓存）。
 
     实测（2026-10-17）：一次 `cu state` 端到端 ~800ms，其中**进程启动只占 ~150ms**，
@@ -86,26 +147,68 @@ def invalidate(app=None):
         _TREE_CACHE.clear()
 
 
-def screen_text(app, fresh=False):
-    t, err, ms = tree(app, fresh=fresh)
-    if t is None:
-        return None, err, ms
-    return t, None, ms
+# ── 执行上下文（后端可替换：活体 cu/xdotool ↔ 离线桩）───────────────────
+class Ctx:
+    def __init__(self, app, profile=None, frames=None, state_backend='ys-state',
+                 click_backend='cu', tree_path=None, max_wait_ms=STEP_WAIT_MAX_MS,
+                 default_wait_ms=STEP_WAIT_DEFAULT_MS, poll_ms=250, dry_run=False):
+        self.app = app
+        self.profile = profile
+        self.frames = list(frames or [])
+        self.state_backend = state_backend
+        self.click_backend = click_backend
+        self.tree_path = tree_path
+        self.max_wait_ms = min(int(max_wait_ms), STEP_WAIT_MAX_MS)
+        self.default_wait_ms = min(int(default_wait_ms), self.max_wait_ms)
+        self.poll_ms = int(poll_ms)
+        self.dry_run = dry_run
+        self.budget = Budget()
+        self._frame_i = 0
+        self._fast_ready = None       # ys-state 是否真的走了 --fast（None=还不知道）
+        self._fast_note_done = False
+
+    def next_frame(self):
+        """离线帧序列：每 poll 取下一张（单张 = 一直用同一张）。"""
+        if not self.frames:
+            return None
+        f = self.frames[self._frame_i % len(self.frames)]
+        self._frame_i += 1
+        return f
+
+    def note_fast(self, channel):
+        """契约 §1 的 --fast 通道由 ys-state 实现；未就绪时如实标注（不假装快）。"""
+        if self._fast_ready is None:
+            self._fast_ready = (channel == 'fast')
+        if not self._fast_ready and not self._fast_note_done:
+            self._fast_note_done = True
+            note_once('ys_fast', '[gui] ys-state 未支持 --fast（返回无 channel:fast）'
+                                 ' → 兼容层回落 full 通道；依赖未就绪（契约 §1 由 ys-state 实现中）')
+
+    def read_tree(self, fresh=False):
+        """目标解析/文本断言的取数入口：桩后端读文件，生产后端读 AT-SPI。"""
+        if self.click_backend == 'stub':
+            if not self.tree_path:
+                return None, 'stub 后端需要 --tree <文件>', 0.0
+            try:
+                return open(self.tree_path, encoding='utf-8').read(), None, 0.0
+            except OSError as e:
+                return None, f'读不到桩树 {self.tree_path}: {e}', 0.0
+        return live_tree(self.app, fresh=fresh)
 
 
-def find_target(app, target):
-    """解析目标：AT-SPI 语义优先，坐标兜底。返回 (kind, payload, cost_ms)。"""
+def find_target(ctx, target):
+    """解析目标：AT-SPI 语义优先，坐标兜底。返回 (kind, payload, ms, 候选数, err)。"""
     if 'xy' in target:
-        return 'xy', target['xy'], 0.0
+        return 'xy', target['xy'], 0.0, 1, None
     name = target.get('name')
     role = target.get('role', '')
-    t, err, ms = tree(app)
+    t, err, ms = ctx.read_tree()
     if t is None:
-        return None, err, ms
-    for line in t.splitlines():
-        if name and name in line and (not role or role in line):
-            return 'name', name, ms
-    return None, f'树里找不到 {role or "元素"}「{name}」', ms
+        return None, None, ms, 0, err
+    hits = [ln for ln in t.splitlines() if name and name in ln and (not role or role in ln)]
+    if hits:
+        return 'name', name, ms, len(hits), None
+    return None, None, ms, 0, f'树里找不到 {role or "元素"}「{name}」'
 
 
 def vision_resolve(profile, anchor_name, frame=None):
@@ -115,7 +218,9 @@ def vision_resolve(profile, anchor_name, frame=None):
     a = next((x for x in profile['anchors'] if x['name'] == anchor_name), None)
     if a is None:
         return None
+    live = False
     if not frame:
+        live = True
         frame = '/tmp/gui-resolve-live.png'
         if subprocess.run(['import', '-window', 'root', frame], capture_output=True).returncode != 0:
             return None
@@ -127,20 +232,22 @@ def vision_resolve(profile, anchor_name, frame=None):
     if not r:
         return None
     b = r['results'][0]['best']
-    return (b['x'], b['y'], b['score']) if b else None
+    return (b['x'], b['y'], b['score'], live) if b else None
 
 
 def vision_state(profile, frame=None):
-    """用 profile 判当前态（复用 cmd_state 的两段式逻辑的精简版）。"""
+    """按 profile 锚点判态（legacy 通道；门槛⑤ 的收口目标是 ys-state --fast）。"""
     sys.path.insert(0, os.path.join(HERE, 'ys-editor'))
     import ys_look
+    live = False
     if not frame:
+        live = True
         frame = '/tmp/gui-state-live.png'
         cp = subprocess.run(['import', '-window', 'root', frame], capture_output=True, text=True)
         if cp.returncode != 0:
             sys.stderr.write(f'[gui] 抓帧失败 DISPLAY={os.environ.get("DISPLAY")!r} '
                              f'XAUTHORITY={bool(os.environ.get("XAUTHORITY"))} err={cp.stderr.strip()[:120]}\n')
-            return None, 0.0
+            return None, 0.0, live
     by = {}
     for a in profile['anchors']:
         by.setdefault(a['state'], []).append(a)
@@ -154,267 +261,617 @@ def vision_state(profile, frame=None):
     r = ys_look.daemon({'cmd': 'batch', 'frame': os.path.abspath(frame), 'jobs': jobs})
     if not r:
         sys.stderr.write(f'[gui] ys-lookd 不可用: {ys_look.LAST_DAEMON_ERROR}\n')
-        return None, 0.0
+        return None, 0.0, live
     sc = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
     per = {st: sc.get(a['name'], 0.0) for st, a in tier1.items()}
     best = max(per.items(), key=lambda kv: kv[1])
-    return best[0], best[1]
+    return best[0], best[1], live
 
 
-def do_step(app, step, skill_vars, profile=None, dry_run=False):
-    act = step.get('act')
+def _parse_last_json(text):
+    for line in reversed((text or '').strip().splitlines()):
+        line = line.strip()
+        if line.startswith('{'):
+            try:
+                return json.loads(line)
+            except Exception:
+                continue
+    return None
+
+
+def probe_ys_state(frame=None, profile=None, fast=True, timeout_s=10.0):
+    """唯一判据入口（契约 §1）：`ys-state --json [--fast] [--frame] [--profile]`。
+
+    返回 {'state','channel','ms','rc','raw','error'}；异常不外抛，错误进 error。
+    """
+    argv = [YS_STATE, '--json']
+    if fast:
+        argv.append('--fast')
+    if profile:
+        argv += ['--profile', profile]
+    if frame:
+        argv += ['--frame', frame]
     t0 = time.time()
-    tgt = step.get('target', {})
-    if act == 'click' and profile and tgt.get('anchor'):
-        got = vision_resolve(profile, tgt['anchor'])
+    if not os.path.exists(YS_STATE):
+        return {'state': 'ERROR', 'channel': 'none', 'ms': 0, 'rc': None, 'raw': None,
+                'error': f'缺少 {YS_STATE}'}
+    try:
+        p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        return {'state': 'TIMEOUT', 'channel': 'timeout', 'ms': (time.time() - t0) * 1000,
+                'rc': None, 'raw': None,
+                'error': f'ys-state 超过 {timeout_s:.1f}s 未返回（判据仪器超时）'}
+    ms = (time.time() - t0) * 1000
+    d = _parse_last_json(p.stdout)
+    if d is None:
+        return {'state': 'ERROR', 'channel': 'none', 'ms': ms, 'rc': p.returncode, 'raw': None,
+                'error': (p.stderr or p.stdout or '').strip()[:200]}
+    ch = d.get('channel') or 'compat-full'
+    return {'state': d.get('state') or 'ERROR', 'channel': ch, 'ms': ms,
+            'rc': p.returncode, 'raw': d, 'error': None}
+
+
+def judge_state(ctx, frame=None, timeout_s=10.0):
+    """统一判态：ys-state（契约通道，缺省）/ vision（旧通道，测试与回退）/ cmd:<sh>。"""
+    backend = ctx.state_backend
+    if backend.startswith('cmd:'):
+        cmd = backend[4:]
+        t0 = time.time()
+        try:
+            p = subprocess.run(['bash', '-c', cmd], capture_output=True, text=True,
+                               timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            return {'state': 'TIMEOUT', 'channel': 'cmd', 'ms': (time.time() - t0) * 1000,
+                    'error': 'cmd 判据超时', 'raw': None}
+        ms = (time.time() - t0) * 1000
+        out = (p.stdout or '').strip()
+        d = _parse_last_json(out)
+        state = (d.get('state') if d else out.splitlines()[0] if out else 'ERROR')
+        if frame:
+            ctx.budget.bump('frames_offline')
+        return {'state': state, 'channel': 'cmd', 'ms': ms, 'raw': d, 'error': None}
+    if backend == 'vision':
+        if not ctx.profile:
+            return {'state': 'ERROR', 'channel': 'vision', 'ms': 0, 'raw': None,
+                    'error': 'vision 通道需要 --profile'}
+        t0 = time.time()
+        st, sc, live = vision_state(ctx.profile, frame)
+        ms = (time.time() - t0) * 1000
+        ctx.budget.bump('frames' if live else 'frames_offline')
+        return {'state': st or 'ERROR', 'score': sc, 'channel': 'vision', 'ms': ms,
+                'frame': frame, 'raw': {'score': sc},
+                'error': None if st else 'vision 判态失败'}
+    r = probe_ys_state(frame=frame, profile=ctx.profile, fast=True, timeout_s=timeout_s)
+    r['frame'] = frame
+    ctx.note_fast(r.get('channel'))
+    ctx.budget.bump('frames' if frame is None else 'frames_offline')
+    if r.get('error') and ctx.profile and r.get('rc') not in (0, 2, 4, 5):
+        # ys-state 本身不可用（缺脚本/取帧失败/崩溃）→ 有 profile 时回落旧通道
+        note_once('ys_fallback', f'[gui] ys-state 不可用（{r["error"]}）→ 回落 vision 通道')
+        st, sc, live = vision_state(ctx.profile, frame)
+        ctx.budget.bump('frames' if live else 'frames_offline')
+        return {'state': st or 'ERROR', 'score': sc, 'channel': 'vision-fallback',
+                'ms': r.get('ms', 0), 'frame': frame, 'raw': {'score': sc},
+                'error': None if st else 'fallback vision 判态失败'}
+    return r
+
+
+# ── 单步执行 ─────────────────────────────────────────────────────
+def step_timeout_s(ctx, step):
+    """把 step.timeout（秒）夹到契约上限内；缺省 8s，硬上界 10s。"""
+    raw = step.get('timeout')
+    ms = ctx.default_wait_ms if raw is None else int(float(raw) * 1000)
+    return min(ms, ctx.max_wait_ms) / 1000.0
+
+
+def _poll_loop(ctx, probe, accept, timeout_s):
+    """谓词轮询：返回 (ok, seen[list], last_reading, polls, stopped_reason)。
+
+    预算纪律：剩余时间不够再跑一次已知成本的判据时**立刻停**，
+    不为了"多看一眼"把单步耗时顶过上限（门槛② 的 ≤10s 是硬判据）。
+    """
+    t0 = time.time()
+    deadline = t0 + timeout_s
+    seen = []
+    last = None
+    polls = 0
+    last_cost = 0.0
+    while True:
+        remaining = deadline - time.time()
+        if polls == 0 and remaining <= 0:
+            return False, seen, last, polls, 'NO-BUDGET'
+        if polls and last_cost > 0 and remaining < last_cost * 0.8:
+            return False, seen, last, polls, 'BUDGET-WOULD-OVERRUN'
+        if remaining <= 0:
+            return False, seen, last, polls, 'DEADLINE'
+        r = probe(max(0.2, remaining))
+        polls += 1
+        ctx.budget.bump('polls')
+        last = r
+        cost = max(0.0, (r.get('ms') or 0) / 1000.0)
+        if cost:
+            last_cost = cost
+        seen.append(r)
+        if accept(r):
+            return True, seen, last, polls, 'OK'
+        if time.time() >= deadline:
+            return False, seen, last, polls, 'DEADLINE'
+        nap = min(ctx.poll_ms / 1000.0, max(0.0, deadline - time.time()))
+        if nap > 0:
+            # 轮询间隔不算"固定 sleep"（门槛③ 的判据是"用时长冒充同步"），单独记 polls
+            time.sleep(nap)
+
+
+def _seen_str(seen, limit=6):
+    out = []
+    for r in seen[-limit:]:
+        st = r.get('state', '?')
+        sc = r.get('score')
+        out.append(f'{st}' + (f'({sc:.2f})' if isinstance(sc, (int, float)) else ''))
+    return '[' + ', '.join(out) + ']'
+
+
+def assert_state(ctx, step, want_state=None):
+    """state 断言（F1 的正规路径；post 断言失败由调用方改写成 NO-EFFECT）。"""
+    want = want_state or step.get('state')
+    min_score = step.get('min_score')
+    timeout_s = step_timeout_s(ctx, step)
+
+    def probe(remaining):
+        # 帧序列：每次 poll 换下一张（单张 = 一直同一张）
+        return judge_state(ctx, frame=ctx.next_frame(), timeout_s=remaining)
+
+    def accept(r):
+        if r.get('state') != want:
+            return False
+        # min_score 只对给分数的通道生效（ys-state 只给态名与判据明细）
+        if min_score is None or r.get('score') is None:
+            return True
+        return (r.get('score') or 0) >= float(min_score)
+
+    ok, seen, last, polls, why = _poll_loop(ctx, probe, accept, timeout_s)
+    last = last or {}
+    state = last.get('state', 'NO-OBSERVATION')
+    score = last.get('score')
+    err = last.get('error')
+    return {
+        'ok': ok,
+        'expected': f'state={want}',
+        'observed': state,
+        'kind': None if ok else ('ASSERT-FALSE'),
+        'evidence': {'sequence': _seen_str(seen), 'polls': polls, 'stop': why,
+                     'channel': last.get('channel'), 'frame': last.get('frame'),
+                     'class_hint': 'F1 断言为假'},
+        'detail': (f'state={state}' + (f' score={score:.3f}' if isinstance(score, (int, float)) else '')
+                   + f'（{polls} 次轮询，序列={_seen_str(seen)}）'
+                   + (f'；判据异常: {err}' if err else '')),
+    }
+
+
+def assert_text(ctx, want, step=None):
+    """文本断言：每 poll 读一次树（或桩树文件），包含即成立。"""
+    timeout_s = step_timeout_s(ctx, step if step is not None else {'timeout': 5})
+    last_text = ['']
+
+    def probe(remaining):
+        t, err, ms = ctx.read_tree(fresh=True)
+        last_text[0] = t or err or ''
+        return {'state': (t or err or '')[:2000], 'ms': ms, 'channel': 'tree'}
+
+    ok, seen, last, polls, why = _poll_loop(
+        ctx, probe, lambda r: bool(want) and want in r.get('state', ''), timeout_s)
+    txt = last.get('state', '') if last else ''
+    lines = [ln for ln in txt.splitlines() if ln.strip()][:6]
+    return {
+        'ok': ok,
+        'expected': f'text⊇{want}',
+        'observed': ('含' if ok else f'前6行={lines}'),
+        'kind': None if ok else 'ASSERT-FALSE',
+        'evidence': {'polls': polls, 'stop': why, 'head': lines},
+        'detail': (f'断言含「{want}」' if ok else f'断言失败：期望含「{want}」，实际前几行={lines}'),
+    }
+
+
+def do_step(ctx, n, step):
+    """执行一步并返回结构化记录（run.json 的一条）。
+
+    kind 语义：None=成功；ASSERT-FALSE / RESOLVE-FAIL / ACTION-FAIL / BAD-STEP=失败类。
+    """
+    act = step.get('act')
+    tgt = step.get('target', {}) or {}
+    t0 = time.time()
+    rec = {'step': n, 'act': act, 'target': tgt or None, 'ok': False,
+           'expected': None, 'observed': '', 'kind': 'BAD-STEP', 'ms': 0, 'evidence': {}}
+
+    # 视觉锚点点击（生产路径；桩后端只解析不注入）
+    if act == 'click' and tgt.get('anchor'):
+        if not ctx.profile:
+            rec.update(observed='anchor 点击需要 --profile', kind='BAD-STEP')
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        fr = ctx.next_frame() if ctx.frames else None
+        got = vision_resolve(ctx.profile, tgt['anchor'], frame=fr)
+        ctx.budget.bump('frames' if (got and got[3]) else 'frames_offline')
         if not got:
-            return False, f"视觉解析失败: 锚点 {tgt['anchor']}", (time.time() - t0) * 1000
-        x, y, score = got
+            rec.update(kind='RESOLVE-FAIL', observed='候选=0',
+                       expected=f'anchor={tgt["anchor"]}',
+                       evidence={'class_hint': 'F2 目标解析失败'})
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        x, y, score, _live = got
         if score < tgt.get('min_score', 0.85):
-            return False, f"锚点 {tgt['anchor']} 分数 {score:.3f} < 阈值", (time.time() - t0) * 1000
-        if dry_run:
-            return True, f'[dry] anchor={tgt["anchor"]} @({x},{y}) score={score:.3f}', (time.time() - t0) * 1000
+            rec.update(kind='RESOLVE-FAIL', observed=f'score={score:.3f}<阈值',
+                       expected=f'anchor={tgt["anchor"]}',
+                       evidence={'class_hint': 'F2 目标解析失败（分数不足）'})
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        rec['expected'] = f'anchor={tgt["anchor"]} @({x},{y})'
+        if ctx.dry_run or ctx.click_backend == 'stub':
+            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] anchor={tgt["anchor"]} '
+                                         f'@({x},{y}) score={score:.3f}')
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
         hold = int(tgt.get('hold_ms', 120))
         subprocess.run(['xdotool', 'mousemove', str(x), str(y)], capture_output=True)
         subprocess.run(['xdotool', 'mousedown', '1'], capture_output=True)
         time.sleep(hold / 1000.0)
         subprocess.run(['xdotool', 'mouseup', '1'], capture_output=True)
-        invalidate(app)
-        return True, f'click anchor={tgt["anchor"]} @({x},{y}) score={score:.3f} hold={hold}ms', (time.time() - t0) * 1000
+        ctx.budget.bump('desktop_calls', 3)
+        ctx.budget.bump('sleeps')          # hold 是**动作时长**（按下到抬起），非同步等待
+        invalidate(ctx.app)
+        rec.update(ok=True, observed=f'click anchor={tgt["anchor"]} @({x},{y}) '
+                                     f'score={score:.3f} hold={hold}ms')
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
     if act == 'key':
-        if dry_run:
-            return True, f"[dry] key={step.get('key')}", 0.0
         k = step.get('key', '')
-        subprocess.run(['xdotool', 'key', '--clearmodifiers', k], capture_output=True)
-        invalidate(app)
-        return True, f'key={k}', (time.time() - t0) * 1000
-    if act == 'assert' and step.get('state'):
-        if profile is None:
-            return False, 'assert state 需要 --profile', 0.0
-        deadline = time.time() + float(step.get('timeout', 8))
-        seen = []
-        while time.time() < deadline:
-            st, sc = vision_state(profile)
-            seen.append(f'{st}({sc:.2f})')
-            if st == step['state'] and sc >= step.get('min_score', 0.85):
-                return True, f"state={st} score={sc:.3f}", (time.time() - t0) * 1000
-            time.sleep(0.25)
-        return False, f"期望 state={step['state']}，实际序列={seen[-4:]}", (time.time() - t0) * 1000
-    if act == 'click':
-        kind, payload, ms = find_target(app, step.get('target', {}))
-        if kind is None:
-            return False, f'解析失败: {payload}', ms
-        if kind == 'xy':
-            rc, out, err, cms = cu(['click', app, '--xy', str(payload[0]), str(payload[1])])
+        rec['expected'] = f'key={k}'
+        if ctx.dry_run or ctx.click_backend == 'stub':
+            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] key={k}')
         else:
-            rc, out, err, cms = cu(['click', app, '--name', payload])
-        invalidate(app)          # 动作会改变界面：立刻让树缓存失效
-        ok = rc == 0 and 'OK' in (out + err).upper()
-        return ok, f'click {kind}={payload} rc={rc} {(out+err).strip()[:80]}', ms + cms
-    if act == 'assert':
-        want = step.get('text')
-        timeout = float(step.get('timeout', 5))
-        deadline = time.time() + timeout
-        last = ''
-        polls = 0
-        while time.time() < deadline:
-            t, err, ms = screen_text(app, fresh=True)
-            polls += 1
-            last = t or err or ''
-            if want and want in last:
-                return True, f'assert ok（{polls} 次轮询，{(time.time()-t0)*1000:.0f}ms）', ms
-            time.sleep(0.2)
-        seen = [l for l in last.splitlines() if l.strip()][:6]
-        return False, f'断言失败：期望含「{want}」，实际前几行={seen}', (time.time() - t0) * 1000
-    if act == 'wait':
-        return do_step(app, dict(step, act='assert', text=step.get('text', '')), skill_vars)
-    return False, f'未知动作 {act}', 0.0
+            subprocess.run(['xdotool', 'key', '--clearmodifiers', k], capture_output=True)
+            ctx.budget.bump('desktop_calls')
+            invalidate(ctx.app)
+            rec.update(ok=True, observed=f'key={k}')
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
+    if act in ('assert', 'wait') and step.get('state'):
+        r = assert_state(ctx, step)
+        rec.update(r)
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
+    if act in ('assert', 'wait') and (step.get('text') is not None):
+        r = assert_text(ctx, step.get('text', ''), step)
+        rec.update(r)
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
+    if act == 'click':
+        kind, payload, ms, cand, err = find_target(ctx, tgt)
+        if kind is None:
+            rec.update(kind='RESOLVE-FAIL',
+                       expected='target=' + json.dumps(tgt, ensure_ascii=False),
+                       observed=f'候选={cand}',
+                       evidence={'error': err, 'candidates': cand,
+                                 'class_hint': 'F2 目标解析失败'})
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        rec['expected'] = f'target={tgt}'
+        if ctx.dry_run or ctx.click_backend == 'stub':
+            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] '
+                                         f'click {kind}={payload}')
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        if kind == 'xy':
+            rc, out, err2, cms = cu(['click', ctx.app, '--xy', str(payload[0]), str(payload[1])])
+        else:
+            rc, out, err2, cms = cu(['click', ctx.app, '--name', payload])
+        invalidate(ctx.app)
+        ctx.budget.bump('desktop_calls')
+        ok = rc == 0 and 'OK' in (out + err2).upper()
+        rec.update(ok=ok,
+                   observed=f'click {kind}={payload} rc={rc} {(out+err2).strip()[:80]}',
+                   kind=None if ok else 'ACTION-FAIL')
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
+    rec.update(kind='BAD-STEP', observed=f'未知动作 {act}（支持 click/key/assert/wait）')
+    rec['ms'] = round((time.time() - t0) * 1000)
+    return rec
+
+
+# ── run：执行技能（契约 §3）───────────────────────────────────────
+def _failure_line(rec, post=None):
+    """三类失败的**固定输出行**（契约 §3；可 grep、字段顺序固定）。"""
+    n = rec.get('step')
+    kind = rec.get('kind')
+    if kind == 'RESOLVE-FAIL':
+        tgt = rec.get('expected') or ('target=' + json.dumps(rec.get('target') or {},
+                                                             ensure_ascii=False))
+        return f'RESOLVE-FAIL step#{n} {tgt} 候选=0'
+    if kind == 'NO-EFFECT':
+        seq = (rec.get('evidence') or {}).get('sequence', '[]')
+        return f'NO-EFFECT step#{n} post={rec.get("expected")} observed序列={seq}'
+    if kind == 'ASSERT-FALSE':
+        return f'ASSERT-FALSE step#{n} expected={rec.get("expected")} observed={rec.get("observed")}'
+    return f'{kind} step#{n} expected={rec.get("expected")} observed={rec.get("observed")}'
 
 
 def cmd_run(args):
     load_env()
-    skill = json.load(open(args.skill))
-    app = skill.get('app')
+    try:
+        skill = json.load(open(args.skill, encoding='utf-8'))
+    except Exception as e:
+        print(f'✗ 读不了技能文件: {e}', file=sys.stderr)
+        return EXIT_USAGE
+    app = skill.get('app') or ('stub' if args.click_backend == 'stub' else None)
     if not app:
         print('技能缺 app 字段', file=sys.stderr)
-        return 2
-    rec = {'skill': skill.get('id'), 'app': app, 'steps': [], 'ok': False, 't0': time.time()}
-    print(f'▶ {skill.get("id")}  app={app}')
+        return EXIT_USAGE
+    profile = None
+    if args.profile:
+        try:
+            profile = json.load(open(args.profile, encoding='utf-8'))
+        except Exception as e:
+            print(f'✗ 读不了 profile: {e}', file=sys.stderr)
+            return EXIT_USAGE
+    ctx = Ctx(app, profile=profile, frames=args.frame, state_backend=args.state_backend,
+              click_backend=args.click_backend, tree_path=args.tree,
+              max_wait_ms=args.max_step_wait, default_wait_ms=args.default_step_wait,
+              poll_ms=args.poll, dry_run=args.dry_run)
+    rec = {'kind': 'gui-run', 'skill': skill.get('id'), 'app': app,
+           'started_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+           'limits': {'step_wait_max_ms': ctx.max_wait_ms,
+                      'step_wait_default_ms': ctx.default_wait_ms},
+           'backends': {'state': ctx.state_backend, 'click': ctx.click_backend,
+                        'frames': len(ctx.frames), 'tree': ctx.tree_path},
+           'steps': [], 'ok': False, 'exit': None, 't0': time.time()}
+    out_path = args.json
+
+    def flush():
+        rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
+        rec['budget'] = ctx.budget.as_dict()
+        try:
+            json.dump(rec, open(out_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        except OSError as e:
+            print(f'⚠ 写不了 {out_path}: {e}', file=sys.stderr)
+
+    print(f'▶ {skill.get("id")}  app={app}  判据通道={ctx.state_backend}  '
+          f'点击后端={ctx.click_backend}  单步上限={ctx.max_wait_ms}ms 缺省={ctx.default_wait_ms}ms')
+
+    def finish(code, failure=None):
+        rec['exit'] = code
+        rec['ok'] = (code == EXIT_OK)
+        if failure:
+            rec['failure'] = failure
+        flush()
+        return code
+
+    # ① 前置断言（pre）：不成立即停（退出码 5，不与 F1/F2/F3 混淆）
     pre = skill.get('pre') or {}
-    if pre.get('text'):
-        t, err, ms = screen_text(app)
-        if t is None or pre['text'] not in t:
-            print(f'✗ 前置不成立：期望含「{pre["text"]}」；实际={(t or err or "")[:120]}')
-            rec['steps'].append({'step': 'pre', 'ok': False, 'obs': (t or err or '')[:200]})
-            json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
-            return 5
-        print(f'  pre ✓ （{(ms):.0f}ms）')
-    prof = json.load(open(args.profile)) if args.profile else None
-    for i, step in enumerate(skill.get('steps', []), 1):
-        ok, msg, ms = do_step(app, step, {}, profile=prof, dry_run=args.dry_run)
-        print(f'  [{i}] {step.get("act"):<7} {"✓" if ok else "✗"} {msg}  ({ms:.0f}ms)')
-        rec['steps'].append({'i': i, 'act': step.get('act'), 'ok': ok, 'obs': msg, 'ms': round(ms)})
-        if not ok:
-            rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
-            json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
-            return 3
-    rec['ok'] = True
-    rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
-    json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
-    print(f'✓ 全部通过，用时 {rec["elapsed_ms"]}ms  证据: {args.json}')
-    return 0
+    if pre:
+        _t0 = time.time()
+        if pre.get('state'):
+            r = assert_state(ctx, {'state': pre['state'], 'timeout': pre.get('timeout', 5)})
+        else:
+            r = assert_text(ctx, pre.get('text', ''), pre)
+        prec = {'step': 0, 'act': 'pre', 'target': pre, 'ok': r['ok'],
+                'expected': r.get('expected'), 'observed': r.get('observed'),
+                'kind': None if r['ok'] else 'PRE-FALSE',
+                'ms': round((time.time() - _t0) * 1000),
+                'evidence': r.get('evidence', {})}
+        rec['steps'].append(prec)
+        print(f'  [0] pre     {"✓" if r["ok"] else "✗"} {r.get("detail")}  ({prec["ms"]}ms)')
+        if not r['ok']:
+            print(f'PRE-FALSE step#0 expected={prec["expected"]} observed={prec["observed"]}')
+            print(f'  证据: {out_path}')
+            return finish(EXIT_PRE, {'step': 0, 'class': 'PRE-FALSE',
+                                     'expected': prec['expected'],
+                                     'observed': prec['observed']})
+
+    # ② 步骤
+    last_no = 0
+    for i, step in enumerate(skill.get('steps') or [], 1):
+        last_no = i
+        r = do_step(ctx, i, step)
+        rec['steps'].append(r)
+        flush()                        # 每步落盘：随时被杀也留证据
+        mark = '✓' if r['ok'] else '✗'
+        detail = r.get('detail') or r.get('observed') or ''
+        print(f'  [{i}] {str(r.get("act")):<7} {mark} {detail}  ({r.get("ms", 0)}ms)')
+        if not r['ok']:
+            line = _failure_line(r)
+            print(line)
+            print(f'  ✗ {r.get("evidence", {}).get("class_hint", r.get("kind"))}  '
+                  f'证据: {out_path}')
+            code = EXIT_RESOLVE if r['kind'] == 'RESOLVE-FAIL' else EXIT_ASSERT
+            return finish(code, {'step': i, 'class': r['kind'],
+                                 'expected': r.get('expected'),
+                                 'observed': r.get('observed'),
+                                 'evidence': r.get('evidence', {})})
+
+    # ③ 后置断言（post）：步骤都"成功"却看不到效果 ⇒ F3（NO-EFFECT，退出码 3）
+    post = skill.get('post') or {}
+    if post:
+        _t0 = time.time()
+        if post.get('state'):
+            r = assert_state(ctx, {'state': post['state'],
+                                   'timeout': post.get('timeout', 8),
+                                   'min_score': post.get('min_score')})
+        else:
+            r = assert_text(ctx, post.get('text', ''), post)
+        prec = {'step': last_no, 'act': 'post', 'target': post, 'ok': r['ok'],
+                'expected': r.get('expected'), 'observed': r.get('observed'),
+                'kind': None if r['ok'] else 'NO-EFFECT',
+                'ms': round((time.time() - _t0) * 1000),
+                'evidence': r.get('evidence', {})}
+        rec['steps'].append(prec)
+        mark = '✓' if r['ok'] else '✗'
+        print(f'  [post] {mark} {r.get("detail")}  ({prec["ms"]}ms)')
+        if not r['ok']:
+            line = f'NO-EFFECT step#{last_no} post={prec["expected"]} ' \
+                   f'observed序列={prec["evidence"].get("sequence", "[]")}'
+            print(line)
+            print(f'  ✗ F3 动作无效果（步骤全部"成功"但后置断言恒假）  证据: {out_path}')
+            return finish(EXIT_ASSERT, {'step': last_no, 'class': 'NO-EFFECT',
+                                        'expected': prec['expected'],
+                                        'observed': prec['observed'],
+                                        'evidence': prec['evidence']})
+
+    finish(EXIT_OK)
+    b = rec['budget']
+    print(f'✓ 全部通过，用时 {rec["elapsed_ms"]}ms  预算: frames={b["frames"]} '
+          f'offline={b["frames_offline"]} focus={b["focus"]} sleeps={b["sleeps"]} '
+          f'polls={b["polls"]}  证据: {out_path}')
+    return EXIT_OK
 
 
 def cmd_lint(args):
     try:
-        skill = json.load(open(args.skill))
+        skill = json.load(open(args.skill, encoding='utf-8'))
     except Exception as e:
         print(f'✗ 读不了: {e}')
-        return 2
+        return EXIT_USAGE
     problems = []
     for k in ('id', 'app', 'steps'):
         if not skill.get(k):
             problems.append(f'缺 {k}')
-    if not skill.get('post') and not any(s.get('act') == 'assert' for s in skill.get('steps', [])):
+    if not skill.get('post') and not any(s.get('act') in ('assert', 'wait')
+                                         for s in skill.get('steps', [])):
         problems.append('既没有 post 也没有 assert —— 没有效果断言的操作不许进库')
-    for i, s in enumerate(skill.get('steps', []), 1):
-        if s.get('act') == 'click' and not s.get('target'):
+    for i, s in enumerate(skill.get('steps') or [], 1):
+        act = s.get('act')
+        if act == 'click' and not s.get('target'):
             problems.append(f'第 {i} 步 click 缺 target')
+        if act not in ('click', 'key', 'assert', 'wait'):
+            problems.append(f'第 {i} 步未知动作 {act}')
+        if s.get('timeout') is not None and float(s['timeout']) * 1000 > STEP_WAIT_MAX_MS:
+            problems.append(f'第 {i} 步 timeout={s["timeout"]}s 超过契约上限 '
+                            f'{STEP_WAIT_MAX_MS}ms（会被夹到上限，改小或删掉）')
+        if act in ('assert', 'wait') and not s.get('text') and not s.get('state'):
+            problems.append(f'第 {i} 步 {act} 既没有 text 也没有 state')
     if problems:
         print('✗ ' + '；'.join(problems))
-        return 2
-    print(f'✓ {skill["id"]} 通过（{len(skill["steps"])} 步）')
-    return 0
+        return EXIT_USAGE
+    print(f'✓ {skill["id"]} 通过（{len(skill["steps"])} 步；单步上限 {STEP_WAIT_MAX_MS}ms）')
+    return EXIT_OK
 
 
 def cmd_show(args):
-    skill = json.load(open(args.skill))
+    skill = json.load(open(args.skill, encoding='utf-8'))
     print(json.dumps(skill, ensure_ascii=False, indent=1))
-    return 0
+    return EXIT_OK
 
 
+# ── state：门槛⑤薄封装（契约 §1：只调 ys-state）────────────────────
 def cmd_state(args):
-    """按 profile 用视觉锚点判定当前界面态（与 ys-fast/ys-state 是独立通道）。
-
-    成本实测（2026-10-17，2560×1440）：
-      · `import -window root` 全屏抓帧 **18ms**；而 `import -window <app窗口>` 全窗 **2953ms**
-        （后者走了慢路径；同样的像素，换一种抓法差 160 倍）
-      · 32 锚点全帧匹配 ~840ms；6 锚点（每态一个）~160ms
-    ⇒ 两段式：先用「每态最强锚点 + 家位 ROI」快速判（~200ms），
-      不确定再退回全锚点全帧（~1s）。**快路径不能牺牲判据**：余量不足就升级。
-    """
     load_env()
-    t_start = time.time()          # 端到端从抓帧开始计
-    prof = json.load(open(args.profile))
-    anchors = prof['anchors']
-    win = prof.get('window') or args.window
-    sys.path.insert(0, os.path.join(HERE, 'ys-editor'))
-    import ys_look
+    profile_path = args.profile or args.profile_pos
+    frame = args.frame[0] if args.frame else None
+    fast = args.channel != 'full' and not args.legacy
+    r = probe_ys_state(frame=frame, profile=profile_path, fast=fast,
+                       timeout_s=args.timeout)
+    fast_ready = (r.get('channel') == 'fast')
+    if fast and not fast_ready and not args.legacy:
+        note_once('state_fast', '[gui state] 依赖未就绪：ys-state 未返回 channel:fast'
+                                '（契约 §1 的 fast 通道由 ys-state 实现中）→ 本结果来自 full/兼容通道')
 
-    shot = args.frame
-    frame_bin = None
-    if not shot:
-        # 抓帧走 ys_look.grab（`import … rgb:-` 管道，实测 130~170ms）。
-        # 注意：`import -window root <文件>` 在本机**直接失败**（0 字节），
-        # 写 PNG 文件则要 ~3s —— 只有管道 raw 是快路径（2026-10-17 实测并纠正过一次）。
-        import numpy as np
+    if args.legacy or (r.get('state') in ('ERROR', 'TIMEOUT') and profile_path):
+        # 兼容层：ys-state 不可用且给了 profile → 回落旧视觉通道（门槛⑤ 的待收口项）
         try:
-            arr = ys_look.grab(0, 0, 2560, 1440)
+            prof = json.load(open(profile_path, encoding='utf-8'))
         except Exception as e:
-            print(f'✗ 抓帧失败：{e}', file=sys.stderr)
-            return 4
-        frame_bin = '/tmp/gui-state-live.bin'
-        (arr * 255).round().astype('uint8').tofile(frame_bin)
-    shot = os.path.abspath(shot) if shot else frame_bin
-
-    by_state = {}
-    for a in anchors:
-        by_state.setdefault(a['state'], []).append(a)
-
-    def run(jobs):
-        t = time.time()
-        req = {'cmd': 'batch', 'jobs': jobs}
-        if frame_bin:
-            req.update({'frame_bin': frame_bin, 'frame_shape': [1440, 2560, 3]})
+            print(f'✗ ys-state 失败（{r.get("error")}）且读不了 profile {profile_path}: {e}',
+                  file=sys.stderr)
+            return EXIT_UNSURE
+        note_once('state_legacy', '[gui state] 回落 legacy vision 通道（判据实现重复，门槛⑤ 待收口：'
+                                  '应删本段、全部走 ys-state）')
+        st, sc, live = vision_state(prof, frame)
+        if st is None:
+            print(f'✗ legacy 通道也失败（见 stderr 抓帧/daemon 报错）', file=sys.stderr)
+            return EXIT_UNSURE
+        margin = 0.0
+        d = {'state': st, 'score': sc, 'channel': 'legacy-vision', 'frame': frame,
+             'gui_state': {'source': 'legacy-vision', 'fast_ready': False}}
+        if args.print_state:
+            print(st)
+        elif args.json:
+            json.dump(d, open(args.json, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+            print(f'state={st}  score={sc:.3f}  通道=legacy-vision  证据: {args.json}')
         else:
-            req['frame'] = shot
-        r = ys_look.daemon(req)
-        if not r:
-            return None, 0.0
-        sc = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
-        return sc, (time.time() - t) * 1000
+            print(f'state={st}  score={sc:.3f}  通道=legacy-vision')
+        return EXIT_OK if (sc or 0) >= 0.85 else EXIT_UNSURE
 
-    def roi_job(a, pad=200):
-        x, y, p = a.get('x', 0), a.get('y', 0), a.get('patch', 96)
-        rx, ry = max(0, x - pad), max(0, y - pad)
-        return {'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0],
-                'roi': [rx, ry, p + 2 * pad, p + 2 * pad]}
-
-    # ① 快路径：每态取一个最强锚点（margin 最大者），家位 ROI
-    t0 = time.time()
-    tier1 = {st: max(lst, key=lambda a: a['margin']) for st, lst in by_state.items()}
-    sc1, ms1 = run([roi_job(a) for a in tier1.values()])
-    if sc1 is None:
-        print(f'✗ ys-lookd 不可用：{ys_look.LAST_DAEMON_ERROR}', file=sys.stderr)
-        return 4
-    per1 = {st: sc1.get(a['name'], 0.0) for st, a in tier1.items()}
-    r1 = sorted(per1.items(), key=lambda kv: -kv[1])
-    best1, second1 = r1[0], (r1[1] if len(r1) > 1 else ('-', 0.0))
-    fast_ok = best1[1] >= args.fast_score and (best1[1] - second1[1]) >= args.fast_margin
-    per, best, second, path, match_ms = per1, best1[1], second1[1], 'fast', ms1
-
-    # ② 慢路径：全部锚点 + 全帧（快路径不确定时才用）
-    if not fast_ok:
-        sc2, ms2 = run([{'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0]} for a in anchors])
-        if sc2 is None:
-            print(f'✗ ys-lookd 不可用：{ys_look.LAST_DAEMON_ERROR}', file=sys.stderr)
-            return 4
-        per2 = {st: max(sc2.get(a['name'], 0.0) for a in lst) for st, lst in by_state.items()}
-        r2 = sorted(per2.items(), key=lambda kv: -kv[1])
-        per = per2
-        best = r2[0][1]
-        second = r2[1][1] if len(r2) > 1 else 0.0
-        path = 'full'
-        match_ms = ms1 + ms2
-
-    ranked = sorted(per.items(), key=lambda kv: -kv[1])
-    pred = ranked[0][0]
-    margin = best - second
-    total = (time.time() - t_start) * 1000
-    print(f'state={pred}  score={best:.3f}  次高={ranked[1][0] if len(ranked) > 1 else "-"}'
-          f'({second:.3f})  余量={margin:.3f}  路径={path}  匹配={match_ms:.0f}ms  合计={total:.0f}ms')
-    if args.json:
-        json.dump({'state': pred, 'score': best, 'margin': margin, 'path': path,
-                   'all': dict(ranked), 'frame': shot, 'elapsed_ms': round(total)},
-                  open(args.json, 'w'), ensure_ascii=False, indent=1)
-    return 0 if margin >= args.min_margin else 6
+    st = r.get('state') or 'ERROR'
+    d = dict(r.get('raw') or {})
+    d.setdefault('state', st)
+    d['gui_state'] = {'source': 'ys-state', 'fast_ready': fast_ready,
+                      'frame': frame, 'rc': r.get('rc'), 'error': r.get('error'),
+                      'ms': round(r.get('ms') or 0)}
+    if r.get('error'):
+        d.setdefault('detail', r['error'])
+    if args.print_state:
+        print(st)
+    elif args.json:
+        json.dump(d, open(args.json, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print(f'state={st}  通道={d.get("channel", "compat-full")}  '
+              f'ms={round(r.get("ms") or 0)}  证据: {args.json}')
+    else:
+        print(f'state={st}  通道={d.get("channel", "compat-full")}  '
+              f'ms={round(r.get("ms") or 0)}  {d.get("detail", "")}'.rstrip())
+    # 退出码透传 ys-state（0/2/3/4/5）；无 JSON 可判时按取数失败 3
+    rc = r.get('rc')
+    if rc in (0, 2, 3, 4, 5):
+        return rc
+    return EXIT_ASSERT
 
 
 def main():
     ap = argparse.ArgumentParser(prog='gui', description='通用 GUI 操作层（最小骨架）')
     sub = ap.add_subparsers(dest='cmd')
+
     p = sub.add_parser('run', help='执行技能')
     p.add_argument('skill')
-    p.add_argument('--profile', help='视觉 profile（锚点目标需要）')
+    p.add_argument('--profile', help='视觉 profile（锚点目标/vision 判据需要）')
+    p.add_argument('--frame', action='append', default=[],
+                   help='离线帧 PNG（可重复=帧序列；断言不抓屏，供离线回归）')
+    p.add_argument('--state-backend', default='ys-state',
+                   help='判据通道：ys-state（缺省，契约 §1）| vision | cmd:<shell>')
+    p.add_argument('--click-backend', default='cu',
+                   choices=['cu', 'stub'], help='点击后端：cu（活体）| stub（桩，离线测试）')
+    p.add_argument('--tree', help='stub 后端的桩树文件（模拟 AT-SPI 树）')
+    p.add_argument('--max-step-wait', type=int, default=STEP_WAIT_MAX_MS,
+                   help=f'单步等待硬上限 ms（契约 ≤{STEP_WAIT_MAX_MS}；会被夹到该值）')
+    p.add_argument('--default-step-wait', type=int, default=STEP_WAIT_DEFAULT_MS,
+                   help='未写 timeout 的步骤等待 ms（缺省 8000）')
+    p.add_argument('--poll', type=int, default=250, help='轮询间隔 ms')
     p.add_argument('--dry-run', action='store_true', help='只解析不动作')
     p.add_argument('--json', default='/tmp/gui-run.json')
     p.add_argument('--var', action='append', default=[])
+
     p = sub.add_parser('lint', help='校验技能文件')
     p.add_argument('skill')
-    p = sub.add_parser('state', help='按 profile 判定当前界面态（视觉通道）')
-    p.add_argument('profile')
-    p.add_argument('--window')
-    p.add_argument('--frame', help='用已有截图（离线）')
-    p.add_argument('--json')
-    p.add_argument('--min-margin', type=float, default=0.15)
-    p.add_argument('--fast-score', type=float, default=0.85)
-    p.add_argument('--fast-margin', type=float, default=0.15)
+
+    p = sub.add_parser('state', help='界面态（薄封装：只调 ys-state，契约 §1）')
+    p.add_argument('profile_pos', nargs='?', help='（兼容旧用法）视觉 profile 路径')
+    p.add_argument('--profile', help='视觉 profile（透传 ys-state；legacy 回退用）')
+    p.add_argument('--frame', action='append', default=[], help='离线帧 PNG（不抓屏）')
+    p.add_argument('--json', help='把判定结果写到这里')
+    p.add_argument('--print-state', action='store_true', help='只打印态名')
+    p.add_argument('--channel', choices=['fast', 'full'], default='fast')
+    p.add_argument('--legacy', action='store_true', help='强制旧 vision 通道（回归用）')
+    p.add_argument('--timeout', type=float, default=60.0)
+
     p = sub.add_parser('show', help='打印技能')
     p.add_argument('skill')
+
     a = ap.parse_args()
     if not a.cmd:
         ap.print_help()
-        return 2
+        return EXIT_USAGE
     return {'run': cmd_run, 'lint': cmd_lint, 'show': cmd_show, 'state': cmd_state}[a.cmd](a)
 
 

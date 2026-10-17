@@ -1,0 +1,10 @@
+{
+  "id": "selftest.f4-happy-path",
+  "app": "stub",
+  "steps": [
+    {"act": "click", "target": {"role": "button", "name": "开始游戏"}},
+    {"act": "assert", "text": "开始游戏"},
+    {"act": "assert", "state": "PLAYTEST", "timeout": 5}
+  ],
+  "post": {"state": "PLAYTEST", "timeout": 5}
+}

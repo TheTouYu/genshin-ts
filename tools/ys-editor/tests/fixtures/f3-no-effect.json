@@ -1,0 +1,8 @@
+{
+  "id": "selftest.f3-no-effect",
+  "app": "stub",
+  "steps": [
+    {"act": "click", "target": {"role": "button", "name": "开始游戏"}}
+  ],
+  "post": {"state": "PLAYTEST", "timeout": 5}
+}

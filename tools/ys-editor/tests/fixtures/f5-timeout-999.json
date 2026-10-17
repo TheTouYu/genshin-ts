@@ -1,0 +1,7 @@
+{
+  "id": "selftest.f5-timeout-999",
+  "app": "stub",
+  "steps": [
+    {"act": "assert", "state": "PLAYTEST", "timeout": 999}
+  ]
+}
