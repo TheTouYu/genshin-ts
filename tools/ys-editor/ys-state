@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+"""ys-state — 全界面态判据机（gui-stack 票 02）
+
+设计依据（`.scratch/gui-stack/DESIGN.md` §三 L1）：
+  · **每态至少两个独立判据**，投票；不一致报 AMBIGUOUS 而不是猜一个
+  · 判据必须**可回归**——`--regress` 跑已知截图集，改坏了当场红
+  · 反例必须进回归集：当天「草地阴影被误判成存档页」的那一帧是头号样本
+
+为什么要有它：当天导航脚本靠一个单判据（只看暗度）判断"我在存档页"，
+而**草地阴影也够暗** ⇒ 脚本以为已在存档页，**跳过了整段导航**，
+之后每一步都建立在错误前提上。本工具让这种误判在**改动的当刻**就暴露。
+
+用法:
+  ys-state                     # 抓当前画面判定（经 ys-observe 取帧，带新鲜度校验）
+  ys-state --json              # 附每个判据的读数
+  ys-state --frame <png>       # 对指定图片判定（离线，回归用）
+  ys-state --regress           # 跑 calib/regress/manifest.tsv 全部样本
+退出码: 0 判定成功 / 2 AMBIGUOUS / 3 取帧失败 / 4 UNKNOWN / 5 回归有失败项
+"""
+import json
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import numpy as np  # noqa: E402
+from ys_look import ncc  # noqa: E402
+
+TPL = os.path.join(HERE, "templates")
+REG = os.path.join(HERE, "calib", "regress")
+WIN = os.environ.get("YS_WIN", "0x01400001")
+TPL_THRESHOLD = 0.90
+
+
+# ── 图像读取与探针 ────────────────────────────────────────────────
+def load(path):
+    path = os.path.abspath(path)
+    if not os.path.exists(path):
+        raise FileNotFoundError(path)
+    d = subprocess.run(["identify", "-format", "%w %h", path],
+                       capture_output=True, text=True).stdout.split()
+    w, h = int(d[0]), int(d[1])
+    b = subprocess.run(["magick", path, "-depth", "8", "rgb:-"],
+                       capture_output=True).stdout
+    return np.frombuffer(b, dtype=np.uint8).reshape(h, w, 3)
+
+
+def px(img, x, y):
+    return [int(v) for v in img[y, x]]
+
+
+def tpl_score(img, name):
+    p = os.path.join(TPL, name)
+    if not os.path.exists(p):
+        return -1.0  # 模板缺失 ⇒ 判据不可用（由调用方标记 SUSPECT）
+    t = load(p).astype(np.float32) / 255.0
+    i = img.astype(np.float32) / 255.0
+    if i.shape[0] < t.shape[0] or i.shape[1] < t.shape[1]:
+        return -1.0
+    _, _, s, _ = ncc(i, t)
+    return float(s)
+
+
+def green_dominant(c):
+    r, g, b = c
+    return g > r and g > b
+
+
+def blue_dominant(c):
+    r, g, b = c
+    return b > g and b > r
+
+
+# ── 判据表：每态两条独立判据 ──────────────────────────────────────
+def judges(img):
+    """返回 {判据名: (bool, 读数说明)}。判据名里带态前缀。
+
+    阈值不是拍的——是拿 7 张回归样本逐点量出来的（见 calib/regress/manifest.tsv）。
+    模板判别力实测（目标态 vs 其它态最高分）：
+      sidebar-save-mgr 1.00 vs 0.71 ｜ playtest-mark 1.00 vs 0.86 ｜ save-card-title 1.00 vs 0.71
+      pause-abort 1.00 vs 0.73 ｜ pause-resume 1.00 vs 0.82 ｜ settle-leave 1.00 vs 0.56
+    """
+    j = {}
+    c300 = px(img, 300, 300)          # 系统菜单面板 / 各态背景
+    c100_400 = px(img, 100, 400)      # 编辑器草地 / 游戏内天空
+    c640_1300 = px(img, 640, 1300)    # 存档页底栏蓝按钮（其它态都不是亮蓝）
+    c1280_100 = px(img, 1280, 100)    # 结算页白卡顶（唯一纯白处）
+
+    def tpl(name):
+        return tpl_score(img, name)
+
+    s_sidebar, s_save, s_play = tpl("sidebar-save-mgr.png"), tpl("save-card-title.png"), tpl("playtest-mark.png")
+    s_abort, s_resume, s_leave = tpl("pause-abort.png"), tpl("pause-resume.png"), tpl("settle-leave.png")
+
+    j["MENU/A px(300,300) 三通道>200"] = (all(v > 200 for v in c300), f"{c300}")
+    j["MENU/B 侧栏存档管理图标"] = (s_sidebar >= TPL_THRESHOLD, f"score={s_sidebar:.3f}")
+
+    # 亮蓝底栏：存档页独有（settle 的 B=197 达不到 200，实测卡得很紧但成立）
+    j["SAVELIST/A px(640,1300) 亮蓝底栏"] = (
+        c640_1300[2] > 200 and c640_1300[2] > c640_1300[0] + 80, f"{c640_1300}")
+    j["SAVELIST/B 存档卡标题模板"] = (s_save >= TPL_THRESHOLD, f"score={s_save:.3f}")
+
+    # 游戏内天空：蓝主导且够亮（存档页/结算页的暗蓝 G 很低，靠 G>100 排除）
+    j["PLAYTEST/A 奇域试玩中水印"] = (s_play >= TPL_THRESHOLD, f"score={s_play:.3f}")
+    j["PLAYTEST/B px(100,400) 蓝主导且亮"] = (
+        c100_400[2] > c100_400[1] and c100_400[1] > 100, f"{c100_400}")
+
+    j["PAUSE/A 中断挑战按钮"] = (s_abort >= TPL_THRESHOLD, f"score={s_abort:.3f}")
+    j["PAUSE/B 继续挑战按钮"] = (s_resume >= TPL_THRESHOLD, f"score={s_resume:.3f}")
+
+    j["SETTLE/A px(1280,100) 纯白卡顶"] = (all(v > 250 for v in c1280_100), f"{c1280_100}")
+    j["SETTLE/B 离开按钮模板"] = (s_leave >= TPL_THRESHOLD, f"score={s_leave:.3f}")
+
+    # EDITOR 是兜底态：草地绿主导（正判据）
+    j["EDITOR/A px(100,400) 绿主导"] = (
+        c100_400[1] > c100_400[0] and c100_400[1] > c100_400[2], f"{c100_400}")
+    return j
+
+
+# 子态层级：PAUSE / SETTLE 是 PLAYTEST 的子态（都在游戏里）。
+# 声明它是为了让"SAME 时刻既像 PLAYTEST 又像 PAUSE"**不算矛盾**——取更具体的那个。
+# 未声明层的态之间同时成立才是真矛盾 → AMBIGUOUS。
+SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
+
+
+def decide(j):
+    """按态聚合投票。返回 (state, detail)。"""
+    specific = ["SETTLE", "PAUSE", "PLAYTEST", "SAVELIST", "MENU"]
+    fired = {}
+    for st in specific:
+        hits = [k for k in j if k.startswith(st + "/") and j[k][0]]
+        if hits:
+            fired[st] = hits
+    # 用声明好的层级消解"父态 vs 子态"的重叠
+    for sub, sup in SUBSTATE_OF.items():
+        if sub in fired and sup in fired:
+            del fired[sup]
+    if len(fired) == 1:
+        st = next(iter(fired))
+        return st, f"{len(fired[st])}/2 判据成立: {fired[st]}"
+    if len(fired) > 1:
+        return "AMBIGUOUS", f"多个非同层态同时成立: {fired}"
+    if j["EDITOR/A px(100,400) 绿主导"][0]:
+        return "EDITOR", "EDITOR/A 成立且无其它态判据成立"
+    return "UNKNOWN", "无任何判据成立"
+
+
+def judges_of(img):
+    j = judges(img)
+    st, detail = decide(j)
+    return st, detail, j
+
+
+# ── 主流程 ────────────────────────────────────────────────────────
+def get_frame():
+    """经 ys-observe 取帧（唯一取数入口，带新鲜度校验）。"""
+    r = subprocess.run([os.path.join(HERE, "ys-observe"), "frame"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stderr.write(r.stdout + r.stderr)
+        return None, None
+    d = json.loads(r.stdout.strip().splitlines()[-1])
+    return d["path"], d
+
+
+def main():
+    args = sys.argv[1:]
+    as_json = "--json" in args
+
+    if "--regress" in args:
+        man = os.path.join(REG, "manifest.tsv")
+        if not os.path.exists(man):
+            sys.stderr.write(f"缺少回归清单 {man}\n"); sys.exit(3)
+        fails, total = [], 0
+        print(f"══ ys-state 回归（{man}）══")
+        for line in open(man, encoding="utf-8"):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            fn, want, desc = (line.split("\t") + ["", ""])[:3]
+            p = os.path.join(REG, fn)
+            if not os.path.exists(p):
+                print(f"  ✗ {fn:30s} 样本缺失"); fails.append(fn); total += 1; continue
+            st, detail, _ = judges_of(load(p))
+            total += 1
+            if st == want:
+                print(f"  ✓ {fn:30s} → {st:10s} ({desc})")
+            else:
+                print(f"  ✗ {fn:30s} → {st:10s} 期望 {want}  [{detail}]  ({desc})")
+                fails.append(fn)
+        print("─" * 50)
+        if fails:
+            print(f"✗ {len(fails)}/{total} 失败: {fails}"); sys.exit(5)
+        print(f"✓ 回归全绿（{total}/{total}）"); sys.exit(0)
+
+    if "--frame" in args:
+        p = args[args.index("--frame") + 1]
+        img = load(p)
+        st, detail, j = judges_of(img)
+    else:
+        p, meta = get_frame()
+        if not p:
+            sys.exit(3)
+        img = load(p)
+        st, detail, j = judges_of(img)
+
+    if as_json:
+        print(json.dumps({"state": st, "detail": detail,
+                          "judges": {k: {"pass": v[0], "reading": v[1]}
+                                     for k, v in j.items()},
+                          "frame": p}, ensure_ascii=False))
+    else:
+        print(st)
+        if st in ("AMBIGUOUS", "UNKNOWN"):
+            print(f"  {detail}", file=sys.stderr)
+    sys.exit(2 if st == "AMBIGUOUS" else 4 if st == "UNKNOWN" else 0)
+
+
+if __name__ == "__main__":
+    main()

@@ -17,6 +17,7 @@
 #   ys-observe px <x> <y>                 # 单点像素
 #   ys-observe region <x> <y> <w> <h>     # 区域差分（与上一帧比）
 #   ys-observe liveness                   # 管线活性探针
+#   ys-observe frame                      # 抓一帧并打印其绝对路径（供上层复用同一帧）
 #   ys-observe --raise px <x> <y>         # 先抬升窗口再取数（会抢焦点，显式才做）
 #   ys-observe --json px 300 300          # （默认即 JSON）
 set -u
@@ -128,7 +129,12 @@ case "$MODE" in
     printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"spectacle-fullscreen","at":"%s"}\n' \
       "$X" "$Y" "$W" "$H" "${DIFF:-0}" "$STATIC" "$FID" "$WIN" "$ATOP" "$AT"
     ;;
-  *) die BAD_MODE "未知模式 $MODE（px|region|liveness）" 3;;
+  frame)
+    # 供上层组件（ys-state 等）复用同一帧：打印缓存帧的绝对路径，避免各自重复抓图
+    printf '{"kind":"frame","path":"%s","fresh":true,"reused":%s,"static":%s,"diffFromPrev":%s,"window":"%s","atop":%s,"at":"%s"}\n' \
+      "$CUR" "$REUSED" "$STATIC" "${DIFF:-0}" "$WIN" "$ATOP" "$AT"
+    ;;
+  *) die BAD_MODE "未知模式 $MODE（px|region|liveness|frame）" 3;;
 esac
 
 cp -f "$CUR" "$PREV" 2>/dev/null || true

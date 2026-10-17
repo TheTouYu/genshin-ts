@@ -1,0 +1,8 @@
+# 文件名	期望态	说明
+menu.png	MENU	编辑器系统菜单（侧栏 + 浅灰面板）
+savelist.png	SAVELIST	存档选择页（深蓝紫）
+editor-grass-shadow.png	EDITOR	★ 当天被误判成 SAVELIST 的草地阴影帧
+playtest.png	PLAYTEST	游戏内（右下奇域试玩中水印）
+playtest2.png	PLAYTEST	游戏内（平台跳跃，另一场景）
+pause.png	PAUSE	试玩暂停菜单（继续/重新/中断挑战）
+settle.png	SETTLE	结算页（中央白卡 + 离开按钮）

@@ -20,6 +20,10 @@ def grab(x, y, w, h):
         raise RuntimeError(f"截取失败 ({a.size} != {w*h*3})")
     return a.reshape(h, w, 3).astype(np.float32) / 255.0
 
+# NCC 的有效性下限：搜索块/模板的标准差至少要有一个灰阶的变化（1/255）。
+# 低于此值的块是"平坦"的，NCC 在那里无定义——必须判为不匹配，否则浮点噪声会造出假命中。
+MIN_STD = 1.0 / 255.0
+
 def _ncc_np(I, T):
     """numpy FFT + 积分图 的精确 NCC（O(N log N)，无 Python 双层循环）"""
     H, W, C = I.shape; h, w, _ = T.shape
@@ -38,8 +42,20 @@ def _ncc_np(I, T):
     S2 = P2[h:, w:] - P2[:-h, w:] - P2[h:, :-w] + P2[:-h, :-w]
     n = h * w * C
     den = np.sqrt(np.maximum(S2 - S1 * S1 / n, 0.0))
-    Tn = np.sqrt(float(((T - T.mean()) ** 2).sum()))
-    ncc = cross / np.maximum(den * Tn, 1e-9)
+    Tn = float(np.sqrt(float(((T - T.mean()) ** 2).sum())))
+    # 2026-10-17 修：**分母接近 0 时 NCC 是未定义的，不是"很大"**。
+    # 旧写法 np.maximum(den*Tn, 1e-9) 把未定义变成了 4e9 这种天文数字，
+    # 而调用方的 `score >= 0.9` 阈值会把它**当成命中**——实测：一张深蓝紫的存档页
+    # 让 40×40 的侧栏图标模板报出 score=4055667456，于是"侧栏图标 ⇒ 系统菜单"这条判据
+    # 在存档页/结算页全部误触发。
+    # 正确语义（fail closed）：未定义 ⇒ 不匹配(0)；NCC 数学上有界 ⇒ 截到 [-1,1]。
+    # 有效性的正确判据是「块内至少有 1 个灰阶的变化」，不是"分母 > 某个小数"：
+    # 完全均匀的块（实测 settle.png 该处 std=0）上 NCC 无意义，浮点噪声照样能算出 1.0。
+    den_min = np.sqrt(float(n)) * MIN_STD
+    valid = (den > den_min) & (Tn > np.sqrt(float(h * w * C)) * MIN_STD)
+    ncc = np.zeros_like(cross)
+    ncc[valid] = cross[valid] / (den[valid] * Tn)
+    ncc = np.clip(ncc, -1.0, 1.0)
     yy, xx = np.unravel_index(int(np.argmax(ncc)), ncc.shape)
     return int(xx), int(yy), float(ncc[yy, xx]), "cpu-fft"
 
@@ -64,7 +80,12 @@ def _ncc_gpu(I, T):
     S2 = P2[h:, w:] - P2[:-h, w:] - P2[h:, :-w] + P2[:-h, :-w]
     n = h * w * C
     den = (S2 - S1 * S1 / n).clamp_min(0).sqrt()
-    ncc = cross / (den * Tn).clamp_min(1e-9)
+    # 同 _ncc_np：未定义 ⇒ 不匹配(0)，且截到 [-1,1]（2026-10-17 修，见 CPU 版注释）
+    den_min = (float(n) ** 0.5) * MIN_STD
+    valid = (den > den_min) & (Tn > (float(h * w * C) ** 0.5) * MIN_STD)
+    ncc = torch.zeros_like(cross)
+    ncc[valid] = cross[valid] / (den[valid] * Tn)
+    ncc = ncc.clamp(-1.0, 1.0)
     idx = int(ncc.argmax()); W2 = ncc.shape[1]
     y, x = divmod(idx, W2)
     return x, y, round(float(ncc.max().item()), 6), "gpu-cuda"

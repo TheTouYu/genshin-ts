@@ -17,7 +17,7 @@
 
 ## ② 当前前沿
 
-**票 02（ys-state 状态层 + 回归集）** —— 下一票；票 01 已闭环。
+**票 03（ys-do 动作层 + 动作账本）** —— 下一票；票 01/02 已闭环。
 
 > **用户裁决（2026-10-17）**：① 阶段 A 按 **4 票**走（01-04，不合并）；② 阶段 A 期间**完全不碰地图**
 > （避免「半成品地图 + 换栈」双向失血）；③ 票 08（ys-probe）**保留但排最后**。
@@ -29,7 +29,7 @@
 | # | 票 | blocked by | 状态 |
 |---|---|---|---|
 | 01 | [ys-observe 观测层](issues/01-observe.md) | — | ✅ |
-| 02 | [ys-state 状态层 + 回归集](issues/02-state.md) | — | ⬜ |
+| 02 | [ys-state 状态层 + 回归集](issues/02-state.md) | — | ✅ |
 | 03 | [ys-do 动作层 + 动作账本](issues/03-do.md) | 01,02 | ⬜ |
 | 04 | [ys-loop 编排层 + M4 产物监控](issues/04-loop.md) | 03 | ⬜ |
 
@@ -51,6 +51,15 @@
 
 ## ④ 已完成划掉区
 
+- ~~**02 ys-state 状态层 + 回归集**~~ ✅ 2026-10-17
+  - `tools/ys-editor/ys-state`：7 态（MENU/SAVELIST/EDITOR/PLAYTEST/PAUSE/SETTLE/UNKNOWN），每态 2 判据
+  - **回归集 `calib/regress/`（7 样本）全绿**，含当天那个「草地阴影被误判成 SAVELIST」的头号反例
+  - 子态层级 `PAUSE/SETTLE ⊂ PLAYTEST` 声明化 ⇒ 父态子态重叠不算矛盾；非同层同时成立才报 AMBIGUOUS
+  - 阈值全部由 7 样本逐点量出（非拍脑袋）：sidebar 1.00 vs 0.71｜playtest-mark 1.00 vs 0.86｜
+    save-card-title 1.00 vs 0.71｜pause-abort 1.00 vs 0.73｜pause-resume 1.00 vs 0.82｜settle-leave 1.00 vs 0.56
+  - **修掉 ncc 未定义语义 bug**（平坦块上返回 4e9 被当成命中）——影响面超出本票
+  - `tests/ncc.selftest.sh` + `ys-state --regress`
+
 - ~~**01 ys-observe 观测层**~~ ✅ 2026-10-17
   - `tools/ys-editor/ys-observe`：唯一取数入口，读数带新鲜度证明
   - **拒绝而非撒谎**：原神不在栈顶 → `NOT_ATOP` + 退出 2，**不返回像素值**（正是今天踩的坑）
@@ -68,3 +77,4 @@
 |---|---|---|---|
 | 基线（2026-10-17） | 全部（无账本） | 3（EDITOR/MENU/SAVE 各单判据） | 5 / 3 / 1 / 0 |
 | 票 01 后 | 全部（账本待票 03） | 3 | 仪器新增 2 条已修（ys-wins 无 id 误判 / magick 钳制坐标） |
+| 票 02 后 | 全部（账本待票 03） | **0**（7 态各 2 判据） | 判据新增 1 条已修（ncc 平坦块未定义） |
