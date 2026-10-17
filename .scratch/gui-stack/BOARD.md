@@ -17,7 +17,7 @@
 
 ## ② 当前前沿
 
-**票 03（ys-do 动作层 + 动作账本）** —— 下一票；票 01/02 已闭环。
+**票 04（ys-loop 编排层 + M4 产物监控）** —— 下一票；票 01/02/03 已闭环。
 
 > **用户裁决（2026-10-17）**：① 阶段 A 按 **4 票**走（01-04，不合并）；② 阶段 A 期间**完全不碰地图**
 > （避免「半成品地图 + 换栈」双向失血）；③ 票 08（ys-probe）**保留但排最后**。
@@ -30,7 +30,7 @@
 |---|---|---|---|
 | 01 | [ys-observe 观测层](issues/01-observe.md) | — | ✅ |
 | 02 | [ys-state 状态层 + 回归集](issues/02-state.md) | — | ✅ |
-| 03 | [ys-do 动作层 + 动作账本](issues/03-do.md) | 01,02 | ⬜ |
+| 03 | [ys-do 动作层 + 动作账本](issues/03-do.md) | 01,02 | ✅ |
 | 04 | [ys-loop 编排层 + M4 产物监控](issues/04-loop.md) | 03 | ⬜ |
 
 ### 阶段 B：监控与自进化（P1）
@@ -50,6 +50,15 @@
 | 10-12 | game① 完整可玩 / game② / game③（**待 09 完成后拆票**） | 09 | 未拆 |
 
 ## ④ 已完成划掉区
+
+- ~~**03 ys-do 动作层 + 动作账本**~~ ✅ 2026-10-17
+  - `tools/ys-editor/ys-do`：意图级动作 + 账本（append-only JSONL，jq 可解析）
+  - **试玩进出全链路打通**：`playtest-start`（EDITOR→MENU→试玩→PLAYTEST）与
+    `playtest-stop`（→SETTLE→EDITOR + **新日志落盘**）双通，退出码 0
+  - 真因（卡了数小时）：我手写点击的两处错误——① 指针走 `xdotool mousemove` 在 Xwayland 下**无效**
+    （可用的是 `ydotool mousemove` 相对+闭环）② 游戏内 UI 按住必须 **≥500ms**（6~11 FPS，130ms 被吞）
+  - 载入时校验「不存在没有 post 判据的动作」；`only_if_state` 条件步；后置态**轮询**（退出到编辑器 >10s）
+  - 新控件类型 `signature`：为低纹理 UI 准备（结算页模板余量仅 0.02，不可用）
 
 - ~~**02 ys-state 状态层 + 回归集**~~ ✅ 2026-10-17
   - `tools/ys-editor/ys-state`：7 态（MENU/SAVELIST/EDITOR/PLAYTEST/PAUSE/SETTLE/UNKNOWN），每态 2 判据
@@ -78,3 +87,4 @@
 | 基线（2026-10-17） | 全部（无账本） | 3（EDITOR/MENU/SAVE 各单判据） | 5 / 3 / 1 / 0 |
 | 票 01 后 | 全部（账本待票 03） | 3 | 仪器新增 2 条已修（ys-wins 无 id 误判 / magick 钳制坐标） |
 | 票 02 后 | 全部（账本待票 03） | **0**（7 态各 2 判据） | 判据新增 1 条已修（ncc 平坦块未定义） |
+| 票 03 后 | **0**（账本覆盖 playtest-start/stop 全步） | 0（回归 **9/9** 全绿） | 仪器 2 条已修（指针通道 / 按住时长）；判据 2 条已修（SAVELIST、SETTLE 在游戏内误触发） |
