@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""ys-map — 确定性地在地图之间切换（带身份核验）
+
+存在理由（2026-10-17 两起事故）：
+  ① `ys-switch-save` 点的是「存档列表第 2 位」，而第 2 位是"当前图之外"的那张
+     ⇒ 这是**奇偶切换**：一次方向反了，之后步步反着走。盲切导致编辑器把**内存里的旧版**
+     写回磁盘，静默覆盖掉 CLI 刚写进去的新版（实测 CLI 写入 297ee054 → 切回后变 8992a1eb）。
+  ② 旧写法无条件先按 ESC，但系统菜单**已经开着**时 ESC 会把它**关掉**，之后的点击全落空。
+  ⇒ 本工具把「按当前态决定动作」+「每次切换后用身份判据核验」固化成代码。
+
+用法:
+  ys-map where         打印当前身份（MY_MAP / OTHER_MAP / UNKNOWN）
+  ys-map enter         确保停在「我的图」
+  ys-map leave         确保停在「别的图」（写盘前的安全状态）
+  ys-map switch        切一次（不核验，调试用）
+退出码: 0 到位 / 1 未到位 / 2 到不了存档页
+"""
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
+DISPLAY = os.environ.get("DISPLAY", ":1")
+
+
+def tool(name, *args, timeout=240):
+    return subprocess.run([os.path.join(HERE, name), *[str(a) for a in args]],
+                          capture_output=True, text=True, timeout=timeout,
+                          env=dict(os.environ, DISPLAY=DISPLAY))
+
+
+def click(x, y, hold=0.5):
+    env = dict(os.environ, DISPLAY=DISPLAY, YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
+    return subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(x), str(y)],
+                          env=env, capture_output=True, text=True, timeout=180).returncode == 0
+
+
+def send_key(code, hold=0.12):
+    env = dict(os.environ, DISPLAY=DISPLAY, YS_SLOT_ACTIVE="1")
+    subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=30)
+    time.sleep(hold)
+    subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
+
+
+def state():
+    r = tool("ys-state", timeout=200)
+    if r.returncode == 3:
+        return "UNOBSERVABLE"
+    ls = r.stdout.strip().splitlines()
+    return ls[-1] if ls else "UNKNOWN"
+
+
+def where():
+    r = tool("ys-where2", timeout=240)
+    ls = r.stdout.strip().splitlines()
+    return ls[-1] if ls else "UNKNOWN"
+
+
+def raise_game():
+    subprocess.run([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE],
+                   capture_output=True, timeout=60, env=dict(os.environ, DISPLAY=DISPLAY))
+    time.sleep(1)
+
+
+def open_save_list(max_try=6):
+    """导航到存档选择页。**按当前态决定动作**——ESC 是切换语义，不是"打开"。"""
+    for i in range(max_try):
+        st = state()
+        if st == "SAVELIST":
+            return True, f"第 {i+1} 次探测已在存档页"
+        if st == "MENU":
+            click(41, 175)          # 侧栏「存档管理」
+            time.sleep(7)
+        elif st == "UNOBSERVABLE":
+            raise_game()
+        else:
+            send_key(1)             # 编辑器态 → ESC 开系统菜单
+            time.sleep(3)
+    return state() == "SAVELIST", f"6 次后仍是 {state()}"
+
+
+def switch_once():
+    ok, detail = open_save_list()
+    if not ok:
+        return False, detail
+    click(1635, 387); time.sleep(5)     # 列表第 2 位卡的「编辑」
+    click(1439, 812); time.sleep(35)    # 「加载存档」确认 + 等载入
+    return True, "已切换"
+
+
+def goto(want, max_try=5):
+    for i in range(1, max_try + 1):
+        raise_game()
+        w = where()
+        if w == want:
+            return True, f"第 {i} 次探测即到位（{w}）"
+        ok, detail = switch_once()
+        if not ok:
+            return False, f"第 {i} 次切换失败：{detail}"
+    w = where()
+    return w == want, f"{max_try} 次后仍是 {w}"
+
+
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "where"
+    if cmd == "where":
+        raise_game(); print(where()); return 0
+    if cmd == "switch":
+        ok, d = switch_once(); print(("✓ " if ok else "✗ ") + d); return 0 if ok else 1
+    if cmd in ("enter", "leave"):
+        want = "MY_MAP" if cmd == "enter" else "OTHER_MAP"
+        ok, d = goto(want)
+        print(("✓ " if ok else "✗ ") + d)
+        return 0 if ok else 1
+    print(__doc__); return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

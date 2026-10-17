@@ -40,9 +40,12 @@ GEOM=$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')
 # ⚠️ ys-wins 的输出是「标题 | WM_CLASS | 几何」，**不含窗口 id**——
 #    早期版本的 bug 就是拿 grep "$WIN"（十六进制 id）去匹配这个列表，永远匹配不到，
 #    于是 --raise 明明抬起来了还判 NOT_ATOP。正确判据：栈顶那一行的**标题**含目标标题。
-atop_line() { timeout 20 "$HERE/ys-wins" 2>/dev/null | tail -1; }
-ATOP=false
-case "$(atop_line)" in *"${YS_WIN_TITLE:-原神}"*) ATOP=true;; esac
+# ⚠️ 不能拿 `ys-wins | tail -1` 当栈顶——那**永远是 plasmashell 的任务栏面板**（1707×62），
+# 于是「原神在不在栈顶」长期被误判成"不在"（2026-10-17 实测：一连串 NOT_ATOP 全是假警报）。
+# 正确判据交给 ys-atop：忽略面板/小窗，取剩下里最上层的那个。
+atop_ok() { timeout 30 "$HERE/ys-atop" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1; }
+atop_line() { timeout 30 "$HERE/ys-atop" "${YS_WIN_TITLE:-原神}" 2>/dev/null; }
+ATOP=false; atop_ok && ATOP=true
 # 默认**不**自动抬升：抬升会抢用户正在用的桌面焦点（项目桌面协议）。
 # 需要抬升时由调用方显式 --raise（见下），或在槽内先抬好再调本工具。
 RAISE=0
@@ -51,7 +54,7 @@ if [ "$ATOP" != "true" ] && [ "$RAISE" = "1" ]; then
   # ⚠️ ys-kwin-raise 的第一个参数是**标题子串**（如「原神」），不是窗口 id
   timeout 25 "$HERE/ys-kwin-raise" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1 || true
   sleep 1
-  case "$(atop_line)" in *"${YS_WIN_TITLE:-原神}"*) ATOP=true;; esac
+  atop_ok && ATOP=true
 fi
 
 # ── ③ 合成器全屏抓图（比逐窗缓冲可信）

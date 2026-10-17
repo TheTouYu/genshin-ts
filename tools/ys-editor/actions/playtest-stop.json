@@ -28,7 +28,13 @@
       "only_if_state": [
         "PAUSE",
         "PLAYTEST"
-      ]
+      ],
+      "on_miss": {
+        "keys": [
+          1
+        ],
+        "wait": 3.5
+      }
     },
     {
       "locate": "settle-leave",
@@ -38,8 +44,9 @@
   ],
   "artifacts": [
     {
-      "desc": "5 分钟内出现新 .gia 调试日志",
-      "check": "test -n \"$(find \"$GSTS_LOCALLOW_DIR/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log\" -name '*.gia' -newermt '-5 minutes' 2>/dev/null | head -1)\""
+      "desc": "（提示）5 分钟内出现新 .gia 调试日志 —— 不作硬判据，硬判据在 ys-loop",
+      "check": "find \"$GSTS_LOCALLOW_DIR/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log\" -name '*.gia' -newermt '-5 minutes' 2>/dev/null | head -1 | grep -q .",
+      "soft": true
     }
   ]
 }

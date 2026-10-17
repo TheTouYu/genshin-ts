@@ -1,0 +1,23 @@
+#!/bin/bash
+# ys-atop — 判定目标窗是否是**栈顶的最大窗口**（不是"栈顶那行是不是它"）
+#
+# 存在理由（2026-10-17 实测）：`ys-wins | tail -1` 的栈顶**永远是 plasmashell 的任务栏面板**
+# （1707×62），于是「原神是否在栈顶」长期被误判成"不在"——而实际画面可能是好的。
+# 正确判据：忽略面板/小窗（高度 < 200 或宽度 < 800），取**剩下里最上层**的那个。
+#
+# 用法: ys-atop [窗口标题子串]        退出码 0=在栈顶 / 1=被压住 / 2=找不到窗口
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+WANT="${1:-${YS_WIN_TITLE:-原神}}"
+LINE=$(timeout 30 "$HERE/ys-wins" 2>/dev/null | awk -F'|' '
+  {
+    geo=$3; if (match(geo, /([0-9]+)x([0-9]+)/, m)) { h=m[2]+0; w=m[1]+0 } else next
+    if (h < 200 || w < 800) next          # 跳过面板/小窗
+    top=$0
+  }
+  END { print top }')
+[ -z "${LINE:-}" ] && { echo "NONE"; exit 2; }
+case "$LINE" in
+  *"$WANT"*) echo "${LINE%%|*}"; exit 0;;
+  *) echo "${LINE%%|*}"; exit 1;;
+esac

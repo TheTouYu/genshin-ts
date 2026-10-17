@@ -36,6 +36,7 @@ GSTS_LOCALLOW = os.environ.get("GSTS_LOCALLOW_DIR", "")
 UID = os.environ.get("YS_UID", "110170759")
 MAP_ID = os.environ.get("YS_MAP_ID", "1073741832")
 WIN = os.environ.get("YS_WIN", "0x01400001")
+WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
 LOG_DIR = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID, "Beyond_Debug_Log")
 SAVE = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID,
                     "Beyond_Local_Save_Level", MAP_ID, f"{MAP_ID}.gil")
@@ -82,24 +83,36 @@ def send_key(code):
     subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
 
 
-def switch_map_once():
-    """走一次「切走/切回」：ESC 开系统菜单 → 存档管理 → 列表第 2 位「编辑」→ 确认。
+def raise_game():
+    """把原神抬到栈顶并取焦点（注入前必做）。"""
+    subprocess.run([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE],
+                   capture_output=True, timeout=60,
+                   env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":1")))
+    time.sleep(1)
 
-    ⚠️ 这是**奇偶切换**（第 2 位永远是「当前图之外」的那张），所以必须每步用身份判据核验，
-    不能靠"切一次应该就到"。2026-10-17 实测：一次失手奇偶就翻，之后步步反着走。"""
-    send_key(1); time.sleep(3)
-    click(41, 175); time.sleep(7)      # 侧栏「存档管理」
-    click(1635, 387); time.sleep(5)    # 列表第 2 位卡的「编辑」
-    click(1439, 812); time.sleep(35)   # 「加载存档」确认 + 等地图载入
+
+def state():
+    """判当前界面态。退出码 3（取不到新鲜帧）单独区分成 UNOBSERVABLE。"""
+    r = tool("ys-state", timeout=200)
+    if r.returncode == 3:
+        return "UNOBSERVABLE"
+    ls = r.stdout.strip().splitlines()
+    return ls[-1] if ls else "UNKNOWN"
+
+
+def _ysmap(action):
+    r = tool("ys-map", action, timeout=900)
+    return r.returncode == 0, (r.stdout.strip().splitlines() or [""])[-1][:80]
 
 
 def goto_my_map(max_try=4):
-    for i in range(1, max_try + 1):
-        w = where2()
-        if w == "MY_MAP":
-            return True, f"第 {i} 次探测即到位"
-        switch_map_once()
-    return where2() == "MY_MAP", f"{max_try} 次后仍是 {where2()}"
+    """导航权威 = `ys-map`（带身份核验）。本文件不再自己实现点击序列。"""
+    return _ysmap("enter")
+
+
+def leave_my_map(max_try=4):
+    """离开我的图 —— 必须核验。理由见 ys-map 的文档注释（盲切会把 CLI 改动静默覆盖）。"""
+    return _ysmap("leave")
 
 
 def main():
@@ -137,15 +150,31 @@ def main():
     if not step("focus", "OK active" in r.stdout, r.stdout.strip()[:80]):
         fail = 4
 
+    # ⓪ 开轮前置：**确保不在试玩里**——上一轮若退出失败，游戏会停在 PLAYTEST/PAUSE，
+    #    此时编辑器界面根本不可达，导航会一路失败（2026-10-17 实测）。
+    if fail is None:
+        st0 = state()
+        if st0 in ("PLAYTEST", "PAUSE", "SETTLE"):
+            print(f"  检测到仍在试玩中（{st0}）→ 先退出")
+            r = tool("ys-do", "playtest-stop", timeout=900)
+            step("pre_exit_playtest", r.returncode == 0,
+                 (r.stdout.strip().splitlines() or [""])[-1][:90])
+            if r.returncode != 0:
+                uncertain.append("开轮时没能退出试玩：后续导航与判定都不可靠")
+                fail = 5
+
     # ① 离开我的图（让编辑器把内存写回，随后的 CLI 改动才不会被抹）
     if fail is None:
         ok, detail = goto_my_map()
         if not step("goto_my_map", ok, detail):
             fail = 3
     if fail is None:
-        switch_map_once()          # 离开
-        rec(event="map_left", gil_sha=gil_sha())
-        step("map_leave", True, f"sha={gil_sha()}")
+        ok, detail = leave_my_map()
+        step("map_leave", ok, detail)
+        rec(event="map_left", ok=ok, gil_sha=gil_sha())
+        if not ok:
+            uncertain.append("没能确认离开我的图 ⇒ CLI 写入有被内存版覆盖的风险")
+            fail = 3
 
     # ② 构建（CLI 写盘）
     if fail is None and build and not no_build:
@@ -176,6 +205,12 @@ def main():
 
     # ⑤ 注入输入
     if fail is None and inp and not no_input:
+        # ⚠️ 必须先重新拿焦点：`ys-do playtest-start` 结束时会**还原焦点**，
+        # 若直接跑输入脚本，键会送到别的窗口（表现为「按了 W 玩家不动」）。
+        raise_game()
+        if not step("refocus_for_input", True, subprocess.run(
+                [os.path.join(HERE, "ys-atop")], capture_output=True, text=True).returncode == 0):
+            uncertain.append("输入前焦点没拿到：本轮的输入很可能没送达游戏")
         time.sleep(6)
         r = sh(["bash", inp], timeout=900)
         step("input", r.returncode == 0, (r.stdout.strip().splitlines() or [""])[-1][:100])

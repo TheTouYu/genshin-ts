@@ -8,3 +8,4 @@ pause.png	PAUSE	试玩暂停菜单（继续/重新/中断挑战）
 settle.png	SETTLE	结算页（中央白卡 + 离开按钮）
 playtest3.png	PLAYTEST	游戏内（亮蓝天空/水面 —— 曾让 SAVELIST/A 误触发）
 settle2.png	SETTLE	实拍结算页（另一种版式：星空背景+角色卡）
+settle3.png	SETTLE	结算页第三版式（底栏有亮蓝块，曾让 SAVELIST/A 误触发）

@@ -103,9 +103,9 @@ def locate(ctrl, frame_path):
 
 # ── 焦点（M1）：注入前必须确认游戏在栈顶 ──────────────────────────
 def game_atop():
-    r = sh([os.path.join(HERE, "ys-wins")], timeout=30)
-    last = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
-    return WIN_TITLE in last, last
+    """用 ys-atop 判定（不能用 `ys-wins | tail -1`：那永远是 plasmashell 任务栏面板）。"""
+    r = sh([os.path.join(HERE, "ys-atop"), WIN_TITLE], timeout=40)
+    return r.returncode == 0, r.stdout.strip()
 
 
 def acquire_focus():
@@ -249,8 +249,18 @@ def main():
         print(f"✗ 焦点不可用：栈顶不是「{WIN_TITLE}」（{line}）")
         fail = 4
     if fail is None:
+        # **「还没切完」≠「状态不对」**：切图后编辑器会有一段加载期，此时所有判据都不成立
+        # ⇒ ys-state 报 UNKNOWN。单次判定会把"加载中"误判成"前置条件不满足"。
+        # 故在 UNKNOWN / AMBIGUOUS / UNOBSERVABLE 上轮询等待（上限 pre_timeout 秒），
+        # 但一旦拿到**明确的**态就立即用它做判定，不白等。
+        limit = float(action.get("pre_timeout", 90))
+        t0 = time.time()
         st = state()
-        rec(event="pre_state", expect=action["pre"], got=st, ok=st in action["pre"])
+        while st in ("UNKNOWN", "AMBIGUOUS", "UNOBSERVABLE") and time.time() - t0 < limit:
+            time.sleep(5)
+            st = state()
+        rec(event="pre_state", expect=action["pre"], got=st, ok=st in action["pre"],
+            waited=round(time.time() - t0, 1))
         print(f"① 前置态 = {st}（期望 {action['pre']}）{'✓' if st in action['pre'] else '✗'}")
         if st == "UNOBSERVABLE":
             print("   取不到新鲜帧（窗口不在栈顶）——先解决观测条件")
@@ -259,6 +269,7 @@ def main():
             fail = 2
 
     # ② 逐步执行
+    last_def = st if fail is None and "st" in dir() else None
     if fail is None:
         for i, step in enumerate(action["steps"], 1):
             # 条件步：only_if_state 列出「只有当前在这些态时才执行」的态。
@@ -266,6 +277,12 @@ def main():
             # 游戏内(PLAYTEST)要按 ESC 开暂停菜单，而已经在暂停菜单(PAUSE)时按 ESC 会**关掉菜单**（=继续挑战）。
             if step.get("only_if_state"):
                 st_now = state()
+                # 「态不确定」（AMBIGUOUS/UNKNOWN）时**沿用最近一次确定的态**——
+                # 拿一个瞬时不确定值去决定"跳不跳这一步"比不跳更糟：
+                # 实测（2026-10-17）前置态刚验过 PLAYTEST，下一步取样时正好在过渡、返回 AMBIGUOUS，
+                # 于是把「按 ESC 开暂停菜单」这一步跳过了，后面自然找不到中断挑战按钮。
+                if st_now in ("AMBIGUOUS", "UNKNOWN", "UNOBSERVABLE") and last_def:
+                    st_now = last_def
                 if st_now not in step["only_if_state"]:
                     rec(event="step", n=i, kind="skip", reason=f"态={st_now} 不在 {step['only_if_state']}")
                     print(f"② [{i}/{len(action['steps'])}] 跳过（当前 {st_now}）")
@@ -302,6 +319,20 @@ def main():
             x, y, score, kind = locate(ctrl, frame["path"])
             thr = ctrl.get("threshold", 0.90)
             good = x is not None and score >= thr
+            # 步级自愈：定位失败时按 on_miss 再试一次。
+            # 实测动机（2026-10-17）：从 PLAYTEST 进 `playtest-stop` 时，ESC 之后偶发
+            # 「态采样恰好在过渡期」，暂停菜单没开出来 ⇒ 找不到中断挑战按钮。
+            # 与其让整轮失败，不如按 ESC 再找一次——这是**可判定**的恢复动作。
+            if not good and step.get("on_miss") and not dry:
+                miss = step["on_miss"]
+                print(f"   定位失败（score={score:.3f}）→ 按 on_miss 自愈：{miss}")
+                for k in miss.get("keys", []):
+                    send_key(int(k)); time.sleep(0.3)
+                time.sleep(float(miss.get("wait", 3)))
+                frame, err = fresh_frame()
+                if frame is not None:
+                    x, y, score, kind = locate(ctrl, frame["path"])
+                    good = x is not None and score >= thr
             ev = os.path.join(run_dir, "evidence", f"step{i}-{'ok' if good else 'miss'}.png")
             sh(["cp", "-f", frame["path"], ev], timeout=20)
             rec(event="step", n=i, control=name, kind=kind, score=round(score, 4),
@@ -347,10 +378,11 @@ def main():
         for art in action["artifacts"]:
             r = sh(["bash", "-lc", art["check"]], timeout=60)
             ok = r.returncode == 0
-            rec(event="artifact", desc=art.get("desc", art["check"]), ok=ok,
-                output=r.stdout.strip()[:300])
-            print(f"④ 产物 {art.get('desc','')} {'✓' if ok else '✗'}")
-            if not ok:
+            soft = bool(art.get("soft"))
+            rec(event="artifact", desc=art.get("desc", art["check"]), ok=ok, soft=soft,
+                output=r.stdout.strip()[:200])
+            print(f"④ 产物 {art.get('desc','')[:40]} {'✓' if ok else ('⚠ 未命中（soft，不判失败）' if soft else '✗')}")
+            if not ok and not soft:
                 fail = 5
                 break
 
