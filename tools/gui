@@ -108,9 +108,98 @@ def find_target(app, target):
     return None, f'树里找不到 {role or "元素"}「{name}」', ms
 
 
-def do_step(app, step, skill_vars):
+def vision_resolve(profile, anchor_name, frame=None):
+    """用 profile 里的锚点解析目标位置（家位 ROI 内匹配）。返回 (x, y, score) 或 None。"""
+    sys.path.insert(0, os.path.join(HERE, 'ys-editor'))
+    import ys_look
+    a = next((x for x in profile['anchors'] if x['name'] == anchor_name), None)
+    if a is None:
+        return None
+    if not frame:
+        frame = '/tmp/gui-resolve-live.png'
+        if subprocess.run(['import', '-window', 'root', frame], capture_output=True).returncode != 0:
+            return None
+    pad, p_ = 200, a.get('patch', 96)
+    rx, ry = max(0, a['x'] - pad), max(0, a['y'] - pad)
+    r = ys_look.daemon({'cmd': 'batch', 'frame': os.path.abspath(frame),
+                        'jobs': [{'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0],
+                                  'roi': [rx, ry, p_ + 2 * pad, p_ + 2 * pad]}]})
+    if not r:
+        return None
+    b = r['results'][0]['best']
+    return (b['x'], b['y'], b['score']) if b else None
+
+
+def vision_state(profile, frame=None):
+    """用 profile 判当前态（复用 cmd_state 的两段式逻辑的精简版）。"""
+    sys.path.insert(0, os.path.join(HERE, 'ys-editor'))
+    import ys_look
+    if not frame:
+        frame = '/tmp/gui-state-live.png'
+        cp = subprocess.run(['import', '-window', 'root', frame], capture_output=True, text=True)
+        if cp.returncode != 0:
+            sys.stderr.write(f'[gui] 抓帧失败 DISPLAY={os.environ.get("DISPLAY")!r} '
+                             f'XAUTHORITY={bool(os.environ.get("XAUTHORITY"))} err={cp.stderr.strip()[:120]}\n')
+            return None, 0.0
+    by = {}
+    for a in profile['anchors']:
+        by.setdefault(a['state'], []).append(a)
+    tier1 = {st: max(lst, key=lambda a: a['margin']) for st, lst in by.items()}
+    jobs = []
+    for a in tier1.values():
+        pad, p_ = 200, a.get('patch', 96)
+        rx, ry = max(0, a['x'] - pad), max(0, a['y'] - pad)
+        jobs.append({'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0],
+                     'roi': [rx, ry, p_ + 2 * pad, p_ + 2 * pad]})
+    r = ys_look.daemon({'cmd': 'batch', 'frame': os.path.abspath(frame), 'jobs': jobs})
+    if not r:
+        sys.stderr.write(f'[gui] ys-lookd 不可用: {ys_look.LAST_DAEMON_ERROR}\n')
+        return None, 0.0
+    sc = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
+    per = {st: sc.get(a['name'], 0.0) for st, a in tier1.items()}
+    best = max(per.items(), key=lambda kv: kv[1])
+    return best[0], best[1]
+
+
+def do_step(app, step, skill_vars, profile=None, dry_run=False):
     act = step.get('act')
     t0 = time.time()
+    tgt = step.get('target', {})
+    if act == 'click' and profile and tgt.get('anchor'):
+        got = vision_resolve(profile, tgt['anchor'])
+        if not got:
+            return False, f"视觉解析失败: 锚点 {tgt['anchor']}", (time.time() - t0) * 1000
+        x, y, score = got
+        if score < tgt.get('min_score', 0.85):
+            return False, f"锚点 {tgt['anchor']} 分数 {score:.3f} < 阈值", (time.time() - t0) * 1000
+        if dry_run:
+            return True, f'[dry] anchor={tgt["anchor"]} @({x},{y}) score={score:.3f}', (time.time() - t0) * 1000
+        hold = int(tgt.get('hold_ms', 120))
+        subprocess.run(['xdotool', 'mousemove', str(x), str(y)], capture_output=True)
+        subprocess.run(['xdotool', 'mousedown', '1'], capture_output=True)
+        time.sleep(hold / 1000.0)
+        subprocess.run(['xdotool', 'mouseup', '1'], capture_output=True)
+        invalidate(app)
+        return True, f'click anchor={tgt["anchor"]} @({x},{y}) score={score:.3f} hold={hold}ms', (time.time() - t0) * 1000
+    if act == 'key':
+        if dry_run:
+            return True, f"[dry] key={step.get('key')}", 0.0
+        k = step.get('key', '')
+        subprocess.run(['xdotool', 'key', '--clearmodifiers', k], capture_output=True)
+        invalidate(app)
+        return True, f'key={k}', (time.time() - t0) * 1000
+    if act == 'assert' and step.get('state'):
+        if profile is None:
+            return False, 'assert state 需要 --profile', 0.0
+        deadline = time.time() + float(step.get('timeout', 8))
+        seen = []
+        while time.time() < deadline:
+            st, sc = vision_state(profile)
+            seen.append(f'{st}({sc:.2f})')
+            if st == step['state'] and sc >= step.get('min_score', 0.85):
+                return True, f"state={st} score={sc:.3f}", (time.time() - t0) * 1000
+            time.sleep(0.25)
+        return False, f"期望 state={step['state']}，实际序列={seen[-4:]}", (time.time() - t0) * 1000
     if act == 'click':
         kind, payload, ms = find_target(app, step.get('target', {}))
         if kind is None:
@@ -160,8 +249,9 @@ def cmd_run(args):
             json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
             return 5
         print(f'  pre ✓ （{(ms):.0f}ms）')
+    prof = json.load(open(args.profile)) if args.profile else None
     for i, step in enumerate(skill.get('steps', []), 1):
-        ok, msg, ms = do_step(app, step, {})
+        ok, msg, ms = do_step(app, step, {}, profile=prof, dry_run=args.dry_run)
         print(f'  [{i}] {step.get("act"):<7} {"✓" if ok else "✗"} {msg}  ({ms:.0f}ms)')
         rec['steps'].append({'i': i, 'act': step.get('act'), 'ok': ok, 'obs': msg, 'ms': round(ms)})
         if not ok:
@@ -214,6 +304,7 @@ def cmd_state(args):
       不确定再退回全锚点全帧（~1s）。**快路径不能牺牲判据**：余量不足就升级。
     """
     load_env()
+    t_start = time.time()          # 端到端从抓帧开始计
     prof = json.load(open(args.profile))
     anchors = prof['anchors']
     win = prof.get('window') or args.window
@@ -221,16 +312,20 @@ def cmd_state(args):
     import ys_look
 
     shot = args.frame
+    frame_bin = None
     if not shot:
-        shot = '/tmp/gui-state-live.png'
-        # 先试 root（快路径 18ms）；失败再回退到窗口（慢但兼容）
-        rc = subprocess.run(['import', '-window', 'root', shot], capture_output=True).returncode
-        if rc != 0 and win:
-            rc = subprocess.run(['import', '-window', win, shot], capture_output=True).returncode
-        if rc != 0:
-            print(f'✗ 抓帧失败（window={win}）', file=sys.stderr)
+        # 抓帧走 ys_look.grab（`import … rgb:-` 管道，实测 130~170ms）。
+        # 注意：`import -window root <文件>` 在本机**直接失败**（0 字节），
+        # 写 PNG 文件则要 ~3s —— 只有管道 raw 是快路径（2026-10-17 实测并纠正过一次）。
+        import numpy as np
+        try:
+            arr = ys_look.grab(0, 0, 2560, 1440)
+        except Exception as e:
+            print(f'✗ 抓帧失败：{e}', file=sys.stderr)
             return 4
-    shot = os.path.abspath(shot)
+        frame_bin = '/tmp/gui-state-live.bin'
+        (arr * 255).round().astype('uint8').tofile(frame_bin)
+    shot = os.path.abspath(shot) if shot else frame_bin
 
     by_state = {}
     for a in anchors:
@@ -238,7 +333,12 @@ def cmd_state(args):
 
     def run(jobs):
         t = time.time()
-        r = ys_look.daemon({'cmd': 'batch', 'frame': shot, 'jobs': jobs})
+        req = {'cmd': 'batch', 'jobs': jobs}
+        if frame_bin:
+            req.update({'frame_bin': frame_bin, 'frame_shape': [1440, 2560, 3]})
+        else:
+            req['frame'] = shot
+        r = ys_look.daemon(req)
         if not r:
             return None, 0.0
         sc = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
@@ -280,7 +380,7 @@ def cmd_state(args):
     ranked = sorted(per.items(), key=lambda kv: -kv[1])
     pred = ranked[0][0]
     margin = best - second
-    total = (time.time() - t0) * 1000
+    total = (time.time() - t_start) * 1000
     print(f'state={pred}  score={best:.3f}  次高={ranked[1][0] if len(ranked) > 1 else "-"}'
           f'({second:.3f})  余量={margin:.3f}  路径={path}  匹配={match_ms:.0f}ms  合计={total:.0f}ms')
     if args.json:
@@ -295,6 +395,8 @@ def main():
     sub = ap.add_subparsers(dest='cmd')
     p = sub.add_parser('run', help='执行技能')
     p.add_argument('skill')
+    p.add_argument('--profile', help='视觉 profile（锚点目标需要）')
+    p.add_argument('--dry-run', action='store_true', help='只解析不动作')
     p.add_argument('--json', default='/tmp/gui-run.json')
     p.add_argument('--var', action='append', default=[])
     p = sub.add_parser('lint', help='校验技能文件')

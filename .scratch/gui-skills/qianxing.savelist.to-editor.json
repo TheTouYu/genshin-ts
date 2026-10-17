@@ -1,0 +1,10 @@
+{
+  "id": "qianxing.savelist.to-editor",
+  "app": "原神编辑器",
+  "pre": {"state": "SAVELIST"},
+  "steps": [
+    {"act": "key", "key": "Escape"},
+    {"act": "assert", "state": "EDITOR", "timeout": 10}
+  ],
+  "post": {"state": "EDITOR"}
+}

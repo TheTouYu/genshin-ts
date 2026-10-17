@@ -15,7 +15,8 @@ WIN = os.environ.get("YS_WIN", "0x01400001")
 
 
 
-_CACHE = {}          # path -> (mtime, tensor)：帧与模板都按 (路径, mtime) 缓存，批量时省掉重复解码
+_CACHE = {}          # path -> (mtime, tensor)：只缓存**模板**（小、稳定）；帧不进缓存
+_CACHE_MAX_BYTES = 96 * 1024 * 1024     # 模板缓存上限；实测过 unlimited 会吃掉 900+MB 显存
 
 def _cached(path, cuda=True):
     import numpy as np, torch, os
@@ -29,15 +30,35 @@ def _cached(path, cuda=True):
     if cuda:
         t = t.cuda()
     _CACHE[path] = (mt, t)
-    if len(_CACHE) > 16:                       # 简单的体量上限，防长期运行涨内存
-        _CACHE.pop(next(iter(_CACHE)))
+    # 按**字节**而不是条数限流（2026-10-17 事故：16 张 2560×1440 帧张量 = 700MB+ 显存）
+    total = sum(x[1].numel() * x[1].element_size() for x in _CACHE.values())
+    while total > _CACHE_MAX_BYTES and len(_CACHE) > 1:
+        k = next(iter(_CACHE))
+        if k == path:
+            break
+        total -= _CACHE[k][1].numel() * _CACHE[k][1].element_size()
+        _CACHE.pop(k)
     return t
 
 def _load_frame(req):
     """取帧一次，转成 GPU 张量（C,H,W float）——批量请求里所有锚点共用这一份。"""
     import numpy as np, torch
-    if req.get("frame"):                       # 离线/基准：直接读 PNG（带缓存）
-        return _cached(req["frame"])
+    if req.get("frame_bin"):                   # 在线快路径之二：原始 RGB 落盘（读 11MB ≈ 10ms）
+        import numpy as np
+        shape = tuple(req["frame_shape"])
+        arr = np.fromfile(req["frame_bin"], dtype=np.uint8).reshape(shape).astype(np.float32) / 255.0
+        return torch.from_numpy(arr).permute(2, 0, 1).cuda()
+    if req.get("frame_b64"):                   # 在线快路径：客户端用 import…rgb:- 抓的原始像素
+        import base64, numpy as np
+        raw = base64.b64decode(req["frame_b64"])
+        shape = tuple(req["frame_shape"])      # (H, W, 3)
+        arr = np.frombuffer(raw, dtype=np.uint8).reshape(shape).astype(np.float32) / 255.0
+        return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+    if req.get("frame"):                       # 离线/基准：直接读 PNG（帧不缓存：每次都是新的）
+        from PIL import Image
+        import numpy as np
+        arr = np.asarray(Image.open(req["frame"]).convert("RGB"), dtype=np.float32) / 255.0
+        return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
     else:                                      # 在线：抓窗口区域
         if req.get("region"):
             X, Y, W, H = map(int, req["region"])

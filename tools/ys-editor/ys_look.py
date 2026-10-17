@@ -12,9 +12,28 @@ import numpy as np
 
 WIN = os.environ.get("YS_WIN", "0x01400001")
 
-def grab(x, y, w, h):
-    out = subprocess.run(["import", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
-                         capture_output=True).stdout
+def grab(x, y, w, h, retries=2):
+    """抓一块像素（原始 RGB 走管道）。**失败要出声**：返回 0 字节直接抛，不当成黑图。
+
+    2026-10-17 反复踩：python 进程若没继承 DISPLAY/XAUTHORITY，`import` 会**立刻失败返回 0 字节**，
+    而调用方把它当成"截到一张空图" —— 表现是判态读到陈旧画面或直接崩。
+    所以这里：①缺环境先向 ys-env.sh 要；②失败重试一次；③仍空就抛错。
+    """
+    if not os.environ.get("DISPLAY") or not os.environ.get("XAUTHORITY"):
+        try:
+            out = subprocess.run(["bash", "-c", f'. "{_ENVSH}" >/dev/null 2>&1; echo "$DISPLAY"; echo "${{XAUTHORITY:-}}"'],
+                                 capture_output=True, text=True).stdout.splitlines()
+            if len(out) >= 2:
+                os.environ["DISPLAY"] = out[0]
+                os.environ["XAUTHORITY"] = out[1]
+        except Exception:
+            pass
+    out = b""
+    for _ in range(retries + 1):
+        out = subprocess.run(["import", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
+                             capture_output=True).stdout
+        if len(out) == w * h * 3:
+            break
     a = np.frombuffer(out, dtype=np.uint8)
     if a.size != w * h * 3:
         raise RuntimeError(f"截取失败 ({a.size} != {w*h*3})")
@@ -124,6 +143,7 @@ def ncc(I, T):
         sys.stderr.write(f"[ys_look] GPU 不可用（{type(e).__name__}），回退 CPU\n")
         return _ncc_np(I, T)
 
+_ENVSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-env.sh")
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
 LAST_DAEMON_ERROR = None   # 2026-10-17：常驻服务的错误以前被静默吞掉，见 daemon() 注释
 
