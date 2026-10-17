@@ -374,3 +374,32 @@ gui rec menu.savelist.open
 同一步骤内的多次查询只遍历一次。实测技能端到端 4.06↔4.18s（差异在噪声内），说明
 **单步仍必须一次读+一次动作+一次断言**，这与 AT-SPI 的 650ms/次叠加成 ~2.4s/步。
 ⇒ 想再快，只有两条路：事件驱动的 AT-SPI 常驻模型，或彻底走视觉。
+
+---
+
+## 十六、v10：G2 第一刀——锚点自动挖掘 + 视觉判态跑通（2026-10-17）
+
+**新增两个工具**：
+- `tools/gui-anchor-mine`：从带标注的帧里**自动挖锚点**，判据是
+  `margin = min(同态各帧得分) − max(异态各帧得分)`（**worst-case**，不是 best-case）。
+- `tools/gui state <profile>`：按 profile 用锚点判当前态，与 `ys-fast`/`ys-state` 是**独立通道**。
+
+**关键教训（挖出来的，不是想出来的）**：先用"同态最高分"当判据时，挖出的锚点在**同一逻辑态的其它版式**上崩掉——
+PLAYTEST 锚点从 playtest.png 挖出后，在 playtest3.png 上只有 0.34~0.96；SETTLE 从 settle.png 挖出后，
+在 settle2/3/4 上掉到 0.5~0.7。**改成 worst-case 后**，PLAYTEST 只留下 4 个锚点（最差 home 0.81~1.0），
+才算"覆盖了这个态的全部版式"。这正是 GLM 评审说的"SETTLE 四种版式 = 一个逻辑态"，现在有了数字。
+
+**结果**：
+| 项 | 数字 |
+|---|---|
+| 锚点库 | 32 个锚点 / 6 个状态（EDITOR/MENU/PAUSE/PLAYTEST/SAVELIST/SETTLE） |
+| margin 范围 | 0.22 ~ 0.62（阈值 0.20） |
+| 回归集判态 | **11/11 = 100%**（同分布，仅供参考） |
+| **活体样本**（不在回归集里） | **SAVELIST score=1.000，余量 0.289，1010ms**；与 `ys-fast` 独立判定（SAVE）**一致** |
+
+**代价**：一次视觉判态 ~1.0s（全窗抓帧 + 32 锚点匹配）。下一步可裁 ROI 降到 ~200ms。
+
+**顺带修掉两个真 bug**（都是"静默失败"型）：
+1. `tools/gui` 里 `ys-env.sh` 路径少了一层（`tools/ys-editor` 写成 `ys-editor`）⇒ 环境永远解析不到、抓帧静默失败。
+2. `load_env()` 用 `setdefault` 写 `XAUTHORITY`：父进程里一个**空字符串**就会被当成"已设置"，
+   导致 `import` 报 `Authorization required` —— 改成**覆盖**。这正是 D330「重启后原神窗不存在是假阻塞」那一族的坑。

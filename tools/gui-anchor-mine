@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""gui-anchor-mine — 从带标注的截图里**自动挖锚点**，输出判别力排序的锚点库。
+
+存在理由（2026-10-17 实测）：
+  手工挑的 5 个锚点里，2 个是废的——`pause_resume` 在 MENU 帧上也能打 0.952（余量 0.048），
+  `settle_leave` 余量 0.004（几乎处处都像）。**锚点的价值不在"看起来像个图标"，
+  而在"它只在该态出现"**。这个工具把这个判据变成可执行流程。
+
+判据（每个候选锚点）：
+  home   = 在它所属状态的帧里的最高分
+  foreign= 在**其它所有状态**帧里的最高分
+  margin = home - foreign      ← 唯一重要的数字
+  只有 margin ≥ 阈值的锚点才进锚点库。
+
+用法:
+  gui-anchor-mine --frames <regress 目录> [--state MENU ...] [--patch 96] [--stride 128]
+                  [--top 12] [--margin 0.2] [--out .scratch/gui-anchors]
+  gui-anchor-mine --report <out>/anchors.json      # 只看已有结果
+"""
+import argparse
+import json
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+YS = os.path.join(HERE, 'ys-editor')
+sys.path.insert(0, YS)
+
+import numpy as np                      # noqa: E402
+from PIL import Image                   # noqa: E402
+
+import ys_look                          # noqa: E402
+
+
+def load_manifest(regress):
+    frames = {}
+    for line in open(os.path.join(regress, 'manifest.tsv')):
+        if line.startswith('#') or not line.strip():
+            continue
+        p = line.rstrip('\n').split('\t')
+        if len(p) >= 2:
+            frames[os.path.abspath(os.path.join(regress, p[0]))] = p[1]
+    return frames
+
+
+def candidates(img, patch, stride, limit):
+    """按局部方差挑"有内容"的位置（纯色面板上没有可匹配的纹理）。"""
+    a = np.asarray(img.convert('L'), dtype=np.float32)
+    out = []
+    for y in range(0, a.shape[0] - patch, stride):
+        for x in range(0, a.shape[1] - patch, stride):
+            blk = a[y:y + patch, x:x + patch]
+            out.append((float(blk.std()), x, y))
+    out.sort(reverse=True)
+    return [(x, y) for _, x, y in out[:limit]]
+
+
+def score_jobs(frame, jobs):
+    r = ys_look.daemon({'cmd': 'batch', 'frame': frame, 'jobs': jobs})
+    if not r:
+        raise RuntimeError(f'ys-lookd 不可用: {ys_look.LAST_DAEMON_ERROR}')
+    return {x['id']: (round(x['best']['score'], 4) if x['best'] else 0.0) for x in r['results']}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--frames', default=os.path.join(YS, 'calib', 'regress'))
+    ap.add_argument('--state', action='append', default=[],
+                    help='只挖这些状态（可多次）；缺省=manifest 里出现的全部')
+    ap.add_argument('--patch', type=int, default=96)
+    ap.add_argument('--stride', type=int, default=128)
+    ap.add_argument('--per-state', type=int, default=40, help='每态取多少个候选进入评测')
+    ap.add_argument('--top', type=int, default=10, help='每态保留多少个锚点')
+    ap.add_argument('--margin', type=float, default=0.20)
+    ap.add_argument('--out', default=os.path.join(HERE, '..', '.scratch', 'gui-anchors'))
+    a = ap.parse_args()
+
+    regress = os.path.abspath(a.frames)
+    frames = load_manifest(regress)
+    states = sorted(set(frames.values()))
+    want = a.state or states
+    os.makedirs(a.out, exist_ok=True)
+    print(f'帧 {len(frames)} 张，状态 {states}；挖 {want}')
+
+    # ① 为每个状态选候选（优先用该态的第一张帧）
+    by_state = {s: [f for f, st in frames.items() if st == s] for s in states}
+    cand = {}
+    for s in want:
+        f = by_state[s][0]
+        img = Image.open(f)
+        picks = candidates(img, a.patch, a.stride, a.per_state)
+        jobs = []
+        for i, (x, y) in enumerate(picks):
+            p = os.path.join(a.out, f'_cand_{s}_{i}.png')
+            img.crop((x, y, x + a.patch, y + a.patch)).save(p)
+            jobs.append({'id': f'{s}:{i}', 'tpl': os.path.abspath(p), 'scales': [1.0]})
+        cand[s] = (jobs, picks)
+        print(f'  {s}: {len(jobs)} 个候选（{f.split("/")[-1]}）')
+
+    # ② 在所有帧上打分
+    table = {}          # id -> {frame: score}
+    for f, st in frames.items():
+        jobs = [j for s in want for j in cand[s][0]]
+        sc = score_jobs(f, jobs)
+        for k, v in sc.items():
+            table.setdefault(k, {})[f] = v
+        print(f'  打标 {os.path.basename(f):<26}{st}')
+
+    # ③ 算余量
+    result = {}
+    for s in want:
+        jobs, picks = cand[s]
+        ranked = []
+        for i, (x, y) in enumerate(picks):
+            k = f'{s}:{i}'
+            hv = [v for f, v in table[k].items() if frames[f] == s]
+            fv = [v for f, v in table[k].items() if frames[f] != s]
+            # 关键判据（2026-10-17 实测教训）：同一逻辑态可能有多种视觉版式，
+            # 只看"最好那张"会过拟合——必须看**最差那张**（worst-case coverage）。
+            home_min = min(hv) if hv else 0.0
+            home_max = max(hv) if hv else 0.0
+            foreign = max(fv) if fv else 0.0
+            ranked.append({'id': k, 'x': x, 'y': y, 'home': home_min, 'home_max': home_max,
+                           'foreign': foreign, 'margin': round(home_min - foreign, 4)})
+        ranked.sort(key=lambda r: (-r['margin'], -r['home_max']))
+        keep = [r for r in ranked[:a.top] if r['margin'] >= a.margin]
+        result[s] = keep
+        print(f'\n{s}: 保留 {len(keep)} 个（margin ≥ {a.margin}）')
+        for r in keep[:5]:
+            print(f"   {r['id']:<14} @({r['x']},{r['y']})  最差home={r['home']} 最好home={r['home_max']} 异态={r['foreign']} margin={r['margin']}")
+
+    # ④ 只把留下的锚点存成正式文件
+    anchors = []
+    for s, keep in result.items():
+        img = Image.open(by_state[s][0])
+        for r in keep:
+            name = f"{s.lower()}_{r['id'].split(':')[1]}"
+            p = os.path.join(a.out, f'{name}.png')
+            img.crop((r['x'], r['y'], r['x'] + a.patch, r['y'] + a.patch)).save(p)
+            anchors.append({'name': name, 'state': s, 'tpl': p,
+                            'x': r['x'], 'y': r['y'], 'patch': a.patch,
+                            'home_min': r['home'], 'home_max': r['home_max'],
+                            'foreign': r['foreign'], 'margin': r['margin']})
+    for s in want:                      # 清掉候选临时文件
+        for i in range(len(cand[s][0])):
+            try:
+                os.unlink(os.path.join(a.out, f'_cand_{s}_{i}.png'))
+            except OSError:
+                pass
+    json.dump({'anchors': anchors, 'margin_threshold': a.margin,
+               'frames': {os.path.basename(f): s for f, s in frames.items()}},
+              open(os.path.join(a.out, 'anchors.json'), 'w'), ensure_ascii=False, indent=1)
+    print(f'\n锚点库: {os.path.join(a.out, "anchors.json")}（{len(anchors)} 个）')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

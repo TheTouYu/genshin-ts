@@ -32,7 +32,7 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ENVSH = os.path.join(os.path.dirname(HERE), 'ys-editor', 'ys-env.sh')
+ENVSH = os.path.join(HERE, 'ys-editor', 'ys-env.sh')   # tools/ys-editor/ys-env.sh
 
 
 def load_env():
@@ -42,10 +42,13 @@ def load_env():
     out = subprocess.run(['bash', '-c', f'. "{ENVSH}" >/dev/null 2>&1; '
                                     'echo "$DISPLAY"; echo "${XAUTHORITY:-}"'],
                          capture_output=True, text=True).stdout.splitlines()
+    # 必须**覆盖**而不是 setdefault：父进程里可能有个空的/过期的 XAUTHORITY，
+    # 空字符串也会被 setdefault 当成"已设置"，导致 import 报 Authorization required
+    # （2026-10-17 实测：同一个窗口，覆盖后 rc=0，setdefault 时失败）。
     if len(out) >= 1 and out[0]:
-        os.environ.setdefault('DISPLAY', out[0])
+        os.environ['DISPLAY'] = out[0]
     if len(out) >= 2 and out[1]:
-        os.environ.setdefault('XAUTHORITY', out[1])
+        os.environ['XAUTHORITY'] = out[1]
 
 
 def cu(args, timeout=20):
@@ -200,6 +203,44 @@ def cmd_show(args):
     return 0
 
 
+def cmd_state(args):
+    """按 profile 用视觉锚点判定当前界面态（与 ys-fast/ys-state 是独立通道）。"""
+    load_env()
+    prof = json.load(open(args.profile))
+    anchors = prof['anchors']
+    win = prof.get('window') or args.window
+    shot = args.frame
+    if not shot:
+        shot = '/tmp/gui-state-live.png'
+        rc = subprocess.run(['import', '-window', win, shot],
+                            capture_output=True).returncode
+        if rc != 0:
+            print(f'✗ 抓帧失败（window={win}）', file=sys.stderr)
+            return 4
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'tools', 'ys-editor'))
+    import ys_look
+    jobs = [{'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0]} for a in anchors]
+    t0 = time.time()
+    r = ys_look.daemon({'cmd': 'batch', 'frame': os.path.abspath(shot), 'jobs': jobs})
+    if not r:
+        print(f'✗ ys-lookd 不可用：{ys_look.LAST_DAEMON_ERROR}', file=sys.stderr)
+        return 4
+    scores = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
+    by = {}
+    for a in anchors:
+        by.setdefault(a['state'], []).append(a['name'])
+    per = {st: max(scores[n] for n in names) for st, names in by.items()}
+    ranked = sorted(per.items(), key=lambda kv: -kv[1])
+    pred, best = ranked[0]
+    margin = best - (ranked[1][1] if len(ranked) > 1 else 0)
+    print(f'state={pred}  score={best:.3f}  次高={ranked[1][0] if len(ranked)>1 else "-"}'
+          f'({ranked[1][1]:.3f})  余量={margin:.3f}  ({(time.time()-t0)*1000:.0f}ms)')
+    if args.json:
+        json.dump({'state': pred, 'score': best, 'all': dict(ranked), 'frame': shot},
+                  open(args.json, 'w'), ensure_ascii=False, indent=1)
+    return 0 if margin >= args.min_margin else 6
+
+
 def main():
     ap = argparse.ArgumentParser(prog='gui', description='通用 GUI 操作层（最小骨架）')
     sub = ap.add_subparsers(dest='cmd')
@@ -209,13 +250,19 @@ def main():
     p.add_argument('--var', action='append', default=[])
     p = sub.add_parser('lint', help='校验技能文件')
     p.add_argument('skill')
+    p = sub.add_parser('state', help='按 profile 判定当前界面态（视觉通道）')
+    p.add_argument('profile')
+    p.add_argument('--window')
+    p.add_argument('--frame', help='用已有截图（离线）')
+    p.add_argument('--json')
+    p.add_argument('--min-margin', type=float, default=0.15)
     p = sub.add_parser('show', help='打印技能')
     p.add_argument('skill')
     a = ap.parse_args()
     if not a.cmd:
         ap.print_help()
         return 2
-    return {'run': cmd_run, 'lint': cmd_lint, 'show': cmd_show}[a.cmd](a)
+    return {'run': cmd_run, 'lint': cmd_lint, 'show': cmd_show, 'state': cmd_state}[a.cmd](a)
 
 
 if __name__ == '__main__':

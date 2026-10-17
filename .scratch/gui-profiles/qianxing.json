@@ -1,0 +1,256 @@
+{
+ "id": "qianxing-editor",
+ "app": "原神编辑器",
+ "window": "0x01400001",
+ "resolver": {
+  "order": [
+   "vision",
+   "atspi"
+  ],
+  "vision": {
+   "backend": "ys-lookd",
+   "min_score": 0.75
+  }
+ },
+ "states": {
+  "EDITOR": [
+   "editor_4",
+   "editor_5",
+   "editor_6",
+   "editor_26",
+   "editor_28",
+   "editor_25"
+  ],
+  "MENU": [
+   "menu_12",
+   "menu_4",
+   "menu_15",
+   "menu_8",
+   "menu_14",
+   "menu_9"
+  ],
+  "PAUSE": [
+   "pause_25",
+   "pause_26",
+   "pause_27",
+   "pause_24",
+   "pause_28",
+   "pause_20"
+  ],
+  "PLAYTEST": [
+   "playtest_3",
+   "playtest_22",
+   "playtest_1",
+   "playtest_14"
+  ],
+  "SAVELIST": [
+   "savelist_24",
+   "savelist_12",
+   "savelist_8",
+   "savelist_17",
+   "savelist_28",
+   "savelist_3"
+  ],
+  "SETTLE": [
+   "settle_14",
+   "settle_10",
+   "settle_13",
+   "settle_15"
+  ]
+ },
+ "anchors": [
+  {
+   "name": "editor_4",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_4.png",
+   "margin": 0.5437
+  },
+  {
+   "name": "editor_5",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_5.png",
+   "margin": 0.5195
+  },
+  {
+   "name": "editor_6",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_6.png",
+   "margin": 0.4921
+  },
+  {
+   "name": "editor_26",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_26.png",
+   "margin": 0.4856
+  },
+  {
+   "name": "editor_28",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_28.png",
+   "margin": 0.4749
+  },
+  {
+   "name": "editor_25",
+   "state": "EDITOR",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/editor_25.png",
+   "margin": 0.4106
+  },
+  {
+   "name": "menu_12",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_12.png",
+   "margin": 0.6221
+  },
+  {
+   "name": "menu_4",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_4.png",
+   "margin": 0.5947
+  },
+  {
+   "name": "menu_15",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_15.png",
+   "margin": 0.5725
+  },
+  {
+   "name": "menu_8",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_8.png",
+   "margin": 0.5717
+  },
+  {
+   "name": "menu_14",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_14.png",
+   "margin": 0.5709
+  },
+  {
+   "name": "menu_9",
+   "state": "MENU",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/menu_9.png",
+   "margin": 0.5576
+  },
+  {
+   "name": "pause_25",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_25.png",
+   "margin": 0.4034
+  },
+  {
+   "name": "pause_26",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_26.png",
+   "margin": 0.3981
+  },
+  {
+   "name": "pause_27",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_27.png",
+   "margin": 0.3541
+  },
+  {
+   "name": "pause_24",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_24.png",
+   "margin": 0.2535
+  },
+  {
+   "name": "pause_28",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_28.png",
+   "margin": 0.2275
+  },
+  {
+   "name": "pause_20",
+   "state": "PAUSE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/pause_20.png",
+   "margin": 0.208
+  },
+  {
+   "name": "playtest_3",
+   "state": "PLAYTEST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/playtest_3.png",
+   "margin": 0.2971
+  },
+  {
+   "name": "playtest_22",
+   "state": "PLAYTEST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/playtest_22.png",
+   "margin": 0.2876
+  },
+  {
+   "name": "playtest_1",
+   "state": "PLAYTEST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/playtest_1.png",
+   "margin": 0.2682
+  },
+  {
+   "name": "playtest_14",
+   "state": "PLAYTEST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/playtest_14.png",
+   "margin": 0.2663
+  },
+  {
+   "name": "savelist_24",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_24.png",
+   "margin": 0.5215
+  },
+  {
+   "name": "savelist_12",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_12.png",
+   "margin": 0.5198
+  },
+  {
+   "name": "savelist_8",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_8.png",
+   "margin": 0.4732
+  },
+  {
+   "name": "savelist_17",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_17.png",
+   "margin": 0.4537
+  },
+  {
+   "name": "savelist_28",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_28.png",
+   "margin": 0.4482
+  },
+  {
+   "name": "savelist_3",
+   "state": "SAVELIST",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/savelist_3.png",
+   "margin": 0.3712
+  },
+  {
+   "name": "settle_14",
+   "state": "SETTLE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/settle_14.png",
+   "margin": 0.5565
+  },
+  {
+   "name": "settle_10",
+   "state": "SETTLE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/settle_10.png",
+   "margin": 0.3077
+  },
+  {
+   "name": "settle_13",
+   "state": "SETTLE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/settle_13.png",
+   "margin": 0.2142
+  },
+  {
+   "name": "settle_15",
+   "state": "SETTLE",
+   "tpl": "/home/h/genshin-ts/tools/../.scratch/gui-anchors/settle_15.png",
+   "margin": 0.2104
+  }
+ ],
+ "notes": "锚点由 tools/gui-anchor-mine 从 calib/regress 挖出；判据=最差home - 异态max ≥ 0.2"
+}
