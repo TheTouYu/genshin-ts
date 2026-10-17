@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""ys-do — 意图级动作层 + 动作账本（gui-stack 票 03）
+
+设计依据（`.scratch/gui-stack/DESIGN.md` §三 L2）：
+  · **不存在没有 post 判据的动作**——缺 post 的动作在**加载时**就报错，不是运行时才发现
+  · **每一个注入动作前先校验焦点**（M1）——当天所有「点了没反应」的总根因是键进了别的窗口
+  · **账本 append-only**：每步记 前置态/定位来源与置信度/实际注入/后置态/判定/证据图
+  · 任一步 FAIL ⇒ **立即中止**，打印账本行号，不继续往下点
+
+用法:
+  ys-do --list                 列出可用意图
+  ys-do --dry <intent>         只解析定位 + 查前置态，不注入任何事件
+  ys-do <intent>               执行
+  ys-do --ledger <path>        指定账本（默认 ~/ys-round/<ts>/ledger.jsonl）
+退出码: 0 成功 / 2 前置态不符 / 3 定位失败 / 4 焦点不可用 / 5 后置态不符 / 6 动作定义非法
+"""
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import numpy as np  # noqa: E402
+from ys_look import ncc  # noqa: E402
+
+ACTIONS_DIR = os.path.join(HERE, "actions")
+CALIB = os.path.join(HERE, "calib", "controls.json")
+WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
+DEFAULT_LEDGER_DIR = os.path.expanduser(os.environ.get("YS_ROUND_DIR", "~/ys-round"))
+
+
+def sh(cmd, timeout=60):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+# ── 帧与定位 ──────────────────────────────────────────────────────
+def load_img(path):
+    d = sh(["identify", "-format", "%w %h", path]).stdout.split()
+    w, h = int(d[0]), int(d[1])
+    b = subprocess.run(["magick", path, "-depth", "8", "rgb:-"], capture_output=True).stdout
+    return np.frombuffer(b, dtype=np.uint8).reshape(h, w, 3)
+
+
+def fresh_frame():
+    """经 ys-observe 取帧（唯一取数入口；不在栈顶会失败——这正是我们要的）。"""
+    r = sh([os.path.join(HERE, "ys-observe"), "frame"], timeout=90)
+    if r.returncode != 0:
+        return None, (r.stdout + r.stderr).strip()
+    return json.loads(r.stdout.strip().splitlines()[-1]), None
+
+
+def state():
+    """判当前界面态。**必须把「观测不到」与「状态未知」分开**：
+    ys-state 退出 3 = 取不到新鲜帧（窗口不在栈顶）——此时任何状态判断都是假的，
+    返回 UNOBSERVABLE 让上层报「焦点不可用」而不是含糊的「前置态不符」。"""
+    r = sh([os.path.join(HERE, "ys-state")], timeout=120)
+    if r.returncode == 3:
+        return "UNOBSERVABLE"
+    s = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else "UNKNOWN"
+    return s
+
+
+def locate(ctrl, frame_path):
+    """返回 (x, y, score, kind)；失败返回 (None, None, score, kind)。"""
+    kind = ctrl.get("kind", "template")
+    if kind == "template":
+        tpl = os.path.join(HERE, ctrl["file"])
+        if not os.path.exists(tpl):
+            return None, None, -1.0, "template-missing"
+        img = load_img(frame_path).astype(np.float32) / 255.0
+        T = load_img(tpl).astype(np.float32) / 255.0
+        if img.shape[0] < T.shape[0] or img.shape[1] < T.shape[1]:
+            return None, None, -1.0, "template-larger-than-frame"
+        x, y, s, _ = ncc(img, T)
+        return x + T.shape[1] // 2, y + T.shape[0] // 2, float(s), "template"
+    if kind == "signature":
+        # 像素签名定位：**为低纹理 UI 准备**（2026-10-17 实测：结算页的「离开」按钮
+        # 用模板匹配判别力只有 0.971 vs 0.949，余量 0.02——因为整屏是平滑渐变，
+        # NCC 对任何平滑区域都给高分）。改用「多点色值区间同时命中」：
+        # 每个探针声明各通道的 [lo,hi]，全部命中才认。
+        img = load_img(frame_path)
+        hits, detail = 0, []
+        for pr in ctrl["probes"]:
+            r, g, b = (int(v) for v in img[pr["y"], pr["x"]])
+            ok = True
+            for ch, (lo, hi) in pr["cond"].items():
+                v = {"R": r, "G": g, "B": b}[ch]
+                if not (lo <= v <= hi):
+                    ok = False
+            hits += 1 if ok else 0
+            detail.append(f"({'RGB'[0]}{pr['x']},{pr['y']})={r},{g},{b}{'✓' if ok else '✗'}")
+        total = len(ctrl["probes"])
+        score = hits / total
+        if hits == total:
+            return ctrl["x"], ctrl["y"], 1.0, "signature"
+        return None, None, score, "signature(" + " ".join(detail) + ")"
+    if kind == "point":
+        return ctrl["x"], ctrl["y"], 1.0, "point"
+    return None, None, -1.0, f"unknown-kind:{kind}"
+
+
+# ── 焦点（M1）：注入前必须确认游戏在栈顶 ──────────────────────────
+def game_atop():
+    r = sh([os.path.join(HERE, "ys-wins")], timeout=30)
+    last = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
+    return WIN_TITLE in last, last
+
+
+def acquire_focus():
+    ok, _ = game_atop()
+    if not ok:
+        sh([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE], timeout=40)
+        time.sleep(1.0)
+        ok, line = game_atop()
+        if not ok:
+            return False, line
+    return True, ""
+
+
+def restore_focus(previous):
+    """归还原焦点。`previous` 是 ys-wins 行里的 WM_CLASS（如 firefox）——
+    ys-kwin-raise 现在同时按 caption 与 WM_CLASS 匹配，分类名比长标题稳得多。"""
+    if previous:
+        sh([os.path.join(HERE, "ys-kwin-raise"), previous], timeout=40)
+
+
+def current_focus_class():
+    """取当前焦点窗口的 WM_CLASS（还原用）。行格式：[n] 标题 | class | 几何 | 标记"""
+    r = sh([os.path.join(HERE, "ys-wins")], timeout=30)
+    for ln in r.stdout.strip().splitlines():
+        if "|ACTIVE" in ln:
+            parts = ln.split("|")
+            return parts[1].strip() if len(parts) > 1 else ""
+    return ""
+
+
+# ── 注入 ──────────────────────────────────────────────────────────
+def send_key(code, hold=0.12):
+    """发一个按键（evdev 码）。ESC=1、空格=57、W=17、F=33。"""
+    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+    subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=20)
+    time.sleep(hold)
+    subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=20)
+
+
+def click(x, y, hold=0.5):
+    """点击走 `ys-pointer-click`（**不要再自己拼 mousemove+click**）。
+
+    2026-10-17 实测教训（本轮踩过，浪费了一整个退出流程）：
+      · 指针的可用通道是 **`ydotool mousemove -x/-y` 相对移动 + xdotool 回读闭环**；
+        `xdotool mousemove` 在 Wayland/Xwayland 下**无效** ⇒ 指针没动，点击落在原地，
+        表现为「点了没反应」或「点到了菜单外面把菜单关掉」。
+      · **游戏内 UI 的按住时长必须 ≥500ms**：游戏 6~11 FPS，130ms 的按放会被整帧吞掉。
+        Wine 菜单 ≥120ms 即可，两者取严 ⇒ 缺省 0.5s。
+    ys-do 已在调用前校验窗口在栈顶，故设 YS_SLOT_ACTIVE=1 跳过重复进槽。"""
+    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"),
+               YS_CLICK_HOLD=str(hold))
+    r = subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(int(x)), str(int(y))],
+                       env=env, capture_output=True, text=True, timeout=120)
+    return r.returncode == 0
+
+
+# ── 动作定义校验 ──────────────────────────────────────────────────
+def load_action(intent):
+    p = os.path.join(ACTIONS_DIR, intent + ".json")
+    if not os.path.exists(p):
+        sys.stderr.write(f"未知意图 {intent}（{p} 不存在）\n")
+        sys.exit(6)
+    a = json.load(open(p, encoding="utf-8"))
+    a["_path"] = p
+    # 加载时校验：缺 post 的动作不允许存在（设计原则 P2）
+    if not a.get("post"):
+        sys.stderr.write(f"[动作定义非法] {p} 没有 post 判据——"
+                         f"「不存在没有后置判据的动作」是硬约束\n")
+        sys.exit(6)
+    if not a.get("pre"):
+        sys.stderr.write(f"[动作定义非法] {p} 没有 pre 判据\n")
+        sys.exit(6)
+    for i, st in enumerate(a.get("steps", [])):
+        if st.get("do") == "key":
+            if "keys" not in st:
+                sys.stderr.write(f"[动作定义非法] {p} 第 {i+1} 步是 key 但没有 keys\n"); sys.exit(6)
+            continue
+        if "locate" not in st or "do" not in st:
+            sys.stderr.write(f"[动作定义非法] {p} 第 {i+1} 步缺 locate/do\n")
+            sys.exit(6)
+    return a
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    ledger_path = None
+    if "--ledger" in args:
+        ledger_path = args[args.index("--ledger") + 1]
+        del args[args.index("--ledger"):args.index("--ledger") + 2]
+
+    if "--list" in args or not args:
+        print("可用意图：")
+        for f in sorted(os.listdir(ACTIONS_DIR)) if os.path.isdir(ACTIONS_DIR) else []:
+            if f.endswith(".json"):
+                a = json.load(open(os.path.join(ACTIONS_DIR, f), encoding="utf-8"))
+                print(f"  {f[:-5]:20s} pre={a.get('pre')} post={a.get('post')} "
+                      f"steps={len(a.get('steps', []))}  — {a.get('desc','')}")
+        return 0
+
+    # 先剥离所有开关，剩下的第一个位置参数才是意图（否则 `--dry playtest-start`
+    # 会把 `--dry` 当成意图名去 actions/ 找文件）
+    dry = "--dry" in args
+    positional = [a for a in args if not a.startswith("--")]
+    if not positional:
+        sys.stderr.write("缺少意图名\n"); return 6
+    intent = positional[0]
+    action = load_action(intent)
+    controls = json.load(open(CALIB, encoding="utf-8"))
+
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    run_dir = os.path.join(os.path.dirname(DEFAULT_LEDGER_DIR), "ys-round", ts) \
+        if False else os.path.join(DEFAULT_LEDGER_DIR, ts)
+    os.makedirs(os.path.join(run_dir, "evidence"), exist_ok=True)
+    ledger_path = ledger_path or os.path.join(run_dir, "ledger.jsonl")
+    ledger = open(ledger_path, "a", encoding="utf-8")
+
+    def rec(**kw):
+        kw["at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        kw["intent"] = intent
+        ledger.write(json.dumps(kw, ensure_ascii=False) + "\n")
+        ledger.flush()
+        return kw
+
+    print(f"══ ys-do {intent} {'(dry-run)' if dry else ''} ══")
+    print(f"账本：{ledger_path}")
+    rec(event="start", action=os.path.basename(action["_path"]),
+        pre_expect=action["pre"], post_expect=action["post"])
+
+    fail = None
+
+    # ① 前置态
+    prev_focus = current_focus_class()
+    # 取得观测条件（抬到栈顶）——**dry-run 也要做**，否则判不了状态。
+    # 结束时统一归还原焦点。
+    if not dry:
+        ok, line = acquire_focus()
+    else:
+        ok, line = acquire_focus()   # 观测需要；dry-run 只是不注入事件
+    if not ok:
+        rec(event="focus", ok=False, detail=line)
+        print(f"✗ 焦点不可用：栈顶不是「{WIN_TITLE}」（{line}）")
+        fail = 4
+    if fail is None:
+        st = state()
+        rec(event="pre_state", expect=action["pre"], got=st, ok=st in action["pre"])
+        print(f"① 前置态 = {st}（期望 {action['pre']}）{'✓' if st in action['pre'] else '✗'}")
+        if st == "UNOBSERVABLE":
+            print("   取不到新鲜帧（窗口不在栈顶）——先解决观测条件")
+            fail = 4
+        elif st not in action["pre"]:
+            fail = 2
+
+    # ② 逐步执行
+    if fail is None:
+        for i, step in enumerate(action["steps"], 1):
+            # 条件步：only_if_state 列出「只有当前在这些态时才执行」的态。
+            # 存在的理由（2026-10-17 实测）：同一动作从不同态出发需要不同的第一步——
+            # 游戏内(PLAYTEST)要按 ESC 开暂停菜单，而已经在暂停菜单(PAUSE)时按 ESC 会**关掉菜单**（=继续挑战）。
+            if step.get("only_if_state"):
+                st_now = state()
+                if st_now not in step["only_if_state"]:
+                    rec(event="step", n=i, kind="skip", reason=f"态={st_now} 不在 {step['only_if_state']}")
+                    print(f"② [{i}/{len(action['steps'])}] 跳过（当前 {st_now}）")
+                    continue
+            # key 步：不需要定位（例如「按 ESC 打开暂停菜单」）
+            if step.get("do") == "key":
+                if not dry:
+                    for k in step["keys"]:
+                        send_key(int(k))
+                        time.sleep(0.3)
+                    time.sleep(float(step.get("wait", 3)))
+                rec(event="step", n=i, kind="key", keys=step["keys"], ok=True)
+                print(f"② [{i}/{len(action['steps'])}] 按键 {step['keys']}"
+                      f" {'(dry)' if dry else '✓'}")
+                continue
+            name = step["locate"]
+            ctrl = controls.get(name)
+            if ctrl is None:
+                rec(event="step", n=i, ok=False, detail=f"标定库无控件 {name}")
+                print(f"② [{i}/{len(action['steps'])}] ✗ 标定库没有控件 {name}")
+                fail = 3
+                break
+            if ctrl.get("status") == "SUSPECT":
+                rec(event="step", n=i, ok=False, detail=f"{name} 标定状态 SUSPECT")
+                print(f"② [{i}/{len(action['steps'])}] ✗ {name} 标定可疑（SUSPECT），拒绝使用")
+                fail = 3
+                break
+            frame, err = fresh_frame()
+            if frame is None:
+                rec(event="step", n=i, ok=False, detail=f"取帧失败: {err}")
+                print(f"② [{i}] ✗ 取帧失败：{err}")
+                fail = 3
+                break
+            x, y, score, kind = locate(ctrl, frame["path"])
+            thr = ctrl.get("threshold", 0.90)
+            good = x is not None and score >= thr
+            ev = os.path.join(run_dir, "evidence", f"step{i}-{'ok' if good else 'miss'}.png")
+            sh(["cp", "-f", frame["path"], ev], timeout=20)
+            rec(event="step", n=i, control=name, kind=kind, score=round(score, 4),
+                threshold=thr, x=x, y=y, ok=good, evidence=ev)
+            if not good:
+                print(f"② [{i}/{len(action['steps'])}] ✗ 定位 {name} 失败"
+                      f"（{kind} score={score:.3f} < {thr}）证据 {ev}")
+                fail = 3
+                break
+            print(f"② [{i}/{len(action['steps'])}] {name} → ({x},{y}) score={score:.3f}"
+                  f" {'✓' if dry else '→ 点击'}")
+            if not dry:
+                click(int(x), int(y), float(step.get("hold", 0.13)))
+                time.sleep(float(step.get("wait", 4)))
+                if step.get("expect_state"):
+                    st2 = state()
+                    rec(event="step_post", n=i, expect=step["expect_state"], got=st2,
+                        ok=st2 in step["expect_state"])
+                    if st2 not in step["expect_state"]:
+                        print(f"   ✗ 步骤后置态 = {st2}（期望 {step['expect_state']}）")
+                        fail = 5
+                        break
+
+    # ③ 后置态 —— **轮询而不是只查一次**。
+    # 2026-10-17 实测：游戏退出试玩到编辑器要 >10s，单次检查会把「还没切完」误判成「失败」，
+    # 于是我在状态其实已经正确的情况下白报了一轮失败。轮询上限由 action.post_timeout 控制。
+    if fail is None and not dry:
+        limit = float(action.get("post_timeout", 60))
+        t0 = time.time()
+        st = state()
+        while st not in action["post"] and time.time() - t0 < limit:
+            time.sleep(5)
+            st = state()
+        rec(event="post_state", expect=action["post"], got=st, ok=st in action["post"],
+            waited=round(time.time() - t0, 1))
+        print(f"③ 后置态 = {st}（期望 {action['post']}，等了 {round(time.time()-t0,1)}s）"
+              f"{'✓' if st in action['post'] else '✗'}")
+        if st not in action["post"]:
+            fail = 5
+
+    # ④ 产物
+    if fail is None and not dry and action.get("artifacts"):
+        for art in action["artifacts"]:
+            r = sh(["bash", "-lc", art["check"]], timeout=60)
+            ok = r.returncode == 0
+            rec(event="artifact", desc=art.get("desc", art["check"]), ok=ok,
+                output=r.stdout.strip()[:300])
+            print(f"④ 产物 {art.get('desc','')} {'✓' if ok else '✗'}")
+            if not ok:
+                fail = 5
+                break
+
+    restore_focus(prev_focus)
+    rec(event="finish", ok=fail is None, code=fail or 0)
+    ledger.close()
+    print("─" * 46)
+    if fail:
+        print(f"✗ 失败（退出码 {fail}）—— 账本：{ledger_path}")
+        return fail
+    print(f"✓ 完成 —— 账本：{ledger_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

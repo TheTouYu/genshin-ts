@@ -6,3 +6,5 @@ playtest.png	PLAYTEST	游戏内（右下奇域试玩中水印）
 playtest2.png	PLAYTEST	游戏内（平台跳跃，另一场景）
 pause.png	PAUSE	试玩暂停菜单（继续/重新/中断挑战）
 settle.png	SETTLE	结算页（中央白卡 + 离开按钮）
+playtest3.png	PLAYTEST	游戏内（亮蓝天空/水面 —— 曾让 SAVELIST/A 误触发）
+settle2.png	SETTLE	实拍结算页（另一种版式：星空背景+角色卡）

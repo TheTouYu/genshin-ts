@@ -13,7 +13,11 @@ JS="/tmp/ys-kwin-raise-$TAG.js"
 cat > "$JS" << JS
 var list = workspace.windowList(), t = null;
 for (var i = 0; i < list.length; i++) {
-  if (String(list[i].caption || "").indexOf("$T") >= 0) { t = list[i]; break; }
+  // 同时按 caption 与 WM_CLASS 匹配（2026-10-17 加）：
+  // 只按 caption 匹配时，带破折号/空格的长标题（如 Firefox 的「X — Y — Mozilla Firefox」）
+  // 传全串会匹配失败；传 WM_CLASS（firefox / yuanshen.exe）更稳。
+  var cap = String(list[i].caption || ""), cls = String(list[i].resourceClass || "");
+  if (cap.indexOf("$T") >= 0 || cls.indexOf("$T") >= 0) { t = list[i]; break; }
 }
 if (!t) { console.info("YS-RAISE-$TAG FAIL not-found"); }
 else {

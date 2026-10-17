@@ -1,0 +1,45 @@
+{
+  "desc": "从试玩中退出并让调试日志落盘（日志只在走完退出流程后才写盘）",
+  "pre": [
+    "PLAYTEST",
+    "PAUSE",
+    "SETTLE"
+  ],
+  "post": [
+    "SETTLE",
+    "EDITOR",
+    "MENU"
+  ],
+  "steps": [
+    {
+      "do": "key",
+      "keys": [
+        1
+      ],
+      "wait": 3.5,
+      "only_if_state": [
+        "PLAYTEST"
+      ]
+    },
+    {
+      "locate": "pause-abort",
+      "do": "click",
+      "wait": 5,
+      "only_if_state": [
+        "PAUSE",
+        "PLAYTEST"
+      ]
+    },
+    {
+      "locate": "settle-leave",
+      "do": "click",
+      "wait": 10
+    }
+  ],
+  "artifacts": [
+    {
+      "desc": "5 分钟内出现新 .gia 调试日志",
+      "check": "test -n \"$(find \"$GSTS_LOCALLOW_DIR/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log\" -name '*.gia' -newermt '-5 minutes' 2>/dev/null | head -1)\""
+    }
+  ]
+}

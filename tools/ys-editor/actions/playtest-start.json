@@ -1,0 +1,40 @@
+{
+  "desc": "从编辑器或系统菜单开一次试玩，进到游戏内",
+  "pre": [
+    "MENU",
+    "EDITOR"
+  ],
+  "post": [
+    "PLAYTEST",
+    "PAUSE",
+    "SETTLE"
+  ],
+  "steps": [
+    {
+      "do": "key",
+      "keys": [
+        1
+      ],
+      "wait": 3,
+      "only_if_state": [
+        "EDITOR"
+      ]
+    },
+    {
+      "locate": "playtest-tile",
+      "do": "click",
+      "wait": 8
+    },
+    {
+      "locate": "direct-upload",
+      "do": "click",
+      "wait": 13
+    },
+    {
+      "locate": "start-game",
+      "do": "click",
+      "hold": 1.2,
+      "wait": 28
+    }
+  ]
+}

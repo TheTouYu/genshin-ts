@@ -1,0 +1,107 @@
+{
+  "_comment": "控件标定库（gui-stack 票03）。坐标是会话态，模板+条件是资产。threshold 由回归样本量出。",
+  "playtest-tile": {
+    "kind": "template",
+    "file": "templates/playtest-tile.png",
+    "threshold": 0.9,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "templates/playtest-tile.png (源 /tmp/t1-menu.png)",
+    "margins": "自身 1.00 vs 其它态最高 0.35",
+    "status": "OK"
+  },
+  "direct-upload": {
+    "kind": "template",
+    "file": "templates/direct-upload.png",
+    "threshold": 0.9,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "templates/direct-upload.png (源 /tmp/t2-bake.png)",
+    "margins": "其它态最高 0.79（余量紧，靠前置态兜）",
+    "status": "OK"
+  },
+  "start-game": {
+    "kind": "template",
+    "file": "templates/start-game.png",
+    "threshold": 0.9,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "templates/start-game.png (源 /tmp/t3-opts.png)",
+    "margins": "其它态最高 0.82（余量紧，靠前置态兜）",
+    "status": "OK"
+  },
+  "pause-abort": {
+    "kind": "template",
+    "file": "templates/pause-abort.png",
+    "threshold": 0.9,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "templates/pause-abort.png (源 /tmp/ex3.png)",
+    "margins": "自身 1.00 vs 其它态最高 0.73",
+    "status": "OK"
+  },
+  "pause-resume": {
+    "kind": "template",
+    "file": "templates/pause-resume.png",
+    "threshold": 0.9,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "templates/pause-resume.png (源 /tmp/ex3.png)",
+    "margins": "自身 1.00 vs 其它态最高 0.82",
+    "status": "OK"
+  },
+  "settle-leave": {
+    "kind": "signature",
+    "x": 1890,
+    "y": 1366,
+    "probes": [
+      {
+        "x": 1890,
+        "y": 1420,
+        "cond": {
+          "G": [
+            95,
+            130
+          ],
+          "B": [
+            200,
+            255
+          ]
+        }
+      },
+      {
+        "x": 1280,
+        "y": 500,
+        "cond": {
+          "R": [
+            0,
+            40
+          ],
+          "B": [
+            0,
+            60
+          ]
+        }
+      }
+    ],
+    "threshold": 1.0,
+    "conditions": {
+      "screen": "2560x1440"
+    },
+    "calibrated": "2026-10-17",
+    "evidence": "calib/regress/settle.png + settle2.png + 实拍 step3-miss.png",
+    "margins": "探针1：(66,106,235)/(71,102,230) 两版命中；SAVE(58,79,215) G=79 落空；PT3(81,179,229) G=179 落空。探针2：(31,26,50)/(27,28,45) 命中；SAVE(47,49,74) R=47 落空",
+    "status": "OK",
+    "_note": "结算页有两种版式，模板匹配余量仅 0.02 不可用；判据由 9 样本自动搜索选出"
+  }
+}
