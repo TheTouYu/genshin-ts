@@ -204,39 +204,88 @@ def cmd_show(args):
 
 
 def cmd_state(args):
-    """按 profile 用视觉锚点判定当前界面态（与 ys-fast/ys-state 是独立通道）。"""
+    """按 profile 用视觉锚点判定当前界面态（与 ys-fast/ys-state 是独立通道）。
+
+    成本实测（2026-10-17，2560×1440）：
+      · `import -window root` 全屏抓帧 **18ms**；而 `import -window <app窗口>` 全窗 **2953ms**
+        （后者走了慢路径；同样的像素，换一种抓法差 160 倍）
+      · 32 锚点全帧匹配 ~840ms；6 锚点（每态一个）~160ms
+    ⇒ 两段式：先用「每态最强锚点 + 家位 ROI」快速判（~200ms），
+      不确定再退回全锚点全帧（~1s）。**快路径不能牺牲判据**：余量不足就升级。
+    """
     load_env()
     prof = json.load(open(args.profile))
     anchors = prof['anchors']
     win = prof.get('window') or args.window
+    sys.path.insert(0, os.path.join(HERE, 'ys-editor'))
+    import ys_look
+
     shot = args.frame
     if not shot:
         shot = '/tmp/gui-state-live.png'
-        rc = subprocess.run(['import', '-window', win, shot],
-                            capture_output=True).returncode
+        # 先试 root（快路径 18ms）；失败再回退到窗口（慢但兼容）
+        rc = subprocess.run(['import', '-window', 'root', shot], capture_output=True).returncode
+        if rc != 0 and win:
+            rc = subprocess.run(['import', '-window', win, shot], capture_output=True).returncode
         if rc != 0:
             print(f'✗ 抓帧失败（window={win}）', file=sys.stderr)
             return 4
-    sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'tools', 'ys-editor'))
-    import ys_look
-    jobs = [{'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0]} for a in anchors]
+    shot = os.path.abspath(shot)
+
+    by_state = {}
+    for a in anchors:
+        by_state.setdefault(a['state'], []).append(a)
+
+    def run(jobs):
+        t = time.time()
+        r = ys_look.daemon({'cmd': 'batch', 'frame': shot, 'jobs': jobs})
+        if not r:
+            return None, 0.0
+        sc = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
+        return sc, (time.time() - t) * 1000
+
+    def roi_job(a, pad=200):
+        x, y, p = a.get('x', 0), a.get('y', 0), a.get('patch', 96)
+        rx, ry = max(0, x - pad), max(0, y - pad)
+        return {'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0],
+                'roi': [rx, ry, p + 2 * pad, p + 2 * pad]}
+
+    # ① 快路径：每态取一个最强锚点（margin 最大者），家位 ROI
     t0 = time.time()
-    r = ys_look.daemon({'cmd': 'batch', 'frame': os.path.abspath(shot), 'jobs': jobs})
-    if not r:
+    tier1 = {st: max(lst, key=lambda a: a['margin']) for st, lst in by_state.items()}
+    sc1, ms1 = run([roi_job(a) for a in tier1.values()])
+    if sc1 is None:
         print(f'✗ ys-lookd 不可用：{ys_look.LAST_DAEMON_ERROR}', file=sys.stderr)
         return 4
-    scores = {x['id']: (x['best']['score'] if x['best'] else 0.0) for x in r['results']}
-    by = {}
-    for a in anchors:
-        by.setdefault(a['state'], []).append(a['name'])
-    per = {st: max(scores[n] for n in names) for st, names in by.items()}
+    per1 = {st: sc1.get(a['name'], 0.0) for st, a in tier1.items()}
+    r1 = sorted(per1.items(), key=lambda kv: -kv[1])
+    best1, second1 = r1[0], (r1[1] if len(r1) > 1 else ('-', 0.0))
+    fast_ok = best1[1] >= args.fast_score and (best1[1] - second1[1]) >= args.fast_margin
+    per, best, second, path, match_ms = per1, best1[1], second1[1], 'fast', ms1
+
+    # ② 慢路径：全部锚点 + 全帧（快路径不确定时才用）
+    if not fast_ok:
+        sc2, ms2 = run([{'id': a['name'], 'tpl': a['tpl'], 'scales': [1.0]} for a in anchors])
+        if sc2 is None:
+            print(f'✗ ys-lookd 不可用：{ys_look.LAST_DAEMON_ERROR}', file=sys.stderr)
+            return 4
+        per2 = {st: max(sc2.get(a['name'], 0.0) for a in lst) for st, lst in by_state.items()}
+        r2 = sorted(per2.items(), key=lambda kv: -kv[1])
+        per = per2
+        best = r2[0][1]
+        second = r2[1][1] if len(r2) > 1 else 0.0
+        path = 'full'
+        match_ms = ms1 + ms2
+
     ranked = sorted(per.items(), key=lambda kv: -kv[1])
-    pred, best = ranked[0]
-    margin = best - (ranked[1][1] if len(ranked) > 1 else 0)
-    print(f'state={pred}  score={best:.3f}  次高={ranked[1][0] if len(ranked)>1 else "-"}'
-          f'({ranked[1][1]:.3f})  余量={margin:.3f}  ({(time.time()-t0)*1000:.0f}ms)')
+    pred = ranked[0][0]
+    margin = best - second
+    total = (time.time() - t0) * 1000
+    print(f'state={pred}  score={best:.3f}  次高={ranked[1][0] if len(ranked) > 1 else "-"}'
+          f'({second:.3f})  余量={margin:.3f}  路径={path}  匹配={match_ms:.0f}ms  合计={total:.0f}ms')
     if args.json:
-        json.dump({'state': pred, 'score': best, 'all': dict(ranked), 'frame': shot},
+        json.dump({'state': pred, 'score': best, 'margin': margin, 'path': path,
+                   'all': dict(ranked), 'frame': shot, 'elapsed_ms': round(total)},
                   open(args.json, 'w'), ensure_ascii=False, indent=1)
     return 0 if margin >= args.min_margin else 6
 
@@ -256,6 +305,8 @@ def main():
     p.add_argument('--frame', help='用已有截图（离线）')
     p.add_argument('--json')
     p.add_argument('--min-margin', type=float, default=0.15)
+    p.add_argument('--fast-score', type=float, default=0.85)
+    p.add_argument('--fast-margin', type=float, default=0.15)
     p = sub.add_parser('show', help='打印技能')
     p.add_argument('skill')
     a = ap.parse_args()
