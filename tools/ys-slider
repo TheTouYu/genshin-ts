@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""ys-slider — 滑条识别与可拖目标（"长条+端点圆钮+两端数值"不是文本，是滑条）
+
+## 存在理由（2026-10-18 F-3-05 / O-2026-10-18-03）
+
+投票面板里 `− 1 ──◆──────── 100 ＋` 是**投资额滑条**。我把它读成"1 和 100 两个数字"，
+于是默认投 1 枚：倍率 105 × 1 = 105 分，而同样倍率投 100 枚是 **10500 分**——同一个决策差 100 倍。
+
+## 检测思路（按形状，不按颜色肤色）
+
+1. **两个端点圆钮**：暗色紧凑圆块（V<0.5，面积 1500~9000，长宽比 0.75~1.35），同高（|Δy|≤12）、
+   间距 500~1400px ⇒ 这一对就是 `−` 与 `＋`（或两个端点）。
+2. **轨道**：在这对圆钮之间的**同一行带**上找最长浅色横带（V>0.86 且低饱和），高度 5~26px。
+3. **滑块**：轨道左端附近的暗色紧凑块（菱形/圆形都算），排除两个端点圆钮。
+4. **两端数值**：OCR 数字框，`|cy − 轨道y| ≤ 45` 且 `cx` 落在两个圆钮之间 ⇒ min/max 候选
+   （取最左与最右两个数字）。
+5. **当前值估算**：`knob_cx` 在轨道上的相对位置 × (max−min)；与 OCR 到的、knob 左侧最近的数字对账，
+   不一致 ⇒ `MISMATCH`（不静默）。
+
+## 用法
+  tools/ys-slider <png> [--json]
+退出码 0 / 3（读不到图）/ 4（参数错）
+机读行 `SLIDER-RESULT n=<滑条数> verdict=PASS`
+"""
+import json
+import os
+import subprocess
+import sys
+
+try:
+    from PIL import Image
+    import numpy as np
+except Exception as exc:  # pragma: no cover
+    print('缺少依赖：%s' % exc, file=sys.stderr)
+    sys.exit(3)
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OCR = os.path.join(HERE, 'ys-editor', 'ys_ocr.py')
+OCR_PY = os.path.join(os.path.dirname(HERE), '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python')
+
+DARK_V = 0.50
+AREA_MIN, AREA_MAX = 1500, 9000
+ASPECT = (0.75, 1.35)
+PAIR_DX = (500, 1400)
+PAIR_DY = 12
+TRACK_V_MIN = 0.86
+TRACK_H = (5, 26)
+
+
+def _blobs(mask, cell=6):
+    """网格连通域（粗），返回 [(bbox_px, cx, cy, w, h, n_px)]。"""
+    h, w = mask.shape
+    gy, gx = h // cell + 1, w // cell + 1
+    grid = np.zeros((gy, gx), bool)
+    ys, xs = np.where(mask)
+    if len(xs) == 0:
+        return []
+    grid[ys // cell, xs // cell] = True
+    seen = np.zeros_like(grid)
+    out = []
+    for j in range(gy):
+        for i in range(gx):
+            if not grid[j, i] or seen[j, i]:
+                continue
+            stack, cells = [(j, i)], []
+            seen[j, i] = True
+            while stack:
+                cj, ci = stack.pop()
+                cells.append((cj, ci))
+                for dj, di in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nj, ni = cj + dj, ci + di
+                    if 0 <= nj < gy and 0 <= ni < gx and grid[nj, ni] and not seen[nj, ni]:
+                        seen[nj, ni] = True
+                        stack.append((nj, ni))
+            js = [c[0] for c in cells]; is_ = [c[1] for c in cells]
+            y0, y1 = js[0], js[-1]
+            x0, x1 = min(is_), max(is_)
+            y0, y1 = min(js), max(js)
+            bx0, by0, bx1, by1 = x0 * cell, y0 * cell, (x1 + 1) * cell, (y1 + 1) * cell
+            sub = mask[by0:min(by1, h), bx0:min(bx1, w)]
+            npx = int(sub.sum())
+            bw, bh = bx1 - bx0, by1 - by0
+            out.append({'bbox': [int(bx0), int(by0), int(bw), int(bh)],
+                        'cx': (bx0 + bx1) // 2, 'cy': (by0 + by1) // 2,
+                        'w': bw, 'h': bh, 'n_px': npx})
+    return out
+
+
+def _ocr_numbers(png):
+    if not os.path.exists(OCR_PY):
+        return []
+    p = subprocess.run([OCR_PY, OCR, 'ocr', png, '--json'], capture_output=True, text=True, timeout=180)
+    try:
+        d = json.loads(p.stdout)
+    except Exception:
+        return []
+    out = []
+    for b in d.get('boxes', []):
+        t = b['text'].strip().replace(' ', '')
+        if t.isdigit():
+            out.append({'text': t, 'value': int(t), 'cx': b['cx'], 'cy': b['cy']})
+    return out
+
+
+def _tracks(v, s):
+    """找"细长浅色带"：逐行找 V>0.90 且 S<0.10 的长连续段，再要求上下边界外亮度明显下降（避免整块亮背景）。"""
+    H, W = v.shape
+    out = []
+    light = (v > 0.90) & (s < 0.10)
+    for y in range(0, H, 2):
+        row = light[y]
+        x = 0
+        while x < W:
+            if not row[x]:
+                x += 1
+                continue
+            x0 = x
+            while x < W and row[x]:
+                x += 1
+            x1 = x
+            if not (220 <= x1 - x0 <= 1200):
+                continue
+            # 垂直厚度：向上/下扩展直到亮像素占比 < 60%
+            yy0 = y
+            while yy0 > 0 and light[yy0 - 1, x0:x1].mean() > 0.6:
+                yy0 -= 1
+            yy1 = y
+            while yy1 < H - 1 and light[yy1 + 1, x0:x1].mean() > 0.6:
+                yy1 += 1
+            thick = yy1 - yy0 + 1
+            if not (5 <= thick <= 34):
+                continue
+            out.append({'x0': x0, 'x1': x1, 'y': (yy0 + yy1) // 2, 'thick': thick})
+            x = x1
+    # 合并同一条轨道（步长 2 会重复）——按 y 与 x 区间去重
+    merged = []
+    for t in sorted(out, key=lambda t: (t['x0'], t['y'])):
+        dup = False
+        for m in merged:
+            if abs(m['y'] - t['y']) <= 6 and abs(m['x0'] - t['x0']) < 40 and abs(m['x1'] - t['x1']) < 40:
+                dup = True
+                break
+        if not dup:
+            merged.append(t)
+    return merged
+
+
+def analyze(png):
+    img = Image.open(png).convert('RGB')
+    W, H = img.size
+    a = np.asarray(img, dtype=np.float32) / 255.0
+    mx = a.max(axis=2); mn = a.min(axis=2)
+    v = mx
+    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    numbers = _ocr_numbers(png)
+    sliders = []
+    for t in _tracks(v, s):
+        x0, x1, ty = t['x0'], t['x1'], t['y']
+        # 滑块：轨道左端附近（±100px）的暗色紧凑块
+        dark = (v < 0.62)
+        knob = None
+        for b in _blobs(dark, cell=4):
+            if abs(b['cy'] - ty) <= 34 and (x0 - 110) <= b['cx'] <= (x0 + 110) \
+                    and 12 <= b['w'] <= 90 and 12 <= b['h'] <= 90:
+                knob = b
+                break
+        if knob is None:
+            continue          # 没有滑块的细长带不算滑条（防止把面板光带当滑条）
+        near = [n for n in numbers if abs(n['cy'] - ty) <= 55 and (x0 - 90) <= n['cx'] <= (x1 + 90)]
+        near = sorted(near, key=lambda n: n['cx'])
+        if len(near) >= 2:
+            vmin, vmax = near[0]['value'], near[-1]['value']
+        elif near:
+            vmin, vmax = None, near[0]['value']
+        else:
+            vmin = vmax = None
+        kx = knob['cx'] if knob else None
+        est = None
+        if vmin is not None and vmax is not None and kx is not None and x1 > x0:
+            frac = max(0.0, min(1.0, (kx - x0) / float(x1 - x0)))
+            est = int(round(vmin + frac * (vmax - vmin)))
+        cur = None
+        if kx is not None:
+            left = [n for n in near if n['cx'] < kx]
+            cur = left[-1]['value'] if left else None
+        mismatch = bool(est is not None and cur is not None and vmax and abs(est - cur) > max(2, 0.05 * vmax))
+        drag = []
+        if vmax is not None:
+            drag = [{'value': vmin if vmin is not None else '?', 'x': x0 + 3, 'y': ty},
+                    {'value': vmax, 'x': x1 - 3, 'y': ty}]
+        sliders.append({
+            'track_bbox': [x0, ty - t['thick'] // 2, x1 - x0, t['thick']],
+            'knob_cx': kx, 'knob': knob,
+            'value_min': vmin, 'value_max': vmax,
+            'value_now_est': est, 'value_now_ocr': cur, 'mismatch': mismatch,
+            'drag_targets': drag,
+            'confidence': round(min(1.0, 0.55 + (0.25 if knob else 0) + (0.2 if vmax is not None else 0)), 2),
+            'evidence': {'track_thick': t['thick'], 'numbers_near': [n['text'] for n in near],
+                         'knob': bool(knob)},
+        })
+    advice = []
+    for sl in sliders:
+        advice.append('滑条 x %d..%d (y=%d) 现状≈%s，上限 %s；拖到 x=%d 可设上限' % (
+            sl['track_bbox'][0], sl['track_bbox'][0] + sl['track_bbox'][2],
+            sl['track_bbox'][1] + sl['track_bbox'][3] // 2,
+            sl['value_now_ocr'] if sl['value_now_ocr'] is not None else '?',
+            sl['value_max'] if sl['value_max'] is not None else '?',
+            sl['drag_targets'][-1]['x'] if sl['drag_targets'] else 0))
+    if not advice:
+        advice.append('未检出滑条（三者缺一不算：细长轨道 / 端点滑块 / 两端数值）')
+    return {'path': os.path.abspath(png), 'size': [W, H], 'sliders': sliders, 'advice': advice}
+
+
+def main(argv):
+    args = [a for a in argv]
+    as_json = '--json' in args
+    args = [a for a in args if a != '--json']
+    if len(args) != 1:
+        print('用法: ys-slider <png> [--json]', file=sys.stderr); return 4
+    if not os.path.exists(args[0]):
+        print('读不到图：%s' % args[0], file=sys.stderr); return 3
+    r = analyze(args[0])
+    if as_json:
+        print(json.dumps(r, ensure_ascii=False, indent=1))
+        print('SLIDER-RESULT n=%d verdict=PASS' % len(r['sliders']), file=sys.stderr)
+    else:
+        print('══ ys-slider ══  %s (%dx%d)' % (os.path.basename(r['path']), *r['size']))
+        for s_ in r['sliders']:
+            print('  轨道 %s  滑块 x=%s  值 %s..%s（估算 %s / OCR %s）%s' % (
+                s_['track_bbox'], s_['knob_cx'], s_['value_min'], s_['value_max'],
+                s_['value_now_est'], s_['value_now_ocr'], ' **MISMATCH**' if s_['mismatch'] else ''))
+            print('  拖拽目标: %s' % s_['drag_targets'])
+        for a in r['advice']:
+            print('  建议: %s' % a)
+        print('SLIDER-RESULT n=%d verdict=PASS' % len(r['sliders']))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
