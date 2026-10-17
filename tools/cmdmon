@@ -1,0 +1,422 @@
+#!/usr/bin/env python3
+"""cmdmon — 独立命令监控模块（采集 / 报警 / 报告）。
+
+存在理由（2026-10-17 用户提议）：
+  「做一个独立的、监控全部执行命令追踪的监控模块。它简单但是有效，
+    可以快速发现一些执行过程中的坑，全项目收益。」
+
+它读 DSH 会话事件流（`~/.dsh/sessions/*/session.v4.jsonl.zstd`）——那里已经有
+**每次工具调用**的名字、参数、起止时间、是否报错，不需要改任何现有工具，
+也不需要重启任何进程。生产数据零侵入。
+
+用法:
+  tools/cmdmon scan                 # 一次性把当前会话灌进账本（幂等）
+  tools/cmdmon report [--since 6h]  # 类别占比 / 最慢 / 失败 / 重复
+  tools/cmdmon alerts [--since 6h]  # 只列异常（慢 / 失败 / 裸 sleep / 重试风暴 / GUI 风暴）
+  tools/cmdmon daemon [--interval 2]  # 常驻：每 2s 增量采集并即时报警
+  tools/cmdmon status
+
+账本: ~/.dsh/cmdlog/{commands.jsonl, alerts.jsonl, state.json, daemon.log}
+判据（报警五条，故意少而准）:
+  slow    单次调用 ≥ 30s
+  fail    isError=true 或输出含 [exit code: N≠0]
+  sleep   bash 命令里出现裸 `sleep <数字>`（用时长冒充同步的经典缺陷）
+  repeat  同一条命令 10 分钟内重复 ≥3 次（重试风暴 / 参数猜错）
+  guistorm 120 秒内 GUI 类调用 ≥8 次（仪器在空转）
+"""
+import argparse
+import fcntl
+import glob
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from collections import defaultdict
+
+HOME = os.path.expanduser('~')
+LOGDIR = os.path.join(HOME, '.dsh', 'cmdlog')
+COMMANDS = os.path.join(LOGDIR, 'commands.jsonl')
+ALERTS = os.path.join(LOGDIR, 'alerts.jsonl')
+STATE = os.path.join(LOGDIR, 'state.json')
+
+CAT = {
+    'gui': ('ys-', 'xdotool', 'ydotool', 'spectacle', 'import -window', 'kwin', 'ys_look',
+            'ys-pointer', 'ys-peek', 'ys-act', 'ys-put', 'ys-state', 'ys-observe', 'ys-fast',
+            'ys-switch', 'ys-play', 'ys-round', 'ys-verify'),
+    'build': ('npm run build', 'gsts', 'tsc', 'build.mjs'),
+    'test': ('npm test', 'npx tsx tests/', 'quicktest'),
+    'git': ('git status', 'git add', 'git commit', 'git log', 'git diff', 'git show', 'git checkout'),
+    'verify': ('tools/', 'python3 .agents/skills', '.agents/skills/debug-log'),
+    'memory': ('memo_',),
+    'context': ('compress', 'acp_status', 'decompress', 'search_context'),
+    'explore': ('grep ', 'rg ', 'find ', 'ls ', 'cat ', 'sed -n', 'head ', 'tail ', 'wc -'),
+}
+TOOL_CAT = {'read': 'fs', 'write': 'fs', 'edit': 'fs', 'glob': 'fs', 'grep': 'fs',
+            'memo_recall': 'memory', 'memo_write': 'memory', 'memo_stats': 'memory',
+            'compress': 'context', 'acp_status': 'context',
+            'subagent': 'delegate', 'workflow': 'delegate', 'subagent_fork': 'delegate',
+            'ask_user_question': 'wait_human'}
+
+SLOW_MS = 30000
+SLEEP_RE = re.compile(r'\bsleep\s+[0-9]')
+EXIT_RE = re.compile(r'\[exit code:\s*(-?\d+)\]')
+
+
+def classify(name, args):
+    if name in TOOL_CAT:
+        return TOOL_CAT[name]
+    if name != 'bash':
+        return name
+    try:
+        cmd = json.loads(args).get('command', '')
+    except Exception:
+        cmd = str(args)
+    for cat, pats in CAT.items():
+        for p in pats:
+            if p in cmd:
+                return cat
+    return 'bash-other'
+
+
+def bash_cmd(args):
+    try:
+        return json.loads(args).get('command', '')
+    except Exception:
+        return str(args)
+
+
+def latest_session(workspace=None):
+    if workspace:
+        pat = os.path.join(HOME, '.dsh', 'sessions', f'--*{workspace}*--', '*', 'session.v4.jsonl.zstd')
+    else:
+        pat = os.path.join(HOME, '.dsh', 'sessions', '*', '*', 'session.v4.jsonl.zstd')
+    files = glob.glob(pat)
+    return max(files, key=os.path.getmtime) if files else None
+
+
+def decode(path):
+    raw = open(path, 'rb').read()
+    if path.endswith('.zstd'):
+        p = subprocess.run(['zstd', '-dc'], input=raw, capture_output=True)
+        raw = p.stdout or b''
+    out = []
+    for line in raw.decode('utf-8', 'replace').split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except Exception:
+            continue
+    return out
+
+
+def load_state():
+    try:
+        return json.load(open(STATE))
+    except Exception:
+        return {'seen': [], 'path': None}
+
+
+def save_state(st):
+    st['seen'] = st['seen'][-8000:]
+    tmp = STATE + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(st, f)
+    os.replace(tmp, STATE)
+
+
+def parse_session(events):
+    """返回 [(callId, ts_start_ms, name, args, dur_ms, is_error, exit_code)]"""
+    calls, done = {}, {}
+    for o in events:
+        t = o.get('type')
+        if t == 'tool/call':
+            d = o.get('data', {})
+            calls[d.get('callId')] = (o.get('time'), d.get('name', '?'), d.get('arguments', ''),
+                                      d.get('turn'))
+        elif t == 'tool/result':
+            d = o.get('data', {})
+            m = d.get('message', {}) or {}
+            cid = m.get('toolCallId')
+            text = json.dumps(m.get('content', ''), ensure_ascii=False)[:4000]
+            ex = EXIT_RE.search(text)
+            done[cid] = (o.get('time'), bool(m.get('isError')), int(ex.group(1)) if ex else None)
+    rows = []
+    for cid, (ts, name, args, turn) in calls.items():
+        if cid not in done:
+            continue
+        end, is_err, exit_code = done[cid]
+        rows.append((cid, ts, name, args, max(0, end - ts), is_err, exit_code))
+    rows.sort(key=lambda r: r[1])
+    return rows
+
+
+def ingest(rows, st):
+    """把新记录写进账本并返回新记录列表（持锁，避免守护与手动 scan 并发重复记账）"""
+    os.makedirs(LOGDIR, exist_ok=True)
+    lock = open(os.path.join(LOGDIR, 'ledger.lock'), 'w')
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    try:
+        st.update(load_state())
+        return _ingest_locked(rows, st)
+    finally:
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
+
+
+def _ingest_locked(rows, st):
+    seen = set(st['seen'])
+    new = []
+    os.makedirs(LOGDIR, exist_ok=True)
+    with open(COMMANDS, 'a') as f:
+        for cid, ts, name, args, dur, is_err, exit_code in rows:
+            if cid in seen:
+                continue
+            seen.add(cid)
+            cat = classify(name, args)
+            cmd = bash_cmd(args) if name == 'bash' else str(args)[:300]
+            rec = {'callId': cid, 'ts': ts, 'tool': name, 'cat': cat,
+                   'cmd': cmd[:300].replace('\n', ' ⏎ '),
+                   'dur_ms': dur, 'is_error': is_err, 'exit': exit_code}
+            f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+            new.append(rec)
+        f.flush()
+    st['seen'] = list(seen)
+    return new
+
+
+def detect(recs, recent_repeat_window_ms=600000, gui_window_ms=120000, gui_threshold=8):
+    """对一批新记录做五条判据，返回 alert 列表"""
+    alerts = []
+    by_cmd = defaultdict(list)
+    gui_ts = []
+    for r in recs:
+        if r['dur_ms'] >= SLOW_MS and r['cat'] != 'wait_human':
+            alerts.append({'kind': 'slow', 'ts': r['ts'], 'dur_ms': r['dur_ms'],
+                           'cat': r['cat'], 'cmd': r['cmd'][:160]})
+        failed = r['is_error'] or (r['exit'] not in (None, 0))
+        if failed:
+            alerts.append({'kind': 'fail', 'ts': r['ts'], 'exit': r['exit'],
+                           'cat': r['cat'], 'cmd': r['cmd'][:160]})
+        if r['tool'] == 'bash' and SLEEP_RE.search(r['cmd']):
+            alerts.append({'kind': 'sleep', 'ts': r['ts'], 'cat': r['cat'],
+                           'cmd': r['cmd'][:160]})
+        h = hashlib.md5(r['cmd'][:120].encode()).hexdigest()[:10]
+        by_cmd[h].append(r)
+        if r['cat'] == 'gui':
+            gui_ts.append(r['ts'])
+    for h, lst in by_cmd.items():
+        if len(lst) >= 3 and (lst[-1]['ts'] - lst[0]['ts']) <= recent_repeat_window_ms:
+            alerts.append({'kind': 'repeat', 'ts': lst[-1]['ts'], 'n': len(lst),
+                           'span_s': round((lst[-1]['ts'] - lst[0]['ts']) / 1000),
+                           'cmd': lst[-1]['cmd'][:160]})
+    gui_ts.sort()
+    for i in range(len(gui_ts)):
+        j = i
+        while j < len(gui_ts) and gui_ts[j] - gui_ts[i] <= gui_window_ms:
+            j += 1
+        if j - i >= gui_threshold:
+            sample = next((x['cmd'][:80] for x in recs
+                           if x['cat'] == 'gui' and x['ts'] >= gui_ts[i]), '')
+            alerts.append({'kind': 'guistorm', 'ts': gui_ts[i], 'n': j - i,
+                           'window_s': gui_window_ms // 1000, 'cmd': sample})
+            break
+    return alerts
+
+
+def append_alerts(alerts):
+    if not alerts:
+        return
+    os.makedirs(LOGDIR, exist_ok=True)
+    with open(ALERTS, 'a') as f:
+        for a in alerts:
+            f.write(json.dumps(a, ensure_ascii=False) + '\n')
+        f.flush()
+
+
+def read_jsonl(path, since_ms=None):
+    out = []
+    if not os.path.exists(path):
+        return out
+    with open(path, errors='replace') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if since_ms and o.get('ts', 0) < since_ms:
+                continue
+            out.append(o)
+    return out
+
+
+def parse_since(s):
+    if not s:
+        return None
+    m = re.match(r'^(\d+(?:\.\d+)?)([smhd])$', s)
+    if not m:
+        return None
+    n = float(m.group(1))
+    mul = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[m.group(2)]
+    return int((time.time() - n * mul) * 1000)
+
+
+def fmt_ms(ms):
+    if ms >= 60000:
+        return f'{ms/60000:.1f}m'
+    return f'{ms/1000:.1f}s'
+
+
+def cmd_scan(args):
+    path = args.session or latest_session(args.workspace)
+    if not path:
+        print('找不到会话文件', file=sys.stderr)
+        return 2
+    st = load_state()
+    rows = parse_session(decode(path))
+    new = ingest(rows, st)
+    alerts = detect(new)
+    append_alerts(alerts)
+    st['path'] = path
+    save_state(st)
+    print(f'会话: {os.path.basename(os.path.dirname(path))}')
+    print(f'扫描 {len(rows)} 次配对调用，新增 {len(new)} 条记录，报警 {len(alerts)} 条')
+    return 0
+
+
+def cmd_daemon(args):
+    os.makedirs(LOGDIR, exist_ok=True)
+    log = open(os.path.join(LOGDIR, 'daemon.log'), 'a', buffering=1)
+    print(f'[{time.strftime("%H:%M:%S")}] cmdmon daemon 起 (interval={args.interval}s)', file=log)
+    last_path = None
+    try:
+        while True:
+            path = latest_session(args.workspace)
+            if path:
+                st = load_state()
+                if path != last_path:
+                    last_path = path
+                    st['seen'] = st.get('seen', []) if st.get('path') == path else []
+                    st['path'] = path
+                    print(f'[{time.strftime("%H:%M:%S")}] 跟踪 {path}', file=log)
+                new = ingest(parse_session(decode(path)), st)
+                if new:
+                    alerts = detect(new)
+                    append_alerts(alerts)
+                    save_state(st)
+                    for a in alerts:
+                        print(f'[{time.strftime("%H:%M:%S")}] ALERT {a}', file=log)
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        print(f'[{time.strftime("%H:%M:%S")}] 退出', file=log)
+    return 0
+
+
+def cmd_report(args):
+    since = parse_since(args.since)
+    recs = read_jsonl(COMMANDS, since)
+    if not recs:
+        print('账本为空（先跑 tools/cmdmon scan）')
+        return 0
+    for r in recs:                     # 判据层单一源：分类在读取时重算，历史账本也跟新规则
+        if r.get('tool') == 'ask_user_question':
+            r['cat'] = 'wait_human'
+    agg = defaultdict(lambda: [0, 0])
+    for r in recs:
+        agg[r['cat']][0] += 1
+        agg[r['cat']][1] += r['dur_ms']
+    human = agg.get('wait_human', [0, 0])[1]
+    total = (sum(v[1] for v in agg.values()) or 1) - human
+    print(f'记录 {len(recs)} 次调用   仪器耗时 {total/60000:.1f} 分钟'
+          + (f'   人等待 {human/60000:.1f} 分钟（不计入仪器）' if human else '')
+          + (f'   （since {args.since}）' if args.since else ''))
+    print(f'{"类别":<12}{"次数":>6}{"耗时":>10}{"占比":>8}{"均时":>9}')
+    print('-' * 46)
+    for cat, (n, ms) in sorted(agg.items(), key=lambda kv: -kv[1][1]):
+        share = 100 * ms / total if cat != 'wait_human' else 0
+        print(f'{cat:<12}{n:>6}{fmt_ms(ms):>10}{share:>7.0f}%{fmt_ms(ms/n):>9}')
+    slow = sorted(recs, key=lambda r: -r['dur_ms'])[:args.top]
+    print(f'\n最慢 {len(slow)} 次:')
+    for r in slow:
+        print(f'  {fmt_ms(r["dur_ms"]):>7}  {r["cat"]:<9} {r["cmd"][:96]}')
+    fails = [r for r in recs if r['is_error'] or r['exit'] not in (None, 0)]
+    if fails:
+        print(f'\n失败 {len(fails)} 次（最近 5）:')
+        for r in fails[-5:]:
+            print(f'  exit={r["exit"]}  {r["cat"]:<9} {r["cmd"][:96]}')
+    dup = defaultdict(list)
+    for r in recs:
+        dup[hashlib.md5(r['cmd'][:120].encode()).hexdigest()[:10]].append(r)
+    storms = sorted(((len(v), v) for v in dup.values() if len(v) >= 3), reverse=True)[:5]
+    if storms:
+        print(f'\n重复命令 {len(storms)} 组（≥3 次，重试风暴嫌疑）:')
+        for n, v in storms:
+            print(f'  ×{n:<3} {v[-1]["cmd"][:96]}')
+    sleeps = [r for r in recs if r['tool'] == 'bash' and SLEEP_RE.search(r['cmd'])]
+    if sleeps:
+        print(f'\n裸 sleep {len(sleeps)} 处（应为 0）:')
+        for r in sleeps[-5:]:
+            print(f'  {r["cmd"][:100]}')
+    return 0
+
+
+def cmd_alerts(args):
+    since = parse_since(args.since)
+    al = read_jsonl(ALERTS, since)
+    if not al:
+        print('无报警')
+        return 0
+    cnt = defaultdict(int)
+    for a in al:
+        cnt[a['kind']] += 1
+    print('报警统计: ' + '  '.join(f'{k}={v}' for k, v in sorted(cnt.items())))
+    for a in al[-args.limit:]:
+        t = time.strftime('%H:%M:%S', time.localtime(a['ts'] / 1000))
+        tail = ' '.join(f'{k}={v}' for k, v in a.items() if k not in ('kind', 'ts', 'cmd'))
+        print(f'  {t}  {a["kind"]:<9} {tail}  {a.get("cmd","")[:80]}')
+    return 0
+
+
+def cmd_status(args):
+    st = load_state()
+    print(f'账本: {COMMANDS} ({len(read_jsonl(COMMANDS))} 条)' if os.path.exists(COMMANDS)
+          else '账本: 未建立')
+    print(f'报警: {ALERTS} ({len(read_jsonl(ALERTS))} 条)' if os.path.exists(ALERTS)
+          else '报警: 未建立')
+    print(f'跟踪会话: {st.get("path")}')
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(prog='cmdmon', description='独立命令监控模块')
+    sub = ap.add_subparsers(dest='cmd')
+    p = sub.add_parser('scan', help='一次性采集当前会话')
+    p.add_argument('--session')
+    p.add_argument('--workspace')
+    p = sub.add_parser('daemon', help='常驻增量采集 + 即时报警')
+    p.add_argument('--interval', type=float, default=2.0)
+    p.add_argument('--workspace')
+    p = sub.add_parser('report', help='类别占比 / 最慢 / 失败 / 裸 sleep')
+    p.add_argument('--since')
+    p.add_argument('--top', type=int, default=10)
+    p = sub.add_parser('alerts', help='异常清单')
+    p.add_argument('--since')
+    p.add_argument('--limit', type=int, default=30)
+    sub.add_parser('status', help='账本状态')
+    args = ap.parse_args()
+    if not args.cmd:
+        ap.print_help()
+        return 1
+    return {'scan': cmd_scan, 'daemon': cmd_daemon, 'report': cmd_report,
+            'alerts': cmd_alerts, 'status': cmd_status}[args.cmd](args)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
