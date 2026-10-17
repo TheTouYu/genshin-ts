@@ -17,3 +17,4 @@ afford	bash tools/ys-editor/tests/afford-selftest.sh	可点性打分（8 帧 39 
 watch	bash tools/ys-editor/tests/watch-selftest.sh	ROI 变化事件（17 用例 63 断言，含 69.84%/「领取」复现）
 act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断言：变化/无变化/rc透传/红点delta）
 slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）
+brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）

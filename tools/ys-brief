@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""ys-brief — 决策简报（动作前必读 + 一致性检查）
+
+## 存在理由（2026-10-18 F-3-03 / O-2026-10-18-02）
+
+投票面板上同时摆着：支持率 71%/29%、评分倍率 30/105、「评分规则」入口、阵容沙盘、投入滑条 1..100。
+我只看"倍率哪个高"就选了右侧，然后**默认投 1 枚**：倍率 105 × 1 = 105 分，
+同样倍率投满 100 枚 = **10500 分**——同一个决策，价值差 100 倍。
+
+用户原话：「选择高倍率却只投注了一块钱，选择队伍之前，没注意其他的信息，就做决定了。」
+
+⇒ 缺的不是感知（OCR 都读到了），是**动作前的决策清单与一致性检查**。
+
+## 它做什么
+
+1. **收集决策相关字段**：带标签的数值（支持率/倍率/评分/徽记/投入/上限）+ 滑条（复用 `ys-slider`）
+   + 规则入口（文本含「规则/说明」）+ 选项按钮（支持/确认/取消…）。
+2. **跑一致性检查**（只报它真能算的）：
+   - `C1 倍率×投注`：有倍率且有滑条/投注数时，算"当前投注能得多少分"与"投满能得多少分"；
+     当前投注 ≤ 下限 1.05 倍而倍率 > 1 ⇒ **WARN**（高倍率配最小投注 = 内部矛盾）
+   - `C2 规则未读`：存在「规则/说明」入口 ⇒ **INFO**（先读规则再决定）
+   - `C3 数值在场`：报告所有被抽出的数值，要求决策时至少引用一个（人读用）
+3. 输出 **3 行人读简报** + `checks[]`；`verdict` = `BLOCK`（有 WARN）/`OK`。
+
+## 用法
+  tools/ys-brief <png> [--json]
+退出码 0 / 3（读不到图）/ 4（参数错）
+机读行 `BRIEF-RESULT fields=<n> checks=<n> warn=<n> verdict=<OK|BLOCK>`
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SLIDER = os.path.join(HERE, 'ys-slider')
+OCR = os.path.join(HERE, 'ys-editor', 'ys_ocr.py')
+OCR_PY = os.path.join(os.path.dirname(HERE), '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python')
+
+LABELS = ('支持率', '倍率', '评分', '徽记', '投入', '上限', '奖励', '胜率')
+RULE_WORDS = ('规则', '说明', '帮助')
+
+
+def _ocr(png):
+    if not os.path.exists(OCR_PY):
+        return []
+    p = subprocess.run([OCR_PY, OCR, 'ocr', png, '--json'], capture_output=True, text=True, timeout=180)
+    try:
+        return json.loads(p.stdout).get('boxes', [])
+    except Exception:
+        return []
+
+
+def _num(t):
+    m = re.fullmatch(r'(\d+)(%?)', t.strip().replace(' ', ''))
+    return (int(m.group(1)), m.group(2) == '%') if m else None
+
+
+def _sliders(png):
+    p = subprocess.run([SLIDER, png, '--json'], capture_output=True, text=True, timeout=200)
+    try:
+        return json.loads(p.stdout).get('sliders', [])
+    except Exception:
+        return []
+
+
+def analyze(png):
+    boxes = _ocr(png)
+    nums = [(b['cx'], b['cy'], b['text'].strip(), _num(b['text'])) for b in boxes]
+    nums = [n for n in nums if n[3]]
+    labels = [b for b in boxes if any(w in b['text'] for w in LABELS)]
+    fields, checks = [], []
+    # ① 带标签的数值：取标签右侧 260px、上下 ±40px 内最近的那个数字
+    for lb in labels:
+        cands = [n for n in nums
+                 if 0 < n[0] - lb['cx'] <= 900 and abs(n[1] - lb['cy']) <= 24]
+        if not cands:
+            continue
+        cands.sort(key=lambda n: (abs(n[1] - lb['cy']), n[0] - lb['cx']))
+        val, is_pct = cands[0][3]
+        fields.append({'label': lb['text'].rstrip('：:'), 'value': val, 'pct': is_pct,
+                       'where': [cands[0][0], cands[0][1]]})
+    # ② 滑条
+    sl = _sliders(png)
+    for s in sl:
+        fields.append({'label': '滑条区间', 'value': s.get('value_max'), 'pct': False,
+                       'where': s.get('track_bbox'), 'slider': True,
+                       'now': s.get('value_now_ocr'), 'min': s.get('value_min')})
+    # ③ 规则入口
+    rules = [b for b in boxes if any(w in b['text'] for w in RULE_WORDS)]
+    if rules:
+        checks.append({'id': 'C2', 'level': 'INFO',
+                       'message': '存在规则入口「%s」@(%d,%d)：先读规则再决定' %
+                                  (rules[0]['text'][:12], rules[0]['cx'], rules[0]['cy'])})
+    # ④ 选项按钮（人读用）
+    opts = [b['text'] for b in boxes
+            if any(w in b['text'] for w in ('支持', '确认', '取消', '参与', '领取'))
+            and not b['text'].rstrip().endswith(('：', ':')) and '当前' not in b['text']]
+    # ⑤ C1 倍率 × 投注
+    mult = next((f for f in fields if '倍率' in f['label']), None)
+    invest = next((f for f in fields if f['label'] in ('投入', '徽记') and not f.get('slider')), None)
+    s = sl[0] if sl else None
+    if mult and mult['value'] and s:
+        lo = s.get('min') or 1
+        hi = s.get('value_max') or lo
+        now = s.get('now')
+        if now is None:
+            now = invest['value'] if invest else lo
+        cur_score = mult['value'] * now
+        max_score = mult['value'] * hi
+        if now <= lo * 1.05 and mult['value'] > 1 and hi > lo:
+            checks.append({'id': 'C1', 'level': 'WARN',
+                           'message': '倍率 %d × 投注 %d = %d 分；同样倍率投满 %d = %d 分——高倍率配最小投注是内部矛盾'
+                                      % (mult['value'], now, cur_score, hi, max_score),
+                           'cur_score': cur_score, 'max_score': max_score,
+                           'multiplier': mult['value'], 'stake': now, 'stake_max': hi})
+        else:
+            checks.append({'id': 'C1', 'level': 'OK',
+                           'message': '倍率 %d × 投注 %d = %d 分（投满 %d = %d 分）'
+                                      % (mult['value'], now, cur_score, hi, max_score)})
+    elif mult and not s:
+        checks.append({'id': 'C1', 'level': 'INFO',
+                       'message': '有倍率 %d 但没找到投注滑条（可能已投或不可调）' % mult['value']})
+    warn = [c for c in checks if c['level'] == 'WARN']
+    brief = []
+    if fields:
+        brief.append('决策字段：' + '；'.join('%s=%s%s' % (f['label'], f['value'], '%' if f['pct'] else '')
+                                            for f in fields[:6]))
+    if opts:
+        brief.append('可选动作：' + ' / '.join(opts[:5]))
+    brief.append('检查：' + ('；'.join(c['message'] for c in checks[:2]) if checks else '无可执行检查'))
+    return {'path': os.path.abspath(png), 'fields': fields, 'checks': checks,
+            'options': opts, 'brief': brief,
+            'verdict': 'BLOCK' if warn else 'OK'}
+
+
+def main(argv):
+    args = [a for a in argv]
+    as_json = '--json' in args
+    args = [a for a in args if a != '--json']
+    if len(args) != 1:
+        print('用法: ys-brief <png> [--json]', file=sys.stderr)
+        return 4
+    if not os.path.exists(args[0]):
+        print('读不到图：%s' % args[0], file=sys.stderr)
+        return 3
+    r = analyze(args[0])
+    if as_json:
+        print(json.dumps(r, ensure_ascii=False, indent=1))
+        line = 'BRIEF-RESULT fields=%d checks=%d warn=%d verdict=%s' % (
+            len(r['fields']), len(r['checks']),
+            len([c for c in r['checks'] if c['level'] == 'WARN']), r['verdict'])
+        print(line, file=sys.stderr)
+    else:
+        print('══ ys-brief ══  %s' % os.path.basename(r['path']))
+        for ln in r['brief']:
+            print('  ' + ln)
+        for c in r['checks']:
+            print('  [%s] %s：%s' % (c['level'], c['id'], c['message']))
+        print('BRIEF-RESULT fields=%d checks=%d warn=%d verdict=%s' % (
+            len(r['fields']), len(r['checks']),
+            len([c for c in r['checks'] if c['level'] == 'WARN']), r['verdict']))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
