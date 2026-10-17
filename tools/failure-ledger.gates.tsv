@@ -1,0 +1,10 @@
+gate	command	note
+gate1	./tools/ys-gates --only 1	判定回归（20 帧含 8 负样本，两通道 100%）
+gate2	bash tools/ys-editor/tests/fake-success.selftest.sh	假成功 F1/F2/F3（+F4 交付后自动纳入）
+gate5	./tools/ys-gates --only 5	单一源（判据副本 0）
+gate6	./tools/ys-gates --only 6	操作目录（quote 逐字验真 / 状态↔台账一致）
+probe-matrix	bash tools/ys-editor/tests/probe-matrix.selftest.sh	探针矩阵（24 帧 × 7 探针，覆盖单位错/假阳性）
+concurrency	bash tools/ys-editor/tests/state-concurrency.selftest.sh	并发判定（4 路 × 8 帧，覆盖串帧事故路径）
+round-check	./tools/ys-editor/ys-round --check	一轮编排的依赖/探针/零固定 sleep/预算
+noswallow	bash -c '! grep -rl "ys-pointer-click.*2>/dev/null" tools/ys-editor/ys-* 2>/dev/null | grep -q .'	点击调用不许吞退出码（4 处事故的机械防线）
+salvage	python3 scripts/skill-salvage.py	知识落地自检（真孤儿=0）

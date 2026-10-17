@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""failure-ledger — 失败账本与自我递归进化的仪表盘。
+
+## 它解决什么问题
+
+复盘最常见的失败：**记了，但没防线**。文档写得再细，下次遇到同类错误仍然照犯，
+因为"记住"依赖人和模型的记忆，而记忆在换会话/压缩后会掉。
+
+本工具把每条失败变成一行记录，并强制它绑定一条**可执行**的防线：
+  · status=prevented  ⇒ gate 字段必须指向 `failure-ledger.gates.tsv` 里的检查命令，`check` 会真跑
+  · status=open       ⇒ 没有机械防线（靠纪律/靠人看），仪表盘上单独计数 —— **open 数才是真债**
+
+## 分类（6 类，每类有一个可判定的定义，避免主观分类）
+
+  遗漏  该看的信息在产物里已有，但流程没用上（人眼可见、机器没看）
+  身份  动作作用到了错误对象（坐标对、对象错；或清理命令匹配到自身）
+  环境  同一命令在两个执行域行为不同（槽内/槽外、DISPLAY、剪贴板、路径）
+  静默  失败没有信号（退出码 0 / stderr 空 / 静默降级），调用方无从发现
+  归因  没做分层取证就下因果结论（结论先行、证据缺失）
+  判据  判据/刻度本身不可信（阈值脆、单帧过拟合、量错对象或刻度）
+
+用法:
+  tools/failure-ledger add --class 身份 --symptom "..." --evidence "..." \
+        --prevention "..." [--gate gate2] [--status prevented|open] [--id]
+  tools/failure-ledger list [--class X] [--status open]
+  tools/failure-ledger dashboard [--json]
+  tools/failure-ledger check            # 真跑每个被引用的 gate（去重），任何 FAIL → 退出码 1
+退出码: 0 正常 / 1 check 有 FAIL / 2 用法或数据错误
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+LEDGER = os.path.join(ROOT, 'docs/maintenance/failure-ledger.tsv')
+GATES = os.path.join(HERE, 'failure-ledger.gates.tsv')
+CLASSES = ('遗漏', '身份', '环境', '静默', '归因', '判据')
+COLS = ('id', 'date', 'class', 'symptom', 'evidence', 'prevention', 'gate', 'status', 'note')
+
+
+def read_tsv(path):
+    if not os.path.exists(path):
+        return []
+    rows = []
+    with open(path, encoding='utf-8') as fh:
+        head = fh.readline().rstrip('\n').split('\t')
+        for ln in fh:
+            if not ln.strip() or ln.startswith('#'):
+                continue
+            vals = ln.rstrip('\n').split('\t')
+            vals += [''] * (len(head) - len(vals))
+            rows.append(dict(zip(head, vals)))
+    return rows
+
+
+def read_gates():
+    return {g['gate']: g for g in read_tsv(GATES)}
+
+
+def load():
+    return read_tsv(LEDGER)
+
+
+def cmd_add(a):
+    if a['class'] not in CLASSES:
+        print('错误：class 必须是 %s 之一' % '/'.join(CLASSES), file=sys.stderr)
+        return 2
+    rows = load()
+    rid = a.get('id') or 'F-%s-%02d' % (a.get('date', '').replace('-', ''), len(rows) + 1)
+    if a['status'] == 'prevented' and not a.get('gate'):
+        print('错误：status=prevented 必须给 --gate（否则和 open 没区别）', file=sys.stderr)
+        return 2
+    if a.get('gate') and a['gate'] not in read_gates():
+        print('错误：gate=%s 不在 %s 里；先登记检查命令' % (a['gate'], GATES), file=sys.stderr)
+        return 2
+    row = dict(zip(COLS, [rid, a.get('date', ''), a['class'], a['symptom'], a.get('evidence', ''),
+                          a.get('prevention', ''), a.get('gate', ''), a['status'], a.get('note', '')]))
+    newfile = not os.path.exists(LEDGER)
+    with open(LEDGER, 'a', encoding='utf-8') as fh:
+        if newfile:
+            fh.write('\t'.join(COLS) + '\n')
+        fh.write('\t'.join(row[c] for c in COLS) + '\n')
+    print('已记录 %s [%s/%s]' % (rid, a['class'], a['status']))
+    return 0
+
+
+def cmd_list(a):
+    rows = load()
+    if a.get('class'):
+        rows = [r for r in rows if r['class'] == a['class']]
+    if a.get('status'):
+        rows = [r for r in rows if r['status'] == a['status']]
+    for r in rows:
+        print('%-12s %-10s %-4s %-6s %s' % (r['id'], r['date'], r['class'], r['status'],
+                                            r['symptom'][:60]))
+    print('— 共 %d 条' % len(rows))
+    return 0
+
+
+def stats():
+    rows = load()
+    total = len(rows)
+    by_class = {c: 0 for c in CLASSES}
+    for r in rows:
+        if r['class'] in by_class:
+            by_class[r['class']] += 1
+    prevented = sum(1 for r in rows if r['status'] == 'prevented')
+    open_ = total - prevented
+    return {'total': total, 'by_class': by_class, 'prevented': prevented,
+            'open': open_, 'prevented_ratio': round(prevented / total, 3) if total else 0.0,
+            'rows': rows}
+
+
+def cmd_dashboard(a):
+    st = stats()
+    rows = st['rows']
+    if a.get('json'):
+        print(json.dumps({k: v for k, v in st.items() if k != 'rows'}, ensure_ascii=False, indent=1))
+        return 0
+    print('══ 失败账本仪表盘 ══')
+    print('总数 %d｜已建机械防线 %d｜**未建防线 %d**（这个数才是真债）'
+          % (st['total'], st['prevented'], st['open']))
+    print('\n【按类别分布】')
+    for c in CLASSES:
+        n = st['by_class'][c]
+        bar = '█' * n
+        print('  %-4s %2d %s' % (c, n, bar))
+    print('\n【未建防线的条目】（每条都该变成工具/探针/门禁，或明确接受"靠纪律"）')
+    any_open = False
+    for r in rows:
+        if r['status'] != 'prevented':
+            any_open = True
+            print('  %-12s %-4s %s' % (r['id'], r['class'], r['symptom'][:64]))
+    if not any_open:
+        print('  （无）')
+    print('\n【同类复发检查】同一 class 若有 ≥3 条集中在同一提交窗口，说明该族治理失败')
+    return 0
+
+
+def cmd_check(a):
+    """真跑每个被引用的 gate（去重）；任何 FAIL → 退出码 1。"""
+    gates = read_gates()
+    used = []
+    for r in load():
+        g = r.get('gate', '')
+        if r['status'] == 'prevented' and g and g not in used:
+            used.append(g)
+    if not used:
+        print('没有需要跑的 gate（全是 open？）')
+        return 0
+    fails = 0
+    for g in used:
+        cmd = gates[g]['command']
+        p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
+        ok = p.returncode == 0
+        fails += 0 if ok else 1
+        tail = (p.stdout or p.stderr).strip().splitlines()
+        print('  [%s] %-14s %s' % ('PASS' if ok else 'FAIL', g, tail[-1][:88] if tail else ''))
+    print('LEDGER-RESULT gates=%d fail=%d verdict=%s'
+          % (len(used), fails, 'PASS' if fails == 0 else 'FAIL'))
+    return 0 if fails == 0 else 1
+
+
+def main():
+    ap = argparse.ArgumentParser(description='失败账本（每条失败必须绑一条可执行防线）')
+    sub = ap.add_subparsers(dest='cmd', required=True)
+    a1 = sub.add_parser('add')
+    for f in ('class', 'symptom', 'evidence', 'prevention', 'gate', 'status', 'date', 'note', 'id'):
+        a1.add_argument('--' + f, required=(f in ('class', 'symptom', 'status')))
+    a1.set_defaults(func=cmd_add)
+    a2 = sub.add_parser('list')
+    a2.add_argument('--class')
+    a2.add_argument('--status')
+    a2.set_defaults(func=cmd_list)
+    a3 = sub.add_parser('dashboard')
+    a3.add_argument('--json', action='store_true')
+    a3.set_defaults(func=cmd_dashboard)
+    a4 = sub.add_parser('check')
+    a4.set_defaults(func=cmd_check)
+    a = vars(ap.parse_args())
+    return a['func'](a)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
