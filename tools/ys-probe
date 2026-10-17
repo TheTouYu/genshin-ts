@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""ys-probe — 二次探索：同一个目标，换交互方式再试，直到产生变化
+
+## 存在理由（2026-10-18 F-3-04）
+
+我在投票面板上点了一次【预测胜方】就停手了——**面板里一直写着 `追加「胜利徽记」`**，
+再点一次就能加注，而我只做"一阶动作"（点一次 → 看有没有反应 → 换目标）。
+
+用户原话：「没有去尝试更多的选项，比如其实尝试过就会发现，继续点击预测胜方，可以额外追加投入的金额。」
+
+## 它做什么
+
+对**同一个目标**按顺序尝试交互变体，每个变体用 `ys-act` 拿回执（动作 + 变化事件 + 红点 delta）：
+
+  click → double → hold → right → drag
+
+- **第一个产生变化（CHANGED）的变体即胜出**，立即停止（不做无谓动作）。
+- 全部无变化 ⇒ 输出 `NONE`，并提示"该目标可能不可交互 / 被遮挡 / 需要先满足前置条件"。
+- 每个变体的回执都保留在 `attempts[]` 里——**"试过但对"这件事本身是证据**。
+
+## 用法
+
+  # 离线/测试：直接给每个变体对应的"动作后帧"
+  tools/ys-probe --before a.png --after click=b.png --after double=c.png [--json]
+
+  # 活体：抓帧命令 + 动作命令模板（{variant} 会被替换；工具自己不含抓屏/注入代码）
+  tools/ys-probe --capture-cmd 'import -window 0x01400001 {out}' \
+                 --action-cmd 'ys-editor/ys-pointer-click --text 预测胜方 --variant {variant}' \
+                 --variants click,double --wait 1.2
+
+退出码：0 找到 / 1 全部无变化 / 4 编排错
+机读行：`PROBE-RESULT variants=<n> working=<name|none> verdict=<FOUND|NONE>`
+"""
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ACT = os.path.join(HERE, 'ys-act')
+DEFAULT_VARIANTS = 'click,double,hold,right,drag'
+
+
+def run(cmd, timeout=300):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+def act_receipt(before, after, roi, action_rc=0):
+    cmd = [ACT, '--before', before, '--after', after, '--json']
+    if roi:
+        cmd += ['--roi', roi]
+    p = run(cmd)
+    try:
+        d = json.loads(p.stdout)
+    except Exception:
+        return None
+    d['action_rc'] = action_rc
+    return d
+
+
+def main(argv):
+    args = list(argv)
+    as_json = '--json' in args
+    args = [a for a in args if a != '--json']
+    before = capture = action_cmd = roi = None
+    variants = DEFAULT_VARIANTS
+    wait = 1.2
+    after_map = {}
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == '--before':
+            before = args[i + 1]; i += 2
+        elif a == '--after':
+            kv = args[i + 1]
+            if '=' not in kv:
+                print('PROBE-USAGE-ERROR --after 需要 name=frame.png', file=sys.stderr); return 4
+            k, v = kv.split('=', 1); after_map[k] = v; i += 2
+        elif a == '--capture-cmd':
+            capture = args[i + 1]; i += 2
+        elif a == '--action-cmd':
+            action_cmd = args[i + 1]; i += 2
+        elif a == '--variants':
+            variants = args[i + 1]; i += 2
+        elif a == '--roi':
+            roi = args[i + 1]; i += 2
+        elif a == '--wait':
+            wait = float(args[i + 1]); i += 2
+        else:
+            print('PROBE-USAGE-ERROR 未知参数 %s' % a, file=sys.stderr); return 4
+    vs = [v for v in variants.split(',') if v]
+    if not vs:
+        print('PROBE-USAGE-ERROR --variants 为空', file=sys.stderr); return 4
+    tmp = None
+    attempts = []
+    working = None
+    for v in vs:
+        if capture and action_cmd:
+            tmp = tmp or tempfile.mkdtemp(prefix='ys-probe-')
+            b = os.path.join(tmp, 'b-%s.png' % v); a = os.path.join(tmp, 'a-%s.png' % v)
+            p = run(['bash', '-c', capture.format(out=b)])
+            if p.returncode != 0 or not os.path.exists(b):
+                print('PROBE-FAIL 前帧抓取失败 variant=%s' % v, file=sys.stderr); return 4
+            pa = run(['bash', '-c', action_cmd.format(variant=v)])
+            time.sleep(wait)
+            pb = run(['bash', '-c', capture.format(out=a)])
+            if pb.returncode != 0 or not os.path.exists(a):
+                print('PROBE-FAIL 后帧抓取失败 variant=%s' % v, file=sys.stderr); return 4
+            rec = act_receipt(b, a, roi, pa.returncode)
+        else:
+            if not before or v not in after_map:
+                print('PROBE-USAGE-ERROR 离线模式需要 --before 与每个变体的 --after name=frame', file=sys.stderr)
+                return 4
+            rec = act_receipt(before, after_map[v], roi)
+        if rec is None:
+            print('PROBE-FAIL ys-act 回执解析失败 variant=%s' % v, file=sys.stderr); return 4
+        attempts.append({'variant': v, 'verdict': rec.get('verdict'),
+                         'changes': len(rec.get('changes', [])),
+                         'badge_added': len(rec.get('badge_delta', {}).get('added', [])),
+                         'action_rc': rec.get('action_rc')})
+        if rec.get('verdict') == 'CHANGED' and working is None:
+            working = v
+            break                     # 第一个产生变化就停：不做无谓动作
+    if tmp:
+        import shutil
+        shutil.rmtree(tmp, ignore_errors=True)
+    out = {'schema': 'ys-probe/1', 'variants': vs, 'attempts': attempts,
+           'working': working,
+           'advice': ('变体「%s」产生变化，优先用它' % working) if working
+                     else '全部变体均无变化：该目标可能不可交互/被遮挡/需前置条件'}
+    if as_json:
+        print(json.dumps(out, ensure_ascii=False, indent=1))
+    else:
+        print('══ ys-probe ══  尝试 %d 个变体' % len(attempts))
+        for at in attempts:
+            print('  · %-7s %-10s changes=%d badge+=%d' % (at['variant'], at['verdict'],
+                                                           at['changes'], at['badge_added']))
+        print('  建议: %s' % out['advice'])
+    line = 'PROBE-RESULT variants=%d working=%s verdict=%s' % (
+        len(attempts), working or 'none', 'FOUND' if working else 'NONE')
+    print(line, file=sys.stderr if as_json else sys.stdout)
+    return 0 if working else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
