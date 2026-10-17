@@ -1,274 +1,1007 @@
 #!/usr/bin/env python3
-"""ys-state — 全界面态判据机（gui-stack 票 02）
+"""ys-state — 界面态判定的**唯一实现**（门槛⑤ 单一源）
 
-设计依据（`.scratch/gui-stack/DESIGN.md` §三 L1）：
-  · **每态至少两个独立判据**，投票；不一致报 AMBIGUOUS 而不是猜一个
-  · 判据必须**可回归**——`--regress` 跑已知截图集，改坏了当场红
-  · 反例必须进回归集：当天「草地阴影被误判成存档页」的那一帧是头号样本
+契约：`docs/maintenance/gui-gate-contract-2026-10-17.md` §1（CLI/JSON/退出码）§2（回归集）。
+**本文件是全仓唯一允许出现「状态名 / 像素坐标 / 阈值 / 模板名 / 投票规则」的地方。**
+下游（ys-fast、ys-ui-state、ys-nav、ys-preflight、ys-switch-save、ys-where2、ys-do、ys-loop、
+ys-map、ys-round）只允许调用本文件的 CLI，不许内联判据。
 
-为什么要有它：当天导航脚本靠一个单判据（只看暗度）判断"我在存档页"，
-而**草地阴影也够暗** ⇒ 脚本以为已在存档页，**跳过了整段导航**，
-之后每一步都建立在错误前提上。本工具让这种误判在**改动的当刻**就暴露。
+## 两个测量通道（独立取数、**共用**判定函数）
+    fast : ROI 像素判据（1 次 ImageMagick 多点取样）+ GPU 锚点（ys-lookd 常驻服务，
+           `/run/user/1000/ys-lookd.sock`，匹配数学在 ys_look.py / ys_lookd.py 里，本文件不重写 matcher）
+    full : 全帧模板匹配（numpy FFT NCC，进程内）+ 像素判据 —— 正确性基准
 
-用法:
-  ys-state                     # 抓当前画面判定（经 ys-observe 取帧，带新鲜度校验）
-  ys-state --json              # 附每个判据的读数
-  ys-state --frame <png>       # 对指定图片判定（离线，回归用）
-  ys-state --regress           # 跑 calib/regress/manifest.tsv 全部样本
-退出码: 0 判定成功 / 2 AMBIGUOUS / 3 取帧失败 / 4 UNKNOWN / 5 回归有失败项
+## 状态全集（8 个）与判据（每态 ≥2 条；AND 语义，PLAYTEST 例外＝2/3 多数）
+    MENU     A px(300,300) 三通道 >200            B 侧栏「存档管理」图标模板
+    SAVELIST A 亮蓝底栏 + 整屏暗 + 无白卡         B 存档卡标题模板
+    PLAYTEST A 「奇域试玩中」水印模板             B px(100,400) 蓝主导且亮
+             C px(300,300) 亮蓝天                ⇒ A/B/C 中 **2 条成立**才计（见 RULE）
+    PAUSE    A 中断挑战按钮模板                   B 继续挑战按钮模板
+    SETTLE   A px(1280,100) 纯白卡顶              B px(1280,500) 深蓝且不偏紫
+    LOADING  A px(300,300) 浅蓝底色               B 中央区域无纹理（16 点采样极差 <8 灰阶）
+    EDITOR   A px(100,400) 草绿主导               B 左面板存在（左/中列均值差 >40）
+    UNKNOWN  —— 以上都不成立，或只差一点（只有 1 条成立）⇒ **不猜**，退出码 4
+
+阈值来源：`calib/regress/manifest.tsv` 的 19 张真实帧逐点量出（正样本 11 + 负样本 8），
+见文件内每条的实测读数注释；改阈值必须整份 `--regress --channel both` 复跑。
+
+## 层级
+    PAUSE / SETTLE 是 PLAYTEST 的子态（都在游戏里）⇒ 父子同时成立时取更具体的。
+    EDITOR 是**兜底态**：有别的态成立时不算它（系统菜单下面就是编辑器草地，两条都会亮）。
+
+## 用法（下游只许调用这些；改它要 Lead 确认）
+    ys-state                                   # 抓活体帧判定，打印态名（shell 调用方用）
+    ys-state --json                            # 活体（经 ys-observe，带新鲜度证明；不新鲜=报错不给旧值）
+    ys-state --json --frame PNG                # 离线帧（回归用）
+    ys-state --json --fast                     # fast 通道（ROI 像素 + GPU 锚点）
+    ys-state --json --fast --profile P         # 指定锚点 profile（缺省 .scratch/gui-profiles/qianxing.json）
+    ys-state --json --channel full             # full 通道（缺省）
+    ys-state --print-state [--fast]            # 只打印态名
+    ys-state --print-state --compat ys-fast    # 兼容旧词汇：SAVELIST→SAVE，其余原样
+    ys-state --regress [--channel fast|full|both] [--json]
+
+## 退出码
+    0 判定成功 / 2 AMBIGUOUS（多个非同层态同时成立）/ 3 取帧失败（含 profile 缺失等仪器故障）
+    / 4 UNKNOWN / 5 回归有失败项（含样本数不达标）
 """
+import hashlib
 import json
 import os
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
-import numpy as np  # noqa: E402
-from ys_look import ncc  # noqa: E402
+REPO = os.path.dirname(os.path.dirname(HERE))
+TPL_DIR = os.path.join(HERE, "templates")
+REG_DIR = os.path.join(HERE, "calib", "regress")
+MANIFEST = os.path.join(REG_DIR, "manifest.tsv")
+PROFILE_DEFAULT = os.path.join(REPO, ".scratch", "gui-profiles", "qianxing.json")
 
-TPL = os.path.join(HERE, "templates")
-REG = os.path.join(HERE, "calib", "regress")
-WIN = os.environ.get("YS_WIN", "0x01400001")
-TPL_THRESHOLD = 0.90
-
-
-# ── 图像读取与探针 ────────────────────────────────────────────────
-def load(path):
-    path = os.path.abspath(path)
-    if not os.path.exists(path):
-        raise FileNotFoundError(path)
-    d = subprocess.run(["identify", "-format", "%w %h", path],
-                       capture_output=True, text=True).stdout.split()
-    w, h = int(d[0]), int(d[1])
-    b = subprocess.run(["magick", path, "-depth", "8", "rgb:-"],
-                       capture_output=True).stdout
-    return np.frombuffer(b, dtype=np.uint8).reshape(h, w, 3)
-
-
-def px(img, x, y):
-    return [int(v) for v in img[y, x]]
-
-
-def tpl_score(img, name):
-    p = os.path.join(TPL, name)
-    if not os.path.exists(p):
-        return -1.0  # 模板缺失 ⇒ 判据不可用（由调用方标记 SUSPECT）
-    t = load(p).astype(np.float32) / 255.0
-    i = img.astype(np.float32) / 255.0
-    if i.shape[0] < t.shape[0] or i.shape[1] < t.shape[1]:
-        return -1.0
-    _, _, s, _ = ncc(i, t)
-    return float(s)
-
-
-def green_dominant(c):
-    r, g, b = c
-    return g > r and g > b
-
-
-def blue_dominant(c):
-    r, g, b = c
-    return b > g and b > r
-
-
-# ── 判据表：每态两条独立判据 ──────────────────────────────────────
-def judges(img):
-    """返回 {判据名: (bool, 读数说明)}。判据名里带态前缀。
-
-    阈值不是拍的——是拿 7 张回归样本逐点量出来的（见 calib/regress/manifest.tsv）。
-    模板判别力实测（目标态 vs 其它态最高分）：
-      sidebar-save-mgr 1.00 vs 0.71 ｜ playtest-mark 1.00 vs 0.86 ｜ save-card-title 1.00 vs 0.71
-      pause-abort 1.00 vs 0.73 ｜ pause-resume 1.00 vs 0.82 ｜ settle-leave 1.00 vs 0.56
-    """
-    j = {}
-    c300 = px(img, 300, 300)          # 系统菜单面板 / 各态背景
-    c100_400 = px(img, 100, 400)      # 编辑器草地 / 游戏内天空
-    c640_1300 = px(img, 640, 1300)    # 存档页底栏蓝按钮（其它态都不是亮蓝）
-    c1280_100 = px(img, 1280, 100)    # 结算页白卡顶（唯一纯白处）
-
-    def tpl(name):
-        return tpl_score(img, name)
-
-    s_sidebar, s_save, s_play = tpl("sidebar-save-mgr.png"), tpl("save-card-title.png"), tpl("playtest-mark.png")
-    s_abort, s_resume, s_leave = tpl("pause-abort.png"), tpl("pause-resume.png"), tpl("settle-leave.png")
-
-    j["MENU/A px(300,300) 三通道>200"] = (all(v > 200 for v in c300), f"{c300}")
-    j["MENU/B 侧栏存档管理图标"] = (s_sidebar >= TPL_THRESHOLD, f"score={s_sidebar:.3f}")
-
-    # 亮蓝底栏：存档页独有（settle 的 B=197 达不到 200，实测卡得很紧但成立）
-    # 2026-10-17 修：只看「底栏是亮蓝」不够——**游戏内的亮蓝天空/水面也会满足**
-    # （实测 in-game 帧 (640,1300)=[82,181,233] 误触发）。存档页的特征是**整屏暗**，
-    # 故补一条「px(300,300) 够暗」把游戏内排除掉。这次的 in-game 帧已进回归集。
-    # 再加一条交叉排除：**存档页没有白色卡顶**（那是结算页的特征）。
-    # 2026-10-17 实测：结算页第三版式的底栏也有一块亮蓝 (79,97,207)，把「亮蓝底栏」骗过去了。
-    j["SAVELIST/A 亮蓝底栏+整屏暗+无白卡"] = (
-        c640_1300[2] > 200 and c640_1300[2] > c640_1300[0] + 80
-        and max(c300) < 70 and max(c1280_100) < 200,
-        f"底栏{c640_1300} 背景{c300} 卡顶{c1280_100}")
-    j["SAVELIST/B 存档卡标题模板"] = (s_save >= TPL_THRESHOLD, f"score={s_save:.3f}")
-
-    # 游戏内天空：蓝主导且够亮（存档页/结算页的暗蓝 G 很低，靠 G>100 排除）
-    j["PLAYTEST/A 奇域试玩中水印"] = (s_play >= TPL_THRESHOLD, f"score={s_play:.3f}")
-    j["PLAYTEST/B px(100,400) 蓝主导且亮"] = (
-        c100_400[2] > c100_400[1] and c100_400[1] > 100, f"{c100_400}")
-
-    j["PAUSE/A 中断挑战按钮"] = (s_abort >= TPL_THRESHOLD, f"score={s_abort:.3f}")
-    j["PAUSE/B 继续挑战按钮"] = (s_resume >= TPL_THRESHOLD, f"score={s_resume:.3f}")
-
-    j["SETTLE/A px(1280,100) 纯白卡顶"] = (all(v > 250 for v in c1280_100), f"{c1280_100}")
-    # 2026-10-17 修：模板判据在结算页上不可靠——实测 settle-leave 模板在**存档页**也拿 0.90
-    # （整屏平滑渐变，NCC 对任何平滑区都给高分）。改用与控件标定同一套**像素签名**：
-    #   B>180 排除游戏/菜单态；G>90 排除存档页（存档页该点 G=79）。
-    # 结算页有两种版式，这两点对两种版式都成立。
-    # 第二判据由**自动搜索**选出（不是猜的）：在 9 张回归样本上遍历候选点，
-    # 找「两版结算页都成立、其它态全部落空」的组合。
-    #   (1280,100)：结算页 255,255,255（两版一致）vs 其它态 R≤90 —— 余量 165
-    #   (1280,500)：结算页 R≤31,B≤50 vs 存档页 R=47,B=74 —— 排除同为深蓝的存档页
-    c1280_500 = px(img, 1280, 500)
-    j["SETTLE/B px(1280,500) 深蓝且不偏紫"] = (
-        c1280_500[0] < 40 and c1280_500[2] < 60, f"{c1280_500}")
-
-    # ── LOADING（过渡态，V6 要求建模：见到就等，不许点）──────────────────
-    # 2026-10-17 实测：载入页是**浅蓝纯色底**（128,186,223），既不是草地也不是天空。
-    # 它是 leave/enter 空转 300s 的直接来源之一——旧判据把加载页当成 EDITOR，于是继续点。
-    # 两判据取「底色」与「无 3D 细节」两个独立性质：
-    #   A 底色浅蓝（蓝通道最高且够亮）
-    #   B 中央区域近乎无纹理（3D 场景的任何视角都有明暗细节，纯色/渐变页方差极小）
-    j["LOADING/A px(300,300) 浅蓝底色"] = (
-        c300[2] > 180 and c300[2] > c300[1] + 20 and 100 < c300[0] < 170, f"{c300}")
-    band = img[520:900, 1000:1560].astype(int)
-    stdv = float(band.reshape(-1, 3).std(axis=0).mean())
-    j["LOADING/B 中央无纹理(std)"] = (stdv < 8.0, f"std={stdv:.1f}")
-
-    # EDITOR：草地绿主导（正判据）
-    j["EDITOR/A px(100,400) 绿主导"] = (
-        c100_400[1] > c100_400[0] and c100_400[1] > c100_400[2], f"{c100_400}")
-    # EDITOR/B（2026-10-17 新增，V6 要求每态≥2 判据）：**左面板存在**——结构性判据。
-    # 为什么不用第二个颜色判据：草地色判据会在「草地场景的游戏内」误触发。
-    # 面板存在与否是编辑器 chrome 的**结构特征**：取 y=600..800 左列(x=100..400)与中列(x=600..900)
-    # 的均值，面板是半透明遮罩 ⇒ 两列色彩必然分开。实测样本：EDITOR 68.9 / MENU 76.2 /
-    # SAVELIST 26.2 / PLAYTEST 6.2,6.9,1.8 / PAUSE 0.6 / SETTLE 3.8,5.6,5.6。（阈值 40）
-    lcol = img[600:800, 100:400].astype(int).reshape(-1, 3).mean(axis=0)
-    mcol = img[600:800, 600:900].astype(int).reshape(-1, 3).mean(axis=0)
-    pdiv = float(abs(lcol - mcol).max())
-    j["EDITOR/B 左面板存在(列差)"] = (pdiv > 40.0, f"diff={pdiv:.1f} 左{lcol.round(0)} 中{mcol.round(0)}")
-    return j
-
-
-# 子态层级：PAUSE / SETTLE 是 PLAYTEST 的子态（都在游戏里）。
-# 声明它是为了让"SAME 时刻既像 PLAYTEST 又像 PAUSE"**不算矛盾**——取更具体的那个。
-# 未声明层的态之间同时成立才是真矛盾 → AMBIGUOUS。
+# ── 状态名（全仓唯一词表）────────────────────────────────────────
+STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING", "UNKNOWN")
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
+FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不参与
+# 投票规则：缺省 "all"（该态全部判据成立）；PLAYTEST="any2"（2/3 多数）
+RULE = {"PLAYTEST": "any2"}
+# 每态至少需要的判据条数（少于这个数不算「判定」，只算「差一点」⇒ UNKNOWN）
+MIN_CRITERIA = 2
+
+# ── 几何 / 阈值 / 探针坐标（全仓唯一）───────────────────────────
+FRAME_W, FRAME_H = 2560, 1440       # ys-observe / spectacle 全屏帧；游戏窗 0x01400001 = 2561x1440
+TPL_THRESHOLD = 0.90                # 全帧模板 NCC 阈值（实测：本态 1.000，异态最高 0.864）
+ANCHOR_THRESHOLD = 0.80             # GPU 锚点阈值（profile 按 worst-case margin 挖：本态最差 0.814，异态最高 0.669）
+FLAT_SPREAD = 8.0                   # LOADING/B：中央区域无纹理（16 点亮度极差 <8 灰阶）
+PANEL_DIFF = 40.0                   # EDITOR/B：左列与中列均值差
+PTS = {                             # 单点探针（物理像素 2560×1440）
+    "bg": (300, 300),               # 系统菜单面板浅灰 217,217,217 / 存档页深蓝紫 15,19,53 / 沙箱天空
+    "grass": (100, 400),            # 编辑器草地 71,92,59 / 沙箱天空 126,217,255
+    "bottombar": (640, 1300),       # 存档页底栏亮蓝 49,124,255 / 其它态 68~108 的暗色
+    "cardtop": (1280, 100),         # 结算页纯白卡顶 255,255,255
+    "settle_bg": (1280, 500),       # 结算页深蓝 31,26,50 / 存档页 47,49,74
+}
+# LOADING/B 与 EDITOR/B 的区域采样点（两个通道用同一份坐标，保证语义一致）
+GRID = [(x, y) for y in (560, 640, 720, 800) for x in (1040, 1160, 1280, 1400)]
+PANEL_L = [(x, y) for y in (600, 680, 760) for x in (120, 240, 360)]
+PANEL_M = [(x, y) for y in (600, 680, 760) for x in (640, 760, 880)]
+
+# ── 模板 / 锚点（全仓唯一）──────────────────────────────────────
+TPL = [
+    ("MENU", "sidebar-save-mgr.png"),
+    ("SAVELIST", "save-card-title.png"),
+    ("PLAYTEST", "playtest-mark.png"),
+    ("PAUSE", "pause-abort.png"),
+    ("PAUSE", "pause-resume.png"),
+]
+
+# ── 具名控件探针（全仓唯一；契约 §6）──────────────────────────────
+# 调用方（`_ys-ui.sh` / ys-playtest-start / ys-playtest-stop / 消费 ys-state 的脚本）**只写名字**，
+# 坐标与阈值只留在这里。每条探针 ≥2 条判据：控件是**区域**不是单点，所以判据取同一控件内的
+# 两个（或多个）点，或「多点里成立 ≥2」以覆盖同一控件的多种版式。
+# 取数：活体只裁覆盖本探针各点的最小外接框（全窗截图实测 5893ms vs 小裁切 166ms）；
+#       离线上限用 `--frame`。谓词语义与旧 `_ys-ui.sh` 完全一致：
+#         light ⇔ r>200 且 g>190 ／ dark ⇔ g <= b+25
+PROBE_CROP = 40
+PROBE_RULES = {
+    "light":       lambda c: c[0] > 200 and c[1] > 190,                 # 旧 is_light
+    "dark":        lambda c: c[1] <= c[2] + 25,                         # 旧 is_dark
+    "gray200":     lambda c: all(v > 200 for v in c),                   # 系统菜单面板浅灰
+    "blue_dark":   lambda c: max(c) < 70 and c[2] > c[1] + 15 and c[2] > 40,  # 存档页深蓝紫
+    "dark70":      lambda c: max(c) < 70,                               # 同屏暗
+    "blue_bar":    lambda c: c[2] > 200 and c[2] > c[0] + 80,           # 存档页底栏亮蓝
+    "green":       lambda c: c[1] > c[0] and c[1] > c[2],               # 编辑器草地
+    "bright_blue": lambda c: c[2] > 200 and c[0] > 120 and c[1] > 140,  # 结算页浅蓝按钮（另一种版式）
+}
+# readings: (判据名, 取样点 | "panel", 谓词名)   panel = EDITOR/B 的左右列均值差（区域判据）
+PROBES = {
+    "menu_open": {
+        "desc": "系统菜单已打开（左面板浅灰 + 主面板浅灰）",
+        "rule": "all",
+        "points": [(112, 88), (300, 300)],
+        "readings": [("menu_open/A px(112,88) 浅灰", (112, 88), "light"),
+                     ("menu_open/B px(300,300) 三通道>200", (300, 300), "gray200")],
+    },
+    "save_page": {
+        "desc": "存档选择页（深蓝紫底 + 同屏暗 + 亮蓝底栏）",
+        "rule": "all",
+        "points": [(300, 300), (100, 400), (640, 1300)],
+        "readings": [("save_page/A px(300,300) 深蓝紫", (300, 300), "blue_dark"),
+                     ("save_page/B px(100,400) 同屏暗", (100, 400), "dark70"),
+                     ("save_page/C px(640,1300) 亮蓝底栏", (640, 1300), "blue_bar")],
+    },
+    "editor": {
+        "desc": "编辑器主界面（草地 + 左面板存在）",
+        "rule": "all",
+        "points": [(100, 400)] + PANEL_L + PANEL_M,
+        "readings": [("editor/A px(100,400) 绿主导", (100, 400), "green"),
+                     ("editor/B 左面板存在(列差)", "panel", "panel")],
+    },
+    "tile_visible": {
+        "desc": "编辑器「试玩」磁贴可见（磁贴区域够亮）",
+        "rule": "all",
+        "points": [(185, 320), (185, 389)],
+        "readings": [("tile_visible/A px(185,320) 亮", (185, 320), "light"),
+                     ("tile_visible/B px(185,389) 亮（磁贴中心）", (185, 389), "light")],
+    },
+    "bake_dialog": {
+        "desc": "「烘焙网格体」弹窗已弹出（暗罩，点击试玩磁贴后的上下文）",
+        "rule": "all", "validated": False,
+        "points": [(1000, 600), (1000, 560)],
+        "readings": [("bake_dialog/A px(1000,600) 暗", (1000, 600), "dark"),
+                     ("bake_dialog/B px(1000,560) 暗", (1000, 560), "dark")],
+    },
+    "playtest_options": {
+        "desc": "「试玩选项」弹窗已弹出（暗罩，点击试玩磁贴后的上下文）",
+        "rule": "all", "validated": False,
+        "points": [(900, 400), (900, 440)],
+        "readings": [("playtest_options/A px(900,400) 暗", (900, 400), "dark"),
+                     ("playtest_options/B px(900,440) 暗", (900, 440), "dark")],
+    },
+    "pause_menu": {
+        "desc": "试玩暂停菜单可见（「中断挑战」按钮亮带）",
+        "rule": "all",
+        "points": [(1240, 852), (1320, 852)],
+        "readings": [("pause_menu/A px(1240,852) 亮", (1240, 852), "light"),
+                     ("pause_menu/B px(1320,852) 亮", (1320, 852), "light")],
+    },
+    "settle_leave": {
+        "desc": "结算页「离开」按钮可见（白按钮版式 + 浅蓝按钮版式，两点以上成立才算）",
+        "rule": "any2",
+        "points": [(1833, 1365), (1740, 1352), (1700, 1365)],
+        "readings": [("settle_leave/A px(1833,1365) 白按钮", (1833, 1365), "light"),
+                     ("settle_leave/B px(1740,1352) 白按钮", (1740, 1352), "light"),
+                     ("settle_leave/C px(1700,1365) 浅蓝按钮", (1700, 1365), "bright_blue"),
+                     ("settle_leave/D px(1740,1352) 浅蓝按钮", (1740, 1352), "bright_blue")],
+    },
+}
+PROBE_ALIAS = {                      # 旧调用名 → 探针名（保证外部行为不变）
+    "settle_leave_btn": "settle_leave",
+}
+# 采信锚点 = profile 里每态 margin 最大的前 N 个（GPU 通道）。LOADING/UNKNOWN 无锚点（用像素判据）。
+ANCHORS_PER_STATE = 2
+
+# ── 回归门槛（契约 §0/§2）────────────────────────────────────────
+REG_MIN_TOTAL, REG_MIN_NEG = 16, 5
+
+COMPAT = {"SAVELIST": "SAVE"}       # --compat ys-fast 的词汇映射（SAVE=SAVELIST）
 
 
-# 需要「全部判据成立」才计入的态（AND 语义）。
-# LOADING 为什么特殊：它是**过渡态**，误判成它会让脚本空等；而它的两个判据各有误报源
-# （浅蓝底色 = 游戏内天空；中央无纹理 = 菜单/结算的纯色面板）。
-# 2026-10-17 实测：单判据时 menu.png 与 playtest.png 双双误报 LOADING —— 正是 AND 的必要性证据。
-ALL_REQUIRED = {"LOADING"}
+# ══════════════════════════════════════════════════════════════════
+# 环境 / 取帧
+# ══════════════════════════════════════════════════════════════════
+def load_env():
+    """DISPLAY / XAUTHORITY 每次会话随机名 ⇒ 一律**覆盖**读自 ys-env.sh（setdefault 会被空串挡住）。"""
+    envsh = os.path.join(HERE, "ys-env.sh")
+    if not os.path.exists(envsh):
+        return
+    r = subprocess.run([envsh, "--print"], capture_output=True, text=True)
+    for line in r.stdout.splitlines():
+        if "=" in line:
+            k, v = line.split("=", 1)
+            if v and v != "<none>":
+                os.environ[k] = v
 
 
-def decide(j):
-    """按态聚合投票。返回 (state, detail)。"""
-    specific = ["SETTLE", "PAUSE", "PLAYTEST", "SAVELIST", "MENU", "LOADING"]
-    fired = {}
-    for st in specific:
-        keys = [k for k in j if k.startswith(st + "/")]
-        hits = [k for k in keys if j[k][0]]
-        if st in ALL_REQUIRED:
-            if keys and len(hits) == len(keys):
-                fired[st] = hits
-        elif hits:
-            fired[st] = hits
-    # 用声明好的层级消解"父态 vs 子态"的重叠
-    for sub, sup in SUBSTATE_OF.items():
-        if sub in fired and sup in fired:
-            del fired[sup]
-    if len(fired) == 1:
-        st = next(iter(fired))
-        return st, f"{len(fired[st])}/2 判据成立: {fired[st]}"
-    if len(fired) > 1:
-        return "AMBIGUOUS", f"多个非同层态同时成立: {fired}"
-    ea = j["EDITOR/A px(100,400) 绿主导"][0]
-    eb = j["EDITOR/B 左面板存在(列差)"][0]
-    if ea and eb:
-        return "EDITOR", "EDITOR/2 判据成立（草地 + 左面板）"
-    if ea or eb:
-        return "UNKNOWN", f"EDITOR 只有 1/2 判据成立（A={ea} B={eb}）—— 不猜"
-    return "UNKNOWN", "无任何判据成立"
+def win_id():
+    return os.environ.get("YS_WIN", "0x01400001")
 
 
-def judges_of(img):
-    j = judges(img)
-    st, detail = decide(j)
-    return st, detail, j
-
-
-# ── 主流程 ────────────────────────────────────────────────────────
-def get_frame():
-    """经 ys-observe 取帧（唯一取数入口，带新鲜度校验）。"""
+def observe_frame():
+    """活体取帧唯一入口（ys-observe：校验窗口存在 + 栈顶 + 新鲜度）。返回 (path, meta) 或 (None, meta)。"""
     r = subprocess.run([os.path.join(HERE, "ys-observe"), "frame"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         sys.stderr.write(r.stdout + r.stderr)
-        return None, None
-    d = json.loads(r.stdout.strip().splitlines()[-1])
-    return d["path"], d
+        return None, {"error": "observe 取帧失败"}
+    try:
+        d = json.loads((r.stdout or "").strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        return None, {"error": "observe 输出不是 JSON"}
+    return d.get("path"), d
 
 
-def main():
-    args = sys.argv[1:]
-    as_json = "--json" in args
+def frame_geom(path):
+    """读帧尺寸（identify）。失败抛 RuntimeError —— 仪器故障要出声，不许静默当黑图。"""
+    r = subprocess.run(["identify", "-format", "%w %h", path], capture_output=True, text=True)
+    dim = (r.stdout or "").split()
+    if len(dim) < 2:
+        raise RuntimeError(f"identify 读不出尺寸（帧损坏/0 字节？）: {path} :: {r.stderr.strip()[:120]}")
+    return int(dim[0]), int(dim[1])
 
-    if "--regress" in args:
-        man = os.path.join(REG, "manifest.tsv")
-        if not os.path.exists(man):
-            sys.stderr.write(f"缺少回归清单 {man}\n"); sys.exit(3)
-        fails, total = [], 0
-        print(f"══ ys-state 回归（{man}）══")
-        for line in open(man, encoding="utf-8"):
-            line = line.strip()
-            if not line or line.startswith("#"):
+
+def geom_ok(w, h):
+    """字节级几何校验：只接受 2560×1440 及更宽的整帧（游戏窗 2561 宽也收）。
+    缩放帧（如 1024×576 / 1106×964 / 780×439）与半截帧在这里就被挡掉 —— 像素坐标不再可信。"""
+    return w >= FRAME_W and h >= FRAME_H and abs(w - FRAME_W) <= 1
+
+
+def sha16(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def fresh_obj(path, meta):
+    """新鲜度证明：活体带 atop/ts；离线帧没有 atop，用文件 mtime + sha256 定位。"""
+    if meta is not None:
+        return {"atop": meta.get("atop"), "ts": meta.get("at"), "sha": sha16(path)}
+    return {"atop": None, "ts": int(os.path.getmtime(path)), "sha": sha16(path)}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 像素取样（两个通道各自的取数方式，判据只有一份）
+# ══════════════════════════════════════════════════════════════════
+class ProbePixels:
+    """fast 通道：**一次** ImageMagick 多点取样（不把整帧读进 python）。"""
+
+    def __init__(self, path, points):
+        self.w, self.h = frame_geom(path)
+        pts = [(x, y) for x, y in points if x < self.w and y < self.h]
+        if not pts:
+            self.val = {}
+            return
+        fmt = " ".join("%[pixel:p{" + str(x) + "," + str(y) + "}]" for x, y in pts)
+        r = subprocess.run(["magick", path, "-format", fmt, "info:"],
+                           capture_output=True, text=True)
+        out = (r.stdout or "").split()
+        if len(out) != len(pts):
+            raise RuntimeError(f"多点取样失败（{len(out)}/{len(pts)}）: {r.stderr.strip()[:120]}")
+        self.val = {p: parse_pixel(s) for p, s in zip(pts, out)}
+
+    def px(self, x, y):
+        return self.val.get((x, y))
+
+
+class ArrayPixels:
+    """已解码的整帧（numpy uint8 HxWx3）。full 与 fast 两个通道都用它 —— 判据只读这里。"""
+
+    def __init__(self, arr, source=None):
+        self.a = arr
+        self.h, self.w = int(arr.shape[0]), int(arr.shape[1])
+        self.source = source
+        self._tpl_cache = {}
+
+    def px(self, x, y):
+        if x >= self.w or y >= self.h:
+            return None
+        return tuple(int(v) for v in self.a[y, x])
+
+    def image(self):
+        return self.a
+
+
+def decode_frame(path):
+    """离线帧解码：PIL（约 110~130ms；PIL 是 ys_lookd 的既有依赖，不算新增依赖）。
+    尺寸直接从解码结果取 —— 少一次 `identify` 子进程（实测省 ~20ms）。"""
+    import numpy as np
+    from PIL import Image
+    if not os.path.exists(path):
+        raise RuntimeError(f"帧不存在: {path}")
+    arr = np.asarray(Image.open(path).convert("RGB"))
+    return arr
+
+
+def raw_frame_bin(pix, path="/tmp/ys-state-fast.bin"):
+    """把整帧写成原始 RGB 落盘，交给 ys-lookd 的 frame_bin 快路径（省掉它再解码一次 PNG）。"""
+    with open(path, "wb") as f:
+        f.write(pix.a.tobytes())
+    return path, [pix.h, pix.w, 3]
+
+
+def parse_pixel(s):
+    """`srgb(217,217,217)` / `srgba(117,168,81,1)` / `gray(50)` → (r,g,b)。"""
+    s = s.strip()
+    i = s.find("(")
+    if i < 0:
+        return None
+    nums = s[i + 1:].rstrip(")").split(",")
+    try:
+        v = [float(x) for x in nums[:3]]
+    except ValueError:
+        return None
+    if len(v) == 1:
+        v = v * 3
+    return tuple(int(round(c)) for c in v)
+
+
+def all_probe_points():
+    pts = set(PTS.values()) | set(GRID) | set(PANEL_L) | set(PANEL_M)
+    return sorted(pts)
+
+
+# ══════════════════════════════════════════════════════════════════
+# 判据（唯一一份）—— 输入是「取数器」，输出是 readings
+# ══════════════════════════════════════════════════════════════════
+def _spread(pix):
+    """中央区域无纹理：16 点亮度极差。实测：LOADING 纯色页 ~0；编辑器/游戏 100~190。"""
+    lum = []
+    for x, y in GRID:
+        p = pix.px(x, y)
+        if p is None:
+            return None
+        lum.append(sum(p) / 3.0)
+    return max(lum) - min(lum) if lum else None
+
+
+def _panel_diff(pix):
+    """左面板存在：左列与中列均值之差的最大值。实测 EDITOR 68.9 / MENU 76.2 / SAVELIST 26.2 /
+    PLAYTEST 6.2~6.9 / PAUSE 0.6 / SETTLE 3.8~5.6（阈值 40）——菜单底下就是草地，两条都会亮，
+    由「EDITOR 是兜底态」消解。"""
+    def col_mean(pts):
+        acc = [0.0, 0.0, 0.0]
+        n = 0
+        for x, y in pts:
+            p = pix.px(x, y)
+            if p is None:
+                return None
+            for i in range(3):
+                acc[i] += p[i]
+            n += 1
+        return [a / n for a in acc]
+    l, m = col_mean(PANEL_L), col_mean(PANEL_M)
+    if l is None or m is None:
+        return None
+    return max(abs(a - b) for a, b in zip(l, m))
+
+
+def pixel_readings(pix):
+    """像素判据（两个通道共用）。返回 {判据名: {value, passed, kind}}。"""
+    p = {k: pix.px(*v) for k, v in PTS.items()}
+    if any(v is None for v in p.values()):
+        return {}
+    bg, grass, bar, top, sbg = p["bg"], p["grass"], p["bottombar"], p["cardtop"], p["settle_bg"]
+    spread, pdiff = _spread(pix), _panel_diff(pix)
+    R = {}
+
+    def put(name, passed, value):
+        R[name] = {"value": value, "passed": bool(passed), "kind": "pixel"}
+
+    # MENU：系统菜单面板是浅灰 217,217,217（实测其它态该点 ≤157）
+    put("MENU/A px(300,300) 三通道>200", all(v > 200 for v in bg), str(bg))
+    # SAVELIST：亮蓝底栏 + 整屏暗 + 无白卡。三个条件缺一不可：
+    #   只看亮蓝会被游戏内天空骗（playtest3 底栏 82,181,232）；只看整屏暗会被草地阴影骗。
+    put("SAVELIST/A 亮蓝底栏+整屏暗+无白卡",
+        bar[2] > 200 and bar[2] > bar[0] + 80 and max(bg) < 70 and max(top) < 200,
+        f"底栏{bar} 背景{bg} 卡顶{top}")
+    # PLAYTEST/B：沙箱天空蓝主导且够亮（存档页/结算页的暗蓝 G<100 被排除）
+    put("PLAYTEST/B px(100,400) 蓝主导且亮", grass[2] > grass[1] and grass[1] > 100, str(grass))
+    # PLAYTEST/C：亮蓝天（主游戏 (114,142,155) 不过 b>180；过渡帧 (72,74,148) 也不过）
+    put("PLAYTEST/C px(300,300) 亮蓝天", bg[2] > 180 and bg[2] > bg[1], str(bg))
+    # SETTLE：唯一纯白卡顶 + 深蓝底（排除同为深蓝的存档页：存档页 (47,49,74) 不满足 r<40）
+    put("SETTLE/A px(1280,100) 纯白卡顶", all(v > 250 for v in top), str(top))
+    put("SETTLE/B px(1280,500) 深蓝且不偏紫", sbg[0] < 40 and sbg[2] < 60, str(sbg))
+    # LOADING：浅蓝底色（与沙箱天空重叠 ⇒ 必须配 B 的无纹理）
+    put("LOADING/A px(300,300) 浅蓝底色",
+        bg[2] > 180 and bg[2] > bg[1] + 20 and 100 < bg[0] < 170, str(bg))
+    if spread is not None:
+        put("LOADING/B 中央无纹理(采样极差)", spread < FLAT_SPREAD, f"spread={spread:.1f}")
+    # EDITOR：草地绿主导（菜单/存档页下也成立，靠兜底态 + B 消解）
+    put("EDITOR/A px(100,400) 绿主导", grass[1] > grass[0] and grass[1] > grass[2], str(grass))
+    if pdiff is not None:
+        put("EDITOR/B 左面板存在(列差)", pdiff > PANEL_DIFF, f"diff={pdiff:.1f}")
+    return R
+
+
+def template_readings(pix):
+    """full 通道：全帧模板匹配（numpy FFT NCC，进程内 —— 与 GPU 锚点通道**独立取数**）。"""
+    sys.path.insert(0, HERE)
+    from ys_look import ncc
+    import numpy as np
+    img = pix.image().astype("float32") / 255.0
+    R = {}
+    for st, fn in TPL:
+        path = os.path.join(TPL_DIR, fn)
+        if not os.path.exists(path):
+            R[f"{st}/template {fn}"] = {"value": f"模板缺失 {fn}", "passed": False, "kind": "template"}
+            continue
+        if fn not in pix._tpl_cache:
+            w, h = frame_geom(path)
+            raw = subprocess.run(["magick", path, "-depth", "8", "rgb:-"], capture_output=True).stdout
+            pix._tpl_cache[fn] = (raw, w, h)
+        raw, tw, th = pix._tpl_cache[fn]
+        t = np.frombuffer(raw, dtype=np.uint8).reshape(th, tw, 3).astype("float32") / 255.0
+        if t.shape[0] > img.shape[0] or t.shape[1] > img.shape[1]:
+            R[f"{st}/template {fn}"] = {"value": "模板大于画面", "passed": False, "kind": "template"}
+            continue
+        _, _, score, _ = ncc(img, t)
+        R[f"{st}/template {fn}"] = {"value": f"score={score:.3f}",
+                                    "passed": score >= TPL_THRESHOLD, "kind": "template"}
+    return R
+
+
+# ── GPU 锚点（fast 通道；匹配数学在 ys_lookd 里，本文件只发请求）──────
+def load_profile(path):
+    if not os.path.exists(path):
+        raise RuntimeError(f"锚点 profile 不存在: {path}（缺省应为 .scratch/gui-profiles/qianxing.json）")
+    with open(path, encoding="utf-8") as f:
+        prof = json.load(f)
+    if not prof.get("anchors"):
+        raise RuntimeError(f"profile 没有 anchors: {path}")
+    return prof
+
+
+def anchor_tier1(profile):
+    """每态取 margin 最大的 ANCHORS_PER_STATE 个锚点（worst-case 挖的，不是 best-case）。"""
+    by = {}
+    for a in profile["anchors"]:
+        by.setdefault(a["state"], []).append(a)
+    out = {}
+    for st, lst in by.items():
+        out[st] = sorted(lst, key=lambda a: -a.get("margin", 0))[:ANCHORS_PER_STATE]
+    return out
+
+
+def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
+    """GPU 锚点读数。frame_path=离线 PNG；frame_bin=活体原始 RGB（省掉 PNG 解码）。"""
+    sys.path.insert(0, HERE)
+    import ys_look
+    tier1 = anchor_tier1(profile)
+    jobs, state_of = [], {}
+    for st, lst in tier1.items():
+        for a in lst:
+            pad, psz = 200, a.get("patch", 96)
+            jobs.append({"id": a["name"], "tpl": os.path.abspath(a["tpl"]), "scales": [1.0],
+                         "roi": [max(0, a["x"] - pad), max(0, a["y"] - pad), psz + 2 * pad, psz + 2 * pad]})
+            state_of[a["name"]] = st
+    req = {"cmd": "batch", "jobs": jobs}
+    if frame_bin:
+        req.update({"frame_bin": frame_bin, "frame_shape": shape})
+    else:
+        req["frame"] = os.path.abspath(frame_path)
+    r = ys_look.daemon(req, timeout=30)
+    if not r:
+        raise RuntimeError(f"ys-lookd 不可用（{ys_look.LAST_DAEMON_ERROR or '连接失败'}）")
+    sc = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
+    R = {}
+    for name, st in state_of.items():
+        s = sc.get(name, -1.0)
+        R[f"{st}/anchor {name}"] = {"value": f"score={s:.3f}", "passed": s >= ANCHOR_THRESHOLD,
+                                    "kind": "anchor"}
+    return R
+
+
+# ══════════════════════════════════════════════════════════════════
+# 判定（唯一一份投票规则）
+# ══════════════════════════════════════════════════════════════════
+def decide(readings):
+    """按态聚合 readings。返回 dict(state, confidence, ambiguous, margin, verdicts)。
+
+    - 每态 = 该态前缀下的全部判据；`RULE` 缺省 "all"（全中），PLAYTEST 是 "any2"（2/3 多数）
+    - 判据条数 < MIN_CRITERIA 的态不算成立（避免单点误报冒充判定）
+    - 子态（PAUSE/SETTLE）压过父态（PLAYTEST）；EDITOR 是兜底态
+    - 多个非同层态同时成立 ⇒ AMBIGUOUS（不猜）；全不成立 ⇒ UNKNOWN（不猜）
+    """
+    per = {}
+    for name, r in readings.items():
+        st = name.split("/")[0]
+        if st not in STATES or st == "UNKNOWN":
+            continue
+        per.setdefault(st, []).append(r)
+    verdicts, support = {}, {}
+    for st, items in per.items():
+        n = len(items)
+        p = sum(1 for i in items if i["passed"])
+        rule = RULE.get(st, "all")
+        ok = (p >= 2) if rule == "any2" else (p == n)
+        if n < MIN_CRITERIA:
+            ok = False
+        verdicts[st] = bool(ok and n >= MIN_CRITERIA)
+        support[st] = (p / n) if n else 0.0
+    cands = [st for st, ok in verdicts.items() if ok]
+    for sub, sup in SUBSTATE_OF.items():
+        if sub in cands and sup in cands:
+            cands.remove(sup)
+    if FALLBACK_STATE in cands and len(cands) > 1:
+        cands.remove(FALLBACK_STATE)
+    ranked = sorted(per, key=lambda st: -support[st])
+    if len(cands) == 1:
+        st = cands[0]
+        rest = [support[s] for s in ranked if s != st]
+        return {"state": st, "confidence": round(support[st], 3), "ambiguous": False,
+                "margin": round(support[st] - (max(rest) if rest else 0.0), 3), "verdicts": verdicts}
+    if len(cands) > 1:
+        return {"state": "AMBIGUOUS", "confidence": 0.0, "ambiguous": True,
+                "margin": 0.0, "verdicts": verdicts, "candidates": sorted(cands)}
+    best = support[ranked[0]] if ranked else 0.0
+    return {"state": "UNKNOWN", "confidence": round(best, 3), "ambiguous": False,
+            "margin": round(-best, 3), "verdicts": verdicts}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 两个通道的端到端
+# ══════════════════════════════════════════════════════════════════
+def run_full(frame=None):
+    """full 通道：全帧进内存 → 像素判据 + 全帧模板匹配。返回 (result, frame_path, fresh)。"""
+    meta = None
+    if not frame:
+        frame, meta = observe_frame()
+        if not frame:
+            return {"state": "UNKNOWN", "channel": "full", "error": "取帧失败（ys-observe）"}, None, None
+    t0 = time.time()
+    try:
+        pix = ArrayPixels(decode_frame(frame), source=frame)
+    except (RuntimeError, OSError) as e:
+        return {"state": "UNKNOWN", "channel": "full", "error": str(e),
+                "ms": round((time.time() - t0) * 1000)}, frame, fresh_obj(frame, meta)
+    readings = {}
+    if geom_ok(pix.w, pix.h):
+        readings.update(pixel_readings(pix))
+        readings.update(template_readings(pix))
+    else:
+        # 缩放帧/半截帧：像素坐标不可信 —— 直接拒绝，绝不拿错位像素当判据
+        readings["GEOM/frame 尺寸 2560x1440"] = {
+            "value": f"实际 {pix.w}x{pix.h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
+    res = decide(readings)
+    res.update({"channel": "full", "readings": readings, "ms": round((time.time() - t0) * 1000)})
+    return res, frame, fresh_obj(frame, meta)
+
+
+def run_fast(frame=None, profile_path=None):
+    """fast 通道：一次取帧（离线解码 / 活体原始抓取）→ 像素判据 + GPU 锚点（ys-lookd）。
+
+    成本链（实测 2026-10-17，2560×1440）：解码 110~130ms ／ 落盘 frame_bin 7ms ／
+    GPU 12 锚点 60ms ⇒ 端到端 180~200ms（抓帧与解码主导，匹配只占 1/3）。
+    """
+    prof_path = profile_path or os.environ.get("YS_PROFILE") or PROFILE_DEFAULT
+    meta = None
+    t0 = time.time()
+    try:
+        profile = load_profile(prof_path)
+    except RuntimeError as e:
+        return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
+                "ms": round((time.time() - t0) * 1000)}, frame, None
+    if frame:
+        try:
+            pix = ArrayPixels(decode_frame(frame), source=frame)
+        except (RuntimeError, OSError) as e:
+            return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
+                    "ms": round((time.time() - t0) * 1000)}, frame, None
+    else:
+        # 活体：一次原始 RGB 抓取（ys_look.grab，管道），既供像素判据也供 GPU 锚点（省一次解码）
+        sys.path.insert(0, HERE)
+        import ys_look
+        try:
+            arr = ys_look.grab(0, 0, FRAME_W, FRAME_H)
+        except Exception as e:                          # noqa: BLE001 —— 取帧失败必须报错不兜底
+            return {"state": "UNKNOWN", "channel": "fast", "error": f"抓帧失败: {e}",
+                    "ms": round((time.time() - t0) * 1000)}, None, None
+        pix = ArrayPixels((arr * 255).round().astype("uint8"))
+    readings = {}
+    if geom_ok(pix.w, pix.h):
+        readings.update(pixel_readings(pix))
+    else:
+        readings["GEOM/frame 尺寸 2560x1440"] = {
+            "value": f"实际 {pix.w}x{pix.h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
+    try:
+        if geom_ok(pix.w, pix.h):
+            bin_path, shape = raw_frame_bin(pix)
+            readings.update(anchor_readings(profile, frame_bin=bin_path, shape=shape))
+    except (RuntimeError, OSError) as e:
+        return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
+                "ms": round((time.time() - t0) * 1000)}, frame, None
+    res = decide(readings)
+    res.update({"channel": "fast", "readings": readings, "ms": round((time.time() - t0) * 1000)})
+    if frame:
+        return res, frame, fresh_obj(frame, meta)
+    # 活体：fast 通道不做堆叠序校验（<150ms 预算内塞不下 ys-atop），用抓帧时刻 + 原始帧 sha 定位
+    fresh = {"atop": None, "ts": int(time.time()), "sha": sha16("/tmp/ys-state-fast.bin"),
+             "note": "fast 通道不校验堆叠序；需要新鲜度证明请用 full 通道"}
+    return res, None, fresh
+
+
+def execute(channel, frame=None, profile=None):
+    if channel == "fast":
+        return run_fast(frame=frame, profile_path=profile)
+    return run_full(frame=frame)
+
+
+def exit_code(state):
+    return 2 if state == "AMBIGUOUS" else 4 if state == "UNKNOWN" else 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# 具名控件探针（供 _ys-ui.sh / ys-playtest-start / ys-playtest-stop 转发）
+# ══════════════════════════════════════════════════════════════════
+def _probe_points(spec):
+    out = []
+    for _label, pt, _kind in spec["readings"]:
+        if isinstance(pt, tuple):
+            out.append(pt)
+    return out
+
+
+def _probe_bbox(spec, pad=PROBE_CROP):
+    pts = _probe_points(spec) + [p for p, _ in _panel_pts(spec)]
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    return (max(0, min(xs) - pad), max(0, min(ys) - pad),
+            max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad)
+
+
+def _panel_pts(spec):
+    for _label, pt, kind in spec["readings"]:
+        if kind == "panel":
+            return [(p, "L") for p in PANEL_L] + [(p, "M") for p in PANEL_M]
+    return []
+
+
+def _eval_panel(cells):
+    l = [cells[p] for p in PANEL_L if p in cells]
+    m = [cells[p] for p in PANEL_M if p in cells]
+    if not l or not m:
+        return None
+    lm = [sum(c[i] for c in l) / len(l) for i in range(3)]
+    mm = [sum(c[i] for c in m) / len(m) for i in range(3)]
+    return max(abs(a - b) for a, b in zip(lm, mm))
+
+
+def probe_readings(name, frame=None):
+    """取数并算一条探针的全部判据。返回 (readings 列表, cells 字典)。"""
+    spec = PROBES[name]
+    if frame:
+        w, h = frame_geom(frame)
+        pts = sorted(set(_probe_points(spec) + [p for p, _ in _panel_pts(spec)]))
+        bad = [p for p in pts if p[0] >= w or p[1] >= h]
+        if bad:
+            raise RuntimeError(f"探针 {name} 的取样点 {bad[:3]} 超出画面 {w}x{h}（缩放帧/抓帧失败态）")
+        pix = ProbePixels(frame, pts)
+        cells = {p: pix.px(*p) for p in pts}
+    else:
+        sys.path.insert(0, HERE)
+        import ys_look
+        ox, oy, bw, bh = _probe_bbox(spec)
+        if bw * bh > 1000 * 1000:                      # 点太分散：整帧一次抓（比多次裁切便宜）
+            ox, oy, bw, bh = 0, 0, FRAME_W, FRAME_H
+        try:
+            arr = ys_look.grab(ox, oy, bw, bh)
+        except Exception as e:                         # noqa: BLE001
+            raise RuntimeError(f"探针 {name} 抓不到像素: {e}")
+        a = (arr * 255).round().astype("uint8")
+        cells = {}
+        for x, y in _probe_points(spec) + [p for p, _ in _panel_pts(spec)]:
+            rx, ry = x - ox, y - oy
+            if 0 <= rx < bw and 0 <= ry < bh:
+                cells[(x, y)] = tuple(int(v) for v in a[ry, rx])
+    readings = []
+    for label, pt, kind in spec["readings"]:
+        if kind == "panel":
+            d = _eval_panel(cells)
+            ok = d is not None and d > PANEL_DIFF
+            readings.append({"name": label, "value": f"diff={d:.1f}" if d is not None else "取数失败",
+                             "passed": bool(ok), "kind": "pixel"})
+        else:
+            c = cells.get(pt)
+            ok = c is not None and PROBE_RULES[kind](c)
+            readings.append({"name": label, "value": str(c) if c is not None else "取数失败",
+                             "passed": bool(ok), "kind": "pixel"})
+    return readings, cells
+
+
+def read_point(x, y, frame=None):
+    """读一个点的 RGB（活体：只裁 PROBE_CROP 小块；离线：直接读 `--frame`）。"""
+    if frame:
+        w, h = frame_geom(frame)
+        if x >= w or y >= h:
+            raise RuntimeError(f"取样点 ({x},{y}) 超出画面 {w}x{h}（缩放帧/抓帧失败态）")
+        r = subprocess.run(["magick", frame, "-format",
+                            "%[pixel:p{" + str(x) + "," + str(y) + "}]", "info:"],
+                           capture_output=True, text=True)
+        rgb = parse_pixel((r.stdout or "").strip())
+        if rgb is None:
+            raise RuntimeError(f"({x},{y}) 取不到像素: {(r.stderr or '').strip()[:120]}")
+        return rgb
+    sys.path.insert(0, HERE)
+    import ys_look
+    half = PROBE_CROP // 2
+    try:
+        arr = ys_look.grab(max(0, x - half), max(0, y - half), PROBE_CROP, PROBE_CROP)
+    except Exception as e:                             # noqa: BLE001
+        raise RuntimeError(f"({x},{y}) 抓不到像素: {e}")
+    a = (arr * 255).round().astype("uint8")
+    return tuple(int(v) for v in a[half, half])
+
+
+def probe(name, frame=None):
+    """判一个具名控件是否可见。返回 dict(probe, visible, readings, ms, desc, rule)。"""
+    name = PROBE_ALIAS.get(name, name)
+    if name not in PROBES:
+        raise RuntimeError(f"未知探针 {name!r}；可用: {sorted(PROBES)}")
+    t0 = time.time()
+    spec = PROBES[name]
+    readings, _cells = probe_readings(name, frame=frame)
+    p = sum(1 for r in readings if r["passed"])
+    n = len(readings)
+    visible = (p >= 2) if spec["rule"] == "any2" else (p == n)
+    if n < 2:                                          # 契约 §6：每探针 ≥2 判据
+        visible = False
+    return {"probe": name, "visible": bool(visible), "readings": readings,
+            "ms": round((time.time() - t0) * 1000), "desc": spec["desc"],
+            "rule": spec["rule"], "validated": spec.get("validated", True)}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 回归（契约 §2）：负数样本 = 期望 UNKNOWN
+# ══════════════════════════════════════════════════════════════════
+def read_manifest():
+    if not os.path.exists(MANIFEST):
+        sys.stderr.write(f"缺少回归清单 {MANIFEST}\n")
+        sys.exit(3)
+    rows = []
+    with open(MANIFEST, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line.strip() or line.lstrip().startswith("#"):
                 continue
-            fn, want, desc = (line.split("\t") + ["", ""])[:3]
-            p = os.path.join(REG, fn)
-            if not os.path.exists(p):
-                print(f"  ✗ {fn:30s} 样本缺失"); fails.append(fn); total += 1; continue
-            st, detail, _ = judges_of(load(p))
-            total += 1
-            if st == want:
-                print(f"  ✓ {fn:30s} → {st:10s} ({desc})")
-            else:
-                print(f"  ✗ {fn:30s} → {st:10s} 期望 {want}  [{detail}]  ({desc})")
-                fails.append(fn)
-        print("─" * 50)
-        if fails:
-            print(f"✗ {len(fails)}/{total} 失败: {fails}"); sys.exit(5)
-        print(f"✓ 回归全绿（{total}/{total}）"); sys.exit(0)
+            cols = line.split("\t")
+            fn, want = cols[0].strip(), (cols[1].strip() if len(cols) > 1 else "")
+            desc = cols[2].strip() if len(cols) > 2 else ""
+            rows.append((fn, want, desc))
+    return rows
 
-    if "--frame" in args:
-        p = args[args.index("--frame") + 1]
-        img = load(p)
-        st, detail, j = judges_of(img)
-    else:
-        p, meta = get_frame()
-        if not p:
-            sys.exit(3)
-        img = load(p)
-        st, detail, j = judges_of(img)
 
+def regress(channels, as_json=False):
+    rows = read_manifest()
+    total = len(rows)
+    negs = sum(1 for _, w, _ in rows if w == "UNKNOWN")
+    short_total = max(0, REG_MIN_TOTAL - total)
+    short_neg = max(0, REG_MIN_NEG - negs)
+    fails = {ch: [] for ch in channels}
+    lines = []
+    if not as_json:
+        print(f"══ ys-state 回归（{MANIFEST}）══")
+        print(f"样本总数={total}  负样本数={negs}"
+              f"（门槛 ≥{REG_MIN_TOTAL} / 负样本 ≥{REG_MIN_NEG}）")
+        if short_total or short_neg:
+            print(f"✗ 样本数不达标：总数差 {short_total} 张（{total}<{REG_MIN_TOTAL}）；"
+                  f"负样本差 {short_neg} 张（{negs}<{REG_MIN_NEG}）")
+        else:
+            print("✓ 样本数达标")
+    for fn, want, desc in rows:
+        path = os.path.join(REG_DIR, fn)
+        got = {}
+        if not os.path.exists(path):
+            for ch in channels:
+                fails[ch].append(fn)
+                got[ch] = "样本缺失"
+        else:
+            for ch in channels:
+                try:
+                    res, _, _ = execute(ch, frame=path)
+                except Exception as e:                  # noqa: BLE001 —— 回归里任何异常都算失败
+                    res = {"state": "ERROR", "error": f"{type(e).__name__}: {e}"}
+                st = res.get("state", "ERROR")
+                if res.get("error") and st != want:
+                    st = f"ERROR({res['error'][:40]})"
+                got[ch] = st
+                if st != want:
+                    fails[ch].append(fn)
+        if not as_json:
+            marks = " ".join(f"{ch}={'✓' if got[ch] == want else '✗'}" for ch in channels)
+            tag = "负样本" if want == "UNKNOWN" else "正样本"
+            detail = "" if all(got[ch] == want for ch in channels) else \
+                "  " + " ".join(f"{ch}→{got[ch]}" for ch in channels if got[ch] != want)
+            print(f"  [{tag}] {fn:32s} 期望 {want:9s} {marks}{detail}  ({desc})")
+        lines.append({"sample": fn, "want": want, "got": got, "desc": desc})
+    rate = {}
+    for ch in channels:
+        okc = total - len(fails[ch])
+        rate[ch] = round(100.0 * okc / total, 1) if total else 0.0
+        if not as_json:
+            print(f"── 通道 {ch:4s} 通过 {okc}/{total} = {rate[ch]:.1f}%"
+                  + ("" if not fails[ch] else f"  失败: {fails[ch]}"))
+    bad = any(fails[ch] for ch in channels) or short_total or short_neg
     if as_json:
-        print(json.dumps({"state": st, "detail": detail,
-                          "judges": {k: {"pass": v[0], "reading": v[1]}
-                                     for k, v in j.items()},
-                          "frame": p}, ensure_ascii=False))
+        print(json.dumps({
+            "total": total, "negatives": negs,
+            "channels": {ch: {"percent": rate[ch], "passed": total - len(fails[ch]),
+                              "total": total, "failed": fails[ch]} for ch in channels},
+            "min_total": REG_MIN_TOTAL, "min_negatives": REG_MIN_NEG,
+            "short_total": short_total, "short_negatives": short_neg,
+            "samples": lines, "ok": not bad}, ensure_ascii=False))
     else:
+        print("─" * 62)
+        if bad:
+            for ch in channels:
+                if fails[ch]:
+                    print(f"✗ {ch} 通道 {len(fails[ch])}/{total} 失败: {fails[ch]}")
+            if short_total or short_neg:
+                print(f"✗ 回归集规模不达标（总数 {total}，负样本 {negs}）")
+            print("✗ 回归失败")
+        else:
+            print(f"✓ 回归全绿：{total}/{total} 样本，负样本 {negs} 张，"
+                  f"通道 {' / '.join(f'{ch} {rate[ch]:.1f}%' for ch in channels)}")
+    return 1 if bad else 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# CLI
+# ══════════════════════════════════════════════════════════════════
+def main(argv):
+    args = list(argv)
+    as_json = "--json" in args
+    print_state = "--print-state" in args
+    compat = opt(args, "--compat")
+    frame = opt(args, "--frame")
+    profile = opt(args, "--profile")
+    channel = opt(args, "--channel") or "full"
+    if "--fast" in args:
+        channel = "fast"
+    load_env()
+
+    # ── 原语转发（给 `_ys-ui.sh` 的 judge / is_light / is_dark 用）：坐标与阈值仍在**本文件**
+    # `--pixel X Y` 打印 `r g b`（judge）；`--pred light|dark X Y` 打印 1/0（is_light / is_dark）
+    if "--pixel" in args or "--pred" in args:
+        try:
+            if "--pixel" in args:
+                i = args.index("--pixel")
+                x, y = int(args[i + 1]), int(args[i + 2])
+                rgb = read_point(x, y, frame=frame)
+                print(" ".join(str(v) for v in rgb))
+                return 0
+            i = args.index("--pred")
+            kind = args[i + 1]
+            x, y = int(args[i + 2]), int(args[i + 3])
+            if kind not in PROBE_RULES:
+                sys.stderr.write(f"--pred 只接受 {sorted(PROBE_RULES)}（收到 {kind}）\n")
+                return 3
+            rgb = read_point(x, y, frame=frame)
+            ok = PROBE_RULES[kind](rgb)
+            if as_json:
+                print(json.dumps({"pred": kind, "xy": [x, y], "value": list(rgb),
+                                  "passed": bool(ok)}, ensure_ascii=False))
+            else:
+                print("1" if ok else "0")
+            return 0 if ok else 1
+        except (RuntimeError, ValueError, IndexError) as e:
+            sys.stderr.write(f"[ys-state] {e}\n")
+            return 3
+
+    # ── 探针注册表（契约 §6）：--probes 列表 / --probe 判一条 / --wait 谓词等待 ──
+    if "--probes" in args:
+        rows = []
+        for name, spec in PROBES.items():
+            rows.append({"probe": name, "desc": spec["desc"], "rule": spec["rule"],
+                         "criteria": len(spec["readings"]),
+                         "validated": spec.get("validated", True)})
+        if as_json:
+            print(json.dumps({"probes": rows}, ensure_ascii=False))
+        else:
+            for r in rows:
+                print(f"{r['probe']:18s} 判据 {r['criteria']} 条  {r['rule']:5s} "
+                      f"{'已验证' if r['validated'] else '未验证(无离线帧)'}  {r['desc']}")
+        for r in rows:
+            if r["criteria"] < 2:
+                sys.stderr.write(f"[ys-state] 探针 {r['probe']} 判据不足 2 条\n")
+                return 1
+        return 0
+
+    probe_name = opt(args, "--probe")
+    wait_name = opt(args, "--wait")
+    if probe_name or wait_name:
+        name = wait_name or probe_name
+        try:
+            if wait_name:
+                expect = (opt(args, "--expect") or "visible").lower()
+                if expect not in ("visible", "hidden"):
+                    sys.stderr.write("--expect 只接受 visible|hidden\n")
+                    return 3
+                timeout = float(opt(args, "--timeout") or 15)
+                poll = float(opt(args, "--poll") or 0.2)
+                t0 = time.time()
+                ok_wait = False
+                while True:
+                    out = probe(name, frame=frame)
+                    if bool(out["visible"]) == (expect == "visible"):
+                        out["waited_ms"] = round((time.time() - t0) * 1000)
+                        out["expect"] = expect
+                        ok_wait = True
+                        break
+                    if time.time() - t0 >= timeout:
+                        out["waited_ms"] = round((time.time() - t0) * 1000)
+                        out["expect"] = expect
+                        out["timeout"] = True
+                        if as_json:
+                            print(json.dumps(out, ensure_ascii=False))
+                        else:
+                            sys.stderr.write(
+                                f"[ys-state] 等待探针 {name} {expect} 超时 {timeout}s"
+                                f"（最后 readings={[ (r['name'], r['passed']) for r in out['readings'] ]}）\n")
+                        return 1
+                    time.sleep(poll)
+            else:
+                out = probe(name, frame=frame)
+        except RuntimeError as e:
+            sys.stderr.write(f"[ys-state] {e}\n")
+            if as_json:
+                print(json.dumps({"probe": name, "error": str(e)}, ensure_ascii=False))
+            return 3
+        if as_json:
+            print(json.dumps(out, ensure_ascii=False))
+        else:
+            print(f"{out['probe']} {'1' if out['visible'] else '0'}"
+                  + (f" {out['waited_ms']}ms" if "waited_ms" in out else "")
+                  + f" ({out['desc']})")
+        if wait_name:
+            return 0 if ok_wait else 1
+        return 0 if out["visible"] else 1
+
+    # ── 回归 ──
+    if "--regress" in args:
+        chans = ["full", "fast"]                        # 缺省两通道都跑（契约 §2 要「每通道通过率」）
+        if "--channel" in args:
+            val = opt(args, "--channel")
+            if val == "both":
+                chans = ["full", "fast"]
+            elif val in ("fast", "full"):
+                chans = [val]
+            else:
+                sys.stderr.write(f"--channel 只接受 fast|full|both（收到 {val}）\n")
+                return 3
+        return 5 if regress(chans, as_json=as_json) else 0
+
+    if "--channel" in args and channel == "both":
+        sys.stderr.write("--channel both 只用于 --regress；单个判定只接受 fast|full\n")
+        return 3
+
+    # ── 单次判定 ──
+    if frame and not os.path.exists(frame):
+        sys.stderr.write(f"帧不存在: {frame}\n")
+        return 3
+    try:
+        res, path, fresh = execute(channel, frame=frame, profile=profile)
+    except Exception as e:                              # noqa: BLE001 —— 仪器故障要出声
+        sys.stderr.write(f"[ys-state] {type(e).__name__}: {e}\n")
+        return 3
+    if res.get("error") and res.get("state") == "UNKNOWN" and "readings" not in res:
+        sys.stderr.write(f"[ys-state] {res['error']}\n")
+        if as_json:
+            print(json.dumps(res, ensure_ascii=False))
+        return 3
+    out = dict(res)
+    out.update({"frame": path, "fresh": fresh})
+    if as_json:
+        print(json.dumps(out, ensure_ascii=False))
+    elif print_state:
+        st = out["state"]
+        if compat == "ys-fast":
+            st = COMPAT.get(st, st)                     # SAVELIST→SAVE；其余原样（绝不给别的态的名字）
         print(st)
-        if st in ("AMBIGUOUS", "UNKNOWN"):
-            print(f"  {detail}", file=sys.stderr)
-    sys.exit(2 if st == "AMBIGUOUS" else 4 if st == "UNKNOWN" else 0)
+    else:
+        print(out["state"])
+        if out["state"] in ("AMBIGUOUS", "UNKNOWN"):
+            sys.stderr.write(f"  {out.get('candidates') or '无状态成立'}  判据={out.get('verdicts')}\n")
+    return exit_code(out["state"])
+
+
+def opt(args, name):
+    """取 `--name VALUE` 的 VALUE（缺省 None）。"""
+    if name not in args:
+        return None
+    i = args.index(name)
+    return args[i + 1] if len(args) > i + 1 else None
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))
