@@ -8,7 +8,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 WIN="${1:-0x01400001}"; export YS_WIN="$WIN"
 if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 30 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"; fi
 . "$HERE/_ys-ui.sh"
-click() { "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null 2>&1; }
+# ⚠️ 不许吞退出码：rc=5「12 轮未命中」是定位失败的关键诊断（2026-10-17 复盘）
+click() { local rc=0; "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null || rc=$?; [ "$rc" -eq 0 ] || echo "[ys-playtest-stop] ⚠️ 点击($1,$2)未命中 rc=$rc" >&2; return $rc; }
 
 echo "[stop] ① ESC"; ydotool key 1:1 1:0
 if wait_probe pause_menu 60; then            # ≤ ~15s

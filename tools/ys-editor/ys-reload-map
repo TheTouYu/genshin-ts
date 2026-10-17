@@ -40,7 +40,8 @@ CONFIRM_X=1439;  CONFIRM_Y=812     # 「加载存档」对话框「确认」
   C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
   CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'
 
-  click() { ./ys-pointer-click "$1" "$2" >/dev/null 2>&1; }
+  # ⚠️ 不许吞退出码（2026-10-17 复盘）
+click() { local rc=0; ./ys-pointer-click "$1" "$2" >/dev/null || rc=$?; [ "$rc" -eq 0 ] || echo "[ys-reload-map] ⚠️ 点击($1,$2)未命中 rc=$rc" >&2; return $rc; }
   rj() { judge "$1" "$2" | cut -d" " -f1; }
   gj() { judge "$1" "$2" | cut -d" " -f2; }
   bj() { judge "$1" "$2" | cut -d" " -f3; }

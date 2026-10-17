@@ -298,7 +298,9 @@ shot() {   # shot <名>：**唯一写盘 PNG 的地方**（证据帧；上限 7�
 
 click_at() {   # click_at <x> <y> [按住ms] —— 坐标点击走 ys-pointer-click（外部回读闭环）
   local x=$1 y=$2 hold=${3:-120}
-  YS_CLICK_HOLD=$hold "$HERE/ys-pointer-click" "$x" "$y" >/dev/null 2>&1
+  # ⚠️ 不许吞退出码（2026-10-17 复盘）：rc≠0 时把目标与码打出来，别当成功继续
+  local crc=0; YS_CLICK_HOLD=$hold "$HERE/ys-pointer-click" "$x" "$y" >/dev/null || crc=$?
+  [ "$crc" -eq 0 ] || echo "[ys-round] ⚠️ 点击($x,$y)未命中 rc=$crc" >&2
 }
 
 # ── 1.5 证据链自测（--selftest-evidence）：不占槽、不抓帧，只验 round.json 生产线 ──
