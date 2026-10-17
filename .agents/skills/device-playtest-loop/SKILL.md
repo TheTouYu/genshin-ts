@@ -79,7 +79,7 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | **`ys-preflight`** | **动手前的前提核验器**（铁律 0） | 12 条默认前提一条命令跑完；退出码 1=有 FAIL / 2=有 WARN；实测首次就抓出「挂载 0 个」 |
 | **`ys-observe`** | **唯一取数入口**（读像素一律走它） | 读数**自带新鲜度证明**：窗口不在栈顶 → 打印 `NOT_ATOP` 并退 2，**拒绝给旧值**；越界探针报 `PROBE_OUT_OF_RANGE`（ImageMagick 会**钳制**坐标，必须自己校验） |
 | **`ys-atop`** | **真正在最上层的窗口** | `ys-wins \| tail -1` 永远是 plasmashell 任务栏（1707×62）⇒ 整晚 `NOT_ATOP` 假警报；`ys-atop` 忽略高<200 或宽<800 的面板后取最上层 |
-| **`ys-state`** | **7 态判据 + 回归集** | MENU/SAVELIST/EDITOR/PLAYTEST/PAUSE/SETTLE/UNKNOWN，每态 2 判据；回归集 `calib/regress/` 10 张全绿；子态 `PAUSE/SETTLE ⊂ PLAYTEST` 已声明 |
+| **`ys-state`** | **8 态判据 + 回归集（唯一实现）** | MENU/SAVELIST/EDITOR/PLAYTEST/PAUSE/SETTLE/**LOADING**/UNKNOWN，每态 ≥2 判据；回归集 `calib/regress/` **19 帧含 8 负样本**，两通道 100%（`--regress --channel both`，门槛①）；子态 `PAUSE/SETTLE ⊂ PLAYTEST`；LOADING 尚无真实正样本（未验证） |
 | **`ys-map`** | **按态决定动作的确定性切图** | `ys-switch-save` 是**奇偶切换 + 盲切**：方向反一次，编辑器就把内存旧版写回磁盘**静默覆盖 CLI 新增**；`ys-map` 先判态再动，切后 `ys-where2` 核验 |
 | **`ys-loop`** | **一轮 9 步编排器** | focus → goto_my_map → map_leave → build(重挂) → map_enter → playtest_start → refocus → input → playtest_stop → artifact_new_log；**门禁只到「有日志/有标记」，不代表玩法通过**（见「验收标准」节） |
 | **`ys-time-audit`** | **自我行为计量** | 从会话事件流按类别统计时间占比；实测推翻自我认知（等循环 70% / GUI 19%）；每轮跑一次，占比异常即链路有问题 |
@@ -91,7 +91,7 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | `ys-drag <x1> <y1> <x2> <y2>` | 绝对坐标拖拽 | 按下 → 分步移动 → 抬起；用于相机环绕/视野转动/滑块 |
 | `ys-reload-map` / `ys-reload-keep` | **让编辑器从磁盘重载** | `-keep` 版会**保住 CLI 写入**（快照→离开→还原→重进）；CLI 写回 .gil 后必走 |
 | `ys-esc` / `ys-goto-map enter\|leave` | 发一次 ESC / 确定性切图 | `ys-goto-map` 每步用 `ys-where2` 核验，不靠奇偶 |
-| `ys-state` | **界面态判定唯一实现**（8 态 + 两测量通道 + 具名探针） | `ys-state --json`（活体）/`--frame PNG`（离线）/`--print-state --fast`（给脚本用）。判据（像素坐标/阈值/投票规则）**只在 ysi-state 一个文件里**；旧 `ys-fast`(三态) / `ys-ui-state` 已改为薄封装转发 |
+| `ys-state` | **界面态判定唯一实现**（8 态 + 两测量通道 + 具名探针） | `ys-state --json`（活体）/`--frame PNG`（离线）/`--print-state --fast`（给脚本用）。判据（像素坐标/阈值/投票规则）**只在 ys-state 一个文件里**；旧 `ys-fast`(三态) / `ys-ui-state` 已改为薄封装转发 |
 | `ys-state --probe/--wait` | 具名探针（按钮/弹窗可见性） | `--probes` 列 8 条探针与判据数；`--wait <探针> --expect visible|hidden --timeout N --poll 0.2` 是**唯一的同步等待方式**（禁裸 sleep） |
 | `ys-where2` | **当前地图身份** | 系统菜单标题模板匹配（score 0.9999）；须先处于 MENU 态 |
 | `ys-round` | **一轮执行器**（自带证据） | 离开→构建→进入→试玩→注入→退出→判定→`~/ys-round/<ts>/report.md`；判据已改用 `ys-where2` |
