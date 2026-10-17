@@ -189,11 +189,23 @@ COMPAT = {"SAVELIST": "SAVE"}       # --compat ys-fast 的词汇映射（SAVE=SA
 # ══════════════════════════════════════════════════════════════════
 # 环境 / 取帧
 # ══════════════════════════════════════════════════════════════════
+_ENV_READY = False
+
+
 def load_env():
-    """DISPLAY / XAUTHORITY 每次会话随机名 ⇒ 一律**覆盖**读自 ys-env.sh（setdefault 会被空串挡住）。"""
+    """DISPLAY / XAUTHORITY 每次会话随机名 ⇒ 一律**覆盖**读自 ys-env.sh（setdefault 会被空串挡住）。
+
+    惰性调用：只有**本地取数**（抓屏/裁块/模板抓取）才需要；走常驻服务的路径不需要，
+    而这一步要 spawn 一次 ys-env.sh（实测 ~35ms），在 <150ms 预算里不能白付。
+    """
+    global _ENV_READY
+    if _ENV_READY:
+        return
     envsh = os.path.join(HERE, "ys-env.sh")
+    _ENV_READY = True
     if not os.path.exists(envsh):
         return
+    _ENV_READY = True
     r = subprocess.run([envsh, "--print"], capture_output=True, text=True)
     for line in r.stdout.splitlines():
         if "=" in line:
@@ -208,6 +220,7 @@ def win_id():
 
 def observe_frame():
     """活体取帧唯一入口（ys-observe：校验窗口存在 + 栈顶 + 新鲜度）。返回 (path, meta) 或 (None, meta)。"""
+    load_env()
     r = subprocess.run([os.path.join(HERE, "ys-observe"), "frame"],
                        capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
@@ -330,6 +343,19 @@ def parse_pixel(s):
     if len(v) == 1:
         v = v * 3
     return tuple(int(round(c)) for c in v)
+
+
+class CellsPixels:
+    """只持有「判据需要的那几十个点」的像素（daemon 侧用：从 GPU 张量取点，不拷整帧）。"""
+
+    def __init__(self, cells, w, h):
+        self.cells = cells
+        self.w, self.h = w, h
+
+    def px(self, x, y):
+        if x >= self.w or y >= self.h:
+            return None
+        return self.cells.get((x, y))
 
 
 def all_probe_points():
@@ -459,10 +485,8 @@ def anchor_tier1(profile):
     return out
 
 
-def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
-    """GPU 锚点读数。frame_path=离线 PNG；frame_bin=活体原始 RGB（省掉 PNG 解码）。"""
-    sys.path.insert(0, HERE)
-    import ys_look
+def anchor_jobs(profile):
+    """每态取 margin 最大的前 N 个锚点 → (jobs, state_of)。纯函数，daemon 也调它。"""
     tier1 = anchor_tier1(profile)
     jobs, state_of = [], {}
     for st, lst in tier1.items():
@@ -471,6 +495,24 @@ def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
             jobs.append({"id": a["name"], "tpl": os.path.abspath(a["tpl"]), "scales": [1.0],
                          "roi": [max(0, a["x"] - pad), max(0, a["y"] - pad), psz + 2 * pad, psz + 2 * pad]})
             state_of[a["name"]] = st
+    return jobs, state_of
+
+
+def anchor_readings_from_scores(scores, state_of):
+    """锚点分数 → readings（阈值只在本文件）。daemon 侧只负责给出分数。"""
+    R = {}
+    for name, st in state_of.items():
+        s = scores.get(name, -1.0)
+        R[f"{st}/anchor {name}"] = {"value": f"score={s:.3f}", "passed": s >= ANCHOR_THRESHOLD,
+                                    "kind": "anchor"}
+    return R
+
+
+def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
+    """客户端取数：把锚点 jobs 交给 ys-lookd，拿分数再走同一份判据。"""
+    sys.path.insert(0, HERE)
+    import ys_look
+    jobs, state_of = anchor_jobs(profile)
     req = {"cmd": "batch", "jobs": jobs}
     if frame_bin:
         req.update({"frame_bin": frame_bin, "frame_shape": shape})
@@ -482,13 +524,8 @@ def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
         r = ys_look.daemon(req, timeout=60)
     if not r:
         raise RuntimeError(f"ys-lookd 不可用（{ys_look.LAST_DAEMON_ERROR or '连接失败'}）")
-    sc = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
-    R = {}
-    for name, st in state_of.items():
-        s = sc.get(name, -1.0)
-        R[f"{st}/anchor {name}"] = {"value": f"score={s:.3f}", "passed": s >= ANCHOR_THRESHOLD,
-                                    "kind": "anchor"}
-    return R
+    scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
+    return anchor_readings_from_scores(scores, state_of)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -567,6 +604,67 @@ def run_full(frame=None):
     return res, frame, fresh_obj(frame, meta)
 
 
+# ── 常驻判定（ys-lookd）：把导入/解码摊掉，单次调用才可能进 150ms ──────────
+LOOKD_SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
+
+
+def daemon_call(req, timeout=30, retry=True):
+    """轻 socket 客户端（与 ys_look.daemon 同一协议、同一个 socket）。
+
+    为什么不直接 import ys_look.daemon：`ys_look` 模块顶层 import numpy（~90ms），
+    这笔开销会落进每次 CLI 调用的 <150ms 预算里。这里只用 stdlib。
+    """
+    import socket
+
+    def once():
+        try:
+            c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            c.settimeout(timeout)
+            c.connect(LOOKD_SOCK)
+            c.sendall((json.dumps(req) + "\n").encode())
+            data = b""
+            while not data.endswith(b"\n"):
+                ch = c.recv(65536)
+                if not ch:
+                    break
+                data += ch
+            c.close()
+            return json.loads(data.decode())
+        except Exception:                                  # noqa: BLE001 —— 连不上就回退本地
+            return None
+
+    if not os.path.exists(LOOKD_SOCK):
+        return None
+    r = once()
+    if r is None and retry:                                # 冷启动/服务刚重启：重试一次
+        time.sleep(0.8)
+        r = once()
+    return r
+
+
+def daemon_state(frame=None, profile=None):
+    """向常驻服务要一次 fast 判定；服务不可用/报错返回 None（由调用方回退本地）。"""
+    req = {"cmd": "state", "channel": "fast",
+           "profile": profile or os.environ.get("YS_PROFILE") or PROFILE_DEFAULT}
+    if frame:
+        req["frame"] = os.path.abspath(frame)
+    r = daemon_call(req, timeout=60)
+    if not r or r.get("error") or "state" not in r:
+        return None
+    return r
+
+
+def daemon_probe(name, frame=None):
+    """向常驻服务要一次具名探针判定；不可用返回 None（回退本地）。"""
+    req = {"cmd": "probe", "name": PROBE_ALIAS.get(name, name)}
+    if frame:
+        req["frame"] = os.path.abspath(frame)
+    r = daemon_call(req, timeout=30)
+    if not r or r.get("error") or "visible" not in r:
+        return None
+    return r
+
+
 def run_fast(frame=None, profile_path=None):
     """fast 通道：一次取帧（离线解码 / 活体原始抓取）→ 像素判据 + GPU 锚点（ys-lookd）。
 
@@ -581,6 +679,22 @@ def run_fast(frame=None, profile_path=None):
     except RuntimeError as e:
         return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
                 "ms": round((time.time() - t0) * 1000)}, frame, None
+
+    # ① 常驻通道优先：ys-lookd 一次抓原始像素（无 PNG 编解码）+ 在服务内跑同一份判据
+    if os.environ.get("YS_STATE_LOCAL") != "1":
+        d = daemon_state(frame=frame, profile=prof_path)
+        if d:
+            res = {k: d[k] for k in ("state", "confidence", "ambiguous", "margin", "verdicts",
+                                     "readings") if k in d}
+            res["channel"] = "fast"
+            res["ms"] = int(d.get("ms") or round((time.time() - t0) * 1000))
+            res["via"] = "daemon"
+            fresh = d.get("fresh")
+            if not fresh and frame:
+                fresh = fresh_obj(frame, None)
+            return res, frame, fresh
+
+    # ② 回退本地（服务没起/旧版本/报错）——判据仍是同一份代码
     if frame:
         try:
             pix = ArrayPixels(decode_frame(frame), source=frame)
@@ -589,6 +703,7 @@ def run_fast(frame=None, profile_path=None):
                     "ms": round((time.time() - t0) * 1000)}, frame, None
     else:
         # 活体：一次原始 RGB 抓取（ys_look.grab，管道），既供像素判据也供 GPU 锚点（省一次解码）
+        load_env()
         sys.path.insert(0, HERE)
         import ys_look
         try:
@@ -618,7 +733,8 @@ def run_fast(frame=None, profile_path=None):
             except OSError:
                 pass
     res = decide(readings)
-    res.update({"channel": "fast", "readings": readings, "ms": round((time.time() - t0) * 1000)})
+    res.update({"channel": "fast", "readings": readings, "via": "local",
+                "ms": round((time.time() - t0) * 1000)})
     if frame:
         return res, frame, fresh_obj(frame, meta)
     # 活体：fast 通道不做堆叠序校验（<150ms 预算内塞不下 ys-atop），用抓帧时刻 + 原始帧 sha 定位
@@ -674,10 +790,20 @@ def _eval_panel(cells):
     return max(abs(a - b) for a, b in zip(lm, mm))
 
 
-def probe_readings(name, frame=None):
-    """取数并算一条探针的全部判据。返回 (readings 列表, cells 字典)。"""
+def probe_readings(name, frame=None, grabbed=None):
+    """取数并算一条探针的全部判据。返回 (readings 列表, cells 字典)。
+
+    grabbed = (arr_uint8, ox, oy)：调用方已经把该探针外接框抓好了（daemon 用，省一次抓帧）。
+    """
     spec = PROBES[name]
-    if frame:
+    if grabbed is not None:
+        arr, ox, oy = grabbed
+        cells = {}
+        for x, y in _probe_points(spec) + [p for p, _ in _panel_pts(spec)]:
+            rx, ry = x - ox, y - oy
+            if 0 <= ry < arr.shape[0] and 0 <= rx < arr.shape[1]:
+                cells[(x, y)] = tuple(int(v) for v in arr[ry, rx])
+    elif frame:
         w, h = frame_geom(frame)
         pts = sorted(set(_probe_points(spec) + [p for p, _ in _panel_pts(spec)]))
         bad = [p for p in pts if p[0] >= w or p[1] >= h]
@@ -686,6 +812,7 @@ def probe_readings(name, frame=None):
         pix = ProbePixels(frame, pts)
         cells = {p: pix.px(*p) for p in pts}
     else:
+        load_env()
         sys.path.insert(0, HERE)
         import ys_look
         ox, oy, bw, bh = _probe_bbox(spec)
@@ -716,8 +843,30 @@ def probe_readings(name, frame=None):
     return readings, cells
 
 
+def probe_once(name, frame=None):
+    """一次探针判定：常驻服务优先，回退本地（判据都在本文件）。"""
+    if os.environ.get("YS_STATE_LOCAL") != "1":
+        d = daemon_probe(name, frame=frame)
+        if d:
+            d["via"] = "daemon"
+            return d
+    out = probe(name, frame=frame)
+    out["via"] = "local"
+    return out
+
+
 def read_point(x, y, frame=None):
-    """读一个点的 RGB（活体：只裁 PROBE_CROP 小块；离线：直接读 `--frame`）。"""
+    """读一个点的 RGB（活体：常驻服务优先；离线：直接读 `--frame`）。
+
+    活体走 daemon 的 `cmd=px`（服务内 1x1 抓取，省掉一次 python 进程与导入）。
+    """
+    if not frame and os.environ.get("YS_STATE_LOCAL") != "1":
+        d = daemon_call({"cmd": "px", "x": x, "y": y, "win": win_id()}, timeout=20)
+        if d and "v" in d:
+            try:
+                return tuple(int(v) for v in str(d["v"]).split())
+            except ValueError:
+                pass
     if frame:
         w, h = frame_geom(frame)
         if x >= w or y >= h:
@@ -729,6 +878,7 @@ def read_point(x, y, frame=None):
         if rgb is None:
             raise RuntimeError(f"({x},{y}) 取不到像素: {(r.stderr or '').strip()[:120]}")
         return rgb
+    load_env()
     sys.path.insert(0, HERE)
     import ys_look
     half = PROBE_CROP // 2
@@ -740,14 +890,17 @@ def read_point(x, y, frame=None):
     return tuple(int(v) for v in a[half, half])
 
 
-def probe(name, frame=None):
-    """判一个具名控件是否可见。返回 dict(probe, visible, readings, ms, desc, rule)。"""
+def probe(name, frame=None, grabbed=None):
+    """判一个具名控件是否可见。返回 dict(probe, visible, readings, ms, desc, rule)。
+
+    grabbed = (arr_uint8, ox, oy)：调用方已抓好的本探针外接框（daemon 用）。
+    """
     name = PROBE_ALIAS.get(name, name)
     if name not in PROBES:
         raise RuntimeError(f"未知探针 {name!r}；可用: {sorted(PROBES)}")
     t0 = time.time()
     spec = PROBES[name]
-    items, _cells = probe_readings(name, frame=frame)
+    items, _cells = probe_readings(name, frame=frame, grabbed=grabbed)
     n = len(items)
     passed = sum(1 for r in items if r["passed"])
     visible = (passed >= 2) if spec["rule"] == "any2" else (passed == n)
@@ -868,7 +1021,6 @@ def main(argv):
     channel = opt(args, "--channel") or "full"
     if "--fast" in args:
         channel = "fast"
-    load_env()
 
     # ── 原语转发（给 `_ys-ui.sh` 的 judge / is_light / is_dark 用）：坐标与阈值仍在**本文件**
     # `--pixel X Y` 打印 `r g b`（judge）；`--pred light|dark X Y` 打印 1/0（is_light / is_dark）
@@ -932,7 +1084,7 @@ def main(argv):
                 t0 = time.time()
                 ok_wait = False
                 while True:
-                    out = probe(name, frame=frame)
+                    out = probe_once(name, frame=frame)
                     if bool(out["visible"]) == (expect == "visible"):
                         out["waited_ms"] = round((time.time() - t0) * 1000)
                         out["expect"] = expect
@@ -951,7 +1103,7 @@ def main(argv):
                         return 1
                     time.sleep(poll)
             else:
-                out = probe(name, frame=frame)
+                out = probe_once(name, frame=frame)
         except RuntimeError as e:
             sys.stderr.write(f"[ys-state] {e}\n")
             if as_json:
