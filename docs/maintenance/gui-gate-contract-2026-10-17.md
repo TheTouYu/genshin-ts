@@ -217,3 +217,26 @@ ys-state --pred light|dark X Y [--frame PNG]        # 1/0（is_light/is_dark 转
 ### 读数的可信度信号
 
 `judge_ms == 0` = 判据被跳过（几何校验把你判成缩放帧之类），**不是"判得很快"**。加任何新裁剪/新坐标系后第一件事就是看这个字段。
+
+## 12. 附则：受控槽内的环境边界与输入通道实测（2026-10-17 亲测，会反复踩）
+
+### 槽内文件系统：**绝对路径不存在，必须用 `./` 相对路径**
+在 `ys-gui-slot` 内执行 `stat /home/genshin-ts` → **ENOENT**（`ls /home` 只有 `h`、`h2`），
+而 `pwd` 显示 `/home/genshin-ts`、`stat .` 正常 ⇒ **cwd 可用，绝对路径不可用**。
+后果：槽内用绝对路径调 venv python `/home/genshin-ts/.scratch/...` → `timeout: 无法运行命令` **rc=127 静默失败**（我因此白跑了两轮）。
+⇒ **槽内一切路径写 `./tools/...`、`./.scratch/...`**。槽外再切回绝对路径无所谓。
+
+### 剪贴板（中文输入的唯一可靠通道）
+- `xdotool type --clearmodifiers '云阶'` → 输入框出现 **`??`**（Unicode keysym 不被 Wine/XWayland 接受）。
+- `printf '云阶' | xclip -selection clipboard -loops 1 &` → **粘贴拿不到数据**（`-loops 1` 在第一次读取请求后就退出）。
+- **可用做法**：`( printf '云阶' | xclip -selection clipboard >/dev/null 2>&1 & )` 常驻后台 → `xdotool key --clearmodifiers ctrl+v` → 粘贴成功（OCR score 1.00）；用完 `pkill -x xclip`。
+- 反面教材：在**槽外**设剪贴板（无 DISPLAY/XAUTHORITY）会静默失败，粘贴进去的是**原有剪贴板内容**（实测粘进了我自己的聊天文本）。
+
+### 进程清理
+`pkill -f "xclip -selection clipboard"` 会**匹配到发起它的那条 bash 命令行自身**（自匹配误杀，AGENTS 早有记载）；用 `pkill -x xclip`。
+
+### 界面事实
+- 窗口标题是 `原神`（`xprop _NET_WM_NAME`），**不是**存档名 —— 身份不能从窗口标题读。
+- EDITOR 页左上角被 **DXVK 性能叠加层**（DXVK v3.0 / FPS / GPU）遮住，本地 OCR 与云端 OCR 都读不到存档名。
+- 存档名 + **圆形铅笔图标**在 **ESC 后的系统菜单页**左上角（2026-10-17 实测中心 **(523,96)**）；点击后是**内联输入框且文字全选**（不是弹窗）；Enter 提交，ESC 取消并还原。
+- 写操作协议：**动作前身份断言（OCR 标题/确认框原文）→ 动作 → 动作后在同一对象上读回**（存档列表卡片名 + 菜单标题双证据）。

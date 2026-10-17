@@ -3,7 +3,8 @@
 #
 # 判据链（2026-10-17 实测；判据本体只存在 ys-state）：
 #   ① 系统菜单是否打开：委托 `ys-state --probe menu_open`（坐标/阈值不在此处）
-#   ② 标题模板匹配：templates/mymap-menu-title.png = 我的图在系统菜单里的标题「未分类页签_存档_1」
+#   ② 标题模板匹配：templates/mymap-menu-title.png = 我的图在系统菜单里的**标题+铅笔图标**条带
+#      ⚠️ 存档改名后必须重生成该模板（2026-10-17 存档已改名为「云阶」，备份见 mymap-menu-title.rename-backup.png）
 #      命中（score≥0.9）→ 当前图是我的；不命中 → 别的图
 # 用法: ys-where2           # 打印 MY_MAP | OTHER_MAP | UNKNOWN
 set -u
