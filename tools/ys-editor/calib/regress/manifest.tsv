@@ -14,7 +14,7 @@ settle2.png	SETTLE	实拍结算页（另一种版式：星空背景+角色卡）
 settle3.png	SETTLE	结算页第三版式（底栏有亮蓝块，曾让 SAVELIST/A 误触发）
 settle4.png	SETTLE	实拍结算页第四版式（星空+角色名卡，【离开】【重新挑战】）——曾被误判成 SAVELIST 与 EDITOR
 neg-desktop-dolphin.png	UNKNOWN	③非目标应用：KDE 桌面 + Dolphin 文件管理器整帧 2560x1440；出处 /tmp/full-menu.png（本项目 2026-10-17 14:49 抓帧）
-neg-maingame-2025.png	UNKNOWN	③非目标应用：原神主游戏（非千星编辑器窗口，3D 场景最易骗 PLAYTEST）；出处 ~/Desktop/20250130165245.png（用户截图 2025-01-30）
+neg-maingame-2025.png	UNKNOWN	③非目标应用+**似存档页实为主游戏**：原神主游戏帧，其 save-card-title 模板 0.805 是全回归集异态最高分（阈值 0.85，余量 0.056），且 SAVELIST/A 像素判据同时不过 ⇒ 回归覆盖「模板阈值 + AND 双保险」；出处 ~/Desktop/20250130165245.png（用户截图 2025-01-30）
 neg-desktop-launcher.png	UNKNOWN	①过渡态/半透明遮罩+③桌面：KDE 桌面 + 应用启动器覆盖暗窗 2560x1440；出处 ~/Pictures/Screenshots/Screenshot_20261013_101442.png（Spectacle 2026-10-13 10:14）
 neg-transition-starry.png	UNKNOWN	①过渡态：离开试玩后的星空过场帧（有 UID、无编辑器 chrome、无试玩水印）；出处 /tmp/after-leave.png（本项目 2026-10-17 14:37）
 neg-black-frame.png	UNKNOWN	①黑屏+②抓帧失败态：整帧近黑（mean=10.2，像素 1~2），且 2484x1038 非标几何；出处 ~/Pictures/Screenshots/250306_03h28m57s_screenshot.png（Spectacle 2025-03-06 03:28）

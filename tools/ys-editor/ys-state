@@ -69,12 +69,16 @@ MIN_CRITERIA = 2
 
 # ── 几何 / 阈值 / 探针坐标（全仓唯一）───────────────────────────
 FRAME_W, FRAME_H = 2560, 1440       # ys-observe / spectacle 全屏帧；游戏窗 0x01400001 = 2561x1440
-TPL_THRESHOLD = 0.85                # 全帧模板 NCC 阈值。实测标定（2026-10-17，20 张真帧）：
-#   本态：savelist.png 1.000；活体帧 pending/live-20261017-1954.png **0.861**（存档页的另一种呈现）
-#   异态最高：save-card-title 在原神主游戏帧上 0.805（且该帧 SAVELIST/A 像素判据不过 ⇒ 双重挡住）
-#   ⇒ 0.90 会把 0.861 的真存档页判成 UNKNOWN（与 fast 通道矛盾：实测 full=UNKNOWN / fast=SAVELIST）
-TPL_MARGIN_OK = 0.861               # 本态最差命中（回归集最紧的一张）
-TPL_MARGIN_BAD = 0.805              # 异态最高命中
+# ⚠️ 改这个阈值前必须先给出**新的标定四件套**（缺一不许改）：
+#   ① 本态最差命中 = 0.861  （pending/live-20261017-1954.png：真实存档页的另一种呈现；
+#                             savelist.png 为 1.000）——0.90 会把它判成 UNKNOWN，与 fast 通道矛盾
+#   ② 异态最高命中 = 0.805  （save-card-title 在原神主游戏帧 neg-maingame-2025.png 上）
+#   ③ 余量        = 0.056  （0.861 − 0.805；阈值取 0.85，靠本态一侧）
+#   ④ 双保险      = 上述异态帧的 `SAVELIST/A 亮蓝底栏+整屏暗+无白卡` 像素判据**同时不过**
+#                    ⇒ 即使模板偶发越线，AND 语义也不会判成 SAVELIST（回归覆盖：neg-maingame-2025.png）
+TPL_THRESHOLD = 0.85
+TPL_MARGIN_OK = 0.861               # ① 本态最差命中
+TPL_MARGIN_BAD = 0.805              # ② 异态最高命中
 ANCHOR_THRESHOLD = 0.80             # GPU 锚点阈值（profile 按 worst-case margin 挖：本态最差 0.814，异态最高 0.669）
 FLAT_SPREAD = 8.0                   # LOADING/B：中央区域无纹理（16 点亮度极差 <8 灰阶）
 PANEL_DIFF = 40.0                   # EDITOR/B：左列与中列均值差
@@ -540,6 +544,25 @@ def anchor_scores_local(profile, pix):
     return scores, state_of
 
 
+def fast_roi(profile):
+    """fast 通道**一次抓帧**需要的最小外接框（锚点 ROI ∪ 判据取样点）。
+
+    实测（2026-10-17，2560×1440，12 锚点 + 39 取样点）：(0,0) 1400×1440
+    = **54.7% 面积**（5.77MB 原始 RGB，全帧 10.5MB）。锚点集中在左半屏、取样点右扩到 x=1400，
+    所以并集注定不可能只有几百 KB —— 除非砍锚点数量或缩小锚点搜索半径（都动判据，不在此改）。
+    """
+    jobs, _ = anchor_jobs(profile)
+    xs, ys, x2, y2 = [], [], [], []
+    for j in jobs:
+        x, y, w, h = j["roi"]
+        xs.append(x); ys.append(y); x2.append(x + w); y2.append(y + h)
+    for x, y in all_probe_points():
+        xs.append(x); ys.append(y); x2.append(x + 1); y2.append(y + 1)
+    x0, y0 = max(0, min(xs)), max(0, min(ys))
+    x1, y1 = min(FRAME_W, max(x2)), min(FRAME_H, max(y2))
+    return x0, y0, max(1, x1 - x0), max(1, y1 - y0)
+
+
 def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
     """客户端取数：把锚点 jobs 交给 ys-lookd，拿分数再走同一份判据。"""
     sys.path.insert(0, HERE)
@@ -744,7 +767,8 @@ def run_fast(frame=None, profile_path=None):
         d = daemon_state(frame=frame, profile=prof_path)
         if d:
             res = {k: d[k] for k in ("state", "confidence", "ambiguous", "margin", "verdicts",
-                                     "readings") if k in d}
+                                     "readings", "roi", "frame_bytes", "load_ms", "judge_ms",
+                                     "cache_hit") if k in d}
             res["channel"] = "fast"
             res["ms"] = int(d.get("ms") or round((time.time() - t0) * 1000))
             res["via"] = "daemon"

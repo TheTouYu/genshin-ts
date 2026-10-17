@@ -181,21 +181,44 @@ def _state(req):
     YS = ys_state()
     prof_path = req.get("profile") or YS.PROFILE_DEFAULT
     prof = YS.load_profile(prof_path)
+
+    # 活体：只抓「锚点 ROI ∪ 取样点」的外接框（实测 1401×1440 = 54.7% 面积 / 5.77MB，
+    # 全帧是 10.5MB）。坐标按 origin 平移；离线帧不做裁剪（它已经是文件）。
+    ox = oy = 0
+    if not (req.get("frame") or req.get("frame_bin")) and not req.get("region"):
+        try:
+            roi = YS.fast_roi(prof)
+            req = dict(req, region=list(roi))
+            ox, oy = roi[0], roi[1]
+        except Exception:                                  # noqa: BLE001 —— 算不出 ROI 就退回整帧
+            pass
     It = _load_frame(req)                                   # 活体=原始像素；离线=缓存帧张量
     t_load = time.time()
-    H, W = int(It.shape[1]), int(It.shape[2])
+    H, W = int(It.shape[1]), int(It.shape[2])              # 裁剪后尺寸
     readings = {}
-    if not YS.geom_ok(W, H):
+    # 几何校验：
+    #   · 活体裁剪帧 = 从**判据坐标系**里切出来的一块（fast_roi 已裁剪到 2560×1440 内）⇒ 坐标系可信
+    #   · 离线帧 = 文件本身，按它的真实尺寸判（缩放帧/半截帧在这里被挡掉）
+    is_live = not (req.get("frame") or req.get("frame_bin"))
+    geom_w, geom_h = (YS.FRAME_W, YS.FRAME_H) if is_live else (W, H)
+    if not YS.geom_ok(geom_w, geom_h):
         readings["GEOM/frame 尺寸 2560x1440"] = {
-            "value": f"实际 {W}x{H}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
+            "value": f"实际 {geom_w}x{geom_h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
     else:
         import numpy as np
         pts = YS.all_probe_points()
         arr = (It.permute(1, 2, 0).cpu().numpy() * 255).round().astype("uint8")
-        cells = {(x, y): tuple(int(v) for v in arr[y, x]) for x, y in pts if x < W and y < H}
-        readings.update(YS.pixel_readings(YS.CellsPixels(cells, W, H)))
+        cells = {}
+        for x, y in pts:
+            rx, ry = x - ox, y - oy
+            if 0 <= rx < W and 0 <= ry < H:
+                cells[(x, y)] = tuple(int(v) for v in arr[ry, rx])
+        readings.update(YS.pixel_readings(YS.CellsPixels(cells, geom_w, geom_h)))
         jobs, state_of = YS.anchor_jobs(prof)
-        r = _batch_on(It, jobs)
+        if ox or oy:                                       # 锚点 ROI 平移到裁剪坐标系
+            for j in jobs:
+                j["roi"] = [j["roi"][0] - ox, j["roi"][1] - oy, j["roi"][2], j["roi"][3]]
+        r = _batch_on(It, jobs, -ox, -oy)
         scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
         readings.update(YS.anchor_readings_from_scores(scores, state_of))
     res = YS.decide(readings)
@@ -203,6 +226,7 @@ def _state(req):
                 "ms": round((time.time() - t0) * 1000),
                 "load_ms": round((t_load - t0) * 1000),
                 "judge_ms": round((time.time() - t_load) * 1000),
+                "roi": [ox, oy, W, H], "frame_bytes": int(W * H * 3),
                 "via": "daemon"})
     return res
 
