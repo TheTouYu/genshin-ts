@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""cmdmon-mine — 在 cmdmon 账本/会话流之上做更细粒度的挖掘。
+
+与 `tools/cmdmon audit` 的区别：audit 只给类别占比/最慢/失败计数；
+本工具回答「浪费具体在哪里、能不能避免」，给出 audit 给不出的结论：
+
+  1. explore 二级分类（cat/sed/head/tail/grep/rg/find/ls/python-heredoc/其它）
+     + 重复读同一路径 top offender（同一文件被 shell 读 ≥3 次）
+  2. 失败剖析：按 exit code 分组、同一命令重复失败 ≥2 次清单、
+     失败后 60s 内是否重试及重试成功率
+  3. 等待剖析：job_output wait:true 的 p50/p90/max、每次等待期间并行调用数
+  4. 时间浪费归因：把总时长拆成 必要/可避免（判据显式声明，见 ATTRIB 各 docstring）
+
+用法:
+  tools/cmdmon-mine [--since-days 30] [--json /tmp/mine.json]
+
+数据源: 与 cmdmon audit 相同——直接流式解析 ~/.dsh/sessions/*/session.v4.jsonl.zstd，
+保证跨全部会话可复现（不依赖 daemon 是否扫过）。
+"""
+import argparse
+import glob
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from collections import defaultdict
+
+HOME = os.path.expanduser('~')
+EXIT_RE = re.compile(r'\[exit code:\s*(-?\d+)\]')
+SLEEP_VAL_RE = re.compile(r'\bsleep\s+([0-9]+)')
+CMD_KEEP = 2000  # 挖掘需要路径与参数，比账本 300 字符保留更多
+
+# explore 二级分类：按首个命中判定（顺序即优先级）
+EXPLORE_KINDS = [
+    ('sed -n', re.compile(r'\bsed\s+(-[^ ]*\s+)*-n\b|\bsed\s+-n|\bsed\s+[^;|&]*-n')),
+    ('cat', re.compile(r'(^|[;&|]\s*|\bcommand\s+)cat\s|\bcat\s+[/~.]')),
+    ('head', re.compile(r'\bhead\b')),
+    ('tail', re.compile(r'\btail\b')),
+    ('grep', re.compile(r'(^|[;&|\s])grep\s')),
+    ('rg', re.compile(r'(^|[;&|\s])rg\s')),
+    ('find', re.compile(r'(^|[;&|\s])find\s')),
+    ('ls', re.compile(r'(^|[;&|\s])ls\s')),
+    ('python-heredoc', re.compile(r'python3?\s*<<')),
+]
+
+# 从命令文本里提取"被读的文件路径"（宁缺勿滥：必须含 / 且以文件名结尾，
+# 排除 console.log / time.sleep 这类源码 token）
+PATH_RE = re.compile(r'(?<![\w.$])([~/.\w][\w.-]*/[\w./-]*|~/[\w./-]+)')
+
+
+def iter_session_files(since_days):
+    pat = os.path.join(HOME, '.dsh', 'sessions', '*', '*', 'session.v4.jsonl.zstd')
+    cutoff = time.time() - since_days * 86400 if since_days else None
+    out = [f for f in glob.glob(pat)
+           if (not cutoff or os.path.getmtime(f) >= cutoff)]
+    out.sort(key=os.path.getmtime)
+    return out
+
+
+def stream_events(path):
+    p = subprocess.Popen(['zstd', '-dc', path], stdout=subprocess.PIPE,
+                         stderr=subprocess.DEVNULL)
+    try:
+        for raw in p.stdout:
+            line = raw.decode('utf-8', 'replace').strip()
+            if not line:
+                continue
+            try:
+                yield json.loads(line)
+            except Exception:
+                continue
+    finally:
+        p.stdout.close()
+        p.wait()
+
+
+def parse_one_session(path):
+    """yield 按时间排序的 {ts,tool,args,dur,err,exit}（配对成功的）"""
+    calls, done = {}, {}
+    for o in stream_events(path):
+        t = o.get('type')
+        if t == 'tool/call':
+            d = o.get('data', {})
+            calls[d.get('callId')] = (o.get('time'), d.get('name', '?'),
+                                      d.get('arguments', ''))
+        elif t == 'tool/result':
+            d = o.get('data', {})
+            m = d.get('message', {}) or {}
+            text = json.dumps(m.get('content', ''), ensure_ascii=False)[:4000]
+            ex = EXIT_RE.search(text)
+            done[m.get('toolCallId')] = (o.get('time'), bool(m.get('isError')),
+                                         int(ex.group(1)) if ex else None)
+    rows = []
+    for cid, (ts, name, args) in calls.items():
+        if cid not in done:
+            continue
+        end, err, ex = done[cid]
+        rows.append({'ts': ts, 'tool': name, 'args': str(args)[:CMD_KEEP],
+                     'dur': max(0, end - ts), 'err': err, 'exit': ex})
+    rows.sort(key=lambda r: r['ts'])
+    return rows
+
+
+def bash_command(args_str):
+    try:
+        return json.loads(args_str).get('command', '')
+    except Exception:
+        return args_str
+
+
+def is_explore_bash(cmd):
+    """只认"命令本身就是读文件"的调用：剥掉 `cd X &&` 前缀后首词是读类命令。
+    （`npm run build | tail` 的耗时属于 build，不算 explore——判据显式防双计）"""
+    c = cmd.strip()
+    c = re.sub(r'^cd\s+[^;&|]*[;&|]\s*', '', c)
+    first = re.split(r'[\s;|&]+', c, maxsplit=1)[0]
+    if first in ('cat', 'sed', 'head', 'tail', 'grep', 'rg', 'find', 'ls', 'zcat', 'less'):
+        return True
+    if re.match(r'python3?\b', first) and '<<' in cmd:
+        return True
+    return False
+
+
+def explore_kind(cmd):
+    for name, rx in EXPLORE_KINDS:
+        if rx.search(cmd):
+            return name
+    return 'other'
+
+
+def cmdhash(cmd):
+    return hashlib.md5(cmd[:160].encode()).hexdigest()[:10]
+
+
+def pct(vals, p):
+    if not vals:
+        return 0
+    s = sorted(vals)
+    return s[min(len(s) - 1, int(len(s) * p / 100))]
+
+
+def fmt(ms):
+    if ms >= 3600000:
+        return f'{ms/3600000:.2f}h'
+    if ms >= 60000:
+        return f'{ms/60000:.1f}m'
+    return f'{ms/1000:.1f}s'
+
+
+def mine(since_days):
+    files = iter_session_files(since_days)
+    allrows = []
+    for path in files:
+        allrows.extend(parse_one_session(path))
+    n_sessions = len(files)
+
+    total_ms = sum(r['dur'] for r in allrows)
+
+    # ---- 1. explore 二级分类 + 重复读同一路径 ----
+    kind_stat = defaultdict(lambda: [0, 0])
+    path_stat = defaultdict(lambda: [0, 0])   # 路径 -> [次数, 耗时]
+    for r in allrows:
+        if r['tool'] != 'bash':
+            continue
+        cmd = bash_command(r['args'])
+        if not is_explore_bash(cmd):
+            continue
+        k = explore_kind(cmd)
+        kind_stat[k][0] += 1
+        kind_stat[k][1] += r['dur']
+        # 只统计"读"类命令里引用的路径（保留为启发式：读类命令里出现的路径≈被读对象）
+        for m in PATH_RE.finditer(cmd):
+            pth = m.group(1).rstrip('.,;:)')
+            if len(pth) < 3 or pth in ('/dev/null',):
+                continue
+            path_stat[pth][0] += 1
+            path_stat[pth][1] += r['dur']
+    reread = sorted(((v[0], v[1], p) for p, v in path_stat.items() if v[0] >= 3),
+                    reverse=True)[:15]
+    builtin = [r for r in allrows if r['tool'] in ('read', 'grep', 'glob')]
+    builtin_ms = sum(r['dur'] for r in builtin)
+
+    # ---- 2. 失败剖析 ----
+    fails = [r for r in allrows if r['err'] or r['exit'] not in (None, 0)]
+    by_exit = defaultdict(int)
+    for r in fails:
+        by_exit[str(r['exit'] if r['exit'] is not None else ('err' if r['err'] else '?'))] += 1
+    # 同一命令重复失败 ≥2 次
+    fail_by_cmd = defaultdict(list)
+    for r in fails:
+        cmd = bash_command(r['args']) if r['tool'] == 'bash' else r['tool'] + ':' + r['args'][:80]
+        fail_by_cmd[cmdhash(cmd)].append((r, cmd))
+    repeat_fail = []
+    for h, lst in fail_by_cmd.items():
+        if len(lst) >= 2:
+            waste = sum(x[0]['dur'] for x in lst)
+            repeat_fail.append((len(lst), waste, lst[0][1]))
+    repeat_fail.sort(reverse=True)
+    # 失败后 60s 内重试：对每次失败，找同 cmdhash 的下一次调用是否 ≤60s、是否成功
+    retry_total = retry_ok = 0
+    # 用全部调用（不只失败）建 per-cmd 时间线
+    tl = defaultdict(list)
+    for r in allrows:
+        cmd = bash_command(r['args']) if r['tool'] == 'bash' else r['tool'] + ':' + r['args'][:80]
+        tl[cmdhash(cmd)].append(r)
+    for r in fails:
+        cmd = bash_command(r['args']) if r['tool'] == 'bash' else r['tool'] + ':' + r['args'][:80]
+        nxt = [x for x in tl[cmdhash(cmd)] if x['ts'] > r['ts']
+               and x['ts'] - r['ts'] - r['dur'] <= 60000]
+        if nxt:
+            retry_total += 1
+            if not (nxt[0]['err'] or nxt[0]['exit'] not in (None, 0)):
+                retry_ok += 1
+
+    # ---- 3. 等待剖析：job_output wait:true ----
+    waits = []
+    for r in allrows:
+        if r['tool'] != 'job_output':
+            continue
+        try:
+            a = json.loads(r['args'])
+        except Exception:
+            continue
+        if a.get('wait'):
+            waits.append(r)
+    wait_durs = [w['dur'] for w in waits]
+    # 每次等待期间并行调用数：ts 落在 [start, start+dur) 的其它调用
+    overlap = []
+    ts_list = sorted(r['ts'] for r in allrows)
+    import bisect
+    for w in waits:
+        lo = bisect.bisect_left(ts_list, w['ts'])
+        hi = bisect.bisect_left(ts_list, w['ts'] + w['dur'])
+        overlap.append(max(0, hi - lo - 1))
+    idle_waits = [w for w, o in zip(waits, overlap) if o == 0]
+    idle_wait_ms = sum(w['dur'] for w in idle_waits)
+
+    # ---- 4. 时间浪费归因（启发式，判据显式）----
+    # a) 裸 sleep：sleep N 声明的秒数 ×1000 与实际耗时取小者，全记可避免
+    sleep_ms = 0
+    sleep_n = 0
+    for r in allrows:
+        if r['tool'] != 'bash':
+            continue
+        cmd = bash_command(r['args'])
+        for m in SLEEP_VAL_RE.finditer(cmd):
+            sleep_ms += min(int(m.group(1)) * 1000, r['dur'])
+            sleep_n += 1
+            break
+    # b) shell explore 超出"内置工具等价耗时"的部分：内置 read/grep/glob 实测均远低于 1s，
+    #    判据=每次 shell explore 的 max(0, dur-1000ms) 记可避免（1s 为宽松阈值）
+    explore_rows = [r for r in allrows if r['tool'] == 'bash'
+                    and is_explore_bash(bash_command(r['args']))]
+    explore_ms = sum(r['dur'] for r in explore_rows)
+    explore_avoid = sum(max(0, r['dur'] - 1000) for r in explore_rows)
+    # c) 重复命令（10 分钟内同 cmdhash 第 2 次起）整段耗时记可避免
+    rep_ms = 0
+    rep_n = 0
+    for h, lst in tl.items():
+        lst.sort(key=lambda x: x['ts'])
+        for i in range(1, len(lst)):
+            if lst[i]['ts'] - lst[i - 1]['ts'] <= 600000:
+                rep_ms += lst[i]['dur']
+                rep_n += 1
+    # d) 空等 job_output(wait:true) 无并行调用：整段记可避免（本可做别的事或拆窗）
+    # e) 重复失败第 2 次起的耗时记可避免
+    repfail_ms = sum(w for _, w, _ in repeat_fail)
+    avoidable = sleep_ms + explore_avoid + rep_ms + idle_wait_ms + repfail_ms
+    necessary = total_ms - avoidable
+
+    return {
+        'meta': {'sessions': n_sessions, 'calls': len(allrows),
+                 'total_ms': total_ms, 'since_days': since_days,
+                 'generated': time.strftime('%Y-%m-%d %H:%M:%S')},
+        'explore': {
+            'kinds': {k: {'n': v[0], 'ms': v[1]} for k, v in
+                      sorted(kind_stat.items(), key=lambda kv: -kv[1][1])},
+            'shell_explore': {'n': len(explore_rows), 'ms': explore_ms},
+            'builtin_read_grep_glob': {'n': len(builtin), 'ms': builtin_ms},
+            'reread_top': [{'path': p, 'n': n, 'ms': ms} for n, ms, p in reread],
+        },
+        'failures': {
+            'total': len(fails), 'by_exit': dict(by_exit),
+            'retry_within_60s': retry_total, 'retry_ok': retry_ok,
+            'repeat_fail': [{'n': n, 'waste_ms': w, 'cmd': c[:120]}
+                            for n, w, c in repeat_fail[:15]],
+        },
+        'waits': {
+            'n': len(waits),
+            'p50': pct(wait_durs, 50), 'p90': pct(wait_durs, 90),
+            'max': max(wait_durs) if wait_durs else 0,
+            'idle_n': len(idle_waits), 'idle_ms': idle_wait_ms,
+        },
+        'attribution': {
+            'total_ms': total_ms, 'necessary_ms': necessary,
+            'avoidable_ms': avoidable,
+            'items': {
+                'bare_sleep': {'ms': sleep_ms, 'n': sleep_n,
+                               'rule': '命令里裸 sleep N：min(N*1000, 实际耗时) 全记可避免'},
+                'shell_explore_over_1s': {'ms': explore_avoid, 'n': len(explore_rows),
+                                          'rule': 'shell cat/sed/grep/find 每次超 1s 的部分记可避免（内置工具同活 <1s）'},
+                'repeat_cmd_10min': {'ms': rep_ms, 'n': rep_n,
+                                     'rule': '10 分钟内同命令第 2 次起整段耗时'},
+                'idle_wait': {'ms': idle_wait_ms, 'n': len(idle_waits),
+                              'rule': 'job_output wait:true 期间无任何并行调用，整段记可避免'},
+                'repeat_fail': {'ms': repfail_ms, 'n': len(repeat_fail),
+                                'rule': '同一命令失败 ≥2 次，全部失败耗时'},
+            },
+        },
+    }
+
+
+def render(rep):
+    m = rep['meta']
+    print(f"=== 深挖 {m['sessions']} 会话 / {m['calls']} 调用 / 总耗时 {fmt(m['total_ms'])} "
+          f"(近 {m['since_days']} 天, {m['generated']}) ===")
+    e = rep['explore']
+    print('\n[1] explore 二级分类（shell 侧）')
+    print(f'{"类别":<16}{"次数":>7}{"耗时":>10}')
+    for k, v in e['kinds'].items():
+        print(f'{k:<16}{v["n"]:>7}{fmt(v["ms"]):>10}')
+    se, bi = e['shell_explore'], e['builtin_read_grep_glob']
+    print(f'  → shell explore {se["n"]} 次 {fmt(se["ms"])}；内置 read/grep/glob '
+          f'{bi["n"]} 次 {fmt(bi["ms"])}（同类工作，单价差 '
+          f'{(se["ms"]/max(1,se["n"]))/(max(1,bi["ms"])/max(1,bi["n"])):.0f} 倍）')
+    print('  重复读同一路径 top（≥3 次）:')
+    for it in e['reread_top'][:8]:
+        print(f'    ×{it["n"]:<3} {fmt(it["ms"]):>8}  {it["path"]}')
+
+    f = rep['failures']
+    print(f'\n[2] 失败剖析：共 {f["total"]} 次  exit 分布 ' +
+          ' '.join(f'{k}:{v}' for k, v in sorted(f['by_exit'].items(), key=lambda kv: -kv[1])))
+    print(f'  失败后 60s 内有重试 {f["retry_within_60s"]} 次，其中重试成功 {f["retry_ok"]} 次')
+    print('  同一命令重复失败 ≥2 次（真浪费）:')
+    for it in f['repeat_fail'][:8]:
+        print(f'    ×{it["n"]:<3} {fmt(it["waste_ms"]):>8}  {it["cmd"]}')
+
+    w = rep['waits']
+    print(f'\n[3] 等待剖析 job_output(wait:true)：{w["n"]} 次  '
+          f'p50={fmt(w["p50"])} p90={fmt(w["p90"])} max={fmt(w["max"])}')
+    print(f'  空等（期间零并行调用）{w["idle_n"]} 次，合计 {fmt(w["idle_ms"])}')
+
+    a = rep['attribution']
+    print(f'\n[4] 时间浪费归因：总 {fmt(a["total_ms"])} = 必要 {fmt(a["necessary_ms"])} '
+          f'({100*a["necessary_ms"]/max(1,a["total_ms"]):.0f}%) + '
+          f'可避免 {fmt(a["avoidable_ms"])} ({100*a["avoidable_ms"]/max(1,a["total_ms"]):.0f}%)')
+    for k, v in sorted(a['items'].items(), key=lambda kv: -kv[1]['ms']):
+        print(f'    {k:<22}{fmt(v["ms"]):>9}  (n={v["n"]})  判据: {v["rule"]}')
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--since-days', type=float, default=30)
+    ap.add_argument('--json', help='机器可读输出写到该路径')
+    args = ap.parse_args()
+    rep = mine(args.since_days)
+    if args.json:
+        with open(args.json, 'w') as fh:
+            json.dump(rep, fh, ensure_ascii=False, indent=1)
+        print(f'[json 已写 {args.json}]', file=sys.stderr)
+    sys.exit(render(rep))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""agent-coach — 从实时账本生成一段可直接注入模型上下文的「教练卡」。
+
+与静态提示词的区别：每一条都来自**当下窗口**的实测数字（读
+`~/.dsh/cmdlog/commands.jsonl`），按「可省时间」排序，只挑最值得改的 3~5 条。
+
+用法:
+  tools/agent-coach                     # 默认窗口 30m，markdown，写 last-coach.md 并打印
+  tools/agent-coach --window 30m --dry-run --format text
+
+输出落点: ~/.dsh/cmdlog/last-coach.md（--dry-run 只打印不写）
+约束: 正文 ≤600 个中文字符（按 CJK 字符≈1 token 计），超限自动砍条目。
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+from collections import defaultdict
+
+HOME = os.path.expanduser('~')
+LOGDIR = os.path.join(HOME, '.dsh', 'cmdlog')
+COMMANDS = os.path.join(LOGDIR, 'commands.jsonl')
+LAST = os.path.join(LOGDIR, 'last-coach.md')
+SLEEP_VAL_RE = re.compile(r'\bsleep\s+([0-9]+)')
+MAX_CHARS = 600
+READERS = ('cat', 'sed', 'head', 'tail', 'grep', 'rg', 'find', 'ls', 'zcat', 'less')
+
+
+def parse_window(s):
+    m = re.match(r'^(\d+(?:\.\d+)?)([smhd])$', s)
+    if not m:
+        raise SystemExit(f'非法窗口: {s}（例: 30m / 2h / 90s）')
+    return int((time.time() - float(m.group(1)) *
+                {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[m.group(2)]) * 1000)
+
+
+def load(since_ms):
+    """读窗口内记录。按 callId 去重（守护与手动 scan 并发时账本偶有重复行，
+    保留每个 callId 最后一条）。"""
+    by_id = {}
+    if not os.path.exists(COMMANDS):
+        return []
+    with open(COMMANDS, errors='replace') as f:
+        for line in f:
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get('ts', 0) >= since_ms:
+                by_id[o['callId']] = o
+    return sorted(by_id.values(), key=lambda r: r['ts'])
+
+
+def first_word(cmd):
+    c = re.sub(r'^cd\s+[^;&|]*[;&|]\s*', '', cmd.strip())
+    return re.split(r'[\s;|&]+', c, maxsplit=1)[0]
+
+
+def is_shell_explore(rec):
+    return rec['tool'] == 'bash' and first_word(rec['cmd']) in READERS
+
+
+def fmt(ms):
+    if ms >= 60000:
+        return f'{ms/60000:.1f}分钟'
+    return f'{ms/1000:.0f}秒'
+
+
+def analyze(recs):
+    """返回 [(可省毫秒, 卡片文案)]，按可省时间降序"""
+    cards = []
+
+    shell_ex = [r for r in recs if is_shell_explore(r)]
+    builtin = [r for r in recs if r['tool'] in ('read', 'grep', 'glob')]
+    if len(shell_ex) >= 3:
+        ms = sum(max(0, r['dur_ms'] - 1000) for r in shell_ex)
+        if ms > 30000:
+            bi_avg = (sum(r['dur_ms'] for r in builtin) / len(builtin)) if builtin else 800
+            cards.append((ms, f'本窗口用 shell cat/head/grep 读文件 {len(shell_ex)} 次共'
+                             f'{fmt(sum(r["dur_ms"] for r in shell_ex))}，内置 read/grep 同活'
+                             f'均仅{fmt(bi_avg)}——读文件改用内置工具，可省约{fmt(ms)}'))
+
+    waits = [r for r in recs if r['tool'] == 'job_output' and '"wait":true' in r['cmd']]
+    if waits:
+        idle = [w for w in waits
+                if not any(o['ts'] > w['ts'] and o['ts'] < w['ts'] + w['dur_ms']
+                           and o['callId'] != w['callId'] for o in recs)]
+        ms = sum(w['dur_ms'] for w in idle)
+        if ms > 60000:
+            cards.append((ms, f'job_output(wait:true) 空等 {len(idle)}/{len(waits)} 次共{fmt(ms)}'
+                             f'（等待期间零并行调用）——先发独立任务再等，或改 wait:false 轮询判据'))
+
+    sleeps = [(min(int(m.group(1)) * 1000, r['dur_ms']), r)
+              for r in recs if r['tool'] == 'bash'
+              for m in [SLEEP_VAL_RE.search(r['cmd'])] if m]
+    if sleeps:
+        ms = sum(x[0] for x in sleeps)
+        cards.append((ms, f'裸 sleep {len(sleeps)} 处共{fmt(ms)}——等待要轮询+判据'
+                         f'（wait_until 模式），不要用固定时长冒充同步'))
+
+    tl = defaultdict(list)
+    for r in recs:
+        tl[hashlib.md5(r['cmd'].encode()).hexdigest()[:10]].append(r)
+    rep = []
+    for h, lst in tl.items():
+        lst.sort(key=lambda x: x['ts'])
+        for i in range(1, len(lst)):
+            if lst[i]['ts'] - lst[i - 1]['ts'] <= 600000:
+                rep.append(lst[i])
+    if len(rep) >= 3:
+        ms = sum(r['dur_ms'] for r in rep)
+        top = max(rep, key=lambda r: r['dur_ms'])
+        if ms > 30000:
+            cards.append((ms, f'10 分钟内重跑同命令 {len(rep)} 次共{fmt(ms)}'
+                             f'（如 {top["cmd"][:60]}…）——一次写对参数，或做成脚本/wrapper 复用'))
+
+    fails = [r for r in recs if r['is_error'] or r['exit'] not in (None, 0)]
+    fail_tl = defaultdict(int)
+    for r in fails:
+        fail_tl[hashlib.md5(r['cmd'].encode()).hexdigest()[:10]] += 1
+    rf = [(n, h) for h, n in fail_tl.items() if n >= 2]
+    if rf:
+        ms = sum(r['dur_ms'] for r in fails
+                 if hashlib.md5(r['cmd'].encode()).hexdigest()[:10]
+                 in {h for _, h in rf})
+        cards.append((ms, f'同一命令失败≥2次的重复失败 {len(rf)} 组——失败先读错误信息改根因，'
+                         f'不要原样重跑（本次失败共 {len(fails)} 次）'))
+
+    slow = [r for r in recs if r['dur_ms'] >= 30000 and r['cat'] not in ('wait_human',)]
+    if len(slow) >= 2:
+        ms = sum(r['dur_ms'] for r in slow)
+        cards.append((ms, f'≥30s 的慢调用 {len(slow)} 次共{fmt(ms)}（最慢'
+                         f'{fmt(max(r["dur_ms"] for r in slow))}: {max(slow, key=lambda r: r["dur_ms"])["cmd"][:50]}…）'
+                         f'——预计>20s 的命令放后台跑'))
+
+    cards.sort(key=lambda x: -x[0])
+    return cards
+
+
+def build(cards, window, nmax=5):
+    lines = [f'⚡ 教练卡（近{window}实测，按可省时间排序）']
+    used = 0
+    picked = []
+    for ms, text in cards[:nmax]:
+        line = f'{len(picked)+1}. {text}'
+        if used + len(line) > MAX_CHARS and picked:
+            break
+        lines.append(line)
+        picked.append(line)
+        used += len(line)
+        if used > MAX_CHARS - 100:
+            break
+    body = '\n'.join(lines)
+    if len(body) > MAX_CHARS:
+        body = body[:MAX_CHARS]
+    return body
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--window', default='30m')
+    ap.add_argument('--format', choices=['md', 'text'], default='md')
+    ap.add_argument('--dry-run', action='store_true')
+    args = ap.parse_args()
+
+    since = parse_window(args.window)
+    recs = load(since)
+    if not recs:
+        print(f'窗口 {args.window} 内账本无记录（~/.dsh/cmdlog/commands.jsonl）')
+        return 0
+    cards = analyze(recs)
+    if not cards:
+        body = f'⚡ 教练卡（近{args.window}实测）：本窗口无显著浪费，保持当前节奏。'
+    else:
+        body = build(cards, args.window)
+    if args.format == 'text':
+        body = re.sub(r'[⚡·]', '', body)
+    print(body)
+    if not args.dry_run:
+        os.makedirs(LOGDIR, exist_ok=True)
+        with open(LAST, 'w') as f:
+            header = f'<!-- {time.strftime("%Y-%m-%d %H:%M:%S")} window={args.window} '
+            f'records={len(recs)} chars={len(body)} -->\n'
+            f.write(header + body + '\n')
+        print(f'[已写 {LAST}]', file=sys.stderr)
+    print(f'[正文 {len(body)} 字符 / 上限 {MAX_CHARS}]', file=sys.stderr)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
