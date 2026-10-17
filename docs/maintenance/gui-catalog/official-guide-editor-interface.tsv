@@ -351,3 +351,4 @@ EC-369	official-guide-editor-interface.md	2561	69 八、测距功能	方式一�
 EC-370	official-guide-editor-interface.md	2563	69 八、测距功能	方式二：右键菜单 → 测距线 → 【全部删除】，可以删除所有的测距线	右键菜单 → 测距线 → 【	right-click	菜单 → 测距线 → 【全部删除】	EDITOR	删除所有的测距线	text	待测	verb=右键
 EC-371	official-guide-editor-interface.md	2569	69 八、测距功能	可以在设置里调整测距线是否常驻显示	显示（未解析，需人工读原文）	toggle	（未解析，需人工读原文）	EDITOR	（指南未写可观测效应，需实测补后置断言）	text	待测	verb=显示
 EC-372	official-guide-editor-interface.md	2576	69 八、测距功能	本目录主要介绍在编辑关卡时所需要用到的各种功能界面，包括如何打开以及具体使用方法	编辑关卡时所需要用到的各种功	click	关卡时所需要用到的各种功能界面	EDITOR	（指南未写可观测效应，需实测补后置断言）	text	待测	verb=编辑
+EC-M001	official-guide-editor-interface.md	31	01 一、系统菜单（实测分解）	保存当前存档、打开存档界面、上传关卡、打开千星沙箱和退出存档。	切换存档（打开存档界面→选卡片→确认→读标题核对）	click	系统菜单【本地存档】图标(39,176) → 存档卡片【编辑】 → 确认框【确认】	MENU	进入存档页（可 OCR 到卡片名）→ 系统菜单标题变为目标存档名	icon+text+geom	可执行	manual(EC-M 前缀=人工登记行);由 2026-10-17 实测分解 4 步;重跑 extract 会覆盖本行需重补;名字陷阱=未分类页签_存档 vs _1
