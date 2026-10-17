@@ -1,6 +1,6 @@
 id	date	class	symptom	evidence	prevention	gate	inject	status	note
 F-2-01	2026-10-17	身份	右键 (816,192) 就假定是当前存档卡片，无身份断言，用户指出"你改的是另一个存档"	复盘第二部 #1	P1 动作级身份协议 + F4 对象不符	resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	prevented	action-resolver 交付：候选0/不唯一/回读不符 三例均为注入断言
-F-2-02	2026-10-17	遗漏	抓帧只用 OCR 取字符串当关键词，漏看存档名右侧的圆形铅笔图标 (523,96)	复盘第二部 #2	技能铁律7「抓帧先看整图」；U1 屏幕摘要层			open	U1 未实现，暂靠纪律
+F-2-02	2026-10-17	遗漏	抓帧只用 OCR 取字符串当关键词，漏看存档名右侧的圆形铅笔图标 (523,96)	复盘第二部 #2	技能铁律7「抓帧先看整图」；U1 屏幕摘要层	screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	prevented	ys-screen 邻接（标题→右侧圆钮 338px）已把它变成机器可读；两帧同名按钮都进回归（23 断言）
 F-2-03	2026-10-17	静默	ys-pointer-click rc=5（12 轮未命中）被 2>/dev/null 全部吞掉	复盘第二部 #3	4 处脚本修复 + 契约 §12	noswallow	bash tools/ys-editor/tests/ledger-inject.sh noswallow	prevented	同族 4→0
 F-2-04	2026-10-17	环境	命令里把仓库路径写成 /home/genshin-ts（漏 /h），槽内外都 ENOENT → rc=127	复盘第二部 #4	用前解析路径（ys-slot-check --lint ABS-STALE）；rc≠0 先读消息文本	domain-selftest	bash tools/ys-editor/tests/ledger-inject.sh path-typo	prevented	已更正：原记「槽内文件系统不同」为伪因（见 F-2-09）
 F-2-05	2026-10-17	环境	槽外设剪贴板（无 DISPLAY）静默失败 + xclip -loops 1 首读后自杀 → 粘进聊天文本	复盘第二部 #5	契约 §12：常驻 xclip + 槽内 Ctrl+V；P2 domain.json			open	等 domain-guard 交付
@@ -19,4 +19,4 @@ F-1-09	2026-10-17	判据	0.9 阈值跨 CPU 0.9371 / GPU 0.8997，同一对样本
 F-1-10	2026-10-17	归因	GLM 首次评审零实测（没跑实验/查论文/GitHub）却给出严密结论	复盘第一部 #10	委托任务书写取证义务：每条结论带命令+输出			open	靠流程，非机械
 F-1-11	2026-10-17	归因	实验全跑在 CPU，生产 ncc() 在 work>3e9 时走 GPU —— 复跑一致≠路径正确	复盘第一部 #11	复跑 GPU 版 + 把"路径核对"写进判据			open	
 F-2-09	2026-10-17	归因	把「命令里路径漏 /h」归因成「槽内文件系统不同/绝对路径不存在」，并写进契约与技能	复盘 §7 #4 的首次结论；domain-guard 用 stat dev:inode 对拍证伪（49:2794949 两域相同）	任何 rc≠0 先读消息文本并逐字核对其中路径；结论写进契约前需第二通道对拍	domain-selftest	bash tools/ys-editor/tests/ledger-inject.sh path-typo	prevented	用户/队友纠错后被证伪；契约 §12 与技能已作废旧结论
-F-2-10	2026-10-17	判据	未测量就写死数值/区域：铅笔按钮写 (523,96)（实测 (518,86)）、遮挡区写"覆盖 (0,0)-(400,120)"（实测 80x50 小框）、还把改名前的帧起名「云阶」	screen-digest 交付用数值逐条否证；我复跑两帧 controls 对比确认	给下游的坐标/区域必须由工具量出来并贴数值；fixture 文件名即断言（名字含什么，帧里就必须有什么）	screen		open	等 ys-screen 圆钮检测修好后，把「fixture 名含文本 ⇒ 帧内必须命中」做成断言，再改 prevented
+F-2-10	2026-10-17	判据	未测量就写死数值/区域：铅笔按钮写 (523,96)（实测 (518,86)）、遮挡区写"覆盖 (0,0)-(400,120)"（实测 80x50 小框）、还把改名前的帧起名「云阶」	screen-digest 交付用数值逐条否证；我复跑两帧 controls 对比确认	给下游的坐标/区域必须由工具量出来并贴数值；fixture 文件名即断言（名字含什么，帧里就必须有什么）	screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	prevented	坐标由工具量出（circle@516,86 / @518,86 两帧实测）；fixture 名与帧内文本一致（云阶帧确实含云阶）

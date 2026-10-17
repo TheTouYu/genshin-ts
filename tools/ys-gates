@@ -35,6 +35,7 @@ FAKE_SUCCESS = os.path.join(YS, 'tests', 'fake-success.selftest.sh')
 #   resolve        动作时解析（候选=0 / 候选不唯一 / 回读不符）
 #   domain         执行域自检（ABS-STALE / CLIP-NO-DISPLAY / SELFKILL）
 SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
+          ('screen-digest', 'screen-digest.selftest.sh', 420),
           ('resolve-click', 'resolve-click.selftest.sh', 240),
           ('domain-selftest', 'domain-selftest.sh', 180)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
