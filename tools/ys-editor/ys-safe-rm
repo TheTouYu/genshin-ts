@@ -1,0 +1,224 @@
+#!/usr/bin/env python3
+# ys-safe-rm — 破坏性删除的「先解析真实目标，再问要不要动」闸门
+#
+# 存在理由：`rm -rf $DIR/*` / `rm -rf ${VAR}` 这类写法，在变量为空、glob 没展开、
+#   或在错误的 cwd 下执行时都会**静默扩大范围**（经典形态：`rm -rf "$X/"` 变成 `rm -rf /`）。
+#   2026-系列事故的共同点不是"手滑"，而是**动作前没有把目标解析成一个具体路径并打印出来**。
+#
+# 三条硬规矩：
+#   ① 拒绝未解析的指认：参数里出现 glob 元字符（* ? [）或 `$` ⇒ 直接拒绝（说明 shell 没展开/被引号包住，
+#      范围不确定）；不存在（含断链）⇒ 拒绝（绝不"当作不存在所以没事"）；
+#   ② 打印后才动手：打印 realpath、类型、大小、mtime、以及为什么安全；`--yes` 才执行；
+#   ③ 保护根/家目录/仓库根/cwd/祖先目录/工具自身目录/系统目录，一律拒绝并给出现场读数。
+#
+# 用法:
+#   ys-safe-rm <path>...              # 干跑：打印将要删什么（退出码 2）
+#   ys-safe-rm --yes <path>...        # 删文件/空目录
+#   ys-safe-rm --yes -r <dir>...      # 删目录树
+# 退出码: 0=已删并复核  1=目标不存在  2=干跑未执行  3=拒绝（受保护/范围不确定）  4=执行后复核失败  5=用法错误
+import argparse
+import json
+import os
+import shutil
+import sys
+import time
+
+HOME = os.path.expanduser("~")
+GLOB_CHARS = ("*", "?", "[", "]", "$", "`")
+SYSTEM_ROOTS = ("/", "/home", "/usr", "/etc", "/boot", "/opt", "/srv", "/lib", "/lib64",
+                "/bin", "/sbin", "/proc", "/sys", "/dev", "/var", "/run", "/root", "/tmp")
+
+
+def find_repo_root(start):
+    cur = os.path.realpath(start)
+    for _ in range(12):
+        if os.path.isdir(os.path.join(cur, ".git")) or os.path.isfile(
+                os.path.join(cur, "package.json")):
+            return cur
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            break
+        cur = parent
+    return None
+
+
+def human(n):
+    for unit in ("B", "K", "M", "G", "T"):
+        if n < 1024 or unit == "T":
+            return "%.1f%s" % (n, unit) if unit != "B" else "%d%s" % (n, unit)
+        n /= 1024.0
+    return str(n)
+
+
+def probe(path):
+    """目标的对象读数：类型/大小/条目数/mtime（全部只读）。"""
+    st = os.lstat(path)
+    kind = "link" if os.path.islink(path) else ("dir" if os.path.isdir(path) else "file")
+    out = {"path": path, "kind": kind, "mtime": time.strftime("%Y-%m-%d %H:%M:%S",
+                                                              time.localtime(st.st_mtime))}
+    if kind == "dir":
+        total, count = 0, 0
+        for root, dirs, files in os.walk(path):
+            for name in files:
+                fp = os.path.join(root, name)
+                try:
+                    total += os.lstat(fp).st_size
+                except OSError:
+                    pass
+                count += 1
+            if count > 200000:
+                break
+        out["size"] = total
+        out["files"] = count
+    else:
+        out["size"] = st.st_size
+    return out
+
+
+def guard(arg, resolved, ctx):
+    """返回拒绝理由（字符串）或 None。"""
+    raw = arg
+    for ch in GLOB_CHARS:
+        if ch in raw:
+            return ("参数里含未展开的元字符 %r（%s）⇒ 范围不确定，shell 可能没展开或被引号包住"
+                    % (ch, raw))
+    if not os.path.lexists(resolved):
+        return "目标不存在（含断链）：%s" % resolved
+    depth = len([p for p in resolved.split(os.sep) if p])
+    if resolved in SYSTEM_ROOTS:
+        return "受保护路径：%s（系统目录/根）" % resolved
+    if depth <= 1:
+        return "受保护路径：%s 深度仅 %d 层（顶层目录）" % (resolved, depth)
+    if resolved == HOME:
+        return "受保护路径：家目录本身 %s" % resolved
+    if resolved == ctx["repo"]:
+        return "受保护路径：仓库根 %s" % resolved
+    if resolved == ctx["cwd"]:
+        return "受保护路径：当前工作目录 %s" % resolved
+    if ctx["cwd"].startswith(resolved + os.sep):
+        return "受保护路径：%s 是 cwd（%s）的祖先" % (resolved, ctx["cwd"])
+    if resolved == ctx["self_dir"]:
+        return "受保护路径：本工具所在目录 %s" % resolved
+    if "/.git" in resolved or resolved.endswith("/.git"):
+        return "受保护路径：git 元数据 %s" % resolved
+    for sysroot in ("/usr", "/etc", "/boot", "/lib", "/bin", "/sbin", "/proc", "/sys", "/dev"):
+        if resolved.startswith(sysroot + os.sep):
+            return "受保护路径：系统目录 %s" % resolved
+    if resolved.startswith("/var/") and not resolved.startswith("/var/tmp/"):
+        return "受保护路径：/var 下（只允许 /var/tmp/…）：%s" % resolved
+    if resolved in ("/tmp", "/run"):
+        return "受保护路径：%s" % resolved
+    return None
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(add_help=True,
+                                 description="先解析真实目标、拒绝可疑范围、--yes 才执行的删除闸门")
+    ap.add_argument("paths", nargs="+", help="要删的路径（禁止 glob/变量）")
+    ap.add_argument("--yes", action="store_true", help="真的执行（缺省只打印计划）")
+    ap.add_argument("-r", "--recursive", action="store_true", help="允许删目录树")
+    ap.add_argument("--json", action="store_true", help="机读输出")
+    args = ap.parse_args(argv)
+
+    ctx = {
+        "cwd": os.path.realpath(os.getcwd()),
+        "repo": find_repo_root(os.getcwd()),
+        "self_dir": os.path.dirname(os.path.realpath(__file__)),
+    }
+
+    plan, refused, missing = [], [], []
+    for arg in args.paths:
+        resolved = os.path.realpath(arg)
+        reason = guard(arg, resolved, ctx)
+        if reason:
+            (missing if "不存在" in reason else refused).append({"arg": arg,
+                                                                "resolved": resolved,
+                                                                "reason": reason})
+            continue
+        rec = probe(resolved)
+        rec["arg"] = arg
+        rec["resolved"] = resolved
+        plan.append(rec)
+
+    if not plan and not refused and not missing:
+        print("ys-safe-rm: 没有可删的目标", file=sys.stderr)
+        return 5
+
+    if args.json:
+        out = {"plan": plan, "refused": refused, "missing": missing, "executed": bool(args.yes)}
+    else:
+        print("ys-safe-rm  cwd=%s  仓库根=%s" % (ctx["cwd"], ctx["repo"]))
+        for rec in plan:
+            extra = ("  文件数=%d" % rec["files"]) if rec["kind"] == "dir" else ""
+            print("  将删 %s  [%s %s%s  mtime=%s]" % (
+                rec["resolved"], rec["kind"], human(rec["size"]), extra, rec["mtime"]))
+            if rec["arg"] != rec["resolved"]:
+                print("      （原始参数 %r → realpath 后才是真目标）" % rec["arg"])
+        for rec in missing:
+            print("  ✗ 拒绝 %r ← %s" % (rec["arg"], rec["reason"]))
+        for rec in refused:
+            print("  ✗ 拒绝 %r → %s ← %s" % (rec["arg"], rec["resolved"], rec["reason"]))
+
+    if refused or missing:
+        if not args.json:
+            print("  SAFE-RM-REFUSED plan=%d refused=%d missing=%d" % (
+                len(plan), len(refused), len(missing)))
+            print("  ⇒ 一项都没删。先把参数写成**已解析的具体路径**再重跑。")
+        else:
+            out["verdict"] = "REFUSED"
+            print(json.dumps(out, ensure_ascii=False, indent=2))
+        return 1 if (missing and not refused) else 3
+
+    dirs = [r for r in plan if r["kind"] == "dir"]
+    if dirs and not args.recursive:
+        if not args.json:
+            print("  ✗ 目标是目录（%s），未加 -r/--recursive ⇒ 拒绝（避免误删整棵树）" %
+                  dirs[0]["resolved"])
+            print("  SAFE-RM-REFUSED plan=%d refused=1 missing=0" % len(plan))
+        else:
+            out["verdict"] = "NEED-RECURSIVE"
+            print(json.dumps(out, ensure_ascii=False, indent=2))
+        return 3
+
+    if not args.yes:
+        if not args.json:
+            print("  SAFE-RM-DRYRUN would_remove=%d refused=%d" % (len(plan), len(refused)))
+            print("  ⇒ 未执行。确认上面 realpath/大小/mtime 无误后加 --yes 重跑。")
+        else:
+            out["verdict"] = "DRYRUN"
+            print(json.dumps(out, ensure_ascii=False, indent=2))
+        return 2
+
+    done, failed = [], []
+    for rec in plan:
+        try:
+            if rec["kind"] == "dir":
+                shutil.rmtree(rec["resolved"])
+            else:
+                os.remove(rec["resolved"])
+            done.append(rec["resolved"])
+        except OSError as exc:
+            failed.append({"path": rec["resolved"], "error": str(exc)})
+
+    survived = [p for p in done if os.path.lexists(p)]
+    if args.json:
+        out["removed"] = done
+        out["failed"] = failed
+        out["survived"] = survived
+        out["verdict"] = "DONE" if not failed and not survived else "PARTIAL"
+        print(json.dumps(out, ensure_ascii=False, indent=2))
+    else:
+        for p in done:
+            if p not in survived:
+                print("  ✓ 已删 %s" % p)
+        for item in failed:
+            print("  ✗ 失败 %s ← %s" % (item["path"], item["error"]))
+        for p in survived:
+            print("  ✗ 删后仍存在 %s" % p)
+        print("  SAFE-RM-DONE removed=%d failed=%d survived=%d" % (
+            len(done) - len(survived), len(failed), len(survived)))
+    return 4 if (failed or survived) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

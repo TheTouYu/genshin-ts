@@ -1,0 +1,190 @@
+{
+  "schema": "ys-domain/1",
+  "purpose": "把「槽内/槽外各支持什么」从隐式契约变成可执行的期望值。本文件是**期望**（每条带实测日期+证据命令+观测输出），ys-slot-check 是**观测**；两者不符即 FAIL 并打印复现命令。文档只能提醒读过它的人，自检能拦住所有人。",
+  "measured": "2026-10-17",
+  "updated": "2026-10-17T21:10+08:00",
+  "repo_root": "/home/h/genshin-ts",
+  "domains": {
+    "in_slot": {
+      "title": "受控槽内（命令经 ys-gui-slot 包一层）",
+      "detect": {
+        "env": "YS_SLOT_ACTIVE",
+        "equals": "1",
+        "set_by": "tools/ys-editor/ys-gui-slot:20  export YS_SLOT_ACTIVE=1"
+      },
+      "filesystem": "与槽外同一命名空间、同一 cwd（实测 inode 相同，见 corrections[0]）",
+      "capabilities": {
+        "relative_path": {
+          "supported": true,
+          "measured": "2026-10-17T21:02",
+          "probe": "stat -c %d:%i .  &&  stat -c %d:%i ./tools/ys-editor",
+          "evidence": "槽内实测：`stat .` → 49:2794949 目录；`stat ./tools/ys-editor` → 49:3553536 目录",
+          "advice": "相对路径永远跟着真实 cwd 走，槽内首选。"
+        },
+        "absolute_path": {
+          "supported": true,
+          "measured": "2026-10-17T21:02",
+          "probe": "stat -c %d:%i /home/h/genshin-ts  &&  readlink /proc/$$/cwd",
+          "evidence": "槽内实测：`stat /home/h/genshin-ts` → 49:2794949 目录（与 `stat .` 同 dev:inode）；`readlink /proc/$$/cwd` → /home/h/genshin-ts；同一时刻 `stat /home/genshin-ts` → ENOENT（该路径本机从不曾存在，槽外同样 ENOENT）",
+          "advice": "绝对路径**可用**，但必须先 stat 解析：写错一个字符就 ENOENT，而 cwd 仍是好的 ⇒ 看起来像「环境不支持」。"
+        },
+        "display": {
+          "supported": true,
+          "source": "ys-gui-slot:21  export DISPLAY=\"${DISPLAY:-:1}\"（空串也回落 :1）+ ys-env.sh 发现的 XAUTHORITY",
+          "measured": "2026-10-17T21:02",
+          "probe": "xdotool getdisplaygeometry",
+          "evidence": "槽内实测：DISPLAY=:1  XAUTHORITY=/run/user/1000/xauth_vVhGAl  YDOTOOL_SOCKET=/run/user/1000/.ydotool_socket；`xdotool getdisplaygeometry` rc=0",
+          "advice": "槽内 X 连接由包装器保证；若仍不可达，先跑 ys-env.sh --print 看发现结果。"
+        },
+        "clipboard": {
+          "supported": "conditional",
+          "condition": "需 X 连接可用（DISPLAY + 有效 XAUTHORITY）且 xclip 存在",
+          "measured": "2026-10-17（设置/粘贴链路见复盘 §12）+ 2026-10-17T21:02 只读复核",
+          "probe": "xclip -selection clipboard -o >/dev/null ; echo rc=$?",
+          "evidence": "槽内 xclip=/usr/sbin/xclip；X 连接可用；复盘 §12 实测 `( printf '云阶' | xclip -selection clipboard >/dev/null 2>&1 & )` + `xdotool key ctrl+v` → OCR 读回 1.00。注意 `-loops 1` 会在首次读请求后自杀（粘贴拿不到数据）。",
+          "advice": "常驻 xclip 写法：`( printf '云阶' | xclip -selection clipboard >/dev/null 2>&1 & )`，用完 `pkill -x xclip`。"
+        },
+        "inject": {
+          "supported": true,
+          "measured": "2026-10-17T21:03",
+          "probe": "readlink -f \"$(command -v xdotool)\" ; echo \"YS_SLOT_ACTIVE=$YS_SLOT_ACTIVE\"",
+          "evidence": "槽内实测 YS_SLOT_ACTIVE=1；shims/xdotool 见到 YS_SLOT_ACTIVE=1 即 `exec /usr/sbin/xdotool \"$@\"`（直通真二进制）；裸调也仍须自证「执行前什么窗，执行后就什么窗」",
+          "advice": "槽内可注入，但每次注入仍写在 `ys-gui-slot` 的时限内；单个动作间隔 ≤3s。"
+        },
+        "frame_grab": {
+          "supported": true,
+          "measured": "2026-10-17T21:02",
+          "probe": "command -v import  ;  xdotool getdisplaygeometry",
+          "evidence": "槽内 X 可用 + /usr/sbin/import → magick 存在。取数入口一律 ys-observe（自带 NOT_ATOP 拒答与新鲜度证明）",
+          "advice": "抓帧走 `ys-observe`/`ys-shot`，不要裸 `import`（窗口不在栈顶时 import 返回陈旧帧）。"
+        }
+      }
+    },
+    "outside": {
+      "title": "槽外（普通 shell / 代理默认执行域）",
+      "detect": {
+        "env": "YS_SLOT_ACTIVE",
+        "equals": "unset",
+        "note": "未设置即槽外"
+      },
+      "filesystem": "与槽内同一命名空间（同一 cwd 句柄）",
+      "capabilities": {
+        "relative_path": {
+          "supported": true,
+          "measured": "2026-10-17T20:58",
+          "probe": "stat -c %d:%i .  &&  stat -c %d:%i ./tools/ys-editor",
+          "evidence": "槽外实测：pwd=/home/h/genshin-ts；readlink -f . = /home/h/genshin-ts；./tools/ys-editor 可解析",
+          "advice": "相对路径永远可用。"
+        },
+        "absolute_path": {
+          "supported": true,
+          "measured": "2026-10-17T20:58",
+          "probe": "stat /home/genshin-ts ; echo rc=$?",
+          "evidence": "槽外实测：`stat /home/genshin-ts` → `statx 失败: 没有那个文件或目录`（rc=1）；`ls /home` → h h2。同一路径在槽内同样 ENOENT ⇒ 这是**写错的路径**，不是域限制。",
+          "advice": "绝对路径可用，但动手前 stat 一次；解析不到就停，别当成「环境不支持」。"
+        },
+        "display": {
+          "supported": "conditional",
+          "condition": "本 shell 默认 `DISPLAY=`（空）；source tools/ys-editor/ys-env.sh 后由发现流程/`/tmp/ys-env.cache` 提供",
+          "source": "无（空）→ 需 . tools/ys-editor/ys-env.sh；缓存 /tmp/ys-env.cache（YS_ENV_CACHE 可改）",
+          "measured": "2026-10-17T21:04",
+          "probe": "env | grep '^DISPLAY=' ; xdotool getdisplaygeometry",
+          "evidence": "槽外实测：`DISPLAY=`（空串）、`xdotool getdisplaygeometry` → rc=1 `Error: DISPLAY environment variable is empty`；source ys-env.sh 后 DISPLAY=:1 XAUTHORITY=/run/user/1000/xauth_vVhGAl，`xclip -o` rc=0",
+          "advice": "手动跑任何 xdotool/xclip/import 前先 `. tools/ys-editor/ys-env.sh`。"
+        },
+        "clipboard": {
+          "supported": "conditional",
+          "condition": "同 display：需先有 X 连接（source ys-env.sh）；设/取剪贴板本身不抢焦点，但**粘贴**到游戏窗必须在槽内",
+          "measured": "2026-10-17T21:04",
+          "probe": "env -u DISPLAY -u XAUTHORITY bash -c 'printf x | xclip -selection clipboard -i' ; echo rc=$?",
+          "evidence": "槽外实测：`xclip -i` → **rc=1 + `Error: Can't open display: (null)`**（不是静默失败！静默来自调用点把 stderr 丢进 /dev/null）；source ys-env.sh 后 `xclip -o` rc=0",
+          "advice": "槽外设剪贴板先 `. tools/ys-editor/ys-env.sh`；要粘进游戏窗必须进槽：`./tools/ys-editor/ys-gui-slot 0x01400001 15 bash -c '…ctrl+v…'`。"
+        },
+        "inject": {
+          "supported": false,
+          "measured": "2026-10-17T21:05",
+          "probe": "readlink -f \"$(command -v xdotool)\"  → /home/h/genshin-ts/tools/ys-editor/shims/xdotool",
+          "evidence": "槽外实测：xdotool 解析到 shims/xdotool；`xdotool mousemove 1 1` → `[ys-shim] 已拦下裸调 xdotool（窗口/指针动作（mousemove））` rc=77；只读子命令（getdisplaygeometry 等）直通",
+          "advice": "所有注入经 `./tools/ys-editor/ys-gui-slot <win> <秒> <命令>`。"
+        },
+        "frame_grab": {
+          "supported": "conditional",
+          "condition": "需 X 连接（source ys-env.sh）；且契约要求走 ys-observe（裸 import 会给陈旧帧）",
+          "measured": "2026-10-17T21:05",
+          "probe": "command -v import ; xdotool getdisplaygeometry",
+          "evidence": "槽外实测：`/usr/sbin/import -> magick` 存在；无 DISPLAY 时 `xdotool getdisplaygeometry` rc=1 ⇒ 抓帧不可用；source 后可用",
+          "advice": "用 `ys-observe --json` 取读数（自带 NOT_ATOP 拒答）。"
+        }
+      }
+    }
+  },
+  "invariants": [
+    {
+      "id": "cwd_consistent",
+      "check": "PWD 环境变量必须等于 readlink /proc/self/cwd",
+      "why": "bash 的逻辑 PWD 可以过期（目录被改名/删除后仍打印旧字符串）；#4 的错误正是「pwd 看着对、绝对路径解析不到」的组合",
+      "advice": "若两者不符，用 `readlink /proc/$$/cwd` 取真实路径，别信 $PWD。"
+    },
+    {
+      "id": "repo_root_resolvable",
+      "check": "<repo>/tools/ys-editor 可从 cwd 向上解析到",
+      "why": "所有 ./tools/... 相对调用的前提",
+      "advice": "先 cd 到仓库根。"
+    },
+    {
+      "id": "stale_path_absent",
+      "check": "/home/genshin-ts 不存在（历史误写路径）",
+      "why": "若此路径被创建出来，会掩盖「路径写错」这一真因，让下一次 ENOENT 又被误判成域限制",
+      "advice": "命令里出现 /home/genshin-ts 一律替换为 /home/h/genshin-ts 或 ./  相对路径。"
+    }
+  ],
+  "corrections": [
+    {
+      "claim": "槽内绝对路径不存在（槽内外不是同一个文件系统视图）——见复盘 §12 / 技能「受控槽内的环境边界」第 1 条",
+      "verdict": "falsified",
+      "measured": "2026-10-17T21:02（本次实测，槽内 + 槽外同刻对拍）",
+      "evidence": "槽内：`readlink /proc/$$/cwd` → /home/h/genshin-ts；`stat /home/h/genshin-ts` → 49:2794949 目录，与 `stat .` 的 dev:inode 完全相同 ⇒ 同一命名空间；`stat /home/genshin-ts` 在**槽内和槽外都** ENOENT，`ls /home` 两域都是 `h h2`。真因 = 命令里的绝对路径写错了（漏了 `/h`），而 cwd 是正确的。",
+      "rule_replaced_by": "不是「槽内禁用绝对路径」，而是：①绝对路径可用，但**动手前 stat 解析，解析不到就停**（exit≠0 + 明确诊断）；②槽内**优先** `./` 相对路径，因为它绑定真实 cwd，而记忆里的绝对字符串会过期。"
+    },
+    {
+      "claim": "槽外设剪贴板「静默失败」",
+      "verdict": "partially-falsified",
+      "measured": "2026-10-17T21:04",
+      "evidence": "`env -u DISPLAY -u XAUTHORITY xclip -selection clipboard -i` → rc=1 且 stderr 有 `Error: Can't open display: (null)`。**工具本身会大声失败**；静默来自复盘 §7 #3 记录的调用点 `>/dev/null 2>&1`。",
+      "rule_replaced_by": "剪贴板/注入/路径解析类调用点**禁止吞 stderr**；失败必须可见（ys-slot-check 的 lint 规则 QUIET-STDERR 给出告警）。"
+    },
+    {
+      "claim": "`pkill -f \"xclip -selection clipboard\"` 会匹配到发起它的 bash 自身",
+      "verdict": "confirmed",
+      "measured": "2026-10-17T20:58（本次复核 shim 直通与 -f 语义）+ 复盘 §7 #6 实测 SIGTERM",
+      "evidence": "`-f` 匹配整条命令行；发起命令的 bash 的命令行里含该模式 ⇒ 命中自己。本次以 `ys-safe-kill -f domain-selftest` 复现同一结构：模式只匹配到自身/祖先，工具据此拒绝执行（EXIT_SELFMONLY=3）。",
+      "rule_replaced_by": "破坏性杀一律 `./tools/ys-editor/ys-safe-kill [--yes] <pattern>`（自动排除自身与祖先、先打印将要动谁）；等价的单命令替代是 `pkill -x <进程名>`。"
+    }
+  ],
+  "known_traps": [
+    {
+      "id": "ABS-STALE",
+      "trap": "命令行里的绝对路径不存在（典型：/home/genshin-ts，本机真实根是 /home/h/genshin-ts）",
+      "replacement": "改相对路径 ./tools/... 或先 stat 解析",
+      "detected_by": "ys-slot-check --lint"
+    },
+    {
+      "id": "CLIP-NO-DISPLAY",
+      "trap": "槽外（无 DISPLAY）设剪贴板 / xdotool type 中文",
+      "replacement": "先 . tools/ys-editor/ys-env.sh；要粘进游戏窗改用 ys-gui-slot 内常驻 xclip + ctrl+v",
+      "detected_by": "ys-slot-check --lint / --need clipboard"
+    },
+    {
+      "id": "SELFKILL",
+      "trap": "pkill -f / killall -r 自匹配，把发起它的 shell 一起杀掉",
+      "replacement": "./tools/ys-editor/ys-safe-kill --yes <pattern>  或  pkill -x <进程名>",
+      "detected_by": "ys-slot-check --lint / ys-safe-kill（自身与祖先永不入选）"
+    },
+    {
+      "id": "QUIET-STDERR",
+      "trap": "剪贴板/注入/指针类调用点写 2>/dev/null，把「X 不可达 / 目标未命中」诊断丢掉",
+      "replacement": "保留 stderr，只重定向 stdout",
+      "detected_by": "ys-slot-check --lint（告警，不阻断）"
+    }
+  ]
+}

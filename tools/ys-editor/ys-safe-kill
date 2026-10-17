@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+# ys-safe-kill — 破坏性杀的「先解析目标，再问要不要动」闸门
+#
+# 存在理由（2026-10-17 实测事故 #6）：
+#   `pkill -f "xclip -selection clipboard"` 匹配到**发起它的那条 bash 自身** ⇒ 自杀，
+#   终端只留下 `[killed by signal: SIGTERM]`，看起来像"工具挂了"。
+#   根因不是手滑：`-f` 匹配整条命令行，而发起者的命令行里就含那个模式。
+#
+# 本工具的三条硬规矩（缺一条就会重犯）：
+#   ① **先解析**：每个候选进程打印 pid/ppid/uid/comm/cmdline（从 /proc/<pid> 实读），
+#      不打印就不动手；
+#   ② **排除自身与祖先**：自身 pid + 全部祖先（沿 PPid 链）永不入选，且明确列出"已排除谁、为什么"；
+#      若排除后一个都不剩 ⇒ 拒绝执行（这正是 #6 的形态），退出码 3；
+#   ③ **--yes 才执行**：默认只打印计划（退出码 2，不是 0 —— 免得调用方把"没杀"当成"杀完了"）。
+#
+# 用法:
+#   ys-safe-kill <pattern>...                 # 干跑：打印将要动谁
+#   ys-safe-kill --yes <pattern>...           # 真杀（默认 SIGTERM）
+#   ys-safe-kill --full --yes <pattern>       # 按整条命令行匹配（等价 pkill -f，但不会杀自己）
+#   ys-safe-kill --exact --yes <pattern>      # 进程名精确等于
+#   ys-safe-kill --signal KILL --yes <pattern>
+# 退出码: 0=已执行并复核  1=没有匹配目标  2=干跑未执行  3=拒绝（只剩自身/祖先）  4=执行后复核失败  5=用法错误
+import argparse
+import json
+import os
+import signal
+import sys
+import time
+
+EXIT_SELFMONLY = 3
+
+
+def read_comm(pid):
+    try:
+        with open("/proc/%d/comm" % pid, "r", encoding="utf-8", errors="replace") as fh:
+            return fh.read().strip()
+    except OSError:
+        return None
+
+
+def read_cmdline(pid):
+    try:
+        with open("/proc/%d/cmdline" % pid, "rb") as fh:
+            raw = fh.read(4096)
+    except OSError:
+        return None
+    return " ".join(" ".join(x.decode("utf-8", "replace").split())
+                    for x in raw.split(b"\0") if x)
+
+
+def read_status(pid):
+    ppid, uid = None, None
+    try:
+        with open("/proc/%d/status" % pid, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if line.startswith("PPid:"):
+                    ppid = int(line.split()[1])
+                elif line.startswith("Uid:"):
+                    uid = int(line.split()[1])
+    except OSError:
+        return None, None
+    return ppid, uid
+
+
+def read_state(pid):
+    try:
+        with open("/proc/%d/stat" % pid, "r", encoding="utf-8", errors="replace") as fh:
+            data = fh.read()
+        tail = data[data.rfind(")") + 2:].split()
+        return tail[0] if tail else "?"
+    except OSError:
+        return None
+
+
+def ancestors(pid):
+    """沿 PPid 链取全部祖先（含父 shell）。#6 的"自己"多数情况下是这条链上的 bash。"""
+    out, cur = [], pid
+    for _ in range(64):
+        ppid, _uid = read_status(cur)
+        if not ppid or ppid <= 1:
+            break
+        out.append(ppid)
+        cur = ppid
+    return out
+
+
+def snapshot():
+    procs = {}
+    for name in os.listdir("/proc"):
+        if not name.isdigit():
+            continue
+        pid = int(name)
+        comm = read_comm(pid)
+        if comm is None:
+            continue
+        ppid, uid = read_status(pid)
+        procs[pid] = {
+            "pid": pid,
+            "comm": comm,
+            "ppid": ppid,
+            "uid": uid,
+            "cmdline": read_cmdline(pid) or "",
+        }
+    return procs
+
+
+def matches(proc, patterns, full, exact):
+    hay_comm = proc["comm"]
+    hay_full = proc["cmdline"] or proc["comm"]
+    for pat in patterns:
+        if full:
+            if pat in hay_full:
+                return pat
+        elif exact:
+            if hay_comm == pat:
+                return pat
+        else:
+            if pat in hay_comm:
+                return pat
+    return None
+
+
+def dead(pid):
+    st = read_state(pid)
+    return st is None or st == "Z"
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(add_help=True,
+                                 description="先解析目标、排除自身与祖先、--yes 才执行的杀进程闸门")
+    ap.add_argument("patterns", nargs="+", help="匹配模式（默认按进程名子串）")
+    ap.add_argument("--yes", action="store_true", help="真的执行（缺省只打印计划）")
+    ap.add_argument("--full", "-f", action="store_true", help="按整条命令行匹配（等价 pkill -f）")
+    ap.add_argument("--exact", "-x", action="store_true", help="进程名精确匹配（等价 pkill -x）")
+    ap.add_argument("--signal", "-s", default="TERM", help="信号名，默认 TERM")
+    ap.add_argument("--json", action="store_true", help="机读输出")
+    ap.add_argument("--wait", type=float, default=1.5, help="执行后复核等待上限（秒）")
+    args = ap.parse_args(argv)
+    if args.full and args.exact:
+        print("ys-safe-kill: --full 与 --exact 不能同时用", file=sys.stderr)
+        return 5
+    sig_name = args.signal.upper().lstrip("SIG")
+    try:
+        sig = getattr(signal, "SIG" + sig_name)
+    except AttributeError:
+        print("ys-safe-kill: 未知信号 %s" % args.signal, file=sys.stderr)
+        return 5
+
+    me = os.getpid()
+    myuid = os.getuid()
+    ancs = set(ancestors(me))
+    procs = snapshot()
+
+    targets, excluded = [], []
+    for pid, proc in procs.items():
+        pat = matches(proc, args.patterns, args.full, args.exact)
+        if not pat:
+            continue
+        reason = None
+        if pid == me:
+            reason = "self"
+        elif pid in ancs:
+            reason = "ancestor(PID 链上是发起这条命令的 shell)"
+        elif pid == 1:
+            reason = "init"
+        elif proc["uid"] not in (None, myuid) and myuid != 0:
+            reason = "other-user(uid=%s)" % proc["uid"]
+        elif not proc["cmdline"]:
+            reason = "kernel-thread(无 cmdline)"
+        rec = dict(proc, matched=pat, reason=reason)
+        (excluded if reason else targets).append(rec)
+
+    targets.sort(key=lambda r: r["pid"])
+    excluded.sort(key=lambda r: r["pid"])
+
+    def show(rec):
+        return "pid=%-7d ppid=%-7s uid=%-6s comm=%-18s cmdline=%s" % (
+            rec["pid"], rec["ppid"], rec["uid"], rec["comm"][:18], (rec["cmdline"] or "-")[:110])
+
+    if not targets and not excluded:
+        print("ys-safe-kill  pattern=%r  匹配方式=%s" % (
+            args.patterns, "full" if args.full else ("exact" if args.exact else "comm 子串")))
+        print("  ✗ 没有匹配到任何进程")
+        print("  SAFE-KILL-NOTARGET matched=0")
+        return 1
+
+    if not targets:
+        print("ys-safe-kill  pattern=%r  匹配方式=%s" % (
+            args.patterns, "full" if args.full else ("exact" if args.exact else "comm 子串")))
+        print("  已排除（自身/祖先，绝不杀）：")
+        for rec in excluded:
+            print("    %s  ← %s" % (show(rec), rec["reason"]))
+        print("  ✗ 排除后无目标：这个模式只命中你自己（或发起它的 shell）。")
+        print("     这正是 2026-10-17 事故 #6 的形态：`pkill -f \"xclip …\"` 匹配到 bash 自身 ⇒ 自杀。")
+        print("  SAFE-KILL-SELFMONLY matched=%d excluded=%d" % (len(targets) + len(excluded),
+                                                              len(excluded)))
+        return EXIT_SELFMONLY
+
+    plan = {
+        "patterns": args.patterns,
+        "mode": "full" if args.full else ("exact" if args.exact else "comm"),
+        "signal": sig_name,
+        "targets": [{k: r[k] for k in ("pid", "ppid", "uid", "comm", "cmdline", "matched")}
+                    for r in targets],
+        "excluded": [{k: r[k] for k in ("pid", "ppid", "uid", "comm", "cmdline", "reason")}
+                     for r in excluded],
+        "executed": bool(args.yes),
+    }
+
+    if not args.yes:
+        if not args.json:
+            print("ys-safe-kill  pattern=%r  匹配方式=%s  信号 SIG%s" % (
+                args.patterns, plan["mode"], sig_name))
+            print("  将要动（%d 个，--yes 才执行）：" % len(targets))
+            for rec in targets:
+                print("    " + show(rec))
+            if excluded:
+                print("  已排除（自身/祖先，绝不杀）：")
+                for rec in excluded:
+                    print("    %s  ← %s" % (show(rec), rec["reason"]))
+            print("  SAFE-KILL-DRYRUN would_kill=%d excluded=%d" % (len(targets), len(excluded)))
+            print("  ⇒ 未执行。确认上面清单无误后加 --yes 重跑。")
+        else:
+            plan["verdict"] = "DRYRUN"
+            print(json.dumps(plan, ensure_ascii=False, indent=2))
+        return 2
+
+    killed, failed = [], []
+    for rec in targets:
+        try:
+            os.kill(rec["pid"], sig)
+            killed.append(rec)
+        except ProcessLookupError:
+            failed.append(dict(rec, error="gone-before-kill"))
+        except PermissionError:
+            failed.append(dict(rec, error="EPERM"))
+        except OSError as exc:
+            failed.append(dict(rec, error=str(exc)))
+
+    deadline = time.monotonic() + args.wait
+    verified = []
+    while time.monotonic() < deadline:
+        verified = [r["pid"] for r in killed if dead(r["pid"])]
+        if len(verified) == len(killed):
+            break
+        time.sleep(0.02)
+    still_alive = [r for r in killed if not dead(r["pid"])]
+
+    if args.json:
+        plan["killed"] = [r["pid"] for r in killed]
+        plan["failed"] = failed
+        plan["still_alive"] = [r["pid"] for r in still_alive]
+        plan["verdict"] = "DONE" if not failed and not still_alive else "PARTIAL"
+        print(json.dumps(plan, ensure_ascii=False, indent=2))
+    else:
+        print("ys-safe-kill  pattern=%r  匹配方式=%s  信号 SIG%s" % (
+            args.patterns, plan["mode"], sig_name))
+        for rec in killed:
+            print("  ✓ killed " + show(rec))
+        for rec in failed:
+            print("  ✗ 失败 %s  ← %s" % (show(rec), rec["error"]))
+        for rec in excluded:
+            print("  – 已排除 %s  ← %s" % (show(rec), rec["reason"]))
+        print("  SAFE-KILL-DONE killed=%d verified=%d still_alive=%d failed=%d signal=SIG%s" % (
+            len(killed), len(verified), len(still_alive), len(failed), sig_name))
+
+    if failed or still_alive:
+        if not args.json:
+            print("  ⇒ 有 %d 个目标没杀干净（先用 `ps -p <pid>` 复核，再决定要不要换信号）"
+                  % (len(failed) + len(still_alive)))
+        return 4
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

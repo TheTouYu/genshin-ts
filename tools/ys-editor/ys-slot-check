@@ -1,0 +1,542 @@
+#!/usr/bin/env python3
+# ys-slot-check — 执行域能力自检：**动手之前**用机器问一句「这里支持这个操作吗」
+#
+# 存在理由（2026-10-17 三次实测事故，全部是「没有人告诉机器这里不支持」）：
+#   #4 槽内用写错的绝对路径调 venv python → rc=127 静默失败，白跑两轮
+#   #5 槽外设剪贴板（无 DISPLAY）→ 粘进输入框的是我自己的聊天文本
+#   #6 `pkill -f "xclip …"` 匹配到发起它的 bash 自身 → 自杀
+# 文档只能提醒读过它的人；自检能拦住所有人。所以：
+#   domain.json = 期望（槽内/槽外各支持什么，每条带实测日期 + 证据命令）
+#   本工具      = 观测（只读探测，离线，**不点、不抢焦点、不注入任何事件**）
+#   两者不符    = FAIL，并打印**复现该结论的证据命令**
+#
+# 用法:
+#   ys-slot-check                       # 审计当前域（域自动探测，与 domain.json 对账）
+#   ys-slot-check --in-slot|--outside   # 断言我应该在哪个域（不符即 FAIL）
+#   ys-slot-check --need clipboard,inject   # 动作闸门：我要做这些事，现在就够条件吗
+#   ys-slot-check --lint '<命令>'       # 动作前审命令：绝对路径 / 槽外设剪贴板 / pkill -f
+#   ys-slot-check --audit               # 审计 domain.json 自身（每条是否都有实测+证据）
+#   ys-slot-check --json                # 机读
+# 退出码: 0=全 PASS  1=有 FAIL  2=用法错误  3=lint 发现违例
+#
+# 硬约束：预算 ≤300ms（超出即 FAIL）；全程只读；不得调用任何注入类动作。
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+T0 = time.monotonic()
+BUDGET_MS = 300
+HERE = os.path.dirname(os.path.realpath(__file__))
+DOMAIN_JSON = os.path.join(HERE, "domain.json")
+CAP_ORDER = ["relative_path", "absolute_path", "display", "clipboard", "inject", "frame_grab"]
+CAP_CN = {
+    "relative_path": "相对路径",
+    "absolute_path": "绝对路径",
+    "display": "X 显示连接",
+    "clipboard": "剪贴板",
+    "inject": "事件注入",
+    "frame_grab": "抓帧",
+}
+# lint 规则（domain.json.known_traps[].id 必须与此集合一致，--audit 会核对）
+LINT_RULES = ["ABS-STALE", "CLIP-NO-DISPLAY", "SELFKILL", "QUIET-STDERR"]
+
+
+# ────────────────────────── 基础：进程、时间、env ──────────────────────────
+def elapsed_ms():
+    return int((time.monotonic() - T0) * 1000)
+
+
+def left_s():
+    return (BUDGET_MS / 1000.0) - (time.monotonic() - T0)
+
+
+def run(cmd, env=None, timeout=0.25):
+    """带全局预算的只读子进程。返回 (rc, out, err)；rc=None 表示超时/无预算。"""
+    left = left_s()
+    if left <= 0.03:
+        return None, "", "预算耗尽"
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, env=env,
+                           timeout=min(timeout, left))
+        return p.returncode, p.stdout.strip(), p.stderr.strip()
+    except subprocess.TimeoutExpired:
+        return None, "", "timeout"
+    except FileNotFoundError:
+        return 127, "", "not-found"
+    except OSError as exc:
+        return 126, "", str(exc)
+
+
+def find_repo_root(start):
+    p = os.path.realpath(start)
+    while True:
+        if os.path.isdir(os.path.join(p, "tools", "ys-editor")):
+            return p
+        parent = os.path.dirname(p)
+        if parent == p:
+            return None
+        p = parent
+
+
+def detect_domain():
+    return "in_slot" if os.environ.get("YS_SLOT_ACTIVE") == "1" else "outside"
+
+
+def _hint(ctx):
+    return ("；" + ctx["hint"]) if ctx.get("hint") else ""
+
+
+def cache_hint():
+    """槽外裸 shell 的补救线索：ys-env.sh 写的缓存里通常已有可用 DISPLAY/XAUTHORITY。
+    只读缓存、**不注入探测**——探测必须忠实反映「调用方现在跑这条命令会发生什么」。"""
+    cache = os.environ.get("YS_ENV_CACHE", "/tmp/ys-env.cache")
+    try:
+        with open(cache, "r", encoding="utf-8", errors="replace") as fh:
+            txt = fh.read()
+    except OSError:
+        return None
+    md = re.search(r"^DISPLAY=(.*)$", txt, re.M)
+    if not md or not md.group(1).strip():
+        return None
+    return "缓存 %s 里有 DISPLAY=%s；`. tools/ys-editor/ys-env.sh` 后 X 类能力即可用" % (
+        cache, md.group(1).strip())
+
+
+def make_ctx():
+    # 关键：用**继承来的**环境探测。若在这里从缓存补 DISPLAY，就会把「源码 ys-env 之后才行」
+    # 谎报成「现在就行」——正是 #5 那类假绿灯。
+    disp = os.environ.get("DISPLAY", "")
+    auth = os.environ.get("XAUTHORITY", "")
+    rc, out, err = run(["xdotool", "getdisplaygeometry"])
+    x_ok = rc == 0
+    x_detail = out if x_ok else " ".join((err or "X 不可达").split())[:140]
+    return {
+        "domain": detect_domain(),
+        "cwd": os.getcwd(),
+        "realcwd": os.path.realpath(os.getcwd()),
+        "repo_root": find_repo_root(os.getcwd()),
+        "disp": disp,
+        "auth": auth,
+        "disp_src": "env" if disp else "none",
+        "hint": None if x_ok else cache_hint(),
+        "x_ok": x_ok,
+        "x_detail": x_detail,
+    }
+
+
+# ────────────────────────── 观测：每个能力一条只读探针 ──────────────────────────
+def observe(cap, ctx):
+    """返回 (observed, detail, evidence_cmd)。observed ∈ {available, unavailable}"""
+    repo = ctx["repo_root"] or ctx["realcwd"]
+    if cap == "relative_path":
+        ev = "stat -c %d:%i .  &&  stat -c %d:%i ./tools/ys-editor"
+        try:
+            a = os.stat(".")
+            b = os.stat("./tools/ys-editor")
+        except OSError as exc:
+            return "unavailable", "相对路径解析失败: %s" % exc, ev
+        if a.st_dev != b.st_dev:
+            return "unavailable", "cwd 与 ./tools/ys-editor 不在同一设备", ev
+        return "available", "cwd 与 ./tools/ys-editor 同 dev=%d" % a.st_dev, ev
+
+    if cap == "absolute_path":
+        ev = "stat %s/tools/ys-editor  &&  readlink /proc/$$/cwd" % repo
+        p = os.path.join(repo, "tools", "ys-editor")
+        if os.path.isdir(p):
+            return "available", "%s 可解析" % p, ev
+        return "unavailable", "%s 解析不到（仓库根=%s）" % (p, repo), ev
+
+    if cap == "display":
+        ev = "DISPLAY=%s xdotool getdisplaygeometry" % (ctx["disp"] or "<空>")
+        if ctx["x_ok"]:
+            return "available", "%s（来源 %s，XAUTHORITY=%s）" % (
+                ctx["x_detail"], ctx["disp_src"], ctx["auth"] or "<无>"), ev
+        return "unavailable", "X 连接不可达：%s（DISPLAY=%r 来源=%s）%s" % (
+            ctx["x_detail"], ctx["disp"], ctx["disp_src"], _hint(ctx)), ev
+
+    if cap == "clipboard":
+        ev = "xclip -selection clipboard -o >/dev/null ; echo rc=$?"
+        if not shutil.which("xclip"):
+            return "unavailable", "xclip 不在 PATH", ev
+        if not ctx["x_ok"]:
+            return "unavailable", "xclip 存在但 X 不可达 ⇒ 设剪贴板会失败（rc=1 Can't open display）%s" % _hint(ctx), ev
+        return "available", "xclip=%s + X 可用" % shutil.which("xclip"), ev
+
+    if cap == "inject":
+        ev = 'readlink -f "$(command -v xdotool)"'
+        xd = shutil.which("xdotool")
+        if not xd:
+            return "unavailable", "xdotool 不在 PATH", ev
+        real = os.path.realpath(xd)
+        shimmed = os.sep + "shims" + os.sep in real
+        if ctx["domain"] == "in_slot":
+            if ctx["x_ok"]:
+                return "available", "槽内 YS_SLOT_ACTIVE=1（shim 直通真二进制）+ X 可用", ev
+            return "unavailable", "槽内但 X 不可达：%s%s" % (ctx["x_detail"], _hint(ctx)), ev
+        if shimmed:
+            return "unavailable", "槽外：%s 是 shim（动作类 rc=77 被拦）" % real, ev
+        if ctx["x_ok"]:
+            return "available", "槽外但 xdotool 未被 shim 接管（%s）——防线缺失" % real, ev
+        return "unavailable", "槽外：xdotool 未 shim 且 X 不可达", ev
+
+    if cap == "frame_grab":
+        ev = "command -v import ; xdotool getdisplaygeometry"
+        tool = shutil.which("import") or shutil.which("magick")
+        if not tool:
+            return "unavailable", "import/magick 不在 PATH", ev
+        if not ctx["x_ok"]:
+            return "unavailable", "%s 存在但 X 不可达%s" % (tool, _hint(ctx)), ev
+        return "available", "%s + X 可用" % tool, ev
+
+    raise SystemExit("未知能力: %s" % cap)
+
+
+# ────────────────────────── 对账：期望 vs 观测 ──────────────────────────
+def load_domain_json():
+    with open(DOMAIN_JSON, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def evaluate(cap, declared, observed):
+    """返回 (ok, kind, note)。kind ∈ {pass, fail, note}"""
+    sup = declared.get("supported")
+    avail = observed == "available"
+    if sup is True:
+        return (avail, "pass" if avail else "fail", "")
+    if sup is False:
+        if avail:
+            return (False, "fail", "声明为不支持但**实际可用**——防线消失或声明过期")
+        return (True, "pass", "")
+    # conditional
+    return (True, "note", "条件：%s" % declared.get("condition", "未注明"))
+
+
+def cmd_audit_live(ctx, want_domain, need, as_json):
+    data = load_domain_json()
+    checks, fails, warns = [], 0, 0
+    domain_mismatch = False
+    domain = ctx["domain"]
+    lines = []
+    lines.append("ys-slot-check  cwd=%s  repo=%s" % (ctx["realcwd"], ctx["repo_root"]))
+    lines.append("  域=%s（%s）  预算=%dms" % (
+        domain, "槽内 YS_SLOT_ACTIVE=1" if domain == "in_slot" else "槽外 YS_SLOT_ACTIVE 未设置",
+        BUDGET_MS))
+
+    # ① 域断言
+    if want_domain and want_domain != domain:
+        domain_mismatch = True
+        fails += 1
+        checks.append({"id": "domain", "ok": False, "declared": want_domain,
+                       "observed": domain, "detail": "断言在 %s，实测在 %s" % (want_domain, domain)})
+        lines.append("  ✗ domain         期望域=%s，实测域=%s ⇒ 你在错误的执行域里" % (
+            want_domain, domain))
+        if want_domain == "in_slot":
+            lines.append("     建议: 用 ./tools/ys-editor/ys-gui-slot <win> <秒> <命令> 进槽后再跑")
+        else:
+            lines.append("     建议: 出槽再跑（不要在 ys-gui-slot 里跑），或加 --in-slot")
+    else:
+        checks.append({"id": "domain", "ok": True, "observed": domain})
+        lines.append("  ✓ domain         已确认（%s）" % domain)
+
+    # ② PWD 一致性（bash 的逻辑 PWD 会过期；#4 就是「pwd 看着对、路径解析不到」）
+    pwd = os.environ.get("PWD", "")
+    if pwd and pwd != ctx["realcwd"]:
+        fails += 1
+        checks.append({"id": "cwd_consistent", "ok": False,
+                       "declared": ctx["realcwd"], "observed": pwd,
+                       "detail": "$PWD 与实际 cwd 不符"})
+        lines.append("  ✗ cwd_consistent $PWD=%s ≠ 实际=%s" % (pwd, ctx["realcwd"]))
+        lines.append("     建议: 用 `readlink /proc/$$/cwd` 取真实路径，别信 $PWD")
+    else:
+        checks.append({"id": "cwd_consistent", "ok": True, "observed": ctx["realcwd"]})
+        lines.append("  ✓ cwd_consistent $PWD == readlink /proc/self/cwd")
+
+    # ③ 历史误写路径（若被创建出来，会把下一次 ENOENT 又误导成「域限制」）
+    stale = "/home/genshin-ts"
+    if os.path.exists(stale):
+        warns += 1
+        lines.append("  ! stale_path_absent  %s 竟然存在——历史误写路径被创建，可能掩盖真因" % stale)
+    else:
+        checks.append({"id": "stale_path_absent", "ok": True, "observed": "absent"})
+        lines.append("  ✓ stale_path_absent %s 不存在（真实仓库根=%s）" % (stale, ctx["repo_root"]))
+
+    # ④ 能力对账
+    caps = data["domains"][domain]["capabilities"]
+    for cap in CAP_ORDER:
+        declared = caps[cap]
+        observed, detail, ev = observe(cap, ctx)
+        ok, kind, note = evaluate(cap, declared, observed)
+        rec = {"id": cap, "ok": ok, "declared": declared.get("supported"),
+               "observed": observed, "detail": detail, "evidence_cmd": ev}
+        if not ok:
+            fails += 1
+            rec["advice"] = declared.get("advice", "")
+            lines.append("  ✗ %-16s %s" % (cap, detail))
+            lines.append("     证据命令: %s" % ev)
+            lines.append("     建议: %s" % declared.get("advice", "见 domain.json"))
+        elif kind == "note":
+            rec["note"] = note
+            lines.append("  ! %-16s 条件可用：%s" % (cap, note))
+            lines.append("     实测: %s" % detail)
+        else:
+            lines.append("  ✓ %-16s %s" % (cap, detail))
+        checks.append(rec)
+
+    # ⑤ --need：动作闸门（「我要做这件事，现在够条件吗」）
+    for cap in need:
+        if cap not in caps:
+            fails += 1
+            lines.append("  ✗ need            未知能力 %r（可选: %s）" % (cap, ",".join(CAP_ORDER)))
+            continue
+        observed, detail, ev = observe(cap, ctx)
+        if observed == "available":
+            lines.append("  ✓ need:%-11s 可用" % cap)
+        else:
+            fails += 1
+            checks.append({"id": "need:" + cap, "ok": False, "observed": observed})
+            lines.append("  ✗ need:%-11s **不可用** → %s" % (cap, detail))
+            lines.append("     证据命令: %s" % ev)
+            lines.append("     建议: %s" % caps[cap].get("advice", "见 domain.json"))
+
+    # ⑥ 预算
+    ms = elapsed_ms()
+    if ms > BUDGET_MS:
+        fails += 1
+        lines.append("  ✗ budget         实测 %dms > %dms" % (ms, BUDGET_MS))
+    else:
+        lines.append("  ✓ budget         实测 %dms ≤ %dms" % (ms, BUDGET_MS))
+
+    verdict = "PASS" if fails == 0 else "FAIL"
+    tail = ("SLOT-CHECK domain=%s checks=%d pass=%d fail=%d warn=%d verdict=%s ms=%d"
+            % (domain, len(checks), len(checks) - fails, fails, warns, verdict, ms))
+    if as_json:
+        print(json.dumps({"domain": domain, "cwd": ctx["realcwd"], "repo_root": ctx["repo_root"],
+                          "checks": checks, "warns": warns, "fails": fails,
+                          "verdict": verdict, "ms": ms, "budget_ms": BUDGET_MS},
+                         ensure_ascii=False, indent=2))
+    else:
+        for ln in lines:
+            print(ln)
+        print("  " + "─" * 60)
+        print("  " + tail)
+        if fails:
+            print("  ⇒ 有 %d 项失败：先按建议修正，再重跑本命令。不要在没有读数的前提下继续动手。" % fails)
+    if domain_mismatch:
+        return 2          # 域断言矛盾：不是"能力缺失"，是"你在错误的执行域里"，与 FAIL 区分
+    return 0 if verdict == "PASS" else 1
+
+
+# ────────────────────────── lint：动作前审命令 ──────────────────────────
+ABS_PATH_RE = re.compile(r"(?<![\w.~/:>-])(/[A-Za-z0-9_.@%+/-]+)")
+REDIR_RE = re.compile(r"(>>?)\s*(/[A-Za-z0-9_.@%+/-]+)")
+
+
+def _abs_path_verdicts(cmd, repo):
+    """ABS-STALE：/home 下的绝对路径必须存在。不存在就是「记忆里的路径过期了」。
+    典型: /home/genshin-ts（本机从不曾存在）vs 真实根 /home/h/genshin-ts。"""
+    out = []
+    redirect_targets = set(REDIR_RE.findall(cmd))
+    skip = {t for _, t in redirect_targets}
+    for m in ABS_PATH_RE.finditer(cmd):
+        path = m.group(1).rstrip(".,;:")
+        if path in skip:
+            continue
+        # 只审 /home 下的路径：/tmp、/dev/null 之类可能是「将要创建」的输出目标
+        if not path.startswith("/home/"):
+            continue
+        if os.path.exists(path):
+            continue
+        tail = path
+        sug = None
+        if repo and tail.startswith("/home/"):
+            parts = tail.split("/")
+            if len(parts) >= 4:
+                cand = os.path.join(repo, *parts[3:])
+                if os.path.exists(cand):
+                    sug = "./" + os.path.relpath(cand, repo) if os.path.exists(
+                        os.path.join(os.getcwd(), os.path.relpath(cand, repo))) else cand
+        if not sug:
+            sug = "./<相对路径>  或 %s" % repo
+        out.append(("ABS-STALE", path,
+                    "绝对路径不存在：%s（本机真实仓库根=%s）" % (path, repo),
+                    "改成相对路径 %s ，或先 `stat %s` 解析确认" % (sug, path)))
+    return out
+
+
+def _invocations(cmd, names):
+    """只在**命令位置**（管道/;段的首 token）认工具名：`pkill -f "xclip …"` 里的 xclip 是模式不是调用。"""
+    segs = re.split(r"\|\||&&|;|\|", cmd)
+    hits = []
+    for seg in segs:
+        toks = seg.strip().split()
+        while toks and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0]):
+            toks.pop(0)                     # 跳过 FOO=bar 前缀
+        if not toks:
+            continue
+        if os.path.basename(toks[0]) in names:
+            hits.append((toks, seg.strip()))
+    return hits
+
+
+def _clipboard_verdicts(cmd, ctx):
+    hits = _invocations(cmd, {"xclip", "wl-copy", "wl-paste"})
+    if not hits:
+        return []
+    is_read = any("-o" in toks for toks, _ in hits) or any(
+        "wl-paste" in toks[0] for toks, _ in hits)
+    if is_read and not any("-i" in toks for toks, _ in hits):
+        return []
+    if ctx["x_ok"]:
+        return []
+    return [("CLIP-NO-DISPLAY", "xclip",
+             "当前域（%s）无可用 X 连接（DISPLAY=%r）：设剪贴板会 rc=1 `Can't open display`，"
+             "而**粘贴进去的是剪贴板原内容**（2026-10-17 实测粘进了自己的聊天文本）"
+             % (ctx["domain"], ctx["disp"]),
+             "① 先 `. tools/ys-editor/ys-env.sh` 补 DISPLAY/XAUTHORITY；"
+             "② 要粘进游戏窗必须进槽："
+             "`./tools/ys-editor/ys-gui-slot 0x01400001 15 bash -c '( printf 文本 | xclip "
+             "-selection clipboard >/dev/null 2>&1 & ); xdotool key ctrl+v'`")]
+
+
+def _selfkill_verdicts(cmd, ctx):
+    hit = re.search(r"\bpkill\b[^|;&]*\s(-[A-Za-z]*f|--full)\b", cmd) \
+        or re.search(r"\bkillall\b[^|;&]*\s-[A-Za-z]*r\b", cmd) \
+        or re.search(r"\bpgrep\b[^|;&]*\s-[A-Za-z]*f\b[^|;&]*\|[^|;&]*\b(kill|xargs)\b", cmd)
+    if not hit:
+        return []
+    return [("SELFKILL", hit.group(0).strip(),
+             "`-f/--full` 匹配**整条命令行**：发起这条命令的 bash 自己的命令行里就含该模式 ⇒ "
+             "命中自己（2026-10-17 实测 `[killed by signal: SIGTERM]`）",
+             "改用 `./tools/ys-editor/ys-safe-kill --yes <pattern>`（自动排除自身与祖先，先打印将要动谁）；"
+             "单命令替代是 `pkill -x <进程名>`")]
+
+
+def _quiet_stderr_verdicts(cmd, ctx):
+    if not re.search(r"2>\s*/dev/null|>\s*/dev/null\s+2>&1", cmd):
+        return []
+    if not re.search(r"\b(xclip|xdotool|import|ys-pointer-click|ys-observe|ys-state)\b", cmd):
+        return []
+    return [("QUIET-STDERR", "2>/dev/null",
+             "把桌面/指针/剪贴板类调用的 stderr 丢掉 = 把「X 不可达 / 目标未命中」的诊断丢掉，"
+             "上游只能空转（复盘 §7 #3 复现 4 处）",
+             "保留 stderr，只重定向 stdout：`… 2>&1 | tail -3` 或 `>>日志 2>&1`")]
+
+
+def lint(cmd, ctx, as_json):
+    repo = ctx["repo_root"] or ctx["realcwd"]
+    violations, warns = [], []
+    for finder in (_abs_path_verdicts(cmd, repo), _clipboard_verdicts(cmd, ctx),
+                   _selfkill_verdicts(cmd, ctx)):
+        for rule, at, why, fix in finder:
+            violations.append({"rule": rule, "at": at, "why": why, "fix": fix})
+    for rule, at, why, fix in _quiet_stderr_verdicts(cmd, ctx):
+        warns.append({"rule": rule, "at": at, "why": why, "fix": fix})
+    verdict = "FAIL" if violations else "PASS"
+    if as_json:
+        print(json.dumps({"domain": ctx["domain"], "cmd": cmd, "violations": violations,
+                          "warnings": warns, "verdict": verdict, "ms": elapsed_ms()},
+                         ensure_ascii=False, indent=2))
+    else:
+        print("ys-slot-check --lint  域=%s  cwd=%s" % (ctx["domain"], ctx["realcwd"]))
+        print("  命令: %s" % cmd)
+        if not violations and not warns:
+            print("  ✓ 未发现已知陷阱")
+        for v in violations:
+            print("  ✗ [%s] %s" % (v["rule"], v["at"]))
+            print("     为什么: %s" % v["why"])
+            print("     替代命令: %s" % v["fix"])
+        for w in warns:
+            print("  ! [%s] %s" % (w["rule"], w["at"]))
+            print("     为什么: %s" % w["why"])
+            print("     建议: %s" % w["fix"])
+        print("  " + "─" * 60)
+        print("  LINT-RESULT domain=%s rules=%d violations=%d warn=%d verdict=%s ms=%d" % (
+            ctx["domain"], len(LINT_RULES), len(violations), len(warns), verdict, elapsed_ms()))
+    return 0 if verdict == "PASS" else 3
+
+
+# ────────────────────────── audit：domain.json 自身 ──────────────────────────
+def audit_domain_json():
+    issues = []
+    try:
+        data = load_domain_json()
+    except (OSError, ValueError) as exc:
+        print("  ✗ 读不到 %s: %s" % (DOMAIN_JSON, exc))
+        return 1
+    for key in ("schema", "measured", "domains"):
+        if key not in data:
+            issues.append("缺顶层字段 %s" % key)
+    caps_seen = 0
+    for dname, dval in (data.get("domains") or {}).items():
+        if "detect" not in dval:
+            issues.append("%s 缺 detect" % dname)
+        caps = dval.get("capabilities") or {}
+        for cap in CAP_ORDER:
+            if cap not in caps:
+                issues.append("%s 缺能力 %s" % (dname, cap))
+                continue
+            caps_seen += 1
+            entry = caps[cap]
+            if entry.get("supported") not in (True, False, "conditional"):
+                issues.append("%s.%s supported 值非法" % (dname, cap))
+            for f in ("measured", "probe", "evidence", "advice"):
+                if not str(entry.get(f, "")).strip():
+                    issues.append("%s.%s 缺 %s（声明必须带实测日期与证据）" % (dname, cap, f))
+    trap_ids = [t.get("id") for t in data.get("known_traps") or []]
+    for t in trap_ids:
+        if t not in LINT_RULES:
+            issues.append("known_traps 里的 %s 在代码里没有对应规则" % t)
+    for r in LINT_RULES:
+        if r not in trap_ids:
+            issues.append("代码里的规则 %s 未在 domain.json 登记" % r)
+    for c in data.get("corrections") or []:
+        for f in ("claim", "verdict", "measured", "evidence", "rule_replaced_by"):
+            if not str(c.get(f, "")).strip():
+                issues.append("corrections 条缺 %s" % f)
+    verdict = "PASS" if not issues else "FAIL"
+    print("ys-slot-check --audit  %s" % DOMAIN_JSON)
+    print("  能力条目=%d  陷阱=%d  修正记录=%d" % (
+        caps_seen, len(trap_ids), len(data.get("corrections") or [])))
+    for i in issues:
+        print("  ✗ %s" % i)
+    print("  DOMAIN-AUDIT caps=%d traps=%d issues=%d verdict=%s ms=%d" % (
+        caps_seen, len(trap_ids), len(issues), verdict, elapsed_ms()))
+    return 0 if not issues else 1
+
+
+def main(argv):
+    global BUDGET_MS
+    ap = argparse.ArgumentParser(add_help=True, description="执行域能力自检（≤300ms，只读，离线）")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--in-slot", action="store_true", help="断言当前应在受控槽内")
+    g.add_argument("--outside", action="store_true", help="断言当前应在槽外")
+    ap.add_argument("--need", default="", help="动作闸门：逗号分隔的能力名，任一不可用即 FAIL")
+    ap.add_argument("--lint", default=None, metavar="CMD", help="动作前审命令")
+    ap.add_argument("--audit", action="store_true", help="审计 domain.json 自身")
+    ap.add_argument("--json", action="store_true", help="机读输出")
+    ap.add_argument("--budget-ms", type=int, default=BUDGET_MS, help="预算（默认 300）")
+    args = ap.parse_args(argv)
+    BUDGET_MS = args.budget_ms
+
+    if args.audit:
+        return audit_domain_json()
+
+    ctx = make_ctx()
+    if args.lint is not None:
+        return lint(args.lint, ctx, args.json)
+
+    want = "in_slot" if args.in_slot else ("outside" if args.outside else None)
+    need = [x.strip() for x in args.need.split(",") if x.strip()]
+    return cmd_audit_live(ctx, want, need, args.json)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        sys.exit(130)
