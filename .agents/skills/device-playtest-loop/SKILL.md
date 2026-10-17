@@ -157,6 +157,12 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | `_ys-ui.sh` | **判据库** | `judge/is_light/is_dark/wait_light/wait_dark`；**只截 40×40**（84ms vs 全窗 5893ms） |
 | `ys_look.py` | 模板匹配 | CPU=积分图+FFT 精确 NCC（小图）／GPU=torch FFT+cumsum（大区）；**按成本链自适应** |
 | `ys-lookd.py` + `ys-lookd.service` | **GPU 常驻服务** | 摊掉 `import torch` 2~3s + CUDA ~1s；客户端自动优先走服务、连不上回退本地；实测全窗 **4.4s → 1.0s** |
+| **`ys-screen`** | **屏幕摘要层**（像素→界面：文本/控件/分区/邻接/遮挡/人读摘要） | `ys-screen <png> [--json]`；离线只读帧；稳态 0.7~1.0s/帧（冷跑 4.5~8.6s 是 RapidOCR 自身开销）。**邻接**是核心：`「云阶」→ circle@(516,86) 右侧 338px` 这种"名字旁边有颗钮"的关系，OCR 永远给不出来 |
+| **`ys-layer`** | **层级/模态/压暗层**（我在第几层？怎么退？） | `ys-layer <png> [--json]` 输出 `scrim/modal/panels/close_controls/advice`；**交互遮挡**（模态压暗）与 `ys-screen` 的**视觉遮挡**（DXVK 叠加层）是两回事。自测 `tests/layer-selftest.sh` 5 帧 9 断言 |
+| **`ys-find`** | 多通道找控件 + 单目标解析 | `ys-find --frame <png> --text <标签> [--expect x,y] [--tol N]`；**解析实现只此一处**（`ys-pointer-click --text/--anchor` 内部调它）；文本匹配 NFKC+去空白+casefold 全等，**不做模糊** |
+| **`ys-safe-kill`** | 安全杀进程 | `/proc` 先解析（pid/ppid/comm/cmdline）→ 排除自身+全部祖先+pid1+他人进程 → 打印"将要动谁" → `--yes` 才动；只剩自身时 `SAFE-KILL-SELFMONLY` |
+| **`ys-safe-rm`** | 安全删文件 | realpath 解析 + 拒未展开 glob/`$` + 保护 `/`、家目录、仓库根、cwd 及其祖先、`.git`、系统目录；目录必须 `-r` |
+| **`ys-slot-check`** | **执行域自检**（槽内/槽外能力对账） | 20~24ms；`--in-slot/--outside` 断言域、`--lint '<cmd>'` 动作前审（`ABS-STALE`/`CLIP-NO-DISPLAY`/`SELFKILL`）、`--need cap,...` 前置闸门；期望写在 `domain.json` |
 | **`ys-env.sh`** | 源出桌面环境变量（`DISPLAY`/`XAUTHORITY`/`YDOTOOL_SOCKET`） | 每个 `ys-*` 脚本开头都会 source。**槽内/槽外是两套环境**：槽外设的剪贴板进不了槽（见「受控槽内的环境边界」）；手跑命令前先 `. tools/ys-editor/ys-env.sh`，否则 `xdotool`/`xclip` 报 `DISPLAY is empty` |
 | **`ys-gates`** | **六门槛唯一验收器**（能力层过没过，一条命令给读数） | `./tools/ys-gates` 退出码 0 只在全 PASS（1=有 FAIL / 2=有 BLOCKED）；六条=①判定回归 ②假成功 ③性能 ④证据 ⑤单一源 ⑥操作目录；**不重实现任何判据**，只聚合；契约 `docs/maintenance/gui-gate-contract-2026-10-17.md` |
 | **`ys-wait`** | **谓词等待**（禁裸 sleep 的执行体） | `ys-wait --until '<命令>' --expect <值> --timeout N --poll 0.3`；命令失败/超时即非零退出并打印最后读数（别用 `sleep N` 冒充同步） |
