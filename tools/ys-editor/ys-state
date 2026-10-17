@@ -303,9 +303,15 @@ def decode_frame(path):
     return arr
 
 
-def raw_frame_bin(pix, path="/tmp/ys-state-fast.bin"):
-    """把整帧写成原始 RGB 落盘，交给 ys-lookd 的 frame_bin 快路径（省掉它再解码一次 PNG）。"""
-    with open(path, "wb") as f:
+def raw_frame_bin(pix):
+    """把整帧写成原始 RGB 落盘，交给 ys-lookd 的 frame_bin 快路径（省掉它再解码一次 PNG）。
+
+    ⚠️ 每次用**唯一临时文件**：固定路径在「两个进程同时判帧」时会互相覆盖，
+    于是某一次拿到的是别人的帧 —— 症状是回归里偶发单帧判错（实测踩过一次）。
+    """
+    import tempfile
+    fd, path = tempfile.mkstemp(prefix="ys-state-fast-", suffix=".bin")
+    with os.fdopen(fd, "wb") as f:
         f.write(pix.a.tobytes())
     return path, [pix.h, pix.w, 3]
 
@@ -471,6 +477,9 @@ def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
     else:
         req["frame"] = os.path.abspath(frame_path)
     r = ys_look.daemon(req, timeout=30)
+    if not r:                                   # 冷启动 / 服务刚重启：重试一次再判仪器故障
+        time.sleep(1.0)
+        r = ys_look.daemon(req, timeout=60)
     if not r:
         raise RuntimeError(f"ys-lookd 不可用（{ys_look.LAST_DAEMON_ERROR or '连接失败'}）")
     sc = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
@@ -594,6 +603,7 @@ def run_fast(frame=None, profile_path=None):
     else:
         readings["GEOM/frame 尺寸 2560x1440"] = {
             "value": f"实际 {pix.w}x{pix.h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
+    bin_path = None
     try:
         if geom_ok(pix.w, pix.h):
             bin_path, shape = raw_frame_bin(pix)
@@ -601,12 +611,19 @@ def run_fast(frame=None, profile_path=None):
     except (RuntimeError, OSError) as e:
         return {"state": "UNKNOWN", "channel": "fast", "error": str(e),
                 "ms": round((time.time() - t0) * 1000)}, frame, None
+    finally:
+        if bin_path:
+            try:
+                os.unlink(bin_path)
+            except OSError:
+                pass
     res = decide(readings)
     res.update({"channel": "fast", "readings": readings, "ms": round((time.time() - t0) * 1000)})
     if frame:
         return res, frame, fresh_obj(frame, meta)
     # 活体：fast 通道不做堆叠序校验（<150ms 预算内塞不下 ys-atop），用抓帧时刻 + 原始帧 sha 定位
-    fresh = {"atop": None, "ts": int(time.time()), "sha": sha16("/tmp/ys-state-fast.bin"),
+    fresh = {"atop": None, "ts": int(time.time()),
+             "sha": hashlib.sha256(pix.a.tobytes()).hexdigest()[:16],
              "note": "fast 通道不校验堆叠序；需要新鲜度证明请用 full 通道"}
     return res, None, fresh
 
