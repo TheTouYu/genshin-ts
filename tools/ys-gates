@@ -1,0 +1,368 @@
+#!/usr/bin/env python3
+"""ys-gates — GUI 能力层五条验收门槛的**唯一验收器**。
+
+设计依据（2026-10-17 定稿，契约 docs/maintenance/gui-gate-contract-2026-10-17.md）：
+  · 门禁的意义在于「拦下」，不在于「记录」。所以本工具**不重实现任何判据**，
+    只调用既有实现取读数、比阈值、给 PASS/FAIL——它是读表器，不是第二套判据。
+  · 退出码 0 仅在**五条全 PASS**时给出；任一 BLOCKED/FAIL 都非 0，并逐条写明差什么。
+  · 全部离线：不抓屏、不点、不抢焦点、不起试玩。可以在任何时刻跑。
+
+用法:
+  tools/ys-gates                 # 人看：表格 + 每条的读数与差项
+  tools/ys-gates --json          # 机器看（stdout 只出 JSON）
+  tools/ys-gates --only 15       # 只跑指定门槛（如 15 = ①⑤）
+  tools/ys-gates --round-dir D   # 指定用来判 ③④ 的轮目录（缺省取 ~/ys-round 最新含 round.json 的）
+
+退出码: 0 五条全 PASS / 1 有 FAIL / 2 有 BLOCKED（依赖未就绪） / 3 用法错
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+YS = os.path.join(HERE, 'ys-editor')
+YS_STATE = os.path.join(YS, 'ys-state')
+ROUND_REPORT = os.path.join(HERE, 'round-report')
+FAKE_SUCCESS = os.path.join(YS, 'tests', 'fake-success.selftest.sh')
+ROUND_HOME = os.path.expanduser('~/ys-round')
+
+GATE_NAMES = {
+    1: '判定回归（≥16 样本 / ≥5 负样本 / 两通道 100%）',
+    2: '假成功（3 类注入失败 / ≤10s 停 / 报断言+观测值）',
+    3: '性能（写盘轮 ≤90s / 试玩轮 ≤40s / 帧 ≤12 / 焦点 1 / sleep 0）',
+    4: '证据（round.json + 引用帧 + .gia 可重算）',
+    5: '单一源（界面态判定全仓只一处实现）',
+}
+
+PASS, FAIL, BLOCKED = 'PASS', 'FAIL', 'BLOCKED'
+
+
+def run(cmd, timeout=180, env=None, cwd=ROOT):
+    """跑子进程，返回 (rc, out, err, ms)。超时按 rc=124 处理，不抛。"""
+    e = dict(os.environ)
+    if env:
+        e.update(env)
+    t0 = time.time()
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=cwd, env=e)
+        return p.returncode, p.stdout or '', p.stderr or '', int((time.time() - t0) * 1000)
+    except subprocess.TimeoutExpired:
+        return 124, '', 'timeout %ss' % timeout, int((time.time() - t0) * 1000)
+    except FileNotFoundError as exc:
+        return 127, '', str(exc), int((time.time() - t0) * 1000)
+
+
+def tail(text, n=400):
+    text = (text or '').strip()
+    return text[-n:] if len(text) > n else text
+
+
+# ---------------------------------------------------------------- 门槛①
+def gate1():
+    """判定回归：期望 ys-state --regress --channel both --json 给出结构化读数。"""
+    g = {'gate': 1, 'name': GATE_NAMES[1], 'status': BLOCKED, 'readings': {}, 'gaps': []}
+    if not os.path.exists(YS_STATE):
+        g['gaps'].append('ys-state 不存在')
+        return g
+    rc, out, err, ms = run([sys.executable, YS_STATE, '--regress', '--channel', 'both', '--json'],
+                           timeout=300)
+    g['ms'] = ms
+    data = None
+    try:
+        data = json.loads(out[out.index('{'):out.rindex('}') + 1])
+    except Exception:
+        g['gaps'].append('--regress --json 无结构化输出（rc=%d）：%s' % (rc, tail(err or out, 200)))
+        return g
+    total = int(data.get('total') or 0)
+    negs = int(data.get('negatives') or 0)
+    chans = data.get('channels') or {}
+    g['readings'] = {'total': total, 'negatives': negs,
+                     'channels': {k: v.get('percent') if isinstance(v, dict) else v
+                                  for k, v in chans.items()},
+                     'rc': rc}
+    if total < 16:
+        g['gaps'].append('样本总数 %d < 16（差 %d）' % (total, 16 - total))
+    if negs < 5:
+        g['gaps'].append('负样本 %d < 5（差 %d）' % (negs, 5 - negs))
+    for name, v in chans.items():
+        pct = v.get('percent') if isinstance(v, dict) else v
+        if pct is None or float(pct) < 100:
+            g['gaps'].append('通道 %s 通过率 %s < 100%%' % (name, pct))
+            if isinstance(v, dict):
+                for c in (v.get('failed') or [])[:5]:
+                    g['gaps'].append('  失败样本: %s' % (c if isinstance(c, str)
+                                                        else json.dumps(c, ensure_ascii=False)))
+    if rc != 0 and not g['gaps']:
+        g['gaps'].append('ys-state --regress 退出码 %d' % rc)
+    g['status'] = PASS if not g['gaps'] else FAIL
+    return g
+
+
+# ---------------------------------------------------------------- 门槛②
+def gate2():
+    """假成功：跑执行器级自测脚本，解析每类失败用例的耗时与退出码。"""
+    g = {'gate': 2, 'name': GATE_NAMES[2], 'status': BLOCKED, 'readings': {}, 'gaps': []}
+    if not os.path.exists(FAKE_SUCCESS):
+        g['gaps'].append('缺执行器级自测：tools/ys-editor/tests/fake-success.selftest.sh')
+        return g
+    rc, out, err, ms = run(['bash', FAKE_SUCCESS], timeout=300)
+    g['ms'] = ms
+    cases = {}
+    verdict = None
+    # 契约 §7 机读行：GATE2-RESULT f1=<ms>:<exit> f2=... f3=... verdict=PASS|FAIL
+    for line in (out + '\n' + err).splitlines():
+        m = re.search(r'GATE2-RESULT\b(.*)$', line)
+        if m:
+            body = m.group(1)
+            for kind in ('f1', 'f2', 'f3'):
+                mm = re.search(kind + r'=(\d+):(\d+)', body)
+                if mm:
+                    cases[kind.upper()] = {'ms': int(mm.group(1)), 'exit': int(mm.group(2)),
+                                           'ok': None}
+            vm = re.search(r'verdict=(PASS|FAIL)', body)
+            verdict = vm.group(1) if vm else None
+    if not cases:
+        # 兼容旧格式：PASS|FAIL <F1|F2|F3> ... ms=<n> ... exit=<n>
+        for line in (out + '\n' + err).splitlines():
+            m = re.match(r'\s*(PASS|FAIL)\s+(F[123])\b.*?ms=(\d+).*?exit=(\d+)', line)
+            if m:
+                cases[m.group(2)] = {'ok': m.group(1) == 'PASS', 'ms': int(m.group(3)),
+                                     'exit': int(m.group(4))}
+    g['readings'] = {'cases': cases, 'script_rc': rc, 'verdict': verdict}
+    if not cases:
+        g['gaps'].append('自测未给机读结果行 GATE2-RESULT（契约 §7）')
+        return g
+    if verdict == 'FAIL':
+        g['gaps'].append('自测自报 verdict=FAIL')
+    want_exit = {'F1': 3, 'F2': 4, 'F3': 3}
+    for kind in ('F1', 'F2', 'F3'):
+        c = cases.get(kind)
+        if not c:
+            g['gaps'].append('缺少 %s 用例结果' % kind)
+            continue
+        if c['ok'] is False:
+            g['gaps'].append('%s 自测判 FAIL' % kind)
+        if c['ms'] > 10000:
+            g['gaps'].append('%s 停止耗时 %dms > 10000ms' % (kind, c['ms']))
+        if c['exit'] != want_exit[kind]:
+            g['gaps'].append('%s 退出码 %d ≠ 期望 %d' % (kind, c['exit'], want_exit[kind]))
+    g['status'] = PASS if not g['gaps'] else FAIL
+    return g
+
+
+# ---------------------------------------------------------------- 门槛③④
+def newest_round(explicit=None):
+    if explicit:
+        return explicit if os.path.isdir(explicit) else None
+    if not os.path.isdir(ROUND_HOME):
+        return None
+    cands = []
+    for name in os.listdir(ROUND_HOME):
+        d = os.path.join(ROUND_HOME, name)
+        if os.path.isdir(d) and os.path.exists(os.path.join(d, 'round.json')):
+            cands.append((os.path.getmtime(os.path.join(d, 'round.json')), d))
+    return max(cands)[1] if cands else None
+
+
+def load_round(rdir):
+    try:
+        with open(os.path.join(rdir, 'round.json'), encoding='utf-8') as fh:
+            return json.load(fh)
+    except Exception as exc:
+        return {'_error': str(exc)}
+
+
+def gate3(rdir):
+    """性能：只读 round.json.budget 与 duration_ms，不重跑。"""
+    g = {'gate': 3, 'name': GATE_NAMES[3], 'status': BLOCKED, 'readings': {}, 'gaps': []}
+    if not rdir:
+        g['gaps'].append('没有含 round.json 的轮目录（先跑一轮，或 --round-dir 指定）')
+        return g
+    r = load_round(rdir)
+    if '_error' in r:
+        g['gaps'].append('round.json 不可解析：%s' % r['_error'])
+        return g
+    kind = r.get('kind') or r.get('type') or 'write'
+    budget = r.get('budget') or {}
+    dur = r.get('duration_ms')
+    limit = 90000 if kind == 'write' else 40000
+    g['readings'] = {'round': os.path.basename(rdir.rstrip('/')), 'kind': kind,
+                     'duration_ms': dur, 'frames': budget.get('frames'),
+                     'focus': budget.get('focus'), 'sleeps': budget.get('sleeps')}
+    if dur is None:
+        g['gaps'].append('round.json 缺 duration_ms（执行器没记时长）')
+    elif dur > limit:
+        g['gaps'].append('%s 轮 %dms > %dms' % (kind, dur, limit))
+    for key, cap in (('frames', 12), ('focus', 1), ('sleeps', 0)):
+        v = budget.get(key)
+        if v is None:
+            g['gaps'].append('round.json.budget 缺 %s' % key)
+        elif v > cap:
+            g['gaps'].append('budget.%s=%s > %d' % (key, v, cap))
+    g['status'] = PASS if not g['gaps'] else FAIL
+    return g
+
+
+def gate4(rdir):
+    """证据：调用 round-report --replay 只用落盘物重算；没证据必须报错而不是猜。"""
+    g = {'gate': 4, 'name': GATE_NAMES[4], 'status': BLOCKED, 'readings': {}, 'gaps': []}
+    if not rdir:
+        g['gaps'].append('没有含 round.json 的轮目录')
+        return g
+    if not os.path.exists(ROUND_REPORT):
+        g['gaps'].append('tools/round-report 不存在')
+        return g
+    rc, out, err, ms = run([sys.executable, ROUND_REPORT, '--replay', rdir], timeout=120)
+    g['ms'] = ms
+    res = None
+    for line in (out + '\n' + err).splitlines():
+        m = re.search(r'GATE4-RESULT\b(.*)$', line)
+        if m:
+            res = dict(re.findall(r'(\w+)=([\w]+)', m.group(1)))
+    g['readings'] = {'rc': rc, 'round': os.path.basename(rdir.rstrip('/')),
+                     'result': res, 'stdout_tail': tail(out, 300)}
+    if rc != 0:
+        g['gaps'].append('--replay 退出码 %d：%s' % (rc, tail(err or out, 240)))
+    if res is None:
+        if 'PASS' not in out:
+            g['gaps'].append('--replay 输出里没有 PASS 判定')
+        if 'DIFF' in out:
+            g['gaps'].append('--replay 报 DIFF（证据与结论不一致）')
+    else:
+        if res.get('verdict') != 'PASS':
+            g['gaps'].append('replay verdict=%s' % res.get('verdict'))
+        for key in ('diff', 'error'):
+            if int(res.get(key, 1) or 0) != 0:
+                g['gaps'].append('replay %s=%s（应为 0）' % (key, res.get(key)))
+    g['status'] = PASS if not g['gaps'] else FAIL
+    return g
+
+
+# ---------------------------------------------------------------- 门槛⑤
+# 判据副本的**特征指纹**：状态名列表 / 像素探针字面量。
+# 只允许出现在 ys-state（唯一实现）。calib/ 与 tests/ 是数据与测试，不计。
+STATE_WORDS = ('EDITOR', 'MENU', 'SAVELIST', 'PLAYTEST', 'PAUSE', 'SETTLE', 'LOADING', 'UNKNOWN')
+PROBE_PATTERNS = [
+    (re.compile(r'\bpx\(\s*\d+\s*,\s*\d+\s*\)'), 'px(x,y)'),
+    (re.compile(r'\bis_(?:light|dark)\s+\d+\s+\d+'), 'is_light/is_dark'),
+    (re.compile(r'\bjudge\s+\d+\s+\d+'), 'judge'),
+    (re.compile(r'\bwait_(?:light|dark)\s+\d+\s+\d+'), 'wait_light/wait_dark'),
+]
+SKIP_DIRS = {'node_modules', '.git', 'calib', 'tests', '__pycache__', '.scratch', 'dist'}
+SELF = os.path.abspath(__file__)
+
+
+def scan_duplicates():
+    """两级判定，机械可判（不靠人给自己解释）：
+
+    A 类（硬证据，必须清空）= 文件里出现坐标/像素探针字面量 —— 只有唯一实现可以持有坐标。
+    B 类（候选，可自证）= ≥3 个状态名同现，且**没有**调用 ys-state —— 说明它自己在判，不是消费者。
+    消费者（引用了 ys-state）即便提到状态名也不计，这是"委托"的机械判据。
+    """
+    a_hits, b_hits = {}, {}
+    for base, dirs, files in os.walk(os.path.join(ROOT, 'tools')):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith('.')]
+        for fn in files:
+            path = os.path.join(base, fn)
+            if not (fn.endswith(('.py', '.sh')) or '.' not in fn):
+                continue          # 无扩展名的可执行脚本（ys-state/ys-round/…）必须一起扫
+            if os.path.abspath(path) in (os.path.abspath(YS_STATE), SELF):
+                continue
+            try:
+                text = open(path, encoding='utf-8', errors='replace').read()
+            except Exception:
+                continue
+            rel = os.path.relpath(path, ROOT)
+            probes = []
+            for pat, label in PROBE_PATTERNS:
+                n = len(pat.findall(text))
+                if n:
+                    probes.append('%s×%d' % (label, n))
+            if probes:
+                a_hits[rel] = probes
+                continue
+            words = [w for w in STATE_WORDS if re.search(r'\b%s\b' % w, text)]
+            delegates = ('ys-state' in text) or ('ys_gates' in text)
+            if len(words) >= 3 and not delegates:
+                b_hits[rel] = sorted(words)
+    return a_hits, b_hits
+
+
+def gate5():
+    g = {'gate': 5, 'name': GATE_NAMES[5], 'status': FAIL, 'readings': {}, 'gaps': []}
+    if not os.path.exists(YS_STATE):
+        g['gaps'].append('ys-state 不存在（唯一实现缺位）')
+        g['status'] = BLOCKED
+        return g
+    a_hits, b_hits = scan_duplicates()
+    g['readings'] = {'tierA': a_hits, 'tierB': b_hits, 'count': len(a_hits) + len(b_hits),
+                     'canonical': os.path.relpath(YS_STATE, ROOT)}
+    for path, what in sorted(a_hits.items()):
+        g['gaps'].append('A 类判据副本 %s: %s（坐标/阈值必须只留在 ys-state）'
+                         % (path, '; '.join(what)))
+    for path, words in sorted(b_hits.items()):
+        g['gaps'].append('B 类候选 %s: 状态名 %s 且未调用 ys-state（要么委托，要么删掉判定）'
+                         % (path, ','.join(words)))
+    g['status'] = PASS if not (a_hits or b_hits) else FAIL
+    return g
+
+
+# ---------------------------------------------------------------- main
+def main(argv=None):
+    ap = argparse.ArgumentParser(add_help=True)
+    ap.add_argument('--json', action='store_true')
+    ap.add_argument('--only', default='12345')
+    ap.add_argument('--round-dir', default=None)
+    ap.add_argument('--verbose', action='store_true')
+    a = ap.parse_args(argv)
+    want = {int(c) for c in a.only if c.isdigit()}
+    if not want:
+        print('usage: ys-gates [--json] [--only 12345] [--round-dir D]', file=sys.stderr)
+        return 3
+    rdir = newest_round(a.round_dir) if (3 in want or 4 in want) else None
+    results = []
+    if 1 in want:
+        results.append(gate1())
+    if 2 in want:
+        results.append(gate2())
+    if 3 in want:
+        results.append(gate3(rdir))
+    if 4 in want:
+        results.append(gate4(rdir))
+    if 5 in want:
+        results.append(gate5())
+
+    total = len(results)
+    npass = sum(1 for r in results if r['status'] == PASS)
+    nfail = sum(1 for r in results if r['status'] == FAIL)
+    nblk = sum(1 for r in results if r['status'] == BLOCKED)
+    if a.json:
+        print(json.dumps({'gates': results, 'summary': {'pass': npass, 'fail': nfail,
+                                                        'blocked': nblk, 'total': total},
+                          'all_pass': npass == total}, ensure_ascii=False, indent=1))
+    else:
+        print('══ ys-gates 五条验收门槛  %s ══' % time.strftime('%F %T'))
+        for r in results:
+            mark = {'PASS': '✓', 'FAIL': '✗', 'BLOCKED': '·'}[r['status']]
+            print('%s 门槛%d %-10s %s' % (mark, r['gate'], r['status'], r['name']))
+            rd = r.get('readings') or {}
+            if rd:
+                compact = {k: v for k, v in rd.items() if k not in ('duplicates', 'stdout_tail')}
+                print('     读数: %s' % json.dumps(compact, ensure_ascii=False))
+            for gap in r['gaps'][:12 if a.verbose else 6]:
+                print('     差: %s' % gap)
+        print('-' * 60)
+        print('汇总: PASS %d / FAIL %d / BLOCKED %d（共 %d）%s'
+              % (npass, nfail, nblk, total, '  ← 五条全绿' if npass == total else ''))
+    if npass == total:
+        return 0
+    return 1 if nfail else 2
+
+
+if __name__ == '__main__':
+    sys.exit(main())
