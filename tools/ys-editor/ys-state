@@ -747,13 +747,16 @@ def probe(name, frame=None):
         raise RuntimeError(f"未知探针 {name!r}；可用: {sorted(PROBES)}")
     t0 = time.time()
     spec = PROBES[name]
-    readings, _cells = probe_readings(name, frame=frame)
-    p = sum(1 for r in readings if r["passed"])
-    n = len(readings)
-    visible = (p >= 2) if spec["rule"] == "any2" else (p == n)
+    items, _cells = probe_readings(name, frame=frame)
+    n = len(items)
+    passed = sum(1 for r in items if r["passed"])
+    visible = (passed >= 2) if spec["rule"] == "any2" else (passed == n)
     if n < 2:                                          # 契约 §6：每探针 ≥2 判据
         visible = False
-    return {"probe": name, "visible": bool(visible), "readings": readings,
+    return {"probe": name, "visible": bool(visible),
+            "readings": {r["name"]: {"value": r["value"], "passed": r["passed"], "kind": r["kind"]}
+                         for r in items},
+            "criteria": n, "passed_criteria": passed,
             "ms": round((time.time() - t0) * 1000), "desc": spec["desc"],
             "rule": spec["rule"], "validated": spec.get("validated", True)}
 
@@ -944,7 +947,7 @@ def main(argv):
                         else:
                             sys.stderr.write(
                                 f"[ys-state] 等待探针 {name} {expect} 超时 {timeout}s"
-                                f"（最后 readings={[ (r['name'], r['passed']) for r in out['readings'] ]}）\n")
+                                f"（最后判据={ {k: v['passed'] for k, v in out['readings'].items()} }）\n")
                         return 1
                     time.sleep(poll)
             else:
