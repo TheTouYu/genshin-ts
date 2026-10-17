@@ -29,11 +29,19 @@ YS = os.path.join(HERE, 'ys-editor')
 YS_STATE = os.path.join(YS, 'ys-state')
 ROUND_REPORT = os.path.join(HERE, 'round-report')
 FAKE_SUCCESS = os.path.join(YS, 'tests', 'fake-success.selftest.sh')
+# 门槛② 的防护套件（2026-10-17 Lead 扩项）：同一族 = "系统必须拒绝错误动作"
+#   fake-success   F1/F2/F3/F4（假成功 + 对象不符）
+#   identity       replay 证据新鲜度（无 sha/无时刻/sha 不符 ⇒ ERROR）
+#   resolve        动作时解析（候选=0 / 候选不唯一 / 回读不符）
+#   domain         执行域自检（ABS-STALE / CLIP-NO-DISPLAY / SELFKILL）
+SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
+          ('resolve-click', 'resolve-click.selftest.sh', 240),
+          ('domain-selftest', 'domain-selftest.sh', 180)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {
     1: '判定回归（≥16 样本 / ≥5 负样本 / 两通道 100%）',
-    2: '假成功（3 类注入失败 / ≤10s 停 / 报断言+观测值）',
+    2: '假成功与身份（F1-F4 四类注入失败 + 三个防护套件 / ≤10s 停 / 报断言+观测值）',
     3: '性能（写盘轮 ≤90s / 试玩轮 ≤40s / 帧 ≤12 / 焦点 1 / sleep 0）',
     4: '证据（round.json + 引用帧 + .gia 可重算）',
     5: '单一源（界面态判定全仓只一处实现）',
@@ -111,6 +119,19 @@ def gate2():
     if not os.path.exists(FAKE_SUCCESS):
         g['gaps'].append('缺执行器级自测：tools/ys-editor/tests/fake-success.selftest.sh')
         return g
+    suites = {}
+    for name, script, tmo in SUITES:
+        sp = os.path.join(YS, 'tests', script)
+        if not os.path.exists(sp):
+            suites[name] = {'ok': False, 'note': '缺脚本'}
+            g['gaps'].append('缺防护套件：%s' % script)
+            continue
+        src, sout, serr, sms = run(['bash', sp], timeout=tmo)
+        last = [l for l in (sout + '\n' + serr).splitlines() if l.strip()]
+        suites[name] = {'ok': src == 0, 'rc': src, 'ms': sms,
+                        'last': (last[-1][:100] if last else '')}
+        if src != 0:
+            g['gaps'].append('套件 %s 失败（rc=%d）' % (name, src))
     rc, out, err, ms = run(['bash', FAKE_SUCCESS], timeout=300)
     g['ms'] = ms
     cases = {}
@@ -120,7 +141,7 @@ def gate2():
         m = re.search(r'GATE2-RESULT\b(.*)$', line)
         if m:
             body = m.group(1)
-            for kind in ('f1', 'f2', 'f3'):
+            for kind in ('f1', 'f2', 'f3', 'f4'):
                 mm = re.search(kind + r'=(\d+):(\d+)', body)
                 if mm:
                     cases[kind.upper()] = {'ms': int(mm.group(1)), 'exit': int(mm.group(2)),
@@ -134,14 +155,14 @@ def gate2():
             if m:
                 cases[m.group(2)] = {'ok': m.group(1) == 'PASS', 'ms': int(m.group(3)),
                                      'exit': int(m.group(4))}
-    g['readings'] = {'cases': cases, 'script_rc': rc, 'verdict': verdict}
+    g['readings'] = {'cases': cases, 'script_rc': rc, 'verdict': verdict, 'suites': suites}
     if not cases:
         g['gaps'].append('自测未给机读结果行 GATE2-RESULT（契约 §7）')
         return g
     if verdict == 'FAIL':
         g['gaps'].append('自测自报 verdict=FAIL')
-    want_exit = {'F1': 3, 'F2': 4, 'F3': 3}
-    for kind in ('F1', 'F2', 'F3'):
+    want_exit = {'F1': 3, 'F2': 4, 'F3': 3, 'F4': 4}
+    for kind in ('F1', 'F2', 'F3', 'F4'):
         c = cases.get(kind)
         if not c:
             g['gaps'].append('缺少 %s 用例结果' % kind)

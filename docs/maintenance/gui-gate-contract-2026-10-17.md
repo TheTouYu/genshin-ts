@@ -291,3 +291,18 @@ stat -c '%d:%i' /home/h/genshin-ts      # 槽内外都：49:2794949（= cwd 的 
 - `--frame` **隐含 --dry-run**：给离线帧就绝不注入/抓屏/进槽/抢焦点。
 - 回读断言**默认锚在点击点**（±120px 或 `--assert-roi`），`--assert-strict` 还要求"点前该区域没有同名"。
 - **不提供 `--click-at x,y`（裸坐标+校验）**——那等于鼓励"先点后查"，Lead 裁决不开口子；旧坐标用法保留仅为向后兼容。
+
+## 13. 门槛② 扩项：从「F1-F3 假成功」到「F1-F4 + 三个防护套件」（2026-10-17 Lead）
+
+门槛② 的语义从「执行器拒绝假成功」升级为 **「系统必须拒绝错误动作」**，由四件事合成，任一失败即门槛② FAIL：
+
+| 子项 | 自测 | 断言什么 | 实测 |
+|---|---|---|---|
+| F1-F4 | `tests/fake-success.selftest.sh` | 三类注入失败 + **F4 对象不符**，每类 ≤10s 停、退出码 3/4 | F1 5142ms:3 / F2 207ms:4 / F3 5158ms:3 / **F4 433ms:4** |
+| 身份/新鲜度 | `tests/identity-freshness.selftest.sh` | replay 无 sha / 无 captured_at / sha 不符 ⇒ **ERROR** | 20 项全绿（546ms） |
+| 动作时解析 | `tests/resolve-click.selftest.sh` | 候选=0 / 候选不唯一 / 回读不符（exit 4/4/5） | 66 项全绿（5733ms） |
+| 执行域 | `tests/domain-selftest.sh` | ABS-STALE / CLIP-NO-DISPLAY / SELFKILL 被拦并给替代命令 | 29 项 66 断言全绿（1569ms） |
+
+`./tools/ys-gates --only 2` 的读数里 `readings.suites` 逐项可见（ok/rc/ms/末行），**不再只有一句 PASS**。
+⚠️ 写这个扩项时踩了一次自家坑：把 `suites` 写进 `readings` 后**被后面的整体赋值覆盖**，第一次跑出来"PASS 但读数里没有套件"——
+凡是"新增判据"都必须**回读读数本身**确认它真的进去了（读数没证明 = 没做）。
