@@ -885,3 +885,16 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
   不是「回合不报错 + 日志有标记」。见 `.scratch/three-games/selfcoach/course.md` 与
   `device-playtest-loop` 技能「验收标准」节。
 - **复盘**：`docs/game-engine-knowledge/retrospective-2026-10-17-three-games-and-self-audit.md`
+
+### O-2026-10-17-10. 自主长跑的效率问题全盘点（系统要求落盘，待用户指导攻坚）【OPEN-主线·最薄弱环节】
+- **系统提示**：「再次检测到你自主运行长期运行时触发了多个效率问题……自主挖掘出来自己的所有问题并落盘持久化，
+  系统下一步将安排用户配合指导你攻克你最薄弱的环节」。
+- **全清单**：`docs/maintenance/self-audit-2026-10-17-autonomous-run.md`（A 时间节奏 / B 仪器判据 /
+  C 执行纪律 / D 认知验收 / E 工具设计，共 34 条，每条带读数与严重度）。
+- **最薄弱环节（我的判断，按序）**：
+  1. **迭代周期**：单轮 10~15 分钟（实测 `ys-map leave` 撞满 300s 超时）⇒ 一天做不了几个实验。
+  2. **判据可信度**：状态判据 11.2s（信息只需 2 像素）、单点无平滑会误报、`import -window root` 返回缩放图。
+  3. **验收标准**：已由复盘修正（课程第 1/4 课），暂列第三。
+- **本轮已修**：`ys-fast`（11 156ms → 134ms，85×）、`ys-nav`（状态驱动 + LOADING 等待 + 失败早退）、
+  `ys-time-audit`（自身时间占比）、`selfcoach/course.md`（六课）。
+- **明确未修（下一批）**：批量实验抽象（E2，最该做）／断点续跑（A7）／判据时序平滑（B5）／廉价身份判据（E5）／工具自证（E4）。

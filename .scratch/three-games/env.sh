@@ -28,3 +28,5 @@ export WIN_SANDBOX=0x03800008   # 千星沙箱（2176x1371@384,0）
 # ── 我方工具
 export YS_TOOLS=/home/h/genshin-ts/tools/ys-editor
 export GSTS="node /home/h/genshin-ts/bin/gsts.mjs"
+# 新版存档布局是**嵌套目录**：Save_Level/<mapId>/<mapId>.gil（平铺写法会「没有那个文件」）
+export YS_GIL="$YS_SAVEDIR/$YS_MAP_ID/$YS_MAP_ID.gil"

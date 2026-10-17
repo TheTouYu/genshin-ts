@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""ys-nav — 快速、状态驱动的编辑器导航（替代 ys-map 的固定 sleep 轮数）
+
+存在理由（2026-10-17 用户点破「重载资产存在巨大低效，怀疑高效系统并未生效」）：
+  实测旧路径：`ys-ui-state` 一次 **11.2s**、`ys-map where` 一次 **13.5s**；
+  而判态只需要屏幕上的两个像素，`import -window <游戏窗> -crop` 只要 **30~130ms**（快 ~85 倍）。
+  旧 `ys-map` 还有两个结构性浪费：
+    ① `switch_once` 里 **固定 sleep(35)** 等地图载入（实际常常 10~20s）；
+    ② 判态循环 `max_try=5` 失败不早退 ⇒ 5×45s ≈ 225s，撞满 300s 超时。
+  ⇒ 本工具：**小区域判态轮询** + **见到 LOADING 就等** + **只在切换后核验一次身份**。
+
+状态（ys-fast 标定，物理像素 2560×1440）：
+  MENU    px(300,300) 三通道 >200        系统菜单面板浅灰 217,217,217
+  SAVE    px(300,300) 深蓝紫 + px(100,400) 暗   （草地阴影是绿主导，靠蓝绿序区分）
+  LOADING px(300,300) 浅蓝  ~128,186,223  ← 过渡态，**必须等，不能点**
+  EDITOR  其余（px(100,400) 草绿 66,92,58）
+
+用法:
+  ys-nav where            打印 MENU|SAVE|LOADING|EDITOR
+  ys-nav savelist         导航到存档页（失败早退，不空转）
+  ys-nav enter|leave      切到/切离我的图（切换后核验一次身份）
+退出码: 0 到位 / 1 未到位 / 2 导航失败
+"""
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DISPLAY = os.environ.get("DISPLAY", ":1")
+ENV = dict(os.environ, DISPLAY=DISPLAY)
+WIN = os.environ.get("YS_WIN", "0x01400001")
+# 存档列表：位置 2 的「编辑」按钮 / 「加载存档」确认
+CARD2_EDIT = (1635, 387)
+CONFIRM = (1439, 812)
+SAVE_SIDEBAR = (41, 175)
+
+
+def tool(name, *args, timeout=120):
+    return subprocess.run([os.path.join(HERE, name), *[str(a) for a in args]],
+                          capture_output=True, text=True, timeout=timeout, env=ENV)
+
+
+def state():
+    r = tool("ys-fast", "state", timeout=20)
+    return (r.stdout or "").strip().splitlines()[-1] if r.stdout else "UNKNOWN"
+
+
+def click(x, y, hold=0.5):
+    e = dict(ENV, YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
+    return subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(x), str(y)],
+                          capture_output=True, text=True, timeout=120, env=e).returncode == 0
+
+
+def esc():
+    tool("ys-esc", timeout=60)
+
+
+def wait_state(want, timeout=90, note=""):
+    """轮询到目标态。LOADING 时纯等待（不点）。"""
+    t0 = time.time()
+    seen = set()
+    while time.time() - t0 < timeout:
+        s = state()
+        seen.add(s)
+        if s == want:
+            return s, time.time() - t0
+        time.sleep(0.4)
+    return "TIMEOUT:" + ",".join(sorted(seen)), time.time() - t0
+
+
+def to_savelist(max_round=3):
+    for i in range(max_round):
+        s = state()
+        if s == "SAVE":
+            return True
+        if s == "LOADING":
+            wait_state("EDITOR", 60)
+            s = state()
+        if s == "MENU":
+            click(*SAVE_SIDEBAR)
+            got, dt = wait_state("SAVE", 25)
+            print(f"  存档管理 → {got} ({dt:.0f}s)")
+            if got == "SAVE":
+                return True
+            continue
+        if s == "EDITOR":
+            esc()
+            got, dt = wait_state("MENU", 20)
+            print(f"  ESC → {got} ({dt:.0f}s)")
+            if got == "MENU":
+                click(*SAVE_SIDEBAR)
+                got, dt = wait_state("SAVE", 25)
+                print(f"  存档管理 → {got} ({dt:.0f}s)")
+                if got == "SAVE":
+                    return True
+            continue
+        time.sleep(1)
+    return False
+
+
+def identity():
+    """切换后核验一次：裁标题区做模板匹配（小区域，快）。"""
+    r = subprocess.run([sys.executable, os.path.join(HERE, "ys_look.py"), "find",
+                        os.path.join(HERE, "templates", "mymap-menu-title.png"),
+                        "80", "60", "560", "70"], capture_output=True, text=True,
+                       timeout=90, env=ENV)
+    line = (r.stdout or "").strip().splitlines()
+    if not line:
+        return "UNKNOWN"
+    parts = line[-1].split()
+    score = float(parts[2]) if len(parts) >= 3 else 0.0
+    return f"MY_MAP(score={score:.3f})" if score >= 0.90 else f"OTHER_MAP(score={score:.3f})"
+
+
+def switch_once():
+    """在存档页点第 2 位卡的「编辑」→ 确认 → 等载入完成。"""
+    click(*CARD2_EDIT)
+    time.sleep(1.5)
+    click(*CONFIRM)
+    got, dt = wait_state("EDITOR", 180)
+    print(f"  载入 → {got} ({dt:.0f}s)")
+    return got == "EDITOR"
+
+
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "where"
+    t0 = time.time()
+    if cmd == "where":
+        print(state())
+        return 0
+    if cmd == "savelist":
+        ok = to_savelist()
+        print(f"存档页: {'OK' if ok else 'FAIL'}  (+{time.time()-t0:.0f}s)")
+        return 0 if ok else 2
+    if cmd in ("enter", "leave"):
+        want = "MY_MAP" if cmd == "enter" else "OTHER_MAP"
+        for attempt in range(1, 4):
+            if not to_savelist():
+                print(f"[{attempt}] 到不了存档页"); continue
+            print(f"[{attempt}] 切一次…")
+            if not switch_once():
+                print(f"[{attempt}] 载入失败"); continue
+            idn = identity()
+            print(f"[{attempt}] 身份={idn}  累计 {time.time()-t0:.0f}s")
+            if idn.startswith(want):
+                print(f"✅ 到位（{idn}，{attempt} 次，{time.time()-t0:.0f}s）")
+                return 0
+        print(f"✗ 未到位（{time.time()-t0:.0f}s）")
+        return 1
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
