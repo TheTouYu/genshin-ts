@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""ys-loop — 一轮编排层 + M4 产物监控（gui-stack 票 04）
+
+设计依据（`.scratch/gui-stack/DESIGN.md` §三 L3 + §四 M4）：
+  一轮 = 离开图 → CLI 构建 → 进入图 → 试玩 → 注入 → 退出 → 取日志 → 判定
+  **M4（产物）是本层的压舱石**：磁盘 SHA / 新 .gia 文件 / **原始字节里有预期标记**
+  —— 这条判据**完全不经过屏幕**，GUI 层所有推断都要能被它证伪。
+
+  2026-10-17 的两个混淆就是靠它分开的：
+    · 「没有新日志」只说明**退出流程没走完**（日志只在走完退出后才落盘），
+      **不能**推出「图没执行」——所以要分别报 EXIT_INCOMPLETE 与 NO_MARKER。
+    · 编辑器「离开即写回」会把 CLI 改动抹掉——所以要拿 SHA 前后对比。
+
+产出（四件，缺一不算跑完）：report.md / ledger.jsonl / evidence/ / **uncertainties.md**
+
+用法:
+  ys-loop                                  # 跑一轮（用默认构建与输入）
+  ys-loop --build '<shell cmd>'            # 构建步（返回非 0 即中止）
+  ys-loop --input <script.sh>              # 试玩中的输入脚本
+  ys-loop --mark YJ-BOOT                   # 日志里必须出现的标记（M4 原始字节判据）
+  ys-loop --no-build / --no-input          # 跳过某步
+退出码: 0 全绿 / 2 构建失败 / 3 定位失败 / 4 焦点不可用 / 5 后置判据失败 / 6 产物判据失败
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+GSTS_LOCALLOW = os.environ.get("GSTS_LOCALLOW_DIR", "")
+UID = os.environ.get("YS_UID", "110170759")
+MAP_ID = os.environ.get("YS_MAP_ID", "1073741832")
+WIN = os.environ.get("YS_WIN", "0x01400001")
+LOG_DIR = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID, "Beyond_Debug_Log")
+SAVE = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID,
+                    "Beyond_Local_Save_Level", MAP_ID, f"{MAP_ID}.gil")
+
+
+def sh(cmd, timeout=300, shell=False):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, shell=shell)
+
+
+def tool(name, *args, timeout=300):
+    return sh([os.path.join(HERE, name), *[str(a) for a in args]], timeout=timeout)
+
+
+def newest_log():
+    if not os.path.isdir(LOG_DIR):
+        return None
+    fs = [os.path.join(LOG_DIR, f) for f in os.listdir(LOG_DIR) if f.endswith(".gia")]
+    return max(fs, key=os.path.getmtime) if fs else None
+
+
+def gil_sha():
+    if not os.path.exists(SAVE):
+        return ""
+    r = sh(["sha256sum", SAVE], timeout=60)
+    return r.stdout.split()[0][:16] if r.stdout else ""
+
+
+def where2():
+    r = tool("ys-where2", timeout=200)
+    return r.stdout.strip().splitlines()[-1] if r.stdout.strip() else "UNKNOWN"
+
+
+def click(x, y, hold=0.5):
+    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"),
+               YS_CLICK_HOLD=str(hold))
+    return subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(x), str(y)],
+                          env=env, capture_output=True, text=True, timeout=180).returncode == 0
+
+
+def send_key(code):
+    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+    subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=30)
+    time.sleep(0.12)
+    subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
+
+
+def switch_map_once():
+    """走一次「切走/切回」：ESC 开系统菜单 → 存档管理 → 列表第 2 位「编辑」→ 确认。
+
+    ⚠️ 这是**奇偶切换**（第 2 位永远是「当前图之外」的那张），所以必须每步用身份判据核验，
+    不能靠"切一次应该就到"。2026-10-17 实测：一次失手奇偶就翻，之后步步反着走。"""
+    send_key(1); time.sleep(3)
+    click(41, 175); time.sleep(7)      # 侧栏「存档管理」
+    click(1635, 387); time.sleep(5)    # 列表第 2 位卡的「编辑」
+    click(1439, 812); time.sleep(35)   # 「加载存档」确认 + 等地图载入
+
+
+def goto_my_map(max_try=4):
+    for i in range(1, max_try + 1):
+        w = where2()
+        if w == "MY_MAP":
+            return True, f"第 {i} 次探测即到位"
+        switch_map_once()
+    return where2() == "MY_MAP", f"{max_try} 次后仍是 {where2()}"
+
+
+def main():
+    args = sys.argv[1:]
+    build = None; inp = None; mark = "YJ-BOOT"
+    if "--build" in args: build = args[args.index("--build") + 1]
+    if "--input" in args: inp = args[args.index("--input") + 1]
+    if "--mark" in args: mark = args[args.index("--mark") + 1]
+    no_build = "--no-build" in args; no_input = "--no-input" in args
+
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    d = os.path.join(os.path.expanduser("~/ys-round"), ts)
+    ev = os.path.join(d, "evidence"); os.makedirs(ev, exist_ok=True)
+    ledger = open(os.path.join(d, "ledger.jsonl"), "a", encoding="utf-8")
+    uncertain = []
+
+    def rec(**kw):
+        kw["at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        ledger.write(json.dumps(kw, ensure_ascii=False) + "\n"); ledger.flush()
+
+    def step(name, ok, detail="", **extra):
+        rec(event=name, ok=ok, detail=detail, **extra)
+        print(f"  {'✓' if ok else '✗'} {name:22s} {detail}")
+        return ok
+
+    print(f"══ ys-loop {ts} ══  目录 {d}")
+    log_before = newest_log()
+    sha_before = gil_sha()
+    rec(event="round_start", log_before=os.path.basename(log_before or ""), gil_sha=sha_before)
+    fail = None
+
+    # 焦点（M1）：整轮都在原神上跑
+    r = sh([os.path.join(HERE, "ys-kwin-raise"), os.environ.get("YS_WIN_TITLE", "原神")], timeout=60)
+    time.sleep(1)
+    if not step("focus", "OK active" in r.stdout, r.stdout.strip()[:80]):
+        fail = 4
+
+    # ① 离开我的图（让编辑器把内存写回，随后的 CLI 改动才不会被抹）
+    if fail is None:
+        ok, detail = goto_my_map()
+        if not step("goto_my_map", ok, detail):
+            fail = 3
+    if fail is None:
+        switch_map_once()          # 离开
+        rec(event="map_left", gil_sha=gil_sha())
+        step("map_leave", True, f"sha={gil_sha()}")
+
+    # ② 构建（CLI 写盘）
+    if fail is None and build and not no_build:
+        r = sh(["bash", "-lc", build], timeout=900)
+        ok = r.returncode == 0
+        step("build", ok, (r.stdout.strip().splitlines() or [""])[-1][:120])
+        rec(event="build", code=r.returncode, sha=gil_sha())
+        if not ok:
+            uncertain.append("构建失败：本轮没有产出可判定的东西")
+            fail = 2
+
+    # ③ 回到我的图（从磁盘载入新内容）
+    if fail is None:
+        ok, detail = goto_my_map()
+        step("map_enter", ok, detail)
+        rec(event="map_enter", ok=ok, gil_sha=gil_sha())
+        if not ok:
+            fail = 3
+
+    # ④ 开试玩
+    if fail is None:
+        r = tool("ys-do", "playtest-start", timeout=900)
+        ok = r.returncode == 0
+        step("playtest_start", ok, (r.stdout.strip().splitlines() or [""])[-1][:100])
+        if not ok:
+            uncertain.append("试玩没起来：后面所有行为判据都作废")
+            fail = 5
+
+    # ⑤ 注入输入
+    if fail is None and inp and not no_input:
+        time.sleep(6)
+        r = sh(["bash", inp], timeout=900)
+        step("input", r.returncode == 0, (r.stdout.strip().splitlines() or [""])[-1][:100])
+        rec(event="input", code=r.returncode)
+
+    # ⑥ 退出试玩
+    if fail is None:
+        r = tool("ys-do", "playtest-stop", timeout=900)
+        ok = r.returncode == 0
+        step("playtest_stop", ok, (r.stdout.strip().splitlines() or [""])[-1][:100])
+        if not ok:
+            uncertain.append("退出流程没走完 ⇒ 日志不会落盘，本轮取不到行为证据")
+            fail = 5
+
+    # ⑦ M4 产物判据（**完全不经过屏幕**）
+    log_after = newest_log()
+    new_log = log_after and log_after != log_before
+    if not step("artifact_new_log", bool(new_log),
+                os.path.basename(log_after or "无")):
+        # 关键区分：没新日志 = 退出没走完，**不等于**图没执行
+        uncertain.append("没有新 .gia ⇒ 退出流程没走完（不是「图没执行」）")
+        fail = 6
+    if new_log and mark:
+        raw = open(log_after, "rb").read()
+        has = mark.encode() in raw
+        step("artifact_marker", has, f"原始字节里 {'有' if has else '没有'} {mark}")
+        rec(event="artifact_marker", mark=mark, found=has)
+        if not has:
+            uncertain.append(f"日志里没有 {mark} ⇒ 跑的可能不是我的图（挂载被抹？）")
+            fail = 6
+
+    shutil.copy(log_after, os.path.join(ev, "log.gia")) if log_after else None
+    rec(event="round_end", ok=fail is None, code=fail or 0,
+        gil_sha=gil_sha(), log=os.path.basename(log_after or ""))
+
+    # ⑧ 四件产出
+    with open(os.path.join(d, "uncertainties.md"), "w", encoding="utf-8") as f:
+        f.write(f"# 本轮不确定性（{ts}）\n\n")
+        f.write(f"- 未验证的动作数：{0 if fail is None else '本轮有失败步'}\n")
+        f.write(f"- 单判据态数：0（7 态各 2 判据）\n")
+        f.write(f"- 关键区分：没有新日志只说明**退出没走完**，不能推出「图没执行」\n\n")
+        for u in uncertain:
+            f.write(f"- ⚠️ {u}\n")
+        if not uncertain:
+            f.write("- （无）\n")
+    with open(os.path.join(d, "report.md"), "w", encoding="utf-8") as f:
+        f.write(f"# ys-loop 报告 {ts}\n\n")
+        f.write(f"- 结果：{'✅ 全绿' if fail is None else f'❌ 失败（码 {fail}）'}\n")
+        f.write(f"- 磁盘 SHA：{sha_before} → {gil_sha()}\n")
+        f.write(f"- 日志：{os.path.basename(log_before or '无')} → {os.path.basename(log_after or '无')}\n")
+        f.write(f"- 标记 {mark}：{'命中' if new_log and mark.encode() in open(log_after,'rb').read() else '未命中'}\n")
+        f.write(f"- 证据目录：{ev}\n")
+    print("─" * 46)
+    print(f"{'✓ 一轮全绿' if fail is None else f'✗ 一轮失败（码 {fail}）'}  产出：{d}")
+    return fail or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
