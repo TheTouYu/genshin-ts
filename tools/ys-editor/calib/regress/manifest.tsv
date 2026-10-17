@@ -21,3 +21,4 @@ neg-black-frame.png	UNKNOWN	①黑屏+②抓帧失败态：整帧近黑（mean=1
 neg-scaled-1024x576.png	UNKNOWN	②抓帧失败态：缩放帧 1024x576（= 2560x1440 的 40%，像素坐标全部失效）；出处 /tmp/e07.png（本项目 2026-10-17 14:31，同批 e06–e10）
 neg-terminal-browser.png	UNKNOWN	③非目标应用+②非标几何：终端 + Firefox 浏览器 2172x1132；出处 ~/Pictures/Screenshots/250125_19h53m44s_screenshot.png（Spectacle 2025-01-25 19:53）
 neg-video-player.png	UNKNOWN	③非目标应用+②非标几何：视频播放器窗口（崩坏3 短片）1106x964；出处 ~/Pictures/Screenshots/250309_20h39m03s_screenshot.png（Spectacle 2025-03-09 20:39）
+live-savelist-20261017.png	SAVELIST	活体抓帧（2026-10-17 19:54，用户当场确认是存档选择页）；曾暴露 fast=SAVELIST/full=UNKNOWN 通道矛盾，阈值 0.90→0.85 后两通道一致

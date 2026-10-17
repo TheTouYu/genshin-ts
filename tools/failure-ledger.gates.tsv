@@ -8,3 +8,6 @@ concurrency	bash tools/ys-editor/tests/state-concurrency.selftest.sh	并发判�
 round-check	./tools/ys-editor/ys-round --check	一轮编排的依赖/探针/零固定 sleep/预算
 noswallow	bash -c '! grep -rl "ys-pointer-click.*2>/dev/null" tools/ys-editor/ys-* 2>/dev/null | grep -q .'	点击调用不许吞退出码（4 处事故的机械防线）
 salvage	python3 scripts/skill-salvage.py	知识落地自检（真孤儿=0）
+domain-selftest	bash tools/ys-editor/tests/domain-selftest.sh	执行域自检（29 项/66 断言，含三例违例注入）
+identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	证据新鲜度（replay 无 sha/无时刻/sha 不符 ⇒ ERROR）
+resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	动作时解析（同标签两布局/候选0/不唯一/回读不符）

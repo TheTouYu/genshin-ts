@@ -38,7 +38,7 @@ ROOT = os.path.dirname(HERE)
 LEDGER = os.path.join(ROOT, 'docs/maintenance/failure-ledger.tsv')
 GATES = os.path.join(HERE, 'failure-ledger.gates.tsv')
 CLASSES = ('遗漏', '身份', '环境', '静默', '归因', '判据')
-COLS = ('id', 'date', 'class', 'symptom', 'evidence', 'prevention', 'gate', 'status', 'note')
+COLS = ('id', 'date', 'class', 'symptom', 'evidence', 'prevention', 'gate', 'inject', 'status', 'note')
 
 
 def read_tsv(path):
@@ -77,7 +77,8 @@ def cmd_add(a):
         print('错误：gate=%s 不在 %s 里；先登记检查命令' % (a['gate'], GATES), file=sys.stderr)
         return 2
     row = dict(zip(COLS, [rid, a.get('date', ''), a['class'], a['symptom'], a.get('evidence', ''),
-                          a.get('prevention', ''), a.get('gate', ''), a['status'], a.get('note', '')]))
+                          a.get('prevention', ''), a.get('gate', ''), a.get('inject', ''),
+                          a['status'], a.get('note', '')]))
     newfile = not os.path.exists(LEDGER)
     with open(LEDGER, 'a', encoding='utf-8') as fh:
         if newfile:
@@ -141,34 +142,49 @@ def cmd_dashboard(a):
 
 
 def cmd_check(a):
-    """真跑每个被引用的 gate（去重）；任何 FAIL → 退出码 1。"""
+    """真跑每条 prevented 的 gate（去重）+ 它的注入用例；缺用例 = UNPROVEN，退出码 1。
+
+    为什么要注入用例（2026-10-17 用户令）：`gate` 只能证明"门禁跑得起来"，
+    不能证明"它真能拦住这条账目对应的错误"。注入用例 = 主动造一次故障，门禁必须报红。
+    """
     gates = read_gates()
-    used = []
-    for r in load():
+    rows = load()
+    used_gates, fails, unproven, inject_fail = [], 0, 0, 0
+    for r in rows:
+        if r['status'] != 'prevented':
+            continue
         g = r.get('gate', '')
-        if r['status'] == 'prevented' and g and g not in used:
-            used.append(g)
-    if not used:
-        print('没有需要跑的 gate（全是 open？）')
-        return 0
-    fails = 0
-    for g in used:
-        cmd = gates[g]['command']
-        p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
-        ok = p.returncode == 0
-        fails += 0 if ok else 1
-        tail = (p.stdout or p.stderr).strip().splitlines()
-        print('  [%s] %-14s %s' % ('PASS' if ok else 'FAIL', g, tail[-1][:88] if tail else ''))
-    print('LEDGER-RESULT gates=%d fail=%d verdict=%s'
-          % (len(used), fails, 'PASS' if fails == 0 else 'FAIL'))
-    return 0 if fails == 0 else 1
+        if g and g not in used_gates:
+            used_gates.append(g)
+            cmd = gates[g]['command'] if g in gates else ''
+            if not cmd:
+                print('  [FAIL] %-16s gate=%s 未在 gates.tsv 登记' % (r['id'], g)); fails += 1; continue
+            p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
+            ok = p.returncode == 0
+            fails += 0 if ok else 1
+            tail = (p.stdout or p.stderr).strip().splitlines()
+            print('  [%s] %-16s %s' % ('PASS' if ok else 'FAIL', g, tail[-1][:80] if tail else ''))
+        inj = r.get('inject', '')
+        if not inj:
+            print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1
+            continue
+        pi = subprocess.run(inj, shell=True, cwd=ROOT, capture_output=True, text=True)
+        ok_inj = pi.returncode == 0
+        inject_fail += 0 if ok_inj else 1
+        tail_i = (pi.stdout or pi.stderr).strip().splitlines()
+        print('  [%s] %-16s inject %s' % ('PASS' if ok_inj else 'FAIL', r['id'],
+                                          tail_i[-1][:70] if tail_i else ''))
+    print('LEDGER-RESULT gates=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
+          % (len(used_gates), fails, unproven, inject_fail,
+             'PASS' if (fails + unproven + inject_fail) == 0 else 'FAIL'))
+    return 0 if (fails + unproven + inject_fail) == 0 else 1
 
 
 def main():
     ap = argparse.ArgumentParser(description='失败账本（每条失败必须绑一条可执行防线）')
     sub = ap.add_subparsers(dest='cmd', required=True)
     a1 = sub.add_parser('add')
-    for f in ('class', 'symptom', 'evidence', 'prevention', 'gate', 'status', 'date', 'note', 'id'):
+    for f in ('class', 'symptom', 'evidence', 'prevention', 'gate', 'inject', 'status', 'date', 'note', 'id'):
         a1.add_argument('--' + f, required=(f in ('class', 'symptom', 'status')))
     a1.set_defaults(func=cmd_add)
     a2 = sub.add_parser('list')

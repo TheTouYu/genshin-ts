@@ -6,47 +6,301 @@
 #       唯一可用通道 = ydotool 相对移动，但传递比不稳定（实测 1.5~2.6 屏幕px/unit，随速度变）。
 #       ⇒ 用 xdotool 读回指针位置做闭环，逐步逼近目标后再点击。
 #
-# 用法: ys-pointer-click <screen_x> <screen_y> [tolerance_px] [ratio]
-#   缺省 tolerance=12px、ratio=1.7（大位移经验值；小位移约 2.6，闭环会自动收敛）
-# 退出码: 0=命中并已点击 / 4=步进过小 / 5=超过迭代上限未命中
+# ── 坐标是位置，名字才是身份（2026-10-17 用户当场看出的「你改的是另一个存档」）
+#    同一块屏、同一批存档，列表顺序一变，同一物理点 (1681,387) 在去程属于「输入探针v2」的
+#    【编辑】，回程属于「未分类页签_存档_1」的【编辑】。跨帧复用坐标的失效方式是**静默点错
+#    对象**，不是报错。⇒ 凡按对象操作，一律用 --text/--target/--anchor **在点击那一刻解析**。
+#
+# 用法:
+#   旧用法（逐字节保持，全仓 9 处调用依赖它）:
+#     ys-pointer-click <screen_x> <screen_y> [tolerance_px] [ratio]
+#       缺省 tolerance=12px、ratio=1.7（大位移经验值；小位移约 2.6，闭环会自动收敛）
+#   按名字解析后点击:
+#     ys-pointer-click --text 输入探针v2 --live                    # 抓帧→解析→点该名字的中心
+#     ys-pointer-click --anchor 输入探针v2 --offset 241,195 --live # 点「该卡片的【编辑】按钮」
+#     ys-pointer-click --target '{"role":"button","name":"新建存档"}' --live
+#     ys-pointer-click --text 输入探针v2 --frame 帧.png             # 离线：只解析，不注入不抓屏
+#     ys-pointer-click --text 输入探针v2 --frame A.png --after-frame B.png \
+#                      --assert-name 输入探针v2 --assert-pad 300   # 离线断言（点后回读该区域）
+#   选项:
+#     --text <标签>          名字（text 通道，本地 OCR，带 box）
+#     --target <json>        目标描述 {"role":..,"name":..} 或 {"text":..}（与 --text 二选一）
+#     --anchor <名字>        身份锚（与 --text/--target 二选一），配 --offset dx,dy 表达行内相对几何
+#     --scope x,y,w,h        只在这个区域里找（消歧：区域先验）
+#     --tol <px>             指针闭环容差，缺省 12（同旧用法的 [tolerance_px]）
+#     --ratio <r>            相对移动传递比，缺省 1.7
+#     --frame <png>          离线帧；**给出即隐含 --dry-run**（不抓屏、不注入、不进槽、不抢焦点）
+#     --live                 显式活体模式（缺省即活体）
+#     --dry-run              只解析并打印计划（JSON），不点击
+#     --after-frame <png>    离线断言用的「点击后」帧
+#     --assert-name <文本>   点击后回读期望文本；不符 exit 5
+#     --assert-roi x,y,w,h   回读探针区域（缺省 = 点击点 ± --assert-pad）
+#     --assert-pad <px>      缺省 120
+#     --assert-anywhere      整帧回读（弱断言，会打 warning）
+#     --assert-strict        要求「点前该区域没有这个名字」（状态变化型断言）
+#     --no-cache             不复用 OCR 结果缓存
+#
+# 退出码: 0=命中并已点击（或解析成功且断言通过）/ 2=用法或环境错（含 OCR 后端缺失）/
+#         4=目标解析失败（候选=0 或 候选不唯一 或 通道不一致）/ 5=步进过小·超过迭代上限·回读断言不符
+#         （旧用法语义与改动前一致：0/4/5；缺参数时仍是 bash 的 1）
+# 输出流: stdout = 每次动作一行 JSON（断言行另起一行）+ 人类可读状态行；诊断一律 stderr，不吞。
+# 自测: bash tools/ys-editor/tests/resolve-click.selftest.sh   （全程离线、零注入）
 set -u
 
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
-X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-# 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
-if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
-  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
-fi
-TOL="${3:-12}"; RATIO="${4:-1.7}"
+ORIG_ARGS=("$@")
+FIND="$HERE/../ys-find"
+
+# 模式判定：出现任何 --flag 走「按名字解析」分支；没有 flag 就是旧坐标用法。
+NEW=0
+for _a in "$@"; do case "$_a" in --*) NEW=1 ;; esac; done
 
 get() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x, y}'; }
 
-for i in $(seq 1 12); do
-  read -r cx cy <<< "$(get)"
-  dx=$(( X - cx )); dy=$(( Y - cy ))
-  ax=${dx#-}; ay=${dy#-}
-  if [ "$ax" -le "$TOL" ] && [ "$ay" -le "$TOL" ]; then
-    # 真人节奏：按下 → 保持 → 抬起。**分层的实测事实（2026-10-17）**：
-    #   Wine 菜单 ≥120ms 即可；**游戏内 UI（6~11 FPS）必须 ≥500ms**——130ms 会被整帧吞掉，
-    #   表现为「点了没反应」（新建存档按钮即因此第一次点击失败）。
-    #   故缺省 0.5s（对两者都安全）；原生窗口求快设 YS_CLICK_FAST=1，需更久设 YS_CLICK_HOLD=<秒>。
-    if [ "${YS_CLICK_FAST:-0}" = "1" ]; then
-      ydotool click 0xC0
-    else
-      ydotool click 0x40; sleep "${YS_CLICK_HOLD:-0.5}"; ydotool click 0x80
+# click_loop <x> <y> <tol> <ratio> —— 闭环步进到 (x,y) 再点击。
+# **唯一实现**：旧坐标用法与按名字解析的用法共用它，绝不出现第二份点击逻辑。
+click_loop() {
+  local X="$1" Y="$2" TOL="$3" RATIO="$4"
+  local i cx cy dx dy ax ay ux uy
+  for i in $(seq 1 12); do
+    read -r cx cy <<< "$(get)"
+    dx=$(( X - cx )); dy=$(( Y - cy ))
+    ax=${dx#-}; ay=${dy#-}
+    if [ "$ax" -le "$TOL" ] && [ "$ay" -le "$TOL" ]; then
+      # 真人节奏：按下 → 保持 → 抬起。**分层的实测事实（2026-10-17）**：
+      #   Wine 菜单 ≥120ms 即可；**游戏内 UI（6~11 FPS）必须 ≥500ms**——130ms 会被整帧吞掉，
+      #   表现为「点了没反应」（新建存档按钮即因此第一次点击失败）。
+      #   故缺省 0.5s（对两者都安全）；原生窗口求快设 YS_CLICK_FAST=1，需更久设 YS_CLICK_HOLD=<秒>。
+      if [ "${YS_CLICK_FAST:-0}" = "1" ]; then
+        ydotool click 0xC0
+      else
+        ydotool click 0x40; sleep "${YS_CLICK_HOLD:-0.5}"; ydotool click 0x80
+      fi
+      sleep 0.4
+      echo "[ys-pointer-click] 命中 ($cx,$cy) → 已点击（第 ${i} 轮）"
+      return 0
     fi
-    sleep 0.4
-    echo "[ys-pointer-click] 命中 ($cx,$cy) → 已点击（第 ${i} 轮）"
-    exit 0
+    ux=$(awk -v d="$dx" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
+    uy=$(awk -v d="$dy" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
+    if [ "$ux" = "0" ] && [ "$uy" = "0" ]; then echo "[ys-pointer-click] 步进过小（剩 $dx,$dy），中止" >&2; return 4; fi
+    ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
+    sleep 0.08
+  done
+  echo "[ys-pointer-click] 12 轮未命中（目标 $X,$Y，当前 $cx,$cy）" >&2
+  return 5
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 旧用法：<x> <y> [tol] [ratio] —— 行为与改进前逐字节一致
+if [ "$NEW" = "0" ]; then
+  X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
+  # 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
+  if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+    exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
   fi
-  ux=$(awk -v d="$dx" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
-  uy=$(awk -v d="$dy" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')
-  if [ "$ux" = "0" ] && [ "$uy" = "0" ]; then echo "[ys-pointer-click] 步进过小（剩 $dx,$dy），中止" >&2; exit 4; fi
-  ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
-  sleep 0.08
+  click_loop "$X" "$Y" "${3:-12}" "${4:-1.7}"
+  exit $?
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 按名字解析后点击
+TEXT=''; TARGET=''; FRAME=''; AFTER=''; ANAME=''
+SCOPE=''; ANCHOR=''; OFFSET=''; EROI=''; APAD=''
+TOL=''; RATIO=''
+DRY=0; LIVE=0; ANY=0; STRICT=0; NOCACHE=0
+POS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --text)            TEXT="${2:?--text 需要一个标签}"; shift 2 ;;
+    --target)          TARGET="${2:?--target 需要 JSON}"; shift 2 ;;
+    --anchor)          ANCHOR="${2:?--anchor 需要锚文字}"; shift 2 ;;
+    --offset)          OFFSET="${2:?--offset 需要 dx,dy}"; shift 2 ;;
+    --scope)           SCOPE="${2:?--scope 需要 x,y,w,h}"; shift 2 ;;
+    --frame)           FRAME="${2:?--frame 需要 PNG 路径}"; shift 2 ;;
+    --after-frame)     AFTER="${2:?--after-frame 需要 PNG 路径}"; shift 2 ;;
+    --assert-name)     ANAME="${2:?--assert-name 需要期望文本}"; shift 2 ;;
+    --assert-roi)      EROI="${2:?--assert-roi 需要 x,y,w,h}"; shift 2 ;;
+    --assert-pad)      APAD="${2:?--assert-pad 需要像素}"; shift 2 ;;
+    --assert-anywhere) ANY=1; shift ;;
+    --assert-strict)   STRICT=1; shift ;;
+    --tol)             TOL="${2:?--tol 需要像素}"; shift 2 ;;
+    --ratio)           RATIO="${2:?--ratio 需要数值}"; shift 2 ;;
+    --dry-run)         DRY=1; shift ;;
+    --live)            LIVE=1; shift ;;
+    --no-cache)        NOCACHE=1; shift ;;
+    -h|--help)         awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
+    --*)               echo "[ys-pointer-click] 未知参数：$1" >&2; exit 2 ;;
+    *)                 POS+=("$1"); shift ;;
+  esac
 done
-echo "[ys-pointer-click] 12 轮未命中（目标 $X,$Y，当前 $cx,$cy）" >&2
-exit 5
+TOL="${TOL:-12}"; RATIO="${RATIO:-1.7}"
+
+die() { echo "[ys-pointer-click] $*" >&2; exit 2; }
+
+[ ${#POS[@]} -gt 0 ] && die "坐标位置参数不能与 --text/--target 混用（目标发生歧义：${POS[*]}）"
+if [ -n "$ANCHOR" ] && { [ -n "$TEXT" ] || [ -n "$TARGET" ]; }; then
+  die "--anchor 与 --text/--target 只能给一个（谁是身份？不猜）"
+fi
+if [ -n "$TEXT" ] && [ -n "$TARGET" ]; then die "--text 与 --target 只能给一个"; fi
+if [ -z "$TEXT" ] && [ -z "$TARGET" ] && [ -z "$ANCHOR" ]; then
+  die "需要 --text / --target / --anchor 之一（本分支不做无身份点击）"
+fi
+if [ -n "$FRAME" ] && [ "$LIVE" = 1 ]; then die "--frame（离线）与 --live 只能给一个"; fi
+[ -n "$FRAME" ] && DRY=1
+if [ -n "$ANAME" ]; then
+  if [ -n "$FRAME" ]; then
+    [ -n "$AFTER" ] || die "--assert-name 在离线模式需要 --after-frame（没有观测帧就没有回读证据）"
+  elif [ -n "$AFTER" ]; then
+    die "--after-frame 只在离线模式（--frame）下有意义"
+  elif [ "$DRY" = 1 ]; then
+    die "--dry-run 无法断言：没有发生动作，回读没有意义（离线断言请给 --frame + --after-frame）"
+  fi
+fi
+
+# 离线帧模式：不抓屏、不注入、不进槽（⇒ 不可能抢焦点）
+if [ -n "$FRAME" ]; then
+  echo "[ys-pointer-click] 离线帧模式：--frame ⇒ 隐含 --dry-run（不抓屏/不注入/不进槽）" >&2
+fi
+
+# 要真点、且是活体模式 ⇒ 进硬通道槽（协议：注入必须在槽内）
+if [ "$DRY" = 0 ] && [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
+  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "${ORIG_ARGS[@]}"
+fi
+
+TMPD="$(mktemp -d)"; trap 'rm -rf "$TMPD"' EXIT
+# 解析器：一次性把目标变成**此刻**的坐标（带缓存的内容寻址 OCR）
+resolve() {
+  local -a fa=(--frame "$1" --resolve)
+  [ -n "$TEXT" ]   && fa+=(--text "$TEXT")
+  [ -n "$TARGET" ] && fa+=(--target "$TARGET")
+  [ -n "$ANCHOR" ] && fa+=(--anchor "$ANCHOR")
+  [ -n "$OFFSET" ] && fa+=(--offset "$OFFSET")
+  [ -n "$SCOPE" ]  && fa+=(--scope "$SCOPE")
+  [ "$NOCACHE" = 1 ] && fa+=(--no-cache)
+  "$FIND" "${fa[@]}" 2>"$TMPD/err"
+}
+# 解析产物 → 全局 RX RY RMATCH RSCORE RBYKIND（tab 分隔，名字里空格不破坏对齐）
+take_result() {
+  local line
+  line="$(printf '%s' "$1" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print("\t".join(str(v) for v in (d.get("x"), d.get("y"), d.get("matched_text") or "-",
+                                 d.get("score"), d.get("resolved_by") or "-",
+                                 d.get("error") or "-")))')" || return 1
+  IFS=$'\t' read -r RX RY RMATCH RSCORE RBYKIND RERR <<< "$line"
+}
+
+# 取「点击前」观测帧：离线给文件；活体抓一帧（ys-observe 是唯一抓帧入口）
+BEFORE="$FRAME"
+if [ -z "$BEFORE" ]; then
+  OBS="$("$HERE/ys-observe" frame 2>"$TMPD/obs.err")" || {
+    echo "[ys-pointer-click] 抓帧失败：$(cat "$TMPD/obs.err" | tail -2 | tr '\n' ' ')" >&2; exit 2; }
+  BEFORE="$(printf '%s' "$OBS" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("path") or "")')"
+  [ -n "$BEFORE" ] || { echo "[ys-pointer-click] 抓帧失败：$OBS" >&2; exit 2; }
+fi
+
+RES="$(resolve "$BEFORE")"; RC=$?
+cat "$TMPD/err" >&2            # 解析器的诊断一行不吞（2026-10-17 的 rc=5 就是被 2>/dev/null 吞掉的）
+case "$RC" in
+  0) : ;;
+  4) echo "[ys-pointer-click] RESOLVE-FAIL 目标解析失败（候选=0 或 候选不唯一，详见上一行 ys-find 诊断）" >&2; exit 4 ;;
+  3) echo "[ys-pointer-click] RESOLVE-FAIL 通道不一致（text↔icon 距离超阈值，详见上一行）" >&2; exit 4 ;;
+  *) echo "[ys-pointer-click] 解析环境错（rc=$RC：用法/OCR 后端缺失/OCR 失败，详见上一行）" >&2; exit 2 ;;
+esac
+take_result "$RES" || { echo "[ys-pointer-click] 解析结果不可解析：$RES" >&2; exit 2; }
+[ "$RBYKIND" = "-" ] && { echo "[ys-pointer-click] 解析结果缺 resolved_by：$RES" >&2; exit 2; }
+
+case "$RX$RY" in *[!0-9]*) echo "[ys-pointer-click] 解析结果缺坐标：$RES" >&2; exit 2 ;; esac
+
+if [ "$DRY" = 1 ]; then
+  printf '%s' "$RES" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+d.update({"action": "click", "dry_run": True, "would_click": True,
+          "click": {"x": d.get("x"), "y": d.get("y")},
+          "tolerance": int(sys.argv[1]), "ratio": float(sys.argv[2])})
+print(json.dumps(d, ensure_ascii=False))' "$TOL" "$RATIO"
+else
+  click_loop "$RX" "$RY" "$TOL" "$RATIO" || exit $?
+  printf '%s' "$RES" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+d.update({"action": "click", "dry_run": False, "clicked": True,
+          "click": {"x": d.get("x"), "y": d.get("y")}})
+print(json.dumps(d, ensure_ascii=False))'
+fi
+
+# ── 断言：点击后回读**同一个目标位置**的文字（「动作后同一对象读回」）
+[ -n "$ANAME" ] || exit 0
+
+if [ -n "$AFTER" ]; then AFTER_FRAME="$AFTER"
+else
+  AOBS="$("$HERE/ys-observe" frame 2>"$TMPD/obs2.err")" || {
+    echo "[ys-pointer-click] 断言失败：点后抓帧失败 $(tail -2 "$TMPD/obs2.err" | tr '\n' ' ')" >&2; exit 5; }
+  AFTER_FRAME="$(printf '%s' "$AOBS" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("path") or "")')"
+  [ -n "$AFTER_FRAME" ] || { echo "[ys-pointer-click] 断言失败：点后抓帧无路径：$AOBS" >&2; exit 5; }
+fi
+
+if [ -n "$EROI" ]; then ROI="$EROI"; ROI_WHY="--assert-roi"
+elif [ "$ANY" = 1 ]; then ROI=''; ROI_WHY="整帧（弱断言）"
+else
+  ROI="$(python3 -c 'import sys
+x, y, pad = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+print("%d,%d,%d,%d" % (x - pad, y - pad, 2 * pad, 2 * pad))' "$RX" "$RY" "${APAD:-120}")"
+  ROI_WHY="点击点 ±${APAD:-120}px"
+fi
+
+# 断言实现：同一区域里能不能解析出期望名字
+assert_resolve() {  # $1=帧 $2=要核对的文本
+  local -a fa=(--frame "$1" --resolve --text "$2")
+  [ -n "$ROI" ] && fa+=(--scope "$ROI" --evidence-roi "$ROI")
+  "$FIND" "${fa[@]}" 2>"$TMPD/a.err"
+}
+
+assert_resolve "$AFTER_FRAME" "$ANAME" >"$TMPD/a.json"; ARC=$?
+cat "$TMPD/a.err" >&2        # 断言检查本身的诊断也不吞
+ASUM="$(python3 -c '
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+seen = d.get("roi_texts") or []
+print(" | ".join("%s(%d,%d)" % (t["text"], t["cx"], t["cy"]) for t in seen) or "（区域里没有文字）")' "$TMPD/a.json" 2>/dev/null)"
+[ -n "$ASUM" ] || ASUM="（观测帧不可读）"
+
+if [ "$ARC" = 2 ] || [ "$ARC" = 5 ]; then
+  echo "[ys-pointer-click] 断言环境错（rc=$ARC）：--assert-roi/--scope 参数非法或 OCR 后端不可用，详见上一行" >&2
+  exit 2
+fi
+if [ "$ARC" != 0 ]; then
+  [ -n "$ROI" ] || ASUM="（整帧未见「$ANAME」；--assert-anywhere 不提供区域文字）"
+  echo "[ys-pointer-click] ASSERT-FALSE 期望=\"$ANAME\" 实测=\"$ASUM\"（区域=$ROI_WHY${ROI:+ $ROI}，帧=$AFTER_FRAME）" >&2
+  echo "[ys-pointer-click] 断言不符：这次动作没有把「$ANAME」放到预期位置——**不要假设点对了**" >&2
+  exit 5
+fi
+
+PRE='false'
+if [ -n "$ROI" ]; then
+  assert_resolve "$BEFORE" "$ANAME" >"$TMPD/p.json" 2>/dev/null && PRE='true'
+fi
+APASS="$(python3 -c '
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+print("%s|%s|%s|%s" % (d.get("matched_text"), d.get("x"), d.get("y"), d.get("score")))' "$TMPD/a.json")"
+echo "[ys-pointer-click] ✓ 断言通过 期望=\"$ANAME\" 实测=\"${APASS%%|*}\"（区域=$ROI_WHY）"
+if [ "$PRE" = "true" ]; then
+  if [ "$STRICT" = 1 ]; then
+    echo "[ys-pointer-click] ASSERT-FALSE 期望=\"$ANAME\" 实测=\"点前该区域已有同名文字\"（--assert-strict：断言不能证明状态变化）" >&2
+    exit 5
+  fi
+  echo "[ys-pointer-click] warning: 点前该区域已有「$ANAME」⇒ 该断言只证明「名字在位」，不证明「动作生效」（要状态变化证据请给 --assert-strict 或换探针）" >&2
+fi
+python3 -c '
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d.update({"action": "assert", "ok": True, "expected": sys.argv[2], "roi": sys.argv[3],
+          "pre_existing": sys.argv[4] == "true", "after_frame": sys.argv[5]})
+print(json.dumps(d, ensure_ascii=False))' "$TMPD/a.json" "$ANAME" "${ROI:-whole-frame}" "$PRE" "$AFTER_FRAME"
+exit 0

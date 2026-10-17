@@ -14,7 +14,16 @@
   tools/ys-find --frame 帧.png --text 继续挑战,中断挑战          # 只跑文本通道
   tools/ys-find --struct 原神编辑器 --text 试玩                  # 结构通道（需有 AT-SPI 树的应用）
 
-退出码：0 全部通道都有候选且对账一致 / 3 通道间不一致 / 4 某通道无候选 / 2 用法错 / 5 后端缺
+单目标解析（`--resolve`，动作层用；把「我要点谁」变成**动作那一刻**算出来的坐标）:
+  tools/ys-find --frame 帧.png --resolve --text 输入探针v2 [--scope x,y,w,h] [--match exact|contains]
+  tools/ys-find --frame 帧.png --resolve --anchor 输入探针v2 --offset 241,195   # 该卡片的【编辑】按钮
+  tools/ys-find --frame 帧.png --resolve --target '{"role":"button","name":"新建存档"}'
+  tools/ys-find --frame 帧.png --resolve --text 输入探针v2 --evidence-roi 1340,140,400,110
+输出（--resolve 恒为一行 JSON）：{x,y,resolved_by,matched_text,score,candidates,frame,roi_texts,...}
+退出码：0 已解析 / 4 解析失败（候选=0 或 候选不唯一）/ 3 通道不一致 / 2 用法错 / 5 后端缺或 OCR 失败
+
+主命令（候选并列 + 对账）退出码：0 全部通道都有候选且对账一致 / 3 通道间不一致 /
+                                    4 某通道无候选 / 2 用法错 / 5 后端缺或 OCR 失败
 """
 import argparse
 import json
@@ -75,8 +84,294 @@ def channel_struct(app, keyword):
             'error': None if p.returncode == 0 else out.strip()[:400]}
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# 单目标解析（--resolve）：坐标是位置，名字才是身份；解析必须发生在动作那一刻。
+#
+# 存在理由（2026-10-17 实测，两帧同屏同一批存档、只是顺序变了）：
+#   帧 A `calib/regress/live-savelist-20261017.png`：未分类页签_存档_1=(857,192)、输入探针v2=(1440,192)
+#   帧 B `tests/fixtures/savelist-orderB.png`       ：输入探针v2=(816,192)、未分类页签_存档_1=(1481,192)
+#   ⇒ 同一物理点 (1681,387) 在 A 属于「输入探针v2」那列的【编辑】，在 B 属于「未分类页签_存档_1」那列。
+#   跨帧复用坐标的失效方式是**静默点错对象**（不是报错），所以解析必须当刻、按名字做。
+#
+# 口径：
+#   · text 通道优先（本地 RapidOCR，带 box）；
+#   · 名字匹配 = NFKC + 去空白 + casefold 后**全等**（缺省），**不做模糊匹配**——
+#     「输入探针」与「输入探针v2」是两张不同存档，子串匹配会点错；需要包含匹配显式给 --match contains
+#   · 候选 > 1 一律 fail-closed（exit 4），消歧只承认两种**语义**消歧：
+#       --scope x,y,w,h          （区域先验，例如「只看右侧列表」）
+#       --anchor 名字 --offset dx,dy（身份 + 行内相对几何，例如「某张卡的【编辑】按钮」）
+#     **不使用「离谁最近」这类隐式启发式**——它会把错误藏起来。
+#   · 给了 --icon 时按 channels.md「任何单通道都不许单独下结论」：两通道中心距 > --tol 即 exit 3。
+CACHE_DIR = os.environ.get(
+    'YS_FIND_CACHE_DIR', os.path.join(HERE, '..', '.gsts', 'ys-find-cache'))
+CACHE_MAX = 64
+
+
+def _norm(s):
+    import unicodedata
+    s = unicodedata.normalize('NFKC', s or '')
+    return ''.join(ch for ch in s if not ch.isspace()).casefold()
+
+
+def _hit(text, want, mode='exact'):
+    t, w = _norm(text), _norm(want)
+    if not w:
+        return False
+    return (w in t) if mode == 'contains' else (t == w)
+
+
+def _sha256(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for blk in iter(lambda: f.read(1 << 20), b''):
+            h.update(blk)
+    return h.hexdigest()
+
+
+def _backend_sig():
+    """后端签名：venv python 换了（升级/重装）⇒ 缓存自动失效。"""
+    try:
+        st = os.stat(RAPIDOCR_PY)
+        return '%s|%d|%d' % (os.path.abspath(RAPIDOCR_PY), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return 'missing'
+
+
+def _prune_cache():
+    try:
+        fs = [(os.path.getmtime(p), p) for p in
+              (os.path.join(CACHE_DIR, n) for n in os.listdir(CACHE_DIR)) if n.endswith('.json')]
+        for _, p in sorted(fs)[:max(0, len(fs) - CACHE_MAX)]:
+            os.unlink(p)
+    except Exception:
+        pass
+
+
+def ocr_all(frame, use_cache=True):
+    """整帧 OCR（全量框，不预过滤）。返回 (boxes, n_total, ms, source, err)。
+
+    内容寻址缓存：key = sha256(帧字节) + 后端签名 ⇒ **同字节必同结果**，不存在"缓存陈旧"；
+    任何缓存异常都退回真跑（宁慢勿假），失败返回 boxes=None + err。
+    """
+    cpath = None
+    if use_cache:
+        try:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            cpath = os.path.join(CACHE_DIR, _sha256(frame) + '.json')
+            with open(cpath, 'r', encoding='utf-8') as f:
+                c = json.load(f)
+            if c.get('backend') == _backend_sig() and isinstance(c.get('boxes'), list):
+                return (c['boxes'], int(c.get('n_total') or 0), int(c.get('ms') or 0), 'hit', None)
+        except Exception:
+            pass
+    ok, py = backend_ok()
+    if not ok:
+        return None, 0, 0, 'nobackend', 'RapidOCR venv 缺失：%s（可设 YS_RAPIDOCR_PY）' % py
+    p = subprocess.run([py, os.path.join(YS, 'ys_ocr.py'), 'ocr', frame, '--json'],
+                       capture_output=True, text=True, timeout=300)
+    if p.returncode != 0:
+        return None, 0, 0, 'error', 'OCR 失败 rc=%d：%s' % (p.returncode, (p.stderr or p.stdout)[-300:])
+    try:
+        d = json.loads(p.stdout)
+    except Exception as exc:
+        return None, 0, 0, 'error', 'OCR 输出不可解析：%s' % exc
+    boxes = d.get('boxes') or []
+    n_total, ms = int(d.get('n_total') or 0), int(d.get('ms') or 0)
+    if cpath:
+        try:
+            tmp = '%s.tmp%d' % (cpath, os.getpid())
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump({'backend': _backend_sig(), 'boxes': boxes, 'n_total': n_total,
+                           'ms': ms, 'frame': os.path.abspath(frame)}, f, ensure_ascii=False)
+            os.replace(tmp, cpath)
+            _prune_cache()
+        except Exception:
+            pass
+    return boxes, n_total, ms, 'miss', None
+
+
+def _parse_rect(s):
+    try:
+        v = [int(round(float(x))) for x in str(s).replace(' ', '').split(',')]
+    except Exception:
+        return None
+    return v if len(v) == 4 else None
+
+
+def _parse_pair(s):
+    try:
+        v = [int(round(float(x))) for x in str(s).replace(' ', '').split(',')]
+    except Exception:
+        return None
+    return tuple(v) if len(v) == 2 else None
+
+
+def _inside(b, r):
+    return r[0] <= b['cx'] <= r[0] + r[2] and r[1] <= b['cy'] <= r[1] + r[3]
+
+
+def _dedup(boxes, gap=8):
+    """OCR 偶尔对同一处文字给两个近乎重合的框；不合并会把「唯一」误判成「不唯一」。"""
+    out = []
+    for b in sorted(boxes, key=lambda x: -float(x.get('score') or 0)):
+        if any(_norm(b['text']) == _norm(o['text']) and
+               abs(b['cx'] - o['cx']) <= gap and abs(b['cy'] - o['cy']) <= gap for o in out):
+            continue
+        out.append(b)
+    return out
+
+
+def resolve_one(a):
+    """--resolve 实现。返回 (result, exit_code)。退出码：0 / 4 / 3 / 2 / 5（同模块头）。"""
+    res = {'ok': False, 'x': None, 'y': None, 'resolved_by': None, 'matched_text': None,
+           'score': None, 'candidates': 0, 'candidate_boxes': [], 'target': None,
+           'frame': os.path.abspath(a.frame) if a.frame else None,
+           'scope': a.scope or None, 'anchor': a.anchor or None, 'offset': a.offset or None,
+           'roi_texts': [], 'ocr': {}, 'notes': [], 'error': None}
+
+    # ① 目标描述：--target JSON（role/name 或 text）优先于 --text
+    label, role = a.text or '', ''
+    if a.target:
+        t = a.target.strip()
+        obj, parsed = None, False
+        if t[:1] in '{["':
+            try:
+                obj = json.loads(t)
+                parsed = True
+            except Exception as exc:
+                res['error'] = 'target-unparsable'
+                res['notes'].append('--target 不是合法 JSON：%s' % exc)
+                return res, 2
+        if isinstance(obj, dict):
+            label = obj.get('text') or obj.get('name') or ''
+            role = obj.get('role') or ''
+        elif isinstance(obj, str):
+            label = obj
+        elif not parsed:
+            label = t
+        if not label:
+            res['error'] = 'target-empty'
+            res['notes'].append('--target 里没有 name/text（role=%r）' % role)
+            return res, 2
+    res['target'] = {'role': role, 'name': label} if label else None
+
+    if a.anchor and label:
+        res['error'] = 'both-text-and-anchor'
+        res['notes'].append('--text/--target 与 --anchor 只能给一个（谁是身份？不猜）')
+        return res, 2
+    if not label and not a.anchor:
+        res['error'] = 'no-target'
+        res['notes'].append('--resolve 需要 --text / --target / --anchor 之一')
+        return res, 2
+    if not a.frame:
+        res['error'] = 'frame-missing'
+        res['notes'].append('--resolve 需要 --frame <离线帧>（本模式不抓屏）')
+        return res, 2
+
+    scope = None
+    if a.scope:
+        scope = _parse_rect(a.scope)
+        if scope is None:
+            res['error'] = 'bad-scope'
+            res['notes'].append('--scope 需要 x,y,w,h：%r' % a.scope)
+            return res, 2
+    ev = None
+    if a.evidence_roi:
+        ev = _parse_rect(a.evidence_roi)
+        if ev is None:
+            res['error'] = 'bad-evidence-roi'
+            res['notes'].append('--evidence-roi 需要 x,y,w,h：%r' % a.evidence_roi)
+            return res, 2
+
+    # ② 当刻 OCR（整帧一次，缓存按内容寻址）
+    boxes, n_total, ms, source, err = ocr_all(a.frame, use_cache=not a.no_cache)
+    res['ocr'] = {'ms': ms, 'cache': source, 'n_total': n_total}
+    if boxes is None:
+        res['error'] = 'backend-missing' if source == 'nobackend' else 'ocr-failed'
+        res['notes'].append('RESOLVE-FAIL 后端不可用：%s' % (err or source))
+        return res, 5
+    pool = [b for b in boxes if _inside(b, scope)] if scope else boxes
+    if ev:
+        res['roi_texts'] = [{'text': b['text'], 'cx': b['cx'], 'cy': b['cy'],
+                             'score': b['score']} for b in boxes if _inside(b, ev)]
+
+    # ③ 身份解析
+    if a.anchor:
+        off = None
+        if a.offset:
+            off = _parse_pair(a.offset)
+            if off is None:
+                res['error'] = 'bad-offset'
+                res['notes'].append('--offset 需要 dx,dy：%r' % a.offset)
+                return res, 2
+        cands = _dedup([b for b in pool if _hit(b['text'], a.anchor, a.match)])
+        res['candidates'] = len(cands)
+        if not cands:
+            res['error'] = 'no-candidate'
+            res['notes'].append('RESOLVE-FAIL 锚点候选=0（frame 里没有名字全等「%s」的框；n_total=%d）'
+                                % (a.anchor, n_total))
+            return res, 4
+        if len(cands) > 1:
+            res['error'] = 'ambiguous'
+            res['candidate_boxes'] = [{'text': b['text'], 'cx': b['cx'], 'cy': b['cy']} for b in cands]
+            res['notes'].append('RESOLVE-FAIL 锚点候选不唯一：%d 个「%s」%s'
+                                % (len(cands), a.anchor,
+                                   ''.join(' (%d,%d)' % (b['cx'], b['cy']) for b in cands)))
+            return res, 4
+        b = cands[0]
+        res.update(ok=True, x=b['cx'] + (off[0] if off else 0), y=b['cy'] + (off[1] if off else 0),
+                   resolved_by='text+offset' if off else 'text', matched_text=b['text'],
+                   score=b['score'], anchor_box={'text': b['text'], 'cx': b['cx'], 'cy': b['cy']})
+        res['notes'].append('身份=%s%s；锚点框中心 (%d,%d)'
+                            % (b['text'], ' + offset(%d,%d)' % off if off else '', b['cx'], b['cy']))
+    else:
+        cands = _dedup([b for b in pool if _hit(b['text'], label, a.match)])
+        res['candidates'] = len(cands)
+        if not cands:
+            res['error'] = 'no-candidate'
+            res['notes'].append('RESOLVE-FAIL 候选=0（frame 里没有名字%s「%s」的框；n_total=%d%s）'
+                                % ('包含' if a.match == 'contains' else '全等', label, n_total,
+                                   '，scope=%s 内' % a.scope if scope else ''))
+            return res, 4
+        if len(cands) > 1:
+            res['error'] = 'ambiguous'
+            res['candidate_boxes'] = [{'text': b['text'], 'cx': b['cx'], 'cy': b['cy']} for b in cands]
+            res['notes'].append('RESOLVE-FAIL 候选不唯一：%d 个「%s」%s'
+                                % (len(cands), label,
+                                   ''.join(' (%d,%d)' % (b['cx'], b['cy']) for b in cands)))
+            return res, 4
+        b = cands[0]
+        res.update(ok=True, x=b['cx'], y=b['cy'], resolved_by='text',
+                   matched_text=b['text'], score=b['score'],
+                   box=[[int(p[0]), int(p[1])] for p in (b.get('box') or [])])
+
+    # ④ icon 通道只作"一致性核验"（单通道不下结论）
+    if a.icon:
+        if a.anchor and a.offset:
+            res['notes'].append('icon 通道跳过：本目标是「锚点+偏移」，与文字中心本就不同位')
+        else:
+            ic = channel_icon(a.frame, a.icon)
+            ms_ = (ic.get('matches') or [])
+            if not ms_:
+                res['notes'].append('icon 通道无匹配（%s）' % (ic.get('error') or '空'))
+            else:
+                m = ms_[0]
+                d = int(round(((m['cx'] - res['x']) ** 2 + (m['cy'] - res['y']) ** 2) ** 0.5))
+                res['icon'] = {'cx': m['cx'], 'cy': m['cy'], 'score': m['score'], 'dist': d}
+                if d > a.tol:
+                    res['notes'].append('RESOLVE-FAIL 通道不一致：text(%d,%d) ↔ icon(%d,%d) 距 %dpx > --tol %d'
+                                        % (res['x'], res['y'], m['cx'], m['cy'], d, a.tol))
+                    res['error'] = 'channel-disagree'
+                    return res, 3
+                res['resolved_by'] = 'text+icon'
+                res['notes'].append('text↔icon 中心距 %dpx（阈值 %d，一致）' % (d, a.tol))
+
+    return res, 0
+
+
 def main(argv=None):
-    ap = argparse.ArgumentParser(description='统一找控件入口（多通道并列 + 对账）')
+    ap = argparse.ArgumentParser(description='统一找控件入口（多通道并列 + 对账 / 单目标解析）')
     ap.add_argument('--frame', help='离线帧（PNG）；给出即为离线模式，不碰屏幕')
     ap.add_argument('--text', default='', help='逗号分隔的文本标签（文本通道）')
     ap.add_argument('--icon', default='', help='模板 PNG 路径（图标通道）')
@@ -84,7 +379,29 @@ def main(argv=None):
     ap.add_argument('--expect', default='', help='已知实测点 x,y（用于对账；可选）')
     ap.add_argument('--tol', type=int, default=30, help='两通道一致的中心距阈值（像素）')
     ap.add_argument('--json', action='store_true')
+    # ── 单目标解析（动作层用）：分辨率 = 名字，不是坐标
+    ap.add_argument('--resolve', action='store_true',
+                    help='单目标解析模式：输出 {x,y,resolved_by,matched_text,score}（要求 --frame）')
+    ap.add_argument('--target', default='', help='目标描述 JSON：{"role":..,"name":..} 或 {"text":..}')
+    ap.add_argument('--scope', default='', help='只在这个区域里找：x,y,w,h')
+    ap.add_argument('--anchor', default='', help='锚文字（身份）；配合 --offset 表达“锚点 + 行内偏移”')
+    ap.add_argument('--offset', default='', help='相对锚点中心的偏移：dx,dy')
+    ap.add_argument('--evidence-roi', default='', help='把该区域里的文字回读进 roi_texts：x,y,w,h')
+    ap.add_argument('--match', default='exact', choices=['exact', 'contains'],
+                    help='名字匹配口径：exact=NFKC+去空白后全等（缺省）/ contains=包含')
+    ap.add_argument('--no-cache', action='store_true', help='不复用 OCR 结果缓存（强制重跑）')
     a = ap.parse_args(argv)
+
+    if a.resolve:
+        res, code = resolve_one(a)
+        print(json.dumps(res, ensure_ascii=False))
+        for n in (res.get('notes') or []):
+            print('[ys-find] %s' % n, file=sys.stderr)
+        if res.get('roi_texts'):
+            print('[ys-find] roi_texts=%s' % ' / '.join(
+                '%s(%d,%d)' % (t['text'], t['cx'], t['cy']) for t in res['roi_texts']),
+                file=sys.stderr)
+        return code
 
     labels = [x for x in a.text.split(',') if x]
     if not (a.frame or a.struct):

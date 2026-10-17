@@ -84,10 +84,12 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：
 
-1. **绝对路径不存在，必须用 `./` 相对路径**：槽内 `stat /home/genshin-ts` → **ENOENT**（`ls /home` 只有 `h`、`h2`），
-   而 `pwd` 仍是 `/home/genshin-ts`、`stat .` 正常（cwd 句柄可用）。后果：槽内用绝对路径调
-   `…/.scratch/gui-grounding/venv-rapidocr/bin/python` → `timeout: 无法运行命令` **rc=127 静默失败**。
-   ⇒ 槽内一律 `./tools/...`、`./.scratch/...`；**加诊断**（`echo "OCR rc=$? $(head -c 80 err)"`）否则看不出来。
+1. **路径必须写对（2026-10-17 更正，原「槽内绝对路径不存在」结论作废）**：
+   仓库在 `/home/h/**genshin-ts**`；写成 `/home/genshin-ts`（漏 `/h`）在**槽内外都** ENOENT，
+   而 `stat /home/h/genshin-ts` 与 `stat .` 的 dev:inode 两域相同（`49:2794949`）⇒ **不是文件系统差异**。
+   **教训**：rc=127 的报错文本里就有错误路径，我只看了退出码就归因成"环境不同"并写进契约（归因错误）。
+   现行口径：绝对路径可用，但**用前先解析**（`ys-slot-check --lint '<cmd>'`：ABS-STALE）；槽内**优先** `./` 相对路径；
+   **任何 rc≠0 先读消息文本，逐字核对里面的路径**，再谈归因。
 2. **中文输入只能走剪贴板**：`xdotool type --clearmodifiers '云阶'` → 输入框出现 **`??`**（Unicode keysym 不被 Wine 接受）。
    可用做法（实测成功，OCR 读回 1.00）：
    ```bash

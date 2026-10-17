@@ -6,19 +6,36 @@
   解析层（resolver）优先 AT-SPI（`cu`），失败再退坐标；每步强制**效果断言**。
 
 **假成功防护（验收契约 §3，2026-10-17 门槛②）**
-  三类失败各有固定判据、固定输出行、固定退出码：
+  四类失败各有固定判据、固定输出行、固定退出码：
     F1 断言为假      ASSERT-FALSE step#N expected=… observed=…      退出码 3
     F2 目标解析失败  RESOLVE-FAIL step#N target=… 候选=0             退出码 4
     F3 动作无效果    NO-EFFECT step#N post=… observed序列=…          退出码 3
+    F4 对象不符      OBJECT-MISMATCH step#N 期望对象 X / 实测对象 Y   退出码 4
   共同硬约束：单步等待上限 ≤10s（缺省 8s，`--max-step-wait/--default-step-wait`）；
   报告必须含**步骤号 + 断言原文 + 观测值**；失败绝不以退出码 0 结束；
   **每步落 run.json**（`{act,target,ok,expected,observed,kind,ms,evidence}`），
   一轮结束前任意时刻被杀也能从 run.json 读出「停在哪一步、当时看到什么」。
 
+**动作级身份协议（2026-10-17 复盘 §8B：动作与对象身份解耦 ⇒ 改错目标，rc=0 却虚假确认）**
+  写动作（click/key）**不许**只带坐标或名字——必须携带三件套，缺一即拒执行：
+    "target": {"desc": "当前存档卡 fighting（人读：我要动谁）",
+               "must_assert": {"text": "存档卡 fighting"},  # 文字通道；或 {"state":"SAVELIST"} 判据/模板通道
+               "role": "button", "name": "fighting"},       # 定位（定位 ≠ 身份）
+    "evidence": {"fresh": true}                             # 声明：证据必须新鲜可校验
+  执行期顺序 = 身份 → 定位 → 动作 → 同一对象读回 → 证据新鲜度；任一步为假即停：
+    缺协议字段         IDENTITY-MISSING step#N 缺 …                       退出码 3
+    身份不符（前/后）  OBJECT-MISMATCH step#N 期望对象 X / 实测对象 Y      退出码 4
+    证据不可校验       EVIDENCE-STALE step#N 无 sha/抓取时刻 …            退出码 3
+  「写进 run.json 的帧必须带 sha + 抓取时刻」由执行器保证：每处 `frame` 旁边有
+  `frame_meta{path,sha256,bytes,captured_at}`；文字通道证据是 `artifact{kind:text,sha256,…}`。
+  身份通道二选一：`{"text": 子串}`（AT-SPI/桩树，读回命中的那一行当身份）、
+  `{"state": 态名}`（ys-state/vision 判据，读回态名）。会改变界面的动作请用文字通道，
+  判据通道只适合「动作不该换屏」的场景——否则 F4 会如实报「对象变了」（宁可停）。
+
 **离线可测（不碰活体桌面）**
-  · `--frame PNG`（可重复 = 帧序列，poll 逐张轮转）→ 断言用离线帧判定，不抓屏
+  · `--frame PNG`（可重复 = 帧序列，poll/身份读回逐张轮转）→ 断言用离线帧判定，不抓屏
   · `--click-backend stub --tree FILE` → 目标解析读桩树文件，点击只记账不注入
-  两条合起来就能在桌面之外复现 F1/F2/F3（见 tools/ys-editor/tests/fake-success.selftest.sh）。
+  两条合起来就能在桌面之外复现 F1/F2/F3/F4（见 tools/ys-editor/tests/fake-success.selftest.sh）。
 
 用法:
   tools/gui run <skill.json> [--json out.json] [--var k=v ...]
@@ -36,17 +53,22 @@
   "app": "app.py",
   "pre":   {"text": "当前: 无"},               # 可选：开跑前界面上应有的文本/态
   "steps": [
-    {"act": "click",  "target": {"role": "button", "name": "绿色"}},
+    {"act": "click",  "target": {"desc": "绿色按钮（沙箱主按钮）",
+                                 "must_assert": {"text": "当前: 无"},
+                                 "role": "button", "name": "绿色"},
+     "evidence": {"fresh": true}},
     {"act": "assert", "text": "当前: 绿色", "timeout": 5},
     {"act": "assert", "state": "PLAYTEST", "timeout": 8, "min_score": 0.85}
   ],
   "post":  {"text": "当前: 绿色"}              # 可选：全部步骤成功后的双向效果断言
 }
 
-退出码: 0 成功 / 2 用法或技能文件错 / 3 断言为假或动作无效果 /
-        4 目标解析失败 / 5 前置不成立 / 6 状态判据不确定（仅 state --legacy 旧通道）
+退出码: 0 成功 / 2 用法或技能文件错（含写动作缺身份协议）/
+        3 断言为假、动作无效果、身份协议缺失或证据不可校验 / 4 目标解析失败或对象不符 /
+        5 前置不成立 / 6 状态判据不确定（仅 state --legacy 旧通道）
 """
 import argparse
+import hashlib
 import json
 import os
 import shlex
@@ -63,6 +85,11 @@ STEP_WAIT_MAX_MS = 10000
 STEP_WAIT_DEFAULT_MS = 8000
 
 EXIT_OK, EXIT_USAGE, EXIT_ASSERT, EXIT_RESOLVE, EXIT_PRE, EXIT_UNSURE = 0, 2, 3, 4, 5, 6
+# F4 对象不符与 F2 目标解析失败同码（4）：都是「要动的目标不是它」，动作不该发生
+EXIT_IDENTITY = EXIT_RESOLVE
+
+# 写动作 = 会改变界面的动作。只有它们需要「对象身份 + 新鲜证据」（契约 §3 F4）
+WRITE_ACTS = ('click', 'key')
 
 _FALLBACK_NOTE_PRINTED = set()
 
@@ -145,6 +172,50 @@ def invalidate(app=None):
         _TREE_CACHE.pop(app, None)
     else:
         _TREE_CACHE.clear()
+
+
+# ── 证据新鲜度（契约 §4 ⑥）：帧必须带 sha + 抓取时刻，文字证据带摘要 ─────
+def sha256_file(path, chunk=1 << 20):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        while True:
+            b = f.read(chunk)
+            if not b:
+                break
+            h.update(b)
+    return h.hexdigest()
+
+
+def _iso(ts):
+    return time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(ts))
+
+
+def artifact_frame(path):
+    """帧证据元数据：`{kind,path,sha256,bytes,captured_at}`；读不到就返回 None。
+
+    绝不在读不到时编造 sha —— 返回 None 让上层（写动作的新鲜度闸门）如实停下。
+    """
+    if not path:
+        return None
+    try:
+        return {'kind': 'frame', 'path': path, 'sha256': sha256_file(path),
+                'bytes': os.path.getsize(path),
+                'captured_at': _iso(os.path.getmtime(path))}
+    except OSError:
+        return None
+
+
+def artifact_text(text, source=None):
+    """文字通道证据：对**读到的原文**做摘要 + 记读的时刻（事后可查是否被换过）。"""
+    if text is None:
+        return None
+    b = text.encode('utf-8', 'replace')
+    return {'kind': 'text', 'source': source, 'sha256': hashlib.sha256(b).hexdigest(),
+            'bytes': len(b), 'captured_at': _iso(time.time())}
+
+
+def _has_sha(art):
+    return isinstance(art, dict) and bool(art.get('sha256')) and bool(art.get('captured_at'))
 
 
 # ── 执行上下文（后端可替换：活体 cu/xdotool ↔ 离线桩）───────────────────
@@ -342,7 +413,9 @@ def judge_state(ctx, frame=None, timeout_s=10.0):
                 'frame': frame, 'raw': {'score': sc},
                 'error': None if st else 'vision 判态失败'}
     r = probe_ys_state(frame=frame, profile=ctx.profile, fast=True, timeout_s=timeout_s)
-    r['frame'] = frame
+    # 契约 §4 ⑥：帧路径必须来自**判据本身**——ys-state 会回报它实际抓/判的那张帧；
+    # 活体（frame=None）时若丢掉这个路径，就退化成「frame:null 还拿旧帧当证据」（复盘 §7 #7）
+    r['frame'] = frame or (r.get('raw') or {}).get('frame')
     ctx.note_fast(r.get('channel'))
     ctx.budget.bump('frames' if frame is None else 'frames_offline')
     if r.get('error') and ctx.profile and r.get('rc') not in (0, 2, 4, 5):
@@ -354,6 +427,111 @@ def judge_state(ctx, frame=None, timeout_s=10.0):
                 'ms': r.get('ms', 0), 'frame': frame, 'raw': {'score': sc},
                 'error': None if st else 'fallback vision 判态失败'}
     return r
+
+
+# ── 动作级身份协议（F4）：身份断言 + 同一对象读回 ─────────────────────────
+def parse_identity_spec(spec):
+    """身份断言 → (通道, 期望值, 错误)。
+
+    支持 `{"text": 子串}` / `{"state": 态名}` 与简写 `"text:<子串>"` / `"state:<态名>"`。
+    """
+    if isinstance(spec, str):
+        s = spec.strip()
+        for ch in ('text', 'state'):
+            pre = ch + ':'
+            if s.startswith(pre):
+                val = s[len(pre):].strip()
+                if val:
+                    return ch, val, None
+                return None, None, f'{ch} 断言为空: {spec!r}'
+        return None, None, f'字符串 must_assert 只认 "text:<子串>" / "state:<态名>"，收到 {spec!r}'
+    if isinstance(spec, dict):
+        for ch in ('text', 'state'):
+            v = spec.get(ch)
+            if v not in (None, ''):
+                return ch, str(v), None
+        return None, None, f'must_assert 需要 text 或 state 之一，收到 {sorted(spec)}'
+    return None, None, f'must_assert 类型不认识: {type(spec).__name__}'
+
+
+def identity_missing(step):
+    """写动作的身份协议缺项（空列表 = 齐）。执行期闸门与 lint 共用同一判据。"""
+    step = step if isinstance(step, dict) else {}
+    tgt = step.get('target') if isinstance(step.get('target'), dict) else {}
+    miss = []
+    if not str(tgt.get('desc') or '').strip():
+        miss.append('target.desc')
+    spec = tgt.get('must_assert')
+    if spec in (None, '', {}):
+        miss.append('target.must_assert')
+    ev = step.get('evidence')
+    if not (isinstance(ev, dict) and ev.get('fresh') is True):
+        miss.append('evidence.fresh=true')
+    return miss
+
+
+def read_identity(ctx, spec, timeout_s):
+    """读**一次**对象身份（单次取样，不轮询；硬上界由调用方按 10s 夹住）。
+
+    返回 {'ok': 与 must_assert 相符, 'channel', 'identity', 'expect', 'artifact', …}；
+    artifact = 可校验证据（帧 → sha256+captured_at；文字 → 原文摘要），读不到则 None。
+    """
+    t0 = time.time()
+    ch, want, err = parse_identity_spec(spec)
+    if err:
+        return {'ok': False, 'channel': 'none', 'identity': None, 'expect': str(spec),
+                'artifact': None, 'error': err, 'ms': 0}
+    if ch == 'text':
+        text, rerr, _ms = ctx.read_tree(fresh=True)
+        if text is None:
+            return {'ok': False, 'channel': 'text', 'identity': None,
+                    'expect': f'text⊇{want}', 'artifact': None, 'error': rerr,
+                    'ms': round((time.time() - t0) * 1000)}
+        hit = next((ln.strip() for ln in text.splitlines() if want in ln), None)
+        return {'ok': hit is not None, 'channel': 'text', 'identity': hit or '<未命中>',
+                'expect': f'text⊇{want}',
+                'artifact': artifact_text(text, source=ctx.tree_path or f'at-spi:{ctx.app}'),
+                'error': None, 'ms': round((time.time() - t0) * 1000)}
+    # 判据/模板通道：态名就是身份（适合「动作不该换屏」的场景，见文件头说明）
+    frame = ctx.next_frame()
+    r = judge_state(ctx, frame=frame, timeout_s=timeout_s)
+    st = r.get('state')
+    return {'ok': st == want, 'channel': 'state', 'identity': st,
+            'expect': f'state={want}', 'artifact': artifact_frame(r.get('frame') or frame),
+            'error': r.get('error'),
+            'judge': {'channel': r.get('channel'), 'ms': round(r.get('ms') or 0)},
+            'ms': round((time.time() - t0) * 1000)}
+
+
+def _slim_reading(r):
+    out = {'ok': r.get('ok'), 'channel': r.get('channel'), 'identity': r.get('identity'),
+           'expect': r.get('expect'), 'ms': r.get('ms'), 'artifact': r.get('artifact')}
+    for k in ('error', 'judge'):
+        if r.get(k):
+            out[k] = r[k]
+    return out
+
+
+def _protocol_missing_line(n, miss):
+    return (f'IDENTITY-MISSING step#{n} 缺 {"，".join(miss)}'
+            f'（写动作必须带 target.desc + target.must_assert + evidence.fresh=true；'
+            f'没有身份的动作不执行）')
+
+
+def _mismatch_line(n, expected, observed, desc, channel, phase, must):
+    when = '动作前' if phase == 'pre' else '动作后'
+    return (f'OBJECT-MISMATCH step#{n} 期望对象「{expected}」 / 实测对象「{observed}」'
+            f'（desc={desc}；must_assert={must}；通道={channel}；时点={when}）')
+
+
+def _identity_fail(n, act, tgt, kind, expected, observed, ident, line, t0):
+    ev = {'class_hint': ('F4 对象不符（写动作的对象身份没对上）' if kind == 'OBJECT-MISMATCH'
+                         else '写动作缺身份协议（拒绝执行）')}
+    if ident is not None:
+        ev['identity'] = ident
+    return {'step': n, 'act': act, 'target': tgt or None, 'ok': False,
+            'expected': expected, 'observed': observed, 'kind': kind,
+            'ms': round((time.time() - t0) * 1000), 'evidence': ev, 'line': line}
 
 
 # ── 单步执行 ─────────────────────────────────────────────────────
@@ -441,6 +619,8 @@ def assert_state(ctx, step, want_state=None):
         'kind': None if ok else ('ASSERT-FALSE'),
         'evidence': {'sequence': _seen_str(seen), 'polls': polls, 'stop': why,
                      'channel': last.get('channel'), 'frame': last.get('frame'),
+                     # 契约 §4 ⑥：写进 run.json 的帧必须带 sha + 抓取时刻
+                     'frame_meta': artifact_frame(last.get('frame')),
                      'class_hint': 'F1 断言为假'},
         'detail': (f'state={state}' + (f' score={score:.3f}' if isinstance(score, (int, float)) else '')
                    + f'（{polls} 次轮询，序列={_seen_str(seen)}）'
@@ -467,12 +647,79 @@ def assert_text(ctx, want, step=None):
         'expected': f'text⊇{want}',
         'observed': ('含' if ok else f'前6行={lines}'),
         'kind': None if ok else 'ASSERT-FALSE',
-        'evidence': {'polls': polls, 'stop': why, 'head': lines},
+        'evidence': {'polls': polls, 'stop': why, 'head': lines,
+                     'artifact': artifact_text(txt or '', source=ctx.tree_path or f'at-spi:{ctx.app}')},
         'detail': (f'断言含「{want}」' if ok else f'断言失败：期望含「{want}」，实际前几行={lines}'),
     }
 
 
 def do_step(ctx, n, step):
+    """单步入口：写动作先过身份协议（F4）+ 证据新鲜度，再执行动作本体。
+
+    顺序 = 身份 → 定位 → 动作 → 同一对象读回 → 证据新鲜度；任一步为假即停。
+    「没有身份的动作」在结构上不可能落到桌面上（复盘 §8B：动作与对象身份解耦）。
+    """
+    act = step.get('act')
+    if act not in WRITE_ACTS:
+        return _do_action(ctx, n, step)
+    tgt = step.get('target') if isinstance(step.get('target'), dict) else {}
+    t0 = time.time()
+    miss = identity_missing(step)
+    if miss:
+        line = _protocol_missing_line(n, miss)
+        return _identity_fail(n, act, tgt, 'IDENTITY-MISSING',
+                              'target{desc,must_assert}+evidence{fresh=true}',
+                              '缺 ' + '，'.join(miss), None, line, t0)
+    spec, desc = tgt.get('must_assert'), tgt.get('desc')
+    spec_err = parse_identity_spec(spec)[2]
+    if spec_err:                      # 断言看不懂 = 没法验证身份 ⇒ 与缺协议同码（3）
+        line = f'IDENTITY-MISSING step#{n} target.must_assert 不认识：{spec_err}' \
+               f'（无法验证身份的写动作不执行）'
+        return _identity_fail(n, act, tgt, 'IDENTITY-MISSING', 'target.must_assert 可解析',
+                              spec_err, None, line, t0)
+    # 身份协议共用**一个**时间预算（ctx.max_wait_ms ≤10s）：前后两次读加起来不越界
+    deadline = t0 + ctx.max_wait_ms / 1000.0
+
+    def _budget():
+        return max(0.2, deadline - time.time())
+
+    pre = read_identity(ctx, spec, _budget())
+    ident = {'desc': desc, 'must_assert': spec, 'channel': pre.get('channel'),
+             'pre': _slim_reading(pre)}
+    if not pre.get('ok'):
+        line = _mismatch_line(n, desc, pre.get('identity'), desc, pre.get('channel'),
+                              'pre', pre.get('expect'))
+        return _identity_fail(n, act, tgt, 'OBJECT-MISMATCH', desc,
+                              pre.get('identity'), ident, line, t0)
+    rec = _do_action(ctx, n, step)
+    rec['target'] = tgt
+    if not rec.get('ok'):
+        rec.setdefault('evidence', {})['identity'] = ident   # 动作没成也留下前置身份读数
+        return rec
+    post = read_identity(ctx, spec, _budget())
+    ident['post'] = _slim_reading(post)
+    if post.get('identity') != pre.get('identity'):
+        line = _mismatch_line(n, pre.get('identity'), post.get('identity'), desc,
+                              post.get('channel'), 'post', post.get('expect'))
+        return _identity_fail(n, act, tgt, 'OBJECT-MISMATCH', pre.get('identity'),
+                              post.get('identity'), ident, line, t0)
+    arts = [a for a in (pre.get('artifact'), post.get('artifact')) if _has_sha(a)]
+    ident['artifacts'] = arts
+    rec.setdefault('evidence', {})['identity'] = ident
+    if not arts:
+        # evidence.fresh=true 却拿不出可校验证据（无 sha/抓取时刻）⇒ 不许把读数当证据
+        rec.update(ok=False, kind='EVIDENCE-STALE',
+                   expected=f'fresh evidence for {desc}（sha256+captured_at）',
+                   observed='身份读数无可校验证据',
+                   line=(f'EVIDENCE-STALE step#{n} 身份读数没有 sha/抓取时刻'
+                         f'——拒绝把"不可重算"的读数当证据；desc={desc}'))
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+    rec['ms'] = round((time.time() - t0) * 1000)      # 含身份前后两次读的耗时
+    return rec
+
+
+def _do_action(ctx, n, step):
     """执行一步并返回结构化记录（run.json 的一条）。
 
     kind 语义：None=成功；ASSERT-FALSE / RESOLVE-FAIL / ACTION-FAIL / BAD-STEP=失败类。
@@ -507,8 +754,9 @@ def do_step(ctx, n, step):
             return rec
         rec['expected'] = f'anchor={tgt["anchor"]} @({x},{y})'
         if ctx.dry_run or ctx.click_backend == 'stub':
-            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] anchor={tgt["anchor"]} '
-                                         f'@({x},{y}) score={score:.3f}')
+            rec.update(ok=True, kind=None,
+                       observed=f'[{"dry" if ctx.dry_run else "stub"}] anchor={tgt["anchor"]} '
+                                f'@({x},{y}) score={score:.3f}')
             rec['ms'] = round((time.time() - t0) * 1000)
             return rec
         hold = int(tgt.get('hold_ms', 120))
@@ -519,8 +767,8 @@ def do_step(ctx, n, step):
         ctx.budget.bump('desktop_calls', 3)
         ctx.budget.bump('sleeps')          # hold 是**动作时长**（按下到抬起），非同步等待
         invalidate(ctx.app)
-        rec.update(ok=True, observed=f'click anchor={tgt["anchor"]} @({x},{y}) '
-                                     f'score={score:.3f} hold={hold}ms')
+        rec.update(ok=True, kind=None, observed=f'click anchor={tgt["anchor"]} @({x},{y}) '
+                                                 f'score={score:.3f} hold={hold}ms')
         rec['ms'] = round((time.time() - t0) * 1000)
         return rec
 
@@ -528,12 +776,13 @@ def do_step(ctx, n, step):
         k = step.get('key', '')
         rec['expected'] = f'key={k}'
         if ctx.dry_run or ctx.click_backend == 'stub':
-            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] key={k}')
+            rec.update(ok=True, kind=None,
+                       observed=f'[{"dry" if ctx.dry_run else "stub"}] key={k}')
         else:
             subprocess.run(['xdotool', 'key', '--clearmodifiers', k], capture_output=True)
             ctx.budget.bump('desktop_calls')
             invalidate(ctx.app)
-            rec.update(ok=True, observed=f'key={k}')
+            rec.update(ok=True, kind=None, observed=f'key={k}')
         rec['ms'] = round((time.time() - t0) * 1000)
         return rec
 
@@ -561,8 +810,8 @@ def do_step(ctx, n, step):
             return rec
         rec['expected'] = f'target={tgt}'
         if ctx.dry_run or ctx.click_backend == 'stub':
-            rec.update(ok=True, observed=f'[{"dry" if ctx.dry_run else "stub"}] '
-                                         f'click {kind}={payload}')
+            rec.update(ok=True, kind=None, observed=f'[{"dry" if ctx.dry_run else "stub"}] '
+                                                     f'click {kind}={payload}')
             rec['ms'] = round((time.time() - t0) * 1000)
             return rec
         if kind == 'xy':
@@ -585,7 +834,9 @@ def do_step(ctx, n, step):
 
 # ── run：执行技能（契约 §3）───────────────────────────────────────
 def _failure_line(rec, post=None):
-    """三类失败的**固定输出行**（契约 §3；可 grep、字段顺序固定）。"""
+    """四类失败的**固定输出行**（契约 §3；可 grep、字段顺序固定）。"""
+    if rec.get('line'):
+        return rec['line']          # F4/身份协议类：行在判定处生成（含期望/实测对象）
     n = rec.get('step')
     kind = rec.get('kind')
     if kind == 'RESOLVE-FAIL':
@@ -630,6 +881,15 @@ def cmd_run(args):
                         'frames': len(ctx.frames), 'tree': ctx.tree_path},
            'steps': [], 'ok': False, 'exit': None, 't0': time.time()}
     out_path = args.json
+    # 契约 §4 ⑥：写进 run.json 的每张帧都带 sha + 抓取时刻（算不出来 ⇒ 不许当证据）
+    frame_metas, bad_frames = {}, []
+    for f in ctx.frames:
+        m = artifact_frame(f)
+        if m is None:
+            bad_frames.append(f)
+        else:
+            frame_metas[f] = m
+    rec['frames_meta'] = frame_metas
 
     def flush():
         rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
@@ -649,6 +909,15 @@ def cmd_run(args):
             rec['failure'] = failure
         flush()
         return code
+
+    # ⓪ 证据新鲜度前置：--frame 里任何一个读不到就停（不许拿没 sha 的帧当证据）
+    if bad_frames:
+        print(f'EVIDENCE-STALE step#0 帧不可读={bad_frames}'
+              f'（算不出 sha/抓取时刻的帧不许当证据；检查 --frame 路径）')
+        print(f'  证据: {out_path}')
+        return finish(EXIT_ASSERT, {'step': 0, 'class': 'EVIDENCE-STALE',
+                                    'expected': '每张 --frame 可读（sha256+captured_at）',
+                                    'observed': f'不可读 {bad_frames}'})
 
     # ① 前置断言（pre）：不成立即停（退出码 5，不与 F1/F2/F3 混淆）
     pre = skill.get('pre') or {}
@@ -687,7 +956,9 @@ def cmd_run(args):
             print(line)
             print(f'  ✗ {r.get("evidence", {}).get("class_hint", r.get("kind"))}  '
                   f'证据: {out_path}')
-            code = EXIT_RESOLVE if r['kind'] == 'RESOLVE-FAIL' else EXIT_ASSERT
+            code = (EXIT_RESOLVE if r['kind'] == 'RESOLVE-FAIL'
+                    else EXIT_IDENTITY if r['kind'] == 'OBJECT-MISMATCH'
+                    else EXIT_ASSERT)
             return finish(code, {'step': i, 'class': r['kind'],
                                  'expected': r.get('expected'),
                                  'observed': r.get('observed'),
@@ -748,6 +1019,17 @@ def cmd_lint(args):
             problems.append(f'第 {i} 步 click 缺 target')
         if act not in ('click', 'key', 'assert', 'wait'):
             problems.append(f'第 {i} 步未知动作 {act}')
+        if act in WRITE_ACTS:              # 契约 §3：写动作必须携带对象身份 + 新鲜证据
+            miss = identity_missing(s)
+            if miss:
+                problems.append(
+                    f'第 {i} 步写动作（{act}）缺身份协议 {"，".join(miss)}'
+                    f' —— 写动作必须带 target.desc + target.must_assert + evidence.fresh=true'
+                    f'（没有身份的动作不许进库）')
+            else:
+                spec_err = parse_identity_spec((s.get('target') or {}).get('must_assert'))[2]
+                if spec_err:
+                    problems.append(f'第 {i} 步 must_assert 不认识：{spec_err}')
         if s.get('timeout') is not None and float(s['timeout']) * 1000 > STEP_WAIT_MAX_MS:
             problems.append(f'第 {i} 步 timeout={s["timeout"]}s 超过契约上限 '
                             f'{STEP_WAIT_MAX_MS}ms（会被夹到上限，改小或删掉）')

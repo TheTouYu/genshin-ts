@@ -69,6 +69,28 @@ ys-state --regress [--channel fast|full|both] [--json]
 共同硬约束：**单步等待上限 ≤10s**（缺省 8s）；**报告必须含步骤号 + 断言原文 + 观测值**；
 **任何失败不得以退出码 0 结束**；**证据写进 `run.json`**（每步 `{act, target, ok, observed, ms}`）。
 
+## 3bis. 身份协议与 F4（2026-10-17 identity-gate 落地）
+
+写动作（`click`/`key`）三件套，缺一即拒：
+```json
+{"act":"click",
+ "target":{"desc":"…人读描述…","must_assert":{"text":"存档卡 fighting"},"role":"button","name":"开始游戏"},
+ "evidence":{"fresh":true}}
+```
+- 执行顺序**固定**：身份 → 定位 → 动作 → 同一对象读回 → 证据新鲜度 ⇒ 「没有身份的动作」在结构上到不了桌面。
+- `must_assert` 两条通道：`{"text":…}`（文字）/ `{"state":…}`（判据·模板）。**会改屏的动作必须用文字通道**，模板通道只用于「动作不该换屏」。
+- 退出码：lint 缺字段 **2**；执行期缺字段/`must_assert` 不可解析 `IDENTITY-MISSING` **3**；对象不符 `OBJECT-MISMATCH step#N 期望对象「X」/实测对象「Y」（desc/must_assert/通道/时点）` **4**；证据拿不出 sha `EVIDENCE-STALE` **3**（不执行）。
+- **≤10s 是结构保证**：动作前后两次身份读**共用** `ctx.max_wait_ms` 一个预算（实测 4000ms 夹取 + 3s 慢判据 ⇒ 4002ms 停）。
+
+## 3ter. 退出码的跨工具政策（Lead 裁决 2026-10-17）
+
+**认 token，不认码表**：不同工具的基座不同（AT-SPI/桩树 vs OCR+指针闭环），码表无法统一；
+契约只要求**每个失败都打一行可 grep 的 token**：
+- `tools/gui`：`IDENTITY-MISSING` / `OBJECT-MISMATCH`(4) / `EVIDENCE-STALE`
+- `ys-pointer-click`/`ys-find --resolve`：`RESOLVE-FAIL`(4，候选=0 或候选不唯一) / `ASSERT-FALSE`(5，回读不符)
+- `ys-slot-check`：`LINT-RESULT`(rc=3)、`ABS-STALE`/`CLIP-NO-DISPLAY`/`SELFKILL`
+- `failure-ledger`：`LEDGER-RESULT`；注入用例：`INJECT-PASS`/`INJECT-FAIL`
+
 ## 4. 门槛③④：一轮的产物与预算
 
 - `round.json`（唯一证据入口）：`{round_id, started_at, budget:{frames,focus,sleeps}, steps:[…],
@@ -220,11 +242,24 @@ ys-state --pred light|dark X Y [--frame PNG]        # 1/0（is_light/is_dark 转
 
 ## 12. 附则：受控槽内的环境边界与输入通道实测（2026-10-17 亲测，会反复踩）
 
-### 槽内文件系统：**绝对路径不存在，必须用 `./` 相对路径**
-在 `ys-gui-slot` 内执行 `stat /home/genshin-ts` → **ENOENT**（`ls /home` 只有 `h`、`h2`），
-而 `pwd` 显示 `/home/genshin-ts`、`stat .` 正常 ⇒ **cwd 可用，绝对路径不可用**。
-后果：槽内用绝对路径调 venv python `/home/genshin-ts/.scratch/...` → `timeout: 无法运行命令` **rc=127 静默失败**（我因此白跑了两轮）。
-⇒ **槽内一切路径写 `./tools/...`、`./.scratch/...`**。槽外再切回绝对路径无所谓。
+### 路径：**必须写对**（2026-10-17 22:0x 更正，原结论作废）
+
+**原结论（作废）**：「槽内文件系统与槽外不同，绝对路径不存在，槽内必须用 `./`」。
+**真因**：命令里写的 `/home/genshin-ts` **漏了 `/h`**（仓库实际在 `/home/h/genshin-ts`）——
+该路径在**槽内外都** ENOENT；`stat /home/h/genshin-ts` 与 `stat .` 在槽内外 dev:inode **完全相同**（`49:2794949`）。
+
+**证据（可复现）**：
+```bash
+stat -c '%d:%i' /home/genshin-ts        # 槽内外都：没有那个文件或目录
+stat -c '%d:%i' /home/h/genshin-ts      # 槽内外都：49:2794949（= cwd 的 dev:inode）
+```
+**教训（比结论更重要）**：rc=127 的报错文本 `timeout: 无法运行命令 "/home/genshin-ts/.../python"` **当场就写着错误路径**，
+我只看了退出码没读消息，就把它归因成"环境差异"并写进契约与技能——这是典型的 **归因错误**（失败账本 F-2-09）。
+
+**现行口径**：
+- 绝对路径**可用**，但**用前必须解析**（`ys-slot-check --lint '<cmd>'` 会做 ABS-STALE 检查：路径不存在 / 过期写法）。
+- 槽内**优先** `./` 相对路径（不是必须）：少一次解析、且不受 cwd 变更影响。
+- 任何 rc≠0 先读**消息文本**再归因；消息里出现的路径要逐字核对。
 
 ### 剪贴板（中文输入的唯一可靠通道）
 - `xdotool type --clearmodifiers '云阶'` → 输入框出现 **`??`**（Unicode keysym 不被 Wine/XWayland 接受）。
@@ -240,3 +275,19 @@ ys-state --pred light|dark X Y [--frame PNG]        # 1/0（is_light/is_dark 转
 - EDITOR 页左上角被 **DXVK 性能叠加层**（DXVK v3.0 / FPS / GPU）遮住，本地 OCR 与云端 OCR 都读不到存档名。
 - 存档名 + **圆形铅笔图标**在 **ESC 后的系统菜单页**左上角（2026-10-17 实测中心 **(523,96)**）；点击后是**内联输入框且文字全选**（不是弹窗）；Enter 提交，ESC 取消并还原。
 - 写操作协议：**动作前身份断言（OCR 标题/确认框原文）→ 动作 → 动作后在同一对象上读回**（存档列表卡片名 + 菜单标题双证据）。
+
+### 4bis. 证据重算第 ⑥ 项：帧新鲜度（identity-gate 落地）
+
+`--replay` 除原有五项外新增 ⑥：**无 sha / 无 captured_at / sha 与落盘文件不符 ⇒ ERROR(2)**（既不是 PASS 也不是 DIFF）。
+- `tools/gui` 写 run.json：每张帧旁 `frame_meta{path,sha256,bytes,captured_at}`，顶层 `frames_meta`；文字证据 `artifact{kind:text,sha256,captured_at}`。
+- `round-report --emit-round`：给引用帧补 `frames_meta`（执行器给了真 `captured_at` 就保留，只补缺的）。
+- 成因追溯：`judge_state` 原本在活体（`frame=None`）时把 ys-state 回报的**实际帧路径丢掉** —— 正是复盘 §7 #7「旧帧当验证帧」的成因，已修。
+
+### 4ter. 动作时解析（action-resolver 落地，2026-10-17）
+
+`ys-pointer-click --text/--target/--anchor + --offset/--dry-run/--assert-name/--assert-roi`；解析实现**只此一处**（`ys-find --resolve`），OCR 缓存内容寻址。
+- 名字匹配 = **NFKC + 去空白 + casefold 全等**，不做模糊（「输入探针」≠「输入探针v2」）。
+- 消歧只认语义：`--scope`（区域先验）/ `--anchor + --offset`（身份 + 行内相对几何）——**拒绝"离谁最近"这类隐式启发式**。
+- `--frame` **隐含 --dry-run**：给离线帧就绝不注入/抓屏/进槽/抢焦点。
+- 回读断言**默认锚在点击点**（±120px 或 `--assert-roi`），`--assert-strict` 还要求"点前该区域没有同名"。
+- **不提供 `--click-at x,y`（裸坐标+校验）**——那等于鼓励"先点后查"，Lead 裁决不开口子；旧坐标用法保留仅为向后兼容。

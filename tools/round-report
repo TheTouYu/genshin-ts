@@ -21,6 +21,8 @@ round.json（契约 §4；新增字段只增不改）:
   "steps":    [{"step":1,"act":"wait","assert":"state=MENU","state":"MENU","ok":true,
                 "ms":3120,"frame":"frames/05-menu.png"}, ...],
   "readings": {"frames/05-menu.png": {"state":"MENU","channel":"fast"}},
+  "frames_meta": {"frames/05-menu.png": {"path":"frames/05-menu.png","sha256":"…",
+                  "bytes":123456,"captured_at":"2026-10-17T19:30:05","source":"…"}},
   "log":      {"path":"debug-log.gia","markers":[{"mark":"YJ-BOOT","hits":3}]},
   "gil":      {"path":".../1073741832.gil","sha_before":"...","sha_after":"..."},
   "frames":   ["frames/05-menu.png", ...]
@@ -31,11 +33,16 @@ round.json（契约 §4；新增字段只增不改）:
   ③ gil 指纹：落盘 .gil 的 sha256 必须等于 sha_after（不等 ⇒ 证据对不上结论）
   ④ 日志标记：在 .gia 原始字节里数标记命中（`strings -n 2 | grep -c` 的等价实现）
   ⑤ 状态读数：对每个「帧→期望态」用 `ys-state --json --frame` 重判（离线、不抓屏）
+  ⑥ 帧新鲜度：每张引用帧必须带 sha256 + captured_at，且与落盘文件**逐字节一致**。
+     「无 sha / 无抓取时刻 / sha 不符」一律 ERROR（退出码 2）——旧帧、共享临时帧、
+     被换过的帧都不能当证据（2026-10-17 复盘 §7 #7：frame:null 后仍拿旧帧当「切换后画面」）。
+     sha/captured_at 由 `--emit-round` 补算（执行器给了真抓取时刻则保留），补算会打一行提示。
 
 退出码:
   0 PASS  全部重算成立
   1 DIFF  至少一项重算结果与 round.json 的声明不符
-  2 ERROR 证据不全/读不了（缺 round.json、缺引用帧、缺 .gia、无任何可重算断言）——不猜
+  2 ERROR 证据不全/读不了（缺 round.json、缺引用帧、缺 .gia、无任何可重算断言、
+          帧无 sha/sha 不符）——不猜
 """
 import argparse
 import json
@@ -108,6 +115,71 @@ def sha256_file(path, chunk=1 << 20):
                 break
             h.update(b)
     return h.hexdigest()
+
+
+def iso(ts):
+    return time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(ts))
+
+
+# ─────────────────────── 帧新鲜度（契约 §4 ⑥）───────────────────────
+def frame_meta(frame, rdir, source='emit-round:mtime'):
+    """给一张引用帧算 `{path,sha256,bytes,captured_at}`；读不到返回 None（不编造）。"""
+    p = _rel(rdir, frame)
+    try:
+        st = os.stat(p)
+        return {'path': frame, 'sha256': sha256_file(p), 'bytes': st.st_size,
+                'captured_at': iso(st.st_mtime), 'source': source}
+    except OSError:
+        return None
+
+
+def lookup_frame_meta(d, frame):
+    """按优先级找某帧的新鲜度元数据：frames_meta → readings.frame_meta → steps.frame_meta。"""
+    meta = (d.get('frames_meta') or {}).get(frame)
+    if isinstance(meta, dict) and meta.get('sha256'):
+        return meta
+    r = (d.get('readings') or {}).get(frame)
+    if isinstance(r, dict) and isinstance(r.get('frame_meta'), dict):
+        return r['frame_meta']
+    for s in d.get('steps') or []:
+        if s.get('frame') == frame and isinstance(s.get('frame_meta'), dict):
+            return s['frame_meta']
+    return meta if isinstance(meta, dict) else None
+
+
+def check_frame_freshness(d, rdir):
+    """⑥ 每张引用帧必须带 sha256+captured_at 且与落盘文件一致。返回 (verdict, detail)。"""
+    # 引用帧口径与 --emit-round 的 refs 一致：frames 列表 + 步骤帧 + readings 的帧
+    rd = d.get('readings') or {}
+    frames = list(dict.fromkeys(
+        list(d.get('frames') or [])
+        + [s.get('frame') for s in d.get('steps') or [] if s.get('frame')]
+        + [r.get('frame') for r in rd.values() if isinstance(r, dict) and r.get('frame')]
+        + [f for f, r in rd.items() if not (isinstance(r, dict) and r.get('frame'))]))
+    if not frames:
+        return ERROR, '没有任何引用帧 ⇒ 无法证明动作前后看到的是哪一帧'
+    bad, ok_n = [], 0
+    for f in frames:
+        m = lookup_frame_meta(d, f)
+        if not m:
+            bad.append(f'{f} 无 sha（旧帧/共享临时帧被当证据）')
+            continue
+        sha = str(m.get('sha256') or '').strip()
+        cap = str(m.get('captured_at') or '').strip()
+        if not sha:
+            bad.append(f'{f} 无 sha')
+            continue
+        if not cap:
+            bad.append(f'{f} 无 captured_at（抓取时刻）')
+            continue
+        actual = sha256_file(_rel(rdir, f))
+        if actual != sha:
+            bad.append(f'{f} sha 不符（声明 {sha[:12]}… 实测 {actual[:12]}…）')
+            continue
+        ok_n += 1
+    if bad:
+        return ERROR, '；'.join(bad)
+    return PASS, f'{ok_n} 张帧带 sha256+captured_at 且与落盘文件一致'
 
 
 def printable_strings(data, n=2):
@@ -250,6 +322,10 @@ def cmd_replay(rdir, json_out=None, judge=True):
     else:
         add('gil 指纹', DIFF, 'round.json 没有 gil.sha_after ⇒ 无法证明证据对应当前 .gil')
 
+    # ⑥ 帧新鲜度（无 sha / 无抓取时刻 / sha 不符 ⇒ ERROR，不是 PASS）
+    verdict, detail = check_frame_freshness(d, rdir)
+    add('帧新鲜度', verdict, detail)
+
     # ④ 日志标记（printString 载荷只在原始字节里，见 D318 教训）
     markers = log.get('markers') or []
     if not markers:
@@ -383,8 +459,28 @@ def cmd_emit_round(rdir):
         for p in problems:
             print(f'  · {p}', file=sys.stderr)
         return 2
+    # 契约 §4 ⑥：引用帧必须带 sha + 抓取时刻（执行器给了真时刻就保留，缺的按文件 mtime 补算）
+    metas = d.get('frames_meta') if isinstance(d.get('frames_meta'), dict) else {}
+    stamped, unreadable = [], []
+    for f in refs:
+        have = metas.get(f)
+        if isinstance(have, dict) and have.get('sha256') and have.get('captured_at'):
+            continue
+        m = frame_meta(f, rdir)
+        if m is None:
+            unreadable.append(f)
+            continue
+        metas[f] = m
+        stamped.append(f)
+    d['frames_meta'] = metas
+    if unreadable:      # 引用了却读不到 ⇒ 一定 replay 不了，fail closed
+        print(f'✗ 不写 round.json：引用帧读不到 {unreadable}', file=sys.stderr)
+        return 2
     dst = os.path.join(rdir, 'round.json')
     json.dump(d, open(dst, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    if stamped:
+        print(f'  · 补算帧指纹 {len(stamped)} 张（无真抓取时刻 ⇒ 用文件 mtime 当 captured_at）：'
+              + '、'.join(stamped))
     print(f'✓ round.json 已落盘: {dst}')
     print(f'  预算: frames={b.get("frames")} focus={b.get("focus")} sleeps={b.get("sleeps")}'
           f'（红线 frames≤{GATE_LIMITS["frames"]} focus≤{GATE_LIMITS["focus"]} '
