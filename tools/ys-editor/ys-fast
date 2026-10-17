@@ -2,7 +2,7 @@
 """ys-fast — 薄封装：判据全部委托 `ys-state`（门槛⑤ 单一源），本文件不含任何坐标/阈值
 
 保留的老接口（外部行为不变）：
-  ys-fast state             打印 `MENU|SAVE|EDITOR`（SAVE = ys-state 的 SAVELIST；
+  ys-fast state [--frame PNG] [--max-age-ms N]   打印 `MENU|SAVE|EDITOR`（SAVE = ys-state 的 SAVELIST；
                             其它态名原样透传，绝不改成别的态的名字 —— 旧词汇本就含 SETTLE/LOADING/UNKNOWN）
   ys-fast px X Y            打印该点 `r g b`（调试用）
   ys-fast settle [秒]       轮询到界面连续 3 次同态（即不再跳变）后返回该态
@@ -50,7 +50,8 @@ def settle(timeout=90, need=3):
 def main():
     args = sys.argv[1:]
     if not args:
-        sys.stderr.write("用法: ys-fast state|px X Y|settle [秒]|--frame PNG|--regress\n")
+        sys.stderr.write("用法: ys-fast state [--frame PNG] [--max-age-ms N]|px X Y|"
+                         "settle [秒]|--frame PNG|--regress\n")
         return 2
     if args[0] == "--frame":
         if len(args) < 2:
@@ -63,7 +64,7 @@ def main():
         return subprocess.run([YS_STATE, "--regress", "--channel", "both"]).returncode
     cmd = args[0]
     if cmd == "state":
-        s, rc = state()
+        s, rc = state(args[1:])          # 透传 --frame / --max-age-ms 等（旧实现把它们吞掉了）
         print(s)
         return rc
     if cmd == "px":

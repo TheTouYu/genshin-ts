@@ -39,6 +39,8 @@ ys-map、ys-round）只允许调用本文件的 CLI，不许内联判据。
     ys-state --print-state [--fast]            # 只打印态名
     ys-state --print-state --compat ys-fast    # 兼容旧词汇：SAVELIST→SAVE，其余原样
     ys-state --regress [--channel fast|full|both] [--json]
+    ys-state --json --fast --max-age-ms 300   # 帧复用窗口：服务端最近一帧年龄 <300ms 时复用（省 ~110ms 抓帧）
+                                              # JSON 必带 reused / frame_age_ms；缺省=每次新抓（用过期帧判态=静默错误）
 
 ## 退出码
     0 判定成功 / 2 AMBIGUOUS（多个非同层态同时成立）/ 3 取帧失败（含 profile 缺失等仪器故障）
@@ -707,10 +709,16 @@ def _daemon_fail(why):
     return None
 
 
-def daemon_state(frame=None, profile=None):
-    """向常驻服务要一次 fast 判定；服务不可用/报错返回 None（由调用方回退本地）。"""
+def daemon_state(frame=None, profile=None, max_age_ms=None):
+    """向常驻服务要一次 fast 判定；服务不可用/报错返回 None（由调用方回退本地）。
+
+    `max_age_ms` = **帧复用窗口**：>0 时若常驻服务最近一次抓帧的年龄小于它，就复用那张帧
+    （省掉 ~105ms 抓帧）。默认不传 = 每次新抓 —— 用过期帧判态是静默错误，必须显式开启。
+    """
     req = {"cmd": "state", "channel": "fast",
            "profile": profile or os.environ.get("YS_PROFILE") or PROFILE_DEFAULT}
+    if max_age_ms:
+        req["max_age_ms"] = float(max_age_ms)
     if frame:
         req["frame"] = os.path.abspath(frame)
     r = daemon_call(req, timeout=60)
@@ -745,7 +753,7 @@ def warn_fallback(what, t0):
         f"（本机实测约多花 200~450ms）：{DAEMON_ERROR}\n")
 
 
-def run_fast(frame=None, profile_path=None):
+def run_fast(frame=None, profile_path=None, max_age_ms=None):
     """fast 通道：一次取帧（离线解码 / 活体原始抓取）→ 像素判据 + GPU 锚点（ys-lookd）。
 
     成本链（实测 2026-10-17，2560×1440）：解码 110~130ms ／ 落盘 frame_bin 7ms ／
@@ -764,11 +772,11 @@ def run_fast(frame=None, profile_path=None):
     tried_daemon = False
     if os.environ.get("YS_STATE_LOCAL") != "1":
         tried_daemon = True
-        d = daemon_state(frame=frame, profile=prof_path)
+        d = daemon_state(frame=frame, profile=prof_path, max_age_ms=max_age_ms)
         if d:
             res = {k: d[k] for k in ("state", "confidence", "ambiguous", "margin", "verdicts",
                                      "readings", "roi", "frame_bytes", "load_ms", "judge_ms",
-                                     "cache_hit") if k in d}
+                                     "cache_hit", "reused", "frame_age_ms") if k in d}
             res["channel"] = "fast"
             res["ms"] = int(d.get("ms") or round((time.time() - t0) * 1000))
             res["via"] = "daemon"
@@ -836,9 +844,9 @@ def run_fast(frame=None, profile_path=None):
     return res, None, fresh
 
 
-def execute(channel, frame=None, profile=None):
+def execute(channel, frame=None, profile=None, max_age_ms=None):
     if channel == "fast":
-        return run_fast(frame=frame, profile_path=profile)
+        return run_fast(frame=frame, profile_path=profile, max_age_ms=max_age_ms)
     return run_full(frame=frame)
 
 
@@ -1116,6 +1124,13 @@ def main(argv):
     channel = opt(args, "--channel") or "full"
     if "--fast" in args:
         channel = "fast"
+    max_age = None
+    if "--max-age-ms" in args:
+        try:
+            max_age = float(args[args.index("--max-age-ms") + 1])
+        except (IndexError, ValueError):
+            sys.stderr.write("--max-age-ms 需要一个数字（毫秒）\n")
+            return 3
 
     # ── 原语转发（给 `_ys-ui.sh` 的 judge / is_light / is_dark 用）：坐标与阈值仍在**本文件**
     # `--pixel X Y` 打印 `r g b`（judge）；`--pred light|dark X Y` 打印 1/0（is_light / is_dark）
@@ -1237,7 +1252,8 @@ def main(argv):
         sys.stderr.write(f"帧不存在: {frame}\n")
         return 3
     try:
-        res, path, fresh = execute(channel, frame=frame, profile=profile)
+        res, path, fresh = execute(channel, frame=frame, profile=profile,
+                                   max_age_ms=max_age)
     except Exception as e:                              # noqa: BLE001 —— 仪器故障要出声
         sys.stderr.write(f"[ys-state] {type(e).__name__}: {e}\n")
         return 3

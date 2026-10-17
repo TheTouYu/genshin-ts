@@ -9,7 +9,17 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 YS_STATE="$HERE/ys-state"
-judge() { "$YS_STATE" --print-state --compat ys-fast 2>/dev/null | tail -1; }
+# 判态：失败要**出声**（2026-10-17 教训：旧写法把 stderr 丢掉，取帧失败时打印空行，
+# 调用方会把"空"当成"不是 SAVE"，于是导航空转到超时——仪器静默降级）
+judge() {
+  local out rc errf
+  errf="$(mktemp -t ys-ui-state-XXXXXX.err)"
+  out=$("$YS_STATE" --print-state --compat ys-fast 2>"$errf"); rc=$?
+  [ -s "$errf" ] && cat "$errf" >&2
+  rm -f "$errf"
+  if [ -n "$out" ]; then printf '%s\n' "$out" | tail -1; else echo UNKNOWN; fi
+  return "$rc"
+}
 
 if [ "${1:-}" = "--nav" ]; then
   for _ in 1 2 3 4 5 6; do

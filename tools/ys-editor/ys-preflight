@@ -53,7 +53,11 @@ fi
 # ── 3 画面状态：界面态与「结算页残留」都向 ys-state 要读数（对应复盘 #5 #6 #7 #13）
 if [ "$QUICK" = "0" ]; then
   echo "③ 画面状态"
-  ST=$("$YS_STATE" --print-state --compat ys-fast 2>/dev/null | tail -1)
+  ST=$("$YS_STATE" --print-state --compat ys-fast 2>/tmp/ys-preflight-state.err | tail -1)
+  if [ -z "${ST:-}" ]; then
+    ST=UNKNOWN
+    warn "判态" "ys-state 取不到界面态：$(head -1 /tmp/ys-preflight-state.err 2>/dev/null)"
+  fi
   if [ -z "${ST:-}" ]; then
     bad "界面态" "ys-state 没给出读数（取帧失败？先 ys-peek 确认窗口可见）"
   else

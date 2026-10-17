@@ -32,7 +32,13 @@ WIN = os.environ.get("YS_WIN", "0x01400001")
 
 
 
-_CACHE = {}          # path -> (mtime, tensor)：只缓存**模板**（小、稳定）；帧不进缓存
+_CACHE = {}          # path -> (mtime, tensor)：只缓存**模板**（小、稳定）；离线帧见 _FRAME_CACHE
+# 活体帧**复用窗口**（`ys-state --json --max-age-ms N` 显式开启）：真实轮里一个动作后要连判 1~3 次，
+# 每次都重抓纯属浪费（抓帧 ~105ms 是活体开销的大头）。语义要点：
+#   · 这是「减少抓帧**次数**」，不是「抓得更快」——不复用时必须报告 reused=false
+#   · 默认**关**（max_age_ms 缺省/0 ⇒ 每次新抓）。用过期帧判态=静默错误，绝不能默认开。
+#   · 只对同一 (roi, profile) 生效；换了 ROI/profile 一律视为未命中。
+_LAST_FRAME = {"It": None, "t": 0.0, "key": None}
 _FRAME_CACHE = {}    # path -> ((mtime_ns, size), tensor)：**离线帧**缓存（活体帧不缓存）
 _FRAME_CACHE_MAX = 2
 
@@ -184,22 +190,36 @@ def _state(req):
 
     # 活体：只抓「锚点 ROI ∪ 取样点」的外接框（实测 1401×1440 = 54.7% 面积 / 5.77MB，
     # 全帧是 10.5MB）。坐标按 origin 平移；离线帧不做裁剪（它已经是文件）。
+    is_live = not (req.get("frame") or req.get("frame_bin"))
     ox = oy = 0
-    if not (req.get("frame") or req.get("frame_bin")) and not req.get("region"):
+    if is_live and not req.get("region"):
         try:
             roi = YS.fast_roi(prof)
             req = dict(req, region=list(roi))
             ox, oy = roi[0], roi[1]
         except Exception:                                  # noqa: BLE001 —— 算不出 ROI 就退回整帧
             pass
-    It = _load_frame(req)                                   # 活体=原始像素；离线=缓存帧张量
+    t_cap = time.time()
+    reused, age_ms = False, None
+    max_age = req.get("max_age_ms")
+    if is_live and max_age:
+        key = (tuple(req.get("region") or ()), prof_path)
+        age = (time.monotonic() - _LAST_FRAME["t"]) * 1000.0
+        if _LAST_FRAME["It"] is not None and _LAST_FRAME["key"] == key and age <= float(max_age):
+            It = _LAST_FRAME["It"]
+            reused, age_ms = True, int(round(age))
+    if not reused:
+        It = _load_frame(req)                               # 活体=原始像素；离线=缓存帧张量
+        if is_live:
+            _LAST_FRAME.update({"It": None, "key": None})    # 先失效，避免半初始化被读到
+            _LAST_FRAME.update({"It": It, "key": (tuple(req.get("region") or ()), prof_path),
+                                "t": time.monotonic()})
     t_load = time.time()
     H, W = int(It.shape[1]), int(It.shape[2])              # 裁剪后尺寸
     readings = {}
     # 几何校验：
     #   · 活体裁剪帧 = 从**判据坐标系**里切出来的一块（fast_roi 已裁剪到 2560×1440 内）⇒ 坐标系可信
     #   · 离线帧 = 文件本身，按它的真实尺寸判（缩放帧/半截帧在这里被挡掉）
-    is_live = not (req.get("frame") or req.get("frame_bin"))
     geom_w, geom_h = (YS.FRAME_W, YS.FRAME_H) if is_live else (W, H)
     if not YS.geom_ok(geom_w, geom_h):
         readings["GEOM/frame 尺寸 2560x1440"] = {
@@ -227,6 +247,7 @@ def _state(req):
                 "load_ms": round((t_load - t0) * 1000),
                 "judge_ms": round((time.time() - t_load) * 1000),
                 "roi": [ox, oy, W, H], "frame_bytes": int(W * H * 3),
+                "reused": reused, "frame_age_ms": age_ms,
                 "via": "daemon"})
     return res
 

@@ -21,8 +21,13 @@ YS_STATE="${YS_STATE:-$HERE/ys-state}"
 YS_FRAME_ARGS=()
 [ -n "${YS_PROBE_FRAME:-}" ] && YS_FRAME_ARGS=(--frame "$YS_PROBE_FRAME")
 
-judge() {  # $1=x $2=y  → 打印 "r g b"
-  "$YS_STATE" --pixel "$1" "$2" ${YS_FRAME_ARGS[@]+"${YS_FRAME_ARGS[@]}"} 2>/dev/null
+judge() {  # $1=x $2=y  → 打印 "r g b"（失败时 stdout 为空 + stderr 出声，别静默）
+  local o
+  o=$("$YS_STATE" --pixel "$1" "$2" ${YS_FRAME_ARGS[@]+"${YS_FRAME_ARGS[@]}"} 2>/tmp/_ys-ui-px.err)
+  if [ -z "$o" ] && [ -s /tmp/_ys-ui-px.err ]; then
+    echo "[_ys-ui] ⚠ --pixel 失败：$(head -1 /tmp/_ys-ui-px.err)" >&2
+  fi
+  [ -n "$o" ] && printf '%s\n' "$o"
 }
 is_light() { "$YS_STATE" --pred light "$1" "$2" ${YS_FRAME_ARGS[@]+"${YS_FRAME_ARGS[@]}"} >/dev/null 2>&1; }
 is_dark()  { "$YS_STATE" --pred dark  "$1" "$2" ${YS_FRAME_ARGS[@]+"${YS_FRAME_ARGS[@]}"} >/dev/null 2>&1; }
