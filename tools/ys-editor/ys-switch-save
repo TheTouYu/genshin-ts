@@ -19,52 +19,91 @@
 #   · 编辑器在别图上   → 第 2 位 = 我的图 ⇒ 点它 = **回来**
 #   两种情况都是"点第 2 位"，故同一动作自然成对。
 #
-# 用法: ys-switch-save        产物 /tmp/ys-switch-{before,after}.png
+# 2026-10-17 改造（S1/S2；实测一轮 426s 里本工具占 263s）：
+#   · 判定收敛到 **ys-fast state**（单一源，~300ms/次）；删掉本文件内联的 st() 判据副本
+#     （旧副本用 px(2273,1357)/px(41,99)，与 ys-fast 的 px(300,300) 口径不一致——
+#      同一界面两处判据可能给出相反答案，这正是要消灭的重复实现）。
+#   · `sleep 22`（等地图重载）→ 谓词：**连续 6 次 EDITOR 且总时长 ≥9s**，超时 45s 失败退出。
+#     快就是快；慢也不会假成功往下走。
+#   · 导航 `sleep 4` → 等状态真的到 SAVE（ys-wait，超时 12s 失败）。
+#   · 全窗截图 2893ms ×2 → 收尾只取 1 张裁切图（~166ms）。
+#
+# 用法: ys-switch-save        产物 /tmp/ys-switch-after.png
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
-YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"
+[ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YS_WIN="${YS_WIN:-0x01400001}"
 
-SAVE_ICON_X=39; SAVE_ICON_Y=176
-CARD2_X=1737;   CARD2_Y=386
-CONFIRM_X=1439; CONFIRM_Y=812
+SAVE_ICON_X=39
+SAVE_ICON_Y=176
+CARD2_X=1737
+CARD2_Y=386
+CONFIRM_X=1439
+CONFIRM_Y=812
 
 "$HERE/ys-kwin-raise" "原神" >/dev/null 2>&1
 "$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
   set -u
-  cd "$0"; export YS_SLOT_ACTIVE=1; . ./_ys-ui.sh
+  cd "$0"
+  export YS_SLOT_ACTIVE=1
   W="${YS_WIN:-0x01400001}"
   ICON_X='"$SAVE_ICON_X"'; ICON_Y='"$SAVE_ICON_Y"'
   C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
   CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'
   click() { ./ys-pointer-click "$1" "$2" >/dev/null 2>&1; }
-  j1() { judge "$1" "$2" | cut -d" " -f1; }
-  j2() { judge "$1" "$2" | cut -d" " -f2; }
-  j3() { judge "$1" "$2" | cut -d" " -f3; }
-  st() {
-    local R G B
-    R=$(j1 2273 1357); G=$(j2 2273 1357); B=$(j3 2273 1357)
-    if [ "${R:-0}" -gt 230 ] && [ "${G:-0}" -gt 230 ] && [ "${B:-0}" -gt 230 ]; then echo SAVE; return; fi
-    R=$(j1 41 99); G=$(j2 41 99); B=$(j3 41 99)
-    if [ "${R:-0}" -gt 150 ] && [ "${G:-0}" -gt 150 ] && [ "${B:-0}" -gt 150 ]; then echo MENU; return; fi
-    echo EDITOR; }
-  import -window "$W" /tmp/ys-switch-before.png 2>/dev/null
+  st() { ./ys-fast state 2>/dev/null | head -1; }
+
   echo "起点 state=$(st)"
-  local_i=0
-  while [ "$(st)" != "SAVE" ] && [ $local_i -lt 6 ]; do
-    if [ "$(st)" = "MENU" ]; then click "$ICON_X" "$ICON_Y"; sleep 4
-    else ydotool key 1:1 1:0 2>/dev/null; sleep 3; fi
-    local_i=$((local_i+1))
+
+  # ① 进存档页：判据 = 状态真的变成 SAVE（旧写法：点一下然后 sleep 4）
+  i=0
+  while [ "$(st)" != "SAVE" ] && [ $i -lt 6 ]; do
+    if [ "$(st)" = "MENU" ]; then click "$ICON_X" "$ICON_Y"
+    else ydotool key 1:1 1:0 2>/dev/null; fi
+    i=$((i+1))
+    ./ys-wait --until "./ys-fast state" --expect SAVE --timeout 12 --poll 0.3 \
+      --label "进存档页第${i}次" >/dev/null 2>&1
   done
+  if [ "$(st)" != "SAVE" ]; then
+    echo "✗ 进存档页失败（最后 state=$(st)）" >&2
+    exit 3
+  fi
   echo "到存档页 state=$(st)"
-  click "$C2X" "$C2Y"; sleep 3.5
-  echo "  点第2位卡后 state=$(st)（应为 EDITOR=对话框已开）"
-  click "$CFX" "$CFY"; sleep 22
+
+  # ② 点第 2 位卡 → 确认对话框弹出（对话框尚无稳定单点判据，只等最小物理延迟）
+  click "$C2X" "$C2Y"
+  sleep 0.8
+  echo "  点第2位卡后 state=$(st)"
+
+  # ③ 确认重载：谓词 = EDITOR 连续 6 次且总时长 ≥9s（旧写法：无条件 sleep 22）
+  click "$CFX" "$CFY"
+  T0=$(date +%s%3N)
+  OKN=0
+  while :; do
+    S=$(st)
+    if [ "$S" = "EDITOR" ]; then OKN=$((OKN+1)); else OKN=0; fi
+    NOW=$(date +%s%3N)
+    EL=$(( (NOW - T0) / 1000 ))
+    if [ "$OKN" -ge 6 ] && [ "$EL" -ge 9 ]; then
+      echo "[reload] ✓ ${EL}s 稳定 6 次（旧写法固定 22s）"
+      break
+    fi
+    if [ "$EL" -ge 45 ]; then
+      echo "[reload] ✗ 超时 45s（最后 state=$S）" >&2
+      exit 4
+    fi
+    sleep 0.5
+  done
   echo "切换后 state=$(st)"
-  import -window "$W" /tmp/ys-switch-after.png 2>/dev/null
-' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$'
-for f in before after; do
-  [ -s "/tmp/ys-switch-$f.png" ] && magick "/tmp/ys-switch-$f.png" -resize 1100x "/tmp/ys-switch-$f-s.png" 2>/dev/null
-done
-echo "[ys-switch-save] 证据图 /tmp/ys-switch-{before,after}-s.png"
+
+  # ④ 证据：收尾只取一张裁切图（全窗 import 2893ms → 裁切 ~166ms）
+  import -window "$W" -crop 900x520+0+0 +repage /tmp/ys-switch-after.png 2>/dev/null
+' "$HERE" 2>&1 | grep -vE "^[0-9]+ [0-9]+$"
+rc=${PIPESTATUS[0]}
+if [ -s /tmp/ys-switch-after.png ]; then
+  magick /tmp/ys-switch-after.png -resize 900x /tmp/ys-switch-after-s.png 2>/dev/null
+fi
+echo "[ys-switch-save] 证据图 /tmp/ys-switch-after-s.png  退出码 $rc"
+exit "$rc"

@@ -1,0 +1,55 @@
+#!/bin/bash
+# ys-wait — 谓词等待（S2）：把「睡够 N 秒」换成「等到判据成立，或到点失败」。
+#
+# 存在理由（2026-10-17 帐单）：一轮 426s 里 92% 是仪器开销，其中大量是
+#   `sleep 22` / `sleep 30` 这种「用时长冒充同步」。它们有两个病：
+#   ① 界面早就好了也照样等满；② 界面没好也照样往下走（假成功）。
+#
+# 用法:
+#   ys-wait --until "ys-fast state" --expect EDITOR --timeout 40 [--poll 0.3] [--label reload]
+#   ys-wait --until "test -s /tmp/x.gia" --timeout 20          # 谓词返回 0 即成立
+# 退出码: 0=成立  1=超时  2=用法错
+# 输出: 状态变换序列（去重）+ 耗时，便于事后判定「到底等了多久、看到了什么」
+set -u
+CMD=""
+EXPECT=""
+TIMEOUT=30
+POLL=0.3
+LABEL="wait"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --until)   CMD="$2"; shift 2 ;;
+    --expect)  EXPECT="$2"; shift 2 ;;
+    --timeout) TIMEOUT="$2"; shift 2 ;;
+    --poll)    POLL="$2"; shift 2 ;;
+    --label)   LABEL="$2"; shift 2 ;;
+    *) echo "ys-wait: 未知参数 $1" >&2; exit 2 ;;
+  esac
+done
+if [ -z "$CMD" ]; then echo "ys-wait: 需要 --until '<命令>'" >&2; exit 2; fi
+
+START=$(date +%s%3N)
+LAST=""
+SEQ=""
+while :; do
+  OUT=$(eval "$CMD" 2>/dev/null | head -1)
+  if [ -n "$EXPECT" ]; then
+    [ "$OUT" = "$EXPECT" ] && OK=1 || OK=0
+  else
+    eval "$CMD" >/dev/null 2>&1 && OK=1 || OK=0
+  fi
+  if [ "$OUT" != "$LAST" ]; then
+    SEQ="${SEQ}${SEQ:+ → }${OUT:-∅}"
+    LAST="$OUT"
+  fi
+  NOW=$(date +%s%3N)
+  if [ "$OK" = "1" ]; then
+    echo "[$LABEL] ✓ $(( NOW - START ))ms  序列: $SEQ"
+    exit 0
+  fi
+  if [ $(( NOW - START )) -ge $(( TIMEOUT * 1000 )) ]; then
+    echo "[$LABEL] ✗ 超时 ${TIMEOUT}s  序列: $SEQ  期望: ${EXPECT:-退出码0}" >&2
+    exit 1
+  fi
+  sleep "$POLL"
+done
