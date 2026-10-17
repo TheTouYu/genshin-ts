@@ -54,15 +54,37 @@ def cu(args, timeout=20):
     return p.returncode, p.stdout, p.stderr, (time.time() - t0) * 1000
 
 
-def tree(app):
+_TREE_CACHE = {}          # app -> (ts, text)
+TREE_TTL = 0.8            # 秒：同一步骤内的多次查询复用同一棵树
+
+
+def tree(app, fresh=False):
+    """读一次 AT-SPI 树（带短 TTL 缓存）。
+
+    实测（2026-10-17）：一次 `cu state` 端到端 ~800ms，其中**进程启动只占 ~150ms**，
+    大头是 AT-SPI 热遍历（即便作用域收到单个 app 也要 ~650ms）。
+    所以省时间的办法不是"少起进程"，而是**少遍历**：动作前读一次、动作后读一次。
+    """
+    now = time.time()
+    hit = _TREE_CACHE.get(app)
+    if hit and not fresh and now - hit[0] < TREE_TTL:
+        return hit[1], None, 0.0
     rc, out, err, ms = cu(['state', app])
     if rc != 0:
         return None, err.strip() or out.strip(), ms
+    _TREE_CACHE[app] = (now, out)
     return out, None, ms
 
 
-def screen_text(app):
-    t, err, ms = tree(app)
+def invalidate(app=None):
+    if app:
+        _TREE_CACHE.pop(app, None)
+    else:
+        _TREE_CACHE.clear()
+
+
+def screen_text(app, fresh=False):
+    t, err, ms = tree(app, fresh=fresh)
     if t is None:
         return None, err, ms
     return t, None, ms
@@ -94,6 +116,7 @@ def do_step(app, step, skill_vars):
             rc, out, err, cms = cu(['click', app, '--xy', str(payload[0]), str(payload[1])])
         else:
             rc, out, err, cms = cu(['click', app, '--name', payload])
+        invalidate(app)          # 动作会改变界面：立刻让树缓存失效
         ok = rc == 0 and 'OK' in (out + err).upper()
         return ok, f'click {kind}={payload} rc={rc} {(out+err).strip()[:80]}', ms + cms
     if act == 'assert':
@@ -103,7 +126,7 @@ def do_step(app, step, skill_vars):
         last = ''
         polls = 0
         while time.time() < deadline:
-            t, err, ms = screen_text(app)
+            t, err, ms = screen_text(app, fresh=True)
             polls += 1
             last = t or err or ''
             if want and want in last:
