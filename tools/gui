@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""gui — 通用 GUI 操作层的最小骨架（G0/G1）。
+
+设计（见 docs/maintenance/design-2026-10-17-gui-operation-assets.md）：
+  技能 = 可执行 plan（JSON），步骤用**目标描述**（role+name）而不是坐标；
+  解析层（resolver）优先 AT-SPI（`cu`），失败再退坐标；每步强制**效果断言**。
+
+用法:
+  tools/gui run <skill.json> [--json out.json] [--var k=v ...]
+  tools/gui lint <skill.json>          # 校验技能文件（缺 pre/post/steps 即拒）
+  tools/gui show <skill.json>
+
+技能格式:
+{
+  "id": "sandbox.pick-green",
+  "app": "app.py",
+  "pre":   {"text": "当前: 无"},                  # 可选：开跑前界面上应有的文本
+  "steps": [
+    {"act": "click",  "target": {"role": "button", "name": "绿色"}},
+    {"act": "assert", "text": "当前: 绿色", "timeout": 5}
+  ],
+  "post":  {"text": "当前: 绿色"}
+}
+
+退出码: 0 成功 / 2 用法或技能文件错 / 3 断言失败 / 4 目标解析失败 / 5 前置不成立
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ENVSH = os.path.join(os.path.dirname(HERE), 'ys-editor', 'ys-env.sh')
+
+
+def load_env():
+    """继承 ys-env.sh 提供的 DISPLAY / XAUTHORITY（每次会话随机名）。"""
+    if not os.path.exists(ENVSH):
+        return
+    out = subprocess.run(['bash', '-c', f'. "{ENVSH}" >/dev/null 2>&1; '
+                                    'echo "$DISPLAY"; echo "${XAUTHORITY:-}"'],
+                         capture_output=True, text=True).stdout.splitlines()
+    if len(out) >= 1 and out[0]:
+        os.environ.setdefault('DISPLAY', out[0])
+    if len(out) >= 2 and out[1]:
+        os.environ.setdefault('XAUTHORITY', out[1])
+
+
+def cu(args, timeout=20):
+    t0 = time.time()
+    p = subprocess.run(['cu'] + args, capture_output=True, text=True, timeout=timeout)
+    return p.returncode, p.stdout, p.stderr, (time.time() - t0) * 1000
+
+
+def tree(app):
+    rc, out, err, ms = cu(['state', app])
+    if rc != 0:
+        return None, err.strip() or out.strip(), ms
+    return out, None, ms
+
+
+def screen_text(app):
+    t, err, ms = tree(app)
+    if t is None:
+        return None, err, ms
+    return t, None, ms
+
+
+def find_target(app, target):
+    """解析目标：AT-SPI 语义优先，坐标兜底。返回 (kind, payload, cost_ms)。"""
+    if 'xy' in target:
+        return 'xy', target['xy'], 0.0
+    name = target.get('name')
+    role = target.get('role', '')
+    t, err, ms = tree(app)
+    if t is None:
+        return None, err, ms
+    for line in t.splitlines():
+        if name and name in line and (not role or role in line):
+            return 'name', name, ms
+    return None, f'树里找不到 {role or "元素"}「{name}」', ms
+
+
+def do_step(app, step, skill_vars):
+    act = step.get('act')
+    t0 = time.time()
+    if act == 'click':
+        kind, payload, ms = find_target(app, step.get('target', {}))
+        if kind is None:
+            return False, f'解析失败: {payload}', ms
+        if kind == 'xy':
+            rc, out, err, cms = cu(['click', app, '--xy', str(payload[0]), str(payload[1])])
+        else:
+            rc, out, err, cms = cu(['click', app, '--name', payload])
+        ok = rc == 0 and 'OK' in (out + err).upper()
+        return ok, f'click {kind}={payload} rc={rc} {(out+err).strip()[:80]}', ms + cms
+    if act == 'assert':
+        want = step.get('text')
+        timeout = float(step.get('timeout', 5))
+        deadline = time.time() + timeout
+        last = ''
+        polls = 0
+        while time.time() < deadline:
+            t, err, ms = screen_text(app)
+            polls += 1
+            last = t or err or ''
+            if want and want in last:
+                return True, f'assert ok（{polls} 次轮询，{(time.time()-t0)*1000:.0f}ms）', ms
+            time.sleep(0.2)
+        seen = [l for l in last.splitlines() if l.strip()][:6]
+        return False, f'断言失败：期望含「{want}」，实际前几行={seen}', (time.time() - t0) * 1000
+    if act == 'wait':
+        return do_step(app, dict(step, act='assert', text=step.get('text', '')), skill_vars)
+    return False, f'未知动作 {act}', 0.0
+
+
+def cmd_run(args):
+    load_env()
+    skill = json.load(open(args.skill))
+    app = skill.get('app')
+    if not app:
+        print('技能缺 app 字段', file=sys.stderr)
+        return 2
+    rec = {'skill': skill.get('id'), 'app': app, 'steps': [], 'ok': False, 't0': time.time()}
+    print(f'▶ {skill.get("id")}  app={app}')
+    pre = skill.get('pre') or {}
+    if pre.get('text'):
+        t, err, ms = screen_text(app)
+        if t is None or pre['text'] not in t:
+            print(f'✗ 前置不成立：期望含「{pre["text"]}」；实际={(t or err or "")[:120]}')
+            rec['steps'].append({'step': 'pre', 'ok': False, 'obs': (t or err or '')[:200]})
+            json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
+            return 5
+        print(f'  pre ✓ （{(ms):.0f}ms）')
+    for i, step in enumerate(skill.get('steps', []), 1):
+        ok, msg, ms = do_step(app, step, {})
+        print(f'  [{i}] {step.get("act"):<7} {"✓" if ok else "✗"} {msg}  ({ms:.0f}ms)')
+        rec['steps'].append({'i': i, 'act': step.get('act'), 'ok': ok, 'obs': msg, 'ms': round(ms)})
+        if not ok:
+            rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
+            json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
+            return 3
+    rec['ok'] = True
+    rec['elapsed_ms'] = round((time.time() - rec['t0']) * 1000)
+    json.dump(rec, open(args.json, 'w'), ensure_ascii=False, indent=1)
+    print(f'✓ 全部通过，用时 {rec["elapsed_ms"]}ms  证据: {args.json}')
+    return 0
+
+
+def cmd_lint(args):
+    try:
+        skill = json.load(open(args.skill))
+    except Exception as e:
+        print(f'✗ 读不了: {e}')
+        return 2
+    problems = []
+    for k in ('id', 'app', 'steps'):
+        if not skill.get(k):
+            problems.append(f'缺 {k}')
+    if not skill.get('post') and not any(s.get('act') == 'assert' for s in skill.get('steps', [])):
+        problems.append('既没有 post 也没有 assert —— 没有效果断言的操作不许进库')
+    for i, s in enumerate(skill.get('steps', []), 1):
+        if s.get('act') == 'click' and not s.get('target'):
+            problems.append(f'第 {i} 步 click 缺 target')
+    if problems:
+        print('✗ ' + '；'.join(problems))
+        return 2
+    print(f'✓ {skill["id"]} 通过（{len(skill["steps"])} 步）')
+    return 0
+
+
+def cmd_show(args):
+    skill = json.load(open(args.skill))
+    print(json.dumps(skill, ensure_ascii=False, indent=1))
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(prog='gui', description='通用 GUI 操作层（最小骨架）')
+    sub = ap.add_subparsers(dest='cmd')
+    p = sub.add_parser('run', help='执行技能')
+    p.add_argument('skill')
+    p.add_argument('--json', default='/tmp/gui-run.json')
+    p.add_argument('--var', action='append', default=[])
+    p = sub.add_parser('lint', help='校验技能文件')
+    p.add_argument('skill')
+    p = sub.add_parser('show', help='打印技能')
+    p.add_argument('skill')
+    a = ap.parse_args()
+    if not a.cmd:
+        ap.print_help()
+        return 2
+    return {'run': cmd_run, 'lint': cmd_lint, 'show': cmd_show}[a.cmd](a)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

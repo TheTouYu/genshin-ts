@@ -1,0 +1,10 @@
+{
+  "id": "sandbox.pick-green",
+  "app": "app.py",
+  "pre": {"text": "当前: 无"},
+  "steps": [
+    {"act": "click", "target": {"role": "button", "name": "绿色"}},
+    {"act": "assert", "text": "当前: 绿色", "timeout": 5}
+  ],
+  "post": {"text": "当前: 绿色"}
+}

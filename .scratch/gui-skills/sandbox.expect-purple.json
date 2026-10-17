@@ -1,0 +1,9 @@
+{
+  "id": "sandbox.expect-purple-should-fail",
+  "app": "app.py",
+  "steps": [
+    {"act": "click", "target": {"role": "button", "name": "红色"}},
+    {"act": "assert", "text": "当前: 紫色", "timeout": 3}
+  ],
+  "post": {"text": "当前: 紫色"}
+}
