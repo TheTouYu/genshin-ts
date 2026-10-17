@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""ys-find — 统一"找控件"入口：一条命令把**多条定位通道**的候选摆在一起，并给对账结论。
+
+为什么需要它：AGI 标准下"能完成编辑器全部操作"要求"找得到控件"，而任何单通道都会骗人
+（实证：裸单模板 NCC 60 负样本对里 3 笔 ≥0.9 假命中；AT-SPI 在 Wine 侧零覆盖）。
+所以本工具不负责"决定"，只负责**并列候选 + 对账**：
+  · text  文本通道（RapidOCR，读标签文字）
+  · icon  图标通道（模板/锚点 NCC，纯文件打分，fail-closed）
+  · struct 结构通道（AT-SPI，`cu find`，仅桌面应用有效）
+两通道结论一致（中心距 ≤ --tol）才判 agree；不一致就报"不一致"，绝不当成找到。
+
+用法（离线优先，不碰屏幕）:
+  tools/ys-find --frame 帧.png --text 中断挑战 --icon 模板.png [--expect X,Y] [--tol 30] [--json]
+  tools/ys-find --frame 帧.png --text 继续挑战,中断挑战          # 只跑文本通道
+  tools/ys-find --struct 原神编辑器 --text 试玩                  # 结构通道（需有 AT-SPI 树的应用）
+
+退出码：0 全部通道都有候选且对账一致 / 3 通道间不一致 / 4 某通道无候选 / 2 用法错 / 5 后端缺
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+YS = os.path.join(HERE, 'ys-editor')
+# OCR venv：可用 YS_RAPIDOCR_PY 覆盖；缺它就报"后端缺"，不退回更差的识别器
+RAPIDOCR_PY = os.environ.get(
+    'YS_RAPIDOCR_PY',
+    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+
+
+def backend_ok():
+    return os.path.exists(RAPIDOCR_PY), os.path.abspath(RAPIDOCR_PY)
+
+
+def channel_text(frame, labels):
+    ok, py = backend_ok()
+    if not ok:
+        return {'channel': 'text', 'error': 'RapidOCR venv 缺失：%s（可设 YS_RAPIDOCR_PY）' % py,
+                'boxes': []}
+    want = ','.join(labels) if labels else ''
+    cmd = [py, os.path.join(YS, 'ys_ocr.py'), 'ocr', frame, '--json']
+    if want:
+        cmd += ['--want', want]
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if p.returncode != 0:
+        return {'channel': 'text', 'error': (p.stderr or '')[-400:], 'boxes': []}
+    try:
+        return json.loads(p.stdout)
+    except Exception as exc:
+        return {'channel': 'text', 'error': 'OCR 输出不可解析: %s' % exc, 'boxes': []}
+
+
+def channel_icon(frame, tpl):
+    ok, py = backend_ok()
+    if not ok:
+        return {'channel': 'icon', 'error': 'venv 缺失（numpy/PIL 在 venv 里）：%s' % py,
+                'matches': []}
+    p = subprocess.run([py, os.path.join(YS, 'ys_ocr.py'), 'match', frame, tpl, '--json'],
+                       capture_output=True, text=True, timeout=180)
+    if p.returncode != 0:
+        return {'channel': 'icon', 'error': (p.stderr or p.stdout or '')[-400:], 'matches': []}
+    try:
+        return json.loads(p.stdout)
+    except Exception as exc:
+        return {'channel': 'icon', 'error': '匹配输出不可解析: %s' % exc, 'matches': []}
+
+
+def channel_struct(app, keyword):
+    p = subprocess.run(['cu', 'find', app, keyword], capture_output=True, text=True, timeout=30)
+    out = (p.stdout or '') + (p.stderr or '')
+    return {'channel': 'struct', 'app': app, 'keyword': keyword,
+            'rc': p.returncode, 'raw': out.strip()[:800],
+            'error': None if p.returncode == 0 else out.strip()[:400]}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='统一找控件入口（多通道并列 + 对账）')
+    ap.add_argument('--frame', help='离线帧（PNG）；给出即为离线模式，不碰屏幕')
+    ap.add_argument('--text', default='', help='逗号分隔的文本标签（文本通道）')
+    ap.add_argument('--icon', default='', help='模板 PNG 路径（图标通道）')
+    ap.add_argument('--struct', default='', help='应用名（结构通道，走 cu find）')
+    ap.add_argument('--expect', default='', help='已知实测点 x,y（用于对账；可选）')
+    ap.add_argument('--tol', type=int, default=30, help='两通道一致的中心距阈值（像素）')
+    ap.add_argument('--json', action='store_true')
+    a = ap.parse_args(argv)
+
+    labels = [x for x in a.text.split(',') if x]
+    if not (a.frame or a.struct):
+        print('需要 --frame（离线帧）或 --struct（结构通道）之一', file=sys.stderr)
+        return 2
+
+    result = {'inputs': {'frame': a.frame, 'text': labels, 'icon': a.icon,
+                         'struct': a.struct, 'expect': a.expect, 'tol': a.tol},
+              'channels': {}, 'verdict': 'unknown', 'notes': []}
+
+    if a.frame and labels:
+        result['channels']['text'] = channel_text(a.frame, labels)
+    if a.frame and a.icon:
+        result['channels']['icon'] = channel_icon(a.frame, a.icon)
+    if a.struct and labels:
+        result['channels']['struct'] = channel_struct(a.struct, labels[0])
+
+    # ---- 对账：只在两个通道的"同一个语义目标"上比较中心距离
+    text_pt, text_label = None, None
+    tb = (result['channels'].get('text') or {}).get('boxes') or []
+    if tb:
+        text_pt = (tb[0]['cx'], tb[0]['cy'])
+        text_label = tb[0]['text']
+    icon_pt = None
+    im = (result['channels'].get('icon') or {}).get('matches') or []
+    if im:
+        icon_pt = (im[0]['cx'], im[0]['cy'])
+
+    expect_pt = None
+    if a.expect:
+        try:
+            ex, ey = a.expect.split(',')
+            expect_pt = (int(float(ex)), int(float(ey)))
+        except Exception:
+            result['notes'].append('--expect 解析失败，忽略：%s' % a.expect)
+
+    def dist(p, q):
+        return int(round(((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2) ** 0.5))
+
+    # 有实测点时，"文本通道"的对账对象是**离实测点最近的框**（不是 OCR 返回的第一行）
+    if expect_pt and tb:
+        nearest = min(tb, key=lambda b: dist(expect_pt, (b['cx'], b['cy'])))
+        text_pt, text_label = (nearest['cx'], nearest['cy']), nearest['text']
+        result['notes'].append('文本通道取最近框：%s (%d,%d)' % (text_label, text_pt[0], text_pt[1]))
+
+    if text_pt and icon_pt:
+        d = dist(text_pt, icon_pt)
+        result['notes'].append('text↔icon 中心距 %dpx（阈值 %d）' % (d, a.tol))
+        result['verdict'] = 'agree' if d <= a.tol else 'disagree'
+    if expect_pt and text_pt:
+        d = dist(expect_pt, text_pt)
+        result['notes'].append('text[%s]↔实测点 距离 %dpx' % (text_label, d))
+        result['verdict'] = result['verdict'] if result['verdict'] != 'unknown' else (
+            'agree' if d <= a.tol else 'disagree')
+    if expect_pt and icon_pt:
+        d = dist(expect_pt, icon_pt)
+        result['notes'].append('icon↔实测点 距离 %dpx' % d)
+
+    # 通道缺候选优先报"没找到"，别把"没找到"说成"一致"
+    empty = [k for k in ('text', 'icon', 'struct') if k in result['channels'] and
+             not ((result['channels'][k].get('boxes') or result['channels'][k].get('matches')
+                   or result['channels'][k].get('raw')))]
+    errs = [k for k, v in result['channels'].items() if v.get('error')]
+
+    if not a.json:
+        print('══ ys-find ══')
+        for k, v in result['channels'].items():
+            if k == 'text':
+                print('[text] %d 个框（总 %d）' % (len(v.get('boxes') or []), v.get('n_total') or 0))
+                for b in (v.get('boxes') or [])[:8]:
+                    print('   %-8s (%d,%d) %.2f' % (b['text'], b['cx'], b['cy'], b['score']))
+            elif k == 'icon':
+                print('[icon] 前 %d 个匹配' % len(v.get('matches') or []))
+                for m in (v.get('matches') or [])[:5]:
+                    print('   (%d,%d) %.4f' % (m['cx'], m['cy'], m['score']))
+            else:
+                print('[struct] rc=%s %s' % (v.get('rc'), (v.get('raw') or v.get('error') or '')[:160]))
+            if v.get('error'):
+                print('   [错误] %s' % v['error'][:200])
+        for n in result['notes']:
+            print('   · %s' % n)
+        print('结论: %s' % result['verdict'])
+    else:
+        print(json.dumps(result, ensure_ascii=False, indent=1))
+
+    if errs:
+        return 5
+    if empty:
+        return 4
+    if result['verdict'] == 'disagree':
+        return 3
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

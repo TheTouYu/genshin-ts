@@ -1,0 +1,301 @@
+#!/usr/bin/env python3
+"""gui-catalog — 把官方指南的散文操作面规格化成**可执行操作目录**（catalog）。
+
+为什么需要它：AGI 标准下"能完成编辑器全部操作"必须有**分母**。指南（docs/ui-tutorial/，
+全库 42K 行，editor-interface 一个文件就 2576 行 / 69 小节）是界面与概念的散文，不是操作清单。
+本工具做**机械抽取**（零幻觉）：逐句找操作动词，保留逐字原文引用与行号，下游可 grep -F 验真。
+
+产出的每一行 = 一条操作候选，字段见 FIELDS。`status` 初始恒为"待测"：
+  待测 → 可定位（有实测定位通道）→ 可执行（有前置/后置断言且真的跑通）→ 可验证（证据可重算）
+只有实测才能升档，本工具**永不**自己升档。
+
+用法:
+  tools/gui-catalog extract <指南.md> [--out FILE] [--stats]
+  tools/gui-catalog verify  <指南.md> <catalog.tsv>     # 逐行 grep -F 验真 quote，报不中比例
+  tools/gui-catalog stats   <catalog.tsv>               # 覆盖率台账（按 status/节/动作）
+
+设计口径（与 docs/maintenance/gui-gate-contract-2026-10-17.md §6 一致）：
+  · channels ∈ {struct, text, icon, geom}：struct=AT-SPI 结构树可得（Wine 侧为 0，别默认）、
+    text=OCR 可读文字、icon=图标模板/锚图匹配、geom=布局先验（"右上角"这类）。
+  · 坐标与阈值**不进 catalog**：那是 ys-state / 锚图库的事，catalog 只描述"操作什么"。
+"""
+import argparse
+import os
+import re
+import sys
+
+FIELDS = ['id', 'file', 'line', 'section', 'quote', 'intent', 'action',
+          'target', 'precond', 'postcond', 'channels', 'status', 'notes']
+
+# 强操作动词：出现即算候选（这些词在描述句里极少自然出现）
+STRONG = [('双击', 'double-click'), ('单击', 'click'), ('点击', 'click'), ('右键', 'right-click'),
+          ('拖拽', 'drag-to'), ('拖动', 'drag-to'), ('拖入', 'drag-to'), ('拖到', 'drag-to'),
+          ('滚轮', 'wheel'), ('长按', 'key'), ('按住', 'key'), ('框选', 'multi-select'),
+          ('勾选', 'toggle'), ('取消勾选', 'toggle'), ('键入', 'type'), ('快捷键', 'key')]
+# 弱操作动词：只有出现在句首/前 6 字，或句子里有祈使标记时才算候选（否则多是描述句）
+WEAK = [('点击', 'click'), ('选择', 'click'), ('选中', 'click'), ('输入', 'type'), ('填写', 'type'),
+        ('打开', 'menu-open'), ('展开', 'panel-toggle'), ('收起', 'panel-toggle'),
+        ('关闭', 'menu-close'), ('新建', 'create'), ('创建', 'create'), ('添加', 'create'),
+        ('删除', 'delete'), ('移除', 'delete'), ('保存', 'save'), ('上传', 'upload'),
+        ('导出', 'export'), ('导入', 'import'), ('拉伸', 'drag-by'), ('缩放', 'drag-by'),
+        ('拖出', 'drag-by'), ('按下', 'key'), ('松开', 'key'), ('多选', 'multi-select'),
+        ('框选', 'multi-select'), ('加选', 'multi-select'), ('取消选择', 'multi-select')]
+IMPERATIVE = ('可', '请', '需要', '然后', '之后', '后，', '先', '再', '即可', '以便', '才能')
+# 泛操作动词：指南用"功能名"而非祈使句描述的操作（如「模型 - 复制」「详情页 - 下载资产」）。
+# 这些行同样是"待实现的候选操作"，但可能包含描述句 → status 走同一条复核链（可标 非操作）。
+GENERIC = [('切换', 'toggle'), ('下载', 'export'), ('导出', 'export'), ('点赞', 'click'),
+           ('收藏', 'click'), ('复制', 'create'), ('粘贴', 'create'), ('举报', 'click'),
+           ('下架', 'delete'), ('编辑', 'click'), ('显示', 'toggle'), ('隐藏', 'toggle'),
+           ('设置', 'click'), ('生成', 'create'), ('对齐', 'drag-by'), ('对称', 'toggle'),
+           ('测距', 'click'), ('备注', 'type'), ('筛选', 'click'), ('排序', 'click'),
+           ('锁定', 'toggle'), ('重命名', 'type'), ('启用', 'toggle'), ('禁用', 'toggle'),
+           ('提交', 'save'), ('取消', 'menu-close'), ('确认', 'click'), ('重置', 'toggle'),
+           ('刷新', 'click'), ('预览', 'click')]
+
+# 句子切分：中文句末 + 换行
+SENT_SPLIT = re.compile(r'(?<=[。；！？])|(?<=\n)')
+# 目标提取：动词之后到这些分隔符之前
+TARGET_STOP = re.compile(r'(?:可|会|则|将|即|就|，|。|；|（|：)')
+# 后置效应线索：这些词后面通常是可观测结果
+EFFECT_HINTS = ('可使', '可以', '可', '会', '则', '将', '即', '后会', '便会', '就会')
+# 通道线索
+CH_ICON = ('图标', '按钮形状', 'logo')
+CH_TEXT = ('名称', '文本', '标签', '输入框', '搜索框', '下拉', '菜单项', '列表', '字样', '标题')
+CH_GEOM = ('右上角', '左上角', '右下角', '左下角', '上方', '下方', '左侧', '右侧', '顶部', '底部',
+           '中间', '屏幕', '界面右下', '工具栏', '侧栏', '面板')
+
+
+def channels_of(quote):
+    out = []
+    if any(k in quote for k in CH_ICON):
+        out.append('icon')
+    if any(k in quote for k in CH_TEXT):
+        out.append('text')
+    if any(k in quote for k in CH_GEOM):
+        out.append('geom')
+    return out or ['text']
+
+
+def clean(s):
+    s = s.replace('**', '').replace('`', '').replace('\\-', '-').strip()
+    return re.sub(r'\s+', ' ', s)
+
+
+def sections(lines):
+    """返回 [(no, name, start_line, end_line)]（1-based 行号，闭区间）。"""
+    marks = [(i, l[4:].strip()) for i, l in enumerate(lines, 1) if l.startswith('### ')]
+    out = []
+    for k, (ln, name) in enumerate(marks):
+        end = marks[k + 1][0] - 1 if k + 1 < len(marks) else len(lines)
+        out.append((k + 1, clean(name), ln, end))
+    return out
+
+
+def demark(t):
+    """派生字段去掉 markdown 痕迹：链接只留文字，[图] 图注去掉。"""
+    t = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', t)
+    t = t.replace('[图]', '').replace('**', '').replace('`', '').replace('\\-', '-')
+    return re.sub(r'\s+', ' ', t).strip(' ：:，,、-—')
+
+
+def precond_of(no):
+    if 27 <= no <= 32:
+        return 'PLAYTEST'
+    if 33 <= no <= 37:
+        return 'PLAYTEST'          # 多人试玩房间/结算
+    return 'EDITOR'
+
+
+def extract(path):
+    lines = open(path, encoding='utf-8').read().splitlines()
+    secs = sections(lines)
+    base = os.path.basename(path)
+    rows = []
+    seq = 0
+    for no, name, start, end in secs:
+        for lineno in range(start, end + 1):
+            raw = lines[lineno - 1]
+            if raw.startswith('#') or not raw.strip():
+                continue
+            for sent in SENT_SPLIT.split(raw):
+                quote = sent.strip()                 # quote 保持原文逐字，只去首尾空白
+                if len(quote) < 4:
+                    continue
+                verb = action = None
+                for v, a in STRONG:                  # 强动词优先
+                    if v in quote:
+                        verb, action = v, a
+                        break
+                if not verb:
+                    for v, a in GENERIC:
+                        if v in quote:
+                            verb, action = v, a
+                            break
+                if not verb:
+                    for v, a in WEAK:
+                        pos = quote.find(v)
+                        if pos < 0:
+                            continue
+                        if pos <= 6 or any(k in quote for k in IMPERATIVE):
+                            verb, action = v, a
+                            break
+                if not verb:
+                    continue
+                after = quote.split(verb, 1)[1]
+                m = TARGET_STOP.search(after)
+                target = demark(after[:m.start()] if m else after)
+                post = ''
+                for hint in EFFECT_HINTS:
+                    if hint in after:
+                        post = demark(after[after.index(hint) + len(hint):])
+                        break
+                if not post:
+                    for hint in ('进行', '即可', '以后', '之后'):
+                        if hint in after:
+                            post = demark(after[after.index(hint) + len(hint):])
+                            break
+                if len(post) < 2:
+                    post = '（指南未写可观测效应，需实测补后置断言）'
+                if len(target) < 1:
+                    target = demark(after)[:20] or '（未解析，需人工读原文）'
+                seq += 1
+                rows.append({
+                    'id': 'EC-%03d' % seq,
+                    'file': base,
+                    'line': lineno,
+                    'section': '%02d %s' % (no, name),
+                    'quote': quote[:160],
+                    'intent': '%s%s' % (verb, target[:12]),
+                    'action': action,
+                    'target': target[:60],
+                    'precond': precond_of(no),
+                    'postcond': post[:90],
+                    'channels': '+'.join(channels_of(quote)),
+                    'status': '待测',
+                    'notes': 'verb=%s' % verb,
+                })
+    return rows
+
+
+def dedupe(rows):
+    seen, out = set(), []
+    for r in rows:
+        key = (r['section'], r['action'], r['target'][:24])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(r)
+    return out
+
+
+def write_sections(guide_path, rows, out_path):
+    """小节台账：69 个小节全部列出（含 0 条操作的），让"盲区"显式存在而不是靠人记得。"""
+    lines = open(guide_path, encoding='utf-8').read().splitlines()
+    secs = sections(lines)
+    counts = {}
+    for r in rows:
+        no = int(r['section'].split()[0])
+        counts[no] = counts.get(no, 0) + 1
+    CONCEPT_HINT = ('功能简介', '功能入口', '界面样式', '入口所在位置', '入口')
+    with open(out_path, 'w', encoding='utf-8') as fh:
+        fh.write('\t'.join(['no', 'section', 'lines', 'rows', 'note']) + '\n')
+        for no, name, start, end in secs:
+            n = counts.get(no, 0)
+            note = ''
+            if n == 0:
+                note = ('auto:概念/入口页，机械判定无可执行操作' if any(h in name for h in CONCEPT_HINT)
+                        else 'auto:功能说明页（未抽到祈使操作，待复核）')
+            fh.write('\t'.join([str(no), name, '%d-%d' % (start, end), str(n), note]) + '\n')
+
+
+def write_tsv(rows, out_path):
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    with open(out_path, 'w', encoding='utf-8') as fh:
+        fh.write('\t'.join(FIELDS) + '\n')
+        for r in rows:
+            fh.write('\t'.join(str(r[f]).replace('\t', ' ') for f in FIELDS) + '\n')
+
+
+def read_tsv(path):
+    with open(path, encoding='utf-8') as fh:
+        head = fh.readline().rstrip('\n').split('\t')
+        rows = []
+        for line in fh:
+            vals = line.rstrip('\n').split('\t')
+            rows.append(dict(zip(head, vals)))
+        return rows
+
+
+def cmd_extract(a):
+    rows = dedupe(extract(a.guide))
+    out = a.out or os.path.join('docs', 'maintenance', 'gui-catalog',
+                                '%s.tsv' % os.path.basename(a.guide).replace('.md', ''))
+    write_tsv(rows, out)
+    sec_path = out.replace('.tsv', '.sections.tsv')
+    write_sections(a.guide, rows, sec_path)
+    print('[ok] 抽出 %d 条操作候选 → %s' % (len(rows), out))
+    print('[ok] 小节台账（含 0 操作的盲区）→ %s' % sec_path)
+    if a.stats:
+        cmd_stats(type('X', (), {'catalog': out})())
+
+
+def cmd_verify(a):
+    guide = open(a.guide, encoding='utf-8').read()
+    rows = read_tsv(a.catalog)
+    bad = [r for r in rows if r['quote'] and r['quote'] not in guide]
+    print('[verify] %d/%d 行 quote 逐字命中指南原文' % (len(rows) - len(bad), len(rows)))
+    for r in bad[:10]:
+        print('  [不中] %s L%s: %s' % (r['id'], r['line'], r['quote'][:60]))
+    if bad:
+        print('  → 不中的行必须删除或重抽（catalog 只收逐字可查的原文）')
+        return 1
+    return 0
+
+
+def cmd_stats(a):
+    rows = read_tsv(a.catalog)
+    by_status, by_action, by_sec = {}, {}, {}
+    for r in rows:
+        by_status[r['status']] = by_status.get(r['status'], 0) + 1
+        by_action[r['action']] = by_action.get(r['action'], 0) + 1
+        by_sec[r['section']] = by_sec.get(r['section'], 0) + 1
+    total = len(rows)
+    done = sum(v for k, v in by_status.items() if k in ('可执行', '可验证'))
+    locatable = sum(v for k, v in by_status.items() if k in ('可定位', '可执行', '可验证'))
+    print('[catalog] 总数 %d ｜ 小节 %d' % (total, len(by_sec)))
+    print('[覆盖率] 可定位 %d (%.1f%%) ｜ 可执行+ %d (%.1f%%)'
+          % (locatable, 100.0 * locatable / total if total else 0,
+             done, 100.0 * done / total if total else 0))
+    print('[status] %s' % ', '.join('%s=%d' % kv for kv in sorted(by_status.items())))
+    print('[action] %s' % ', '.join('%s=%d' % kv for kv in sorted(by_action.items(), key=lambda x: -x[1])))
+    thin = [(s, n) for s, n in sorted(by_sec.items()) if n <= 1]
+    print('[薄小节] %d 个只有 ≤1 条操作: %s' % (len(thin), ', '.join(s for s, _ in thin[:12])))
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='官方指南 → 可执行操作目录（catalog）')
+    sub = ap.add_subparsers(dest='cmd')
+    s1 = sub.add_parser('extract')
+    s1.add_argument('guide')
+    s1.add_argument('--out')
+    s1.add_argument('--stats', action='store_true')
+    s2 = sub.add_parser('verify')
+    s2.add_argument('guide')
+    s2.add_argument('catalog')
+    s3 = sub.add_parser('stats')
+    s3.add_argument('catalog')
+    a = ap.parse_args(argv)
+    if a.cmd == 'extract':
+        cmd_extract(a)
+        return 0
+    if a.cmd == 'verify':
+        return cmd_verify(a)
+    if a.cmd == 'stats':
+        return cmd_stats(a)
+    ap.print_help()
+    return 3
+
+
+if __name__ == '__main__':
+    sys.exit(main())

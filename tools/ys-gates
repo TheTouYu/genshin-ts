@@ -37,6 +37,7 @@ GATE_NAMES = {
     3: '性能（写盘轮 ≤90s / 试玩轮 ≤40s / 帧 ≤12 / 焦点 1 / sleep 0）',
     4: '证据（round.json + 引用帧 + .gia 可重算）',
     5: '单一源（界面态判定全仓只一处实现）',
+    6: '操作目录（catalog 存在 / 原文逐字可验 / 小节无盲区 / 覆盖三档可读）',
 }
 
 PASS, FAIL, BLOCKED = 'PASS', 'FAIL', 'BLOCKED'
@@ -312,13 +313,135 @@ def gate5():
     return g
 
 
+# ---------------------------------------------------------------- 门槛⑥
+CATALOG_DIR = os.path.join(ROOT, 'docs', 'maintenance', 'gui-catalog')
+GUIDE_DIR = os.path.join(ROOT, 'docs', 'ui-tutorial')
+STATUSES = ('待测', '可定位', '可执行', '可验证', '非操作')
+COVERAGE_REC = os.path.join(CATALOG_DIR, 'coverage.jsonl')
+
+
+def read_tsv_dicts(path):
+    with open(path, encoding='utf-8') as fh:
+        head = fh.readline().rstrip('\n').split('\t')
+        return [dict(zip(head, line.rstrip('\n').split('\t'))) for line in fh]
+
+
+def gate6(record=False):
+    """操作目录门槛：分母**存在且可信**才算过，覆盖率数字只报不设阈值（阈值由用户定）。"""
+    g = {'gate': 6, 'name': GATE_NAMES[6], 'status': BLOCKED, 'readings': {}, 'gaps': []}
+    if not os.path.isdir(CATALOG_DIR):
+        g['gaps'].append('缺目录 docs/maintenance/gui-catalog/（先跑 tools/gui-catalog extract）')
+        return g
+    cats = sorted(f for f in os.listdir(CATALOG_DIR) if f.endswith('.tsv')
+                  and not f.endswith(('.sections.tsv', 'measurements.tsv')))
+    if not cats:
+        g['gaps'].append('catalog 为空（没有 *.tsv）')
+        return g
+    rows, quote_bad, field_bad = [], [], []
+    for c in cats:
+        rs = read_tsv_dicts(os.path.join(CATALOG_DIR, c))
+        guide_name = c.replace('.tsv', '.md')
+        guide_path = os.path.join(GUIDE_DIR, guide_name)
+        guide = open(guide_path, encoding='utf-8').read() if os.path.exists(guide_path) else ''
+        for r in rs:
+            r['_cat'] = c
+            rows.append(r)
+            if guide and r.get('quote') and r['quote'] not in guide:
+                quote_bad.append('%s/%s L%s' % (c, r.get('id'), r.get('line')))
+            for f in ('id', 'section', 'quote', 'action', 'target', 'precond', 'postcond', 'status'):
+                if not (r.get(f) or '').strip():
+                    field_bad.append('%s/%s 缺 %s' % (c, r.get('id'), f))
+    total = len(rows)
+    by_status = {}
+    for r in rows:
+        by_status[r.get('status', '?')] = by_status.get(r.get('status', '?'), 0) + 1
+    denom = total - by_status.get('非操作', 0)
+    locatable = sum(by_status.get(k, 0) for k in ('可定位', '可执行', '可验证'))
+    runnable = sum(by_status.get(k, 0) for k in ('可执行', '可验证'))
+    verified = by_status.get('可验证', 0)
+    placeholder = sum(1 for r in rows if '需实测补后置断言' in (r.get('postcond') or ''))
+
+    # 状态必须由实测台账支撑（防止"自己把 status 改成可执行"）：measurements.tsv 一一对应
+    meas_path = os.path.join(CATALOG_DIR, 'measurements.tsv')
+    meas = {}
+    if os.path.exists(meas_path):
+        for m in read_tsv_dicts(meas_path):
+            meas[m.get('op_id', '')] = m
+    else:
+        g['gaps'].append('缺 measurements.tsv（状态升档必须有实测台账）')
+    need = [r for r in rows if r.get('status') in ('可定位', '可执行', '可验证')]
+    for r in need:
+        m = meas.get(r.get('id', ''))
+        if not m:
+            g['gaps'].append('状态=%s 但无实测台账：%s（%s）'
+                             % (r.get('status'), r.get('id'), (r.get('intent') or '')[:20]))
+            continue
+        if m.get('status') != r.get('status'):
+            g['gaps'].append('%s 状态不一致：catalog=%s 台账=%s'
+                             % (r.get('id'), r.get('status'), m.get('status')))
+        if not (m.get('evidence') or '').strip():
+            g['gaps'].append('%s 台账缺 evidence' % r.get('id'))
+    ids = {r.get('id', '') for r in rows}
+    for oid in meas:
+        if oid not in ids:
+            g['gaps'].append('台账里 %s 在 catalog 中不存在（孤儿台账）' % oid)
+
+    # 小节无盲区：台账行数必须等于指南里 `### ` 小节数
+    blind = []
+    for c in cats:
+        ledger = os.path.join(CATALOG_DIR, c.replace('.tsv', '.sections.tsv'))
+        guide_name = c.replace('.tsv', '.md')
+        guide_path = os.path.join(GUIDE_DIR, guide_name)
+        if not os.path.exists(ledger):
+            blind.append('%s 缺小节台账' % c)
+            continue
+        if not os.path.exists(guide_path):
+            continue
+        n_guide = sum(1 for line in open(guide_path, encoding='utf-8') if line.startswith('### '))
+        led = read_tsv_dicts(ledger)
+        if len(led) != n_guide:
+            blind.append('%s 台账 %d 行 ≠ 指南 %d 小节' % (c, len(led), n_guide))
+        for r in led:
+            if str(r.get('rows')) == '0' and not (r.get('note') or '').strip():
+                blind.append('%s 小节 %s 无操作且未标注原因' % (c, r.get('no')))
+
+    g['readings'] = {'catalogs': cats, 'total': total, 'denominator': denom,
+                     'by_status': by_status,
+                     'coverage_pct': {'可定位': round(100.0 * locatable / denom, 1) if denom else 0.0,
+                                      '可执行': round(100.0 * runnable / denom, 1) if denom else 0.0,
+                                      '可验证': round(100.0 * verified / denom, 1) if denom else 0.0},
+                     'postcond_placeholder': placeholder,
+                     'quote_bad': len(quote_bad), 'field_bad': len(field_bad)}
+    if total < 100:
+        g['gaps'].append('catalog 仅 %d 条 < 100（分母太小，覆盖率无意义）' % total)
+    if quote_bad:
+        g['gaps'].append('原文验真失败 %d 行：%s' % (len(quote_bad), ', '.join(quote_bad[:5])))
+    if field_bad:
+        g['gaps'].append('必填字段缺失 %d 处：%s' % (len(field_bad), ', '.join(field_bad[:5])))
+    for b in blind:
+        g['gaps'].append('盲区：%s' % b)
+    if record:
+        try:
+            with open(COVERAGE_REC, 'a', encoding='utf-8') as fh:
+                fh.write(json.dumps({'ts': int(time.time()), 'at': time.strftime('%F %T'),
+                                     'denominator': denom, 'by_status': by_status,
+                                     'coverage_pct': g['readings']['coverage_pct']},
+                                    ensure_ascii=False) + '\n')
+            g['readings']['recorded'] = COVERAGE_REC
+        except Exception as exc:
+            g['gaps'].append('覆盖率台账写入失败：%s' % exc)
+    g['status'] = PASS if not g['gaps'] else FAIL
+    return g
+
+
 # ---------------------------------------------------------------- main
 def main(argv=None):
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument('--json', action='store_true')
-    ap.add_argument('--only', default='12345')
+    ap.add_argument('--only', default='123456')
     ap.add_argument('--round-dir', default=None)
     ap.add_argument('--verbose', action='store_true')
+    ap.add_argument('--record', action='store_true', help='把覆盖率读数追加到 coverage.jsonl')
     a = ap.parse_args(argv)
     want = {int(c) for c in a.only if c.isdigit()}
     if not want:
@@ -336,6 +459,8 @@ def main(argv=None):
         results.append(gate4(rdir))
     if 5 in want:
         results.append(gate5())
+    if 6 in want:
+        results.append(gate6(record=a.record))
 
     total = len(results)
     npass = sum(1 for r in results if r['status'] == PASS)
@@ -346,7 +471,8 @@ def main(argv=None):
                                                         'blocked': nblk, 'total': total},
                           'all_pass': npass == total}, ensure_ascii=False, indent=1))
     else:
-        print('══ ys-gates 五条验收门槛  %s ══' % time.strftime('%F %T'))
+        print('══ ys-gates 验收门槛（①判定回归 ②假成功 ③性能 ④证据 ⑤单一源 ⑥操作目录）  %s ══'
+              % time.strftime('%F %T'))
         for r in results:
             mark = {'PASS': '✓', 'FAIL': '✗', 'BLOCKED': '·'}[r['status']]
             print('%s 门槛%d %-10s %s' % (mark, r['gate'], r['status'], r['name']))

@@ -1,0 +1,3 @@
+op_id	status	channels	evidence	measured_at	note
+EC-227	可定位	text+icon	./tools/ys-find --frame tools/ys-editor/calib/regress/pause.png --text 继续挑战 --icon <crop 240x64+1160+526> --expect 1280,557 => verdict=agree; text(1301,558) 距实测点 21px; icon(1280,558) score=1.0000 距 1px	2026-10-17T19:56	两通道同一控件一致（阈值 30px）；模板从同帧裁剪，证明通道可用，不代表跨帧通用
+EC-229	可定位	text+icon	./tools/ys-find --frame tools/ys-editor/calib/regress/pause.png --text 中断挑战 --icon <crop 240x64+1160+845> --expect 1280,877 => verdict=agree; text(1303,878) 距实测点 23px; icon(1280,877) score=1.0000 距 0px	2026-10-17T19:57	实测点 1280,877 来自 D317 真机点击记录

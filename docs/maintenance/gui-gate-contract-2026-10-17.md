@@ -122,3 +122,19 @@ GATE4-RESULT pass=<n> diff=<n> error=<n> verdict=PASS|FAIL
 ```
 
 缺这一行 → `ys-gates` 该门槛判 BLOCKED 并写「自测未给机读结果行」。
+
+## 8. 附则：门槛⑥（操作目录）与三通道定位（2026-10-17 增补）
+
+AGI 标准下"能完成编辑器全部操作"需要**分母**，否则只能按踩过的坑长技能。故新增两条基建：
+
+1. **catalog**（`docs/maintenance/gui-catalog/`，生成器 `tools/gui-catalog`）：把指南散文机械抽成
+   一条一个操作、带**逐字原文引用 + 行号**（`verify` 逐行 grep -F 验真，352/352 命中）。
+   状态机 `待测 → 可定位 → 可执行 → 可验证`（另一终态 `非操作`），**只有实测能升档**，
+   证据进 `measurements.tsv`；`tools/ys-gates --only 6` 强制"有状态必须有台账、台账状态必须一致"。
+2. **三通道定位**（`tools/ys-find` + `tools/ys-editor/ys_ocr.py`）：`text`(RapidOCR/云端 VL) /
+   `icon`(NCC 模板) / `struct`(AT-SPI `cu find`) 并列给候选，**一致才判找到**（阈值 `--tol`，缺省 30px）。
+   实测：pause 帧两通道对同一控件分别落到 (1301,558)/(1280,558) 与 (1303,878)/(1280,877)，
+   与真机实测点击点差 21/23px → `agree`；通道读数与局限见 `docs/maintenance/gui-catalog/channels.md`。
+
+门槛⑥的 PASS 判据（机械）：catalog 存在且 ≥100 条、quote 原文验真 100%、必填字段无缺失、
+小节台账行数 = 指南 `### ` 小节数且 0 操作小节都有原因；**覆盖率百分比只报数字，阈值由用户定**。
