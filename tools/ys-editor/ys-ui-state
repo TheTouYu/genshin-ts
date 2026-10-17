@@ -10,6 +10,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 SHOT=/tmp/ys-ui-state.png
 px() { magick "$SHOT" -format "%[fx:int(255*p{$1,$2}.r)] %[fx:int(255*p{$1,$2}.g)] %[fx:int(255*p{$1,$2}.b)]" info: 2>/dev/null; }
 grab() { "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1; }

@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""ys-verify-vision — 视觉判定的**双通道对账**（V3/V4：独立通道 + PASS/DIFF）
+
+存在理由（2026-10-17 用户定调：多模态视觉是短板）：
+  单通道判定的失败模式是**你根本不知道它错了**——「草地阴影被当成存档页」那次，
+  单判据给出了干净利落的答案，脚本照着走完了全程，直到最后才发现前提是错的。
+  ⇒ 对任何要写进报告的判定，用**两条互不依赖的通道**各取一次读数：
+      · 通道 A：窗口帧 + 廉价像素判据（`ys-fast`，30~100ms，`import -window <游戏窗>`）
+      · 通道 B：全屏帧 + 另一套判据（`ys-state` 模板/多判据投票）或**非视觉证据**（日志/CLI）
+  两条一致 → PASS；不一致 → DIFF，并**两条读数都打出来**（人可裁决，不吞证据）；
+  任一条取不到读数 → INCONCLUSIVE（不假装通过）。
+
+用法:
+  ys-verify-vision state              # 界面态：ys-fast vs ys-state
+  ys-verify-vision playtest [-m 标记] # 是否在游戏里：视觉 vs 日志（新日志 + 标记命中）
+  ys-verify-vision settle  [-m 标记]  # 是否结算：视觉 vs 日志标记
+  ys-verify-vision mount   [-m 标记]  # 节点图挂载：CLI 磁盘读数 vs 运行时日志标记
+  ys-verify-vision map                # 当前打开的是否我的图：菜单模板 vs 视口锚点
+
+退出码: 0 PASS / 4 DIFF / 5 INCONCLUSIVE
+"""
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+ENV = {}
+for line in subprocess.run([os.path.join(HERE, "ys-env.sh"), "--print"],
+                           capture_output=True, text=True).stdout.splitlines():
+    if "=" in line:
+        k, v = line.split("=", 1)
+        ENV[k] = v
+
+MAP_ID = ENV.get("MAP_ID", os.environ.get("YS_MAP_ID", ""))
+GIL = ENV.get("GIL", "")
+LOGDIR = None
+if GIL:
+    LOGDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(GIL))), "Beyond_Debug_Log")
+
+
+def run(cmd, **kw):
+    return subprocess.run(cmd, capture_output=True, text=True, **kw)
+
+
+# ── 通道实现 ──────────────────────────────────────────────────────
+def ch_a_state():
+    r = run([os.path.join(HERE, "ys-fast"), "state"])
+    s = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
+    return (s or None), f"ys-fast state → {s or '(空)'}"
+
+
+def ch_b_state():
+    r = run([os.path.join(HERE, "ys-state")])
+    s = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
+    # 期望输出 "STATE  <detail>" 或 "STATE"
+    st = s.split()[0] if s else ""
+    return (st or None), f"ys-state(全屏帧+模板) → {s or '(空)'}"
+
+
+def newest_log():
+    if not LOGDIR or not os.path.isdir(LOGDIR):
+        return None
+    files = [os.path.join(LOGDIR, f) for f in os.listdir(LOGDIR) if f.endswith(".gia")]
+    files.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+    return files[0] if files else None
+
+
+def log_records(path, limit=200000):
+    """取日志里的**可打印字符串**（含 printString 载荷）。
+
+    ⚠️ 不要用 gia_log.py records 做标记检索：它不显示 printString 载荷，
+    D318 实证过一次「grep 标记恒 0 ⇒ 误判图没执行」。原始字节里才有。
+    """
+    r = run(["strings", "-n", "2", path], timeout=60)
+    return r.stdout
+
+
+def ch_log_marker(mark):
+    p = newest_log()
+    if not p:
+        return None, "没有 .gia 调试日志"
+    age = time.time() - os.path.getmtime(p)
+    if not mark:
+        return None, f"最新日志 {os.path.basename(p)} 龄 {age:.0f}s（未给标记，无法判定）"
+    txt = log_records(p)
+    n = txt.count(mark)
+    return (n > 0), f"日志 {os.path.basename(p)}（龄 {age:.0f}s）里 '{mark}' 命中 {n} 次"
+
+
+def ch_a_playtest():
+    st, note = ch_b_state()
+    return (st == "PLAYTEST"), f"ys-state → {st}｜{note}"
+
+
+def ch_a_settle():
+    st, note = ch_b_state()
+    return (st == "SETTLE"), f"ys-state → {st}｜{note}"
+
+
+def ch_a_mount():
+    if not MAP_ID:
+        return None, "缺 mapId（ys-game-env.sh 未生效）"
+    env = dict(os.environ, **{k: v for k, v in ENV.items() if k in
+                              ("GSTS_LOCALLOW_DIR", "GSTS_UID")})
+    r = run(["node", "/home/h/genshin-ts/bin/gsts.mjs", "assets:mounts", "list",
+             "--map-id", MAP_ID], env=env)
+    n = (r.stdout + r.stderr).count("graphs=1073741825")
+    return (n > 0), f"CLI assets:mounts list → {n} 个宿主挂 1073741825"
+
+
+def ch_a_map():
+    r = run([os.path.join(HERE, "ys-where2")])
+    s = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
+    return (s == "MY_MAP"), f"ys-where2(系统菜单标题模板) → {s or '(空)'}"
+
+
+# ── 主流程 ────────────────────────────────────────────────────────
+KINDS = {
+    "state":    ("界面态", ch_a_state, ch_b_state),
+    "playtest": ("是否在游戏里（可操作）", ch_a_playtest, None),
+    "settle":   ("是否在结算页", ch_a_settle, None),
+    "mount":    ("节点图挂载", ch_a_mount, None),
+    "map":      ("当前打开的是我的图", ch_a_map, None),
+}
+
+
+def ensure_fresh():
+    """两条通道都读「当前帧」，必须先把窗口抬到栈顶——否则读到的是陈旧 backing store，
+    而**两条通道会一起读到同一张旧帧**（错得很一致），对账就失效了。
+    这里显式抬升一次（会抢焦点，属于项目桌面协议允许的注入动作，用完即弃）。"""
+    r = run([os.path.join(HERE, "ys-observe"), "--raise", "frame"])
+    try:
+        d = json.loads(r.stdout.strip().splitlines()[-1])
+    except Exception:
+        return False, f"取帧失败: {(r.stdout + r.stderr).strip()[:200]}"
+    if d.get("error"):
+        return False, f"{d['error']}: {d.get('detail','')}"
+    return True, f"frame={d.get('path')} atop={d.get('atop')} fresh={d.get('fresh')}"
+
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__)
+        sys.exit(0)
+    kind = args[0]
+    if kind not in KINDS:
+        sys.stderr.write(f"未知判定 {kind!r}；可选 {list(KINDS)}\n")
+        sys.exit(2)
+    mark = ""
+    if "-m" in args:
+        mark = args[args.index("-m") + 1]
+
+    label, fa, fb = KINDS[kind]
+    if kind in ("playtest", "settle"):
+        fb = lambda: ch_log_marker(mark or ("YJ-BOOT" if kind == "playtest" else "YJ-WIN"))
+    if kind == "mount":
+        fb = lambda: ch_log_marker(mark or "YJ-BOOT")
+    if kind == "map":
+        fb = lambda: ch_log_marker("YJ-BOOT")
+
+    ok, note = ensure_fresh()
+    print(f"══ ys-verify-vision · {kind}（{label}）══")
+    print(f"  取帧  {note}")
+    if not ok:
+        print("  结论  INCONCLUSIVE —— 拿不到可信帧（拒绝在陈旧帧上下判定）")
+        sys.exit(5)
+
+    a, an = fa()
+    b, bn = fb()
+    print(f"  通道A  {an}")
+    print(f"  通道B  {bn}")
+    if a is None or b is None:
+        print("  结论  INCONCLUSIVE —— 有通道没拿到读数（不算通过）")
+        sys.exit(5)
+    if a == b:
+        print(f"  结论  PASS（两通道一致 = {a}）")
+        sys.exit(0)
+    print(f"  结论  DIFF —— A={a} / B={b}，两者矛盾，**先查证据再下结论**")
+    sys.exit(4)
+
+
+if __name__ == "__main__":
+    main()

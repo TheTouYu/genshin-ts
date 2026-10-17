@@ -129,9 +129,30 @@ def judges(img):
     j["SETTLE/B px(1280,500) 深蓝且不偏紫"] = (
         c1280_500[0] < 40 and c1280_500[2] < 60, f"{c1280_500}")
 
-    # EDITOR 是兜底态：草地绿主导（正判据）
+    # ── LOADING（过渡态，V6 要求建模：见到就等，不许点）──────────────────
+    # 2026-10-17 实测：载入页是**浅蓝纯色底**（128,186,223），既不是草地也不是天空。
+    # 它是 leave/enter 空转 300s 的直接来源之一——旧判据把加载页当成 EDITOR，于是继续点。
+    # 两判据取「底色」与「无 3D 细节」两个独立性质：
+    #   A 底色浅蓝（蓝通道最高且够亮）
+    #   B 中央区域近乎无纹理（3D 场景的任何视角都有明暗细节，纯色/渐变页方差极小）
+    j["LOADING/A px(300,300) 浅蓝底色"] = (
+        c300[2] > 180 and c300[2] > c300[1] + 20 and 100 < c300[0] < 170, f"{c300}")
+    band = img[520:900, 1000:1560].astype(int)
+    stdv = float(band.reshape(-1, 3).std(axis=0).mean())
+    j["LOADING/B 中央无纹理(std)"] = (stdv < 8.0, f"std={stdv:.1f}")
+
+    # EDITOR：草地绿主导（正判据）
     j["EDITOR/A px(100,400) 绿主导"] = (
         c100_400[1] > c100_400[0] and c100_400[1] > c100_400[2], f"{c100_400}")
+    # EDITOR/B（2026-10-17 新增，V6 要求每态≥2 判据）：**左面板存在**——结构性判据。
+    # 为什么不用第二个颜色判据：草地色判据会在「草地场景的游戏内」误触发。
+    # 面板存在与否是编辑器 chrome 的**结构特征**：取 y=600..800 左列(x=100..400)与中列(x=600..900)
+    # 的均值，面板是半透明遮罩 ⇒ 两列色彩必然分开。实测样本：EDITOR 68.9 / MENU 76.2 /
+    # SAVELIST 26.2 / PLAYTEST 6.2,6.9,1.8 / PAUSE 0.6 / SETTLE 3.8,5.6,5.6。（阈值 40）
+    lcol = img[600:800, 100:400].astype(int).reshape(-1, 3).mean(axis=0)
+    mcol = img[600:800, 600:900].astype(int).reshape(-1, 3).mean(axis=0)
+    pdiv = float(abs(lcol - mcol).max())
+    j["EDITOR/B 左面板存在(列差)"] = (pdiv > 40.0, f"diff={pdiv:.1f} 左{lcol.round(0)} 中{mcol.round(0)}")
     return j
 
 
@@ -141,13 +162,24 @@ def judges(img):
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
 
 
+# 需要「全部判据成立」才计入的态（AND 语义）。
+# LOADING 为什么特殊：它是**过渡态**，误判成它会让脚本空等；而它的两个判据各有误报源
+# （浅蓝底色 = 游戏内天空；中央无纹理 = 菜单/结算的纯色面板）。
+# 2026-10-17 实测：单判据时 menu.png 与 playtest.png 双双误报 LOADING —— 正是 AND 的必要性证据。
+ALL_REQUIRED = {"LOADING"}
+
+
 def decide(j):
     """按态聚合投票。返回 (state, detail)。"""
-    specific = ["SETTLE", "PAUSE", "PLAYTEST", "SAVELIST", "MENU"]
+    specific = ["SETTLE", "PAUSE", "PLAYTEST", "SAVELIST", "MENU", "LOADING"]
     fired = {}
     for st in specific:
-        hits = [k for k in j if k.startswith(st + "/") and j[k][0]]
-        if hits:
+        keys = [k for k in j if k.startswith(st + "/")]
+        hits = [k for k in keys if j[k][0]]
+        if st in ALL_REQUIRED:
+            if keys and len(hits) == len(keys):
+                fired[st] = hits
+        elif hits:
             fired[st] = hits
     # 用声明好的层级消解"父态 vs 子态"的重叠
     for sub, sup in SUBSTATE_OF.items():
@@ -158,8 +190,12 @@ def decide(j):
         return st, f"{len(fired[st])}/2 判据成立: {fired[st]}"
     if len(fired) > 1:
         return "AMBIGUOUS", f"多个非同层态同时成立: {fired}"
-    if j["EDITOR/A px(100,400) 绿主导"][0]:
-        return "EDITOR", "EDITOR/A 成立且无其它态判据成立"
+    ea = j["EDITOR/A px(100,400) 绿主导"][0]
+    eb = j["EDITOR/B 左面板存在(列差)"][0]
+    if ea and eb:
+        return "EDITOR", "EDITOR/2 判据成立（草地 + 左面板）"
+    if ea or eb:
+        return "UNKNOWN", f"EDITOR 只有 1/2 判据成立（A={ea} B={eb}）—— 不猜"
     return "UNKNOWN", "无任何判据成立"
 
 

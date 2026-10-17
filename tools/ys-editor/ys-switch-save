@@ -23,6 +23,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YS_WIN="${YS_WIN:-0x01400001}"
 
 SAVE_ICON_X=39; SAVE_ICON_Y=176

@@ -19,6 +19,7 @@ set -u
 
 export YS_SLOT_ACTIVE=1   # 槽内标记：shims 只放行槽内的注入（见 tools/ys-editor/shims/）
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 FALLBACK_CLASS="${YS_GUI_SLOT_FALLBACK_CLASS:-firefox}"
 KWIN_JS=/tmp/ys-slot-activate.js

@@ -3,6 +3,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 cat > /tmp/ys-esc-act.sh <<'EOF'
 cd "$HERE"; ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep 2
 EOF

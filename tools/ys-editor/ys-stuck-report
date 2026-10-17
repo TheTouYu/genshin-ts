@@ -6,6 +6,7 @@ XW=$(pgrep -f '[X]wayland' | head -1)
 XD=$(tr '\0' '\n' < /proc/$XW/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
 XA=$(tr '\0' '\n' < /proc/$XW/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
 export DISPLAY="$XD" XAUTHORITY="$XA"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 {
 echo "=== ys-stuck-report $(date '+%F %T') ==="
 echo "--- 编辑器进程（在=没死；看不到=进程没了）---"; pgrep -af 'BeyondEditor' | head -5

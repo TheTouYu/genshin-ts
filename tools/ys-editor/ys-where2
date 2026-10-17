@@ -9,6 +9,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 TPL="$HERE/templates/mymap-menu-title.png"
 SHOT=/tmp/ys-where2.png
 grab() { "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1; }

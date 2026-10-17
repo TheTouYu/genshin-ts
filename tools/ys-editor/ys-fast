@@ -22,10 +22,40 @@ import time
 import tempfile
 import os
 
+# 本机 X11 需要动态 XAUTHORITY（每次重启随机名）——python 工具不能 source bash，
+# 所以在启动时向 ys-env.sh 要一次并写回 os.environ（子进程 import/magick 都继承）。
+# 2026-10-17 事故：缺 XAUTHORITY 时 crop 返回 None，而 state() 的兜底分支**把它当成
+# EDITOR 返回**——仪器静默降级成"永远说在编辑器里"，正是要被消灭的那类假读数。
+_ENVSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-env.sh")
+if os.path.exists(_ENVSH):
+    _r = subprocess.run([_ENVSH, "--print"], capture_output=True, text=True)
+    for _line in _r.stdout.splitlines():
+        if "=" in _line:
+            _k, _v = _line.split("=", 1)
+            if _v and _v != "<none>":
+                os.environ[_k] = _v
+
 DISPLAY = os.environ.get("DISPLAY", ":1")
 
 
-def crop(x, y, w=8, h=8):
+FRAME = None   # 离线模式：对指定 PNG 取块（与 import -window 走同一套判据）
+
+
+def crop(x, y, w=2, h=2):
+    """取 (x,y) 附近 2x2 的均值。
+
+    ⚠️ 2026-10-17 修正：原来是 8x8 均值**从 (x,y) 开始**。当取样块跨在 UI 边界上时，
+    均值会产出**屏幕上根本不存在**的颜色——实测 menu.png 的 px(300,300) 单像素是灰 217，
+    而 8x8 均值是 (129,186,223)（下半行是亮蓝面板边），恰好落进 LOADING 的颜色区间，
+    于是"系统菜单"被判成"加载中"。小块 + 走中心 2 像素可以避开这条边界。
+    """
+    x, y = x + (8 - w) // 2, y + (8 - h) // 2   # 保持调用方按 8x8 的语义给点，取块居中
+    if FRAME:
+        b = subprocess.run(
+            ["magick", FRAME, "-crop", f"{w}x{h}+{x}+{y}", "+repage",
+             "-format", "%[fx:int(255*mean.r)] %[fx:int(255*mean.g)] %[fx:int(255*mean.b)]", "info:"],
+            capture_output=True, text=True, timeout=10).stdout.split()
+        return tuple(int(v) for v in b) if len(b) == 3 else None
     """取一块小区域的均值 RGB。30~80ms 量级。
 
     ⚠️ 2026-10-17 实测：`import -window root` 返回的是 **780×439 缩放图**（读数错），
@@ -57,19 +87,40 @@ def crop(x, y, w=8, h=8):
 
 
 def state():
-    # 系统菜单面板上的一个点
-    p = crop(300, 300)
-    if p and all(c > 200 for c in p):
+    """廉价判态。词汇 = MENU / SETTLE / SAVE / LOADING / EDITOR / UNKNOWN。
+
+    ⚠️ 能力边界（2026-10-17 用 11 张回归样本重新标定，中心 2x2 取样）：
+      本工具**不判**游戏内的子态（PLAYTEST / PAUSE）——它们与 LOADING（亮蓝天空）在单点上重叠，
+      那类判定交给 `ys-state`（模板 + 多判据投票）。这里返回什么就算什么，**不猜**。
+    判据点全部由样本集自动搜索选出（每种态在 11 张样本上「本态全中、其它全不中」）：
+      MENU    (112,88)  面板浅灰 218,223,218   ← 其它态最高 162（settle2）
+      SETTLE  (136,64)  蓝底 101,144,237       ← 四张结算页一致；存档页在这是纯白 255,255,255（b>g+20 不成立）
+      SAVE    (300,300) 深蓝紫 15,19,53, max<80
+      LOADING (300,300) 亮蓝 118,203,252（**与游戏内天空重叠**，调用方需用 ys-state 复核）
+      EDITOR  (100,400) 草绿主导
+    """
+    # ① 系统菜单：左面板是浅灰
+    c = crop(112, 88)
+    if c and min(c) > 200:
         return "MENU"
-    # 加载页：浅蓝（实测 128,186,223）——导航期间最常见，必须单独识别，
-    # 否则会被当成 EDITOR 继续点，全部落空（这是 leave 空转到 300s 的直接原因之一）
-    if p and p[2] > 180 and p[2] > p[1] + 20 and 100 < p[0] < 170:
-        return "LOADING"
+    # ② 结算页：左上角色头像区的蓝底（四版式一致）
+    c = crop(136, 64)
+    if c and c[2] > 140 and c[2] > c[1] + 20 and c[0] < 200:
+        return "SETTLE"
+    # ③ 存档页 / ④ 加载页：同一个点，靠亮度与蓝绿序分开
+    p = crop(300, 300)
+    if p:
+        if max(p) < 80 and p[2] > 40 and p[2] > p[1] + 15:
+            return "SAVE"
+        if p[2] > 180 and p[2] > p[1] + 20 and 100 < p[0] < 170:
+            return "LOADING"      # 见 docstring：与游戏内亮蓝天空重叠
+    # ⑤ 编辑器摆放页：草地绿主导
     q = crop(100, 400)
-    # 存档页：深蓝紫，且蓝通道明显高于绿（草地阴影是绿主导，靠这个区分）
-    if p and q and p[0] < 60 and p[1] < 60 and p[2] < 90 and p[2] > p[1] + 10 and q[0] < 60:
-        return "SAVE"
-    return "EDITOR"
+    if q is None:
+        return "UNKNOWN"          # 取数失败：明确报未知，绝不兜底成 EDITOR
+    if q[1] > q[0] + 10 and q[1] > q[2] + 10:
+        return "EDITOR"
+    return "UNKNOWN"
 
 
 def settle(timeout=90, need=3):
@@ -93,6 +144,38 @@ def main():
     if len(sys.argv) < 2:
         print("用法: ys-fast state|px X Y|settle", file=sys.stderr)
         return 2
+    global FRAME
+    if len(sys.argv) > 3 and sys.argv[2] == "--frame":
+        FRAME = sys.argv[3]
+        print(state())
+        return 0
+    if len(sys.argv) > 1 and sys.argv[1] == "--regress":
+        reg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calib", "regress")
+        man = os.path.join(reg, "manifest.tsv")
+        bad = 0
+        tot = 0
+        for line in open(man, encoding="utf-8"):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            fn, want = (line.split("\t") + ["", ""])[:2]
+            p = os.path.join(reg, fn)
+            if not os.path.exists(p):
+                continue
+            tot += 1
+            FRAME = p
+            exp = {"SAVELIST": "SAVE"}.get(want, want)
+            if exp not in ("MENU", "SAVE", "SETTLE", "EDITOR", "LOADING"):
+                tot -= 1
+                print(f"  · {fn:26s} → 跳过（{want} 不在本工具词汇内，交 ys-state）")
+                continue
+            got = state()
+            mark = "✓" if got == exp else "✗"
+            if got != exp:
+                bad += 1
+            print(f"  {mark} {fn:26s} → {got:9s} (期望 {exp})")
+        print(f"── ys-fast 回归 {tot - bad}/{tot} ──")
+        return 0 if bad == 0 else 5
     cmd = sys.argv[1]
     if cmd == "state":
         print(state())

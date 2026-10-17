@@ -9,6 +9,7 @@ D=$(pgrep -f '[X]wayland' | head -1)
 XD=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
 XA=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
 export DISPLAY="$XD" XAUTHORITY="$XA"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 W="$1"
 if [ -z "$W" ]; then
   for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do

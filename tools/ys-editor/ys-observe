@@ -23,6 +23,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 WIN="${YS_WIN:-0x01400001}"
 CACHE="${YS_OBSERVE_CACHE:-/tmp/ys-observe}"
 mkdir -p "$CACHE"
@@ -70,7 +71,13 @@ grab() {
 # 必须显式声明，且读数里会带 reused:true —— 不允许"不知不觉用了旧帧"。
 REUSE=0
 _args=()
-for a in "$@"; do if [ "$a" = "--reuse" ]; then REUSE=1; else _args+=("$a"); fi; done
+for a in "$@"; do
+  case "$a" in
+    --reuse) REUSE=1;;
+    --raise) ;;   # 已在上面消费；必须从 argv 摘掉，否则会被当成 MODE（2026-10-17 修）
+    *) _args+=("$a");;
+  esac
+done
 set -- "${_args[@]:-}"
 MODE="${1:?用法: ys-observe px|region|liveness …}"; shift || true
 

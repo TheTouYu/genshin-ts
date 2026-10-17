@@ -8,6 +8,7 @@
 # 窗口不存在直接退 3，绝不进交互态。
 set -u
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 A1="${1:?用法: ys-shot <winid> <out.png> | -t <标题> <out.png> | -r x y w h <out.png>}"
 case "$A1" in
   -t|-r) MODE="$A1"; shift ;;

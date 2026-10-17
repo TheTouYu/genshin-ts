@@ -17,6 +17,7 @@ WIN="${2:-0x01400001}"
 TITLE="${3:-原神}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 
 RAISE=$("$HERE/ys-kwin-raise" "$TITLE" 2>&1 | tail -1)
 echo "[ys-peek] raise: $RAISE"

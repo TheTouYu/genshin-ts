@@ -18,6 +18,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 export YS_WIN="${YS_WIN:-0x01400001}"
 MAP_ID="${YS_MAP_ID:-1073741832}"
@@ -147,7 +148,9 @@ if [ -n "$L1" ]; then
   N=$(python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | wc -l)
   say "   日志记录数: $N"
   if [ -n "$MARK" ]; then
-    H=$(python3 /home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/gia_log.py "$L1" records 2>/dev/null | grep -c "$MARK")
+    # ⚠️ printString 的载荷不出现在 gia_log.py records 里（D318 实证：grep 标记恒 0 命中，
+    # 会被误判成「图没执行」）。查打印内容必须走原始字节：strings -n 2。
+    H=$(strings -n 2 "$L1" 2>/dev/null | grep -c "$MARK")
     say "   标记 '$MARK' 命中 $H 次  $([ "${H:-0}" -gt 0 ] && echo '✓✓ 图已执行' || echo '✗ 未执行')"
   fi
   cp "$L1" "$OUT/debug-log.gia" 2>/dev/null

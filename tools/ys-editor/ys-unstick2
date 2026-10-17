@@ -9,6 +9,7 @@ D=$(pgrep -f '[X]wayland' | head -1)
 XD=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^DISPLAY=' | cut -d= -f2)
 XA=$(tr '\0' '\n' < /proc/$D/environ 2>/dev/null | grep '^XAUTHORITY=' | cut -d= -f2)
 export DISPLAY="$XD" XAUTHORITY="$XA"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 wins(){ for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
     W=$(printf '0x%x' "$id"); nm=$(xprop -id "$W" _NET_WM_NAME 2>/dev/null | sed 's/.*= //;s/"//g')
     case "$nm" in 千星沙箱|资源管理器|日志) echo "$W|$nm";; esac; done; }

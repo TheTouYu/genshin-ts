@@ -17,6 +17,7 @@ OUT="${2:-/tmp/ys-act.png}"
 WIN="${3:-0x01400001}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
+YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YS_WIN="$WIN"
 
 RAISE=$("$HERE/ys-kwin-raise" "原神" 2>&1 | tail -1)
