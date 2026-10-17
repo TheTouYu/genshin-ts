@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-"""ys-nav — 快速、状态驱动的编辑器导航（替代 ys-map 的固定 sleep 轮数）
+"""ys-nav — 状态驱动的编辑器导航（判据全部委托 ys-state；本文件不含坐标/阈值判据）
 
 存在理由（2026-10-17 用户点破「重载资产存在巨大低效，怀疑高效系统并未生效」）：
   实测旧路径：`ys-ui-state` 一次 **11.2s**、`ys-map where` 一次 **13.5s**；
-  而判态只需要屏幕上的两个像素，`import -window <游戏窗> -crop` 只要 **30~130ms**（快 ~85 倍）。
-  旧 `ys-map` 还有两个结构性浪费：
-    ① `switch_once` 里 **固定 sleep(35)** 等地图载入（实际常常 10~20s）；
+  而判态只需屏幕上几个像素。旧 `ys-map` 还有两个结构性浪费：
+    ① `switch_once` 里 **固定 sleep(35)** 等地图载入；
     ② 判态循环 `max_try=5` 失败不早退 ⇒ 5×45s ≈ 225s，撞满 300s 超时。
-  ⇒ 本工具：**小区域判态轮询** + **见到 LOADING 就等** + **只在切换后核验一次身份**。
+  ⇒ 本工具：**状态轮询** + **见到过渡态就等** + **只在切换后核验一次身份**。
 
-状态（ys-fast 标定，物理像素 2560×1440）：
-  MENU    px(300,300) 三通道 >200        系统菜单面板浅灰 217,217,217
-  SAVE    px(300,300) 深蓝紫 + px(100,400) 暗   （草地阴影是绿主导，靠蓝绿序区分）
-  LOADING px(300,300) 浅蓝  ~128,186,223  ← 过渡态，**必须等，不能点**
-  EDITOR  其余（px(100,400) 草绿 66,92,58）
-
+状态词汇 = ys-state 的 `--compat ys-fast` 视图（SAVE = SAVELIST）；判据/阈值只在 ys-state。
 用法:
-  ys-nav where            打印 MENU|SAVE|LOADING|EDITOR
+  ys-nav where            打印 MENU|SAVE|EDITOR 等
   ys-nav savelist         导航到存档页（失败早退，不空转）
   ys-nav enter|leave      切到/切离我的图（切换后核验一次身份）
 退出码: 0 到位 / 1 未到位 / 2 导航失败
@@ -29,8 +23,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 DISPLAY = os.environ.get("DISPLAY", ":1")
 ENV = dict(os.environ, DISPLAY=DISPLAY)
-WIN = os.environ.get("YS_WIN", "0x01400001")
-# 存档列表：位置 2 的「编辑」按钮 / 「加载存档」确认
+# 动作坐标（点击目标，不是判据）：存档列表第 2 位「编辑」/「加载存档」确认/侧栏存档管理图标
 CARD2_EDIT = (1635, 387)
 CONFIRM = (1439, 812)
 SAVE_SIDEBAR = (41, 175)
@@ -42,7 +35,8 @@ def tool(name, *args, timeout=120):
 
 
 def state():
-    r = tool("ys-fast", "state", timeout=20)
+    """判态：唯一实现 ys-state（--compat 只把 SAVELIST 映射成 SAVE）。"""
+    r = tool("ys-state", "--print-state", "--compat", "ys-fast", timeout=60)
     return (r.stdout or "").strip().splitlines()[-1] if r.stdout else "UNKNOWN"
 
 
@@ -57,7 +51,7 @@ def esc():
 
 
 def wait_state(want, timeout=90, note=""):
-    """轮询到目标态。LOADING 时纯等待（不点）。"""
+    """轮询到目标态；过渡态时纯等待（不点）。"""
     t0 = time.time()
     seen = set()
     while time.time() - t0 < timeout:
@@ -70,13 +64,10 @@ def wait_state(want, timeout=90, note=""):
 
 
 def to_savelist(max_round=3):
-    for i in range(max_round):
+    for _ in range(max_round):
         s = state()
         if s == "SAVE":
             return True
-        if s == "LOADING":
-            wait_state("EDITOR", 60)
-            s = state()
         if s == "MENU":
             click(*SAVE_SIDEBAR)
             got, dt = wait_state("SAVE", 25)
@@ -100,7 +91,7 @@ def to_savelist(max_round=3):
 
 
 def identity():
-    """切换后核验一次：裁标题区做模板匹配（小区域，快）。"""
+    """切换后核验一次：裁标题区做模板匹配（小区域，快）。判据在 ys_look.py，不在本文件。"""
     r = subprocess.run([sys.executable, os.path.join(HERE, "ys_look.py"), "find",
                         os.path.join(HERE, "templates", "mymap-menu-title.png"),
                         "80", "60", "560", "70"], capture_output=True, text=True,

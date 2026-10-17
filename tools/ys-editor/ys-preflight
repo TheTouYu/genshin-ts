@@ -8,6 +8,7 @@
 #   ⇒ 本工具把 14 条默认前提里**可自动核验的 12 条**做成一条命令：
 #     把「要记得先验证」变成「跑一下 ys-preflight」。
 #
+# 判定口径：界面态/控件可见性**一律向 ys-state 要**（门槛⑤ 单一源；本文件不含坐标与阈值）。
 # 用法: ys-preflight                # 全部检查
 #       ys-preflight --quick        # 只跑本地检查（不截图、不查 CLI）
 # 退出码: 0 = 全部 OK / 1 = 有 FAIL（先修再动手）/ 2 = 有 WARN（可继续但有风险）
@@ -18,12 +19,11 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 WIN="${YS_WIN:-0x01400001}"
 QUICK=0; [ "${1:-}" = "--quick" ] && QUICK=1
-SHOT=/tmp/ys-preflight.png
+YS_STATE="$HERE/ys-state"
 FAIL=0; WARN=0
 ok()   { printf '  [OK]   %-22s %s\n' "$1" "${2:-}"; }
 bad()  { printf '  [FAIL] %-22s %s\n' "$1" "${2:-}"; FAIL=$((FAIL+1)); }
 warn() { printf '  [WARN] %-22s %s\n' "$1" "${2:-}"; WARN=$((WARN+1)); }
-px()   { magick "$SHOT" -format "%[fx:int(255*p{$1,$2}.r)] %[fx:int(255*p{$1,$2}.g)] %[fx:int(255*p{$1,$2}.b)]" info: 2>/dev/null; }
 
 echo "══ ys-preflight $(date '+%F %T') ══"
 
@@ -35,7 +35,7 @@ if command -v ydotool >/dev/null 2>&1; then
     *)       warn "ydotool 通道" "解析到 $(command -v ydotool)（裸调可能被拦，注入请走 ys-act/ys-gui-slot）";;
   esac
 else bad "ydotool 可执行" "找不到 ydotool"; fi
-for t in ys-peek ys-pointer-click ys-ui-state ys-where2 ys-round; do
+for t in ys-state ys-peek ys-pointer-click ys-ui-state ys-where2 ys-round; do
   [ -x "$HERE/$t" ] && ok "$t" || bad "$t" "缺失或不可执行"
 done
 
@@ -50,31 +50,24 @@ if [ "$QUICK" = "0" ]; then
   else warn "堆叠序" "原神不在栈顶 —— 抓图可能拿到陈旧帧，先 ys-peek/ys-kwin-raise"; fi
 fi
 
-# ── 3 画面状态：试玩残留 / 三态 / 地图身份（对应复盘 #5 #6 #7 #13）
+# ── 3 画面状态：界面态与「结算页残留」都向 ys-state 要读数（对应复盘 #5 #6 #7 #13）
 if [ "$QUICK" = "0" ]; then
   echo "③ 画面状态"
-  "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1
-  if [ -f "$SHOT" ]; then
-    read -r A B C <<<"$(px 1000 600)"; read -r D E F <<<"$(px 1280 700)"
-    if [ "${A:-0}" -gt 250 ] && [ "${B:-0}" -gt 250 ] && [ "${C:-0}" -gt 250 ] && [ "${D:-0}" -lt 80 ] && [ "${F:-0}" -gt 80 ]; then
-      bad "试玩残留" "画面停在结算页（白=${A},${B},${C} 蓝=${D},${E},${F}）—— 先点「离开」(1818,1356) 结束，否则后续一律取不到日志"
+  ST=$("$YS_STATE" --print-state --compat ys-fast 2>/dev/null | tail -1)
+  if [ -z "${ST:-}" ]; then
+    bad "界面态" "ys-state 没给出读数（取帧失败？先 ys-peek 确认窗口可见）"
+  else
+    ok "界面态" "ys-state → $ST"
+    # 试玩残留：结算页的「离开」按钮可见 ⇔ 画面停在结算页（探针坐标在 ys-state）
+    if "$YS_STATE" --probe settle_leave >/dev/null 2>&1; then
+      bad "试玩残留" "画面停在结算页 —— 先点「离开」(1818,1356) 结束，否则后续一律取不到日志"
     else ok "试玩残留" "未见结算页"; fi
-    read -r R G B <<<"$(px 300 300)"
-    if [ "${R:-0}" -gt 200 ] && [ "${G:-0}" -gt 200 ] && [ "${B:-0}" -gt 200 ]; then
-      ok "编辑器态" "MENU（面板 ${R},${G},${B}）"
-      S=$("$HERE/ys-where2" 2>/dev/null | tail -1)
-      case "$S" in
-        MY_MAP)    ok "地图身份" "MY_MAP（当前打开的是我的图）";;
-        OTHER_MAP) warn "地图身份" "OTHER_MAP（当前是别的图 —— 别在此状态写盘/试玩）";;
-        *)         warn "地图身份" "UNKNOWN（判据取不到，先确认编辑器不在加载中）";;
-      esac
-    else
-      read -r R2 G2 B2 <<<"$(px 100 400)"
-      if [ "${R:-0}" -lt 60 ] && [ "${B:-0}" -gt "${G:-0}" ] && [ "${B:-0}" -gt "${R:-0}" ] && [ "${R2:-0}" -lt 60 ]; then ok "编辑器态" "SAVE（存档选择页）"
-      else ok "编辑器态" "EDITOR（摆放页）"; fi
-      warn "地图身份" "非菜单态判不了 —— 需要身份时先 ESC 开系统菜单再跑 ys-where2"
-    fi
-  else bad "抓图" "ys-peek 没产出 $SHOT"; fi
+    case "$ST" in
+      MENU)   ok "地图身份" "$("$HERE/ys-where2" 2>/dev/null | tail -1)";;
+      SAVE|EDITOR) warn "地图身份" "当前 $ST 判不了身份 —— 需要身份时先开系统菜单再 ys-where2";;
+      *)      warn "地图身份" "当前 $ST，判不了地图身份";;
+    esac
+  fi
 fi
 
 # ── 4 地图资产：挂载在不在（对应复盘 #9 —— 试玩回写会静默抹掉它）

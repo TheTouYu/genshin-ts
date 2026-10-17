@@ -20,9 +20,9 @@
 #   两种情况都是"点第 2 位"，故同一动作自然成对。
 #
 # 2026-10-17 改造（S1/S2；实测一轮 426s 里本工具占 263s）：
-#   · 判定收敛到 **ys-fast state**（单一源，~300ms/次）；删掉本文件内联的 st() 判据副本
-#     （旧副本用 px(2273,1357)/px(41,99)，与 ys-fast 的 px(300,300) 口径不一致——
-#      同一界面两处判据可能给出相反答案，这正是要消灭的重复实现）。
+#   · 判定收敛到 **ys-state**（唯一实现，--compat ys-fast 词汇）；本文件内联的 st() 判据副本已删除
+#     （旧副本用的取样点与 ys-state 口径不一致——同一界面两处判据可能给出相反答案，
+#      这正是要消灭的重复实现）。判据/坐标/阈值只存在 tools/ys-editor/ys-state。
 #   · `sleep 22`（等地图重载）→ 谓词：**连续 6 次 EDITOR 且总时长 ≥9s**，超时 45s 失败退出。
 #     快就是快；慢也不会假成功往下走。
 #   · 导航 `sleep 4` → 等状态真的到 SAVE（ys-wait，超时 12s 失败）。
@@ -53,7 +53,7 @@ CONFIRM_Y=812
   C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
   CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'
   click() { ./ys-pointer-click "$1" "$2" >/dev/null 2>&1; }
-  st() { ./ys-fast state 2>/dev/null | head -1; }
+  st() { ./ys-state --print-state --compat ys-fast 2>/dev/null | head -1; }
 
   echo "起点 state=$(st)"
 
@@ -63,7 +63,7 @@ CONFIRM_Y=812
     if [ "$(st)" = "MENU" ]; then click "$ICON_X" "$ICON_Y"
     else ydotool key 1:1 1:0 2>/dev/null; fi
     i=$((i+1))
-    ./ys-wait --until "./ys-fast state" --expect SAVE --timeout 12 --poll 0.3 \
+    ./ys-wait --until "./ys-state --print-state --compat ys-fast" --expect SAVE --timeout 12 --poll 0.3 \
       --label "进存档页第${i}次" >/dev/null 2>&1
   done
   if [ "$(st)" != "SAVE" ]; then

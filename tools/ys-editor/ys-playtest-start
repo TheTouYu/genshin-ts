@@ -1,8 +1,9 @@
 #!/bin/bash
-# ys-playtest-start — 开始千星试玩（快速版：判据只截 40x40，实测 84ms/次）
-# 设计要点见 computer-use 技能「GUI 流程优化方法」：
-#   ① 截图成本 ∝ 面积（全窗 5893ms → 40x40 判据块 84ms）；
+# ys-playtest-start — 开始千星试玩（判据全部走 ys-state 的具名探针，本文件不含坐标阈值）
+# 设计要点（computer-use 技能「GUI 流程优化方法」）：
+#   ① 判据成本 ∝ 面积（探针只裁控件外接框，不抓全窗）；
 #   ② 先判后动；③ 轮询间隔≈判据成本；④ 整段只拿一次焦点（自我包装进 ys-gui-slot）。
+# 退出码：0 已发出开始指令 / 4 找不到试玩磁贴（与旧版一致，ys-round 依赖）
 set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
@@ -13,23 +14,23 @@ if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 40 en
 click() { "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null 2>&1; }
 
 # ① 判页面：磁贴可见就直接点（退出试玩后通常就在这一页，不要先切页面）
-if ! is_light 185 320; then
+if ! probe tile_visible; then
   echo "[start] 磁贴不可见 → ESC"; ydotool key 1:1 1:0; sleep 1
-  is_light 185 320 || { echo "[start] 再点首页图标(房子)"; click 60 20; sleep 1.5; }
-  is_light 185 320 || { echo "[start] ✗ 找不到试玩磁贴" >&2; exit 4; }
+  probe tile_visible || { echo "[start] 再点首页图标(房子)"; click 60 20; sleep 1.5; }
+  probe tile_visible || { echo "[start] ✗ 找不到试玩磁贴" >&2; exit 4; }
 fi
 echo "[start] ② 点「试玩」磁贴"; click 185 336
 
-# ③ 轮询弹窗：烘焙网格体(1000,600) / 试玩选项(900,400)，每轮 ~0.35s
+# ③ 轮询弹窗：烘焙网格体 → 试玩选项（每轮 ~0.35s）
 i=0
 while [ "$i" -lt 60 ]; do        # ≤ ~20s
-  if is_dark 1000 600; then
+  if probe bake_dialog; then
     echo "[start] ③ 烘焙网格体 → 直接上传"; click 1444 811; sleep 0.6
-    i2=0; while [ "$i2" -lt 40 ]; do is_dark 900 400 && break; sleep 0.25; i2=$((i2+1)); done
+    wait_probe playtest_options 40
     break
   fi
-  is_dark 900 400 && break
+  probe playtest_options && break
   sleep 0.25; i=$((i+1))
 done
-if is_dark 900 400; then echo "[start] ④ 试玩选项 → 开始游戏"; click 1282 1051; fi
+if probe playtest_options; then echo "[start] ④ 试玩选项 → 开始游戏"; click 1282 1051; fi
 echo "[start] ✓ 已发出开始指令"

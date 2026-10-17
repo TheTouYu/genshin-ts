@@ -1,5 +1,6 @@
 #!/bin/bash
-# ys-playtest-stop — 退出千星试玩（快速版：判据只截 40x40）
+# ys-playtest-stop — 退出千星试玩（判据全部走 ys-state 的具名探针，本文件不含坐标阈值）
+# 退出码：0 已退出 / 5 未见结算页「离开」/ 4 未见暂停菜单（与旧版一致，ys-round 依赖）
 set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
@@ -10,9 +11,9 @@ if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 30 en
 click() { "$HERE/ys-pointer-click" "$1" "$2" 12 1.7 >/dev/null 2>&1; }
 
 echo "[stop] ① ESC"; ydotool key 1:1 1:0
-if wait_light 1280 880 60; then            # ≤ ~15s
+if wait_probe pause_menu 60; then            # ≤ ~15s
   echo "[stop] ② 中断挑战"; click 1280 880
-  if wait_light 1833 1365 60; then
+  if wait_probe settle_leave 60; then
     echo "[stop] ③ 离开"; click 1833 1365; echo "[stop] ✓ 已退出"
   else echo "[stop] ⚠️ 未见结算页「离开」" >&2; exit 5; fi
 else echo "[stop] ⚠️ 未见暂停菜单（可能不在试玩中）" >&2; exit 4; fi

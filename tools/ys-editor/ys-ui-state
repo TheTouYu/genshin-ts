@@ -1,34 +1,23 @@
 #!/bin/bash
-# ys-ui-state — 三态判定（实测标定 2026-10-17）：
-#   MENU   ⇔ px(300,300) 三通道 >200（系统菜单面板浅灰 217,217,217）
-#   SAVE   ⇔ px(300,300) 暗 **且蓝主导**（B>G 且 B>R；存档页深蓝紫 15,19,53）
-#            ⚠️ 2026-10-17 修：只看暗度会把**草地阴影**（39,52,35，绿主导）误判成 SAVE ——
-#            区分特征在**通道序**：存档页蓝主导，草地绿主导。
-#   EDITOR ⇔ 其余（摆放页 px(100,400) 草绿 72,92,60）
-# 用法: ys-ui-state          # 打印 MENU|SAVE|EDITOR
-#       ys-ui-state --nav  # 先导航到存档页再打印（返回后一定在 SAVE 或尽力而为）
+# ys-ui-state — 薄封装：判据全部委托 ys-state（门槛⑤ 单一源，本文件不含坐标/阈值）
+#
+# 打印 MENU|SAVE|EDITOR（SAVE = ys-state 的 SAVELIST；其它态名原样透传，绝不改名成别的态）。
+#   ys-ui-state          # 判一次
+#   ys-ui-state --nav    # 先导航到存档页再打印（返回后一定在 SAVE 或尽力而为）
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-SHOT=/tmp/ys-ui-state.png
-px() { magick "$SHOT" -format "%[fx:int(255*p{$1,$2}.r)] %[fx:int(255*p{$1,$2}.g)] %[fx:int(255*p{$1,$2}.b)]" info: 2>/dev/null; }
-grab() { "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1; }
-judge() {
-  local r g b r2 g2 b2
-  read -r r g b <<<"$(px 300 300)"
-  if [ "${r:-0}" -gt 200 ] && [ "${g:-0}" -gt 200 ] && [ "${b:-0}" -gt 200 ]; then echo MENU; return; fi
-  read -r r2 g2 b2 <<<"$(px 100 400)"
-  if [ "${r:-0}" -lt 60 ] && [ "${g:-0}" -lt 60 ] && [ "${b:-0}" -gt "${g:-0}" ] && [ "${b:-0}" -gt "${r:-0}" ] && [ "${r2:-0}" -lt 60 ]; then echo SAVE; return; fi
-  echo EDITOR
-}
+YS_STATE="$HERE/ys-state"
+judge() { "$YS_STATE" --print-state --compat ys-fast 2>/dev/null | tail -1; }
+
 if [ "${1:-}" = "--nav" ]; then
-  for i in 1 2 3 4 5 6; do
-    grab; S=$(judge)
+  for _ in 1 2 3 4 5 6; do
+    S=$(judge)
     [ "$S" = SAVE ] && { echo SAVE; exit 0; }
     if [ "$S" = MENU ]; then "$HERE/ys-pointer-click" 39 170 >/dev/null 2>&1; sleep 5
     else "$HERE/ys-esc" >/dev/null 2>&1 || true; sleep 3; fi
   done
-  grab; judge; exit 0
+  judge; exit 0
 fi
-grab; judge
+judge

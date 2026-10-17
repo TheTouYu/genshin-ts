@@ -1,135 +1,42 @@
 #!/usr/bin/env python3
-"""ys-fast — 廉价判据层：只取需要的像素，不做全屏抓图。
+"""ys-fast — 薄封装：判据全部委托 `ys-state`（门槛⑤ 单一源），本文件不含任何坐标/阈值
 
-存在理由（2026-10-17 用户点破「重载资产存在巨大低效」）：
-  实测 `ys-ui-state` 一次 11.2s、`ys-map where` 一次 13.5s，
-  而它们要的信息只是屏幕上的**一两个像素**；`import -window root -crop` 只要 **30ms**（快 ~370 倍）。
-  导航循环每轮判态 6 次 + 固定 sleep 35s ⇒ 一次 leave 撞满 300s 超时。
+保留的老接口（外部行为不变）：
+  ys-fast state             打印 `MENU|SAVE|EDITOR`（SAVE = ys-state 的 SAVELIST；
+                            其它态名原样透传，绝不改成别的态的名字 —— 旧词汇本就含 SETTLE/LOADING/UNKNOWN）
+  ys-fast px X Y            打印该点 `r g b`（调试用）
+  ys-fast settle [秒]       轮询到界面连续 3 次同态（即不再跳变）后返回该态
+  ys-fast --frame PNG       对指定图片判定一次（离线）
+  ys-fast --regress         跑 ys-state 的回归集（两通道）
 
-判据标定（物理像素 2560×1440，实测）：
-  MENU    ⇔ px(300,300) 三通道 >200           （系统菜单面板浅灰 217,217,217）
-  SAVE    ⇔ px(300,300) 暗且蓝主导 <60,<60,<90 （存档页深蓝紫 15,19,53）
-  EDITOR  ⇔ 其余                                （摆放页 px(100,400) 草绿 72,92,60）
-
-用法:
-  ys-fast state            打印 MENU|SAVE|EDITOR
-  ys-fast px X Y           打印该点 RGB（调试用）
-  ys-fast settle           轮询到「地图载入完成」（编辑器 UI 稳定）后返回
+为什么只剩转发（2026-10-17，验收契约 §1/§5）：
+  旧的 ys-fast 自带一份「两个像素判三态」的判据副本。同屏两处判据可以给出**相反**答案
+  （旧副本的取样点与 ys-state 的口径不同，同一界面两边判出不同结果），这正是要消灭的重复实现。
+  现在判据、坐标、阈值、状态名只存在于 `tools/ys-editor/ys-state` 一处。
 """
+import os
 import subprocess
 import sys
 import time
-import tempfile
-import os
 
-# 本机 X11 需要动态 XAUTHORITY（每次重启随机名）——python 工具不能 source bash，
-# 所以在启动时向 ys-env.sh 要一次并写回 os.environ（子进程 import/magick 都继承）。
-# 2026-10-17 事故：缺 XAUTHORITY 时 crop 返回 None，而 state() 的兜底分支**把它当成
-# EDITOR 返回**——仪器静默降级成"永远说在编辑器里"，正是要被消灭的那类假读数。
-_ENVSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-env.sh")
-if os.path.exists(_ENVSH):
-    _r = subprocess.run([_ENVSH, "--print"], capture_output=True, text=True)
-    for _line in _r.stdout.splitlines():
-        if "=" in _line:
-            _k, _v = _line.split("=", 1)
-            if _v and _v != "<none>":
-                os.environ[_k] = _v
-
-DISPLAY = os.environ.get("DISPLAY", ":1")
+HERE = os.path.dirname(os.path.abspath(__file__))
+YS_STATE = os.path.join(HERE, "ys-state")
 
 
-FRAME = None   # 离线模式：对指定 PNG 取块（与 import -window 走同一套判据）
-
-
-def crop(x, y, w=2, h=2):
-    """取 (x,y) 附近 2x2 的均值。
-
-    ⚠️ 2026-10-17 修正：原来是 8x8 均值**从 (x,y) 开始**。当取样块跨在 UI 边界上时，
-    均值会产出**屏幕上根本不存在**的颜色——实测 menu.png 的 px(300,300) 单像素是灰 217，
-    而 8x8 均值是 (129,186,223)（下半行是亮蓝面板边），恰好落进 LOADING 的颜色区间，
-    于是"系统菜单"被判成"加载中"。小块 + 走中心 2 像素可以避开这条边界。
-    """
-    x, y = x + (8 - w) // 2, y + (8 - h) // 2   # 保持调用方按 8x8 的语义给点，取块居中
-    if FRAME:
-        b = subprocess.run(
-            ["magick", FRAME, "-crop", f"{w}x{h}+{x}+{y}", "+repage",
-             "-format", "%[fx:int(255*mean.r)] %[fx:int(255*mean.g)] %[fx:int(255*mean.b)]", "info:"],
-            capture_output=True, text=True, timeout=10).stdout.split()
-        return tuple(int(v) for v in b) if len(b) == 3 else None
-    """取一块小区域的均值 RGB。30~80ms 量级。
-
-    ⚠️ 2026-10-17 实测：`import -window root` 返回的是 **780×439 缩放图**（读数错），
-    必须用**游戏窗 id**；`import -window <游戏窗> -crop` 与 spectacle 全屏抓图逐通道一致。
-    """
-    fd, path = tempfile.mkstemp(suffix=".png", prefix="ysfast-")
-    os.close(fd)
-    try:
-        r = subprocess.run(
-            ["import", "-window", os.environ.get("YS_WIN", "0x01400001"),
-             "-crop", f"{w}x{h}+{x}+{y}", "+repage", path],
-            capture_output=True, timeout=10,
-            env=dict(os.environ, DISPLAY=DISPLAY),
-        )
-        if r.returncode != 0 or not os.path.getsize(path):
-            return None
-        r2 = subprocess.run(
-            ["magick", path, "-format", "%[fx:int(255*mean.r)] %[fx:int(255*mean.g)] %[fx:int(255*mean.b)]", "info:"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if r2.returncode != 0:
-            return None
-        return tuple(int(v) for v in r2.stdout.split())
-    finally:
-        try:
-            os.unlink(path)
-        except OSError:
-            pass
-
-
-def state():
-    """廉价判态。词汇 = MENU / SETTLE / SAVE / LOADING / EDITOR / UNKNOWN。
-
-    ⚠️ 能力边界（2026-10-17 用 11 张回归样本重新标定，中心 2x2 取样）：
-      本工具**不判**游戏内的子态（PLAYTEST / PAUSE）——它们与 LOADING（亮蓝天空）在单点上重叠，
-      那类判定交给 `ys-state`（模板 + 多判据投票）。这里返回什么就算什么，**不猜**。
-    判据点全部由样本集自动搜索选出（每种态在 11 张样本上「本态全中、其它全不中」）：
-      MENU    (112,88)  面板浅灰 218,223,218   ← 其它态最高 162（settle2）
-      SETTLE  (136,64)  蓝底 101,144,237       ← 四张结算页一致；存档页在这是纯白 255,255,255（b>g+20 不成立）
-      SAVE    (300,300) 深蓝紫 15,19,53, max<80
-      LOADING (300,300) 亮蓝 118,203,252（**与游戏内天空重叠**，调用方需用 ys-state 复核）
-      EDITOR  (100,400) 草绿主导
-    """
-    # ① 系统菜单：左面板是浅灰
-    c = crop(112, 88)
-    if c and min(c) > 200:
-        return "MENU"
-    # ② 结算页：左上角色头像区的蓝底（四版式一致）
-    c = crop(136, 64)
-    if c and c[2] > 140 and c[2] > c[1] + 20 and c[0] < 200:
-        return "SETTLE"
-    # ③ 存档页 / ④ 加载页：同一个点，靠亮度与蓝绿序分开
-    p = crop(300, 300)
-    if p:
-        if max(p) < 80 and p[2] > 40 and p[2] > p[1] + 15:
-            return "SAVE"
-        if p[2] > 180 and p[2] > p[1] + 20 and 100 < p[0] < 170:
-            return "LOADING"      # 见 docstring：与游戏内亮蓝天空重叠
-    # ⑤ 编辑器摆放页：草地绿主导
-    q = crop(100, 400)
-    if q is None:
-        return "UNKNOWN"          # 取数失败：明确报未知，绝不兜底成 EDITOR
-    if q[1] > q[0] + 10 and q[1] > q[2] + 10:
-        return "EDITOR"
-    return "UNKNOWN"
+def state(argv=()):
+    """委托 ys-state（--compat 只把 SAVELIST 映射成 SAVE，其余原样）。"""
+    r = subprocess.run([YS_STATE, "--print-state", "--compat", "ys-fast", *argv],
+                       capture_output=True, text=True)
+    out = (r.stdout or "").strip().splitlines()
+    return (out[-1] if out else "UNKNOWN"), r.returncode
 
 
 def settle(timeout=90, need=3):
     """轮询到状态连续 need 次相同（即界面不再跳变）后返回该状态。"""
     t0 = time.time()
-    last = None
-    stable = 0
+    last, stable = None, 0
     while time.time() - t0 < timeout:
-        s = state()
+        s, _ = state()
         if s == last:
             stable += 1
             if stable >= need:
@@ -141,54 +48,36 @@ def settle(timeout=90, need=3):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("用法: ys-fast state|px X Y|settle", file=sys.stderr)
+    args = sys.argv[1:]
+    if not args:
+        sys.stderr.write("用法: ys-fast state|px X Y|settle [秒]|--frame PNG|--regress\n")
         return 2
-    global FRAME
-    if len(sys.argv) > 3 and sys.argv[2] == "--frame":
-        FRAME = sys.argv[3]
-        print(state())
+    if args[0] == "--frame":
+        if len(args) < 2:
+            sys.stderr.write("--frame 需要 PNG 路径\n")
+            return 3
+        s, _ = state(["--frame", args[1]])
+        print(s)
         return 0
-    if len(sys.argv) > 1 and sys.argv[1] == "--regress":
-        reg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calib", "regress")
-        man = os.path.join(reg, "manifest.tsv")
-        bad = 0
-        tot = 0
-        for line in open(man, encoding="utf-8"):
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            fn, want = (line.split("\t") + ["", ""])[:2]
-            p = os.path.join(reg, fn)
-            if not os.path.exists(p):
-                continue
-            tot += 1
-            FRAME = p
-            exp = {"SAVELIST": "SAVE"}.get(want, want)
-            if exp not in ("MENU", "SAVE", "SETTLE", "EDITOR", "LOADING"):
-                tot -= 1
-                print(f"  · {fn:26s} → 跳过（{want} 不在本工具词汇内，交 ys-state）")
-                continue
-            got = state()
-            mark = "✓" if got == exp else "✗"
-            if got != exp:
-                bad += 1
-            print(f"  {mark} {fn:26s} → {got:9s} (期望 {exp})")
-        print(f"── ys-fast 回归 {tot - bad}/{tot} ──")
-        return 0 if bad == 0 else 5
-    cmd = sys.argv[1]
+    if args[0] == "--regress":
+        return subprocess.run([YS_STATE, "--regress", "--channel", "both"]).returncode
+    cmd = args[0]
     if cmd == "state":
-        print(state())
-        return 0
+        s, rc = state()
+        print(s)
+        return rc
     if cmd == "px":
-        p = crop(int(sys.argv[2]), int(sys.argv[3]), 4, 4)
-        print(" ".join(str(v) for v in p) if p else "FAIL")
-        return 0
+        if len(args) < 3:
+            sys.stderr.write("px 需要 X Y\n")
+            return 2
+        r = subprocess.run([YS_STATE, "--pixel", args[1], args[2]],
+                           capture_output=True, text=True)
+        print((r.stdout or "").strip() or "FAIL")
+        return r.returncode
     if cmd == "settle":
-        to = int(sys.argv[2]) if len(sys.argv) > 2 else 90
-        print(settle(to))
+        print(settle(int(args[1]) if len(args) > 1 else 90))
         return 0
-    print("未知子命令", file=sys.stderr)
+    sys.stderr.write(f"未知子命令 {cmd}\n")
     return 2
 
 

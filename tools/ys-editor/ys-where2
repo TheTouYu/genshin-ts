@@ -1,8 +1,8 @@
 #!/bin/bash
 # ys-where2 — 用「系统菜单标题」判定编辑器当前打开的是哪张图（比走存档页便宜且直接）
 #
-# 判据链（2026-10-17 实测）：
-#   ① 系统菜单打开判据：px(300,300) 三通道 >200（面板浅灰 217,217,217；编辑器态该点是草绿 70,94,62）
+# 判据链（2026-10-17 实测；判据本体只存在 ys-state）：
+#   ① 系统菜单是否打开：委托 `ys-state --probe menu_open`（坐标/阈值不在此处）
 #   ② 标题模板匹配：templates/mymap-menu-title.png = 我的图在系统菜单里的标题「未分类页签_存档_1」
 #      命中（score≥0.9）→ 当前图是我的；不命中 → 别的图
 # 用法: ys-where2           # 打印 MY_MAP | OTHER_MAP | UNKNOWN
@@ -11,15 +11,13 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 TPL="$HERE/templates/mymap-menu-title.png"
-SHOT=/tmp/ys-where2.png
-grab() { "$HERE/ys-peek" "$SHOT" >/dev/null 2>&1; }
-is_menu() { local r; r=$(magick "$SHOT" -format "%[fx:int(255*p{300,300}.r)]" info: 2>/dev/null); [ "${r:-0}" -gt 200 ]; }
-# ① 确保菜单打开
-grab
-if ! is_menu; then "$HERE/ys-esc" >/dev/null 2>&1; sleep 2; grab; fi
-if ! is_menu; then "$HERE/ys-esc" >/dev/null 2>&1; sleep 2; grab; fi
+YS_STATE="$HERE/ys-state"
+is_menu() { "$YS_STATE" --probe menu_open >/dev/null 2>&1; }
+# ① 确保菜单打开（判据在 ys-state；这里只做动作）
+if ! is_menu; then "$HERE/ys-esc" >/dev/null 2>&1; sleep 2; fi
+if ! is_menu; then "$HERE/ys-esc" >/dev/null 2>&1; sleep 2; fi
 if ! is_menu; then echo "UNKNOWN"; exit 2; fi
-# ② 标题匹配
+# ② 标题匹配（身份判据 = ys_look.py 的模板匹配，与界面态判定无关）
 LINE=$(timeout 60 python3 "$HERE/ys_look.py" find "$TPL" 0 0 2560 1440 2>/dev/null | tail -1)
 SC=$(echo "$LINE" | awk '{print $3}')
 if [ -z "${SC:-}" ]; then echo "UNKNOWN"; exit 2; fi
