@@ -59,36 +59,56 @@ def _ncc_np(I, T):
     yy, xx = np.unravel_index(int(np.argmax(ncc)), ncc.shape)
     return int(xx), int(yy), float(ncc[yy, xx]), "cpu-fft"
 
-def _ncc_gpu(I, T):
-    """GPU NCC：FFT 相关 + cumsum 积分图（O(N log N)，避免大核 conv2d 的 O(N·k)）"""
+def ncc_t(It, Tt):
+    """张量原生 NCC：输入已是 GPU 上的 C,H,W float 张量，返回 (x, y, score)。
+
+    为什么要这一层（2026-10-17，GPU 实测）：批量匹配时真正的开销不是数学，而是
+    **每锚点的 numpy↔tensor 转换 + PIL 重采样**（10 锚点 690ms，而单次匹配只要 31ms）。
+    把"转换"挪到调用方一次做完、模板缩放也在 GPU 上做，常驻服务一次请求就能摊掉这些胶水。
+    与 _ncc_gpu 共用同一份数学（_ncc_gpu 已改为调用本函数），不产生第二份实现。
+    """
     import torch
-    dev = "cuda"
-    H, W, C = I.shape; h, w, _ = T.shape
-    It = torch.from_numpy(I).permute(2, 0, 1).to(dev)            # C,H,W
-    Tt = torch.from_numpy(T).permute(2, 0, 1).to(dev)            # C,h,w
-    Tm = Tt - Tt.mean(); Tn = Tm.pow(2).sum().sqrt()
-    # ① 分子：互相关走 FFT
+    h, w = Tt.shape[1], Tt.shape[2]
+    C = It.shape[0]
+    H, W = It.shape[1], It.shape[2]
+    Tm = Tt - Tt.mean()
+    Tn = Tm.pow(2).sum().sqrt()
     Fs = (H + h - 1, W + w - 1)
-    A = torch.fft.rfft2(It, s=Fs); B = torch.fft.rfft2(Tm.flip(-1).flip(-2), s=Fs)
-    cross = torch.fft.irfft2(A * B, s=Fs)[:, h - 1:H, w - 1:W].sum(0)     # H-h+1, W-w+1
-    # ② 分母：局部和/平方和走 cumsum 积分图
+    A = torch.fft.rfft2(It, s=Fs)
+    B = torch.fft.rfft2(Tm.flip(-1).flip(-2), s=Fs)
+    cross = torch.fft.irfft2(A * B, s=Fs)[:, h - 1:H, w - 1:W].sum(0)
+
     def integ(X):
-        P = torch.zeros((X.shape[0] + 1, X.shape[1] + 1), device=dev, dtype=X.dtype)
-        P[1:, 1:] = X.cumsum(0).cumsum(1); return P
-    P1 = integ(It.sum(0)); P2 = integ((It * It).sum(0))
+        P = torch.zeros((X.shape[0] + 1, X.shape[1] + 1), device=X.device, dtype=X.dtype)
+        P[1:, 1:] = X.cumsum(0).cumsum(1)
+        return P
+
+    P1 = integ(It.sum(0))
+    P2 = integ((It * It).sum(0))
     S1 = P1[h:, w:] - P1[:-h, w:] - P1[h:, :-w] + P1[:-h, :-w]
     S2 = P2[h:, w:] - P2[:-h, w:] - P2[h:, :-w] + P2[:-h, :-w]
     n = h * w * C
     den = (S2 - S1 * S1 / n).clamp_min(0).sqrt()
-    # 同 _ncc_np：未定义 ⇒ 不匹配(0)，且截到 [-1,1]（2026-10-17 修，见 CPU 版注释）
     den_min = (float(n) ** 0.5) * MIN_STD
     valid = (den > den_min) & (Tn > (float(h * w * C) ** 0.5) * MIN_STD)
     ncc = torch.zeros_like(cross)
     ncc[valid] = cross[valid] / (den[valid] * Tn)
     ncc = ncc.clamp(-1.0, 1.0)
-    idx = int(ncc.argmax()); W2 = ncc.shape[1]
+    idx = int(ncc.argmax())
+    W2 = ncc.shape[1]
     y, x = divmod(idx, W2)
-    return x, y, round(float(ncc.max().item()), 6), "gpu-cuda"
+    return x, y, round(float(ncc.max().item()), 6)
+
+
+def _ncc_gpu(I, T):
+    """GPU NCC 的 numpy 入口（薄封装：转张量 → ncc_t）。"""
+    import torch
+    dev = "cuda"
+    It = torch.from_numpy(np.ascontiguousarray(I)).permute(2, 0, 1).to(dev)   # C,H,W
+    Tt = torch.from_numpy(np.ascontiguousarray(T)).permute(2, 0, 1).to(dev)   # C,h,w
+    x, y, s = ncc_t(It.float(), Tt.float())
+    return x, y, s, "gpu-cuda"
+
 
 def ncc(I, T):
     """后端自适应：**成本链 = 进程启动 > 抓取面积 > 计算**。

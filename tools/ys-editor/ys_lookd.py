@@ -13,6 +13,94 @@ import ys_look as YL
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
 WIN = os.environ.get("YS_WIN", "0x01400001")
 
+
+
+_CACHE = {}          # path -> (mtime, tensor)：帧与模板都按 (路径, mtime) 缓存，批量时省掉重复解码
+
+def _cached(path, cuda=True):
+    import numpy as np, torch, os
+    from PIL import Image
+    mt = os.path.getmtime(path)
+    hit = _CACHE.get(path)
+    if hit and hit[0] == mt:
+        return hit[1]
+    arr = np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
+    t = torch.from_numpy(arr).permute(2, 0, 1).contiguous()
+    if cuda:
+        t = t.cuda()
+    _CACHE[path] = (mt, t)
+    if len(_CACHE) > 16:                       # 简单的体量上限，防长期运行涨内存
+        _CACHE.pop(next(iter(_CACHE)))
+    return t
+
+def _load_frame(req):
+    """取帧一次，转成 GPU 张量（C,H,W float）——批量请求里所有锚点共用这一份。"""
+    import numpy as np, torch
+    if req.get("frame"):                       # 离线/基准：直接读 PNG（带缓存）
+        return _cached(req["frame"])
+    else:                                      # 在线：抓窗口区域
+        if req.get("region"):
+            X, Y, W, H = map(int, req["region"])
+        else:
+            import subprocess
+            g = dict(l.split("=") for l in subprocess.run(
+                ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
+                capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+            X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
+        arr = YL.grab(X, Y, W, H).astype(np.float32) / 255.0
+        req["_origin"] = (X, Y)
+    return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+
+
+def _tpl_tensor(path, scales):
+    """读一次模板图（带缓存），按各尺度在 GPU 上缩放（不再走 PIL——那是批量时的胶水大头）。"""
+    import torch
+    import torch.nn.functional as F
+    t = _cached(path)
+    out = []
+    for s in scales:
+        if abs(s - 1.0) < 1e-6:
+            out.append((s, t))
+        else:
+            h = max(8, int(round(t.shape[1] * s)))
+            w = max(8, int(round(t.shape[2] * s)))
+            out.append((s, F.interpolate(t.unsqueeze(0), size=(h, w), mode="bilinear",
+                                         align_corners=False).squeeze(0)))
+    return out
+
+
+def _batch(req):
+    """一次请求跑完 N 个锚点 × M 个尺度。
+
+    为什么要有它（2026-10-17 实测）：单次匹配 31ms，但 10 锚点串起来 690ms——
+    开销全在每锚点的取帧/格式转换/PIL 缩放。批量把这三件各做一次。
+    """
+    import torch
+    It = _load_frame(req)
+    ox, oy = req.get("_origin", (0, 0))
+    results = []
+    for job in req.get("jobs", []):
+        roi = job.get("roi")
+        if roi:
+            x, y, w, h = map(int, roi)
+            sub = It[:, y:y + h, x:x + w]
+            bx, by = x, y
+        else:
+            sub, bx, by = It, 0, 0
+        best = None
+        per = []
+        for s, Tt in _tpl_tensor(job["tpl"], job.get("scales", [1.0])):
+            if Tt.shape[1] > sub.shape[1] or Tt.shape[2] > sub.shape[2]:
+                continue
+            px, py, score = YL.ncc_t(sub, Tt)
+            rec = {"scale": s, "x": bx + px + Tt.shape[2] // 2 + ox,
+                   "y": by + py + Tt.shape[1] // 2 + oy, "score": score}
+            per.append(rec)
+            if best is None or score > best["score"]:
+                best = rec
+        results.append({"id": job.get("id"), "best": best, "all": per})
+    return {"results": results, "frame": list(It.shape)}
+
 def handle(req):
     cmd = req.get("cmd")
     YL.WIN = req.get("win", WIN)
@@ -37,6 +125,8 @@ def handle(req):
         I = YL.grab(X, Y, W, H)
         x, y, s, backend = YL.ncc(I, T)
         return {"x": X + x + tw // 2, "y": Y + y + th // 2, "score": round(s, 4), "backend": backend}
+    if cmd == "batch":
+        return _batch(req)
     if cmd == "warm":
         return {"ok": True, "gpu": True}
     return {"error": "unknown cmd"}
