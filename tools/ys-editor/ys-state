@@ -122,6 +122,12 @@ PROBE_RULES = {
     "blue_bar":    lambda c: c[2] > 200 and c[2] > c[0] + 80,           # 存档页底栏亮蓝
     "green":       lambda c: c[1] > c[0] and c[1] > c[2],               # 编辑器草地
     "bright_blue": lambda c: c[2] > 200 and c[0] > 120 and c[1] > 140,  # 结算页浅蓝按钮（另一种版式）
+    # 模态确认框（2026-10-17 用真机帧 /tmp/back3.png 标定；结构判据，不是坐标硬编码）
+    "dim_bar":     lambda c: 90 < c[2] < 180 and c[2] > c[0] + 50,      # 底栏亮蓝被压暗（242→132）
+    "card_body":   lambda c: 42 <= sum(c) / 3 <= 80 and c[2] > c[1] + 10 and c[2] >= c[0],  # 中央卡片体
+    "accent_blue": lambda c: c[2] > 200 and c[2] > c[0] + 100 and 90 < c[1] < 180,           # 【确认】按钮
+    "very_dark":   lambda c: max(c) <= 35,                               # 卡片外被压暗的底
+    "not_gray200": lambda c: not all(v > 200 for v in c),                # 不在系统菜单态（挡菜单面板假阳性）
 }
 # readings: (判据名, 取样点 | "panel", 谓词名)   panel = EDITOR/B 的左右列均值差（区域判据）
 PROBES = {
@@ -171,18 +177,31 @@ PROBES = {
     "pause_menu": {
         "desc": "试玩暂停菜单可见（「中断挑战」按钮亮带）",
         "rule": "all",
-        "points": [(1240, 852), (1320, 852)],
+        "must": ["pause_menu/C px(300,300) 非系统菜单"],
+        "points": [(1240, 852), (1320, 852), (300, 300)],
         "readings": [("pause_menu/A px(1240,852) 亮", (1240, 852), "light"),
-                     ("pause_menu/B px(1320,852) 亮", (1320, 852), "light")],
+                     ("pause_menu/B px(1320,852) 亮", (1320, 852), "light"),
+                     ("pause_menu/C px(300,300) 非系统菜单", (300, 300), "not_gray200")],
     },
     "settle_leave": {
         "desc": "结算页「离开」按钮可见（白按钮版式 + 浅蓝按钮版式，两点以上成立才算）",
         "rule": "any2",
-        "points": [(1833, 1365), (1740, 1352), (1700, 1365)],
+        "must": ["settle_leave/E px(300,300) 结算页暗背景"],
+        "points": [(1833, 1365), (1740, 1352), (1700, 1365), (300, 300)],
         "readings": [("settle_leave/A px(1833,1365) 白按钮", (1833, 1365), "light"),
                      ("settle_leave/B px(1740,1352) 白按钮", (1740, 1352), "light"),
                      ("settle_leave/C px(1700,1365) 浅蓝按钮", (1700, 1365), "bright_blue"),
-                     ("settle_leave/D px(1740,1352) 浅蓝按钮", (1740, 1352), "bright_blue")],
+                     ("settle_leave/D px(1740,1352) 浅蓝按钮", (1740, 1352), "bright_blue"),
+                     ("settle_leave/E px(300,300) 结算页暗背景", (300, 300), "dark70")],
+    },
+    "confirm_dialog": {
+        "desc": "模态确认框（如「是否退出，并加载…？」）：整屏压暗 + 中央卡片 + 亮蓝【确认】",
+        "rule": "all", "validated": True,
+        "points": [(640, 1300), (1280, 700), (1395, 800), (300, 300)],
+        "readings": [("confirm_dialog/A 底栏被压暗(蓝 100~180)", (640, 1300), "dim_bar"),
+                     ("confirm_dialog/B 中央卡片体", (1280, 700), "card_body"),
+                     ("confirm_dialog/C 【确认】按钮亮蓝", (1395, 800), "accent_blue"),
+                     ("confirm_dialog/D 卡片外极暗", (300, 300), "very_dark")],
     },
 }
 PROBE_ALIAS = {                      # 旧调用名 → 探针名（保证外部行为不变）
@@ -895,9 +914,18 @@ def probe_readings(name, frame=None, grabbed=None):
 
     grabbed = (arr_uint8, ox, oy)：调用方已经把该探针外接框抓好了（daemon 用，省一次抓帧）。
     """
+    import numpy as np                      # 本文件只在函数内用 numpy（daemon 以模块加载时也一样）
     spec = PROBES[name]
     if grabbed is not None:
         arr, ox, oy = grabbed
+        arr = np.asarray(arr)
+        # 单位护栏：判据全部按 0..255 写死，0..1 浮点进来会让**每一条判据都假**（且不报错）。
+        # 2026-10-17 事故：daemon 活体把 `ys_look.grab` 的 0..1 浮点直接传进来 ⇒ 探针永远"不可见"。
+        if arr.dtype.kind == "f":
+            arr = (arr * 255.0).round().astype("uint8") if (arr.size and float(arr.max()) <= 1.0) \
+                else arr.round().astype("uint8")
+        elif arr.dtype != np.uint8:
+            arr = arr.astype("uint8")
         cells = {}
         for x, y in _probe_points(spec) + [p for p, _ in _panel_pts(spec)]:
             rx, ry = x - ox, y - oy
@@ -908,7 +936,11 @@ def probe_readings(name, frame=None, grabbed=None):
         pts = sorted(set(_probe_points(spec) + [p for p, _ in _panel_pts(spec)]))
         bad = [p for p in pts if p[0] >= w or p[1] >= h]
         if bad:
-            raise RuntimeError(f"探针 {name} 的取样点 {bad[:3]} 超出画面 {w}x{h}（缩放帧/抓帧失败态）")
+            # 画面尺寸不符（缩放帧/抓帧失败态）⇒ 该控件**确定不可见**，不该抛错让调用方
+            # 去猜"是错误还是不可见"：判据全标 false + 读数写明尺寸（fail closed，可审计）。
+            return ([{"name": lbl, "value": f"画面 {w}x{h} 越界（缩放帧/抓帧失败态）",
+                      "passed": False, "kind": kind}
+                     for lbl, _pt, kind in spec["readings"]], {})
         pix = ProbePixels(frame, pts)
         cells = {p: pix.px(*p) for p in pts}
     else:
@@ -1007,6 +1039,13 @@ def probe(name, frame=None, grabbed=None):
     n = len(items)
     passed = sum(1 for r in items if r["passed"])
     visible = (passed >= 2) if spec["rule"] == "any2" else (passed == n)
+    # `must`：除 rule 之外**必须一并成立**的判据（用于挡假阳性）。
+    # 典型：结算页【离开】/暂停菜单的亮块判据，在系统菜单面板上也会亮
+    # （实测 menu.png / live-menu-back4.png 两帧假阳性）⇒ 用「画面不是菜单浅灰」当 must。
+    must = spec.get("must") or []
+    if must:
+        by_name = {r["name"]: r["passed"] for r in items}
+        visible = visible and all(by_name.get(m, False) for m in must)
     if n < 2:                                          # 契约 §6：每探针 ≥2 判据
         visible = False
     return {"probe": name, "visible": bool(visible),
@@ -1179,6 +1218,48 @@ def main(argv):
                 return 1
         return 0
 
+    # ── 状态轮询原语（②ESC 生效有延迟：按完立刻判会读旧态，必须轮询到目标态）──
+    wait_state_name = opt(args, "--wait-state")
+    if wait_state_name:
+        want = wait_state_name.upper()
+        if want not in STATES:
+            sys.stderr.write(f"--wait-state 只接受 {STATES}（收到 {wait_state_name}）\n")
+            return 3
+        try:
+            timeout = float(opt(args, "--timeout") or 20)
+            poll = float(opt(args, "--poll") or 0.2)
+        except ValueError:
+            sys.stderr.write("--timeout/--poll 需要数字\n")
+            return 3
+        t0 = time.time()
+        seen = []
+        cur = None
+        while True:
+            res, _path, _fresh = execute(channel, frame=frame, profile=profile)
+            cur = res.get("state", "UNKNOWN")
+            if not seen or seen[-1] != cur:
+                seen.append(cur)
+            if cur == want:
+                if as_json:
+                    print(json.dumps({"state": cur, "reached": True, "want": want,
+                                      "ms": round((time.time() - t0) * 1000), "polls": len(seen),
+                                      "seen": seen, "channel": channel}, ensure_ascii=False))
+                else:
+                    print(cur)
+                return 0
+            if time.time() - t0 >= timeout:
+                break
+            time.sleep(poll)
+        sys.stderr.write(f"[ys-state] --wait-state {want} 超时 {timeout:.1f}s，"
+                         f"见到序列 {seen}（按键后状态有延迟，别立刻判）\n")
+        if as_json:
+            print(json.dumps({"state": cur, "reached": False, "want": want,
+                              "ms": round((time.time() - t0) * 1000), "seen": seen,
+                              "channel": channel}, ensure_ascii=False))
+        else:
+            print(cur)
+        return 1
+
     probe_name = opt(args, "--probe")
     wait_name = opt(args, "--wait")
     if probe_name or wait_name:
@@ -1258,12 +1339,21 @@ def main(argv):
         sys.stderr.write(f"[ys-state] {type(e).__name__}: {e}\n")
         return 3
     if res.get("error") and res.get("state") == "UNKNOWN" and "readings" not in res:
-        sys.stderr.write(f"[ys-state] {res['error']}\n")
+        # 取帧失败：stderr **必出声**，JSON 里显式 ok=false / frame=null / 原始原因
+        # （2026-10-17 事故：full 通道在槽内取帧失败，调用方拿到 frame:null 差点复制旧帧下结论）
+        sys.stderr.write(f"[ys-state] 取帧失败：{res['error']}"
+                         f"{('（' + str(res.get('detail'))[:200] + '）') if res.get('detail') else ''}\n")
         if as_json:
-            print(json.dumps(res, ensure_ascii=False))
+            err = dict(res)
+            err.update({"ok": False, "frame": None, "state": "UNKNOWN", "channel": channel,
+                        "fresh": {"ok": False, "atop": False, "ts": int(time.time()),
+                                  "sha": None, "reason": res.get("detail") or res["error"]}})
+            print(json.dumps(err, ensure_ascii=False))
         return 3
     out = dict(res)
-    out.update({"frame": path, "fresh": fresh})
+    if isinstance(fresh, dict):
+        fresh = dict(fresh, ok=True)
+    out.update({"frame": path, "fresh": fresh, "ok": True})
     if as_json:
         print(json.dumps(out, ensure_ascii=False))
     elif print_state:

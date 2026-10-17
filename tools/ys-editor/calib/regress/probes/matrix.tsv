@@ -1,0 +1,31 @@
+# 探针矩阵（门槛①/⑤ 的探针侧回归）：每帧「哪些**已验证**探针必须可见」
+# 格式：帧文件名<TAB>期望态<TAB>必须可见的探针（逗号分隔，空=全部应隐藏）<TAB>出处/说明
+# 口径：
+#   · 只断言 `validated:true` 的探针（bake_dialog / playtest_options 未验证，矩阵跳过并明示）
+#   · 帧都在 tools/ys-editor/calib/regress/ 与 .../regress/probes/ 下
+#   · 2026-10-17 用真机帧标定：menu_open / save_page / editor / pause_menu / settle_leave / confirm_dialog / tile_visible
+# 用法：bash tools/ys-editor/tests/probe-matrix.selftest.sh
+editor-grass-shadow.png	EDITOR	editor	正样本：编辑器草地（也测过旧误判）
+menu.png	MENU	menu_open,editor,tile_visible	正样本：系统菜单（editor 在菜单下仍成立=设计如此）
+playtest.png	PLAYTEST	（无）	游戏内：暂停/结算以外的游戏态
+playtest2.png	PLAYTEST	（无）	游戏内平台跳跃
+playtest3.png	PLAYTEST	（无）	游戏内第三场景（无水印版式）
+pause.png	PAUSE	pause_menu	试玩暂停菜单
+savelist.png	SAVELIST	save_page	存档选择页
+settle.png	SETTLE	settle_leave	结算页（白按钮版式）
+settle2.png	SETTLE	settle_leave	结算页（第二种版式）
+settle3.png	SETTLE	settle_leave	结算页（第三种版式）
+settle4.png	SETTLE	settle_leave	结算页（第四种版式）
+neg-black-frame.png	UNKNOWN	（无）	负样本：近黑帧
+neg-desktop-dolphin.png	UNKNOWN	（无）	负样本：桌面+Dolphin
+neg-desktop-launcher.png	UNKNOWN	（无）	负样本：桌面+启动器
+neg-maingame-2025.png	UNKNOWN	（无）	负样本：原神主游戏（似存档页实为主游戏）
+neg-scaled-1024x576.png	UNKNOWN	（无）	负样本：抓帧失败态（1024×576 缩放帧）
+neg-terminal-browser.png	UNKNOWN	（无）	负样本：终端+Firefox
+neg-transition-starry.png	UNKNOWN	（无）	负样本：过渡态星空
+neg-video-player.png	UNKNOWN	（无）	负样本：视频播放器
+probes/live-menu-back4.png	MENU	menu_open,editor,tile_visible	真机帧 /tmp/back4.png（2026-10-17 20:19 槽内）
+probes/live-savelist-back2.png	SAVELIST	save_page	真机帧 /tmp/back2.png
+probes/live-editor-back1.png	EDITOR	editor	真机帧 /tmp/back1.png
+probes/live-editor-demo4.png	EDITOR	editor	真机帧 /tmp/demo4.png
+probes/live-confirm-back3.png	UNKNOWN	confirm_dialog	真机帧 /tmp/back3.png：点存档卡【编辑】后的模态确认框（两通道判 UNKNOWN 是对的，模态由探针识别）

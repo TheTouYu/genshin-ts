@@ -25,6 +25,19 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 WIN="${YS_WIN:-0x01400001}"
+
+# ⚠️ 2026-10-17 实测（③槽内 full 通道取帧失败的真因）：
+#   `spectacle` 缺 `XDG_RUNTIME_DIR` 时**直接 core dump**（`error: XDG_RUNTIME_DIR is invalid or not set`），
+#   而占槽脚本（ys-gui-slot / systemd-run / 子 shell）继承的环境常常没有这一项 ⇒ 抓帧必失败。
+#   这里就地补齐（并如实记进 readout 的 env_repair），不依赖调用方 env。
+ENV_REPAIR=""
+if [ -z "${XDG_RUNTIME_DIR:-}" ] || [ ! -d "${XDG_RUNTIME_DIR:-/nonexistent}" ]; then
+  _cand="/run/user/$(id -u)"
+  if [ -d "$_cand" ]; then export XDG_RUNTIME_DIR="$_cand"; ENV_REPAIR="${ENV_REPAIR}xdg_runtime_dir "; fi
+fi
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/bus" ]; then
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"; ENV_REPAIR="${ENV_REPAIR}dbus_session_bus "
+fi
 CACHE="${YS_OBSERVE_CACHE:-/tmp/ys-observe}"
 mkdir -p "$CACHE"
 CUR="$CACHE/cur.png"; PREV="$CACHE/prev.png"
@@ -59,12 +72,21 @@ if [ "$ATOP" != "true" ] && [ "$RAISE" = "1" ]; then
 fi
 
 # ── ③ 合成器全屏抓图（比逐窗缓冲可信）
+GRAB_SOURCE="spectacle-fullscreen"
+GRAB_ERR=""
 grab() {
   rm -f "$1"
-  if ! timeout 25 spectacle -b -n -f -o "$1" >/dev/null 2>&1 || [ ! -s "$1" ]; then
-    return 1
+  local errf; errf="$(mktemp -t ys-observe-grab-XXXXXX.err)"
+  if timeout 25 spectacle -b -n -f -o "$1" >/dev/null 2>"$errf" && [ -s "$1" ]; then
+    GRAB_SOURCE="spectacle-fullscreen"; GRAB_ERR=""; rm -f "$errf"; return 0
   fi
-  return 0
+  GRAB_ERR="$(head -2 "$errf" 2>/dev/null | tr '\n' ' ')"; rm -f "$errf"
+  # 回退：窗口在栈顶时逐窗 `import` 与合成器抓图**逐通道一致**（2026-10-17 实测 11059200 字节同尺寸）。
+  # 只回退抓取方式，不放松栈顶校验——陈旧帧风险来自「窗口被压住」，那条判据仍在前面。
+  if timeout 25 import -window "$WIN" -crop 2560x1440+0+0 +repage "$1" >/dev/null 2>&1 && [ -s "$1" ]; then
+    GRAB_SOURCE="import-window-fallback"; return 0
+  fi
+  return 1
 }
 
 # --reuse：显式复用上一帧（抓图贵且调用方明确知道画面未变时用）。
@@ -83,7 +105,7 @@ MODE="${1:?用法: ys-observe px|region|liveness …}"; shift || true
 
 if [ "$MODE" = "liveness" ]; then
   [ "$ATOP" != "true" ] && die NOT_ATOP "原神窗不在栈顶——此时『画面有变化』变的是别人的窗口，liveness 无意义" 2
-  grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
+  grab "$CUR" || die GRAB_FAILED "抓图失败（spectacle 与 import-window 都失败）：$GRAB_ERR" 3
   cp -f "$CUR" "$PREV" 2>/dev/null || true
   sleep 1
   grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
@@ -95,14 +117,14 @@ if [ "$MODE" = "liveness" ]; then
 fi
 
 if [ "$ATOP" != "true" ]; then
-  die NOT_ATOP "原神窗不在堆叠序栈顶（$GEOM）——抓图可能是陈旧帧，拒绝返回像素值" 2
+  die NOT_ATOP "原神窗不在堆叠序栈顶（$GEOM）——抓图可能是陈旧帧，拒绝返回像素值；请在 ys-gui-slot 里跑或显式 --raise 后重试（env_repair='${ENV_REPAIR:-none}'）" 2
 fi
 
 REUSED=false
 if [ "$REUSE" = "1" ] && [ -s "$PREV" ]; then
   cp -f "$PREV" "$CUR"; REUSED=true
 else
-  grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
+  grab "$CUR" || die GRAB_FAILED "抓图失败（spectacle 与 import-window 都失败）：$GRAB_ERR" 3
 fi
 
 # 与上一帧的差分（真实像素差，不是自报常数）
@@ -127,8 +149,9 @@ case "$MODE" in
     fi
     read -r R G B <<<"$(magick "$CUR" -format "%[fx:int(255*p{$X,$Y}.r)] %[fx:int(255*p{$X,$Y}.g)] %[fx:int(255*p{$X,$Y}.b)]" info: 2>/dev/null)"
     [ -z "${R:-}" ] && die PROBE_EMPTY "探针 ($X,$Y) 取不到值" 3
-    printf '{"kind":"px","probe":"%s,%s","value":"%s,%s,%s","fresh":true,"reused":%s,"static":%s,"frame":{"id":"%s","diffFromPrev":%s,"window":"%s","atop":%s},"source":"spectacle-fullscreen","at":"%s"}\n' \
-      "$X" "$Y" "$R" "$G" "$B" "$REUSED" "$STATIC" "$FID" "${DIFF:-0}" "$WIN" "$ATOP" "$AT"
+    printf '{"kind":"px","probe":"%s,%s","value":"%s,%s,%s","fresh":true,"reused":%s,"static":%s,"frame":{"id":"%s","diffFromPrev":%s,"window":"%s","atop":%s},"source":"%s","env_repair":"%s","at":"%s"}\n' \
+      "$X" "$Y" "$R" "$G" "$B" "$REUSED" "$STATIC" "$FID" "${DIFF:-0}" "$WIN" "$ATOP" \
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
     ;;
   region)
     X="${1:?region 需要 x}"; Y="${2:?region 需要 y}"; W="${3:?region 需要 w}"; H="${4:?region 需要 h}"
@@ -136,13 +159,15 @@ case "$MODE" in
     if [ $((X + W)) -gt "${IW:-0}" ] || [ $((Y + H)) -gt "${IH:-0}" ]; then
       die PROBE_OUT_OF_RANGE "区域 ($X,$Y,${W}x$H) 超出画面 ${IW}x${IH}" 3
     fi
-    printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"spectacle-fullscreen","at":"%s"}\n' \
-      "$X" "$Y" "$W" "$H" "${DIFF:-0}" "$STATIC" "$FID" "$WIN" "$ATOP" "$AT"
+    printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"%s","env_repair":"%s","at":"%s"}\n' \
+      "$X" "$Y" "$W" "$H" "${DIFF:-0}" "$STATIC" "$FID" "$WIN" "$ATOP" \
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
     ;;
   frame)
     # 供上层组件（ys-state 等）复用同一帧：打印缓存帧的绝对路径，避免各自重复抓图
-    printf '{"kind":"frame","path":"%s","fresh":true,"reused":%s,"static":%s,"diffFromPrev":%s,"window":"%s","atop":%s,"at":"%s"}\n' \
-      "$CUR" "$REUSED" "$STATIC" "${DIFF:-0}" "$WIN" "$ATOP" "$AT"
+    printf '{"kind":"frame","path":"%s","fresh":true,"reused":%s,"static":%s,"diffFromPrev":%s,"window":"%s","atop":%s,"source":"%s","env_repair":"%s","at":"%s"}\n' \
+      "$CUR" "$REUSED" "$STATIC" "${DIFF:-0}" "$WIN" "$ATOP" \
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
     ;;
   *) die BAD_MODE "未知模式 $MODE（px|region|liveness|frame）" 3;;
 esac
