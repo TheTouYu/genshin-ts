@@ -131,6 +131,12 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | `_ys-ui.sh` | **判据库** | `judge/is_light/is_dark/wait_light/wait_dark`；**只截 40×40**（84ms vs 全窗 5893ms） |
 | `ys_look.py` | 模板匹配 | CPU=积分图+FFT 精确 NCC（小图）／GPU=torch FFT+cumsum（大区）；**按成本链自适应** |
 | `ys-lookd.py` + `ys-lookd.service` | **GPU 常驻服务** | 摊掉 `import torch` 2~3s + CUDA ~1s；客户端自动优先走服务、连不上回退本地；实测全窗 **4.4s → 1.0s** |
+| **`ys-env.sh`** | 源出桌面环境变量（`DISPLAY`/`XAUTHORITY`/`YDOTOOL_SOCKET`） | 每个 `ys-*` 脚本开头都会 source。**槽内/槽外是两套环境**：槽外设的剪贴板进不了槽（见「受控槽内的环境边界」）；手跑命令前先 `. tools/ys-editor/ys-env.sh`，否则 `xdotool`/`xclip` 报 `DISPLAY is empty` |
+| **`ys-gates`** | **六门槛唯一验收器**（能力层过没过，一条命令给读数） | `./tools/ys-gates` 退出码 0 只在全 PASS（1=有 FAIL / 2=有 BLOCKED）；六条=①判定回归 ②假成功 ③性能 ④证据 ⑤单一源 ⑥操作目录；**不重实现任何判据**，只聚合；契约 `docs/maintenance/gui-gate-contract-2026-10-17.md` |
+| **`ys-wait`** | **谓词等待**（禁裸 sleep 的执行体） | `ys-wait --until '<命令>' --expect <值> --timeout N --poll 0.3`；命令失败/超时即非零退出并打印最后读数（别用 `sleep N` 冒充同步） |
+| **`ys-nav`** | 状态驱动的编辑器导航 | 判据全部委托 `ys-state`（本文件无坐标/阈值）；替代旧的 `ys-ui-state`(11.2s)/`ys-map where`(13.5s) 慢路径 |
+| **`ys-verify-vision`** | **视觉判定双通道对账**（V3/V4） | 两条独立通道各判一次，输出 PASS/DIFF；单通道的失败模式是**你根本不知道它错了**（草地阴影被当成存档页那次） |
+| `ys-game-env` | 游戏侧环境变量 | 提供 `GSTS_LOCALLOW_DIR` 等（CLI 读写 `.gil`/日志目录必须），脚本 `source` 后再调 `gsts` |
 | `tools/ys-editor/README.md` | 完整 playbook | 坐标表、判据表、注入/取数实测事实 |
 | 故障处置 | `ys-unstick`（程序化 1px 往返）／`ys-unstick2`（最小化→恢复，Wine 59965）／`ys-editor-rescue.sh`（取消置顶/最小化全部窗口）／`ys-orphans`（清 CEF 孤儿）／`ys-stuck-report`（点不动瞬间取证）／`ys-editor-guard`（试玩归来僵尸自愈）／`ys-selfconnect-vaccine`（内核层自环疫苗，需 root） | 先查 `tools/ys-editor/README.md` 版本与已知 bug，再白盒 |
 
