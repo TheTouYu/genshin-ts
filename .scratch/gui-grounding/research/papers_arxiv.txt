@@ -1,0 +1,23 @@
+--- 2401.10935
+title: SeeClick: Harnessing GUI Grounding for Advanced Visual GUI Agents
+published: 2024-01-17
+summary: Graphical User Interface (GUI) agents are designed to automate complex tasks on digital devices, such as smartphones and desktops. Most existing GUI agents interact with the environment through extracted structured data,
+--- 2402.15320
+title: $R_{\infty}$-property for groups commensurable to nilpotent quotients of RAAGs
+published: 2024-02-23
+summary: Let $G$ be a group and $\varphi$ an automorphism of $G$. Two elements $x,y \in G$ are said to be $\varphi$-conjugate if there exists a third element $z \in G$ such that $z x \varphi(z)^{-1} = y$. Being $\varphi$-conjugat
+--- 2501.12326
+title: UI-TARS: Pioneering Automated GUI Interaction with Native Agents
+published: 2025-01-21
+summary: This paper introduces UI-TARS, a native GUI agent model that solely perceives the screenshots as input and performs human-like interactions (e.g., keyboard and mouse operations). Unlike prevailing agent frameworks that d
+--- 2310.11441
+title: Set-of-Mark Prompting Unleashes Extraordinary Visual Grounding in GPT-4V
+published: 2023-10-17
+summary: We present Set-of-Mark (SoM), a new visual prompting method, to unleash the visual grounding abilities of large multimodal models (LMMs), such as GPT-4V. As illustrated in Fig. 1 (right), we employ off-the-shelf interact
+--- 2404.05719
+title: Ferret-UI: Grounded Mobile UI Understanding with Multimodal LLMs
+published: 2024-04-08
+summary: Recent advancements in multimodal large language models (MLLMs) have been noteworthy, yet, these general-domain MLLMs often fall short in their ability to comprehend and interact effectively with user interface (UI) scre
+http://arxiv.org/abs/2408.00203v1 | 2024-08-01 | OmniParser for Pure Vision Based GUI Agent
+http://arxiv.org/abs/2403.19128v1 | 2024-03-28 | OmniParser: A Unified Framework for Text Spotting, Key Information Extraction and Table Recognition
+http://arxiv.org/abs/2502.16161v2 | 2025-02-22 | OmniParser V2: Structured-Points-of-Thought for Unified Visual Text Parsing and Its Generality to Multimodal Large Language Models

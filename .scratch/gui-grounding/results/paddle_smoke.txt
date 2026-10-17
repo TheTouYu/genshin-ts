@@ -1,0 +1,7 @@
+# paddleocr CPU 冒烟记录（2026-10-17，venv-paddle，python3.12）
+paddlepaddle==3.3.1 + paddleocr 3.7.0: init+模型下载 25.6s 成功；推理崩
+  NotImplementedError: ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>] (paddlex paddle_static/runner.py:265)
+paddlepaddle==3.0.0: 推理崩
+  ValueError: Type of attribute: strides is not right (paddle_inference.create_predictor, pd_op3.cc)
+paddlepaddle==3.2.0 + paddleocr 3.7.0: 通
+  crops/pause-buttons.png infer 0.91s -> texts: ['继续挑战', '重新挑战', '日', '中断挑战']（三主标签全对+1噪声段）

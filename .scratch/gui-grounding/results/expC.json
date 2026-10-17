@@ -1,0 +1,218 @@
+[
+ {
+  "name": "pause-buttons",
+  "src": "/home/h/genshin-ts/tools/ys-editor/calib/regress/pause.png",
+  "box": [
+   920,
+   498,
+   1620,
+   986
+  ],
+  "refs": [
+   "继续挑战",
+   "重新挑战",
+   "中断挑战"
+  ],
+  "path": "/home/h/genshin-ts/.scratch/gui-grounding/crops/pause-buttons.png",
+  "size": [
+   700,
+   488
+  ],
+  "tess_psm6": {
+   "text": "团55&K。一口重新挑战",
+   "secs": 0.557,
+   "rc": 0
+  },
+  "tess_psm7": {
+   "text": "('二重新挑战",
+   "secs": 0.336,
+   "rc": 0
+  },
+  "rapid": {
+   "items": [
+    {
+     "text": "继续挑战",
+     "conf": 0.9901,
+     "cx": 382.5,
+     "cy": 61.0
+    },
+    {
+     "text": "重新挑战",
+     "conf": 0.9885,
+     "cx": 382.5,
+     "cy": 221.0
+    },
+    {
+     "text": "中断挑战",
+     "conf": 0.996,
+     "cx": 383.5,
+     "cy": 381.0
+    }
+   ],
+   "secs": 0.648,
+   "cold": true,
+   "text": "继续挑战重新挑战中断挑战"
+  },
+  "tess_psm6_labels": {
+   "继续挑战": {
+    "best": "团55&K。一口重新挑战",
+    "char_acc": 0.5
+   },
+   "重新挑战": {
+    "best": "团55&K。一口重新挑战",
+    "char_acc": 1.0
+   },
+   "中断挑战": {
+    "best": "团55&K。一口重新挑战",
+    "char_acc": 0.5
+   }
+  },
+  "tess_psm7_labels": {
+   "继续挑战": {
+    "best": "('二重新挑战",
+    "char_acc": 0.5
+   },
+   "重新挑战": {
+    "best": "('二重新挑战",
+    "char_acc": 1.0
+   },
+   "中断挑战": {
+    "best": "('二重新挑战",
+    "char_acc": 0.5
+   }
+  },
+  "rapid_labels": {
+   "继续挑战": {
+    "best": "继续挑战",
+    "char_acc": 1.0
+   },
+   "重新挑战": {
+    "best": "重新挑战",
+    "char_acc": 1.0
+   },
+   "中断挑战": {
+    "best": "中断挑战",
+    "char_acc": 1.0
+   }
+  }
+ },
+ {
+  "name": "settle2-leave",
+  "src": "/home/h/genshin-ts/tools/ys-editor/calib/regress/settle2.png",
+  "box": [
+   1590,
+   1150,
+   2190,
+   1440
+  ],
+  "refs": [
+   "离开"
+  ],
+  "path": "/home/h/genshin-ts/.scratch/gui-grounding/crops/settle2-leave.png",
+  "size": [
+   600,
+   290
+  ],
+  "tess_psm6": {
+   "text": "师黯",
+   "secs": 0.336,
+   "rc": 0
+  },
+  "tess_psm7": {
+   "text": "师黯",
+   "secs": 0.347,
+   "rc": 0
+  },
+  "rapid": {
+   "items": [
+    {
+     "text": "离开",
+     "conf": 0.9989,
+     "cx": 263.0,
+     "cy": 217.5
+    },
+    {
+     "text": "奇域试玩",
+     "conf": 0.9537,
+     "cx": 549.0,
+     "cy": 269.0
+    }
+   ],
+   "secs": 0.732,
+   "cold": false,
+   "text": "离开奇域试玩"
+  },
+  "tess_psm6_labels": {
+   "离开": {
+    "best": "师黯",
+    "char_acc": 0.0
+   }
+  },
+  "tess_psm7_labels": {
+   "离开": {
+    "best": "师黯",
+    "char_acc": 0.0
+   }
+  },
+  "rapid_labels": {
+   "离开": {
+    "best": "离开",
+    "char_acc": 1.0
+   }
+  }
+ },
+ {
+  "name": "pause-abort-tpl",
+  "src": "/home/h/genshin-ts/tools/ys-editor/templates/pause-abort.png",
+  "box": null,
+  "refs": [
+   "中断挑战"
+  ],
+  "path": "/home/h/genshin-ts/.scratch/gui-grounding/crops/pause-abort-tpl.png",
+  "size": [
+   300,
+   56
+  ],
+  "tess_psm6": {
+   "text": "rF刨EB",
+   "secs": 0.309,
+   "rc": 0
+  },
+  "tess_psm7": {
+   "text": "rF刨EB",
+   "secs": 0.31,
+   "rc": 0
+  },
+  "rapid": {
+   "items": [
+    {
+     "text": "中断挑",
+     "conf": 0.8715,
+     "cx": 165.5,
+     "cy": 42.5
+    }
+   ],
+   "secs": 1.501,
+   "cold": false,
+   "text": "中断挑"
+  },
+  "tess_psm6_labels": {
+   "中断挑战": {
+    "best": "rF刨EB",
+    "char_acc": 0.0
+   }
+  },
+  "tess_psm7_labels": {
+   "中断挑战": {
+    "best": "rF刨EB",
+    "char_acc": 0.0
+   }
+  },
+  "rapid_labels": {
+   "中断挑战": {
+    "best": "中断挑",
+    "char_acc": 0.75
+   }
+  }
+ }
+]

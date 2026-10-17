@@ -1,0 +1,85 @@
+base frames: ['menu.png', 'pause.png', 'savelist.png'] {'menu.png': 2, 'pause.png': 2, 'savelist.png': 2}
+menu.png -> [('playtest-tile', 120, 120, 185, 390), ('sidebar-save-mgr', 40, 40, 42, 176)]
+pause.png -> [('pause-abort', 120, 56, 1270, 856), ('pause-resume', 120, 56, 1270, 628)]
+savelist.png -> [('save-card-title', 120, 70, 910, 175), ('mymap-title', 120, 30, 1568, 193)]
+[A] menu   playtest-tile      scale0.75  s1(err=  246.9 sc=0.521) ms(err=    0.6 sc=0.978 f=0.75) self=0.977
+[A] menu   sidebar-save-mgr   scale0.75  s1(err=  463.0 sc=0.690) ms(err=    0.5 sc=0.979 f=0.75) self=0.979
+[A] menu   playtest-tile      scale0.9   s1(err=    5.9 sc=0.777) ms(err=    0.5 sc=0.939 f=0.875) self=0.991
+[A] menu   sidebar-save-mgr   scale0.9   s1(err=    1.4 sc=0.842) ms(err=    0.3 sc=0.982 f=0.875) self=0.971
+[A] menu   playtest-tile      scale1.1   s1(err=  367.0 sc=0.798) ms(err=    0.5 sc=0.956 f=1.125) self=0.993
+[A] menu   playtest-tile      shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   sidebar-save-mgr   shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      shift-64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   sidebar-save-mgr   shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   sidebar-save-mgr   shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      bright+10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   sidebar-save-mgr   bright+10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   sidebar-save-mgr   bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] menu   playtest-tile      combo2     s1(err=  246.9 sc=0.521) ms(err=    0.6 sc=0.977 f=0.75) self=0.977
+[A] menu   sidebar-save-mgr   combo2     s1(err=  463.0 sc=0.690) ms(err=    0.5 sc=0.979 f=0.75) self=0.979
+[A-NEG>0.8] sidebar-save-mgr   vs settle.png                 score=0.9371 at (2434,1343)
+[A] pause  pause-abort        scale0.75  s1(err= 1016.6 sc=0.759) ms(err=    0.5 sc=0.986 f=0.75) self=0.986
+[A] pause  pause-resume       scale0.75  s1(err=   14.8 sc=0.955) ms(err=    0.5 sc=1.000 f=0.75) self=1.000
+[A] pause  pause-resume       scale0.9   s1(err=    5.7 sc=0.995) ms(err=    0.9 sc=0.998 f=0.875) self=0.999
+[A] pause  pause-resume       scale1.1   s1(err=    5.7 sc=0.989) ms(err=    0.9 sc=0.999 f=1.125) self=1.000
+[A] pause  pause-abort        scale1.25  s1(err=  204.1 sc=0.782) ms(err=    0.5 sc=0.994 f=1.25) self=0.994
+[A] pause  pause-resume       scale1.25  s1(err=   13.9 sc=0.960) ms(err=    0.5 sc=1.000 f=1.25) self=1.000
+[A] pause  pause-abort        shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        shift-64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       shift-64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        bright+10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       bright+10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-resume       bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] pause  pause-abort        combo1     s1(err=  204.1 sc=0.781) ms(err=    0.5 sc=0.994 f=1.25) self=0.994
+[A] pause  pause-resume       combo1     s1(err=   13.9 sc=0.962) ms(err=    0.5 sc=1.000 f=1.25) self=1.000
+[A] pause  pause-abort        combo2     s1(err= 1016.6 sc=0.759) ms(err=    0.5 sc=0.986 f=0.75) self=0.986
+[A] pause  pause-resume       combo2     s1(err=   14.8 sc=0.955) ms(err=    0.5 sc=1.000 f=0.75) self=1.000
+[A-NEG>0.8] pause-resume       vs menu.png                   score=0.9522 at (471,428)
+[A-NEG>0.8] pause-resume       vs savelist.png               score=0.8152 at (139,105)
+[A-NEG>0.8] pause-resume       vs settle2.png                score=0.8589 at (935,895)
+[A] savelist mymap-title        scale0.75  s1(err=  636.8 sc=0.484) ms(err=    0.2 sc=0.978 f=0.75) self=0.978
+[A] savelist save-card-title    scale0.9   s1(err=    4.0 sc=0.935) ms(err=    1.5 sc=0.988 f=0.875) self=1.000
+[A] savelist mymap-title        scale0.9   s1(err=  564.8 sc=0.690) ms(err=    0.8 sc=0.936 f=0.875) self=0.985
+[A] savelist save-card-title    scale1.1   s1(err=    4.0 sc=0.934) ms(err=    1.5 sc=0.992 f=1.125) self=1.000
+[A] savelist mymap-title        scale1.1   s1(err=  683.2 sc=0.700) ms(err=    0.8 sc=0.957 f=1.125) self=0.990
+[A] savelist mymap-title        scale1.25  s1(err= 1182.3 sc=0.563) ms(err=    0.2 sc=0.991 f=1.25) self=0.991
+[A] savelist save-card-title    shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        shift+64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist save-card-title    shift-64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        shift-64x  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist save-card-title    shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        shift+64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist save-card-title    shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        shift-64y  s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist save-card-title    bright+10% s1(err=    0.0 sc=0.998) ms(err=    0.0 sc=0.998 f=1.0) self=0.998
+[A] savelist mymap-title        bright+10% s1(err=    0.0 sc=0.998) ms(err=    0.0 sc=0.998 f=1.0) self=0.998
+[A] savelist save-card-title    bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        bright-10% s1(err=    0.0 sc=1.000) ms(err=    0.0 sc=1.000 f=1.0) self=1.000
+[A] savelist mymap-title        combo1     s1(err= 1182.3 sc=0.563) ms(err=    0.2 sc=0.990 f=1.25) self=0.990
+[A] savelist mymap-title        combo2     s1(err=  636.8 sc=0.484) ms(err=    0.2 sc=0.978 f=0.75) self=0.978
+[A-NEG>0.8] save-card-title    vs settle.png                 score=0.8997 at (304,103)
+[A-NEG>0.8] save-card-title    vs settle2.png                score=0.9167 at (283,91)
+[A-NEG>0.8] save-card-title    vs settle3.png                score=0.8994 at (304,103)
+[A-NEG>0.8] save-card-title    vs settle4.png                score=0.8993 at (304,103)
+rows=120 skipped=12
+SKIP menu.png|sidebar-save-mgr|scale1.1|offscreen
+SKIP menu.png|playtest-tile|scale1.25|offscreen
+SKIP menu.png|sidebar-save-mgr|scale1.25|offscreen
+SKIP menu.png|sidebar-save-mgr|shift-64x|offscreen
+SKIP menu.png|playtest-tile|combo1|offscreen
+SKIP menu.png|sidebar-save-mgr|combo1|offscreen
+SKIP pause.png|pause-abort|scale0.9|selfcheck=-1.000
+SKIP pause.png|pause-abort|scale1.1|selfcheck=-1.000
+SKIP savelist.png|save-card-title|scale0.75|selfcheck=-1.000
+SKIP savelist.png|save-card-title|scale1.25|offscreen
+SKIP savelist.png|save-card-title|combo1|offscreen
+SKIP savelist.png|save-card-title|combo2|selfcheck=-1.000

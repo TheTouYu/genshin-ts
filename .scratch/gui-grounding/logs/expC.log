@@ -1,0 +1,10 @@
+crop             engine       secs  per-label(acc)  text
+pause-buttons    tess_psm6    0.56s  继续挑战:0.50(团55&K。一口重新挑战) 重新挑战:1.00(团55&K。一口重新挑战) 中断挑战:0.50(团55&K。一口重新挑战)  |团55&K。一口重新挑战|
+pause-buttons    tess_psm7    0.34s  继续挑战:0.50(('二重新挑战) 重新挑战:1.00(('二重新挑战) 中断挑战:0.50(('二重新挑战)  |('二重新挑战|
+pause-buttons    rapid        0.65s  继续挑战:1.00(继续挑战) 重新挑战:1.00(重新挑战) 中断挑战:1.00(中断挑战)  |继续挑战重新挑战中断挑战|
+settle2-leave    tess_psm6    0.34s  离开:0.00(师黯)  |师黯|
+settle2-leave    tess_psm7    0.35s  离开:0.00(师黯)  |师黯|
+settle2-leave    rapid        0.73s  离开:1.00(离开)  |离开奇域试玩|
+pause-abort-tpl  tess_psm6    0.31s  中断挑战:0.00(rF刨EB)  |rF刨EB|
+pause-abort-tpl  tess_psm7    0.31s  中断挑战:0.00(rF刨EB)  |rF刨EB|
+pause-abort-tpl  rapid        1.50s  中断挑战:0.75(中断挑)  |中断挑|

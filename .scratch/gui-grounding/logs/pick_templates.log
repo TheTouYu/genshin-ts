@@ -1,0 +1,123 @@
+playtest-tile        menu.png                   top1=(  185.0,  390.0) score=0.9998 HIT 1.801s
+direct-upload        menu.png                   top1=(  244.0,  437.0) score=0.4968     2.109s
+start-game           menu.png                   top1=(  245.0,  439.0) score=0.4199     1.628s
+pause-abort          menu.png                   top1=(  383.0,  155.0) score=0.5968     1.303s
+pause-resume         menu.png                   top1=(  243.0, 1388.0) score=0.6737     1.269s
+settle-leave         menu.png                   top1=( 1178.0,  101.0) score=0.4049     1.196s
+sidebar-save-mgr     menu.png                   top1=(   42.0,  176.0) score=1.0000 HIT 0.870s
+save-card-title      menu.png                   top1=(  242.0,  552.0) score=0.5178     1.501s
+mymap-title          menu.png                   top1=(  367.0,  425.0) score=0.4291     1.546s
+mymap-menu-title     menu.png                   top1=(  391.0,  539.0) score=0.5583     1.270s
+playtest-mark        menu.png                   top1=( 2080.0, 1408.0) score=0.8537     1.655s
+playtest-tile        savelist.png               top1=(  339.0,   67.0) score=0.3473     1.188s
+direct-upload        savelist.png               top1=(  197.0,  158.0) score=0.7914     1.518s
+start-game           savelist.png               top1=(  215.0,  159.0) score=0.8167     1.509s
+pause-abort          savelist.png               top1=(  237.0,   45.0) score=0.6477     1.197s
+pause-resume         savelist.png               top1=(  224.0,  105.0) score=0.8152     1.188s
+settle-leave         savelist.png               top1=(  977.0,  310.0) score=0.9102 HIT 1.205s
+sidebar-save-mgr     savelist.png               top1=( 2075.0, 1361.0) score=0.7798     0.885s
+save-card-title      savelist.png               top1=(  910.0,  175.0) score=1.0000 HIT 1.506s
+mymap-title          savelist.png               top1=( 1568.0,  193.0) score=1.0000 HIT 1.495s
+mymap-menu-title     savelist.png               top1=(  357.0,   78.0) score=0.5341     1.265s
+playtest-mark        savelist.png               top1=(  788.0,  142.0) score=0.2353     1.621s
+playtest-tile        editor-grass-shadow.png    top1=( 1679.0, 1359.0) score=0.2386     1.152s
+direct-upload        editor-grass-shadow.png    top1=(  170.0,  343.0) score=0.6570     1.493s
+start-game           editor-grass-shadow.png    top1=(  172.0,  345.0) score=0.5992     1.513s
+pause-abort          editor-grass-shadow.png    top1=( 1199.0, 1131.0) score=0.7318     1.203s
+pause-resume         editor-grass-shadow.png    top1=(  276.0, 1388.0) score=0.6897     1.202s
+settle-leave         editor-grass-shadow.png    top1=(  141.0,  335.0) score=0.4796     1.153s
+sidebar-save-mgr     editor-grass-shadow.png    top1=(  352.0,   20.0) score=0.6927     0.892s
+save-card-title      editor-grass-shadow.png    top1=(  226.0,  144.0) score=0.5199     1.540s
+mymap-title          editor-grass-shadow.png    top1=(  247.0,  347.0) score=0.3958     1.537s
+mymap-menu-title     editor-grass-shadow.png    top1=(  225.0,  364.0) score=0.4431     1.283s
+playtest-mark        editor-grass-shadow.png    top1=( 2080.0, 1408.0) score=0.8549     1.652s
+playtest-tile        playtest.png               top1=( 1291.0,  907.0) score=0.3208     1.144s
+direct-upload        playtest.png               top1=(  484.0,  236.0) score=0.6235     1.463s
+start-game           playtest.png               top1=( 2110.0,  264.0) score=0.6592     1.534s
+pause-abort          playtest.png               top1=(  219.0, 1412.0) score=0.3374     1.249s
+pause-resume         playtest.png               top1=(  180.0, 1388.0) score=0.3937     1.188s
+settle-leave         playtest.png               top1=( 2090.0,  280.0) score=0.8094     1.191s
+sidebar-save-mgr     playtest.png               top1=(  205.0,  161.0) score=0.5071     0.871s
+save-card-title      playtest.png               top1=(  277.0, 1324.0) score=0.4808     1.501s
+mymap-title          playtest.png               top1=( 1359.0,  878.0) score=0.2765     1.502s
+mymap-menu-title     playtest.png               top1=(  621.0, 1403.0) score=0.4787     1.336s
+playtest-mark        playtest.png               top1=( 2080.0, 1408.0) score=0.9973 HIT 1.696s
+playtest-tile        playtest2.png              top1=( 1566.0,  673.0) score=0.3459     1.133s
+direct-upload        playtest2.png              top1=( 2062.0,  244.0) score=0.6635     1.489s
+start-game           playtest2.png              top1=( 2037.0,  245.0) score=0.7156     1.500s
+pause-abort          playtest2.png              top1=( 1554.0, 1078.0) score=0.4594     1.224s
+pause-resume         playtest2.png              top1=(  177.0, 1388.0) score=0.3856     1.185s
+settle-leave         playtest2.png              top1=( 2167.0,  189.0) score=0.8637     1.191s
+sidebar-save-mgr     playtest2.png              top1=( 1593.0,  710.0) score=0.5125     0.886s
+save-card-title      playtest2.png              top1=(  246.0,  820.0) score=0.5410     1.512s
+mymap-title          playtest2.png              top1=( 1348.0,  879.0) score=0.3622     1.468s
+mymap-menu-title     playtest2.png              top1=(  621.0, 1403.0) score=0.4790     1.296s
+playtest-mark        playtest2.png              top1=( 2080.0, 1408.0) score=0.9988 HIT 1.604s
+playtest-tile        pause.png                  top1=( 1610.0,  590.0) score=0.3060     1.134s
+direct-upload        pause.png                  top1=( 1518.0,  541.0) score=0.4153     1.478s
+start-game           pause.png                  top1=( 1511.0,  542.0) score=0.3341     1.443s
+pause-abort          pause.png                  top1=( 1270.0,  856.0) score=0.9999 HIT 1.189s
+pause-resume         pause.png                  top1=( 1270.0,  628.0) score=1.0000 HIT 1.181s
+settle-leave         pause.png                  top1=(  240.0,  135.0) score=0.8154     1.179s
+sidebar-save-mgr     pause.png                  top1=(  939.0,  908.0) score=0.5847     0.885s
+save-card-title      pause.png                  top1=( 1274.0,  613.0) score=0.7122     1.529s
+mymap-title          pause.png                  top1=( 1631.0,  593.0) score=0.4673     1.482s
+mymap-menu-title     pause.png                  top1=( 1622.0,  760.0) score=0.6014     1.303s
+playtest-mark        pause.png                  top1=( 2186.0,  378.0) score=0.8018     1.637s
+playtest-tile        playtest3.png              top1=( 1193.0,  673.0) score=0.2651     1.137s
+direct-upload        playtest3.png              top1=(  499.0,  176.0) score=0.6282     1.510s
+start-game           playtest3.png              top1=(  517.0,  173.0) score=0.6506     1.498s
+pause-abort          playtest3.png              top1=( 1265.0,  719.0) score=0.3213     1.205s
+pause-resume         playtest3.png              top1=(  181.0, 1388.0) score=0.2489     1.235s
+settle-leave         playtest3.png              top1=( 1483.0,   33.0) score=0.7970     1.216s
+sidebar-save-mgr     playtest3.png              top1=( 1205.0,  709.0) score=0.5164     0.894s
+save-card-title      playtest3.png              top1=(  166.0,   48.0) score=0.2078     1.528s
+mymap-title          playtest3.png              top1=( 1064.0,  684.0) score=0.3795     1.495s
+mymap-menu-title     playtest3.png              top1=(  234.0, 1318.0) score=0.1983     1.253s
+playtest-mark        playtest3.png              top1=( 1285.0, 1359.0) score=0.1434     1.718s
+playtest-tile        settle.png                 top1=( 1644.0,  858.0) score=0.2657     1.156s
+direct-upload        settle.png                 top1=( 1566.0,  832.0) score=0.6848     1.569s
+start-game           settle.png                 top1=( 1546.0,  843.0) score=0.7162     1.526s
+pause-abort          settle.png                 top1=( 2281.0, 1336.0) score=0.7289     1.270s
+pause-resume         settle.png                 top1=( 1542.0,  895.0) score=0.7746     1.263s
+settle-leave         settle.png                 top1=( 2199.0,  844.0) score=0.9043 HIT 1.222s
+sidebar-save-mgr     settle.png                 top1=( 2434.0, 1343.0) score=0.9371 HIT 0.934s
+save-card-title      settle.png                 top1=(  292.0,  103.0) score=0.6323     1.574s
+mymap-title          settle.png                 top1=( 1675.0,  547.0) score=0.4450     1.526s
+mymap-menu-title     settle.png                 top1=(  387.0,   90.0) score=0.4465     1.340s
+playtest-mark        settle.png                 top1=(  210.0,   65.0) score=0.1557     1.706s
+playtest-tile        settle2.png                top1=(  331.0,   68.0) score=0.2462     1.194s
+direct-upload        settle2.png                top1=(  565.0, 1356.0) score=0.6759     1.535s
+start-game           settle2.png                top1=( 1438.0,  832.0) score=0.7090     1.594s
+pause-abort          settle2.png                top1=( 2281.0, 1345.0) score=0.4516     1.239s
+pause-resume         settle2.png                top1=( 1024.0,  895.0) score=0.8389     1.209s
+settle-leave         settle2.png                top1=( 1890.0, 1366.0) score=1.0000 HIT 1.214s
+sidebar-save-mgr     settle2.png                top1=( 1009.0,  661.0) score=0.5606     0.914s
+save-card-title      settle2.png                top1=(  293.0,   91.0) score=0.6239     1.564s
+mymap-title          settle2.png                top1=( 1677.0,  548.0) score=0.3906     1.576s
+mymap-menu-title     settle2.png                top1=(  384.0,   77.0) score=0.4428     1.345s
+playtest-mark        settle2.png                top1=(  397.0,   54.0) score=0.0842     1.709s
+playtest-tile        settle3.png                top1=( 2318.0, 1350.0) score=0.2539     1.206s
+direct-upload        settle3.png                top1=(  565.0, 1357.0) score=0.6746     1.566s
+start-game           settle3.png                top1=( 1438.0,  832.0) score=0.7090     1.498s
+pause-abort          settle3.png                top1=( 2281.0, 1336.0) score=0.7124     1.249s
+pause-resume         settle3.png                top1=( 1024.0,  895.0) score=0.7707     1.259s
+settle-leave         settle3.png                top1=(  313.0, 1105.0) score=0.9028 HIT 1.252s
+sidebar-save-mgr     settle3.png                top1=( 2193.0, 1343.0) score=0.7251     0.938s
+save-card-title      settle3.png                top1=(  292.0,  103.0) score=0.6313     1.593s
+mymap-title          settle3.png                top1=( 1677.0,  548.0) score=0.3873     1.558s
+mymap-menu-title     settle3.png                top1=(  387.0,   90.0) score=0.4449     1.379s
+playtest-mark        settle3.png                top1=(  210.0,   65.0) score=0.1557     1.720s
+playtest-tile        settle4.png                top1=( 2277.0, 1350.0) score=0.2537     1.207s
+direct-upload        settle4.png                top1=(  565.0, 1357.0) score=0.6683     1.524s
+start-game           settle4.png                top1=( 1504.0,  841.0) score=0.7192     1.497s
+pause-abort          settle4.png                top1=( 2281.0, 1336.0) score=0.7072     1.190s
+pause-resume         settle4.png                top1=(  292.0,  118.0) score=0.4412     1.191s
+settle-leave         settle4.png                top1=(  534.0,  888.0) score=0.9019 HIT 1.157s
+sidebar-save-mgr     settle4.png                top1=( 1761.0, 1339.0) score=0.7496     0.876s
+save-card-title      settle4.png                top1=(  292.0,  103.0) score=0.6315     1.487s
+mymap-title          settle4.png                top1=( 1681.0,  667.0) score=0.4096     1.494s
+mymap-menu-title     settle4.png                top1=(  387.0,   90.0) score=0.4449     1.270s
+playtest-mark        settle4.png                top1=(  210.0,   65.0) score=0.1561     1.595s
+total 164.9s, pairs=121
+saved: /home/h/genshin-ts/.scratch/gui-grounding/research/template_locations.json

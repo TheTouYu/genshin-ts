@@ -1,0 +1,477 @@
+{
+ "anchors": [
+  {
+   "name": "ctrl:playtest-tile",
+   "kind": "control",
+   "x0": 125,
+   "y0": 330,
+   "w": 120,
+   "h": 120
+  },
+  {
+   "name": "ctrl:sidebar-save-mgr",
+   "kind": "control",
+   "x0": 22,
+   "y0": 156,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "name": "tex0",
+   "kind": "texture",
+   "x0": 211,
+   "y0": 1260,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex1",
+   "kind": "texture",
+   "x0": 201,
+   "y0": 770,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex2",
+   "kind": "texture",
+   "x0": 452,
+   "y0": 331,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex3",
+   "kind": "texture",
+   "x0": 315,
+   "y0": 16,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex4",
+   "kind": "texture",
+   "x0": 2412,
+   "y0": 1375,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex5",
+   "kind": "texture",
+   "x0": 1250,
+   "y0": 1120,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex6",
+   "kind": "texture",
+   "x0": 615,
+   "y0": 16,
+   "w": 64,
+   "h": 64
+  },
+  {
+   "name": "tex7",
+   "kind": "texture",
+   "x0": 1411,
+   "y0": 70,
+   "w": 64,
+   "h": 64
+  }
+ ],
+ "results": [
+  {
+   "frame": "identity",
+   "accepted": true,
+   "inliers": 10,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": -0.0,
+   "t_hat": [
+    -0.0,
+    -0.0
+   ],
+   "cand_secs": 1.43,
+   "secs": 1.444,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "scale0.75",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 13,
+   "s_hat": 0.831,
+   "deg_hat": -9.94,
+   "t_hat": [
+    118.8,
+    217.3
+   ],
+   "cand_secs": 1.447,
+   "secs": 1.456,
+   "scale_err_pct": 10.8,
+   "trans_err_px": 204.7,
+   "anchor_loc_med_px": 148.3,
+   "anchor_loc_max_px": 274.4,
+   "false_accept": false
+  },
+  {
+   "frame": "scale0.9",
+   "accepted": true,
+   "inliers": 9,
+   "med_resid": 1.35,
+   "n_cand": 26,
+   "s_hat": 0.8996,
+   "deg_hat": -0.01,
+   "t_hat": [
+    128.5,
+    72.0
+   ],
+   "cand_secs": 1.398,
+   "secs": 1.407,
+   "scale_err_pct": 0.04,
+   "trans_err_px": 0.5,
+   "anchor_loc_med_px": 0.5,
+   "anchor_loc_max_px": 0.9,
+   "false_accept": false
+  },
+  {
+   "frame": "scale1.1",
+   "accepted": true,
+   "inliers": 5,
+   "med_resid": 1.03,
+   "n_cand": 24,
+   "s_hat": 1.1006,
+   "deg_hat": -0.03,
+   "t_hat": [
+    -129.2,
+    -71.2
+   ],
+   "cand_secs": 1.328,
+   "secs": 1.336,
+   "scale_err_pct": 0.06,
+   "trans_err_px": 1.5,
+   "anchor_loc_med_px": 1.2,
+   "anchor_loc_max_px": 1.4,
+   "false_accept": false
+  },
+  {
+   "frame": "scale1.25",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 18,
+   "s_hat": 0.7088,
+   "deg_hat": -152.96,
+   "t_hat": [
+    475.6,
+    479.1
+   ],
+   "cand_secs": 1.47,
+   "secs": 1.477,
+   "scale_err_pct": 43.3,
+   "trans_err_px": 1033.1,
+   "anchor_loc_med_px": 972.9,
+   "anchor_loc_max_px": 4349.5,
+   "false_accept": false
+  },
+  {
+   "frame": "shift+64x",
+   "accepted": true,
+   "inliers": 10,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": -0.0,
+   "t_hat": [
+    64.0,
+    -0.0
+   ],
+   "cand_secs": 1.38,
+   "secs": 1.388,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "shift-64x",
+   "accepted": true,
+   "inliers": 9,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": 0.0,
+   "t_hat": [
+    -64.0,
+    0.0
+   ],
+   "cand_secs": 1.377,
+   "secs": 1.385,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "shift+64y",
+   "accepted": true,
+   "inliers": 9,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": -0.0,
+   "t_hat": [
+    -0.0,
+    64.0
+   ],
+   "cand_secs": 1.373,
+   "secs": 1.382,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "shift-64y",
+   "accepted": true,
+   "inliers": 8,
+   "med_resid": 0.0,
+   "n_cand": 24,
+   "s_hat": 1.0,
+   "deg_hat": 0.0,
+   "t_hat": [
+    0.0,
+    -64.0
+   ],
+   "cand_secs": 1.403,
+   "secs": 1.412,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "bright+10%",
+   "accepted": true,
+   "inliers": 10,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": -0.0,
+   "t_hat": [
+    -0.0,
+    -0.0
+   ],
+   "cand_secs": 1.427,
+   "secs": 1.434,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "bright-10%",
+   "accepted": true,
+   "inliers": 10,
+   "med_resid": 0.0,
+   "n_cand": 27,
+   "s_hat": 1.0,
+   "deg_hat": -0.0,
+   "t_hat": [
+    -0.0,
+    -0.0
+   ],
+   "cand_secs": 1.41,
+   "secs": 1.418,
+   "scale_err_pct": 0.0,
+   "trans_err_px": 0.0,
+   "anchor_loc_med_px": 0.0,
+   "anchor_loc_max_px": 0.0,
+   "false_accept": false
+  },
+  {
+   "frame": "combo1",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 21,
+   "s_hat": 0.1921,
+   "deg_hat": -170.53,
+   "t_hat": [
+    427.2,
+    357.1
+   ],
+   "cand_secs": 1.393,
+   "secs": 1.402,
+   "scale_err_pct": 84.64,
+   "trans_err_px": 869.0,
+   "anchor_loc_med_px": 708.3,
+   "anchor_loc_max_px": 3199.4,
+   "false_accept": false
+  },
+  {
+   "frame": "combo2",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 14,
+   "s_hat": 0.8315,
+   "deg_hat": -6.91,
+   "t_hat": [
+    181.1,
+    196.8
+   ],
+   "cand_secs": 1.374,
+   "secs": 1.384,
+   "scale_err_pct": 10.87,
+   "trans_err_px": 76.7,
+   "anchor_loc_med_px": 59.3,
+   "anchor_loc_max_px": 278.4,
+   "false_accept": false
+  },
+  {
+   "frame": "NEG:editor-grass-shadow.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 16,
+   "s_hat": 0.0433,
+   "deg_hat": 180.0,
+   "t_hat": [
+    381.0,
+    50.1
+   ],
+   "cand_secs": 1.374,
+   "secs": 1.381
+  },
+  {
+   "frame": "NEG:pause.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 7,
+   "s_hat": 1.0308,
+   "deg_hat": -1.05,
+   "t_hat": [
+    -138.5,
+    3.1
+   ],
+   "cand_secs": 1.343,
+   "secs": 1.349
+  },
+  {
+   "frame": "NEG:playtest.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 6,
+   "s_hat": 0.348,
+   "deg_hat": -59.24,
+   "t_hat": [
+    144.9,
+    142.2
+   ],
+   "cand_secs": 1.364,
+   "secs": 1.37
+  },
+  {
+   "frame": "NEG:playtest2.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 8,
+   "s_hat": 1.2897,
+   "deg_hat": 23.38,
+   "t_hat": [
+    -202.2,
+    -182.4
+   ],
+   "cand_secs": 1.402,
+   "secs": 1.408
+  },
+  {
+   "frame": "NEG:playtest3.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 4,
+   "s_hat": 0.3476,
+   "deg_hat": -59.74,
+   "t_hat": [
+    144.8,
+    142.8
+   ],
+   "cand_secs": 1.406,
+   "secs": 1.412
+  },
+  {
+   "frame": "NEG:savelist.png",
+   "accepted": false,
+   "inliers": 2,
+   "med_resid": 0.0,
+   "n_cand": 10,
+   "s_hat": 1.5481,
+   "deg_hat": 12.15,
+   "t_hat": [
+    214.8,
+    -250.0
+   ],
+   "cand_secs": 1.403,
+   "secs": 1.412
+  },
+  {
+   "frame": "NEG:settle.png",
+   "accepted": false,
+   "inliers": 0,
+   "n_cand": 1,
+   "cand_secs": 1.381,
+   "secs": 1.381
+  },
+  {
+   "frame": "NEG:settle2.png",
+   "accepted": false,
+   "inliers": 0,
+   "n_cand": 1,
+   "cand_secs": 1.403,
+   "secs": 1.403
+  },
+  {
+   "frame": "NEG:settle3.png",
+   "accepted": false,
+   "inliers": 0,
+   "n_cand": 1,
+   "cand_secs": 1.441,
+   "secs": 1.441
+  },
+  {
+   "frame": "NEG:settle4.png",
+   "accepted": false,
+   "inliers": 0,
+   "n_cand": 1,
+   "cand_secs": 1.388,
+   "secs": 1.388
+  }
+ ],
+ "params": {
+  "R": 384,
+  "K": 3,
+  "FLOOR": 0.5,
+  "INLIER_PX": 4.0,
+  "MIN_INLIERS": 3,
+  "MAX_MED_RESID": 2.0,
+  "ITERS": 300
+ }
+}
