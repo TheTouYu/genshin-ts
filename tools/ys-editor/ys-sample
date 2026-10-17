@@ -1,0 +1,76 @@
+#!/bin/bash
+# ys-sample — 把「你说它判错了」当场变成一条**永久回归样本**。
+#
+# 存在理由（2026-10-17 用户参与机制）：
+#   用户的纠错是这个系统里最高价值的信号——他能看到真实界面，我们只看得到像素。
+#   但他的纠错如果只留在对话里，下一次同样的误判还会发生。
+#   所以：**每一条人工纠错都必须在 30 秒内落成 calib/regress/ 里的一条样本**，
+#   从此它是一次自动回归，改坏了当场红。
+#
+# 用法:
+#   ys-sample grab SETTLE "实拍结算页，曾被判成 SAVELIST"   # 先抓当前屏幕，再加样本
+#   ys-sample add /path/to/f.png SETTLE "说明"              # 用已有图片
+#   ys-sample list                                          # 看全部样本
+#   ys-sample add ... --frame-cmd "./ys-fast"               # 指定用哪个判据复核（默认 ys-state）
+#
+# 退出码: 0 已加入（并给出当前判据的一致性读数）；2 用法错；3 图片不可读
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+REG="$HERE/calib/regress"
+MAN="$REG/manifest.tsv"
+. "$HERE/ys-env.sh" 2>/dev/null || true
+export DISPLAY="${DISPLAY:-:1}"
+
+usage() {
+  sed -n '7,13p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  list)
+    echo "回归样本（$MAN）:"
+    awk -F'\t' '!/^#/ && NF>=2 {printf "  %-26s %-9s %s\n", $1, $2, $3}' "$MAN"
+    echo "共 $(grep -vc '^#' "$MAN") 条"
+    exit 0
+    ;;
+  grab)
+    state="${2:-}"; note="${3:-}"
+    [ -n "$state" ] || usage
+    out="$REG/$(date +%H%M%S)-grab.png"
+    import -window "${YS_WIN:-0x01400001}" "$out" 2>/dev/null || { echo "抓图失败" >&2; exit 3; }
+    echo "已抓: $out"
+    # 抓图落盘后走同一条 add 路径
+    set -- add "$out" "$state" "$note"
+    ;;
+  add)
+    img="${2:-}"; state="${3:-}"; note="${4:-}"
+    [ -f "$img" ] || { echo "图片不存在: $img" >&2; exit 3; }
+    [ -n "$state" ] || usage
+    base="$(basename "$img")"
+    case "$img" in
+      "$REG"/*) ;;
+      *) cp "$img" "$REG/$base" ;;
+    esac
+    if grep -q "^$base	" "$MAN" 2>/dev/null; then
+      echo "样本已存在: $base（若说明变了请手工改 manifest.tsv）"
+    else
+      printf '%s\t%s\t%s\n' "$base" "$state" "$note" >> "$MAN"
+      echo "已加入回归集: $base → $state${note:+（$note）}"
+    fi
+    ;;
+  *) usage ;;
+esac
+
+# 立即用现行判据复核这条样本：不一致 = 这条样本现在就是红的（正是要修的）
+if command -v python3 >/dev/null 2>&1; then
+  got=$(./ys-state --frame "$REG/$base" 2>/dev/null | head -1)
+  if [ "$got" = "$state" ]; then
+    echo "  判据一致 ✓（当前判成 $got）"
+  else
+    echo "  ⚠ 判据不一致：应为 $state，当前判成 ${got:-?} —— 这条样本现在会红，正是要修的"
+  fi
+else
+  echo "  （跳过复核）"
+fi
+echo "  跑全量：$HERE/ys-state --regress"
