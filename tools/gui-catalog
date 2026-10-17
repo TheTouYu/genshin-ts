@@ -65,6 +65,17 @@ CH_GEOM = ('右上角', '左上角', '右下角', '左下角', '上方', '下方
            '中间', '屏幕', '界面右下', '工具栏', '侧栏', '面板')
 
 
+# 控件名词：一句操作句若不含其中之一，多半是"节点行为/领域概念"的描述，不是 GUI 操作
+CONTROL_NOUNS = ('按钮', '图标', '面板', '菜单', '页签', '选项卡', '列表', '输入框', '下拉',
+                 '复选框', '勾选框', '滑块', '工具栏', '侧栏', '窗口', '弹窗', '详情栏', '资产栏',
+                 '开关', '卡片', '缩略图', '单选', '复选框', '滚动条', '快捷键', '鼠标', '键盘',
+                 '工具栏', '空白处', '选框')
+
+
+def has_control(quote):
+    return any(n in quote for n in CONTROL_NOUNS)
+
+
 def channels_of(quote):
     out = []
     if any(k in quote for k in CH_ICON):
@@ -106,7 +117,7 @@ def precond_of(no):
     return 'EDITOR'
 
 
-def extract(path):
+def extract(path, require_control=False):
     lines = open(path, encoding='utf-8').read().splitlines()
     secs = sections(lines)
     base = os.path.basename(path)
@@ -140,6 +151,8 @@ def extract(path):
                             verb, action = v, a
                             break
                 if not verb:
+                    continue
+                if require_control and not has_control(quote):
                     continue
                 after = quote.split(verb, 1)[1]
                 m = TARGET_STOP.search(after)
@@ -227,7 +240,7 @@ def read_tsv(path):
 
 
 def cmd_extract(a):
-    rows = dedupe(extract(a.guide))
+    rows = dedupe(extract(a.guide, require_control=a.require_control))
     out = a.out or os.path.join('docs', 'maintenance', 'gui-catalog',
                                 '%s.tsv' % os.path.basename(a.guide).replace('.md', ''))
     write_tsv(rows, out)
@@ -280,6 +293,8 @@ def main(argv=None):
     s1.add_argument('guide')
     s1.add_argument('--out')
     s1.add_argument('--stats', action='store_true')
+    s1.add_argument('--require-control', action='store_true',
+                    help='只保留提到具体界面控件（按钮/面板/菜单…）的句子（用于非界面章节）')
     s2 = sub.add_parser('verify')
     s2.add_argument('guide')
     s2.add_argument('catalog')

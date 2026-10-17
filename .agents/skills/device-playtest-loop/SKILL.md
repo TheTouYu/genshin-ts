@@ -91,7 +91,8 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | `ys-drag <x1> <y1> <x2> <y2>` | 绝对坐标拖拽 | 按下 → 分步移动 → 抬起；用于相机环绕/视野转动/滑块 |
 | `ys-reload-map` / `ys-reload-keep` | **让编辑器从磁盘重载** | `-keep` 版会**保住 CLI 写入**（快照→离开→还原→重进）；CLI 写回 .gil 后必走 |
 | `ys-esc` / `ys-goto-map enter\|leave` | 发一次 ESC / 确定性切图 | `ys-goto-map` 每步用 `ys-where2` 核验，不靠奇偶 |
-| `ys-ui-state` | 编辑器三态判据 | MENU⇔px(300,300)>200／SAVE⇔px(300,300)暗且px(100,400)暗／EDITOR⇔其余 |
+| `ys-state` | **界面态判定唯一实现**（8 态 + 两测量通道 + 具名探针） | `ys-state --json`（活体）/`--frame PNG`（离线）/`--print-state --fast`（给脚本用）。判据（像素坐标/阈值/投票规则）**只在 ysi-state 一个文件里**；旧 `ys-fast`(三态) / `ys-ui-state` 已改为薄封装转发 |
+| `ys-state --probe/--wait` | 具名探针（按钮/弹窗可见性） | `--probes` 列 8 条探针与判据数；`--wait <探针> --expect visible|hidden --timeout N --poll 0.2` 是**唯一的同步等待方式**（禁裸 sleep） |
 | `ys-where2` | **当前地图身份** | 系统菜单标题模板匹配（score 0.9999）；须先处于 MENU 态 |
 | `ys-round` | **一轮执行器**（自带证据） | 离开→构建→进入→试玩→注入→退出→判定→`~/ys-round/<ts>/report.md`；判据已改用 `ys-where2` |
 | `ys-gui-slot <win> <秒> <命令…>` | **焦点占用包装器** | 记原焦点 → 激活并核验 → 硬时限 → `trap EXIT` 严格归还（前焦不可用时回落 firefox/DSH 页）。**一批次只调一次** |
@@ -246,7 +247,7 @@ ys-editor-guard daemon   # 常驻自愈守护（systemd 用户服务用；YS_GUA
 
 | 步 | 动作 | 坐标 / 判据 |
 |---|---|---|
-| ① | 开系统菜单 | `ESC`（**首次常被吞**，循环到 px(300,300) 三通道 >200 为止） |
+| ① | 开系统菜单 | `ESC`（**首次常被吞**）→ `ys-state --wait menu_open --expect visible --timeout 8`（判据只在 ys-state，别再内联像素阈值） |
 | ② | 「试玩」磁贴 | **(183,389)** ← 旧记录 (174,328)/(185,336) **少 53px**，点在空白处 =「试玩起不来」的真因 |
 | ③ | 「直接上传」 | (1444,811) |
 | ④ | 「开始游戏」 | (1280,1052)，**必须长按 ≥1.2s**（`YS_CLICK_HOLD=1.2`；0.13s 按放会被整帧吞掉） |
