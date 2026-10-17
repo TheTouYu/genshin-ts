@@ -916,3 +916,16 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
 
 **已完成的部分**（无需再动）：4 处「点击吞 rc」修复（`ys-playtest-start/stop`、`ys-reload-map`、`ys-round`）；
 `ys-where2` 模板按新名「云阶」重生成（备份 `mymap-menu-title.rename-backup.png`，自检 icon 1.0000）。
+
+### O-2026-10-17-12. `ys-state` 未覆盖「原神本体」（界面态模型只到沙箱编辑器）【OPEN-判据覆盖】
+
+实测（2026-10-17 22:4x）：从编辑器退出存档回到原神本体后，`ys-state --print-state --fast` 恒为 **UNKNOWN**，
+而屏幕实际是**派蒙菜单**（OCR：地图/背包/角色/活动/商城/世界等级/提升指南/反馈/UID）或**提瓦特世界**
+（OCR：凯瑟琳/冒险家协会接待员/队伍四名/Lv.89）。`menu_open` 探针也 False（它判的是编辑器 ESC 菜单）。
+
+**影响**：任何要操作「原神本体」的任务（回大厅、切角色、背包、地图传送…）当前**没有状态判定**，
+只能靠 OCR 关键词，等于回到"猜"的状态；且 UNKNOWN 与"真的不认识"混在一起，
+`ys-gates` 门槛① 的负样本语义也会被它污染。
+
+**最小下一步**：本体新增 ≥2 个态（`GAME_WORLD` / `GAME_PAIMON`），每态 ≥2 条判据（结构：小地图圆/队伍栏/派蒙菜单九宫格），
+进 `calib/regress/` 做回归；UNKNOWN 保持"仅表示不认识"，不再兼作"本体"。
