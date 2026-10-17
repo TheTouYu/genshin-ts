@@ -138,3 +138,30 @@ AGI 标准下"能完成编辑器全部操作"需要**分母**，否则只能按�
 
 门槛⑥的 PASS 判据（机械）：catalog 存在且 ≥100 条、quote 原文验真 100%、必填字段无缺失、
 小节台账行数 = 指南 `### ` 小节数且 0 操作小节都有原因；**覆盖率百分比只报数字，阈值由用户定**。
+
+## 9. 附则：ys-state 完整对外 CLI 面（2026-10-17 增补，写回时照此对齐）
+
+```bash
+ys-state --json [--fast] [--channel fast|full|both] [--frame PNG] [--profile P]   # 判态
+ys-state --print-state [--fast] [--compat ys-fast]                               # 只打状态名给脚本
+ys-state --regress [--channel fast|full|both] [--json]                           # 回归集（19 帧含 8 负样本）
+ys-state --probe <名字> [--frame PNG] [--json]      # {probe,visible,readings,criteria,passed_criteria,ms,desc,rule,validated}
+ys-state --probes [--json]                          # 每探针 {probe,desc,rule,criteria,validated}；判据<2 条 → exit 1
+ys-state --wait <名字> --expect visible|hidden --timeout N --poll P [--frame PNG] [--json]  # 0 达成/1 超时/3 错
+ys-state --pixel X Y [--frame PNG]                  # "r g b"（_ys-ui.sh 的 judge 转发它）
+ys-state --pred light|dark X Y [--frame PNG]        # 1/0（is_light/is_dark 转发它）
+```
+
+- 退出码：判态 0 / 2 参数或 profile 错 / 3 取数失败 / 4 回归不达标 / 5 样本清单不达标；探针 0 可见 / 1 不可见 / 3 取数失败；wait 0 达成 / 1 超时 / 3 错。
+- 探针别名：`settle_leave_btn` → `settle_leave`（旧名兼容）。
+- 环境变量：`YS_STATE_LOCAL=1`（强制本地，不走常驻）、`YS_PROFILE`、`YS_LOOKD_SOCK`、`YS_PROBE_FRAME`（`_ys-ui.sh` 给探针传离线帧）。
+- JSON 新增：`via:"daemon"|"local"`（判态与探针都有）、`load_ms`/`judge_ms`（成本分解）。
+
+### 两条硬约束（2026-10-17 活体实测踩到）
+
+1. **抓帧必须用窗口真实 geometry**：原神窗是 **2561×1440**（不是 2560）。daemon 按 2560 建缓冲会抛
+   `RuntimeError: 截取失败 (11059200 != 11063520)`（11059200=2560×1440×3、11063520=2561×1440×3），
+   随后 CLI 静默回退本地（581~618ms，慢 4 倍）。
+2. **回退必须出声**：`via:"local"` 只是字段，脚本不会看；daemon 不可用/报错时**必须往 stderr 打一行**
+   带 daemon 错误原文的警告（铁律「仪器出错要出声」，见 D310）。`ms=0` 这类读数也要标明来源
+   （缓存命中 / 未真判），不能拿 0 冒充"很快"。
