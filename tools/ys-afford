@@ -1,0 +1,1162 @@
+#!/usr/bin/env python3
+"""ys-afford — 可点性打分：把设计者画在界面上的「该点这里」变成可算的分。
+
+## 为什么要这个工具（角度，比做什么更重要）
+
+**可点性不是猜出来的，是设计者画出来的。** 界面已经把"该点这里"写在脸上：
+红点 badge、一小一大、描边/圆环、颜色对比。人一眼就懂——本工具把这些线索
+各自量成一个 0..1 的**分量**，再按用户给的权重顺序合成总分，并给每个候选
+打出**理由明细**（哪一条线索给了分、给了多少、底下的数值是多少）。
+
+实证（2026-10-18，`tools/ys-editor/tests/fixtures/unknown/`）：
+  · `yingying-play.png`：羊皮纸中央 **125×130 小圆钮 @(1281,695)** 才是入口，
+    旁边的队名/队伍卡/头像点了全无反应——大背景里的小图形 = 交互位。
+  · `events-teams.png`：`活动说明` 的 `?` 图标 **52×52@(2102,334)**，
+    本地 + 云端 OCR 都读不到，只有圆环通道能量出来。
+  · `claim-before.png`：【领取】是**橙红色实心药丸里嵌白字**——`ys-screen` 的
+    控件通道会把它当"框里全是字 = 标签"丢掉（`_max_text_cover >= 0.55`），
+    必须由本工具的**实心色块通道**补回来。
+  · `battle-report.png`（负样本）：**画面主体不是按钮**。3D 角色/怪物没有
+    "设计边"——它们的 bbox 周长上找不到连续的台阶（edge_cov ≈ 0.10），
+    而 UI 元素有（时钟图标 0.93 / 药丸 0.50 / 圆钮 0.59）。
+
+## 权重顺序（用户给的线索，顺序不可随意改）
+
+| # | 线索 | 权重 | 用户原话 / 机制 |
+|---|---|---|---|
+| 1 | **红点 badge** | 0.30 | 「ui 上的红点设计，引导玩家去交付的设计」 |
+| 2 | **一小一大** | 0.24 | 大背景里的小图形 = 交互位（ρ=候选面积/所在区域面积） |
+| 3 | **局部 vs 整体颜色对比** | 0.20 | 「整体和局部颜色的比对，比较暗的一边表示点不了」 |
+| 4 | **圆环 / 描边** | 0.16 | 复用 `ys-screen` 的 `src=ring` 证据 + 设计形状(圆盘/药丸) + `edge_cov` |
+| 5 | **邻近 / 内嵌文字** | 0.10 | 带文字的按钮 OCR 本来就能找到；**图标才是人看不见的入口** |
+
+## 惩罚项（乘性，逐条进理由明细）
+
+  · `textbox`  ×0.25  候选本身就是一片字（文字并集覆盖 ≥0.5）——是标签不是控件
+  · `line`     ×0.50  长宽比 >6 的细长条（分隔线/HUD 血条/滚动条）
+  · `dim`      ×(1-0.45·dim)  所在区域"对比度被压平"（模态遮罩/scrim）——
+                       **暗面=不可点**：遮罩下所有点击无效（open-items O-2026-10-18-01 #3）
+  · `scene`    ×(1-0.55·scene)  "看起来像 3D 画面主体"：bbox 周长没有设计边
+                       （边缘覆盖低）+ 内部纹理密度高 —— 防"把画面主体当成按钮"
+  · `huge`     ×0.20  ρ > 0.32（背景/整块面板）
+  · `ink`      ×0.30~1.0  bbox 内几乎没有脆的设计边（|∇L|>25 占比 <0.03）——
+                       **设计边是脆的，渲染是糊的**：糊背景/叠加层底板 0.000~0.024，
+                       真控件 0.034~0.271
+  · `hud`      ×0.35  邻近文字是读数字（`ys-screen` kind=data/hud）或落在遮挡框里——
+                       录屏叠加层不是游戏 UI
+  · 部件继承  见 `ORGANIC_EDGE_COV`：被一个"有机轮廓大块"（edge_cov<0.22）包住的小块
+                       是画面主体的部件（肩甲/披风碎片），继承 scene 惩罚
+
+## 用法（离线只读，**不碰桌面**）
+
+```bash
+tools/ys-afford 帧.png                 # 人读：top-3 + 每个候选的理由明细
+tools/ys-afford 帧.png --json          # 机读：全部候选 + 分量 + penalties + badges
+tools/ys-afford 帧.png --top 5         # top-N（缺省 3）
+tools/ys-afford 帧.png --debug         # 候选来源/特征表打到 stderr
+tools/ys-afford 帧.png --screen-json /tmp/s.json   # 复用已跑过的 ys-screen 输出（省 OCR）
+```
+
+## 输出（`--json`，schema=ys-afford/1）
+
+```jsonc
+{"schema":"ys-afford/1","frame":{"path":…,"sha256":…,"w":2560,"h":1440},
+ "weights":{"badge":0.3,"small":0.24,"contrast":0.2,"ring":0.16,"text":0.1},
+ "badges":[{"cx":1805,"cy":227,"w":26,"h":26,"role":"tab|item|free","attach":{…}}],
+ "candidates":[{"rank":1,"cx":1281,"cy":695,"w":126,"h":130,"bbox":[…],"shape":"circle",
+   "score":0.55,"parts":{"badge":0.0,"small":0.238,"contrast":0.184,"ring":0.074,"text":0.03},
+   "evidence":{"src":"contrast","rho":0.102,"dL":59.2,"dS":0.38,"edge_cov":0.32,
+               "ring_contrast":null,"label":"…","text_gap":75,"region":"画布","area":16380},
+   "penalties":{"textbox":1.0,"line":1.0,"dim":1.0,"scene":0.9,"huge":1.0},
+   "reasons":["一小一大 ρ=10.2%（占画布 16380/1557744px）","…"],
+   "sources":["ys-screen:contrast"]}],
+ "top":[…同上 rank≤N…],"timing":{…},"notes":"…"}
+```
+
+## 退出码（认 token；见 docs/maintenance/gui-gate-contract-2026-10-17.md §3ter）
+
+  `0` 成功 / `2` 用法错 / `3` 帧不可读 / `4` `ys-screen` 不可用·非 0 退出·尺寸不符
+  失败一律打一行 `AFFORD-FAIL <token> expected=<…> actual=<…>`，并**原样带出**
+  子进程退出码（不吞码、不静默降级成"这屏没有可点的东西"）：
+
+  | token | 含义 |
+  |---|---|
+  | `NO-FRAME` | 帧路径不存在 |
+  | `FRAME-UNREADABLE` | PNG 解不开 |
+  | `BAD-TOP` | `--top < 1` |
+  | `SCREEN-FAIL` | `ys-screen` 非 0 退出（rc 原样带出） |
+  | `NO-YS-SCREEN` / `NO-SCREEN-JSON` | 工具或被复用的 JSON 不存在 |
+  | `SIZE-MISMATCH` | `--screen-json` 与帧尺寸不符（复用错帧） |
+
+  环境变量 `YS_AFFORD_SCREEN` 可替换 `ys-screen` 路径——自测用它注入"OCR 后端挂了"的桩，
+  验的是**退出码不被吞**，不是真后端。
+
+依赖：numpy + PIL（已有）；scipy **仅在已安装时**当 CCL 加速器，缺了自动降级。
+"""
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import time
+
+import numpy as np
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+# 允许用环境变量换掉 ys-screen（自测用它注入"后端挂掉"的桩，验退出码不被吞）
+YS_SCREEN = os.environ.get('YS_AFFORD_SCREEN') or os.path.join(HERE, 'ys-screen')
+
+SCHEMA = 'ys-afford/1'
+
+# --------------------------------------------------------------------------- 权重
+# 用户给的线索顺序：badge > 一小一大 > 颜色对比 > 圆环 > 文字。和为 1.0。
+W = {'badge': 0.30, 'small': 0.24, 'contrast': 0.20, 'ring': 0.16, 'text': 0.10}
+
+# --------------------------------------------------------------------------- 阈值
+# 全部标定自 tools/ys-editor/tests/fixtures/unknown/ 8 帧（实测值写进注释，改前先复测）。
+BADGE_HUE = 24              # 红/橙：hue ≤24° 或 ≥336°（红点在 HSV 上跨 0°，两侧都要）
+BADGE_S_MIN = 0.50          # 实测红点 (212,100,117) S=0.53；(184,90,73) 药丸 S=0.60
+BADGE_V_MIN = 0.40
+BADGE_AREA = (90, 1700)     # 实测红点 26×26 mask≈450px；队伍卡红面板 2190px 要排除
+BADGE_SIDE = (10, 44)       # 红点 ≤44px；实测 (2056,435) 64×61 的队伍卡不是红点
+BADGE_ASPECT = (0.60, 1.45) # 实测 HUD 血条 (42×28)/(43×24) aspect 1.5/1.79 不是红点
+BADGE_FILL_MIN = 0.40
+
+SOLID_S_MIN = 0.42          # 实心色块通道：药丸/圆盘的饱和填充（领取按钮 S=0.60）
+SOLID_V_MIN = 0.28
+SOLID_AREA = (700, None)    # 上限按帧面积 6% 动态算
+SOLID_SIDE_MIN = 20
+SOLID_ASPECT_MAX = 6.0
+SOLID_FILL_MIN = 0.42
+
+TEXT_COVER_TXBOX = 0.50     # 文字并集盖住候选一半 ⇒ 它自己就是一片字
+LINE_ASPECT = 6.0           # 细长条：分隔线/HUD 血条/滚动条
+LINE_PENALTY = 0.50
+TEXTBOX_PENALTY = 0.25
+DIM_WEIGHT = 0.45           # 压暗层最多扣 45%
+SCENE_WEIGHT = 0.55         # 画面主体最多扣 55%
+HUGE_RHO = 0.32
+HUGE_PENALTY = 0.20
+
+RHO_TINY, RHO_SMALL, RHO_BIG = 0.002, 0.012, 0.10   # 一小一大的三段（见 small_score）
+RHO_FADE = 0.30
+EDGE_COV_FULL = 0.45        # edge_cov ≥0.45 视为"有设计边"（实测 UI 0.50~0.93）
+
+BADGE_RING_S_MAX = 0.30      # 红点贴在**界面底色**上；贴在插画里的是画面内容。
+                            # 实测真红点环带 S 均值 0.15~0.21，插画里的假红点 0.31~0.67
+BADGE_TEXT_GAP_MAX = 40     # 贴不上控件时，去贴它标的那一行文字
+
+TEXT_GAP_MAX = 26           # 内嵌/紧邻：文字框与候选边缘间距（px）
+LABEL_GAP_MAX = 60          # 邻接标签：候选右侧/下方标签的最大边缘间距
+
+# 「设计边是脆的，渲染是糊的」：候选内部 |∇L|>25 的像素占比（边界精修之后量）。
+# 实测：3D 头像 0.011 / 怪物 0.016 / 3D 角色 0.033 / 糊背景 0.030
+#       —— vs —— 播放钮 0.034 / 领取药丸 0.064 / 关闭钮 0.114 / ? 图标 0.143 /
+#                 时钟图标 0.266 / 侧栏图标 0.285
+# 注意低端有重叠（糊背景 0.030 ≈ 播放钮 0.034）：它是**弱判据**，垫底那档给 0.30 的
+# 乘性惩罚，专门收拾"虚化背景/叠加层底板"这一类，不承担分辨小按钮的活。
+INK_LO, INK_HI = 0.008, 0.038
+INK_FLOOR = 0.30
+# 孤立度：候选周围环带的亮度标准差（邻居有多"花"）。
+# 实测 播放钮 10.3（羊皮纸上是唯一的图形）；糊背景 45~71；关闭钮 51.5。
+ISO_STD_FULL = 45.0
+ISO_FLOOR = 0.55
+# 画面主体：bbox 周长上"有设计边"的比例（边界精修之后量）。
+# 实测 battle-report / events-teams / yingying-play：
+#   3D 角色 0.17、头像 0.12、怪物 0.21  ← 有机轮廓，bbox 边上找不到连续台阶
+#   播放钮 0.30、波形图标 0.28、? 图标 0.53、领取药丸 0.58、关闭钮 0.56、侧栏图标 0.82
+# ⚠️ 单独用它分不开（角色 0.21 与波形图标 0.28 重叠）：它只是 0.55 权重的**软惩罚**，
+#    角色/怪物最终被压下去靠的是分量组合 + ink + dim；结果由 afford-selftest 的
+#    battle-report 负样本断言（人眼核定的 6 个角色框）锁住，不靠这条阈值自证。
+SCENE_EDGE_LO, SCENE_EDGE_HI = 0.12, 0.30
+# 有机轮廓（3D 主体）判定：edge_cov 低于这个值的大块 = 画面主体，不是画出来的控件。
+# 被它包住的小块是它的部件（肩甲/披风碎片），同样不算控件。
+ORGANIC_EDGE_COV = 0.22
+ORGANIC_MIN_AREA = 900
+# HUD/叠加层：邻近文字是「读数」(ys-screen kind=data/hud) 或候选落在遮挡框里。
+HUD_PENALTY = 0.35
+HUD_TEXT_KINDS = ('data', 'hud')
+
+N_DEBUG_ROWS = 24
+
+# 动作词：把"带字按钮"补成候选（ys-screen 的 ACTION_WORDS 只覆盖编辑器词表，
+# 游戏 UI 的 领取/预测奖励/赛程总览/活动详情 全都不在表里 → 这里补游戏侧常用词）。
+GAME_ACTION_WORDS = (
+    '领取', '领取奖励', '预测奖励', '赛程总览', '活动详情', '活动说明', '参与', '报名',
+    '前往', '追踪', '查看', '详情', '确认', '取消', '返回', '继续', '开始', '下一步',
+    '提交', '兑换', '购买', '使用', '装备', '升级', '挑战', '开始预测', '预测',
+)
+
+LUMA = np.array([0.299, 0.587, 0.114], dtype=np.float32)
+
+
+# --------------------------------------------------------------------------- 失败
+def fail(token, expected, actual, rc):
+    """失败一行 token + 期望/实测，并把退出码原样带回（不吞码）。"""
+    sys.stderr.write('AFFORD-FAIL %s expected=%s actual=%s\n' % (token, expected, actual))
+    return rc
+
+
+# --------------------------------------------------------------------------- 像素基础
+def box_filter(x, r):
+    """(2r+1)^2 均值滤波（积分图，纯 numpy）。"""
+    p = np.pad(x, ((r + 1, r), (r + 1, r)), mode='edge')
+    ii = p.cumsum(0).cumsum(1)
+    k = 2 * r + 1
+    return (ii[k:, k:] - ii[:-k, k:] - ii[k:, :-k] + ii[:-k, :-k]) / float(k * k)
+
+
+def _label_runs(mask):
+    """纯 numpy 兜底 CCL（逐行游程 + 并查集）。返回 (labels, stats)。"""
+    H, Wd = mask.shape
+    parent, runs, prev = [], [], []
+
+    def find(a):
+        r = a
+        while parent[r] != r:
+            r = parent[r]
+        while parent[a] != r:
+            parent[a], a = r, parent[a]
+        return r
+
+    for y in range(H):
+        row = mask[y]
+        if not row.any():
+            prev = []
+            continue
+        d = np.diff(row.astype(np.int8))
+        starts = np.flatnonzero(d == 1) + 1
+        ends = np.flatnonzero(d == -1) + 1
+        if row[0]:
+            starts = np.concatenate(([0], starts))
+        if row[-1]:
+            ends = np.concatenate((ends, [Wd]))
+        cur = []
+        for s, e in zip(starts.tolist(), ends.tolist()):
+            rid = len(parent)
+            parent.append(rid)
+            cur.append((s, e, rid))
+            runs.append((y, s, e, rid))
+        j = 0
+        for (s, e, rid) in cur:
+            while j < len(prev) and prev[j][1] <= s:
+                j += 1
+            k = j
+            while k < len(prev) and prev[k][0] < e:
+                a, b = find(prev[k][2]), find(rid)
+                if a != b:
+                    parent[b if a < b else a] = min(a, b)
+                k += 1
+        prev = cur
+    if not parent:
+        return np.zeros_like(mask, dtype=np.int32), []
+    roots = np.array([find(i) for i in range(len(parent))], dtype=np.int64)
+    uniq = np.unique(roots)
+    remap = np.zeros(int(roots.max()) + 1, dtype=np.int32)
+    remap[uniq] = np.arange(1, uniq.size + 1, dtype=np.int32)
+    labels = np.zeros((H, Wd), dtype=np.int32)
+    ry = np.array([r[0] for r in runs], dtype=np.int64)
+    rx0 = np.array([r[1] for r in runs], dtype=np.int64)
+    rx1 = np.array([r[2] for r in runs], dtype=np.int64)
+    rlab = remap[roots[np.array([r[3] for r in runs], dtype=np.int64)]]
+    for i in range(len(runs)):
+        labels[ry[i], rx0[i]:rx1[i]] = rlab[i]
+    areas = np.bincount(rlab, weights=(rx1 - rx0), minlength=uniq.size + 1).astype(np.int64)
+    stats = []
+    for lb in range(1, uniq.size + 1):
+        sel = rlab == lb
+        if not sel.any():
+            continue
+        # bbox 用**闭区间**（x1/y1 是最后一个像素），与 scipy 路径的 find_objects 对齐：
+        # 游程的 ends 是开区间，所以要减 1，否则没有 scipy 的机器上每个候选会胖 1px。
+        stats.append({'label': lb, 'area': int(areas[lb]),
+                      'bbox': [int(rx0[sel].min()), int(ry[sel].min()),
+                               int(rx1[sel].max()) - 1, int(ry[sel].max())]})
+    return labels, stats
+
+
+def label_mask(mask):
+    """4-连通标号：scipy 在就用（C 速度），缺了退回 numpy 游程并查集。都零新增依赖。"""
+    try:
+        from scipy import ndimage as ndi
+    except ImportError:
+        return _label_runs(mask)
+    lab, n = ndi.label(mask)
+    if n == 0:
+        return np.zeros(mask.shape, dtype=np.int32), []
+    areas = np.bincount(lab.ravel())
+    stats = []
+    for i, sl in enumerate(ndi.find_objects(lab), start=1):
+        if sl is None:
+            continue
+        stats.append({'label': i, 'area': int(areas[i]),
+                      'bbox': [int(sl[1].start), int(sl[0].start),
+                               int(sl[1].stop - 1), int(sl[0].stop - 1)]})
+    return lab.astype(np.int32), stats
+
+
+def load_frame(path):
+    """读帧 → (RGB uint8, L, S, V)。S/V 用 PIL 的 HSV（饱和度为 0..1）。"""
+    im = Image.open(path).convert('RGB')
+    arr = np.asarray(im, dtype=np.uint8)
+    hsv = np.asarray(im.convert('HSV'), dtype=np.uint8)
+    lum = arr.astype(np.float32) @ LUMA
+    hue = hsv[:, :, 0].astype(np.float32) * (360.0 / 255.0)
+    sat = hsv[:, :, 1].astype(np.float32) / 255.0
+    val = hsv[:, :, 2].astype(np.float32) / 255.0
+    return arr, lum, sat, val, hue
+
+
+# --------------------------------------------------------------------------- 候选来源
+def _clip_bbox(b, Wd, Hd):
+    x0, y0, x1, y1 = [int(round(v)) for v in b]
+    return [max(0, min(Wd - 1, x0)), max(0, min(Hd - 1, y0)),
+            max(0, min(Wd, x1)), max(0, min(Hd, y1))]
+
+
+def cand_from_screen(res):
+    """① `ys-screen` 的控件候选（已做过去嵌套/去文字覆盖，是"策展过"的一路）。"""
+    out = []
+    for c in res.get('controls', []):
+        ev = c.get('evidence') or {}
+        out.append({
+            'bbox': [int(v) for v in c['bbox']],
+            'shape': c.get('shape') or 'unknown',
+            'src': ev.get('src') or 'screen',
+            'ev': ev,
+            'sources': ['ys-screen:%s' % (ev.get('src') or '?')],
+            'screen_id': c.get('id'),
+        })
+    return out
+
+
+def cand_from_solid(arr, lum, sat, val):
+    """② 实心高饱和色块（药丸/圆盘）。
+
+    这是 `ys-screen` 的**已知盲区**：它对"框里几乎全是字"的候选退让
+    （`_max_text_cover >= 0.55` 直接丢），而【领取】恰恰是**橙红实心药丸 + 白字**，
+    于是整整 5 个按钮在 ys-screen 里一个都不存在（实测 claim-before）。
+    白字把色块切成几段，但色块仍**连通包围**它们 → bbox 与填充率照样可用。
+    """
+    Hd, Wd = lum.shape
+    max_area = int(0.06 * Wd * Hd)
+    mask = (sat >= SOLID_S_MIN) & (val >= SOLID_V_MIN)
+    lab, stats = label_mask(mask)
+    out = []
+    for st in stats:
+        x0, y0, x1, y1 = st['bbox']
+        w, h = x1 - x0 + 1, y1 - y0 + 1
+        if min(w, h) < SOLID_SIDE_MIN or w * h > max_area:
+            continue
+        if not (SOLID_AREA[0] <= st['area']):
+            continue
+        fill = st['area'] / float(w * h)
+        if fill < SOLID_FILL_MIN:
+            continue
+        aspect = w / float(max(1, h))
+        if aspect > SOLID_ASPECT_MAX:
+            continue
+        out.append({
+            'bbox': [x0, y0, x1 + 1, y1 + 1], 'shape': 'rect' if aspect > 1.45 else 'circle',
+            'src': 'solid', 'ev': {'area': st['area'], 'fill': round(fill, 3),
+                                   'aspect': round(aspect, 2)},
+            'sources': ['solid'], 'screen_id': None,
+        })
+    return out
+
+
+def cand_from_badge(lum, sat, val, hue):
+    """③ 红点 badge（红/橙小圆标）——用户点明的最高权重线索。
+
+    判据：红/橙色相 + 饱和 + 够小 + 近方形 + 填充实。实测踩坑：
+      · HUD 血条 (42×28)/(43×24) aspect 1.5/1.79 → 被 aspect 上限挡住；
+      · 队伍卡红面板 64×61 area 2190 → 被 area/side 上限挡住；
+      · 羊皮纸无红点（0 命中）→ 不该凭空冒出来。
+    """
+    mask = (((hue <= BADGE_HUE) | (hue >= 336.0)) & (sat >= BADGE_S_MIN)
+            & (val >= BADGE_V_MIN))
+    lab, stats = label_mask(mask)
+    out = []
+    for st in stats:
+        x0, y0, x1, y1 = st['bbox']
+        w, h = x1 - x0 + 1, y1 - y0 + 1
+        if not (BADGE_SIDE[0] <= w <= BADGE_SIDE[1] and BADGE_SIDE[0] <= h <= BADGE_SIDE[1]):
+            continue
+        if not (BADGE_AREA[0] <= st['area'] <= BADGE_AREA[1]):
+            continue
+        aspect = w / float(max(1, h))
+        if not (BADGE_ASPECT[0] <= aspect <= BADGE_ASPECT[1]):
+            continue
+        if st['area'] / float(w * h) < BADGE_FILL_MIN:
+            continue
+        # 红点贴在**界面底色**上；贴在插画/3D 画面里的是画面内容（实测环带 S 0.31~0.67 的
+        # 全是插画里的红橙块）。这一条是关键闸门，缺了它 events-teams 会冒出 4 个假红点。
+        ring_s = _ring_mean(sat, [x0, y0, x1 + 1, y1 + 1], pad=10)
+        if ring_s > BADGE_RING_S_MAX:
+            continue
+        out.append({'cx': (x0 + x1) // 2, 'cy': (y0 + y1) // 2, 'w': w, 'h': h,
+                    'bbox': [x0, y0, x1 + 1, y1 + 1], 'area': st['area'],
+                    'ring_s': round(ring_s, 3)})
+    return out
+
+
+def _ring_mean(arr, bbox, pad=10):
+    """bbox 外扩 pad 的一圈（不含 bbox 本身）的均值。"""
+    Hd, Wd = arr.shape
+    x0, y0, x1, y1 = bbox
+    ox0, oy0 = max(0, x0 - pad), max(0, y0 - pad)
+    ox1, oy1 = min(Wd, x1 + pad), min(Hd, y1 + pad)
+    sub = arr[oy0:oy1, ox0:ox1]
+    mask = np.ones(sub.shape, dtype=bool)
+    mask[y0 - oy0:y1 - oy0, x0 - ox0:x1 - ox0] = False
+    return float(sub[mask].mean()) if mask.any() else 0.0
+
+
+def cand_from_action_text(res):
+    """④ 动作词文本（最低档线索：带字的按钮 OCR 本来就能找到）。"""
+    out = []
+    for t in res.get('text', []):
+        s = (t.get('text') or '').strip()
+        if not s or len(s) > 8:
+            continue
+        if not any(s == w or s.startswith(w) or s.endswith(w) for w in GAME_ACTION_WORDS):
+            continue
+        b = [int(v) for v in t['bbox']]
+        # 文本框往外放一圈（按钮本体通常比字略大）
+        pad_x = max(4, int(0.45 * (b[2] - b[0]) * 0.25))
+        pad_y = max(4, int(0.60 * (b[3] - b[1])))
+        out.append({'bbox': [b[0] - pad_x, b[1] - pad_y, b[2] + pad_x, b[3] + pad_y],
+                    'shape': 'rect', 'src': 'action_text',
+                    'ev': {'text': s}, 'sources': ['action_text:%s' % s],
+                    'screen_id': None, 'text_id': t.get('id')})
+    return out
+
+
+def iou(a, b):
+    ix = max(0, min(a[2], b[2]) - max(a[0], b[0]))
+    iy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    if inter <= 0:
+        return 0.0
+    ua = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / float(max(1, ua))
+
+
+def merge(cands, Wd, Hd, debug=False):
+    """同一控件被多路抓到 → 合并证据（保留面积大/带 ring 的那条身份）。
+
+    合并规则：IoU ≥ 0.45 视为同一个东西；保留 `ys-screen` 的（它带 ring 证据），
+    把 `solid`/`action_text` 的来源并进去。互补而非互相覆盖。
+    """
+    kept = []
+    for c in cands:
+        c['bbox'] = _clip_bbox(c['bbox'], Wd, Hd)
+        x0, y0, x1, y1 = c['bbox']
+        if x1 - x0 < 8 or y1 - y0 < 8:
+            continue
+        hit = None
+        for k in kept:
+            if iou(k['bbox'], c['bbox']) >= 0.45:
+                hit = k
+                break
+        if hit is None:
+            kept.append(dict(c))
+            continue
+        for s in c['sources']:
+            if s not in hit['sources']:
+                hit['sources'].append(s)
+        # ring 身份优先；其次面积大的
+        if c['src'] == 'ring' and hit['src'] != 'ring':
+            hit['shape'], hit['src'], hit['ev'] = c['shape'], 'ring', c['ev']
+        elif c['src'] == 'solid' and hit['src'] in ('flat', 'screen'):
+            hit['ev'].setdefault('solid_area', c['ev'].get('area'))
+    if debug:
+        sys.stderr.write('[ys-afford] merged candidates=%d\n' % len(kept))
+    return kept
+
+
+# --------------------------------------------------------------------------- 特征
+def annulus_stats(lum, sat, bbox, pad):
+    Hd, Wd = lum.shape
+    x0, y0, x1, y1 = bbox
+    ox0, oy0 = max(0, x0 - pad), max(0, y0 - pad)
+    ox1, oy1 = min(Wd, x1 + pad), min(Hd, y1 + pad)
+    sub_l = lum[oy0:oy1, ox0:ox1]
+    sub_s = sat[oy0:oy1, ox0:ox1]
+    mask = np.ones(sub_l.shape, dtype=bool)
+    mask[y0 - oy0:y1 - oy0, x0 - ox0:x1 - ox0] = False
+    if not mask.any():
+        return float(sub_l.mean()), float(sub_s.mean()), 0.0
+    return float(sub_l[mask].mean()), float(sub_s[mask].mean()), float(sub_l[mask].std())
+
+
+def snap_bbox(lum, bbox, search=10):
+    """把 bbox 四条边吸到最近的强台阶上（边界精修）。
+
+    候选来自 DoG / 平坦面 / 饱和色块，边界天生带 1~10px 误差（投影、晕边、抗锯齿）。
+    误差会污染后面每一个读数：`edge_cov` 因此把播放钮从 0.37 压到 0.13，
+    也会把候选中心报歪。这里对每条边在 ±search 内取"台阶覆盖率最高"的那条线，
+    并加两条守卫：单边位移 ≤search、精修后宽高 ≥ 原 60%（防止把候选吸塌）。
+    实测收益（同一批候选）：播放钮 0.13→0.37、领取药丸 0.04→0.61、? 图标 0.39→0.56。
+    """
+    Hd, Wd = lum.shape
+    x0, y0, x1, y1 = bbox
+
+    def best_line(fixed, lo, hi, horiz):
+        best, best_at = -1.0, fixed
+        for d in range(-search, search + 1):
+            f = fixed + d
+            if horiz:
+                if f < 1 or f + 5 >= Hd:
+                    continue
+                a = lum[f:f + 2, lo:hi].mean(0)
+                c = lum[f + 3:f + 5, lo:hi].mean(0)
+            else:
+                if f < 1 or f + 5 >= Wd:
+                    continue
+                a = lum[lo:hi, f:f + 2].mean(1)
+                c = lum[lo:hi, f + 3:f + 5].mean(1)
+            if a.size == 0 or a.size != c.size:
+                continue
+            cov = float((np.abs(a - c) > 12).mean())
+            if cov > best:
+                best, best_at = cov, f
+        return best_at, best
+
+    nx0, _ = best_line(x0, y0, y1, False)
+    nx1, _ = best_line(x1, y0, y1, False)
+    ny0, _ = best_line(y0, x0, x1, True)
+    ny1, _ = best_line(y1, x0, x1, True)
+    if (nx1 - nx0) < 0.6 * (x1 - x0) or (ny1 - ny0) < 0.6 * (y1 - y0):
+        return bbox, False
+    if nx0 >= nx1 or ny0 >= ny1:
+        return bbox, False
+    return [nx0, ny0, nx1, ny1], [nx0, ny0, nx1, ny1] != bbox
+
+
+def edge_coverage(lum, bbox, search=6):
+    """bbox 四条边上"有台阶"的比例（设计边 = UI 元素的签名）。
+
+    对每条边在 ±search 像素内找**最强台阶**（允许 bbox 偏 1~2px），取覆盖比。
+    3D 角色/怪物没有这条边：实测 0.096 / 0.107；UI 元素 0.50~0.93。
+    """
+    Hd, Wd = lum.shape
+    x0, y0, x1, y1 = bbox
+    x1, y1 = min(x1, Wd - 1), min(y1, Hd - 1)
+    if x1 - x0 < 4 or y1 - y0 < 4:
+        return 0.0
+    def _step_line(fixed, lo, hi, horiz):
+        cov = []
+        for d in range(-search, search + 1, 2):
+            if horiz:  # 水平边：y = fixed + d
+                yy = fixed + d
+                if yy <= 1 or yy >= Hd - 2:
+                    continue
+                inside = lum[yy:yy + 2, lo:hi].mean(0)
+                outside = lum[yy + (2 if d >= 0 else -2):yy + (2 if d >= 0 else -2) + 2, lo:hi].mean(0)
+            else:      # 垂直边：x = fixed + d
+                xx = fixed + d
+                if xx <= 1 or xx >= Wd - 2:
+                    continue
+                inside = lum[lo:hi, xx:xx + 2].mean(1)
+                outside = lum[lo:hi, xx + (2 if d >= 0 else -2):xx + (2 if d >= 0 else -2) + 2].mean(1)
+            if inside.size and outside.size and inside.size == outside.size:
+                cov.append((np.abs(inside - outside) > 12).mean())
+        return max(cov) if cov else 0.0
+    vals = [_step_line(y0, x0, x1, True), _step_line(y1, x0, x1, True),
+            _step_line(x0, y0, y1, False), _step_line(x1, y0, y1, False)]
+    return float(np.mean(vals))
+
+
+def text_cover(bbox, text_boxes):
+    """文字并集覆盖候选 bbox 的比例（≥0.5 ⇒ 它自己就是一片字）。"""
+    x0, y0, x1, y1 = bbox
+    area = float(max(1, (x1 - x0) * (y1 - y0)))
+    m = np.zeros((max(1, y1 - y0), max(1, x1 - x0)), dtype=bool)
+    for t in text_boxes:
+        bx0, by0, bx1, by1 = t['bbox']
+        ix0, iy0 = max(x0, bx0), max(y0, by0)
+        ix1, iy1 = min(x1, bx1), min(y1, by1)
+        if ix1 <= ix0 or iy1 <= iy0:
+            continue
+        m[iy0 - y0:iy1 - y0, ix0 - x0:ix1 - x0] = True
+    return float(m.sum()) / area
+
+
+def gap_to_box(a, b):
+    """两框**边缘**间距（不是中心距）。重叠返回 0。"""
+    dx = max(a[0] - b[2], b[0] - a[2], 0)
+    dy = max(a[1] - b[3], b[1] - a[3], 0)
+    return float(max(dx, dy))
+
+
+def text_relation(bbox, text_boxes):
+    """候选与文字的关系：(inside_label, gap, text)。
+
+    · inside_label：文字中心落在候选框内，且文字比候选窄 ⇒ **按钮上嵌着标签**
+      （【领取】就是这种：白字嵌在橙药丸里）。
+    · gap：候选到最近文字框的边缘间距（>0 即"旁边有字"）。
+    """
+    x0, y0, x1, y1 = bbox
+    w = x1 - x0
+    inside, inside_txt, best_gap, best_txt = None, None, 1e9, None
+    for t in text_boxes:
+        bx0, by0, bx1, by1 = t['bbox']
+        tcx, tcy = (bx0 + bx1) / 2.0, (by0 + by1) / 2.0
+        if x0 <= tcx <= x1 and y0 <= tcy <= y1 and (bx1 - bx0) <= 0.9 * w:
+            area = (bx1 - bx0) * (by1 - by0)
+            if inside is None or area > (inside[2] - inside[0]) * (inside[3] - inside[1]):
+                inside, inside_txt = [bx0, by0, bx1, by1], t.get('text')
+            continue
+        g = gap_to_box(bbox, t['bbox'])
+        if g < best_gap:
+            best_gap, best_txt = g, t.get('text')
+    if inside is not None:
+        # 内嵌标签：文字就在按钮里面，间距记为 0
+        return True, 0.0, inside_txt
+    return False, best_gap, best_txt
+
+
+def region_area_for(cx, cy, regions, Wd, Hd):
+    """候选"所在区域"的面积：画布/栏优先，否则整帧（= 一小一大的分母）。"""
+    best = None
+    for r in regions:
+        x0, y0, x1, y1 = r['bbox']
+        if x0 <= cx <= x1 and y0 <= cy <= y1:
+            a = (x1 - x0) * (y1 - y0)
+            if best is None or a < best[1]:
+                best = (r['name'], a)
+    # 画布优先（它是"哪块背景"的最诚实口径）
+    for r in regions:
+        if r['name'] == '画布':
+            x0, y0, x1, y1 = r['bbox']
+            if x0 <= cx <= x1 and y0 <= cy <= y1:
+                return '画布', (x1 - x0) * (y1 - y0)
+    if best:
+        return best
+    return '整帧', Wd * Hd
+
+
+def dim_ref(lum):
+    """压暗层的参考亮度：全帧 p98（"最亮的那类像素"——界面上的白字/白图标）。"""
+    return float(np.percentile(lum, 98)) or 1.0
+
+
+def dim_at(lum, cx, cy, w, h, ref):
+    """候选所在区域被压暗的程度（0..1）——**暗面=不可点**。
+
+    为什么不判"绝对暗"：暗色主题到处是暗的（`events-teams` 右上角 L≈33 的深面板里
+    全是可点控件）。遮罩的特征是**这片区域里没有亮像素了**（白字被压到 130，
+    而弹窗面板的白字还是 220）。所以取窗口 p98 与全帧 p98 比：
+
+      实测（窗口 60x60 处的 p98 / 全帧 p98）：
+      claim-before 弹窗打开（侧栏被压暗）  侧栏红点 127 / 187.5 → dim=0.72   ← 遮罩命中
+      claim-before 弹窗面板里              领取药丸 221 / 187.5 → dim=0.00   ← 活动层不受影响
+      events-teams 无遮罩                  侧栏图标 233 / 229.6 → dim=0.00   ← 不许误伤
+      yingying-play 无遮罩                 播放钮   224 / 223.1 → dim=0.00
+    ⚠️ 已知边界：**空暗背景**（连一个亮像素都没有）也会 dim≈1——这不是误伤，那种地方
+       本来就没有"设计出来的控件"，低分是正确结果（实测 events-teams 右上角空面板 29.6/229.6）。
+    """
+    Hd, Wd = lum.shape
+    side = int(max(120, 3 * max(w, h)))
+    x0 = max(0, min(Wd - 2, cx - side // 2))
+    x1 = max(x0 + 2, min(Wd, cx + side // 2))
+    y0 = max(0, min(Hd - 2, cy - side // 2))
+    y1 = max(y0 + 2, min(Hd, cy + side // 2))
+    ap = float(np.percentile(lum[y0:y1, x0:x1], 98))
+    return max(0.0, min(1.0, (1.0 - ap / ref) / 0.45))
+
+
+# --------------------------------------------------------------------------- 打分
+def small_score(rho):
+    """「一小一大，小的部分就是设计出来的交互位置」→ ρ 越小越像控件（但别小到噪点）。"""
+    if rho < RHO_TINY:
+        return 0.30
+    if rho < RHO_SMALL:
+        return 0.30 + 0.70 * (rho - RHO_TINY) / (RHO_SMALL - RHO_TINY)
+    if rho <= RHO_BIG:
+        return 1.00
+    if rho < RHO_FADE:
+        return 1.00 - 0.85 * (rho - RHO_BIG) / (RHO_FADE - RHO_BIG)
+    return 0.10
+
+
+def ring_score(c, edge_cov, aspect):
+    """圆环/描边（#4）。`src=ring` 直接吃 ys-screen 的径向证据，权重最实。"""
+    if c['src'] == 'ring':
+        con = abs(float(c['ev'].get('ring_L') or 0) - float(c['ev'].get('outside_L') or 0))
+        base = 0.75 + 0.25 * min(1.0, con / 120.0)
+    elif c['src'] == 'solid':
+        base = 0.70 if 1.6 <= aspect <= 4.5 else 0.60
+    elif c['shape'] == 'circle':
+        base = 0.55
+    elif 1.6 <= aspect <= 4.5:
+        base = 0.60
+    elif c['shape'] == 'rect':
+        base = 0.30
+    else:
+        base = 0.20
+    # 设计边：没有边的"圆盘/药丸"多半是画面内容，不是按钮
+    return base * (0.45 + 0.55 * min(1.0, edge_cov / EDGE_COV_FULL))
+
+
+def design_ink(lum, bbox):
+    """「设计边是脆的，渲染是糊的」：bbox 内 |∇L|>25 的像素占比。
+
+    界面元素是设计者画的——描边/图标/字都是 1~2px 的硬台阶；
+    3D 渲染（尤其虚化过的背景）只给软渐变。实测（8 帧标定）：
+      糊背景/叠加层底板 0.000~0.024  ← 这类候选在旧版本里会挤进 top-10
+      真控件 0.034(播放钮) 0.060(领取药丸) 0.119(关闭钮) 0.271(侧栏图标)
+    """
+    x0, y0, x1, y1 = bbox
+    sub = lum[y0:y1, x0:x1]
+    if sub.shape[0] < 3 or sub.shape[1] < 3:
+        return 0.0
+    gx = np.abs(np.diff(sub, axis=1))
+    gy = np.abs(np.diff(sub, axis=0))
+    g = np.concatenate([gx.ravel(), gy.ravel()])
+    return float((g > 25).mean())
+
+
+def hud_like(cx, cy, bbox, text, occl):
+    """HUD/录屏叠加层（DXVK 读数条等）：不是游戏 UI，不能当控件候选。
+
+    判据用的是 `ys-screen` 已经给出的结论，不另建判据副本：
+      · 最近的文字被它标成 `kind=data/hud`（读数）——实测 `21.6ms`/`FPS: 60.2` 就在
+        候选正旁边，旧版本反而因为"邻近文字"给它加分；
+      · 候选落在 `ys-screen` 的遮挡框（occlusion）里。
+    """
+    for o in occl:
+        x0, y0, x1, y1 = o['bbox']
+        if x0 <= cx <= x1 and y0 <= cy <= y1:
+            return True, '在遮挡框(occlusion)内'
+    best, best_g = None, 1e9
+    for t in text:
+        g = gap_to_box(bbox, t['bbox'])
+        if g < best_g:
+            best, best_g = t, g
+    if best is not None and best_g <= 80 and best.get('kind') in HUD_TEXT_KINDS:
+        return True, '邻近文字是读数字「%s」' % (best.get('text') or '')
+    return False, ''
+
+
+def score_candidate(c, ctx):
+    Wd, Hd, lum, sat = ctx['W'], ctx['H'], ctx['lum'], ctx['sat']
+    x0, y0, x1, y1 = c['bbox']
+    w, h = x1 - x0, y1 - y0
+    area = float(w * h)
+    aspect = w / float(max(1, h))
+    cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+
+    sub_l = lum[y0:y1, x0:x1]
+    sub_s = sat[y0:y1, x0:x1]
+    cand_l = float(sub_l.mean()) if sub_l.size else 0.0
+    cand_s = float(sub_s.mean()) if sub_s.size else 0.0
+    pad = int(max(6, min(40, 0.3 * min(w, h))))
+    bg_l, bg_s, bg_std = annulus_stats(lum, sat, c['bbox'], pad)
+
+    d_l = abs(cand_l - bg_l)
+    d_s = abs(cand_s - bg_s)
+    frame_l = ctx['frame_l']
+    d_lg = abs(cand_l - frame_l)
+    ring_con = None
+    if c['src'] == 'ring':
+        rl, ol = c['ev'].get('ring_L'), c['ev'].get('outside_L')
+        if rl is not None and ol is not None:
+            ring_con = abs(float(rl) - float(ol))
+    d_l_eff = max(d_l, (ring_con or 0.0) * 0.8)
+
+    c_local = min(1.0, d_l_eff / 50.0)
+    s_local = min(1.0, d_s / 0.35)
+    c_glob = min(1.0, d_lg / 80.0)
+    # 孤立度：周围越"花"，这块越不像"设计出来的交互位"（实测播放钮 10.3 vs 关闭钮 51.5）
+    isolation = max(0.0, min(1.0, 1.0 - bg_std / ISO_STD_FULL))
+    contrast = (0.55 * c_local + 0.30 * s_local + 0.15 * c_glob) * (ISO_FLOOR + (1 - ISO_FLOOR) * isolation)
+
+    region, region_area = region_area_for(cx, cy, ctx['regions'], Wd, Hd)
+    rho = (area / float(region_area)) ** 0.5
+    small = small_score(rho)
+
+    edge_cov = edge_coverage(lum, c['bbox'])
+    ring = ring_score(c, edge_cov, aspect)
+
+    has_label, text_gap, text_str = text_relation(c['bbox'], ctx['text'])
+    if has_label:
+        text_part = 1.0
+    elif text_gap <= TEXT_GAP_MAX:
+        text_part = 0.85
+    elif text_gap <= LABEL_GAP_MAX:
+        text_part = 0.60
+    elif text_gap <= 2 * LABEL_GAP_MAX:
+        text_part = 0.30
+    else:
+        text_part = 0.0
+
+    badge = 1.0 if c.get('badge') else 0.0
+
+    # 惩罚
+    tcov = text_cover(c['bbox'], ctx['text'])
+    pen_textbox = TEXTBOX_PENALTY if (tcov >= TEXT_COVER_TXBOX and not has_label) else 1.0
+    if c['src'] in ('action_text', 'badge_row'):
+        # 动作词是按钮标签；badge_row 是"挂着红点的那一行"——两者都不是"一片字"，
+        # 文字/红点的权重已经体现在 text / badge 分量里。
+        pen_textbox = 1.0
+    pen_line = LINE_PENALTY if aspect > LINE_ASPECT or aspect < 1.0 / LINE_ASPECT else 1.0
+    dim = dim_at(lum, cx, cy, w, h, ctx['dim_ref'])
+    pen_dim = 1.0 - DIM_WEIGHT * dim
+    # 画面主体：bbox 周长上没有"设计边" ⇒ 它是一条有机轮廓（3D 角色/怪物），不是画出来的控件。
+    # 被画面主体包住的部件不算控件（parent_scene 由 analyze() 传播进来）。
+    scene = max(0.0, min(1.0, (SCENE_EDGE_HI - edge_cov) / (SCENE_EDGE_HI - SCENE_EDGE_LO)))
+    scene = max(scene, 0.9 * float(c.get('parent_scene') or 0.0))
+    pen_scene = 1.0 - SCENE_WEIGHT * scene
+    pen_huge = HUGE_PENALTY if rho > HUGE_RHO else 1.0
+    ink = design_ink(lum, c['bbox'])
+    pen_ink = INK_FLOOR + (1.0 - INK_FLOOR) * max(
+        0.0, min(1.0, (ink - INK_LO) / (INK_HI - INK_LO)))
+    is_hud, hud_why = hud_like(cx, cy, c['bbox'], ctx['text'], ctx['occl'])
+    pen_hud = HUD_PENALTY if is_hud else 1.0
+
+    parts = {'badge': W['badge'] * badge, 'small': W['small'] * small,
+             'contrast': W['contrast'] * contrast, 'ring': W['ring'] * ring,
+             'text': W['text'] * text_part}
+    raw = sum(parts.values())
+    score = raw * pen_textbox * pen_line * pen_dim * pen_scene * pen_huge * pen_ink * pen_hud
+    score = max(0.0, min(1.0, score))
+
+    ev = {'src': c['src'], 'rho': round(rho, 4), 'region': region,
+          'region_area': int(region_area), 'area': int(area),
+          'cand_L': round(cand_l, 1), 'bg_L': round(bg_l, 1), 'dL': round(d_l, 1),
+          'frame_L': round(frame_l, 1), 'dL_global': round(d_lg, 1),
+          'dS': round(d_s, 3), 'bg_std': round(bg_std, 1),
+          'isolation': round(isolation, 3),
+          'edge_cov': round(edge_cov, 3), 'ink': round(ink, 3),
+          'ring_contrast': None if ring_con is None else round(ring_con, 1),
+          'text_cover': round(tcov, 3), 'label_inside': bool(has_label),
+          'text_gap': round(text_gap, 1) if text_gap < 1e8 else None,
+          'text': text_str, 'hud_why': hud_why}
+    penalties = {'textbox': round(pen_textbox, 3), 'line': round(pen_line, 3),
+                 'dim': round(pen_dim, 3), 'scene': round(pen_scene, 3),
+                 'huge': round(pen_huge, 3), 'ink': round(pen_ink, 3),
+                 'hud': round(pen_hud, 3)}
+    reasons = _reasons(parts, ev, penalties, ctx)
+    return {'cx': cx, 'cy': cy, 'w': w, 'h': h, 'bbox': [x0, y0, x1, y1],
+            'shape': c['shape'], 'score': round(score, 4),
+            'parts': {k: round(v, 4) for k, v in parts.items()},
+            'raw': round(raw, 4), 'evidence': ev, 'penalties': penalties,
+            'reasons': reasons, 'sources': c['sources'],
+            'screen_id': c.get('screen_id')}
+
+
+def _reasons(parts, ev, pen, ctx):
+    """理由明细：每条线索**给了多少分 + 底下是哪个数值**（人读的判据，不是形容词）。"""
+    r = []
+    if parts['badge'] > 0:
+        r.append('红点 badge +%.3f（控件右上角挂着红/橙圆标 ⇒ 这里有交付/待办）' % parts['badge'])
+    else:
+        r.append('红点 ✗ +0')
+    r.append('一小一大 %s +%.3f（ρ=%.2f%% = 候选 %dpx / %s %dpx）' % (
+        _grade(parts['small'] / W['small']), parts['small'], ev['rho'] * 100,
+        ev['area'], ev['region'], ev['region_area']))
+    r.append('颜色对比 %s +%.3f（局部 ΔL=%.1f / ΔS=%.2f；整体 ΔL=%.1f；孤立度=%.2f bg_std=%.1f）' % (
+        _grade(parts['contrast'] / W['contrast']), parts['contrast'],
+        ev['dL'], ev['dS'], ev['dL_global'], ev['isolation'], ev['bg_std']))
+    r.append('圆环/描边 %s +%.3f（src=%s%s；design_edge=%.2f）' % (
+        _grade(parts['ring'] / W['ring']), parts['ring'], ev['src'],
+        '' if ev['ring_contrast'] is None else ' ring_contrast=%.0f' % ev['ring_contrast'],
+        ev['edge_cov']))
+    r.append('邻近文字 %s +%.3f（%s）' % (
+        _grade(parts['text'] / W['text']), parts['text'],
+        ('内嵌标签「%s」' % ev['text']) if ev['label_inside']
+        else ('最近文字「%s」gap=%.0fpx' % (ev['text'], ev['text_gap'])
+              if ev['text_gap'] is not None else '附近没有文字')))
+    for k, why in (('textbox', '候选本身是一片字'), ('line', '细长条（分隔线/HUD 条）'),
+                   ('dim', '所在区域对比度被压平(压暗层/scrim)'),
+                   ('scene', 'bbox 周长没有设计边(像 3D 画面主体，不是画出来的控件)'),
+                   ('huge', 'ρ 过大(背景/整块面板)'),
+                   ('ink', '内部几乎没有脆的设计边(糊掉的渲染/背景，ink=%.3f)' % ev['ink']),
+                   ('hud', 'HUD/录屏叠加层 —— %s' % (ev['hud_why'] or '?',))):
+        if pen[k] < 1.0:
+            r.append('惩罚 %s ×%.2f（%s）' % (k, pen[k], why))
+    return r
+
+
+def _grade(x):
+    if x >= 0.80:
+        return '强'
+    if x >= 0.50:
+        return '中'
+    if x >= 0.20:
+        return '弱'
+    return '✗'
+
+
+# --------------------------------------------------------------------------- 主流程
+def run_screen(frame, screen_json=None, debug=False):
+    """跑 `ys-screen --json`（子进程；已有工具，不重写它的判据）。"""
+    if screen_json:
+        if not os.path.isfile(screen_json):
+            raise SystemExit(fail('NO-SCREEN-JSON', '--screen-json 指向可读 JSON',
+                                  'ENOENT %s' % os.path.abspath(screen_json), 4))
+        with open(screen_json, 'r', encoding='utf-8') as f:
+            return json.load(f), 'reused:%s' % screen_json
+    if not os.path.isfile(YS_SCREEN):
+        raise SystemExit(fail('NO-YS-SCREEN', '%s 可执行' % YS_SCREEN, 'ENOENT', 4))
+    fd, tmp = tempfile.mkstemp(prefix='ys-afford-', suffix='.json')
+    os.close(fd)
+    try:
+        cmd = [sys.executable, YS_SCREEN, frame, '--json-out', tmp]
+        p = subprocess.run(cmd, capture_output=True, text=True)
+        if p.returncode != 0:
+            sys.stderr.write(p.stderr or '')
+            raise SystemExit(fail('SCREEN-FAIL', 'ys-screen 退出码 0',
+                                  'rc=%d' % p.returncode, p.returncode or 4))
+        with open(tmp, 'r', encoding='utf-8') as f:
+            res = json.load(f)
+    finally:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+    if debug:
+        sys.stderr.write('[ys-afford] ys-screen ok: controls=%d text=%d\n' % (
+            len(res.get('controls', [])), len(res.get('text', []))))
+    return res, 'subprocess'
+
+
+def analyze(frame, top=3, screen_json=None, debug=False):
+    t0 = time.time()
+    res, src = run_screen(frame, screen_json, debug)
+    arr, lum, sat, val, hue = load_frame(frame)
+    Hd, Wd = lum.shape
+    if res.get('frame', {}).get('w') and (
+            res['frame']['w'] != Wd or res['frame']['h'] != Hd):
+        raise SystemExit(fail('SIZE-MISMATCH', '%dx%d' % (res['frame']['w'], res['frame']['h']),
+                              '%dx%d' % (Wd, Hd), 4))
+
+    text = res.get('text', [])
+    regions = res.get('regions', [])
+    badges = cand_from_badge(lum, sat, val, hue)
+    ctx = {'W': Wd, 'H': Hd, 'lum': lum, 'sat': sat, 'text': text, 'regions': regions,
+           'occl': res.get('occlusion', []),
+           'frame_l': float(lum.mean())}
+    ctx['dim_ref'] = dim_ref(lum)
+
+    # 注意：红点**本身不当候选**。红点是"这里有待办"的信号，不是点击目标——
+    # 让它参与排名会挤掉真正的按钮（实测 claim-before 三个红点占了 top-3，
+    # 把 5 个【领取】全挤到第 4 名以后）。它只做两件事：
+    #   ① 贴到它标的控件/文本上，把 0.30 权重加给那个候选；
+    #   ② 贴不上也照样进 badges[]，当作"这屏有待交付"的证据。
+    cands = cand_from_screen(res) + cand_from_solid(arr, lum, sat, val) \
+        + cand_from_action_text(res)
+    cands = merge(cands, Wd, Hd, debug=debug)
+    # 边界精修：候选边界带 1~10px 误差（投影/晕边），先吸到最近的强台阶再量特征
+    snapped = 0
+    for c in cands:
+        nb, moved = snap_bbox(lum, c['bbox'])
+        if moved:
+            c['bbox_raw'] = list(c['bbox'])
+            c['bbox'] = nb
+            snapped += 1
+    if debug:
+        sys.stderr.write('[ys-afford] bbox snapped %d/%d\n' % (snapped, len(cands)))
+
+    # badge 归属：先贴到"控件右上角"，贴不上再贴到最近的动作词/文本（红点标的是那一行）
+    badge_out = []
+    for b in badges:
+        attach, why, txt = _attach_badge(b, cands, text)
+        if attach is None and txt is not None:
+            # 红点贴不上控件时，它标的是"那一行"——把那一行做成候选（label 版控件）
+            bb = [int(v) for v in txt['bbox']]
+            px, py = max(6, (bb[2] - bb[0]) // 6), max(4, (bb[3] - bb[1]) // 2)
+            attach = {'bbox': [bb[0] - px, bb[1] - py, bb[2] + px, bb[3] + py],
+                      'shape': 'rect', 'src': 'badge_row', 'ev': {},
+                      'sources': ['badge_row:%s' % (txt.get('text') or '')],
+                      'screen_id': None}
+            cands.append(attach)
+        acx = acy = None
+        if attach is not None:
+            acx = (attach['bbox'][0] + attach['bbox'][2]) // 2
+            acy = (attach['bbox'][1] + attach['bbox'][3]) // 2
+            attach['badge'] = True
+        badge_out.append({'cx': b['cx'], 'cy': b['cy'], 'w': b['w'], 'h': b['h'],
+                          'bbox': b['bbox'], 'role': why, 'ring_s': b.get('ring_s'),
+                          'attach': None if attach is None else
+                          {'cx': acx, 'cy': acy, 'sources': attach['sources']}})
+
+    # 「部件不是控件」：被一个更大的**有机轮廓**（edge_cov 低 = 3D 主体）包住 ⇒ 继承 scene 惩罚
+    organic = []
+    for c in cands:
+        b = c['bbox']
+        if (b[2] - b[0]) * (b[3] - b[1]) >= ORGANIC_MIN_AREA:
+            ec = edge_coverage(lum, b)
+            if ec < ORGANIC_EDGE_COV:
+                organic.append((c, ec))
+    if organic and debug:
+        sys.stderr.write('[ys-afford] organic parents=%d\n' % len(organic))
+    for c in cands:
+        x0, y0, x1, y1 = c['bbox']
+        area = float((x1 - x0) * (y1 - y0))
+        cx0, cy0 = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+        for p, ec in organic:
+            if p is c:
+                continue
+            px0, py0, px1, py1 = p['bbox']
+            parea = float((px1 - px0) * (py1 - py0))
+            if parea < 3.0 * area:
+                continue
+            if not (px0 <= cx0 <= px1 and py0 <= cy0 <= py1):
+                continue
+            c['parent_scene'] = max(c.get('parent_scene', 0.0),
+                                    (SCENE_EDGE_HI - ec) / (SCENE_EDGE_HI - SCENE_EDGE_LO))
+            c['parent'] = {'bbox': p['bbox'], 'edge_cov': round(ec, 3)}
+
+    scored = [score_candidate(c, ctx) for c in cands]
+    scored.sort(key=lambda s: (-s['score'], s['cy'], s['cx']))
+    for i, s in enumerate(scored, start=1):
+        s['rank'] = i
+    elapsed = int((time.time() - t0) * 1000)
+
+    out = {
+        'schema': SCHEMA,
+        'frame': {'path': os.path.abspath(frame), 'sha256': _sha256(frame),
+                  'w': Wd, 'h': Hd, 'bytes': os.path.getsize(frame)},
+        'weights': W,
+        'screen': {'source': src, 'controls': len(res.get('controls', [])),
+                   'text': len(text), 'regions': regions},
+        'badges': badge_out,
+        'candidates': scored,
+        'top': scored[:max(1, top)],
+        'timing': {'total_ms': elapsed,
+                   'screen_ms': (res.get('timing') or {}).get('total_ms')},
+        'notes': '分数 = 0.30·红点 + 0.24·一小一大 + 0.20·颜色对比 + 0.16·圆环/描边 '
+                 '+ 0.10·邻近文字，再乘惩罚（textbox/line/dim/scene/huge）；'
+                 '每个候选的 evidence + parts + reasons 可逐条复算。',
+    }
+    if debug:
+        _debug_table(out)
+    return out
+
+
+def _attach_badge(b, cands, text):
+    """红点归属：它标的是"哪个东西"。
+
+    ① 控件右上角：红点中心落在候选框外扩 0.45·min(w,h) 的范围里，且靠近右上角
+       （实测「判测胜券本征」图标 52×52，红点 26×26 压在它右上 8px）；
+    ② 贴不上控件就贴文本：红点标的是那一行条目（实测「砺行修远」的红点在字上沿）。
+    ③ 都贴不上 → role=free（红点自己是一处"有交付"的信号，不当成点击目标）。
+    """
+    best, best_d = None, 1e9
+    for c in cands:
+        if c.get('from_badge'):
+            continue                     # 红点不贴自己（自贴会让红点自己爬到榜首）
+        x0, y0, x1, y1 = c['bbox']
+        m = 0.45 * min(x1 - x0, y1 - y0) + 6
+        if x0 - m <= b['cx'] <= x1 + m and y0 - m <= b['cy'] <= y1 + m:
+            # 越靠近右上角越好
+            d = abs(b['cx'] - (x1 - 0.25 * (x1 - x0))) + abs(b['cy'] - y0)
+            if d < best_d:
+                best, best_d = c, d
+    if best is not None:
+        return best, 'control', None
+    best, best_d = None, 1e9
+    for t in text:
+        if t.get('kind') in HUD_TEXT_KINDS:
+            continue                     # 读数字不是条目名
+        g = gap_to_box(b['bbox'], t['bbox'])
+        if g < best_d and g <= BADGE_TEXT_GAP_MAX:
+            best, best_d = t, g
+    if best is not None:
+        return None, 'text:%s' % (best.get('text') or ''), best
+    return None, 'free', None
+
+
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _debug_table(out):
+    sys.stderr.write('[ys-afford] %s  badges=%d  cands=%d\n' % (
+        os.path.basename(out['frame']['path']), len(out['badges']),
+        len(out['candidates'])))
+    sys.stderr.write('  %-4s %-6s %-7s %-15s %-6s %-6s %-6s %-6s %-6s %-6s %s\n' % (
+        'rank', 'score', 'shape', 'center', 'badge', 'small', 'contr', 'ring', 'text',
+        'pen', 'src'))
+    for s in out['candidates'][:N_DEBUG_ROWS]:
+        pen = '×'.join('%.2f' % v for v in s['penalties'].values() if v < 1.0) or '-'
+        sys.stderr.write('  %-4d %-6.3f %-7s %-15s %-6.2f %-6.2f %-6.2f %-6.2f %-6.2f %-6s %s\n' % (
+            s['rank'], s['score'], s['shape'], '(%d,%d)' % (s['cx'], s['cy']),
+            s['parts']['badge'] / W['badge'], s['parts']['small'] / W['small'],
+            s['parts']['contrast'] / W['contrast'], s['parts']['ring'] / W['ring'],
+            s['parts']['text'] / W['text'], pen, ','.join(s['sources'])))
+
+
+def render(out, top):
+    """人读摘要：一句话 + top-N 逐条理由明细。"""
+    L = []
+    f = out['frame']
+    L.append('ys-afford %s  %dx%d  候选 %d  红点 %d  %dms（ys-screen %s）' % (
+        os.path.basename(f['path']), f['w'], f['h'], len(out['candidates']),
+        len(out['badges']), out['timing']['total_ms'], out['screen']['source']))
+    L.append('  权重: 红点 .30 | 一小一大 .24 | 颜色对比 .20 | 圆环 .16 | 邻近文字 .10')
+    if out['badges']:
+        L.append('  红点（待办信号）: ' + ' | '.join(
+            '(%d,%d) %dx%d → %s' % (b['cx'], b['cy'], b['w'], b['h'],
+                                    ('贴到控件 (%d,%d)' % (b['attach']['cx'], b['attach']['cy']))
+                                    if b['attach'] else b['role'])
+            for b in out['badges'][:6]))
+    for s in out['top'][:top]:
+        L.append('')
+        L.append('#%d  score=%.3f  (%d,%d) %dx%d  %s  来源=%s' % (
+            s['rank'], s['score'], s['cx'], s['cy'], s['w'], s['h'], s['shape'],
+            ','.join(s['sources'])))
+        L.append('    ' + ' + '.join('%s=%.3f' % (k, v) for k, v in s['parts'].items())
+                 + '  → raw=%.3f' % s['raw'])
+        for r in s['reasons']:
+            L.append('    · ' + r)
+    tail = [s for s in out['candidates'][top:top + 3]]
+    if tail:
+        L.append('')
+        L.append('  次优: ' + ' | '.join('%.3f (%d,%d) %s' % (
+            s['score'], s['cx'], s['cy'], s['shape']) for s in tail))
+    return '\n'.join(L)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description='可点性打分：红点/一小一大/颜色对比/圆环/邻近文字 → 0..1 分 + top-N')
+    ap.add_argument('frame', help='帧 PNG 路径（离线只读，不碰屏幕）')
+    ap.add_argument('--json', action='store_true', help='stdout 输出 JSON')
+    ap.add_argument('--json-out', default=None, help='JSON 另存到指定路径')
+    ap.add_argument('--top', type=int, default=3, help='输出 top-N（缺省 3）')
+    ap.add_argument('--screen-json', default=None, help='复用已算好的 ys-screen JSON（省 OCR）')
+    ap.add_argument('--debug', action='store_true', help='候选/特征表打到 stderr')
+    a = ap.parse_args(argv)
+
+    if a.top < 1:
+        return fail('BAD-TOP', '--top >= 1', '--top=%d' % a.top, 2)
+    if not os.path.isfile(a.frame):
+        return fail('NO-FRAME', '可读 PNG 路径', 'ENOENT %s' % os.path.abspath(a.frame), 3)
+    try:
+        out = analyze(a.frame, top=a.top, screen_json=a.screen_json, debug=a.debug)
+    except OSError as exc:
+        return fail('FRAME-UNREADABLE', '可解码的 PNG', str(exc), 3)
+
+    if a.json_out:
+        with open(a.json_out, 'w', encoding='utf-8') as f:
+            json.dump(out, f, ensure_ascii=False, indent=1)
+    if a.json:
+        print(json.dumps(out, ensure_ascii=False))
+    else:
+        print(render(out, a.top))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

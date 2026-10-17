@@ -1,0 +1,1050 @@
+#!/usr/bin/env python3
+"""ys-watch — ROI 变化监听：把「两帧之间的差别」变成**具体的变化事件**（文字/颜色/数值/时间）。
+
+为什么需要它（2026-10-18 实证，账本 F-3-02）：
+用户原话：「我们缺少对文字、颜色、时间等元素变化的敏感。可能因为抓不住变化而错过一些动态的证据」。
+当时操盘活动：战报逐场结算（`预测成功 / 评分倍率 / 7秒后继续`）、预测评分 `5200→15070`、
+领奖按钮 `领取→消失`、倒计时 `00:42`——全靠人**每隔几秒手动抓一帧**，
+结果只有第一档领奖留下了变化证据，后 5 档只剩终态。缺的不是截图，是**「变化」这个事件级产物**。
+
+它输出什么（不是"有变化/没变化"一句话）：
+  text_added / text_removed  增删的**具体文字**（含坐标、OCR 置信度、出现次数）
+  text_changed               同一位上的文字变了（`领取 → 已领取`），带相似度与"疑似 OCR 变体"标记
+  color_delta                ROI 内**变化像素占比 + 平均 Δ**（口径见下，可复现 69.8% / Δ91）
+  number_changed             数字槽位的值变化（评分 5200→15070、数量、倒计时秒数）
+  time_changed               `mm:ss` 形态的时间变化（00:42 → 00:31）
+  NO-CHANGE                  无任何事件时明确说出来，并附两帧 sha256
+
+**禁止整帧帧差**：活动页背景有动效（实测全屏 30 万像素变化），整帧比较会把信号淹掉。
+所以默认要求 `--roi`；没给就扫砖块（`--auto-roi`）把变化**定位**到区域再比，
+或者显式用 `--full-frame` 承担"整帧口径"的噪声并接受警告。
+
+实测口径（2026-10-18，帧 `claim-before.png`/`claim-after.png`，ROI 1650,400,300,220）：
+  变化像素占比 = 逐通道平均 |Δ| > px_thr（缺省 10）的像素比例 = **69.84%**
+  平均 Δ       = 每像素 RGB 三通道 |Δ| 之和的均值（0..765 口径）= **91.79**（逐通道均值 30.60）
+  这两个数与账本里记的「该区 69.8% 像素 Δ 平均 91」逐位吻合——**同一把尺子，不是新发明的度量**。
+
+用法（离线优先，**自己不抓屏、不碰桌面**）:
+  tools/ys-watch --frames a.png b.png [--roi x,y,w,h] [--json]
+  tools/ys-watch a.png b.png c.png --roi 1650,400,300,220          # 多帧 = 相邻两两比较
+  tools/ys-watch --frames a.png b.png --auto-roi                   # 不知道变在哪：先扫砖块再比
+  tools/ys-watch --frames a.png b.png --full-frame                 # 确实要整帧：显式承担噪声
+  tools/ys-watch --frames a.png b.png --roi 1650,400,300,220 --no-ocr   # 只做颜色层（~0.2s）
+  tools/ys-watch --frames a.png b.png c.png --roi r0 --roi r1      # 多帧多 ROI：一对象一块
+
+**三种比较范围（必须选一种，缺一即报错）**：`--roi x,y,w,h`（推荐）/ `--auto-roi`（先定位）/
+`--full-frame`（显式整帧，带警告）。整帧帧差不会被默认值悄悄做了——这条纪律由默认值兜住，
+而不是靠文档请求。多块 `--roi` 必须与帧对数一一对应，数量不符直接报错（不静默忽略）。
+  tools/ys-watch --live 5 --capture-cmd "tools/ys-editor/ys-shot {out}" --roi 1650,400,300,220
+       ↑ 活体采样：**抓帧由 `--capture-cmd` 负责**（应由 ys-gui-slot 占槽后调用），
+         本工具只消费帧并产出事件流，所以离线就能把整条采样链测通。
+
+输出：默认人读（每个 pair 一行 verdict + 事件明细）；`--json` 给单个 JSON 文档（逐事件）；
+      `--live` + `--json` 给 NDJSON（每帧一对一行，最后一行 summary）。
+
+退出码：0 分析完成（变/没变都算完成） / 2 用法错 / 3 帧或 ROI 不可用 /
+        4 OCR 后端缺失（fail-closed，需要文字事件时） / 5 OCR 运行失败或输出不可解析。
+每个失败都打一行可 grep 的 token（契约 §3ter）：WATCH-USAGE-ERROR / WATCH-FRAME-UNREADABLE /
+WATCH-ROI-INVALID / WATCH-OCR-MISSING / WATCH-OCR-FAIL。
+
+依赖：只用 numpy + PIL（仓库已有）；OCR 走 `tools/ys-editor/ys_ocr.py ocr --json` 子进程
+     （rapidocr venv，可用环境变量 YS_RAPIDOCR_PY 覆盖）。零新增依赖。
+缓存：内容寻址 `.gsts/ys-watch-cache/`（键 = 帧 sha256 + ROI + 后端签名），可用
+     YS_WATCH_CACHE_DIR 覆盖、`--no-cache` 强制真跑。
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+YS = os.path.join(HERE, 'ys-editor')
+OCR_PY = os.path.join(YS, 'ys_ocr.py')
+RAPIDOCR_PY = os.environ.get(
+    'YS_RAPIDOCR_PY',
+    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+CACHE_DIR = os.environ.get('YS_WATCH_CACHE_DIR', os.path.join(HERE, '..', '.gsts', 'ys-watch-cache'))
+CACHE_MAX = 128
+
+SCHEMA = 'ys-watch/1'
+
+# ---- 像素层缺省口径（与账本 F-3-02 的实测读数同尺） --------------------------------
+PX_THR = 10.0          # 变化像素判据：逐通道平均 |Δ| > 10（≡ 三通道 |Δ| 之和 > 30）
+COLOR_THR = 0.5        # 变化像素占比达到多少才算一条 color_delta **事件**（百分比）
+AUTO_GRID = (16, 9)    # --auto-roi 的砖块网格
+AUTO_RATIO = 0.25      # 邻砖并入判据：砖块均 Δ ≥ 0.25×最大砖块
+AUTO_PAD = 8           # 自动 ROI 外扩像素（避免把文字边沿切掉）
+
+# ---- 文字层缺省口径 ---------------------------------------------------------------
+MIN_SCORE = 0.5        # OCR 置信度下限（低于此视为噪声；实测真标签 ≥0.94，噪声 0.6~0.87）
+PAIR_RADIUS = 60       # 同一位配对的中心距上限（像素）
+TEXT_RATIO = 0.5       # 文字相似度下限：达到才配成 text_changed（领取→已领取 = 0.80）
+VARIANT_RATIO = 0.75   # ≥ 此相似度且等长、同名位置 ≥70% 相同 ⇒ 疑似 OCR 变体（不是真变化）
+
+# HUD 噪声：DXVK/FPS/GPU/耗时 四类叠加层每帧都在抖，且与界面语义无关（≈ 文字版"背景动效"）。
+# 只滤"整条 token 匹配"的行；`--no-default-ignore` 可关掉，`--ignore-re` 可追加。
+DEFAULT_IGNORE = (
+    r'^DXVK',
+    r'^GPU',
+    r'^FPS',
+    r'(?i)\d+(?:\.\d+)?\s*ms$',
+    r'^UID[:\s]',
+)
+
+TIME_RE = re.compile(r'(?<!\d)(\d{1,2}:\d{2}(?::\d{2})?)(?!\d)')
+NUM_RE = re.compile(r'(?<![\d.])(\d{1,3}(?:[,\s]\d{3})+|\d+(?:\.\d+)?)(?![\d])')
+ALPHA_RE = re.compile(r'[A-Za-z]')
+CJK_RE = re.compile(r'[\u4e00-\u9fff]')
+NUM_IDENT_ALPHA = 3    # 去掉数字后 ASCII 字母数 ≥3 ⇒ 视为标识串（DXVK/FPS/UID），不当数值槽
+HUD_LINE_DY = 14       # OCR 会把 `FPS:60.3` 切成 `FPS:`+`60.3` 两个 box：**同一 HUD 行** 上
+HUD_LINE_DX = 100      # 贴着被忽略标签的数值残片一并忽略。实测 label 中心 x≈30、数值中心
+                       # x≈79~91（HUD 数值右对齐），所以按"同一行 + 右侧 100px 内"判，而不按圆圈半径：
+                       # 只按整条 token 匹配正则时，60.3 / 8% / v3.0 会当成真数值变化漏出去。
+KIND_ORDER = ('color_delta', 'time_changed', 'number_changed', 'text_changed',
+              'text_removed', 'text_added')   # 事件输出顺序（语义重要度 → 原始清单）
+
+
+def eprint(*a):
+    sys.stderr.write(' '.join(str(x) for x in a) + '\n')
+
+
+# --------------------------------------------------------------------------- 基础
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for blk in iter(lambda: f.read(1 << 20), b''):
+            h.update(blk)
+    return h.hexdigest()
+
+
+def backend_sig():
+    """OCR 后端签名：venv 换了 ⇒ 缓存自动失效。"""
+    try:
+        st = os.stat(RAPIDOCR_PY)
+        return '%s|%d|%d' % (os.path.abspath(RAPIDOCR_PY), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return 'missing'
+
+
+def backend_ok():
+    return os.path.exists(RAPIDOCR_PY), os.path.abspath(RAPIDOCR_PY)
+
+
+def load_rgb(path):
+    """读帧 → (H,W,3) int16。读不出抛 OSError/ValueError（调用方翻译成 WATCH-FRAME-UNREADABLE）。"""
+    import numpy as np
+    from PIL import Image
+    with Image.open(path) as im:
+        im = im.convert('RGB')
+        return np.asarray(im, dtype=np.int16), (im.width, im.height)
+
+
+def parse_roi(s):
+    """'x,y,w,h' → dict；格式错由调用方翻成 WATCH-ROI-INVALID。"""
+    parts = [p.strip() for p in s.replace('x', ',').split(',') if p.strip()]
+    if len(parts) != 4:
+        raise ValueError('%r 不是 x,y,w,h 四段' % s)
+    x, y, w, h = (int(float(p)) for p in parts)
+    if w <= 0 or h <= 0 or x < 0 or y < 0:
+        raise ValueError('宽高必须 >0 且坐标 ≥0（实测 %r）' % s)
+    return {'x': x, 'y': y, 'w': w, 'h': h}
+
+
+def clamp_roi(roi, size):
+    fw, fh = size
+    x0 = max(0, min(roi['x'], fw - 1))
+    y0 = max(0, min(roi['y'], fh - 1))
+    x1 = max(x0 + 1, min(roi['x'] + roi['w'], fw))
+    y1 = max(y0 + 1, min(roi['y'] + roi['h'], fh))
+    return {'x': x0, 'y': y0, 'w': x1 - x0, 'h': y1 - y0}
+
+
+# --------------------------------------------------------------------------- 像素层
+def color_stats(ra, rb, px_thr):
+    """ROI 颜色变化口径（与账本实测同尺）。
+
+    ra/rb = ROI 切片 (h,w,3) int16。返回 dict：
+      pixels_changed_pct  逐通道平均 |Δ| > px_thr 的像素占比（%，实测 69.84%）
+      mean_delta          每像素 RGB |Δ| 之和的均值（0..765，实测 91.79）
+      mean_delta_per_channel  逐通道平均 |Δ|（0..255，实测 30.60）
+    """
+    import numpy as np
+    absd = np.abs(ra - rb)
+    l1 = absd.sum(axis=2, dtype=np.int32)
+    per_ch = absd.mean(axis=2)
+    changed = per_ch > px_thr
+    total = int(changed.size)
+    n = int(changed.sum())
+    return {
+        'pixels_changed': n,
+        'pixels_total': total,
+        'pixels_changed_pct': round(100.0 * n / total, 2) if total else 0.0,
+        'mean_delta': round(float(l1.mean()), 2) if total else 0.0,
+        'mean_delta_per_channel': round(float(per_ch.mean()), 2) if total else 0.0,
+        'max_delta': int(l1.max()) if total else 0,
+        'px_thr': px_thr,
+        'mean_rgb_before': [int(round(v)) for v in ra.reshape(-1, 3).mean(axis=0)],
+        'mean_rgb_after': [int(round(v)) for v in rb.reshape(-1, 3).mean(axis=0)],
+    }
+
+
+def tile_scan(ra, rb, grid):
+    """砖块扫描：变化落在哪一块？返回 (roi, tiles, grid_used)。
+
+    目的不是"更好看"，而是**避免整帧帧差**：先把变化定位到小区域，再在该 ROI 内做量测，
+    这样背景动效（大面积低幅度抖动）不会稀释真正变化的占比。
+    """
+    import numpy as np
+    gx, gy = max(1, grid[0]), max(1, grid[1])
+    h, w = ra.shape[0], ra.shape[1]
+    th, tw = max(1, h // gy), max(1, w // gx)
+    hh, ww = th * gy, tw * gx
+    l1 = np.abs(ra[:hh, :ww] - rb[:hh, :ww]).sum(axis=2, dtype=np.int32).astype(np.float64)
+    per_ch = np.abs(ra[:hh, :ww] - rb[:hh, :ww]).mean(axis=2)
+    tiles_mean = l1.reshape(gy, th, gx, tw).mean(axis=(1, 3))
+    tiles_pct = (per_ch > PX_THR).reshape(gy, th, gx, tw).mean(axis=(1, 3)) * 100.0
+    k = int(np.argmax(tiles_mean))
+    by, bx = divmod(k, gx)
+    best = float(tiles_mean[by, bx])
+    if best <= 0:
+        return None, [], [gx, gy]
+    y0, y1 = by, by
+    x0, x1 = bx, bx
+    thr = best * AUTO_RATIO
+    # 邻砖并入（3x3 范围），得到一个把边缘包住的矩形
+    for yy in range(max(0, by - 1), min(gy, by + 2)):
+        for xx in range(max(0, bx - 1), min(gx, bx + 2)):
+            if tiles_mean[yy, xx] >= thr:
+                y0, y1 = min(y0, yy), max(y1, yy)
+                x0, x1 = min(x0, xx), max(x1, xx)
+    x_px0 = max(0, x0 * tw - AUTO_PAD)
+    y_px0 = max(0, y0 * th - AUTO_PAD)
+    x_px1 = min(w, (x1 + 1) * tw + AUTO_PAD)
+    y_px1 = min(h, (y1 + 1) * th + AUTO_PAD)
+    top = []
+    order = np.dstack(np.unravel_index(np.argsort(-tiles_mean, axis=None), tiles_mean.shape))[0]
+    for yy, xx in order[:3]:
+        top.append({'bbox': [int(xx * tw), int(yy * th), int((xx + 1) * tw), int((yy + 1) * th)],
+                    'mean_delta': round(float(tiles_mean[yy, xx]), 2),
+                    'pixels_changed_pct': round(float(tiles_pct[yy, xx]), 2)})
+    return ({'x': int(x_px0), 'y': int(y_px0), 'w': int(x_px1 - x_px0), 'h': int(y_px1 - y_px0)},
+            top, [gx, gy])
+
+
+# --------------------------------------------------------------------------- 文字层
+def ocr_boxes(frame_path, frame_sha, roi, key_extra, use_cache=True, debug=False):
+    """对 ROI 裁区做 OCR。返回 (boxes, meta)；boxes 是**全帧绝对坐标**。
+
+    fail-closed：后端缺/OCR 跑失败都返回 err（绝不返回空列表冒充"这块没字"）。
+    """
+    from PIL import Image
+    tmp = tempfile.mkdtemp(prefix='ys-watch-ocr-')
+    try:
+        if roi is None:
+            src = frame_path
+        else:
+            crop = os.path.join(tmp, 'roi.png')
+            with Image.open(frame_path) as im:
+                im.convert('RGB').crop((roi['x'], roi['y'],
+                                        roi['x'] + roi['w'], roi['y'] + roi['h'])).save(crop)
+            src = crop
+        key = hashlib.sha256(('%s|%s|%s|%s' % (
+            frame_sha, json.dumps(roi, sort_keys=True), backend_sig(), key_extra)
+        ).encode()).hexdigest()
+        cpath = os.path.join(CACHE_DIR, key + '.json') if use_cache else None
+        if cpath and os.path.exists(cpath):
+            try:
+                with open(cpath, encoding='utf-8') as f:
+                    c = json.load(f)
+                if c.get('backend') == backend_sig() and isinstance(c.get('boxes'), list):
+                    return _abs_boxes(c['boxes'], roi), {
+                        'source': 'cache', 'ms': int(c.get('ms') or 0),
+                        'n_total': int(c.get('n_total') or 0), 'err': None}
+            except (OSError, ValueError):
+                pass
+        ok, py = backend_ok()
+        if not ok:
+            return None, {'source': 'nobackend', 'ms': 0, 'n_total': 0,
+                          'err': 'RapidOCR venv 缺失：%s（可设 YS_RAPIDOCR_PY；或 --no-ocr）' % py}
+        cmd = [py, OCR_PY, 'ocr', src, '--json']
+        if debug:
+            eprint('[ys-watch] OCR:', ' '.join(cmd))
+        t0 = time.time()
+        try:
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return None, {'source': 'error', 'ms': int((time.time() - t0) * 1000),
+                          'n_total': 0, 'err': 'OCR 子进程无法执行/超时：%s' % exc}
+        ms = int((time.time() - t0) * 1000)
+        if p.returncode != 0:
+            return None, {'source': 'error', 'ms': ms, 'n_total': 0,
+                          'err': 'OCR 子进程 rc=%d：%s' % (p.returncode,
+                                                          (p.stderr or p.stdout)[-400:])}
+        try:
+            d = json.loads(p.stdout)
+        except ValueError as exc:
+            return None, {'source': 'error', 'ms': ms, 'n_total': 0,
+                          'err': 'OCR 输出不可解析：%s；首 200 字节=%r' % (exc, p.stdout[:200])}
+        boxes = d.get('boxes') or []
+        n_total = int(d.get('n_total') or 0)
+        if cpath:
+            try:
+                os.makedirs(CACHE_DIR, exist_ok=True)
+                tmpf = '%s.tmp%d' % (cpath, os.getpid())
+                with open(tmpf, 'w', encoding='utf-8') as f:
+                    json.dump({'backend': backend_sig(), 'roi': roi, 'boxes': boxes,
+                               'n_total': n_total, 'ms': int(d.get('ms') or 0),
+                               'frame': os.path.abspath(frame_path)}, f, ensure_ascii=False)
+                os.replace(tmpf, cpath)
+                _prune_cache()
+            except OSError:
+                pass
+        return _abs_boxes(boxes, roi), {
+            'source': 'run', 'ms': int(d.get('ms') or ms), 'n_total': n_total, 'err': None}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _abs_boxes(boxes, roi):
+    """ROI 局部坐标 → 全帧绝对坐标（下游要能直接拿坐标去点/去裁）。"""
+    if roi is None:
+        return [dict(b) for b in boxes]
+    out = []
+    for b in boxes:
+        nb = dict(b)
+        nb['cx'] = int(b['cx']) + roi['x']
+        nb['cy'] = int(b['cy']) + roi['y']
+        nb['box'] = [[int(x) + roi['x'], int(y) + roi['y']] for x, y in b['box']]
+        out.append(nb)
+    return out
+
+
+def _prune_cache():
+    try:
+        fs = [(os.path.getmtime(os.path.join(CACHE_DIR, n)), os.path.join(CACHE_DIR, n))
+              for n in os.listdir(CACHE_DIR) if n.endswith('.json')]
+        for _, p in sorted(fs)[:max(0, len(fs) - CACHE_MAX)]:
+            os.unlink(p)
+    except OSError:
+        pass
+
+
+def bbox_of(box):
+    xs = [p[0] for p in box]
+    ys = [p[1] for p in box]
+    return [int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))]
+
+
+def extract_times(text):
+    return TIME_RE.findall(text)
+
+
+def extract_numbers(text):
+    """数值抽取（时间串已剔除，避免同一 token 既报 time 又报 number）。"""
+    stripped = TIME_RE.sub(' ', text)
+    return NUM_RE.findall(stripped)
+
+
+def is_numeric_slot(text):
+    """该 token 能不能当**数值槽**：有数字，且去掉数字后剩下的标识字母 <3（DXVK/FPS/UID 不算）。
+
+    `预测评分达到6000`（标识字母 0）⇒ 是；`FPS:60.3`（3）⇒ 不是；`7秒后继续`（0）⇒ 是。
+    """
+    nums = extract_numbers(text)
+    if not nums:
+        return False
+    rest = NUM_RE.sub('', TIME_RE.sub(' ', text))
+    return len(ALPHA_RE.findall(rest)) < NUM_IDENT_ALPHA
+
+
+def is_time_slot(text):
+    return bool(extract_times(text))
+
+
+def norm_text(s):
+    return re.sub(r'\s+', '', s).strip()
+
+
+def ratio_of(a, b):
+    import difflib
+    return round(difflib.SequenceMatcher(None, norm_text(a), norm_text(b)).ratio(), 3)
+
+
+def variant_suspect(a, b, ratio):
+    """疑似 OCR 变体：等长、同名位置 ≥70%、且都是多字 CJK —— 这不是 UI 变化，是识别抖动。
+
+    实测：`未参与本轮预测` ↔ `天参与本轮预测`（同一位置，只差首字）。仍**照实输出**，
+    只打标记，不吞掉证据（吞掉的代价比噪声大）。
+    """
+    a2, b2 = norm_text(a), norm_text(b)
+    if ratio < VARIANT_RATIO or len(a2) != len(b2) or len(a2) < 3:
+        return False
+    same = sum(1 for x, y in zip(a2, b2) if x == y)
+    cjk = len(CJK_RE.findall(a2))
+    return same / float(len(a2)) >= 0.7 and cjk >= 2
+
+
+def build_slots(boxes, min_score, ignore_res, keep_junk=False, hud_adjacent=True):
+    """OCR boxes → 槽位列表；返回 (slots, ignored)。
+
+    junk 判据：**单字且置信度 <0.9** 视为识别残渣（实测 UI 上的单字按钮 X=0.963、中=1.000
+    都能留下，而装饰纹样误读出的 `窗`(0.824) 会被挡掉）。`--keep-junk` 可关掉这条。
+    """
+    slots, ignored = [], []
+    for b in boxes:
+        text = (b.get('text') or '').strip()
+        if not text:
+            continue
+        score = float(b.get('score') or 0.0)
+        if score < min_score:
+            ignored.append({'text': text, 'why': 'score<%.2f' % min_score})
+            continue
+        if not keep_junk and len(norm_text(text)) == 1 and score < 0.9:
+            ignored.append({'text': text, 'why': 'single-char-low-score'})
+            continue
+        if any(r.search(text) for r in ignore_res):
+            ignored.append({'text': text, 'why': 'ignore-re',
+                             'box': [int(b['cx']), int(b['cy'])]})
+            continue
+        slots.append({
+            'text': text, 'cx': int(b['cx']), 'cy': int(b['cy']),
+            'bbox': bbox_of(b['box']), 'score': round(float(b.get('score') or 0.0), 4),
+            'numbers': extract_numbers(text), 'times': extract_times(text),
+        })
+    # OCR 行切分留下的数值残片：`FPS:60.3` 被识别成 `FPS:` + `60.3` 两个 box，
+    # 只按整条 token 匹配正则时 `60.3`（和 `GPU:8%` 的 `8%`）会当成真数值变化。
+    # 判据：数值型 token 且与被正则忽略的 token 中心距 ≤ HUD_ADJACENT_PX ⇒ 一并忽略。
+    hud = [i for i in ignored if i.get('why') == 'ignore-re' and i.get('box')]
+    if hud_adjacent and hud:
+        keep = []
+        for sl in slots:
+            near = [h for h in hud if abs(sl['cy'] - h['box'][1]) <= HUD_LINE_DY and
+                    -20 <= (sl['cx'] - h['box'][0]) <= HUD_LINE_DX]
+            if near and (is_numeric_slot(sl['text']) or sl['times']):
+                ignored.append({'text': sl['text'], 'why': 'hud-adjacent'})
+            else:
+                keep.append(sl)
+        slots = keep
+    slots.sort(key=lambda s: (s['cy'], s['cx']))
+    return slots, ignored
+
+
+def dist(a, b):
+    return ((a['cx'] - b['cx']) ** 2 + (a['cy'] - b['cy']) ** 2) ** 0.5
+
+
+def match_slots(sa, sb, pair_radius, text_ratio):
+    """两帧槽位配对：先"同字就近"精确配对，再按（相似度 | 数值槽 | 时间槽）就近配对。
+
+    返回 (pairs, only_a, only_b)。pairs 的元素是 (slot_a, slot_b, ratio, how)。
+    """
+    pairs = []
+    rest_a = list(sa)
+    rest_b = list(sb)
+    # 1) 同字就近：多个「领取」时按位置一一对上，而不是全当"消失+出现"
+    for a in list(rest_a):
+        same = [b for b in rest_b if norm_text(b['text']) == norm_text(a['text'])]
+        if not same:
+            continue
+        same.sort(key=lambda b: dist(a, b))
+        b = same[0]
+        if dist(a, b) <= pair_radius * 3:      # 同字允许放宽（列表滚动会让位置移动较大）
+            pairs.append((a, b, 1.0, 'same-text'))
+            rest_a.remove(a)
+            rest_b.remove(b)
+    # 2) 变形/数值/时间配对
+    cand = []
+    for a in rest_a:
+        for b in rest_b:
+            d = dist(a, b)
+            if d > pair_radius:
+                continue
+            r = ratio_of(a['text'], b['text'])
+            num_pair = is_numeric_slot(a['text']) and is_numeric_slot(b['text'])
+            time_pair = is_time_slot(a['text']) and is_time_slot(b['text'])
+            if r < text_ratio and not (num_pair or time_pair):
+                continue
+            score = r + (0.4 if (num_pair or time_pair) else 0.0) - d / max(1.0, pair_radius)
+            cand.append((score, a, b, r, num_pair, time_pair))
+    cand.sort(key=lambda t: -t[0])
+    used_a, used_b = set(), set()
+    for score, a, b, r, num_pair, time_pair in cand:
+        ka, kb = id(a), id(b)
+        if ka in used_a or kb in used_b:
+            continue
+        used_a.add(ka)
+        used_b.add(kb)
+        how = 'number' if num_pair else ('time' if time_pair else 'text')
+        if num_pair and time_pair:
+            how = 'time+number'
+        pairs.append((a, b, r, how))
+        rest_a.remove(a)
+        rest_b.remove(b)
+    return pairs, rest_a, rest_b
+
+
+def diff_pair(slots_a, slots_b, color, pair_radius, text_ratio, color_thr):
+    """两帧槽位差 → 事件列表（顺序固定，便于人读与 grep）。
+
+    事件种类：color_delta / time_changed / number_changed / text_changed / text_removed / text_added
+    """
+    events = []
+    if color is not None and color['pixels_changed_pct'] >= color_thr:
+        ev = {'kind': 'color_delta'}
+        ev.update(color)
+        events.append(ev)
+    pairs, only_a, only_b = match_slots(slots_a, slots_b, pair_radius, text_ratio)
+    times, nums, changes = [], [], []
+    for a, b, r, how in pairs:
+        if a['times'] or b['times']:
+            if a['times'] != b['times']:
+                times.append(_value_event('time_changed', a, b,
+                                          a['times'], b['times'], r))
+        if a['numbers'] or b['numbers']:
+            if a['numbers'] != b['numbers']:
+                nums.append(_value_event('number_changed', a, b,
+                                         a['numbers'], b['numbers'], r))
+        if how in ('text', 'time+number', 'number', 'time') and norm_text(a['text']) != \
+                norm_text(b['text']) and r >= text_ratio and \
+                a['numbers'] == b['numbers'] and a['times'] == b['times']:
+            # 数值/时间值变了 ⇒ 只报 number/time（同一个事实说两遍就是噪声）；
+            # 文字变化留给"真的换了字"的场景（领取→已领取）。
+            changes.append({
+                'kind': 'text_changed', 'from': a['text'], 'to': b['text'], 'ratio': r,
+                'variant_suspect': variant_suspect(a['text'], b['text'], r),
+                'bbox_from': a['bbox'], 'bbox_to': b['bbox'],
+                'cx': int((a['cx'] + b['cx']) / 2), 'cy': int((a['cy'] + b['cy']) / 2),
+                'score_from': a['score'], 'score_to': b['score'],
+            })
+    for a in only_a:
+        events.append({'kind': 'text_removed', 'text': a['text'], 'bbox': a['bbox'],
+                       'cx': a['cx'], 'cy': a['cy'], 'score': a['score']})
+        if a['times']:
+            times.append({'kind': 'time_changed', 'from': a['times'], 'to': [],
+                          'change': 'vanished', 'text_from': a['text'], 'text_to': None,
+                          'cx': a['cx'], 'cy': a['cy']})
+        if is_numeric_slot(a['text']):
+            nums.append({'kind': 'number_changed', 'from': a['numbers'], 'to': [],
+                         'change': 'vanished', 'text_from': a['text'], 'text_to': None,
+                         'cx': a['cx'], 'cy': a['cy']})
+    for b in only_b:
+        events.append({'kind': 'text_added', 'text': b['text'], 'bbox': b['bbox'],
+                       'cx': b['cx'], 'cy': b['cy'], 'score': b['score']})
+        if b['times']:
+            times.append({'kind': 'time_changed', 'from': [], 'to': b['times'],
+                          'change': 'appeared', 'text_from': None, 'text_to': b['text'],
+                          'cx': b['cx'], 'cy': b['cy']})
+        if is_numeric_slot(b['text']):
+            nums.append({'kind': 'number_changed', 'from': [], 'to': b['numbers'],
+                         'change': 'appeared', 'text_from': None, 'text_to': b['text'],
+                         'cx': b['cx'], 'cy': b['cy']})
+    events.extend(times)
+    events.extend(nums)
+    events.extend(changes)
+    events.sort(key=lambda e: KIND_ORDER.index(e['kind']))
+    return events
+
+
+def _value_event(kind, a, b, va, vb, r):
+    change = 'value'
+    return {'kind': kind, 'from': va, 'to': vb, 'change': change,
+            'text_from': a['text'], 'text_to': b['text'], 'ratio': r,
+            'cx': int((a['cx'] + b['cx']) / 2), 'cy': int((a['cy'] + b['cy']) / 2)}
+
+
+# --------------------------------------------------------------------------- 分析
+class Ctx:
+    """一次运行共享的东西：缓存开关、调试、临时目录、忽略正则。"""
+
+    def __init__(self, use_cache=True, debug=False, ignore_res=(), no_ocr=False):
+        self.use_cache = use_cache
+        self.debug = debug
+        self.ignore_res = list(ignore_res)
+        self.no_ocr = no_ocr
+        self.ocr_ms = 0          # 本轮真跑 OCR 的耗时（缓存命中不计，避免把历史耗时当本轮开销）
+        self.ocr_cache_hits = 0
+        self.ocr_calls = 0
+
+
+def frame_meta(path):
+    arr, size = load_rgb(path)
+    return arr, {'path': os.path.abspath(path), 'sha256': sha256_file(path),
+                 'size': [size[0], size[1]], 'bytes': os.path.getsize(path)}
+
+
+def analyze_pair(ctx, fa, fb, roi, auto_flag, args):
+    """一对帧 → pair dict（含 verdict/roi/color_delta/events）。"""
+    (arr_a, meta_a) = fa
+    (arr_b, meta_b) = fb
+    if meta_a['size'] != meta_b['size']:
+        raise ValueError('帧尺寸不同：%s=%dx%d / %s=%dx%d（无法逐像素比较）' % (
+            meta_a['path'], meta_a['size'][0], meta_a['size'][1],
+            meta_b['path'], meta_b['size'][0], meta_b['size'][1]))
+    pair = {'from_index': None, 'to_index': None,
+            'sha_from': meta_a['sha256'], 'sha_to': meta_b['sha256'],
+            'frames': [meta_a['path'], meta_b['path']],
+            'color_delta': None, 'events': [], 'ocr': [], 'auto_roi': None}
+    same_sha = meta_a['sha256'] == meta_b['sha256']
+    use_roi = roi
+    if auto_flag and not same_sha:
+        g = args.tile_grid
+        auto, top, grid_used = tile_scan(arr_a, arr_b, g)
+        pair['auto_roi'] = {'grid': grid_used, 'bbox': None if auto is None else
+                            [auto['x'], auto['y'], auto['x'] + auto['w'], auto['y'] + auto['h']],
+                            'top_tiles': top}
+        use_roi = auto
+    pair['roi'] = _roi_doc(use_roi, args, auto_flag, meta_a['size'])
+    if use_roi is not None:
+        x, y, w, h = use_roi['x'], use_roi['y'], use_roi['w'], use_roi['h']
+        ra = arr_a[y:y + h, x:x + w]
+        rb = arr_b[y:y + h, x:x + w]
+    else:
+        ra, rb = arr_a, arr_b
+    pair['color_delta'] = color_stats(ra, rb, args.px_thr)
+    if same_sha:
+        # 同一帧：像素层已经证明零变化，不必再花 OCR（NO-CHANGE 也要给出 sha）
+        pair['verdict'] = 'NO-CHANGE'
+        return pair
+    if ctx.no_ocr:
+        pair['verdict'] = ('CHANGED' if pair['color_delta']['pixels_changed_pct'] >= args.color_thr
+                           else 'NO-CHANGE')
+        if pair['verdict'] == 'CHANGED':
+            ev = {'kind': 'color_delta'}
+            ev.update(pair['color_delta'])
+            pair['events'].append(ev)
+        pair['note'] = '--no-ocr：只做颜色层，文字/数值/时间事件未检查'
+        return pair
+    boxes_a, ma = ocr_boxes(meta_a['path'], meta_a['sha256'], use_roi, 'v1',
+                            ctx.use_cache, ctx.debug)
+    if boxes_a is None:
+        raise OcrError('前帧 OCR 失败', ma)
+    boxes_b, mb = ocr_boxes(meta_b['path'], meta_b['sha256'], use_roi, 'v1',
+                            ctx.use_cache, ctx.debug)
+    if boxes_b is None:
+        raise OcrError('后帧 OCR 失败', mb)
+    pair['ocr'] = [ma, mb]
+    for m in (ma, mb):
+        ctx.ocr_calls += 1
+        if m.get('source') == 'run':
+            ctx.ocr_ms += int(m.get('ms') or 0)
+        else:
+            ctx.ocr_cache_hits += 1
+    slots_a, ign_a = build_slots(boxes_a, args.min_score, ctx.ignore_res,
+                              args.keep_junk, not args.no_hud_adjacent)
+    slots_b, ign_b = build_slots(boxes_b, args.min_score, ctx.ignore_res,
+                              args.keep_junk, not args.no_hud_adjacent)
+    pair['slots'] = {'before': len(slots_a), 'after': len(slots_b),
+                     'ignored_before': [i['text'] for i in ign_a],
+                     'ignored_after': [i['text'] for i in ign_b]}
+    if ctx.debug:
+        eprint('[ys-watch] slots before:', [s['text'] for s in slots_a])
+        eprint('[ys-watch] slots after: ', [s['text'] for s in slots_b])
+    pair['events'] = diff_pair(slots_a, slots_b, pair['color_delta'],
+                               args.pair_radius, args.text_ratio, args.color_thr)
+    pair['verdict'] = 'CHANGED' if pair['events'] else 'NO-CHANGE'
+    if pair['verdict'] == 'NO-CHANGE':
+        pair['note'] = '像素与文字层均未达到事件阈（px_thr=%.1f 变化占比=%.2f%%，阈值 %.2f%%）' % (
+            args.px_thr, pair['color_delta']['pixels_changed_pct'], args.color_thr)
+    return pair
+
+
+def _roi_doc(roi, args, auto_flag, size):
+    if roi is None:
+        return {'source': 'full', 'x': 0, 'y': 0, 'w': size[0], 'h': size[1],
+                'warning': '整帧口径：背景动效会稀释占比（实测全屏 30 万像素变化），'
+                           '建议 --roi 或 --auto-roi'}
+    src = 'auto' if auto_flag else 'explicit'
+    return {'source': src, 'x': roi['x'], 'y': roi['y'], 'w': roi['w'], 'h': roi['h']}
+
+
+class OcrError(Exception):
+    def __init__(self, msg, meta):
+        Exception.__init__(self, msg)
+        self.meta = meta
+
+
+# --------------------------------------------------------------------------- 输出
+def fmt_delta(pair):
+    c = pair['color_delta']
+    return ('变化像素 %.2f%% (%d/%d)  平均 Δ=%.2f（每通道 %.2f, 阈 %.1f）'
+            '  RGB %s→%s' % (
+                c['pixels_changed_pct'], c['pixels_changed'], c['pixels_total'],
+                c['mean_delta'], c['mean_delta_per_channel'], c['px_thr'],
+                tuple(c['mean_rgb_before']), tuple(c['mean_rgb_after'])))
+
+
+def _or_none(v):
+    return '（无）' if v is None else v
+
+
+def fmt_event(ev):
+    k = ev['kind']
+    if k in ('text_removed', 'text_added'):
+        return '%-12s 「%s」 @(%d,%d) score=%.3f' % (k, ev['text'], ev['cx'], ev['cy'],
+                                                    ev['score'])
+    if k == 'text_changed':
+        mark = '  ⚠疑似OCR变体' if ev.get('variant_suspect') else ''
+        return '%-12s 「%s」→「%s」 @(%d,%d) 相似度=%.2f%s' % (
+            k, ev['from'], ev['to'], ev['cx'], ev['cy'], ev['ratio'], mark)
+    if k == 'time_changed':
+        return '%-12s %s → %s（%s） @(%d,%d) 文本「%s」→「%s」' % (
+            k, ','.join(ev['from']) or '（无）', ','.join(ev['to']) or '（无）', ev['change'],
+            ev['cx'], ev['cy'], _or_none(ev['text_from']), _or_none(ev['text_to']))
+    if k == 'number_changed':
+        return '%-12s %s → %s（%s） @(%d,%d) 文本「%s」→「%s」' % (
+            k, ','.join(ev['from']) or '（无）', ','.join(ev['to']) or '（无）', ev['change'],
+            ev['cx'], ev['cy'], _or_none(ev['text_from']), _or_none(ev['text_to']))
+    if k == 'color_delta':
+        return '%-12s %s' % (k, fmt_delta({'color_delta': ev}))
+    return '%s %s' % (k, json.dumps(ev, ensure_ascii=False))
+
+
+def human_report(doc, args):
+    out = []
+    n_pairs = len(doc['pairs'])
+    roi0 = doc['roi_request']
+    out.append('ys-watch  帧 %d / 对 %d  ROI=%s' % (
+        len(doc['frames']), n_pairs,
+        '整帧(%dx%d)' % (roi0['w'], roi0['h']) if roi0['source'] == 'full' else
+        '%d,%d,%d,%d (%s)' % (roi0['x'], roi0['y'], roi0['w'], roi0['h'], roi0['source'])))
+    for i, f in enumerate(doc['frames']):
+        out.append('  帧%d  %-28s %s  %dx%d' % (
+            i, os.path.basename(f['path']), f['sha256'][:16], f['size'][0], f['size'][1]))
+    if roi0.get('warning'):
+        out.append('  ⚠ %s' % roi0['warning'])
+    for p in doc['pairs']:
+        head = '[%d→%d] %s' % (p['from_index'], p['to_index'], p['verdict'])
+        if p['verdict'] == 'NO-CHANGE':
+            if p['sha_from'] == p['sha_to']:
+                out.append('%s  同一帧（sha 相同 %s）' % (head, p['sha_from'][:16]))
+            else:
+                out.append('%s  sha %s ≠ %s；%s' % (head, p['sha_from'][:16],
+                                                   p['sha_to'][:16], p.get('note', '')))
+                out.append('        %s' % fmt_delta(p))
+            if p.get('roi', {}).get('source') == 'auto' and p.get('auto_roi'):
+                out.append('        auto-roi=%s 顶砖=%s' % (
+                    p['auto_roi']['bbox'],
+                    [(t['bbox'], t['mean_delta']) for t in p['auto_roi']['top_tiles'][:2]]))
+            continue
+        r = p['roi']
+        out.append('%s  ROI=%d,%d,%d,%d (%s)' % (head, r['x'], r['y'], r['w'], r['h'],
+                                                r['source']))
+        if p.get('auto_roi'):
+            out.append('        auto-roi 顶砖=%s' % (
+                [(t['bbox'], t['mean_delta']) for t in p['auto_roi']['top_tiles'][:3]],))
+        counts = {}
+        for ev in p['events']:
+            counts[ev['kind']] = counts.get(ev['kind'], 0) + 1
+        out.append('        事件 %d 条：%s' % (len(p['events']), ' '.join(
+            '%s×%d' % (k, counts[k]) for k in
+            ('color_delta', 'time_changed', 'number_changed', 'text_changed',
+             'text_removed', 'text_added') if k in counts)))
+        if p.get('note'):
+            out.append('        NOTE %s' % p['note'])
+        for ev in p['events']:
+            out.append('        ' + fmt_event(ev))
+        if p.get('slots'):
+            s = p['slots']
+            tail = ''
+            ig = [x for x in (s['ignored_before'] + s['ignored_after']) if x]
+            if ig:
+                tail = '  忽略 %d 条 HUD/低分：%s' % (len(ig), ' / '.join(ig[:4]))
+            out.append('        槽位 before=%d after=%d%s' % (s['before'], s['after'], tail))
+    t = doc['timing']
+    out.append('耗时：总 %dms（颜色层 %dms / OCR %dms，调用 %d 次、缓存命中 %d）' % (
+        t['total_ms'], t['pixel_ms'], t['ocr_ms'], t['ocr_calls'],
+        t.get('ocr_cache_hits', 0)))
+    return '\n'.join(out)
+
+
+# --------------------------------------------------------------------------- 主流程
+def build_parser():
+    ap = argparse.ArgumentParser(
+        prog='ys-watch', add_help=True,
+        description='ROI 变化监听：把两帧之间的差别变成文字/颜色/数值/时间变化事件（离线优先）')
+    ap.add_argument('frames_pos', nargs='*', help='帧路径（也可用 --frames）')
+    ap.add_argument('--frames', nargs='+', default=None, help='帧路径列表（≥2；多帧=相邻两两比较）')
+    ap.add_argument('--roi', action='append', default=None,
+                    help='比较区域 x,y,w,h（可重复；给了多块时逐块比较）')
+    ap.add_argument('--auto-roi', action='store_true',
+                    help='不给 ROI 时先扫砖块把变化定位到区域（推荐：避免整帧帧差）')
+    ap.add_argument('--tile-grid', default='%dx%d' % AUTO_GRID,
+                    help='--auto-roi 的砖块网格 WxH（缺省 %dx%d）' % AUTO_GRID)
+    ap.add_argument('--full-frame', action='store_true', help='显式允许整帧比较（会打警告）')
+    ap.add_argument('--json', action='store_true', help='输出 JSON（多帧=单文档；--live=NDJSON）')
+    ap.add_argument('--json-out', default=None, help='另存 JSON 到文件')
+    ap.add_argument('--px-thr', type=float, default=PX_THR,
+                    help='变化像素判据：逐通道平均 |Δ| > 此值（缺省 %.1f）' % PX_THR)
+    ap.add_argument('--color-thr', type=float, default=COLOR_THR,
+                    help='变化像素占比达到此百分比才产出 color_delta 事件（缺省 %.1f）' % COLOR_THR)
+    ap.add_argument('--min-score', type=float, default=MIN_SCORE, help='OCR 置信度下限')
+    ap.add_argument('--pair-radius', type=int, default=PAIR_RADIUS, help='同一位配对的中心距上限(px)')
+    ap.add_argument('--text-ratio', type=float, default=TEXT_RATIO, help='text_changed 相似度下限')
+    ap.add_argument('--ignore-re', action='append', default=None,
+                    help='追加忽略正则（整条 token 匹配才忽略）')
+    ap.add_argument('--no-default-ignore', action='store_true', help='关掉内置 HUD 噪声过滤')
+    ap.add_argument('--keep-junk', action='store_true',
+                    help='不挡单字低分残渣（缺省挡：单字且 score<0.9）')
+    ap.add_argument('--no-hud-adjacent', action='store_true',
+                    help='不把"贴着 HUD 标签的数值残片"一起忽略（缺省忽略）')
+    ap.add_argument('--no-ocr', action='store_true', help='只做颜色层，不调用 OCR')
+    ap.add_argument('--no-cache', action='store_true', help='不读不写 OCR 缓存')
+    ap.add_argument('--live', type=int, default=0, help='连续采样次数（≥2，需 --capture-cmd）')
+    ap.add_argument('--capture-cmd', default=None,
+                    help='抓帧命令模板，必须含 {out} 占位（本工具自己不抓屏）')
+    ap.add_argument('--interval', type=float, default=0.5, help='--live 采样间隔秒（缺省 0.5）')
+    ap.add_argument('--debug', action='store_true', help='stderr 诊断（含 OCR 命令行与槽位列表）')
+    return ap
+
+
+def die(code, token, msg):
+    eprint('%s %s' % (token, msg))
+    return code
+
+
+def main(argv=None):
+    ap = build_parser()
+    args = ap.parse_args(argv)
+    t_start = time.time()
+    try:
+        gx, gy = (int(v) for v in args.tile_grid.lower().split('x'))
+    except ValueError:
+        return die(2, 'WATCH-USAGE-ERROR', '--tile-grid 需 WxH，实测 %r' % args.tile_grid)
+    args.tile_grid = (max(1, gx), max(1, gy))
+    frames = list(args.frames or []) + list(args.frames_pos)
+    if args.live and args.capture_cmd is None:
+        return die(2, 'WATCH-USAGE-ERROR', '--live 必须配 --capture-cmd（本工具不自己抓屏）')
+    if args.live and frames:
+        return die(2, 'WATCH-USAGE-ERROR', '--live 与 --frames 互斥（活体采样 vs 离线帧）')
+    if not args.live and len(frames) < 2:
+        return die(2, 'WATCH-USAGE-ERROR',
+                   '需要 ≥2 帧（实测 %d 帧）；活体采样用 --live N --capture-cmd' % len(frames))
+    for f in frames:
+        if not os.path.isfile(f):
+            return die(3, 'WATCH-FRAME-UNREADABLE', '帧不存在：%s' % f)
+    if args.roi and args.auto_roi:
+        return die(2, 'WATCH-USAGE-ERROR', '--roi 与 --auto-roi 互斥（一个是给定区域，一个是自动定位）')
+    if args.roi and args.full_frame:
+        return die(2, 'WATCH-USAGE-ERROR', '--roi 与 --full-frame 互斥')
+    if not args.roi and not args.auto_roi and not args.full_frame and not args.live:
+        return die(2, 'WATCH-USAGE-ERROR',
+                   '要么给 --roi x,y,w,h，要么 --auto-roi（先扫砖块定位），'
+                   '要么显式 --full-frame 承担整帧噪声；整帧帧差默认不做')
+    rois = None
+    if args.roi:
+        rois = []
+        for s in args.roi:
+            try:
+                rois.append(parse_roi(s))
+            except ValueError as exc:
+                return die(3, 'WATCH-ROI-INVALID', '%s' % exc)
+        # 多 ROI = 每对一块，一一对应；数量对不上就报错，绝不静默忽略某一快
+        n_pairs = (args.live - 1) if args.live else (len(frames) - 1)
+        if len(rois) > 1 and len(rois) != n_pairs:
+            return die(2, 'WATCH-USAGE-ERROR',
+                       '--roi 给了 %d 块但只有 %d 对帧：多块 ROI 必须与帧对数一一对应'
+                       '（单块 ROI 则对所有对通用）' % (len(rois), n_pairs))
+        if args.live and len(rois) > 1:
+            return die(2, 'WATCH-USAGE-ERROR', '--live 只能用一块 --roi')
+    n_ocr_needed = 0 if (args.no_ocr or args.live) else 2 * (len(frames) - 1)
+    if n_ocr_needed:
+        ok, py = backend_ok()
+        if not ok:
+            return die(4, 'WATCH-OCR-MISSING',
+                       'RapidOCR venv 缺失 %s；装或在只做颜色层时加 --no-ocr' % py)
+    ign = []
+    if not args.no_default_ignore:
+        ign.extend(re.compile(r) for r in DEFAULT_IGNORE)
+    for r in (args.ignore_re or []):
+        try:
+            ign.append(re.compile(r))
+        except re.error as exc:
+            return die(2, 'WATCH-USAGE-ERROR', '--ignore-re %r 不是合法正则：%s' % (r, exc))
+    ctx = Ctx(use_cache=not args.no_cache, debug=args.debug,
+              ignore_res=ign, no_ocr=args.no_ocr)
+    t_pix0 = time.time()
+    doc = {'schema': SCHEMA, 'tool': 'ys-watch',
+           'roi_request': None, 'frames': [], 'pairs': [],
+           'options': {'px_thr': args.px_thr, 'color_thr': args.color_thr,
+                       'min_score': args.min_score, 'pair_radius': args.pair_radius,
+                       'text_ratio': args.text_ratio, 'auto_roi': bool(args.auto_roi),
+                       'ocr': not args.no_ocr}}
+    try:
+        if args.live:
+            return run_live(args, ctx, rois, doc, t_start)
+        metas = []
+        for f in frames:
+            try:
+                metas.append(frame_meta(f))
+            except (OSError, ValueError) as exc:
+                return die(3, 'WATCH-FRAME-UNREADABLE', '%s：%s' % (f, exc))
+        doc['frames'] = [m[1] for m in metas]
+        if rois:
+            doc['roi_request'] = dict(rois[0], source='explicit', n_rois=len(rois))
+        elif args.auto_roi:
+            doc['roi_request'] = {'source': 'auto', 'x': 0, 'y': 0,
+                                  'w': metas[0][1]['size'][0], 'h': metas[0][1]['size'][1]}
+        else:
+            doc['roi_request'] = {'source': 'full', 'x': 0, 'y': 0,
+                                  'w': metas[0][1]['size'][0], 'h': metas[0][1]['size'][1],
+                                  'warning': '整帧口径：背景动效会稀释占比'
+                                             '（实测全屏 30 万像素变化），建议 --roi 或 --auto-roi'}
+        for i in range(len(metas) - 1):
+            roi_i = None
+            if rois:
+                roi_i = rois[0] if len(rois) == 1 else rois[i % len(rois)]
+                roi_i = clamp_roi(roi_i, metas[i][1]['size'])
+            try:
+                pair = analyze_pair(ctx, metas[i], metas[i + 1], roi_i, args.auto_roi, args)
+            except OcrError as exc:
+                return die(5, 'WATCH-OCR-FAIL', '%s：%s' % (exc, (exc.meta or {}).get('err')))
+            except ValueError as exc:
+                return die(3, 'WATCH-FRAME-UNREADABLE', '%s' % exc)
+            pair['from_index'] = i
+            pair['to_index'] = i + 1
+            doc['pairs'].append(pair)
+        doc['events_total'] = sum(len(p['events']) for p in doc['pairs'])
+        doc['changed_pairs'] = sum(1 for p in doc['pairs'] if p['verdict'] == 'CHANGED')
+        doc['nochange_pairs'] = sum(1 for p in doc['pairs'] if p['verdict'] == 'NO-CHANGE')
+        total_ms = int((time.time() - t_start) * 1000)
+        doc['timing'] = {'total_ms': total_ms,
+                         'pixel_ms': max(0, total_ms - ctx.ocr_ms),
+                         'ocr_ms': ctx.ocr_ms, 'ocr_calls': ctx.ocr_calls,
+                         'ocr_cache_hits': ctx.ocr_cache_hits}
+        _emit(doc, args)
+        return 0
+    except KeyboardInterrupt:
+        eprint('WATCH-INTERRUPTED')
+        return 130
+
+
+def _emit(doc, args):
+    if args.json:
+        text = json.dumps(doc, ensure_ascii=False, indent=2)
+        print(text)
+    else:
+        text = human_report(doc, args)
+        print(text)
+    if args.json_out:
+        with open(args.json_out, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(doc, ensure_ascii=False, indent=2) + '\n')
+        eprint('[ys-watch] JSON 已写入 %s' % os.path.abspath(args.json_out))
+
+
+def run_live(args, ctx, rois, doc, t_start):
+    """活体采样：抓帧交给 --capture-cmd（应由 ys-gui-slot 占槽），本工具只比帧出事件。
+
+    为什么要这样切：**抓屏是有副作用的动作**（要占槽、可能抢焦点），必须以命令形式显式
+    交给调用方；ys-watch 自身零桌面依赖，所以整条采样链可以离线用桩命令测通。
+    """
+    n = int(args.live)
+    if n < 2:
+        return die(2, 'WATCH-USAGE-ERROR', '--live 次数需 ≥2（实测 %d）' % n)
+    try:
+        tpl = shlex.split(args.capture_cmd)
+    except ValueError as exc:
+        return die(2, 'WATCH-USAGE-ERROR', '--capture-cmd 无法切分：%s' % exc)
+    if not any('{out}' in tok for tok in tpl):
+        return die(2, 'WATCH-USAGE-ERROR', '--capture-cmd 缺 {out} 占位：%r' % args.capture_cmd)
+    work = tempfile.mkdtemp(prefix='ys-watch-live-')
+    doc['live'] = {'n': n, 'interval': args.interval,
+                   'capture_cmd': args.capture_cmd, 'workdir': work}
+    doc['roi_request'] = ({'source': 'explicit', 'x': rois[0]['x'], 'y': rois[0]['y'],
+                           'w': rois[0]['w'], 'h': rois[0]['h']} if rois else
+                          {'source': 'auto' if args.auto_roi else 'full'})
+    prev = None
+    pairs = []
+    try:
+        for i in range(n):
+            out = os.path.join(work, 'frame_%03d.png' % i)
+            cmd = [tok.replace('{out}', out) for tok in tpl]
+            if args.debug:
+                eprint('[ys-watch] capture:', ' '.join(cmd))
+            p = subprocess.run(cmd, capture_output=True, text=True)
+            if p.returncode != 0:
+                return die(5, 'WATCH-CAPTURE-FAIL',
+                           '第 %d 次抓帧 rc=%d：%s' % (i, p.returncode,
+                                                      (p.stderr or p.stdout)[-300:]))
+            if not os.path.isfile(out) or os.path.getsize(out) == 0:
+                return die(5, 'WATCH-CAPTURE-FAIL',
+                           '第 %d 次抓帧没产出可读帧：%s' % (i, out))
+            try:
+                cur = frame_meta(out)
+            except (OSError, ValueError) as exc:
+                return die(3, 'WATCH-FRAME-UNREADABLE', '%s：%s' % (out, exc))
+            doc['frames'].append(cur[1])
+            if prev is not None:
+                roi_i = None
+                if rois:
+                    roi_i = clamp_roi(rois[(i - 1) % len(rois)], cur[1]['size'])
+                try:
+                    pair = analyze_pair(ctx, prev, cur, roi_i, args.auto_roi, args)
+                except OcrError as exc:
+                    return die(5, 'WATCH-OCR-FAIL', '%s：%s' % (exc, (exc.meta or {}).get('err')))
+                except ValueError as exc:
+                    return die(3, 'WATCH-FRAME-UNREADABLE', '%s' % exc)
+                pair['from_index'] = i - 1
+                pair['to_index'] = i
+                pairs.append(pair)
+                # 流式输出：采样是持续的，事件必须**当场**出来，不能等整轮结束
+                if args.json:
+                    print(json.dumps(pair, ensure_ascii=False))
+                    sys.stdout.flush()
+                else:
+                    print(_pair_human(pair))
+                    sys.stdout.flush()
+                if args.json_out:
+                    with open(args.json_out, 'a', encoding='utf-8') as f:
+                        f.write(json.dumps(pair, ensure_ascii=False) + '\n')
+            prev = cur
+            if i < n - 1 and args.interval > 0:
+                time.sleep(args.interval)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    doc['pairs'] = pairs
+    doc['events_total'] = sum(len(p['events']) for p in pairs)
+    doc['changed_pairs'] = sum(1 for p in pairs if p['verdict'] == 'CHANGED')
+    doc['nochange_pairs'] = sum(1 for p in pairs if p['verdict'] == 'NO-CHANGE')
+    doc['timing'] = {'total_ms': int((time.time() - t_start) * 1000), 'pixel_ms': 0,
+                     'ocr_ms': ctx.ocr_ms, 'ocr_calls': ctx.ocr_calls}
+    summary = {'schema': SCHEMA, 'kind': 'summary', 'pairs': len(pairs),
+               'changed': doc['changed_pairs'], 'nochange': doc['nochange_pairs'],
+               'events_total': doc['events_total'],
+               'ocr_calls': ctx.ocr_calls, 'ocr_ms': ctx.ocr_ms,
+               'total_ms': doc['timing']['total_ms']}
+    if args.json_out:
+        # 汇总行也落盘：下游消费 NDJSON 时不该漏掉"这轮到底抓到了几对/几处变化"
+        with open(args.json_out, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(summary, ensure_ascii=False) + '\n')
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False))
+    else:
+        print('WATCH-SUMMARY pairs=%d changed=%d nochange=%d events=%d total_ms=%d' % (
+            summary['pairs'], summary['changed'], summary['nochange'],
+            summary['events_total'], summary['total_ms']))
+    return 0
+
+
+def _pair_human(pair):
+    head = '[%d→%d] %s' % (pair['from_index'], pair['to_index'], pair['verdict'])
+    if pair['verdict'] == 'NO-CHANGE':
+        if pair['sha_from'] == pair['sha_to']:
+            return '%s  同一帧（sha 相同 %s）' % (head, pair['sha_from'][:16])
+        return '%s  sha %s ≠ %s；%s' % (head, pair['sha_from'][:16], pair['sha_to'][:16],
+                                        pair.get('note', ''))
+    r = pair['roi']
+    lines = ['%s  ROI=%d,%d,%d,%d (%s)' % (head, r['x'], r['y'], r['w'], r['h'], r['source'])]
+    for ev in pair['events']:
+        lines.append('        ' + fmt_event(ev))
+    return '\n'.join(lines)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
