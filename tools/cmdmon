@@ -239,7 +239,9 @@ def append_alerts(alerts):
 
 
 def read_jsonl(path, since_ms=None):
+    """读账本；按 callId 去重（防并发写入期重复）"""
     out = []
+    seen = set()
     if not os.path.exists(path):
         return out
     with open(path, errors='replace') as f:
@@ -253,6 +255,10 @@ def read_jsonl(path, since_ms=None):
                 continue
             if since_ms and o.get('ts', 0) < since_ms:
                 continue
+            k = o.get('callId')
+            if k in seen:
+                continue
+            seen.add(k)
             out.append(o)
     return out
 
