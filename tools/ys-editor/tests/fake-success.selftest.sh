@@ -125,13 +125,14 @@ run_case "F1 断言为假（vision 通道）" 3 "$FIX/f1-assert-false.json" \
   --state-backend vision --profile "$PROFILE" --frame "$REG/savelist.png" --json "$TMP/f1.json"
 has_line 'ASSERT-FALSE step#1 expected=state=PLAYTEST observed=SAVELIST'
 jsoncheck "$TMP/f1.json" fail
+F1V_MS=$LAST_MS; F1V_EXIT=$LAST_CODE
 
-# 契约通道用 8s 步等待：ys-state 单次判定实测 3~7s（离线帧、full 通道），
-# 5s 会把判据仪器本身掐断（观测值只剩 TIMEOUT）。8s 下观测到的是真态。
-run_case "F1 断言为假（ys-state 契约通道）" 3 "$FIX/f1-assert-false-8s.json" \
+# 契约通道：ys-state --fast 离线帧约 0.4s/次（state-core 2026-10-17 19:39 落地），5s 足够观测到真态
+run_case "F1 断言为假（ys-state 契约通道）" 3 "$FIX/f1-assert-false.json" \
   --frame "$REG/savelist.png" --json "$TMP/f1ys.json"
 has_line 'ASSERT-FALSE step#1 expected=state=PLAYTEST observed=SAVELIST'
 jsoncheck "$TMP/f1ys.json" fail
+F1_MS=$LAST_MS; F1_EXIT=$LAST_CODE
 
 # ── F2 目标解析失败：click role=button name=不存在 ───────────────────────
 run_case "F2 目标解析失败（桩后端，不碰 AT-SPI）" 4 "$FIX/f2-resolve-fail.json" \
@@ -139,6 +140,7 @@ run_case "F2 目标解析失败（桩后端，不碰 AT-SPI）" 4 "$FIX/f2-resol
   --frame "$REG/savelist.png" --json "$TMP/f2.json"
 has_line 'RESOLVE-FAIL step#1 target={"role": "button", "name": "不存在的按钮"} 候选=0'
 jsoncheck "$TMP/f2.json" fail
+F2_MS=$LAST_MS; F2_EXIT=$LAST_CODE
 
 # ── F3 动作无效果：click 成功但后置断言恒假 ─────────────────────────────
 run_case "F3 动作无效果（桩后端 + 后置断言恒假）" 3 "$FIX/f3-no-effect.json" \
@@ -146,6 +148,7 @@ run_case "F3 动作无效果（桩后端 + 后置断言恒假）" 3 "$FIX/f3-no-
   --frame "$REG/savelist.png" --json "$TMP/f3.json"
 has_line 'NO-EFFECT step#1 post=state=PLAYTEST observed序列=['
 jsoncheck "$TMP/f3.json" fail
+F3_MS=$LAST_MS; F3_EXIT=$LAST_CODE
 
 # ── 反例保护：真能过的技能也必须退出 0（防「一律失败」的假绿）────────
 run_case "F4 正常路径（必须退出 0）" 0 "$FIX/f4-happy-path.json" \
@@ -160,6 +163,23 @@ assert d['steps'][0]['observed'].startswith('[stub] click name=开始游戏'), d
 print('    ✓ 正常路径 ok=true，动作观测值=' + d['steps'][0]['observed'])
 PY
 [ $? -eq 0 ] && PASS=$((PASS+1)) || bad "正常路径 run.json 断言失败"
+
+# ── `tools/gui state` 薄封装（契约 §1）：只调 ys-state，--fast 必须真生效 ──
+echo
+echo "── state 薄封装（--frame + --fast，只调 ys-state，不抓屏）──"
+t0=$(ms); state_out=$("$GUI" state --frame "$REG/playtest.png" --json "$TMP/state.json" 2>&1)
+state_rc=$?; state_ms=$(( $(ms) - t0 ))
+printf '%s\n' "$state_out" | sed 's/^/    | /'
+printf '    退出码=%s  耗时=%sms\n' "$state_rc" "$state_ms"
+[ "$state_rc" = 0 ] && ok "state 退出码 0（透传 ys-state）" || bad "state 退出码 $state_rc"
+grep -q '"state": "PLAYTEST"' "$TMP/state.json" && ok "离线帧判出 PLAYTEST" || bad "state 判定值不对"
+if grep -q '"fast_ready": true' "$TMP/state.json"; then
+  ok "走的是 ys-state --fast 快通道（契约 §1 已就绪）"
+else
+  bad "fast 通道未生效（ys-state 未返回 channel:fast）"
+fi
+[ "$state_ms" -le 3000 ] && ok "state 耗时 ${state_ms}ms ≤3000ms（full 通道同帧约 4.5s）" \
+  || bad "state 耗时 ${state_ms}ms 偏慢（fast 通道应 <1s）"
 
 # ── 硬上界夹取：技能里写 timeout:999 也不许拖过 10s ─────────────────────
 run_case "上界夹取（--max-step-wait 99999 ⇒ 仍夹到 10000）" 4 "$FIX/f2-resolve-fail.json" \
@@ -181,6 +201,11 @@ for f in f1 f1ys f2 f3; do
   [ -f "$TMP/$f.json" ] && printf '%s=%sms ' "$f" "$(python3 -c "import json;print(json.load(open('$TMP/$f.json')).get('elapsed_ms'))" 2>/dev/null || echo '?')"
 done
 printf '\n证据目录: %s\n' "$TMP"
+GATE2_VERDICT=PASS; [ "$FAIL" -gt 0 ] && GATE2_VERDICT=FAIL
+# 契约 §7 机读结果行（tools/ys-gates 门槛② 只认这一行；f1 取生产通道 ys-state 的读数）
+printf 'GATE2-RESULT f1=%s:%s f2=%s:%s f3=%s:%s verdict=%s\n' \
+  "${F1_MS:-0}" "${F1_EXIT:-9}" "${F2_MS:-0}" "${F2_EXIT:-9}" "${F3_MS:-0}" "${F3_EXIT:-9}" "$GATE2_VERDICT"
+printf '（f1 vision 通道读数：%sms:%s）\n' "${F1V_MS:-?}" "${F1V_EXIT:-?}"
 if [ "$FAIL" -gt 0 ]; then printf '✗ %d 项失败 / %d 项通过\n' "$FAIL" "$PASS"; exit 1; fi
 printf '✓ 全绿（%d 项，三类失败全部 ≤%dms 停下且退出码 3/4）\n' "$PASS" "$LIMIT_MS"
 exit 0

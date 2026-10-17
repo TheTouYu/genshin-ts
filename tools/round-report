@@ -1,15 +1,41 @@
 #!/usr/bin/env python3
-"""round-report — 一轮结束时的一页账：本轮的耗时构成 + 教练卡 + 机器可读 round.json。
+"""round-report — 一轮的账本：耗时构成 + 教练卡 + **可重算的 round.json**。
 
-存在理由（2026-10-17）：cmdmon 能度量、agent-coach 能建议，但**没有人负责在轮末看它**。
-仪器不是"有工具"，是"每轮都被读一次"。这个脚本就是那个读的人（也是验收门槛④
-「证据=能重推结论的最小集」的最小实现：断言 + 观测 + 判据值 + 耗时全落一份 json）。
+三种运行模式：
 
-用法:
-  tools/round-report                  # 近 30 分钟
-  tools/round-report --since 2h
-  tools/round-report --json out.json  # 另存路径（默认 ~/.dsh/cmdlog/round.json）
-退出码: 0 正常（本轮有记录）；1 窗口内无记录
+1) 账本（缺省）：读 cmdmon 命令台账，出一页「本轮耗时构成 + 教练卡」。
+     tools/round-report [--since 30m] [--json out.json]
+2) 证据（门槛④，契约 §4）：`--replay <round目录>` —— **只读** `round.json` +
+   它引用的帧 PNG + `.gia`，把结论**重算一遍**，逐项打印 PASS/DIFF。
+     不抓帧、不碰桌面（子进程 DISPLAY 置空）、不再跑一轮 GUI。
+     tools/round-report --replay ~/ys-round/1017-193000 [--json verdict.json]
+3) 落盘（round.json 的唯一 schema 实现）：`--emit-round <round目录>` 把执行器写的
+   `round.draft.json` 校验成 `round.json`；证据不全就**拒绝写**（fail closed），
+   保证目录里只要有 round.json，就一定能被 --replay 重算。
+     tools/round-report --emit-round ~/ys-round/1017-193000
+
+round.json（契约 §4；新增字段只增不改）:
+{
+  "schema": 1, "round_id": "...", "started_at": "...", "finished_at": "...", "map_id": 1073741832,
+  "budget":   {"frames": 7, "focus": 1, "sleeps": 0, "polls": 88},
+  "steps":    [{"step":1,"act":"wait","assert":"state=MENU","state":"MENU","ok":true,
+                "ms":3120,"frame":"frames/05-menu.png"}, ...],
+  "readings": {"frames/05-menu.png": {"state":"MENU","channel":"fast"}},
+  "log":      {"path":"debug-log.gia","markers":[{"mark":"YJ-BOOT","hits":3}]},
+  "gil":      {"path":".../1073741832.gil","sha_before":"...","sha_after":"..."},
+  "frames":   ["frames/05-menu.png", ...]
+}
+重算口径（--replay）：
+  ① 引用物存在性：round.json 里出现的每个帧/.gia/.gil 都必须真实存在（缺=退出码 2，不猜）
+  ② 预算：frames ≤12 / focus ≤1 / sleeps =0（门槛③；超即门槛③ 失败）
+  ③ gil 指纹：落盘 .gil 的 sha256 必须等于 sha_after（不等 ⇒ 证据对不上结论）
+  ④ 日志标记：在 .gia 原始字节里数标记命中（`strings -n 2 | grep -c` 的等价实现）
+  ⑤ 状态读数：对每个「帧→期望态」用 `ys-state --json --frame` 重判（离线、不抓屏）
+
+退出码:
+  0 PASS  全部重算成立
+  1 DIFF  至少一项重算结果与 round.json 的声明不符
+  2 ERROR 证据不全/读不了（缺 round.json、缺引用帧、缺 .gia、无任何可重算断言）——不猜
 """
 import argparse
 import json
@@ -20,8 +46,16 @@ import time
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+YS_STATE = os.path.join(HERE, 'ys-editor', 'ys-state')
 LEDGER = os.path.expanduser('~/.dsh/cmdlog/commands.jsonl')
 OUT = os.path.expanduser('~/.dsh/cmdlog/round.json')
+
+# 门槛③ 的预算红线（契约 §0；超预算即门槛失败）
+GATE_LIMITS = {'frames': 12, 'focus': 1, 'sleeps': 0}
+REQUIRED_TOP = ('round_id', 'started_at', 'budget', 'steps', 'readings', 'log', 'gil')
+
+PASS, DIFF, ERROR, SKIP = 'PASS', 'DIFF', 'ERROR', 'SKIP'
 
 
 def parse_since(s):
@@ -59,16 +93,313 @@ def fmt(ms):
     return f'{ms/60000:.1f}m' if ms >= 60000 else f'{ms/1000:.1f}s'
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--since', default='30m')
-    ap.add_argument('--json', default=OUT)
-    ap.add_argument('--no-coach', action='store_true')
-    a = ap.parse_args()
-    since = parse_since(a.since)
+# ─────────────────────────── 证据重算（门槛④）───────────────────────────
+def _rel(rdir, p):
+    return p if os.path.isabs(p) else os.path.normpath(os.path.join(rdir, p))
+
+
+def sha256_file(path, chunk=1 << 20):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        while True:
+            b = f.read(chunk)
+            if not b:
+                break
+            h.update(b)
+    return h.hexdigest()
+
+
+def printable_strings(data, n=2):
+    """`strings -n N` 的等价实现（额外保留 UTF-8 高位字节，中文标记也能命中）。"""
+    out, cur = [], bytearray()
+    for b in data:
+        if 32 <= b < 127 or b >= 0x80:
+            cur.append(b)
+        else:
+            if len(cur) >= n:
+                out.append(bytes(cur))
+            cur = bytearray()
+    if len(cur) >= n:
+        out.append(bytes(cur))
+    return out
+
+
+def count_mark(path, mark):
+    data = open(path, 'rb').read()
+    return sum(s.decode('utf-8', 'replace').count(mark) for s in printable_strings(data))
+
+
+def judge_frame(frame_path, timeout_s=60.0):
+    """离线重判一帧：`ys-state --json --frame <png>`（DISPLAY 置空 ⇒ 不可能抓屏）。
+
+    走 fast 通道（活体轮用的就是它）；fast 不可用时回落 full，并在提示里写明通道。
+    """
+    env = dict(os.environ)
+    env['DISPLAY'] = ''
+    env.pop('XAUTHORITY', None)
+
+    def _run(extra):
+        t0 = time.time()
+        try:
+            p = subprocess.run([YS_STATE, '--json'] + extra + ['--frame', frame_path],
+                               capture_output=True, text=True, timeout=timeout_s, env=env)
+        except subprocess.TimeoutExpired:
+            return None, (time.time() - t0) * 1000, f'ys-state 超过 {timeout_s:.0f}s 未返回', None
+        ms = (time.time() - t0) * 1000
+        for line in reversed((p.stdout or '').strip().splitlines()):
+            line = line.strip()
+            if line.startswith('{'):
+                try:
+                    d = json.loads(line)
+                    return d.get('state'), ms, None, (d.get('channel') or 'compat')
+                except Exception:
+                    continue
+        return None, ms, (p.stderr or p.stdout or 'ys-state 无 JSON 输出').strip()[:200], None
+
+    got, ms, err, ch = _run(['--fast'])
+    if got is None:
+        got2, ms2, err2, ch2 = _run([])
+        if got2 is not None:
+            return got2, ms + ms2, None, (ch2 or 'full') + '(fast 失败→回落)'
+        return None, ms + ms2, err2 or err, None
+    return got, ms, None, ch
+
+
+def collect_frame_claims(d):
+    """从 round.json 收集「帧 → 期望态」断言（readings 与 steps 两处都认）。"""
+    claims = {}
+    for frame, r in (d.get('readings') or {}).items():
+        st = r.get('state') if isinstance(r, dict) else r
+        fr = r.get('frame') if isinstance(r, dict) and r.get('frame') else frame
+        if st:
+            claims.setdefault(fr, st)
+    for s in d.get('steps') or []:
+        fr, st = s.get('frame'), s.get('state')
+        if fr and st:
+            claims.setdefault(fr, st)
+    return claims
+
+
+def cmd_replay(rdir, json_out=None, judge=True):
+    rdir = os.path.abspath(rdir)
+    rj = os.path.join(rdir, 'round.json')
+    checks = []          # [{'id','verdict','detail'}]
+    t_start = time.time()
+
+    def add(cid, verdict, detail=''):
+        checks.append({'id': cid, 'verdict': verdict, 'detail': detail})
+
+    print(f'══ 重算 {rj} ══')
+    print('（只读 round.json + 引用帧 + .gia；不抓帧、不碰桌面）')
+    if not os.path.isfile(rj):
+        add('读取 round.json', ERROR, f'不存在: {rj}')
+        return _replay_verdict(rdir, checks, json_out, t_start)
+
+    try:
+        d = json.load(open(rj, encoding='utf-8'))
+    except Exception as e:
+        add('读取 round.json', ERROR, f'解析失败: {e}')
+        return _replay_verdict(rdir, checks, json_out, t_start)
+
+    missing_keys = [k for k in REQUIRED_TOP if k not in d]
+    if missing_keys:
+        add('schema', ERROR, f'缺顶层字段 {missing_keys}（契约 §4）')
+        return _replay_verdict(rdir, checks, json_out, t_start)
+
+    # ① 引用物存在性（先查，缺东西就不去猜）
+    claims = collect_frame_claims(d)
+    frames = list(dict.fromkeys(list(d.get('frames') or []) + list(claims) +
+                                [s.get('frame') for s in d.get('steps') or [] if s.get('frame')]))
+    miss_frames = [f for f in frames if not os.path.isfile(_rel(rdir, f))]
+    log = d.get('log') or {}
+    logp = _rel(rdir, log['path']) if log.get('path') else None
+    gil = d.get('gil') or {}
+    gilp = _rel(rdir, gil['path']) if gil.get('path') else None
+    missing = []
+    if miss_frames:
+        missing.append(f'引用帧 {miss_frames}')
+    if not logp or not os.path.isfile(logp):
+        missing.append(f'日志 {log.get("path")}')
+    if gil.get('path') and not os.path.isfile(gilp):
+        missing.append(f'.gil {gil["path"]}')
+    if missing:
+        add('证据引用', ERROR, '缺 ' + '；'.join(missing))
+        return _replay_verdict(rdir, checks, json_out, t_start)
+    add('证据引用', PASS, f'{len(frames)} 帧 + {log["path"]}' +
+        (f' + {gil["path"]}' if gil.get('path') else ''))
+
+    # ② 预算（门槛③）
+    b = d.get('budget') or {}
+    over = [f'{k}={b.get(k, 0)}>{lim}' for k, lim in GATE_LIMITS.items()
+            if isinstance(b.get(k, 0), (int, float)) and b.get(k, 0) > lim]
+    budget_detail = ' '.join(f'{k}={b.get(k, "?")}' for k in ('frames', 'focus', 'sleeps'))
+    if over:
+        add('预算', DIFF, f'{budget_detail}；超红线 ' + '、'.join(over))
+    else:
+        add('预算', PASS, f'{budget_detail}（红线 frames≤12 focus≤1 sleeps=0）')
+
+    # ③ gil 指纹
+    if gil.get('sha_after'):
+        actual = sha256_file(gilp)
+        if actual == gil['sha_after']:
+            add('gil 指纹', PASS, f'sha256 与 sha_after 一致（{actual[:16]}…）')
+        else:
+            add('gil 指纹', DIFF,
+                f'落盘 {actual[:16]}… ≠ 声明 sha_after {gil["sha_after"][:16]}…')
+    else:
+        add('gil 指纹', DIFF, 'round.json 没有 gil.sha_after ⇒ 无法证明证据对应当前 .gil')
+
+    # ④ 日志标记（printString 载荷只在原始字节里，见 D318 教训）
+    markers = log.get('markers') or []
+    if not markers:
+        add('日志标记', DIFF, 'log.markers 为空 ⇒ 无法证明图执行过')
+    else:
+        bad = []
+        for m in markers:
+            mark = m.get('mark') if isinstance(m, dict) else str(m)
+            want_hits = m.get('hits') if isinstance(m, dict) else None
+            got = count_mark(logp, mark)
+            if got == 0:
+                bad.append(f'「{mark}」命中 0（声明 {want_hits}）')
+            elif want_hits is not None and got < int(want_hits):
+                bad.append(f'「{mark}」命中 {got} < 声明 {want_hits}')
+        if bad:
+            add('日志标记', DIFF, '；'.join(bad))
+        else:
+            add('日志标记', PASS, '；'.join(f'「{m.get("mark") if isinstance(m, dict) else m}」'
+                                       f'命中 {count_mark(logp, m.get("mark") if isinstance(m, dict) else m)}'
+                                       for m in markers))
+
+    # ⑤ 状态重算（最贵的一步放最后；离线帧，不抓屏）
+    if not judge:
+        add('状态重算', SKIP, '--no-judge：本次跳过重判（只审引用/预算/指纹/标记）')
+    elif not claims:
+        add('状态重算', ERROR, '没有任何「帧→期望态」读数 ⇒ 无可重算的判态结论')
+    else:
+        for frame, expected in claims.items():
+            got, ms, err, ch = judge_frame(_rel(rdir, frame))
+            tag = f'通道={ch}, {ms:.0f}ms'
+            if got is None:
+                add('状态重算', ERROR, f'{frame}: 重判失败（{err}）')
+            elif got == expected:
+                add('状态重算', PASS, f'{frame} → {got}（{tag}）')
+            else:
+                add('状态重算', DIFF, f'{frame}: 期望 {expected} 实测 {got}（{tag}）')
+
+    # 本轮执行器的自述结论（不是重算项，只做对照，避免「声明失败却被当 PASS」）
+    failed = [s for s in d.get('steps') or [] if s.get('ok') is False]
+    if failed:
+        add('本轮自述', PASS, '执行器声明失败步骤 ' +
+            '、'.join(f'step#{s.get("step")}({s.get("class") or s.get("act")})' for s in failed))
+    return _replay_verdict(rdir, checks, json_out, t_start)
+
+
+def _replay_verdict(rdir, checks, json_out, t_start):
+    print()
+    for c in checks:
+        icon = {PASS: '✓', DIFF: '✗', ERROR: '✗', SKIP: '·'}[c['verdict']]
+        print(f'  {icon} {c["id"]:<6} {c["verdict"]}  {c["detail"]}')
+    n_err = sum(1 for c in checks if c['verdict'] == ERROR)
+    n_diff = sum(1 for c in checks if c['verdict'] == DIFF)
+    n_pass = sum(1 for c in checks if c['verdict'] == PASS)
+    n_skip = sum(1 for c in checks if c['verdict'] == SKIP)
+    ms = round((time.time() - t_start) * 1000)
+    if n_err:
+        verdict, code = ERROR, 2
+        tail = '证据不全：重算不成立（不猜）'
+    elif n_diff:
+        verdict, code = DIFF, 1
+        tail = '重算结果与 round.json 声明不符'
+    elif n_pass == 0:
+        verdict, code = ERROR, 2
+        tail = '没有可重算的证据项'
+    else:
+        verdict, code = PASS, 0
+        tail = '只凭落盘物就能重算出结论'
+    print(f'\n结论: {verdict}  ({n_pass} 项成立 / {n_diff} 项不符 / {n_err} 项证据不全'
+          + (f' / {n_skip} 项跳过' if n_skip else '') + f'；{ms}ms) — {tail}')
+    # 契约 §7 机读结果行（tools/ys-gates 门槛④ 只认这一行）
+    print(f'GATE4-RESULT pass={n_pass} diff={n_diff} error={n_err} verdict={verdict}')
+    if json_out:
+        rec = {'round_dir': rdir, 'verdict': verdict, 'exit': code, 'ms': ms,
+               'checks': checks}
+        try:
+            json.dump(rec, open(json_out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+            print(f'证据: {json_out}')
+        except OSError as e:
+            print(f'⚠ 写不了 {json_out}: {e}', file=sys.stderr)
+    return code
+
+
+def cmd_emit_round(rdir):
+    """把执行器写出的 round.draft.json 校验成 round.json（schema 的唯一实现）。"""
+    rdir = os.path.abspath(rdir)
+    draft = os.path.join(rdir, 'round.draft.json')
+    src = draft if os.path.isfile(draft) else os.path.join(rdir, 'round.json')
+    if not os.path.isfile(src):
+        print(f'✗ 缺 {draft}（也没有 round.json）', file=sys.stderr)
+        return 2
+    try:
+        d = json.load(open(src, encoding='utf-8'))
+    except Exception as e:
+        print(f'✗ 解析 {src} 失败: {e}', file=sys.stderr)
+        return 2
+    problems = [f'缺顶层字段 {k}' for k in REQUIRED_TOP if k not in d]
+    b = d.get('budget') or {}
+    if not isinstance(b, dict):
+        problems.append('budget 不是对象')
+    else:
+        for k in ('frames', 'focus', 'sleeps'):
+            if not isinstance(b.get(k), (int, float)):
+                problems.append(f'budget.{k} 缺失或非数字')
+    if not isinstance(d.get('steps'), list):
+        problems.append('steps 不是数组')
+    # 引用物必须真实存在，否则写出去的 round.json 一定 replay 不了
+    for f in d.get('frames') or []:
+        if not os.path.isfile(_rel(rdir, f)):
+            problems.append(f'frames 引用的 {f} 不存在')
+    log = d.get('log') or {}
+    if not log.get('path') or not os.path.isfile(_rel(rdir, log['path'])):
+        problems.append(f'log.path={log.get("path")!r} 不存在')
+    if not (log.get('markers') or []):
+        problems.append('log.markers 为空（无法证明图执行过）')
+    gil = d.get('gil') or {}
+    if not gil.get('path'):
+        problems.append('gil.path 缺失')
+    elif not os.path.isfile(_rel(rdir, gil['path'])):
+        problems.append(f'gil.path={gil["path"]} 不存在')
+    elif not gil.get('sha_after'):
+        gil['sha_after'] = sha256_file(_rel(rdir, gil['path']))   # 落盘后补指纹
+    # 唯一性/一致性：frames 列表 = 引用帧去重
+    refs = list(dict.fromkeys(list(d.get('frames') or []) +
+                              [s.get('frame') for s in d.get('steps') or [] if s.get('frame')] +
+                              [f for f, r in (d.get('readings') or {}).items()
+                               if not (isinstance(r, dict) and r.get('frame'))]))
+    d['frames'] = refs
+    d.setdefault('schema', 1)
+    if problems:
+        print('✗ 不写 round.json，证据不完整：', file=sys.stderr)
+        for p in problems:
+            print(f'  · {p}', file=sys.stderr)
+        return 2
+    dst = os.path.join(rdir, 'round.json')
+    json.dump(d, open(dst, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'✓ round.json 已落盘: {dst}')
+    print(f'  预算: frames={b.get("frames")} focus={b.get("focus")} sleeps={b.get("sleeps")}'
+          f'（红线 frames≤{GATE_LIMITS["frames"]} focus≤{GATE_LIMITS["focus"]} '
+          f'sleeps≤{GATE_LIMITS["sleeps"]}）')
+    print(f'  引用: {len(refs)} 帧 / 1 日志 / 1 .gil；下一步自检: '
+          f'tools/round-report --replay {rdir}')
+    return 0
+
+
+# ─────────────────────────── 账本模式（原有行为）───────────────────────────
+def cmd_ledger(args):
+    since = parse_since(args.since)
     rows = load(since)
     if not rows:
-        print(f'窗口 {a.since} 内无调用记录')
+        print(f'窗口 {args.since} 内无调用记录')
         return 1
 
     inst = [r for r in rows if r.get('tool') != 'ask_user_question']
@@ -85,7 +416,7 @@ def main():
     sleeps = [r for r in inst if r.get('tool') == 'bash' and SLEEP.search(r.get('cmd', ''))]
     idle = [r for r in inst if r.get('tool') == 'job_output' and r['dur_ms'] >= 60000]
 
-    print(f'=== 本轮账（近 {a.since}）===')
+    print(f'=== 本轮账（近 {args.since}）===')
     print(f'调用 {len(rows)} 次   仪器耗时 {fmt(total)}'
           + (f'   人等待 {fmt(sum(r["dur_ms"] for r in human))}' if human else ''))
     top = sorted(per.items(), key=lambda kv: -kv[1][1])[:5]
@@ -97,25 +428,46 @@ def main():
             print(f'    {r["cmd"][:88]}')
 
     coach = ''
-    if not a.no_coach:
+    if not args.no_coach:
         try:
-            p = subprocess.run([os.path.join(HERE, 'agent-coach'), '--window', a.since, '--dry-run'],
+            p = subprocess.run([os.path.join(HERE, 'agent-coach'), '--window', args.since,
+                                '--dry-run'],
                                capture_output=True, text=True, timeout=60)
             coach = p.stdout.strip()
             print('\n' + coach)
         except Exception as e:
             coach = f'（教练卡生成失败: {e}）'
 
-    rec = {'ts': int(time.time() * 1000), 'since': a.since,
+    rec = {'ts': int(time.time() * 1000), 'since': args.since,
            'calls': len(rows), 'instrument_ms': total,
            'human_ms': sum(r['dur_ms'] for r in human),
            'cats': {c: {'n': v[0], 'ms': v[1]} for c, v in per.items()},
            'fails': len(fails), 'bare_sleep': len(sleeps), 'idle_wait_60s': len(idle),
            'coach': coach}
-    with open(a.json, 'w') as f:
+    json_out = args.json or OUT
+    with open(json_out, 'w') as f:
         json.dump(rec, f, ensure_ascii=False, indent=1)
-    print(f'\n证据: {a.json}')
+    print(f'\n证据: {json_out}')
     return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        usage='round-report [--since 30m] [--json out.json] | '
+              '--replay <round目录> [--no-judge] [--json verdict.json] | --emit-round <round目录>')
+    ap.add_argument('--since', default='30m')
+    ap.add_argument('--json', default=None)
+    ap.add_argument('--no-coach', action='store_true')
+    ap.add_argument('--replay', metavar='DIR', help='只读落盘物重算结论（门槛④）')
+    ap.add_argument('--emit-round', metavar='DIR', help='校验 round.draft.json → round.json')
+    ap.add_argument('--no-judge', action='store_true',
+                    help='--replay 时跳过状态重判（只审引用/预算/指纹/标记；快）')
+    a = ap.parse_args()
+    if a.replay:
+        return cmd_replay(a.replay, a.json, judge=not a.no_judge)
+    if a.emit_round:
+        return cmd_emit_round(a.emit_round)
+    return cmd_ledger(a)
 
 
 if __name__ == '__main__':

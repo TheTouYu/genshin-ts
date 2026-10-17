@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "round_id": "fixture-round-20261017",
+ "started_at": "2026-10-17T19:00:00",
+ "finished_at": "2026-10-17T19:01:10",
+ "map_id": 1073741832,
+ "budget": {"frames": 2, "focus": 1, "sleeps": 0, "polls": 6},
+ "steps": [
+  {"step": 1, "act": "assert", "assert": "state=SAVELIST", "state": "SAVELIST",
+   "ok": true, "ms": 312, "frame": "savelist.png"},
+  {"step": 2, "act": "assert", "assert": "state=PLAYTEST", "state": "PLAYTEST",
+   "ok": true, "ms": 268, "frame": "playtest.png"}
+ ],
+ "readings": {
+  "savelist.png": {"state": "SAVELIST", "channel": "fast"},
+  "playtest.png": {"state": "PLAYTEST", "channel": "fast"}
+ },
+ "log": {"path": "debug-log.gia", "markers": [{"mark": "YJ-BOOT", "hits": 1}]},
+ "gil": {"path": "fixture-local-save.gil", "sha_before": "unused-in-fixture"},
+ "frames": ["savelist.png", "playtest.png"]
+}
