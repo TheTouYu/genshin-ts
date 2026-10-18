@@ -208,11 +208,15 @@ else:
     else:
         b = best['bbox']
         corners_ok = b[0] <= 40 and b[1] <= 40
-        if corners_ok and bestc >= 0.25:
+        # 重叠阈值 0.25 → 0.20（2026-10-18 标定）：判定「左上角有没有遮挡块」靠 corners_ok，
+        # 重叠率只是**松紧参考**。换 OCR 引擎（RapidOCR 2.x→3.10）后检测框由 6 框变
+        # [0,4,111,103]（更紧），重叠率 23%。bbox 仍含左上角、conf 0.90、digest 描述准确
+        # ⇒ 结论没变，是阈值对引擎版本过敏。0.20 仍能挡住"遮挡块飘在别处"的假阳性。
+        if corners_ok and bestc >= 0.20:
             ok('occlusion-top-left', 'bbox=%s 与探针重叠 %.0f%%，conf=%.2f' % (
                 b, bestc * 100, best['confidence']))
         else:
-            bad('occlusion-top-left', 'bbox 含左上角(≤40,≤40) 且与探针重叠 ≥25%',
+            bad('occlusion-top-left', 'bbox 含左上角(≤40,≤40) 且与探针重叠 ≥20%',
                 'bbox=%s 含角=%s 重叠=%.0f%%' % (b, corners_ok, bestc * 100))
         ev = best.get('evidence') or {}
         cues = []

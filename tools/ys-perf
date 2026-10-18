@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""ys-perf — GUI 感知层**单次执行**性能门禁（2026-10-18 用户令）。
+
+为什么要有它
+------------
+用户原话：「按 AGI 视角，一个简单的单次执行应该控制在 ms 级别，我认为现在 GUI 模块
+已经存在了失控的风险」。而在此之前，**没有任何门禁检查"快不快"**——`ys-gates` 的
+门槛③ 只检查"一轮"的预算（≤90s/≤40s/帧数/焦点/sleep），单次调用慢 8 倍也不会红。
+实测同一天内：`ys-state` 默认 3301ms / `--fast` 407ms；OCR 3673ms / 常驻 CUDA 528ms。
+没有阈值 ⇒ 退化不会被发现，只会被"感觉今天很慢"隐约发现。
+
+口径（三条，都可机检）
+----------------------
+1. **单次延迟**：每条命令连续跑 N 次，取**中位数**，与档案里的阈值比。
+   用中位数不用均值：首次调用含引擎加载/CUDA context（一次性），均值会被它带偏。
+2. **冷启动**：第 1 次调用的耗时要单列，且**只许付一次**——它若与中位数同量级，
+   说明每次都在付（典型症状：该常驻的没常驻）。
+3. **判据不放松**：性能门禁跑完后，调用方还应跑一遍功能回归（`ys-state --regress`），
+   证明"快"不是靠跳过判据换来的。
+
+用法
+----
+  tools/ys-perf                 # 人看：每条命令的 冷/中位/阈值 + PASS/FAIL
+  tools/ys-perf --json          # 机读
+  tools/ys-perf --only state,ocr
+  tools/ys-perf --update-baseline   # 本机重标定（写 perf-baseline.tsv；需说明为什么改）
+
+退出码: 0 全绿 / 1 有超阈值 / 2 依赖缺失（daemon 没起等）
+"""
+import argparse
+import json
+import os
+import statistics
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+YS = os.path.join(HERE, 'ys-editor')
+REG = os.path.join(YS, 'calib', 'regress')
+BASELINE = os.path.join(HERE, 'perf-baseline.tsv')
+
+FRAME = os.path.join(REG, 'playtest.png')
+
+# name, 命令, 阈值(ms 中位), 说明
+# 阈值来源：2026-10-18 本机（RTX 3060 / 16 核）实测中位数 × 2.5~3 倍余量。
+# 余量不能太小：CI 机器负载波动本来就有 1.5~2 倍；也不能太大，否则退化发现不了。
+CASES = [
+    ('state-fast', ['%s/ys-state' % YS, '--frame', FRAME, '--json', '--fast'],
+     600, '判态快通道（实测 ~130ms 内部 + ~200ms 进程）'),
+    ('state-default', ['%s/ys-state' % YS, '--frame', FRAME, '--json'],
+     1500, '判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）'),
+    ('probe', ['%s/ys-state' % YS, '--probe', 'menu_open', '--frame', FRAME, '--json'],
+     300, '具名探针'),
+    ('pixel', ['%s/ys-state' % YS, '--pixel', '100', '100', '--frame', FRAME],
+     300, '单像素读取'),
+    ('screen', ['%s/ys-screen' % HERE, FRAME, '--json'],
+     2500, '屏幕摘要（含常驻 OCR）'),
+    ('layer', ['%s/ys-layer' % HERE, FRAME],
+     800, '层级/模态'),
+    # ys-watch 需要 ≥2 帧（单帧只报用法错误，那种"快"是假读数）
+    ('watch', ['%s/ys-watch' % HERE, '--frames', FRAME, FRAME, '--roi', '0,0,200,100'],
+     800, 'ROI 变化检测（两帧比对）'),
+]
+N = 3
+
+
+def run_once(cmd):
+    t0 = time.time()
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    return int((time.time() - t0) * 1000), p.returncode, (p.stdout or p.stderr or '')
+
+
+def read_baseline():
+    out = {}
+    if not os.path.exists(BASELINE):
+        return out
+    with open(BASELINE, encoding='utf-8') as fh:
+        head = fh.readline().rstrip('\n').split('\t')
+        for line in fh:
+            v = dict(zip(head, line.rstrip('\n').split('\t')))
+            if v.get('name'):
+                out[v['name']] = v
+    return out
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--json', action='store_true')
+    ap.add_argument('--only', default='')
+    ap.add_argument('--n', type=int, default=N)
+    ap.add_argument('--update-baseline', action='store_true')
+    a = ap.parse_args(argv)
+
+    if not os.path.exists(FRAME):
+        print('缺离线帧 %s（性能门禁必须用固定帧，避免"这次跑得快是因为换了张图"）' % FRAME,
+              file=sys.stderr)
+        return 2
+    only = {x.strip() for x in a.only.split(',') if x.strip()}
+    base = read_baseline()
+    results, n_bad, n_missing = [], 0, 0
+
+    for name, cmd, limit, desc in CASES:
+        if only and name not in only:
+            continue
+        if not os.path.exists(cmd[0]):
+            results.append({'name': name, 'skip': '命令不存在 %s' % cmd[0]})
+            n_missing += 1
+            continue
+        if name in base and base[name].get('limit_ms'):
+            limit = int(base[name]['limit_ms'])
+        costs, rc = [], None
+        for i in range(max(1, a.n)):
+            ms, rc, text = run_once(cmd)
+            costs.append(ms)
+            if i == 0:
+                cold = ms
+        med = int(statistics.median(costs))
+        # 退出码语义因工具而异：探针"不可见"=1、判态 UNKNOWN=4 都是**正常判定结果**，
+        # 不是仪器故障。性能门禁只管耗时；功能正确性由各自的回归自测负责（别在这里重复判）。
+        ok = rc in (0, 1, 4) and med <= limit
+        n_bad += 0 if ok else 1
+        results.append({'name': name, 'desc': desc, 'cold_ms': cold, 'median_ms': med,
+                        'limit_ms': limit, 'rc': rc, 'ok': ok,
+                        'ratio_vs_limit': round(med / float(limit), 2)})
+
+    if a.update_baseline:
+        with open(BASELINE, 'w', encoding='utf-8') as fh:
+            fh.write('name\tlimit_ms\tmeasured_median_ms\tmeasured_cold_ms\tnote\n')
+            for r in results:
+                if r.get('skip'):
+                    continue
+                fh.write('%s\t%d\t%d\t%d\t%s\n' % (r['name'], r['limit_ms'], r['median_ms'],
+                                                   r['cold_ms'], r['desc']))
+        print('[ok] 基线已写入 %s（改了阈值要在 commit message 里说明为什么）' % BASELINE)
+
+    if a.json:
+        print(json.dumps({'results': results,
+                          'summary': {'bad': n_bad, 'missing': n_missing,
+                                      'all_pass': n_bad == 0 and n_missing == 0}},
+                         ensure_ascii=False, indent=1))
+    else:
+        print('══ ys-perf 单次执行性能门禁  %s ══' % time.strftime('%F %T'))
+        print('%-14s %8s %8s %8s  %s' % ('命令', '冷(ms)', '中位(ms)', '阈值(ms)', '判定'))
+        for r in results:
+            if r.get('skip'):
+                print('%-14s %s' % (r['name'], r['skip']))
+                continue
+            mark = '✓ PASS' if r['ok'] else '✗ FAIL'
+            print('%-14s %8d %8d %8d  %s%s' % (r['name'], r['cold_ms'], r['median_ms'],
+                                               r['limit_ms'], mark,
+                                               '' if r['ok'] else '  ← %s' % r['desc']))
+        print('-' * 62)
+        print('汇总: %d 项超阈值 / %d 项缺依赖（共 %d 项）'
+              % (n_bad, n_missing, len(results)))
+        if n_bad == 0 and n_missing == 0:
+            print('单次执行全部在 ms 级预算内。')
+    if n_missing:
+        return 2
+    return 1 if n_bad else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

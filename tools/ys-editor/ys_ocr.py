@@ -17,6 +17,20 @@
 口径（2026-10-17 实测）：RapidOCR 在真实按钮裁区/全帧上中文标签 100% 字符命中，
 全帧 2560×1440 冷启动 ~2.5s（含模型 init）。坐标是**框中心**，不是可点击点；
 点击点由调用方按控件几何决定（见 tools/ys-find 的 --expect 对账）。
+
+**GPU 加速（2026-10-18 实测：单帧 3673ms → 528ms，7×）**
+本机是 RTX 3060；`onnxruntime-cuda`(1.29) + `cudnn 9` 由 pacman 装在系统 python。
+但让 RapidOCR 真用上 CUDA 需要**同时**满足三个非显然条件，缺一个就**静默退回 CPU**
+（只留一行容易被忽略的 warning）：
+  ① 先 `ctypes.CDLL('/usr/lib/libcudnn.so.9', RTLD_GLOBAL)` 把 cuDNN 链进进程，
+     否则 ORT 加载 provider 时报 `undefined symbol: cudnnGetConvolutionBackwardDataAlgorithm_v7`；
+  ② `register_execution_provider_library('CUDAExecutionProvider', <capi>/libonnxruntime_providers_cuda.so)`
+     —— ORT 1.29 把 CUDA EP 拆成独立 so，光有包不会自动注册；
+  ③ `ort.get_device()` 在本机返回 **`'GPU-DNNL'`**（装了 DnnlExecutionProvider），
+     而 RapidOCR 3.10 的判断是 `get_device() == "GPU"` ⇒ 永远为假。
+     这是 RapidOCR 的 bug，本文件用一行 monkey-patch 绕过；升级 RapidOCR 后应重验这一条。
+  `YS_OCR_CPU=1` 可强制走 CPU（对照实验/排障用）。
+  ⚠️ 与 `onnxruntime-gpu`(pip) 那套**不要混装**：两者抢同一个 `onnxruntime` 包名。
 """
 import argparse
 import json
@@ -27,17 +41,101 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+_ENGINE = None
+_GPU_STATE = None          # None=未探测 / True=GPU / False=CPU / str=失败原因
+
+
+def _enable_gpu():
+    """按上文①②③三步把 CUDA EP 弄成"真能用"。返回 (ok, 说明)。
+
+    任何一步失败都**不抛**：退回 CPU 继续跑（正确性一致），由调用方决定要不要出声。
+    """
+    global _GPU_STATE
+    if _GPU_STATE is not None:
+        return (_GPU_STATE is True), (_GPU_STATE if isinstance(_GPU_STATE, str) else '')
+    if os.environ.get('YS_OCR_CPU') == '1':
+        _GPU_STATE = 'YS_OCR_CPU=1（显式走 CPU）'
+        return False, _GPU_STATE
+    try:
+        import ctypes
+        import ctypes.util
+        # ① cuDNN 必须先链进进程（Arch 的 cudnn9 与 ORT 1.29 的符号解析顺序问题）
+        path = ctypes.util.find_library('cudnn') or '/usr/lib/libcudnn.so.9'
+        try:
+            ctypes.CDLL(path, mode=ctypes.RTLD_GLOBAL)
+        except OSError:
+            ctypes.CDLL('/usr/lib/libcudnn.so.9', mode=ctypes.RTLD_GLOBAL)
+        import onnxruntime as ort
+        # ② ORT ≥1.29 的 CUDA EP 是独立 so，必须显式注册
+        capi = os.path.join(os.path.dirname(ort.__file__), 'capi')
+        cuda_so = os.path.join(capi, 'libonnxruntime_providers_cuda.so')
+        if os.path.exists(cuda_so):
+            try:
+                ort.register_execution_provider_library('CUDAExecutionProvider', cuda_so)
+            except Exception:                      # noqa: BLE001 —— 已注册过就继续
+                pass
+        if 'CUDAExecutionProvider' not in ort.get_available_providers():
+            _GPU_STATE = 'CUDAExecutionProvider 不在 available providers'
+            return False, _GPU_STATE
+        # ③ RapidOCR 3.10 的 `get_device() == "GPU"` 在本机恒为假（实际返回 'GPU-DNNL'）
+        if ort.get_device() != 'GPU':
+            ort.get_device = lambda: 'GPU'
+        _GPU_STATE = True
+        return True, ''
+    except Exception as e:                         # noqa: BLE001
+        _GPU_STATE = f"{type(e).__name__}: {e}"
+        return False, _GPU_STATE
+
+
+def _engine(verbose=False):
+    """进程内复用同一份引擎（模型加载只付一次）。"""
+    global _ENGINE
+    if _ENGINE is not None:
+        return _ENGINE
+    ok, why = _enable_gpu()
+    # 两套包名都要认：系统 pacman 包叫 `rapidocr`(3.10，params API)，
+    # 老的 venv 里叫 `rapidocr_onnxruntime`(2.x，**只有 kwargs API**)。两者的 CUDA 开关不同。
+    try:
+        from rapidocr import RapidOCR          # 3.x
+        _ENGINE = RapidOCR(params={"EngineConfig.onnxruntime.use_cuda": True} if ok else {})
+    except ImportError:
+        from rapidocr_onnxruntime import RapidOCR     # 2.x（venv）
+        kw = {'det_use_cuda': True, 'cls_use_cuda': True, 'rec_use_cuda': True} if ok else {}
+        _ENGINE = RapidOCR(**kw)
+    if verbose:
+        sys.stderr.write(f"[ys_ocr] 引擎={'CUDA' if ok else 'CPU'}{('（' + why + '）') if why else ''}\n")
+    return _ENGINE
+
+
+def _normalize(result):
+    """把两代 RapidOCR 的输出统一成 [(box, txt, score)]。
+
+    2.x (`rapidocr_onnxruntime`)：`eng(img)` 返回 `(list_of_[box,txt,score], elapse)`。
+    3.x (`rapidocr`)：返回 `RapidOCROutput`，字段 `boxes`(ndarray N×4×2)/`txts`/`scores`，
+         **不能再按元组解包**（`TypeError: cannot unpack non-iterable RapidOCROutput`）。
+    两代归一，调用方只认一种形状。
+    """
+    if isinstance(result, tuple) and len(result) == 2 and isinstance(result[0], (list, tuple)):
+        return [(it[0], it[1], float(it[2])) for it in (result[0] or [])]
+    boxes = getattr(result, 'boxes', None)
+    txts = getattr(result, 'txts', None) or ()
+    scores = getattr(result, 'scores', None) or ()
+    out = []
+    for i, b in enumerate(boxes if boxes is not None else []):
+        pts = b.tolist() if hasattr(b, 'tolist') else b
+        out.append((pts, txts[i] if i < len(txts) else '',
+                    float(scores[i]) if i < len(scores) else 0.0))
+    return out
+
 
 def cmd_ocr(a):
-    from rapidocr_onnxruntime import RapidOCR
+    eng = _engine(verbose=True)
     t0 = time.time()
-    eng = RapidOCR()
-    res, _ = eng(a.image)
+    items = _normalize(eng(a.image))
     ms = int((time.time() - t0) * 1000)
     wants = [w for w in (a.want or '').split(',') if w]
     boxes = []
-    for item in (res or []):
-        box, txt, sc = item[0], item[1], float(item[2])
+    for box, txt, sc in items:
         xs = [p[0] for p in box]
         ys = [p[1] for p in box]
         if wants and not any(w in txt for w in wants):
@@ -46,7 +144,8 @@ def cmd_ocr(a):
                       'score': round(sc, 4),
                       'box': [[int(p[0]), int(p[1])] for p in box]})
     out = {'channel': 'text', 'image': os.path.abspath(a.image), 'boxes': boxes, 'ms': ms,
-           'n_total': len(res or [])}
+           'n_total': len(items),
+           'engine': 'cuda' if _GPU_STATE is True else 'cpu'}
     print(json.dumps(out, ensure_ascii=False) if a.json else
           '\n'.join('%-8s (%d,%d) %.2f' % (b['text'], b['cx'], b['cy'], b['score']) for b in boxes))
     return 0

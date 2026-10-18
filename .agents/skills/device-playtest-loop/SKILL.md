@@ -389,6 +389,37 @@ tools/agent-coach --window 2h --dry-run --format text   # 临时要一份卡片�
 **纪律（已两次踩）**：新监控件落地**必须同轮接进主链并打一行读数**——`ys-time-audit`/`accept-meter`
 当年就是"写好了但没接进主链"，等于没有。判据：**问一句"谁在不看文档的情况下会被它触发？"** 答不出就是没接。
 
+## 视觉识别性能：先问「走的是哪条通道」（2026-10-18 实测，本机 RTX 3060）
+
+> 同一台机、同一批帧，**换实现差一个数量级**是常态。动手前先量，再决定用哪条。
+
+| 做法 | 单帧耗时 | 备注 |
+|---|---|---|
+| RapidOCR 2.x 每次新进程（CPU） | **3673ms** | 自带 venv，pip 装的 GPU 版实际仍是 CPU |
+| RapidOCR 3.10 常驻（CPU） | **3020ms** | pacman `python-rapidocr` |
+| **RapidOCR 3.10 常驻 + CUDA** | **489~552ms（5.5×）** | 桶数一致（33），结果不变 |
+| 模板匹配 ys-lookd batch（GPU） | **147ms** | 能用模板就别 OCR |
+
+**让 CUDA 真生效的三个条件（缺一个就静默退回 CPU，只留一行 warning）**：
+1. `ctypes.CDLL('/usr/lib/libcudnn.so.9', RTLD_GLOBAL)` —— 否则 ORT 加载 provider 报
+   `undefined symbol: cudnnGetConvolutionBackwardDataAlgorithm_v7`（符号其实在，是加载顺序问题）。
+2. `ort.register_execution_provider_library('CUDAExecutionProvider', <capi>/libonnxruntime_providers_cuda.so)`
+   —— ORT ≥1.29 把 CUDA EP 拆成独立 so，装了包也不会自动注册。
+3. `ort.get_device()` 在本机返回 **`'GPU-DNNL'`**（装了 DnnlExecutionProvider），而 RapidOCR 3.10
+   的判断是 `get_device() == "GPU"` ⇒ **永远为假**。这是 RapidOCR 的 bug，用 `ort.get_device = lambda: 'GPU'`
+   绕过；**升级 RapidOCR 后必须重验这一条**。
+
+**安装口径**：用 pacman（`python-onnxruntime-cuda` + `python-rapidocr` + `python-rapidocr-models-onnx`），
+**不要**再往 venv 里 pip 装 `onnxruntime-gpu`——两者抢同一个 `onnxruntime` 包名，且 pip 版还要
+额外塞 nvidia-cu12 运行库（本机系统是 CUDA 13，两者不匹配）。`YS_OCR_CPU=1` 可强制对照。
+
+**必须在常驻进程里跑**：引擎加载 + 首帧 CUDA context 约 9s，只付一次；每次新进程都付 = 白花。
+`ys_ocr.py` 现在是唯一引擎入口（`_engine()` 进程内复用），`ys-screen` 与 `ys-lookd` 都复用它。
+
+**顺带修掉的测量缺陷**：`ys-screen` 的 `pixel_ms` 原先算 `t_end - t_load`，而 t_load 在 OCR **之前**
+⇒ OCR 耗时被重复计进"像素"（实测 1262ms 里绝大部分是等 daemon）。现在分开计时，
+读数才能指向真瓶颈。
+
 ## 变更记录
 
 | 日期 | 变更 |
@@ -546,3 +577,4 @@ tools/ys-editor/ys-sample list
 ### 反馈节奏
 每完成一层（P1/P2/P3）**一次**，而不是每轮都看：他的注意力是稀缺资源，
 批处理反馈 = 单次上下文更完整 = 判断更准。
+| 2026-10-18 | 新增「视觉识别性能」节：GPU OCR 的 5.5× 与三个必须同时满足的生效条件（含 RapidOCR 的 `get_device()` bug） |

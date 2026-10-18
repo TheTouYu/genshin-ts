@@ -123,6 +123,50 @@ def backend_ok():
     return os.path.exists(RAPIDOCR_PY), os.path.abspath(RAPIDOCR_PY)
 
 
+LOOKD_SOCK = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
+
+
+def _daemon_ocr(frame, src_path, scale):
+    """向 ys-lookd 要一次 OCR。服务不可用/未实现该命令 ⇒ 返回 None（调用方回退子进程）。
+
+    为什么值得多这一层：OCR 引擎（模型加载 + CUDA context）是**进程级**开销，
+    子进程模型下每次都要重付；常驻后单帧从 5.5s 级降到 0.4s 级。
+    """
+    import socket
+    if not os.path.exists(LOOKD_SOCK):
+        return None
+    req = {'cmd': 'ocr'}
+    if frame is not None:
+        req['frame'] = os.path.abspath(frame)
+    else:                                  # 缩放帧：让服务读临时文件
+        req['frame'] = os.path.abspath(src_path)
+    try:
+        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        c.settimeout(120)
+        c.connect(LOOKD_SOCK)
+        c.sendall((json.dumps(req) + '\n').encode())
+        data = b''
+        while not data.endswith(b'\n'):
+            ch = c.recv(65536)
+            if not ch:
+                break
+            data += ch
+        c.close()
+        r = json.loads(data.decode())
+    except (OSError, ValueError):
+        return None
+    if r.get('error') or not isinstance(r.get('boxes'), list):
+        return None                        # 服务不认识 ocr（旧版本）或出错 ⇒ 回退
+    boxes = r['boxes']
+    if abs(scale - 1.0) > 1e-6:
+        boxes = [{'text': b['text'], 'cx': int(b['cx'] / scale), 'cy': int(b['cy'] / scale),
+                  'score': b['score'],
+                  'box': [[int(p[0] / scale), int(p[1] / scale)] for p in b['box']]}
+                 for b in boxes]
+    return boxes, {'source': 'daemon', 'ms': int(r.get('ms') or 0),
+                   'n_total': int(r.get('n_total') or 0), 'err': None}
+
+
 def run_ocr(frame, use_cache=True, scale=1.0, debug=False):
     """整帧 OCR（复用 ys_ocr.py 子进程）。返回 (boxes, meta)。
 
@@ -149,6 +193,29 @@ def run_ocr(frame, use_cache=True, scale=1.0, debug=False):
                                'n_total': int(c.get('n_total') or 0), 'err': None}
         except (OSError, ValueError):
             pass
+    # ① 常驻服务优先（2026-10-18）：RapidOCR 每次新起进程要付「启动 + 模型加载」≈ 5s，
+    #    而引擎在常驻进程里只付一次。实测单帧：冷进程 5.5~13.8s → 常驻 CUDA **~0.4s**。
+    if os.environ.get('YS_SCREEN_NO_DAEMON_OCR') != '1':
+        d = _daemon_ocr(frame if abs(scale - 1.0) < 1e-6 else None, src_path, scale)
+        if d is not None:
+            boxes, meta = d
+            meta['source'] = 'daemon'
+            if cpath:
+                try:
+                    os.makedirs(CACHE_DIR, exist_ok=True)
+                    tmp = '%s.tmp%d' % (cpath, os.getpid())
+                    with open(tmp, 'w', encoding='utf-8') as f:
+                        json.dump({'backend': _backend_sig(), 'boxes': boxes,
+                                   'n_total': meta.get('n_total') or 0,
+                                   'ms': meta.get('ms') or 0,
+                                   'frame': os.path.abspath(src_path), 'scale': scale},
+                                  f, ensure_ascii=False)
+                    os.replace(tmp, cpath)
+                    _prune_cache()
+                except OSError:
+                    pass
+            return boxes, meta
+
     ok, py = backend_ok()
     if not ok:
         return None, {'source': 'nobackend', 'ms': 0, 'n_total': 0,
@@ -1210,6 +1277,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
             # 4 = 后端缺失（fail-closed，不降级成"这屏没字"）；5 = 后端在但跑失败
             raise SystemExit(4 if meta['source'] == 'nobackend' else 5)
         boxes = got
+    t_after_ocr = time.time()
     text = []
     for i, b in enumerate(boxes):
         bb = box_bbox(b['box'])
@@ -1232,9 +1300,12 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
         'title': title,
         'text': text, 'controls': ctrls, 'regions': regs,
         'adjacency': adj, 'occlusion': occ,
+        # ⚠️ pixel_ms 原先算的是 `t_end - t_load`，而 t_load 在 run_ocr **之前** ——
+        # 于是 OCR 的耗时被重复计进"像素"里（实测 ocr_source=daemon 时 ocr_ms=0、pixel_ms=1262，
+        # 那个 1262 里绝大部分是等 daemon）。现在分开计时，读数才能指向真瓶颈。
         'timing': {'load_ms': int((t_load - t0) * 1000),
-                   'ocr_ms': int(meta['ms']) if meta['source'] == 'run' else 0,
-                   'pixel_ms': int((t_end - t_load) * 1000),
+                   'ocr_ms': int((t_after_ocr - t_load) * 1000),
+                   'pixel_ms': int((t_end - t_after_ocr) * 1000),
                    'total_ms': int((t_end - t0) * 1000),
                    'ocr_source': meta['source'], 'ocr_backend': _backend_sig()},
         'ocr': {'n_total': meta['n_total'], 'err': meta['err']},

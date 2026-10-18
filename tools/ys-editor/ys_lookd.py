@@ -283,7 +283,10 @@ def _probe(req):
         out = YS.probe(name, grabbed=(arr, x0, y0))
         out.update({"cache_hit": cache_hit, "judge_ms": round((time.time() - t_load) * 1000)})
     else:
-        arr = YL.grab(ox, oy, bw, bh)
+        # ⚠️ `YL.grab` 返回 **0..1 float**，而探针判据要 0..255 uint8（`int(v)` 直接取会全变 0/1）。
+        # 2026-10-17 事故：活体探针因此**永远判"不可见"**（save_page/editor/menu_open 全 rc=1），
+        # 而同一时刻 --print-state 全判对 —— 探针的"严"其实是单位错。
+        arr = (YL.grab(ox, oy, bw, bh) * 255).round().astype("uint8")
         t_load = time.time()
         out = YS.probe(name, grabbed=(arr, ox, oy))
         out.update({"cache_hit": False, "judge_ms": round((time.time() - t_load) * 1000)})
@@ -291,6 +294,87 @@ def _probe(req):
     out["load_ms"] = round((t_load - t0) * 1000)
     out["via"] = "daemon"
     return out
+
+
+# ── 常驻 OCR（2026-10-18）─────────────────────────────────────────────
+# 为什么放进这个服务而不是另起一个：RapidOCR 每次新建 RapidOCR() 要付
+#   - 模型加载 ~430ms（CPU）/ ~3300ms（CUDA 首次建 context）
+#   - 加上进程启动 ~0.4s
+# 实测同一帧：每次新进程 CPU **3673ms** → 本服务内常驻 CUDA **~690ms（5.3×）**。
+# 再叠一层：`ys-screen` 本来就走这个 socket，不用多一条链路。
+#
+# GPU 接入的两个**非显然**前提（都会静默退回 CPU，只留一行 warning）：
+#   ① onnxruntime 1.31 把 CUDA EP 拆成独立插件库，必须
+#      `register_execution_provider_library('CUDAExecutionProvider', <capi>/libonnxruntime_providers_cuda.so)`；
+#      只装 onnxruntime-gpu 不够，`preload_dlls()` 也不够（都实测过）。
+#   ② ORT 的 CUDA EP 要 CUDA **12** 运行库（libcudart.so.12 / libcublas.so.12）；本机系统 CUDA 是 13，
+#      所以由 venv 里的 nvidia-*-cu12 包提供，需要把它们加进 LD_LIBRARY_PATH。
+_OCR_ENGINE = None
+_OCR_ERR = None
+
+
+def _ocr_engine():
+    """懒加载 + 常驻。返回 (engine, err)。失败不抛，让调用方 fail-closed。
+
+    2026-10-18 实测：把引擎留在常驻进程里，单帧 OCR 从「每次新进程 5.5~13.8s」
+    降到 **~0.4s**（引擎加载只付一次）。GPU 生效需要三个条件，缺一个就静默退回 CPU：
+      ① 预载 cuDNN（否则 ORT 加载 provider 报 undefined symbol）
+      ② register_execution_provider_library（ORT ≥1.29 的 CUDA EP 是独立 so）
+      ③ 绕过 RapidOCR 的 `get_device()=="GPU"` 判断（本机返回 'GPU-DNNL'）
+    判据都在 ys_ocr.py 里（同一份实现），这里只复用。
+    """
+    global _OCR_ENGINE, _OCR_ERR
+    if _OCR_ENGINE is not None or _OCR_ERR is not None:
+        return _OCR_ENGINE, _OCR_ERR
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            'ys_ocr_mod', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _OCR_ENGINE = mod._engine(verbose=True)      # 判别/GPU 开关全在 ys_ocr.py（唯一实现）
+        print(f"[ys-lookd] OCR 引擎就绪（{'CUDA' if mod._GPU_STATE is True else 'CPU'}）", flush=True)
+    except Exception as e:                          # noqa: BLE001
+        _OCR_ERR = f"{type(e).__name__}: {e}"
+        print(f"[ys-lookd] OCR 引擎不可用：{_OCR_ERR}", flush=True)
+    return _OCR_ENGINE, _OCR_ERR
+
+
+def _ocr(req):
+    eng, err = _ocr_engine()
+    if eng is None:
+        return {"error": f"OCR 不可用: {err}"}
+    t0 = time.time()
+    frame = req.get("frame")
+    if not frame:
+        return {"error": "ocr 需要 frame 路径"}
+    # 输出形状归一（2.x 元组 / 3.x RapidOCROutput）——与 ys_ocr.py 用同一份归一逻辑
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'ys_ocr_mod2', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    region = req.get("region")
+    if region:                                     # 只裁一块再识别（省推理面积）
+        import numpy as np
+        from PIL import Image
+        x, y, w, h = map(int, region)
+        im = Image.open(frame).convert('RGB').crop((x, y, x + w, y + h))
+        items = mod._normalize(eng(np.array(im)))
+        off = (x, y)
+    else:
+        items = mod._normalize(eng(frame))
+        off = (0, 0)
+    boxes = []
+    for box, txt, sc in items:
+        xs = [p[0] + off[0] for p in box]
+        ys = [p[1] + off[1] for p in box]
+        boxes.append({'text': txt,
+                      'cx': int(sum(xs) / len(xs)), 'cy': int(sum(ys) / len(ys)),
+                      'score': round(sc, 4),
+                      'box': [[int(p[0] + off[0]), int(p[1] + off[1])] for p in box]})
+    return {"boxes": boxes, "n_total": len(items),
+            "ms": round((time.time() - t0) * 1000), "via": "daemon"}
 
 
 def handle(req):
@@ -323,6 +407,8 @@ def handle(req):
         return _state(req)
     if cmd == "probe":
         return _probe(req)
+    if cmd == "ocr":
+        return _ocr(req)
     if cmd == "warm":
         return {"ok": True, "gpu": True}
     return {"error": "unknown cmd"}
