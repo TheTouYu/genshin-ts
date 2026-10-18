@@ -193,11 +193,11 @@ L4  text[] glyphs[] badges[]   文本、纯图形、角标（叶子，必须能�
 ## 附录：复现命令
 
 ```bash
-# 语料在 .scratch/gui-corpus/（f00..f07.png，不进仓）
+# 语料在 .scratch/gui-corpus/（f00..f13.png，**已进仓**；逐帧「人眼 vs 工具」差异表见同目录 README.md）
 # 现有工具基线（8 帧）
 for i in 0 1 2 3 4 5 6 7; do tools/ys-screen .scratch/gui-corpus/f0$i.png --json --json-out /tmp/ysb/f0$i.json; done
 
-# 本轮原型（未进仓，纯 cv2/numpy）
+# 本轮原型（**已进仓**，纯 cv2/numpy）
 cd .scratch/gui-arch-probe
 python3 p1_signals.py       # 容器边界/内部可分辨性（SNR 表）
 python3 p2_containers.py f06 f07   # flat+rect 容器候选 + 叠加图 /tmp/ysb/ov_*.png
