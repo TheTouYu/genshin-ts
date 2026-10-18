@@ -1,0 +1,301 @@
+#!/usr/bin/env python3
+"""ys-annotate — 标注修复编辑器（浏览器内，静态 HTML，直接改框并导出补丁）。
+
+设计要点（按用户 2026-10-19 的要求）：
+  · **按层级配色**：大层级(panel/card) 紫 / 列表行(row) 蓝 / 元素(tile/button/icon/chip/avatar) 绿
+  · 三种修复动作：①拖拽移动大框 ②拖空处新建框 ③选中 2 个同 kind 的行 → **等距补全**（按实测行距填中间）
+  · 导出 **patch JSON**：deleted / updated / added 三类操作逐条记录，
+    代理据此知道"人改了哪几条、补了哪几条"，再按同一规律把剩下的补齐。
+
+用法：
+  python3 tools/ys-annotate --truth-dir .scratch/gui-corpus/truth-v5 \
+      --out .scratch/gui-corpus/review/truth-v5-edit.html
+"""
+import argparse
+import glob
+import html
+import json
+import os
+import sys
+
+LEVEL = {
+    "panel": "big", "card": "big",
+    "row": "row",
+    "tile": "el", "button": "el", "icon": "el", "chip": "el", "avatar": "el",
+}
+
+TEMPLATE = r"""<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>__TITLE__ · 标注修复</title>
+<style>
+ body{margin:0;font:13px/1.5 system-ui,"Noto Sans CJK SC",sans-serif;background:#101014;color:#e6e6e6}
+ header{padding:6px 12px;background:#1b1b20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+ header b{color:#7fd1ff}
+ button,select{background:#26262e;color:#ddd;border:1px solid #3a3a44;border-radius:4px;padding:3px 8px;cursor:pointer}
+ button.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
+ #wrap{display:flex;height:calc(100vh - 46px)}
+ #left{flex:1;overflow:auto;padding:10px;display:flex;justify-content:center;align-items:flex-start}
+ #stage{position:relative;max-width:100%;user-select:none}
+ #stage img{width:100%;display:block;pointer-events:none}
+ .box{position:absolute;box-sizing:border-box;cursor:move}
+ .box.big{border:2px solid #c084fc}
+ .box.row{border:2px solid #60a5fa}
+ .box.el{border:2px solid #34d399}
+ .box.sel{outline:2px solid #fde047;outline-offset:1px;z-index:6}
+ .box .tag{position:absolute;left:0;top:-16px;font-size:10px;padding:0 2px;color:#000;background:#fde047;white-space:nowrap}
+ .box.big .tag{background:#c084fc}
+ .box.row .tag{background:#60a5fa}
+ .box.el .tag{background:#34d399}
+ .h{position:absolute;width:8px;height:8px;background:#fde047;border:1px solid #000}
+ #right{width:330px;overflow:auto;background:#16161b;border-left:1px solid #2c2c34;padding:8px}
+ .u{display:flex;gap:6px;align-items:center;padding:2px 3px;border-bottom:1px solid #222}
+ .u:hover{background:#20202a}
+ .u .id{width:32px;color:#8ab}
+ .u .k{width:52px}
+ .u .t{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#bbb}
+ #bar{position:sticky;bottom:0;background:#1b1b20;padding:6px 12px;display:flex;gap:10px;align-items:center}
+ #hint{color:#888}
+</style>
+<header>
+  <b>标注修复</b>
+  <span id="which"></span>
+  <select id="kind">
+    <option value="row">行 row</option>
+    <option value="tile">格 tile</option>
+    <option value="button">按钮 button</option>
+    <option value="icon">图标 icon</option>
+    <option value="chip">chip</option>
+    <option value="avatar">头像 avatar</option>
+    <option value="card">卡片 card</option>
+    <option value="panel">面板 panel</option>
+  </select>
+  <button id="mode-draw">画框 (N)</button>
+  <button id="fill">等距补全</button>
+  <button id="del">删除 (Del)</button>
+  <button id="undo">撤销 (Ctrl+Z)</button>
+  <span style="margin-left:auto">
+    <span style="color:#c084fc">■大层级</span>
+    <span style="color:#60a5fa">■行</span>
+    <span style="color:#34d399">■元素</span>
+  </span>
+</header>
+<div id="wrap">
+  <div id="left"><div id="stage"><img id="img"></div></div>
+  <div id="right"><div id="framesel" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div><div id="list"></div></div>
+</div>
+<div id="bar"><button id="export">导出补丁 JSON</button><span id="hint"></span><span id="stat" style="margin-left:auto;color:#888"></span></div>
+<script>
+const FRAMES = __DATA__;
+const LEVEL = __LEVEL__;
+let cur = 0, sel = null, drawing = false, modeDraw = false;
+const PATCH = {};              // stem -> {deleted:{id:true}, updated:{id:bbox}, added:[{id,bbox,kind}]}
+const HIST = [];
+function pt(stem){ return PATCH[stem] || (PATCH[stem] = {deleted:{}, updated:{}, added:[]}); }
+function levelOf(k){ return LEVEL[k] || 'el'; }
+
+function renderFrames(){
+  const el = document.getElementById('framesel'); el.innerHTML='';
+  FRAMES.forEach((f,i)=>{
+    const b=document.createElement('button'); b.textContent=(i+1)+' '+f.stem.slice(-8);
+    b.className = i===cur?'on':''; b.onclick=()=>{cur=i;sel=null;render();}; el.appendChild(b);
+  });
+}
+function boxEl(o, isAdded){
+  const f = FRAMES[cur];
+  const [x,y,w,h] = o.bbox;
+  const b = document.createElement('div');
+  b.className = 'box ' + levelOf(o.kind) + (sel===o.id?' sel':'');
+  b.dataset.id = o.id;
+  b.style.left=(100*x/f.w)+'%'; b.style.top=(100*y/f.h)+'%';
+  b.style.width=(100*w/f.w)+'%'; b.style.height=(100*h/f.h)+'%';
+  const t=document.createElement('span'); t.className='tag'; t.textContent=(o.id+'').slice(0,6)+' '+o.kind; b.appendChild(t);
+  b.addEventListener('mousedown', ev=>startDrag(ev, o, b));
+  return b;
+}
+function startDrag(ev, o, el){
+  if(modeDraw) return;
+  ev.stopPropagation(); ev.preventDefault();
+  sel = o.id; render();
+  const f = FRAMES[cur];
+  const rect = document.getElementById('stage').getBoundingClientRect();
+  const sx = ev.clientX, sy = ev.clientY;
+  const [x0,y0,w0,h0] = o.bbox.slice();
+  const onMove = e=>{
+    const dx = (e.clientX-sx)/rect.width*f.w;
+    const dy = (e.clientY-sy)/rect.height*f.h;
+    o.bbox = [Math.round(x0+dx), Math.round(y0+dy), w0, h0];
+    o.dirty = true;
+    pt(f.stem).updated[o.id] = o.bbox;
+    el.style.left=(100*o.bbox[0]/f.w)+'%'; el.style.top=(100*o.bbox[1]/f.h)+'%';
+  };
+  const onUp = ()=>{ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+                     HIST.push({stem:f.stem, id:o.id, from:[x0,y0,w0,h0], to:o.bbox.slice()}); upd(); };
+  document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+}
+function startDraw(ev){
+  if(!modeDraw) return;
+  ev.preventDefault();
+  const f = FRAMES[cur], stage = document.getElementById('stage');
+  const rect = stage.getBoundingClientRect();
+  const sx = ev.clientX, sy = ev.clientY;
+  const ghost = document.createElement('div');
+  ghost.className='box '+levelOf(document.getElementById('kind').value)+' sel';
+  ghost.style.left=((sx-rect.left)/rect.width*100)+'%';
+  ghost.style.top=((sy-rect.top)/rect.height*100)+'%';
+  stage.appendChild(ghost);
+  const onMove = e=>{
+    const x=Math.min(sx,e.clientX), y=Math.min(sy,e.clientY);
+    ghost.style.left=((x-rect.left)/rect.width*100)+'%';
+    ghost.style.top=((y-rect.top)/rect.height*100)+'%';
+    ghost.style.width=(Math.abs(e.clientX-sx)/rect.width*100)+'%';
+    ghost.style.height=(Math.abs(e.clientY-sy)/rect.height*100)+'%';
+  };
+  const onUp = e=>{
+    document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+    ghost.remove();
+    const x=Math.min(sx,e.clientX), y=Math.min(sy,e.clientY);
+    const w=Math.abs(e.clientX-sx), h=Math.abs(e.clientY-sy);
+    if(w<6||h<6) return;
+    const bx=[Math.round((x-rect.left)/rect.width*f.w), Math.round((y-rect.top)/rect.height*f.h),
+              Math.round(w/rect.width*f.w), Math.round(h/rect.height*f.h)];
+    const kind=document.getElementById('kind').value;
+    const id='+'+(pt(f.stem).added.length+1);
+    pt(f.stem).added.push({id, bbox:bx, kind});
+    f.objects.push({id, bbox:bx, kind, text:'', _added:true});
+    render();
+  };
+  document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+}
+function delSel(){
+  if(sel==null) return;
+  const f=FRAMES[cur];
+  const i=f.objects.findIndex(o=>o.id===sel);
+  if(i<0) return;
+  const o=f.objects[i];
+  if(o._added){ pt(f.stem).added = pt(f.stem).added.filter(a=>a.id!==o.id); }
+  else { pt(f.stem).deleted[o.id]=true; delete pt(f.stem).updated[o.id]; }
+  f.objects.splice(i,1); sel=null; render();
+}
+function fillRows(){
+  // 选中两个同 kind 的框 → 按行距补全中间的
+  const sel2 = Array.from(document.querySelectorAll('.box.sel')).map(e=>e.dataset.id);
+  const f = FRAMES[cur];
+  const picked = f.objects.filter(o=>(o._picked));
+  if(picked.length<2){ document.getElementById('hint').textContent='等距补全：先 Ctrl+点击 选两个同 kind 的框'; return; }
+  const [a,b] = picked.slice(0,2);
+  const n = parseInt(prompt('要补几个中间框？（按两框中心距等差）','5')||'0',10);
+  if(!n) return;
+  const ax=a.bbox[0]+a.bbox[2]/2, ay=a.bbox[1]+a.bbox[3]/2;
+  const bx=b.bbox[0]+b.bbox[2]/2, by=b.bbox[1]+b.bbox[3]/2;
+  const [w,h]=[a.bbox[2],a.bbox[3]];
+  for(let i=1;i<=n;i++){
+    const t=i/(n+1);
+    const cx=ax+(bx-ax)*t, cy=ay+(by-ay)*t;
+    const bbox=[Math.round(cx-w/2), Math.round(cy-h/2), w, h];
+    const id='+'+(pt(f.stem).added.length+1);
+    pt(f.stem).added.push({id,bbox,kind:a.kind});
+    f.objects.push({id,bbox,kind:a.kind,text:'',_added:true});
+  }
+  f.objects.forEach(o=>{delete o._picked;});
+  render();
+}
+function upd(){
+  const f=FRAMES[cur], p=pt(f.stem);
+  document.getElementById('stat').textContent =
+    '改 ' + Object.keys(p.updated).length + ' · 删 ' + Object.keys(p.deleted).length + ' · 增 ' + p.added.length;
+}
+function render(){
+  const f=FRAMES[cur];
+  document.getElementById('which').textContent=f.stem+' · '+f.layout+' · '+f.objects.length+' 单元';
+  document.getElementById('img').src='file://'+f.image;
+  const stage=document.getElementById('stage');
+  stage.querySelectorAll('.box').forEach(e=>e.remove());
+  f.objects.forEach(o=> stage.appendChild(boxEl(o)));
+  const list=document.getElementById('list'); list.innerHTML='';
+  f.objects.forEach(o=>{
+    const d=document.createElement('div'); d.className='u';
+    d.innerHTML='<span class="id">#'+(o.id+'').slice(0,5)+'</span><span class="k">'+o.kind+'</span>'+
+                '<span class="t">'+(o.text||'').replace(/</g,'&lt;')+'</span>';
+    d.onclick=(ev)=>{
+      if(ev.ctrlKey){ o._picked=!o._picked; d.style.background=o._picked?'#264':'';
+                      document.querySelector('[data-id="'+o.id+'"]').classList.toggle('sel',!!o._picked); return; }
+      sel=o.id; render();
+    };
+    list.appendChild(d);
+  });
+  renderFrames(); upd();
+  document.getElementById('hint').textContent='拖动=移框 · N=画框 · Del=删 · 列表 Ctrl+点击 选两行后点等距补全';
+}
+document.getElementById('mode-draw').onclick=e=>{modeDraw=!modeDraw;e.target.classList.toggle('on',modeDraw);};
+document.getElementById('del').onclick=delSel;
+document.getElementById('fill').onclick=fillRows;
+document.getElementById('undo').onclick=()=>{
+  const h=HIST.pop(); if(!h) return;
+  const f=FRAMES.find(x=>x.stem===h.stem); if(!f) return;
+  const o=f.objects.find(x=>x.id===h.id); if(!o) return;
+  o.bbox=h.from; pt(f.stem).updated[h.id]=h.from; render();
+};
+document.getElementById('export').onclick=()=>{
+  const out={batch:BATCH, at:new Date().toISOString(), frames:{}};
+  Object.entries(PATCH).forEach(([k,v])=>{
+    if(Object.keys(v.deleted).length||Object.keys(v.updated).length||v.added.length) out.frames[k]=v;
+  });
+  const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='patch-'+BATCH+'-'+Date.now()+'.json'; a.click();
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='n'||e.key==='N'){modeDraw=!modeDraw;document.getElementById('mode-draw').classList.toggle('on',modeDraw);}
+  if(e.key==='Delete'){delSel();}
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){document.getElementById('undo').click();}
+});
+document.getElementById('stage').addEventListener('mousedown',startDraw);
+const BATCH = __BATCH__;
+render();
+</script></html>
+"""
+
+
+def load(truth_dir):
+    frames = []
+    for jf in sorted(glob.glob(os.path.join(truth_dir, "*.json"))):
+        stem = os.path.splitext(os.path.basename(jf))[0]
+        if stem.startswith("_"):
+            continue
+        d = json.load(open(jf, encoding="utf-8"))
+        objs = d.get("objects") or []
+        if not objs:
+            continue
+        img = d.get("image") or ""
+        cand = os.path.abspath(img) if img else ""
+        frames.append({"stem": stem, "layout": d.get("layout") or "",
+                       "image": cand if os.path.exists(cand) else "",
+                       "objects": [{"id": o.get("id"), "bbox": o.get("bbox"), "kind": o.get("kind"),
+                                    "text": o.get("text") or ""} for o in objs],
+                       "w": (d.get("size") or [2560, 1440])[0], "h": (d.get("size") or [2560, 1440])[1]})
+    return frames
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--truth-dir", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--title", default="")
+    a = ap.parse_args()
+    frames = load(a.truth_dir)
+    if not frames:
+        print("没有可编辑的帧", file=sys.stderr)
+        return 2
+    batch = a.title or os.path.basename(os.path.normpath(a.truth_dir))
+    out = (TEMPLATE.replace("__TITLE__", html.escape(batch))
+                   .replace("__LEVEL__", json.dumps(LEVEL))
+                   .replace("__DATA__", json.dumps(frames, ensure_ascii=False))
+                   .replace("__BATCH__", json.dumps(batch)))
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    open(a.out, "w", encoding="utf-8").write(out)
+    n = sum(len(f["objects"]) for f in frames)
+    print(f"frames={len(frames)} units={n} -> {os.path.abspath(a.out)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
