@@ -136,6 +136,51 @@ def analyze(recs):
                          f'{fmt(max(r["dur_ms"] for r in slow))}: {max(slow, key=lambda r: r["dur_ms"])["cmd"][:50]}…）'
                          f'——预计>20s 的命令放后台跑'))
 
+    # ── 慢路径检测（2026-10-18 用户点破：同类任务换实现能差一个数量级，这才是大头）──
+    # 上面那张卡只按**绝对时长**排，抓不到「同一种活走了慢通道」这种相对浪费。
+    # 实测（同一台机、同一批帧）：
+    #   ys-state 默认 full 3301ms / --fast 407ms（8×）
+    #   进程内模板匹配 3301ms / 常驻服务 batch 147ms（22×）
+    #   RapidOCR(CPU) 3673ms / 模板匹配(GPU) 93ms（39×）
+    # 这类浪费**永远进不了 ≥30s 榜**，却是最容易省的一档。
+    #
+    # 为什么不用「同前缀命令的耗时比」：按外形分组从原理上不可靠——`rm -f x` 那条 56s
+    # 其实是复合命令里套了 ys-gates，`python3 -c "import ast"` 既跑语法检查又跑整轮门禁，
+    # 会算出 318×/2759× 这种假象（这两版我都试过并否决）。
+    # ⇒ 改为**白名单式已知慢通道**：每条都配「快的替代写法」，命中就给可执行动作。
+    SLOW_PATHS = [
+        # (正则, 省时判据, 建议)
+        # 「真的在跑 ys-state」= 该词位于**某条子命令的第一个位置**（紧跟 ; && | 或行首），
+        # 且**所在那段**没有 fast/probe/pixel/wait/regress。用分段匹配而不是全局负向前瞻：
+        # 后者会跨过整条命令（实测 `grep 'def judge' tools/ys-editor/ys-state` 也被误判成慢通道）。
+        (r'(?:^|;|&&|\|)\s*(?:\./)?(?:tools/ys-editor/)?ys-state(?![^;&|]*--(?:fast|probe|pixel|wait|regress|help))\b',
+         2500, '判态加 --fast（3301ms→407ms，8×）'),
+        (r'ys-screen[^|]*(?<![-\w])--no-cache',
+         3200, '去掉 --no-cache（4871ms→820ms，6×）；自测里确实需要冷跑时才用'),
+        (r'ys-screen(?!.*--no-cache)',
+         0, '有缓存时 820ms；首次 8s 是 RapidOCR 冷启动，批量时先跑一次预热'),
+        (r'ys_ocr\.py',
+         3000, 'RapidOCR 只有 CPU provider（3673ms/帧）；能用模板匹配/ys-lookd 就别用 OCR'),
+        (r'failure-ledger\s+check',
+         200000, '整轮 328s（已从 523s 去重优化）；非必要别在窄改动后跑全量'),
+    ]
+    hits = {}
+    for r in recs:
+        cmd = r.get('cmd') or ''
+        if r['cat'] == 'wait_human':
+            continue
+        for pat, save, tip in SLOW_PATHS:
+            if re.search(pat, cmd):
+                h = hits.setdefault(pat, {'n': 0, 'ms': 0, 'tip': tip, 'save': save})
+                h['n'] += 1
+                h['ms'] += r['dur_ms']
+                break
+    ranked = sorted(hits.items(), key=lambda kv: -(kv[1]['save'] * kv[1]['n']))
+    for pat, h in ranked[:1]:                       # 只占一张卡，避免挤掉别的卡
+        if h['n'] and h['save']:
+            cards.append((h['save'] * h['n'],
+                          f'慢通道 {h["n"]} 次共{fmt(h["ms"])}——{h["tip"]}'))
+
     cards.sort(key=lambda x: -x[0])
     return cards
 

@@ -467,29 +467,74 @@ def pixel_readings(pix):
 
 
 def template_readings(pix):
-    """full 通道：全帧模板匹配（numpy FFT NCC，进程内 —— 与 GPU 锚点通道**独立取数**）。"""
-    sys.path.insert(0, HERE)
-    from ys_look import ncc
+    """full 通道：模板匹配。
+
+    **优先走常驻服务 ys-lookd**（2026-10-18 性能实测后改）：
+    进程内做这 5 次匹配要 `import torch` + 建 CUDA context = **2528ms**，占 full 通道 3301ms 的 77%；
+    同样这 5 个模板，常驻服务预热后一次 batch 只要 **147ms**（实测 246/147/157）——同一任务差 **22 倍**。
+    判据（TPL_THRESHOLD / 状态名 / 投票）仍只在本文件，服务只负责算 NCC，不回传任何判定。
+
+    服务不可用时**回退进程内**（慢 22 倍但结果一致），并**出声**——静默降级会让
+    "为什么今天这么慢"永远查不出来（D344 的六条静默失败教训）。
+    """
     import numpy as np
-    img = pix.image().astype("float32") / 255.0
-    R = {}
+    R, jobs, want = {}, [], {}
     for st, fn in TPL:
         path = os.path.join(TPL_DIR, fn)
+        label = f"{st}/template {fn}"
         if not os.path.exists(path):
-            R[f"{st}/template {fn}"] = {"value": f"模板缺失 {fn}", "passed": False, "kind": "template"}
+            R[label] = {"value": f"模板缺失 {fn}", "passed": False, "kind": "template"}
             continue
-        if fn not in pix._tpl_cache:
-            w, h = frame_geom(path)
-            raw = subprocess.run(["magick", path, "-depth", "8", "rgb:-"], capture_output=True).stdout
-            pix._tpl_cache[fn] = (raw, w, h)
-        raw, tw, th = pix._tpl_cache[fn]
-        t = np.frombuffer(raw, dtype=np.uint8).reshape(th, tw, 3).astype("float32") / 255.0
-        if t.shape[0] > img.shape[0] or t.shape[1] > img.shape[1]:
-            R[f"{st}/template {fn}"] = {"value": "模板大于画面", "passed": False, "kind": "template"}
-            continue
-        _, _, score, _ = ncc(img, t)
-        R[f"{st}/template {fn}"] = {"value": f"score={score:.3f}",
-                                    "passed": score >= TPL_THRESHOLD, "kind": "template"}
+        jobs.append({"id": label, "tpl": path})
+        want[label] = fn
+
+    scores, why = {}, None
+    if jobs and os.environ.get("YS_STATE_NO_DAEMON_TPL") != "1":
+        bin_path = None
+        try:
+            bin_path, shape = raw_frame_bin(pix)
+            r = daemon_call({"cmd": "batch", "jobs": jobs,
+                             "frame_bin": bin_path, "frame_shape": shape}, timeout=60)
+            if r and isinstance(r.get("results"), list):
+                for x in r["results"]:
+                    best = x.get("best") or {}
+                    if best.get("score") is not None:
+                        scores[x.get("id")] = float(best["score"])
+            else:
+                why = "daemon 响应无 results"
+        except Exception as e:                              # noqa: BLE001
+            why = f"{type(e).__name__}: {e}"
+        finally:
+            if bin_path:
+                try:
+                    os.unlink(bin_path)                     # 唯一临时文件，用完即删
+                except OSError:
+                    pass
+    if why or (jobs and not scores):
+        sys.stderr.write(f"[ys-state] ⚠ 模板匹配回退进程内（{why or 'daemon 未返回分数'}）"
+                         f"——本次会多花约 2.5s；排查 daemon 或设 YS_STATE_NO_DAEMON_TPL=1 显式关闭\n")
+
+    img = None
+    for label, fn in want.items():
+        score = scores.get(label)
+        if score is None:                                   # 回退：才付 torch/CPU 成本
+            if img is None:
+                sys.path.insert(0, HERE)
+                from ys_look import ncc
+                img = pix.image().astype("float32") / 255.0
+            if fn not in pix._tpl_cache:
+                w, h = frame_geom(os.path.join(TPL_DIR, fn))
+                raw = subprocess.run(["magick", os.path.join(TPL_DIR, fn), "-depth", "8", "rgb:-"],
+                                     capture_output=True).stdout
+                pix._tpl_cache[fn] = (raw, w, h)
+            raw, tw, th = pix._tpl_cache[fn]
+            t = np.frombuffer(raw, dtype=np.uint8).reshape(th, tw, 3).astype("float32") / 255.0
+            if t.shape[0] > img.shape[0] or t.shape[1] > img.shape[1]:
+                R[label] = {"value": "模板大于画面", "passed": False, "kind": "template"}
+                continue
+            _, _, score, _ = ncc(img, t)
+        R[label] = {"value": f"score={score:.3f}",
+                    "passed": score >= TPL_THRESHOLD, "kind": "template"}
     return R
 
 

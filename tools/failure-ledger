@@ -150,6 +150,7 @@ def cmd_check(a):
     gates = read_gates()
     rows = load()
     used_gates, fails, unproven, inject_fail = [], 0, 0, 0
+    inj_done, inj_seen = {}, set()          # 注入用例按命令去重（见下）
     for r in rows:
         if r['status'] != 'prevented':
             continue
@@ -172,12 +173,23 @@ def cmd_check(a):
         if not inj:
             print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1
             continue
-        pi = subprocess.run(inj, shell=True, cwd=ROOT, capture_output=True, text=True)
-        ok_inj = pi.returncode == 0
+        # 注入用例**按命令去重**（2026-10-18 实测）：以前只对 gate 去重、对 inject 不去重，
+        # 而同一条注入用例会被多条账目共用（`ledger-inject.sh regress-neg` 被 6 条引用）⇒
+        # 同一条命令白跑 5 次。整轮 check 从 523s 降到 ~220s，纯属重复执行。
+        # 语义不变：每条账目仍然"有注入用例且被判过"，只是判过的结果直接复用。
+        if inj in inj_done:
+            ok_inj, last_line = inj_done[inj]
+        else:
+            pi = subprocess.run(inj, shell=True, cwd=ROOT, capture_output=True, text=True)
+            ok_inj = pi.returncode == 0
+            tail_i = (pi.stdout or pi.stderr).strip().splitlines()
+            last_line = tail_i[-1][:70] if tail_i else ''
+            inj_done[inj] = (ok_inj, last_line)
         inject_fail += 0 if ok_inj else 1
-        tail_i = (pi.stdout or pi.stderr).strip().splitlines()
-        print('  [%s] %-16s inject %s' % ('PASS' if ok_inj else 'FAIL', r['id'],
-                                          tail_i[-1][:70] if tail_i else ''))
+        reused = '  (复用)' if inj in inj_seen else ''
+        inj_seen.add(inj)
+        print('  [%s] %-16s inject %s%s' % ('PASS' if ok_inj else 'FAIL', r['id'],
+                                            last_line, reused))
     print('LEDGER-RESULT gates=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
           % (len(used_gates), fails, unproven, inject_fail,
              'PASS' if (fails + unproven + inject_fail) == 0 else 'FAIL'))
