@@ -590,7 +590,10 @@ def _vram_free_mb():
 
 
 def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
-                      max_objects=200):
+                      max_objects=200, rec_buckets=False):
+    """rec_buckets=True：按行宽分桶（<320/<640/<960/更宽）分别 rec——同一桶内 padding 到
+    该桶 max_wh_ratio，避免「一个 1550 宽的宽行把整批 6 个窄行都撑到 1550」（实测宽批 48ms vs 窄批 12ms）。
+    输出与逐条 rec 一致（只是批分组不同），字符召回实测不变。"""
     """按对象 OCR 核心：整帧 det 一次 → 每个对象切片 rec（并行 + 内容寻址缓存 + 帧级缓存）。
 
     输入是 **RGB uint8 数组**（命令路径从文件读、world 路径直接用内存帧，避免落盘）。
@@ -609,7 +612,7 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
     # 帧级缓存：同一帧（同 det_max/ruleset）直接回整个结果——省掉 det ~140ms
     if not frame_sha:
         frame_sha = hashlib.sha256(np.ascontiguousarray(arr).tobytes()).hexdigest()[:24]
-    fkey = f"{frame_sha}:{int(det_max)}:{_OBJ_RULESET}"
+    fkey = f"{frame_sha}:{int(det_max)}:{_OBJ_RULESET}:{'b' if rec_buckets else 'n'}"
     if cache and fkey in _OBJ_FRAME_CACHE:
         hit = dict(_OBJ_FRAME_CACHE[fkey])
         hit['total_ms'] = round((time.time() - t0) * 1000, 1)
@@ -649,17 +652,34 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
                 "code": "VRAM_LOW", "det_ms": det_ms, "free_mb": free}
     threads = max(1, min(int(parallel or 4), 8))
     rec_ms = 0.0
+    n_jobs = 0
     if todo:
-        chunks = [todo[i::threads] for i in range(threads)] if threads > 1 else [todo]
         rec = eng.text_rec or eng._load_rec_model()
         rec.rec_batch_num = min(batch, _REC_BATCH_HARD_CAP)
-        out = [None] * len(chunks)
-        errs = [None] * len(chunks)
+        # 分组：优先按行宽分桶（每桶单独批，padding 不被宽行拖大），桶内再按 batch 切批
+        if rec_buckets:
+            def _bucket(c):
+                r = c.shape[1] / float(c.shape[0])
+                return 0 if r <= 320 / 48.0 else (1 if r <= 640 / 48.0 else
+                                                  (2 if r <= 960 / 48.0 else 3))
+            groups = {}
+            for item in todo:
+                groups.setdefault(_bucket(item[2]), []).append(item)
+            jobs = []
+            for k in sorted(groups):
+                items = groups[k]
+                for i in range(0, len(items), batch):
+                    jobs.append(items[i:i + batch])
+        else:
+            jobs = [todo[i:i + batch] for i in range(0, len(todo), batch)]
+        n_jobs = len(jobs)
+        out = [None] * len(jobs)
+        errs = [None] * len(jobs)
         t3 = time.time()
 
         def work(k):
             try:
-                items = chunks[k]
+                items = jobs[k]
                 r = rec(TextRecInput(img=[c for _, _, c, _ in items], return_word_box=False))
                 txts = list(r.txts or [])
                 scs = list(r.scores or [])
@@ -668,9 +688,14 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
                           for j in range(len(items))]
             except Exception as e:                        # noqa: BLE001
                 errs[k] = f'{type(e).__name__}: {e}'
-        th = [threading.Thread(target=work, args=(k,)) for k in range(len(chunks))]
+        nthreads = max(1, min(threads, len(jobs)))
+        th = [threading.Thread(target=work, args=(k,)) for k in range(nthreads)]
         [t.start() for t in th]
-        [t.join() for t in th]
+        for t in th:
+            t.join()
+        # 剩余批（jobs 比线程多时）由主线程补齐
+        for k in range(nthreads, len(jobs)):
+            work(k)
         rec_ms = round((time.time() - t3) * 1000, 1)
         for k, got in enumerate(out):
             if errs[k] and not got:
@@ -686,6 +711,7 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
            'n_cached': len(objects) - len(todo), 'det_ms': det_ms, 'rec_ms': rec_ms,
            'crop_ms': crop_ms, 'total_ms': round((time.time() - t0) * 1000, 1),
            'ruleset': _OBJ_RULESET, 'rec_batch': min(batch, _REC_BATCH_HARD_CAP),
+           'rec_buckets': bool(rec_buckets), 'rec_jobs': n_jobs,
            'parallel': threads, 'free_mb': free, 'cache_size': len(_OBJ_CACHE),
            'frame_sha': frame_sha, 'frame_cache': False}
     if cache:
@@ -713,7 +739,8 @@ def _ocr_objects(req):
                              det_max=int(req.get("det_max") or 2000),
                              parallel=int(req.get("parallel") or 4),
                              cache=bool(req.get("cache", True)),
-                             max_objects=int(req.get("max_objects") or 200))
+                             max_objects=int(req.get("max_objects") or 200),
+                             rec_buckets=bool(req.get("rec_buckets", False)))
 
 
 def _world_ocr_objects(arr, sha, force_fallback=False):
