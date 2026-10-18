@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""ys-scroll-scan — 逐屏采集可滚区域，合并去重成**全量**列表。
+
+为什么必须有它（2026-10-18 用户实测点破，O-2026-10-18-04 ②）
+--------------------------------------------------------------------------
+用户原话：「无论是活动页面，还是本体的菜单，都没有考虑可以下滑的情况，导致信息丢失」。
+`ys-screen` / `ys-ocr` / `ys-find` 都只读**当前可见区域**，且**没有任何"还有更多"的判据**
+⇒ 把"这一屏没看到"当成"不存在"。这是遗漏型静默失败，比"识别错"更危险：
+它不报错，只是让你在错误的前提上做决策。
+
+判定方式刻意选**行为判定**而不是视觉判定
+--------------------------------------------------------------------------
+"有没有滚动条"靠像素判很不可靠（滚动条会淡出、会随主题变、会被遮挡）。
+本工具反过来：**滚一下，看内容变没变**——
+  · 变了 ⇒ 下面还有 ⇒ 继续
+  · 没变 ⇒ 到底了 ⇒ 停，并记 `at_bottom=true`
+这是可证伪的判据，不依赖任何视觉样式假设。
+
+输入通道（实测）
+----------------
+`xdotool click 4/5`（X11 滚轮上/下）在 Xwayland 游戏窗上**实测有效**
+（2026-10-18 在活动一览页验：文本 32 → 35 条，内容变化）。
+⚠️ 必须在 `ys-gui-slot` 里跑（注入的前置是"执行前是什么窗口，执行后就还是什么窗口"）。
+
+用法
+----
+  tools/ys-editor/ys-gui-slot 0x01400001 90 bash -c \\
+      'tools/ys-scroll-scan --region 0,180,2560,1200 --json'
+
+  选项:
+    --region x,y,w,h   只采这个区域（缺省整帧）。列表类界面建议框住列表，排除 HUD。
+    --direction down|up  缺省 down
+    --step N           每步滚几格（缺省 3）
+    --max N            最多翻几屏（缺省 8）——上限是硬约束，防止无限滚
+    --json             机读输出
+    --save-dir DIR     保存每屏帧作为证据（缺省不存）
+
+输出
+----
+  {"items":[{"text":..., "cx":..., "cy":..., "first_page":N}],
+   "pages":N, "at_bottom":bool, "changed_last":bool, "region":[...]}
+
+退出码: 0 正常 / 2 取帧失败 / 3 参数错
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+YS = os.path.join(HERE, 'ys-editor')
+OB = os.path.join(YS, 'ys-observe')
+SOCK = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
+
+
+def grab():
+    """经唯一取数入口抓帧，返回路径；失败返回 (None, 原因)。"""
+    env = dict(os.environ)
+    env.setdefault('YS_SLOT_ACTIVE', '1')
+    r = subprocess.run([OB, 'frame'], capture_output=True, text=True, timeout=120, env=env)
+    if r.returncode != 0:
+        return None, (r.stdout + r.stderr).strip()[:300]
+    # ys-observe frame 返回的是**一行 JSON**（不是裸路径）：{"kind":"frame","path":...,"fresh":...}
+    # 2026-10-18 踩过：直接取最后一行当路径 ⇒ OCR 拿到一段 JSON 文本 ⇒ 0 条框。
+    line = (r.stdout or '').strip().splitlines()
+    if not line:
+        return None, 'ys-observe 无输出'
+    try:
+        d = json.loads(line[-1])
+    except ValueError:
+        return line[-1], None            # 兼容将来改成裸路径
+    if not d.get('fresh') or not d.get('path'):
+        return None, '取数不新鲜：%s' % json.dumps(d, ensure_ascii=False)[:200]
+    return d['path'], None
+
+
+def ocr_boxes(frame):
+    """取 OCR 框：常驻服务优先（~0.7s），失败回退子进程。"""
+    import socket
+    if os.path.exists(SOCK):
+        try:
+            c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            c.settimeout(120)
+            c.connect(SOCK)
+            c.sendall((json.dumps({'cmd': 'ocr', 'frame': os.path.abspath(frame)}) + '\n').encode())
+            data = b''
+            while not data.endswith(b'\n'):
+                ch = c.recv(65536)
+                if not ch:
+                    break
+                data += ch
+            c.close()
+            r = json.loads(data.decode())
+            if isinstance(r.get('boxes'), list) and not r.get('error'):
+                return r['boxes']
+        except (OSError, ValueError):
+            pass
+    py = os.environ.get('YS_RAPIDOCR_PY') or '/usr/bin/python3'
+    p = subprocess.run([py, os.path.join(YS, 'ys_ocr.py'), 'ocr', frame, '--json'],
+                       capture_output=True, text=True, timeout=180)
+    if p.returncode != 0:
+        return []
+    try:
+        return json.loads(p.stdout).get('boxes') or []
+    except ValueError:
+        return []
+
+
+def in_region(box, region):
+    if not region:
+        return True
+    x, y, w, h = region
+    return x <= box['cx'] <= x + w and y <= box['cy'] <= y + h
+
+
+def visible_texts(boxes, region):
+    """该区域内的文本集合（用于"变没变"的比对）——只比文本，不比坐标：
+    滚动时同一批文本会**整体平移**，比坐标会把"平移"误判成"新增"。"""
+    return {b['text'] for b in boxes if in_region(b, region)}
+
+
+def scroll(direction, step):
+    btn = '5' if direction == 'down' else '4'
+    subprocess.run(['xdotool', 'click', '--repeat', str(step), '--delay', '120', btn],
+                   capture_output=True, timeout=60)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--region', default='')
+    ap.add_argument('--direction', default='down', choices=('down', 'up'))
+    ap.add_argument('--step', type=int, default=3)
+    ap.add_argument('--max', type=int, default=8, dest='nmax')
+    ap.add_argument('--json', action='store_true')
+    ap.add_argument('--save-dir', default='')
+    a = ap.parse_args(argv)
+
+    region = None
+    if a.region:
+        try:
+            region = tuple(int(v) for v in a.region.split(','))
+            if len(region) != 4:
+                raise ValueError
+        except ValueError:
+            sys.stderr.write('--region 要 x,y,w,h 四个整数\n')
+            return 3
+
+    frame, err = grab()
+    if not frame:
+        sys.stderr.write('取帧失败（是否在 ys-gui-slot 里？）：%s\n' % err)
+        return 2
+    if a.save_dir:
+        os.makedirs(a.save_dir, exist_ok=True)
+
+    items, seen = [], {}
+    prev = None
+    pages = 0
+    at_bottom = False
+    changed_last = False
+
+    for page in range(1, a.nmax + 1):
+        if page > 1:
+            frame, err = grab()
+            if not frame:
+                sys.stderr.write('第 %d 屏取帧失败：%s\n' % (page, err))
+                return 2
+        if a.save_dir:
+            import shutil
+            shutil.copy(frame, os.path.join(a.save_dir, 'page%02d.png' % page))
+        boxes = ocr_boxes(frame)
+        cur = visible_texts(boxes, region)
+        pages = page
+
+        changed = prev is not None and cur != prev
+        changed_last = changed
+        if prev is not None and not changed:
+            at_bottom = True            # 滚完没变化 ⇒ 到底（或这一屏原本就不可滚）
+            break
+
+        for b in boxes:
+            if not in_region(b, region):
+                continue
+            t = b['text']
+            if t in seen:
+                continue                # 去重：同一文本只留**首次出现**（滚下去它还会再出现）
+            seen[t] = True
+            items.append({'text': t, 'cx': b['cx'], 'cy': b['cy'], 'first_page': page})
+
+        prev = cur
+        scroll(a.direction, a.step)
+        time.sleep(1.0)                 # 等滚动动画落定（不是"用时长冒充同步"：下一步会验证变化）
+
+    out = {'items': items, 'pages': pages, 'at_bottom': at_bottom,
+           'changed_last': changed_last, 'region': list(region) if region else None,
+           'direction': a.direction}
+    if a.json:
+        print(json.dumps(out, ensure_ascii=False))
+    else:
+        print('══ ys-scroll-scan %s  %d 屏  %d 条文本 ══' % (a.direction, pages, len(items)))
+        for it in items:
+            print('  [p%d] %s' % (it['first_page'], it['text']))
+        print('到底: %s' % ('是' if at_bottom else '否（达上限 %d 屏）' % a.nmax))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

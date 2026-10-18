@@ -66,7 +66,9 @@ STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING"
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
 FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不参与
 # 投票规则：缺省 "all"（该态全部判据成立）；PLAYTEST="any2"（2/3 多数）
-RULE = {"PLAYTEST": "any2"}
+# GAME_ACTIVITY 用 any2：三条里中两条即可。第三条（活动页通用元素）会随活动换期而变，
+# 用多数票容忍它漂移，同时"标题在 + 无派蒙面板 + 无 UID 血条"已足够把它与其它态分开。
+RULE = {"PLAYTEST": "any2", "GAME_ACTIVITY": "any2"}
 # 每态至少需要的判据条数（少于这个数不算「判定」，只算「差一点」⇒ UNKNOWN）
 MIN_CRITERIA = 2
 
@@ -793,8 +795,13 @@ def native_readings(frame_path, offset=(0, 0)):
         '活动一览')
     put("GAME_ACTIVITY/B 无派蒙左面板", not _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
         '左面板')
-    put("GAME_ACTIVITY/C 活动页独有文案",
-        any(_has(boxes, k) for k in ('渊月螺旋', '渊月祝福', '本期渊月祝福')), '渊月')
+    # ⚠️ 第三条**不能写死某个活动名**（2026-10-18 踩过）：活动页内容会换期，
+    # 我最初用「渊月祝福」，换到「判测胜券本征/幽境危战」那期就判不出。
+    # 改用"活动页才有的通用元素"，并给该态配 RULE=any2（三条里中两条即可），
+    # 容忍其中一条随版本变化。
+    put("GAME_ACTIVITY/C 活动页通用元素",
+        any(_has(boxes, k) for k in ('活动说明', '剩余参与时间', '前往查看', '挑战剩余时间')),
+        '通用元素')
     # GAME_PAIMON（派蒙菜单）：左面板三件套
     put("GAME_PAIMON/A 左面板「冒险等阶」", _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
         '冒险等阶')
