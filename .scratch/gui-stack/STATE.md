@@ -44,7 +44,9 @@
 ### 5) 动作原语——P0 完成，②未做
 - `tools/ys-editor/ys-scroll`：语义滚动 + 位移验证（一次"滚动+验证" **11.7s → 约 3s**，抓帧换 daemon 后）
 - `tools/ys-editor/ys-list`：结构化列表（以"时间标签"为锚点切条目，输出 name/label/bbox）
-- **未做**：批量注入（一次 slot 做多动作，摊薄 2.1s 固定开销）
+- **批量注入**：已有 `ys-act <脚本.sh> [out.png] [win]`（bash）——一次抬升+槽位里跑脚本做完所有动作再抓图。
+  实测固定开销：**ys-act 7.5s**（其中 ys-kwin-raise + import 抓图占大头）、单次 slot 2.1s。
+  ⇒ 动作 ≥4 个才值得批；否则用 ys-scroll（带 daemon 快抓 0.5s）更划算。
 
 ### 6) 教练层——上线
 - `tools/coach`：7 条情境规则（裸 sleep / 手工注入 / 慢抓帧 / 判据卡住 / 失败重复 / 内存 / 慢调用归 cmdmon）
