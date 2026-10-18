@@ -220,6 +220,7 @@ class WorldService:
                                       "h": resp["frame"].get("h")}),
             budget_ms=self.budget_ms)
         raw["attribution"] = resp.get("attribution")
+        raw["structure"] = resp.get("structure")   # D3 结构层（groups/rows/pitch），随世界状态一起返回
         raw["daemon_timing"] = resp.get("timing")
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         if path:

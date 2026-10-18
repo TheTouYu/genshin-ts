@@ -1673,6 +1673,47 @@ def _world_containers(arr, sha, boxes, W, H):
                 "timing_ms": round((time.time() - t0) * 1000, 1)}
 
 
+
+def _world_structure(objects, W, H, boxes=None):
+    """D3 结构层：给对象列表，返回 groups / rows / pitch / 类别修正 / 缺行槽。
+
+    输入契约：objects = {containers:[{bbox(xyxy), kind, text,...}], free_text:[...]}
+    ⚠ ys-screen 的 containers[].bbox 是 **xyxy**，D3 要 xywh ⇒ 这里统一转换。
+    """
+    t0 = time.time()
+    try:
+        import d3_structure as D3
+        objs = []
+        for i, c in enumerate((objects or {}).get("containers") or []):
+            b = c.get("bbox") or []
+            if len(b) != 4:
+                continue
+            x0, y0, x1, y1 = b
+            w, h = x1 - x0, y1 - y0
+            if w <= 0 or h <= 0 or w * h >= 0.75 * W * H:      # 整屏底板必丢（实测会吞掉所有配对）
+                continue
+            objs.append({"id": i, "bbox": [int(x0), int(y0), int(w), int(h)],
+                         "kind": c.get("kind") or "unknown"})
+        for t in (boxes or []):                      # OCR 文本框也进结构层（密度来源）
+            b = t.get("bbox") or []
+            if len(b) != 4:
+                continue
+            x, y, w, h = b
+            if w <= 0 or h <= 0:
+                continue
+            objs.append({"id": len(objs), "bbox": [int(x), int(y), int(w), int(h)], "kind": "text"})
+        if len(objs) < 4:
+            return {"groups": [], "rows": [], "pitch": None, "kind_fixes": [], "slots": [],
+                    "n_objects": len(objs), "ms": round((time.time() - t0) * 1000, 1)}
+        r = D3.analyze({"objects": objs})
+        r["n_objects"] = len(objs)
+        r["ms"] = round((time.time() - t0) * 1000, 1)
+        return r
+    except Exception as e:                                     # noqa: BLE001
+        return {"groups": [], "rows": [], "error": f"{type(e).__name__}: {e}",
+                "ms": round((time.time() - t0) * 1000, 1)}
+
+
 def _world(req):
     """cmd="world"：世界状态仪器（显式开启；请求里不给 cmd=world 就完全走旧路径）。"""
     t0 = time.time()
@@ -1714,6 +1755,8 @@ def _world(req):
     t_after_state = time.time()
     objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
     t_after_obj = time.time()
+    structure = _world_structure(objects, W, H, boxes) if (do_obj and req.get("structure", True)) else None
+    t_after_structure = time.time()
     degraded = []
     if do_ocr and boxes is None:
         degraded.append({"code": "OCR_UNAVAILABLE",
@@ -1725,11 +1768,13 @@ def _world(req):
         "schema": WORLD_SCHEMA,
         "state": state,
         "objects": objects,
+        "structure": structure,
         "frame": {"source": src, "path": _WORLD_FRAME.get("path"),
                   "sha256": sha, "w": W, "h": H, "bytes": int(W * H * 3)},
         "profile": os.path.basename(prof_path),
         "attribution": attrib,
-        "timing": {"load_ms": t_load,
+        "timing": {"load_ms": t_load, "structure_ms": (structure or {}).get("ms"),
+                   "structure": round((t_after_structure - t_after_obj) * 1000, 1),
                    "ocr_ms": round((t_after_ocr - t0) * 1000 - t_load, 1),
                    "state_ms": round((t_after_state - t_after_ocr) * 1000, 1),
                    "judge_ms": t_judge,
