@@ -1254,7 +1254,11 @@ def _ocr_plate_build(req):
     import numpy as np
     from PIL import Image
     page = req.get('page') or 'default'
-    fps = req.get('frames') or []
+    fps = list(req.get('frames') or [])
+    if req.get('dir'):
+        import glob as _g
+        pat = req.get('pattern') or '*.jpg'
+        fps += sorted(_g.glob(os.path.join(req['dir'], pat)))
     if len(fps) < 3:
         return {'error': 'build 需要至少 3 帧（建议 5–10）', 'code': 'BAD_FRAMES'}
     t0 = time.time()
@@ -1269,7 +1273,8 @@ def _ocr_plate_build(req):
     t1 = time.time()
     objs = _ocr_objects_core(plate, det_max=2000, cache=False)['objects']
     _PLATE[page] = {'plate': plate, 'dyn': dyn_q, 'boxes': objs, 'W': w, 'H': h}
-    return {'ok': True, 'page': page, 'frames': len(fps), 'w': w, 'h': h,
+    return {'ok': True, 'objects': objs, 'n_objects': len(objs),
+            'page': page, 'frames': len(fps), 'w': w, 'h': h,
             'dynamic_px_ratio': round(float(dyn.mean()), 4),
             'box_count': len(objs), 'build_ms': round((time.time() - t0) * 1000, 1),
             'plate_ocr_ms': round((time.time() - t1) * 1000, 1)}
@@ -1306,7 +1311,17 @@ def _ocr_plate_query(req):
         rh = sl[0].stop - sl[0].start; rw = sl[1].stop - sl[1].start
         if rw * rh < _PLATE_MIN_AREA: continue
         regions.append((sl[1].start * 4, sl[0].start * 4, rw * 4, rh * 4))
+    changed_px_ratio = round(float(diff.mean()), 4) if diff.size else 0.0
     mask_ms = round((time.time() - t0) * 1000, 1)
+    gate = {'regions_threshold': 3, 'px_ratio_threshold': 0.05,
+            'regions': len(regions), 'changed_px_ratio': changed_px_ratio,
+            'rebuild': (len(regions) >= 3 or changed_px_ratio >= 0.05)}
+    if gate['rebuild']:
+        # 换页/大变化 → 用本帧重建底板（单帧兜底；用户按页采 5–10 帧后可批量 build）
+        b = _ocr_plate_build({'page': page, 'frames': [req['frame']] * 3})
+        out = dict(b, action='rebuild', gate=gate, mode='plate',
+                   total_ms=round((time.time() - t0) * 1000, 1))
+        return out
     # 2) 底板框：未被变化覆盖的复用文字；被覆盖的只重跑 rec
     changed_boxes = []; kept = []
     for o in pl['boxes']:
@@ -1337,7 +1352,13 @@ def _ocr_plate_query(req):
     # 3) 变化区域补 det（把新对象捡回来；旧框一个不丢）
     t2 = time.time()
     new_objs = []
+    # 只对「未被任何底板框覆盖」的变化区域补 det（被覆盖的文本已经在上面按 rec 更新，不丢框）
+    uncovered = []
     for (rx, ry, rw, rh) in regions[:4]:
+        covered = any(_iou_xywh([rx, ry, rw, rh], b['bbox']) > 0.15 for b in kept)
+        if not covered:
+            uncovered.append((rx, ry, rw, rh))
+    for (rx, ry, rw, rh) in uncovered:
         sx0, sy0 = max(0, rx - _PLATE_MARGIN), max(0, ry - _PLATE_MARGIN)
         sx1, sy1 = min(w, rx + rw + _PLATE_MARGIN), min(h, ry + rh + _PLATE_MARGIN)
         loc = _ocr_region_bgr(bgr, (sx0, sy0, sx1, sy1), det, rec, 2000, batch)
@@ -1348,7 +1369,9 @@ def _ocr_plate_query(req):
     objs = _dedupe_objects([{'text': o['text'], 'score': o.get('score', 0.0), 'bbox': o['bbox']}
                             for o in kept] + new_objs)
     return {'objects': objs, 'n_objects': len(objs), 'mode': 'plate', 'page': page,
-            'regions': len(regions), 'reused_boxes': len(kept), 'rec_boxes': len(changed_boxes),
+            'regions': len(regions), 'uncovered_regions': len(uncovered),
+            'gate': gate, 'changed_px_ratio': changed_px_ratio,
+            'reused_boxes': len(kept), 'rec_boxes': len(changed_boxes),
             'new_boxes': len(new_objs), 'mask_ms': mask_ms, 'rec_ms': rec_ms, 'det_ms': det_ms,
             'total_ms': round((time.time() - t0) * 1000, 1), 'rec_batch': batch, 'err': None}
 
