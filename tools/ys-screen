@@ -47,9 +47,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 YS = os.path.join(HERE, 'ys-editor')
 # OCR venv：与 tools/ys-find 同一口径（可用 YS_RAPIDOCR_PY 覆盖）；缺它就 fail-closed，不静默降级
+# 引擎口径（2026-10-18 统一）：**系统 python3 的 rapidocr 3.10** 是主路径（有 CUDA，常驻后
+# 单帧 ~0.5s）；venv 里的 rapidocr_onnxruntime 2.x 退为**回退**。两套并存会让同一次调用
+# 因路径不同得到 ±14px 的坐标差（实测 343,25 vs 329,26）——判据不该随"走哪条路"变。
 RAPIDOCR_PY = os.environ.get(
     'YS_RAPIDOCR_PY',
-    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+    ('/usr/bin/python3' if os.path.exists('/usr/lib/python3.14/site-packages/rapidocr')
+     else os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python')))
 # 内容寻址缓存：与 ys-find 共用同一目录 ⇒ 两个工具互相暖机
 CACHE_DIR = os.environ.get('YS_FIND_CACHE_DIR', os.path.join(HERE, '..', '.gsts', 'ys-find-cache'))
 CACHE_MAX = 64

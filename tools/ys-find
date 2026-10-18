@@ -34,21 +34,63 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 YS = os.path.join(HERE, 'ys-editor')
 # OCR venv：可用 YS_RAPIDOCR_PY 覆盖；缺它就报"后端缺"，不退回更差的识别器
+# 引擎口径（2026-10-18 统一）：**系统 python3 的 rapidocr 3.10** 是主路径（有 CUDA，常驻后
+# 单帧 ~0.5s）；venv 里的 rapidocr_onnxruntime 2.x 退为**回退**。两套并存会让同一次调用
+# 因路径不同得到 ±14px 的坐标差（实测 343,25 vs 329,26）——判据不该随"走哪条路"变。
 RAPIDOCR_PY = os.environ.get(
     'YS_RAPIDOCR_PY',
-    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+    ('/usr/bin/python3' if os.path.exists('/usr/lib/python3.14/site-packages/rapidocr')
+     else os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python')))
 
 
 def backend_ok():
     return os.path.exists(RAPIDOCR_PY), os.path.abspath(RAPIDOCR_PY)
 
 
+def _daemon_ocr(frame, want=''):
+    """常驻 OCR 优先（2026-10-18）：子进程每次要付引擎加载 ≈2.5s，常驻后 ~0.5s。
+
+    口径与 tools/ys-screen 的 _daemon_ocr 一致：服务不可用/未实现 ocr 命令 ⇒ 回退子进程。
+    """
+    import socket
+    sock = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
+    if os.environ.get('YS_FIND_NO_DAEMON_OCR') == '1' or not os.path.exists(sock):
+        return None
+    try:
+        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        c.settimeout(120)
+        c.connect(sock)
+        c.sendall((json.dumps({'cmd': 'ocr', 'frame': os.path.abspath(frame)}) + '\n').encode())
+        data = b''
+        while not data.endswith(b'\n'):
+            ch = c.recv(65536)
+            if not ch:
+                break
+            data += ch
+        c.close()
+        r = json.loads(data.decode())
+    except (OSError, ValueError):
+        return None
+    if r.get('error') or not isinstance(r.get('boxes'), list):
+        return None
+    boxes = r['boxes']
+    wants = [w for w in (want or '').split(',') if w]
+    if wants:
+        boxes = [b for b in boxes if any(w in b.get('text', '') for w in wants)]
+    return {'channel': 'text', 'image': os.path.abspath(frame), 'boxes': boxes,
+            'n_total': int(r.get('n_total') or len(r.get('boxes') or [])),
+            'ms': int(r.get('ms') or 0), 'via': 'daemon'}
+
+
 def channel_text(frame, labels):
+    want = ','.join(labels) if labels else ''
+    d = _daemon_ocr(frame, want)
+    if d is not None:
+        return d
     ok, py = backend_ok()
     if not ok:
         return {'channel': 'text', 'error': 'RapidOCR venv 缺失：%s（可设 YS_RAPIDOCR_PY）' % py,
                 'boxes': []}
-    want = ','.join(labels) if labels else ''
     cmd = [py, os.path.join(YS, 'ys_ocr.py'), 'ocr', frame, '--json']
     if want:
         cmd += ['--want', want]

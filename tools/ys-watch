@@ -67,9 +67,13 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 YS = os.path.join(HERE, 'ys-editor')
 OCR_PY = os.path.join(YS, 'ys_ocr.py')
+# 引擎口径（2026-10-18 统一）：**系统 python3 的 rapidocr 3.10** 是主路径（有 CUDA，常驻后
+# 单帧 ~0.5s）；venv 里的 rapidocr_onnxruntime 2.x 退为**回退**。两套并存会让同一次调用
+# 因路径不同得到 ±14px 的坐标差（实测 343,25 vs 329,26）——判据不该随"走哪条路"变。
 RAPIDOCR_PY = os.environ.get(
     'YS_RAPIDOCR_PY',
-    os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python'))
+    ('/usr/bin/python3' if os.path.exists('/usr/lib/python3.14/site-packages/rapidocr')
+     else os.path.join(HERE, '..', '.scratch', 'gui-grounding', 'venv-rapidocr', 'bin', 'python')))
 CACHE_DIR = os.environ.get('YS_WATCH_CACHE_DIR', os.path.join(HERE, '..', '.gsts', 'ys-watch-cache'))
 CACHE_MAX = 128
 
