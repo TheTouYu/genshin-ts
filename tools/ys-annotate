@@ -111,7 +111,7 @@ function paint(){
 function build(){
   const f=frame(); els=new Map(); selId=null;
   document.getElementById('which').textContent=f.stem+' · '+f.layout+' · '+f.objects.length+' 单元';
-  document.getElementById('img').src='file://'+f.image;
+  document.getElementById('img').src=f.image;
   const st=document.getElementById('stage');
   st.querySelectorAll('.box').forEach(e=>e.remove());
   f.objects.forEach(o=>{
@@ -281,6 +281,7 @@ def load(truth_dir):
         cand = os.path.abspath(img) if img else ""
         frames.append({"stem": stem, "layout": d.get("layout") or "",
                        "image": cand if os.path.exists(cand) else "",
+                       "_img_abs": cand if os.path.exists(cand) else "",
                        "objects": [{"id": o.get("id"), "bbox": o.get("bbox"), "kind": o.get("kind"),
                                     "text": o.get("text") or ""} for o in objs],
                        "w": (d.get("size") or [2560, 1440])[0], "h": (d.get("size") or [2560, 1440])[1]})
@@ -304,7 +305,25 @@ def main():
                    .replace("__DATA__", json.dumps(frames, ensure_ascii=False))
                    .replace("__BATCH__", json.dumps(batch))
                    .replace("__SAVE_PREFIX__", json.dumps(a.save_prefix)))
-    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    outdir = os.path.dirname(os.path.abspath(a.out))
+    os.makedirs(outdir, exist_ok=True)
+    imgdir = os.path.join(outdir, "img")
+    os.makedirs(imgdir, exist_ok=True)
+    import shutil
+    for f in frames:
+        src = f.pop("_img_abs", "")
+        if src and os.path.exists(src):
+            ext = os.path.splitext(src)[1] or ".png"
+            name = f["stem"] + ext
+            dst = os.path.join(imgdir, name)
+            if not (os.path.exists(dst) and os.path.getsize(dst) == os.path.getsize(src)):
+                shutil.copyfile(src, dst)
+            f["image"] = "img/" + name
+    out = (TEMPLATE.replace("__TITLE__", html.escape(batch))
+                   .replace("__LEVEL__", json.dumps(LEVEL))
+                   .replace("__DATA__", json.dumps(frames, ensure_ascii=False))
+                   .replace("__BATCH__", json.dumps(batch))
+                   .replace("__SAVE_PREFIX__", json.dumps(a.save_prefix)))
     open(a.out, "w", encoding="utf-8").write(out)
     n = sum(len(f["objects"]) for f in frames)
     print(f"frames={len(frames)} units={n} -> {os.path.abspath(a.out)}")
