@@ -1242,6 +1242,7 @@ _PLATE_DIFF_THR = 12                   # 0-255 像素差阈值
 _PLATE_DYN_FRAC = 0.5                  # 多帧中偏差>阈值的帧占比超过它 → always-dynamic
 _PLATE_MIN_AREA = 400                  # 1/4 尺度连通域最小面积
 _PLATE_MARGIN = 48
+_PLATE_TEXT_CHANGE_RATIO = 0.02         # 文字掩码 XOR 比例阈值（默认 2%，可 req 覆盖）
 
 
 def _plate_quarter(img):
@@ -1317,19 +1318,40 @@ def _ocr_plate_query(req):
             'regions': len(regions), 'changed_px_ratio': changed_px_ratio,
             'rebuild': (len(regions) >= 3 or changed_px_ratio >= 0.05)}
     if gate['rebuild']:
-        # 换页/大变化 → 用本帧重建底板（单帧兜底；用户按页采 5–10 帧后可批量 build）
-        b = _ocr_plate_build({'page': page, 'frames': [req['frame']] * 3})
-        out = dict(b, action='rebuild', gate=gate, mode='plate',
-                   total_ms=round((time.time() - t0) * 1000, 1))
-        return out
+        # 换页/大变化 → **不重建底板**（重建要 1.2s，比整帧 OCR 还慢）；
+        # 直接回落到标准 ocr_objects 路径返回本次结果，底板标记 stale，留给后台/下次 build 重建。
+        _PLATE[page]['stale'] = True
+        fb = _ocr_objects_core(arr, det_max=2000, cache=True)
+        return {'objects': fb.get('objects') or [], 'n_objects': fb.get('n_objects'),
+                'mode': 'plate_fallback_objects', 'page': page, 'gate': gate,
+                'plate_stale': True, 'fallback': 'ocr_objects',
+                'det_ms': fb.get('det_ms'), 'rec_ms': fb.get('rec_ms'),
+                'total_ms': round((time.time() - t0) * 1000, 1)}
     # 2) 底板框：未被变化覆盖的复用文字；被覆盖的只重跑 rec
+    # 框级判据：**文字掩码**（Otsu 二值化后 XOR 比例），不再用 8×8 亮度——
+    # 亮度接近但文字变了的框（数字/选中态）只有掩码能抓到。
+    import cv2
     changed_boxes = []; kept = []
+    text_changed = 0
     for o in pl['boxes']:
         x, y, bw, bh = [int(v) for v in o['bbox']]
-        sub = diff[max(0, y // 4):min(diff.shape[0], (y + bh) // 4 + 1),
-                   max(0, x // 4):min(diff.shape[1], (x + bw) // 4 + 1)]
-        if sub.size and sub.any():
-            changed_boxes.append(o)
+        x1, y1 = min(w, x + bw), min(h, y + bh)
+        if x1 <= x or y1 <= y:
+            kept.append(o); continue
+        sub = diff[max(0, y // 4):min(diff.shape[0], y1 // 4 + 1),
+                   max(0, x // 4):min(diff.shape[1], x1 // 4 + 1)]
+        area_changed = bool(sub.size and sub.mean() > 0.05)
+        a = cv2.cvtColor(arr[y:y1, x:x1], cv2.COLOR_RGB2GRAY)
+        b = cv2.cvtColor(pl['plate'][y:y1, x:x1], cv2.COLOR_RGB2GRAY)
+        try:
+            _, ta = cv2.threshold(a, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            _, tb = cv2.threshold(b, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            ink = max(1, int((tb > 0).sum()))
+            ratio = float(((ta > 0) ^ (tb > 0)).sum()) / ink
+        except Exception:                                # noqa: BLE001
+            ratio = 1.0
+        if ratio > _PLATE_TEXT_CHANGE_RATIO or area_changed:
+            changed_boxes.append(o); text_changed += 1
         else:
             kept.append(o)
     t1 = time.time()
@@ -1371,6 +1393,7 @@ def _ocr_plate_query(req):
     return {'objects': objs, 'n_objects': len(objs), 'mode': 'plate', 'page': page,
             'regions': len(regions), 'uncovered_regions': len(uncovered),
             'gate': gate, 'changed_px_ratio': changed_px_ratio,
+            'text_changed_boxes': text_changed,
             'reused_boxes': len(kept), 'rec_boxes': len(changed_boxes),
             'new_boxes': len(new_objs), 'mask_ms': mask_ms, 'rec_ms': rec_ms, 'det_ms': det_ms,
             'total_ms': round((time.time() - t0) * 1000, 1), 'rec_batch': batch, 'err': None}
