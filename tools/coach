@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""coach — 实时教练：看着代理的动作，命中已知失败模式就给出**可执行的替代动作**。
+
+与 cmdmon 的分工：
+  · cmdmon = 统计器（近 2h 谁最慢、裸 sleep 多少）——**事后**，回答"哪里花了时间"
+  · coach  = 模式识别器（**正在发生的**坑）——**实时**，回答"你现在这一步有更好的做法"
+
+数据源：`~/.dsh/cmdlog/commands.jsonl`（cmdmon 每 2s 采样产出；只读尾部，不整文件加载）
+
+用法：
+  tools/coach                 # 分析最近 15 分钟，打印
+  tools/coach --watch 60      # 常驻，每 60s 刷新 ~/.dsh/cmdlog/coach-live.md
+  tools/coach --json          # 机读
+
+规则（每条都给"替代动作"，不给建议就不算教练）：
+  R1 慢调用重复    同一命令前缀 ≥3 次且每次都 >5s
+  R2 裸 sleep      sleep ≥5s（等待要 wait_until）
+  R3 手工注入      裸 xdotool/ydotool（有 ys-scroll / ys-list / ys-pointer-click）
+  R4 慢抓帧        ys-snap --snap（有 ys-lookd cmd=grab，0.5s）
+  R5 判据卡住      连续 ≥3 次 ys-state（AMBIGUOUS 不会因等待而改变）
+  R6 失败重复      同一命令前缀连续失败 ≥2 次
+  R7 内存压力      MemAvailable < 3GB
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+CMDLOG = os.path.expanduser("~/.dsh/cmdlog/commands.jsonl")
+OUT = os.path.expanduser("~/.dsh/cmdlog/coach-live.md")
+WINDOW_MS = 15 * 60 * 1000
+
+
+def tail_jsonl(path, max_lines=4000):
+    if not os.path.exists(path):
+        return []
+    out = []
+    with open(path, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        chunk = min(size, max_lines * 800)
+        fh.seek(max(0, size - chunk))
+        data = fh.read().decode("utf-8", "replace").splitlines()
+    for line in data[-max_lines:]:
+        try:
+            out.append(json.loads(line))
+        except Exception:                                # noqa: BLE001
+            continue
+    return out
+
+
+def prefix(cmd):
+    """取"真正的命令"做前缀：跳过 cd/export/for 等壳层，取第一个可执行 + 前两个参数。"""
+    c = (cmd or "").strip()
+    # 去掉 "cd X &&" / "export X=1;" 之类的前缀
+    for _ in range(4):
+        c = re.sub(r"^\s*(cd\s+\S+|export\s+\S+|source\s+\S+|timeout\s+\d+)\s*(&&|;|\n)?\s*", "", c)
+    toks = [t for t in re.split(r"[\s|;]+", c) if t and not t.startswith("-")]
+    if not toks:
+        return (cmd or "")[:40]
+    head = toks[0]
+    base = os.path.basename(head)
+    if base in ("python3", "python", "bash", "sh") and len(toks) > 1:
+        return f"{base} {os.path.basename(toks[1])}"[:60]
+    return " ".join([base] + toks[1:3])[:60]
+
+
+def mem_available_gb():
+    try:
+        for line in open("/proc/meminfo"):
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) / 1024 / 1024
+    except Exception:                                    # noqa: BLE001
+        pass
+    return None
+
+
+def analyze(rows, window_ms=WINDOW_MS):
+    now = int(time.time() * 1000)
+    recent = [r for r in rows if isinstance(r.get("ts"), int) and now - r["ts"] <= window_ms]
+    tips = []
+
+    # R1 慢调用聚类：交给 cmdmon（它是统计器）；coach 只做"情境模式"，避免重复。
+    # R2 裸 sleep
+    sleeps = [r for r in recent if re.search(r"\bsleep\s+([4-9]|\d{2,})", r.get("cmd") or "")]
+    if sleeps:
+        total = sum((r.get("dur_ms") or 0) for r in sleeps) / 1000
+        tips.append((int(total), f"裸 sleep {len(sleeps)} 处共 {total:.0f}s —— 改成轮询+可满足判据（wait_until），别用固定时长"))
+
+    # R3 手工注入
+    manual = [r for r in recent if re.search(r"\b(xdotool click|ydotool (click|key|mousemove))", r.get("cmd") or "")
+              and "ys-gui-slot" not in (r.get("cmd") or "")]
+    if len(manual) >= 2:
+        tips.append((30 * len(manual), f"手工注入 {len(manual)} 次（裸 xdotool/ydotool）——用 ys-scroll / ys-list / ys-pointer-click，"
+                                       f"它们带焦点保证与验证"))
+
+    # R4 慢抓帧
+    snap = [r for r in recent if "ys-snap --snap" in (r.get("cmd") or "")]
+    if len(snap) >= 2:
+        tips.append((len(snap) * 4.3, f"用 ys-snap 抓帧 {len(snap)} 次（每次约 4.8s）——改 `ys-lookd cmd=grab`（0.5s）"))
+
+    # R5 判据卡住
+    st = [r for r in recent if re.search(r"ys-state(?!\w)", r.get("cmd") or "")]
+    if len(st) >= 3:
+        tips.append((len(st) * 2, f"连续 {len(st)} 次查状态 —— 若返回 AMBIGUOUS/UNKNOWN，再等也不会变：抓一帧用 world/ys-screen 看画面"))
+
+    # R6 失败重复
+    errs = [r for r in recent if r.get("is_error")]
+    by_pref2 = {}
+    for r in errs:
+        by_pref2.setdefault(prefix(r.get("cmd")), []).append(r)
+    for p, rs in by_pref2.items():
+        if len(rs) >= 2:
+            tips.append((60 * len(rs), f"「{p}」连续失败 {len(rs)} 次 —— 换策略（先读错误原文，别再重试同一条）"))
+
+    # R7 内存
+    avail = mem_available_gb()
+    if avail is not None and avail < 3.0:
+        tips.append((300, f"可用内存仅 {avail:.1f}GB —— 先清换页大户（训练/常驻服务），再谈速度"))
+
+    tips.sort(key=lambda t: -t[0])
+    return {"window_ms": window_ms, "n_recent": len(recent), "mem_available_gb": avail,
+            "tips": [t[1] for t in tips[:5]]}
+
+
+def render(res):
+    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+    lines = [f"<!-- {ts} 实时教练：近 {res['window_ms']//60000} 分钟 {res['n_recent']} 次调用"
+             f"，可用内存 {res['mem_available_gb']:.1f}GB -->" if res['mem_available_gb'] is not None
+             else f"<!-- {ts} 最近 {res['n_recent']} 次调用 -->"]
+    if not res["tips"]:
+        lines.append("（没有命中已知失败模式）")
+    for i, t in enumerate(res["tips"], 1):
+        lines.append(f"{i}. {t}")
+    return "\n".join(lines) + "\n"
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--watch", type=int, default=0)
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--window-min", type=int, default=15)
+    a = ap.parse_args()
+    while True:
+        rows = tail_jsonl(CMDLOG)
+        res = analyze(rows, a.window_min * 60 * 1000)
+        if a.json:
+            print(json.dumps(res, ensure_ascii=False))
+            break
+        txt = render(res)
+        with open(OUT, "w", encoding="utf-8") as fh:
+            fh.write(txt)
+        print(txt, end="")
+        if not a.watch:
+            break
+        time.sleep(a.watch)
+
+
+if __name__ == "__main__":
+    main()
