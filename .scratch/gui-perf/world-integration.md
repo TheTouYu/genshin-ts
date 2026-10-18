@@ -55,6 +55,10 @@
 - 读数（`look --frame /dev/shm/wf.bmp --backend daemon-world`，同帧）：冷 **ocr_ms 461.9 / total 1029.3**（objects 源，50 框；state 529ms 这帧特别重）；
   同帧再取：world 缓存 **0.6–0.9ms**、仅帧缓存命中时 ~90ms。
 - 兜底：字高 <20px 占比 ≥0.35 → 回退全帧；110 帧 bench 触发率 **0.91%**、触发帧召回 **100%**（详见 `ocr-bench.md` 第三轮）。
+  **兜底分支已实跑验证**：请求带 `force_fallback:true` → `ocr_source=objects+fullframe_fallback`（测试缝，默认不传）。
+- **重启后首帧**：`serve()` 里加了 **OCR 后台预热**（引擎+CUDA/cudnn 首次 kernel，实测 1666ms）；
+  未预热时重启后第一次 world 的 `ocr_ms` 实测 **5998ms**，预热后同一帧首见 **596ms**、同帧再取 **15–20ms**。
+  ⇒ 冷/热必须分开报：**首帧 801ms（ocr 596）/ 同帧重复 117–129ms（ocr 15–20）**。
 - 显存硬上限写进常量注释：`_REC_BATCH=8`（`YS_LOOKD_REC_BATCH` 可调，**硬上限 16**；32 实测 OOM）。
 
 ## ③ OCR 已在常驻进程（并给出显存上限）
