@@ -356,11 +356,45 @@ SHA 变化也**不能**当判据——编辑器内存与磁盘一致时，离开
 - `qxqy-simulator` / `gsts client:sim`：模拟器路线（更快、更早）
 - `computer-use`（全局技能）：通用桌面自动化方法（成本链、优化四步、常驻服务通用式、`cu` 通道）——**方法层向上引用，资产层留在本技能**
 
+## 命令耗时监控（2026-10-18 用户令：有命令 ≠ 会起作用）
+
+> 机制：`tools/cmdmon`（常驻 `cmdmon.service`，2s 增量）→ `~/.dsh/cmdlog/commands.jsonl` →
+> `tools/agent-coach` 生成 3~5 条可省时间建议 → daemon **每 5 分钟自动刷新** `~/.dsh/cmdlog/last-coach.md`。
+> **这是设计保障，不是纪律提醒**：卡片不靠模型记得跑，也跑不掉（daemon 自己在刷）。
+
+**为什么必须做成设计**（本节的来历，别再重犯）：`cmdmon`（采集）+ `agent-coach`（生成）两天前就建好了、
+daemon 一直在跑、账本一直在写，但设计文档里最后一步写的是「**模型侧约定：每阶段自查一次 agent-coach**」——
+把闭环交给了模型自觉。实测后果：`injections.jsonl` 从未被创建、`last-coach.md` 停了一整天
+（2026-10-17 16:06 → 2026-10-18 10:33 才被重启刷新），而那一轮本身：**仪器 57.4 分钟 / 人等待 59.2 分钟**
+（人等待比仪器还长！）/ ≥30s 慢调用 25 次共 47.5 分钟 / `job_output(wait:true)` 空等 4/8 次共 10.8 分钟。
+**卡片写得再好，不被调用就等于没有。**
+
+**判据（可机检）与对应动作**：
+
+| 读数 | 判据 | 动作 |
+|---|---|---|
+| 单条命令时长 | ≤20s | >20s 一律 `run_in_background` |
+| `job_output(wait:true)` | 空等 = 0 | 先发独立任务再等；或 `wait:false` + 判据轮询 |
+| 裸 `sleep <数字>` | 0 条 | 用 `ys-wait` / `wait_until` 谓词等待 |
+| 同命令 10 分钟内 ≥3 次 | 0 | 多半是参数猜错：先读源码/文档再跑 |
+| 人等待（`wait_human`） | 应远小于仪器耗时 | 提问要「一次问全 + 问完能自己往前走」——ask_user_question 要给选项而不要开放问 |
+
+**用法**：
+```bash
+tools/cmdmon report --since 2h        # 本轮类别占比/最慢/失败/裸 sleep
+tools/cmdmon alerts --since 2h        # 报警清单（slow/fail/sleep/repeat/guistorm）
+tools/agent-coach --window 2h --dry-run --format text   # 临时要一份卡片（daemon 已自动刷到 last-coach.md）
+```
+
+**纪律（已两次踩）**：新监控件落地**必须同轮接进主链并打一行读数**——`ys-time-audit`/`accept-meter`
+当年就是"写好了但没接进主链"，等于没有。判据：**问一句"谁在不看文档的情况下会被它触发？"** 答不出就是没接。
+
 ## 变更记录
 
 | 日期 | 变更 |
 |---|---|
 | 2026-10-17 | 首版：从 `tools/ys-editor/` 工具链 + 真机实测事实收拢（T02，skill-refresh 票板） |
+| 2026-10-18 | 新增「命令耗时监控」节：把遥测闭环从"模型自查"改成"daemon 自动刷新"，附判据表与两次"只写不接"的实证 |
 
 ---
 

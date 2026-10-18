@@ -37,6 +37,7 @@ import time
 from collections import defaultdict
 
 HOME = os.path.expanduser('~')
+HERE = os.path.dirname(os.path.abspath(__file__))   # tools/ —— 兄弟工具（agent-coach）与它同目录
 LOGDIR = os.path.join(HOME, '.dsh', 'cmdlog')
 COMMANDS = os.path.join(LOGDIR, 'commands.jsonl')
 ALERTS = os.path.join(LOGDIR, 'alerts.jsonl')
@@ -302,6 +303,15 @@ def cmd_daemon(args):
     log = open(os.path.join(LOGDIR, 'daemon.log'), 'a', buffering=1)
     print(f'[{time.strftime("%H:%M:%S")}] cmdmon daemon 起 (interval={args.interval}s)', file=log)
     last_path = None
+    # ── 教练卡自动生成（2026-10-18 用户点破的设计缺口）────────────────────────
+    # 原设计的最后一步是「模型侧约定：每完成一个阶段自查一次 agent-coach」——
+    # 把闭环的闭合交给了模型自觉。实测后果：injections.jsonl 从未创建，last-coach.md 停了一天，
+    # 而当天那轮仍是仪器 57.4 分钟 / 人等待 59.2 分钟 / ≥30s 慢调用 25 次。
+    # ⇒ 卡片写得再好，不被调用就等于没有。这里把它挂到**已经在跑的常驻循环**上，
+    #   由设计保证而不是靠记得：daemon 每 coach_every 秒重算一次卡片并落盘。
+    #   模型侧只要读 ~/.dsh/cmdlog/last-coach.md（AGENTS.md 里指了一次），就永远看到当下读数。
+    coach_every = max(60, int(getattr(args, 'coach_every', 300) or 300))
+    last_coach = 0.0
     try:
         while True:
             path = latest_session(args.workspace)
@@ -319,6 +329,23 @@ def cmd_daemon(args):
                     save_state(st)
                     for a in alerts:
                         print(f'[{time.strftime("%H:%M:%S")}] ALERT {a}', file=log)
+            # 教练卡：按时间节律重算（与 ingest 解耦，没有新调用也会刷新，保证读数不过期）
+            if time.time() - last_coach >= coach_every:
+                last_coach = time.time()
+                coach = os.path.join(HERE, 'agent-coach')
+                if os.path.exists(coach):
+                    try:
+                        p = subprocess.run([coach, '--window', '2h', '--format', 'text'],
+                                           capture_output=True, text=True, timeout=60)
+                        if p.returncode == 0 and (p.stdout or '').strip():
+                            print(f'[{time.strftime("%H:%M:%S")}] COACH 已刷新 last-coach.md '
+                                  f'({len(p.stdout)} 字节)', file=log)
+                        else:
+                            print(f'[{time.strftime("%H:%M:%S")}] COACH 生成失败 rc={p.returncode} '
+                                  f'{(p.stderr or "")[:160]}', file=log)
+                    except Exception as e:                       # noqa: BLE001
+                        print(f'[{time.strftime("%H:%M:%S")}] COACH 异常 {type(e).__name__}: {e}',
+                              file=log)
             time.sleep(args.interval)
     except KeyboardInterrupt:
         print(f'[{time.strftime("%H:%M:%S")}] 退出', file=log)
@@ -548,6 +575,9 @@ def main():
     p = sub.add_parser('daemon', help='常驻增量采集 + 即时报警')
     p.add_argument('--interval', type=float, default=2.0)
     p.add_argument('--workspace')
+    # 教练卡自动刷新间隔（秒）。设计意图见 cmd_daemon 里的注释：把「模型自查」换成
+    # 「常驻循环保证」——卡片写得再好，不被调用就等于没有。
+    p.add_argument('--coach-every', type=int, default=300, dest='coach_every')
     p = sub.add_parser('report', help='类别占比 / 最慢 / 失败 / 裸 sleep')
     p.add_argument('--since')
     p.add_argument('--top', type=int, default=10)

@@ -29,6 +29,8 @@
 
 **四条纪律**：状态判定单一源（新脚本向 `ysd` 查，不自己写判据）；等待用 `wait_until` 不用 `sleep`；每步有前置断言，为假即停并记账；证据=能重推结论的最小集（截图不是证据）。
 
+**耗时监控（2026-10-18 用户令：有命令 ≠ 会起作用）**：开工前与收轮前各读一次 `~/.dsh/cmdlog/last-coach.md`（`cmdmon` 常驻每 5 分钟自动刷新，不靠记得跑它）；判据见 `device-playtest-loop`「命令耗时监控」。**新监控件必须同轮接进主链**——"只写不接"已两次。
+
 ## 自进化与反思（每轮闭环）
 
 项目是长期自进化项目：每轮任务都应是"做 demo/修 bug → 复盘反思 → 知识落盘 → 技能迭代"的闭环，不只交付结果。
@@ -62,20 +64,20 @@
 | 任务 | 技能 |
 | --- | --- |
 | 从零做一个完整 demo / 游戏全流程 | `game-from-scratch` |
-| B站视频 → 知识（学教程/取字幕/爬评论/批量建语料库） | `bilibili-learn`（2026-09-15 补：原路由表漏收录，而 T01/T02 整轮都在用它） |
+| B站视频 → 知识（字幕/评论/语料库） | `bilibili-learn` |
 | 复杂静态模型/元件/实体/装饰物拼装 | `static-gil-model-builder` |
 | 变量/挂载/UI/信号等 .gil 资源写回 | `genshin-ts-asset-operations` |
 | 读/改节点图内部逻辑 | `gil-node-graph-reading` / `gil-node-graph-editing` |
 | 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合，有现成的直接抄） |
 | 调试节点图日志/负载 | `debug-log-investigator` |
-| **真机试玩与取数** / 编辑器窗口层故障（点不动、启动不了） | `device-playtest-loop` 技能（开退试玩/批次注入/离线取数）+ `tools/ys-editor/`（先查版本与已知 bug） |
+| **真机试玩与取数** / 编辑器窗口层故障 | `device-playtest-loop` + `tools/ys-editor/`（先查版本与已知 bug） |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
 | UI 命令层；**往任何地图写屏幕控件/悬浮页/按钮/页签/素材**（2026-09-11 W1 事故回灌） | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md`；悬浮页规范见 genshin-ts-asset-operations C2 节 |
 | 游戏内最小注入核验 | `verify-injection` |
 | 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
-| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（知识文档，直接 read；勿用 skill 工具加载） |
+| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read，勿用 skill 加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | **千星模拟器 2D UI+Lua 路线**（UI↔JSON/GIA、控件模板、Lua 挂载、runCase） | `simulator-2d-route` + 全局 `qxqy-simulator`/`qxqy-game-studio`（细节参考；改动走我方 fork） |
 | 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
@@ -84,7 +86,7 @@
 | 派独立模型/评估技能 | `isolated-model-evaluator`（全局技能） |
 | 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center`（全局技能） |
 | 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
-| 写"一轮出项目"生成类提示词（one-shot 应用 / vibe coding / 单指令 agent 长跑；示例检索+决策点自检） | `oneshot-prompt-builder`（全局技能，2026-09-07 新建） |
+| 写"一轮出项目"生成类提示词（one-shot / vibe coding / 单指令长跑） | `oneshot-prompt-builder` |
 | 建/改技能 | `skill-creator` |
 | 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
 | 文档治理/状态头/doc_health 拦截修复/PROGRESS 归档 | `document-governance` |
