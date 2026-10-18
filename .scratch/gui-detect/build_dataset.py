@@ -41,7 +41,7 @@ def main():
     truth_dirs = [".scratch/gui-corpus/truth", ".scratch/gui-corpus/truth-v2",
                   ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                   ".scratch/gui-corpus/truth-v5",
-                  ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7", ".scratch/gui-corpus/truth-v8-game", ".scratch/gui-corpus/truth-v8-editor", ".scratch/gui-corpus/truth-v8-fix"]
+                  ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7", ".scratch/gui-corpus/truth-v8-game", ".scratch/gui-corpus/truth-v8-editor", ".scratch/gui-corpus/truth-v8-fix", ".scratch/gui-corpus/truth-v9-fixed"]
     img_dirs = [".scratch/gui-corpus", ".scratch/gui-corpus/truth-v2",
                 ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                 ".scratch/gui-corpus/capture-2026-10-18/reps",

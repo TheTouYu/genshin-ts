@@ -1,0 +1,830 @@
+{
+ "frame": "r007_snap_2026-10-19_00-22-25",
+ "image": ".scratch/gui-corpus/truth-v9-fixed/r007_snap_2026-10-19_00-22-25.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · v9 预测修正：实测模板+OCR 锚点，逐框改/删/补",
+ "criteria": "gui-annotation R1–R10 + .scratch/gui-corpus/truth/_rules.md",
+ "layout": "设置·控制：顶栏（标题/射击设置/X）+ 左导航 9 行 + 内容 10 行（含 2 个分节标题）",
+ "classes": [
+  "设置列表",
+  "左导航栏",
+  "分节标题",
+  "录制 HUD"
+ ],
+ "review": "auto",
+ "units": 30,
+ "objects": [
+  {
+   "id": "0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    112
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏整条（R7）"
+  },
+  {
+   "id": "1",
+   "parent": "0",
+   "bbox": [
+    180,
+    32,
+    220,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "设置／控制"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "页面标题"
+  },
+  {
+   "id": "2",
+   "parent": "0",
+   "bbox": [
+    2090,
+    25,
+    300,
+    72
+   ],
+   "kind": "button",
+   "text": [
+    "第三人称射击设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上功能钮（R1 按右沿）"
+  },
+  {
+   "id": "3",
+   "parent": "0",
+   "bbox": [
+    2410,
+    20,
+    95,
+    86
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": "4",
+   "parent": null,
+   "bbox": [
+    128,
+    158,
+    252,
+    828
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧导航栏整条（R6；9 行并集 ±10）"
+  },
+  {
+   "id": "5",
+   "parent": "4",
+   "bbox": [
+    138,
+    168,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 1/9（OCR 文本顶 168）"
+  },
+  {
+   "id": "6",
+   "parent": "4",
+   "bbox": [
+    138,
+    261,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "按键"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 2/9（OCR 文本顶 261）"
+  },
+  {
+   "id": "7",
+   "parent": "4",
+   "bbox": [
+    138,
+    354,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "图像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 3/9（OCR 文本顶 354）"
+  },
+  {
+   "id": "8",
+   "parent": "4",
+   "bbox": [
+    138,
+    447,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "声音"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 4/9（OCR 文本顶 447）"
+  },
+  {
+   "id": "9",
+   "parent": "4",
+   "bbox": [
+    138,
+    540,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "消息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 5/9（OCR 文本顶 540）"
+  },
+  {
+   "id": "10",
+   "parent": "4",
+   "bbox": [
+    138,
+    633,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "语言"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 6/9（OCR 文本顶 633）"
+  },
+  {
+   "id": "11",
+   "parent": "4",
+   "bbox": [
+    138,
+    726,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "账户"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 7/9（OCR 文本顶 726）"
+  },
+  {
+   "id": "12",
+   "parent": "4",
+   "bbox": [
+    138,
+    819,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "资源"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 8/9（OCR 文本顶 819）"
+  },
+  {
+   "id": "13",
+   "parent": "4",
+   "bbox": [
+    138,
+    912,
+    232,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航行 9/9（OCR 文本顶 912）"
+  },
+  {
+   "id": "14",
+   "parent": null,
+   "bbox": [
+    636,
+    234,
+    1776,
+    978
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "内容列表区（10 行并集 ±10，R7）"
+  },
+  {
+   "id": "15",
+   "parent": "14",
+   "bbox": [
+    615,
+    160,
+    200,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "内容区分节标题「控制」（R8 单独成框）"
+  },
+  {
+   "id": "16",
+   "parent": "14",
+   "bbox": [
+    615,
+    415,
+    200,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "镜头"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "内容区分节标题「镜头」"
+  },
+  {
+   "id": "17",
+   "parent": "14",
+   "bbox": [
+    646,
+    245,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "控制设备"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 1/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "18",
+   "parent": "14",
+   "bbox": [
+    646,
+    334,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "主界面控制设备自动切换"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 2/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "19",
+   "parent": "14",
+   "bbox": [
+    646,
+    500,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头水平灵敏度"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 3/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "20",
+   "parent": "14",
+   "bbox": [
+    646,
+    590,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头垂直灵敏度"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 4/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "21",
+   "parent": "14",
+   "bbox": [
+    646,
+    680,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头水平灵敏度(瞄准模式)"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 5/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "22",
+   "parent": "14",
+   "bbox": [
+    646,
+    769,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头垂直灵敏度（瞄准模式）"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 6/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "23",
+   "parent": "14",
+   "bbox": [
+    646,
+    859,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头高度自动回正"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 7/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "24",
+   "parent": "14",
+   "bbox": [
+    646,
+    948,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "战斗智能镜头"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 8/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "25",
+   "parent": "14",
+   "bbox": [
+    646,
+    1038,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "镜头默认距离"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 9/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "26",
+   "parent": "14",
+   "bbox": [
+    646,
+    1127,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "驾船时镜头自动回正"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行 10/10（A 型：整行皮肤 646..2402）"
+  },
+  {
+   "id": "27",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    128,
+    96
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "28",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "29",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  }
+ ],
+ "_provenance": {
+  "layout": "设置·控制：顶栏（标题/射击设置/X）+ 左导航 9 行 + 内容 10 行（含 2 个分节标题）",
+  "classes": [
+   "设置列表",
+   "左导航栏",
+   "分节标题",
+   "录制 HUD"
+  ],
+  "fixed": {
+   "from_pred": 49,
+   "to": 30
+  }
+ }
+}
