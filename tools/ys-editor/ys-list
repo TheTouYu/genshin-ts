@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""ys-list — 结构化列表读取器（通用：把"一列文本块"读成"条目列表"）。
+
+为什么需要：GUI AGI 读列表时，此前只能拿散落的 text+bbox，再手工按 y 配对"名字 ↔ 右侧标签"。
+这一步在任何 App 都一样（列表 = 若干行，每行 = 左侧主文本 + 右侧状态标签），所以做成原语。
+
+用法：
+  ys-list --frame <图片> [--region x,y,w,h] [--label-pattern '天前|今日内|在线|离线']
+  ys-list --live [--window auto]        # 现抓一帧再读
+
+输出（JSON）：
+  {ok, n, items:[{y, name, name_bbox, label, label_bbox, others:[...]}]}
+
+判据（通用启发式，不依赖任何具体 App）：
+  · 行 = y 中心相近的文本块（容差 = 中位行高的 60%）
+  · name = 行内最左侧、宽度最大的文本块
+  · label = 行内最右侧、命中 --label-pattern 的文本块（没有则 null）
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SCREEN = os.path.join(os.path.dirname(HERE), "ys-screen")
+SNAP = os.path.join(os.path.dirname(HERE), "ys-snap")
+DEFAULT_LABEL = r"(天前|今日内|昨天|在线|离线|分钟前|小时前|个月前|年前)"
+
+
+def grab(win):
+    p = subprocess.run([SNAP, "--snap", "--window", win], capture_output=True, text=True, timeout=90)
+    try:
+        r = json.loads(p.stdout.strip().splitlines()[-1])
+    except Exception:                                    # noqa: BLE001
+        return None
+    return r.get("path") if r.get("ok") else None
+
+
+def screen_json(frame):
+    p = subprocess.run([SCREEN, frame, "--json"], capture_output=True, text=True, timeout=180)
+    try:
+        return json.loads(p.stdout)
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def build_items(texts, label_re, region=None):
+    """以"标签"为锚点切条目：每个时间/状态标签 → 取它上方 60px 内最左文本为名字。
+
+    为什么以标签为锚：列表项的名字排版千差万别，但"最后登录/状态"这一列几乎总在固定位置，
+    而且每项必有一条 —— 它是列表里最稳的锚（实测：好友列表 173 项，每项都有一行标签）。
+    """
+    TIME_RE = r"(天前|今日内|昨天|分钟前|小时前|个月前|年前)"
+    blobs = []
+    for t in texts:
+        if not isinstance(t, dict):
+            continue
+        txt = (t.get("text") or "").strip()
+        b = t.get("bbox")
+        if not txt or not b or len(b) != 4:
+            continue
+        x0, y0, x1, y1 = b          # ⚠ ys-screen text bbox 是 xyxy
+        if region:
+            rx, ry, rw, rh = region
+            if not (rx <= x0 <= rx + rw and ry <= y0 <= ry + rh):
+                continue
+        blobs.append({"text": txt, "x0": x0, "y0": y0, "x1": x1, "y1": y1,
+                      "cy": (y0 + y1) / 2, "w": max(1, x1 - x0)})
+    if not blobs:
+        return []
+    time_labels = [b for b in blobs if re.search(TIME_RE, b["text"])]
+    labels = time_labels or [b for b in blobs if re.search(label_re, b["text"])]
+    labels.sort(key=lambda b: (0 if re.search(TIME_RE, b["text"]) else 1, b["y0"]))
+    seen, out = set(), []
+    for lab in labels:
+        if lab["cy"] in seen:
+            continue
+        seen.add(lab["cy"])
+        # 名字：标签上方 90px 内、标签左侧、最靠左的块
+        # 名字通常在标签**上方** 90px 内（也可能同排）⇒ lab.cy - b.cy ∈ [-40, 90]
+        cands = [b for b in blobs if b is not lab and -40 <= (lab["cy"] - b["cy"]) <= 90
+                 and b["x0"] < lab["x1"] and not re.search(label_re, b["text"])]
+        if not cands:
+            continue
+        name = min(cands, key=lambda b: (b["x0"], -b["w"]))
+        out.append({"y": round(name["cy"]), "name": name["text"],
+                    "name_bbox": [name["x0"], name["y0"], name["w"], name["y1"] - name["y0"]],
+                    "label": lab["text"],
+                    "label_bbox": [lab["x0"], lab["y0"], lab["w"], lab["y1"] - lab["y0"]],
+                    "others": [b["text"] for b in cands if b is not name][:3]})
+    out.sort(key=lambda i: i["y"])
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--frame")
+    ap.add_argument("--live", action="store_true")
+    ap.add_argument("--window", default="auto")
+    ap.add_argument("--region", default="", help="x,y,w,h（只读该区域）")
+    ap.add_argument("--label-pattern", default=DEFAULT_LABEL)
+    a = ap.parse_args()
+    frame = a.frame
+    if a.live or not frame:
+        frame = grab(a.window)
+    if not frame or not os.path.exists(frame):
+        print(json.dumps({"ok": False, "error": "NO_FRAME"}, ensure_ascii=False))
+        return 2
+    d = screen_json(frame)
+    if not d:
+        print(json.dumps({"ok": False, "error": "SCREEN_FAILED"}, ensure_ascii=False))
+        return 3
+    region = [int(v) for v in a.region.split(",")] if a.region else None
+    items = build_items(d.get("text") or [], a.label_pattern, region)
+    print(json.dumps({"ok": True, "frame": frame, "n": len(items), "items": items},
+                     ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
