@@ -29,7 +29,25 @@ SNAP = os.path.join(os.path.dirname(HERE), "ys-snap")
 DEFAULT_LABEL = r"(天前|今日内|昨天|在线|离线|分钟前|小时前|个月前|年前)"
 
 
+def _fast_grab(out):
+    """优先走 ys-lookd 的 cmd=grab（XShm+JPEG，~0.5s）；失败回退 ys-snap（KWin，~4.8s）。"""
+    try:
+        import sys as _s
+        _s.path.insert(0, os.path.join(os.path.dirname(HERE), "..", ".scratch", "gui-service"))
+        import instruments as I
+        r = I.daemon_rpc({"cmd": "grab", "out": out}, timeout=60)
+        if r.get("path") and os.path.exists(r["path"]):
+            return r["path"]
+    except Exception:                                   # noqa: BLE001
+        pass
+    return None
+
+
 def grab(win):
+    import tempfile
+    fg = _fast_grab(os.path.join(tempfile.gettempdir(), "ys-list-grab.jpg"))
+    if fg:
+        return fg
     p = subprocess.run([SNAP, "--snap", "--window", win], capture_output=True, text=True, timeout=90)
     try:
         r = json.loads(p.stdout.strip().splitlines()[-1])

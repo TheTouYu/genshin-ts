@@ -1827,6 +1827,18 @@ def _world(req):
             pass
     return out
 
+_GRAB_GEO = {}
+
+
+def _grab_geo():
+    import subprocess
+    g = dict(l.split("=") for l in subprocess.run(
+        ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
+        capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+    _GRAB_GEO["wh"] = (int(g["WIDTH"]), int(g["HEIGHT"]))
+    return _GRAB_GEO["wh"]
+
+
 def handle(req):
     cmd = req.get("cmd")
     YL.WIN = req.get("win", WIN)
@@ -1867,6 +1879,42 @@ def handle(req):
         return _ocr_page(req)
     if cmd == "ocr_plate":                 # 多帧共识底板（实验命令；旧命令语义不变）
         return _ocr_plate_build(req) if req.get('action') == 'build' else _ocr_plate_query(req)
+    if cmd == "grab":                      # 快抓帧落 PNG（XShm 直抓，~10–40ms；给 ys-scroll/ys-list 等工具用）
+        from PIL import Image as _Image
+        import hashlib as _hl
+        t0 = time.time()
+        try:
+            if req.get("verify_frame", False):              # 需要归属校验时才走慢路径
+                arr, It, sha, W, H, src, attrib = _world_frame(req)
+            else:                                            # 快路径：直接 XShm 抓窗口
+                w, h = _GRAB_GEO.get("wh") or _grab_geo()
+                try:
+                    arr = YL.grab(0, 0, w, h)
+                except RuntimeError:                        # 窗口实际尺寸差 1px（2561 vs 2560）时自愈
+                    arr = None
+                    for dw in (1, -1, 2):
+                        try:
+                            arr = YL.grab(0, 0, w + dw, h)
+                            w = w + dw
+                            _GRAB_GEO["wh"] = (w, h)
+                            break
+                        except RuntimeError:
+                            continue
+                    if arr is None:
+                        raise
+                W, H, src = w, h, "fast"
+                sha = _hl.sha256(arr.tobytes()).hexdigest()[:16]
+        except Exception as e:                              # noqa: BLE001
+            return {"error": f"{type(e).__name__}: {e}", "code": "FRAME_FAILED"}
+        out = req.get("out") or "/tmp/ys-lookd-grab.png"
+        import numpy as _np
+        a8 = arr if arr.dtype == _np.uint8 else (_np.clip(arr, 0, 1) * 255).astype(_np.uint8)
+        if out.lower().endswith((".jpg", ".jpeg")):        # JPEG 编码比 PNG 快 5–10×（验证用足够）
+            _Image.fromarray(a8).save(out, quality=85)
+        else:
+            _Image.fromarray(a8).save(out)
+        return {"path": out, "sha256": sha, "w": W, "h": H, "source": src,
+                "ms": round((time.time() - t0) * 1000, 1)}
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
