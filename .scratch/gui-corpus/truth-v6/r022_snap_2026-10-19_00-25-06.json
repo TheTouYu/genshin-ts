@@ -1,0 +1,1046 @@
+{
+ "frame": "r022_snap_2026-10-19_00-25-06",
+ "image": ".scratch/gui-corpus/truth-v6/r022_snap_2026-10-19_00-25-06.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 按用户 R1–R5 规则标注（OCR 行枚举 + edges 量边 + read_image 判身份）",
+ "criteria": "truth/_rules.md + 用户 5 条规则（truth-v6/README.md §R1–R5）",
+ "layout": "好友列表 7 行（背景）+ 角色展柜弹窗（左页资料/数值，右页 2×4 角色卡）+ 黑名单管理",
+ "classes": [
+  "列表+弹窗",
+  "数值行"
+ ],
+ "units": 39,
+ "_provenance": {
+  "family": "好友 + 角色展柜弹窗（Lead 写\"好友/成就混合\"，实际是好友列表上叠加角色展柜弹窗）",
+  "rules_applied": {
+   "R1": "顶栏「我的好友 173/200」按右边缘 x=2000 定位；关闭 X 按右沿 2412 定位",
+   "R2": "背景 7 行好友列表逐行成框（仍可见）；弹窗内 5 条数值行逐行成框",
+   "R3": "角色展柜弹窗整块框 + 8 张角色卡各自整块框；右页数值区不再只给外框",
+   "R4": "y>1300 扫到「黑名单管理」；x>2200 扫到弹窗关闭与顶栏 X",
+   "R5": "顶栏关闭按钮宽度收 94px（原按 110 外推会偏宽）"
+  },
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；身份=read_image；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "背景 7 行好友行的行高/间距按 170px 等距外推（弹窗遮住中间，无法逐行验）",
+   "右页 8 张角色卡的列距按 190px 外推，第 4 列可能偏 10px",
+   "弹窗左页「签名区」与下方数值行之间的边界不清晰（签名区高度 150px 为估计）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2400,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "好友／我的好友"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    80,
+    25,
+    420,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "好友／我的好友"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    2000,
+    30,
+    380,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "我的好友 173/200"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R1：按右边缘定位"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1080,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1210,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1340,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2412,
+    18,
+    94,
+    96
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X（R5：宽度按可见 94px）"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    150,
+    150,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 1/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    150,
+    315,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 2/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    150,
+    480,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 3/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    150,
+    645,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 4/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    150,
+    815,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 5/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    150,
+    980,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 6/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    150,
+    1150,
+    2250,
+    150
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背景好友行 7/7（弹窗后方，仍可见）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    230,
+    1320,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "黑名单管理"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 30
+   },
+   "note": "R4：底线扫到"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    487,
+    217,
+    1596,
+    884
+   ],
+   "kind": "panel",
+   "text": [
+    "角色展柜弹窗"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3：弹窗整块（左页+右页）"
+  },
+  {
+   "id": 16,
+   "parent": 0,
+   "bbox": [
+    520,
+    240,
+    120,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    740,
+    265,
+    380,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "UID 265654580"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    560,
+    240,
+    60,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "..."
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "弹窗更多菜单"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    740,
+    440,
+    320,
+    80
+   ],
+   "kind": "chip",
+   "text": [
+    "自在仙"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    550,
+    595,
+    900,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "冒险等阶",
+    "60"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    550,
+    650,
+    900,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "世界等级",
+    "9"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    550,
+    720,
+    900,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "怎么又歪(说了一些难听的话）"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "签名区"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    1330,
+    265,
+    300,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "角色展柜"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1600,
+    265,
+    250,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "名片"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    2113,
+    285,
+    60,
+    60
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "弹窗关闭（R4：x>2200 带附近）"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    560,
+    855,
+    900,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "成就总数",
+    "1622"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "展柜数值行"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    560,
+    912,
+    900,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "好感度已满的角色",
+    "49名"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "展柜数值行"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    560,
+    972,
+    900,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "深境螺旋",
+    "12-3",
+    "36"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "展柜数值行"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    560,
+    1028,
+    900,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "幻想真境剧诗",
+    "第10幕",
+    "6"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "展柜数值行"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    560,
+    1085,
+    900,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "幽境危战",
+    "41秒"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "展柜数值行"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    1327,
+    375,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c1（R3：整块框）"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    1517,
+    375,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c2（R3：整块框）"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    1707,
+    375,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c3（R3：整块框）"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    1897,
+    375,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c4（R3：整块框）"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    1327,
+    780,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c1（R3：整块框）"
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    1517,
+    780,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c2（R3：整块框）"
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    1707,
+    780,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c3（R3：整块框）"
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    1897,
+    780,
+    140,
+    190
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c4（R3：整块框）"
+  }
+ ]
+}

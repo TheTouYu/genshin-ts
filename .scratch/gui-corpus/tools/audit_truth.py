@@ -18,11 +18,26 @@ import re
 
 
 def box_of(t):
+    """把 OCR 框归一成 (x0,y0,x1,y1)。
+
+    ⚠️ 第三个 bbox 口径陷阱（2026-10-19 实测）：本仓 OCR 的 `text[].bbox` 是 **xyxy**
+    （同一对象另给 `w`/`h` 字段）。上一版按 `[x,y,w,h]` 解释 ⇒ 框被放大成 x..x+w，
+    把"已标好"的行判成漏标（v6 首跑 r044 报 5 处未覆盖，全是这种假阳性）。
+    这里用自带的 `w`/`h` 字段判定口径，缺字段时按 xyxy 兜底（与本仓 OCR 实测一致）。
+    """
     b = t.get("bbox") or t.get("box")
     if not b or len(b) != 4:
         return None
-    x, y, w, h = b
-    return [x, y, x + w, y + h]
+    x, y, a, c = b
+    ew, eh = t.get("w"), t.get("h")
+    if isinstance(ew, (int, float)) and isinstance(eh, (int, float)):
+        if abs((a - x) - ew) <= 2 and abs((c - y) - eh) <= 2:
+            return [x, y, a, c]                 # xyxy
+        if abs(a - ew) <= 2 and abs(c - eh) <= 2:
+            return [x, y, x + a, y + c]         # xywh
+    if a > x and c > y:
+        return [x, y, a, c]                     # 兜底：xyxy
+    return [x, y, x + a, y + c]
 
 
 def union_cover(tb, tboxes, step=4):

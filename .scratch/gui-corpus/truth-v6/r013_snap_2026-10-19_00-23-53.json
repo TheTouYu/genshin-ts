@@ -1,0 +1,771 @@
+{
+ "frame": "r013_snap_2026-10-19_00-23-53",
+ "image": ".scratch/gui-corpus/truth-v6/r013_snap_2026-10-19_00-23-53.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 按用户 R1–R5 规则标注（OCR 行枚举 + edges 量边 + read_image 判身份）",
+ "criteria": "truth/_rules.md + 用户 5 条规则（truth-v6/README.md §R1–R5）",
+ "layout": "顶栏三簇（左标题 / 中 4 页签 / 右计数+?+X）+ 6 张邀约卡 + 底部提示与领取",
+ "classes": [
+  "卡片横排",
+  "顶栏三簇"
+ ],
+ "units": 27,
+ "_provenance": {
+  "family": "邀约事件（Lead 写作\"委托/任务\"，实际是邀约事件页）",
+  "rules_applied": {
+   "R1": "顶栏拆成左/中/右三簇：右簇（3/3、?、X）按 x>2060 右边缘定位，中簇按页签逐个定位",
+   "R2": "6 张卡各自成框 + 每张卡内的\"已达成结局 X/5\"状态行单独成框",
+   "R3": "每张邀约卡整块框（360×780），不按立绘/文字外推",
+   "R4": "y>1300 扫到「领取」按钮与左下提示行；x>2200 扫到 ? 与 X",
+   "R5": "按钮宽度按可见皮肤（领取 400px、X 100px），不按文字长度"
+  },
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；身份=read_image；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "6 张卡的 x 起点用等距 405px 外推（实测第 1 张 67、第 6 张 2166，中间可能差 ±8px）",
+   "中簇 4 个页签只有图标没文字，语义（任务/邀请/…）未判",
+   "底部提示行左侧被录制 HUD 压住，左边界 ±25px"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    1220,
+    100
+   ],
+   "kind": "panel",
+   "text": [
+    "顶栏左"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏（左簇）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    55,
+    20,
+    300,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "邀约事件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    950,
+    20,
+    60,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "Q"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "键位提示（R1：左簇按左沿）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1080,
+    0,
+    380,
+    100
+   ],
+   "kind": "panel",
+   "text": [
+    "顶栏页签组"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏（中簇）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1090,
+    15,
+    90,
+    72
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏页签 1/4"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1195,
+    15,
+    90,
+    72
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏页签 2/4"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    1300,
+    15,
+    90,
+    72
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏页签 3/4"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    1405,
+    15,
+    90,
+    72
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏页签 4/4"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1432,
+    12,
+    80,
+    76
+   ],
+   "kind": "button",
+   "text": [
+    "E"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "键位提示（R5：按可见皮肤）"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    2060,
+    0,
+    500,
+    100
+   ],
+   "kind": "panel",
+   "text": [
+    "顶栏右簇"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏（右簇，R1：按右边缘定位）"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    2085,
+    18,
+    130,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "3/3"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "钥匙计数"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    2230,
+    18,
+    70,
+    70
+   ],
+   "kind": "button",
+   "text": [
+    "?"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2400,
+    18,
+    100,
+    100
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    67,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "琳妮特",
+    "已达成结局",
+    "0/5"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    77,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成结局",
+    "0/5"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    472,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "凯亚",
+    "已达成结局",
+    "3/5"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    482,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成结局",
+    "3/5"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    877,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "卡维",
+    "已达成结局",
+    "0/5"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    887,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成结局",
+    "0/5"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1282,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "莱依拉",
+    "已达成全部结局",
+    ""
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    1292,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成全部结局",
+    ""
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    1687,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "珐露珊",
+    "已达成全部结局",
+    ""
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    1697,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成全部结局",
+    ""
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    2092,
+    337,
+    360,
+    780
+   ],
+   "kind": "card",
+   "text": [
+    "鹿野院平藏",
+    "已达成结局",
+    "3/5"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邀约角色卡（R3：整块框）"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    2102,
+    972,
+    344,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "已达成结局",
+    "3/5"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡内结局状态行（R2：逐卡单独成框）"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    100,
+    1300,
+    1000,
+    90
+   ],
+   "kind": "row",
+   "text": [
+    "领取8次每日委托奖励可获得钥匙"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 20
+   }
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    2100,
+    1290,
+    400,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "领取"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R4：y>1300 边缘带扫到的主按钮"
+  }
+ ]
+}

@@ -1,0 +1,754 @@
+{
+ "frame": "r044_snap_2026-10-19_00-37-57",
+ "image": ".scratch/gui-corpus/truth-v6/r044_snap_2026-10-19_00-37-57.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 按用户 R1–R5 规则标注（OCR 行枚举 + edges 量边 + read_image 判身份）",
+ "criteria": "truth/_rules.md + 用户 5 条规则（truth-v6/README.md §R1–R5）",
+ "layout": "标题 + 添加技能节点图弹窗（搜索 + 4 条目 + 打开沙箱）+ 底部时间轴（2 页签 + 播放 + 5 轨道）",
+ "classes": [
+  "桌面编辑器",
+  "弹窗列表",
+  "轨道"
+ ],
+ "units": 27,
+ "_provenance": {
+  "family": "编辑器·节点图/时间轴（Lead 标注一致）",
+  "rules_applied": {
+   "R1": "右上 Z 按钮按 x=1640 右边缘定位；时间轴「收起/˅」按 x>2360 右边缘定位",
+   "R2": "弹窗内 4 个节点图条目逐条成框；时间轴 5 条轨道逐行成框",
+   "R3": "弹窗 [1030,370,470,600] 与底部时间轴 [0,1030,2560,410] 各自整块框",
+   "R4": "x>2200 扫到「收起」与展开箭头；y>1300 扫到「节点图事件」「武器模型特效01」两条轨道",
+   "R5": "弹窗宽度按可见皮肤 470px（不按标题文字长度）"
+  },
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；身份=read_image；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "时间轴 5 条轨道的行高按 44px 等距（轨道条带本身无文字边界）",
+   "轨道区右端（7.00s 标尺以后）没有对象，但 x>2200 处是否有滚动条未判",
+   "弹窗底部「打开千星沙箱」按钮 y=980 为估计（弹窗下沿 970 与按钮关系不清晰）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    700,
+    40
+   ],
+   "kind": "panel",
+   "text": [
+    "动斷时间轴/弓箭连段"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "窗口标题"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2440,
+    5,
+    60,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "t"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "窗口控制 1/3（R1/R4：右边缘带）"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    2498,
+    3,
+    50,
+    42
+   ],
+   "kind": "button",
+   "text": [
+    "X"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "窗口控制 2/3"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    2455,
+    95,
+    60,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "Z"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R1：右上角按右边缘（实测 z 在 x≈2464）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1030,
+    370,
+    470,
+    600
+   ],
+   "kind": "panel",
+   "text": [
+    "添加技能节点图"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3：弹窗整块"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1095,
+    385,
+    300,
+    44
+   ],
+   "kind": "chip",
+   "text": [
+    "添加技能节点图"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    1420,
+    385,
+    50,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    1105,
+    447,
+    380,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "搜索"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1090,
+    515,
+    300,
+    44
+   ],
+   "kind": "chip",
+   "text": [
+    "▼未分类页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1130,
+    558,
+    320,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "角色转向_弓箭"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "节点图条目"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1130,
+    606,
+    320,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "弓箭连段攻击03"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "节点图条目"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1130,
+    650,
+    320,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "弓箭连段攻击02"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "节点图条目"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1130,
+    694,
+    320,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "弓箭连段攻击01"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "节点图条目"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1120,
+    980,
+    380,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "打开千星沙箱"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    0,
+    1030,
+    2560,
+    410
+   ],
+   "kind": "panel",
+   "text": [
+    "时间轴面板"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3：底部时间轴整块"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    21,
+    1038,
+    200,
+    50
+   ],
+   "kind": "chip",
+   "text": [
+    "连段技能动画"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    225,
+    1038,
+    230,
+    50
+   ],
+   "kind": "chip",
+   "text": [
+    "蓄力分支动画"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    25,
+    1090,
+    50,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "▶"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    85,
+    1092,
+    200,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "00:00:00"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    22,
+    1148,
+    180,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "+ 新建轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    2360,
+    1038,
+    100,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "收起"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R4：x>2200 带"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2470,
+    1038,
+    60,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "˅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    10,
+    1204,
+    420,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "开始事件轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "轨道行（R2：逐行）"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    10,
+    1249,
+    420,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "结束事件轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "轨道行（R2：逐行）"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    10,
+    1294,
+    420,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "连段轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "轨道行（R2：逐行）"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    10,
+    1339,
+    420,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "节点图事件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "轨道行（R2：逐行）"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    10,
+    1384,
+    420,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "武器模型特效01"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "轨道行（R2：逐行）"
+  }
+ ]
+}
