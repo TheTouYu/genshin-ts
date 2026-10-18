@@ -1051,6 +1051,187 @@ def _ocr_blocks_core(arr, det_max=2000, cache=True, grid=_BLOCK_GRID,
             'rec_batch': min(batch, _REC_BATCH_HARD_CAP), 'free_mb': free, 'frame_cache': False}
 
 
+# ── 对象级基线差量 OCR（2026-10-19 第二轮；用户口径：页面 = 一组对象）────────────
+# 基线 = 上一帧的 det 框集合（整份缓存，**不重跑 det**）；每帧只做：
+#   ① 每个旧框：裁切 → 8×8 缩略签名 → 与基线比（容差吸收 JPEG 噪声/渲染微动）→ 没变就复用文字；
+#   ② 变了的框：只对这些框跑 rec（不跑 det）；
+#   ③ 新增对象兜底：整帧降采样差 → 找**未被任何旧框覆盖**的成片变化区域（面积超阈值）→ 只在该区域
+#      （+margin）补跑一次 det，把新对象捡回来（**旧框一个都不丢**——上一轮召回崩到 71% 的根因就是丢框）；
+#   ④ 变化框占比 ≥ rebuild_ratio（默认 0.4）或基线缺失 → 整帧 det 重建基线（冷帧/换页）。
+_PAGE = {}                            # (W,H) -> {'boxes': [...], 'sig': [8×8×3], 'gray': 1/4 灰度}
+_PAGE_RULESET = 'page-v1'
+_PAGE_SIG_THR = 6.0                   # 8×8 签名平均绝对差（0-255）
+_PAGE_REBUILD_RATIO = 0.40
+_PAGE_NEW_AREA = 1600                 # 1/4 尺度下的最小新区域面积（= 全分辨率 25600px²）
+_PAGE_MARGIN = 48
+
+
+def _thumb(arr, g=8):
+    """8×8 缩略（格子均值），用于选框级签名比较——比逐字节 crc 稳（JPEG 噪声）。"""
+    import numpy as np
+    h, w = arr.shape[:2]
+    if h < g or w < g:
+        return np.zeros((g, g, 3), np.float32)
+    ys = np.linspace(0, h, g + 1).astype(int); xs = np.linspace(0, w, g + 1).astype(int)
+    out = np.zeros((g, g, 3), np.float32)
+    for r in range(g):
+        for c in range(g):
+            cell = arr[ys[r]:ys[r + 1], xs[c]:xs[c + 1]]
+            if cell.size:
+                out[r, c] = cell.reshape(-1, 3).mean(axis=0)
+    return out
+
+
+def _page_gray(arr, step=4):
+    import numpy as np
+    return arr[::step, ::step].mean(axis=2)
+
+
+def _new_regions(prev_gray, cur_gray, boxes, step=4, thr=10.0, min_area=_PAGE_NEW_AREA):
+    """找「未被旧框覆盖、且成片变化」的区域（1/4 尺度坐标 → 返回全分辨率 bbox 列表）。"""
+    import numpy as np
+    from scipy import ndimage as ndi  # 本机有 scipy？没有就退回连通域手写
+    d = (np.abs(prev_gray - cur_gray) > thr)
+    # 抹掉旧框覆盖的区域
+    H, W = d.shape
+    for b in boxes:
+        x, y, w, h = [int(v) for v in b['bbox']]
+        d[max(0, y // step):min(H, (y + h) // step), max(0, x // step):min(W, (x + w) // step)] = False
+    lab, n = ndi.label(d)
+    out = []
+    for sl in ndi.find_objects(lab):
+        if sl is None:
+            continue
+        h = sl[0].stop - sl[0].start; w = sl[1].stop - sl[1].start
+        if w * h < min_area:
+            continue
+        out.append((sl[1].start * step, sl[0].start * step, w * step, h * step))
+    return out
+
+
+def _ocr_page_core(arr, det_max=2000, cache=True, sig_thr=_PAGE_SIG_THR,
+                   rebuild_ratio=_PAGE_REBUILD_RATIO, max_objects=200):
+    import numpy as np
+    t0 = time.time()
+    H, W = arr.shape[:2]
+    bgr = np.ascontiguousarray(arr[..., ::-1])
+    key = (W, H)
+    page = _PAGE.get(key) if cache else None
+    stats = {'mode': 'page', 'reused': 0, 'rec': 0, 'new': 0, 'rebuilt': False,
+             'det_ms': 0.0, 'rec_ms': 0.0, 'sig_ms': 0.0}
+    eng, err = _ocr_engine()
+    if eng is None:
+        return {'error': f'OCR 不可用: {err}', 'code': 'OCR_UNAVAILABLE'}
+    det = eng.text_det or eng._load_det_model()
+    rec = eng.text_rec or eng._load_rec_model()
+    free = _vram_free_mb()
+    batch = _REC_BATCH if not (0 <= free < 300) else 4
+    rec.rec_batch_num = min(batch, _REC_BATCH_HARD_CAP)
+
+    # ── 冷启动 / 重建：整帧 det 一次（贵，但只付一次）
+    if page is None:
+        t1 = time.time()
+        full = _ocr_objects_core(arr, det_max=det_max, cache=False, max_objects=max_objects,
+                                 rec_buckets=False)
+        stats['det_ms'] = full.get('det_ms'); stats['rec_ms'] = full.get('rec_ms')
+        objs = full.get('objects') or []
+        sigs = []
+        for o in objs:
+            x, y, w, h = [int(v) for v in o['bbox']]
+            sigs.append(_thumb(arr[max(0, y):y + h, max(0, x):x + w]))
+        _PAGE[key] = {'boxes': objs, 'sig': sigs, 'gray': _page_gray(arr)}
+        stats.update(rebuilt=True, cold=True)
+        return {'objects': objs[:max_objects], 'n_objects': len(objs), **stats,
+                'total_ms': round((time.time() - t0) * 1000, 1), 'rec_batch': batch}
+
+    # ── 逐框签名比较（只裁切+缩略，不跑 det）
+    t1 = time.time()
+    boxes = page['boxes']; sigs = page['sig']
+    changed = []
+    for i, o in enumerate(boxes):
+        x, y, w, h = [int(v) for v in o['bbox']]
+        sig = _thumb(arr[max(0, y):y + h, max(0, x):x + w])
+        if float(np.abs(sig - sigs[i]).mean()) > sig_thr:
+            changed.append(i)
+    stats['sig_ms'] = round((time.time() - t1) * 1000, 1)
+    if len(boxes) and len(changed) / float(len(boxes)) >= rebuild_ratio:
+        _PAGE.pop(key, None)                       # 结构大改 → 重建
+        return _ocr_page_core(arr, det_max=det_max, cache=cache, sig_thr=sig_thr,
+                              rebuild_ratio=rebuild_ratio, max_objects=max_objects)
+    # ── 变了的框只跑 rec
+    if changed:
+        t2 = time.time()
+        crops = []
+        for i in changed:
+            x, y, w, h = [int(v) for v in boxes[i]['bbox']]
+            crops.append(arr[max(0, y):y + h, max(0, x):x + w])
+        from rapidocr.utils.process_img import get_rotate_crop_image
+        from rapidocr.ch_ppocr_rec.typings import TextRecInput
+        rc = [get_rotate_crop_image(bgr, np.array([[boxes[i]['bbox'][0], boxes[i]['bbox'][1]],
+                                                   [boxes[i]['bbox'][0] + boxes[i]['bbox'][2], boxes[i]['bbox'][1]],
+                                                   [boxes[i]['bbox'][0] + boxes[i]['bbox'][2], boxes[i]['bbox'][1] + boxes[i]['bbox'][3]],
+                                                   [boxes[i]['bbox'][0], boxes[i]['bbox'][1] + boxes[i]['bbox'][3]]], np.float32))
+              for i in changed]
+        r = rec(TextRecInput(img=rc, return_word_box=False))
+        txts = list(r.txts or []); scs = list(r.scores or [])
+        for j, i in enumerate(changed):
+            boxes[i] = dict(boxes[i], text=txts[j] if j < len(txts) else '',
+                            score=round(float(scs[j]), 4) if j < len(scs) else 0.0)
+            x, y, w, h = [int(v) for v in boxes[i]['bbox']]
+            sigs[i] = _thumb(arr[max(0, y):y + h, max(0, x):x + w])
+        stats['rec'] = len(changed)
+        stats['rec_ms'] = round((time.time() - t2) * 1000, 1)
+    # ── 新增对象兜底：只在「未被旧框覆盖的成片变化」区域补 det（不整帧 det）
+    try:
+        prev_gray = page['gray']
+        cur_gray = _page_gray(arr)
+        regions = _new_regions(prev_gray, cur_gray, boxes)
+    except Exception:                                 # noqa: BLE001  （scipy 缺失时跳过兜底）
+        regions = []
+    if regions:
+        t3 = time.time()
+        new_objs = []
+        for (rx, ry, rw, rh) in regions[:4]:
+            sx0, sy0 = max(0, rx - _PAGE_MARGIN), max(0, ry - _PAGE_MARGIN)
+            sx1, sy1 = min(W, rx + rw + _PAGE_MARGIN), min(H, ry + rh + _PAGE_MARGIN)
+            loc = _ocr_region_bgr(bgr, (sx0, sy0, sx1, sy1), det, rec, det_max, batch)
+            for o in loc:
+                if rx - 8 <= o['bbox'][0] <= rx + rw + 8 and ry - 8 <= o['bbox'][1] <= ry + rh + 8:
+                    new_objs.append({'text': o['text'], 'score': o['score'], 'bbox': o['bbox']})
+        # 只加与旧框 IoU≤0.5 的新框（旧框一个都不丢）
+        for o in new_objs:
+            if all(_iou_xywh(o['bbox'], b['bbox']) <= 0.5 for b in boxes):
+                boxes.append(o)
+                x, y, w, h = [int(v) for v in o['bbox']]
+                sigs.append(_thumb(arr[max(0, y):y + h, max(0, x):x + w]))
+                stats['new'] += 1
+        stats['det_ms'] = round((time.time() - t3) * 1000, 1)
+    page['boxes'] = boxes; page['sig'] = sigs; page['gray'] = _page_gray(arr)
+    stats['reused'] = len(boxes) - stats['rec']
+    return {'objects': boxes[:max_objects], 'n_objects': len(boxes), **stats,
+            'total_ms': round((time.time() - t0) * 1000, 1), 'rec_batch': batch}
+
+
+def _ocr_page(req):
+    """cmd="ocr_page"：对象级基线差量 OCR（默认不参与主路径）。"""
+    import numpy as np
+    from PIL import Image
+    if req.get('reset'):
+        _PAGE.clear()
+    frame = req.get('frame')
+    if not frame or not os.path.isfile(frame):
+        return {'error': f'ocr_page 需要存在的 frame 路径（收到 {frame!r}）', 'code': 'BAD_FRAME'}
+    try:
+        arr = np.asarray(Image.open(frame).convert('RGB'))
+    except Exception as e:                            # noqa: BLE001
+        return {'error': f'读帧失败: {type(e).__name__}: {e}', 'code': 'BAD_FRAME'}
+    return _ocr_page_core(arr, det_max=int(req.get('det_max') or 2000),
+                          cache=bool(req.get('cache', True)),
+                          sig_thr=float(req.get('sig_thr') or _PAGE_SIG_THR),
+                          rebuild_ratio=float(req.get('rebuild_ratio') or _PAGE_REBUILD_RATIO),
+                          max_objects=int(req.get('max_objects') or 200))
+
+
 def _ocr_blocks(req):
     """cmd="ocr_blocks"：分块差量 OCR（默认 3×3 网格、扩边 96px、变化块占比≥0.6 回退整帧）。"""
     import numpy as np
@@ -1437,8 +1618,10 @@ def handle(req):
         return _ocr(req)
     if cmd == "ocr_objects":               # 按对象 OCR（新命令；旧命令语义不变）
         return _ocr_objects(req)
-    if cmd == "ocr_blocks":                # 分块差量 OCR（新命令；旧命令语义不变）
+    if cmd == "ocr_blocks":                # 分块差量 OCR（EXPERIMENTAL；旧命令语义不变）
         return _ocr_blocks(req)
+    if cmd == "ocr_page":                  # 对象级基线差量 OCR（新命令；旧命令语义不变）
+        return _ocr_page(req)
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
