@@ -37,7 +37,27 @@
    "铅笔/ⓘ/复制": "v6 铅笔 [930,45,74,74]（实测白块 44×45）、第二个 ⓘ y=355（实测对齐世界等级行 314）、UID 行宽度含 复制——本版按实测拆开"
   },
   "tool_assist": "带内占比投影=_measure.py；连通域=_comps.py；强跃变=_edges.py；2×/3× 网格裁剪=tools/grid.py；身份=read_image；OCR=inbox/repjson（仅作文本锚点）",
-  "ys_screen_prior": false
+  "ys_screen_prior": false,
+  "relations": {
+   "parent_coverage_all": "47/51 = 92.2%",
+   "parent_coverage_excl_hud": "43/46 = 93.5%",
+   "roots": [
+    "0",
+    "14",
+    "23",
+    "hud"
+   ],
+   "groups": 6,
+   "group_kinds": {
+    "panel": 3,
+    "row_stack": 2,
+    "grid": 1
+   },
+   "objects_in_group_or_root": "51/51",
+   "uncovered": [],
+   "note": "标题区 [4] 是信息卡内二级容器，2/3 挂在 4 下；四角件挂 hud 层。",
+   "group_rules": "组边界判据（本批 4 帧实测归纳）：①同轴相邻成员 pitch 标准差 ≤2%（9 个同质组里 7 个 spread ≤1px）；②成员尺寸一致（size spread ≤5%，本批除「左栏第 6 图标」外全 0）；③交叉轴首沿对齐（align spread ≤5px，本批 0）；④组内 gap/pitch 落两档稳定值：整行/整格 0.077~0.19、行内小件 0.33~0.51。组 bbox = 成员并集（不加 pad）；容器 bbox = 组并集 + 内边距（r003 网格区 vs 格并集：左27/上22/右27/下34）。两条例外：左栏第 6 图标 pitch 是节奏的 2 倍 → 属容器但不属节奏组；行内头像/动作/私聊三列与行同 pitch 但不是行的子对象 → 跨行重复带用 groups 表达，父仍是行。"
+  }
  },
  "frame": "r003_snap_2026-10-19_00-17-26",
  "image": ".scratch/gui-corpus/truth-v8-game/r003_snap_2026-10-19_00-17-26.png",
@@ -101,7 +121,7 @@
   },
   {
    "id": "2",
-   "parent": "0",
+   "parent": "4",
    "bbox": [
     420,
     53,
@@ -128,7 +148,7 @@
   },
   {
    "id": "3",
-   "parent": "0",
+   "parent": "4",
    "bbox": [
     399,
     136,
@@ -677,7 +697,7 @@
   },
   {
    "id": "24",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     165,
     470,
@@ -705,7 +725,7 @@
   },
   {
    "id": "25",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     373,
     470,
@@ -735,7 +755,7 @@
   },
   {
    "id": "26",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     581,
     470,
@@ -763,7 +783,7 @@
   },
   {
    "id": "27",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     789,
     470,
@@ -791,7 +811,7 @@
   },
   {
    "id": "28",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     165,
     659,
@@ -819,7 +839,7 @@
   },
   {
    "id": "29",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     373,
     659,
@@ -849,7 +869,7 @@
   },
   {
    "id": "30",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     581,
     659,
@@ -877,7 +897,7 @@
   },
   {
    "id": "31",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     789,
     659,
@@ -907,7 +927,7 @@
   },
   {
    "id": "32",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     165,
     848,
@@ -935,7 +955,7 @@
   },
   {
    "id": "33",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     373,
     848,
@@ -963,7 +983,7 @@
   },
   {
    "id": "34",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     581,
     848,
@@ -991,7 +1011,7 @@
   },
   {
    "id": "35",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     789,
     848,
@@ -1019,7 +1039,7 @@
   },
   {
    "id": "36",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     165,
     1037,
@@ -1049,7 +1069,7 @@
   },
   {
    "id": "37",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     373,
     1037,
@@ -1077,7 +1097,7 @@
   },
   {
    "id": "38",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     581,
     1037,
@@ -1105,7 +1125,7 @@
   },
   {
    "id": "39",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     789,
     1037,
@@ -1135,7 +1155,7 @@
   },
   {
    "id": "40",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     165,
     1226,
@@ -1162,7 +1182,7 @@
   },
   {
    "id": "41",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     373,
     1226,
@@ -1192,7 +1212,7 @@
   },
   {
    "id": "42",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     581,
     1226,
@@ -1222,7 +1242,7 @@
   },
   {
    "id": "43",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     789,
     1226,
@@ -1250,7 +1270,7 @@
   },
   {
    "id": "44",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     544,
     1217,
@@ -1275,7 +1295,7 @@
   },
   {
    "id": "45",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     752,
     1217,
@@ -1300,7 +1320,7 @@
   },
   {
    "id": "46",
-   "parent": null,
+   "parent": "23",
    "bbox": [
     557,
     1366,
@@ -1325,7 +1345,7 @@
   },
   {
    "id": "47",
-   "parent": null,
+   "parent": "hud",
    "bbox": [
     15,
     30,
@@ -1350,7 +1370,7 @@
   },
   {
    "id": "48",
-   "parent": null,
+   "parent": "hud",
    "bbox": [
     20,
     1322,
@@ -1375,7 +1395,7 @@
   },
   {
    "id": "49",
-   "parent": null,
+   "parent": "hud",
    "bbox": [
     2240,
     1398,
@@ -1397,6 +1417,196 @@
     "px": 0
    },
    "note": "四角件·右下：UID 水印（v6 h3 原为 y=1403 h=40，越界 3px，按 UID 文本 1401..1436 收进画面）"
+  },
+  {
+   "id": "hud",
+   "parent": null,
+   "bbox": [
+    15,
+    30,
+    2479,
+    1410
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "录制 HUD 层（DXVK/FPS/GPU + min/max ms + UID 水印），非游戏 UI；加它只为让四角件有容器可挂（可按 note 过滤）"
+  }
+ ],
+ "groups": [
+  {
+   "id": "g1",
+   "kind": "panel",
+   "bbox": [
+    142,
+    47,
+    861,
+    377
+   ],
+   "members": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13"
+   ],
+   "note": "玩家信息卡：头像/名字/签名/4 属性行/UID/复制/铅笔/ⓘ2"
+  },
+  {
+   "id": "g2",
+   "kind": "row_stack",
+   "bbox": [
+    31,
+    495,
+    68,
+    903
+   ],
+   "members": [
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20"
+   ],
+   "note": "左图标栏图标列（竖排 6 个）",
+   "geom": {
+    "n": 6,
+    "pitch": 169.2,
+    "pitch_spread": 139,
+    "gap": 114.8,
+    "gap_over_pitch": 0.678,
+    "align_spread": 3,
+    "size_spread": 25
+   }
+  },
+  {
+   "id": "g3",
+   "kind": "grid",
+   "bbox": [
+    165,
+    470,
+    816,
+    929
+   ],
+   "members": [
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43"
+   ],
+   "note": "4×5 功能格网格（行内 4 列 + 5 行）",
+   "geom": {
+    "n": 20,
+    "cols": 4,
+    "rows": 5,
+    "col_pitch": 208.0,
+    "row_pitch": 189.0,
+    "col_gap_over_pitch": 0.077,
+    "row_gap_over_pitch": 0.085,
+    "col_spread": 0,
+    "row_spread": 0
+   }
+  },
+  {
+   "id": "g4",
+   "kind": "row_stack",
+   "bbox": [
+    89,
+    614,
+    27,
+    171
+   ],
+   "members": [
+    "21",
+    "22"
+   ],
+   "note": "左栏通知角标带",
+   "geom": {
+    "n": 2,
+    "pitch": 144.0,
+    "pitch_spread": 0,
+    "gap": 117.0,
+    "gap_over_pitch": 0.812,
+    "align_spread": 0,
+    "size_spread": 0
+   }
+  },
+  {
+   "id": "g6",
+   "kind": "panel",
+   "bbox": [
+    544,
+    1217,
+    240,
+    182
+   ],
+   "members": [
+    "44",
+    "45",
+    "46"
+   ],
+   "note": "网格内通知角标",
+   "geom": {
+    "n": 3,
+    "pitch": 104.0,
+    "pitch_spread": 182,
+    "gap": 72.5,
+    "gap_over_pitch": 0.697,
+    "align_spread": 149,
+    "size_spread": 5
+   }
+  },
+  {
+   "id": "g_hud",
+   "kind": "panel",
+   "bbox": [
+    15,
+    30,
+    2479,
+    1410
+   ],
+   "members": [
+    "47",
+    "48",
+    "49"
+   ],
+   "note": "录制 HUD 四角件（父容器 = hud 层）"
   }
  ]
 }

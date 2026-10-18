@@ -9,6 +9,7 @@
 """
 import json
 import os
+import sys
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 REPS = ".scratch/gui-corpus/inbox/reps"
@@ -459,7 +460,10 @@ def timeline(ox=0):
 
 # ---------------------------------------------------------------- r044
 def r044():
-    u = [O("panel", [0, 53, 2560, 990], ["时间轴编辑工作区（橙色背景）"], note="③编辑工作区整块（R7）")]
+    # 顶部条带：时间轴是全屏模式，撤销/最大/关闭这类窗口控件不在任何面板内 —— 单列一个区域面板，
+    # 让它们有 parent（lead 2026-10-19 裁决：真实存在的区域就该建，别为了指标硬留 null）。
+    u = [O("panel", [0, 0, 2560, 53], ["窗口控制条"], note="①顶部条带（全屏时间轴模式下的窗口控件区；edges y=53）")]
+    u.append(O("panel", [0, 53, 2560, 990], ["时间轴编辑工作区（橙色背景）"], note="③编辑工作区整块（R7）"))
     u.append(O("icon", [2456, 98, 58, 50], ["Z 图标"], note="右上角 Z 标（OCR 'z' 2464,100）"))
     u.append(O("button", [2448, 10, 46, 38], ["最大化"]))
     u.append(O("button", [2502, 8, 48, 40], ["关闭"]))
@@ -674,7 +678,24 @@ def build(stem):
 
 
 def main():
+    """生成 6 帧真值。
+
+    ⚠️ 覆盖守卫：本脚本是**数据源**，重跑会用内嵌表整份覆盖目标 JSON —— 而 parent/groups 是
+    `_add_hierarchy.py` 之后补的（不在内嵌表里）。凡目标文件已含 `_provenance.hierarchy`，
+    默认 SKIP；确需重生成请加 `--force`（代价：先备份或重跑 `_add_hierarchy.py`）。
+    同款教训见 D404（生成器把人手修复整批抹掉）。
+    """
+    force = "--force" in sys.argv
     for stem in FRAMES:
+        path = os.path.join(OUT, stem + ".json")
+        if os.path.exists(path) and not force:
+            try:
+                old = json.load(open(path, encoding="utf-8"))
+            except Exception:
+                old = {}
+            if (old.get("_provenance") or {}).get("hierarchy"):
+                print("SKIP %s（已含 hierarchy；--force 才覆盖）" % stem)
+                continue
         d = build(stem)
         path = os.path.join(OUT, stem + ".json")
         with open(path, "w", encoding="utf-8") as f:
