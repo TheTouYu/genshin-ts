@@ -9,14 +9,28 @@
 实测同一天内：`ys-state` 默认 3301ms / `--fast` 407ms；OCR 3673ms / 常驻 CUDA 528ms。
 没有阈值 ⇒ 退化不会被发现，只会被"感觉今天很慢"隐约发现。
 
-口径（三条，都可机检）
-----------------------
+口径（四条，都可机检）
+---------------------
 1. **单次延迟**：每条命令连续跑 N 次，取**中位数**，与档案里的阈值比。
    用中位数不用均值：首次调用含引擎加载/CUDA context（一次性），均值会被它带偏。
 2. **冷启动**：第 1 次调用的耗时要单列，且**只许付一次**——它若与中位数同量级，
    说明每次都在付（典型症状：该常驻的没常驻）。
 3. **判据不放松**：性能门禁跑完后，调用方还应跑一遍功能回归（`ys-state --regress`），
    证明"快"不是靠跳过判据换来的。
+4. **内层口径用 metric 项**（2026-10-18 新增）：有的命令的墙钟被**进程启动**主导
+   （`import numpy+cv2` 实测 579ms + PNG 解码 165ms 就是物理地板），墙钟阈值只能防"更慢"，
+   防不了"像素管线本身退化"。这类命令额外读 JSON 里的**内部计时**当判据（见下）。
+
+屏幕容器层的性能口径（2026-10-18 用户裁定，依据 docs/maintenance/design-2026-10-18-gui-structure.md）
+------------------------------------------------------------------------------------------------
+* **`<10 ms` 在"一次 CLI 一次帧"的形态下不可达**：`import numpy+cv2`、PNG 解码、
+  `cv2.cvtColor` 首帧初始化合计就 >800ms（本机实测），这不是代码问题。
+* 可达且要守的是两条：**常驻 ≤200 ms/帧**（同一进程里每帧的真实像素成本）
+  与 **缓存命中 ≤5 ms**（同一帧重复问）。
+  → 因此新增两例：
+    `screen-containers`     `--containers --repeat 5`，判 `timing.container_ms`（第 2..5 次中位数）
+    `screen-containers-cached` `--containers`（命中容器缓存），判 `timing.container_ms` 且要求
+                             `timing.container_cached == true`——**不许拿"没命中缓存"冒充"缓存快"**。
 
 用法
 ----
@@ -42,39 +56,69 @@ REG = os.path.join(YS, 'calib', 'regress')
 BASELINE = os.path.join(HERE, 'perf-baseline.tsv')
 
 FRAME = os.path.join(REG, 'playtest.png')
+N = 3
 
-# name, 命令, 阈值(ms 中位), 说明
+# name, 命令, 阈值(ms 中位), 说明[, metric 段]
 # 阈值来源：2026-10-18 本机（RTX 3060 / 16 核）实测中位数 × 2.5~3 倍余量。
 # 余量不能太小：CI 机器负载波动本来就有 1.5~2 倍；也不能太大，否则退化发现不了。
+# 例外：`screen*` 三例按**新口径**（常驻 ≤200ms/帧、缓存命中 ≤5ms）判内部计时，
+#      墙钟阈值只守"进程+解码"这一层的退化，见文件头。
 CASES = [
-    ('state-fast', ['%s/ys-state' % YS, '--frame', FRAME, '--json', '--fast'],
-     600, '判态快通道（实测 ~130ms 内部 + ~200ms 进程）'),
-    ('state-default', ['%s/ys-state' % YS, '--frame', FRAME, '--json'],
-     1500, '判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）'),
-    ('probe', ['%s/ys-state' % YS, '--probe', 'menu_open', '--frame', FRAME, '--json'],
-     300, '具名探针'),
-    ('pixel', ['%s/ys-state' % YS, '--pixel', '100', '100', '--frame', FRAME],
-     300, '单像素读取'),
-    ('screen', ['%s/ys-screen' % HERE, FRAME, '--json'],
-     2500, '屏幕摘要（含常驻 OCR）'),
-    ('layer', ['%s/ys-layer' % HERE, FRAME],
-     800, '层级/模态'),
+    {'name': 'state-fast', 'cmd': ['%s/ys-state' % YS, '--frame', FRAME, '--json', '--fast'],
+     'limit': 600, 'desc': '判态快通道（实测 ~130ms 内部 + ~200ms 进程）'},
+    {'name': 'state-default', 'cmd': ['%s/ys-state' % YS, '--frame', FRAME, '--json'],
+     'limit': 1500, 'desc': '判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）'},
+    {'name': 'probe', 'cmd': ['%s/ys-state' % YS, '--probe', 'menu_open', '--frame', FRAME, '--json'],
+     'limit': 300, 'desc': '具名探针'},
+    {'name': 'pixel', 'cmd': ['%s/ys-state' % YS, '--pixel', '100', '100', '--frame', FRAME],
+     'limit': 300, 'desc': '单像素读取'},
+    # 屏幕摘要墙钟：实测中位 900ms（加容器层后 817→900）。守 2000ms = 2.2x 余量——
+    # 收在原口 2500 是因为现在有了 900ms 这个读数；再收紧会撞上机器抖动（同帧实测 0.7s/1.4s）
+    {'name': 'screen', 'cmd': ['%s/ys-screen' % HERE, FRAME, '--json'],
+     'limit': 2000, 'desc': '屏幕摘要（含容器层；OCR 走常驻/缓存；实测中位 ~900ms）'},
+    # 容器层两例（新口径的核心）：墙钟守启动/解码，metric 守像素管线本身
+    {'name': 'screen-containers',
+     'cmd': ['%s/ys-screen' % HERE, FRAME, '--containers', '--repeat', '5'],
+     'limit': 3000, 'desc': '容器层稳态（同进程连跑 5 次，第 1 次含 cv2 首帧初始化）',
+     'metric': 'timing.container_ms', 'metric_limit': 200,
+     'metric_desc': '常驻 ≤200ms/帧（像素管线稳态成本；设计文档 §四末段口径）'},
+    {'name': 'screen-containers-cached',
+     'cmd': ['%s/ys-screen' % HERE, FRAME, '--containers'],
+     'limit': 900, 'desc': '容器层缓存命中（第 2 次起读内容寻址缓存）',
+     'metric': 'timing.container_ms', 'metric_limit': 5, 'require_cached': True,
+     'metric_desc': '缓存命中 ≤5ms（同帧重复问）'},
+    {'name': 'layer', 'cmd': ['%s/ys-layer' % HERE, FRAME],
+     'limit': 800, 'desc': '层级/模态'},
     # 本体态（2026-10-18 接入）：走 UNKNOWN 兜底通道 ⇒ 要付一次 OCR。
     # 阈值按"常驻 OCR 已热"的情形定；冷启动（引擎加载 ~9s）不在此判（ys-perf 取中位数）。
-    ('native-state', ['%s/ys-state' % YS, '--frame',
-                      os.path.join(REG, 'live-native-world-20261018.png'), '--json', '--fast'],
-     2000, '本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）'),
+    {'name': 'native-state', 'cmd': ['%s/ys-state' % YS, '--frame',
+                                     os.path.join(REG, 'live-native-world-20261018.png'),
+                                     '--json', '--fast'],
+     'limit': 2000, 'desc': '本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）'},
     # ys-watch 需要 ≥2 帧（单帧只报用法错误，那种"快"是假读数）
-    ('watch', ['%s/ys-watch' % HERE, '--frames', FRAME, FRAME, '--roi', '0,0,200,100'],
-     800, 'ROI 变化检测（两帧比对）'),
+    {'name': 'watch', 'cmd': ['%s/ys-watch' % HERE, '--frames', FRAME, FRAME,
+                              '--roi', '0,0,200,100'],
+     'limit': 800, 'desc': 'ROI 变化检测（两帧比对）'},
 ]
-N = 3
+
+BASELINE_HEAD = ('name', 'limit_ms', 'measured_median_ms', 'measured_cold_ms',
+                 'metric_name', 'metric_limit_ms', 'metric_measured_ms', 'note')
 
 
 def run_once(cmd):
     t0 = time.time()
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     return int((time.time() - t0) * 1000), p.returncode, (p.stdout or p.stderr or '')
+
+
+def dig(obj, path):
+    """按 `a.b.c` 取 JSON 里的值；任一段缺失返回 None（**不猜**）。"""
+    cur = obj
+    for seg in path.split('.'):
+        if not isinstance(cur, dict) or seg not in cur:
+            return None
+        cur = cur[seg]
+    return cur
 
 
 def read_baseline():
@@ -88,6 +132,13 @@ def read_baseline():
             if v.get('name'):
                 out[v['name']] = v
     return out
+
+
+def _int_or(v, alt):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return alt
 
 
 def main(argv=None):
@@ -106,38 +157,71 @@ def main(argv=None):
     base = read_baseline()
     results, n_bad, n_missing = [], 0, 0
 
-    for name, cmd, limit, desc in CASES:
+    for case in CASES:
+        name, cmd = case['name'], case['cmd']
+        limit, desc = case['limit'], case['desc']
+        metric, metric_limit = case.get('metric'), case.get('metric_limit')
         if only and name not in only:
             continue
         if not os.path.exists(cmd[0]):
             results.append({'name': name, 'skip': '命令不存在 %s' % cmd[0]})
             n_missing += 1
             continue
-        if name in base and base[name].get('limit_ms'):
-            limit = int(base[name]['limit_ms'])
-        costs, rc = [], None
+        b = base.get(name) or {}
+        if b.get('limit_ms'):
+            limit = _int_or(b['limit_ms'], limit)
+        if metric and b.get('metric_limit_ms'):
+            metric_limit = _int_or(b['metric_limit_ms'], metric_limit)
+        costs, rc, mvals, cached_flags = [], None, [], []
         for i in range(max(1, a.n)):
             ms, rc, text = run_once(cmd)
             costs.append(ms)
             if i == 0:
                 cold = ms
+            if metric:
+                try:
+                    doc = json.loads(text)
+                except ValueError:
+                    doc = None
+                mv = dig(doc, metric) if isinstance(doc, dict) else None
+                if mv is not None:
+                    mvals.append(int(mv))
+                    cached_flags.append(bool(dig(doc, 'timing.container_cached')))
         med = int(statistics.median(costs))
         # 退出码语义因工具而异：探针"不可见"=1、判态 UNKNOWN=4 都是**正常判定结果**，
         # 不是仪器故障。性能门禁只管耗时；功能正确性由各自的回归自测负责（别在这里重复判）。
         ok = rc in (0, 1, 4) and med <= limit
+        r = {'name': name, 'desc': desc, 'cold_ms': cold, 'median_ms': med,
+             'limit_ms': limit, 'rc': rc, 'ok': ok,
+             'ratio_vs_limit': round(med / float(limit), 2)}
+        if metric:
+            # 内部计时读数缺失 ⇒ **判 FAIL**（仪器瞎了不是"没问题"）
+            mmed = int(statistics.median(mvals)) if mvals else None
+            r.update({'metric': metric, 'metric_desc': case.get('metric_desc'),
+                      'metric_limit_ms': metric_limit, 'metric_median_ms': mmed,
+                      'metric_cached': (all(cached_flags) if cached_flags else None)})
+            m_ok = mmed is not None and metric_limit is not None and mmed <= metric_limit
+            if case.get('require_cached'):
+                # 缓存例必须真的命中缓存：否则读到的可能是"冷跑恰好快"
+                m_ok = m_ok and bool(cached_flags) and all(cached_flags)
+            r['metric_ok'] = bool(m_ok)
+            ok = ok and m_ok
+            r['ok'] = ok
         n_bad += 0 if ok else 1
-        results.append({'name': name, 'desc': desc, 'cold_ms': cold, 'median_ms': med,
-                        'limit_ms': limit, 'rc': rc, 'ok': ok,
-                        'ratio_vs_limit': round(med / float(limit), 2)})
+        results.append(r)
 
     if a.update_baseline:
         with open(BASELINE, 'w', encoding='utf-8') as fh:
-            fh.write('name\tlimit_ms\tmeasured_median_ms\tmeasured_cold_ms\tnote\n')
+            fh.write('\t'.join(BASELINE_HEAD) + '\n')
             for r in results:
                 if r.get('skip'):
                     continue
-                fh.write('%s\t%d\t%d\t%d\t%s\n' % (r['name'], r['limit_ms'], r['median_ms'],
-                                                   r['cold_ms'], r['desc']))
+                fh.write('%s\t%d\t%d\t%d\t%s\t%s\t%s\t%s\n' % (
+                    r['name'], r['limit_ms'], r['median_ms'], r['cold_ms'],
+                    r.get('metric') or '-',
+                    r['metric_limit_ms'] if r.get('metric_limit_ms') is not None else '-',
+                    r['metric_median_ms'] if r.get('metric_median_ms') is not None else '-',
+                    r['desc']))
         print('[ok] 基线已写入 %s（改了阈值要在 commit message 里说明为什么）' % BASELINE)
 
     if a.json:
@@ -147,20 +231,29 @@ def main(argv=None):
                          ensure_ascii=False, indent=1))
     else:
         print('══ ys-perf 单次执行性能门禁  %s ══' % time.strftime('%F %T'))
-        print('%-14s %8s %8s %8s  %s' % ('命令', '冷(ms)', '中位(ms)', '阈值(ms)', '判定'))
+        print('%-24s %8s %8s %8s  %s' % ('命令', '冷(ms)', '中位(ms)', '阈值(ms)', '判定'))
         for r in results:
             if r.get('skip'):
-                print('%-14s %s' % (r['name'], r['skip']))
+                print('%-24s %s' % (r['name'], r['skip']))
                 continue
             mark = '✓ PASS' if r['ok'] else '✗ FAIL'
-            print('%-14s %8d %8d %8d  %s%s' % (r['name'], r['cold_ms'], r['median_ms'],
-                                               r['limit_ms'], mark,
-                                               '' if r['ok'] else '  ← %s' % r['desc']))
-        print('-' * 62)
+            line = '%-24s %8d %8d %8d  %s' % (r['name'], r['cold_ms'], r['median_ms'],
+                                              r['limit_ms'], mark)
+            if not r['ok']:
+                line += '  ← %s' % r['desc']
+            print(line)
+            if r.get('metric'):
+                mv = r.get('metric_median_ms')
+                print('%-24s   └ %-22s %s / %sms  %s%s' % (
+                    '', r['metric'], '缺读数' if mv is None else '%dms' % mv,
+                    r['metric_limit_ms'], '✓' if r.get('metric_ok') else '✗',
+                    '' if r.get('metric_cached') is None
+                    else ('（缓存命中）' if r['metric_cached'] else '（未命中缓存）')))
+        print('-' * 68)
         print('汇总: %d 项超阈值 / %d 项缺依赖（共 %d 项）'
               % (n_bad, n_missing, len(results)))
         if n_bad == 0 and n_missing == 0:
-            print('单次执行全部在 ms 级预算内。')
+            print('单次执行全部在 ms 级预算内（容器层按常驻 ≤200ms/帧、缓存 ≤5ms 判内部计时）。')
     if n_missing:
         return 2
     return 1 if n_bad else 0

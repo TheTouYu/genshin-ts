@@ -1,9 +1,11 @@
-name	limit_ms	measured_median_ms	measured_cold_ms	note
-state-fast	600	186	186	判态快通道（实测 ~130ms 内部 + ~200ms 进程）
-state-default	1500	501	530	判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）
-probe	300	53	53	具名探针
-pixel	300	237	236	单像素读取
-screen	2500	817	817	屏幕摘要（含常驻 OCR）
-layer	800	265	272	层级/模态
-native-state	2000	800	800	本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）
-watch	800	359	359	ROI 变化检测（两帧比对）
+name	limit_ms	measured_median_ms	measured_cold_ms	metric_name	metric_limit_ms	metric_measured_ms	note
+state-fast	600	229	501	-	-	-	判态快通道（实测 ~130ms 内部 + ~200ms 进程）
+state-default	1500	574	570	-	-	-	判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）
+probe	300	68	73	-	-	-	具名探针
+pixel	300	269	285	-	-	-	单像素读取
+screen	2000	900	900	-	-	-	屏幕摘要（含容器层；OCR 走常驻/缓存）
+screen-containers	3000	1223	1269	timing.container_ms	200	123	容器层稳态（同进程连跑 5 次，第 1 次含 cv2 首帧初始化）
+screen-containers-cached	900	303	305	timing.container_ms	5	0	容器层缓存命中（第 2 次起读内容寻址缓存）
+layer	800	277	283	-	-	-	层级/模态
+native-state	2000	835	794	-	-	-	本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）
+watch	800	365	365	-	-	-	ROI 变化检测（两帧比对）

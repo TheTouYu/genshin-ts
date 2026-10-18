@@ -18,6 +18,7 @@
   tools/ys-screen 帧.png --json --json-out /tmp/s.json --debug
   tools/ys-screen 帧.png --no-ocr            # 只做像素层（控件/分区/遮挡），~0.4s，调试几何用
   tools/ys-screen 帧.png --scale 0.5         # OCR 前先缩图（快 ~30%，小字召回略降）
+  tools/ys-screen 帧.png --containers        # 只输出容器结构（轻量，跳过遮挡/控件/分区）
 
 输出字段（schema=ys-screen/1，稳定供下游复用）:
   text[]      {id,text,cx,cy,bbox,w,h,score,kind}      kind=title|content|action|data|hud|other
@@ -27,8 +28,22 @@
   adjacency[] {text,text_id,target,target_id,target_kind,label,dir,gap_px,dx,dy,confidence}
               dir ∈ right|left|below|above|overlap；gap_px = 两框**边缘**间距（不是中心距）
   occlusion[] {bbox,confidence,label,why,evidence{...}}  半透明叠加层/被覆盖区，带数值依据
+  containers[] {id,parent,bbox,kind,skin{lab,fill,rect},text[],glyphs[],badges[],
+                affordance{clickable,evidence[]},clipped{edges,cut_by,px},confidence,evidence{}}
+              kind ∈ tile|card|row|button|panel|chip|unknown（**只描述形状角色，不猜语义**）
+              parent = 几何包含关系（不是"猜出来的面板"）；clipped.px 在屏边情形恒 0（帧外不可测）
+              affordance.clickable **目前恒 unknown**——工具还没有 hover/按下态证据，不假装
+  free_text[] 归属不到任何容器的 OCR 文本（字符串）
+  free_glyphs[] 归属不到任何容器的纯图形叶子 {bbox,role,fill,contrast}
+  degraded    true = 像素管线异常，containers 被清空（fail-closed，绝不编造结构）
+  error       degraded 的原因字符串（无异常时 null）
   digest      人读摘要文本（≤10 行，含"标题在哪 / 旁边有什么可点的 / 哪里被挡"）
-  timing      {load_ms,ocr_ms,pixel_ms,total_ms,ocr_source,ocr_backend}
+  timing      {load_ms,ocr_ms,pixel_ms,container_ms,container_cached,total_ms,ocr_source,ocr_backend}
+
+容器层的实现依据（**不要凭感觉调参**）：docs/maintenance/design-2026-10-18-gui-structure.md
+§2.1/§2.2 与已验证原型 `.scratch/gui-arch-probe/{p2_containers,ysui}.py`（2026-10-18 8 帧实测）。
+唯一可用的检测路径是 **L3 平坦皮肤容器**（flat+rect）；**卡片贴在彩色插画上**这一类在设计
+文档 §2.2 里标为**未闭合**（卡内不平坦、边界 ΔE 仅 5.5），本工具**不输出**它们（漏检而非假对象）。
 
 退出码：0 成功 / 2 用法错 / 3 帧不可读 / 4 OCR 后端缺失（fail-closed） / 5 OCR 跑失败或输出不可解析
 依赖：只用 numpy + PIL（已有）；OCR 走 `tools/ys-editor/ys_ocr.py ocr --json` 子进程（rapidocr venv）。
@@ -39,6 +54,7 @@ import argparse
 import hashlib
 import json
 import os
+import statistics
 import subprocess
 import sys
 import time
@@ -84,6 +100,33 @@ RING_CON_MIN = 10.0          # 圆环路径：环亮度 − 环内外均值的�
 RING_SIDE_MIN = 8.0          # 圆环路径：环亮度与"内侧""外侧"各自的最小差（两侧都要分得开）
 RING_TOPK = 20000            # 参与径向投票的边缘像素上限（按梯度强度取前 N）
 RING_MAX_CAND = 150          # 进入环验证的候选中心上限
+
+# —— 容器层（L3 平坦皮肤容器 + 叶子归属）——
+# 判据全部来自已验证原型（.scratch/gui-arch-probe/p2_containers.py、ysui.py）与设计文档
+# docs/maintenance/design-2026-10-18-gui-structure.md §2.2；改动前先读那两张表。
+CONTAINER_RULESET = 'flatrect-v1'   # 规则版本：**改任何容器/图形/角标判据就 +1**（进缓存键）
+CONTAINER_EDGE = 6.0         # 平坦判据：Lab 三通道 Sobel 合能量 E 的阈值（E<6 ⇒ 平坦）
+CONTAINER_EDGE_SQ = 36.0     # 同一个阈值的平方形式（E²<36 ⟺ E<6）：省 sqrt，且整数 Sobel 可直接比
+CONTAINER_CLOSE = 5          # 形态学闭核边长（补掉平坦区内部 1~2px 的细缝，实测 5 够用）
+CONTAINER_MIN_W_FULL = 80    # 候选最小宽（**全帧像素**；分析尺度 0.5 ⇒ 40px，与原型一致）
+CONTAINER_MIN_H_FULL = 52    # 候选最小高（0.5 尺度 ⇒ 26px）
+CONTAINER_MIN_RECT = 0.55    # 矩形度（连通域面积 / bbox 面积）下限——世界的软边平坦区过不了
+CONTAINER_PAL_TOL = 3.0      # "同皮肤色兄弟"的 Lab ΔE 上限（世界每块平坦区颜色都不同）
+CONTAINER_PANEL_FRAC = 0.05  # kind=panel：占屏面积比下限（实测大面板 6%~35%，格子 ~1%）
+CONTAINER_CARD_FRAC = 0.02   # kind=card：占屏面积比下限
+CONTAINER_BADGE_PAD_FULL = 12  # 角标归属外扩（全帧像素）：红点常常压在容器边界上
+GLYPH_DIFF = 45.0            # 纯图形判据：|Lab − medianBlur(31)| 三通道和的下限
+GLYPH_CLOSE = 5              # 图形掩膜闭核
+GLYPH_MIN_SIDE = 16          # 图形最短边（全帧像素）
+GLYPH_MAX_SIDE = 140         # 图形最长边（全帧像素；再大就不是"图标"了）
+GLYPH_MIN_FILL = 0.25        # 图形填充比下限（滤掉细边带/条纹）
+BADGE_R = 140                # 红点判据：R>140
+BADGE_RG = 55                # 且 R−G>55
+BADGE_RB = 40                # 且 R−B>40
+BADGE_MIN_SIDE = 14          # 角标最短边（全帧像素）
+BADGE_MAX_SIDE = 90          # 角标最长边
+BADGE_MIN_AREA = 90          # 角标最小面积（全帧像素²）
+BADGE_ASPECT = (0.6, 1.7)    # 角标长宽比区间
 
 ADJ_MAX_ICON = 380           # 文本 → 图标控件 的最大边缘间距。
                              # 实测：窄标题「云阶」只有 62px 宽，到右侧圆钮 bbox 边缘 336px；
@@ -905,6 +948,479 @@ def region_of(box, regions):
     return None
 
 
+# --------------------------------------------------------------------------- 容器层
+# 为什么单独一层：现有 text/controls/regions 输出的是"文本行"与"对比度团块"，不是**界面结构**
+# （2026-10-18 实测：8 帧里人眼可点单元 124 个，工具只对 1 个给出 IoU≥0.4 的对象）。容器层补的是
+# 「这里有一块规整皮肤色的可点单元」这一事实，以及"哪些文字/图标/红点属于它"。
+# 判据与阈值全部来自已验证原型，见文件头"容器层的实现依据"。
+
+def _lab_flat_energy(arr):
+    """返回 (Lab uint8, 三通道 Sobel 合能量的**平方** E²)。
+
+    用整数 Sobel（CV_16S）算平方能量，而不是 float Sobel + sqrt：两者**逐像素等价**
+    （ksize=3 的整数核响应与 float 版相同；E²<36 ⟺ E<6），实测 33ms → 19ms（1280×720）。
+    """
+    import cv2
+    import numpy as np
+    lab = cv2.cvtColor(arr, cv2.COLOR_RGB2LAB)
+    e2 = None
+    for c in range(3):
+        g = cv2.Sobel(lab[..., c], cv2.CV_16S, 1, 0, ksize=3)
+        h = cv2.Sobel(lab[..., c], cv2.CV_16S, 0, 1, ksize=3)
+        m = g.astype(np.int32) ** 2 + h.astype(np.int32) ** 2
+        e2 = m if e2 is None else e2 + m
+    return lab, e2
+
+
+def _flat_container_candidates(arr, scale):
+    """flat+rect 容器候选（原型 `p2_containers.py:detect`，逻辑照搬）。
+
+    判据：Lab 三通道 Sobel 合能量 E<6 ⇒ 平坦像素；5×5 闭；8-连通；矩形度 ≥0.55。
+    世界里的天空/地面/水面同样平坦，但矩形规整度低 ⇒ 大多过不了矩形度这一关，
+    漏网的由 `_containers_evidenced` 的两条证据判据清掉。
+    """
+    import cv2
+    import numpy as np
+    lab, e2 = _lab_flat_energy(arr)
+    flat = (e2 < CONTAINER_EDGE_SQ).astype(np.uint8)
+    flat = cv2.morphologyEx(flat, cv2.MORPH_CLOSE,
+                            np.ones((CONTAINER_CLOSE, CONTAINER_CLOSE), np.uint8))
+    min_w = max(4, int(round(CONTAINER_MIN_W_FULL * scale)))
+    min_h = max(4, int(round(CONTAINER_MIN_H_FULL * scale)))
+    n, cc, stats, _ = cv2.connectedComponentsWithStats(flat, 8)
+    out = []
+    for i in range(1, n):
+        x, y, w, h, a = stats[i]
+        if w < min_w or h < min_h:
+            continue
+        rect = a / float(w * h)
+        if rect < CONTAINER_MIN_RECT:
+            continue
+        m = cc[y:y + h, x:x + w] == i
+        med = np.median(lab[y:y + h, x:x + w][m], 0)
+        fill = float((e2[y:y + h, x:x + w] < CONTAINER_EDGE_SQ).mean())
+        out.append({
+            'bbox': [int(round(x / scale)), int(round(y / scale)),
+                     int(round((x + w) / scale)), int(round((y + h) / scale))],
+            'skin': {'lab': [round(float(v), 1) for v in med],
+                     'fill': round(fill, 2), 'rect': round(float(rect), 2)},
+            'area_px': int(round(a / (scale * scale))),
+        })
+    return out
+
+
+def _containers_evidenced(cands, text_boxes, hud):
+    """两条证据判据（满足任一才留）：①同皮肤色兄弟 ≥1 ②内含**界面**文本 ≥1。
+
+    这是**世界假阳性过滤器**（设计文档 §2.2 第一行）：世界的天空/沙滩/水面一样平坦，
+    但既没有同色兄弟、也没有文字。实测 world 帧唯一个候选被这条清掉。
+
+    HUD 文本（DXVK 读数 / UID / 延迟）**不算**界面文本——设计文档对屏边残留条给的解法就是
+    「接 `_known_hud` 掩膜」。两条边界都要守住：
+      · 兄弟判据不受影响：被 HUD 压住的真格子（f07 底行 `装扮搭配` 那个框）靠同皮肤色兄弟活下来；
+      · 所以这里只**不给 HUD 文本记分**，绝不因为"框中心在 HUD 角里"就单独否决容器
+        （f07 底行格子的中心正好落在左下 HUD 框内，按中心否决会误杀真格子）。
+    """
+    import numpy as np
+    meds = np.array([c['skin']['lab'] for c in cands], dtype=np.float32)
+    out = []
+    for i, c in enumerate(cands):
+        sib = 0
+        if len(meds) > 1:
+            d = np.linalg.norm(meds - meds[i], axis=1)
+            d[i] = 1e9
+            sib = int((d <= CONTAINER_PAL_TOL).sum())
+        bound, ui_bound = [], []
+        for t in text_boxes:
+            bb = t['bbox']
+            cx, cy = (bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0
+            if c['bbox'][0] <= cx <= c['bbox'][2] and c['bbox'][1] <= cy <= c['bbox'][3]:
+                bound.append(t)
+                if not _in_hud(bb, hud):
+                    ui_bound.append(t)
+        if sib >= 1 or ui_bound:
+            c['skin_siblings'] = sib
+            c['_text_in'] = bound
+            c['_text_ui'] = len(ui_bound)
+            out.append(c)
+    return out
+
+
+def _grid_evidence(kept):
+    """每块容器的行列规整度（kind=tile 的判据）：尺寸相近的同行/同列邻居 + 最近中心距。
+
+    只做**几何**判断（设计文档 §2.3-①：结构不猜语义）——同行等距只说明"它们是一组格子"，
+    不说明"这是背包格子还是活动格子"。
+    """
+    ev = []
+    for i, a in enumerate(kept):
+        ax0, ay0, ax1, ay1 = a['bbox']
+        aw, ah = ax1 - ax0, ay1 - ay0
+        acx, acy = (ax0 + ax1) / 2.0, (ay0 + ay1) / 2.0
+        row_n, col_n, dxs, dys = 0, 0, [], []
+        for j, b in enumerate(kept):
+            if i == j:
+                continue
+            bx0, by0, bx1, by1 = b['bbox']
+            bw, bh = bx1 - bx0, by1 - by0
+            bcx, bcy = (bx0 + bx1) / 2.0, (by0 + by1) / 2.0
+            # 同行只看**高度**像不像、同列只看**宽度**像不像：这样"被裁矮的同一行格子"
+            # （f07 顶部 174×64 与 174×156）仍算同列，而"上下两块面板碎片"不会互相冒充格子
+            if abs(bh - ah) <= 0.25 * max(ah, bh) and abs(bcy - acy) <= 0.30 * max(ah, bh):
+                row_n += 1
+                dxs.append(abs(bcx - acx))
+            if abs(bw - aw) <= 0.25 * max(aw, bw) and abs(bcx - acx) <= 0.30 * max(aw, bw):
+                col_n += 1
+                dys.append(abs(bcy - acy))
+        e = {'row_n': row_n, 'col_n': col_n, 'in_grid': bool(row_n or col_n)}
+        if dxs:
+            e['pitch_x'] = round(sorted(dxs)[0], 1)
+        if dys:
+            e['pitch_y'] = round(sorted(dys)[0], 1)
+        ev.append(e)
+    return ev
+
+
+def _container_kind(bb, grid, W0, H0):
+    """形状角色：tile/card/row/button/panel/chip，判不出就 `unknown`（不猜语义）。
+
+    规则（顺序即优先级，实测标定见设计文档 §2.2 第二行）：
+      · **同行且同列**都等距 + 长宽比 0.6~4.0 ⇒ tile——f06 格子 174×156（aspect 1.12）；
+        f07 顶部那一行被滚动裁成 174×64，仍与同列格子 pitch_x=208 对齐，也算 tile。
+        只要求一轴对齐的不算 tile（f00 左侧面板被撕裂成上下两块，只在同一列 ⇒ 不硬称 tile）
+      · 占屏 ≥5% 且长宽比在 0.25~8 ⇒ panel（f00 左侧列表面板 386×568）
+      · 高 ≤100 且长宽比 ≥1.3 ⇒ button（药丸按钮 330×74）
+      · 高 ≤60 ⇒ chip（细条）
+      · 长宽比 ≥2 ⇒ row（整条底栏 1840×182）
+      · 占屏 ≥2% 且 1≤长宽比≤3 ⇒ card
+      · 其余 ⇒ unknown（例：f06 的 120×1354 屏边竖条——**确实不该硬塞一个名字**）
+    """
+    x0, y0, x1, y1 = bb
+    w, h = x1 - x0, y1 - y0
+    aspect = w / float(h) if h else 0.0
+    frac = (w * h) / float(W0 * H0)
+    if grid['row_n'] >= 1 and grid['col_n'] >= 1 and 0.6 <= aspect <= 4.0:
+        return 'tile'
+    if frac >= CONTAINER_PANEL_FRAC and 0.25 <= aspect <= 8.0:
+        return 'panel'
+    if h <= 100 and 1.3 <= aspect <= 8.0:
+        return 'button'
+    if h <= 60:
+        return 'chip'
+    if aspect >= 2.0:
+        return 'row'
+    if frac >= CONTAINER_CARD_FRAC and 1.0 <= aspect <= 3.0:
+        return 'card'
+    return 'unknown'
+
+
+def _containers_clipped(bb, parent_bb, W0, H0):
+    """裁切：越过父容器/贴屏边 ⇒ {edges, cut_by, px}。
+
+    `px` 只在"越过父容器"时给真实像素数；贴屏边时恒 0——被屏幕裁掉多少在**帧外不可测**，
+    这里只声明"它碰到了边"，不编造裁切量（否则下游会按假数字推算可见比例）。
+    """
+    edges, cut_by, px = [], None, 0
+    if parent_bb:
+        over = [('left', parent_bb[0] - bb[0]), ('top', parent_bb[1] - bb[1]),
+                ('right', bb[2] - parent_bb[2]), ('bottom', bb[3] - parent_bb[3])]
+        hit = [(k, v) for k, v in over if v > 0]
+        if hit:
+            edges = [k for k, _ in hit]
+            cut_by = 'parent'
+            px = int(max(v for _, v in hit))
+    if not edges:
+        for name, t in (('left', bb[0] <= 0), ('top', bb[1] <= 0),
+                        ('right', bb[2] >= W0), ('bottom', bb[3] >= H0)):
+            if t:
+                edges.append(name)
+        if edges:
+            cut_by = 'screen'
+    return {'edges': edges, 'cut_by': cut_by, 'px': px}
+
+
+def _owner_of(center, kept, pad=0):
+    """中心点归属：包含它的**最小面积**容器（设计文档 §2.2「text[] → 归属」）。
+
+    pad>0 时把容器 bbox 外扩（角标常压在边界上，红点中心可能落在框外几像素）。
+    """
+    cx, cy = center
+    cand = [c for c in kept
+            if c['bbox'][0] - pad <= cx <= c['bbox'][2] + pad
+            and c['bbox'][1] - pad <= cy <= c['bbox'][3] + pad]
+    return min(cand, key=lambda c: c['area_px']) if cand else None
+
+
+def _corner_of(center, bb):
+    """中心点离容器哪个角最近（tile → tr/bl/br），角标字段用。"""
+    cx, cy = center
+    corners = {'tl': (bb[0], bb[1]), 'tr': (bb[2], bb[1]),
+               'bl': (bb[0], bb[3]), 'br': (bb[2], bb[3])}
+    return min(corners, key=lambda k: (cx - corners[k][0]) ** 2 + (cy - corners[k][1]) ** 2)
+
+
+def _find_glyphs(arr, scale, text_boxes):
+    """纯图形叶子：局部对比显著性 |Lab − medianBlur(31)| 三通道和 >45；闭 5×5；16~140px；填充 ≥0.25。
+
+    两处与原型 `ysui.py:glyphs` 的差别（都在"字段语义"上，算法本身照搬）：
+      · 原型把容器内部整块挖掉（glyph 只能落在容器外）；这里**全帧找、再按最小包含容器归属**
+        ——容器里的图标本来就是那个容器的一部分，挖掉就等于报不出"这格有图标"。
+      · 原型没遮文字；这里把 OCR 框（外扩 2px）从掩膜里去掉——汉字本身是最强对比团块，
+        不遮的话 glyphs 会退化成 text 的副本（字段语义：`glyphs` = 纯图形）。
+    """
+    import cv2
+    import numpy as np
+    lab = cv2.cvtColor(arr, cv2.COLOR_RGB2LAB).astype(np.float32)
+    bg = cv2.medianBlur(arr, 31)
+    dif = np.abs(cv2.cvtColor(bg, cv2.COLOR_RGB2LAB).astype(np.float32) - lab).sum(2)
+    m = (dif > GLYPH_DIFF).astype(np.uint8)
+    H, W = m.shape
+    for t in text_boxes:
+        bb = t['bbox']
+        x0 = max(0, int(bb[0] * scale) - 2)
+        y0 = max(0, int(bb[1] * scale) - 2)
+        x1 = min(W, int(bb[2] * scale) + 2)
+        y1 = min(H, int(bb[3] * scale) + 2)
+        m[y0:y1, x0:x1] = 0
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((GLYPH_CLOSE, GLYPH_CLOSE), np.uint8))
+    min_s = max(4, int(round(GLYPH_MIN_SIDE * scale)))
+    max_s = max(min_s + 1, int(round(GLYPH_MAX_SIDE * scale)))
+    n, _, stats, _ = cv2.connectedComponentsWithStats(m, 8)
+    out = []
+    for i in range(1, n):
+        x, y, w, h, a = stats[i]
+        if w < min_s or h < min_s or w > max_s or h > max_s:
+            continue
+        if a < GLYPH_MIN_FILL * w * h:
+            continue
+        out.append({'bbox': [int(round(x / scale)), int(round(y / scale)),
+                             int(round((x + w) / scale)), int(round((y + h) / scale))],
+                    'role': 'icon', 'fill': round(float(a / (w * h)), 2),
+                    'contrast': round(float(dif[y:y + h, x:x + w].max()), 1)})
+    out.sort(key=lambda d: -d['fill'])
+    return out
+
+
+def _find_badges(arr, scale):
+    """红点角标：R>140 且 R−G>55 且 R−B>40；边长 14~90、面积 ≥90、长宽比 0.6~1.7（全帧像素）。
+
+    只报形状事实（`kind=alert` = 形状角色里的"红点"），不猜"这是未读还是可领取"。
+    """
+    import cv2
+    import numpy as np
+    r = arr[..., 0].astype(np.int16)
+    g = arr[..., 1].astype(np.int16)
+    b = arr[..., 2].astype(np.int16)
+    m = ((r > BADGE_R) & (r - g > BADGE_RG) & (r - b > BADGE_RB)).astype(np.uint8)
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+    min_s = max(3, int(round(BADGE_MIN_SIDE * scale)))
+    max_s = max(min_s + 1, int(round(BADGE_MAX_SIDE * scale)))
+    min_area = BADGE_MIN_AREA * scale * scale
+    n, _, stats, _ = cv2.connectedComponentsWithStats(m, 8)
+    out = []
+    for i in range(1, n):
+        x, y, w, h, a = stats[i]
+        if a < min_area or not (min_s <= w <= max_s and min_s <= h <= max_s):
+            continue
+        if not (BADGE_ASPECT[0] <= w / float(h) <= BADGE_ASPECT[1]):
+            continue
+        out.append({'bbox': [int(round(x / scale)), int(round(y / scale)),
+                             int(round((x + w) / scale)), int(round((y + h) / scale))],
+                    'kind': 'alert', 'color': 'red',
+                    'area_px': int(round(a / (scale * scale)))})
+    return out
+
+
+def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
+    """容器层：L3 平坦皮肤容器 + 文本/图形/角标叶子归属。返回 dict。
+
+    返回 {containers[], free_text[], free_glyphs[], degraded, error}。
+    分层按设计文档 §2.1：containers 是 L2/L3 实体；text/glyphs/badges 是**必须归属**的叶子；
+    归属不进去的文本落 `free_text[]`、图形落 `free_glyphs[]`；角标归属不到容器就**丢弃**
+    （§2.2：「必须归属到某容器角」）。
+
+    **fail-closed（§2.3-③）**：像素管线任何异常 ⇒ containers=[] + degraded=True + error，
+    绝不返回半成品结构——下游宁可"看不见"，也不要按假结构乱点。
+
+    已知**未闭合**（§2.2 第三行 / §五-1）：卡片贴在彩色插画上（f04 的五张白卡、f05 的任务卡/
+    药丸按钮）——卡内不平坦（E 中位 17.9~66.5）、边界 ΔE 只有 5.5，本管线检不出来，
+    于是**不输出**它们（漏检，不是假对象）。
+    """
+    t0 = time.time()
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [],
+           'degraded': False, 'error': None}
+    try:
+        cands = _flat_container_candidates(arr, scale)
+        hud = _known_hud(W0, H0)
+        kept = _containers_evidenced(cands, text_boxes, hud)
+        for c, g in zip(kept, _grid_evidence(kept)):
+            c['_grid'] = g
+        # 大块在前：parent 用"面积更小的包含者"求 ⇒ 父永远排在子前面，id 可读
+        kept.sort(key=lambda c: (-c['area_px'], c['bbox'][1], c['bbox'][0]))
+        for i, c in enumerate(kept):
+            c['id'] = 'c%d' % i
+        # parent = 几何包含（最小包含者）；**不反推面板**——那需要在 §2.2 里标为未闭合的粘连处理
+        for c in kept:
+            bb = c['bbox']
+            holders = [p for p in kept if p is not c
+                       and p['bbox'][0] <= bb[0] and p['bbox'][1] <= bb[1]
+                       and p['bbox'][2] >= bb[2] and p['bbox'][3] >= bb[3]]
+            c['_parent'] = (min(holders, key=lambda p: p['area_px'])['id']
+                            if holders else None)
+
+        glyphs = _find_glyphs(arr, scale, text_boxes)
+        badges = _find_badges(arr, scale)
+        pad = int(round(CONTAINER_BADGE_PAD_FULL * scale))
+        # 叶子归属：文本（必须归属）、图形（归属不到就记 free_glyphs）、角标（归属不到就丢）
+        kids = {c['id']: {'text': [], 'glyphs': [], 'badges': []} for c in kept}
+        free_text = []
+        for t in text_boxes:
+            bb = t['bbox']
+            owner = _owner_of(((bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0), kept)
+            if owner is None:
+                free_text.append(t['text'])
+            else:
+                kids[owner['id']]['text'].append(t['text'])
+        free_glyphs = []
+        for gl in glyphs:
+            bb = gl['bbox']
+            owner = _owner_of(((bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0), kept)
+            if owner is None:
+                free_glyphs.append(gl)
+            else:
+                kids[owner['id']]['glyphs'].append(gl)
+        for bd in badges:
+            bb = bd['bbox']
+            owner = _owner_of(((bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0), kept, pad)
+            if owner is None:
+                continue                       # §2.2：角标必须归属到某容器角，否则不报
+            kids[owner['id']]['badges'].append(
+                {'bbox': bb, 'corner': _corner_of(((bb[0] + bb[2]) / 2.0,
+                                                   (bb[1] + bb[3]) / 2.0), owner['bbox']),
+                 'kind': bd['kind'], 'color': bd['color']})
+
+        parents = {c['id']: c['_parent'] for c in kept}
+        out = []
+        for c in kept:
+            bb = c['bbox']
+            x0, y0, x1, y1 = bb
+            w, h = x1 - x0, y1 - y0
+            aspect = w / float(h) if h else 0.0
+            frac = (w * h) / float(W0 * H0)
+            g = c['_grid']
+            k = kids[c['id']]
+            sib = c['skin_siblings']
+            n_text = len(k['text'])
+            kind = _container_kind(bb, g, W0, H0)
+            parent_bb = next((p['bbox'] for p in kept if p['id'] == parents[c['id']]), None)
+            # confidence 是**证据强度**（不是概率）：皮肤色矩形度 + 兄弟 + 文本 + 成网格
+            conf = 0.35 + 0.20 * c['skin']['rect']
+            conf += 0.15 if sib >= 1 else 0.0
+            conf += 0.15 if n_text else 0.0
+            conf += 0.10 if g['in_grid'] else 0.0
+            aff_ev = ['skin_siblings:%d' % sib]
+            if n_text:
+                aff_ev.append('text_in:%d' % n_text)
+            if g['in_grid']:
+                aff_ev.append('grid:%s' % ('row' if g['row_n'] else 'col'))
+            aff_ev.append('hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)')
+            grid_s = 'none'
+            if g['in_grid']:
+                grid_s = '%s n=%d pitch_x=%s pitch_y=%s' % (
+                    'row' if g['row_n'] else 'col', max(g['row_n'], g['col_n']),
+                    g.get('pitch_x'), g.get('pitch_y'))
+            out.append({
+                'id': c['id'], 'parent': parents[c['id']], 'bbox': bb, 'kind': kind,
+                'skin': c['skin'],
+                'text': k['text'],
+                'glyphs': k['glyphs'],
+                'badges': k['badges'],
+                'affordance': {'clickable': 'unknown', 'evidence': aff_ev},
+                'clipped': _containers_clipped(bb, parent_bb, W0, H0),
+                'confidence': round(min(0.95, conf), 2),
+                'evidence': {
+                    'rule': 'flat+rect: E<%g, 闭%dx%d, 8-连通, rect>=%.2f, '
+                            '(%d 个同皮肤色兄弟 ΔE<=%g / 内含界面文本 %d)' % (
+                                CONTAINER_EDGE, CONTAINER_CLOSE, CONTAINER_CLOSE,
+                                CONTAINER_MIN_RECT, sib, CONTAINER_PAL_TOL, c['_text_ui']),
+                    'area_px': c['area_px'], 'area_frac': round(frac, 4),
+                    'aspect': round(aspect, 2), 'grid': grid_s,
+                    'skin_siblings': sib, 'text_in': n_text, 'text_ui': c['_text_ui'],
+                    'skin_lab': c['skin']['lab'], 'flat_fill': c['skin']['fill'],
+                    'rect': c['skin']['rect'],
+                },
+            })
+        res['containers'] = out
+        res['free_text'] = free_text
+        res['free_glyphs'] = free_glyphs
+    except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded
+        res['containers'] = []
+        res['free_text'] = []
+        res['free_glyphs'] = []
+        res['degraded'] = True
+        res['error'] = '%s: %s' % (type(exc).__name__, exc)
+    if debug:
+        sys.stderr.write('[ys-screen] containers=%d free_text=%d free_glyphs=%d degraded=%s '
+                         '(%dms)\n' % (len(res['containers']), len(res['free_text']),
+                                       len(res['free_glyphs']), res['degraded'],
+                                       int((time.time() - t0) * 1000)))
+        for c in res['containers']:
+            sys.stderr.write('  %s %s kind=%-7s conf=%.2f text=%d glyphs=%d badges=%d\n'
+                             % (c['id'], c['bbox'], c['kind'], c['confidence'],
+                                len(c['text']), len(c['glyphs']), len(c['badges'])))
+    return res
+
+
+def _cont_cache_path(frame_sha, scale, text_boxes):
+    """容器层缓存路径：键 = 帧字节 sha256 + 分析尺度 + **文本盒签名**。
+
+    文本签名必须进键：`text[]` 归属和"内含文本"判据都吃 OCR 结果，换后端/换缩放后
+    容器集合会变——只按帧 sha 缓存会让换后端后读到旧结构。
+    frame_sha 由调用方传入（同一帧只算一次 sha：2.5MB 读+哈希 ~15ms，重复算会白付）。
+    """
+    th = hashlib.sha1(json.dumps([(t['bbox'], t['text']) for t in text_boxes],
+                                 ensure_ascii=False).encode('utf-8')).hexdigest()[:16]
+    # 规则版本进键：否则改了判据还会读到旧规则写下的结构（"改了但看起来没变"的经典坑——
+    # 2026-10-18 实测踩到：加了 text_ui 判据后缓存命中返回的仍是旧结构）
+    return os.path.join(CACHE_DIR, 'cont-%s-%d-%s-%s.json'
+                        % (frame_sha, int(round(scale * 1000)), th, CONTAINER_RULESET))
+
+
+def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, debug=False,
+                      frame_sha=None):
+    """容器层 + 内容寻址缓存。返回 {containers,free_text,free_glyphs,degraded,error,timing}。
+
+    timing.container_ms = 这一层自己的耗时（命中缓存时就是读文件+解析的时间）。
+    这是性能门禁的口径来源（设计文档 §四末段）：**常驻 ≤200ms/帧、缓存命中 ≤5ms**。
+    """
+    t0 = time.time()
+    path = (_cont_cache_path(frame_sha or _sha256(frame), scale, text_boxes)
+            if use_cache else None)
+    if path:
+        try:
+            with open(path, encoding='utf-8') as f:
+                c = json.load(f)
+            if isinstance(c.get('containers'), list):
+                c['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': True}
+                return c
+        except (OSError, ValueError):
+            pass
+    res = find_containers(arr, scale, W0, H0, text_boxes, debug=debug)
+    res['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': False}
+    if path and not res['degraded']:
+        try:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            tmp = '%s.tmp%d' % (path, os.getpid())
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump({k: res[k] for k in ('containers', 'free_text',
+                                               'free_glyphs', 'degraded', 'error')},
+                          f, ensure_ascii=False)
+            os.replace(tmp, path)
+        except OSError:
+            pass
+    return res
+
+
 def find_occlusion(arr, scale, W0, H0, text_boxes, debug=False):
     """遮挡区：**半透明叠加层**（HUD / 录屏读数 / 通知条）。
 
@@ -1310,8 +1826,9 @@ def render_digest(res, max_lines=10):
     fr, text, ctrls, regs = res['frame'], res['text'], res['controls'], res['regions']
     adj, occ, title, tm = res['adjacency'], res['occlusion'], res['title'], res['timing']
     lines = []
-    lines.append('屏幕 %dx%d · 文本 %d · 控件 %d · 邻接 %d · 遮挡 %d · %dms（OCR %s）' % (
-        fr['w'], fr['h'], len(text), len(ctrls), len(adj), len(occ),
+    lines.append('屏幕 %dx%d · 文本 %d · 控件 %d · 容器 %d · 邻接 %d · 遮挡 %d · %dms（OCR %s）' % (
+        fr['w'], fr['h'], len(text), len(ctrls), len(res.get('containers') or []), len(adj),
+        len(occ),
         tm['total_ms'], {'run': 'run', 'cache': 'cache', 'skip': 'skip', 'nobackend': '缺后端',
                          'error': '失败'}.get(tm['ocr_source'], tm['ocr_source'])))
     if title:
@@ -1378,40 +1895,91 @@ def _bs(bb, short=False):
 
 
 # --------------------------------------------------------------------------- 主流程
-def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structure_only=False):
+def text_objects(boxes):
+    """OCR boxes → text[] 对象（全帧坐标；`kind` 先给 other，交给 classify_texts 定）。"""
+    out = []
+    for i, b in enumerate(boxes):
+        bb = box_bbox(b['box'])
+        out.append({'id': i, 'text': b['text'], 'cx': int(b['cx']), 'cy': int(b['cy']),
+                    'bbox': bb, 'w': bb[2] - bb[0], 'h': bb[3] - bb[1],
+                    'score': float(b['score']), 'kind': 'other'})
+    return out
+
+
+def _ocr_text(frame, use_ocr, use_cache, scale, debug=False):
+    """OCR（可选）→ (text[], meta)。失败按 fail-closed 退出：4=后端缺 / 5=后端在但跑失败。"""
+    meta = {'source': 'skip', 'ms': 0, 'n_total': 0, 'err': None}
+    if not use_ocr:
+        return [], meta
+    got, meta = run_ocr(frame, use_cache=use_cache, scale=scale, debug=debug)
+    if got is None:
+        sys.stderr.write('[ys-screen] OCR 失败：%s\n' % meta['err'])
+        sys.stderr.write('[ys-screen] 期望：ys_ocr.py 返回 {"boxes":[...]}\n'
+                         '[ys-screen] 实测：%s\n' % meta['err'])
+        raise SystemExit(4 if meta['source'] == 'nobackend' else 5)
+    return text_objects(got), meta
+
+
+def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structure_only=False,
+            containers_only=False, repeat=1):
     # 结构缓存（2026-10-18）：按帧 sha 存一份 structure.json，**必须在解码之前查**——
     # 放后面试过一次，命中仍要 260ms（解码 170ms + OCR 查缓存），等于没省。
     # 判据：同一帧第二次查询 <10ms。
+    frame_sha = _sha256(frame)              # 同一帧只算一次：结构缓存/容器缓存/frame 信息共用
     if structure_only:
-        _sc = os.path.join(CACHE_DIR, 'struct-%s.json' % _sha256(frame))
+        _sc = os.path.join(CACHE_DIR, 'struct-%s.json' % frame_sha)
         if os.path.exists(_sc):
             try:
                 with open(_sc, encoding='utf-8') as f:
                     return json.load(f)                # 结构缓存命中：analyze 的返回是**单个 dict**
             except (OSError, ValueError):
                 pass
-    struct_cache = os.path.join(CACHE_DIR, 'struct-%s.json' % _sha256(frame))
+    struct_cache = os.path.join(CACHE_DIR, 'struct-%s.json' % frame_sha)
     t0 = time.time()
     arr, (W0, H0) = load_small(frame, 0.5)
     t_load = time.time()
-    meta = {'source': 'skip', 'ms': 0, 'n_total': 0, 'err': None}
-    boxes = []
-    if use_ocr:
-        got, meta = run_ocr(frame, use_cache=use_cache, scale=scale, debug=debug)
-        if got is None:
-            sys.stderr.write('[ys-screen] OCR 失败：%s\n' % meta['err'])
-            sys.stderr.write('[ys-screen] 期望：ys_ocr.py 返回 {"boxes":[...]}\n'
-                             '[ys-screen] 实测：%s\n' % meta['err'])
-            # 4 = 后端缺失（fail-closed，不降级成"这屏没字"）；5 = 后端在但跑失败
-            raise SystemExit(4 if meta['source'] == 'nobackend' else 5)
-        boxes = got
+    text, meta = _ocr_text(frame, use_ocr, use_cache, scale, debug)
     t_after_ocr = time.time()
-    text = []
-    for i, b in enumerate(boxes):
-        bb = box_bbox(b['box'])
-        text.append({'id': i, 'text': b['text'], 'cx': int(b['cx']), 'cy': int(b['cy']),
-                     'bbox': bb, 'w': bb[2] - bb[0], 'h': bb[3] - bb[1],
-                     'score': float(b['score']), 'kind': 'other'})
+    # 容器层（2026-10-18 新增，设计文档 §2.1/§2.2）：像素管线 + 文本/图形/角标归属。
+    # 异常不外抛——find_containers 自己 fail-closed 成 degraded，不拖垮其余字段。
+    cont = containers_cached(frame, arr, 0.5, W0, H0, text,
+                             use_cache=use_cache and repeat <= 1, debug=debug,
+                             frame_sha=frame_sha)
+    t_after_cont = time.time()
+    frame_info = {'path': os.path.abspath(frame), 'sha256': frame_sha,
+                  'w': W0, 'h': H0, 'bytes': os.path.getsize(frame)}
+    if containers_only:
+        # 轻量路径：只出容器层（跳过遮挡/控件/分区/结构/邻接，实测省 ~1.1s）。
+        # 与 --structure 同一形态：给下游一个直接可消费的小 JSON。
+        runs = [cont['timing']['container_ms']]
+        if repeat > 1:
+            # 稳态口径（设计文档 §四末段：**常驻 ≤200ms/帧**）：同一帧在同一进程里连跑 N 次，
+            # 取第 2..N 次的中位数。第 1 次含 numpy/cv2 首次调用的一次性分配（实测 f06 冷 412ms
+            # vs 稳态 134ms），那不是"每帧成本"；缓存也读不出稳态值 ⇒ --repeat 强制真算。
+            for _ in range(repeat - 1):
+                t1 = time.time()
+                find_containers(arr, 0.5, W0, H0, text, debug=False)
+                runs.append(int((time.time() - t1) * 1000))
+        steady = int(statistics.median(runs[1:])) if repeat > 1 else runs[0]
+        return {
+            'schema': 'ys-screen/1',
+            'layer': 'containers',
+            'frame': frame_info,
+            'containers': cont['containers'], 'free_text': cont['free_text'],
+            'free_glyphs': cont['free_glyphs'],
+            'degraded': cont['degraded'], 'error': cont['error'],
+            'timing': {'load_ms': int((t_load - t0) * 1000),
+                       'ocr_ms': int((t_after_ocr - t_load) * 1000),
+                       # container_ms = 这一层的代表耗时：--repeat N 给稳态中位数，否则给本次实测
+                       'container_ms': steady,
+                       'container_runs': runs if repeat > 1 else len(runs),
+                       'container_first_ms': runs[0],
+                       'container_cached': cont['timing']['cached'],
+                       'pixel_ms': int((t_after_cont - t_after_ocr) * 1000),
+                       'total_ms': int((t_after_cont - t0) * 1000),
+                       'ocr_source': meta['source'], 'ocr_backend': _backend_sig()},
+            'ocr': {'n_total': meta['n_total'], 'err': meta['err']},
+        }
     if structure_only:
         # 只要结构就跳过遮挡/控件/分区这三遍像素分析（实测省 ~200ms）。
         # 这三样是给"动作目标解析"用的，结构查询用不到。
@@ -1430,17 +1998,22 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
     t_end = time.time()
     res = {
         'schema': 'ys-screen/1',
-        'frame': {'path': os.path.abspath(frame), 'sha256': _sha256(frame),
-                  'w': W0, 'h': H0, 'bytes': os.path.getsize(frame)},
+        'frame': frame_info,
         'title': title,
         'text': text, 'controls': ctrls, 'regions': regs, 'structure': struct,
         'adjacency': adj, 'occlusion': occ,
+        # 容器层：结构是"这块界面上有哪些容器 + 谁属于谁"
+        'containers': cont['containers'], 'free_text': cont['free_text'],
+        'free_glyphs': cont['free_glyphs'],
+        'degraded': cont['degraded'], 'error': cont['error'],
         # ⚠️ pixel_ms 原先算的是 `t_end - t_load`，而 t_load 在 run_ocr **之前** ——
         # 于是 OCR 的耗时被重复计进"像素"里（实测 ocr_source=daemon 时 ocr_ms=0、pixel_ms=1262，
         # 那个 1262 里绝大部分是等 daemon）。现在分开计时，读数才能指向真瓶颈。
         'timing': {'load_ms': int((t_load - t0) * 1000),
                    'ocr_ms': int((t_after_ocr - t_load) * 1000),
                    'pixel_ms': int((t_end - t_after_ocr) * 1000),
+                   'container_ms': cont['timing']['container_ms'],
+                   'container_cached': cont['timing']['cached'],
                    'total_ms': int((t_end - t0) * 1000),
                    'ocr_source': meta['source'], 'ocr_backend': _backend_sig()},
         'ocr': {'n_total': meta['n_total'], 'err': meta['err']},
@@ -1470,6 +2043,11 @@ def main(argv=None):
     ap.add_argument('--no-cache', action='store_true', help='忽略 OCR 缓存，强制真跑')
     ap.add_argument('--structure', action='store_true',
                     help='只输出界面结构（面板→行→条目）。模型规划动作读这个，不必看图')
+    ap.add_argument('--containers', action='store_true',
+                    help='只输出容器层（containers[] + 叶子归属）。下游直接消费这个，不必解 digest')
+    ap.add_argument('--repeat', type=int, default=1,
+                    help='容器层稳态基准：同一帧连跑 N 次，container_ms 取第 2..N 次中位数'
+                         '（常驻口径；自动绕过缓存）')
     ap.add_argument('--scale', type=float, default=1.0, help='OCR 前缩图比例（默认 1.0）')
     ap.add_argument('--max-lines', type=int, default=10, help='摘要最大行数（默认 10）')
     ap.add_argument('--debug', action='store_true', help='诊断打到 stderr')
@@ -1481,13 +2059,22 @@ def main(argv=None):
     try:
         res = analyze(a.frame, use_ocr=not a.no_ocr, use_cache=not a.no_cache,
                  structure_only=getattr(a, 'structure', False),
-                      scale=a.scale, debug=a.debug)
+                 containers_only=getattr(a, 'containers', False),
+                      repeat=max(1, a.repeat), scale=a.scale, debug=a.debug)
     except SystemExit as exc:
         return int(exc.code or 0)
     except OSError as exc:
         sys.stderr.write('[ys-screen] 读图失败：%s\n' % exc)
         sys.stderr.write('[ys-screen] 期望：可解码的 PNG；实测：%s\n' % exc)
         return 3
+    if getattr(a, 'containers', False):
+        # 轻量输出：容器结构 + 归属。**永远出 JSON**（与 --structure 同形态）——
+        # 下游要的是可机读结构，不是人读摘要。
+        if a.json_out:
+            with open(a.json_out, 'w', encoding='utf-8') as f:
+                json.dump(res, f, ensure_ascii=False, indent=1)
+        print(json.dumps(res, ensure_ascii=False))
+        return 0
     res['digest'] = render_digest(res, max_lines=a.max_lines)
     if a.json_out:
         with open(a.json_out, 'w', encoding='utf-8') as f:
