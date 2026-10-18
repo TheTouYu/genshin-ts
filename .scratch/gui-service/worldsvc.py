@@ -54,7 +54,8 @@ def _degraded(code, detail=""):
 class WorldService:
     def __init__(self, *, profile=None, source="auto", channel="fast", backend="cli",
                  cache_dir=CACHE_DIR_DEFAULT, cache_enabled=True, daemon_cache=True,
-                 allow_inject=False, budget_ms=None, max_age_ms=5000, poll_ms=300):
+                 allow_inject=False, budget_ms=None, max_age_ms=5000, poll_ms=300,
+                 allow_background=False):
         if source not in ("auto", "live", "latest", "frame"):
             raise ServiceError("BAD_USAGE", f"source 必须是 auto/live/latest/frame，实际 {source!r}", rc=2)
         if backend not in ("cli", "daemon-world"):
@@ -69,6 +70,8 @@ class WorldService:
         self.cache = FrameCache(cache_dir, enabled=cache_enabled)
         self.daemon_cache = bool(daemon_cache)
         self.allow_inject = bool(allow_inject)
+        # 只供离线分析：跳过 KWin 严格闸门（帧仍是目标窗口自己的缓冲）——**不得用于动作**
+        self.allow_background = bool(allow_background)
         self.budget_ms = dict(budget_ms or schema.BUDGET_DEFAULT_MS)
         self.max_age_ms = int(max_age_ms)
         self.poll_ms = int(poll_ms)
@@ -290,23 +293,26 @@ class WorldService:
             return meta
 
         if src == "live":
-            # 先做窗口归属校验（票 34，X11 快路径 ~20ms）：不在当前桌面/被遮挡/不在栈顶
-            # 一律 fail-closed（rc=5），绝不抬窗口、绝不拿别窗画面。
-            attr = instruments.attrib_fast()
-            if attr.get("verdict") != "OK":
+            # 2026-10-18 接入 ys-capture：抓帧段换成常驻 XShm（~13ms），**归属闸门保留且是 KWin 权威**。
+            # 为什么不再先跑 attrib_fast：实测 EWMH 的 _NET_WM_DESKTOP 会把桌面说错
+            # （游戏在 desktop 3 时它报 0 ⇒ 快路径判 OK 而屏幕上是浏览器，正是票 34 的 fail-open）。
+            # ys-capture 内部：快路径只做保守拒绝，KWin 通道才是权威，结论过旧/不可用直接 refuse。
+            try:
+                raw = instruments.grab_frame(allow_background=self.allow_background)
+            except instruments.InstrumentError as e:
                 raise ServiceError(
                     "LIVE_NOT_ATOP",
-                    f"窗口归属校验未通过（verdict={attr.get('verdict')}，rc={attr.get('rc')}，"
-                    f"{attr.get('elapsed_ms')}ms；窗口={attr.get('window')}，"
-                    f"桌面={attr.get('current_desktop')}）；本服务绝不为了取数抬窗口 —— "
+                    f"取帧被拒绝（{e.code}）：{e.detail}；本服务绝不为了取数抬窗口 —— "
                     "请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
                     status="precondition_fail", rc=5)
-            meta = instruments.grab_frame(skip_atop=True)
-            meta = {"path": os.path.abspath(meta["path"]), "source": "live",
-                    "captured_at_ms": int(os.path.getmtime(meta["path"]) * 1000),
-                    "captured_at_ms_source": "file_mtime", "live": True,
-                    "capture_meta": {k: meta.get(k) for k in
-                                     ("fresh", "static", "diffFromPrev", "window", "atop", "reused")}}
+            path = os.path.abspath(raw["path"])
+            meta = {"path": path, "source": "live",
+                    "captured_at_ms": int(time.time() * 1000),
+                    "captured_at_ms_source": "capture_clock",
+                    "live": True,
+                    "capture_meta": {k: raw.get(k) for k in
+                                     ("source", "capture_ms", "frame", "attribution",
+                                      "window", "atop", "allow_background")}}
             self._last_frame = meta
             return meta
 
@@ -767,6 +773,8 @@ def main(argv=None):
                        help="cli=现状（ys-state/ys-screen 子进程）；daemon-world=常驻服务 world 仪器（需新版 ys-lookd）")
         p.add_argument("--json-out", default=None, help="把一个回执写到文件")
         p.add_argument("--no-cache", action="store_true", help="禁用帧级缓存")
+        p.add_argument("--allow-background", action="store_true",
+                       help="显式跳过 KWin 严格归属闸门（只供离线分析目标窗口自身缓冲，不得用于动作）")
 
     p = sub.add_parser("look", help="一次感知 → 单一世界状态")
     common(p)
@@ -824,7 +832,8 @@ def main(argv=None):
         svc = WorldService(profile=a.profile, channel=getattr(a, "channel", "fast"),
                            source=source, backend=getattr(a, "backend", "cli"),
                            cache_enabled=not a.no_cache,
-                           allow_inject=getattr(a, "allow_inject", False))
+                           allow_inject=getattr(a, "allow_inject", False),
+                           allow_background=getattr(a, "allow_background", False))
 
         if a.verb == "look":
             ws = svc.look(frame=a.frame, source=None)

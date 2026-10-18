@@ -1,0 +1,19 @@
+[INFO] 2026-10-18 21:09:27,848 [RapidOCR] base.py:23: Using engine_name: onnxruntime
+[INFO] 2026-10-18 21:09:27,867 [RapidOCR] download_file.py:60: File exists and is valid: /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx
+[INFO] 2026-10-18 21:09:27,867 [RapidOCR] main.py:63: Using /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx
+[INFO] 2026-10-18 21:09:28,113 [RapidOCR] base.py:23: Using engine_name: onnxruntime
+[INFO] 2026-10-18 21:09:28,124 [RapidOCR] download_file.py:60: File exists and is valid: /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx
+[INFO] 2026-10-18 21:09:28,124 [RapidOCR] main.py:63: Using /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx
+{"frame": "0101.jpg", "ms": 1193.3626360005292, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0102.jpg", "ms": 287.4444469998707, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0103.jpg", "ms": 406.3898429994879, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0104.jpg", "ms": 473.2854249996308, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0105.jpg", "ms": 489.4239339992055, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0106.jpg", "ms": 437.34984299953794, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0107.jpg", "ms": 545.7442270017054, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0108.jpg", "ms": 397.2713039984228, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0109.jpg", "ms": 423.58765399694676, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0110.jpg", "ms": 420.80429600173375, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0111.jpg", "ms": 417.22445499908645, "tiles_ocr": 4, "tiles_hit": 0}
+{"frame": "0112.jpg", "ms": 401.91896600299515, "tiles_ocr": 4, "tiles_hit": 0}
+{"variant": "incremental_2x2", "frames": 12, "cold_ms": 1193.4, "warm_median_ms": 420.8, "warm_min_ms": 287.4, "warm_max_ms": 545.7, "tiles_ocr_median": 4, "tiles_total": 4}

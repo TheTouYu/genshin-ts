@@ -1,0 +1,111 @@
+{"frame": "v000_0001.jpg", "base_ms": 884.6, "cold_ms": 40.9, "warm_ms": 37.8, "det_ms": 148.1, "rec_ms": 723.8, "n_objects": 76, "n_cached_warm": 0, "recall_cold": 0.9872, "err": null}
+{"frame": "v001_0002.jpg", "base_ms": 621.8, "cold_ms": 421.2, "warm_ms": 45.4, "det_ms": 133.1, "rec_ms": 242.0, "n_objects": 51, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v002_0003.jpg", "base_ms": 546.3, "cold_ms": 364.3, "warm_ms": 37.8, "det_ms": 132.2, "rec_ms": 175.9, "n_objects": 40, "n_cached_warm": 5, "recall_cold": 0.9875, "err": null}
+{"frame": "v003_0006.jpg", "base_ms": 465.5, "cold_ms": 287.5, "warm_ms": 36.6, "det_ms": 124.1, "rec_ms": 125.8, "n_objects": 19, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v004_0012.jpg", "base_ms": 521.1, "cold_ms": 314.6, "warm_ms": 43.8, "det_ms": 135.0, "rec_ms": 131.8, "n_objects": 33, "n_cached_warm": 1, "recall_cold": 0.9935, "err": null}
+{"frame": "v005_0025.jpg", "base_ms": 707.8, "cold_ms": 518.0, "warm_ms": 45.7, "det_ms": 139.8, "rec_ms": 334.0, "n_objects": 77, "n_cached_warm": 0, "recall_cold": 0.9937, "err": null}
+{"frame": "v006_0030.jpg", "base_ms": 490.5, "cold_ms": 315.1, "warm_ms": 39.2, "det_ms": 131.7, "rec_ms": 140.8, "n_objects": 27, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v007_0042.jpg", "base_ms": 561.5, "cold_ms": 413.9, "warm_ms": 41.9, "det_ms": 148.8, "rec_ms": 226.8, "n_objects": 53, "n_cached_warm": 2, "recall_cold": 0.9858, "err": null}
+{"frame": "v008_0050.jpg", "base_ms": 419.2, "cold_ms": 282.4, "warm_ms": 39.1, "det_ms": 138.9, "rec_ms": 105.8, "n_objects": 14, "n_cached_warm": 0, "recall_cold": 0.9875, "err": null}
+{"frame": "v009_0052.jpg", "base_ms": 451.3, "cold_ms": 272.1, "warm_ms": 39.4, "det_ms": 122.9, "rec_ms": 109.6, "n_objects": 17, "n_cached_warm": 0, "recall_cold": 0.9884, "err": null}
+{"frame": "v010_0055.jpg", "base_ms": 548.3, "cold_ms": 377.9, "warm_ms": 36.0, "det_ms": 131.7, "rec_ms": 202.8, "n_objects": 39, "n_cached_warm": 0, "recall_cold": 0.9904, "err": null}
+{"frame": "v011_0080.jpg", "base_ms": 494.6, "cold_ms": 49.6, "warm_ms": 36.6, "det_ms": 127.5, "rec_ms": 228.8, "n_objects": 37, "n_cached_warm": 0, "recall_cold": 0.9804, "err": null}
+{"frame": "v012_0086.jpg", "base_ms": 466.8, "cold_ms": 347.1, "warm_ms": 38.5, "det_ms": 133.8, "rec_ms": 168.8, "n_objects": 30, "n_cached_warm": 0, "recall_cold": 0.9822, "err": null}
+{"frame": "v013_0089.jpg", "base_ms": 410.1, "cold_ms": 283.9, "warm_ms": 39.3, "det_ms": 131.2, "rec_ms": 106.5, "n_objects": 20, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v014_0094.jpg", "base_ms": 633.6, "cold_ms": 377.5, "warm_ms": 41.9, "det_ms": 129.4, "rec_ms": 204.9, "n_objects": 45, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v015_0105.jpg", "base_ms": 506.4, "cold_ms": 370.0, "warm_ms": 34.4, "det_ms": 129.7, "rec_ms": 202.4, "n_objects": 38, "n_cached_warm": 0, "recall_cold": 0.9679, "err": null}
+{"frame": "v016_0114.jpg", "base_ms": 537.2, "cold_ms": 392.0, "warm_ms": 35.5, "det_ms": 150.0, "rec_ms": 195.2, "n_objects": 44, "n_cached_warm": 0, "recall_cold": 0.9819, "err": null}
+{"frame": "v017_0117.jpg", "base_ms": 759.3, "cold_ms": 484.4, "warm_ms": 37.2, "det_ms": 142.3, "rec_ms": 299.6, "n_objects": 107, "n_cached_warm": 0, "recall_cold": 0.9866, "err": null}
+{"frame": "v018_0172.jpg", "base_ms": 925.2, "cold_ms": 561.1, "warm_ms": 40.6, "det_ms": 146.5, "rec_ms": 369.3, "n_objects": 155, "n_cached_warm": 0, "recall_cold": 0.9877, "err": null}
+{"frame": "v019_0196.jpg", "base_ms": 977.2, "cold_ms": 637.0, "warm_ms": 45.5, "det_ms": 154.6, "rec_ms": 422.3, "n_objects": 170, "n_cached_warm": 29, "recall_cold": 0.9916, "err": null}
+{"frame": "v020_0197.jpg", "base_ms": 917.4, "cold_ms": 469.1, "warm_ms": 41.3, "det_ms": 154.1, "rec_ms": 269.8, "n_objects": 146, "n_cached_warm": 47, "recall_cold": 0.9917, "err": null}
+{"frame": "v021_0206.jpg", "base_ms": 895.2, "cold_ms": 558.3, "warm_ms": 41.9, "det_ms": 165.5, "rec_ms": 346.4, "n_objects": 142, "n_cached_warm": 21, "recall_cold": 0.9899, "err": null}
+{"frame": "v022_0211.jpg", "base_ms": 622.2, "cold_ms": 39.9, "warm_ms": 35.5, "det_ms": 149.8, "rec_ms": 338.2, "n_objects": 69, "n_cached_warm": 0, "recall_cold": 0.9931, "err": null}
+{"frame": "v023_0219.jpg", "base_ms": 536.4, "cold_ms": 374.0, "warm_ms": 36.8, "det_ms": 128.0, "rec_ms": 205.2, "n_objects": 45, "n_cached_warm": 0, "recall_cold": 0.9956, "err": null}
+{"frame": "v024_0226.jpg", "base_ms": 525.1, "cold_ms": 363.9, "warm_ms": 36.9, "det_ms": 136.5, "rec_ms": 183.1, "n_objects": 48, "n_cached_warm": 0, "recall_cold": 0.9945, "err": null}
+{"frame": "v025_0235.jpg", "base_ms": 466.7, "cold_ms": 352.9, "warm_ms": 36.1, "det_ms": 130.2, "rec_ms": 185.4, "n_objects": 34, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v026_0236.jpg", "base_ms": 541.2, "cold_ms": 355.4, "warm_ms": 38.7, "det_ms": 132.3, "rec_ms": 185.8, "n_objects": 44, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v027_0248.jpg", "base_ms": 669.6, "cold_ms": 491.3, "warm_ms": 40.0, "det_ms": 134.7, "rec_ms": 315.5, "n_objects": 71, "n_cached_warm": 0, "recall_cold": 0.9942, "err": null}
+{"frame": "v028_0253.jpg", "base_ms": 583.0, "cold_ms": 409.2, "warm_ms": 37.5, "det_ms": 136.6, "rec_ms": 223.1, "n_objects": 49, "n_cached_warm": 3, "recall_cold": 0.9905, "err": null}
+{"frame": "v029_0267.jpg", "base_ms": 649.4, "cold_ms": 352.1, "warm_ms": 36.1, "det_ms": 144.1, "rec_ms": 166.9, "n_objects": 39, "n_cached_warm": 6, "recall_cold": 0.9875, "err": null}
+{"frame": "v030_0268.jpg", "base_ms": 535.5, "cold_ms": 388.2, "warm_ms": 38.9, "det_ms": 131.1, "rec_ms": 215.8, "n_objects": 43, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v031_0273.jpg", "base_ms": 500.0, "cold_ms": 293.4, "warm_ms": 36.2, "det_ms": 131.2, "rec_ms": 123.6, "n_objects": 28, "n_cached_warm": 0, "recall_cold": 0.9406, "err": null}
+{"frame": "v032_0293.jpg", "base_ms": 527.9, "cold_ms": 385.8, "warm_ms": 37.0, "det_ms": 132.7, "rec_ms": 213.2, "n_objects": 38, "n_cached_warm": 1, "recall_cold": 0.9693, "err": null}
+{"frame": "v033_0296.jpg", "base_ms": 597.4, "cold_ms": 39.8, "warm_ms": 36.5, "det_ms": 133.8, "rec_ms": 346.2, "n_objects": 56, "n_cached_warm": 0, "recall_cold": 0.977, "err": null}
+{"frame": "v034_0300.jpg", "base_ms": 454.6, "cold_ms": 379.1, "warm_ms": 41.4, "det_ms": 136.2, "rec_ms": 203.4, "n_objects": 42, "n_cached_warm": 3, "recall_cold": 0.9709, "err": null}
+{"frame": "v035_0304.jpg", "base_ms": 578.5, "cold_ms": 420.2, "warm_ms": 37.6, "det_ms": 131.7, "rec_ms": 246.7, "n_objects": 57, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v036_0305.jpg", "base_ms": 710.5, "cold_ms": 437.8, "warm_ms": 40.1, "det_ms": 142.7, "rec_ms": 253.9, "n_objects": 80, "n_cached_warm": 0, "recall_cold": 0.9959, "err": null}
+{"frame": "v037_0315.jpg", "base_ms": 635.9, "cold_ms": 501.1, "warm_ms": 42.2, "det_ms": 137.3, "rec_ms": 323.0, "n_objects": 72, "n_cached_warm": 1, "recall_cold": 0.9932, "err": null}
+{"frame": "v038_0319.jpg", "base_ms": 667.4, "cold_ms": 428.9, "warm_ms": 44.3, "det_ms": 137.8, "rec_ms": 248.3, "n_objects": 74, "n_cached_warm": 17, "recall_cold": 0.9933, "err": null}
+{"frame": "v039_0320.jpg", "base_ms": 689.8, "cold_ms": 415.6, "warm_ms": 40.5, "det_ms": 137.0, "rec_ms": 231.4, "n_objects": 75, "n_cached_warm": 15, "recall_cold": 0.9859, "err": null}
+{"frame": "v040_0325.jpg", "base_ms": 766.3, "cold_ms": 436.3, "warm_ms": 37.1, "det_ms": 142.3, "rec_ms": 246.6, "n_objects": 85, "n_cached_warm": 17, "recall_cold": 0.9948, "err": null}
+{"frame": "v041_0329.jpg", "base_ms": 673.0, "cold_ms": 1576.3, "warm_ms": 746.1, "det_ms": 316.8, "rec_ms": 308.4, "n_objects": 61, "n_cached_warm": 0, "recall_cold": 0.9915, "err": null}
+{"frame": "v042_0331.jpg", "base_ms": 880.7, "cold_ms": 1220.9, "warm_ms": 48.9, "det_ms": 218.1, "rec_ms": 357.3, "n_objects": 90, "n_cached_warm": 0, "recall_cold": 0.9866, "err": null}
+{"frame": "v043_0334.jpg", "base_ms": 827.9, "cold_ms": 515.6, "warm_ms": 47.7, "det_ms": 162.3, "rec_ms": 300.9, "n_objects": 101, "n_cached_warm": 17, "recall_cold": 1.0, "err": null}
+{"frame": "v044_0335.jpg", "base_ms": 823.6, "cold_ms": 45.4, "warm_ms": 40.5, "det_ms": 131.7, "rec_ms": 295.8, "n_objects": 81, "n_cached_warm": 0, "recall_cold": 0.9932, "err": null}
+{"frame": "v045_0339.jpg", "base_ms": 548.1, "cold_ms": 436.7, "warm_ms": 49.8, "det_ms": 148.0, "rec_ms": 242.3, "n_objects": 54, "n_cached_warm": 4, "recall_cold": 0.9826, "err": null}
+{"frame": "v046_0414.jpg", "base_ms": 705.6, "cold_ms": 471.1, "warm_ms": 43.8, "det_ms": 150.5, "rec_ms": 274.2, "n_objects": 81, "n_cached_warm": 3, "recall_cold": 0.9902, "err": null}
+{"frame": "v047_0423.jpg", "base_ms": 706.6, "cold_ms": 483.1, "warm_ms": 40.3, "det_ms": 150.0, "rec_ms": 282.5, "n_objects": 74, "n_cached_warm": 0, "recall_cold": 0.9951, "err": null}
+{"frame": "v048_0426.jpg", "base_ms": 707.6, "cold_ms": 435.0, "warm_ms": 40.3, "det_ms": 137.7, "rec_ms": 249.9, "n_objects": 80, "n_cached_warm": 0, "recall_cold": 0.9924, "err": null}
+{"frame": "v049_0428.jpg", "base_ms": 430.8, "cold_ms": 324.4, "warm_ms": 39.9, "det_ms": 160.2, "rec_ms": 123.6, "n_objects": 12, "n_cached_warm": 0, "recall_cold": 0.9813, "err": null}
+{"frame": "v050_0429.jpg", "base_ms": 477.8, "cold_ms": 307.6, "warm_ms": 40.6, "det_ms": 134.2, "rec_ms": 134.6, "n_objects": 13, "n_cached_warm": 0, "recall_cold": 0.9818, "err": null}
+{"frame": "v051_0452.jpg", "base_ms": 519.4, "cold_ms": 300.5, "warm_ms": 40.2, "det_ms": 132.4, "rec_ms": 127.5, "n_objects": 17, "n_cached_warm": 0, "recall_cold": 0.9919, "err": null}
+{"frame": "v052_0453.jpg", "base_ms": 503.0, "cold_ms": 463.9, "warm_ms": 43.8, "det_ms": 125.5, "rec_ms": 296.0, "n_objects": 17, "n_cached_warm": 0, "recall_cold": 0.9919, "err": null}
+{"frame": "v053_0454.jpg", "base_ms": 528.7, "cold_ms": 308.4, "warm_ms": 48.9, "det_ms": 144.3, "rec_ms": 120.9, "n_objects": 17, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v054_0455.jpg", "base_ms": 416.5, "cold_ms": 310.9, "warm_ms": 45.0, "det_ms": 152.8, "rec_ms": 116.2, "n_objects": 9, "n_cached_warm": 0, "recall_cold": 0.9821, "err": null}
+{"frame": "v055_0456.jpg", "base_ms": 398.0, "cold_ms": 117.4, "warm_ms": 555.9, "det_ms": 131.6, "rec_ms": 102.8, "n_objects": 24, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v056_0457.jpg", "base_ms": 525.5, "cold_ms": 330.6, "warm_ms": 39.8, "det_ms": 140.9, "rec_ms": 145.7, "n_objects": 26, "n_cached_warm": 0, "recall_cold": 0.9773, "err": null}
+{"frame": "v057_0458.jpg", "base_ms": 527.5, "cold_ms": 366.7, "warm_ms": 622.6, "det_ms": 128.6, "rec_ms": 129.5, "n_objects": 32, "n_cached_warm": 0, "recall_cold": 0.9896, "err": null}
+{"frame": "v058_0459.jpg", "base_ms": 384.8, "cold_ms": 248.6, "warm_ms": 178.2, "det_ms": 126.4, "rec_ms": 87.3, "n_objects": 7, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v059_0460.jpg", "base_ms": 1057.8, "cold_ms": 896.9, "warm_ms": 44.1, "det_ms": 128.3, "rec_ms": 133.1, "n_objects": 15, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v060_0461.jpg", "base_ms": 575.2, "cold_ms": 422.6, "warm_ms": 43.0, "det_ms": 147.8, "rec_ms": 223.1, "n_objects": 38, "n_cached_warm": 0, "recall_cold": 0.9943, "err": null}
+{"frame": "v061_0462.jpg", "base_ms": 544.7, "cold_ms": 372.3, "warm_ms": 47.7, "det_ms": 135.6, "rec_ms": 193.4, "n_objects": 39, "n_cached_warm": 0, "recall_cold": 0.9943, "err": null}
+{"frame": "v062_0463.jpg", "base_ms": 531.8, "cold_ms": 370.2, "warm_ms": 40.9, "det_ms": 135.7, "rec_ms": 189.2, "n_objects": 37, "n_cached_warm": 2, "recall_cold": 0.9756, "err": null}
+{"frame": "v063_0464.jpg", "base_ms": 543.1, "cold_ms": 369.2, "warm_ms": 43.9, "det_ms": 139.0, "rec_ms": 183.0, "n_objects": 39, "n_cached_warm": 6, "recall_cold": 0.963, "err": null}
+{"frame": "v064_0466.jpg", "base_ms": 356.9, "cold_ms": 273.1, "warm_ms": 45.7, "det_ms": 126.0, "rec_ms": 103.2, "n_objects": 8, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v065_0467.jpg", "base_ms": 474.9, "cold_ms": 315.6, "warm_ms": 42.5, "det_ms": 138.4, "rec_ms": 132.2, "n_objects": 21, "n_cached_warm": 0, "recall_cold": 1.0, "err": null}
+{"frame": "v066_0468.jpg", "base_ms": 474.5, "cold_ms": 191.9, "warm_ms": 39.6, "det_ms": 145.0, "rec_ms": 0.0, "n_objects": 22, "n_cached_warm": 22, "recall_cold": 0.9914, "err": null}
+{"frame": "v067_0469.jpg", "base_ms": 412.4, "cold_ms": 285.1, "warm_ms": 40.3, "det_ms": 133.3, "rec_ms": 112.8, "n_objects": 24, "n_cached_warm": 0, "recall_cold": 0.9918, "err": null}
+{"frame": "v068_0470.jpg", "base_ms": 412.4, "cold_ms": 277.7, "warm_ms": 48.8, "det_ms": 122.0, "rec_ms": 115.1, "n_objects": 21, "n_cached_warm": 0, "recall_cold": 0.9912, "err": null}
+{"frame": "v069_0471.jpg", "base_ms": 506.0, "cold_ms": 405.4, "warm_ms": 48.3, "det_ms": 151.8, "rec_ms": 201.3, "n_objects": 40, "n_cached_warm": 0, "recall_cold": 0.9831, "err": null}
+{"frame": "v070_0472.jpg", "base_ms": 576.7, "cold_ms": 394.5, "warm_ms": 42.3, "det_ms": 144.1, "rec_ms": 200.2, "n_objects": 41, "n_cached_warm": 0, "recall_cold": 0.9831, "err": null}
+{"frame": "v071_0476.jpg", "base_ms": 533.5, "cold_ms": 380.1, "warm_ms": 39.2, "det_ms": 137.5, "rec_ms": 193.7, "n_objects": 37, "n_cached_warm": 0, "recall_cold": 0.9689, "err": null}
+{"frame": "v072_0477.jpg", "base_ms": 465.1, "cold_ms": 309.3, "warm_ms": 36.6, "det_ms": 133.9, "rec_ms": 130.3, "n_objects": 36, "n_cached_warm": 6, "recall_cold": 0.9812, "err": null}
+{"frame": "v073_0478.jpg", "base_ms": 428.5, "cold_ms": 366.4, "warm_ms": 45.0, "det_ms": 133.7, "rec_ms": 190.0, "n_objects": 40, "n_cached_warm": 1, "recall_cold": 0.9879, "err": null}
+{"frame": "v074_0480.jpg", "base_ms": 475.1, "cold_ms": 402.1, "warm_ms": 49.0, "det_ms": 129.6, "rec_ms": 228.7, "n_objects": 42, "n_cached_warm": 0, "recall_cold": 0.9884, "err": null}
+{"frame": "v075_0481.jpg", "base_ms": 505.4, "cold_ms": 352.9, "warm_ms": 45.2, "det_ms": 129.8, "rec_ms": 175.1, "n_objects": 40, "n_cached_warm": 2, "recall_cold": 0.9944, "err": null}
+{"frame": "v076_0482.jpg", "base_ms": 520.8, "cold_ms": 357.8, "warm_ms": 43.4, "det_ms": 143.9, "rec_ms": 166.5, "n_objects": 40, "n_cached_warm": 7, "recall_cold": 0.9884, "err": null}
+{"frame": "v077_0485.jpg", "base_ms": 456.5, "cold_ms": 192.8, "warm_ms": 40.2, "det_ms": 150.7, "rec_ms": 0.0, "n_objects": 11, "n_cached_warm": 11, "recall_cold": 1.0, "err": null}
+{"frame": "v078_0487.jpg", "base_ms": 488.2, "cold_ms": 309.8, "warm_ms": 40.4, "det_ms": 126.5, "rec_ms": 135.8, "n_objects": 31, "n_cached_warm": 0, "recall_cold": 0.9914, "err": null}
+{"frame": "v079_0489.jpg", "base_ms": 502.1, "cold_ms": 327.9, "warm_ms": 42.6, "det_ms": 143.3, "rec_ms": 144.3, "n_objects": 27, "n_cached_warm": 0, "recall_cold": 0.9792, "err": null}
+{"frame": "v080_0492.jpg", "base_ms": 542.4, "cold_ms": 332.1, "warm_ms": 40.7, "det_ms": 124.5, "rec_ms": 160.3, "n_objects": 28, "n_cached_warm": 0, "recall_cold": 0.9948, "err": null}
+{"frame": "v081_0493.jpg", "base_ms": 526.6, "cold_ms": 407.4, "warm_ms": 45.5, "det_ms": 169.7, "rec_ms": 185.3, "n_objects": 40, "n_cached_warm": 0, "recall_cold": 0.9943, "err": null}
+{"frame": "v082_0494.jpg", "err": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"}
+{"frame": "v083_0495.jpg", "err": "ConnectionResetError: [Errno 104] Connection reset by peer"}
+{"frame": "v084_0508.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v085_0509.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v086_0510.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v087_0512.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v088_0513.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v089_0514.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v090_0515.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v091_0516.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v092_0517.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v093_0518.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v094_0519.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v095_0520.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v096_0521.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v097_0522.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v098_0525.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v099_0526.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v100_0527.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v101_0529.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v102_0530.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v103_0531.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v104_0532.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v105_0535.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v106_0539.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v107_0541.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v108_0542.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"frame": "v109_0547.jpg", "err": "ConnectionRefusedError: [Errno 111] Connection refused"}
+{"corpus": "reps", "sequence": false, "n": 82, "errors": 28, "base_ms_median": 535.5, "cold_ms_median": 370.0, "warm_ms_median": 40.6, "det_ms_median": 136.5, "rec_ms_median": 195.2, "objects_median": 40, "recall_cold_min": 0.9406, "recall_cold_mean": 0.9892, "recall_warm_min": 0.9406, "recall_warm_mean": 0.9892, "cache_hit_rate_warm": 0.0632}

@@ -555,6 +555,204 @@ def _world_ocr(arr, sha):
     return boxes, {"source": "engine", "ms": ms, "n": len(boxes), "err": None}
 
 
+# ── 按对象 OCR（2026-10-18 新增；票 25/33 的「分块并行 + 内容寻址缓存」落地形态）──────
+# 为什么放常驻进程：引擎加载 + CUDA context 约 9s，只该付一次；切片 OCR 的瓶颈是
+# rec（2–9ms/框）+ 预处理，而**静止 UI 的对象切片逐字节不变** ⇒ 按切片内容寻址缓存，
+# 增量帧只算变了的对象（实测同一屏二次 14ms 级）。
+_OBJ_CACHE = {}                      # sha16(crop)+ruleset -> {'text','score'}
+_OBJ_FRAME_CACHE = {}                # frame_sha+det_max+ruleset -> 整个对象结果（同帧二次 ~ms）
+_OBJ_CACHE_MAX = 8000
+_OBJ_RULESET = 'objocr-v1'           # 改切片/归一/模型必须 +1（否则旧缓存被当新结果）
+# rec 批大小上限（**实测事实，别再加**）：本机 6GB 显存、游戏 1.9GB + lookd 2.1GB ⇒ 可用 ~1.5GB；
+# rec_batch_num=32 实测 ONNXRuntimeError（BFCArena 申请 187–203MB 失败）；16 可跑但余量小 ⇒ 默认 8。
+_REC_BATCH = max(1, min(16, int(os.environ.get('YS_LOOKD_REC_BATCH', '8'))))
+_REC_BATCH_HARD_CAP = 16              # 32 实测 OOM；不要调高
+# 小字号兜底（Lead 2026-10-18 裁决）：对象字高 < SMALL_FONT_H 的占比 ≥ SMALL_FONT_RATIO 时
+# 回退全帧 OCR（多付 50–100ms 的帧才付）。阈值可 env 覆盖，bench 里给触发率与触发帧召回。
+_SMALL_FONT_H = int(os.environ.get('YS_LOOKD_SMALL_FONT_H', '20'))
+_SMALL_FONT_RATIO = float(os.environ.get('YS_LOOKD_SMALL_FONT_RATIO', '0.35'))
+_VRAM_LAST = {'ts': 0.0, 'free_mb': -1}
+
+
+def _vram_free_mb():
+    """nvidia-smi 空闲显存（节流 3s；查不到返回 -1，不阻塞）。"""
+    now = time.time()
+    if now - _VRAM_LAST['ts'] < 3.0:
+        return _VRAM_LAST['free_mb']
+    try:
+        out = subprocess.run(['nvidia-smi', '--query-gpu=memory.free', '--format=csv,noheader,nounits'],
+                             capture_output=True, text=True, timeout=4).stdout.strip()
+        _VRAM_LAST['free_mb'] = int(out.splitlines()[0])
+    except Exception:                                     # noqa: BLE001
+        _VRAM_LAST['free_mb'] = -1
+    _VRAM_LAST['ts'] = now
+    return _VRAM_LAST['free_mb']
+
+
+def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
+                      max_objects=200):
+    """按对象 OCR 核心：整帧 det 一次 → 每个对象切片 rec（并行 + 内容寻址缓存 + 帧级缓存）。
+
+    输入是 **RGB uint8 数组**（命令路径从文件读、world 路径直接用内存帧，避免落盘）。
+    返回里 det_ms / rec_ms / crop_ms / cache 命中分开报——**缓存命中不是计算变快**。
+    """
+    import hashlib
+    import threading
+    import numpy as np
+    from rapidocr.utils.process_img import get_rotate_crop_image
+    from rapidocr.ch_ppocr_rec.typings import TextRecInput
+    eng, err = _ocr_engine()
+    if eng is None:
+        return {"error": f"OCR 不可用: {err}", "code": "OCR_UNAVAILABLE"}
+    t0 = time.time()
+    bgr = np.ascontiguousarray(arr[..., ::-1])            # 引擎约定 BGR（同 _world_ocr）
+    # 帧级缓存：同一帧（同 det_max/ruleset）直接回整个结果——省掉 det ~140ms
+    if not frame_sha:
+        frame_sha = hashlib.sha256(np.ascontiguousarray(arr).tobytes()).hexdigest()[:24]
+    fkey = f"{frame_sha}:{int(det_max)}:{_OBJ_RULESET}"
+    if cache and fkey in _OBJ_FRAME_CACHE:
+        hit = dict(_OBJ_FRAME_CACHE[fkey])
+        hit['total_ms'] = round((time.time() - t0) * 1000, 1)
+        hit['frame_cache'] = True
+        hit['n_cached'] = len(hit.get('objects') or [])
+        return hit
+    det = eng.text_det or eng._load_det_model()
+    _prev = (det.limit_type, det.limit_side_len)          # 共享引擎：用完必须还原
+    det.limit_type = 'max'
+    det.limit_side_len = int(det_max)
+    t1 = time.time()
+    try:
+        d = eng.text_det(bgr)
+    finally:
+        det.limit_type, det.limit_side_len = _prev
+    det_ms = round((time.time() - t1) * 1000, 1)
+    boxes = [] if d.boxes is None else [np.array(b, copy=True) for b in d.boxes][:int(max_objects)]
+    objects = [None] * len(boxes)
+    todo = []
+    t2 = time.time()
+    for i, b in enumerate(boxes):
+        crop = get_rotate_crop_image(bgr, b)
+        key = hashlib.sha256(np.ascontiguousarray(crop).tobytes()).hexdigest()[:20] + ':' + _OBJ_RULESET
+        hit = _OBJ_CACHE.get(key) if cache else None
+        bb = [int(b[:, 0].min()), int(b[:, 1].min()),
+              int(b[:, 0].max() - b[:, 0].min()), int(b[:, 1].max() - b[:, 1].min())]
+        if hit is not None:
+            objects[i] = {'i': i, 'bbox': bb, 'text': hit['text'], 'score': hit['score'],
+                          'cached': True}
+        else:
+            todo.append((i, key, crop, bb))
+    crop_ms = round((time.time() - t2) * 1000, 1)
+    free = _vram_free_mb()
+    batch = _REC_BATCH if not (0 <= free < 300) else 4
+    if 0 <= free < 120:
+        return {"error": f"显存不足（free={free}MB <120MB），拒绝 OCR 以免 OOM",
+                "code": "VRAM_LOW", "det_ms": det_ms, "free_mb": free}
+    threads = max(1, min(int(parallel or 4), 8))
+    rec_ms = 0.0
+    if todo:
+        chunks = [todo[i::threads] for i in range(threads)] if threads > 1 else [todo]
+        rec = eng.text_rec or eng._load_rec_model()
+        rec.rec_batch_num = min(batch, _REC_BATCH_HARD_CAP)
+        out = [None] * len(chunks)
+        errs = [None] * len(chunks)
+        t3 = time.time()
+
+        def work(k):
+            try:
+                items = chunks[k]
+                r = rec(TextRecInput(img=[c for _, _, c, _ in items], return_word_box=False))
+                txts = list(r.txts or [])
+                scs = list(r.scores or [])
+                out[k] = [(items[j][0], items[j][1], txts[j] if j < len(txts) else '',
+                           float(scs[j]) if j < len(scs) else 0.0, items[j][3])
+                          for j in range(len(items))]
+            except Exception as e:                        # noqa: BLE001
+                errs[k] = f'{type(e).__name__}: {e}'
+        th = [threading.Thread(target=work, args=(k,)) for k in range(len(chunks))]
+        [t.start() for t in th]
+        [t.join() for t in th]
+        rec_ms = round((time.time() - t3) * 1000, 1)
+        for k, got in enumerate(out):
+            if errs[k] and not got:
+                return {"error": f"rec 失败: {errs[k]}", "code": "REC_FAILED",
+                        "det_ms": det_ms, "free_mb": free}
+            for (i, key, txt, sc, bb) in (got or []):
+                objects[i] = {'i': i, 'bbox': bb, 'text': txt, 'score': round(sc, 4),
+                              'cached': False}
+                if cache and len(_OBJ_CACHE) < _OBJ_CACHE_MAX:
+                    _OBJ_CACHE[key] = {'text': txt, 'score': round(sc, 4)}
+    objects = [o for o in objects if o is not None]
+    res = {'objects': objects, 'n_objects': len(objects), 'n_ocr': len(todo),
+           'n_cached': len(objects) - len(todo), 'det_ms': det_ms, 'rec_ms': rec_ms,
+           'crop_ms': crop_ms, 'total_ms': round((time.time() - t0) * 1000, 1),
+           'ruleset': _OBJ_RULESET, 'rec_batch': min(batch, _REC_BATCH_HARD_CAP),
+           'parallel': threads, 'free_mb': free, 'cache_size': len(_OBJ_CACHE),
+           'frame_sha': frame_sha, 'frame_cache': False}
+    if cache:
+        if len(_OBJ_FRAME_CACHE) > 64:
+            _OBJ_FRAME_CACHE.clear()
+        _OBJ_FRAME_CACHE[fkey] = dict(res)
+    return res
+
+
+def _ocr_objects(req):
+    """cmd="ocr_objects"：从文件读帧 → 按对象 OCR（核心见 _ocr_objects_core）。"""
+    import numpy as np
+    from PIL import Image
+    if req.get("reset"):
+        _OBJ_CACHE.clear()
+        _OBJ_FRAME_CACHE.clear()
+    frame = req.get("frame")
+    if not frame or not os.path.isfile(frame):
+        return {"error": f"ocr_objects 需要存在的 frame 路径（收到 {frame!r}）", "code": "BAD_FRAME"}
+    try:
+        arr = np.asarray(Image.open(frame).convert('RGB'))
+    except Exception as e:                                # noqa: BLE001
+        return {"error": f"读帧失败: {type(e).__name__}: {e}", "code": "BAD_FRAME"}
+    return _ocr_objects_core(arr, frame_sha=req.get("frame_sha"),
+                             det_max=int(req.get("det_max") or 2000),
+                             parallel=int(req.get("parallel") or 4),
+                             cache=bool(req.get("cache", True)),
+                             max_objects=int(req.get("max_objects") or 200))
+
+
+def _world_ocr_objects(arr, sha, force_fallback=False):
+    """世界状态的文本来源：**按对象 OCR**（切片并行 + 内容寻址缓存），小字号过多时回退全帧。
+
+    为什么换（Lead 2026-10-18 裁决 + 实测）：全帧 det 单项 130–150ms，是 world 里 OCR 的硬地板；
+    同一屏反复看时对象切片逐字节不变 ⇒ 帧级缓存命中后 **39–43ms**（110 帧中位）。
+    兜底判据：对象字高 < _SMALL_FONT_H 的占比 ≥ _SMALL_FONT_RATIO ⇒ 走全帧 OCR（与旧口径同源）。
+    """
+    res = _ocr_objects_core(arr, frame_sha=sha)
+    if res.get("error"):
+        boxes, meta = _world_ocr(arr, sha)                 # 新路径失败 → 保守回退旧路径
+        return boxes, dict(meta, fallback="objects_failed",
+                           objects_err=str(res.get("error"))[:200])
+    objs = res.get("objects") or []
+    hs = [int(o["bbox"][3]) for o in objs if o.get("bbox")]
+    small_ratio = (sum(1 for h in hs if h < _SMALL_FONT_H) / len(hs)) if hs else 0.0
+    base_meta = {"source": "objects", "ms": res.get("total_ms"), "det_ms": res.get("det_ms"),
+                 "rec_ms": res.get("rec_ms"), "n": len(objs),
+                 "n_cached": res.get("n_cached"), "frame_cache": res.get("frame_cache"),
+                 "small_font_h": _SMALL_FONT_H, "small_ratio": round(small_ratio, 4),
+                 "rec_batch": res.get("rec_batch"), "err": None}
+    if force_fallback or small_ratio >= _SMALL_FONT_RATIO:
+        t0 = time.time()
+        boxes, meta = _world_ocr(arr, sha)                 # 全帧兜底（与旧口径同源）
+        merged = dict(meta)                                # meta 里已有 source="engine|cache"，先拷再覆盖
+        merged.update({k: v for k, v in base_meta.items() if k != "source"})
+        merged.update(source="objects+fullframe_fallback", fallback=True,
+                      fallback_ms=round((time.time() - t0) * 1000, 1))
+        return boxes, merged
+    boxes = []
+    for o in objs:
+        x, y, w, h = [int(v) for v in o["bbox"]]
+        boxes.append({"text": o["text"], "cx": x + w // 2, "cy": y + h // 2,
+                      "score": o.get("score"),
+                      "box": [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]})
+    return boxes, dict(base_meta, fallback=False)
+
+
 def _ys_attrib():
     """按需 import 快速归属模块（X11/EWMH，~20ms）；失败返回 None。"""
     global _YS_ATTR_MOD
@@ -580,6 +778,34 @@ def _world_attrib():
     except Exception as e:                                  # noqa: BLE001
         return {"checked": False, "verdict": "UNKNOWN",
                 "error": f"{type(e).__name__}: {e}"}
+
+
+def _capture_frame_via_ys_capture():
+    """经 ys-capture 取一帧（常驻 XShm，~13ms）；归属用它的 KWin 权威结论。失败 fail-closed。"""
+    import numpy as np
+    import subprocess as _sp
+    from PIL import Image
+    here = os.path.dirname(os.path.abspath(__file__))
+    out = "/dev/shm/ys-lookd-frame-%d.bmp" % os.getpid()
+    cmd = [os.path.join(here, "ys-capture"), "latest", "--out", out, "--format", "bmp"]
+    if os.environ.get("YS_LOOKD_ALLOW_BACKGROUND") == "1":
+        cmd.append("--allow-background")
+    p = _sp.run(cmd, capture_output=True, text=True, timeout=20,
+                env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY") or ":1"))
+    try:
+        meta = json.loads((p.stdout or "").strip().splitlines()[-1]) if p.stdout.strip() else {}
+    except ValueError:
+        meta = {}
+    if p.returncode != 0:
+        raise WorldAttribError({"verdict": meta.get("error") or "CAPTURE_FAILED",
+                                "detail": meta.get("detail") or (p.stderr or "")[-300:],
+                                "rc": p.returncode, "src": "ys-capture"})
+    arr = np.asarray(Image.open(out).convert("RGB"), dtype=np.uint8)
+    attr = dict(meta.get("attribution") or {})
+    attr.setdefault("src", "ys-capture")
+    attr["capture_ms"] = meta.get("ms")
+    attr["frame"] = meta.get("frame")
+    return arr, attr
 
 
 def _world_frame(req):
@@ -635,11 +861,18 @@ def _world_frame(req):
                     _WORLD_FRAME.get("attrib"))
     else:
         # live：先做归属校验（票 34），不过就**不抓**（fail-closed，不返回像素）
-        attr = _world_attrib()
-        if attr.get("verdict") != "OK":
-            raise WorldAttribError(attr)
-        YS = ys_state()
-        arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
+        # 帧源两条（显式开关 YS_LOOKD_FRAME_SRC）：
+        #   · default    = YL.grab（import -window，~100ms）
+        #   · ys-capture = 常驻 XShm（~13ms；**归属闸门在守护进程里，且 KWin 才是权威**——
+        #     实测 EWMH 的 _NET_WM_DESKTOP 会把桌面说错，正是票 34 的 fail-open 根因）
+        if os.environ.get("YS_LOOKD_FRAME_SRC") == "ys-capture":
+            arr, attr = _capture_frame_via_ys_capture()
+        else:
+            attr = _world_attrib()
+            if attr.get("verdict") != "OK":
+                raise WorldAttribError(attr)
+            YS = ys_state()
+            arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
         sha = hashlib.sha256(arr.tobytes()).hexdigest()
         key = ("live", sha)
         if _WORLD_FRAME["key"] == key:
@@ -764,7 +997,10 @@ def _world(req):
             return out
     boxes, ocr_meta = (None, {"source": "skip", "ms": 0, "n": 0, "err": None})
     if do_ocr:
-        boxes, ocr_meta = _world_ocr(arr, sha)
+        # 2026-10-18（Lead 裁决）：文本来源从「全帧」换成「对象切片」——热态同屏重复看 ~40ms，
+        # 冷态与全帧同量级；小字号占比过高时回退全帧（兜底只在那些帧付 50–100ms）。
+        boxes, ocr_meta = _world_ocr_objects(arr, sha,
+                                             force_fallback=bool(req.get("force_fallback")))
     t_after_ocr = time.time()
     state, t_judge = _world_state(arr, It, W, H, prof, boxes)
     t_after_state = time.time()
@@ -839,6 +1075,8 @@ def handle(req):
         return _probe(req)
     if cmd == "ocr":
         return _ocr(req)
+    if cmd == "ocr_objects":               # 按对象 OCR（新命令；旧命令语义不变）
+        return _ocr_objects(req)
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
@@ -873,6 +1111,22 @@ def serve():
     except Exception as e:
         print(f"[ys-lookd] 判据模块加载失败（state/probe 命令不可用）: "
               f"{type(e).__name__}: {e}", flush=True)
+    # OCR 引擎在**后台线程**预热：引擎加载 + CUDA/cudnn 首次 kernel ~2–9s，
+    # 不预热的话重启后第一次 world/look 要付（实测首次 ocr_ms 5998ms，热后 15–20ms）。
+    def _warm_ocr():
+        try:
+            t0 = time.time()
+            eng, err = _ocr_engine()
+            if eng is None:
+                print(f"[ys-lookd] OCR 预热跳过：{err}", flush=True)
+                return
+            import numpy as np
+            eng(np.zeros((64, 160, 3), dtype=np.uint8))      # 触发 det/cls/rec 首次 kernel
+            print(f"[ys-lookd] OCR 预热完成（{round((time.time()-t0)*1000)}ms）", flush=True)
+        except Exception as e:                            # noqa: BLE001
+            print(f"[ys-lookd] OCR 预热失败（不影响启动）: {type(e).__name__}: {e}", flush=True)
+    import threading as _th
+    _th.Thread(target=_warm_ocr, daemon=True, name="warm-ocr").start()
     print(f"[ys-lookd] listening {SOCK}", flush=True)
     while True:
         c, _ = srv.accept()

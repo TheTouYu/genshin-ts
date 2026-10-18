@@ -1,0 +1,195 @@
+#!/bin/bash
+# ys-capture — 常驻抓帧 + 只取最新帧（票 25/33；独立工具，**不改 ys-observe**）
+#
+# 为什么存在（2026-10-18 实测，见 .scratch/gui-perf/capture-bench.md）：
+#   现行 `ys-observe frame`（spectacle 全屏 PNG）**546–971ms**，且票 34 实测它抓的是
+#   **当前虚拟桌面的窗口**（原神在别的桌面时抓到浏览器）。而进程内 XShmGetImage
+#   读回一帧只要 **1.5–8ms**（11MB RGB），按窗口 id 抓图天然不会抓错对象。
+#
+# 分工：
+#   `ys-capture serve`  常驻守护（Python，tools/ys-editor/ys_capture.py）：XShm 抓帧 →
+#                       /dev/shm 环形缓冲 + 预编码，两路归属校验（X11 快 + KWin 权威）
+#   `ys-capture latest` **热路径客户端（本文件的 bash 段，~5–15ms）**：读状态 → 四道 fail-closed
+#                       闸门 → 硬链/拷贝已编码文件。**不解析图像**，所以不需要 numpy/PIL 启动。
+#
+# fail-closed 退出码（票 34 红线：拿不到可信帧就拒绝，绝不返回别的窗口/旧帧）：
+#   0  OK          2  NOT_ATOP/NOT_FOUND   4  OTHER_DESKTOP（目标窗不在当前桌面）
+#   5  OCCLUDED    7  DAEMON_DOWN          8  STALE_FRAME（帧太旧）
+#   9  STRICT_UNAVAILABLE（KWin 权威通道不可用/结论过旧）
+#   10 FORMAT_NOT_READY（请求的预编码格式与当前帧内容不符）
+#   11 COPY_FAILED
+#   唯一例外：显式 `--allow-background`（只供离线分析目标窗口自身缓冲，**不得用于动作**）。
+#
+# 用法：
+#   ys-capture serve [--fps 10] [--ring 4] [--pre bmp,png] [--dir DIR] [--win auto|0xID]
+#   ys-capture latest [--out FILE] [--format bmp|png|jpg|raw] [--max-age-ms 1000]
+#                     [--strict-ttl-ms 6000] [--allow-background] [--encode-if-needed]
+#   ys-capture status|stop|selftest|bench
+#
+# 环境：YS_CAPTURE_DIR（状态目录，默认 /dev/shm/ys-capture）、YS_CAPTURE_STATE（覆盖 state.tsv 路径）、
+#       YS_CAPTURE_SKIP_DAEMON_CHECK=1（只给 selftest 用）、YS_WIN / YS_WIN_CLASS。
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+DIR="${YS_CAPTURE_DIR:-/dev/shm/ys-capture}"
+STATE="${YS_CAPTURE_STATE:-$DIR/state.tsv}"
+T0=$(date +%s%N)
+PY="$(command -v python3 || echo /usr/bin/python3)"
+CMD="${1:-}"; [ $# -gt 0 ] && shift || true
+
+deny() {  # deny <exit> <code> <detail>
+  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+  printf '{"ok":false,"error":"%s","detail":"%s","ms":%s,"pixels_returned":false}\n' \
+    "$2" "$3" "$ms"
+  exit "$1"
+}
+
+cmd_latest() {
+  local OUT="" FMT="" ALLOW_BG=0 MAX_AGE_MS="${YS_CAPTURE_MAX_AGE_MS:-1000}"
+  local STRICT_TTL_MS="${YS_CAPTURE_STRICT_TTL_MS:-6000}" ENC_IF=0 WAIT_ENC=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --out) OUT="${2:?--out 需要路径}"; shift 2;;
+      --format) FMT="${2:?}"; shift 2;;
+      --max-age-ms) MAX_AGE_MS="${2:?}"; shift 2;;
+      --strict-ttl-ms) STRICT_TTL_MS="${2:?}"; shift 2;;
+      --allow-background) ALLOW_BG=1; shift;;
+      --encode-if-needed) ENC_IF=1; shift;;
+      --wait-encode-ms) WAIT_ENC="${2:?}"; shift 2;;
+      --json) shift;;
+      *) deny 1 BAD_ARG "未知参数 $1";;
+    esac
+  done
+  T0=$(date +%s%N)
+  [ -r "$STATE" ] || deny 7 DAEMON_DOWN "状态文件不存在：$STATE（先跑 ys-capture serve）"
+  # 23 字段（\x1f 分隔；tab 会被 read 折叠，别改回 tab）：v1 seq wall_ns wall_iso w h crc rgb bmp bcrc png pcrc jpg jcrc
+  #          fast fast_age strict strict_age strict_src win class pid dpid
+  IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
+    fast fage strict sage ssrc win klass _pid dpid < "$STATE"
+  [ "${ver:-}" = "v1" ] || deny 9 STRICT_UNAVAILABLE "状态文件版本不认识：${ver:-空}"
+  if [ "${YS_CAPTURE_SKIP_DAEMON_CHECK:-0}" != "1" ]; then
+    [ -n "${dpid:-}" ] && kill -0 "$dpid" 2>/dev/null || deny 7 DAEMON_DOWN "守护进程 ${dpid:-?} 不在"
+  fi
+  local now age_ms
+  now=$(date +%s%N)
+  age_ms=$(( (now - wall_ns) / 1000000 ))
+  [ -n "${rgb:-}" ] && [ -s "$rgb" ] || deny 8 STALE_FRAME "环形缓冲里没有可读帧（rgb=${rgb:-空}）"
+  [ "$age_ms" -le "$MAX_AGE_MS" ] || deny 8 STALE_FRAME "最新帧已 ${age_ms}ms 旧（> --max-age-ms=$MAX_AGE_MS）"
+  # ── 闸门①：X11/EWMH 快路径（廉价次级信号；它会把桌面说错，所以只用来「更保守地拒」）
+  case "$fast" in
+    OK) ;;
+    OTHER_DESKTOP) deny 4 OTHER_DESKTOP "窗口不在当前虚拟桌面（EWMH：${fage}ms 前判定）";;
+    OCCLUDED)      deny 5 OCCLUDED "窗口被遮挡/最小化（EWMH：${fage}ms 前判定）";;
+    NOT_FOUND)     deny 2 NOT_FOUND "窗口身份不匹配（EWMH：${fage}ms 前判定）";;
+    NOT_ATOP)      deny 2 NOT_ATOP "窗口不在栈顶（EWMH：${fage}ms 前判定）";;
+    *)             deny 9 STRICT_UNAVAILABLE "EWMH 快路径结论未知（${fast:-空}）";;
+  esac
+  # ── 闸门②：KWin 权威通道（票 34 的教训：KWin 脚本静默失效时绝不拿 X11 冒充）
+  if [ "$ALLOW_BG" = "1" ]; then
+    :
+  else
+    [ "$ssrc" = "kwin" ] || deny 9 STRICT_UNAVAILABLE \
+      "KWin 权威通道不可用（strict_src=${ssrc:-空}）——拒绝用 X11 快路径冒充（票 34）"
+    case "$strict" in
+      OK) ;;
+      OTHER_DESKTOP) deny 4 OTHER_DESKTOP "KWin：窗口不在当前虚拟桌面";;
+      OCCLUDED)      deny 5 OCCLUDED "KWin：窗口被遮挡";;
+      NOT_FOUND)     deny 2 NOT_FOUND "KWin：找不到目标窗口";;
+      NOT_ATOP)      deny 2 NOT_ATOP "KWin：窗口不在栈顶";;
+      *)             deny 9 STRICT_UNAVAILABLE "KWin 归属结论未知（${strict:-空}）";;
+    esac
+    [ "$sage" -le "$STRICT_TTL_MS" ] || deny 9 STRICT_UNAVAILABLE \
+      "KWin 归属结论已 ${sage}ms 旧（> --strict-ttl-ms=$STRICT_TTL_MS）"
+  fi
+  # ── 选格式（按 --out 后缀，其次 --format；无 --out 则只回源路径）
+  if [ -z "$OUT" ]; then
+    local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+    printf '{"ok":true,"copied":false,"format":"raw","path":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
+      "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
+    return 0
+  fi
+  case "$OUT" in
+    *.png) FMT="${FMT:-png}";; *.bmp) FMT="${FMT:-bmp}";;
+    *.jpg|*.jpeg) FMT="${FMT:-jpg}";; *.rgb) FMT="${FMT:-raw}";;
+  esac
+  FMT="${FMT:-bmp}"
+  local src="" src_crc=""
+  case "$FMT" in
+    raw) src="$rgb"; src_crc="$crc";;
+    bmp) src="$bmp"; src_crc="$bcrc";;
+    png) src="$png"; src_crc="$pcrc";;
+    jpg) src="$jpg"; src_crc="$jcrc";;
+    *) deny 1 BAD_ARG "未知 --format $FMT（bmp|png|jpg|raw）";;
+  esac
+  if { [ -z "${src:-}" ] || [ "$src_crc" != "$crc" ]; } && [ "$WAIT_ENC" -gt 0 ]; then
+    # 后台预编码（png/jpg）可能落后当前帧几毫秒：显式允许等待时轮询 state，不返回旧图
+    local deadline=$(( $(date +%s%N) + WAIT_ENC * 1000000 ))
+    while [ "$(date +%s%N)" -lt "$deadline" ]; do
+      sleep 0.005
+      IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
+        fast fage strict sage ssrc win klass _pid dpid < "$STATE"
+      case "$FMT" in
+        png) src="$png"; src_crc="$pcrc";; jpg) src="$jpg"; src_crc="$jcrc";;
+        bmp) src="$bmp"; src_crc="$bcrc";; raw) src="$rgb"; src_crc="$crc";;
+      esac
+      [ "${src_crc:-}" = "$crc" ] && break
+    done
+  fi
+  if [ -z "${src:-}" ] || [ "$src_crc" != "$crc" ]; then
+    if [ "$ENC_IF" = "1" ] && [ "$FMT" != "raw" ]; then
+      "$PY" "$HERE/ys_capture.py" encode "$rgb" --format "$FMT" --out "$OUT" --width "$fw" --height "$fh" >/dev/null \
+        || deny 10 FORMAT_NOT_READY "按需编码 $FMT 失败"
+      ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+      printf '{"ok":true,"copied":true,"encoded":true,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s}}\n' \
+        "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage"
+      return 0
+    fi
+    deny 10 FORMAT_NOT_READY \
+      "预编码 $FMT 与当前帧内容不符（预编码 crc=${src_crc:-无} / 当前 crc=$crc）——用 --format bmp（~5ms）或 --encode-if-needed（~40ms），或给 serve 加 --pre $FMT"
+  fi
+  # ── 交付：同文件系统用硬链（~1ms），跨设备回退拷贝；先删目标（覆盖语义）
+  rm -f "$OUT" 2>/dev/null || true
+  if ! ln "$src" "$OUT" 2>/dev/null; then
+    cp --sparse=never "$src" "$OUT" 2>/dev/null || deny 11 COPY_FAILED "拷贝失败：$src -> $OUT"
+  fi
+  [ -s "$OUT" ] || deny 11 COPY_FAILED "输出为空：$OUT"
+  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+  printf '{"ok":true,"copied":true,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
+    "$FMT" "$OUT" "$src" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" \
+    "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
+  return 0
+}
+
+cmd_bench() {  # bench [--iters N] [--out FILE]：量 latest 热路径（含 bash 启动）
+  local ITERS=10 OUT="" FMT="bmp"
+  while [ $# -gt 0 ]; do
+    case "$1" in --iters) ITERS="${2:?}"; shift 2;; --out) OUT="${2:?}"; shift 2;;
+      --format) FMT="${2:?}"; shift 2;; *) shift;; esac
+  done
+  local f="${OUT:-/dev/shm/ys-capture/bench.out.$FMT}"
+  local i t0 t1 ms ok=0 fails=0 last=""
+  local -a samples=()
+  for ((i=0;i<ITERS;i++)); do
+    t0=$(date +%s%N)
+    if "$HERE/ys-capture" latest --out "$f" --format "$FMT" ${YS_CAPTURE_BENCH_ARGS:-} >"$DIR/.yscap-bench.$$" 2>/dev/null; then
+      ok=$((ok+1)); else fails=$((fails+1)); fi
+    t1=$(date +%s%N); ms=$(( (t1-t0)/1000000 )); samples+=("$ms"); last=$(cat "$DIR/.yscap-bench.$$" 2>/dev/null)
+  done
+  rm -f "$DIR/.yscap-bench.$$"
+  printf '%s\n' "${samples[@]}" | sort -n | awk -v n="$ITERS" -v ok="$ok" -v f="$fails" \
+    -v fmt="$FMT" 'BEGIN{min=1e9;max=0} {a[NR]=$1; s+=$1; if($1<min)min=$1; if($1>max)max=$1}
+    END {med=a[int((NR+1)/2)]; printf "{\"format\":\"%s\",\"iters\":%d,\"ok\":%d,\"fail\":%d,\"min_ms\":%d,\"median_ms\":%d,\"max_ms\":%d,\"mean_ms\":%.1f}\n", fmt, n, ok, f, min, med, max, s/NR}'
+  [ -n "$last" ] && printf '# last: %s\n' "$last"
+  return 0
+}
+
+case "$CMD" in
+  serve)    exec "$PY" "$HERE/ys_capture.py" serve --dir "$DIR" "$@";;
+  latest)   cmd_latest "$@";;
+  status)   exec "$PY" "$HERE/ys_capture.py" status --dir "$DIR" "$@";;
+  stop)     exec "$PY" "$HERE/ys_capture.py" stop --dir "$DIR" "$@";;
+  bench)    cmd_bench "$@";;
+  selftest) exec "$PY" "$HERE/ys_capture.py" selftest --cli "$HERE/ys-capture" "$@";;
+  ""|-h|--help|help)
+    sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//';;
+  *) echo "{\"ok\":false,\"error\":\"BAD_CMD\",\"detail\":\"未知子命令 $CMD\"}"; exit 1;;
+esac

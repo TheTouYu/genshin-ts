@@ -1,16 +1,16 @@
 {
- "passed": 59,
+ "passed": 58,
  "failed": 0,
- "total": 59,
- "cold_look_ms": 5.7,
- "cold_look_no_cache_ms": 1290.4,
+ "total": 58,
+ "cold_look_ms": 205.1,
+ "cold_look_no_cache_ms": 30868.4,
  "cache_hit_ms": [
-  1.0,
-  1.1,
-  1.3
+  1.5,
+  1.5,
+  1.5
  ],
- "daemon_world": "cold=272.7ms hits=[4.8, 1.1, 1.0]",
- "wall_s": 3.3,
+ "daemon_world": "cold=724.0ms hits=[1.4, 1.1, 1.2]",
+ "wall_s": 36.0,
  "results": [
   {
    "name": "schema/状态名词表读自 ys-state",
@@ -95,7 +95,7 @@
   {
    "name": "look/deg 必含 L2/L3 未实现",
    "ok": true,
-   "detail": "['KIND_UNKNOWN', 'FREE_TEXT_UNOWNED', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'FRAME_PINNED']"
+   "detail": "['KIND_UNKNOWN', 'FREE_TEXT_UNOWNED', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'FRAME_PINNED', 'BUDGET_EXCEEDED']"
   },
   {
    "name": "look/所有对象 bbox 在帧内（xywh）",
@@ -105,12 +105,12 @@
   {
    "name": "look/缓存命中 ≤5ms（进程内）",
    "ok": true,
-   "detail": "[1.0, 1.1, 1.3]"
+   "detail": "[1.5, 1.5, 1.5]"
   },
   {
    "name": "look/缓存命中标注 cache.hit",
    "ok": true,
-   "detail": "{'hit': True, 'layer': 'memory', 'hit_ms': 0.54}"
+   "detail": "{'hit': True, 'layer': 'memory', 'hit_ms': 0.63}"
   },
   {
    "name": "look/latest 复用上一帧并如实标 STALE_FRAME/FRAME_PINNED",
@@ -120,17 +120,17 @@
   {
    "name": "look/冷路径超 50ms 必须写 BUDGET_EXCEEDED",
    "ok": true,
-   "detail": "{'KIND_UNKNOWN', 'FREE_TEXT_UNOWNED', 'BUDGET_EXCEEDED', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'FRAME_PINNED'}"
+   "detail": "{'KIND_UNKNOWN', 'FRAME_PINNED', 'L2_NOT_IMPLEMENTED', 'FREE_TEXT_UNOWNED', 'L3_NOT_IMPLEMENTED', 'BUDGET_EXCEEDED'}"
   },
   {
    "name": "look/冷路径实测 >50ms（门禁未达成的证据）",
    "ok": true,
-   "detail": "1290.4ms"
+   "detail": "30868.4ms"
   },
   {
    "name": "look/冷路径 state/objects 分项计时都有",
    "ok": true,
-   "detail": "{'state': 953.7, 'objects': 331.8, 'validate': 0.44, 'total': 1289.5}"
+   "detail": "{'state': 28318.7, 'objects': 2545.0, 'validate': 0.43, 'total': 30867.4}"
   },
   {
    "name": "act/dry-run 状态=dry_run",
@@ -200,7 +200,7 @@
   {
    "name": "wait/timeout（超时不冒充仪器故障）",
    "ok": true,
-   "detail": "timeout polls=6 701.8ms"
+   "detail": "timeout polls=6 702.2ms"
   },
   {
    "name": "wait/timeout 标 WAIT_TIMEOUT_VALID",
@@ -230,7 +230,7 @@
   {
    "name": "wait/状态转移进账本（transitions）",
    "ok": true,
-   "detail": "[{'from': 'GAME_PAIMON', 'to': 'GAME_ACTIVITY', 'ms': 13, 'at_ms': 1792325805106, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}]"
+   "detail": "[{'from': 'GAME_PAIMON', 'to': 'GAME_ACTIVITY', 'ms': 33, 'at_ms': 1792337480292, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}]"
   },
   {
    "name": "daemon-world/state 与 cli 一致",
@@ -245,7 +245,7 @@
   {
    "name": "daemon-world/timing 含 judge_ms/ocr_ms（禁两层缓存后直取原始回执）",
    "ok": true,
-   "detail": "{'load_ms': 138.3, 'ocr_ms': 0.8, 'state_ms': 80.8, 'judge_ms': 80.6, 'objects_ms': 44.3, 'total_ms': 264.1, 'ocr_source': 'cache', 'ocr_n': 39, 'ocr_err': None, 'cache_hit': False, 'attribution_ms': None, 'total': 271.9, 'rpc': 268.0}"
+   "detail": "{'load_ms': 131.8, 'ocr_ms': 313.8, 'state_ms': 36.6, 'judge_ms': 36.5, 'objects_ms': 234.3, 'total_ms': 716.5, 'ocr_source': 'objects', 'ocr_n': 40, 'ocr_err': None, 'cache_hit': False, 'attribution_ms': None, 'total': 723.4, 'rpc': 719.6}"
   },
   {
    "name": "daemon-world/带 daemon_timing 原始回执",
@@ -255,7 +255,7 @@
   {
    "name": "daemon-world/缓存命中 ≤5ms（进程内）",
    "ok": true,
-   "detail": "[4.8, 1.1, 1.0]"
+   "detail": "[1.4, 1.1, 1.2]"
   },
   {
    "name": "CLI/look --backend daemon-world rc=0",
@@ -280,27 +280,22 @@
   {
    "name": "CLI/act 未命中 → rc=3",
    "ok": true,
-   "detail": "rc=3 78.9ms"
+   "detail": "rc=3 65.7ms"
   },
   {
    "name": "CLI/wait 超时 → rc=6",
    "ok": true,
-   "detail": "rc=6 566.5ms"
+   "detail": "rc=6 561.1ms"
   },
   {
    "name": "CLI/wait violated → rc=7",
    "ok": true,
-   "detail": "rc=7 70.4ms"
+   "detail": "rc=7 63.4ms"
   },
   {
    "name": "CLI/look 帧不存在 → rc=8",
    "ok": true,
-   "detail": "rc=8 61.2ms"
-  },
-  {
-   "name": "CLI/look --live 不在栈顶 → rc=5（fail-closed，不抬窗）",
-   "ok": true,
-   "detail": "rc=5 110.6ms"
+   "detail": "rc=8 114.0ms"
   },
   {
    "name": "CLI/vocab 打印单一源名词表",

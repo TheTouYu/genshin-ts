@@ -30,6 +30,7 @@ YS_EDITOR = os.path.join(REPO_ROOT, "tools", "ys-editor")
 YS_STATE = os.path.join(YS_EDITOR, "ys-state")
 YS_SCREEN = os.path.join(REPO_ROOT, "tools", "ys-screen")
 YS_OBSERVE = os.path.join(YS_EDITOR, "ys-observe")
+YS_CAPTURE = os.path.join(YS_EDITOR, "ys-capture")
 YS_ATOP = os.path.join(YS_EDITOR, "ys-atop")
 YS_DO = os.path.join(YS_EDITOR, "ys-do")
 YS_GUI_SLOT = os.path.join(YS_EDITOR, "ys-gui-slot")
@@ -109,11 +110,52 @@ def attrib_fast(title=None, win=None, *, timeout=20):
     return d
 
 
-def grab_frame(*, timeout=60, skip_atop=False):
-    """取一帧并返回 ys-observe 的读数字典；**不在栈顶就拒绝**（不抬窗口）。
+CAPTURE_EXIT = {"7": "DAEMON_DOWN", "4": "OTHER_DESKTOP", "5": "OCCLUDED",
+                "2": "NOT_ATOP", "8": "STALE_FRAME", "9": "STRICT_UNAVAILABLE",
+                "10": "FORMAT_NOT_READY", "11": "COPY_FAILED", "1": "BAD_ARG"}
 
-    skip_atop=True 只给 WorldService 用：它已经按同一判据查过栈顶，避免一次调用查两遍。
+
+def grab_frame(*, timeout=60, skip_atop=False, allow_background=False, backend=None):
+    """取一帧；**不在栈顶/被遮挡/不在当前桌面就拒绝**（绝不抬窗口）。
+
+    两条后端（`YS_CAPTURE_BACKEND` 选择）：
+      · `ys-capture`（默认，2026-10-18 接入）：常驻 XShm 抓帧 + /dev/shm 环形缓冲，
+        客户端 **~13ms**；归属闸门在**守护进程里**：X11/EWMH 快路径只做保守拒绝，
+        **权威 = KWin（ys-atop --verify，后台刷新 + TTL）**——它的结论过旧/不可用就 exit 9。
+        退出码→InstrumentError.code 一一对应，上层据此判"是拒绝还是故障"。
+      · `observe`（旧路径，保留回退）：ys-observe frame（spectacle 全屏 PNG，~1s）。
+    `allow_background=True` 显式跳过 KWin 严格闸门（只供离线分析目标窗口自身缓冲，**不得用于动作**）。
     """
+    backend = backend or os.environ.get("YS_CAPTURE_BACKEND", "ys-capture")
+    if backend == "ys-capture":
+        out = os.path.join("/dev/shm", "ys-service-frame-%d.bmp" % os.getpid())
+        cmd = [YS_CAPTURE, "latest", "--out", out, "--format", "bmp"]
+        if allow_background:
+            cmd.append("--allow-background")
+        rc, so, se = run(cmd, timeout=timeout)
+        try:
+            meta = json.loads((so or "").strip().splitlines()[-1]) if so.strip() else {}
+        except ValueError:
+            meta = {}
+        if rc != 0:
+            code = CAPTURE_EXIT.get(str(rc), "GRAB_FAILED")
+            raise InstrumentError(
+                code,
+                f"ys-capture latest rc={rc}：{meta.get('error') or ''} {meta.get('detail') or ''}"
+                f"（{_tail(se, 200)}）",
+                rc=rc, stderr_tail=_tail(se, 400))
+        path = meta.get("out") or ""
+        if not path or not os.path.isfile(path):
+            raise InstrumentError("GRAB_NO_FILE", f"ys-capture 没落帧：{path!r}")
+        attr = meta.get("attribution") or {}
+        return {"path": path, "source": "ys-capture", "fresh": True,
+                "capture_ms": meta.get("ms"),
+                "frame": meta.get("frame") or {},
+                "attribution": attr, "window": meta.get("win"),
+                "atop": attr.get("strict") == "OK",
+                "static": None, "diffFromPrev": None, "reused": None,
+                "allow_background": bool(allow_background)}
+    # ── 旧路径（仅回退用）
     st = atop_status() if not skip_atop else {"atop": True, "rc": 0, "line": "prechecked", "win": None}
     if not st["atop"]:
         raise InstrumentError(
@@ -121,17 +163,18 @@ def grab_frame(*, timeout=60, skip_atop=False):
             f"游戏窗口不在栈顶（ys-atop rc={st['rc']}，line={st['line']!r}）；"
             "本服务绝不为了取数抬窗口 —— 请把窗口切到栈顶或改用 --frame 离线帧",
             rc=st["rc"])
-    rc, out, err = run([YS_OBSERVE, "frame"], timeout=timeout)
+    rc, out_s, err = run([YS_OBSERVE, "frame"], timeout=timeout)
     if rc != 0:
         raise InstrumentError("GRAB_FAILED", f"ys-observe frame rc={rc}：{_tail(err, 300)}",
                               rc=rc, stderr_tail=_tail(err))
-    meta = parse_json_line(out, what="ys-observe frame")
+    meta = parse_json_line(out_s, what="ys-observe frame")
     if not meta.get("atop") or not meta.get("fresh"):
         raise InstrumentError("GRAB_NOT_FRESH", f"取帧读数不新鲜：{json.dumps(meta, ensure_ascii=False)[:400]}")
     path = meta.get("path") or ""
     if not os.path.isfile(path):
         raise InstrumentError("GRAB_NO_FILE", f"ys-observe 返回的帧不存在：{path!r}")
     meta["atop_status"] = st
+    meta["source"] = "ys-observe"
     return meta
 
 

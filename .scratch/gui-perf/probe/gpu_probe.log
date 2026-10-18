@@ -1,0 +1,201 @@
+gpu True  heur False
+frame v000_0001.jpg (1440, 2560, 3)
+[INFO] 2026-10-18 21:04:56,185 [RapidOCR] base.py:23: Using engine_name: onnxruntime
+[INFO] 2026-10-18 21:04:56,200 [RapidOCR] download_file.py:60: File exists and is valid: /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx
+[INFO] 2026-10-18 21:04:56,200 [RapidOCR] main.py:63: Using /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx
+det max=2000 ms=[685.1, 133.0, 132.3] boxes=76
+det max=1600 ms=[126.4, 90.0, 107.8] boxes=73
+det max=1280 ms=[106.6, 58.6, 63.5] boxes=76
+det max= 960 ms=[87.2, 39.1, 43.1] boxes=75
+crops 73 median h/w 32 155
+[INFO] 2026-10-18 21:04:58,195 [RapidOCR] base.py:23: Using engine_name: onnxruntime
+[INFO] 2026-10-18 21:04:58,219 [RapidOCR] download_file.py:60: File exists and is valid: /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx
+[INFO] 2026-10-18 21:04:58,219 [RapidOCR] main.py:63: Using /usr/lib/python3.14/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx
+rec batch= 6 ms=[836.8, 650.0, 663.3] (73 框)
+rec batch=16 ms=[651.9, 525.0, 551.3] (73 框)
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/rapidocr/inference_engine/onnxruntime/main.py", line 98, in __call__
+    return self.session.run(self.get_output_names(), input_dict)[0]
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py", line 326, in run
+    return self._sess.run(output_names, input_feed, run_options)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+onnxruntime.capi.onnxruntime_pybind11_state.Fail: [ONNXRuntimeError] : 1 : FAIL : Non-zero status code returned while running FusedMatMul node. Name:'MatMul.12/MatmulTransposeFusion/' Status Message: /usr/src/debug/onnxruntime/onnxruntime-cuda/onnxruntime/core/framework/op_kernel.cc:83 virtual OrtValue* onnxruntime::OpKernelContext::OutputMLValue(int, const onnxruntime::TensorShape&) [ONNXRuntimeError] : 1 : FAIL : /usr/src/debug/onnxruntime/onnxruntime-cuda/onnxruntime/core/framework/bfc_arena.cc:359 void* onnxruntime::BFCArena::AllocateRawInternal(size_t, bool, onnxruntime::Stream*) Failed to allocate memory for requested buffer of size 203564800
+Stacktrace:
+[unknown] [0x7f6d1b59b9a6]
+[unknown] [0x7f6d1b5825f6]
+[unknown] [0x7f6d1b5db9b4]
+[unknown] [0x7f6d1ac947c7]
+[unknown] [0x7f6cfa60b295]
+[unknown] [0x7f6cfa477b39]
+[unknown] [0x7f6d1b65a915]
+[unknown] [0x7f6d1b6369c3]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b646072]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b65d517]
+[unknown] [0x7f6d1b631b85]
+[unknown] [0x7f6d1ac4a83c]
+[unknown] [0x7f6d1ac4b048]
+[unknown] [0x7f6d1ac4c380]
+[unknown] [0x7f6d1aa95c1d]
+[unknown] [0x7f6d1aaec92e]
+[unknown] [0x7f6d1aae576f]
+[unknown] [0x7f6d1aa19035]
+[unknown] [0x7f6d4dc5e38d]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4ddb7872]
+PyEval_EvalCode [0x7f6d4deb5294]
+[unknown] [0x7f6d4defecbf]
+[unknown] [0x7f6d4defe3fe]
+[unknown] [0x7f6d4defd43b]
+[unknown] [0x7f6d4defd227]
+Py_RunMain [0x7f6d4dea331e]
+Py_BytesMain [0x7f6d4de9d1fc]
+[unknown] [0x7f6d4d827781]
+__libc_start_main [0x7f6d4d8278b9]
+_start [0x55e8797d8045]
+
+Stacktrace:
+[unknown] [0x7f6cfa60b295]
+[unknown] [0x7f6cfa477b39]
+[unknown] [0x7f6d1b65a915]
+[unknown] [0x7f6d1b6369c3]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b646072]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b65d517]
+[unknown] [0x7f6d1b631b85]
+[unknown] [0x7f6d1ac4a83c]
+[unknown] [0x7f6d1ac4b048]
+[unknown] [0x7f6d1ac4c380]
+[unknown] [0x7f6d1aa95c1d]
+[unknown] [0x7f6d1aaec92e]
+[unknown] [0x7f6d1aae576f]
+[unknown] [0x7f6d1aa19035]
+[unknown] [0x7f6d4dc5e38d]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4ddb7872]
+PyEval_EvalCode [0x7f6d4deb5294]
+[unknown] [0x7f6d4defecbf]
+[unknown] [0x7f6d4defe3fe]
+[unknown] [0x7f6d4defd43b]
+[unknown] [0x7f6d4defd227]
+Py_RunMain [0x7f6d4dea331e]
+Py_BytesMain [0x7f6d4de9d1fc]
+[unknown] [0x7f6d4d827781]
+__libc_start_main [0x7f6d4d8278b9]
+_start [0x55e8797d8045]
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/h/genshin-ts/.scratch/gui-perf/ocr_probe.py", line 67, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/h/genshin-ts/.scratch/gui-perf/ocr_probe.py", line 55, in main
+    ms,_t=rec(e,crops,b); ts.append(ms)
+          ~~~^^^^^^^^^^^
+  File "/home/h/genshin-ts/.scratch/gui-perf/ocr_probe.py", line 32, in rec
+    t0=time.perf_counter(); r=e.text_rec(TextRecInput(img=crops, return_word_box=False))
+                              ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/rapidocr/ch_ppocr_rec/main.py", line 131, in __call__
+    preds = self.session(norm_img_batch)
+  File "/usr/lib/python3.14/site-packages/rapidocr/inference_engine/onnxruntime/main.py", line 101, in __call__
+    raise ONNXRuntimeError(error_info) from e
+rapidocr.inference_engine.onnxruntime.main.ONNXRuntimeError: Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/rapidocr/inference_engine/onnxruntime/main.py", line 98, in __call__
+    return self.session.run(self.get_output_names(), input_dict)[0]
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py", line 326, in run
+    return self._sess.run(output_names, input_feed, run_options)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+onnxruntime.capi.onnxruntime_pybind11_state.Fail: [ONNXRuntimeError] : 1 : FAIL : Non-zero status code returned while running FusedMatMul node. Name:'MatMul.12/MatmulTransposeFusion/' Status Message: /usr/src/debug/onnxruntime/onnxruntime-cuda/onnxruntime/core/framework/op_kernel.cc:83 virtual OrtValue* onnxruntime::OpKernelContext::OutputMLValue(int, const onnxruntime::TensorShape&) [ONNXRuntimeError] : 1 : FAIL : /usr/src/debug/onnxruntime/onnxruntime-cuda/onnxruntime/core/framework/bfc_arena.cc:359 void* onnxruntime::BFCArena::AllocateRawInternal(size_t, bool, onnxruntime::Stream*) Failed to allocate memory for requested buffer of size 203564800
+Stacktrace:
+[unknown] [0x7f6d1b59b9a6]
+[unknown] [0x7f6d1b5825f6]
+[unknown] [0x7f6d1b5db9b4]
+[unknown] [0x7f6d1ac947c7]
+[unknown] [0x7f6cfa60b295]
+[unknown] [0x7f6cfa477b39]
+[unknown] [0x7f6d1b65a915]
+[unknown] [0x7f6d1b6369c3]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b646072]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b65d517]
+[unknown] [0x7f6d1b631b85]
+[unknown] [0x7f6d1ac4a83c]
+[unknown] [0x7f6d1ac4b048]
+[unknown] [0x7f6d1ac4c380]
+[unknown] [0x7f6d1aa95c1d]
+[unknown] [0x7f6d1aaec92e]
+[unknown] [0x7f6d1aae576f]
+[unknown] [0x7f6d1aa19035]
+[unknown] [0x7f6d4dc5e38d]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4ddb7872]
+PyEval_EvalCode [0x7f6d4deb5294]
+[unknown] [0x7f6d4defecbf]
+[unknown] [0x7f6d4defe3fe]
+[unknown] [0x7f6d4defd43b]
+[unknown] [0x7f6d4defd227]
+Py_RunMain [0x7f6d4dea331e]
+Py_BytesMain [0x7f6d4de9d1fc]
+[unknown] [0x7f6d4d827781]
+__libc_start_main [0x7f6d4d8278b9]
+_start [0x55e8797d8045]
+
+Stacktrace:
+[unknown] [0x7f6cfa60b295]
+[unknown] [0x7f6cfa477b39]
+[unknown] [0x7f6d1b65a915]
+[unknown] [0x7f6d1b6369c3]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b646072]
+[unknown] [0x7f6d1b5fdac2]
+[unknown] [0x7f6d1b65d517]
+[unknown] [0x7f6d1b631b85]
+[unknown] [0x7f6d1ac4a83c]
+[unknown] [0x7f6d1ac4b048]
+[unknown] [0x7f6d1ac4c380]
+[unknown] [0x7f6d1aa95c1d]
+[unknown] [0x7f6d1aaec92e]
+[unknown] [0x7f6d1aae576f]
+[unknown] [0x7f6d1aa19035]
+[unknown] [0x7f6d4dc5e38d]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4df1ebbb]
+[unknown] [0x7f6d4dda59ea]
+[unknown] [0x7f6d4dc67eaa]
+[unknown] [0x7f6d4ddb7872]
+PyEval_EvalCode [0x7f6d4deb5294]
+[unknown] [0x7f6d4defecbf]
+[unknown] [0x7f6d4defe3fe]
+[unknown] [0x7f6d4defd43b]
+[unknown] [0x7f6d4defd227]
+Py_RunMain [0x7f6d4dea331e]
+Py_BytesMain [0x7f6d4de9d1fc]
+[unknown] [0x7f6d4d827781]
+__libc_start_main [0x7f6d4d8278b9]
+_start [0x55e8797d8045]
+
+

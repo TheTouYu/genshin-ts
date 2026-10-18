@@ -1,0 +1,23 @@
+{
+ "0.5": {
+  "median_ms": 324.5,
+  "min_ms": 220.1,
+  "max_ms": 431.2,
+  "recall_mean": 0.8651,
+  "recall_min": 0.773
+ },
+ "0.6": {
+  "median_ms": 345.4,
+  "min_ms": 262.8,
+  "max_ms": 359.3,
+  "recall_mean": 0.9269,
+  "recall_min": 0.8957
+ },
+ "0.75": {
+  "median_ms": 354.0,
+  "min_ms": 301.7,
+  "max_ms": 394.1,
+  "recall_mean": 0.9784,
+  "recall_min": 0.9448
+ }
+}
