@@ -410,6 +410,26 @@ def fix_kind(o, row_hts, group, container):
 
 
 # ---------------------------------------------------------------- 主分析
+
+
+def _row_bbox(r, containers):
+    """行是横向条带：x 方向应延伸到所在容器的左右沿（成员并集只是"检出的那几件"）。
+
+    实测动机（2026-10-19 端到端）：服务输出的行与真值按整框 IoU 只有 0.07，
+    但按 y 带匹配是 0.52 —— 差异全在 x 宽度（只检出部分成员 ⇒ 行框偏窄）。
+    """
+    b = union([o["bbox"] for o in r])
+    cy = b[1] + b[3] / 2
+    best = None
+    for c in containers:
+        cb = c["bbox"]
+        if cb[1] - 2 <= cy <= cb[1] + cb[3] + 2 and cb[0] <= b[0] + 2 and cb[0] + cb[2] >= b[0] + b[2] - 2:
+            if best is None or cb[2] * cb[3] < best[2] * best[3]:
+                best = cb
+    if best:
+        return [int(best[0]), int(b[1]), int(best[2]), int(b[3])]
+    return b
+
 def analyze(frame, synth_drop_rows=0):
     objs = list(frame["objects"])
     if synth_drop_rows:
@@ -492,7 +512,7 @@ def analyze(frame, synth_drop_rows=0):
     if pitch_global is None:
         pitch_global, pitch_method = pitch_med, "row_median"
 
-    return {"rows": [{"bbox": union([o["bbox"] for o in r]), "n": len(r),
+    return {"rows": [{"bbox": _row_bbox(r, containers), "n": len(r),
                       "cy": round(_med([_cy(o) for o in r]), 1),
                       "members": [o["id"] for o in r]} for r in rows],
             "chains": [{"id": g["id"], "kind": g["kind"], "axis": g["axis"],
