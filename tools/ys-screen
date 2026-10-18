@@ -40,12 +40,30 @@
   digest      人读摘要文本（≤10 行，含"标题在哪 / 旁边有什么可点的 / 哪里被挡"）
   timing      {load_ms,ocr_ms,pixel_ms,container_ms,container_cached,total_ms,ocr_source,ocr_backend}
 
+检测后端（票 24，2026-10-18 新增；**默认 `cv`，旧路径输出逐字节不变**）:
+  --backend cv     现行 `flat+rect` 判据（默认）。不透明纯色格子/行上已闭合（tile 56/56），
+                   但纯图标/头像/按钮/贴插画卡恒 0 命中——那是判据假设失效，不是阈值问题。
+  --backend torch  U-Net(640, base8) **fp16 stub，随机权重**：只用来证明「检测→containers[]→schema」
+                   这条链与耗时（Lead 会话实测 fp16 前向 10.65ms/帧），**它产出的 bbox 无语义**，
+                   禁止拿它的 coverage 当精度读数。
+  --backend onnx   外部检测模型：`--detect-model x.onnx`（或 env `YS_DETECT_ONNX`）。
+                   约定：整帧**拉伸**到模型输入、RGB、/255、NCHW float32；输出支持
+                   (N,5|6)=[x0,y0,x1,y1,score,(cls)] 或 YOLO 导出 (1,4+nc,M)。
+                   `--detect-model mock:<dets.json>` 供无权重时打通接线。
+                   缺模型 ⇒ **fail-closed**（degraded + 明确 error，不静默回落 cv）；
+                   请求 CUDA 而 `sess.get_providers()` 里没有 CUDA ⇒ **报错**（ORT 缺依赖时只 warning
+                   然后静默回落 CPU，2026-10-18 两次实测）。
+  缓存键：`cont-<帧sha>-<scale>-<文本签名>-<CONTAINER_RULESET>-<backend_sig>`，
+  `backend_sig` = `cv` / `torchstub-v1` / `onnx-<模型内容sha256前12位>` / `onnx-mock-<哈希>`
+  ⇒ 两套后端**互不污染**（换后端/换权重不会读到旧结构）。
+
 容器层的实现依据（**不要凭感觉调参**）：docs/maintenance/design-2026-10-18-gui-structure.md
 §2.1/§2.2 与已验证原型 `.scratch/gui-arch-probe/{p2_containers,ysui}.py`（2026-10-18 8 帧实测）。
 唯一可用的检测路径是 **L3 平坦皮肤容器**（flat+rect）；**卡片贴在彩色插画上**这一类在设计
 文档 §2.2 里标为**未闭合**（卡内不平坦、边界 ΔE 仅 5.5），本工具**不输出**它们（漏检而非假对象）。
 
-退出码：0 成功 / 2 用法错 / 3 帧不可读 / 4 OCR 后端缺失（fail-closed） / 5 OCR 跑失败或输出不可解析
+退出码：0 成功 / 2 用法错 / 3 帧不可读 / 4 OCR 后端缺失（fail-closed） / 5 OCR 跑失败或输出不可解析 /
+       6 检测后端不可用（`--backend onnx` 缺模型或 CUDA EP 没真起；fail-closed，不静默回落 cv）
 依赖：只用 numpy + PIL（已有）；OCR 走 `tools/ys-editor/ys_ocr.py ocr --json` 子进程（rapidocr venv）。
 缓存：内容寻址（sha256(帧字节) + 后端签名），与 `tools/ys-find` 共用 `.gsts/ys-find-cache/`，
       所以同一帧被 ys-find 认过之后，这里几乎不花 OCR 时间；可用 `--no-cache` 强制真跑。
@@ -1371,7 +1389,389 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     return res
 
 
-def _cont_cache_path(frame_sha, scale, text_boxes):
+
+# ============================ 可插拔检测后端（票 24） ============================
+# 为什么要有它（不是"换实现"而是"换通道"）：现行 `flat+rect` 判据在**不透明纯色**格子/行上已闭合
+# （票 23 记分器实测 tile 56/56=100%），但在**纯图标/头像/按钮/贴插画卡**上恒 0 命中
+# （icon 0/38、avatar 0/8、chip 0/4、button 2/46）。这些对象没有"平坦皮肤"这个前提，
+# 属判据假设失效而非阈值问题 ⇒ 需要一条**学习型**通道并行提供 bbox。
+# 本后端约定：**只产 detected bbox，不产语义**（kind 由模型类别表映射，confidence 原样透出），
+# 且 **cv 永远是默认**（默认路径逐字节不变），onnx 必须显式 `--backend onnx` 才走。
+DETECT_KINDS = ('tile', 'card', 'button', 'row', 'panel', 'chip', 'icon', 'avatar')
+
+
+def _detect_backend_sig(backend, model):
+    """后端标识（进缓存键）：cv / onnx:<模型 sha256 前 12 位>。
+
+    两套后端必须**互不污染缓存**——2026-10-18 实测过的同类坑：只按帧 sha 缓存会让换后端后
+    读到旧结构（`CONTAINER_RULESET` 就是为这个加的）。模型换了参数而路径不变时只按路径哈希
+    会读到旧结构，所以这里哈的是**模型文件内容**。
+    """
+    if backend == 'torch':
+        return 'torchstub-v1'
+    if backend != 'onnx' or not model:
+        return 'cv'
+    if model.startswith('mock:'):
+        return 'onnx-mock-' + hashlib.sha1(model.encode('utf-8')).hexdigest()[:12]
+    try:
+        h = hashlib.sha256()
+        with open(model, 'rb') as f:
+            for chunk in iter(lambda: f.read(1 << 20), b''):
+                h.update(chunk)
+        return 'onnx-' + h.hexdigest()[:12]
+    except OSError as exc:
+        raise RuntimeError('检测模型不可读：%s（%s）' % (model, exc))
+
+
+def _onnx_session(model, providers, debug=False):
+    """懒加载 + 进程内复用 ORT session。
+
+    **fail-closed 两条硬约束**（2026-10-18 实测教训）：
+      ① 请求了 CUDA 而 `sess.get_providers()` 里没有 CUDA ⇒ 抛错，不拿 CPU 数字冒充 GPU
+         （ORT 缺 cuDNN/CUDA 时**不抛异常**，只打一行 warning 然后静默回落 CPU）。
+      ② 模型缺失/不可解析 ⇒ 抛错（不静默降级到 cv，否则"看起来跑了"但其实是旧通道）。
+    """
+    import onnxruntime as ort
+    cache = globals().setdefault('_ORT_SESSIONS', {})
+    key = (os.path.abspath(model) if not model.startswith('mock:') else model, tuple(providers))
+    if key in cache:
+        return cache[key]
+    want = list(providers)
+    so = ort.SessionOptions()
+    so.log_severity_level = 3
+    sess = ort.InferenceSession(model, sess_options=so, providers=want)
+    actual = sess.get_providers()
+    if want and want[0] == 'CUDAExecutionProvider' and 'CUDAExecutionProvider' not in actual:
+        raise RuntimeError('请求 CUDAExecutionProvider 但实际 providers=%s（ORT 静默回落 CPU；'
+                           '先查 cuDNN9/CUDA13 与 register_execution_provider_library）' % (actual,))
+    if debug:
+        sys.stderr.write('[ys-screen] detect backend=onnx model=%s providers=%s\n'
+                         % (os.path.basename(model), actual))
+    cache[key] = sess
+    return sess
+
+
+
+# ---- torch fp16 检测 stub（票 24 阶段 1：只证明链路与耗时，**随机权重、不具语义**）----
+# 为什么先做 stub：Lead 会话实测 U-Net@640 fp16 = **10.65ms**（base8）/ 10.79ms（base16），
+# 说明"检测一手 ≤10ms"在算力上已成立；剩下要证明的是**接线**：检测输出 → containers[] →
+# 世界状态 schema → 记分器。stub 用固定种子的随机权重 U-Net，输出当"objectness 热图"，
+# 阈值+连通域成框。**读数用途必须分清**：本后端的 ms 是能力读数，它产出的 bbox **不是**能力读数
+# （随机权重 ⇒ 框没有语义，禁止拿它的 coverage 记分当精度）。
+def _torch_stub_net(base=8, depth=4):
+    """与 bench_gpu.py 同构的轻量 U-Net（3 通道入、1 通道 objectness 出）。"""
+    import torch
+    import torch.nn as nn
+
+    def block(cin, cout):
+        return nn.Sequential(nn.Conv2d(cin, cout, 3, padding=1), nn.ReLU(inplace=True),
+                             nn.Conv2d(cout, cout, 3, padding=1), nn.ReLU(inplace=True))
+
+    class UNet(nn.Module):
+        def __init__(self):
+            super().__init__()
+            chans = [base * (2 ** i) for i in range(depth + 1)]
+            self.enc = nn.ModuleList()
+            cin = 3
+            for c in chans[:-1]:
+                self.enc.append(block(cin, c))
+                cin = c
+            self.bottleneck = block(chans[-2], chans[-1])
+            self.up = nn.ModuleList()
+            self.dec = nn.ModuleList()
+            for i in reversed(range(depth)):
+                self.up.append(nn.ConvTranspose2d(chans[i + 1], chans[i], 2, 2))
+                self.dec.append(block(chans[i] * 2, chans[i]))
+            self.head = nn.Conv2d(chans[0], 1, 1)
+            self.pool = nn.MaxPool2d(2)
+
+        def forward(self, x):
+            sk = []
+            for e in self.enc:
+                x = e(x)
+                sk.append(x)
+                x = self.pool(x)
+            x = self.bottleneck(x)
+            for i in range(depth):
+                x = self.up[i](x)
+                x = torch.cat([x, sk[depth - 1 - i]], dim=1)
+                x = self.dec[i](x)
+            return self.head(x)
+
+    return UNet()
+
+
+def _torch_stub_detect(arr, size=640, threshold=1.0, min_area=400,
+                       device=None, dtype='fp16', seed=0):
+    """跑一次 stub 前向 → objectness 热图 → 阈值 + 连通域 → 框（**原帧坐标 xyxy**）。
+
+    `threshold` 是热图分位数（1.0 = 取最高的 1% 像素）：随机权重下热图无意义，
+    用分位数量化才能稳定产出固定数量的框，方便验证接线可重复。
+    """
+    import numpy as np
+    import torch
+    from PIL import Image
+    from scipy import ndimage
+    torch.manual_seed(seed)
+    net = _torch_stub_net()
+    if device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    net = net.to(device).eval()
+    if dtype == 'fp16' and device == 'cuda':
+        net = net.half()
+    H0, W0 = arr.shape[:2]
+    im = Image.fromarray(arr).convert('RGB').resize((size, size), Image.BILINEAR)
+    x = np.asarray(im, dtype=np.float32).transpose(2, 0, 1)[None] / 255.0
+    t = torch.from_numpy(x).to(device)
+    if dtype == 'fp16' and device == 'cuda':
+        t = t.half()
+    t0 = time.time()
+    with torch.no_grad():
+        out = net(t)
+        if device == 'cuda':
+            torch.cuda.synchronize()
+    fwd_ms = (time.time() - t0) * 1000
+    heat = out[0, 0].float().cpu().numpy()
+    heat = (heat - heat.min()) / (float(np.ptp(heat)) + 1e-6)   # numpy 2.x 无 ndarray.ptp
+    thr = float(np.quantile(heat, 1.0 - max(0.001, min(0.2, threshold / 100.0))))
+    mask = heat > thr
+    mask = ndimage.binary_closing(mask, np.ones((5, 5)))
+    lab, n = ndimage.label(mask)
+    sy, sx = H0 / float(size), W0 / float(size)
+    dets = []
+    # **不要**逐标签 np.where(lab==i)：377 个连通域 × 640² 全图比较实测把后处理拖到 ~800ms
+    # （比网络前向 70ms 还贵 10 倍）。find_objects 是 C 层一次扫描，实测整段 <15ms。
+    for i, sl in enumerate(ndimage.find_objects(lab), start=1):
+        if sl is None:
+            continue
+        ys, xs = sl
+        x0, x1 = int(xs.start * sx), int(xs.stop * sx)
+        y0, y1 = int(ys.start * sy), int(ys.stop * sy)
+        area = (x1 - x0) * (y1 - y0)
+        if area < min_area:
+            continue
+        score = float(min(0.99, 0.5 + 0.5 * float(heat[ys, xs].mean())))
+        dets.append([x0, y0, x1, y1, score, 0])
+    dets.sort(key=lambda d: -d[4])
+    return dets, {'forward_ms': round(fwd_ms, 2), 'device': device, 'dtype': dtype,
+                  'heat_thr': round(thr, 4), 'boxes': len(dets)}
+
+
+def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.0,
+                          min_area=400, device=None, dtype='fp16', debug=False,
+                          kind_map=None, timing_out=None):
+    """torch fp16 stub 通道：与 find_containers_onnx 同形的返回（bbox=xyxy 原帧坐标）。"""
+    t0 = time.time()
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'degraded': False, 'error': None}
+    try:
+        dets, info = _torch_stub_detect(arr, size=size, threshold=threshold,
+                                        min_area=min_area, device=device, dtype=dtype)
+        if timing_out is not None:
+            timing_out.update(info)
+        kinds = list(kind_map or DETECT_KINDS)
+        conts = []
+        for d in dets:
+            conts.append({'bbox': [max(0, d[0]), max(0, d[1]), min(W0, d[2]), min(H0, d[3])],
+                          'kind': kinds[int(d[5]) % len(kinds)], 'score': d[4]})
+        conts.sort(key=lambda c: (-(c['bbox'][2] - c['bbox'][0]) * (c['bbox'][3] - c['bbox'][1]),
+                                  c['bbox'][1], c['bbox'][0]))
+        for i, c in enumerate(conts):
+            c['id'] = 't%d' % i
+        tb = [t['bbox'] for t in text_boxes]
+        used = set()
+        out = []
+        for c in conts:
+            bb = c['bbox']
+            texts = []
+            for j, tbb in enumerate(tb):
+                cx, cy = (tbb[0] + tbb[2]) / 2.0, (tbb[1] + tbb[3]) / 2.0
+                if bb[0] <= cx <= bb[2] and bb[1] <= cy <= bb[3]:
+                    texts.append(text_boxes[j]['text'])
+                    used.add(j)
+            holders = [p for p in conts if p is not c
+                       and p['bbox'][0] <= bb[0] and p['bbox'][1] <= bb[1]
+                       and p['bbox'][2] >= bb[2] and p['bbox'][3] >= bb[3]]
+            parent = min(holders, key=lambda p: (p['bbox'][2] - p['bbox'][0]) *
+                         (p['bbox'][3] - p['bbox'][1]))['id'] if holders else None
+            parent_bb = next((p['bbox'] for p in conts if p['id'] == parent), None)
+            out.append({
+                'id': c['id'], 'parent': parent, 'bbox': bb, 'kind': c['kind'],
+                'skin': {'lab': None, 'fill': None, 'rect': None},
+                'text': texts, 'glyphs': [], 'badges': [],
+                'affordance': {'clickable': 'unknown',
+                               'evidence': ['detector_stub:%.3f(随机权重，无语义)' % c['score'],
+                                            'hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)']},
+                'clipped': _containers_clipped(bb, parent_bb, W0, H0),
+                'confidence': round(min(0.99, max(0.05, c['score'])), 3),
+                'evidence': {'rule': 'detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义',
+                             'detector_score': round(c['score'], 4),
+                             'area_px': int((bb[2] - bb[0]) * (bb[3] - bb[1])),
+                             'text_in': len(texts)},
+            })
+        res['containers'] = out
+        res['free_text'] = [text_boxes[j]['text'] for j in range(len(text_boxes))
+                            if j not in used]
+    except Exception as exc:            # noqa: BLE001 —— fail-closed
+        res['containers'] = []
+        res['free_text'] = []
+        res['free_glyphs'] = []
+        res['degraded'] = True
+        res['error'] = 'detect-backend(torch): %s: %s' % (type(exc).__name__, exc)
+    if debug:
+        sys.stderr.write('[ys-screen] torch-stub containers=%d degraded=%s err=%s (%dms)\n'
+                         % (len(res['containers']), res['degraded'], res['error'],
+                            int((time.time() - t0) * 1000)))
+    return res
+
+def _parse_detect_output(out, in_w, in_h, fw, fh):
+    """把模型输出解析成 [[x0,y0,x1,y1,score,cls], …]（**原帧坐标**）。
+
+    支持的三种布局（先按形状判，判不出就报明确错，不猜）：
+      A. (N,6) / (N,5+)：已是 [x0,y0,x1,y1,score,(cls)]（模型输入像素坐标）
+      B. (1,M,4+nc) 或 (1,4+nc,M)：YOLOv8/11 导出形态 cx,cy,w,h + nc 个类分数
+      C. (1,N,6)：同 A（多一层 batch 维）
+    """
+    import numpy as np
+    arr = out[0] if isinstance(out, (list, tuple)) else out
+    a = np.asarray(arr)
+    if a.ndim == 3:
+        a = a[0]
+    if a.ndim != 2:
+        raise RuntimeError('检测输出维度不支持：shape=%s' % (a.shape,))
+    dets = []
+    if a.shape[1] >= 4 and a.shape[1] <= 8 and a.shape[1] not in (5, 6, 7):
+        # 极少见；按 A 处理
+        pass
+    if a.shape[1] >= 5 and a.shape[1] <= 8 and (a[:, :4].max() > 1.5 or a[:, 2:4].max() > 1.5):
+        # A/C：像素坐标 xyxy（原点域 >1 说明不是 0..1 归一化）
+        for row in a:
+            score = float(row[4])
+            cls = int(row[5]) if a.shape[1] >= 6 else 0
+            if score < 0.0:
+                continue
+            dets.append([float(row[0]), float(row[1]), float(row[2]), float(row[3]), score, cls])
+        return dets, 'xyxy-score-class'
+    # B：YOLO 转置形态（4+nc 行 × M 列）
+    if a.shape[0] >= 5 and a.shape[0] <= 4 + 200:
+        a = a.T
+    if a.shape[1] < 5:
+        raise RuntimeError('检测输出形状无法识别：%s（期望 (N,6) 或 YOLO (1,4+nc,M)）'
+                           % (np.asarray(arr).shape,))
+    for row in a:
+        cls_scores = row[4:]
+        ci = int(np.argmax(cls_scores))
+        score = float(cls_scores[ci])
+        cx, cy, w, h = [float(v) for v in row[:4]]
+        if max(w, h) <= 1.5:            # 归一化 cxcywh
+            cx, cy, w, h = cx * in_w, cy * in_h, w * in_w, h * in_h
+        dets.append([cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0, score, ci])
+    return dets, 'yolo-cxcywh-classes'
+
+
+def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDAExecutionProvider',
+                                                                          'CPUExecutionProvider'),
+                         min_score=0.25, max_det=200, kind_map=None, debug=False):
+    """学习型检测通道：**返回与 find_containers 同形的 dict**（containers/free_text/free_glyphs/
+    degraded/error），bbox 一律 **xyxy 原帧坐标**（与 cv 通道同口径）。
+
+    预处理约定（训练/导出必须一致，写进模型卡）：整帧**拉伸**到模型输入尺寸、RGB、/255、NCHW float32。
+    后处理：`_parse_detect_output` → 反归一化（除以缩放比）→ 过滤 score/min_score → 几何包含求 parent。
+    """
+    import numpy as np
+    t0 = time.time()
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [],
+           'degraded': False, 'error': None}
+    try:
+        # mock 通道：只用于**打通 plumbing 与记分器**（无权重/无 GPU 时也能验证接线）
+        if model.startswith('mock:'):
+            with open(model[5:], encoding='utf-8') as f:
+                dets = [list(map(float, d[:6])) for d in json.load(f)]
+            fmt = 'mock-xyxy'
+        else:
+            sess = _onnx_session(model, providers, debug=debug)
+            inp = sess.get_inputs()[0]
+            in_h, in_w = (inp.shape[2], inp.shape[3]) if len(inp.shape) == 4 else (640, 640)
+            in_w = int(in_w) if isinstance(in_w, int) and in_w > 0 else 640
+            in_h = int(in_h) if isinstance(in_h, int) and in_h > 0 else 640
+            from PIL import Image
+            im = Image.fromarray(arr).convert('RGB').resize((in_w, in_h), Image.BILINEAR)
+            x = np.asarray(im, dtype=np.float32).transpose(2, 0, 1)[None] / 255.0
+            outs = sess.run(None, {inp.name: x})
+            dets, fmt = _parse_detect_output(outs, in_w, in_h, W0, H0)
+            sx, sy = W0 / float(in_w), H0 / float(in_h)
+            dets = [[d[0] * sx, d[1] * sy, d[2] * sx, d[3] * sy, d[4], d[5]] for d in dets]
+        dets = [d for d in dets if d[4] >= min_score]
+        dets.sort(key=lambda d: -d[4])
+        dets = dets[:max_det]
+        kinds = list(kind_map or DETECT_KINDS)
+        conts = []
+        for d in dets:
+            x0 = max(0.0, min(W0 - 1.0, d[0]))
+            y0 = max(0.0, min(H0 - 1.0, d[1]))
+            x1 = max(x0 + 1.0, min(float(W0), d[2]))
+            y1 = max(y0 + 1.0, min(float(H0), d[3]))
+            ci = int(d[5]) % len(kinds)
+            conts.append({'bbox': [int(x0), int(y0), int(x1), int(y1)],
+                          'kind': kinds[ci], 'score': float(d[4])})
+        conts.sort(key=lambda c: (-(c['bbox'][2] - c['bbox'][0]) * (c['bbox'][3] - c['bbox'][1]),
+                                  c['bbox'][1], c['bbox'][0]))
+        for i, c in enumerate(conts):
+            c['id'] = 'd%d' % i
+        tb = [t['bbox'] for t in text_boxes]
+
+        def center_in(bb, tbb):
+            cx = (tbb[0] + tbb[2]) / 2.0
+            cy = (tbb[1] + tbb[3]) / 2.0
+            return bb[0] <= cx <= bb[2] and bb[1] <= cy <= bb[3]
+
+        used_text = set()
+        out = []
+        for c in conts:
+            bb = c['bbox']
+            texts, tids = [], []
+            for j, tbb in enumerate(tb):
+                if center_in(bb, tbb):
+                    texts.append(text_boxes[j]['text'])
+                    tids.append(j)
+                    used_text.add(j)
+            holders = [p for p in conts if p is not c
+                       and p['bbox'][0] <= bb[0] and p['bbox'][1] <= bb[1]
+                       and p['bbox'][2] >= bb[2] and p['bbox'][3] >= bb[3]]
+            parent = min(holders, key=lambda p: (p['bbox'][2] - p['bbox'][0]) *
+                         (p['bbox'][3] - p['bbox'][1]))['id'] if holders else None
+            parent_bb = next((p['bbox'] for p in conts if p['id'] == parent), None)
+            out.append({
+                'id': c['id'], 'parent': parent, 'bbox': bb, 'kind': c['kind'],
+                'skin': {'lab': None, 'fill': None, 'rect': None},
+                'text': texts, 'glyphs': [], 'badges': [],
+                'affordance': {'clickable': 'unknown',
+                               'evidence': ['detector_score:%.3f' % c['score'],
+                                            'hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)']},
+                'clipped': _containers_clipped(bb, parent_bb, W0, H0),
+                'confidence': round(min(0.99, max(0.05, c['score'])), 3),
+                'evidence': {'rule': 'detector:onnx(%s) fmt=%s min_score=%.2f' % (
+                    os.path.basename(model), fmt, min_score),
+                    'detector_score': round(c['score'], 4),
+                    'area_px': int((bb[2] - bb[0]) * (bb[3] - bb[1])),
+                    'text_in': len(texts)},
+            })
+        res['containers'] = out
+        res['free_text'] = [text_boxes[j]['text'] for j in range(len(text_boxes))
+                            if j not in used_text]
+        res['free_glyphs'] = []
+    except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded + 说清原因
+        res['containers'] = []
+        res['free_text'] = []
+        res['free_glyphs'] = []
+        res['degraded'] = True
+        res['error'] = 'detect-backend: %s: %s' % (type(exc).__name__, exc)
+    if debug:
+        sys.stderr.write('[ys-screen] onnx containers=%d degraded=%s err=%s (%dms)\n'
+                         % (len(res['containers']), res['degraded'], res['error'],
+                            int((time.time() - t0) * 1000)))
+    return res
+
+def _cont_cache_path(frame_sha, scale, text_boxes, backend_sig='cv'):
     """容器层缓存路径：键 = 帧字节 sha256 + 分析尺度 + **文本盒签名**。
 
     文本签名必须进键：`text[]` 归属和"内含文本"判据都吃 OCR 结果，换后端/换缩放后
@@ -1382,19 +1782,23 @@ def _cont_cache_path(frame_sha, scale, text_boxes):
                                  ensure_ascii=False).encode('utf-8')).hexdigest()[:16]
     # 规则版本进键：否则改了判据还会读到旧规则写下的结构（"改了但看起来没变"的经典坑——
     # 2026-10-18 实测踩到：加了 text_ui 判据后缓存命中返回的仍是旧结构）
-    return os.path.join(CACHE_DIR, 'cont-%s-%d-%s-%s.json'
-                        % (frame_sha, int(round(scale * 1000)), th, CONTAINER_RULESET))
+    return os.path.join(CACHE_DIR, 'cont-%s-%d-%s-%s-%s.json'
+                        % (frame_sha, int(round(scale * 1000)), th, CONTAINER_RULESET,
+                           backend_sig))
 
 
 def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, debug=False,
-                      frame_sha=None):
+                      frame_sha=None, backend='cv', detect_model=None,
+                      detect_providers=('CUDAExecutionProvider', 'CPUExecutionProvider'),
+                      detect_min_score=0.25, kind_map=None, detect_opts=None):
     """容器层 + 内容寻址缓存。返回 {containers,free_text,free_glyphs,degraded,error,timing}。
 
     timing.container_ms = 这一层自己的耗时（命中缓存时就是读文件+解析的时间）。
     这是性能门禁的口径来源（设计文档 §四末段）：**常驻 ≤200ms/帧、缓存命中 ≤5ms**。
     """
     t0 = time.time()
-    path = (_cont_cache_path(frame_sha or _sha256(frame), scale, text_boxes)
+    backend_sig = _detect_backend_sig(backend, detect_model)
+    path = (_cont_cache_path(frame_sha or _sha256(frame), scale, text_boxes, backend_sig)
             if use_cache else None)
     if path:
         try:
@@ -1405,7 +1809,21 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
                 return c
         except (OSError, ValueError):
             pass
-    res = find_containers(arr, scale, W0, H0, text_boxes, debug=debug)
+    if backend == 'onnx':
+        if not detect_model:
+            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'degraded': True,
+                   'error': 'detect-backend: onnx 需要 --detect-model <path.onnx>'
+                            '（或 env YS_DETECT_ONNX）；缺模型 fail-closed，不静默回落到 cv'}
+        else:
+            res = find_containers_onnx(arr, scale, W0, H0, text_boxes, detect_model,
+                                       providers=detect_providers, min_score=detect_min_score,
+                                       kind_map=kind_map, debug=debug)
+    elif backend == 'torch':
+        o = dict(detect_opts or {})
+        res = find_containers_torch(arr, scale, W0, H0, text_boxes, kind_map=kind_map,
+                                    debug=debug, **o)
+    else:
+        res = find_containers(arr, scale, W0, H0, text_boxes, debug=debug)
     res['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': False}
     if path and not res['degraded']:
         try:
@@ -1921,7 +2339,9 @@ def _ocr_text(frame, use_ocr, use_cache, scale, debug=False):
 
 
 def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structure_only=False,
-            containers_only=False, repeat=1):
+            containers_only=False, repeat=1, backend='cv', detect_model=None,
+            detect_providers=('CUDAExecutionProvider', 'CPUExecutionProvider'),
+            detect_min_score=0.25, detect_opts=None, kind_map=None):
     # 结构缓存（2026-10-18）：按帧 sha 存一份 structure.json，**必须在解码之前查**——
     # 放后面试过一次，命中仍要 260ms（解码 170ms + OCR 查缓存），等于没省。
     # 判据：同一帧第二次查询 <10ms。
@@ -1944,7 +2364,11 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
     # 异常不外抛——find_containers 自己 fail-closed 成 degraded，不拖垮其余字段。
     cont = containers_cached(frame, arr, 0.5, W0, H0, text,
                              use_cache=use_cache and repeat <= 1, debug=debug,
-                             frame_sha=frame_sha)
+                             frame_sha=frame_sha, backend=backend,
+                             detect_model=detect_model,
+                             detect_providers=detect_providers,
+                             detect_min_score=detect_min_score,
+                             detect_opts=detect_opts, kind_map=kind_map)
     t_after_cont = time.time()
     frame_info = {'path': os.path.abspath(frame), 'sha256': frame_sha,
                   'w': W0, 'h': H0, 'bytes': os.path.getsize(frame)}
@@ -1958,7 +2382,18 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
             # vs 稳态 134ms），那不是"每帧成本"；缓存也读不出稳态值 ⇒ --repeat 强制真算。
             for _ in range(repeat - 1):
                 t1 = time.time()
-                find_containers(arr, 0.5, W0, H0, text, debug=False)
+                # 必须重复**当前后端**：早先这里写死 find_containers（cv），
+                # 于是 `--backend torch --repeat 3` 会拿 cv 的 20ms 冒充检测后端的稳态（假读数）。
+                if backend == 'onnx':
+                    find_containers_onnx(arr, 0.5, W0, H0, text, detect_model,
+                                         providers=detect_providers,
+                                         min_score=detect_min_score, kind_map=kind_map,
+                                         debug=False)
+                elif backend == 'torch':
+                    find_containers_torch(arr, 0.5, W0, H0, text, kind_map=kind_map,
+                                          debug=False, **dict(detect_opts or {}))
+                else:
+                    find_containers(arr, 0.5, W0, H0, text, debug=False)
                 runs.append(int((time.time() - t1) * 1000))
         steady = int(statistics.median(runs[1:])) if repeat > 1 else runs[0]
         return {
@@ -2049,6 +2484,24 @@ def main(argv=None):
                     help='容器层稳态基准：同一帧连跑 N 次，container_ms 取第 2..N 次中位数'
                          '（常驻口径；自动绕过缓存）')
     ap.add_argument('--scale', type=float, default=1.0, help='OCR 前缩图比例（默认 1.0）')
+    ap.add_argument('--backend', choices=('cv', 'onnx', 'torch'), default='cv',
+                    help='对象检测后端：cv=现行 flat+rect（**默认，输出不变**）；'
+                         'torch=U-Net fp16 stub（随机权重，只验证链路与耗时）；'
+                         'onnx=外部 ONNX 检测模型（需 --detect-model）')
+    ap.add_argument('--detect-model', default=os.environ.get('YS_DETECT_ONNX'),
+                    help='onnx 后端的 .onnx 路径（或 env YS_DETECT_ONNX）；'
+                         '也接受 mock:<dets.json> 用于打通接线')
+    ap.add_argument('--detect-providers', default='cuda',
+                    choices=('cuda', 'cpu'), help='onnx 后端的 EP：cuda=请求 CUDA 并**断言真起**')
+    ap.add_argument('--detect-min-score', type=float, default=0.25, help='onnx 后端置信度下限')
+    ap.add_argument('--detect-device', default=None, choices=('cuda', 'cpu'),
+                    help='torch 后端的设备（默认自动：有 cuda 就用）')
+    ap.add_argument('--detect-dtype', default='fp16', choices=('fp16', 'fp32'),
+                    help='torch 后端精度（fp16 只在 cuda 生效，cpu 自动 fp32）')
+    ap.add_argument('--detect-threshold', type=float, default=1.0,
+                    help='torch stub 的热图分位阈值（1.0 = 最高 1%% 像素）')
+    ap.add_argument('--detect-min-area', type=int, default=400,
+                    help='torch stub 的最小框面积（px²）')
     ap.add_argument('--max-lines', type=int, default=10, help='摘要最大行数（默认 10）')
     ap.add_argument('--debug', action='store_true', help='诊断打到 stderr')
     a = ap.parse_args(argv)
@@ -2058,15 +2511,33 @@ def main(argv=None):
         return 3
     try:
         res = analyze(a.frame, use_ocr=not a.no_ocr, use_cache=not a.no_cache,
-                 structure_only=getattr(a, 'structure', False),
-                 containers_only=getattr(a, 'containers', False),
-                      repeat=max(1, a.repeat), scale=a.scale, debug=a.debug)
+                      structure_only=getattr(a, 'structure', False),
+                      containers_only=getattr(a, 'containers', False),
+                      repeat=max(1, a.repeat), scale=a.scale, debug=a.debug,
+                      backend=a.backend, detect_model=a.detect_model,
+                      detect_providers=(('CUDAExecutionProvider', 'CPUExecutionProvider')
+                                        if a.detect_providers == 'cuda'
+                                        else ('CPUExecutionProvider',)),
+                      detect_min_score=a.detect_min_score,
+                      detect_opts={'device': a.detect_device, 'dtype': a.detect_dtype,
+                                   'threshold': a.detect_threshold,
+                                   'min_area': a.detect_min_area})
     except SystemExit as exc:
         return int(exc.code or 0)
     except OSError as exc:
         sys.stderr.write('[ys-screen] 读图失败：%s\n' % exc)
         sys.stderr.write('[ys-screen] 期望：可解码的 PNG；实测：%s\n' % exc)
         return 3
+    # fail-closed 硬信号（票 24）：检测后端不可用 ⇒ 退出码 6。
+    # 与"pixel 管线抖动"的 degraded 区分开：那是降级（有读数但自述不可信），这是**配置错误**。
+    if (a.backend != 'cv' and isinstance(res, dict) and res.get('degraded')
+            and str(res.get('error') or '').startswith('detect-backend')):
+        sys.stderr.write('[ys-screen] 检测后端不可用（backend=%s）：%s\n'
+                         % (a.backend, res.get('error')))
+        if a.json_out:
+            with open(a.json_out, 'w', encoding='utf-8') as f:
+                json.dump(res, f, ensure_ascii=False, indent=1)
+        return 6
     if getattr(a, 'containers', False):
         # 轻量输出：容器结构 + 归属。**永远出 JSON**（与 --structure 同形态）——
         # 下游要的是可机读结构，不是人读摘要。

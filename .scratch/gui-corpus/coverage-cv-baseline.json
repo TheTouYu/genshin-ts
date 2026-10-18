@@ -12470,6 +12470,48 @@
   "neg_frames": 1,
   "neg_violations": [
    "neg-world"
-  ]
+  ],
+  "by_kind": {
+   "panel": {
+    "units": 9,
+    "hit": 5,
+    "rate": 0.5556
+   },
+   "row": {
+    "units": 110,
+    "hit": 23,
+    "rate": 0.2091
+   },
+   "button": {
+    "units": 46,
+    "hit": 2,
+    "rate": 0.0435
+   },
+   "avatar": {
+    "units": 8,
+    "hit": 0,
+    "rate": 0.0
+   },
+   "icon": {
+    "units": 38,
+    "hit": 0,
+    "rate": 0.0
+   },
+   "card": {
+    "units": 14,
+    "hit": 1,
+    "rate": 0.0714
+   },
+   "tile": {
+    "units": 56,
+    "hit": 56,
+    "rate": 1.0
+   },
+   "chip": {
+    "units": 4,
+    "hit": 0,
+    "rate": 0.0
+   }
+  }
  }
 }

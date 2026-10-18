@@ -1,0 +1,755 @@
+{
+ "schema": "ys-screen/1",
+ "layer": "containers",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/f00.png",
+  "sha256": "4b6135750a06124ff00029ee81196a8561de81902a831671558508d9ca5d0b49",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 2537195
+ },
+ "containers": [
+  {
+   "id": "d0",
+   "parent": null,
+   "bbox": [
+    272,
+    268,
+    656,
+    1168
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 345600,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d1",
+   "parent": null,
+   "bbox": [
+    298,
+    708,
+    702,
+    824
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 46864,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d2",
+   "parent": "d0",
+   "bbox": [
+    272,
+    335,
+    656,
+    451
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 44544,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d3",
+   "parent": "d0",
+   "bbox": [
+    272,
+    465,
+    656,
+    581
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 44544,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d4",
+   "parent": "d0",
+   "bbox": [
+    272,
+    588,
+    656,
+    704
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 44544,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d5",
+   "parent": "d0",
+   "bbox": [
+    272,
+    831,
+    656,
+    947
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 44544,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d6",
+   "parent": "d0",
+   "bbox": [
+    272,
+    952,
+    656,
+    1068
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 44544,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d7",
+   "parent": null,
+   "bbox": [
+    1910,
+    1030,
+    2280,
+    1130
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 37000,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d8",
+   "parent": null,
+   "bbox": [
+    1540,
+    1030,
+    1830,
+    1130
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 29000,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d9",
+   "parent": null,
+   "bbox": [
+    2000,
+    285,
+    2270,
+    385
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 27000,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d10",
+   "parent": null,
+   "bbox": [
+    1560,
+    871,
+    1700,
+    1010
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 19460,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d11",
+   "parent": null,
+   "bbox": [
+    1705,
+    871,
+    1840,
+    1010
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 18765,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d12",
+   "parent": null,
+   "bbox": [
+    1845,
+    871,
+    1975,
+    1010
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 18070,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d13",
+   "parent": null,
+   "bbox": [
+    1725,
+    390,
+    1845,
+    520
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 15600,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d14",
+   "parent": null,
+   "bbox": [
+    1600,
+    390,
+    1720,
+    515
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 15000,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d15",
+   "parent": null,
+   "bbox": [
+    1860,
+    390,
+    1975,
+    520
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 14950,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d16",
+   "parent": null,
+   "bbox": [
+    2115,
+    390,
+    2220,
+    520
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 13650,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d17",
+   "parent": null,
+   "bbox": [
+    1990,
+    390,
+    2090,
+    520
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 13000,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "d18",
+   "parent": null,
+   "bbox": [
+    2425,
+    165,
+    2515,
+    255
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_score:0.900",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "detector:onnx(mock-f00.json) fmt=mock-xyxy min_score=0.25",
+    "detector_score": 0.9,
+    "area_px": 8100,
+    "text_in": 0
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 175,
+  "ocr_ms": 0,
+  "container_ms": 0,
+  "container_runs": 1,
+  "container_first_ms": 0,
+  "container_cached": false,
+  "pixel_ms": 0,
+  "total_ms": 176,
+  "ocr_source": "skip",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 0,
+  "err": null
+ }
+}

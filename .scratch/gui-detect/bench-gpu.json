@@ -1,0 +1,249 @@
+{
+ "env": {
+  "dev_nvidia_nodes": [
+   "nvidia-caps",
+   "nvidia-modeset",
+   "nvidia-uvm",
+   "nvidia-uvm-tools",
+   "nvidia0",
+   "nvidiactl"
+  ],
+  "nvidia_smi_L": "GPU 0: NVIDIA GeForce RTX 3060 Laptop GPU (UUID: GPU-fd320a9f-1366-7ebd-fb8e-5bacfaf0c3aa)",
+  "torch": "2.14.1",
+  "torch_cuda_build": "13.4",
+  "torch_cuda_available": true,
+  "torch_device_count": 1,
+  "torch_device_name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "torch_vram_mb": 5857,
+  "torch_capability": "8.6",
+  "torch_cudnn": 92700,
+  "onnxruntime": "1.29.0",
+  "ort_providers_available": [
+   "CUDAExecutionProvider",
+   "DnnlExecutionProvider",
+   "CPUExecutionProvider"
+  ],
+  "python": "3.14.8",
+  "cpu_count": 16
+ },
+ "args": {
+  "size": 640,
+  "iters": 50,
+  "warmup": 10,
+  "bench": "all",
+  "yolo_weights": null,
+  "unet_bases": "8,12,16",
+  "out": "/home/h/genshin-ts/.scratch/gui-detect/bench-gpu.json"
+ },
+ "unet": {
+  "size": 640,
+  "runs": [
+   {
+    "base": 8,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 89.25,
+    "min_ms": 76.92,
+    "gflops": 121.6,
+    "ms_at_9p3_gflop": 76.48
+   },
+   {
+    "base": 8,
+    "device": "cuda",
+    "dtype": "fp32",
+    "median_ms": 16.76,
+    "min_ms": 15.86,
+    "gflops": 647.4,
+    "ms_at_9p3_gflop": 14.36
+   },
+   {
+    "base": 8,
+    "device": "cuda",
+    "dtype": "fp16",
+    "median_ms": 10.65,
+    "min_ms": 10.4,
+    "gflops": 1019.1,
+    "ms_at_9p3_gflop": 9.13
+   },
+   {
+    "base": 12,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 173.93,
+    "min_ms": 122.83,
+    "gflops": 139.5,
+    "ms_at_9p3_gflop": 66.67
+   },
+   {
+    "base": 12,
+    "device": "cuda",
+    "dtype": "fp32",
+    "median_ms": 24.34,
+    "min_ms": 24.21,
+    "gflops": 996.7,
+    "ms_at_9p3_gflop": 9.33
+   },
+   {
+    "base": 12,
+    "device": "cuda",
+    "dtype": "fp16",
+    "median_ms": 17.11,
+    "min_ms": 16.22,
+    "gflops": 1418.0,
+    "ms_at_9p3_gflop": 6.56
+   },
+   {
+    "base": 16,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 223.75,
+    "min_ms": 185.61,
+    "gflops": 192.1,
+    "ms_at_9p3_gflop": 48.4
+   },
+   {
+    "base": 16,
+    "device": "cuda",
+    "dtype": "fp32",
+    "median_ms": 30.9,
+    "min_ms": 16.76,
+    "gflops": 1391.3,
+    "ms_at_9p3_gflop": 6.68
+   },
+   {
+    "base": 16,
+    "device": "cuda",
+    "dtype": "fp16",
+    "median_ms": 10.79,
+    "min_ms": 10.67,
+    "gflops": 3985.3,
+    "ms_at_9p3_gflop": 2.33
+   }
+  ],
+  "model": "unet(base=8..,depth=4)@640",
+  "gflop_by_base": {
+   "8": 10.85,
+   "12": 24.26,
+   "16": 42.99
+  },
+  "gflop": 42.99
+ },
+ "ort": {
+  "runs": [
+   {
+    "model": "ch_PP-OCRv4_det_infer.onnx",
+    "requested": "cpu",
+    "actual_providers": [
+     "CPUExecutionProvider"
+    ],
+    "gpu_active": false,
+    "load_ms": 413,
+    "median_ms": 3.67,
+    "min_ms": 2.13,
+    "input": [
+     1,
+     3,
+     1,
+     1
+    ]
+   },
+   {
+    "model": "ch_PP-OCRv4_det_infer.onnx",
+    "requested": "cuda",
+    "actual_providers": [
+     "CPUExecutionProvider"
+    ],
+    "gpu_active": false,
+    "load_ms": 308,
+    "median_ms": 4.65,
+    "min_ms": 2.52,
+    "input": [
+     1,
+     3,
+     1,
+     1
+    ]
+   },
+   {
+    "model": "ch_PP-OCRv4_rec_infer.onnx",
+    "requested": "cpu",
+    "actual_providers": [
+     "CPUExecutionProvider"
+    ],
+    "gpu_active": false,
+    "load_ms": 458,
+    "median_ms": 5.9,
+    "min_ms": 3.56,
+    "input": [
+     1,
+     3,
+     1,
+     1
+    ]
+   },
+   {
+    "model": "ch_PP-OCRv4_rec_infer.onnx",
+    "requested": "cuda",
+    "actual_providers": [
+     "CPUExecutionProvider"
+    ],
+    "gpu_active": false,
+    "load_ms": 205,
+    "median_ms": 5.0,
+    "min_ms": 3.24,
+    "input": [
+     1,
+     3,
+     1,
+     1
+    ]
+   },
+   {
+    "model": "silero_vad_v6.onnx",
+    "requested": "cpu",
+    "error": "Required inputs (['h', 'c']) are missing from input feed (['input'])."
+   },
+   {
+    "model": "silero_vad_v6.onnx",
+    "requested": "cuda",
+    "error": "Required inputs (['h', 'c']) are missing from input feed (['input'])."
+   }
+  ],
+  "models_found": [
+   "/home/h/.cache/uv/archive-v0/wtUjtuyTQ3HTOYcT/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+   "/home/h/.cache/uv/archive-v0/wtUjtuyTQ3HTOYcT/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx",
+   "/home/h/.cache/uv/archive-v0/G5UoKHw0urLbO-aQ/faster_whisper/assets/silero_vad_v6.onnx"
+  ]
+ },
+ "yolo": {
+  "runs": [],
+  "skip": "ultralytics 未安装（No module named 'ultralytics'）——装包需用户授权"
+ },
+ "cold": {
+  "import_numpy": {
+   "ms": 142,
+   "rc": 0,
+   "err": ""
+  },
+  "import_cv2": {
+   "ms": 4362,
+   "rc": 0,
+   "err": ""
+  },
+  "imread_1440p_png": {
+   "ms": 473,
+   "rc": 0,
+   "err": ""
+  },
+  "import_onnxruntime": {
+   "ms": 167,
+   "rc": 0,
+   "err": ""
+  },
+  "import_torch": {
+   "ms": 2172,
+   "rc": 0,
+   "err": ""
+  }
+ }
+}

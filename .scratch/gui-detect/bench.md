@@ -8,11 +8,27 @@
 
 ---
 
+## 〇、⚠️ 更正（2026-10-18 19:5x，用户/Lead 复验后）
+
+**本机 GPU 可用。本文件初版「GPU 不可用」是假阴性。** 读数（Lead 会话，cwd=`/home/h/genshin-ts`）：
+`ls /dev/nvidia*` → `nvidia0 / nvidiactl / nvidia-modeset / nvidia-uvm`（rc=0）；`nvidia-smi -L` →
+`GPU 0: NVIDIA GeForce RTX 3060 Laptop GPU`（rc=0）；`torch.cuda.is_available()=True, device_count=1`，显存 6.14GB。
+
+根因：**我这一路是 subagent 会话，`/dev` 被沙箱化成最小 devtmpfs**（只有 null/zero/random/tty/shm/core/fd/ptmx/pts/stderr/stdout，无任何 GPU 节点）；
+驱动与内核模块都在（`NVRM 615.78.08`、`nvidia_uvm/nvidia_drm` 已加载、`libcuda.so.1`/`libcudnn.so.9` 在）。
+⇒ 判「GPU 能不能用」必须三件一起看：**设备节点 `/dev/nvidia*` + `nvidia-smi -L` + `torch.cuda.is_available()`**，
+且**必须在能访问设备的会话里跑**；「在我这个会话里看不到」不等于「机器没有」。
+
+**由此解锁的路线**：GPU 实测（下文 §三 的 ≤10ms 判据）改由 `bench_gpu.py` 在 GPU 可见会话执行；
+本文件的 CPU 数字仍然有效（作为"降级路径有多慢"的对照，不是 GPU 读数）。
+
+---
+
 ## 一、结论先行（三句话）
 
-1. **本会话拿不到 GPU**：内核模块与驱动在（`NVRM 615.78.08`、`libcuda.so.1`、`libcudnn.so.9` 都在），
-   但 `/dev/nvidia*` 一个设备节点都没有 → `nvidia-smi` 报"无法与驱动通信"、`torch.cuda.is_available()=False`。
-   ⇒ **GPU 实测必须由能访问 `/dev/nvidia*` 的会话/用户侧跑**（我不越权绕沙箱）。
+1. **GPU 可用（见 §〇 更正）**；但**本 subagent 会话的 `/dev` 被沙箱隐藏**，所以 GPU 读数只能由
+   GPU 可见会话执行 `bench_gpu.py` 取得。**判据：先 `sess.get_providers()` 里真有 `CUDAExecutionProvider`**
+   —— ORT 缺依赖时**不报错、只 warning 然后静默回落 CPU**（实测见 §三-③）。
 2. **CPU 回退路径已被实测否决**：torch fp32 CPU（12 线程）实测 **174.8 GFLOP/s** ⇒ 9.3 GFLOP 的 U-Net@640
    折算 **≈53ms/帧**（4 线程时 101 GFLOP/s ⇒ 92ms）；比 ≤10ms 门槛慢 5–9 倍，比 GPU 先例 5.3ms 慢 10–17 倍。
    ⇒ 「GPU ≤10ms」这条口径只能靠 GPU 落地，CPU 必须显式走**降级路径**（自报 `degraded`，不许假装）。
@@ -127,3 +143,136 @@ python3 -c "import torch;print(torch.cuda.is_available(), torch.cuda.get_device_
 - GPU 的 5.3ms 是**上一轮会话的读数**（`AGI-BAR.md` §一 已记录），我这一轮**没有复现**（设备不可见）。
 - 表里「文献/折算」的 ms 与体积**不是验收读数**；票 24 的验收（单帧 ≤10ms、关键样本命中、3 类负样本 0 假阳性）
   必须在 GPU 可用的会话里用真权重跑出来。
+
+
+---
+
+## 七、2026-10-18 19:4x 增补实测（bench_gpu.py 的可复算读数）
+
+### 7.1 基准台 `bench_gpu.py`（只读本机已装件，不下载不安装）
+
+```bash
+cd /home/h/genshin-ts && python3 .scratch/gui-detect/bench_gpu.py --iters 50 --warmup 10
+# 产出：人读表格 + .scratch/gui-detect/bench-gpu.json
+# 分项：--bench unet|ort|yolo|cold|all；--unet-bases 8,12,16；--yolo-weights path
+# 退出码：0 跑完 / 2 用法 / 4 请求了 CUDA EP 但实际 providers 里没有 CUDA（fail-closed，防 CPU 数字冒充 GPU）
+```
+
+### 7.2 U-Net 的 FLOPs 是**量出来的**，不是猜的
+
+`count_flops()` 用 forward hook 逐层累加 `2·k²·Cin/groups·Cout·H_out·W_out`（随机权重前向一次）。
+实测（`--unet-bases 8`，640×640×3 输入）：**base=8/depth=4 ⇒ 10.85 GFLOP/帧**；
+`FLOPs ∝ base²` ⇒ base 12/16 分别 ≈24.4 / 43.4 GFLOP（脚本会自己算，不引用本行近似值）。
+**对标先例**：记忆里的「9.3 GFLOP U-Net@640 fp16 = 5.3ms」≈ 本台 base=8 这一档；
+脚本每行都给 `折算 9.3 GFLOP 的 ms` 列，直接和 5.3ms 比。
+
+### 7.3 CPU 对照（已实测，本会话）
+
+| 配置 | GFLOP | 中位 ms | 有效 GFLOP/s |
+|---|---|---|---|
+| U-Net base8 @640², CPU fp32, 1 线程口径(torch 默认) | 10.85 | **107.07** | 101.4 |
+
+⇒ CPU 要 ≤10ms 需 ~10.7× 加速（单核不可能，多核并行也只在 16 核 × 1.3 倍量级）；
+**结论不变：≤10ms 只能走 GPU**，CPU 路径必须自报 `degraded`。
+
+### 7.4 坑：onnxruntime 的 CUDA EP **静默回落 CPU**（实测原文）
+
+请求 `['CUDAExecutionProvider','CPUExecutionProvider']` 建 session，**不抛异常**，只打：
+`Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 13.*. Please install all dependencies…`
+而 `sess.get_providers()` 实际返回 `['CPUExecutionProvider']`，OCR det 模型照跑 2.29ms（**CPU 数字**）。
+⇒ 任何写"GPU 上 X ms"的代码，**第一行必须断言 `'CUDAExecutionProvider' in sess.get_providers()`**，否则读数无效。
+（本机若也回落，按记忆 D373 的三道坎查：①`ctypes.CDLL('/usr/lib/libcudnn.so.9', RTLD_GLOBAL)` 解决加载顺序
+②`ort.register_execution_provider_library('CUDAExecutionProvider', <capi>/libonnxruntime_providers_cuda.so)`
+③ RapidOCR 那条 `ort.get_device()` 返回 `'GPU-DNNL'` 导致判假——只影响 RapidOCR，不影响本台子。）
+
+### 7.5 本机现有可跑权重（0 下载）
+
+`rapidocr` 的 `ch_PP-OCRv4_{det,rec}_infer.onnx` + `faster_whisper/silero_vad_v6.onnx`（后者需 h/c 双输入，本台子按单输入测会报错并如实记录）。
+**检测类（YOLO/DETR/UI-parsing）权重=0**，任何检测路线都要下权重（=需授权；用户已原则批准 yolo11n 冒烟）。
+
+---
+
+## 八、GPU 实测（2026-10-18 19:5x，**Lead 会话**跑 `bench_gpu.py`，rc=0，50 iter / 10 warmup）
+
+> 执行者=Lead（GPU 可见会话）；本文件只记录读数与结论。原始 JSON 由 Lead 会话落盘（`--out`）。
+
+| 配置 | 中位 ms | min ms | 有效算力 | 折算 9.3 GFLOP 的 ms |
+|---|---|---|---|---|
+| U-Net@640 base8 **CUDA fp16** | **10.65** | 10.40 | 1019 GFLOP/s | — |
+| U-Net@640 base8 CUDA fp32 | 16.76 | — | — | — |
+| U-Net@640 base16 **CUDA fp16** | **10.79** | 10.67 | 3985 GFLOP/s | **2.33** |
+| U-Net@640 base8 CPU fp32 | 89.25 | — | ~120 GFLOP/s | — |
+
+**读法（关键，别读反）**：base8 与 base16 的 fp16 时间几乎一样（10.65 vs 10.79ms），而 base16 的算力利用率
+是 base8 的 3.9× ⇒ **这一档还没到算力墙，瓶颈在固定开销（kernel launch / 显存搬运 / host 往返）**。
+折算到 9.3 GFLOP 口径 = **2.33ms**，比记忆里的 5.3ms 先例还好 ⇒ **「对象检测单帧 ≤10ms」在算力上已成立**。
+
+**冷启动（Lead 会话）**：`import_cv2 4362ms` / `import_torch 2172ms` / `imread(2560×1440) 473ms` / `import_ort 167ms`。
+⇒ **常驻服务不是优化项，是前提**（同记忆 D373/D375）。
+
+**onnxruntime 的 CUDA EP 回落也在 Lead 会话复现**：请求 cuda，实际 `providers=['CPUExecutionProvider']`，
+det 前向 3.67ms（CPU 数字），GPU 真起=**NO**。
+⇒ 裁决（Lead）：**主推 torch fp16**，ONNX 留作以后导出部署的可选项；不装 ultralytics、不下 yolo11n（支线搁置）。
+
+## 九、pipeline 的下一道瓶颈：**host 后处理**（不是网络）
+
+`ys-screen --backend torch --no-ocr --containers --repeat 4`（本会话 CPU 实测）：
+
+| 项 | ms | 说明 |
+|---|---|---|
+| 稳态 container_ms（base8 fp32, CPU） | **95** | 网络前向 70–88 + host 后处理 ~25 |
+| 其中 阈值(分位数) | 5 | numpy |
+| 其中 闭运算 + 连通域 | 15 | `scipy.ndimage` |
+| 其中 取框（`find_objects`） | ~5 | 原实现逐标签 `np.where(lab==i)` 实测把这段拖到 ~800ms，已改 `find_objects` |
+| 首帧 | 1371 | 含 `import torch` + 建网（一次性，常驻后不再付） |
+
+⇒ GPU 端到端粗算 = **网络 10.65ms + host 后处理 25ms ≈ 36ms**（host 占 70%）。
+要把单帧压进 ≤10ms，下一步是把阈值+连通域搬到 GPU（或换成固定网格回归头直接出框），
+**继续优化网络收益为零**（base8→base16 时间不变已经说明这点）。
+
+## 十、留一帧交叉验证（LOO）可行性与工作量评估（**未真训**）
+
+### 10.1 语料其实是「12 个屏幕族 / 14 帧」
+
+| 族 | 帧 | units | 留出后训练集 units |
+|---|---|---|---|
+| A 活动一览·且试身手 | f00 | 19 | 266 |
+| B 活动一览·风仙亦是仙（同屏异滚动） | f01,f02 | 32 | 253 |
+| C/D/E 溯流变奏曲 / 绮星盛会 / 奇域秘藏 | f03,f04,f05 | 15/14/14 | 270/271/271 |
+| F/G/H 派蒙菜单 首屏/滚一屏/千星区（同屏三滚动位置） | f06,f07,f08 | 29/28/29 | 256/257/256 |
+| I 设置·控制 | f09 | 21 | 264 |
+| J 设置·图像（同屏异滚动） | f10,f11 | 45 | 240 |
+| K 设置·语言 | f12 | 14 | 271 |
+| L 存档选择 | f13 | 25 | 260 |
+
+### 10.2 结论：**按帧 LOO 会虚高，按族 LOO 又不足以证伪**——所以它不该当精度门禁
+
+1. **按帧留一（leave-one-frame-out）有近重复泄漏**：f01/f02、f10/f11、f06/f07/f08 是同一屏不同滚动位置，
+   留出 f07 时 f06/f08 提供几乎相同的像素分布 ⇒ 数字会被"背屏"抬高，**测的是记忆不是泛化**。
+2. **按族留一（leave-one-screen-family-out）才诚实**，但只剩 12 折、每折训练集 **240–271 units**（≈ 250 个框）。
+   对比 640² 的 U-Net（base8 ≈ 0.5M 参数），这是"每族 1–3 帧"的学习条件，
+   结论必然是「学不动 / 背屏」二选一，**无法回答"能不能超过 CV 30.5%"**。
+3. 更关键：**CV 基线的 30.5% 是聚合值，本身被屏幕族主导**——派蒙三帧（86 units）占 56/86=65%，
+   而活动一览六帧（94 units）只有 12/94=12.8%。拿一个聚合数字当"要超过的线"会掩盖"在哪类屏上未过线"。
+   ⇒ 建议把门禁改成**分形态的线**（网格 tile ≥95%、行 ≥50%、图标/头像 ≥60%、卡片/按钮 ≥50%），
+   聚合值只作趋势跟踪。
+
+### 10.3 若坚持做一次 LOO（只为验证管线，不为精度），工作量 ≈ 4–5 小时
+
+| 步骤 | 内容 | 预计 |
+|---|---|---|
+| ① 标签张量化 | truth JSON → 每帧 objectness/affinity 目标图（640²，Gaussian 峰 + 距离图） | 2h |
+| ② 训练循环 | torch，U-Net base8 fp16，AdamW + 增强（随机裁剪/缩放/亮度/半透明叠加） | 1.5h |
+| ③ 评测接线 | 复用 `tools/ys-coverage`：模型出框 → containers[] → 逐帧 COVERAGE | 0.5h |
+| ④ 跑 12 折 | 每折 ~200 epoch × 2s ≈ 7min ⇒ 12 折 ≈ 1.4h（RTX 3060 余量足够） | 1.4h |
+| **合计** | 得到的是「管线通不通 + 标签定义对不对」，**不是**精度结论 | **≈4–5h** |
+
+### 10.4 真正要回答"能否超 30.5%"，最小可信实验
+
+- **数据量**：**~200 帧 / ~4,000 实例**（每帧 ~20 units），按屏幕族切分（≥8 族，每族 ≥10 帧）。
+- **标注成本**：现工具链单帧 ~170s（本批 14 帧/40min 含工具开发）；流水线化后目标 **60–90s/帧**
+  ⇒ 200 帧 ≈ **3.5–5 小时**（可用主动学习挑帧：先训一版，只标模型不确定的帧）。
+- **训练成本可忽略**：200 帧 × 11 GFLOP ≈ 2.2 TFLOP/epoch（前向），fwd+bwd ≈ 6.5 TFLOP ⇒ ~2s/epoch
+  ⇒ 300 epoch ≈ **10 分钟**。**瓶颈是标注与标注一致性，不是算力。**
+- **三步走建议**：①先用现有 285 实例训一版（4–5h）拿管线通行证；②再批量采 200 帧；
+  ③组切分评测，门禁用 §10.2-3 的分形态线。

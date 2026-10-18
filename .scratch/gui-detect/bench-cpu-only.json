@@ -1,0 +1,47 @@
+{
+ "env": {
+  "dev_nvidia_nodes": [],
+  "nvidia_smi_L": "NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.",
+  "torch": "2.14.1",
+  "torch_cuda_build": "13.4",
+  "torch_cuda_available": false,
+  "torch_device_count": 0,
+  "torch_cudnn": 92700,
+  "onnxruntime": "1.29.0",
+  "ort_providers_available": [
+   "CUDAExecutionProvider",
+   "DnnlExecutionProvider",
+   "CPUExecutionProvider"
+  ],
+  "python": "3.14.8",
+  "cpu_count": 16
+ },
+ "args": {
+  "size": 640,
+  "iters": 3,
+  "warmup": 1,
+  "bench": "unet",
+  "yolo_weights": null,
+  "unet_bases": "8",
+  "out": ".scratch/gui-detect/bench-cpu-only.json"
+ },
+ "unet": {
+  "size": 640,
+  "runs": [
+   {
+    "base": 8,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 107.07,
+    "min_ms": 105.81,
+    "gflops": 101.4,
+    "ms_at_9p3_gflop": 91.75
+   }
+  ],
+  "model": "unet(base=8..,depth=4)@640",
+  "gflop_by_base": {
+   "8": 10.85
+  },
+  "gflop": 10.85
+ }
+}

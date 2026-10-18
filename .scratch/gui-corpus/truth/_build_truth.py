@@ -389,6 +389,47 @@ f13 += [U('button', [2380, 22, 128, 112], [], clickable='yes', note='右上关�
 TRUTH['f13'] = f13
 
 
+
+
+# ---------------------------------------------------------------- 来源/独立性记录（_provenance）
+# 「谁标的、用不用工具辅助、独立通道复核到什么程度」——真值的可信度必须可审计。
+INDEP = {
+    'f06': {'truth_tiles': 19, 'measured': 18, 'matched': 18, 'miss': [26], 'extra': 0,
+            'mean_iou': 0.814, 'min_iou': 0.766,
+            'miss_reason': 'id=26（底部行）亮度<150 阈值失效：该行在滚动渐隐带里'},
+    'f07': {'truth_tiles': 18, 'measured': 13, 'matched': 13, 'miss': [10, 11, 12, 13, 25],
+            'extra': 0, 'mean_iou': 0.799, 'min_iou': 0.758,
+            'miss_reason': 'id=10–13 是被裁切行（只剩 174×64 文字带，长宽比 2.7 超出矩形先验）；id=25 底部渐隐'},
+    'f08': {'truth_tiles': 19, 'measured': 13, 'matched': 13, 'miss': [10, 11, 12, 13, 25, 26],
+            'extra': 0, 'mean_iou': 0.797, 'min_iou': 0.758,
+            'miss_reason': '同 f07：裁切行 4 个 + 底部渐隐 2 个'},
+}
+
+PROVENANCE = {
+    'method': '人眼（read_image）判对象与身份 → grid.py 网格量边（50px 步长，原帧坐标标签）'
+              ' → boxer.py 量小图标像素紧致边界',
+    'tool_assist': {
+        'tiles(f06/f07/f08)': 'bbox 由 ys-screen 平坦皮肤候选预填、逐格人眼确认身份；'
+                              '**已用独立通道 remeasure_grid.py（同色连通域，前提与 ys-screen 无关）复核**',
+        'rows/panels(设置页与活动页)': 'grid.py 网格读数（±20px），未用工具候选',
+        'icons/avatars': 'boxer.py 像素边界（独立于 ys-screen 的容器层）',
+    },
+    'independence_note': 'ys-screen 的前提=Lab 边缘能量低（平坦皮肤）；remeasure 的前提=低亮度同色连通域。'
+                         '两者互不依赖 ⇒ 同框即可判几何实测通过。',
+    'bias_measured': '独立测量把格子外发光/阴影一起框进来，每边约 +9px（192×173 vs 174×156），'
+                     '故 IoU≈0.80 而非 1.0；位置一致（无一片错位）。',
+}
+
+
+def frame_provenance(name):
+    p = dict(PROVENANCE)
+    if name in INDEP:
+        p['independent_check'] = dict(INDEP[name], tool='.scratch/gui-corpus/tools/remeasure_grid.py',
+                                      verdict=('完整格子几何实测通过（extra=0，无错位）；'
+                                               '未匹配均为裁切行/渐隐行，属滤波器边界而非真值错误'))
+    return p
+
+
 # ---------------------------------------------------------------- 落盘
 META = {
     'f00': {'layout': '活动一览·左列表+右详情（角色头像行）', 'classes': ['不透明纯色列表', '插画背景', '纯图形头像']},
@@ -422,6 +463,7 @@ def main():
             'layout': META[name]['layout'],
             'classes': META[name]['classes'],
             'units': len(objs),
+            '_provenance': frame_provenance(name),
             'objects': objs,
         }
         with open(os.path.join(HERE, name + '.json'), 'w', encoding='utf-8') as f:

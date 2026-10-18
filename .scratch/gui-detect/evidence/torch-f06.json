@@ -1,0 +1,912 @@
+{
+ "schema": "ys-screen/1",
+ "layer": "containers",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+  "sha256": "a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 3385707
+ },
+ "containers": [
+  {
+   "id": "t0",
+   "parent": null,
+   "bbox": [
+    72,
+    144,
+    514,
+    221
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.889(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.889,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8892,
+    "area_px": 34034,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t1",
+   "parent": null,
+   "bbox": [
+    80,
+    231,
+    178,
+    320
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.877(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.877,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8769,
+    "area_px": 8722,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t2",
+   "parent": null,
+   "bbox": [
+    80,
+    425,
+    178,
+    509
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.878(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.878,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8778,
+    "area_px": 8232,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t3",
+   "parent": null,
+   "bbox": [
+    80,
+    330,
+    174,
+    415
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.879(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.879,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8794,
+    "area_px": 7990,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t4",
+   "parent": null,
+   "bbox": [
+    80,
+    519,
+    174,
+    604
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.880(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8795,
+    "area_px": 7990,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t5",
+   "parent": null,
+   "bbox": [
+    80,
+    609,
+    182,
+    655
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.875(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.875,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8754,
+    "area_px": 4692,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t6",
+   "parent": null,
+   "bbox": [
+    816,
+    4,
+    902,
+    23
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.896(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.896,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8963,
+    "area_px": 1634,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t7",
+   "parent": null,
+   "bbox": [
+    692,
+    13,
+    814,
+    25
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.898(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.898,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8982,
+    "area_px": 1464,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t8",
+   "parent": null,
+   "bbox": [
+    916,
+    204,
+    1010,
+    217
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.881(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.881,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8811,
+    "area_px": 1222,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t9",
+   "parent": "t0",
+   "bbox": [
+    232,
+    150,
+    494,
+    154
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.917(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.917,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.9172,
+    "area_px": 1048,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t10",
+   "parent": null,
+   "bbox": [
+    288,
+    609,
+    390,
+    619
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.881(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.881,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8814,
+    "area_px": 1020,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t11",
+   "parent": null,
+   "bbox": [
+    184,
+    327,
+    328,
+    334
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.887(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.887,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8869,
+    "area_px": 1008,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t12",
+   "parent": null,
+   "bbox": [
+    372,
+    69,
+    398,
+    102
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.894(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.894,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8941,
+    "area_px": 858,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t13",
+   "parent": null,
+   "bbox": [
+    408,
+    60,
+    446,
+    82
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.897(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.897,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8974,
+    "area_px": 836,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t14",
+   "parent": null,
+   "bbox": [
+    184,
+    609,
+    286,
+    617
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.884(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.884,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8842,
+    "area_px": 816,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t15",
+   "parent": "t4",
+   "bbox": [
+    116,
+    549,
+    154,
+    570
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.883(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.883,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8832,
+    "area_px": 798,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t16",
+   "parent": null,
+   "bbox": [
+    184,
+    519,
+    278,
+    527
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.893(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.893,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8932,
+    "area_px": 752,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t17",
+   "parent": null,
+   "bbox": [
+    4,
+    684,
+    210,
+    687
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.891(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.891,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8911,
+    "area_px": 618,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t18",
+   "parent": null,
+   "bbox": [
+    576,
+    267,
+    602,
+    289
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.890(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8904,
+    "area_px": 572,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t19",
+   "parent": null,
+   "bbox": [
+    332,
+    634,
+    354,
+    660
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.881(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.881,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8807,
+    "area_px": 572,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t20",
+   "parent": null,
+   "bbox": [
+    340,
+    456,
+    362,
+    481
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.884(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.884,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.884,
+    "area_px": 550,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t21",
+   "parent": null,
+   "bbox": [
+    420,
+    105,
+    458,
+    118
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.892(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.892,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8921,
+    "area_px": 494,
+    "text_in": 0
+   }
+  },
+  {
+   "id": "t22",
+   "parent": null,
+   "bbox": [
+    392,
+    614,
+    486,
+    619
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": null,
+    "fill": null,
+    "rect": null
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "detector_stub:0.898(随机权重，无语义)",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.898,
+   "evidence": {
+    "rule": "detector:torch-stub(base=8,fp16,seed=0) 仅证明链路，不判语义",
+    "detector_score": 0.8981,
+    "area_px": 470,
+    "text_in": 0
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 199,
+  "ocr_ms": 0,
+  "container_ms": 95,
+  "container_runs": [
+   1371,
+   95,
+   96,
+   95
+  ],
+  "container_first_ms": 1371,
+  "container_cached": false,
+  "pixel_ms": 1371,
+  "total_ms": 1570,
+  "ocr_source": "skip",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 0,
+  "err": null
+ }
+}

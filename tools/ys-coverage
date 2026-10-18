@@ -11,7 +11,9 @@
   tools/ys-coverage --truth .scratch/gui-corpus/truth --pred .scratch/gui-corpus/pred
   tools/ys-coverage --truth DIR --pred DIR --iou 0.5 --verbose --json-out out.json
   tools/ys-coverage --truth DIR --selftest            # 仪器自证（必须全 PASS，退出码 0）
-  tools/ys-coverage --truth DIR --pred DIR --require-rate 0.4   # 低于线即退出码 1（闸门用）
+  tools/ys-coverage --truth DIR --pred DIR --require-rate 0.4   # 聚合线（低于即退出码 1）
+  tools/ys-coverage --truth DIR --pred DIR --require-kind tile=0.95,row=0.5,icon=0.6
+                                                  # **分形态门禁**（票 24 裁决口径；任一不达即退出码 1）
 
 真值 schema（每帧一个 `<stem>.json`；判据见 truth/_rules.md）：
   {"frame":"f00","image":"…png","size":[2560,1440],
@@ -403,6 +405,8 @@ def main(argv=None):
                     help='pred bbox 口径：ys-screen=xyxy（默认）；自证/第三方写 xywh')
     ap.add_argument('--require-rate', type=float, default=None,
                     help='低于该 rate 即退出码 1（闸门用）')
+    ap.add_argument('--require-kind', default=None,
+                    help='分形态门禁：kind=rate[,kind=rate…]，任一不达退出码 1（票 24）')
     ap.add_argument('--count-degenerate-as-fp', action='store_true',
                     help='把退化整屏 panel 也算作假阳性（默认只报 degen 数）')
     ap.add_argument('--verbose', action='store_true', help='打印未命中/假阳性明细')
@@ -454,6 +458,22 @@ def main(argv=None):
         for m in missing_pred:
             print('PRED-MISSING frame=%s（未找到对应 ys-screen JSON）' % m, file=sys.stderr)
 
+    # 分形态（kind）统计：票 24 门禁按 kind 逐类判，聚合值只做趋势
+    by_kind = {}
+    for s in results:
+        hit_ids = {p[0] for p in s['pairs']}
+        for o in s['objects']:
+            k = o.get('kind') or 'unknown'
+            d = by_kind.setdefault(k, {'units': 0, 'hit': 0})
+            d['units'] += 1
+            if o['id'] in hit_ids:
+                d['hit'] += 1
+    for k in sorted(by_kind):
+        d = by_kind[k]
+        r = d['hit'] / d['units'] if d['units'] else 0.0
+        d['rate'] = round(r, 4)
+        print('BY-KIND  kind=%-7s units=%-3d hit=%-3d rate=%.3f' % (k, d['units'], d['hit'], r))
+
     units = sum(s['units'] for s in results)
     hit = sum(s['hit'] for s in results)
     fp = sum(s['fp'] for s in results)
@@ -471,13 +491,41 @@ def main(argv=None):
             json.dump({'iou_thr': a.iou, 'frames': results,
                        'summary': {'frames': len(results), 'units': units, 'hit': hit,
                                    'rate': round(rate, 4), 'fp': fp, 'degen': degen,
-                                   'neg_frames': len(negs), 'neg_violations': neg_bad}},
+                                   'neg_frames': len(negs), 'neg_violations': neg_bad,
+                                   'by_kind': by_kind}},
                       f, ensure_ascii=False, indent=1)
         print('JSON-OUT %s' % a.json_out)
     if missing_pred:
         return 4
+    gate_fail = 0
     if a.require_rate is not None and rate < a.require_rate:
         print('GATE-FAIL rate=%.3f < require=%.3f' % (rate, a.require_rate))
+        gate_fail = 1
+    if a.require_kind:
+        for item in a.require_kind.split(','):
+            item = item.strip()
+            if not item:
+                continue
+            if '=' not in item:
+                print('用法错：--require-kind 要写成 kind=rate（收到 %r）' % item, file=sys.stderr)
+                return 2
+            k, thr_s = item.split('=', 1)
+            k = k.strip()
+            try:
+                thr = float(thr_s)
+            except ValueError:
+                print('用法错：%r 的阈值不是数字' % item, file=sys.stderr)
+                return 2
+            d = by_kind.get(k)
+            if not d:
+                print('GATE-KIND kind=%s 无此类单元（跳过）' % k)
+                continue
+            ok = d['rate'] >= thr
+            print('GATE-KIND kind=%-7s rate=%.3f require=%.3f %s'
+                  % (k, d['rate'], thr, 'PASS' if ok else 'FAIL'))
+            if not ok:
+                gate_fail = 1
+    if gate_fail:
         return 1
     return 0
 

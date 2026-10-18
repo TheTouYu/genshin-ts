@@ -1,0 +1,2992 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/f09.png",
+  "sha256": "133a94fea460e6d2d117201d39b3064108c41ae687c69c4eea6ddcd006571ecc",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 1245416
+ },
+ "title": {
+  "text": "控制",
+  "cx": 254,
+  "cy": 204,
+  "bbox": [
+   192,
+   168,
+   317,
+   240
+  ],
+  "region": null,
+  "why": "上半屏字高最大（72px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    118,
+    30
+   ],
+   "w": 117,
+   "h": 25,
+   "score": 0.9601,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 60.5",
+   "cx": 59,
+   "cy": 41,
+   "bbox": [
+    1,
+    27,
+    117,
+    56
+   ],
+   "w": 116,
+   "h": 29,
+   "score": 0.9436,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:",
+   "cx": 30,
+   "cy": 65,
+   "bbox": [
+    3,
+    54,
+    58,
+    77
+   ],
+   "w": 55,
+   "h": 23,
+   "score": 0.9967,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "设置／控制",
+   "cx": 276,
+   "cy": 62,
+   "bbox": [
+    188,
+    42,
+    363,
+    82
+   ],
+   "w": 175,
+   "h": 40,
+   "score": 0.9676,
+   "kind": "action"
+  },
+  {
+   "id": 4,
+   "text": "第三人称射击设置",
+   "cx": 2239,
+   "cy": 61,
+   "bbox": [
+    2105,
+    39,
+    2372,
+    82
+   ],
+   "w": 267,
+   "h": 43,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "控制",
+   "cx": 254,
+   "cy": 204,
+   "bbox": [
+    192,
+    168,
+    317,
+    240
+   ],
+   "w": 125,
+   "h": 72,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 6,
+   "text": "控制",
+   "cx": 676,
+   "cy": 199,
+   "bbox": [
+    628,
+    171,
+    725,
+    228
+   ],
+   "w": 97,
+   "h": 57,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "按键",
+   "cx": 232,
+   "cy": 296,
+   "bbox": [
+    180,
+    267,
+    285,
+    325
+   ],
+   "w": 105,
+   "h": 58,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "控制设备",
+   "cx": 741,
+   "cy": 279,
+   "bbox": [
+    670,
+    257,
+    812,
+    302
+   ],
+   "w": 142,
+   "h": 45,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "键盘鼠标",
+   "cx": 2171,
+   "cy": 279,
+   "bbox": [
+    2100,
+    257,
+    2242,
+    300
+   ],
+   "w": 142,
+   "h": 43,
+   "score": 0.9986,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "图像",
+   "cx": 234,
+   "cy": 390,
+   "bbox": [
+    184,
+    361,
+    285,
+    419
+   ],
+   "w": 101,
+   "h": 58,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "主界面控制设备自动切换",
+   "cx": 854,
+   "cy": 369,
+   "bbox": [
+    676,
+    352,
+    1032,
+    387
+   ],
+   "w": 356,
+   "h": 35,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "关闭",
+   "cx": 2170,
+   "cy": 369,
+   "bbox": [
+    2127,
+    343,
+    2214,
+    396
+   ],
+   "w": 87,
+   "h": 53,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 13,
+   "text": "镜头",
+   "cx": 678,
+   "cy": 454,
+   "bbox": [
+    629,
+    425,
+    726,
+    483
+   ],
+   "w": 97,
+   "h": 58,
+   "score": 0.9562,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "声音",
+   "cx": 232,
+   "cy": 482,
+   "bbox": [
+    181,
+    453,
+    283,
+    511
+   ],
+   "w": 102,
+   "h": 58,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "镜头水平灵敏度",
+   "cx": 790,
+   "cy": 535,
+   "bbox": [
+    673,
+    514,
+    908,
+    556
+   ],
+   "w": 235,
+   "h": 42,
+   "score": 0.9956,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "5",
+   "cx": 1874,
+   "cy": 535,
+   "bbox": [
+    1859,
+    515,
+    1890,
+    555
+   ],
+   "w": 31,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "消息",
+   "cx": 231,
+   "cy": 575,
+   "bbox": [
+    178,
+    543,
+    285,
+    606
+   ],
+   "w": 107,
+   "h": 63,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "镜头垂直灵敏度",
+   "cx": 790,
+   "cy": 624,
+   "bbox": [
+    674,
+    605,
+    905,
+    644
+   ],
+   "w": 231,
+   "h": 39,
+   "score": 0.9972,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "4",
+   "cx": 1875,
+   "cy": 624,
+   "bbox": [
+    1855,
+    603,
+    1895,
+    646
+   ],
+   "w": 40,
+   "h": 43,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "语言",
+   "cx": 233,
+   "cy": 667,
+   "bbox": [
+    183,
+    639,
+    283,
+    696
+   ],
+   "w": 100,
+   "h": 57,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "镜头水平灵敏度(瞄准模式)",
+   "cx": 875,
+   "cy": 714,
+   "bbox": [
+    674,
+    695,
+    1076,
+    734
+   ],
+   "w": 402,
+   "h": 39,
+   "score": 0.9386,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "4",
+   "cx": 1875,
+   "cy": 715,
+   "bbox": [
+    1859,
+    698,
+    1891,
+    732
+   ],
+   "w": 32,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "账户",
+   "cx": 231,
+   "cy": 761,
+   "bbox": [
+    179,
+    730,
+    283,
+    793
+   ],
+   "w": 104,
+   "h": 63,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "镜头垂直灵敏度（瞄准模式）",
+   "cx": 874,
+   "cy": 803,
+   "bbox": [
+    673,
+    784,
+    1076,
+    822
+   ],
+   "w": 403,
+   "h": 38,
+   "score": 0.9244,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "3",
+   "cx": 1874,
+   "cy": 804,
+   "bbox": [
+    1858,
+    785,
+    1891,
+    824
+   ],
+   "w": 33,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "资源",
+   "cx": 233,
+   "cy": 853,
+   "bbox": [
+    181,
+    822,
+    285,
+    884
+   ],
+   "w": 104,
+   "h": 62,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "镜头高度自动回正",
+   "cx": 806,
+   "cy": 893,
+   "bbox": [
+    674,
+    874,
+    938,
+    912
+   ],
+   "w": 264,
+   "h": 38,
+   "score": 0.9955,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "打开",
+   "cx": 2169,
+   "cy": 894,
+   "bbox": [
+    2127,
+    869,
+    2211,
+    920
+   ],
+   "w": 84,
+   "h": 51,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "其他",
+   "cx": 232,
+   "cy": 945,
+   "bbox": [
+    178,
+    914,
+    286,
+    977
+   ],
+   "w": 108,
+   "h": 63,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "战斗智能镜头",
+   "cx": 774,
+   "cy": 982,
+   "bbox": [
+    674,
+    963,
+    874,
+    1002
+   ],
+   "w": 200,
+   "h": 39,
+   "score": 0.9913,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "打开",
+   "cx": 2170,
+   "cy": 984,
+   "bbox": [
+    2125,
+    956,
+    2215,
+    1011
+   ],
+   "w": 90,
+   "h": 55,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "镜头默认距离",
+   "cx": 774,
+   "cy": 1072,
+   "bbox": [
+    672,
+    1051,
+    876,
+    1094
+   ],
+   "w": 204,
+   "h": 43,
+   "score": 0.9875,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "4.5",
+   "cx": 1876,
+   "cy": 1074,
+   "bbox": [
+    1841,
+    1051,
+    1910,
+    1096
+   ],
+   "w": 69,
+   "h": 45,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "驾船时镜头自动回正",
+   "cx": 820,
+   "cy": 1162,
+   "bbox": [
+    672,
+    1143,
+    969,
+    1181
+   ],
+   "w": 297,
+   "h": 38,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "仅在战斗外开启",
+   "cx": 2172,
+   "cy": 1163,
+   "bbox": [
+    2056,
+    1144,
+    2287,
+    1182
+   ],
+   "w": 231,
+   "h": 38,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    54,
+    1316
+   ],
+   "w": 47,
+   "h": 18,
+   "score": 0.9569,
+   "kind": "other"
+  },
+  {
+   "id": 37,
+   "text": "6.1 ns",
+   "cx": 83,
+   "cy": 1308,
+   "bbox": [
+    50,
+    1297,
+    116,
+    1319
+   ],
+   "w": 66,
+   "h": 22,
+   "score": 0.9623,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "max↓",
+   "cx": 178,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    200,
+    1317
+   ],
+   "w": 43,
+   "h": 18,
+   "score": 0.7898,
+   "kind": "other"
+  },
+  {
+   "id": 39,
+   "text": "19.7 ms",
+   "cx": 238,
+   "cy": 1308,
+   "bbox": [
+    201,
+    1299,
+    274,
+    1317
+   ],
+   "w": 73,
+   "h": 18,
+   "score": 0.9312,
+   "kind": "data"
+  },
+  {
+   "id": 40,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2352,
+    272,
+    2374,
+    290
+   ],
+   "cx": 2363,
+   "cy": 281,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 1.22,
+    "corner_fill": 0.19,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    156,
+    382,
+    176,
+    402
+   ],
+   "cx": 166,
+   "cy": 392,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.85,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    156,
+    474,
+    176,
+    496
+   ],
+   "cx": 166,
+   "cy": 485,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.782,
+    "aspect": 0.91,
+    "corner_fill": 0.06,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    156,
+    566,
+    176,
+    588
+   ],
+   "cx": 166,
+   "cy": 577,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.745,
+    "aspect": 0.91,
+    "corner_fill": 0.0,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    156,
+    660,
+    176,
+    680
+   ],
+   "cx": 166,
+   "cy": 670,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.83,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    156,
+    754,
+    174,
+    772
+   ],
+   "cx": 165,
+   "cy": 763,
+   "w": 18,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.852,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 276,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1916,
+    1144,
+    1964,
+    1186
+   ],
+   "cx": 1940,
+   "cy": 1165,
+   "w": 48,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.52,
+    "aspect": 1.14,
+    "corner_fill": 0.0,
+    "area": 1048,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2044,
+    36,
+    2096,
+    88
+   ],
+   "cx": 2070,
+   "cy": 62,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 1.0,
+    "contrast": 93.8,
+    "ring_L": 198.7,
+    "inside_L": 148.5,
+    "outside_L": 61.3
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    158,
+    846,
+    174,
+    866
+   ],
+   "cx": 166,
+   "cy": 856,
+   "w": 16,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.948,
+   "label": null,
+   "evidence": {
+    "fill": 0.812,
+    "aspect": 0.8,
+    "corner_fill": 0.25,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2352,
+    886,
+    2376,
+    906
+   ],
+   "cx": 2364,
+   "cy": 896,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 1.2,
+    "corner_fill": 0.25,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    666,
+    1324,
+    690,
+    1350
+   ],
+   "cx": 678,
+   "cy": 1337,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": 0.756,
+    "aspect": 0.92,
+    "corner_fill": 0.25,
+    "area": 472,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    2352,
+    362,
+    2374,
+    380
+   ],
+   "cx": 2363,
+   "cy": 371,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.848,
+    "aspect": 1.22,
+    "corner_fill": 0.31,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2266,
+    618,
+    2362,
+    636
+   ],
+   "cx": 2314,
+   "cy": 627,
+   "w": 96,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.963,
+    "aspect": 5.33,
+    "corner_fill": 0.31,
+    "area": 1664,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1306,
+    1206,
+    1346,
+    1232
+   ],
+   "cx": 1326,
+   "cy": 1219,
+   "w": 40,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.881,
+    "aspect": 1.54,
+    "corner_fill": 0.61,
+    "area": 916,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    154,
+    288,
+    176,
+    310
+   ],
+   "cx": 165,
+   "cy": 299,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.89,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 1.0,
+    "corner_fill": 0.36,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    114,
+    8,
+    144,
+    34
+   ],
+   "cx": 129,
+   "cy": 21,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.887,
+   "label": null,
+   "evidence": {
+    "fill": 0.651,
+    "aspect": 1.15,
+    "corner_fill": 0.31,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1812,
+    1134,
+    1868,
+    1150
+   ],
+   "cx": 1840,
+   "cy": 1142,
+   "w": 56,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.853,
+    "aspect": 3.5,
+    "corner_fill": 0.5,
+    "area": 764,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2420,
+    28,
+    2494,
+    100
+   ],
+   "cx": 2457,
+   "cy": 64,
+   "w": 74,
+   "h": 72,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.774,
+    "aspect": 1.03,
+    "corner_fill": 0.36,
+    "area": 4124,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1206,
+    1206,
+    1244,
+    1230
+   ],
+   "cx": 1225,
+   "cy": 1218,
+   "w": 38,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.851,
+    "aspect": 1.58,
+    "corner_fill": 0.61,
+    "area": 776,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    6,
+    1318,
+    430,
+    1402
+   ],
+   "cx": 218,
+   "cy": 1360,
+   "w": 424,
+   "h": 84,
+   "shape": "rect",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.837,
+    "aspect": 5.05,
+    "corner_fill": 0.84,
+    "area": 29800,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    60,
+    28,
+    150,
+    98
+   ],
+   "cx": 105,
+   "cy": 63,
+   "w": 90,
+   "h": 70,
+   "shape": "circle",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.529,
+    "aspect": 1.29,
+    "corner_fill": 0.3,
+    "area": 3332,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    164,
+    192,
+    186,
+    224
+   ],
+   "cx": 175,
+   "cy": 208,
+   "w": 22,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 0.69,
+    "corner_fill": 0.53,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1770,
+    1204,
+    1824,
+    1232
+   ],
+   "cx": 1797,
+   "cy": 1218,
+   "w": 54,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.807,
+    "aspect": 1.93,
+    "corner_fill": 0.41,
+    "area": 1220,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1964,
+    708,
+    2234,
+    728
+   ],
+   "cx": 2099,
+   "cy": 718,
+   "w": 270,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": 0.799,
+    "aspect": 13.5,
+    "corner_fill": 0.12,
+    "area": 4316,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    2398,
+    1076,
+    2430,
+    1100
+   ],
+   "cx": 2414,
+   "cy": 1088,
+   "w": 32,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": 0.443,
+    "aspect": 1.33,
+    "corner_fill": 0.28,
+    "area": 340,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1882,
+    1132,
+    1936,
+    1156
+   ],
+   "cx": 1909,
+   "cy": 1144,
+   "w": 54,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.793,
+    "aspect": 2.25,
+    "corner_fill": 0.42,
+    "area": 1028,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    644,
+    868,
+    678,
+    896
+   ],
+   "cx": 661,
+   "cy": 882,
+   "w": 34,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.466,
+    "aspect": 1.21,
+    "corner_fill": 0.31,
+    "area": 444,
+    "src": "flat"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    952,
+    1204,
+    1198,
+    1236
+   ],
+   "cx": 1075,
+   "cy": 1220,
+   "w": 246,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.829,
+   "label": null,
+   "evidence": {
+    "fill": 0.732,
+    "aspect": 7.69,
+    "corner_fill": 0.12,
+    "area": 5760,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2020,
+    12,
+    2386,
+    116
+   ],
+   "cx": 2203,
+   "cy": 64,
+   "w": 366,
+   "h": 104,
+   "shape": "rect",
+   "confidence": 0.825,
+   "label": "第三人称射击设置",
+   "evidence": {
+    "fill": 0.722,
+    "aspect": 3.52,
+    "corner_fill": 0.45,
+    "area": 27488,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    642,
+    336,
+    2398,
+    408
+   ],
+   "cx": 1520,
+   "cy": 372,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.816,
+   "label": "主界面控制设备自动切换 关闭",
+   "evidence": {
+    "fill": 0.702,
+    "aspect": 24.39,
+    "corner_fill": 0.37,
+    "area": 88776,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2372,
+    368,
+    2394,
+    390
+   ],
+   "cx": 2383,
+   "cy": 379,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.815,
+   "label": null,
+   "evidence": {
+    "fill": 0.636,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 308,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1406,
+    864,
+    1940,
+    888
+   ],
+   "cx": 1673,
+   "cy": 876,
+   "w": 534,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.813,
+   "label": null,
+   "evidence": {
+    "fill": 0.696,
+    "aspect": 22.25,
+    "corner_fill": 0.42,
+    "area": 8924,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1918,
+    884,
+    1960,
+    908
+   ],
+   "cx": 1939,
+   "cy": 896,
+   "w": 42,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.807,
+   "label": null,
+   "evidence": {
+    "fill": 0.683,
+    "aspect": 1.75,
+    "corner_fill": 0.0,
+    "area": 688,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1456,
+    782,
+    1484,
+    802
+   ],
+   "cx": 1470,
+   "cy": 792,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.804,
+   "label": null,
+   "evidence": {
+    "fill": 0.564,
+    "aspect": 1.4,
+    "corner_fill": 0.44,
+    "area": 316,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    644,
+    246,
+    2396,
+    316
+   ],
+   "cx": 1520,
+   "cy": 281,
+   "w": 1752,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.8,
+   "label": "控制设备 键盘鼠标",
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 25.03,
+    "corner_fill": 0.16,
+    "area": 81788,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    642,
+    500,
+    2398,
+    572
+   ],
+   "cx": 1520,
+   "cy": 536,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.794,
+   "label": "镜头水平灵敏度 5",
+   "evidence": {
+    "fill": 0.653,
+    "aspect": 24.39,
+    "corner_fill": 0.34,
+    "area": 82592,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1918,
+    972,
+    1962,
+    1000
+   ],
+   "cx": 1940,
+   "cy": 986,
+   "w": 44,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.783,
+   "label": null,
+   "evidence": {
+    "fill": 0.63,
+    "aspect": 1.57,
+    "corner_fill": 0.02,
+    "area": 776,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1372,
+    952,
+    1940,
+    978
+   ],
+   "cx": 1656,
+   "cy": 965,
+   "w": 568,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.777,
+   "label": null,
+   "evidence": {
+    "fill": 0.615,
+    "aspect": 21.85,
+    "corner_fill": 0.28,
+    "area": 9076,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1374,
+    994,
+    1938,
+    1018
+   ],
+   "cx": 1656,
+   "cy": 1006,
+   "w": 564,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.774,
+   "label": null,
+   "evidence": {
+    "fill": 0.609,
+    "aspect": 23.5,
+    "corner_fill": 0.42,
+    "area": 8248,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    644,
+    862,
+    1242,
+    930
+   ],
+   "cx": 943,
+   "cy": 896,
+   "w": 598,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.769,
+   "label": "镜头高度自动回正",
+   "evidence": {
+    "fill": 0.598,
+    "aspect": 8.79,
+    "corner_fill": 0.36,
+    "area": 24304,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    628,
+    171,
+    1076,
+    1181
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 19,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 12,
+   "row_y": [
+    199,
+    279,
+    369,
+    454,
+    535,
+    624,
+    714,
+    803,
+    893,
+    982,
+    1072,
+    1162
+   ],
+   "rows": [
+    {
+     "y": 199,
+     "texts": [
+      "控制"
+     ]
+    },
+    {
+     "y": 279,
+     "texts": [
+      "控制设备"
+     ]
+    },
+    {
+     "y": 369,
+     "texts": [
+      "主界面控制设备自动切换"
+     ]
+    },
+    {
+     "y": 454,
+     "texts": [
+      "镜头"
+     ]
+    },
+    {
+     "y": 535,
+     "texts": [
+      "镜头水平灵敏度"
+     ]
+    },
+    {
+     "y": 624,
+     "texts": [
+      "镜头垂直灵敏度"
+     ]
+    },
+    {
+     "y": 714,
+     "texts": [
+      "镜头水平灵敏度(瞄准模式)"
+     ]
+    },
+    {
+     "y": 803,
+     "texts": [
+      "镜头垂直灵敏度（瞄准模式）"
+     ]
+    },
+    {
+     "y": 893,
+     "texts": [
+      "镜头高度自动回正"
+     ]
+    },
+    {
+     "y": 982,
+     "texts": [
+      "战斗智能镜头"
+     ]
+    },
+    {
+     "y": 1072,
+     "texts": [
+      "镜头默认距离"
+     ]
+    },
+    {
+     "y": 1162,
+     "texts": [
+      "驾船时镜头自动回正"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2056,
+    39,
+    2372,
+    1182
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 19,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    61,
+    279,
+    369,
+    894,
+    984,
+    1163
+   ],
+   "rows": [
+    {
+     "y": 61,
+     "texts": [
+      "第三人称射击设置"
+     ]
+    },
+    {
+     "y": 279,
+     "texts": [
+      "键盘鼠标"
+     ]
+    },
+    {
+     "y": 369,
+     "texts": [
+      "关闭"
+     ]
+    },
+    {
+     "y": 894,
+     "texts": [
+      "打开"
+     ]
+    },
+    {
+     "y": 984,
+     "texts": [
+      "打开"
+     ]
+    },
+    {
+     "y": 1163,
+     "texts": [
+      "仅在战斗外开启"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    178,
+    42,
+    363,
+    977
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 32,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    62,
+    204,
+    296,
+    390,
+    482,
+    575,
+    667,
+    761,
+    853,
+    945
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "设置／控制"
+     ]
+    },
+    {
+     "y": 204,
+     "texts": [
+      "控制"
+     ]
+    },
+    {
+     "y": 296,
+     "texts": [
+      "按键"
+     ]
+    },
+    {
+     "y": 390,
+     "texts": [
+      "图像"
+     ]
+    },
+    {
+     "y": 482,
+     "texts": [
+      "声音"
+     ]
+    },
+    {
+     "y": 575,
+     "texts": [
+      "消息"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "语言"
+     ]
+    },
+    {
+     "y": 761,
+     "texts": [
+      "账户"
+     ]
+    },
+    {
+     "y": 853,
+     "texts": [
+      "资源"
+     ]
+    },
+    {
+     "y": 945,
+     "texts": [
+      "其他"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1841,
+    515,
+    1910,
+    1096
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 5,
+   "row_y": [
+    535,
+    624,
+    715,
+    804,
+    1074
+   ],
+   "rows": [
+    {
+     "y": 535,
+     "texts": [
+      "5"
+     ]
+    },
+    {
+     "y": 624,
+     "texts": [
+      "4"
+     ]
+    },
+    {
+     "y": 715,
+     "texts": [
+      "4"
+     ]
+    },
+    {
+     "y": 804,
+     "texts": [
+      "3"
+     ]
+    },
+    {
+     "y": 1074,
+     "texts": [
+      "4.5"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "rect@(175,208)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -80,
+   "dy": 4,
+   "confidence": 0.695
+  },
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(165,299)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 48,
+   "dx": -90,
+   "dy": 95,
+   "confidence": 0.66
+  },
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(129,21)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 134,
+   "dx": -126,
+   "dy": -183,
+   "confidence": 0.588
+  },
+  {
+   "text": "第三人称射击设置",
+   "text_id": 4,
+   "target": "rect@(2203,64)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "第三人称射击设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -36,
+   "dy": 4,
+   "confidence": 0.55
+  },
+  {
+   "text": "镜头高度自动回正",
+   "text_id": 27,
+   "target": "rect@(943,896)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "镜头高度自动回正",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 137,
+   "dy": 3,
+   "confidence": 0.55
+  },
+  {
+   "text": "6.1 ns",
+   "text_id": 37,
+   "target": "rect@(218,1360)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 135,
+   "dy": 52,
+   "confidence": 0.55
+  },
+  {
+   "text": "账户",
+   "text_id": 23,
+   "target": "circle@(165,763)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -66,
+   "dy": 2,
+   "confidence": 0.546
+  },
+  {
+   "text": "资源",
+   "text_id": 26,
+   "target": "circle@(166,856)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 7,
+   "dx": -67,
+   "dy": 3,
+   "confidence": 0.544
+  },
+  {
+   "text": "驾船时镜头自动回正",
+   "text_id": 34,
+   "target": "rect@(1075,1220)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 23,
+   "dx": 254,
+   "dy": 58,
+   "confidence": 0.531
+  },
+  {
+   "text": "战斗智能镜头",
+   "text_id": 30,
+   "target": "rect@(943,896)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "镜头高度自动回正",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 33,
+   "dx": 169,
+   "dy": -86,
+   "confidence": 0.523
+  },
+  {
+   "text": "4.5",
+   "text_id": 33,
+   "target": "rect@(1909,1144)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 36,
+   "dx": 34,
+   "dy": 70,
+   "confidence": 0.52
+  },
+  {
+   "text": "镜头垂直灵敏度（瞄准模式）",
+   "text_id": 24,
+   "target": "rect@(943,896)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "镜头高度自动回正",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 40,
+   "dx": 68,
+   "dy": 93,
+   "confidence": 0.517
+  },
+  {
+   "text": "键盘鼠标",
+   "text_id": 9,
+   "target": "label@(2170,369)",
+   "target_id": "t12",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 43,
+   "dx": 0,
+   "dy": 91,
+   "confidence": 0.714
+  },
+  {
+   "text": "其他",
+   "text_id": 29,
+   "target": "circle@(166,856)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 48,
+   "dx": -66,
+   "dy": -90,
+   "confidence": 0.51
+  },
+  {
+   "text": "仅在战斗外开启",
+   "text_id": 35,
+   "target": "circle@(1940,1165)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 92,
+   "dx": -232,
+   "dy": 2,
+   "confidence": 0.473
+  },
+  {
+   "text": "镜头默认距离",
+   "text_id": 32,
+   "target": "rect@(943,896)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "镜头高度自动回正",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 121,
+   "dx": 169,
+   "dy": -176,
+   "confidence": 0.449
+  },
+  {
+   "text": "镜头水平灵敏度(瞄准模式)",
+   "text_id": 21,
+   "target": "rect@(943,896)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "镜头高度自动回正",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 128,
+   "dx": 68,
+   "dy": 182,
+   "confidence": 0.443
+  },
+  {
+   "text": "按键",
+   "text_id": 7,
+   "target": "label@(275,62)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／控制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 185,
+   "dx": 43,
+   "dy": -234,
+   "confidence": 0.596
+  },
+  {
+   "text": "4",
+   "text_id": 19,
+   "target": "label@(2170,369)",
+   "target_id": "t12",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 232,
+   "dx": 296,
+   "dy": -255,
+   "confidence": 0.557
+  },
+  {
+   "text": "5",
+   "text_id": 16,
+   "target": "label@(2170,369)",
+   "target_id": "t12",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 237,
+   "dx": 296,
+   "dy": -166,
+   "confidence": 0.552
+  },
+  {
+   "text": "控制",
+   "text_id": 6,
+   "target": "label@(275,62)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／控制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 265,
+   "dx": -401,
+   "dy": -138,
+   "confidence": 0.529
+  },
+  {
+   "text": "图像",
+   "text_id": 10,
+   "target": "label@(275,62)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／控制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 279,
+   "dx": 41,
+   "dy": -328,
+   "confidence": 0.517
+  },
+  {
+   "text": "控制设备",
+   "text_id": 8,
+   "target": "label@(275,62)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／控制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 307,
+   "dx": -466,
+   "dy": -218,
+   "confidence": 0.5
+  },
+  {
+   "text": "主界面控制设备自动切换",
+   "text_id": 11,
+   "target": "label@(275,62)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／控制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 313,
+   "dx": -578,
+   "dy": -308,
+   "confidence": 0.5
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    121,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，非纯黑 L=135",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 60.5",
+     "GPU:"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 135.2,
+    "bg_std": 51.5,
+    "ring_mean": 102.8,
+    "ring_std": 46.0,
+    "texture_ratio": 1.12,
+    "bg_rgb": [
+     148,
+     137,
+     120
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     191.0,
+     127.0,
+     130.0
+    ],
+    "fill": 0.57,
+    "rect": 0.56
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS: 60.5",
+    "GPU:",
+    "设置／控制",
+    "第三人称射击设置",
+    "控制",
+    "控制",
+    "按键",
+    "控制设备",
+    "键盘鼠标",
+    "图像",
+    "主界面控制设备自动切换",
+    "关闭",
+    "镜头",
+    "声音",
+    "镜头水平灵敏度",
+    "5",
+    "消息",
+    "语言",
+    "镜头水平灵敏度(瞄准模式)",
+    "4",
+    "账户",
+    "资源",
+    "其他",
+    "驾船时镜头自动回正",
+    "仅在战斗外开启",
+    "min:",
+    "6.1 ns",
+    "max↓",
+    "19.7 ms",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2044,
+      38,
+      2098,
+      90
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 218.0
+    },
+    {
+     "bbox": [
+      2418,
+      26,
+      2496,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 176.0
+    },
+    {
+     "bbox": [
+      2354,
+      364,
+      2376,
+      380
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 151.0
+    },
+    {
+     "bbox": [
+      158,
+      476,
+      176,
+      494
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 60.0
+    },
+    {
+     "bbox": [
+      158,
+      568,
+      174,
+      586
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 53.0
+    },
+    {
+     "bbox": [
+      2352,
+      274,
+      2378,
+      290
+     ],
+     "role": "icon",
+     "fill": 0.57,
+     "contrast": 144.0
+    },
+    {
+     "bbox": [
+      156,
+      290,
+      176,
+      308
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 80.0
+    },
+    {
+     "bbox": [
+      158,
+      382,
+      176,
+      402
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 70.0
+    },
+    {
+     "bbox": [
+      2352,
+      1158,
+      2378,
+      1174
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 157.0
+    },
+    {
+     "bbox": [
+      62,
+      32,
+      150,
+      98
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 183.0
+    },
+    {
+     "bbox": [
+      2246,
+      702,
+      2360,
+      730
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 121.0
+    },
+    {
+     "bbox": [
+      642,
+      684,
+      666,
+      750
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 63.0
+    },
+    {
+     "bbox": [
+      2378,
+      686,
+      2398,
+      748
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 59.0
+    },
+    {
+     "bbox": [
+      148,
+      188,
+      184,
+      224
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 152.0
+    },
+    {
+     "bbox": [
+      2342,
+      532,
+      2362,
+      552
+     ],
+     "role": "icon",
+     "fill": 0.25,
+     "contrast": 90.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:31",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.61,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 33)",
+    "area_px": 2047644,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 31,
+    "text_ui": 33,
+    "skin_lab": [
+     191.0,
+     127.0,
+     130.0
+    ],
+    "flat_fill": 0.57,
+    "rect": 0.56
+   }
+  },
+  {
+   "id": "c1",
+   "parent": "c0",
+   "bbox": [
+    646,
+    580,
+    2402,
+    662
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     220.0,
+     127.0,
+     136.0
+    ],
+    "fill": 0.65,
+    "rect": 0.8
+   },
+   "text": [
+    "镜头垂直灵敏度",
+    "4"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      642,
+      594,
+      664,
+      660
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 61.0
+    },
+    {
+     "bbox": [
+      2246,
+      614,
+      2360,
+      642
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 116.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.76,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 114808,
+    "area_frac": 0.0391,
+    "aspect": 21.41,
+    "grid": "col n=4 pitch_x=None pitch_y=185.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     220.0,
+     127.0,
+     136.0
+    ],
+    "flat_fill": 0.65,
+    "rect": 0.8
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    646,
+    1030,
+    2394,
+    1120
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     227.0,
+     124.0,
+     135.0
+    ],
+    "fill": 0.59,
+    "rect": 0.69
+   },
+   "text": [
+    "镜头默认距离",
+    "4.5"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2378,
+      1044,
+      2398,
+      1106
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 58.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:2",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (2 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 108256,
+    "area_frac": 0.0427,
+    "aspect": 19.42,
+    "grid": "col n=4 pitch_x=None pitch_y=90.0",
+    "skin_siblings": 2,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     227.0,
+     124.0,
+     135.0
+    ],
+    "flat_fill": 0.59,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c3",
+   "parent": "c0",
+   "bbox": [
+    646,
+    952,
+    2394,
+    1018
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     226.0,
+     124.0,
+     135.0
+    ],
+    "fill": 0.8,
+    "rect": 0.89
+   },
+   "text": [
+    "战斗智能镜头",
+    "打开"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2352,
+      978,
+      2378,
+      994
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 156.0
+    },
+    {
+     "bbox": [
+      2376,
+      952,
+      2398,
+      992
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 68.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:2",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.93,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (2 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 102912,
+    "area_frac": 0.0313,
+    "aspect": 26.48,
+    "grid": "col n=4 pitch_x=None pitch_y=89.0",
+    "skin_siblings": 2,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     226.0,
+     124.0,
+     135.0
+    ],
+    "flat_fill": 0.8,
+    "rect": 0.89
+   }
+  },
+  {
+   "id": "c4",
+   "parent": "c0",
+   "bbox": [
+    646,
+    864,
+    2394,
+    928
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     225.0,
+     125.0,
+     134.0
+    ],
+    "fill": 0.79,
+    "rect": 0.87
+   },
+   "text": [
+    "镜头高度自动回正",
+    "打开"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2378,
+      864,
+      2398,
+      928
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 70.0
+    },
+    {
+     "bbox": [
+      644,
+      864,
+      664,
+      888
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 57.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:3",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.92,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (3 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 97704,
+    "area_frac": 0.0303,
+    "aspect": 27.31,
+    "grid": "col n=4 pitch_x=None pitch_y=89.0",
+    "skin_siblings": 3,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     225.0,
+     125.0,
+     134.0
+    ],
+    "flat_fill": 0.79,
+    "rect": 0.87
+   }
+  },
+  {
+   "id": "c5",
+   "parent": "c0",
+   "bbox": [
+    646,
+    772,
+    2394,
+    840
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     223.0,
+     125.0,
+     133.0
+    ],
+    "fill": 0.68,
+    "rect": 0.76
+   },
+   "text": [
+    "镜头垂直灵敏度（瞄准模式）",
+    "3"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      642,
+      774,
+      664,
+      838
+     ],
+     "role": "icon",
+     "fill": 0.33,
+     "contrast": 66.0
+    },
+    {
+     "bbox": [
+      2378,
+      774,
+      2398,
+      838
+     ],
+     "role": "icon",
+     "fill": 0.33,
+     "contrast": 68.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 90072,
+    "area_frac": 0.0322,
+    "aspect": 25.71,
+    "grid": "col n=4 pitch_x=None pitch_y=90.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     223.0,
+     125.0,
+     133.0
+    ],
+    "flat_fill": 0.68,
+    "rect": 0.76
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 168,
+  "ocr_ms": 1,
+  "pixel_ms": 582,
+  "container_ms": 0,
+  "container_cached": true,
+  "total_ms": 752,
+  "ocr_source": "cache",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 41,
+  "err": null
+ },
+ "title_text_id": 5,
+ "digest": "屏幕 2560x1440 · 文本 41 · 控件 40 · 容器 6 · 邻接 24 · 遮挡 1 · 752ms（OCR cache）\n标题「控制」@(254,204) 画面 · 字高 72px\n邻接「控制」→ rect@(175,208) 左侧 6px\n邻接「控制」→ circle@(165,299) 下方 48px\n邻接「控制」→ circle@(129,21) 上方 134px\n邻接「键盘鼠标」→ label@(2170,369)「关闭」 下方 43px\n控件: rect@(175,208) | circle@(165,299) | circle@(129,21) | rect@(2203,64)「第三人称射击设置」\n遮挡 [0, 2, 121, 80] (0,2)-(121,80)（conf 0.62）：左上角小字叠加层：小字 3 框，非纯黑 L=135\n可点文字 2 个: 设置／控制 / 关闭"
+}

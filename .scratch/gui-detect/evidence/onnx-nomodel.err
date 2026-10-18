@@ -1,0 +1,1 @@
+[ys-screen] 检测后端不可用（backend=onnx）：detect-backend: onnx 需要 --detect-model <path.onnx>（或 env YS_DETECT_ONNX）；缺模型 fail-closed，不静默回落到 cv

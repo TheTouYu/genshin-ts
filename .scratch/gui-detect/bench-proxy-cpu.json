@@ -1,0 +1,56 @@
+{
+ "env": {
+  "dev_nvidia_nodes": [],
+  "nvidia_smi_L": "NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.",
+  "torch": "2.14.1",
+  "torch_cuda_build": "13.4",
+  "torch_cuda_available": false,
+  "torch_device_count": 0,
+  "torch_cudnn": 92700,
+  "onnxruntime": "1.29.0",
+  "ort_providers_available": [
+   "CUDAExecutionProvider",
+   "DnnlExecutionProvider",
+   "CPUExecutionProvider"
+  ],
+  "python": "3.14.8",
+  "cpu_count": 16
+ },
+ "args": {
+  "size": 640,
+  "iters": 3,
+  "warmup": 1,
+  "bench": "proxy",
+  "proxy_bases": "16,24",
+  "yolo_weights": null,
+  "unet_bases": "8,12,16",
+  "out": ".scratch/gui-detect/bench-proxy-cpu.json"
+ },
+ "proxy": {
+  "size": 640,
+  "runs": [
+   {
+    "base": 16,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 16.9,
+    "min_ms": 14.55,
+    "gflops": 63.1,
+    "ms_at_2p6_gflop": 41.18
+   },
+   {
+    "base": 24,
+    "device": "cpu",
+    "dtype": "fp32",
+    "median_ms": 22.38,
+    "min_ms": 21.54,
+    "gflops": 104.0,
+    "ms_at_2p6_gflop": 24.99
+   }
+  ],
+  "gflop_by_base": {
+   "16": 1.07,
+   "24": 2.33
+  }
+ }
+}
