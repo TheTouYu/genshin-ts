@@ -1,0 +1,851 @@
+{
+ "frame": "r045_snap_2026-10-19_00-38-06",
+ "image": ".scratch/gui-corpus/inbox/norm/r045_snap_2026-10-19_00-38-06.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 逐行标注（OCR 行聚类枚举 + edges.py 量边，未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md + 本批收紧（标题/字段行也成单元）",
+ "layout": "编辑器：左下时间轴轨道 8 行 + 视口 + 右特效属性面板逐行",
+ "classes": [
+  "桌面编辑器",
+  "轨道列表",
+  "属性面板"
+ ],
+ "units": 31,
+ "_provenance": {
+  "family": "编辑器·时间轴/轨道",
+  "method": "轨道行/属性行由 rows_from_ocr 聚类（逐行）；面板边界按可见像素 + edges.py",
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；ys-screen 仅事后对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "轨道行 x 宽度按左侧面板可见范围",
+   "时间轴标尺未逐刻度标（无文字）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    285,
+    2,
+    1600,
+    52
+   ],
+   "kind": "panel",
+   "text": [
+    "编辑器标签栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "编辑器标签栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    285,
+    2,
+    330,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    620,
+    2,
+    420,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "关卡变量管理 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1050,
+    2,
+    400,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "背景音乐管理 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1460,
+    2,
+    400,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "资产导入导出管理 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1870,
+    2,
+    360,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "界面控件组管理 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2240,
+    2,
+    320,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "主镜头管理 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    10,
+    60,
+    272,
+    110
+   ],
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    20,
+    95,
+    250,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "搜索"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    0,
+    1000,
+    400,
+    440
+   ],
+   "kind": "panel",
+   "text": [
+    "时间轴轨道面板"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左下半：时间轴轨道"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    8,
+    1036,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "蓄力分支动画",
+    "连段技能动画"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    8,
+    1088,
+    372,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "#1 公共前摇",
+    "00:00:00"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    8,
+    1142,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "+ 新建轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    8,
+    1196,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "开始事件轨道",
+    "+"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    8,
+    1244,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "结束事件轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    8,
+    1284,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "建段轨道"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    8,
+    1332,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "花燕图事件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    8,
+    1380,
+    372,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "武器模型特效01",
+    "特效播放"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    320,
+    130,
+    2200,
+    850
+   ],
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "编辑器视口"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1800,
+    60,
+    740,
+    560
+   ],
+   "kind": "panel",
+   "text": [
+    "特效播放"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧属性面板（特效播放）"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    1978,
+    63,
+    560,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "特效播放",
+    "X"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    1978,
+    104,
+    560,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "特效播放"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    1978,
+    188,
+    560,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "箭矢01"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    1978,
+    251,
+    560,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "是否播放特效资产音效"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1978,
+    297,
+    560,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "单位挂接点",
+    "GI_WeaponR"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    1978,
+    343,
+    560,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "位置",
+    "X 0.00",
+    "0.00",
+    "0.00"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    1978,
+    388,
+    560,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "Y 0.00",
+    "旋转",
+    "0.00"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1978,
+    432,
+    560,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "缩放",
+    "1.00"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    1978,
+    481,
+    560,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "是否跟随位置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    1978,
+    526,
+    560,
+    39
+   ],
+   "kind": "row",
+   "text": [
+    "是否跟随旋转"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    2440,
+    1040,
+    100,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "收起"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}
