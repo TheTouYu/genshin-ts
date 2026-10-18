@@ -1,0 +1,979 @@
+{
+ "frame": "r021_snap_2026-10-19_00-24-58",
+ "image": ".scratch/gui-corpus/inbox/norm/r021_snap_2026-10-19_00-24-58.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · **切块标注法**（block-wise）：5 块分别量边后汇总",
+ "criteria": ".agents/skills/gui-annotation/SKILL.md（R1–R10）",
+ "layout": "①顶栏 / ②左箭头 / ③好友行 7 / ④右箭头 / ⑤底部/四角",
+ "classes": [
+  "切块标注法"
+ ],
+ "units": 36,
+ "_provenance": {
+  "family": "好友／我的好友",
+  "blocks": [
+   "①顶栏",
+   "②左箭头",
+   "③好友行 7",
+   "④右箭头",
+   "⑤底部/四角"
+  ],
+  "rules_applied": {
+   "R2": "好友行 7 + 每行动作按钮 + 私聊气泡（v5 已有）",
+   "R3": "好友列表区整块 [140,120,2300,1200]",
+   "R4": "左右翻页 + 底部黑名单管理",
+   "R10": "四角：左下角/右下 UID"
+  },
+  "tool_assist": "grid.py 分块裁剪图（标签=原帧坐标）+ edges.py 扫描线；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "四角小件无文字锚点，边界按可见皮肤"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2400,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "好友／我的好友"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    80,
+    25,
+    420,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "好友／我的好友"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    1900,
+    40,
+    460,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "我的好友 173/200"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1080,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友列表页签"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1210,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "添加好友页签"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1340,
+    18,
+    100,
+    84
+   ],
+   "kind": "chip",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "最近联机页签"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2412,
+    18,
+    108,
+    108
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    66,
+    682,
+    64,
+    64
+   ],
+   "kind": "button",
+   "text": [
+    "‹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    2436,
+    682,
+    64,
+    64
+   ],
+   "kind": "button",
+   "text": [
+    "›"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    140,
+    120,
+    2300,
+    1200
+   ],
+   "kind": "panel",
+   "text": [
+    "好友列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行容器"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    150,
+    170,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "右右",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1900,
+    190,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "前往其大厅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2210,
+    190,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    150,
+    340,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "绫华の发绳",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    1900,
+    360,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "前往其大厅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2210,
+    360,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    150,
+    505,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "热九",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1900,
+    525,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "申请加入"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2210,
+    525,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    150,
+    670,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "(白七)",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    1900,
+    690,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "前往其大厅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2210,
+    690,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    150,
+    840,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "深海舌鲜鱼小姐",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    1900,
+    860,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "离线"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    2210,
+    860,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    150,
+    1005,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "半城凝夏",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    1900,
+    1025,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "离线"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    2210,
+    1025,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    150,
+    1160,
+    2250,
+    130
+   ],
+   "kind": "row",
+   "text": [
+    "花开未眠",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    1900,
+    1180,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    2210,
+    1180,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "私聊气泡"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    230,
+    1320,
+    380,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "黑名单管理"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 30
+   }
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2400,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "顶栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块①"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    140,
+    120,
+    2300,
+    1200
+   ],
+   "kind": "panel",
+   "text": [
+    "好友列表区"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块③：整块（R7）"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    0,
+    1300,
+    300,
+    140
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块⑤：左下角（R10）"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    2380,
+    1370,
+    180,
+    70
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块⑤：右下角 UID（R10）"
+  }
+ ]
+}

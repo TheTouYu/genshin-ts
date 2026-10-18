@@ -1,0 +1,1335 @@
+{
+ "frame": "r019_snap_2026-10-19_00-24-44",
+ "image": ".scratch/gui-corpus/inbox/norm/r019_snap_2026-10-19_00-24-44.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · **切块标注法**（block-wise）：5 块分别量边后汇总",
+ "criteria": ".agents/skills/gui-annotation/SKILL.md（R1–R10）",
+ "layout": "①顶栏 / ②左侧分类栏 / ③物品网格 8×4 / ④详情面板 / ⑤底部/四角",
+ "classes": [
+  "切块标注法"
+ ],
+ "units": 51,
+ "_provenance": {
+  "family": "背包（养成道具）",
+  "blocks": [
+   "①顶栏",
+   "②左侧分类栏",
+   "③物品网格 8×4",
+   "④详情面板",
+   "⑤底部/四角"
+  ],
+  "rules_applied": {
+   "R2": "物品格逐格（v5 已 32 格）",
+   "R3": "网格区/详情面板整块",
+   "R4": "底部与右侧带扫到左下货币带 + 右下 UID",
+   "R6": "左分类栏整栏 [0,120,96,1200]",
+   "R10": "四角小件逐个补"
+  },
+  "tool_assist": "grid.py 分块裁剪图（标签=原帧坐标）+ edges.py 扫描线；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "左分类栏宽 96px 是可见皮肤估（栏内图标未逐个拆）",
+   "四角货币带/UID 带只有视觉边界，无文字锚点"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2200,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "背包"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    80,
+    25,
+    700,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "养成道具"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    2100,
+    40,
+    320,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "背包容量 1324/260"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    2400,
+    20,
+    120,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    170,
+    120,
+    1560,
+    1100
+   ],
+   "kind": "panel",
+   "text": [
+    "物品网格"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧物品格（8 列 × 4 行可见）"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    200,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c1"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    395,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c2"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    590,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c3"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    785,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c4"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    980,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c5"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1175,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c6"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1370,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c7"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1565,
+    200,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r1 c8"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    200,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c1"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    395,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c2"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    590,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c3"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    785,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c4"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    980,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c5"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    1175,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c6"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1370,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c7"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    1565,
+    435,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r2 c8"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    200,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c1"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    395,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c2"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    590,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c3"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    785,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c4"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    980,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c5"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    1175,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c6"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1370,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c7"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    1565,
+    670,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r3 c8"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    200,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c1"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    395,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c2"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    590,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c3"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    785,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c4"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    980,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c5"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    1175,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c6"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    1370,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c7"
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    1565,
+    905,
+    164,
+    200
+   ],
+   "kind": "tile",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "物品格 r4 c8"
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    1740,
+    120,
+    780,
+    1100
+   ],
+   "kind": "panel",
+   "text": [
+    "物品详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧详情面板"
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    1760,
+    140,
+    500,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "大英雄的经验"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    1760,
+    230,
+    300,
+    44
+   ],
+   "kind": "chip",
+   "text": [
+    "角色经验素材"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 40,
+   "parent": null,
+   "bbox": [
+    1760,
+    570,
+    700,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "角色经验素材，含有20000"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 41,
+   "parent": null,
+   "bbox": [
+    1760,
+    640,
+    700,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "如果向往着天空岛而在大陆开始"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 42,
+   "parent": null,
+   "bbox": [
+    1760,
+    740,
+    300,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "来源"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 43,
+   "parent": null,
+   "bbox": [
+    1760,
+    810,
+    500,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "激活启示之花奖励"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 44,
+   "parent": null,
+   "bbox": [
+    1760,
+    905,
+    400,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "解决事件报酬"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 45,
+   "parent": null,
+   "bbox": [
+    2210,
+    1320,
+    120,
+    70
+   ],
+   "kind": "button",
+   "text": [
+    "使用"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 46,
+   "parent": null,
+   "bbox": [
+    380,
+    1310,
+    300,
+    60
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "背包分类页签（左侧）"
+  },
+  {
+   "id": 47,
+   "parent": null,
+   "bbox": [
+    0,
+    120,
+    96,
+    1260
+   ],
+   "kind": "panel",
+   "text": [
+    "左侧分类栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块②：竖向整栏（R6）"
+  },
+  {
+   "id": 48,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2200,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "顶栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块①"
+  },
+  {
+   "id": 49,
+   "parent": null,
+   "bbox": [
+    0,
+    1300,
+    240,
+    140
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块⑤：左下角货币带（R10）"
+  },
+  {
+   "id": 50,
+   "parent": null,
+   "bbox": [
+    2380,
+    1370,
+    180,
+    70
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "块⑤：右下角 UID（R10）"
+  }
+ ]
+}

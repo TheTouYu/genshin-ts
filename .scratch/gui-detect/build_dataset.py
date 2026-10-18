@@ -36,14 +36,18 @@ def main():
 
     truth_dirs = [".scratch/gui-corpus/truth", ".scratch/gui-corpus/truth-v2",
                   ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
-                  ".scratch/gui-corpus/truth-v5"]
+                  ".scratch/gui-corpus/truth-v5",
+                  ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7"]
     img_dirs = [".scratch/gui-corpus", ".scratch/gui-corpus/truth-v2",
                 ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                 ".scratch/gui-corpus/capture-2026-10-18/reps",
                 ".scratch/gui-corpus/video-20261018/reps",
-                ".scratch/gui-corpus/inbox/norm"]
+                ".scratch/gui-corpus/inbox/norm",
+                ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7",
+                ".scratch/gui-corpus/truth-v5", ".scratch/gui-corpus/truth-v4"]
 
     images, anns, cats = [], [], {}
+    seen = {}
     kind_count = Counter()
     fam_count = defaultdict(int)
     missing, partial = [], []
@@ -63,7 +67,21 @@ def main():
                 continue
             if (d.get("_provenance") or {}).get("partial") or "部分标" in str(d.get("annotator", "")):
                 partial.append(stem)
+            if stem in seen:          # 同一帧多版本 → 只保留最后一次（v7 覆盖 v6 等）
+                old = seen[stem]
+                images[:] = [im for im in images if im["id"] != old]
+                anns[:] = [a for a in anns if a["image_id"] != old]
+                for im in images:
+                    if im["id"] > old:
+                        im["id"] -= 1
+                for a in anns:
+                    if a["image_id"] > old:
+                        a["image_id"] -= 1
+                for k in list(seen):
+                    if seen[k] > old:
+                        seen[k] -= 1
             iid = len(images) + 1
+            seen[stem] = iid
             images.append({"id": iid, "file_name": img, "width": 2560, "height": 1440,
                            "truth": os.path.relpath(jf, "."), "layout": d.get("layout")})
             fam = (d.get("layout") or "unknown").split("（")[0].split("·")[0].strip()
