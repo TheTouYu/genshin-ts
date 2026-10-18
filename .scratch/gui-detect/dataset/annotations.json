@@ -5,6 +5,7 @@
    "file_name": ".scratch/gui-corpus/f00.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f00.json",
    "layout": "活动一览·左列表+右详情（角色头像行）"
   },
@@ -13,6 +14,7 @@
    "file_name": ".scratch/gui-corpus/f01.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f01.json",
    "layout": "活动一览·左列表+右详情（奖励图标行）"
   },
@@ -21,6 +23,7 @@
    "file_name": ".scratch/gui-corpus/f02.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f02.json",
    "layout": "活动一览·同 f01（奖励行横滚）"
   },
@@ -29,6 +32,7 @@
    "file_name": ".scratch/gui-corpus/f03.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f03.json",
    "layout": "活动一览·左列表+右详情（奖励行 5 图标）"
   },
@@ -37,6 +41,7 @@
    "file_name": ".scratch/gui-corpus/f04.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f04.json",
    "layout": "活动一览·卡片群"
   },
@@ -45,6 +50,7 @@
    "file_name": ".scratch/gui-corpus/f05.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f05.json",
    "layout": "活动一览·立绘+时装卡+任务卡"
   },
@@ -53,6 +59,7 @@
    "file_name": ".scratch/gui-corpus/f06.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f06.json",
    "layout": "派蒙菜单首屏（网格 4×4+3）"
   },
@@ -61,6 +68,7 @@
    "file_name": ".scratch/gui-corpus/f07.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f07.json",
    "layout": "派蒙菜单滚一屏"
   },
@@ -69,6 +77,7 @@
    "file_name": ".scratch/gui-corpus/f08.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f08.json",
    "layout": "派蒙菜单·千星奇域区"
   },
@@ -77,6 +86,7 @@
    "file_name": ".scratch/gui-corpus/f09.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth/f09.json",
    "layout": "设置·控制"
   },
@@ -85,6 +95,7 @@
    "file_name": ".scratch/gui-corpus/f10.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth/f10.json",
    "layout": "设置·图像（顶部）"
   },
@@ -93,6 +104,7 @@
    "file_name": ".scratch/gui-corpus/f11.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth/f11.json",
    "layout": "设置·图像（滚后）"
   },
@@ -101,6 +113,7 @@
    "file_name": ".scratch/gui-corpus/f12.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth/f12.json",
    "layout": "设置·语言"
   },
@@ -109,6 +122,7 @@
    "file_name": ".scratch/gui-corpus/f13.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth/f13.json",
    "layout": "存档选择（卡片网格）"
   },
@@ -117,6 +131,7 @@
    "file_name": ".scratch/gui-corpus/truth-v2/c12_195108.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v2/c12_195108.json",
    "layout": "派蒙菜单（新语料）· 玩家卡 + 5×4 网格"
   },
@@ -125,6 +140,7 @@
    "file_name": ".scratch/gui-corpus/truth-v2/c18_195129.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth-v2/c18_195129.json",
    "layout": "设置·控制（与语料 f09 同屏、不同连拍）"
   },
@@ -133,6 +149,7 @@
    "file_name": ".scratch/gui-corpus/truth-v2/c24_195206.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth-v2/c24_195206.json",
    "layout": "设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作\"派蒙菜单\"，实际是设置页）"
   },
@@ -141,6 +158,7 @@
    "file_name": ".scratch/gui-corpus/truth-v2/c25_195214.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v2/c25_195214.json",
    "layout": "派蒙菜单（新语料）· 千星奇域区（含分区标题下的 4 行）"
   },
@@ -149,6 +167,7 @@
    "file_name": ".scratch/gui-corpus/truth-v2/c32_195258.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v2/c32_195258.json",
    "layout": "邮件珍藏盒（列表 + 详情两栏）"
   },
@@ -157,230 +176,214 @@
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c03_194915.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth-v3/c03_194915.json",
    "layout": "好友列表（7 行 + 每行动作按钮 + 私聊气泡）"
   },
   {
    "id": 21,
-   "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c19_195135.png",
-   "width": 2560,
-   "height": 1440,
-   "truth": ".scratch/gui-corpus/truth-v3/c19_195135.json",
-   "layout": "设置·声音（9 个音频设置行）"
-  },
-  {
-   "id": 22,
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c22_195158.png",
    "width": 2560,
    "height": 1440,
+   "has_region": false,
    "truth": ".scratch/gui-corpus/truth-v3/c22_195158.json",
    "layout": "设置·按键（页签 基础设置/千星奇域 + 按键绑定行）"
   },
   {
-   "id": 23,
+   "id": 22,
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c28_195235.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v3/c28_195235.json",
    "layout": "邮件珍藏盒·列表（左侧 7 条邮件 + 右侧详情 + 附件）"
   },
   {
-   "id": 24,
-   "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c29_195243.png",
-   "width": 2560,
-   "height": 1440,
-   "truth": ".scratch/gui-corpus/truth-v3/c29_195243.json",
-   "layout": "邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）"
-  },
-  {
-   "id": 25,
+   "id": 23,
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c34_195311.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v3/c34_195311.json",
    "layout": "派蒙菜单·千星奇域区（已滚到分区；上排 3 格被面板上沿裁切）"
   },
   {
-   "id": 26,
+   "id": 24,
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c36_195316.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v3/c36_195316.json",
    "layout": "存档选择·卡片网格（7 卡 + 7 编辑 + 页签 + 底部按钮）"
   },
   {
-   "id": 27,
+   "id": 25,
    "file_name": ".scratch/gui-corpus/capture-2026-10-18/reps/c41_195439.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v3/c41_195439.json",
    "layout": "编辑器窗口：标签栏 + 左资源树 + 视口工具条 + 3D 视口"
   },
   {
-   "id": 28,
-   "file_name": ".scratch/gui-corpus/truth-v2/c42_195441.png",
-   "width": 2560,
-   "height": 1440,
-   "truth": ".scratch/gui-corpus/truth-v3/c42_195441.json",
-   "layout": "资源管理器：左分类树 + 中资源树 + 右列表（上：实体节点图；下：自定义元件）"
-  },
-  {
-   "id": 29,
+   "id": 26,
    "file_name": ".scratch/gui-corpus/video-20261018/reps/v060_0461.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v4/v060_0461.json",
    "layout": "派蒙菜单·千星版（4×5 网格 + 返回提瓦特）"
   },
   {
-   "id": 30,
+   "id": 27,
    "file_name": ".scratch/gui-corpus/video-20261018/reps/v078_0487.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v4/v078_0487.json",
    "layout": "地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）"
   },
   {
-   "id": 31,
-   "file_name": ".scratch/gui-corpus/video-20261018/reps/v088_0513.jpg",
-   "width": 2560,
-   "height": 1440,
-   "truth": ".scratch/gui-corpus/truth-v4/v088_0513.json",
-   "layout": "角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）"
-  },
-  {
-   "id": 32,
+   "id": 28,
    "file_name": ".scratch/gui-corpus/video-20261018/reps/v101_0529.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v4/v101_0529.json",
    "layout": "活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）"
   },
   {
-   "id": 33,
+   "id": 29,
    "file_name": ".scratch/gui-corpus/inbox/norm/r006_snap_2026-10-19_00-22-19.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r006_snap_2026-10-19_00-22-19.json",
    "layout": "邮箱：左 8 封邮件逐行 + 右详情（标题/发件人/时间/附件）+ 底部两按钮"
   },
   {
-   "id": 34,
+   "id": 30,
    "file_name": ".scratch/gui-corpus/inbox/norm/r008_snap_2026-10-19_00-23-27.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r008_snap_2026-10-19_00-23-27.json",
    "layout": "任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览"
   },
   {
-   "id": 35,
+   "id": 31,
    "file_name": ".scratch/gui-corpus/inbox/norm/r016_snap_2026-10-19_00-24-17.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r016_snap_2026-10-19_00-24-17.json",
    "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情"
   },
   {
-   "id": 36,
+   "id": 32,
    "file_name": ".scratch/gui-corpus/inbox/norm/r032_snap_2026-10-19_00-30-42.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r032_snap_2026-10-19_00-30-42.json",
    "layout": "编辑器：左资源树 28 行 + 调色板 6 格 + 视口 + 右上属性面板逐行"
   },
   {
-   "id": 37,
+   "id": 33,
    "file_name": ".scratch/gui-corpus/inbox/norm/r034_snap_2026-10-19_00-31-33.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r034_snap_2026-10-19_00-31-33.json",
    "layout": "编辑器：左资源树（28 行）+ 中部资产格 6 + 背景音乐管理弹窗（9 行）+ 音乐库（9 条）+ 右上属性面板（逐行）+ 底部工具"
   },
   {
-   "id": 38,
+   "id": 34,
    "file_name": ".scratch/gui-corpus/inbox/norm/r040_snap_2026-10-19_00-36-18.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r040_snap_2026-10-19_00-36-18.json",
    "layout": "编辑器：左树 25 行 + 调色板 + 视口 + 右属性面板（3 个分区，各带详细编辑）"
   },
   {
-   "id": 39,
-   "file_name": ".scratch/gui-corpus/inbox/norm/r045_snap_2026-10-19_00-38-06.png",
-   "width": 2560,
-   "height": 1440,
-   "truth": ".scratch/gui-corpus/truth-v5/r045_snap_2026-10-19_00-38-06.json",
-   "layout": "编辑器：左下时间轴轨道 8 行 + 视口 + 右特效属性面板逐行"
-  },
-  {
-   "id": 40,
+   "id": 35,
    "file_name": ".scratch/gui-corpus/inbox/norm/r047_snap_2026-10-19_00-39-53.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v5/r047_snap_2026-10-19_00-39-53.json",
    "layout": "编辑器：左单位状态树 7 行 + 标签栏 + 视口 + 右属性面板"
   },
   {
-   "id": 41,
+   "id": 36,
    "file_name": ".scratch/gui-corpus/inbox/reps/r013_snap_2026-10-19_00-23-53.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v6/r013_snap_2026-10-19_00-23-53.json",
    "layout": "顶栏三簇（左标题 / 中 4 页签 / 右计数+?+X）+ 6 张邀约卡 + 底部提示与领取"
   },
   {
-   "id": 42,
+   "id": 37,
    "file_name": ".scratch/gui-corpus/inbox/reps/r022_snap_2026-10-19_00-25-06.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v6/r022_snap_2026-10-19_00-25-06.json",
    "layout": "好友列表 7 行（背景）+ 角色展柜弹窗（左页资料/数值，右页 2×4 角色卡）+ 黑名单管理"
   },
   {
-   "id": 43,
+   "id": 38,
    "file_name": ".scratch/gui-corpus/inbox/reps/r026_snap_2026-10-19_00-27-05.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v6/r026_snap_2026-10-19_00-27-05.json",
    "layout": "标签栏 + 左资源树 21 行 + 视口 + 顶部工具 4 + 右上是 gizmo"
   },
   {
-   "id": 44,
+   "id": 39,
    "file_name": ".scratch/gui-corpus/inbox/reps/r044_snap_2026-10-19_00-37-57.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v6/r044_snap_2026-10-19_00-37-57.json",
    "layout": "标题 + 添加技能节点图弹窗（搜索 + 4 条目 + 打开沙箱）+ 底部时间轴（2 页签 + 播放 + 5 轨道）"
   },
   {
-   "id": 45,
+   "id": 40,
    "file_name": ".scratch/gui-corpus/inbox/reps/r003_snap_2026-10-19_00-17-26.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v7/r003_snap_2026-10-19_00-17-26.json",
    "layout": "①信息卡(100,0,1100,470) / ②左图标栏(0,20,130,1410) / ③网格区(120,430,1040,1440) / ④底部条(0,1260,1400,1440) / ⑤四角"
   },
   {
-   "id": 46,
+   "id": 41,
    "file_name": ".scratch/gui-corpus/inbox/norm/r019_snap_2026-10-19_00-24-44.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v7/r019_snap_2026-10-19_00-24-44.json",
    "layout": "①顶栏 / ②左侧分类栏 / ③物品网格 8×4 / ④详情面板 / ⑤底部/四角"
   },
   {
-   "id": 47,
+   "id": 42,
    "file_name": ".scratch/gui-corpus/inbox/norm/r021_snap_2026-10-19_00-24-58.png",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v7/r021_snap_2026-10-19_00-24-58.json",
    "layout": "①顶栏 / ②左箭头 / ③好友行 7 / ④右箭头 / ⑤底部/四角"
   },
   {
-   "id": 48,
+   "id": 43,
    "file_name": ".scratch/gui-corpus/inbox/reps/r041_snap_2026-10-19_00-36-21.jpg",
    "width": 2560,
    "height": 1440,
+   "has_region": true,
    "truth": ".scratch/gui-corpus/truth-v7/r041_snap_2026-10-19_00-36-21.json",
    "layout": "①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角"
   }
@@ -7307,7 +7310,7 @@
    "text": []
   },
   {
-   "id": 442,
+   "id": 411,
    "image_id": 20,
    "category_id": 8,
    "bbox": [
@@ -7322,7 +7325,7 @@
    "text": []
   },
   {
-   "id": 443,
+   "id": 412,
    "image_id": 20,
    "category_id": 8,
    "bbox": [
@@ -7337,7 +7340,7 @@
    "text": []
   },
   {
-   "id": 444,
+   "id": 413,
    "image_id": 20,
    "category_id": 8,
    "bbox": [
@@ -7352,7 +7355,7 @@
    "text": []
   },
   {
-   "id": 445,
+   "id": 414,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7367,7 +7370,7 @@
    "text": []
   },
   {
-   "id": 446,
+   "id": 415,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7384,7 +7387,7 @@
    ]
   },
   {
-   "id": 447,
+   "id": 416,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7401,7 +7404,7 @@
    ]
   },
   {
-   "id": 448,
+   "id": 417,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7418,16 +7421,16 @@
    ]
   },
   {
-   "id": 449,
+   "id": 418,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     107,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7436,7 +7439,7 @@
    ]
   },
   {
-   "id": 450,
+   "id": 419,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7453,7 +7456,7 @@
    ]
   },
   {
-   "id": 451,
+   "id": 420,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7468,16 +7471,16 @@
    "text": []
   },
   {
-   "id": 452,
+   "id": 421,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     273,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7486,7 +7489,7 @@
    ]
   },
   {
-   "id": 453,
+   "id": 422,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7503,7 +7506,7 @@
    ]
   },
   {
-   "id": 454,
+   "id": 423,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7518,16 +7521,16 @@
    "text": []
   },
   {
-   "id": 455,
+   "id": 424,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     439,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7536,7 +7539,7 @@
    ]
   },
   {
-   "id": 456,
+   "id": 425,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7553,7 +7556,7 @@
    ]
   },
   {
-   "id": 457,
+   "id": 426,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7568,16 +7571,16 @@
    "text": []
   },
   {
-   "id": 458,
+   "id": 427,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     605,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7586,7 +7589,7 @@
    ]
   },
   {
-   "id": 459,
+   "id": 428,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7603,7 +7606,7 @@
    ]
   },
   {
-   "id": 460,
+   "id": 429,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7618,16 +7621,16 @@
    "text": []
   },
   {
-   "id": 461,
+   "id": 430,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     771,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7636,7 +7639,7 @@
    ]
   },
   {
-   "id": 462,
+   "id": 431,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7653,7 +7656,7 @@
    ]
   },
   {
-   "id": 463,
+   "id": 432,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7668,16 +7671,16 @@
    "text": []
   },
   {
-   "id": 464,
+   "id": 433,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     937,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7686,7 +7689,7 @@
    ]
   },
   {
-   "id": 465,
+   "id": 434,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7703,7 +7706,7 @@
    ]
   },
   {
-   "id": 466,
+   "id": 435,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7718,16 +7721,16 @@
    "text": []
   },
   {
-   "id": 467,
+   "id": 436,
    "image_id": 20,
    "category_id": 2,
    "bbox": [
     150,
     1103,
     2250,
-    150
+    180
    ],
-   "area": 337500,
+   "area": 405000,
    "iscrowd": 0,
    "kind": "row",
    "text": [
@@ -7736,7 +7739,7 @@
    ]
   },
   {
-   "id": 468,
+   "id": 437,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7753,7 +7756,7 @@
    ]
   },
   {
-   "id": 469,
+   "id": 438,
    "image_id": 20,
    "category_id": 3,
    "bbox": [
@@ -7768,7 +7771,7 @@
    "text": []
   },
   {
-   "id": 470,
+   "id": 439,
    "image_id": 21,
    "category_id": 3,
    "bbox": [
@@ -7785,7 +7788,7 @@
    ]
   },
   {
-   "id": 471,
+   "id": 440,
    "image_id": 21,
    "category_id": 3,
    "bbox": [
@@ -7800,7 +7803,7 @@
    "text": []
   },
   {
-   "id": 472,
+   "id": 441,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7817,7 +7820,7 @@
    ]
   },
   {
-   "id": 473,
+   "id": 442,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7834,7 +7837,7 @@
    ]
   },
   {
-   "id": 474,
+   "id": 443,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7851,7 +7854,7 @@
    ]
   },
   {
-   "id": 475,
+   "id": 444,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7868,7 +7871,7 @@
    ]
   },
   {
-   "id": 476,
+   "id": 445,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7885,7 +7888,7 @@
    ]
   },
   {
-   "id": 477,
+   "id": 446,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7902,7 +7905,7 @@
    ]
   },
   {
-   "id": 478,
+   "id": 447,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7919,7 +7922,7 @@
    ]
   },
   {
-   "id": 479,
+   "id": 448,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7936,7 +7939,7 @@
    ]
   },
   {
-   "id": 480,
+   "id": 449,
    "image_id": 21,
    "category_id": 2,
    "bbox": [
@@ -7953,355 +7956,8 @@
    ]
   },
   {
-   "id": 481,
+   "id": 450,
    "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    134,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "主音量",
-    "10"
-   ]
-  },
-  {
-   "id": 482,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    216,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "音量",
-    "10"
-   ]
-  },
-  {
-   "id": 483,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    301,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "音量平衡",
-    ""
-   ]
-  },
-  {
-   "id": 484,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    386,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "音乐音量",
-    "10"
-   ]
-  },
-  {
-   "id": 485,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    475,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "语音音量",
-    "10"
-   ]
-  },
-  {
-   "id": 486,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    562,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "音效音量",
-    "10"
-   ]
-  },
-  {
-   "id": 487,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    655,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "语音聊天音量",
-    "50"
-   ]
-  },
-  {
-   "id": 488,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    742,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "麦克风音量",
-    "50"
-   ]
-  },
-  {
-   "id": 489,
-   "image_id": 21,
-   "category_id": 2,
-   "bbox": [
-    646,
-    908,
-    1756,
-    76
-   ],
-   "area": 133456,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "动态范围",
-    "完全"
-   ]
-  },
-  {
-   "id": 490,
-   "image_id": 22,
-   "category_id": 3,
-   "bbox": [
-    2030,
-    25,
-    500,
-    80
-   ],
-   "area": 40000,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "第三人称射击设置"
-   ]
-  },
-  {
-   "id": 491,
-   "image_id": 22,
-   "category_id": 3,
-   "bbox": [
-    2425,
-    25,
-    90,
-    90
-   ],
-   "area": 8100,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 492,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    172,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "控制"
-   ]
-  },
-  {
-   "id": 493,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    265,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "按键"
-   ]
-  },
-  {
-   "id": 494,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    358,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "图像"
-   ]
-  },
-  {
-   "id": 495,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    451,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "声音"
-   ]
-  },
-  {
-   "id": 496,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    544,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "消息"
-   ]
-  },
-  {
-   "id": 497,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    636,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "语言"
-   ]
-  },
-  {
-   "id": 498,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    729,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "账户"
-   ]
-  },
-  {
-   "id": 499,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    822,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "资源"
-   ]
-  },
-  {
-   "id": 500,
-   "image_id": 22,
-   "category_id": 2,
-   "bbox": [
-    138,
-    915,
-    232,
-    64
-   ],
-   "area": 14848,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "其他"
-   ]
-  },
-  {
-   "id": 501,
-   "image_id": 22,
    "category_id": 1,
    "bbox": [
     605,
@@ -8317,8 +7973,8 @@
    ]
   },
   {
-   "id": 502,
-   "image_id": 22,
+   "id": 451,
+   "image_id": 21,
    "category_id": 8,
    "bbox": [
     632,
@@ -8334,8 +7990,8 @@
    ]
   },
   {
-   "id": 503,
-   "image_id": 22,
+   "id": 452,
+   "image_id": 21,
    "category_id": 8,
    "bbox": [
     1655,
@@ -8351,8 +8007,8 @@
    ]
   },
   {
-   "id": 504,
-   "image_id": 22,
+   "id": 453,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8369,8 +8025,8 @@
    ]
   },
   {
-   "id": 505,
-   "image_id": 22,
+   "id": 454,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8387,8 +8043,8 @@
    ]
   },
   {
-   "id": 506,
-   "image_id": 22,
+   "id": 455,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8405,8 +8061,8 @@
    ]
   },
   {
-   "id": 507,
-   "image_id": 22,
+   "id": 456,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8423,8 +8079,8 @@
    ]
   },
   {
-   "id": 508,
-   "image_id": 22,
+   "id": 457,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8441,8 +8097,8 @@
    ]
   },
   {
-   "id": 509,
-   "image_id": 22,
+   "id": 458,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8459,8 +8115,8 @@
    ]
   },
   {
-   "id": 510,
-   "image_id": 22,
+   "id": 459,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8477,8 +8133,8 @@
    ]
   },
   {
-   "id": 511,
-   "image_id": 22,
+   "id": 460,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8495,8 +8151,8 @@
    ]
   },
   {
-   "id": 512,
-   "image_id": 22,
+   "id": 461,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8513,8 +8169,8 @@
    ]
   },
   {
-   "id": 513,
-   "image_id": 22,
+   "id": 462,
+   "image_id": 21,
    "category_id": 2,
    "bbox": [
     646,
@@ -8531,8 +8187,8 @@
    ]
   },
   {
-   "id": 514,
-   "image_id": 23,
+   "id": 463,
+   "image_id": 22,
    "category_id": 3,
    "bbox": [
     2325,
@@ -8546,8 +8202,8 @@
    "text": []
   },
   {
-   "id": 515,
-   "image_id": 23,
+   "id": 464,
+   "image_id": 22,
    "category_id": 3,
    "bbox": [
     2370,
@@ -8561,8 +8217,8 @@
    "text": []
   },
   {
-   "id": 516,
-   "image_id": 23,
+   "id": 465,
+   "image_id": 22,
    "category_id": 3,
    "bbox": [
     183,
@@ -8578,8 +8234,8 @@
    ]
   },
   {
-   "id": 517,
-   "image_id": 23,
+   "id": 466,
+   "image_id": 22,
    "category_id": 1,
    "bbox": [
     1262,
@@ -8595,8 +8251,8 @@
    ]
   },
   {
-   "id": 518,
-   "image_id": 23,
+   "id": 467,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8613,8 +8269,8 @@
    ]
   },
   {
-   "id": 519,
-   "image_id": 23,
+   "id": 468,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8631,8 +8287,8 @@
    ]
   },
   {
-   "id": 520,
-   "image_id": 23,
+   "id": 469,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8649,8 +8305,8 @@
    ]
   },
   {
-   "id": 521,
-   "image_id": 23,
+   "id": 470,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8667,8 +8323,8 @@
    ]
   },
   {
-   "id": 522,
-   "image_id": 23,
+   "id": 471,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8685,8 +8341,8 @@
    ]
   },
   {
-   "id": 523,
-   "image_id": 23,
+   "id": 472,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8703,8 +8359,8 @@
    ]
   },
   {
-   "id": 524,
-   "image_id": 23,
+   "id": 473,
+   "image_id": 22,
    "category_id": 2,
    "bbox": [
     187,
@@ -8721,8 +8377,8 @@
    ]
   },
   {
-   "id": 525,
-   "image_id": 23,
+   "id": 474,
+   "image_id": 22,
    "category_id": 5,
    "bbox": [
     1330,
@@ -8738,8 +8394,8 @@
    ]
   },
   {
-   "id": 526,
-   "image_id": 23,
+   "id": 475,
+   "image_id": 22,
    "category_id": 5,
    "bbox": [
     1495,
@@ -8755,8 +8411,8 @@
    ]
   },
   {
-   "id": 527,
-   "image_id": 23,
+   "id": 476,
+   "image_id": 22,
    "category_id": 3,
    "bbox": [
     2372,
@@ -8770,8 +8426,8 @@
    "text": []
   },
   {
-   "id": 528,
-   "image_id": 23,
+   "id": 477,
+   "image_id": 22,
    "category_id": 3,
    "bbox": [
     2448,
@@ -8785,57 +8441,8 @@
    "text": []
   },
   {
-   "id": 529,
-   "image_id": 24,
-   "category_id": 3,
-   "bbox": [
-    2325,
-    70,
-    95,
-    95
-   ],
-   "area": 9025,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 530,
-   "image_id": 24,
-   "category_id": 3,
-   "bbox": [
-    183,
-    196,
-    1075,
-    62
-   ],
-   "area": 66650,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "搜索标题或发件人"
-   ]
-  },
-  {
-   "id": 531,
-   "image_id": 24,
-   "category_id": 1,
-   "bbox": [
-    1262,
-    170,
-    1240,
-    1080
-   ],
-   "area": 1339200,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "邮件详情"
-   ]
-  },
-  {
-   "id": 532,
-   "image_id": 25,
+   "id": 478,
+   "image_id": 23,
    "category_id": 1,
    "bbox": [
     196,
@@ -8849,8 +8456,8 @@
    "text": []
   },
   {
-   "id": 533,
-   "image_id": 25,
+   "id": 479,
+   "image_id": 23,
    "category_id": 4,
    "bbox": [
     204,
@@ -8864,8 +8471,8 @@
    "text": []
   },
   {
-   "id": 534,
-   "image_id": 25,
+   "id": 480,
+   "image_id": 23,
    "category_id": 3,
    "bbox": [
     936,
@@ -8879,8 +8486,8 @@
    "text": []
   },
   {
-   "id": 535,
-   "image_id": 25,
+   "id": 481,
+   "image_id": 23,
    "category_id": 3,
    "bbox": [
     214,
@@ -8896,8 +8503,8 @@
    ]
   },
   {
-   "id": 536,
-   "image_id": 25,
+   "id": 482,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     33,
@@ -8911,8 +8518,8 @@
    "text": []
   },
   {
-   "id": 537,
-   "image_id": 25,
+   "id": 483,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     30,
@@ -8926,8 +8533,8 @@
    "text": []
   },
   {
-   "id": 538,
-   "image_id": 25,
+   "id": 484,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     33,
@@ -8941,8 +8548,8 @@
    "text": []
   },
   {
-   "id": 539,
-   "image_id": 25,
+   "id": 485,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     30,
@@ -8956,8 +8563,8 @@
    "text": []
   },
   {
-   "id": 540,
-   "image_id": 25,
+   "id": 486,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     33,
@@ -8971,8 +8578,8 @@
    "text": []
   },
   {
-   "id": 541,
-   "image_id": 25,
+   "id": 487,
+   "image_id": 23,
    "category_id": 5,
    "bbox": [
     1018,
@@ -8986,8 +8593,8 @@
    "text": []
   },
   {
-   "id": 542,
-   "image_id": 25,
+   "id": 488,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     172,
@@ -9003,8 +8610,8 @@
    ]
   },
   {
-   "id": 543,
-   "image_id": 25,
+   "id": 489,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     380,
@@ -9020,8 +8627,8 @@
    ]
   },
   {
-   "id": 544,
-   "image_id": 25,
+   "id": 490,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     588,
@@ -9037,8 +8644,8 @@
    ]
   },
   {
-   "id": 545,
-   "image_id": 25,
+   "id": 491,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     172,
@@ -9054,8 +8661,8 @@
    ]
   },
   {
-   "id": 546,
-   "image_id": 25,
+   "id": 492,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     380,
@@ -9071,8 +8678,8 @@
    ]
   },
   {
-   "id": 547,
-   "image_id": 25,
+   "id": 493,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     588,
@@ -9088,8 +8695,8 @@
    ]
   },
   {
-   "id": 548,
-   "image_id": 25,
+   "id": 494,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     796,
@@ -9105,8 +8712,8 @@
    ]
   },
   {
-   "id": 549,
-   "image_id": 25,
+   "id": 495,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     172,
@@ -9122,8 +8729,8 @@
    ]
   },
   {
-   "id": 550,
-   "image_id": 25,
+   "id": 496,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     380,
@@ -9139,8 +8746,8 @@
    ]
   },
   {
-   "id": 551,
-   "image_id": 25,
+   "id": 497,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     588,
@@ -9156,8 +8763,8 @@
    ]
   },
   {
-   "id": 552,
-   "image_id": 25,
+   "id": 498,
+   "image_id": 23,
    "category_id": 7,
    "bbox": [
     796,
@@ -9173,8 +8780,8 @@
    ]
   },
   {
-   "id": 553,
-   "image_id": 25,
+   "id": 499,
+   "image_id": 23,
    "category_id": 8,
    "bbox": [
     150,
@@ -9190,8 +8797,8 @@
    ]
   },
   {
-   "id": 554,
-   "image_id": 26,
+   "id": 500,
+   "image_id": 24,
    "category_id": 8,
    "bbox": [
     75,
@@ -9207,8 +8814,8 @@
    ]
   },
   {
-   "id": 555,
-   "image_id": 26,
+   "id": 501,
+   "image_id": 24,
    "category_id": 8,
    "bbox": [
     620,
@@ -9224,8 +8831,8 @@
    ]
   },
   {
-   "id": 556,
-   "image_id": 26,
+   "id": 502,
+   "image_id": 24,
    "category_id": 8,
    "bbox": [
     75,
@@ -9241,8 +8848,8 @@
    ]
   },
   {
-   "id": 557,
-   "image_id": 26,
+   "id": 503,
+   "image_id": 24,
    "category_id": 8,
    "bbox": [
     75,
@@ -9258,8 +8865,8 @@
    ]
   },
   {
-   "id": 558,
-   "image_id": 26,
+   "id": 504,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     2380,
@@ -9273,8 +8880,8 @@
    "text": []
   },
   {
-   "id": 559,
-   "image_id": 26,
+   "id": 505,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     2150,
@@ -9290,8 +8897,8 @@
    ]
   },
   {
-   "id": 560,
-   "image_id": 26,
+   "id": 506,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     478,
@@ -9307,8 +8914,8 @@
    ]
   },
   {
-   "id": 561,
-   "image_id": 26,
+   "id": 507,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     960,
@@ -9324,8 +8931,8 @@
    ]
   },
   {
-   "id": 562,
-   "image_id": 26,
+   "id": 508,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     1650,
@@ -9341,8 +8948,8 @@
    ]
   },
   {
-   "id": 563,
-   "image_id": 26,
+   "id": 509,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     2110,
@@ -9358,8 +8965,8 @@
    ]
   },
   {
-   "id": 564,
-   "image_id": 26,
+   "id": 510,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     505,
@@ -9376,8 +8983,8 @@
    ]
   },
   {
-   "id": 565,
-   "image_id": 26,
+   "id": 511,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     950,
@@ -9393,8 +9000,8 @@
    ]
   },
   {
-   "id": 566,
-   "image_id": 26,
+   "id": 512,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     1190,
@@ -9411,8 +9018,8 @@
    ]
   },
   {
-   "id": 567,
-   "image_id": 26,
+   "id": 513,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     1635,
@@ -9428,8 +9035,8 @@
    ]
   },
   {
-   "id": 568,
-   "image_id": 26,
+   "id": 514,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     1857,
@@ -9446,8 +9053,8 @@
    ]
   },
   {
-   "id": 569,
-   "image_id": 26,
+   "id": 515,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     2302,
@@ -9463,8 +9070,8 @@
    ]
   },
   {
-   "id": 570,
-   "image_id": 26,
+   "id": 516,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     505,
@@ -9481,8 +9088,8 @@
    ]
   },
   {
-   "id": 571,
-   "image_id": 26,
+   "id": 517,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     950,
@@ -9498,8 +9105,8 @@
    ]
   },
   {
-   "id": 572,
-   "image_id": 26,
+   "id": 518,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     1190,
@@ -9516,8 +9123,8 @@
    ]
   },
   {
-   "id": 573,
-   "image_id": 26,
+   "id": 519,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     1635,
@@ -9533,8 +9140,8 @@
    ]
   },
   {
-   "id": 574,
-   "image_id": 26,
+   "id": 520,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     1857,
@@ -9551,8 +9158,8 @@
    ]
   },
   {
-   "id": 575,
-   "image_id": 26,
+   "id": 521,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     2302,
@@ -9568,8 +9175,8 @@
    ]
   },
   {
-   "id": 576,
-   "image_id": 26,
+   "id": 522,
+   "image_id": 24,
    "category_id": 6,
    "bbox": [
     505,
@@ -9586,8 +9193,8 @@
    ]
   },
   {
-   "id": 577,
-   "image_id": 26,
+   "id": 523,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     965,
@@ -9603,8 +9210,8 @@
    ]
   },
   {
-   "id": 578,
-   "image_id": 26,
+   "id": 524,
+   "image_id": 24,
    "category_id": 3,
    "bbox": [
     515,
@@ -9620,8 +9227,8 @@
    ]
   },
   {
-   "id": 579,
-   "image_id": 27,
+   "id": 525,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     180,
@@ -9637,8 +9244,8 @@
    ]
   },
   {
-   "id": 580,
-   "image_id": 27,
+   "id": 526,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     330,
@@ -9654,8 +9261,8 @@
    ]
   },
   {
-   "id": 581,
-   "image_id": 27,
+   "id": 527,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1440,
@@ -9669,8 +9276,8 @@
    "text": []
   },
   {
-   "id": 582,
-   "image_id": 27,
+   "id": 528,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1492,
@@ -9684,8 +9291,8 @@
    "text": []
   },
   {
-   "id": 583,
-   "image_id": 27,
+   "id": 529,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1560,
@@ -9699,8 +9306,8 @@
    "text": []
   },
   {
-   "id": 584,
-   "image_id": 27,
+   "id": 530,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1616,
@@ -9714,8 +9321,8 @@
    "text": []
   },
   {
-   "id": 585,
-   "image_id": 27,
+   "id": 531,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     10,
@@ -9731,8 +9338,8 @@
    ]
   },
   {
-   "id": 586,
-   "image_id": 27,
+   "id": 532,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     360,
@@ -9748,8 +9355,8 @@
    ]
   },
   {
-   "id": 587,
-   "image_id": 27,
+   "id": 533,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     28,
@@ -9765,8 +9372,8 @@
    ]
   },
   {
-   "id": 588,
-   "image_id": 27,
+   "id": 534,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1730,
@@ -9780,8 +9387,8 @@
    "text": []
   },
   {
-   "id": 589,
-   "image_id": 27,
+   "id": 535,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1734,
@@ -9797,8 +9404,8 @@
    ]
   },
   {
-   "id": 590,
-   "image_id": 27,
+   "id": 536,
+   "image_id": 25,
    "category_id": 1,
    "bbox": [
     0,
@@ -9812,8 +9419,8 @@
    "text": []
   },
   {
-   "id": 591,
-   "image_id": 27,
+   "id": 537,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1140,
@@ -9827,8 +9434,8 @@
    "text": []
   },
   {
-   "id": 592,
-   "image_id": 27,
+   "id": 538,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1230,
@@ -9842,8 +9449,8 @@
    "text": []
   },
   {
-   "id": 593,
-   "image_id": 27,
+   "id": 539,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1320,
@@ -9857,8 +9464,8 @@
    "text": []
   },
   {
-   "id": 594,
-   "image_id": 27,
+   "id": 540,
+   "image_id": 25,
    "category_id": 3,
    "bbox": [
     1410,
@@ -9872,8 +9479,8 @@
    "text": []
   },
   {
-   "id": 595,
-   "image_id": 27,
+   "id": 541,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -9889,8 +9496,8 @@
    ]
   },
   {
-   "id": 596,
-   "image_id": 27,
+   "id": 542,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -9906,8 +9513,8 @@
    ]
   },
   {
-   "id": 597,
-   "image_id": 27,
+   "id": 543,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -9923,8 +9530,8 @@
    ]
   },
   {
-   "id": 598,
-   "image_id": 27,
+   "id": 544,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -9940,8 +9547,8 @@
    ]
   },
   {
-   "id": 599,
-   "image_id": 27,
+   "id": 545,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -9957,8 +9564,8 @@
    ]
   },
   {
-   "id": 600,
-   "image_id": 27,
+   "id": 546,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -9974,8 +9581,8 @@
    ]
   },
   {
-   "id": 601,
-   "image_id": 27,
+   "id": 547,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -9991,8 +9598,8 @@
    ]
   },
   {
-   "id": 602,
-   "image_id": 27,
+   "id": 548,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10008,8 +9615,8 @@
    ]
   },
   {
-   "id": 603,
-   "image_id": 27,
+   "id": 549,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10025,8 +9632,8 @@
    ]
   },
   {
-   "id": 604,
-   "image_id": 27,
+   "id": 550,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -10042,8 +9649,8 @@
    ]
   },
   {
-   "id": 605,
-   "image_id": 27,
+   "id": 551,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10059,8 +9666,8 @@
    ]
   },
   {
-   "id": 606,
-   "image_id": 27,
+   "id": 552,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10076,8 +9683,8 @@
    ]
   },
   {
-   "id": 607,
-   "image_id": 27,
+   "id": 553,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10093,8 +9700,8 @@
    ]
   },
   {
-   "id": 608,
-   "image_id": 27,
+   "id": 554,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -10110,8 +9717,8 @@
    ]
   },
   {
-   "id": 609,
-   "image_id": 27,
+   "id": 555,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -10127,8 +9734,8 @@
    ]
   },
   {
-   "id": 610,
-   "image_id": 27,
+   "id": 556,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -10144,8 +9751,8 @@
    ]
   },
   {
-   "id": 611,
-   "image_id": 27,
+   "id": 557,
+   "image_id": 25,
    "category_id": 2,
    "bbox": [
     30,
@@ -10161,8 +9768,8 @@
    ]
   },
   {
-   "id": 612,
-   "image_id": 27,
+   "id": 558,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10178,8 +9785,8 @@
    ]
   },
   {
-   "id": 613,
-   "image_id": 27,
+   "id": 559,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10195,8 +9802,8 @@
    ]
   },
   {
-   "id": 614,
-   "image_id": 27,
+   "id": 560,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10212,8 +9819,8 @@
    ]
   },
   {
-   "id": 615,
-   "image_id": 27,
+   "id": 561,
+   "image_id": 25,
    "category_id": 8,
    "bbox": [
     30,
@@ -10229,621 +9836,8 @@
    ]
   },
   {
-   "id": 585,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    318,
-    8,
-    40,
-    30
-   ],
-   "area": 1200,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 586,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    362,
-    8,
-    36,
-    30
-   ],
-   "area": 1080,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 587,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    401,
-    8,
-    38,
-    30
-   ],
-   "area": 1140,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 588,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    40,
-    130,
-    110,
-    36
-   ],
-   "area": 3960,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "预制分类"
-   ]
-  },
-  {
-   "id": 589,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    155,
-    130,
-    115,
-    36
-   ],
-   "area": 4140,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "自定义分类"
-   ]
-  },
-  {
-   "id": 590,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    38,
-    208,
-    44,
-    40
-   ],
-   "area": 1760,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 591,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    88,
-    206,
-    270,
-    44
-   ],
-   "area": 11880,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "搜索"
-   ]
-  },
-  {
-   "id": 592,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    32,
-    250,
-    330,
-    44
-   ],
-   "area": 14520,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "元件库编辑场景"
-   ]
-  },
-  {
-   "id": 593,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    32,
-    318,
-    330,
-    40
-   ],
-   "area": 13200,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "元件库资产栏"
-   ]
-  },
-  {
-   "id": 594,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    32,
-    362,
-    330,
-    40
-   ],
-   "area": 13200,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "场景编辑空间"
-   ]
-  },
-  {
-   "id": 595,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    420,
-    130,
-    340,
-    40
-   ],
-   "area": 13600,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "服务器节点图"
-   ]
-  },
-  {
-   "id": 596,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    790,
-    175,
-    42,
-    44
-   ],
-   "area": 1848,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "‹"
-   ]
-  },
-  {
-   "id": 597,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    838,
-    175,
-    42,
-    44
-   ],
-   "area": 1848,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "›"
-   ]
-  },
-  {
-   "id": 598,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    900,
-    175,
-    220,
-    40
-   ],
-   "area": 8800,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "实体节点图"
-   ]
-  },
-  {
-   "id": 599,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2108,
-    172,
-    44,
-    44
-   ],
-   "area": 1936,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 600,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2160,
-    170,
-    340,
-    46
-   ],
-   "area": 15640,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "在\"实体节点图\"中搜索"
-   ]
-  },
-  {
-   "id": 601,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2378,
-    172,
-    44,
-    44
-   ],
-   "area": 1936,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 602,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2428,
-    172,
-    44,
-    44
-   ],
-   "area": 1936,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 603,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    790,
-    258,
-    420,
-    32
-   ],
-   "area": 13440,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "名称"
-   ]
-  },
-  {
-   "id": 604,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    1270,
-    258,
-    180,
-    32
-   ],
-   "area": 5760,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "类型"
-   ]
-  },
-  {
-   "id": 605,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    790,
-    300,
-    1730,
-    46
-   ],
-   "area": 79580,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "未分类页签"
-   ]
-  },
-  {
-   "id": 606,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    300,
-    930,
-    320,
-    40
-   ],
-   "area": 12800,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "节点图挂载对象"
-   ]
-  },
-  {
-   "id": 607,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    32,
-    1000,
-    330,
-    44
-   ],
-   "area": 14520,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "自定义元件"
-   ]
-  },
-  {
-   "id": 608,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    32,
-    1044,
-    330,
-    40
-   ],
-   "area": 13200,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "自定义造物"
-   ]
-  },
-  {
-   "id": 609,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    32,
-    1088,
-    330,
-    40
-   ],
-   "area": 13200,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "场景编辑空间实体"
-   ]
-  },
-  {
-   "id": 610,
-   "image_id": 28,
-   "category_id": 8,
-   "bbox": [
-    32,
-    1132,
-    330,
-    40
-   ],
-   "area": 13200,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "元件编辑空间实体"
-   ]
-  },
-  {
-   "id": 611,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    790,
-    1000,
-    42,
-    44
-   ],
-   "area": 1848,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "‹"
-   ]
-  },
-  {
-   "id": 612,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    838,
-    1000,
-    42,
-    44
-   ],
-   "area": 1848,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "›"
-   ]
-  },
-  {
-   "id": 613,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2108,
-    1000,
-    44,
-    44
-   ],
-   "area": 1936,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 614,
-   "image_id": 28,
-   "category_id": 3,
-   "bbox": [
-    2160,
-    998,
-    340,
-    46
-   ],
-   "area": 15640,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "在\"自定义元件\"中搜索"
-   ]
-  },
-  {
-   "id": 615,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    790,
-    1080,
-    300,
-    32
-   ],
-   "area": 9600,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "名称"
-   ]
-  },
-  {
-   "id": 616,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    1120,
-    1080,
-    180,
-    32
-   ],
-   "area": 5760,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "类型"
-   ]
-  },
-  {
-   "id": 617,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    1420,
-    1080,
-    170,
-    32
-   ],
-   "area": 5440,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "阵营"
-   ]
-  },
-  {
-   "id": 618,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    1600,
-    1080,
-    220,
-    32
-   ],
-   "area": 7040,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "实体布设组"
-   ]
-  },
-  {
-   "id": 619,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    1980,
-    1080,
-    170,
-    32
-   ],
-   "area": 5440,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "单位标签"
-   ]
-  },
-  {
-   "id": 620,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    2220,
-    1080,
-    130,
-    32
-   ],
-   "area": 4160,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "引用"
-   ]
-  },
-  {
-   "id": 621,
-   "image_id": 28,
-   "category_id": 2,
-   "bbox": [
-    790,
-    1128,
-    1730,
-    46
-   ],
-   "area": 79580,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "未分类页签（自定义元件）"
-   ]
-  },
-  {
-   "id": 622,
-   "image_id": 29,
+   "id": 562,
+   "image_id": 26,
    "category_id": 1,
    "bbox": [
     196,
@@ -10857,8 +9851,8 @@
    "text": []
   },
   {
-   "id": 623,
-   "image_id": 29,
+   "id": 563,
+   "image_id": 26,
    "category_id": 4,
    "bbox": [
     204,
@@ -10872,8 +9866,8 @@
    "text": []
   },
   {
-   "id": 624,
-   "image_id": 29,
+   "id": 564,
+   "image_id": 26,
    "category_id": 3,
    "bbox": [
     936,
@@ -10887,8 +9881,8 @@
    "text": []
   },
   {
-   "id": 625,
-   "image_id": 29,
+   "id": 565,
+   "image_id": 26,
    "category_id": 3,
    "bbox": [
     214,
@@ -10904,8 +9898,8 @@
    ]
   },
   {
-   "id": 626,
-   "image_id": 29,
+   "id": 566,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     33,
@@ -10919,8 +9913,8 @@
    "text": []
   },
   {
-   "id": 627,
-   "image_id": 29,
+   "id": 567,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     30,
@@ -10934,8 +9928,8 @@
    "text": []
   },
   {
-   "id": 628,
-   "image_id": 29,
+   "id": 568,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     33,
@@ -10949,8 +9943,8 @@
    "text": []
   },
   {
-   "id": 629,
-   "image_id": 29,
+   "id": 569,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     30,
@@ -10964,8 +9958,8 @@
    "text": []
   },
   {
-   "id": 630,
-   "image_id": 29,
+   "id": 570,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     33,
@@ -10979,8 +9973,8 @@
    "text": []
   },
   {
-   "id": 631,
-   "image_id": 29,
+   "id": 571,
+   "image_id": 26,
    "category_id": 5,
    "bbox": [
     1018,
@@ -10994,8 +9988,8 @@
    "text": []
   },
   {
-   "id": 632,
-   "image_id": 29,
+   "id": 572,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     165,
@@ -11011,8 +10005,8 @@
    ]
   },
   {
-   "id": 633,
-   "image_id": 29,
+   "id": 573,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     375,
@@ -11028,8 +10022,8 @@
    ]
   },
   {
-   "id": 634,
-   "image_id": 29,
+   "id": 574,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     585,
@@ -11045,8 +10039,8 @@
    ]
   },
   {
-   "id": 635,
-   "image_id": 29,
+   "id": 575,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     795,
@@ -11062,8 +10056,8 @@
    ]
   },
   {
-   "id": 636,
-   "image_id": 29,
+   "id": 576,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     165,
@@ -11079,8 +10073,8 @@
    ]
   },
   {
-   "id": 637,
-   "image_id": 29,
+   "id": 577,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     375,
@@ -11096,8 +10090,8 @@
    ]
   },
   {
-   "id": 638,
-   "image_id": 29,
+   "id": 578,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     585,
@@ -11113,8 +10107,8 @@
    ]
   },
   {
-   "id": 639,
-   "image_id": 29,
+   "id": 579,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     795,
@@ -11130,8 +10124,8 @@
    ]
   },
   {
-   "id": 640,
-   "image_id": 29,
+   "id": 580,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     165,
@@ -11147,8 +10141,8 @@
    ]
   },
   {
-   "id": 641,
-   "image_id": 29,
+   "id": 581,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     375,
@@ -11164,8 +10158,8 @@
    ]
   },
   {
-   "id": 642,
-   "image_id": 29,
+   "id": 582,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     585,
@@ -11181,8 +10175,8 @@
    ]
   },
   {
-   "id": 643,
-   "image_id": 29,
+   "id": 583,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     795,
@@ -11198,8 +10192,8 @@
    ]
   },
   {
-   "id": 644,
-   "image_id": 29,
+   "id": 584,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     165,
@@ -11215,8 +10209,8 @@
    ]
   },
   {
-   "id": 645,
-   "image_id": 29,
+   "id": 585,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     375,
@@ -11232,8 +10226,8 @@
    ]
   },
   {
-   "id": 646,
-   "image_id": 29,
+   "id": 586,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     585,
@@ -11249,8 +10243,8 @@
    ]
   },
   {
-   "id": 647,
-   "image_id": 29,
+   "id": 587,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     795,
@@ -11266,8 +10260,8 @@
    ]
   },
   {
-   "id": 648,
-   "image_id": 29,
+   "id": 588,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     165,
@@ -11283,8 +10277,8 @@
    ]
   },
   {
-   "id": 649,
-   "image_id": 29,
+   "id": 589,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     375,
@@ -11300,8 +10294,8 @@
    ]
   },
   {
-   "id": 650,
-   "image_id": 29,
+   "id": 590,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     585,
@@ -11317,8 +10311,8 @@
    ]
   },
   {
-   "id": 651,
-   "image_id": 29,
+   "id": 591,
+   "image_id": 26,
    "category_id": 7,
    "bbox": [
     795,
@@ -11334,8 +10328,8 @@
    ]
   },
   {
-   "id": 652,
-   "image_id": 29,
+   "id": 592,
+   "image_id": 26,
    "category_id": 3,
    "bbox": [
     2090,
@@ -11351,8 +10345,8 @@
    ]
   },
   {
-   "id": 653,
-   "image_id": 30,
+   "id": 593,
+   "image_id": 27,
    "category_id": 1,
    "bbox": [
     0,
@@ -11368,8 +10362,8 @@
    ]
   },
   {
-   "id": 654,
-   "image_id": 30,
+   "id": 594,
+   "image_id": 27,
    "category_id": 3,
    "bbox": [
     2440,
@@ -11383,8 +10377,8 @@
    "text": []
   },
   {
-   "id": 655,
-   "image_id": 30,
+   "id": 595,
+   "image_id": 27,
    "category_id": 3,
    "bbox": [
     40,
@@ -11398,12 +10392,12 @@
    "text": []
   },
   {
-   "id": 656,
-   "image_id": 30,
+   "id": 596,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    210,
+    185,
     348,
     100
    ],
@@ -11415,12 +10409,12 @@
    ]
   },
   {
-   "id": 657,
-   "image_id": 30,
+   "id": 597,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    210,
+    185,
     380,
     100
    ],
@@ -11432,12 +10426,12 @@
    ]
   },
   {
-   "id": 658,
-   "image_id": 30,
+   "id": 598,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    334,
+    309,
     348,
     100
    ],
@@ -11449,12 +10443,12 @@
    ]
   },
   {
-   "id": 659,
-   "image_id": 30,
+   "id": 599,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    334,
+    309,
     380,
     100
    ],
@@ -11466,12 +10460,12 @@
    ]
   },
   {
-   "id": 660,
-   "image_id": 30,
+   "id": 600,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    457,
+    432,
     348,
     100
    ],
@@ -11483,12 +10477,12 @@
    ]
   },
   {
-   "id": 661,
-   "image_id": 30,
+   "id": 601,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    457,
+    432,
     380,
     100
    ],
@@ -11500,12 +10494,12 @@
    ]
   },
   {
-   "id": 662,
-   "image_id": 30,
+   "id": 602,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    581,
+    556,
     348,
     100
    ],
@@ -11517,12 +10511,12 @@
    ]
   },
   {
-   "id": 663,
-   "image_id": 30,
+   "id": 603,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    581,
+    556,
     380,
     100
    ],
@@ -11534,12 +10528,12 @@
    ]
   },
   {
-   "id": 664,
-   "image_id": 30,
+   "id": 604,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    705,
+    680,
     348,
     100
    ],
@@ -11551,12 +10545,12 @@
    ]
   },
   {
-   "id": 665,
-   "image_id": 30,
+   "id": 605,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    705,
+    680,
     380,
     100
    ],
@@ -11568,12 +10562,12 @@
    ]
   },
   {
-   "id": 666,
-   "image_id": 30,
+   "id": 606,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    828,
+    803,
     348,
     100
    ],
@@ -11585,12 +10579,12 @@
    ]
   },
   {
-   "id": 667,
-   "image_id": 30,
+   "id": 607,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    828,
+    803,
     380,
     100
    ],
@@ -11602,12 +10596,12 @@
    ]
   },
   {
-   "id": 668,
-   "image_id": 30,
+   "id": 608,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    952,
+    927,
     348,
     100
    ],
@@ -11619,12 +10613,12 @@
    ]
   },
   {
-   "id": 669,
-   "image_id": 30,
+   "id": 609,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    952,
+    927,
     380,
     100
    ],
@@ -11636,12 +10630,12 @@
    ]
   },
   {
-   "id": 670,
-   "image_id": 30,
+   "id": 610,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     1776,
-    1076,
+    1051,
     348,
     100
    ],
@@ -11653,12 +10647,12 @@
    ]
   },
   {
-   "id": 671,
-   "image_id": 30,
+   "id": 611,
+   "image_id": 27,
    "category_id": 6,
    "bbox": [
     2140,
-    1076,
+    1051,
     380,
     100
    ],
@@ -11670,453 +10664,8 @@
    ]
   },
   {
-   "id": 672,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    2430,
-    20,
-    110,
-    110
-   ],
-   "area": 12100,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": []
-  },
-  {
-   "id": 673,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    2210,
-    1345,
-    250,
-    70
-   ],
-   "area": 17500,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "突破"
-   ]
-  },
-  {
-   "id": 674,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    232,
-    1340,
-    230,
-    60
-   ],
-   "area": 13800,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "提升指南"
-   ]
-  },
-  {
-   "id": 675,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    1900,
-    640,
-    320,
-    60
-   ],
-   "area": 19200,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "详细信息"
-   ]
-  },
-  {
-   "id": 676,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    82,
-    690,
-    60,
-    80
-   ],
-   "area": 4800,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "‹"
-   ]
-  },
-  {
-   "id": 677,
-   "image_id": 31,
-   "category_id": 3,
-   "bbox": [
-    2450,
-    690,
-    60,
-    80
-   ],
-   "area": 4800,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "›"
-   ]
-  },
-  {
-   "id": 678,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    720,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 679,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    848,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 680,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    976,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 681,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1104,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 682,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1232,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 683,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1360,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 684,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1488,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 685,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1616,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 686,
-   "image_id": 31,
-   "category_id": 4,
-   "bbox": [
-    1744,
-    8,
-    105,
-    120
-   ],
-   "area": 12600,
-   "iscrowd": 0,
-   "kind": "avatar",
-   "text": []
-  },
-  {
-   "id": 687,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    185,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "属性"
-   ]
-  },
-  {
-   "id": 688,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    275,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "武器"
-   ]
-  },
-  {
-   "id": 689,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    373,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "圣遗物"
-   ]
-  },
-  {
-   "id": 690,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    470,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "命之座"
-   ]
-  },
-  {
-   "id": 691,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    575,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "天赋"
-   ]
-  },
-  {
-   "id": 692,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    100,
-    665,
-    240,
-    64
-   ],
-   "area": 15360,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "资料"
-   ]
-  },
-  {
-   "id": 693,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    380,
-    820,
-    46
-   ],
-   "area": 37720,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "生命值上限",
-    "16,950"
-   ]
-  },
-  {
-   "id": 694,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    429,
-    820,
-    46
-   ],
-   "area": 37720,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "攻击力",
-    "2,614"
-   ]
-  },
-  {
-   "id": 695,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    478,
-    820,
-    46
-   ],
-   "area": 37720,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "防御力",
-    "778"
-   ]
-  },
-  {
-   "id": 696,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    527,
-    820,
-    46
-   ],
-   "area": 37720,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "元素精通",
-    "114"
-   ]
-  },
-  {
-   "id": 697,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    576,
-    820,
-    46
-   ],
-   "area": 37720,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "体力上限",
-    "240"
-   ]
-  },
-  {
-   "id": 698,
-   "image_id": 31,
-   "category_id": 2,
-   "bbox": [
-    1700,
-    720,
-    820,
-    40
-   ],
-   "area": 32800,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "好感",
-    "7"
-   ]
-  },
-  {
-   "id": 699,
-   "image_id": 32,
+   "id": 612,
+   "image_id": 28,
    "category_id": 1,
    "bbox": [
     272,
@@ -12132,8 +10681,8 @@
    ]
   },
   {
-   "id": 700,
-   "image_id": 32,
+   "id": 613,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     2425,
@@ -12147,8 +10696,8 @@
    "text": []
   },
   {
-   "id": 701,
-   "image_id": 32,
+   "id": 614,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     2000,
@@ -12164,8 +10713,8 @@
    ]
   },
   {
-   "id": 702,
-   "image_id": 32,
+   "id": 615,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     298,
@@ -12181,8 +10730,8 @@
    ]
   },
   {
-   "id": 703,
-   "image_id": 32,
+   "id": 616,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12198,8 +10747,8 @@
    ]
   },
   {
-   "id": 704,
-   "image_id": 32,
+   "id": 617,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12215,8 +10764,8 @@
    ]
   },
   {
-   "id": 705,
-   "image_id": 32,
+   "id": 618,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12232,8 +10781,8 @@
    ]
   },
   {
-   "id": 706,
-   "image_id": 32,
+   "id": 619,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12249,8 +10798,8 @@
    ]
   },
   {
-   "id": 707,
-   "image_id": 32,
+   "id": 620,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12266,8 +10815,8 @@
    ]
   },
   {
-   "id": 708,
-   "image_id": 32,
+   "id": 621,
+   "image_id": 28,
    "category_id": 2,
    "bbox": [
     272,
@@ -12283,8 +10832,8 @@
    ]
   },
   {
-   "id": 709,
-   "image_id": 32,
+   "id": 622,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     700,
@@ -12300,8 +10849,8 @@
    ]
   },
   {
-   "id": 710,
-   "image_id": 32,
+   "id": 623,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     790,
@@ -12317,8 +10866,8 @@
    ]
   },
   {
-   "id": 711,
-   "image_id": 32,
+   "id": 624,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     2000,
@@ -12334,8 +10883,8 @@
    ]
   },
   {
-   "id": 712,
-   "image_id": 32,
+   "id": 625,
+   "image_id": 28,
    "category_id": 1,
    "bbox": [
     1380,
@@ -12351,8 +10900,8 @@
    ]
   },
   {
-   "id": 713,
-   "image_id": 32,
+   "id": 626,
+   "image_id": 28,
    "category_id": 6,
    "bbox": [
     1420,
@@ -12368,8 +10917,8 @@
    ]
   },
   {
-   "id": 714,
-   "image_id": 32,
+   "id": 627,
+   "image_id": 28,
    "category_id": 6,
    "bbox": [
     1790,
@@ -12385,8 +10934,8 @@
    ]
   },
   {
-   "id": 715,
-   "image_id": 32,
+   "id": 628,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     1360,
@@ -12402,8 +10951,8 @@
    ]
   },
   {
-   "id": 716,
-   "image_id": 32,
+   "id": 629,
+   "image_id": 28,
    "category_id": 3,
    "bbox": [
     2220,
@@ -12419,8 +10968,8 @@
    ]
   },
   {
-   "id": 717,
-   "image_id": 33,
+   "id": 630,
+   "image_id": 29,
    "category_id": 1,
    "bbox": [
     1645,
@@ -12436,8 +10985,8 @@
    ]
   },
   {
-   "id": 718,
-   "image_id": 33,
+   "id": 631,
+   "image_id": 29,
    "category_id": 8,
    "bbox": [
     1691,
@@ -12453,8 +11002,8 @@
    ]
   },
   {
-   "id": 719,
-   "image_id": 33,
+   "id": 632,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1893,
@@ -12470,8 +11019,8 @@
    ]
   },
   {
-   "id": 720,
-   "image_id": 33,
+   "id": 633,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     1770,
@@ -12487,8 +11036,8 @@
    ]
   },
   {
-   "id": 721,
-   "image_id": 33,
+   "id": 634,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     2416,
@@ -12502,8 +11051,8 @@
    "text": []
   },
   {
-   "id": 722,
-   "image_id": 33,
+   "id": 635,
+   "image_id": 29,
    "category_id": 8,
    "bbox": [
     33,
@@ -12519,8 +11068,8 @@
    ]
   },
   {
-   "id": 723,
-   "image_id": 33,
+   "id": 636,
+   "image_id": 29,
    "category_id": 1,
    "bbox": [
     110,
@@ -12536,8 +11085,8 @@
    ]
   },
   {
-   "id": 724,
-   "image_id": 33,
+   "id": 637,
+   "image_id": 29,
    "category_id": 1,
    "bbox": [
     1244,
@@ -12553,8 +11102,8 @@
    ]
   },
   {
-   "id": 725,
-   "image_id": 33,
+   "id": 638,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     120,
@@ -12572,8 +11121,8 @@
    ]
   },
   {
-   "id": 726,
-   "image_id": 33,
+   "id": 639,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12591,8 +11140,8 @@
    ]
   },
   {
-   "id": 727,
-   "image_id": 33,
+   "id": 640,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12610,8 +11159,8 @@
    ]
   },
   {
-   "id": 728,
-   "image_id": 33,
+   "id": 641,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12629,8 +11178,8 @@
    ]
   },
   {
-   "id": 729,
-   "image_id": 33,
+   "id": 642,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12648,8 +11197,8 @@
    ]
   },
   {
-   "id": 730,
-   "image_id": 33,
+   "id": 643,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12667,8 +11216,8 @@
    ]
   },
   {
-   "id": 731,
-   "image_id": 33,
+   "id": 644,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12686,8 +11235,8 @@
    ]
   },
   {
-   "id": 732,
-   "image_id": 33,
+   "id": 645,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     112,
@@ -12703,8 +11252,8 @@
    ]
   },
   {
-   "id": 733,
-   "image_id": 33,
+   "id": 646,
+   "image_id": 29,
    "category_id": 8,
    "bbox": [
     1250,
@@ -12720,8 +11269,8 @@
    ]
   },
   {
-   "id": 734,
-   "image_id": 33,
+   "id": 647,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1250,
@@ -12737,8 +11286,8 @@
    ]
   },
   {
-   "id": 735,
-   "image_id": 33,
+   "id": 648,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1250,
@@ -12754,8 +11303,8 @@
    ]
   },
   {
-   "id": 736,
-   "image_id": 33,
+   "id": 649,
+   "image_id": 29,
    "category_id": 5,
    "bbox": [
     1339,
@@ -12771,8 +11320,8 @@
    ]
   },
   {
-   "id": 737,
-   "image_id": 33,
+   "id": 650,
+   "image_id": 29,
    "category_id": 5,
    "bbox": [
     1489,
@@ -12788,8 +11337,8 @@
    ]
   },
   {
-   "id": 738,
-   "image_id": 33,
+   "id": 651,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     2127,
@@ -12805,8 +11354,8 @@
    ]
   },
   {
-   "id": 739,
-   "image_id": 33,
+   "id": 652,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     1990,
@@ -12822,8 +11371,8 @@
    ]
   },
   {
-   "id": 740,
-   "image_id": 33,
+   "id": 653,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     148,
@@ -12839,8 +11388,8 @@
    ]
   },
   {
-   "id": 741,
-   "image_id": 33,
+   "id": 654,
+   "image_id": 29,
    "category_id": 3,
    "bbox": [
     515,
@@ -12856,8 +11405,8 @@
    ]
   },
   {
-   "id": 742,
-   "image_id": 33,
+   "id": 655,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     2003,
@@ -12871,8 +11420,8 @@
    "text": ""
   },
   {
-   "id": 743,
-   "image_id": 33,
+   "id": 656,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     2292,
@@ -12886,8 +11435,8 @@
    "text": ""
   },
   {
-   "id": 744,
-   "image_id": 33,
+   "id": 657,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     301,
@@ -12901,8 +11450,8 @@
    "text": ""
   },
   {
-   "id": 745,
-   "image_id": 33,
+   "id": 658,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     158,
@@ -12916,8 +11465,8 @@
    "text": ""
   },
   {
-   "id": 746,
-   "image_id": 33,
+   "id": 659,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1180,
@@ -12931,8 +11480,8 @@
    "text": ""
   },
   {
-   "id": 747,
-   "image_id": 33,
+   "id": 660,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1274,
@@ -12946,8 +11495,8 @@
    "text": ""
   },
   {
-   "id": 748,
-   "image_id": 33,
+   "id": 661,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     309,
@@ -12961,8 +11510,8 @@
    "text": ""
   },
   {
-   "id": 749,
-   "image_id": 33,
+   "id": 662,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     1044,
@@ -12976,8 +11525,8 @@
    "text": ""
   },
   {
-   "id": 750,
-   "image_id": 33,
+   "id": 663,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     2,
@@ -12991,8 +11540,8 @@
    "text": ""
   },
   {
-   "id": 751,
-   "image_id": 33,
+   "id": 664,
+   "image_id": 29,
    "category_id": 2,
    "bbox": [
     2236,
@@ -13006,8 +11555,8 @@
    "text": ""
   },
   {
-   "id": 752,
-   "image_id": 34,
+   "id": 665,
+   "image_id": 30,
    "category_id": 1,
    "bbox": [
     60,
@@ -13023,8 +11572,8 @@
    ]
   },
   {
-   "id": 753,
-   "image_id": 34,
+   "id": 666,
+   "image_id": 30,
    "category_id": 3,
    "bbox": [
     2400,
@@ -13038,8 +11587,8 @@
    "text": []
   },
   {
-   "id": 754,
-   "image_id": 34,
+   "id": 667,
+   "image_id": 30,
    "category_id": 1,
    "bbox": [
     120,
@@ -13055,8 +11604,8 @@
    ]
   },
   {
-   "id": 755,
-   "image_id": 34,
+   "id": 668,
+   "image_id": 30,
    "category_id": 8,
    "bbox": [
     240,
@@ -13072,8 +11621,8 @@
    ]
   },
   {
-   "id": 756,
-   "image_id": 34,
+   "id": 669,
+   "image_id": 30,
    "category_id": 8,
    "bbox": [
     240,
@@ -13089,8 +11638,8 @@
    ]
   },
   {
-   "id": 757,
-   "image_id": 34,
+   "id": 670,
+   "image_id": 30,
    "category_id": 8,
    "bbox": [
     240,
@@ -13106,8 +11655,8 @@
    ]
   },
   {
-   "id": 758,
-   "image_id": 34,
+   "id": 671,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13124,8 +11673,8 @@
    ]
   },
   {
-   "id": 759,
-   "image_id": 34,
+   "id": 672,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13142,8 +11691,8 @@
    ]
   },
   {
-   "id": 760,
-   "image_id": 34,
+   "id": 673,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13160,8 +11709,8 @@
    ]
   },
   {
-   "id": 761,
-   "image_id": 34,
+   "id": 674,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13178,8 +11727,8 @@
    ]
   },
   {
-   "id": 762,
-   "image_id": 34,
+   "id": 675,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13196,8 +11745,8 @@
    ]
   },
   {
-   "id": 763,
-   "image_id": 34,
+   "id": 676,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13214,8 +11763,8 @@
    ]
   },
   {
-   "id": 764,
-   "image_id": 34,
+   "id": 677,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13231,8 +11780,8 @@
    ]
   },
   {
-   "id": 765,
-   "image_id": 34,
+   "id": 678,
+   "image_id": 30,
    "category_id": 2,
    "bbox": [
     220,
@@ -13248,8 +11797,8 @@
    ]
   },
   {
-   "id": 766,
-   "image_id": 34,
+   "id": 679,
+   "image_id": 30,
    "category_id": 1,
    "bbox": [
     980,
@@ -13265,8 +11814,8 @@
    ]
   },
   {
-   "id": 767,
-   "image_id": 34,
+   "id": 680,
+   "image_id": 30,
    "category_id": 3,
    "bbox": [
     320,
@@ -13282,8 +11831,8 @@
    ]
   },
   {
-   "id": 768,
-   "image_id": 35,
+   "id": 681,
+   "image_id": 31,
    "category_id": 1,
    "bbox": [
     60,
@@ -13299,8 +11848,8 @@
    ]
   },
   {
-   "id": 769,
-   "image_id": 35,
+   "id": 682,
+   "image_id": 31,
    "category_id": 8,
    "bbox": [
     80,
@@ -13316,8 +11865,8 @@
    ]
   },
   {
-   "id": 770,
-   "image_id": 35,
+   "id": 683,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     2050,
@@ -13333,8 +11882,8 @@
    ]
   },
   {
-   "id": 771,
-   "image_id": 35,
+   "id": 684,
+   "image_id": 31,
    "category_id": 3,
    "bbox": [
     2400,
@@ -13348,8 +11897,8 @@
    "text": []
   },
   {
-   "id": 772,
-   "image_id": 35,
+   "id": 685,
+   "image_id": 31,
    "category_id": 3,
    "bbox": [
     180,
@@ -13365,8 +11914,8 @@
    ]
   },
   {
-   "id": 773,
-   "image_id": 35,
+   "id": 686,
+   "image_id": 31,
    "category_id": 1,
    "bbox": [
     140,
@@ -13382,8 +11931,8 @@
    ]
   },
   {
-   "id": 774,
-   "image_id": 35,
+   "id": 687,
+   "image_id": 31,
    "category_id": 8,
    "bbox": [
     156,
@@ -13399,8 +11948,8 @@
    ]
   },
   {
-   "id": 775,
-   "image_id": 35,
+   "id": 688,
+   "image_id": 31,
    "category_id": 8,
    "bbox": [
     156,
@@ -13416,8 +11965,8 @@
    ]
   },
   {
-   "id": 776,
-   "image_id": 35,
+   "id": 689,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13433,8 +11982,8 @@
    ]
   },
   {
-   "id": 777,
-   "image_id": 35,
+   "id": 690,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13450,8 +11999,8 @@
    ]
   },
   {
-   "id": 778,
-   "image_id": 35,
+   "id": 691,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13467,8 +12016,8 @@
    ]
   },
   {
-   "id": 779,
-   "image_id": 35,
+   "id": 692,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13484,8 +12033,8 @@
    ]
   },
   {
-   "id": 780,
-   "image_id": 35,
+   "id": 693,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13501,8 +12050,8 @@
    ]
   },
   {
-   "id": 781,
-   "image_id": 35,
+   "id": 694,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13518,8 +12067,8 @@
    ]
   },
   {
-   "id": 782,
-   "image_id": 35,
+   "id": 695,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13535,8 +12084,8 @@
    ]
   },
   {
-   "id": 783,
-   "image_id": 35,
+   "id": 696,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13552,8 +12101,8 @@
    ]
   },
   {
-   "id": 784,
-   "image_id": 35,
+   "id": 697,
+   "image_id": 31,
    "category_id": 2,
    "bbox": [
     170,
@@ -13569,8 +12118,8 @@
    ]
   },
   {
-   "id": 785,
-   "image_id": 35,
+   "id": 698,
+   "image_id": 31,
    "category_id": 1,
    "bbox": [
     940,
@@ -13586,8 +12135,8 @@
    ]
   },
   {
-   "id": 865,
-   "image_id": 36,
+   "id": 778,
+   "image_id": 32,
    "category_id": 1,
    "bbox": [
     285,
@@ -13603,8 +12152,8 @@
    ]
   },
   {
-   "id": 866,
-   "image_id": 36,
+   "id": 779,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     285,
@@ -13620,8 +12169,8 @@
    ]
   },
   {
-   "id": 867,
-   "image_id": 36,
+   "id": 780,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     620,
@@ -13637,8 +12186,8 @@
    ]
   },
   {
-   "id": 868,
-   "image_id": 36,
+   "id": 781,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     1050,
@@ -13654,8 +12203,8 @@
    ]
   },
   {
-   "id": 869,
-   "image_id": 36,
+   "id": 782,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     1460,
@@ -13671,8 +12220,8 @@
    ]
   },
   {
-   "id": 870,
-   "image_id": 36,
+   "id": 783,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     1870,
@@ -13688,8 +12237,8 @@
    ]
   },
   {
-   "id": 871,
-   "image_id": 36,
+   "id": 784,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     2240,
@@ -13705,8 +12254,8 @@
    ]
   },
   {
-   "id": 872,
-   "image_id": 36,
+   "id": 785,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     10,
@@ -13722,8 +12271,8 @@
    ]
   },
   {
-   "id": 873,
-   "image_id": 36,
+   "id": 786,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     332,
@@ -13739,8 +12288,8 @@
    ]
   },
   {
-   "id": 874,
-   "image_id": 36,
+   "id": 787,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     20,
@@ -13756,8 +12305,8 @@
    ]
   },
   {
-   "id": 875,
-   "image_id": 36,
+   "id": 788,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13773,8 +12322,8 @@
    ]
   },
   {
-   "id": 876,
-   "image_id": 36,
+   "id": 789,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13790,8 +12339,8 @@
    ]
   },
   {
-   "id": 877,
-   "image_id": 36,
+   "id": 790,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13807,8 +12356,8 @@
    ]
   },
   {
-   "id": 878,
-   "image_id": 36,
+   "id": 791,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13824,8 +12373,8 @@
    ]
   },
   {
-   "id": 879,
-   "image_id": 36,
+   "id": 792,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13841,8 +12390,8 @@
    ]
   },
   {
-   "id": 880,
-   "image_id": 36,
+   "id": 793,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13858,8 +12407,8 @@
    ]
   },
   {
-   "id": 881,
-   "image_id": 36,
+   "id": 794,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13875,8 +12424,8 @@
    ]
   },
   {
-   "id": 882,
-   "image_id": 36,
+   "id": 795,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13892,8 +12441,8 @@
    ]
   },
   {
-   "id": 883,
-   "image_id": 36,
+   "id": 796,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13909,8 +12458,8 @@
    ]
   },
   {
-   "id": 884,
-   "image_id": 36,
+   "id": 797,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13926,8 +12475,8 @@
    ]
   },
   {
-   "id": 885,
-   "image_id": 36,
+   "id": 798,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13943,8 +12492,8 @@
    ]
   },
   {
-   "id": 886,
-   "image_id": 36,
+   "id": 799,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13960,8 +12509,8 @@
    ]
   },
   {
-   "id": 887,
-   "image_id": 36,
+   "id": 800,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13977,8 +12526,8 @@
    ]
   },
   {
-   "id": 888,
-   "image_id": 36,
+   "id": 801,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -13994,8 +12543,8 @@
    ]
   },
   {
-   "id": 889,
-   "image_id": 36,
+   "id": 802,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14011,8 +12560,8 @@
    ]
   },
   {
-   "id": 890,
-   "image_id": 36,
+   "id": 803,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14028,8 +12577,8 @@
    ]
   },
   {
-   "id": 891,
-   "image_id": 36,
+   "id": 804,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14045,8 +12594,8 @@
    ]
   },
   {
-   "id": 892,
-   "image_id": 36,
+   "id": 805,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14062,8 +12611,8 @@
    ]
   },
   {
-   "id": 893,
-   "image_id": 36,
+   "id": 806,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14079,8 +12628,8 @@
    ]
   },
   {
-   "id": 894,
-   "image_id": 36,
+   "id": 807,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14096,8 +12645,8 @@
    ]
   },
   {
-   "id": 895,
-   "image_id": 36,
+   "id": 808,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14113,8 +12662,8 @@
    ]
   },
   {
-   "id": 896,
-   "image_id": 36,
+   "id": 809,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14130,8 +12679,8 @@
    ]
   },
   {
-   "id": 897,
-   "image_id": 36,
+   "id": 810,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14147,8 +12696,8 @@
    ]
   },
   {
-   "id": 898,
-   "image_id": 36,
+   "id": 811,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14164,8 +12713,8 @@
    ]
   },
   {
-   "id": 899,
-   "image_id": 36,
+   "id": 812,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14181,8 +12730,8 @@
    ]
   },
   {
-   "id": 900,
-   "image_id": 36,
+   "id": 813,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14198,8 +12747,8 @@
    ]
   },
   {
-   "id": 901,
-   "image_id": 36,
+   "id": 814,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14215,8 +12764,8 @@
    ]
   },
   {
-   "id": 902,
-   "image_id": 36,
+   "id": 815,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     8,
@@ -14232,8 +12781,8 @@
    ]
   },
   {
-   "id": 903,
-   "image_id": 36,
+   "id": 816,
+   "image_id": 32,
    "category_id": 1,
    "bbox": [
     0,
@@ -14249,8 +12798,8 @@
    ]
   },
   {
-   "id": 904,
-   "image_id": 36,
+   "id": 817,
+   "image_id": 32,
    "category_id": 1,
    "bbox": [
     320,
@@ -14266,8 +12815,8 @@
    ]
   },
   {
-   "id": 905,
-   "image_id": 36,
+   "id": 818,
+   "image_id": 32,
    "category_id": 1,
    "bbox": [
     318,
@@ -14283,8 +12832,8 @@
    ]
   },
   {
-   "id": 906,
-   "image_id": 36,
+   "id": 819,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     337,
@@ -14300,8 +12849,8 @@
    ]
   },
   {
-   "id": 907,
-   "image_id": 36,
+   "id": 820,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     487,
@@ -14317,8 +12866,8 @@
    ]
   },
   {
-   "id": 908,
-   "image_id": 36,
+   "id": 821,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     337,
@@ -14334,8 +12883,8 @@
    ]
   },
   {
-   "id": 909,
-   "image_id": 36,
+   "id": 822,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     487,
@@ -14351,8 +12900,8 @@
    ]
   },
   {
-   "id": 910,
-   "image_id": 36,
+   "id": 823,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     337,
@@ -14368,8 +12917,8 @@
    ]
   },
   {
-   "id": 911,
-   "image_id": 36,
+   "id": 824,
+   "image_id": 32,
    "category_id": 7,
    "bbox": [
     487,
@@ -14385,8 +12934,8 @@
    ]
   },
   {
-   "id": 912,
-   "image_id": 36,
+   "id": 825,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1070,
@@ -14400,8 +12949,8 @@
    "text": []
   },
   {
-   "id": 913,
-   "image_id": 36,
+   "id": 826,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1150,
@@ -14415,8 +12964,8 @@
    "text": []
   },
   {
-   "id": 914,
-   "image_id": 36,
+   "id": 827,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1230,
@@ -14430,8 +12979,8 @@
    "text": []
   },
   {
-   "id": 915,
-   "image_id": 36,
+   "id": 828,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1330,
@@ -14445,8 +12994,8 @@
    "text": []
   },
   {
-   "id": 916,
-   "image_id": 36,
+   "id": 829,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     1130,
@@ -14462,8 +13011,8 @@
    ]
   },
   {
-   "id": 917,
-   "image_id": 36,
+   "id": 830,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     1230,
@@ -14479,8 +13028,8 @@
    ]
   },
   {
-   "id": 918,
-   "image_id": 36,
+   "id": 831,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     1330,
@@ -14496,8 +13045,8 @@
    ]
   },
   {
-   "id": 919,
-   "image_id": 36,
+   "id": 832,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1230,
@@ -14511,8 +13060,8 @@
    "text": []
   },
   {
-   "id": 920,
-   "image_id": 36,
+   "id": 833,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     1330,
@@ -14526,8 +13075,8 @@
    "text": []
   },
   {
-   "id": 921,
-   "image_id": 36,
+   "id": 834,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2080,
@@ -14543,8 +13092,8 @@
    ]
   },
   {
-   "id": 922,
-   "image_id": 36,
+   "id": 835,
+   "image_id": 32,
    "category_id": 1,
    "bbox": [
     2080,
@@ -14560,8 +13109,8 @@
    ]
   },
   {
-   "id": 923,
-   "image_id": 36,
+   "id": 836,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     2090,
@@ -14577,8 +13126,8 @@
    ]
   },
   {
-   "id": 924,
-   "image_id": 36,
+   "id": 837,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     2090,
@@ -14594,8 +13143,8 @@
    ]
   },
   {
-   "id": 925,
-   "image_id": 36,
+   "id": 838,
+   "image_id": 32,
    "category_id": 8,
    "bbox": [
     2090,
@@ -14611,8 +13160,8 @@
    ]
   },
   {
-   "id": 926,
-   "image_id": 36,
+   "id": 839,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2130,
@@ -14628,8 +13177,8 @@
    ]
   },
   {
-   "id": 927,
-   "image_id": 36,
+   "id": 840,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2180,
@@ -14645,8 +13194,8 @@
    ]
   },
   {
-   "id": 928,
-   "image_id": 36,
+   "id": 841,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2230,
@@ -14662,8 +13211,8 @@
    ]
   },
   {
-   "id": 929,
-   "image_id": 36,
+   "id": 842,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     2090,
@@ -14679,8 +13228,8 @@
    ]
   },
   {
-   "id": 930,
-   "image_id": 36,
+   "id": 843,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     2090,
@@ -14696,8 +13245,8 @@
    ]
   },
   {
-   "id": 931,
-   "image_id": 36,
+   "id": 844,
+   "image_id": 32,
    "category_id": 2,
    "bbox": [
     2090,
@@ -14714,8 +13263,8 @@
    ]
   },
   {
-   "id": 932,
-   "image_id": 36,
+   "id": 845,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2100,
@@ -14731,8 +13280,8 @@
    ]
   },
   {
-   "id": 933,
-   "image_id": 36,
+   "id": 846,
+   "image_id": 32,
    "category_id": 3,
    "bbox": [
     2320,
@@ -14748,8 +13297,8 @@
    ]
   },
   {
-   "id": 934,
-   "image_id": 37,
+   "id": 847,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     10,
@@ -14765,8 +13314,8 @@
    ]
   },
   {
-   "id": 935,
-   "image_id": 37,
+   "id": 848,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     285,
@@ -14782,8 +13331,8 @@
    ]
   },
   {
-   "id": 936,
-   "image_id": 37,
+   "id": 849,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     285,
@@ -14799,8 +13348,8 @@
    ]
   },
   {
-   "id": 937,
-   "image_id": 37,
+   "id": 850,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     620,
@@ -14816,8 +13365,8 @@
    ]
   },
   {
-   "id": 938,
-   "image_id": 37,
+   "id": 851,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     1060,
@@ -14833,8 +13382,8 @@
    ]
   },
   {
-   "id": 939,
-   "image_id": 37,
+   "id": 852,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     332,
@@ -14850,8 +13399,8 @@
    ]
   },
   {
-   "id": 940,
-   "image_id": 37,
+   "id": 853,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     20,
@@ -14867,8 +13416,8 @@
    ]
   },
   {
-   "id": 941,
-   "image_id": 37,
+   "id": 854,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14884,8 +13433,8 @@
    ]
   },
   {
-   "id": 942,
-   "image_id": 37,
+   "id": 855,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14901,8 +13450,8 @@
    ]
   },
   {
-   "id": 943,
-   "image_id": 37,
+   "id": 856,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14918,8 +13467,8 @@
    ]
   },
   {
-   "id": 944,
-   "image_id": 37,
+   "id": 857,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14935,8 +13484,8 @@
    ]
   },
   {
-   "id": 945,
-   "image_id": 37,
+   "id": 858,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14952,8 +13501,8 @@
    ]
   },
   {
-   "id": 946,
-   "image_id": 37,
+   "id": 859,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14969,8 +13518,8 @@
    ]
   },
   {
-   "id": 947,
-   "image_id": 37,
+   "id": 860,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -14986,8 +13535,8 @@
    ]
   },
   {
-   "id": 948,
-   "image_id": 37,
+   "id": 861,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15003,8 +13552,8 @@
    ]
   },
   {
-   "id": 949,
-   "image_id": 37,
+   "id": 862,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15020,8 +13569,8 @@
    ]
   },
   {
-   "id": 950,
-   "image_id": 37,
+   "id": 863,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15037,8 +13586,8 @@
    ]
   },
   {
-   "id": 951,
-   "image_id": 37,
+   "id": 864,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15054,8 +13603,8 @@
    ]
   },
   {
-   "id": 952,
-   "image_id": 37,
+   "id": 865,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15071,8 +13620,8 @@
    ]
   },
   {
-   "id": 953,
-   "image_id": 37,
+   "id": 866,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15088,8 +13637,8 @@
    ]
   },
   {
-   "id": 954,
-   "image_id": 37,
+   "id": 867,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15105,8 +13654,8 @@
    ]
   },
   {
-   "id": 955,
-   "image_id": 37,
+   "id": 868,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15122,8 +13671,8 @@
    ]
   },
   {
-   "id": 956,
-   "image_id": 37,
+   "id": 869,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15139,8 +13688,8 @@
    ]
   },
   {
-   "id": 957,
-   "image_id": 37,
+   "id": 870,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15156,8 +13705,8 @@
    ]
   },
   {
-   "id": 958,
-   "image_id": 37,
+   "id": 871,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15173,8 +13722,8 @@
    ]
   },
   {
-   "id": 959,
-   "image_id": 37,
+   "id": 872,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15190,8 +13739,8 @@
    ]
   },
   {
-   "id": 960,
-   "image_id": 37,
+   "id": 873,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15207,8 +13756,8 @@
    ]
   },
   {
-   "id": 961,
-   "image_id": 37,
+   "id": 874,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15224,8 +13773,8 @@
    ]
   },
   {
-   "id": 962,
-   "image_id": 37,
+   "id": 875,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15241,8 +13790,8 @@
    ]
   },
   {
-   "id": 963,
-   "image_id": 37,
+   "id": 876,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15258,8 +13807,8 @@
    ]
   },
   {
-   "id": 964,
-   "image_id": 37,
+   "id": 877,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15275,8 +13824,8 @@
    ]
   },
   {
-   "id": 965,
-   "image_id": 37,
+   "id": 878,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15292,8 +13841,8 @@
    ]
   },
   {
-   "id": 966,
-   "image_id": 37,
+   "id": 879,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15309,8 +13858,8 @@
    ]
   },
   {
-   "id": 967,
-   "image_id": 37,
+   "id": 880,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15326,8 +13875,8 @@
    ]
   },
   {
-   "id": 968,
-   "image_id": 37,
+   "id": 881,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     8,
@@ -15343,8 +13892,8 @@
    ]
   },
   {
-   "id": 969,
-   "image_id": 37,
+   "id": 882,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     0,
@@ -15360,8 +13909,8 @@
    ]
   },
   {
-   "id": 970,
-   "image_id": 37,
+   "id": 883,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     318,
@@ -15377,8 +13926,8 @@
    ]
   },
   {
-   "id": 971,
-   "image_id": 37,
+   "id": 884,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     337,
@@ -15394,8 +13943,8 @@
    ]
   },
   {
-   "id": 972,
-   "image_id": 37,
+   "id": 885,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     487,
@@ -15411,8 +13960,8 @@
    ]
   },
   {
-   "id": 973,
-   "image_id": 37,
+   "id": 886,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     337,
@@ -15428,8 +13977,8 @@
    ]
   },
   {
-   "id": 974,
-   "image_id": 37,
+   "id": 887,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     487,
@@ -15445,8 +13994,8 @@
    ]
   },
   {
-   "id": 975,
-   "image_id": 37,
+   "id": 888,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     337,
@@ -15462,8 +14011,8 @@
    ]
   },
   {
-   "id": 976,
-   "image_id": 37,
+   "id": 889,
+   "image_id": 33,
    "category_id": 7,
    "bbox": [
     487,
@@ -15479,8 +14028,8 @@
    ]
   },
   {
-   "id": 977,
-   "image_id": 37,
+   "id": 890,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1070,
@@ -15494,8 +14043,8 @@
    "text": []
   },
   {
-   "id": 978,
-   "image_id": 37,
+   "id": 891,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1150,
@@ -15509,8 +14058,8 @@
    "text": []
   },
   {
-   "id": 979,
-   "image_id": 37,
+   "id": 892,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1230,
@@ -15524,8 +14073,8 @@
    "text": []
   },
   {
-   "id": 980,
-   "image_id": 37,
+   "id": 893,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1330,
@@ -15539,8 +14088,8 @@
    "text": []
   },
   {
-   "id": 981,
-   "image_id": 37,
+   "id": 894,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     320,
@@ -15556,8 +14105,8 @@
    ]
   },
   {
-   "id": 982,
-   "image_id": 37,
+   "id": 895,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     801,
@@ -15573,8 +14122,8 @@
    ]
   },
   {
-   "id": 983,
-   "image_id": 37,
+   "id": 896,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     820,
@@ -15590,8 +14139,8 @@
    ]
   },
   {
-   "id": 984,
-   "image_id": 37,
+   "id": 897,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1655,
@@ -15607,8 +14156,8 @@
    ]
   },
   {
-   "id": 985,
-   "image_id": 37,
+   "id": 898,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1700,
@@ -15624,8 +14173,8 @@
    ]
   },
   {
-   "id": 986,
-   "image_id": 37,
+   "id": 899,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     820,
@@ -15641,8 +14190,8 @@
    ]
   },
   {
-   "id": 987,
-   "image_id": 37,
+   "id": 900,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1688,
@@ -15658,8 +14207,8 @@
    ]
   },
   {
-   "id": 988,
-   "image_id": 37,
+   "id": 901,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     830,
@@ -15675,8 +14224,8 @@
    ]
   },
   {
-   "id": 989,
-   "image_id": 37,
+   "id": 902,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15692,8 +14241,8 @@
    ]
   },
   {
-   "id": 990,
-   "image_id": 37,
+   "id": 903,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     845,
@@ -15709,8 +14258,8 @@
    ]
   },
   {
-   "id": 991,
-   "image_id": 37,
+   "id": 904,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1290,
@@ -15726,8 +14275,8 @@
    ]
   },
   {
-   "id": 992,
-   "image_id": 37,
+   "id": 905,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15744,8 +14293,8 @@
    ]
   },
   {
-   "id": 993,
-   "image_id": 37,
+   "id": 906,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15762,8 +14311,8 @@
    ]
   },
   {
-   "id": 994,
-   "image_id": 37,
+   "id": 907,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15780,8 +14329,8 @@
    ]
   },
   {
-   "id": 995,
-   "image_id": 37,
+   "id": 908,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15798,8 +14347,8 @@
    ]
   },
   {
-   "id": 996,
-   "image_id": 37,
+   "id": 909,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     820,
@@ -15816,8 +14365,8 @@
    ]
   },
   {
-   "id": 997,
-   "image_id": 37,
+   "id": 910,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1105,
@@ -15831,8 +14380,8 @@
    "text": []
   },
   {
-   "id": 998,
-   "image_id": 37,
+   "id": 911,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1105,
@@ -15846,8 +14395,8 @@
    "text": []
   },
   {
-   "id": 999,
-   "image_id": 37,
+   "id": 912,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1120,
@@ -15861,8 +14410,8 @@
    "text": []
   },
   {
-   "id": 1000,
-   "image_id": 37,
+   "id": 913,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1120,
@@ -15876,8 +14425,8 @@
    "text": []
   },
   {
-   "id": 1001,
-   "image_id": 37,
+   "id": 914,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     1759,
@@ -15893,8 +14442,8 @@
    ]
   },
   {
-   "id": 1002,
-   "image_id": 37,
+   "id": 915,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1770,
@@ -15910,8 +14459,8 @@
    ]
   },
   {
-   "id": 1003,
-   "image_id": 37,
+   "id": 916,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     1770,
@@ -15927,8 +14476,8 @@
    ]
   },
   {
-   "id": 1004,
-   "image_id": 37,
+   "id": 917,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -15945,8 +14494,8 @@
    ]
   },
   {
-   "id": 1005,
-   "image_id": 37,
+   "id": 918,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -15963,8 +14512,8 @@
    ]
   },
   {
-   "id": 1006,
-   "image_id": 37,
+   "id": 919,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -15981,8 +14530,8 @@
    ]
   },
   {
-   "id": 1007,
-   "image_id": 37,
+   "id": 920,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -15999,8 +14548,8 @@
    ]
   },
   {
-   "id": 1008,
-   "image_id": 37,
+   "id": 921,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -16017,8 +14566,8 @@
    ]
   },
   {
-   "id": 1009,
-   "image_id": 37,
+   "id": 922,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -16035,8 +14584,8 @@
    ]
   },
   {
-   "id": 1010,
-   "image_id": 37,
+   "id": 923,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -16053,8 +14602,8 @@
    ]
   },
   {
-   "id": 1011,
-   "image_id": 37,
+   "id": 924,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -16071,8 +14620,8 @@
    ]
   },
   {
-   "id": 1012,
-   "image_id": 37,
+   "id": 925,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1770,
@@ -16089,8 +14638,8 @@
    ]
   },
   {
-   "id": 1013,
-   "image_id": 37,
+   "id": 926,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2078,
@@ -16106,8 +14655,8 @@
    ]
   },
   {
-   "id": 1014,
-   "image_id": 37,
+   "id": 927,
+   "image_id": 33,
    "category_id": 1,
    "bbox": [
     2080,
@@ -16123,8 +14672,8 @@
    ]
   },
   {
-   "id": 1015,
-   "image_id": 37,
+   "id": 928,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     2090,
@@ -16140,8 +14689,8 @@
    ]
   },
   {
-   "id": 1016,
-   "image_id": 37,
+   "id": 929,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     2090,
@@ -16157,8 +14706,8 @@
    ]
   },
   {
-   "id": 1017,
-   "image_id": 37,
+   "id": 930,
+   "image_id": 33,
    "category_id": 8,
    "bbox": [
     2090,
@@ -16174,8 +14723,8 @@
    ]
   },
   {
-   "id": 1018,
-   "image_id": 37,
+   "id": 931,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2130,
@@ -16191,8 +14740,8 @@
    ]
   },
   {
-   "id": 1019,
-   "image_id": 37,
+   "id": 932,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2180,
@@ -16208,8 +14757,8 @@
    ]
   },
   {
-   "id": 1020,
-   "image_id": 37,
+   "id": 933,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2230,
@@ -16225,8 +14774,8 @@
    ]
   },
   {
-   "id": 1021,
-   "image_id": 37,
+   "id": 934,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2290,
@@ -16240,8 +14789,8 @@
    "text": []
   },
   {
-   "id": 1022,
-   "image_id": 37,
+   "id": 935,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     2090,
@@ -16257,8 +14806,8 @@
    ]
   },
   {
-   "id": 1023,
-   "image_id": 37,
+   "id": 936,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     2090,
@@ -16274,8 +14823,8 @@
    ]
   },
   {
-   "id": 1024,
-   "image_id": 37,
+   "id": 937,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     2090,
@@ -16292,8 +14841,8 @@
    ]
   },
   {
-   "id": 1025,
-   "image_id": 37,
+   "id": 938,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2100,
@@ -16309,8 +14858,8 @@
    ]
   },
   {
-   "id": 1026,
-   "image_id": 37,
+   "id": 939,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2320,
@@ -16326,8 +14875,8 @@
    ]
   },
   {
-   "id": 1027,
-   "image_id": 37,
+   "id": 940,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1130,
@@ -16343,8 +14892,8 @@
    ]
   },
   {
-   "id": 1028,
-   "image_id": 37,
+   "id": 941,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1230,
@@ -16360,8 +14909,8 @@
    ]
   },
   {
-   "id": 1029,
-   "image_id": 37,
+   "id": 942,
+   "image_id": 33,
    "category_id": 2,
    "bbox": [
     1330,
@@ -16377,8 +14926,8 @@
    ]
   },
   {
-   "id": 1030,
-   "image_id": 37,
+   "id": 943,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     2080,
@@ -16394,8 +14943,8 @@
    ]
   },
   {
-   "id": 1031,
-   "image_id": 37,
+   "id": 944,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1230,
@@ -16409,8 +14958,8 @@
    "text": []
   },
   {
-   "id": 1032,
-   "image_id": 37,
+   "id": 945,
+   "image_id": 33,
    "category_id": 3,
    "bbox": [
     1330,
@@ -16424,8 +14973,8 @@
    "text": []
   },
   {
-   "id": 1033,
-   "image_id": 38,
+   "id": 946,
+   "image_id": 34,
    "category_id": 1,
    "bbox": [
     285,
@@ -16441,8 +14990,8 @@
    ]
   },
   {
-   "id": 1034,
-   "image_id": 38,
+   "id": 947,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     285,
@@ -16458,8 +15007,8 @@
    ]
   },
   {
-   "id": 1035,
-   "image_id": 38,
+   "id": 948,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     620,
@@ -16475,8 +15024,8 @@
    ]
   },
   {
-   "id": 1036,
-   "image_id": 38,
+   "id": 949,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     1050,
@@ -16492,8 +15041,8 @@
    ]
   },
   {
-   "id": 1037,
-   "image_id": 38,
+   "id": 950,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     1460,
@@ -16509,8 +15058,8 @@
    ]
   },
   {
-   "id": 1038,
-   "image_id": 38,
+   "id": 951,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     1870,
@@ -16526,8 +15075,8 @@
    ]
   },
   {
-   "id": 1039,
-   "image_id": 38,
+   "id": 952,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2240,
@@ -16543,8 +15092,8 @@
    ]
   },
   {
-   "id": 1040,
-   "image_id": 38,
+   "id": 953,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     10,
@@ -16560,8 +15109,8 @@
    ]
   },
   {
-   "id": 1041,
-   "image_id": 38,
+   "id": 954,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     332,
@@ -16577,8 +15126,8 @@
    ]
   },
   {
-   "id": 1042,
-   "image_id": 38,
+   "id": 955,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     20,
@@ -16594,8 +15143,8 @@
    ]
   },
   {
-   "id": 1043,
-   "image_id": 38,
+   "id": 956,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16611,8 +15160,8 @@
    ]
   },
   {
-   "id": 1044,
-   "image_id": 38,
+   "id": 957,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16628,8 +15177,8 @@
    ]
   },
   {
-   "id": 1045,
-   "image_id": 38,
+   "id": 958,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16645,8 +15194,8 @@
    ]
   },
   {
-   "id": 1046,
-   "image_id": 38,
+   "id": 959,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16662,8 +15211,8 @@
    ]
   },
   {
-   "id": 1047,
-   "image_id": 38,
+   "id": 960,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16679,8 +15228,8 @@
    ]
   },
   {
-   "id": 1048,
-   "image_id": 38,
+   "id": 961,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16696,8 +15245,8 @@
    ]
   },
   {
-   "id": 1049,
-   "image_id": 38,
+   "id": 962,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16713,8 +15262,8 @@
    ]
   },
   {
-   "id": 1050,
-   "image_id": 38,
+   "id": 963,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16730,8 +15279,8 @@
    ]
   },
   {
-   "id": 1051,
-   "image_id": 38,
+   "id": 964,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16747,8 +15296,8 @@
    ]
   },
   {
-   "id": 1052,
-   "image_id": 38,
+   "id": 965,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16764,8 +15313,8 @@
    ]
   },
   {
-   "id": 1053,
-   "image_id": 38,
+   "id": 966,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16781,8 +15330,8 @@
    ]
   },
   {
-   "id": 1054,
-   "image_id": 38,
+   "id": 967,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16798,8 +15347,8 @@
    ]
   },
   {
-   "id": 1055,
-   "image_id": 38,
+   "id": 968,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16815,8 +15364,8 @@
    ]
   },
   {
-   "id": 1056,
-   "image_id": 38,
+   "id": 969,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16832,8 +15381,8 @@
    ]
   },
   {
-   "id": 1057,
-   "image_id": 38,
+   "id": 970,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16849,8 +15398,8 @@
    ]
   },
   {
-   "id": 1058,
-   "image_id": 38,
+   "id": 971,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16866,8 +15415,8 @@
    ]
   },
   {
-   "id": 1059,
-   "image_id": 38,
+   "id": 972,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16883,8 +15432,8 @@
    ]
   },
   {
-   "id": 1060,
-   "image_id": 38,
+   "id": 973,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16900,8 +15449,8 @@
    ]
   },
   {
-   "id": 1061,
-   "image_id": 38,
+   "id": 974,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16917,8 +15466,8 @@
    ]
   },
   {
-   "id": 1062,
-   "image_id": 38,
+   "id": 975,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16934,8 +15483,8 @@
    ]
   },
   {
-   "id": 1063,
-   "image_id": 38,
+   "id": 976,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16951,8 +15500,8 @@
    ]
   },
   {
-   "id": 1064,
-   "image_id": 38,
+   "id": 977,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16968,8 +15517,8 @@
    ]
   },
   {
-   "id": 1065,
-   "image_id": 38,
+   "id": 978,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -16985,8 +15534,8 @@
    ]
   },
   {
-   "id": 1066,
-   "image_id": 38,
+   "id": 979,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -17002,8 +15551,8 @@
    ]
   },
   {
-   "id": 1067,
-   "image_id": 38,
+   "id": 980,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     8,
@@ -17019,8 +15568,8 @@
    ]
   },
   {
-   "id": 1068,
-   "image_id": 38,
+   "id": 981,
+   "image_id": 34,
    "category_id": 1,
    "bbox": [
     0,
@@ -17036,8 +15585,8 @@
    ]
   },
   {
-   "id": 1069,
-   "image_id": 38,
+   "id": 982,
+   "image_id": 34,
    "category_id": 1,
    "bbox": [
     320,
@@ -17053,8 +15602,8 @@
    ]
   },
   {
-   "id": 1070,
-   "image_id": 38,
+   "id": 983,
+   "image_id": 34,
    "category_id": 1,
    "bbox": [
     318,
@@ -17070,8 +15619,8 @@
    ]
   },
   {
-   "id": 1071,
-   "image_id": 38,
+   "id": 984,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     337,
@@ -17087,8 +15636,8 @@
    ]
   },
   {
-   "id": 1072,
-   "image_id": 38,
+   "id": 985,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     487,
@@ -17104,8 +15653,8 @@
    ]
   },
   {
-   "id": 1073,
-   "image_id": 38,
+   "id": 986,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     337,
@@ -17121,8 +15670,8 @@
    ]
   },
   {
-   "id": 1074,
-   "image_id": 38,
+   "id": 987,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     487,
@@ -17138,8 +15687,8 @@
    ]
   },
   {
-   "id": 1075,
-   "image_id": 38,
+   "id": 988,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     337,
@@ -17155,8 +15704,8 @@
    ]
   },
   {
-   "id": 1076,
-   "image_id": 38,
+   "id": 989,
+   "image_id": 34,
    "category_id": 7,
    "bbox": [
     487,
@@ -17172,8 +15721,8 @@
    ]
   },
   {
-   "id": 1077,
-   "image_id": 38,
+   "id": 990,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1070,
@@ -17187,8 +15736,8 @@
    "text": []
   },
   {
-   "id": 1078,
-   "image_id": 38,
+   "id": 991,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1150,
@@ -17202,8 +15751,8 @@
    "text": []
   },
   {
-   "id": 1079,
-   "image_id": 38,
+   "id": 992,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1230,
@@ -17217,8 +15766,8 @@
    "text": []
   },
   {
-   "id": 1080,
-   "image_id": 38,
+   "id": 993,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1330,
@@ -17232,8 +15781,8 @@
    "text": []
   },
   {
-   "id": 1081,
-   "image_id": 38,
+   "id": 994,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     1130,
@@ -17249,8 +15798,8 @@
    ]
   },
   {
-   "id": 1082,
-   "image_id": 38,
+   "id": 995,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     1230,
@@ -17266,8 +15815,8 @@
    ]
   },
   {
-   "id": 1083,
-   "image_id": 38,
+   "id": 996,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     1330,
@@ -17283,8 +15832,8 @@
    ]
   },
   {
-   "id": 1084,
-   "image_id": 38,
+   "id": 997,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1230,
@@ -17298,8 +15847,8 @@
    "text": []
   },
   {
-   "id": 1085,
-   "image_id": 38,
+   "id": 998,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     1330,
@@ -17313,8 +15862,8 @@
    "text": []
   },
   {
-   "id": 1086,
-   "image_id": 38,
+   "id": 999,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2080,
@@ -17330,8 +15879,8 @@
    ]
   },
   {
-   "id": 1087,
-   "image_id": 38,
+   "id": 1000,
+   "image_id": 34,
    "category_id": 1,
    "bbox": [
     2080,
@@ -17347,8 +15896,8 @@
    ]
   },
   {
-   "id": 1088,
-   "image_id": 38,
+   "id": 1001,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17364,8 +15913,8 @@
    ]
   },
   {
-   "id": 1089,
-   "image_id": 38,
+   "id": 1002,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17381,8 +15930,8 @@
    ]
   },
   {
-   "id": 1090,
-   "image_id": 38,
+   "id": 1003,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17398,8 +15947,8 @@
    ]
   },
   {
-   "id": 1091,
-   "image_id": 38,
+   "id": 1004,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2130,
@@ -17415,8 +15964,8 @@
    ]
   },
   {
-   "id": 1092,
-   "image_id": 38,
+   "id": 1005,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2180,
@@ -17432,8 +15981,8 @@
    ]
   },
   {
-   "id": 1093,
-   "image_id": 38,
+   "id": 1006,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2230,
@@ -17449,8 +15998,8 @@
    ]
   },
   {
-   "id": 1094,
-   "image_id": 38,
+   "id": 1007,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2290,
@@ -17464,8 +16013,8 @@
    "text": []
   },
   {
-   "id": 1095,
-   "image_id": 38,
+   "id": 1008,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17481,8 +16030,8 @@
    ]
   },
   {
-   "id": 1096,
-   "image_id": 38,
+   "id": 1009,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     2090,
@@ -17499,8 +16048,8 @@
    ]
   },
   {
-   "id": 1097,
-   "image_id": 38,
+   "id": 1010,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2200,
@@ -17516,8 +16065,8 @@
    ]
   },
   {
-   "id": 1098,
-   "image_id": 38,
+   "id": 1011,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17533,8 +16082,8 @@
    ]
   },
   {
-   "id": 1099,
-   "image_id": 38,
+   "id": 1012,
+   "image_id": 34,
    "category_id": 2,
    "bbox": [
     2090,
@@ -17550,8 +16099,8 @@
    ]
   },
   {
-   "id": 1100,
-   "image_id": 38,
+   "id": 1013,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2200,
@@ -17567,8 +16116,8 @@
    ]
   },
   {
-   "id": 1101,
-   "image_id": 38,
+   "id": 1014,
+   "image_id": 34,
    "category_id": 8,
    "bbox": [
     2090,
@@ -17584,8 +16133,8 @@
    ]
   },
   {
-   "id": 1102,
-   "image_id": 38,
+   "id": 1015,
+   "image_id": 34,
    "category_id": 3,
    "bbox": [
     2200,
@@ -17601,25 +16150,8 @@
    ]
   },
   {
-   "id": 1103,
-   "image_id": 38,
-   "category_id": 3,
-   "bbox": [
-    1330,
-    1372,
-    60,
-    52
-   ],
-   "area": 3120,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "⤓"
-   ]
-  },
-  {
-   "id": 1104,
-   "image_id": 39,
+   "id": 1016,
+   "image_id": 35,
    "category_id": 1,
    "bbox": [
     285,
@@ -17635,8 +16167,8 @@
    ]
   },
   {
-   "id": 1105,
-   "image_id": 39,
+   "id": 1017,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     285,
@@ -17652,8 +16184,8 @@
    ]
   },
   {
-   "id": 1106,
-   "image_id": 39,
+   "id": 1018,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     620,
@@ -17669,8 +16201,8 @@
    ]
   },
   {
-   "id": 1107,
-   "image_id": 39,
+   "id": 1019,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     1050,
@@ -17686,8 +16218,8 @@
    ]
   },
   {
-   "id": 1108,
-   "image_id": 39,
+   "id": 1020,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     1460,
@@ -17703,8 +16235,8 @@
    ]
   },
   {
-   "id": 1109,
-   "image_id": 39,
+   "id": 1021,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     1870,
@@ -17720,8 +16252,8 @@
    ]
   },
   {
-   "id": 1110,
-   "image_id": 39,
+   "id": 1022,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     2240,
@@ -17737,547 +16269,8 @@
    ]
   },
   {
-   "id": 1111,
-   "image_id": 39,
-   "category_id": 8,
-   "bbox": [
-    10,
-    60,
-    272,
-    110
-   ],
-   "area": 29920,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "摆放"
-   ]
-  },
-  {
-   "id": 1112,
-   "image_id": 39,
-   "category_id": 3,
-   "bbox": [
-    20,
-    95,
-    250,
-    44
-   ],
-   "area": 11000,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "搜索"
-   ]
-  },
-  {
-   "id": 1113,
-   "image_id": 39,
-   "category_id": 1,
-   "bbox": [
-    0,
-    1000,
-    400,
-    440
-   ],
-   "area": 176000,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "时间轴轨道面板"
-   ]
-  },
-  {
-   "id": 1114,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1036,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "蓄力分支动画",
-    "连段技能动画"
-   ]
-  },
-  {
-   "id": 1115,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1088,
-    372,
-    42
-   ],
-   "area": 15624,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "#1 公共前摇",
-    "00:00:00"
-   ]
-  },
-  {
-   "id": 1116,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1142,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "+ 新建轨道"
-   ]
-  },
-  {
-   "id": 1117,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1196,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "开始事件轨道",
-    "+"
-   ]
-  },
-  {
-   "id": 1118,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1244,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "结束事件轨道"
-   ]
-  },
-  {
-   "id": 1119,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1284,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "建段轨道"
-   ]
-  },
-  {
-   "id": 1120,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1332,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "花燕图事件"
-   ]
-  },
-  {
-   "id": 1121,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    8,
-    1380,
-    372,
-    44
-   ],
-   "area": 16368,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "武器模型特效01",
-    "特效播放"
-   ]
-  },
-  {
-   "id": 1122,
-   "image_id": 39,
-   "category_id": 1,
-   "bbox": [
-    320,
-    130,
-    2200,
-    850
-   ],
-   "area": 1870000,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "3D 视口"
-   ]
-  },
-  {
-   "id": 1123,
-   "image_id": 39,
-   "category_id": 1,
-   "bbox": [
-    1800,
-    60,
-    740,
-    560
-   ],
-   "area": 414400,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "特效播放"
-   ]
-  },
-  {
-   "id": 1124,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    63,
-    560,
-    44
-   ],
-   "area": 24640,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "特效播放",
-    "X"
-   ]
-  },
-  {
-   "id": 1125,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    104,
-    560,
-    60
-   ],
-   "area": 33600,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "特效播放"
-   ]
-  },
-  {
-   "id": 1126,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    188,
-    560,
-    44
-   ],
-   "area": 24640,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "箭矢01"
-   ]
-  },
-  {
-   "id": 1127,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    251,
-    560,
-    44
-   ],
-   "area": 24640,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "是否播放特效资产音效"
-   ]
-  },
-  {
-   "id": 1128,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    297,
-    560,
-    43
-   ],
-   "area": 24080,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "单位挂接点",
-    "GI_WeaponR"
-   ]
-  },
-  {
-   "id": 1129,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    343,
-    560,
-    43
-   ],
-   "area": 24080,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "位置",
-    "X 0.00",
-    "0.00",
-    "0.00"
-   ]
-  },
-  {
-   "id": 1130,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    388,
-    560,
-    43
-   ],
-   "area": 24080,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "Y 0.00",
-    "旋转",
-    "0.00"
-   ]
-  },
-  {
-   "id": 1131,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    432,
-    560,
-    45
-   ],
-   "area": 25200,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "缩放",
-    "1.00"
-   ]
-  },
-  {
-   "id": 1132,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    481,
-    560,
-    38
-   ],
-   "area": 21280,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "是否跟随位置"
-   ]
-  },
-  {
-   "id": 1133,
-   "image_id": 39,
-   "category_id": 2,
-   "bbox": [
-    1978,
-    526,
-    560,
-    39
-   ],
-   "area": 21840,
-   "iscrowd": 0,
-   "kind": "row",
-   "text": [
-    "是否跟随旋转"
-   ]
-  },
-  {
-   "id": 1134,
-   "image_id": 39,
-   "category_id": 3,
-   "bbox": [
-    2440,
-    1040,
-    100,
-    50
-   ],
-   "area": 5000,
-   "iscrowd": 0,
-   "kind": "button",
-   "text": [
-    "收起"
-   ]
-  },
-  {
-   "id": 1135,
-   "image_id": 40,
-   "category_id": 1,
-   "bbox": [
-    285,
-    2,
-    1600,
-    52
-   ],
-   "area": 83200,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "编辑器标签栏"
-   ]
-  },
-  {
-   "id": 1136,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    285,
-    2,
-    330,
-    52
-   ],
-   "area": 17160,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "关卡设置 ×"
-   ]
-  },
-  {
-   "id": 1137,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    620,
-    2,
-    420,
-    52
-   ],
-   "area": 21840,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "关卡变量管理 ×"
-   ]
-  },
-  {
-   "id": 1138,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    1050,
-    2,
-    400,
-    52
-   ],
-   "area": 20800,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "背景音乐管理 ×"
-   ]
-  },
-  {
-   "id": 1139,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    1460,
-    2,
-    400,
-    52
-   ],
-   "area": 20800,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "资产导入导出管理 ×"
-   ]
-  },
-  {
-   "id": 1140,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    1870,
-    2,
-    360,
-    52
-   ],
-   "area": 18720,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "界面控件组管理 ×"
-   ]
-  },
-  {
-   "id": 1141,
-   "image_id": 40,
-   "category_id": 8,
-   "bbox": [
-    2240,
-    2,
-    320,
-    52
-   ],
-   "area": 16640,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "主镜头管理 ×"
-   ]
-  },
-  {
-   "id": 1142,
-   "image_id": 40,
+   "id": 1023,
+   "image_id": 35,
    "category_id": 8,
    "bbox": [
     10,
@@ -18293,8 +16286,8 @@
    ]
   },
   {
-   "id": 1143,
-   "image_id": 40,
+   "id": 1024,
+   "image_id": 35,
    "category_id": 3,
    "bbox": [
     20,
@@ -18310,8 +16303,8 @@
    ]
   },
   {
-   "id": 1144,
-   "image_id": 40,
+   "id": 1025,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18327,8 +16320,8 @@
    ]
   },
   {
-   "id": 1145,
-   "image_id": 40,
+   "id": 1026,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18344,8 +16337,8 @@
    ]
   },
   {
-   "id": 1146,
-   "image_id": 40,
+   "id": 1027,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18361,8 +16354,8 @@
    ]
   },
   {
-   "id": 1147,
-   "image_id": 40,
+   "id": 1028,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18378,8 +16371,8 @@
    ]
   },
   {
-   "id": 1148,
-   "image_id": 40,
+   "id": 1029,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18395,8 +16388,8 @@
    ]
   },
   {
-   "id": 1149,
-   "image_id": 40,
+   "id": 1030,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18412,8 +16405,8 @@
    ]
   },
   {
-   "id": 1150,
-   "image_id": 40,
+   "id": 1031,
+   "image_id": 35,
    "category_id": 2,
    "bbox": [
     8,
@@ -18429,8 +16422,8 @@
    ]
   },
   {
-   "id": 1151,
-   "image_id": 40,
+   "id": 1032,
+   "image_id": 35,
    "category_id": 1,
    "bbox": [
     0,
@@ -18446,8 +16439,8 @@
    ]
   },
   {
-   "id": 1152,
-   "image_id": 40,
+   "id": 1033,
+   "image_id": 35,
    "category_id": 1,
    "bbox": [
     320,
@@ -18463,8 +16456,8 @@
    ]
   },
   {
-   "id": 1153,
-   "image_id": 40,
+   "id": 1034,
+   "image_id": 35,
    "category_id": 1,
    "bbox": [
     2080,
@@ -18480,8 +16473,8 @@
    ]
   },
   {
-   "id": 1154,
-   "image_id": 40,
+   "id": 1035,
+   "image_id": 35,
    "category_id": 3,
    "bbox": [
     2080,
@@ -18497,8 +16490,8 @@
    ]
   },
   {
-   "id": 1199,
-   "image_id": 41,
+   "id": 1080,
+   "image_id": 36,
    "category_id": 1,
    "bbox": [
     0,
@@ -18514,8 +16507,8 @@
    ]
   },
   {
-   "id": 1200,
-   "image_id": 41,
+   "id": 1081,
+   "image_id": 36,
    "category_id": 8,
    "bbox": [
     55,
@@ -18531,8 +16524,8 @@
    ]
   },
   {
-   "id": 1201,
-   "image_id": 41,
+   "id": 1082,
+   "image_id": 36,
    "category_id": 3,
    "bbox": [
     950,
@@ -18548,8 +16541,8 @@
    ]
   },
   {
-   "id": 1202,
-   "image_id": 41,
+   "id": 1083,
+   "image_id": 36,
    "category_id": 1,
    "bbox": [
     1080,
@@ -18565,8 +16558,8 @@
    ]
   },
   {
-   "id": 1203,
-   "image_id": 41,
+   "id": 1084,
+   "image_id": 36,
    "category_id": 8,
    "bbox": [
     1090,
@@ -18580,8 +16573,8 @@
    "text": []
   },
   {
-   "id": 1204,
-   "image_id": 41,
+   "id": 1085,
+   "image_id": 36,
    "category_id": 8,
    "bbox": [
     1195,
@@ -18595,8 +16588,8 @@
    "text": []
   },
   {
-   "id": 1205,
-   "image_id": 41,
+   "id": 1086,
+   "image_id": 36,
    "category_id": 8,
    "bbox": [
     1300,
@@ -18610,8 +16603,8 @@
    "text": []
   },
   {
-   "id": 1206,
-   "image_id": 41,
+   "id": 1087,
+   "image_id": 36,
    "category_id": 8,
    "bbox": [
     1405,
@@ -18625,8 +16618,8 @@
    "text": []
   },
   {
-   "id": 1207,
-   "image_id": 41,
+   "id": 1088,
+   "image_id": 36,
    "category_id": 3,
    "bbox": [
     1432,
@@ -18642,8 +16635,8 @@
    ]
   },
   {
-   "id": 1208,
-   "image_id": 41,
+   "id": 1089,
+   "image_id": 36,
    "category_id": 1,
    "bbox": [
     2060,
@@ -18659,8 +16652,8 @@
    ]
   },
   {
-   "id": 1209,
-   "image_id": 41,
+   "id": 1090,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     2085,
@@ -18676,8 +16669,8 @@
    ]
   },
   {
-   "id": 1210,
-   "image_id": 41,
+   "id": 1091,
+   "image_id": 36,
    "category_id": 3,
    "bbox": [
     2230,
@@ -18693,8 +16686,8 @@
    ]
   },
   {
-   "id": 1211,
-   "image_id": 41,
+   "id": 1092,
+   "image_id": 36,
    "category_id": 3,
    "bbox": [
     2400,
@@ -18708,8 +16701,8 @@
    "text": []
   },
   {
-   "id": 1212,
-   "image_id": 41,
+   "id": 1093,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     67,
@@ -18727,8 +16720,8 @@
    ]
   },
   {
-   "id": 1213,
-   "image_id": 41,
+   "id": 1094,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     77,
@@ -18745,8 +16738,8 @@
    ]
   },
   {
-   "id": 1214,
-   "image_id": 41,
+   "id": 1095,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     472,
@@ -18764,8 +16757,8 @@
    ]
   },
   {
-   "id": 1215,
-   "image_id": 41,
+   "id": 1096,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     482,
@@ -18782,8 +16775,8 @@
    ]
   },
   {
-   "id": 1216,
-   "image_id": 41,
+   "id": 1097,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     877,
@@ -18801,8 +16794,8 @@
    ]
   },
   {
-   "id": 1217,
-   "image_id": 41,
+   "id": 1098,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     887,
@@ -18819,8 +16812,8 @@
    ]
   },
   {
-   "id": 1218,
-   "image_id": 41,
+   "id": 1099,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     1282,
@@ -18838,8 +16831,8 @@
    ]
   },
   {
-   "id": 1219,
-   "image_id": 41,
+   "id": 1100,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     1292,
@@ -18856,8 +16849,8 @@
    ]
   },
   {
-   "id": 1220,
-   "image_id": 41,
+   "id": 1101,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     1687,
@@ -18875,8 +16868,8 @@
    ]
   },
   {
-   "id": 1221,
-   "image_id": 41,
+   "id": 1102,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     1697,
@@ -18893,8 +16886,8 @@
    ]
   },
   {
-   "id": 1222,
-   "image_id": 41,
+   "id": 1103,
+   "image_id": 36,
    "category_id": 6,
    "bbox": [
     2092,
@@ -18912,8 +16905,8 @@
    ]
   },
   {
-   "id": 1223,
-   "image_id": 41,
+   "id": 1104,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     2102,
@@ -18930,8 +16923,8 @@
    ]
   },
   {
-   "id": 1224,
-   "image_id": 41,
+   "id": 1105,
+   "image_id": 36,
    "category_id": 2,
    "bbox": [
     100,
@@ -18947,8 +16940,8 @@
    ]
   },
   {
-   "id": 1225,
-   "image_id": 41,
+   "id": 1106,
+   "image_id": 36,
    "category_id": 3,
    "bbox": [
     2100,
@@ -18964,8 +16957,8 @@
    ]
   },
   {
-   "id": 1226,
-   "image_id": 42,
+   "id": 1107,
+   "image_id": 37,
    "category_id": 1,
    "bbox": [
     60,
@@ -18981,8 +16974,8 @@
    ]
   },
   {
-   "id": 1227,
-   "image_id": 42,
+   "id": 1108,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     80,
@@ -18998,8 +16991,8 @@
    ]
   },
   {
-   "id": 1228,
-   "image_id": 42,
+   "id": 1109,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     2000,
@@ -19015,8 +17008,8 @@
    ]
   },
   {
-   "id": 1229,
-   "image_id": 42,
+   "id": 1110,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     1080,
@@ -19030,8 +17023,8 @@
    "text": []
   },
   {
-   "id": 1230,
-   "image_id": 42,
+   "id": 1111,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     1210,
@@ -19045,8 +17038,8 @@
    "text": []
   },
   {
-   "id": 1231,
-   "image_id": 42,
+   "id": 1112,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     1340,
@@ -19060,8 +17053,8 @@
    "text": []
   },
   {
-   "id": 1232,
-   "image_id": 42,
+   "id": 1113,
+   "image_id": 37,
    "category_id": 3,
    "bbox": [
     2412,
@@ -19075,8 +17068,8 @@
    "text": []
   },
   {
-   "id": 1233,
-   "image_id": 42,
+   "id": 1114,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19090,8 +17083,8 @@
    "text": []
   },
   {
-   "id": 1234,
-   "image_id": 42,
+   "id": 1115,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19105,8 +17098,8 @@
    "text": []
   },
   {
-   "id": 1235,
-   "image_id": 42,
+   "id": 1116,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19120,8 +17113,8 @@
    "text": []
   },
   {
-   "id": 1236,
-   "image_id": 42,
+   "id": 1117,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19135,8 +17128,8 @@
    "text": []
   },
   {
-   "id": 1237,
-   "image_id": 42,
+   "id": 1118,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19150,8 +17143,8 @@
    "text": []
   },
   {
-   "id": 1238,
-   "image_id": 42,
+   "id": 1119,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19165,8 +17158,8 @@
    "text": []
   },
   {
-   "id": 1239,
-   "image_id": 42,
+   "id": 1120,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     150,
@@ -19180,8 +17173,8 @@
    "text": []
   },
   {
-   "id": 1240,
-   "image_id": 42,
+   "id": 1121,
+   "image_id": 37,
    "category_id": 3,
    "bbox": [
     230,
@@ -19197,8 +17190,8 @@
    ]
   },
   {
-   "id": 1241,
-   "image_id": 42,
+   "id": 1122,
+   "image_id": 37,
    "category_id": 1,
    "bbox": [
     487,
@@ -19214,8 +17207,8 @@
    ]
   },
   {
-   "id": 1242,
-   "image_id": 42,
+   "id": 1123,
+   "image_id": 37,
    "category_id": 4,
    "bbox": [
     520,
@@ -19229,8 +17222,8 @@
    "text": []
   },
   {
-   "id": 1243,
-   "image_id": 42,
+   "id": 1124,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     740,
@@ -19246,8 +17239,8 @@
    ]
   },
   {
-   "id": 1244,
-   "image_id": 42,
+   "id": 1125,
+   "image_id": 37,
    "category_id": 3,
    "bbox": [
     560,
@@ -19263,8 +17256,8 @@
    ]
   },
   {
-   "id": 1245,
-   "image_id": 42,
+   "id": 1126,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     740,
@@ -19280,8 +17273,8 @@
    ]
   },
   {
-   "id": 1246,
-   "image_id": 42,
+   "id": 1127,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     550,
@@ -19298,8 +17291,8 @@
    ]
   },
   {
-   "id": 1247,
-   "image_id": 42,
+   "id": 1128,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     550,
@@ -19316,8 +17309,8 @@
    ]
   },
   {
-   "id": 1248,
-   "image_id": 42,
+   "id": 1129,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     550,
@@ -19333,8 +17326,8 @@
    ]
   },
   {
-   "id": 1249,
-   "image_id": 42,
+   "id": 1130,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     1330,
@@ -19350,8 +17343,8 @@
    ]
   },
   {
-   "id": 1250,
-   "image_id": 42,
+   "id": 1131,
+   "image_id": 37,
    "category_id": 8,
    "bbox": [
     1600,
@@ -19367,8 +17360,8 @@
    ]
   },
   {
-   "id": 1251,
-   "image_id": 42,
+   "id": 1132,
+   "image_id": 37,
    "category_id": 3,
    "bbox": [
     2113,
@@ -19382,8 +17375,8 @@
    "text": []
   },
   {
-   "id": 1252,
-   "image_id": 42,
+   "id": 1133,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     560,
@@ -19400,8 +17393,8 @@
    ]
   },
   {
-   "id": 1253,
-   "image_id": 42,
+   "id": 1134,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     560,
@@ -19418,8 +17411,8 @@
    ]
   },
   {
-   "id": 1254,
-   "image_id": 42,
+   "id": 1135,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     560,
@@ -19437,8 +17430,8 @@
    ]
   },
   {
-   "id": 1255,
-   "image_id": 42,
+   "id": 1136,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     560,
@@ -19456,8 +17449,8 @@
    ]
   },
   {
-   "id": 1256,
-   "image_id": 42,
+   "id": 1137,
+   "image_id": 37,
    "category_id": 2,
    "bbox": [
     560,
@@ -19474,8 +17467,8 @@
    ]
   },
   {
-   "id": 1257,
-   "image_id": 42,
+   "id": 1138,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1327,
@@ -19489,8 +17482,8 @@
    "text": []
   },
   {
-   "id": 1258,
-   "image_id": 42,
+   "id": 1139,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1517,
@@ -19504,8 +17497,8 @@
    "text": []
   },
   {
-   "id": 1259,
-   "image_id": 42,
+   "id": 1140,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1707,
@@ -19519,8 +17512,8 @@
    "text": []
   },
   {
-   "id": 1260,
-   "image_id": 42,
+   "id": 1141,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1897,
@@ -19534,8 +17527,8 @@
    "text": []
   },
   {
-   "id": 1261,
-   "image_id": 42,
+   "id": 1142,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1327,
@@ -19549,8 +17542,8 @@
    "text": []
   },
   {
-   "id": 1262,
-   "image_id": 42,
+   "id": 1143,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1517,
@@ -19564,8 +17557,8 @@
    "text": []
   },
   {
-   "id": 1263,
-   "image_id": 42,
+   "id": 1144,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1707,
@@ -19579,8 +17572,8 @@
    "text": []
   },
   {
-   "id": 1264,
-   "image_id": 42,
+   "id": 1145,
+   "image_id": 37,
    "category_id": 6,
    "bbox": [
     1897,
@@ -19594,8 +17587,8 @@
    "text": []
   },
   {
-   "id": 1265,
-   "image_id": 43,
+   "id": 1146,
+   "image_id": 38,
    "category_id": 1,
    "bbox": [
     285,
@@ -19611,25 +17604,8 @@
    ]
   },
   {
-   "id": 1266,
-   "image_id": 43,
-   "category_id": 8,
-   "bbox": [
-    285,
-    2,
-    400,
-    52
-   ],
-   "area": 20800,
-   "iscrowd": 0,
-   "kind": "chip",
-   "text": [
-    "关卡设置 ×"
-   ]
-  },
-  {
-   "id": 1267,
-   "image_id": 43,
+   "id": 1147,
+   "image_id": 38,
    "category_id": 8,
    "bbox": [
     10,
@@ -19645,8 +17621,8 @@
    ]
   },
   {
-   "id": 1268,
-   "image_id": 43,
+   "id": 1148,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     332,
@@ -19662,8 +17638,8 @@
    ]
   },
   {
-   "id": 1269,
-   "image_id": 43,
+   "id": 1149,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     20,
@@ -19679,8 +17655,8 @@
    ]
   },
   {
-   "id": 1270,
-   "image_id": 43,
+   "id": 1150,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19696,8 +17672,8 @@
    ]
   },
   {
-   "id": 1271,
-   "image_id": 43,
+   "id": 1151,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19713,8 +17689,8 @@
    ]
   },
   {
-   "id": 1272,
-   "image_id": 43,
+   "id": 1152,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19730,8 +17706,8 @@
    ]
   },
   {
-   "id": 1273,
-   "image_id": 43,
+   "id": 1153,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19747,8 +17723,8 @@
    ]
   },
   {
-   "id": 1274,
-   "image_id": 43,
+   "id": 1154,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19764,8 +17740,8 @@
    ]
   },
   {
-   "id": 1275,
-   "image_id": 43,
+   "id": 1155,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19781,8 +17757,8 @@
    ]
   },
   {
-   "id": 1276,
-   "image_id": 43,
+   "id": 1156,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19798,8 +17774,8 @@
    ]
   },
   {
-   "id": 1277,
-   "image_id": 43,
+   "id": 1157,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19815,8 +17791,8 @@
    ]
   },
   {
-   "id": 1278,
-   "image_id": 43,
+   "id": 1158,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19832,8 +17808,8 @@
    ]
   },
   {
-   "id": 1279,
-   "image_id": 43,
+   "id": 1159,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19849,8 +17825,8 @@
    ]
   },
   {
-   "id": 1280,
-   "image_id": 43,
+   "id": 1160,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19866,8 +17842,8 @@
    ]
   },
   {
-   "id": 1281,
-   "image_id": 43,
+   "id": 1161,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19883,8 +17859,8 @@
    ]
   },
   {
-   "id": 1282,
-   "image_id": 43,
+   "id": 1162,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19900,8 +17876,8 @@
    ]
   },
   {
-   "id": 1283,
-   "image_id": 43,
+   "id": 1163,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19917,8 +17893,8 @@
    ]
   },
   {
-   "id": 1284,
-   "image_id": 43,
+   "id": 1164,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19934,8 +17910,8 @@
    ]
   },
   {
-   "id": 1285,
-   "image_id": 43,
+   "id": 1165,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19951,8 +17927,8 @@
    ]
   },
   {
-   "id": 1286,
-   "image_id": 43,
+   "id": 1166,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19968,8 +17944,8 @@
    ]
   },
   {
-   "id": 1287,
-   "image_id": 43,
+   "id": 1167,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -19985,8 +17961,8 @@
    ]
   },
   {
-   "id": 1288,
-   "image_id": 43,
+   "id": 1168,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -20002,8 +17978,8 @@
    ]
   },
   {
-   "id": 1289,
-   "image_id": 43,
+   "id": 1169,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -20019,8 +17995,8 @@
    ]
   },
   {
-   "id": 1290,
-   "image_id": 43,
+   "id": 1170,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     8,
@@ -20036,8 +18012,8 @@
    ]
   },
   {
-   "id": 1291,
-   "image_id": 43,
+   "id": 1171,
+   "image_id": 38,
    "category_id": 1,
    "bbox": [
     0,
@@ -20053,8 +18029,8 @@
    ]
   },
   {
-   "id": 1292,
-   "image_id": 43,
+   "id": 1172,
+   "image_id": 38,
    "category_id": 1,
    "bbox": [
     320,
@@ -20070,8 +18046,8 @@
    ]
   },
   {
-   "id": 1293,
-   "image_id": 43,
+   "id": 1173,
+   "image_id": 38,
    "category_id": 2,
    "bbox": [
     230,
@@ -20087,8 +18063,8 @@
    ]
   },
   {
-   "id": 1294,
-   "image_id": 43,
+   "id": 1174,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     1070,
@@ -20102,8 +18078,8 @@
    "text": []
   },
   {
-   "id": 1295,
-   "image_id": 43,
+   "id": 1175,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     1150,
@@ -20117,8 +18093,8 @@
    "text": []
   },
   {
-   "id": 1296,
-   "image_id": 43,
+   "id": 1176,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     1230,
@@ -20132,8 +18108,8 @@
    "text": []
   },
   {
-   "id": 1297,
-   "image_id": 43,
+   "id": 1177,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     1330,
@@ -20147,8 +18123,8 @@
    "text": []
   },
   {
-   "id": 1298,
-   "image_id": 43,
+   "id": 1178,
+   "image_id": 38,
    "category_id": 3,
    "bbox": [
     1730,
@@ -20162,8 +18138,8 @@
    "text": []
   },
   {
-   "id": 1299,
-   "image_id": 44,
+   "id": 1179,
+   "image_id": 39,
    "category_id": 1,
    "bbox": [
     0,
@@ -20179,8 +18155,8 @@
    ]
   },
   {
-   "id": 1300,
-   "image_id": 44,
+   "id": 1180,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     2440,
@@ -20196,8 +18172,8 @@
    ]
   },
   {
-   "id": 1301,
-   "image_id": 44,
+   "id": 1181,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     2498,
@@ -20213,8 +18189,8 @@
    ]
   },
   {
-   "id": 1302,
-   "image_id": 44,
+   "id": 1182,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     2455,
@@ -20230,8 +18206,8 @@
    ]
   },
   {
-   "id": 1303,
-   "image_id": 44,
+   "id": 1183,
+   "image_id": 39,
    "category_id": 1,
    "bbox": [
     1030,
@@ -20247,8 +18223,8 @@
    ]
   },
   {
-   "id": 1304,
-   "image_id": 44,
+   "id": 1184,
+   "image_id": 39,
    "category_id": 8,
    "bbox": [
     1095,
@@ -20264,8 +18240,8 @@
    ]
   },
   {
-   "id": 1305,
-   "image_id": 44,
+   "id": 1185,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     1420,
@@ -20281,8 +18257,8 @@
    ]
   },
   {
-   "id": 1306,
-   "image_id": 44,
+   "id": 1186,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     1105,
@@ -20298,8 +18274,8 @@
    ]
   },
   {
-   "id": 1307,
-   "image_id": 44,
+   "id": 1187,
+   "image_id": 39,
    "category_id": 8,
    "bbox": [
     1090,
@@ -20315,8 +18291,8 @@
    ]
   },
   {
-   "id": 1308,
-   "image_id": 44,
+   "id": 1188,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     1130,
@@ -20332,8 +18308,8 @@
    ]
   },
   {
-   "id": 1309,
-   "image_id": 44,
+   "id": 1189,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     1130,
@@ -20349,8 +18325,8 @@
    ]
   },
   {
-   "id": 1310,
-   "image_id": 44,
+   "id": 1190,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     1130,
@@ -20366,8 +18342,8 @@
    ]
   },
   {
-   "id": 1311,
-   "image_id": 44,
+   "id": 1191,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     1130,
@@ -20383,8 +18359,8 @@
    ]
   },
   {
-   "id": 1312,
-   "image_id": 44,
+   "id": 1192,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     1120,
@@ -20400,8 +18376,8 @@
    ]
   },
   {
-   "id": 1313,
-   "image_id": 44,
+   "id": 1193,
+   "image_id": 39,
    "category_id": 1,
    "bbox": [
     0,
@@ -20417,8 +18393,8 @@
    ]
   },
   {
-   "id": 1314,
-   "image_id": 44,
+   "id": 1194,
+   "image_id": 39,
    "category_id": 8,
    "bbox": [
     21,
@@ -20434,8 +18410,8 @@
    ]
   },
   {
-   "id": 1315,
-   "image_id": 44,
+   "id": 1195,
+   "image_id": 39,
    "category_id": 8,
    "bbox": [
     225,
@@ -20451,8 +18427,8 @@
    ]
   },
   {
-   "id": 1316,
-   "image_id": 44,
+   "id": 1196,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     25,
@@ -20468,8 +18444,8 @@
    ]
   },
   {
-   "id": 1317,
-   "image_id": 44,
+   "id": 1197,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     85,
@@ -20485,8 +18461,8 @@
    ]
   },
   {
-   "id": 1318,
-   "image_id": 44,
+   "id": 1198,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     22,
@@ -20502,8 +18478,8 @@
    ]
   },
   {
-   "id": 1319,
-   "image_id": 44,
+   "id": 1199,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     2360,
@@ -20519,8 +18495,8 @@
    ]
   },
   {
-   "id": 1320,
-   "image_id": 44,
+   "id": 1200,
+   "image_id": 39,
    "category_id": 3,
    "bbox": [
     2470,
@@ -20536,8 +18512,8 @@
    ]
   },
   {
-   "id": 1321,
-   "image_id": 44,
+   "id": 1201,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     10,
@@ -20553,8 +18529,8 @@
    ]
   },
   {
-   "id": 1322,
-   "image_id": 44,
+   "id": 1202,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     10,
@@ -20570,8 +18546,8 @@
    ]
   },
   {
-   "id": 1323,
-   "image_id": 44,
+   "id": 1203,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     10,
@@ -20587,8 +18563,8 @@
    ]
   },
   {
-   "id": 1324,
-   "image_id": 44,
+   "id": 1204,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     10,
@@ -20604,8 +18580,8 @@
    ]
   },
   {
-   "id": 1325,
-   "image_id": 44,
+   "id": 1205,
+   "image_id": 39,
    "category_id": 2,
    "bbox": [
     10,
@@ -20621,8 +18597,8 @@
    ]
   },
   {
-   "id": 1282,
-   "image_id": 45,
+   "id": 1162,
+   "image_id": 40,
    "category_id": 1,
    "bbox": [
     128,
@@ -20638,8 +18614,8 @@
    ]
   },
   {
-   "id": 1283,
-   "image_id": 45,
+   "id": 1163,
+   "image_id": 40,
    "category_id": 4,
    "bbox": [
     162,
@@ -20653,8 +18629,8 @@
    "text": []
   },
   {
-   "id": 1284,
-   "image_id": 45,
+   "id": 1164,
+   "image_id": 40,
    "category_id": 3,
    "bbox": [
     920,
@@ -20668,8 +18644,8 @@
    "text": []
   },
   {
-   "id": 1285,
-   "image_id": 45,
+   "id": 1165,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     393,
@@ -20685,8 +18661,8 @@
    ]
   },
   {
-   "id": 1286,
-   "image_id": 45,
+   "id": 1166,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     420,
@@ -20703,8 +18679,8 @@
    ]
   },
   {
-   "id": 1287,
-   "image_id": 45,
+   "id": 1167,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     420,
@@ -20721,8 +18697,8 @@
    ]
   },
   {
-   "id": 1288,
-   "image_id": 45,
+   "id": 1168,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     420,
@@ -20739,8 +18715,8 @@
    ]
   },
   {
-   "id": 1289,
-   "image_id": 45,
+   "id": 1169,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     420,
@@ -20757,8 +18733,8 @@
    ]
   },
   {
-   "id": 1290,
-   "image_id": 45,
+   "id": 1170,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     65,
@@ -20774,8 +18750,8 @@
    ]
   },
   {
-   "id": 1291,
-   "image_id": 45,
+   "id": 1171,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     138,
@@ -20791,8 +18767,8 @@
    ]
   },
   {
-   "id": 1292,
-   "image_id": 45,
+   "id": 1172,
+   "image_id": 40,
    "category_id": 3,
    "bbox": [
     930,
@@ -20808,8 +18784,8 @@
    ]
   },
   {
-   "id": 1293,
-   "image_id": 45,
+   "id": 1173,
+   "image_id": 40,
    "category_id": 3,
    "bbox": [
     930,
@@ -20825,8 +18801,8 @@
    ]
   },
   {
-   "id": 1294,
-   "image_id": 45,
+   "id": 1174,
+   "image_id": 40,
    "category_id": 1,
    "bbox": [
     8,
@@ -20842,8 +18818,8 @@
    ]
   },
   {
-   "id": 1295,
-   "image_id": 45,
+   "id": 1175,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     30,
@@ -20857,8 +18833,8 @@
    "text": []
   },
   {
-   "id": 1296,
-   "image_id": 45,
+   "id": 1176,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     30,
@@ -20872,8 +18848,8 @@
    "text": []
   },
   {
-   "id": 1297,
-   "image_id": 45,
+   "id": 1177,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     30,
@@ -20887,8 +18863,8 @@
    "text": []
   },
   {
-   "id": 1298,
-   "image_id": 45,
+   "id": 1178,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     30,
@@ -20902,8 +18878,8 @@
    "text": []
   },
   {
-   "id": 1299,
-   "image_id": 45,
+   "id": 1179,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     30,
@@ -20917,8 +18893,8 @@
    "text": []
   },
   {
-   "id": 1300,
-   "image_id": 45,
+   "id": 1180,
+   "image_id": 40,
    "category_id": 5,
    "bbox": [
     1040,
@@ -20932,8 +18908,8 @@
    "text": []
   },
   {
-   "id": 1301,
-   "image_id": 45,
+   "id": 1181,
+   "image_id": 40,
    "category_id": 1,
    "bbox": [
     128,
@@ -20949,8 +18925,8 @@
    ]
   },
   {
-   "id": 1302,
-   "image_id": 45,
+   "id": 1182,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     172,
@@ -20966,8 +18942,8 @@
    ]
   },
   {
-   "id": 1303,
-   "image_id": 45,
+   "id": 1183,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     380,
@@ -20983,8 +18959,8 @@
    ]
   },
   {
-   "id": 1304,
-   "image_id": 45,
+   "id": 1184,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     588,
@@ -21000,8 +18976,8 @@
    ]
   },
   {
-   "id": 1305,
-   "image_id": 45,
+   "id": 1185,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     796,
@@ -21017,8 +18993,8 @@
    ]
   },
   {
-   "id": 1306,
-   "image_id": 45,
+   "id": 1186,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     172,
@@ -21034,8 +19010,8 @@
    ]
   },
   {
-   "id": 1307,
-   "image_id": 45,
+   "id": 1187,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     380,
@@ -21051,8 +19027,8 @@
    ]
   },
   {
-   "id": 1308,
-   "image_id": 45,
+   "id": 1188,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     588,
@@ -21068,8 +19044,8 @@
    ]
   },
   {
-   "id": 1309,
-   "image_id": 45,
+   "id": 1189,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     796,
@@ -21085,8 +19061,8 @@
    ]
   },
   {
-   "id": 1310,
-   "image_id": 45,
+   "id": 1190,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     172,
@@ -21102,8 +19078,8 @@
    ]
   },
   {
-   "id": 1311,
-   "image_id": 45,
+   "id": 1191,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     380,
@@ -21119,8 +19095,8 @@
    ]
   },
   {
-   "id": 1312,
-   "image_id": 45,
+   "id": 1192,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     588,
@@ -21136,8 +19112,8 @@
    ]
   },
   {
-   "id": 1313,
-   "image_id": 45,
+   "id": 1193,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     796,
@@ -21153,8 +19129,8 @@
    ]
   },
   {
-   "id": 1314,
-   "image_id": 45,
+   "id": 1194,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     172,
@@ -21170,8 +19146,8 @@
    ]
   },
   {
-   "id": 1315,
-   "image_id": 45,
+   "id": 1195,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     380,
@@ -21187,8 +19163,8 @@
    ]
   },
   {
-   "id": 1316,
-   "image_id": 45,
+   "id": 1196,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     588,
@@ -21204,8 +19180,8 @@
    ]
   },
   {
-   "id": 1317,
-   "image_id": 45,
+   "id": 1197,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     796,
@@ -21221,8 +19197,8 @@
    ]
   },
   {
-   "id": 1318,
-   "image_id": 45,
+   "id": 1198,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     172,
@@ -21238,8 +19214,8 @@
    ]
   },
   {
-   "id": 1319,
-   "image_id": 45,
+   "id": 1199,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     380,
@@ -21255,8 +19231,8 @@
    ]
   },
   {
-   "id": 1320,
-   "image_id": 45,
+   "id": 1200,
+   "image_id": 40,
    "category_id": 7,
    "bbox": [
     588,
@@ -21272,8 +19248,8 @@
    ]
   },
   {
-   "id": 1321,
-   "image_id": 45,
+   "id": 1201,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     20,
@@ -21287,8 +19263,8 @@
    "text": []
   },
   {
-   "id": 1322,
-   "image_id": 45,
+   "id": 1202,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     2240,
@@ -21302,8 +19278,8 @@
    "text": []
   },
   {
-   "id": 1323,
-   "image_id": 45,
+   "id": 1203,
+   "image_id": 40,
    "category_id": 2,
    "bbox": [
     15,
@@ -21317,8 +19293,8 @@
    "text": []
   },
   {
-   "id": 1277,
-   "image_id": 46,
+   "id": 1157,
+   "image_id": 41,
    "category_id": 1,
    "bbox": [
     60,
@@ -21334,8 +19310,8 @@
    ]
   },
   {
-   "id": 1278,
-   "image_id": 46,
+   "id": 1158,
+   "image_id": 41,
    "category_id": 8,
    "bbox": [
     80,
@@ -21351,8 +19327,8 @@
    ]
   },
   {
-   "id": 1279,
-   "image_id": 46,
+   "id": 1159,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     2100,
@@ -21368,8 +19344,8 @@
    ]
   },
   {
-   "id": 1280,
-   "image_id": 46,
+   "id": 1160,
+   "image_id": 41,
    "category_id": 3,
    "bbox": [
     2400,
@@ -21383,8 +19359,8 @@
    "text": []
   },
   {
-   "id": 1281,
-   "image_id": 46,
+   "id": 1161,
+   "image_id": 41,
    "category_id": 1,
    "bbox": [
     170,
@@ -21400,8 +19376,8 @@
    ]
   },
   {
-   "id": 1282,
-   "image_id": 46,
+   "id": 1162,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     200,
@@ -21415,8 +19391,8 @@
    "text": []
   },
   {
-   "id": 1283,
-   "image_id": 46,
+   "id": 1163,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     395,
@@ -21430,8 +19406,8 @@
    "text": []
   },
   {
-   "id": 1284,
-   "image_id": 46,
+   "id": 1164,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     590,
@@ -21445,8 +19421,8 @@
    "text": []
   },
   {
-   "id": 1285,
-   "image_id": 46,
+   "id": 1165,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     785,
@@ -21460,8 +19436,8 @@
    "text": []
   },
   {
-   "id": 1286,
-   "image_id": 46,
+   "id": 1166,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     980,
@@ -21475,8 +19451,8 @@
    "text": []
   },
   {
-   "id": 1287,
-   "image_id": 46,
+   "id": 1167,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1175,
@@ -21490,8 +19466,8 @@
    "text": []
   },
   {
-   "id": 1288,
-   "image_id": 46,
+   "id": 1168,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1370,
@@ -21505,8 +19481,8 @@
    "text": []
   },
   {
-   "id": 1289,
-   "image_id": 46,
+   "id": 1169,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1565,
@@ -21520,8 +19496,8 @@
    "text": []
   },
   {
-   "id": 1290,
-   "image_id": 46,
+   "id": 1170,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     200,
@@ -21535,8 +19511,8 @@
    "text": []
   },
   {
-   "id": 1291,
-   "image_id": 46,
+   "id": 1171,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     395,
@@ -21550,8 +19526,8 @@
    "text": []
   },
   {
-   "id": 1292,
-   "image_id": 46,
+   "id": 1172,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     590,
@@ -21565,8 +19541,8 @@
    "text": []
   },
   {
-   "id": 1293,
-   "image_id": 46,
+   "id": 1173,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     785,
@@ -21580,8 +19556,8 @@
    "text": []
   },
   {
-   "id": 1294,
-   "image_id": 46,
+   "id": 1174,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     980,
@@ -21595,8 +19571,8 @@
    "text": []
   },
   {
-   "id": 1295,
-   "image_id": 46,
+   "id": 1175,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1175,
@@ -21610,8 +19586,8 @@
    "text": []
   },
   {
-   "id": 1296,
-   "image_id": 46,
+   "id": 1176,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1370,
@@ -21625,8 +19601,8 @@
    "text": []
   },
   {
-   "id": 1297,
-   "image_id": 46,
+   "id": 1177,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1565,
@@ -21640,8 +19616,8 @@
    "text": []
   },
   {
-   "id": 1298,
-   "image_id": 46,
+   "id": 1178,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     200,
@@ -21655,8 +19631,8 @@
    "text": []
   },
   {
-   "id": 1299,
-   "image_id": 46,
+   "id": 1179,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     395,
@@ -21670,8 +19646,8 @@
    "text": []
   },
   {
-   "id": 1300,
-   "image_id": 46,
+   "id": 1180,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     590,
@@ -21685,8 +19661,8 @@
    "text": []
   },
   {
-   "id": 1301,
-   "image_id": 46,
+   "id": 1181,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     785,
@@ -21700,8 +19676,8 @@
    "text": []
   },
   {
-   "id": 1302,
-   "image_id": 46,
+   "id": 1182,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     980,
@@ -21715,8 +19691,8 @@
    "text": []
   },
   {
-   "id": 1303,
-   "image_id": 46,
+   "id": 1183,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1175,
@@ -21730,8 +19706,8 @@
    "text": []
   },
   {
-   "id": 1304,
-   "image_id": 46,
+   "id": 1184,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1370,
@@ -21745,8 +19721,8 @@
    "text": []
   },
   {
-   "id": 1305,
-   "image_id": 46,
+   "id": 1185,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1565,
@@ -21760,8 +19736,8 @@
    "text": []
   },
   {
-   "id": 1306,
-   "image_id": 46,
+   "id": 1186,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     200,
@@ -21775,8 +19751,8 @@
    "text": []
   },
   {
-   "id": 1307,
-   "image_id": 46,
+   "id": 1187,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     395,
@@ -21790,8 +19766,8 @@
    "text": []
   },
   {
-   "id": 1308,
-   "image_id": 46,
+   "id": 1188,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     590,
@@ -21805,8 +19781,8 @@
    "text": []
   },
   {
-   "id": 1309,
-   "image_id": 46,
+   "id": 1189,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     785,
@@ -21820,8 +19796,8 @@
    "text": []
   },
   {
-   "id": 1310,
-   "image_id": 46,
+   "id": 1190,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     980,
@@ -21835,8 +19811,8 @@
    "text": []
   },
   {
-   "id": 1311,
-   "image_id": 46,
+   "id": 1191,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1175,
@@ -21850,8 +19826,8 @@
    "text": []
   },
   {
-   "id": 1312,
-   "image_id": 46,
+   "id": 1192,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1370,
@@ -21865,8 +19841,8 @@
    "text": []
   },
   {
-   "id": 1313,
-   "image_id": 46,
+   "id": 1193,
+   "image_id": 41,
    "category_id": 7,
    "bbox": [
     1565,
@@ -21880,8 +19856,8 @@
    "text": []
   },
   {
-   "id": 1314,
-   "image_id": 46,
+   "id": 1194,
+   "image_id": 41,
    "category_id": 1,
    "bbox": [
     1740,
@@ -21897,8 +19873,8 @@
    ]
   },
   {
-   "id": 1315,
-   "image_id": 46,
+   "id": 1195,
+   "image_id": 41,
    "category_id": 8,
    "bbox": [
     1760,
@@ -21914,8 +19890,8 @@
    ]
   },
   {
-   "id": 1316,
-   "image_id": 46,
+   "id": 1196,
+   "image_id": 41,
    "category_id": 8,
    "bbox": [
     1760,
@@ -21931,8 +19907,8 @@
    ]
   },
   {
-   "id": 1317,
-   "image_id": 46,
+   "id": 1197,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     1760,
@@ -21948,8 +19924,8 @@
    ]
   },
   {
-   "id": 1318,
-   "image_id": 46,
+   "id": 1198,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     1760,
@@ -21965,8 +19941,8 @@
    ]
   },
   {
-   "id": 1319,
-   "image_id": 46,
+   "id": 1199,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     1760,
@@ -21982,8 +19958,8 @@
    ]
   },
   {
-   "id": 1320,
-   "image_id": 46,
+   "id": 1200,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     1760,
@@ -21999,8 +19975,8 @@
    ]
   },
   {
-   "id": 1321,
-   "image_id": 46,
+   "id": 1201,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     1760,
@@ -22016,8 +19992,8 @@
    ]
   },
   {
-   "id": 1322,
-   "image_id": 46,
+   "id": 1202,
+   "image_id": 41,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22033,8 +20009,8 @@
    ]
   },
   {
-   "id": 1323,
-   "image_id": 46,
+   "id": 1203,
+   "image_id": 41,
    "category_id": 3,
    "bbox": [
     380,
@@ -22048,8 +20024,8 @@
    "text": []
   },
   {
-   "id": 1324,
-   "image_id": 46,
+   "id": 1204,
+   "image_id": 41,
    "category_id": 1,
    "bbox": [
     0,
@@ -22065,25 +20041,8 @@
    ]
   },
   {
-   "id": 1325,
-   "image_id": 46,
-   "category_id": 1,
-   "bbox": [
-    60,
-    20,
-    2200,
-    90
-   ],
-   "area": 198000,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "顶栏"
-   ]
-  },
-  {
-   "id": 1326,
-   "image_id": 46,
+   "id": 1205,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     0,
@@ -22097,8 +20056,8 @@
    "text": []
   },
   {
-   "id": 1327,
-   "image_id": 46,
+   "id": 1206,
+   "image_id": 41,
    "category_id": 2,
    "bbox": [
     2380,
@@ -22112,8 +20071,8 @@
    "text": []
   },
   {
-   "id": 1296,
-   "image_id": 47,
+   "id": 1175,
+   "image_id": 42,
    "category_id": 1,
    "bbox": [
     60,
@@ -22129,8 +20088,8 @@
    ]
   },
   {
-   "id": 1297,
-   "image_id": 47,
+   "id": 1176,
+   "image_id": 42,
    "category_id": 8,
    "bbox": [
     80,
@@ -22146,8 +20105,8 @@
    ]
   },
   {
-   "id": 1298,
-   "image_id": 47,
+   "id": 1177,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     1900,
@@ -22163,8 +20122,8 @@
    ]
   },
   {
-   "id": 1299,
-   "image_id": 47,
+   "id": 1178,
+   "image_id": 42,
    "category_id": 8,
    "bbox": [
     1080,
@@ -22178,8 +20137,8 @@
    "text": []
   },
   {
-   "id": 1300,
-   "image_id": 47,
+   "id": 1179,
+   "image_id": 42,
    "category_id": 8,
    "bbox": [
     1210,
@@ -22193,8 +20152,8 @@
    "text": []
   },
   {
-   "id": 1301,
-   "image_id": 47,
+   "id": 1180,
+   "image_id": 42,
    "category_id": 8,
    "bbox": [
     1340,
@@ -22208,8 +20167,8 @@
    "text": []
   },
   {
-   "id": 1302,
-   "image_id": 47,
+   "id": 1181,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2412,
@@ -22223,8 +20182,8 @@
    "text": []
   },
   {
-   "id": 1303,
-   "image_id": 47,
+   "id": 1182,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     66,
@@ -22240,8 +20199,8 @@
    ]
   },
   {
-   "id": 1304,
-   "image_id": 47,
+   "id": 1183,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2436,
@@ -22257,8 +20216,8 @@
    ]
   },
   {
-   "id": 1305,
-   "image_id": 47,
+   "id": 1184,
+   "image_id": 42,
    "category_id": 1,
    "bbox": [
     140,
@@ -22274,8 +20233,8 @@
    ]
   },
   {
-   "id": 1306,
-   "image_id": 47,
+   "id": 1185,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22292,8 +20251,8 @@
    ]
   },
   {
-   "id": 1307,
-   "image_id": 47,
+   "id": 1186,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22309,8 +20268,8 @@
    ]
   },
   {
-   "id": 1308,
-   "image_id": 47,
+   "id": 1187,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22324,8 +20283,8 @@
    "text": []
   },
   {
-   "id": 1309,
-   "image_id": 47,
+   "id": 1188,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22342,8 +20301,8 @@
    ]
   },
   {
-   "id": 1310,
-   "image_id": 47,
+   "id": 1189,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22359,8 +20318,8 @@
    ]
   },
   {
-   "id": 1311,
-   "image_id": 47,
+   "id": 1190,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22374,8 +20333,8 @@
    "text": []
   },
   {
-   "id": 1312,
-   "image_id": 47,
+   "id": 1191,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22392,8 +20351,8 @@
    ]
   },
   {
-   "id": 1313,
-   "image_id": 47,
+   "id": 1192,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22409,8 +20368,8 @@
    ]
   },
   {
-   "id": 1314,
-   "image_id": 47,
+   "id": 1193,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22424,8 +20383,8 @@
    "text": []
   },
   {
-   "id": 1315,
-   "image_id": 47,
+   "id": 1194,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22442,8 +20401,8 @@
    ]
   },
   {
-   "id": 1316,
-   "image_id": 47,
+   "id": 1195,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22459,8 +20418,8 @@
    ]
   },
   {
-   "id": 1317,
-   "image_id": 47,
+   "id": 1196,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22474,8 +20433,8 @@
    "text": []
   },
   {
-   "id": 1318,
-   "image_id": 47,
+   "id": 1197,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22492,8 +20451,8 @@
    ]
   },
   {
-   "id": 1319,
-   "image_id": 47,
+   "id": 1198,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22509,8 +20468,8 @@
    ]
   },
   {
-   "id": 1320,
-   "image_id": 47,
+   "id": 1199,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22524,8 +20483,8 @@
    "text": []
   },
   {
-   "id": 1321,
-   "image_id": 47,
+   "id": 1200,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22542,8 +20501,8 @@
    ]
   },
   {
-   "id": 1322,
-   "image_id": 47,
+   "id": 1201,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22559,8 +20518,8 @@
    ]
   },
   {
-   "id": 1323,
-   "image_id": 47,
+   "id": 1202,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22574,8 +20533,8 @@
    "text": []
   },
   {
-   "id": 1324,
-   "image_id": 47,
+   "id": 1203,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     150,
@@ -22592,8 +20551,8 @@
    ]
   },
   {
-   "id": 1325,
-   "image_id": 47,
+   "id": 1204,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     1900,
@@ -22607,8 +20566,8 @@
    "text": []
   },
   {
-   "id": 1326,
-   "image_id": 47,
+   "id": 1205,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     2210,
@@ -22622,8 +20581,8 @@
    "text": []
   },
   {
-   "id": 1327,
-   "image_id": 47,
+   "id": 1206,
+   "image_id": 42,
    "category_id": 3,
    "bbox": [
     230,
@@ -22639,42 +20598,8 @@
    ]
   },
   {
-   "id": 1328,
-   "image_id": 47,
-   "category_id": 1,
-   "bbox": [
-    60,
-    20,
-    2400,
-    90
-   ],
-   "area": 216000,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "顶栏"
-   ]
-  },
-  {
-   "id": 1329,
-   "image_id": 47,
-   "category_id": 1,
-   "bbox": [
-    140,
-    120,
-    2300,
-    1200
-   ],
-   "area": 2760000,
-   "iscrowd": 0,
-   "kind": "panel",
-   "text": [
-    "好友列表区"
-   ]
-  },
-  {
-   "id": 1330,
-   "image_id": 47,
+   "id": 1207,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     0,
@@ -22688,8 +20613,8 @@
    "text": []
   },
   {
-   "id": 1331,
-   "image_id": 47,
+   "id": 1208,
+   "image_id": 42,
    "category_id": 2,
    "bbox": [
     2380,
@@ -22703,8 +20628,8 @@
    "text": []
   },
   {
-   "id": 1332,
-   "image_id": 48,
+   "id": 1209,
+   "image_id": 43,
    "category_id": 1,
    "bbox": [
     280,
@@ -22720,8 +20645,8 @@
    ]
   },
   {
-   "id": 1333,
-   "image_id": 48,
+   "id": 1210,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     280,
@@ -22737,8 +20662,8 @@
    ]
   },
   {
-   "id": 1334,
-   "image_id": 48,
+   "id": 1211,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     600,
@@ -22754,8 +20679,8 @@
    ]
   },
   {
-   "id": 1335,
-   "image_id": 48,
+   "id": 1212,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     990,
@@ -22771,8 +20696,8 @@
    ]
   },
   {
-   "id": 1336,
-   "image_id": 48,
+   "id": 1213,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     1400,
@@ -22788,8 +20713,8 @@
    ]
   },
   {
-   "id": 1337,
-   "image_id": 48,
+   "id": 1214,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     1830,
@@ -22805,8 +20730,8 @@
    ]
   },
   {
-   "id": 1338,
-   "image_id": 48,
+   "id": 1215,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2200,
@@ -22822,8 +20747,8 @@
    ]
   },
   {
-   "id": 1339,
-   "image_id": 48,
+   "id": 1216,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     10,
@@ -22839,8 +20764,8 @@
    ]
   },
   {
-   "id": 1340,
-   "image_id": 48,
+   "id": 1217,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     330,
@@ -22856,8 +20781,8 @@
    ]
   },
   {
-   "id": 1341,
-   "image_id": 48,
+   "id": 1218,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     30,
@@ -22873,8 +20798,8 @@
    ]
   },
   {
-   "id": 1342,
-   "image_id": 48,
+   "id": 1219,
+   "image_id": 43,
    "category_id": 1,
    "bbox": [
     0,
@@ -22890,8 +20815,8 @@
    ]
   },
   {
-   "id": 1343,
-   "image_id": 48,
+   "id": 1220,
+   "image_id": 43,
    "category_id": 1,
    "bbox": [
     320,
@@ -22907,8 +20832,8 @@
    ]
   },
   {
-   "id": 1344,
-   "image_id": 48,
+   "id": 1221,
+   "image_id": 43,
    "category_id": 1,
    "bbox": [
     2080,
@@ -22924,8 +20849,8 @@
    ]
   },
   {
-   "id": 1345,
-   "image_id": 48,
+   "id": 1222,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -22941,8 +20866,8 @@
    ]
   },
   {
-   "id": 1346,
-   "image_id": 48,
+   "id": 1223,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -22958,8 +20883,8 @@
    ]
   },
   {
-   "id": 1347,
-   "image_id": 48,
+   "id": 1224,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -22975,8 +20900,8 @@
    ]
   },
   {
-   "id": 1348,
-   "image_id": 48,
+   "id": 1225,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -22992,8 +20917,8 @@
    ]
   },
   {
-   "id": 1349,
-   "image_id": 48,
+   "id": 1226,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23009,8 +20934,8 @@
    ]
   },
   {
-   "id": 1350,
-   "image_id": 48,
+   "id": 1227,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23026,8 +20951,8 @@
    ]
   },
   {
-   "id": 1351,
-   "image_id": 48,
+   "id": 1228,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23043,8 +20968,8 @@
    ]
   },
   {
-   "id": 1352,
-   "image_id": 48,
+   "id": 1229,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23060,8 +20985,8 @@
    ]
   },
   {
-   "id": 1353,
-   "image_id": 48,
+   "id": 1230,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23077,8 +21002,8 @@
    ]
   },
   {
-   "id": 1354,
-   "image_id": 48,
+   "id": 1231,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23094,8 +21019,8 @@
    ]
   },
   {
-   "id": 1355,
-   "image_id": 48,
+   "id": 1232,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23111,8 +21036,8 @@
    ]
   },
   {
-   "id": 1356,
-   "image_id": 48,
+   "id": 1233,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23128,8 +21053,8 @@
    ]
   },
   {
-   "id": 1357,
-   "image_id": 48,
+   "id": 1234,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23145,8 +21070,8 @@
    ]
   },
   {
-   "id": 1358,
-   "image_id": 48,
+   "id": 1235,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23162,8 +21087,8 @@
    ]
   },
   {
-   "id": 1359,
-   "image_id": 48,
+   "id": 1236,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23179,8 +21104,8 @@
    ]
   },
   {
-   "id": 1360,
-   "image_id": 48,
+   "id": 1237,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23196,8 +21121,8 @@
    ]
   },
   {
-   "id": 1361,
-   "image_id": 48,
+   "id": 1238,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23213,8 +21138,8 @@
    ]
   },
   {
-   "id": 1362,
-   "image_id": 48,
+   "id": 1239,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23230,8 +21155,8 @@
    ]
   },
   {
-   "id": 1363,
-   "image_id": 48,
+   "id": 1240,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23247,8 +21172,8 @@
    ]
   },
   {
-   "id": 1364,
-   "image_id": 48,
+   "id": 1241,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     8,
@@ -23264,8 +21189,8 @@
    ]
   },
   {
-   "id": 1365,
-   "image_id": 48,
+   "id": 1242,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     280,
@@ -23281,8 +21206,8 @@
    ]
   },
   {
-   "id": 1366,
-   "image_id": 48,
+   "id": 1243,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     470,
@@ -23298,8 +21223,8 @@
    ]
   },
   {
-   "id": 1367,
-   "image_id": 48,
+   "id": 1244,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     280,
@@ -23315,8 +21240,8 @@
    ]
   },
   {
-   "id": 1368,
-   "image_id": 48,
+   "id": 1245,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     470,
@@ -23332,8 +21257,8 @@
    ]
   },
   {
-   "id": 1369,
-   "image_id": 48,
+   "id": 1246,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     280,
@@ -23349,8 +21274,8 @@
    ]
   },
   {
-   "id": 1370,
-   "image_id": 48,
+   "id": 1247,
+   "image_id": 43,
    "category_id": 7,
    "bbox": [
     470,
@@ -23366,8 +21291,8 @@
    ]
   },
   {
-   "id": 1371,
-   "image_id": 48,
+   "id": 1248,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23383,8 +21308,8 @@
    ]
   },
   {
-   "id": 1372,
-   "image_id": 48,
+   "id": 1249,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23400,8 +21325,8 @@
    ]
   },
   {
-   "id": 1373,
-   "image_id": 48,
+   "id": 1250,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23417,8 +21342,8 @@
    ]
   },
   {
-   "id": 1374,
-   "image_id": 48,
+   "id": 1251,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2130,
@@ -23434,8 +21359,8 @@
    ]
   },
   {
-   "id": 1375,
-   "image_id": 48,
+   "id": 1252,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2180,
@@ -23451,8 +21376,8 @@
    ]
   },
   {
-   "id": 1376,
-   "image_id": 48,
+   "id": 1253,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2230,
@@ -23468,8 +21393,8 @@
    ]
   },
   {
-   "id": 1377,
-   "image_id": 48,
+   "id": 1254,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23485,8 +21410,8 @@
    ]
   },
   {
-   "id": 1378,
-   "image_id": 48,
+   "id": 1255,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     2090,
@@ -23503,8 +21428,8 @@
    ]
   },
   {
-   "id": 1379,
-   "image_id": 48,
+   "id": 1256,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2200,
@@ -23520,8 +21445,8 @@
    ]
   },
   {
-   "id": 1380,
-   "image_id": 48,
+   "id": 1257,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23537,8 +21462,8 @@
    ]
   },
   {
-   "id": 1381,
-   "image_id": 48,
+   "id": 1258,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     2090,
@@ -23554,8 +21479,8 @@
    ]
   },
   {
-   "id": 1382,
-   "image_id": 48,
+   "id": 1259,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2200,
@@ -23571,8 +21496,8 @@
    ]
   },
   {
-   "id": 1383,
-   "image_id": 48,
+   "id": 1260,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2090,
@@ -23588,8 +21513,8 @@
    ]
   },
   {
-   "id": 1384,
-   "image_id": 48,
+   "id": 1261,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2200,
@@ -23605,8 +21530,8 @@
    ]
   },
   {
-   "id": 1385,
-   "image_id": 48,
+   "id": 1262,
+   "image_id": 43,
    "category_id": 1,
    "bbox": [
     1694,
@@ -23622,8 +21547,8 @@
    ]
   },
   {
-   "id": 1386,
-   "image_id": 48,
+   "id": 1263,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     1710,
@@ -23639,8 +21564,8 @@
    ]
   },
   {
-   "id": 1387,
-   "image_id": 48,
+   "id": 1264,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2070,
@@ -23656,8 +21581,8 @@
    ]
   },
   {
-   "id": 1388,
-   "image_id": 48,
+   "id": 1265,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     1710,
@@ -23673,8 +21598,8 @@
    ]
   },
   {
-   "id": 1389,
-   "image_id": 48,
+   "id": 1266,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23690,8 +21615,8 @@
    ]
   },
   {
-   "id": 1390,
-   "image_id": 48,
+   "id": 1267,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23707,8 +21632,8 @@
    ]
   },
   {
-   "id": 1391,
-   "image_id": 48,
+   "id": 1268,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23724,8 +21649,8 @@
    ]
   },
   {
-   "id": 1392,
-   "image_id": 48,
+   "id": 1269,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23741,8 +21666,8 @@
    ]
   },
   {
-   "id": 1393,
-   "image_id": 48,
+   "id": 1270,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23758,8 +21683,8 @@
    ]
   },
   {
-   "id": 1394,
-   "image_id": 48,
+   "id": 1271,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23775,8 +21700,8 @@
    ]
   },
   {
-   "id": 1395,
-   "image_id": 48,
+   "id": 1272,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23792,8 +21717,8 @@
    ]
   },
   {
-   "id": 1396,
-   "image_id": 48,
+   "id": 1273,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23809,8 +21734,8 @@
    ]
   },
   {
-   "id": 1397,
-   "image_id": 48,
+   "id": 1274,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23826,8 +21751,8 @@
    ]
   },
   {
-   "id": 1398,
-   "image_id": 48,
+   "id": 1275,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     1715,
@@ -23843,8 +21768,8 @@
    ]
   },
   {
-   "id": 1399,
-   "image_id": 48,
+   "id": 1276,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2100,
@@ -23860,8 +21785,8 @@
    ]
   },
   {
-   "id": 1400,
-   "image_id": 48,
+   "id": 1277,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     0,
@@ -23875,8 +21800,8 @@
    "text": []
   },
   {
-   "id": 1401,
-   "image_id": 48,
+   "id": 1278,
+   "image_id": 43,
    "category_id": 2,
    "bbox": [
     2380,
@@ -23890,8 +21815,8 @@
    "text": []
   },
   {
-   "id": 1402,
-   "image_id": 48,
+   "id": 1279,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     2455,
@@ -23907,8 +21832,8 @@
    ]
   },
   {
-   "id": 1403,
-   "image_id": 48,
+   "id": 1280,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     1330,
@@ -23924,8 +21849,8 @@
    ]
   },
   {
-   "id": 1404,
-   "image_id": 48,
+   "id": 1281,
+   "image_id": 43,
    "category_id": 3,
    "bbox": [
     1225,
@@ -23939,8 +21864,8 @@
    "text": []
   },
   {
-   "id": 1405,
-   "image_id": 48,
+   "id": 1282,
+   "image_id": 43,
    "category_id": 8,
    "bbox": [
     2240,

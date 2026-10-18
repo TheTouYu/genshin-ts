@@ -11,7 +11,7 @@
  "classes": [
   "切块标注法"
  ],
- "units": 51,
+ "units": 50,
  "_provenance": {
   "family": "背包（养成道具）",
   "blocks": [
@@ -1253,33 +1253,6 @@
     "px": 0
    },
    "note": "块②：竖向整栏（R6）"
-  },
-  {
-   "id": 48,
-   "parent": null,
-   "bbox": [
-    60,
-    20,
-    2200,
-    90
-   ],
-   "kind": "panel",
-   "text": [
-    "顶栏"
-   ],
-   "clickable": "no",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "块①"
   },
   {
    "id": 49,

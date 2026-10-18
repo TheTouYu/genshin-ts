@@ -17,6 +17,11 @@ import sys
 from collections import Counter, defaultdict
 
 KINDS = None
+# QC 判为 C 级（质量太差会起负作用）——不进训练集，见 .scratch/gui-corpus/quality-report.md
+EXCLUDE_STEMS = {
+    "c42_195441", "c29_195243", "c19_195135", "v088_0513",
+    "r045_snap_2026-10-19_00-38-06",
+}
 
 
 def find_image(stem, dirs):
@@ -57,6 +62,8 @@ def main():
             stem = os.path.splitext(os.path.basename(jf))[0]
             if stem.startswith("_"):
                 continue
+            if stem in EXCLUDE_STEMS:
+                continue
             d = json.load(open(jf, encoding="utf-8"))
             objs = d.get("objects") or []
             if not objs:
@@ -82,7 +89,9 @@ def main():
                         seen[k] -= 1
             iid = len(images) + 1
             seen[stem] = iid
+            big = max([(o["bbox"][2]*o["bbox"][3]) for o in objs if o.get("kind") in ("panel","card")] or [0])
             images.append({"id": iid, "file_name": img, "width": 2560, "height": 1440,
+                           "has_region": big >= 0.05*2560*1440,
                            "truth": os.path.relpath(jf, "."), "layout": d.get("layout")})
             fam = (d.get("layout") or "unknown").split("（")[0].split("·")[0].strip()
             fam_count[fam] += 1

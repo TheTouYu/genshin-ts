@@ -11,7 +11,7 @@
  "classes": [
   "切块标注法"
  ],
- "units": 36,
+ "units": 34,
  "_provenance": {
   "family": "好友／我的好友",
   "blocks": [
@@ -870,60 +870,6 @@
     "cut_by": "hud",
     "px": 30
    }
-  },
-  {
-   "id": 32,
-   "parent": null,
-   "bbox": [
-    60,
-    20,
-    2400,
-    90
-   ],
-   "kind": "panel",
-   "text": [
-    "顶栏"
-   ],
-   "clickable": "no",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "块①"
-  },
-  {
-   "id": 33,
-   "parent": null,
-   "bbox": [
-    140,
-    120,
-    2300,
-    1200
-   ],
-   "kind": "panel",
-   "text": [
-    "好友列表区"
-   ],
-   "clickable": "no",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "块③：整块（R7）"
   },
   {
    "id": 34,

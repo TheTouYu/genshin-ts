@@ -12,7 +12,7 @@
   "列表+详情",
   "半透明行"
  ],
- "units": 25,
+ "units": 35,
  "_provenance": {
   "family": "邮箱（邮件珍藏盒）",
   "method": "邮件行 y 由 edges.py x=300 扫描线定（158/323/474/628/787/944/1101/1258）；列表/详情面板边界 edges.py",
@@ -28,10 +28,10 @@
    "id": 0,
    "parent": null,
    "bbox": [
-    1100,
+    1645,
     20,
-    1000,
-    80
+    914,
+    84
    ],
    "kind": "panel",
    "text": [
@@ -49,16 +49,17 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "顶栏"
+   "note": "顶栏",
+   "edited_by": "human"
   },
   {
    "id": 1,
    "parent": null,
    "bbox": [
-    1105,
-    22,
-    380,
-    76
+    1691,
+    26,
+    302,
+    68
    ],
    "kind": "chip",
    "text": [
@@ -75,16 +76,17 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 2,
    "parent": null,
    "bbox": [
-    1500,
-    30,
-    240,
-    60
+    1893,
+    32,
+    86,
+    62
    ],
    "kind": "row",
    "text": [
@@ -101,7 +103,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 3,
@@ -133,10 +136,10 @@
    "id": 4,
    "parent": null,
    "bbox": [
-    2400,
+    2416,
     22,
-    110,
-    110
+    94,
+    75
    ],
    "kind": "button",
    "text": [],
@@ -152,16 +155,17 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "关闭 X"
+   "note": "关闭 X",
+   "edited_by": "human"
   },
   {
    "id": 5,
    "parent": null,
    "bbox": [
-    150,
+    33,
     20,
-    300,
-    70
+    262,
+    90
    ],
    "kind": "chip",
    "text": [
@@ -178,7 +182,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 6,
@@ -238,8 +243,8 @@
    "id": 8,
    "parent": null,
    "bbox": [
-    112,
-    150,
+    120,
+    152,
     1120,
     164
    ],
@@ -260,7 +265,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 9,
@@ -540,8 +546,8 @@
    "id": 19,
    "parent": null,
    "bbox": [
-    1290,
-    1140,
+    1339,
+    1142,
     150,
     130
    ],
@@ -561,14 +567,15 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "附件 1"
+   "note": "附件 1",
+   "edited_by": "human"
   },
   {
    "id": 20,
    "parent": null,
    "bbox": [
-    1450,
-    1140,
+    1489,
+    1146,
     150,
     130
    ],
@@ -588,14 +595,15 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "附件 2"
+   "note": "附件 2",
+   "edited_by": "human"
   },
   {
    "id": 21,
    "parent": null,
    "bbox": [
-    2160,
-    1330,
+    2127,
+    1314,
     300,
     90
    ],
@@ -614,7 +622,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 22,
@@ -647,10 +656,10 @@
    "id": 23,
    "parent": null,
    "bbox": [
-    200,
-    1330,
-    300,
-    90
+    148,
+    1314,
+    327,
+    80
    ],
    "kind": "button",
    "text": [
@@ -669,16 +678,17 @@
     ],
     "cut_by": "hud",
     "px": 20
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 24,
    "parent": null,
    "bbox": [
-    540,
-    1330,
-    300,
-    90
+    515,
+    1307,
+    339,
+    92
    ],
    "kind": "button",
    "text": [
@@ -695,7 +705,180 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
+  },
+  {
+   "id": "h1",
+   "parent": null,
+   "bbox": [
+    2003,
+    31,
+    375,
+    63
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h2",
+   "parent": null,
+   "bbox": [
+    2292,
+    36,
+    74,
+    63
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h3",
+   "parent": null,
+   "bbox": [
+    301,
+    159,
+    242,
+    140
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h4",
+   "parent": null,
+   "bbox": [
+    158,
+    175,
+    129,
+    113
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h5",
+   "parent": null,
+   "bbox": [
+    1180,
+    177,
+    59,
+    64
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h6",
+   "parent": null,
+   "bbox": [
+    1274,
+    349,
+    1212,
+    477
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h7",
+   "parent": null,
+   "bbox": [
+    309,
+    244,
+    39,
+    39
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h8",
+   "parent": null,
+   "bbox": [
+    1044,
+    170,
+    199,
+    119
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h9",
+   "parent": null,
+   "bbox": [
+    2,
+    1317,
+    440,
+    94
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h10",
+   "parent": null,
+   "bbox": [
+    2236,
+    1403,
+    252,
+    33
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  }
+ ],
+ "_human_edits": [
+  {
+   "at": "2026-10-18T17:47:13.972Z",
+   "patch": "patch-truth-v5-1792345633972.json",
+   "deleted": [],
+   "updated": [
+    "0",
+    "1",
+    "19",
+    "2",
+    "20",
+    "21",
+    "23",
+    "24",
+    "4",
+    "5",
+    "8"
+   ],
+   "added": [
+    "+01",
+    "+02",
+    "+03",
+    "+04",
+    "+05",
+    "+06",
+    "+07",
+    "+08",
+    "+09",
+    "+10"
+   ]
   }
  ]
 }

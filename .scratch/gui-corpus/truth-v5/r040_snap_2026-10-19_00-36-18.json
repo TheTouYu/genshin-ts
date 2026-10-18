@@ -13,7 +13,7 @@
   "树列表",
   "属性面板"
  ],
- "units": 71,
+ "units": 70,
  "_provenance": {
   "family": "编辑器·物件元件",
   "method": "左树/属性面板行由 rows_from_ocr 聚类（逐行）；面板边界 edges.py",
@@ -1848,33 +1848,6 @@
     "cut_by": null,
     "px": 0
    }
-  },
-  {
-   "id": 70,
-   "parent": null,
-   "bbox": [
-    1330,
-    1372,
-    60,
-    52
-   ],
-   "kind": "button",
-   "text": [
-    "⤓"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "保存"
   }
  ]
 }

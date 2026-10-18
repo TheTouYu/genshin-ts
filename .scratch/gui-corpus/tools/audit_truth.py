@@ -77,6 +77,7 @@ def main():
     ap.add_argument("--min-cover", type=float, default=0.6,
                     help="文本被真值框覆盖的比例低于该值即算疑似漏标")
     ap.add_argument("--json-out", default="")
+    ap.add_argument("--ignore-title", action="store_true", help="标题不计入未覆盖（rules 里明确不算单元）")
     args = ap.parse_args()
 
     rows = []
@@ -104,11 +105,14 @@ def main():
         # 帧尺寸：OCR 里存在**越界框**（实测 x1 可到 4572 > 2560），那是 OCR 自身的坏框，
         # 不该算进"漏标"；只统计落在帧内的文本框。
         W, H = (td.get("size") or [2560, 1440])[:2]
+        TITLE = re.compile(r'^(设置[／/]|活动一览$|控制$|镜头$|图像$|声音$|按键$|语言$|账户$|资源$|其他$|邮件珍藏盒$|好友$|背包$|任务$|说明$|详情$)')
         HUD = re.compile(r'^(DXVK|FPS|GPU|min:|max:|UID|ms|fps|i9|\d+(\.\d+)?(\s*(ms|fps|%))?$|'
                          r'[|<>=×✓·:%0-9. \-–—]{1,6}$)')
         uncovered = []
         for t in texts:
             txt = (t.get("text") or "").strip()
+            if args.ignore_title and TITLE.match(txt):
+                continue
             if not txt or HUD.match(txt):
                 continue  # 宿主 HUD / 纯符号不计单元（truth/_rules.md 口径）
             tb = box_of(t)

@@ -12,7 +12,7 @@
   "桌面编辑器",
   "树列表"
  ],
- "units": 34,
+ "units": 33,
  "_provenance": {
   "family": "编辑器·关卡设置（Lead 标注一致）",
   "rules_applied": {
@@ -57,32 +57,6 @@
     "px": 0
    },
    "note": "标签栏"
-  },
-  {
-   "id": 1,
-   "parent": null,
-   "bbox": [
-    285,
-    2,
-    400,
-    52
-   ],
-   "kind": "chip",
-   "text": [
-    "关卡设置 ×"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
   },
   {
    "id": 2,
