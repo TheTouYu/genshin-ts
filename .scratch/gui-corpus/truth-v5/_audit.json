@@ -7,6 +7,56 @@
   "samples": []
  },
  {
+  "frame": "r008_snap_2026-10-19_00-23-27",
+  "ocr": 44,
+  "units": 16,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r016_snap_2026-10-19_00-24-17",
+  "ocr": 28,
+  "units": 18,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r019_snap_2026-10-19_00-24-44",
+  "ocr": 52,
+  "units": 47,
+  "uncovered": 1,
+  "samples": [
+   {
+    "text": "口",
+    "bbox": [
+     65,
+     682,
+     205,
+     1439
+    ],
+    "cover": 0.16
+   }
+  ]
+ },
+ {
+  "frame": "r021_snap_2026-10-19_00-24-58",
+  "ocr": 47,
+  "units": 32,
+  "uncovered": 1,
+  "samples": [
+   {
+    "text": "口",
+    "bbox": [
+     68,
+     685,
+     207,
+     1441
+    ],
+    "cover": 0.45
+   }
+  ]
+ },
+ {
   "frame": "r032_snap_2026-10-19_00-30-42",
   "ocr": 98,
   "units": 69,
@@ -54,5 +104,33 @@
   "units": 31,
   "uncovered": 0,
   "samples": []
+ },
+ {
+  "frame": "r047_snap_2026-10-19_00-39-53",
+  "ocr": 41,
+  "units": 20,
+  "uncovered": 2,
+  "samples": [
+   {
+    "text": "v3.",
+    "bbox": [
+     59,
+     10,
+     159,
+     38
+    ],
+    "cover": 0.0
+   },
+   {
+    "text": "可",
+    "bbox": [
+     178,
+     9,
+     398,
+     48
+    ],
+    "cover": 0.51
+   }
+  ]
  }
 ]

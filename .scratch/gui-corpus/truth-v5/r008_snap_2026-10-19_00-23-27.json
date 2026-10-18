@@ -1,0 +1,452 @@
+{
+ "frame": "r008_snap_2026-10-19_00-23-27",
+ "image": ".scratch/gui-corpus/inbox/norm/r008_snap_2026-10-19_00-23-27.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 逐行标注（OCR 行聚类枚举 + edges.py 量边，未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md + 本批收紧（标题/字段行也成单元）",
+ "layout": "任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览",
+ "classes": [
+  "列表+详情",
+  "分区标题"
+ ],
+ "units": 16,
+ "_provenance": {
+  "family": "任务（传说/委托/世界）",
+  "method": "分区标题与任务行的 y 全由 rows_from_ocr 逐行聚类（149/225/270/356/397/491/557/…/1241）",
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；ys-screen 仅事后对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "任务行高度按\"名称+距离\"两行合成一框（±10px）",
+   "右侧详情面板内容未逐行 OCR（本帧 OCR 未覆盖）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2400,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "任务"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2400,
+    20,
+    120,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    120,
+    120,
+    800,
+    1260
+   ],
+   "kind": "panel",
+   "text": [
+    "任务列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧任务列表面板"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    240,
+    140,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "传说任务"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    240,
+    482,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "委托任务"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    240,
+    1023,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "世界任务"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    220,
+    215,
+    680,
+    125
+   ],
+   "kind": "row",
+   "text": [
+    "名为故事的魔法",
+    "赤龙之章第一幕"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    220,
+    345,
+    680,
+    95
+   ],
+   "kind": "row",
+   "text": [
+    "星空降下的启示",
+    "10607m"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    220,
+    545,
+    680,
+    95
+   ],
+   "kind": "row",
+   "text": [
+    "盗亦无道",
+    "6123m"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    220,
+    665,
+    680,
+    95
+   ],
+   "kind": "row",
+   "text": [
+    "攀高危险",
+    "6706m"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    220,
+    785,
+    680,
+    95
+   ],
+   "kind": "row",
+   "text": [
+    "正中靶心！",
+    "6098m"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    220,
+    905,
+    680,
+    95
+   ],
+   "kind": "row",
+   "text": [
+    "月流奔引",
+    "6485m"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    220,
+    1100,
+    680,
+    90
+   ],
+   "kind": "row",
+   "text": [
+    "风仙亦是仙，古剑通幽玄!"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    220,
+    1230,
+    680,
+    90
+   ],
+   "kind": "row",
+   "text": [
+    "胜过白银与精全"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    980,
+    120,
+    1500,
+    1260
+   ],
+   "kind": "panel",
+   "text": [
+    "任务详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧任务详情面板"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    320,
+    1327,
+    400,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "任务总览"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}
