@@ -1,0 +1,18 @@
+{
+ "file": "crops/pause-buttons.png",
+ "model": "PaddleOCR-VL-1.6",
+ "job_id": "104875680140681216",
+ "submit_secs": 0.4,
+ "total_secs": 5.91,
+ "states": [
+  [
+   "running",
+   0.58
+  ],
+  [
+   "done",
+   5.91
+  ]
+ ],
+ "pages": 1
+}

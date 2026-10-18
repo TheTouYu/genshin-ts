@@ -1,0 +1,18 @@
+{
+ "file": "crops/settle2-leave.png",
+ "model": "PaddleOCR-VL-1.6",
+ "job_id": "104875710283587584",
+ "submit_secs": 0.86,
+ "total_secs": 6.48,
+ "states": [
+  [
+   "pending",
+   1.05
+  ],
+  [
+   "done",
+   6.48
+  ]
+ ],
+ "pages": 1
+}

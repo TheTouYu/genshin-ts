@@ -1,0 +1,63 @@
+[pause-buttons.png] job=104875680140681216 submit=0.40s
+[pause-buttons.png] done in 5.9s pages=1
+[settle2-leave.png] job=104875710283587584 submit=0.86s
+[settle2-leave.png] done in 6.5s pages=1
+[pause-abort-tpl.png] job=104875738089185280 submit=0.45s
+[pause-abort-tpl.png] done in 6.5s pages=1
+[ERR] file not found: ../tools/ys-editor/calib/regress/menu.png
+[
+ {
+  "file": "crops/pause-buttons.png",
+  "model": "PaddleOCR-VL-1.6",
+  "job_id": "104875680140681216",
+  "submit_secs": 0.4,
+  "total_secs": 5.91,
+  "states": [
+   [
+    "running",
+    0.58
+   ],
+   [
+    "done",
+    5.91
+   ]
+  ],
+  "pages": 1
+ },
+ {
+  "file": "crops/settle2-leave.png",
+  "model": "PaddleOCR-VL-1.6",
+  "job_id": "104875710283587584",
+  "submit_secs": 0.86,
+  "total_secs": 6.48,
+  "states": [
+   [
+    "pending",
+    1.05
+   ],
+   [
+    "done",
+    6.48
+   ]
+  ],
+  "pages": 1
+ },
+ {
+  "file": "crops/pause-abort-tpl.png",
+  "model": "PaddleOCR-VL-1.6",
+  "job_id": "104875738089185280",
+  "submit_secs": 0.45,
+  "total_secs": 6.53,
+  "states": [
+   [
+    "running",
+    1.05
+   ],
+   [
+    "done",
+    6.53
+   ]
+  ],
+  "pages": 1
+ }
+]

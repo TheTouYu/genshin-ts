@@ -1,0 +1,53 @@
+[
+ {
+  "case": "pause-buttons",
+  "total_secs": 5.91,
+  "submit_secs": 0.4,
+  "raw_chars": 12,
+  "labels": {
+   "继续挑战": {
+    "char_acc": 1.0,
+    "exact_substr": true
+   },
+   "重新挑战": {
+    "char_acc": 1.0,
+    "exact_substr": true
+   },
+   "中断挑战": {
+    "char_acc": 1.0,
+    "exact_substr": true
+   }
+  }
+ },
+ {
+  "case": "settle2-leave",
+  "total_secs": 6.48,
+  "submit_secs": 0.86,
+  "raw_chars": 8,
+  "labels": {
+   "离开": {
+    "char_acc": 1.0,
+    "exact_substr": true
+   }
+  }
+ },
+ {
+  "case": "pause-abort-tpl",
+  "total_secs": 6.53,
+  "submit_secs": 0.45,
+  "raw_chars": 6,
+  "labels": {
+   "中断挑战": {
+    "char_acc": 1.0,
+    "exact_substr": true
+   }
+  }
+ },
+ {
+  "case": "menu-fullframe",
+  "total_secs": 2.1,
+  "submit_secs": 1.91,
+  "raw_chars": 3734,
+  "markdown_preview": "<divstyle=\"text-align:center;\"><imgsrc=\"imgs/img_in_image_box_2_7_143_53.jpg\"alt=\"Image\"width=\"5%\"/></div><divstyle=\"text-align:center;\"><imgsrc=\"imgs/img_in_image_box_182_12_222_40.jpg\"alt=\"Image\"width=\"1%\"/></div>界面控件组管理$\\times$资产导入导出管理$\\times$PU:46%<divstyle=\"text-align:center;\"><imgsrc=\"imgs/img_in_image_box_22_84_61_119.jpg\"alt=\"Image\"width=\"1%\"/></div>输入探针v2<divstyle=\"text-align:center;\"><im"
+ }
+]

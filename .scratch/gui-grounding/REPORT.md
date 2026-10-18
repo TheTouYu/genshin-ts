@@ -51,6 +51,21 @@
 
 - **结论：文本锚可行，选 RapidOCR**（同族 PP-OCR 模型的 ONNX 版，离线 CPU、无版本坑）；tesseract chi_sim 不可用（与用户已知"中文差"一致，本次给了定量）；paddle CPU 版本雷区 3.0.0✗/3.2.0✓/3.3.1✗。
 
+### 实验 C2：PaddleOCR-VL-1.6 云端 API（2026-10-17 追加；资产=paddle_vl_client.py，结果=results/expC2_paddle_vl.json）
+
+同一组裁区直传 aistudio-app.com（用户 token；走本机代理；判据与 expC 相同——逐标签字符正确率+精确子串）：
+
+| 项 | PaddleOCR-VL-1.6 云端 | 对照本地最强（RapidOCR） |
+|---|---|---|
+| pause 三按钮 | **3/3 标签 100% 精确** | 3/3 100% |
+| settle2「离开」 | 100% 精确 | 100% |
+| 300×56 小图 | **100% 精确（中断挑战 4/4 字）** | 75%（中断挑） |
+| 全帧 2560×1440 | **2.1s 读出 3734 字**（menu 帧内容自洽：试玩×2/存档/界面控件组管理…） | 全帧未测 |
+| 时延 | submit<1s；裁区 5.9~6.5s（含 5s 轮询粒度，真实推理≈1~2s）；异步 job API | 0.65~0.73s 本地常驻 |
+
+- 判定：**云端 VL = 精度上限**（本地两类痛点小图/全帧全解），但每图出网+秒级往返，不进 6~11FPS 态判据主通道；定位=**低频重标定/疑难帧兜底/全帧文本快照**。端点无模型列表（错名一律 `10007 模型传参错误`）。
+- 坑（已修进资产）：结果 jsonl 的内嵌图片在 pplines-online.bj.bcebos.com，过本机代理 TLS 报 `WRONG_VERSION_NUMBER`——图片下载已降级为告警不影响文字；隐私注意：图片上传百度云。
+
 ## 调研（全部 curl 实抓，原始件在 research/github_raw/、research/papers_arxiv.txt）
 
 GitHub（stars/pushed 为 api.github.com 实测值）：
@@ -90,6 +105,8 @@ python3 pick_templates.py        # 121 对定位, 165s → research/template_loc
 python3 expA_template_matching.py  # → results/expA.json (+crops/ 变换帧) ~11min
 python3 expB_anchor_map.py       # → results/expB.json ~35s
 python3 expC_ocr_bench.py        # → results/expC.json ~8s (tesseract+rapidocr)
+python3 paddle_vl_client.py crops/pause-buttons.png   # 云端 VL 资产（多文件, -o outdir, PADDLE_VL_TOKEN 可覆盖）
+python3 expC2_score.py           # → results/expC2_paddle_vl.json（云端结果打分）
 ./venv-paddle/bin/python -c "from paddleocr import PaddleOCR; ..."  # paddle 3.2.0 冒烟
 python3 analyze_results.py       # → results/summary.md + viz/*.png
 ```

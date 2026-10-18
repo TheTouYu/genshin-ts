@@ -1,0 +1,14 @@
+{
+ "file": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+ "model": "PaddleOCR-VL-1.6",
+ "job_id": "104875969340153856",
+ "submit_secs": 1.91,
+ "total_secs": 2.1,
+ "states": [
+  [
+   "done",
+   2.1
+  ]
+ ],
+ "pages": 1
+}

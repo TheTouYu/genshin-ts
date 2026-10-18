@@ -1,0 +1,10 @@
+# PaddleOCR-VL native(paddle inference) 后端在 6GB 卡的定量结论（2026-10-17）
+环境: RTX 3060 Laptop 6144MiB, 驱动 615.78.08/CUDA 13.4, venv-vl(paddlepaddle-gpu 3.2.0 cu126 + paddleocr[doc-parser] 3.7.0)
+GPU 常驻: kwin 7MiB + YuanShen.exe 998MiB + ZFGameBrowser 67MiB（用户进程，不可动）
+ys_lookd 旧实例泄漏 CUDA 上下文 1404MiB → systemctl --user restart ys-lookd 回收（新实例不再占 GPU）
+两次实测均: ResourceExhaustedError ... 5.714GB allocated, 差 4~19MiB
+  - run1(free 3653MiB): Cannot allocate 4.000000MB, allocated 5.714722GB
+  - run2(free 4692MiB + FLAGS_fraction_of_gpu_memory_to_use=0.7): Cannot allocate 18.9MB, allocated 5.711670GB（旗子未生效/模型本体需求）
+结论: native 后端 fp32 需求 ≈5.72GB，6GB 卡在 1.07GB 常驻下装不下；fraction 旗子压不住；
+  PaddleOCRVL(pipeline 层) 无 precision/dtype 参数，backends/ 只有 vllm/sglang/fastdeploy 三引擎实现
+出路: vllm-server 后端 bf16（官方支持的本地部署路线，权重 ~1.9GB）

@@ -1,0 +1,18 @@
+{
+ "file": "crops/pause-abort-tpl.png",
+ "model": "PaddleOCR-VL-1.6",
+ "job_id": "104875738089185280",
+ "submit_secs": 0.45,
+ "total_secs": 6.53,
+ "states": [
+  [
+   "running",
+   1.05
+  ],
+  [
+   "done",
+   6.53
+  ]
+ ],
+ "pages": 1
+}

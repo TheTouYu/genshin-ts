@@ -15,7 +15,7 @@
    ],
    "s1_score": 0.5215,
    "s1_err": 246.9,
-   "s1_secs": 1.194,
+   "s1_secs": 0.036,
    "ms_score": 0.9775,
    "ms_pos": [
     459.0,
@@ -23,7 +23,7 @@
    ],
    "ms_err": 0.6,
    "ms_factor": 0.75,
-   "ms_secs": 6.743
+   "ms_secs": 0.176
   },
   {
    "base": "menu.png",
@@ -40,7 +40,7 @@
    ],
    "s1_score": 0.6896,
    "s1_err": 463.0,
-   "s1_secs": 0.918,
+   "s1_secs": 0.035,
    "ms_score": 0.9794,
    "ms_pos": [
     352.0,
@@ -48,7 +48,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 5.899
+   "ms_secs": 0.161
   },
   {
    "base": "menu.png",
@@ -65,7 +65,7 @@
    ],
    "s1_score": 0.7767,
    "s1_err": 5.9,
-   "s1_secs": 1.355,
+   "s1_secs": 0.03,
    "ms_score": 0.9389,
    "ms_pos": [
     294.5,
@@ -73,7 +73,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 0.875,
-   "ms_secs": 7.368
+   "ms_secs": 0.147
   },
   {
    "base": "menu.png",
@@ -90,7 +90,7 @@
    ],
    "s1_score": 0.842,
    "s1_err": 1.4,
-   "s1_secs": 1.114,
+   "s1_secs": 0.032,
    "ms_score": 0.9817,
    "ms_pos": [
     165.5,
@@ -98,7 +98,7 @@
    ],
    "ms_err": 0.3,
    "ms_factor": 0.875,
-   "ms_secs": 6.237
+   "ms_secs": 0.145
   },
   {
    "base": "menu.png",
@@ -115,7 +115,7 @@
    ],
    "s1_score": 0.798,
    "s1_err": 367.0,
-   "s1_secs": 1.149,
+   "s1_secs": 0.035,
    "ms_score": 0.9562,
    "ms_pos": [
     75.5,
@@ -123,7 +123,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 1.125,
-   "ms_secs": 6.544
+   "ms_secs": 0.167
   },
   {
    "base": "menu.png",
@@ -140,7 +140,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.133,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     249.0,
@@ -148,7 +148,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.439
+   "ms_secs": 0.147
   },
   {
    "base": "menu.png",
@@ -165,7 +165,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.87,
+   "s1_secs": 0.032,
    "ms_score": 1.0,
    "ms_pos": [
     106.0,
@@ -173,7 +173,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.619
+   "ms_secs": 0.145
   },
   {
    "base": "menu.png",
@@ -190,7 +190,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.136,
+   "s1_secs": 0.032,
    "ms_score": 1.0,
    "ms_pos": [
     121.0,
@@ -198,7 +198,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.408
+   "ms_secs": 0.144
   },
   {
    "base": "menu.png",
@@ -215,7 +215,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.13,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     185.0,
@@ -223,7 +223,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.5
+   "ms_secs": 0.151
   },
   {
    "base": "menu.png",
@@ -240,7 +240,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.884,
+   "s1_secs": 0.035,
    "ms_score": 1.0,
    "ms_pos": [
     42.0,
@@ -248,7 +248,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.683
+   "ms_secs": 0.147
   },
   {
    "base": "menu.png",
@@ -265,7 +265,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.214,
+   "s1_secs": 0.03,
    "ms_score": 1.0,
    "ms_pos": [
     185.0,
@@ -273,7 +273,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 7.22
+   "ms_secs": 0.149
   },
   {
    "base": "menu.png",
@@ -290,7 +290,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.956,
+   "s1_secs": 0.034,
    "ms_score": 1.0,
    "ms_pos": [
     42.0,
@@ -298,7 +298,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.609
+   "ms_secs": 0.146
   },
   {
    "base": "menu.png",
@@ -313,17 +313,17 @@
     185.0,
     390.0
    ],
-   "s1_score": 0.9998,
+   "s1_score": 0.9997,
    "s1_err": 0.0,
-   "s1_secs": 1.12,
-   "ms_score": 0.9998,
+   "s1_secs": 0.031,
+   "ms_score": 0.9997,
    "ms_pos": [
     185.0,
     390.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.848
+   "ms_secs": 0.153
   },
   {
    "base": "menu.png",
@@ -340,7 +340,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.93,
+   "s1_secs": 0.033,
    "ms_score": 1.0,
    "ms_pos": [
     42.0,
@@ -348,7 +348,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.992
+   "ms_secs": 0.148
   },
   {
    "base": "menu.png",
@@ -365,7 +365,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.273,
+   "s1_secs": 0.03,
    "ms_score": 1.0,
    "ms_pos": [
     185.0,
@@ -373,7 +373,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 7.326
+   "ms_secs": 0.149
   },
   {
    "base": "menu.png",
@@ -390,7 +390,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.987,
+   "s1_secs": 0.032,
    "ms_score": 1.0,
    "ms_pos": [
     42.0,
@@ -398,7 +398,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.317
+   "ms_secs": 0.141
   },
   {
    "base": "menu.png",
@@ -415,7 +415,7 @@
    ],
    "s1_score": 0.5215,
    "s1_err": 246.9,
-   "s1_secs": 1.199,
+   "s1_secs": 0.03,
    "ms_score": 0.9774,
    "ms_pos": [
     395.0,
@@ -423,7 +423,7 @@
    ],
    "ms_err": 0.6,
    "ms_factor": 0.75,
-   "ms_secs": 6.804
+   "ms_secs": 0.15
   },
   {
    "base": "menu.png",
@@ -438,9 +438,9 @@
     446.0,
     747.0
    ],
-   "s1_score": 0.6897,
+   "s1_score": 0.6896,
    "s1_err": 463.0,
-   "s1_secs": 0.947,
+   "s1_secs": 0.032,
    "ms_score": 0.9794,
    "ms_pos": [
     288.0,
@@ -448,7 +448,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 5.925
+   "ms_secs": 0.145
   },
   {
    "base": "menu.png",
@@ -507,7 +507,7 @@
     1286.0,
     907.0
    ],
-   "s1_score": 0.3357,
+   "s1_score": 0.3359,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -551,7 +551,7 @@
     1193.0,
     673.0
    ],
-   "s1_score": 0.2852,
+   "s1_score": 0.2853,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -617,7 +617,7 @@
     2264.0,
     1360.0
    ],
-   "s1_score": 0.2387,
+   "s1_score": 0.2385,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -661,7 +661,7 @@
     2305.0,
     1350.0
    ],
-   "s1_score": 0.3115,
+   "s1_score": 0.3114,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -768,10 +768,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1205.0,
-    709.0
+    1206.0,
+    710.0
    ],
-   "s1_score": 0.5164,
+   "s1_score": 0.516,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -790,10 +790,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    2075.0,
-    1361.0
+    1686.0,
+    380.0
    ],
-   "s1_score": 0.7798,
+   "s1_score": 0.7068,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -812,10 +812,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    2434.0,
-    1343.0
+    2422.0,
+    1342.0
    ],
-   "s1_score": 0.9371,
+   "s1_score": 0.6846,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -856,10 +856,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    2193.0,
-    1343.0
+    2183.0,
+    1342.0
    ],
-   "s1_score": 0.7251,
+   "s1_score": 0.5892,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -878,10 +878,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1761.0,
-    1339.0
+    2423.0,
+    1343.0
    ],
-   "s1_score": 0.7496,
+   "s1_score": 0.7346,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -905,15 +905,15 @@
    ],
    "s1_score": 0.7595,
    "s1_err": 1016.6,
-   "s1_secs": 0.897,
-   "ms_score": 0.9855,
+   "s1_secs": 0.042,
+   "ms_score": 0.9856,
    "ms_pos": [
     1273.0,
     822.0
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 5.988
+   "ms_secs": 0.307
   },
   {
    "base": "pause.png",
@@ -930,15 +930,15 @@
    ],
    "s1_score": 0.9549,
    "s1_err": 14.8,
-   "s1_secs": 0.84,
+   "s1_secs": 0.026,
    "ms_score": 0.9997,
    "ms_pos": [
-    1273.0,
+    1272.0,
     651.0
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 6.184
+   "ms_secs": 0.136
   },
   {
    "base": "pause.png",
@@ -955,15 +955,15 @@
    ],
    "s1_score": 0.9948,
    "s1_err": 5.7,
-   "s1_secs": 0.861,
-   "ms_score": 0.9979,
+   "s1_secs": 0.027,
+   "ms_score": 0.9978,
    "ms_pos": [
     1271.5,
     636.5
    ],
    "ms_err": 0.9,
    "ms_factor": 0.875,
-   "ms_secs": 6.353
+   "ms_secs": 0.14
   },
   {
    "base": "pause.png",
@@ -978,17 +978,17 @@
     1274.0,
     616.0
    ],
-   "s1_score": 0.9893,
+   "s1_score": 0.9892,
    "s1_err": 5.7,
-   "s1_secs": 1.009,
-   "ms_score": 0.9994,
+   "s1_secs": 0.027,
+   "ms_score": 0.9993,
    "ms_pos": [
     1268.5,
     619.5
    ],
    "ms_err": 0.9,
    "ms_factor": 1.125,
-   "ms_secs": 6.625
+   "ms_secs": 0.141
   },
   {
    "base": "pause.png",
@@ -1003,9 +1003,9 @@
     1262.0,
     686.0
    ],
-   "s1_score": 0.7818,
+   "s1_score": 0.7819,
    "s1_err": 204.1,
-   "s1_secs": 0.929,
+   "s1_secs": 0.028,
    "ms_score": 0.9943,
    "ms_pos": [
     1267.0,
@@ -1013,7 +1013,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 1.25,
-   "ms_secs": 6.557
+   "ms_secs": 0.14
   },
   {
    "base": "pause.png",
@@ -1028,17 +1028,17 @@
     1280.0,
     599.0
    ],
-   "s1_score": 0.9602,
+   "s1_score": 0.9605,
    "s1_err": 13.9,
-   "s1_secs": 0.868,
-   "ms_score": 1.0,
+   "s1_secs": 0.029,
+   "ms_score": 0.9999,
    "ms_pos": [
     1268.0,
     605.0
    ],
    "ms_err": 0.5,
    "ms_factor": 1.25,
-   "ms_secs": 6.074
+   "ms_secs": 0.138
   },
   {
    "base": "pause.png",
@@ -1055,7 +1055,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.804,
+   "s1_secs": 0.027,
    "ms_score": 1.0,
    "ms_pos": [
     1334.0,
@@ -1063,7 +1063,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.087
+   "ms_secs": 0.142
   },
   {
    "base": "pause.png",
@@ -1078,17 +1078,17 @@
     1334.0,
     628.0
    ],
-   "s1_score": 0.9999,
+   "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.863,
-   "ms_score": 0.9999,
+   "s1_secs": 0.028,
+   "ms_score": 1.0,
    "ms_pos": [
     1334.0,
     628.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.153
+   "ms_secs": 0.144
   },
   {
    "base": "pause.png",
@@ -1105,7 +1105,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.886,
+   "s1_secs": 0.027,
    "ms_score": 1.0,
    "ms_pos": [
     1206.0,
@@ -1113,7 +1113,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.213
+   "ms_secs": 0.139
   },
   {
    "base": "pause.png",
@@ -1128,17 +1128,17 @@
     1206.0,
     628.0
    ],
-   "s1_score": 0.9999,
+   "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.871,
-   "ms_score": 0.9999,
+   "s1_secs": 0.029,
+   "ms_score": 1.0,
    "ms_pos": [
     1206.0,
     628.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.261
+   "ms_secs": 0.141
   },
   {
    "base": "pause.png",
@@ -1155,7 +1155,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.882,
+   "s1_secs": 0.028,
    "ms_score": 1.0,
    "ms_pos": [
     1270.0,
@@ -1163,7 +1163,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.146
+   "ms_secs": 0.148
   },
   {
    "base": "pause.png",
@@ -1178,17 +1178,17 @@
     1270.0,
     692.0
    ],
-   "s1_score": 0.9999,
+   "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.849,
-   "ms_score": 0.9999,
+   "s1_secs": 0.031,
+   "ms_score": 1.0,
    "ms_pos": [
     1270.0,
     692.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.019
+   "ms_secs": 0.142
   },
   {
    "base": "pause.png",
@@ -1205,7 +1205,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.845,
+   "s1_secs": 0.029,
    "ms_score": 1.0,
    "ms_pos": [
     1270.0,
@@ -1213,7 +1213,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.045
+   "ms_secs": 0.14
   },
   {
    "base": "pause.png",
@@ -1230,7 +1230,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.845,
+   "s1_secs": 0.029,
    "ms_score": 1.0,
    "ms_pos": [
     1270.0,
@@ -1238,7 +1238,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.96
+   "ms_secs": 0.138
   },
   {
    "base": "pause.png",
@@ -1253,17 +1253,17 @@
     1270.0,
     856.0
    ],
-   "s1_score": 0.9997,
+   "s1_score": 0.9998,
    "s1_err": 0.0,
-   "s1_secs": 0.964,
-   "ms_score": 0.9997,
+   "s1_secs": 0.028,
+   "ms_score": 0.9998,
    "ms_pos": [
     1270.0,
     856.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.252
+   "ms_secs": 0.142
   },
   {
    "base": "pause.png",
@@ -1278,17 +1278,17 @@
     1270.0,
     628.0
    ],
-   "s1_score": 0.9997,
+   "s1_score": 0.9998,
    "s1_err": 0.0,
-   "s1_secs": 0.822,
-   "ms_score": 0.9997,
+   "s1_secs": 0.028,
+   "ms_score": 0.9998,
    "ms_pos": [
     1270.0,
     628.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.062
+   "ms_secs": 0.142
   },
   {
    "base": "pause.png",
@@ -1303,17 +1303,17 @@
     1270.0,
     856.0
    ],
-   "s1_score": 0.9999,
+   "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.829,
-   "ms_score": 0.9999,
+   "s1_secs": 0.027,
+   "ms_score": 1.0,
    "ms_pos": [
     1270.0,
     856.0
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.235
+   "ms_secs": 0.138
   },
   {
    "base": "pause.png",
@@ -1330,7 +1330,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 0.911,
+   "s1_secs": 0.027,
    "ms_score": 1.0,
    "ms_pos": [
     1270.0,
@@ -1338,7 +1338,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.376
+   "ms_secs": 0.14
   },
   {
    "base": "pause.png",
@@ -1355,15 +1355,15 @@
    ],
    "s1_score": 0.7808,
    "s1_err": 204.1,
-   "s1_secs": 0.89,
-   "ms_score": 0.9941,
+   "s1_secs": 0.029,
+   "ms_score": 0.994,
    "ms_pos": [
     1331.0,
     890.0
    ],
    "ms_err": 0.5,
    "ms_factor": 1.25,
-   "ms_secs": 5.837
+   "ms_secs": 0.145
   },
   {
    "base": "pause.png",
@@ -1378,17 +1378,17 @@
     1344.0,
     599.0
    ],
-   "s1_score": 0.9622,
+   "s1_score": 0.9623,
    "s1_err": 13.9,
-   "s1_secs": 0.825,
-   "ms_score": 0.9999,
+   "s1_secs": 0.028,
+   "ms_score": 0.9998,
    "ms_pos": [
-    1332.0,
+    1331.0,
     605.0
    ],
    "ms_err": 0.5,
    "ms_factor": 1.25,
-   "ms_secs": 5.878
+   "ms_secs": 0.141
   },
   {
    "base": "pause.png",
@@ -1405,7 +1405,7 @@
    ],
    "s1_score": 0.7595,
    "s1_err": 1016.6,
-   "s1_secs": 0.809,
+   "s1_secs": 0.028,
    "ms_score": 0.9856,
    "ms_pos": [
     1209.0,
@@ -1413,7 +1413,7 @@
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 5.796
+   "ms_secs": 0.137
   },
   {
    "base": "pause.png",
@@ -1430,15 +1430,15 @@
    ],
    "s1_score": 0.9549,
    "s1_err": 14.8,
-   "s1_secs": 0.804,
-   "ms_score": 0.9997,
+   "s1_secs": 0.029,
+   "ms_score": 0.9998,
    "ms_pos": [
-    1209.0,
+    1208.0,
     651.0
    ],
    "ms_err": 0.5,
    "ms_factor": 0.75,
-   "ms_secs": 5.823
+   "ms_secs": 0.14
   },
   {
    "base": "pause.png",
@@ -1450,10 +1450,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1248.0,
+    1262.0,
     1131.0
    ],
-   "s1_score": 0.6415,
+   "s1_score": 0.6417,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1475,7 +1475,7 @@
     472.0,
     155.0
    ],
-   "s1_score": 0.7046,
+   "s1_score": 0.7045,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1497,7 +1497,7 @@
     1297.0,
     880.0
    ],
-   "s1_score": 0.3672,
+   "s1_score": 0.3669,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1516,10 +1516,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    2030.0,
+    2029.0,
     239.0
    ],
-   "s1_score": 0.4094,
+   "s1_score": 0.4095,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1541,7 +1541,7 @@
     1351.0,
     722.0
    ],
-   "s1_score": 0.4058,
+   "s1_score": 0.4057,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1585,7 +1585,7 @@
     2281.0,
     1336.0
    ],
-   "s1_score": 0.785,
+   "s1_score": 0.7848,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1607,7 +1607,7 @@
     2281.0,
     1345.0
    ],
-   "s1_score": 0.4827,
+   "s1_score": 0.4829,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1629,7 +1629,7 @@
     2281.0,
     1336.0
    ],
-   "s1_score": 0.7698,
+   "s1_score": 0.77,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1651,7 +1651,7 @@
     2281.0,
     1336.0
    ],
-   "s1_score": 0.7611,
+   "s1_score": 0.7617,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1673,7 +1673,7 @@
     367.0,
     1388.0
    ],
-   "s1_score": 0.7388,
+   "s1_score": 0.7389,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1695,7 +1695,7 @@
     471.0,
     428.0
    ],
-   "s1_score": 0.9522,
+   "s1_score": 0.9521,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1717,7 +1717,7 @@
     1267.0,
     1381.0
    ],
-   "s1_score": 0.4762,
+   "s1_score": 0.4761,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1739,7 +1739,7 @@
     1458.0,
     767.0
    ],
-   "s1_score": 0.5653,
+   "s1_score": 0.5656,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1802,10 +1802,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1625.0,
+    1628.0,
     895.0
    ],
-   "s1_score": 0.7912,
+   "s1_score": 0.791,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1827,7 +1827,7 @@
     935.0,
     895.0
    ],
-   "s1_score": 0.8589,
+   "s1_score": 0.8588,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -1895,15 +1895,15 @@
    ],
    "s1_score": 0.4838,
    "s1_err": 636.8,
-   "s1_secs": 1.084,
-   "ms_score": 0.978,
+   "s1_secs": 0.033,
+   "ms_score": 0.9779,
    "ms_pos": [
     1496.0,
     325.0
    ],
    "ms_err": 0.2,
    "ms_factor": 0.75,
-   "ms_secs": 6.856
+   "ms_secs": 0.168
   },
   {
    "base": "savelist.png",
@@ -1920,15 +1920,15 @@
    ],
    "s1_score": 0.9347,
    "s1_err": 4.0,
-   "s1_secs": 1.195,
-   "ms_score": 0.9881,
+   "s1_secs": 0.035,
+   "ms_score": 0.9882,
    "ms_pos": [
     945.5,
     229.5
    ],
    "ms_err": 1.5,
    "ms_factor": 0.875,
-   "ms_secs": 6.093
+   "ms_secs": 0.251
   },
   {
    "base": "savelist.png",
@@ -1945,7 +1945,7 @@
    ],
    "s1_score": 0.6898,
    "s1_err": 564.8,
-   "s1_secs": 1.117,
+   "s1_secs": 0.03,
    "ms_score": 0.9357,
    "ms_pos": [
     1538.5,
@@ -1953,7 +1953,7 @@
    ],
    "ms_err": 0.8,
    "ms_factor": 0.875,
-   "ms_secs": 6.841
+   "ms_secs": 0.156
   },
   {
    "base": "savelist.png",
@@ -1970,7 +1970,7 @@
    ],
    "s1_score": 0.9341,
    "s1_err": 4.0,
-   "s1_secs": 1.215,
+   "s1_secs": 0.03,
    "ms_score": 0.9924,
    "ms_pos": [
     874.5,
@@ -1978,7 +1978,7 @@
    ],
    "ms_err": 1.5,
    "ms_factor": 1.125,
-   "ms_secs": 5.922
+   "ms_secs": 0.139
   },
   {
    "base": "savelist.png",
@@ -1995,7 +1995,7 @@
    ],
    "s1_score": 0.6999,
    "s1_err": 683.2,
-   "s1_secs": 1.019,
+   "s1_secs": 0.033,
    "ms_score": 0.9573,
    "ms_pos": [
     1597.5,
@@ -2003,7 +2003,7 @@
    ],
    "ms_err": 0.8,
    "ms_factor": 1.125,
-   "ms_secs": 6.584
+   "ms_secs": 0.153
   },
   {
    "base": "savelist.png",
@@ -2018,17 +2018,17 @@
     1035.0,
     1077.0
    ],
-   "s1_score": 0.5634,
+   "s1_score": 0.5633,
    "s1_err": 1182.3,
-   "s1_secs": 1.062,
-   "ms_score": 0.9912,
+   "s1_secs": 0.032,
+   "ms_score": 0.9911,
    "ms_pos": [
     1640.0,
     61.0
    ],
    "ms_err": 0.2,
    "ms_factor": 1.25,
-   "ms_secs": 6.61
+   "ms_secs": 0.149
   },
   {
    "base": "savelist.png",
@@ -2045,7 +2045,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.198,
+   "s1_secs": 0.033,
    "ms_score": 1.0,
    "ms_pos": [
     974.0,
@@ -2053,7 +2053,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.665
+   "ms_secs": 0.143
   },
   {
    "base": "savelist.png",
@@ -2070,7 +2070,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.034,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     1632.0,
@@ -2078,7 +2078,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.5
+   "ms_secs": 0.147
   },
   {
    "base": "savelist.png",
@@ -2095,7 +2095,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.146,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     846.0,
@@ -2103,7 +2103,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.594
+   "ms_secs": 0.144
   },
   {
    "base": "savelist.png",
@@ -2120,7 +2120,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.005,
+   "s1_secs": 0.034,
    "ms_score": 1.0,
    "ms_pos": [
     1504.0,
@@ -2128,7 +2128,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.603
+   "ms_secs": 0.153
   },
   {
    "base": "savelist.png",
@@ -2145,7 +2145,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.151,
+   "s1_secs": 0.03,
    "ms_score": 1.0,
    "ms_pos": [
     910.0,
@@ -2153,7 +2153,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.939
+   "ms_secs": 0.142
   },
   {
    "base": "savelist.png",
@@ -2170,7 +2170,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.072,
+   "s1_secs": 0.033,
    "ms_score": 1.0,
    "ms_pos": [
     1568.0,
@@ -2178,7 +2178,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.639
+   "ms_secs": 0.152
   },
   {
    "base": "savelist.png",
@@ -2195,7 +2195,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.144,
+   "s1_secs": 0.03,
    "ms_score": 1.0,
    "ms_pos": [
     910.0,
@@ -2203,7 +2203,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.674
+   "ms_secs": 0.142
   },
   {
    "base": "savelist.png",
@@ -2220,7 +2220,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.083,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     1568.0,
@@ -2228,7 +2228,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.722
+   "ms_secs": 0.152
   },
   {
    "base": "savelist.png",
@@ -2245,7 +2245,7 @@
    ],
    "s1_score": 0.9978,
    "s1_err": 0.0,
-   "s1_secs": 1.204,
+   "s1_secs": 0.031,
    "ms_score": 0.9978,
    "ms_pos": [
     910.0,
@@ -2253,7 +2253,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.828
+   "ms_secs": 0.143
   },
   {
    "base": "savelist.png",
@@ -2270,7 +2270,7 @@
    ],
    "s1_score": 0.9977,
    "s1_err": 0.0,
-   "s1_secs": 1.06,
+   "s1_secs": 0.033,
    "ms_score": 0.9977,
    "ms_pos": [
     1568.0,
@@ -2278,7 +2278,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.629
+   "ms_secs": 0.147
   },
   {
    "base": "savelist.png",
@@ -2295,7 +2295,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.178,
+   "s1_secs": 0.031,
    "ms_score": 1.0,
    "ms_pos": [
     910.0,
@@ -2303,7 +2303,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 5.842
+   "ms_secs": 0.147
   },
   {
    "base": "savelist.png",
@@ -2320,7 +2320,7 @@
    ],
    "s1_score": 1.0,
    "s1_err": 0.0,
-   "s1_secs": 1.062,
+   "s1_secs": 0.033,
    "ms_score": 1.0,
    "ms_pos": [
     1568.0,
@@ -2328,7 +2328,7 @@
    ],
    "ms_err": 0.0,
    "ms_factor": 1.0,
-   "ms_secs": 6.687
+   "ms_secs": 0.149
   },
   {
    "base": "savelist.png",
@@ -2343,9 +2343,9 @@
     1099.0,
     1077.0
    ],
-   "s1_score": 0.5634,
+   "s1_score": 0.5633,
    "s1_err": 1182.3,
-   "s1_secs": 1.116,
+   "s1_secs": 0.031,
    "ms_score": 0.9899,
    "ms_pos": [
     1704.0,
@@ -2353,7 +2353,7 @@
    ],
    "ms_err": 0.2,
    "ms_factor": 1.25,
-   "ms_secs": 6.579
+   "ms_secs": 0.15
   },
   {
    "base": "savelist.png",
@@ -2368,9 +2368,9 @@
     2059.0,
     436.0
    ],
-   "s1_score": 0.4839,
+   "s1_score": 0.4836,
    "s1_err": 636.8,
-   "s1_secs": 1.063,
+   "s1_secs": 0.031,
    "ms_score": 0.9779,
    "ms_pos": [
     1432.0,
@@ -2378,7 +2378,7 @@
    ],
    "ms_err": 0.2,
    "ms_factor": 0.75,
-   "ms_secs": 6.433
+   "ms_secs": 0.155
   },
   {
    "base": "savelist.png",
@@ -2393,7 +2393,7 @@
     224.0,
     144.0
    ],
-   "s1_score": 0.5846,
+   "s1_score": 0.5847,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2415,7 +2415,7 @@
     472.0,
     413.0
    ],
-   "s1_score": 0.6636,
+   "s1_score": 0.6637,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2481,7 +2481,7 @@
     485.0,
     807.0
    ],
-   "s1_score": 0.6459,
+   "s1_score": 0.6456,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2635,7 +2635,7 @@
     305.0,
     590.0
    ],
-   "s1_score": 0.4847,
+   "s1_score": 0.4848,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2723,7 +2723,7 @@
     229.0,
     167.0
    ],
-   "s1_score": 0.4547,
+   "s1_score": 0.4546,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2742,10 +2742,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1952.0,
-    1360.0
+    1224.0,
+    616.0
    ],
-   "s1_score": 0.6115,
+   "s1_score": 0.4655,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2767,7 +2767,7 @@
     1073.0,
     755.0
    ],
-   "s1_score": 0.4612,
+   "s1_score": 0.4613,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2786,10 +2786,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1951.0,
-    1364.0
+    1960.0,
+    1346.0
    ],
-   "s1_score": 0.6621,
+   "s1_score": 0.4872,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
@@ -2808,10 +2808,10 @@
    "ey": -1,
    "selfcheck": 1.0,
    "s1_pos": [
-    1943.0,
-    1377.0
+    1073.0,
+    755.0
    ],
-   "s1_score": 0.6208,
+   "s1_score": 0.4612,
    "s1_err": -1,
    "s1_secs": 0,
    "ms_score": null,
