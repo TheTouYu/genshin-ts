@@ -1,0 +1,100 @@
+syntax = "proto3";
+// Root.graph is singular in the game's canonical schema, but template-list
+// assets legally emit field 1 more than once.  Model it as repeated here so
+// protobufjs does not discard every template except the last one while reading.
+message Root { repeated GraphUnit graph = 1; repeated GraphUnit accessories = 2; string filePath = 3; optional uint32 modeFlag = 4; string gameVersion = 5; }
+message GraphUnit {
+  message Id { int32 class = 2; int32 type = 3; int32 id = 4; }
+  Id id = 1; repeated Id relatedIds = 2; string name = 3; int32 which = 5; UiControlGroup ui = 19;
+  ScriptMappingWrapper script = 35;
+}
+message ScriptMappingWrapper { ScriptMapping mapping = 1; }
+message ScriptMapping { uint32 id = 1; string name = 2; string file_path = 3; string source = 5; }
+message UiControlGroup {
+  ContentWrapper content = 1;
+  message ContentWrapper {
+    uint32 guid = 501; repeated Info info = 502; repeated uint32 children = 503; uint32 parent = 504; repeated Data data = 505;
+    message Info {
+      oneof value { WrapperGuid guid = 11; WrapperInt32 index = 12; WrapperGuidList related = 14; string empty15 = 15; string empty16 = 16; }
+      int32 field501 = 501; int32 field502 = 502; InfoDetails details = 503;
+    }
+    message InfoDetails { oneof value { string empty15 = 15; string empty17 = 17; } int32 field501 = 501; int32 field502 = 502; int32 field503 = 503; }
+    message Data {
+      oneof value {
+        Transform transform = 11; WrapperString name = 12; Field14 field14 = 14;
+        string empty72 = 72; string empty73 = 73; string empty74 = 74; string empty75 = 75;
+        string empty76 = 76; string empty77 = 77; string empty78 = 78; string empty79 = 79;
+        string empty80 = 80; string empty81 = 81; string empty82 = 82; string empty83 = 83;
+        string empty84 = 84; string empty85 = 85; string empty86 = 86;
+      }
+      int32 field501 = 501; int32 field502 = 502; Details details = 503;
+    }
+    message Details {
+      oneof value {
+        Transform transform = 13; Field14 field14 = 14; RootChildRef rootChildRef = 73;
+        GenericSlot genericSlot = 74; TextConfig textConfig = 75; CursorConfig cursorConfig = 76;
+        string templateRefSlot = 77; FooterSlot footerSlot = 78; ContainerNodeConfig containerNodeSlot = 79;
+        GridViewConfig gridView = 80; ButtonPresetConfig buttonPreset = 81; KeyHintConfig keyHint = 83;
+        ImageSlotConfig imageSlot = 84; ImageConfig image = 85; string effectSlot = 86;
+        string fullscreenEffectSlot = 87;
+      }
+      int32 field501 = 501; int32 field502 = 502; int32 field503 = 503; NodeRef nodeRef = 504;
+    }
+  }
+}
+message WrapperString { string value = 501; }
+message WrapperInt32 { int32 value = 501; }
+message WrapperGuid { uint32 value = 501; }
+message WrapperGuidList { repeated uint32 value = 501; }
+message NodeRef { int32 class = 2; int32 type = 3; int32 id = 4; }
+message Field14 { optional string empty15 = 15; ClientInitialState field17 = 17; int32 field501 = 501; bool initiallyInactive = 502; }
+message ContainerNodeConfig { bool isolateNavigation = 501; bool disableKeyEventPassthrough = 502; bool disableCursorEventPassthrough = 503; bool showCursor = 504; }
+message ClientInitialState { bool initiallyHidden = 503; }
+message Vector3 { float x = 1; float y = 2; float z = 3; }
+message RectTransform {
+  Vector3 scale = 501; Vector2 anchorMin = 502; Vector2 anchorMax = 503; Vector2 offset = 504;
+  Vector2 size = 505; Vector2 pivot = 506; Vector3 field508 = 508;
+  message Vector2 { float x = 501; float y = 502; }
+}
+message Transform {
+  oneof value { string empty11 = 11; MultiPlatform multiPlatform = 12; }
+  int32 type = 501;
+  message MultiPlatform {
+    repeated Platform platforms = 501; int32 field502 = 502; int32 field504 = 504;
+    message Platform { int32 platformType = 501; RectTransform transform = 502; }
+  }
+}
+message RootChildRef { int32 guid = 501; }
+message GenericSlot {
+  int32 field501 = 501;
+  repeated GenericRef field502 = 502;
+  message GenericRef { GenericItem field1 = 1; message GenericItem { int64 id = 1; } }
+}
+message TextConfig {
+  int32 field501 = 501; int32 adaptive = 502; int32 field503 = 503; uint32 color = 504;
+  uint32 color2 = 505; int32 outlineOff = 506; uint32 color3 = 507; int32 align = 508; int32 verticalAlign = 509;
+  WrapperString text = 510; int32 field511 = 511; int32 fontSize = 512; int32 minimumFontSize = 513; ViewFlags viewFlags = 62;
+  message ViewFlags { int32 field502 = 502; int32 field503 = 503; }
+}
+message CursorConfig { int32 field501 = 501; }
+message GridViewConfig {
+  int32 field501 = 501; GridVector cellSize = 502; GridVector gap = 503; GridVector padding1 = 504;
+  GridVector padding2 = 505; int32 field507 = 507; int32 field508 = 508; int32 field509 = 509;
+  int32 field511 = 511; int32 field512 = 512;
+  message GridVector { float field501 = 501; float field502 = 502; }
+}
+message ButtonPresetConfig {
+  int32 disabledChild = 501; int32 hoverChild = 502; int32 pressedChild = 503;
+  int32 selectedChild = 504; int32 interactable = 505; int32 clickAudioId = 506;
+  int32 raycastTarget = 507;
+}
+message KeyHintConfig { int32 field501 = 501; int32 field502 = 502; }
+message ImageSlotConfig { uint32 field502 = 502; uint32 assetId = 503; int32 imageType = 504; }
+message ImageConfig {
+  int32 enableMask = 501; int32 field502 = 502; int32 field504 = 504; int32 field505 = 505;
+  int32 field507 = 507; int32 field508 = 508; int32 enableSoftEdge = 509; int32 softEdgePixel = 510;
+  SliceVector border = 511; float field512 = 512; float field513 = 513; int32 enableFill = 514;
+  int32 fillType = 515; int32 reverseMask = 516;
+  message SliceVector { float field501 = 501; float field502 = 502; }
+}
+message FooterSlot { int32 field505 = 505; }
