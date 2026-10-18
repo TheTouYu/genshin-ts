@@ -51,6 +51,8 @@ function dump(bytes: Uint8Array, indent = '  ', depth = 0) {
     if (f.wire === 2 && v instanceof Uint8Array) {
       if (isText(v)) console.log(`${indent}f${f.number}(w2)= "${new TextDecoder().decode(v)}"`)
       else { console.log(`${indent}f${f.number}(w2 msg ${v.length}B)`); if (depth < 4) dump(v, indent + '  ', depth + 1) }
+    } else if (f.wire === 5 && v instanceof Uint8Array) {
+      console.log(`${indent}f${f.number}(f32)= ${Buffer.from(v).readFloatLE(0)}  [${Buffer.from(v).toString('hex')}]`)
     } else console.log(`${indent}f${f.number}(w${f.wire})= ${v}`)
   }
 }
