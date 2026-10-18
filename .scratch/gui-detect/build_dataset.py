@@ -20,7 +20,6 @@ KINDS = None
 # QC 判为 C 级（质量太差会起负作用）——不进训练集，见 .scratch/gui-corpus/quality-report.md
 EXCLUDE_STEMS = {
     "c42_195441", "c29_195243", "c19_195135", "v088_0513",
-    "r045_snap_2026-10-19_00-38-06",
 }
 
 
@@ -42,7 +41,7 @@ def main():
     truth_dirs = [".scratch/gui-corpus/truth", ".scratch/gui-corpus/truth-v2",
                   ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                   ".scratch/gui-corpus/truth-v5",
-                  ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7"]
+                  ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7", ".scratch/gui-corpus/truth-v8-game", ".scratch/gui-corpus/truth-v8-editor", ".scratch/gui-corpus/truth-v8-fix"]
     img_dirs = [".scratch/gui-corpus", ".scratch/gui-corpus/truth-v2",
                 ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                 ".scratch/gui-corpus/capture-2026-10-18/reps",
@@ -97,6 +96,18 @@ def main():
             fam_count[fam] += 1
             for o in objs:
                 k = o.get("kind") or "unknown"
+                if k == "unknown":      # 未标 kind 的对象按几何猜（并在记录里标记推断）
+                    w_, h_ = o["bbox"][2], o["bbox"][3]
+                    area = w_ * h_ / (2560 * 1440)
+                    if area > 0.15:
+                        k = "panel"
+                    elif h_ < 130 and w_ > 3 * h_:
+                        k = "row"
+                    elif w_ < 70 and h_ < 70:
+                        k = "icon"
+                    else:
+                        k = "tile"
+                    o["kind_inferred"] = True
                 kind_count[k] += 1
                 if k not in cats:
                     cats[k] = len(cats) + 1

@@ -4,3 +4,22 @@ Consider using tensor.detach() first. (Triggered internally at /build/python-pyt
   tot_loss += float(loss)
 ep   1 loss=1284.0889 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 5s
 ep  10 loss=325.7026 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 37s
+ep  20 loss=130.1035 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 73s
+ep  30 loss=76.4439 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 108s
+ep  40 loss=58.9314 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 144s
+ep  50 loss=51.1734 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 179s
+ep  60 loss=40.9631 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 215s
+ep  70 loss=39.3454 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 250s
+ep  80 loss=34.3501 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 286s
+ep  90 loss=36.6145 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 321s
+ep 100 loss=31.6536 val_micro=0.063 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.326, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 358s
+ep 110 loss=28.2408 val_micro=0.144 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.744, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 398s
+ep 120 loss=26.1538 val_micro=0.131 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.674, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 435s
+ep 130 loss=27.9476 val_micro=0.059 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.302, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 474s
+ep 140 loss=24.6503 val_micro=0.131 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.674, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 513s
+ep 150 loss=20.1073 val_micro=0.081 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.419, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 551s
+ep 160 loss=19.0015 val_micro=0.149 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.744, 'chip': 0.0, 'row': 0.015, 'card': 0.0} 589s
+ep 170 loss=17.8638 val_micro=0.14 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.698, 'chip': 0.0, 'row': 0.015, 'card': 0.0} 626s
+ep 180 loss=16.2420 val_micro=0.135 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.674, 'chip': 0.0, 'row': 0.015, 'card': 0.0} 665s
+ep 190 loss=15.8716 val_micro=0.131 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.651, 'chip': 0.0, 'row': 0.015, 'card': 0.0} 703s
+ep 200 loss=14.8641 val_micro=0.14 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.698, 'chip': 0.0, 'row': 0.015, 'card': 0.0} 740s

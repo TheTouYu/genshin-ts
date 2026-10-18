@@ -1,0 +1,44 @@
+[
+ {
+  "frame": "r026_snap_2026-10-19_00-27-05",
+  "ocr": 37,
+  "units": 44,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r032_snap_2026-10-19_00-30-42",
+  "ocr": 98,
+  "units": 129,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r034_snap_2026-10-19_00-31-33",
+  "ocr": 101,
+  "units": 128,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r040_snap_2026-10-19_00-36-18",
+  "ocr": 72,
+  "units": 97,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r044_snap_2026-10-19_00-37-57",
+  "ocr": 66,
+  "units": 74,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "r045_snap_2026-10-19_00-38-06",
+  "ocr": 75,
+  "units": 88,
+  "uncovered": 0,
+  "samples": []
+ }
+]

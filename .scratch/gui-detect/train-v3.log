@@ -1,0 +1,12 @@
+train=32 val=12 val_fams=['①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角', '①顶栏 / ②左箭头 / ③好友行 7 / ④右箭头 / ⑤底部/四角', '①顶栏 / ②左资源栏 / ③3D 视口/浮动工具条 / ④四角小件', '存档选择', '派蒙菜单', '邮件珍藏盒'] kinds={'panel': 156, 'row': 559, 'button': 365, 'avatar': 14, 'icon': 133, 'card': 53, 'tile': 206, 'chip': 178}
+/home/h/genshin-ts/.scratch/gui-detect/train.py:226: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /build/python-pytorch/src/pytorch-cuda/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  tot_loss += float(loss)
+/home/h/genshin-ts/.scratch/gui-detect/train.py:227: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  sched.step()
+ep   1 loss=579.9694 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 11s
+ep  10 loss=141.0884 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 41s
+ep  20 loss=59.7496 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 74s
+ep  30 loss=30.3083 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 109s
+ep  40 loss=18.0867 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 142s
+ep  50 loss=12.9487 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 175s

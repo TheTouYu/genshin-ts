@@ -1,0 +1,7 @@
+train=37 val=6 val_fams=['①信息卡(100,0,1100,470) / ②左图标栏(0,20,130,1410) / ③网格区(120,430,1040,1440) / ④底部条(0,1260,1400,1440) / ⑤四角', '地图', '好友列表', '派蒙菜单滚一屏', '编辑器：左树 25 行 + 调色板 + 视口 + 右属性面板', '邮箱：左 8 封邮件逐行 + 右详情'] kinds={'panel': 101, 'row': 483, 'button': 262, 'avatar': 14, 'icon': 74, 'card': 53, 'tile': 197, 'chip': 123}
+/home/h/genshin-ts/.scratch/gui-detect/train.py:226: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /build/python-pytorch/src/pytorch-cuda/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  tot_loss += float(loss)
+ep   1 loss=870.2905 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 5s
+ep  10 loss=180.2893 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 41s
+ep  20 loss=62.1718 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'row': 0.0, 'card': 0.0} 80s

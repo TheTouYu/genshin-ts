@@ -1,0 +1,6 @@
+ep   1 loss=579.9694 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 11s
+ep  10 loss=141.0884 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 41s
+ep  20 loss=59.7496 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 74s
+ep  30 loss=30.3083 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 109s
+ep  40 loss=18.0867 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 142s
+ep  50 loss=12.9487 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 175s

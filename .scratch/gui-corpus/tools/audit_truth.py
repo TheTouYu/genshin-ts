@@ -78,6 +78,9 @@ def main():
                     help="文本被真值框覆盖的比例低于该值即算疑似漏标")
     ap.add_argument("--json-out", default="")
     ap.add_argument("--ignore-title", action="store_true", help="标题不计入未覆盖（rules 里明确不算单元）")
+    ap.add_argument("--rules", action="store_true",
+                    help="按 truth/_rules.md §一 全口径排除：标题全集（含分区标题千星奇域/自定义/其他设置）"
+                         "+ 宿主 HUD 矩形（DXVK 块/左下 性能+波形条/右下 UID）+ 单字母键位提示 W/S/R/F")
     args = ap.parse_args()
 
     rows = []
@@ -105,13 +108,26 @@ def main():
         # 帧尺寸：OCR 里存在**越界框**（实测 x1 可到 4572 > 2560），那是 OCR 自身的坏框，
         # 不该算进"漏标"；只统计落在帧内的文本框。
         W, H = (td.get("size") or [2560, 1440])[:2]
-        TITLE = re.compile(r'^(设置[／/]|活动一览$|控制$|镜头$|图像$|声音$|按键$|语言$|账户$|资源$|其他$|邮件珍藏盒$|好友$|背包$|任务$|说明$|详情$)')
-        HUD = re.compile(r'^(DXVK|FPS|GPU|min:|max:|UID|ms|fps|i9|\d+(\.\d+)?(\s*(ms|fps|%))?$|'
-                         r'[|<>=×✓·:%0-9. \-–—]{1,6}$)')
+        TITLE = re.compile(r'^(设置[／/]|活动一览$|控制$|镜头$|图像$|声音$|按键$|语言$|账户$|资源$|其他$|'
+                           r'其他设置$|自定义$|千星奇域$|邮件珍藏盒$|好友$|背包$|任务$|说明$|详情$)')
+        # truth/_rules.md §一：宿主 HUD 是固定位置的三块（文本因 OCR 抖动无法用正则稳判，改用矩形）。
+        # 底栏刻意拆细：性能文字条 x<310、波形条 x<215 —— v088 的「提升指南」按钮在 x≥218，不能连坐。
+        HUD_RECTS = [(0, 0, 230, 120), (0, 1288, 310, 42), (0, 1330, 215, 110)]
+        KEYCHIP = re.compile(r'^[A-Z]$')   # W/S 小方块及其同族键位提示（§一 明确不算单元）
+        HUD = re.compile(r'^(DXVK|FPS|GPU|min|max|UID|ms|fps|i9)|'
+                         r'^\d+[.,]?\d*\s*(ns|ms|fps|%)$|'
+                         r'^[|<>=×✓·:%0-9. \-–—]{1,6}$')
         uncovered = []
         for t in texts:
             txt = (t.get("text") or "").strip()
-            if args.ignore_title and TITLE.match(txt):
+            if (args.ignore_title or args.rules) and TITLE.match(txt):
+                continue
+            _tb0 = box_of(t)
+            if _tb0:
+                _cx, _cy = (_tb0[0] + _tb0[2]) / 2.0, (_tb0[1] + _tb0[3]) / 2.0
+                if any(rx <= _cx <= rx + rw and ry <= _cy <= ry + rh for rx, ry, rw, rh in HUD_RECTS):
+                    continue  # 宿主 HUD（DXVK 块 / 性能文字条 / 录制波形条）不算单元（§一）
+            if args.rules and KEYCHIP.match(txt):
                 continue
             if not txt or HUD.match(txt):
                 continue  # 宿主 HUD / 纯符号不计单元（truth/_rules.md 口径）

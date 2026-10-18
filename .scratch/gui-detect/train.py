@@ -92,8 +92,8 @@ def load_tensor(item, augment=False):
                 x2, y2 = ix + dx, iy + dy
                 if 0 <= x2 < OW and 0 <= y2 < OH:
                     hm[ci, y2, x2] = max(hm[ci, y2, x2], math.exp(-(dx * dx + dy * dy) / 2.0))
-        wh[0, iy, ix] = w2
-        wh[1, iy, ix] = h2
+        wh[0, iy, ix] = w2 / OW      # 归一化：避免 L1 尺度压过热斑损失
+        wh[1, iy, ix] = h2 / OH
         mask[iy, ix] = 1
     return x, hm, wh, mask
 
@@ -146,8 +146,8 @@ def decode(hm, wh, thr=0.35, topk=120):
     out = []
     for i in order:
         c, y, x = idxs[i]
-        w = float(wh[0, y, x]) * STRIDE * (2560 / W)
-        h = float(wh[1, y, x]) * STRIDE * (1440 / H)
+        w = float(wh[0, y, x]) * OW * STRIDE * (2560 / W)
+        h = float(wh[1, y, x]) * OH * STRIDE * (1440 / H)
         cx = (x + 0.5) * STRIDE * (2560 / W)
         cy = (y + 0.5) * STRIDE * (1440 / H)
         if w < 4 or h < 4:
@@ -225,6 +225,8 @@ def main():
             scaler.update()
             tot_loss += float(loss)
         sched.step()
+        if ep % 25 == 0:
+            torch.save({"model": model.state_dict(), "kinds": KINDS}, os.path.join(args.out, "latest.pt"))
         if ep % 10 == 0 or ep == 1:
             hit, tot = evaluate(model, data.val)
             rates = {k: round(hit[k] / tot[k], 3) for k in tot}

@@ -13,7 +13,7 @@
   "插画底",
   "页签"
  ],
- "units": 28,
+ "units": 32,
  "_provenance": {
   "family": "好友／我的好友",
   "method": "行 y = OCR 文本行 y（182/344/511/676/843… pitch≈166）+ edges.py x=1200 竖直扫描复核；页签/关闭/箭头按可见像素估（±15px）",
@@ -24,9 +24,59 @@
    "左右翻页箭头位置 ±20px",
    "黑名单管理按钮下半被录制 HUD 遮挡"
   ],
-  "tool_crosscheck": "ys-screen(cv) 命中 0/28 = 0.0%（iou 0.000，fp=6，degen=0）"
+  "tool_crosscheck": "ys-screen(cv) 命中 0/28 = 0.0%（iou 0.000，fp=6，degen=0）",
+  "qc_2026_10_19": {
+   "by": "fix9.py（成员并集派生区域 + 四角 + 行沿吸附 + IoU≥0.98 去重）",
+   "units_before": 28,
+   "units_after": 32,
+   "geo_fixed": [
+    "row 7 y=107 h=180→y=155 h=152",
+    "row 10 y=273 h=180→y=321 h=152",
+    "row 13 y=439 h=180→y=486 h=152",
+    "row 16 y=605 h=180→y=654 h=152",
+    "row 19 y=771 h=180→y=820 h=152",
+    "row 22 y=937 h=180→y=986 h=152",
+    "row 25 y=1103 h=180→y=1152 h=152"
+   ],
+   "regions_added": [
+    "id=28 [138, 145, 2282, 1169] QC 补区域：横行 7 项成员并集 ±10px（7 项，占比 72.4%）",
+    "id=29 [0, 0, 2560, 132]"
+   ],
+   "corners_added": [
+    "id=30 [0, 1292, 300, 34]",
+    "id=31 [2250, 1395, 260, 45]"
+   ],
+   "dedup_removed": [],
+   "rows_snapped": []
+  }
  },
  "objects": [
+  {
+   "id": "29",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    132
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：顶栏整条（y 0..132，容纳 4 个顶栏控件）",
+   "qc_added": "2026-10-19-v8game"
+  },
   {
    "id": 0,
    "parent": null,
@@ -128,116 +178,6 @@
    "note": "关闭 X"
   },
   {
-   "id": 4,
-   "parent": null,
-   "bbox": [
-    66,
-    682,
-    64,
-    64
-   ],
-   "kind": "button",
-   "text": [
-    "‹"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "上一页"
-  },
-  {
-   "id": 5,
-   "parent": null,
-   "bbox": [
-    2436,
-    682,
-    64,
-    64
-   ],
-   "kind": "button",
-   "text": [
-    "›"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "下一页"
-  },
-  {
-   "id": 6,
-   "parent": null,
-   "bbox": [
-    228,
-    1326,
-    380,
-    84
-   ],
-   "kind": "button",
-   "text": [
-    "黑名单管理"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [
-     "bottom"
-    ],
-    "cut_by": "hud",
-    "px": 30
-   }
-  },
-  {
-   "id": 7,
-   "parent": null,
-   "bbox": [
-    150,
-    107,
-    2250,
-    180
-   ],
-   "kind": "row",
-   "text": [
-    "无所事事真君",
-    "Lv.60"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "好友行（头像+名字+等级+状态+留言）"
-  },
-  {
    "id": 8,
    "parent": null,
    "bbox": [
@@ -289,17 +229,43 @@
    "note": "私聊气泡"
   },
   {
-   "id": 10,
+   "id": "28",
    "parent": null,
    "bbox": [
-    150,
-    273,
-    2250,
-    180
+    138,
+    145,
+    2282,
+    1169
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：横行 7 项成员并集 ±10px（7 项，占比 72.4%）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    148,
+    155,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "追忆",
+    "无所事事真君",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -368,17 +334,17 @@
    "note": "私聊气泡"
   },
   {
-   "id": 13,
+   "id": 10,
    "parent": null,
    "bbox": [
-    150,
-    439,
-    2250,
-    180
+    148,
+    321,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "哥伦比娅",
+    "追忆",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -447,17 +413,17 @@
    "note": "私聊气泡"
   },
   {
-   "id": 16,
+   "id": 13,
    "parent": null,
    "bbox": [
-    150,
-    605,
-    2250,
-    180
+    148,
+    486,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "右右",
+    "哥伦比娅",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -526,17 +492,17 @@
    "note": "私聊气泡"
   },
   {
-   "id": 19,
+   "id": 16,
    "parent": null,
    "bbox": [
-    150,
-    771,
-    2250,
-    180
+    148,
+    654,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "临渊羡鱼",
+    "右右",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -552,6 +518,60 @@
     "px": 0
    },
    "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    66,
+    682,
+    64,
+    64
+   ],
+   "kind": "button",
+   "text": [
+    "‹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "上一页"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    2436,
+    682,
+    64,
+    64
+   ],
+   "kind": "button",
+   "text": [
+    "›"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下一页"
   },
   {
    "id": 20,
@@ -605,17 +625,17 @@
    "note": "私聊气泡"
   },
   {
-   "id": 22,
+   "id": 19,
    "parent": null,
    "bbox": [
-    150,
-    937,
-    2250,
-    180
+    148,
+    820,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "索见猪心",
+    "临渊羡鱼",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -684,17 +704,17 @@
    "note": "私聊气泡"
   },
   {
-   "id": 25,
+   "id": 22,
    "parent": null,
    "bbox": [
-    150,
-    1103,
-    2250,
-    180
+    148,
+    986,
+    2262,
+    152
    ],
    "kind": "row",
    "text": [
-    "四月",
+    "索见猪心",
     "Lv.60"
    ],
    "clickable": "yes",
@@ -705,11 +725,9 @@
    },
    "badges": [],
    "clipped": {
-    "edges": [
-     "bottom"
-    ],
-    "cut_by": "screen",
-    "px": 60
+    "edges": [],
+    "cut_by": null,
+    "px": 0
    },
    "note": "好友行（头像+名字+等级+状态+留言）"
   },
@@ -763,6 +781,116 @@
     "px": 0
    },
    "note": "私聊气泡"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    148,
+    1152,
+    2262,
+    152
+   ],
+   "kind": "row",
+   "text": [
+    "四月",
+    "Lv.60"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 60
+   },
+   "note": "好友行（头像+名字+等级+状态+留言）"
+  },
+  {
+   "id": "30",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    228,
+    1326,
+    380,
+    84
+   ],
+   "kind": "button",
+   "text": [
+    "黑名单管理"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 30
+   }
+  },
+  {
+   "id": "31",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
   }
  ]
 }

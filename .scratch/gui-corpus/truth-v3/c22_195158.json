@@ -13,7 +13,7 @@
   "左导航",
   "两层页签"
  ],
- "units": 24,
+ "units": 33,
  "_provenance": {
   "family": "设置·按键",
   "method": "edges.py x=1200 定行带（340/430/519/609/699/788/878/967/1057/1147）；左导航用像素文本带实测 pitch≈86.4",
@@ -23,9 +23,58 @@
    "页签条外沿 ±15px（深蓝 on 深蓝）",
    "被页签条压住的首行（按键行0）未计入"
   ],
-  "tool_crosscheck": "ys-screen(cv) 命中 3/24 = 12.5%（iou 0.862，fp=4，degen=0）"
+  "tool_crosscheck": "ys-screen(cv) 命中 3/24 = 12.5%（iou 0.862，fp=4，degen=0）",
+  "qc_2026_10_19": {
+   "by": "fix9.py（成员并集派生区域 + 四角 + 行沿吸附 + IoU≥0.98 去重）",
+   "units_before": 24,
+   "units_after": 29,
+   "geo_fixed": [],
+   "regions_added": [
+    "id=24 [128, 162, 252, 827] QC 补区域：竖列 9 项成员并集 ±10px（9 项，占比 5.7%）",
+    "id=25 [636, 330, 1776, 901] QC 补区域：横行 10 项成员并集 ±10px（10 项，占比 43.4%）",
+    "id=26 [0, 0, 2560, 121]"
+   ],
+   "corners_added": [
+    "id=27 [0, 1292, 300, 34]",
+    "id=28 [2250, 1395, 260, 45]"
+   ],
+   "dedup_removed": [],
+   "rows_snapped": [],
+   "pass3_added": [
+    "id=29 [615, 255, 200, 80] 操作",
+    "id=30 [646, 1236, 1756, 75] 切换瞄准模式",
+    "id=31 [1380, 1310, 480, 90] 快捷轮盘设置",
+    "id=32 [1930, 1310, 420, 90] 恢复默认"
+   ]
+  }
  },
  "objects": [
+  {
+   "id": "26",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    121
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：顶栏整条（y 0..121，容纳 2 个顶栏控件）",
+   "qc_added": "2026-10-19-v8game"
+  },
   {
    "id": 0,
    "parent": null,
@@ -76,240 +125,6 @@
     "px": 0
    },
    "note": "关闭 X"
-  },
-  {
-   "id": 2,
-   "parent": null,
-   "bbox": [
-    138,
-    172,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "控制"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 3,
-   "parent": null,
-   "bbox": [
-    138,
-    265,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "按键"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": true,
-    "focused": true,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 4,
-   "parent": null,
-   "bbox": [
-    138,
-    358,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "图像"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 5,
-   "parent": null,
-   "bbox": [
-    138,
-    451,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "声音"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 6,
-   "parent": null,
-   "bbox": [
-    138,
-    544,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "消息"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 7,
-   "parent": null,
-   "bbox": [
-    138,
-    636,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "语言"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 8,
-   "parent": null,
-   "bbox": [
-    138,
-    729,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "账户"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 9,
-   "parent": null,
-   "bbox": [
-    138,
-    822,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "资源"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 10,
-   "parent": null,
-   "bbox": [
-    138,
-    915,
-    232,
-    64
-   ],
-   "kind": "row",
-   "text": [
-    "其他"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
   },
   {
    "id": 11,
@@ -391,6 +206,138 @@
    }
   },
   {
+   "id": "24",
+   "parent": null,
+   "bbox": [
+    128,
+    162,
+    252,
+    827
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：竖列 9 项成员并集 ±10px（9 项，占比 5.7%）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    138,
+    172,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": "29",
+   "parent": null,
+   "bbox": [
+    615,
+    255,
+    200,
+    80
+   ],
+   "kind": "row",
+   "text": [
+    "操作"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "内容区列头「操作」（OCR 629..723 × 268..322；R8 列头单独成框）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    138,
+    265,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "按键"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": "25",
+   "parent": null,
+   "bbox": [
+    636,
+    330,
+    1776,
+    901
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：横行 10 项成员并集 ±10px（10 项，占比 43.4%）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
    "id": 14,
    "parent": null,
    "bbox": [
@@ -403,6 +350,32 @@
    "text": [
     "向前移动",
     "W"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    138,
+    358,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "图像"
    ],
    "clickable": "yes",
    "state": {
@@ -445,6 +418,32 @@
    }
   },
   {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    138,
+    451,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "声音"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
    "id": 16,
    "parent": null,
    "bbox": [
@@ -457,6 +456,32 @@
    "text": [
     "向左移动",
     "A"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    138,
+    544,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "消息"
    ],
    "clickable": "yes",
    "state": {
@@ -499,6 +524,32 @@
    }
   },
   {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    138,
+    636,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "语言"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
    "id": 18,
    "parent": null,
    "bbox": [
@@ -511,6 +562,32 @@
    "text": [
     "切换走/跑；特定操作模式下向下移动",
     "左Ctrl"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    138,
+    729,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "账户"
    ],
    "clickable": "yes",
    "state": {
@@ -553,6 +630,32 @@
    }
   },
   {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    138,
+    822,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "资源"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
    "id": 20,
    "parent": null,
    "bbox": [
@@ -565,6 +668,32 @@
    "text": [
     "元素战技",
     "E"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    138,
+    915,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
    ],
    "clickable": "yes",
    "state": {
@@ -659,6 +788,142 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": "30",
+   "parent": null,
+   "bbox": [
+    646,
+    1236,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "切换瞄准模式"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "第 11 个按键行：切换瞄准模式 / R（OCR 672..877 × 1249..1293 + 2138..2200）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": "27",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": "31",
+   "parent": null,
+   "bbox": [
+    1380,
+    1310,
+    480,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "快捷轮盘设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "底部按钮（OCR 1540..1779 × 1333..1380；与 c24 同 UI 同值）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": "32",
+   "parent": null,
+   "bbox": [
+    1930,
+    1310,
+    420,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "恢复默认"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "底部按钮（OCR 2103..2267 × 1333..1382）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": "28",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
   }
  ]
 }

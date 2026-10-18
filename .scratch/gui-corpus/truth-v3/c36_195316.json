@@ -13,7 +13,7 @@
   "页签",
   "粘连卡"
  ],
- "units": 25,
+ "units": 29,
  "_provenance": {
   "family": "存档选择（本地存档）",
   "method": "几何沿用同屏实测（truth-v2/c12 同 UI 的 f13 量法：卡列 505/1190/1857、行 172/512/812）；本帧 OCR 复核标题与时间一致",
@@ -22,9 +22,54 @@
   "uncertain": [
    "卡外沿延续旧量法（同 UI、同分辨率），未逐卡重测"
   ],
-  "tool_crosscheck": "ys-screen(cv) 命中 2/25 = 8.0%（iou 0.773，fp=4，degen=0）"
+  "tool_crosscheck": "ys-screen(cv) 命中 2/25 = 8.0%（iou 0.773，fp=4，degen=0）",
+  "qc_2026_10_19": {
+   "by": "fix9.py（成员并集派生区域 + 四角 + 行沿吸附 + IoU≥0.98 去重）",
+   "units_before": 25,
+   "units_after": 29,
+   "geo_fixed": [],
+   "regions_added": [
+    "id=25 [495, 162, 670, 960] QC 补区域：竖列 3 项成员并集 ±10px（3 项，占比 17.4%）",
+    "id=26 [0, 0, 2560, 104]"
+   ],
+   "corners_added": [
+    "id=27 [0, 1292, 300, 34]",
+    "id=28 [2250, 1395, 260, 45]"
+   ],
+   "dedup_removed": [],
+   "rows_snapped": [],
+   "pass5": [
+    "卡片网格区 → [495, 162, 2012, 960]；删除左列窄区域 [[495, 162, 670, 960]]"
+   ]
+  }
  },
  "objects": [
+  {
+   "id": "26",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    104
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：顶栏整条（y 0..104，容纳 2 个顶栏控件）",
+   "qc_added": "2026-10-19-v8game"
+  },
   {
    "id": 0,
    "parent": null,
@@ -78,83 +123,6 @@
    }
   },
   {
-   "id": 2,
-   "parent": null,
-   "bbox": [
-    75,
-    172,
-    290,
-    60
-   ],
-   "kind": "chip",
-   "text": [
-    "未分类页签"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": true,
-    "focused": true,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 3,
-   "parent": null,
-   "bbox": [
-    75,
-    265,
-    365,
-    60
-   ],
-   "kind": "chip",
-   "text": [
-    "新建页签"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 4,
-   "parent": null,
-   "bbox": [
-    2380,
-    22,
-    128,
-    112
-   ],
-   "kind": "button",
-   "text": [],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   },
-   "note": "关闭"
-  },
-  {
    "id": 5,
    "parent": null,
    "bbox": [
@@ -182,18 +150,16 @@
    "note": "聊天/更多"
   },
   {
-   "id": 6,
+   "id": 4,
    "parent": null,
    "bbox": [
-    478,
-    1310,
-    430,
-    100
+    2380,
+    22,
+    128,
+    112
    ],
    "kind": "button",
-   "text": [
-    "按时间顺序"
-   ],
+   "text": [],
    "clickable": "yes",
    "state": {
     "selected": false,
@@ -206,22 +172,20 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "排序下拉"
+   "note": "关闭"
   },
   {
-   "id": 7,
+   "id": "29",
    "parent": null,
    "bbox": [
-    960,
-    1310,
-    100,
-    100
+    495,
+    162,
+    2012,
+    960
    ],
-   "kind": "button",
-   "text": [
-    "↑↓"
-   ],
-   "clickable": "yes",
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
    "state": {
     "selected": false,
     "focused": false,
@@ -233,51 +197,26 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "排序方向"
+   "note": "QC 补区域：存档卡片网格区（9 张卡并集 ±10px，覆盖 3 列 × 3 行；原按列栈只生成了左列，pass5 换成全卡并集）",
+   "qc_added": "2026-10-19-v8game"
   },
   {
-   "id": 8,
+   "id": 2,
    "parent": null,
    "bbox": [
-    1650,
-    1310,
-    400,
-    100
+    75,
+    172,
+    290,
+    60
    ],
-   "kind": "button",
+   "kind": "chip",
    "text": [
-    "导入存档"
+    "未分类页签"
    ],
    "clickable": "yes",
    "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
-   "id": 9,
-   "parent": null,
-   "bbox": [
-    2110,
-    1310,
-    400,
-    100
-   ],
-   "kind": "button",
-   "text": [
-    "新建存档"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
+    "selected": true,
+    "focused": true,
     "disabled": false
    },
    "badges": [],
@@ -325,32 +264,6 @@
    }
   },
   {
-   "id": 11,
-   "parent": null,
-   "bbox": [
-    950,
-    400,
-    150,
-    50
-   ],
-   "kind": "button",
-   "text": [
-    "编辑"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
    "id": 12,
    "parent": null,
    "bbox": [
@@ -378,10 +291,63 @@
    }
   },
   {
-   "id": 13,
+   "id": 14,
    "parent": null,
    "bbox": [
-    1635,
+    1857,
+    172,
+    640,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "输入探针v2",
+    "2026年10月17日 06:13"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    75,
+    265,
+    365,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "新建页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    950,
     400,
     150,
     50
@@ -404,18 +370,17 @@
    }
   },
   {
-   "id": 14,
+   "id": 13,
    "parent": null,
    "bbox": [
-    1857,
-    172,
-    640,
-    298
+    1635,
+    400,
+    150,
+    50
    ],
-   "kind": "card",
+   "kind": "button",
    "text": [
-    "输入探针v2",
-    "2026年10月17日 06:13"
+    "编辑"
    ],
    "clickable": "yes",
    "state": {
@@ -484,32 +449,6 @@
    }
   },
   {
-   "id": 17,
-   "parent": null,
-   "bbox": [
-    950,
-    740,
-    150,
-    50
-   ],
-   "kind": "button",
-   "text": [
-    "编辑"
-   ],
-   "clickable": "yes",
-   "state": {
-    "selected": false,
-    "focused": false,
-    "disabled": false
-   },
-   "badges": [],
-   "clipped": {
-    "edges": [],
-    "cut_by": null,
-    "px": 0
-   }
-  },
-  {
    "id": 18,
    "parent": null,
    "bbox": [
@@ -537,10 +476,37 @@
    }
   },
   {
-   "id": 19,
+   "id": 20,
    "parent": null,
    "bbox": [
-    1635,
+    1857,
+    512,
+    640,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "真实足球v3",
+    "2026年10月13日 19:43"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    950,
     740,
     150,
     50
@@ -563,18 +529,17 @@
    }
   },
   {
-   "id": 20,
+   "id": 19,
    "parent": null,
    "bbox": [
-    1857,
-    512,
-    640,
-    298
+    1635,
+    740,
+    150,
+    50
    ],
-   "kind": "card",
+   "kind": "button",
    "text": [
-    "真实足球v3",
-    "2026年10月13日 19:43"
+    "编辑"
    ],
    "clickable": "yes",
    "state": {
@@ -693,6 +658,164 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": "27",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    478,
+    1310,
+    430,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "按时间顺序"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "排序下拉"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    960,
+    1310,
+    100,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "↑↓"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "排序方向"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1650,
+    1310,
+    400,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "导入存档"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    2110,
+    1310,
+    400,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "新建存档"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": "28",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
   }
  ]
 }
