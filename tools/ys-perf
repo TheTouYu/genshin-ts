@@ -63,7 +63,7 @@ CASES = [
     # 阈值按"常驻 OCR 已热"的情形定；冷启动（引擎加载 ~9s）不在此判（ys-perf 取中位数）。
     ('native-state', ['%s/ys-state' % YS, '--frame',
                       os.path.join(REG, 'live-native-world-20261018.png'), '--json', '--fast'],
-     9000, '本体判态（含一次 OCR，走常驻）'),
+     2000, '本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）'),
     # ys-watch 需要 ≥2 帧（单帧只报用法错误，那种"快"是假读数）
     ('watch', ['%s/ys-watch' % HERE, '--frames', FRAME, FRAME, '--roi', '0,0,200,100'],
      800, 'ROI 变化检测（两帧比对）'),

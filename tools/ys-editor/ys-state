@@ -710,12 +710,33 @@ NATIVE_OCR = os.path.join(HERE, 'ys_ocr.py')
 
 
 def _ocr_boxes(frame_path):
-    """取一次 OCR 的框（失败返回 None，不抛——本体判定是增强，不是必须）。"""
+    """取一次 OCR 的框（失败返回 None，不抛——本体判定是增强，不是必须）。
+
+    `frame_path=None` = **活体**：让常驻服务自己抓全帧再 OCR（一次 socket 往返，
+    客户端不落 PNG——存一张 2560×1440 PNG 要 0.3~0.5s，是本轮最大的一笔可省开销）。
+
+    **优先走常驻服务的 ocr 命令**（2026-10-18 实测）：同帧冷进程 **12259ms**（其中首次推理
+    7111ms 是建 CUDA context + cuDNN 预热），常驻引擎已热只要 **~690ms**——差 18 倍。
+    用户体感"判态 3~6 秒太慢"的账几乎全在这一步，不是识别本身慢（小模型 PP-OCRv6 small）。
+    `YS_STATE_OCR_LOCAL=1` 可强制走子进程（对照/排障用）。
+    """
     import json as _json
+    if os.environ.get('YS_STATE_OCR_LOCAL') != '1':
+        try:
+            _req = {"cmd": "ocr"}
+            if frame_path:
+                _req["frame"] = os.path.abspath(frame_path)
+            r = daemon_call(_req, timeout=120)
+            if r and isinstance(r.get("boxes"), list) and not r.get("error"):
+                return r["boxes"]
+        except Exception:                                    # noqa: BLE001 —— 落到子进程
+            pass
+    if not frame_path:                                       # 活体且常驻不可用：无帧可 OCR
+        return None
     try:
         venv_py = os.environ.get('YS_RAPIDOCR_PY')
         cmd = [venv_py or '/usr/bin/python3', NATIVE_OCR, 'ocr', frame_path, '--json']
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
         if p.returncode != 0:
             return None
         return _json.loads(p.stdout).get('boxes') or []
@@ -788,7 +809,10 @@ def native_readings(frame_path, offset=(0, 0)):
 def decide_with_native(readings, frame_path, offset=(0, 0)):
     """先按既有 8 态判；只有 UNKNOWN 才追加本体判据再判一次。"""
     res = decide(readings)
-    if res.get('state') != 'UNKNOWN' or not frame_path:
+    # 注意：frame_path=None 是**合法的活体输入**（交给常驻服务抓全帧），不是"没有帧"。
+    # 2026-10-18 踩过：这里写成 `or not frame_path` 会让活体永远不进本体判定，
+    # 症状是"改成常驻后判态变快了，但结果全是 UNKNOWN"。
+    if res.get('state') != 'UNKNOWN':
         return res
     extra = native_readings(frame_path, offset=offset)
     if not extra:
@@ -959,19 +983,9 @@ def run_fast(frame=None, profile_path=None, max_age_ms=None):
             # 为什么兜底放在客户端而不是 daemon：daemon 手里是 fast_roi 裁剪帧（宽 ~1400px），
             # 而本体判据要看右下 UID（x≈2370）——那部分不在裁剪里，所以 daemon 侧永远判不出 WORLD。
             if res.get("state") == "UNKNOWN":
+                # 活体：frame=None 交给常驻服务自己抓全帧（不落 PNG，省 0.3~0.5s）
                 _fp = frame
-                if not _fp:                       # 活体：抓一张全帧落盘（~105ms，仅 UNKNOWN 时付）
-                    try:
-                        load_env()
-                        import ys_look as _yl
-                        import numpy as _np
-                        from PIL import Image as _Im
-                        _arr = (_yl.grab(0, 0, FRAME_W, FRAME_H) * 255).round().astype(_np.uint8)
-                        _fp = os.path.join('/tmp', 'ys-state-native-%d.png' % os.getpid())
-                        _Im.fromarray(_arr).save(_fp)
-                    except Exception:             # noqa: BLE001 —— 抓不到就保持 UNKNOWN
-                        _fp = None
-                if _fp:
+                if True:
                     _n = decide_with_native(res.get("readings") or {}, _fp)
                     if _n.get("state") != "UNKNOWN":
                         res.update({k: _n[k] for k in ("state", "confidence", "ambiguous",

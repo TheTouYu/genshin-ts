@@ -1,8 +1,9 @@
 name	limit_ms	measured_median_ms	measured_cold_ms	note
-state-fast	600	185	200	判态快通道（实测 ~130ms 内部 + ~200ms 进程）
-state-default	1500	505	501	判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）
-probe	300	51	51	具名探针
-pixel	300	225	225	单像素读取
-screen	2500	808	808	屏幕摘要（含常驻 OCR）
-layer	800	287	284	层级/模态
-watch	800	366	366	ROI 变化检测（两帧比对）
+state-fast	600	186	186	判态快通道（实测 ~130ms 内部 + ~200ms 进程）
+state-default	1500	501	530	判态默认通道（必须与 fast 同量级；差 8 倍说明又回退了）
+probe	300	53	53	具名探针
+pixel	300	237	236	单像素读取
+screen	2500	817	817	屏幕摘要（含常驻 OCR）
+layer	800	265	272	层级/模态
+native-state	2000	800	800	本体判态（含一次 OCR，走常驻引擎；实测中位 ~790ms）
+watch	800	359	359	ROI 变化检测（两帧比对）

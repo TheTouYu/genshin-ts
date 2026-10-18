@@ -342,6 +342,26 @@ def _ocr_engine():
     return _OCR_ENGINE, _OCR_ERR
 
 
+def _ocr_array(eng, arr, offset):
+    """在**已解码的 RGB uint8 数组**上 OCR，返回全屏坐标的 boxes。"""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'ys_ocr_mod3', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    items = mod._normalize(eng(arr))
+    ox, oy = offset
+    out = []
+    for box, txt, sc in items:
+        xs = [p[0] + ox for p in box]
+        ys = [p[1] + oy for p in box]
+        out.append({'text': txt,
+                    'cx': int(sum(xs) / len(xs)), 'cy': int(sum(ys) / len(ys)),
+                    'score': round(sc, 4),
+                    'box': [[int(p[0] + ox), int(p[1] + oy)] for p in box]})
+    return out
+
+
 def _ocr(req):
     eng, err = _ocr_engine()
     if eng is None:
@@ -349,7 +369,19 @@ def _ocr(req):
     t0 = time.time()
     frame = req.get("frame")
     if not frame:
-        return {"error": "ocr 需要 frame 路径"}
+        # 无帧路径 = 让服务**自己抓全帧**再 OCR（2026-10-18）。
+        # 为什么值得：客户端存一张 2560×1440 PNG 要 ~0.3~0.5s（PNG 编码），
+        # 而服务在这里直接拿内存张量，省掉落盘+读盘+解码三笔。
+        # 本体判态全程从 3.4s 降到 <1s，靠的就是这一条。
+        try:
+            import numpy as _np
+            _YS = ys_state()                      # 判据模块（FRAME_W/H 在它里面）
+            arr = YL.grab(0, 0, _YS.FRAME_W, _YS.FRAME_H)
+            boxes = _ocr_array(eng, (arr * 255).round().astype(_np.uint8), (0, 0))
+            return {"boxes": boxes, "n_total": len(boxes),
+                    "ms": round((time.time() - t0) * 1000), "via": "daemon-live"}
+        except Exception as e:                          # noqa: BLE001
+            return {"error": f"活体取帧失败: {type(e).__name__}: {e}"}
     # 输出形状归一（2.x 元组 / 3.x RapidOCROutput）——与 ys_ocr.py 用同一份归一逻辑
     import importlib.util
     spec = importlib.util.spec_from_file_location(
