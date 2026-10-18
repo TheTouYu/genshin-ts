@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""ys-review — 标注审阅页生成器（把"看图说话"变成"点几下"）。
+
+用法：
+  python3 tools/ys-review --truth-dir .scratch/gui-corpus/truth-v5 \
+      --out .scratch/gui-corpus/review/truth-v5.html [--title "truth-v5"]
+
+产物是一个**纯静态 HTML**（file:// 直接打开，不需要起服务）：
+  · 左：原图；鼠标悬停某个框高亮，右侧对应行同步高亮
+  · 右：单元列表（编号 / kind / 文本），每行三个判据按钮：✓对 / ✗不是对象 / ⚠框不准
+  · 底部：整帧备注框 + 「导出反馈」按钮（下载 feedback-<时间戳>.json）
+
+反馈 JSON 结构：
+  {"batch":"truth-v5","frames":{"r034":{"units":{"12":"not_object"},"notes":"..."}}}
+读回来修标注：按 unit id 删除/修正，比人肉描述精确。
+"""
+import argparse
+import glob
+import html
+import json
+import os
+import sys
+
+
+def load_frames(truth_dir):
+    frames = []
+    for jf in sorted(glob.glob(os.path.join(truth_dir, "*.json"))):
+        stem = os.path.splitext(os.path.basename(jf))[0]
+        if stem.startswith("_"):
+            continue
+        d = json.load(open(jf, encoding="utf-8"))
+        objs = d.get("objects") or []
+        if not objs:
+            continue
+        img = d.get("image") or ""
+        if not os.path.exists(img):
+            # 真值里存的是相对仓库根的路径；HTML 在别处也能用 → 转成绝对 file://
+            cand = os.path.abspath(img)
+            img = cand if os.path.exists(cand) else ""
+        frames.append({"stem": stem, "layout": d.get("layout") or "", "image": img,
+                       "objects": objs, "w": (d.get("size") or [2560, 1440])[0],
+                       "h": (d.get("size") or [2560, 1440])[1]})
+    return frames
+
+
+TEMPLATE = """<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>__TITLE__ · 标注审阅</title>
+<style>
+ body{margin:0;font:14px/1.5 system-ui,"Noto Sans CJK SC",sans-serif;background:#111;color:#eee}
+ header{padding:10px 16px;background:#1b1b1f;position:sticky;top:0;z-index:9;display:flex;gap:16px;align-items:center}
+ header b{color:#7fd1ff}
+ #wrap{display:flex;height:calc(100vh - 92px)}
+ #left{flex:1;overflow:auto;padding:12px;display:flex;justify-content:center;align-items:flex-start}
+ #stage{position:relative;max-width:100%}
+ #stage img{width:100%;display:block}
+ .box{position:absolute;border:2px solid #37f;box-sizing:border-box;cursor:pointer}
+ .box.bad{border-color:#f55;background:rgba(255,0,0,.12)}
+ .box.warn{border-color:#f90;background:rgba(255,150,0,.12)}
+ .box.hl{border-color:#0f0;background:rgba(0,255,0,.18);z-index:5}
+ .tag{position:absolute;left:0;top:-18px;background:#37f;color:#fff;font-size:11px;padding:0 3px;white-space:nowrap}
+ #right{width:430px;overflow:auto;background:#18181c;border-left:1px solid #333;padding:8px}
+ .unit{display:flex;gap:6px;align-items:center;padding:3px 4px;border-bottom:1px solid #26262b}
+ .unit:hover{background:#22222a}
+ .unit .id{width:34px;color:#8ab}
+ .unit .kind{width:58px;color:#caa}
+ .unit .txt{flex:1;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .unit button{border:1px solid #444;background:#222;color:#bbb;cursor:pointer;border-radius:3px;padding:1px 5px}
+ .unit button.on{background:#0a5;color:#fff;border-color:#0a5}
+ .unit button.on.bad{background:#a22}
+ .unit button.on.warn{background:#a60}
+ .framesel{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;background:#15151a}
+ .framesel button{font-size:12px;padding:2px 6px;background:#222;color:#ccc;border:1px solid #333;border-radius:3px;cursor:pointer}
+ .framesel button.on{background:#37f;color:#fff}
+ textarea{width:100%;height:52px;background:#101014;color:#eee;border:1px solid #333;border-radius:3px}
+ #bar{position:sticky;bottom:0;background:#1b1b1f;padding:8px;border-top:1px solid #333}
+</style>
+<header>
+  <b>标注审阅</b><span id="hdr"></span>
+  <span style="margin-left:auto;color:#888">悬停框 ↔ 列表联动｜✓ 对 ✗ 不是对象 ⚠ 框不准</span>
+</header>
+<div id="wrap">
+  <div id="left"><div id="stage"><img id="img" alt=""></div></div>
+  <div id="right">
+    <div class="framesel" id="framesel"></div>
+    <div id="list"></div>
+  </div>
+</div>
+<div id="bar">
+  <textarea id="notes" placeholder="整帧备注（漏标/其它问题）"></textarea>
+  <div style="margin-top:6px;display:flex;gap:8px">
+    <button id="export" style="flex:1;padding:6px">导出反馈 JSON</button>
+    <span id="stat" style="color:#888;align-self:center"></span>
+  </div>
+</div>
+<script>
+const FRAMES = __DATA__;
+const BATCH = __BATCH__;
+const FB = {};
+let cur = 0;
+function fb(stem){ return FB[stem] || (FB[stem] = {units:{}, notes:""}); }
+function renderFrames(){
+  const el = document.getElementById('framesel'); el.innerHTML='';
+  FRAMES.forEach((f,i)=>{
+    const b=document.createElement('button'); b.textContent=(i+1)+' '+f.stem.slice(0,12);
+    b.className = i===cur?'on':'';
+    b.onclick=()=>{cur=i;render();}; el.appendChild(b);
+  });
+}
+function hl(id,on){
+  document.querySelectorAll('[data-id="'+id+'"]').forEach(e=>e.classList.toggle('hl',on));
+}
+function render(){
+  const f = FRAMES[cur];
+  document.getElementById('hdr').textContent = f.stem + ' · ' + f.layout + ' · ' + f.objects.length + ' 单元';
+  document.getElementById('img').src = 'file://' + f.image;
+  const stage = document.getElementById('stage');
+  stage.querySelectorAll('.box').forEach(e=>e.remove());
+  const list = document.getElementById('list'); list.innerHTML='';
+  f.objects.forEach(o=>{
+    const x=o.bbox[0], y=o.bbox[1], w=o.bbox[2], h=o.bbox[3];
+    const b = document.createElement('div');
+    b.className='box'; b.dataset.id=o.id;
+    b.style.left=(100*x/f.w)+'%'; b.style.top=(100*y/f.h)+'%';
+    b.style.width=(100*w/f.w)+'%'; b.style.height=(100*h/f.h)+'%';
+    const t=document.createElement('span'); t.className='tag'; t.textContent=o.id+' '+o.kind; b.appendChild(t);
+    b.onmouseenter=()=>hl(o.id,true); b.onmouseleave=()=>hl(o.id,false);
+    stage.appendChild(b);
+
+    const row=document.createElement('div'); row.className='unit'; row.dataset.id=o.id;
+    row.onmouseenter=()=>hl(o.id,true); row.onmouseleave=()=>hl(o.id,false);
+    const v = fb(f.stem).units[o.id] || '';
+    const idEl=document.createElement('span'); idEl.className='id'; idEl.textContent='#'+o.id;
+    const kEl=document.createElement('span'); kEl.className='kind'; kEl.textContent=o.kind||'';
+    const tEl=document.createElement('span'); tEl.className='txt'; tEl.textContent=(o.text||'');
+    row.appendChild(idEl); row.appendChild(kEl); row.appendChild(tEl);
+    [['ok','✓'],['not_object','✗'],['bad_box','⚠']].forEach(pair=>{
+      const k=pair[0], label=pair[1];
+      const btn=document.createElement('button'); btn.textContent=label; btn.dataset.k=k;
+      if(v===k) btn.className='on '+(k==='ok'?'':k==='not_object'?'bad':'warn');
+      btn.onclick=()=>{ fb(f.stem).units[o.id]=k; render(); };
+      row.appendChild(btn);
+    });
+    list.appendChild(row);
+    if(v) b.classList.add(v==='ok'?'':v==='not_object'?'bad':'warn');
+  });
+  document.getElementById('notes').value = fb(f.stem).notes || '';
+  renderFrames(); updateStat();
+}
+document.getElementById('notes').oninput = e => { fb(FRAMES[cur].stem).notes = e.target.value; };
+function updateStat(){
+  let n=0, all=0;
+  Object.values(FB).forEach(f=>{ for(const v of Object.values(f.units)) if(v) n++; });
+  FRAMES.forEach(f=>all+=f.objects.length);
+  document.getElementById('stat').textContent = '已判 ' + n + ' / ' + all + ' 单元';
+}
+document.getElementById('export').onclick=()=>{
+  const out={batch:BATCH, at:new Date().toISOString(), frames:{}};
+  Object.entries(FB).forEach(([k,v])=>{ if(Object.keys(v.units).length||v.notes) out.frames[k]=v; });
+  const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='feedback-'+BATCH+'-'+Date.now()+'.json'; a.click();
+  updateStat();
+};
+render();
+</script></html>
+"""
+
+
+def build_html(frames, title, batch):
+    data = json.dumps(frames, ensure_ascii=False)
+    return (TEMPLATE.replace("__TITLE__", html.escape(title))
+                    .replace("__DATA__", data)
+                    .replace("__BATCH__", json.dumps(batch)))
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--truth-dir", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--title", default="")
+    args = ap.parse_args()
+    frames = load_frames(args.truth_dir)
+    if not frames:
+        print("没有可审阅的帧", file=sys.stderr)
+        return 2
+    batch = args.title or os.path.basename(os.path.normpath(args.truth_dir))
+    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(build_html(frames, batch, batch))
+    n = sum(len(f["objects"]) for f in frames)
+    print(f"frames={len(frames)} units={n} -> {os.path.abspath(args.out)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
