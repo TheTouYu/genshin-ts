@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""ys-annotate-serve — 标注编辑器的本地服务：页面改动**自动落盘**，不用点导出。
+
+用法：
+  python3 tools/ys-annotate-serve --root .scratch/gui-corpus/review --port 8765
+  # 然后浏览器打开 http://127.0.0.1:8765/truth-v5-edit.html
+  # 看板：http://127.0.0.1:8765/  列出已保存的自动保存文件
+
+行为：
+  · 静态文件从 --root 提供
+  · POST /save/<name>  → 把 JSON 写进 <root>/saved/<name>（原子写，带时间戳备份）
+  · GET  /saved/       → 列出已保存文件与最后修改时间
+
+页面侧：ys-annotate --save-prefix 会生成带自动保存逻辑的版本（见其模板）。
+"""
+import argparse
+import json
+import os
+import time
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+from urllib.parse import unquote, urlparse
+
+
+class Handler(SimpleHTTPRequestHandler):
+    root = "."
+
+    def translate_path(self, path):
+        p = urlparse(path).path
+        p = unquote(p)
+        if p == "/":
+            return os.path.join(self.root, "_index.html")
+        return os.path.join(self.root, p.lstrip("/"))
+
+    def _json(self, code, obj):
+        body = json.dumps(obj, ensure_ascii=False).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        if not self.path.startswith("/save/"):
+            return self._json(404, {"error": "unknown endpoint"})
+        name = os.path.basename(unquote(self.path[len("/save/"):]))
+        if not name.endswith(".json"):
+            return self._json(400, {"error": "name must end with .json"})
+        n = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(n) if n else b"{}"
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except Exception as e:  # noqa: BLE001
+            return self._json(400, {"error": f"bad json: {e}"})
+        d = os.path.join(self.root, "saved")
+        os.makedirs(d, exist_ok=True)
+        path = os.path.join(d, name)
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=1)
+        os.replace(tmp, path)
+        return self._json(200, {"ok": True, "path": os.path.abspath(path),
+                                "at": time.strftime("%Y-%m-%dT%H:%M:%S")})
+
+    def do_GET(self):
+        if self.path.startswith("/saved/"):
+            d = os.path.join(self.root, "saved")
+            rows = []
+            if os.path.isdir(d):
+                for f in sorted(os.listdir(d)):
+                    if f.endswith(".json"):
+                        p = os.path.join(d, f)
+                        rows.append({"name": f, "mtime": time.strftime(
+                            "%Y-%m-%dT%H:%M:%S", time.localtime(os.path.getmtime(p))),
+                            "bytes": os.path.getsize(p)})
+            return self._json(200, {"files": rows})
+        return super().do_GET()
+
+    def log_message(self, fmt, *args):  # 安静点
+        pass
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--root", default=".scratch/gui-corpus/review")
+    ap.add_argument("--port", type=int, default=8765)
+    a = ap.parse_args()
+    Handler.root = os.path.abspath(a.root)
+    os.makedirs(Handler.root, exist_ok=True)
+    srv = HTTPServer(("127.0.0.1", a.port), Handler)
+    print(f"http://127.0.0.1:{a.port}/  root={Handler.root}")
+    srv.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

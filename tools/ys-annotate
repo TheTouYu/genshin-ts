@@ -69,6 +69,7 @@ TEMPLATE = r"""<!doctype html><html lang="zh"><meta charset="utf-8">
 const FRAMES = __DATA__;
 const LEVEL = __LEVEL__;
 const BATCH = __BATCH__;
+const SAVE_PREFIX = __SAVE_PREFIX__;
 let cur=0, selId=null, drawMode=false, els=new Map(), cycleIdx=0, lastPtBtn=null;
 const PATCH={}, HIST=[];
 function pt(stem){ return PATCH[stem] || (PATCH[stem]={deleted:{},updated:{},added:[]}); }
@@ -231,9 +232,24 @@ function undo(){
   const o=f.objects.find(x=>x.id===h.id); if(!o) return;
   o.bbox=h.from; savePos(o,h.from); build();
 }
+let _saveTimer=null, _saveState='未保存';
+function scheduleSave(){
+  if(!SAVE_PREFIX) return;
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(async ()=>{
+    const out={batch:BATCH,at:new Date().toISOString(),frames:{}};
+    Object.entries(PATCH).forEach(([k,v])=>{ if(Object.keys(v.deleted).length||Object.keys(v.updated).length||v.added.length) out.frames[k]=v; });
+    try{
+      const r=await fetch('/save/'+SAVE_PREFIX+'-'+BATCH+'.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(out)});
+      _saveState = r.ok ? '已自动保存 '+new Date().toLocaleTimeString() : '保存失败';
+    }catch(e){ _saveState='保存失败（服务没起？）'; }
+    document.getElementById('stat').textContent += ' · '+_saveState;
+  }, 800);
+}
 function upd(){
   const p=pt(frame().stem);
   document.getElementById('stat').textContent='改 '+Object.keys(p.updated).length+' · 删 '+Object.keys(p.deleted).length+' · 增 '+p.added.length;
+  scheduleSave();
 }
 document.getElementById('stage').addEventListener('mousedown',e=>{ if(drawMode) startDraw(e); });
 document.getElementById('mode-draw').onclick=e=>{ drawMode=!drawMode; e.target.classList.toggle('on',drawMode); };
@@ -276,6 +292,7 @@ def main():
     ap.add_argument("--truth-dir", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--title", default="")
+    ap.add_argument("--save-prefix", default="", help="设置后启用自动保存：POST /save/<prefix>-<batch>.json")
     a = ap.parse_args()
     frames = load(a.truth_dir)
     if not frames:
@@ -285,7 +302,8 @@ def main():
     out = (TEMPLATE.replace("__TITLE__", html.escape(batch))
                    .replace("__LEVEL__", json.dumps(LEVEL))
                    .replace("__DATA__", json.dumps(frames, ensure_ascii=False))
-                   .replace("__BATCH__", json.dumps(batch)))
+                   .replace("__BATCH__", json.dumps(batch))
+                   .replace("__SAVE_PREFIX__", json.dumps(a.save_prefix)))
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     open(a.out, "w", encoding="utf-8").write(out)
     n = sum(len(f["objects"]) for f in frames)
