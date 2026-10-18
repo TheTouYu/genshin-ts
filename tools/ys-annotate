@@ -27,8 +27,8 @@ LEVEL = {
 TEMPLATE = r"""<!doctype html><html lang="zh"><meta charset="utf-8">
 <title>__TITLE__ · 标注修复</title>
 <style>
- body{margin:0;font:13px/1.5 system-ui,"Noto Sans CJK SC",sans-serif;background:#101014;color:#e6e6e6}
- header{padding:6px 12px;background:#1b1b20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+ body{margin:0;font:13px/1.5 system-ui,"Noto Sans CJK SC",sans-serif;background:#0f0f12;color:#e6e6e6}
+ header{padding:6px 12px;background:#1b1b20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:30}
  header b{color:#7fd1ff}
  button,select{background:#26262e;color:#ddd;border:1px solid #3a3a44;border-radius:4px;padding:3px 8px;cursor:pointer}
  button.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
@@ -36,47 +36,29 @@ TEMPLATE = r"""<!doctype html><html lang="zh"><meta charset="utf-8">
  #left{flex:1;overflow:auto;padding:10px;display:flex;justify-content:center;align-items:flex-start}
  #stage{position:relative;max-width:100%;user-select:none}
  #stage img{width:100%;display:block;pointer-events:none}
- .box{position:absolute;box-sizing:border-box;cursor:move}
+ .box{position:absolute;box-sizing:border-box;cursor:pointer}
  .box.big{border:2px solid #c084fc}
  .box.row{border:2px solid #60a5fa}
  .box.el{border:2px solid #34d399}
- .box.sel{outline:2px solid #fde047;outline-offset:1px;z-index:6}
- .box .tag{position:absolute;left:0;top:-16px;font-size:10px;padding:0 2px;color:#000;background:#fde047;white-space:nowrap}
- .box.big .tag{background:#c084fc}
- .box.row .tag{background:#60a5fa}
- .box.el .tag{background:#34d399}
- .h{position:absolute;width:8px;height:8px;background:#fde047;border:1px solid #000}
- #right{width:330px;overflow:auto;background:#16161b;border-left:1px solid #2c2c34;padding:8px}
- .u{display:flex;gap:6px;align-items:center;padding:2px 3px;border-bottom:1px solid #222}
- .u:hover{background:#20202a}
- .u .id{width:32px;color:#8ab}
- .u .k{width:52px}
- .u .t{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#bbb}
+ .box.sel{outline:2px solid #fde047;outline-offset:1px;z-index:8;box-shadow:0 0 0 1px #fde047 inset}
+ .box .tag{position:absolute;left:0;top:-16px;font-size:10px;padding:0 2px;color:#000;background:#fde047;white-space:nowrap;pointer-events:none}
+ .box.big .tag{background:#c084fc} .box.row .tag{background:#60a5fa} .box.el .tag{background:#34d399}
+ .h{position:absolute;width:9px;height:9px;background:#fde047;border:1px solid #000;z-index:9}
+ #right{width:320px;overflow:auto;background:#16161b;border-left:1px solid #2c2c34;padding:8px}
+ .u{display:flex;gap:6px;align-items:center;padding:2px 3px;border-bottom:1px solid #222;cursor:pointer}
+ .u:hover{background:#20202a} .u.sel{background:#2a2a12}
+ .u .id{width:34px;color:#8ab} .u .k{width:52px} .u .t{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#bbb}
  #bar{position:sticky;bottom:0;background:#1b1b20;padding:6px 12px;display:flex;gap:10px;align-items:center}
  #hint{color:#888}
 </style>
 <header>
-  <b>标注修复</b>
-  <span id="which"></span>
-  <select id="kind">
-    <option value="row">行 row</option>
-    <option value="tile">格 tile</option>
-    <option value="button">按钮 button</option>
-    <option value="icon">图标 icon</option>
-    <option value="chip">chip</option>
-    <option value="avatar">头像 avatar</option>
-    <option value="card">卡片 card</option>
-    <option value="panel">面板 panel</option>
-  </select>
-  <button id="mode-draw">画框 (N)</button>
-  <button id="fill">等距补全</button>
+  <b>标注修复</b><span id="which"></span>
+  <select id="level"><option value="all">选择：全部层级</option><option value="big">只选大层级</option><option value="row">只选行</option><option value="el">只选元素</option></select>
+  <select id="kind"><option value="row">row</option><option value="tile">tile</option><option value="button">button</option><option value="icon">icon</option><option value="chip">chip</option><option value="avatar">avatar</option><option value="card">card</option><option value="panel">panel</option></select>
+  <button id="mode-draw">新建框 (N)</button>
   <button id="del">删除 (Del)</button>
   <button id="undo">撤销 (Ctrl+Z)</button>
-  <span style="margin-left:auto">
-    <span style="color:#c084fc">■大层级</span>
-    <span style="color:#60a5fa">■行</span>
-    <span style="color:#34d399">■元素</span>
-  </span>
+  <span style="margin-left:auto"><span style="color:#c084fc">■大</span> <span style="color:#60a5fa">■行</span> <span style="color:#34d399">■元素</span></span>
 </header>
 <div id="wrap">
   <div id="left"><div id="stage"><img id="img"></div></div>
@@ -86,171 +68,185 @@ TEMPLATE = r"""<!doctype html><html lang="zh"><meta charset="utf-8">
 <script>
 const FRAMES = __DATA__;
 const LEVEL = __LEVEL__;
-let cur = 0, sel = null, drawing = false, modeDraw = false;
-const PATCH = {};              // stem -> {deleted:{id:true}, updated:{id:bbox}, added:[{id,bbox,kind}]}
-const HIST = [];
-function pt(stem){ return PATCH[stem] || (PATCH[stem] = {deleted:{}, updated:{}, added:[]}); }
-function levelOf(k){ return LEVEL[k] || 'el'; }
+const BATCH = __BATCH__;
+let cur=0, selId=null, drawMode=false, els=new Map(), cycleIdx=0, lastPtBtn=null;
+const PATCH={}, HIST=[];
+function pt(stem){ return PATCH[stem] || (PATCH[stem]={deleted:{},updated:{},added:[]}); }
+function levelOf(k){ return LEVEL[k]||'el'; }
+function frame(){ return FRAMES[cur]; }
+function savePos(o,bbox){ o.bbox=bbox; if(!o._added) pt(frame().stem).updated[o.id]=bbox; else { const a=pt(frame().stem).added.find(x=>x.id===o.id); if(a) a.bbox=bbox; } }
 
 function renderFrames(){
-  const el = document.getElementById('framesel'); el.innerHTML='';
-  FRAMES.forEach((f,i)=>{
-    const b=document.createElement('button'); b.textContent=(i+1)+' '+f.stem.slice(-8);
-    b.className = i===cur?'on':''; b.onclick=()=>{cur=i;sel=null;render();}; el.appendChild(b);
+  const el=document.getElementById('framesel'); el.innerHTML='';
+  FRAMES.forEach((f,i)=>{ const b=document.createElement('button'); b.textContent=(i+1)+' '+f.stem.slice(-8);
+    b.className=i===cur?'on':''; b.onclick=()=>{cur=i;selId=null;build();}; el.appendChild(b); });
+}
+function hitTest(cx,cy){
+  const f=frame(), st=document.getElementById('stage').getBoundingClientRect();
+  const x=(cx-st.left)/st.width*f.w, y=(cy-st.top)/st.height*f.h;
+  const lv=document.getElementById('level').value;
+  let hits=f.objects.filter(o=>{ const [bx,by,bw,bh]=o.bbox; return x>=bx&&x<=bx+bw&&y>=by&&y<=by+bh; });
+  if(lv!=='all') hits=hits.filter(o=>levelOf(o.kind)===lv);
+  hits.sort((a,b)=>a.bbox[2]*a.bbox[3]-b.bbox[2]*b.bbox[3]);   // 小的一层在上
+  return hits;
+}
+function selectNext(cx,cy){
+  const hits=hitTest(cx,cy); if(!hits.length){ selId=null; paint(); return; }
+  if(lastPtBtn && Math.hypot(cx-lastPtBtn.x,cy-lastPtBtn.y)<3) cycleIdx++;
+  else cycleIdx=0;
+  lastPtBtn={x:cx,y:cy};
+  selId=hits[cycleIdx%hits.length].id; paint();
+}
+function paint(){
+  const f=frame();
+  els.forEach((el,id)=>{ const o=f.objects.find(x=>x.id===id); if(!o) return;
+    el.classList.toggle('sel', id===selId);
+    el.querySelectorAll('.h').forEach(h=>h.style.display = id===selId?'block':'none');
   });
+  document.querySelectorAll('.u').forEach(d=>d.classList.toggle('sel', d.dataset.id===selId));
+  const o=f.objects.find(x=>x.id===selId);
+  document.getElementById('hint').textContent = o ? `已选 #${o.id} ${o.kind}｜方向键移 1px（Shift 10px）｜Alt+方向键改大小` : '点击框选择（重叠时再点一次切换）｜N 新建';
 }
-function boxEl(o, isAdded){
-  const f = FRAMES[cur];
-  const [x,y,w,h] = o.bbox;
-  const b = document.createElement('div');
-  b.className = 'box ' + levelOf(o.kind) + (sel===o.id?' sel':'');
-  b.dataset.id = o.id;
-  b.style.left=(100*x/f.w)+'%'; b.style.top=(100*y/f.h)+'%';
-  b.style.width=(100*w/f.w)+'%'; b.style.height=(100*h/f.h)+'%';
-  const t=document.createElement('span'); t.className='tag'; t.textContent=(o.id+'').slice(0,6)+' '+o.kind; b.appendChild(t);
-  b.addEventListener('mousedown', ev=>startDrag(ev, o, b));
-  return b;
+function build(){
+  const f=frame(); els=new Map(); selId=null;
+  document.getElementById('which').textContent=f.stem+' · '+f.layout+' · '+f.objects.length+' 单元';
+  document.getElementById('img').src='file://'+f.image;
+  const st=document.getElementById('stage');
+  st.querySelectorAll('.box').forEach(e=>e.remove());
+  f.objects.forEach(o=>{
+    const [x,y,w,h]=o.bbox;
+    const el=document.createElement('div');
+    el.className='box '+levelOf(o.kind); el.dataset.id=o.id;
+    el.style.left=(100*x/f.w)+'%'; el.style.top=(100*y/f.h)+'%';
+    el.style.width=(100*w/f.w)+'%'; el.style.height=(100*h/f.h)+'%';
+    const t=document.createElement('span'); t.className='tag'; t.textContent=(o.id+'').slice(0,6)+' '+o.kind; el.appendChild(t);
+    [['nw',0,0],['ne',1,0],['sw',0,1],['se',1,1]].forEach(([nm,fx,fy])=>{
+      const hd=document.createElement('div'); hd.className='h'; hd.dataset.h=nm;
+      hd.style.left='calc('+(fx*100)+'% - 4px)'; hd.style.top='calc('+(fy*100)+'% - 4px)'; hd.style.display='none';
+      hd.addEventListener('mousedown',ev=>{ ev.stopPropagation(); startResize(ev,o,el,nm); });
+      el.appendChild(hd);
+    });
+    el.addEventListener('mousedown',ev=>{ ev.stopPropagation(); startDrag(ev,o,el); });
+    st.appendChild(el); els.set(o.id,el);
+  });
+  const list=document.getElementById('list'); list.innerHTML='';
+  f.objects.forEach(o=>{
+    const d=document.createElement('div'); d.className='u'; d.dataset.id=o.id;
+    d.innerHTML='<span class="id">#'+(o.id+'').slice(0,5)+'</span><span class="k">'+o.kind+'</span><span class="t">'+((o.text||'').replace(/</g,'&lt;'))+'</span>';
+    d.onclick=()=>{ selId=o.id; paint(); const el=els.get(o.id); if(el) el.scrollIntoView({block:'center'}); };
+    list.appendChild(d);
+  });
+  renderFrames(); upd(); paint();
 }
-function startDrag(ev, o, el){
-  if(modeDraw) return;
-  ev.stopPropagation(); ev.preventDefault();
-  sel = o.id; render();
-  const f = FRAMES[cur];
-  const rect = document.getElementById('stage').getBoundingClientRect();
-  const sx = ev.clientX, sy = ev.clientY;
-  const [x0,y0,w0,h0] = o.bbox.slice();
-  const onMove = e=>{
-    const dx = (e.clientX-sx)/rect.width*f.w;
-    const dy = (e.clientY-sy)/rect.height*f.h;
-    o.bbox = [Math.round(x0+dx), Math.round(y0+dy), w0, h0];
-    o.dirty = true;
-    pt(f.stem).updated[o.id] = o.bbox;
-    el.style.left=(100*o.bbox[0]/f.w)+'%'; el.style.top=(100*o.bbox[1]/f.h)+'%';
+function startDrag(ev,o,el){
+  if(drawMode) return;
+  ev.preventDefault();
+  const f=frame(), st=document.getElementById('stage').getBoundingClientRect();
+  const sx=ev.clientX, sy=ev.clientY, [x0,y0,w0,h0]=o.bbox;
+  let moved=false;
+  const onMove=e=>{
+    const dx=(e.clientX-sx)/st.width*f.w, dy=(e.clientY-sy)/st.height*f.h;
+    if(Math.abs(e.clientX-sx)>2||Math.abs(e.clientY-sy)>2) moved=true;
+    const nb=[Math.round(x0+dx),Math.round(y0+dy),w0,h0];
+    o.bbox=nb; el.style.left=(100*nb[0]/f.w)+'%'; el.style.top=(100*nb[1]/f.h)+'%';
   };
-  const onUp = ()=>{ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
-                     HIST.push({stem:f.stem, id:o.id, from:[x0,y0,w0,h0], to:o.bbox.slice()}); upd(); };
+  const onUp=()=>{
+    document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+    if(!moved){ selectNext(ev.clientX,ev.clientY); }
+    else { savePos(o,o.bbox); HIST.push({stem:f.stem,id:o.id,from:[x0,y0,w0,h0],to:o.bbox.slice()}); upd(); }
+  };
+  document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+}
+function startResize(ev,o,el,corner){
+  ev.preventDefault(); ev.stopPropagation();
+  const f=frame(), st=document.getElementById('stage').getBoundingClientRect();
+  const sx=ev.clientX, sy=ev.clientY, [x0,y0,w0,h0]=o.bbox.slice();
+  const onMove=e=>{
+    const dx=(e.clientX-sx)/st.width*f.w, dy=(e.clientY-sy)/st.height*f.h;
+    let nx=x0, ny=y0, nw=w0, nh=h0;
+    if(corner.includes('w')){ nx=x0+dx; nw=w0-dx; }
+    if(corner.includes('e')){ nw=w0+dx; }
+    if(corner.includes('n')){ ny=y0+dy; nh=h0-dy; }
+    if(corner.includes('s')){ nh=h0+dy; }
+    if(nw<8||nh<8) return;
+    o.bbox=[Math.round(nx),Math.round(ny),Math.round(nw),Math.round(nh)];
+    el.style.left=(100*o.bbox[0]/f.w)+'%'; el.style.top=(100*o.bbox[1]/f.h)+'%';
+    el.style.width=(100*o.bbox[2]/f.w)+'%'; el.style.height=(100*o.bbox[3]/f.h)+'%';
+  };
+  const onUp=()=>{ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+    savePos(o,o.bbox); HIST.push({stem:f.stem,id:o.id,from:[x0,y0,w0,h0],to:o.bbox.slice()}); upd(); };
   document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
 }
 function startDraw(ev){
-  if(!modeDraw) return;
-  ev.preventDefault();
-  const f = FRAMES[cur], stage = document.getElementById('stage');
-  const rect = stage.getBoundingClientRect();
-  const sx = ev.clientX, sy = ev.clientY;
-  const ghost = document.createElement('div');
-  ghost.className='box '+levelOf(document.getElementById('kind').value)+' sel';
-  ghost.style.left=((sx-rect.left)/rect.width*100)+'%';
-  ghost.style.top=((sy-rect.top)/rect.height*100)+'%';
-  stage.appendChild(ghost);
-  const onMove = e=>{
+  if(!drawMode) return; ev.preventDefault();
+  const f=frame(), st=document.getElementById('stage').getBoundingClientRect();
+  const sx=ev.clientX, sy=ev.clientY;
+  const ghost=document.createElement('div'); ghost.className='box '+levelOf(document.getElementById('kind').value)+' sel';
+  ghost.style.left=((sx-st.left)/st.width*100)+'%'; ghost.style.top=((sy-st.top)/st.height*100)+'%';
+  document.getElementById('stage').appendChild(ghost);
+  const onMove=e=>{
     const x=Math.min(sx,e.clientX), y=Math.min(sy,e.clientY);
-    ghost.style.left=((x-rect.left)/rect.width*100)+'%';
-    ghost.style.top=((y-rect.top)/rect.height*100)+'%';
-    ghost.style.width=(Math.abs(e.clientX-sx)/rect.width*100)+'%';
-    ghost.style.height=(Math.abs(e.clientY-sy)/rect.height*100)+'%';
+    ghost.style.left=((x-st.left)/st.width*100)+'%'; ghost.style.top=((y-st.top)/st.height*100)+'%';
+    ghost.style.width=(Math.abs(e.clientX-sx)/st.width*100)+'%'; ghost.style.height=(Math.abs(e.clientY-sy)/st.height*100)+'%';
   };
-  const onUp = e=>{
-    document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
-    ghost.remove();
-    const x=Math.min(sx,e.clientX), y=Math.min(sy,e.clientY);
-    const w=Math.abs(e.clientX-sx), h=Math.abs(e.clientY-sy);
+  const onUp=e=>{
+    document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); ghost.remove();
+    const x=Math.min(sx,e.clientX), y=Math.min(sy,e.clientY), w=Math.abs(e.clientX-sx), h=Math.abs(e.clientY-sy);
     if(w<6||h<6) return;
-    const bx=[Math.round((x-rect.left)/rect.width*f.w), Math.round((y-rect.top)/rect.height*f.h),
-              Math.round(w/rect.width*f.w), Math.round(h/rect.height*f.h)];
+    const bbox=[Math.round((x-st.left)/st.width*f.w),Math.round((y-st.top)/st.height*f.h),Math.round(w/st.width*f.w),Math.round(h/st.height*f.h)];
     const kind=document.getElementById('kind').value;
-    const id='+'+(pt(f.stem).added.length+1);
-    pt(f.stem).added.push({id, bbox:bx, kind});
-    f.objects.push({id, bbox:bx, kind, text:'', _added:true});
-    render();
+    const id='+'+String(pt(f.stem).added.length+1).padStart(2,'0');
+    pt(f.stem).added.push({id,bbox,kind});
+    f.objects.push({id,bbox,kind,text:'',_added:true});
+    selId=id; build();
   };
   document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
 }
 function delSel(){
-  if(sel==null) return;
-  const f=FRAMES[cur];
-  const i=f.objects.findIndex(o=>o.id===sel);
-  if(i<0) return;
+  if(selId==null) return; const f=frame(); const i=f.objects.findIndex(o=>o.id===selId); if(i<0) return;
   const o=f.objects[i];
-  if(o._added){ pt(f.stem).added = pt(f.stem).added.filter(a=>a.id!==o.id); }
-  else { pt(f.stem).deleted[o.id]=true; delete pt(f.stem).updated[o.id]; }
-  f.objects.splice(i,1); sel=null; render();
+  if(o._added){ pt(f.stem).added=pt(f.stem).added.filter(a=>a.id!==o.id); } else { pt(f.stem).deleted[o.id]=true; delete pt(f.stem).updated[o.id]; }
+  f.objects.splice(i,1); selId=null; build();
 }
-function fillRows(){
-  // 选中两个同 kind 的框 → 按行距补全中间的
-  const sel2 = Array.from(document.querySelectorAll('.box.sel')).map(e=>e.dataset.id);
-  const f = FRAMES[cur];
-  const picked = f.objects.filter(o=>(o._picked));
-  if(picked.length<2){ document.getElementById('hint').textContent='等距补全：先 Ctrl+点击 选两个同 kind 的框'; return; }
-  const [a,b] = picked.slice(0,2);
-  const n = parseInt(prompt('要补几个中间框？（按两框中心距等差）','5')||'0',10);
-  if(!n) return;
-  const ax=a.bbox[0]+a.bbox[2]/2, ay=a.bbox[1]+a.bbox[3]/2;
-  const bx=b.bbox[0]+b.bbox[2]/2, by=b.bbox[1]+b.bbox[3]/2;
-  const [w,h]=[a.bbox[2],a.bbox[3]];
-  for(let i=1;i<=n;i++){
-    const t=i/(n+1);
-    const cx=ax+(bx-ax)*t, cy=ay+(by-ay)*t;
-    const bbox=[Math.round(cx-w/2), Math.round(cy-h/2), w, h];
-    const id='+'+(pt(f.stem).added.length+1);
-    pt(f.stem).added.push({id,bbox,kind:a.kind});
-    f.objects.push({id,bbox,kind:a.kind,text:'',_added:true});
-  }
-  f.objects.forEach(o=>{delete o._picked;});
-  render();
+function nudge(dx,dy,resize){
+  const f=frame(); const o=f.objects.find(x=>x.id===selId); if(!o) return;
+  const [x,y,w,h]=o.bbox;
+  o.bbox = resize ? [x,y,Math.max(8,w+dx),Math.max(8,h+dy)] : [x+dx,y+dy,w,h];
+  savePos(o,o.bbox); build();
+}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  const step=e.shiftKey?10:1, alt=e.altKey;
+  if(e.key==='ArrowLeft'){ nudge(alt?step:0, 0, alt); e.preventDefault(); }
+  if(e.key==='ArrowRight'){ nudge(alt?-step:0, 0, alt); e.preventDefault(); }
+  if(e.key==='ArrowUp'){ nudge(0, alt?step:0, alt); e.preventDefault(); }
+  if(e.key==='ArrowDown'){ nudge(0, alt?-step:0, alt); e.preventDefault(); }
+  if(e.key==='Delete'||e.key==='Backspace'){ delSel(); e.preventDefault(); }
+  if(e.key==='n'||e.key==='N'){ drawMode=!drawMode; document.getElementById('mode-draw').classList.toggle('on',drawMode); }
+  if(e.key==='Escape'){ selId=null; drawMode=false; document.getElementById('mode-draw').classList.remove('on'); paint(); }
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){ undo(); e.preventDefault(); }
+});
+function undo(){
+  const h=HIST.pop(); if(!h) return; const f=FRAMES.find(x=>x.stem===h.stem); if(!f) return;
+  const o=f.objects.find(x=>x.id===h.id); if(!o) return;
+  o.bbox=h.from; savePos(o,h.from); build();
 }
 function upd(){
-  const f=FRAMES[cur], p=pt(f.stem);
-  document.getElementById('stat').textContent =
-    '改 ' + Object.keys(p.updated).length + ' · 删 ' + Object.keys(p.deleted).length + ' · 增 ' + p.added.length;
+  const p=pt(frame().stem);
+  document.getElementById('stat').textContent='改 '+Object.keys(p.updated).length+' · 删 '+Object.keys(p.deleted).length+' · 增 '+p.added.length;
 }
-function render(){
-  const f=FRAMES[cur];
-  document.getElementById('which').textContent=f.stem+' · '+f.layout+' · '+f.objects.length+' 单元';
-  document.getElementById('img').src='file://'+f.image;
-  const stage=document.getElementById('stage');
-  stage.querySelectorAll('.box').forEach(e=>e.remove());
-  f.objects.forEach(o=> stage.appendChild(boxEl(o)));
-  const list=document.getElementById('list'); list.innerHTML='';
-  f.objects.forEach(o=>{
-    const d=document.createElement('div'); d.className='u';
-    d.innerHTML='<span class="id">#'+(o.id+'').slice(0,5)+'</span><span class="k">'+o.kind+'</span>'+
-                '<span class="t">'+(o.text||'').replace(/</g,'&lt;')+'</span>';
-    d.onclick=(ev)=>{
-      if(ev.ctrlKey){ o._picked=!o._picked; d.style.background=o._picked?'#264':'';
-                      document.querySelector('[data-id="'+o.id+'"]').classList.toggle('sel',!!o._picked); return; }
-      sel=o.id; render();
-    };
-    list.appendChild(d);
-  });
-  renderFrames(); upd();
-  document.getElementById('hint').textContent='拖动=移框 · N=画框 · Del=删 · 列表 Ctrl+点击 选两行后点等距补全';
-}
-document.getElementById('mode-draw').onclick=e=>{modeDraw=!modeDraw;e.target.classList.toggle('on',modeDraw);};
+document.getElementById('stage').addEventListener('mousedown',e=>{ if(drawMode) startDraw(e); });
+document.getElementById('mode-draw').onclick=e=>{ drawMode=!drawMode; e.target.classList.toggle('on',drawMode); };
 document.getElementById('del').onclick=delSel;
-document.getElementById('fill').onclick=fillRows;
-document.getElementById('undo').onclick=()=>{
-  const h=HIST.pop(); if(!h) return;
-  const f=FRAMES.find(x=>x.stem===h.stem); if(!f) return;
-  const o=f.objects.find(x=>x.id===h.id); if(!o) return;
-  o.bbox=h.from; pt(f.stem).updated[h.id]=h.from; render();
-};
+document.getElementById('undo').onclick=undo;
 document.getElementById('export').onclick=()=>{
-  const out={batch:BATCH, at:new Date().toISOString(), frames:{}};
-  Object.entries(PATCH).forEach(([k,v])=>{
-    if(Object.keys(v.deleted).length||Object.keys(v.updated).length||v.added.length) out.frames[k]=v;
-  });
+  const out={batch:BATCH,at:new Date().toISOString(),frames:{}};
+  Object.entries(PATCH).forEach(([k,v])=>{ if(Object.keys(v.deleted).length||Object.keys(v.updated).length||v.added.length) out.frames[k]=v; });
   const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='patch-'+BATCH+'-'+Date.now()+'.json'; a.click();
 };
-document.addEventListener('keydown',e=>{
-  if(e.key==='n'||e.key==='N'){modeDraw=!modeDraw;document.getElementById('mode-draw').classList.toggle('on',modeDraw);}
-  if(e.key==='Delete'){delSel();}
-  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){document.getElementById('undo').click();}
-});
-document.getElementById('stage').addEventListener('mousedown',startDraw);
-const BATCH = __BATCH__;
-render();
+build();
 </script></html>
 """
 
