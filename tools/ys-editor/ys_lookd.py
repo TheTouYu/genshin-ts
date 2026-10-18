@@ -759,7 +759,7 @@ _BLOCK_PREV = {}                     # (grid_idx, W, H) -> 上一次该位置的
 _BLOCK_CACHE_MAX = 4000
 _BLOCK_RULESET = 'blk-v1'            # 改切块/扩边/哈希必须 +1
 _BLOCK_GRID = (3, 3)                 # rows, cols
-_BLOCK_MARGIN = 96
+_BLOCK_MARGIN = 160
 _BLOCK_FALLBACK_RATIO = 0.6
 
 
@@ -911,10 +911,25 @@ def _ocr_blocks_core(arr, det_max=2000, cache=True, grid=_BLOCK_GRID,
     for core, crop in rects:
         c = np.ascontiguousarray(bgr[core[1]:core[3], core[0]:core[2]])
         keys.append(f'{zlib.crc32(c):08x}:{_BLOCK_RULESET}:{core[2]-core[0]}x{core[3]-core[1]}:{int(det_max)}')
-    hits = [i for i, k in enumerate(keys) if cache and k in _BLOCK_CACHE]
-    for i in hits:
-        _BLOCK_PREV[(i, W, H)] = _BLOCK_CACHE[keys[i]]
-    misses = [i for i in range(len(rects)) if i not in set(hits)]
+    hits = []
+    misses = []
+    cur_cells = []
+    for i, (core, _crop) in enumerate(rects):
+        cc = _block_cells(bgr, core)
+        cur_cells.append(cc)
+        if cache and keys[i] in _BLOCK_CACHE:          # ① 精确内容命中（最快）
+            hits.append(i)
+            _BLOCK_PREV[(i, W, H)] = _BLOCK_CACHE[keys[i]]
+            continue
+        prev = _BLOCK_PREV.get((i, W, H))
+        if cache and prev is not None:
+            ch = _changed_cells(prev.get('cells'), cc)
+            if ch is not None and not ch:               # ② 格子级"视觉未变"命中
+                # JPEG 复查/编码噪声会让逐字节 crc 全 miss（实测 real pairs 0/9 精确命中），
+                # 但 16×16 格子均值不变 ⇒ 认为这块没变，直接沿用上一帧结果。
+                hits.append(i)
+                continue
+        miss.append(i) if False else misses.append(i)
     hash_ms = round((time.time() - t0) * 1000, 1)
     blocks = [{'core': list(core), 'crop': list(crop), 'hit': i in set(hits)} for i, (core, crop) in enumerate(rects)]
     # 冷帧/换页：变化块占比过大 → 整帧 OCR（保证不低于整帧地板，并把结果填进块缓存）
@@ -975,14 +990,36 @@ def _ocr_blocks_core(arr, det_max=2000, cache=True, grid=_BLOCK_GRID,
     for i in misses:
         core, crop = rects[i]
         prev = _BLOCK_PREV.get((i, W, H)) or _BLOCK_CACHE.get(keys[i]) or {}
-        changed_cells = _changed_cells(prev.get('cells'), _block_cells(bgr, core))
-        loc = _ocr_region_bgr(bgr, crop, det, rec, det_max, batch,
-                              old_boxes=prev.get('boxes'), changed_cells=changed_cells,
-                              core=core)
-        g = [{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']} for o in loc]
+        prev_boxes = prev.get('boxes') or []
+        cc = cur_cells[i]
+        changed_cells = _changed_cells(prev.get('cells'), cc)
+        if changed_cells and prev_boxes:
+            # ② 只在「变化格子的 bbox + margin」上跑 det+rec（不再整块跑）
+            g = 16
+            cw = max(1.0, (core[2] - core[0]) / g); ch = max(1.0, (core[3] - core[1]) / g)
+            rows = [r for r, _ in changed_cells]; cols = [q for _, q in changed_cells]
+            rx0 = core[0] + int(min(cols) * cw); rx1 = core[0] + int((max(cols) + 1) * cw)
+            ry0 = core[1] + int(min(rows) * ch); ry1 = core[1] + int((max(rows) + 1) * ch)
+            sub = (max(crop[0], rx0 - _BLOCK_MARGIN), max(crop[1], ry0 - _BLOCK_MARGIN),
+                   min(crop[2], rx1 + _BLOCK_MARGIN), min(crop[3], ry1 + _BLOCK_MARGIN))
+            loc = _ocr_region_bgr(bgr, sub, det, rec, det_max, batch,
+                                  old_boxes=prev_boxes, changed_cells=changed_cells, core=core)
+            # 未变化的旧框保留（它们的文本没变），变化区域的框用本次结果替换
+            kept = [o for o in prev_boxes
+                    if not (_cell_range(o['bbox'], core) & changed_cells)]
+            merged_boxes = _dedupe_objects([{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']}
+                                            for o in kept]
+                                           + [{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']}
+                                              for o in loc])
+            g = merged_boxes
+        else:
+            # 首次见到这块：整块跑（块内无旧结果可复用）
+            loc = _ocr_region_bgr(bgr, crop, det, rec, det_max, batch,
+                                  old_boxes=prev_boxes or None, changed_cells=changed_cells, core=core)
+            g = [{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']} for o in loc]
         ocr_objs.append((i, g, core))
-        n_reuse += sum(1 for o in loc if o.get('reused'))
-        n_rec += sum(1 for o in loc if not o.get('reused'))
+        n_reuse += sum(1 for o in (loc or []) if o.get('reused'))
+        n_rec += sum(1 for o in (loc or []) if not o.get('reused'))
     region_ms = round((time.time() - t1) * 1000, 1)
     merged = []
     for i in hits:
@@ -993,7 +1030,7 @@ def _ocr_blocks_core(arr, det_max=2000, cache=True, grid=_BLOCK_GRID,
                   and core[1] <= o['bbox'][1] + o['bbox'][3] // 2 < core[3]]
         merged.extend(inside)
         if cache:
-            entry = {'boxes': inside, 'cells': _block_cells(bgr, core)}
+            entry = {'boxes': inside, 'cells': cc}
             _BLOCK_PREV[(i, W, H)] = entry
             if len(_BLOCK_CACHE) < _BLOCK_CACHE_MAX:
                 _BLOCK_CACHE[keys[i]] = entry
