@@ -138,8 +138,9 @@ def eval_pair(pred_dir, truth_dir):
         for pid in matched_pred:
             gid = res["container_of"].get(pid) or res["group_of"].get(pid)
             cont_pred[pid] = gid or "solo:" + pid
-        cont_ids = list(cont_pred)
-        cont_truth = {tid: parent_truth[tid] for tid in cont_ids if tid in parent_truth}
+        # 口径：只评 truth 里有 parent 的对象（没有 parent 的对象既不算 TP 也不算 FP）
+        cont_ids = [tid for tid in cont_pred if tid in parent_truth]
+        cont_truth = {tid: parent_truth[tid] for tid in cont_ids}
         cp = pair_scores(cont_pred, cont_truth, cont_ids)
 
         # ---- 节奏组（truth groups，只有 4 帧游戏界面有）
@@ -357,8 +358,11 @@ def main():
     ap.add_argument("--pred-dir")
     ap.add_argument("--truth-dir")
     ap.add_argument("--all", action="store_true", help="跑三族（v9-fixed / v8-editor / v8-game）")
+    ap.add_argument("--no-rows", action="store_true", help="关掉行对象当父（对照 D3.md §2.1）")
     ap.add_argument("--json-out", default="")
     a = ap.parse_args()
+    if a.no_rows:
+        D3.USE_ROWS = False
     jobs = []
     if a.all:
         jobs = [(f"{CORPUS}/truth-v9-pred", f"{CORPUS}/truth-v9-fixed"),

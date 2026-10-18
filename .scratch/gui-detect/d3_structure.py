@@ -26,6 +26,7 @@ import os
 import statistics as st
 
 AXIS_Y, AXIS_X = "y", "x"
+USE_ROWS = True   # 行对象当父（真值里元素常挂在 row 上，见 D3.md §2.1）
 
 
 # ---------------------------------------------------------------- 基础几何
@@ -287,8 +288,13 @@ def build_groups(objs):
     return groups
 
 
-def infer_containers(objs, groups, frame_size, pad_frac=0.03):
-    """容器 = 检测器给的 panel 框 + 组的竖排并集（+内边距）。"""
+def infer_containers(objs, groups, frame_size, rows=None, pad_frac=0.03):
+    """容器 = 检测器给的 panel 框 + 组的竖排并集（+内边距）+ 行带（父层级的一档）。
+
+    rows 给定时，每个行带（≥2 成员）也成为一个容器：真值里元素常直接挂在 **row 对象**上
+    （r021 的 11..17 各带 3 个子件），只有 panel 能当父时这层配对会整段丢掉 → 编辑器 R 卡 0.54。
+    行容器的面积小于 panel，`assign_containers` 取"包含它的最小容器"时自然优先命中行。
+    """
     W, H = frame_size
     out = []
     for o in objs:
@@ -319,8 +325,21 @@ def infer_containers(objs, groups, frame_size, pad_frac=0.03):
     if cur:
         out.append({"kind": "group_union", "bbox": union(cur["boxes"]),
                     "members": cur["members"], "src": "inferred"})
+    if rows:   # 只认"检测到的 row 对象"；合成行带会把 panel 的子件按行切碎（实测 F1 0.64→0.34）
+        for c in rows:
+            b = c["bbox"]
+            if b[2] * b[3] > 0.25 * W * H:
+                continue
+            kids = [str(o["id"]) for o in objs
+                    if contains(b, o["bbox"], tol=3) and o is not c]
+            if len(kids) < 2:
+                continue
+            out.append({"kind": "row", "bbox": b, "members": kids, "src": "row", "self": str(c["id"])})
     # 加内边距 + 去重（同框只留一个，优先 detected）
     for c in out:
+        if c["src"] == "row":
+            c["bbox_unpadded"] = c["bbox"]
+            continue
         pad = max(8.0, pad_frac * max(c["bbox"][2], c["bbox"][3]))
         c["bbox_unpadded"] = c["bbox"]
         c["bbox"] = [round(v, 1) for v in pad_box(c["bbox"], pad)]
@@ -337,14 +356,23 @@ def infer_containers(objs, groups, frame_size, pad_frac=0.03):
     return dedup
 
 
-def assign_containers(objs, containers):
-    """每个对象归到"包含它的最小容器"（按面积）。"""
+def assign_containers(objs, containers, row_priority=True):
+    """每个对象归到父容器。优先级：**非行容器（panel/并集）> 行容器**，同级取面积最小。
+
+    依据实测（18 帧逐帧对照，见 D3.md §2.1）：
+      - 只有在"没有 panel 容器"的地方，行对象才是真父（r021 好友列表 0.49→0.59、r044 0.39→0.50）；
+      - 一旦有 panel 容器，再切到行会把跨行同父配对打断（r022 0.87→0.56、r045 0.52→0.26）。
+    """
     out = {}
+    # 优先级：检测到的 panel（真值里大多数父就是它）> 推断的组并集 > 行对象；同级取面积最小
+    def rank(c, rp=row_priority):
+        tier = 0 if c["src"] == "detected" else (2 if c["kind"] == "row" else 1)
+        return (tier, _area(c))
     for o in objs:
         best = None
         for c in containers:
             if contains(c["bbox"], o["bbox"], tol=4):
-                if best is None or _area(c) < _area(best):
+                if best is None or rank(c) < rank(best):
                     best = c
         if best is not None and best["members"] != [str(o["id"])]:
             out[str(o["id"])] = best["id"]
@@ -396,7 +424,8 @@ def analyze(frame, synth_drop_rows=0):
     for r in rows:
         for o in r:
             row_of[str(o["id"])] = r
-    containers = infer_containers(objs, groups, (W, H))
+    row_objs = [o for o in objs if o.get("kind") == "row"] if USE_ROWS else None
+    containers = infer_containers(objs, groups, (W, H), row_objs)
     cont_of = assign_containers(objs, containers)
     gid_of_member = {}
     for g in groups:
@@ -525,8 +554,12 @@ def main():
     ap.add_argument("--truth-dir", required=True)
     ap.add_argument("--eval", action="store_true", help="对 parent 字段做配对 P/R/F1（干净输入自评）")
     ap.add_argument("--json-out", default="")
+    ap.add_argument("--no-rows", action="store_true", help="关掉行对象当父（对照用）")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
+    if a.no_rows:
+        USE_ROWS = False
+        globals()["USE_ROWS"] = False
     frames = {}
     for f in sorted(glob.glob(os.path.join(a.truth_dir, "*.json"))):
         if os.path.basename(f).startswith("_"):
