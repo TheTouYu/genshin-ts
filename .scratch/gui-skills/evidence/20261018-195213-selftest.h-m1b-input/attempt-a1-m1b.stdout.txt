@@ -1,0 +1,5 @@
+▶ selftest.h-m1b-input  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [1] key     ✓ [stub] key=Escape  (0ms)
+  [2] assert  ✓ state=MENU（1 次轮询，序列=[MENU]）  (194ms)
+  [post] ✓ state=MENU（1 次轮询，序列=[MENU]）  (193ms)
+✓ 全部通过，用时 396ms  预算: frames=0 offline=2 focus=0 sleeps=0 polls=2  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-195213-selftest.h-m1b-input/run-a1-m1b.json

@@ -1,0 +1,10 @@
+▶ editor.playtest-stop  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=PLAYTEST（1 次轮询，序列=[PLAYTEST]）  (208ms)
+  [1] key     ✓ [stub] key=Escape  (0ms)
+  [2] assert  ✓ state=PAUSE（1 次轮询，序列=[PAUSE]）  (337ms)
+  [3] click   ✓ [stub] click name=中断挑战  (0ms)
+  [4] assert  ✓ state=SETTLE（1 次轮询，序列=[SETTLE]）  (312ms)
+  [5] click   ✓ [stub] click name=离开  (0ms)
+  [6] assert  ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (350ms)
+  [post] ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (200ms)
+✓ 全部通过，用时 1449ms  预算: frames=0 offline=5 focus=0 sleeps=0 polls=5  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-193636-editor.playtest-stop/run-a1.json

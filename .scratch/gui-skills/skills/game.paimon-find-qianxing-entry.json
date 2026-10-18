@@ -1,0 +1,74 @@
+{
+ "id": "game.paimon-find-qianxing-entry",
+ "app": "原神",
+ "desc": "打开派蒙菜单 → 向下滚动 → 找到「千星奇域」入口（它在首屏之下，不滚动必然找不到）",
+ "pre": {
+  "state": "GAME_PAIMON",
+  "timeout": 6
+ },
+ "steps": [
+  {
+   "act": "assert",
+   "text": "冒险等阶",
+   "timeout": 5,
+   "judge": "派蒙菜单首屏证据（ys-state GAME_PAIMON 判据之一：左面板「冒险等阶」）"
+  },
+  {
+   "act": "scroll",
+   "direction": "down",
+   "amount": 3,
+   "max_tries": 5,
+   "target": {
+    "desc": "派蒙菜单左侧面板（对它向下滚一屏）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "until": {
+    "text": "千星奇域"
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "channels_unverified": [
+     "xdotool click 5（滚轮下）",
+     "key Next"
+    ],
+    "note": "执行器已支持 scroll（有界 max_tries，滚满即 NO-MORE）；真机先用上面两条通道各测一次再定缺省"
+   }
+  },
+  {
+   "act": "assert",
+   "text": "千星奇域",
+   "timeout": 6,
+   "judge": "滚动一屏后「千星奇域」标题出现（gui-corpus f07 全帧 OCR 抓到；首屏 f06 没有）",
+   "on_device": {
+    "note": "真机需模板/OCR 通道（EC-F005）；离线用夹具树"
+   }
+  }
+ ],
+ "post": {
+  "text": "千星奇域",
+  "timeout": 6
+ },
+ "offline": {
+  "state_backend": "ys-state",
+  "tree": "fixtures/paimon-tree-scrolled.txt",
+  "frames": [
+   ".scratch/gui-corpus/f06.png"
+  ]
+ },
+ "pending": [
+  {
+   "step": 3,
+   "why": "「千星奇域」在真机上要模板/OCR 才能判（Wine 无文字通道）",
+   "requires": "千星奇域标题 ROI 模板（当前 templates/ 无），或用 ys-screen 的 OCR 结果做判据",
+   "ec": "EC-F004"
+  }
+ ],
+ "real_machine": {
+  "status": "pending",
+  "requires": "滚动通道真机对照（xdotool click 5 vs key Next）+ 标题判据通道（EC-F005）+ 等票 34"
+ }
+}

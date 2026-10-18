@@ -1,0 +1,14 @@
+# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）
+# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，
+#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。
+role=text name=冒险等阶
+role=text name=世界等级
+role=text name=UID 110170759
+role=text name=千星奇域
+role=button name=千星商城
+role=button name=人气奇域
+role=button name=奇域收藏
+role=button name=我的奇域
+role=button name=装扮搭配
+role=button name=颂愿
+role=button name=纪游

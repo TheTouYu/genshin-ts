@@ -1,0 +1,3 @@
+{"id":"cap.hold-short","app":"原神编辑器","steps":[
+ {"act":"click","target":{"desc":"开始游戏","must_assert":{"window":"0x01400001"},
+   "xy":[1280,1052],"hold_ms":130,"min_hold_ms":1200},"evidence":{"fresh":true}}]}

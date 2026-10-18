@@ -1,0 +1,518 @@
+{
+ "kind": "gui-run",
+ "skill": "editor.load-save",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:51:43",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 5,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 0,
+   "act": "pre",
+   "target": {
+    "state": "EDITOR",
+    "timeout": 5
+   },
+   "ok": true,
+   "expected": "state=EDITOR",
+   "observed": "EDITOR",
+   "kind": null,
+   "ms": 264,
+   "evidence": {
+    "sequence": "[EDITOR]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+     "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+     "bytes": 4068202,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   }
+  },
+  {
+   "step": 1,
+   "act": "key",
+   "target": {
+    "desc": "原神编辑器窗口（键盘/指针焦点必须在它上面）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "ok": true,
+   "expected": "key=Escape",
+   "observed": "[stub] key=Escape",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "原神编辑器窗口（键盘/指针焦点必须在它上面）",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 2,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "state=MENU",
+   "observed": "MENU",
+   "kind": null,
+   "ms": 120,
+   "evidence": {
+    "sequence": "[MENU]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+     "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+     "bytes": 4215928,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   },
+   "detail": "state=MENU（1 次轮询，序列=[MENU]）"
+  },
+  {
+   "step": 3,
+   "act": "click",
+   "target": {
+    "desc": "系统菜单左侧竖栏「存档管理」图标（收件箱托盘）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "icon",
+    "name": "存档管理",
+    "xy": [
+     39,
+     176
+    ],
+    "hold_ms": 120
+   },
+   "ok": true,
+   "expected": "target={'desc': '系统菜单左侧竖栏「存档管理」图标（收件箱托盘）', 'must_assert': {'window': '0x01400001'}, 'role': 'icon', 'name': '存档管理', 'xy': [39, 176], 'hold_ms': 120}",
+   "observed": "[stub] click xy=[39, 176] hold=120ms",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "系统菜单左侧竖栏「存档管理」图标（收件箱托盘）",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 4,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "state=SAVELIST",
+   "observed": "SAVELIST",
+   "kind": null,
+   "ms": 217,
+   "evidence": {
+    "sequence": "[SAVELIST]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/savelist.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/savelist.png",
+     "sha256": "528ff50de8a4624ba34a35262aa5055e5c539dc62b83c74e1aa7fd13e1a5eb3b",
+     "bytes": 1489887,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   },
+   "detail": "state=SAVELIST（1 次轮询，序列=[SAVELIST]）"
+  },
+  {
+   "step": 5,
+   "act": "click",
+   "target": {
+    "desc": "存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "编辑",
+    "xy": [
+     1681,
+     387
+    ],
+    "hold_ms": 120
+   },
+   "ok": true,
+   "expected": "target={'desc': '存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）', 'must_assert': {'window': '0x01400001'}, 'role': 'button', 'name': '编辑', 'xy': [1681, 387], 'hold_ms': 120}",
+   "observed": "[stub] click xy=[1681, 387] hold=120ms",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 6,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇是否退出，并加载未分类页签_存档_1",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# tools/gui 文字通道夹具（与 `cu state` 的行语义一致：每行一个元素，find_target 按 name/role 子串匹配）",
+     "# 文案来源 = 真机实测（D317 坐标表 / gui-catalog measurements.tsv EC-M001 ④ / 语料库 OCR），不是凭空编造。",
+     "# 坐标与长按时长写在各 skill 的 on_device 字段里（文字通道不带坐标）。",
+     "role=frame name=原神编辑器 [0x01400001]",
+     "role=button name=试玩",
+     "role=button name=直接上传"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+     "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+     "bytes": 818,
+     "captured_at": "2026-10-18T19:51:43"
+    }
+   },
+   "detail": "断言含「是否退出，并加载未分类页签_存档_1」"
+  },
+  {
+   "step": 7,
+   "act": "click",
+   "target": {
+    "desc": "确认框【确认】（它点名的目标就是本技能要加载的存档）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "确认",
+    "xy": [
+     1442,
+     813
+    ],
+    "hold_ms": 120
+   },
+   "ok": true,
+   "expected": "target={'desc': '确认框【确认】（它点名的目标就是本技能要加载的存档）', 'must_assert': {'window': '0x01400001'}, 'role': 'button', 'name': '确认', 'xy': [1442, 813], 'hold_ms': 120}",
+   "observed": "[stub] click xy=[1442, 813] hold=120ms",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "确认框【确认】（它点名的目标就是本技能要加载的存档）",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:51:43"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 8,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "state=EDITOR",
+   "observed": "EDITOR",
+   "kind": null,
+   "ms": 142,
+   "evidence": {
+    "sequence": "[EDITOR]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+     "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+     "bytes": 4068202,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   },
+   "detail": "state=EDITOR（1 次轮询，序列=[EDITOR]）"
+  },
+  {
+   "step": 8,
+   "act": "post",
+   "target": {
+    "state": "EDITOR",
+    "timeout": 8
+   },
+   "ok": true,
+   "expected": "state=EDITOR",
+   "observed": "EDITOR",
+   "kind": null,
+   "ms": 108,
+   "evidence": {
+    "sequence": "[EDITOR]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+     "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+     "bytes": 4068202,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   }
+  }
+ ],
+ "ok": true,
+ "exit": 0,
+ "t0": 1792324303.0189497,
+ "frames_meta": {
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+   "bytes": 4068202,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/savelist.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/savelist.png",
+   "sha256": "528ff50de8a4624ba34a35262aa5055e5c539dc62b83c74e1aa7fd13e1a5eb3b",
+   "bytes": 1489887,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 1040,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 5,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 6,
+  "desktop_calls": 0
+ }
+}

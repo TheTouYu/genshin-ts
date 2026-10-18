@@ -32,6 +32,20 @@
   `{"state": 态名}`（ys-state/vision 判据，读回态名）。会改变界面的动作请用文字通道，
   判据通道只适合「动作不该换屏」的场景——否则 F4 会如实报「对象变了」（宁可停）。
 
+**票 32 新增三件能力（默认行为不变；不写这些字段 = 老行为）**
+  · 窗口身份通道 `"must_assert": {"window": "0x01400001"}`：身份读数 = `xdotool getactivewindow`
+    （回退 `getwindowfocus`，与 `tools/ys-editor/ys-gui-slot` 的 activeWindow 回读同源）。
+    用途：Wine 窗口（原神/编辑器）**没有 AT-SPI 树**，文字通道恒空 ⇒ 真机写动作只能用窗口身份。
+    测试桩：`GUI_TEST_HOOKS=1` + `GUI_ACTIVE_WINDOW_OVERRIDE=0x…` 时直接返回桩值，并**大声打印**
+    「不是真实焦点」；run.json 的 identity 里记 `reader=override`，证据里一眼能看出是桩。
+  · 滚动动作 `"act": "scroll"`（写动作，需要身份三件套）：`direction` down/up + `amount`（滚轮齿数）。
+    带 `"until": {"text"|"state": …}` 时**有界重试** `max_tries`（缺省 6）：每轮滚一次再判，
+    判据成立即成功；轮数用尽 → `NO-MORE step#N 滚动 max_tries=N 仍未出现 expected=…`（**不空转**）。
+  · 按住时长 `"target": {"hold_ms": 1200, "min_hold_ms": 1100, "xy": [x,y]}`：
+    `hold_ms` = 实际按下时长（xdotool mousedown→sleep→mouseup；真机 Wine 菜单需 ≥120ms，
+    「开始游戏」需 ≥1.2s）；`min_hold_ms` = 该控件的最低要求，**低于它直接拒执行**并报
+    `HOLD-TOO-SHORT`（而不是按一下假装成功）。有 hold 但只有名字/没有坐标 → `HOLD-NO-XY`。
+
 **离线可测（不碰活体桌面）**
   · `--frame PNG`（可重复 = 帧序列，poll/身份读回逐张轮转）→ 断言用离线帧判定，不抓屏
   · `--click-backend stub --tree FILE` → 目标解析读桩树文件，点击只记账不注入
@@ -89,7 +103,7 @@ EXIT_OK, EXIT_USAGE, EXIT_ASSERT, EXIT_RESOLVE, EXIT_PRE, EXIT_UNSURE = 0, 2, 3,
 EXIT_IDENTITY = EXIT_RESOLVE
 
 # 写动作 = 会改变界面的动作。只有它们需要「对象身份 + 新鲜证据」（契约 §3 F4）
-WRITE_ACTS = ('click', 'key')
+WRITE_ACTS = ('click', 'key', 'scroll')
 
 _FALLBACK_NOTE_PRINTED = set()
 
@@ -430,10 +444,42 @@ def judge_state(ctx, frame=None, timeout_s=10.0):
 
 
 # ── 动作级身份协议（F4）：身份断言 + 同一对象读回 ─────────────────────────
+def normalize_win(v):
+    """窗口 id 归一化：0x01400001 / 20971521 / 1400001 都统一成 '0x01400001'。"""
+    try:
+        n = int(str(v).strip(), 0)
+    except (TypeError, ValueError):
+        return str(v).strip().lower()
+    return '0x%08x' % n
+
+
+def active_window_id():
+    """窗口身份读数（与 ys-gui-slot 同源）：`xdotool getactivewindow`，回退 `getwindowfocus`。
+
+    返回 (归一化 id 或 None, reader)。reader=override 表示走了测试桩（会大声告警）。
+    绝不编造：读不到就返回 (None, 'unavailable')，由上层如实报 OBJECT-MISMATCH。
+    """
+    ov = os.environ.get('GUI_ACTIVE_WINDOW_OVERRIDE')
+    if ov and os.environ.get('GUI_TEST_HOOKS') == '1':
+        note_once('win_override',
+                  '[gui] ⚠ 窗口身份走测试桩 GUI_ACTIVE_WINDOW_OVERRIDE=%s —— 这不是真实焦点，'
+                  '只用于离线回归（evidence 里 reader=override）' % ov)
+        return normalize_win(ov), 'override'
+    for cmd in (['xdotool', 'getactivewindow'], ['xdotool', 'getwindowfocus']):
+        try:
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if p.returncode == 0 and (p.stdout or '').strip():
+            return normalize_win(p.stdout.strip()), cmd[1]
+    return None, 'unavailable'
+
+
 def parse_identity_spec(spec):
     """身份断言 → (通道, 期望值, 错误)。
 
-    支持 `{"text": 子串}` / `{"state": 态名}` 与简写 `"text:<子串>"` / `"state:<态名>"`。
+    支持 `{"text": 子串}` / `{"state": 态名}` / `{"window": 窗口 id}` 与简写
+    `"text:<子串>"` / `"state:<态名>"` / `"window:0x01400001"`。
     """
     if isinstance(spec, str):
         s = spec.strip()
@@ -444,13 +490,14 @@ def parse_identity_spec(spec):
                 if val:
                     return ch, val, None
                 return None, None, f'{ch} 断言为空: {spec!r}'
-        return None, None, f'字符串 must_assert 只认 "text:<子串>" / "state:<态名>"，收到 {spec!r}'
+        return None, None, (f'字符串 must_assert 只认 "text:<子串>" / "state:<态名>" / '
+                            f'"window:0x…"，收到 {spec!r}')
     if isinstance(spec, dict):
-        for ch in ('text', 'state'):
+        for ch in ('text', 'state', 'window'):
             v = spec.get(ch)
             if v not in (None, ''):
                 return ch, str(v), None
-        return None, None, f'must_assert 需要 text 或 state 之一，收到 {sorted(spec)}'
+        return None, None, f'must_assert 需要 text / state / window 之一，收到 {sorted(spec)}'
     return None, None, f'must_assert 类型不认识: {type(spec).__name__}'
 
 
@@ -492,6 +539,16 @@ def read_identity(ctx, spec, timeout_s):
                 'expect': f'text⊇{want}',
                 'artifact': artifact_text(text, source=ctx.tree_path or f'at-spi:{ctx.app}'),
                 'error': None, 'ms': round((time.time() - t0) * 1000)}
+    if ch == 'window':
+        win, reader = active_window_id()
+        want_norm = normalize_win(want)
+        hit = (win == want_norm)
+        return {'ok': hit, 'channel': 'window', 'identity': win or '<no-window>',
+                'expect': f'window={want_norm}', 'reader': reader,
+                'artifact': artifact_text('activewindow=%s reader=%s' % (win, reader),
+                                          source='xdotool:getactivewindow'),
+                'error': None if win else 'xdotool 读不到活动窗口（DISPLAY 未设/无 X 会话）',
+                'ms': round((time.time() - t0) * 1000)}
     # 判据/模板通道：态名就是身份（适合「动作不该换屏」的场景，见文件头说明）
     frame = ctx.next_frame()
     r = judge_state(ctx, frame=frame, timeout_s=timeout_s)
@@ -506,7 +563,7 @@ def read_identity(ctx, spec, timeout_s):
 def _slim_reading(r):
     out = {'ok': r.get('ok'), 'channel': r.get('channel'), 'identity': r.get('identity'),
            'expect': r.get('expect'), 'ms': r.get('ms'), 'artifact': r.get('artifact')}
-    for k in ('error', 'judge'):
+    for k in ('error', 'judge', 'reader'):
         if r.get(k):
             out[k] = r[k]
     return out
@@ -786,6 +843,66 @@ def _do_action(ctx, n, step):
         rec['ms'] = round((time.time() - t0) * 1000)
         return rec
 
+    if act == 'scroll':
+        direction = step.get('direction') or tgt.get('direction') or 'down'
+        amount = int(step.get('amount') or 3)
+        until = step.get('until') or {}
+        tries_max = int(step.get('max_tries') or 6)
+        rec['expected'] = ('scroll %s×%d until=%s' % (direction, amount, until)) if until \
+            else 'scroll %s×%d' % (direction, amount)
+
+        def _wheel(n):
+            if ctx.dry_run or ctx.click_backend == 'stub':
+                return 'stub'
+            btn = '5' if direction == 'down' else '4'
+            for _ in range(n):
+                subprocess.run(['xdotool', 'click', btn], capture_output=True)
+            ctx.budget.bump('desktop_calls', n)
+            invalidate(ctx.app)
+            return 'xdotool'
+
+        def _judge_until():
+            if until.get('text') is not None:
+                t, err, _ms = ctx.read_tree(fresh=True)
+                return {'ok': bool(t) and until['text'] in t, 'observed': (t or err or '')[:200],
+                        'channel': 'text'}
+            if until.get('state'):
+                r = judge_state(ctx, frame=ctx.next_frame(),
+                                timeout_s=step_timeout_s(ctx, step))
+                return {'ok': r.get('state') == until['state'], 'observed': r.get('state'),
+                        'channel': r.get('channel')}
+            return {'ok': False, 'observed': 'until 需要 text 或 state', 'channel': 'none'}
+
+        if not until:
+            how = _wheel(amount)
+            rec.update(ok=True, kind=None,
+                       observed='[%s] scroll %s×%d' % (how, direction, amount))
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        seen = []
+        for i in range(1, tries_max + 1):
+            how = _wheel(amount)
+            ctx.budget.bump('polls')
+            r = _judge_until()
+            seen.append('%d:%s' % (i, r.get('observed')))
+            if r.get('ok'):
+                rec.update(ok=True, kind=None, observed='[%s] scroll %s×%d → 第 %d 轮出现 %s'
+                                                        % (how, direction, amount, i,
+                                                           json.dumps(until, ensure_ascii=False)))
+                rec['evidence'] = {'tries': i, 'sequence': seen[-3:], 'class_hint': '滚动到位'}
+                rec['ms'] = round((time.time() - t0) * 1000)
+                return rec
+        # 有界：滚满 max_tries 仍未出现 ⇒ NO-MORE（不空转、不假装成功）
+        rec.update(ok=False, kind='NO-MORE', observed='tries=%d 最后=%s' % (tries_max, seen[-1]),
+                   expected=json.dumps(until, ensure_ascii=False),
+                   line=('NO-MORE step#%d 滚动 %s×%d max_tries=%d 仍未出现 expected=%s'
+                         '（已到边界/该容器不可滚；不是"再滚一次就会好"）'
+                         % (n, direction, amount, tries_max, json.dumps(until, ensure_ascii=False))),
+                   evidence={'tries': tries_max, 'sequence': seen[-4:],
+                             'class_hint': '滚动到边界（没有更多）'})
+        rec['ms'] = round((time.time() - t0) * 1000)
+        return rec
+
     if act in ('assert', 'wait') and step.get('state'):
         r = assert_state(ctx, step)
         rec.update(r)
@@ -799,6 +916,24 @@ def _do_action(ctx, n, step):
         return rec
 
     if act == 'click':
+        # 票 32：按住时长契约。min_hold_ms = 该控件的最低要求（实测得出），低于它**拒执行**，
+        # 而不是按一下假装成功（「开始游戏」0.13s 按放会被整帧吞掉）。
+        hold = int(float(tgt.get('hold_ms') or 0))
+        min_hold = int(float(tgt.get('min_hold_ms') or 0))
+        if min_hold and hold < min_hold:
+            rec.update(kind='HOLD-TOO-SHORT', expected=f'hold_ms>={min_hold}',
+                       observed=f'hold_ms={hold}',
+                       line=(f'HOLD-TOO-SHORT step#{n} hold_ms={hold} < min_hold_ms={min_hold}'
+                             f'（按下时长不足，动作不执行；真机需 ≥120ms，开始游戏需 ≥1.2s）'))
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        if min_hold and not ('xy' in tgt or tgt.get('anchor')):
+            rec.update(kind='HOLD-NO-XY', observed='缺 xy/anchor',
+                       expected=f'hold_ms>={min_hold} 需要坐标或锚点',
+                       line=(f'HOLD-NO-XY step#{n} 要求按住 ≥{min_hold}ms 但 target 既无 xy 也无 anchor'
+                             f'（按名字点击无法控制按住时长）'))
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
         kind, payload, ms, cand, err = find_target(ctx, tgt)
         if kind is None:
             rec.update(kind='RESOLVE-FAIL',
@@ -811,7 +946,29 @@ def _do_action(ctx, n, step):
         rec['expected'] = f'target={tgt}'
         if ctx.dry_run or ctx.click_backend == 'stub':
             rec.update(ok=True, kind=None, observed=f'[{"dry" if ctx.dry_run else "stub"}] '
-                                                     f'click {kind}={payload}')
+                                                     f'click {kind}={payload}'
+                                                     + (f' hold={hold}ms' if hold else ''))
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        if kind == 'xy' and hold:
+            # 有坐标 + 有按住时长 ⇒ 自己发按下/抬起（cu click 没有 hold 接口）
+            subprocess.run(['xdotool', 'mousemove', str(payload[0]), str(payload[1])],
+                           capture_output=True)
+            subprocess.run(['xdotool', 'mousedown', '1'], capture_output=True)
+            time.sleep(hold / 1000.0)          # 动作时长（按下→抬起），不是同步等待
+            subprocess.run(['xdotool', 'mouseup', '1'], capture_output=True)
+            ctx.budget.bump('desktop_calls', 3)
+            ctx.budget.bump('sleeps')
+            invalidate(ctx.app)
+            rec.update(ok=True, kind=None,
+                       observed=f'click xy=({payload[0]},{payload[1]}) hold={hold}ms')
+            rec['ms'] = round((time.time() - t0) * 1000)
+            return rec
+        if hold:
+            rec.update(kind='HOLD-NO-XY', observed=f'kind={kind}',
+                       expected='hold_ms 需要 xy 或 anchor',
+                       line=(f'HOLD-NO-XY step#{n} 要求按住 {hold}ms 但目标是按名字解析的'
+                             f'（按名字点击无法控制按住时长；给 target.xy 或 anchor）'))
             rec['ms'] = round((time.time() - t0) * 1000)
             return rec
         if kind == 'xy':
@@ -1015,9 +1172,17 @@ def cmd_lint(args):
         problems.append('既没有 post 也没有 assert —— 没有效果断言的操作不许进库')
     for i, s in enumerate(skill.get('steps') or [], 1):
         act = s.get('act')
-        if act == 'click' and not s.get('target'):
-            problems.append(f'第 {i} 步 click 缺 target')
-        if act not in ('click', 'key', 'assert', 'wait'):
+        if act in ('click', 'scroll') and not s.get('target'):
+            problems.append(f'第 {i} 步 {act} 缺 target')
+        if act == 'scroll' and (s.get('until') or {}).get('text') is None \
+                and (s.get('until') or {}).get('state') is None and not s.get('until'):
+            pass          # 无 until = 单次滚动，允许（效果由后续 assert/post 断言）
+        if act == 'click' and (s.get('target') or {}).get('min_hold_ms'):
+            tgt = s['target']
+            if int(float(tgt.get('hold_ms') or 0)) < int(float(tgt['min_hold_ms'])) \
+                    and 'xy' not in tgt and not tgt.get('anchor'):
+                problems.append(f'第 {i} 步要求按住 ≥{tgt["min_hold_ms"]}ms 但既无 hold_ms 也无 xy/anchor')
+        if act not in ('click', 'key', 'scroll', 'assert', 'wait'):
             problems.append(f'第 {i} 步未知动作 {act}')
         if act in WRITE_ACTS:              # 契约 §3：写动作必须携带对象身份 + 新鲜证据
             miss = identity_missing(s)

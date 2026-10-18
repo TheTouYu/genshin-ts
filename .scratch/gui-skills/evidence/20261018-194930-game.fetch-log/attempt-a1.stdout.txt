@@ -1,0 +1,6 @@
+▶ game.fetch-log  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ 断言含「LOG-DIR-OK」  (0ms)
+  [1] assert  ✓ 断言含「LOG-BASELINE」  (0ms)
+  [2] assert  ✓ 断言含「LOG-NEW」  (0ms)
+  [post] ✓ 断言含「LOG-NEW」  (0ms)
+✓ 全部通过，用时 1ms  预算: frames=0 offline=0 focus=0 sleeps=0 polls=4  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-194930-game.fetch-log/run-a1.json

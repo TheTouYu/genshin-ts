@@ -1,0 +1,166 @@
+{
+ "generated_at": "2026-10-18T19:51:47",
+ "skillization": {
+  "total": 5,
+  "executable_offline": 5,
+  "real_machine_verified": 0,
+  "pending_steps": 3,
+  "blocked": [],
+  "real_machine_blocked": [],
+  "real_machine_pending": [
+   "editor.load-save",
+   "editor.playtest-start",
+   "editor.playtest-stop",
+   "game.fetch-log",
+   "game.paimon-find-qianxing-entry"
+  ]
+ },
+ "healing": {
+  "m1_channel": {
+   "hit": 2,
+   "miss": 2,
+   "by_axis": {
+    "judge-channel": {
+     "hit": 1,
+     "miss": 3
+    },
+    "input-channel": {
+     "hit": 1,
+     "miss": 3
+    }
+   },
+   "miss_reasons": {
+    "无备用输入通道": 3,
+    "备用通道太慢": 3
+   }
+  },
+  "m2_frame": {
+   "refuted": 0,
+   "confirmed": 1,
+   "no_frame": 1,
+   "void": 0,
+   "skipped": 2
+  },
+  "m3_ledger_events": 4,
+  "ledger_rows_total": 44
+ },
+ "skills": [
+  {
+   "id": "editor.load-save",
+   "kind": "task",
+   "result": "pass",
+   "ms": 1129,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195142-editor.load-save",
+   "pending": 1,
+   "real_machine": "pending"
+  },
+  {
+   "id": "editor.playtest-start",
+   "kind": "task",
+   "result": "pass",
+   "ms": 850,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195144-editor.playtest-start",
+   "pending": 0,
+   "real_machine": "pending"
+  },
+  {
+   "id": "editor.playtest-stop",
+   "kind": "task",
+   "result": "pass",
+   "ms": 1098,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195144-editor.playtest-stop",
+   "pending": 0,
+   "real_machine": "pending"
+  },
+  {
+   "id": "game.fetch-log",
+   "kind": "task",
+   "result": "pass",
+   "ms": 89,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195146-game.fetch-log",
+   "pending": 1,
+   "real_machine": "pending"
+  },
+  {
+   "id": "game.paimon-find-qianxing-entry",
+   "kind": "task",
+   "result": "pass",
+   "ms": 855,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195146-game.paimon-find-qianxing-entry",
+   "pending": 1,
+   "real_machine": "pending"
+  },
+  {
+   "id": "selftest.h-m1a-channel",
+   "kind": "selftest",
+   "result": "pass-after-heal",
+   "ms": 5100,
+   "channel": "cmd:echo not-json",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195054-selftest.h-m1a-channel",
+   "pending": 0,
+   "real_machine": "pending"
+  },
+  {
+   "id": "selftest.h-m1b-input",
+   "kind": "selftest",
+   "result": "pass-after-heal",
+   "ms": 98,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195101-selftest.h-m1b-input",
+   "pending": 0,
+   "real_machine": null
+  },
+  {
+   "id": "selftest.h-m2-confirm",
+   "kind": "selftest",
+   "result": "fail",
+   "ms": 8579,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195110-selftest.h-m2-confirm",
+   "pending": 0,
+   "real_machine": "pending"
+  },
+  {
+   "id": "selftest.n-qianxing-below-fold",
+   "kind": "selftest",
+   "result": "fail",
+   "ms": 1092,
+   "channel": "ys-state",
+   "evdir": ".scratch/gui-skills/evidence/20261018-195129-selftest.n-qianxing-below-fold",
+   "pending": 0,
+   "real_machine": "pending"
+  }
+ ],
+ "this_run": [
+  {
+   "skill": "editor.load-save",
+   "result": "pass",
+   "healing": null
+  },
+  {
+   "skill": "editor.playtest-start",
+   "result": "pass",
+   "healing": null
+  },
+  {
+   "skill": "editor.playtest-stop",
+   "result": "pass",
+   "healing": null
+  },
+  {
+   "skill": "game.fetch-log",
+   "result": "pass",
+   "healing": null
+  },
+  {
+   "skill": "game.paimon-find-qianxing-entry",
+   "result": "pass",
+   "healing": null
+  }
+ ]
+}

@@ -1,0 +1,577 @@
+#!/usr/bin/env python3
+"""run — gui-skill 编排执行器：复用 tools/gui 的四类假成功判据 + 失败自愈三招 + 账本。
+
+**它不重实现判据**：判据、身份协议、固定失败行、退出码全部来自 `tools/gui run`；
+本文件只做三件 `tools/gui` 不做的事：
+  ① 按技能里的 `offline` 段把离线场景（帧序列 / 桩树 / 产物清单）装配好；
+  ② 失败后按「自愈三招」再试，并把每次读数记账（ledger.jsonl）；
+  ③ 停机时输出「哪一条断言为假 + 观测值 + EC-Mxxx」，退出码非 0（绝不假绿）。
+
+自愈三招（定义写死在下面，命中/未命中都可计数）：
+  ① 换通道重试
+     a) 判据通道：ys-state(fast) ↔ vision(legacy GPU 锚点)。开跑前先探备用通道单帧延迟；
+        超过单步预算(CHANNEL_PROBE_BUDGET_MS=2000) 就记「未命中：备用通道太慢」——
+        不做注定超时的重试（10s 硬上界是契约，不是愿望）。
+     b) 输入通道：指针 click ↔ 键盘 key（技能步用 `alt_input` 声明等价键）。
+        触发类：RESOLVE-FAIL / OBJECT-MISMATCH / ACTION-FAIL。
+  ② 重新取帧反证（不许用上一帧）
+     a) 对**同一帧文件**重新取一次独立判据（新进程、无缓存），并校 sha256 是否还是那一帧；
+        sha 变了 ⇒ 证据陈旧（EC 记账），不当成同一次观测。
+     b) 若该态还有第二张真实帧（calib/regress 的同态样本），用第二帧复现同一读数；
+        复现失败 ⇒ 判据脆（单帧过拟合）。
+     真机分支（本票未跑）：用 ys-observe 重新抓一帧（自带新鲜度证明，NOT_ATOP 时拒绝）。
+  ③ 停下报告并记账：打印失败行 + 观测值 + EC-Mxxx，写 ledger.jsonl，退出码 = tools/gui 的码。
+
+用法:
+  run --all [--json OUT] [--quiet]        # 跑 skills/ 下全部技能
+  run --skill PATH [--json OUT]           # 跑单个技能（可以是 selftest 派生的临时技能）
+  run --summary                           # 只汇总 ledger.jsonl（不跑）
+退出码: 0 全部通过 / 1 有失败（含自愈后仍失败）/ 2 用法或环境错
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))          # /home/h/genshin-ts
+GUI = os.path.join(ROOT, 'tools/gui')
+YS_STATE = os.path.join(ROOT, 'tools/ys-editor/ys-state')
+PROFILE = os.path.join(ROOT, '.scratch/gui-profiles/qianxing.json')
+LEDGER = os.path.join(HERE, 'ledger.jsonl')
+EVID = os.path.join(HERE, 'evidence')
+INCIDENTS = os.path.join(HERE, 'incidents.md')
+
+STEP_WAIT_MAX_MS = 10000        # 契约 §3：单步硬上界（tools/gui 也夹这个值）
+WIN_FAKE = os.environ.get('GUI_ACTIVE_WINDOW_OVERRIDE', '0x01400001')   # 离线窗口身份桩（不是真实焦点）
+CHANNEL_PROBE_BUDGET_MS = 2000  # 换通道重试的门槛：备用通道单帧超过它就别重试（会顶爆单步预算）
+FAIL_LINE_RE = re.compile(r'^(ASSERT-FALSE|RESOLVE-FAIL|NO-EFFECT|OBJECT-MISMATCH|'
+                          r'IDENTITY-MISSING|EVIDENCE-STALE|PRE-FALSE)\b')
+# 同态备选帧（换帧反证用）：只放**真实帧**，且与失败帧不同的文件
+ALT_FRAMES = {
+    'SETTLE': ['tools/ys-editor/calib/regress/settle2.png',
+               'tools/ys-editor/calib/regress/settle3.png',
+               'tools/ys-editor/calib/regress/settle4.png'],
+    'PLAYTEST': ['tools/ys-editor/calib/regress/playtest2.png',
+                 'tools/ys-editor/calib/regress/playtest3.png'],
+    'SAVELIST': ['tools/ys-editor/calib/regress/live-savelist-20261017.png'],
+    'GAME_PAIMON': ['.scratch/gui-corpus/f06.png',
+                    '.scratch/gui-corpus/f07.png',
+                    '.scratch/gui-corpus/f08.png'],
+}
+
+
+# ── 小工具 ────────────────────────────────────────────────────
+def iso(t=None):
+    return time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(t or time.time()))
+
+
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def resolve(p):
+    return p if os.path.isabs(p) else os.path.join(HERE, p)
+
+
+def mspath(p):
+    p = p if os.path.isabs(p) else os.path.join(ROOT, p)
+    return p
+
+
+def jload(path):
+    with open(path, encoding='utf-8') as fh:
+        return json.load(fh)
+
+
+def last_json(text):
+    for line in reversed((text or '').splitlines()):
+        line = line.strip()
+        if line.startswith('{'):
+            try:
+                return json.loads(line)
+            except Exception:
+                continue
+    return None
+
+
+def next_ec():
+    """EC-M 编号是全票唯一序列：能力缺口登记（incidents.md）与运行事件（ledger.jsonl）共用一个计数器。"""
+    mx = 0
+    if os.path.exists(INCIDENTS):
+        for m in re.finditer(r'\bEC-F(\d{3})\b', open(INCIDENTS, encoding='utf-8').read()):
+            mx = max(mx, int(m.group(1)))
+    if os.path.exists(LEDGER):
+        for line in open(LEDGER, encoding='utf-8'):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except Exception:
+                continue
+            for m in re.finditer(r'\bEC-F(\d{3})\b', json.dumps(d, ensure_ascii=False)):
+                mx = max(mx, int(m.group(1)))
+    # 编号分域（Lead 2026-10-18 裁决，写在 README/incidents.md 里）：
+    #   EC-F001..F099 = 能力缺口登记（incidents.md 手写）
+    #   EC-F101+     = 运行事件（本函数自动分配）
+    # EC-M### 一律留给 docs/maintenance/gui-catalog 的操作目录条目。
+    return 'EC-F%03d' % max(mx + 1, 101)
+
+
+def append_ledger(row):
+    os.makedirs(os.path.dirname(LEDGER), exist_ok=True)
+    with open(LEDGER, 'a', encoding='utf-8') as fh:
+        fh.write(json.dumps(row, ensure_ascii=False) + '\n')
+
+
+# ── 离线场景装配 ──────────────────────────────────────────────
+def build_tree(skill, evdir):
+    """把技能声明的离线场景装配成 tools/gui 的 --tree 文件（产物清单也走这条路）。"""
+    spec = skill.get('offline') or {}
+    if spec.get('tree'):
+        return resolve(spec['tree']), None
+    gen = spec.get('tree_generator')
+    if not gen:
+        return None, None
+    cmd = [resolve(gen['cmd'][0])] + gen['cmd'][1:]
+    out = os.path.join(evdir, gen.get('out') or 'tree.txt')
+    p = subprocess.run(cmd, capture_output=True, text=True, cwd=HERE, timeout=60)
+    if p.returncode != 0:
+        return None, {'cmd': cmd, 'rc': p.returncode, 'stderr': (p.stderr or '')[-400:]}
+    with open(out, 'w', encoding='utf-8') as fh:
+        fh.write(p.stdout)
+    return out, {'cmd': cmd, 'rc': 0, 'out': out,
+                 'first_lines': p.stdout.splitlines()[:4]}
+
+
+# ── 一次 tools/gui 执行 ───────────────────────────────────────
+def call_gui(skill_path, frames, tree, channel, evdir, tag):
+    run_json = os.path.join(evdir, 'run-%s.json' % tag)
+    argv = [GUI, 'run', skill_path, '--json', run_json,
+            '--max-step-wait', str(STEP_WAIT_MAX_MS), '--default-step-wait', '8000']
+    if tree:
+        argv += ['--click-backend', 'stub', '--tree', tree]
+    for f in frames:
+        argv += ['--frame', mspath(f)]
+    if channel == 'vision':
+        argv += ['--state-backend', 'vision', '--profile', PROFILE]
+    elif channel.startswith('cmd:'):
+        argv += ['--state-backend', channel]              # 故障桩/自定义判据（selftest 用）
+    else:
+        argv += ['--state-backend', 'ys-state']
+    env = dict(os.environ)
+    env['DISPLAY'] = ''            # 离线硬证据：真去抓屏会当场失败（与门槛②自测同口径）
+    # 窗口身份桩：离线没有真实焦点，用 override 让「窗口身份通道」可回归；
+    # 证据里 identity.reader=override + 执行器会打一行醒目告警，不会冒充真实焦点。
+    env['GUI_TEST_HOOKS'] = '1'
+    env['GUI_ACTIVE_WINDOW_OVERRIDE'] = WIN_FAKE
+    t0 = time.time()
+    try:
+        p = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=120)
+        rc, out, err = p.returncode, p.stdout or '', p.stderr or ''
+    except subprocess.TimeoutExpired as exc:
+        rc, out, err = 124, (exc.stdout or b'').decode('utf-8', 'replace'), 'timeout 120s'
+    ms = int((time.time() - t0) * 1000)
+    with open(os.path.join(evdir, 'attempt-%s.stdout.txt' % tag), 'w', encoding='utf-8') as fh:
+        fh.write(out + ('\n--stderr--\n' + err if err else ''))
+    rec = None
+    if os.path.exists(run_json):
+        try:
+            rec = jload(run_json)
+        except Exception:
+            rec = None
+    lines = [ln.rstrip() for ln in out.splitlines() if FAIL_LINE_RE.match(ln.strip())]
+    return {'tag': tag, 'rc': rc, 'ms': ms, 'channel': channel,
+            'argv': argv, 'run_json': run_json, 'failure_lines': lines,
+            'failure': (rec or {}).get('failure'), 'run': rec,
+            'tail': out.strip().splitlines()[-3:]}
+
+
+# ── 通道探针（换通道重试前的预算检查）──────────────────────────
+def probe_state(frame, channel):
+    """取一帧的判据读数；返回 {state, ms, channel, error}。两条通道各自独立取数。"""
+    if channel.startswith('cmd:'):
+        return {'state': 'ERROR', 'ms': 0, 'channel': channel,
+                'error': 'cmd: 判据桩没有取帧接口（不能当备用判据通道）'}
+    frame = mspath(frame)
+    t0 = time.time()
+    if channel == 'vision':
+        argv = [GUI, 'state', '--legacy', '--profile', PROFILE,
+                '--frame', frame, '--print-state']
+    else:
+        argv = [YS_STATE, '--json', '--fast', '--frame', frame]
+    env = dict(os.environ)
+    env['DISPLAY'] = ''
+    try:
+        p = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=30)
+    except subprocess.TimeoutExpired:
+        return {'state': 'TIMEOUT', 'ms': int((time.time() - t0) * 1000),
+                'channel': channel, 'error': '探针超时 30s'}
+    ms = int((time.time() - t0) * 1000)
+    out = p.stdout or ''
+    d = last_json(out)
+    state = (d or {}).get('state') if d else (out.strip().splitlines()[-1] if out.strip() else None)
+    return {'state': state, 'ms': ms, 'channel': channel,
+            'rc': p.returncode, 'error': None if state else (p.stderr or '')[-200:]}
+
+
+def judged_state_display(frame, channel):
+    r = probe_state(frame, channel)
+    return r
+
+
+# ── 自愈三招 ──────────────────────────────────────────────────
+def heal_m1(skill, skill_path, spec, frames, tree, channel, attempt, evdir):
+    """① 换通道重试：判据通道 a) / 输入通道 b)。返回读数。"""
+    out = {'fired': True, 'hit': False, 'axes': []}
+    fail = attempt.get('failure') or {}
+    cls = fail.get('class')
+    step_no = fail.get('step')
+    # a) 判据通道
+    alt = 'vision' if channel == 'ys-state' else 'ys-state'
+    frame = None
+    for s in (attempt.get('run') or {}).get('steps') or []:
+        if s.get('step') == step_no:
+            frame = (s.get('evidence') or {}).get('frame')
+    if not frame and frames:
+        frame = frames[0]                       # pre 失败 / 文字通道失败：用技能自己的第一帧
+    probe = None
+    if frame:
+        probe = probe_state(frame, alt)
+    axis_a = {'axis': 'judge-channel', 'alt': alt, 'probe': probe}
+    if not frame:
+        axis_a.update(hit=False, why='失败断言不是帧判据（文字通道），无备用判据通道可比')
+    elif probe.get('state') in ('TIMEOUT', None):
+        axis_a.update(hit=False, why='备用通道取不到读数（%s）' % (probe.get('error') or probe.get('state')))
+    elif (probe.get('ms') or 10 ** 9) > CHANNEL_PROBE_BUDGET_MS:
+        axis_a.update(hit=False,
+                      why='备用通道单帧 %dms > 预算 %dms（会顶爆 10s 单步硬上界，不做注定超时的重试）'
+                          % (probe['ms'], CHANNEL_PROBE_BUDGET_MS))
+    else:
+        r = call_gui(skill_path, frames, tree, alt, evdir, attempt['tag'] + '-m1a')
+        axis_a.update(hit=r['rc'] == 0, retry={'rc': r['rc'], 'ms': r['ms'],
+                                               'failure_lines': r['failure_lines'],
+                                               'tail': r['tail']},
+                      why='备用通道重跑整条技能')
+        if r['rc'] == 0:
+            out['hit'] = True
+    out['axes'].append(axis_a)
+
+    # b) 输入通道（click ↔ key）：技能步里用 alt_input 声明等价键
+    axis_b = {'axis': 'input-channel', 'hit': False}
+    steps = skill.get('steps') or []
+    step = steps[step_no - 1] if isinstance(step_no, int) and 1 <= step_no <= len(steps) else None
+    if cls not in ('RESOLVE-FAIL', 'OBJECT-MISMATCH', 'ACTION-FAIL'):
+        axis_b['why'] = '失败类 %s 不走输入通道（只有目标解析/对象不符/动作失败才换输入通道）' % cls
+    elif not (step or {}).get('alt_input'):
+        axis_b['why'] = '第 %s 步没有声明 alt_input（本技能没有已验证的键盘等价路径）' % step_no
+    else:
+        derived = json.loads(json.dumps(skill))
+        dstep = derived['steps'][step_no - 1]
+        alt_input = dstep.pop('alt_input')
+        orig_tgt = dstep.get('target') or {}
+        # key 也是写动作：换通道后**身份三件套必须还在**（desc + must_assert + evidence.fresh）
+        dstep.pop('target', None)
+        dstep.pop('on_device', None)
+        dstep.pop('judge', None)
+        dstep.update(alt_input)
+        dstep['target'] = {'desc': orig_tgt.get('desc') or '（换输入通道后沿用原目标身份）',
+                           'must_assert': orig_tgt.get('must_assert') or {'text': '原神编辑器'}}
+        dstep['evidence'] = {'fresh': True}
+        dpath = os.path.join(evdir, 'derived-m1b.json')
+        json.dump(derived, open(dpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        r = call_gui(dpath, frames, tree, channel, evdir, attempt['tag'] + '-m1b')
+        axis_b.update(hit=r['rc'] == 0, alt=alt_input,
+                      retry={'rc': r['rc'], 'ms': r['ms'], 'failure_lines': r['failure_lines']},
+                      why='换输入通道重跑（指针 → 键盘）')
+        if r['rc'] == 0:
+            out['hit'] = True
+    out['axes'].append(axis_b)
+    return out
+
+
+def heal_m2(skill, attempt, channel, evdir):
+    """② 重新取帧反证：a) 同帧新鲜重判 + sha 校验  b) 第二帧复现。"""
+    out = {'fired': True, 'hit': False, 'verdict': '未做反证'}
+    fail = attempt.get('failure') or {}
+    step_no = fail.get('step')
+    expected = str(fail.get('expected') or '')
+    observed = str(fail.get('observed') or '')
+    instrument_void = observed in ('TIMEOUT', 'ERROR', 'NO-OBSERVATION', 'None', '')
+    exp_state = expected.split('=', 1)[1] if expected.startswith('state=') else None
+    frame = None
+    for s in (attempt.get('run') or {}).get('steps') or []:
+        if s.get('step') == step_no:
+            frame = (s.get('evidence') or {}).get('frame')
+    if not frame:
+        out['verdict'] = '未命中：失败断言不是帧判据（文字/产物通道），没有可复取的帧'
+        out['why'] = 'no-frame'
+        return out
+    frame_abs = mspath(frame)
+    # a) sha 校验 + 新鲜重判（新进程、无缓存）
+    sha_now = sha256(frame_abs) if os.path.exists(frame_abs) else None
+    meta = None
+    for s in (attempt.get('run') or {}).get('steps') or []:
+        if s.get('step') == step_no:
+            meta = (s.get('evidence') or {}).get('frame_meta')
+    sha_then = (meta or {}).get('sha256')
+    fresh = judged_state_display(frame_abs, channel)
+    out['a_same_frame'] = {'frame': frame, 'sha_then': sha_then, 'sha_now': sha_now,
+                           'rejudge': fresh,
+                           'reason_at_then': meta.get('captured_at') if meta else None}
+    stale = bool(sha_then and sha_now and sha_then != sha_now)
+    reproduce = (fresh.get('state') == observed)
+    # b) 第二帧复现（同态备选帧，且必须不是失败帧本身）
+    b = {'ran': False}
+    cand = [f for f in ALT_FRAMES.get(exp_state or '', []) if os.path.abspath(mspath(f)) != frame_abs]
+    if exp_state and cand:
+        alt = cand[0]
+        r = probe_state(alt, channel)
+        b = {'ran': True, 'alt_frame': alt, 'state': r.get('state'), 'ms': r.get('ms'),
+             'reproduces_expected': r.get('state') == exp_state}
+    else:
+        b = {'ran': False, 'why': '该态没有第二张真实帧（或失败断言不是态判据）'}
+    out['b_second_frame'] = b
+    if instrument_void:
+        out['verdict'] = ('观测无效：上一次读数是仪器超时/无观测（%s）——不能当反证对象；'
+                          '这一步是仪器问题，不是被测对象问题（记 EC）' % observed)
+        out['instrument_void'] = True
+        out['hit'] = False
+    elif stale:
+        out['verdict'] = '证据陈旧：同一路径的帧 sha 变了（原读数不对应当前像素）'
+        out['hit'] = True
+    elif not reproduce:
+        out['verdict'] = '判据不稳定：同帧重判得出不同结论（仪器问题，不是被测对象问题）'
+        out['hit'] = True
+    elif b.get('ran') and not b.get('reproduces_expected'):
+        out['verdict'] = '判据脆：第二张同态帧上期望不成立（单帧过拟合）'
+        out['hit'] = True
+    else:
+        out['verdict'] = '观测可信：同帧新鲜重判复现失败读数' + ('；第二帧也复现' if b.get('ran') else '')
+    return out
+
+
+# ── 单技能执行 ────────────────────────────────────────────────
+def run_skill(skill_path, want_json=None, quiet=False):
+    skill = jload(skill_path)
+    spec = skill.get('offline') or {}
+    channel = spec.get('state_backend') or 'ys-state'
+    frames = spec.get('frames') or []
+    ts = time.strftime('%Y%m%d-%H%M%S')
+    evdir = os.path.join(EVID, '%s-%s' % (ts, skill['id']))
+    os.makedirs(evdir, exist_ok=True)
+    tree, gen = build_tree(skill, evdir)
+    row = {'ts': iso(), 'skill': skill.get('id'), 'skill_path': os.path.relpath(skill_path, ROOT),
+           'channel': channel, 'frames': frames, 'tree': tree, 'evdir': os.path.relpath(evdir, ROOT),
+           'window_identity': 'override:%s（测试桩，不是真实焦点）' % WIN_FAKE,
+           'pending_steps': skill.get('pending') or [],
+           'real_machine': skill.get('real_machine') or {},
+           'attempts': []}
+    if gen:
+        row['tree_generator'] = gen
+    try:
+        a1 = call_gui(skill_path, frames, tree, channel, evdir, 'a1')
+    except Exception as exc:                                     # 执行器本身起不来
+        row.update(result='error', error=repr(exc))
+        append_ledger(row)
+        if not quiet:
+            print('✗ %-38s 执行器起不来: %s' % (skill.get('id'), exc))
+        return row
+    row['attempts'].append(a1)
+    if a1['rc'] == 0:
+        row['result'] = 'pass'
+        row['ms'] = a1['ms']
+        append_ledger(row)
+        if not quiet:
+            print('✓ %-38s 通过  %5dms  帧=%d 通道=%s  证据=%s'
+                  % (skill['id'], a1['ms'], len(frames), channel, row['evdir']))
+        return row
+
+    # ── 失败后：自愈三招 ──
+    m1 = heal_m1(skill, skill_path, spec, frames, tree, channel, a1, evdir)
+    if m1.get('hit'):
+        m2 = {'fired': False, 'hit': False, 'verdict': '未做：①换通道已恢复（三招按序升级，不做多余探针）'}
+    else:
+        m2 = heal_m2(skill, a1, channel, evdir)
+    ec = next_ec()
+    line = (a1['failure_lines'] or ['%s step#%s' % (str((a1['failure'] or {}).get('class')),
+                                                    (a1['failure'] or {}).get('step'))])[0]
+    # 自愈里**只有①**能让这条技能算「恢复」；②反证只产出诊断（推翻≠通过），防止把失败洗成绿
+    heal_ok = bool(m1.get('hit'))
+    row.update(result='pass-after-heal' if heal_ok else 'fail',
+               ms=a1['ms'], healing={'m1': m1, 'm2': m2,
+                                     'm3': {'ec': ec, 'line': line,
+                                            'observed': (a1['failure'] or {}).get('observed'),
+                                            'expected': (a1['failure'] or {}).get('expected')}})
+    append_ledger(row)
+    if not quiet:
+        print('✗ %-38s 停在第 %s 步  %5dms  %s' %
+              (skill['id'], (a1['failure'] or {}).get('step'), a1['ms'], line))
+        print('    观测值=%s  期望=%s' % ((a1['failure'] or {}).get('observed'),
+                                          (a1['failure'] or {}).get('expected')))
+        for ax in m1['axes']:
+            print('    ①%s %s  %s' % ('✔' if ax.get('hit') else '✗', ax['axis'],
+                                      ax.get('why') or ax.get('alt') or ''))
+        print('    ②%s  %s' % ('✔' if m2.get('hit') else '✗', m2.get('verdict')))
+        print('    ③记账 %s（ledger.jsonl）' % ec)
+    return row
+
+
+# ── 汇总 ──────────────────────────────────────────────────────
+def load_ledger():
+    rows = []
+    if os.path.exists(LEDGER):
+        for line in open(LEDGER, encoding='utf-8'):
+            line = line.strip()
+            if line:
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    pass
+    return rows
+
+
+def latest_by_skill(rows):
+    out = {}
+    for r in rows:
+        out[r['skill']] = r          # 后写覆盖前写（同一技能以最后一次运行为准）
+    return out
+
+
+def summarize(rows=None):
+    """汇总**每个技能的最新一次**运行（同一技能以最后一次为准），并把三招的命中/未命中分桶。
+
+    分桶口径（可机检）：
+      ① 命中 = 换了通道/输入通道后整条技能跑绿；未命中 = 换了也没救回（附原因：通道太慢 / 非帧判据 /
+         无 alt_input / 备用通道无读数）
+      ② 命中 = 反证**推翻**了原观测（判据脆 / 证据陈旧）；未命中 = 反证确认观测可信，或该失败不是帧判据、
+         或①已恢复所以没做
+      ③ 记账 = 每次停机的 EC 编号条数
+    """
+    rows = rows if rows is not None else load_ledger()
+    latest = latest_by_skill(rows)
+    m1 = {'hit': 0, 'miss': 0, 'by_axis': {}, 'miss_reasons': {}}
+    m2 = {'refuted': 0, 'confirmed': 0, 'no_frame': 0, 'void': 0, 'skipped': 0}
+    m3 = 0
+    for r in latest.values():
+        h = r.get('healing') or {}
+        if not h:
+            continue
+        m3 += 1
+        lm1 = h.get('m1') or {}
+        if lm1.get('hit'):
+            m1['hit'] += 1
+        else:
+            m1['miss'] += 1
+        for a in lm1.get('axes') or []:
+            key = a.get('axis')
+            m1['by_axis'].setdefault(key, {'hit': 0, 'miss': 0})
+            m1['by_axis'][key]['hit' if a.get('hit') else 'miss'] += 1
+            if not a.get('hit'):
+                why = (a.get('why') or '')
+                tag = ('备用通道太慢' if '预算' in why or '太慢' in why else
+                       '非帧判据' if '不是帧判据' in why or '没有取帧接口' in why else
+                       '无备用输入通道' if 'alt_input' in why or '不走输入通道' in why else
+                       '其他')
+                m1['miss_reasons'][tag] = m1['miss_reasons'].get(tag, 0) + 1
+        lm2 = h.get('m2') or {}
+        v = lm2.get('verdict') or ''
+        if lm2.get('instrument_void'):
+            m2['void'] += 1
+        elif '观测可信' in v:
+            m2['confirmed'] += 1
+        elif lm2.get('hit'):
+            m2['refuted'] += 1
+        elif v.startswith('未做'):
+            m2['skipped'] += 1
+        else:
+            m2['no_frame'] += 1
+    skills = []
+    for sid, r in sorted(latest.items()):
+        skills.append({'id': sid, 'kind': 'selftest' if sid.startswith('selftest.') else 'task',
+                       'result': r.get('result'), 'ms': r.get('ms'),
+                       'channel': r.get('channel'), 'evdir': r.get('evdir'),
+                       'pending': len(r.get('pending_steps') or []),
+                       'real_machine': (r.get('real_machine') or {}).get('status')})
+    tasks = [s for s in skills if s['kind'] == 'task']
+    ok = [s for s in tasks if s['result'] in ('pass', 'pass-after-heal')]
+    return {'generated_at': iso(),
+            'skillization': {'total': len(tasks), 'executable_offline': len(ok),
+                             'real_machine_verified': 0,
+                             'pending_steps': sum(s['pending'] for s in tasks),
+                             'blocked': [s['id'] for s in tasks if s['result'] not in
+                                         ('pass', 'pass-after-heal')],
+                             'real_machine_blocked': [s['id'] for s in tasks
+                                                      if s.get('real_machine') == 'blocked'],
+                             'real_machine_pending': [s['id'] for s in tasks
+                                                      if s.get('real_machine') == 'pending']},
+            'healing': {'m1_channel': m1, 'm2_frame': m2, 'm3_ledger_events': m3,
+                        'ledger_rows_total': len(rows)},
+            'skills': skills}
+
+
+def cmd_summary():
+    s = summarize()
+    print(json.dumps(s, ensure_ascii=False, indent=1))
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(prog='run')
+    ap.add_argument('--all', action='store_true')
+    ap.add_argument('--skill')
+    ap.add_argument('--json')
+    ap.add_argument('--quiet', action='store_true')
+    ap.add_argument('--summary', action='store_true')
+    a = ap.parse_args()
+    if a.summary:
+        return cmd_summary()
+    paths = []
+    if a.skill:
+        paths = [resolve(a.skill)]
+    elif a.all:
+        d = os.path.join(HERE, 'skills')
+        paths = [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith('.json')]
+    else:
+        ap.print_help()
+        return 2
+    rows = []
+    for p in paths:
+        rows.append(run_skill(p, quiet=a.quiet))
+    doc = summarize()
+    doc['this_run'] = [{'skill': r.get('skill'), 'result': r.get('result'),
+                        'healing': ('m1_hit=%s m2_hit=%s m3=%s' % (
+                            (r.get('healing') or {}).get('m1', {}).get('hit'),
+                            (r.get('healing') or {}).get('m2', {}).get('hit'),
+                            (r.get('healing') or {}).get('m3', {}).get('ec'))) if r.get('healing') else None}
+                       for r in rows]
+    if a.json:
+        os.makedirs(os.path.dirname(os.path.abspath(a.json)) or '.', exist_ok=True)
+        json.dump(doc, open(a.json, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('汇总: %s' % a.json)
+    if not a.quiet:
+        sz = doc['skillization']
+        hl = doc['healing']
+        print('\n技能化率（离线可执行）= %d/%d   真机已验证 = %d   pending 步=%d' %
+              (sz['executable_offline'], sz['total'], sz['real_machine_verified'],
+               sz['pending_steps']))
+        print('①换通道 命中%d/未命中%d %s' % (hl['m1_channel']['hit'], hl['m1_channel']['miss'],
+                                            hl['m1_channel']['by_axis']))
+        print('②换帧反证 %s' % hl['m2_frame'])
+        print('③记账 %d 条（ledger 共 %d 行）' % (hl['m3_ledger_events'],
+                                              hl['ledger_rows_total']))
+    bad = [r for r in rows if r.get('result') not in ('pass', 'pass-after-heal')]
+    return 0 if not bad else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""log-list — Beyond_Debug_Log 产物清单（文字通道 + 基线差分）。
+
+为什么要有它：`tools/gui` 的判据只有两通道——界面态（ys-state）与文字树。
+「一轮试玩有没有产出新日志」不属于界面态（票 04 的 M4 结论：产物判据完全不经过屏幕），
+所以这里把**目录清单**做成文字通道：清单里出现 `LOG-NEW` 就是「有新文件」。
+
+用法:
+  bin/log-list baseline --log-dir DIR --out FILE      # 记基线（name/bytes/mtime/sha 前缀）
+  bin/log-list tree     --log-dir DIR --baseline FILE # 打印文字通道清单（给 tools/gui --tree）
+
+清单行（tools/gui 的 assert text 按子串匹配）:
+  LOG-DIR-OK '<dir>' files=N                       目录可读
+  LOG-BASELINE count=N latest=<name> sha=<12>      基线读数
+  LOG-NEW name=<name> bytes=N mtime=<iso> sha=<12> 相对基线新增（≥1 行）
+  LOG-NO-NEW latest=<name> mtime=<iso> baseline_count=N candidates=0   # 没有新文件
+
+判定「新」= 文件名不在基线集合里（不看 mtime：同名文件被重写也算旧，日志文件名带时间戳，不会同名）。
+退出码: 0 正常 / 2 用法或目录不可读
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+
+NAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}.*\.gia$')
+GIA = '*.gia'
+
+
+def default_dir():
+    low = os.environ.get('GSTS_LOCALLOW_DIR')
+    if low:
+        return os.path.join(low, 'miHoYo', '原神', 'BeyondLocal', '110170759', 'Beyond_Debug_Log')
+    return None
+
+
+def sha12(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()[:12]
+
+
+def listing(logdir):
+    if not os.path.isdir(logdir):
+        raise SystemExit('目录不可读: %s' % logdir)
+    out = []
+    for name in sorted(os.listdir(logdir)):
+        if not name.endswith('.gia'):
+            continue
+        p = os.path.join(logdir, name)
+        if not os.path.isfile(p):
+            continue
+        st = os.stat(p)
+        out.append({'name': name, 'bytes': st.st_size,
+                    'mtime': time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(st.st_mtime)),
+                    'sha12': sha12(p), 'ts_pattern_ok': bool(NAME_RE.match(name))})
+    return out
+
+
+def cmd_baseline(a):
+    d = a.log_dir or default_dir()
+    rows = listing(d)
+    doc = {'dir': os.path.abspath(d), 'captured_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+           'files': rows}
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)) or '.', exist_ok=True)
+    with open(a.out, 'w', encoding='utf-8') as fh:
+        json.dump(doc, fh, ensure_ascii=False, indent=1)
+    print('baseline %d 个 .gia → %s' % (len(rows), a.out))
+    return 0
+
+
+def cmd_tree(a):
+    d = a.log_dir or default_dir()
+    rows = listing(d)
+    base = {'files': []}
+    if a.baseline and os.path.exists(a.baseline):
+        base = json.load(open(a.baseline, encoding='utf-8'))
+    names = {r['name'] for r in base.get('files') or []}
+    src = 'log-dir'
+    if a.baseline and not os.path.exists(a.baseline):
+        src = 'log-dir(基线缺失)'
+    lines = ["# log-list 文字通道清单：%s  files=%d  baseline=%d  src=%s"
+             % (os.path.abspath(d), len(rows), len(names), src),
+             "LOG-DIR-OK '%s' files=%d" % (os.path.abspath(d), len(rows))]
+    if rows:
+        last = rows[-1]
+        lines.append('LOG-BASELINE count=%d latest=%s sha=%s'
+                     % (len(names), last['name'], last['sha12']))
+    else:
+        lines.append('LOG-BASELINE count=0 latest=<empty> sha=-')
+    new = [r for r in rows if r['name'] not in names]
+    if new:
+        for r in new:
+            lines.append('LOG-NEW name=%s bytes=%d mtime=%s sha=%s ts_pattern=%s'
+                         % (r['name'], r['bytes'], r['mtime'], r['sha12'],
+                            'ok' if r['ts_pattern_ok'] else 'BAD'))
+    else:
+        last = rows[-1] if rows else {'name': '<empty>', 'mtime': '-', 'bytes': 0}
+        lines.append('LOG-NO-NEW latest=%s mtime=%s baseline_count=%d candidates=0'
+                     % (last['name'], last['mtime'], len(names)))
+    print('\n'.join(lines))
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(prog='log-list')
+    sub = ap.add_subparsers(dest='cmd')
+    b = sub.add_parser('baseline')
+    b.add_argument('--log-dir')
+    b.add_argument('--out', required=True)
+    t = sub.add_parser('tree')
+    t.add_argument('--log-dir')
+    t.add_argument('--baseline')
+    a = ap.parse_args()
+    if a.cmd == 'baseline':
+        return cmd_baseline(a)
+    if a.cmd == 'tree':
+        return cmd_tree(a)
+    ap.print_help()
+    return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main())

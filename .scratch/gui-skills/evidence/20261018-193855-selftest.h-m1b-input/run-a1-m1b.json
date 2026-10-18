@@ -1,0 +1,62 @@
+{
+ "kind": "gui-run",
+ "skill": "selftest.h-m1b-input",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:38:56",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 2,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 1,
+   "act": "key",
+   "target": null,
+   "ok": false,
+   "expected": "target{desc,must_assert}+evidence{fresh=true}",
+   "observed": "缺 target.desc，target.must_assert，evidence.fresh=true",
+   "kind": "IDENTITY-MISSING",
+   "ms": 0,
+   "evidence": {
+    "class_hint": "写动作缺身份协议（拒绝执行）"
+   },
+   "line": "IDENTITY-MISSING step#1 缺 target.desc，target.must_assert，evidence.fresh=true（写动作必须带 target.desc + target.must_assert + evidence.fresh=true；没有身份的动作不执行）"
+  }
+ ],
+ "ok": false,
+ "exit": 3,
+ "t0": 1792323536.19028,
+ "frames_meta": {
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 10,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 0,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 0,
+  "desktop_calls": 0
+ },
+ "failure": {
+  "step": 1,
+  "class": "IDENTITY-MISSING",
+  "expected": "target{desc,must_assert}+evidence{fresh=true}",
+  "observed": "缺 target.desc，target.must_assert，evidence.fresh=true",
+  "evidence": {
+   "class_hint": "写动作缺身份协议（拒绝执行）"
+  }
+ }
+}

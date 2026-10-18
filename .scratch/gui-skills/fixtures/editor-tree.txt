@@ -1,0 +1,17 @@
+# tools/gui 文字通道夹具（与 `cu state` 的行语义一致：每行一个元素，find_target 按 name/role 子串匹配）
+# 文案来源 = 真机实测（D317 坐标表 / gui-catalog measurements.tsv EC-M001 ④ / 语料库 OCR），不是凭空编造。
+# 坐标与长按时长写在各 skill 的 on_device 字段里（文字通道不带坐标）。
+role=frame name=原神编辑器 [0x01400001]
+role=button name=试玩
+role=button name=直接上传
+role=button name=开始游戏
+role=icon name=存档管理
+role=button name=编辑
+role=text name=未分类页签_存档_1
+role=text name=输入探针v2
+role=text name=是否退出，并加载未分类页签_存档_1？
+role=button name=确认
+role=button name=中断挑战
+role=button name=继续挑战
+role=button name=离开
+role=text name=奇域试玩中

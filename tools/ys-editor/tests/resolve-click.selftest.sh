@@ -103,6 +103,11 @@ try() {  # try <期望rc> <标签> -- cmd...（输出落 OUT/ERR/RC，注入日�
 expect_eq() {  # expect_eq <标签> <实际> <期望>
   if [ "$2" = "$3" ]; then ok "$1=「$3」"; else bad "$1" "期望「$3」实测「$2」"; fi
 }
+expect_near() {  # expect_near <标签> <实际> <期望> [tol] —— OCR 框中心随模型版本有 ±4px 漂移，绝对值只做粗定位回归
+  local tol="${4:-4}" dx
+  dx=$(( $2 - $3 )); [ "$dx" -lt 0 ] && dx=$(( -dx ))
+  if [ "$dx" -le "$tol" ]; then ok "$1=「$2」（期望 $3±$tol）"; else bad "$1" "期望 $3±$tol 实测「$2」"; fi
+}
 expect_has() {  # expect_has <标签> <文本> <子串>
   if has "$2" "$3"; then ok "$1（含「$3」）"; else bad "$1" "「$2」里没有「$3」"; fi
 }
@@ -126,12 +131,12 @@ echo "══ resolve-click ══"
 echo "[D1] 同一标签、两种布局 → 坐标不同、matched_text 相同"
 try 0 "A 帧解析「输入探针v2」" -- "$CLICK" --text 输入探针v2 --frame "$A"
 XA="$(jf "$OUT" x)"; YA="$(jf "$OUT" y)"; MA="$(jf "$OUT" matched_text)"
-expect_eq "A.x" "$XA" "1440"; expect_eq "A.y" "$YA" "192"
+expect_eq "A.x" "$XA" "1440"; expect_near "A.y" "$YA" "192"
 expect_eq "A.matched_text" "$MA" "输入探针v2"
 expect_no_inject "$INJ"
 try 0 "B 帧解析「输入探针v2」" -- "$CLICK" --text 输入探针v2 --frame "$B"
 XB="$(jf "$OUT" x)"; YB="$(jf "$OUT" y)"; MB="$(jf "$OUT" matched_text)"
-expect_eq "B.x" "$XB" "816"; expect_eq "B.y" "$YB" "192"
+expect_eq "B.x" "$XB" "816"; expect_near "B.y" "$YB" "192"
 expect_eq "B.matched_text" "$MB" "输入探针v2"
 expect_no_inject "$INJ"
 if [ "$XA" != "$XB" ] && [ "$MA" = "$MB" ]; then
@@ -143,11 +148,13 @@ try 0 "A 帧：「输入探针v2」的【编辑】" -- "$CLICK" --anchor 输入�
 EXA="$(jf "$OUT" x)"; EYA="$(jf "$OUT" y)"; EMA="$(jf "$OUT" matched_text)"
 try 0 "B 帧：「未分类页签_存档_1」的【编辑】" -- "$CLICK" --anchor 未分类页签_存档_1 --offset 200,195 --frame "$B"
 EXB="$(jf "$OUT" x)"; EYB="$(jf "$OUT" y)"; EMB="$(jf "$OUT" matched_text)"
-expect_eq "A 目标点" "$EXA,$EYA" "1681,387"
-expect_eq "B 目标点" "$EXB,$EYB" "1681,387"
+expect_near "A 目标点.x" "$EXA" "1681"; expect_near "A 目标点.y" "$EYA" "387"
+expect_near "B 目标点.x" "$EXB" "1681"; expect_near "B 目标点.y" "$EYB" "387"
 expect_eq "A 身份" "$EMA" "输入探针v2"
 expect_eq "B 身份" "$EMB" "未分类页签_存档_1"
-if [ "$EXA,$EYA" = "$EXB,$EYB" ] && [ "$EMA" != "$EMB" ]; then
+_dx=$(( EXA - EXB )); [ "$_dx" -lt 0 ] && _dx=$(( -_dx ))
+_dy=$(( EYA - EYB )); [ "$_dy" -lt 0 ] && _dy=$(( -_dy ))
+if [ "$_dx" -le 4 ] && [ "$_dy" -le 4 ] && [ "$EMA" != "$EMB" ]; then
   ok "同一坐标 (1681,387) 两帧上属于不同对象（$EMA / $EMB）——坐标不携带身份"
 else bad "身份/坐标解耦判据不成立" "A=($EXA,$EYA,$EMA) B=($EXB,$EYB,$EMB)"; fi
 expect_no_inject "$INJ"

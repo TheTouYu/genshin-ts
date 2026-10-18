@@ -1,0 +1,42 @@
+{
+ "id": "selftest.h-m1b-input",
+ "app": "原神编辑器",
+ "desc": "注入用例：指针通道解析失败 ⇒ 用声明好的键盘等价路径重试",
+ "steps": [
+  {
+   "act": "click",
+   "target": {
+    "desc": "系统菜单【不存在的按钮】",
+    "must_assert": {
+     "text": "原神编辑器"
+    },
+    "role": "button",
+    "name": "不存在的按钮"
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "alt_input": {
+    "act": "key",
+    "key": "Escape"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "MENU",
+   "timeout": 6
+  }
+ ],
+ "post": {
+  "state": "MENU",
+  "timeout": 6
+ },
+ "offline": {
+  "state_backend": "ys-state",
+  "tree": "fixtures/editor-tree.txt",
+  "frames": [
+   "tools/ys-editor/calib/regress/menu.png",
+   "tools/ys-editor/calib/regress/menu.png"
+  ]
+ }
+}

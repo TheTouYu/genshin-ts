@@ -1,0 +1,10 @@
+▶ game.paimon-find-qianxing-entry  app=原神  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=GAME_PAIMON（1 次轮询，序列=[GAME_PAIMON]）  (761ms)
+  [1] assert  ✓ 断言含「冒险等阶」  (0ms)
+  [2] scroll  ✓ [stub] scroll down×3 → 第 1 轮出现 {"text": "千星奇域"}  (0ms)
+  [3] assert  ✓ 断言含「千星奇域」  (0ms)
+  [post] ✓ 断言含「千星奇域」  (0ms)
+✓ 全部通过，用时 767ms  预算: frames=0 offline=1 focus=0 sleeps=0 polls=5  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-195146-game.paimon-find-qianxing-entry/run-a1.json
+
+--stderr--
+[gui] ⚠ 窗口身份走测试桩 GUI_ACTIVE_WINDOW_OVERRIDE=0x01400001 —— 这不是真实焦点，只用于离线回归（evidence 里 reader=override）

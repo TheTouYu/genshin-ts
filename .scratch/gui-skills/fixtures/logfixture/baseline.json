@@ -1,0 +1,13 @@
+{
+ "dir": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/logfixture/logs",
+ "captured_at": "2026-10-18T19:35:54",
+ "files": [
+  {
+   "name": "2026-10-17_09-09-01_3307_110170759.gia",
+   "bytes": 239,
+   "mtime": "2026-10-18T19:35:54",
+   "sha12": "0981ca7913cc",
+   "ts_pattern_ok": true
+  }
+ ]
+}

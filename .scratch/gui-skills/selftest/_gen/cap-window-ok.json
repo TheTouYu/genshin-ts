@@ -1,0 +1,6 @@
+{"id":"cap.window-ok","app":"原神编辑器",
+ "steps":[{"act":"key","key":"Escape",
+           "target":{"desc":"原神编辑器窗口","must_assert":{"window":"0x01400001"}},
+           "evidence":{"fresh":true}},
+          {"act":"assert","text":"原神编辑器","timeout":3}],
+ "post":{"text":"原神编辑器"}}

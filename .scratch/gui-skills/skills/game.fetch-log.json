@@ -1,0 +1,53 @@
+{
+ "id": "game.fetch-log",
+ "app": "原神编辑器",
+ "desc": "取一轮 Beyond_Debug_Log：对基线取差分，断言出现新的 .gia 文件（新 = 名字不在基线集合里；并校验时间戳命名与字节数）",
+ "pre": {
+  "text": "LOG-DIR-OK",
+  "timeout": 3
+ },
+ "steps": [
+  {
+   "act": "assert",
+   "text": "LOG-BASELINE",
+   "timeout": 3,
+   "judge": "基线已取：列出目录已有 .gia 数与最新一份（sha 前缀）"
+  },
+  {
+   "act": "assert",
+   "text": "LOG-NEW",
+   "timeout": 5,
+   "judge": "新文件出现：name+bytes+mtime+sha 前缀，且名字不在基线里（无新文件时清单里是 LOG-NO-NEW）"
+  }
+ ],
+ "post": {
+  "text": "LOG-NEW",
+  "timeout": 5
+ },
+ "offline": {
+  "tree_generator": {
+   "cmd": [
+    "bin/log-list",
+    "tree",
+    "--log-dir",
+    "fixtures/logfixture/logs",
+    "--baseline",
+    "fixtures/logfixture/baseline.json"
+   ],
+   "out": "tree.txt"
+  },
+  "frames": []
+ },
+ "pending": [
+  {
+   "step": 2,
+   "why": "执行器没有产物（文件）断言通道，只能把「日志目录清单」当文字通道喂进去；跨技能复用性差",
+   "requires": "执行器补 artifact 断言（文件出现/数量/大小/sha），或把 bin/log-list 提升为共享工具（tools/ys-artifact）",
+   "ec": "EC-F006"
+  }
+ ],
+ "real_machine": {
+  "status": "pending",
+  "requires": "需要一轮真实试玩（与 editor.playtest-stop 配对：不走完「离开」不落盘）；Lead 批准真机时段"
+ }
+}

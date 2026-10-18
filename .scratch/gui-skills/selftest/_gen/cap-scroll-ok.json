@@ -1,0 +1,5 @@
+{"id":"cap.scroll-ok","app":"原神","steps":[
+ {"act":"scroll","direction":"down","amount":3,
+  "target":{"desc":"派蒙菜单左侧面板","must_assert":{"window":"0x01400001"}},
+  "until":{"text":"千星奇域"},"max_tries":4,"evidence":{"fresh":true}},
+ {"act":"assert","text":"千星奇域","timeout":3}],"post":{"text":"千星奇域"}}

@@ -1,0 +1,4 @@
+▶ selftest.h-m1a-channel  app=原神编辑器  判据通道=cmd:echo not-json  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✗ state=not-json（20 次轮询，序列=[not-json, not-json, not-json, not-json, not-json, not-json]）  (5000ms)
+PRE-FALSE step#0 expected=state=EDITOR observed=not-json
+  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-195207-selftest.h-m1a-channel/run-a1.json

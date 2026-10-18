@@ -1,0 +1,9 @@
+▶ selftest.h-m2-confirm  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (458ms)
+  [1] key     ✓ [stub] key=Escape  (0ms)
+  [2] assert  ✗ state=TIMEOUT（18 次轮询，序列=[EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR, TIMEOUT]）；判据异常: ys-state 超过 0.3s 未返回（判据仪器超时）  (8007ms)
+ASSERT-FALSE step#2 expected=state=MENU observed=TIMEOUT
+  ✗ F1 断言为假  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-194656-selftest.h-m2-confirm/run-a1.json
+
+--stderr--
+[gui] ⚠ 窗口身份走测试桩 GUI_ACTIVE_WINDOW_OVERRIDE=0x01400001 —— 这不是真实焦点，只用于离线回归（evidence 里 reader=override）

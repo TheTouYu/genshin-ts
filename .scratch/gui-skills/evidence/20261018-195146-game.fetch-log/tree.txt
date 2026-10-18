@@ -1,0 +1,4 @@
+# log-list 文字通道清单：/home/h/genshin-ts/.scratch/gui-skills/fixtures/logfixture/logs  files=2  baseline=1  src=log-dir
+LOG-DIR-OK '/home/h/genshin-ts/.scratch/gui-skills/fixtures/logfixture/logs' files=2
+LOG-BASELINE count=1 latest=2026-10-18_19-20-00_3402_110170759.gia sha=032002896b35
+LOG-NEW name=2026-10-18_19-20-00_3402_110170759.gia bytes=7211 mtime=2026-10-18T19:35:54 sha=032002896b35 ts_pattern=ok

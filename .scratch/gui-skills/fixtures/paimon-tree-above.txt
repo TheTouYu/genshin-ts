@@ -1,0 +1,15 @@
+# 派蒙菜单·首屏文字通道夹具（对应 .scratch/gui-corpus/f06.png）
+# 来源：ys-state GAME_PAIMON 三判据 = 冒险等阶 / 世界等级 / UID 行（tools/ys-editor/ys-state 内联判据）
+# 本文件**故意不含**首屏之下的入口名——用来证明"不滚动就找不到"（见 selftest 的期望失败用例）。
+role=text name=冒险等阶
+role=text name=世界等级
+role=text name=UID 110170759
+role=button name=地图
+role=button name=背包
+role=button name=角色
+role=button name=活动
+role=button name=商城
+role=button name=纪行
+role=button name=好友
+role=button name=任务
+role=button name=设置

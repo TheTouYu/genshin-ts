@@ -1,0 +1,141 @@
+══ 票 32 selftest：四类假成功 + 自愈三招 2026-10-18 19:51:51 ══
+执行器 /home/h/genshin-ts/tools/gui
+离线帧 tools/ys-editor/calib/regress
+桩树 /home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt
+单步上界 10000ms
+
+── A1 F1 断言为假（帧序列里没有 MENU） ──
+    > ASSERT-FALSE step#2 expected=state=MENU observed=PLAYTEST
+    退出码=3 耗时=8252ms
+    ✓ 退出码=3（期望 3）
+    ✓ 报告行含「ASSERT-FALSE step#2」
+    ✓ 报告行含「expected=state=MENU observed=」
+    ✓ 整条进程 8252ms ≤ 10000ms
+    ✓ 观测值不是期望态（帧序列里确实没有 MENU）
+
+── A2 F2 目标解析失败（身份过、定位候选=0） ──
+    > RESOLVE-FAIL step#3 target={"desc": "系统菜单「试玩」磁贴", "must_assert": {"window": "0x01400001"}, "role": "button", "name": "试玩", "hold_ms": 120} 候选=0
+    退出码=4 耗时=508ms
+    ✓ 退出码=4（期望 4）
+    ✓ 报告行含「RESOLVE-FAIL step#3」
+    ✓ 报告行含「候选=0」
+    ✓ 整条进程 508ms ≤ 10000ms
+
+── A3 F3 动作无效果（步骤全绿、后置断言恒假） ──
+    > NO-EFFECT step#7 post=state=SETTLE observed序列=[EDITOR, MENU, PLAYTEST, PLAYTEST, EDITOR, MENU]
+    退出码=3 耗时=5584ms
+    ✓ 退出码=3（期望 3）
+    ✓ 报告行含「NO-EFFECT step#7 post=state=SETTLE」
+    ✓ 报告行含「observed序列=[」
+    ✓ 整条进程 5584ms ≤ 10000ms
+
+── A4 F4 对象不符（文字通道：动作前身份为假 ⇒ 不点击） ──
+    > OBJECT-MISMATCH step#5 期望对象「存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）」 / 实测对象「<未命中>」（desc=存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）；must_assert=text⊇存档卡_不存在的名字；通道=text；时点=动作前）
+    退出码=4 耗时=841ms
+    ✓ 退出码=4（期望 4）
+    ✓ 报告行含「OBJECT-MISMATCH step#5」
+    ✓ 报告行含「实测对象「<未命中>」」
+    ✓ 报告行含「时点=动作前」
+    ✓ 整条进程 841ms ≤ 10000ms
+
+── A5 F4 对象不符（判据通道：动作后同一对象读回不一致） ──
+    > OBJECT-MISMATCH step#3 期望对象「MENU」 / 实测对象「PLAYTEST」（desc=系统菜单「试玩」磁贴；must_assert=state=MENU；通道=state；时点=动作后）
+    退出码=4 耗时=949ms
+    ✓ 退出码=4（期望 4）
+    ✓ 报告行含「OBJECT-MISMATCH step#3」
+    ✓ 报告行含「时点=动作后」
+    ✓ 报告行含「实测对象「PLAYTEST」」
+    ✓ 整条进程 949ms ≤ 10000ms
+
+── selftest.h-m1a-channel（经 run，自愈按序升级）──
+    ✓ 结果=pass-after-heal（期望 pass-after-heal）
+    ①换通道 命中=True  judge-channel:备用通道重跑整条技能 / input-channel:失败类 PRE-FALSE 不走输入通道（只有目标解析/对象不符/动作失败才换输入通道）
+    ②换帧反证 推翻=False  未做：①换通道已恢复（三招按序升级，不做多余探针）
+    ③记账 EC-F126  PRE-FALSE step#0 expected=state=EDITOR observed=not-json
+    ✓ ①命中=True（期望 True）
+    ✓ ②推翻=False（期望 False）
+    ✓ ③有 EC-F 编号：EC-F126
+    ✓ ③带观测值：not-json
+    ①通道探针读数：[{'ch': 'ys-state', 'state': 'EDITOR', 'ms': 242}]
+
+── selftest.h-m1b-input（经 run，自愈按序升级）──
+    ✓ 结果=pass-after-heal（期望 pass-after-heal）
+    ①换通道 命中=True  judge-channel:备用通道单帧 9235ms > 预算 2000ms（会顶爆 10s 单步硬上界，不做注定超时的重试） / input-channel:换输入通道重跑（指针 → 键盘）
+    ②换帧反证 推翻=False  未做：①换通道已恢复（三招按序升级，不做多余探针）
+    ③记账 EC-F127  RESOLVE-FAIL step#1 target={"desc": "系统菜单【不存在的按钮】", "must_assert": {"text": "原神编辑器"}, "role": "button", "name"
+    ✓ ①命中=True（期望 True）
+    ✓ ③有 EC-F 编号：EC-F127
+    ✓ ③带观测值：候选=0
+    ①通道探针读数：[{'ch': 'vision', 'state': 'MENU', 'ms': 9235}]
+
+── selftest.h-m2-confirm（经 run，自愈按序升级）──
+    ✓ 结果=fail（期望 fail）
+    ①换通道 命中=False  judge-channel:备用通道单帧 9396ms > 预算 2000ms（会顶爆 10s 单步硬上界，不做注定超时的重试） / input-channel:失败类 ASSERT-FALSE 不走输入通道（只有目标解析/对象不符/动作失败才换输入通道）
+    ②换帧反证 推翻=False  观测可信：同帧新鲜重判复现失败读数
+    ③记账 EC-F128  ASSERT-FALSE step#2 expected=state=MENU observed=PLAYTEST
+    ✓ ①命中=False（期望 False）
+    ✓ ②推翻=False（期望 False）
+    ✓ ③有 EC-F 编号：EC-F128
+    ✓ ③带观测值：PLAYTEST
+    ①通道探针读数：[{'ch': 'vision', 'state': 'PLAYTEST', 'ms': 9396}]
+    ✓ ②给出可用诊断（观测可信 / 观测无效）：观测可信：同帧新鲜重判复现失败读数
+
+── selftest.n-qianxing-below-fold（经 run，自愈按序升级）──
+    ✓ 结果=fail（期望 fail）
+    ①换通道 命中=False  judge-channel:备用通道单帧 9297ms > 预算 2000ms（会顶爆 10s 单步硬上界，不做注定超时的重试） / input-channel:失败类 NO-MORE 不走输入通道（只有目标解析/对象不符/动作失败才换输入通道）
+    ②换帧反证 推翻=False  未命中：失败断言不是帧判据（文字/产物通道），没有可复取的帧
+    ③记账 EC-F129  NO-MORE step#2
+    ✓ ①命中=False（期望 False）
+    ✓ ③有 EC-F 编号：EC-F129
+    ✓ ③带观测值：tries=5 最后=5:# 派蒙菜单·首屏文字通道夹具（对应 .scratch/gui-corpus/f06.png）
+# 来源：ys-state GAME_
+    ①通道探针读数：[{'ch': 'vision', 'state': 'MENU', 'ms': 9297}]
+    ✓ 负向证据：失败观测里不含「千星奇域」（首屏之下 ⇒ 如实施不了）
+
+── N1 窗口身份负样本（activeWindow 不匹配）──
+
+── N1 窗口身份负样本（0x00deadbe ≠ 0x01400001） ──
+    > OBJECT-MISMATCH step#1 期望对象「原神编辑器窗口（键盘/指针焦点必须在它上面）」 / 实测对象「0x00deadbe」（desc=原神编辑器窗口（键盘/指针焦点必须在它上面）；must_assert=window=0x01400001；通道=window；时点=动作前）
+    退出码=4 耗时=202ms
+    ✓ 退出码=4（期望 4）
+    ✓ 报告行含「OBJECT-MISMATCH step#1」
+    ✓ 报告行含「must_assert=window=0x01400001」
+    ✓ 报告行含「时点=动作前」
+    ✓ 整条进程 202ms ≤ 10000ms
+    ✓ 负样本证据：身份实测读数是 0x00deadbe（不是目标窗）
+    ✓ 窗口不符时没有执行按键动作
+
+── N2 滚动边界负样本（首屏树滚满 3 轮仍无入口）──
+
+── N2 滚动边界（NO-MORE，不空转） ──
+    > NO-MORE step#2 滚动 down×3 max_tries=3 仍未出现 expected={"text": "千星奇域"}（已到边界/该容器不可滚；不是"再滚一次就会好"）
+    退出码=3 耗时=806ms
+    ✓ 退出码=3（期望 3）
+    ✓ 报告行含「NO-MORE step#2」
+    ✓ 报告行含「max_tries=3」
+    ✓ 报告行含「已到边界/该容器不可滚」
+    ✓ 整条进程 806ms ≤ 10000ms
+    ✓ 滚动轮数=3 等于 max_tries=3（有界，没有空转）
+
+── N3 按住时长负样本（hold_ms=130 < min_hold_ms=1100）──
+
+── N3 按住时长不足（HOLD-TOO-SHORT） ──
+    > HOLD-TOO-SHORT step#6 hold_ms=130 < min_hold_ms=1100（按下时长不足，动作不执行；真机需 ≥120ms，开始游戏需 ≥1.2s）
+    退出码=3 耗时=482ms
+    ✓ 退出码=3（期望 3）
+    ✓ 报告行含「HOLD-TOO-SHORT step#6」
+    ✓ 报告行含「hold_ms=130 < min_hold_ms=1100」
+    ✓ 报告行含「动作不执行」
+    ✓ 整条进程 482ms ≤ 10000ms
+    ✓ 按住不足时没有执行点击（observed=hold_ms=130）
+
+── P1 滚动正向（第 1 轮出现「千星奇域」）──
+
+── P1 滚动正向（一次到位） ──
+    退出码=0 耗时=815ms
+    ✓ 退出码=0（期望 0）
+    ✓ 报告行含「scroll down×3」
+    ✓ 报告行含「第 1 轮出现」
+    ✓ 整条进程 815ms ≤ 10000ms
+
+══ 结果：66 通过 / 0 失败 ══

@@ -1,0 +1,363 @@
+#!/usr/bin/env python3
+"""run-selftest — 票 32 的离线回归：四类假成功判据（注入失败）+ 自愈三招（按序升级）。
+
+两段：
+  A 段（直接打 tools/gui，不经过自愈）——证明「我这 5 条技能的 plan 也被四类判据保护」：
+    A1 F1 断言为假   A2 F2 目标解析失败   A3 F3 动作无效果
+    A4 F4 对象不符（文字通道：前）   A5 F4 对象不符（判据通道：动作后漂移）
+  B 段（经过 run 的自愈）——证明三招会「按序升级」且不制造假绿：
+    B1 ①-a 判据通道：主通道是故障桩(cmd:echo) → 备用通道 ys-state 救回（命中）
+    B2 ①-b 输入通道：click 解析失败 → alt_input 键盘救回（命中）
+    B3 真失败：①慢通道不可用(未命中) → ②同帧重判确认观测可信(未命中) → ③记账
+    B4 「首屏之下」负向证据：滚动前的树里没有入口 → 断言如实为假（期望失败）
+告警口径：A 段每例都要求「退出码对 + 固定失败行 + 整条进程 ≤10s」；
+        B 段每例都要在 ledger.jsonl 里留下 ①/②/③ 的读数。
+
+用法: selftest/run-selftest [-v]
+退出码: 0 全绿 / 1 有失败项 / 2 环境不全（缺帧/缺执行器 ⇒ 明说，不静默跳过）
+"""
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(HERE)
+ROOT = os.path.dirname(os.path.dirname(BASE))
+GUI = os.path.join(ROOT, 'tools/gui')
+RUN = os.path.join(BASE, 'run')
+SKILLS = os.path.join(BASE, 'skills')
+GEN = os.path.join(HERE, '_gen')
+LEDGER = os.path.join(BASE, 'ledger.jsonl')
+REG = 'tools/ys-editor/calib/regress'
+LIMIT_MS = 10000
+PASS = FAIL = 0
+VERBOSE = '-v' in sys.argv
+
+
+def ok(msg, detail=''):
+    global PASS
+    PASS += 1
+    print('    ✓ %s' % msg)
+    if detail:
+        print('      ↳ %s' % detail)
+
+
+def bad(msg, detail=''):
+    global FAIL
+    FAIL += 1
+    print('    ✗ %s' % msg)
+    if detail:
+        print('      ↳ %s' % detail)
+
+
+def need():
+    miss = []
+    for p in (GUI, RUN, os.path.join(SKILLS, 'editor.playtest-start.json'),
+              os.path.join(ROOT, REG, 'menu.png'), os.path.join(ROOT, REG, 'playtest.png')):
+        if not os.path.exists(p):
+            miss.append(p)
+    if miss:
+        print('✗ 环境不全：缺 %s' % '，'.join(miss), file=sys.stderr)
+        sys.exit(2)
+
+
+def jload(p):
+    return json.load(open(p, encoding='utf-8'))
+
+
+def derive(name, skill_id, patch, offline):
+    """派生一个注入用例：改 id / 步骤 / 离线场景，落到 _gen/。"""
+    src = os.path.join(SKILLS, skill_id + '.json')
+    d = jload(src)
+    d['id'] = 'selftest.' + name
+    patch(d)
+    d['offline'] = offline
+    d['pending'] = []
+    p = os.path.join(GEN, name + '.json')
+    os.makedirs(GEN, exist_ok=True)
+    json.dump(d, open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    return p
+
+
+def run_gui(skill_path, frames=(), tree=None, channel='ys-state'):
+    argv = [GUI, 'run', skill_path, '--json', os.path.join(GEN, 'run-%s.json'
+                                                          % os.path.basename(skill_path)[:-5]),
+            '--max-step-wait', str(LIMIT_MS)]
+    if tree:
+        argv += ['--click-backend', 'stub', '--tree', tree]
+    for f in frames:
+        argv += ['--frame', f if os.path.isabs(f) else os.path.join(ROOT, f)]
+    argv += ['--state-backend', channel] if channel != 'ys-state' else ['--state-backend', 'ys-state']
+    env = dict(os.environ)
+    env['DISPLAY'] = ''
+    env['GUI_TEST_HOOKS'] = '1'
+    env['GUI_ACTIVE_WINDOW_OVERRIDE'] = os.environ.get('GUI_ACTIVE_WINDOW_OVERRIDE', '0x01400001')
+    t0 = time.time()
+    p = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=120)
+    ms = int((time.time() - t0) * 1000)
+    out = p.stdout or ''
+    if VERBOSE:
+        print('\n'.join('    | ' + ln for ln in (out + (p.stderr or '')).splitlines()))
+    return p.returncode, out, ms
+
+
+def expect_case(title, rc, out, ms, want_rc, want_substrs):
+    print('\n── %s ──' % title)
+    for ln in (ln for ln in out.splitlines() if ln[:1].isupper() and '-' in ln[:20]):
+        print('    > %s' % ln)
+    print('    退出码=%s 耗时=%sms' % (rc, ms))
+    (ok if rc == want_rc else bad)('退出码=%s（期望 %s）' % (rc, want_rc),
+                                   '' if rc == want_rc else out.strip().splitlines()[-2:])
+    for s in want_substrs:
+        (ok if s in out else bad)('报告行含「%s」' % s, '' if s in out else out.strip()[-300:])
+    (ok if ms <= LIMIT_MS else bad)('整条进程 %sms ≤ %sms' % (ms, LIMIT_MS))
+
+
+def last_ledger(skill_id):
+    rows = []
+    if os.path.exists(LEDGER):
+        for line in open(LEDGER, encoding='utf-8'):
+            line = line.strip()
+            if line:
+                rows.append(json.loads(line))
+    hits = [r for r in rows if r.get('skill') == skill_id]
+    return hits[-1] if hits else None
+
+
+def run_with_heal(skill_path, skill_id, want_result=None, want_m1_hit=None,
+                  want_m2_hit=None, want_ec=True):
+    print('\n── %s（经 run，自愈按序升级）──' % skill_id)
+    env = dict(os.environ)
+    env['DISPLAY'] = ''
+    env['GUI_TEST_HOOKS'] = '1'
+    env['GUI_ACTIVE_WINDOW_OVERRIDE'] = os.environ.get('GUI_ACTIVE_WINDOW_OVERRIDE', '0x01400001')
+    p = subprocess.run([RUN, '--skill', skill_path, '--quiet'], capture_output=True,
+                       text=True, env=env, timeout=300)
+    if VERBOSE:
+        print('\n'.join('    | ' + ln for ln in ((p.stdout or '') + (p.stderr or '')).splitlines()))
+    row = last_ledger(skill_id)
+    if row is None:
+        bad('%s 没有写 ledger' % skill_id)
+        return None
+    res = row.get('result')
+    (ok if (want_result is None or res == want_result) else bad)(
+        '结果=%s%s' % (res, '' if want_result is None else '（期望 %s）' % want_result))
+    h = row.get('healing') or {}
+    m1, m2, m3 = h.get('m1') or {}, h.get('m2') or {}, h.get('m3') or {}
+    print('    ①换通道 命中=%s  %s' % (m1.get('hit'),
+                                    ' / '.join('%s:%s' % (a.get('axis'), a.get('why') or a.get('alt') or '')
+                                               for a in (m1.get('axes') or []))))
+    print('    ②换帧反证 推翻=%s  %s' % (m2.get('hit'), m2.get('verdict')))
+    print('    ③记账 %s  %s' % (m3.get('ec'), (m3.get('line') or '')[:110]))
+    if want_m1_hit is not None:
+        (ok if bool(m1.get('hit')) == want_m1_hit else bad)('①命中=%s（期望 %s）' % (m1.get('hit'), want_m1_hit))
+    if want_m2_hit is not None:
+        (ok if bool(m2.get('hit')) == want_m2_hit else bad)('②推翻=%s（期望 %s）' % (m2.get('hit'), want_m2_hit))
+    if want_ec:
+        (ok if (m3.get('ec') or '').startswith('EC-F') else bad)('③有 EC-F 编号：%s' % m3.get('ec'))
+    (ok if (m3.get('observed') or '') else bad)('③带观测值：%s' % str(m3.get('observed'))[:80])
+    # 证据结构化：帧必须带 sha + 抓取时刻
+    probes = [a.get('probe') or {} for a in (m1.get('axes') or [])]
+    got = [p for p in probes if p.get('state')]
+    print('    ①通道探针读数：%s' % ([{'ch': g.get('channel'), 'state': g.get('state'),
+                                    'ms': g.get('ms')} for g in got] or '无（该失败非帧判据）'))
+    return row
+
+
+def sha(p):
+    h = hashlib.sha256()
+    h.update(open(p, 'rb').read())
+    return h.hexdigest()
+
+
+def main():
+    need()
+    os.makedirs(GEN, exist_ok=True)
+    tree_ok = os.path.join(BASE, 'fixtures/editor-tree.txt')
+    print('══ 票 32 selftest：四类假成功 + 自愈三招 %s ══' % time.strftime('%F %T'))
+    print('执行器 %s\n离线帧 %s\n桩树 %s\n单步上界 %sms' % (GUI, REG, tree_ok, LIMIT_MS))
+
+    # ── A1 F1 断言为假：期望 MENU，实际帧还是 EDITOR ──
+    p = derive('f1-assert-false', 'editor.playtest-start', lambda d: None,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/editor-grass-shadow.png',
+                           REG + '/playtest.png', REG + '/playtest.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/editor-grass-shadow.png',
+                              REG + '/playtest.png', REG + '/playtest.png'], tree_ok)
+    expect_case('A1 F1 断言为假（帧序列里没有 MENU）', rc, out, ms, 3,
+                ['ASSERT-FALSE step#2', 'expected=state=MENU observed='])
+    (ok if 'expected=state=MENU observed=MENU' not in out else bad)(
+        '观测值不是期望态（帧序列里确实没有 MENU）')
+
+    # ── A2 F2 目标解析失败：树里有「试玩」文字（身份过），但没有按钮「试玩」（解析失败）──
+    t2 = os.path.join(GEN, 'tree-no-trial-button.txt')
+    open(t2, 'w', encoding='utf-8').write(
+        'role=frame name=原神编辑器 [0x01400001]\nrole=text name=奇域试玩中\n'
+        'role=button name=直接上传\nrole=button name=开始游戏\n')
+    def _drop_xy(d):
+        d['steps'][2]['target'].pop('xy', None)      # 去掉坐标 ⇒ 走名字解析 ⇒ 候选=0
+    p = derive('f2-resolve-fail', 'editor.playtest-start', _drop_xy,
+               {'state_backend': 'ys-state', 'tree': os.path.relpath(t2, BASE),
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                           REG + '/playtest.png', REG + '/playtest.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                              REG + '/playtest.png', REG + '/playtest.png'], t2)
+    expect_case('A2 F2 目标解析失败（身份过、定位候选=0）', rc, out, ms, 4,
+                ['RESOLVE-FAIL step#3', '候选=0'])
+
+    # ── A3 F3 动作无效果：每步都过，只有 post 读不到 PLAYTEST ──
+    def _post_never(d):
+        d['post'] = {'state': 'SETTLE', 'timeout': 5}     # 帧序列里根本没有 SETTLE
+    p = derive('f3-no-effect', 'editor.playtest-start', _post_never,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                           REG + '/playtest.png', REG + '/playtest.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                              REG + '/playtest.png', REG + '/playtest.png'], tree_ok)
+    expect_case('A3 F3 动作无效果（步骤全绿、后置断言恒假）', rc, out, ms, 3,
+                ['NO-EFFECT step#7 post=state=SETTLE', 'observed序列=['])
+
+    # ── A4 F4 对象不符（文字通道，动作前）：身份断言的目标不存在 ──
+    def _bad_ident(d):
+        d['steps'][4]['target']['must_assert'] = {'text': '存档卡_不存在的名字'}
+    p = derive('f4-object-mismatch-text', 'editor.load-save', _bad_ident,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                           REG + '/savelist.png', REG + '/editor-grass-shadow.png',
+                           REG + '/editor-grass-shadow.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                              REG + '/savelist.png', REG + '/editor-grass-shadow.png',
+                              REG + '/editor-grass-shadow.png'], tree_ok)
+    expect_case('A4 F4 对象不符（文字通道：动作前身份为假 ⇒ 不点击）', rc, out, ms, 4,
+                ['OBJECT-MISMATCH step#5', '实测对象「<未命中>」', '时点=动作前'])
+
+    # ── A5 F4 对象不符（判据通道，动作后漂移）：点击前后态不同 ──
+    def _state_ident(d):
+        d['steps'][2]['target']['must_assert'] = {'state': 'MENU'}
+    p = derive('f4-object-drift', 'editor.playtest-start', _state_ident,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                           REG + '/menu.png', REG + '/playtest.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                              REG + '/menu.png', REG + '/playtest.png'], tree_ok)
+    expect_case('A5 F4 对象不符（判据通道：动作后同一对象读回不一致）', rc, out, ms, 4,
+                ['OBJECT-MISMATCH step#3', '时点=动作后', '实测对象「PLAYTEST」'])
+
+    # ── B1 ①-a 判据通道救回：主通道是故障桩，备用 ys-state ──
+    p = derive('h-m1a-channel', 'editor.playtest-start', lambda d: None,
+               {'state_backend': 'cmd:echo not-json', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png',
+                           REG + '/playtest.png', REG + '/playtest.png']})
+    run_with_heal(p, 'selftest.h-m1a-channel', want_result='pass-after-heal',
+                  want_m1_hit=True, want_m2_hit=False)
+
+    # ── B2 ①-b 输入通道救回：click 解析失败 → alt_input 键盘 ──
+    p = os.path.join(GEN, 'h-m1b-input.json')
+    os.makedirs(GEN, exist_ok=True)
+    json.dump({
+        'id': 'selftest.h-m1b-input', 'app': '原神编辑器',
+        'desc': '注入用例：指针通道解析失败 ⇒ 用声明好的键盘等价路径重试',
+        'steps': [
+            {'act': 'click',
+             'target': {'desc': '系统菜单【不存在的按钮】', 'must_assert': {'text': '原神编辑器'},
+                        'role': 'button', 'name': '不存在的按钮'},
+             'evidence': {'fresh': True},
+             'alt_input': {'act': 'key', 'key': 'Escape'}},
+            {'act': 'assert', 'state': 'MENU', 'timeout': 6}],
+        'post': {'state': 'MENU', 'timeout': 6},
+        'offline': {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                    'frames': [REG + '/menu.png', REG + '/menu.png']}
+    }, open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    run_with_heal(p, 'selftest.h-m1b-input', want_result='pass-after-heal',
+                  want_m1_hit=True)
+
+    # ── B3 真失败：①慢通道不可用 → ②确认观测可信 → ③记账 ──
+    p = derive('h-m2-confirm', 'editor.playtest-start', lambda d: None,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/editor-grass-shadow.png',
+                           REG + '/playtest.png', REG + '/playtest.png']})
+    row = run_with_heal(p, 'selftest.h-m2-confirm', want_result='fail',
+                        want_m1_hit=False, want_m2_hit=False)
+    if row:
+        verdict = ((row.get('healing') or {}).get('m2') or {}).get('verdict') or ''
+        (ok if ('观测可信' in verdict or '观测无效' in verdict) else bad)(
+            '②给出可用诊断（观测可信 / 观测无效）：%s' % verdict[:70])
+
+    # ── B4 「首屏之下」负向证据：滚动前的树里没有入口，断言如实为假 ──
+    p = derive('n-qianxing-below-fold', 'game.paimon-find-qianxing-entry', lambda d: None,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/paimon-tree-above.txt',
+                'frames': ['.scratch/gui-corpus/f06.png']})
+    run_with_heal(p, 'selftest.n-qianxing-below-fold', want_result='fail',
+                  want_m1_hit=False, want_m2_hit=None)
+    row = last_ledger('selftest.n-qianxing-below-fold')
+    if row:
+        obs = str((row.get('healing') or {}).get('m3', {}).get('observed') or '')
+        (ok if '千星奇域' not in obs else bad)(
+            '负向证据：失败观测里不含「千星奇域」（首屏之下 ⇒ 如实施不了）')
+
+    # ── N1 窗口身份负样本：activeWindow 不是目标 ⇒ 动作前 F4，且动作不执行 ──
+    print('\n── N1 窗口身份负样本（activeWindow 不匹配）──')
+    p = os.path.join(SKILLS, 'editor.playtest-start.json')
+    env_ok = os.environ.get('GUI_ACTIVE_WINDOW_OVERRIDE')
+    os.environ['GUI_ACTIVE_WINDOW_OVERRIDE'] = '0x00deadbe'
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png'], None)
+    if env_ok is None:
+        os.environ.pop('GUI_ACTIVE_WINDOW_OVERRIDE', None)
+    else:
+        os.environ['GUI_ACTIVE_WINDOW_OVERRIDE'] = env_ok
+    expect_case('N1 窗口身份负样本（0x00deadbe ≠ 0x01400001）', rc, out, ms, 4,
+                ['OBJECT-MISMATCH step#1', 'must_assert=window=0x01400001', '时点=动作前'])
+    row = json.load(open(os.path.join(GEN, 'run-editor.playtest-start.json'), encoding='utf-8'))
+    fstep = (row.get('failure') or {}).get('step', 1)
+    st = next((s for s in (row.get('steps') or []) if s.get('step') == fstep), {})
+    (ok if st.get('observed', '').startswith('0x00deadbe') or '0x00deadbe' in str(st) else bad)(
+        '负样本证据：身份实测读数是 0x00deadbe（不是目标窗）')
+    (ok if not str(st.get('observed', '')).startswith('key=') else bad)('窗口不符时没有执行按键动作')
+
+    # ── N2 滚动到边界：max_tries 内没出现 ⇒ NO-MORE（有界，不空转）──
+    print('\n── N2 滚动边界负样本（首屏树滚满 3 轮仍无入口）──')
+    p = derive('n-scroll-boundary', 'game.paimon-find-qianxing-entry', lambda d: None,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/paimon-tree-above.txt',
+                'frames': ['.scratch/gui-corpus/f06.png']})
+    d = json.load(open(p, encoding='utf-8'))
+    d['steps'][1]['max_tries'] = 3
+    json.dump(d, open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    rc, out, ms = run_gui(p, ['.scratch/gui-corpus/f06.png'], os.path.join(BASE, 'fixtures/paimon-tree-above.txt'))
+    expect_case('N2 滚动边界（NO-MORE，不空转）', rc, out, ms, 3,
+                ['NO-MORE step#2', 'max_tries=3', '已到边界/该容器不可滚'])
+    row = json.load(open(os.path.join(GEN, 'run-n-scroll-boundary.json'), encoding='utf-8'))
+    sstep = next((s for s in (row.get('steps') or []) if s.get('act') == 'scroll'), {})
+    tries = (sstep.get('evidence') or {}).get('tries')
+    (ok if tries == 3 else bad)('滚动轮数=%s 等于 max_tries=3（有界，没有空转）' % tries)
+
+    # ── N3 按住时长不足：hold_ms < min_hold_ms ⇒ HOLD-TOO-SHORT，动作不执行 ──
+    print('\n── N3 按住时长负样本（hold_ms=130 < min_hold_ms=1100）──')
+    def _short_hold(d):
+        d['steps'][5]['target']['hold_ms'] = 130
+    p = derive('n-hold-too-short', 'editor.playtest-start', _short_hold,
+               {'state_backend': 'ys-state', 'tree': 'fixtures/editor-tree.txt',
+                'frames': [REG + '/editor-grass-shadow.png', REG + '/menu.png']})
+    rc, out, ms = run_gui(p, [REG + '/editor-grass-shadow.png', REG + '/menu.png'], tree_ok)
+    expect_case('N3 按住时长不足（HOLD-TOO-SHORT）', rc, out, ms, 3,
+                ['HOLD-TOO-SHORT step#6', 'hold_ms=130 < min_hold_ms=1100', '动作不执行'])
+    row = json.load(open(os.path.join(GEN, 'run-n-hold-too-short.json'), encoding='utf-8'))
+    st6 = (row.get('steps') or [{}])[-1]
+    (ok if not str(st6.get('observed', '')).startswith('click') else bad)(
+        '按住不足时没有执行点击（observed=%s）' % str(st6.get('observed'))[:40])
+
+    # ── P1 滚动正向：滚动第 1 轮就出现入口（有界循环的正常出口）──
+    print('\n── P1 滚动正向（第 1 轮出现「千星奇域」）──')
+    p = os.path.join(SKILLS, 'game.paimon-find-qianxing-entry.json')
+    rc, out, ms = run_gui(p, ['.scratch/gui-corpus/f06.png'],
+                          os.path.join(BASE, 'fixtures/paimon-tree-scrolled.txt'))
+    expect_case('P1 滚动正向（一次到位）', rc, out, ms, 0, ['scroll down×3', '第 1 轮出现'])
+
+    print('\n══ 结果：%d 通过 / %d 失败 ══' % (PASS, FAIL))
+    return 0 if FAIL == 0 else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

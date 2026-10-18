@@ -1,0 +1,81 @@
+{
+ "kind": "gui-run",
+ "skill": "selftest.h-m1a-channel",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:42:10",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "cmd:echo not-json",
+  "click": "stub",
+  "frames": 4,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 0,
+   "act": "pre",
+   "target": {
+    "state": "EDITOR",
+    "timeout": 5
+   },
+   "ok": false,
+   "expected": "state=EDITOR",
+   "observed": "not-json",
+   "kind": "PRE-FALSE",
+   "ms": 5000,
+   "evidence": {
+    "sequence": "[not-json, not-json, not-json, not-json, not-json, not-json]",
+    "polls": 20,
+    "stop": "BUDGET-WOULD-OVERRUN",
+    "channel": "cmd",
+    "frame": null,
+    "frame_meta": null,
+    "class_hint": "F1 断言为假"
+   }
+  }
+ ],
+ "ok": false,
+ "exit": 5,
+ "t0": 1792323730.5107598,
+ "frames_meta": {
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+   "bytes": 4068202,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+   "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
+   "bytes": 3213364,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "failure": {
+  "step": 0,
+  "class": "PRE-FALSE",
+  "expected": "state=EDITOR",
+  "observed": "not-json"
+ },
+ "elapsed_ms": 5015,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 20,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 20,
+  "desktop_calls": 0
+ }
+}

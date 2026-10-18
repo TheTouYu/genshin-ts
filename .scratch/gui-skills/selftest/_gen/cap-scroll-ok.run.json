@@ -1,0 +1,175 @@
+{
+ "kind": "gui-run",
+ "skill": "cap.scroll-ok",
+ "app": "原神",
+ "started_at": "2026-10-18T19:45:21",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 1,
+  "tree": ".scratch/gui-skills/fixtures/paimon-tree-scrolled.txt"
+ },
+ "steps": [
+  {
+   "step": 1,
+   "act": "scroll",
+   "target": {
+    "desc": "派蒙菜单左侧面板",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "ok": true,
+   "expected": "scroll down×3 until={'text': '千星奇域'}",
+   "observed": "[stub] scroll down×3 → 第 1 轮出现 {\"text\": \"千星奇域\"}",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "tries": 1,
+    "sequence": [
+     "1:# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）\n# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，\n#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。\nrole=text name="
+    ],
+    "class_hint": "滚动到位",
+    "identity": {
+     "desc": "派蒙菜单左侧面板",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 2,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇千星奇域",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）",
+     "# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，",
+     "#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。",
+     "role=text name=冒险等阶",
+     "role=text name=世界等级",
+     "role=text name=UID 110170759"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": ".scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
+     "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
+     "bytes": 627,
+     "captured_at": "2026-10-18T19:45:21"
+    }
+   },
+   "detail": "断言含「千星奇域」"
+  },
+  {
+   "step": 2,
+   "act": "post",
+   "target": {
+    "text": "千星奇域"
+   },
+   "ok": true,
+   "expected": "text⊇千星奇域",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）",
+     "# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，",
+     "#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。",
+     "role=text name=冒险等阶",
+     "role=text name=世界等级",
+     "role=text name=UID 110170759"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": ".scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
+     "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
+     "bytes": 627,
+     "captured_at": "2026-10-18T19:45:21"
+    }
+   }
+  }
+ ],
+ "ok": true,
+ "exit": 0,
+ "t0": 1792323921.5832984,
+ "frames_meta": {
+  "tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 6,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 0,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 3,
+  "desktop_calls": 0
+ }
+}

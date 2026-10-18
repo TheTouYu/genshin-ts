@@ -1,0 +1,115 @@
+{
+ "kind": "gui-run",
+ "skill": "cap.hold-short",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:45:21",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 1,
+  "tree": ".scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 1,
+   "act": "click",
+   "target": {
+    "desc": "开始游戏",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "xy": [
+     1280,
+     1052
+    ],
+    "hold_ms": 130,
+    "min_hold_ms": 1200
+   },
+   "ok": false,
+   "expected": "hold_ms>=1200",
+   "observed": "hold_ms=130",
+   "kind": "HOLD-TOO-SHORT",
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "开始游戏",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      "reader": "override"
+     }
+    }
+   },
+   "line": "HOLD-TOO-SHORT step#1 hold_ms=130 < min_hold_ms=1200（按下时长不足，动作不执行；真机需 ≥120ms，开始游戏需 ≥1.2s）"
+  }
+ ],
+ "ok": false,
+ "exit": 3,
+ "t0": 1792323921.8341,
+ "frames_meta": {
+  "tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 5,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 0,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 0,
+  "desktop_calls": 0
+ },
+ "failure": {
+  "step": 1,
+  "class": "HOLD-TOO-SHORT",
+  "expected": "hold_ms>=1200",
+  "observed": "hold_ms=130",
+  "evidence": {
+   "identity": {
+    "desc": "开始游戏",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "channel": "window",
+    "pre": {
+     "ok": true,
+     "channel": "window",
+     "identity": "0x01400001",
+     "expect": "window=0x01400001",
+     "ms": 0,
+     "artifact": {
+      "kind": "text",
+      "source": "xdotool:getactivewindow",
+      "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+      "bytes": 39,
+      "captured_at": "2026-10-18T19:45:21"
+     },
+     "reader": "override"
+    }
+   }
+  }
+ }
+}

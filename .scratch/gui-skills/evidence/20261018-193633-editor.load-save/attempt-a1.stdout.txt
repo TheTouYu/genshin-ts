@@ -1,0 +1,12 @@
+▶ editor.load-save  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (353ms)
+  [1] key     ✓ [stub] key=Escape  (0ms)
+  [2] assert  ✓ state=MENU（1 次轮询，序列=[MENU]）  (354ms)
+  [3] click   ✓ [stub] click name=存档管理  (0ms)
+  [4] assert  ✓ state=SAVELIST（1 次轮询，序列=[SAVELIST]）  (301ms)
+  [5] click   ✓ [stub] click name=编辑  (0ms)
+  [6] assert  ✓ 断言含「是否退出，并加载未分类页签_存档_1」  (0ms)
+  [7] click   ✓ [stub] click name=确认  (0ms)
+  [8] assert  ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (355ms)
+  [post] ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (201ms)
+✓ 全部通过，用时 1750ms  预算: frames=0 offline=5 focus=0 sleeps=0 polls=6  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-193633-editor.load-save/run-a1.json

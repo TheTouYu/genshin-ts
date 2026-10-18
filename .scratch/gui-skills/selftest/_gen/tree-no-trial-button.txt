@@ -1,0 +1,4 @@
+role=frame name=原神编辑器 [0x01400001]
+role=text name=奇域试玩中
+role=button name=直接上传
+role=button name=开始游戏

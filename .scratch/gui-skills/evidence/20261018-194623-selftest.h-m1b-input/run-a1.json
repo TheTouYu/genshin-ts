@@ -1,0 +1,114 @@
+{
+ "kind": "gui-run",
+ "skill": "selftest.h-m1b-input",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:46:23",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 2,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 1,
+   "act": "click",
+   "target": {
+    "desc": "系统菜单【不存在的按钮】",
+    "must_assert": {
+     "text": "原神编辑器"
+    },
+    "role": "button",
+    "name": "不存在的按钮"
+   },
+   "ok": false,
+   "expected": "target={\"desc\": \"系统菜单【不存在的按钮】\", \"must_assert\": {\"text\": \"原神编辑器\"}, \"role\": \"button\", \"name\": \"不存在的按钮\"}",
+   "observed": "候选=0",
+   "kind": "RESOLVE-FAIL",
+   "ms": 0,
+   "evidence": {
+    "error": "树里找不到 button「不存在的按钮」",
+    "candidates": 0,
+    "class_hint": "F2 目标解析失败",
+    "identity": {
+     "desc": "系统菜单【不存在的按钮】",
+     "must_assert": {
+      "text": "原神编辑器"
+     },
+     "channel": "text",
+     "pre": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=frame name=原神编辑器 [0x01400001]",
+      "expect": "text⊇原神编辑器",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:46:23"
+      }
+     }
+    }
+   }
+  }
+ ],
+ "ok": false,
+ "exit": 4,
+ "t0": 1792323983.3705459,
+ "frames_meta": {
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 9,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 0,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 0,
+  "desktop_calls": 0
+ },
+ "failure": {
+  "step": 1,
+  "class": "RESOLVE-FAIL",
+  "expected": "target={\"desc\": \"系统菜单【不存在的按钮】\", \"must_assert\": {\"text\": \"原神编辑器\"}, \"role\": \"button\", \"name\": \"不存在的按钮\"}",
+  "observed": "候选=0",
+  "evidence": {
+   "error": "树里找不到 button「不存在的按钮」",
+   "candidates": 0,
+   "class_hint": "F2 目标解析失败",
+   "identity": {
+    "desc": "系统菜单【不存在的按钮】",
+    "must_assert": {
+     "text": "原神编辑器"
+    },
+    "channel": "text",
+    "pre": {
+     "ok": true,
+     "channel": "text",
+     "identity": "role=frame name=原神编辑器 [0x01400001]",
+     "expect": "text⊇原神编辑器",
+     "ms": 0,
+     "artifact": {
+      "kind": "text",
+      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+      "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+      "bytes": 818,
+      "captured_at": "2026-10-18T19:46:23"
+     }
+    }
+   }
+  }
+ }
+}

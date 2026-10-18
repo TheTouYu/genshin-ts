@@ -1,0 +1,4 @@
+▶ selftest.h-m1b-input  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [1] key     ✗ 缺 target.desc，target.must_assert，evidence.fresh=true  (0ms)
+IDENTITY-MISSING step#1 缺 target.desc，target.must_assert，evidence.fresh=true（写动作必须带 target.desc + target.must_assert + evidence.fresh=true；没有身份的动作不执行）
+  ✗ 写动作缺身份协议（拒绝执行）  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-193855-selftest.h-m1b-input/run-a1-m1b.json

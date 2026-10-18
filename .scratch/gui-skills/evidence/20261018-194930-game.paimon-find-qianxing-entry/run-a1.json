@@ -1,0 +1,234 @@
+{
+ "kind": "gui-run",
+ "skill": "game.paimon-find-qianxing-entry",
+ "app": "原神",
+ "started_at": "2026-10-18T19:49:30",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 1,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt"
+ },
+ "steps": [
+  {
+   "step": 0,
+   "act": "pre",
+   "target": {
+    "state": "GAME_PAIMON",
+    "timeout": 6
+   },
+   "ok": true,
+   "expected": "state=GAME_PAIMON",
+   "observed": "GAME_PAIMON",
+   "kind": null,
+   "ms": 869,
+   "evidence": {
+    "sequence": "[GAME_PAIMON]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+     "sha256": "a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60",
+     "bytes": 3385707,
+     "captured_at": "2026-10-18T16:33:39"
+    },
+    "class_hint": "F1 断言为假"
+   }
+  },
+  {
+   "step": 1,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇冒险等阶",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）",
+     "# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，",
+     "#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。",
+     "role=text name=冒险等阶",
+     "role=text name=世界等级",
+     "role=text name=UID 110170759"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
+     "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
+     "bytes": 627,
+     "captured_at": "2026-10-18T19:49:31"
+    }
+   },
+   "detail": "断言含「冒险等阶」"
+  },
+  {
+   "step": 2,
+   "act": "scroll",
+   "target": {
+    "desc": "派蒙菜单左侧面板（对它向下滚一屏）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "ok": true,
+   "expected": "scroll down×3 until={'text': '千星奇域'}",
+   "observed": "[stub] scroll down×3 → 第 1 轮出现 {\"text\": \"千星奇域\"}",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "tries": 1,
+    "sequence": [
+     "1:# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）\n# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，\n#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。\nrole=text name="
+    ],
+    "class_hint": "滚动到位",
+    "identity": {
+     "desc": "派蒙菜单左侧面板（对它向下滚一屏）",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:49:31"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:49:31"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:49:31"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:49:31"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 3,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇千星奇域",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）",
+     "# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，",
+     "#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。",
+     "role=text name=冒险等阶",
+     "role=text name=世界等级",
+     "role=text name=UID 110170759"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
+     "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
+     "bytes": 627,
+     "captured_at": "2026-10-18T19:49:31"
+    }
+   },
+   "detail": "断言含「千星奇域」"
+  },
+  {
+   "step": 3,
+   "act": "post",
+   "target": {
+    "text": "千星奇域",
+    "timeout": 6
+   },
+   "ok": true,
+   "expected": "text⊇千星奇域",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# 派蒙菜单·向下滚一屏后的文字通道夹具（对应 .scratch/gui-corpus/f07.png）",
+     "# 来源：.scratch/gui-corpus/README.md 「f07 — 派蒙菜单（向下滚了一屏）→ 找到「千星奇域」入口」，",
+     "#        全帧 OCR `regions=3 controls=40 text=36`，标题与 7 个条目全部抓到。",
+     "role=text name=冒险等阶",
+     "role=text name=世界等级",
+     "role=text name=UID 110170759"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
+     "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
+     "bytes": 627,
+     "captured_at": "2026-10-18T19:49:31"
+    }
+   }
+  }
+ ],
+ "ok": true,
+ "exit": 0,
+ "t0": 1792324170.7412891,
+ "frames_meta": {
+  "/home/h/genshin-ts/.scratch/gui-corpus/f06.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+   "sha256": "a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60",
+   "bytes": 3385707,
+   "captured_at": "2026-10-18T16:33:39"
+  }
+ },
+ "elapsed_ms": 875,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 1,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 5,
+  "desktop_calls": 0
+ }
+}

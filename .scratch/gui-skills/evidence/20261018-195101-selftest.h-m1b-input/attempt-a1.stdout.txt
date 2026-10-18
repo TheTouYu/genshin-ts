@@ -1,0 +1,4 @@
+▶ selftest.h-m1b-input  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [1] click   ✗ 候选=0  (0ms)
+RESOLVE-FAIL step#1 target={"desc": "系统菜单【不存在的按钮】", "must_assert": {"text": "原神编辑器"}, "role": "button", "name": "不存在的按钮"} 候选=0
+  ✗ F2 目标解析失败  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-195101-selftest.h-m1b-input/run-a1.json

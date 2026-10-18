@@ -1,0 +1,7 @@
+▶ game.paimon-find-qianxing-entry  app=原神  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=GAME_PAIMON（1 次轮询，序列=[GAME_PAIMON]）  (1000ms)
+  [1] assert  ✓ 断言含「冒险等阶」  (0ms)
+  [2] key     ✓ [stub] key=Next  (0ms)
+  [3] assert  ✓ 断言含「千星奇域」  (0ms)
+  [post] ✓ 断言含「千星奇域」  (0ms)
+✓ 全部通过，用时 1425ms  预算: frames=0 offline=1 focus=0 sleeps=0 polls=4  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-194311-game.paimon-find-qianxing-entry/run-a1.json

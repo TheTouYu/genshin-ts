@@ -1,0 +1,11 @@
+▶ editor.playtest-start  app=原神编辑器  判据通道=ys-state  点击后端=stub  单步上限=10000ms 缺省=8000ms
+  [0] pre     ✓ state=EDITOR（1 次轮询，序列=[EDITOR]）  (195ms)
+  [1] key     ✓ [stub] key=Escape  (0ms)
+  [2] assert  ✓ state=MENU（1 次轮询，序列=[MENU]）  (347ms)
+  [3] click   ✓ [stub] click name=试玩  (0ms)
+  [4] assert  ✓ 断言含「直接上传」  (0ms)
+  [5] click   ✓ [stub] click name=直接上传  (0ms)
+  [6] click   ✓ [stub] click name=开始游戏  (0ms)
+  [7] assert  ✓ state=PLAYTEST（1 次轮询，序列=[PLAYTEST]）  (320ms)
+  [post] ✓ state=PLAYTEST（1 次轮询，序列=[PLAYTEST]）  (191ms)
+✓ 全部通过，用时 1109ms  预算: frames=0 offline=4 focus=0 sleeps=0 polls=5  证据: /home/h/genshin-ts/.scratch/gui-skills/evidence/20261018-193635-editor.playtest-start/run-a1.json

@@ -1,0 +1,119 @@
+{
+ "id": "editor.playtest-stop",
+ "app": "原神编辑器",
+ "desc": "退出试玩：ESC 出暂停菜单 → 中断挑战 → 结算页「离开」→ 回 EDITOR（走完这一步 Debug_Log 才落盘）",
+ "pre": {
+  "state": "PLAYTEST",
+  "timeout": 5
+ },
+ "steps": [
+  {
+   "act": "key",
+   "key": "Escape",
+   "target": {
+    "desc": "原神编辑器窗口（游戏内焦点；ESC 在这里弹暂停菜单）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "note": "暂停菜单可能 >8s 才出现（6~11 FPS）⇒ 下一步给足 10s 轮询"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "PAUSE",
+   "timeout": 10,
+   "judge": "ys-state：暂停菜单（中断挑战 + 继续挑战两个按钮模板）"
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "暂停菜单【中断挑战】",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "中断挑战",
+    "xy": [
+     1280,
+     877
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1280,
+     877
+    ],
+    "hold_ms": 120,
+    "note": "浅色药丸判据（R>200,G>190）"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "SETTLE",
+   "timeout": 9,
+   "judge": "ys-state：结算页（纯白卡顶 + 深蓝底，且不偏紫）"
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "结算页【离开】",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "离开",
+    "xy": [
+     1818,
+     1356
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1818,
+     1356
+    ],
+    "hold_ms": 120,
+    "note": "**不走完这一步日志不落盘**（停在结算页 ⇒ Beyond_Debug_Log 不出现新文件）"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "EDITOR",
+   "timeout": 10,
+   "judge": "ys-state：回到编辑器（实测 >10s）"
+  }
+ ],
+ "post": {
+  "state": "EDITOR",
+  "timeout": 9
+ },
+ "offline": {
+  "state_backend": "ys-state",
+  "tree": "fixtures/editor-tree.txt",
+  "frames": [
+   "tools/ys-editor/calib/regress/playtest.png",
+   "tools/ys-editor/calib/regress/pause.png",
+   "tools/ys-editor/calib/regress/settle.png",
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png"
+  ]
+ },
+ "pending": [],
+ "real_machine": {
+  "status": "pending",
+  "requires": "等票 34 修好 + Lead 放行；跑完后用 game.fetch-log 断言新日志落盘"
+ }
+}

@@ -1,0 +1,170 @@
+{
+ "kind": "gui-run",
+ "skill": "cap.window-ok",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:45:21",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 1,
+  "tree": ".scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 1,
+   "act": "key",
+   "target": {
+    "desc": "原神编辑器窗口",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "ok": true,
+   "expected": "key=Escape",
+   "observed": "[stub] key=Escape",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "原神编辑器窗口",
+     "must_assert": {
+      "window": "0x01400001"
+     },
+     "channel": "window",
+     "pre": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      "reader": "override"
+     },
+     "post": {
+      "ok": true,
+      "channel": "window",
+      "identity": "0x01400001",
+      "expect": "window=0x01400001",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      "reader": "override"
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      },
+      {
+       "kind": "text",
+       "source": "xdotool:getactivewindow",
+       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
+       "bytes": 39,
+       "captured_at": "2026-10-18T19:45:21"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 2,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇原神编辑器",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# tools/gui 文字通道夹具（与 `cu state` 的行语义一致：每行一个元素，find_target 按 name/role 子串匹配）",
+     "# 文案来源 = 真机实测（D317 坐标表 / gui-catalog measurements.tsv EC-M001 ④ / 语料库 OCR），不是凭空编造。",
+     "# 坐标与长按时长写在各 skill 的 on_device 字段里（文字通道不带坐标）。",
+     "role=frame name=原神编辑器 [0x01400001]",
+     "role=button name=试玩",
+     "role=button name=直接上传"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": ".scratch/gui-skills/fixtures/editor-tree.txt",
+     "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+     "bytes": 818,
+     "captured_at": "2026-10-18T19:45:21"
+    }
+   },
+   "detail": "断言含「原神编辑器」"
+  },
+  {
+   "step": 2,
+   "act": "post",
+   "target": {
+    "text": "原神编辑器"
+   },
+   "ok": true,
+   "expected": "text⊇原神编辑器",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# tools/gui 文字通道夹具（与 `cu state` 的行语义一致：每行一个元素，find_target 按 name/role 子串匹配）",
+     "# 文案来源 = 真机实测（D317 坐标表 / gui-catalog measurements.tsv EC-M001 ④ / 语料库 OCR），不是凭空编造。",
+     "# 坐标与长按时长写在各 skill 的 on_device 字段里（文字通道不带坐标）。",
+     "role=frame name=原神编辑器 [0x01400001]",
+     "role=button name=试玩",
+     "role=button name=直接上传"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": ".scratch/gui-skills/fixtures/editor-tree.txt",
+     "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+     "bytes": 818,
+     "captured_at": "2026-10-18T19:45:21"
+    }
+   }
+  }
+ ],
+ "ok": true,
+ "exit": 0,
+ "t0": 1792323921.4436722,
+ "frames_meta": {
+  "tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 28,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 0,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 2,
+  "desktop_calls": 0
+ }
+}

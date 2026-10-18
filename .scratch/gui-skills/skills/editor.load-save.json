@@ -1,0 +1,161 @@
+{
+ "id": "editor.load-save",
+ "app": "原神编辑器",
+ "desc": "加载指定存档「未分类页签_存档_1」：ESC 开菜单 → 存档管理 → 点该卡的【编辑】→ 确认框点【确认】→ 回到 EDITOR 并读回标题",
+ "pre": {
+  "state": "EDITOR",
+  "timeout": 5
+ },
+ "steps": [
+  {
+   "act": "key",
+   "key": "Escape",
+   "target": {
+    "desc": "原神编辑器窗口（键盘/指针焦点必须在它上面）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "note": "EDITOR 态直接点左侧存档图标无效（实测状态仍是 EDITOR）⇒ 必须先 ESC 进 MENU"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "MENU",
+   "timeout": 8,
+   "judge": "ys-state：系统菜单"
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "系统菜单左侧竖栏「存档管理」图标（收件箱托盘）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "icon",
+    "name": "存档管理",
+    "xy": [
+     39,
+     176
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     39,
+     176
+    ],
+    "hold_ms": 120,
+    "note": "EC-M001 ④ 实测 (39,176) 进入存档页"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "SAVELIST",
+   "timeout": 8,
+   "judge": "ys-state：存档选择页（亮蓝底栏 + 整屏暗 + 存档卡标题模板）"
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "存档卡「未分类页签_存档_1」的【编辑】（第 2 位；当前打开=输入探针v2 置顶）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "编辑",
+    "xy": [
+     1681,
+     387
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1681,
+     387
+    ],
+    "hold_ms": 120,
+    "note": "名字陷阱：同名档位有「未分类页签_存档」与「…_1」两张卡；本步身份是窗口（Wine 无文字通道），「是哪张卡」由下一步确认框原文点名来核（真机需文字/模板通道，见 EC-F005）"
+   }
+  },
+  {
+   "act": "assert",
+   "text": "是否退出，并加载未分类页签_存档_1",
+   "timeout": 8,
+   "judge": "确认框原文点名目标存档（measurements.tsv EC-M001 ④ 实录）",
+   "on_device": {
+    "note": "真机无 AT-SPI 树 ⇒ 此步需 OCR/模板通道（EC-F005）"
+   }
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "确认框【确认】（它点名的目标就是本技能要加载的存档）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "确认",
+    "xy": [
+     1442,
+     813
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1442,
+     813
+    ],
+    "hold_ms": 120
+   }
+  },
+  {
+   "act": "assert",
+   "state": "EDITOR",
+   "timeout": 9,
+   "judge": "ys-state：切档完成（实测约 7s）"
+  }
+ ],
+ "post": {
+  "state": "EDITOR",
+  "timeout": 8
+ },
+ "offline": {
+  "state_backend": "ys-state",
+  "tree": "fixtures/editor-tree.txt",
+  "frames": [
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "tools/ys-editor/calib/regress/menu.png",
+   "tools/ys-editor/calib/regress/savelist.png",
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png"
+  ]
+ },
+ "pending": [
+  {
+   "step": 5,
+   "why": "「是哪张存档卡」的**对象身份**在真机上只能靠 OCR/模板（Wine 无 AT-SPI 树，改档名陷阱无法在动作前核）",
+   "requires": "一条可用的卡片标题通道（OCR ROI 或模板），把 must_assert 从 window 升级为「卡名+窗口」双身份",
+   "ec": "EC-F004"
+  }
+ ],
+ "real_machine": {
+  "status": "pending",
+  "requires": "等票 34 修好 + Lead 放行；卡片身份通道见 pending（EC-F005）"
+ }
+}

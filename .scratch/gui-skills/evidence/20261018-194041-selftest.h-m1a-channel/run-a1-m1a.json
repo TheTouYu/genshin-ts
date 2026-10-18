@@ -1,0 +1,469 @@
+{
+ "kind": "gui-run",
+ "skill": "selftest.h-m1a-channel",
+ "app": "原神编辑器",
+ "started_at": "2026-10-18T19:40:47",
+ "limits": {
+  "step_wait_max_ms": 10000,
+  "step_wait_default_ms": 8000
+ },
+ "backends": {
+  "state": "ys-state",
+  "click": "stub",
+  "frames": 4,
+  "tree": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt"
+ },
+ "steps": [
+  {
+   "step": 0,
+   "act": "pre",
+   "target": {
+    "state": "EDITOR",
+    "timeout": 5
+   },
+   "ok": true,
+   "expected": "state=EDITOR",
+   "observed": "EDITOR",
+   "kind": null,
+   "ms": 199,
+   "evidence": {
+    "sequence": "[EDITOR]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+     "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+     "bytes": 4068202,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   }
+  },
+  {
+   "step": 1,
+   "act": "key",
+   "target": {
+    "desc": "原神编辑器窗口（键盘必须落在它上面）",
+    "must_assert": {
+     "text": "原神编辑器"
+    }
+   },
+   "ok": true,
+   "expected": "key=Escape",
+   "observed": "[stub] key=Escape",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "原神编辑器窗口（键盘必须落在它上面）",
+     "must_assert": {
+      "text": "原神编辑器"
+     },
+     "channel": "text",
+     "pre": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=frame name=原神编辑器 [0x01400001]",
+      "expect": "text⊇原神编辑器",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "post": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=frame name=原神编辑器 [0x01400001]",
+      "expect": "text⊇原神编辑器",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      },
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 2,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "state=MENU",
+   "observed": "MENU",
+   "kind": null,
+   "ms": 385,
+   "evidence": {
+    "sequence": "[MENU]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+     "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+     "bytes": 4215928,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   },
+   "detail": "state=MENU（1 次轮询，序列=[MENU]）"
+  },
+  {
+   "step": 3,
+   "act": "click",
+   "target": {
+    "desc": "系统菜单「试玩」磁贴",
+    "must_assert": {
+     "text": "试玩"
+    },
+    "role": "button",
+    "name": "试玩"
+   },
+   "ok": true,
+   "expected": "target={'desc': '系统菜单「试玩」磁贴', 'must_assert': {'text': '试玩'}, 'role': 'button', 'name': '试玩'}",
+   "observed": "[stub] click name=试玩",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "系统菜单「试玩」磁贴",
+     "must_assert": {
+      "text": "试玩"
+     },
+     "channel": "text",
+     "pre": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=试玩",
+      "expect": "text⊇试玩",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "post": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=试玩",
+      "expect": "text⊇试玩",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      },
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 4,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "text⊇直接上传",
+   "observed": "含",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "polls": 1,
+    "stop": "OK",
+    "head": [
+     "# tools/gui 文字通道夹具（与 `cu state` 的行语义一致：每行一个元素，find_target 按 name/role 子串匹配）",
+     "# 文案来源 = 真机实测（D317 坐标表 / gui-catalog measurements.tsv EC-M001 ④ / 语料库 OCR），不是凭空编造。",
+     "# 坐标与长按时长写在各 skill 的 on_device 字段里（文字通道不带坐标）。",
+     "role=frame name=原神编辑器 [0x01400001]",
+     "role=button name=试玩",
+     "role=button name=直接上传"
+    ],
+    "artifact": {
+     "kind": "text",
+     "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+     "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+     "bytes": 818,
+     "captured_at": "2026-10-18T19:40:47"
+    }
+   },
+   "detail": "断言含「直接上传」"
+  },
+  {
+   "step": 5,
+   "act": "click",
+   "target": {
+    "desc": "「直接上传」按钮（烘焙网格体弹窗）",
+    "must_assert": {
+     "text": "直接上传"
+    },
+    "role": "button",
+    "name": "直接上传"
+   },
+   "ok": true,
+   "expected": "target={'desc': '「直接上传」按钮（烘焙网格体弹窗）', 'must_assert': {'text': '直接上传'}, 'role': 'button', 'name': '直接上传'}",
+   "observed": "[stub] click name=直接上传",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "「直接上传」按钮（烘焙网格体弹窗）",
+     "must_assert": {
+      "text": "直接上传"
+     },
+     "channel": "text",
+     "pre": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=直接上传",
+      "expect": "text⊇直接上传",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "post": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=直接上传",
+      "expect": "text⊇直接上传",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      },
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 6,
+   "act": "click",
+   "target": {
+    "desc": "「开始游戏」按钮（试玩选项弹窗）",
+    "must_assert": {
+     "text": "开始游戏"
+    },
+    "role": "button",
+    "name": "开始游戏"
+   },
+   "ok": true,
+   "expected": "target={'desc': '「开始游戏」按钮（试玩选项弹窗）', 'must_assert': {'text': '开始游戏'}, 'role': 'button', 'name': '开始游戏'}",
+   "observed": "[stub] click name=开始游戏",
+   "kind": null,
+   "ms": 0,
+   "evidence": {
+    "identity": {
+     "desc": "「开始游戏」按钮（试玩选项弹窗）",
+     "must_assert": {
+      "text": "开始游戏"
+     },
+     "channel": "text",
+     "pre": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=开始游戏",
+      "expect": "text⊇开始游戏",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "post": {
+      "ok": true,
+      "channel": "text",
+      "identity": "role=button name=开始游戏",
+      "expect": "text⊇开始游戏",
+      "ms": 0,
+      "artifact": {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     },
+     "artifacts": [
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      },
+      {
+       "kind": "text",
+       "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
+       "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
+       "bytes": 818,
+       "captured_at": "2026-10-18T19:40:47"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "step": 7,
+   "act": "assert",
+   "target": null,
+   "ok": true,
+   "expected": "state=PLAYTEST",
+   "observed": "PLAYTEST",
+   "kind": null,
+   "ms": 349,
+   "evidence": {
+    "sequence": "[PLAYTEST]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+     "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
+     "bytes": 3213364,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   },
+   "detail": "state=PLAYTEST（1 次轮询，序列=[PLAYTEST]）"
+  },
+  {
+   "step": 7,
+   "act": "post",
+   "target": {
+    "state": "PLAYTEST",
+    "timeout": 8
+   },
+   "ok": true,
+   "expected": "state=PLAYTEST",
+   "observed": "PLAYTEST",
+   "kind": null,
+   "ms": 196,
+   "evidence": {
+    "sequence": "[PLAYTEST]",
+    "polls": 1,
+    "stop": "OK",
+    "channel": "fast",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+    "frame_meta": {
+     "kind": "frame",
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+     "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
+     "bytes": 3213364,
+     "captured_at": "2026-10-17T08:55:59"
+    },
+    "class_hint": "F1 断言为假"
+   }
+  }
+ ],
+ "ok": true,
+ "exit": 0,
+ "t0": 1792323647.0015075,
+ "frames_meta": {
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+   "bytes": 4068202,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
+   "sha256": "b862630a3036484a233f9e4573caab0545b4a54aa673cd0d53229c59393d50b4",
+   "bytes": 4215928,
+   "captured_at": "2026-10-17T08:55:59"
+  },
+  "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png": {
+   "kind": "frame",
+   "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+   "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
+   "bytes": 3213364,
+   "captured_at": "2026-10-17T08:55:59"
+  }
+ },
+ "elapsed_ms": 1149,
+ "budget": {
+  "frames": 0,
+  "frames_offline": 4,
+  "focus": 0,
+  "sleeps": 0,
+  "polls": 5,
+  "desktop_calls": 0
+ }
+}

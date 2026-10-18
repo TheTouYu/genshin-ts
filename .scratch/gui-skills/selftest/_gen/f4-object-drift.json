@@ -1,0 +1,150 @@
+{
+ "id": "selftest.f4-object-drift",
+ "app": "原神编辑器",
+ "desc": "进入试玩：ESC 开系统菜单 → 点「试玩」磁贴 → 「直接上传」→「开始游戏」（长按 ≥1.2s）→ 进入 PLAYTEST",
+ "pre": {
+  "state": "EDITOR",
+  "timeout": 5
+ },
+ "steps": [
+  {
+   "act": "key",
+   "key": "Escape",
+   "target": {
+    "desc": "原神编辑器窗口（键盘/指针焦点必须在它上面）",
+    "must_assert": {
+     "window": "0x01400001"
+    }
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "note": "ESC 首次常被吞：下一步 MENU 轮询就是它的重试判据（不在别处 sleep）"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "MENU",
+   "timeout": 8,
+   "judge": "ys-state：系统菜单（侧栏「存档管理」模板 + px(300,300)>200）"
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "系统菜单「试玩」磁贴",
+    "must_assert": {
+     "state": "MENU"
+    },
+    "role": "button",
+    "name": "试玩",
+    "xy": [
+     183,
+     389
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     183,
+     389
+    ],
+    "hold_ms": 120,
+    "note": "D317 实测坐标；旧记录 (185,336)/(174,328) 少 53px = 点在空白处（当年「试玩起不来」的真因）"
+   }
+  },
+  {
+   "act": "assert",
+   "text": "直接上传",
+   "timeout": 8,
+   "judge": "「烘焙网格体」弹窗出现（文字通道；离线夹具）",
+   "on_device": {
+    "note": "真机无 AT-SPI 树 ⇒ 此步真机需 OCR/模板通道（见 incidents EC-F005）"
+   }
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "「直接上传」按钮（烘焙网格体弹窗）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "直接上传",
+    "xy": [
+     1444,
+     811
+    ],
+    "hold_ms": 120
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1444,
+     811
+    ],
+    "hold_ms": 120,
+    "note": "真机点击偶发丢失，可能需点两次（弹窗判据仍在时才补点）"
+   }
+  },
+  {
+   "act": "click",
+   "target": {
+    "desc": "「开始游戏」按钮（试玩选项弹窗）",
+    "must_assert": {
+     "window": "0x01400001"
+    },
+    "role": "button",
+    "name": "开始游戏",
+    "xy": [
+     1280,
+     1052
+    ],
+    "hold_ms": 1200,
+    "min_hold_ms": 1100
+   },
+   "evidence": {
+    "fresh": true
+   },
+   "on_device": {
+    "xy": [
+     1280,
+     1052
+    ],
+    "hold_ms": 1200,
+    "min_hold_ms": 1100,
+    "note": "必须长按 ≥1.2s（0.13s 按放被整帧吞掉）；执行器已支持 hold_ms/min_hold_ms（不足直接 HOLD-TOO-SHORT）"
+   }
+  },
+  {
+   "act": "assert",
+   "state": "PLAYTEST",
+   "timeout": 9,
+   "judge": "ys-state：游戏内（「奇域试玩中」水印 / 亮蓝天，2/3 多数）"
+  }
+ ],
+ "post": {
+  "state": "PLAYTEST",
+  "timeout": 8
+ },
+ "offline": {
+  "state_backend": "ys-state",
+  "tree": "fixtures/editor-tree.txt",
+  "frames": [
+   "tools/ys-editor/calib/regress/editor-grass-shadow.png",
+   "tools/ys-editor/calib/regress/menu.png",
+   "tools/ys-editor/calib/regress/menu.png",
+   "tools/ys-editor/calib/regress/playtest.png"
+  ]
+ },
+ "pending": [],
+ "real_machine": {
+  "status": "pending",
+  "requires": "等票 34（ys-observe 的窗口身份 fail-open）修好 + Lead 放行；执行器侧三件能力已就位（窗口身份/滚动/hold）"
+ }
+}
