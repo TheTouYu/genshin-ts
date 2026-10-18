@@ -26,3 +26,5 @@ neg-native-world-20261017.png	GAME_WORLD	③非目标应用（**原神本体·�
 # 再决定要不要新增 GAME_WORLD/GAME_PAIMON 两个态。2026-10-18 标定实测：候选本体判据在该帧上
 # 全部负样本零误报（20 帧含 8 负样本），但接入 ys-state 需引入 OCR 依赖，用户裁决暂缓。
 neg-native-paimon-20261017.png	GAME_PAIMON	③非目标应用（**原神本体·派蒙菜单**）：左侧亮蓝角色面板（冒险等阶/世界等级/九宫格）+ 右侧世界。出处 /tmp/paimon.png（2026-10-17 用户真机）	同上
+live-activity-20261018.png	GAME_ACTIVITY	④本体·活动一览页（2026-10-18 真机实测，由 paimon-to-activity 意图进入后抓帧）：左上「活动一览」+ 九宫格外无派蒙面板 + 「渊月祝福」独有文案。出处 /tmp/activity.png
+live-native-world-20261018.png	GAME_WORLD	④本体·提瓦特世界（2026-10-18 真机实测，从派蒙菜单 ESC 关闭后抓帧）：右下 UID + 底部血条 + 无派蒙面板。出处 /tmp/live-full.png
