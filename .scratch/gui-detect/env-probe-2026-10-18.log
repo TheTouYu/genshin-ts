@@ -1,0 +1,48 @@
+# 票 24 环境探针（只读，2026-10-18 19:3x；仓库 /home/h/genshin-ts）
+
+## 1) python / 已装依赖
+python 3.14.8 /usr/sbin/python3
+numpy          2.5.4
+cv2            5.0.0
+PIL            12.3.0
+onnxruntime    1.29.0
+torch          2.14.1
+torchvision    MISSING (ModuleNotFoundError)
+scipy          1.18.1
+onnx           MISSING (ModuleNotFoundError)
+paddle         MISSING (ModuleNotFoundError)
+ultralytics    MISSING (ModuleNotFoundError)
+tensorrt       MISSING (ModuleNotFoundError)
+pynvml         MISSING (ModuleNotFoundError)
+
+## 2) GPU 设备/驱动可见性
+/dev/nvidia*: ls: 无法访问 '/dev/nvidia*': 没有那个文件或目录
+/proc/driver/nvidia/version: NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (root@)  
+libcuda: /usr/lib/libcuda.so.1
+libcudnn: /usr/lib/libcudnn.so.9
+nvidia-smi: NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+torch.cuda: avail=False count=0 cuda_build=13.4
+
+## 3) onnxruntime providers
+system 1.29.0 ['CUDAExecutionProvider', 'DnnlExecutionProvider', 'CPUExecutionProvider']
+venv-rapidocr 1.31.0 ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+
+## 4) 冷启动成本（实测）
+numpy import 67 ms
+cv2 import 246 ms
+cv2.imread(2560x1440 PNG) 90 ms
+onnxruntime import 33 ms
+torch import 1216 ms
+
+## 5) CPU 推理算力（torch fp32，12 线程默认）
+conv3x3 32ch@640: 43.2 ms ⇒ 174.8 GFLOP/s
+9.3 GFLOP U-Net@640 折算 CPU 单帧 ≈ 53 ms  (GPU 先例 5.3ms，同一模型)
+
+## 6) 现有权重/模型普查（禁下载；只看本机已有什么）
+/usr/share/fcitx5-vinput/vad/silero_vad.onnx
+/usr/lib/python3.14/site-packages/distutils-precedence.pth
+(以上为可用候选；HF 缓存里 PaddleOCR-VL-1.6 / PP-DocLayoutV3 只有 refs，无权重)
+5.5G	/home/h/.cache/huggingface/hub
+
+## 7) 磁盘
+/dev/sda4       784G  386G  398G   50% /home

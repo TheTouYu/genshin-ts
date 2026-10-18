@@ -1,0 +1,275 @@
+{
+ "passed": 52,
+ "failed": 0,
+ "total": 52,
+ "cold_look_ms": 4.9,
+ "cold_look_no_cache_ms": 1229.4,
+ "cache_hit_ms": [
+  1.1,
+  1.4,
+  1.0
+ ],
+ "wall_s": 11.1,
+ "results": [
+  {
+   "name": "schema/状态名词表读自 ys-state",
+   "ok": true,
+   "detail": "('EDITOR', 'MENU', 'SAVELIST', 'PLAYTEST', 'PAUSE', 'SETTLE', 'LOADING', 'GAME_WORLD', 'GAME_PAIMON', 'GAME_ACTIVITY', 'UNKNOWN')"
+  },
+  {
+   "name": "schema/bbox xyxy→xywh 归一化",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "schema/容器 bbox 归一化为 xywh（宽高>0）",
+   "ok": true,
+   "detail": "[10, 10, 50, 50]"
+  },
+  {
+   "name": "schema/对象必带 evidence",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "schema/合法世界状态通过校验",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "schema/缺 evidence 被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - objects[0](c1).evidence 必须是非空 dict（每对象必带证据）"
+  },
+  {
+   "name": "schema/state 无证据被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - state.evidence 必须是非空 list（不许无证据断言状态）"
+  },
+  {
+   "name": "schema/bbox 宽为 0 被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - objects[0](c1).bbox 宽高必须 > 0，实际 [0, 0, 0, 10]"
+  },
+  {
+   "name": "schema/未知 kind 被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - objects[0](c1).kind='banana' 不在 ('tile', 'card', 'button', 'row', 'panel', 'chip', 'icon', 'avatar', 'unknown')"
+  },
+  {
+   "name": "schema/重复 id 被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - objects[1].id='c1' 重复"
+  },
+  {
+   "name": "schema/状态名不在名词表被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - state.name='NOT_A_STATE' 不在 ys-state 状态名词表 ('EDITOR', 'MENU', 'SAVELIST', 'PLAYTEST', 'PAUSE', 'SETTLE', 'LOADING', 'GAME_WORLD', 'GAME_PAIMON', 'GAME_ACTIVITY', 'UNKNOWN')"
+  },
+  {
+   "name": "schema/degraded 非 list 被拒",
+   "ok": true,
+   "detail": "world-state schema 违规：\n  - degraded 必须是 list"
+  },
+  {
+   "name": "look/状态来自 ys-state（GAME_PAIMON）",
+   "ok": true,
+   "detail": "GAME_PAIMON"
+  },
+  {
+   "name": "look/对象表非空",
+   "ok": true,
+   "detail": "22"
+  },
+  {
+   "name": "look/frame_id 是 sha256 内容寻址",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "look/budget_ms 三字段齐全",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "look/deg 必含 L2/L3 未实现",
+   "ok": true,
+   "detail": "['KIND_UNKNOWN', 'FREE_TEXT_UNOWNED', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'FRAME_PINNED']"
+  },
+  {
+   "name": "look/所有对象 bbox 在帧内（xywh）",
+   "ok": true,
+   "detail": "[] frame=NonexNone"
+  },
+  {
+   "name": "look/缓存命中 ≤5ms（进程内）",
+   "ok": true,
+   "detail": "[1.1, 1.4, 1.0]"
+  },
+  {
+   "name": "look/缓存命中标注 cache.hit",
+   "ok": true,
+   "detail": "{'hit': True, 'layer': 'memory', 'hit_ms': 0.42}"
+  },
+  {
+   "name": "look/latest 复用上一帧并如实标 STALE_FRAME/FRAME_PINNED",
+   "ok": true,
+   "detail": "['KIND_UNKNOWN', 'FREE_TEXT_UNOWNED', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'STALE_FRAME']"
+  },
+  {
+   "name": "look/冷路径超 50ms 必须写 BUDGET_EXCEEDED",
+   "ok": true,
+   "detail": "{'BUDGET_EXCEEDED', 'L3_NOT_IMPLEMENTED', 'FREE_TEXT_UNOWNED', 'L2_NOT_IMPLEMENTED', 'KIND_UNKNOWN', 'FRAME_PINNED'}"
+  },
+  {
+   "name": "look/冷路径实测 >50ms（门禁未达成的证据）",
+   "ok": true,
+   "detail": "1229.4ms"
+  },
+  {
+   "name": "look/冷路径 state/objects 分项计时都有",
+   "ok": true,
+   "detail": "{'state': 888.4, 'objects': 336.1, 'validate': 0.25, 'total': 1228.8}"
+  },
+  {
+   "name": "act/dry-run 状态=dry_run",
+   "ok": true,
+   "detail": "dry_run"
+  },
+  {
+   "name": "act/dry-run 未注入",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "act/点击点在帧内（bbox 单位正确）",
+   "ok": true,
+   "detail": "[469, 1124]"
+  },
+  {
+   "name": "act/dry-run 明确标注 INJECTION_BLOCKED",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "act/未命中 fail-closed（resolve_fail）",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "act/free_text 命中但无坐标 → 拒绝",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "act/多义 fail-closed（ambiguous）",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "act/注入缺 post 被拒（ACT_POST_REQUIRED）",
+   "ok": true,
+   "detail": "{'code': 'ACT_POST_REQUIRED', 'detail': '注入动作必须带 post 判据（不存在没有 post 的动作）；先给 {\"state_in\": [...]} 之类的判据'}"
+  },
+  {
+   "name": "act/注入未授权被拒（INJECTION_BLOCKED）",
+   "ok": true,
+   "detail": "{'code': 'INJECTION_BLOCKED', 'detail': '本服务 allow_inject=False：注入需用户在环授权 + 窗口可占焦点'}"
+  },
+  {
+   "name": "act/意图需焦点被拒（FOCUS_REQUIRED/INJECTION_BLOCKED）",
+   "ok": true,
+   "detail": "{'code': 'INJECTION_BLOCKED', 'detail': '意图执行需占焦点（ys-do acquire_focus）+ 注入；allow_inject=False'}"
+  },
+  {
+   "name": "act/意图 dry-run 有 pre/post 交接（resolved）",
+   "ok": true,
+   "detail": "{'state_in': [\"['PLAYTEST', 'PAUSE', 'SETTLE']\"]}"
+  },
+  {
+   "name": "wait/reached（三态之一）",
+   "ok": true,
+   "detail": "reached"
+  },
+  {
+   "name": "wait/reached 带观测值",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "wait/timeout（超时不冒充仪器故障）",
+   "ok": true,
+   "detail": "timeout polls=6 701.9ms"
+  },
+  {
+   "name": "wait/timeout 标 WAIT_TIMEOUT_VALID",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "wait/violated（forbid 命中立即停）",
+   "ok": true,
+   "detail": "violated"
+  },
+  {
+   "name": "wait/text_absent 达成但降级标注（单帧否定）",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "wait/非法判据 fail-closed",
+   "ok": true,
+   "detail": "{'code': 'BAD_PREDICATE', 'detail': \"未知判据键 ['nonsense_key']；词表=['state_in', 'text_present', 'text_absent', 'object_count_ge', 'frame_changed', 'forbid']\"}"
+  },
+  {
+   "name": "wait/frame_changed（帧序列：第二次 look 换了帧）",
+   "ok": true,
+   "detail": "reached polls=1 observed={'all_ok': True, 'forbid_hit': False, 'checks': [{'check': 'frame_changed', 'ok': True, 'observed': {'baseline': 'sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60', 'actual': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}}], 'state': 'GAME_ACTIVITY', 'objects': 3, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817', 'degraded': []}"
+  },
+  {
+   "name": "wait/状态转移进账本（transitions）",
+   "ok": true,
+   "detail": "[{'from': 'GAME_PAIMON', 'to': 'GAME_ACTIVITY', 'ms': 4, 'at_ms': 1792323794947, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}]"
+  },
+  {
+   "name": "cache/key 含帧 sha 前缀 + 仪器指纹",
+   "ok": true,
+   "detail": "world-aaaaaaaaaaaaaaaa-deadbeef0000.json"
+  },
+  {
+   "name": "cache/帧 id 非法被拒",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "cache/证据与缓存都在 workspace 内",
+   "ok": true,
+   "detail": "/home/h/genshin-ts/.scratch/gui-service/.cache / /home/h/genshin-ts/.scratch/gui-service/evidence"
+  },
+  {
+   "name": "CLI/act 未命中 → rc=3",
+   "ok": true,
+   "detail": "rc=3 78.2ms"
+  },
+  {
+   "name": "CLI/wait 超时 → rc=6",
+   "ok": true,
+   "detail": "rc=6 574.0ms"
+  },
+  {
+   "name": "CLI/wait violated → rc=7",
+   "ok": true,
+   "detail": "rc=7 78.8ms"
+  },
+  {
+   "name": "CLI/look 帧不存在 → rc=8",
+   "ok": true,
+   "detail": "rc=8 69.1ms"
+  },
+  {
+   "name": "CLI/vocab 打印单一源名词表",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

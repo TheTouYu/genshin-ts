@@ -1,0 +1,278 @@
+{
+ "frame": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+ "alt_frame": "/home/h/genshin-ts/.scratch/gui-corpus/f05.png",
+ "measured_at": "2026-10-18T19:35:59",
+ "results": {
+  "import_ys_state_ms": 8.68,
+  "import_ys_screen_ms": 7.87,
+  "decode_frame_ms": [
+   186.76,
+   112.05
+  ],
+  "sha256_frame_id_ms": [
+   2.9,
+   3.07
+  ],
+  "state_raw_ms": [
+   839.19,
+   830.04,
+   902.97
+  ],
+  "state_raw_detail": [
+   {
+    "state": "GAME_PAIMON",
+    "ms": 143,
+    "via": "daemon",
+    "native": true,
+    "confidence": 1.0
+   },
+   {
+    "state": "GAME_PAIMON",
+    "ms": 134,
+    "via": "daemon",
+    "native": true,
+    "confidence": 1.0
+   },
+   {
+    "state": "GAME_PAIMON",
+    "ms": 144,
+    "via": "daemon",
+    "native": true,
+    "confidence": 1.0
+   }
+  ],
+  "screen_raw_ms": [
+   152.28,
+   153.48
+  ],
+  "screen_raw_detail": [
+   {
+    "n": 22,
+    "load_ms": 145,
+    "container_ms": 0,
+    "cached": true,
+    "total_ms": 148
+   },
+   {
+    "n": 22,
+    "load_ms": 145,
+    "container_ms": 0,
+    "cached": true,
+    "total_ms": 149
+   }
+  ],
+  "screen_buffer_ms": [
+   147.65,
+   6.05
+  ],
+  "screen_buffer_detail": [
+   {
+    "n": 22,
+    "load_ms": 140,
+    "container_ms": 0,
+    "cached": true,
+    "total_ms": 144
+   },
+   {
+    "n": 22,
+    "load_ms": 0,
+    "container_ms": 0,
+    "cached": true,
+    "total_ms": 3
+   }
+  ],
+  "screen_buffer_stats": {
+   "hit": 3,
+   "miss": 2
+  },
+  "state_ocr_cached_ms": [
+   144.86,
+   129.21
+  ],
+  "state_ocr_cached_detail": [
+   {
+    "state": "GAME_PAIMON",
+    "ms": 139,
+    "via": "daemon",
+    "native": true,
+    "confidence": 1.0
+   },
+   {
+    "state": "GAME_PAIMON",
+    "ms": 124,
+    "via": "daemon",
+    "native": true,
+    "confidence": 1.0
+   }
+  ],
+  "state_ocr_patch_kept_single_source": true,
+  "look_inproc_same_frame_ms": [
+   150.67,
+   147.47
+  ],
+  "look_inproc_same_frame_detail": [
+   {
+    "state": {
+     "state": "GAME_PAIMON",
+     "ms": 139,
+     "via": "daemon",
+     "native": true,
+     "confidence": 1.0
+    },
+    "objects": {
+     "n": 22,
+     "load_ms": 0,
+     "container_ms": 0,
+     "cached": true,
+     "total_ms": 3
+    },
+    "state_ms": 144.83,
+    "objects_ms": 5.82,
+    "total_ms": 150.67
+   },
+   {
+    "state": {
+     "state": "GAME_PAIMON",
+     "ms": 135,
+     "via": "daemon",
+     "native": true,
+     "confidence": 1.0
+    },
+    "objects": {
+     "n": 22,
+     "load_ms": 0,
+     "container_ms": 0,
+     "cached": true,
+     "total_ms": 3
+    },
+    "state_ms": 141.76,
+    "objects_ms": 5.7,
+    "total_ms": 147.46
+   }
+  ],
+  "look_inproc_alt_frame_ms": [
+   273.65
+  ],
+  "look_inproc_alt_frame_detail": [
+   {
+    "state": {
+     "state": "GAME_ACTIVITY",
+     "ms": 141,
+     "via": "daemon",
+     "native": true,
+     "confidence": 1.0
+    },
+    "objects": {
+     "n": 3,
+     "load_ms": 124,
+     "container_ms": 0,
+     "cached": true,
+     "total_ms": 126
+    },
+    "state_ms": 145.21,
+    "objects_ms": 128.44,
+    "total_ms": 273.65
+   }
+  ],
+  "daemon_state_png_ms": [
+   138.24,
+   139.86,
+   140.46
+  ],
+  "daemon_state_png_detail": [
+   {
+    "wall_ms": 138.23,
+    "state": "UNKNOWN",
+    "ms": 138,
+    "load_ms": 0,
+    "judge_ms": 138
+   },
+   {
+    "wall_ms": 139.85,
+    "state": "UNKNOWN",
+    "ms": 140,
+    "load_ms": 0,
+    "judge_ms": 139
+   },
+   {
+    "wall_ms": 140.45,
+    "state": "UNKNOWN",
+    "ms": 140,
+    "load_ms": 0,
+    "judge_ms": 140
+   }
+  ],
+  "daemon_state_bin_ms": [
+   173.7,
+   166.09
+  ],
+  "daemon_state_bin_detail": [
+   {
+    "wall_ms": 173.69,
+    "state": "UNKNOWN",
+    "load_ms": 28,
+    "judge_ms": 145
+   },
+   {
+    "wall_ms": 166.08,
+    "state": "UNKNOWN",
+    "load_ms": 24,
+    "judge_ms": 141
+   }
+  ],
+  "daemon_ocr_ms": [
+   729.02,
+   685.64
+  ],
+  "daemon_ocr_detail": [
+   {
+    "wall_ms": 729.0,
+    "n_boxes": 39,
+    "ms": 729
+   },
+   {
+    "wall_ms": 685.62,
+    "n_boxes": 39,
+    "ms": 685
+   }
+  ],
+  "look_service_first_ms": 5.3,
+  "look_service_cache_hit_ms": [
+   3.38,
+   3.57,
+   3.82
+  ],
+  "look_service_detail": {
+   "state": "GAME_PAIMON",
+   "objects": 22,
+   "cache": {
+    "hit": true,
+    "layer": "disk",
+    "hit_ms": 1.09
+   },
+   "timing": {
+    "total": 1.09,
+    "cache_layer": "disk"
+   }
+  }
+ },
+ "notes": [
+  "ys-state STATES=['EDITOR', 'MENU', 'SAVELIST', 'PLAYTEST', 'PAUSE', 'SETTLE', 'LOADING', 'GAME_WORLD', 'GAME_PAIMON', 'GAME_ACTIVITY', 'UNKNOWN']"
+ ],
+ "summary_lines": [
+  "# 同进程仪器尖刺（in-process probe）",
+  "- 帧：/home/h/genshin-ts/.scratch/gui-corpus/f06.png（alt=/home/h/genshin-ts/.scratch/gui-corpus/f05.png）",
+  "- imports：ys-state 8.68ms｜ys-screen 7.87ms",
+  "- decode_frame（PNG 解码地板）：[186.76, 112.05]ms｜frame_id sha256：[2.9, 3.07]ms",
+  "- state 现状：[839.19, 830.04, 902.97]ms → ['GAME_PAIMON', 'GAME_PAIMON', 'GAME_PAIMON']",
+  "- screen 现状（containers）：[152.28, 153.48]ms → 输出 {'n': 22, 'load_ms': 145, 'container_ms': 0, 'cached': True, 'total_ms': 149}",
+  "- 缓冲帧复用后 screen：[147.65, 6.05]ms（hit/miss={'hit': 3, 'miss': 2}）",
+  "- state + OCR 内容缓存：[144.86, 129.21]ms → ['GAME_PAIMON', 'GAME_PAIMON']",
+  "- 组合 look（in-process，同帧）：[150.67, 147.47]ms",
+  "- 组合 look（in-process，换帧 f05.png）：[273.65]ms",
+  "- 裸 daemon state（PNG）：[138.24, 139.86, 140.46]ms → ['UNKNOWN', 'UNKNOWN', 'UNKNOWN']（judge_ms=[138, 139, 140]）",
+  "- 裸 daemon state（raw frame_bin，免 PNG 解码）：[173.7, 166.09]ms（judge_ms=[145, 141]）",
+  "- 裸 daemon OCR（同帧两次，无缓存）：[729.02, 685.64]ms",
+  "- 服务层 look 首次 5.3ms / 缓存命中 [3.38, 3.57, 3.82]ms"
+ ]
+}

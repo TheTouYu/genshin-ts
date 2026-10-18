@@ -1,0 +1,21 @@
+{
+ "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60",
+ "state": "GAME_PAIMON",
+ "objects": 22,
+ "clickable_yes": 0,
+ "clickable_unknown": 22,
+ "degraded": [
+  "KIND_UNKNOWN",
+  "FREE_TEXT_UNOWNED",
+  "L2_NOT_IMPLEMENTED",
+  "L3_NOT_IMPLEMENTED",
+  "FRAME_PINNED",
+  "BUDGET_EXCEEDED"
+ ],
+ "timing_ms": {
+  "state": 870.3,
+  "objects": 322.0,
+  "validate": 0.92,
+  "total": 1197.6
+ }
+}

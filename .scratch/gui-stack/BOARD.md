@@ -17,8 +17,9 @@
 
 ## ② 当前前沿
 
-**阶段 D 已开启（AGI 基准，2026-10-18 用户裁决「A，这就是我要的」）** ⇒ 当前三票并行：
-**23（真值+记分器）→ 24（学习型检测）**｜**schema + 三动词原型**｜**32（编排技能化）**。
+**阶段 D 进行中（AGI 基准，2026-10-18 用户裁决「A，这就是我要的」）**
+✅ 票 23（真值 285 单元 + 记分器：**基线 30.5%**）；✅ 服务原型（同帧稳态 **147–162ms**，缓存 **1.1ms**，1.27s→148ms = 8.6×）
+⇒ 下一步：**24（学习型检测，GPU 已复验可用）**｜**34（live 取帧窗口身份 fail-open，必须先修）**｜32（编排）
 
 > **权威判据**：[`AGI-BAR.md`](AGI-BAR.md)（四条量化口径 + 六层 L1–L6 + schema v0 + 预算门禁 + 反馈轮协议）。
 > **用户裁决（2026-10-18）**：形态 **A = 常驻世界状态服务 + 单一 schema + 三动词**；旧工具退化为其内部实现；
@@ -57,8 +58,8 @@
 
 | # | 票 | blocked by | 状态 |
 |---|---|---|---|
-| 23 | [bbox 级真值 + 覆盖率记分器](issues/23-coverage-truth.md) | — | ⬜ |
-| 24 | [对象检测换路线（学习型 GPU）](issues/24-object-detection.md) | 23 | ⬜ |
+| 23 | [bbox 级真值 + 覆盖率记分器](issues/23-coverage-truth.md) | — | ✅ |
+| 24 | [对象检测换路线（学习型 GPU）](issues/24-object-detection.md) | 23 | 🟡 GPU 已复验可用，待权重授权 |
 | 25 | [切块 + 分块并行 OCR + 切片索引](issues/25-slices-parallel-ocr.md) | 24 | ⬜ |
 | 26 | [L2 结构：parent/分组/两层页签](issues/26-structure-groups.md) | 24 | ⬜ |
 | 32 | [编排技能化 + 失败自愈三招](issues/32-orchestration-skills.md) | — | ⬜ |
@@ -68,8 +69,15 @@
 | 30 | L6 否定闸门 | 29 | 未拆 |
 | 31 | LOADING 标定 + 转移账本 + 下一稳态契约 | 25,26 | 未拆 |
 | 33 | 热路径 ms 级（消灭 16× 默认慢路径） | 24,25 | 未拆 |
+| 34 | [live 取帧窗口身份未验证（fail-open）](issues/34-live-attribution.md) | — | ⬜ |
 
 ## ④ 已完成划掉区
+
+- ~~**23 bbox 真值 + 覆盖率记分器**~~ ✅ 2026-10-18
+  - 14 帧 + 负样本共 **285 单元**真值；`tools/ys-coverage`（755 行，自测 4/4 PASS）
+  - **首份客观基线：hit=87/285 = 30.5%**，fp=24，degen=2，负样本违规 1（世界帧 2 个假阳性）
+  - 分层读数：**tile 56/56=100%**｜row 20.9%｜card 1/14｜button 2/46=4.3%｜**icon 0/38、avatar 0/8、chip 0/4**
+  - 坑：`containers[].bbox` 是 **xyxy**（AGI-BAR schema 写 xywh，已加 `--pred-format` 与醒目登记）；按 xywh 读时 19 格全变 0 命中且不报错
 
 - ~~**04 ys-loop 编排层 + M4 产物监控**~~ ✅ 2026-10-17
   - `tools/ys-editor/ys-loop`：一轮 9 步全绿（focus/map_leave/build/map_enter/playtest_start/input/

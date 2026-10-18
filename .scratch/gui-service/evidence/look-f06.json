@@ -1,0 +1,1878 @@
+{
+ "schema": "gui-world-state/0",
+ "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60",
+ "captured_at_ms": 1792312419576,
+ "state": {
+  "name": "GAME_PAIMON",
+  "confidence": 1.0,
+  "ambiguous": false,
+  "evidence": [
+   {
+    "source": "ys-state",
+    "channel": "fast",
+    "via": "daemon",
+    "confidence": 1.0,
+    "ambiguous": false,
+    "margin": 0.667,
+    "verdicts": {
+     "MENU": false,
+     "SAVELIST": false,
+     "PLAYTEST": false,
+     "SETTLE": false,
+     "LOADING": false,
+     "EDITOR": false,
+     "PAUSE": false,
+     "GAME_WORLD": false,
+     "GAME_ACTIVITY": false,
+     "GAME_PAIMON": true
+    },
+    "readings": {
+     "MENU/A px(300,300) 三通道>200": {
+      "value": "(94, 142, 219)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "SAVELIST/A 亮蓝底栏+整屏暗+无白卡": {
+      "value": "底栏(79, 89, 106) 背景(94, 142, 219) 卡顶(205, 204, 190)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "PLAYTEST/B px(100,400) 蓝主导且亮": {
+      "value": "(76, 88, 106)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "PLAYTEST/C px(300,300) 亮蓝天": {
+      "value": "(94, 142, 219)",
+      "passed": true,
+      "kind": "pixel"
+     },
+     "SETTLE/A px(1280,100) 纯白卡顶": {
+      "value": "(205, 204, 190)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "SETTLE/B px(1280,500) 深蓝且不偏紫": {
+      "value": "(108, 203, 202)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "LOADING/A px(300,300) 浅蓝底色": {
+      "value": "(94, 142, 219)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "LOADING/B 中央无纹理(采样极差)": {
+      "value": "spread=110.7",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "EDITOR/A px(100,400) 绿主导": {
+      "value": "(76, 88, 106)",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "EDITOR/B 左面板存在(列差)": {
+      "value": "diff=35.0",
+      "passed": false,
+      "kind": "pixel"
+     },
+     "EDITOR/anchor editor_4": {
+      "value": "score=0.414",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "EDITOR/anchor editor_5": {
+      "value": "score=0.430",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "MENU/anchor menu_12": {
+      "value": "score=0.493",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "MENU/anchor menu_4": {
+      "value": "score=0.403",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "PAUSE/anchor pause_25": {
+      "value": "score=0.328",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "PAUSE/anchor pause_26": {
+      "value": "score=0.467",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "PLAYTEST/anchor playtest_3": {
+      "value": "score=0.446",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "PLAYTEST/anchor playtest_22": {
+      "value": "score=0.533",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "SAVELIST/anchor savelist_24": {
+      "value": "score=0.419",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "SAVELIST/anchor savelist_12": {
+      "value": "score=0.425",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "SETTLE/anchor settle_14": {
+      "value": "score=0.418",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "SETTLE/anchor settle_10": {
+      "value": "score=0.497",
+      "passed": false,
+      "kind": "anchor"
+     },
+     "GAME_WORLD/A 右下 UID 行": {
+      "value": "右下行",
+      "passed": true,
+      "kind": "ocr"
+     },
+     "GAME_WORLD/B 底部血条数值": {
+      "value": "血条",
+      "passed": false,
+      "kind": "ocr"
+     },
+     "GAME_WORLD/C 左面板无派蒙标题": {
+      "value": "左面板",
+      "passed": false,
+      "kind": "ocr"
+     },
+     "GAME_ACTIVITY/A 「活动一览」左上": {
+      "value": "活动一览",
+      "passed": false,
+      "kind": "ocr"
+     },
+     "GAME_ACTIVITY/B 无派蒙左面板": {
+      "value": "左面板",
+      "passed": false,
+      "kind": "ocr"
+     },
+     "GAME_ACTIVITY/C 活动页通用元素": {
+      "value": "通用元素",
+      "passed": false,
+      "kind": "ocr"
+     },
+     "GAME_PAIMON/A 左面板「冒险等阶」": {
+      "value": "冒险等阶",
+      "passed": true,
+      "kind": "ocr"
+     },
+     "GAME_PAIMON/B 左面板「世界等级」": {
+      "value": "世界等级",
+      "passed": true,
+      "kind": "ocr"
+     },
+     "GAME_PAIMON/C 左侧 UID 行": {
+      "value": "左 UID",
+      "passed": true,
+      "kind": "ocr"
+     }
+    },
+    "native": true,
+    "judge_ms": 206,
+    "rc": 0
+   }
+  ],
+  "channel": "fast",
+  "native": true
+ },
+ "objects": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    120,
+    1354
+   ],
+   "kind": "unknown",
+   "text": [
+    "DXVK v3.0",
+    "FPS: 60.3",
+    "GPU: 64%",
+    "min: 13.0 ms"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      34,
+      788,
+      60,
+      42
+     ],
+     "role": "icon",
+     "fill": 0.87,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      30,
+      82,
+      68,
+      20
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 169.0
+    },
+    {
+     "bbox": [
+      34,
+      1068,
+      60,
+      58
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      34,
+      494,
+      60,
+      52
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 146.0
+    },
+    {
+     "bbox": [
+      102,
+      1320,
+      22,
+      26
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 69.0
+    },
+    {
+     "bbox": [
+      32,
+      592,
+      96,
+      112
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 178.0
+    },
+    {
+     "bbox": [
+      32,
+      920,
+      64,
+      68
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 134.0
+    }
+   ],
+   "badges": [
+    {
+     "type": "alert",
+     "color": "red",
+     "bbox": [
+      90,
+      614,
+      26,
+      26
+     ],
+     "corner": "tr"
+    }
+   ],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:3",
+     "text_in:4",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.8,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (3 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 125812,
+    "area_frac": 0.0441,
+    "aspect": 0.09,
+    "grid": "none",
+    "skin_siblings": 3,
+    "text_in": 4,
+    "text_ui": 0,
+    "skin_lab": [
+     98.0,
+     126.0,
+     117.0
+    ],
+    "flat_fill": 0.61,
+    "rect": 0.77,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    1982,
+    918,
+    376,
+    160
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [
+    {
+     "type": "alert",
+     "color": "red",
+     "bbox": [
+      1966,
+      886,
+      58,
+      56
+     ],
+     "corner": "tl"
+    }
+   ],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.62,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 37016,
+    "area_frac": 0.0163,
+    "aspect": 2.35,
+    "grid": "none",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     193.0,
+     93.0,
+     137.0
+    ],
+    "flat_fill": 0.42,
+    "rect": 0.62,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    578,
+    658,
+    196,
+    176
+   ],
+   "kind": "tile",
+   "text": [
+    "角色"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.76,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 28032,
+    "area_frac": 0.0094,
+    "aspect": 1.11,
+    "grid": "row n=4 pitch_x=207.0 pitch_y=189.0",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     89.0,
+     129.0,
+     116.0
+    ],
+    "flat_fill": 0.78,
+    "rect": 0.81,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    382,
+    1046,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "祈愿"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      428,
+      1066,
+      82,
+      82
+     ],
+     "role": "icon",
+     "fill": 0.38,
+     "contrast": 164.0
+    },
+    {
+     "bbox": [
+      426,
+      1064,
+      26,
+      24
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 102.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.92,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 22940,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.8,
+    "rect": 0.85,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c4",
+   "parent": null,
+   "bbox": [
+    590,
+    478,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "好友"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      636,
+      504,
+      82,
+      70
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 165.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 22068,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=190.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.78,
+    "rect": 0.81,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c5",
+   "parent": null,
+   "bbox": [
+    382,
+    478,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "队伍配置"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      436,
+      498,
+      66,
+      82
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 164.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 21688,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=190.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.76,
+    "rect": 0.8,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c6",
+   "parent": null,
+   "bbox": [
+    590,
+    1046,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "纪行"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      636,
+      1060,
+      82,
+      88
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 165.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 21552,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.76,
+    "rect": 0.79,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c7",
+   "parent": null,
+   "bbox": [
+    382,
+    856,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "日",
+    "任务"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:2",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 21224,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.76,
+    "rect": 0.78,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c8",
+   "parent": null,
+   "bbox": [
+    798,
+    1234,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "入",
+    "反馈"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      950,
+      1368,
+      32,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 161.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:18",
+     "text_in:2",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (18 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 20720,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 18,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     96.0,
+     128.0,
+     117.0
+    ],
+    "flat_fill": 0.69,
+    "rect": 0.76,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c9",
+   "parent": null,
+   "bbox": [
+    174,
+    668,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "图鉴"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      216,
+      684,
+      90,
+      88
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 161.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 20524,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.76,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c10",
+   "parent": null,
+   "bbox": [
+    590,
+    858,
+    174,
+    154
+   ],
+   "kind": "tile",
+   "text": [
+    "地图"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      632,
+      878,
+      90,
+      84
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 163.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 20520,
+    "area_frac": 0.0073,
+    "aspect": 1.13,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=189.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.77,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c11",
+   "parent": null,
+   "bbox": [
+    174,
+    478,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "商城"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      216,
+      552,
+      28,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 160.0
+    },
+    {
+     "bbox": [
+      276,
+      552,
+      30,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 162.0
+    },
+    {
+     "bbox": [
+      164,
+      470,
+      32,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 168.0
+    },
+    {
+     "bbox": [
+      218,
+      494,
+      86,
+      46
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 166.0
+    },
+    {
+     "bbox": [
+      246,
+      532,
+      30,
+      32
+     ],
+     "role": "icon",
+     "fill": 0.33,
+     "contrast": 88.0
+    }
+   ],
+   "badges": [
+    {
+     "type": "alert",
+     "color": "red",
+     "bbox": [
+      336,
+      464,
+      28,
+      26
+     ],
+     "corner": "tr"
+    }
+   ],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 20416,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=208.0 pitch_y=190.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.75,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c12",
+   "parent": null,
+   "bbox": [
+    798,
+    856,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "活动"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      848,
+      870,
+      72,
+      88
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 163.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 20112,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.74,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c13",
+   "parent": null,
+   "bbox": [
+    174,
+    856,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "背包"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      222,
+      874,
+      78,
+      86
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 164.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 19976,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.74,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c14",
+   "parent": null,
+   "bbox": [
+    798,
+    1046,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "多人游戏"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      862,
+      1080,
+      46,
+      70
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 163.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 19284,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.68,
+    "rect": 0.71,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c15",
+   "parent": null,
+   "bbox": [
+    800,
+    668,
+    172,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "提升指南"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      844,
+      690,
+      80,
+      80
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 163.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 18620,
+    "area_frac": 0.0073,
+    "aspect": 1.1,
+    "grid": "row n=4 pitch_x=210.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.69,
+    "rect": 0.69,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c16",
+   "parent": null,
+   "bbox": [
+    798,
+    478,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "成就"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      838,
+      492,
+      94,
+      92
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 168.0
+    },
+    {
+     "bbox": [
+      950,
+      470,
+      32,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 168.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 18504,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=190.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.69,
+    "rect": 0.68,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c17",
+   "parent": null,
+   "bbox": [
+    590,
+    1234,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "版本热点"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      644,
+      1240,
+      64,
+      98
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 162.0
+    }
+   ],
+   "badges": [
+    {
+     "type": "alert",
+     "color": "red",
+     "bbox": [
+      752,
+      1218,
+      28,
+      28
+     ],
+     "corner": "tr"
+    }
+   ],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:18",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (18 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16884,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 18,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     128.0,
+     117.0
+    ],
+    "flat_fill": 0.64,
+    "rect": 0.62,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c18",
+   "parent": null,
+   "bbox": [
+    382,
+    1234,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "一官方社区"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [
+    {
+     "type": "alert",
+     "color": "red",
+     "bbox": [
+      544,
+      1218,
+      28,
+      28
+     ],
+     "corner": "tr"
+    }
+   ],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:18",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (18 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 16664,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 18,
+    "text_in": 1,
+    "text_ui": 0,
+    "skin_lab": [
+     96.0,
+     128.0,
+     117.0
+    ],
+    "flat_fill": 0.64,
+    "rect": 0.61,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c19",
+   "parent": null,
+   "bbox": [
+    382,
+    668,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "角色图鉴"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16248,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=4 pitch_x=207.0 pitch_y=188.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.58,
+    "rect": 0.6,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c20",
+   "parent": null,
+   "bbox": [
+    174,
+    1046,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "冒险之证"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      212,
+      1070,
+      96,
+      80
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 164.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:17",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (17 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15856,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=208.0 pitch_y=190.0",
+    "skin_siblings": 17,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     96.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.69,
+    "rect": 0.58,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  },
+  {
+   "id": "c21",
+   "parent": null,
+   "bbox": [
+    2404,
+    1190,
+    156,
+    130
+   ],
+   "kind": "unknown",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.61,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 11532,
+    "area_frac": 0.0055,
+    "aspect": 1.2,
+    "grid": "none",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     193.0,
+     95.0,
+     136.0
+    ],
+    "flat_fill": 0.37,
+    "rect": 0.57,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60"
+   }
+  }
+ ],
+ "groups": [],
+ "slices": [],
+ "budget_ms": {
+  "total": 50,
+  "detect": 10,
+  "ocr": 0
+ },
+ "degraded": [
+  {
+   "code": "KIND_UNKNOWN",
+   "detail": "2/22 个对象 kind=unknown（L1 学习型检测未接入）"
+  },
+  {
+   "code": "FREE_TEXT_UNOWNED",
+   "detail": "14 条文本没有容器归属，act(text) 解析不到（需要切片/坐标通道）"
+  },
+  {
+   "code": "L2_NOT_IMPLEMENTED",
+   "detail": "groups=[]：容器 parent 链未闭合（AGI-BAR 票 26）"
+  },
+  {
+   "code": "L3_NOT_IMPLEMENTED",
+   "detail": "对象 state 三字段=null、affordance.clickable 恒 unknown（AGI-BAR 票 27/28）"
+  },
+  {
+   "code": "FRAME_PINNED",
+   "detail": "离线帧（source=frame，age≈11220417ms）：不是活体读数，act 不会据此注入"
+  }
+ ],
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+  "source": "frame",
+  "captured_at_ms": 1792312419576,
+  "captured_at_ms_source": "file_mtime",
+  "live": false,
+  "age_ms": 11220417,
+  "stale": true
+ },
+ "free_text": [
+  "透雨",
+  "逆风解意",
+  "冒险等阶",
+  "60",
+  "UID 110170759",
+  "冒险阅历",
+  "340125/340125",
+  "复制",
+  "世界等级",
+  "生日",
+  "10月22日",
+  "maxt",
+  "20.7 ms",
+  "UID:110170759"
+ ],
+ "timing_ms": {
+  "total": 0.66,
+  "cache_layer": "disk"
+ },
+ "cache": {
+  "hit": true,
+  "layer": "disk",
+  "hit_ms": 0.66
+ },
+ "tracked_at_ms": 1792323639993,
+ "transitions": []
+}

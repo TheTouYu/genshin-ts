@@ -1,0 +1,695 @@
+{
+ "frame": "f13",
+ "image": ".scratch/gui-corpus/f13.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 人眼判对象 + grid.py 网格量边 + boxer.py 量小图标",
+ "criteria": "truth/_rules.md",
+ "layout": "存档选择（卡片网格）",
+ "classes": [
+  "卡片网格",
+  "页签",
+  "粘连卡"
+ ],
+ "units": 25,
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    75,
+    22,
+    545,
+    76
+   ],
+   "kind": "chip",
+   "text": [
+    "本地存档"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶部页签（选中）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    620,
+    22,
+    380,
+    76
+   ],
+   "kind": "chip",
+   "text": [
+    "已上传"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶部页签"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    68,
+    158,
+    362,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "未分类页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧页签（蓝色实心=选中）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    48,
+    248,
+    400,
+    95
+   ],
+   "kind": "chip",
+   "text": [
+    "新建页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧页签（虚线=新建）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    505,
+    172,
+    645,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "fighting",
+    "2026年10月16日 19:21"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "lastopen",
+     "bbox": [
+      955,
+      164,
+      130,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1190,
+    172,
+    630,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "云阶",
+    "2026年10月17日 15:02"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    1857,
+    172,
+    630,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "输入探针v2",
+    "2026年10月17日 06:13"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    505,
+    512,
+    645,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "未分类页签_存档",
+    "2026年10月16日 19:56"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1190,
+    512,
+    630,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "Lua同步测试",
+    "2026年10月16日 19:47"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1857,
+    512,
+    630,
+    298
+   ],
+   "kind": "card",
+   "text": [
+    "真实足球v3",
+    "2026年10月13日 19:43"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    505,
+    812,
+    650,
+    300
+   ],
+   "kind": "card",
+   "text": [
+    "输入探针",
+    "2026年10月13日 19:23"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "选中态（白框）"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    950,
+    400,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1635,
+    400,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    2302,
+    400,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    950,
+    740,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    1635,
+    740,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2302,
+    740,
+    150,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    965,
+    1005,
+    150,
+    55
+   ],
+   "kind": "button",
+   "text": [
+    "编辑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    515,
+    1015,
+    60,
+    45
+   ],
+   "kind": "button",
+   "text": [
+    "..."
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "卡片内更多操作"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    2380,
+    22,
+    128,
+    112
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    2150,
+    22,
+    130,
+    112
+   ],
+   "kind": "button",
+   "text": [
+    "..."
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上聊天/更多"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    478,
+    1310,
+    430,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "按时间顺序",
+    "v"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "排序下拉"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    960,
+    1310,
+    100,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "↑↓"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "排序方向切换"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    1650,
+    1310,
+    400,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "导入存档"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    2110,
+    1310,
+    400,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "新建存档"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}

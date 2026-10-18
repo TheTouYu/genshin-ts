@@ -1,0 +1,486 @@
+#!/usr/bin/env python3
+"""ys-coverage — bbox 级真值 vs 检测输出的**覆盖率记分器**（只读，零新增依赖）。
+
+为什么需要它（票 23，`.scratch/gui-stack/issues/23-coverage-truth.md`）：
+"这一屏有多少个可交互对象" 过去只能靠人眼说、靠工具自己报，两边都不可复算。
+本工具把 `<真值 bbox 集>` 与 `<工具输出的容器 bbox 集>` 用 **IoU≥阈值** 一对一配成对，
+逐帧输出 `COVERAGE frame=… units=N hit=K rate=…`，并给出汇总与未命中/假阳性清单，
+使"检出率"成为第三方能重跑的数字。口径依据 `.scratch/gui-stack/AGI-BAR.md` §二 L1。
+
+用法（离线优先，**只读文件**）：
+  tools/ys-coverage --truth .scratch/gui-corpus/truth --pred .scratch/gui-corpus/pred
+  tools/ys-coverage --truth DIR --pred DIR --iou 0.5 --verbose --json-out out.json
+  tools/ys-coverage --truth DIR --selftest            # 仪器自证（必须全 PASS，退出码 0）
+  tools/ys-coverage --truth DIR --pred DIR --require-rate 0.4   # 低于线即退出码 1（闸门用）
+
+真值 schema（每帧一个 `<stem>.json`；判据见 truth/_rules.md）：
+  {"frame":"f00","image":"…png","size":[2560,1440],
+   "objects":[{"id":0,"parent":null,"bbox":[x,y,w,h],"kind":"panel|row|tile|card|button|icon|avatar|chip",
+               "text":["…"],"state":{"selected":false},"badges":[{"type":"red","bbox":[…] }],
+               "clipped":{"edges":[],"cut_by":null,"px":0},"clickable":"yes|no|unknown"}]}
+  负样本 = objects 为空数组的空帧（提瓦特世界），要求 **units=0 且 fp=0**。
+
+检测输入：`--pred DIR` 里 `<stem>.json` 是 `tools/ys-screen --json` 的原样输出（取 `containers[]`）；
+也可直接给单个 ys-screen JSON 文件 + 用 `--frame` 指定它的 stem。
+
+**bbox 口径（两套，必须显式声明，2026-10-18 实测踩到）**：
+  · 真值 `truth/*.json` 用 **xywh**（AGI-BAR §四 草案：`"bbox": [x,y,w,h]`）。
+  · `tools/ys-screen` 的 `containers[].bbox` 实际是 **xyxy**（源码 `'bbox': [int(x0/scale), …, int(x1/scale), …]`）。
+  · 本工具默认 `--pred-format xyxy`，内部统一换算成 xywh 再比。**第一版没换算**
+    （按 xywh 读 pred）时 f06/f07/f08 的 19 个格子全部 0 命中——口径错会让"检出率"凭空归零。
+
+判据（与票 23 验收一致）：
+  · 命中 = 一对一贪心匹配里 IoU ≥ `--iou`（默认 0.5）；一个 pred 最多命中一个 truth，反之亦然。
+  · rate = hit/units；units=0 的负样本 rate 记 1.00 仅当 fp=0（否则 0.00 并标 FAIL）。
+  · fp = 未被匹配的 pred 容器数 —— **口径重要**：`degen=` 单独列出「退化整屏 panel」
+    （宽≥95% 且 高≥95% 屏，如 [0,0,2560,1440]），它默认**不计入 fp**、只报数（票 24 要求它为 0）。
+  · 每一行都带 `verdict=PASS|FAIL` 的只有 `--require-rate` 模式下才判，普通跑只给数不判。
+
+退出码：0 正常（`--selftest` 时=全 PASS）/ 1 `--require-rate` 未达标 / 2 用法错 /
+        3 真值不合法（schema/bbox 越界/parent 悬空）/ 4 pred 缺失或不可解析。
+"""
+import argparse
+import glob
+import json
+import os
+import sys
+
+KINDS = ('panel', 'row', 'tile', 'card', 'button', 'icon', 'avatar', 'chip', 'unknown')
+CLICKABLE = ('yes', 'no', 'unknown')
+
+
+# ---------------------------------------------------------------- 基础度量
+def bbox_ok(b):
+    return (isinstance(b, (list, tuple)) and len(b) == 4
+            and all(isinstance(v, (int, float)) for v in b)
+            and b[2] > 0 and b[3] > 0)
+
+
+def iou(a, b):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    x0 = max(ax, bx)
+    y0 = max(ay, by)
+    x1 = min(ax + aw, bx + bw)
+    y1 = min(ay + ah, by + bh)
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    inter = (x1 - x0) * (y1 - y0)
+    union = aw * ah + bw * bh - inter
+    return inter / union if union > 0 else 0.0
+
+
+def match(truth_boxes, pred_boxes, thr):
+    """一对一贪心匹配（按 IoU 从高到低）。返回 [(ti, pi, iou)]、未匹配 truth 索引、未匹配 pred 索引。"""
+    pairs = []
+    for ti, tb in enumerate(truth_boxes):
+        for pi, pb in enumerate(pred_boxes):
+            v = iou(tb, pb)
+            if v >= thr:
+                pairs.append((v, ti, pi))
+    pairs.sort(key=lambda t: (-t[0], t[1], t[2]))
+    used_t, used_p, out = set(), set(), []
+    for v, ti, pi in pairs:
+        if ti in used_t or pi in used_p:
+            continue
+        used_t.add(ti)
+        used_p.add(pi)
+        out.append((ti, pi, v))
+    miss_t = [i for i in range(len(truth_boxes)) if i not in used_t]
+    miss_p = [i for i in range(len(pred_boxes)) if i not in used_p]
+    return out, miss_t, miss_p
+
+
+def is_degenerate(bbox, size):
+    W, H = size
+    bw, bh = bbox[2], bbox[3]
+    return bw >= 0.95 * W and bh >= 0.95 * H
+
+
+# ---------------------------------------------------------------- 读入
+def load_truth(path):
+    """读一帧真值并做 schema 校验。返回 (doc, errors)。"""
+    errs = []
+    try:
+        with open(path, encoding='utf-8') as f:
+            doc = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        return None, ['%s: 不可读/不可解析 (%s)' % (path, exc)]
+    if not isinstance(doc, dict):
+        return None, ['%s: 顶层必须是对象' % path]
+    size = doc.get('size')
+    if not (isinstance(size, (list, tuple)) and len(size) == 2
+            and all(isinstance(v, int) and v > 0 for v in size)):
+        errs.append('%s: size 必须是 [W,H] 正整数' % path)
+        size = [10 ** 9, 10 ** 9]
+    objs = doc.get('objects')
+    if not isinstance(objs, list):
+        errs.append('%s: objects 必须是数组（负样本写 []）' % path)
+        return doc, errs
+    ids = set()
+    for k, o in enumerate(objs):
+        tag = '%s#%d' % (path, k)
+        if not isinstance(o, dict):
+            errs.append('%s: 元素必须是对象' % tag)
+            continue
+        if not isinstance(o.get('id'), int):
+            errs.append('%s: 缺整数 id' % tag)
+        else:
+            if o['id'] in ids:
+                errs.append('%s: id 重复 %r' % (tag, o['id']))
+            ids.add(o['id'])
+        if not bbox_ok(o.get('bbox')):
+            errs.append('%s: bbox 必须是 [x,y,w,h] 且 w,h>0' % tag)
+            continue
+        x, y, w, h = o['bbox']
+        if x < 0 or y < 0 or x + w > size[0] + 1 or y + h > size[1] + 1:
+            errs.append('%s: bbox %s 越出帧 %s' % (tag, o['bbox'], size))
+        if o.get('kind') not in KINDS:
+            errs.append('%s: kind=%r 不在 %s' % (tag, o.get('kind'), list(KINDS)))
+        ck = o.get('clickable', 'unknown')
+        if ck not in CLICKABLE:
+            errs.append('%s: clickable=%r 不在 %s' % (tag, ck, list(CLICKABLE)))
+        if o.get('text') is not None and not isinstance(o['text'], list):
+            errs.append('%s: text 必须是字符串数组' % tag)
+    for k, o in enumerate(objs):
+        if not isinstance(o, dict) or 'parent' not in o:
+            continue
+        p = o['parent']
+        if p is not None and p not in ids:
+            errs.append('%s#%d: parent=%r 悬空（该帧无此 id）' % (path, k, p))
+    return doc, errs
+
+
+def to_xywh(b, fmt):
+    """把 pred 的 bbox 统一成 xywh（truth 口径）。xyxy⇒ 宽高 = x1-x0 / y1-y0。"""
+    x, y, a, c = b
+    if fmt == 'xyxy':
+        return [x, y, a - x, c - y]
+    return [x, y, a, c]
+
+
+def load_pred(path_or_doc, fmt='xyxy'):
+    """读 ys-screen JSON，取 containers[].bbox（按 fmt 归一成 xywh）。返回 (boxes, meta, errs)。"""
+    errs = []
+    if isinstance(path_or_doc, dict):
+        doc = path_or_doc
+    else:
+        try:
+            with open(path_or_doc, encoding='utf-8') as f:
+                doc = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            return [], {}, ['%s: pred 不可读/不可解析 (%s)' % (path_or_doc, exc)]
+    cs = doc.get('containers')
+    if cs is None:
+        # 允许直接给 {"objects":[...]} 形态（自证与第三方后端方便）
+        cs = doc.get('objects') or []
+        boxes = [c.get('bbox') for c in cs if isinstance(c, dict)]
+    else:
+        boxes = [c.get('bbox') for c in cs if isinstance(c, dict)]
+    good = []
+    for b in boxes:
+        if isinstance(b, (list, tuple)) and len(b) == 4 and all(isinstance(v, (int, float)) for v in b):
+            nb = to_xywh(list(b), fmt)
+            if bbox_ok(nb):
+                good.append(nb)
+            else:
+                errs.append('pred 有非法 bbox（%s ⇒ %r）：%r' % (fmt, nb, b))
+        else:
+            errs.append('pred 有非法 bbox：%r' % (b,))
+    meta = {'degraded': doc.get('degraded'),
+            'timing': doc.get('timing'),
+            'schema': doc.get('schema')}
+    return good, meta, errs
+
+
+# ---------------------------------------------------------------- 记分
+def score_frame(doc, pred_doc, thr, count_degen_as_fp=False, pred_format='xyxy'):
+    size = doc['size']
+    objs = doc['objects']
+    tboxes = [o['bbox'] for o in objs]
+    pboxes, pmeta, perrs = load_pred(pred_doc, pred_format)
+    pairs, miss_t, miss_p = match(tboxes, pboxes, thr)
+    degen = [pi for pi in miss_p if is_degenerate(pboxes[pi], size)]
+    fps = [pi for pi in miss_p if count_degen_as_fp or pi not in degen]
+    units = len(tboxes)
+    hit = len(pairs)
+    rate = (hit / units) if units else (1.0 if not fps else 0.0)
+    return {
+        'frame': doc.get('frame') or os.path.basename(str(doc.get('image', '?'))),
+        'units': units, 'hit': hit, 'rate': round(rate, 4),
+        'fp': len(fps), 'degenerate': len(degen),
+        'iou_mean': round(sum(p[2] for p in pairs) / len(pairs), 4) if pairs else 0.0,
+        'pairs': [(objs[t]['id'], objs[t]['bbox'], pboxes[p], round(v, 3)) for t, p, v in pairs],
+        'miss': [{'id': objs[i]['id'], 'kind': objs[i].get('kind'),
+                  'bbox': objs[i]['bbox'], 'text': (objs[i].get('text') or [])[:2]} for i in miss_t],
+        'extra': [{'bbox': pboxes[i], 'degenerate': i in degen} for i in fps]
+        + [{'bbox': pboxes[i], 'degenerate': True} for i in degen if i not in fps],
+        'pred_errors': perrs, 'pred_meta': pmeta,
+        'objects': objs,
+    }
+
+
+def fmt_line(s, require=None):
+    verdict = ''
+    if require is not None:
+        verdict = ' verdict=%s' % ('PASS' if s['rate'] >= require else 'FAIL')
+    return ('COVERAGE frame=%-9s units=%-3d hit=%-3d rate=%.3f fp=%d degen=%d iou_mean=%.3f%s'
+            % (s['frame'], s['units'], s['hit'], s['rate'], s['fp'], s['degenerate'],
+               s['iou_mean'], verdict))
+
+
+def load_truth_dir(d):
+    out, errs = [], []
+    for p in sorted(glob.glob(os.path.join(d, '*.json'))):
+        name = os.path.basename(p)
+        if name.startswith('_'):
+            continue
+        if name.startswith('baseline') or name.startswith('summary'):
+            continue
+        doc, e = load_truth(p)
+        errs += e
+        if doc is not None:
+            out.append((os.path.splitext(name)[0], doc, p))
+    if not out:
+        errs.append('%s: 没找到任何真值 JSON' % d)
+    return out, errs
+
+
+def pred_for(stem, pred_dir, pred_file, frame_arg):
+    if pred_file:
+        return pred_file
+    if pred_dir:
+        p = os.path.join(pred_dir, stem + '.json')
+        if os.path.exists(p):
+            return p
+    return None
+
+
+# ---------------------------------------------------------------- 自证
+def synth_pred_from_truth(doc):
+    """把真值直接当 pred（自证用）：containers 形态，box 与 truth 完全一致。"""
+    return {'schema': 'selftest/1', 'degraded': False,
+            'containers': [{'id': 'c%d' % o['id'], 'kind': o.get('kind'),
+                            'bbox': o['bbox'], 'text': o.get('text') or []}
+                           for o in doc['objects']]}
+
+
+def run_selftest(truth_dir, thr, verbose):
+    frames, errs = load_truth_dir(truth_dir)
+    if errs:
+        for e in errs:
+            print('SELFTEST FAIL truth-schema %s' % e)
+        return 2
+    if not frames:
+        print('SELFTEST FAIL truth-empty %s' % truth_dir)
+        return 2
+    fails = 0
+    # --- ① truth vs truth 必须 100%
+    n_all = n_hit = 0
+    for stem, doc, path in frames:
+        s = score_frame(doc, synth_pred_from_truth(doc), thr, pred_format='xywh')
+        n_all += s['units']
+        n_hit += s['hit']
+        if s['rate'] < 1.0 or s['fp']:
+            fails += 1
+            print('SELFTEST FAIL t1-identity frame=%s rate=%.3f fp=%d' % (stem, s['rate'], s['fp']))
+    print('SELFTEST t1-identity frames=%d units=%d hit=%d rate=%.3f verdict=%s'
+          % (len(frames), n_all, n_hit, (n_hit / n_all if n_all else 1.0),
+             'PASS' if fails == 0 else 'FAIL'))
+
+    # --- ② 漏 1：每帧删掉一个（取面积最小的，最容易命中丢失）⇒ 该帧必须只少 1 命中
+    ok = True
+    checked = 0
+    for stem, doc, path in frames:
+        objs = doc['objects']
+        if not objs:
+            continue
+        victim = min(range(len(objs)), key=lambda i: objs[i]['bbox'][2] * objs[i]['bbox'][3])
+        pred = synth_pred_from_truth(doc)
+        dropped = pred['containers'].pop(victim)
+        s = score_frame(doc, pred, thr, pred_format='xywh')
+        checked += 1
+        good = (s['hit'] == len(objs) - 1) and any(
+            m['id'] == objs[victim]['id'] for m in s['miss'])
+        if not good:
+            ok = False
+            print('SELFTEST FAIL t2-drop1 frame=%s 期望 miss id=%s 实际 hit=%d/%d miss=%s'
+                  % (stem, objs[victim]['id'], s['hit'], s['units'],
+                     [m['id'] for m in s['miss']]))
+        elif verbose:
+            print('SELFTEST t2-drop1 frame=%s 检出漏检 id=%s (bbox=%s) → hit=%d/%d'
+                  % (stem, objs[victim]['id'], dropped['bbox'], s['hit'], s['units']))
+    print('SELFTEST t2-drop1 frames=%d verdict=%s' % (checked, 'PASS' if ok else 'FAIL'))
+    fails += 0 if ok else 1
+
+    # --- ③ 多 1：在"离所有真值都远"的空白处加一个 160x160 假框 ⇒ 必须 fp>=1 且 hit 不变
+    ok = True
+    checked = 0
+    for stem, doc, path in frames:
+        W, H = doc['size']
+        best, bestmind = None, -1
+        for gx in range(0, W - 160, 80):
+            for gy in range(0, H - 160, 80):
+                cand = [gx, gy, 160, 160]
+                mx = min([iou(cand, o['bbox']) for o in doc['objects']], default=0.0)
+                if mx > bestmind:
+                    best, bestmind = cand, mx
+        if best is None or bestmind >= thr:
+            continue
+        pred = synth_pred_from_truth(doc)
+        pred['containers'].append({'id': 'bogus', 'kind': 'tile', 'bbox': best, 'text': []})
+        s = score_frame(doc, pred, thr, pred_format='xywh')
+        checked += 1
+        miss_before = len([o for o in doc['objects']])
+        good = (s['fp'] >= 1) and (s['hit'] == miss_before)
+        if not good:
+            ok = False
+            print('SELFTEST FAIL t3-add1 frame=%s 期望 fp>=1 hit=%d 实际 fp=%d hit=%d'
+                  % (stem, miss_before, s['fp'], s['hit']))
+        elif verbose:
+            print('SELFTEST t3-add1 frame=%s 注入假框 %s (IoU_max=%.3f) → fp=%d hit=%d'
+                  % (stem, best, bestmind, s['fp'], s['hit']))
+    print('SELFTEST t3-add1 frames=%d verdict=%s' % (checked, 'PASS' if ok else 'FAIL'))
+    fails += 0 if ok else 1
+
+    # --- ④ 偏 20px：沿**短边方向**位移 20px ⇒ 短边 <60px 的对象必须跌破 IoU 0.5。
+    #     口径（可复算）：轴对齐框沿某轴位移 d、其余不变时 IoU=(边-d)/(边+d) ⇒ IoU=0.5 的容差 = 边/3。
+    #     所以 20px 位移只能被"短边<60px"的对象拦住；宽行/面板对 20px 本来就不敏感（那是 IoU 的性质，不是缺陷）。
+    #     同时统计"整帧全框右移 20px 会让多少帧 rate 下降"作为辅助读数。
+    small_n = small_broken = 0
+    drops = []
+    for stem, doc, path in frames:
+        objs = doc['objects']
+        if not objs:
+            continue
+        pred = synth_pred_from_truth(doc)
+        bad = []
+        for i, o in enumerate(objs):
+            x, y, w, h = o['bbox']
+            shift_x = 20 if h >= w else 0        # 沿短边方向位移
+            shift_y = 20 if w > h else 0
+            pred['containers'][i]['bbox'] = [x + shift_x, y + shift_y, w, h]
+            v = iou([x, y, w, h], pred['containers'][i]['bbox'])
+            if min(w, h) < 60:                    # 短边/3 < 20 ⇒ 该对象"应该"被拦住
+                small_n += 1
+                if v < thr:
+                    small_broken += 1
+                else:
+                    bad.append((o['id'], o['bbox'], round(v, 3)))
+        if bad:
+            print('SELFTEST FAIL t4-shift20 frame=%s 短边<60px 的对象位移 20px 后仍被判命中：%s'
+                  % (stem, bad))
+        # 辅助读数：全框右移 20px 的整帧影响
+        pred2 = synth_pred_from_truth(doc)
+        for c in pred2['containers']:
+            c['bbox'] = [c['bbox'][0] + 20, c['bbox'][1], c['bbox'][2], c['bbox'][3]]
+        base = score_frame(doc, synth_pred_from_truth(doc), thr, pred_format='xywh')
+        s = score_frame(doc, pred2, thr, pred_format='xywh')
+        if s['rate'] < base['rate']:
+            drops.append((stem, base['rate'], s['rate']))
+            if verbose:
+                print('SELFTEST t4-shift20 frame=%s 全框右移20px base=%.3f shifted=%.3f'
+                      % (stem, base['rate'], s['rate']))
+    ok = small_n > 0 and small_broken == small_n
+    print('SELFTEST t4-shift20 small_objects=%d broken=%d frames_with_rate_drop=%d/%d verdict=%s'
+          % (small_n, small_broken, len(drops),
+             len([1 for _, d, _ in frames if d['objects']]), 'PASS' if ok else 'FAIL'))
+    fails += 0 if ok else 1
+
+    print('SELFTEST RESULT checks=4 fail=%d verdict=%s' % (fails, 'PASS' if fails == 0 else 'FAIL'))
+    return 0 if fails == 0 else 2
+
+
+# ---------------------------------------------------------------- 主流程
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='bbox 级覆盖率记分器：truth vs ys-screen containers')
+    ap.add_argument('--truth', required=True, help='真值目录（<stem>.json）或单个真值文件')
+    ap.add_argument('--pred', default=None, help='ys-screen JSON 所在目录（<stem>.json）')
+    ap.add_argument('--pred-file', default=None, help='单帧：直接指定 ys-screen JSON')
+    ap.add_argument('--frame', default=None, help='单帧：配对用的 stem（默认取 --pred-file 的 basename）')
+    ap.add_argument('--iou', type=float, default=0.5, help='命中阈值（默认 0.5）')
+    ap.add_argument('--pred-format', choices=('xyxy', 'xywh'), default='xyxy',
+                    help='pred bbox 口径：ys-screen=xyxy（默认）；自证/第三方写 xywh')
+    ap.add_argument('--require-rate', type=float, default=None,
+                    help='低于该 rate 即退出码 1（闸门用）')
+    ap.add_argument('--count-degenerate-as-fp', action='store_true',
+                    help='把退化整屏 panel 也算作假阳性（默认只报 degen 数）')
+    ap.add_argument('--verbose', action='store_true', help='打印未命中/假阳性明细')
+    ap.add_argument('--json-out', default=None, help='把逐帧结果落盘')
+    ap.add_argument('--selftest', action='store_true', help='仪器自证（truth-vs-truth 100%% + 3 类注入偏差）')
+    a = ap.parse_args(argv)
+
+    if a.selftest:
+        return run_selftest(a.truth, a.iou, a.verbose)
+    if not (a.pred or a.pred_file):
+        print('用法错：需要 --pred DIR 或 --pred-file FILE', file=sys.stderr)
+        return 2
+
+    if os.path.isdir(a.truth):
+        frames, errs = load_truth_dir(a.truth)
+    else:
+        doc, errs = load_truth(a.truth)
+        frames = [(a.frame or os.path.splitext(os.path.basename(a.truth))[0], doc, a.truth)] if doc else []
+    if errs:
+        for e in errs:
+            print('TRUTH-INVALID %s' % e, file=sys.stderr)
+        return 3
+    if not frames:
+        print('TRUTH-EMPTY %s' % a.truth, file=sys.stderr)
+        return 3
+
+    results, missing_pred = [], []
+    for stem, doc, path in frames:
+        pred_path = pred_for(stem, a.pred, a.pred_file, a.frame)
+        if not pred_path:
+            missing_pred.append(stem)
+            continue
+        boxes, meta, perrs = load_pred(pred_path)
+        if perrs and not boxes and meta.get('degraded') is None:
+            missing_pred.append(stem)
+            continue
+        s = score_frame(doc, pred_path, a.iou, a.count_degenerate_as_fp, a.pred_format)
+        s['pred_path'] = pred_path
+        results.append(s)
+        print(fmt_line(s, a.require_rate))
+        if a.verbose:
+            for m in s['miss']:
+                print('   MISS  id=%-3s kind=%-6s bbox=%-24s %s'
+                      % (m['id'], m['kind'], m['bbox'], '/'.join(m['text'])))
+            for e in s['extra']:
+                print('   EXTRA bbox=%-24s%s' % (e['bbox'], ' (degenerate)' if e['degenerate'] else ''))
+
+    if missing_pred:
+        for m in missing_pred:
+            print('PRED-MISSING frame=%s（未找到对应 ys-screen JSON）' % m, file=sys.stderr)
+
+    units = sum(s['units'] for s in results)
+    hit = sum(s['hit'] for s in results)
+    fp = sum(s['fp'] for s in results)
+    degen = sum(s['degenerate'] for s in results)
+    rate = hit / units if units else 1.0
+    negs = [s for s in results if s['units'] == 0]
+    neg_bad = [s['frame'] for s in negs if s['fp'] or s['degenerate']]
+    print('SUMMARY frames=%d units=%d hit=%d rate=%.3f fp=%d degen=%d neg_frames=%d neg_violations=%d'
+          % (len(results), units, hit, rate, fp, degen, len(negs), len(neg_bad)))
+    if neg_bad:
+        print('NEGATIVE-VIOLATION frames=%s（负样本必须 0 对象/0 假阳性）' % ','.join(neg_bad))
+    if a.json_out:
+        os.makedirs(os.path.dirname(os.path.abspath(a.json_out)), exist_ok=True)
+        with open(a.json_out, 'w', encoding='utf-8') as f:
+            json.dump({'iou_thr': a.iou, 'frames': results,
+                       'summary': {'frames': len(results), 'units': units, 'hit': hit,
+                                   'rate': round(rate, 4), 'fp': fp, 'degen': degen,
+                                   'neg_frames': len(negs), 'neg_violations': neg_bad}},
+                      f, ensure_ascii=False, indent=1)
+        print('JSON-OUT %s' % a.json_out)
+    if missing_pred:
+        return 4
+    if a.require_rate is not None and rate < a.require_rate:
+        print('GATE-FAIL rate=%.3f < require=%.3f' % (rate, a.require_rate))
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

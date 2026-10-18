@@ -1,0 +1,396 @@
+{
+ "frame": "f12",
+ "image": ".scratch/gui-corpus/f12.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 人眼判对象 + grid.py 网格量边 + boxer.py 量小图标",
+ "criteria": "truth/_rules.md",
+ "layout": "设置·语言",
+ "classes": [
+  "半透明胶囊行",
+  "左导航高亮（组内相对态）"
+ ],
+ "units": 14,
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    138,
+    190,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    138,
+    263,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "按键"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    138,
+    336,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "图像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    138,
+    408,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "声音"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    138,
+    480,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "消息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    138,
+    553,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "语言"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项（当前页高亮）"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    138,
+    628,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "账户"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    138,
+    703,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "资源"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    138,
+    776,
+    200,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    2425,
+    25,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    646,
+    250,
+    1756,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "游戏语言",
+    "简体中文"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（标签+右值；值区是下拉箭头中心）"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    646,
+    350,
+    1756,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "游戏语音",
+    "汉语"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（标签+右值；值区是下拉箭头中心）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    646,
+    445,
+    1756,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "千星奇域关卡语言偏好",
+    "前往设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（标签+右值；值区是下拉箭头中心）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1880,
+    1300,
+    500,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "语音包管理"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}

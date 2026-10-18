@@ -1,0 +1,35 @@
+SELFTEST t1-identity frames=15 units=285 hit=285 rate=1.000 verdict=PASS
+SELFTEST t2-drop1 frame=f00 检出漏检 id=8 (bbox=[2425, 165, 90, 90]) → hit=18/19
+SELFTEST t2-drop1 frame=f01 检出漏检 id=14 (bbox=[2260, 885, 35, 110]) → hit=15/16
+SELFTEST t2-drop1 frame=f02 检出漏检 id=8 (bbox=[2425, 165, 90, 90]) → hit=15/16
+SELFTEST t2-drop1 frame=f03 检出漏检 id=8 (bbox=[2425, 165, 90, 90]) → hit=14/15
+SELFTEST t2-drop1 frame=f04 检出漏检 id=8 (bbox=[2425, 165, 90, 90]) → hit=13/14
+SELFTEST t2-drop1 frame=f05 检出漏检 id=8 (bbox=[2425, 165, 90, 90]) → hit=13/14
+SELFTEST t2-drop1 frame=f06 检出漏检 id=7 (bbox=[30, 919, 68, 41]) → hit=28/29
+SELFTEST t2-drop1 frame=f07 检出漏检 id=7 (bbox=[30, 919, 68, 41]) → hit=27/28
+SELFTEST t2-drop1 frame=f08 检出漏检 id=7 (bbox=[30, 919, 68, 41]) → hit=28/29
+SELFTEST t2-drop1 frame=f09 检出漏检 id=9 (bbox=[2425, 25, 90, 90]) → hit=20/21
+SELFTEST t2-drop1 frame=f10 检出漏检 id=9 (bbox=[2425, 25, 90, 90]) → hit=21/22
+SELFTEST t2-drop1 frame=f11 检出漏检 id=9 (bbox=[2425, 25, 90, 90]) → hit=22/23
+SELFTEST t2-drop1 frame=f12 检出漏检 id=9 (bbox=[2425, 25, 90, 90]) → hit=13/14
+SELFTEST t2-drop1 frame=f13 检出漏检 id=18 (bbox=[515, 1015, 60, 45]) → hit=24/25
+SELFTEST t2-drop1 frames=14 verdict=PASS
+SELFTEST t3-add1 frame=f00 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=19
+SELFTEST t3-add1 frame=f01 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=16
+SELFTEST t3-add1 frame=f02 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=16
+SELFTEST t3-add1 frame=f03 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=15
+SELFTEST t3-add1 frame=f04 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=14
+SELFTEST t3-add1 frame=f05 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=14
+SELFTEST t3-add1 frame=f06 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=29
+SELFTEST t3-add1 frame=f07 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=28
+SELFTEST t3-add1 frame=f08 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=29
+SELFTEST t3-add1 frame=f09 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=21
+SELFTEST t3-add1 frame=f10 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=22
+SELFTEST t3-add1 frame=f11 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=23
+SELFTEST t3-add1 frame=f12 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=14
+SELFTEST t3-add1 frame=f13 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=25
+SELFTEST t3-add1 frame=neg-world 注入假框 [0, 0, 160, 160] (IoU_max=0.000) → fp=1 hit=0
+SELFTEST t3-add1 frames=15 verdict=PASS
+SELFTEST t4-shift20 frame=f01 全框右移20px base=1.000 shifted=0.938
+SELFTEST t4-shift20 small_objects=24 broken=24 frames_with_rate_drop=1/14 verdict=PASS
+SELFTEST RESULT checks=4 fail=0 verdict=PASS

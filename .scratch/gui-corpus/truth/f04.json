@@ -1,0 +1,401 @@
+{
+ "frame": "f04",
+ "image": ".scratch/gui-corpus/f04.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 人眼判对象 + grid.py 网格量边 + boxer.py 量小图标",
+ "criteria": "truth/_rules.md",
+ "layout": "活动一览·卡片群",
+ "classes": [
+  "白卡贴彩色插画（工具已知未闭合）"
+ ],
+ "units": 14,
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    272,
+    268,
+    384,
+    900
+   ],
+   "kind": "panel",
+   "text": [
+    "活动一览列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 60
+   },
+   "note": "列表容器；顶部第一项被面板上沿切掉一半（滚动位置证据）"
+  },
+  {
+   "id": 1,
+   "parent": 0,
+   "bbox": [
+    272,
+    335,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "无神怜爱的冻土"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      440,
+      305,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": 0,
+   "bbox": [
+    272,
+    465,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "且试身手"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": 0,
+   "bbox": [
+    272,
+    588,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "风仙亦是仙，古剑通幽玄！"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": 0,
+   "bbox": [
+    272,
+    708,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": 0,
+   "bbox": [
+    298,
+    831,
+    404,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "绮星盛会"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": 0,
+   "bbox": [
+    272,
+    952,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "奇域秘藏"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    2000,
+    285,
+    270,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "活动说明"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    2425,
+    165,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1281,
+    560,
+    950,
+    140
+   ],
+   "kind": "card",
+   "text": [
+    "千星商城",
+    "时装复刻"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "白色大卡（卡贴在彩色插画上：本工具当前检不出）"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1274,
+    727,
+    480,
+    135
+   ],
+   "kind": "card",
+   "text": [
+    "参与绮星盛会",
+    "3天11小时后结束"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1776,
+    727,
+    487,
+    135
+   ],
+   "kind": "card",
+   "text": [
+    "奇匠赛事"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1266,
+    892,
+    982,
+    202
+   ],
+   "kind": "card",
+   "text": [
+    "绮星盛会·奇域佳选",
+    "玩法剩余时间：3天11小时"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "紫色横幅卡"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    764,
+    1079,
+    352,
+    105
+   ],
+   "kind": "button",
+   "text": [
+    "巧趣赠礼",
+    "奇怪丘丘面具",
+    "已领取"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": true
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "赠礼卡（含「已领取」态）"
+  }
+ ]
+}
