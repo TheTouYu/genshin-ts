@@ -13,7 +13,7 @@
   "纯图标列",
   "红点角标"
  ],
- "units": 36,
+ "units": 44,
  "_provenance": {
   "family": "派蒙菜单（灰钢皮肤）",
   "rules_applied": {
@@ -36,10 +36,10 @@
    "id": 0,
    "parent": null,
    "bbox": [
-    0,
-    18,
-    690,
-    812
+    130,
+    28,
+    886,
+    417
    ],
    "kind": "panel",
    "text": [
@@ -57,14 +57,15 @@
     "cut_by": null,
     "px": 0
    },
-   "note": "信息卡面板"
+   "note": "信息卡面板",
+   "edited_by": "human"
   },
   {
    "id": 1,
    "parent": 0,
    "bbox": [
-    210,
-    50,
+    178,
+    47,
     190,
     190
    ],
@@ -81,7 +82,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 2,
@@ -166,8 +168,8 @@
    "id": 5,
    "parent": null,
    "bbox": [
-    232,
-    258,
+    159,
+    261,
     240,
     46
    ],
@@ -187,16 +189,17 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 6,
    "parent": null,
    "bbox": [
-    470,
-    220,
-    460,
-    60
+    392,
+    208,
+    601,
+    73
    ],
    "kind": "row",
    "text": [
@@ -214,16 +217,17 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 7,
    "parent": null,
    "bbox": [
-    470,
+    407,
     275,
-    460,
-    60
+    576,
+    40
    ],
    "kind": "row",
    "text": [
@@ -241,16 +245,17 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 8,
    "parent": null,
    "bbox": [
-    470,
+    402,
     335,
-    460,
-    60
+    591,
+    42
    ],
    "kind": "row",
    "text": [
@@ -268,16 +273,17 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 9,
    "parent": null,
    "bbox": [
-    470,
-    395,
-    460,
-    60
+    400,
+    382,
+    583,
+    42
    ],
    "kind": "row",
    "text": [
@@ -295,7 +301,8 @@
     "edges": [],
     "cut_by": null,
     "px": 0
-   }
+   },
+   "edited_by": "human"
   },
   {
    "id": 10,
@@ -1001,10 +1008,10 @@
    "id": 35,
    "parent": null,
    "bbox": [
-    172,
-    1310,
-    930,
-    120
+    223,
+    300,
+    120,
+    58
    ],
    "kind": "row",
    "text": [
@@ -1026,7 +1033,147 @@
     "cut_by": "screen",
     "px": 60
    },
-   "note": "底行条目带（文字在裁切带内）"
+   "note": "底行条目带（文字在裁切带内）",
+   "edited_by": "human"
+  },
+  {
+   "id": "h1",
+   "parent": null,
+   "bbox": [
+    8,
+    23,
+    118,
+    1385
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h2",
+   "parent": null,
+   "bbox": [
+    138,
+    448,
+    870,
+    963
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h3",
+   "parent": null,
+   "bbox": [
+    2240,
+    1403,
+    254,
+    40
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h4",
+   "parent": null,
+   "bbox": [
+    15,
+    30,
+    83,
+    80
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h5",
+   "parent": null,
+   "bbox": [
+    20,
+    1322,
+    90,
+    98
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h6",
+   "parent": null,
+   "bbox": [
+    399,
+    136,
+    143,
+    33
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h7",
+   "parent": null,
+   "bbox": [
+    420,
+    53,
+    108,
+    60
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  },
+  {
+   "id": "h8",
+   "parent": null,
+   "bbox": [
+    393,
+    51,
+    610,
+    83
+   ],
+   "kind": "row",
+   "text": "",
+   "note": "human-added",
+   "edited_by": "human"
+  }
+ ],
+ "_human_edits": [
+  {
+   "at": "2026-10-18T17:58:51.353Z",
+   "patch": "edit-truth-v6.json",
+   "deleted": [],
+   "updated": [
+    "0",
+    "1",
+    "35",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+   ],
+   "added": [
+    "+01",
+    "+02",
+    "+03",
+    "+04",
+    "+05",
+    "+06",
+    "+07",
+    "+08"
+   ]
   }
  ]
 }

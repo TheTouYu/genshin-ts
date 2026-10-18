@@ -1,0 +1,701 @@
+{
+ "frame": "r006_snap_2026-10-19_00-22-19",
+ "image": ".scratch/gui-corpus/inbox/norm/r006_snap_2026-10-19_00-22-19.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 逐行标注（OCR 行聚类枚举 + edges.py 量边，未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md + 本批收紧（标题/字段行也成单元）",
+ "layout": "邮箱：左 8 封邮件逐行 + 右详情（标题/发件人/时间/附件）+ 底部两按钮",
+ "classes": [
+  "列表+详情",
+  "半透明行"
+ ],
+ "units": 25,
+ "_provenance": {
+  "family": "邮箱（邮件珍藏盒）",
+  "method": "邮件行 y 由 edges.py x=300 扫描线定（158/323/474/628/787/944/1101/1258）；列表/详情面板边界 edges.py",
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；ys-screen 仅事后对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "第 8 封被屏底裁切，只标可见部分",
+   "正文段落不逐个成单元（按口径属内容文本）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    1100,
+    20,
+    1000,
+    80
+   ],
+   "kind": "panel",
+   "text": [
+    "邮箱｜邮件珍藏盒｜邮件数 18/1000"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    1105,
+    22,
+    380,
+    76
+   ],
+   "kind": "chip",
+   "text": [
+    "邮件珍藏盒"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    1500,
+    30,
+    240,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "邮件数 18/1000"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1770,
+    22,
+    60,
+    76
+   ],
+   "kind": "button",
+   "text": [
+    "?"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    2400,
+    22,
+    110,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    150,
+    20,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "邮箱"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    110,
+    140,
+    1130,
+    1260
+   ],
+   "kind": "panel",
+   "text": [
+    "邮件列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左邮件列表面板"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    1244,
+    140,
+    1316,
+    1100
+   ],
+   "kind": "panel",
+   "text": [
+    "邮件详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧详情面板"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    112,
+    150,
+    1120,
+    164
+   ],
+   "kind": "row",
+   "text": [
+    "出门准备…",
+    "早柚",
+    "364天后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    112,
+    315,
+    1120,
+    154
+   ],
+   "kind": "row",
+   "text": [
+    "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+    "P·A·I·M·O·N",
+    "12天后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    112,
+    466,
+    1120,
+    160
+   ],
+   "kind": "row",
+   "text": [
+    "【网页活动上线】周年拾光册——回顾旅途精彩瞬间还有原石奖励哦！",
+    "P·A·I·M·O·N",
+    "1天后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    112,
+    620,
+    1120,
+    164
+   ],
+   "kind": "row",
+   "text": [
+    "空月祝福即将到期提醒",
+    "P·A·I·M·O·N",
+    "6天后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    112,
+    779,
+    1120,
+    160
+   ],
+   "kind": "row",
+   "text": [
+    "「周年拾光册」网页活动即将结束",
+    "P·A·I·M·O·N",
+    "13小时后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    112,
+    936,
+    1120,
+    160
+   ],
+   "kind": "row",
+   "text": [
+    "「判测胜券本征」活动提醒",
+    "P·A·I·M·O·N",
+    "2小时后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    112,
+    1093,
+    1120,
+    160
+   ],
+   "kind": "row",
+   "text": [
+    "「周年拾光册」网页活动奖励发放",
+    "P·A·I·M·O·N",
+    "20天后过期"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    112,
+    1250,
+    1120,
+    152
+   ],
+   "kind": "row",
+   "text": [
+    "(第 8 封：被屏底裁切)"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 60
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    1250,
+    150,
+    600,
+    60
+   ],
+   "kind": "chip",
+   "text": [
+    "出门准备…"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1250,
+    240,
+    900,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "发件人：早柚"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    1250,
+    290,
+    900,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "时间：2026-10-19 00:00"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1290,
+    1140,
+    150,
+    130
+   ],
+   "kind": "icon",
+   "text": [
+    "1"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "附件 1"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    1450,
+    1140,
+    150,
+    130
+   ],
+   "kind": "icon",
+   "text": [
+    "10"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "附件 2"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2160,
+    1330,
+    300,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "领取"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    1990,
+    1330,
+    100,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "☆"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "收藏"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    200,
+    1330,
+    300,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "全部领取"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 20
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    540,
+    1330,
+    300,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "删除已读"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}
