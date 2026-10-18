@@ -115,13 +115,43 @@ def in_region(box, region):
     return x <= box['cx'] <= x + w and y <= box['cy'] <= y + h
 
 
+_NOISE = __import__('re').compile(r'^[\s\d.,:;%\-+/x×MKGms]*$')
+
+
 def visible_texts(boxes, region):
     """该区域内的文本集合（用于"变没变"的比对）——只比文本，不比坐标：
-    滚动时同一批文本会**整体平移**，比坐标会把"平移"误判成"新增"。"""
-    return {b['text'] for b in boxes if in_region(b, region)}
+    滚动时同一批文本会**整体平移**，比坐标会把"平移"误判成"新增"。
+
+    过滤噪声：FPS/耗时（"60.3"、"10.9 ms"）、序号（"2"、"3"）、单字符（"N"、"Z"）
+    这些每帧都可能抖，会把"画面在动"误判成"滚出了新内容"（实测世界页 diffs 0.364）。
+    """
+    out = set()
+    for b in boxes:
+        if not in_region(b, region):
+            continue
+        t = (b['text'] or '').strip()
+        if len(t) < 2 or _NOISE.match(t):
+            continue
+        out.add(t)
+    return out
 
 
-def scroll(direction, step):
+def scroll(direction, step, region=None, at=None):
+    """发滚轮事件。
+
+    ⚠️ 必须先把**指针移到目标区域**——`xdotool click` 用的是当前指针位置，
+    指针要是不在可滚区上，滚轮会被游戏当视角缩放/无效操作吞掉。
+    2026-10-18 实测踩过：没移指针 ⇒ 活动页 diffs=[0.0]（滚了等于没滚），
+    却把"判不出来"误读成"没有更多"。
+    """
+    px, py = at if at else (None, None)
+    if px is None and region:
+        x, y, w, h = region
+        px, py = x + w // 2, y + h // 2
+    if px is not None:
+        subprocess.run(['xdotool', 'mousemove', str(px), str(py)],
+                       capture_output=True, timeout=30)
+        time.sleep(0.15)
     btn = '5' if direction == 'down' else '4'
     subprocess.run(['xdotool', 'click', '--repeat', str(step), '--delay', '120', btn],
                    capture_output=True, timeout=60)
@@ -135,6 +165,14 @@ def main(argv=None):
     ap.add_argument('--max', type=int, default=8, dest='nmax')
     ap.add_argument('--json', action='store_true')
     ap.add_argument('--save-dir', default='')
+    # --check：只回答"这块要不要滚"。判据仍是行为（滚一次看内容变没变），
+    # 因为像素启发式实测不可靠：世界页右侧队伍栏的对比度比真滚动条还高，
+    # 按"右侧有竖条就是可滚"会误报（2026-10-18 实测）。
+    ap.add_argument('--at', default='', help='滚轮生效点 x,y（缺省=区域中心）')
+    ap.add_argument('--jaccard', type=float, default=0.15,
+                    help='判定内容变了的集合差异阈值（缺省 0.15；实测可滚页 0.22~0.36 / 不可滚页 0.0）')
+    ap.add_argument('--check', action='store_true',
+                    help='只判断可滚性：可滚退出 1（下面还有）、不可滚退出 0')
     a = ap.parse_args(argv)
 
     region = None
@@ -147,6 +185,13 @@ def main(argv=None):
             sys.stderr.write('--region 要 x,y,w,h 四个整数\n')
             return 3
 
+    at_point = None
+    if a.at:
+        try:
+            at_point = tuple(int(v) for v in a.at.split(','))
+        except ValueError:
+            sys.stderr.write('--at 要 x,y\n')
+            return 3
     frame, err = grab()
     if not frame:
         sys.stderr.write('取帧失败（是否在 ys-gui-slot 里？）：%s\n' % err)
@@ -156,9 +201,18 @@ def main(argv=None):
 
     items, seen = [], {}
     prev = None
+    diffs = []
     pages = 0
     at_bottom = False
     changed_last = False
+
+    at_point = None
+    if a.at:
+        try:
+            at_point = tuple(int(v) for v in a.at.split(','))
+        except ValueError:
+            sys.stderr.write('--at 要 x,y\n')
+            return 3
 
     for page in range(1, a.nmax + 1):
         if page > 1:
@@ -173,7 +227,17 @@ def main(argv=None):
         cur = visible_texts(boxes, region)
         pages = page
 
-        changed = prev is not None and cur != prev
+        # 「内容变了」必须容忍 OCR 抖动：游戏画面本身在动（血条/粒子/帧数），
+        # 同一屏前后两次 OCR 也会有一两个字符差异。用**集合差异比例**判，而不是 `cur != prev`
+        # （2026-10-18 实测：用 != 判，提瓦特世界这种**完全不可滚**的画面也被判成"可滚"，
+        #  因为队伍名/FPS 抖动了一下）。阈值取 0.35：滚一屏通常换掉 1/3 以上文本。
+        if prev is None:
+            changed = False
+        else:
+            union = prev | cur
+            diff = len(prev ^ cur) / float(len(union) or 1)
+            changed = diff >= a.jaccard   # 0.15：实测可滚页 ≥0.22、不可滚页 0.0，余量充足
+            diffs.append(round(diff, 3))
         changed_last = changed
         if prev is not None and not changed:
             at_bottom = True            # 滚完没变化 ⇒ 到底（或这一屏原本就不可滚）
@@ -189,12 +253,18 @@ def main(argv=None):
             items.append({'text': t, 'cx': b['cx'], 'cy': b['cy'], 'first_page': page})
 
         prev = cur
-        scroll(a.direction, a.step)
+        scroll(a.direction, a.step, region=region, at=at_point)
         time.sleep(1.0)                 # 等滚动动画落定（不是"用时长冒充同步"：下一步会验证变化）
 
-    out = {'items': items, 'pages': pages, 'at_bottom': at_bottom,
+    out = {'items': items, 'pages': pages, 'at_bottom': at_bottom, 'diffs': diffs,
            'changed_last': changed_last, 'region': list(region) if region else None,
            'direction': a.direction}
+    if a.check:
+        # 语义：退出码 1 = 还有更多（可滚），0 = 到底/不可滚。与 grep 的"找到=0"相反，
+        # 这里刻意让"还有信息没看"成为**非零**（异常才是非零，符合 shell 惯例）。
+        print('scrollable=%s pages=%d at_bottom=%s'
+              % ('yes' if not at_bottom else 'no', pages, at_bottom))
+        return 0 if at_bottom else 1
     if a.json:
         print(json.dumps(out, ensure_ascii=False))
     else:
