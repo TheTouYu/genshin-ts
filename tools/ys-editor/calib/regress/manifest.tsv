@@ -22,3 +22,7 @@ neg-scaled-1024x576.png	UNKNOWN	②抓帧失败态：缩放帧 1024x576（= 2560
 neg-terminal-browser.png	UNKNOWN	③非目标应用+②非标几何：终端 + Firefox 浏览器 2172x1132；出处 ~/Pictures/Screenshots/250125_19h53m44s_screenshot.png（Spectacle 2025-01-25 19:53）
 neg-video-player.png	UNKNOWN	③非目标应用+②非标几何：视频播放器窗口（崩坏3 短片）1106x964；出处 ~/Pictures/Screenshots/250309_20h39m03s_screenshot.png（Spectacle 2025-03-09 20:39）
 live-savelist-20261017.png	SAVELIST	活体抓帧（2026-10-17 19:54，用户当场确认是存档选择页）；曾暴露 fast=SAVELIST/full=UNKNOWN 通道矛盾，阈值 0.90→0.85 后两通道一致
+neg-native-world-20261017.png	UNKNOWN	③非目标应用（**原神本体·提瓦特世界**）：真实主游戏帧 2560x1440，UID/Lv/血条 HUD 齐全。它**不是**沙箱编辑器任何一态，判成 EDITOR/MENU/SAVELIST/PLAYTEST/SETTLE 都是错。出处 /tmp/teyvat.png（2026-10-17 用户真机，本体退出存档后）	这是 O-2026-10-17-12「本体未建模」的**第一批负样本**：先钉住"不许误判成本体"，
+# 再决定要不要新增 GAME_WORLD/GAME_PAIMON 两个态。2026-10-18 标定实测：候选本体判据在该帧上
+# 全部负样本零误报（20 帧含 8 负样本），但接入 ys-state 需引入 OCR 依赖，用户裁决暂缓。
+neg-native-paimon-20261017.png	UNKNOWN	③非目标应用（**原神本体·派蒙菜单**）：左侧亮蓝角色面板（冒险等阶/世界等级/九宫格）+ 右侧世界。出处 /tmp/paimon.png（2026-10-17 用户真机）	同上
