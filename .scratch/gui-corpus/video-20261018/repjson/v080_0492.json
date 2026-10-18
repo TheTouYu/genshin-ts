@@ -1,0 +1,3175 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v080_0492.jpg",
+  "sha256": "68a846fefa8c628c24a4d1a4d2a7dc3852a87370aed3d77f588e2ba1937c1c3c",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 344567
+ },
+ "title": {
+  "text": "X",
+  "cx": 2502,
+  "cy": 47,
+  "bbox": [
+   2463,
+   10,
+   2541,
+   84
+  ],
+  "region": "右侧栏",
+  "why": "上半屏字高最大（74px, score=0.88）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 16,
+   "bbox": [
+    1,
+    3,
+    118,
+    29
+   ],
+   "w": 117,
+   "h": 26,
+   "score": 0.9902,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 23.2",
+   "cx": 60,
+   "cy": 41,
+   "bbox": [
+    3,
+    30,
+    117,
+    52
+   ],
+   "w": 114,
+   "h": 22,
+   "score": 0.9819,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "望风山地",
+   "cx": 1824,
+   "cy": 53,
+   "bbox": [
+    1749,
+    30,
+    1899,
+    75
+   ],
+   "w": 150,
+   "h": 45,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "传送锚点",
+   "cx": 2065,
+   "cy": 45,
+   "bbox": [
+    1981,
+    19,
+    2148,
+    72
+   ],
+   "w": 167,
+   "h": 53,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "X",
+   "cx": 2502,
+   "cy": 47,
+   "bbox": [
+    2463,
+    10,
+    2541,
+    84
+   ],
+   "w": 78,
+   "h": 74,
+   "score": 0.8842,
+   "kind": "title"
+  },
+  {
+   "id": 5,
+   "text": "GPU: 2%",
+   "cx": 49,
+   "cy": 65,
+   "bbox": [
+    1,
+    52,
+    96,
+    78
+   ],
+   "w": 95,
+   "h": 26,
+   "score": 0.972,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "废墟",
+   "cx": 36,
+   "cy": 105,
+   "bbox": [
+    0,
+    81,
+    73,
+    129
+   ],
+   "w": 73,
+   "h": 48,
+   "score": 0.998,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "明冠峡",
+   "cx": 683,
+   "cy": 125,
+   "bbox": [
+    624,
+    102,
+    743,
+    147
+   ],
+   "w": 119,
+   "h": 45,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "蒙德蒙德城",
+   "cx": 2061,
+   "cy": 155,
+   "bbox": [
+    1983,
+    136,
+    2140,
+    174
+   ],
+   "w": 157,
+   "h": 38,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "果酒湖",
+   "cx": 1243,
+   "cy": 217,
+   "bbox": [
+    1185,
+    194,
+    1300,
+    240
+   ],
+   "w": 115,
+   "h": 46,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "沿着一定的脉络，散落在大陆上的奇怪装",
+   "cx": 2218,
+   "cy": 217,
+   "bbox": [
+    1931,
+    196,
+    2505,
+    237
+   ],
+   "w": 574,
+   "h": 41,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "置。大陆上的人说这是古代的神秘物件，虽",
+   "cx": 2231,
+   "cy": 265,
+   "bbox": [
+    1931,
+    244,
+    2531,
+    286
+   ],
+   "w": 600,
+   "h": 42,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "星落",
+   "cx": 1868,
+   "cy": 298,
+   "bbox": [
+    1828,
+    273,
+    1908,
+    322
+   ],
+   "w": 80,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "然不知道有什么用，但是早就习以为常了；",
+   "cx": 2226,
+   "cy": 312,
+   "bbox": [
+    1932,
+    293,
+    2520,
+    331
+   ],
+   "w": 588,
+   "h": 38,
+   "score": 0.9894,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "对提瓦特大陆还很陌生的旅行者看它十分",
+   "cx": 2224,
+   "cy": 359,
+   "bbox": [
+    1932,
+    340,
+    2516,
+    378
+   ],
+   "w": 584,
+   "h": 38,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "新鲜，但是好像能明白它的用法。",
+   "cx": 2160,
+   "cy": 406,
+   "bbox": [
+    1931,
+    387,
+    2389,
+    425
+   ],
+   "w": 458,
+   "h": 38,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "低语森林",
+   "cx": 1635,
+   "cy": 471,
+   "bbox": [
+    1556,
+    448,
+    1714,
+    493
+   ],
+   "w": 158,
+   "h": 45,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "蒙德城",
+   "cx": 1213,
+   "cy": 532,
+   "bbox": [
+    1154,
+    509,
+    1272,
+    555
+   ],
+   "w": 118,
+   "h": 46,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "口",
+   "cx": 61,
+   "cy": 678,
+   "bbox": [
+    37,
+    654,
+    86,
+    703
+   ],
+   "w": 49,
+   "h": 49,
+   "score": 0.9864,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "奔狼领",
+   "cx": 684,
+   "cy": 878,
+   "bbox": [
+    625,
+    856,
+    743,
+    901
+   ],
+   "w": 118,
+   "h": 45,
+   "score": 0.9952,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "风起地",
+   "cx": 1772,
+   "cy": 1067,
+   "bbox": [
+    1714,
+    1044,
+    1830,
+    1090
+   ],
+   "w": 116,
+   "h": 46,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "清泉镇",
+   "cx": 1238,
+   "cy": 1188,
+   "bbox": [
+    1179,
+    1164,
+    1298,
+    1211
+   ],
+   "w": 119,
+   "h": 47,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    54,
+    1316
+   ],
+   "w": 47,
+   "h": 18,
+   "score": 0.9127,
+   "kind": "other"
+  },
+  {
+   "id": 23,
+   "text": "10.3 ms",
+   "cx": 85,
+   "cy": 1308,
+   "bbox": [
+    45,
+    1297,
+    126,
+    1319
+   ],
+   "w": 81,
+   "h": 22,
+   "score": 0.9818,
+   "kind": "data"
+  },
+  {
+   "id": 24,
+   "text": "max+ 428.4 ms",
+   "cx": 221,
+   "cy": 1309,
+   "bbox": [
+    157,
+    1299,
+    285,
+    1319
+   ],
+   "w": 128,
+   "h": 20,
+   "score": 0.8994,
+   "kind": "data"
+  },
+  {
+   "id": 25,
+   "text": "晨曦酒庄",
+   "cx": 679,
+   "cy": 1317,
+   "bbox": [
+    605,
+    1294,
+    753,
+    1339
+   ],
+   "w": 148,
+   "h": 45,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "传送",
+   "cx": 2254,
+   "cy": 1341,
+   "bbox": [
+    2207,
+    1315,
+    2300,
+    1368
+   ],
+   "w": 93,
+   "h": 53,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1417,
+   "bbox": [
+    2258,
+    1400,
+    2483,
+    1434
+   ],
+   "w": 225,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    258,
+    48,
+    296,
+    100
+   ],
+   "cx": 277,
+   "cy": 74,
+   "w": 38,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.666,
+    "aspect": 0.73,
+    "corner_fill": 0.01,
+    "area": 1316,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    72,
+    320,
+    112,
+    368
+   ],
+   "cx": 92,
+   "cy": 344,
+   "w": 40,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.598,
+    "aspect": 0.83,
+    "corner_fill": 0.14,
+    "area": 1148,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    458,
+    738,
+    476,
+    758
+   ],
+   "cx": 467,
+   "cy": 748,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 0.9,
+    "corner_fill": 0.19,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    876,
+    1076,
+    906,
+    1100
+   ],
+   "cx": 891,
+   "cy": 1088,
+   "w": 30,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.706,
+    "aspect": 1.25,
+    "corner_fill": 0.14,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    466,
+    1080,
+    486,
+    1104
+   ],
+   "cx": 476,
+   "cy": 1092,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.883,
+    "aspect": 0.83,
+    "corner_fill": 0.25,
+    "area": 424,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1048,
+    1176,
+    1072,
+    1194
+   ],
+   "cx": 1060,
+   "cy": 1185,
+   "w": 24,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.704,
+    "aspect": 1.33,
+    "corner_fill": 0.19,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1588,
+    18,
+    1612,
+    38
+   ],
+   "cx": 1600,
+   "cy": 28,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.633,
+    "aspect": 1.2,
+    "corner_fill": 0.06,
+    "area": 304,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    72,
+    160,
+    136,
+    222
+   ],
+   "cx": 104,
+   "cy": 191,
+   "w": 64,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.495,
+    "aspect": 1.03,
+    "corner_fill": 0.11,
+    "area": 1964,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    354,
+    214,
+    382,
+    236
+   ],
+   "cx": 368,
+   "cy": 225,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.5,
+    "aspect": 1.27,
+    "corner_fill": 0.0,
+    "area": 308,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    268,
+    500,
+    516,
+    696
+   ],
+   "cx": 392,
+   "cy": 598,
+   "w": 248,
+   "h": 196,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.438,
+    "aspect": 1.27,
+    "corner_fill": 0.08,
+    "area": 21312,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    780,
+    866,
+    802,
+    892
+   ],
+   "cx": 791,
+   "cy": 879,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.462,
+    "aspect": 0.85,
+    "corner_fill": 0.08,
+    "area": 264,
+    "src": "flat"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    260,
+    1002,
+    324,
+    1060
+   ],
+   "cx": 292,
+   "cy": 1031,
+   "w": 64,
+   "h": 58,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.64,
+    "aspect": 1.1,
+    "corner_fill": 0.09,
+    "area": 2376,
+    "src": "flat"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    508,
+    1228,
+    542,
+    1262
+   ],
+   "cx": 525,
+   "cy": 1245,
+   "w": 34,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.464,
+    "aspect": 1.0,
+    "corner_fill": 0.09,
+    "area": 536,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    26,
+    1282,
+    50,
+    1302
+   ],
+   "cx": 38,
+   "cy": 1292,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.7,
+    "aspect": 1.2,
+    "corner_fill": 0.12,
+    "area": 336,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1308,
+    758,
+    1348,
+    798
+   ],
+   "cx": 1328,
+   "cy": 778,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 81.9,
+    "ring_L": 80.9,
+    "inside_L": 220.6,
+    "outside_L": 105.0
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1324,
+    662,
+    1360,
+    698
+   ],
+   "cx": 1342,
+   "cy": 680,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 1.0,
+    "contrast": 36.1,
+    "ring_L": 110.2,
+    "inside_L": 137.1,
+    "outside_L": 155.4
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1270,
+    756,
+    1310,
+    796
+   ],
+   "cx": 1290,
+   "cy": 776,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 24.2,
+    "ring_L": 159.7,
+    "inside_L": 133.4,
+    "outside_L": 137.5
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1754,
+    1136,
+    1794,
+    1176
+   ],
+   "cx": 1774,
+   "cy": 1156,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 35.6,
+    "ring_L": 162.0,
+    "inside_L": 176.0,
+    "outside_L": 76.7
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1830,
+    324,
+    1870,
+    364
+   ],
+   "cx": 1850,
+   "cy": 344,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 27.9,
+    "ring_L": 167.2,
+    "inside_L": 177.9,
+    "outside_L": 100.8
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    876,
+    1224,
+    916,
+    1264
+   ],
+   "cx": 896,
+   "cy": 1244,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 25.7,
+    "ring_L": 152.5,
+    "inside_L": 165.0,
+    "outside_L": 88.5
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1946,
+    136,
+    1976,
+    174
+   ],
+   "cx": 1961,
+   "cy": 155,
+   "w": 30,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.948,
+   "label": null,
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 0.79,
+    "corner_fill": 0.23,
+    "area": 884,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1846,
+    778,
+    1874,
+    806
+   ],
+   "cx": 1860,
+   "cy": 792,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.986,
+    "contrast": 59.0,
+    "ring_L": 200.0,
+    "inside_L": 170.2,
+    "outside_L": 111.8
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    250,
+    844,
+    278,
+    868
+   ],
+   "cx": 264,
+   "cy": 856,
+   "w": 28,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.17,
+    "corner_fill": 0.19,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1132,
+    366,
+    1170,
+    416
+   ],
+   "cx": 1151,
+   "cy": 391,
+   "w": 38,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.945,
+   "label": null,
+   "evidence": {
+    "fill": 0.625,
+    "aspect": 0.76,
+    "corner_fill": 0.18,
+    "area": 1188,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    206,
+    936,
+    236,
+    978
+   ],
+   "cx": 221,
+   "cy": 957,
+   "w": 30,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.945,
+   "label": null,
+   "evidence": {
+    "fill": 0.527,
+    "aspect": 0.71,
+    "corner_fill": 0.14,
+    "area": 664,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    386,
+    188,
+    408,
+    212
+   ],
+   "cx": 397,
+   "cy": 200,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": 0.515,
+    "aspect": 0.92,
+    "corner_fill": 0.14,
+    "area": 272,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1498,
+    674,
+    1534,
+    710
+   ],
+   "cx": 1516,
+   "cy": 692,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.972,
+    "contrast": 44.4,
+    "ring_L": 150.8,
+    "inside_L": 102.2,
+    "outside_L": 110.6
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    482,
+    306,
+    628,
+    478
+   ],
+   "cx": 555,
+   "cy": 392,
+   "w": 146,
+   "h": 172,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.452,
+    "aspect": 0.85,
+    "corner_fill": 0.11,
+    "area": 11344,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    904,
+    1070,
+    932,
+    1090
+   ],
+   "cx": 918,
+   "cy": 1080,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.636,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 356,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    820,
+    830,
+    844,
+    854
+   ],
+   "cx": 832,
+   "cy": 842,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.958,
+    "contrast": 22.6,
+    "ring_L": 157.0,
+    "inside_L": 139.2,
+    "outside_L": 129.7
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1132,
+    744,
+    1156,
+    768
+   ],
+   "cx": 1144,
+   "cy": 756,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.958,
+    "contrast": 23.8,
+    "ring_L": 141.4,
+    "inside_L": 103.3,
+    "outside_L": 132.0
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1154,
+    672,
+    1174,
+    696
+   ],
+   "cx": 1164,
+   "cy": 684,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.941,
+   "label": null,
+   "evidence": {
+    "fill": 0.625,
+    "aspect": 0.83,
+    "corner_fill": 0.19,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1908,
+    1102,
+    1934,
+    1122
+   ],
+   "cx": 1921,
+   "cy": 1112,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.941,
+   "label": null,
+   "evidence": {
+    "fill": 0.623,
+    "aspect": 1.3,
+    "corner_fill": 0.19,
+    "area": 324,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1954,
+    1330,
+    1976,
+    1356
+   ],
+   "cx": 1965,
+   "cy": 1343,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 0.85,
+    "corner_fill": 0.25,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    696,
+    304,
+    744,
+    352
+   ],
+   "cx": 720,
+   "cy": 328,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.944,
+    "contrast": 20.9,
+    "ring_L": 89.2,
+    "inside_L": 119.7,
+    "outside_L": 100.5
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    830,
+    140,
+    886,
+    192
+   ],
+   "cx": 858,
+   "cy": 166,
+   "w": 56,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.937,
+   "label": null,
+   "evidence": {
+    "fill": 0.445,
+    "aspect": 1.08,
+    "corner_fill": 0.12,
+    "area": 1296,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1196,
+    698,
+    1220,
+    722
+   ],
+   "cx": 1208,
+   "cy": 710,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.937,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.958,
+    "contrast": 19.5,
+    "ring_L": 112.9,
+    "inside_L": 143.5,
+    "outside_L": 121.3
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1256,
+    1058,
+    1296,
+    1098
+   ],
+   "cx": 1276,
+   "cy": 1078,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.931,
+    "contrast": 26.0,
+    "ring_L": 145.1,
+    "inside_L": 134.4,
+    "outside_L": 103.9
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1936,
+    30,
+    1968,
+    62
+   ],
+   "cx": 1952,
+   "cy": 46,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.931,
+    "contrast": 30.3,
+    "ring_L": 144.6,
+    "inside_L": 165.6,
+    "outside_L": 63.0
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    150,
+    904,
+    182,
+    944
+   ],
+   "cx": 166,
+   "cy": 924,
+   "w": 32,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": 0.581,
+    "aspect": 0.8,
+    "corner_fill": 0.19,
+    "area": 744,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "右侧栏",
+   "bbox": [
+    1902,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=1902（覆盖 93% 高）"
+  },
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1380,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1380（覆盖 35% 宽）"
+  },
+  {
+   "name": "画布",
+   "bbox": [
+    1908,
+    102,
+    2560,
+    1436
+   ],
+   "why": "最大平坦亮面（面积 19% 帧）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    1556,
+    19,
+    2531,
+    1368
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 27,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 9,
+   "row_y": [
+    49,
+    155,
+    217,
+    291,
+    359,
+    406,
+    471,
+    1067,
+    1341
+   ],
+   "rows": [
+    {
+     "y": 49,
+     "texts": [
+      "传送锚点",
+      "望风山地"
+     ]
+    },
+    {
+     "y": 155,
+     "texts": [
+      "蒙德蒙德城"
+     ]
+    },
+    {
+     "y": 217,
+     "texts": [
+      "沿着一定的脉络，散落在大陆上的奇怪装"
+     ]
+    },
+    {
+     "y": 291,
+     "texts": [
+      "置。大陆上的人说这是古代的神秘物件，虽",
+      "星落",
+      "然不知道有什么用，但是早就习以为常了；"
+     ]
+    },
+    {
+     "y": 359,
+     "texts": [
+      "对提瓦特大陆还很陌生的旅行者看它十分"
+     ]
+    },
+    {
+     "y": 406,
+     "texts": [
+      "新鲜，但是好像能明白它的用法。"
+     ]
+    },
+    {
+     "y": 471,
+     "texts": [
+      "低语森林"
+     ]
+    },
+    {
+     "y": 1067,
+     "texts": [
+      "风起地"
+     ]
+    },
+    {
+     "y": 1341,
+     "texts": [
+      "传送"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    605,
+    102,
+    753,
+    1339
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    125,
+    878,
+    1317
+   ],
+   "rows": [
+    {
+     "y": 125,
+     "texts": [
+      "明冠峡"
+     ]
+    },
+    {
+     "y": 878,
+     "texts": [
+      "奔狼领"
+     ]
+    },
+    {
+     "y": 1317,
+     "texts": [
+      "晨曦酒庄"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1154,
+    194,
+    1300,
+    1211
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 23,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    217,
+    532,
+    1188
+   ],
+   "rows": [
+    {
+     "y": 217,
+     "texts": [
+      "果酒湖"
+     ]
+    },
+    {
+     "y": 532,
+     "texts": [
+      "蒙德城"
+     ]
+    },
+    {
+     "y": 1188,
+     "texts": [
+      "清泉镇"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    0,
+    81,
+    86,
+    703
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 25,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    105,
+    678
+   ],
+   "rows": [
+    {
+     "y": 105,
+     "texts": [
+      "废墟"
+     ]
+    },
+    {
+     "y": 678,
+     "texts": [
+      "口"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "星落",
+   "text_id": 12,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 2,
+   "dx": -18,
+   "dy": 46,
+   "confidence": 0.548
+  },
+  {
+   "text": "传送锚点",
+   "text_id": 3,
+   "target": "circle@(1952,46)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 13,
+   "dx": -112,
+   "dy": 0,
+   "confidence": 0.539
+  },
+  {
+   "text": "废墟",
+   "text_id": 6,
+   "target": "circle@(104,191)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 31,
+   "dx": 68,
+   "dy": 86,
+   "confidence": 0.524
+  },
+  {
+   "text": "奔狼领",
+   "text_id": 19,
+   "target": "circle@(791,879)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 37,
+   "dx": 107,
+   "dy": 0,
+   "confidence": 0.519
+  },
+  {
+   "text": "风起地",
+   "text_id": 20,
+   "target": "circle@(1774,1156)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 46,
+   "dx": 2,
+   "dy": 89,
+   "confidence": 0.512
+  },
+  {
+   "text": "望风山地",
+   "text_id": 2,
+   "target": "circle@(1961,155)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 61,
+   "dx": 137,
+   "dy": 102,
+   "confidence": 0.499
+  },
+  {
+   "text": "置。大陆上的人说这是古代的神秘物件，虽",
+   "text_id": 11,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 61,
+   "dx": -381,
+   "dy": 79,
+   "confidence": 0.499
+  },
+  {
+   "text": "新鲜，但是好像能明白它的用法。",
+   "text_id": 15,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 61,
+   "dx": -310,
+   "dy": -62,
+   "confidence": 0.499
+  },
+  {
+   "text": "然不知道有什么用，但是早就习以为常了；",
+   "text_id": 13,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 62,
+   "dx": -376,
+   "dy": 32,
+   "confidence": 0.498
+  },
+  {
+   "text": "对提瓦特大陆还很陌生的旅行者看它十分",
+   "text_id": 14,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 62,
+   "dx": -374,
+   "dy": -15,
+   "confidence": 0.498
+  },
+  {
+   "text": "晨曦酒庄",
+   "text_id": 25,
+   "target": "circle@(525,1245)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 63,
+   "dx": -154,
+   "dy": -72,
+   "confidence": 0.498
+  },
+  {
+   "text": "明冠峡",
+   "text_id": 7,
+   "target": "circle@(858,166)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 87,
+   "dx": 174,
+   "dy": 42,
+   "confidence": 0.478
+  },
+  {
+   "text": "沿着一定的脉络，散落在大陆上的奇怪装",
+   "text_id": 10,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 87,
+   "dx": -368,
+   "dy": 128,
+   "confidence": 0.478
+  },
+  {
+   "text": "清泉镇",
+   "text_id": 21,
+   "target": "circle@(1060,1185)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 107,
+   "dx": -178,
+   "dy": -2,
+   "confidence": 0.461
+  },
+  {
+   "text": "蒙德城",
+   "text_id": 17,
+   "target": "circle@(1342,680)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 107,
+   "dx": 129,
+   "dy": 148,
+   "confidence": 0.461
+  },
+  {
+   "text": "低语森林",
+   "text_id": 16,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 116,
+   "dx": 215,
+   "dy": -126,
+   "confidence": 0.453
+  },
+  {
+   "text": "果酒湖",
+   "text_id": 9,
+   "target": "circle@(1151,391)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 126,
+   "dx": -92,
+   "dy": 174,
+   "confidence": 0.445
+  },
+  {
+   "text": "蒙德蒙德城",
+   "text_id": 8,
+   "target": "circle@(1850,344)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 150,
+   "dx": -212,
+   "dy": 189,
+   "confidence": 0.425
+  },
+  {
+   "text": "蒙德蒙德城",
+   "text_id": 8,
+   "target": "circle@(1961,155)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 7,
+   "dx": -100,
+   "dy": 0,
+   "confidence": 0.544
+  },
+  {
+   "text": "沿着一定的脉络，散落在大陆上的奇怪装",
+   "text_id": 10,
+   "target": "circle@(1961,155)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 22,
+   "dx": -257,
+   "dy": -62,
+   "confidence": 0.532
+  },
+  {
+   "text": "望风山地",
+   "text_id": 2,
+   "target": "circle@(1952,46)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 37,
+   "dx": 128,
+   "dy": -6,
+   "confidence": 0.519
+  },
+  {
+   "text": "传送锚点",
+   "text_id": 3,
+   "target": "circle@(1961,155)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 64,
+   "dx": -104,
+   "dy": 110,
+   "confidence": 0.497
+  },
+  {
+   "text": "清泉镇",
+   "text_id": 21,
+   "target": "circle@(1276,1078)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 66,
+   "dx": 38,
+   "dy": -110,
+   "confidence": 0.495
+  },
+  {
+   "text": "置。大陆上的人说这是古代的神秘物件，虽",
+   "text_id": 11,
+   "target": "circle@(1961,155)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 70,
+   "dx": -270,
+   "dy": -110,
+   "confidence": 0.492
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    121,
+    81
+   ],
+   "confidence": 0.74,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=17.4，非纯黑 L=46",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 23.2",
+     "GPU: 2%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     5
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 46.0,
+    "bg_std": 17.4,
+    "ring_mean": 43.6,
+    "ring_std": 17.2,
+    "texture_ratio": 1.01,
+    "bg_rgb": [
+     40,
+     52,
+     44
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    1910,
+    102,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     221.0,
+     128.0,
+     135.0
+    ],
+    "fill": 0.57,
+    "rect": 0.69
+   },
+   "text": [
+    "蒙德蒙德城",
+    "沿着一定的脉络，散落在大陆上的奇怪装",
+    "置。大陆上的人说这是古代的神秘物件，虽",
+    "然不知道有什么用，但是早就习以为常了；",
+    "对提瓦特大陆还很陌生的旅行者看它十分",
+    "新鲜，但是好像能明白它的用法。",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1950,
+      140,
+      1974,
+      172
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      1902,
+      1292,
+      1998,
+      1392
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 198.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:7",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 7)",
+    "area_px": 600812,
+    "area_frac": 0.2359,
+    "aspect": 0.49,
+    "grid": "col n=2 pitch_x=None pitch_y=574.0",
+    "skin_siblings": 0,
+    "text_in": 7,
+    "text_ui": 7,
+    "skin_lab": [
+     221.0,
+     128.0,
+     135.0
+    ],
+    "flat_fill": 0.57,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    1938,
+    0,
+    2560,
+    92
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     75.0,
+     127.0,
+     120.0
+    ],
+    "fill": 0.51,
+    "rect": 0.65
+   },
+   "text": [
+    "传送锚点",
+    "X"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1938,
+      28,
+      1968,
+      70
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 193.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "top",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 37468,
+    "area_frac": 0.0155,
+    "aspect": 6.76,
+    "grid": "col n=2 pitch_x=None pitch_y=725.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 1,
+    "skin_lab": [
+     75.0,
+     127.0,
+     120.0
+    ],
+    "flat_fill": 0.51,
+    "rect": 0.65
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    1982,
+    1312,
+    2532,
+    1378
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     114.0,
+     130.0,
+     122.0
+    ],
+    "fill": 0.68,
+    "rect": 0.81
+   },
+   "text": [
+    "传送"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.76,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 29484,
+    "area_frac": 0.0098,
+    "aspect": 8.33,
+    "grid": "col n=2 pitch_x=None pitch_y=574.0",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     114.0,
+     130.0,
+     122.0
+    ],
+    "flat_fill": 0.68,
+    "rect": 0.81
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 23.2",
+  "望风山地",
+  "GPU: 2%",
+  "废墟",
+  "明冠峡",
+  "果酒湖",
+  "星落",
+  "低语森林",
+  "蒙德城",
+  "口",
+  "奔狼领",
+  "风起地",
+  "清泉镇",
+  "min:",
+  "10.3 ms",
+  "max+ 428.4 ms",
+  "晨曦酒庄"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    398,
+    582,
+    424,
+    610
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 146.0
+  },
+  {
+   "bbox": [
+    1708,
+    210,
+    1728,
+    226
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 102.0
+  },
+  {
+   "bbox": [
+    0,
+    202,
+    38,
+    270
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 110.0
+  },
+  {
+   "bbox": [
+    1604,
+    206,
+    1620,
+    228
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 91.0
+  },
+  {
+   "bbox": [
+    1752,
+    1128,
+    1800,
+    1200
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    1344,
+    1184,
+    1368,
+    1200
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 67.0
+  },
+  {
+   "bbox": [
+    634,
+    670,
+    674,
+    728
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 160.0
+  },
+  {
+   "bbox": [
+    862,
+    406,
+    904,
+    484
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 117.0
+  },
+  {
+   "bbox": [
+    872,
+    1214,
+    924,
+    1290
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 137.0
+  },
+  {
+   "bbox": [
+    1836,
+    764,
+    1884,
+    814
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 178.0
+  },
+  {
+   "bbox": [
+    260,
+    48,
+    294,
+    100
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 124.0
+  },
+  {
+   "bbox": [
+    1088,
+    6,
+    1120,
+    22
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 53.0
+  },
+  {
+   "bbox": [
+    1780,
+    816,
+    1862,
+    898
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 185.0
+  },
+  {
+   "bbox": [
+    146,
+    300,
+    174,
+    322
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    18,
+    508,
+    50,
+    530
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 55.0
+  },
+  {
+   "bbox": [
+    116,
+    528,
+    142,
+    544
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    316,
+    1228,
+    360,
+    1254
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    434,
+    714,
+    500,
+    778
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 164.0
+  },
+  {
+   "bbox": [
+    628,
+    1210,
+    646,
+    1284
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 55.0
+  },
+  {
+   "bbox": [
+    108,
+    96,
+    130,
+    122
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    1888,
+    1192,
+    1904,
+    1228
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    1760,
+    128,
+    1816,
+    212
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 133.0
+  },
+  {
+   "bbox": [
+    100,
+    952,
+    116,
+    974
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 69.0
+  },
+  {
+   "bbox": [
+    1360,
+    972,
+    1388,
+    1008
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    12,
+    410,
+    46,
+    460
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 114.0
+  },
+  {
+   "bbox": [
+    1776,
+    1228,
+    1812,
+    1280
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 167.0
+  },
+  {
+   "bbox": [
+    1054,
+    1360,
+    1072,
+    1384
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 59.0
+  },
+  {
+   "bbox": [
+    1476,
+    110,
+    1528,
+    188
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    710,
+    216,
+    756,
+    262
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 143.0
+  },
+  {
+   "bbox": [
+    56,
+    366,
+    82,
+    406
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    688,
+    1204,
+    708,
+    1226
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 69.0
+  },
+  {
+   "bbox": [
+    1442,
+    1360,
+    1484,
+    1432
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 77.0
+  },
+  {
+   "bbox": [
+    864,
+    1384,
+    888,
+    1402
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 49.0
+  },
+  {
+   "bbox": [
+    242,
+    402,
+    262,
+    438
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 73.0
+  },
+  {
+   "bbox": [
+    1572,
+    778,
+    1628,
+    852
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 191.0
+  },
+  {
+   "bbox": [
+    48,
+    548,
+    84,
+    608
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 149.0
+  },
+  {
+   "bbox": [
+    1568,
+    378,
+    1624,
+    444
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 94.0
+  },
+  {
+   "bbox": [
+    1840,
+    1210,
+    1866,
+    1248
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    646,
+    1350,
+    712,
+    1398
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    886,
+    834,
+    936,
+    886
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 180.0
+  },
+  {
+   "bbox": [
+    488,
+    1376,
+    528,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 109.0
+  },
+  {
+   "bbox": [
+    512,
+    208,
+    544,
+    228
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    860,
+    902,
+    914,
+    930
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 102.0
+  },
+  {
+   "bbox": [
+    588,
+    742,
+    620,
+    760
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 100.0
+  },
+  {
+   "bbox": [
+    696,
+    36,
+    774,
+    74
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 66.0
+  },
+  {
+   "bbox": [
+    636,
+    274,
+    652,
+    334
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    1112,
+    990,
+    1152,
+    1010
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 65.0
+  },
+  {
+   "bbox": [
+    1066,
+    12,
+    1088,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    666,
+    262,
+    740,
+    362
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 148.0
+  },
+  {
+   "bbox": [
+    1126,
+    358,
+    1180,
+    428
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 131.0
+  },
+  {
+   "bbox": [
+    1428,
+    1064,
+    1504,
+    1110
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 80.0
+  },
+  {
+   "bbox": [
+    1504,
+    272,
+    1520,
+    304
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    228,
+    620,
+    268,
+    642
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    90,
+    58,
+    124,
+    100
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    1638,
+    1184,
+    1698,
+    1290
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 214.0
+  },
+  {
+   "bbox": [
+    756,
+    1320,
+    778,
+    1408
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 52.0
+  },
+  {
+   "bbox": [
+    750,
+    1418,
+    772,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 52.0
+  },
+  {
+   "bbox": [
+    866,
+    112,
+    900,
+    194
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 82.0
+  },
+  {
+   "bbox": [
+    762,
+    252,
+    800,
+    324
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    1752,
+    544,
+    1850,
+    570
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    1208,
+    982,
+    1272,
+    1030
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    472,
+    348,
+    494,
+    424
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    90,
+    132,
+    122,
+    168
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    696,
+    816,
+    736,
+    852
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 100.0
+  },
+  {
+   "bbox": [
+    596,
+    1124,
+    612,
+    1140
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    896,
+    1406,
+    1024,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 118.0
+  },
+  {
+   "bbox": [
+    308,
+    354,
+    370,
+    382
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    800,
+    1356,
+    858,
+    1382
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 59.0
+  },
+  {
+   "bbox": [
+    160,
+    542,
+    184,
+    568
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    1698,
+    550,
+    1728,
+    596
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    1774,
+    676,
+    1794,
+    704
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 77.0
+  },
+  {
+   "bbox": [
+    296,
+    1398,
+    316,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    650,
+    310,
+    672,
+    358
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 49.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 127,
+  "ocr_ms": 558,
+  "pixel_ms": 1183,
+  "container_ms": 372,
+  "container_cached": false,
+  "total_ms": 1869,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 28,
+  "err": null
+ },
+ "title_text_id": 4,
+ "digest": "屏幕 2560x1440 · 文本 28 · 控件 40 · 容器 3 · 邻接 24 · 遮挡 1 · 1869ms（OCR daemon）\n标题「X」@(2502,47) 右侧栏 · 字高 74px\n控件: circle@(1850,344) | circle@(1952,46) | circle@(104,191) | circle@(791,879)\n区域: 右侧栏 (1902,0)-(2560,1440) | 底栏 (0,1380)-(2560,1440) | 画布 (1908,102)-(2560,1436)\n遮挡 [0, 0, 121, 81] (0,0)-(121,81)（conf 0.74）：左上角小字叠加层：小字 3 框，低方差 std=17.4，非纯黑 L=46"
+}

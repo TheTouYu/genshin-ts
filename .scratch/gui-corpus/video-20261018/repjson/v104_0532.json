@@ -1,0 +1,2370 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v104_0532.jpg",
+  "sha256": "51cf4a8f879e2cd88ad58af5cb39ec6627152a96699e4307c46f0f0887a05828",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 117509
+ },
+ "title": {
+  "text": "第1场",
+  "cx": 1493,
+  "cy": 284,
+  "bbox": [
+   1418,
+   262,
+   1569,
+   307
+  ],
+  "region": null,
+  "why": "上半屏字高最大（45px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    2,
+    7,
+    118,
+    29
+   ],
+   "w": 116,
+   "h": 22,
+   "score": 0.9712,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 26.0",
+   "cx": 61,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    120,
+    55
+   ],
+   "w": 118,
+   "h": 26,
+   "score": 0.9912,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "判测胜券本征",
+   "cx": 288,
+   "cy": 61,
+   "bbox": [
+    187,
+    42,
+    389,
+    81
+   ],
+   "w": 202,
+   "h": 39,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "100/300",
+   "cx": 1909,
+   "cy": 60,
+   "bbox": [
+    1832,
+    41,
+    1985,
+    79
+   ],
+   "w": 153,
+   "h": 38,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "预测奖励",
+   "cx": 2191,
+   "cy": 62,
+   "bbox": [
+    2122,
+    42,
+    2260,
+    82
+   ],
+   "w": 138,
+   "h": 40,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "GPU: 4%",
+   "cx": 49,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    95,
+    77
+   ],
+   "w": 92,
+   "h": 22,
+   "score": 0.9692,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "十六强赛甲组",
+   "cx": 343,
+   "cy": 196,
+   "bbox": [
+    245,
+    177,
+    441,
+    216
+   ],
+   "w": 196,
+   "h": 39,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "第1场",
+   "cx": 1493,
+   "cy": 284,
+   "bbox": [
+    1418,
+    262,
+    1569,
+    307
+   ],
+   "w": 151,
+   "h": 45,
+   "score": 0.9993,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "十六强赛乙组",
+   "cx": 343,
+   "cy": 334,
+   "bbox": [
+    246,
+    315,
+    441,
+    354
+   ],
+   "w": 195,
+   "h": 39,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "获得评分",
+   "cx": 2267,
+   "cy": 336,
+   "bbox": [
+    2198,
+    315,
+    2335,
+    358
+   ],
+   "w": 137,
+   "h": 43,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "掷弹兵",
+   "cx": 1147,
+   "cy": 394,
+   "bbox": [
+    1090,
+    376,
+    1205,
+    411
+   ],
+   "w": 115,
+   "h": 35,
+   "score": 0.9928,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "0",
+   "cx": 2270,
+   "cy": 422,
+   "bbox": [
+    2232,
+    403,
+    2309,
+    441
+   ],
+   "w": 77,
+   "h": 38,
+   "score": 0.982,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "「八强赛乙组」结果公布",
+   "cx": 1282,
+   "cy": 720,
+   "bbox": [
+    1032,
+    693,
+    1532,
+    748
+   ],
+   "w": 500,
+   "h": 55,
+   "score": 0.9504,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "查看战报后结算预测评分",
+   "cx": 1278,
+   "cy": 817,
+   "bbox": [
+    1083,
+    798,
+    1473,
+    837
+   ],
+   "w": 390,
+   "h": 39,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "对战回放",
+   "cx": 2267,
+   "cy": 954,
+   "bbox": [
+    2201,
+    936,
+    2334,
+    972
+   ],
+   "w": 133,
+   "h": 36,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "前往查看",
+   "cx": 1301,
+   "cy": 1003,
+   "bbox": [
+    1219,
+    977,
+    1384,
+    1029
+   ],
+   "w": 165,
+   "h": 52,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "1",
+   "cx": 1301,
+   "cy": 1101,
+   "bbox": [
+    1286,
+    1087,
+    1316,
+    1114
+   ],
+   "w": 30,
+   "h": 27,
+   "score": 0.6121,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    50,
+    1315
+   ],
+   "w": 41,
+   "h": 14,
+   "score": 0.9934,
+   "kind": "other"
+  },
+  {
+   "id": 18,
+   "text": "maxt",
+   "cx": 180,
+   "cy": 1309,
+   "bbox": [
+    158,
+    1302,
+    202,
+    1316
+   ],
+   "w": 44,
+   "h": 14,
+   "score": 0.8703,
+   "kind": "hud"
+  },
+  {
+   "id": 19,
+   "text": "147.6 ms",
+   "cx": 239,
+   "cy": 1307,
+   "bbox": [
+    194,
+    1297,
+    283,
+    1317
+   ],
+   "w": 89,
+   "h": 20,
+   "score": 0.9604,
+   "kind": "hud"
+  },
+  {
+   "id": 20,
+   "text": "赛程总览",
+   "cx": 709,
+   "cy": 1362,
+   "bbox": [
+    641,
+    1342,
+    776,
+    1382
+   ],
+   "w": 135,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "UID: 110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9734,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1994,
+    416,
+    2016,
+    436
+   ],
+   "cx": 2005,
+   "cy": 426,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.836,
+    "aspect": 1.1,
+    "corner_fill": 0.25,
+    "area": 368,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1252,
+    482,
+    1310,
+    544
+   ],
+   "cx": 1281,
+   "cy": 513,
+   "w": 58,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.493,
+    "aspect": 0.94,
+    "corner_fill": 0.04,
+    "area": 1772,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1092,
+    544,
+    1132,
+    574
+   ],
+   "cx": 1112,
+   "cy": 559,
+   "w": 40,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.567,
+    "aspect": 1.33,
+    "corner_fill": 0.09,
+    "area": 680,
+    "src": "flat"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    988,
+    1322,
+    1016,
+    1342
+   ],
+   "cx": 1002,
+   "cy": 1332,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.6,
+    "aspect": 1.4,
+    "corner_fill": 0.12,
+    "area": 336,
+    "src": "flat"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1062,
+    992,
+    1086,
+    1016
+   ],
+   "cx": 1074,
+   "cy": 1004,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 65.9,
+    "ring_L": 116.0,
+    "inside_L": 50.6,
+    "outside_L": 49.7
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1240,
+    414,
+    1274,
+    450
+   ],
+   "cx": 1257,
+   "cy": 432,
+   "w": 34,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": 0.559,
+    "aspect": 0.94,
+    "corner_fill": 0.16,
+    "area": 684,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1286,
+    412,
+    1322,
+    450
+   ],
+   "cx": 1304,
+   "cy": 431,
+   "w": 36,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 0.95,
+    "corner_fill": 0.16,
+    "area": 700,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1788,
+    48,
+    1820,
+    80
+   ],
+   "cx": 1804,
+   "cy": 64,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": 0.77,
+    "aspect": 1.0,
+    "corner_fill": 0.27,
+    "area": 788,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1894,
+    540,
+    1914,
+    558
+   ],
+   "cx": 1904,
+   "cy": 549,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.925,
+   "label": null,
+   "evidence": {
+    "fill": 0.856,
+    "aspect": 1.11,
+    "corner_fill": 0.31,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2310,
+    38,
+    2362,
+    90
+   ],
+   "cx": 2336,
+   "cy": 64,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.925,
+   "label": null,
+   "evidence": {
+    "fill": 0.456,
+    "aspect": 1.0,
+    "corner_fill": 0.15,
+    "area": 1232,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1014,
+    692,
+    1034,
+    738
+   ],
+   "cx": 1024,
+   "cy": 715,
+   "w": 20,
+   "h": 46,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.957,
+    "aspect": 0.43,
+    "corner_fill": 0.75,
+    "area": 880,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    2006,
+    808,
+    2026,
+    828
+   ],
+   "cx": 2016,
+   "cy": 818,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.88,
+    "aspect": 1.0,
+    "corner_fill": 0.38,
+    "area": 352,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    10,
+    1382,
+    52,
+    1398
+   ],
+   "cx": 31,
+   "cy": 1390,
+   "w": 42,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.881,
+    "aspect": 2.62,
+    "corner_fill": 0.81,
+    "area": 592,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    56,
+    1300,
+    118,
+    1318
+   ],
+   "cx": 87,
+   "cy": 1309,
+   "w": 62,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 3.44,
+    "corner_fill": 0.56,
+    "area": 976,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1402,
+    1408,
+    1448,
+    1440
+   ],
+   "cx": 1425,
+   "cy": 1424,
+   "w": 46,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.429,
+    "aspect": 1.44,
+    "corner_fill": 0.2,
+    "area": 632,
+    "src": "flat"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1020,
+    548,
+    1046,
+    576
+   ],
+   "cx": 1033,
+   "cy": 562,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.714,
+    "aspect": 0.93,
+    "corner_fill": 0.33,
+    "area": 520,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    222,
+    1352,
+    250,
+    1368
+   ],
+   "cx": 236,
+   "cy": 1360,
+   "w": 28,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.857,
+    "aspect": 1.75,
+    "corner_fill": 0.56,
+    "area": 384,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    84,
+    268,
+    120,
+    296
+   ],
+   "cx": 102,
+   "cy": 282,
+   "w": 36,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 1.29,
+    "corner_fill": 0.95,
+    "area": 660,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    116,
+    12,
+    140,
+    46
+   ],
+   "cx": 128,
+   "cy": 29,
+   "w": 24,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.657,
+    "aspect": 0.71,
+    "corner_fill": 0.33,
+    "area": 536,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    260,
+    1348,
+    288,
+    1368
+   ],
+   "cx": 274,
+   "cy": 1358,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.729,
+    "aspect": 1.4,
+    "corner_fill": 0.38,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1050,
+    508,
+    1078,
+    536
+   ],
+   "cx": 1064,
+   "cy": 522,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.74,
+    "aspect": 1.0,
+    "corner_fill": 0.41,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    2036,
+    850,
+    2058,
+    872
+   ],
+   "cx": 2047,
+   "cy": 861,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.851,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2420,
+    28,
+    2492,
+    100
+   ],
+   "cx": 2456,
+   "cy": 64,
+   "w": 72,
+   "h": 72,
+   "shape": "circle",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.502,
+    "aspect": 1.0,
+    "corner_fill": 0.32,
+    "area": 2600,
+    "src": "flat"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2310,
+    836,
+    2332,
+    860
+   ],
+   "cx": 2321,
+   "cy": 848,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.845,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 0.92,
+    "corner_fill": 0.44,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    64,
+    1382,
+    184,
+    1398
+   ],
+   "cx": 124,
+   "cy": 1390,
+   "w": 120,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.842,
+   "label": null,
+   "evidence": {
+    "fill": 0.76,
+    "aspect": 7.5,
+    "corner_fill": 0.38,
+    "area": 1460,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    62,
+    1322,
+    426,
+    1374
+   ],
+   "cx": 244,
+   "cy": 1348,
+   "w": 364,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.833,
+   "label": null,
+   "evidence": {
+    "fill": 0.74,
+    "aspect": 7.0,
+    "corner_fill": 0.75,
+    "area": 14008,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1952,
+    404,
+    1974,
+    440
+   ],
+   "cx": 1963,
+   "cy": 422,
+   "w": 22,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.827,
+   "label": null,
+   "evidence": {
+    "fill": 0.727,
+    "aspect": 0.61,
+    "corner_fill": 0.42,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1430,
+    534,
+    1474,
+    572
+   ],
+   "cx": 1452,
+   "cy": 553,
+   "w": 44,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.819,
+   "label": null,
+   "evidence": {
+    "fill": 0.622,
+    "aspect": 1.16,
+    "corner_fill": 0.43,
+    "area": 1040,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1196,
+    518,
+    1214,
+    574
+   ],
+   "cx": 1205,
+   "cy": 546,
+   "w": 18,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.811,
+   "label": null,
+   "evidence": {
+    "fill": 0.69,
+    "aspect": 0.32,
+    "corner_fill": 0.5,
+    "area": 696,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1526,
+    548,
+    1544,
+    576
+   ],
+   "cx": 1535,
+   "cy": 562,
+   "w": 18,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.811,
+   "label": null,
+   "evidence": {
+    "fill": 0.69,
+    "aspect": 0.64,
+    "corner_fill": 0.44,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    128,
+    1346,
+    148,
+    1370
+   ],
+   "cx": 138,
+   "cy": 1358,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.81,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 0.83,
+    "corner_fill": 0.5,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1102,
+    832,
+    1450,
+    852
+   ],
+   "cx": 1276,
+   "cy": 842,
+   "w": 348,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.803,
+   "label": null,
+   "evidence": {
+    "fill": 0.674,
+    "aspect": 17.4,
+    "corner_fill": 0.0,
+    "area": 4692,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    190,
+    1380,
+    426,
+    1398
+   ],
+   "cx": 308,
+   "cy": 1389,
+   "w": 236,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.794,
+   "label": null,
+   "evidence": {
+    "fill": 0.653,
+    "aspect": 13.11,
+    "corner_fill": 0.31,
+    "area": 2772,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2060,
+    56,
+    2106,
+    88
+   ],
+   "cx": 2083,
+   "cy": 72,
+   "w": 46,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.793,
+   "label": null,
+   "evidence": {
+    "fill": 0.432,
+    "aspect": 1.44,
+    "corner_fill": 0.41,
+    "area": 636,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    52,
+    1374
+   ],
+   "cx": 31,
+   "cy": 1348,
+   "w": 42,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.792,
+   "label": null,
+   "evidence": {
+    "fill": 0.934,
+    "aspect": 0.81,
+    "corner_fill": 0.76,
+    "area": 2040,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    84,
+    230,
+    120,
+    258
+   ],
+   "cx": 102,
+   "cy": 244,
+   "w": 36,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.788,
+   "label": null,
+   "evidence": {
+    "fill": 0.448,
+    "aspect": 1.29,
+    "corner_fill": 0.75,
+    "area": 452,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    396,
+    1344,
+    422,
+    1370
+   ],
+   "cx": 409,
+   "cy": 1357,
+   "w": 26,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.775,
+   "label": null,
+   "evidence": {
+    "fill": 0.876,
+    "aspect": 1.0,
+    "corner_fill": 0.72,
+    "area": 592,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1262,
+    452,
+    1298,
+    470
+   ],
+   "cx": 1280,
+   "cy": 461,
+   "w": 36,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.772,
+   "label": null,
+   "evidence": {
+    "fill": 0.605,
+    "aspect": 2.0,
+    "corner_fill": 0.38,
+    "area": 392,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1466,
+    486,
+    1486,
+    516
+   ],
+   "cx": 1476,
+   "cy": 501,
+   "w": 20,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.77,
+   "label": null,
+   "evidence": {
+    "fill": 0.6,
+    "aspect": 0.67,
+    "corner_fill": 0.31,
+    "area": 360,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1226,
+    562,
+    1254,
+    610
+   ],
+   "cx": 1240,
+   "cy": 586,
+   "w": 28,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.756,
+   "label": null,
+   "evidence": {
+    "fill": 0.568,
+    "aspect": 0.58,
+    "corner_fill": 0.3,
+    "area": 764,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "画布",
+   "bbox": [
+    0,
+    606,
+    2560,
+    920
+   ],
+   "why": "最大平坦亮面（面积 20% 帧）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    1032,
+    262,
+    1569,
+    1114
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    284,
+    394,
+    720,
+    817,
+    1003,
+    1101
+   ],
+   "rows": [
+    {
+     "y": 284,
+     "texts": [
+      "第1场"
+     ]
+    },
+    {
+     "y": 394,
+     "texts": [
+      "掷弹兵"
+     ]
+    },
+    {
+     "y": 720,
+     "texts": [
+      "「八强赛乙组」结果公布"
+     ]
+    },
+    {
+     "y": 817,
+     "texts": [
+      "查看战报后结算预测评分"
+     ]
+    },
+    {
+     "y": 1003,
+     "texts": [
+      "前往查看"
+     ]
+    },
+    {
+     "y": 1101,
+     "texts": [
+      "1"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2122,
+    42,
+    2335,
+    972
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 18,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 4,
+   "row_y": [
+    62,
+    336,
+    422,
+    954
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "预测奖励"
+     ]
+    },
+    {
+     "y": 336,
+     "texts": [
+      "获得评分"
+     ]
+    },
+    {
+     "y": 422,
+     "texts": [
+      "0"
+     ]
+    },
+    {
+     "y": 954,
+     "texts": [
+      "对战回放"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    187,
+    42,
+    441,
+    354
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    61,
+    196,
+    334
+   ],
+   "rows": [
+    {
+     "y": 61,
+     "texts": [
+      "判测胜券本征"
+     ]
+    },
+    {
+     "y": 196,
+     "texts": [
+      "十六强赛甲组"
+     ]
+    },
+    {
+     "y": 334,
+     "texts": [
+      "十六强赛乙组"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "第1场",
+   "text_id": 7,
+   "target": "circle@(1304,431)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 105,
+   "dx": -190,
+   "dy": 146,
+   "confidence": 0.613
+  },
+  {
+   "text": "第1场",
+   "text_id": 7,
+   "target": "circle@(1257,432)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 144,
+   "dx": -236,
+   "dy": 148,
+   "confidence": 0.58
+  },
+  {
+   "text": "第1场",
+   "text_id": 7,
+   "target": "rect@(1280,461)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 145,
+   "dx": -214,
+   "dy": 176,
+   "confidence": 0.579
+  },
+  {
+   "text": "查看战报后结算预测评分",
+   "text_id": 13,
+   "target": "rect@(1276,842)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -2,
+   "dy": 24,
+   "confidence": 0.55
+  },
+  {
+   "text": "100/300",
+   "text_id": 3,
+   "target": "circle@(1804,64)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 12,
+   "dx": -104,
+   "dy": 4,
+   "confidence": 0.54
+  },
+  {
+   "text": "预测奖励",
+   "text_id": 4,
+   "target": "circle@(2083,72)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 16,
+   "dx": -108,
+   "dy": 10,
+   "confidence": 0.537
+  },
+  {
+   "text": "掷弹兵",
+   "text_id": 10,
+   "target": "circle@(1257,432)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 35,
+   "dx": 110,
+   "dy": 38,
+   "confidence": 0.521
+  },
+  {
+   "text": "对战回放",
+   "text_id": 14,
+   "target": "circle@(2321,848)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 76,
+   "dx": 54,
+   "dy": -106,
+   "confidence": 0.487
+  },
+  {
+   "text": "「八强赛乙组」结果公布",
+   "text_id": 12,
+   "target": "rect@(1276,842)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 84,
+   "dx": -6,
+   "dy": 122,
+   "confidence": 0.48
+  },
+  {
+   "text": "十六强赛甲组",
+   "text_id": 6,
+   "target": "rect@(102,282)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 125,
+   "dx": -241,
+   "dy": 86,
+   "confidence": 0.446
+  },
+  {
+   "text": "十六强赛乙组",
+   "text_id": 8,
+   "target": "rect@(102,282)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 126,
+   "dx": -242,
+   "dy": -52,
+   "confidence": 0.445
+  },
+  {
+   "text": "前往查看",
+   "text_id": 15,
+   "target": "circle@(1074,1004)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 133,
+   "dx": -228,
+   "dy": 1,
+   "confidence": 0.439
+  },
+  {
+   "text": "判测胜券本征",
+   "text_id": 2,
+   "target": "rect@(102,244)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 149,
+   "dx": -186,
+   "dy": 182,
+   "confidence": 0.426
+  },
+  {
+   "text": "「八强赛乙组」结果公布",
+   "text_id": 12,
+   "target": "rect@(1024,715)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -258,
+   "dy": -6,
+   "confidence": 0.55
+  },
+  {
+   "text": "判测胜券本征",
+   "text_id": 2,
+   "target": "circle@(128,29)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 47,
+   "dx": -160,
+   "dy": -32,
+   "confidence": 0.511
+  },
+  {
+   "text": "预测奖励",
+   "text_id": 4,
+   "target": "circle@(2336,64)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 50,
+   "dx": 145,
+   "dy": 2,
+   "confidence": 0.508
+  },
+  {
+   "text": "掷弹兵",
+   "text_id": 10,
+   "target": "rect@(1280,461)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 57,
+   "dx": 132,
+   "dy": 68,
+   "confidence": 0.503
+  },
+  {
+   "text": "查看战报后结算预测评分",
+   "text_id": 13,
+   "target": "rect@(1024,715)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 60,
+   "dx": -254,
+   "dy": -102,
+   "confidence": 0.5
+  },
+  {
+   "text": "100/300",
+   "text_id": 3,
+   "target": "circle@(2083,72)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 75,
+   "dx": 174,
+   "dy": 12,
+   "confidence": 0.488
+  },
+  {
+   "text": "前往查看",
+   "text_id": 15,
+   "target": "rect@(1276,842)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 125,
+   "dx": -26,
+   "dy": -161,
+   "confidence": 0.446
+  },
+  {
+   "text": "十六强赛甲组",
+   "text_id": 6,
+   "target": "rect@(102,244)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 125,
+   "dx": -241,
+   "dy": 48,
+   "confidence": 0.446
+  },
+  {
+   "text": "十六强赛乙组",
+   "text_id": 8,
+   "target": "rect@(102,244)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 126,
+   "dx": -242,
+   "dy": -90,
+   "confidence": 0.445
+  },
+  {
+   "text": "对战回放",
+   "text_id": 14,
+   "target": "circle@(2047,861)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 143,
+   "dx": -220,
+   "dy": -93,
+   "confidence": 0.431
+  },
+  {
+   "text": "掷弹兵",
+   "text_id": 10,
+   "target": "circle@(1281,513)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 71,
+   "dx": 134,
+   "dy": 120,
+   "confidence": 0.491
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    4,
+    123,
+    80
+   ],
+   "confidence": 0.74,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=6.9，非纯黑 L=18",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 26.0",
+     "GPU: 4%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     5
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 7,
+    "bg_mean": 18.1,
+    "bg_std": 6.9,
+    "ring_mean": 8.6,
+    "ring_std": 5.7,
+    "texture_ratio": 1.21,
+    "bg_rgb": [
+     20,
+     19,
+     14
+    ]
+   }
+  },
+  {
+   "bbox": [
+    155,
+    1294,
+    286,
+    1320
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：低方差 std=0.3，非纯黑 L=35，纹理对比骤降 std 9.3→0.3（0.03×）",
+   "evidence": {
+    "texts": [
+     "maxt",
+     "147.6 ms"
+    ],
+    "text_ids": [
+     18,
+     19
+    ],
+    "n_texts": 2,
+    "corner": "左下",
+    "corner_dist_px": 200,
+    "bg_mean": 35.3,
+    "bg_std": 0.3,
+    "ring_mean": 28.5,
+    "ring_std": 9.3,
+    "texture_ratio": 0.03,
+    "bg_rgb": [
+     41,
+     36,
+     28
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    956,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     36.0,
+     128.0,
+     133.0
+    ],
+    "fill": 0.68,
+    "rect": 0.85
+   },
+   "text": [
+    "1",
+    "min:",
+    "maxt",
+    "147.6 ms",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1032,
+      962,
+      1124,
+      1048
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 219.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:5",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.77,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 1055268,
+    "area_frac": 0.3361,
+    "aspect": 5.29,
+    "grid": "col n=2 pitch_x=None pitch_y=485.0",
+    "skin_siblings": 0,
+    "text_in": 5,
+    "text_ui": 3,
+    "skin_lab": [
+     36.0,
+     128.0,
+     133.0
+    ],
+    "flat_fill": 0.68,
+    "rect": 0.85
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    456
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     6.0,
+     128.0,
+     128.0
+    ],
+    "fill": 0.61,
+    "rect": 0.82
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS: 26.0",
+    "判测胜券本征",
+    "100/300",
+    "预测奖励",
+    "GPU: 4%",
+    "十六强赛甲组",
+    "第1场",
+    "十六强赛乙组",
+    "获得评分",
+    "掷弹兵",
+    "0"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:12",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.76,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 9)",
+    "area_px": 957316,
+    "area_frac": 0.3167,
+    "aspect": 5.61,
+    "grid": "col n=2 pitch_x=None pitch_y=485.0",
+    "skin_siblings": 0,
+    "text_in": 12,
+    "text_ui": 9,
+    "skin_lab": [
+     6.0,
+     128.0,
+     128.0
+    ],
+    "flat_fill": 0.61,
+    "rect": 0.82
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    0,
+    510,
+    2560,
+    916
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     243.0,
+     129.0,
+     139.0
+    ],
+    "fill": 0.73,
+    "rect": 0.67
+   },
+   "text": [
+    "「八强赛乙组」结果公布",
+    "查看战报后结算预测评分"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1430,
+      552,
+      1452,
+      574
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 57.0
+    },
+    {
+     "bbox": [
+      2008,
+      808,
+      2024,
+      824
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 82.0
+    },
+    {
+     "bbox": [
+      2040,
+      850,
+      2056,
+      866
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 123.0
+    },
+    {
+     "bbox": [
+      1896,
+      538,
+      1914,
+      556
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 177.0
+    },
+    {
+     "bbox": [
+      1460,
+      602,
+      1486,
+      620
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 57.0
+    },
+    {
+     "bbox": [
+      2312,
+      840,
+      2328,
+      860
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 81.0
+    },
+    {
+     "bbox": [
+      1074,
+      596,
+      1102,
+      620
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 61.0
+    },
+    {
+     "bbox": [
+      1048,
+      532,
+      1080,
+      568
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 179.0
+    },
+    {
+     "bbox": [
+      2366,
+      898,
+      2406,
+      920
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 79.0
+    },
+    {
+     "bbox": [
+      46,
+      598,
+      138,
+      622
+     ],
+     "role": "icon",
+     "fill": 0.31,
+     "contrast": 188.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      2040,
+      852,
+      2056,
+      866
+     ],
+     "corner": "br",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 693340,
+    "area_frac": 0.2819,
+    "aspect": 6.31,
+    "grid": "col n=2 pitch_x=None pitch_y=485.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     243.0,
+     129.0,
+     139.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.67
+   }
+  },
+  {
+   "id": "c3",
+   "parent": "c0",
+   "bbox": [
+    1088,
+    970,
+    1518,
+    1040
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     232.0,
+     128.0,
+     134.0
+    ],
+    "fill": 0.6,
+    "rect": 0.65
+   },
+   "text": [
+    "前往查看"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 19440,
+    "area_frac": 0.0082,
+    "aspect": 6.14,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     232.0,
+     128.0,
+     134.0
+    ],
+    "flat_fill": 0.6,
+    "rect": 0.65
+   }
+  },
+  {
+   "id": "c4",
+   "parent": "c0",
+   "bbox": [
+    568,
+    1336,
+    860,
+    1398
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     59.0,
+     128.0,
+     132.0
+    ],
+    "fill": 0.53,
+    "rect": 0.58
+   },
+   "text": [
+    "赛程总览"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.62,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 10500,
+    "area_frac": 0.0049,
+    "aspect": 4.71,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     59.0,
+     128.0,
+     132.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.58
+   }
+  }
+ ],
+ "free_text": [
+  "对战回放"
+ ],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 115,
+  "ocr_ms": 491,
+  "pixel_ms": 882,
+  "container_ms": 400,
+  "container_cached": false,
+  "total_ms": 1490,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 22,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 22 · 控件 40 · 容器 5 · 邻接 24 · 遮挡 2 · 1490ms（OCR daemon）\n标题「第1场」@(1493,284) 画面 · 字高 45px\n邻接「第1场」→ circle@(1304,431) 下方 105px\n邻接「第1场」→ circle@(1257,432) 左侧 144px\n邻接「第1场」→ rect@(1280,461) 下方 145px\n控件: circle@(1304,431) | circle@(1257,432) | rect@(1280,461) | rect@(1276,842)\n区域: 画布 (0,606)-(2560,920)\n遮挡 [0, 4, 123, 80] (0,4)-(123,80)（conf 0.74）：左上角小字叠加层：小字 3 框，低方差 std=6.9，非纯黑 L=18\n遮挡 [155, 1294, 286, 1320] (155,1294)-(286,1320)（conf 0.71）：左下角小字叠加层：低方差 std=0.3，非纯黑 L=35，纹理对比骤降 std 9.3→0.3（0.03×）"
+}

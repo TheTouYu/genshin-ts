@@ -1,0 +1,2881 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/reps/c19_195135.png",
+  "sha256": "01a41a4caf56b5cce35d4faa2dde243566fdd2e308208836868882c0c9d29109",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 1105250
+ },
+ "title": {
+  "text": "控制",
+  "cx": 232,
+  "cy": 205,
+  "bbox": [
+   181,
+   176,
+   283,
+   234
+  ],
+  "region": null,
+  "why": "上半屏字高最大（58px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    118,
+    30
+   ],
+   "w": 117,
+   "h": 25,
+   "score": 0.9657,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:",
+   "cx": 32,
+   "cy": 41,
+   "bbox": [
+    2,
+    28,
+    61,
+    55
+   ],
+   "w": 59,
+   "h": 27,
+   "score": 0.9985,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "60.",
+   "cx": 80,
+   "cy": 41,
+   "bbox": [
+    61,
+    29,
+    99,
+    52
+   ],
+   "w": 38,
+   "h": 23,
+   "score": 0.9924,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "设置／声音",
+   "cx": 274,
+   "cy": 60,
+   "bbox": [
+    185,
+    38,
+    363,
+    82
+   ],
+   "w": 178,
+   "h": 44,
+   "score": 0.9572,
+   "kind": "action"
+  },
+  {
+   "id": 4,
+   "text": "GPU:",
+   "cx": 29,
+   "cy": 65,
+   "bbox": [
+    3,
+    54,
+    55,
+    77
+   ],
+   "w": 52,
+   "h": 23,
+   "score": 0.9975,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "控制",
+   "cx": 232,
+   "cy": 205,
+   "bbox": [
+    181,
+    176,
+    283,
+    234
+   ],
+   "w": 102,
+   "h": 58,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 6,
+   "text": "主音量",
+   "cx": 696,
+   "cy": 199,
+   "bbox": [
+    630,
+    172,
+    761,
+    227
+   ],
+   "w": 131,
+   "h": 55,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "按键",
+   "cx": 232,
+   "cy": 296,
+   "bbox": [
+    180,
+    267,
+    283,
+    325
+   ],
+   "w": 103,
+   "h": 58,
+   "score": 0.9979,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "音量",
+   "cx": 710,
+   "cy": 279,
+   "bbox": [
+    670,
+    254,
+    749,
+    304
+   ],
+   "w": 79,
+   "h": 50,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "10",
+   "cx": 1817,
+   "cy": 279,
+   "bbox": [
+    1789,
+    258,
+    1845,
+    300
+   ],
+   "w": 56,
+   "h": 42,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "音量平衡",
+   "cx": 717,
+   "cy": 365,
+   "bbox": [
+    634,
+    339,
+    800,
+    392
+   ],
+   "w": 166,
+   "h": 53,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "图像",
+   "cx": 234,
+   "cy": 390,
+   "bbox": [
+    184,
+    361,
+    285,
+    419
+   ],
+   "w": 101,
+   "h": 58,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "音乐音量",
+   "cx": 741,
+   "cy": 446,
+   "bbox": [
+    672,
+    424,
+    811,
+    468
+   ],
+   "w": 139,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "10",
+   "cx": 1818,
+   "cy": 446,
+   "bbox": [
+    1792,
+    425,
+    1845,
+    468
+   ],
+   "w": 53,
+   "h": 43,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "声音",
+   "cx": 254,
+   "cy": 482,
+   "bbox": [
+    192,
+    446,
+    316,
+    518
+   ],
+   "w": 124,
+   "h": 72,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "语音音量",
+   "cx": 741,
+   "cy": 535,
+   "bbox": [
+    670,
+    513,
+    811,
+    558
+   ],
+   "w": 141,
+   "h": 45,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "10",
+   "cx": 1818,
+   "cy": 536,
+   "bbox": [
+    1792,
+    514,
+    1843,
+    558
+   ],
+   "w": 51,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "消息",
+   "cx": 232,
+   "cy": 575,
+   "bbox": [
+    179,
+    543,
+    286,
+    606
+   ],
+   "w": 107,
+   "h": 63,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "音效音量",
+   "cx": 740,
+   "cy": 624,
+   "bbox": [
+    669,
+    600,
+    811,
+    649
+   ],
+   "w": 142,
+   "h": 49,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "10",
+   "cx": 1818,
+   "cy": 626,
+   "bbox": [
+    1792,
+    604,
+    1845,
+    648
+   ],
+   "w": 53,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "语言",
+   "cx": 233,
+   "cy": 667,
+   "bbox": [
+    183,
+    639,
+    283,
+    696
+   ],
+   "w": 100,
+   "h": 57,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "语音聊天音量",
+   "cx": 773,
+   "cy": 714,
+   "bbox": [
+    672,
+    693,
+    874,
+    736
+   ],
+   "w": 202,
+   "h": 43,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "50",
+   "cx": 1819,
+   "cy": 714,
+   "bbox": [
+    1788,
+    691,
+    1851,
+    736
+   ],
+   "w": 63,
+   "h": 45,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "账户",
+   "cx": 231,
+   "cy": 761,
+   "bbox": [
+    178,
+    727,
+    285,
+    794
+   ],
+   "w": 107,
+   "h": 67,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "口",
+   "cx": 2134,
+   "cy": 717,
+   "bbox": [
+    2103,
+    685,
+    2166,
+    748
+   ],
+   "w": 63,
+   "h": 63,
+   "score": 0.9451,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "麦克风音量",
+   "cx": 758,
+   "cy": 804,
+   "bbox": [
+    670,
+    780,
+    845,
+    828
+   ],
+   "w": 175,
+   "h": 48,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "50",
+   "cx": 1819,
+   "cy": 804,
+   "bbox": [
+    1789,
+    781,
+    1850,
+    828
+   ],
+   "w": 61,
+   "h": 47,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "资源",
+   "cx": 234,
+   "cy": 853,
+   "bbox": [
+    181,
+    822,
+    286,
+    884
+   ],
+   "w": 105,
+   "h": 62,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "其他设置",
+   "cx": 715,
+   "cy": 889,
+   "bbox": [
+    633,
+    865,
+    797,
+    914
+   ],
+   "w": 164,
+   "h": 49,
+   "score": 0.9997,
+   "kind": "action"
+  },
+  {
+   "id": 29,
+   "text": "其他",
+   "cx": 233,
+   "cy": 946,
+   "bbox": [
+    179,
+    915,
+    287,
+    978
+   ],
+   "w": 108,
+   "h": 63,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "动态范围",
+   "cx": 741,
+   "cy": 970,
+   "bbox": [
+    668,
+    946,
+    814,
+    995
+   ],
+   "w": 146,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "完全",
+   "cx": 2170,
+   "cy": 970,
+   "bbox": [
+    2130,
+    946,
+    2211,
+    995
+   ],
+   "w": 81,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "输出设置",
+   "cx": 741,
+   "cy": 1060,
+   "bbox": [
+    669,
+    1036,
+    814,
+    1085
+   ],
+   "w": 145,
+   "h": 49,
+   "score": 0.9996,
+   "kind": "action"
+  },
+  {
+   "id": 33,
+   "text": "立体声",
+   "cx": 2171,
+   "cy": 1060,
+   "bbox": [
+    2116,
+    1037,
+    2227,
+    1083
+   ],
+   "w": 111,
+   "h": 46,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "最小化时静音",
+   "cx": 774,
+   "cy": 1149,
+   "bbox": [
+    672,
+    1127,
+    876,
+    1171
+   ],
+   "w": 204,
+   "h": 44,
+   "score": 0.9908,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "关闭",
+   "cx": 2170,
+   "cy": 1150,
+   "bbox": [
+    2127,
+    1123,
+    2212,
+    1176
+   ],
+   "w": 85,
+   "h": 53,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 36,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    50,
+    1315
+   ],
+   "w": 41,
+   "h": 14,
+   "score": 0.9843,
+   "kind": "other"
+  },
+  {
+   "id": 37,
+   "text": "5.3 ns",
+   "cx": 83,
+   "cy": 1308,
+   "bbox": [
+    51,
+    1297,
+    116,
+    1319
+   ],
+   "w": 65,
+   "h": 22,
+   "score": 0.9763,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "max:",
+   "cx": 179,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    201,
+    1317
+   ],
+   "w": 44,
+   "h": 18,
+   "score": 0.8021,
+   "kind": "hud"
+  },
+  {
+   "id": 39,
+   "text": "58.2",
+   "cx": 227,
+   "cy": 1308,
+   "bbox": [
+    205,
+    1301,
+    249,
+    1315
+   ],
+   "w": 44,
+   "h": 14,
+   "score": 0.9723,
+   "kind": "hud"
+  },
+  {
+   "id": 40,
+   "text": "ms",
+   "cx": 258,
+   "cy": 1309,
+   "bbox": [
+    243,
+    1302,
+    273,
+    1316
+   ],
+   "w": 30,
+   "h": 14,
+   "score": 0.8804,
+   "kind": "hud"
+  },
+  {
+   "id": 41,
+   "text": "UID: 110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 0.9849,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    156,
+    846,
+    176,
+    866
+   ],
+   "cx": 166,
+   "cy": 856,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.84,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    156,
+    938,
+    176,
+    960
+   ],
+   "cx": 166,
+   "cy": 949,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 0.91,
+    "corner_fill": 0.06,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2352,
+    962,
+    2374,
+    982
+   ],
+   "cx": 2363,
+   "cy": 972,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2352,
+    1052,
+    2376,
+    1072
+   ],
+   "cx": 2364,
+   "cy": 1062,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 1.2,
+    "corner_fill": 0.06,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2352,
+    1142,
+    2376,
+    1162
+   ],
+   "cx": 2364,
+   "cy": 1152,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.767,
+    "aspect": 1.2,
+    "corner_fill": 0.19,
+    "area": 368,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    78,
+    48,
+    110,
+    80
+   ],
+   "cx": 94,
+   "cy": 64,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 85.7,
+    "ring_L": 87.8,
+    "inside_L": 173.1,
+    "outside_L": 173.9
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    154,
+    658,
+    178,
+    682
+   ],
+   "cx": 166,
+   "cy": 670,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.938,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    8,
+    0,
+    160,
+    124
+   ],
+   "cx": 84,
+   "cy": 62,
+   "w": 152,
+   "h": 124,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": "DXVK v3.0 FPS: 60. GPU:",
+   "evidence": {
+    "fill": 0.454,
+    "aspect": 1.23,
+    "corner_fill": 0.14,
+    "area": 8560,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1910,
+    796,
+    2116,
+    816
+   ],
+   "cx": 2013,
+   "cy": 806,
+   "w": 206,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.99,
+    "aspect": 10.3,
+    "corner_fill": 0.5,
+    "area": 4080,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    154,
+    288,
+    178,
+    310
+   ],
+   "cx": 166,
+   "cy": 299,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 1.09,
+    "corner_fill": 0.33,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    154,
+    752,
+    176,
+    774
+   ],
+   "cx": 165,
+   "cy": 763,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 380,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    154,
+    380,
+    176,
+    404
+   ],
+   "cx": 165,
+   "cy": 392,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.78,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 412,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    6,
+    1404,
+    436,
+    1428
+   ],
+   "cx": 221,
+   "cy": 1416,
+   "w": 430,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 17.92,
+    "corner_fill": 0.28,
+    "area": 9032,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    300,
+    1352,
+    316,
+    1384
+   ],
+   "cx": 308,
+   "cy": 1368,
+   "w": 16,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.869,
+   "label": null,
+   "evidence": {
+    "fill": 0.82,
+    "aspect": 0.5,
+    "corner_fill": 0.62,
+    "area": 420,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    28,
+    1322,
+    426,
+    1374
+   ],
+   "cx": 227,
+   "cy": 1348,
+   "w": 398,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.819,
+    "aspect": 7.65,
+    "corner_fill": 0.74,
+    "area": 16940,
+    "src": "flat"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    154,
+    196,
+    176,
+    218
+   ],
+   "cx": 165,
+   "cy": 207,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.826,
+    "aspect": 1.0,
+    "corner_fill": 0.42,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1074,
+    978,
+    1114,
+    1006
+   ],
+   "cx": 1094,
+   "cy": 992,
+   "w": 40,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.496,
+    "aspect": 1.43,
+    "corner_fill": 0.3,
+    "area": 556,
+    "src": "flat"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    154,
+    566,
+    176,
+    588
+   ],
+   "cx": 165,
+   "cy": 577,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.826,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    160,
+    470,
+    184,
+    500
+   ],
+   "cx": 172,
+   "cy": 485,
+   "w": 24,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.852,
+   "label": null,
+   "evidence": {
+    "fill": 0.822,
+    "aspect": 0.8,
+    "corner_fill": 0.44,
+    "area": 592,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1918,
+    964,
+    1958,
+    982
+   ],
+   "cx": 1938,
+   "cy": 973,
+   "w": 40,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.83,
+   "label": null,
+   "evidence": {
+    "fill": 0.733,
+    "aspect": 2.22,
+    "corner_fill": 0.0,
+    "area": 528,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    644,
+    248,
+    2396,
+    316
+   ],
+   "cx": 1520,
+   "cy": 282,
+   "w": 1752,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.827,
+   "label": "音量 10",
+   "evidence": {
+    "fill": 0.727,
+    "aspect": 25.76,
+    "corner_fill": 0.19,
+    "area": 86620,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    644,
+    786,
+    680,
+    822
+   ],
+   "cx": 662,
+   "cy": 804,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.818,
+   "label": null,
+   "evidence": {
+    "fill": 0.596,
+    "aspect": 1.0,
+    "corner_fill": 0.42,
+    "area": 772,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    642,
+    682,
+    2398,
+    750
+   ],
+   "cx": 1520,
+   "cy": 716,
+   "w": 1756,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.815,
+   "label": "语音聊天音量 50 口",
+   "evidence": {
+    "fill": 0.701,
+    "aspect": 25.82,
+    "corner_fill": 0.36,
+    "area": 83676,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    114,
+    6,
+    146,
+    34
+   ],
+   "cx": 130,
+   "cy": 20,
+   "w": 32,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.799,
+   "label": null,
+   "evidence": {
+    "fill": 0.656,
+    "aspect": 1.14,
+    "corner_fill": 0.48,
+    "area": 588,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    642,
+    772,
+    2398,
+    844
+   ],
+   "cx": 1520,
+   "cy": 808,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.796,
+   "label": "麦克风音量 50",
+   "evidence": {
+    "fill": 0.657,
+    "aspect": 24.39,
+    "corner_fill": 0.36,
+    "area": 83116,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1918,
+    1052,
+    1960,
+    1074
+   ],
+   "cx": 1939,
+   "cy": 1063,
+   "w": 42,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.794,
+   "label": null,
+   "evidence": {
+    "fill": 0.654,
+    "aspect": 1.91,
+    "corner_fill": 0.0,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1918,
+    1140,
+    1960,
+    1164
+   ],
+   "cx": 1939,
+   "cy": 1152,
+   "w": 42,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.789,
+   "label": null,
+   "evidence": {
+    "fill": 0.643,
+    "aspect": 1.75,
+    "corner_fill": 0.0,
+    "area": 648,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1984,
+    682,
+    2012,
+    710
+   ],
+   "cx": 1998,
+   "cy": 696,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.783,
+   "label": null,
+   "evidence": {
+    "fill": 0.5,
+    "aspect": 1.0,
+    "corner_fill": 0.45,
+    "area": 392,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    642,
+    936,
+    2398,
+    1008
+   ],
+   "cx": 1520,
+   "cy": 972,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.774,
+   "label": "动态范围 完全",
+   "evidence": {
+    "fill": 0.608,
+    "aspect": 24.39,
+    "corner_fill": 0.36,
+    "area": 76888,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    642,
+    1118,
+    2398,
+    1190
+   ],
+   "cx": 1520,
+   "cy": 1154,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.768,
+   "label": "最小化时静音 关闭",
+   "evidence": {
+    "fill": 0.596,
+    "aspect": 24.39,
+    "corner_fill": 0.34,
+    "area": 75300,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2396,
+    2,
+    2520,
+    126
+   ],
+   "cx": 2458,
+   "cy": 64,
+   "w": 124,
+   "h": 124,
+   "shape": "circle",
+   "confidence": 0.766,
+   "label": null,
+   "evidence": {
+    "fill": 0.536,
+    "aspect": 1.0,
+    "corner_fill": 0.5,
+    "area": 8236,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    644,
+    414,
+    1820,
+    482
+   ],
+   "cx": 1232,
+   "cy": 448,
+   "w": 1176,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.762,
+   "label": "音乐音量 10",
+   "evidence": {
+    "fill": 0.583,
+    "aspect": 17.29,
+    "corner_fill": 0.18,
+    "area": 46616,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1948,
+    1028,
+    2398,
+    1096
+   ],
+   "cx": 2173,
+   "cy": 1062,
+   "w": 450,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.76,
+   "label": "立体声",
+   "evidence": {
+    "fill": 0.577,
+    "aspect": 6.62,
+    "corner_fill": 0.54,
+    "area": 17664,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    642,
+    1028,
+    1944,
+    1096
+   ],
+   "cx": 1293,
+   "cy": 1062,
+   "w": 1302,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.759,
+   "label": "输出设置",
+   "evidence": {
+    "fill": 0.576,
+    "aspect": 19.15,
+    "corner_fill": 0.53,
+    "area": 51036,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    644,
+    592,
+    1366,
+    662
+   ],
+   "cx": 1005,
+   "cy": 627,
+   "w": 722,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.752,
+   "label": "音效音量",
+   "evidence": {
+    "fill": 0.56,
+    "aspect": 10.31,
+    "corner_fill": 0.08,
+    "area": 28304,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    6,
+    1372,
+    430,
+    1402
+   ],
+   "cx": 218,
+   "cy": 1387,
+   "w": 424,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.743,
+   "label": null,
+   "evidence": {
+    "fill": 0.539,
+    "aspect": 14.13,
+    "corner_fill": 0.36,
+    "area": 6860,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2076,
+    502,
+    2364,
+    530
+   ],
+   "cx": 2220,
+   "cy": 516,
+   "w": 288,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.731,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 10.29,
+    "corner_fill": 0.27,
+    "area": 4132,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2042,
+    910,
+    2092,
+    932
+   ],
+   "cx": 2067,
+   "cy": 921,
+   "w": 50,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.731,
+   "label": null,
+   "evidence": {
+    "fill": 0.513,
+    "aspect": 2.27,
+    "corner_fill": 0.25,
+    "area": 564,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    644,
+    502,
+    1702,
+    572
+   ],
+   "cx": 1173,
+   "cy": 537,
+   "w": 1058,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.729,
+   "label": "语音音量",
+   "evidence": {
+    "fill": 0.508,
+    "aspect": 15.11,
+    "corner_fill": 0.14,
+    "area": 37632,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1342,
+    1420,
+    1388,
+    1440
+   ],
+   "cx": 1365,
+   "cy": 1430,
+   "w": 46,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.727,
+   "label": null,
+   "evidence": {
+    "fill": 0.504,
+    "aspect": 2.3,
+    "corner_fill": 0.06,
+    "area": 464,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    630,
+    172,
+    876,
+    1171
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 12,
+   "row_y": [
+    199,
+    279,
+    365,
+    446,
+    535,
+    624,
+    714,
+    804,
+    889,
+    970,
+    1060,
+    1149
+   ],
+   "rows": [
+    {
+     "y": 199,
+     "texts": [
+      "主音量"
+     ]
+    },
+    {
+     "y": 279,
+     "texts": [
+      "音量"
+     ]
+    },
+    {
+     "y": 365,
+     "texts": [
+      "音量平衡"
+     ]
+    },
+    {
+     "y": 446,
+     "texts": [
+      "音乐音量"
+     ]
+    },
+    {
+     "y": 535,
+     "texts": [
+      "语音音量"
+     ]
+    },
+    {
+     "y": 624,
+     "texts": [
+      "音效音量"
+     ]
+    },
+    {
+     "y": 714,
+     "texts": [
+      "语音聊天音量"
+     ]
+    },
+    {
+     "y": 804,
+     "texts": [
+      "麦克风音量"
+     ]
+    },
+    {
+     "y": 889,
+     "texts": [
+      "其他设置"
+     ]
+    },
+    {
+     "y": 970,
+     "texts": [
+      "动态范围"
+     ]
+    },
+    {
+     "y": 1060,
+     "texts": [
+      "输出设置"
+     ]
+    },
+    {
+     "y": 1149,
+     "texts": [
+      "最小化时静音"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    178,
+    38,
+    363,
+    978
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 32,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    60,
+    205,
+    296,
+    390,
+    482,
+    575,
+    667,
+    761,
+    853,
+    946
+   ],
+   "rows": [
+    {
+     "y": 60,
+     "texts": [
+      "设置／声音"
+     ]
+    },
+    {
+     "y": 205,
+     "texts": [
+      "控制"
+     ]
+    },
+    {
+     "y": 296,
+     "texts": [
+      "按键"
+     ]
+    },
+    {
+     "y": 390,
+     "texts": [
+      "图像"
+     ]
+    },
+    {
+     "y": 482,
+     "texts": [
+      "声音"
+     ]
+    },
+    {
+     "y": 575,
+     "texts": [
+      "消息"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "语言"
+     ]
+    },
+    {
+     "y": 761,
+     "texts": [
+      "账户"
+     ]
+    },
+    {
+     "y": 853,
+     "texts": [
+      "资源"
+     ]
+    },
+    {
+     "y": 946,
+     "texts": [
+      "其他"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2103,
+    685,
+    2227,
+    1176
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 26,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 4,
+   "row_y": [
+    717,
+    970,
+    1060,
+    1150
+   ],
+   "rows": [
+    {
+     "y": 717,
+     "texts": [
+      "口"
+     ]
+    },
+    {
+     "y": 970,
+     "texts": [
+      "完全"
+     ]
+    },
+    {
+     "y": 1060,
+     "texts": [
+      "立体声"
+     ]
+    },
+    {
+     "y": 1150,
+     "texts": [
+      "关闭"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1788,
+    258,
+    1851,
+    828
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 24,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    279,
+    446,
+    536,
+    626,
+    714,
+    804
+   ],
+   "rows": [
+    {
+     "y": 279,
+     "texts": [
+      "10"
+     ]
+    },
+    {
+     "y": 446,
+     "texts": [
+      "10"
+     ]
+    },
+    {
+     "y": 536,
+     "texts": [
+      "10"
+     ]
+    },
+    {
+     "y": 626,
+     "texts": [
+      "10"
+     ]
+    },
+    {
+     "y": 714,
+     "texts": [
+      "50"
+     ]
+    },
+    {
+     "y": 804,
+     "texts": [
+      "50"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(165,207)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -67,
+   "dy": 2,
+   "confidence": 0.696
+  },
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(166,299)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 54,
+   "dx": -66,
+   "dy": 94,
+   "confidence": 0.655
+  },
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(130,20)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 142,
+   "dx": -102,
+   "dy": -185,
+   "confidence": 0.582
+  },
+  {
+   "text": "音效音量",
+   "text_id": 18,
+   "target": "rect@(1005,627)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": "音效音量",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 265,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "立体声",
+   "text_id": 33,
+   "target": "rect@(2173,1062)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "立体声",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 2,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "语音音量",
+   "text_id": 15,
+   "target": "rect@(1173,537)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "语音音量",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 432,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "完全",
+   "text_id": 31,
+   "target": "rect@(2173,1062)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "立体声",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 33,
+   "dx": 2,
+   "dy": 92,
+   "confidence": 0.523
+  },
+  {
+   "text": "音乐音量",
+   "text_id": 12,
+   "target": "rect@(1173,537)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "语音音量",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 34,
+   "dx": 432,
+   "dy": 91,
+   "confidence": 0.522
+  },
+  {
+   "text": "麦克风音量",
+   "text_id": 25,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 37,
+   "dx": -42,
+   "dy": 86,
+   "confidence": 0.719
+  },
+  {
+   "text": "动态范围",
+   "text_id": 30,
+   "target": "label@(741,1060)",
+   "target_id": "t32",
+   "target_kind": "label",
+   "label": "输出设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 41,
+   "dx": 0,
+   "dy": 90,
+   "confidence": 0.716
+  },
+  {
+   "text": "最小化时静音",
+   "text_id": 34,
+   "target": "label@(741,1060)",
+   "target_id": "t32",
+   "target_kind": "label",
+   "label": "输出设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 42,
+   "dx": -32,
+   "dy": -88,
+   "confidence": 0.715
+  },
+  {
+   "text": "10",
+   "text_id": 16,
+   "target": "rect@(1173,537)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "语音音量",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 90,
+   "dx": -644,
+   "dy": 1,
+   "confidence": 0.475
+  },
+  {
+   "text": "音量平衡",
+   "text_id": 10,
+   "target": "rect@(1173,537)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "语音音量",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 110,
+   "dx": 456,
+   "dy": 172,
+   "confidence": 0.458
+  },
+  {
+   "text": "语音聊天音量",
+   "text_id": 21,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 129,
+   "dx": -58,
+   "dy": 175,
+   "confidence": 0.642
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 41,
+   "target": "label@(2169,1149)",
+   "target_id": "t35",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 225,
+   "dx": -202,
+   "dy": -269,
+   "confidence": 0.562
+  },
+  {
+   "text": "主音量",
+   "text_id": 6,
+   "target": "label@(274,60)",
+   "target_id": "t3",
+   "target_kind": "label",
+   "label": "设置／声音",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 267,
+   "dx": -422,
+   "dy": -140,
+   "confidence": 0.527
+  },
+  {
+   "text": "50",
+   "text_id": 26,
+   "target": "label@(2169,1149)",
+   "target_id": "t35",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 295,
+   "dx": 350,
+   "dy": 345,
+   "confidence": 0.504
+  },
+  {
+   "text": "声音",
+   "text_id": 14,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 347,
+   "dx": 461,
+   "dy": 408,
+   "confidence": 0.5
+  },
+  {
+   "text": "消息",
+   "text_id": 17,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 347,
+   "dx": 482,
+   "dy": 315,
+   "confidence": 0.5
+  },
+  {
+   "text": "资源",
+   "text_id": 27,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 347,
+   "dx": 482,
+   "dy": 36,
+   "confidence": 0.5
+  },
+  {
+   "text": "账户",
+   "text_id": 23,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 348,
+   "dx": 484,
+   "dy": 129,
+   "confidence": 0.5
+  },
+  {
+   "text": "语言",
+   "text_id": 20,
+   "target": "label@(715,889)",
+   "target_id": "t28",
+   "target_kind": "label",
+   "label": "其他设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 350,
+   "dx": 482,
+   "dy": 222,
+   "confidence": 0.5
+  },
+  {
+   "text": "口",
+   "text_id": 24,
+   "target": "label@(2169,1149)",
+   "target_id": "t35",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 375,
+   "dx": 35,
+   "dy": 433,
+   "confidence": 0.5
+  },
+  {
+   "text": "其他",
+   "text_id": 29,
+   "target": "label@(741,1060)",
+   "target_id": "t32",
+   "target_kind": "label",
+   "label": "输出设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 382,
+   "dx": 508,
+   "dy": 114,
+   "confidence": 0.5
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    121,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=129",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS:",
+     "60.",
+     "GPU:"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     4
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 129.0,
+    "bg_std": 57.2,
+    "ring_mean": 90.4,
+    "ring_std": 53.1,
+    "texture_ratio": 1.08,
+    "bg_rgb": [
+     140,
+     130,
+     116
+    ]
+   }
+  },
+  {
+   "bbox": [
+    154,
+    1296,
+    276,
+    1320
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 3 框，非纯黑 L=138",
+   "evidence": {
+    "texts": [
+     "max:",
+     "58.2",
+     "ms"
+    ],
+    "text_ids": [
+     38,
+     39,
+     40
+    ],
+    "n_texts": 3,
+    "corner": "左下",
+    "corner_dist_px": 199,
+    "bg_mean": 137.7,
+    "bg_std": 25.9,
+    "ring_mean": 120.8,
+    "ring_std": 31.6,
+    "texture_ratio": 0.82,
+    "bg_rgb": [
+     116,
+     141,
+     155
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     151.0,
+     127.0,
+     114.0
+    ],
+    "fill": 0.61,
+    "rect": 0.69
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS:",
+    "60.",
+    "设置／声音",
+    "GPU:",
+    "控制",
+    "主音量",
+    "按键",
+    "音量",
+    "10",
+    "音量平衡",
+    "图像",
+    "音乐音量",
+    "10",
+    "声音",
+    "语音音量",
+    "10",
+    "消息",
+    "音效音量",
+    "10",
+    "语言",
+    "账户",
+    "资源",
+    "其他设置",
+    "其他",
+    "动态范围",
+    "完全",
+    "输出设置",
+    "立体声",
+    "min:",
+    "5.3 ns",
+    "max:",
+    "58.2",
+    "ms",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2418,
+      24,
+      2496,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 190.0
+    },
+    {
+     "bbox": [
+      320,
+      478,
+      372,
+      494
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 89.0
+    },
+    {
+     "bbox": [
+      1710,
+      264,
+      1746,
+      298
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 140.0
+    },
+    {
+     "bbox": [
+      1710,
+      520,
+      1746,
+      554
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 145.0
+    },
+    {
+     "bbox": [
+      1710,
+      610,
+      1748,
+      644
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 151.0
+    },
+    {
+     "bbox": [
+      1710,
+      430,
+      1746,
+      466
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 139.0
+    },
+    {
+     "bbox": [
+      156,
+      196,
+      176,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      156,
+      382,
+      176,
+      402
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      156,
+      754,
+      174,
+      772
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 71.0
+    },
+    {
+     "bbox": [
+      156,
+      940,
+      174,
+      958
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 65.0
+    },
+    {
+     "bbox": [
+      156,
+      290,
+      176,
+      310
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      156,
+      568,
+      174,
+      588
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 99.0
+    },
+    {
+     "bbox": [
+      58,
+      32,
+      150,
+      100
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 210.0
+    },
+    {
+     "bbox": [
+      158,
+      846,
+      176,
+      866
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 68.0
+    },
+    {
+     "bbox": [
+      156,
+      660,
+      176,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 81.0
+    },
+    {
+     "bbox": [
+      2352,
+      966,
+      2378,
+      982
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 149.0
+    },
+    {
+     "bbox": [
+      2376,
+      1030,
+      2398,
+      1096
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 95.0
+    },
+    {
+     "bbox": [
+      148,
+      466,
+      184,
+      502
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 187.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:35",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.64,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 32)",
+    "area_px": 2555784,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 35,
+    "text_ui": 32,
+    "skin_lab": [
+     151.0,
+     127.0,
+     114.0
+    ],
+    "flat_fill": 0.61,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c1",
+   "parent": "c0",
+   "bbox": [
+    646,
+    682,
+    2394,
+    764
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     213.0,
+     125.0,
+     131.0
+    ],
+    "fill": 0.63,
+    "rect": 0.75
+   },
+   "text": [
+    "语音聊天音量",
+    "50",
+    "口"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1710,
+      700,
+      1748,
+      734
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 153.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 107628,
+    "area_frac": 0.0389,
+    "aspect": 21.32,
+    "grid": "col n=2 pitch_x=None pitch_y=84.0",
+    "skin_siblings": 1,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     213.0,
+     125.0,
+     131.0
+    ],
+    "flat_fill": 0.63,
+    "rect": 0.75
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    646,
+    1118,
+    2394,
+    1184
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     220.0,
+     124.0,
+     131.0
+    ],
+    "fill": 0.78,
+    "rect": 0.86
+   },
+   "text": [
+    "最小化时静音",
+    "关闭"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.77,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 99756,
+    "area_frac": 0.0313,
+    "aspect": 26.48,
+    "grid": "col n=2 pitch_x=None pitch_y=344.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     220.0,
+     124.0,
+     131.0
+    ],
+    "flat_fill": 0.78,
+    "rect": 0.86
+   }
+  },
+  {
+   "id": "c3",
+   "parent": "c0",
+   "bbox": [
+    646,
+    774,
+    2394,
+    840
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     214.0,
+     125.0,
+     131.0
+    ],
+    "fill": 0.71,
+    "rect": 0.82
+   },
+   "text": [
+    "麦克风音量",
+    "50"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1710,
+      788,
+      1748,
+      824
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 157.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 94396,
+    "area_frac": 0.0313,
+    "aspect": 26.48,
+    "grid": "col n=2 pitch_x=None pitch_y=84.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     214.0,
+     125.0,
+     131.0
+    ],
+    "flat_fill": 0.71,
+    "rect": 0.82
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 172,
+  "ocr_ms": 621,
+  "pixel_ms": 891,
+  "container_ms": 357,
+  "container_cached": false,
+  "total_ms": 1685,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 42,
+  "err": null
+ },
+ "title_text_id": 5,
+ "digest": "屏幕 2560x1440 · 文本 42 · 控件 40 · 容器 4 · 邻接 24 · 遮挡 2 · 1685ms（OCR daemon）\n标题「控制」@(232,205) 画面 · 字高 58px\n邻接「控制」→ circle@(165,207) 左侧 5px\n邻接「控制」→ circle@(166,299) 下方 54px\n邻接「控制」→ circle@(130,20) 上方 142px\n邻接「麦克风音量」→ label@(715,889)「其他设置」 下方 37px\n控件: circle@(165,207) | circle@(166,299) | circle@(130,20) | rect@(1005,627)「音效音量」\n遮挡 [0, 2, 121, 80] (0,2)-(121,80)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=129\n遮挡 [154, 1296, 276, 1320] (154,1296)-(276,1320)（conf 0.57）：左下角小字叠加层：小字 3 框，非纯黑 L=138\n可点文字 4 个: 设置／声音 / 其他设置 / 输出设置 / 关闭"
+}

@@ -1,0 +1,3346 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v027_0248.jpg",
+  "sha256": "f380736383bce8ad224c5f5d9efe32ce06beaf9444f036dc751a4add2090bbc5",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 152306
+ },
+ "title": {
+  "text": "i9",
+  "cx": 2519,
+  "cy": 26,
+  "bbox": [
+   2499,
+   6,
+   2539,
+   46
+  ],
+  "region": null,
+  "why": "上半屏字高最大（40px, score=0.62）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 61,
+   "cy": 19,
+   "bbox": [
+    1,
+    6,
+    121,
+    32
+   ],
+   "w": 120,
+   "h": 26,
+   "score": 0.9496,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "关卡设置 ×",
+   "cx": 343,
+   "cy": 25,
+   "bbox": [
+    287,
+    11,
+    398,
+    38
+   ],
+   "w": 111,
+   "h": 27,
+   "score": 0.9351,
+   "kind": "content"
+  },
+  {
+   "id": 2,
+   "text": "界面控件组管理×",
+   "cx": 540,
+   "cy": 24,
+   "bbox": [
+    459,
+    11,
+    621,
+    37
+   ],
+   "w": 162,
+   "h": 26,
+   "score": 0.9775,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "资产导入导出管理 ×",
+   "cx": 752,
+   "cy": 25,
+   "bbox": [
+    642,
+    10,
+    861,
+    39
+   ],
+   "w": 219,
+   "h": 29,
+   "score": 0.9532,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "高级数据管理×",
+   "cx": 992,
+   "cy": 24,
+   "bbox": [
+    920,
+    11,
+    1065,
+    37
+   ],
+   "w": 145,
+   "h": 26,
+   "score": 0.9493,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "技能变量管理 ×",
+   "cx": 1195,
+   "cy": 25,
+   "bbox": [
+    1122,
+    10,
+    1268,
+    39
+   ],
+   "w": 146,
+   "h": 29,
+   "score": 0.9295,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": " 93 ms",
+   "cx": 2273,
+   "cy": 26,
+   "bbox": [
+    2229,
+    12,
+    2317,
+    39
+   ],
+   "w": 88,
+   "h": 27,
+   "score": 0.9519,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "i9",
+   "cx": 2519,
+   "cy": 26,
+   "bbox": [
+    2499,
+    6,
+    2539,
+    46
+   ],
+   "w": 40,
+   "h": 40,
+   "score": 0.6229,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "FPS: 25.0",
+   "cx": 61,
+   "cy": 40,
+   "bbox": [
+    2,
+    27,
+    120,
+    54
+   ],
+   "w": 118,
+   "h": 27,
+   "score": 0.9451,
+   "kind": "hud"
+  },
+  {
+   "id": 9,
+   "text": "GPU: 15%",
+   "cx": 55,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    107,
+    77
+   ],
+   "w": 104,
+   "h": 22,
+   "score": 0.996,
+   "kind": "hud"
+  },
+  {
+   "id": 10,
+   "text": "单位状态",
+   "cx": 143,
+   "cy": 85,
+   "bbox": [
+    95,
+    69,
+    190,
+    101
+   ],
+   "w": 95,
+   "h": 32,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 11,
+   "text": "新建状态",
+   "cx": 2052,
+   "cy": 80,
+   "bbox": [
+    2005,
+    64,
+    2100,
+    96
+   ],
+   "w": 95,
+   "h": 32,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 12,
+   "text": "配置ID 1077936129",
+   "cx": 2088,
+   "cy": 114,
+   "bbox": [
+    2006,
+    101,
+    2170,
+    127
+   ],
+   "w": 164,
+   "h": 26,
+   "score": 0.9963,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "自定义",
+   "cx": 129,
+   "cy": 217,
+   "bbox": [
+    98,
+    203,
+    160,
+    231
+   ],
+   "w": 62,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "+新建状态",
+   "cx": 462,
+   "cy": 228,
+   "bbox": [
+    407,
+    213,
+    517,
+    244
+   ],
+   "w": 110,
+   "h": 31,
+   "score": 0.9839,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "通用信息",
+   "cx": 2049,
+   "cy": 217,
+   "bbox": [
+    2007,
+    201,
+    2091,
+    232
+   ],
+   "w": 84,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "效果详细信息",
+   "cx": 2376,
+   "cy": 217,
+   "bbox": [
+    2317,
+    204,
+    2434,
+    231
+   ],
+   "w": 117,
+   "h": 27,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "未分类页签",
+   "cx": 183,
+   "cy": 259,
+   "bbox": [
+    132,
+    244,
+    234,
+    275
+   ],
+   "w": 102,
+   "h": 31,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "基础设置",
+   "cx": 1969,
+   "cy": 275,
+   "bbox": [
+    1926,
+    258,
+    2012,
+    291
+   ],
+   "w": 86,
+   "h": 33,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 19,
+   "text": "川",
+   "cx": 2508,
+   "cy": 276,
+   "bbox": [
+    2495,
+    264,
+    2521,
+    288
+   ],
+   "w": 26,
+   "h": 24,
+   "score": 0.5285,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "添加页签",
+   "cx": 171,
+   "cy": 301,
+   "bbox": [
+    127,
+    286,
+    215,
+    316
+   ],
+   "w": 88,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "action"
+  },
+  {
+   "id": 21,
+   "text": "叠加层数上限",
+   "cx": 1958,
+   "cy": 320,
+   "bbox": [
+    1899,
+    307,
+    2016,
+    334
+   ],
+   "w": 117,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "预制状态",
+   "cx": 137,
+   "cy": 345,
+   "bbox": [
+    95,
+    330,
+    179,
+    361
+   ],
+   "w": 84,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "新建状态",
+   "cx": 460,
+   "cy": 372,
+   "bbox": [
+    423,
+    358,
+    498,
+    385
+   ],
+   "w": 75,
+   "h": 27,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 24,
+   "text": "更新过量叠加数据",
+   "cx": 2007,
+   "cy": 366,
+   "bbox": [
+    1930,
+    353,
+    2083,
+    379
+   ],
+   "w": 153,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "状态分类1",
+   "cx": 178,
+   "cy": 386,
+   "bbox": [
+    132,
+    372,
+    223,
+    399
+   ],
+   "w": 91,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "资产库",
+   "cx": 128,
+   "cy": 430,
+   "bbox": [
+    95,
+    414,
+    161,
+    446
+   ],
+   "w": 66,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "▼无限持续时间",
+   "cx": 1976,
+   "cy": 425,
+   "bbox": [
+    1904,
+    412,
+    2047,
+    438
+   ],
+   "w": 143,
+   "h": 26,
+   "score": 0.9525,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "默认分类",
+   "cx": 174,
+   "cy": 472,
+   "bbox": [
+    132,
+    459,
+    215,
+    486
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "初始运行时长(s)",
+   "cx": 2001,
+   "cy": 471,
+   "bbox": [
+    1930,
+    456,
+    2072,
+    486
+   ],
+   "w": 142,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "1.00",
+   "cx": 2312,
+   "cy": 471,
+   "bbox": [
+    2286,
+    456,
+    2338,
+    486
+   ],
+   "w": 52,
+   "h": 30,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "叠加共享时长",
+   "cx": 2016,
+   "cy": 529,
+   "bbox": [
+    1952,
+    514,
+    2081,
+    543
+   ],
+   "w": 129,
+   "h": 29,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "新建状态",
+   "cx": 1280,
+   "cy": 549,
+   "bbox": [
+    1232,
+    533,
+    1327,
+    565
+   ],
+   "w": 95,
+   "h": 32,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 33,
+   "text": "延续时长(s)",
+   "cx": 1983,
+   "cy": 574,
+   "bbox": [
+    1931,
+    560,
+    2034,
+    587
+   ],
+   "w": 103,
+   "h": 27,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "0.00",
+   "cx": 2316,
+   "cy": 574,
+   "bbox": [
+    2287,
+    560,
+    2344,
+    588
+   ],
+   "w": 57,
+   "h": 28,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "新建状态名称",
+   "cx": 1174,
+   "cy": 630,
+   "bbox": [
+    1113,
+    614,
+    1234,
+    645
+   ],
+   "w": 121,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "最大延续时长限制",
+   "cx": 2007,
+   "cy": 619,
+   "bbox": [
+    1932,
+    606,
+    2082,
+    632
+   ],
+   "w": 150,
+   "h": 26,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "新建状态_1",
+   "cx": 1175,
+   "cy": 673,
+   "bbox": [
+    1125,
+    659,
+    1225,
+    686
+   ],
+   "w": 100,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "状态节点图",
+   "cx": 1948,
+   "cy": 680,
+   "bbox": [
+    1899,
+    667,
+    1997,
+    694
+   ],
+   "w": 98,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "点击选择",
+   "cx": 2371,
+   "cy": 678,
+   "bbox": [
+    2329,
+    663,
+    2414,
+    694
+   ],
+   "w": 85,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "新建状态所属自定义分类",
+   "cx": 1218,
+   "cy": 714,
+   "bbox": [
+    1116,
+    702,
+    1321,
+    727
+   ],
+   "w": 205,
+   "h": 25,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "来源设置",
+   "cx": 1958,
+   "cy": 743,
+   "bbox": [
+    1904,
+    730,
+    2011,
+    757
+   ],
+   "w": 107,
+   "h": 27,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 42,
+   "text": "未分类页签",
+   "cx": 1174,
+   "cy": 757,
+   "bbox": [
+    1125,
+    744,
+    1224,
+    771
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "4",
+   "cx": 1918,
+   "cy": 788,
+   "bbox": [
+    1910,
+    783,
+    1925,
+    794
+   ],
+   "w": 15,
+   "h": 11,
+   "score": 0.5418,
+   "kind": "other"
+  },
+  {
+   "id": 44,
+   "text": "不同施加来源可叠加",
+   "cx": 2034,
+   "cy": 787,
+   "bbox": [
+    1932,
+    771,
+    2135,
+    803
+   ],
+   "w": 203,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 45,
+   "text": "记录最新施加者",
+   "cx": 1998,
+   "cy": 833,
+   "bbox": [
+    1930,
+    819,
+    2065,
+    848
+   ],
+   "w": 135,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 46,
+   "text": "确认创建",
+   "cx": 1280,
+   "cy": 862,
+   "bbox": [
+    1232,
+    846,
+    1327,
+    878
+   ],
+   "w": 95,
+   "h": 32,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 47,
+   "text": "并存上限",
+   "cx": 1972,
+   "cy": 878,
+   "bbox": [
+    1931,
+    865,
+    2012,
+    892
+   ],
+   "w": 81,
+   "h": 27,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 48,
+   "text": "同名状态更新策略",
+   "cx": 2007,
+   "cy": 923,
+   "bbox": [
+    1930,
+    909,
+    2085,
+    938
+   ],
+   "w": 155,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 49,
+   "text": "无法更新",
+   "cx": 2328,
+   "cy": 923,
+   "bbox": [
+    2286,
+    907,
+    2370,
+    938
+   ],
+   "w": 84,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 50,
+   "text": "让位状态列表",
+   "cx": 1989,
+   "cy": 982,
+   "bbox": [
+    1929,
+    969,
+    2049,
+    996
+   ],
+   "w": 120,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 51,
+   "text": "三",
+   "cx": 2508,
+   "cy": 982,
+   "bbox": [
+    2495,
+    972,
+    2521,
+    993
+   ],
+   "w": 26,
+   "h": 21,
+   "score": 0.5718,
+   "kind": "content"
+  },
+  {
+   "id": 52,
+   "text": "添加状态",
+   "cx": 2212,
+   "cy": 1033,
+   "bbox": [
+    2170,
+    1018,
+    2255,
+    1049
+   ],
+   "w": 85,
+   "h": 31,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 53,
+   "text": "顶替状态列表",
+   "cx": 1977,
+   "cy": 1095,
+   "bbox": [
+    1905,
+    1082,
+    2049,
+    1108
+   ],
+   "w": 144,
+   "h": 26,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 54,
+   "text": "添加状态",
+   "cx": 2213,
+   "cy": 1146,
+   "bbox": [
+    2172,
+    1132,
+    2254,
+    1159
+   ],
+   "w": 82,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 55,
+   "text": "min: 27.0 ms",
+   "cx": 65,
+   "cy": 1306,
+   "bbox": [
+    5,
+    1294,
+    126,
+    1319
+   ],
+   "w": 121,
+   "h": 25,
+   "score": 0.9915,
+   "kind": "data"
+  },
+  {
+   "id": 56,
+   "text": "max: 57.0 ms",
+   "cx": 216,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    274,
+    1317
+   ],
+   "w": 117,
+   "h": 18,
+   "score": 0.9503,
+   "kind": "data"
+  },
+  {
+   "id": 57,
+   "text": "oop",
+   "cx": 213,
+   "cy": 1357,
+   "bbox": [
+    1,
+    1335,
+    425,
+    1378
+   ],
+   "w": 424,
+   "h": 43,
+   "score": 0.5311,
+   "kind": "content"
+  },
+  {
+   "id": 58,
+   "text": "切换性别",
+   "cx": 1183,
+   "cy": 1398,
+   "bbox": [
+    1141,
+    1383,
+    1225,
+    1414
+   ],
+   "w": 84,
+   "h": 31,
+   "score": 0.9989,
+   "kind": "action"
+  },
+  {
+   "id": 59,
+   "text": "保存",
+   "cx": 1312,
+   "cy": 1399,
+   "bbox": [
+    1289,
+    1384,
+    1335,
+    1414
+   ],
+   "w": 46,
+   "h": 30,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 60,
+   "text": "另存为",
+   "cx": 1425,
+   "cy": 1399,
+   "bbox": [
+    1392,
+    1383,
+    1459,
+    1415
+   ],
+   "w": 67,
+   "h": 32,
+   "score": 0.9997,
+   "kind": "action"
+  },
+  {
+   "id": 61,
+   "text": "UID: 110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9745,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    184,
+    10,
+    218,
+    34
+   ],
+   "cx": 201,
+   "cy": 22,
+   "w": 34,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.74,
+    "aspect": 1.42,
+    "corner_fill": 0.19,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    262,
+    12,
+    282,
+    40
+   ],
+   "cx": 272,
+   "cy": 26,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.879,
+    "aspect": 0.71,
+    "corner_fill": 0.25,
+    "area": 492,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    428,
+    16,
+    452,
+    36
+   ],
+   "cx": 440,
+   "cy": 26,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.883,
+    "aspect": 1.2,
+    "corner_fill": 0.25,
+    "area": 424,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2332,
+    16,
+    2360,
+    36
+   ],
+   "cx": 2346,
+   "cy": 26,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.836,
+    "aspect": 1.4,
+    "corner_fill": 0.25,
+    "area": 468,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1310,
+    82,
+    1350,
+    118
+   ],
+   "cx": 1330,
+   "cy": 100,
+   "w": 40,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.753,
+    "aspect": 1.11,
+    "corner_fill": 0.11,
+    "area": 1084,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    20,
+    86,
+    60,
+    120
+   ],
+   "cx": 40,
+   "cy": 103,
+   "w": 40,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.712,
+    "aspect": 1.18,
+    "corner_fill": 0.05,
+    "area": 968,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    50,
+    250,
+    68,
+    276
+   ],
+   "cx": 59,
+   "cy": 263,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.607,
+    "aspect": 0.69,
+    "corner_fill": 0.12,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2462,
+    518,
+    2486,
+    544
+   ],
+   "cx": 2474,
+   "cy": 531,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.705,
+    "aspect": 0.92,
+    "corner_fill": 0.11,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2492,
+    666,
+    2510,
+    692
+   ],
+   "cx": 2501,
+   "cy": 679,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.752,
+    "aspect": 0.69,
+    "corner_fill": 0.12,
+    "area": 352,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    82,
+    758,
+    110,
+    778
+   ],
+   "cx": 96,
+   "cy": 768,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.707,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    2440,
+    14,
+    2464,
+    38
+   ],
+   "cx": 2452,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 50.5,
+    "ring_L": 97.5,
+    "inside_L": 62.5,
+    "outside_L": 31.5
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    2422,
+    28,
+    2438,
+    50
+   ],
+   "cx": 2430,
+   "cy": 39,
+   "w": 16,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 0.73,
+    "corner_fill": 0.25,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2462,
+    416,
+    2486,
+    440
+   ],
+   "cx": 2474,
+   "cy": 428,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.771,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 444,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1254,
+    1386,
+    1286,
+    1418
+   ],
+   "cx": 1270,
+   "cy": 1402,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.944,
+    "contrast": 48.6,
+    "ring_L": 107.5,
+    "inside_L": 63.5,
+    "outside_L": 54.2
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1384,
+    74,
+    1452,
+    124
+   ],
+   "cx": 1418,
+   "cy": 99,
+   "w": 68,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": 0.722,
+    "aspect": 1.36,
+    "corner_fill": 0.24,
+    "area": 2456,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    2170,
+    106,
+    2194,
+    128
+   ],
+   "cx": 2182,
+   "cy": 117,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 1.09,
+    "corner_fill": 0.25,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1904,
+    356,
+    1930,
+    380
+   ],
+   "cx": 1917,
+   "cy": 368,
+   "w": 26,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 1.08,
+    "corner_fill": 0.28,
+    "area": 504,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    104,
+    136,
+    536,
+    172
+   ],
+   "cx": 320,
+   "cy": 154,
+   "w": 432,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.943,
+    "aspect": 12.0,
+    "corner_fill": 0.19,
+    "area": 14668,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    576,
+    734,
+    914,
+    750
+   ],
+   "cx": 745,
+   "cy": 742,
+   "w": 338,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.93,
+    "aspect": 21.12,
+    "corner_fill": 0.06,
+    "area": 5028,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1120,
+    838,
+    1440,
+    888
+   ],
+   "cx": 1280,
+   "cy": 863,
+   "w": 320,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.911,
+   "label": "确认创建",
+   "evidence": {
+    "fill": 0.913,
+    "aspect": 6.4,
+    "corner_fill": 0.28,
+    "area": 14616,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2410,
+    78,
+    2432,
+    102
+   ],
+   "cx": 2421,
+   "cy": 90,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.91,
+   "label": null,
+   "evidence": {
+    "fill": 0.765,
+    "aspect": 0.92,
+    "corner_fill": 0.31,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1864,
+    718,
+    1908,
+    754
+   ],
+   "cx": 1886,
+   "cy": 736,
+   "w": 44,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.573,
+    "aspect": 1.22,
+    "corner_fill": 0.23,
+    "area": 908,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2024,
+    46,
+    2078,
+    66
+   ],
+   "cx": 2051,
+   "cy": 56,
+   "w": 54,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.878,
+    "aspect": 2.7,
+    "corner_fill": 0.0,
+    "area": 948,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1276,
+    1008,
+    1302,
+    1042
+   ],
+   "cx": 1289,
+   "cy": 1025,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.48,
+    "aspect": 0.76,
+    "corner_fill": 0.22,
+    "area": 424,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    2462,
+    776,
+    2498,
+    802
+   ],
+   "cx": 2480,
+   "cy": 789,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.543,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 508,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    0,
+    756,
+    78,
+    1440
+   ],
+   "cx": 39,
+   "cy": 1098,
+   "w": 78,
+   "h": 684,
+   "shape": "rect",
+   "confidence": 0.89,
+   "label": "min: 27.0 ms",
+   "evidence": {
+    "fill": 0.868,
+    "aspect": 0.11,
+    "corner_fill": 0.96,
+    "area": 46296,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    2458,
+    352,
+    2522,
+    382
+   ],
+   "cx": 2490,
+   "cy": 367,
+   "w": 64,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 2.13,
+    "corner_fill": 0.36,
+    "area": 1660,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2490,
+    416,
+    2514,
+    436
+   ],
+   "cx": 2502,
+   "cy": 426,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 1.2,
+    "corner_fill": 0.38,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1644,
+    734,
+    1850,
+    750
+   ],
+   "cx": 1747,
+   "cy": 742,
+   "w": 206,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.858,
+    "aspect": 12.88,
+    "corner_fill": 0.0,
+    "area": 2828,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    112,
+    142,
+    136,
+    166
+   ],
+   "cx": 124,
+   "cy": 154,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.708,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1934,
+    652,
+    1972,
+    668
+   ],
+   "cx": 1953,
+   "cy": 660,
+   "w": 38,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.855,
+    "aspect": 2.38,
+    "corner_fill": 0.5,
+    "area": 520,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1112,
+    598,
+    1232,
+    618
+   ],
+   "cx": 1172,
+   "cy": 608,
+   "w": 120,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.848,
+    "aspect": 6.0,
+    "corner_fill": 0.38,
+    "area": 2036,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    936,
+    528,
+    1624,
+    576
+   ],
+   "cx": 1280,
+   "cy": 552,
+   "w": 688,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.881,
+   "label": "新建状态",
+   "evidence": {
+    "fill": 0.846,
+    "aspect": 14.33,
+    "corner_fill": 0.87,
+    "area": 27952,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1196,
+    658,
+    1580,
+    688
+   ],
+   "cx": 1388,
+   "cy": 673,
+   "w": 384,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 12.8,
+    "corner_fill": 0.48,
+    "area": 9652,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1268,
+    1038,
+    1310,
+    1092
+   ],
+   "cx": 1289,
+   "cy": 1065,
+   "w": 42,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.436,
+    "aspect": 0.78,
+    "corner_fill": 0.24,
+    "area": 988,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1870,
+    772,
+    1888,
+    1440
+   ],
+   "cx": 1879,
+   "cy": 1106,
+   "w": 18,
+   "h": 668,
+   "shape": "rect",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.835,
+    "aspect": 0.03,
+    "corner_fill": 0.62,
+    "area": 10044,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    500,
+    68,
+    534,
+    104
+   ],
+   "cx": 517,
+   "cy": 86,
+   "w": 34,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.444,
+    "aspect": 0.94,
+    "corner_fill": 0.25,
+    "area": 544,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1926,
+    542,
+    2054,
+    562
+   ],
+   "cx": 1990,
+   "cy": 552,
+   "w": 128,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.871,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 6.4,
+    "corner_fill": 0.06,
+    "area": 2112,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    102,
+    242,
+    340,
+    280
+   ],
+   "cx": 221,
+   "cy": 261,
+   "w": 238,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": "未分类页签",
+   "evidence": {
+    "fill": 0.816,
+    "aspect": 6.26,
+    "corner_fill": 0.32,
+    "area": 7380,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    536,
+    766,
+    558,
+    1440
+   ],
+   "cx": 547,
+   "cy": 1103,
+   "w": 22,
+   "h": 674,
+   "shape": "rect",
+   "confidence": 0.866,
+   "label": null,
+   "evidence": {
+    "fill": 0.813,
+    "aspect": 0.03,
+    "corner_fill": 0.44,
+    "area": 12048,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    558,
+    1440
+   ],
+   "why": "竖边长直边 x=558（覆盖 49% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    95,
+    10,
+    1459,
+    1415
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 16,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 11,
+   "row_y": [
+    24,
+    85,
+    251,
+    367,
+    451,
+    549,
+    630,
+    693,
+    757,
+    862,
+    1398
+   ],
+   "rows": [
+    {
+     "y": 24,
+     "texts": [
+      "界面控件组管理×",
+      "高级数据管理×",
+      "关卡设置 ×",
+      "资产导入导出管理 ×",
+      "技能变量管理 ×"
+     ]
+    },
+    {
+     "y": 85,
+     "texts": [
+      "单位状态"
+     ]
+    },
+    {
+     "y": 251,
+     "texts": [
+      "自定义",
+      "+新建状态",
+      "未分类页签",
+      "添加页签"
+     ]
+    },
+    {
+     "y": 367,
+     "texts": [
+      "预制状态",
+      "新建状态",
+      "状态分类1"
+     ]
+    },
+    {
+     "y": 451,
+     "texts": [
+      "资产库",
+      "默认分类"
+     ]
+    },
+    {
+     "y": 549,
+     "texts": [
+      "新建状态"
+     ]
+    },
+    {
+     "y": 630,
+     "texts": [
+      "新建状态名称"
+     ]
+    },
+    {
+     "y": 693,
+     "texts": [
+      "新建状态_1",
+      "新建状态所属自定义分类"
+     ]
+    },
+    {
+     "y": 757,
+     "texts": [
+      "未分类页签"
+     ]
+    },
+    {
+     "y": 862,
+     "texts": [
+      "确认创建"
+     ]
+    },
+    {
+     "y": 1398,
+     "texts": [
+      "切换性别",
+      "保存",
+      "另存为"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1899,
+    12,
+    2521,
+    1159
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 21,
+   "row_y": [
+    26,
+    97,
+    217,
+    275,
+    320,
+    366,
+    425,
+    471,
+    529,
+    574,
+    619,
+    679,
+    743,
+    787,
+    833,
+    878,
+    923,
+    982,
+    1033,
+    1095,
+    1146
+   ],
+   "rows": [
+    {
+     "y": 26,
+     "texts": [
+      " 93 ms"
+     ]
+    },
+    {
+     "y": 97,
+     "texts": [
+      "新建状态",
+      "配置ID 1077936129"
+     ]
+    },
+    {
+     "y": 217,
+     "texts": [
+      "通用信息",
+      "效果详细信息"
+     ]
+    },
+    {
+     "y": 275,
+     "texts": [
+      "基础设置",
+      "川"
+     ]
+    },
+    {
+     "y": 320,
+     "texts": [
+      "叠加层数上限"
+     ]
+    },
+    {
+     "y": 366,
+     "texts": [
+      "更新过量叠加数据"
+     ]
+    },
+    {
+     "y": 425,
+     "texts": [
+      "▼无限持续时间"
+     ]
+    },
+    {
+     "y": 471,
+     "texts": [
+      "初始运行时长(s)",
+      "1.00"
+     ]
+    },
+    {
+     "y": 529,
+     "texts": [
+      "叠加共享时长"
+     ]
+    },
+    {
+     "y": 574,
+     "texts": [
+      "延续时长(s)",
+      "0.00"
+     ]
+    },
+    {
+     "y": 619,
+     "texts": [
+      "最大延续时长限制"
+     ]
+    },
+    {
+     "y": 679,
+     "texts": [
+      "点击选择",
+      "状态节点图"
+     ]
+    },
+    {
+     "y": 743,
+     "texts": [
+      "来源设置"
+     ]
+    },
+    {
+     "y": 787,
+     "texts": [
+      "不同施加来源可叠加",
+      "4"
+     ]
+    },
+    {
+     "y": 833,
+     "texts": [
+      "记录最新施加者"
+     ]
+    },
+    {
+     "y": 878,
+     "texts": [
+      "并存上限"
+     ]
+    },
+    {
+     "y": 923,
+     "texts": [
+      "同名状态更新策略",
+      "无法更新"
+     ]
+    },
+    {
+     "y": 982,
+     "texts": [
+      "让位状态列表",
+      "三"
+     ]
+    },
+    {
+     "y": 1033,
+     "texts": [
+      "添加状态"
+     ]
+    },
+    {
+     "y": 1095,
+     "texts": [
+      "顶替状态列表"
+     ]
+    },
+    {
+     "y": 1146,
+     "texts": [
+      "添加状态"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "circle@(2452,26)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 35,
+   "dx": -67,
+   "dy": 0,
+   "confidence": 0.671
+  },
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "circle@(2430,39)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 61,
+   "dx": -89,
+   "dy": 13,
+   "confidence": 0.649
+  },
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "circle@(2346,26)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "left",
+   "gap_px": 139,
+   "dx": -173,
+   "dy": 0,
+   "confidence": 0.584
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 17,
+   "target": "rect@(221,261)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "未分类页签",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 38,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "自定义",
+   "text_id": 13,
+   "target": "rect@(221,261)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "未分类页签",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 11,
+   "dx": 92,
+   "dy": 44,
+   "confidence": 0.541
+  },
+  {
+   "text": "通用信息",
+   "text_id": 15,
+   "target": "label@(1969,274)",
+   "target_id": "t18",
+   "target_kind": "label",
+   "label": "基础设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 26,
+   "dx": -80,
+   "dy": 58,
+   "confidence": 0.728
+  },
+  {
+   "text": "状态节点图",
+   "text_id": 38,
+   "target": "label@(1957,743)",
+   "target_id": "t41",
+   "target_kind": "label",
+   "label": "来源设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 36,
+   "dx": 10,
+   "dy": 63,
+   "confidence": 0.72
+  },
+  {
+   "text": "+新建状态",
+   "text_id": 14,
+   "target": "rect@(221,261)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "未分类页签",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 67,
+   "dx": -241,
+   "dy": 32,
+   "confidence": 0.494
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 42,
+   "target": "rect@(1280,863)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "确认创建",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 67,
+   "dx": 106,
+   "dy": 106,
+   "confidence": 0.494
+  },
+  {
+   "text": "无法更新",
+   "text_id": 49,
+   "target": "label@(2212,1033)",
+   "target_id": "t52",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 80,
+   "dx": -116,
+   "dy": 111,
+   "confidence": 0.683
+  },
+  {
+   "text": "同名状态更新策略",
+   "text_id": 48,
+   "target": "label@(2212,1033)",
+   "target_id": "t52",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 85,
+   "dx": 205,
+   "dy": 110,
+   "confidence": 0.679
+  },
+  {
+   "text": "资产库",
+   "text_id": 26,
+   "target": "label@(171,301)",
+   "target_id": "t20",
+   "target_kind": "label",
+   "label": "添加页签",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 98,
+   "dx": 43,
+   "dy": -129,
+   "confidence": 0.668
+  },
+  {
+   "text": "最大延续时长限制",
+   "text_id": 36,
+   "target": "label@(1957,743)",
+   "target_id": "t41",
+   "target_kind": "label",
+   "label": "来源设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 98,
+   "dx": -50,
+   "dy": 124,
+   "confidence": 0.668
+  },
+  {
+   "text": "新建状态所属自定义分类",
+   "text_id": 40,
+   "target": "rect@(1280,863)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "确认创建",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 111,
+   "dx": 62,
+   "dy": 148,
+   "confidence": 0.458
+  },
+  {
+   "text": "让位状态列表",
+   "text_id": 50,
+   "target": "label@(2212,1033)",
+   "target_id": "t52",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 121,
+   "dx": 224,
+   "dy": 51,
+   "confidence": 0.649
+  },
+  {
+   "text": "顶替状态列表",
+   "text_id": 53,
+   "target": "label@(2213,1145)",
+   "target_id": "t54",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 123,
+   "dx": 236,
+   "dy": 50,
+   "confidence": 0.647
+  },
+  {
+   "text": " 93 ms",
+   "text_id": 6,
+   "target": "label@(2052,80)",
+   "target_id": "t11",
+   "target_kind": "label",
+   "label": "新建状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 129,
+   "dx": -220,
+   "dy": 54,
+   "confidence": 0.642
+  },
+  {
+   "text": "配置ID 1077936129",
+   "text_id": 12,
+   "target": "label@(1969,274)",
+   "target_id": "t18",
+   "target_kind": "label",
+   "label": "基础设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 131,
+   "dx": -119,
+   "dy": 160,
+   "confidence": 0.641
+  },
+  {
+   "text": "默认分类",
+   "text_id": 28,
+   "target": "label@(171,301)",
+   "target_id": "t20",
+   "target_kind": "label",
+   "label": "添加页签",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 143,
+   "dx": -2,
+   "dy": -172,
+   "confidence": 0.631
+  },
+  {
+   "text": "延续时长(s)",
+   "text_id": 33,
+   "target": "label@(1957,743)",
+   "target_id": "t41",
+   "target_kind": "label",
+   "label": "来源设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 143,
+   "dx": -25,
+   "dy": 170,
+   "confidence": 0.631
+  },
+  {
+   "text": "并存上限",
+   "text_id": 47,
+   "target": "label@(2212,1033)",
+   "target_id": "t52",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 158,
+   "dx": 241,
+   "dy": 155,
+   "confidence": 0.618
+  },
+  {
+   "text": "新建状态_1",
+   "text_id": 37,
+   "target": "label@(1279,862)",
+   "target_id": "t46",
+   "target_kind": "label",
+   "label": "确认创建",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 160,
+   "dx": 104,
+   "dy": 190,
+   "confidence": 0.617
+  },
+  {
+   "text": "记录最新施加者",
+   "text_id": 45,
+   "target": "label@(2212,1033)",
+   "target_id": "t52",
+   "target_kind": "label",
+   "label": "添加状态",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 170,
+   "dx": 215,
+   "dy": 200,
+   "confidence": 0.608
+  },
+  {
+   "text": "叠加共享时长",
+   "text_id": 31,
+   "target": "label@(1957,743)",
+   "target_id": "t41",
+   "target_kind": "label",
+   "label": "来源设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 187,
+   "dx": -59,
+   "dy": 215,
+   "confidence": 0.594
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    3,
+    193,
+    104
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=46",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 25.0",
+     "GPU: 15%",
+     "单位状态"
+    ],
+    "text_ids": [
+     0,
+     8,
+     9,
+     10
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 6,
+    "bg_mean": 45.9,
+    "bg_std": 24.3,
+    "ring_mean": 42.8,
+    "ring_std": 19.2,
+    "texture_ratio": 1.27,
+    "bg_rgb": [
+     34,
+     44,
+     59
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     69.0,
+     127.0,
+     121.0
+    ],
+    "fill": 0.62,
+    "rect": 0.77
+   },
+   "text": [
+    "DXVK v3.0",
+    "关卡设置 ×",
+    "界面控件组管理×",
+    "资产导入导出管理 ×",
+    "高级数据管理×",
+    "技能变量管理 ×",
+    " 93 ms",
+    "i9",
+    "FPS: 25.0",
+    "GPU: 15%",
+    "单位状态",
+    "新建状态",
+    "配置ID 1077936129",
+    "自定义",
+    "+新建状态",
+    "通用信息",
+    "效果详细信息",
+    "未分类页签",
+    "基础设置",
+    "川",
+    "添加页签",
+    "叠加层数上限",
+    "预制状态",
+    "新建状态",
+    "更新过量叠加数据",
+    "状态分类1",
+    "资产库",
+    "▼无限持续时间",
+    "默认分类",
+    "初始运行时长(s)",
+    "1.00",
+    "叠加共享时长",
+    "新建状态",
+    "延续时长(s)",
+    "0.00",
+    "新建状态名称",
+    "最大延续时长限制",
+    "新建状态_1",
+    "状态节点图",
+    "点击选择",
+    "新建状态所属自定义分类",
+    "来源设置",
+    "未分类页签",
+    "4",
+    "不同施加来源可叠加",
+    "记录最新施加者",
+    "确认创建",
+    "并存上限",
+    "同名状态更新策略",
+    "无法更新",
+    "让位状态列表",
+    "三",
+    "添加状态",
+    "顶替状态列表",
+    "添加状态",
+    "min: 27.0 ms",
+    "max: 57.0 ms",
+    "oop",
+    "切换性别",
+    "保存",
+    "另存为",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      428,
+      16,
+      452,
+      38
+     ],
+     "role": "icon",
+     "fill": 0.98,
+     "contrast": 104.0
+    },
+    {
+     "bbox": [
+      260,
+      16,
+      282,
+      38
+     ],
+     "role": "icon",
+     "fill": 0.87,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      1908,
+      358,
+      1926,
+      378
+     ],
+     "role": "icon",
+     "fill": 0.87,
+     "contrast": 119.0
+    },
+    {
+     "bbox": [
+      2500,
+      736,
+      2518,
+      752
+     ],
+     "role": "icon",
+     "fill": 0.86,
+     "contrast": 91.0
+    },
+    {
+     "bbox": [
+      186,
+      14,
+      214,
+      34
+     ],
+     "role": "icon",
+     "fill": 0.85,
+     "contrast": 113.0
+    },
+    {
+     "bbox": [
+      508,
+      78,
+      526,
+      94
+     ],
+     "role": "icon",
+     "fill": 0.85,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      2466,
+      418,
+      2484,
+      436
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 73.0
+    },
+    {
+     "bbox": [
+      2460,
+      352,
+      2522,
+      384
+     ],
+     "role": "icon",
+     "fill": 0.82,
+     "contrast": 134.0
+    },
+    {
+     "bbox": [
+      2412,
+      76,
+      2430,
+      100
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      2466,
+      522,
+      2484,
+      540
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 67.0
+    },
+    {
+     "bbox": [
+      2492,
+      670,
+      2512,
+      692
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 106.0
+    },
+    {
+     "bbox": [
+      1970,
+      74,
+      1986,
+      92
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 165.0
+    },
+    {
+     "bbox": [
+      24,
+      84,
+      56,
+      118
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      24,
+      458,
+      56,
+      492
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 122.0
+    },
+    {
+     "bbox": [
+      1094,
+      14,
+      1118,
+      38
+     ],
+     "role": "icon",
+     "fill": 0.77,
+     "contrast": 116.0
+    },
+    {
+     "bbox": [
+      14,
+      150,
+      66,
+      202
+     ],
+     "role": "icon",
+     "fill": 0.77,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      1586,
+      542,
+      1604,
+      560
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 204.0
+    },
+    {
+     "bbox": [
+      2460,
+      774,
+      2522,
+      850
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 106.0
+    },
+    {
+     "bbox": [
+      2508,
+      78,
+      2526,
+      96
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      408,
+      1382,
+      426,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 49.0
+    },
+    {
+     "bbox": [
+      1044,
+      604,
+      1066,
+      628
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 266.0
+    },
+    {
+     "bbox": [
+      2440,
+      14,
+      2468,
+      40
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 114.0
+    },
+    {
+     "bbox": [
+      102,
+      242,
+      124,
+      280
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 72.0
+    },
+    {
+     "bbox": [
+      1410,
+      82,
+      1450,
+      122
+     ],
+     "role": "icon",
+     "fill": 0.67,
+     "contrast": 137.0
+    },
+    {
+     "bbox": [
+      1224,
+      1172,
+      1256,
+      1298
+     ],
+     "role": "icon",
+     "fill": 0.67,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      1336,
+      1180,
+      1372,
+      1312
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 104.0
+    },
+    {
+     "bbox": [
+      312,
+      240,
+      340,
+      280
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 75.0
+    },
+    {
+     "bbox": [
+      1890,
+      198,
+      1918,
+      238
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 75.0
+    },
+    {
+     "bbox": [
+      24,
+      386,
+      56,
+      416
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 111.0
+    },
+    {
+     "bbox": [
+      112,
+      142,
+      136,
+      166
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      2180,
+      198,
+      2212,
+      238
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 76.0
+    },
+    {
+     "bbox": [
+      24,
+      234,
+      56,
+      268
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      26,
+      310,
+      54,
+      340
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      2174,
+      108,
+      2190,
+      128
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 101.0
+    },
+    {
+     "bbox": [
+      1846,
+      750,
+      1866,
+      776
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 59.0
+    },
+    {
+     "bbox": [
+      1596,
+      526,
+      1626,
+      556
+     ],
+     "role": "icon",
+     "fill": 0.5,
+     "contrast": 198.0
+    },
+    {
+     "bbox": [
+      1002,
+      634,
+      1056,
+      702
+     ],
+     "role": "icon",
+     "fill": 0.5,
+     "contrast": 204.0
+    },
+    {
+     "bbox": [
+      432,
+      304,
+      490,
+      354
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      1916,
+      88,
+      1968,
+      152
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 124.0
+    },
+    {
+     "bbox": [
+      2334,
+      16,
+      2358,
+      36
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      1082,
+      78,
+      1166,
+      132
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      1774,
+      104,
+      1818,
+      146
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 74.0
+    },
+    {
+     "bbox": [
+      1626,
+      750,
+      1654,
+      778
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 57.0
+    },
+    {
+     "bbox": [
+      934,
+      526,
+      960,
+      554
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 67.0
+    },
+    {
+     "bbox": [
+      934,
+      886,
+      960,
+      914
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 89.0
+    },
+    {
+     "bbox": [
+      1600,
+      886,
+      1626,
+      914
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 84.0
+    },
+    {
+     "bbox": [
+      904,
+      750,
+      934,
+      778
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 70.0
+    },
+    {
+     "bbox": [
+      1194,
+      82,
+      1256,
+      132
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 114.0
+    },
+    {
+     "bbox": [
+      124,
+      18,
+      160,
+      52
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 121.0
+    },
+    {
+     "bbox": [
+      560,
+      748,
+      608,
+      776
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 67.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:62",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.65,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 54)",
+    "area_px": 2826404,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 62,
+    "text_ui": 54,
+    "skin_lab": [
+     69.0,
+     127.0,
+     121.0
+    ],
+    "flat_fill": 0.62,
+    "rect": 0.77
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 134,
+  "ocr_ms": 631,
+  "pixel_ms": 892,
+  "container_ms": 386,
+  "container_cached": false,
+  "total_ms": 1658,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 62,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 62 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 1 · 1658ms（OCR daemon）\n标题「i9」@(2519,26) 画面 · 字高 40px\n邻接「i9」→ circle@(2452,26) 左侧 35px\n邻接「i9」→ circle@(2430,39) 左侧 61px\n邻接「i9」→ circle@(2346,26) 左侧 139px\n邻接「通用信息」→ label@(1969,274)「基础设置」 下方 26px\n控件: circle@(2452,26) | circle@(2430,39) | circle@(2346,26) | rect@(221,261)「未分类页签」\n区域: 左侧栏 (0,0)-(558,1440)\n遮挡 [0, 3, 193, 104] (0,3)-(193,104)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=46\n可点文字 12 个: 新建状态 / 基础设置 / 添加页签 / 新建状态 / 新建状态 / 来源设置"
+}

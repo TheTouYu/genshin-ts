@@ -1,0 +1,565 @@
+{
+ "frame": "c19_195135",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/reps/c19_195135.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "设置·声音（9 个音频设置行）",
+ "classes": [
+  "半透明胶囊行",
+  "左导航"
+ ],
+ "units": 20,
+ "_provenance": {
+  "family": "设置·声音",
+  "method": "行带由 OCR 文本行 y（172/254/…/780/946）±38 取带；行 x 与左导航沿用同屏实测几何",
+  "tool_assist": "几何=edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）；行标签用 OCR 文本（`label-capture/_screen/*.json`）核对，不用其 bbox",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "行 y 取自文本行中心，未逐行用扫描线复核（可能 ±10px）"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 0/20 = 0.0%（iou 0.000，fp=3，degen=1）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    2030,
+    25,
+    500,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "第三人称射击设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2425,
+    25,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    138,
+    172,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    138,
+    265,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "按键"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    138,
+    358,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "图像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    138,
+    451,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "声音"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    138,
+    544,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "消息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    138,
+    636,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "语言"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    138,
+    729,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "账户"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    138,
+    822,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "资源"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    138,
+    915,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    646,
+    134,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "主音量",
+    "10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    646,
+    216,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "音量",
+    "10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    646,
+    301,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "音量平衡",
+    ""
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    646,
+    386,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "音乐音量",
+    "10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    646,
+    475,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "语音音量",
+    "10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    646,
+    562,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "音效音量",
+    "10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    646,
+    655,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "语音聊天音量",
+    "50"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    646,
+    742,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "麦克风音量",
+    "50"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    646,
+    908,
+    1756,
+    76
+   ],
+   "kind": "row",
+   "text": [
+    "动态范围",
+    "完全"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "设置行（右值是滑条/下拉）"
+  }
+ ]
+}

@@ -1,0 +1,761 @@
+{
+ "frame": "v088_0513",
+ "image": ".scratch/gui-corpus/video-20261018/reps/v088_0513.jpg",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）",
+ "classes": [
+  "插画背景",
+  "头像条",
+  "属性行"
+ ],
+ "units": 27,
+ "_provenance": {
+  "family": "角色·属性",
+  "method": "左导航 6 项 y 由 edges.py x=200 扫描带 + preview 比例定（217/307/405/502/607/697）；5 条属性行 y 由文本行位置定；顶部 9 头像按等距量（中心距 128px）",
+  "tool_assist": "几何=edges.py/remeasure_grid.py/boxer.py（本仓自写）；ys-screen 只在最后做交叉对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "顶部 9 个头像的左右边界按等距外推（±12px）",
+   "属性行宽度与右界按可见像素估",
+   "「突破」按钮与 F 键位提示是否为同一热区未闭合"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 0/27 = 0.0%（iou 0.000，fp=3）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    2430,
+    20,
+    110,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2210,
+    1345,
+    250,
+    70
+   ],
+   "kind": "button",
+   "text": [
+    "突破"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右下主按钮"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    232,
+    1340,
+    230,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "提升指南"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "hud",
+    "px": 20
+   },
+   "note": "左下按钮（被录制 HUD 压住下半）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1900,
+    640,
+    320,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "详细信息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    82,
+    690,
+    60,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "‹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "上一个角色"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    2450,
+    690,
+    60,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "›"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下一个角色"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    720,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 1/9"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    848,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 2/9"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    976,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1052,
+      8,
+      30,
+      30
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 3/9"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1104,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 4/9"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1232,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 5/9"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1360,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 6/9"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1488,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 7/9"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1616,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 8/9"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    1744,
+    8,
+    105,
+    120
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏角色头像 9/9"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    100,
+    185,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "属性"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    100,
+    275,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "武器"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    100,
+    373,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "圣遗物"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    100,
+    470,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "命之座"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    100,
+    575,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "天赋"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    100,
+    665,
+    240,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "资料"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      268,
+      664,
+      30,
+      30
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    1700,
+    380,
+    820,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "生命值上限",
+    "16,950"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "属性行"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    1700,
+    429,
+    820,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "攻击力",
+    "2,614"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "属性行"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    1700,
+    478,
+    820,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "防御力",
+    "778"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "属性行"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1700,
+    527,
+    820,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "元素精通",
+    "114"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "属性行"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    1700,
+    576,
+    820,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "体力上限",
+    "240"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "属性行"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    1700,
+    720,
+    820,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "好感",
+    "7"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "好感条（进度 7 级）"
+  }
+ ]
+}

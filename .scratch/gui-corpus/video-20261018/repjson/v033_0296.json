@@ -1,0 +1,3075 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v033_0296.jpg",
+  "sha256": "4759cb41a7dee3215d0392ca46aab4baefb9ee352a73bb51d329050474d05dc0",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 187010
+ },
+ "title": {
+  "text": "G选择动画",
+  "cx": 57,
+  "cy": 71,
+  "bbox": [
+   0,
+   42,
+   116,
+   101
+  ],
+  "region": "左侧栏",
+  "why": "上半屏字高最大（59px, score=0.69）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK动斷时间轴/自定义技能",
+   "cx": 126,
+   "cy": 23,
+   "bbox": [
+    0,
+    2,
+    252,
+    45
+   ],
+   "w": 252,
+   "h": 43,
+   "score": 0.8883,
+   "kind": "content"
+  },
+  {
+   "id": 1,
+   "text": "←",
+   "cx": 2416,
+   "cy": 25,
+   "bbox": [
+    2400,
+    12,
+    2432,
+    38
+   ],
+   "w": 32,
+   "h": 26,
+   "score": 0.6161,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "t",
+   "cx": 2471,
+   "cy": 26,
+   "bbox": [
+    2452,
+    14,
+    2490,
+    38
+   ],
+   "w": 38,
+   "h": 24,
+   "score": 0.9813,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "FPS: 26.7",
+   "cx": 59,
+   "cy": 41,
+   "bbox": [
+    1,
+    27,
+    117,
+    56
+   ],
+   "w": 116,
+   "h": 29,
+   "score": 0.975,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "G选择动画",
+   "cx": 57,
+   "cy": 71,
+   "bbox": [
+    0,
+    42,
+    116,
+    101
+   ],
+   "w": 116,
+   "h": 59,
+   "score": 0.6865,
+   "kind": "title"
+  },
+  {
+   "id": 5,
+   "text": "节点图事件轨道(1)",
+   "cx": 1976,
+   "cy": 85,
+   "bbox": [
+    1882,
+    68,
+    2070,
+    102
+   ],
+   "w": 188,
+   "h": 34,
+   "score": 0.9952,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "X",
+   "cx": 2517,
+   "cy": 84,
+   "bbox": [
+    2496,
+    65,
+    2538,
+    104
+   ],
+   "w": 42,
+   "h": 39,
+   "score": 0.6777,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "Z",
+   "cx": 1794,
+   "cy": 124,
+   "bbox": [
+    1780,
+    108,
+    1807,
+    140
+   ],
+   "w": 27,
+   "h": 32,
+   "score": 0.7526,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "Q",
+   "cx": 44,
+   "cy": 142,
+   "bbox": [
+    27,
+    124,
+    61,
+    159
+   ],
+   "w": 34,
+   "h": 35,
+   "score": 0.9804,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "循环节设置",
+   "cx": 1979,
+   "cy": 156,
+   "bbox": [
+    1929,
+    142,
+    2030,
+    169
+   ],
+   "w": 101,
+   "h": 27,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 10,
+   "text": "▼普通攻击",
+   "cx": 63,
+   "cy": 207,
+   "bbox": [
+    11,
+    191,
+    114,
+    222
+   ],
+   "w": 103,
+   "h": 31,
+   "score": 0.9051,
+   "kind": "hud"
+  },
+  {
+   "id": 11,
+   "text": "启用循环节",
+   "cx": 1949,
+   "cy": 201,
+   "bbox": [
+    1899,
+    187,
+    1998,
+    214
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "单手剑普通攻击_01",
+   "cx": 141,
+   "cy": 256,
+   "bbox": [
+    58,
+    241,
+    225,
+    271
+   ],
+   "w": 167,
+   "h": 30,
+   "score": 0.9997,
+   "kind": "hud"
+  },
+  {
+   "id": 13,
+   "text": "循环节起点(s)",
+   "cx": 1959,
+   "cy": 246,
+   "bbox": [
+    1899,
+    232,
+    2020,
+    259
+   ],
+   "w": 121,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "0.00",
+   "cx": 2316,
+   "cy": 247,
+   "bbox": [
+    2286,
+    231,
+    2345,
+    263
+   ],
+   "w": 59,
+   "h": 32,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "循环节时长(s)",
+   "cx": 1959,
+   "cy": 292,
+   "bbox": [
+    1899,
+    279,
+    2020,
+    306
+   ],
+   "w": 121,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "1.00",
+   "cx": 2311,
+   "cy": 293,
+   "bbox": [
+    2283,
+    276,
+    2339,
+    309
+   ],
+   "w": 56,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "单手剑普通攻击_02",
+   "cx": 144,
+   "cy": 313,
+   "bbox": [
+    59,
+    300,
+    229,
+    326
+   ],
+   "w": 170,
+   "h": 26,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "无限循环",
+   "cx": 1958,
+   "cy": 350,
+   "bbox": [
+    1903,
+    335,
+    2014,
+    366
+   ],
+   "w": 111,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "单手剑普通攻击_03",
+   "cx": 143,
+   "cy": 369,
+   "bbox": [
+    58,
+    354,
+    229,
+    384
+   ],
+   "w": 171,
+   "h": 30,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "循环次数",
+   "cx": 1971,
+   "cy": 395,
+   "bbox": [
+    1929,
+    380,
+    2014,
+    411
+   ],
+   "w": 85,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "单手剑重击_01",
+   "cx": 124,
+   "cy": 426,
+   "bbox": [
+    58,
+    411,
+    190,
+    441
+   ],
+   "w": 132,
+   "h": 30,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "单手剑重击_01_后摇",
+   "cx": 147,
+   "cy": 480,
+   "bbox": [
+    58,
+    465,
+    236,
+    495
+   ],
+   "w": 178,
+   "h": 30,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "双手剑普通攻击_01",
+   "cx": 141,
+   "cy": 536,
+   "bbox": [
+    56,
+    520,
+    225,
+    552
+   ],
+   "w": 169,
+   "h": 32,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "双手剑普通攻击_02",
+   "cx": 144,
+   "cy": 593,
+   "bbox": [
+    59,
+    581,
+    229,
+    606
+   ],
+   "w": 170,
+   "h": 25,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "双手剑普通攻击_03",
+   "cx": 144,
+   "cy": 649,
+   "bbox": [
+    59,
+    636,
+    229,
+    662
+   ],
+   "w": 170,
+   "h": 26,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "双手剑重击_01",
+   "cx": 124,
+   "cy": 705,
+   "bbox": [
+    59,
+    693,
+    189,
+    718
+   ],
+   "w": 130,
+   "h": 25,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "双手剑重击_01_后摇",
+   "cx": 147,
+   "cy": 761,
+   "bbox": [
+    58,
+    747,
+    236,
+    776
+   ],
+   "w": 178,
+   "h": 29,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "通用快速咏唱_01",
+   "cx": 133,
+   "cy": 818,
+   "bbox": [
+    58,
+    803,
+    209,
+    833
+   ],
+   "w": 151,
+   "h": 30,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "通用快速咏唱_01_后摇",
+   "cx": 156,
+   "cy": 873,
+   "bbox": [
+    58,
+    858,
+    255,
+    888
+   ],
+   "w": 197,
+   "h": 30,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "弓箭普通攻击_01",
+   "cx": 133,
+   "cy": 929,
+   "bbox": [
+    59,
+    916,
+    207,
+    942
+   ],
+   "w": 148,
+   "h": 26,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "弓箭普通攻击_02",
+   "cx": 136,
+   "cy": 985,
+   "bbox": [
+    58,
+    970,
+    214,
+    1000
+   ],
+   "w": 156,
+   "h": 30,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "动画时间轴",
+   "cx": 54,
+   "cy": 1070,
+   "bbox": [
+    5,
+    1056,
+    104,
+    1083
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "收起",
+   "cx": 2483,
+   "cy": 1069,
+   "bbox": [
+    2458,
+    1054,
+    2508,
+    1083
+   ],
+   "w": 50,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "+",
+   "cx": 310,
+   "cy": 1121,
+   "bbox": [
+    299,
+    1109,
+    322,
+    1134
+   ],
+   "w": 23,
+   "h": 25,
+   "score": 0.9362,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "2",
+   "cx": 436,
+   "cy": 1114,
+   "bbox": [
+    425,
+    1103,
+    447,
+    1126
+   ],
+   "w": 22,
+   "h": 23,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "+",
+   "cx": 532,
+   "cy": 1121,
+   "bbox": [
+    521,
+    1109,
+    544,
+    1132
+   ],
+   "w": 23,
+   "h": 23,
+   "score": 0.9372,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "3",
+   "cx": 658,
+   "cy": 1114,
+   "bbox": [
+    647,
+    1103,
+    668,
+    1126
+   ],
+   "w": 21,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "+",
+   "cx": 754,
+   "cy": 1120,
+   "bbox": [
+    743,
+    1108,
+    766,
+    1132
+   ],
+   "w": 23,
+   "h": 24,
+   "score": 0.7958,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "4",
+   "cx": 879,
+   "cy": 1114,
+   "bbox": [
+    869,
+    1103,
+    890,
+    1126
+   ],
+   "w": 21,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "+",
+   "cx": 976,
+   "cy": 1121,
+   "bbox": [
+    963,
+    1109,
+    988,
+    1132
+   ],
+   "w": 25,
+   "h": 23,
+   "score": 0.8997,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "5",
+   "cx": 1100,
+   "cy": 1114,
+   "bbox": [
+    1090,
+    1103,
+    1110,
+    1126
+   ],
+   "w": 20,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "+",
+   "cx": 1197,
+   "cy": 1121,
+   "bbox": [
+    1185,
+    1109,
+    1209,
+    1132
+   ],
+   "w": 24,
+   "h": 23,
+   "score": 0.8788,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "+",
+   "cx": 1330,
+   "cy": 1121,
+   "bbox": [
+    1313,
+    1104,
+    1347,
+    1137
+   ],
+   "w": 34,
+   "h": 33,
+   "score": 0.5794,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "+ 新建轨道",
+   "cx": 121,
+   "cy": 1171,
+   "bbox": [
+    68,
+    1155,
+    175,
+    1186
+   ],
+   "w": 107,
+   "h": 31,
+   "score": 0.9134,
+   "kind": "hud"
+  },
+  {
+   "id": 45,
+   "text": "开始事件轨道",
+   "cx": 63,
+   "cy": 1213,
+   "bbox": [
+    3,
+    1198,
+    123,
+    1229
+   ],
+   "w": 120,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 46,
+   "text": "结束事件轨道",
+   "cx": 63,
+   "cy": 1259,
+   "bbox": [
+    5,
+    1245,
+    122,
+    1272
+   ],
+   "w": 117,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "hud"
+  },
+  {
+   "id": 47,
+   "text": "苔点图爽俳轨道",
+   "cx": 73,
+   "cy": 1304,
+   "bbox": [
+    5,
+    1289,
+    141,
+    1319
+   ],
+   "w": 136,
+   "h": 30,
+   "score": 0.7771,
+   "kind": "hud"
+  },
+  {
+   "id": 48,
+   "text": "max: 60.9 ms",
+   "cx": 215,
+   "cy": 1306,
+   "bbox": [
+    154,
+    1294,
+    276,
+    1319
+   ],
+   "w": 122,
+   "h": 25,
+   "score": 0.9863,
+   "kind": "hud"
+  },
+  {
+   "id": 49,
+   "text": "状态熱",
+   "cx": 214,
+   "cy": 1356,
+   "bbox": [
+    0,
+    1328,
+    428,
+    1384
+   ],
+   "w": 428,
+   "h": 56,
+   "score": 0.6963,
+   "kind": "content"
+  },
+  {
+   "id": 50,
+   "text": "节点图事件轨道(1)",
+   "cx": 85,
+   "cy": 1394,
+   "bbox": [
+    3,
+    1378,
+    166,
+    1410
+   ],
+   "w": 163,
+   "h": 32,
+   "score": 0.9149,
+   "kind": "content"
+  },
+  {
+   "id": 51,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9998,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2462,
+    340,
+    2486,
+    364
+   ],
+   "cx": 2474,
+   "cy": 352,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.771,
+    "aspect": 1.0,
+    "corner_fill": 0.22,
+    "area": 444,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1238,
+    604,
+    1364,
+    732
+   ],
+   "cx": 1301,
+   "cy": 668,
+   "w": 126,
+   "h": 128,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.618,
+    "aspect": 0.98,
+    "corner_fill": 0.15,
+    "area": 9972,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2412,
+    1058,
+    2436,
+    1082
+   ],
+   "cx": 2424,
+   "cy": 1070,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 107.2,
+    "ring_L": 170.7,
+    "inside_L": 97.5,
+    "outside_L": 29.6
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1338,
+    1116,
+    1382,
+    1148
+   ],
+   "cx": 1360,
+   "cy": 1132,
+   "w": 44,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.736,
+    "aspect": 1.38,
+    "corner_fill": 0.23,
+    "area": 1036,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1812,
+    794,
+    1864,
+    834
+   ],
+   "cx": 1838,
+   "cy": 814,
+   "w": 52,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.93,
+   "label": null,
+   "evidence": {
+    "fill": 0.427,
+    "aspect": 1.3,
+    "corner_fill": 0.13,
+    "area": 888,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "cx": 1280,
+   "cy": 25,
+   "w": 2560,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.919,
+   "label": "DXVK动斷时间轴/自定义技能 ← t FPS: 26.7",
+   "evidence": {
+    "fill": 0.931,
+    "aspect": 51.2,
+    "corner_fill": 0.78,
+    "area": 119172,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    26,
+    124,
+    322,
+    160
+   ],
+   "cx": 174,
+   "cy": 142,
+   "w": 296,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.91,
+   "label": "Q",
+   "evidence": {
+    "fill": 0.912,
+    "aspect": 8.22,
+    "corner_fill": 0.17,
+    "area": 9720,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    416,
+    728,
+    1244,
+    752
+   ],
+   "cx": 830,
+   "cy": 740,
+   "w": 828,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.886,
+    "aspect": 34.5,
+    "corner_fill": 0.44,
+    "area": 17612,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    540,
+    1210,
+    1216,
+    1228
+   ],
+   "cx": 878,
+   "cy": 1219,
+   "w": 676,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.884,
+    "aspect": 37.56,
+    "corner_fill": 0.25,
+    "area": 10760,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    32,
+    1102,
+    48,
+    1128
+   ],
+   "cx": 40,
+   "cy": 1115,
+   "w": 16,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 0.62,
+    "corner_fill": 0.5,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    208,
+    1110,
+    414,
+    1136
+   ],
+   "cx": 311,
+   "cy": 1123,
+   "w": 206,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.89,
+   "label": "+",
+   "evidence": {
+    "fill": 0.866,
+    "aspect": 7.92,
+    "corner_fill": 0.47,
+    "area": 4636,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1292,
+    1008,
+    1318,
+    1042
+   ],
+   "cx": 1305,
+   "cy": 1025,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.881,
+   "label": null,
+   "evidence": {
+    "fill": 0.548,
+    "aspect": 0.76,
+    "corner_fill": 0.28,
+    "area": 484,
+    "src": "flat"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    0,
+    1422,
+    1012,
+    1440
+   ],
+   "cx": 506,
+   "cy": 1431,
+   "w": 1012,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.843,
+    "aspect": 56.22,
+    "corner_fill": 0.5,
+    "area": 15360,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1240,
+    1010,
+    1288,
+    1046
+   ],
+   "cx": 1264,
+   "cy": 1028,
+   "w": 48,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.495,
+    "aspect": 1.33,
+    "corner_fill": 0.27,
+    "area": 856,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    334,
+    300,
+    360,
+    328
+   ],
+   "cx": 347,
+   "cy": 314,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 0.93,
+    "corner_fill": 0.39,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    334,
+    412,
+    360,
+    440
+   ],
+   "cx": 347,
+   "cy": 426,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 0.93,
+    "corner_fill": 0.39,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    334,
+    524,
+    360,
+    552
+   ],
+   "cx": 347,
+   "cy": 538,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 0.93,
+    "corner_fill": 0.39,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    334,
+    580,
+    360,
+    608
+   ],
+   "cx": 347,
+   "cy": 594,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 0.93,
+    "corner_fill": 0.39,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    334,
+    636,
+    360,
+    664
+   ],
+   "cx": 347,
+   "cy": 650,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.791,
+    "aspect": 0.93,
+    "corner_fill": 0.39,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    430,
+    1106,
+    636,
+    1136
+   ],
+   "cx": 533,
+   "cy": 1121,
+   "w": 206,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.874,
+   "label": "2 +",
+   "evidence": {
+    "fill": 0.832,
+    "aspect": 6.87,
+    "corner_fill": 0.59,
+    "area": 5140,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1356,
+    728,
+    1858,
+    752
+   ],
+   "cx": 1607,
+   "cy": 740,
+   "w": 502,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 20.92,
+    "corner_fill": 0.33,
+    "area": 9980,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    334,
+    244,
+    358,
+    272
+   ],
+   "cx": 346,
+   "cy": 258,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.86,
+    "corner_fill": 0.42,
+    "area": 560,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2484,
+    338,
+    2520,
+    366
+   ],
+   "cx": 2502,
+   "cy": 352,
+   "w": 36,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.571,
+    "aspect": 1.29,
+    "corner_fill": 0.31,
+    "area": 576,
+    "src": "flat"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1928,
+    306,
+    2000,
+    338
+   ],
+   "cx": 1964,
+   "cy": 322,
+   "w": 72,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.816,
+    "aspect": 2.25,
+    "corner_fill": 0.48,
+    "area": 1880,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    334,
+    804,
+    360,
+    834
+   ],
+   "cx": 347,
+   "cy": 819,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.866,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.87,
+    "corner_fill": 0.42,
+    "area": 640,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1870,
+    56,
+    2560,
+    116
+   ],
+   "cx": 2215,
+   "cy": 86,
+   "w": 690,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.864,
+   "label": "节点图事件轨道(1) X",
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 11.5,
+    "corner_fill": 0.93,
+    "area": 33460,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    334,
+    692,
+    360,
+    720
+   ],
+   "cx": 347,
+   "cy": 706,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 0.93,
+    "corner_fill": 0.42,
+    "area": 588,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    334,
+    356,
+    360,
+    384
+   ],
+   "cx": 347,
+   "cy": 370,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.862,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 0.93,
+    "corner_fill": 0.42,
+    "area": 584,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    334,
+    468,
+    360,
+    496
+   ],
+   "cx": 347,
+   "cy": 482,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.862,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 0.93,
+    "corner_fill": 0.42,
+    "area": 584,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    0,
+    1052,
+    1086,
+    1092
+   ],
+   "cx": 543,
+   "cy": 1072,
+   "w": 1086,
+   "h": 40,
+   "shape": "rect",
+   "confidence": 0.86,
+   "label": "动画时间轴",
+   "evidence": {
+    "fill": 0.799,
+    "aspect": 27.15,
+    "corner_fill": 0.52,
+    "area": 34704,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    334,
+    862,
+    358,
+    888
+   ],
+   "cx": 346,
+   "cy": 875,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.84,
+    "aspect": 0.92,
+    "corner_fill": 0.44,
+    "area": 524,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    4,
+    58,
+    396,
+    106
+   ],
+   "cx": 200,
+   "cy": 82,
+   "w": 392,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.856,
+   "label": "G选择动画",
+   "evidence": {
+    "fill": 0.792,
+    "aspect": 8.17,
+    "corner_fill": 0.72,
+    "area": 14904,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    334,
+    916,
+    360,
+    946
+   ],
+   "cx": 347,
+   "cy": 931,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.836,
+    "aspect": 0.87,
+    "corner_fill": 0.44,
+    "area": 652,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    12,
+    1106,
+    70,
+    1136
+   ],
+   "cx": 41,
+   "cy": 1121,
+   "w": 58,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.784,
+    "aspect": 1.93,
+    "corner_fill": 0.89,
+    "area": 1364,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    286,
+    1210,
+    406,
+    1230
+   ],
+   "cx": 346,
+   "cy": 1220,
+   "w": 120,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 6.0,
+    "corner_fill": 0.44,
+    "area": 1868,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    8,
+    796,
+    376,
+    842
+   ],
+   "cx": 192,
+   "cy": 819,
+   "w": 368,
+   "h": 46,
+   "shape": "rect",
+   "confidence": 0.848,
+   "label": "通用快速咏唱_01",
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 8.0,
+    "corner_fill": 0.93,
+    "area": 13084,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1268,
+    1140,
+    1352,
+    1168
+   ],
+   "cx": 1310,
+   "cy": 1154,
+   "w": 84,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.772,
+    "aspect": 3.0,
+    "corner_fill": 0.39,
+    "area": 1816,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    206,
+    1174,
+    1098,
+    1196
+   ],
+   "cx": 652,
+   "cy": 1185,
+   "w": 892,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.762,
+    "aspect": 40.55,
+    "corner_fill": 0.78,
+    "area": 14952,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    334,
+    748,
+    360,
+    776
+   ],
+   "cx": 347,
+   "cy": 762,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.84,
+   "label": null,
+   "evidence": {
+    "fill": 0.83,
+    "aspect": 0.93,
+    "corner_fill": 0.47,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    54,
+    994,
+    218,
+    1024
+   ],
+   "cx": 136,
+   "cy": 1009,
+   "w": 164,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.84,
+   "label": null,
+   "evidence": {
+    "fill": 0.755,
+    "aspect": 5.47,
+    "corner_fill": 0.22,
+    "area": 3716,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 70% 宽）"
+  },
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    398,
+    1440
+   ],
+   "why": "竖边长直边 x=398（覆盖 70% 高）"
+  },
+  {
+   "name": "右侧栏",
+   "bbox": [
+    1866,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=1866（覆盖 34% 高）"
+  },
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1418,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1418（覆盖 86% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    3,
+    124,
+    1347,
+    1272
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 20,
+   "row_y": [
+    142,
+    207,
+    256,
+    313,
+    369,
+    426,
+    480,
+    536,
+    593,
+    649,
+    705,
+    761,
+    818,
+    873,
+    929,
+    985,
+    1070,
+    1118,
+    1192,
+    1259
+   ],
+   "rows": [
+    {
+     "y": 142,
+     "texts": [
+      "Q"
+     ]
+    },
+    {
+     "y": 207,
+     "texts": [
+      "▼普通攻击"
+     ]
+    },
+    {
+     "y": 256,
+     "texts": [
+      "单手剑普通攻击_01"
+     ]
+    },
+    {
+     "y": 313,
+     "texts": [
+      "单手剑普通攻击_02"
+     ]
+    },
+    {
+     "y": 369,
+     "texts": [
+      "单手剑普通攻击_03"
+     ]
+    },
+    {
+     "y": 426,
+     "texts": [
+      "单手剑重击_01"
+     ]
+    },
+    {
+     "y": 480,
+     "texts": [
+      "单手剑重击_01_后摇"
+     ]
+    },
+    {
+     "y": 536,
+     "texts": [
+      "双手剑普通攻击_01"
+     ]
+    },
+    {
+     "y": 593,
+     "texts": [
+      "双手剑普通攻击_02"
+     ]
+    },
+    {
+     "y": 649,
+     "texts": [
+      "双手剑普通攻击_03"
+     ]
+    },
+    {
+     "y": 705,
+     "texts": [
+      "双手剑重击_01"
+     ]
+    },
+    {
+     "y": 761,
+     "texts": [
+      "双手剑重击_01_后摇"
+     ]
+    },
+    {
+     "y": 818,
+     "texts": [
+      "通用快速咏唱_01"
+     ]
+    },
+    {
+     "y": 873,
+     "texts": [
+      "通用快速咏唱_01_后摇"
+     ]
+    },
+    {
+     "y": 929,
+     "texts": [
+      "弓箭普通攻击_01"
+     ]
+    },
+    {
+     "y": 985,
+     "texts": [
+      "弓箭普通攻击_02"
+     ]
+    },
+    {
+     "y": 1070,
+     "texts": [
+      "动画时间轴"
+     ]
+    },
+    {
+     "y": 1118,
+     "texts": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "+",
+      "+",
+      "+",
+      "+",
+      "+",
+      "+"
+     ]
+    },
+    {
+     "y": 1192,
+     "texts": [
+      "+ 新建轨道",
+      "开始事件轨道"
+     ]
+    },
+    {
+     "y": 1259,
+     "texts": [
+      "结束事件轨道"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2283,
+    231,
+    2508,
+    1083
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 14,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    247,
+    293,
+    1069
+   ],
+   "rows": [
+    {
+     "y": 247,
+     "texts": [
+      "0.00"
+     ]
+    },
+    {
+     "y": 293,
+     "texts": [
+      "1.00"
+     ]
+    },
+    {
+     "y": 1069,
+     "texts": [
+      "收起"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1780,
+    68,
+    2070,
+    411
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 16,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    121,
+    201,
+    246,
+    292,
+    350,
+    395
+   ],
+   "rows": [
+    {
+     "y": 121,
+     "texts": [
+      "节点图事件轨道(1)",
+      "Z",
+      "循环节设置"
+     ]
+    },
+    {
+     "y": 201,
+     "texts": [
+      "启用循环节"
+     ]
+    },
+    {
+     "y": 246,
+     "texts": [
+      "循环节起点(s)"
+     ]
+    },
+    {
+     "y": 292,
+     "texts": [
+      "循环节时长(s)"
+     ]
+    },
+    {
+     "y": 350,
+     "texts": [
+      "无限循环"
+     ]
+    },
+    {
+     "y": 395,
+     "texts": [
+      "循环次数"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "G选择动画",
+   "text_id": 4,
+   "target": "rect@(200,82)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "G选择动画",
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 142,
+   "dy": 10,
+   "confidence": 0.7
+  },
+  {
+   "text": "G选择动画",
+   "text_id": 4,
+   "target": "circle@(347,314)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 218,
+   "dx": 289,
+   "dy": 242,
+   "confidence": 0.518
+  },
+  {
+   "text": "G选择动画",
+   "text_id": 4,
+   "target": "circle@(346,258)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 218,
+   "dx": 288,
+   "dy": 186,
+   "confidence": 0.518
+  },
+  {
+   "text": "X",
+   "text_id": 6,
+   "target": "rect@(2215,86)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -302,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "Q",
+   "text_id": 8,
+   "target": "rect@(174,142)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": "Q",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 130,
+   "dy": 0,
+   "confidence": 0.55
+  },
+  {
+   "text": "节点图事件轨道(1)",
+   "text_id": 5,
+   "target": "rect@(2215,86)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 239,
+   "dy": 1,
+   "confidence": 0.55
+  },
+  {
+   "text": "+",
+   "text_id": 43,
+   "target": "circle@(1360,1132)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 30,
+   "dy": 12,
+   "confidence": 0.55
+  },
+  {
+   "text": "通用快速咏唱_01",
+   "text_id": 28,
+   "target": "rect@(192,819)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "通用快速咏唱_01",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 58,
+   "dy": 1,
+   "confidence": 0.55
+  },
+  {
+   "text": "动画时间轴",
+   "text_id": 32,
+   "target": "rect@(543,1072)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 488,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "+",
+   "text_id": 34,
+   "target": "rect@(311,1123)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": "+",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 0,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "2",
+   "text_id": 35,
+   "target": "rect@(533,1121)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "2 +",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 97,
+   "dy": 6,
+   "confidence": 0.55
+  },
+  {
+   "text": "FPS: 26.7",
+   "text_id": 3,
+   "target": "rect@(200,82)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "G选择动画",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 2,
+   "dx": 141,
+   "dy": 40,
+   "confidence": 0.548
+  },
+  {
+   "text": "3",
+   "text_id": 37,
+   "target": "rect@(533,1121)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "2 +",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 11,
+   "dx": -124,
+   "dy": 6,
+   "confidence": 0.541
+  },
+  {
+   "text": "4",
+   "text_id": 39,
+   "target": "rect@(543,1072)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -336,
+   "dy": -42,
+   "confidence": 0.541
+  },
+  {
+   "text": "5",
+   "text_id": 41,
+   "target": "rect@(543,1072)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -557,
+   "dy": -42,
+   "confidence": 0.541
+  },
+  {
+   "text": "节点图事件轨道(1)",
+   "text_id": 50,
+   "target": "rect@(506,1431)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 12,
+   "dx": 422,
+   "dy": 37,
+   "confidence": 0.54
+  },
+  {
+   "text": "DXVK动斷时间轴/自定义技能",
+   "text_id": 0,
+   "target": "rect@(200,82)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "G选择动画",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 13,
+   "dx": 74,
+   "dy": 58,
+   "confidence": 0.539
+  },
+  {
+   "text": "通用快速咏唱_01_后摇",
+   "text_id": 29,
+   "target": "rect@(192,819)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "通用快速咏唱_01",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 16,
+   "dx": 36,
+   "dy": -54,
+   "confidence": 0.537
+  },
+  {
+   "text": "启用循环节",
+   "text_id": 11,
+   "target": "label@(1979,155)",
+   "target_id": "t9",
+   "target_kind": "label",
+   "label": "循环节设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 18,
+   "dx": 31,
+   "dy": -45,
+   "confidence": 0.735
+  },
+  {
+   "text": "双手剑重击_01_后摇",
+   "text_id": 27,
+   "target": "rect@(192,819)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "通用快速咏唱_01",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 20,
+   "dx": 45,
+   "dy": 58,
+   "confidence": 0.533
+  },
+  {
+   "text": "收起",
+   "text_id": 33,
+   "target": "circle@(2424,1070)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 22,
+   "dx": -59,
+   "dy": 2,
+   "confidence": 0.532
+  },
+  {
+   "text": "状态熱",
+   "text_id": 49,
+   "target": "rect@(506,1431)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 38,
+   "dx": 292,
+   "dy": 75,
+   "confidence": 0.518
+  },
+  {
+   "text": "弓箭普通攻击_02",
+   "text_id": 31,
+   "target": "rect@(543,1072)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 52,
+   "dx": 407,
+   "dy": 87,
+   "confidence": 0.507
+  },
+  {
+   "text": "循环节起点(s)",
+   "text_id": 13,
+   "target": "label@(1979,155)",
+   "target_id": "t9",
+   "target_kind": "label",
+   "label": "循环节设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 63,
+   "dx": 20,
+   "dy": -90,
+   "confidence": 0.698
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    2397,
+    9,
+    2493,
+    41
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "右上角小字叠加层：低方差 std=0.1，非纯黑 L=49，纹理对比骤降 std 2.2→0.1（0.06×）",
+   "evidence": {
+    "texts": [
+     "←",
+     "t"
+    ],
+    "text_ids": [
+     1,
+     2
+    ],
+    "n_texts": 2,
+    "corner": "右上",
+    "corner_dist_px": 71,
+    "bg_mean": 49.3,
+    "bg_std": 0.1,
+    "ring_mean": 49.5,
+    "ring_std": 2.2,
+    "texture_ratio": 0.06,
+    "bg_rgb": [
+     42,
+     47,
+     58
+    ]
+   }
+  },
+  {
+   "bbox": [
+    8,
+    188,
+    228,
+    274
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：低方差 std=0.4，非纯黑 L=46，纹理对比骤降 std 4.7→0.4（0.09×）",
+   "evidence": {
+    "texts": [
+     "▼普通攻击",
+     "单手剑普通攻击_01"
+    ],
+    "text_ids": [
+     10,
+     12
+    ],
+    "n_texts": 2,
+    "corner": "左上",
+    "corner_dist_px": 191,
+    "bg_mean": 45.7,
+    "bg_std": 0.4,
+    "ring_mean": 48.1,
+    "ring_std": 4.7,
+    "texture_ratio": 0.09,
+    "bg_rgb": [
+     39,
+     43,
+     54
+    ]
+   }
+  },
+  {
+   "bbox": [
+    0,
+    1152,
+    279,
+    1322
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 5 框，非纯黑 L=52",
+   "evidence": {
+    "texts": [
+     "+ 新建轨道",
+     "开始事件轨道",
+     "结束事件轨道",
+     "苔点图爽俳轨道",
+     "max: 60.9 ms"
+    ],
+    "text_ids": [
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "n_texts": 5,
+    "corner": "左下",
+    "corner_dist_px": 121,
+    "bg_mean": 52.1,
+    "bg_std": 27.7,
+    "ring_mean": 51.3,
+    "ring_std": 34.5,
+    "texture_ratio": 0.8,
+    "bg_rgb": [
+     53,
+     47,
+     55
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    402,
+    58,
+    2560,
+    1042
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     124.0,
+     132.0,
+     81.0
+    ],
+    "fill": 0.66,
+    "rect": 0.7
+   },
+   "text": [
+    "节点图事件轨道(1)",
+    "X",
+    "Z",
+    "循环节设置",
+    "启用循环节",
+    "循环节起点(s)",
+    "0.00",
+    "循环节时长(s)",
+    "1.00",
+    "无限循环",
+    "循环次数"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2466,
+      342,
+      2484,
+      362
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 81.0
+    },
+    {
+     "bbox": [
+      2464,
+      192,
+      2484,
+      212
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 123.0
+    },
+    {
+     "bbox": [
+      1208,
+      1018,
+      1240,
+      1048
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 221.0
+    },
+    {
+     "bbox": [
+      1370,
+      1016,
+      1404,
+      1048
+     ],
+     "role": "icon",
+     "fill": 0.5,
+     "contrast": 211.0
+    },
+    {
+     "bbox": [
+      1838,
+      54,
+      1866,
+      78
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 80.0
+    },
+    {
+     "bbox": [
+      1838,
+      1020,
+      1868,
+      1046
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 102.0
+    },
+    {
+     "bbox": [
+      1770,
+      102,
+      1818,
+      150
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 133.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:11",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 10)",
+    "area_px": 1496880,
+    "area_frac": 0.576,
+    "aspect": 2.19,
+    "grid": "row n=1 pitch_x=1285.0 pitch_y=None",
+    "skin_siblings": 0,
+    "text_in": 11,
+    "text_ui": 10,
+    "skin_lab": [
+     124.0,
+     132.0,
+     81.0
+    ],
+    "flat_fill": 0.66,
+    "rect": 0.7
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    0,
+    180,
+    392,
+    1040
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     45.0,
+     129.0,
+     120.0
+    ],
+    "fill": 0.54,
+    "rect": 0.64
+   },
+   "text": [
+    "▼普通攻击",
+    "单手剑普通攻击_01",
+    "单手剑普通攻击_02",
+    "单手剑普通攻击_03",
+    "单手剑重击_01",
+    "单手剑重击_01_后摇",
+    "双手剑普通攻击_01",
+    "双手剑普通攻击_02",
+    "双手剑普通攻击_03",
+    "双手剑重击_01",
+    "双手剑重击_01_后摇",
+    "通用快速咏唱_01",
+    "通用快速咏唱_01_后摇",
+    "弓箭普通攻击_01",
+    "弓箭普通攻击_02"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      156,
+      556,
+      176,
+      572
+     ],
+     "role": "icon",
+     "fill": 0.86,
+     "contrast": 270.0
+    },
+    {
+     "bbox": [
+      338,
+      248,
+      358,
+      270
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      338,
+      304,
+      358,
+      326
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      360,
+      358,
+      382
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      338,
+      416,
+      358,
+      438
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      472,
+      358,
+      494
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      338,
+      528,
+      358,
+      550
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      584,
+      358,
+      606
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      338,
+      640,
+      358,
+      662
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      864,
+      358,
+      886
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      976,
+      358,
+      998
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      338,
+      920,
+      358,
+      942
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 174.0
+    },
+    {
+     "bbox": [
+      338,
+      696,
+      358,
+      718
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 192.0
+    },
+    {
+     "bbox": [
+      338,
+      752,
+      358,
+      774
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 181.0
+    },
+    {
+     "bbox": [
+      338,
+      808,
+      358,
+      830
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 177.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:15",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 15)",
+    "area_px": 214492,
+    "area_frac": 0.0914,
+    "aspect": 0.46,
+    "grid": "row n=1 pitch_x=1285.0 pitch_y=None",
+    "skin_siblings": 0,
+    "text_in": 15,
+    "text_ui": 15,
+    "skin_lab": [
+     45.0,
+     129.0,
+     120.0
+    ],
+    "flat_fill": 0.54,
+    "rect": 0.64
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK动斷时间轴/自定义技能",
+  "←",
+  "t",
+  "FPS: 26.7",
+  "G选择动画",
+  "Q",
+  "动画时间轴",
+  "收起",
+  "+",
+  "2",
+  "+",
+  "3",
+  "+",
+  "4",
+  "+",
+  "5",
+  "+",
+  "+",
+  "+ 新建轨道",
+  "开始事件轨道",
+  "结束事件轨道",
+  "苔点图爽俳轨道",
+  "max: 60.9 ms",
+  "状态熱",
+  "节点图事件轨道(1)",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    18,
+    1164,
+    38,
+    1180
+   ],
+   "role": "icon",
+   "fill": 0.82,
+   "contrast": 125.0
+  },
+  {
+   "bbox": [
+    2518,
+    18,
+    2538,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 183.0
+  },
+  {
+   "bbox": [
+    362,
+    70,
+    380,
+    90
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 198.0
+  },
+  {
+   "bbox": [
+    1332,
+    1156,
+    1348,
+    1172
+   ],
+   "role": "icon",
+   "fill": 0.69,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    348,
+    130,
+    366,
+    152
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 185.0
+  },
+  {
+   "bbox": [
+    1380,
+    1096,
+    1404,
+    1118
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 62.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 110,
+  "ocr_ms": 586,
+  "pixel_ms": 907,
+  "container_ms": 390,
+  "container_cached": false,
+  "total_ms": 1604,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 52,
+  "err": null
+ },
+ "title_text_id": 4,
+ "digest": "屏幕 2560x1440 · 文本 52 · 控件 40 · 容器 2 · 邻接 24 · 遮挡 3 · 1604ms（OCR daemon）\n标题「G选择动画」@(57,71) 左侧栏 · 字高 59px\n邻接「G选择动画」→ rect@(200,82)「G选择动画」 重叠 0px\n邻接「G选择动画」→ circle@(347,314) 右侧 218px\n邻接「G选择动画」→ circle@(346,258) 右侧 218px\n邻接「启用循环节」→ label@(1979,155)「循环节设置」 上方 18px\n控件: rect@(200,82)「G选择动画」 | circle@(347,314) | circle@(346,258) | rect@(2215,86)「节点图事件轨道(1) X」\n区域: 顶栏 (0,0)-(2560,50) | 左侧栏 (0,0)-(398,1440) | 右侧栏 (1866,0)-(2560,1440) | 底栏 (0,1418)-(2560,1440)\n遮挡 [2397, 9, 2493, 41] (2397,9)-(2493,41)（conf 0.71）：右上角小字叠加层：低方差 std=0.1，非纯黑 L=49，纹理对比骤降 std 2.2→0.1（0.06×）\n遮挡 [8, 188, 228, 274] (8,188)-(228,274)（conf 0.71）：左上角小字叠加层：低方差 std=0.4，非纯黑 L=46，纹理对比骤降 std 4.7→0.4（0.09×）"
+}

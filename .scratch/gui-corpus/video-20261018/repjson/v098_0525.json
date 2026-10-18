@@ -1,0 +1,2015 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v098_0525.jpg",
+  "sha256": "c51ae6cc085ab55713006d5a7b73a184dfcbf23455bc87ee242a2b495545cc1f",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 130935
+ },
+ "title": {
+  "text": "自0",
+  "cx": 192,
+  "cy": 354,
+  "bbox": [
+   163,
+   303,
+   220,
+   406
+  ],
+  "region": null,
+  "why": "上半屏字高最大（103px, score=0.55）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    120,
+    32
+   ],
+   "w": 120,
+   "h": 29,
+   "score": 0.9942,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 21.5",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9939,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU: 23%",
+   "cx": 55,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    107,
+    77
+   ],
+   "w": 104,
+   "h": 22,
+   "score": 0.9558,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "活动一览",
+   "cx": 241,
+   "cy": 194,
+   "bbox": [
+    157,
+    168,
+    326,
+    221
+   ],
+   "w": 169,
+   "h": 53,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "X",
+   "cx": 2458,
+   "cy": 196,
+   "bbox": [
+    2425,
+    164,
+    2490,
+    228
+   ],
+   "w": 65,
+   "h": 64,
+   "score": 0.772,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "自0",
+   "cx": 192,
+   "cy": 354,
+   "bbox": [
+    163,
+    303,
+    220,
+    406
+   ],
+   "w": 57,
+   "h": 103,
+   "score": 0.5456,
+   "kind": "title"
+  },
+  {
+   "id": 6,
+   "text": "七圣召唤·热斗模式",
+   "cx": 506,
+   "cy": 403,
+   "bbox": [
+    357,
+    381,
+    655,
+    424
+   ],
+   "w": 298,
+   "h": 43,
+   "score": 0.9889,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "游逸旅闻·踏雪之章",
+   "cx": 504,
+   "cy": 523,
+   "bbox": [
+    353,
+    502,
+    655,
+    545
+   ],
+   "w": 302,
+   "h": 43,
+   "score": 0.9963,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "往冥府的安魂歌",
+   "cx": 472,
+   "cy": 646,
+   "bbox": [
+    354,
+    624,
+    590,
+    667
+   ],
+   "w": 236,
+   "h": 43,
+   "score": 0.9979,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "巡历雪境，凝铸锋锐",
+   "cx": 499,
+   "cy": 768,
+   "bbox": [
+    354,
+    747,
+    645,
+    789
+   ],
+   "w": 291,
+   "h": 42,
+   "score": 0.9982,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "桌上剧团·冒险的前夜会",
+   "cx": 504,
+   "cy": 890,
+   "bbox": [
+    356,
+    873,
+    652,
+    907
+   ],
+   "w": 296,
+   "h": 34,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "合朔之刻",
+   "cx": 425,
+   "cy": 1010,
+   "bbox": [
+    356,
+    988,
+    495,
+    1032
+   ],
+   "w": 139,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "min: 8.2 ms",
+   "cx": 61,
+   "cy": 1306,
+   "bbox": [
+    5,
+    1294,
+    117,
+    1319
+   ],
+   "w": 112,
+   "h": 25,
+   "score": 0.9791,
+   "kind": "data"
+  },
+  {
+   "id": 13,
+   "text": "maxt",
+   "cx": 180,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    203,
+    1317
+   ],
+   "w": 46,
+   "h": 18,
+   "score": 0.8077,
+   "kind": "other"
+  },
+  {
+   "id": 14,
+   "text": "170.7 ms",
+   "cx": 240,
+   "cy": 1307,
+   "bbox": [
+    196,
+    1298,
+    283,
+    1316
+   ],
+   "w": 87,
+   "h": 18,
+   "score": 0.9937,
+   "kind": "data"
+  },
+  {
+   "id": 15,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    952,
+    236,
+    972,
+    262
+   ],
+   "cx": 962,
+   "cy": 249,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 0.77,
+    "corner_fill": 0.06,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    436,
+    294,
+    480,
+    346
+   ],
+   "cx": 458,
+   "cy": 320,
+   "w": 44,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.692,
+    "aspect": 0.85,
+    "corner_fill": 0.13,
+    "area": 1584,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1800,
+    330,
+    1826,
+    356
+   ],
+   "cx": 1813,
+   "cy": 343,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.716,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 484,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    982,
+    496,
+    1008,
+    522
+   ],
+   "cx": 995,
+   "cy": 509,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.704,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 476,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1300,
+    518,
+    1318,
+    542
+   ],
+   "cx": 1309,
+   "cy": 530,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.787,
+    "aspect": 0.75,
+    "corner_fill": 0.19,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1346,
+    526,
+    1372,
+    546
+   ],
+   "cx": 1359,
+   "cy": 536,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.746,
+    "aspect": 1.3,
+    "corner_fill": 0.06,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1696,
+    564,
+    1728,
+    610
+   ],
+   "cx": 1712,
+   "cy": 587,
+   "w": 32,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.677,
+    "aspect": 0.7,
+    "corner_fill": 0.14,
+    "area": 996,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1406,
+    620,
+    1428,
+    638
+   ],
+   "cx": 1417,
+   "cy": 629,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 1.22,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1984,
+    636,
+    2004,
+    664
+   ],
+   "cx": 1994,
+   "cy": 650,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.671,
+    "aspect": 0.71,
+    "corner_fill": 0.19,
+    "area": 376,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1588,
+    656,
+    1610,
+    684
+   ],
+   "cx": 1599,
+   "cy": 670,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.727,
+    "aspect": 0.79,
+    "corner_fill": 0.17,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    284,
+    980,
+    350,
+    1048
+   ],
+   "cx": 317,
+   "cy": 1014,
+   "w": 66,
+   "h": 68,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.533,
+    "aspect": 0.97,
+    "corner_fill": 0.04,
+    "area": 2392,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    668,
+    1060,
+    686,
+    1084
+   ],
+   "cx": 677,
+   "cy": 1072,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.741,
+    "aspect": 0.75,
+    "corner_fill": 0.19,
+    "area": 320,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    438,
+    1160,
+    478,
+    1200
+   ],
+   "cx": 458,
+   "cy": 1180,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.58,
+    "aspect": 1.0,
+    "corner_fill": 0.0,
+    "area": 928,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1196,
+    814,
+    1224,
+    844
+   ],
+   "cx": 1210,
+   "cy": 829,
+   "w": 28,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.433,
+    "aspect": 0.93,
+    "corner_fill": 0.09,
+    "area": 364,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    896,
+    206,
+    922,
+    234
+   ],
+   "cx": 909,
+   "cy": 220,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.665,
+    "aspect": 0.93,
+    "corner_fill": 0.19,
+    "area": 484,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    726,
+    524,
+    744,
+    544
+   ],
+   "cx": 735,
+   "cy": 534,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.789,
+    "aspect": 0.9,
+    "corner_fill": 0.25,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1668,
+    438,
+    1690,
+    458
+   ],
+   "cx": 1679,
+   "cy": 448,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 1.1,
+    "corner_fill": 0.25,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    908,
+    524,
+    926,
+    550
+   ],
+   "cx": 917,
+   "cy": 537,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 0.69,
+    "corner_fill": 0.25,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    986,
+    468,
+    1012,
+    492
+   ],
+   "cx": 999,
+   "cy": 480,
+   "w": 26,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.932,
+   "label": null,
+   "evidence": {
+    "fill": 0.737,
+    "aspect": 1.08,
+    "corner_fill": 0.25,
+    "area": 460,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    304,
+    884,
+    328,
+    908
+   ],
+   "cx": 316,
+   "cy": 896,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.903,
+    "contrast": 54.4,
+    "ring_L": 164.4,
+    "inside_L": 80.0,
+    "outside_L": 140.0
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2430,
+    414,
+    2448,
+    434
+   ],
+   "cx": 2439,
+   "cy": 424,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.9,
+    "corner_fill": 0.31,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    134,
+    1378
+   ],
+   "cx": 72,
+   "cy": 1350,
+   "w": 124,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.942,
+    "aspect": 2.21,
+    "corner_fill": 0.88,
+    "area": 6540,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1312,
+    474,
+    1334,
+    504
+   ],
+   "cx": 1323,
+   "cy": 489,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.752,
+    "aspect": 0.73,
+    "corner_fill": 0.31,
+    "area": 496,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1318,
+    548,
+    1352,
+    592
+   ],
+   "cx": 1335,
+   "cy": 570,
+   "w": 34,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.69,
+    "aspect": 0.77,
+    "corner_fill": 0.3,
+    "area": 1032,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1450,
+    472,
+    1486,
+    510
+   ],
+   "cx": 1468,
+   "cy": 491,
+   "w": 36,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.781,
+    "aspect": 0.95,
+    "corner_fill": 0.34,
+    "area": 1068,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1794,
+    476,
+    1818,
+    514
+   ],
+   "cx": 1806,
+   "cy": 495,
+   "w": 24,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.873,
+    "aspect": 0.63,
+    "corner_fill": 0.42,
+    "area": 796,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1384,
+    592,
+    1402,
+    618
+   ],
+   "cx": 1393,
+   "cy": 605,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.829,
+    "aspect": 0.69,
+    "corner_fill": 0.38,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    286,
+    498,
+    346,
+    554
+   ],
+   "cx": 316,
+   "cy": 526,
+   "w": 60,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.686,
+    "aspect": 1.07,
+    "corner_fill": 0.32,
+    "area": 2304,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2506,
+    632,
+    2560,
+    658
+   ],
+   "cx": 2533,
+   "cy": 645,
+   "w": 54,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.858,
+    "aspect": 2.08,
+    "corner_fill": 0.47,
+    "area": 1204,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    252,
+    856,
+    294,
+    904
+   ],
+   "cx": 273,
+   "cy": 880,
+   "w": 42,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.429,
+    "aspect": 0.88,
+    "corner_fill": 0.22,
+    "area": 864,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1998,
+    168,
+    2018,
+    190
+   ],
+   "cx": 2008,
+   "cy": 179,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 0.91,
+    "corner_fill": 0.38,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1868,
+    544,
+    1930,
+    568
+   ],
+   "cx": 1899,
+   "cy": 556,
+   "w": 62,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.849,
+    "aspect": 2.58,
+    "corner_fill": 0.36,
+    "area": 1264,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1636,
+    1064,
+    1666,
+    1080
+   ],
+   "cx": 1651,
+   "cy": 1072,
+   "w": 30,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.842,
+    "aspect": 1.88,
+    "corner_fill": 0.38,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2108,
+    710,
+    2130,
+    726
+   ],
+   "cx": 2119,
+   "cy": 718,
+   "w": 22,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 1.38,
+    "corner_fill": 0.38,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    668,
+    964,
+    692,
+    1014
+   ],
+   "cx": 680,
+   "cy": 989,
+   "w": 24,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.837,
+    "aspect": 0.48,
+    "corner_fill": 0.36,
+    "area": 1004,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1104,
+    724,
+    1128,
+    740
+   ],
+   "cx": 1116,
+   "cy": 732,
+   "w": 24,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 1.5,
+    "corner_fill": 0.25,
+    "area": 320,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    686,
+    450,
+    716,
+    482
+   ],
+   "cx": 701,
+   "cy": 466,
+   "w": 30,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.754,
+    "aspect": 0.94,
+    "corner_fill": 0.38,
+    "area": 724,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1334,
+    1106,
+    1360,
+    1136
+   ],
+   "cx": 1347,
+   "cy": 1121,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.851,
+    "aspect": 0.87,
+    "corner_fill": 0.42,
+    "area": 664,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    2328,
+    388,
+    2364,
+    412
+   ],
+   "cx": 2346,
+   "cy": 400,
+   "w": 36,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.871,
+   "label": null,
+   "evidence": {
+    "fill": 0.824,
+    "aspect": 1.5,
+    "corner_fill": 0.31,
+    "area": 712,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2080,
+    372,
+    2106,
+    434
+   ],
+   "cx": 2093,
+   "cy": 403,
+   "w": 26,
+   "h": 62,
+   "shape": "rect",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.42,
+    "corner_fill": 0.42,
+    "area": 1324,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    157,
+    168,
+    655,
+    1032
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    194,
+    354,
+    403,
+    523,
+    646,
+    768,
+    890,
+    1010
+   ],
+   "rows": [
+    {
+     "y": 194,
+     "texts": [
+      "活动一览"
+     ]
+    },
+    {
+     "y": 354,
+     "texts": [
+      "自0"
+     ]
+    },
+    {
+     "y": 403,
+     "texts": [
+      "七圣召唤·热斗模式"
+     ]
+    },
+    {
+     "y": 523,
+     "texts": [
+      "游逸旅闻·踏雪之章"
+     ]
+    },
+    {
+     "y": 646,
+     "texts": [
+      "往冥府的安魂歌"
+     ]
+    },
+    {
+     "y": 768,
+     "texts": [
+      "巡历雪境，凝铸锋锐"
+     ]
+    },
+    {
+     "y": 890,
+     "texts": [
+      "桌上剧团·冒险的前夜会"
+     ]
+    },
+    {
+     "y": 1010,
+     "texts": [
+      "合朔之刻"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "自0",
+   "text_id": 5,
+   "target": "circle@(458,320)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 216,
+   "dx": 266,
+   "dy": -34,
+   "confidence": 0.52
+  },
+  {
+   "text": "自0",
+   "text_id": 5,
+   "target": "circle@(316,526)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 92,
+   "dx": 124,
+   "dy": 172,
+   "confidence": 0.623
+  },
+  {
+   "text": "合朔之刻",
+   "text_id": 11,
+   "target": "circle@(317,1014)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -108,
+   "dy": 4,
+   "confidence": 0.545
+  },
+  {
+   "text": "游逸旅闻·踏雪之章",
+   "text_id": 7,
+   "target": "circle@(316,526)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 7,
+   "dx": -188,
+   "dy": 2,
+   "confidence": 0.544
+  },
+  {
+   "text": "桌上剧团·冒险的前夜会",
+   "text_id": 10,
+   "target": "circle@(316,896)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 28,
+   "dx": -188,
+   "dy": 6,
+   "confidence": 0.527
+  },
+  {
+   "text": "七圣召唤·热斗模式",
+   "text_id": 6,
+   "target": "circle@(701,466)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 31,
+   "dx": 195,
+   "dy": 64,
+   "confidence": 0.524
+  },
+  {
+   "text": "巡历雪境，凝铸锋锐",
+   "text_id": 9,
+   "target": "circle@(273,880)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 67,
+   "dx": -226,
+   "dy": 112,
+   "confidence": 0.494
+  },
+  {
+   "text": "往冥府的安魂歌",
+   "text_id": 8,
+   "target": "circle@(316,526)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 70,
+   "dx": -156,
+   "dy": -120,
+   "confidence": 0.492
+  },
+  {
+   "text": "活动一览",
+   "text_id": 3,
+   "target": "circle@(458,320)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 110,
+   "dx": 216,
+   "dy": 126,
+   "confidence": 0.458
+  },
+  {
+   "text": "桌上剧团·冒险的前夜会",
+   "text_id": 10,
+   "target": "rect@(680,989)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 57,
+   "dx": 176,
+   "dy": 99,
+   "confidence": 0.503
+  },
+  {
+   "text": "游逸旅闻·踏雪之章",
+   "text_id": 7,
+   "target": "circle@(735,534)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 71,
+   "dx": 231,
+   "dy": 10,
+   "confidence": 0.491
+  },
+  {
+   "text": "七圣召唤·热斗模式",
+   "text_id": 6,
+   "target": "circle@(316,526)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 74,
+   "dx": -190,
+   "dy": 124,
+   "confidence": 0.488
+  },
+  {
+   "text": "巡历雪境，凝铸锋锐",
+   "text_id": 9,
+   "target": "circle@(316,896)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 95,
+   "dx": -184,
+   "dy": 128,
+   "confidence": 0.471
+  },
+  {
+   "text": "合朔之刻",
+   "text_id": 11,
+   "target": "circle@(458,1180)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 128,
+   "dx": 32,
+   "dy": 170,
+   "confidence": 0.443
+  },
+  {
+   "text": "往冥府的安魂歌",
+   "text_id": 8,
+   "target": "circle@(735,534)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 136,
+   "dx": 263,
+   "dy": -112,
+   "confidence": 0.437
+  },
+  {
+   "text": "游逸旅闻·踏雪之章",
+   "text_id": 7,
+   "target": "circle@(701,466)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 31,
+   "dx": 197,
+   "dy": -58,
+   "confidence": 0.524
+  },
+  {
+   "text": "桌上剧团·冒险的前夜会",
+   "text_id": 10,
+   "target": "circle@(317,1014)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 73,
+   "dx": -187,
+   "dy": 124,
+   "confidence": 0.489
+  },
+  {
+   "text": "合朔之刻",
+   "text_id": 11,
+   "target": "circle@(316,896)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 80,
+   "dx": -110,
+   "dy": -114,
+   "confidence": 0.483
+  },
+  {
+   "text": "七圣召唤·热斗模式",
+   "text_id": 6,
+   "target": "circle@(735,534)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 100,
+   "dx": 229,
+   "dy": 132,
+   "confidence": 0.467
+  },
+  {
+   "text": "往冥府的安魂歌",
+   "text_id": 8,
+   "target": "circle@(701,466)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 142,
+   "dx": 229,
+   "dy": -180,
+   "confidence": 0.432
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    123,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=2.0，非纯黑 L=47，纹理对比骤降 std 3.7→2.0（0.53×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 21.5",
+     "GPU: 23%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 46.9,
+    "bg_std": 2.0,
+    "ring_mean": 46.9,
+    "ring_std": 3.7,
+    "texture_ratio": 0.53,
+    "bg_rgb": [
+     40,
+     44,
+     56
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    266,
+    526,
+    650,
+    840
+   ],
+   "kind": "card",
+   "skin": {
+    "lab": [
+     90.0,
+     129.0,
+     117.0
+    ],
+    "fill": 0.56,
+    "rect": 0.66
+   },
+   "text": [
+    "往冥府的安魂歌",
+    "巡历雪境，凝铸锋锐"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      294,
+      734,
+      340,
+      802
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 157.0
+    },
+    {
+     "bbox": [
+      284,
+      614,
+      350,
+      682
+     ],
+     "role": "icon",
+     "fill": 0.41,
+     "contrast": 150.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 79928,
+    "area_frac": 0.0327,
+    "aspect": 1.22,
+    "grid": "col n=2 pitch_x=None pitch_y=284.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     90.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.56,
+    "rect": 0.66
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    264,
+    944,
+    650,
+    1224
+   ],
+   "kind": "card",
+   "skin": {
+    "lab": [
+     92.0,
+     129.0,
+     117.0
+    ],
+    "fill": 0.65,
+    "rect": 0.69
+   },
+   "text": [
+    "合朔之刻"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      282,
+      976,
+      352,
+      1048
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 155.0
+    },
+    {
+     "bbox": [
+      434,
+      1158,
+      480,
+      1204
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 73.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 74740,
+    "area_frac": 0.0293,
+    "aspect": 1.38,
+    "grid": "col n=2 pitch_x=None pitch_y=401.0",
+    "skin_siblings": 1,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     92.0,
+     129.0,
+     117.0
+    ],
+    "flat_fill": 0.65,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    266,
+    272,
+    650,
+    526
+   ],
+   "kind": "card",
+   "skin": {
+    "lab": [
+     87.0,
+     130.0,
+     117.0
+    ],
+    "fill": 0.5,
+    "rect": 0.65
+   },
+   "text": [
+    "七圣召唤·热斗模式",
+    "游逸旅闻·踏雪之章"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      292,
+      372,
+      352,
+      438
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 161.0
+    },
+    {
+     "bbox": [
+      438,
+      294,
+      478,
+      342
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 172.0
+    },
+    {
+     "bbox": [
+      364,
+      312,
+      386,
+      336
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 235.0
+    },
+    {
+     "bbox": [
+      282,
+      498,
+      348,
+      554
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 161.0
+    },
+    {
+     "bbox": [
+      286,
+      296,
+      348,
+      318
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 158.0
+    },
+    {
+     "bbox": [
+      258,
+      264,
+      276,
+      282
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 58.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      442,
+      306,
+      474,
+      338
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 63752,
+    "area_frac": 0.0265,
+    "aspect": 1.51,
+    "grid": "col n=2 pitch_x=None pitch_y=284.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     87.0,
+     130.0,
+     117.0
+    ],
+    "flat_fill": 0.5,
+    "rect": 0.65
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 21.5",
+  "GPU: 23%",
+  "活动一览",
+  "X",
+  "自0",
+  "桌上剧团·冒险的前夜会",
+  "min: 8.2 ms",
+  "maxt",
+  "170.7 ms",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2078,
+    480,
+    2102,
+    510
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 74.0
+  },
+  {
+   "bbox": [
+    74,
+    158,
+    134,
+    230
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 172.0
+  },
+  {
+   "bbox": [
+    1458,
+    478,
+    1480,
+    506
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    2234,
+    478,
+    2256,
+    508
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 75.0
+  },
+  {
+   "bbox": [
+    1304,
+    1026,
+    1332,
+    1126
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 66.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 115,
+  "ocr_ms": 439,
+  "pixel_ms": 924,
+  "container_ms": 384,
+  "container_cached": false,
+  "total_ms": 1479,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 16,
+  "err": null
+ },
+ "title_text_id": 5,
+ "digest": "屏幕 2560x1440 · 文本 16 · 控件 40 · 容器 3 · 邻接 20 · 遮挡 1 · 1479ms（OCR daemon）\n标题「自0」@(192,354) 画面 · 字高 103px\n邻接「自0」→ circle@(458,320) 右侧 216px\n邻接「自0」→ circle@(316,526) 下方 92px\n控件: circle@(458,320) | circle@(316,526) | circle@(317,1014) | circle@(316,896)\n遮挡 [0, 0, 123, 80] (0,0)-(123,80)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=2.0，非纯黑 L=47，纹理对比骤降 std 3.7→2.0（0.53×）"
+}

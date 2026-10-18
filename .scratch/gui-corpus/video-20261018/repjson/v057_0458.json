@@ -1,0 +1,2498 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v057_0458.jpg",
+  "sha256": "5cc6981f30098f9ff89d4e4698a694774bbebd7d311077724cbcce59e0798675",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 296156
+ },
+ "title": {
+  "text": "新",
+  "cx": 506,
+  "cy": 243,
+  "bbox": [
+   482,
+   222,
+   530,
+   264
+  ],
+  "region": null,
+  "why": "上半屏字高最大（42px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    2,
+    7,
+    118,
+    29
+   ],
+   "w": 116,
+   "h": 22,
+   "score": 0.9775,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 23.1",
+   "cx": 60,
+   "cy": 43,
+   "bbox": [
+    3,
+    32,
+    117,
+    54
+   ],
+   "w": 114,
+   "h": 22,
+   "score": 0.9865,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU",
+   "cx": 25,
+   "cy": 66,
+   "bbox": [
+    5,
+    56,
+    46,
+    75
+   ],
+   "w": 41,
+   "h": 19,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "E",
+   "cx": 892,
+   "cy": 64,
+   "bbox": [
+    872,
+    45,
+    913,
+    83
+   ],
+   "w": 41,
+   "h": 38,
+   "score": 0.8874,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "发型 – 三七分长发·绀蓝",
+   "cx": 357,
+   "cy": 165,
+   "bbox": [
+    174,
+    146,
+    540,
+    185
+   ],
+   "w": 366,
+   "h": 39,
+   "score": 0.892,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "我的搭配方案1",
+   "cx": 2416,
+   "cy": 162,
+   "bbox": [
+    2331,
+    146,
+    2500,
+    177
+   ],
+   "w": 169,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "S",
+   "cx": 205,
+   "cy": 245,
+   "bbox": [
+    188,
+    228,
+    223,
+    262
+   ],
+   "w": 35,
+   "h": 34,
+   "score": 0.6326,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "新",
+   "cx": 506,
+   "cy": 243,
+   "bbox": [
+    482,
+    222,
+    530,
+    264
+   ],
+   "w": 48,
+   "h": 42,
+   "score": 1.0,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "新",
+   "cx": 685,
+   "cy": 242,
+   "bbox": [
+    664,
+    222,
+    707,
+    262
+   ],
+   "w": 43,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "S",
+   "cx": 743,
+   "cy": 245,
+   "bbox": [
+    726,
+    228,
+    760,
+    262
+   ],
+   "w": 34,
+   "h": 34,
+   "score": 0.5284,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "新",
+   "cx": 326,
+   "cy": 428,
+   "bbox": [
+    304,
+    408,
+    348,
+    448
+   ],
+   "w": 44,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "新",
+   "cx": 505,
+   "cy": 428,
+   "bbox": [
+    483,
+    408,
+    526,
+    448
+   ],
+   "w": 43,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "新",
+   "cx": 685,
+   "cy": 428,
+   "bbox": [
+    664,
+    408,
+    705,
+    448
+   ],
+   "w": 41,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "新",
+   "cx": 863,
+   "cy": 428,
+   "bbox": [
+    842,
+    408,
+    885,
+    448
+   ],
+   "w": 43,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "新",
+   "cx": 327,
+   "cy": 613,
+   "bbox": [
+    303,
+    592,
+    350,
+    635
+   ],
+   "w": 47,
+   "h": 43,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "新",
+   "cx": 505,
+   "cy": 614,
+   "bbox": [
+    483,
+    595,
+    527,
+    633
+   ],
+   "w": 44,
+   "h": 38,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "新",
+   "cx": 863,
+   "cy": 614,
+   "bbox": [
+    842,
+    594,
+    885,
+    635
+   ],
+   "w": 43,
+   "h": 41,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "新",
+   "cx": 327,
+   "cy": 799,
+   "bbox": [
+    303,
+    777,
+    350,
+    821
+   ],
+   "w": 47,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "新",
+   "cx": 506,
+   "cy": 799,
+   "bbox": [
+    485,
+    780,
+    527,
+    819
+   ],
+   "w": 42,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "新",
+   "cx": 686,
+   "cy": 799,
+   "bbox": [
+    664,
+    780,
+    708,
+    819
+   ],
+   "w": 44,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "新",
+   "cx": 864,
+   "cy": 799,
+   "bbox": [
+    843,
+    779,
+    885,
+    820
+   ],
+   "w": 42,
+   "h": 41,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    51,
+    1316
+   ],
+   "w": 44,
+   "h": 18,
+   "score": 0.9941,
+   "kind": "other"
+  },
+  {
+   "id": 22,
+   "text": "0.4 m5",
+   "cx": 83,
+   "cy": 1308,
+   "bbox": [
+    50,
+    1297,
+    116,
+    1320
+   ],
+   "w": 66,
+   "h": 23,
+   "score": 0.7759,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "max: 8690.9 ms",
+   "cx": 225,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1298,
+    295,
+    1319
+   ],
+   "w": 139,
+   "h": 21,
+   "score": 0.9889,
+   "kind": "data"
+  },
+  {
+   "id": 24,
+   "text": "品质排序",
+   "cx": 350,
+   "cy": 1358,
+   "bbox": [
+    289,
+    1337,
+    411,
+    1379
+   ],
+   "w": 122,
+   "h": 42,
+   "score": 0.9956,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "另存为",
+   "cx": 2054,
+   "cy": 1358,
+   "bbox": [
+    2007,
+    1339,
+    2101,
+    1377
+   ],
+   "w": 94,
+   "h": 38,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 26,
+   "text": "保存",
+   "cx": 2360,
+   "cy": 1358,
+   "bbox": [
+    2326,
+    1339,
+    2394,
+    1378
+   ],
+   "w": 68,
+   "h": 39,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 27,
+   "text": "UID: 110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9809,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    410,
+    340,
+    434,
+    360
+   ],
+   "cx": 422,
+   "cy": 350,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 1.2,
+    "corner_fill": 0.19,
+    "area": 372,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2032,
+    396,
+    2054,
+    418
+   ],
+   "cx": 2043,
+   "cy": 407,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.694,
+    "aspect": 1.0,
+    "corner_fill": 0.17,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2404,
+    746,
+    2440,
+    776
+   ],
+   "cx": 2422,
+   "cy": 761,
+   "w": 36,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.73,
+    "aspect": 1.2,
+    "corner_fill": 0.14,
+    "area": 788,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1666,
+    1066,
+    1714,
+    1104
+   ],
+   "cx": 1690,
+   "cy": 1085,
+   "w": 48,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.559,
+    "aspect": 1.26,
+    "corner_fill": 0.12,
+    "area": 1020,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1658,
+    1114,
+    1688,
+    1136
+   ],
+   "cx": 1673,
+   "cy": 1125,
+   "w": 30,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.624,
+    "aspect": 1.36,
+    "corner_fill": 0.14,
+    "area": 412,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1642,
+    1134,
+    1672,
+    1160
+   ],
+   "cx": 1657,
+   "cy": 1147,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.779,
+    "aspect": 1.15,
+    "corner_fill": 0.14,
+    "area": 608,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    846,
+    1350,
+    870,
+    1370
+   ],
+   "cx": 858,
+   "cy": 1360,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 1.2,
+    "corner_fill": 0.25,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    820,
+    338,
+    852,
+    362
+   ],
+   "cx": 836,
+   "cy": 350,
+   "w": 32,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.484,
+    "aspect": 1.33,
+    "corner_fill": 0.06,
+    "area": 372,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    772,
+    492,
+    822,
+    528
+   ],
+   "cx": 797,
+   "cy": 510,
+   "w": 50,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.444,
+    "aspect": 1.39,
+    "corner_fill": 0.0,
+    "area": 800,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    592,
+    654,
+    636,
+    716
+   ],
+   "cx": 614,
+   "cy": 685,
+   "w": 44,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.56,
+    "aspect": 0.71,
+    "corner_fill": 0.1,
+    "area": 1528,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    86,
+    470,
+    118,
+    502
+   ],
+   "cx": 102,
+   "cy": 486,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 35.3,
+    "ring_L": 158.3,
+    "inside_L": 192.6,
+    "outside_L": 53.4
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    456,
+    42,
+    496,
+    82
+   ],
+   "cx": 476,
+   "cy": 62,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 70.7,
+    "ring_L": 80.6,
+    "inside_L": 51.8,
+    "outside_L": 250.9
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    840,
+    142,
+    892,
+    194
+   ],
+   "cx": 866,
+   "cy": 168,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 1.0,
+    "contrast": 149.8,
+    "ring_L": 212.2,
+    "inside_L": 84.3,
+    "outside_L": 40.5
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    2316,
+    36,
+    2368,
+    88
+   ],
+   "cx": 2342,
+   "cy": 62,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 1.0,
+    "contrast": 118.8,
+    "ring_L": 212.3,
+    "inside_L": 115.7,
+    "outside_L": 71.4
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2292,
+    802,
+    2310,
+    822
+   ],
+   "cx": 2301,
+   "cy": 812,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.949,
+   "label": null,
+   "evidence": {
+    "fill": 0.822,
+    "aspect": 0.9,
+    "corner_fill": 0.25,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1098,
+    1268,
+    1126,
+    1288
+   ],
+   "cx": 1112,
+   "cy": 1278,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.948,
+   "label": null,
+   "evidence": {
+    "fill": 0.5,
+    "aspect": 1.4,
+    "corner_fill": 0.12,
+    "area": 280,
+    "src": "flat"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1596,
+    1086,
+    1638,
+    1128
+   ],
+   "cx": 1617,
+   "cy": 1107,
+   "w": 42,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.633,
+    "aspect": 1.0,
+    "corner_fill": 0.18,
+    "area": 1116,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2436,
+    536,
+    2476,
+    576
+   ],
+   "cx": 2456,
+   "cy": 556,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.986,
+    "contrast": 65.5,
+    "ring_L": 120.1,
+    "inside_L": 130.8,
+    "outside_L": 240.4
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2430,
+    216,
+    2482,
+    268
+   ],
+   "cx": 2456,
+   "cy": 242,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 0.986,
+    "contrast": 64.3,
+    "ring_L": 209.2,
+    "inside_L": 121.1,
+    "outside_L": 168.6
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2446,
+    248,
+    2470,
+    272
+   ],
+   "cx": 2458,
+   "cy": 260,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.972,
+    "contrast": 25.9,
+    "ring_L": 153.1,
+    "inside_L": 139.1,
+    "outside_L": 218.8
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2450,
+    330,
+    2494,
+    374
+   ],
+   "cx": 2472,
+   "cy": 352,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.972,
+    "contrast": 27.3,
+    "ring_L": 150.4,
+    "inside_L": 196.2,
+    "outside_L": 159.1
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    2414,
+    44,
+    2454,
+    84
+   ],
+   "cx": 2434,
+   "cy": 64,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.972,
+    "contrast": 64.2,
+    "ring_L": 144.9,
+    "inside_L": 251.3,
+    "outside_L": 166.9
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2438,
+    66,
+    2474,
+    102
+   ],
+   "cx": 2456,
+   "cy": 84,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.972,
+    "contrast": 52.3,
+    "ring_L": 164.6,
+    "inside_L": 252.7,
+    "outside_L": 181.0
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2438,
+    24,
+    2474,
+    60
+   ],
+   "cx": 2456,
+   "cy": 42,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.972,
+    "contrast": 51.6,
+    "ring_L": 162.7,
+    "inside_L": 252.6,
+    "outside_L": 176.1
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    2460,
+    44,
+    2500,
+    84
+   ],
+   "cx": 2480,
+   "cy": 64,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.958,
+    "contrast": 62.9,
+    "ring_L": 151.0,
+    "inside_L": 252.0,
+    "outside_L": 175.8
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    772,
+    304,
+    818,
+    340
+   ],
+   "cx": 795,
+   "cy": 322,
+   "w": 46,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.577,
+    "aspect": 1.28,
+    "corner_fill": 0.17,
+    "area": 956,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    50,
+    46,
+    82,
+    78
+   ],
+   "cx": 66,
+   "cy": 62,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.944,
+    "contrast": 64.2,
+    "ring_L": 201.1,
+    "inside_L": 167.5,
+    "outside_L": 106.4
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    80,
+    674,
+    120,
+    714
+   ],
+   "cx": 100,
+   "cy": 694,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.944,
+    "contrast": 74.0,
+    "ring_L": 165.4,
+    "inside_L": 117.3,
+    "outside_L": 65.5
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2430,
+    416,
+    2478,
+    464
+   ],
+   "cx": 2454,
+   "cy": 440,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.944,
+    "contrast": 43.3,
+    "ring_L": 194.2,
+    "inside_L": 144.2,
+    "outside_L": 157.4
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2428,
+    440,
+    2480,
+    492
+   ],
+   "cx": 2454,
+   "cy": 466,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 0.944,
+    "contrast": 29.3,
+    "ring_L": 183.6,
+    "inside_L": 141.3,
+    "outside_L": 167.3
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    744,
+    46,
+    768,
+    70
+   ],
+   "cx": 756,
+   "cy": 58,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.944,
+    "contrast": 27.2,
+    "ring_L": 192.2,
+    "inside_L": 217.6,
+    "outside_L": 112.5
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    234,
+    840,
+    280,
+    902
+   ],
+   "cx": 257,
+   "cy": 871,
+   "w": 46,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.938,
+   "label": null,
+   "evidence": {
+    "fill": 0.59,
+    "aspect": 0.74,
+    "corner_fill": 0.18,
+    "area": 1684,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1642,
+    1338,
+    1682,
+    1378
+   ],
+   "cx": 1662,
+   "cy": 1358,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.931,
+    "contrast": 56.3,
+    "ring_L": 141.9,
+    "inside_L": 167.0,
+    "outside_L": 229.5
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2432,
+    342,
+    2476,
+    386
+   ],
+   "cx": 2454,
+   "cy": 364,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.931,
+    "contrast": 24.1,
+    "ring_L": 167.3,
+    "inside_L": 130.9,
+    "outside_L": 155.5
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1776,
+    490,
+    1814,
+    524
+   ],
+   "cx": 1795,
+   "cy": 507,
+   "w": 38,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.706,
+    "aspect": 1.12,
+    "corner_fill": 0.23,
+    "area": 912,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    2198,
+    1014,
+    2224,
+    1040
+   ],
+   "cx": 2211,
+   "cy": 1027,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 1.0,
+    "corner_fill": 0.28,
+    "area": 548,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1298,
+    1212,
+    1320,
+    1240
+   ],
+   "cx": 1309,
+   "cy": 1226,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.932,
+   "label": null,
+   "evidence": {
+    "fill": 0.734,
+    "aspect": 0.79,
+    "corner_fill": 0.25,
+    "area": 452,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2442,
+    728,
+    2462,
+    748
+   ],
+   "cx": 2452,
+   "cy": 738,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.928,
+   "label": null,
+   "evidence": {
+    "fill": 0.87,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    412,
+    836,
+    470,
+    896
+   ],
+   "cx": 441,
+   "cy": 866,
+   "w": 58,
+   "h": 60,
+   "shape": "circle",
+   "confidence": 0.921,
+   "label": null,
+   "evidence": {
+    "fill": 0.564,
+    "aspect": 0.97,
+    "corner_fill": 0.2,
+    "area": 1964,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1600,
+    1130,
+    1632,
+    1162
+   ],
+   "cx": 1616,
+   "cy": 1146,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.921,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 17.1,
+    "ring_L": 125.4,
+    "inside_L": 168.1,
+    "outside_L": 116.9
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    174,
+    45,
+    913,
+    821
+   ],
+   "scroll_hint": {
+    "key_tokens": [
+     "S"
+    ],
+    "last_row_to_edge": 22,
+    "scrollable": "yes",
+    "note": "有滚动键提示，可直接滚"
+   },
+   "n_rows": 6,
+   "row_y": [
+    64,
+    165,
+    243,
+    428,
+    613,
+    799
+   ],
+   "rows": [
+    {
+     "y": 64,
+     "texts": [
+      "E"
+     ]
+    },
+    {
+     "y": 165,
+     "texts": [
+      "发型 – 三七分长发·绀蓝"
+     ]
+    },
+    {
+     "y": 243,
+     "texts": [
+      "新",
+      "新",
+      "S",
+      "S"
+     ]
+    },
+    {
+     "y": 428,
+     "texts": [
+      "新",
+      "新",
+      "新",
+      "新"
+     ]
+    },
+    {
+     "y": 613,
+     "texts": [
+      "新",
+      "新",
+      "新"
+     ]
+    },
+    {
+     "y": 799,
+     "texts": [
+      "新",
+      "新",
+      "新",
+      "新"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "新",
+   "text_id": 7,
+   "target": "circle@(422,350)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 76,
+   "dx": -84,
+   "dy": 107,
+   "confidence": 0.637
+  },
+  {
+   "text": "新",
+   "text_id": 7,
+   "target": "circle@(476,62)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 140,
+   "dx": -30,
+   "dy": -181,
+   "confidence": 0.583
+  },
+  {
+   "text": "新",
+   "text_id": 7,
+   "target": "circle@(756,58)",
+   "target_id": "c30",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 214,
+   "dx": 250,
+   "dy": -185,
+   "confidence": 0.522
+  },
+  {
+   "text": "新",
+   "text_id": 17,
+   "target": "circle@(257,871)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 23,
+   "dx": -70,
+   "dy": 72,
+   "confidence": 0.531
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 27,
+   "target": "label@(2360,1358)",
+   "target_id": "t26",
+   "target_kind": "label",
+   "label": "保存",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 23,
+   "dx": -10,
+   "dy": -60,
+   "confidence": 0.731
+  },
+  {
+   "text": "我的搭配方案1",
+   "text_id": 5,
+   "target": "circle@(2456,242)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": 40,
+   "dy": 80,
+   "confidence": 0.518
+  },
+  {
+   "text": "S",
+   "text_id": 9,
+   "target": "circle@(795,322)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 42,
+   "dx": 52,
+   "dy": 77,
+   "confidence": 0.515
+  },
+  {
+   "text": "E",
+   "text_id": 3,
+   "target": "circle@(866,168)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 59,
+   "dx": -26,
+   "dy": 104,
+   "confidence": 0.501
+  },
+  {
+   "text": "发型 – 三七分长发·绀蓝",
+   "text_id": 4,
+   "target": "circle@(476,62)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 64,
+   "dx": 119,
+   "dy": -104,
+   "confidence": 0.497
+  },
+  {
+   "text": "新",
+   "text_id": 8,
+   "target": "circle@(795,322)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 65,
+   "dx": 110,
+   "dy": 80,
+   "confidence": 0.496
+  },
+  {
+   "text": "新",
+   "text_id": 16,
+   "target": "circle@(797,510)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 66,
+   "dx": -66,
+   "dy": -104,
+   "confidence": 0.495
+  },
+  {
+   "text": "新",
+   "text_id": 17,
+   "target": "circle@(441,866)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 62,
+   "dx": 114,
+   "dy": 67,
+   "confidence": 0.498
+  },
+  {
+   "text": "新",
+   "text_id": 18,
+   "target": "circle@(614,685)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 65,
+   "dx": 108,
+   "dy": -114,
+   "confidence": 0.496
+  },
+  {
+   "text": "我的搭配方案1",
+   "text_id": 5,
+   "target": "circle@(2458,260)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 71,
+   "dx": 42,
+   "dy": 98,
+   "confidence": 0.491
+  },
+  {
+   "text": "S",
+   "text_id": 9,
+   "target": "circle@(836,350)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 76,
+   "dx": 93,
+   "dy": 105,
+   "confidence": 0.487
+  },
+  {
+   "text": "E",
+   "text_id": 3,
+   "target": "circle@(756,58)",
+   "target_id": "c30",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 104,
+   "dx": -136,
+   "dy": -6,
+   "confidence": 0.463
+  },
+  {
+   "text": "新",
+   "text_id": 8,
+   "target": "circle@(836,350)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 113,
+   "dx": 150,
+   "dy": 108,
+   "confidence": 0.456
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 27,
+   "target": "label@(2054,1358)",
+   "target_id": "t25",
+   "target_kind": "label",
+   "label": "另存为",
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 157,
+   "dx": -316,
+   "dy": -60,
+   "confidence": 0.619
+  },
+  {
+   "text": "我的搭配方案1",
+   "text_id": 5,
+   "target": "circle@(2456,84)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 44,
+   "dx": 40,
+   "dy": -78,
+   "confidence": 0.513
+  },
+  {
+   "text": "S",
+   "text_id": 9,
+   "target": "circle@(866,168)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 80,
+   "dx": 123,
+   "dy": -77,
+   "confidence": 0.483
+  },
+  {
+   "text": "新",
+   "text_id": 8,
+   "target": "circle@(866,168)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 133,
+   "dx": 180,
+   "dy": -74,
+   "confidence": 0.439
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    4,
+    121,
+    78
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，非纯黑 L=116",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 23.1",
+     "GPU"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 7,
+    "bg_mean": 116.4,
+    "bg_std": 86.1,
+    "ring_mean": 50.8,
+    "ring_std": 49.3,
+    "texture_ratio": 1.75,
+    "bg_rgb": [
+     111,
+     112,
+     124
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    1856,
+    592,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     80.0,
+     155.0,
+     76.0
+    ],
+    "fill": 0.5,
+    "rect": 0.58
+   },
+   "text": [
+    "另存为",
+    "保存",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2200,
+      1018,
+      2222,
+      1036
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 300.0
+    },
+    {
+     "bbox": [
+      1842,
+      1346,
+      1874,
+      1370
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 78.0
+    },
+    {
+     "bbox": [
+      2400,
+      744,
+      2442,
+      778
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 256.0
+    },
+    {
+     "bbox": [
+      2150,
+      1326,
+      2194,
+      1394
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 271.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.62,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 346152,
+    "area_frac": 0.1619,
+    "aspect": 0.83,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 1,
+    "skin_lab": [
+     80.0,
+     155.0,
+     76.0
+    ],
+    "flat_fill": 0.5,
+    "rect": 0.58
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 23.1",
+  "GPU",
+  "E",
+  "发型 – 三七分长发·绀蓝",
+  "我的搭配方案1",
+  "S",
+  "新",
+  "新",
+  "S",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "新",
+  "min:",
+  "0.4 m5",
+  "max: 8690.9 ms",
+  "品质排序"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    238,
+    28,
+    264,
+    56
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 248.0
+  },
+  {
+   "bbox": [
+    2424,
+    216,
+    2490,
+    282
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 256.0
+  },
+  {
+   "bbox": [
+    2424,
+    422,
+    2490,
+    488
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 251.0
+  },
+  {
+   "bbox": [
+    2314,
+    38,
+    2370,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 280.0
+  },
+  {
+   "bbox": [
+    60,
+    136,
+    146,
+    222
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 261.0
+  },
+  {
+   "bbox": [
+    84,
+    466,
+    120,
+    506
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 265.0
+  },
+  {
+   "bbox": [
+    2424,
+    314,
+    2496,
+    386
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 257.0
+  },
+  {
+   "bbox": [
+    78,
+    872,
+    126,
+    920
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 239.0
+  },
+  {
+   "bbox": [
+    794,
+    28,
+    822,
+    56
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 228.0
+  },
+  {
+   "bbox": [
+    44,
+    58,
+    102,
+    82
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 271.0
+  },
+  {
+   "bbox": [
+    840,
+    140,
+    894,
+    196
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 274.0
+  },
+  {
+   "bbox": [
+    78,
+    676,
+    128,
+    710
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 257.0
+  },
+  {
+   "bbox": [
+    2420,
+    26,
+    2496,
+    102
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 276.0
+  },
+  {
+   "bbox": [
+    2218,
+    146,
+    2234,
+    184
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 256.0
+  },
+  {
+   "bbox": [
+    180,
+    42,
+    218,
+    86
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 231.0
+  },
+  {
+   "bbox": [
+    1000,
+    1040,
+    1030,
+    1066
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 291.0
+  },
+  {
+   "bbox": [
+    76,
+    572,
+    128,
+    604
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 263.0
+  },
+  {
+   "bbox": [
+    1148,
+    1120,
+    1180,
+    1152
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 292.0
+  },
+  {
+   "bbox": [
+    432,
+    32,
+    524,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 236.0
+  },
+  {
+   "bbox": [
+    738,
+    40,
+    782,
+    100
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 296.0
+  },
+  {
+   "bbox": [
+    482,
+    452,
+    502,
+    474
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 104.0
+  },
+  {
+   "bbox": [
+    80,
+    770,
+    124,
+    816
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 251.0
+  },
+  {
+   "bbox": [
+    78,
+    274,
+    128,
+    292
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 269.0
+  },
+  {
+   "bbox": [
+    1796,
+    496,
+    1818,
+    520
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 74.0
+  },
+  {
+   "bbox": [
+    8,
+    1320,
+    28,
+    1348
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    298,
+    1312,
+    386,
+    1332
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 196.0
+  },
+  {
+   "bbox": [
+    832,
+    638,
+    860,
+    694
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 171.0
+  },
+  {
+   "bbox": [
+    1668,
+    1230,
+    1698,
+    1248
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 51.0
+  },
+  {
+   "bbox": [
+    1486,
+    652,
+    1504,
+    682
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    342,
+    32,
+    384,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 264.0
+  },
+  {
+   "bbox": [
+    572,
+    32,
+    616,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 264.0
+  },
+  {
+   "bbox": [
+    1762,
+    514,
+    1788,
+    570
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 207.0
+  },
+  {
+   "bbox": [
+    1816,
+    762,
+    1856,
+    816
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    1124,
+    1418,
+    1146,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 220.0
+  },
+  {
+   "bbox": [
+    82,
+    360,
+    130,
+    404
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 266.0
+  },
+  {
+   "bbox": [
+    652,
+    652,
+    678,
+    700
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 175.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 119,
+  "ocr_ms": 520,
+  "pixel_ms": 973,
+  "container_ms": 401,
+  "container_cached": false,
+  "total_ms": 1613,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 28,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 28 · 控件 40 · 容器 1 · 邻接 21 · 遮挡 1 · 1613ms（OCR daemon）\n标题「新」@(506,243) 画面 · 字高 42px\n邻接「新」→ circle@(422,350) 下方 76px\n邻接「新」→ circle@(476,62) 上方 140px\n邻接「新」→ circle@(756,58) 右侧 214px\n邻接「UID: 110170759」→ label@(2360,1358)「保存」 上方 23px\n控件: circle@(422,350) | circle@(476,62) | circle@(756,58) | circle@(257,871)\n遮挡 [0, 4, 121, 78] (0,4)-(121,78)（conf 0.62）：左上角小字叠加层：小字 3 框，非纯黑 L=116\n可点文字 2 个: 另存为 / 保存"
+}

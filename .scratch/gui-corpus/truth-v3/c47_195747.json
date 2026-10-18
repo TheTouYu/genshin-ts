@@ -1,0 +1,184 @@
+{
+ "frame": "c47_195747",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195747.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "编辑器窗口 + 右下属性面板（GUID/动态单位）",
+ "classes": [
+  "桌面窗口",
+  "属性面板"
+ ],
+ "units": 6,
+ "_provenance": {
+  "family": "千星编辑器·物件摆放（属性面板变体）",
+  "method": "与 c41_195439 同族；本帧只标窗口级控件与属性面板（树条目未逐条标）",
+  "tool_assist": "几何=edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）；行标签用 OCR 文本（`label-capture/_screen/*.json`）核对，不用其 bbox",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "本帧只标了窗口级控件，资源树条目与属性面板内部控件**未逐个标**（units 偏少，不代表该帧只有 6 个单元）"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 0/6 = 0.0%（iou 0.000，fp=0，degen=0）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    180,
+    22,
+    300,
+    44
+   ],
+   "kind": "chip",
+   "text": [
+    "背景音乐管理"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    330,
+    22,
+    30,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    10,
+    60,
+    470,
+    44
+   ],
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    28,
+    96,
+    420,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "搜索"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    486,
+    1440
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧资源树面板"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1400,
+    900,
+    1140,
+    500
+   ],
+   "kind": "panel",
+   "text": [
+    "物件属性（GUID 1077936130 / 箭头指示牌）"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右下属性面板（可见 GUID/动态单位等文字）"
+  }
+ ]
+}

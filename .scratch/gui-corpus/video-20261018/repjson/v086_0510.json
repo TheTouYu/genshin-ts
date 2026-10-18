@@ -1,0 +1,3271 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v086_0510.jpg",
+  "sha256": "1ed86f43b6dee4b72f0b7b7955732dcf063866f9f09da5726d36a7e9576268ce",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 366443
+ },
+ "title": {
+  "text": "柳德米拉",
+  "cx": 1726,
+  "cy": 409,
+  "bbox": [
+   1665,
+   389,
+   1787,
+   429
+  ],
+  "region": null,
+  "why": "上半屏字高最大（40px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    2,
+    7,
+    118,
+    29
+   ],
+   "w": 116,
+   "h": 22,
+   "score": 0.9894,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:",
+   "cx": 30,
+   "cy": 42,
+   "bbox": [
+    3,
+    30,
+    58,
+    54
+   ],
+   "w": 55,
+   "h": 24,
+   "score": 0.8976,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "21.9",
+   "cx": 90,
+   "cy": 42,
+   "bbox": [
+    60,
+    30,
+    120,
+    54
+   ],
+   "w": 60,
+   "h": 24,
+   "score": 0.9985,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "GPU8238",
+   "cx": 55,
+   "cy": 66,
+   "bbox": [
+    1,
+    54,
+    109,
+    79
+   ],
+   "w": 108,
+   "h": 25,
+   "score": 0.9873,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "73 ms",
+   "cx": 2459,
+   "cy": 122,
+   "bbox": [
+    2403,
+    109,
+    2516,
+    136
+   ],
+   "w": 113,
+   "h": 27,
+   "score": 0.9566,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "奥黛塔",
+   "cx": 2275,
+   "cy": 367,
+   "bbox": [
+    2223,
+    347,
+    2327,
+    387
+   ],
+   "w": 104,
+   "h": 40,
+   "score": 0.9116,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "米哈伊尔",
+   "cx": 1499,
+   "cy": 394,
+   "bbox": [
+    1441,
+    376,
+    1558,
+    412
+   ],
+   "w": 117,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "柳德米拉",
+   "cx": 1726,
+   "cy": 409,
+   "bbox": [
+    1665,
+    389,
+    1787,
+    429
+   ],
+   "w": 122,
+   "h": 40,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "<愚人众使节>",
+   "cx": 1500,
+   "cy": 425,
+   "bbox": [
+    1432,
+    410,
+    1567,
+    441
+   ],
+   "w": 135,
+   "h": 31,
+   "score": 0.9972,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "<愚人众使节>",
+   "cx": 1725,
+   "cy": 441,
+   "bbox": [
+    1658,
+    426,
+    1793,
+    456
+   ],
+   "w": 135,
+   "h": 30,
+   "score": 0.9986,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "阿罗夏",
+   "cx": 2306,
+   "cy": 480,
+   "bbox": [
+    2259,
+    461,
+    2353,
+    498
+   ],
+   "w": 94,
+   "h": 37,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "2",
+   "cx": 2494,
+   "cy": 489,
+   "bbox": [
+    2473,
+    470,
+    2514,
+    507
+   ],
+   "w": 41,
+   "h": 37,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "沃雅妮莎",
+   "cx": 2292,
+   "cy": 601,
+   "bbox": [
+    2230,
+    581,
+    2353,
+    621
+   ],
+   "w": 123,
+   "h": 40,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "3",
+   "cx": 2495,
+   "cy": 610,
+   "bbox": [
+    2469,
+    588,
+    2521,
+    632
+   ],
+   "w": 52,
+   "h": 44,
+   "score": 0.8996,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "透雨",
+   "cx": 2320,
+   "cy": 722,
+   "bbox": [
+    2286,
+    703,
+    2353,
+    741
+   ],
+   "w": 67,
+   "h": 38,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "4",
+   "cx": 2496,
+   "cy": 733,
+   "bbox": [
+    2477,
+    716,
+    2514,
+    750
+   ],
+   "w": 37,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "Z",
+   "cx": 2425,
+   "cy": 1169,
+   "bbox": [
+    2402,
+    1150,
+    2449,
+    1189
+   ],
+   "w": 47,
+   "h": 39,
+   "score": 0.9735,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "[奇怪的鸭子]:打深渊呐",
+   "cx": 239,
+   "cy": 1191,
+   "bbox": [
+    108,
+    1175,
+    370,
+    1208
+   ],
+   "w": 262,
+   "h": 33,
+   "score": 0.994,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "你对[奇怪的鸭子]说:mei you, shang wu",
+   "cx": 343,
+   "cy": 1229,
+   "bbox": [
+    105,
+    1208,
+    580,
+    1249
+   ],
+   "w": 475,
+   "h": 41,
+   "score": 0.9913,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "zai da shen yuan",
+   "cx": 216,
+   "cy": 1260,
+   "bbox": [
+    105,
+    1242,
+    326,
+    1278
+   ],
+   "w": 221,
+   "h": 36,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "[奇怪的鸭子]:哦哦",
+   "cx": 212,
+   "cy": 1297,
+   "bbox": [
+    105,
+    1280,
+    320,
+    1315
+   ],
+   "w": 215,
+   "h": 35,
+   "score": 0.9445,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "min:",
+   "cx": 28,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    49,
+    1316
+   ],
+   "w": 42,
+   "h": 18,
+   "score": 0.9854,
+   "kind": "other"
+  },
+  {
+   "id": 22,
+   "text": "[奇怪的鸭子]:不找你没回",
+   "cx": 278,
+   "cy": 1333,
+   "bbox": [
+    110,
+    1316,
+    445,
+    1350
+   ],
+   "w": 335,
+   "h": 34,
+   "score": 0.9422,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "Lv.80",
+   "cx": 1030,
+   "cy": 1348,
+   "bbox": [
+    997,
+    1334,
+    1064,
+    1361
+   ],
+   "w": 67,
+   "h": 27,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "7629/16950",
+   "cx": 1277,
+   "cy": 1346,
+   "bbox": [
+    1198,
+    1333,
+    1356,
+    1359
+   ],
+   "w": 158,
+   "h": 26,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "E",
+   "cx": 2267,
+   "cy": 1384,
+   "bbox": [
+    2250,
+    1368,
+    2283,
+    1401
+   ],
+   "w": 33,
+   "h": 33,
+   "score": 0.9989,
+   "kind": "hud"
+  },
+  {
+   "id": 26,
+   "text": "Q",
+   "cx": 2427,
+   "cy": 1386,
+   "bbox": [
+    2409,
+    1369,
+    2445,
+    1404
+   ],
+   "w": 36,
+   "h": 35,
+   "score": 0.9989,
+   "kind": "hud"
+  },
+  {
+   "id": 27,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "hud"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1976,
+    130,
+    1998,
+    150
+   ],
+   "cx": 1987,
+   "cy": 140,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.673,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    536,
+    154,
+    552,
+    176
+   ],
+   "cx": 544,
+   "cy": 165,
+   "w": 16,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.784,
+    "aspect": 0.73,
+    "corner_fill": 0.12,
+    "area": 276,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2512,
+    322,
+    2546,
+    348
+   ],
+   "cx": 2529,
+   "cy": 335,
+   "w": 34,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.733,
+    "aspect": 1.31,
+    "corner_fill": 0.14,
+    "area": 648,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2478,
+    414,
+    2514,
+    440
+   ],
+   "cx": 2496,
+   "cy": 427,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.671,
+    "aspect": 1.38,
+    "corner_fill": 0.03,
+    "area": 628,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2442,
+    36,
+    2490,
+    70
+   ],
+   "cx": 2466,
+   "cy": 53,
+   "w": 48,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.488,
+    "aspect": 1.41,
+    "corner_fill": 0.06,
+    "area": 796,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    760,
+    572,
+    800,
+    606
+   ],
+   "cx": 780,
+   "cy": 589,
+   "w": 40,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.474,
+    "aspect": 1.18,
+    "corner_fill": 0.08,
+    "area": 644,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    356,
+    46,
+    380,
+    70
+   ],
+   "cx": 368,
+   "cy": 58,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 41.2,
+    "ring_L": 110.4,
+    "inside_L": 119.6,
+    "outside_L": 183.5
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1904,
+    52,
+    1932,
+    80
+   ],
+   "cx": 1918,
+   "cy": 66,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 26.4,
+    "ring_L": 201.7,
+    "inside_L": 216.0,
+    "outside_L": 134.5
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    580,
+    38,
+    604,
+    62
+   ],
+   "cx": 592,
+   "cy": 50,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 52.0,
+    "ring_L": 110.0,
+    "inside_L": 161.2,
+    "outside_L": 162.9
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    586,
+    422,
+    620,
+    464
+   ],
+   "cx": 603,
+   "cy": 443,
+   "w": 34,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 0.81,
+    "corner_fill": 0.19,
+    "area": 936,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    2058,
+    104,
+    2076,
+    130
+   ],
+   "cx": 2067,
+   "cy": 117,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.632,
+    "aspect": 0.69,
+    "corner_fill": 0.19,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    48,
+    66,
+    84,
+    102
+   ],
+   "cx": 66,
+   "cy": 84,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": "GPU8238",
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.944,
+    "contrast": 32.8,
+    "ring_L": 161.0,
+    "inside_L": 242.6,
+    "outside_L": 144.9
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2474,
+    206,
+    2494,
+    228
+   ],
+   "cx": 2484,
+   "cy": 217,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.938,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 0.91,
+    "corner_fill": 0.25,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1092,
+    526,
+    1114,
+    542
+   ],
+   "cx": 1103,
+   "cy": 534,
+   "w": 22,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": 0.739,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    704,
+    112,
+    828,
+    252
+   ],
+   "cx": 766,
+   "cy": 182,
+   "w": 124,
+   "h": 140,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.488,
+    "aspect": 0.89,
+    "corner_fill": 0.16,
+    "area": 8468,
+    "src": "flat"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1142,
+    310,
+    1220,
+    396
+   ],
+   "cx": 1181,
+   "cy": 353,
+   "w": 78,
+   "h": 86,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.466,
+    "aspect": 0.91,
+    "corner_fill": 0.17,
+    "area": 3124,
+    "src": "flat"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    2412,
+    734,
+    2436,
+    760
+   ],
+   "cx": 2424,
+   "cy": 747,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.724,
+    "aspect": 0.92,
+    "corner_fill": 0.28,
+    "area": 452,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1346,
+    472,
+    1362,
+    510
+   ],
+   "cx": 1354,
+   "cy": 491,
+   "w": 16,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.921,
+    "aspect": 0.42,
+    "corner_fill": 0.62,
+    "area": 560,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2194,
+    590,
+    2234,
+    624
+   ],
+   "cx": 2214,
+   "cy": 607,
+   "w": 40,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.715,
+    "aspect": 1.18,
+    "corner_fill": 0.28,
+    "area": 972,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    34,
+    668,
+    68,
+    696
+   ],
+   "cx": 51,
+   "cy": 682,
+   "w": 34,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.706,
+    "aspect": 1.21,
+    "corner_fill": 0.28,
+    "area": 672,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    634,
+    324,
+    666,
+    364
+   ],
+   "cx": 650,
+   "cy": 344,
+   "w": 32,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.497,
+    "aspect": 0.8,
+    "corner_fill": 0.2,
+    "area": 636,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    2372,
+    196,
+    2402,
+    236
+   ],
+   "cx": 2387,
+   "cy": 216,
+   "w": 30,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.593,
+    "aspect": 0.75,
+    "corner_fill": 0.25,
+    "area": 712,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2432,
+    346,
+    2450,
+    366
+   ],
+   "cx": 2441,
+   "cy": 356,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.903,
+   "label": null,
+   "evidence": {
+    "fill": 0.744,
+    "aspect": 0.9,
+    "corner_fill": 0.31,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1832,
+    1358,
+    1864,
+    1384
+   ],
+   "cx": 1848,
+   "cy": 1371,
+   "w": 32,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.903,
+   "label": null,
+   "evidence": {
+    "fill": 0.452,
+    "aspect": 1.23,
+    "corner_fill": 0.19,
+    "area": 376,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    618,
+    510,
+    650,
+    534
+   ],
+   "cx": 634,
+   "cy": 522,
+   "w": 32,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.438,
+    "aspect": 1.33,
+    "corner_fill": 0.19,
+    "area": 336,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1048,
+    270,
+    1152,
+    408
+   ],
+   "cx": 1100,
+   "cy": 339,
+   "w": 104,
+   "h": 138,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.468,
+    "aspect": 0.75,
+    "corner_fill": 0.21,
+    "area": 6720,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1796,
+    640,
+    1816,
+    658
+   ],
+   "cx": 1806,
+   "cy": 649,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.722,
+    "aspect": 1.11,
+    "corner_fill": 0.31,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    634,
+    766,
+    690,
+    784
+   ],
+   "cx": 662,
+   "cy": 775,
+   "w": 56,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.885,
+    "aspect": 3.11,
+    "corner_fill": 0.25,
+    "area": 892,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2222,
+    410,
+    2240,
+    458
+   ],
+   "cx": 2231,
+   "cy": 434,
+   "w": 18,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.88,
+    "aspect": 0.38,
+    "corner_fill": 0.25,
+    "area": 760,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1468,
+    648,
+    1514,
+    702
+   ],
+   "cx": 1491,
+   "cy": 675,
+   "w": 46,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.554,
+    "aspect": 0.85,
+    "corner_fill": 0.25,
+    "area": 1376,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1122,
+    670,
+    1172,
+    736
+   ],
+   "cx": 1147,
+   "cy": 703,
+   "w": 50,
+   "h": 66,
+   "shape": "circle",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.52,
+    "aspect": 0.76,
+    "corner_fill": 0.24,
+    "area": 1716,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    968,
+    766,
+    996,
+    788
+   ],
+   "cx": 982,
+   "cy": 777,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 1.27,
+    "corner_fill": 0.31,
+    "area": 428,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1860,
+    670,
+    1908,
+    694
+   ],
+   "cx": 1884,
+   "cy": 682,
+   "w": 48,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 2.0,
+    "corner_fill": 0.47,
+    "area": 1008,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    232,
+    76,
+    320,
+    170
+   ],
+   "cx": 276,
+   "cy": 123,
+   "w": 88,
+   "h": 94,
+   "shape": "circle",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.51,
+    "aspect": 0.94,
+    "corner_fill": 0.24,
+    "area": 4220,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    506,
+    542,
+    544,
+    572
+   ],
+   "cx": 525,
+   "cy": 557,
+   "w": 38,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.656,
+    "aspect": 1.27,
+    "corner_fill": 0.3,
+    "area": 748,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1246,
+    1026,
+    1288,
+    1072
+   ],
+   "cx": 1267,
+   "cy": 1049,
+   "w": 42,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.892,
+   "label": null,
+   "evidence": {
+    "fill": 0.458,
+    "aspect": 0.91,
+    "corner_fill": 0.22,
+    "area": 884,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    628,
+    286,
+    664,
+    308
+   ],
+   "cx": 646,
+   "cy": 297,
+   "w": 36,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": 0.869,
+    "aspect": 1.64,
+    "corner_fill": 0.47,
+    "area": 688,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1906,
+    544,
+    1978,
+    576
+   ],
+   "cx": 1942,
+   "cy": 560,
+   "w": 72,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": 0.868,
+    "aspect": 2.25,
+    "corner_fill": 0.59,
+    "area": 2000,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    66,
+    1326,
+    100,
+    1344
+   ],
+   "cx": 83,
+   "cy": 1335,
+   "w": 34,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": 0.869,
+    "aspect": 1.89,
+    "corner_fill": 0.25,
+    "area": 532,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2412,
+    166,
+    2430,
+    188
+   ],
+   "cx": 2421,
+   "cy": 177,
+   "w": 18,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.677,
+    "aspect": 0.82,
+    "corner_fill": 0.31,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    997,
+    376,
+    1793,
+    1361
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    417,
+    1347
+   ],
+   "rows": [
+    {
+     "y": 417,
+     "texts": [
+      "米哈伊尔",
+      "柳德米拉",
+      "<愚人众使节>",
+      "<愚人众使节>"
+     ]
+    },
+    {
+     "y": 1347,
+     "texts": [
+      "7629/16950",
+      "Lv.80"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2223,
+    347,
+    2521,
+    1189
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 5,
+   "row_y": [
+    367,
+    484,
+    605,
+    727,
+    1169
+   ],
+   "rows": [
+    {
+     "y": 367,
+     "texts": [
+      "奥黛塔"
+     ]
+    },
+    {
+     "y": 484,
+     "texts": [
+      "阿罗夏",
+      "2"
+     ]
+    },
+    {
+     "y": 605,
+     "texts": [
+      "沃雅妮莎",
+      "3"
+     ]
+    },
+    {
+     "y": 727,
+     "texts": [
+      "透雨",
+      "4"
+     ]
+    },
+    {
+     "y": 1169,
+     "texts": [
+      "Z"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "柳德米拉",
+   "text_id": 7,
+   "target": "rect@(1942,560)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 119,
+   "dx": 216,
+   "dy": 151,
+   "confidence": 0.601
+  },
+  {
+   "text": "柳德米拉",
+   "text_id": 7,
+   "target": "circle@(1806,649)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 211,
+   "dx": 80,
+   "dy": 240,
+   "confidence": 0.524
+  },
+  {
+   "text": "柳德米拉",
+   "text_id": 7,
+   "target": "circle@(1491,675)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 219,
+   "dx": -235,
+   "dy": 266,
+   "confidence": 0.518
+  },
+  {
+   "text": "沃雅妮莎",
+   "text_id": 12,
+   "target": "circle@(2214,607)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -78,
+   "dy": 6,
+   "confidence": 0.55
+  },
+  {
+   "text": "[奇怪的鸭子]:不找你没回",
+   "text_id": 22,
+   "target": "rect@(83,1335)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 10,
+   "dx": -194,
+   "dy": 2,
+   "confidence": 0.542
+  },
+  {
+   "text": "[奇怪的鸭子]:哦哦",
+   "text_id": 20,
+   "target": "rect@(83,1335)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 11,
+   "dx": -130,
+   "dy": 38,
+   "confidence": 0.541
+  },
+  {
+   "text": "奥黛塔",
+   "text_id": 5,
+   "target": "rect@(2231,434)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 23,
+   "dx": -44,
+   "dy": 67,
+   "confidence": 0.531
+  },
+  {
+   "text": "2",
+   "text_id": 11,
+   "target": "circle@(2496,427)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 30,
+   "dx": 2,
+   "dy": -62,
+   "confidence": 0.525
+  },
+  {
+   "text": "73 ms",
+   "text_id": 4,
+   "target": "circle@(2421,177)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 30,
+   "dx": -38,
+   "dy": 54,
+   "confidence": 0.525
+  },
+  {
+   "text": "4",
+   "text_id": 15,
+   "target": "circle@(2424,747)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 41,
+   "dx": -72,
+   "dy": 14,
+   "confidence": 0.516
+  },
+  {
+   "text": "zai da shen yuan",
+   "text_id": 19,
+   "target": "rect@(83,1335)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 48,
+   "dx": -132,
+   "dy": 75,
+   "confidence": 0.51
+  },
+  {
+   "text": "透雨",
+   "text_id": 14,
+   "target": "circle@(2424,747)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 59,
+   "dx": 104,
+   "dy": 25,
+   "confidence": 0.501
+  },
+  {
+   "text": "<愚人众使节>",
+   "text_id": 8,
+   "target": "rect@(1354,491)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 70,
+   "dx": -146,
+   "dy": 66,
+   "confidence": 0.492
+  },
+  {
+   "text": "你对[奇怪的鸭子]说:mei you, shang wu",
+   "text_id": 18,
+   "target": "rect@(83,1335)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 77,
+   "dx": -260,
+   "dy": 106,
+   "confidence": 0.486
+  },
+  {
+   "text": "米哈伊尔",
+   "text_id": 6,
+   "target": "rect@(1354,491)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 79,
+   "dx": -146,
+   "dy": 97,
+   "confidence": 0.484
+  },
+  {
+   "text": "阿罗夏",
+   "text_id": 10,
+   "target": "circle@(2214,607)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 92,
+   "dx": -92,
+   "dy": 128,
+   "confidence": 0.473
+  },
+  {
+   "text": "3",
+   "text_id": 13,
+   "target": "circle@(2424,747)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 102,
+   "dx": -71,
+   "dy": 137,
+   "confidence": 0.465
+  },
+  {
+   "text": "<愚人众使节>",
+   "text_id": 9,
+   "target": "rect@(1942,560)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 113,
+   "dx": 216,
+   "dy": 119,
+   "confidence": 0.456
+  },
+  {
+   "text": "[奇怪的鸭子]:打深渊呐",
+   "text_id": 17,
+   "target": "rect@(83,1335)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 118,
+   "dx": -156,
+   "dy": 144,
+   "confidence": 0.452
+  },
+  {
+   "text": "阿罗夏",
+   "text_id": 10,
+   "target": "rect@(2231,434)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 19,
+   "dx": -75,
+   "dy": -46,
+   "confidence": 0.534
+  },
+  {
+   "text": "73 ms",
+   "text_id": 4,
+   "target": "circle@(2387,216)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 60,
+   "dx": -72,
+   "dy": 94,
+   "confidence": 0.5
+  },
+  {
+   "text": "透雨",
+   "text_id": 14,
+   "target": "circle@(2214,607)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 79,
+   "dx": -106,
+   "dy": -115,
+   "confidence": 0.484
+  },
+  {
+   "text": "2",
+   "text_id": 11,
+   "target": "circle@(2441,356)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 104,
+   "dx": -52,
+   "dy": -132,
+   "confidence": 0.463
+  },
+  {
+   "text": "奥黛塔",
+   "text_id": 5,
+   "target": "circle@(2441,356)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 105,
+   "dx": 166,
+   "dy": -11,
+   "confidence": 0.463
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    4,
+    123,
+    82
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=154",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS:",
+     "21.9",
+     "GPU8238"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 7,
+    "bg_mean": 154.2,
+    "bg_std": 88.6,
+    "ring_mean": 96.7,
+    "ring_std": 81.1,
+    "texture_ratio": 1.09,
+    "bg_rgb": [
+     146,
+     151,
+     164
+    ]
+   }
+  },
+  {
+   "bbox": [
+    2247,
+    1365,
+    2486,
+    1439
+   ],
+   "confidence": 0.85,
+   "label": "hud-overlay",
+   "why": "右下角小字叠加层：小字 3 框，低方差 std=8.1，非纯黑 L=110，纹理对比骤降 std 28.8→8.1（0.28×）",
+   "evidence": {
+    "texts": [
+     "E",
+     "Q",
+     "UID:110170759"
+    ],
+    "text_ids": [
+     25,
+     26,
+     27
+    ],
+    "n_texts": 3,
+    "corner": "右下",
+    "corner_dist_px": 77,
+    "bg_mean": 109.8,
+    "bg_std": 8.1,
+    "ring_mean": 121.2,
+    "ring_std": 28.8,
+    "texture_ratio": 0.28,
+    "bg_rgb": [
+     91,
+     105,
+     132
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    668,
+    1036,
+    1162,
+    1422
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     93.0,
+     129.0,
+     102.0
+    ],
+    "fill": 0.43,
+    "rect": 0.56
+   },
+   "text": [
+    "Lv.80"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.61,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 107732,
+    "area_frac": 0.0517,
+    "aspect": 1.28,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     93.0,
+     129.0,
+     102.0
+    ],
+    "flat_fill": 0.43,
+    "rect": 0.56
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS:",
+  "21.9",
+  "GPU8238",
+  "73 ms",
+  "奥黛塔",
+  "米哈伊尔",
+  "柳德米拉",
+  "<愚人众使节>",
+  "<愚人众使节>",
+  "阿罗夏",
+  "2",
+  "沃雅妮莎",
+  "3",
+  "透雨",
+  "4",
+  "Z",
+  "[奇怪的鸭子]:打深渊呐",
+  "你对[奇怪的鸭子]说:mei you, shang wu",
+  "zai da shen yuan",
+  "[奇怪的鸭子]:哦哦",
+  "min:",
+  "[奇怪的鸭子]:不找你没回",
+  "7629/16950",
+  "E",
+  "Q",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2474,
+    350,
+    2516,
+    386
+   ],
+   "role": "icon",
+   "fill": 0.93,
+   "contrast": 105.0
+  },
+  {
+   "bbox": [
+    2160,
+    22,
+    2186,
+    48
+   ],
+   "role": "icon",
+   "fill": 0.85,
+   "contrast": 228.0
+  },
+  {
+   "bbox": [
+    62,
+    1178,
+    102,
+    1242
+   ],
+   "role": "icon",
+   "fill": 0.82,
+   "contrast": 171.0
+  },
+  {
+   "bbox": [
+    982,
+    238,
+    1004,
+    264
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 125.0
+  },
+  {
+   "bbox": [
+    2008,
+    502,
+    2034,
+    526
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    1048,
+    534,
+    1066,
+    552
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    1770,
+    204,
+    1796,
+    226
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 67.0
+  },
+  {
+   "bbox": [
+    2208,
+    34,
+    2284,
+    94
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 242.0
+  },
+  {
+   "bbox": [
+    784,
+    428,
+    800,
+    452
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    930,
+    518,
+    960,
+    534
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1842,
+    188,
+    1868,
+    208
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    502,
+    308,
+    532,
+    334
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    640,
+    542,
+    656,
+    564
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 164.0
+  },
+  {
+   "bbox": [
+    1350,
+    524,
+    1402,
+    540
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 79.0
+  },
+  {
+   "bbox": [
+    2388,
+    1066,
+    2464,
+    1138
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 150.0
+  },
+  {
+   "bbox": [
+    1890,
+    22,
+    1968,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 230.0
+  },
+  {
+   "bbox": [
+    1470,
+    458,
+    1516,
+    518
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 183.0
+  },
+  {
+   "bbox": [
+    838,
+    392,
+    918,
+    454
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    520,
+    850,
+    546,
+    872
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    410,
+    352,
+    426,
+    418
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    182,
+    786,
+    204,
+    816
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    538,
+    268,
+    556,
+    284
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    1152,
+    308,
+    1176,
+    328
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 73.0
+  },
+  {
+   "bbox": [
+    2116,
+    562,
+    2204,
+    666
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 168.0
+  },
+  {
+   "bbox": [
+    1878,
+    692,
+    1984,
+    718
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    564,
+    8,
+    640,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 232.0
+  },
+  {
+   "bbox": [
+    1134,
+    490,
+    1150,
+    510
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 104.0
+  },
+  {
+   "bbox": [
+    1110,
+    544,
+    1132,
+    574
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 116.0
+  },
+  {
+   "bbox": [
+    1348,
+    676,
+    1366,
+    694
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 106.0
+  },
+  {
+   "bbox": [
+    322,
+    26,
+    402,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 237.0
+  },
+  {
+   "bbox": [
+    0,
+    708,
+    34,
+    744
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    88,
+    744,
+    108,
+    768
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 67.0
+  },
+  {
+   "bbox": [
+    1046,
+    754,
+    1070,
+    776
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 56.0
+  },
+  {
+   "bbox": [
+    682,
+    6,
+    700,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 56.0
+  },
+  {
+   "bbox": [
+    2450,
+    414,
+    2512,
+    442
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    562,
+    252,
+    596,
+    336
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    2008,
+    370,
+    2032,
+    386
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 51.0
+  },
+  {
+   "bbox": [
+    1636,
+    404,
+    1652,
+    442
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    1784,
+    102,
+    1820,
+    144
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    188,
+    298,
+    218,
+    366
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    324,
+    804,
+    356,
+    830
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    2224,
+    1282,
+    2304,
+    1364
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 143.0
+  },
+  {
+   "bbox": [
+    1796,
+    222,
+    1866,
+    354
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 102.0
+  },
+  {
+   "bbox": [
+    850,
+    258,
+    868,
+    286
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 51.0
+  },
+  {
+   "bbox": [
+    1792,
+    382,
+    1836,
+    430
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    1654,
+    536,
+    1718,
+    558
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 94.0
+  },
+  {
+   "bbox": [
+    1766,
+    24,
+    1852,
+    104
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 237.0
+  },
+  {
+   "bbox": [
+    2506,
+    78,
+    2530,
+    110
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 96.0
+  },
+  {
+   "bbox": [
+    2062,
+    234,
+    2086,
+    262
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    884,
+    374,
+    912,
+    392
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 54.0
+  },
+  {
+   "bbox": [
+    110,
+    760,
+    168,
+    814
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    2100,
+    10,
+    2172,
+    98
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 238.0
+  },
+  {
+   "bbox": [
+    718,
+    12,
+    740,
+    48
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    1370,
+    332,
+    1434,
+    410
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    1034,
+    374,
+    1056,
+    446
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    38,
+    442,
+    176,
+    460
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    1000,
+    470,
+    1070,
+    530
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 96.0
+  },
+  {
+   "bbox": [
+    2532,
+    632,
+    2560,
+    684
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 140.0
+  },
+  {
+   "bbox": [
+    1320,
+    1362,
+    1354,
+    1394
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    596,
+    106,
+    646,
+    198
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 119.0
+  },
+  {
+   "bbox": [
+    554,
+    562,
+    606,
+    592
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    2534,
+    584,
+    2560,
+    612
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 75.0
+  },
+  {
+   "bbox": [
+    384,
+    800,
+    492,
+    830
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 96.0
+  },
+  {
+   "bbox": [
+    2290,
+    164,
+    2326,
+    216
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    1876,
+    208,
+    1892,
+    338
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 55.0
+  },
+  {
+   "bbox": [
+    878,
+    272,
+    912,
+    334
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    1086,
+    478,
+    1106,
+    508
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    1188,
+    308,
+    1206,
+    324
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    2166,
+    418,
+    2216,
+    530
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 90.0
+  },
+  {
+   "bbox": [
+    1368,
+    688,
+    1388,
+    738
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 135.0
+  },
+  {
+   "bbox": [
+    2254,
+    502,
+    2348,
+    526
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 297.0
+  },
+  {
+   "bbox": [
+    2526,
+    18,
+    2542,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 54.0
+  },
+  {
+   "bbox": [
+    2364,
+    110,
+    2408,
+    150
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 83.0
+  },
+  {
+   "bbox": [
+    928,
+    222,
+    982,
+    248
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 93.0
+  },
+  {
+   "bbox": [
+    2320,
+    396,
+    2336,
+    414
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 50.0
+  },
+  {
+   "bbox": [
+    1516,
+    520,
+    1532,
+    536
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 54.0
+  },
+  {
+   "bbox": [
+    1870,
+    530,
+    1900,
+    552
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    828,
+    154,
+    858,
+    198
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 107.0
+  },
+  {
+   "bbox": [
+    2228,
+    400,
+    2262,
+    456
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 83.0
+  },
+  {
+   "bbox": [
+    1824,
+    590,
+    1878,
+    622
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    1798,
+    634,
+    1864,
+    676
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    492,
+    798,
+    604,
+    826
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 73.0
+  },
+  {
+   "bbox": [
+    930,
+    364,
+    970,
+    422
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    1450,
+    590,
+    1472,
+    612
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 101.0
+  },
+  {
+   "bbox": [
+    1078,
+    540,
+    1098,
+    578
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    148,
+    720,
+    278,
+    752
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 65.0
+  },
+  {
+   "bbox": [
+    1370,
+    264,
+    1430,
+    328
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    456,
+    340,
+    524,
+    422
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 95.0
+  },
+  {
+   "bbox": [
+    886,
+    852,
+    926,
+    892
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    92,
+    512,
+    202,
+    550
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    222,
+    768,
+    300,
+    824
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 92.0
+  },
+  {
+   "bbox": [
+    1104,
+    266,
+    1134,
+    288
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 95.0
+  },
+  {
+   "bbox": [
+    2278,
+    426,
+    2296,
+    446
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 52.0
+  },
+  {
+   "bbox": [
+    1144,
+    946,
+    1182,
+    1008
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 170.0
+  },
+  {
+   "bbox": [
+    436,
+    256,
+    480,
+    358
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 87.0
+  },
+  {
+   "bbox": [
+    416,
+    430,
+    442,
+    446
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    1076,
+    598,
+    1104,
+    630
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    1028,
+    248,
+    1104,
+    286
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 105.0
+  },
+  {
+   "bbox": [
+    2478,
+    444,
+    2510,
+    466
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    1654,
+    460,
+    1680,
+    526
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    1376,
+    740,
+    1406,
+    788
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    2390,
+    168,
+    2430,
+    190
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    664,
+    294,
+    752,
+    394
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 135.0
+  },
+  {
+   "bbox": [
+    782,
+    378,
+    808,
+    436
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 58.0
+  },
+  {
+   "bbox": [
+    452,
+    540,
+    546,
+    584
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 92.0
+  },
+  {
+   "bbox": [
+    2250,
+    626,
+    2348,
+    666
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 316.0
+  },
+  {
+   "bbox": [
+    2008,
+    596,
+    2088,
+    682
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    992,
+    650,
+    1068,
+    678
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 59.0
+  },
+  {
+   "bbox": [
+    2014,
+    780,
+    2052,
+    828
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 87.0
+  },
+  {
+   "bbox": [
+    2454,
+    1240,
+    2484,
+    1256
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 68.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 111,
+  "ocr_ms": 524,
+  "pixel_ms": 1216,
+  "container_ms": 404,
+  "container_cached": false,
+  "total_ms": 1852,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 28,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 28 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 2 · 1852ms（OCR daemon）\n标题「柳德米拉」@(1726,409) 画面 · 字高 40px\n邻接「柳德米拉」→ rect@(1942,560) 右侧 119px\n邻接「柳德米拉」→ circle@(1806,649) 下方 211px\n邻接「柳德米拉」→ circle@(1491,675) 下方 219px\n控件: rect@(1942,560) | circle@(1806,649) | circle@(1491,675) | circle@(2214,607)\n遮挡 [0, 4, 123, 82] (0,4)-(123,82)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=154\n遮挡 [2247, 1365, 2486, 1439] (2247,1365)-(2486,1439)（conf 0.85）：右下角小字叠加层：小字 3 框，低方差 std=8.1，非纯黑 L=110，纹理对比骤降 std 28.8→8.1（0.28×）"
+}

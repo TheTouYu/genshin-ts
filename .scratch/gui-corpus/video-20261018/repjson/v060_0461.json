@@ -1,0 +1,3715 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v060_0461.jpg",
+  "sha256": "20238a2551ccf048d24656e141e060f8e9bd2a8a0410671d04fe40e7cd5035ce",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 374198
+ },
+ "title": {
+  "text": "透雨",
+  "cx": 466,
+  "cy": 82,
+  "bbox": [
+   406,
+   48,
+   526,
+   115
+  ],
+  "region": null,
+  "why": "上半屏字高最大（67px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    120,
+    30
+   ],
+   "w": 119,
+   "h": 25,
+   "score": 0.9552,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 23.9",
+   "cx": 60,
+   "cy": 43,
+   "bbox": [
+    2,
+    29,
+    118,
+    56
+   ],
+   "w": 116,
+   "h": 27,
+   "score": 0.9297,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU8 29%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    0,
+    50,
+    108,
+    83
+   ],
+   "w": 108,
+   "h": 33,
+   "score": 0.9075,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "透雨",
+   "cx": 466,
+   "cy": 82,
+   "bbox": [
+    406,
+    48,
+    526,
+    115
+   ],
+   "w": 120,
+   "h": 67,
+   "score": 0.9997,
+   "kind": "title"
+  },
+  {
+   "id": 4,
+   "text": "逆风解意",
+   "cx": 481,
+   "cy": 147,
+   "bbox": [
+    410,
+    126,
+    552,
+    169
+   ],
+   "w": 142,
+   "h": 43,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "奇域等级",
+   "cx": 481,
+   "cy": 244,
+   "bbox": [
+    411,
+    222,
+    550,
+    266
+   ],
+   "w": 139,
+   "h": 44,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "Lv.67",
+   "cx": 912,
+   "cy": 245,
+   "bbox": [
+    858,
+    225,
+    966,
+    266
+   ],
+   "w": 108,
+   "h": 41,
+   "score": 0.9964,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "UID 110170759",
+   "cx": 270,
+   "cy": 278,
+   "bbox": [
+    170,
+    263,
+    371,
+    293
+   ],
+   "w": 201,
+   "h": 30,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "本期「缤纷评分」",
+   "cx": 531,
+   "cy": 300,
+   "bbox": [
+    409,
+    279,
+    654,
+    321
+   ],
+   "w": 245,
+   "h": 42,
+   "score": 0.9681,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "15",
+   "cx": 901,
+   "cy": 300,
+   "bbox": [
+    877,
+    279,
+    925,
+    321
+   ],
+   "w": 48,
+   "h": 42,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "复制",
+   "cx": 288,
+   "cy": 330,
+   "bbox": [
+    251,
+    311,
+    325,
+    349
+   ],
+   "w": 74,
+   "h": 38,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 11,
+   "text": "生日",
+   "cx": 449,
+   "cy": 354,
+   "bbox": [
+    409,
+    330,
+    489,
+    378
+   ],
+   "w": 80,
+   "h": 48,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "10月22日",
+   "cx": 909,
+   "cy": 354,
+   "bbox": [
+    833,
+    335,
+    984,
+    374
+   ],
+   "w": 151,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "钟珍",
+   "cx": 2270,
+   "cy": 381,
+   "bbox": [
+    2250,
+    369,
+    2291,
+    393
+   ],
+   "w": 41,
+   "h": 24,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "透雨",
+   "cx": 1189,
+   "cy": 457,
+   "bbox": [
+    1136,
+    426,
+    1241,
+    487
+   ],
+   "w": 105,
+   "h": 61,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "千星商城",
+   "cx": 261,
+   "cy": 606,
+   "bbox": [
+    205,
+    588,
+    317,
+    624
+   ],
+   "w": 112,
+   "h": 36,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "人气奇域",
+   "cx": 469,
+   "cy": 608,
+   "bbox": [
+    412,
+    590,
+    526,
+    626
+   ],
+   "w": 114,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "奇域收藏",
+   "cx": 677,
+   "cy": 606,
+   "bbox": [
+    621,
+    588,
+    732,
+    624
+   ],
+   "w": 111,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "我的奇域",
+   "cx": 883,
+   "cy": 606,
+   "bbox": [
+    828,
+    588,
+    939,
+    624
+   ],
+   "w": 111,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "大厅",
+   "cx": 260,
+   "cy": 801,
+   "bbox": [
+    225,
+    781,
+    295,
+    820
+   ],
+   "w": 70,
+   "h": 39,
+   "score": 0.9962,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "装扮搭配",
+   "cx": 469,
+   "cy": 795,
+   "bbox": [
+    412,
+    777,
+    525,
+    812
+   ],
+   "w": 113,
+   "h": 35,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "好友",
+   "cx": 676,
+   "cy": 795,
+   "bbox": [
+    643,
+    776,
+    709,
+    813
+   ],
+   "w": 66,
+   "h": 37,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "队伍",
+   "cx": 883,
+   "cy": 795,
+   "bbox": [
+    851,
+    776,
+    916,
+    815
+   ],
+   "w": 65,
+   "h": 39,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "地图",
+   "cx": 259,
+   "cy": 984,
+   "bbox": [
+    229,
+    966,
+    290,
+    1001
+   ],
+   "w": 61,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "更换角色",
+   "cx": 469,
+   "cy": 984,
+   "bbox": [
+    414,
+    966,
+    523,
+    1001
+   ],
+   "w": 109,
+   "h": 35,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "颂愿",
+   "cx": 676,
+   "cy": 984,
+   "bbox": [
+    643,
+    965,
+    709,
+    1004
+   ],
+   "w": 66,
+   "h": 39,
+   "score": 0.995,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "纪游",
+   "cx": 883,
+   "cy": 984,
+   "bbox": [
+    850,
+    963,
+    917,
+    1005
+   ],
+   "w": 67,
+   "h": 42,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "游玩指南",
+   "cx": 259,
+   "cy": 1173,
+   "bbox": [
+    203,
+    1155,
+    316,
+    1190
+   ],
+   "w": 113,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "特典活动",
+   "cx": 468,
+   "cy": 1173,
+   "bbox": [
+    412,
+    1155,
+    523,
+    1190
+   ],
+   "w": 111,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "官方社区",
+   "cx": 677,
+   "cy": 1173,
+   "bbox": [
+    621,
+    1155,
+    732,
+    1190
+   ],
+   "w": 111,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "版本热点",
+   "cx": 884,
+   "cy": 1173,
+   "bbox": [
+    828,
+    1155,
+    940,
+    1191
+   ],
+   "w": 112,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "min: 0.4 ms",
+   "cx": 61,
+   "cy": 1306,
+   "bbox": [
+    5,
+    1294,
+    117,
+    1319
+   ],
+   "w": 112,
+   "h": 25,
+   "score": 0.9868,
+   "kind": "data"
+  },
+  {
+   "id": 32,
+   "text": "max: 8690.9 ms",
+   "cx": 227,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1298,
+    298,
+    1319
+   ],
+   "w": 142,
+   "h": 21,
+   "score": 0.8984,
+   "kind": "data"
+  },
+  {
+   "id": 33,
+   "text": "云·原神",
+   "cx": 467,
+   "cy": 1362,
+   "bbox": [
+    410,
+    1344,
+    523,
+    1380
+   ],
+   "w": 113,
+   "h": 36,
+   "score": 0.9904,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "周边商城",
+   "cx": 676,
+   "cy": 1362,
+   "bbox": [
+    620,
+    1344,
+    732,
+    1379
+   ],
+   "w": 112,
+   "h": 35,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "问卷",
+   "cx": 883,
+   "cy": 1362,
+   "bbox": [
+    851,
+    1343,
+    916,
+    1380
+   ],
+   "w": 65,
+   "h": 37,
+   "score": 0.9967,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "返回提瓦特",
+   "cx": 2325,
+   "cy": 1358,
+   "bbox": [
+    2224,
+    1334,
+    2427,
+    1382
+   ],
+   "w": 203,
+   "h": 48,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 37,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    748,
+    50,
+    766,
+    76
+   ],
+   "cx": 757,
+   "cy": 63,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 0.69,
+    "corner_fill": 0.19,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2138,
+    272,
+    2184,
+    310
+   ],
+   "cx": 2161,
+   "cy": 291,
+   "w": 46,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.618,
+    "aspect": 1.21,
+    "corner_fill": 0.11,
+    "area": 1080,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1416,
+    294,
+    1434,
+    314
+   ],
+   "cx": 1425,
+   "cy": 304,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.789,
+    "aspect": 0.9,
+    "corner_fill": 0.19,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2046,
+    400,
+    2082,
+    434
+   ],
+   "cx": 2064,
+   "cy": 417,
+   "w": 36,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.647,
+    "aspect": 1.06,
+    "corner_fill": 0.14,
+    "area": 792,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    94,
+    612,
+    114,
+    638
+   ],
+   "cx": 104,
+   "cy": 625,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.77,
+    "corner_fill": 0.12,
+    "area": 436,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    2064,
+    644,
+    2104,
+    678
+   ],
+   "cx": 2084,
+   "cy": 661,
+   "w": 40,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.712,
+    "aspect": 1.18,
+    "corner_fill": 0.06,
+    "area": 968,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1144,
+    1014,
+    1226,
+    1080
+   ],
+   "cx": 1185,
+   "cy": 1047,
+   "w": 82,
+   "h": 66,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.485,
+    "aspect": 1.24,
+    "corner_fill": 0.1,
+    "area": 2624,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    458,
+    1094,
+    478,
+    1114
+   ],
+   "cx": 468,
+   "cy": 1104,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.82,
+    "aspect": 1.0,
+    "corner_fill": 0.12,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1066,
+    1238,
+    1102,
+    1272
+   ],
+   "cx": 1084,
+   "cy": 1255,
+   "w": 36,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.654,
+    "aspect": 1.06,
+    "corner_fill": 0.03,
+    "area": 800,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1100,
+    1284,
+    1122,
+    1304
+   ],
+   "cx": 1111,
+   "cy": 1294,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.755,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1066,
+    1320,
+    1100,
+    1352
+   ],
+   "cx": 1083,
+   "cy": 1336,
+   "w": 34,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.629,
+    "aspect": 1.06,
+    "corner_fill": 0.06,
+    "area": 684,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1008,
+    1380,
+    1026,
+    1400
+   ],
+   "cx": 1017,
+   "cy": 1390,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.9,
+    "corner_fill": 0.25,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    456,
+    526,
+    484,
+    552
+   ],
+   "cx": 470,
+   "cy": 539,
+   "w": 28,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.429,
+    "aspect": 1.08,
+    "corner_fill": 0.0,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    468,
+    922,
+    500,
+    954
+   ],
+   "cx": 484,
+   "cy": 938,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 75.5,
+    "ring_L": 131.0,
+    "inside_L": 239.2,
+    "outside_L": 173.8
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2140,
+    1344,
+    2164,
+    1368
+   ],
+   "cx": 2152,
+   "cy": 1356,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 103.1,
+    "ring_L": 155.8,
+    "inside_L": 55.9,
+    "outside_L": 49.5
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    456,
+    876,
+    480,
+    900
+   ],
+   "cx": 468,
+   "cy": 888,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 28.7,
+    "ring_L": 103.1,
+    "inside_L": 58.0,
+    "outside_L": 205.6
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    864,
+    518,
+    904,
+    558
+   ],
+   "cx": 884,
+   "cy": 538,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.986,
+    "contrast": 68.5,
+    "ring_L": 207.1,
+    "inside_L": 180.6,
+    "outside_L": 96.6
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    290,
+    170,
+    322,
+    202
+   ],
+   "cx": 306,
+   "cy": 186,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.958,
+    "contrast": 45.6,
+    "ring_L": 123.5,
+    "inside_L": 152.4,
+    "outside_L": 185.8
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    864,
+    898,
+    904,
+    938
+   ],
+   "cx": 884,
+   "cy": 918,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.944,
+    "contrast": 74.1,
+    "ring_L": 162.1,
+    "inside_L": 93.0,
+    "outside_L": 83.1
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2090,
+    262,
+    2112,
+    280
+   ],
+   "cx": 2101,
+   "cy": 271,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.937,
+   "label": null,
+   "evidence": {
+    "fill": 0.758,
+    "aspect": 1.22,
+    "corner_fill": 0.25,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1906,
+    462,
+    1926,
+    480
+   ],
+   "cx": 1916,
+   "cy": 471,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": 0.756,
+    "aspect": 1.11,
+    "corner_fill": 0.25,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    614,
+    114,
+    650,
+    158
+   ],
+   "cx": 632,
+   "cy": 136,
+   "w": 36,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.551,
+    "aspect": 0.82,
+    "corner_fill": 0.17,
+    "area": 872,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2018,
+    1156,
+    2074,
+    1210
+   ],
+   "cx": 2046,
+   "cy": 1183,
+   "w": 56,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.932,
+   "label": null,
+   "evidence": {
+    "fill": 0.734,
+    "aspect": 1.04,
+    "corner_fill": 0.25,
+    "area": 2220,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1920,
+    978,
+    1946,
+    1004
+   ],
+   "cx": 1933,
+   "cy": 991,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.929,
+   "label": null,
+   "evidence": {
+    "fill": 0.787,
+    "aspect": 1.0,
+    "corner_fill": 0.28,
+    "area": 532,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1200,
+    942,
+    1222,
+    968
+   ],
+   "cx": 1211,
+   "cy": 955,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.929,
+   "label": null,
+   "evidence": {
+    "fill": 0.51,
+    "aspect": 0.85,
+    "corner_fill": 0.17,
+    "area": 292,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1866,
+    0,
+    1888,
+    26
+   ],
+   "cx": 1877,
+   "cy": 13,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.538,
+    "aspect": 0.85,
+    "corner_fill": 0.19,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    8,
+    1402,
+    120,
+    1440
+   ],
+   "cx": 64,
+   "cy": 1421,
+   "w": 112,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.981,
+    "aspect": 2.95,
+    "corner_fill": 0.99,
+    "area": 4176,
+    "src": "flat"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    32,
+    646,
+    96,
+    690
+   ],
+   "cx": 64,
+   "cy": 668,
+   "w": 64,
+   "h": 44,
+   "shape": "rect",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.93,
+    "aspect": 1.45,
+    "corner_fill": 0.86,
+    "area": 2620,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1426,
+    1304,
+    1464,
+    1338
+   ],
+   "cx": 1445,
+   "cy": 1321,
+   "w": 38,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.433,
+    "aspect": 1.12,
+    "corner_fill": 0.16,
+    "area": 560,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2066,
+    430,
+    2090,
+    448
+   ],
+   "cx": 2078,
+   "cy": 439,
+   "w": 24,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.657,
+    "aspect": 1.33,
+    "corner_fill": 0.25,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1176,
+    1268,
+    1190,
+    1290
+   ],
+   "cx": 1183,
+   "cy": 1279,
+   "w": 14,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": 0.922,
+    "aspect": 0.64,
+    "corner_fill": 0.75,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1526,
+    440,
+    1546,
+    460
+   ],
+   "cx": 1536,
+   "cy": 450,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 320,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    664,
+    700,
+    688,
+    724
+   ],
+   "cx": 676,
+   "cy": 712,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.91,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 16.0,
+    "ring_L": 96.0,
+    "inside_L": 66.9,
+    "outside_L": 157.0
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1856,
+    176,
+    1902,
+    214
+   ],
+   "cx": 1879,
+   "cy": 195,
+   "w": 46,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.712,
+    "aspect": 1.21,
+    "corner_fill": 0.29,
+    "area": 1244,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1026,
+    778,
+    1056,
+    800
+   ],
+   "cx": 1041,
+   "cy": 789,
+   "w": 30,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.473,
+    "aspect": 1.36,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    246,
+    88,
+    294,
+    124
+   ],
+   "cx": 270,
+   "cy": 106,
+   "w": 48,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.525,
+    "aspect": 1.33,
+    "corner_fill": 0.22,
+    "area": 908,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2034,
+    456,
+    2118,
+    514
+   ],
+   "cx": 2076,
+   "cy": 485,
+   "w": 84,
+   "h": 58,
+   "shape": "circle",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.5,
+    "aspect": 1.45,
+    "corner_fill": 0.21,
+    "area": 2436,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1480,
+    260,
+    1548,
+    316
+   ],
+   "cx": 1514,
+   "cy": 288,
+   "w": 68,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.52,
+    "aspect": 1.21,
+    "corner_fill": 0.22,
+    "area": 1980,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1784,
+    534,
+    1816,
+    570
+   ],
+   "cx": 1800,
+   "cy": 552,
+   "w": 32,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.712,
+    "aspect": 0.89,
+    "corner_fill": 0.3,
+    "area": 820,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2230,
+    302,
+    2278,
+    338
+   ],
+   "cx": 2254,
+   "cy": 320,
+   "w": 48,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.542,
+    "aspect": 1.33,
+    "corner_fill": 0.23,
+    "area": 936,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    14
+   ],
+   "why": "横边长直边 y=14（覆盖 38% 宽）"
+  },
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    124,
+    1440
+   ],
+   "why": "竖边长直边 x=124（覆盖 61% 高）"
+  },
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1396,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1396（覆盖 33% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    170,
+    48,
+    984,
+    1380
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 18,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    82,
+    147,
+    300,
+    606,
+    796,
+    984,
+    1173,
+    1362
+   ],
+   "rows": [
+    {
+     "y": 82,
+     "texts": [
+      "透雨"
+     ]
+    },
+    {
+     "y": 147,
+     "texts": [
+      "逆风解意"
+     ]
+    },
+    {
+     "y": 300,
+     "texts": [
+      "奇域等级",
+      "Lv.67",
+      "UID 110170759",
+      "本期「缤纷评分」",
+      "15",
+      "复制",
+      "生日",
+      "10月22日"
+     ]
+    },
+    {
+     "y": 606,
+     "texts": [
+      "千星商城",
+      "奇域收藏",
+      "我的奇域",
+      "人气奇域"
+     ]
+    },
+    {
+     "y": 796,
+     "texts": [
+      "装扮搭配",
+      "好友",
+      "队伍",
+      "大厅"
+     ]
+    },
+    {
+     "y": 984,
+     "texts": [
+      "地图",
+      "更换角色",
+      "颂愿",
+      "纪游"
+     ]
+    },
+    {
+     "y": 1173,
+     "texts": [
+      "游玩指南",
+      "特典活动",
+      "官方社区",
+      "版本热点"
+     ]
+    },
+    {
+     "y": 1362,
+     "texts": [
+      "周边商城",
+      "问卷"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(270,106)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 112,
+   "dx": -196,
+   "dy": 24,
+   "confidence": 0.607
+  },
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(757,63)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 222,
+   "dx": 291,
+   "dy": -18,
+   "confidence": 0.515
+  },
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(306,186)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "left",
+   "gap_px": 84,
+   "dx": -160,
+   "dy": 104,
+   "confidence": 0.63
+  },
+  {
+   "text": "UID 110170759",
+   "text_id": 7,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 18,
+   "dx": 18,
+   "dy": 52,
+   "confidence": 0.735
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 37,
+   "target": "label@(2325,1358)",
+   "target_id": "t36",
+   "target_kind": "label",
+   "label": "返回提瓦特",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 19,
+   "dx": -45,
+   "dy": -60,
+   "confidence": 0.734
+  },
+  {
+   "text": "特典活动",
+   "text_id": 28,
+   "target": "circle@(468,1104)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 41,
+   "dx": 0,
+   "dy": -68,
+   "confidence": 0.516
+  },
+  {
+   "text": "生日",
+   "text_id": 11,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 84,
+   "dx": -161,
+   "dy": -24,
+   "confidence": 0.68
+  },
+  {
+   "text": "本期「缤纷评分」",
+   "text_id": 8,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 84,
+   "dx": -244,
+   "dy": 30,
+   "confidence": 0.68
+  },
+  {
+   "text": "奇域等级",
+   "text_id": 5,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 86,
+   "dx": -192,
+   "dy": 86,
+   "confidence": 0.678
+  },
+  {
+   "text": "问卷",
+   "text_id": 35,
+   "target": "circle@(1017,1390)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 92,
+   "dx": 134,
+   "dy": 28,
+   "confidence": 0.473
+  },
+  {
+   "text": "版本热点",
+   "text_id": 30,
+   "target": "circle@(1084,1255)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 126,
+   "dx": 200,
+   "dy": 82,
+   "confidence": 0.445
+  },
+  {
+   "text": "钟珍",
+   "text_id": 13,
+   "target": "circle@(2076,485)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 132,
+   "dx": -194,
+   "dy": 104,
+   "confidence": 0.44
+  },
+  {
+   "text": "逆风解意",
+   "text_id": 4,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 142,
+   "dx": -193,
+   "dy": 182,
+   "confidence": 0.632
+  },
+  {
+   "text": "游玩指南",
+   "text_id": 27,
+   "target": "circle@(468,1104)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 142,
+   "dx": 208,
+   "dy": -68,
+   "confidence": 0.432
+  },
+  {
+   "text": "官方社区",
+   "text_id": 29,
+   "target": "circle@(468,1104)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 143,
+   "dx": -208,
+   "dy": -68,
+   "confidence": 0.431
+  },
+  {
+   "text": "千星商城",
+   "text_id": 15,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 239,
+   "dx": 27,
+   "dy": -276,
+   "confidence": 0.551
+  },
+  {
+   "text": "人气奇域",
+   "text_id": 16,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 241,
+   "dx": -181,
+   "dy": -278,
+   "confidence": 0.549
+  },
+  {
+   "text": "奇域收藏",
+   "text_id": 17,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 296,
+   "dx": -388,
+   "dy": -276,
+   "confidence": 0.503
+  },
+  {
+   "text": "好友",
+   "text_id": 21,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 427,
+   "dx": -388,
+   "dy": -464,
+   "confidence": 0.5
+  },
+  {
+   "text": "装扮搭配",
+   "text_id": 20,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 428,
+   "dx": -180,
+   "dy": -464,
+   "confidence": 0.5
+  },
+  {
+   "text": "大厅",
+   "text_id": 19,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 432,
+   "dx": 28,
+   "dy": -470,
+   "confidence": 0.5
+  },
+  {
+   "text": "我的奇域",
+   "text_id": 18,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 503,
+   "dx": -596,
+   "dy": -276,
+   "confidence": 0.5
+  },
+  {
+   "text": "10月22日",
+   "text_id": 12,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 508,
+   "dx": -620,
+   "dy": -24,
+   "confidence": 0.5
+  },
+  {
+   "text": "队伍",
+   "text_id": 22,
+   "target": "label@(288,330)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 526,
+   "dx": -596,
+   "dy": -466,
+   "confidence": 0.5
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    123,
+    86
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=1.0，非纯黑 L=86，纹理对比骤降 std 48.5→1.0（0.02×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 23.9",
+     "GPU8 29%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 86.5,
+    "bg_std": 1.0,
+    "ring_mean": 118.0,
+    "ring_std": 48.5,
+    "texture_ratio": 0.02,
+    "bg_rgb": [
+     75,
+     83,
+     100
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    796,
+    672,
+    974,
+    1012
+   ],
+   "kind": "unknown",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.56,
+    "rect": 0.63
+   },
+   "text": [
+    "队伍",
+    "纪游"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      852,
+      688,
+      924,
+      768
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 209.0
+    },
+    {
+     "bbox": [
+      846,
+      870,
+      924,
+      958
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 206.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      960,
+      842,
+      986,
+      868
+     ],
+     "corner": "br",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 38356,
+    "area_frac": 0.0164,
+    "aspect": 0.52,
+    "grid": "col n=2 pitch_x=None pitch_y=287.0",
+    "skin_siblings": 11,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.56,
+    "rect": 0.63
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    164,
+    658,
+    360,
+    834
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     254.0,
+     129.0,
+     127.0
+    ],
+    "fill": 0.67,
+    "rect": 0.71
+   },
+   "text": [
+    "大厅"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      218,
+      686,
+      304,
+      764
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 223.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 24336,
+    "area_frac": 0.0094,
+    "aspect": 1.11,
+    "grid": "row n=2 pitch_x=208.0 pitch_y=188.0",
+    "skin_siblings": 1,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     254.0,
+     129.0,
+     127.0
+    ],
+    "flat_fill": 0.67,
+    "rect": 0.71
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    798,
+    1234,
+    972,
+    1390
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.65,
+    "rect": 0.73
+   },
+   "text": [
+    "问卷"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      952,
+      1368,
+      982,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 169.0
+    },
+    {
+     "bbox": [
+      856,
+      1240,
+      916,
+      1338
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 198.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 19768,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=2 pitch_x=210.0 pitch_y=470.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.65,
+    "rect": 0.73
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    590,
+    668,
+    764,
+    828
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.6,
+    "rect": 0.69
+   },
+   "text": [
+    "好友"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      636,
+      692,
+      718,
+      762
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 195.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 19092,
+    "area_frac": 0.0076,
+    "aspect": 1.09,
+    "grid": "row n=3 pitch_x=207.0 pitch_y=184.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.6,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c4",
+   "parent": null,
+   "bbox": [
+    382,
+    852,
+    556,
+    1012
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.56,
+    "rect": 0.67
+   },
+   "text": [
+    "更换角色"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      444,
+      876,
+      510,
+      958
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 205.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 18612,
+    "area_frac": 0.0076,
+    "aspect": 1.09,
+    "grid": "row n=3 pitch_x=207.0 pitch_y=184.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.56,
+    "rect": 0.67
+   }
+  },
+  {
+   "id": "c5",
+   "parent": null,
+   "bbox": [
+    590,
+    852,
+    766,
+    1012
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.57,
+    "rect": 0.64
+   },
+   "text": [
+    "颂愿"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      634,
+      874,
+      720,
+      960
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 207.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 18008,
+    "area_frac": 0.0076,
+    "aspect": 1.1,
+    "grid": "row n=3 pitch_x=209.0 pitch_y=184.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.57,
+    "rect": 0.64
+   }
+  },
+  {
+   "id": "c6",
+   "parent": null,
+   "bbox": [
+    382,
+    668,
+    558,
+    828
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.52,
+    "rect": 0.61
+   },
+   "text": [
+    "装扮搭配"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      424,
+      692,
+      514,
+      768
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 203.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      544,
+      654,
+      570,
+      680
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 17080,
+    "area_frac": 0.0076,
+    "aspect": 1.1,
+    "grid": "row n=3 pitch_x=207.0 pitch_y=184.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.52,
+    "rect": 0.61
+   }
+  },
+  {
+   "id": "c7",
+   "parent": null,
+   "bbox": [
+    378,
+    476,
+    560,
+    638
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     252.0,
+     130.0,
+     128.0
+    ],
+    "fill": 0.47,
+    "rect": 0.58
+   },
+   "text": [
+    "人气奇域"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      420,
+      490,
+      518,
+      586
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 228.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      548,
+      460,
+      576,
+      488
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16992,
+    "area_frac": 0.008,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=208.0 pitch_y=191.0",
+    "skin_siblings": 1,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     252.0,
+     130.0,
+     128.0
+    ],
+    "flat_fill": 0.47,
+    "rect": 0.58
+   }
+  },
+  {
+   "id": "c8",
+   "parent": null,
+   "bbox": [
+    796,
+    474,
+    972,
+    636
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.54,
+    "rect": 0.58
+   },
+   "text": [
+    "我的奇域"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      848,
+      500,
+      922,
+      578
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 201.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16448,
+    "area_frac": 0.0077,
+    "aspect": 1.09,
+    "grid": "row n=2 pitch_x=207.0 pitch_y=287.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.54,
+    "rect": 0.58
+   }
+  },
+  {
+   "id": "c9",
+   "parent": null,
+   "bbox": [
+    174,
+    856,
+    350,
+    1012
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.5,
+    "rect": 0.59
+   },
+   "text": [
+    "地图"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      214,
+      878,
+      306,
+      962
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 199.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16232,
+    "area_frac": 0.0074,
+    "aspect": 1.13,
+    "grid": "row n=2 pitch_x=207.0 pitch_y=188.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.5,
+    "rect": 0.59
+   }
+  },
+  {
+   "id": "c10",
+   "parent": null,
+   "bbox": [
+    174,
+    1044,
+    350,
+    1206
+   ],
+   "kind": "unknown",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.49,
+    "rect": 0.56
+   },
+   "text": [
+    "游玩指南"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      218,
+      1070,
+      304,
+      1140
+     ],
+     "role": "icon",
+     "fill": 0.9,
+     "contrast": 204.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.86,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15952,
+    "area_frac": 0.0077,
+    "aspect": 1.09,
+    "grid": "col n=2 pitch_x=None pitch_y=191.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.49,
+    "rect": 0.56
+   }
+  },
+  {
+   "id": "c11",
+   "parent": null,
+   "bbox": [
+    588,
+    480,
+    766,
+    636
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.47,
+    "rect": 0.56
+   },
+   "text": [
+    "奇域收藏"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      634,
+      496,
+      720,
+      580
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 211.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.86,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15524,
+    "area_frac": 0.0075,
+    "aspect": 1.14,
+    "grid": "row n=3 pitch_x=207.0 pitch_y=190.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.47,
+    "rect": 0.56
+   }
+  },
+  {
+   "id": "c12",
+   "parent": null,
+   "bbox": [
+    588,
+    1234,
+    762,
+    1390
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.46,
+    "rect": 0.56
+   },
+   "text": [
+    "周边商城"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      630,
+      1248,
+      724,
+      1340
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 197.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.86,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15220,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=206.0 pitch_y=380.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.46,
+    "rect": 0.56
+   }
+  },
+  {
+   "id": "c13",
+   "parent": null,
+   "bbox": [
+    382,
+    1234,
+    556,
+    1390
+   ],
+   "kind": "tile",
+   "skin": {
+    "lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "fill": 0.51,
+    "rect": 0.55
+   },
+   "text": [
+    "云·原神"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      402,
+      1258,
+      508,
+      1340
+     ],
+     "role": "icon",
+     "fill": 0.38,
+     "contrast": 200.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:11",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.86,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (11 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 14960,
+    "area_frac": 0.0074,
+    "aspect": 1.12,
+    "grid": "row n=3 pitch_x=206.0 pitch_y=380.0",
+    "skin_siblings": 11,
+    "text_in": 1,
+    "text_ui": 0,
+    "skin_lab": [
+     244.0,
+     129.0,
+     130.0
+    ],
+    "flat_fill": 0.51,
+    "rect": 0.55
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 23.9",
+  "GPU8 29%",
+  "透雨",
+  "逆风解意",
+  "奇域等级",
+  "Lv.67",
+  "UID 110170759",
+  "本期「缤纷评分」",
+  "15",
+  "复制",
+  "生日",
+  "10月22日",
+  "钟珍",
+  "透雨",
+  "千星商城",
+  "特典活动",
+  "官方社区",
+  "版本热点",
+  "min: 0.4 ms",
+  "max: 8690.9 ms",
+  "返回提瓦特",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    936,
+    62,
+    984,
+    108
+   ],
+   "role": "icon",
+   "fill": 0.98,
+   "contrast": 195.0
+  },
+  {
+   "bbox": [
+    1774,
+    620,
+    1794,
+    644
+   ],
+   "role": "icon",
+   "fill": 0.87,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    218,
+    500,
+    304,
+    584
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 200.0
+  },
+  {
+   "bbox": [
+    34,
+    788,
+    94,
+    832
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 152.0
+  },
+  {
+   "bbox": [
+    32,
+    86,
+    94,
+    102
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 164.0
+  },
+  {
+   "bbox": [
+    34,
+    924,
+    94,
+    982
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 151.0
+  },
+  {
+   "bbox": [
+    224,
+    0,
+    326,
+    16
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 65.0
+  },
+  {
+   "bbox": [
+    852,
+    1048,
+    918,
+    1150
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 196.0
+  },
+  {
+   "bbox": [
+    2020,
+    1158,
+    2072,
+    1210
+   ],
+   "role": "icon",
+   "fill": 0.71,
+   "contrast": 126.0
+  },
+  {
+   "bbox": [
+    34,
+    494,
+    94,
+    546
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 154.0
+  },
+  {
+   "bbox": [
+    2112,
+    1318,
+    2202,
+    1402
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 227.0
+  },
+  {
+   "bbox": [
+    2068,
+    650,
+    2100,
+    674
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 133.0
+  },
+  {
+   "bbox": [
+    430,
+    1048,
+    510,
+    1144
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 211.0
+  },
+  {
+   "bbox": [
+    638,
+    1058,
+    724,
+    1142
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 197.0
+  },
+  {
+   "bbox": [
+    1220,
+    148,
+    1240,
+    164
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 108.0
+  },
+  {
+   "bbox": [
+    2156,
+    326,
+    2186,
+    350
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 88.0
+  },
+  {
+   "bbox": [
+    1502,
+    424,
+    1518,
+    486
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    2324,
+    1184,
+    2352,
+    1210
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 104.0
+  },
+  {
+   "bbox": [
+    1088,
+    810,
+    1104,
+    828
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    1478,
+    986,
+    1496,
+    1002
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 156.0
+  },
+  {
+   "bbox": [
+    1280,
+    144,
+    1300,
+    160
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 112.0
+  },
+  {
+   "bbox": [
+    970,
+    226,
+    992,
+    268
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 155.0
+  },
+  {
+   "bbox": [
+    1066,
+    1242,
+    1098,
+    1272
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 175.0
+  },
+  {
+   "bbox": [
+    1066,
+    1320,
+    1098,
+    1350
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 173.0
+  },
+  {
+   "bbox": [
+    1264,
+    174,
+    1286,
+    198
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 67.0
+  },
+  {
+   "bbox": [
+    1290,
+    520,
+    1312,
+    538
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 93.0
+  },
+  {
+   "bbox": [
+    1320,
+    1026,
+    1336,
+    1052
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    250,
+    472,
+    284,
+    492
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 50.0
+  },
+  {
+   "bbox": [
+    1172,
+    184,
+    1222,
+    212
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 73.0
+  },
+  {
+   "bbox": [
+    1884,
+    486,
+    1904,
+    508
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 94.0
+  },
+  {
+   "bbox": [
+    2402,
+    526,
+    2508,
+    546
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    1478,
+    258,
+    1568,
+    328
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 160.0
+  },
+  {
+   "bbox": [
+    1908,
+    504,
+    1930,
+    534
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 79.0
+  },
+  {
+   "bbox": [
+    816,
+    166,
+    840,
+    190
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 97.0
+  },
+  {
+   "bbox": [
+    220,
+    1256,
+    302,
+    1294
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 200.0
+  },
+  {
+   "bbox": [
+    1238,
+    886,
+    1268,
+    914
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 68.0
+  },
+  {
+   "bbox": [
+    874,
+    110,
+    914,
+    152
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    700,
+    228,
+    756,
+    268
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 126.0
+  },
+  {
+   "bbox": [
+    574,
+    348,
+    600,
+    374
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    1214,
+    390,
+    1232,
+    406
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 118.0
+  },
+  {
+   "bbox": [
+    1238,
+    200,
+    1264,
+    218
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1040,
+    1028,
+    1058,
+    1062
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 69.0
+  },
+  {
+   "bbox": [
+    1316,
+    490,
+    1348,
+    514
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 101.0
+  },
+  {
+   "bbox": [
+    1306,
+    162,
+    1322,
+    188
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    2244,
+    206,
+    2280,
+    294
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 107.0
+  },
+  {
+   "bbox": [
+    2278,
+    310,
+    2320,
+    338
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 72.0
+  },
+  {
+   "bbox": [
+    162,
+    470,
+    196,
+    526
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 161.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 122,
+  "ocr_ms": 529,
+  "pixel_ms": 1304,
+  "container_ms": 377,
+  "container_cached": false,
+  "total_ms": 1955,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 38,
+  "err": null
+ },
+ "title_text_id": 3,
+ "digest": "屏幕 2560x1440 · 文本 38 · 控件 40 · 容器 14 · 邻接 24 · 遮挡 1 · 1955ms（OCR daemon）\n标题「透雨」@(466,82) 画面 · 字高 67px\n邻接「透雨」→ circle@(270,106) 左侧 112px\n邻接「透雨」→ circle@(757,63) 右侧 222px\n邻接「透雨」→ circle@(306,186) 左侧 84px\n邻接「UID 110170759」→ label@(288,330)「复制」 下方 18px\n控件: circle@(270,106) | circle@(757,63) | circle@(306,186) | circle@(468,1104)\n区域: 顶栏 (0,0)-(2560,14) | 左侧栏 (0,0)-(124,1440) | 底栏 (0,1396)-(2560,1440)\n遮挡 [0, 2, 123, 86] (0,2)-(123,86)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=1.0，非纯黑 L=86，纹理对比骤降 std 48.5→1.0（0.02×）\n可点文字 2 个: 复制 / 返回提瓦特"
+}

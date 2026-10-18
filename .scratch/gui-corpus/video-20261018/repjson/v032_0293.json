@@ -1,0 +1,2398 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v032_0293.jpg",
+  "sha256": "2a3e70935a9004c0ed7ca0dc99c6e8c854fe1ac03aaf3be8c289ce800783fa06",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 148994
+ },
+ "title": {
+  "text": "DXVK动斷时间轴/自定义技能",
+  "cx": 126,
+  "cy": 23,
+  "bbox": [
+   0,
+   2,
+   252,
+   45
+  ],
+  "region": "顶栏",
+  "why": "上半屏字高最大（43px, score=0.89）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK动斷时间轴/自定义技能",
+   "cx": 126,
+   "cy": 23,
+   "bbox": [
+    0,
+    2,
+    252,
+    45
+   ],
+   "w": 252,
+   "h": 43,
+   "score": 0.8873,
+   "kind": "title"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 25.9",
+   "cx": 60,
+   "cy": 41,
+   "bbox": [
+    1,
+    27,
+    120,
+    55
+   ],
+   "w": 119,
+   "h": 28,
+   "score": 0.965,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "←",
+   "cx": 2416,
+   "cy": 25,
+   "bbox": [
+    2400,
+    12,
+    2432,
+    38
+   ],
+   "w": 32,
+   "h": 26,
+   "score": 0.7024,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "t",
+   "cx": 2471,
+   "cy": 25,
+   "bbox": [
+    2455,
+    15,
+    2487,
+    36
+   ],
+   "w": 32,
+   "h": 21,
+   "score": 0.9973,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "GPU: 15%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    1,
+    51,
+    108,
+    81
+   ],
+   "w": 107,
+   "h": 30,
+   "score": 0.9855,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "节点图事件轨道(1)",
+   "cx": 1976,
+   "cy": 85,
+   "bbox": [
+    1882,
+    68,
+    2070,
+    102
+   ],
+   "w": 188,
+   "h": 34,
+   "score": 0.9955,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "X",
+   "cx": 2516,
+   "cy": 86,
+   "bbox": [
+    2496,
+    66,
+    2536,
+    105
+   ],
+   "w": 40,
+   "h": 39,
+   "score": 0.7164,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "z",
+   "cx": 1794,
+   "cy": 124,
+   "bbox": [
+    1778,
+    105,
+    1810,
+    142
+   ],
+   "w": 32,
+   "h": 37,
+   "score": 0.6028,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "循环节设置",
+   "cx": 1979,
+   "cy": 156,
+   "bbox": [
+    1929,
+    142,
+    2030,
+    169
+   ],
+   "w": 101,
+   "h": 27,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 9,
+   "text": "启用循环节",
+   "cx": 1949,
+   "cy": 201,
+   "bbox": [
+    1899,
+    187,
+    1998,
+    214
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "循环节起点(s)",
+   "cx": 1960,
+   "cy": 246,
+   "bbox": [
+    1900,
+    232,
+    2020,
+    259
+   ],
+   "w": 120,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "0.00",
+   "cx": 2316,
+   "cy": 247,
+   "bbox": [
+    2286,
+    231,
+    2345,
+    263
+   ],
+   "w": 59,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "循环节时长(s)",
+   "cx": 1959,
+   "cy": 292,
+   "bbox": [
+    1899,
+    279,
+    2020,
+    306
+   ],
+   "w": 121,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "1.00",
+   "cx": 2311,
+   "cy": 293,
+   "bbox": [
+    2283,
+    276,
+    2339,
+    309
+   ],
+   "w": 56,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "无限循环",
+   "cx": 1958,
+   "cy": 350,
+   "bbox": [
+    1904,
+    336,
+    2012,
+    363
+   ],
+   "w": 108,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "循环次数",
+   "cx": 1971,
+   "cy": 395,
+   "bbox": [
+    1929,
+    380,
+    2014,
+    411
+   ],
+   "w": 85,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "动画时间轴",
+   "cx": 54,
+   "cy": 1070,
+   "bbox": [
+    5,
+    1056,
+    104,
+    1083
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "收起",
+   "cx": 2483,
+   "cy": 1069,
+   "bbox": [
+    2458,
+    1054,
+    2508,
+    1083
+   ],
+   "w": 50,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "+",
+   "cx": 311,
+   "cy": 1121,
+   "bbox": [
+    300,
+    1109,
+    322,
+    1132
+   ],
+   "w": 22,
+   "h": 23,
+   "score": 0.9043,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "2",
+   "cx": 436,
+   "cy": 1114,
+   "bbox": [
+    425,
+    1103,
+    446,
+    1126
+   ],
+   "w": 21,
+   "h": 23,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "+",
+   "cx": 532,
+   "cy": 1121,
+   "bbox": [
+    521,
+    1109,
+    544,
+    1132
+   ],
+   "w": 23,
+   "h": 23,
+   "score": 0.9418,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "3",
+   "cx": 658,
+   "cy": 1114,
+   "bbox": [
+    647,
+    1103,
+    668,
+    1126
+   ],
+   "w": 21,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "+",
+   "cx": 754,
+   "cy": 1121,
+   "bbox": [
+    743,
+    1109,
+    765,
+    1132
+   ],
+   "w": 22,
+   "h": 23,
+   "score": 0.9004,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "4",
+   "cx": 880,
+   "cy": 1114,
+   "bbox": [
+    872,
+    1104,
+    889,
+    1123
+   ],
+   "w": 17,
+   "h": 19,
+   "score": 1.0,
+   "kind": "other"
+  },
+  {
+   "id": 24,
+   "text": "+",
+   "cx": 975,
+   "cy": 1121,
+   "bbox": [
+    963,
+    1109,
+    987,
+    1132
+   ],
+   "w": 24,
+   "h": 23,
+   "score": 0.8348,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "5",
+   "cx": 1101,
+   "cy": 1114,
+   "bbox": [
+    1092,
+    1104,
+    1109,
+    1125
+   ],
+   "w": 17,
+   "h": 21,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "+",
+   "cx": 1196,
+   "cy": 1121,
+   "bbox": [
+    1185,
+    1109,
+    1207,
+    1132
+   ],
+   "w": 22,
+   "h": 23,
+   "score": 0.917,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "+",
+   "cx": 1329,
+   "cy": 1121,
+   "bbox": [
+    1314,
+    1105,
+    1344,
+    1136
+   ],
+   "w": 30,
+   "h": 31,
+   "score": 0.5373,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "+ 新建轨道",
+   "cx": 121,
+   "cy": 1171,
+   "bbox": [
+    68,
+    1155,
+    175,
+    1186
+   ],
+   "w": 107,
+   "h": 31,
+   "score": 0.9042,
+   "kind": "hud"
+  },
+  {
+   "id": 29,
+   "text": "开始事件轨道",
+   "cx": 63,
+   "cy": 1213,
+   "bbox": [
+    3,
+    1198,
+    123,
+    1229
+   ],
+   "w": 120,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 30,
+   "text": "结束事件轨道",
+   "cx": 63,
+   "cy": 1259,
+   "bbox": [
+    5,
+    1245,
+    122,
+    1272
+   ],
+   "w": 117,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "hud"
+  },
+  {
+   "id": 31,
+   "text": "苔点图爽件轨道",
+   "cx": 73,
+   "cy": 1304,
+   "bbox": [
+    5,
+    1289,
+    141,
+    1319
+   ],
+   "w": 136,
+   "h": 30,
+   "score": 0.7074,
+   "kind": "hud"
+  },
+  {
+   "id": 32,
+   "text": "max: 56.3 ms",
+   "cx": 216,
+   "cy": 1307,
+   "bbox": [
+    157,
+    1298,
+    274,
+    1316
+   ],
+   "w": 117,
+   "h": 18,
+   "score": 0.9824,
+   "kind": "hud"
+  },
+  {
+   "id": 33,
+   "text": "状态轨",
+   "cx": 214,
+   "cy": 1356,
+   "bbox": [
+    0,
+    1329,
+    429,
+    1383
+   ],
+   "w": 429,
+   "h": 54,
+   "score": 0.9582,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "节点图事件轨道(1)",
+   "cx": 85,
+   "cy": 1395,
+   "bbox": [
+    5,
+    1380,
+    166,
+    1410
+   ],
+   "w": 161,
+   "h": 30,
+   "score": 0.9227,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9998,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1238,
+    604,
+    1364,
+    730
+   ],
+   "cx": 1301,
+   "cy": 667,
+   "w": 126,
+   "h": 126,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.628,
+    "aspect": 1.0,
+    "corner_fill": 0.17,
+    "area": 9968,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2484,
+    190,
+    2520,
+    216
+   ],
+   "cx": 2502,
+   "cy": 203,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.615,
+    "aspect": 1.38,
+    "corner_fill": 0.17,
+    "area": 576,
+    "src": "flat"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2412,
+    1058,
+    2436,
+    1082
+   ],
+   "cx": 2424,
+   "cy": 1070,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 106.9,
+    "ring_L": 170.6,
+    "inside_L": 97.5,
+    "outside_L": 29.9
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2462,
+    340,
+    2486,
+    364
+   ],
+   "cx": 2474,
+   "cy": 352,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.941,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "cx": 1280,
+   "cy": 25,
+   "w": 2560,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.916,
+   "label": "DXVK动斷时间轴/自定义技能 FPS: 25.9 ← t",
+   "evidence": {
+    "fill": 0.925,
+    "aspect": 51.2,
+    "corner_fill": 0.78,
+    "area": 118424,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1876,
+    1020,
+    2560,
+    1046
+   ],
+   "cx": 2218,
+   "cy": 1033,
+   "w": 684,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.916,
+    "aspect": 26.31,
+    "corner_fill": 0.42,
+    "area": 16296,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2462,
+    188,
+    2486,
+    216
+   ],
+   "cx": 2474,
+   "cy": 202,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 0.86,
+    "corner_fill": 0.33,
+    "area": 556,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1278,
+    1108,
+    1302,
+    1136
+   ],
+   "cx": 1290,
+   "cy": 1122,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.53,
+    "aspect": 0.86,
+    "corner_fill": 0.22,
+    "area": 356,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2482,
+    338,
+    2520,
+    366
+   ],
+   "cx": 2501,
+   "cy": 352,
+   "w": 38,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.462,
+    "aspect": 1.36,
+    "corner_fill": 0.2,
+    "area": 492,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1340,
+    1118,
+    1382,
+    1148
+   ],
+   "cx": 1361,
+   "cy": 1133,
+   "w": 42,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.81,
+    "aspect": 1.4,
+    "corner_fill": 0.34,
+    "area": 1020,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    32,
+    1102,
+    48,
+    1128
+   ],
+   "cx": 40,
+   "cy": 1115,
+   "w": 16,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 0.62,
+    "corner_fill": 0.5,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    192,
+    1140,
+    1266,
+    1168
+   ],
+   "cx": 729,
+   "cy": 1154,
+   "w": 1074,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.863,
+    "aspect": 38.36,
+    "corner_fill": 0.25,
+    "area": 25940,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1688,
+    1098,
+    1716,
+    1120
+   ],
+   "cx": 1702,
+   "cy": 1109,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.435,
+    "aspect": 1.27,
+    "corner_fill": 0.22,
+    "area": 268,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1274,
+    740,
+    1318,
+    784
+   ],
+   "cx": 1296,
+   "cy": 762,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.917,
+    "contrast": 15.3,
+    "ring_L": 108.6,
+    "inside_L": 95.7,
+    "outside_L": 152.0
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1356,
+    728,
+    1858,
+    752
+   ],
+   "cx": 1607,
+   "cy": 740,
+   "w": 502,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 20.92,
+    "corner_fill": 0.33,
+    "area": 10036,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1294,
+    1006,
+    1316,
+    1032
+   ],
+   "cx": 1305,
+   "cy": 1019,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.517,
+    "aspect": 0.85,
+    "corner_fill": 0.28,
+    "area": 296,
+    "src": "flat"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1928,
+    306,
+    1998,
+    338
+   ],
+   "cx": 1963,
+   "cy": 322,
+   "w": 70,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.829,
+    "aspect": 2.19,
+    "corner_fill": 0.48,
+    "area": 1856,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1870,
+    56,
+    2560,
+    116
+   ],
+   "cx": 2215,
+   "cy": 86,
+   "w": 690,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.865,
+   "label": "节点图事件轨道(1) X",
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 11.5,
+    "corner_fill": 0.89,
+    "area": 33576,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2506,
+    142,
+    2530,
+    162
+   ],
+   "cx": 2518,
+   "cy": 152,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.2,
+    "corner_fill": 0.38,
+    "area": 320,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    12,
+    1106,
+    70,
+    1136
+   ],
+   "cx": 41,
+   "cy": 1121,
+   "w": 58,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.784,
+    "aspect": 1.93,
+    "corner_fill": 0.88,
+    "area": 1364,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1236,
+    1114,
+    1284,
+    1142
+   ],
+   "cx": 1260,
+   "cy": 1128,
+   "w": 48,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.777,
+    "aspect": 1.71,
+    "corner_fill": 0.08,
+    "area": 1044,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    2536,
+    208,
+    2560,
+    308
+   ],
+   "cx": 2548,
+   "cy": 258,
+   "w": 24,
+   "h": 100,
+   "shape": "rect",
+   "confidence": 0.844,
+   "label": null,
+   "evidence": {
+    "fill": 0.765,
+    "aspect": 0.24,
+    "corner_fill": 0.58,
+    "area": 1836,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    0,
+    728,
+    1246,
+    756
+   ],
+   "cx": 623,
+   "cy": 742,
+   "w": 1246,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.763,
+    "aspect": 44.5,
+    "corner_fill": 0.45,
+    "area": 26616,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2522,
+    340,
+    2560,
+    376
+   ],
+   "cx": 2541,
+   "cy": 358,
+   "w": 38,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.84,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 1.06,
+    "corner_fill": 0.34,
+    "area": 700,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1268,
+    1140,
+    1354,
+    1168
+   ],
+   "cx": 1311,
+   "cy": 1154,
+   "w": 86,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.839,
+   "label": null,
+   "evidence": {
+    "fill": 0.754,
+    "aspect": 3.07,
+    "corner_fill": 0.34,
+    "area": 1816,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    206,
+    1174,
+    758,
+    1196
+   ],
+   "cx": 482,
+   "cy": 1185,
+   "w": 552,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.821,
+   "label": null,
+   "evidence": {
+    "fill": 0.713,
+    "aspect": 25.09,
+    "corner_fill": 0.58,
+    "area": 8660,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    762,
+    1118,
+    858,
+    1136
+   ],
+   "cx": 810,
+   "cy": 1127,
+   "w": 96,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.82,
+   "label": null,
+   "evidence": {
+    "fill": 0.711,
+    "aspect": 5.33,
+    "corner_fill": 0.25,
+    "area": 1228,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    652,
+    1118,
+    748,
+    1136
+   ],
+   "cx": 700,
+   "cy": 1127,
+   "w": 96,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.814,
+   "label": null,
+   "evidence": {
+    "fill": 0.697,
+    "aspect": 5.33,
+    "corner_fill": 0.31,
+    "area": 1204,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1870,
+    140,
+    2560,
+    750
+   ],
+   "cx": 2215,
+   "cy": 445,
+   "w": 690,
+   "h": 610,
+   "shape": "circle",
+   "confidence": 0.809,
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "evidence": {
+    "fill": 0.594,
+    "aspect": 1.13,
+    "corner_fill": 0.44,
+    "area": 250144,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2534,
+    416,
+    2560,
+    438
+   ],
+   "cx": 2547,
+   "cy": 427,
+   "w": 26,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.809,
+   "label": null,
+   "evidence": {
+    "fill": 0.538,
+    "aspect": 1.18,
+    "corner_fill": 0.42,
+    "area": 308,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2516,
+    14,
+    2540,
+    38
+   ],
+   "cx": 2528,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.8,
+   "label": null,
+   "evidence": {
+    "fill": 0.944,
+    "aspect": 1.0,
+    "corner_fill": 0.78,
+    "area": 544,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1304,
+    726,
+    1358,
+    774
+   ],
+   "cx": 1331,
+   "cy": 750,
+   "w": 54,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.797,
+   "label": null,
+   "evidence": {
+    "fill": 0.509,
+    "aspect": 1.12,
+    "corner_fill": 0.43,
+    "area": 1320,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    0,
+    1050,
+    846,
+    1092
+   ],
+   "cx": 423,
+   "cy": 1071,
+   "w": 846,
+   "h": 42,
+   "shape": "rect",
+   "confidence": 0.789,
+   "label": "动画时间轴",
+   "evidence": {
+    "fill": 0.642,
+    "aspect": 20.14,
+    "corner_fill": 0.53,
+    "area": 22804,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    0,
+    1100,
+    18,
+    1120
+   ],
+   "cx": 9,
+   "cy": 1110,
+   "w": 18,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.788,
+   "label": null,
+   "evidence": {
+    "fill": 0.767,
+    "aspect": 0.9,
+    "corner_fill": 0.75,
+    "area": 276,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    538,
+    1210,
+    1214,
+    1230
+   ],
+   "cx": 876,
+   "cy": 1220,
+   "w": 676,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.781,
+   "label": null,
+   "evidence": {
+    "fill": 0.624,
+    "aspect": 33.8,
+    "corner_fill": 0.25,
+    "area": 8440,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1248,
+    912,
+    1362,
+    946
+   ],
+   "cx": 1305,
+   "cy": 929,
+   "w": 114,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.78,
+   "label": null,
+   "evidence": {
+    "fill": 0.621,
+    "aspect": 3.35,
+    "corner_fill": 0.12,
+    "area": 2408,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1870,
+    956,
+    1904,
+    980
+   ],
+   "cx": 1887,
+   "cy": 968,
+   "w": 34,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.779,
+   "label": null,
+   "evidence": {
+    "fill": 0.525,
+    "aspect": 1.42,
+    "corner_fill": 0.47,
+    "area": 428,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    0,
+    752,
+    1236,
+    1044
+   ],
+   "cx": 618,
+   "cy": 898,
+   "w": 1236,
+   "h": 292,
+   "shape": "rect",
+   "confidence": 0.759,
+   "label": null,
+   "evidence": {
+    "fill": 0.575,
+    "aspect": 4.23,
+    "corner_fill": 0.61,
+    "area": 207456,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    204,
+    1286,
+    788,
+    1328
+   ],
+   "cx": 496,
+   "cy": 1307,
+   "w": 584,
+   "h": 42,
+   "shape": "rect",
+   "confidence": 0.758,
+   "label": "max: 56.3 ms",
+   "evidence": {
+    "fill": 0.574,
+    "aspect": 13.9,
+    "corner_fill": 0.28,
+    "area": 14076,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1870,
+    320,
+    1892,
+    366
+   ],
+   "cx": 1881,
+   "cy": 343,
+   "w": 22,
+   "h": 46,
+   "shape": "rect",
+   "confidence": 0.747,
+   "label": null,
+   "evidence": {
+    "fill": 0.549,
+    "aspect": 0.48,
+    "corner_fill": 0.44,
+    "area": 556,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 73% 宽）"
+  },
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1418,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1418（覆盖 84% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    3,
+    1056,
+    1344,
+    1272
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 4,
+   "row_y": [
+    1070,
+    1118,
+    1192,
+    1259
+   ],
+   "rows": [
+    {
+     "y": 1070,
+     "texts": [
+      "动画时间轴"
+     ]
+    },
+    {
+     "y": 1118,
+     "texts": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "+",
+      "+",
+      "+",
+      "+",
+      "+",
+      "+"
+     ]
+    },
+    {
+     "y": 1192,
+     "texts": [
+      "+ 新建轨道",
+      "开始事件轨道"
+     ]
+    },
+    {
+     "y": 1259,
+     "texts": [
+      "结束事件轨道"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2283,
+    231,
+    2508,
+    1083
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 14,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    247,
+    293,
+    1069
+   ],
+   "rows": [
+    {
+     "y": 247,
+     "texts": [
+      "0.00"
+     ]
+    },
+    {
+     "y": 293,
+     "texts": [
+      "1.00"
+     ]
+    },
+    {
+     "y": 1069,
+     "texts": [
+      "收起"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1778,
+    68,
+    2070,
+    411
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 16,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    121,
+    201,
+    246,
+    292,
+    350,
+    395
+   ],
+   "rows": [
+    {
+     "y": 121,
+     "texts": [
+      "节点图事件轨道(1)",
+      "z",
+      "循环节设置"
+     ]
+    },
+    {
+     "y": 201,
+     "texts": [
+      "启用循环节"
+     ]
+    },
+    {
+     "y": 246,
+     "texts": [
+      "循环节起点(s)"
+     ]
+    },
+    {
+     "y": 292,
+     "texts": [
+      "循环节时长(s)"
+     ]
+    },
+    {
+     "y": 350,
+     "texts": [
+      "无限循环"
+     ]
+    },
+    {
+     "y": 395,
+     "texts": [
+      "循环次数"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "X",
+   "text_id": 6,
+   "target": "rect@(2215,86)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -301,
+   "dy": 0,
+   "confidence": 0.55
+  },
+  {
+   "text": "节点图事件轨道(1)",
+   "text_id": 5,
+   "target": "rect@(2215,86)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 239,
+   "dy": 1,
+   "confidence": 0.55
+  },
+  {
+   "text": "1.00",
+   "text_id": 13,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -96,
+   "dy": 152,
+   "confidence": 0.55
+  },
+  {
+   "text": "0.00",
+   "text_id": 11,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -100,
+   "dy": 198,
+   "confidence": 0.55
+  },
+  {
+   "text": "循环次数",
+   "text_id": 15,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 244,
+   "dy": 50,
+   "confidence": 0.55
+  },
+  {
+   "text": "+",
+   "text_id": 27,
+   "target": "circle@(1361,1133)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 32,
+   "dy": 12,
+   "confidence": 0.55
+  },
+  {
+   "text": "启用循环节",
+   "text_id": 9,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 266,
+   "dy": 244,
+   "confidence": 0.55
+  },
+  {
+   "text": "循环节起点(s)",
+   "text_id": 10,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 255,
+   "dy": 200,
+   "confidence": 0.55
+  },
+  {
+   "text": "循环节时长(s)",
+   "text_id": 12,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 256,
+   "dy": 152,
+   "confidence": 0.55
+  },
+  {
+   "text": "无限循环",
+   "text_id": 14,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 257,
+   "dy": 96,
+   "confidence": 0.55
+  },
+  {
+   "text": "动画时间轴",
+   "text_id": 16,
+   "target": "rect@(423,1071)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 368,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "状态轨",
+   "text_id": 33,
+   "target": "rect@(496,1307)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "max: 56.3 ms",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 1,
+   "dx": 282,
+   "dy": -49,
+   "confidence": 0.549
+  },
+  {
+   "text": "2",
+   "text_id": 19,
+   "target": "rect@(423,1071)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -12,
+   "dy": -44,
+   "confidence": 0.541
+  },
+  {
+   "text": "3",
+   "text_id": 21,
+   "target": "rect@(423,1071)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -234,
+   "dy": -44,
+   "confidence": 0.541
+  },
+  {
+   "text": "+",
+   "text_id": 18,
+   "target": "rect@(423,1071)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "动画时间轴",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 17,
+   "dx": 112,
+   "dy": -50,
+   "confidence": 0.536
+  },
+  {
+   "text": "←",
+   "text_id": 2,
+   "target": "rect@(2215,86)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 18,
+   "dx": -201,
+   "dy": 61,
+   "confidence": 0.535
+  },
+  {
+   "text": "t",
+   "text_id": 3,
+   "target": "rect@(2215,86)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": "节点图事件轨道(1) X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 20,
+   "dx": -256,
+   "dy": 60,
+   "confidence": 0.533
+  },
+  {
+   "text": "收起",
+   "text_id": 17,
+   "target": "circle@(2424,1070)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 22,
+   "dx": -59,
+   "dy": 2,
+   "confidence": 0.532
+  },
+  {
+   "text": "节点图事件轨道(1)",
+   "text_id": 34,
+   "target": "rect@(496,1307)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "max: 56.3 ms",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 52,
+   "dx": 410,
+   "dy": -88,
+   "confidence": 0.507
+  },
+  {
+   "text": "z",
+   "text_id": 7,
+   "target": "circle@(2215,445)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 60,
+   "dx": 421,
+   "dy": 322,
+   "confidence": 0.5
+  },
+  {
+   "text": "5",
+   "text_id": 25,
+   "target": "rect@(1260,1128)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 127,
+   "dx": 160,
+   "dy": 14,
+   "confidence": 0.444
+  },
+  {
+   "text": "3",
+   "text_id": 21,
+   "target": "rect@(700,1127)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 42,
+   "dy": 12,
+   "confidence": 0.55
+  },
+  {
+   "text": "+",
+   "text_id": 22,
+   "target": "rect@(810,1127)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 56,
+   "dy": 6,
+   "confidence": 0.55
+  },
+  {
+   "text": "收起",
+   "text_id": 17,
+   "target": "rect@(2218,1033)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 8,
+   "dx": -265,
+   "dy": -36,
+   "confidence": 0.543
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    24,
+    123,
+    84
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：低方差 std=0.6，非纯黑 L=122，纹理对比骤降 std 47.8→0.6（0.01×）",
+   "evidence": {
+    "texts": [
+     "FPS: 25.9",
+     "GPU: 15%"
+    ],
+    "text_ids": [
+     1,
+     4
+    ],
+    "n_texts": 2,
+    "corner": "左上",
+    "corner_dist_px": 27,
+    "bg_mean": 121.6,
+    "bg_std": 0.6,
+    "ring_mean": 108.0,
+    "ring_std": 47.8,
+    "texture_ratio": 0.01,
+    "bg_rgb": [
+     48,
+     112,
+     202
+    ]
+   }
+  },
+  {
+   "bbox": [
+    0,
+    1152,
+    277,
+    1322
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 5 框，非纯黑 L=52",
+   "evidence": {
+    "texts": [
+     "+ 新建轨道",
+     "开始事件轨道",
+     "结束事件轨道",
+     "苔点图爽件轨道",
+     "max: 56.3 ms"
+    ],
+    "text_ids": [
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "n_texts": 5,
+    "corner": "左下",
+    "corner_dist_px": 121,
+    "bg_mean": 51.7,
+    "bg_std": 27.6,
+    "ring_mean": 49.8,
+    "ring_std": 31.3,
+    "texture_ratio": 0.88,
+    "bg_rgb": [
+     53,
+     46,
+     55
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    750
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     123.0,
+     133.0,
+     80.0
+    ],
+    "fill": 0.75,
+    "rect": 0.9
+   },
+   "text": [
+    "DXVK动斷时间轴/自定义技能",
+    "FPS: 25.9",
+    "←",
+    "t",
+    "GPU: 15%",
+    "节点图事件轨道(1)",
+    "X",
+    "z",
+    "循环节设置",
+    "启用循环节",
+    "循环节起点(s)",
+    "0.00",
+    "循环节时长(s)",
+    "1.00",
+    "无限循环",
+    "循环次数"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2518,
+      18,
+      2538,
+      36
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 183.0
+    },
+    {
+     "bbox": [
+      2466,
+      342,
+      2484,
+      362
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 80.0
+    },
+    {
+     "bbox": [
+      2464,
+      192,
+      2484,
+      212
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 127.0
+    },
+    {
+     "bbox": [
+      1838,
+      54,
+      1866,
+      78
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 81.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:16",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.68,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 10)",
+    "area_px": 1721548,
+    "area_frac": 0.5208,
+    "aspect": 3.41,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 16,
+    "text_ui": 10,
+    "skin_lab": [
+     123.0,
+     133.0,
+     80.0
+    ],
+    "flat_fill": 0.75,
+    "rect": 0.9
+   }
+  }
+ ],
+ "free_text": [
+  "动画时间轴",
+  "收起",
+  "+",
+  "2",
+  "+",
+  "3",
+  "+",
+  "4",
+  "+",
+  "5",
+  "+",
+  "+",
+  "+ 新建轨道",
+  "开始事件轨道",
+  "结束事件轨道",
+  "苔点图爽件轨道",
+  "max: 56.3 ms",
+  "状态轨",
+  "节点图事件轨道(1)",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    18,
+    1164,
+    38,
+    1180
+   ],
+   "role": "icon",
+   "fill": 0.82,
+   "contrast": 125.0
+  },
+  {
+   "bbox": [
+    1332,
+    1154,
+    1348,
+    1172
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1370,
+    1016,
+    1404,
+    1048
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 211.0
+  },
+  {
+   "bbox": [
+    1208,
+    1018,
+    1242,
+    1048
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 222.0
+  },
+  {
+   "bbox": [
+    1838,
+    1020,
+    1868,
+    1046
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    1380,
+    1096,
+    1404,
+    1118
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 66.0
+  },
+  {
+   "bbox": [
+    1154,
+    928,
+    1176,
+    952
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 77.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 117,
+  "ocr_ms": 524,
+  "pixel_ms": 885,
+  "container_ms": 382,
+  "container_cached": false,
+  "total_ms": 1527,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 36,
+  "err": null
+ },
+ "title_text_id": 0,
+ "digest": "屏幕 2560x1440 · 文本 36 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 2 · 1527ms（OCR daemon）\n标题「DXVK动斷时间轴/自定义技能」@(126,23) 顶栏 · 字高 43px\n控件: rect@(2215,86)「节点图事件轨道(1) X」 | circle@(2215,445)「循环节设置 启用循环节 循环节起点(s) 0.00 循环节时长(s) 1.00 无限循环 循环次数」 | circle@(1361,1133) | rect@(423,1071)「动画时间轴」\n区域: 顶栏 (0,0)-(2560,50) | 底栏 (0,1418)-(2560,1440)\n遮挡 [0, 24, 123, 84] (0,24)-(123,84)（conf 0.71）：左上角小字叠加层：低方差 std=0.6，非纯黑 L=122，纹理对比骤降 std 47.8→0.6（0.01×）\n遮挡 [0, 1152, 277, 1322] (0,1152)-(277,1322)（conf 0.57）：左下角小字叠加层：小字 5 框，非纯黑 L=52\n可点文字 1 个: 循环节设置"
+}

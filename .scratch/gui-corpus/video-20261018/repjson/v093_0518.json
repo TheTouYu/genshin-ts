@@ -1,0 +1,2795 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v093_0518.jpg",
+  "sha256": "0c9657a411f5fdb4df6b3e63a842a096399a28c5cdeaf08781feb047f7cc4226",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 247535
+ },
+ "title": {
+  "text": "器",
+  "cx": 232,
+  "cy": 297,
+  "bbox": [
+   180,
+   268,
+   285,
+   325
+  ],
+  "region": null,
+  "why": "上半屏字高最大（57px, score=0.76）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    117,
+    30
+   ],
+   "w": 116,
+   "h": 25,
+   "score": 0.9276,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:23.6",
+   "cx": 59,
+   "cy": 42,
+   "bbox": [
+    1,
+    29,
+    118,
+    55
+   ],
+   "w": 117,
+   "h": 26,
+   "score": 0.9854,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:16%",
+   "cx": 55,
+   "cy": 64,
+   "bbox": [
+    1,
+    50,
+    109,
+    79
+   ],
+   "w": 108,
+   "h": 29,
+   "score": 0.9368,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "冰元素／奥黛塔",
+   "cx": 304,
+   "cy": 61,
+   "bbox": [
+    184,
+    42,
+    424,
+    81
+   ],
+   "w": 240,
+   "h": 39,
+   "score": 0.8927,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "Q",
+   "cx": 658,
+   "cy": 64,
+   "bbox": [
+    634,
+    42,
+    681,
+    86
+   ],
+   "w": 47,
+   "h": 44,
+   "score": 0.7287,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "E",
+   "cx": 1902,
+   "cy": 63,
+   "bbox": [
+    1889,
+    48,
+    1916,
+    78
+   ],
+   "w": 27,
+   "h": 30,
+   "score": 0.9977,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "2581567",
+   "cx": 2273,
+   "cy": 61,
+   "bbox": [
+    2197,
+    42,
+    2349,
+    81
+   ],
+   "w": 152,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "X",
+   "cx": 2457,
+   "cy": 64,
+   "bbox": [
+    2428,
+    36,
+    2486,
+    92
+   ],
+   "w": 58,
+   "h": 56,
+   "score": 0.9835,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "属性",
+   "cx": 233,
+   "cy": 204,
+   "bbox": [
+    181,
+    176,
+    285,
+    232
+   ],
+   "w": 104,
+   "h": 56,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "雪鹄变奏",
+   "cx": 2201,
+   "cy": 202,
+   "bbox": [
+    2139,
+    182,
+    2264,
+    222
+   ],
+   "w": 125,
+   "h": 40,
+   "score": 0.9844,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "Lv.1",
+   "cx": 2231,
+   "cy": 242,
+   "bbox": [
+    2197,
+    223,
+    2265,
+    262
+   ],
+   "w": 68,
+   "h": 39,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "器",
+   "cx": 232,
+   "cy": 297,
+   "bbox": [
+    180,
+    268,
+    285,
+    325
+   ],
+   "w": 105,
+   "h": 57,
+   "score": 0.758,
+   "kind": "title"
+  },
+  {
+   "id": 12,
+   "text": "柔板·幻灵夜舞",
+   "cx": 2158,
+   "cy": 324,
+   "bbox": [
+    2050,
+    303,
+    2265,
+    345
+   ],
+   "w": 215,
+   "h": 42,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "Lv.8",
+   "cx": 2227,
+   "cy": 363,
+   "bbox": [
+    2188,
+    344,
+    2265,
+    383
+   ],
+   "w": 77,
+   "h": 39,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "圣遗物",
+   "cx": 252,
+   "cy": 389,
+   "bbox": [
+    178,
+    362,
+    326,
+    416
+   ],
+   "w": 148,
+   "h": 54,
+   "score": 0.9929,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "特补",
+   "cx": 2336,
+   "cy": 530,
+   "bbox": [
+    2270,
+    399,
+    2401,
+    662
+   ],
+   "w": 131,
+   "h": 263,
+   "score": 0.545,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "疾板·苍羽一梦",
+   "cx": 2158,
+   "cy": 446,
+   "bbox": [
+    2050,
+    425,
+    2267,
+    468
+   ],
+   "w": 217,
+   "h": 43,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "命之座",
+   "cx": 254,
+   "cy": 478,
+   "bbox": [
+    178,
+    443,
+    330,
+    513
+   ],
+   "w": 152,
+   "h": 70,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "Lv.6",
+   "cx": 2227,
+   "cy": 486,
+   "bbox": [
+    2188,
+    466,
+    2265,
+    505
+   ],
+   "w": 77,
+   "h": 39,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "夫赋",
+   "cx": 229,
+   "cy": 574,
+   "bbox": [
+    140,
+    536,
+    318,
+    612
+   ],
+   "w": 178,
+   "h": 76,
+   "score": 0.7597,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "获选者的春祭",
+   "cx": 2172,
+   "cy": 587,
+   "bbox": [
+    2080,
+    568,
+    2265,
+    606
+   ],
+   "w": 185,
+   "h": 38,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "资料！",
+   "cx": 254,
+   "cy": 667,
+   "bbox": [
+    180,
+    639,
+    329,
+    696
+   ],
+   "w": 149,
+   "h": 57,
+   "score": 0.9249,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "赤忱者的悲歌",
+   "cx": 2172,
+   "cy": 707,
+   "bbox": [
+    2078,
+    686,
+    2265,
+    729
+   ],
+   "w": 187,
+   "h": 43,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "星耀祝礼·银晓之舞",
+   "cx": 2130,
+   "cy": 830,
+   "bbox": [
+    1996,
+    811,
+    2264,
+    849
+   ],
+   "w": 268,
+   "h": 38,
+   "score": 0.9935,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "回响中的冬梦",
+   "cx": 2172,
+   "cy": 951,
+   "bbox": [
+    2081,
+    932,
+    2263,
+    970
+   ],
+   "w": 182,
+   "h": 38,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "ming 2.5 ms",
+   "cx": 61,
+   "cy": 1306,
+   "bbox": [
+    5,
+    1294,
+    117,
+    1319
+   ],
+   "w": 112,
+   "h": 25,
+   "score": 0.9066,
+   "kind": "data"
+  },
+  {
+   "id": 26,
+   "text": "max: 1334.4 ms",
+   "cx": 224,
+   "cy": 1307,
+   "bbox": [
+    154,
+    1296,
+    294,
+    1319
+   ],
+   "w": 140,
+   "h": 23,
+   "score": 0.9437,
+   "kind": "data"
+  },
+  {
+   "id": 27,
+   "text": "天赋演示",
+   "cx": 2243,
+   "cy": 1341,
+   "bbox": [
+    2172,
+    1321,
+    2313,
+    1361
+   ],
+   "w": 141,
+   "h": 40,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1434
+   ],
+   "w": 225,
+   "h": 33,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2302,
+    298,
+    2374,
+    392
+   ],
+   "cx": 2338,
+   "cy": 345,
+   "w": 72,
+   "h": 94,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.628,
+    "aspect": 0.77,
+    "corner_fill": 0.1,
+    "area": 4252,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    152,
+    470,
+    178,
+    500
+   ],
+   "cx": 165,
+   "cy": 485,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 0.87,
+    "corner_fill": 0.11,
+    "area": 612,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1276,
+    626,
+    1302,
+    654
+   ],
+   "cx": 1289,
+   "cy": 640,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.615,
+    "aspect": 0.93,
+    "corner_fill": 0.17,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    154,
+    660,
+    176,
+    680
+   ],
+   "cx": 165,
+   "cy": 670,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.791,
+    "aspect": 1.1,
+    "corner_fill": 0.06,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2302,
+    666,
+    2324,
+    686
+   ],
+   "cx": 2313,
+   "cy": 676,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    2308,
+    686,
+    2362,
+    738
+   ],
+   "cx": 2335,
+   "cy": 712,
+   "w": 54,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.46,
+    "aspect": 1.04,
+    "corner_fill": 0.0,
+    "area": 1292,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2314,
+    798,
+    2360,
+    842
+   ],
+   "cx": 2337,
+   "cy": 820,
+   "w": 46,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.532,
+    "aspect": 1.05,
+    "corner_fill": 0.0,
+    "area": 1076,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2146,
+    42,
+    2186,
+    82
+   ],
+   "cx": 2166,
+   "cy": 62,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 21.9,
+    "ring_L": 133.6,
+    "inside_L": 160.9,
+    "outside_L": 62.6
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    76,
+    180,
+    116,
+    220
+   ],
+   "cx": 96,
+   "cy": 200,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.958,
+    "contrast": 21.2,
+    "ring_L": 163.7,
+    "inside_L": 139.8,
+    "outside_L": 145.3
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    76,
+    214,
+    124,
+    262
+   ],
+   "cx": 100,
+   "cy": 238,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.944,
+    "contrast": 25.2,
+    "ring_L": 155.7,
+    "inside_L": 142.0,
+    "outside_L": 119.0
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1250,
+    736,
+    1294,
+    780
+   ],
+   "cx": 1272,
+   "cy": 758,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.944,
+    "contrast": 22.5,
+    "ring_L": 145.4,
+    "inside_L": 130.2,
+    "outside_L": 115.6
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1152,
+    282,
+    1196,
+    326
+   ],
+   "cx": 1174,
+   "cy": 304,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.903,
+    "contrast": 36.4,
+    "ring_L": 153.6,
+    "inside_L": 110.0,
+    "outside_L": 124.5
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    154,
+    380,
+    176,
+    404
+   ],
+   "cx": 165,
+   "cy": 392,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.758,
+    "aspect": 0.92,
+    "corner_fill": 0.28,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1090,
+    666,
+    1430,
+    1000
+   ],
+   "cx": 1260,
+   "cy": 833,
+   "w": 340,
+   "h": 334,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.427,
+    "aspect": 1.02,
+    "corner_fill": 0.15,
+    "area": 48528,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1182,
+    682,
+    1200,
+    700
+   ],
+   "cx": 1191,
+   "cy": 691,
+   "w": 18,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    2360,
+    726,
+    2378,
+    746
+   ],
+   "cx": 2369,
+   "cy": 736,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 0.9,
+    "corner_fill": 0.31,
+    "area": 288,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1286,
+    930,
+    1324,
+    976
+   ],
+   "cx": 1305,
+   "cy": 953,
+   "w": 38,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.682,
+    "aspect": 0.83,
+    "corner_fill": 0.27,
+    "area": 1192,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    100,
+    184,
+    128,
+    212
+   ],
+   "cx": 114,
+   "cy": 198,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.903,
+    "contrast": 17.3,
+    "ring_L": 153.0,
+    "inside_L": 219.4,
+    "outside_L": 121.2
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1256,
+    590,
+    1280,
+    624
+   ],
+   "cx": 1268,
+   "cy": 607,
+   "w": 24,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.721,
+    "aspect": 0.71,
+    "corner_fill": 0.31,
+    "area": 588,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2304,
+    784,
+    2330,
+    812
+   ],
+   "cx": 2317,
+   "cy": 798,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.654,
+    "aspect": 0.93,
+    "corner_fill": 0.31,
+    "area": 476,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2344,
+    830,
+    2372,
+    864
+   ],
+   "cx": 2358,
+   "cy": 847,
+   "w": 28,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.622,
+    "aspect": 0.82,
+    "corner_fill": 0.3,
+    "area": 592,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1428,
+    244,
+    1456,
+    268
+   ],
+   "cx": 1442,
+   "cy": 256,
+   "w": 28,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 1.17,
+    "corner_fill": 0.39,
+    "area": 552,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    154,
+    288,
+    176,
+    310
+   ],
+   "cx": 165,
+   "cy": 299,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    154,
+    196,
+    176,
+    218
+   ],
+   "cx": 165,
+   "cy": 207,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.793,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 384,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    2306,
+    86,
+    2322,
+    112
+   ],
+   "cx": 2314,
+   "cy": 99,
+   "w": 16,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 0.62,
+    "corner_fill": 0.38,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    2368,
+    818,
+    2386,
+    842
+   ],
+   "cx": 2377,
+   "cy": 830,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.869,
+   "label": null,
+   "evidence": {
+    "fill": 0.731,
+    "aspect": 0.75,
+    "corner_fill": 0.38,
+    "area": 316,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    78,
+    694,
+    114,
+    746
+   ],
+   "cx": 96,
+   "cy": 720,
+   "w": 36,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.637,
+    "aspect": 0.69,
+    "corner_fill": 0.34,
+    "area": 1192,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2446,
+    694,
+    2482,
+    746
+   ],
+   "cx": 2464,
+   "cy": 720,
+   "w": 36,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.635,
+    "aspect": 0.69,
+    "corner_fill": 0.34,
+    "area": 1188,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2320,
+    856,
+    2354,
+    876
+   ],
+   "cx": 2337,
+   "cy": 866,
+   "w": 34,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.812,
+    "aspect": 1.7,
+    "corner_fill": 0.5,
+    "area": 552,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2058,
+    342,
+    2102,
+    360
+   ],
+   "cx": 2080,
+   "cy": 351,
+   "w": 44,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.864,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 2.44,
+    "corner_fill": 0.44,
+    "area": 640,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    144,
+    1328,
+    168,
+    1380
+   ],
+   "cx": 156,
+   "cy": 1354,
+   "w": 24,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 0.46,
+    "corner_fill": 0.25,
+    "area": 1000,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    2044,
+    1310,
+    2400,
+    1380
+   ],
+   "cx": 2222,
+   "cy": 1345,
+   "w": 356,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.86,
+   "label": "天赋演示",
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 5.09,
+    "corner_fill": 0.48,
+    "area": 19952,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    728,
+    134,
+    794,
+    158
+   ],
+   "cx": 761,
+   "cy": 146,
+   "w": 66,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.858,
+   "label": null,
+   "evidence": {
+    "fill": 0.795,
+    "aspect": 2.75,
+    "corner_fill": 0.67,
+    "area": 1260,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1946,
+    30,
+    1962,
+    54
+   ],
+   "cx": 1954,
+   "cy": 42,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.852,
+   "label": null,
+   "evidence": {
+    "fill": 0.781,
+    "aspect": 0.67,
+    "corner_fill": 0.31,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2286,
+    716,
+    2304,
+    734
+   ],
+   "cx": 2295,
+   "cy": 725,
+   "w": 18,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.852,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    84,
+    1326,
+    102,
+    1358
+   ],
+   "cx": 93,
+   "cy": 1342,
+   "w": 18,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 0.56,
+    "corner_fill": 0.44,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2342,
+    676,
+    2360,
+    702
+   ],
+   "cx": 2351,
+   "cy": 689,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.849,
+   "label": null,
+   "evidence": {
+    "fill": 0.632,
+    "aspect": 0.69,
+    "corner_fill": 0.38,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    112,
+    0,
+    762,
+    126
+   ],
+   "cx": 437,
+   "cy": 63,
+   "w": 650,
+   "h": 126,
+   "shape": "rect",
+   "confidence": 0.849,
+   "label": "冰元素／奥黛塔 Q",
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 5.16,
+    "corner_fill": 0.38,
+    "area": 63508,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1490,
+    1150,
+    1506,
+    1182
+   ],
+   "cx": 1498,
+   "cy": 1166,
+   "w": 16,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.848,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 0.5,
+    "corner_fill": 0.38,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1104,
+    1026,
+    1120,
+    1050
+   ],
+   "cx": 1112,
+   "cy": 1038,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.771,
+    "aspect": 0.67,
+    "corner_fill": 0.38,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    1889,
+    42,
+    2401,
+    1361
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    62,
+    222,
+    343,
+    466,
+    530,
+    587,
+    707,
+    830,
+    951,
+    1341
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "2581567",
+      "E"
+     ]
+    },
+    {
+     "y": 222,
+     "texts": [
+      "雪鹄变奏",
+      "Lv.1"
+     ]
+    },
+    {
+     "y": 343,
+     "texts": [
+      "柔板·幻灵夜舞",
+      "Lv.8"
+     ]
+    },
+    {
+     "y": 466,
+     "texts": [
+      "疾板·苍羽一梦",
+      "Lv.6"
+     ]
+    },
+    {
+     "y": 530,
+     "texts": [
+      "特补"
+     ]
+    },
+    {
+     "y": 587,
+     "texts": [
+      "获选者的春祭"
+     ]
+    },
+    {
+     "y": 707,
+     "texts": [
+      "赤忱者的悲歌"
+     ]
+    },
+    {
+     "y": 830,
+     "texts": [
+      "星耀祝礼·银晓之舞"
+     ]
+    },
+    {
+     "y": 951,
+     "texts": [
+      "回响中的冬梦"
+     ]
+    },
+    {
+     "y": 1341,
+     "texts": [
+      "天赋演示"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    140,
+    42,
+    424,
+    696
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 29,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 7,
+   "row_y": [
+    61,
+    204,
+    297,
+    389,
+    478,
+    574,
+    667
+   ],
+   "rows": [
+    {
+     "y": 61,
+     "texts": [
+      "冰元素／奥黛塔"
+     ]
+    },
+    {
+     "y": 204,
+     "texts": [
+      "属性"
+     ]
+    },
+    {
+     "y": 297,
+     "texts": [
+      "器"
+     ]
+    },
+    {
+     "y": 389,
+     "texts": [
+      "圣遗物"
+     ]
+    },
+    {
+     "y": 478,
+     "texts": [
+      "命之座"
+     ]
+    },
+    {
+     "y": 574,
+     "texts": [
+      "夫赋"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "资料！"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "器",
+   "text_id": 11,
+   "target": "circle@(165,299)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 4,
+   "dx": -68,
+   "dy": 2,
+   "confidence": 0.697
+  },
+  {
+   "text": "器",
+   "text_id": 11,
+   "target": "circle@(165,207)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 50,
+   "dx": -68,
+   "dy": -90,
+   "confidence": 0.658
+  },
+  {
+   "text": "器",
+   "text_id": 11,
+   "target": "circle@(165,392)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 55,
+   "dx": -68,
+   "dy": 96,
+   "confidence": 0.654
+  },
+  {
+   "text": "命之座",
+   "text_id": 17,
+   "target": "circle@(165,485)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -89,
+   "dy": 7,
+   "confidence": 0.55
+  },
+  {
+   "text": "Q",
+   "text_id": 4,
+   "target": "rect@(437,63)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": "冰元素／奥黛塔 Q",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -220,
+   "dy": -1,
+   "confidence": 0.55
+  },
+  {
+   "text": "天赋演示",
+   "text_id": 27,
+   "target": "rect@(2222,1345)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "天赋演示",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -20,
+   "dy": 4,
+   "confidence": 0.55
+  },
+  {
+   "text": "冰元素／奥黛塔",
+   "text_id": 3,
+   "target": "rect@(437,63)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": "冰元素／奥黛塔 Q",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 133,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "圣遗物",
+   "text_id": 14,
+   "target": "circle@(165,392)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 2,
+   "dx": -87,
+   "dy": 3,
+   "confidence": 0.548
+  },
+  {
+   "text": "特补",
+   "text_id": 15,
+   "target": "circle@(2313,676)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 4,
+   "dx": -22,
+   "dy": 146,
+   "confidence": 0.547
+  },
+  {
+   "text": "资料！",
+   "text_id": 21,
+   "target": "circle@(165,670)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 4,
+   "dx": -90,
+   "dy": 2,
+   "confidence": 0.547
+  },
+  {
+   "text": "2581567",
+   "text_id": 6,
+   "target": "circle@(2166,62)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 11,
+   "dx": -107,
+   "dy": 0,
+   "confidence": 0.541
+  },
+  {
+   "text": "赤忱者的悲歌",
+   "text_id": 22,
+   "target": "circle@(2295,725)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 21,
+   "dx": 124,
+   "dy": 18,
+   "confidence": 0.533
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 28,
+   "target": "rect@(2222,1345)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "天赋演示",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 21,
+   "dx": -148,
+   "dy": -72,
+   "confidence": 0.533
+  },
+  {
+   "text": "E",
+   "text_id": 5,
+   "target": "rect@(1954,42)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 30,
+   "dx": 52,
+   "dy": -21,
+   "confidence": 0.525
+  },
+  {
+   "text": "疾板·苍羽一梦",
+   "text_id": 16,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 35,
+   "dx": 180,
+   "dy": -102,
+   "confidence": 0.521
+  },
+  {
+   "text": "柔板·幻灵夜舞",
+   "text_id": 12,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 37,
+   "dx": 180,
+   "dy": 21,
+   "confidence": 0.519
+  },
+  {
+   "text": "Lv.1",
+   "text_id": 10,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 37,
+   "dx": 107,
+   "dy": 102,
+   "confidence": 0.519
+  },
+  {
+   "text": "Lv.8",
+   "text_id": 13,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 37,
+   "dx": 112,
+   "dy": -18,
+   "confidence": 0.519
+  },
+  {
+   "text": "夫赋",
+   "text_id": 19,
+   "target": "circle@(165,670)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 48,
+   "dx": -64,
+   "dy": 96,
+   "confidence": 0.51
+  },
+  {
+   "text": "属性",
+   "text_id": 8,
+   "target": "rect@(437,63)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": "冰元素／奥黛塔 Q",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 50,
+   "dx": 204,
+   "dy": -141,
+   "confidence": 0.508
+  },
+  {
+   "text": "回响中的冬梦",
+   "text_id": 24,
+   "target": "rect@(2337,866)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 57,
+   "dx": 165,
+   "dy": -85,
+   "confidence": 0.503
+  },
+  {
+   "text": "获选者的春祭",
+   "text_id": 20,
+   "target": "circle@(2313,676)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 60,
+   "dx": 140,
+   "dy": 89,
+   "confidence": 0.5
+  },
+  {
+   "text": "Lv.6",
+   "text_id": 18,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 74,
+   "dx": 112,
+   "dy": -140,
+   "confidence": 0.488
+  },
+  {
+   "text": "雪鹄变奏",
+   "text_id": 9,
+   "target": "circle@(2338,345)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 76,
+   "dx": 136,
+   "dy": 143,
+   "confidence": 0.487
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    121,
+    82
+   ],
+   "confidence": 0.82,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=9.7，纹理对比骤降 std 72.7→9.7（0.13×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS:23.6",
+     "GPU:16%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 229.5,
+    "bg_std": 9.7,
+    "ring_mean": 127.0,
+    "ring_std": 72.7,
+    "texture_ratio": 0.13,
+    "bg_rgb": [
+     201,
+     241,
+     245
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     157.0,
+     107.0,
+     113.0
+    ],
+    "fill": 0.53,
+    "rect": 0.7
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS:23.6",
+    "GPU:16%",
+    "冰元素／奥黛塔",
+    "Q",
+    "E",
+    "2581567",
+    "X",
+    "属性",
+    "雪鹄变奏",
+    "Lv.1",
+    "器",
+    "柔板·幻灵夜舞",
+    "Lv.8",
+    "圣遗物",
+    "特补",
+    "疾板·苍羽一梦",
+    "命之座",
+    "Lv.6",
+    "夫赋",
+    "获选者的春祭",
+    "资料！",
+    "赤忱者的悲歌",
+    "星耀祝礼·银晓之舞",
+    "回响中的冬梦",
+    "ming 2.5 ms",
+    "max: 1334.4 ms",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1200,
+      0,
+      1222,
+      18
+     ],
+     "role": "icon",
+     "fill": 0.82,
+     "contrast": 105.0
+    },
+    {
+     "bbox": [
+      2148,
+      44,
+      2186,
+      84
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 242.0
+    },
+    {
+     "bbox": [
+      1454,
+      64,
+      1476,
+      90
+     ],
+     "role": "icon",
+     "fill": 0.71,
+     "contrast": 106.0
+    },
+    {
+     "bbox": [
+      82,
+      170,
+      132,
+      266
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 190.0
+    },
+    {
+     "bbox": [
+      1100,
+      18,
+      1192,
+      112
+     ],
+     "role": "icon",
+     "fill": 0.67,
+     "contrast": 179.0
+    },
+    {
+     "bbox": [
+      844,
+      12,
+      938,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      972,
+      18,
+      1064,
+      112
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 185.0
+    },
+    {
+     "bbox": [
+      2296,
+      184,
+      2376,
+      264
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 175.0
+    },
+    {
+     "bbox": [
+      156,
+      474,
+      174,
+      496
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 146.0
+    },
+    {
+     "bbox": [
+      158,
+      382,
+      174,
+      402
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 82.0
+    },
+    {
+     "bbox": [
+      156,
+      290,
+      176,
+      308
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 88.0
+    },
+    {
+     "bbox": [
+      158,
+      662,
+      176,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 66.0
+    },
+    {
+     "bbox": [
+      156,
+      196,
+      176,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 88.0
+    },
+    {
+     "bbox": [
+      1498,
+      18,
+      1566,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 185.0
+    },
+    {
+     "bbox": [
+      1742,
+      6,
+      1826,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 213.0
+    },
+    {
+     "bbox": [
+      2308,
+      88,
+      2324,
+      114
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 93.0
+    },
+    {
+     "bbox": [
+      2288,
+      296,
+      2382,
+      394
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 145.0
+    },
+    {
+     "bbox": [
+      1628,
+      0,
+      1708,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 188.0
+    },
+    {
+     "bbox": [
+      1236,
+      442,
+      1260,
+      472
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 120.0
+    },
+    {
+     "bbox": [
+      714,
+      0,
+      808,
+      112
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 200.0
+    },
+    {
+     "bbox": [
+      1362,
+      0,
+      1452,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 241.0
+    },
+    {
+     "bbox": [
+      1444,
+      696,
+      1462,
+      720
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 60.0
+    },
+    {
+     "bbox": [
+      2444,
+      694,
+      2482,
+      746
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 116.0
+    },
+    {
+     "bbox": [
+      1224,
+      26,
+      1326,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 181.0
+    },
+    {
+     "bbox": [
+      78,
+      692,
+      118,
+      746
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 127.0
+    },
+    {
+     "bbox": [
+      2286,
+      666,
+      2382,
+      756
+     ],
+     "role": "icon",
+     "fill": 0.41,
+     "contrast": 107.0
+    },
+    {
+     "bbox": [
+      2272,
+      0,
+      2322,
+      38
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 106.0
+    },
+    {
+     "bbox": [
+      8,
+      1322,
+      26,
+      1350
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 94.0
+    },
+    {
+     "bbox": [
+      1116,
+      1280,
+      1134,
+      1318
+     ],
+     "role": "icon",
+     "fill": 0.38,
+     "contrast": 71.0
+    },
+    {
+     "bbox": [
+      2312,
+      904,
+      2360,
+      1002
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 87.0
+    },
+    {
+     "bbox": [
+      1940,
+      30,
+      1962,
+      68
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 104.0
+    },
+    {
+     "bbox": [
+      1100,
+      1324,
+      1148,
+      1440
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 128.0
+    },
+    {
+     "bbox": [
+      2358,
+      816,
+      2382,
+      844
+     ],
+     "role": "icon",
+     "fill": 0.28,
+     "contrast": 98.0
+    },
+    {
+     "bbox": [
+      2292,
+      794,
+      2364,
+      876
+     ],
+     "role": "icon",
+     "fill": 0.27,
+     "contrast": 98.0
+    },
+    {
+     "bbox": [
+      1096,
+      1398,
+      1132,
+      1440
+     ],
+     "role": "icon",
+     "fill": 0.27,
+     "contrast": 159.0
+    },
+    {
+     "bbox": [
+      62,
+      20,
+      164,
+      134
+     ],
+     "role": "icon",
+     "fill": 0.26,
+     "contrast": 212.0
+    },
+    {
+     "bbox": [
+      1344,
+      568,
+      1368,
+      600
+     ],
+     "role": "icon",
+     "fill": 0.26,
+     "contrast": 108.0
+    },
+    {
+     "bbox": [
+      1326,
+      598,
+      1432,
+      692
+     ],
+     "role": "icon",
+     "fill": 0.26,
+     "contrast": 123.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      912,
+      14,
+      938,
+      38
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1772,
+      26,
+      1824,
+      104
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1150,
+      70,
+      1164,
+      92
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1400,
+      82,
+      1416,
+      98
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1524,
+      84,
+      1552,
+      104
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      294,
+      658,
+      320,
+      682
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:28",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.64,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 22)",
+    "area_px": 2596940,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 28,
+    "text_ui": 22,
+    "skin_lab": [
+     157.0,
+     107.0,
+     113.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.7
+   }
+  },
+  {
+   "id": "c1",
+   "parent": "c0",
+   "bbox": [
+    2078,
+    1316,
+    2390,
+    1372
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     232.0,
+     129.0,
+     134.0
+    ],
+    "fill": 0.53,
+    "rect": 0.61
+   },
+   "text": [
+    "天赋演示"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2048,
+      1312,
+      2126,
+      1376
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 196.0
+    },
+    {
+     "bbox": [
+      2360,
+      1312,
+      2400,
+      1376
+     ],
+     "role": "icon",
+     "fill": 0.28,
+     "contrast": 105.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.72,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 10672,
+    "area_frac": 0.0047,
+    "aspect": 5.57,
+    "grid": "row n=2 pitch_x=1869.0 pitch_y=None",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     232.0,
+     129.0,
+     134.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.61
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    170,
+    1324,
+    294,
+    1380
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     93.0,
+     113.0,
+     120.0
+    ],
+    "fill": 0.46,
+    "rect": 0.75
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.75,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 5212,
+    "area_frac": 0.0019,
+    "aspect": 2.21,
+    "grid": "row n=2 pitch_x=133.0 pitch_y=None",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     93.0,
+     113.0,
+     120.0
+    ],
+    "flat_fill": 0.46,
+    "rect": 0.75
+   }
+  },
+  {
+   "id": "c3",
+   "parent": "c0",
+   "bbox": [
+    306,
+    1326,
+    424,
+    1378
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     91.0,
+     113.0,
+     120.0
+    ],
+    "fill": 0.38,
+    "rect": 0.63
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 3868,
+    "area_frac": 0.0017,
+    "aspect": 2.27,
+    "grid": "row n=2 pitch_x=133.0 pitch_y=None",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     91.0,
+     113.0,
+     120.0
+    ],
+    "flat_fill": 0.38,
+    "rect": 0.63
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 117,
+  "ocr_ms": 443,
+  "pixel_ms": 920,
+  "container_ms": 402,
+  "container_cached": false,
+  "total_ms": 1482,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 29,
+  "err": null
+ },
+ "title_text_id": 11,
+ "digest": "屏幕 2560x1440 · 文本 29 · 控件 40 · 容器 4 · 邻接 24 · 遮挡 1 · 1482ms（OCR daemon）\n标题「器」@(232,297) 画面 · 字高 57px\n邻接「器」→ circle@(165,299) 左侧 4px\n邻接「器」→ circle@(165,207) 上方 50px\n邻接「器」→ circle@(165,392) 下方 55px\n控件: circle@(165,299) | circle@(165,207) | circle@(165,392) | circle@(165,485)\n遮挡 [0, 2, 121, 82] (0,2)-(121,82)（conf 0.82）：左上角小字叠加层：小字 3 框，低方差 std=9.7，纹理对比骤降 std 72.7→9.7（0.13×）"
+}

@@ -1,0 +1,2335 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v096_0521.jpg",
+  "sha256": "a3454b2df2c1c5d579b4109d63f8f5691a6586f3e34351a1132d555c296b3561",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 190724
+ },
+ "title": {
+  "text": "圣遗物",
+  "cx": 249,
+  "cy": 388,
+  "bbox": [
+   176,
+   357,
+   322,
+   419
+  ],
+  "region": null,
+  "why": "上半屏字高最大（62px, score=0.97）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3",
+   "cx": 48,
+   "cy": 16,
+   "bbox": [
+    1,
+    2,
+    95,
+    30
+   ],
+   "w": 94,
+   "h": 28,
+   "score": 0.9447,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "GPU:10%",
+   "cx": 54,
+   "cy": 64,
+   "bbox": [
+    1,
+    51,
+    108,
+    78
+   ],
+   "w": 107,
+   "h": 27,
+   "score": 0.9229,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "FPS: 21.8",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.957,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "冰元素／透雨",
+   "cx": 287,
+   "cy": 60,
+   "bbox": [
+    183,
+    41,
+    390,
+    79
+   ],
+   "w": 207,
+   "h": 38,
+   "score": 0.9571,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "E",
+   "cx": 1903,
+   "cy": 64,
+   "bbox": [
+    1891,
+    51,
+    1914,
+    77
+   ],
+   "w": 23,
+   "h": 26,
+   "score": 0.9977,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "2581567",
+   "cx": 2273,
+   "cy": 61,
+   "bbox": [
+    2197,
+    42,
+    2349,
+    81
+   ],
+   "w": 152,
+   "h": 39,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "X",
+   "cx": 2457,
+   "cy": 64,
+   "bbox": [
+    2428,
+    34,
+    2486,
+    93
+   ],
+   "w": 58,
+   "h": 59,
+   "score": 0.9774,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "属性",
+   "cx": 229,
+   "cy": 204,
+   "bbox": [
+    176,
+    176,
+    281,
+    232
+   ],
+   "w": 105,
+   "h": 56,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "器",
+   "cx": 227,
+   "cy": 297,
+   "bbox": [
+    176,
+    268,
+    278,
+    325
+   ],
+   "w": 102,
+   "h": 57,
+   "score": 0.9364,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "渐肃的凝冰",
+   "cx": 2174,
+   "cy": 364,
+   "bbox": [
+    2095,
+    343,
+    2252,
+    385
+   ],
+   "w": 157,
+   "h": 42,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "圣遗物",
+   "cx": 249,
+   "cy": 388,
+   "bbox": [
+    176,
+    357,
+    322,
+    419
+   ],
+   "w": 146,
+   "h": 62,
+   "score": 0.9697,
+   "kind": "title"
+  },
+  {
+   "id": 11,
+   "text": "命之座",
+   "cx": 276,
+   "cy": 481,
+   "bbox": [
+    189,
+    447,
+    362,
+    515
+   ],
+   "w": 173,
+   "h": 68,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "嗡鸣的陨冰",
+   "cx": 2247,
+   "cy": 512,
+   "bbox": [
+    2170,
+    492,
+    2325,
+    532
+   ],
+   "w": 155,
+   "h": 40,
+   "score": 0.9982,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "天赋",
+   "cx": 227,
+   "cy": 575,
+   "bbox": [
+    174,
+    546,
+    280,
+    604
+   ],
+   "w": 106,
+   "h": 58,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "资料",
+   "cx": 230,
+   "cy": 668,
+   "bbox": [
+    178,
+    640,
+    282,
+    696
+   ],
+   "w": 104,
+   "h": 56,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "断金的锐冰",
+   "cx": 2296,
+   "cy": 660,
+   "bbox": [
+    2218,
+    641,
+    2374,
+    680
+   ],
+   "w": 156,
+   "h": 39,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "口",
+   "cx": 102,
+   "cy": 720,
+   "bbox": [
+    67,
+    685,
+    138,
+    756
+   ],
+   "w": 71,
+   "h": 71,
+   "score": 0.8777,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "同",
+   "cx": 2453,
+   "cy": 720,
+   "bbox": [
+    2418,
+    684,
+    2489,
+    756
+   ],
+   "w": 71,
+   "h": 72,
+   "score": 0.5712,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "不化的顽冰",
+   "cx": 2296,
+   "cy": 808,
+   "bbox": [
+    2218,
+    788,
+    2375,
+    828
+   ],
+   "w": 157,
+   "h": 40,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "深寒的雾冰",
+   "cx": 2248,
+   "cy": 957,
+   "bbox": [
+    2170,
+    938,
+    2326,
+    977
+   ],
+   "w": 156,
+   "h": 39,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "肃杀的熙冰",
+   "cx": 2152,
+   "cy": 1105,
+   "bbox": [
+    2074,
+    1086,
+    2229,
+    1125
+   ],
+   "w": 155,
+   "h": 39,
+   "score": 0.9897,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9813,
+   "kind": "other"
+  },
+  {
+   "id": 22,
+   "text": "max: 1334.4 ms",
+   "cx": 225,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1297,
+    294,
+    1319
+   ],
+   "w": 138,
+   "h": 22,
+   "score": 0.9835,
+   "kind": "data"
+  },
+  {
+   "id": 23,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1434
+   ],
+   "w": 225,
+   "h": 33,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2014,
+    356,
+    2040,
+    382
+   ],
+   "cx": 2027,
+   "cy": 369,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.728,
+    "aspect": 1.0,
+    "corner_fill": 0.08,
+    "area": 492,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1324,
+    770,
+    1342,
+    790
+   ],
+   "cx": 1333,
+   "cy": 780,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.756,
+    "aspect": 0.9,
+    "corner_fill": 0.19,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1928,
+    1236,
+    1950,
+    1256
+   ],
+   "cx": 1939,
+   "cy": 1246,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1034,
+    632,
+    1312,
+    1032
+   ],
+   "cx": 1173,
+   "cy": 832,
+   "w": 278,
+   "h": 400,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.565,
+    "aspect": 0.69,
+    "corner_fill": 0.02,
+    "area": 62820,
+    "src": "flat"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1254,
+    944,
+    1318,
+    1002
+   ],
+   "cx": 1286,
+   "cy": 973,
+   "w": 64,
+   "h": 58,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.631,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 2344,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1214,
+    988,
+    1250,
+    1014
+   ],
+   "cx": 1232,
+   "cy": 1001,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": 0.748,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 700,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    74,
+    182,
+    110,
+    218
+   ],
+   "cx": 92,
+   "cy": 200,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.903,
+    "contrast": 26.1,
+    "ring_L": 141.0,
+    "inside_L": 117.7,
+    "outside_L": 112.2
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2044,
+    450,
+    2154,
+    582
+   ],
+   "cx": 2099,
+   "cy": 516,
+   "w": 110,
+   "h": 132,
+   "shape": "circle",
+   "confidence": 0.93,
+   "label": null,
+   "evidence": {
+    "fill": 0.676,
+    "aspect": 0.83,
+    "corner_fill": 0.23,
+    "area": 9820,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1366,
+    338,
+    1406,
+    370
+   ],
+   "cx": 1386,
+   "cy": 354,
+   "w": 40,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.924,
+   "label": null,
+   "evidence": {
+    "fill": 0.541,
+    "aspect": 1.25,
+    "corner_fill": 0.19,
+    "area": 692,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    4,
+    1318,
+    22,
+    1380
+   ],
+   "cx": 13,
+   "cy": 1349,
+   "w": 18,
+   "h": 62,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.957,
+    "aspect": 0.29,
+    "corner_fill": 0.62,
+    "area": 1068,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1104,
+    582,
+    1136,
+    614
+   ],
+   "cx": 1120,
+   "cy": 598,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 524,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1098,
+    134,
+    1196,
+    158
+   ],
+   "cx": 1147,
+   "cy": 146,
+   "w": 98,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.915,
+    "aspect": 4.08,
+    "corner_fill": 0.61,
+    "area": 2152,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    878,
+    532,
+    896,
+    558
+   ],
+   "cx": 887,
+   "cy": 545,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.632,
+    "aspect": 0.69,
+    "corner_fill": 0.25,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    422,
+    1368,
+    458,
+    1396
+   ],
+   "cx": 440,
+   "cy": 1382,
+   "w": 36,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 1.29,
+    "corner_fill": 0.27,
+    "area": 660,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    150,
+    380,
+    172,
+    404
+   ],
+   "cx": 161,
+   "cy": 392,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 428,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    150,
+    658,
+    172,
+    682
+   ],
+   "cx": 161,
+   "cy": 670,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.803,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 424,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1078,
+    428,
+    1140,
+    472
+   ],
+   "cx": 1109,
+   "cy": 450,
+   "w": 62,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": 0.468,
+    "aspect": 1.41,
+    "corner_fill": 0.22,
+    "area": 1276,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    150,
+    468,
+    178,
+    500
+   ],
+   "cx": 164,
+   "cy": 484,
+   "w": 28,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 0.88,
+    "corner_fill": 0.34,
+    "area": 704,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    290,
+    654,
+    318,
+    686
+   ],
+   "cx": 304,
+   "cy": 670,
+   "w": 28,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 0.88,
+    "corner_fill": 0.34,
+    "area": 704,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1414,
+    1392,
+    1436,
+    1416
+   ],
+   "cx": 1425,
+   "cy": 1404,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.89,
+   "label": null,
+   "evidence": {
+    "fill": 0.803,
+    "aspect": 0.92,
+    "corner_fill": 0.36,
+    "area": 424,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1348,
+    308,
+    1374,
+    324
+   ],
+   "cx": 1361,
+   "cy": 316,
+   "w": 26,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 1.62,
+    "corner_fill": 0.44,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1404,
+    496,
+    1476,
+    588
+   ],
+   "cx": 1440,
+   "cy": 542,
+   "w": 72,
+   "h": 92,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.545,
+    "aspect": 0.78,
+    "corner_fill": 0.27,
+    "area": 3608,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    150,
+    288,
+    172,
+    310
+   ],
+   "cx": 161,
+   "cy": 299,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2056,
+    920,
+    2142,
+    1008
+   ],
+   "cx": 2099,
+   "cy": 964,
+   "w": 86,
+   "h": 88,
+   "shape": "circle",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 0.98,
+    "corner_fill": 0.37,
+    "area": 5784,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1322,
+    362,
+    1484,
+    552
+   ],
+   "cx": 1403,
+   "cy": 457,
+   "w": 162,
+   "h": 190,
+   "shape": "circle",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.454,
+    "aspect": 0.85,
+    "corner_fill": 0.25,
+    "area": 13980,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1960,
+    1068,
+    2046,
+    1156
+   ],
+   "cx": 2003,
+   "cy": 1112,
+   "w": 86,
+   "h": 88,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 0.98,
+    "corner_fill": 0.39,
+    "area": 5964,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    72,
+    212,
+    120,
+    260
+   ],
+   "cx": 96,
+   "cy": 236,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 1.0,
+    "contrast": 12.2,
+    "ring_L": 109.0,
+    "inside_L": 126.6,
+    "outside_L": 66.8
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2174,
+    974,
+    2320,
+    994
+   ],
+   "cx": 2247,
+   "cy": 984,
+   "w": 146,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.822,
+    "aspect": 7.3,
+    "corner_fill": 0.25,
+    "area": 2400,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1456,
+    860,
+    1482,
+    890
+   ],
+   "cx": 1469,
+   "cy": 875,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.626,
+    "aspect": 0.87,
+    "corner_fill": 0.33,
+    "area": 488,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2106,
+    774,
+    2188,
+    858
+   ],
+   "cx": 2147,
+   "cy": 816,
+   "w": 82,
+   "h": 84,
+   "shape": "circle",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.812,
+    "aspect": 0.98,
+    "corner_fill": 0.41,
+    "area": 5596,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1100,
+    18,
+    1192,
+    110
+   ],
+   "cx": 1146,
+   "cy": 64,
+   "w": 92,
+   "h": 92,
+   "shape": "circle",
+   "confidence": 0.866,
+   "label": null,
+   "evidence": {
+    "fill": 0.693,
+    "aspect": 1.0,
+    "corner_fill": 0.36,
+    "area": 5864,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    46,
+    1304,
+    130,
+    1404
+   ],
+   "cx": 88,
+   "cy": 1354,
+   "w": 84,
+   "h": 100,
+   "shape": "circle",
+   "confidence": 0.866,
+   "label": null,
+   "evidence": {
+    "fill": 0.623,
+    "aspect": 0.84,
+    "corner_fill": 0.34,
+    "area": 5232,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    150,
+    566,
+    172,
+    588
+   ],
+   "cx": 161,
+   "cy": 577,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.0,
+    "corner_fill": 0.42,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1560,
+    966,
+    1588,
+    994
+   ],
+   "cx": 1574,
+   "cy": 980,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.864,
+   "label": null,
+   "evidence": {
+    "fill": 0.592,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 464,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2084,
+    1122,
+    2216,
+    1140
+   ],
+   "cx": 2150,
+   "cy": 1131,
+   "w": 132,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.858,
+   "label": null,
+   "evidence": {
+    "fill": 0.796,
+    "aspect": 7.33,
+    "corner_fill": 0.12,
+    "area": 1892,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1330,
+    802,
+    1346,
+    836
+   ],
+   "cx": 1338,
+   "cy": 819,
+   "w": 16,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.794,
+    "aspect": 0.47,
+    "corner_fill": 0.44,
+    "area": 432,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1452,
+    786,
+    1474,
+    810
+   ],
+   "cx": 1463,
+   "cy": 798,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 0.92,
+    "corner_fill": 0.42,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    132,
+    1322,
+    424,
+    1380
+   ],
+   "cx": 278,
+   "cy": 1351,
+   "w": 292,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.789,
+    "aspect": 5.03,
+    "corner_fill": 0.38,
+    "area": 13368,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1414,
+    52,
+    1434,
+    70
+   ],
+   "cx": 1424,
+   "cy": 61,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 1.11,
+    "corner_fill": 0.44,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1336,
+    268,
+    1376,
+    294
+   ],
+   "cx": 1356,
+   "cy": 281,
+   "w": 40,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.54,
+    "corner_fill": 0.36,
+    "area": 816,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    1891,
+    42,
+    2489,
+    1125
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    62,
+    364,
+    512,
+    660,
+    720,
+    808,
+    957,
+    1105
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "2581567",
+      "E"
+     ]
+    },
+    {
+     "y": 364,
+     "texts": [
+      "渐肃的凝冰"
+     ]
+    },
+    {
+     "y": 512,
+     "texts": [
+      "嗡鸣的陨冰"
+     ]
+    },
+    {
+     "y": 660,
+     "texts": [
+      "断金的锐冰"
+     ]
+    },
+    {
+     "y": 720,
+     "texts": [
+      "同"
+     ]
+    },
+    {
+     "y": 808,
+     "texts": [
+      "不化的顽冰"
+     ]
+    },
+    {
+     "y": 957,
+     "texts": [
+      "深寒的雾冰"
+     ]
+    },
+    {
+     "y": 1105,
+     "texts": [
+      "肃杀的熙冰"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    67,
+    41,
+    390,
+    756
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 36,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    60,
+    204,
+    297,
+    388,
+    481,
+    575,
+    668,
+    720
+   ],
+   "rows": [
+    {
+     "y": 60,
+     "texts": [
+      "冰元素／透雨"
+     ]
+    },
+    {
+     "y": 204,
+     "texts": [
+      "属性"
+     ]
+    },
+    {
+     "y": 297,
+     "texts": [
+      "器"
+     ]
+    },
+    {
+     "y": 388,
+     "texts": [
+      "圣遗物"
+     ]
+    },
+    {
+     "y": 481,
+     "texts": [
+      "命之座"
+     ]
+    },
+    {
+     "y": 575,
+     "texts": [
+      "天赋"
+     ]
+    },
+    {
+     "y": 668,
+     "texts": [
+      "资料"
+     ]
+    },
+    {
+     "y": 720,
+     "texts": [
+      "口"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "圣遗物",
+   "text_id": 10,
+   "target": "circle@(161,392)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 4,
+   "dx": -88,
+   "dy": 4,
+   "confidence": 0.697
+  },
+  {
+   "text": "圣遗物",
+   "text_id": 10,
+   "target": "circle@(161,299)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 47,
+   "dx": -88,
+   "dy": -89,
+   "confidence": 0.661
+  },
+  {
+   "text": "圣遗物",
+   "text_id": 10,
+   "target": "circle@(164,484)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 49,
+   "dx": -85,
+   "dy": 96,
+   "confidence": 0.659
+  },
+  {
+   "text": "天赋",
+   "text_id": 13,
+   "target": "circle@(161,577)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 2,
+   "dx": -66,
+   "dy": 2,
+   "confidence": 0.548
+  },
+  {
+   "text": "器",
+   "text_id": 8,
+   "target": "circle@(161,299)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 4,
+   "dx": -66,
+   "dy": 2,
+   "confidence": 0.547
+  },
+  {
+   "text": "资料",
+   "text_id": 14,
+   "target": "circle@(161,670)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -69,
+   "dy": 2,
+   "confidence": 0.545
+  },
+  {
+   "text": "命之座",
+   "text_id": 11,
+   "target": "circle@(164,484)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 11,
+   "dx": -112,
+   "dy": 3,
+   "confidence": 0.541
+  },
+  {
+   "text": "口",
+   "text_id": 16,
+   "target": "circle@(161,670)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 12,
+   "dx": 58,
+   "dy": -50,
+   "confidence": 0.54
+  },
+  {
+   "text": "嗡鸣的陨冰",
+   "text_id": 12,
+   "target": "circle@(2099,516)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 16,
+   "dx": -148,
+   "dy": 4,
+   "confidence": 0.537
+  },
+  {
+   "text": "深寒的雾冰",
+   "text_id": 19,
+   "target": "circle@(2099,964)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 28,
+   "dx": -149,
+   "dy": 6,
+   "confidence": 0.527
+  },
+  {
+   "text": "肃杀的熙冰",
+   "text_id": 20,
+   "target": "circle@(2003,1112)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 28,
+   "dx": -148,
+   "dy": 6,
+   "confidence": 0.527
+  },
+  {
+   "text": "不化的顽冰",
+   "text_id": 18,
+   "target": "circle@(2147,816)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 30,
+   "dx": -150,
+   "dy": 8,
+   "confidence": 0.525
+  },
+  {
+   "text": "渐肃的凝冰",
+   "text_id": 9,
+   "target": "circle@(2027,369)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 55,
+   "dx": -146,
+   "dy": 5,
+   "confidence": 0.504
+  },
+  {
+   "text": "属性",
+   "text_id": 7,
+   "target": "circle@(161,299)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 56,
+   "dx": -68,
+   "dy": 95,
+   "confidence": 0.503
+  },
+  {
+   "text": "断金的锐冰",
+   "text_id": 15,
+   "target": "circle@(2147,816)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 94,
+   "dx": -149,
+   "dy": 156,
+   "confidence": 0.472
+  },
+  {
+   "text": "冰元素／透雨",
+   "text_id": 3,
+   "target": "circle@(92,200)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 103,
+   "dx": -194,
+   "dy": 140,
+   "confidence": 0.464
+  },
+  {
+   "text": "深寒的雾冰",
+   "text_id": 19,
+   "target": "rect@(2247,984)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -1,
+   "dy": 26,
+   "confidence": 0.55
+  },
+  {
+   "text": "肃杀的熙冰",
+   "text_id": 20,
+   "target": "rect@(2150,1131)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -2,
+   "dy": 26,
+   "confidence": 0.55
+  },
+  {
+   "text": "资料",
+   "text_id": 14,
+   "target": "circle@(304,670)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 8,
+   "dx": 74,
+   "dy": 2,
+   "confidence": 0.543
+  },
+  {
+   "text": "天赋",
+   "text_id": 13,
+   "target": "circle@(304,670)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 50,
+   "dx": 77,
+   "dy": 95,
+   "confidence": 0.508
+  },
+  {
+   "text": "命之座",
+   "text_id": 11,
+   "target": "circle@(161,577)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 51,
+   "dx": -114,
+   "dy": 96,
+   "confidence": 0.508
+  },
+  {
+   "text": "器",
+   "text_id": 8,
+   "target": "circle@(161,392)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 55,
+   "dx": -66,
+   "dy": 96,
+   "confidence": 0.504
+  },
+  {
+   "text": "属性",
+   "text_id": 7,
+   "target": "circle@(96,236)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 56,
+   "dx": -132,
+   "dy": 32,
+   "confidence": 0.503
+  },
+  {
+   "text": "断金的锐冰",
+   "text_id": 15,
+   "target": "circle@(2099,516)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 64,
+   "dx": -197,
+   "dy": -144,
+   "confidence": 0.497
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    121,
+    81
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，非纯黑 L=133",
+   "evidence": {
+    "texts": [
+     "DXVK v3",
+     "GPU:10%",
+     "FPS: 21.8"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 2,
+    "bg_mean": 133.4,
+    "bg_std": 62.1,
+    "ring_mean": 70.7,
+    "ring_std": 63.2,
+    "texture_ratio": 0.98,
+    "bg_rgb": [
+     121,
+     135,
+     142
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     41.0,
+     128.0,
+     111.0
+    ],
+    "fill": 0.49,
+    "rect": 0.68
+   },
+   "text": [
+    "DXVK v3",
+    "GPU:10%",
+    "FPS: 21.8",
+    "冰元素／透雨",
+    "E",
+    "2581567",
+    "X",
+    "属性",
+    "器",
+    "渐肃的凝冰",
+    "圣遗物",
+    "命之座",
+    "嗡鸣的陨冰",
+    "天赋",
+    "资料",
+    "断金的锐冰",
+    "口",
+    "同",
+    "不化的顽冰",
+    "深寒的雾冰",
+    "肃杀的熙冰",
+    "min:",
+    "max: 1334.4 ms",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      634,
+      46,
+      680,
+      82
+     ],
+     "role": "icon",
+     "fill": 0.99,
+     "contrast": 218.0
+    },
+    {
+     "bbox": [
+      1708,
+      1366,
+      1728,
+      1386
+     ],
+     "role": "icon",
+     "fill": 0.82,
+     "contrast": 58.0
+    },
+    {
+     "bbox": [
+      78,
+      168,
+      120,
+      266
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 217.0
+    },
+    {
+     "bbox": [
+      290,
+      656,
+      316,
+      684
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 204.0
+    },
+    {
+     "bbox": [
+      2130,
+      790,
+      2166,
+      838
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 192.0
+    },
+    {
+     "bbox": [
+      2146,
+      44,
+      2186,
+      84
+     ],
+     "role": "icon",
+     "fill": 0.76,
+     "contrast": 236.0
+    },
+    {
+     "bbox": [
+      98,
+      0,
+      126,
+      24
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 176.0
+    },
+    {
+     "bbox": [
+      1956,
+      1062,
+      2050,
+      1156
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 182.0
+    },
+    {
+     "bbox": [
+      910,
+      1334,
+      926,
+      1350
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 99.0
+    },
+    {
+     "bbox": [
+      152,
+      568,
+      170,
+      588
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 114.0
+    },
+    {
+     "bbox": [
+      972,
+      18,
+      1064,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 186.0
+    },
+    {
+     "bbox": [
+      152,
+      196,
+      172,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      152,
+      382,
+      172,
+      402
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 110.0
+    },
+    {
+     "bbox": [
+      152,
+      660,
+      172,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 111.0
+    },
+    {
+     "bbox": [
+      844,
+      12,
+      938,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 208.0
+    },
+    {
+     "bbox": [
+      152,
+      290,
+      172,
+      310
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 108.0
+    },
+    {
+     "bbox": [
+      716,
+      8,
+      808,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 190.0
+    },
+    {
+     "bbox": [
+      2052,
+      914,
+      2146,
+      1008
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 189.0
+    },
+    {
+     "bbox": [
+      1742,
+      6,
+      1826,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 191.0
+    },
+    {
+     "bbox": [
+      1498,
+      18,
+      1568,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 184.0
+    },
+    {
+     "bbox": [
+      144,
+      466,
+      180,
+      502
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 192.0
+    },
+    {
+     "bbox": [
+      1400,
+      336,
+      1416,
+      356
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 57.0
+    },
+    {
+     "bbox": [
+      1628,
+      0,
+      1708,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 186.0
+    },
+    {
+     "bbox": [
+      1354,
+      326,
+      1394,
+      352
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 63.0
+    },
+    {
+     "bbox": [
+      1224,
+      26,
+      1326,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 194.0
+    },
+    {
+     "bbox": [
+      1082,
+      18,
+      1210,
+      128
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 207.0
+    },
+    {
+     "bbox": [
+      1376,
+      40,
+      1442,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 199.0
+    },
+    {
+     "bbox": [
+      1880,
+      46,
+      1926,
+      96
+     ],
+     "role": "icon",
+     "fill": 0.28,
+     "contrast": 196.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      912,
+      14,
+      936,
+      38
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      290,
+      658,
+      316,
+      682
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:24",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.64,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 17)",
+    "area_px": 2517796,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 24,
+    "text_ui": 17,
+    "skin_lab": [
+     41.0,
+     128.0,
+     111.0
+    ],
+    "flat_fill": 0.49,
+    "rect": 0.68
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 114,
+  "ocr_ms": 508,
+  "pixel_ms": 841,
+  "container_ms": 376,
+  "container_cached": false,
+  "total_ms": 1464,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 24,
+  "err": null
+ },
+ "title_text_id": 10,
+ "digest": "屏幕 2560x1440 · 文本 24 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 1 · 1464ms（OCR daemon）\n标题「圣遗物」@(249,388) 画面 · 字高 62px\n邻接「圣遗物」→ circle@(161,392) 左侧 4px\n邻接「圣遗物」→ circle@(161,299) 上方 47px\n邻接「圣遗物」→ circle@(164,484) 下方 49px\n控件: circle@(161,392) | circle@(161,299) | circle@(164,484) | circle@(161,577)\n遮挡 [0, 0, 121, 81] (0,0)-(121,81)（conf 0.62）：左上角小字叠加层：小字 3 框，非纯黑 L=133"
+}

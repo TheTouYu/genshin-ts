@@ -1,0 +1,2547 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v095_0520.jpg",
+  "sha256": "53e9595e37dec34daddc7babb8d45b843a52bdbe29928b83e3c38da5987df9cc",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 205509
+ },
+ "title": {
+  "text": "X",
+  "cx": 2457,
+  "cy": 63,
+  "bbox": [
+   2425,
+   32,
+   2489,
+   95
+  ],
+  "region": null,
+  "why": "上半屏字高最大（63px, score=0.79）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 17,
+   "bbox": [
+    0,
+    0,
+    120,
+    34
+   ],
+   "w": 120,
+   "h": 34,
+   "score": 0.93,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:23.4",
+   "cx": 61,
+   "cy": 42,
+   "bbox": [
+    1,
+    29,
+    121,
+    55
+   ],
+   "w": 120,
+   "h": 26,
+   "score": 0.9525,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:10%",
+   "cx": 57,
+   "cy": 64,
+   "bbox": [
+    2,
+    51,
+    112,
+    78
+   ],
+   "w": 110,
+   "h": 27,
+   "score": 0.9961,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "水元素／沃雅妮莎",
+   "cx": 320,
+   "cy": 61,
+   "bbox": [
+    185,
+    42,
+    455,
+    81
+   ],
+   "w": 270,
+   "h": 39,
+   "score": 0.9658,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "Q",
+   "cx": 658,
+   "cy": 63,
+   "bbox": [
+    633,
+    41,
+    682,
+    86
+   ],
+   "w": 49,
+   "h": 45,
+   "score": 0.9004,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "E",
+   "cx": 1903,
+   "cy": 63,
+   "bbox": [
+    1890,
+    48,
+    1916,
+    78
+   ],
+   "w": 26,
+   "h": 30,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "2581567",
+   "cx": 2273,
+   "cy": 59,
+   "bbox": [
+    2197,
+    39,
+    2349,
+    79
+   ],
+   "w": 152,
+   "h": 40,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "X",
+   "cx": 2457,
+   "cy": 63,
+   "bbox": [
+    2425,
+    32,
+    2489,
+    95
+   ],
+   "w": 64,
+   "h": 63,
+   "score": 0.7887,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "属性",
+   "cx": 233,
+   "cy": 203,
+   "bbox": [
+    181,
+    174,
+    285,
+    232
+   ],
+   "w": 104,
+   "h": 58,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "聚光灯下的水华",
+   "cx": 2204,
+   "cy": 364,
+   "bbox": [
+    2099,
+    347,
+    2309,
+    381
+   ],
+   "w": 210,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "圣遗物",
+   "cx": 255,
+   "cy": 390,
+   "bbox": [
+    184,
+    362,
+    326,
+    417
+   ],
+   "w": 142,
+   "h": 55,
+   "score": 0.9115,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "命之座",
+   "cx": 281,
+   "cy": 480,
+   "bbox": [
+    193,
+    444,
+    369,
+    515
+   ],
+   "w": 176,
+   "h": 71,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "穿彻风雪的余响",
+   "cx": 2276,
+   "cy": 512,
+   "bbox": [
+    2171,
+    495,
+    2381,
+    529
+   ],
+   "w": 210,
+   "h": 34,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "天赋",
+   "cx": 234,
+   "cy": 575,
+   "bbox": [
+    180,
+    545,
+    287,
+    606
+   ],
+   "w": 107,
+   "h": 61,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "资料",
+   "cx": 233,
+   "cy": 667,
+   "bbox": [
+    181,
+    637,
+    285,
+    698
+   ],
+   "w": 104,
+   "h": 61,
+   "score": 0.9983,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "空音犹响的春晨",
+   "cx": 2323,
+   "cy": 659,
+   "bbox": [
+    2216,
+    639,
+    2430,
+    680
+   ],
+   "w": 214,
+   "h": 41,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "口",
+   "cx": 103,
+   "cy": 720,
+   "bbox": [
+    68,
+    685,
+    138,
+    754
+   ],
+   "w": 70,
+   "h": 69,
+   "score": 0.7798,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "L",
+   "cx": 2453,
+   "cy": 721,
+   "bbox": [
+    2420,
+    689,
+    2486,
+    754
+   ],
+   "w": 66,
+   "h": 65,
+   "score": 0.7543,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "柔波摇漾的低诉",
+   "cx": 2325,
+   "cy": 809,
+   "bbox": [
+    2219,
+    792,
+    2430,
+    826
+   ],
+   "w": 211,
+   "h": 34,
+   "score": 0.9918,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "沉往深湖的共沦",
+   "cx": 2276,
+   "cy": 957,
+   "bbox": [
+    2171,
+    939,
+    2381,
+    974
+   ],
+   "w": 210,
+   "h": 35,
+   "score": 0.9979,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "永不落幕的盛歌",
+   "cx": 2181,
+   "cy": 1105,
+   "bbox": [
+    2076,
+    1087,
+    2286,
+    1122
+   ],
+   "w": 210,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    51,
+    1316
+   ],
+   "w": 44,
+   "h": 18,
+   "score": 0.9933,
+   "kind": "other"
+  },
+  {
+   "id": 22,
+   "text": "max: 1334.4 ms",
+   "cx": 224,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1298,
+    292,
+    1317
+   ],
+   "w": 136,
+   "h": 19,
+   "score": 0.9894,
+   "kind": "data"
+  },
+  {
+   "id": 23,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1940,
+    122,
+    1962,
+    142
+   ],
+   "cx": 1951,
+   "cy": 132,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1728,
+    288,
+    1748,
+    310
+   ],
+   "cx": 1738,
+   "cy": 299,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.845,
+    "aspect": 0.91,
+    "corner_fill": 0.19,
+    "area": 372,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    150,
+    468,
+    184,
+    502
+   ],
+   "cx": 167,
+   "cy": 485,
+   "w": 34,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.696,
+    "aspect": 1.0,
+    "corner_fill": 0.09,
+    "area": 804,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    874,
+    662,
+    896,
+    682
+   ],
+   "cx": 885,
+   "cy": 672,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1374,
+    710,
+    1432,
+    764
+   ],
+   "cx": 1403,
+   "cy": 737,
+   "w": 58,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.535,
+    "aspect": 1.07,
+    "corner_fill": 0.09,
+    "area": 1676,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1790,
+    1196,
+    1808,
+    1218
+   ],
+   "cx": 1799,
+   "cy": 1207,
+   "w": 18,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 0.82,
+    "corner_fill": 0.25,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1460,
+    1240,
+    1480,
+    1258
+   ],
+   "cx": 1470,
+   "cy": 1249,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.844,
+    "aspect": 1.11,
+    "corner_fill": 0.25,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2004,
+    1314,
+    2024,
+    1334
+   ],
+   "cx": 2014,
+   "cy": 1324,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.83,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1556,
+    1316,
+    1574,
+    1334
+   ],
+   "cx": 1565,
+   "cy": 1325,
+   "w": 18,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2146,
+    42,
+    2186,
+    82
+   ],
+   "cx": 2166,
+   "cy": 62,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 26.2,
+    "ring_L": 127.7,
+    "inside_L": 161.1,
+    "outside_L": 42.0
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    534,
+    1048,
+    566,
+    1080
+   ],
+   "cx": 550,
+   "cy": 1064,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 94.7,
+    "ring_L": 196.4,
+    "inside_L": 134.4,
+    "outside_L": 69.1
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    778,
+    536,
+    798,
+    556
+   ],
+   "cx": 788,
+   "cy": 546,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.81,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 324,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    80,
+    174,
+    124,
+    218
+   ],
+   "cx": 102,
+   "cy": 196,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.972,
+    "contrast": 34.9,
+    "ring_L": 141.3,
+    "inside_L": 127.9,
+    "outside_L": 84.9
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    80,
+    216,
+    124,
+    260
+   ],
+   "cx": 102,
+   "cy": 238,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.944,
+    "contrast": 42.9,
+    "ring_L": 147.7,
+    "inside_L": 130.8,
+    "outside_L": 79.0
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1140,
+    722,
+    1160,
+    750
+   ],
+   "cx": 1150,
+   "cy": 736,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.926,
+   "label": null,
+   "evidence": {
+    "fill": 0.707,
+    "aspect": 0.71,
+    "corner_fill": 0.25,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    292,
+    654,
+    322,
+    686
+   ],
+   "cx": 307,
+   "cy": 670,
+   "w": 30,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.924,
+   "label": null,
+   "evidence": {
+    "fill": 0.771,
+    "aspect": 0.94,
+    "corner_fill": 0.28,
+    "area": 740,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    318,
+    1088,
+    354,
+    1122
+   ],
+   "cx": 336,
+   "cy": 1105,
+   "w": 36,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 1.06,
+    "corner_fill": 0.31,
+    "area": 1012,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    154,
+    566,
+    178,
+    590
+   ],
+   "cx": 166,
+   "cy": 578,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.792,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 456,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1208,
+    886,
+    1234,
+    920
+   ],
+   "cx": 1221,
+   "cy": 903,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.688,
+    "aspect": 0.76,
+    "corner_fill": 0.28,
+    "area": 608,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1158,
+    904,
+    1176,
+    930
+   ],
+   "cx": 1167,
+   "cy": 917,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 0.69,
+    "corner_fill": 0.31,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    154,
+    380,
+    176,
+    404
+   ],
+   "cx": 165,
+   "cy": 392,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 432,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    22,
+    1364,
+    60,
+    1400
+   ],
+   "cx": 41,
+   "cy": 1382,
+   "w": 38,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.485,
+    "aspect": 1.06,
+    "corner_fill": 0.2,
+    "area": 664,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    154,
+    194,
+    176,
+    218
+   ],
+   "cx": 165,
+   "cy": 206,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    8,
+    1388,
+    36,
+    1404
+   ],
+   "cx": 22,
+   "cy": 1396,
+   "w": 28,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 1.75,
+    "corner_fill": 0.5,
+    "area": 392,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1154,
+    952,
+    1174,
+    974
+   ],
+   "cx": 1164,
+   "cy": 963,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 0.91,
+    "corner_fill": 0.38,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    154,
+    658,
+    176,
+    682
+   ],
+   "cx": 165,
+   "cy": 670,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.92,
+    "corner_fill": 0.39,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1012,
+    278,
+    1026,
+    300
+   ],
+   "cx": 1019,
+   "cy": 289,
+   "w": 14,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.844,
+    "aspect": 0.64,
+    "corner_fill": 0.44,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1196,
+    1120,
+    1220,
+    1144
+   ],
+   "cx": 1208,
+   "cy": 1132,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.878,
+   "label": null,
+   "evidence": {
+    "fill": 0.465,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 268,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1960,
+    1068,
+    2048,
+    1156
+   ],
+   "cx": 2004,
+   "cy": 1112,
+   "w": 88,
+   "h": 88,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 6172,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    8,
+    1318,
+    36,
+    1378
+   ],
+   "cx": 22,
+   "cy": 1348,
+   "w": 28,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.47,
+    "corner_fill": 0.62,
+    "area": 1380,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    126,
+    1322,
+    426,
+    1382
+   ],
+   "cx": 276,
+   "cy": 1352,
+   "w": 300,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.869,
+   "label": null,
+   "evidence": {
+    "fill": 0.82,
+    "aspect": 5.0,
+    "corner_fill": 0.6,
+    "area": 14752,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    2122,
+    18,
+    2362,
+    110
+   ],
+   "cx": 2242,
+   "cy": 64,
+   "w": 240,
+   "h": 92,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": "2581567",
+   "evidence": {
+    "fill": 0.816,
+    "aspect": 2.61,
+    "corner_fill": 0.44,
+    "area": 18012,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    472,
+    476,
+    506,
+    492
+   ],
+   "cx": 489,
+   "cy": 484,
+   "w": 34,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.816,
+    "aspect": 2.12,
+    "corner_fill": 0.06,
+    "area": 444,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1600,
+    0,
+    1952,
+    130
+   ],
+   "cx": 1776,
+   "cy": 65,
+   "w": 352,
+   "h": 130,
+   "shape": "rect",
+   "confidence": 0.861,
+   "label": "E",
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 2.71,
+    "corner_fill": 0.51,
+    "area": 36664,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1512,
+    944,
+    1534,
+    970
+   ],
+   "cx": 1523,
+   "cy": 957,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.727,
+    "aspect": 0.85,
+    "corner_fill": 0.39,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1342,
+    686,
+    1376,
+    714
+   ],
+   "cx": 1359,
+   "cy": 700,
+   "w": 34,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.859,
+   "label": null,
+   "evidence": {
+    "fill": 0.681,
+    "aspect": 1.21,
+    "corner_fill": 0.38,
+    "area": 648,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2056,
+    920,
+    2142,
+    1010
+   ],
+   "cx": 2099,
+   "cy": 965,
+   "w": 86,
+   "h": 90,
+   "shape": "circle",
+   "confidence": 0.858,
+   "label": null,
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 0.96,
+    "corner_fill": 0.42,
+    "area": 6200,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2056,
+    476,
+    2142,
+    564
+   ],
+   "cx": 2099,
+   "cy": 520,
+   "w": 86,
+   "h": 88,
+   "shape": "circle",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 0.98,
+    "corner_fill": 0.43,
+    "area": 6188,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1184,
+    850,
+    1202,
+    910
+   ],
+   "cx": 1193,
+   "cy": 880,
+   "w": 18,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 0.3,
+    "corner_fill": 0.06,
+    "area": 848,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1414,
+    52,
+    1440,
+    74
+   ],
+   "cx": 1427,
+   "cy": 63,
+   "w": 26,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.851,
+   "label": null,
+   "evidence": {
+    "fill": 0.678,
+    "aspect": 1.18,
+    "corner_fill": 0.39,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    2076,
+    39,
+    2486,
+    1122
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 17,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    59,
+    364,
+    512,
+    659,
+    721,
+    809,
+    957,
+    1105
+   ],
+   "rows": [
+    {
+     "y": 59,
+     "texts": [
+      "2581567"
+     ]
+    },
+    {
+     "y": 364,
+     "texts": [
+      "聚光灯下的水华"
+     ]
+    },
+    {
+     "y": 512,
+     "texts": [
+      "穿彻风雪的余响"
+     ]
+    },
+    {
+     "y": 659,
+     "texts": [
+      "空音犹响的春晨"
+     ]
+    },
+    {
+     "y": 721,
+     "texts": [
+      "L"
+     ]
+    },
+    {
+     "y": 809,
+     "texts": [
+      "柔波摇漾的低诉"
+     ]
+    },
+    {
+     "y": 957,
+     "texts": [
+      "沉往深湖的共沦"
+     ]
+    },
+    {
+     "y": 1105,
+     "texts": [
+      "永不落幕的盛歌"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    68,
+    42,
+    455,
+    754
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 34,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 7,
+   "row_y": [
+    61,
+    203,
+    390,
+    480,
+    575,
+    667,
+    720
+   ],
+   "rows": [
+    {
+     "y": 61,
+     "texts": [
+      "水元素／沃雅妮莎"
+     ]
+    },
+    {
+     "y": 203,
+     "texts": [
+      "属性"
+     ]
+    },
+    {
+     "y": 390,
+     "texts": [
+      "圣遗物"
+     ]
+    },
+    {
+     "y": 480,
+     "texts": [
+      "命之座"
+     ]
+    },
+    {
+     "y": 575,
+     "texts": [
+      "天赋"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "资料"
+     ]
+    },
+    {
+     "y": 720,
+     "texts": [
+      "口"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "X",
+   "text_id": 7,
+   "target": "circle@(2166,62)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 239,
+   "dx": -291,
+   "dy": -2,
+   "confidence": 0.501
+  },
+  {
+   "text": "X",
+   "text_id": 7,
+   "target": "rect@(2242,64)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "2581567",
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 63,
+   "dx": -215,
+   "dy": 0,
+   "confidence": 0.648
+  },
+  {
+   "text": "2581567",
+   "text_id": 6,
+   "target": "rect@(2242,64)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "2581567",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -31,
+   "dy": 5,
+   "confidence": 0.55
+  },
+  {
+   "text": "E",
+   "text_id": 5,
+   "target": "rect@(1776,65)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": "E",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -127,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "天赋",
+   "text_id": 13,
+   "target": "circle@(166,578)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 2,
+   "dx": -68,
+   "dy": 2,
+   "confidence": 0.548
+  },
+  {
+   "text": "资料",
+   "text_id": 14,
+   "target": "circle@(165,670)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -68,
+   "dy": 2,
+   "confidence": 0.546
+  },
+  {
+   "text": "属性",
+   "text_id": 8,
+   "target": "circle@(165,206)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -68,
+   "dy": 3,
+   "confidence": 0.546
+  },
+  {
+   "text": "圣遗物",
+   "text_id": 10,
+   "target": "circle@(165,392)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 8,
+   "dx": -90,
+   "dy": 2,
+   "confidence": 0.543
+  },
+  {
+   "text": "命之座",
+   "text_id": 11,
+   "target": "circle@(167,485)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 9,
+   "dx": -114,
+   "dy": 6,
+   "confidence": 0.543
+  },
+  {
+   "text": "口",
+   "text_id": 16,
+   "target": "circle@(165,670)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 16,
+   "dx": 62,
+   "dy": -50,
+   "confidence": 0.537
+  },
+  {
+   "text": "永不落幕的盛歌",
+   "text_id": 20,
+   "target": "circle@(2004,1112)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 28,
+   "dx": -177,
+   "dy": 8,
+   "confidence": 0.527
+  },
+  {
+   "text": "沉往深湖的共沦",
+   "text_id": 19,
+   "target": "circle@(2099,965)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 29,
+   "dx": -177,
+   "dy": 8,
+   "confidence": 0.526
+  },
+  {
+   "text": "穿彻风雪的余响",
+   "text_id": 12,
+   "target": "circle@(2099,520)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 29,
+   "dx": -177,
+   "dy": 8,
+   "confidence": 0.526
+  },
+  {
+   "text": "空音犹响的春晨",
+   "text_id": 15,
+   "target": "circle@(2099,520)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 75,
+   "dx": -224,
+   "dy": -140,
+   "confidence": 0.488
+  },
+  {
+   "text": "水元素／沃雅妮莎",
+   "text_id": 3,
+   "target": "circle@(102,196)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 93,
+   "dx": -218,
+   "dy": 134,
+   "confidence": 0.473
+  },
+  {
+   "text": "柔波摇漾的低诉",
+   "text_id": 18,
+   "target": "circle@(2099,965)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 94,
+   "dx": -226,
+   "dy": 156,
+   "confidence": 0.472
+  },
+  {
+   "text": "聚光灯下的水华",
+   "text_id": 9,
+   "target": "circle@(2099,520)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 95,
+   "dx": -105,
+   "dy": 156,
+   "confidence": 0.471
+  },
+  {
+   "text": "资料",
+   "text_id": 14,
+   "target": "circle@(307,670)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 7,
+   "dx": 74,
+   "dy": 2,
+   "confidence": 0.544
+  },
+  {
+   "text": "2581567",
+   "text_id": 6,
+   "target": "circle@(2166,62)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 11,
+   "dx": -107,
+   "dy": 3,
+   "confidence": 0.541
+  },
+  {
+   "text": "E",
+   "text_id": 5,
+   "target": "circle@(1951,132)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 44,
+   "dx": 48,
+   "dy": 69,
+   "confidence": 0.513
+  },
+  {
+   "text": "天赋",
+   "text_id": 13,
+   "target": "circle@(307,670)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 48,
+   "dx": 74,
+   "dy": 94,
+   "confidence": 0.51
+  },
+  {
+   "text": "圣遗物",
+   "text_id": 10,
+   "target": "circle@(167,485)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 51,
+   "dx": -88,
+   "dy": 96,
+   "confidence": 0.508
+  },
+  {
+   "text": "属性",
+   "text_id": 8,
+   "target": "circle@(102,238)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 57,
+   "dx": -131,
+   "dy": 35,
+   "confidence": 0.503
+  },
+  {
+   "text": "永不落幕的盛歌",
+   "text_id": 20,
+   "target": "circle@(2099,965)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 77,
+   "dx": -82,
+   "dy": -140,
+   "confidence": 0.486
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    124,
+    81
+   ],
+   "confidence": 0.78,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，非纯黑 L=159，纹理对比骤降 std 66.8→24.6（0.37×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS:23.4",
+     "GPU:10%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 0,
+    "bg_mean": 158.5,
+    "bg_std": 24.6,
+    "ring_mean": 102.1,
+    "ring_std": 66.8,
+    "texture_ratio": 0.37,
+    "bg_rgb": [
+     48,
+     186,
+     239
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     30.0,
+     143.0,
+     99.0
+    ],
+    "fill": 0.46,
+    "rect": 0.67
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS:23.4",
+    "GPU:10%",
+    "水元素／沃雅妮莎",
+    "Q",
+    "E",
+    "2581567",
+    "X",
+    "属性",
+    "聚光灯下的水华",
+    "圣遗物",
+    "命之座",
+    "穿彻风雪的余响",
+    "天赋",
+    "资料",
+    "空音犹响的春晨",
+    "口",
+    "L",
+    "柔波摇漾的低诉",
+    "沉往深湖的共沦",
+    "永不落幕的盛歌",
+    "min:",
+    "max: 1334.4 ms",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      322,
+      1092,
+      350,
+      1120
+     ],
+     "role": "icon",
+     "fill": 0.85,
+     "contrast": 245.0
+    },
+    {
+     "bbox": [
+      596,
+      978,
+      618,
+      1002
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 252.0
+    },
+    {
+     "bbox": [
+      82,
+      168,
+      124,
+      266
+     ],
+     "role": "icon",
+     "fill": 0.82,
+     "contrast": 279.0
+    },
+    {
+     "bbox": [
+      194,
+      278,
+      276,
+      318
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 218.0
+    },
+    {
+     "bbox": [
+      294,
+      656,
+      320,
+      684
+     ],
+     "role": "icon",
+     "fill": 0.81,
+     "contrast": 275.0
+    },
+    {
+     "bbox": [
+      534,
+      1046,
+      570,
+      1084
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 241.0
+    },
+    {
+     "bbox": [
+      2146,
+      44,
+      2186,
+      84
+     ],
+     "role": "icon",
+     "fill": 0.77,
+     "contrast": 296.0
+    },
+    {
+     "bbox": [
+      1094,
+      18,
+      1192,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 301.0
+    },
+    {
+     "bbox": [
+      1956,
+      1062,
+      2050,
+      1158
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 232.0
+    },
+    {
+     "bbox": [
+      844,
+      12,
+      938,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 262.0
+    },
+    {
+     "bbox": [
+      156,
+      196,
+      176,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 148.0
+    },
+    {
+     "bbox": [
+      2100,
+      616,
+      2196,
+      714
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 251.0
+    },
+    {
+     "bbox": [
+      2052,
+      914,
+      2148,
+      1010
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 244.0
+    },
+    {
+     "bbox": [
+      156,
+      568,
+      176,
+      588
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 150.0
+    },
+    {
+     "bbox": [
+      156,
+      660,
+      176,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 150.0
+    },
+    {
+     "bbox": [
+      1730,
+      290,
+      1746,
+      306
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 99.0
+    },
+    {
+     "bbox": [
+      156,
+      382,
+      176,
+      402
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 148.0
+    },
+    {
+     "bbox": [
+      716,
+      6,
+      808,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 233.0
+    },
+    {
+     "bbox": [
+      156,
+      288,
+      176,
+      310
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 162.0
+    },
+    {
+     "bbox": [
+      970,
+      16,
+      1064,
+      110
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 264.0
+    },
+    {
+     "bbox": [
+      2052,
+      468,
+      2148,
+      564
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 258.0
+    },
+    {
+     "bbox": [
+      2100,
+      766,
+      2194,
+      862
+     ],
+     "role": "icon",
+     "fill": 0.57,
+     "contrast": 255.0
+    },
+    {
+     "bbox": [
+      1980,
+      302,
+      2076,
+      416
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 247.0
+    },
+    {
+     "bbox": [
+      1742,
+      0,
+      1828,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 262.0
+    },
+    {
+     "bbox": [
+      1498,
+      18,
+      1568,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 245.0
+    },
+    {
+     "bbox": [
+      148,
+      466,
+      186,
+      504
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 262.0
+    },
+    {
+     "bbox": [
+      1628,
+      0,
+      1708,
+      108
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 259.0
+    },
+    {
+     "bbox": [
+      1892,
+      82,
+      1910,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 166.0
+    },
+    {
+     "bbox": [
+      1224,
+      26,
+      1326,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 255.0
+    },
+    {
+     "bbox": [
+      1220,
+      474,
+      1262,
+      524
+     ],
+     "role": "icon",
+     "fill": 0.44,
+     "contrast": 253.0
+    },
+    {
+     "bbox": [
+      1358,
+      0,
+      1450,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 256.0
+    },
+    {
+     "bbox": [
+      64,
+      18,
+      164,
+      128
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 252.0
+    },
+    {
+     "bbox": [
+      1086,
+      280,
+      1112,
+      312
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 90.0
+    },
+    {
+     "bbox": [
+      1532,
+      398,
+      1586,
+      452
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 93.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      912,
+      12,
+      938,
+      38
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1772,
+      28,
+      1822,
+      106
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      1524,
+      84,
+      1552,
+      104
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      294,
+      658,
+      320,
+      682
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:24",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 17)",
+    "area_px": 2465836,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 24,
+    "text_ui": 17,
+    "skin_lab": [
+     30.0,
+     143.0,
+     99.0
+    ],
+    "flat_fill": 0.46,
+    "rect": 0.67
+   }
+  },
+  {
+   "id": "c1",
+   "parent": "c0",
+   "bbox": [
+    258,
+    1324,
+    422,
+    1378
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     27.0,
+     135.0,
+     104.0
+    ],
+    "fill": 0.52,
+    "rect": 0.69
+   },
+   "text": [],
+   "glyphs": [
+    {
+     "bbox": [
+      402,
+      1320,
+      428,
+      1346
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 66.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 6120,
+    "area_frac": 0.0024,
+    "aspect": 3.04,
+    "grid": "row n=1 pitch_x=145.0 pitch_y=None",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     27.0,
+     135.0,
+     104.0
+    ],
+    "flat_fill": 0.52,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    144,
+    1324,
+    246,
+    1378
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     25.0,
+     135.0,
+     104.0
+    ],
+    "fill": 0.52,
+    "rect": 0.74
+   },
+   "text": [],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.75,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 4100,
+    "area_frac": 0.0015,
+    "aspect": 1.89,
+    "grid": "row n=1 pitch_x=145.0 pitch_y=None",
+    "skin_siblings": 1,
+    "text_in": 0,
+    "text_ui": 0,
+    "skin_lab": [
+     25.0,
+     135.0,
+     104.0
+    ],
+    "flat_fill": 0.52,
+    "rect": 0.74
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 112,
+  "ocr_ms": 515,
+  "pixel_ms": 835,
+  "container_ms": 368,
+  "container_cached": false,
+  "total_ms": 1463,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 24,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 24 · 控件 40 · 容器 3 · 邻接 24 · 遮挡 1 · 1463ms（OCR daemon）\n标题「X」@(2457,63) 画面 · 字高 63px\n邻接「X」→ circle@(2166,62) 左侧 239px\n邻接「X」→ rect@(2242,64)「2581567」 左侧 63px\n控件: circle@(2166,62) | rect@(2242,64)「2581567」 | rect@(1776,65)「E」 | circle@(166,578)\n遮挡 [0, 0, 124, 81] (0,0)-(124,81)（conf 0.78）：左上角小字叠加层：小字 3 框，非纯黑 L=159，纹理对比骤降 std 66.8→24.6（0.37×）"
+}

@@ -1,0 +1,892 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v083_0495.jpg",
+  "sha256": "59b0dd0af387d933892d812729a8071db8668b52a7bdb49a22ec8d9223a555c7",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 74600
+ },
+ "title": null,
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    120,
+    30
+   ],
+   "w": 119,
+   "h": 25,
+   "score": 0.9886,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 1.7",
+   "cx": 54,
+   "cy": 42,
+   "bbox": [
+    1,
+    28,
+    108,
+    56
+   ],
+   "w": 107,
+   "h": 28,
+   "score": 0.9934,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:52%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    1,
+    54,
+    108,
+    79
+   ],
+   "w": 107,
+   "h": 25,
+   "score": 0.9772,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "战斗",
+   "cx": 1280,
+   "cy": 1159,
+   "bbox": [
+    1238,
+    1135,
+    1322,
+    1184
+   ],
+   "w": 84,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+   "cx": 1279,
+   "cy": 1214,
+   "bbox": [
+    731,
+    1195,
+    1828,
+    1233
+   ],
+   "w": 1097,
+   "h": 38,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "时间。",
+   "cx": 1274,
+   "cy": 1251,
+   "bbox": [
+    1233,
+    1230,
+    1314,
+    1271
+   ],
+   "w": 81,
+   "h": 41,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.983,
+   "kind": "other"
+  },
+  {
+   "id": 7,
+   "text": "ms",
+   "cx": 101,
+   "cy": 1309,
+   "bbox": [
+    89,
+    1302,
+    114,
+    1316
+   ],
+   "w": 25,
+   "h": 14,
+   "score": 0.9558,
+   "kind": "other"
+  },
+  {
+   "id": 8,
+   "text": "max: 587.5 ms",
+   "cx": 221,
+   "cy": 1309,
+   "bbox": [
+    157,
+    1299,
+    285,
+    1319
+   ],
+   "w": 128,
+   "h": 20,
+   "score": 0.9753,
+   "kind": "data"
+  },
+  {
+   "id": 9,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1264,
+    608,
+    1292,
+    636
+   ],
+   "cx": 1278,
+   "cy": 622,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 22.5,
+    "ring_L": 73.8,
+    "inside_L": 91.1,
+    "outside_L": 101.4
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1160,
+    512,
+    1402,
+    770
+   ],
+   "cx": 1281,
+   "cy": 641,
+   "w": 242,
+   "h": 258,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.573,
+    "aspect": 0.94,
+    "corner_fill": 0.17,
+    "area": 35752,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1258,
+    666,
+    1298,
+    706
+   ],
+   "cx": 1278,
+   "cy": 686,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.944,
+    "contrast": 20.2,
+    "ring_L": 86.9,
+    "inside_L": 31.2,
+    "outside_L": 102.3
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1254,
+    534,
+    1302,
+    582
+   ],
+   "cx": 1278,
+   "cy": 558,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.931,
+    "contrast": 61.2,
+    "ring_L": 79.4,
+    "inside_L": 169.1,
+    "outside_L": 112.0
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    394,
+    1320,
+    458,
+    1400
+   ],
+   "cx": 426,
+   "cy": 1360,
+   "w": 64,
+   "h": 80,
+   "shape": "circle",
+   "confidence": 0.921,
+   "label": null,
+   "evidence": {
+    "fill": 0.562,
+    "aspect": 0.8,
+    "corner_fill": 0.2,
+    "area": 2880,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    304,
+    1322,
+    408,
+    1338
+   ],
+   "cx": 356,
+   "cy": 1330,
+   "w": 104,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 1.0,
+    "aspect": 6.5,
+    "corner_fill": 1.0,
+    "area": 1664,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    292,
+    1340
+   ],
+   "cx": 151,
+   "cy": 1331,
+   "w": 282,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.901,
+    "aspect": 15.67,
+    "corner_fill": 0.75,
+    "area": 4572,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    10,
+    1346,
+    292,
+    1382
+   ],
+   "cx": 151,
+   "cy": 1364,
+   "w": 282,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.899,
+    "aspect": 7.83,
+    "corner_fill": 0.84,
+    "area": 9124,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1200,
+    638,
+    1240,
+    666
+   ],
+   "cx": 1220,
+   "cy": 652,
+   "w": 40,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.593,
+    "aspect": 1.43,
+    "corner_fill": 0.31,
+    "area": 664,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    304,
+    1346,
+    408,
+    1380
+   ],
+   "cx": 356,
+   "cy": 1363,
+   "w": 104,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.816,
+    "aspect": 3.06,
+    "corner_fill": 0.69,
+    "area": 2884,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1854,
+    1034,
+    1916,
+    1096
+   ],
+   "cx": 1885,
+   "cy": 1065,
+   "w": 62,
+   "h": 62,
+   "shape": "rect",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.888,
+    "aspect": 1.0,
+    "corner_fill": 0.88,
+    "area": 3412,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    322,
+    1372,
+    386,
+    1392
+   ],
+   "cx": 354,
+   "cy": 1382,
+   "w": 64,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.818,
+   "label": null,
+   "evidence": {
+    "fill": 0.706,
+    "aspect": 3.2,
+    "corner_fill": 0.44,
+    "area": 904,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1264,
+    716,
+    1296,
+    772
+   ],
+   "cx": 1280,
+   "cy": 744,
+   "w": 32,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.809,
+   "label": null,
+   "evidence": {
+    "fill": 0.688,
+    "aspect": 0.57,
+    "corner_fill": 0.27,
+    "area": 1232,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1040,
+    1298,
+    1176,
+    1390
+   ],
+   "cx": 1108,
+   "cy": 1344,
+   "w": 136,
+   "h": 92,
+   "shape": "rect",
+   "confidence": 0.769,
+   "label": null,
+   "evidence": {
+    "fill": 0.598,
+    "aspect": 1.48,
+    "corner_fill": 0.4,
+    "area": 7476,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1314,
+    638,
+    1358,
+    668
+   ],
+   "cx": 1336,
+   "cy": 653,
+   "w": 44,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.732,
+   "label": null,
+   "evidence": {
+    "fill": 0.515,
+    "aspect": 1.47,
+    "corner_fill": 0.12,
+    "area": 680,
+    "src": "flat"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    338,
+    1390,
+    436,
+    1412
+   ],
+   "cx": 387,
+   "cy": 1401,
+   "w": 98,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.718,
+   "label": null,
+   "evidence": {
+    "fill": 0.484,
+    "aspect": 4.45,
+    "corner_fill": 0.39,
+    "area": 1044,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    722,
+    1122,
+    1838,
+    1290
+   ],
+   "cx": 1280,
+   "cy": 1206,
+   "w": 1116,
+   "h": 168,
+   "shape": "rect",
+   "confidence": 0.681,
+   "label": "战斗 若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续 时间。",
+   "evidence": {
+    "fill": 0.401,
+    "aspect": 6.64,
+    "corner_fill": 0.02,
+    "area": 75276,
+    "src": "contrast"
+   },
+   "id": "c16"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    731,
+    1135,
+    1828,
+    1271
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    1159,
+    1232
+   ],
+   "rows": [
+    {
+     "y": 1159,
+     "texts": [
+      "战斗"
+     ]
+    },
+    {
+     "y": 1232,
+     "texts": [
+      "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+      "时间。"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "战斗",
+   "text_id": 3,
+   "target": "rect@(1280,1206)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "战斗 若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续 时间。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 0,
+   "dy": 46,
+   "confidence": 0.55
+  },
+  {
+   "text": "时间。",
+   "text_id": 5,
+   "target": "rect@(1280,1206)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "战斗 若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续 时间。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 6,
+   "dy": -44,
+   "confidence": 0.55
+  },
+  {
+   "text": "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+   "text_id": 4,
+   "target": "rect@(1280,1206)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "战斗 若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续 时间。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 0,
+   "dy": -8,
+   "confidence": 0.55
+  },
+  {
+   "text": "时间。",
+   "text_id": 5,
+   "target": "rect@(1108,1344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 57,
+   "dx": -166,
+   "dy": 94,
+   "confidence": 0.503
+  },
+  {
+   "text": "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+   "text_id": 4,
+   "target": "rect@(1108,1344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 65,
+   "dx": -172,
+   "dy": 130,
+   "confidence": 0.496
+  },
+  {
+   "text": "战斗",
+   "text_id": 3,
+   "target": "rect@(1108,1344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 114,
+   "dx": -172,
+   "dy": 184,
+   "confidence": 0.455
+  },
+  {
+   "text": "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+   "text_id": 4,
+   "target": "rect@(1885,1065)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 99,
+   "dx": 606,
+   "dy": -149,
+   "confidence": 0.468
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    123,
+    82
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=0.0，非纯黑 L=29，纹理对比骤降 std 0.4→0.0（0.00×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 1.7",
+     "GPU:52%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 28.7,
+    "bg_std": 0.0,
+    "ring_mean": 28.8,
+    "ring_std": 0.4,
+    "texture_ratio": 0.0,
+    "bg_rgb": [
+     25,
+     28,
+     32
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     27.0,
+     128.0,
+     124.0
+    ],
+    "fill": 0.7,
+    "rect": 0.96
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS: 1.7",
+    "GPU:52%",
+    "战斗",
+    "若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续",
+    "时间。",
+    "min:",
+    "ms",
+    "max: 587.5 ms",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1124,
+      1320,
+      1148,
+      1368
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 230.0
+    },
+    {
+     "bbox": [
+      1874,
+      1054,
+      1898,
+      1078
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 285.0
+    },
+    {
+     "bbox": [
+      1062,
+      1316,
+      1108,
+      1372
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 231.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:10",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.69,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 3546940,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 10,
+    "text_ui": 3,
+    "skin_lab": [
+     27.0,
+     128.0,
+     124.0
+    ],
+    "flat_fill": 0.7,
+    "rect": 0.96
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 120,
+  "ocr_ms": 438,
+  "pixel_ms": 773,
+  "container_ms": 360,
+  "container_cached": false,
+  "total_ms": 1332,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 10,
+  "err": null
+ },
+ "title_text_id": null,
+ "digest": "屏幕 2560x1440 · 文本 10 · 控件 17 · 容器 1 · 邻接 7 · 遮挡 1 · 1332ms（OCR daemon）\n标题：未识别到（上半屏无可读大字）\n控件: rect@(1280,1206)「战斗 若是不主动通过治疗清除，或是借由七天神像等手段移除的话，「生命之契」有很长的持续 时间。」 | rect@(1108,1344) | rect@(1885,1065) | circle@(1278,622)\n遮挡 [0, 2, 123, 82] (0,2)-(123,82)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=0.0，非纯黑 L=29，纹理对比骤降 std 0.4→0.0（0.00×）"
+}

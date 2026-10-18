@@ -1,0 +1,1755 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v064_0466.jpg",
+  "sha256": "9443070f1ab078a6204b93581d382710baeebbb971c7a8c10f173859734d38d5",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 304743
+ },
+ "title": {
+  "text": "透雨",
+  "cx": 1277,
+  "cy": 430,
+  "bbox": [
+   1234,
+   406,
+   1320,
+   453
+  ],
+  "region": null,
+  "why": "上半屏字高最大（47px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    118,
+    32
+   ],
+   "w": 118,
+   "h": 29,
+   "score": 0.9931,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 22.7",
+   "cx": 58,
+   "cy": 42,
+   "bbox": [
+    1,
+    29,
+    116,
+    55
+   ],
+   "w": 115,
+   "h": 26,
+   "score": 0.9896,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU: 28%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    2,
+    55,
+    107,
+    77
+   ],
+   "w": 105,
+   "h": 22,
+   "score": 0.9724,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "透雨",
+   "cx": 1277,
+   "cy": 430,
+   "bbox": [
+    1234,
+    406,
+    1320,
+    453
+   ],
+   "w": 86,
+   "h": 47,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 4,
+   "text": "孤单心事",
+   "cx": 2129,
+   "cy": 594,
+   "bbox": [
+    2094,
+    582,
+    2165,
+    605
+   ],
+   "w": 71,
+   "h": 23,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "钟珍",
+   "cx": 2079,
+   "cy": 618,
+   "bbox": [
+    2060,
+    606,
+    2099,
+    630
+   ],
+   "w": 39,
+   "h": 24,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "max: 8690.9 ms",
+   "cx": 224,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1297,
+    292,
+    1319
+   ],
+   "w": 136,
+   "h": 22,
+   "score": 0.9837,
+   "kind": "data"
+  },
+  {
+   "id": 7,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1419,
+   "bbox": [
+    2258,
+    1402,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1496,
+    410,
+    1518,
+    430
+   ],
+   "cx": 1507,
+   "cy": 420,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2088,
+    422,
+    2116,
+    442
+   ],
+   "cx": 2102,
+   "cy": 432,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.779,
+    "aspect": 1.4,
+    "corner_fill": 0.12,
+    "area": 436,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    716,
+    436,
+    742,
+    456
+   ],
+   "cx": 729,
+   "cy": 446,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 1.3,
+    "corner_fill": 0.19,
+    "area": 420,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    536,
+    448,
+    554,
+    468
+   ],
+   "cx": 545,
+   "cy": 458,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.756,
+    "aspect": 0.9,
+    "corner_fill": 0.19,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    280,
+    508,
+    304,
+    528
+   ],
+   "cx": 292,
+   "cy": 518,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.758,
+    "aspect": 1.2,
+    "corner_fill": 0.12,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    600,
+    518,
+    626,
+    538
+   ],
+   "cx": 613,
+   "cy": 528,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.715,
+    "aspect": 1.3,
+    "corner_fill": 0.06,
+    "area": 372,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1566,
+    522,
+    1590,
+    542
+   ],
+   "cx": 1578,
+   "cy": 532,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.817,
+    "aspect": 1.2,
+    "corner_fill": 0.19,
+    "area": 392,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1496,
+    542,
+    1516,
+    566
+   ],
+   "cx": 1506,
+   "cy": 554,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.767,
+    "aspect": 0.83,
+    "corner_fill": 0.12,
+    "area": 368,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    546,
+    556,
+    568,
+    576
+   ],
+   "cx": 557,
+   "cy": 566,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 1.1,
+    "corner_fill": 0.19,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1252,
+    628,
+    1304,
+    694
+   ],
+   "cx": 1278,
+   "cy": 661,
+   "w": 52,
+   "h": 66,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.62,
+    "aspect": 0.79,
+    "corner_fill": 0.16,
+    "area": 2128,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1152,
+    762,
+    1182,
+    788
+   ],
+   "cx": 1167,
+   "cy": 775,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.426,
+    "aspect": 1.15,
+    "corner_fill": 0.06,
+    "area": 332,
+    "src": "flat"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1312,
+    1180,
+    1340,
+    1208
+   ],
+   "cx": 1326,
+   "cy": 1194,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 48.3,
+    "ring_L": 58.2,
+    "inside_L": 104.0,
+    "outside_L": 109.0
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1504,
+    596,
+    1524,
+    622
+   ],
+   "cx": 1514,
+   "cy": 609,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 0.77,
+    "corner_fill": 0.25,
+    "area": 420,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    2112,
+    644,
+    2148,
+    680
+   ],
+   "cx": 2130,
+   "cy": 662,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.958,
+    "contrast": 53.2,
+    "ring_L": 145.1,
+    "inside_L": 62.2,
+    "outside_L": 121.7
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    868,
+    628,
+    886,
+    654
+   ],
+   "cx": 877,
+   "cy": 641,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.744,
+    "aspect": 0.69,
+    "corner_fill": 0.25,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1210,
+    824,
+    1238,
+    852
+   ],
+   "cx": 1224,
+   "cy": 838,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.917,
+    "contrast": 22.4,
+    "ring_L": 104.4,
+    "inside_L": 134.0,
+    "outside_L": 119.6
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1190,
+    1172,
+    1218,
+    1200
+   ],
+   "cx": 1204,
+   "cy": 1186,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.903,
+    "contrast": 26.0,
+    "ring_L": 62.8,
+    "inside_L": 75.2,
+    "outside_L": 102.4
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    364,
+    522,
+    440,
+    618
+   ],
+   "cx": 402,
+   "cy": 570,
+   "w": 76,
+   "h": 96,
+   "shape": "circle",
+   "confidence": 0.93,
+   "label": null,
+   "evidence": {
+    "fill": 0.431,
+    "aspect": 0.79,
+    "corner_fill": 0.13,
+    "area": 3148,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2026,
+    594,
+    2046,
+    616
+   ],
+   "cx": 2036,
+   "cy": 605,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.709,
+    "aspect": 0.91,
+    "corner_fill": 0.25,
+    "area": 312,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1618,
+    520,
+    1658,
+    574
+   ],
+   "cx": 1638,
+   "cy": 547,
+   "w": 40,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.926,
+   "label": null,
+   "evidence": {
+    "fill": 0.73,
+    "aspect": 0.74,
+    "corner_fill": 0.26,
+    "area": 1576,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    700,
+    234,
+    720,
+    256
+   ],
+   "cx": 710,
+   "cy": 245,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.925,
+   "label": null,
+   "evidence": {
+    "fill": 0.7,
+    "aspect": 0.91,
+    "corner_fill": 0.25,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1170,
+    744,
+    1202,
+    778
+   ],
+   "cx": 1186,
+   "cy": 761,
+   "w": 32,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.925,
+   "label": null,
+   "evidence": {
+    "fill": 0.585,
+    "aspect": 0.94,
+    "corner_fill": 0.2,
+    "area": 636,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    226,
+    1400,
+    272,
+    1432
+   ],
+   "cx": 249,
+   "cy": 1416,
+   "w": 46,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.766,
+    "aspect": 1.44,
+    "corner_fill": 0.28,
+    "area": 1128,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    460,
+    576,
+    484,
+    596
+   ],
+   "cx": 472,
+   "cy": 586,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.675,
+    "aspect": 1.2,
+    "corner_fill": 0.25,
+    "area": 324,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    8,
+    1402,
+    122,
+    1440
+   ],
+   "cx": 65,
+   "cy": 1421,
+   "w": 114,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.959,
+    "aspect": 3.0,
+    "corner_fill": 0.78,
+    "area": 4156,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1272,
+    682,
+    1308,
+    718
+   ],
+   "cx": 1290,
+   "cy": 700,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.903,
+    "contrast": 18.5,
+    "ring_L": 151.0,
+    "inside_L": 203.1,
+    "outside_L": 135.9
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    124,
+    200,
+    160,
+    226
+   ],
+   "cx": 142,
+   "cy": 213,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.645,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    476,
+    440,
+    532,
+    482
+   ],
+   "cx": 504,
+   "cy": 461,
+   "w": 56,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.913,
+   "label": null,
+   "evidence": {
+    "fill": 0.515,
+    "aspect": 1.33,
+    "corner_fill": 0.2,
+    "area": 1212,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    128,
+    1046,
+    148,
+    1072
+   ],
+   "cx": 138,
+   "cy": 1059,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.792,
+    "aspect": 0.77,
+    "corner_fill": 0.31,
+    "area": 412,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    606,
+    642,
+    646,
+    672
+   ],
+   "cx": 626,
+   "cy": 657,
+   "w": 40,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.67,
+    "aspect": 1.33,
+    "corner_fill": 0.27,
+    "area": 804,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    118,
+    1282,
+    168,
+    1318
+   ],
+   "cx": 143,
+   "cy": 1300,
+   "w": 50,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.671,
+    "aspect": 1.39,
+    "corner_fill": 0.27,
+    "area": 1208,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    458,
+    226,
+    478,
+    246
+   ],
+   "cx": 468,
+   "cy": 236,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.76,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1530,
+    494,
+    1566,
+    534
+   ],
+   "cx": 1548,
+   "cy": 514,
+   "w": 36,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.904,
+   "label": null,
+   "evidence": {
+    "fill": 0.558,
+    "aspect": 0.9,
+    "corner_fill": 0.23,
+    "area": 804,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1850,
+    646,
+    1892,
+    678
+   ],
+   "cx": 1871,
+   "cy": 662,
+   "w": 42,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.903,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 1.31,
+    "corner_fill": 0.22,
+    "area": 688,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    0,
+    672,
+    36,
+    700
+   ],
+   "cx": 18,
+   "cy": 686,
+   "w": 36,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.903,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.29,
+    "corner_fill": 0.28,
+    "area": 672,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    436,
+    276,
+    452,
+    310
+   ],
+   "cx": 444,
+   "cy": 293,
+   "w": 16,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.89,
+    "aspect": 0.47,
+    "corner_fill": 0.5,
+    "area": 484,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1224,
+    1338,
+    1274,
+    1376
+   ],
+   "cx": 1249,
+   "cy": 1357,
+   "w": 50,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.501,
+    "aspect": 1.32,
+    "corner_fill": 0.22,
+    "area": 952,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1380,
+    112,
+    1434,
+    176
+   ],
+   "cx": 1407,
+   "cy": 144,
+   "w": 54,
+   "h": 64,
+   "shape": "circle",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.528,
+    "aspect": 0.84,
+    "corner_fill": 0.23,
+    "area": 1824,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    8,
+    66,
+    120,
+    574
+   ],
+   "cx": 64,
+   "cy": 320,
+   "w": 112,
+   "h": 508,
+   "shape": "rect",
+   "confidence": 0.895,
+   "label": "GPU: 28%",
+   "evidence": {
+    "fill": 0.877,
+    "aspect": 0.22,
+    "corner_fill": 0.59,
+    "area": 49900,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    412,
+    556,
+    456,
+    600
+   ],
+   "cx": 434,
+   "cy": 578,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.944,
+    "contrast": 15.6,
+    "ring_L": 175.8,
+    "inside_L": 159.8,
+    "outside_L": 160.6
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [],
+ "adjacency": [
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(1507,420)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 176,
+   "dx": 230,
+   "dy": -10,
+   "confidence": 0.553
+  },
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(1278,661)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 175,
+   "dx": 1,
+   "dy": 232,
+   "confidence": 0.554
+  },
+  {
+   "text": "透雨",
+   "text_id": 3,
+   "target": "circle@(1506,554)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "right",
+   "gap_px": 176,
+   "dx": 229,
+   "dy": 124,
+   "confidence": 0.553
+  },
+  {
+   "text": "钟珍",
+   "text_id": 5,
+   "target": "circle@(2130,662)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 14,
+   "dx": 50,
+   "dy": 44,
+   "confidence": 0.538
+  },
+  {
+   "text": "孤单心事",
+   "text_id": 4,
+   "target": "circle@(2036,605)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 48,
+   "dx": -94,
+   "dy": 12,
+   "confidence": 0.51
+  },
+  {
+   "text": "钟珍",
+   "text_id": 5,
+   "target": "circle@(2036,605)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 14,
+   "dx": -44,
+   "dy": -13,
+   "confidence": 0.538
+  },
+  {
+   "text": "孤单心事",
+   "text_id": 4,
+   "target": "circle@(2130,662)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": 0,
+   "dy": 68,
+   "confidence": 0.518
+  },
+  {
+   "text": "孤单心事",
+   "text_id": 4,
+   "target": "circle@(2102,432)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 140,
+   "dx": -28,
+   "dy": -162,
+   "confidence": 0.433
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    121,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=5.3，非纯黑 L=93，纹理对比骤降 std 12.0→5.3（0.44×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 22.7",
+     "GPU: 28%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 92.6,
+    "bg_std": 5.3,
+    "ring_mean": 92.6,
+    "ring_std": 12.0,
+    "texture_ratio": 0.44,
+    "bg_rgb": [
+     74,
+     81,
+     121
+    ]
+   }
+  }
+ ],
+ "containers": [],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 22.7",
+  "GPU: 28%",
+  "透雨",
+  "孤单心事",
+  "钟珍",
+  "max: 8690.9 ms",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    124,
+    1146,
+    156,
+    1164
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 58.0
+  },
+  {
+   "bbox": [
+    1442,
+    464,
+    1476,
+    492
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 93.0
+  },
+  {
+   "bbox": [
+    2218,
+    906,
+    2300,
+    924
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 77.0
+  },
+  {
+   "bbox": [
+    2418,
+    976,
+    2450,
+    992
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 107.0
+  },
+  {
+   "bbox": [
+    1190,
+    1086,
+    1226,
+    1218
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 144.0
+  },
+  {
+   "bbox": [
+    186,
+    512,
+    214,
+    532
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 122.0
+  },
+  {
+   "bbox": [
+    1616,
+    524,
+    1656,
+    574
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 124.0
+  },
+  {
+   "bbox": [
+    952,
+    532,
+    990,
+    566
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 83.0
+  },
+  {
+   "bbox": [
+    1752,
+    600,
+    1780,
+    638
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 150.0
+  },
+  {
+   "bbox": [
+    1308,
+    1090,
+    1350,
+    1228
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 156.0
+  },
+  {
+   "bbox": [
+    1134,
+    662,
+    1174,
+    680
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 56.0
+  },
+  {
+   "bbox": [
+    1798,
+    590,
+    1832,
+    634
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 167.0
+  },
+  {
+   "bbox": [
+    124,
+    832,
+    152,
+    858
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 57.0
+  },
+  {
+   "bbox": [
+    1410,
+    730,
+    1430,
+    756
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 91.0
+  },
+  {
+   "bbox": [
+    2506,
+    978,
+    2560,
+    1000
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    2476,
+    898,
+    2560,
+    930
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 97.0
+  },
+  {
+   "bbox": [
+    1176,
+    570,
+    1208,
+    588
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 66.0
+  },
+  {
+   "bbox": [
+    1158,
+    506,
+    1216,
+    532
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 82.0
+  },
+  {
+   "bbox": [
+    1008,
+    660,
+    1070,
+    678
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 141.0
+  },
+  {
+   "bbox": [
+    1596,
+    496,
+    1614,
+    534
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 113.0
+  },
+  {
+   "bbox": [
+    592,
+    672,
+    686,
+    710
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    124,
+    1112,
+    202,
+    1130
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    350,
+    1304,
+    386,
+    1320
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 73.0
+  },
+  {
+   "bbox": [
+    1930,
+    626,
+    1984,
+    642
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 90.0
+  },
+  {
+   "bbox": [
+    920,
+    512,
+    944,
+    532
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    398,
+    314,
+    442,
+    368
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 82.0
+  },
+  {
+   "bbox": [
+    632,
+    406,
+    672,
+    434
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 79.0
+  },
+  {
+   "bbox": [
+    858,
+    512,
+    886,
+    532
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    1370,
+    104,
+    1418,
+    138
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 111.0
+  },
+  {
+   "bbox": [
+    1318,
+    514,
+    1336,
+    536
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    2426,
+    508,
+    2488,
+    636
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 207.0
+  },
+  {
+   "bbox": [
+    1322,
+    542,
+    1344,
+    608
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 106.0
+  },
+  {
+   "bbox": [
+    2474,
+    760,
+    2560,
+    802
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 131.0
+  },
+  {
+   "bbox": [
+    1282,
+    32,
+    1310,
+    58
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 197.0
+  },
+  {
+   "bbox": [
+    432,
+    226,
+    456,
+    272
+   ],
+   "role": "icon",
+   "fill": 0.34,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    138,
+    516,
+    172,
+    556
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 118.0
+  },
+  {
+   "bbox": [
+    1344,
+    566,
+    1398,
+    704
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 167.0
+  },
+  {
+   "bbox": [
+    1202,
+    468,
+    1274,
+    502
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 114.0
+  },
+  {
+   "bbox": [
+    1038,
+    62,
+    1114,
+    104
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 113.0
+  },
+  {
+   "bbox": [
+    1492,
+    628,
+    1516,
+    656
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    1222,
+    496,
+    1316,
+    548
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 80.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 119,
+  "ocr_ms": 426,
+  "pixel_ms": 1212,
+  "container_ms": 392,
+  "container_cached": false,
+  "total_ms": 1757,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 8,
+  "err": null
+ },
+ "title_text_id": 3,
+ "digest": "屏幕 2560x1440 · 文本 8 · 控件 40 · 容器 0 · 邻接 8 · 遮挡 1 · 1757ms（OCR daemon）\n标题「透雨」@(1277,430) 画面 · 字高 47px\n邻接「透雨」→ circle@(1507,420) 右侧 176px\n邻接「透雨」→ circle@(1278,661) 下方 175px\n邻接「透雨」→ circle@(1506,554) 右侧 176px\n控件: circle@(1507,420) | circle@(1278,661) | circle@(1506,554) | circle@(2130,662)\n遮挡 [0, 0, 121, 80] (0,0)-(121,80)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=5.3，非纯黑 L=93，纹理对比骤降 std 12.0→5.3（0.44×）"
+}

@@ -1,0 +1,3885 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v047_0423.jpg",
+  "sha256": "7ec4bb4dcc51e5744aa00ed3c312a475d0d8e407c63201b660bd8a0d70ae465a",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 250571
+ },
+ "title": {
+  "text": "i9",
+  "cx": 2519,
+  "cy": 26,
+  "bbox": [
+   2499,
+   6,
+   2540,
+   46
+  ],
+  "region": "顶栏",
+  "why": "上半屏字高最大（40px, score=0.57）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK V3.",
+   "cx": 52,
+   "cy": 18,
+   "bbox": [
+    2,
+    5,
+    101,
+    30
+   ],
+   "w": 99,
+   "h": 25,
+   "score": 0.889,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "关卡设置 ×",
+   "cx": 344,
+   "cy": 25,
+   "bbox": [
+    289,
+    11,
+    400,
+    38
+   ],
+   "w": 111,
+   "h": 27,
+   "score": 0.9144,
+   "kind": "content"
+  },
+  {
+   "id": 2,
+   "text": "界面控件组管理 ×",
+   "cx": 541,
+   "cy": 24,
+   "bbox": [
+    459,
+    11,
+    623,
+    37
+   ],
+   "w": 164,
+   "h": 26,
+   "score": 0.9364,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "资产导入导出管理 ×",
+   "cx": 752,
+   "cy": 25,
+   "bbox": [
+    642,
+    10,
+    861,
+    39
+   ],
+   "w": 219,
+   "h": 29,
+   "score": 0.9516,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "高级数据管理×",
+   "cx": 992,
+   "cy": 23,
+   "bbox": [
+    920,
+    9,
+    1065,
+    38
+   ],
+   "w": 145,
+   "h": 29,
+   "score": 0.9874,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "技能变量管理 ×",
+   "cx": 1195,
+   "cy": 25,
+   "bbox": [
+    1121,
+    10,
+    1269,
+    39
+   ],
+   "w": 148,
+   "h": 29,
+   "score": 0.9269,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": " 81 ms",
+   "cx": 2272,
+   "cy": 26,
+   "bbox": [
+    2229,
+    12,
+    2314,
+    39
+   ],
+   "w": 85,
+   "h": 27,
+   "score": 0.9386,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "i9",
+   "cx": 2519,
+   "cy": 26,
+   "bbox": [
+    2499,
+    6,
+    2540,
+    46
+   ],
+   "w": 41,
+   "h": 40,
+   "score": 0.5719,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "FPS: 22.",
+   "cx": 54,
+   "cy": 40,
+   "bbox": [
+    2,
+    27,
+    107,
+    54
+   ],
+   "w": 105,
+   "h": 27,
+   "score": 0.9545,
+   "kind": "hud"
+  },
+  {
+   "id": 9,
+   "text": "GPU: 14%",
+   "cx": 55,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    107,
+    77
+   ],
+   "w": 104,
+   "h": 22,
+   "score": 0.9947,
+   "kind": "hud"
+  },
+  {
+   "id": 10,
+   "text": "日",
+   "cx": 39,
+   "cy": 100,
+   "bbox": [
+    21,
+    82,
+    56,
+    118
+   ],
+   "w": 35,
+   "h": 36,
+   "score": 0.8212,
+   "kind": "hud"
+  },
+  {
+   "id": 11,
+   "text": "云阶",
+   "cx": 127,
+   "cy": 85,
+   "bbox": [
+    96,
+    68,
+    157,
+    102
+   ],
+   "w": 61,
+   "h": 34,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 12,
+   "text": "自定义技能",
+   "cx": 2063,
+   "cy": 81,
+   "bbox": [
+    2006,
+    65,
+    2121,
+    96
+   ],
+   "w": 115,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "...",
+   "cx": 2468,
+   "cy": 87,
+   "bbox": [
+    2451,
+    78,
+    2485,
+    96
+   ],
+   "w": 34,
+   "h": 18,
+   "score": 0.5825,
+   "kind": "other"
+  },
+  {
+   "id": 14,
+   "text": "配置ID 1098907649",
+   "cx": 2091,
+   "cy": 116,
+   "bbox": [
+    2007,
+    105,
+    2175,
+    127
+   ],
+   "w": 168,
+   "h": 22,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "这能资源官理",
+   "cx": 227,
+   "cy": 129,
+   "bbox": [
+    158,
+    115,
+    295,
+    144
+   ],
+   "w": 137,
+   "h": 29,
+   "score": 0.8288,
+   "kind": "hud"
+  },
+  {
+   "id": 16,
+   "text": "背景音乐管理",
+   "cx": 228,
+   "cy": 185,
+   "bbox": [
+    161,
+    171,
+    295,
+    200
+   ],
+   "w": 134,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "普通技能(动画槽位：自定义)",
+   "cx": 2012,
+   "cy": 199,
+   "bbox": [
+    1896,
+    186,
+    2127,
+    212
+   ],
+   "w": 231,
+   "h": 26,
+   "score": 0.9802,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "资产导入导出管理",
+   "cx": 249,
+   "cy": 244,
+   "bbox": [
+    160,
+    228,
+    338,
+    259
+   ],
+   "w": 178,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "基础设置",
+   "cx": 1970,
+   "cy": 265,
+   "bbox": [
+    1929,
+    252,
+    2011,
+    279
+   ],
+   "w": 82,
+   "h": 27,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 20,
+   "text": "装备数据管理",
+   "cx": 227,
+   "cy": 303,
+   "bbox": [
+    160,
+    288,
+    295,
+    318
+   ],
+   "w": 135,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "启用运动坠崖保护",
+   "cx": 1975,
+   "cy": 311,
+   "bbox": [
+    1899,
+    298,
+    2051,
+    324
+   ],
+   "w": 152,
+   "h": 26,
+   "score": 0.997,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "商店模板管理",
+   "cx": 227,
+   "cy": 361,
+   "bbox": [
+    160,
+    347,
+    295,
+    376
+   ],
+   "w": 135,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "是否可以在空中施放",
+   "cx": 1984,
+   "cy": 356,
+   "bbox": [
+    1899,
+    343,
+    2069,
+    369
+   ],
+   "w": 170,
+   "h": 26,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "▼ 特殊状态是否可用",
+   "cx": 1994,
+   "cy": 402,
+   "bbox": [
+    1905,
+    389,
+    2082,
+    415
+   ],
+   "w": 177,
+   "h": 26,
+   "score": 0.9341,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "高级数据管理",
+   "cx": 228,
+   "cy": 421,
+   "bbox": [
+    161,
+    406,
+    295,
+    435
+   ],
+   "w": 134,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "受击时可用",
+   "cx": 1979,
+   "cy": 445,
+   "bbox": [
+    1930,
+    432,
+    2028,
+    459
+   ],
+   "w": 98,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "局内存档管理",
+   "cx": 227,
+   "cy": 478,
+   "bbox": [
+    160,
+    464,
+    295,
+    493
+   ],
+   "w": 135,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "空中受击时可用",
+   "cx": 1997,
+   "cy": 491,
+   "bbox": [
+    1930,
+    478,
+    2064,
+    504
+   ],
+   "w": 134,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "试玩临时数据管理",
+   "cx": 248,
+   "cy": 538,
+   "bbox": [
+    160,
+    523,
+    336,
+    552
+   ],
+   "w": 176,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "攀爬时可用",
+   "cx": 2009,
+   "cy": 537,
+   "bbox": [
+    1957,
+    524,
+    2061,
+    550
+   ],
+   "w": 104,
+   "h": 26,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "实体布设组管理",
+   "cx": 238,
+   "cy": 596,
+   "bbox": [
+    160,
+    581,
+    316,
+    612
+   ],
+   "w": 156,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "技能备注",
+   "cx": 1939,
+   "cy": 583,
+   "bbox": [
+    1899,
+    569,
+    1980,
+    596
+   ],
+   "w": 81,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "单位标签管理",
+   "cx": 228,
+   "cy": 655,
+   "bbox": [
+    161,
+    640,
+    295,
+    669
+   ],
+   "w": 134,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "护盾管理",
+   "cx": 206,
+   "cy": 714,
+   "bbox": [
+    158,
+    698,
+    254,
+    730
+   ],
+   "w": 96,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "扫描标签管理",
+   "cx": 227,
+   "cy": 772,
+   "bbox": [
+    158,
+    757,
+    295,
+    788
+   ],
+   "w": 137,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "数值配置",
+   "cx": 1958,
+   "cy": 801,
+   "bbox": [
+    1905,
+    788,
+    2011,
+    815
+   ],
+   "w": 106,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "路径管理",
+   "cx": 206,
+   "cy": 831,
+   "bbox": [
+    158,
+    815,
+    254,
+    847
+   ],
+   "w": 96,
+   "h": 32,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "是否有冷却时间",
+   "cx": 1966,
+   "cy": 846,
+   "bbox": [
+    1898,
+    831,
+    2034,
+    861
+   ],
+   "w": 136,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "多语言文本管理",
+   "cx": 238,
+   "cy": 889,
+   "bbox": [
+    158,
+    873,
+    317,
+    906
+   ],
+   "w": 159,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "冷却时间(s)",
+   "cx": 1950,
+   "cy": 890,
+   "bbox": [
+    1898,
+    874,
+    2002,
+    907
+   ],
+   "w": 104,
+   "h": 33,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "0.00",
+   "cx": 2316,
+   "cy": 892,
+   "bbox": [
+    2287,
+    878,
+    2344,
+    906
+   ],
+   "w": 57,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "光源管理",
+   "cx": 206,
+   "cy": 948,
+   "bbox": [
+    158,
+    932,
+    254,
+    964
+   ],
+   "w": 96,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "是否有次数限制",
+   "cx": 1966,
+   "cy": 937,
+   "bbox": [
+    1898,
+    923,
+    2034,
+    952
+   ],
+   "w": 136,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "是否有消耗",
+   "cx": 1949,
+   "cy": 982,
+   "bbox": [
+    1899,
+    969,
+    1998,
+    996
+   ],
+   "w": 99,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 45,
+   "text": "语音和文字聊天管理",
+   "cx": 259,
+   "cy": 1007,
+   "bbox": [
+    161,
+    992,
+    358,
+    1022
+   ],
+   "w": 197,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 46,
+   "text": "索敌范围",
+   "cx": 1939,
+   "cy": 1027,
+   "bbox": [
+    1899,
+    1014,
+    1979,
+    1041
+   ],
+   "w": 80,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 47,
+   "text": "圆柱体",
+   "cx": 2320,
+   "cy": 1028,
+   "bbox": [
+    2287,
+    1014,
+    2352,
+    1042
+   ],
+   "w": 65,
+   "h": 28,
+   "score": 0.9985,
+   "kind": "content"
+  },
+  {
+   "id": 48,
+   "text": "快捷键总览",
+   "cx": 217,
+   "cy": 1065,
+   "bbox": [
+    160,
+    1050,
+    274,
+    1081
+   ],
+   "w": 114,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 49,
+   "text": "半径(m)",
+   "cx": 1937,
+   "cy": 1073,
+   "bbox": [
+    1898,
+    1058,
+    1976,
+    1089
+   ],
+   "w": 78,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 50,
+   "text": "1.00",
+   "cx": 2312,
+   "cy": 1074,
+   "bbox": [
+    2286,
+    1059,
+    2338,
+    1089
+   ],
+   "w": 52,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 51,
+   "text": "场景生成模板管理",
+   "cx": 247,
+   "cy": 1124,
+   "bbox": [
+    158,
+    1109,
+    335,
+    1139
+   ],
+   "w": 177,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 52,
+   "text": "高度(m)",
+   "cx": 1937,
+   "cy": 1119,
+   "bbox": [
+    1899,
+    1105,
+    1975,
+    1132
+   ],
+   "w": 76,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 53,
+   "text": "1.00",
+   "cx": 2312,
+   "cy": 1119,
+   "bbox": [
+    2286,
+    1104,
+    2338,
+    1134
+   ],
+   "w": 52,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 54,
+   "text": "技能属性组",
+   "cx": 1967,
+   "cy": 1164,
+   "bbox": [
+    1904,
+    1149,
+    2030,
+    1179
+   ],
+   "w": 126,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 55,
+   "text": "编辑",
+   "cx": 2436,
+   "cy": 1164,
+   "bbox": [
+    2412,
+    1149,
+    2460,
+    1179
+   ],
+   "w": 48,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 56,
+   "text": "技能变量管理",
+   "cx": 227,
+   "cy": 1182,
+   "bbox": [
+    160,
+    1167,
+    295,
+    1198
+   ],
+   "w": 135,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 57,
+   "text": "生命周期管理",
+   "cx": 1988,
+   "cy": 1224,
+   "bbox": [
+    1929,
+    1211,
+    2047,
+    1236
+   ],
+   "w": 118,
+   "h": 25,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 58,
+   "text": "风险检查",
+   "cx": 206,
+   "cy": 1242,
+   "bbox": [
+    158,
+    1226,
+    254,
+    1257
+   ],
+   "w": 96,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 59,
+   "text": "达到次数上限是否销毁技能",
+   "cx": 2011,
+   "cy": 1268,
+   "bbox": [
+    1900,
+    1257,
+    2122,
+    1279
+   ],
+   "w": 222,
+   "h": 22,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 60,
+   "text": "奇域话务4",
+   "cx": 207,
+   "cy": 1301,
+   "bbox": [
+    154,
+    1284,
+    259,
+    1319
+   ],
+   "w": 105,
+   "h": 35,
+   "score": 0.7051,
+   "kind": "content"
+  },
+  {
+   "id": 61,
+   "text": "5",
+   "cx": 63,
+   "cy": 1308,
+   "bbox": [
+    56,
+    1302,
+    70,
+    1314
+   ],
+   "w": 14,
+   "h": 12,
+   "score": 1.0,
+   "kind": "other"
+  },
+  {
+   "id": 62,
+   "text": "技能预瞄准 序号1",
+   "cx": 2003,
+   "cy": 1324,
+   "bbox": [
+    1929,
+    1311,
+    2078,
+    1337
+   ],
+   "w": 149,
+   "h": 26,
+   "score": 0.9612,
+   "kind": "content"
+  },
+  {
+   "id": 63,
+   "text": "预览",
+   "cx": 2035,
+   "cy": 1373,
+   "bbox": [
+    2007,
+    1356,
+    2063,
+    1389
+   ],
+   "w": 56,
+   "h": 33,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 64,
+   "text": "动画编辑",
+   "cx": 2369,
+   "cy": 1372,
+   "bbox": [
+    2321,
+    1356,
+    2416,
+    1388
+   ],
+   "w": 95,
+   "h": 32,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 65,
+   "text": "Lv.4",
+   "cx": 465,
+   "cy": 1391,
+   "bbox": [
+    437,
+    1378,
+    492,
+    1405
+   ],
+   "w": 55,
+   "h": 27,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 66,
+   "text": "切换性别",
+   "cx": 1110,
+   "cy": 1399,
+   "bbox": [
+    1069,
+    1386,
+    1150,
+    1413
+   ],
+   "w": 81,
+   "h": 27,
+   "score": 0.9987,
+   "kind": "action"
+  },
+  {
+   "id": 67,
+   "text": "预览单位",
+   "cx": 1256,
+   "cy": 1398,
+   "bbox": [
+    1215,
+    1384,
+    1298,
+    1411
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 68,
+   "text": "保存",
+   "cx": 1385,
+   "cy": 1399,
+   "bbox": [
+    1362,
+    1384,
+    1409,
+    1414
+   ],
+   "w": 47,
+   "h": 30,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 69,
+   "text": "另存为",
+   "cx": 1499,
+   "cy": 1398,
+   "bbox": [
+    1467,
+    1384,
+    1531,
+    1413
+   ],
+   "w": 64,
+   "h": 29,
+   "score": 0.9998,
+   "kind": "action"
+  },
+  {
+   "id": 70,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "hud"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    18,
+    232,
+    62,
+    268
+   ],
+   "cx": 40,
+   "cy": 250,
+   "w": 44,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 1.22,
+    "corner_fill": 0.19,
+    "area": 1224,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1934,
+    526,
+    1964,
+    552
+   ],
+   "cx": 1949,
+   "cy": 539,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.749,
+    "aspect": 1.15,
+    "corner_fill": 0.14,
+    "area": 584,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2498,
+    1212,
+    2518,
+    1236
+   ],
+   "cx": 2508,
+   "cy": 1224,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 0.83,
+    "corner_fill": 0.0,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2464,
+    1256,
+    2484,
+    1280
+   ],
+   "cx": 2474,
+   "cy": 1268,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 0.83,
+    "corner_fill": 0.06,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    110,
+    874,
+    142,
+    906
+   ],
+   "cx": 126,
+   "cy": 890,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 72.4,
+    "ring_L": 171.9,
+    "inside_L": 139.8,
+    "outside_L": 59.1
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    114,
+    1050,
+    142,
+    1078
+   ],
+   "cx": 128,
+   "cy": 1064,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 39.5,
+    "ring_L": 130.5,
+    "inside_L": 113.9,
+    "outside_L": 68.0
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    112,
+    698,
+    140,
+    726
+   ],
+   "cx": 126,
+   "cy": 712,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 29.8,
+    "ring_L": 130.6,
+    "inside_L": 149.1,
+    "outside_L": 52.4
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    26,
+    1156,
+    50,
+    1180
+   ],
+   "cx": 38,
+   "cy": 1168,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 34.7,
+    "ring_L": 149.7,
+    "inside_L": 119.3,
+    "outside_L": 110.5
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1310,
+    82,
+    1346,
+    118
+   ],
+   "cx": 1328,
+   "cy": 100,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 1.0,
+    "contrast": 57.6,
+    "ring_L": 158.1,
+    "inside_L": 145.4,
+    "outside_L": 55.7
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    112,
+    402,
+    148,
+    438
+   ],
+   "cx": 130,
+   "cy": 420,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 1.0,
+    "contrast": 38.6,
+    "ring_L": 124.9,
+    "inside_L": 114.6,
+    "outside_L": 57.8
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    114,
+    936,
+    138,
+    960
+   ],
+   "cx": 126,
+   "cy": 948,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 101.8,
+    "ring_L": 167.4,
+    "inside_L": 68.6,
+    "outside_L": 62.7
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    2440,
+    14,
+    2464,
+    38
+   ],
+   "cx": 2452,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 92.8,
+    "ring_L": 178.3,
+    "inside_L": 114.5,
+    "outside_L": 56.4
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    112,
+    346,
+    140,
+    374
+   ],
+   "cx": 126,
+   "cy": 360,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 64.0,
+    "ring_L": 168.3,
+    "inside_L": 151.3,
+    "outside_L": 57.3
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    182,
+    10,
+    218,
+    36
+   ],
+   "cx": 200,
+   "cy": 23,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.949,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 768,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    120,
+    530,
+    144,
+    554
+   ],
+   "cx": 132,
+   "cy": 542,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 32.4,
+    "ring_L": 139.5,
+    "inside_L": 127.0,
+    "outside_L": 87.1
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    20,
+    1224,
+    56,
+    1260
+   ],
+   "cx": 38,
+   "cy": 1242,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.986,
+    "contrast": 31.3,
+    "ring_L": 160.7,
+    "inside_L": 179.5,
+    "outside_L": 79.2
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    120,
+    472,
+    144,
+    496
+   ],
+   "cx": 132,
+   "cy": 484,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 30.8,
+    "ring_L": 136.4,
+    "inside_L": 126.3,
+    "outside_L": 84.9
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    488,
+    1374,
+    520,
+    1406
+   ],
+   "cx": 504,
+   "cy": 1390,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.972,
+    "contrast": 55.8,
+    "ring_L": 96.6,
+    "inside_L": 197.4,
+    "outside_L": 107.4
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2462,
+    972,
+    2486,
+    998
+   ],
+   "cx": 2474,
+   "cy": 985,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 0.92,
+    "corner_fill": 0.25,
+    "area": 492,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    110,
+    754,
+    146,
+    790
+   ],
+   "cx": 128,
+   "cy": 772,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.958,
+    "contrast": 50.1,
+    "ring_L": 131.7,
+    "inside_L": 102.1,
+    "outside_L": 61.1
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1208,
+    80,
+    1248,
+    120
+   ],
+   "cx": 1228,
+   "cy": 100,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.958,
+    "contrast": 41.0,
+    "ring_L": 118.4,
+    "inside_L": 99.0,
+    "outside_L": 55.8
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    108,
+    990,
+    140,
+    1022
+   ],
+   "cx": 124,
+   "cy": 1006,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 0.958,
+    "contrast": 23.3,
+    "ring_L": 145.4,
+    "inside_L": 181.7,
+    "outside_L": 62.6
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    110,
+    122,
+    144,
+    146
+   ],
+   "cx": 127,
+   "cy": 134,
+   "w": 34,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": 0.824,
+    "aspect": 1.42,
+    "corner_fill": 0.28,
+    "area": 672,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1332,
+    1392,
+    1356,
+    1416
+   ],
+   "cx": 1344,
+   "cy": 1404,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.931,
+    "contrast": 123.7,
+    "ring_L": 218.4,
+    "inside_L": 83.1,
+    "outside_L": 106.4
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    114,
+    648,
+    138,
+    672
+   ],
+   "cx": 126,
+   "cy": 660,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.931,
+    "contrast": 28.1,
+    "ring_L": 115.7,
+    "inside_L": 93.8,
+    "outside_L": 81.5
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    2180,
+    104,
+    2204,
+    132
+   ],
+   "cx": 2192,
+   "cy": 118,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.86,
+    "corner_fill": 0.28,
+    "area": 552,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    110,
+    1230,
+    138,
+    1258
+   ],
+   "cx": 124,
+   "cy": 1244,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.972,
+    "contrast": 18.7,
+    "ring_L": 122.4,
+    "inside_L": 110.1,
+    "outside_L": 97.4
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2462,
+    526,
+    2486,
+    552
+   ],
+   "cx": 2474,
+   "cy": 539,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.921,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.92,
+    "corner_fill": 0.31,
+    "area": 512,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2462,
+    480,
+    2486,
+    506
+   ],
+   "cx": 2474,
+   "cy": 493,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.814,
+    "aspect": 0.92,
+    "corner_fill": 0.31,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1998,
+    766,
+    2512,
+    784
+   ],
+   "cx": 2255,
+   "cy": 775,
+   "w": 514,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.947,
+    "aspect": 28.56,
+    "corner_fill": 0.0,
+    "area": 8760,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2134,
+    222,
+    2504,
+    242
+   ],
+   "cx": 2319,
+   "cy": 232,
+   "w": 370,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.924,
+    "aspect": 18.5,
+    "corner_fill": 0.5,
+    "area": 6836,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1840,
+    1408,
+    1864,
+    1436
+   ],
+   "cx": 1852,
+   "cy": 1422,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.506,
+    "aspect": 0.86,
+    "corner_fill": 0.19,
+    "area": 340,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    2262,
+    0,
+    2284,
+    14
+   ],
+   "cx": 2273,
+   "cy": 7,
+   "w": 22,
+   "h": 14,
+   "shape": "rect",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.909,
+    "aspect": 1.57,
+    "corner_fill": 0.62,
+    "area": 280,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2462,
+    344,
+    2486,
+    370
+   ],
+   "cx": 2474,
+   "cy": 357,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 512,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2514,
+    954,
+    2544,
+    976
+   ],
+   "cx": 2529,
+   "cy": 965,
+   "w": 30,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.902,
+   "label": null,
+   "evidence": {
+    "fill": 0.515,
+    "aspect": 1.36,
+    "corner_fill": 0.22,
+    "area": 340,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    2462,
+    434,
+    2486,
+    460
+   ],
+   "cx": 2474,
+   "cy": 447,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 0.92,
+    "corner_fill": 0.36,
+    "area": 516,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2018,
+    128,
+    2146,
+    146
+   ],
+   "cx": 2082,
+   "cy": 137,
+   "w": 128,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.892,
+   "label": null,
+   "evidence": {
+    "fill": 0.872,
+    "aspect": 7.11,
+    "corner_fill": 0.38,
+    "area": 2008,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2388,
+    18,
+    2412,
+    34
+   ],
+   "cx": 2400,
+   "cy": 26,
+   "w": 24,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 1.5,
+    "corner_fill": 0.56,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    508,
+    76,
+    528,
+    96
+   ],
+   "cx": 518,
+   "cy": 86,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.887,
+   "label": null,
+   "evidence": {
+    "fill": 0.82,
+    "aspect": 1.0,
+    "corner_fill": 0.38,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2462,
+    298,
+    2486,
+    324
+   ],
+   "cx": 2474,
+   "cy": 311,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.846,
+    "aspect": 0.92,
+    "corner_fill": 0.39,
+    "area": 528,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 57% 宽）"
+  },
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    558,
+    1440
+   ],
+   "why": "竖边长直边 x=558（覆盖 97% 高）"
+  },
+  {
+   "name": "右侧栏",
+   "bbox": [
+    1866,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=1866（覆盖 64% 高）"
+  },
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1398,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1398（覆盖 41% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    158,
+    9,
+    1531,
+    1414
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 15,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 22,
+   "row_y": [
+    24,
+    129,
+    185,
+    244,
+    303,
+    361,
+    421,
+    478,
+    538,
+    596,
+    655,
+    714,
+    772,
+    831,
+    889,
+    948,
+    1007,
+    1065,
+    1124,
+    1182,
+    1242,
+    1398
+   ],
+   "rows": [
+    {
+     "y": 24,
+     "texts": [
+      "高级数据管理×",
+      "界面控件组管理 ×",
+      "关卡设置 ×",
+      "资产导入导出管理 ×",
+      "技能变量管理 ×"
+     ]
+    },
+    {
+     "y": 129,
+     "texts": [
+      "这能资源官理"
+     ]
+    },
+    {
+     "y": 185,
+     "texts": [
+      "背景音乐管理"
+     ]
+    },
+    {
+     "y": 244,
+     "texts": [
+      "资产导入导出管理"
+     ]
+    },
+    {
+     "y": 303,
+     "texts": [
+      "装备数据管理"
+     ]
+    },
+    {
+     "y": 361,
+     "texts": [
+      "商店模板管理"
+     ]
+    },
+    {
+     "y": 421,
+     "texts": [
+      "高级数据管理"
+     ]
+    },
+    {
+     "y": 478,
+     "texts": [
+      "局内存档管理"
+     ]
+    },
+    {
+     "y": 538,
+     "texts": [
+      "试玩临时数据管理"
+     ]
+    },
+    {
+     "y": 596,
+     "texts": [
+      "实体布设组管理"
+     ]
+    },
+    {
+     "y": 655,
+     "texts": [
+      "单位标签管理"
+     ]
+    },
+    {
+     "y": 714,
+     "texts": [
+      "护盾管理"
+     ]
+    },
+    {
+     "y": 772,
+     "texts": [
+      "扫描标签管理"
+     ]
+    },
+    {
+     "y": 831,
+     "texts": [
+      "路径管理"
+     ]
+    },
+    {
+     "y": 889,
+     "texts": [
+      "多语言文本管理"
+     ]
+    },
+    {
+     "y": 948,
+     "texts": [
+      "光源管理"
+     ]
+    },
+    {
+     "y": 1007,
+     "texts": [
+      "语音和文字聊天管理"
+     ]
+    },
+    {
+     "y": 1065,
+     "texts": [
+      "快捷键总览"
+     ]
+    },
+    {
+     "y": 1124,
+     "texts": [
+      "场景生成模板管理"
+     ]
+    },
+    {
+     "y": 1182,
+     "texts": [
+      "技能变量管理"
+     ]
+    },
+    {
+     "y": 1242,
+     "texts": [
+      "风险检查"
+     ]
+    },
+    {
+     "y": 1398,
+     "texts": [
+      "预览单位",
+      "另存为",
+      "切换性别",
+      "保存"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1896,
+    12,
+    2460,
+    1389
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 16,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 24,
+   "row_y": [
+    26,
+    98,
+    199,
+    265,
+    311,
+    356,
+    402,
+    445,
+    491,
+    537,
+    583,
+    801,
+    846,
+    891,
+    937,
+    982,
+    1027,
+    1073,
+    1119,
+    1164,
+    1224,
+    1268,
+    1324,
+    1373
+   ],
+   "rows": [
+    {
+     "y": 26,
+     "texts": [
+      " 81 ms"
+     ]
+    },
+    {
+     "y": 98,
+     "texts": [
+      "自定义技能",
+      "配置ID 1098907649"
+     ]
+    },
+    {
+     "y": 199,
+     "texts": [
+      "普通技能(动画槽位：自定义)"
+     ]
+    },
+    {
+     "y": 265,
+     "texts": [
+      "基础设置"
+     ]
+    },
+    {
+     "y": 311,
+     "texts": [
+      "启用运动坠崖保护"
+     ]
+    },
+    {
+     "y": 356,
+     "texts": [
+      "是否可以在空中施放"
+     ]
+    },
+    {
+     "y": 402,
+     "texts": [
+      "▼ 特殊状态是否可用"
+     ]
+    },
+    {
+     "y": 445,
+     "texts": [
+      "受击时可用"
+     ]
+    },
+    {
+     "y": 491,
+     "texts": [
+      "空中受击时可用"
+     ]
+    },
+    {
+     "y": 537,
+     "texts": [
+      "攀爬时可用"
+     ]
+    },
+    {
+     "y": 583,
+     "texts": [
+      "技能备注"
+     ]
+    },
+    {
+     "y": 801,
+     "texts": [
+      "数值配置"
+     ]
+    },
+    {
+     "y": 846,
+     "texts": [
+      "是否有冷却时间"
+     ]
+    },
+    {
+     "y": 891,
+     "texts": [
+      "冷却时间(s)",
+      "0.00"
+     ]
+    },
+    {
+     "y": 937,
+     "texts": [
+      "是否有次数限制"
+     ]
+    },
+    {
+     "y": 982,
+     "texts": [
+      "是否有消耗"
+     ]
+    },
+    {
+     "y": 1027,
+     "texts": [
+      "索敌范围",
+      "圆柱体"
+     ]
+    },
+    {
+     "y": 1073,
+     "texts": [
+      "半径(m)",
+      "1.00"
+     ]
+    },
+    {
+     "y": 1119,
+     "texts": [
+      "高度(m)",
+      "1.00"
+     ]
+    },
+    {
+     "y": 1164,
+     "texts": [
+      "技能属性组",
+      "编辑"
+     ]
+    },
+    {
+     "y": 1224,
+     "texts": [
+      "生命周期管理"
+     ]
+    },
+    {
+     "y": 1268,
+     "texts": [
+      "达到次数上限是否销毁技能"
+     ]
+    },
+    {
+     "y": 1324,
+     "texts": [
+      "技能预瞄准 序号1"
+     ]
+    },
+    {
+     "y": 1373,
+     "texts": [
+      "预览"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "circle@(2452,26)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 35,
+   "dx": -68,
+   "dy": 0,
+   "confidence": 0.671
+  },
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "rect@(2400,26)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 87,
+   "dx": -120,
+   "dy": 0,
+   "confidence": 0.628
+  },
+  {
+   "text": "i9",
+   "text_id": 7,
+   "target": "rect@(2319,232)",
+   "target_id": "c30",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 176,
+   "dx": -200,
+   "dy": 206,
+   "confidence": 0.553
+  },
+  {
+   "text": "多语言文本管理",
+   "text_id": 39,
+   "target": "circle@(126,890)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 16,
+   "dx": -112,
+   "dy": 0,
+   "confidence": 0.537
+  },
+  {
+   "text": "局内存档管理",
+   "text_id": 27,
+   "target": "circle@(132,484)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 16,
+   "dx": -96,
+   "dy": 6,
+   "confidence": 0.537
+  },
+  {
+   "text": "试玩临时数据管理",
+   "text_id": 29,
+   "target": "circle@(132,542)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 16,
+   "dx": -116,
+   "dy": 4,
+   "confidence": 0.537
+  },
+  {
+   "text": "启用运动坠崖保护",
+   "text_id": 21,
+   "target": "label@(1970,265)",
+   "target_id": "t19",
+   "target_kind": "label",
+   "label": "基础设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 19,
+   "dx": -5,
+   "dy": -46,
+   "confidence": 0.734
+  },
+  {
+   "text": "风险检查",
+   "text_id": 58,
+   "target": "circle@(124,1244)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 20,
+   "dx": -82,
+   "dy": 2,
+   "confidence": 0.533
+  },
+  {
+   "text": "单位标签管理",
+   "text_id": 33,
+   "target": "circle@(126,660)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 23,
+   "dx": -102,
+   "dy": 6,
+   "confidence": 0.531
+  },
+  {
+   "text": "护盾管理",
+   "text_id": 34,
+   "target": "circle@(128,772)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 24,
+   "dx": -78,
+   "dy": 58,
+   "confidence": 0.53
+  },
+  {
+   "text": "奇域话务4",
+   "text_id": 60,
+   "target": "circle@(124,1244)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 26,
+   "dx": -82,
+   "dy": -58,
+   "confidence": 0.528
+  },
+  {
+   "text": "光源管理",
+   "text_id": 42,
+   "target": "circle@(124,1006)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 26,
+   "dx": -82,
+   "dy": 58,
+   "confidence": 0.528
+  },
+  {
+   "text": "商店模板管理",
+   "text_id": 22,
+   "target": "circle@(130,420)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 26,
+   "dx": -98,
+   "dy": 58,
+   "confidence": 0.528
+  },
+  {
+   "text": "路径管理",
+   "text_id": 37,
+   "target": "circle@(126,890)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 27,
+   "dx": -80,
+   "dy": 59,
+   "confidence": 0.528
+  },
+  {
+   "text": "装备数据管理",
+   "text_id": 20,
+   "target": "circle@(126,360)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 28,
+   "dx": -102,
+   "dy": 57,
+   "confidence": 0.527
+  },
+  {
+   "text": "语音和文字聊天管理",
+   "text_id": 45,
+   "target": "circle@(128,1064)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 28,
+   "dx": -132,
+   "dy": 57,
+   "confidence": 0.527
+  },
+  {
+   "text": "技能变量管理",
+   "text_id": 56,
+   "target": "circle@(124,1244)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 32,
+   "dx": -104,
+   "dy": 62,
+   "confidence": 0.523
+  },
+  {
+   "text": "实体布设组管理",
+   "text_id": 31,
+   "target": "circle@(126,660)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 36,
+   "dx": -112,
+   "dy": 64,
+   "confidence": 0.52
+  },
+  {
+   "text": "高级数据管理",
+   "text_id": 25,
+   "target": "circle@(132,484)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 37,
+   "dx": -96,
+   "dy": 64,
+   "confidence": 0.519
+  },
+  {
+   "text": "界面控件组管理 ×",
+   "text_id": 2,
+   "target": "circle@(518,86)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": -23,
+   "dy": 62,
+   "confidence": 0.518
+  },
+  {
+   "text": "普通技能(动画槽位：自定义)",
+   "text_id": 17,
+   "target": "label@(1970,265)",
+   "target_id": "t19",
+   "target_kind": "label",
+   "label": "基础设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 40,
+   "dx": -42,
+   "dy": 66,
+   "confidence": 0.717
+  },
+  {
+   "text": "技能变量管理 ×",
+   "text_id": 5,
+   "target": "circle@(1228,100)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 41,
+   "dx": 33,
+   "dy": 76,
+   "confidence": 0.516
+  },
+  {
+   "text": "预览单位",
+   "text_id": 67,
+   "target": "label@(1385,1399)",
+   "target_id": "t68",
+   "target_kind": "label",
+   "label": "保存",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 64,
+   "dx": 129,
+   "dy": 2,
+   "confidence": 0.697
+  },
+  {
+   "text": "是否可以在空中施放",
+   "text_id": 23,
+   "target": "label@(1970,265)",
+   "target_id": "t19",
+   "target_kind": "label",
+   "label": "基础设置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 64,
+   "dx": -14,
+   "dy": -90,
+   "confidence": 0.697
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    298,
+    147
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 6 框，非纯黑 L=74",
+   "evidence": {
+    "texts": [
+     "DXVK V3.",
+     "FPS: 22.",
+     "GPU: 14%",
+     "日",
+     "云阶",
+     "这能资源官理"
+    ],
+    "text_ids": [
+     0,
+     8,
+     9,
+     10,
+     11,
+     15
+    ],
+    "n_texts": 6,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 74.4,
+    "bg_std": 33.0,
+    "ring_mean": 70.9,
+    "ring_std": 24.5,
+    "texture_ratio": 1.35,
+    "bg_rgb": [
+     49,
+     69,
+     104
+    ]
+   }
+  },
+  {
+   "bbox": [
+    2255,
+    1353,
+    2486,
+    1439
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "右下角小字叠加层：低方差 std=1.1，非纯黑 L=129，纹理对比骤降 std 18.0→1.1（0.06×）",
+   "evidence": {
+    "texts": [
+     "动画编辑",
+     "UID:110170759"
+    ],
+    "text_ids": [
+     64,
+     70
+    ],
+    "n_texts": 2,
+    "corner": "右下",
+    "corner_dist_px": 77,
+    "bg_mean": 129.3,
+    "bg_std": 1.1,
+    "ring_mean": 121.6,
+    "ring_std": 18.0,
+    "texture_ratio": 0.06,
+    "bg_rgb": [
+     125,
+     129,
+     133
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    56,
+    2560,
+    734
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     121.0,
+     133.0,
+     80.0
+    ],
+    "fill": 0.58,
+    "rect": 0.65
+   },
+   "text": [
+    "GPU: 14%",
+    "日",
+    "云阶",
+    "自定义技能",
+    "...",
+    "配置ID 1098907649",
+    "这能资源官理",
+    "背景音乐管理",
+    "普通技能(动画槽位：自定义)",
+    "资产导入导出管理",
+    "基础设置",
+    "装备数据管理",
+    "启用运动坠崖保护",
+    "商店模板管理",
+    "是否可以在空中施放",
+    "▼ 特殊状态是否可用",
+    "高级数据管理",
+    "受击时可用",
+    "局内存档管理",
+    "空中受击时可用",
+    "试玩临时数据管理",
+    "攀爬时可用",
+    "实体布设组管理",
+    "技能备注",
+    "单位标签管理",
+    "护盾管理"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1770,
+      102,
+      1818,
+      150
+     ],
+     "role": "icon",
+     "fill": 0.97,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      2500,
+      258,
+      2518,
+      274
+     ],
+     "role": "icon",
+     "fill": 0.97,
+     "contrast": 188.0
+    },
+    {
+     "bbox": [
+      504,
+      74,
+      530,
+      100
+     ],
+     "role": "icon",
+     "fill": 0.91,
+     "contrast": 213.0
+    },
+    {
+     "bbox": [
+      24,
+      162,
+      56,
+      190
+     ],
+     "role": "icon",
+     "fill": 0.89,
+     "contrast": 192.0
+    },
+    {
+     "bbox": [
+      2182,
+      106,
+      2200,
+      128
+     ],
+     "role": "icon",
+     "fill": 0.85,
+     "contrast": 157.0
+    },
+    {
+     "bbox": [
+      108,
+      398,
+      144,
+      440
+     ],
+     "role": "icon",
+     "fill": 0.83,
+     "contrast": 209.0
+    },
+    {
+     "bbox": [
+      108,
+      170,
+      144,
+      204
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 200.0
+    },
+    {
+     "bbox": [
+      22,
+      236,
+      58,
+      266
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 206.0
+    },
+    {
+     "bbox": [
+      2464,
+      302,
+      2484,
+      322
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 125.0
+    },
+    {
+     "bbox": [
+      2464,
+      438,
+      2484,
+      458
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 119.0
+    },
+    {
+     "bbox": [
+      2410,
+      74,
+      2430,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.77,
+     "contrast": 208.0
+    },
+    {
+     "bbox": [
+      2464,
+      348,
+      2484,
+      368
+     ],
+     "role": "icon",
+     "fill": 0.76,
+     "contrast": 122.0
+    },
+    {
+     "bbox": [
+      2464,
+      484,
+      2484,
+      504
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      108,
+      344,
+      146,
+      386
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 190.0
+    },
+    {
+     "bbox": [
+      2464,
+      528,
+      2484,
+      548
+     ],
+     "role": "icon",
+     "fill": 0.74,
+     "contrast": 114.0
+    },
+    {
+     "bbox": [
+      108,
+      124,
+      148,
+      146
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 194.0
+    },
+    {
+     "bbox": [
+      108,
+      222,
+      146,
+      262
+     ],
+     "role": "icon",
+     "fill": 0.72,
+     "contrast": 189.0
+    },
+    {
+     "bbox": [
+      108,
+      464,
+      146,
+      496
+     ],
+     "role": "icon",
+     "fill": 0.71,
+     "contrast": 194.0
+    },
+    {
+     "bbox": [
+      1410,
+      82,
+      1450,
+      122
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      110,
+      288,
+      144,
+      324
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 199.0
+    },
+    {
+     "bbox": [
+      108,
+      578,
+      144,
+      616
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 193.0
+    },
+    {
+     "bbox": [
+      2506,
+      76,
+      2528,
+      98
+     ],
+     "role": "icon",
+     "fill": 0.68,
+     "contrast": 194.0
+    },
+    {
+     "bbox": [
+      108,
+      522,
+      146,
+      558
+     ],
+     "role": "icon",
+     "fill": 0.67,
+     "contrast": 193.0
+    },
+    {
+     "bbox": [
+      112,
+      640,
+      144,
+      674
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 183.0
+    },
+    {
+     "bbox": [
+      110,
+      696,
+      142,
+      732
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 185.0
+    },
+    {
+     "bbox": [
+      1838,
+      54,
+      1866,
+      80
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 77.0
+    },
+    {
+     "bbox": [
+      1914,
+      72,
+      1988,
+      154
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 223.0
+    },
+    {
+     "bbox": [
+      1186,
+      82,
+      1276,
+      132
+     ],
+     "role": "icon",
+     "fill": 0.35,
+     "contrast": 185.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:26",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 22)",
+    "area_px": 1127048,
+    "area_frac": 0.4708,
+    "aspect": 3.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 26,
+    "text_ui": 22,
+    "skin_lab": [
+     121.0,
+     133.0,
+     80.0
+    ],
+    "flat_fill": 0.58,
+    "rect": 0.65
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    1872,
+    736,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     98.0,
+     127.0,
+     125.0
+    ],
+    "fill": 0.5,
+    "rect": 0.63
+   },
+   "text": [
+    "数值配置",
+    "是否有冷却时间",
+    "冷却时间(s)",
+    "0.00",
+    "是否有次数限制",
+    "是否有消耗",
+    "索敌范围",
+    "圆柱体",
+    "半径(m)",
+    "1.00",
+    "高度(m)",
+    "1.00",
+    "技能属性组",
+    "编辑",
+    "生命周期管理",
+    "达到次数上限是否销毁技能",
+    "技能预瞄准 序号1",
+    "预览",
+    "动画编辑",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2500,
+      1216,
+      2518,
+      1232
+     ],
+     "role": "icon",
+     "fill": 1.0,
+     "contrast": 138.0
+    },
+    {
+     "bbox": [
+      2460,
+      832,
+      2522,
+      864
+     ],
+     "role": "icon",
+     "fill": 0.9,
+     "contrast": 160.0
+    },
+    {
+     "bbox": [
+      2466,
+      1260,
+      2484,
+      1278
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 76.0
+    },
+    {
+     "bbox": [
+      2466,
+      920,
+      2484,
+      948
+     ],
+     "role": "icon",
+     "fill": 0.56,
+     "contrast": 77.0
+    },
+    {
+     "bbox": [
+      2462,
+      974,
+      2502,
+      1002
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 78.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:20",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 18)",
+    "area_px": 306300,
+    "area_frac": 0.1314,
+    "aspect": 0.98,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 20,
+    "text_ui": 18,
+    "skin_lab": [
+     98.0,
+     127.0,
+     125.0
+    ],
+    "flat_fill": 0.5,
+    "rect": 0.63
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    130,
+    750,
+    540,
+    854
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     93.0,
+     128.0,
+     124.0
+    ],
+    "fill": 0.48,
+    "rect": 0.68
+   },
+   "text": [
+    "扫描标签管理",
+    "路径管理"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 29160,
+    "area_frac": 0.0116,
+    "aspect": 3.94,
+    "grid": "col n=1 pitch_x=None pitch_y=352.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     93.0,
+     128.0,
+     124.0
+    ],
+    "flat_fill": 0.48,
+    "rect": 0.68
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    146,
+    1102,
+    542,
+    1206
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     92.0,
+     127.0,
+     124.0
+    ],
+    "fill": 0.53,
+    "rect": 0.57
+   },
+   "text": [
+    "场景生成模板管理",
+    "技能变量管理"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.86,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 23600,
+    "area_frac": 0.0112,
+    "aspect": 3.81,
+    "grid": "col n=1 pitch_x=None pitch_y=352.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     92.0,
+     127.0,
+     124.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.57
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK V3.",
+  "关卡设置 ×",
+  "界面控件组管理 ×",
+  "资产导入导出管理 ×",
+  "高级数据管理×",
+  "技能变量管理 ×",
+  " 81 ms",
+  "i9",
+  "FPS: 22.",
+  "多语言文本管理",
+  "光源管理",
+  "语音和文字聊天管理",
+  "快捷键总览",
+  "风险检查",
+  "奇域话务4",
+  "5",
+  "Lv.4",
+  "切换性别",
+  "预览单位",
+  "保存",
+  "另存为"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    428,
+    14,
+    452,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.97,
+   "contrast": 174.0
+  },
+  {
+   "bbox": [
+    24,
+    1226,
+    56,
+    1260
+   ],
+   "role": "icon",
+   "fill": 0.96,
+   "contrast": 153.0
+  },
+  {
+   "bbox": [
+    24,
+    1150,
+    56,
+    1184
+   ],
+   "role": "icon",
+   "fill": 0.91,
+   "contrast": 159.0
+  },
+  {
+   "bbox": [
+    186,
+    14,
+    214,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.88,
+   "contrast": 190.0
+  },
+  {
+   "bbox": [
+    260,
+    14,
+    284,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 183.0
+  },
+  {
+   "bbox": [
+    1094,
+    14,
+    1116,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 192.0
+  },
+  {
+   "bbox": [
+    1238,
+    946,
+    1272,
+    1072
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    2438,
+    14,
+    2468,
+    40
+   ],
+   "role": "icon",
+   "fill": 0.7,
+   "contrast": 188.0
+  },
+  {
+   "bbox": [
+    496,
+    1376,
+    536,
+    1408
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 143.0
+  },
+  {
+   "bbox": [
+    1350,
+    956,
+    1388,
+    1080
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 175.0
+  },
+  {
+   "bbox": [
+    104,
+    12,
+    136,
+    50
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 211.0
+  },
+  {
+   "bbox": [
+    2334,
+    16,
+    2358,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 187.0
+  },
+  {
+   "bbox": [
+    2390,
+    18,
+    2412,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 69.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 119,
+  "ocr_ms": 724,
+  "pixel_ms": 967,
+  "container_ms": 388,
+  "container_cached": false,
+  "total_ms": 1811,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 71,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 71 · 控件 40 · 容器 4 · 邻接 24 · 遮挡 2 · 1811ms（OCR daemon）\n标题「i9」@(2519,26) 顶栏 · 字高 40px\n邻接「i9」→ circle@(2452,26) 左侧 35px\n邻接「i9」→ rect@(2400,26) 左侧 87px\n邻接「i9」→ rect@(2319,232) 下方 176px\n邻接「预览单位」→ label@(1385,1399)「保存」 右侧 64px\n控件: circle@(2452,26) | rect@(2400,26) | rect@(2319,232) | circle@(126,890)\n区域: 顶栏 (0,0)-(2560,50) | 左侧栏 (0,0)-(558,1440) | 右侧栏 (1866,0)-(2560,1440) | 底栏 (0,1398)-(2560,1440)\n遮挡 [0, 2, 298, 147] (0,2)-(298,147)（conf 0.62）：左上角小字叠加层：小字 6 框，非纯黑 L=74\n遮挡 [2255, 1353, 2486, 1439] (2255,1353)-(2486,1439)（conf 0.71）：右下角小字叠加层：低方差 std=1.1，非纯黑 L=129，纹理对比骤降 std 18.0→1.1（0.06×）"
+}

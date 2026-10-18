@@ -1,0 +1,1596 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v050_0429.jpg",
+  "sha256": "35ade08f2e9cebdb546824c70f33910b3aa162a19c78a9225ffc17342e3b411f",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 65589
+ },
+ "title": null,
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    120,
+    30
+   ],
+   "w": 119,
+   "h": 25,
+   "score": 0.9776,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 10.0",
+   "cx": 61,
+   "cy": 43,
+   "bbox": [
+    2,
+    29,
+    120,
+    56
+   ],
+   "w": 118,
+   "h": 27,
+   "score": 0.9468,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU: 79%",
+   "cx": 56,
+   "cy": 66,
+   "bbox": [
+    2,
+    52,
+    109,
+    79
+   ],
+   "w": 107,
+   "h": 27,
+   "score": 0.9851,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "奇域造物",
+   "cx": 1279,
+   "cy": 1159,
+   "bbox": [
+    1205,
+    1136,
+    1354,
+    1181
+   ],
+   "w": 149,
+   "h": 45,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+   "cx": 1281,
+   "cy": 1214,
+   "bbox": [
+    734,
+    1195,
+    1828,
+    1233
+   ],
+   "w": 1094,
+   "h": 38,
+   "score": 0.9927,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "能力的个体。",
+   "cx": 1273,
+   "cy": 1251,
+   "bbox": [
+    1192,
+    1230,
+    1354,
+    1272
+   ],
+   "w": 162,
+   "h": 42,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "min: 5.8 ns",
+   "cx": 61,
+   "cy": 1307,
+   "bbox": [
+    3,
+    1293,
+    120,
+    1321
+   ],
+   "w": 117,
+   "h": 28,
+   "score": 0.8794,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "maxs",
+   "cx": 180,
+   "cy": 1310,
+   "bbox": [
+    157,
+    1301,
+    203,
+    1319
+   ],
+   "w": 46,
+   "h": 18,
+   "score": 0.777,
+   "kind": "other"
+  },
+  {
+   "id": 8,
+   "text": "1247.8 ms",
+   "cx": 244,
+   "cy": 1308,
+   "bbox": [
+    196,
+    1299,
+    292,
+    1317
+   ],
+   "w": 96,
+   "h": 18,
+   "score": 0.9802,
+   "kind": "data"
+  },
+  {
+   "id": 9,
+   "text": "2",
+   "cx": 1085,
+   "cy": 1348,
+   "bbox": [
+    1043,
+    1306,
+    1127,
+    1389
+   ],
+   "w": 84,
+   "h": 83,
+   "score": 0.5585,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "OYRONE",
+   "cx": 1306,
+   "cy": 1344,
+   "bbox": [
+    1107,
+    1307,
+    1505,
+    1380
+   ],
+   "w": 398,
+   "h": 73,
+   "score": 0.6056,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1419,
+   "bbox": [
+    2256,
+    1400,
+    2485,
+    1438
+   ],
+   "w": 229,
+   "h": 38,
+   "score": 0.9996,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1162,
+    610,
+    1212,
+    666
+   ],
+   "cx": 1187,
+   "cy": 638,
+   "w": 50,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.517,
+    "aspect": 0.89,
+    "corner_fill": 0.0,
+    "area": 1448,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1348,
+    610,
+    1398,
+    666
+   ],
+   "cx": 1373,
+   "cy": 638,
+   "w": 50,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.516,
+    "aspect": 0.89,
+    "corner_fill": 0.0,
+    "area": 1444,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1178,
+    688,
+    1196,
+    714
+   ],
+   "cx": 1187,
+   "cy": 701,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.863,
+    "aspect": 0.69,
+    "corner_fill": 0.25,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1266,
+    506,
+    1290,
+    530
+   ],
+   "cx": 1278,
+   "cy": 518,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 43.7,
+    "ring_L": 198.6,
+    "inside_L": 244.6,
+    "outside_L": 239.9
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1364,
+    688,
+    1382,
+    714
+   ],
+   "cx": 1373,
+   "cy": 701,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.897,
+   "label": null,
+   "evidence": {
+    "fill": 0.872,
+    "aspect": 0.69,
+    "corner_fill": 0.38,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1178,
+    562,
+    1196,
+    588
+   ],
+   "cx": 1187,
+   "cy": 575,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.89,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.69,
+    "corner_fill": 0.38,
+    "area": 392,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1396,
+    718,
+    2560,
+    734
+   ],
+   "cx": 1978,
+   "cy": 726,
+   "w": 1164,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.843,
+    "aspect": 72.75,
+    "corner_fill": 0.44,
+    "area": 15696,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2360,
+    1386,
+    2460,
+    1402
+   ],
+   "cx": 2410,
+   "cy": 1394,
+   "w": 100,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 6.25,
+    "corner_fill": 0.38,
+    "area": 1324,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1364,
+    562,
+    1382,
+    588
+   ],
+   "cx": 1373,
+   "cy": 575,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.862,
+   "label": null,
+   "evidence": {
+    "fill": 0.855,
+    "aspect": 0.69,
+    "corner_fill": 0.44,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1280,
+    722,
+    1316,
+    768
+   ],
+   "cx": 1298,
+   "cy": 745,
+   "w": 36,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": 0.452,
+    "aspect": 0.78,
+    "corner_fill": 0.28,
+    "area": 748,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    218,
+    1422,
+    244,
+    1440
+   ],
+   "cx": 231,
+   "cy": 1431,
+   "w": 26,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.44,
+    "corner_fill": 0.38,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    742,
+    1230,
+    890,
+    1250
+   ],
+   "cx": 816,
+   "cy": 1240,
+   "w": 148,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.836,
+   "label": null,
+   "evidence": {
+    "fill": 0.747,
+    "aspect": 7.4,
+    "corner_fill": 0.12,
+    "area": 2212,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1286,
+    698,
+    1334,
+    740
+   ],
+   "cx": 1310,
+   "cy": 719,
+   "w": 48,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.826,
+   "label": null,
+   "evidence": {
+    "fill": 0.482,
+    "aspect": 1.14,
+    "corner_fill": 0.36,
+    "area": 972,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1232,
+    698,
+    1274,
+    740
+   ],
+   "cx": 1253,
+   "cy": 719,
+   "w": 42,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.82,
+   "label": null,
+   "evidence": {
+    "fill": 0.524,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 924,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1268,
+    736,
+    1292,
+    774
+   ],
+   "cx": 1280,
+   "cy": 755,
+   "w": 24,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.81,
+   "label": null,
+   "evidence": {
+    "fill": 0.689,
+    "aspect": 0.63,
+    "corner_fill": 0.08,
+    "area": 628,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1380,
+    640,
+    1410,
+    680
+   ],
+   "cx": 1395,
+   "cy": 660,
+   "w": 30,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.803,
+   "label": null,
+   "evidence": {
+    "fill": 0.753,
+    "aspect": 0.75,
+    "corner_fill": 0.52,
+    "area": 904,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1284,
+    496,
+    2560,
+    560
+   ],
+   "cx": 1922,
+   "cy": 528,
+   "w": 1276,
+   "h": 64,
+   "shape": "rect",
+   "confidence": 0.803,
+   "label": null,
+   "evidence": {
+    "fill": 0.674,
+    "aspect": 19.94,
+    "corner_fill": 0.51,
+    "area": 55040,
+    "src": "flat"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1384,
+    568,
+    2560,
+    656
+   ],
+   "cx": 1972,
+   "cy": 612,
+   "w": 1176,
+   "h": 88,
+   "shape": "rect",
+   "confidence": 0.801,
+   "label": null,
+   "evidence": {
+    "fill": 0.669,
+    "aspect": 13.36,
+    "corner_fill": 0.34,
+    "area": 69236,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1380,
+    556,
+    2560,
+    576
+   ],
+   "cx": 1970,
+   "cy": 566,
+   "w": 1180,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.788,
+   "label": null,
+   "evidence": {
+    "fill": 0.64,
+    "aspect": 59.0,
+    "corner_fill": 0.25,
+    "area": 15096,
+    "src": "flat"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    280,
+    1422,
+    308,
+    1440
+   ],
+   "cx": 294,
+   "cy": 1431,
+   "w": 28,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.768,
+   "label": null,
+   "evidence": {
+    "fill": 0.595,
+    "aspect": 1.56,
+    "corner_fill": 0.38,
+    "area": 300,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1308,
+    662,
+    1340,
+    694
+   ],
+   "cx": 1324,
+   "cy": 678,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.766,
+   "label": null,
+   "evidence": {
+    "fill": 0.57,
+    "aspect": 1.0,
+    "corner_fill": 0.52,
+    "area": 584,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    6,
+    1300,
+    430,
+    1402
+   ],
+   "cx": 218,
+   "cy": 1351,
+   "w": 424,
+   "h": 102,
+   "shape": "rect",
+   "confidence": 0.762,
+   "label": "min: 5.8 ns maxs 1247.8 ms",
+   "evidence": {
+    "fill": 0.582,
+    "aspect": 4.16,
+    "corner_fill": 0.65,
+    "area": 25184,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1396,
+    678,
+    2560,
+    722
+   ],
+   "cx": 1978,
+   "cy": 700,
+   "w": 1164,
+   "h": 44,
+   "shape": "rect",
+   "confidence": 0.762,
+   "label": null,
+   "evidence": {
+    "fill": 0.582,
+    "aspect": 26.45,
+    "corner_fill": 0.33,
+    "area": 29820,
+    "src": "flat"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    248,
+    1420,
+    280,
+    1440
+   ],
+   "cx": 264,
+   "cy": 1430,
+   "w": 32,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.731,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 1.6,
+    "corner_fill": 0.12,
+    "area": 328,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1352,
+    638,
+    2560,
+    686
+   ],
+   "cx": 1956,
+   "cy": 662,
+   "w": 1208,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.724,
+   "label": null,
+   "evidence": {
+    "fill": 0.497,
+    "aspect": 25.17,
+    "corner_fill": 0.24,
+    "area": 28832,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1240,
+    740,
+    1274,
+    760
+   ],
+   "cx": 1257,
+   "cy": 750,
+   "w": 34,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.706,
+   "label": null,
+   "evidence": {
+    "fill": 0.459,
+    "aspect": 1.7,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1256,
+    624,
+    1304,
+    652
+   ],
+   "cx": 1280,
+   "cy": 638,
+   "w": 48,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.682,
+   "label": null,
+   "evidence": {
+    "fill": 0.405,
+    "aspect": 1.71,
+    "corner_fill": 0.14,
+    "area": 544,
+    "src": "flat"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    430,
+    1310,
+    812,
+    1342
+   ],
+   "cx": 621,
+   "cy": 1326,
+   "w": 382,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.673,
+   "label": null,
+   "evidence": {
+    "fill": 0.385,
+    "aspect": 11.94,
+    "corner_fill": 0.22,
+    "area": 4712,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1318,
+    696,
+    1366,
+    712
+   ],
+   "cx": 1342,
+   "cy": 704,
+   "w": 48,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.669,
+   "label": null,
+   "evidence": {
+    "fill": 0.375,
+    "aspect": 3.0,
+    "corner_fill": 0.38,
+    "area": 288,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1794,
+    1304,
+    2560,
+    1320
+   ],
+   "cx": 2177,
+   "cy": 1312,
+   "w": 766,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.643,
+   "label": null,
+   "evidence": {
+    "fill": 0.318,
+    "aspect": 47.88,
+    "corner_fill": 0.06,
+    "area": 3900,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1320,
+    704,
+    1396,
+    726
+   ],
+   "cx": 1358,
+   "cy": 715,
+   "w": 76,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.642,
+   "label": null,
+   "evidence": {
+    "fill": 0.316,
+    "aspect": 3.45,
+    "corner_fill": 0.22,
+    "area": 528,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1760,
+    1228,
+    2560,
+    1248
+   ],
+   "cx": 2160,
+   "cy": 1238,
+   "w": 800,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.634,
+   "label": null,
+   "evidence": {
+    "fill": 0.298,
+    "aspect": 40.0,
+    "corner_fill": 0.31,
+    "area": 4772,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1230,
+    552,
+    1332,
+    724
+   ],
+   "cx": 1281,
+   "cy": 638,
+   "w": 102,
+   "h": 172,
+   "shape": "rect",
+   "confidence": 0.631,
+   "label": null,
+   "evidence": {
+    "fill": 0.292,
+    "aspect": 0.59,
+    "corner_fill": 0.0,
+    "area": 5120,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1192,
+    566,
+    1260,
+    596
+   ],
+   "cx": 1226,
+   "cy": 581,
+   "w": 68,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.63,
+   "label": null,
+   "evidence": {
+    "fill": 0.288,
+    "aspect": 2.27,
+    "corner_fill": 0.03,
+    "area": 588,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1676,
+    1342,
+    1790,
+    1378
+   ],
+   "cx": 1733,
+   "cy": 1360,
+   "w": 114,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.63,
+   "label": null,
+   "evidence": {
+    "fill": 0.289,
+    "aspect": 3.17,
+    "corner_fill": 0.16,
+    "area": 1188,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1728,
+    1422,
+    1782,
+    1440
+   ],
+   "cx": 1755,
+   "cy": 1431,
+   "w": 54,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.63,
+   "label": null,
+   "evidence": {
+    "fill": 0.288,
+    "aspect": 3.0,
+    "corner_fill": 0.44,
+    "area": 280,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1648,
+    1358,
+    1730,
+    1382
+   ],
+   "cx": 1689,
+   "cy": 1370,
+   "w": 82,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.628,
+   "label": null,
+   "evidence": {
+    "fill": 0.285,
+    "aspect": 3.42,
+    "corner_fill": 0.0,
+    "area": 560,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1824,
+    1208,
+    2560,
+    1230
+   ],
+   "cx": 2192,
+   "cy": 1219,
+   "w": 736,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.626,
+   "label": null,
+   "evidence": {
+    "fill": 0.28,
+    "aspect": 33.45,
+    "corner_fill": 0.47,
+    "area": 4532,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    900,
+    1122,
+    1824,
+    1260
+   ],
+   "cx": 1362,
+   "cy": 1191,
+   "w": 924,
+   "h": 138,
+   "shape": "rect",
+   "confidence": 0.625,
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "evidence": {
+    "fill": 0.278,
+    "aspect": 6.7,
+    "corner_fill": 0.16,
+    "area": 35396,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    0,
+    1346,
+    244,
+    1440
+   ],
+   "cx": 122,
+   "cy": 1393,
+   "w": 244,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.624,
+   "label": null,
+   "evidence": {
+    "fill": 0.275,
+    "aspect": 2.6,
+    "corner_fill": 0.3,
+    "area": 6312,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "画布",
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "why": "最大平坦亮面（面积 98% 帧）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    734,
+    1136,
+    1828,
+    1389
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 41,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    1159,
+    1232,
+    1346
+   ],
+   "rows": [
+    {
+     "y": 1159,
+     "texts": [
+      "奇域造物"
+     ]
+    },
+    {
+     "y": 1232,
+     "texts": [
+      "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+      "能力的个体。"
+     ]
+    },
+    {
+     "y": 1346,
+     "texts": [
+      "OYRONE",
+      "2"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "奇域造物",
+   "text_id": 3,
+   "target": "rect@(1362,1191)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 82,
+   "dy": 32,
+   "confidence": 0.55
+  },
+  {
+   "text": "能力的个体。",
+   "text_id": 5,
+   "target": "rect@(1362,1191)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 89,
+   "dy": -60,
+   "confidence": 0.55
+  },
+  {
+   "text": "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+   "text_id": 4,
+   "target": "rect@(1362,1191)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 81,
+   "dy": -23,
+   "confidence": 0.55
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 11,
+   "target": "rect@(2410,1394)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 40,
+   "dy": -25,
+   "confidence": 0.55
+  },
+  {
+   "text": "min: 5.8 ns",
+   "text_id": 6,
+   "target": "rect@(218,1351)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "min: 5.8 ns maxs 1247.8 ms",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 156,
+   "dy": 44,
+   "confidence": 0.55
+  },
+  {
+   "text": "2",
+   "text_id": 9,
+   "target": "rect@(1362,1191)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 46,
+   "dx": 277,
+   "dy": -156,
+   "confidence": 0.512
+  },
+  {
+   "text": "OYRONE",
+   "text_id": 10,
+   "target": "rect@(1362,1191)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 47,
+   "dx": 56,
+   "dy": -152,
+   "confidence": 0.511
+  },
+  {
+   "text": "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+   "text_id": 4,
+   "target": "rect@(2192,1219)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 911,
+   "dy": 5,
+   "confidence": 0.55
+  },
+  {
+   "text": "min: 5.8 ns",
+   "text_id": 6,
+   "target": "rect@(122,1393)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 25,
+   "dx": 60,
+   "dy": 86,
+   "confidence": 0.529
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 11,
+   "target": "rect@(2177,1312)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 80,
+   "dx": -194,
+   "dy": -107,
+   "confidence": 0.483
+  },
+  {
+   "text": "OYRONE",
+   "text_id": 10,
+   "target": "rect@(1689,1370)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 143,
+   "dx": 383,
+   "dy": 26,
+   "confidence": 0.431
+  },
+  {
+   "text": "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+   "text_id": 4,
+   "target": "rect@(816,1240)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -465,
+   "dy": 26,
+   "confidence": 0.55
+  },
+  {
+   "text": "min: 5.8 ns",
+   "text_id": 6,
+   "target": "circle@(231,1431)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 101,
+   "dx": 170,
+   "dy": 124,
+   "confidence": 0.466
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    123,
+    82
+   ],
+   "confidence": 0.66,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=0.6",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 10.0",
+     "GPU: 79%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 252.4,
+    "bg_std": 0.6,
+    "ring_mean": 252.7,
+    "ring_std": 0.5,
+    "texture_ratio": 1.19,
+    "bg_rgb": [
+     252,
+     250,
+     253
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     252.0,
+     129.0,
+     127.0
+    ],
+    "fill": 0.95,
+    "rect": 0.95
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS: 10.0",
+    "GPU: 79%",
+    "奇域造物",
+    "「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动",
+    "能力的个体。",
+    "min: 5.8 ns",
+    "maxs",
+    "1247.8 ms",
+    "2",
+    "OYRONE",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1728,
+      1378,
+      1748,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 123.0
+    },
+    {
+     "bbox": [
+      1272,
+      740,
+      1288,
+      772
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      8,
+      1370,
+      38,
+      1400
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 119.0
+    },
+    {
+     "bbox": [
+      8,
+      1324,
+      24,
+      1350
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      384,
+      1320,
+      428,
+      1400
+     ],
+     "role": "icon",
+     "fill": 0.41,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      140,
+      1384,
+      204,
+      1400
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 103.0
+    },
+    {
+     "bbox": [
+      1158,
+      604,
+      1216,
+      670
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 111.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:12",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.69,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 5)",
+    "area_px": 3515744,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 12,
+    "text_ui": 5,
+    "skin_lab": [
+     252.0,
+     129.0,
+     127.0
+    ],
+    "flat_fill": 0.95,
+    "rect": 0.95
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 115,
+  "ocr_ms": 391,
+  "pixel_ms": 819,
+  "container_ms": 391,
+  "container_cached": false,
+  "total_ms": 1326,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 12,
+  "err": null
+ },
+ "title_text_id": null,
+ "digest": "屏幕 2560x1440 · 文本 12 · 控件 40 · 容器 1 · 邻接 13 · 遮挡 1 · 1326ms（OCR daemon）\n标题：未识别到（上半屏无可读大字）\n控件: rect@(1362,1191)「奇域造物 「拟造生物」、「拟造魔物」与「拟造器物」的合集，指的是「千星奇域」中一切有着自主行动 能力的个体。」 | rect@(2410,1394) | rect@(218,1351)「min: 5.8 ns maxs 1247.8 ms」 | rect@(2192,1219)\n区域: 画布 (0,0)-(2560,1440)\n遮挡 [0, 2, 123, 82] (0,2)-(123,82)（conf 0.66）：左上角小字叠加层：小字 3 框，低方差 std=0.6"
+}

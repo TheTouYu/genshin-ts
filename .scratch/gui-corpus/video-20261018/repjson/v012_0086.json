@@ -1,0 +1,2241 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v012_0086.jpg",
+  "sha256": "885873cd239a9f9fc510702cc81de81905b10efa012c0f2851d14b68165dba68",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 82794
+ },
+ "title": {
+  "text": "P导入与转存",
+  "cx": 73,
+  "cy": 73,
+  "bbox": [
+   0,
+   47,
+   148,
+   99
+  ],
+  "region": null,
+  "why": "上半屏字高最大（52px, score=0.79）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVKV3.0",
+   "cx": 61,
+   "cy": 18,
+   "bbox": [
+    1,
+    3,
+    121,
+    33
+   ],
+   "w": 120,
+   "h": 30,
+   "score": 0.9785,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "导出管理",
+   "cx": 153,
+   "cy": 25,
+   "bbox": [
+    110,
+    10,
+    196,
+    39
+   ],
+   "w": 86,
+   "h": 29,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "2",
+   "cx": 2401,
+   "cy": 26,
+   "bbox": [
+    2385,
+    11,
+    2416,
+    41
+   ],
+   "w": 31,
+   "h": 30,
+   "score": 0.7928,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "0",
+   "cx": 2464,
+   "cy": 25,
+   "bbox": [
+    2447,
+    12,
+    2481,
+    38
+   ],
+   "w": 34,
+   "h": 26,
+   "score": 0.5447,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "FPS: 27.4",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9964,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "P导入与转存",
+   "cx": 73,
+   "cy": 73,
+   "bbox": [
+    0,
+    47,
+    148,
+    99
+   ],
+   "w": 148,
+   "h": 52,
+   "score": 0.7934,
+   "kind": "title"
+  },
+  {
+   "id": 6,
+   "text": "资产导出",
+   "cx": 286,
+   "cy": 79,
+   "bbox": [
+    227,
+    64,
+    345,
+    95
+   ],
+   "w": 118,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "资产组合",
+   "cx": 62,
+   "cy": 136,
+   "bbox": [
+    23,
+    123,
+    101,
+    150
+   ],
+   "w": 78,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 8,
+   "text": "选择需要转存的资产",
+   "cx": 2221,
+   "cy": 155,
+   "bbox": [
+    2136,
+    142,
+    2307,
+    168
+   ],
+   "w": 171,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "以查看组合包的资产",
+   "cx": 2451,
+   "cy": 155,
+   "bbox": [
+    2366,
+    142,
+    2536,
+    168
+   ],
+   "w": 170,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "资产包",
+   "cx": 63,
+   "cy": 183,
+   "bbox": [
+    32,
+    169,
+    95,
+    196
+   ],
+   "w": 63,
+   "h": 27,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 11,
+   "text": "高级工具",
+   "cx": 62,
+   "cy": 228,
+   "bbox": [
+    23,
+    214,
+    101,
+    241
+   ],
+   "w": 78,
+   "h": 27,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 12,
+   "text": "素材组",
+   "cx": 63,
+   "cy": 273,
+   "bbox": [
+    32,
+    259,
+    95,
+    288
+   ],
+   "w": 63,
+   "h": 29,
+   "score": 0.996,
+   "kind": "hud"
+  },
+  {
+   "id": 13,
+   "text": "input-probe.",
+   "cx": 663,
+   "cy": 294,
+   "bbox": [
+    598,
+    280,
+    727,
+    308
+   ],
+   "w": 129,
+   "h": 28,
+   "score": 0.9891,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "input-probe",
+   "cx": 810,
+   "cy": 295,
+   "bbox": [
+    754,
+    280,
+    867,
+    309
+   ],
+   "w": 113,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "外部资产加载",
+   "cx": 1279,
+   "cy": 594,
+   "bbox": [
+    1211,
+    579,
+    1347,
+    609
+   ],
+   "w": 136,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "将导入目标目录下的资产，确认执行",
+   "cx": 1279,
+   "cy": 664,
+   "bbox": [
+    1110,
+    651,
+    1447,
+    677
+   ],
+   "w": 337,
+   "h": 26,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond",
+   "cx": 1279,
+   "cy": 700,
+   "bbox": [
+    975,
+    685,
+    1583,
+    714
+   ],
+   "w": 608,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "_Local_Export",
+   "cx": 1279,
+   "cy": 722,
+   "bbox": [
+    1207,
+    709,
+    1350,
+    735
+   ],
+   "w": 143,
+   "h": 26,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "打开目录",
+   "cx": 1116,
+   "cy": 816,
+   "bbox": [
+    1069,
+    801,
+    1163,
+    831
+   ],
+   "w": 94,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "加载外部资产",
+   "cx": 1442,
+   "cy": 816,
+   "bbox": [
+    1374,
+    801,
+    1510,
+    831
+   ],
+   "w": 136,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "1",
+   "cx": 1879,
+   "cy": 1250,
+   "bbox": [
+    1864,
+    1236,
+    1895,
+    1263
+   ],
+   "w": 31,
+   "h": 27,
+   "score": 0.604,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9884,
+   "kind": "other"
+  },
+  {
+   "id": 23,
+   "text": "ms",
+   "cx": 101,
+   "cy": 1309,
+   "bbox": [
+    89,
+    1302,
+    114,
+    1316
+   ],
+   "w": 25,
+   "h": 14,
+   "score": 0.9248,
+   "kind": "other"
+  },
+  {
+   "id": 24,
+   "text": "max‡",
+   "cx": 179,
+   "cy": 1308,
+   "bbox": [
+    158,
+    1302,
+    201,
+    1315
+   ],
+   "w": 43,
+   "h": 13,
+   "score": 0.8182,
+   "kind": "hud"
+  },
+  {
+   "id": 25,
+   "text": "727.0 ms",
+   "cx": 241,
+   "cy": 1307,
+   "bbox": [
+    200,
+    1297,
+    283,
+    1317
+   ],
+   "w": 83,
+   "h": 20,
+   "score": 0.9996,
+   "kind": "hud"
+  },
+  {
+   "id": 26,
+   "text": "转存所选资产",
+   "cx": 2412,
+   "cy": 1385,
+   "bbox": [
+    2343,
+    1368,
+    2481,
+    1402
+   ],
+   "w": 138,
+   "h": 34,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1417,
+   "bbox": [
+    2258,
+    1400,
+    2483,
+    1434
+   ],
+   "w": 225,
+   "h": 34,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2330,
+    140,
+    2356,
+    174
+   ],
+   "cx": 2343,
+   "cy": 157,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.805,
+    "aspect": 0.76,
+    "corner_fill": 0.17,
+    "area": 712,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    648,
+    238,
+    672,
+    262
+   ],
+   "cx": 660,
+   "cy": 250,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 21.2,
+    "ring_L": 85.1,
+    "inside_L": 135.8,
+    "outside_L": 76.8
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    808,
+    238,
+    832,
+    262
+   ],
+   "cx": 820,
+   "cy": 250,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 21.2,
+    "ring_L": 85.1,
+    "inside_L": 135.8,
+    "outside_L": 76.8
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    828,
+    256,
+    852,
+    280
+   ],
+   "cx": 840,
+   "cy": 268,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 18.5,
+    "ring_L": 81.7,
+    "inside_L": 130.6,
+    "outside_L": 69.9
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    668,
+    256,
+    692,
+    280
+   ],
+   "cx": 680,
+   "cy": 268,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 18.5,
+    "ring_L": 81.7,
+    "inside_L": 130.6,
+    "outside_L": 69.9
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    686,
+    222,
+    710,
+    244
+   ],
+   "cx": 698,
+   "cy": 233,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.924,
+   "label": null,
+   "evidence": {
+    "fill": 0.765,
+    "aspect": 1.09,
+    "corner_fill": 0.28,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    846,
+    222,
+    870,
+    244
+   ],
+   "cx": 858,
+   "cy": 233,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.924,
+   "label": null,
+   "evidence": {
+    "fill": 0.765,
+    "aspect": 1.09,
+    "corner_fill": 0.28,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2158,
+    170,
+    2278,
+    186
+   ],
+   "cx": 2218,
+   "cy": 178,
+   "w": 120,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.944,
+    "aspect": 7.5,
+    "corner_fill": 0.31,
+    "area": 1812,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2388,
+    170,
+    2508,
+    186
+   ],
+   "cx": 2448,
+   "cy": 178,
+   "w": 120,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.94,
+    "aspect": 7.5,
+    "corner_fill": 0.31,
+    "area": 1804,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    30,
+    166,
+    534,
+    202
+   ],
+   "cx": 282,
+   "cy": 184,
+   "w": 504,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": "资产包",
+   "evidence": {
+    "fill": 0.934,
+    "aspect": 14.0,
+    "corner_fill": 0.75,
+    "area": 16948,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    166,
+    1378
+   ],
+   "cx": 88,
+   "cy": 1350,
+   "w": 156,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.971,
+    "aspect": 2.79,
+    "corner_fill": 0.95,
+    "area": 8484,
+    "src": "flat"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    178,
+    1322,
+    426,
+    1380
+   ],
+   "cx": 302,
+   "cy": 1351,
+   "w": 248,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.924,
+    "aspect": 4.28,
+    "corner_fill": 0.85,
+    "area": 13296,
+    "src": "flat"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2100,
+    140,
+    2124,
+    174
+   ],
+   "cx": 2112,
+   "cy": 157,
+   "w": 24,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.858,
+    "aspect": 0.71,
+    "corner_fill": 0.36,
+    "area": 700,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    598,
+    144,
+    624,
+    172
+   ],
+   "cx": 611,
+   "cy": 158,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.747,
+    "aspect": 0.93,
+    "corner_fill": 0.33,
+    "area": 544,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2390,
+    128,
+    2508,
+    144
+   ],
+   "cx": 2449,
+   "cy": 136,
+   "w": 118,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.854,
+    "aspect": 7.38,
+    "corner_fill": 0.44,
+    "area": 1612,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1850,
+    1220,
+    1910,
+    1280
+   ],
+   "cx": 1880,
+   "cy": 1250,
+   "w": 60,
+   "h": 60,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": "1",
+   "evidence": {
+    "fill": 0.924,
+    "aspect": 1.0,
+    "corner_fill": 0.95,
+    "area": 3328,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    634,
+    222,
+    656,
+    244
+   ],
+   "cx": 645,
+   "cy": 233,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 380,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    794,
+    222,
+    816,
+    244
+   ],
+   "cx": 805,
+   "cy": 233,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 380,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1236,
+    734,
+    1332,
+    752
+   ],
+   "cx": 1284,
+   "cy": 743,
+   "w": 96,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.829,
+    "aspect": 5.33,
+    "corner_fill": 0.44,
+    "area": 1432,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2158,
+    126,
+    2278,
+    144
+   ],
+   "cx": 2218,
+   "cy": 135,
+   "w": 120,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.864,
+   "label": null,
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 6.67,
+    "corner_fill": 0.25,
+    "area": 1748,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    706,
+    234,
+    730,
+    292
+   ],
+   "cx": 718,
+   "cy": 263,
+   "w": 24,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.79,
+    "aspect": 0.41,
+    "corner_fill": 0.22,
+    "area": 1100,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    866,
+    234,
+    890,
+    292
+   ],
+   "cx": 878,
+   "cy": 263,
+   "w": 24,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.779,
+    "aspect": 0.41,
+    "corner_fill": 0.22,
+    "area": 1084,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    258,
+    46,
+    318,
+    66
+   ],
+   "cx": 288,
+   "cy": 56,
+   "w": 60,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.763,
+    "aspect": 3.0,
+    "corner_fill": 0.19,
+    "area": 916,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    998,
+    712,
+    1220,
+    734
+   ],
+   "cx": 1109,
+   "cy": 723,
+   "w": 222,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.837,
+   "label": null,
+   "evidence": {
+    "fill": 0.749,
+    "aspect": 10.09,
+    "corner_fill": 0.39,
+    "area": 3656,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1348,
+    712,
+    1566,
+    736
+   ],
+   "cx": 1457,
+   "cy": 724,
+   "w": 218,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.837,
+   "label": null,
+   "evidence": {
+    "fill": 0.749,
+    "aspect": 9.08,
+    "corner_fill": 0.58,
+    "area": 3920,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    770,
+    224,
+    796,
+    288
+   ],
+   "cx": 783,
+   "cy": 256,
+   "w": 26,
+   "h": 64,
+   "shape": "rect",
+   "confidence": 0.828,
+   "label": null,
+   "evidence": {
+    "fill": 0.728,
+    "aspect": 0.41,
+    "corner_fill": 0.19,
+    "area": 1212,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    610,
+    224,
+    636,
+    288
+   ],
+   "cx": 623,
+   "cy": 256,
+   "w": 26,
+   "h": 64,
+   "shape": "rect",
+   "confidence": 0.825,
+   "label": null,
+   "evidence": {
+    "fill": 0.721,
+    "aspect": 0.41,
+    "corner_fill": 0.19,
+    "area": 1200,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    240,
+    90,
+    326,
+    108
+   ],
+   "cx": 283,
+   "cy": 99,
+   "w": 86,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.82,
+   "label": null,
+   "evidence": {
+    "fill": 0.711,
+    "aspect": 4.78,
+    "corner_fill": 0.12,
+    "area": 1100,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    982,
+    798,
+    1252,
+    838
+   ],
+   "cx": 1117,
+   "cy": 818,
+   "w": 270,
+   "h": 40,
+   "shape": "rect",
+   "confidence": 0.803,
+   "label": "打开目录",
+   "evidence": {
+    "fill": 0.673,
+    "aspect": 6.75,
+    "corner_fill": 0.22,
+    "area": 7264,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    936,
+    624,
+    1624,
+    868
+   ],
+   "cx": 1280,
+   "cy": 746,
+   "w": 688,
+   "h": 244,
+   "shape": "rect",
+   "confidence": 0.799,
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "evidence": {
+    "fill": 0.664,
+    "aspect": 2.82,
+    "corner_fill": 0.87,
+    "area": 111476,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    184,
+    1374,
+    282,
+    1404
+   ],
+   "cx": 233,
+   "cy": 1389,
+   "w": 98,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.796,
+   "label": null,
+   "evidence": {
+    "fill": 0.657,
+    "aspect": 3.27,
+    "corner_fill": 0.52,
+    "area": 1932,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    634,
+    202,
+    698,
+    224
+   ],
+   "cx": 666,
+   "cy": 213,
+   "w": 64,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.772,
+   "label": null,
+   "evidence": {
+    "fill": 0.605,
+    "aspect": 2.91,
+    "corner_fill": 0.17,
+    "area": 852,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    794,
+    202,
+    858,
+    224
+   ],
+   "cx": 826,
+   "cy": 213,
+   "w": 64,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.772,
+   "label": null,
+   "evidence": {
+    "fill": 0.605,
+    "aspect": 2.91,
+    "corner_fill": 0.17,
+    "area": 852,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1562,
+    600,
+    1606,
+    620
+   ],
+   "cx": 1584,
+   "cy": 610,
+   "w": 44,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.772,
+   "label": null,
+   "evidence": {
+    "fill": 0.605,
+    "aspect": 2.2,
+    "corner_fill": 0.19,
+    "area": 532,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    306,
+    1378,
+    436,
+    1404
+   ],
+   "cx": 371,
+   "cy": 1391,
+   "w": 130,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.771,
+   "label": null,
+   "evidence": {
+    "fill": 0.602,
+    "aspect": 5.0,
+    "corner_fill": 0.42,
+    "area": 2036,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    674,
+    240,
+    694,
+    270
+   ],
+   "cx": 684,
+   "cy": 255,
+   "w": 20,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.737,
+   "label": null,
+   "evidence": {
+    "fill": 0.527,
+    "aspect": 0.67,
+    "corner_fill": 0.5,
+    "area": 316,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    834,
+    240,
+    854,
+    270
+   ],
+   "cx": 844,
+   "cy": 255,
+   "w": 20,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.737,
+   "label": null,
+   "evidence": {
+    "fill": 0.527,
+    "aspect": 0.67,
+    "corner_fill": 0.5,
+    "area": 316,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2504,
+    1362,
+    2532,
+    1410
+   ],
+   "cx": 2518,
+   "cy": 1386,
+   "w": 28,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.701,
+   "label": null,
+   "evidence": {
+    "fill": 0.446,
+    "aspect": 0.58,
+    "corner_fill": 0.3,
+    "area": 600,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    2012,
+    1336,
+    2508,
+    1440
+   ],
+   "cx": 2260,
+   "cy": 1388,
+   "w": 496,
+   "h": 104,
+   "shape": "rect",
+   "confidence": 0.69,
+   "label": "转存所选资产 UID:110170759",
+   "evidence": {
+    "fill": 0.421,
+    "aspect": 4.77,
+    "corner_fill": 0.39,
+    "area": 21740,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1004,
+    556,
+    1560,
+    698
+   ],
+   "cx": 1282,
+   "cy": 627,
+   "w": 556,
+   "h": 142,
+   "shape": "rect",
+   "confidence": 0.687,
+   "label": "外部资产加载 将导入目标目录下的资产，确认执行",
+   "evidence": {
+    "fill": 0.415,
+    "aspect": 3.92,
+    "corner_fill": 0.24,
+    "area": 32756,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    975,
+    579,
+    1583,
+    831
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 15,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    594,
+    695,
+    816
+   ],
+   "rows": [
+    {
+     "y": 594,
+     "texts": [
+      "外部资产加载"
+     ]
+    },
+    {
+     "y": 695,
+     "texts": [
+      "将导入目标目录下的资产，确认执行",
+      "C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond",
+      "_Local_Export"
+     ]
+    },
+    {
+     "y": 816,
+     "texts": [
+      "打开目录",
+      "加载外部资产"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    23,
+    10,
+    345,
+    288
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 15,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    25,
+    79,
+    136,
+    183,
+    228,
+    273
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      "导出管理"
+     ]
+    },
+    {
+     "y": 79,
+     "texts": [
+      "资产导出"
+     ]
+    },
+    {
+     "y": 136,
+     "texts": [
+      "资产组合"
+     ]
+    },
+    {
+     "y": 183,
+     "texts": [
+      "资产包"
+     ]
+    },
+    {
+     "y": 228,
+     "texts": [
+      "高级工具"
+     ]
+    },
+    {
+     "y": 273,
+     "texts": [
+      "素材组"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "P导入与转存",
+   "text_id": 5,
+   "target": "rect@(288,56)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 110,
+   "dx": 214,
+   "dy": -17,
+   "confidence": 0.608
+  },
+  {
+   "text": "P导入与转存",
+   "text_id": 5,
+   "target": "rect@(283,99)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 92,
+   "dx": 209,
+   "dy": 26,
+   "confidence": 0.623
+  },
+  {
+   "text": "P导入与转存",
+   "text_id": 5,
+   "target": "rect@(282,184)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": "资产包",
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 67,
+   "dx": 208,
+   "dy": 111,
+   "confidence": 0.644
+  },
+  {
+   "text": "转存所选资产",
+   "text_id": 26,
+   "target": "rect@(2260,1388)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "转存所选资产 UID:110170759",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -152,
+   "dy": 3,
+   "confidence": 0.55
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 27,
+   "target": "rect@(2260,1388)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "转存所选资产 UID:110170759",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -110,
+   "dy": -29,
+   "confidence": 0.55
+  },
+  {
+   "text": "外部资产加载",
+   "text_id": 15,
+   "target": "rect@(1282,627)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": "外部资产加载 将导入目标目录下的资产，确认执行",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 3,
+   "dy": 33,
+   "confidence": 0.55
+  },
+  {
+   "text": "打开目录",
+   "text_id": 19,
+   "target": "rect@(1117,818)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "打开目录",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 1,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "input-probe",
+   "text_id": 14,
+   "target": "circle@(840,268)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 30,
+   "dy": -26,
+   "confidence": 0.55
+  },
+  {
+   "text": "C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond",
+   "text_id": 17,
+   "target": "rect@(1280,746)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 1,
+   "dy": 46,
+   "confidence": 0.55
+  },
+  {
+   "text": "1",
+   "text_id": 21,
+   "target": "rect@(1880,1250)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "1",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 0,
+   "dy": 0,
+   "confidence": 0.55
+  },
+  {
+   "text": "将导入目标目录下的资产，确认执行",
+   "text_id": 16,
+   "target": "rect@(1280,746)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 2,
+   "dy": 82,
+   "confidence": 0.55
+  },
+  {
+   "text": "_Local_Export",
+   "text_id": 18,
+   "target": "rect@(1280,746)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 2,
+   "dy": 24,
+   "confidence": 0.55
+  },
+  {
+   "text": "以查看组合包的资产",
+   "text_id": 9,
+   "target": "circle@(2343,157)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 10,
+   "dx": -108,
+   "dy": 2,
+   "confidence": 0.542
+  },
+  {
+   "text": "选择需要转存的资产",
+   "text_id": 8,
+   "target": "circle@(2112,157)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 12,
+   "dx": -110,
+   "dy": 2,
+   "confidence": 0.54
+  },
+  {
+   "text": "资产导出",
+   "text_id": 6,
+   "target": "rect@(282,184)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": "资产包",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 71,
+   "dx": -4,
+   "dy": 104,
+   "confidence": 0.491
+  },
+  {
+   "text": "input-probe.",
+   "text_id": 13,
+   "target": "rect@(282,184)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": "资产包",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 78,
+   "dx": -380,
+   "dy": -110,
+   "confidence": 0.485
+  },
+  {
+   "text": "2",
+   "text_id": 2,
+   "target": "rect@(2449,136)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 87,
+   "dx": 48,
+   "dy": 110,
+   "confidence": 0.478
+  },
+  {
+   "text": "0",
+   "text_id": 3,
+   "target": "rect@(2449,136)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 90,
+   "dx": -15,
+   "dy": 111,
+   "confidence": 0.475
+  },
+  {
+   "text": "加载外部资产",
+   "text_id": 20,
+   "target": "rect@(1117,818)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "打开目录",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 122,
+   "dx": -325,
+   "dy": 2,
+   "confidence": 0.448
+  },
+  {
+   "text": "资产导出",
+   "text_id": 6,
+   "target": "rect@(283,99)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -3,
+   "dy": 20,
+   "confidence": 0.55
+  },
+  {
+   "text": "打开目录",
+   "text_id": 19,
+   "target": "rect@(1280,746)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 164,
+   "dy": -70,
+   "confidence": 0.55
+  },
+  {
+   "text": "加载外部资产",
+   "text_id": 20,
+   "target": "rect@(1280,746)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "将导入目标目录下的资产，确认执行 C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond _Local_Export 打开目录 加载外部资产",
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -162,
+   "dy": -70,
+   "confidence": 0.55
+  },
+  {
+   "text": "input-probe",
+   "text_id": 14,
+   "target": "rect@(878,263)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 68,
+   "dy": -32,
+   "confidence": 0.55
+  },
+  {
+   "text": "input-probe.",
+   "text_id": 13,
+   "target": "circle@(680,268)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 18,
+   "dy": -26,
+   "confidence": 0.55
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    199,
+    58
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=2.8，非纯黑 L=21，纹理对比骤降 std 29.7→2.8（0.09×）",
+   "evidence": {
+    "texts": [
+     "DXVKV3.0",
+     "导出管理",
+     "FPS: 27.4"
+    ],
+    "text_ids": [
+     0,
+     1,
+     4
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 20.6,
+    "bg_std": 2.8,
+    "ring_mean": 39.2,
+    "ring_std": 29.7,
+    "texture_ratio": 0.09,
+    "bg_rgb": [
+     17,
+     21,
+     23
+    ]
+   }
+  },
+  {
+   "bbox": [
+    20,
+    120,
+    104,
+    291
+   ],
+   "confidence": 0.74,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，低方差 std=8.8，非纯黑 L=31",
+   "evidence": {
+    "texts": [
+     "资产组合",
+     "资产包",
+     "高级工具",
+     "素材组"
+    ],
+    "text_ids": [
+     7,
+     10,
+     11,
+     12
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 125,
+    "bg_mean": 31.4,
+    "bg_std": 8.8,
+    "ring_mean": 29.8,
+    "ring_std": 7.6,
+    "texture_ratio": 1.16,
+    "bg_rgb": [
+     24,
+     30,
+     39
+    ]
+   }
+  },
+  {
+   "bbox": [
+    155,
+    1294,
+    286,
+    1320
+   ],
+   "confidence": 0.71,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：低方差 std=0.6，非纯黑 L=39，纹理对比骤降 std 14.6→0.6（0.04×）",
+   "evidence": {
+    "texts": [
+     "max‡",
+     "727.0 ms"
+    ],
+    "text_ids": [
+     24,
+     25
+    ],
+    "n_texts": 2,
+    "corner": "左下",
+    "corner_dist_px": 200,
+    "bg_mean": 39.2,
+    "bg_std": 0.6,
+    "ring_mean": 32.2,
+    "ring_std": 14.6,
+    "texture_ratio": 0.04,
+    "bg_rgb": [
+     34,
+     38,
+     44
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     30.0,
+     128.0,
+     123.0
+    ],
+    "fill": 0.82,
+    "rect": 0.93
+   },
+   "text": [
+    "DXVKV3.0",
+    "导出管理",
+    "2",
+    "0",
+    "FPS: 27.4",
+    "P导入与转存",
+    "资产导出",
+    "资产组合",
+    "选择需要转存的资产",
+    "以查看组合包的资产",
+    "资产包",
+    "高级工具",
+    "素材组",
+    "input-probe.",
+    "input-probe",
+    "外部资产加载",
+    "将导入目标目录下的资产，确认执行",
+    "C:/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond",
+    "_Local_Export",
+    "打开目录",
+    "加载外部资产",
+    "1",
+    "min:",
+    "ms",
+    "max‡",
+    "727.0 ms",
+    "转存所选资产",
+    "UID:110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2102,
+      142,
+      2122,
+      172
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 165.0
+    },
+    {
+     "bbox": [
+      2334,
+      142,
+      2354,
+      172
+     ],
+     "role": "icon",
+     "fill": 0.83,
+     "contrast": 162.0
+    },
+    {
+     "bbox": [
+      1586,
+      586,
+      1604,
+      604
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 202.0
+    },
+    {
+     "bbox": [
+      514,
+      164,
+      534,
+      202
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 58.0
+    },
+    {
+     "bbox": [
+      2518,
+      18,
+      2538,
+      36
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 122.0
+    },
+    {
+     "bbox": [
+      636,
+      224,
+      706,
+      276
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      796,
+      224,
+      866,
+      276
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      600,
+      146,
+      624,
+      170
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 110.0
+    },
+    {
+     "bbox": [
+      1546,
+      792,
+      1584,
+      844
+     ],
+     "role": "icon",
+     "fill": 0.41,
+     "contrast": 178.0
+    },
+    {
+     "bbox": [
+      1302,
+      792,
+      1340,
+      844
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 173.0
+    },
+    {
+     "bbox": [
+      2028,
+      1362,
+      2064,
+      1412
+     ],
+     "role": "icon",
+     "fill": 0.35,
+     "contrast": 86.0
+    },
+    {
+     "bbox": [
+      2236,
+      1362,
+      2266,
+      1396
+     ],
+     "role": "icon",
+     "fill": 0.35,
+     "contrast": 84.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:28",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.69,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 16)",
+    "area_px": 3425728,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 28,
+    "text_ui": 16,
+    "skin_lab": [
+     30.0,
+     128.0,
+     123.0
+    ],
+    "flat_fill": 0.82,
+    "rect": 0.93
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 115,
+  "ocr_ms": 463,
+  "pixel_ms": 856,
+  "container_ms": 391,
+  "container_cached": false,
+  "total_ms": 1436,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 28,
+  "err": null
+ },
+ "title_text_id": 5,
+ "digest": "屏幕 2560x1440 · 文本 28 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 3 · 1436ms（OCR daemon）\n标题「P导入与转存」@(73,73) 画面 · 字高 52px\n邻接「P导入与转存」→ rect@(288,56) 右侧 110px\n邻接「P导入与转存」→ rect@(283,99) 右侧 92px\n邻接「P导入与转存」→ rect@(282,184)「资产包」 下方 67px\n控件: rect@(288,56) | rect@(283,99) | rect@(282,184)「资产包」 | rect@(2260,1388)「转存所选资产 UID:110170759」\n遮挡 [0, 0, 199, 58] (0,0)-(199,58)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=2.8，非纯黑 L=21，纹理对比骤降 std 29.7→2.8（0.09×）\n遮挡 [20, 120, 104, 291] (20,120)-(104,291)（conf 0.74）：左上角小字叠加层：小字 4 框，低方差 std=8.8，非纯黑 L=31"
+}

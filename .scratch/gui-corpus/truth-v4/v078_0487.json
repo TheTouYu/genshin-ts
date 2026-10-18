@@ -1,0 +1,522 @@
+{
+ "frame": "v078_0487",
+ "image": ".scratch/gui-corpus/video-20261018/reps/v078_0487.jpg",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）",
+ "classes": [
+  "地图画面",
+  "地区卡列"
+ ],
+ "units": 19,
+ "_provenance": {
+  "family": "地图",
+  "method": "地区卡 2 列 × 8 行的 y 由 preview 比例 + edges.py x=2200 扫描带复核（pitch≈123.7）；列 x 由右栏边界估（1776/2140）；关闭与缩放控件按可见像素",
+  "tool_assist": "几何=edges.py/remeasure_grid.py/boxer.py（本仓自写）；ys-screen 只在最后做交叉对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "列 x 边界按可见像素估（±20px）",
+   "缩放滑条三档的独立热区未逐一拆（整条当一个控件）"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 3/19 = 15.8%（iou 0.698，fp=1）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    1718,
+    1440
+   ],
+   "kind": "panel",
+   "text": [
+    "地图"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图画面本体（左侧大图）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2440,
+    10,
+    110,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    40,
+    360,
+    56,
+    240
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图缩放滑条（‑/＋/中心三档）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1776,
+    210,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "蒙德"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    2140,
+    210,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "璃月"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1776,
+    334,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "稻妻"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2140,
+    334,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "须弥"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    1776,
+    457,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "枫丹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    2140,
+    457,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "纳塔"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1776,
+    581,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "挪德卡莱"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    2140,
+    581,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "至冬"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1776,
+    705,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "渊下宫"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2140,
+    705,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "层岩巨渊·地下矿区"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1776,
+    828,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "旧日之海"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2140,
+    828,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "远古圣山"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    1776,
+    952,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "空之神殿"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2140,
+    952,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "霜月"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1776,
+    1076,
+    348,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "尘歌壶"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2140,
+    1076,
+    380,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "千星奇域·大厅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,2459 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v004_0012.jpg",
+  "sha256": "31881c085eb11d08ddf53693e8774a65500f20b0551f79c9bfd7ecaac9c9a0d2",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 148569
+ },
+ "title": {
+  "text": "2个对象",
+  "cx": 2138,
+  "cy": 85,
+  "bbox": [
+   2095,
+   69,
+   2181,
+   101
+  ],
+  "region": "右侧栏",
+  "why": "上半屏字高最大（32px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "FPS: 24.",
+   "cx": 53,
+   "cy": 39,
+   "bbox": [
+    0,
+    23,
+    107,
+    56
+   ],
+   "w": 107,
+   "h": 33,
+   "score": 0.9412,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "DXVK v3.",
+   "cx": 52,
+   "cy": 19,
+   "bbox": [
+    1,
+    6,
+    104,
+    32
+   ],
+   "w": 103,
+   "h": 26,
+   "score": 0.8665,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "关卡设置 ×",
+   "cx": 343,
+   "cy": 25,
+   "bbox": [
+    289,
+    11,
+    398,
+    38
+   ],
+   "w": 109,
+   "h": 27,
+   "score": 0.9108,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "界面控件组管理×",
+   "cx": 540,
+   "cy": 24,
+   "bbox": [
+    459,
+    11,
+    621,
+    37
+   ],
+   "w": 162,
+   "h": 26,
+   "score": 0.9831,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "资产导入导出管理 ×",
+   "cx": 752,
+   "cy": 25,
+   "bbox": [
+    642,
+    10,
+    861,
+    39
+   ],
+   "w": 219,
+   "h": 29,
+   "score": 0.9525,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": " 75 ms",
+   "cx": 2193,
+   "cy": 25,
+   "bbox": [
+    2149,
+    12,
+    2237,
+    38
+   ],
+   "w": 88,
+   "h": 26,
+   "score": 0.9776,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "GPU: 18%",
+   "cx": 55,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    107,
+    77
+   ],
+   "w": 104,
+   "h": 22,
+   "score": 0.9915,
+   "kind": "hud"
+  },
+  {
+   "id": 7,
+   "text": "2个对象",
+   "cx": 2138,
+   "cy": 85,
+   "bbox": [
+    2095,
+    69,
+    2181,
+    101
+   ],
+   "w": 86,
+   "h": 32,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "▼ 变换",
+   "cx": 2153,
+   "cy": 164,
+   "bbox": [
+    2116,
+    149,
+    2190,
+    180
+   ],
+   "w": 74,
+   "h": 31,
+   "score": 0.8747,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "中心点位置",
+   "cx": 2162,
+   "cy": 203,
+   "bbox": [
+    2113,
+    190,
+    2211,
+    216
+   ],
+   "w": 98,
+   "h": 26,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "X 0.00",
+   "cx": 2163,
+   "cy": 242,
+   "bbox": [
+    2121,
+    228,
+    2205,
+    255
+   ],
+   "w": 84,
+   "h": 27,
+   "score": 0.9752,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "-1.00",
+   "cx": 2313,
+   "cy": 241,
+   "bbox": [
+    2282,
+    230,
+    2344,
+    253
+   ],
+   "w": 62,
+   "h": 23,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "Z 0.00",
+   "cx": 2437,
+   "cy": 241,
+   "bbox": [
+    2397,
+    228,
+    2477,
+    254
+   ],
+   "w": 80,
+   "h": 26,
+   "score": 0.985,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "复制",
+   "cx": 1476,
+   "cy": 767,
+   "bbox": [
+    1452,
+    753,
+    1500,
+    781
+   ],
+   "w": 48,
+   "h": 28,
+   "score": 1.0,
+   "kind": "action"
+  },
+  {
+   "id": 14,
+   "text": "粘贴",
+   "cx": 1477,
+   "cy": 809,
+   "bbox": [
+    1454,
+    794,
+    1500,
+    824
+   ],
+   "w": 46,
+   "h": 30,
+   "score": 0.9951,
+   "kind": "action"
+  },
+  {
+   "id": 15,
+   "text": "镜头聚焦",
+   "cx": 1495,
+   "cy": 851,
+   "bbox": [
+    1454,
+    835,
+    1536,
+    867
+   ],
+   "w": 82,
+   "h": 32,
+   "score": 0.997,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "粘贴实体数据",
+   "cx": 1513,
+   "cy": 895,
+   "bbox": [
+    1455,
+    882,
+    1571,
+    909
+   ],
+   "w": 116,
+   "h": 27,
+   "score": 0.9981,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "资产导出",
+   "cx": 1495,
+   "cy": 937,
+   "bbox": [
+    1455,
+    924,
+    1535,
+    951
+   ],
+   "w": 80,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "添加到实体布设组",
+   "cx": 1531,
+   "cy": 980,
+   "bbox": [
+    1455,
+    968,
+    1607,
+    993
+   ],
+   "w": 152,
+   "h": 25,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "创建元件组",
+   "cx": 1504,
+   "cy": 1022,
+   "bbox": [
+    1455,
+    1009,
+    1553,
+    1036
+   ],
+   "w": 98,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "合并元件组",
+   "cx": 1504,
+   "cy": 1064,
+   "bbox": [
+    1454,
+    1047,
+    1554,
+    1081
+   ],
+   "w": 100,
+   "h": 34,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "阵列",
+   "cx": 1477,
+   "cy": 1108,
+   "bbox": [
+    1454,
+    1094,
+    1500,
+    1123
+   ],
+   "w": 46,
+   "h": 29,
+   "score": 0.9976,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "对称",
+   "cx": 1477,
+   "cy": 1150,
+   "bbox": [
+    1454,
+    1136,
+    1500,
+    1164
+   ],
+   "w": 46,
+   "h": 28,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "min: 7.3 ms",
+   "cx": 61,
+   "cy": 1306,
+   "bbox": [
+    5,
+    1294,
+    117,
+    1319
+   ],
+   "w": 112,
+   "h": 25,
+   "score": 0.965,
+   "kind": "data"
+  },
+  {
+   "id": 24,
+   "text": "max:",
+   "cx": 180,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    202,
+    1317
+   ],
+   "w": 45,
+   "h": 18,
+   "score": 0.859,
+   "kind": "other"
+  },
+  {
+   "id": 25,
+   "text": "651.0 ms",
+   "cx": 242,
+   "cy": 1306,
+   "bbox": [
+    201,
+    1294,
+    283,
+    1319
+   ],
+   "w": 82,
+   "h": 25,
+   "score": 0.9649,
+   "kind": "data"
+  },
+  {
+   "id": 26,
+   "text": "世界坐标系",
+   "cx": 1251,
+   "cy": 1340,
+   "bbox": [
+    1202,
+    1326,
+    1300,
+    1353
+   ],
+   "w": 98,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "30",
+   "cx": 1376,
+   "cy": 1340,
+   "bbox": [
+    1358,
+    1328,
+    1393,
+    1352
+   ],
+   "w": 35,
+   "h": 24,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "西",
+   "cx": 1312,
+   "cy": 1398,
+   "bbox": [
+    1295,
+    1379,
+    1329,
+    1416
+   ],
+   "w": 34,
+   "h": 37,
+   "score": 0.515,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "UID: 110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9808,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2508,
+    74,
+    2528,
+    96
+   ],
+   "cx": 2518,
+   "cy": 85,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 0.91,
+    "corner_fill": 0.06,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1310,
+    82,
+    1346,
+    118
+   ],
+   "cx": 1328,
+   "cy": 100,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 1.0,
+    "contrast": 56.4,
+    "ring_L": 157.3,
+    "inside_L": 145.8,
+    "outside_L": 56.0
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1172,
+    1328,
+    1196,
+    1352
+   ],
+   "cx": 1184,
+   "cy": 1340,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 51.6,
+    "ring_L": 144.6,
+    "inside_L": 98.0,
+    "outside_L": 88.1
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2360,
+    14,
+    2384,
+    38
+   ],
+   "cx": 2372,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 94.1,
+    "ring_L": 179.8,
+    "inside_L": 115.7,
+    "outside_L": 55.8
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    102,
+    10,
+    138,
+    46
+   ],
+   "cx": 120,
+   "cy": 28,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.933,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.917,
+    "contrast": 29.0,
+    "ring_L": 107.4,
+    "inside_L": 212.1,
+    "outside_L": 60.7
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    2048,
+    744,
+    2078,
+    770
+   ],
+   "cx": 2063,
+   "cy": 757,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": 0.451,
+    "aspect": 1.15,
+    "corner_fill": 0.14,
+    "area": 352,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1964,
+    114,
+    1986,
+    144
+   ],
+   "cx": 1975,
+   "cy": 129,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.806,
+    "aspect": 0.73,
+    "corner_fill": 0.31,
+    "area": 532,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1760,
+    756,
+    1788,
+    776
+   ],
+   "cx": 1774,
+   "cy": 766,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.464,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 260,
+    "src": "flat"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    254,
+    1356,
+    278,
+    1380
+   ],
+   "cx": 266,
+   "cy": 1368,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.549,
+    "aspect": 1.0,
+    "corner_fill": 0.22,
+    "area": 316,
+    "src": "flat"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    428,
+    12,
+    452,
+    36
+   ],
+   "cx": 440,
+   "cy": 24,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 13.2,
+    "ring_L": 95.1,
+    "inside_L": 108.4,
+    "outside_L": 55.6
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1416,
+    88,
+    1444,
+    116
+   ],
+   "cx": 1430,
+   "cy": 102,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.881,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 13.1,
+    "ring_L": 113.6,
+    "inside_L": 184.6,
+    "outside_L": 68.9
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    742,
+    1408,
+    762,
+    1440
+   ],
+   "cx": 752,
+   "cy": 1424,
+   "w": 20,
+   "h": 32,
+   "shape": "rect",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.844,
+    "aspect": 0.62,
+    "corner_fill": 0.5,
+    "area": 540,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2082,
+    54,
+    2560,
+    116
+   ],
+   "cx": 2321,
+   "cy": 85,
+   "w": 478,
+   "h": 62,
+   "shape": "rect",
+   "confidence": 0.864,
+   "label": "2个对象",
+   "evidence": {
+    "fill": 0.809,
+    "aspect": 7.71,
+    "corner_fill": 0.88,
+    "area": 23976,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1982,
+    120,
+    2032,
+    162
+   ],
+   "cx": 2007,
+   "cy": 141,
+   "w": 50,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.862,
+   "label": null,
+   "evidence": {
+    "fill": 0.834,
+    "aspect": 1.19,
+    "corner_fill": 0.43,
+    "area": 1752,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2250,
+    16,
+    2282,
+    38
+   ],
+   "cx": 2266,
+   "cy": 27,
+   "w": 32,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 1.45,
+    "corner_fill": 0.36,
+    "area": 564,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    182,
+    10,
+    218,
+    34
+   ],
+   "cx": 200,
+   "cy": 22,
+   "w": 36,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": 0.801,
+    "aspect": 1.5,
+    "corner_fill": 0.25,
+    "area": 692,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1240,
+    678,
+    1320,
+    762
+   ],
+   "cx": 1280,
+   "cy": 720,
+   "w": 80,
+   "h": 84,
+   "shape": "circle",
+   "confidence": 0.851,
+   "label": null,
+   "evidence": {
+    "fill": 0.522,
+    "aspect": 0.95,
+    "corner_fill": 0.33,
+    "area": 3508,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2082,
+    486,
+    2142,
+    532
+   ],
+   "cx": 2112,
+   "cy": 509,
+   "w": 60,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.429,
+    "aspect": 1.3,
+    "corner_fill": 0.29,
+    "area": 1184,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    0,
+    0,
+    2398,
+    52
+   ],
+   "cx": 1199,
+   "cy": 26,
+   "w": 2398,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.845,
+   "label": "FPS: 24. DXVK v3. 关卡设置 × 界面控件组管理× 资产导入导出管理 ×  75 ms",
+   "evidence": {
+    "fill": 0.767,
+    "aspect": 46.12,
+    "corner_fill": 0.74,
+    "area": 95616,
+    "src": "flat"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1128,
+    1288,
+    1432,
+    1440
+   ],
+   "cx": 1280,
+   "cy": 1364,
+   "w": 304,
+   "h": 152,
+   "shape": "rect",
+   "confidence": 0.839,
+   "label": "世界坐标系 30 西",
+   "evidence": {
+    "fill": 0.753,
+    "aspect": 2.0,
+    "corner_fill": 0.35,
+    "area": 34780,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2482,
+    0,
+    2560,
+    52
+   ],
+   "cx": 2521,
+   "cy": 26,
+   "w": 78,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.834,
+   "label": null,
+   "evidence": {
+    "fill": 0.742,
+    "aspect": 1.5,
+    "corner_fill": 0.92,
+    "area": 3008,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1414,
+    712,
+    1822,
+    1208
+   ],
+   "cx": 1618,
+   "cy": 960,
+   "w": 408,
+   "h": 496,
+   "shape": "rect",
+   "confidence": 0.813,
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "evidence": {
+    "fill": 0.546,
+    "aspect": 0.82,
+    "corner_fill": 0.81,
+    "area": 110492,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    262,
+    1322,
+    426,
+    1380
+   ],
+   "cx": 344,
+   "cy": 1351,
+   "w": 164,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.812,
+   "label": null,
+   "evidence": {
+    "fill": 0.693,
+    "aspect": 2.83,
+    "corner_fill": 0.22,
+    "area": 6592,
+    "src": "flat"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2402,
+    0,
+    2478,
+    46
+   ],
+   "cx": 2440,
+   "cy": 23,
+   "w": 76,
+   "h": 46,
+   "shape": "rect",
+   "confidence": 0.811,
+   "label": null,
+   "evidence": {
+    "fill": 0.691,
+    "aspect": 1.65,
+    "corner_fill": 0.95,
+    "area": 2416,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    2332,
+    228,
+    2382,
+    258
+   ],
+   "cx": 2357,
+   "cy": 243,
+   "w": 50,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.798,
+   "label": null,
+   "evidence": {
+    "fill": 0.661,
+    "aspect": 1.67,
+    "corner_fill": 0.48,
+    "area": 992,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1168,
+    72,
+    1474,
+    130
+   ],
+   "cx": 1321,
+   "cy": 101,
+   "w": 306,
+   "h": 58,
+   "shape": "rect",
+   "confidence": 0.794,
+   "label": null,
+   "evidence": {
+    "fill": 0.653,
+    "aspect": 5.28,
+    "corner_fill": 0.37,
+    "area": 11596,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    704,
+    1396,
+    744,
+    1414
+   ],
+   "cx": 724,
+   "cy": 1405,
+   "w": 40,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.785,
+   "label": null,
+   "evidence": {
+    "fill": 0.633,
+    "aspect": 2.22,
+    "corner_fill": 0.31,
+    "area": 456,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2106,
+    146,
+    2534,
+    230
+   ],
+   "cx": 2320,
+   "cy": 188,
+   "w": 428,
+   "h": 84,
+   "shape": "rect",
+   "confidence": 0.784,
+   "label": "▼ 变换 中心点位置",
+   "evidence": {
+    "fill": 0.632,
+    "aspect": 5.1,
+    "corner_fill": 0.49,
+    "area": 22708,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2180,
+    228,
+    2246,
+    258
+   ],
+   "cx": 2213,
+   "cy": 243,
+   "w": 66,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.775,
+   "label": null,
+   "evidence": {
+    "fill": 0.612,
+    "aspect": 2.2,
+    "corner_fill": 0.41,
+    "area": 1212,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    244,
+    1398,
+    718,
+    1432
+   ],
+   "cx": 481,
+   "cy": 1415,
+   "w": 474,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.762,
+   "label": null,
+   "evidence": {
+    "fill": 0.582,
+    "aspect": 13.94,
+    "corner_fill": 0.28,
+    "area": 9384,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1086,
+    74,
+    1174,
+    130
+   ],
+   "cx": 1130,
+   "cy": 102,
+   "w": 88,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.755,
+   "label": null,
+   "evidence": {
+    "fill": 0.567,
+    "aspect": 1.57,
+    "corner_fill": 0.28,
+    "area": 2792,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1380,
+    696,
+    1412,
+    714
+   ],
+   "cx": 1396,
+   "cy": 705,
+   "w": 32,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.728,
+   "label": null,
+   "evidence": {
+    "fill": 0.507,
+    "aspect": 1.78,
+    "corner_fill": 0.38,
+    "area": 292,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    2034,
+    370,
+    2078,
+    388
+   ],
+   "cx": 2056,
+   "cy": 379,
+   "w": 44,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.723,
+   "label": null,
+   "evidence": {
+    "fill": 0.495,
+    "aspect": 2.44,
+    "corner_fill": 0.19,
+    "area": 392,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2452,
+    632,
+    2494,
+    648
+   ],
+   "cx": 2473,
+   "cy": 640,
+   "w": 42,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.72,
+   "label": null,
+   "evidence": {
+    "fill": 0.488,
+    "aspect": 2.62,
+    "corner_fill": 0.44,
+    "area": 328,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2366,
+    1184,
+    2410,
+    1206
+   ],
+   "cx": 2388,
+   "cy": 1195,
+   "w": 44,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.714,
+   "label": null,
+   "evidence": {
+    "fill": 0.475,
+    "aspect": 2.0,
+    "corner_fill": 0.19,
+    "area": 460,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    2314,
+    1208,
+    2358,
+    1228
+   ],
+   "cx": 2336,
+   "cy": 1218,
+   "w": 44,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.713,
+   "label": null,
+   "evidence": {
+    "fill": 0.473,
+    "aspect": 2.2,
+    "corner_fill": 0.06,
+    "area": 416,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    690,
+    1286,
+    728,
+    1302
+   ],
+   "cx": 709,
+   "cy": 1294,
+   "w": 38,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.713,
+   "label": null,
+   "evidence": {
+    "fill": 0.474,
+    "aspect": 2.38,
+    "corner_fill": 0.62,
+    "area": 288,
+    "src": "flat"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    968,
+    1240,
+    1034,
+    1260
+   ],
+   "cx": 1001,
+   "cy": 1250,
+   "w": 66,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.711,
+   "label": null,
+   "evidence": {
+    "fill": 0.47,
+    "aspect": 3.3,
+    "corner_fill": 0.12,
+    "area": 620,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1736,
+    1156,
+    1786,
+    1174
+   ],
+   "cx": 1761,
+   "cy": 1165,
+   "w": 50,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.706,
+   "label": null,
+   "evidence": {
+    "fill": 0.458,
+    "aspect": 2.78,
+    "corner_fill": 0.38,
+    "area": 412,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    552,
+    1326,
+    610,
+    1350
+   ],
+   "cx": 581,
+   "cy": 1338,
+   "w": 58,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.706,
+   "label": null,
+   "evidence": {
+    "fill": 0.457,
+    "aspect": 2.42,
+    "corner_fill": 0.42,
+    "area": 636,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 84% 宽）"
+  },
+  {
+   "name": "右侧栏",
+   "bbox": [
+    2078,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=2078（覆盖 96% 高）"
+  },
+  {
+   "name": "画布",
+   "bbox": [
+    278,
+    288,
+    2078,
+    1440
+   ],
+   "why": "最大平坦亮面（面积 43% 帧）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    1202,
+    753,
+    1607,
+    1416
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 18,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    809,
+    916,
+    1022,
+    1129,
+    1340,
+    1398
+   ],
+   "rows": [
+    {
+     "y": 809,
+     "texts": [
+      "复制",
+      "粘贴",
+      "镜头聚焦"
+     ]
+    },
+    {
+     "y": 916,
+     "texts": [
+      "粘贴实体数据",
+      "资产导出"
+     ]
+    },
+    {
+     "y": 1022,
+     "texts": [
+      "添加到实体布设组",
+      "创建元件组",
+      "合并元件组"
+     ]
+    },
+    {
+     "y": 1129,
+     "texts": [
+      "阵列",
+      "对称"
+     ]
+    },
+    {
+     "y": 1340,
+     "texts": [
+      "世界坐标系",
+      "30"
+     ]
+    },
+    {
+     "y": 1398,
+     "texts": [
+      "西"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2095,
+    12,
+    2477,
+    255
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    25,
+    85,
+    218
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      " 75 ms"
+     ]
+    },
+    {
+     "y": 85,
+     "texts": [
+      "2个对象"
+     ]
+    },
+    {
+     "y": 218,
+     "texts": [
+      "▼ 变换",
+      "中心点位置",
+      "-1.00",
+      "Z 0.00",
+      "X 0.00"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "2个对象",
+   "text_id": 7,
+   "target": "circle@(2518,85)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 327,
+   "dx": 380,
+   "dy": 0,
+   "confidence": 0.45
+  },
+  {
+   "text": "2个对象",
+   "text_id": 7,
+   "target": "rect@(2321,85)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": "2个对象",
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 183,
+   "dy": 0,
+   "confidence": 0.7
+  },
+  {
+   "text": "2个对象",
+   "text_id": 7,
+   "target": "circle@(2007,141)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "left",
+   "gap_px": 63,
+   "dx": -131,
+   "dy": 56,
+   "confidence": 0.648
+  },
+  {
+   "text": "西",
+   "text_id": 28,
+   "target": "rect@(1280,1364)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "世界坐标系 30 西",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -32,
+   "dy": -34,
+   "confidence": 0.55
+  },
+  {
+   "text": "合并元件组",
+   "text_id": 20,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 114,
+   "dy": -104,
+   "confidence": 0.55
+  },
+  {
+   "text": "镜头聚焦",
+   "text_id": 15,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 123,
+   "dy": 109,
+   "confidence": 0.55
+  },
+  {
+   "text": "▼ 变换",
+   "text_id": 8,
+   "target": "rect@(2320,188)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": "▼ 变换 中心点位置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 167,
+   "dy": 24,
+   "confidence": 0.55
+  },
+  {
+   "text": "阵列",
+   "text_id": 21,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 141,
+   "dy": -148,
+   "confidence": 0.55
+  },
+  {
+   "text": "X 0.00",
+   "text_id": 10,
+   "target": "rect@(2320,188)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": "▼ 变换 中心点位置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 157,
+   "dy": -54,
+   "confidence": 0.55
+  },
+  {
+   "text": "粘贴实体数据",
+   "text_id": 16,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 105,
+   "dy": 64,
+   "confidence": 0.55
+  },
+  {
+   "text": "资产导出",
+   "text_id": 17,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 123,
+   "dy": 22,
+   "confidence": 0.55
+  },
+  {
+   "text": "创建元件组",
+   "text_id": 19,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 114,
+   "dy": -62,
+   "confidence": 0.55
+  },
+  {
+   "text": "世界坐标系",
+   "text_id": 26,
+   "target": "rect@(1280,1364)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "世界坐标系 30 西",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 29,
+   "dy": 24,
+   "confidence": 0.55
+  },
+  {
+   "text": "Z 0.00",
+   "text_id": 12,
+   "target": "rect@(2320,188)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": "▼ 变换 中心点位置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -117,
+   "dy": -53,
+   "confidence": 0.55
+  },
+  {
+   "text": "添加到实体布设组",
+   "text_id": 18,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 87,
+   "dy": -20,
+   "confidence": 0.55
+  },
+  {
+   "text": "30",
+   "text_id": 27,
+   "target": "rect@(1280,1364)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "世界坐标系 30 西",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -96,
+   "dy": 24,
+   "confidence": 0.55
+  },
+  {
+   "text": "-1.00",
+   "text_id": 11,
+   "target": "rect@(2320,188)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": "▼ 变换 中心点位置",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 7,
+   "dy": -54,
+   "confidence": 0.55
+  },
+  {
+   "text": "界面控件组管理×",
+   "text_id": 3,
+   "target": "circle@(440,24)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 7,
+   "dx": -100,
+   "dy": 0,
+   "confidence": 0.544
+  },
+  {
+   "text": " 75 ms",
+   "text_id": 5,
+   "target": "rect@(2321,85)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": "2个对象",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 16,
+   "dx": 128,
+   "dy": 60,
+   "confidence": 0.537
+  },
+  {
+   "text": "关卡设置 ×",
+   "text_id": 2,
+   "target": "circle@(440,24)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 30,
+   "dx": 96,
+   "dy": 0,
+   "confidence": 0.525
+  },
+  {
+   "text": "对称",
+   "text_id": 22,
+   "target": "rect@(1280,1364)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "世界坐标系 30 西",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 124,
+   "dx": -197,
+   "dy": 214,
+   "confidence": 0.447
+  },
+  {
+   "text": "中心点位置",
+   "text_id": 9,
+   "target": "label@(1476,767)",
+   "target_id": "t13",
+   "target_kind": "label",
+   "label": "复制",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 613,
+   "dx": -686,
+   "dy": 564,
+   "confidence": 0.5
+  },
+  {
+   "text": "对称",
+   "text_id": 22,
+   "target": "rect@(1618,960)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": "复制 粘贴 镜头聚焦 粘贴实体数据 资产导出 添加到实体布设组 创建元件组 合并元件组 阵列 对称",
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 141,
+   "dy": -190,
+   "confidence": 0.55
+  },
+  {
+   "text": "镜头聚焦",
+   "text_id": 15,
+   "target": "label@(1477,809)",
+   "target_id": "t14",
+   "target_kind": "label",
+   "label": "粘贴",
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -18,
+   "dy": -42,
+   "confidence": 0.741
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    3,
+    110,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，非纯黑 L=87",
+   "evidence": {
+    "texts": [
+     "FPS: 24.",
+     "DXVK v3.",
+     "GPU: 18%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     6
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 6,
+    "bg_mean": 87.4,
+    "bg_std": 51.2,
+    "ring_mean": 105.2,
+    "ring_std": 43.1,
+    "texture_ratio": 1.19,
+    "bg_rgb": [
+     82,
+     97,
+     81
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    258,
+    294,
+    2310,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     250.0,
+     119.0,
+     125.0
+    ],
+    "fill": 0.73,
+    "rect": 0.65
+   },
+   "text": [
+    "世界坐标系",
+    "30",
+    "西"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1814,
+      1394,
+      1836,
+      1420
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 70.0
+    },
+    {
+     "bbox": [
+      1242,
+      680,
+      1318,
+      762
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 86.0
+    },
+    {
+     "bbox": [
+      2062,
+      1372,
+      2080,
+      1392
+     ],
+     "role": "icon",
+     "fill": 0.5,
+     "contrast": 54.0
+    },
+    {
+     "bbox": [
+      246,
+      1322,
+      270,
+      1344
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 61.0
+    },
+    {
+     "bbox": [
+      398,
+      1320,
+      428,
+      1350
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      286,
+      1294,
+      310,
+      1320
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 105.0
+    },
+    {
+     "bbox": [
+      706,
+      288,
+      738,
+      314
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 102.0
+    },
+    {
+     "bbox": [
+      1824,
+      288,
+      1856,
+      314
+     ],
+     "role": "icon",
+     "fill": 0.31,
+     "contrast": 107.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1300,
+      1384,
+      1324,
+      1414
+     ],
+     "corner": "br",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 13)",
+    "area_px": 1537064,
+    "area_frac": 0.6379,
+    "aspect": 1.79,
+    "grid": "row n=1 pitch_x=1033.0 pitch_y=None",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 13,
+    "skin_lab": [
+     250.0,
+     119.0,
+     125.0
+    ],
+    "flat_fill": 0.73,
+    "rect": 0.65
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    2074,
+    58,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     89.0,
+     110.0,
+     142.0
+    ],
+    "fill": 0.45,
+    "rect": 0.7
+   },
+   "text": [
+    "2个对象",
+    "▼ 变换",
+    "中心点位置",
+    "X 0.00",
+    "-1.00",
+    "Z 0.00",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2506,
+      74,
+      2534,
+      106
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 175.0
+    },
+    {
+     "bbox": [
+      2050,
+      1402,
+      2106,
+      1440
+     ],
+     "role": "icon",
+     "fill": 0.25,
+     "contrast": 93.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:7",
+     "grid:row",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 6)",
+    "area_px": 467016,
+    "area_frac": 0.1822,
+    "aspect": 0.35,
+    "grid": "row n=1 pitch_x=1033.0 pitch_y=None",
+    "skin_siblings": 0,
+    "text_in": 7,
+    "text_ui": 6,
+    "skin_lab": [
+     89.0,
+     110.0,
+     142.0
+    ],
+    "flat_fill": 0.45,
+    "rect": 0.7
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    1450,
+    748,
+    1782,
+    1170
+   ],
+   "kind": "unknown",
+   "skin": {
+    "lab": [
+     52.0,
+     130.0,
+     120.0
+    ],
+    "fill": 0.65,
+    "rect": 0.79
+   },
+   "text": [
+    "复制",
+    "粘贴",
+    "镜头聚焦",
+    "粘贴实体数据",
+    "资产导出",
+    "添加到实体布设组",
+    "创建元件组",
+    "合并元件组",
+    "阵列",
+    "对称"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1760,
+      742,
+      1790,
+      772
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 220.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:10",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.66,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 10)",
+    "area_px": 110152,
+    "area_frac": 0.038,
+    "aspect": 0.79,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 10,
+    "text_ui": 10,
+    "skin_lab": [
+     52.0,
+     130.0,
+     120.0
+    ],
+    "flat_fill": 0.65,
+    "rect": 0.79
+   }
+  }
+ ],
+ "free_text": [
+  "FPS: 24.",
+  "DXVK v3.",
+  "关卡设置 ×",
+  "界面控件组管理×",
+  "资产导入导出管理 ×",
+  " 75 ms",
+  "GPU: 18%",
+  "min: 7.3 ms",
+  "max:",
+  "651.0 ms"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    186,
+    14,
+    214,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 179.0
+  },
+  {
+   "bbox": [
+    2506,
+    12,
+    2534,
+    40
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 182.0
+  },
+  {
+   "bbox": [
+    1970,
+    92,
+    2046,
+    174
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    2254,
+    16,
+    2278,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 175.0
+  },
+  {
+   "bbox": [
+    2050,
+    54,
+    2080,
+    80
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 111.0
+  },
+  {
+   "bbox": [
+    2310,
+    18,
+    2332,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1286,
+    80,
+    1374,
+    132
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 176.0
+  },
+  {
+   "bbox": [
+    8,
+    1322,
+    28,
+    1350
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 95.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 113,
+  "ocr_ms": 551,
+  "pixel_ms": 967,
+  "container_ms": 392,
+  "container_cached": false,
+  "total_ms": 1632,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 30,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 30 · 控件 40 · 容器 3 · 邻接 24 · 遮挡 1 · 1632ms（OCR daemon）\n标题「2个对象」@(2138,85) 右侧栏 · 字高 32px\n邻接「2个对象」→ circle@(2518,85) 右侧 327px\n邻接「2个对象」→ rect@(2321,85)「2个对象」 重叠 0px\n邻接「2个对象」→ circle@(2007,141) 左侧 63px\n邻接「镜头聚焦」→ label@(1477,809)「粘贴」 上方 11px\n控件: circle@(2518,85) | rect@(2321,85)「2个对象」 | circle@(2007,141) | rect@(1280,1364)「世界坐标系 30 西」\n区域: 顶栏 (0,0)-(2560,50) | 右侧栏 (2078,0)-(2560,1440) | 画布 (278,288)-(2078,1440)\n遮挡 [0, 3, 110, 80] (0,3)-(110,80)（conf 0.62）：左上角小字叠加层：小字 3 框，非纯黑 L=87\n可点文字 2 个: 复制 / 粘贴"
+}

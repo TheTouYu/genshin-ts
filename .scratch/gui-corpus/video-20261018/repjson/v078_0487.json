@@ -1,0 +1,2563 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/video-20261018/reps/v078_0487.jpg",
+  "sha256": "161e3c0377d4b49c3931b02dd13a32b8b28d306d143e84caab279378e034600d",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 242464
+ },
+ "title": {
+  "text": "X",
+  "cx": 2503,
+  "cy": 46,
+  "bbox": [
+   2464,
+   10,
+   2541,
+   83
+  ],
+  "region": "右侧栏",
+  "why": "上半屏字高最大（73px, score=0.95）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    120,
+    30
+   ],
+   "w": 119,
+   "h": 25,
+   "score": 0.9883,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 25.3",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9973,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "地图",
+   "cx": 1787,
+   "cy": 47,
+   "bbox": [
+    1740,
+    21,
+    1833,
+    73
+   ],
+   "w": 93,
+   "h": 52,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "X",
+   "cx": 2503,
+   "cy": 46,
+   "bbox": [
+    2464,
+    10,
+    2541,
+    83
+   ],
+   "w": 77,
+   "h": 73,
+   "score": 0.9477,
+   "kind": "title"
+  },
+  {
+   "id": 4,
+   "text": "GPU: 2%",
+   "cx": 49,
+   "cy": 65,
+   "bbox": [
+    1,
+    52,
+    96,
+    78
+   ],
+   "w": 95,
+   "h": 26,
+   "score": 0.9951,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "蒙德",
+   "cx": 1812,
+   "cy": 185,
+   "bbox": [
+    1766,
+    158,
+    1859,
+    212
+   ],
+   "w": 93,
+   "h": 54,
+   "score": 0.9929,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "璃月",
+   "cx": 2209,
+   "cy": 187,
+   "bbox": [
+    2163,
+    160,
+    2254,
+    213
+   ],
+   "w": 91,
+   "h": 53,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "稻妻",
+   "cx": 1814,
+   "cy": 324,
+   "bbox": [
+    1767,
+    298,
+    1860,
+    351
+   ],
+   "w": 93,
+   "h": 53,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "须弥",
+   "cx": 2209,
+   "cy": 324,
+   "bbox": [
+    2162,
+    298,
+    2256,
+    351
+   ],
+   "w": 94,
+   "h": 53,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "枫丹",
+   "cx": 1812,
+   "cy": 460,
+   "bbox": [
+    1765,
+    434,
+    1859,
+    487
+   ],
+   "w": 94,
+   "h": 53,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "纳塔",
+   "cx": 2209,
+   "cy": 461,
+   "bbox": [
+    2162,
+    433,
+    2256,
+    489
+   ],
+   "w": 94,
+   "h": 56,
+   "score": 0.9928,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "挪德卡莱",
+   "cx": 1852,
+   "cy": 599,
+   "bbox": [
+    1770,
+    574,
+    1934,
+    623
+   ],
+   "w": 164,
+   "h": 49,
+   "score": 0.9889,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "至冬",
+   "cx": 2208,
+   "cy": 599,
+   "bbox": [
+    2161,
+    570,
+    2255,
+    628
+   ],
+   "w": 94,
+   "h": 58,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "口",
+   "cx": 62,
+   "cy": 720,
+   "bbox": [
+    34,
+    691,
+    90,
+    748
+   ],
+   "w": 56,
+   "h": 57,
+   "score": 0.9929,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "怜悯",
+   "cx": 1236,
+   "cy": 697,
+   "bbox": [
+    1201,
+    675,
+    1272,
+    720
+   ],
+   "w": 71,
+   "h": 45,
+   "score": 0.9985,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "渊下宫",
+   "cx": 1831,
+   "cy": 758,
+   "bbox": [
+    1766,
+    731,
+    1896,
+    785
+   ],
+   "w": 130,
+   "h": 54,
+   "score": 0.9943,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "层岩巨渊·地下矿区",
+   "cx": 2339,
+   "cy": 757,
+   "bbox": [
+    2165,
+    734,
+    2514,
+    780
+   ],
+   "w": 349,
+   "h": 46,
+   "score": 0.9828,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "☑",
+   "cx": 63,
+   "cy": 848,
+   "bbox": [
+    38,
+    824,
+    87,
+    873
+   ],
+   "w": 49,
+   "h": 49,
+   "score": 0.6445,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "旧日之海",
+   "cx": 1851,
+   "cy": 895,
+   "bbox": [
+    1769,
+    871,
+    1934,
+    919
+   ],
+   "w": 165,
+   "h": 48,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "远古圣山",
+   "cx": 2247,
+   "cy": 896,
+   "bbox": [
+    2162,
+    871,
+    2331,
+    920
+   ],
+   "w": 169,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "空之神殿",
+   "cx": 1850,
+   "cy": 1033,
+   "bbox": [
+    1767,
+    1009,
+    1932,
+    1058
+   ],
+   "w": 165,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "霜月",
+   "cx": 2209,
+   "cy": 1033,
+   "bbox": [
+    2163,
+    1006,
+    2254,
+    1060
+   ],
+   "w": 91,
+   "h": 54,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "尘歌壶",
+   "cx": 1831,
+   "cy": 1190,
+   "bbox": [
+    1767,
+    1163,
+    1895,
+    1217
+   ],
+   "w": 128,
+   "h": 54,
+   "score": 0.9912,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "千星奇域·大厅",
+   "cx": 2305,
+   "cy": 1191,
+   "bbox": [
+    2166,
+    1167,
+    2445,
+    1215
+   ],
+   "w": 279,
+   "h": 48,
+   "score": 0.954,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    52,
+    1315
+   ],
+   "w": 43,
+   "h": 14,
+   "score": 0.977,
+   "kind": "other"
+  },
+  {
+   "id": 25,
+   "text": "37.5 ms",
+   "cx": 85,
+   "cy": 1307,
+   "bbox": [
+    45,
+    1297,
+    125,
+    1317
+   ],
+   "w": 80,
+   "h": 20,
+   "score": 0.9394,
+   "kind": "data"
+  },
+  {
+   "id": 26,
+   "text": "max:",
+   "cx": 179,
+   "cy": 1308,
+   "bbox": [
+    156,
+    1298,
+    203,
+    1317
+   ],
+   "w": 47,
+   "h": 19,
+   "score": 0.8607,
+   "kind": "other"
+  },
+  {
+   "id": 27,
+   "text": "66.6 ms",
+   "cx": 234,
+   "cy": 1306,
+   "bbox": [
+    193,
+    1294,
+    276,
+    1319
+   ],
+   "w": 83,
+   "h": 25,
+   "score": 0.9994,
+   "kind": "data"
+  },
+  {
+   "id": 28,
+   "text": "UID: 110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9853,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1138,
+    106,
+    1188,
+    148
+   ],
+   "cx": 1163,
+   "cy": 127,
+   "w": 50,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.56,
+    "aspect": 1.19,
+    "corner_fill": 0.12,
+    "area": 1176,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1260,
+    120,
+    1284,
+    148
+   ],
+   "cx": 1272,
+   "cy": 134,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.69,
+    "aspect": 0.86,
+    "corner_fill": 0.11,
+    "area": 464,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1220,
+    232,
+    1240,
+    256
+   ],
+   "cx": 1230,
+   "cy": 244,
+   "w": 20,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.633,
+    "aspect": 0.83,
+    "corner_fill": 0.06,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    44,
+    572,
+    84,
+    612
+   ],
+   "cx": 64,
+   "cy": 592,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 1.0,
+    "corner_fill": 0.08,
+    "area": 1048,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1276,
+    736,
+    1320,
+    780
+   ],
+   "cx": 1298,
+   "cy": 758,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 1.0,
+    "contrast": 82.9,
+    "ring_L": 114.8,
+    "inside_L": 227.0,
+    "outside_L": 168.4
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1058,
+    54,
+    1086,
+    82
+   ],
+   "cx": 1072,
+   "cy": 68,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.577,
+    "aspect": 1.0,
+    "corner_fill": 0.16,
+    "area": 452,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1212,
+    608,
+    1270,
+    650
+   ],
+   "cx": 1241,
+   "cy": 629,
+   "w": 58,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.578,
+    "aspect": 1.38,
+    "corner_fill": 0.16,
+    "area": 1408,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1614,
+    764,
+    1630,
+    786
+   ],
+   "cx": 1622,
+   "cy": 775,
+   "w": 16,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.807,
+    "aspect": 0.73,
+    "corner_fill": 0.25,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1504,
+    0,
+    1526,
+    20
+   ],
+   "cx": 1515,
+   "cy": 10,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.773,
+    "aspect": 1.1,
+    "corner_fill": 0.25,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1138,
+    182,
+    1166,
+    216
+   ],
+   "cx": 1152,
+   "cy": 199,
+   "w": 28,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.613,
+    "aspect": 0.82,
+    "corner_fill": 0.19,
+    "area": 584,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1100,
+    602,
+    1136,
+    648
+   ],
+   "cx": 1118,
+   "cy": 625,
+   "w": 36,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": 0.614,
+    "aspect": 0.78,
+    "corner_fill": 0.2,
+    "area": 1016,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1080,
+    618,
+    1112,
+    658
+   ],
+   "cx": 1096,
+   "cy": 638,
+   "w": 32,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.928,
+   "label": null,
+   "evidence": {
+    "fill": 0.794,
+    "aspect": 0.8,
+    "corner_fill": 0.28,
+    "area": 1016,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1332,
+    808,
+    1378,
+    860
+   ],
+   "cx": 1355,
+   "cy": 834,
+   "w": 46,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.928,
+   "label": null,
+   "evidence": {
+    "fill": 0.492,
+    "aspect": 0.88,
+    "corner_fill": 0.16,
+    "area": 1176,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1072,
+    390,
+    1102,
+    424
+   ],
+   "cx": 1087,
+   "cy": 407,
+   "w": 30,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.592,
+    "aspect": 0.88,
+    "corner_fill": 0.2,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1064,
+    730,
+    1094,
+    752
+   ],
+   "cx": 1079,
+   "cy": 741,
+   "w": 30,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.709,
+    "aspect": 1.36,
+    "corner_fill": 0.25,
+    "area": 468,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    390,
+    678,
+    410,
+    696
+   ],
+   "cx": 400,
+   "cy": 687,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.925,
+   "label": null,
+   "evidence": {
+    "fill": 0.856,
+    "aspect": 1.11,
+    "corner_fill": 0.31,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1080,
+    752,
+    1110,
+    776
+   ],
+   "cx": 1095,
+   "cy": 764,
+   "w": 30,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.913,
+   "label": null,
+   "evidence": {
+    "fill": 0.711,
+    "aspect": 1.25,
+    "corner_fill": 0.28,
+    "area": 512,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2140,
+    760,
+    2168,
+    780
+   ],
+   "cx": 2154,
+   "cy": 770,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.479,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 268,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1194,
+    290,
+    1244,
+    326
+   ],
+   "cx": 1219,
+   "cy": 308,
+   "w": 50,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.58,
+    "aspect": 1.39,
+    "corner_fill": 0.23,
+    "area": 1044,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1428,
+    802,
+    1464,
+    828
+   ],
+   "cx": 1446,
+   "cy": 815,
+   "w": 36,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.615,
+    "aspect": 1.38,
+    "corner_fill": 0.25,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    10,
+    1364,
+    426,
+    1398
+   ],
+   "cx": 218,
+   "cy": 1381,
+   "w": 416,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.906,
+    "aspect": 12.24,
+    "corner_fill": 0.77,
+    "area": 12808,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1600,
+    644,
+    1628,
+    666
+   ],
+   "cx": 1614,
+   "cy": 655,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.461,
+    "aspect": 1.27,
+    "corner_fill": 0.19,
+    "area": 284,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1234,
+    716,
+    1288,
+    756
+   ],
+   "cx": 1261,
+   "cy": 736,
+   "w": 54,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.5,
+    "aspect": 1.35,
+    "corner_fill": 0.23,
+    "area": 1080,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1496,
+    700,
+    1566,
+    756
+   ],
+   "cx": 1531,
+   "cy": 728,
+   "w": 70,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.512,
+    "aspect": 1.25,
+    "corner_fill": 0.24,
+    "area": 2008,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1674,
+    786,
+    1696,
+    808
+   ],
+   "cx": 1685,
+   "cy": 797,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.893,
+   "label": null,
+   "evidence": {
+    "fill": 0.678,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1616,
+    0,
+    2560,
+    94
+   ],
+   "cx": 2088,
+   "cy": 47,
+   "w": 944,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.893,
+   "label": "地图 X",
+   "evidence": {
+    "fill": 0.874,
+    "aspect": 10.04,
+    "corner_fill": 0.58,
+    "area": 77568,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1692,
+    852,
+    1708,
+    1046
+   ],
+   "cx": 1700,
+   "cy": 949,
+   "w": 16,
+   "h": 194,
+   "shape": "rect",
+   "confidence": 0.89,
+   "label": null,
+   "evidence": {
+    "fill": 0.866,
+    "aspect": 0.08,
+    "corner_fill": 0.38,
+    "area": 2688,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2090,
+    634,
+    2124,
+    658
+   ],
+   "cx": 2107,
+   "cy": 646,
+   "w": 34,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.426,
+    "aspect": 1.42,
+    "corner_fill": 0.22,
+    "area": 348,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1158,
+    0,
+    1180,
+    14
+   ],
+   "cx": 1169,
+   "cy": 7,
+   "w": 22,
+   "h": 14,
+   "shape": "rect",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.844,
+    "aspect": 1.57,
+    "corner_fill": 0.44,
+    "area": 260,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1120,
+    128,
+    1160,
+    166
+   ],
+   "cx": 1140,
+   "cy": 147,
+   "w": 40,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.447,
+    "aspect": 1.05,
+    "corner_fill": 0.24,
+    "area": 680,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    426,
+    1360
+   ],
+   "cx": 218,
+   "cy": 1341,
+   "w": 416,
+   "h": 38,
+   "shape": "rect",
+   "confidence": 0.877,
+   "label": null,
+   "evidence": {
+    "fill": 0.837,
+    "aspect": 10.95,
+    "corner_fill": 0.85,
+    "area": 13232,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1290,
+    8,
+    1356,
+    56
+   ],
+   "cx": 1323,
+   "cy": 32,
+   "w": 66,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.482,
+    "aspect": 1.38,
+    "corner_fill": 0.26,
+    "area": 1528,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1514,
+    376,
+    1568,
+    430
+   ],
+   "cx": 1541,
+   "cy": 403,
+   "w": 54,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.594,
+    "aspect": 1.0,
+    "corner_fill": 0.31,
+    "area": 1732,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2104,
+    762,
+    2118,
+    782
+   ],
+   "cx": 2111,
+   "cy": 772,
+   "w": 14,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.986,
+    "aspect": 0.7,
+    "corner_fill": 0.94,
+    "area": 276,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    964,
+    322,
+    996,
+    360
+   ],
+   "cx": 980,
+   "cy": 341,
+   "w": 32,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.566,
+    "aspect": 0.84,
+    "corner_fill": 0.31,
+    "area": 688,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1358,
+    332,
+    1430,
+    402
+   ],
+   "cx": 1394,
+   "cy": 367,
+   "w": 72,
+   "h": 70,
+   "shape": "circle",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.462,
+    "aspect": 1.03,
+    "corner_fill": 0.27,
+    "area": 2328,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1394,
+    306,
+    1420,
+    334
+   ],
+   "cx": 1407,
+   "cy": 320,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.599,
+    "aspect": 0.93,
+    "corner_fill": 0.33,
+    "area": 436,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1002,
+    336,
+    1040,
+    372
+   ],
+   "cx": 1021,
+   "cy": 354,
+   "w": 38,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.48,
+    "aspect": 1.06,
+    "corner_fill": 0.3,
+    "area": 656,
+    "src": "flat"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    2090,
+    1100,
+    2560,
+    1288
+   ],
+   "cx": 2325,
+   "cy": 1194,
+   "w": 470,
+   "h": 188,
+   "shape": "rect",
+   "confidence": 0.854,
+   "label": "千星奇域·大厅",
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 2.5,
+    "corner_fill": 0.66,
+    "area": 69484,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1188,
+    330,
+    1216,
+    366
+   ],
+   "cx": 1202,
+   "cy": 348,
+   "w": 28,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.575,
+    "aspect": 0.78,
+    "corner_fill": 0.34,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "右侧栏",
+   "bbox": [
+    1710,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=1710（覆盖 73% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    2161,
+    160,
+    2514,
+    1215
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 24,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    187,
+    324,
+    461,
+    599,
+    757,
+    896,
+    1033,
+    1191
+   ],
+   "rows": [
+    {
+     "y": 187,
+     "texts": [
+      "璃月"
+     ]
+    },
+    {
+     "y": 324,
+     "texts": [
+      "须弥"
+     ]
+    },
+    {
+     "y": 461,
+     "texts": [
+      "纳塔"
+     ]
+    },
+    {
+     "y": 599,
+     "texts": [
+      "至冬"
+     ]
+    },
+    {
+     "y": 757,
+     "texts": [
+      "层岩巨渊·地下矿区"
+     ]
+    },
+    {
+     "y": 896,
+     "texts": [
+      "远古圣山"
+     ]
+    },
+    {
+     "y": 1033,
+     "texts": [
+      "霜月"
+     ]
+    },
+    {
+     "y": 1191,
+     "texts": [
+      "千星奇域·大厅"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1740,
+    21,
+    1934,
+    1217
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 27,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 9,
+   "row_y": [
+    47,
+    185,
+    324,
+    460,
+    599,
+    758,
+    895,
+    1033,
+    1190
+   ],
+   "rows": [
+    {
+     "y": 47,
+     "texts": [
+      "地图"
+     ]
+    },
+    {
+     "y": 185,
+     "texts": [
+      "蒙德"
+     ]
+    },
+    {
+     "y": 324,
+     "texts": [
+      "稻妻"
+     ]
+    },
+    {
+     "y": 460,
+     "texts": [
+      "枫丹"
+     ]
+    },
+    {
+     "y": 599,
+     "texts": [
+      "挪德卡莱"
+     ]
+    },
+    {
+     "y": 758,
+     "texts": [
+      "渊下宫"
+     ]
+    },
+    {
+     "y": 895,
+     "texts": [
+      "旧日之海"
+     ]
+    },
+    {
+     "y": 1033,
+     "texts": [
+      "空之神殿"
+     ]
+    },
+    {
+     "y": 1190,
+     "texts": [
+      "尘歌壶"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    34,
+    691,
+    90,
+    873
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 25,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    720,
+    848
+   ],
+   "rows": [
+    {
+     "y": 720,
+     "texts": [
+      "口"
+     ]
+    },
+    {
+     "y": 848,
+     "texts": [
+      "☑"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "X",
+   "text_id": 3,
+   "target": "rect@(2088,47)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "地图 X",
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -414,
+   "dy": 0,
+   "confidence": 0.7
+  },
+  {
+   "text": "地图",
+   "text_id": 2,
+   "target": "rect@(2088,47)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "地图 X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 302,
+   "dy": 0,
+   "confidence": 0.55
+  },
+  {
+   "text": "千星奇域·大厅",
+   "text_id": 23,
+   "target": "rect@(2325,1194)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "千星奇域·大厅",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 20,
+   "dy": 3,
+   "confidence": 0.55
+  },
+  {
+   "text": "层岩巨渊·地下矿区",
+   "text_id": 16,
+   "target": "circle@(2154,770)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -186,
+   "dy": 13,
+   "confidence": 0.55
+  },
+  {
+   "text": "怜悯",
+   "text_id": 14,
+   "target": "circle@(1261,736)",
+   "target_id": "c22",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 24,
+   "dy": 38,
+   "confidence": 0.55
+  },
+  {
+   "text": "至冬",
+   "text_id": 12,
+   "target": "circle@(2107,646)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 37,
+   "dx": -101,
+   "dy": 47,
+   "confidence": 0.519
+  },
+  {
+   "text": "霜月",
+   "text_id": 21,
+   "target": "rect@(2325,1194)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "千星奇域·大厅",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 40,
+   "dx": 116,
+   "dy": 161,
+   "confidence": 0.517
+  },
+  {
+   "text": "空之神殿",
+   "text_id": 20,
+   "target": "rect@(1700,949)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 59,
+   "dx": -150,
+   "dy": -84,
+   "confidence": 0.501
+  },
+  {
+   "text": "旧日之海",
+   "text_id": 18,
+   "target": "rect@(1700,949)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 61,
+   "dx": -152,
+   "dy": 54,
+   "confidence": 0.499
+  },
+  {
+   "text": "蒙德",
+   "text_id": 5,
+   "target": "rect@(2088,47)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "地图 X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 64,
+   "dx": 276,
+   "dy": -138,
+   "confidence": 0.497
+  },
+  {
+   "text": "璃月",
+   "text_id": 6,
+   "target": "rect@(2088,47)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "地图 X",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 66,
+   "dx": -120,
+   "dy": -140,
+   "confidence": 0.495
+  },
+  {
+   "text": "口",
+   "text_id": 13,
+   "target": "circle@(64,592)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 79,
+   "dx": 2,
+   "dy": -128,
+   "confidence": 0.484
+  },
+  {
+   "text": "远古圣山",
+   "text_id": 19,
+   "target": "rect@(2111,772)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 89,
+   "dx": -136,
+   "dy": -124,
+   "confidence": 0.476
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 28,
+   "target": "rect@(2325,1194)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "千星奇域·大厅",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 113,
+   "dx": -46,
+   "dy": -224,
+   "confidence": 0.456
+  },
+  {
+   "text": "尘歌壶",
+   "text_id": 22,
+   "target": "rect@(1700,949)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 117,
+   "dx": -131,
+   "dy": -241,
+   "confidence": 0.453
+  },
+  {
+   "text": "渊下宫",
+   "text_id": 15,
+   "target": "circle@(1622,775)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 136,
+   "dx": -209,
+   "dy": 17,
+   "confidence": 0.437
+  },
+  {
+   "text": "挪德卡莱",
+   "text_id": 11,
+   "target": "circle@(1622,775)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 141,
+   "dx": -230,
+   "dy": 176,
+   "confidence": 0.433
+  },
+  {
+   "text": "纳塔",
+   "text_id": 10,
+   "target": "circle@(2107,646)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 145,
+   "dx": -102,
+   "dy": 185,
+   "confidence": 0.429
+  },
+  {
+   "text": "怜悯",
+   "text_id": 14,
+   "target": "circle@(1298,758)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 16,
+   "dx": 62,
+   "dy": 60,
+   "confidence": 0.537
+  },
+  {
+   "text": "层岩巨渊·地下矿区",
+   "text_id": 16,
+   "target": "rect@(2111,772)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 47,
+   "dx": -228,
+   "dy": 15,
+   "confidence": 0.511
+  },
+  {
+   "text": "渊下宫",
+   "text_id": 15,
+   "target": "rect@(1700,949)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 67,
+   "dx": -131,
+   "dy": 191,
+   "confidence": 0.494
+  },
+  {
+   "text": "旧日之海",
+   "text_id": 18,
+   "target": "circle@(1685,797)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 73,
+   "dx": -166,
+   "dy": -98,
+   "confidence": 0.489
+  },
+  {
+   "text": "远古圣山",
+   "text_id": 19,
+   "target": "circle@(2154,770)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 91,
+   "dx": -92,
+   "dy": -126,
+   "confidence": 0.474
+  },
+  {
+   "text": "至冬",
+   "text_id": 12,
+   "target": "circle@(2154,770)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 132,
+   "dx": -54,
+   "dy": 171,
+   "confidence": 0.44
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    123,
+    81
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=0.4，非纯黑 L=18，纹理对比骤降 std 1.1→0.4（0.37×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 25.3",
+     "GPU: 2%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     4
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 18.1,
+    "bg_std": 0.4,
+    "ring_mean": 18.0,
+    "ring_std": 1.1,
+    "texture_ratio": 0.37,
+    "bg_rgb": [
+     12,
+     18,
+     23
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    2146,
+    546,
+    2522,
+    660
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "fill": 0.79,
+    "rect": 0.88
+   },
+   "text": [
+    "至冬"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:2",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.93,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (2 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 37688,
+    "area_frac": 0.0116,
+    "aspect": 3.3,
+    "grid": "col n=3 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 2,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "flat_fill": 0.79,
+    "rect": 0.88
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    2144,
+    840,
+    2524,
+    956
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "fill": 0.57,
+    "rect": 0.78
+   },
+   "text": [
+    "远古圣山"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:2",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (2 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 34228,
+    "area_frac": 0.012,
+    "aspect": 3.28,
+    "grid": "col n=3 pitch_x=None pitch_y=138.0",
+    "skin_siblings": 2,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "flat_fill": 0.57,
+    "rect": 0.78
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    2146,
+    702,
+    2524,
+    818
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "fill": 0.53,
+    "rect": 0.63
+   },
+   "text": [
+    "层岩巨渊·地下矿区"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:2",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.88,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (2 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 27824,
+    "area_frac": 0.0119,
+    "aspect": 3.26,
+    "grid": "col n=3 pitch_x=None pitch_y=138.0",
+    "skin_siblings": 2,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     53.0,
+     126.0,
+     121.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.63
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    2148,
+    1136,
+    2524,
+    1250
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     232.0,
+     128.0,
+     135.0
+    ],
+    "fill": 0.45,
+    "rect": 0.56
+   },
+   "text": [
+    "千星奇域·大厅"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2500,
+      1128,
+      2530,
+      1160
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 197.0
+    },
+    {
+     "bbox": [
+      2500,
+      1228,
+      2530,
+      1258
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 196.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.71,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 24168,
+    "area_frac": 0.0116,
+    "aspect": 3.3,
+    "grid": "col n=3 pitch_x=None pitch_y=295.0",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     232.0,
+     128.0,
+     135.0
+    ],
+    "flat_fill": 0.45,
+    "rect": 0.56
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 25.3",
+  "地图",
+  "X",
+  "GPU: 2%",
+  "蒙德",
+  "璃月",
+  "稻妻",
+  "须弥",
+  "枫丹",
+  "纳塔",
+  "挪德卡莱",
+  "口",
+  "怜悯",
+  "渊下宫",
+  "☑",
+  "旧日之海",
+  "空之神殿",
+  "霜月",
+  "尘歌壶",
+  "min:",
+  "37.5 ms",
+  "max:",
+  "66.6 ms",
+  "UID: 110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2230,
+    254,
+    2252,
+    276
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 268.0
+  },
+  {
+   "bbox": [
+    1174,
+    0,
+    1190,
+    18
+   ],
+   "role": "icon",
+   "fill": 0.71,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    1276,
+    664,
+    1292,
+    696
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 98.0
+  },
+  {
+   "bbox": [
+    1172,
+    80,
+    1188,
+    100
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 58.0
+  },
+  {
+   "bbox": [
+    1498,
+    702,
+    1566,
+    754
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 138.0
+  },
+  {
+   "bbox": [
+    2046,
+    150,
+    2128,
+    230
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 175.0
+  },
+  {
+   "bbox": [
+    1076,
+    450,
+    1128,
+    510
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 130.0
+  },
+  {
+   "bbox": [
+    1214,
+    608,
+    1266,
+    660
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 137.0
+  },
+  {
+   "bbox": [
+    1100,
+    600,
+    1136,
+    650
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    1042,
+    992,
+    1066,
+    1012
+   ],
+   "role": "icon",
+   "fill": 0.56,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    1154,
+    110,
+    1182,
+    140
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    1468,
+    982,
+    1504,
+    1006
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 75.0
+  },
+  {
+   "bbox": [
+    1476,
+    0,
+    1516,
+    88
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 100.0
+  },
+  {
+   "bbox": [
+    1380,
+    1004,
+    1428,
+    1052
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1526,
+    70,
+    1544,
+    94
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    1360,
+    300,
+    1448,
+    412
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 132.0
+  },
+  {
+   "bbox": [
+    2044,
+    1128,
+    2170,
+    1258
+   ],
+   "role": "icon",
+   "fill": 0.35,
+   "contrast": 196.0
+  },
+  {
+   "bbox": [
+    954,
+    310,
+    1026,
+    370
+   ],
+   "role": "icon",
+   "fill": 0.33,
+   "contrast": 114.0
+  },
+  {
+   "bbox": [
+    1500,
+    226,
+    1536,
+    272
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 122.0
+  },
+  {
+   "bbox": [
+    1290,
+    60,
+    1310,
+    90
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 58.0
+  },
+  {
+   "bbox": [
+    48,
+    576,
+    80,
+    686
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 234.0
+  },
+  {
+   "bbox": [
+    1100,
+    226,
+    1138,
+    252
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 84.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 120,
+  "ocr_ms": 493,
+  "pixel_ms": 927,
+  "container_ms": 370,
+  "container_cached": false,
+  "total_ms": 1541,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 29,
+  "err": null
+ },
+ "title_text_id": 3,
+ "digest": "屏幕 2560x1440 · 文本 29 · 控件 40 · 容器 4 · 邻接 24 · 遮挡 1 · 1541ms（OCR daemon）\n标题「X」@(2503,46) 右侧栏 · 字高 73px\n邻接「X」→ rect@(2088,47)「地图 X」 重叠 0px\n控件: rect@(2088,47)「地图 X」 | rect@(2325,1194)「千星奇域·大厅」 | circle@(2154,770) | circle@(1261,736)\n区域: 右侧栏 (1710,0)-(2560,1440)\n遮挡 [0, 2, 123, 81] (0,2)-(123,81)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=0.4，非纯黑 L=18，纹理对比骤降 std 1.1→0.4（0.37×）"
+}
