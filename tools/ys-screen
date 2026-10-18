@@ -802,8 +802,29 @@ def find_structure(text, W0, H0, row_tol=42, panel_gap=260, min_rows=2):
             continue
         xs = [b['bbox'][0] for b in gp] + [b['bbox'][2] for b in gp]
         ys = [b['bbox'][1] for b in gp] + [b['bbox'][3] for b in gp]
+        bbox = [min(xs), min(ys), max(xs), max(ys)]
+        # 可滚提示（第 3 步，2026-10-18）：**只给提示，不给断言**。
+        # 依据（都可从已经识别到的文本直接算，零额外开销）：
+        #   ① 界面自带的滚动键提示（活动页左上角画着 W/S，实测滚它确实动）
+        #   ② 末行贴着面板下沿（内容顶到边界 ⇒ 更可能还有）
+        # 真值仍以 `ys-scroll-scan --check` 的行为判定为准——这两条只是让调用方**动手前**
+        # 就知道"这块可能要滚"，而不是把"这一屏没看到"当成"不存在"。
+        HINTS = {'W', 'S', 'w', 's', '▲', '▼', '↑', '↓'}
+        hint_tokens = sorted({t.strip() for r in rows for t in
+                              [x['text'] for x in r] if t.strip() in HINTS})
+        last_y = max(b['cy'] for b in gp)
+        to_edge = bbox[3] - last_y
+        # ⚠️ 只有**明确提示**才判 yes；其余一律 unknown。
+        # 为什么不给"maybe"：实测世界页队伍栏（5 行、末行距边 20px、行距均匀）看着很像可滚，
+        # 但行为验证（ys-scroll-scan）证明它**不可滚**。单帧无法确定"后面还有没有内容"——
+        # 与其给一个会误导人的弱结论，不如如实说"不知道，请用 --check 验"。
+        scrollable = 'yes' if hint_tokens else 'unknown'
         out.append({
-            'bbox': [min(xs), min(ys), max(xs), max(ys)],
+            'bbox': bbox,
+            'scroll_hint': {'key_tokens': hint_tokens, 'last_row_to_edge': int(to_edge),
+                            'scrollable': scrollable,
+                            'note': ('有滚动键提示，可直接滚' if hint_tokens
+                                     else '单帧无法判定；要真值请跑 ys-scroll-scan --check')},
             'n_rows': len(rows),
             'row_y': [int(sum(b['cy'] for b in r) / len(r)) for r in rows],
             'rows': [{'y': int(sum(b['cy'] for b in r) / len(r)),
@@ -1366,7 +1387,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
         if os.path.exists(_sc):
             try:
                 with open(_sc, encoding='utf-8') as f:
-                    return json.load(f), frame, fresh_obj(frame, None)
+                    return json.load(f)                # 结构缓存命中：analyze 的返回是**单个 dict**
             except (OSError, ValueError):
                 pass
     struct_cache = os.path.join(CACHE_DIR, 'struct-%s.json' % _sha256(frame))
