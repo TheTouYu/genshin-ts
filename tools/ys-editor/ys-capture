@@ -18,6 +18,7 @@
 #   9  STRICT_UNAVAILABLE（KWin 权威通道不可用/结论过旧）
 #   10 FORMAT_NOT_READY（请求的预编码格式与当前帧内容不符）
 #   11 COPY_FAILED
+#   12 BACKGROUND_NOT_ALLOWED（守护是 window 模式/帧是后台帧，但调用方没带 --allow-background）
 #   唯一例外：显式 `--allow-background`（只供离线分析目标窗口自身缓冲，**不得用于动作**）。
 #
 # 用法：
@@ -64,7 +65,7 @@ cmd_latest() {
   # 23 字段（\x1f 分隔；tab 会被 read 折叠，别改回 tab）：v1 seq wall_ns wall_iso w h crc rgb bmp bcrc png pcrc jpg jcrc
   #          fast fast_age strict strict_age strict_src win class pid dpid
   IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
-    fast fage strict sage ssrc win klass _pid dpid < "$STATE"
+    fast fage strict sage ssrc win klass _pid dpid mode fsrc visible < "$STATE"
   [ "${ver:-}" = "v1" ] || deny 9 STRICT_UNAVAILABLE "状态文件版本不认识：${ver:-空}"
   if [ "${YS_CAPTURE_SKIP_DAEMON_CHECK:-0}" != "1" ]; then
     [ -n "${dpid:-}" ] && kill -0 "$dpid" 2>/dev/null || deny 7 DAEMON_DOWN "守护进程 ${dpid:-?} 不在"
@@ -74,6 +75,18 @@ cmd_latest() {
   age_ms=$(( (now - wall_ns) / 1000000 ))
   [ -n "${rgb:-}" ] && [ -s "$rgb" ] || deny 8 STALE_FRAME "环形缓冲里没有可读帧（rgb=${rgb:-空}）"
   [ "$age_ms" -le "$MAX_AGE_MS" ] || deny 8 STALE_FRAME "最新帧已 ${age_ms}ms 旧（> --max-age-ms=$MAX_AGE_MS）"
+  # ── background 模式（--source window）：**按窗口抓，不要求可见**；只查身份与新鲜度。
+  #    绝不冒充「在栈顶」：输出固定带 capture_mode=background 与 visible/src。
+  if [ "${mode:-screen}" = "background" ]; then
+    # 「后台」必须是**调用方显式声明**：守护是 window 模式时，上层不带 --allow-background
+    # 一律拒绝（exit 12）——否则上层会以为自己拿的是可见画面，动作照做就会点错（票 34 同族）。
+    [ "$ALLOW_BG" = "1" ] || deny 12 BACKGROUND_NOT_ALLOWED \
+      "这是后台帧（capture_mode=background，窗口 visible=${visible:-0}）：调用方必须显式 --allow-background 才返回像素"
+    case "${fast:-UNKNOWN}" in
+      NOT_FOUND|UNKNOWN) deny 2 NOT_FOUND "窗口身份不可信（background 模式仍需身份校验；fast=${fast:-空}）";;
+    esac
+    [ -n "${klass:-}" ] || deny 2 NOT_FOUND "状态里没有窗口 class（身份不可信）"
+  else
   # ── 闸门①：X11/EWMH 快路径（廉价次级信号；它会把桌面说错，所以只用来「更保守地拒」）
   case "$fast" in
     OK) ;;
@@ -100,11 +113,12 @@ cmd_latest() {
     [ "$sage" -le "$STRICT_TTL_MS" ] || deny 9 STRICT_UNAVAILABLE \
       "KWin 归属结论已 ${sage}ms 旧（> --strict-ttl-ms=$STRICT_TTL_MS）"
   fi
+  fi  # end screen-mode gates
   # ── 选格式（按 --out 后缀，其次 --format；无 --out 则只回源路径）
   if [ -z "$OUT" ]; then
     local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-    printf '{"ok":true,"copied":false,"format":"raw","path":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
-      "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
+    printf '{"ok":true,"copied":false,"capture_mode":"%s","visible":%s,"src":"%s","format":"raw","path":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
+      "${mode:-screen}" "${visible:-0}" "${fsrc:-xshm}" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
     return 0
   fi
   case "$OUT" in
@@ -139,8 +153,8 @@ cmd_latest() {
       "$PY" "$HERE/ys_capture.py" encode "$rgb" --format "$FMT" --out "$OUT" --width "$fw" --height "$fh" >/dev/null \
         || deny 10 FORMAT_NOT_READY "按需编码 $FMT 失败"
       ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-      printf '{"ok":true,"copied":true,"encoded":true,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s}}\n' \
-        "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage"
+      printf '{"ok":true,"copied":true,"encoded":true,"capture_mode":"%s","visible":%s,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s}}\n' \
+        "${mode:-screen}" "${visible:-0}" "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage"
       return 0
     fi
     deny 10 FORMAT_NOT_READY \
@@ -153,8 +167,8 @@ cmd_latest() {
   fi
   [ -s "$OUT" ] || deny 11 COPY_FAILED "输出为空：$OUT"
   local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-  printf '{"ok":true,"copied":true,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
-    "$FMT" "$OUT" "$src" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" \
+  printf '{"ok":true,"copied":true,"capture_mode":"%s","visible":%s,"frame_source":"%s","format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
+    "${mode:-screen}" "${visible:-0}" "${fsrc:-xshm}" "$FMT" "$OUT" "$src" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" \
     "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
   return 0
 }

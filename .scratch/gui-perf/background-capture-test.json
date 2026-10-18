@@ -1,0 +1,73 @@
+{
+ "visible": {
+  "state": "visible",
+  "xshm": {
+   "ms_first": 2.8,
+   "ms_second": 2.3,
+   "diff_px": 240000,
+   "live": true,
+   "mean_a": 80.0,
+   "mean_b": 87.0
+  },
+  "kwin": {
+   "ms_first": 10.6,
+   "ms_second": 8.2,
+   "diff_px": 239984,
+   "live": true,
+   "mean_a": 89.3,
+   "mean_b": 96.3
+  }
+ },
+ "below": {
+  "state": "below",
+  "xshm": {
+   "ms_first": 1.5,
+   "ms_second": 1.5,
+   "diff_px": 240000,
+   "live": true,
+   "mean_a": 29.7,
+   "mean_b": 36.7
+  },
+  "kwin": {
+   "ms_first": 5.0,
+   "ms_second": 4.8,
+   "diff_px": 239984,
+   "live": true,
+   "mean_a": 36.7,
+   "mean_b": 46.0
+  }
+ },
+ "min": {
+  "state": "min",
+  "xshm": {
+   "error": "RuntimeError: XShmGetImage 失败 ok=None xerr=8（窗口不可映射/最小化时常见 BadMatch）"
+  },
+  "kwin": {
+   "ms_first": 4.8,
+   "ms_second": 6.0,
+   "diff_px": 0,
+   "live": false,
+   "mean_a": 46.0,
+   "mean_b": 46.0
+  }
+ },
+ "restore": {
+  "state": "restore",
+  "xshm": {
+   "ms_first": 3.1,
+   "ms_second": 2.9,
+   "diff_px": 240000,
+   "live": true,
+   "mean_a": 102.0,
+   "mean_b": 23.7
+  },
+  "kwin": {
+   "ms_first": 3.8,
+   "ms_second": 4.0,
+   "diff_px": 239984,
+   "live": true,
+   "mean_a": 23.7,
+   "mean_b": 33.0
+  }
+ }
+}

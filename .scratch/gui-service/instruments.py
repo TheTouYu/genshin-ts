@@ -112,7 +112,10 @@ def attrib_fast(title=None, win=None, *, timeout=20):
 
 CAPTURE_EXIT = {"7": "DAEMON_DOWN", "4": "OTHER_DESKTOP", "5": "OCCLUDED",
                 "2": "NOT_ATOP", "8": "STALE_FRAME", "9": "STRICT_UNAVAILABLE",
-                "10": "FORMAT_NOT_READY", "11": "COPY_FAILED", "1": "BAD_ARG"}
+                "10": "FORMAT_NOT_READY", "11": "COPY_FAILED", "1": "BAD_ARG",
+                # 12：守护是 window 模式、帧是后台帧，但调用方没显式 --allow-background
+                # （后台帧必须由调用方声明；默认拒绝，防止上层把后台帧当可见画面去动作）
+                "12": "BACKGROUND_NOT_ALLOWED"}
 
 
 def grab_frame(*, timeout=60, skip_atop=False, allow_background=False, backend=None):

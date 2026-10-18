@@ -19,6 +19,8 @@
   state.tsv = v1 <US-separated> <seq> <wall_ns> <wall_iso> <w> <h> <crc32> <rgb> <bmp> <bmp_crc> <png> <png_crc>
               <jpg> <jpg_crc> <fast_verdict> <fast_age_ms> <strict_verdict> <strict_age_ms>
               <strict_src> <win> <class> <pid> <daemon_pid>
+              <mode screen|background> <src xshm-window|kwin-ss2> <visible 0|1>
+  （后 3 个字段 2026-10-18 task-6 新增：`--source window` 的帧必须明示"后台抓帧"，不许冒充栈顶）
 
 fail-closed（票 34 的红线，客户端 `ys-capture latest` 执行）：
   · 守护进程不在（pid 死了）           → 退出 7（DAEMON_DOWN），不返回像素
@@ -326,6 +328,108 @@ def strict_attrib(display, win_hex, want_class=DEFAULT_CLASS, timeout=25):
             'elapsed_ms': round((time.perf_counter() - t0) * 1000, 1)}
 
 
+# ──────────────────────────────────────── KWin ScreenShot2（后台按窗口抓）
+def kwin_internal_id(class_substr, timeout=12):
+    """用 KWin 脚本取窗口的 internalId（ScreenShot2 的 handle）。JS 必须落在宿主可见路径（D385）。"""
+    import uuid
+    tag = 'yscap' + uuid.uuid4().hex[:8]
+    js_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'.ys-cap-{tag}.js')
+    js = f"""
+var ord = workspace.stackingOrder;
+for (var i = 0; i < ord.length; i++) {{
+  var w = ord[i];
+  if (String(w.resourceClass || '').toLowerCase().indexOf({class_substr!r}) >= 0) {{
+    try {{ console.info('YS-CAP-{tag} ' + String(w.internalId)); }} catch (e) {{}}
+  }}
+}}
+"""
+    env = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/1000'),
+           'DBUS_SESSION_BUS_ADDRESS': os.environ.get(
+               'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus')}
+    try:
+        with open(js_path, 'w') as f:
+            f.write(js)
+        for args in (['gdbus', 'call', '--session', '--dest', 'org.kde.KWin', '--object-path',
+                      '/Scripting', '--method', 'org.kde.kwin.Scripting.loadScript', js_path, tag],
+                     ['gdbus', 'call', '--session', '--dest', 'org.kde.KWin', '--object-path',
+                      '/Scripting', '--method', 'org.kde.kwin.Scripting.start']):
+            subprocess.run(args, capture_output=True, env=env, timeout=8)
+        time.sleep(1.1)
+        out = subprocess.run(['journalctl', '--user', '--since', '4 seconds ago'],
+                             capture_output=True, text=True, timeout=10).stdout
+        for ln in out.splitlines():
+            marker = f'YS-CAP-{tag} '
+            if marker in ln:
+                return ln.split(marker, 1)[1].strip()
+    except Exception:                                     # noqa: BLE001
+        return None
+    finally:
+        try:
+            os.unlink(js_path)
+        except OSError:
+            pass
+    return None
+
+
+class KWinSS2:
+    """KWin ScreenShot2 CaptureWindow：**按窗口自身缓冲**抓，与是否在栈顶/当前桌面无关。
+
+    协议：CaptureWindow(handle, options, pipe) → 结果 dict{format,width,height,stride,scale,type}；
+    `type='raw'` 时 pipe 里是**裸像素**（BGRA，按 stride 行对齐），不是 QImage 序列化流。
+    实测（2560×1440 原神窗）：242–288ms/帧（冷 604ms），比 XShm 慢 20–40×，所以只作兜底
+    （XShm 在窗口最小化时会 BadMatch，这条能出活帧）。
+    """
+
+    IFACE = 'org.kde.KWin.ScreenShot2'
+
+    def __init__(self, class_substr, display=None):
+        import dbus
+        self.dbus = dbus
+        self.class_substr = (class_substr or 'yuanshen').lower()
+        self.handle = None
+        self.bus = dbus.SessionBus()
+        self.obj = self.bus.get_object('org.kde.KWin', '/org/kde/KWin/ScreenShot2',
+                                       introspect=False)
+        self.iface = dbus.Interface(self.obj, self.IFACE)
+
+    def ensure_handle(self):
+        if not self.handle:
+            self.handle = kwin_internal_id(self.class_substr)
+        return self.handle
+
+    def grab(self):
+        if not self.ensure_handle():
+            raise GrabError('KWin: 取不到窗口 internalId（KWin 脚本不可用？）')
+        r, w = os.pipe()
+        t0 = time.perf_counter()
+        try:
+            res = self.iface.CaptureWindow(self.handle, self.dbus.Dictionary(
+                {'native-resolution': True}, signature='sv'),
+                self.dbus.types.UnixFd(w), timeout=20)
+        finally:
+            os.close(w)
+        data = b''
+        while True:
+            chunk = os.read(r, 1 << 22)
+            if not chunk:
+                break
+            data += chunk
+        os.close(r)
+        ms = (time.perf_counter() - t0) * 1000
+        meta = {str(k): v for k, v in dict(res).items()}
+        if str(meta.get('type')) != 'raw':
+            raise GrabError(f"KWin: 非 raw 结果 type={meta.get('type')!r}（协议变了？）")
+        import numpy as np
+        h = int(meta.get('height') or 0)
+        stride = int(meta.get('stride') or 0)
+        if h <= 0 or stride <= 0 or len(data) < h * stride:
+            raise GrabError(f'KWin: 像素长度不符 bytes={len(data)} h={h} stride={stride}')
+        arr = np.frombuffer(data[:h * stride], np.uint8).reshape(h, stride // 4, 4)
+        rgb = np.ascontiguousarray(arr[:, :, 2::-1])      # BGRA → RGB
+        return rgb, ms, {'src': 'kwin-ss2', 'format': int(meta.get('format') or 0),
+                         'scale': float(meta.get('scale') or 1), 'height': h,
+                         'width': int(meta.get('width') or (stride // 4))}
+
 # ─────────────────────────────────────────────────────────────── 编码器
 def encode_bmp(rgb):
     """BMP（top-down，24bpp）：头 54B + BGR。PIL/ImageMagick/cv2 都能读。"""
@@ -421,6 +525,11 @@ class Daemon:
         self.frames_written = 0
         self.frames_reused = 0
         self.last_err = ''
+        self.source = getattr(args, 'source', 'screen') or 'screen'
+        if self.source not in ('screen', 'window'):
+            raise SystemExit(f'未知 --source {self.source}（screen|window）')
+        self.last_src = 'xshm-window'
+        self.kwin = None
 
     # ---- 窗口发现（--win auto 或 id 失效时按 WM_CLASS 找）
     def discover_window(self):
@@ -541,6 +650,28 @@ class Daemon:
         return True
 
     # ---- 主循环
+    def _grab_once(self):
+        """取一帧：screen 模式只走 XShm；window 模式 XShm 失败时回退 KWin ScreenShot2。
+
+        window 模式的两个已知失败：① 窗口最小化 → XShm BadMatch（不可映射）；
+        ② 窗口被销毁/换 id → BadWindow。前者用 KWin 兜底（实测最小化仍出**活帧**），
+        后者交给外层重建。返回 (rgb, ms, src)。
+        """
+        try:
+            rgb, ms = self.grabber.grab()
+            return rgb, ms, 'xshm-window'
+        except Exception as e:                            # noqa: BLE001
+            if self.source != 'window':
+                raise
+            if self.kwin is None:
+                self.kwin = KWinSS2(self.want_class)
+            try:
+                rgb, ms, kinfo = self.kwin.grab()
+            except Exception as e2:                       # noqa: BLE001
+                raise GrabError(f'XShm: {type(e).__name__}: {e}; '
+                                f'KWin: {type(e2).__name__}: {e2}') from e2
+            return rgb, ms, kinfo.get('src', 'kwin-ss2')
+
     def capture_loop(self):
         period = 1.0 / self.fps
         last_ok = 0.0
@@ -555,16 +686,20 @@ class Daemon:
                 self.stop.wait(1.0)
                 continue
             try:
-                rgb, ms = self.grabber.grab()
+                rgb, ms, src = self._grab_once()
                 self.capture_ms = ms
+                self.last_src = src
+                self.last_err = ''
             except Exception as e:                            # noqa: BLE001
                 self.last_err = f'grab: {type(e).__name__}: {e}'
-                # 窗口没了（重启/换 id）：拆掉重找
+                # 两条路都失败（窗口没了/重启/换 id）：重建 grabber 与 KWin handle
                 try:
                     self.grabber.close()
                 except Exception:                             # noqa: BLE001
                     pass
                 self.grabber = None
+                if self.kwin is not None:
+                    self.kwin.handle = None
                 self.stop.wait(0.5)
                 continue
             self.seq += 1
@@ -633,7 +768,10 @@ class Daemon:
                   self.fast.get('verdict', 'UNKNOWN'), str(fast_age),
                   strict.get('verdict', 'UNKNOWN'), str(strict_age), strict.get('src', 'none'),
                   str(self.win or ''), self.want_class,
-                  str(0), str(os.getpid())]
+                  str(0), str(os.getpid()),
+                  ('background' if self.source == 'window' else 'screen'),
+                  self.last_src,
+                  ('1' if self.strict.get('verdict') == 'OK' else '0')]
         line = '\x1f'.join(fields) + '\n'
         tmp = os.path.join(self.dir, '.state.tsv.tmp')
         with open(tmp, 'w') as f:
@@ -811,7 +949,8 @@ def cmd_selftest(args):
         d = dict(seq=7, wall_ns=time.time_ns(), w=64, h=48, crc=crc,
                  rgb=frame, bmp=bmp, bcrc=crc, png='', pcrc='', jpg='', jcrc='',
                  fast='OK', fage=12, strict='OK', sage=200, ssrc='kwin',
-                 win='0x01400001', klass='yuanshen.exe', pid=0, dpid=os.getpid())
+                 win='0x01400001', klass='yuanshen.exe', pid=0, dpid=os.getpid(),
+                 mode='screen', src='xshm-window', visible='1')
         d.update(kw)
         line = '\x1f'.join(str(v) for v in [STATE_VERSION, d['seq'], d['wall_ns'],
                                           time.strftime('%Y-%m-%dT%H:%M:%S%z'),
@@ -819,7 +958,8 @@ def cmd_selftest(args):
                                           d['bmp'], d['bcrc'], d['png'], d['pcrc'],
                                           d['jpg'], d['jcrc'], d['fast'], d['fage'],
                                           d['strict'], d['sage'], d['ssrc'], d['win'],
-                                          d['klass'], d['pid'], d['dpid']]) + '\n'
+                                          d['klass'], d['pid'], d['dpid'],
+                                          d['mode'], d['src'], d['visible']]) + '\n'
         p = os.path.join(fx, f'state-{name}.tsv')
         with open(p, 'w') as f:
             f.write(line)
@@ -853,6 +993,16 @@ def cmd_selftest(args):
         ('png_not_ready', {}, 10, False, ['--format', 'png'], True),
         ('allow_background', {'strict': 'OTHER_DESKTOP'}, 0, True,
          ['--allow-background'], True),
+        # --source window（background）：不可见也必须出像素，但必须**明示 background**
+        ('background_mode', {'mode': 'background', 'src': 'kwin-ss2', 'visible': '0',
+                             'fast': 'OTHER_DESKTOP', 'strict': 'OTHER_DESKTOP'}, 0, True,
+         ['--allow-background'], True),
+        # 语义门禁：background 帧 + **不带** --allow-background ⇒ 必须拒且不落像素
+        ('background_requires_flag', {'mode': 'background', 'src': 'kwin-ss2', 'visible': '0',
+                                     'fast': 'OTHER_DESKTOP', 'strict': 'OTHER_DESKTOP'},
+         12, False, [], True),
+        ('background_identity_fail', {'mode': 'background', 'fast': 'NOT_FOUND'}, 2, False,
+         ['--allow-background'], True),
     ]
     for name, kw, want_rc, want_px, extra, skip in cases:
         sp = write_state(name, **kw)
@@ -860,6 +1010,12 @@ def cmd_selftest(args):
             rc, out, path, has_px = run_client(sp, f'out-{name}.bmp', extra, skip)
             ok = (rc == want_rc) and (has_px == want_px)
             detail = f'rc={rc}(want {want_rc}) pixels={has_px}(want {want_px})'
+            if name == 'background_requires_flag':
+                ok = ok and ('BACKGROUND_NOT_ALLOWED' in out) and ('allow-background' in out)
+                detail += ' hint=' + str('allow-background' in out)
+            if name == 'background_mode':
+                ok = ok and ('"capture_mode":"background"' in out) and ('"visible":0' in out)
+                detail += ' bg_fields=' + str('"capture_mode":"background"' in out and '"visible":0' in out)
             if name == 'allow_background':
                 ok = ok and ('"allow_background":1' in out)
                 detail += ' json_allow_background=' + str('"allow_background":1' in out)
@@ -890,6 +1046,9 @@ def main(argv=None):
     s.add_argument('--fps', type=float, default=10.0)
     s.add_argument('--ring', type=int, default=4)
     s.add_argument('--pre', default='bmp')
+    s.add_argument('--source', default=os.environ.get('YS_CAPTURE_SOURCE', 'screen'),
+                   choices=['screen', 'window'],
+                   help='screen=要求窗口可见（原语义）；window=按窗口抓（后台窗口也能抓，明示 background）')
     s.add_argument('--fast-sec', type=float, default=0.3)
     s.add_argument('--strict-sec', type=float, default=1.5)
     s.add_argument('--width', type=int, default=FRAME_W)
