@@ -1674,7 +1674,24 @@ def _world_containers(arr, sha, boxes, W, H):
 
 
 
-def _world_structure(objects, W, H, boxes=None):
+_DET = None
+
+
+def _world_detector(arr):
+    """D2 检测器（懒加载常驻）。返回 (objs, ms, err)。"""
+    global _DET
+    t0 = time.time()
+    try:
+        if _DET is None:
+            import gui_det
+            _DET = gui_det.Detector()
+        objs = _DET.detect(arr)
+        return objs, round((time.time() - t0) * 1000, 1), (_DET.err if not objs else None)
+    except Exception as e:                                   # noqa: BLE001
+        return [], round((time.time() - t0) * 1000, 1), f"{type(e).__name__}: {e}"
+
+
+def _world_structure(objects, W, H, boxes=None, det_objs=None):
     """D3 结构层：给对象列表，返回 groups / rows / pitch / 类别修正 / 缺行槽。
 
     输入契约：objects = {containers:[{bbox(xyxy), kind, text,...}], free_text:[...]}
@@ -1694,6 +1711,15 @@ def _world_structure(objects, W, H, boxes=None):
                 continue
             objs.append({"id": i, "bbox": [int(x0), int(y0), int(w), int(h)],
                          "kind": c.get("kind") or "unknown"})
+        for d in (det_objs or []):                   # D2 检测器：主要密度来源（一帧 80–120 框）
+            b = d.get("bbox") or []
+            if len(b) != 4:
+                continue
+            x, y, w, h = b
+            if w * h >= 0.75 * W * H:                # 整屏底板必丢
+                continue
+            objs.append({"id": len(objs), "bbox": [int(x), int(y), int(w), int(h)],
+                         "kind": d.get("kind") or "unknown"})
         for t in (boxes or []):                      # OCR 文本框也进结构层（密度来源）
             b = t.get("bbox") or []
             if len(b) != 4:
@@ -1755,7 +1781,11 @@ def _world(req):
     t_after_state = time.time()
     objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
     t_after_obj = time.time()
-    structure = _world_structure(objects, W, H, boxes) if (do_obj and req.get("structure", True)) else None
+    det_objs, det_ms, det_err = (_world_detector(arr) if (do_obj and req.get("structure", True)) else ([], 0.0, None))
+    t_after_det = time.time()
+    structure = _world_structure(objects, W, H, boxes, det_objs) if (do_obj and req.get("structure", True)) else None
+    if structure is not None:
+        structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err}
     t_after_structure = time.time()
     degraded = []
     if do_ocr and boxes is None:
@@ -1774,6 +1804,7 @@ def _world(req):
         "profile": os.path.basename(prof_path),
         "attribution": attrib,
         "timing": {"load_ms": t_load, "structure_ms": (structure or {}).get("ms"),
+                   "detector_ms": det_ms,
                    "structure": round((t_after_structure - t_after_obj) * 1000, 1),
                    "ocr_ms": round((t_after_ocr - t0) * 1000 - t_load, 1),
                    "state_ms": round((t_after_state - t_after_ocr) * 1000, 1),
