@@ -62,7 +62,7 @@ PROFILE_DEFAULT = os.path.join(REPO, ".scratch", "gui-profiles", "qianxing.json"
 
 # ── 状态名（全仓唯一词表）────────────────────────────────────────
 STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING",
-          "GAME_WORLD", "GAME_PAIMON", "UNKNOWN")   # 后两态=原神本体（2026-10-18 接入）
+          "GAME_WORLD", "GAME_PAIMON", "GAME_ACTIVITY", "UNKNOWN")  # 本体态（2026-10-18 接入）
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
 FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不参与
 # 投票规则：缺省 "all"（该态全部判据成立）；PLAYTEST="any2"（2/3 多数）
@@ -765,6 +765,15 @@ def native_readings(frame_path, offset=(0, 0)):
         '血条')
     put("GAME_WORLD/C 左面板无派蒙标题", not _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
         '左面板')
+    # GAME_ACTIVITY（活动一览页，2026-10-18 真机实测）
+    # ⚠️ 两处按实测修正：①「活动一览」实测在**左上角 (241,205)**，不是居中标题栏；
+    #    ②活动页**仍有**右下 UID（2370,1418）⇒ 不能拿"无 UID"当判据，改用活动页的独有文案。
+    put("GAME_ACTIVITY/A 「活动一览」左上", _has(boxes, '活动一览', (100, 140, 600, 280)),
+        '活动一览')
+    put("GAME_ACTIVITY/B 无派蒙左面板", not _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
+        '左面板')
+    put("GAME_ACTIVITY/C 活动页独有文案",
+        any(_has(boxes, k) for k in ('渊月螺旋', '渊月祝福', '本期渊月祝福')), '渊月')
     # GAME_PAIMON（派蒙菜单）：左面板三件套
     put("GAME_PAIMON/A 左面板「冒险等阶」", _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
         '冒险等阶')

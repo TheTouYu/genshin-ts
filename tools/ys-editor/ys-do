@@ -31,8 +31,8 @@ WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
 DEFAULT_LEDGER_DIR = os.path.expanduser(os.environ.get("YS_ROUND_DIR", "~/ys-round"))
 
 
-def sh(cmd, timeout=60):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+def sh(cmd, timeout=60, env=None):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
 
 
 # ── 帧与定位 ──────────────────────────────────────────────────────
@@ -44,8 +44,16 @@ def load_img(path):
 
 
 def fresh_frame():
-    """经 ys-observe 取帧（唯一取数入口；不在栈顶会失败——这正是我们要的）。"""
-    r = sh([os.path.join(HERE, "ys-observe"), "frame"], timeout=90)
+    """经 ys-observe 取帧（唯一取数入口；不在栈顶会失败——这正是我们要的）。
+
+    ⚠️ 必须把 `YS_SLOT_ACTIVE=1` 传下去（2026-10-18 实测）：外层已用 ys-gui-slot 拿到焦点，
+    但 ys-observe 自己还会做一次栈顶检查；不传这个标志就报 NOT_ATOP，
+    症状是「在槽内跑意图，第一步取帧就失败」。点击路径（ys-pointer-click）早就传了，
+    取帧这条路漏了。
+    """
+    _env = dict(os.environ)
+    _env.setdefault("YS_SLOT_ACTIVE", "1")
+    r = sh([os.path.join(HERE, "ys-observe"), "frame"], timeout=90, env=_env)
     if r.returncode != 0:
         return None, (r.stdout + r.stderr).strip()
     return json.loads(r.stdout.strip().splitlines()[-1]), None
@@ -299,12 +307,22 @@ def main():
                       f" {'(dry)' if dry else '✓'}")
                 continue
             name = step["locate"]
-            ctrl = controls.get(name)
+            # locate 支持两种写法（2026-10-18 增补）：
+            #   ① 字符串 = 标定库里的控件名（原有）
+            #   ② 内联对象 = 直接给 {kind,x,y,probes...}（新任务意图不必先往标定库加条目；
+            #      标定库是"复用的公共资产"，一次性任务不该污染它）
+            if isinstance(name, dict):
+                ctrl = dict(name)
+                name = f"inline({ctrl.get('kind', 'template')})"
+            else:
+                ctrl = controls.get(name)
             if ctrl is None:
                 rec(event="step", n=i, ok=False, detail=f"标定库无控件 {name}")
                 print(f"② [{i}/{len(action['steps'])}] ✗ 标定库没有控件 {name}")
                 fail = 3
                 break
+            if isinstance(step["locate"], dict):
+                ctrl.setdefault("threshold", 0.90)
             if ctrl.get("status") == "SUSPECT":
                 rec(event="step", n=i, ok=False, detail=f"{name} 标定状态 SUSPECT")
                 print(f"② [{i}/{len(action['steps'])}] ✗ {name} 标定可疑（SUSPECT），拒绝使用")

@@ -1,0 +1,65 @@
+{
+  "desc": "从派蒙菜单进入「活动」一览页（本体 · 任务级意图）",
+  "pre": [
+    "GAME_PAIMON"
+  ],
+  "post": [
+    "GAME_ACTIVITY"
+  ],
+  "steps": [
+    {
+      "locate": {
+        "kind": "signature",
+        "x": 883,
+        "y": 985,
+        "probes": [
+          {
+            "x": 883,
+            "y": 950,
+            "cond": {
+              "R": [
+                200,
+                255
+              ],
+              "G": [
+                200,
+                255
+              ],
+              "B": [
+                180,
+                255
+              ]
+            }
+          },
+          {
+            "x": 883,
+            "y": 985,
+            "cond": {
+              "R": [
+                60,
+                140
+              ],
+              "G": [
+                70,
+                150
+              ],
+              "B": [
+                85,
+                165
+              ]
+            }
+          }
+        ]
+      },
+      "do": "click",
+      "wait": 2.0
+    }
+  ],
+  "artifacts": [
+    {
+      "desc": "（软判据）活动页标题应出现「活动一览」或「活动」字样",
+      "check": "python3 tools/ys-editor/ys_ocr.py ocr \"$YS_LAST_FRAME\" --json 2>/dev/null | grep -qE '活动一览|活动详情|进行中'",
+      "soft": true
+    }
+  ]
+}
