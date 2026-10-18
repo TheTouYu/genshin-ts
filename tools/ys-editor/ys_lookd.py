@@ -743,6 +743,302 @@ def _ocr_objects(req):
                              rec_buckets=bool(req.get("rec_buckets", False)))
 
 
+# ── 分块差量 OCR（2026-10-19；用户点名方向：空间换时间）────────────────────────
+# 核心事实：GUI 大部分时间是静止的 ⇒ 把帧切成 N×M 块，块级内容寻址缓存；
+# 只有「核心区像素变了」的块才跑 det+rec，其余块直接复用上次结果（含文本与坐标）。
+# 设计要点：
+#   · 块 = core（网格单元，哈希只算这块）+ OCR 扩边 margin（默认 96px，保证跨界的文本
+#     在裁剪里完整；归属按**文本中心落在哪个 core**判定，天然去重）。
+#   · 变化块占比 ≥ fallback_ratio（默认 0.6，即冷帧/换页）→ 回退**整帧 OCR**（333ms 地板），
+#     并把结果按中心分配给各 core 填缓存 —— 冷帧不会因为切块而变慢。
+#   · 跨块去重：按核心归属（中心法）+ 兜底 IoU>0.5 去重。
+_BLOCK_CACHE = {}                    # 内容哈希 -> {'boxes','cells'}（跨帧复用）
+_BLOCK_PREV = {}                     # (grid_idx, W, H) -> 上一次该位置的内容 {'boxes','cells'}
+# 为什么要有 prev 表：内容一变，哈希 key 就变了，光靠 key 找不到"这块上一帧长什么样"，
+# 就没法做块内格子差量（实测：只按 key 查 ⇒ cells_changed=0、所有行重识别 200–500ms）。
+_BLOCK_CACHE_MAX = 4000
+_BLOCK_RULESET = 'blk-v1'            # 改切块/扩边/哈希必须 +1
+_BLOCK_GRID = (3, 3)                 # rows, cols
+_BLOCK_MARGIN = 96
+_BLOCK_FALLBACK_RATIO = 0.6
+
+
+def _block_rects(W, H, grid=_BLOCK_GRID, margin=_BLOCK_MARGIN):
+    """返回 [(core(x0,y0,x1,y1), crop(x0,y0,x1,y1))]；crop=core 扩边（clamp 到帧内）。"""
+    rows, cols = grid
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            cx0, cx1 = int(round(W * c / cols)), int(round(W * (c + 1) / cols))
+            cy0, cy1 = int(round(H * r / rows)), int(round(H * (r + 1) / rows))
+            out.append(((cx0, cy0, cx1, cy1),
+                        (max(0, cx0 - margin), max(0, cy0 - margin),
+                         min(W, cx1 + margin), min(H, cy1 + margin))))
+    return out
+
+
+def _block_cells(bgr, core, grid=16):
+    """把 core 区域缩成 16×16 的格子均值（用于「块内哪些格子变了」的差量判定；约 1ms/块）。"""
+    import numpy as np
+    x0, y0, x1, y1 = core
+    c = bgr[y0:y1, x0:x1]
+    if c.size == 0:
+        return np.zeros((grid, grid, 3), np.float32)
+    h, w = c.shape[:2]
+    ys = np.linspace(0, h, grid + 1).astype(int); xs = np.linspace(0, w, grid + 1).astype(int)
+    out = np.zeros((grid, grid, 3), np.float32)
+    for r in range(grid):
+        for q in range(grid):
+            cell = c[ys[r]:ys[r + 1], xs[q]:xs[q + 1]]
+            if cell.size:
+                out[r, q] = cell.reshape(-1, 3).mean(axis=0)
+    return out
+
+
+def _changed_cells(old, cur, thr=6.0):
+    """返回变化的格子集合 {(r,q)}；old 为 None 表示全部变化。"""
+    if old is None:
+        return None
+    import numpy as np
+    d = np.abs(old - cur).max(axis=2)
+    return set(zip(*np.where(d > thr)))
+
+
+def _cell_range(bbox, core, grid=16):
+    """把全局 bbox 映射到 core 内的格子区间（含 1 格外扩，避免边界误判）。"""
+    x0, y0, x1, y1 = core
+    bx, by, bw, bh = bbox
+    h, w = max(1, y1 - y0), max(1, x1 - x0)
+    r0 = int((by - y0) / h * grid); r1 = int((by + bh - y0) / h * grid)
+    q0 = int((bx - x0) / w * grid); q1 = int((bx + bw - x0) / w * grid)
+    return set((r, q) for r in range(max(0, r0 - 1), min(grid - 1, r1 + 1) + 1)
+               for q in range(max(0, q0 - 1), min(grid - 1, q1 + 1) + 1))
+
+
+def _iou_xywh(a, b):
+    ax, ay, aw, ah = a; bx, by, bw, bh = b
+    x0, y0 = max(ax, bx), max(ay, by)
+    x1, y1 = min(ax + aw, bx + bw), min(ay + ah, by + bh)
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    inter = (x1 - x0) * (y1 - y0)
+    return inter / float(aw * ah + bw * bh - inter + 1e-9)
+
+
+def _ocr_region_bgr(bgr, rect, det, rec, det_max, batch, old_boxes=None,
+                    changed_cells=None, core=None):
+    """在块 crop 上 det + 按需 rec。
+
+    **块内差量**：16×16 格子均值判定「块内哪些格子变了」；det 出的行若不碰变化格子，
+    直接复用上一帧同位置那行（IoU>0.5）的文本，只有碰到的行才 rec。
+    为什么不用行级像素哈希：全帧 det（2000 宽）与块内 det（原分辨率）的框会差 1–3px，
+    裁块像素不同 ⇒ 哈希全 miss（实测一个 21 行的块因此白跑 200ms）。
+    """
+    import numpy as np
+    from rapidocr.utils.process_img import get_rotate_crop_image
+    from rapidocr.ch_ppocr_rec.typings import TextRecInput
+    x0, y0, x1, y1 = rect
+    crop = bgr[y0:y1, x0:x1]
+    _prev = (det.limit_type, det.limit_side_len)
+    det.limit_type = 'max'
+    det.limit_side_len = int(det_max)
+    try:
+        d = det(crop)
+    finally:
+        det.limit_type, det.limit_side_len = _prev
+    if d.boxes is None:
+        return []
+    out = []
+    todo = []
+    for b in d.boxes:
+        xs = b[:, 0]; ys = b[:, 1]
+        bb = [int(xs.min()) + x0, int(ys.min()) + y0,
+              int(xs.max() - xs.min()), int(ys.max() - ys.min())]
+        reuse = None
+        if old_boxes and changed_cells is not None and core is not None:
+            cells = _cell_range(bb, core)
+            if not (cells & changed_cells):
+                best = max(old_boxes, key=lambda o: _iou_xywh(bb, o['bbox']), default=None)
+                if best is not None and _iou_xywh(bb, best['bbox']) > 0.5:
+                    reuse = best
+        if reuse is not None:
+            out.append({'text': reuse['text'], 'score': reuse['score'], 'bbox': bb, 'reused': True})
+        else:
+            idx = len(out)
+            out.append({'text': '', 'score': 0.0, 'bbox': bb, 'reused': False})
+            todo.append((idx, b))
+    if todo:
+        crops = [get_rotate_crop_image(crop, np.array(b, copy=True)) for _, b in todo]
+        rec.rec_batch_num = min(batch, _REC_BATCH_HARD_CAP)
+        r = rec(TextRecInput(img=crops, return_word_box=False))
+        txts = list(r.txts or []); scs = list(r.scores or [])
+        for j, (idx, _b) in enumerate(todo):
+            if idx < len(out):
+                out[idx]['text'] = txts[j] if j < len(txts) else ''
+                out[idx]['score'] = round(float(scs[j]), 4) if j < len(scs) else 0.0
+    return out
+
+
+def _dedupe_objects(objs, iou_thr=0.5):
+    """按 IoU 去重（保留分数高的），再按 (y,x) 排序。"""
+    def _iou(a, b):
+        ax, ay, aw, ah = a; bx, by, bw, bh = b
+        x0, y0 = max(ax, bx), max(ay, by)
+        x1, y1 = min(ax + aw, bx + bw), min(ay + ah, by + bh)
+        if x1 <= x0 or y1 <= y0:
+            return 0.0
+        inter = (x1 - x0) * (y1 - y0)
+        return inter / float(aw * ah + bw * bh - inter + 1e-9)
+    kept = []
+    for o in sorted(objs, key=lambda o: -(o.get('score') or 0)):
+        if all(_iou(o['bbox'], k['bbox']) <= iou_thr for k in kept):
+            kept.append(o)
+    kept.sort(key=lambda o: (o['bbox'][1] // 24, o['bbox'][0]))
+    return [{'i': i, **{k: v for k, v in o.items() if k != 'i'}} for i, o in enumerate(kept)]
+
+
+def _ocr_blocks_core(arr, det_max=2000, cache=True, grid=_BLOCK_GRID,
+                     margin=_BLOCK_MARGIN, fallback_ratio=_BLOCK_FALLBACK_RATIO,
+                     parallel=4, max_objects=200):
+    """分块差量 OCR。返回与 _ocr_objects_core 同形的 objects + blocks 统计。"""
+    import zlib
+    import numpy as np
+    t0 = time.time()
+    H, W = arr.shape[:2]
+    bgr = np.ascontiguousarray(arr[..., ::-1])
+    rects = _block_rects(W, H, grid, margin)
+    keys = []
+    for core, crop in rects:
+        c = np.ascontiguousarray(bgr[core[1]:core[3], core[0]:core[2]])
+        keys.append(f'{zlib.crc32(c):08x}:{_BLOCK_RULESET}:{core[2]-core[0]}x{core[3]-core[1]}:{int(det_max)}')
+    hits = [i for i, k in enumerate(keys) if cache and k in _BLOCK_CACHE]
+    for i in hits:
+        _BLOCK_PREV[(i, W, H)] = _BLOCK_CACHE[keys[i]]
+    misses = [i for i in range(len(rects)) if i not in set(hits)]
+    hash_ms = round((time.time() - t0) * 1000, 1)
+    blocks = [{'core': list(core), 'crop': list(crop), 'hit': i in set(hits)} for i, (core, crop) in enumerate(rects)]
+    # 冷帧/换页：变化块占比过大 → 整帧 OCR（保证不低于整帧地板，并把结果填进块缓存）
+    if len(misses) / float(len(rects)) >= fallback_ratio:
+        full = _ocr_objects_core(arr, det_max=det_max, cache=False, max_objects=max_objects,
+                                 rec_buckets=False)
+        objs = full.get('objects') or []
+        if cache:
+            # ① 填块缓存（按文本中心归属 core）；② 同时填**行级缓存**——否则"冷帧之后第一次
+            # 改到某个块"仍要把该块所有行重识别（实测 200–500ms），行级预填后只付变化的几行。
+            import hashlib
+            import numpy as np
+            from rapidocr.utils.process_img import get_rotate_crop_image
+            filled_lines = 0
+            for o in objs:
+                b = np.array([[o['bbox'][0], o['bbox'][1]],
+                              [o['bbox'][0] + o['bbox'][2], o['bbox'][1]],
+                              [o['bbox'][0] + o['bbox'][2], o['bbox'][1] + o['bbox'][3]],
+                              [o['bbox'][0], o['bbox'][1] + o['bbox'][3]]], dtype=np.float32)
+                try:
+                    c = get_rotate_crop_image(bgr, b)
+                    k = hashlib.sha256(np.ascontiguousarray(c).tobytes()).hexdigest()[:20] + ':' + _OBJ_RULESET
+                    if len(_OBJ_CACHE) < _OBJ_CACHE_MAX and k not in _OBJ_CACHE:
+                        _OBJ_CACHE[k] = {'text': o['text'], 'score': o['score']}
+                        filled_lines += 1
+                except Exception:                     # noqa: BLE001
+                    pass
+            for i, (core, crop) in enumerate(rects):
+                inside = [o for o in objs
+                          if core[0] <= o['bbox'][0] + o['bbox'][2] // 2 < core[2]
+                          and core[1] <= o['bbox'][1] + o['bbox'][3] // 2 < core[3]]
+                entry = {'boxes': [{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']}
+                                   for o in inside],
+                         'cells': _block_cells(bgr, core)}
+                _BLOCK_PREV[(i, W, H)] = entry
+                if len(_BLOCK_CACHE) < _BLOCK_CACHE_MAX:
+                    _BLOCK_CACHE[keys[i]] = entry
+        return {'objects': objs, 'n_objects': len(objs), 'mode': 'blocks',
+                'fallback': 'fullframe', 'blocks': blocks,
+                'block_stats': {'total': len(rects), 'hit': len(hits), 'ocr': len(rects),
+                                'changed_ratio': 1.0},
+                'det_ms': full.get('det_ms'), 'rec_ms': full.get('rec_ms'),
+                'hash_ms': hash_ms, 'total_ms': round((time.time() - t0) * 1000, 1),
+                'rec_batch': full.get('rec_batch'), 'frame_cache': False}
+    # 差量：只 OCR 变化的块
+    eng, err = _ocr_engine()
+    if eng is None:
+        return {'error': f'OCR 不可用: {err}', 'code': 'OCR_UNAVAILABLE'}
+    det = eng.text_det or eng._load_det_model()
+    rec = eng.text_rec or eng._load_rec_model()
+    free = _vram_free_mb()
+    batch = _REC_BATCH if not (0 <= free < 300) else 4
+    t1 = time.time()
+    ocr_objs = []
+    n_reuse = 0
+    n_rec = 0
+    n_lines_before = len(_OBJ_CACHE)
+    for i in misses:
+        core, crop = rects[i]
+        prev = _BLOCK_PREV.get((i, W, H)) or _BLOCK_CACHE.get(keys[i]) or {}
+        changed_cells = _changed_cells(prev.get('cells'), _block_cells(bgr, core))
+        loc = _ocr_region_bgr(bgr, crop, det, rec, det_max, batch,
+                              old_boxes=prev.get('boxes'), changed_cells=changed_cells,
+                              core=core)
+        g = [{'text': o['text'], 'score': o['score'], 'bbox': o['bbox']} for o in loc]
+        ocr_objs.append((i, g, core))
+        n_reuse += sum(1 for o in loc if o.get('reused'))
+        n_rec += sum(1 for o in loc if not o.get('reused'))
+    region_ms = round((time.time() - t1) * 1000, 1)
+    merged = []
+    for i in hits:
+        merged.extend((_BLOCK_CACHE.get(keys[i]) or {}).get('boxes') or [])
+    for i, g, core in ocr_objs:
+        inside = [o for o in g
+                  if core[0] <= o['bbox'][0] + o['bbox'][2] // 2 < core[2]
+                  and core[1] <= o['bbox'][1] + o['bbox'][3] // 2 < core[3]]
+        merged.extend(inside)
+        if cache:
+            entry = {'boxes': inside, 'cells': _block_cells(bgr, core)}
+            _BLOCK_PREV[(i, W, H)] = entry
+            if len(_BLOCK_CACHE) < _BLOCK_CACHE_MAX:
+                _BLOCK_CACHE[keys[i]] = entry
+    objs = _dedupe_objects(merged)
+    for b, i in zip(blocks, range(len(blocks))):
+        b['n_boxes'] = len(_BLOCK_CACHE.get(keys[i], [])) if b['hit'] else             len(next((g for j, g, _ in ocr_objs if j == i), []))
+    return {'objects': objs[:max_objects], 'n_objects': min(len(objs), max_objects),
+            'mode': 'blocks', 'fallback': None, 'blocks': blocks,
+            'block_stats': {'total': len(rects), 'hit': len(hits), 'ocr': len(misses),
+                            'changed_ratio': round(len(misses) / float(len(rects)), 3)},
+            'det_ms': region_ms, 'rec_ms': 0.0, 'hash_ms': hash_ms,
+            'line_cache_before': n_lines_before, 'line_cache_after': len(_OBJ_CACHE),
+            'lines_reused': n_reuse, 'lines_rec': n_rec,
+            'cells_changed_total': sum(len(_changed_cells((_BLOCK_CACHE.get(keys[i]) or {}).get('cells'),
+                                                          _block_cells(bgr, core)) or []) for i in misses
+                                        for core, _crop in [rects[i]]),
+            'total_ms': round((time.time() - t0) * 1000, 1),
+            'rec_batch': min(batch, _REC_BATCH_HARD_CAP), 'free_mb': free, 'frame_cache': False}
+
+
+def _ocr_blocks(req):
+    """cmd="ocr_blocks"：分块差量 OCR（默认 3×3 网格、扩边 96px、变化块占比≥0.6 回退整帧）。"""
+    import numpy as np
+    from PIL import Image
+    if req.get('reset'):
+        _BLOCK_CACHE.clear()
+        _BLOCK_PREV.clear()
+    frame = req.get('frame')
+    if not frame or not os.path.isfile(frame):
+        return {'error': f'ocr_blocks 需要存在的 frame 路径（收到 {frame!r}）', 'code': 'BAD_FRAME'}
+    try:
+        arr = np.asarray(Image.open(frame).convert('RGB'))
+    except Exception as e:                                # noqa: BLE001
+        return {'error': f'读帧失败: {type(e).__name__}: {e}', 'code': 'BAD_FRAME'}
+    grid = req.get('grid') or _BLOCK_GRID
+    if isinstance(grid, list) and len(grid) == 2:
+        grid = (int(grid[0]), int(grid[1]))
+    return _ocr_blocks_core(arr, det_max=int(req.get('det_max') or 2000),
+                            cache=bool(req.get('cache', True)), grid=grid,
+                            margin=int(req.get('margin') or _BLOCK_MARGIN),
+                            fallback_ratio=float(req.get('fallback_ratio') or _BLOCK_FALLBACK_RATIO),
+                            parallel=int(req.get('parallel') or 4),
+                            max_objects=int(req.get('max_objects') or 200))
+
+
 def _world_ocr_objects(arr, sha, force_fallback=False):
     """世界状态的文本来源：**按对象 OCR**（切片并行 + 内容寻址缓存），小字号过多时回退全帧。
 
@@ -1104,6 +1400,8 @@ def handle(req):
         return _ocr(req)
     if cmd == "ocr_objects":               # 按对象 OCR（新命令；旧命令语义不变）
         return _ocr_objects(req)
+    if cmd == "ocr_blocks":                # 分块差量 OCR（新命令；旧命令语义不变）
+        return _ocr_blocks(req)
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
