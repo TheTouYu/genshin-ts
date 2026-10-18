@@ -17,6 +17,13 @@ t() { # t <名称> <期望退出码> <命令…>
 contains() { case "$LAST_OUT" in *"$1"*) printf '  ✓ 输出含 %s\n' "$1"; PASS=$((PASS+1));; *) printf '  ✗ 输出缺 %s\n     实得: %s\n' "$1" "$LAST_OUT"; FAIL=$((FAIL+1));; esac; }
 absent() { case "$LAST_OUT" in *"$1"*) printf '  ✗ 输出不该含 %s\n     实得: %s\n' "$1" "$LAST_OUT"; FAIL=$((FAIL+1));; *) printf '  ✓ 输出不含 %s\n' "$1"; PASS=$((PASS+1));; esac; }
 
+# 环境前置：live 取数要求原神窗口在栈顶且未被遮挡。不在栈顶时像素路径根本不可验证——
+# 直接 SKIP（退出 0），避免把"环境没就位"误报成"工具回归"（2026-10-18 实测：编辑器压住 19.5% 时 5 项假红）。
+if ! "$HERE/ys-atop" --json >/dev/null 2>&1; then
+  echo "[observe.selftest] SKIP：原神不在栈顶/被遮挡（ys-atop 非 0），live 取数路径本环境不可验证"
+  exit 0
+fi
+
 echo "══ ys-observe 自测 $(date '+%F %T') ══"
 echo "① 窗口不存在 → 拒绝取数（退出 3）"
 t "坏窗口 id" 3 env YS_WIN=0x09999999 "$O" px 1 1

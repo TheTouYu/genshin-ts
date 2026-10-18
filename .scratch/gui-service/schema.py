@@ -207,7 +207,8 @@ def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=
 
 _TOP_REQUIRED = ("schema", "frame_id", "captured_at_ms", "state", "objects", "groups",
                  "slices", "transitions", "budget_ms", "degraded")
-_TOP_ALLOWED = set(_TOP_REQUIRED) | {"tracked_at_ms", "timing_ms", "frame", "free_text"}
+_TOP_ALLOWED = set(_TOP_REQUIRED) | {"tracked_at_ms", "timing_ms", "frame", "free_text",
+                                    "attribution"}
 _OBJ_REQUIRED = ("id", "parent", "bbox", "kind", "text", "text_source", "glyphs", "badges",
                  "state", "affordance", "clipped", "confidence", "evidence")
 

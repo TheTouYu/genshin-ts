@@ -63,7 +63,11 @@ tools/ys-observe┘         │                                  │
   "frame": {"path": "...", "source": "frame|live|latest|provider", "w": 2560, "h": 1440,
             "age_ms": 10833549, "stale": true, "captured_at_ms_source": "file_mtime"},
   "free_text": ["透雨", "..."],          // ys-screen 的 free_text（只有字符串，无坐标）
-  "cache": {"hit": true, "layer": "memory|disk", "hit_ms": 0.5}
+  "cache": {"hit": true, "layer": "memory|disk", "hit_ms": 0.5},
+  "attribution": {                       // v0 扩展：live 帧的窗口归属（票 34；离线帧为 null）
+    "checked": true, "src": "x11", "verdict": "OK|NOT_ATOP|NOT_FOUND|OTHER_DESKTOP|OCCLUDED",
+    "window": {...}, "current_desktop": 0, "occluders": [...], "covered_ratio": 0.0
+  }
 }
 ```
 
@@ -158,6 +162,81 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 **等待纪律**：轮询间隔是「谓词轮询」（`poll_ms`），不是编排层的固定 sleep；`poll_ms=0` 允许
 （帧序列/事件驱动的测试缝）。等待失败不会退化成 timeout——仪器错误单独是 `error`。
 
+## 3.5 常驻世界状态仪器（`backend=daemon-world`，显式开启）
+
+**动机**：cli 后端每个新帧要付「ys-state 子进程 + 本体 OCR ~700ms + ys-screen 解码 ~140ms」≈1.3s；
+同一帧重复 look 虽缓存命中 1ms，但**换帧就要重付**。把感知下沉到常驻进程后，帧缓冲/OCR/容器层
+三块缓存跨调用复用（2026-10-18 用户批准扩 `ys-lookd`；旧 CLI 行为不变）。
+
+**协议**（`ys_lookd.py`，一行 JSON）：
+
+```jsonc
+// 请求
+{"cmd": "world",                      // 显式开启：旧客户端从不发这个 cmd
+ "frame": "/abs/f06.png",             // 离线帧；或 frame_bin+frame_shape；或都不给 = live
+ "profile": "/abs/qianxing.json",     // 缺省用 ys-state 的 PROFILE_DEFAULT
+ "ocr": true, "objects": true,        // 关掉可省 ~700ms / 对象层
+ "cache": true}                       // 关掉可跳过结果缓存（测量/强制重算）
+// 回执（schema=ys-lookd/world/0）
+{"schema": "ys-lookd/world/0",
+ "state": {"state": "GAME_PAIMON", "confidence": 1.0, "ambiguous": false, "native": true,
+           "verdicts": {...}, "readings": {...}},   // ← 判据仍是 ys-state 的唯一一份
+ "objects": {"containers": [...], "free_text": [...], "free_glyphs": [...],
+             "degraded": false, "error": null},     // ← 容器层仍是 ys-screen 的唯一一份
+ "frame": {"source": "frame|frame_bin|live", "sha256": "...", "w": 2560, "h": 1440},
+ "timing": {"load_ms": 0.1, "ocr_ms": 1.9, "state_ms": 356.1, "judge_ms": 355.8,
+            "objects_ms": 1.2, "total_ms": 359.2, "ocr_source": "cache|engine|skip",
+            "cache_hit": false},
+ "attribution": {...} | null,          // live 帧的归属校验（票 34）；不过就返回 error，不抓
+ "degraded": [...]}
+```
+
+**四块缓存**（都在常驻进程里，不落 /tmp）：
+
+1. **帧缓冲**：同一帧（`path+mtime_ns+size` 或帧内容 sha）只解码一次，GPU 张量只建一次；
+2. **OCR 内容寻址缓存**：`<XDG_CACHE_HOME>/ys-lookd/ocr/ocr-<sha>-<引擎指纹>.json`
+   （`YS_LOOKD_OCR_CACHE` 可覆盖）；同帧第二次 ≤3ms，不再付 ~690ms；
+   ⚠️ 引擎约定是 **BGR**（与 `ys_ocr.py`/ys-screen 走图片路径一致）——RGB 直喂会读错字符（实测）。
+3. **容器层**：复用 `ys-screen.containers_cached`（帧 sha + 文本盒签名 + `CONTAINER_RULESET`），
+   半分辨率图必须用 **PIL LANCZOS**（与 `load_small` 同口径；换插值会让同帧对象数不同）；
+4. **结果缓存**：同帧 + 同 profile + 同开关的第二次请求直接返回（LRU 4，≤5ms）。
+
+**实测（2026-10-18，本机沙箱**无 CUDA**，私有 socket 上跑的 CPU 测试 daemon）**：
+
+| 场景 | 读数 |
+|---|---|
+| world 冷（禁用结果缓存，帧缓冲/OCR/容器缓存热） | daemon 内部 **359ms**（load 0.1 + OCR 缓存 1.9 + **judge 355.8** + 容器 1.2）；客户端含进程导入 ≈998ms |
+| world 结果缓存命中 | RPC **2.6–3.3ms**；服务层缓存命中 **1.0–1.2ms** |
+| 对象层一致性 | 22 个容器 / 14 条 free_text，与 `ys-screen --containers` CLI **完全一致**（同帧 sha + 同 OCR 盒子） |
+| 服务 cli 后端对照（host GPU daemon） | 冷 look 1.27–1.30s；缓存命中 0.9–1.4ms |
+
+**host GPU 实测**（2026-10-18 20:1x，Lead 主会话，daemon 已重启；单位 ms）：
+
+| 场景 | load | ocr | judge | objects | internal |
+|---|---|---|---|---|---|
+| 冷（重启后第一发，f06） | 158 | 27（cache） | 343（首启预热） | 54 | **582**（RPC 10045 是 daemon 首启，不计入预算） |
+| 新帧 f07（daemon 热） | 164 | **3521** | 61 | 342 | **4089** |
+| 新帧 f08（daemon 热） | 202 | **634** | 80 | 163 | **1080** |
+| 同帧（服务层帧缓存关、daemon 结果缓存命中） | — | — | — | — | **1.1**（RPC 5–10） |
+
+**结论**：**judge 在 GPU 上只要 61–80ms**（热；首启 343ms 是预热）——按 `state` RPC 推的 132–166ms 偏保守；
+**当前瓶颈是 OCR（634–3521ms）与容器层（163–342ms）**，不是判据 ⇒ 落在**票 25（分块并行 OCR + 切片缓存）**。
+同帧重复请求 1.1ms（结果缓存）；对象 22 容器与 `ys-screen --containers` 一致，GAME_PAIMON 判对。
+
+**激活**（本会话无法执行：沙箱没有 systemd user bus、也没有 GPU/CUDA）：
+
+```bash
+systemctl --user restart ys-lookd     # 用户侧执行；旧 CLI 调用不受影响
+python3 .scratch/gui-service/worldsvc.py look --frame <帧> --backend daemon-world --summary
+```
+
+**失败语义**：旧版常驻服务（没有 `world` 命令）→ 客户端 `DAEMON_ERROR/unknown cmd`（不静默回退）；
+live 帧归属校验不过 → `ATTRIBUTION_OTHER_DESKTOP/OCCLUDED/NOT_FOUND`，**不返回像素**；
+frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
+
+**世界状态服务的开关**：`WorldService(backend="cli"|"daemon-world")`，CLI `--backend`；
+默认仍是 `cli`——新路径必须显式选，避免让未知的常驻服务版本悄悄改变读数口径。
+
 ## 4. 缓存
 
 - key = `frame_<sha16>` + `仪器指纹`（ys-state/ys-screen/profile 的 mtime+size + `LOGIC_VERSION`）。
@@ -172,7 +251,7 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 
 | 门禁（AGI-BAR §一） | 目标 | 实测 | 判定 |
 |---|---|---|---|
-| 单次默认路径 look | ≤50ms | 新帧 1.27–1.30s（subprocess 现状，3 次；跨轮次曾见 1.35–3.2s）/ **148–162ms（in-process 复用补丁，静默 5 次）** | **未达成** |
+| 单次默认路径 look | ≤50ms | 新帧 1.27–1.30s（cli 后端）/ **世界仪器 GPU 新帧 1.08–4.09s（OCR 主导；judge 仅 61–80ms）** / 148–162ms（in-process 复用补丁，静默 5 次） | **未达成** |
 | 缓存命中 | ≤5ms | 0.9–1.9ms（进程内） | **达成** |
 | 对象检测单帧 | ≤10ms | 容器层同帧缓存 0–1ms；新帧 140ms+ | 部分（需票 24 学习型检测） |
 | 分块 OCR / 切片 | <1/3 全帧 / ≤5ms | 未实现 | 未验证 |
@@ -216,7 +295,14 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 6. **注入路径未执行**：代码就位，受会话硬约束（不注入、不抬窗）阻断；
 7. **真机文字身份通道不可用**（与 `tools/gui` 的已知缺口一致，见 2026-10-18 日记 D380）：
    Wine 下 `cu state 原神编辑器` 返回空 ⇒ 本服务的 text 通道走 **OCR 容器文本**，不依赖 AT-SPI；
-8. **状态判据的 OCR 成本**：daemon OCR 无缓存（同帧两次仍 ~700ms）⇒ subprocess 形态 look 慢。
+8. **状态判据的 OCR 成本**：daemon OCR 无缓存（同帧两次仍 ~700ms）⇒ subprocess 形态 look 慢
+   （`world` 模式自带 OCR 内容缓存，已缓解；见 §3.5）。
+9. **`world` 模式已在 host GPU 激活**（2026-10-18 20:1x，Lead 重启后实测）：judge 61–80ms；但
+   **OCR 634–3521ms、容器层 163–342ms 是新瓶颈**（票 25）。沙箱内仍用 CPU 测试 daemon 做功能验证。
+10. **live 归属校验依赖 X11/EWMH**：XWayland 窗口正常；若某窗口没有 `_NET_WM_DESKTOP` 等属性，
+    检查不可用（`checked=false`）——此时服务 fail-closed（live 拒绝取数），不退回"看标题猜"。
+11. **票 34 的遮挡判据是几何并集**：≥99.5% 才算"完全遮挡"；半透明遮罩、部分遮挡仍会放行
+    （如实标注 `covered_ratio`，不假装"完全可见"）。
 
 ## 9. 下一跳（需裁决）
 
@@ -229,12 +315,15 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 
 ```bash
 cd /home/h/genshin-ts
-python3 .scratch/gui-service/selftest.py        # 53 条契约自测（离线，0 注入）
+python3 .scratch/gui-service/selftest.py        # 59 条契约自测（离线，0 注入；daemon-world 需新版服务）
+bash tools/ys-editor/tests/win-attrib.selftest.sh   # 票 34 归属回归（25 项，0 抓屏）
 python3 .scratch/gui-service/bench.py           # 延迟实测 → bench.md + evidence/bench.json
 python3 .scratch/gui-service/inproc_probe.py    # 同进程仪器尖刺 → evidence/inproc.json
 
 # 三动词 CLI（离线帧示例）
 python3 .scratch/gui-service/worldsvc.py look --frame .scratch/gui-corpus/f06.png --summary
+python3 .scratch/gui-service/worldsvc.py look --frame .scratch/gui-corpus/f06.png \
+        --backend daemon-world --summary        # 需新版 ys-lookd（见 §3.5「激活」）
 python3 .scratch/gui-service/worldsvc.py act --text 祈愿 --frame .scratch/gui-corpus/f06.png
 python3 .scratch/gui-service/worldsvc.py wait --predicate '{"state_in":["GAME_PAIMON"]}' \
         --frame .scratch/gui-corpus/f06.png --timeout-ms 3000

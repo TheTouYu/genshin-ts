@@ -52,17 +52,22 @@ def _degraded(code, detail=""):
 
 
 class WorldService:
-    def __init__(self, *, profile=None, source="auto", channel="fast",
-                 cache_dir=CACHE_DIR_DEFAULT, cache_enabled=True, allow_inject=False,
-                 budget_ms=None, max_age_ms=5000, poll_ms=300):
+    def __init__(self, *, profile=None, source="auto", channel="fast", backend="cli",
+                 cache_dir=CACHE_DIR_DEFAULT, cache_enabled=True, daemon_cache=True,
+                 allow_inject=False, budget_ms=None, max_age_ms=5000, poll_ms=300):
         if source not in ("auto", "live", "latest", "frame"):
             raise ServiceError("BAD_USAGE", f"source 必须是 auto/live/latest/frame，实际 {source!r}", rc=2)
+        if backend not in ("cli", "daemon-world"):
+            raise ServiceError("BAD_USAGE",
+                               f"backend 必须是 cli|daemon-world，实际 {backend!r}", rc=2)
         if channel not in ("fast", "full"):
             raise ServiceError("BAD_USAGE", f"channel 必须是 fast/full，实际 {channel!r}", rc=2)
         self.profile = profile or instruments.PROFILE_DEFAULT
         self.source = source
         self.channel = channel
+        self.backend = backend
         self.cache = FrameCache(cache_dir, enabled=cache_enabled)
+        self.daemon_cache = bool(daemon_cache)
         self.allow_inject = bool(allow_inject)
         self.budget_ms = dict(budget_ms or schema.BUDGET_DEFAULT_MS)
         self.max_age_ms = int(max_age_ms)
@@ -84,6 +89,8 @@ class WorldService:
     def look(self, frame=None, *, source=None, allow_cache=True):
         t_start = time.perf_counter()
         src = source or (self.source if frame is None else "frame")
+        if self.backend == "daemon-world":
+            return self._look_worlddaemon(frame, src, allow_cache, t_start)
         if frame is None and self.frame_provider is not None:
             frame = self.frame_provider()
             src = "provider"
@@ -146,6 +153,129 @@ class WorldService:
             self._sha_by_path[key] = fid
         return fid
 
+
+    # ══════════════════════════════════════════════════════════════
+    # backend=daemon-world：把感知下沉到常驻服务（ys-lookd cmd=world）
+    # ══════════════════════════════════════════════════════════════
+    def _look_worlddaemon(self, frame, src, allow_cache, t_start):
+        """显式 backend（默认 cli 完全不变）：一次 RPC 拿回 state+objects+timing+归属。
+
+        与 cli 后端的语义差异（如实说明，不假装等价）：
+          · live：由常驻服务自己抓帧并先做归属校验（票 34）——客户端不抓、不落 PNG；
+          · 离线帧：常驻服务带帧缓冲/OCR 内容寻址缓存/容器缓存/结果缓存，同帧第二次 ≤5ms；
+          · 旧常驻服务（没有 world 命令）→ DAEMON_ERROR，调用方需显式回退 cli。
+        """
+        if frame is None and self.frame_provider is not None:
+            frame = self.frame_provider()
+            src = "provider"
+        frame_meta, path = self._daemon_frame_meta(frame, src)
+        frame_id = None
+        if path:
+            frame_id = self._frame_id(path)
+            if allow_cache and self.cache.enabled:
+                raw, layer, hit_ms = self.cache.load(frame_id, self.sig)
+                if raw is not None:
+                    frame_meta = dict(frame_meta, source=src)
+                    return self._publish(self._finalize(
+                        raw, frame_meta=frame_meta, frame_id=frame_id,
+                        timing={"total": round(hit_ms, 2), "cache_layer": layer},
+                        cache_hit={"hit": True, "layer": layer, "hit_ms": round(hit_ms, 2)},
+                        t_start=t_start, validate_ms=0.0))
+        t0 = time.perf_counter()
+        resp = instruments.get_world_daemon(path, profile=self.profile,
+                                            ocr=True, objects=True, cache=self.daemon_cache)
+        rpc_ms = (time.perf_counter() - t0) * 1000
+        state = resp.get("state") or {}
+        if not state.get("state"):
+            raise ServiceError("DAEMON_WORLD_BAD", f"world 回执缺 state：{str(resp)[:300]}")
+        frame_id = "sha256:" + str(resp["frame"]["sha256"])
+        if frame_id != "sha256:" + str(resp["frame"]["sha256"]):
+            raise ServiceError("DAEMON_WORLD_BAD", "frame sha 非法")
+        objects = [schema.object_from_container(c, frame_id=frame_id)
+                   for c in ((resp.get("objects") or {}).get("containers") or [])]
+        free_text = [str(t) for t in ((resp.get("objects") or {}).get("free_text") or [])]
+        cont_degr = bool((resp.get("objects") or {}).get("degraded") or
+                         (resp.get("objects") or {}).get("error"))
+        degraded = self._degraded_list(objects, free_text,
+                                       state_name=state.get("state"),
+                                       objects_degraded=cont_degr)
+        for d in resp.get("degraded") or []:
+            if isinstance(d, dict) and d.get("code"):
+                degraded.append(d)
+        st = {"name": state.get("state"), "confidence": state.get("confidence"),
+              "ambiguous": bool(state.get("ambiguous")),
+              "evidence": [{"source": "ys-lookd/world", "via": "daemon",
+                            "readings_n": len(state.get("readings") or {}),
+                            "native": state.get("native"),
+                            "attribution": resp.get("attribution")}],
+              "channel": "fast", "native": state.get("native", False)}
+        raw = schema.new_world(
+            frame_id=frame_id, captured_at_ms=int(frame_meta["captured_at_ms"]),
+            state=st, objects=objects, free_text=free_text, degraded=degraded,
+            timing_ms=dict(resp.get("timing") or {}, rpc=round(rpc_ms, 1)),
+            frame=dict(frame_meta, **{"w": resp["frame"].get("w"),
+                                      "h": resp["frame"].get("h")}),
+            budget_ms=self.budget_ms)
+        raw["attribution"] = resp.get("attribution")
+        raw["daemon_timing"] = resp.get("timing")
+        schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
+        if path:
+            self.cache.store(frame_id, self.sig,
+                             {k: v for k, v in raw.items()
+                              if k not in ("timing_ms", "cache", "transitions", "tracked_at_ms")})
+        timing = dict(resp.get("timing") or {})
+        timing["total"] = round((time.perf_counter() - t_start) * 1000, 1)
+        timing["rpc"] = round(rpc_ms, 1)
+        raw = self._finalize(raw, frame_meta=frame_meta, frame_id=frame_id,
+                             timing=timing, cache_hit={"hit": False, "layer": "miss"},
+                             t_start=t_start, validate_ms=0.0)
+        return self._publish(raw)
+
+    def _daemon_frame_meta(self, frame, src):
+        """daemon-world 的帧来源：离线给路径；live 给 None（服务自己抓 + 归属校验）。"""
+        if src in ("frame", "provider"):
+            if not frame:
+                raise ServiceError("BAD_USAGE", "source=frame 必须给帧路径", rc=2)
+            path = os.path.abspath(frame)
+            if not os.path.isfile(path):
+                raise ServiceError("FRAME_NOT_FOUND", f"帧文件不存在：{path}", rc=8)
+            meta = {"path": path, "source": src,
+                    "captured_at_ms": int(os.path.getmtime(path) * 1000),
+                    "captured_at_ms_source": "file_mtime", "live": False}
+            self._last_frame = meta
+            return meta, path
+        if src == "latest":
+            if not self._last_frame:
+                raise ServiceError("NO_FRESH_FRAME",
+                                   "没有可复用的帧（还没成功 look 过）；请用 --frame 指定离线帧",
+                                   rc=8)
+            meta = dict(self._last_frame, source="latest", reused=True)
+            return meta, meta.get("path")
+        # live / auto：交给常驻服务抓帧（它内部先做归属校验，不过就不抓）
+        meta = {"path": "(live)", "source": "live", "captured_at_ms": schema.now_ms(),
+                "captured_at_ms_source": "daemon-capture", "live": True}
+        self._last_frame = meta
+        return meta, None
+
+    def _degraded_list(self, objects, free_text, *, state_name, objects_degraded):
+        degraded = []
+        if state_name == "UNKNOWN":
+            degraded.append(_degraded("STATE_UNKNOWN", "常驻服务判不出状态；证据见 state.evidence"))
+        if objects_degraded:
+            degraded.append(_degraded("OBJECTS_DEGRADED", "容器层 degraded/error，见 daemon 回执"))
+        n_unknown = sum(1 for o in objects if o["kind"] == "unknown")
+        if n_unknown:
+            degraded.append(_degraded("KIND_UNKNOWN",
+                                      f"{n_unknown}/{len(objects)} 个对象 kind=unknown（L1 学习型检测未接入）"))
+        if free_text:
+            degraded.append(_degraded("FREE_TEXT_UNOWNED",
+                                      f"{len(free_text)} 条文本没有容器归属，act(text) 解析不到"))
+        degraded.append(_degraded("L2_NOT_IMPLEMENTED", "groups=[]：容器 parent 链未闭合（票 26）"))
+        degraded.append(_degraded("L3_NOT_IMPLEMENTED", "对象 state 三字段=null、clickable 恒 unknown（票 27/28）"))
+        if not schema.state_vocabulary():
+            degraded.append(_degraded("STATE_VOCAB_UNVERIFIED", "读不到 ys-state 的 STATES 元组"))
+        return degraded
+
     def _acquire_frame(self, frame, src):
         """解析帧来源。live 只在窗口已在栈顶时取；**绝不抬窗口**。"""
         if src in ("frame", "provider"):
@@ -160,13 +290,16 @@ class WorldService:
             return meta
 
         if src == "live":
-            # 先按 ys-atop 判栈顶：不在栈顶就 fail-closed（rc=5），绝不抬窗口
-            st = instruments.atop_status()
-            if not st["atop"]:
+            # 先做窗口归属校验（票 34，X11 快路径 ~20ms）：不在当前桌面/被遮挡/不在栈顶
+            # 一律 fail-closed（rc=5），绝不抬窗口、绝不拿别窗画面。
+            attr = instruments.attrib_fast()
+            if attr.get("verdict") != "OK":
                 raise ServiceError(
                     "LIVE_NOT_ATOP",
-                    f"游戏窗口不在栈顶（ys-atop rc={st['rc']}，line={st['line']!r}）；"
-                    "本服务绝不为了取数抬窗口 —— 请用 --frame 指定离线帧，或把窗口切到栈顶",
+                    f"窗口归属校验未通过（verdict={attr.get('verdict')}，rc={attr.get('rc')}，"
+                    f"{attr.get('elapsed_ms')}ms；窗口={attr.get('window')}，"
+                    f"桌面={attr.get('current_desktop')}）；本服务绝不为了取数抬窗口 —— "
+                    "请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
                     status="precondition_fail", rc=5)
             meta = instruments.grab_frame(skip_atop=True)
             meta = {"path": os.path.abspath(meta["path"]), "source": "live",
@@ -187,13 +320,13 @@ class WorldService:
             meta["reused"] = True
             return meta
 
-        # auto：窗口在栈顶就 live；否则**拒绝**（不偷偷用旧帧冒充新读数）
-        st = instruments.atop_status()
-        if not st["atop"]:
+        # auto：窗口在栈顶且归属 OK 才 live；否则**拒绝**（不偷偷用旧帧冒充新读数）
+        attr = instruments.attrib_fast()
+        if attr.get("verdict") != "OK":
             raise ServiceError(
                 "LIVE_NOT_ATOP",
-                f"游戏窗口不在栈顶（ys-atop rc={st['rc']}，line={st['line']!r}）；"
-                "本服务绝不为了取数抬窗口 —— 请用 --frame 指定离线帧，或把窗口切到栈顶",
+                f"窗口归属校验未通过（verdict={attr.get('verdict')}，rc={attr.get('rc')}）；"
+                "本服务绝不为了取数抬窗口 —— 请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
                 status="precondition_fail", rc=5)
         return self._acquire_frame(None, "live")
 
@@ -630,6 +763,8 @@ def main(argv=None):
 
     def common(p):
         p.add_argument("--profile", default=None, help="状态判据 profile（默认 .scratch/gui-profiles/qianxing.json）")
+        p.add_argument("--backend", default="cli", choices=["cli", "daemon-world"],
+                       help="cli=现状（ys-state/ys-screen 子进程）；daemon-world=常驻服务 world 仪器（需新版 ys-lookd）")
         p.add_argument("--json-out", default=None, help="把一个回执写到文件")
         p.add_argument("--no-cache", action="store_true", help="禁用帧级缓存")
 
@@ -687,7 +822,8 @@ def main(argv=None):
         source = "live" if getattr(a, "live", False) else (
             "latest" if getattr(a, "latest", False) else ("frame" if getattr(a, "frame", None) else "auto"))
         svc = WorldService(profile=a.profile, channel=getattr(a, "channel", "fast"),
-                           source=source, cache_enabled=not a.no_cache,
+                           source=source, backend=getattr(a, "backend", "cli"),
+                           cache_enabled=not a.no_cache,
                            allow_inject=getattr(a, "allow_inject", False))
 
         if a.verb == "look":

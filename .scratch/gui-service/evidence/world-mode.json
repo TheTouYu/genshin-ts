@@ -1,0 +1,123 @@
+{
+ "daemon_world_cold_ms": 998.3,
+ "daemon_world_timing": {
+  "load_ms": 0.1,
+  "ocr_ms": 1.9,
+  "state_ms": 356.1,
+  "judge_ms": 355.8,
+  "objects_ms": 1.2,
+  "total_ms": 359.2,
+  "ocr_source": "cache",
+  "ocr_n": 39,
+  "ocr_err": null,
+  "cache_hit": false,
+  "attribution_ms": null,
+  "total": 997.3,
+  "rpc": 362.4
+ },
+ "daemon_world_rpc_ms": [
+  3.3,
+  2.9,
+  2.6
+ ],
+ "daemon_world_cache_ms": [
+  1.2,
+  1.0,
+  1.2
+ ],
+ "cli_look_first_ms": 4.5,
+ "cli_look_first_cache": {
+  "hit": true,
+  "layer": "disk",
+  "hit_ms": 0.41
+ },
+ "cli_look_first_timing": {
+  "total": 0.41,
+  "cache_layer": "disk"
+ },
+ "cli_cache_hit_ms": [
+  1.4,
+  1.1,
+  0.9
+ ],
+ "attrib_fast_ms": 67.7,
+ "attrib": {
+  "verdict": "OK",
+  "atop": true,
+  "current_desktop": 0,
+  "elapsed_ms": 27.9,
+  "src": "x11"
+ },
+ "env": {
+  "note": "sandbox: no CUDA (torch.cuda_available=False); test daemon on private socket, CPU",
+  "frame": "/home/h/genshin-ts/.scratch/gui-corpus/f06.png",
+  "socket": "/home/h/genshin-ts/.scratch/gui-service/.cache/daemon/ys-lookd-test.sock"
+ },
+ "world_live_cpu_ms": 1760.0,
+ "world_live_note": "live：先 X11 归属校验（OK）→ daemon 自抓全帧 → 判据；ocr=False（避免 CPU OCR 60s）。GPU 预期 grab ~105ms + judge ~140ms ≈ 250ms",
+ "ys_observe_attribution_ms": {
+  "live_frame_runs": [
+   67,
+   51
+  ],
+  "skip_grab_runs": [
+   31,
+   56
+  ],
+  "verify_kwin_ms": 959
+ },
+ "ys_observe_frame_wall_ms": {
+  "spectacle_warm": 1493,
+  "import_fallback_cold": 7226,
+  "note": "抓帧后端主导（spectacle/import），归属检查只占 51–67ms"
+ },
+ "fast_attrib": {
+  "ys_atop_json_elapsed_ms": 20.5,
+  "ys_atop_json_wall_ms": 70,
+  "ys_attrib_internal_ms": 20.3,
+  "attrib_fast_service_ms": 67.7
+ },
+ "world_cold_after_daemon_restart_ms": 11608.0,
+ "world_cold_after_daemon_restart_note": "含 torch 导入与 CPU 首次推理；AGI-BAR 冷启动不计入预算",
+ "host_gpu_2026-10-18": {
+  "source": "Lead 主会话实测（daemon 已重启，GPU 正常）",
+  "rows": [
+   {
+    "scene": "冷（重启后第一发，f06）",
+    "load_ms": 158,
+    "ocr_ms": 27,
+    "ocr_source": "cache",
+    "judge_ms": 343,
+    "objects_ms": 54,
+    "internal_ms": 582,
+    "rpc_ms": 10045,
+    "note": "judge 343 是首启预热；RPC 10045ms 是 daemon 首启（冷启动不计入预算）"
+   },
+   {
+    "scene": "新帧 f07（daemon 热）",
+    "load_ms": 164,
+    "ocr_ms": 3521,
+    "judge_ms": 61,
+    "objects_ms": 342,
+    "internal_ms": 4089
+   },
+   {
+    "scene": "新帧 f08（daemon 热）",
+    "load_ms": 202,
+    "ocr_ms": 634,
+    "judge_ms": 80,
+    "objects_ms": 163,
+    "internal_ms": 1080
+   },
+   {
+    "scene": "同帧（服务层帧缓存关，daemon 结果缓存命中）",
+    "internal_ms": 1.1,
+    "rpc_ms": [
+     5,
+     10
+    ]
+   }
+  ],
+  "conclusion": "judge 61–80ms（热）——旧推导 132–166ms 偏保守；瓶颈是 OCR 634–3521ms 与容器层 163–342ms → 票 25"
+ }
+}

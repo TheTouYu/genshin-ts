@@ -5,19 +5,200 @@
 # （1707×62），于是「原神是否在栈顶」长期被误判成"不在"——而实际画面可能是好的。
 # 正确判据：忽略面板/小窗（高度 < 200 或宽度 < 800），取**剩下里最上层**的那个。
 #
-# 用法: ys-atop [窗口标题子串]        退出码 0=在栈顶 / 1=被压住 / 2=找不到窗口
+# 用法:
+#   ys-atop [窗口标题子串]        退出码 0=在栈顶 / 1=被压住 / 2=找不到窗口（旧行为，默认不变）
+#   ys-atop --json [标题]         归属校验（票 34）：**默认走 X11/EWMH 快路径（~20ms）**；
+#                                 `--verify` 才走 KWin 脚本慢路径（~1s，occluder 名单更全）。
+#     退出码：0=OK / 1=NOT_ATOP / 2=NOT_FOUND / 6=OTHER_DESKTOP / 7=OCCLUDED / 9=检查不可用
+#     输出一行 JSON：{checked,verdict,atop,stacking_top,window,current_desktop,occluders,
+#                    covered_ratio,src:"x11|kwin|fixture"}
+#     **顶层 atop 由 verdict 推出**（NOT_FOUND ⇒ atop=false），不再与 attribution 自相矛盾。
+#     身份判据：窗口 id 优先，其次 WM_CLASS，标题只作提示/兜底（`YS_WIN_CLASS`，默认 yuanshen.exe）。
+#     `YS_ATTR_FIXTURE=<文件>` 读 ys-wins --attrib 格式的夹具行（测试用，不碰屏幕）。
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WANT="${1:-${YS_WIN_TITLE:-原神}}"
-LINE=$(timeout 30 "$HERE/ys-wins" 2>/dev/null | awk -F'|' '
-  {
-    geo=$3; if (match(geo, /([0-9]+)x([0-9]+)/, m)) { h=m[2]+0; w=m[1]+0 } else next
-    if (h < 200 || w < 800) next          # 跳过面板/小窗
-    top=$0
-  }
-  END { print top }')
-[ -z "${LINE:-}" ] && { echo "NONE"; exit 2; }
-case "$LINE" in
-  *"$WANT"*) echo "${LINE%%|*}"; exit 0;;
-  *) echo "${LINE%%|*}"; exit 1;;
-esac
+JSON=0; VERIFY=0; WANT=""
+for a in "$@"; do
+  case "$a" in
+    --json) JSON=1;;
+    --verify) VERIFY=1;;
+    *) WANT="$a";;
+  esac
+done
+WANT="${WANT:-${YS_WIN_TITLE:-原神}}"
+
+if [ "$JSON" != "1" ]; then
+  LINE=$(timeout 30 "$HERE/ys-wins" 2>/dev/null | awk -F'|' '
+    {
+      geo=$3; if (match(geo, /([0-9]+)x([0-9]+)/, m)) { h=m[2]+0; w=m[1]+0 } else next
+      if (h < 200 || w < 800) next          # 跳过面板/小窗
+      top=$0
+    }
+    END { print top }')
+  [ -z "${LINE:-}" ] && { echo "NONE"; exit 2; }
+  case "$LINE" in
+    *"$WANT"*) echo "${LINE%%|*}"; exit 0;;
+    *) echo "${LINE%%|*}"; exit 1;;
+  esac
+fi
+
+# ── 快路径（默认）：X11/EWMH 属性，~20ms；1s/张的连拍不会被归属检查拖死
+if [ -z "${YS_ATTR_FIXTURE:-}" ] && [ "$VERIFY" != "1" ]; then
+  # 显式给了 YS_WIN 才用窗口 id（最稳）；否则交给 ys_attrib 按 WM_CLASS/标题发现，
+  # 避免"问别的窗口却永远返回原神窗"的错误归属。
+  if [ -n "${YS_WIN:-}" ]; then
+    exec python3 "$HERE/ys_attrib.py" "$WANT" --win "$YS_WIN"
+  fi
+  exec python3 "$HERE/ys_attrib.py" "$WANT"
+fi
+
+# ── 慢路径（--verify）/ 夹具：KWin 脚本一次取全量窗口表（含桌面/最小化/栈序）
+SRC="kwin"
+if [ -n "${YS_ATTR_FIXTURE:-}" ]; then
+  if [ ! -r "$YS_ATTR_FIXTURE" ]; then
+    printf '{"checked":false,"verdict":"UNKNOWN","error":"夹具不可读: %s"}\n' "$YS_ATTR_FIXTURE"
+    exit 9
+  fi
+  LINES="$(cat "$YS_ATTR_FIXTURE")"
+  SRC="fixture"
+else
+  LINES="$(timeout 30 "$HERE/ys-wins" --attrib 2>/dev/null)"
+fi
+if [ -z "${LINES:-}" ] && [ "$SRC" = "kwin" ]; then
+  printf '{"checked":false,"verdict":"UNKNOWN","error":"ys-wins --attrib 无输出（KWin 脚本不可用）"}\n'
+  exit 9
+fi
+
+YS_ATTR_LINES="$LINES" YS_ATTR_WANT="$WANT" \
+YS_ATTR_WANT_CLASS="${YS_WIN_CLASS:-yuanshen.exe}" YS_ATTR_SRC="$SRC" python3 - <<'PY'
+import json, os, re, sys, time
+
+want = os.environ.get("YS_ATTR_WANT", "原神")
+want_class = (os.environ.get("YS_ATTR_WANT_CLASS") or "").lower()
+src = os.environ.get("YS_ATTR_SRC", "kwin")
+lines = [ln for ln in os.environ.get("YS_ATTR_LINES", "").splitlines() if ln.strip()]
+
+# 从右往左拆：caption 里允许含 " | "（实测标题含竖线会让"从左数第 2 段"解析错位）
+RE_GEO = re.compile(r"^(-?\d+),(-?\d+)\s+(\d+)x(\d+)$")
+
+
+def parse(line):
+    parts = [p.strip() for p in line.split(" | ")]
+    gi = next((i for i, p in enumerate(parts) if RE_GEO.match(p)), None)
+    if gi is None or gi < 2:
+        return None
+    m = RE_GEO.match(parts[gi])
+    x, y, w, h = (int(v) for v in m.groups())
+    caption = re.sub(r"^\[\d+\]\s*", "", " | ".join(parts[:gi - 1])).strip()
+    cls = parts[gi - 1].strip()
+    rest = " | ".join(parts[gi + 1:])
+    ds = [int(v) for v in re.findall(r"ds=([\d,]*)", rest)[0].split(",") if v.strip()] \
+        if re.search(r"ds=([\d,]*)", rest) else []
+    cur = int(re.findall(r"cur=(-?\d+)", rest)[0]) if re.search(r"cur=(-?\d+)", rest) else None
+    idx = int(re.findall(r"idx=(\d+)", rest)[0]) if re.search(r"idx=(\d+)", rest) else None
+    mn = (re.findall(r"min=(\d)", rest)[0] == "1") if re.search(r"min=(\d)", rest) else False
+    return {"caption": caption, "class": cls, "bbox": [x, y, w, h], "minimized": mn,
+            "desktop": ds, "cur": cur, "idx": idx,
+            "active": bool(re.search(r"\bact=1\b|ACTIVE", rest))}
+
+
+wins = [w for w in (parse(ln) for ln in lines) if w]
+if not wins:
+    print(json.dumps({"checked": False, "src": src, "verdict": "NOT_FOUND", "atop": False,
+                      "want": want, "detail": "无可用窗口行"}, ensure_ascii=False))
+    sys.exit(2)
+for i, w in enumerate(wins):
+    if w["idx"] is None:
+        w["idx"] = i
+cur = next((w["cur"] for w in wins if w["cur"] is not None), None)
+
+# 身份判据：给了 WM_CLASS 就**只认 class**（标题会变，且「原神编辑器」也含"原神"——
+# 2026-10-18 实测：按标题兜底会把编辑器当成游戏，归属结论整个反向）。标题只在未给 class 时用。
+if want_class:
+    targets = [w for w in wins if want_class in (w["class"] or "").lower()]
+    how = "class"
+else:
+    targets = [w for w in wins if want and want in w["caption"]]
+    how = "title"
+if not targets:
+    print(json.dumps({"checked": True, "src": src, "verdict": "NOT_FOUND", "atop": False,
+                      "want": want, "want_class": want_class, "current_desktop": cur,
+                      "detail": f"找不到 WM_CLASS≈{want_class!r} 的窗口（标题 {want!r} 只作提示，不参与匹配）"},
+                     ensure_ascii=False))
+    sys.exit(2)
+target = max(targets, key=lambda w: w["idx"])
+
+large = [w for w in wins if w["bbox"][3] >= 200 and w["bbox"][2] >= 800]
+top_large = max(large, key=lambda w: w["idx"]) if large else None
+stacking_top = bool(top_large and top_large is target)
+
+
+def inter(a, b):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    x0, y0 = max(ax, bx), max(ay, by)
+    x1, y1 = min(ax + aw, bx + bw), min(ay + ah, by + bh)
+    return None if (x1 <= x0 or y1 <= y0) else [x0, y0, x1 - x0, y1 - y0]
+
+
+def union_ratio(rects, area):
+    if not rects or area <= 0:
+        return 0.0
+    xs = sorted({r[0] for r in rects} | {r[0] + r[2] for r in rects})
+    covered = 0
+    for x0, x1 in zip(xs, xs[1:]):
+        ivs = sorted((r[1], r[1] + r[3]) for r in rects if r[0] <= x0 and x1 <= r[0] + r[2])
+        merged = []
+        for s, e in ivs:
+            if merged and s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+        covered += sum(max(0, e - s) for s, e in merged) * (x1 - x0)
+    return covered / float(area)
+
+
+def visible_on(w, desk):
+    return (not w["desktop"]) or desk is None or desk in w["desktop"]
+
+
+desk_ok = visible_on(target, cur)
+above = [w for w in wins if w["idx"] > target["idx"] and not w["minimized"] and visible_on(w, cur)]
+occluders, rects = [], []
+for w in above:
+    r = inter(target["bbox"], w["bbox"])
+    if r:
+        rects.append(r)
+        occluders.append({"caption": w["caption"], "class": w["class"], "bbox": w["bbox"],
+                          "desktop": w["desktop"], "idx": w["idx"],
+                          "intersect_px": r[2] * r[3]})
+area = target["bbox"][2] * target["bbox"][3]
+ratio = round(union_ratio(rects, area), 4) if area else 0.0
+
+if not desk_ok:
+    verdict = "OTHER_DESKTOP"
+elif target["minimized"] or ratio >= 0.995:
+    verdict = "OCCLUDED"
+elif not stacking_top:
+    verdict = "NOT_ATOP"
+else:
+    verdict = "OK"
+
+out = {
+    "checked": True, "src": src, "want": want, "want_class": want_class,
+    "verdict": verdict, "atop": verdict == "OK", "stacking_top": stacking_top,
+    "how": how,
+    "window": {"caption": target["caption"], "class": target["class"],
+               "bbox": target["bbox"], "desktop": target["desktop"],
+               "minimized": target["minimized"], "active": target["active"],
+               "idx": target["idx"]},
+    "current_desktop": cur,
+    "large_top": ({"caption": top_large["caption"], "class": top_large["class"],
+                   "idx": top_large["idx"]} if top_large else None),
+    "occluders": occluders[:8], "covered_ratio": ratio,
+    "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+}
+print(json.dumps(out, ensure_ascii=False))
+sys.exit({"OK": 0, "NOT_ATOP": 1, "NOT_FOUND": 2,
+          "OTHER_DESKTOP": 6, "OCCLUDED": 7}.get(verdict, 9))
+PY

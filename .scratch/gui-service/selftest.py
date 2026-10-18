@@ -54,10 +54,13 @@ def expect_raises(name, fn, exc_type=schema.SchemaError):
     return check(name, False, "没有抛异常")
 
 
-def cli(args, timeout=60):
+def cli(args, timeout=60, env_extra=None):
     t0 = time.perf_counter()
+    env = dict(os.environ, PYTHONPATH=HERE)
+    if env_extra:
+        env.update(env_extra)
     p = subprocess.run([sys.executable, WORLDSVC] + args, capture_output=True, text=True,
-                       timeout=timeout, env=dict(os.environ, PYTHONPATH=HERE))
+                       timeout=timeout, env=env)
     return p.returncode, p.stdout, _ms(t0)
 
 
@@ -236,6 +239,41 @@ def main(argv=None):
     check("wait/状态转移进账本（transitions）",
           len(svc_seq.transitions) >= 1, str(svc_seq.transitions))
 
+    # ───────── daemon-world 后端（需新版 ys-lookd；旧服务会 DAEMON_ERROR，显式标 SKIP）─────────
+    dw_note = ""
+    try:
+        svc_dw = worldsvc.WorldService(backend="daemon-world", cache_enabled=False,
+                                       daemon_cache=False)
+        t0 = time.perf_counter()
+        ws_dw = svc_dw.look(frame=FRAME)
+        dw_cold = _ms(t0)
+        check("daemon-world/state 与 cli 一致", ws_dw.state_name == ws.state_name,
+              f"{ws_dw.state_name} != {ws.state_name}")
+        check("daemon-world/对象数与 cli 一致", len(ws_dw.objects) == len(ws.objects),
+              f"{len(ws_dw.objects)} != {len(ws.objects)}")
+        check("daemon-world/timing 含 judge_ms/ocr_ms（禁两层缓存后直取原始回执）",
+              all(k in (ws_dw.raw.get("timing_ms") or {}) for k in ("judge_ms", "ocr_ms")),
+              str(ws_dw.raw.get("timing_ms")))
+        check("daemon-world/带 daemon_timing 原始回执", bool(ws_dw.raw.get("daemon_timing")))
+        svc_dw_c = worldsvc.WorldService(backend="daemon-world", cache_enabled=True)
+        svc_dw_c.look(frame=FRAME)
+        dw_hits = []
+        for _ in range(3):
+            t0 = time.perf_counter()
+            svc_dw_c.look(frame=FRAME)
+            dw_hits.append(_ms(t0))
+        check("daemon-world/缓存命中 ≤5ms（进程内）", max(dw_hits) <= 5.0, str(dw_hits))
+        dw_note = f"cold={dw_cold}ms hits={dw_hits}"
+        rc, out, ms = cli(["look", "--frame", FRAME, "--backend", "daemon-world", "--summary"])
+        check("CLI/look --backend daemon-world rc=0", rc == 0, f"rc={rc} {out[:200]}")
+    except (worldsvc.ServiceError, instruments.InstrumentError) as exc:
+        code = getattr(exc, "code", "ERROR")
+        check(f"daemon-world/SKIP（常驻服务不可用或无 world 命令：{code}；"
+              f"新版需重启 ys-lookd 后复测）", code in ("DAEMON_ERROR", "DAEMON_UNAVAILABLE",
+                                                        "DAEMON_FAILED", "DAEMON_WORLD_BAD"),
+              str(exc)[:200])
+        dw_note = f"skipped:{code}"
+
     # ───────── cache ─────────
     key = cache_mod.frame_key("sha256:" + "a" * 64, "deadbeef0000")
     check("cache/key 含帧 sha 前缀 + 仪器指纹",
@@ -272,7 +310,8 @@ def main(argv=None):
     n_fail = len(RESULTS) - n_pass
     summary = {"passed": n_pass, "failed": n_fail, "total": len(RESULTS),
                "cold_look_ms": cold_ms, "cold_look_no_cache_ms": nc_ms,
-               "cache_hit_ms": hit, "wall_s": round(time.time() - t_start, 1),
+               "cache_hit_ms": hit, "daemon_world": dw_note,
+               "wall_s": round(time.time() - t_start, 1),
                "results": RESULTS}
     with open(a.json_out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)

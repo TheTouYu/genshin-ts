@@ -1,15 +1,22 @@
 #!/bin/bash
-# ys-observe — 唯一取数入口：读数必须自带「新鲜度证明」（gui-stack 票 01）
+# ys-observe — 唯一取数入口：读数必须自带「新鲜度证明」+「窗口归属证明」（gui-stack 票 01 / 票 34）
 #
 # 存在理由（2026-10-17 实测）：`import -window <id>` 在窗口被别的应用压住时返回**陈旧帧**——
 # 实测按空格前后两帧**字节完全相同**，而我据此推断「输入没生效」，整轮结论作废。
 # 本工具把「拿到可信读数」变成默认行为：
-#   ① 取数前校验窗口存在；② 校验窗口在**堆叠序栈顶**（不在就抬升，仍不在就**拒绝取数**）；
+#   ① 取数前校验窗口存在；
+#   ② 归属校验（票 34，2026-10-18）：目标窗必须**属于当前虚拟桌面且未被完全遮挡**——
+#      原神在别的桌面/被全屏浏览器盖住时，spectacle 全屏裁剪会把别的窗口当目标（实测：
+#      `atop:true window=0x01400001` 却抓到 DSH GUI）。失败返回 OTHER_DESKTOP(4)/OCCLUDED(5)，
+#      **不返回像素**；读数里带 attribution（窗口/桌面/遮挡物/覆盖率/耗时）。
+#      默认走 **X11/EWMH 快路径（实测 ~20ms）**；`--verify` 才走 KWin 脚本慢路径（~1s）。
+#      顶层 `atop` **由 attribution 推出**（verdict != OK ⇒ atop=false），不再自相矛盾。
 #   ③ 走**合成器全屏抓图**（spectacle）而不是逐窗缓冲；④ 与上一帧做真实像素差分并写进读数。
 #
 # 语义（诚实优先，宁可报错不给假数据）：
-#   fresh = 这一帧是在「不可能陈旧」的条件下抓到的（窗口 exists 且在栈顶）
-#   atop=false  → fresh=false + NOT_ATOP，退出码 2，**不返回像素值**
+#   fresh = 这一帧是在「不可能陈旧」的条件下抓到的（窗口 exists、归属校验通过）
+#   verdict=NOT_ATOP / NOT_FOUND / 检查不可用 → 退出码 2（NOT_ATOP 语义），**不返回像素值**
+#   verdict=OTHER_DESKTOP → 退出码 4；verdict=OCCLUDED → 退出码 5（都不返回像素）
 #   diffFromPrev=0 且 atop=true → fresh=true 但 static=true（静止画面是合法的，如实标注不臆断）
 #   `--liveness` 专门回答「这条取数管线还活着吗」：隔 1s 抓两帧，报告是否有任何像素变化
 #
@@ -19,12 +26,15 @@
 #   ys-observe liveness                   # 管线活性探针
 #   ys-observe frame                      # 抓一帧并打印其绝对路径（供上层复用同一帧）
 #   ys-observe --raise px <x> <y>         # 先抬升窗口再取数（会抢焦点，显式才做）
+#   ys-observe --verify frame             # 归属检查走 KWin 慢路径（要 occluder 全名单时用）
 #   ys-observe --json px 300 300          # （默认即 JSON）
+#   YS_OBSERVE_SKIP_GRAB=1（测试缝）       # 只做窗口/归属校验，不抓屏；用于离线自测失败路径
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 WIN="${YS_WIN:-0x01400001}"
+export YS_WIN="$WIN"          # 归属校验用窗口 id（比标题稳；票 34）
 
 # ⚠️ 2026-10-17 实测（③槽内 full 通道取帧失败的真因）：
 #   `spectacle` 缺 `XDG_RUNTIME_DIR` 时**直接 core dump**（`error: XDG_RUNTIME_DIR is invalid or not set`），
@@ -42,7 +52,9 @@ CACHE="${YS_OBSERVE_CACHE:-/tmp/ys-observe}"
 mkdir -p "$CACHE"
 CUR="$CACHE/cur.png"; PREV="$CACHE/prev.png"
 
-die() { printf '{"error":"%s","detail":"%s"}\n' "$1" "${2:-}"; exit "${3:-1}"; }
+ATTR_JSON='{"checked":false,"verdict":"UNKNOWN"}'
+ATTR_RC=""; ATTR_MS=0
+die() { printf '{"error":"%s","detail":"%s","attribution":%s}\n' "$1" "${2:-}" "$ATTR_JSON"; exit "${3:-1}"; }
 
 # ── ① 窗口存在性
 if ! xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
@@ -50,25 +62,67 @@ if ! xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
 fi
 GEOM=$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')
 
-# ── ② 堆叠序：窗口必须在栈顶，否则拒绝取数（这正是今天踩的坑）
-# ⚠️ ys-wins 的输出是「标题 | WM_CLASS | 几何」，**不含窗口 id**——
-#    早期版本的 bug 就是拿 grep "$WIN"（十六进制 id）去匹配这个列表，永远匹配不到，
-#    于是 --raise 明明抬起来了还判 NOT_ATOP。正确判据：栈顶那一行的**标题**含目标标题。
-# ⚠️ 不能拿 `ys-wins | tail -1` 当栈顶——那**永远是 plasmashell 的任务栏面板**（1707×62），
-# 于是「原神在不在栈顶」长期被误判成"不在"（2026-10-17 实测：一连串 NOT_ATOP 全是假警报）。
-# 正确判据交给 ys-atop：忽略面板/小窗，取剩下里最上层的那个。
+# ── ② 归属校验（票 34）：默认 X11/EWMH 快路径（ys_attrib.py，~20ms）；--verify 才走 KWin 慢路径
+#    退出码：0 OK / 1 NOT_ATOP / 2 NOT_FOUND / 6 OTHER_DESKTOP / 7 OCCLUDED / 9 检查不可用
+RAISE=0; REUSE=0; VERIFY=0
+for a in "$@"; do
+  case "$a" in
+    --raise) RAISE=1;;
+    --reuse) REUSE=1;;
+    --verify) VERIFY=1;;
+  esac
+done
+attr_call() {
+  local out t0 t1
+  t0=$(date +%s%N)
+  if [ "$VERIFY" = "1" ]; then
+    out=$(timeout 40 "$HERE/ys-atop" --json --verify "${YS_WIN_TITLE:-原神}" 2>/dev/null); ATTR_RC=$?
+  else
+    out=$(timeout 20 "$HERE/ys-atop" --json "${YS_WIN_TITLE:-原神}" 2>/dev/null); ATTR_RC=$?
+  fi
+  t1=$(date +%s%N); ATTR_MS=$(( (t1 - t0) / 1000000 ))
+  case "$out" in
+    \{*) ATTR_JSON="$out";;
+    *)   ATTR_JSON='{"checked":false,"verdict":"UNKNOWN","why":"ys-atop --json 无输出"}';;
+  esac
+}
+# 旧判据兜底：**只在显式允许时**用（它会跑一次 ~1s 的 KWin 往返，1s/张连拍吃不起）
 atop_ok() { timeout 30 "$HERE/ys-atop" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1; }
-atop_line() { timeout 30 "$HERE/ys-atop" "${YS_WIN_TITLE:-原神}" 2>/dev/null; }
-ATOP=false; atop_ok && ATOP=true
-# 默认**不**自动抬升：抬升会抢用户正在用的桌面焦点（项目桌面协议）。
-# 需要抬升时由调用方显式 --raise（见下），或在槽内先抬好再调本工具。
-RAISE=0
-for a in "$@"; do [ "$a" = "--raise" ] && RAISE=1; done
-if [ "$ATOP" != "true" ] && [ "$RAISE" = "1" ]; then
-  # ⚠️ ys-kwin-raise 的第一个参数是**标题子串**（如「原神」），不是窗口 id
+
+ATOP=false; ATOP_SOURCE="attribution"
+attr_call
+case "$ATTR_RC" in
+  0) ATOP=true;;
+  1) ATOP=false;;
+  2) ATOP=false;;
+  6) die OTHER_DESKTOP "目标窗不在当前虚拟桌面（窗口 id=$WIN）——全屏抓图会抓到别的窗口，拒绝返回像素值；attribution 见字段" 4;;
+  7)
+    if [ "$RAISE" = "1" ]; then
+      # 遮挡可尝试显式抬升（会抢焦点，只有调用方 --raise 才做）
+      timeout 25 "$HERE/ys-kwin-raise" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1 || true
+      sleep 1
+      attr_call
+      case "$ATTR_RC" in 0) ATOP=true;; *) ATOP=false;; esac
+    fi
+    if [ "$ATTR_RC" = "7" ]; then
+      die OCCLUDED "目标窗被完全遮挡（窗口 id=$WIN；覆盖率见 attribution.covered_ratio）——全屏抓图内容不可信，拒绝返回像素值" 5
+    fi
+    ;;
+  *)
+    if [ "${YS_OBSERVE_ALLOW_SLOW_ATOP:-0}" = "1" ]; then
+      ATOP_SOURCE="legacy"
+      atop_ok && ATOP=true
+    else
+      ATOP=false
+    fi
+    ;;
+esac
+# --raise：不在 OK 态时显式抬升一次，再复检（抬升会抢焦点，只有调用方声明才做）
+if [ "$ATOP" != "true" ] && [ "$RAISE" = "1" ] && [ "$ATTR_RC" != "6" ]; then
   timeout 25 "$HERE/ys-kwin-raise" "${YS_WIN_TITLE:-原神}" >/dev/null 2>&1 || true
   sleep 1
-  atop_ok && ATOP=true
+  attr_call
+  case "$ATTR_RC" in 0) ATOP=true;; *) ATOP=false;; esac
 fi
 
 # ── ③ 合成器全屏抓图（比逐窗缓冲可信）
@@ -82,21 +136,18 @@ grab() {
   fi
   GRAB_ERR="$(head -2 "$errf" 2>/dev/null | tr '\n' ' ')"; rm -f "$errf"
   # 回退：窗口在栈顶时逐窗 `import` 与合成器抓图**逐通道一致**（2026-10-17 实测 11059200 字节同尺寸）。
-  # 只回退抓取方式，不放松栈顶校验——陈旧帧风险来自「窗口被压住」，那条判据仍在前面。
+  # 只回退抓取方式，不放松归属校验——陈旧帧风险来自「窗口被压住」，那条判据仍在前面。
   if timeout 25 import -window "$WIN" -crop 2560x1440+0+0 +repage "$1" >/dev/null 2>&1 && [ -s "$1" ]; then
     GRAB_SOURCE="import-window-fallback"; return 0
   fi
   return 1
 }
 
-# --reuse：显式复用上一帧（抓图贵且调用方明确知道画面未变时用）。
-# 必须显式声明，且读数里会带 reused:true —— 不允许"不知不觉用了旧帧"。
-REUSE=0
+# 摘掉控制参数，避免被当成 MODE（2026-10-17 修过 --raise 被当 MODE 的坑）
 _args=()
 for a in "$@"; do
   case "$a" in
-    --reuse) REUSE=1;;
-    --raise) ;;   # 已在上面消费；必须从 argv 摘掉，否则会被当成 MODE（2026-10-17 修）
+    --raise|--reuse|--verify) ;;
     *) _args+=("$a");;
   esac
 done
@@ -104,20 +155,35 @@ set -- "${_args[@]:-}"
 MODE="${1:?用法: ys-observe px|region|liveness …}"; shift || true
 
 if [ "$MODE" = "liveness" ]; then
-  [ "$ATOP" != "true" ] && die NOT_ATOP "原神窗不在栈顶——此时『画面有变化』变的是别人的窗口，liveness 无意义" 2
+  [ "$ATOP" != "true" ] && die NOT_ATOP "目标窗不在当前桌面/被遮挡/不在栈顶（verdict=$(printf '%s' "$ATTR_JSON" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin).get("verdict"))
+except Exception: print("UNKNOWN")' 2>/dev/null)）——此时『画面有变化』变的是别人的窗口，liveness 无意义" 2
   grab "$CUR" || die GRAB_FAILED "抓图失败（spectacle 与 import-window 都失败）：$GRAB_ERR" 3
   cp -f "$CUR" "$PREV" 2>/dev/null || true
   sleep 1
   grab "$CUR" || die GRAB_FAILED "spectacle 抓图失败" 3
   D=$(magick compare -metric AE "$PREV" "$CUR" null: 2>&1 | head -1 | awk '{print $1}' | tr -dc '0-9' || echo 0)
   LIVE=false; awk "BEGIN{exit !(${D:-0} > 0)}" && LIVE=true
-  printf '{"kind":"liveness","changed":%s,"diff":%s,"atop":%s,"window":"%s","at":"%s"}\n' \
-    "$LIVE" "${D:-0}" "$ATOP" "$WIN" "$(date -Is)"
+  printf '{"kind":"liveness","changed":%s,"diff":%s,"atop":%s,"atop_source":"%s","window":"%s","attribution_ms":%s,"attribution":%s,"at":"%s"}\n' \
+    "$LIVE" "${D:-0}" "$ATOP" "$ATOP_SOURCE" "$WIN" "$ATTR_MS" "$ATTR_JSON" "$(date -Is)"
   [ "$LIVE" = "true" ] && exit 0 || exit 2
 fi
 
 if [ "$ATOP" != "true" ]; then
-  die NOT_ATOP "原神窗不在堆叠序栈顶（$GEOM）——抓图可能是陈旧帧，拒绝返回像素值；请在 ys-gui-slot 里跑或显式 --raise 后重试（env_repair='${ENV_REPAIR:-none}'）" 2
+  V=$(printf '%s' "$ATTR_JSON" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin).get("verdict"))
+except Exception: print("UNKNOWN")' 2>/dev/null)
+  if [ "$V" = "NOT_FOUND" ]; then
+    die NOT_ATOP "找不到目标窗口（id=$WIN / WM_CLASS=${YS_WIN_CLASS:-yuanshen.exe} / 标题=${YS_WIN_TITLE:-原神} 都不匹配，$ATTR_MS ms）——拒绝返回像素值" 2
+  fi
+  die NOT_ATOP "目标窗不在栈顶/归属校验未通过（verdict=$V，$GEOM，$ATTR_MS ms）——抓图可能是陈旧帧，拒绝返回像素值；请在 ys-gui-slot 里跑或显式 --raise 后重试（env_repair='${ENV_REPAIR:-none}'）" 2
+fi
+
+# 测试缝：只校验身份，不抓屏（离线自测 OTHER_DESKTOP/OCCLUDED 路径，不碰屏幕）
+if [ "${YS_OBSERVE_SKIP_GRAB:-0}" = "1" ]; then
+  printf '{"kind":"%s","skipped":true,"grab":"skipped","fresh":false,"atop":%s,"atop_source":"%s","window":"%s","attribution_ms":%s,"attribution":%s,"at":"%s"}\n' \
+    "$MODE" "$ATOP" "$ATOP_SOURCE" "$WIN" "$ATTR_MS" "$ATTR_JSON" "$(date -Is)"
+  exit 0
 fi
 
 REUSED=false
@@ -149,9 +215,9 @@ case "$MODE" in
     fi
     read -r R G B <<<"$(magick "$CUR" -format "%[fx:int(255*p{$X,$Y}.r)] %[fx:int(255*p{$X,$Y}.g)] %[fx:int(255*p{$X,$Y}.b)]" info: 2>/dev/null)"
     [ -z "${R:-}" ] && die PROBE_EMPTY "探针 ($X,$Y) 取不到值" 3
-    printf '{"kind":"px","probe":"%s,%s","value":"%s,%s,%s","fresh":true,"reused":%s,"static":%s,"frame":{"id":"%s","diffFromPrev":%s,"window":"%s","atop":%s},"source":"%s","env_repair":"%s","at":"%s"}\n' \
+    printf '{"kind":"px","probe":"%s,%s","value":"%s,%s,%s","fresh":true,"reused":%s,"static":%s,"frame":{"id":"%s","diffFromPrev":%s,"window":"%s","atop":%s},"source":"%s","env_repair":"%s","atop_source":"%s","attribution_ms":%s,"attribution":%s,"at":"%s"}\n' \
       "$X" "$Y" "$R" "$G" "$B" "$REUSED" "$STATIC" "$FID" "${DIFF:-0}" "$WIN" "$ATOP" \
-      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$ATOP_SOURCE" "$ATTR_MS" "$ATTR_JSON" "$AT"
     ;;
   region)
     X="${1:?region 需要 x}"; Y="${2:?region 需要 y}"; W="${3:?region 需要 w}"; H="${4:?region 需要 h}"
@@ -159,15 +225,15 @@ case "$MODE" in
     if [ $((X + W)) -gt "${IW:-0}" ] || [ $((Y + H)) -gt "${IH:-0}" ]; then
       die PROBE_OUT_OF_RANGE "区域 ($X,$Y,${W}x$H) 超出画面 ${IW}x${IH}" 3
     fi
-    printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"%s","env_repair":"%s","at":"%s"}\n' \
+    printf '{"kind":"region","rect":"%s,%s,%s,%s","diffFromPrev":%s,"fresh":true,"static":%s,"frame":{"id":"%s","window":"%s","atop":%s},"source":"%s","env_repair":"%s","atop_source":"%s","attribution_ms":%s,"attribution":%s,"at":"%s"}\n' \
       "$X" "$Y" "$W" "$H" "${DIFF:-0}" "$STATIC" "$FID" "$WIN" "$ATOP" \
-      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$ATOP_SOURCE" "$ATTR_MS" "$ATTR_JSON" "$AT"
     ;;
   frame)
     # 供上层组件（ys-state 等）复用同一帧：打印缓存帧的绝对路径，避免各自重复抓图
-    printf '{"kind":"frame","path":"%s","fresh":true,"reused":%s,"static":%s,"diffFromPrev":%s,"window":"%s","atop":%s,"source":"%s","env_repair":"%s","at":"%s"}\n' \
+    printf '{"kind":"frame","path":"%s","fresh":true,"reused":%s,"static":%s,"diffFromPrev":%s,"window":"%s","atop":%s,"source":"%s","env_repair":"%s","atop_source":"%s","attribution_ms":%s,"attribution":%s,"at":"%s"}\n' \
       "$CUR" "$REUSED" "$STATIC" "${DIFF:-0}" "$WIN" "$ATOP" \
-      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$AT"
+      "$GRAB_SOURCE" "${ENV_REPAIR:-}" "$ATOP_SOURCE" "$ATTR_MS" "$ATTR_JSON" "$AT"
     ;;
   *) die BAD_MODE "未知模式 $MODE（px|region|liveness|frame）" 3;;
 esac

@@ -5,6 +5,14 @@
   进程启动 3s + CUDA 初始化 ~1s 只付一次；此后每次请求只剩 I/O + 计算。
   协议：Unix socket 上的一行 JSON 请求 → 一行 JSON 响应。
   客户端 ys_look.py 优先连本服务，连不上就回退 in-process（CPU/GPU 自适应）。
+
+命令（旧命令行为保持不变）：
+  px / find / batch / state / probe / ocr / warm      —— 原有用途
+  **world**（2026-10-18 用户批准新增，显式 cmd）—— 世界状态仪器：
+    一次请求 = 取帧 + 判据下沉（复用 ys-state）+ 对象层（复用 ys-screen）+ 回执；
+    帧缓冲 / OCR 内容寻址缓存 / 容器层缓存 / 结果缓存都在本进程内；
+    live 帧先做窗口归属校验（票 34），不过就返回 error、**不抓像素**。
+    契约见 `docs/architecture/gui-world-state.md` §3.5。
 """
 import json, os, socket, sys, threading, time, traceback
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -69,19 +77,20 @@ def _cached(path, cuda=True):
     import numpy as np, torch, os
     from PIL import Image
     mt = os.path.getmtime(path)
-    hit = _CACHE.get(path)
+    key = (path, bool(cuda))
+    hit = _CACHE.get(key)
     if hit and hit[0] == mt:
         return hit[1]
     arr = np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
     t = torch.from_numpy(arr).permute(2, 0, 1).contiguous()
     if cuda:
         t = t.cuda()
-    _CACHE[path] = (mt, t)
+    _CACHE[key] = (mt, t)
     # 按**字节**而不是条数限流（2026-10-17 事故：16 张 2560×1440 帧张量 = 700MB+ 显存）
     total = sum(x[1].numel() * x[1].element_size() for x in _CACHE.values())
     while total > _CACHE_MAX_BYTES and len(_CACHE) > 1:
         k = next(iter(_CACHE))
-        if k == path:
+        if k == key:
             break
         total -= _CACHE[k][1].numel() * _CACHE[k][1].element_size()
         _CACHE.pop(k)
@@ -127,11 +136,11 @@ def _load_frame(req):
     return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
 
 
-def _tpl_tensor(path, scales):
-    """读一次模板图（带缓存），按各尺度在 GPU 上缩放（不再走 PIL——那是批量时的胶水大头）。"""
+def _tpl_tensor(path, scales, cuda=True):
+    """读一次模板图（带缓存），按各尺度在设备上缩放（不再走 PIL——那是批量时的胶水大头）。"""
     import torch
     import torch.nn.functional as F
-    t = _cached(path)
+    t = _cached(path, cuda=cuda)
     out = []
     for s in scales:
         if abs(s - 1.0) < 1e-6:
@@ -151,7 +160,7 @@ def _batch(req):
     return _batch_on(It, req.get("jobs", []), ox, oy)
 
 
-def _batch_on(It, jobs, ox=0, oy=0):
+def _batch_on(It, jobs, ox=0, oy=0, cuda=True):
     """在**已加载的**帧张量上跑 jobs（常驻判态复用同一帧：不再抓第二次）。"""
     results = []
     for job in jobs:
@@ -164,7 +173,7 @@ def _batch_on(It, jobs, ox=0, oy=0):
             sub, bx, by = It, 0, 0
         best = None
         per = []
-        for s, Tt in _tpl_tensor(job["tpl"], job.get("scales", [1.0])):
+        for s, Tt in _tpl_tensor(job["tpl"], job.get("scales", [1.0]), cuda=cuda):
             if Tt.shape[1] > sub.shape[1] or Tt.shape[2] > sub.shape[2]:
                 continue
             px, py, score = YL.ncc_t(sub, Tt)
@@ -411,6 +420,393 @@ def _ocr(req):
             "ms": round((time.time() - t0) * 1000), "via": "daemon"}
 
 
+
+# ══════════════════════════════════════════════════════════════════
+# 世界状态仪器（2026-10-18，用户批准；**显式 cmd="world"**，旧命令/旧行为不变）
+# ──────────────────────────────────────────────────────────────────
+# 一次请求做完：取帧 → 判据下沉（复用 ys-state 的 pixel/anchor/decide/native）→
+# 对象层（复用 ys-screen 的 containers）→ 世界状态回执。三块缓存都在常驻进程里：
+#   · 帧缓冲：同一帧（path+size+mtime / 帧内容 sha）只解码一次，GPU 张量也只建一次
+#   · OCR 内容寻址缓存：按帧 sha + ys_ocr.py 指纹落 JSON（同帧第二次 ≤3ms，不再付 ~690ms）
+#   · 容器层：复用 ys-screen 的 `containers_cached`（同帧同文本盒签名 ≤1ms）
+# 另加「结果缓存」：同帧 + 同 profile + 同开关的第二次 world 请求直接返回（≤5ms 量级）。
+# 说明：旧命令（px/find/batch/state/probe/ocr/warm）不走这里，行为不变。
+WORLD_SCHEMA = "ys-lookd/world/0"
+_WORLD_FRAME = {"key": None, "arr": None, "It": None, "half": None,
+                "sha": None, "w": 0, "h": 0, "path": None, "source": None}
+_WORLD_CACHE = {}
+_WORLD_CACHE_MAX = 4
+_WORLD_SHA = {}
+_YS_SCREEN_MOD = None
+_YS_ATTR_MOD = None
+_OCR_CACHE_DIR = None
+
+
+class WorldAttribError(RuntimeError):
+    def __init__(self, attr):
+        self.attr = attr
+        self.code = "ATTRIBUTION_" + str(attr.get("verdict") or "UNKNOWN")
+        super().__init__(f"live 取帧归属校验未通过：{attr.get('verdict')}")
+
+
+def _world_use_cuda():
+    try:
+        import torch
+        return bool(torch.cuda.is_available())
+    except Exception:                                       # noqa: BLE001
+        return False
+
+
+def _world_file_sha(path):
+    """离线帧 sha：同一文件（mtime_ns+size 不变）只算一次（2560×1440 PNG ≈ 2.5MB / 7ms）。"""
+    import hashlib
+    st = os.stat(path)
+    key = (os.path.abspath(path), st.st_mtime_ns, st.st_size)
+    hit = _WORLD_SHA.get(key)
+    if hit:
+        return hit
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for blk in iter(lambda: f.read(1 << 20), b""):
+            h.update(blk)
+    _WORLD_SHA[key] = h.hexdigest()
+    if len(_WORLD_SHA) > 8:
+        _WORLD_SHA.clear()
+    return _WORLD_SHA.get(key) or h.hexdigest()
+
+
+def _ys_screen():
+    """按需 import `tools/ys-screen`（无扩展名脚本，SourceFileLoader）。只读复用，不改它。"""
+    global _YS_SCREEN_MOD
+    if _YS_SCREEN_MOD is None:
+        import importlib.machinery, importlib.util
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ys-screen")
+        loader = importlib.machinery.SourceFileLoader("ys_screen_canonical", path)
+        spec = importlib.util.spec_from_loader("ys_screen_canonical", loader)
+        mod = importlib.util.module_from_spec(spec)
+        loader.exec_module(mod)
+        _YS_SCREEN_MOD = mod
+    return _YS_SCREEN_MOD
+
+
+def _ys_screen_ruleset():
+    try:
+        return str(getattr(_ys_screen(), "CONTAINER_RULESET", "?"))
+    except Exception:                                       # noqa: BLE001
+        return "?"
+
+
+def _world_ocr_dir():
+    global _OCR_CACHE_DIR
+    if _OCR_CACHE_DIR is None:
+        base = os.environ.get("YS_LOOKD_OCR_CACHE")
+        if not base:
+            xdg = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
+            base = os.path.join(xdg, "ys-lookd", "ocr")
+        try:
+            os.makedirs(base, exist_ok=True)
+        except OSError:
+            import tempfile
+            base = tempfile.mkdtemp(prefix="ys-lookd-ocr-")
+        _OCR_CACHE_DIR = base
+    return _OCR_CACHE_DIR
+
+
+def _world_ocr_sig():
+    """引擎指纹 + 输入约定（bgr1）。改 OCR 输入约定必须 +1，否则旧缓存会被当新结果。"""
+    try:
+        st = os.stat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys_ocr.py"))
+        return "bgr1-%d-%d" % (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return "bgr1-0-0"
+
+
+def _world_ocr(arr, sha):
+    """帧内容寻址 OCR：先查磁盘缓存，未命中才跑常驻引擎。返回 (boxes|None, meta)。"""
+    t0 = time.time()
+    path = os.path.join(_world_ocr_dir(), "ocr-%s-%s.json" % (sha, _world_ocr_sig()))
+    try:
+        with open(path, encoding="utf-8") as f:
+            c = json.load(f)
+        if isinstance(c.get("boxes"), list):
+            return c["boxes"], {"source": "cache", "ms": round((time.time() - t0) * 1000, 1),
+                                "n": len(c["boxes"]), "err": None}
+    except (OSError, ValueError):
+        pass
+    eng, err = _ocr_engine()
+    if eng is None:
+        return None, {"source": "unavailable", "ms": round((time.time() - t0) * 1000, 1),
+                      "n": 0, "err": err}
+    # 引擎约定是 BGR（ys_ocr.py/ys-screen 走图片路径时由 cv2 读成 BGR）；我们的 arr 是 RGB，
+    # 必须转一次——实测 RGB 直喂会把 "GPU: 64%" 读成 "GPU8 64%"、把 "一官方社区" 并成 "官方社区"，
+    # 导致 world 的对象层与 ys-screen CLI 不一致（同一帧 20 vs 22 个容器）。
+    import numpy as np
+    bgr = np.ascontiguousarray(arr[..., ::-1]) if arr.ndim == 3 and arr.shape[2] == 3 else arr
+    boxes = _ocr_array(eng, bgr, (0, 0))
+    ms = round((time.time() - t0) * 1000, 1)
+    try:
+        tmp = "%s.tmp%d" % (path, os.getpid())
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"boxes": boxes, "n": len(boxes), "sig": _world_ocr_sig(),
+                       "frame_sha": sha}, f, ensure_ascii=False)
+        os.replace(tmp, path)
+    except OSError:
+        pass
+    return boxes, {"source": "engine", "ms": ms, "n": len(boxes), "err": None}
+
+
+def _ys_attrib():
+    """按需 import 快速归属模块（X11/EWMH，~20ms）；失败返回 None。"""
+    global _YS_ATTR_MOD
+    if _YS_ATTR_MOD is None:
+        import importlib.machinery, importlib.util
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys_attrib.py")
+        loader = importlib.machinery.SourceFileLoader("ys_attrib_canonical", path)
+        spec = importlib.util.spec_from_loader("ys_attrib_canonical", loader)
+        mod = importlib.util.module_from_spec(spec)
+        loader.exec_module(mod)
+        _YS_ATTR_MOD = mod
+    return _YS_ATTR_MOD
+
+
+def _world_attrib():
+    """live 取帧前的窗口归属校验（票 34）：走 X11 快路径（~20ms），不猜、不抬窗。"""
+    try:
+        mod = _ys_attrib()
+        d, rc = mod.attrib()
+        d = dict(d)
+        d["rc"] = rc
+        return d
+    except Exception as e:                                  # noqa: BLE001
+        return {"checked": False, "verdict": "UNKNOWN",
+                "error": f"{type(e).__name__}: {e}"}
+
+
+def _world_frame(req):
+    """取一帧（离线/原始 bin/live）→ (arr, It, sha, W, H, source, attribution)。带 1 帧缓冲。
+
+    live 帧先做归属校验（票 34）：不通过直接抛 WorldAttribError，**不返回像素**。
+    """
+    import hashlib
+    import numpy as np
+    import torch
+    use_cuda = _world_use_cuda()
+    src = "frame_bin" if req.get("frame_bin") else (
+        "frame_b64" if req.get("frame_b64") else ("frame" if req.get("frame") else "live"))
+    key = None
+    path = None
+    if src == "frame_bin":
+        path = os.path.abspath(req["frame_bin"])
+        st = os.stat(path)
+        key = ("bin", path, st.st_mtime_ns, st.st_size)
+        if _WORLD_FRAME["key"] == key:
+            return (_WORLD_FRAME["arr"], _WORLD_FRAME["It"], _WORLD_FRAME["sha"],
+                    _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
+                    _WORLD_FRAME.get("attrib"))
+        shape = tuple(req.get("frame_shape") or ())
+        if len(shape) != 3:
+            raise ValueError("frame_bin 需要 frame_shape=(H,W,3)")
+        raw = np.fromfile(path, dtype=np.uint8)
+        arr = raw.reshape(shape)
+        sha = hashlib.sha256(raw).hexdigest()
+    elif src == "frame":
+        path = os.path.abspath(req["frame"])
+        st = os.stat(path)
+        key = ("png", path, st.st_mtime_ns, st.st_size)
+        if _WORLD_FRAME["key"] == key:
+            return (_WORLD_FRAME["arr"], _WORLD_FRAME["It"], _WORLD_FRAME["sha"],
+                    _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
+                    _WORLD_FRAME.get("attrib"))
+        from PIL import Image
+        arr = np.asarray(Image.open(path).convert("RGB"), dtype=np.uint8)
+        sha = _world_file_sha(path)
+    elif src == "frame_b64":
+        import base64
+        raw = base64.b64decode(req["frame_b64"])
+        shape = tuple(req.get("frame_shape") or ())
+        if len(shape) != 3:
+            raise ValueError("frame_b64 需要 frame_shape=(H,W,3)")
+        arr = np.frombuffer(raw, dtype=np.uint8).reshape(shape)
+        sha = hashlib.sha256(raw).hexdigest()
+        key = ("b64", sha)
+        if _WORLD_FRAME["key"] == key:
+            return (_WORLD_FRAME["arr"], _WORLD_FRAME["It"], _WORLD_FRAME["sha"],
+                    _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
+                    _WORLD_FRAME.get("attrib"))
+    else:
+        # live：先做归属校验（票 34），不过就**不抓**（fail-closed，不返回像素）
+        attr = _world_attrib()
+        if attr.get("verdict") != "OK":
+            raise WorldAttribError(attr)
+        YS = ys_state()
+        arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
+        sha = hashlib.sha256(arr.tobytes()).hexdigest()
+        key = ("live", sha)
+        if _WORLD_FRAME["key"] == key:
+            return (_WORLD_FRAME["arr"], _WORLD_FRAME["It"], _WORLD_FRAME["sha"],
+                    _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
+                    _WORLD_FRAME.get("attrib"))
+    W, H = int(arr.shape[1]), int(arr.shape[0])
+    It = torch.from_numpy(arr.astype(np.float32) / 255.0).permute(2, 0, 1).contiguous()
+    if use_cuda:
+        It = It.cuda()
+    _WORLD_FRAME.update({"key": key, "arr": arr, "It": It, "half": None, "sha": sha,
+                         "w": W, "h": H, "path": path, "source": src,
+                         "attrib": attr if src == "live" else None})
+    return arr, It, sha, W, H, src, _WORLD_FRAME.get("attrib")
+
+
+def _world_half(arr):
+    """半分辨率图（容器层用）。**必须与 ys-screen.load_small 同口径（PIL LANCZOS）**——
+    换插值会让容器集合轻微变化，同一帧 world 与 CLI 的对象数就对不上（2026-10-18 实测：
+    cv2 INTER_AREA 20 个 vs ys-screen 22 个）。带帧缓冲。"""
+    hit = _WORLD_FRAME.get("half")
+    if hit is not None and hit.shape[0] == max(1, arr.shape[0] // 2):
+        return hit
+    try:
+        from PIL import Image
+        im = Image.fromarray(arr).resize((max(1, arr.shape[1] // 2), max(1, arr.shape[0] // 2)),
+                                         Image.LANCZOS)
+        import numpy as np
+        half = np.asarray(im, dtype=np.uint8)
+    except Exception:                                       # noqa: BLE001 —— 退回 cv2（仍可用）
+        import cv2
+        half = cv2.resize(arr, (max(1, arr.shape[1] // 2), max(1, arr.shape[0] // 2)),
+                          interpolation=cv2.INTER_AREA)
+    _WORLD_FRAME["half"] = half
+    return half
+
+
+def _world_state(arr, It, W, H, prof, boxes):
+    """判据下沉：像素/锚点/投票/本体后备全部复用 ys-state（本函数只做"取数"）。"""
+    YS = ys_state()
+    t0 = time.time()
+    readings = {}
+    if not YS.geom_ok(W, H):
+        readings["GEOM/frame 尺寸 2560x1440"] = {
+            "value": f"实际 {W}x{H}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
+    else:
+        cells = {}
+        for x, y in YS.all_probe_points():
+            if 0 <= x < W and 0 <= y < H:
+                cells[(x, y)] = tuple(int(v) for v in arr[y, x])
+        readings.update(YS.pixel_readings(YS.CellsPixels(cells, W, H)))
+        jobs, state_of = YS.anchor_jobs(prof)
+        r = _batch_on(It, jobs, cuda=_world_use_cuda())
+        scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0)
+                  for x in r["results"]}
+        readings.update(YS.anchor_readings_from_scores(scores, state_of))
+    t_judge = round((time.time() - t0) * 1000, 1)
+    if boxes:
+        # 本体后备：仍走 ys-state 的 native_readings/decide_with_native（判据只有一份）。
+        # 常驻服务单线程处理请求，临时换 _ocr_boxes 不会与别的请求交错；finally 必还原。
+        orig = YS._ocr_boxes
+        YS._ocr_boxes = lambda frame_path=None: boxes
+        try:
+            res = YS.decide_with_native(readings, None)
+        finally:
+            YS._ocr_boxes = orig
+    else:
+        res = YS.decide(readings)
+    res = dict(res)
+    res["readings"] = res.get("readings") or readings
+    return res, t_judge
+
+
+def _world_containers(arr, sha, boxes, W, H):
+    """对象层：复用 ys-screen 的容器层 + 它的内容寻址缓存（按帧 sha + 文本盒签名）。"""
+    t0 = time.time()
+    try:
+        S = _ys_screen()
+        text = S.text_objects(boxes or [])
+        half = _world_half(arr)
+        res = S.containers_cached(None, half, 0.5, W, H, text,
+                                  use_cache=True, frame_sha=sha)
+        res = {k: res.get(k) for k in ("containers", "free_text", "free_glyphs",
+                                       "degraded", "error")}
+        res["timing_ms"] = round((time.time() - t0) * 1000, 1)
+        return res
+    except Exception as e:                                  # noqa: BLE001 —— fail-closed 成 degraded
+        return {"containers": [], "free_text": [], "free_glyphs": [],
+                "degraded": True, "error": f"{type(e).__name__}: {e}",
+                "timing_ms": round((time.time() - t0) * 1000, 1)}
+
+
+def _world(req):
+    """cmd="world"：世界状态仪器（显式开启；请求里不给 cmd=world 就完全走旧路径）。"""
+    t0 = time.time()
+    YS = ys_state()
+    prof_path = req.get("profile") or YS.PROFILE_DEFAULT
+    do_ocr = bool(req.get("ocr", True))
+    do_obj = bool(req.get("objects", True))
+    try:
+        arr, It, sha, W, H, src, attrib = _world_frame(req)
+    except WorldAttribError as e:
+        return {"schema": WORLD_SCHEMA, "error": str(e), "code": e.code,
+                "attribution": e.attr, "via": "daemon"}
+    except Exception as e:                                  # noqa: BLE001
+        return {"schema": WORLD_SCHEMA, "error": f"{type(e).__name__}: {e}",
+                "code": "FRAME_FAILED", "via": "daemon"}
+    t_load = round((time.time() - t0) * 1000, 1)
+    try:
+        prof = YS.load_profile(prof_path)
+        pst = os.stat(prof_path)
+    except Exception as e:                                  # noqa: BLE001
+        return {"schema": WORLD_SCHEMA, "error": f"profile: {type(e).__name__}: {e}",
+                "code": "PROFILE_FAILED", "via": "daemon"}
+    ck = (sha, os.path.abspath(prof_path), pst.st_mtime_ns, do_ocr, do_obj, _ys_screen_ruleset())
+    if req.get("cache", True):
+        hit = _WORLD_CACHE.get(ck)
+        if hit is not None:
+            out = json.loads(json.dumps(hit))               # 深拷贝：调用方改不脏缓存
+            out["timing"] = {"cache_hit": True,
+                             "total_ms": round((time.time() - t0) * 1000, 1)}
+            return out
+    boxes, ocr_meta = (None, {"source": "skip", "ms": 0, "n": 0, "err": None})
+    if do_ocr:
+        boxes, ocr_meta = _world_ocr(arr, sha)
+    t_after_ocr = time.time()
+    state, t_judge = _world_state(arr, It, W, H, prof, boxes)
+    t_after_state = time.time()
+    objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
+    t_after_obj = time.time()
+    degraded = []
+    if do_ocr and boxes is None:
+        degraded.append({"code": "OCR_UNAVAILABLE",
+                         "detail": str(ocr_meta.get("err") or "OCR 引擎不可用")})
+    if objects is not None and (objects.get("degraded") or objects.get("error")):
+        degraded.append({"code": "OBJECTS_DEGRADED",
+                         "detail": str(objects.get("error") or "")[:300]})
+    out = {
+        "schema": WORLD_SCHEMA,
+        "state": state,
+        "objects": objects,
+        "frame": {"source": src, "path": _WORLD_FRAME.get("path"),
+                  "sha256": sha, "w": W, "h": H, "bytes": int(W * H * 3)},
+        "profile": os.path.basename(prof_path),
+        "attribution": attrib,
+        "timing": {"load_ms": t_load,
+                   "ocr_ms": round((t_after_ocr - t0) * 1000 - t_load, 1),
+                   "state_ms": round((t_after_state - t_after_ocr) * 1000, 1),
+                   "judge_ms": t_judge,
+                   "objects_ms": round((t_after_obj - t_after_state) * 1000, 1),
+                   "total_ms": round((t_after_obj - t0) * 1000, 1),
+                   "ocr_source": ocr_meta.get("source"), "ocr_n": ocr_meta.get("n"),
+                   "ocr_err": ocr_meta.get("err"), "cache_hit": False,
+                   "attribution_ms": (attrib or {}).get("elapsed_ms") if attrib else None},
+        "degraded": degraded,
+        "via": "daemon",
+    }
+    if req.get("cache", True):
+        try:
+            json.dumps(out)                                  # 只缓存可序列化结果
+            _WORLD_CACHE[ck] = out
+            while len(_WORLD_CACHE) > _WORLD_CACHE_MAX:
+                _WORLD_CACHE.pop(next(iter(_WORLD_CACHE)))
+        except (TypeError, ValueError):
+            pass
+    return out
+
 def handle(req):
     cmd = req.get("cmd")
     YL.WIN = req.get("win", WIN)
@@ -443,6 +839,8 @@ def handle(req):
         return _probe(req)
     if cmd == "ocr":
         return _ocr(req)
+    if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
+        return _world(req)
     if cmd == "warm":
         return {"ok": True, "gpu": True}
     return {"error": "unknown cmd"}

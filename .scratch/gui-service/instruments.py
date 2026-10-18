@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import time
 
 from cache import instrument_signature
@@ -35,6 +36,7 @@ YS_GUI_SLOT = os.path.join(YS_EDITOR, "ys-gui-slot")
 YS_POINTER_CLICK = os.path.join(YS_EDITOR, "ys-pointer-click")
 ACTIONS_DIR = os.path.join(YS_EDITOR, "actions")
 PROFILE_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-profiles", "qianxing.json")
+LOOKD_SOCK = os.environ.get("YS_LOOKD_SOCK", "/run/user/%d/ys-lookd.sock" % os.getuid())
 WIN_DEFAULT = os.environ.get("YS_WIN", "0x01400001")
 
 
@@ -82,11 +84,29 @@ def parse_json_line(stdout, *, what):
 
 def atop_status(title=None, *, timeout=30):
     """ys-atop：0=在栈顶 / 1=被压住 / 2=找不到窗口。返回 {atop, rc, line, win}。"""
-    rc, out, err = run([YS_ATOP, title or "原神"], timeout=timeout)
+    rc, out, err = run([YS_ATOP, title or os.environ.get("YS_WIN_TITLE", "原神")], timeout=timeout)
     line = (out or "").strip().splitlines()[-1] if out.strip() else ""
     win = line.split("|")[0] if line and line != "NONE" else None
     return {"atop": rc == 0, "rc": rc, "line": line, "win": win,
             "stderr": _tail(err, 200) if rc not in (0, 1, 2) else ""}
+
+
+def attrib_fast(title=None, win=None, *, timeout=20):
+    """快速窗口归属（票 34）：X11/EWMH 快路径（ys_attrib.py，~20ms），不抬窗、不抓屏。
+
+    返回 dict（verdict/atop/window/current_desktop/occluders/elapsed_ms…）；rc 语义：
+    0 OK / 1 NOT_ATOP / 2 NOT_FOUND / 6 OTHER_DESKTOP / 7 OCCLUDED / 9 检查不可用。
+    """
+    # 用当前解释器执行（不依赖文件的 +x 位；交付/解包后也能跑）
+    rc, out, err = run([sys.executable, os.path.join(YS_EDITOR, "ys_attrib.py"),
+                        title or os.environ.get("YS_WIN_TITLE", "原神"),
+                        "--win", win or WIN_DEFAULT], timeout=timeout)
+    if rc not in (0, 1, 2, 6, 7, 9):
+        raise InstrumentError("ATTRIB_FAILED", f"ys_attrib rc={rc}：{_tail(err, 300)}",
+                              rc=rc, stderr_tail=_tail(err))
+    d = parse_json_line(out, what="ys_attrib")
+    d["rc"] = rc
+    return d
 
 
 def grab_frame(*, timeout=60, skip_atop=False):
@@ -211,6 +231,43 @@ def inject_click(x, y, *, win=None, seconds=6, timeout=45):
     cmd = [YS_GUI_SLOT, win, str(seconds), YS_POINTER_CLICK, str(int(x)), str(int(y))]
     rc, out, err = run(cmd, timeout=timeout)
     return {"rc": rc, "stdout_tail": _tail(out, 800), "stderr_tail": _tail(err, 400)}
+
+
+def daemon_rpc(req, *, timeout=180):
+    """裸 socket 调 ys-lookd（一行 JSON 请求/响应）。失败抛 InstrumentError（fail-closed）。"""
+    import socket
+    if not os.path.exists(LOOKD_SOCK):
+        raise InstrumentError("DAEMON_UNAVAILABLE", f"常驻服务 socket 不存在：{LOOKD_SOCK}")
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(LOOKD_SOCK)
+        s.sendall((json.dumps(req, ensure_ascii=False) + "\n").encode())
+        buf = b""
+        while not buf.endswith(b"\n"):
+            chunk = s.recv(1 << 20)
+            if not chunk:
+                break
+            buf += chunk
+        s.close()
+        out = json.loads(buf.decode())
+    except (OSError, ValueError) as exc:
+        raise InstrumentError("DAEMON_FAILED", f"常驻服务调用失败：{type(exc).__name__}: {exc}")
+    if isinstance(out, dict) and out.get("error"):
+        raise InstrumentError(out.get("code") or "DAEMON_ERROR",
+                              f"常驻服务报错：{str(out.get('error'))[:300]}")
+    return out
+
+
+def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True, cache=True,
+                     timeout=180):
+    """世界状态仪器（ys-lookd cmd=world，**新版服务才有**；旧服务会报 unknown cmd）。"""
+    req = {"cmd": "world", "ocr": bool(ocr), "objects": bool(objects), "cache": bool(cache)}
+    if frame:
+        req["frame"] = os.path.abspath(frame)
+    if profile:
+        req["profile"] = os.path.abspath(profile)
+    return daemon_rpc(req, timeout=timeout)
 
 
 def signature():

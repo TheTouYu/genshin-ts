@@ -6,12 +6,67 @@
 #   我点的那一点"必须按 **stackingOrder**（KWin 语义：末元素=最上层）判定，不能靠猜。
 #   实测被这一点误导过：把"点不动"归因给界面没有该控件，真因是另一个窗口压在上面。
 #
-# 用法: ys-wins
-# 输出: 每行 "  [n] caption | class | x,y WxH | active|top"
+# 用法: ys-wins [--attrib]
+# 输出: 每行 "  [n] caption | class | x,y WxH | min=0|1 |TOP |ACTIVE"
+#   --attrib 追加归属字段（票 34）："| ds=<桌面号列表> | cur=<当前桌面> | idx=<n> | act=<0|1>"
+#   默认输出格式**保持不变**（ys-atop / ys-do / ys-loop / ys-preflight 都在解析它）。
+#
+# ⚠️ JS 必须落在**宿主可见**的路径（2026-10-18 实测）：
+#   DSH/沙箱用 `--tmpfs /tmp` 隔离，写在 /tmp 的 JS 宿主 KWin 读不到 ⇒ 脚本"加载成功"却零输出，
+#   ys-atop 于是把"找不到窗口"误报成 NOT_ATOP（假警报）。这里优先写工具自身目录（仓库，
+#   宿主可见），不可写才退回 /tmp；trap 清理。
 set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ATTRIB=0
+for a in "$@"; do [ "$a" = "--attrib" ] && ATTRIB=1; done
 TAG="yswins$RANDOM"
-JS="/tmp/ys-wins-$TAG.js"
-cat > "$JS" << JS
+JSDIR="${YS_KWIN_JS_DIR:-$HERE}"
+if ! : > "$JSDIR/.ys-kwin-probe.$$" 2>/dev/null; then
+  JSDIR="${TMPDIR:-/tmp}"
+else
+  rm -f "$JSDIR/.ys-kwin-probe.$$"
+fi
+JS="$JSDIR/.ys-kwin-$TAG.js"
+trap 'rm -f "$JS"' EXIT
+if [ "$ATTRIB" = "1" ]; then
+  # 当前桌面：KWin 5 是 int；KWin 6 是 VirtualDesktop 对象（x11DesktopNumber）。
+  cat > "$JS" << JS
+function _cur() {
+  var c = workspace.currentDesktop;
+  if (typeof c === "number") return "" + c;
+  if (c && typeof c.x11DesktopNumber !== "undefined") return "" + c.x11DesktopNumber;
+  if (c && typeof c.id !== "undefined") return String(c.id);
+  return "-1";
+}
+var CUR = _cur();
+var ord = workspace.stackingOrder;
+for (var i = 0; i < ord.length; i++) {
+  var w = ord[i];
+  var g = w.frameGeometry;
+  var ds = [];
+  if (typeof w.desktops !== "undefined" && w.desktops) {
+    for (var k = 0; k < w.desktops.length; k++) {
+      var v = w.desktops[k];
+      ds.push((v && typeof v.x11DesktopNumber !== "undefined") ? v.x11DesktopNumber : String(v));
+    }
+  } else if (typeof w.desktop !== "undefined" && w.desktop !== null) {
+    ds.push(w.desktop);
+  }
+  console.info("YS-WINS-$TAG [" + i + "] "
+    + String(w.caption || "(无题)") + " | "
+    + String(w.resourceClass || "?") + " | "
+    + Math.round(g.x) + "," + Math.round(g.y) + " " + Math.round(g.width) + "x" + Math.round(g.height)
+    + " | min=" + (w.minimized ? 1 : 0)
+    + (i === ord.length - 1 ? " |TOP" : "")
+    + (w === workspace.activeWindow ? " |ACTIVE" : "")
+    + " | ds=" + ds.join(",")
+    + " | cur=" + CUR
+    + " | idx=" + i
+    + " | act=" + (w === workspace.activeWindow ? 1 : 0));
+}
+JS
+else
+  cat > "$JS" << JS
 var ord = workspace.stackingOrder;
 for (var i = 0; i < ord.length; i++) {
   var w = ord[i];
@@ -25,8 +80,9 @@ for (var i = 0; i < ord.length; i++) {
     + (w === workspace.activeWindow ? " |ACTIVE" : ""));
 }
 JS
+fi
 gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
 gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
 sleep 0.9
-journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-WINS-$TAG .*" | sed "s/YS-WINS-$TAG //"
+journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-WINS-$TAG .*" | grep -v "bash -c" | sed "s/YS-WINS-$TAG //"
 gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1

@@ -22,7 +22,7 @@ import re
 import time
 
 # 服务自身映射逻辑的版本：改 worldsvc/schema 的映射语义时必须 +1，否则旧缓存会被当成新结论。
-LOGIC_VERSION = "worldsvc-b2-xywh"
+LOGIC_VERSION = "worldsvc-b3-world"
 
 SIG_FILES_DEFAULT = (
     ("ys-state", "tools/ys-editor/ys-state"),

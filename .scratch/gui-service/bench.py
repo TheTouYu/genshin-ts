@@ -308,7 +308,7 @@ def main():
 
 | 门禁 | 目标 | 实测 | 判定 |
 |---|---|---|---|
-| 单次默认路径 look | ≤50ms | 新帧 {s['min']}–{s['max']}ms（subprocess）/ **{q['min']}ms（in-process 补丁，静默最优）** | **未达成**（最好 {q['min']}ms 也 >50ms；差距来自 daemon 判据 132–195ms + 解码 106–187ms） |
+| 单次默认路径 look | ≤50ms | 新帧 {s['min']}–{s['max']}ms（cli 子进程）/ **世界仪器 GPU 新帧 1080–4089ms（OCR 主导，见 §7）** / {q['min']}ms（in-process 补丁，静默最优） | **未达成**（最好 {q['min']}ms 也 >50ms；世界仪器的 judge 已降到 61–80ms，差距转到 OCR/容器层） |
 | 缓存命中 | ≤5ms | {_stats(ip['all'])['min']}–{_stats(ip['all'])['max']}ms（进程内） | **达成** |
 | 对象检测单帧 | ≤10ms | 容器层同帧缓存 0–1ms / 新帧 140ms+ | **部分**：缓存命中达成，新帧未达成（需学习型检测，票 24） |
 | 分块 OCR | < 1/3 全帧 OCR | 未实现切片（v0 `text_source=fullframe`） | 未验证 |
@@ -321,7 +321,8 @@ def main():
 1. 纯缓存命中 {_stats(ip['all'])['median']}ms —— 已 ≤5ms；
 2. 任何**新帧**都必须付一次 PNG 解码（106–187ms，物理地板）或等价的原始像素传输
    （daemon 抓帧 ~105ms，引用 ys-state 文件头实测注释；本轮未单独测 live 抓帧）；
-3. 状态判据本身在 GPU 常驻服务里要 132–166ms（judge_ms 实测，跨次有波动），已超 50ms；
+3. 状态判据在 GPU 常驻服务里 **61–80ms（世界仪器，热；见 §7）**——旧 `state` RPC 推的 132–166ms 偏保守；
+   但新帧的 OCR 634–3521ms、容器层 163–342ms 才是当前大头；
 4. 若去掉本体 OCR，GAME_* 态只能判成 UNKNOWN（daemon 8 态）—— 这不是优化，是丢功能。
 ⇒ 要进 ≤50ms，必须换感知架构：GPU 帧流（不落 PNG）+ 学习型检测（票 24）+ 判据下沉到 GPU/常驻进程。
    这是「扩常驻服务 / 改共享工具」范畴，Lead 明确由他去找用户谈。
@@ -344,12 +345,29 @@ def main():
 - `act(intent=...)` 委托 `ys-do`（有 pre/post 契约与 append-only 账本），但 `ys-do` 连 dry-run 也 `acquire_focus`（抬窗）
   ⇒ 本会话一律拒绝，回执 `precondition_fail / FOCUS_REQUIRED`。
 
+
+## 7. 常驻世界状态仪器（`cmd="world"`）：host GPU 实测（2026-10-18 20:1x，Lead 主会话；daemon 已重启）
+
+| 场景 | load | ocr | judge | objects | internal |
+|---|---|---|---|---|---|
+| 冷（重启后第一发，f06） | 158ms | 27ms（cache） | 343ms（首启预热） | 54ms | **582ms**（RPC 10045ms 是 daemon 首启，不计入预算） |
+| 新帧 f07（daemon 热） | 164ms | **3521ms** | 61ms | 342ms | **4089ms** |
+| 新帧 f08（daemon 热） | 202ms | **634ms** | 80ms | 163ms | **1080ms** |
+| 同帧（服务层帧缓存关、daemon 结果缓存命中） | — | — | — | — | **1.1ms**（RPC 5–10ms） |
+
+**结论（GPU 实测，修正旧推导）**：
+- **判据（judge）在 GPU 上只要 61–80ms**（热；首启 343ms 是 CUDA/plan 预热）——之前按 `state` RPC 推的 132–166ms 偏保守；
+- **现在的瓶颈是 OCR（634–3521ms 冷）与容器层（163–342ms）**，不是判据 ⇒ 落在 **票 25（分块并行 OCR + 切片缓存）**；
+- 对象层在同帧与 `ys-screen --containers` 一致（22 容器），GAME_PAIMON 判对；
+- 同帧重复请求 1.1ms（结果缓存）/ RPC 5–10ms。
+
 ## 6. 复现
 
 ```bash
 python3 .scratch/gui-service/bench.py                # 本表
 python3 .scratch/gui-service/inproc_probe.py         # 同进程尖刺（daemon 地板 / 解码地板 / 复用补丁）
 python3 .scratch/gui-service/selftest.py             # 契约自测（离线，0 注入）
+python3 .scratch/gui-service/worldsvc.py look --frame <帧> --backend daemon-world --summary  # 需新版 ys-lookd
 ```
 """
     with open(BENCH_MD, "w", encoding="utf-8") as f:
