@@ -153,17 +153,21 @@ def cmd_check(a):
     for r in rows:
         if r['status'] != 'prevented':
             continue
+        # gate 字段支持逗号多值（实测 F-3-05 写的是 `act,slider`）：以前把整串当一个 key 查
+        # ⇒ 明明两个 gate 都已登记，却报「未在 gates.tsv 登记」，账本常年红着 1 条（假红）。
         g = r.get('gate', '')
-        if g and g not in used_gates:
-            used_gates.append(g)
-            cmd = gates[g]['command'] if g in gates else ''
+        for one in [x.strip() for x in g.split(',') if x.strip()]:
+            if one in used_gates:
+                continue
+            used_gates.append(one)
+            cmd = gates[one]['command'] if one in gates else ''
             if not cmd:
-                print('  [FAIL] %-16s gate=%s 未在 gates.tsv 登记' % (r['id'], g)); fails += 1; continue
+                print('  [FAIL] %-16s gate=%s 未在 gates.tsv 登记' % (r['id'], one)); fails += 1; continue
             p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
             ok = p.returncode == 0
             fails += 0 if ok else 1
             tail = (p.stdout or p.stderr).strip().splitlines()
-            print('  [%s] %-16s %s' % ('PASS' if ok else 'FAIL', g, tail[-1][:80] if tail else ''))
+            print('  [%s] %-16s %s' % ('PASS' if ok else 'FAIL', one, tail[-1][:80] if tail else ''))
         inj = r.get('inject', '')
         if not inj:
             print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1

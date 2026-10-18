@@ -37,12 +37,15 @@ FAKE_SUCCESS = os.path.join(YS, 'tests', 'fake-success.selftest.sh')
 SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('screen-digest', 'screen-digest.selftest.sh', 420),
           ('resolve-click', 'resolve-click.selftest.sh', 240),
-          ('domain-selftest', 'domain-selftest.sh', 180)]
+          ('domain-selftest', 'domain-selftest.sh', 180),
+          # 2026-10-18 事故回灌：客户端提前断开曾把 ys-lookd 掀翻 ⇒ 后续判定全线回退本地（慢 4 倍），
+          # 表现成门槛② 的「间歇性假红」。这条守的是**仪器本身的可用性**，要先在这里失败。
+          ('daemon-resilience', 'daemon-resilience.selftest.sh', 120)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {
     1: '判定回归（≥16 样本 / ≥5 负样本 / 两通道 100%）',
-    2: '假成功与身份（F1-F4 四类注入失败 + 三个防护套件 / ≤10s 停 / 报断言+观测值）',
+    2: '假成功与身份（F1-F4 四类注入失败 + 四个防护套件 + 仪器抗断开 / ≤10s 停 / 报断言+观测值）',
     3: '性能（写盘轮 ≤90s / 试玩轮 ≤40s / 帧 ≤12 / 焦点 1 / sleep 0）',
     4: '证据（round.json + 引用帧 + .gia 可重算）',
     5: '单一源（界面态判定全仓只一处实现）',

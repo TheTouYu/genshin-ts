@@ -368,10 +368,24 @@ def serve():
             resp = handle(req)
         except Exception as e:
             resp = {"error": f"{type(e).__name__}: {e}", "tb": traceback.format_exc()[-400:]}
+        # ⚠️ 回包失败**绝不许掀翻常驻服务**（2026-10-18 事故）：
+        # 客户端（ys-state / tools/gui）在**自身超时**时会把 socket 直接关掉，此时服务端 sendall
+        # 抛 BrokenPipeError；以前它没有任何 except 兜底 ⇒ 冒泡出 serve() ⇒ 进程退出 ⇒
+        # systemd 重启 + 重新预热（~3s 冷启动）⇒ 下一次调用落到「daemon 不可用」回退本地（慢 4 倍）。
+        # 表现是**间歇性 AND 与负载相关**的假红：门槛② 自测里两个 wall-clock 断言（≤3s / ≤3s）
+        # 会飘红而四个 exit 码全对，重跑又全绿 —— 真因永远不在被测对象身上。
+        # 语义：客户端先走了 = 这次响应没人要，丢弃即可，服务继续听下一个连接。
         try:
             c.sendall((json.dumps(resp) + "\n").encode())
+        except (BrokenPipeError, ConnectionResetError) as e:
+            print(f"[ys-lookd] 客户端提前断开，丢弃本次响应（{type(e).__name__}）", flush=True)
+        except Exception as e:                              # noqa: BLE001 —— 任何回包失败都不许退出
+            print(f"[ys-lookd] 回包失败但服务继续：{type(e).__name__}: {e}", flush=True)
         finally:
-            c.close()
+            try:
+                c.close()
+            except Exception:                               # noqa: BLE001
+                pass
 
 if __name__ == "__main__":
     serve()

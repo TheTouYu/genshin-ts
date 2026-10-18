@@ -1,6 +1,7 @@
 gate	command	note
 gate1	./tools/ys-gates --only 1	判定回归（20 帧含 8 负样本，两通道 100%）
 gate2	bash tools/ys-editor/tests/fake-success.selftest.sh	假成功 F1/F2/F3（+F4 交付后自动纳入）
+daemon-resilience	bash tools/ys-editor/tests/daemon-resilience.selftest.sh	常驻服务抗客户端断开（断不熄火/事后可服务/出声；覆盖 2026-10-18 间歇假红真因）
 gate5	./tools/ys-gates --only 5	单一源（判据副本 0）
 gate6	./tools/ys-gates --only 6	操作目录（quote 逐字验真 / 状态↔台账一致）
 probe-matrix	bash tools/ys-editor/tests/probe-matrix.selftest.sh	探针矩阵（24 帧 × 7 探针，覆盖单位错/假阳性）
