@@ -1,0 +1,61 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195525 image=.scratch/gui-corpus/capture-2026-10-18/195525.png backend=cv units=57
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | row | 2260 -2 50 37 | 60 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 279 2 167 45 | 背景音乐管理 × | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 2260 20 51 35 | ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | icon | 2450 92 76 82 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 337 178 89 33 | 儿系礼你 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 8 196 80 43 | 自定义 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | row | 19 236 98 48 | 物件 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 23 281 139 43 | 未分类页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 333 281 95 43 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 19 325 125 41 | +添加页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 19 364 96 49 | 造物 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 335 395 91 39 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 23 409 139 42 | 未分类页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | icon | 344 446 72 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 18 452 126 43 | +添加页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 19 493 117 47 | 掉落物 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 335 508 91 38 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 22 535 140 46 | 未分类页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | icon | 344 556 74 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | row | 18 580 126 42 | +添加页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | row | 335 619 91 39 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 6 624 64 41 | 预制 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | icon | 1236 650 110 116 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 19 663 138 47 | 动态单位 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | row | 41 706 101 43 | 流程物件 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | row | 333 728 95 46 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | row | 42 750 103 43 | 玩法机关 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | row | 436 755 101 42 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | row | 439 787 161 42 |  计算负载： 2.72 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | row | 42 794 67 40 | 其他 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | icon | 340 800 84 44 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+31 | row | 439 816 165 38 | 内存负载: 0.82 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | 19 831 138 50 | 静态单位 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+33 | row | 325 840 109 42 | 金属传动杆 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+34 | row | 20 876 95 47 | 造物 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+35 | icon | 320 880 128 80 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+36 | row | 20 919 116 46 | 掉落物 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+37 | row | 335 956 91 38 | 金属铃铛 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+38 | row | 5 964 85 43 | 元件组 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+39 | row | 19 1005 179 45 | 自定义元件组 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+40 | icon | 338 1012 88 60 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+41 | row | 6 1048 84 43 | 资产库 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+42 | row | 334 1068 95 38 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+43 | row | 22 1090 87 44 | 物件 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+44 | icon | 344 1128 78 56 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+45 | row | 22 1133 87 43 | 造物 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+46 | row | 6 1177 135 42 | 场景生成模板 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+47 | row | 335 1180 91 39 | 金属齿轮 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+48 | row | 42 1218 103 43 | 预设模板 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+49 | icon | 344 1238 76 56 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+50 | row | 41 1262 122 42 | 未分类页签 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+51 | row | 44 1291 83 34 | 7.3 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+52 | row | 192 1291 78 33 | 125.5 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+53 | row | 334 1291 92 40 | 金属轮轴 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+54 | icon | 286 1294 54 32 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+55 | row | 2248 1393 247 51 | UID:110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+56 | row | 339 1403 86 34 | 金属底座 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

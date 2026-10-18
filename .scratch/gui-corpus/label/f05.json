@@ -1,0 +1,1033 @@
+{
+ "frame": "f05",
+ "image": ".scratch/gui-corpus/f05.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label/_screen/f05.json",
+  "prelabel_src": {
+   "container": 3,
+   "row-split": 6,
+   "loose-text": 18,
+   "glyph": 12
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 39,
+ "objects": [
+  {
+   "bbox": [
+    74,
+    170,
+    60,
+    72
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2419,
+    172,
+    77,
+    72
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    148,
+    173,
+    185,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "活动一览"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    264,
+    270,
+    386,
+    568
+   ],
+   "kind": "panel",
+   "text": [
+    "且试身手",
+    "风仙亦是仙，古剑通幽玄!",
+    "溯流的变奏曲",
+    "绮星盛会"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      442,
+      308,
+      474,
+      340
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 3
+  },
+  {
+   "bbox": [
+    694,
+    296,
+    725,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "奇域秘藏·暄霁霄练"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    2128,
+    307,
+    158,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "活动说明"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    2070,
+    310,
+    56,
+    52
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 6
+  },
+  {
+   "bbox": [
+    98,
+    334,
+    48,
+    54
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 7
+  },
+  {
+   "bbox": [
+    264,
+    375,
+    386,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "且试身手"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 8
+  },
+  {
+   "bbox": [
+    698,
+    397,
+    297,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "剩余时间：14天11小时"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    790,
+    474,
+    82,
+    50
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 10
+  },
+  {
+   "bbox": [
+    264,
+    502,
+    386,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "风仙亦是仙，古剑通幽玄!"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 11
+  },
+  {
+   "bbox": [
+    264,
+    616,
+    386,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 12
+  },
+  {
+   "bbox": [
+    2058,
+    620,
+    82,
+    90
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 13
+  },
+  {
+   "bbox": [
+    1857,
+    678,
+    216,
+    73
+   ],
+   "kind": "row",
+   "text": [
+    "佳时萤火"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    2108,
+    724,
+    38,
+    78
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 15
+  },
+  {
+   "bbox": [
+    1867,
+    735,
+    137,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "會會會會"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    264,
+    736,
+    386,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "绮星盛会"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 17
+  },
+  {
+   "bbox": [
+    1867,
+    780,
+    155,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "纪游限时获取"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    330,
+    854,
+    332,
+    74
+   ],
+   "kind": "button",
+   "text": [
+    "奇域秘藏"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "yes",
+   "src": "container",
+   "id": 19
+  },
+  {
+   "bbox": [
+    700,
+    879,
+    224,
+    74
+   ],
+   "kind": "row",
+   "text": [
+    "桂影霄练"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    1547,
+    916,
+    448,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "使用穿戴当期新套装或试行斗篷的"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    2270,
+    920,
+    98,
+    76
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 22
+  },
+  {
+   "bbox": [
+    2046,
+    926,
+    68,
+    56
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 23
+  },
+  {
+   "bbox": [
+    708,
+    939,
+    179,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "會會會會會"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    260,
+    942,
+    396,
+    282
+   ],
+   "kind": "card",
+   "text": [
+    "七圣召唤・热斗模式",
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "yes",
+   "src": "container",
+   "id": 25
+  },
+  {
+   "bbox": [
+    1550,
+    952,
+    417,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "奇偶完成一次人气奇域关卡游玩"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    2048,
+    978,
+    62,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    260,
+    983,
+    396,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "七圣召唤・热斗模式"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 28
+  },
+  {
+   "bbox": [
+    713,
+    984,
+    162,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "颂愿限时获取"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    1648,
+    1052,
+    160,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "前往纪游"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    2031,
+    1052,
+    162,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "前往颂愿"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  },
+  {
+   "bbox": [
+    1326,
+    1086,
+    42,
+    46
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 32
+  },
+  {
+   "bbox": [
+    2502,
+    1088,
+    58,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 33
+  },
+  {
+   "bbox": [
+    1220,
+    1124,
+    60,
+    44
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 34
+  },
+  {
+   "bbox": [
+    974,
+    1138,
+    58,
+    30
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 35
+  },
+  {
+   "bbox": [
+    260,
+    1141,
+    396,
+    83
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 36
+  },
+  {
+   "bbox": [
+    -3,
+    1289,
+    286,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "min:",
+    "14.1 ms",
+    "max‡",
+    "18.9 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 37
+  },
+  {
+   "bbox": [
+    2248,
+    1393,
+    245,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID:110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  }
+ ]
+}

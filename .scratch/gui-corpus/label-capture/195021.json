@@ -1,0 +1,889 @@
+{
+ "frame": "195021",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195021.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195021.json",
+  "prelabel_src": {
+   "container": 6,
+   "row-split": 0,
+   "loose-text": 16,
+   "glyph": 10
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 32,
+ "objects": [
+  {
+   "bbox": [
+    2418,
+    24,
+    78,
+    78
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    1113,
+    30,
+    80,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "田"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    175,
+    33,
+    259,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "好友／我的好友"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    66,
+    34,
+    72,
+    64
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 3
+  },
+  {
+   "bbox": [
+    2067,
+    34,
+    314,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "我的好友 173/200"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    1256,
+    38,
+    50,
+    50
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1384,
+    38,
+    50,
+    50
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 6
+  },
+  {
+   "bbox": [
+    1088,
+    40,
+    128,
+    102
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 7
+  },
+  {
+   "bbox": [
+    1028,
+    46,
+    46,
+    36
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 8
+  },
+  {
+   "bbox": [
+    1486,
+    46,
+    46,
+    36
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 9
+  },
+  {
+   "bbox": [
+    361,
+    127,
+    236,
+    67
+   ],
+   "kind": "row",
+   "text": [
+    "熬夜大魔王"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 10
+  },
+  {
+   "bbox": [
+    2057,
+    143,
+    109,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "离线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    286,
+    148,
+    1476,
+    106
+   ],
+   "kind": "row",
+   "text": [
+    "熬夜大魔王",
+    "Lv.60",
+    "今日内",
+    "12点之后看到我就喊我去睡觉"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 12
+  },
+  {
+   "bbox": [
+    359,
+    292,
+    156,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "纳西妲"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    2059,
+    318,
+    105,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "离线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    359,
+    359,
+    256,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60",
+    "今日内"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    1211,
+    363,
+    469,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "时光流转，愿你与珍视之人能够再度重逢"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    266,
+    446,
+    1450,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "爱莎学姐",
+    "Lv.60",
+    "●今日内",
+    "潮水连接大脑，轰鸣代替思考"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 17
+  },
+  {
+   "bbox": [
+    2067,
+    485,
+    109,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "离线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    280,
+    614,
+    1966,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "暮雨潇潇",
+    "离线",
+    "Lv.60",
+    "今日内",
+    "谢谢你，米哈游"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      2182,
+      614,
+      2212,
+      636
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      1846,
+      648,
+      1882,
+      670
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 19
+  },
+  {
+   "bbox": [
+    2410,
+    676,
+    90,
+    85
+   ],
+   "kind": "row",
+   "text": [
+    "司"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    78,
+    692,
+    42,
+    56
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 21
+  },
+  {
+   "bbox": [
+    246,
+    780,
+    1432,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "灰哀之雪",
+    "Lv.60",
+    "今日内",
+    "中秋节快乐"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 22
+  },
+  {
+   "bbox": [
+    2059,
+    817,
+    105,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "离线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 23
+  },
+  {
+   "bbox": [
+    192,
+    946,
+    1616,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "(白七)",
+    "Lv.60",
+    "今日内",
+    "我爱心海和香菱"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      260,
+      1050,
+      286,
+      1068
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 24
+  },
+  {
+   "bbox": [
+    286,
+    1114,
+    1472,
+    140
+   ],
+   "kind": "row",
+   "text": [
+    "莱茨卡",
+    "Lv.60",
+    "今日内",
+    "Platinum the Trinity"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 25
+  },
+  {
+   "bbox": [
+    2059,
+    1150,
+    104,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "离线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    1830,
+    1152,
+    82,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 27
+  },
+  {
+   "bbox": [
+    42,
+    1291,
+    242,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "4.6 ms",
+    "max:",
+    "61.7 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    494,
+    1328,
+    40,
+    64
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 29
+  },
+  {
+   "bbox": [
+    263,
+    1330,
+    187,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "黑名单管理"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    2249,
+    1393,
+    244,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID:110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  }
+ ]
+}

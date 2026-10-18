@@ -1,0 +1,1074 @@
+{
+ "frame": "195314",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195314.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195314.json",
+  "prelabel_src": {
+   "container": 0,
+   "row-split": 0,
+   "loose-text": 32,
+   "glyph": 9
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 41,
+ "objects": [
+  {
+   "bbox": [
+    2420,
+    6,
+    76,
+    76
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    642,
+    11,
+    129,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "已上传"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    432,
+    12,
+    42,
+    64
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 2
+  },
+  {
+   "bbox": [
+    2316,
+    12,
+    60,
+    58
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 3
+  },
+  {
+   "bbox": [
+    215,
+    13,
+    162,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "本地存档"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    2134,
+    17,
+    90,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.4"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    864,
+    20,
+    50,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "E"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    1045,
+    148,
+    109,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "上次打开"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 7
+  },
+  {
+   "bbox": [
+    120,
+    168,
+    191,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    722,
+    191,
+    135,
+    58
+   ],
+   "kind": "row",
+   "text": [
+    "fighting"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    1393,
+    192,
+    80,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "云阶"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 10
+  },
+  {
+   "bbox": [
+    2060,
+    192,
+    161,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "输入探针v2"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    726,
+    245,
+    234,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月16日19:21"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    1396,
+    245,
+    238,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月17日15:02"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    2063,
+    245,
+    239,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月17日06:13"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    116,
+    254,
+    164,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "新建页签"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    1027,
+    402,
+    77,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    1695,
+    402,
+    77,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    2364,
+    402,
+    76,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    1392,
+    523,
+    176,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "Lua同步测试"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    725,
+    524,
+    219,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签_存档"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    2063,
+    526,
+    157,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "真实足球v3"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    2062,
+    574,
+    243,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月13日19:43"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 22
+  },
+  {
+   "bbox": [
+    726,
+    577,
+    241,
+    37
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月16日19:56"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 23
+  },
+  {
+   "bbox": [
+    1395,
+    577,
+    238,
+    37
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月16日19:47"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    1027,
+    733,
+    77,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    1695,
+    733,
+    77,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    2364,
+    733,
+    76,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    724,
+    856,
+    131,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "输入探针"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    725,
+    906,
+    242,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "2026年10月13日19:23"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    1027,
+    1064,
+    77,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    874,
+    1184,
+    50,
+    56
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 31
+  },
+  {
+   "bbox": [
+    614,
+    1238,
+    54,
+    60
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 32
+  },
+  {
+   "bbox": [
+    760,
+    1292,
+    56,
+    42
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 33
+  },
+  {
+   "bbox": [
+    2082,
+    1324,
+    94,
+    86
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 34
+  },
+  {
+   "bbox": [
+    1774,
+    1331,
+    183,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "导入存档"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    2222,
+    1334,
+    182,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "新建存档"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    980,
+    1336,
+    62,
+    62
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 37
+  },
+  {
+   "bbox": [
+    519,
+    1338,
+    174,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "按时间顺序"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  },
+  {
+   "bbox": [
+    1638,
+    1346,
+    90,
+    62
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 39
+  },
+  {
+   "bbox": [
+    2246,
+    1392,
+    247,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "UID:110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 40
+  }
+ ]
+}

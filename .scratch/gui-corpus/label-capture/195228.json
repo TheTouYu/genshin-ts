@@ -1,0 +1,405 @@
+{
+ "frame": "195228",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195228.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195228.json",
+  "prelabel_src": {
+   "container": 0,
+   "row-split": 0,
+   "loose-text": 9,
+   "glyph": 6
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 15,
+ "objects": [
+  {
+   "bbox": [
+    2428,
+    24,
+    78,
+    78
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    1882,
+    306,
+    76,
+    78
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 1
+  },
+  {
+   "bbox": [
+    1196,
+    451,
+    166,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "当前时间"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    1195,
+    542,
+    168,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "01:08"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    904,
+    574,
+    34,
+    58
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 4
+  },
+  {
+   "bbox": [
+    1213,
+    638,
+    131,
+    57
+   ],
+   "kind": "row",
+   "text": [
+    "调整到"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1562,
+    638,
+    68,
+    44
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 6
+  },
+  {
+   "bbox": [
+    2216,
+    650,
+    56,
+    30
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 7
+  },
+  {
+   "bbox": [
+    1199,
+    735,
+    165,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "14:38"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    1237,
+    795,
+    83,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "今日"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    1902,
+    962,
+    48,
+    62
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 10
+  },
+  {
+   "bbox": [
+    -5,
+    1288,
+    288,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "min: 9.2 ms",
+    "max: 40.0 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    1726,
+    1317,
+    82,
+    79
+   ],
+   "kind": "row",
+   "text": [
+    "O"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    1884,
+    1321,
+    113,
+    69
+   ],
+   "kind": "row",
+   "text": [
+    "确认"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    2248,
+    1393,
+    245,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  }
+ ]
+}

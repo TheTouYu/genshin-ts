@@ -1,0 +1,46 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195311 image=.scratch/gui-corpus/capture-2026-10-18/195311.png backend=cv units=42
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | row | 397 42 140 81 | 透雨 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | icon | 936 62 48 46 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | icon | 872 108 42 46 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 399 116 163 64 | 逆风解意 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 402 210 157 56 | 冒险等阶 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 860 215 71 51 | 60 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | icon | 924 222 56 40 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 162 255 218 47 | UID 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 774 259 221 46 | 340125/340125 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 453 260 114 43 | 冒险阅历 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | icon | 416 268 40 44 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 245 303 88 54 | 复制 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 402 317 158 56 | 世界等级 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | icon | 940 326 40 40 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 400 368 97 63 | 生日 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 820 371 173 56 | 10月22日 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | tile | 174 464 174 156 | 云・原神 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+17 | tile | 382 464 174 156 | 周边商城 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+18 | tile | 590 464 174 156 | 问卷 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+19 | icon | 34 494 60 52 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | icon | 1936 532 52 72 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | icon | 2348 590 48 42 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | icon | 30 592 98 112 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 150 686 141 52 | 千星奇域 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | tile | 576 754 200 180 | 奇域收藏 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+25 | tile | 382 764 174 156 | 人气奇域 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+26 | tile | 800 764 172 156 | 我的奇域 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+27 | tile | 174 766 174 154 | 千星商城 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [336, 750, 364, 776]}], "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+28 | icon | 34 788 60 42 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | icon | 32 920 64 68 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | tile | 584 948 186 168 | 颂愿 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+31 | tile | 174 954 174 156 | 大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+32 | tile | 382 954 174 156 | 装扮搭配 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [544, 938, 572, 966]}], "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+33 | tile | 798 954 174 156 | 纪游 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [960, 938, 988, 966]}], "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+34 | icon | 1104 968 60 34 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+35 | icon | 1222 972 56 34 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+36 | icon | 34 1068 60 58 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+37 | icon | 1024 1094 42 60 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+38 | icon | 1240 1222 80 48 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+39 | row | 147 1289 139 38 | max: / 62,8 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+40 | icon | 1992 1382 38 58 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+41 | row | 2248 1393 245 51 | UID: 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

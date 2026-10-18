@@ -1,0 +1,13 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195223 image=.scratch/gui-corpus/capture-2026-10-18/195223.png backend=cv units=9
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | row | 1196 449 166 60 | 当前时间 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 1195 542 168 65 | 01:03 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 1213 638 131 57 | 调整到 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 1193 733 173 69 | 01:14 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 1239 795 81 56 | 今日 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 1240 854 80 75 | 口 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | row | 1784 1239 268 58 | 时间少于30分钟 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | -4 1288 288 40 | min: 9.2 ms / max: 40.0 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 2248 1393 245 51 | UID: 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

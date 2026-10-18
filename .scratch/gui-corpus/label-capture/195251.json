@@ -1,0 +1,1070 @@
+{
+ "frame": "195251",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195251.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195251.json",
+  "prelabel_src": {
+   "container": 0,
+   "row-split": 0,
+   "loose-text": 40,
+   "glyph": 0
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 40,
+ "objects": [
+  {
+   "bbox": [
+    1711,
+    34,
+    189,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "邮件珍藏盒"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2010,
+    37,
+    280,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "邮件数 17/1000"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    2204,
+    165,
+    212,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "剩余时间：4天"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    307,
+    175,
+    928,
+    63
+   ],
+   "kind": "row",
+   "text": [
+    "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+    "★"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    2250,
+    228,
+    95,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "前往"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    342,
+    236,
+    199,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1859,
+    262,
+    94,
+    84
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    1210,
+    267,
+    139,
+    84
+   ],
+   "kind": "row",
+   "text": [
+    "说明"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 7
+  },
+  {
+   "bbox": [
+    311,
+    337,
+    260,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "【网页活动上线】周年"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    651,
+    370,
+    229,
+    63
+   ],
+   "kind": "row",
+   "text": [
+    "【邮箱容量】"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    344,
+    395,
+    206,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M·"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 10
+  },
+  {
+   "bbox": [
+    649,
+    417,
+    557,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "邮箱中最多能保存1000封邮件。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    650,
+    466,
+    1255,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "当邮件数量超过上限时，系统将依照时间顺序由旧到新，自动删除无附件或"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    307,
+    489,
+    266,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "空月祝福即将"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    648,
+    512,
+    346,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "附件已领取的邮件。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    337,
+    552,
+    217,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M·"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    648,
+    556,
+    1249,
+    58
+   ],
+   "kind": "row",
+   "text": [
+    "除此之外，邮箱具有显示上限，当邮件超出一定数量后，只会展示其中一部"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    1984,
+    593,
+    424,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "旅行者及时参与活动，获取"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    646,
+    600,
+    162,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "分邮件。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    310,
+    642,
+    258,
+    68
+   ],
+   "kind": "row",
+   "text": [
+    "「周年拾光册"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    648,
+    647,
+    678,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "删除过多的邮件后，将展示剩余的邮件。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    343,
+    709,
+    207,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M·"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    653,
+    740,
+    226,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "【邮件标记】"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 22
+  },
+  {
+   "bbox": [
+    649,
+    786,
+    980,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "被标记的邮件不会被快捷删除，并在邮件列表中排序置顶。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 23
+  },
+  {
+   "bbox": [
+    302,
+    800,
+    266,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "「判测胜券本"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    649,
+    831,
+    686,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "但被标记的邮件依然会随时间过期消失。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    337,
+    867,
+    220,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "P· A· I• M•"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    653,
+    922,
+    262,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "【邮件珍藏盒】"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    310,
+    956,
+    257,
+    67
+   ],
+   "kind": "row",
+   "text": [
+    "「周年拾光册"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    648,
+    970,
+    1258,
+    58
+   ],
+   "kind": "row",
+   "text": [
+    "对于诸如生日祝福的一部分重要邮件，在领取该邮件的奖励后，该邮件将被"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    649,
+    1015,
+    434,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "自动收入「邮件珍藏盒」。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    337,
+    1023,
+    213,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M·"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  },
+  {
+   "bbox": [
+    650,
+    1061,
+    1105,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "「邮件珍藏盒」中的邮件不会被快捷删除，且不会随时间过期消失。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 32
+  },
+  {
+   "bbox": [
+    311,
+    1114,
+    255,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "「周年拾光册"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 33
+  },
+  {
+   "bbox": [
+    347,
+    1180,
+    193,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "P·A·I·M"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 34
+  },
+  {
+   "bbox": [
+    1377,
+    1234,
+    87,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "1000"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    41,
+    1289,
+    243,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "6.8 ms",
+    "nax:",
+    "27.6 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    2124,
+    1321,
+    227,
+    69
+   ],
+   "kind": "row",
+   "text": [
+    "血",
+    "删除"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 37
+  },
+  {
+   "bbox": [
+    610,
+    1322,
+    187,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "删除已读"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  },
+  {
+   "bbox": [
+    2250,
+    1393,
+    243,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 39
+  }
+ ]
+}

@@ -1,0 +1,1570 @@
+{
+ "frame": "195751",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195751.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195751.json",
+  "prelabel_src": {
+   "container": 0,
+   "row-split": 0,
+   "loose-text": 51,
+   "glyph": 9
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 60,
+ "objects": [
+  {
+   "bbox": [
+    2489,
+    -2,
+    61,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "i9"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 0
+  },
+  {
+   "bbox": [
+    279,
+    2,
+    167,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "背景音乐管理 ×"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    2220,
+    4,
+    106,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    " 72 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    2204,
+    58,
+    135,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "箭头指示牌"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    1970,
+    92,
+    76,
+    82
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 4
+  },
+  {
+   "bbox": [
+    2120,
+    92,
+    66,
+    56
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 5
+  },
+  {
+   "bbox": [
+    2204,
+    94,
+    177,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "GUID 1077936130"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    2205,
+    124,
+    91,
+    39
+   ],
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 7
+  },
+  {
+   "bbox": [
+    45,
+    177,
+    115,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "木刀天贝豆"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    2236,
+    193,
+    57,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    334,
+    206,
+    94,
+    66
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 10
+  },
+  {
+   "bbox": [
+    18,
+    210,
+    126,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    19,
+    253,
+    117,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "掉落物"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    2135,
+    253,
+    117,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "自定义变量"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    320,
+    268,
+    122,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "石质功能平台"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    24,
+    298,
+    138,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    2104,
+    300,
+    152,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "自定义变量数量"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    334,
+    334,
+    94,
+    50
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 17
+  },
+  {
+   "bbox": [
+    18,
+    340,
+    126,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    2270,
+    345,
+    100,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "详细编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    320,
+    380,
+    122,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "石质功能平台"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    6,
+    384,
+    64,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "预制"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    2130,
+    407,
+    105,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "特效播放"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 22
+  },
+  {
+   "bbox": [
+    23,
+    425,
+    132,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "▼动态单位"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 23
+  },
+  {
+   "bbox": [
+    344,
+    450,
+    76,
+    44
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 24
+  },
+  {
+   "bbox": [
+    2102,
+    452,
+    102,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "特效列表"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    42,
+    467,
+    103,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "流程物件"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    320,
+    492,
+    122,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "石质功能平台"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    2270,
+    503,
+    101,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "详细编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    42,
+    510,
+    102,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "玩法机关"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    40,
+    552,
+    70,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    350,
+    562,
+    68,
+    44
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 31
+  },
+  {
+   "bbox": [
+    2131,
+    564,
+    104,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "单位状态"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 32
+  },
+  {
+   "bbox": [
+    19,
+    593,
+    138,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "静态单位"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 33
+  },
+  {
+   "bbox": [
+    326,
+    602,
+    109,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "箭头指示牌"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 34
+  },
+  {
+   "bbox": [
+    2270,
+    615,
+    101,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "详细编辑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    37,
+    637,
+    72,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "树木"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    348,
+    674,
+    66,
+    44
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 37
+  },
+  {
+   "bbox": [
+    41,
+    682,
+    67,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "植被"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  },
+  {
+   "bbox": [
+    326,
+    714,
+    109,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "箭头指示牌"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 39
+  },
+  {
+   "bbox": [
+    42,
+    724,
+    66,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "地貌"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 40
+  },
+  {
+   "bbox": [
+    41,
+    766,
+    68,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "岩石"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 41
+  },
+  {
+   "bbox": [
+    362,
+    774,
+    42,
+    42
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 42
+  },
+  {
+   "bbox": [
+    41,
+    808,
+    68,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "建筑"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 43
+  },
+  {
+   "bbox": [
+    324,
+    825,
+    110,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "木质指路牌"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 44
+  },
+  {
+   "bbox": [
+    42,
+    852,
+    103,
+    41
+   ],
+   "kind": "row",
+   "text": [
+    "建筑结构"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 45
+  },
+  {
+   "bbox": [
+    36,
+    894,
+    108,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "人造装饰"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 46
+  },
+  {
+   "bbox": [
+    1248,
+    894,
+    58,
+    30
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 47
+  },
+  {
+   "bbox": [
+    41,
+    938,
+    67,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "灯具"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 48
+  },
+  {
+   "bbox": [
+    41,
+    979,
+    68,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "饮食"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 49
+  },
+  {
+   "bbox": [
+    42,
+    1021,
+    67,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "武器"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 50
+  },
+  {
+   "bbox": [
+    40,
+    1064,
+    69,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "工具"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 51
+  },
+  {
+   "bbox": [
+    20,
+    1105,
+    95,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "造物"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 52
+  },
+  {
+   "bbox": [
+    19,
+    1149,
+    117,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "掉落物"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 53
+  },
+  {
+   "bbox": [
+    5,
+    1192,
+    83,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "元件组"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 54
+  },
+  {
+   "bbox": [
+    20,
+    1234,
+    178,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "自定义元件组"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 55
+  },
+  {
+   "bbox": [
+    -8,
+    1273,
+    113,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "资产库。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 56
+  },
+  {
+   "bbox": [
+    1156,
+    1315,
+    279,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "3.00",
+    "30",
+    "0.10"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 57
+  },
+  {
+   "bbox": [
+    2241,
+    1357,
+    156,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "添加通用组件"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 58
+  },
+  {
+   "bbox": [
+    2246,
+    1392,
+    247,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 59
+  }
+ ]
+}

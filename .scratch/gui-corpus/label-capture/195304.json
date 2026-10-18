@@ -1,0 +1,874 @@
+{
+ "frame": "195304",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195304.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195304.json",
+  "prelabel_src": {
+   "container": 7,
+   "row-split": 0,
+   "loose-text": 19,
+   "glyph": 5
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 31,
+ "objects": [
+  {
+   "bbox": [
+    2410,
+    26,
+    86,
+    70
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2321,
+    74,
+    83,
+    80
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    1135,
+    75,
+    286,
+    77
+   ],
+   "kind": "row",
+   "text": [
+    "邮件珍藏盒"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    1201,
+    138,
+    156,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "339/1000"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    1307,
+    210,
+    247,
+    69
+   ],
+   "kind": "row",
+   "text": [
+    "行到闲处…"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    220,
+    214,
+    284,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "搜索标题或发件人"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1310,
+    291,
+    204,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "发件人：行秋"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    190,
+    312,
+    1044,
+    122
+   ],
+   "kind": "row",
+   "text": [
+    "启发…",
+    "辛焱"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 7
+  },
+  {
+   "bbox": [
+    1312,
+    344,
+    359,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "时间: 2026-10-0912:39"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    1187,
+    418,
+    1208,
+    97
+   ],
+   "kind": "row",
+   "text": [
+    "你或许不知道，最近这段时间，我可是被家里给练惨了，又是跟着商队",
+    "新",
+    "四处游历，又是陪着大哥去见生意伙伴…看我累得不行，大哥就私下和"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    190,
+    468,
+    1044,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "祝他成功。",
+    "欧洛伦"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1200,
+      458,
+      1242,
+      492
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      246,
+      504,
+      262,
+      518
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      250,
+      524,
+      274,
+      542
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 10
+  },
+  {
+   "bbox": [
+    1308,
+    505,
+    824,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "我说，如果我不愿意的话，那他便去和家里人再说说。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    1308,
+    547,
+    1065,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "我见他眼角的皱纹如山岳裂谷，鬓角也不知何时落下了雪色…我不愿"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    1186,
+    588,
+    679,
+    71
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "意四个字，却是怎么也说不出口了。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    190,
+    622,
+    1044,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "舞台·",
+    "芙宁娜"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1200,
+      614,
+      1242,
+      648
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 14
+  },
+  {
+   "bbox": [
+    1308,
+    633,
+    856,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "侠之大者，为家为国，为义为理…可不能只为了自己啊。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    1307,
+    674,
+    1082,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "在这之后，我会跟着大哥正式学习，和他共同打理家里的事务。到时候"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    1311,
+    719,
+    409,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "，我可能就真要忙昏头了。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    1308,
+    760,
+    1078,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "但现在，我还是偷出了一日闲暇，若是你有空的话，不如和我一起坐坐"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    298,
+    780,
+    946,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "行到闲处…",
+    "行秋"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 19
+  },
+  {
+   "bbox": [
+    1310,
+    805,
+    399,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "？再喝几杯茶，就当作…"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    1306,
+    847,
+    322,
+    58
+   ],
+   "kind": "row",
+   "text": [
+    "呵，送我去做大侠？"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    190,
+    936,
+    1044,
+    128
+   ],
+   "kind": "row",
+   "text": [
+    "礼物…",
+    "尼可"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 22
+  },
+  {
+   "bbox": [
+    190,
+    1096,
+    1044,
+    122
+   ],
+   "kind": "row",
+   "text": [
+    "读书的收获…",
+    "菲米尼"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 23
+  },
+  {
+   "bbox": [
+    1338,
+    1116,
+    102,
+    74
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 24
+  },
+  {
+   "bbox": [
+    1482,
+    1118,
+    110,
+    72
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 25
+  },
+  {
+   "bbox": [
+    190,
+    1252,
+    1044,
+    94
+   ],
+   "kind": "row",
+   "text": [
+    "定香·",
+    "69.",
+    ".5 ms",
+    "艾梅莉埃"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 26
+  },
+  {
+   "bbox": [
+    2326,
+    1272,
+    66,
+    66
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 27
+  },
+  {
+   "bbox": [
+    374,
+    1317,
+    139,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "艾梅莉埃"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    2424,
+    1356,
+    42,
+    40
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 29
+  },
+  {
+   "bbox": [
+    2249,
+    1393,
+    244,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID:110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  }
+ ]
+}

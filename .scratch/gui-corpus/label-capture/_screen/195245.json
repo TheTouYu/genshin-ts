@@ -1,0 +1,3200 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195245.png",
+  "sha256": "83561c9302c9ea67215c86438113490ec8493c3b76748e9bc41d3ab8a0afe6b0",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 1521712
+ },
+ "title": {
+  "text": "「判测胜券本征」活动提醒",
+  "cx": 1608,
+  "cy": 365,
+  "bbox": [
+   1357,
+   340,
+   1859,
+   390
+  ],
+  "region": null,
+  "why": "上半屏字高最大（50px, score=0.99）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    120,
+    32
+   ],
+   "w": 120,
+   "h": 29,
+   "score": 0.9622,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 60.3",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.8986,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:",
+   "cx": 30,
+   "cy": 66,
+   "bbox": [
+    2,
+    55,
+    58,
+    77
+   ],
+   "w": 56,
+   "h": 22,
+   "score": 0.997,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "5%",
+   "cx": 78,
+   "cy": 66,
+   "bbox": [
+    61,
+    56,
+    95,
+    77
+   ],
+   "w": 34,
+   "h": 21,
+   "score": 0.9933,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "邮箱",
+   "cx": 223,
+   "cy": 62,
+   "bbox": [
+    183,
+    38,
+    263,
+    86
+   ],
+   "w": 80,
+   "h": 48,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "邮件珍藏盒",
+   "cx": 1805,
+   "cy": 62,
+   "bbox": [
+    1721,
+    42,
+    1890,
+    82
+   ],
+   "w": 169,
+   "h": 40,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "邮件数 17/1000",
+   "cx": 2150,
+   "cy": 62,
+   "bbox": [
+    2020,
+    45,
+    2280,
+    79
+   ],
+   "w": 260,
+   "h": 34,
+   "score": 0.9815,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "10月1日参与《原神》千星奇域『绮星盛会」网页活动，可获得原石等奖励！",
+   "cx": 732,
+   "cy": 206,
+   "bbox": [
+    317,
+    191,
+    1148,
+    221
+   ],
+   "w": 831,
+   "h": 30,
+   "score": 0.9599,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "★",
+   "cx": 1203,
+   "cy": 207,
+   "bbox": [
+    1183,
+    186,
+    1224,
+    228
+   ],
+   "w": 41,
+   "h": 42,
+   "score": 0.9761,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "剩余时间：4天",
+   "cx": 2309,
+   "cy": 193,
+   "bbox": [
+    2212,
+    172,
+    2406,
+    214
+   ],
+   "w": 194,
+   "h": 42,
+   "score": 0.962,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "P·A·I·M·O·N",
+   "cx": 493,
+   "cy": 262,
+   "bbox": [
+    354,
+    245,
+    632,
+    279
+   ],
+   "w": 278,
+   "h": 34,
+   "score": 0.9914,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "12天后过期",
+   "cx": 1157,
+   "cy": 262,
+   "bbox": [
+    1082,
+    245,
+    1232,
+    280
+   ],
+   "w": 150,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "前往",
+   "cx": 2298,
+   "cy": 258,
+   "bbox": [
+    2261,
+    236,
+    2334,
+    280
+   ],
+   "w": 73,
+   "h": 44,
+   "score": 0.9984,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "【网页活动上线】周年拾光册",
+   "cx": 492,
+   "cy": 363,
+   "bbox": [
+    322,
+    348,
+    663,
+    378
+   ],
+   "w": 341,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "回顾旅途精彩瞬间还有原石奖励哦！",
+   "cx": 918,
+   "cy": 363,
+   "bbox": [
+    705,
+    348,
+    1131,
+    378
+   ],
+   "w": 426,
+   "h": 30,
+   "score": 0.976,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "★",
+   "cx": 1203,
+   "cy": 365,
+   "bbox": [
+    1183,
+    345,
+    1223,
+    385
+   ],
+   "w": 40,
+   "h": 40,
+   "score": 0.9776,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "「判测胜券本征」活动提醒",
+   "cx": 1608,
+   "cy": 365,
+   "bbox": [
+    1357,
+    340,
+    1859,
+    390
+   ],
+   "w": 502,
+   "h": 50,
+   "score": 0.9891,
+   "kind": "title"
+  },
+  {
+   "id": 17,
+   "text": "P·A·I·M·O·N",
+   "cx": 493,
+   "cy": 419,
+   "bbox": [
+    354,
+    402,
+    632,
+    435
+   ],
+   "w": 278,
+   "h": 33,
+   "score": 0.9936,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "1天后过期",
+   "cx": 1167,
+   "cy": 418,
+   "bbox": [
+    1101,
+    401,
+    1232,
+    435
+   ],
+   "w": 131,
+   "h": 34,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "发件人:P·A·I·M·O·N",
+   "cx": 1565,
+   "cy": 449,
+   "bbox": [
+    1354,
+    432,
+    1776,
+    466
+   ],
+   "w": 422,
+   "h": 34,
+   "score": 0.9897,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "时间：2026-10-16 02:57",
+   "cx": 1522,
+   "cy": 498,
+   "bbox": [
+    1352,
+    483,
+    1692,
+    513
+   ],
+   "w": 340,
+   "h": 30,
+   "score": 0.9852,
+   "kind": "data"
+  },
+  {
+   "id": 21,
+   "text": "空月祝福即将到期提醒",
+   "cx": 525,
+   "cy": 520,
+   "bbox": [
+    318,
+    498,
+    732,
+    541
+   ],
+   "w": 414,
+   "h": 43,
+   "score": 0.9974,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "P·A·I·M·O·N",
+   "cx": 493,
+   "cy": 576,
+   "bbox": [
+    354,
+    559,
+    632,
+    592
+   ],
+   "w": 278,
+   "h": 33,
+   "score": 0.9954,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "6天后过期",
+   "cx": 1163,
+   "cy": 576,
+   "bbox": [
+    1094,
+    558,
+    1233,
+    594
+   ],
+   "w": 139,
+   "h": 36,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "亲爱的旅行者：",
+   "cx": 1465,
+   "cy": 577,
+   "bbox": [
+    1349,
+    556,
+    1580,
+    599
+   ],
+   "w": 231,
+   "h": 43,
+   "score": 0.9724,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "「判测胜券本征」活动玩法即将过半，欢迎旅行者及时参与活动，获取",
+   "cx": 1875,
+   "cy": 619,
+   "bbox": [
+    1350,
+    597,
+    2400,
+    641
+   ],
+   "w": 1050,
+   "h": 44,
+   "score": 0.9983,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "「周年拾光册」网页活动即将结束",
+   "cx": 617,
+   "cy": 676,
+   "bbox": [
+    321,
+    653,
+    913,
+    699
+   ],
+   "w": 592,
+   "h": 46,
+   "score": 0.9957,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "活动奖励~",
+   "cx": 1436,
+   "cy": 664,
+   "bbox": [
+    1349,
+    644,
+    1523,
+    684
+   ],
+   "w": 174,
+   "h": 40,
+   "score": 0.9485,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "P·A·I·M·O·N",
+   "cx": 492,
+   "cy": 731,
+   "bbox": [
+    354,
+    714,
+    630,
+    748
+   ],
+   "w": 276,
+   "h": 34,
+   "score": 0.9921,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "18小时后过期",
+   "cx": 1143,
+   "cy": 732,
+   "bbox": [
+    1055,
+    714,
+    1232,
+    749
+   ],
+   "w": 177,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "「判测胜券本征」活动提醒",
+   "cx": 552,
+   "cy": 832,
+   "bbox": [
+    314,
+    811,
+    790,
+    853
+   ],
+   "w": 476,
+   "h": 42,
+   "score": 0.9823,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "P·A·I·M·O·N",
+   "cx": 488,
+   "cy": 889,
+   "bbox": [
+    348,
+    873,
+    628,
+    906
+   ],
+   "w": 280,
+   "h": 33,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "7小时后过期",
+   "cx": 1161,
+   "cy": 889,
+   "bbox": [
+    1076,
+    870,
+    1246,
+    909
+   ],
+   "w": 170,
+   "h": 39,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "「周年拾光册」网页活动奖励发放",
+   "cx": 618,
+   "cy": 989,
+   "bbox": [
+    322,
+    966,
+    914,
+    1013
+   ],
+   "w": 592,
+   "h": 47,
+   "score": 0.976,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "P·A·I·M·O·N",
+   "cx": 494,
+   "cy": 1046,
+   "bbox": [
+    356,
+    1029,
+    632,
+    1063
+   ],
+   "w": 276,
+   "h": 34,
+   "score": 0.9872,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "20天后过期",
+   "cx": 1152,
+   "cy": 1047,
+   "bbox": [
+    1072,
+    1029,
+    1232,
+    1064
+   ],
+   "w": 160,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "「周年拾光册」网页活动奖励发放",
+   "cx": 618,
+   "cy": 1146,
+   "bbox": [
+    321,
+    1123,
+    914,
+    1170
+   ],
+   "w": 593,
+   "h": 47,
+   "score": 0.9957,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "P·A·I·M·O·N",
+   "cx": 494,
+   "cy": 1203,
+   "bbox": [
+    356,
+    1186,
+    632,
+    1220
+   ],
+   "w": 276,
+   "h": 34,
+   "score": 0.9936,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "20天后过期",
+   "cx": 1152,
+   "cy": 1203,
+   "bbox": [
+    1070,
+    1184,
+    1234,
+    1222
+   ],
+   "w": 164,
+   "h": 38,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "1000",
+   "cx": 1418,
+   "cy": 1256,
+   "bbox": [
+    1380,
+    1240,
+    1456,
+    1272
+   ],
+   "w": 76,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    51,
+    1315
+   ],
+   "w": 42,
+   "h": 14,
+   "score": 0.9847,
+   "kind": "other"
+  },
+  {
+   "id": 41,
+   "text": "9.4 ms",
+   "cx": 83,
+   "cy": 1307,
+   "bbox": [
+    51,
+    1297,
+    116,
+    1317
+   ],
+   "w": 65,
+   "h": 20,
+   "score": 0.9653,
+   "kind": "data"
+  },
+  {
+   "id": 42,
+   "text": "max: 25.9 ms",
+   "cx": 215,
+   "cy": 1306,
+   "bbox": [
+    154,
+    1294,
+    276,
+    1319
+   ],
+   "w": 122,
+   "h": 25,
+   "score": 0.9499,
+   "kind": "data"
+  },
+  {
+   "id": 43,
+   "text": "部领即",
+   "cx": 356,
+   "cy": 1348,
+   "bbox": [
+    294,
+    1330,
+    418,
+    1366
+   ],
+   "w": 124,
+   "h": 36,
+   "score": 0.8336,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "删除已读",
+   "cx": 703,
+   "cy": 1355,
+   "bbox": [
+    620,
+    1330,
+    787,
+    1379
+   ],
+   "w": 167,
+   "h": 49,
+   "score": 0.9971,
+   "kind": "action"
+  },
+  {
+   "id": 45,
+   "text": "血",
+   "cx": 2152,
+   "cy": 1356,
+   "bbox": [
+    2134,
+    1334,
+    2171,
+    1378
+   ],
+   "w": 37,
+   "h": 44,
+   "score": 0.7499,
+   "kind": "content"
+  },
+  {
+   "id": 46,
+   "text": "删除",
+   "cx": 2294,
+   "cy": 1355,
+   "bbox": [
+    2247,
+    1329,
+    2341,
+    1382
+   ],
+   "w": 94,
+   "h": 53,
+   "score": 0.9804,
+   "kind": "action"
+  },
+  {
+   "id": 47,
+   "text": "UID: 110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 0.9747,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1308,
+    734,
+    1326,
+    760
+   ],
+   "cx": 1317,
+   "cy": 747,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.829,
+    "aspect": 0.69,
+    "corner_fill": 0.19,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    112,
+    846,
+    132,
+    872
+   ],
+   "cx": 122,
+   "cy": 859,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.854,
+    "aspect": 0.77,
+    "corner_fill": 0.25,
+    "area": 444,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    326,
+    1190,
+    346,
+    1218
+   ],
+   "cx": 336,
+   "cy": 1204,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.843,
+    "aspect": 0.71,
+    "corner_fill": 0.19,
+    "area": 472,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    118,
+    54,
+    144,
+    82
+   ],
+   "cx": 131,
+   "cy": 68,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.665,
+    "aspect": 0.93,
+    "corner_fill": 0.17,
+    "area": 484,
+    "src": "flat"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2360,
+    244,
+    2388,
+    272
+   ],
+   "cx": 2374,
+   "cy": 258,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 114.8,
+    "ring_L": 192.8,
+    "inside_L": 96.6,
+    "outside_L": 59.4
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    548,
+    1342,
+    576,
+    1370
+   ],
+   "cx": 562,
+   "cy": 1356,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 24.3,
+    "ring_L": 110.6,
+    "inside_L": 123.4,
+    "outside_L": 49.2
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2304,
+    36,
+    2356,
+    88
+   ],
+   "cx": 2330,
+   "cy": 62,
+   "w": 52,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2704,
+    "src": "ring",
+    "ring_r_px": 24,
+    "cov": 0.972,
+    "contrast": 83.2,
+    "ring_L": 185.2,
+    "inside_L": 162.5,
+    "outside_L": 41.5
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1918,
+    46,
+    1954,
+    82
+   ],
+   "cx": 1936,
+   "cy": 64,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.931,
+    "contrast": 58.9,
+    "ring_L": 141.4,
+    "inside_L": 206.4,
+    "outside_L": 194.2
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    202,
+    666,
+    268,
+    716
+   ],
+   "cx": 235,
+   "cy": 691,
+   "w": 66,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.935,
+   "label": null,
+   "evidence": {
+    "fill": 0.611,
+    "aspect": 1.32,
+    "corner_fill": 0.19,
+    "area": 2016,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2420,
+    42,
+    2460,
+    82
+   ],
+   "cx": 2440,
+   "cy": 62,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.903,
+    "contrast": 20.0,
+    "ring_L": 159.6,
+    "inside_L": 226.7,
+    "outside_L": 132.4
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    324,
+    248,
+    348,
+    280
+   ],
+   "cx": 336,
+   "cy": 264,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 0.75,
+    "corner_fill": 0.31,
+    "area": 616,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    202,
+    980,
+    266,
+    1026
+   ],
+   "cx": 234,
+   "cy": 1003,
+   "w": 64,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.632,
+    "aspect": 1.39,
+    "corner_fill": 0.24,
+    "area": 1860,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    202,
+    510,
+    268,
+    560
+   ],
+   "cx": 235,
+   "cy": 535,
+   "w": 66,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.644,
+    "aspect": 1.32,
+    "corner_fill": 0.24,
+    "area": 2124,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1284,
+    168,
+    1308,
+    520
+   ],
+   "cx": 1296,
+   "cy": 344,
+   "w": 24,
+   "h": 352,
+   "shape": "rect",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.924,
+    "aspect": 0.07,
+    "corner_fill": 0.25,
+    "area": 7808,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2426,
+    412,
+    2448,
+    426
+   ],
+   "cx": 2437,
+   "cy": 419,
+   "w": 22,
+   "h": 14,
+   "shape": "rect",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": 0.922,
+    "aspect": 1.57,
+    "corner_fill": 0.62,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    202,
+    352,
+    270,
+    406
+   ],
+   "cx": 236,
+   "cy": 379,
+   "w": 68,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.592,
+    "aspect": 1.26,
+    "corner_fill": 0.24,
+    "area": 2172,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1250,
+    1008,
+    1276,
+    1034
+   ],
+   "cx": 1263,
+   "cy": 1021,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.905,
+   "label": null,
+   "evidence": {
+    "fill": 0.462,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    202,
+    196,
+    270,
+    250
+   ],
+   "cx": 236,
+   "cy": 223,
+   "w": 68,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.902,
+   "label": null,
+   "evidence": {
+    "fill": 0.596,
+    "aspect": 1.26,
+    "corner_fill": 0.26,
+    "area": 2188,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    0,
+    0,
+    2560,
+    126
+   ],
+   "cx": 1280,
+   "cy": 63,
+   "w": 2560,
+   "h": 126,
+   "shape": "rect",
+   "confidence": 0.9,
+   "label": "DXVK v3.0 FPS: 60.3 GPU: 5% 邮箱 邮件珍藏盒 邮件数 17/1000",
+   "evidence": {
+    "fill": 0.889,
+    "aspect": 20.32,
+    "corner_fill": 0.87,
+    "area": 286640,
+    "src": "flat"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1586,
+    160,
+    1626,
+    204
+   ],
+   "cx": 1606,
+   "cy": 182,
+   "w": 40,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.602,
+    "aspect": 0.91,
+    "corner_fill": 0.27,
+    "area": 1060,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    324,
+    406,
+    348,
+    436
+   ],
+   "cx": 336,
+   "cy": 421,
+   "w": 24,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.895,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 0.8,
+    "corner_fill": 0.36,
+    "area": 596,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1620,
+    290,
+    1656,
+    308
+   ],
+   "cx": 1638,
+   "cy": 299,
+   "w": 36,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.864,
+    "aspect": 2.0,
+    "corner_fill": 0.38,
+    "area": 560,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    140,
+    962,
+    158,
+    1066
+   ],
+   "cx": 149,
+   "cy": 1014,
+   "w": 18,
+   "h": 104,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 0.17,
+    "corner_fill": 0.12,
+    "area": 1620,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    172,
+    806,
+    278,
+    912
+   ],
+   "cx": 225,
+   "cy": 859,
+   "w": 106,
+   "h": 106,
+   "shape": "rect",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.568,
+    "aspect": 1.0,
+    "corner_fill": 0.96,
+    "area": 6384,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1782,
+    206,
+    1820,
+    238
+   ],
+   "cx": 1801,
+   "cy": 222,
+   "w": 38,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.806,
+    "aspect": 1.19,
+    "corner_fill": 0.39,
+    "area": 980,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1982,
+    1302,
+    2106,
+    1410
+   ],
+   "cx": 2044,
+   "cy": 1356,
+   "w": 124,
+   "h": 108,
+   "shape": "circle",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.467,
+    "aspect": 1.15,
+    "corner_fill": 0.27,
+    "area": 6248,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1264,
+    762,
+    1284,
+    966
+   ],
+   "cx": 1274,
+   "cy": 864,
+   "w": 20,
+   "h": 204,
+   "shape": "rect",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.807,
+    "aspect": 0.1,
+    "corner_fill": 0.0,
+    "area": 3292,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1356,
+    1144,
+    1486,
+    1274
+   ],
+   "cx": 1421,
+   "cy": 1209,
+   "w": 130,
+   "h": 130,
+   "shape": "rect",
+   "confidence": 0.862,
+   "label": "1000",
+   "evidence": {
+    "fill": 0.589,
+    "aspect": 1.0,
+    "corner_fill": 0.92,
+    "area": 9952,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    224,
+    396,
+    266,
+    426
+   ],
+   "cx": 245,
+   "cy": 411,
+   "w": 42,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.556,
+    "aspect": 1.4,
+    "corner_fill": 0.33,
+    "area": 700,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    324,
+    562,
+    346,
+    592
+   ],
+   "cx": 335,
+   "cy": 577,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.856,
+   "label": null,
+   "evidence": {
+    "fill": 0.842,
+    "aspect": 0.73,
+    "corner_fill": 0.44,
+    "area": 556,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    324,
+    1034,
+    346,
+    1062
+   ],
+   "cx": 335,
+   "cy": 1048,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.79,
+    "corner_fill": 0.44,
+    "area": 516,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    2108,
+    1312,
+    2432,
+    1402
+   ],
+   "cx": 2270,
+   "cy": 1357,
+   "w": 324,
+   "h": 90,
+   "shape": "rect",
+   "confidence": 0.851,
+   "label": "血 删除",
+   "evidence": {
+    "fill": 0.78,
+    "aspect": 3.6,
+    "corner_fill": 0.28,
+    "area": 22744,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1390,
+    156,
+    1458,
+    176
+   ],
+   "cx": 1424,
+   "cy": 166,
+   "w": 68,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.848,
+   "label": null,
+   "evidence": {
+    "fill": 0.774,
+    "aspect": 3.4,
+    "corner_fill": 0.12,
+    "area": 1052,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1648,
+    160,
+    1712,
+    188
+   ],
+   "cx": 1680,
+   "cy": 174,
+   "w": 64,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.77,
+    "aspect": 2.29,
+    "corner_fill": 0.53,
+    "area": 1380,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1450,
+    1242,
+    1482,
+    1270
+   ],
+   "cx": 1466,
+   "cy": 1256,
+   "w": 32,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.846,
+   "label": null,
+   "evidence": {
+    "fill": 0.54,
+    "aspect": 1.14,
+    "corner_fill": 0.34,
+    "area": 484,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    316,
+    876,
+    338,
+    904
+   ],
+   "cx": 327,
+   "cy": 890,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.841,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.79,
+    "corner_fill": 0.47,
+    "area": 516,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2004,
+    138,
+    2248,
+    154
+   ],
+   "cx": 2126,
+   "cy": 146,
+   "w": 244,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.838,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 15.25,
+    "corner_fill": 0.25,
+    "area": 2928,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    698,
+    328,
+    1128,
+    354
+   ],
+   "cx": 913,
+   "cy": 341,
+   "w": 430,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.828,
+   "label": null,
+   "evidence": {
+    "fill": 0.728,
+    "aspect": 16.54,
+    "corner_fill": 0.19,
+    "area": 8140,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    36,
+    140,
+    140,
+    272
+   ],
+   "cx": 88,
+   "cy": 206,
+   "w": 104,
+   "h": 132,
+   "shape": "circle",
+   "confidence": 0.822,
+   "label": null,
+   "evidence": {
+    "fill": 0.824,
+    "aspect": 0.79,
+    "corner_fill": 0.51,
+    "area": 11316,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    230,
+    1034,
+    262,
+    1052
+   ],
+   "cx": 246,
+   "cy": 1043,
+   "w": 32,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.819,
+   "label": null,
+   "evidence": {
+    "fill": 0.708,
+    "aspect": 1.78,
+    "corner_fill": 0.31,
+    "area": 408,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "底栏",
+   "bbox": [
+    0,
+    1398,
+    2560,
+    1440
+   ],
+   "why": "横边长直边 y=1398（覆盖 37% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    314,
+    42,
+    2400,
+    1379
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 24,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 17,
+   "row_y": [
+    62,
+    206,
+    262,
+    364,
+    428,
+    509,
+    587,
+    670,
+    731,
+    832,
+    889,
+    989,
+    1046,
+    1146,
+    1203,
+    1256,
+    1355
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "邮件珍藏盒"
+     ]
+    },
+    {
+     "y": 206,
+     "texts": [
+      "10月1日参与《原神》千星奇域『绮星盛会」网页活动，可获得原石等奖励！",
+      "★"
+     ]
+    },
+    {
+     "y": 262,
+     "texts": [
+      "P·A·I·M·O·N",
+      "12天后过期"
+     ]
+    },
+    {
+     "y": 364,
+     "texts": [
+      "【网页活动上线】周年拾光册",
+      "回顾旅途精彩瞬间还有原石奖励哦！",
+      "★",
+      "「判测胜券本征」活动提醒"
+     ]
+    },
+    {
+     "y": 428,
+     "texts": [
+      "1天后过期",
+      "P·A·I·M·O·N",
+      "发件人:P·A·I·M·O·N"
+     ]
+    },
+    {
+     "y": 509,
+     "texts": [
+      "时间：2026-10-16 02:57",
+      "空月祝福即将到期提醒"
+     ]
+    },
+    {
+     "y": 587,
+     "texts": [
+      "P·A·I·M·O·N",
+      "6天后过期",
+      "亲爱的旅行者：",
+      "「判测胜券本征」活动玩法即将过半，欢迎旅行者及时参与活动，获取"
+     ]
+    },
+    {
+     "y": 670,
+     "texts": [
+      "活动奖励~",
+      "「周年拾光册」网页活动即将结束"
+     ]
+    },
+    {
+     "y": 731,
+     "texts": [
+      "P·A·I·M·O·N",
+      "18小时后过期"
+     ]
+    },
+    {
+     "y": 832,
+     "texts": [
+      "「判测胜券本征」活动提醒"
+     ]
+    },
+    {
+     "y": 889,
+     "texts": [
+      "P·A·I·M·O·N",
+      "7小时后过期"
+     ]
+    },
+    {
+     "y": 989,
+     "texts": [
+      "「周年拾光册」网页活动奖励发放"
+     ]
+    },
+    {
+     "y": 1046,
+     "texts": [
+      "P·A·I·M·O·N",
+      "20天后过期"
+     ]
+    },
+    {
+     "y": 1146,
+     "texts": [
+      "「周年拾光册」网页活动奖励发放"
+     ]
+    },
+    {
+     "y": 1203,
+     "texts": [
+      "P·A·I·M·O·N",
+      "20天后过期"
+     ]
+    },
+    {
+     "y": 1256,
+     "texts": [
+      "1000"
+     ]
+    },
+    {
+     "y": 1355,
+     "texts": [
+      "删除已读"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2020,
+    45,
+    2406,
+    1378
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 4,
+   "row_y": [
+    62,
+    193,
+    258,
+    1356
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "邮件数 17/1000"
+     ]
+    },
+    {
+     "y": 193,
+     "texts": [
+      "剩余时间：4天"
+     ]
+    },
+    {
+     "y": 258,
+     "texts": [
+      "前往"
+     ]
+    },
+    {
+     "y": 1356,
+     "texts": [
+      "血"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "「判测胜券本征」活动提醒",
+   "text_id": 16,
+   "target": "rect@(1296,344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 49,
+   "dx": -312,
+   "dy": -21,
+   "confidence": 0.659
+  },
+  {
+   "text": "「判测胜券本征」活动提醒",
+   "text_id": 16,
+   "target": "rect@(1638,299)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 32,
+   "dx": 30,
+   "dy": -66,
+   "confidence": 0.673
+  },
+  {
+   "text": "「判测胜券本征」活动提醒",
+   "text_id": 16,
+   "target": "circle@(1801,222)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 102,
+   "dx": 193,
+   "dy": -143,
+   "confidence": 0.615
+  },
+  {
+   "text": "血",
+   "text_id": 45,
+   "target": "rect@(2270,1357)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "血 删除",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 118,
+   "dy": 1,
+   "confidence": 0.55
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 47,
+   "target": "rect@(2270,1357)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": "血 删除",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -101,
+   "dy": -62,
+   "confidence": 0.55
+  },
+  {
+   "text": "回顾旅途精彩瞬间还有原石奖励哦！",
+   "text_id": 14,
+   "target": "rect@(913,341)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -5,
+   "dy": -22,
+   "confidence": 0.55
+  },
+  {
+   "text": "P·A·I·M·O·N",
+   "text_id": 10,
+   "target": "circle@(336,264)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -157,
+   "dy": 2,
+   "confidence": 0.545
+  },
+  {
+   "text": "P·A·I·M·O·N",
+   "text_id": 17,
+   "target": "circle@(336,421)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -157,
+   "dy": 2,
+   "confidence": 0.545
+  },
+  {
+   "text": "邮件珍藏盒",
+   "text_id": 5,
+   "target": "circle@(1936,64)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 28,
+   "dx": 130,
+   "dy": 2,
+   "confidence": 0.527
+  },
+  {
+   "text": "剩余时间：4天",
+   "text_id": 9,
+   "target": "circle@(2374,258)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 30,
+   "dx": 65,
+   "dy": 65,
+   "confidence": 0.525
+  },
+  {
+   "text": "邮箱",
+   "text_id": 4,
+   "target": "circle@(131,68)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 39,
+   "dx": -92,
+   "dy": 6,
+   "confidence": 0.518
+  },
+  {
+   "text": "发件人:P·A·I·M·O·N",
+   "text_id": 19,
+   "target": "rect@(1296,344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 46,
+   "dx": -269,
+   "dy": -105,
+   "confidence": 0.512
+  },
+  {
+   "text": "10月1日参与《原神》千星奇域『绮星盛会」网页活动，可获得原石等奖励！",
+   "text_id": 7,
+   "target": "circle@(236,223)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 47,
+   "dx": -496,
+   "dy": 17,
+   "confidence": 0.511
+  },
+  {
+   "text": "空月祝福即将到期提醒",
+   "text_id": 21,
+   "target": "circle@(235,535)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 50,
+   "dx": -290,
+   "dy": 16,
+   "confidence": 0.508
+  },
+  {
+   "text": "活动奖励~",
+   "text_id": 27,
+   "target": "circle@(1317,747)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 50,
+   "dx": -119,
+   "dy": 83,
+   "confidence": 0.508
+  },
+  {
+   "text": "12天后过期",
+   "text_id": 11,
+   "target": "rect@(1296,344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 52,
+   "dx": 139,
+   "dy": 82,
+   "confidence": 0.507
+  },
+  {
+   "text": "1天后过期",
+   "text_id": 18,
+   "target": "rect@(1296,344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 52,
+   "dx": 130,
+   "dy": -74,
+   "confidence": 0.507
+  },
+  {
+   "text": "【网页活动上线】周年拾光册",
+   "text_id": 13,
+   "target": "circle@(236,379)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 52,
+   "dx": -256,
+   "dy": 16,
+   "confidence": 0.507
+  },
+  {
+   "text": "「周年拾光册」网页活动即将结束",
+   "text_id": 26,
+   "target": "circle@(235,691)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 53,
+   "dx": -382,
+   "dy": 15,
+   "confidence": 0.506
+  },
+  {
+   "text": "★",
+   "text_id": 8,
+   "target": "rect@(1296,344)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 60,
+   "dx": 92,
+   "dy": 137,
+   "confidence": 0.5
+  },
+  {
+   "text": "邮件数 17/1000",
+   "text_id": 6,
+   "target": "circle@(1936,64)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 66,
+   "dx": -214,
+   "dy": 2,
+   "confidence": 0.495
+  },
+  {
+   "text": "「判测胜券本征」活动玩法即将过半，欢迎旅行者及时参与活动，获取",
+   "text_id": 25,
+   "target": "circle@(1317,747)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 93,
+   "dx": -558,
+   "dy": 128,
+   "confidence": 0.473
+  },
+  {
+   "text": "20天后过期",
+   "text_id": 38,
+   "target": "rect@(1421,1209)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": "1000",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 122,
+   "dx": 269,
+   "dy": 6,
+   "confidence": 0.448
+  },
+  {
+   "text": "前往",
+   "text_id": 12,
+   "target": "rect@(2437,419)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 132,
+   "dx": 140,
+   "dy": 161,
+   "confidence": 0.44
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    123,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，低方差 std=21.8，非纯黑 L=158，纹理对比骤降 std 66.2→21.8（0.33×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 60.3",
+     "GPU:",
+     "5%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 158.4,
+    "bg_std": 21.8,
+    "ring_mean": 102.5,
+    "ring_std": 66.2,
+    "texture_ratio": 0.33,
+    "bg_rgb": [
+     183,
+     163,
+     128
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    168,
+    952,
+    1240,
+    1080
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     119.0,
+     115.0,
+     117.0
+    ],
+    "fill": 0.58,
+    "rect": 0.71
+   },
+   "text": [
+    "「周年拾光册」网页活动奖励发放",
+    "P·A·I·M·O·N",
+    "20天后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      326,
+      1036,
+      346,
+      1060
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 49.0
+    },
+    {
+     "bbox": [
+      202,
+      982,
+      272,
+      1050
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 107.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 97308,
+    "area_frac": 0.0372,
+    "aspect": 8.38,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     119.0,
+     115.0,
+     117.0
+    ],
+    "flat_fill": 0.58,
+    "rect": 0.71
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    154,
+    796,
+    1254,
+    922
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     234.0,
+     129.0,
+     136.0
+    ],
+    "fill": 0.72,
+    "rect": 0.7
+   },
+   "text": [
+    "「判测胜券本征」活动提醒",
+    "P·A·I·M·O·N",
+    "7小时后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      316,
+      880,
+      338,
+      906
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 50.0
+    },
+    {
+     "bbox": [
+      1232,
+      904,
+      1262,
+      932
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 99.0
+    },
+    {
+     "bbox": [
+      1236,
+      784,
+      1262,
+      814
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 94.0
+    },
+    {
+     "bbox": [
+      190,
+      826,
+      258,
+      890
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 69.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.89,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 96640,
+    "area_frac": 0.0376,
+    "aspect": 8.73,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 1,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     234.0,
+     129.0,
+     136.0
+    ],
+    "flat_fill": 0.72,
+    "rect": 0.7
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    168,
+    482,
+    1240,
+    610
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     78.0,
+     127.0,
+     116.0
+    ],
+    "fill": 0.53,
+    "rect": 0.7
+   },
+   "text": [
+    "空月祝福即将到期提醒",
+    "P·A·I·M·O·N",
+    "6天后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      324,
+      564,
+      348,
+      592
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 69.0
+    },
+    {
+     "bbox": [
+      202,
+      510,
+      272,
+      580
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 143.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 95680,
+    "area_frac": 0.0372,
+    "aspect": 8.38,
+    "grid": "col n=6 pitch_x=None pitch_y=156.0",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     78.0,
+     127.0,
+     116.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.7
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    168,
+    168,
+    1240,
+    296
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     58.0,
+     130.0,
+     115.0
+    ],
+    "fill": 0.55,
+    "rect": 0.69
+   },
+   "text": [
+    "10月1日参与《原神》千星奇域『绮星盛会」网页活动，可获得原石等奖励！",
+    "★",
+    "P·A·I·M·O·N",
+    "12天后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      324,
+      250,
+      348,
+      278
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 73.0
+    },
+    {
+     "bbox": [
+      202,
+      196,
+      272,
+      268
+     ],
+     "role": "icon",
+     "fill": 0.5,
+     "contrast": 148.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1186,
+      190,
+      1220,
+      226
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:4",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 4)",
+    "area_px": 94672,
+    "area_frac": 0.0372,
+    "aspect": 8.38,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 0,
+    "text_in": 4,
+    "text_ui": 4,
+    "skin_lab": [
+     58.0,
+     130.0,
+     115.0
+    ],
+    "flat_fill": 0.55,
+    "rect": 0.69
+   }
+  },
+  {
+   "id": "c4",
+   "parent": null,
+   "bbox": [
+    168,
+    326,
+    1240,
+    452
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     66.0,
+     130.0,
+     115.0
+    ],
+    "fill": 0.53,
+    "rect": 0.68
+   },
+   "text": [
+    "【网页活动上线】周年拾光册",
+    "回顾旅途精彩瞬间还有原石奖励哦！",
+    "★",
+    "P·A·I·M·O·N",
+    "1天后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      324,
+      408,
+      348,
+      434
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 73.0
+    },
+    {
+     "bbox": [
+      202,
+      354,
+      272,
+      424
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 147.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1184,
+      348,
+      1220,
+      382
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:5",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.74,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 5)",
+    "area_px": 91504,
+    "area_frac": 0.0366,
+    "aspect": 8.51,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 0,
+    "text_in": 5,
+    "text_ui": 5,
+    "skin_lab": [
+     66.0,
+     130.0,
+     115.0
+    ],
+    "flat_fill": 0.53,
+    "rect": 0.68
+   }
+  },
+  {
+   "id": "c5",
+   "parent": null,
+   "bbox": [
+    168,
+    638,
+    1222,
+    766
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     98.0,
+     120.0,
+     116.0
+    ],
+    "fill": 0.51,
+    "rect": 0.67
+   },
+   "text": [
+    "「周年拾光册」网页活动即将结束",
+    "P·A·I·M·O·N",
+    "18小时后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      324,
+      722,
+      348,
+      748
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 56.0
+    },
+    {
+     "bbox": [
+      202,
+      668,
+      272,
+      738
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 121.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.73,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 90204,
+    "area_frac": 0.0366,
+    "aspect": 8.23,
+    "grid": "col n=6 pitch_x=None pitch_y=156.0",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     98.0,
+     120.0,
+     116.0
+    ],
+    "flat_fill": 0.51,
+    "rect": 0.67
+   }
+  },
+  {
+   "id": "c6",
+   "parent": null,
+   "bbox": [
+    168,
+    1110,
+    1240,
+    1236
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     127.0,
+     114.0,
+     117.0
+    ],
+    "fill": 0.48,
+    "rect": 0.62
+   },
+   "text": [
+    "「周年拾光册」网页活动奖励发放",
+    "P·A·I·M·O·N",
+    "20天后过期"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      200,
+      1134,
+      272,
+      1212
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 88.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.72,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 83404,
+    "area_frac": 0.0366,
+    "aspect": 8.51,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 0,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     127.0,
+     114.0,
+     117.0
+    ],
+    "flat_fill": 0.48,
+    "rect": 0.62
+   }
+  },
+  {
+   "id": "c7",
+   "parent": null,
+   "bbox": [
+    2116,
+    1320,
+    2428,
+    1394
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "fill": 0.63,
+    "rect": 0.66
+   },
+   "text": [
+    "血",
+    "删除"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2112,
+      1314,
+      2204,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.38,
+     "contrast": 201.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      2142,
+      1340,
+      2166,
+      1372
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.78,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15288,
+    "area_frac": 0.0063,
+    "aspect": 4.22,
+    "grid": "none",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 1,
+    "skin_lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "flat_fill": 0.63,
+    "rect": 0.66
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 60.3",
+  "GPU:",
+  "5%",
+  "邮箱",
+  "邮件珍藏盒",
+  "邮件数 17/1000",
+  "剩余时间：4天",
+  "前往",
+  "「判测胜券本征」活动提醒",
+  "发件人:P·A·I·M·O·N",
+  "时间：2026-10-16 02:57",
+  "亲爱的旅行者：",
+  "「判测胜券本征」活动玩法即将过半，欢迎旅行者及时参与活动，获取",
+  "活动奖励~",
+  "1000",
+  "min:",
+  "9.4 ms",
+  "max: 25.9 ms",
+  "部领即",
+  "删除已读",
+  "UID: 110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2418,
+    24,
+    2496,
+    102
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 190.0
+  },
+  {
+   "bbox": [
+    2302,
+    36,
+    2356,
+    90
+   ],
+   "role": "icon",
+   "fill": 0.78,
+   "contrast": 231.0
+  },
+  {
+   "bbox": [
+    66,
+    156,
+    110,
+    254
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 221.0
+  },
+  {
+   "bbox": [
+    2002,
+    1324,
+    2068,
+    1390
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 122.0
+  },
+  {
+   "bbox": [
+    1460,
+    1244,
+    1484,
+    1272
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    1910,
+    32,
+    1970,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 242.0
+  },
+  {
+   "bbox": [
+    1610,
+    288,
+    1656,
+    304
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 202.0
+  },
+  {
+   "bbox": [
+    1358,
+    1146,
+    1484,
+    1272
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 213.0
+  },
+  {
+   "bbox": [
+    66,
+    30,
+    150,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 204.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 156,
+  "ocr_ms": 782,
+  "pixel_ms": 1091,
+  "container_ms": 397,
+  "container_cached": false,
+  "total_ms": 2029,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 48,
+  "err": null
+ },
+ "title_text_id": 16,
+ "digest": "屏幕 2560x1440 · 文本 48 · 控件 40 · 容器 8 · 邻接 24 · 遮挡 1 · 2029ms（OCR daemon）\n标题「「判测胜券本征」活动提醒」@(1608,365) 画面 · 字高 50px\n邻接「「判测胜券本征」活动提醒」→ rect@(1296,344) 左侧 49px\n邻接「「判测胜券本征」活动提醒」→ rect@(1638,299) 上方 32px\n邻接「「判测胜券本征」活动提醒」→ circle@(1801,222) 上方 102px\n控件: rect@(1296,344) | rect@(1638,299) | circle@(1801,222) | rect@(2270,1357)「血 删除」\n区域: 底栏 (0,1398)-(2560,1440)\n遮挡 [0, 0, 123, 80] (0,0)-(123,80)（conf 0.90）：左上角小字叠加层：小字 4 框，低方差 std=21.8，非纯黑 L=158，纹理对比骤降 std 66.2→21.8（0.33×）\n可点文字 2 个: 删除已读 / 删除"
+}

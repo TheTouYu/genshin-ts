@@ -1,0 +1,38 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=f04 image=.scratch/gui-corpus/f04.png backend=cv units=34
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | icon | 74 170 60 72 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 148 173 185 65 | 活动一览 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 2420 173 75 69 | X | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | icon | 2422 238 72 34 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | panel | 264 270 386 568 | 无神怜爱的冻土 / 且试身手 / 风仙亦是仙，古剑通幽玄! / 溯流的变奏曲 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [442, 300, 474, 332]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 2126 303 161 62 | 活动说明 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | icon | 2074 310 50 54 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 169 312 51 45 | W | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 1258 362 345 111 | 绮星盛会 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 264 375 386 54 | 无神怜爱的冻土 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 1267 461 349 51 | 活动剩余时间：15天11小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 264 496 386 55 | 且试身手 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 1409 571 371 63 | 千星商城·时装复刻 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | icon | 1302 584 102 86 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 264 622 386 49 | 风仙亦是仙，古剑通幽玄! | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 1459 629 343 47 | 首次购买事象凝核可获得额外赠礼 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | icon | 2408 646 66 42 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 264 740 386 54 | 溯流的变奏曲 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 1401 745 232 58 | 参与绮星盛会 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | icon | 1298 754 108 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | icon | 1808 756 84 72 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 1903 762 166 56 | 奇匠赛事 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | row | 1408 791 182 42 | 3天11小时后结束 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | icon | 868 842 96 118 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | button | 322 854 340 74 | 绮星盛会 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+25 | row | 1544 933 416 67 | 绮星盛会·奇域佳选 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | card | 260 942 396 282 | 奇域秘藏 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+27 | row | 853 957 114 47 | 巧趣赠礼 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | row | 1544 988 298 46 | 玩法剩余时间：3天11小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | row | 854 1016 188 47 | 奇怪丘丘面具 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | row | 881 1050 99 47 | 已领取 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+31 | icon | 2474 1066 86 58 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | -3 1289 287 36 | min: / 6.7 ms / nax: / 28.0 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+33 | row | 2249 1393 244 51 | UID:110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

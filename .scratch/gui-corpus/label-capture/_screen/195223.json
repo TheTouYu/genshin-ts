@@ -1,0 +1,1664 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195223.png",
+  "sha256": "33c0d8cc39808a0822a8e4a0a336118a5ff479f71d83d22238282fba22a69a43",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 2840349
+ },
+ "title": null,
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    120,
+    32
+   ],
+   "w": 120,
+   "h": 29,
+   "score": 0.9909,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 59.9",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9963,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU: 62%",
+   "cx": 56,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    108,
+    77
+   ],
+   "w": 105,
+   "h": 22,
+   "score": 0.9952,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "当前时间",
+   "cx": 1279,
+   "cy": 479,
+   "bbox": [
+    1206,
+    457,
+    1352,
+    501
+   ],
+   "w": 146,
+   "h": 44,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "01:03",
+   "cx": 1279,
+   "cy": 574,
+   "bbox": [
+    1205,
+    550,
+    1353,
+    599
+   ],
+   "w": 148,
+   "h": 49,
+   "score": 0.9956,
+   "kind": "data"
+  },
+  {
+   "id": 5,
+   "text": "调整到",
+   "cx": 1278,
+   "cy": 667,
+   "bbox": [
+    1223,
+    646,
+    1334,
+    687
+   ],
+   "w": 111,
+   "h": 41,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "V",
+   "cx": 1280,
+   "cy": 719,
+   "bbox": [
+    1272,
+    713,
+    1287,
+    725
+   ],
+   "w": 15,
+   "h": 12,
+   "score": 0.5087,
+   "kind": "other"
+  },
+  {
+   "id": 7,
+   "text": "01:14",
+   "cx": 1279,
+   "cy": 768,
+   "bbox": [
+    1203,
+    741,
+    1356,
+    794
+   ],
+   "w": 153,
+   "h": 53,
+   "score": 0.9816,
+   "kind": "data"
+  },
+  {
+   "id": 8,
+   "text": "今日",
+   "cx": 1279,
+   "cy": 823,
+   "bbox": [
+    1249,
+    803,
+    1310,
+    843
+   ],
+   "w": 61,
+   "h": 40,
+   "score": 0.9986,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "■",
+   "cx": 2077,
+   "cy": 825,
+   "bbox": [
+    2072,
+    820,
+    2082,
+    830
+   ],
+   "w": 10,
+   "h": 10,
+   "score": 0.7192,
+   "kind": "other"
+  },
+  {
+   "id": 10,
+   "text": "口",
+   "cx": 1280,
+   "cy": 892,
+   "bbox": [
+    1250,
+    862,
+    1310,
+    921
+   ],
+   "w": 60,
+   "h": 59,
+   "score": 0.7158,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "时间少于30分钟",
+   "cx": 1918,
+   "cy": 1268,
+   "bbox": [
+    1794,
+    1247,
+    2042,
+    1289
+   ],
+   "w": 248,
+   "h": 42,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "min: 9.2 ms",
+   "cx": 61,
+   "cy": 1308,
+   "bbox": [
+    6,
+    1298,
+    116,
+    1317
+   ],
+   "w": 110,
+   "h": 19,
+   "score": 0.9842,
+   "kind": "data"
+  },
+  {
+   "id": 13,
+   "text": "max: 40.0 ms",
+   "cx": 214,
+   "cy": 1308,
+   "bbox": [
+    154,
+    1296,
+    274,
+    1320
+   ],
+   "w": 120,
+   "h": 24,
+   "score": 0.9448,
+   "kind": "data"
+  },
+  {
+   "id": 14,
+   "text": "UID: 110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9526,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1852,
+    874,
+    1872,
+    894
+   ],
+   "cx": 1862,
+   "cy": 884,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.84,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1892,
+    966,
+    1912,
+    986
+   ],
+   "cx": 1902,
+   "cy": 976,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.83,
+    "aspect": 1.0,
+    "corner_fill": 0.19,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    406,
+    1078,
+    430,
+    1096
+   ],
+   "cx": 418,
+   "cy": 1087,
+   "w": 24,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.815,
+    "aspect": 1.33,
+    "corner_fill": 0.12,
+    "area": 352,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1782,
+    512,
+    1810,
+    538
+   ],
+   "cx": 1796,
+   "cy": 525,
+   "w": 28,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.434,
+    "aspect": 1.08,
+    "corner_fill": 0.08,
+    "area": 316,
+    "src": "flat"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2078,
+    568,
+    2100,
+    596
+   ],
+   "cx": 2089,
+   "cy": 582,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.571,
+    "aspect": 0.79,
+    "corner_fill": 0.06,
+    "area": 352,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1902,
+    652,
+    1934,
+    684
+   ],
+   "cx": 1918,
+   "cy": 668,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 70.1,
+    "ring_L": 174.6,
+    "inside_L": 129.2,
+    "outside_L": 79.8
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1902,
+    874,
+    1938,
+    910
+   ],
+   "cx": 1920,
+   "cy": 892,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 1.0,
+    "contrast": 47.0,
+    "ring_L": 99.3,
+    "inside_L": 49.7,
+    "outside_L": 55.0
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    2124,
+    648,
+    2164,
+    688
+   ],
+   "cx": 2144,
+   "cy": 668,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 61.8,
+    "ring_L": 159.9,
+    "inside_L": 134.2,
+    "outside_L": 62.1
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1674,
+    648,
+    1714,
+    688
+   ],
+   "cx": 1694,
+   "cy": 668,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 63.3,
+    "ring_L": 159.9,
+    "inside_L": 134.2,
+    "outside_L": 59.0
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1878,
+    746,
+    1906,
+    774
+   ],
+   "cx": 1892,
+   "cy": 760,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.986,
+    "contrast": 54.5,
+    "ring_L": 173.8,
+    "inside_L": 111.6,
+    "outside_L": 127.0
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1850,
+    850,
+    1870,
+    872
+   ],
+   "cx": 1860,
+   "cy": 861,
+   "w": 20,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.745,
+    "aspect": 0.91,
+    "corner_fill": 0.25,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1798,
+    466,
+    1824,
+    496
+   ],
+   "cx": 1811,
+   "cy": 481,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 0.87,
+    "corner_fill": 0.25,
+    "area": 520,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2058,
+    500,
+    2088,
+    532
+   ],
+   "cx": 2073,
+   "cy": 516,
+   "w": 30,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.583,
+    "aspect": 0.94,
+    "corner_fill": 0.22,
+    "area": 560,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1968,
+    866,
+    1988,
+    894
+   ],
+   "cx": 1978,
+   "cy": 880,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 0.71,
+    "corner_fill": 0.31,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2222,
+    652,
+    2266,
+    684
+   ],
+   "cx": 2244,
+   "cy": 668,
+   "w": 44,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.699,
+    "aspect": 1.38,
+    "corner_fill": 0.28,
+    "area": 984,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1752,
+    500,
+    1782,
+    530
+   ],
+   "cx": 1767,
+   "cy": 515,
+   "w": 30,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.644,
+    "aspect": 1.0,
+    "corner_fill": 0.27,
+    "area": 580,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    600,
+    758,
+    626,
+    784
+   ],
+   "cx": 613,
+   "cy": 771,
+   "w": 26,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.675,
+    "aspect": 1.0,
+    "corner_fill": 0.28,
+    "area": 456,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2458,
+    54,
+    2476,
+    74
+   ],
+   "cx": 2467,
+   "cy": 64,
+   "w": 18,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.933,
+    "aspect": 0.9,
+    "corner_fill": 1.0,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2092,
+    546,
+    2124,
+    574
+   ],
+   "cx": 2108,
+   "cy": 560,
+   "w": 32,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.643,
+    "aspect": 1.14,
+    "corner_fill": 0.28,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    894,
+    716,
+    942,
+    768
+   ],
+   "cx": 918,
+   "cy": 742,
+   "w": 48,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.442,
+    "aspect": 0.92,
+    "corner_fill": 0.21,
+    "area": 1104,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    932,
+    682,
+    948,
+    702
+   ],
+   "cx": 940,
+   "cy": 692,
+   "w": 16,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.89,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.8,
+    "corner_fill": 0.38,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1922,
+    476,
+    1986,
+    528
+   ],
+   "cx": 1954,
+   "cy": 502,
+   "w": 64,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.531,
+    "aspect": 1.23,
+    "corner_fill": 0.26,
+    "area": 1768,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1798,
+    840,
+    1822,
+    872
+   ],
+   "cx": 1810,
+   "cy": 856,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.887,
+   "label": null,
+   "evidence": {
+    "fill": 0.651,
+    "aspect": 0.75,
+    "corner_fill": 0.31,
+    "area": 500,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1870,
+    942,
+    1976,
+    1048
+   ],
+   "cx": 1923,
+   "cy": 995,
+   "w": 106,
+   "h": 106,
+   "shape": "circle",
+   "confidence": 0.887,
+   "label": null,
+   "evidence": {
+    "fill": 0.692,
+    "aspect": 1.0,
+    "corner_fill": 0.32,
+    "area": 7776,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    940,
+    442,
+    966,
+    462
+   ],
+   "cx": 953,
+   "cy": 452,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.662,
+    "aspect": 1.3,
+    "corner_fill": 0.31,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    908,
+    564,
+    968,
+    630
+   ],
+   "cx": 938,
+   "cy": 597,
+   "w": 60,
+   "h": 66,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.582,
+    "aspect": 0.91,
+    "corner_fill": 0.28,
+    "area": 2304,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    2090,
+    802,
+    2122,
+    832
+   ],
+   "cx": 2106,
+   "cy": 817,
+   "w": 32,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.692,
+    "aspect": 1.07,
+    "corner_fill": 0.34,
+    "area": 664,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    960,
+    418,
+    990,
+    446
+   ],
+   "cx": 975,
+   "cy": 432,
+   "w": 30,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.495,
+    "aspect": 1.07,
+    "corner_fill": 0.27,
+    "area": 416,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2092,
+    706,
+    2114,
+    736
+   ],
+   "cx": 2103,
+   "cy": 721,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.436,
+    "aspect": 0.73,
+    "corner_fill": 0.25,
+    "area": 288,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2014,
+    550,
+    2052,
+    584
+   ],
+   "cx": 2033,
+   "cy": 567,
+   "w": 38,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.424,
+    "aspect": 1.12,
+    "corner_fill": 0.25,
+    "area": 548,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2126,
+    718,
+    2146,
+    738
+   ],
+   "cx": 2136,
+   "cy": 728,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.869,
+   "label": null,
+   "evidence": {
+    "fill": 0.89,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    2430,
+    28,
+    2504,
+    100
+   ],
+   "cx": 2467,
+   "cy": 64,
+   "w": 74,
+   "h": 72,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 1.03,
+    "corner_fill": 0.37,
+    "area": 3704,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1732,
+    594,
+    1756,
+    620
+   ],
+   "cx": 1744,
+   "cy": 607,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.538,
+    "aspect": 0.92,
+    "corner_fill": 0.31,
+    "area": 336,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    2016,
+    642,
+    2044,
+    678
+   ],
+   "cx": 2030,
+   "cy": 660,
+   "w": 28,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.46,
+    "aspect": 0.78,
+    "corner_fill": 0.28,
+    "area": 464,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2116,
+    600,
+    2146,
+    620
+   ],
+   "cx": 2131,
+   "cy": 610,
+   "w": 30,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 1.5,
+    "corner_fill": 0.31,
+    "area": 480,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1796,
+    672,
+    1824,
+    692
+   ],
+   "cx": 1810,
+   "cy": 682,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.858,
+   "label": null,
+   "evidence": {
+    "fill": 0.521,
+    "aspect": 1.4,
+    "corner_fill": 0.31,
+    "area": 292,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1570,
+    650,
+    1622,
+    684
+   ],
+   "cx": 1596,
+   "cy": 667,
+   "w": 52,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.79,
+    "aspect": 1.53,
+    "corner_fill": 0.3,
+    "area": 1396,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2018,
+    466,
+    2042,
+    494
+   ],
+   "cx": 2030,
+   "cy": 480,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.851,
+   "label": null,
+   "evidence": {
+    "fill": 0.679,
+    "aspect": 0.86,
+    "corner_fill": 0.39,
+    "area": 456,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1216,
+    496,
+    1352,
+    518
+   ],
+   "cx": 1284,
+   "cy": 507,
+   "w": 136,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 6.18,
+    "corner_fill": 0.0,
+    "area": 2328,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1842,
+    488,
+    1916,
+    540
+   ],
+   "cx": 1879,
+   "cy": 514,
+   "w": 74,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.849,
+   "label": null,
+   "evidence": {
+    "fill": 0.458,
+    "aspect": 1.42,
+    "corner_fill": 0.31,
+    "area": 1764,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    1794,
+    820,
+    2082,
+    1289
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 21,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    825,
+    1268
+   ],
+   "rows": [
+    {
+     "y": 825,
+     "texts": [
+      "■"
+     ]
+    },
+    {
+     "y": 1268,
+     "texts": [
+      "时间少于30分钟"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1203,
+    457,
+    1356,
+    921
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 29,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 7,
+   "row_y": [
+    479,
+    574,
+    667,
+    719,
+    768,
+    823,
+    892
+   ],
+   "rows": [
+    {
+     "y": 479,
+     "texts": [
+      "当前时间"
+     ]
+    },
+    {
+     "y": 574,
+     "texts": [
+      "01:03"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "调整到"
+     ]
+    },
+    {
+     "y": 719,
+     "texts": [
+      "V"
+     ]
+    },
+    {
+     "y": 768,
+     "texts": [
+      "01:14"
+     ]
+    },
+    {
+     "y": 823,
+     "texts": [
+      "今日"
+     ]
+    },
+    {
+     "y": 892,
+     "texts": [
+      "口"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "当前时间",
+   "text_id": 3,
+   "target": "rect@(1284,507)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 5,
+   "dy": 28,
+   "confidence": 0.55
+  },
+  {
+   "text": "调整到",
+   "text_id": 5,
+   "target": "rect@(1284,507)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 128,
+   "dx": 6,
+   "dy": -160,
+   "confidence": 0.443
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    123,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=0.9，非纯黑 L=76，纹理对比骤降 std 4.0→0.9（0.22×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 59.9",
+     "GPU: 62%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 75.9,
+    "bg_std": 0.9,
+    "ring_mean": 78.0,
+    "ring_std": 4.0,
+    "texture_ratio": 0.22,
+    "bg_rgb": [
+     42,
+     72,
+     113
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     43.0,
+     126.0,
+     117.0
+    ],
+    "fill": 0.46,
+    "rect": 0.57
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS: 59.9",
+    "GPU: 62%",
+    "当前时间",
+    "01:03",
+    "调整到",
+    "V",
+    "01:14",
+    "今日",
+    "■",
+    "口",
+    "时间少于30分钟",
+    "min: 9.2 ms",
+    "max: 40.0 ms",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2428,
+      24,
+      2506,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 189.0
+    },
+    {
+     "bbox": [
+      856,
+      546,
+      898,
+      562
+     ],
+     "role": "icon",
+     "fill": 0.57,
+     "contrast": 76.0
+    },
+    {
+     "bbox": [
+      1562,
+      638,
+      1630,
+      682
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 198.0
+    },
+    {
+     "bbox": [
+      34,
+      1400,
+      166,
+      1418
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 68.0
+    },
+    {
+     "bbox": [
+      2216,
+      650,
+      2272,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 139.0
+    },
+    {
+     "bbox": [
+      1894,
+      968,
+      1912,
+      986
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 228.0
+    },
+    {
+     "bbox": [
+      1882,
+      306,
+      1958,
+      384
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      100,
+      1422,
+      176,
+      1440
+     ],
+     "role": "icon",
+     "fill": 0.41,
+     "contrast": 71.0
+    },
+    {
+     "bbox": [
+      944,
+      916,
+      992,
+      1056
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 85.0
+    },
+    {
+     "bbox": [
+      1846,
+      442,
+      1880,
+      458
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 227.0
+    },
+    {
+     "bbox": [
+      1902,
+      962,
+      1950,
+      1024
+     ],
+     "role": "icon",
+     "fill": 0.35,
+     "contrast": 236.0
+    },
+    {
+     "bbox": [
+      1226,
+      378,
+      1334,
+      408
+     ],
+     "role": "icon",
+     "fill": 0.34,
+     "contrast": 176.0
+    },
+    {
+     "bbox": [
+      1792,
+      470,
+      1816,
+      486
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 225.0
+    },
+    {
+     "bbox": [
+      2020,
+      468,
+      2046,
+      484
+     ],
+     "role": "icon",
+     "fill": 0.31,
+     "contrast": 224.0
+    },
+    {
+     "bbox": [
+      744,
+      552,
+      856,
+      586
+     ],
+     "role": "icon",
+     "fill": 0.28,
+     "contrast": 92.0
+    },
+    {
+     "bbox": [
+      1972,
+      490,
+      2014,
+      516
+     ],
+     "role": "icon",
+     "fill": 0.27,
+     "contrast": 216.0
+    },
+    {
+     "bbox": [
+      1992,
+      562,
+      2062,
+      598
+     ],
+     "role": "icon",
+     "fill": 0.26,
+     "contrast": 63.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:15",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.61,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 9)",
+    "area_px": 2096600,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 15,
+    "text_ui": 9,
+    "skin_lab": [
+     43.0,
+     126.0,
+     117.0
+    ],
+    "flat_fill": 0.46,
+    "rect": 0.57
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 197,
+  "ocr_ms": 427,
+  "pixel_ms": 845,
+  "container_ms": 380,
+  "container_cached": false,
+  "total_ms": 1470,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 15,
+  "err": null
+ },
+ "title_text_id": null,
+ "digest": "屏幕 2560x1440 · 文本 15 · 控件 40 · 容器 1 · 邻接 2 · 遮挡 1 · 1470ms（OCR daemon）\n标题：未识别到（上半屏无可读大字）\n控件: rect@(1284,507) | circle@(1862,884) | circle@(1902,976) | circle@(418,1087)\n遮挡 [0, 0, 123, 80] (0,0)-(123,80)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=0.9，非纯黑 L=76，纹理对比骤降 std 4.0→0.9（0.22×）"
+}

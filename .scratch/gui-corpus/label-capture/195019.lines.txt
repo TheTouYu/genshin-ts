@@ -1,0 +1,42 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195019 image=.scratch/gui-corpus/capture-2026-10-18/195019.png backend=cv units=38
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | icon | 2418 24 78 78 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 1113 30 80 62 | 田 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | icon | 66 34 72 64 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 177 34 258 55 | 好友／我的好友 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 2067 34 314 55 | 我的好友 173/200 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | icon | 1256 38 50 50 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | icon | 1384 38 50 50 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | icon | 1028 46 46 36 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | icon | 1486 46 46 36 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 364 124 191 55 | 早每果果 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 2026 138 171 61 | 申请加入 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 292 148 1398 92 | 早每果果 / Lv.60 / 在线 / 年少不知软饭香 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | icon | 2274 154 46 38 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | row | 357 277 232 73 | 鸠眸，楚杰 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | icon | 2256 296 84 84 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 2024 303 174 65 | 申请加入 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 357 344 232 52 | Lv.59 / 在线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 1210 346 154 51 | 原来是你呀 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 360 445 288 68 | 過往誓言凋零. | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | button | 1994 474 236 60 | 申请加入 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+20 | row | 360 511 229 52 | Lv.56 / 在线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 1213 515 249 45 | 伊涅芙你喜欢小猫吗 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | row | 357 610 80 73 | 荧 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 2410 676 90 85 | 司 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | row | 359 677 256 53 | Lv.60 / 今日内 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | row | 1210 679 483 50 | 亲若兰芷，近如晨曦；语轻似羽，情重若磐 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | icon | 78 692 42 56 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | row | 192 766 1564 142 | 白 / Lv.60 / 今日内 / 这个人很懒，什么都没写 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | button | 1998 810 228 52 | 离线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+29 | row | 192 932 1806 142 | 真龙堂张新 / Lv.60 / 今日内 / 时隔八一二天我终于有77了 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | icon | 2256 964 80 78 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+31 | row | 2059 970 105 64 | 离线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | 264 1098 1498 156 | 熬夜大魔王 / Lv.60 / 今日内 / 12点之后看到我就喊我去睡觉 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+33 | row | 2054 1124 114 81 | 离线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+34 | row | -3 1286 272 41 | min: / 2.2 ns / nax: / 176.9 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+35 | icon | 494 1328 40 64 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+36 | row | 264 1329 187 56 | 黑名单管理 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+37 | row | 2249 1393 244 51 | UID:110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

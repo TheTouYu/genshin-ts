@@ -1,0 +1,1152 @@
+{
+ "frame": "195053",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195053.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195053.json",
+  "prelabel_src": {
+   "container": 2,
+   "row-split": 8,
+   "loose-text": 33,
+   "glyph": 0
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 43,
+ "objects": [
+  {
+   "bbox": [
+    178,
+    34,
+    255,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "好友／最近联机"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2070,
+    35,
+    309,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "我的好友173/200"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    362,
+    172,
+    112,
+    68
+   ],
+   "kind": "row",
+   "text": [
+    "紫语"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    361,
+    237,
+    105,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.58"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    765,
+    253,
+    228,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "UID130433573"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    1802,
+    268,
+    90,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "名片"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    975,
+    290,
+    293,
+    69
+   ],
+   "kind": "row",
+   "text": [
+    "奧黛塔·鹄鸾"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    964,
+    300,
+    634,
+    58
+   ],
+   "kind": "chip",
+   "text": [
+    "奧黛塔·鹄鸾"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "yes",
+   "src": "container",
+   "id": 7
+  },
+  {
+   "bbox": [
+    362,
+    339,
+    124,
+    67
+   ],
+   "kind": "row",
+   "text": [
+    "烧冻双"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    2070,
+    367,
+    143,
+    57
+   ],
+   "kind": "row",
+   "text": [
+    "主其大厅"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    361,
+    404,
+    107,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 10
+  },
+  {
+   "bbox": [
+    809,
+    458,
+    141,
+    83
+   ],
+   "kind": "row",
+   "text": [
+    "紫语"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    360,
+    503,
+    115,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "绛河"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    364,
+    573,
+    102,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    568,
+    593,
+    138,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "冒险等阶"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    958,
+    638,
+    644,
+    536
+   ],
+   "kind": "panel",
+   "text": [
+    "名片纹饰。",
+    "不论是璃月还是至冬，都认为鹄鸟是又大",
+    "又高傲的鸟类。而在有群居习性的雪鹄之",
+    "中，却独有一只黑色的雪鹄。当然，这只",
+    "是《黑雪鹄》的故事啦。",
+    "O",
+    "来源",
+    "奥黛塔的好感等级达到10级时获取。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 15
+  },
+  {
+   "bbox": [
+    566,
+    649,
+    143,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "世界等级"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    362,
+    672,
+    133,
+    66
+   ],
+   "kind": "row",
+   "text": [
+    "月が総"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    958,
+    710,
+    644,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "名片纹饰。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 18
+  },
+  {
+   "bbox": [
+    568,
+    713,
+    194,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "尚未设置签名"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    361,
+    737,
+    107,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    958,
+    754,
+    644,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "不论是璃月还是至冬，都认为鹄鸟是又大"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 21
+  },
+  {
+   "bbox": [
+    958,
+    794,
+    644,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "又高傲的鸟类。而在有群居习性的雪鹄之"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 22
+  },
+  {
+   "bbox": [
+    958,
+    832,
+    644,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "中，却独有一只黑色的雪鹄。当然，这只"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 23
+  },
+  {
+   "bbox": [
+    361,
+    839,
+    131,
+    66
+   ],
+   "kind": "row",
+   "text": [
+    "旅行者"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    595,
+    859,
+    131,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "成就总数"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    958,
+    871,
+    644,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "是《黑雪鹄》的故事啦。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 26
+  },
+  {
+   "bbox": [
+    362,
+    903,
+    104,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.57"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    596,
+    919,
+    226,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "好感度已满的角色"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    958,
+    955,
+    644,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "来源"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 29
+  },
+  {
+   "bbox": [
+    958,
+    958,
+    644,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "O"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 30
+  },
+  {
+   "bbox": [
+    593,
+    974,
+    134,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "深境螺旋"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  },
+  {
+   "bbox": [
+    362,
+    1002,
+    129,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "工作达"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 32
+  },
+  {
+   "bbox": [
+    597,
+    1034,
+    176,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "幻想真境剧诗"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 33
+  },
+  {
+   "bbox": [
+    958,
+    1034,
+    644,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "奥黛塔的好感等级达到10级时获取。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 34
+  },
+  {
+   "bbox": [
+    362,
+    1070,
+    106,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    1600,
+    1074,
+    159,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "添加好友"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    596,
+    1090,
+    130,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "幽境危战"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 37
+  },
+  {
+   "bbox": [
+    364,
+    1173,
+    186,
+    65
+   ],
+   "kind": "row",
+   "text": [
+    "风夜陨落"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  },
+  {
+   "bbox": [
+    2026,
+    1195,
+    171,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 39
+  },
+  {
+   "bbox": [
+    365,
+    1241,
+    97,
+    43
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 40
+  },
+  {
+   "bbox": [
+    -3,
+    1289,
+    287,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "min: 4.6 ms",
+    "30.0 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 41
+  },
+  {
+   "bbox": [
+    2248,
+    1392,
+    245,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 42
+  }
+ ]
+}

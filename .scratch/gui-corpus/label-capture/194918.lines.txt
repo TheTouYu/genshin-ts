@@ -1,0 +1,55 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=194918 image=.scratch/gui-corpus/capture-2026-10-18/194918.png backend=cv units=51
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | row | 990 8 410 48 | PaddleOCR-文档解析与× D1 api | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 1873 10 302 45 | × / 智谱BigModel 平台 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 320 11 560 45 | Greeting — DeepSeek Ha× / DeepSeek Platform | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 1627 11 119 43 | Sunshine | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 2503 11 50 43 | × | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 2334 12 54 42 | Cq | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | row | 1983 67 130 54 | 文 / 120% | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 2334 71 50 47 | 0 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 2446 73 50 44 | 0 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 435 75 234 42 | http://127.0.0.1:3080 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 606 143 1620 54 | GUI下一轮计划先读后汇报 / 、智能体团队6记忆河流+长上下文+开发 / 节律 / 预设组合器 / 3个子智能体1个后台任务运行中 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 2330 148 50 46 | 7 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 131 165 311 55 | deepseek / HARNESS | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | row | 604 201 194 56 | 对话 / 轨迹 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 241 259 147 52 | 新会话 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 973 264 602 46 | >. 运行命令· Capture a probe frame to verify content | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 4 289 52 50 | Ω | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 973 316 729 52 | 读取图片.scratch/gui-corpus/capture-2026-10-18/probe.png | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 122 346 89 55 | 插件 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | row | 126 418 160 55 | 自动化任务 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | row | 71 505 110 52 | 工作区 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 382 511 51 44 | Q | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | row | 477 559 80 44 | 4小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 122 561 253 42 | 目动化仕务机制介绍 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | row | 975 615 844 48 | Vho.----n-nng | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | row | 120 616 437 50 | 检查系统状态与当前压力 / 11小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | row | 975 647 302 42 | 2560x1440px,262934 字节 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | row | 121 681 434 45 | 处理KDE 桌面警告通知并加... 1小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | row | 120 740 216 45 | 展开其余 32 个会话 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | row | 970 746 1187 50 | & 思考. Again the capture shows the browser (this DSH GUl), not the game. So the capture still grabs the .. | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | row | 85 796 184 54 | 日 / genshin-ts | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+31 | row | 973 803 557 45 | >. 运行命令. Start 1fps background capture loop | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | 971 857 415 45 | 思考. Started. Now tell the user: | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+33 | row | 119 861 439 48 | GUI下一轮计划先读后汇报 / 刚刚 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+34 | row | 971 908 469 50 | >. 运行命令 . Check capture loop output | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+35 | row | 120 922 438 50 | Genshin 项目交接验收与后... 52分钟 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+36 | row | 970 965 298 49 | 上下文注入·skill-rec | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+37 | row | 119 984 254 50 | GUI操作能力层验收 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+38 | row | 468 988 89 44 | 12小时 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+39 | row | 120 1046 282 49 | 视觉基建与三游戏通关 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+40 | row | 495 1048 64 47 | 1天 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+41 | row | 969 1059 319 52 | 深度求索中，用时42秒… | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+42 | row | 120 1110 437 46 | 补齐AI开发游戏缺失环节优先级1天 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+43 | row | 965 1153 535 49 | 发消息或创建任务，/调用指令，@文件或对话 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+44 | row | 120 1168 216 47 | 展开其余13 个会话 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+45 | row | 82 1225 143 50 |  ai小说 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+46 | row | 968 1241 257 57 | + / ①完全权限 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+47 | row | 1584 1248 422 47 | DeepSeek-V4.1-Flash / 1017 / Max | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+48 | row | 129 1286 86 55 | 透雨 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+49 | row | 1171 1315 787 52 | 10 轮 103步·226 tok/s / 11.3M tok·缓存命中 97% / 16% | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+50 | row | 1070 1378 1490 62 | 为 / 19:49 / 2026/10/18 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1924, 1390, 1958, 1422]}, {"type": "red", "bbox": [1972, 1400, 1986, 1422]}], "clipped": {"edges": ["right", "bottom"], "cut_by": "screen", "px": 0}}

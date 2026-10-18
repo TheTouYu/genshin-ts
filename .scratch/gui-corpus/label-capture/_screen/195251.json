@@ -1,0 +1,2880 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195251.png",
+  "sha256": "064b44989e67761bc94e53d504583202bbc1ad1c91c406082475fd1faf1f5c4b",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 1066948
+ },
+ "title": {
+  "text": "说明",
+  "cx": 1280,
+  "cy": 309,
+  "bbox": [
+   1220,
+   275,
+   1339,
+   343
+  ],
+  "region": null,
+  "why": "上半屏字高最大（68px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    120,
+    32
+   ],
+   "w": 120,
+   "h": 29,
+   "score": 0.9926,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "GPU:",
+   "cx": 30,
+   "cy": 66,
+   "bbox": [
+    2,
+    55,
+    58,
+    77
+   ],
+   "w": 56,
+   "h": 22,
+   "score": 0.9979,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "FPS:",
+   "cx": 32,
+   "cy": 42,
+   "bbox": [
+    3,
+    30,
+    61,
+    54
+   ],
+   "w": 58,
+   "h": 24,
+   "score": 0.9854,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "60.1",
+   "cx": 89,
+   "cy": 43,
+   "bbox": [
+    61,
+    32,
+    117,
+    54
+   ],
+   "w": 56,
+   "h": 22,
+   "score": 0.9979,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "8%",
+   "cx": 78,
+   "cy": 66,
+   "bbox": [
+    61,
+    56,
+    95,
+    77
+   ],
+   "w": 34,
+   "h": 21,
+   "score": 0.9991,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "邮箱",
+   "cx": 223,
+   "cy": 62,
+   "bbox": [
+    184,
+    38,
+    263,
+    86
+   ],
+   "w": 79,
+   "h": 48,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "邮件珍藏盒",
+   "cx": 1805,
+   "cy": 62,
+   "bbox": [
+    1721,
+    42,
+    1890,
+    82
+   ],
+   "w": 169,
+   "h": 40,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "0",
+   "cx": 1958,
+   "cy": 45,
+   "bbox": [
+    1947,
+    32,
+    1970,
+    57
+   ],
+   "w": 23,
+   "h": 25,
+   "score": 0.899,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "邮件数 17/1000",
+   "cx": 2150,
+   "cy": 62,
+   "bbox": [
+    2020,
+    45,
+    2280,
+    79
+   ],
+   "w": 260,
+   "h": 34,
+   "score": 0.9618,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+   "cx": 732,
+   "cy": 206,
+   "bbox": [
+    317,
+    191,
+    1148,
+    221
+   ],
+   "w": 831,
+   "h": 30,
+   "score": 0.9675,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "★",
+   "cx": 1203,
+   "cy": 207,
+   "bbox": [
+    1180,
+    183,
+    1225,
+    230
+   ],
+   "w": 45,
+   "h": 47,
+   "score": 0.8552,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "剩余时间：4天",
+   "cx": 2310,
+   "cy": 192,
+   "bbox": [
+    2214,
+    173,
+    2406,
+    212
+   ],
+   "w": 192,
+   "h": 39,
+   "score": 0.995,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "P·A·I·M",
+   "cx": 441,
+   "cy": 261,
+   "bbox": [
+    352,
+    244,
+    531,
+    279
+   ],
+   "w": 179,
+   "h": 35,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "前往",
+   "cx": 2298,
+   "cy": 258,
+   "bbox": [
+    2260,
+    236,
+    2335,
+    280
+   ],
+   "w": 75,
+   "h": 44,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "说明",
+   "cx": 1280,
+   "cy": 309,
+   "bbox": [
+    1220,
+    275,
+    1339,
+    343
+   ],
+   "w": 119,
+   "h": 68,
+   "score": 0.9998,
+   "kind": "title"
+  },
+  {
+   "id": 15,
+   "text": "X",
+   "cx": 1906,
+   "cy": 304,
+   "bbox": [
+    1869,
+    270,
+    1943,
+    338
+   ],
+   "w": 74,
+   "h": 68,
+   "score": 0.9552,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "【网页活动上线】周年",
+   "cx": 441,
+   "cy": 363,
+   "bbox": [
+    321,
+    345,
+    561,
+    380
+   ],
+   "w": 240,
+   "h": 35,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "【邮箱容量】",
+   "cx": 766,
+   "cy": 401,
+   "bbox": [
+    661,
+    378,
+    870,
+    425
+   ],
+   "w": 209,
+   "h": 47,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "P·A·I·M·",
+   "cx": 447,
+   "cy": 419,
+   "bbox": [
+    354,
+    403,
+    540,
+    434
+   ],
+   "w": 186,
+   "h": 31,
+   "score": 0.9774,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "邮箱中最多能保存1000封邮件。",
+   "cx": 927,
+   "cy": 446,
+   "bbox": [
+    659,
+    425,
+    1196,
+    468
+   ],
+   "w": 537,
+   "h": 43,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "当邮件数量超过上限时，系统将依照时间顺序由旧到新，自动删除无附件或",
+   "cx": 1278,
+   "cy": 493,
+   "bbox": [
+    660,
+    474,
+    1895,
+    513
+   ],
+   "w": 1235,
+   "h": 39,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "空月祝福即将",
+   "cx": 440,
+   "cy": 519,
+   "bbox": [
+    317,
+    497,
+    563,
+    541
+   ],
+   "w": 246,
+   "h": 44,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "附件已领取的邮件。",
+   "cx": 821,
+   "cy": 540,
+   "bbox": [
+    658,
+    520,
+    984,
+    559
+   ],
+   "w": 326,
+   "h": 39,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "P·A·I·M·",
+   "cx": 445,
+   "cy": 576,
+   "bbox": [
+    347,
+    560,
+    544,
+    591
+   ],
+   "w": 197,
+   "h": 31,
+   "score": 0.9982,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "除此之外，邮箱具有显示上限，当邮件超出一定数量后，只会展示其中一部",
+   "cx": 1272,
+   "cy": 585,
+   "bbox": [
+    658,
+    564,
+    1887,
+    606
+   ],
+   "w": 1229,
+   "h": 42,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "分邮件。",
+   "cx": 727,
+   "cy": 632,
+   "bbox": [
+    656,
+    608,
+    798,
+    657
+   ],
+   "w": 142,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "旅行者及时参与活动，获取",
+   "cx": 2196,
+   "cy": 621,
+   "bbox": [
+    1994,
+    601,
+    2398,
+    640
+   ],
+   "w": 404,
+   "h": 39,
+   "score": 0.9862,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "「周年拾光册",
+   "cx": 439,
+   "cy": 676,
+   "bbox": [
+    320,
+    650,
+    558,
+    702
+   ],
+   "w": 238,
+   "h": 52,
+   "score": 0.9861,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "删除过多的邮件后，将展示剩余的邮件。",
+   "cx": 987,
+   "cy": 676,
+   "bbox": [
+    658,
+    655,
+    1316,
+    698
+   ],
+   "w": 658,
+   "h": 43,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "P·A·I·M·",
+   "cx": 447,
+   "cy": 732,
+   "bbox": [
+    353,
+    717,
+    540,
+    748
+   ],
+   "w": 187,
+   "h": 31,
+   "score": 0.9746,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "【邮件标记】",
+   "cx": 766,
+   "cy": 770,
+   "bbox": [
+    663,
+    748,
+    869,
+    792
+   ],
+   "w": 206,
+   "h": 44,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "被标记的邮件不会被快捷删除，并在邮件列表中排序置顶。",
+   "cx": 1139,
+   "cy": 815,
+   "bbox": [
+    659,
+    794,
+    1619,
+    837
+   ],
+   "w": 960,
+   "h": 43,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "「判测胜券本",
+   "cx": 435,
+   "cy": 832,
+   "bbox": [
+    312,
+    808,
+    558,
+    856
+   ],
+   "w": 246,
+   "h": 48,
+   "score": 0.9456,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "但被标记的邮件依然会随时间过期消失。",
+   "cx": 992,
+   "cy": 861,
+   "bbox": [
+    659,
+    839,
+    1325,
+    883
+   ],
+   "w": 666,
+   "h": 44,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "P· A· I• M•",
+   "cx": 447,
+   "cy": 891,
+   "bbox": [
+    347,
+    875,
+    547,
+    906
+   ],
+   "w": 200,
+   "h": 31,
+   "score": 0.7604,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "【邮件珍藏盒】",
+   "cx": 784,
+   "cy": 952,
+   "bbox": [
+    663,
+    930,
+    905,
+    974
+   ],
+   "w": 242,
+   "h": 44,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "「周年拾光册",
+   "cx": 438,
+   "cy": 990,
+   "bbox": [
+    320,
+    964,
+    557,
+    1015
+   ],
+   "w": 237,
+   "h": 51,
+   "score": 0.9862,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "对于诸如生日祝福的一部分重要邮件，在领取该邮件的奖励后，该邮件将被",
+   "cx": 1277,
+   "cy": 999,
+   "bbox": [
+    658,
+    978,
+    1896,
+    1020
+   ],
+   "w": 1238,
+   "h": 42,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "P·A·I·M·",
+   "cx": 443,
+   "cy": 1046,
+   "bbox": [
+    347,
+    1031,
+    540,
+    1062
+   ],
+   "w": 193,
+   "h": 31,
+   "score": 0.9494,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "自动收入「邮件珍藏盒」。",
+   "cx": 866,
+   "cy": 1045,
+   "bbox": [
+    659,
+    1023,
+    1073,
+    1068
+   ],
+   "w": 414,
+   "h": 45,
+   "score": 0.989,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "「邮件珍藏盒」中的邮件不会被快捷删除，且不会随时间过期消失。",
+   "cx": 1203,
+   "cy": 1091,
+   "bbox": [
+    660,
+    1069,
+    1745,
+    1113
+   ],
+   "w": 1085,
+   "h": 44,
+   "score": 0.9956,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "「周年拾光册",
+   "cx": 438,
+   "cy": 1146,
+   "bbox": [
+    321,
+    1122,
+    556,
+    1170
+   ],
+   "w": 235,
+   "h": 48,
+   "score": 0.9889,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "P·A·I·M",
+   "cx": 443,
+   "cy": 1203,
+   "bbox": [
+    357,
+    1188,
+    530,
+    1218
+   ],
+   "w": 173,
+   "h": 30,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "1000",
+   "cx": 1420,
+   "cy": 1256,
+   "bbox": [
+    1387,
+    1242,
+    1454,
+    1270
+   ],
+   "w": 67,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.983,
+   "kind": "other"
+  },
+  {
+   "id": 45,
+   "text": "6.8 ms",
+   "cx": 83,
+   "cy": 1307,
+   "bbox": [
+    51,
+    1297,
+    116,
+    1317
+   ],
+   "w": 65,
+   "h": 20,
+   "score": 0.9929,
+   "kind": "data"
+  },
+  {
+   "id": 46,
+   "text": "nax:",
+   "cx": 178,
+   "cy": 1307,
+   "bbox": [
+    156,
+    1297,
+    201,
+    1317
+   ],
+   "w": 45,
+   "h": 20,
+   "score": 0.8994,
+   "kind": "content"
+  },
+  {
+   "id": 47,
+   "text": "27.6 ms",
+   "cx": 235,
+   "cy": 1308,
+   "bbox": [
+    196,
+    1299,
+    274,
+    1317
+   ],
+   "w": 78,
+   "h": 18,
+   "score": 0.9929,
+   "kind": "data"
+  },
+  {
+   "id": 48,
+   "text": "删除已读",
+   "cx": 703,
+   "cy": 1355,
+   "bbox": [
+    620,
+    1330,
+    787,
+    1379
+   ],
+   "w": 167,
+   "h": 49,
+   "score": 0.9982,
+   "kind": "action"
+  },
+  {
+   "id": 49,
+   "text": "血",
+   "cx": 2152,
+   "cy": 1357,
+   "bbox": [
+    2134,
+    1335,
+    2171,
+    1378
+   ],
+   "w": 37,
+   "h": 43,
+   "score": 0.6602,
+   "kind": "content"
+  },
+  {
+   "id": 50,
+   "text": "删除",
+   "cx": 2294,
+   "cy": 1355,
+   "bbox": [
+    2247,
+    1329,
+    2341,
+    1382
+   ],
+   "w": 94,
+   "h": 53,
+   "score": 0.9894,
+   "kind": "action"
+  },
+  {
+   "id": 51,
+   "text": "UID: 110170759",
+   "cx": 2372,
+   "cy": 1418,
+   "bbox": [
+    2260,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 223,
+   "h": 35,
+   "score": 0.9667,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2356,
+    242,
+    2392,
+    276
+   ],
+   "cx": 2374,
+   "cy": 259,
+   "w": 36,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 1.06,
+    "corner_fill": 0.19,
+    "area": 948,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    326,
+    250,
+    346,
+    278
+   ],
+   "cx": 336,
+   "cy": 264,
+   "w": 20,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 0.71,
+    "corner_fill": 0.12,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    326,
+    408,
+    346,
+    434
+   ],
+   "cx": 336,
+   "cy": 421,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.823,
+    "aspect": 0.77,
+    "corner_fill": 0.25,
+    "area": 428,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    116,
+    848,
+    134,
+    870
+   ],
+   "cx": 125,
+   "cy": 859,
+   "w": 18,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.838,
+    "aspect": 0.82,
+    "corner_fill": 0.25,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    206,
+    1138,
+    264,
+    1206
+   ],
+   "cx": 235,
+   "cy": 1172,
+   "w": 58,
+   "h": 68,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.431,
+    "aspect": 0.85,
+    "corner_fill": 0.0,
+    "area": 1700,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1444,
+    1348,
+    1470,
+    1366
+   ],
+   "cx": 1457,
+   "cy": 1357,
+   "w": 26,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.556,
+    "aspect": 1.44,
+    "corner_fill": 0.12,
+    "area": 260,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    536,
+    582,
+    556,
+    608
+   ],
+   "cx": 546,
+   "cy": 595,
+   "w": 20,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.934,
+   "label": null,
+   "evidence": {
+    "fill": 0.746,
+    "aspect": 0.77,
+    "corner_fill": 0.25,
+    "area": 388,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1606,
+    200,
+    1636,
+    230
+   ],
+   "cx": 1621,
+   "cy": 215,
+   "w": 30,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.631,
+    "aspect": 1.0,
+    "corner_fill": 0.22,
+    "area": 568,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    326,
+    564,
+    344,
+    590
+   ],
+   "cx": 335,
+   "cy": 577,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.846,
+    "aspect": 0.69,
+    "corner_fill": 0.31,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    618,
+    246,
+    1244,
+    264
+   ],
+   "cx": 931,
+   "cy": 255,
+   "w": 626,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.969,
+    "aspect": 34.78,
+    "corner_fill": 0.12,
+    "area": 10920,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    328,
+    722,
+    344,
+    746
+   ],
+   "cx": 336,
+   "cy": 734,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.927,
+    "aspect": 0.67,
+    "corner_fill": 0.56,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    232,
+    696,
+    270,
+    724
+   ],
+   "cx": 251,
+   "cy": 710,
+   "w": 38,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.911,
+   "label": null,
+   "evidence": {
+    "fill": 0.432,
+    "aspect": 1.36,
+    "corner_fill": 0.17,
+    "area": 460,
+    "src": "flat"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    232,
+    224,
+    270,
+    252
+   ],
+   "cx": 251,
+   "cy": 238,
+   "w": 38,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.462,
+    "aspect": 1.36,
+    "corner_fill": 0.19,
+    "area": 492,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    204,
+    510,
+    266,
+    558
+   ],
+   "cx": 235,
+   "cy": 534,
+   "w": 62,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.583,
+    "aspect": 1.29,
+    "corner_fill": 0.26,
+    "area": 1736,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1880,
+    14,
+    1988,
+    114
+   ],
+   "cx": 1934,
+   "cy": 64,
+   "w": 108,
+   "h": 100,
+   "shape": "circle",
+   "confidence": 0.897,
+   "label": "0",
+   "evidence": {
+    "fill": 0.439,
+    "aspect": 1.08,
+    "corner_fill": 0.2,
+    "area": 4744,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    204,
+    354,
+    266,
+    402
+   ],
+   "cx": 235,
+   "cy": 378,
+   "w": 62,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.897,
+   "label": null,
+   "evidence": {
+    "fill": 0.595,
+    "aspect": 1.29,
+    "corner_fill": 0.26,
+    "area": 1772,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1266,
+    160,
+    1282,
+    246
+   ],
+   "cx": 1274,
+   "cy": 203,
+   "w": 16,
+   "h": 86,
+   "shape": "rect",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 0.19,
+    "corner_fill": 0.19,
+    "area": 1204,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    154,
+    752,
+    566,
+    780
+   ],
+   "cx": 360,
+   "cy": 766,
+   "w": 412,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.892,
+   "label": null,
+   "evidence": {
+    "fill": 0.871,
+    "aspect": 14.71,
+    "corner_fill": 0.5,
+    "area": 10044,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1692,
+    216,
+    1710,
+    236
+   ],
+   "cx": 1701,
+   "cy": 226,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.9,
+    "corner_fill": 0.38,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    204,
+    198,
+    266,
+    246
+   ],
+   "cx": 235,
+   "cy": 222,
+   "w": 62,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.606,
+    "aspect": 1.29,
+    "corner_fill": 0.29,
+    "area": 1804,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1360,
+    170,
+    1384,
+    194
+   ],
+   "cx": 1372,
+   "cy": 182,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.493,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 284,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    328,
+    1036,
+    344,
+    1060
+   ],
+   "cx": 336,
+   "cy": 1048,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.67,
+    "corner_fill": 0.25,
+    "area": 320,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    20,
+    1404,
+    248,
+    1422
+   ],
+   "cx": 134,
+   "cy": 1413,
+   "w": 228,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.834,
+    "aspect": 12.67,
+    "corner_fill": 0.12,
+    "area": 3424,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    318,
+    878,
+    334,
+    904
+   ],
+   "cx": 326,
+   "cy": 891,
+   "w": 16,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 0.62,
+    "corner_fill": 0.25,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1392,
+    1226,
+    1418,
+    1242
+   ],
+   "cx": 1405,
+   "cy": 1234,
+   "w": 26,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.868,
+   "label": null,
+   "evidence": {
+    "fill": 0.817,
+    "aspect": 1.62,
+    "corner_fill": 0.56,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    206,
+    668,
+    264,
+    712
+   ],
+   "cx": 235,
+   "cy": 690,
+   "w": 58,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.624,
+    "aspect": 1.32,
+    "corner_fill": 0.35,
+    "area": 1592,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    2422,
+    28,
+    2494,
+    100
+   ],
+   "cx": 2458,
+   "cy": 64,
+   "w": 72,
+   "h": 72,
+   "shape": "circle",
+   "confidence": 0.858,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.0,
+    "corner_fill": 0.37,
+    "area": 3456,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1358,
+    1238,
+    1394,
+    1274
+   ],
+   "cx": 1376,
+   "cy": 1256,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.713,
+    "aspect": 1.0,
+    "corner_fill": 0.39,
+    "area": 924,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    60,
+    32,
+    148,
+    94
+   ],
+   "cx": 104,
+   "cy": 63,
+   "w": 88,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": "60.1 8%",
+   "evidence": {
+    "fill": 0.674,
+    "aspect": 1.42,
+    "corner_fill": 0.38,
+    "area": 3676,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1778,
+    246,
+    1942,
+    264
+   ],
+   "cx": 1860,
+   "cy": 255,
+   "w": 164,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.85,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 9.11,
+    "corner_fill": 0.25,
+    "area": 2296,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1642,
+    188,
+    1714,
+    206
+   ],
+   "cx": 1678,
+   "cy": 197,
+   "w": 72,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.762,
+    "aspect": 4.0,
+    "corner_fill": 0.19,
+    "area": 988,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    174,
+    884,
+    190,
+    908
+   ],
+   "cx": 182,
+   "cy": 896,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.842,
+   "label": null,
+   "evidence": {
+    "fill": 0.76,
+    "aspect": 0.67,
+    "corner_fill": 0.38,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    328,
+    1192,
+    344,
+    1216
+   ],
+   "cx": 336,
+   "cy": 1204,
+   "w": 16,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.842,
+   "label": null,
+   "evidence": {
+    "fill": 0.76,
+    "aspect": 0.67,
+    "corner_fill": 0.25,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    430,
+    1318,
+    474,
+    1394
+   ],
+   "cx": 452,
+   "cy": 1356,
+   "w": 44,
+   "h": 76,
+   "shape": "rect",
+   "confidence": 0.839,
+   "label": null,
+   "evidence": {
+    "fill": 0.752,
+    "aspect": 0.58,
+    "corner_fill": 0.44,
+    "area": 2516,
+    "src": "flat"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    0,
+    1320,
+    426,
+    1404
+   ],
+   "cx": 213,
+   "cy": 1362,
+   "w": 426,
+   "h": 84,
+   "shape": "rect",
+   "confidence": 0.835,
+   "label": null,
+   "evidence": {
+    "fill": 0.744,
+    "aspect": 5.07,
+    "corner_fill": 0.67,
+    "area": 26624,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    516,
+    1138,
+    614,
+    1238
+   ],
+   "cx": 565,
+   "cy": 1188,
+   "w": 98,
+   "h": 100,
+   "shape": "circle",
+   "confidence": 0.834,
+   "label": null,
+   "evidence": {
+    "fill": 0.714,
+    "aspect": 0.98,
+    "corner_fill": 0.44,
+    "area": 7000,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1488,
+    1206,
+    1506,
+    1250
+   ],
+   "cx": 1497,
+   "cy": 1228,
+   "w": 18,
+   "h": 44,
+   "shape": "rect",
+   "confidence": 0.834,
+   "label": null,
+   "evidence": {
+    "fill": 0.742,
+    "aspect": 0.41,
+    "corner_fill": 0.25,
+    "area": 588,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1650,
+    160,
+    1708,
+    186
+   ],
+   "cx": 1679,
+   "cy": 173,
+   "w": 58,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.832,
+   "label": null,
+   "evidence": {
+    "fill": 0.737,
+    "aspect": 2.23,
+    "corner_fill": 0.42,
+    "area": 1112,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1450,
+    1240,
+    1484,
+    1274
+   ],
+   "cx": 1467,
+   "cy": 1257,
+   "w": 34,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.831,
+   "label": null,
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 1.0,
+    "corner_fill": 0.47,
+    "area": 896,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2004,
+    1326,
+    2066,
+    1388
+   ],
+   "cx": 2035,
+   "cy": 1357,
+   "w": 62,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.827,
+   "label": null,
+   "evidence": {
+    "fill": 0.651,
+    "aspect": 1.0,
+    "corner_fill": 0.43,
+    "area": 2504,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    184,
+    38,
+    1896,
+    1379
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 24,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 17,
+   "row_y": [
+    62,
+    206,
+    261,
+    309,
+    407,
+    542,
+    632,
+    676,
+    751,
+    849,
+    980,
+    1045,
+    1091,
+    1146,
+    1203,
+    1256,
+    1355
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "邮箱"
+     ]
+    },
+    {
+     "y": 206,
+     "texts": [
+      "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+      "★"
+     ]
+    },
+    {
+     "y": 261,
+     "texts": [
+      "P·A·I·M"
+     ]
+    },
+    {
+     "y": 309,
+     "texts": [
+      "说明"
+     ]
+    },
+    {
+     "y": 407,
+     "texts": [
+      "【网页活动上线】周年",
+      "【邮箱容量】",
+      "P·A·I·M·",
+      "邮箱中最多能保存1000封邮件。"
+     ]
+    },
+    {
+     "y": 542,
+     "texts": [
+      "当邮件数量超过上限时，系统将依照时间顺序由旧到新，自动删除无附件或",
+      "空月祝福即将",
+      "附件已领取的邮件。",
+      "P·A·I·M·",
+      "除此之外，邮箱具有显示上限，当邮件超出一定数量后，只会展示其中一部"
+     ]
+    },
+    {
+     "y": 632,
+     "texts": [
+      "分邮件。"
+     ]
+    },
+    {
+     "y": 676,
+     "texts": [
+      "「周年拾光册",
+      "删除过多的邮件后，将展示剩余的邮件。"
+     ]
+    },
+    {
+     "y": 751,
+     "texts": [
+      "P·A·I·M·",
+      "【邮件标记】"
+     ]
+    },
+    {
+     "y": 849,
+     "texts": [
+      "被标记的邮件不会被快捷删除，并在邮件列表中排序置顶。",
+      "「判测胜券本",
+      "但被标记的邮件依然会随时间过期消失。",
+      "P· A· I• M•"
+     ]
+    },
+    {
+     "y": 980,
+     "texts": [
+      "【邮件珍藏盒】",
+      "「周年拾光册",
+      "对于诸如生日祝福的一部分重要邮件，在领取该邮件的奖励后，该邮件将被"
+     ]
+    },
+    {
+     "y": 1045,
+     "texts": [
+      "自动收入「邮件珍藏盒」。",
+      "P·A·I·M·"
+     ]
+    },
+    {
+     "y": 1091,
+     "texts": [
+      "「邮件珍藏盒」中的邮件不会被快捷删除，且不会随时间过期消失。"
+     ]
+    },
+    {
+     "y": 1146,
+     "texts": [
+      "「周年拾光册"
+     ]
+    },
+    {
+     "y": 1203,
+     "texts": [
+      "P·A·I·M"
+     ]
+    },
+    {
+     "y": 1256,
+     "texts": [
+      "1000"
+     ]
+    },
+    {
+     "y": 1355,
+     "texts": [
+      "删除已读"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1721,
+    32,
+    2406,
+    1378
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 21,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    56,
+    192,
+    258,
+    304,
+    621,
+    1357
+   ],
+   "rows": [
+    {
+     "y": 56,
+     "texts": [
+      "0",
+      "邮件珍藏盒",
+      "邮件数 17/1000"
+     ]
+    },
+    {
+     "y": 192,
+     "texts": [
+      "剩余时间：4天"
+     ]
+    },
+    {
+     "y": 258,
+     "texts": [
+      "前往"
+     ]
+    },
+    {
+     "y": 304,
+     "texts": [
+      "X"
+     ]
+    },
+    {
+     "y": 621,
+     "texts": [
+      "旅行者及时参与活动，获取"
+     ]
+    },
+    {
+     "y": 1357,
+     "texts": [
+      "血"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "说明",
+   "text_id": 14,
+   "target": "rect@(931,255)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 11,
+   "dx": -348,
+   "dy": -54,
+   "confidence": 0.691
+  },
+  {
+   "text": "说明",
+   "text_id": 14,
+   "target": "rect@(1274,203)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 29,
+   "dx": -6,
+   "dy": -106,
+   "confidence": 0.676
+  },
+  {
+   "text": "说明",
+   "text_id": 14,
+   "target": "circle@(1372,182)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 81,
+   "dx": 92,
+   "dy": -127,
+   "confidence": 0.633
+  },
+  {
+   "text": "邮件珍藏盒",
+   "text_id": 6,
+   "target": "circle@(1934,64)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": "0",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 128,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "0",
+   "text_id": 7,
+   "target": "circle@(1934,64)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": "0",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -24,
+   "dy": 20,
+   "confidence": 0.55
+  },
+  {
+   "text": "X",
+   "text_id": 15,
+   "target": "rect@(1860,255)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 6,
+   "dx": -46,
+   "dy": -49,
+   "confidence": 0.545
+  },
+  {
+   "text": "P·A·I·M",
+   "text_id": 12,
+   "target": "circle@(336,264)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -106,
+   "dy": 2,
+   "confidence": 0.545
+  },
+  {
+   "text": "P·A·I·M·",
+   "text_id": 18,
+   "target": "circle@(336,421)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 8,
+   "dx": -111,
+   "dy": 2,
+   "confidence": 0.543
+  },
+  {
+   "text": "★",
+   "text_id": 10,
+   "target": "rect@(931,255)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 16,
+   "dx": -272,
+   "dy": 48,
+   "confidence": 0.537
+  },
+  {
+   "text": "UID: 110170759",
+   "text_id": 51,
+   "target": "label@(2294,1355)",
+   "target_id": "t50",
+   "target_kind": "label",
+   "label": "删除",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 19,
+   "dx": -78,
+   "dy": -63,
+   "confidence": 0.734
+  },
+  {
+   "text": "前往",
+   "text_id": 13,
+   "target": "circle@(2374,259)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 21,
+   "dx": 76,
+   "dy": 1,
+   "confidence": 0.533
+  },
+  {
+   "text": "剩余时间：4天",
+   "text_id": 11,
+   "target": "circle@(2374,259)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 30,
+   "dx": 64,
+   "dy": 66,
+   "confidence": 0.525
+  },
+  {
+   "text": "邮件数 17/1000",
+   "text_id": 8,
+   "target": "circle@(1934,64)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": "0",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 32,
+   "dx": -216,
+   "dy": 2,
+   "confidence": 0.523
+  },
+  {
+   "text": "空月祝福即将",
+   "text_id": 21,
+   "target": "circle@(235,534)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 51,
+   "dx": -205,
+   "dy": 15,
+   "confidence": 0.508
+  },
+  {
+   "text": "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+   "text_id": 9,
+   "target": "circle@(235,222)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 51,
+   "dx": -498,
+   "dy": 16,
+   "confidence": 0.508
+  },
+  {
+   "text": "【网页活动上线】周年",
+   "text_id": 16,
+   "target": "circle@(235,378)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 55,
+   "dx": -206,
+   "dy": 16,
+   "confidence": 0.504
+  },
+  {
+   "text": "「周年拾光册",
+   "text_id": 27,
+   "target": "circle@(235,690)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 56,
+   "dx": -204,
+   "dy": 14,
+   "confidence": 0.503
+  },
+  {
+   "text": "血",
+   "text_id": 49,
+   "target": "label@(2294,1355)",
+   "target_id": "t50",
+   "target_kind": "label",
+   "label": "删除",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 76,
+   "dx": 142,
+   "dy": -1,
+   "confidence": 0.687
+  },
+  {
+   "text": "删除过多的邮件后，将展示剩余的邮件。",
+   "text_id": 28,
+   "target": "rect@(360,766)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 92,
+   "dx": -627,
+   "dy": 90,
+   "confidence": 0.473
+  },
+  {
+   "text": "分邮件。",
+   "text_id": 25,
+   "target": "rect@(360,766)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 95,
+   "dx": -367,
+   "dy": 134,
+   "confidence": 0.471
+  },
+  {
+   "text": "除此之外，邮箱具有显示上限，当邮件超出一定数量后，只会展示其中一部",
+   "text_id": 24,
+   "target": "circle@(546,595)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 102,
+   "dx": -726,
+   "dy": 10,
+   "confidence": 0.465
+  },
+  {
+   "text": "附件已领取的邮件。",
+   "text_id": 22,
+   "target": "circle@(546,595)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 102,
+   "dx": -275,
+   "dy": 56,
+   "confidence": 0.465
+  },
+  {
+   "text": "当邮件数量超过上限时，系统将依照时间顺序由旧到新，自动删除无附件或",
+   "text_id": 20,
+   "target": "circle@(546,595)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 104,
+   "dx": -732,
+   "dy": 102,
+   "confidence": 0.463
+  },
+  {
+   "text": "邮箱",
+   "text_id": 5,
+   "target": "circle@(235,222)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 112,
+   "dx": 12,
+   "dy": 160,
+   "confidence": 0.457
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    123,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 5 框，低方差 std=11.5，非纯黑 L=86，纹理对比骤降 std 35.0→11.5（0.33×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "GPU:",
+     "FPS:",
+     "60.1",
+     "8%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "n_texts": 5,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 85.6,
+    "bg_std": 11.5,
+    "ring_mean": 56.1,
+    "ring_std": 35.0,
+    "texture_ratio": 0.33,
+    "bg_rgb": [
+     98,
+     88,
+     69
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     75.0,
+     130.0,
+     120.0
+    ],
+    "fill": 0.62,
+    "rect": 0.74
+   },
+   "text": [
+    "DXVK v3.0",
+    "GPU:",
+    "FPS:",
+    "60.1",
+    "8%",
+    "邮箱",
+    "邮件珍藏盒",
+    "0",
+    "邮件数 17/1000",
+    "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+    "★",
+    "剩余时间：4天",
+    "P·A·I·M",
+    "前往",
+    "说明",
+    "X",
+    "【网页活动上线】周年",
+    "【邮箱容量】",
+    "P·A·I·M·",
+    "邮箱中最多能保存1000封邮件。",
+    "当邮件数量超过上限时，系统将依照时间顺序由旧到新，自动删除无附件或",
+    "空月祝福即将",
+    "附件已领取的邮件。",
+    "P·A·I·M·",
+    "除此之外，邮箱具有显示上限，当邮件超出一定数量后，只会展示其中一部",
+    "分邮件。",
+    "旅行者及时参与活动，获取",
+    "「周年拾光册",
+    "删除过多的邮件后，将展示剩余的邮件。",
+    "P·A·I·M·",
+    "【邮件标记】",
+    "被标记的邮件不会被快捷删除，并在邮件列表中排序置顶。",
+    "「判测胜券本",
+    "但被标记的邮件依然会随时间过期消失。",
+    "P· A· I• M•",
+    "【邮件珍藏盒】",
+    "「周年拾光册",
+    "对于诸如生日祝福的一部分重要邮件，在领取该邮件的奖励后，该邮件将被",
+    "P·A·I·M·",
+    "自动收入「邮件珍藏盒」。",
+    "「邮件珍藏盒」中的邮件不会被快捷删除，且不会随时间过期消失。",
+    "「周年拾光册",
+    "P·A·I·M",
+    "1000",
+    "min:",
+    "6.8 ms",
+    "nax:",
+    "27.6 ms",
+    "删除已读",
+    "血",
+    "删除",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      68,
+      156,
+      108,
+      254
+     ],
+     "role": "icon",
+     "fill": 0.82,
+     "contrast": 139.0
+    },
+    {
+     "bbox": [
+      2420,
+      26,
+      2496,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 109.0
+    },
+    {
+     "bbox": [
+      2360,
+      244,
+      2390,
+      274
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 96.0
+    },
+    {
+     "bbox": [
+      2302,
+      38,
+      2356,
+      90
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 136.0
+    },
+    {
+     "bbox": [
+      550,
+      1172,
+      594,
+      1214
+     ],
+     "role": "icon",
+     "fill": 0.77,
+     "contrast": 216.0
+    },
+    {
+     "bbox": [
+      548,
+      230,
+      594,
+      274
+     ],
+     "role": "icon",
+     "fill": 0.71,
+     "contrast": 242.0
+    },
+    {
+     "bbox": [
+      1966,
+      228,
+      2012,
+      274
+     ],
+     "role": "icon",
+     "fill": 0.71,
+     "contrast": 238.0
+    },
+    {
+     "bbox": [
+      522,
+      1316,
+      606,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 113.0
+    },
+    {
+     "bbox": [
+      1458,
+      1252,
+      1482,
+      1272
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 49.0
+    },
+    {
+     "bbox": [
+      1358,
+      160,
+      1486,
+      240
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 145.0
+    },
+    {
+     "bbox": [
+      530,
+      786,
+      560,
+      804
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 78.0
+    },
+    {
+     "bbox": [
+      1358,
+      1248,
+      1382,
+      1272
+     ],
+     "role": "icon",
+     "fill": 0.51,
+     "contrast": 54.0
+    },
+    {
+     "bbox": [
+      1910,
+      38,
+      1964,
+      90
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 141.0
+    },
+    {
+     "bbox": [
+      532,
+      912,
+      560,
+      932
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 73.0
+    },
+    {
+     "bbox": [
+      146,
+      904,
+      172,
+      932
+     ],
+     "role": "icon",
+     "fill": 0.43,
+     "contrast": 76.0
+    },
+    {
+     "bbox": [
+      1948,
+      1148,
+      2010,
+      1210
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 216.0
+    },
+    {
+     "bbox": [
+      1628,
+      160,
+      1712,
+      196
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 68.0
+    },
+    {
+     "bbox": [
+      146,
+      786,
+      176,
+      814
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 84.0
+    },
+    {
+     "bbox": [
+      1382,
+      1198,
+      1438,
+      1228
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 127.0
+    },
+    {
+     "bbox": [
+      2112,
+      1316,
+      2194,
+      1398
+     ],
+     "role": "icon",
+     "fill": 0.39,
+     "contrast": 116.0
+    },
+    {
+     "bbox": [
+      204,
+      982,
+      268,
+      1020
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 64.0
+    },
+    {
+     "bbox": [
+      1624,
+      192,
+      1640,
+      214
+     ],
+     "role": "icon",
+     "fill": 0.36,
+     "contrast": 57.0
+    },
+    {
+     "bbox": [
+      206,
+      1134,
+      248,
+      1172
+     ],
+     "role": "icon",
+     "fill": 0.31,
+     "contrast": 52.0
+    },
+    {
+     "bbox": [
+      110,
+      32,
+      148,
+      96
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 159.0
+    },
+    {
+     "bbox": [
+      2004,
+      1324,
+      2068,
+      1388
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 71.0
+    },
+    {
+     "bbox": [
+      1774,
+      186,
+      1826,
+      214
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 69.0
+    },
+    {
+     "bbox": [
+      226,
+      558,
+      268,
+      580
+     ],
+     "role": "icon",
+     "fill": 0.29,
+     "contrast": 75.0
+    },
+    {
+     "bbox": [
+      202,
+      668,
+      270,
+      716
+     ],
+     "role": "icon",
+     "fill": 0.26,
+     "contrast": 72.0
+    },
+    {
+     "bbox": [
+      1726,
+      160,
+      1822,
+      182
+     ],
+     "role": "icon",
+     "fill": 0.25,
+     "contrast": 83.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      552,
+      1342,
+      574,
+      1370
+     ],
+     "corner": "bl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      2142,
+      1342,
+      2166,
+      1370
+     ],
+     "corner": "br",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:52",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.65,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 41)",
+    "area_px": 2718052,
+    "area_frac": 1.0,
+    "aspect": 1.78,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 52,
+    "text_ui": 41,
+    "skin_lab": [
+     75.0,
+     130.0,
+     120.0
+    ],
+    "flat_fill": 0.62,
+    "rect": 0.74
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 130,
+  "ocr_ms": 1043,
+  "pixel_ms": 862,
+  "container_ms": 362,
+  "container_cached": false,
+  "total_ms": 2036,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 52,
+  "err": null
+ },
+ "title_text_id": 14,
+ "digest": "屏幕 2560x1440 · 文本 52 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 1 · 2036ms（OCR daemon）\n标题「说明」@(1280,309) 画面 · 字高 68px\n邻接「说明」→ rect@(931,255) 上方 11px\n邻接「说明」→ rect@(1274,203) 上方 29px\n邻接「说明」→ circle@(1372,182) 上方 81px\n邻接「UID: 110170759」→ label@(2294,1355)「删除」 上方 19px\n控件: rect@(931,255) | rect@(1274,203) | circle@(1372,182) | circle@(1934,64)「0」\n遮挡 [0, 0, 123, 80] (0,0)-(123,80)（conf 0.90）：左上角小字叠加层：小字 5 框，低方差 std=11.5，非纯黑 L=86，纹理对比骤降 std 35.0→11.5（0.33×）\n可点文字 2 个: 删除已读 / 删除"
+}

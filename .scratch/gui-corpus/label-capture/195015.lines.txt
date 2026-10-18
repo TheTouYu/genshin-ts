@@ -1,0 +1,48 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195015 image=.scratch/gui-corpus/capture-2026-10-18/195015.png backend=cv units=44
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | icon | 2418 24 78 78 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 1113 30 80 62 | 田 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | icon | 66 34 72 64 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 177 34 258 55 | 好友／我的好友 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 2067 34 314 55 | 我的好友 173/200 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | icon | 1256 38 50 50 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | icon | 1384 38 50 50 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | icon | 1110 40 84 68 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | icon | 1028 46 46 36 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | icon | 1486 46 46 36 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 362 174 275 64 | 无所事事真君 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | icon | 2254 188 86 86 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 2008 195 208 63 | 前往其大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | row | 1209 238 181 51 | 躺平挂机测试 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 360 240 351 48 | Lv.60 / 千星奇域游玩中 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 357 336 121 73 | 追忆 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 2009 363 206 64 | 前往其大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 359 404 352 52 | Lv.60 / 千星奇域游玩中 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 1210 406 278 49 | 我反复感到我更像自己 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | row | 362 506 195 65 | 哥伦比娅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | button | 1994 532 236 62 | 申请加入 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+21 | row | 359 570 230 52 | Lv.60 / 在线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | row | 1213 574 266 46 | 要我借你一束月光吗？ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 184 658 1384 142 | 右右 / Lv.60 / 千星奇域游玩中 / 像夜晚的凉风，倏忽而至的雨，破碎湖面一千片的梦。 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | icon | 1628 670 68 32 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | row | 2410 676 90 85 | 司 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | row | 57 677 91 85 | 口 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | icon | 1718 682 32 60 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | row | 2014 696 210 64 | 前往其大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | row | 1211 739 600 49 | 像夜晚的凉风，倏忽而至的雨，破碎湖面一千片的梦。 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+30 | row | 286 824 1584 144 | 临渊羡鱼 / Lv.60 / 千星奇域游玩中 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1852, 856, 1882, 894]}, {"type": "red", "bbox": [1842, 912, 1882, 942]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+31 | icon | 2256 854 84 84 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | 2009 863 206 60 | 前往其大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+33 | row | 362 1005 195 65 | 索见猪心 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+34 | button | 1994 1032 236 62 | 申请加入 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+35 | row | 359 1070 230 52 | Lv.60 / 在线 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+36 | row | 192 1158 1316 110 | 四月 / Lv.60 / 千星奇域游玩中 / 魔法与奇迹是存在的 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+37 | row | 2008 1195 208 64 | 前往其大厅 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+38 | row | 1210 1237 255 50 | 魔法与奇迹是存在的 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+39 | row | 360 1239 350 48 | Lv.60 / 千星奇域游玩中 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+40 | row | -3 1289 296 38 | min: / 2.2 ms / nax: / 176.9 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+41 | row | 264 1330 187 56 | 黑名单管理 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+42 | button | 432 1332 98 56 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+43 | row | 2249 1393 244 51 | UID:110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

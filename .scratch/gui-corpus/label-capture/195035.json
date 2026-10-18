@@ -1,0 +1,1034 @@
+{
+ "frame": "195035",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195035.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195035.json",
+  "prelabel_src": {
+   "container": 8,
+   "row-split": 6,
+   "loose-text": 17,
+   "glyph": 8
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 39,
+ "objects": [
+  {
+   "bbox": [
+    1366,
+    22,
+    84,
+    86
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2418,
+    24,
+    78,
+    78
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 1
+  },
+  {
+   "bbox": [
+    66,
+    34,
+    72,
+    64
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 2
+  },
+  {
+   "bbox": [
+    177,
+    34,
+    257,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "好友／最近联机"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    2067,
+    34,
+    314,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "我的好友173/200"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    1256,
+    38,
+    50,
+    50
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1126,
+    44,
+    52,
+    38
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 6
+  },
+  {
+   "bbox": [
+    1028,
+    46,
+    46,
+    36
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 7
+  },
+  {
+   "bbox": [
+    1486,
+    46,
+    46,
+    36
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 8
+  },
+  {
+   "bbox": [
+    890,
+    160,
+    798,
+    142
+   ],
+   "kind": "row",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 9
+  },
+  {
+   "bbox": [
+    324,
+    172,
+    552,
+    596
+   ],
+   "kind": "panel",
+   "text": [
+    "查看资料",
+    "查看千星奇域资料",
+    "添加好友",
+    "屏蔽聊天",
+    "加入黑名单",
+    "举报"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 10
+  },
+  {
+   "bbox": [
+    1984,
+    200,
+    246,
+    62
+   ],
+   "kind": "button",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "yes",
+   "src": "container",
+   "id": 11
+  },
+  {
+   "bbox": [
+    324,
+    201,
+    552,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "查看资料"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 12
+  },
+  {
+   "bbox": [
+    324,
+    294,
+    552,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "查看千星奇域资料"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 13
+  },
+  {
+   "bbox": [
+    920,
+    326,
+    806,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "i丝"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 14
+  },
+  {
+   "bbox": [
+    2009,
+    363,
+    207,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "前往其大厅"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    324,
+    382,
+    552,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "添加好友"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 16
+  },
+  {
+   "bbox": [
+    920,
+    492,
+    802,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "长天净绛河清浅皓月婵娟"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 17
+  },
+  {
+   "bbox": [
+    324,
+    499,
+    552,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "屏蔽聊天"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 18
+  },
+  {
+   "bbox": [
+    2010,
+    532,
+    203,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "前往其大厅"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    324,
+    591,
+    552,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "加入黑名单"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 20
+  },
+  {
+   "bbox": [
+    886,
+    658,
+    722,
+    142
+   ],
+   "kind": "row",
+   "text": [
+    "月が綺麗ねと言われたい"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 21
+  },
+  {
+   "bbox": [
+    2410,
+    676,
+    90,
+    85
+   ],
+   "kind": "row",
+   "text": [
+    "司"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 22
+  },
+  {
+   "bbox": [
+    324,
+    677,
+    552,
+    63
+   ],
+   "kind": "row",
+   "text": [
+    "举报"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "row-split",
+   "id": 23
+  },
+  {
+   "bbox": [
+    78,
+    692,
+    42,
+    56
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 24
+  },
+  {
+   "bbox": [
+    2027,
+    697,
+    168,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    359,
+    836,
+    156,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "旅行者"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    1994,
+    866,
+    236,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "yes",
+   "src": "container",
+   "id": 27
+  },
+  {
+   "bbox": [
+    359,
+    903,
+    230,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.57",
+    "在线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    364,
+    1006,
+    314,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "工作还不如睡觉"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    2027,
+    1030,
+    168,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    1209,
+    1069,
+    204,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "不要进我的世界"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  },
+  {
+   "bbox": [
+    360,
+    1070,
+    229,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60",
+    "在线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 32
+  },
+  {
+   "bbox": [
+    284,
+    1158,
+    1700,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "风夜陨落",
+    "Lv.60",
+    "在线",
+    "欲买桂花同载酒，只可惜故人何日再见"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 33
+  },
+  {
+   "bbox": [
+    2027,
+    1196,
+    168,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "申请加入"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 34
+  },
+  {
+   "bbox": [
+    360,
+    1239,
+    229,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "Lv.60",
+    "在线"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    1211,
+    1241,
+    442,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "欲买桂花同载酒，只可惜故人何日再见"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    42,
+    1289,
+    242,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "10.6 ms",
+    "24.1 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 37
+  },
+  {
+   "bbox": [
+    2249,
+    1393,
+    244,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  }
+ ]
+}

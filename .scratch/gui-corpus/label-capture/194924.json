@@ -1,0 +1,1419 @@
+{
+ "frame": "194924",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/194924.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/194924.json",
+  "prelabel_src": {
+   "container": 1,
+   "row-split": 0,
+   "loose-text": 51,
+   "glyph": 0
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 52,
+ "objects": [
+  {
+   "bbox": [
+    1624,
+    7,
+    124,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "Sunshine"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 0
+  },
+  {
+   "bbox": [
+    990,
+    8,
+    410,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "PaddleOCR-文档解析与× D1 api"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    1917,
+    10,
+    258,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "智谱BigModel 平台"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    2503,
+    10,
+    50,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "×"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    320,
+    11,
+    560,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "Greeting — DeepSeek Ha×",
+    "DeepSeek Platform"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    2334,
+    12,
+    54,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "Cq"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1983,
+    67,
+    130,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "文",
+    "120%"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    2334,
+    71,
+    50,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "0"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 7
+  },
+  {
+   "bbox": [
+    2446,
+    73,
+    50,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "0"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    435,
+    75,
+    234,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "http://127.0.0.1:3080"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    606,
+    142,
+    1619,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "GUI下一轮计划先读后汇报",
+    "、智能体团队6记忆河流+长上下文+开发",
+    "节律",
+    "预设组合器",
+    "3个子智能体1个后台任务运行中"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 10
+  },
+  {
+   "bbox": [
+    2330,
+    148,
+    50,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "7"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    131,
+    165,
+    311,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "deepseek",
+    "HARNESS"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    604,
+    201,
+    194,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "对话",
+    "轨迹"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    241,
+    259,
+    147,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "新会话"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 14
+  },
+  {
+   "bbox": [
+    970,
+    262,
+    561,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    ">. 运行命令· Start 1fps background capture loop"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    4,
+    287,
+    52,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "ΩD"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    971,
+    318,
+    417,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "思考. Started. Now tell the user:"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    121,
+    346,
+    90,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "插件"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    970,
+    370,
+    470,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    ">. 运行命令 . Check capture loop output"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 19
+  },
+  {
+   "bbox": [
+    126,
+    418,
+    160,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "自动化任务"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 20
+  },
+  {
+   "bbox": [
+    969,
+    426,
+    299,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "上下文注入·skill-rec"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 21
+  },
+  {
+   "bbox": [
+    971,
+    481,
+    1186,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "&思考. Only 4 frames in ~10s — faster than expected per frame (~2.5s?). Actually 194902, 194907, 1949..."
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 22
+  },
+  {
+   "bbox": [
+    71,
+    505,
+    110,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "工作区"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 23
+  },
+  {
+   "bbox": [
+    380,
+    511,
+    54,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "Q"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    495,
+    511,
+    54,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "C+"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 25
+  },
+  {
+   "bbox": [
+    973,
+    533,
+    735,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "读取图片.scratch/gui-corpus/capture-2026-10-18/194909.png"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 26
+  },
+  {
+   "bbox": [
+    477,
+    559,
+    80,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "4小时"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    122,
+    561,
+    253,
+    42
+   ],
+   "kind": "row",
+   "text": [
+    "目动化仕务机制介绍"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 28
+  },
+  {
+   "bbox": [
+    120,
+    616,
+    437,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "检查系统状态与当前压力",
+    "11小时"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  },
+  {
+   "bbox": [
+    121,
+    681,
+    434,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "处理 KDE 桌面警告通知并加... 1小时"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 30
+  },
+  {
+   "bbox": [
+    120,
+    740,
+    216,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "展开其余 32 个会话"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 31
+  },
+  {
+   "bbox": [
+    85,
+    796,
+    184,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "日",
+    "genshin-ts"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 32
+  },
+  {
+   "bbox": [
+    975,
+    834,
+    844,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/194909.png"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 33
+  },
+  {
+   "bbox": [
+    120,
+    861,
+    438,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "GUI下一轮计划先读后汇报",
+    "刚刚"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 34
+  },
+  {
+   "bbox": [
+    973,
+    861,
+    305,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "2560×1440px，275346字节"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 35
+  },
+  {
+   "bbox": [
+    119,
+    921,
+    439,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "Genshin 项目交接验收与后... 52分钟"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 36
+  },
+  {
+   "bbox": [
+    969,
+    962,
+    837,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "思考· Let me test spectacle directly in parallel (won't disturb much): time"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 37
+  },
+  {
+   "bbox": [
+    119,
+    984,
+    254,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "GUI操作能力层验收"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 38
+  },
+  {
+   "bbox": [
+    468,
+    988,
+    89,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "12小时"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 39
+  },
+  {
+   "bbox": [
+    120,
+    1046,
+    282,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "视觉基建与三游戏通关"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 40
+  },
+  {
+   "bbox": [
+    495,
+    1048,
+    64,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "1天"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 41
+  },
+  {
+   "bbox": [
+    968,
+    1059,
+    297,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    "深度求索中，用时48秒"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 42
+  },
+  {
+   "bbox": [
+    120,
+    1110,
+    437,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "补齐AI开发游戏缺失环节优先级1天"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 43
+  },
+  {
+   "bbox": [
+    965,
+    1153,
+    535,
+    49
+   ],
+   "kind": "row",
+   "text": [
+    "发消息或创建任务，/调用指令，@文件或对话"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 44
+  },
+  {
+   "bbox": [
+    120,
+    1168,
+    216,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "展开其余 13 个会话"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 45
+  },
+  {
+   "bbox": [
+    82,
+    1223,
+    143,
+    52
+   ],
+   "kind": "row",
+   "text": [
+    " ai小说"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 46
+  },
+  {
+   "bbox": [
+    968,
+    1241,
+    256,
+    57
+   ],
+   "kind": "row",
+   "text": [
+    "+",
+    "① 完全权限"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 47
+  },
+  {
+   "bbox": [
+    1586,
+    1248,
+    420,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "DeepSeek-V4.1-Flash",
+    "1017",
+    "Max"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 48
+  },
+  {
+   "bbox": [
+    129,
+    1286,
+    86,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "透雨"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 49
+  },
+  {
+   "bbox": [
+    1173,
+    1316,
+    785,
+    48
+   ],
+   "kind": "row",
+   "text": [
+    "10 轮 104 步·226 tok/s",
+    "0",
+    "11.5M tok·缓存命中 98%",
+    "16%"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 50
+  },
+  {
+   "bbox": [
+    1070,
+    1378,
+    1490,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "为",
+    "19:49",
+    "2026/10/18"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1924,
+      1390,
+      1958,
+      1422
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      1972,
+      1400,
+      1986,
+      1422
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 51
+  }
+ ]
+}

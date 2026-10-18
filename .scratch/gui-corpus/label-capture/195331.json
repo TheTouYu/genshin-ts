@@ -1,0 +1,79 @@
+{
+ "frame": "195331",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195331.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195331.json",
+  "prelabel_src": {
+   "container": 0,
+   "row-split": 0,
+   "loose-text": 2,
+   "glyph": 0
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 2,
+ "objects": [
+  {
+   "bbox": [
+    -4,
+    1290,
+    288,
+    38
+   ],
+   "kind": "row",
+   "text": [
+    "min: 7.0 ms",
+    "max: 75.7 ms"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2245,
+    1392,
+    250,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  }
+ ]
+}

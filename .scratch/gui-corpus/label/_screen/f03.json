@@ -1,0 +1,2677 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/f03.png",
+  "sha256": "6c23ae1d1a9c4a833b607ffc384614c93d4bb797f37ecb7d5012cf54d8a2530f",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 2303036
+ },
+ "title": {
+  "text": "溯流的变奏曲",
+  "cx": 1761,
+  "cy": 423,
+  "bbox": [
+   1525,
+   378,
+   1998,
+   468
+  ],
+  "region": null,
+  "why": "上半屏字高最大（90px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 18,
+   "bbox": [
+    2,
+    7,
+    118,
+    29
+   ],
+   "w": 116,
+   "h": 22,
+   "score": 0.9578,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 60.4",
+   "cx": 60,
+   "cy": 41,
+   "bbox": [
+    2,
+    28,
+    118,
+    54
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9851,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU: 7%",
+   "cx": 49,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    95,
+    77
+   ],
+   "w": 92,
+   "h": 22,
+   "score": 0.9962,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "活动一览",
+   "cx": 241,
+   "cy": 205,
+   "bbox": [
+    158,
+    181,
+    323,
+    230
+   ],
+   "w": 165,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "X",
+   "cx": 2457,
+   "cy": 208,
+   "bbox": [
+    2428,
+    180,
+    2486,
+    236
+   ],
+   "w": 58,
+   "h": 56,
+   "score": 0.9917,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "活动说明",
+   "cx": 2207,
+   "cy": 334,
+   "bbox": [
+    2136,
+    312,
+    2277,
+    356
+   ],
+   "w": 141,
+   "h": 44,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "虹旅藏金・耀星烁熠",
+   "cx": 505,
+   "cy": 402,
+   "bbox": [
+    356,
+    383,
+    654,
+    421
+   ],
+   "w": 298,
+   "h": 38,
+   "score": 0.9444,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "溯流的变奏曲",
+   "cx": 1761,
+   "cy": 423,
+   "bbox": [
+    1525,
+    378,
+    1998,
+    468
+   ],
+   "w": 473,
+   "h": 90,
+   "score": 0.9986,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "无神怜爱的冻土",
+   "cx": 472,
+   "cy": 524,
+   "bbox": [
+    356,
+    505,
+    589,
+    543
+   ],
+   "w": 233,
+   "h": 38,
+   "score": 0.9876,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "「溯流的变奏曲」已开启",
+   "cx": 1905,
+   "cy": 521,
+   "bbox": [
+    1760,
+    504,
+    2051,
+    538
+   ],
+   "w": 291,
+   "h": 34,
+   "score": 0.983,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "在至冬堡里，一位『水妖」似乎正在思考着某事…",
+   "cx": 1852,
+   "cy": 577,
+   "bbox": [
+    1531,
+    559,
+    2174,
+    596
+   ],
+   "w": 643,
+   "h": 37,
+   "score": 0.9745,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "且试身手",
+   "cx": 425,
+   "cy": 645,
+   "bbox": [
+    356,
+    623,
+    495,
+    667
+   ],
+   "w": 139,
+   "h": 44,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "风仙亦是仙，古剑通幽玄!",
+   "cx": 499,
+   "cy": 767,
+   "bbox": [
+    356,
+    750,
+    642,
+    784
+   ],
+   "w": 286,
+   "h": 34,
+   "score": 0.9418,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "可能获得的奖励",
+   "cx": 1647,
+   "cy": 835,
+   "bbox": [
+    1531,
+    816,
+    1762,
+    855
+   ],
+   "w": 231,
+   "h": 39,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "溯流的变奏曲",
+   "cx": 454,
+   "cy": 887,
+   "bbox": [
+    352,
+    866,
+    557,
+    909
+   ],
+   "w": 205,
+   "h": 43,
+   "score": 0.9988,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "沃雅妮莎",
+   "cx": 976,
+   "cy": 982,
+   "bbox": [
+    800,
+    932,
+    1153,
+    1033
+   ],
+   "w": 353,
+   "h": 101,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "绮星盛会",
+   "cx": 425,
+   "cy": 1010,
+   "bbox": [
+    354,
+    988,
+    495,
+    1032
+   ],
+   "w": 141,
+   "h": 44,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "★會會會會",
+   "cx": 902,
+   "cy": 1059,
+   "bbox": [
+    806,
+    1037,
+    998,
+    1081
+   ],
+   "w": 192,
+   "h": 44,
+   "score": 0.7089,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "O",
+   "cx": 2349,
+   "cy": 1036,
+   "bbox": [
+    2340,
+    1028,
+    2357,
+    1044
+   ],
+   "w": 17,
+   "h": 16,
+   "score": 0.5107,
+   "kind": "other"
+  },
+  {
+   "id": 19,
+   "text": "前往任务",
+   "cx": 2118,
+   "cy": 1080,
+   "bbox": [
+    2036,
+    1055,
+    2200,
+    1104
+   ],
+   "w": 164,
+   "h": 49,
+   "score": 0.9985,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "X",
+   "cx": 457,
+   "cy": 1183,
+   "bbox": [
+    423,
+    1149,
+    491,
+    1217
+   ],
+   "w": 68,
+   "h": 68,
+   "score": 0.853,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1307,
+   "bbox": [
+    7,
+    1298,
+    52,
+    1316
+   ],
+   "w": 45,
+   "h": 18,
+   "score": 0.9682,
+   "kind": "other"
+  },
+  {
+   "id": 22,
+   "text": "6.2 ns",
+   "cx": 83,
+   "cy": 1306,
+   "bbox": [
+    50,
+    1294,
+    116,
+    1319
+   ],
+   "w": 66,
+   "h": 25,
+   "score": 0.9227,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "max‡",
+   "cx": 178,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    200,
+    1317
+   ],
+   "w": 43,
+   "h": 18,
+   "score": 0.8369,
+   "kind": "other"
+  },
+  {
+   "id": 24,
+   "text": "27,2 ms",
+   "cx": 238,
+   "cy": 1308,
+   "bbox": [
+    202,
+    1299,
+    274,
+    1317
+   ],
+   "w": 72,
+   "h": 18,
+   "score": 0.9339,
+   "kind": "other"
+  },
+  {
+   "id": 25,
+   "text": "UID:110170759",
+   "cx": 2370,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 225,
+   "h": 35,
+   "score": 0.9759,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    436,
+    290,
+    480,
+    342
+   ],
+   "cx": 458,
+   "cy": 316,
+   "w": 44,
+   "h": 52,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.701,
+    "aspect": 0.85,
+    "corner_fill": 0.15,
+    "area": 1604,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    1474,
+    422,
+    1500,
+    456
+   ],
+   "cx": 1487,
+   "cy": 439,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 0.76,
+    "corner_fill": 0.08,
+    "area": 680,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1502,
+    450,
+    1526,
+    478
+   ],
+   "cx": 1514,
+   "cy": 464,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.756,
+    "aspect": 0.86,
+    "corner_fill": 0.19,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1562,
+    894,
+    1638,
+    980
+   ],
+   "cx": 1600,
+   "cy": 937,
+   "w": 76,
+   "h": 86,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.437,
+    "aspect": 0.88,
+    "corner_fill": 0.0,
+    "area": 2856,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    1738,
+    914,
+    1756,
+    938
+   ],
+   "cx": 1747,
+   "cy": 926,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.704,
+    "aspect": 0.75,
+    "corner_fill": 0.19,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1948,
+    1068,
+    1972,
+    1092
+   ],
+   "cx": 1960,
+   "cy": 1080,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 62.7,
+    "ring_L": 111.9,
+    "inside_L": 49.4,
+    "outside_L": 49.2
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    284,
+    742,
+    332,
+    790
+   ],
+   "cx": 308,
+   "cy": 766,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.986,
+    "contrast": 50.0,
+    "ring_L": 172.2,
+    "inside_L": 118.9,
+    "outside_L": 125.6
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    304,
+    876,
+    328,
+    900
+   ],
+   "cx": 316,
+   "cy": 888,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 53.8,
+    "ring_L": 108.1,
+    "inside_L": 145.8,
+    "outside_L": 178.1
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1436,
+    610,
+    1480,
+    654
+   ],
+   "cx": 1458,
+   "cy": 632,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.986,
+    "contrast": 66.7,
+    "ring_L": 133.7,
+    "inside_L": 226.1,
+    "outside_L": 174.6
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    1454,
+    578,
+    1502,
+    626
+   ],
+   "cx": 1478,
+   "cy": 602,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.986,
+    "contrast": 26.3,
+    "ring_L": 165.2,
+    "inside_L": 227.4,
+    "outside_L": 155.6
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    1240,
+    768,
+    1264,
+    792
+   ],
+   "cx": 1252,
+   "cy": 780,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 36.1,
+    "ring_L": 115.6,
+    "inside_L": 145.0,
+    "outside_L": 158.4
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1970,
+    624,
+    1988,
+    650
+   ],
+   "cx": 1979,
+   "cy": 637,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.803,
+    "aspect": 0.69,
+    "corner_fill": 0.25,
+    "area": 376,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2026,
+    952,
+    2052,
+    972
+   ],
+   "cx": 2039,
+   "cy": 962,
+   "w": 26,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 1.3,
+    "corner_fill": 0.25,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1852,
+    1084,
+    1878,
+    1102
+   ],
+   "cx": 1865,
+   "cy": 1093,
+   "w": 26,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 1.44,
+    "corner_fill": 0.25,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2494,
+    1098,
+    2524,
+    1124
+   ],
+   "cx": 2509,
+   "cy": 1111,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.703,
+    "aspect": 1.15,
+    "corner_fill": 0.22,
+    "area": 548,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    304,
+    502,
+    328,
+    526
+   ],
+   "cx": 316,
+   "cy": 514,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 18.6,
+    "ring_L": 146.1,
+    "inside_L": 165.2,
+    "outside_L": 164.1
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1396,
+    596,
+    1444,
+    644
+   ],
+   "cx": 1420,
+   "cy": 620,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.936,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.931,
+    "contrast": 23.0,
+    "ring_L": 158.5,
+    "inside_L": 191.8,
+    "outside_L": 171.1
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1460,
+    636,
+    1496,
+    672
+   ],
+   "cx": 1478,
+   "cy": 654,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1296,
+    "src": "ring",
+    "ring_r_px": 16,
+    "cov": 0.903,
+    "contrast": 31.1,
+    "ring_L": 168.5,
+    "inside_L": 221.5,
+    "outside_L": 177.7
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    922,
+    658,
+    962,
+    700
+   ],
+   "cx": 942,
+   "cy": 679,
+   "w": 40,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.921,
+   "label": null,
+   "evidence": {
+    "fill": 0.457,
+    "aspect": 0.95,
+    "corner_fill": 0.16,
+    "area": 768,
+    "src": "flat"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2278,
+    930,
+    2296,
+    950
+   ],
+   "cx": 2287,
+   "cy": 940,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.916,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 0.9,
+    "corner_fill": 0.31,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    290,
+    376,
+    338,
+    424
+   ],
+   "cx": 314,
+   "cy": 400,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.917,
+    "contrast": 18.2,
+    "ring_L": 162.4,
+    "inside_L": 184.6,
+    "outside_L": 103.8
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    870,
+    894,
+    898,
+    914
+   ],
+   "cx": 884,
+   "cy": 904,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.643,
+    "aspect": 1.4,
+    "corner_fill": 0.25,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1406,
+    492,
+    1434,
+    514
+   ],
+   "cx": 1420,
+   "cy": 503,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.435,
+    "aspect": 1.27,
+    "corner_fill": 0.19,
+    "area": 268,
+    "src": "flat"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2016,
+    428,
+    2042,
+    464
+   ],
+   "cx": 2029,
+   "cy": 446,
+   "w": 26,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 0.72,
+    "corner_fill": 0.33,
+    "area": 728,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1120,
+    706,
+    1150,
+    732
+   ],
+   "cx": 1135,
+   "cy": 719,
+   "w": 30,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.431,
+    "aspect": 1.15,
+    "corner_fill": 0.19,
+    "area": 336,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1332,
+    826,
+    1360,
+    848
+   ],
+   "cx": 1346,
+   "cy": 837,
+   "w": 28,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": 0.461,
+    "aspect": 1.27,
+    "corner_fill": 0.22,
+    "area": 284,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    314,
+    752,
+    338,
+    776
+   ],
+   "cx": 326,
+   "cy": 764,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.958,
+    "contrast": 14.9,
+    "ring_L": 153.3,
+    "inside_L": 168.1,
+    "outside_L": 168.2
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    2290,
+    894,
+    2318,
+    918
+   ],
+   "cx": 2304,
+   "cy": 906,
+   "w": 28,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.726,
+    "aspect": 1.17,
+    "corner_fill": 0.33,
+    "area": 488,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    976,
+    666,
+    1042,
+    720
+   ],
+   "cx": 1009,
+   "cy": 693,
+   "w": 66,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.467,
+    "aspect": 1.22,
+    "corner_fill": 0.23,
+    "area": 1664,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    724,
+    300,
+    770,
+    346
+   ],
+   "cx": 747,
+   "cy": 323,
+   "w": 46,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.662,
+    "aspect": 1.0,
+    "corner_fill": 0.32,
+    "area": 1400,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1990,
+    902,
+    2044,
+    958
+   ],
+   "cx": 2017,
+   "cy": 930,
+   "w": 54,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 0.96,
+    "corner_fill": 0.32,
+    "area": 1980,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    8,
+    1318,
+    430,
+    1400
+   ],
+   "cx": 219,
+   "cy": 1359,
+   "w": 422,
+   "h": 82,
+   "shape": "rect",
+   "confidence": 0.878,
+   "label": null,
+   "evidence": {
+    "fill": 0.841,
+    "aspect": 5.15,
+    "corner_fill": 0.91,
+    "area": 29104,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    668,
+    550,
+    702,
+    582
+   ],
+   "cx": 685,
+   "cy": 566,
+   "w": 34,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.878,
+   "label": null,
+   "evidence": {
+    "fill": 0.467,
+    "aspect": 1.06,
+    "corner_fill": 0.25,
+    "area": 508,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    704,
+    948,
+    782,
+    1006
+   ],
+   "cx": 743,
+   "cy": 977,
+   "w": 78,
+   "h": 58,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.466,
+    "aspect": 1.34,
+    "corner_fill": 0.26,
+    "area": 2108,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    20,
+    1092,
+    38,
+    1118
+   ],
+   "cx": 29,
+   "cy": 1105,
+   "w": 18,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.769,
+    "aspect": 0.69,
+    "corner_fill": 0.38,
+    "area": 360,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    816,
+    784,
+    844,
+    824
+   ],
+   "cx": 830,
+   "cy": 804,
+   "w": 28,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.646,
+    "aspect": 0.7,
+    "corner_fill": 0.33,
+    "area": 724,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    942,
+    302,
+    968,
+    364
+   ],
+   "cx": 955,
+   "cy": 333,
+   "w": 26,
+   "h": 62,
+   "shape": "rect",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.831,
+    "aspect": 0.42,
+    "corner_fill": 0.25,
+    "area": 1340,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1582,
+    748,
+    1668,
+    826
+   ],
+   "cx": 1625,
+   "cy": 787,
+   "w": 86,
+   "h": 78,
+   "shape": "circle",
+   "confidence": 0.874,
+   "label": null,
+   "evidence": {
+    "fill": 0.425,
+    "aspect": 1.1,
+    "corner_fill": 0.24,
+    "area": 2848,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    80,
+    1104,
+    96,
+    1126
+   ],
+   "cx": 88,
+   "cy": 1115,
+   "w": 16,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.873,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 0.73,
+    "corner_fill": 0.38,
+    "area": 264,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    758,
+    894,
+    818,
+    944
+   ],
+   "cx": 788,
+   "cy": 919,
+   "w": 60,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.872,
+   "label": null,
+   "evidence": {
+    "fill": 0.573,
+    "aspect": 1.2,
+    "corner_fill": 0.31,
+    "area": 1720,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    250,
+    1440
+   ],
+   "why": "竖边长直边 x=250（覆盖 36% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    1525,
+    180,
+    2486,
+    1104
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 24,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    208,
+    334,
+    423,
+    521,
+    577,
+    835,
+    1036,
+    1080
+   ],
+   "rows": [
+    {
+     "y": 208,
+     "texts": [
+      "X"
+     ]
+    },
+    {
+     "y": 334,
+     "texts": [
+      "活动说明"
+     ]
+    },
+    {
+     "y": 423,
+     "texts": [
+      "溯流的变奏曲"
+     ]
+    },
+    {
+     "y": 521,
+     "texts": [
+      "「溯流的变奏曲」已开启"
+     ]
+    },
+    {
+     "y": 577,
+     "texts": [
+      "在至冬堡里，一位『水妖」似乎正在思考着某事…"
+     ]
+    },
+    {
+     "y": 835,
+     "texts": [
+      "可能获得的奖励"
+     ]
+    },
+    {
+     "y": 1036,
+     "texts": [
+      "O"
+     ]
+    },
+    {
+     "y": 1080,
+     "texts": [
+      "前往任务"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    158,
+    181,
+    654,
+    1217
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 34,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 8,
+   "row_y": [
+    205,
+    402,
+    524,
+    645,
+    767,
+    887,
+    1010,
+    1183
+   ],
+   "rows": [
+    {
+     "y": 205,
+     "texts": [
+      "活动一览"
+     ]
+    },
+    {
+     "y": 402,
+     "texts": [
+      "虹旅藏金・耀星烁熠"
+     ]
+    },
+    {
+     "y": 524,
+     "texts": [
+      "无神怜爱的冻土"
+     ]
+    },
+    {
+     "y": 645,
+     "texts": [
+      "且试身手"
+     ]
+    },
+    {
+     "y": 767,
+     "texts": [
+      "风仙亦是仙，古剑通幽玄!"
+     ]
+    },
+    {
+     "y": 887,
+     "texts": [
+      "溯流的变奏曲"
+     ]
+    },
+    {
+     "y": 1010,
+     "texts": [
+      "绮星盛会"
+     ]
+    },
+    {
+     "y": 1183,
+     "texts": [
+      "X"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    800,
+    932,
+    1153,
+    1081
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 22,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 2,
+   "row_y": [
+    982,
+    1059
+   ],
+   "rows": [
+    {
+     "y": 982,
+     "texts": [
+      "沃雅妮莎"
+     ]
+    },
+    {
+     "y": 1059,
+     "texts": [
+      "★會會會會"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "溯流的变奏曲",
+   "text_id": 7,
+   "target": "circle@(2029,446)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 18,
+   "dx": 268,
+   "dy": 23,
+   "confidence": 0.685
+  },
+  {
+   "text": "溯流的变奏曲",
+   "text_id": 7,
+   "target": "circle@(1487,439)",
+   "target_id": "c1",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 25,
+   "dx": -274,
+   "dy": 16,
+   "confidence": 0.679
+  },
+  {
+   "text": "溯流的变奏曲",
+   "text_id": 7,
+   "target": "circle@(1514,464)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -248,
+   "dy": 41,
+   "confidence": 0.7
+  },
+  {
+   "text": "6.2 ns",
+   "text_id": 22,
+   "target": "rect@(219,1359)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 136,
+   "dy": 52,
+   "confidence": 0.55
+  },
+  {
+   "text": "沃雅妮莎",
+   "text_id": 15,
+   "target": "circle@(743,977)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 18,
+   "dx": -234,
+   "dy": -6,
+   "confidence": 0.535
+  },
+  {
+   "text": "溯流的变奏曲",
+   "text_id": 14,
+   "target": "circle@(316,888)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 24,
+   "dx": -138,
+   "dy": 0,
+   "confidence": 0.53
+  },
+  {
+   "text": "在至冬堡里，一位『水妖」似乎正在思考着某事…",
+   "text_id": 10,
+   "target": "circle@(1478,602)",
+   "target_id": "c9",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 29,
+   "dx": -374,
+   "dy": 24,
+   "confidence": 0.526
+  },
+  {
+   "text": "★會會會會",
+   "text_id": 17,
+   "target": "circle@(743,977)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 31,
+   "dx": -159,
+   "dy": -82,
+   "confidence": 0.524
+  },
+  {
+   "text": "可能获得的奖励",
+   "text_id": 13,
+   "target": "circle@(1600,937)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": -46,
+   "dy": 102,
+   "confidence": 0.518
+  },
+  {
+   "text": "前往任务",
+   "text_id": 19,
+   "target": "circle@(1960,1080)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 64,
+   "dx": -158,
+   "dy": 0,
+   "confidence": 0.497
+  },
+  {
+   "text": "且试身手",
+   "text_id": 11,
+   "target": "circle@(308,766)",
+   "target_id": "c6",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 75,
+   "dx": -118,
+   "dy": 121,
+   "confidence": 0.488
+  },
+  {
+   "text": "无神怜爱的冻土",
+   "text_id": 8,
+   "target": "circle@(685,566)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 79,
+   "dx": 212,
+   "dy": 42,
+   "confidence": 0.484
+  },
+  {
+   "text": "虹旅藏金・耀星烁熠",
+   "text_id": 6,
+   "target": "circle@(316,514)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 81,
+   "dx": -189,
+   "dy": 112,
+   "confidence": 0.483
+  },
+  {
+   "text": "「溯流的变奏曲」已开启",
+   "text_id": 9,
+   "target": "circle@(1979,637)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 86,
+   "dx": 74,
+   "dy": 116,
+   "confidence": 0.478
+  },
+  {
+   "text": "绮星盛会",
+   "text_id": 16,
+   "target": "circle@(316,888)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 88,
+   "dx": -108,
+   "dy": -122,
+   "confidence": 0.477
+  },
+  {
+   "text": "风仙亦是仙，古剑通幽玄!",
+   "text_id": 12,
+   "target": "circle@(316,888)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 92,
+   "dx": -183,
+   "dy": 121,
+   "confidence": 0.473
+  },
+  {
+   "text": "活动说明",
+   "text_id": 5,
+   "target": "circle@(2029,446)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 94,
+   "dx": -178,
+   "dy": 112,
+   "confidence": 0.472
+  },
+  {
+   "text": "X",
+   "text_id": 20,
+   "target": "rect@(219,1359)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 101,
+   "dx": -238,
+   "dy": 176,
+   "confidence": 0.466
+  },
+  {
+   "text": "活动一览",
+   "text_id": 3,
+   "target": "circle@(458,316)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 113,
+   "dx": 218,
+   "dy": 110,
+   "confidence": 0.456
+  },
+  {
+   "text": "沃雅妮莎",
+   "text_id": 15,
+   "target": "circle@(788,919)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -188,
+   "dy": -64,
+   "confidence": 0.55
+  },
+  {
+   "text": "无神怜爱的冻土",
+   "text_id": 8,
+   "target": "circle@(316,514)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 28,
+   "dx": -156,
+   "dy": -10,
+   "confidence": 0.527
+  },
+  {
+   "text": "在至冬堡里，一位『水妖」似乎正在思考着某事…",
+   "text_id": 10,
+   "target": "circle@(1979,637)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 28,
+   "dx": 126,
+   "dy": 60,
+   "confidence": 0.527
+  },
+  {
+   "text": "「溯流的变奏曲」已开启",
+   "text_id": 9,
+   "target": "circle@(2029,446)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 40,
+   "dx": 124,
+   "dy": -75,
+   "confidence": 0.517
+  },
+  {
+   "text": "可能获得的奖励",
+   "text_id": 13,
+   "target": "circle@(1747,926)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 59,
+   "dx": 100,
+   "dy": 90,
+   "confidence": 0.501
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    4,
+    121,
+    80
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 3 框，低方差 std=0.9，非纯黑 L=77，纹理对比骤降 std 4.9→0.9（0.17×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 60.4",
+     "GPU: 7%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2
+    ],
+    "n_texts": 3,
+    "corner": "左上",
+    "corner_dist_px": 7,
+    "bg_mean": 77.2,
+    "bg_std": 0.9,
+    "ring_mean": 71.7,
+    "ring_std": 4.9,
+    "texture_ratio": 0.17,
+    "bg_rgb": [
+     75,
+     71,
+     84
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    264,
+    270,
+    650,
+    838
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     90.0,
+     129.0,
+     116.0
+    ],
+    "fill": 0.75,
+    "rect": 0.78
+   },
+   "text": [
+    "虹旅藏金・耀星烁熠",
+    "无神怜爱的冻土",
+    "且试身手",
+    "风仙亦是仙，古剑通幽玄!"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      294,
+      378,
+      342,
+      430
+     ],
+     "role": "icon",
+     "fill": 0.84,
+     "contrast": 176.0
+    },
+    {
+     "bbox": [
+      294,
+      496,
+      338,
+      560
+     ],
+     "role": "icon",
+     "fill": 0.72,
+     "contrast": 178.0
+    },
+    {
+     "bbox": [
+      286,
+      734,
+      348,
+      802
+     ],
+     "role": "icon",
+     "fill": 0.69,
+     "contrast": 178.0
+    },
+    {
+     "bbox": [
+      286,
+      620,
+      346,
+      676
+     ],
+     "role": "icon",
+     "fill": 0.66,
+     "contrast": 171.0
+    },
+    {
+     "bbox": [
+      438,
+      290,
+      478,
+      340
+     ],
+     "role": "icon",
+     "fill": 0.64,
+     "contrast": 185.0
+    },
+    {
+     "bbox": [
+      294,
+      294,
+      338,
+      316
+     ],
+     "role": "icon",
+     "fill": 0.57,
+     "contrast": 173.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      442,
+      304,
+      474,
+      336
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:4",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.91,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 4)",
+    "area_px": 171800,
+    "area_frac": 0.0595,
+    "aspect": 0.68,
+    "grid": "col n=2 pitch_x=None pitch_y=337.0",
+    "skin_siblings": 1,
+    "text_in": 4,
+    "text_ui": 4,
+    "skin_lab": [
+     90.0,
+     129.0,
+     116.0
+    ],
+    "flat_fill": 0.75,
+    "rect": 0.78
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    260,
+    942,
+    656,
+    1224
+   ],
+   "kind": "card",
+   "skin": {
+    "lab": [
+     90.0,
+     129.0,
+     116.0
+    ],
+    "fill": 0.74,
+    "rect": 0.74
+   },
+   "text": [
+    "绮星盛会",
+    "X"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      282,
+      982,
+      350,
+      1040
+     ],
+     "role": "icon",
+     "fill": 0.63,
+     "contrast": 178.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 82192,
+    "area_frac": 0.0303,
+    "aspect": 1.4,
+    "grid": "col n=2 pitch_x=None pitch_y=192.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     90.0,
+     129.0,
+     116.0
+    ],
+    "flat_fill": 0.74,
+    "rect": 0.74
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    1924,
+    1044,
+    2268,
+    1118
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "fill": 0.6,
+    "rect": 0.63
+   },
+   "text": [
+    "前往任务"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1900,
+      1040,
+      2010,
+      1124
+     ],
+     "role": "icon",
+     "fill": 0.49,
+     "contrast": 218.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.78,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 16148,
+    "area_frac": 0.0069,
+    "aspect": 4.65,
+    "grid": "none",
+    "skin_siblings": 1,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "flat_fill": 0.6,
+    "rect": 0.63
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    322,
+    854,
+    662,
+    928
+   ],
+   "kind": "button",
+   "skin": {
+    "lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "fill": 0.44,
+    "rect": 0.6
+   },
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:1",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 15192,
+    "area_frac": 0.0068,
+    "aspect": 4.59,
+    "grid": "col n=2 pitch_x=None pitch_y=192.0",
+    "skin_siblings": 1,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     233.0,
+     128.0,
+     135.0
+    ],
+    "flat_fill": 0.44,
+    "rect": 0.6
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 60.4",
+  "GPU: 7%",
+  "活动一览",
+  "X",
+  "活动说明",
+  "溯流的变奏曲",
+  "「溯流的变奏曲」已开启",
+  "在至冬堡里，一位『水妖」似乎正在思考着某事…",
+  "可能获得的奖励",
+  "沃雅妮莎",
+  "★會會會會",
+  "O",
+  "min:",
+  "6.2 ns",
+  "max‡",
+  "27,2 ms",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    172,
+    306,
+    214,
+    404
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    2076,
+    310,
+    2130,
+    362
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 195.0
+  },
+  {
+   "bbox": [
+    74,
+    170,
+    134,
+    242
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 154.0
+  },
+  {
+   "bbox": [
+    2124,
+    876,
+    2204,
+    978
+   ],
+   "role": "icon",
+   "fill": 0.69,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    1698,
+    1000,
+    1716,
+    1020
+   ],
+   "role": "icon",
+   "fill": 0.66,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    0,
+    868,
+    22,
+    900
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    150,
+    712,
+    168,
+    728
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 55.0
+  },
+  {
+   "bbox": [
+    226,
+    274,
+    252,
+    298
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 88.0
+  },
+  {
+   "bbox": [
+    2062,
+    862,
+    2110,
+    886
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 59.0
+  },
+  {
+   "bbox": [
+    116,
+    1142,
+    168,
+    1166
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    1916,
+    1148,
+    1956,
+    1166
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 66.0
+  },
+  {
+   "bbox": [
+    662,
+    274,
+    688,
+    298
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 89.0
+  },
+  {
+   "bbox": [
+    2530,
+    274,
+    2560,
+    304
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 87.0
+  },
+  {
+   "bbox": [
+    2530,
+    1136,
+    2560,
+    1168
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 106.0
+  },
+  {
+   "bbox": [
+    0,
+    274,
+    28,
+    302
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 85.0
+  },
+  {
+   "bbox": [
+    1820,
+    874,
+    1928,
+    992
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 136.0
+  },
+  {
+   "bbox": [
+    1468,
+    1132,
+    1552,
+    1168
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 117.0
+  },
+  {
+   "bbox": [
+    1468,
+    836,
+    1492,
+    890
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    1558,
+    892,
+    1642,
+    984
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 173.0
+  },
+  {
+   "bbox": [
+    2068,
+    994,
+    2154,
+    1014
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 69.0
+  },
+  {
+   "bbox": [
+    0,
+    1138,
+    42,
+    1168
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    852,
+    504,
+    880,
+    540
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    686,
+    982,
+    722,
+    1002
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 69.0
+  },
+  {
+   "bbox": [
+    2422,
+    256,
+    2492,
+    272
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 51.0
+  },
+  {
+   "bbox": [
+    1578,
+    1064,
+    1644,
+    1168
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 129.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 172,
+  "ocr_ms": 572,
+  "pixel_ms": 1016,
+  "container_ms": 394,
+  "container_cached": false,
+  "total_ms": 1761,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 26,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 26 · 控件 40 · 容器 4 · 邻接 24 · 遮挡 1 · 1761ms（OCR daemon）\n标题「溯流的变奏曲」@(1761,423) 画面 · 字高 90px\n邻接「溯流的变奏曲」→ circle@(2029,446) 右侧 18px\n邻接「溯流的变奏曲」→ circle@(1487,439) 左侧 25px\n邻接「溯流的变奏曲」→ circle@(1514,464) 重叠 0px\n控件: circle@(2029,446) | circle@(1487,439) | circle@(1514,464) | rect@(219,1359)\n区域: 左侧栏 (0,0)-(250,1440)\n遮挡 [0, 4, 121, 80] (0,4)-(121,80)（conf 0.90）：左上角小字叠加层：小字 3 框，低方差 std=0.9，非纯黑 L=77，纹理对比骤降 std 4.9→0.9（0.17×）"
+}

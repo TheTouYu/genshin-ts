@@ -1,0 +1,860 @@
+{
+ "frame": "195258",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/195258.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "prelabel(cv) 预标 — **未人工复核**",
+ "criteria": "truth/_rules.md",
+ "review": "pending",
+ "provenance": {
+  "backend": "cv",
+  "screen_json": ".scratch/gui-corpus/label-capture/_screen/195258.json",
+  "prelabel_src": {
+   "container": 7,
+   "row-split": 0,
+   "loose-text": 18,
+   "glyph": 5
+  }
+ },
+ "layout": "",
+ "classes": [],
+ "units": 30,
+ "objects": [
+  {
+   "bbox": [
+    2410,
+    26,
+    86,
+    70
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 0
+  },
+  {
+   "bbox": [
+    2321,
+    74,
+    83,
+    80
+   ],
+   "kind": "row",
+   "text": [
+    "X"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 1
+  },
+  {
+   "bbox": [
+    1135,
+    75,
+    286,
+    77
+   ],
+   "kind": "row",
+   "text": [
+    "邮件珍藏盒"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 2
+  },
+  {
+   "bbox": [
+    1201,
+    138,
+    156,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "339/1000"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 3
+  },
+  {
+   "bbox": [
+    1304,
+    206,
+    161,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "启发…"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 4
+  },
+  {
+   "bbox": [
+    220,
+    214,
+    284,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "搜索标题或发件人"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 5
+  },
+  {
+   "bbox": [
+    1308,
+    291,
+    205,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "发件人：辛焱"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 6
+  },
+  {
+   "bbox": [
+    302,
+    310,
+    942,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "启发…",
+    "辛焱"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 7
+  },
+  {
+   "bbox": [
+    1311,
+    343,
+    358,
+    45
+   ],
+   "kind": "row",
+   "text": [
+    "时间: 2026-10-16 02:57"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 8
+  },
+  {
+   "bbox": [
+    1187,
+    417,
+    1211,
+    98
+   ],
+   "kind": "row",
+   "text": [
+    "前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸",
+    "新",
+    "在屋檐、石板和灯笼上，听着还挺像一段即兴的鼓点。我抱着琴，跟着"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 9
+  },
+  {
+   "bbox": [
+    190,
+    468,
+    1044,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "祝他成功。",
+    "欧洛伦"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1200,
+      458,
+      1242,
+      492
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      246,
+      504,
+      262,
+      518
+     ]
+    },
+    {
+     "type": "red",
+     "bbox": [
+      250,
+      524,
+      274,
+      542
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 10
+  },
+  {
+   "bbox": [
+    1306,
+    501,
+    1074,
+    59
+   ],
+   "kind": "row",
+   "text": [
+    "这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 11
+  },
+  {
+   "bbox": [
+    1307,
+    547,
+    1081,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "这事给了我一个启发。既然风声、雨声能成为音乐，那么大雪与冰雹岂"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 12
+  },
+  {
+   "bbox": [
+    1186,
+    591,
+    1190,
+    68
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "不是也能作为灵感来源？我的摇滚之火，会在冰天雪地中燃烧出怎样"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 13
+  },
+  {
+   "bbox": [
+    190,
+    622,
+    1044,
+    126
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "舞台·",
+    "芙宁娜"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1200,
+      614,
+      1242,
+      648
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 14
+  },
+  {
+   "bbox": [
+    1306,
+    633,
+    537,
+    55
+   ],
+   "kind": "row",
+   "text": [
+    "精彩的旋律呢？想想就迫不及待！"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 15
+  },
+  {
+   "bbox": [
+    1308,
+    677,
+    1089,
+    53
+   ],
+   "kind": "row",
+   "text": [
+    "…尽管真的很想这么冲动一回，但去至冬和去沉玉谷可不一样，还得从"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 16
+  },
+  {
+   "bbox": [
+    1304,
+    714,
+    152,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "长计议。"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 17
+  },
+  {
+   "bbox": [
+    1187,
+    758,
+    877,
+    61
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "总之，给你带了点当地特产，往后也为我加油吧！"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 18
+  },
+  {
+   "bbox": [
+    190,
+    782,
+    1044,
+    122
+   ],
+   "kind": "row",
+   "text": [
+    "新",
+    "行到闲处…",
+    "行秋"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      1200,
+      770,
+      1242,
+      806
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 19
+  },
+  {
+   "bbox": [
+    190,
+    936,
+    1044,
+    128
+   ],
+   "kind": "row",
+   "text": [
+    "礼物…",
+    "尼可"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 20
+  },
+  {
+   "bbox": [
+    190,
+    1096,
+    1044,
+    122
+   ],
+   "kind": "row",
+   "text": [
+    "读书的收获…",
+    "菲米尼"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 21
+  },
+  {
+   "bbox": [
+    1472,
+    1108,
+    120,
+    108
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 22
+  },
+  {
+   "bbox": [
+    1344,
+    1122,
+    86,
+    68
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 23
+  },
+  {
+   "bbox": [
+    1355,
+    1178,
+    62,
+    54
+   ],
+   "kind": "row",
+   "text": [
+    "10"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 24
+  },
+  {
+   "bbox": [
+    190,
+    1252,
+    1044,
+    94
+   ],
+   "kind": "row",
+   "text": [
+    "定香·",
+    "69.",
+    ".5 ms",
+    "艾梅莉埃"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "container",
+   "id": 25
+  },
+  {
+   "bbox": [
+    2326,
+    1272,
+    66,
+    66
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 26
+  },
+  {
+   "bbox": [
+    373,
+    1317,
+    140,
+    47
+   ],
+   "kind": "row",
+   "text": [
+    "艾梅莉埃"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 27
+  },
+  {
+   "bbox": [
+    2424,
+    1356,
+    42,
+    40
+   ],
+   "kind": "icon",
+   "text": [],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "glyph",
+   "id": 28
+  },
+  {
+   "bbox": [
+    2249,
+    1393,
+    244,
+    51
+   ],
+   "kind": "row",
+   "text": [
+    "UID: 110170759"
+   ],
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "clickable": "unknown",
+   "src": "loose-text",
+   "id": 29
+  }
+ ]
+}

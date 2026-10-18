@@ -261,14 +261,14 @@ TRUTH['f08'] = f08
 # ---------------------------------------------------------------- 设置页（f09–f12）
 # 左导航 9 项：实测 x 138..338，行心 222/295/368/440/512/585/660/735/808（pitch≈73）
 NAV = ['控制', '按键', '图像', '声音', '消息', '语言', '账户', '资源', '其他']
-NAV_CY = [222, 295, 368, 440, 512, 585, 660, 735, 808]
+NAV_CY = [204, 297, 390, 483, 576, 668, 761, 854, 947]   # 2026-10-18 复测订正（原 222/…/808 是 pitch 73 的误读）
 
 
 def nav_list(selected):
     out = []
     for i, (nm, cy) in enumerate(zip(NAV, NAV_CY)):
         sel = (nm == selected)
-        out.append(U('row', [138, cy - 32, 200, 64], [nm], clickable='yes',
+        out.append(U('row', [138, cy - 32, 232, 64], [nm], clickable='yes',
                      state={'selected': sel, 'focused': sel, 'disabled': False},
                      note='左导航项' + ('（当前页高亮）' if sel else '')))
     return out

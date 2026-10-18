@@ -1,0 +1,797 @@
+{
+ "frame": "c24_195206",
+ "image": ".scratch/gui-corpus/truth-v2/c24_195206.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作\"派蒙菜单\"，实际是设置页）",
+ "classes": [
+  "半透明胶囊行",
+  "左导航",
+  "两层页签"
+ ],
+ "units": 28,
+ "_provenance": {
+  "method": "edges.py 竖直扫描 x=1200 定 12 行边界；左导航同 c18 的文本带实测（pitch≈86.4）；页签条/底部两按钮按 y=130 与 1310 带读数估边",
+  "tool_assist": "仅 read_image 判身份；几何全部来自 edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "页签条外沿对比度低（深蓝 on 深蓝），±15px 估",
+   "首个可见行「切换小队角色3」被页签条压住上沿 ⇒ 只标可见部分",
+   "末行「打开祈愿界面」被屏底裁切"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 8/28=28.6%（iou 0.830）。漏：9 导航、3 个页签件、2 个底部按钮、其余 4 行"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    2030,
+    25,
+    500,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "第三人称射击设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2425,
+    25,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    138,
+    172,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "控制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    138,
+    265,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "按键"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项（当前页高亮）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    138,
+    358,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "图像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    138,
+    451,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "声音"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    138,
+    544,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "消息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    138,
+    636,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "语言"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    138,
+    729,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "账户"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    138,
+    822,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "资源"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    138,
+    915,
+    232,
+    64
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左导航项"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    605,
+    140,
+    1820,
+    84
+   ],
+   "kind": "panel",
+   "text": [
+    "基础设置 | 千星奇域"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "两层页签容器（L2）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    632,
+    142,
+    900,
+    80
+   ],
+   "kind": "chip",
+   "text": [
+    "基础设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "页签一级（选中）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1655,
+    142,
+    620,
+    80
+   ],
+   "kind": "chip",
+   "text": [
+    "千星奇域"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "页签二级（未选中）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    646,
+    148,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "切换小队角色3",
+    "3"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 40
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    646,
+    289,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "切换小队角色4",
+    "4"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    646,
+    379,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "切换小队角色5",
+    "5"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    646,
+    468,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "切换到小队角色并使用其元素爆发",
+    "左Alt+切换角色"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    646,
+    558,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "呼出快捷轮盘",
+    "Tab"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    646,
+    724,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开背包",
+    "B"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    646,
+    814,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开角色界面",
+    "C"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    646,
+    900,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开地图",
+    "H"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    646,
+    993,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开派蒙界面",
+    "Esc"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    646,
+    1083,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开冒险之证界面",
+    "F1"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    646,
+    1172,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开多人游戏界面",
+    "F2"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    646,
+    1262,
+    1756,
+    75
+   ],
+   "kind": "row",
+   "text": [
+    "打开祈愿界面",
+    "F3"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 25
+   },
+   "note": "按键绑定行（右侧是键位胶囊）"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    1380,
+    1310,
+    480,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "快捷轮盘设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1930,
+    1310,
+    420,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "恢复默认"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  }
+ ]
+}

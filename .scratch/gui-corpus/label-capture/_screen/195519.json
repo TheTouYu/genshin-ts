@@ -1,0 +1,2668 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195519.png",
+  "sha256": "ad4270320ebe0bc730848e24c74ac408caf612743ddb6ee2676b0f9af6d0fdbf",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 4390791
+ },
+ "title": {
+  "text": "造物",
+  "cx": 67,
+  "cy": 388,
+  "bbox": [
+   29,
+   372,
+   105,
+   405
+  ],
+  "region": "左侧栏",
+  "why": "上半屏字高最大（33px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.",
+   "cx": 54,
+   "cy": 19,
+   "bbox": [
+    1,
+    6,
+    107,
+    32
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.919,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "背景音乐管理 ×",
+   "cx": 362,
+   "cy": 25,
+   "bbox": [
+    289,
+    10,
+    436,
+    39
+   ],
+   "w": 147,
+   "h": 29,
+   "score": 0.9325,
+   "kind": "content"
+  },
+  {
+   "id": 2,
+   "text": " 71 ms",
+   "cx": 2271,
+   "cy": 25,
+   "bbox": [
+    2229,
+    10,
+    2313,
+    39
+   ],
+   "w": 84,
+   "h": 29,
+   "score": 0.8637,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "FPS:60.",
+   "cx": 55,
+   "cy": 40,
+   "bbox": [
+    2,
+    27,
+    108,
+    54
+   ],
+   "w": 106,
+   "h": 27,
+   "score": 0.9792,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "GPU: 46%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    105,
+    77
+   ],
+   "w": 102,
+   "h": 22,
+   "score": 0.9818,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "摆放",
+   "cx": 41,
+   "cy": 85,
+   "bbox": [
+    14,
+    70,
+    68,
+    100
+   ],
+   "w": 54,
+   "h": 30,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "久",
+   "cx": 436,
+   "cy": 86,
+   "bbox": [
+    423,
+    74,
+    449,
+    97
+   ],
+   "w": 26,
+   "h": 23,
+   "score": 0.6657,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "x",
+   "cx": 2487,
+   "cy": 141,
+   "bbox": [
+    2476,
+    129,
+    2498,
+    153
+   ],
+   "w": 22,
+   "h": 24,
+   "score": 0.7593,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "自定义",
+   "cx": 47,
+   "cy": 217,
+   "bbox": [
+    16,
+    204,
+    78,
+    231
+   ],
+   "w": 62,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "合成台",
+   "cx": 381,
+   "cy": 238,
+   "bbox": [
+    353,
+    225,
+    409,
+    252
+   ],
+   "w": 56,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "物件",
+   "cx": 68,
+   "cy": 260,
+   "bbox": [
+    29,
+    244,
+    107,
+    276
+   ],
+   "w": 78,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 302,
+   "bbox": [
+    33,
+    289,
+    152,
+    316
+   ],
+   "w": 119,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 345,
+   "bbox": [
+    29,
+    333,
+    134,
+    358
+   ],
+   "w": 105,
+   "h": 25,
+   "score": 0.9675,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "嘟嘟可背囊",
+   "cx": 381,
+   "cy": 351,
+   "bbox": [
+    336,
+    338,
+    425,
+    363
+   ],
+   "w": 89,
+   "h": 25,
+   "score": 0.9957,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "造物",
+   "cx": 67,
+   "cy": 388,
+   "bbox": [
+    29,
+    372,
+    105,
+    405
+   ],
+   "w": 76,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 15,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 430,
+   "bbox": [
+    33,
+    417,
+    152,
+    443
+   ],
+   "w": 119,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 473,
+   "bbox": [
+    28,
+    460,
+    134,
+    487
+   ],
+   "w": 106,
+   "h": 27,
+   "score": 0.9581,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "簧火堆",
+   "cx": 380,
+   "cy": 462,
+   "bbox": [
+    352,
+    451,
+    409,
+    474
+   ],
+   "w": 57,
+   "h": 23,
+   "score": 0.8912,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 516,
+   "bbox": [
+    29,
+    500,
+    126,
+    532
+   ],
+   "w": 97,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 558,
+   "bbox": [
+    33,
+    545,
+    152,
+    572
+   ],
+   "w": 119,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "标靶气球",
+   "cx": 381,
+   "cy": 574,
+   "bbox": [
+    345,
+    563,
+    416,
+    586
+   ],
+   "w": 71,
+   "h": 23,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 601,
+   "bbox": [
+    28,
+    588,
+    134,
+    614
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.9896,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "预制",
+   "cx": 38,
+   "cy": 644,
+   "bbox": [
+    16,
+    632,
+    60,
+    657
+   ],
+   "w": 44,
+   "h": 25,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "动态单位",
+   "cx": 88,
+   "cy": 686,
+   "bbox": [
+    29,
+    671,
+    147,
+    702
+   ],
+   "w": 118,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "标靶气球",
+   "cx": 380,
+   "cy": 687,
+   "bbox": [
+    343,
+    672,
+    418,
+    702
+   ],
+   "w": 75,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "流程物件",
+   "cx": 92,
+   "cy": 728,
+   "bbox": [
+    51,
+    714,
+    132,
+    741
+   ],
+   "w": 81,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "玩法机关",
+   "cx": 94,
+   "cy": 772,
+   "bbox": [
+    52,
+    758,
+    135,
+    785
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "木质箱子",
+   "cx": 380,
+   "cy": 799,
+   "bbox": [
+    343,
+    785,
+    418,
+    812
+   ],
+   "w": 75,
+   "h": 27,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "其他",
+   "cx": 76,
+   "cy": 814,
+   "bbox": [
+    52,
+    802,
+    99,
+    826
+   ],
+   "w": 47,
+   "h": 24,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "静态单位",
+   "cx": 88,
+   "cy": 856,
+   "bbox": [
+    29,
+    839,
+    147,
+    873
+   ],
+   "w": 118,
+   "h": 34,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "造物",
+   "cx": 68,
+   "cy": 900,
+   "bbox": [
+    30,
+    884,
+    105,
+    915
+   ],
+   "w": 75,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "木质箱子",
+   "cx": 379,
+   "cy": 910,
+   "bbox": [
+    343,
+    896,
+    416,
+    925
+   ],
+   "w": 73,
+   "h": 29,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 942,
+   "bbox": [
+    30,
+    927,
+    126,
+    957
+   ],
+   "w": 96,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "元件组",
+   "cx": 47,
+   "cy": 985,
+   "bbox": [
+    15,
+    972,
+    80,
+    999
+   ],
+   "w": 65,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "自定义元件组",
+   "cx": 109,
+   "cy": 1027,
+   "bbox": [
+    29,
+    1013,
+    188,
+    1042
+   ],
+   "w": 159,
+   "h": 29,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "木质箱子",
+   "cx": 380,
+   "cy": 1022,
+   "bbox": [
+    343,
+    1008,
+    418,
+    1037
+   ],
+   "w": 75,
+   "h": 29,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "资产库",
+   "cx": 48,
+   "cy": 1070,
+   "bbox": [
+    16,
+    1056,
+    80,
+    1083
+   ],
+   "w": 64,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "物件",
+   "cx": 65,
+   "cy": 1112,
+   "bbox": [
+    32,
+    1098,
+    99,
+    1126
+   ],
+   "w": 67,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "拐杖糖果",
+   "cx": 380,
+   "cy": 1135,
+   "bbox": [
+    344,
+    1123,
+    416,
+    1146
+   ],
+   "w": 72,
+   "h": 23,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "造物",
+   "cx": 65,
+   "cy": 1155,
+   "bbox": [
+    32,
+    1141,
+    99,
+    1168
+   ],
+   "w": 67,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "场景生成模板",
+   "cx": 74,
+   "cy": 1198,
+   "bbox": [
+    16,
+    1185,
+    132,
+    1211
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "预设模板",
+   "cx": 94,
+   "cy": 1240,
+   "bbox": [
+    52,
+    1226,
+    135,
+    1253
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "嘟嘟魔球堡",
+   "cx": 379,
+   "cy": 1246,
+   "bbox": [
+    336,
+    1234,
+    421,
+    1258
+   ],
+   "w": 85,
+   "h": 24,
+   "score": 0.9924,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "未分类页签",
+   "cx": 102,
+   "cy": 1283,
+   "bbox": [
+    51,
+    1270,
+    153,
+    1296
+   ],
+   "w": 102,
+   "h": 26,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9844,
+   "kind": "other"
+  },
+  {
+   "id": 45,
+   "text": "7.3 ms",
+   "cx": 85,
+   "cy": 1308,
+   "bbox": [
+    52,
+    1299,
+    117,
+    1317
+   ],
+   "w": 65,
+   "h": 18,
+   "score": 0.996,
+   "kind": "data"
+  },
+  {
+   "id": 46,
+   "text": "maxt",
+   "cx": 181,
+   "cy": 1308,
+   "bbox": [
+    160,
+    1302,
+    202,
+    1315
+   ],
+   "w": 42,
+   "h": 13,
+   "score": 0.8273,
+   "kind": "other"
+  },
+  {
+   "id": 47,
+   "text": "130.2 ms",
+   "cx": 239,
+   "cy": 1307,
+   "bbox": [
+    194,
+    1297,
+    283,
+    1317
+   ],
+   "w": 89,
+   "h": 20,
+   "score": 0.9785,
+   "kind": "data"
+  },
+  {
+   "id": 48,
+   "text": "羽球",
+   "cx": 381,
+   "cy": 1359,
+   "bbox": [
+    361,
+    1347,
+    401,
+    1371
+   ],
+   "w": 40,
+   "h": 24,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 49,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    1416,
+    90,
+    1440,
+    114
+   ],
+   "cx": 1428,
+   "cy": 102,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 48.3,
+    "ring_L": 96.3,
+    "inside_L": 184.2,
+    "outside_L": 105.2
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    360,
+    1304,
+    400,
+    1344
+   ],
+   "cx": 380,
+   "cy": 1324,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 1.0,
+    "contrast": 32.0,
+    "ring_L": 89.9,
+    "inside_L": 76.1,
+    "outside_L": 39.6
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2440,
+    14,
+    2464,
+    38
+   ],
+   "cx": 2452,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 94.0,
+    "ring_L": 179.0,
+    "inside_L": 114.9,
+    "outside_L": 55.2
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    310,
+    1098,
+    458,
+    1306
+   ],
+   "cx": 384,
+   "cy": 1202,
+   "w": 148,
+   "h": 208,
+   "shape": "circle",
+   "confidence": 0.948,
+   "label": "拐杖糖果 嘟嘟魔球堡",
+   "evidence": {
+    "fill": 0.618,
+    "aspect": 0.71,
+    "corner_fill": 0.17,
+    "area": 19020,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    260,
+    14,
+    284,
+    38
+   ],
+   "cx": 272,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 40.3,
+    "ring_L": 122.8,
+    "inside_L": 109.7,
+    "outside_L": 55.3
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    24,
+    136,
+    456,
+    172
+   ],
+   "cx": 240,
+   "cy": 154,
+   "w": 432,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.935,
+    "aspect": 12.0,
+    "corner_fill": 0.12,
+    "area": 14536,
+    "src": "flat"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    178,
+    1386
+   ],
+   "cx": 94,
+   "cy": 1354,
+   "w": 168,
+   "h": 64,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.988,
+    "aspect": 2.62,
+    "corner_fill": 0.99,
+    "area": 10624,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    182,
+    10,
+    218,
+    38
+   ],
+   "cx": 200,
+   "cy": 24,
+   "w": 36,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.79,
+    "aspect": 1.29,
+    "corner_fill": 0.3,
+    "area": 796,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2334,
+    18,
+    2356,
+    34
+   ],
+   "cx": 2345,
+   "cy": 26,
+   "w": 22,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.38,
+    "corner_fill": 0.31,
+    "area": 288,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2532,
+    900,
+    2560,
+    920
+   ],
+   "cx": 2546,
+   "cy": 910,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.464,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 260,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    364,
+    1062,
+    390,
+    1096
+   ],
+   "cx": 377,
+   "cy": 1079,
+   "w": 26,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.897,
+   "label": null,
+   "evidence": {
+    "fill": 0.697,
+    "aspect": 0.76,
+    "corner_fill": 0.31,
+    "area": 616,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    362,
+    190,
+    402,
+    230
+   ],
+   "cx": 382,
+   "cy": 210,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.896,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.986,
+    "contrast": 14.9,
+    "ring_L": 95.4,
+    "inside_L": 79.0,
+    "outside_L": 82.0
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    1288,
+    138,
+    1312,
+    154
+   ],
+   "cx": 1300,
+   "cy": 146,
+   "w": 24,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 1.5,
+    "corner_fill": 0.62,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    360,
+    1170,
+    408,
+    1218
+   ],
+   "cx": 384,
+   "cy": 1194,
+   "w": 48,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 2304,
+    "src": "ring",
+    "ring_r_px": 22,
+    "cov": 0.931,
+    "contrast": 15.0,
+    "ring_L": 120.2,
+    "inside_L": 194.1,
+    "outside_L": 76.4
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    28,
+    138,
+    56,
+    168
+   ],
+   "cx": 42,
+   "cy": 153,
+   "w": 28,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.686,
+    "aspect": 0.93,
+    "corner_fill": 0.33,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    2444,
+    116,
+    2466,
+    144
+   ],
+   "cx": 2455,
+   "cy": 130,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 0.79,
+    "corner_fill": 0.39,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    20,
+    752,
+    262,
+    794
+   ],
+   "cx": 141,
+   "cy": 773,
+   "w": 242,
+   "h": 42,
+   "shape": "rect",
+   "confidence": 0.868,
+   "label": "玩法机关",
+   "evidence": {
+    "fill": 0.817,
+    "aspect": 5.76,
+    "corner_fill": 0.18,
+    "area": 8308,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    482,
+    686,
+    648,
+    818
+   ],
+   "cx": 565,
+   "cy": 752,
+   "w": 166,
+   "h": 132,
+   "shape": "circle",
+   "confidence": 0.862,
+   "label": null,
+   "evidence": {
+    "fill": 0.45,
+    "aspect": 1.26,
+    "corner_fill": 0.28,
+    "area": 9852,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2392,
+    18,
+    2412,
+    34
+   ],
+   "cx": 2402,
+   "cy": 26,
+   "w": 20,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.85,
+    "aspect": 1.25,
+    "corner_fill": 0.44,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    310,
+    486,
+    460,
+    596
+   ],
+   "cx": 385,
+   "cy": 541,
+   "w": 150,
+   "h": 110,
+   "shape": "circle",
+   "confidence": 0.843,
+   "label": "标靶气球",
+   "evidence": {
+    "fill": 0.63,
+    "aspect": 1.36,
+    "corner_fill": 0.39,
+    "area": 10388,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    418,
+    594,
+    458,
+    610
+   ],
+   "cx": 438,
+   "cy": 602,
+   "w": 40,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.762,
+    "aspect": 2.5,
+    "corner_fill": 0.44,
+    "area": 488,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    176,
+    1320,
+    192,
+    1398
+   ],
+   "cx": 184,
+   "cy": 1359,
+   "w": 16,
+   "h": 78,
+   "shape": "rect",
+   "confidence": 0.843,
+   "label": null,
+   "evidence": {
+    "fill": 0.763,
+    "aspect": 0.21,
+    "corner_fill": 0.5,
+    "area": 952,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1314,
+    134,
+    1436,
+    154
+   ],
+   "cx": 1375,
+   "cy": 144,
+   "w": 122,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.842,
+   "label": null,
+   "evidence": {
+    "fill": 0.759,
+    "aspect": 6.1,
+    "corner_fill": 0.06,
+    "area": 1852,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1234,
+    650,
+    1342,
+    768
+   ],
+   "cx": 1288,
+   "cy": 709,
+   "w": 108,
+   "h": 118,
+   "shape": "circle",
+   "confidence": 0.835,
+   "label": null,
+   "evidence": {
+    "fill": 0.461,
+    "aspect": 0.92,
+    "corner_fill": 0.34,
+    "area": 5880,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    370,
+    1418,
+    394,
+    1434
+   ],
+   "cx": 382,
+   "cy": 1426,
+   "w": 24,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.833,
+   "label": null,
+   "evidence": {
+    "fill": 0.74,
+    "aspect": 1.5,
+    "corner_fill": 0.12,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    482,
+    1338,
+    500,
+    1440
+   ],
+   "cx": 491,
+   "cy": 1389,
+   "w": 18,
+   "h": 102,
+   "shape": "rect",
+   "confidence": 0.831,
+   "label": null,
+   "evidence": {
+    "fill": 0.736,
+    "aspect": 0.18,
+    "corner_fill": 0.5,
+    "area": 1352,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    280,
+    178,
+    344,
+    194
+   ],
+   "cx": 312,
+   "cy": 186,
+   "w": 64,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.83,
+   "label": null,
+   "evidence": {
+    "fill": 0.734,
+    "aspect": 4.0,
+    "corner_fill": 0.44,
+    "area": 752,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    460,
+    1392,
+    476,
+    1440
+   ],
+   "cx": 468,
+   "cy": 1416,
+   "w": 16,
+   "h": 48,
+   "shape": "rect",
+   "confidence": 0.823,
+   "label": null,
+   "evidence": {
+    "fill": 0.719,
+    "aspect": 0.33,
+    "corner_fill": 0.56,
+    "area": 552,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    310,
+    1054,
+    454,
+    1148
+   ],
+   "cx": 382,
+   "cy": 1101,
+   "w": 144,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.823,
+   "label": "拐杖糖果",
+   "evidence": {
+    "fill": 0.717,
+    "aspect": 1.53,
+    "corner_fill": 0.88,
+    "area": 9712,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    310,
+    196,
+    460,
+    384
+   ],
+   "cx": 385,
+   "cy": 290,
+   "w": 150,
+   "h": 188,
+   "shape": "circle",
+   "confidence": 0.82,
+   "label": "合成台 嘟嘟可背囊",
+   "evidence": {
+    "fill": 0.473,
+    "aspect": 0.8,
+    "corner_fill": 0.37,
+    "area": 13352,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    310,
+    382,
+    454,
+    476
+   ],
+   "cx": 382,
+   "cy": 429,
+   "w": 144,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.818,
+   "label": "簧火堆",
+   "evidence": {
+    "fill": 0.707,
+    "aspect": 1.53,
+    "corner_fill": 0.95,
+    "area": 9576,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    22,
+    612,
+    120,
+    640
+   ],
+   "cx": 71,
+   "cy": 626,
+   "w": 98,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.813,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 3.5,
+    "corner_fill": 0.16,
+    "area": 1908,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    450,
+    70,
+    476,
+    122
+   ],
+   "cx": 463,
+   "cy": 96,
+   "w": 26,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.805,
+   "label": null,
+   "evidence": {
+    "fill": 0.678,
+    "aspect": 0.5,
+    "corner_fill": 0.42,
+    "area": 916,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    312,
+    600,
+    450,
+    698
+   ],
+   "cx": 381,
+   "cy": 649,
+   "w": 138,
+   "h": 98,
+   "shape": "rect",
+   "confidence": 0.799,
+   "label": "标靶气球",
+   "evidence": {
+    "fill": 0.792,
+    "aspect": 1.41,
+    "corner_fill": 0.78,
+    "area": 10712,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    100,
+    54,
+    152,
+    80
+   ],
+   "cx": 126,
+   "cy": 67,
+   "w": 52,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.797,
+   "label": null,
+   "evidence": {
+    "fill": 0.66,
+    "aspect": 2.0,
+    "corner_fill": 0.31,
+    "area": 892,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    190,
+    1322,
+    358,
+    1388
+   ],
+   "cx": 274,
+   "cy": 1355,
+   "w": 168,
+   "h": 66,
+   "shape": "rect",
+   "confidence": 0.792,
+   "label": null,
+   "evidence": {
+    "fill": 0.65,
+    "aspect": 2.55,
+    "corner_fill": 0.52,
+    "area": 7204,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1116,
+    138,
+    1158,
+    156
+   ],
+   "cx": 1137,
+   "cy": 147,
+   "w": 42,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.79,
+   "label": null,
+   "evidence": {
+    "fill": 0.646,
+    "aspect": 2.33,
+    "corner_fill": 0.38,
+    "area": 488,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1262,
+    684,
+    1302,
+    700
+   ],
+   "cx": 1282,
+   "cy": 692,
+   "w": 40,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.79,
+   "label": null,
+   "evidence": {
+    "fill": 0.644,
+    "aspect": 2.5,
+    "corner_fill": 0.38,
+    "area": 412,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    308,
+    1322,
+    426,
+    1374
+   ],
+   "cx": 367,
+   "cy": 1348,
+   "w": 118,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.789,
+   "label": "羽球",
+   "evidence": {
+    "fill": 0.642,
+    "aspect": 2.27,
+    "corner_fill": 0.82,
+    "area": 3940,
+    "src": "flat"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    310,
+    830,
+    454,
+    924
+   ],
+   "cx": 382,
+   "cy": 877,
+   "w": 144,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.781,
+   "label": "木质箱子",
+   "evidence": {
+    "fill": 0.625,
+    "aspect": 1.53,
+    "corner_fill": 0.92,
+    "area": 8460,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 37% 宽）"
+  },
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    478,
+    1440
+   ],
+   "why": "竖边长直边 x=478（覆盖 95% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    15,
+    10,
+    449,
+    1258
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 12,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 11,
+   "row_y": [
+    25,
+    86,
+    254,
+    408,
+    562,
+    686,
+    810,
+    917,
+    1011,
+    1118,
+    1228
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      "背景音乐管理 ×"
+     ]
+    },
+    {
+     "y": 86,
+     "texts": [
+      "久"
+     ]
+    },
+    {
+     "y": 254,
+     "texts": [
+      "自定义",
+      "合成台",
+      "物件",
+      "未分类页签"
+     ]
+    },
+    {
+     "y": 408,
+     "texts": [
+      "+添加页签",
+      "嘟嘟可背囊",
+      "造物",
+      "未分类页签",
+      "簧火堆",
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 562,
+     "texts": [
+      "掉落物",
+      "未分类页签",
+      "标靶气球",
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 686,
+     "texts": [
+      "预制",
+      "动态单位",
+      "标靶气球",
+      "流程物件"
+     ]
+    },
+    {
+     "y": 810,
+     "texts": [
+      "玩法机关",
+      "木质箱子",
+      "其他",
+      "静态单位"
+     ]
+    },
+    {
+     "y": 917,
+     "texts": [
+      "造物",
+      "木质箱子",
+      "掉落物"
+     ]
+    },
+    {
+     "y": 1011,
+     "texts": [
+      "元件组",
+      "木质箱子",
+      "自定义元件组"
+     ]
+    },
+    {
+     "y": 1118,
+     "texts": [
+      "资产库",
+      "物件",
+      "拐杖糖果",
+      "造物"
+     ]
+    },
+    {
+     "y": 1228,
+     "texts": [
+      "场景生成模板",
+      "预设模板",
+      "嘟嘟魔球堡"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "造物",
+   "text_id": 14,
+   "target": "rect@(312,186)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 178,
+   "dx": 245,
+   "dy": -202,
+   "confidence": 0.552
+  },
+  {
+   "text": "造物",
+   "text_id": 14,
+   "target": "rect@(240,154)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 200,
+   "dx": 173,
+   "dy": -234,
+   "confidence": 0.533
+  },
+  {
+   "text": "造物",
+   "text_id": 14,
+   "target": "circle@(42,153)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 204,
+   "dx": -25,
+   "dy": -236,
+   "confidence": 0.53
+  },
+  {
+   "text": "合成台",
+   "text_id": 9,
+   "target": "circle@(385,290)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": "合成台 嘟嘟可背囊",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 4,
+   "dy": 52,
+   "confidence": 0.55
+  },
+  {
+   "text": "玩法机关",
+   "text_id": 26,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 48,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "羽球",
+   "text_id": 48,
+   "target": "rect@(367,1348)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "羽球",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -14,
+   "dy": -11,
+   "confidence": 0.55
+  },
+  {
+   "text": "拐杖糖果",
+   "text_id": 38,
+   "target": "circle@(384,1202)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": "拐杖糖果 嘟嘟魔球堡",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 4,
+   "dy": 68,
+   "confidence": 0.55
+  },
+  {
+   "text": "背景音乐管理 ×",
+   "text_id": 1,
+   "target": "circle@(272,26)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -90,
+   "dy": 2,
+   "confidence": 0.546
+  },
+  {
+   "text": "其他",
+   "text_id": 28,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 8,
+   "dx": 66,
+   "dy": -41,
+   "confidence": 0.543
+  },
+  {
+   "text": "x",
+   "text_id": 7,
+   "target": "circle@(2455,130)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 10,
+   "dx": -32,
+   "dy": -11,
+   "confidence": 0.542
+  },
+  {
+   "text": "流程物件",
+   "text_id": 25,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 11,
+   "dx": 50,
+   "dy": 46,
+   "confidence": 0.541
+  },
+  {
+   "text": "簧火堆",
+   "text_id": 17,
+   "target": "circle@(385,541)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "标靶气球",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 12,
+   "dx": 4,
+   "dy": 78,
+   "confidence": 0.54
+  },
+  {
+   "text": "嘟嘟可背囊",
+   "text_id": 13,
+   "target": "rect@(382,429)",
+   "target_id": "c30",
+   "target_kind": "icon",
+   "label": "簧火堆",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 19,
+   "dx": 2,
+   "dy": 78,
+   "confidence": 0.534
+  },
+  {
+   "text": " 71 ms",
+   "text_id": 2,
+   "target": "circle@(2345,26)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 21,
+   "dx": 74,
+   "dy": 2,
+   "confidence": 0.533
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 43,
+   "target": "rect@(184,1359)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 24,
+   "dx": 82,
+   "dy": 76,
+   "confidence": 0.53
+  },
+  {
+   "text": "自定义",
+   "text_id": 8,
+   "target": "rect@(240,154)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 32,
+   "dx": 193,
+   "dy": -64,
+   "confidence": 0.523
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 19,
+   "target": "rect@(71,626)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 40,
+   "dx": -22,
+   "dy": 68,
+   "confidence": 0.517
+  },
+  {
+   "text": "静态单位",
+   "text_id": 29,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 45,
+   "dx": 53,
+   "dy": -83,
+   "confidence": 0.513
+  },
+  {
+   "text": "动态单位",
+   "text_id": 23,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 50,
+   "dx": 53,
+   "dy": 86,
+   "confidence": 0.508
+  },
+  {
+   "text": "嘟嘟魔球堡",
+   "text_id": 42,
+   "target": "rect@(367,1348)",
+   "target_id": "c38",
+   "target_kind": "icon",
+   "label": "羽球",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 64,
+   "dx": -12,
+   "dy": 102,
+   "confidence": 0.497
+  },
+  {
+   "text": "预设模板",
+   "text_id": 41,
+   "target": "rect@(184,1359)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 67,
+   "dx": 90,
+   "dy": 120,
+   "confidence": 0.494
+  },
+  {
+   "text": "物件",
+   "text_id": 10,
+   "target": "rect@(240,154)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 72,
+   "dx": 172,
+   "dy": -106,
+   "confidence": 0.49
+  },
+  {
+   "text": "掉落物",
+   "text_id": 18,
+   "target": "rect@(71,626)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 80,
+   "dx": -6,
+   "dy": 110,
+   "confidence": 0.483
+  },
+  {
+   "text": "标靶气球",
+   "text_id": 24,
+   "target": "rect@(141,773)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 81,
+   "dx": -240,
+   "dy": 86,
+   "confidence": 0.483
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    3,
+    111,
+    103
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，低方差 std=2.0，非纯黑 L=66，纹理对比骤降 std 50.2→2.0（0.04×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.",
+     "FPS:60.",
+     "GPU: 46%",
+     "摆放"
+    ],
+    "text_ids": [
+     0,
+     3,
+     4,
+     5
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 6,
+    "bg_mean": 66.3,
+    "bg_std": 2.0,
+    "ring_mean": 81.5,
+    "ring_std": 50.2,
+    "texture_ratio": 0.04,
+    "bg_rgb": [
+     59,
+     83,
+     56
+    ]
+   }
+  }
+ ],
+ "containers": [],
+ "free_text": [
+  "DXVK v3.",
+  "背景音乐管理 ×",
+  " 71 ms",
+  "FPS:60.",
+  "GPU: 46%",
+  "摆放",
+  "久",
+  "x",
+  "自定义",
+  "合成台",
+  "物件",
+  "未分类页签",
+  "+添加页签",
+  "嘟嘟可背囊",
+  "造物",
+  "未分类页签",
+  "+添加页签",
+  "簧火堆",
+  "掉落物",
+  "未分类页签",
+  "标靶气球",
+  "+添加页签",
+  "预制",
+  "动态单位",
+  "标靶气球",
+  "流程物件",
+  "玩法机关",
+  "木质箱子",
+  "其他",
+  "静态单位",
+  "造物",
+  "木质箱子",
+  "掉落物",
+  "元件组",
+  "自定义元件组",
+  "木质箱子",
+  "资产库",
+  "物件",
+  "拐杖糖果",
+  "造物",
+  "场景生成模板",
+  "预设模板",
+  "嘟嘟魔球堡",
+  "未分类页签",
+  "min:",
+  "7.3 ms",
+  "maxt",
+  "130.2 ms",
+  "羽球",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2508,
+    16,
+    2532,
+    36
+   ],
+   "role": "icon",
+   "fill": 1.0,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    186,
+    14,
+    214,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 182.0
+  },
+  {
+   "bbox": [
+    356,
+    620,
+    406,
+    668
+   ],
+   "role": "icon",
+   "fill": 0.83,
+   "contrast": 237.0
+  },
+  {
+   "bbox": [
+    362,
+    192,
+    406,
+    220
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 145.0
+  },
+  {
+   "bbox": [
+    358,
+    282,
+    408,
+    334
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 197.0
+  },
+  {
+   "bbox": [
+    346,
+    1164,
+    418,
+    1230
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 163.0
+  },
+  {
+   "bbox": [
+    356,
+    508,
+    406,
+    558
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 198.0
+  },
+  {
+   "bbox": [
+    226,
+    752,
+    260,
+    794
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    350,
+    952,
+    414,
+    1004
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 154.0
+  },
+  {
+   "bbox": [
+    1236,
+    650,
+    1346,
+    766
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 159.0
+  },
+  {
+   "bbox": [
+    1212,
+    82,
+    1252,
+    120
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 203.0
+  },
+  {
+   "bbox": [
+    24,
+    134,
+    66,
+    172
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 179.0
+  },
+  {
+   "bbox": [
+    350,
+    840,
+    414,
+    892
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 195.0
+  },
+  {
+   "bbox": [
+    336,
+    1304,
+    408,
+    1342
+   ],
+   "role": "icon",
+   "fill": 0.54,
+   "contrast": 228.0
+  },
+  {
+   "bbox": [
+    286,
+    1300,
+    306,
+    1320
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 64.0
+  },
+  {
+   "bbox": [
+    348,
+    726,
+    414,
+    780
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 187.0
+  },
+  {
+   "bbox": [
+    2390,
+    18,
+    2412,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    2450,
+    92,
+    2526,
+    174
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 230.0
+  },
+  {
+   "bbox": [
+    368,
+    1064,
+    394,
+    1118
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 182.0
+  },
+  {
+   "bbox": [
+    2334,
+    18,
+    2358,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    8,
+    1320,
+    30,
+    1350
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 60.0
+  },
+  {
+   "bbox": [
+    342,
+    408,
+    426,
+    446
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 76.0
+  },
+  {
+   "bbox": [
+    110,
+    14,
+    224,
+    54
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 182.0
+  },
+  {
+   "bbox": [
+    320,
+    1238,
+    454,
+    1276
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 197.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 222,
+  "ocr_ms": 857,
+  "pixel_ms": 1188,
+  "container_ms": 388,
+  "container_cached": false,
+  "total_ms": 2268,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 50,
+  "err": null
+ },
+ "title_text_id": 14,
+ "digest": "屏幕 2560x1440 · 文本 50 · 控件 40 · 容器 0 · 邻接 24 · 遮挡 1 · 2268ms（OCR daemon）\n标题「造物」@(67,388) 左侧栏 · 字高 33px\n邻接「造物」→ rect@(312,186) 上方 178px\n邻接「造物」→ rect@(240,154) 上方 200px\n邻接「造物」→ circle@(42,153) 上方 204px\n控件: rect@(312,186) | rect@(240,154) | circle@(42,153) | circle@(385,290)「合成台 嘟嘟可背囊」\n区域: 顶栏 (0,0)-(2560,50) | 左侧栏 (0,0)-(478,1440)\n遮挡 [0, 3, 111, 103] (0,3)-(111,103)（conf 0.90）：左上角小字叠加层：小字 4 框，低方差 std=2.0，非纯黑 L=66，纹理对比骤降 std 50.2→2.0（0.04×）"
+}

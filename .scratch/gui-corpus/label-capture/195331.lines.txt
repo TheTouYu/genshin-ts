@@ -1,0 +1,6 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195331 image=.scratch/gui-corpus/capture-2026-10-18/195331.png backend=cv units=2
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | row | -4 1290 288 38 | min: 7.0 ms / max: 75.7 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 2245 1392 250 54 | UID: 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

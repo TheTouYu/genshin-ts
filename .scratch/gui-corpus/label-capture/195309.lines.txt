@@ -1,0 +1,37 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195309 image=.scratch/gui-corpus/capture-2026-10-18/195309.png backend=cv units=33
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | icon | 2418 24 78 78 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | icon | 66 30 84 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 1711 34 189 56 | 邮件珍藏盒 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | icon | 1910 36 54 54 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | icon | 2302 36 54 54 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 2010 37 280 50 | 邮件数 17/1000 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | row | 2202 164 214 58 | 剩余时间：4天 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 307 175 928 63 | 10月1日参与《原神》千星奇域『绮星盛会」网页活动，可获得原石等奖励！ / ★ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | icon | 202 196 70 72 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 2251 228 93 60 | 前往 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 1072 235 171 54 | 12天后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 343 237 299 50 | P·A·I·M·O·N | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 168 326 1072 126 | 【网页活动上线】周年拾光册 / 回顾旅途精彩瞬间还有原石奖励哦！ / ★ / P·A·I·M·O·N / 1天后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1184, 346, 1222, 382]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | row | 1347 332 522 66 | 「判测胜券本征」活动提醒 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 1344 424 442 50 | 发件人:P·A·I·M·O·N | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 1342 475 360 46 | 时间：2026-10-16 02:57 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 168 482 1072 128 | 空月祝福即将到期提醒 / P·A·I·M·O·N / 6天后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 1339 548 251 59 | 亲爱的旅行者： | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 1343 593 1065 55 | 「判测胜券本征」活动玩法即将过半，欢迎旅行者及时参与活动，获取 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | row | 1339 636 194 56 | 活动奖励~ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | row | 168 638 1056 128 | 「周年拾光册」网页活动即将结束 / P·A·I·M·O·N / 18小时后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 1045 706 197 51 | 18小时后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | row | 154 794 1100 130 | 「判测胜券本征」活动提醒 / P·A·I·M·O·N / 7小时后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | row | 168 952 1072 128 | 「周年拾光册」网页活动奖励发放 / P·A·I·M·O·N / 20天后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | row | 168 1108 1072 128 | 「周年拾光册」网页活动奖励发放 / P·A·I·M·O·N / 20天后过期 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | icon | 1358 1146 126 126 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | row | 1370 1232 96 48 | 1000 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | row | 42 1290 241 35 | 4.7 ms / max‡ / 62.8 ms | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | row | 244 1320 186 70 | 全部领取 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | button | 526 1320 310 74 | 删除已读 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [550, 1340, 576, 1372]}], "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+30 | button | 2116 1320 312 74 | 血 / 删除 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [2140, 1340, 2166, 1372]}], "clipped": {"edges": [], "cut_by": null, "px": 0}, "clickable": "yes"}
+31 | icon | 2002 1324 66 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+32 | row | 2249 1393 244 51 | UID: 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

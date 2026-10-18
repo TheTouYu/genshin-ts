@@ -1,0 +1,2785 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195148.png",
+  "sha256": "62ed25af533c62a49cc99571778bba8f0029d00dd5d148c81c5d37ca3c9dc2b5",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 1160941
+ },
+ "title": {
+  "text": "图像",
+  "cx": 234,
+  "cy": 390,
+  "bbox": [
+   183,
+   360,
+   285,
+   420
+  ],
+  "region": null,
+  "why": "上半屏字高最大（60px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 59,
+   "cy": 18,
+   "bbox": [
+    1,
+    5,
+    118,
+    30
+   ],
+   "w": 117,
+   "h": 25,
+   "score": 0.9657,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:",
+   "cx": 31,
+   "cy": 42,
+   "bbox": [
+    3,
+    30,
+    59,
+    54
+   ],
+   "w": 56,
+   "h": 24,
+   "score": 0.998,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:",
+   "cx": 30,
+   "cy": 65,
+   "bbox": [
+    3,
+    54,
+    56,
+    77
+   ],
+   "w": 53,
+   "h": 23,
+   "score": 0.9977,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "60.",
+   "cx": 80,
+   "cy": 41,
+   "bbox": [
+    63,
+    32,
+    98,
+    51
+   ],
+   "w": 35,
+   "h": 19,
+   "score": 0.9971,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "设置／其他",
+   "cx": 276,
+   "cy": 62,
+   "bbox": [
+    188,
+    42,
+    363,
+    82
+   ],
+   "w": 175,
+   "h": 40,
+   "score": 0.9179,
+   "kind": "action"
+  },
+  {
+   "id": 5,
+   "text": "控制",
+   "cx": 232,
+   "cy": 204,
+   "bbox": [
+    181,
+    176,
+    283,
+    232
+   ],
+   "w": 102,
+   "h": 56,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 6,
+   "text": "按键",
+   "cx": 233,
+   "cy": 296,
+   "bbox": [
+    181,
+    267,
+    285,
+    325
+   ],
+   "w": 104,
+   "h": 58,
+   "score": 0.9985,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "小地图锁定",
+   "cx": 756,
+   "cy": 279,
+   "bbox": [
+    670,
+    259,
+    841,
+    299
+   ],
+   "w": 171,
+   "h": 40,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "锁定方向",
+   "cx": 2170,
+   "cy": 279,
+   "bbox": [
+    2100,
+    257,
+    2240,
+    300
+   ],
+   "w": 140,
+   "h": 43,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "自动播放剧情",
+   "cx": 775,
+   "cy": 369,
+   "bbox": [
+    676,
+    349,
+    874,
+    389
+   ],
+   "w": 198,
+   "h": 40,
+   "score": 0.9925,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "关闭",
+   "cx": 2170,
+   "cy": 368,
+   "bbox": [
+    2129,
+    344,
+    2211,
+    393
+   ],
+   "w": 82,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 11,
+   "text": "图像",
+   "cx": 234,
+   "cy": 390,
+   "bbox": [
+    183,
+    360,
+    285,
+    420
+   ],
+   "w": 102,
+   "h": 60,
+   "score": 0.9998,
+   "kind": "title"
+  },
+  {
+   "id": 12,
+   "text": "★",
+   "cx": 165,
+   "cy": 392,
+   "bbox": [
+    154,
+    380,
+    176,
+    403
+   ],
+   "w": 22,
+   "h": 23,
+   "score": 0.6874,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "自动保护锁定四星武器",
+   "cx": 838,
+   "cy": 457,
+   "bbox": [
+    676,
+    437,
+    1001,
+    478
+   ],
+   "w": 325,
+   "h": 41,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "打开",
+   "cx": 2169,
+   "cy": 459,
+   "bbox": [
+    2127,
+    433,
+    2210,
+    486
+   ],
+   "w": 83,
+   "h": 53,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "声音",
+   "cx": 233,
+   "cy": 482,
+   "bbox": [
+    183,
+    453,
+    283,
+    511
+   ],
+   "w": 100,
+   "h": 58,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "队伍配置时背景跟随所处地域变化",
+   "cx": 918,
+   "cy": 548,
+   "bbox": [
+    674,
+    529,
+    1162,
+    567
+   ],
+   "w": 488,
+   "h": 38,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "打开",
+   "cx": 2170,
+   "cy": 549,
+   "bbox": [
+    2129,
+    524,
+    2212,
+    573
+   ],
+   "w": 83,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "消息",
+   "cx": 232,
+   "cy": 575,
+   "bbox": [
+    179,
+    545,
+    286,
+    606
+   ],
+   "w": 107,
+   "h": 61,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "可快捷放入5星圣遗物作为强化素材",
+   "cx": 929,
+   "cy": 638,
+   "bbox": [
+    674,
+    619,
+    1183,
+    657
+   ],
+   "w": 509,
+   "h": 38,
+   "score": 0.996,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "关闭",
+   "cx": 2170,
+   "cy": 637,
+   "bbox": [
+    2129,
+    613,
+    2211,
+    662
+   ],
+   "w": 82,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 21,
+   "text": "语言",
+   "cx": 233,
+   "cy": 667,
+   "bbox": [
+    183,
+    639,
+    283,
+    696
+   ],
+   "w": 100,
+   "h": 57,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "隐藏主界面",
+   "cx": 757,
+   "cy": 726,
+   "bbox": [
+    672,
+    704,
+    842,
+    748
+   ],
+   "w": 170,
+   "h": 44,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "关闭",
+   "cx": 2170,
+   "cy": 727,
+   "bbox": [
+    2129,
+    700,
+    2212,
+    753
+   ],
+   "w": 83,
+   "h": 53,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 24,
+   "text": "账户",
+   "cx": 232,
+   "cy": 761,
+   "bbox": [
+    179,
+    730,
+    285,
+    793
+   ],
+   "w": 106,
+   "h": 63,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "角色圣遗物界面高亮显示推荐属性及推荐圣遗物特殊标记",
+   "cx": 1078,
+   "cy": 817,
+   "bbox": [
+    674,
+    798,
+    1482,
+    835
+   ],
+   "w": 808,
+   "h": 37,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "全部开启",
+   "cx": 2170,
+   "cy": 817,
+   "bbox": [
+    2100,
+    795,
+    2241,
+    839
+   ],
+   "w": 141,
+   "h": 44,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "资源",
+   "cx": 234,
+   "cy": 853,
+   "bbox": [
+    181,
+    822,
+    286,
+    884
+   ],
+   "w": 105,
+   "h": 62,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "是否允许好友赠礼",
+   "cx": 805,
+   "cy": 906,
+   "bbox": [
+    674,
+    887,
+    936,
+    925
+   ],
+   "w": 262,
+   "h": 38,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "允许",
+   "cx": 2170,
+   "cy": 907,
+   "bbox": [
+    2127,
+    880,
+    2214,
+    933
+   ],
+   "w": 87,
+   "h": 53,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "其他",
+   "cx": 256,
+   "cy": 946,
+   "bbox": [
+    192,
+    910,
+    321,
+    982
+   ],
+   "w": 129,
+   "h": 72,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "是否接收陌生人单独发送的消息",
+   "cx": 901,
+   "cy": 995,
+   "bbox": [
+    673,
+    975,
+    1129,
+    1015
+   ],
+   "w": 456,
+   "h": 40,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "接收",
+   "cx": 2170,
+   "cy": 996,
+   "bbox": [
+    2129,
+    972,
+    2212,
+    1020
+   ],
+   "w": 83,
+   "h": 48,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "陌生人消息提醒方式",
+   "cx": 822,
+   "cy": 1085,
+   "bbox": [
+    676,
+    1068,
+    969,
+    1103
+   ],
+   "w": 293,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "全部提示",
+   "cx": 2171,
+   "cy": 1085,
+   "bbox": [
+    2100,
+    1063,
+    2242,
+    1108
+   ],
+   "w": 142,
+   "h": 45,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "min:",
+   "cx": 30,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    52,
+    1315
+   ],
+   "w": 43,
+   "h": 14,
+   "score": 0.9799,
+   "kind": "other"
+  },
+  {
+   "id": 36,
+   "text": "4.8 ms",
+   "cx": 84,
+   "cy": 1308,
+   "bbox": [
+    52,
+    1299,
+    116,
+    1317
+   ],
+   "w": 64,
+   "h": 18,
+   "score": 0.9537,
+   "kind": "data"
+  },
+  {
+   "id": 37,
+   "text": "max:",
+   "cx": 180,
+   "cy": 1308,
+   "bbox": [
+    157,
+    1299,
+    203,
+    1317
+   ],
+   "w": 46,
+   "h": 18,
+   "score": 0.8067,
+   "kind": "other"
+  },
+  {
+   "id": 38,
+   "text": "35,2 ms",
+   "cx": 235,
+   "cy": 1308,
+   "bbox": [
+    196,
+    1299,
+    274,
+    1317
+   ],
+   "w": 78,
+   "h": 18,
+   "score": 0.921,
+   "kind": "other"
+  },
+  {
+   "id": 39,
+   "text": "UID: 110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 0.9849,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2352,
+    272,
+    2374,
+    290
+   ],
+   "cx": 2363,
+   "cy": 281,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.778,
+    "aspect": 1.22,
+    "corner_fill": 0.12,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2352,
+    540,
+    2374,
+    558
+   ],
+   "cx": 2363,
+   "cy": 549,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.768,
+    "aspect": 1.22,
+    "corner_fill": 0.12,
+    "area": 304,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    2352,
+    630,
+    2374,
+    648
+   ],
+   "cx": 2363,
+   "cy": 639,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 1.22,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    152,
+    842,
+    178,
+    870
+   ],
+   "cx": 165,
+   "cy": 856,
+   "w": 26,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 0.93,
+    "corner_fill": 0.14,
+    "area": 572,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2352,
+    898,
+    2374,
+    918
+   ],
+   "cx": 2363,
+   "cy": 908,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 352,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    2352,
+    988,
+    2374,
+    1008
+   ],
+   "cx": 2363,
+   "cy": 998,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.791,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2082,
+    638,
+    2112,
+    662
+   ],
+   "cx": 2097,
+   "cy": 650,
+   "w": 30,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.483,
+    "aspect": 1.25,
+    "corner_fill": 0.03,
+    "area": 348,
+    "src": "flat"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    76,
+    48,
+    108,
+    80
+   ],
+   "cx": 92,
+   "cy": 64,
+   "w": 32,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1024,
+    "src": "ring",
+    "ring_r_px": 14,
+    "cov": 1.0,
+    "contrast": 79.3,
+    "ring_L": 83.6,
+    "inside_L": 160.9,
+    "outside_L": 164.8
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2352,
+    362,
+    2372,
+    380
+   ],
+   "cx": 2362,
+   "cy": 371,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 1.11,
+    "corner_fill": 0.25,
+    "area": 292,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    154,
+    658,
+    178,
+    682
+   ],
+   "cx": 166,
+   "cy": 670,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.938,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 1.0,
+    "corner_fill": 0.25,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    8,
+    0,
+    160,
+    124
+   ],
+   "cx": 84,
+   "cy": 62,
+   "w": 152,
+   "h": 124,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": "DXVK v3.0 FPS: GPU: 60.",
+   "evidence": {
+    "fill": 0.455,
+    "aspect": 1.23,
+    "corner_fill": 0.14,
+    "area": 8572,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    2352,
+    1078,
+    2374,
+    1096
+   ],
+   "cx": 2363,
+   "cy": 1087,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.869,
+    "aspect": 1.22,
+    "corner_fill": 0.31,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2352,
+    452,
+    2374,
+    468
+   ],
+   "cx": 2363,
+   "cy": 460,
+   "w": 22,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.922,
+   "label": null,
+   "evidence": {
+    "fill": 0.841,
+    "aspect": 1.38,
+    "corner_fill": 0.31,
+    "area": 296,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    644,
+    606,
+    712,
+    674
+   ],
+   "cx": 678,
+   "cy": 640,
+   "w": 68,
+   "h": 68,
+   "shape": "circle",
+   "confidence": 0.903,
+   "label": null,
+   "evidence": {
+    "fill": 0.424,
+    "aspect": 1.0,
+    "corner_fill": 0.18,
+    "area": 1960,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    154,
+    288,
+    178,
+    310
+   ],
+   "cx": 166,
+   "cy": 299,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 1.09,
+    "corner_fill": 0.33,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    154,
+    752,
+    176,
+    774
+   ],
+   "cx": 165,
+   "cy": 763,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.9,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 380,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    1192,
+    1162,
+    1220,
+    1182
+   ],
+   "cx": 1206,
+   "cy": 1172,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.878,
+   "label": null,
+   "evidence": {
+    "fill": 0.464,
+    "aspect": 1.4,
+    "corner_fill": 0.25,
+    "area": 260,
+    "src": "flat"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    154,
+    196,
+    176,
+    218
+   ],
+   "cx": 165,
+   "cy": 207,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.826,
+    "aspect": 1.0,
+    "corner_fill": 0.42,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    6,
+    1318,
+    430,
+    1402
+   ],
+   "cx": 218,
+   "cy": 1360,
+   "w": 424,
+   "h": 84,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.817,
+    "aspect": 5.05,
+    "corner_fill": 0.85,
+    "area": 29084,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2352,
+    720,
+    2374,
+    738
+   ],
+   "cx": 2363,
+   "cy": 729,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.869,
+    "aspect": 1.22,
+    "corner_fill": 0.44,
+    "area": 344,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2352,
+    810,
+    2374,
+    828
+   ],
+   "cx": 2363,
+   "cy": 819,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.859,
+    "aspect": 1.22,
+    "corner_fill": 0.44,
+    "area": 340,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    154,
+    474,
+    176,
+    496
+   ],
+   "cx": 165,
+   "cy": 485,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.855,
+   "label": null,
+   "evidence": {
+    "fill": 0.835,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 404,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    154,
+    566,
+    176,
+    588
+   ],
+   "cx": 165,
+   "cy": 577,
+   "w": 22,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.826,
+    "aspect": 1.0,
+    "corner_fill": 0.44,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2372,
+    716,
+    2396,
+    748
+   ],
+   "cx": 2384,
+   "cy": 732,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.849,
+   "label": null,
+   "evidence": {
+    "fill": 0.458,
+    "aspect": 0.75,
+    "corner_fill": 0.31,
+    "area": 352,
+    "src": "flat"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1212,
+    1126,
+    1312,
+    1152
+   ],
+   "cx": 1262,
+   "cy": 1139,
+   "w": 100,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.848,
+   "label": null,
+   "evidence": {
+    "fill": 0.774,
+    "aspect": 3.85,
+    "corner_fill": 0.17,
+    "area": 2012,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    162,
+    934,
+    184,
+    964
+   ],
+   "cx": 173,
+   "cy": 949,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.847,
+   "label": null,
+   "evidence": {
+    "fill": 0.794,
+    "aspect": 0.73,
+    "corner_fill": 0.44,
+    "area": 524,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1918,
+    902,
+    1956,
+    918
+   ],
+   "cx": 1937,
+   "cy": 910,
+   "w": 38,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.835,
+   "label": null,
+   "evidence": {
+    "fill": 0.743,
+    "aspect": 2.38,
+    "corner_fill": 0.06,
+    "area": 452,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1918,
+    990,
+    1960,
+    1008
+   ],
+   "cx": 1939,
+   "cy": 999,
+   "w": 42,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.829,
+   "label": null,
+   "evidence": {
+    "fill": 0.73,
+    "aspect": 2.33,
+    "corner_fill": 0.0,
+    "area": 552,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    644,
+    246,
+    2396,
+    316
+   ],
+   "cx": 1520,
+   "cy": 281,
+   "w": 1752,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.827,
+   "label": "小地图锁定 锁定方向",
+   "evidence": {
+    "fill": 0.727,
+    "aspect": 25.03,
+    "corner_fill": 0.23,
+    "area": 89152,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1284,
+    1058,
+    1310,
+    1082
+   ],
+   "cx": 1297,
+   "cy": 1070,
+   "w": 26,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.827,
+   "label": null,
+   "evidence": {
+    "fill": 0.487,
+    "aspect": 1.08,
+    "corner_fill": 0.36,
+    "area": 304,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    642,
+    784,
+    2398,
+    854
+   ],
+   "cx": 1520,
+   "cy": 819,
+   "w": 1756,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.825,
+   "label": "角色圣遗物界面高亮显示推荐属性及推荐圣遗物特殊标记 全部开启",
+   "evidence": {
+    "fill": 0.721,
+    "aspect": 25.09,
+    "corner_fill": 0.4,
+    "area": 88660,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    644,
+    336,
+    2396,
+    406
+   ],
+   "cx": 1520,
+   "cy": 371,
+   "w": 1752,
+   "h": 70,
+   "shape": "rect",
+   "confidence": 0.813,
+   "label": "自动播放剧情 关闭",
+   "evidence": {
+    "fill": 0.696,
+    "aspect": 25.03,
+    "corner_fill": 0.22,
+    "area": 85332,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    114,
+    6,
+    146,
+    34
+   ],
+   "cx": 130,
+   "cy": 20,
+   "w": 32,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.801,
+   "label": null,
+   "evidence": {
+    "fill": 0.665,
+    "aspect": 1.14,
+    "corner_fill": 0.48,
+    "area": 596,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1918,
+    1078,
+    1960,
+    1100
+   ],
+   "cx": 1939,
+   "cy": 1089,
+   "w": 42,
+   "h": 22,
+   "shape": "rect",
+   "confidence": 0.798,
+   "label": null,
+   "evidence": {
+    "fill": 0.662,
+    "aspect": 1.91,
+    "corner_fill": 0.03,
+    "area": 612,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    642,
+    696,
+    2398,
+    764
+   ],
+   "cx": 1520,
+   "cy": 730,
+   "w": 1756,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.795,
+   "label": "隐藏主界面 关闭",
+   "evidence": {
+    "fill": 0.655,
+    "aspect": 25.82,
+    "corner_fill": 0.36,
+    "area": 78264,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1948,
+    964,
+    2398,
+    1032
+   ],
+   "cx": 2173,
+   "cy": 998,
+   "w": 450,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.769,
+   "label": "接收",
+   "evidence": {
+    "fill": 0.598,
+    "aspect": 6.62,
+    "corner_fill": 0.57,
+    "area": 18308,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    642,
+    1054,
+    2398,
+    1126
+   ],
+   "cx": 1520,
+   "cy": 1090,
+   "w": 1756,
+   "h": 72,
+   "shape": "rect",
+   "confidence": 0.769,
+   "label": "陌生人消息提醒方式 全部提示",
+   "evidence": {
+    "fill": 0.597,
+    "aspect": 24.39,
+    "corner_fill": 0.35,
+    "area": 75484,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    2396,
+    2,
+    2520,
+    126
+   ],
+   "cx": 2458,
+   "cy": 64,
+   "w": 124,
+   "h": 124,
+   "shape": "circle",
+   "confidence": 0.766,
+   "label": null,
+   "evidence": {
+    "fill": 0.536,
+    "aspect": 1.0,
+    "corner_fill": 0.5,
+    "area": 8236,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    642,
+    964,
+    1944,
+    1032
+   ],
+   "cx": 1293,
+   "cy": 998,
+   "w": 1302,
+   "h": 68,
+   "shape": "rect",
+   "confidence": 0.766,
+   "label": "是否接收陌生人单独发送的消息",
+   "evidence": {
+    "fill": 0.592,
+    "aspect": 19.15,
+    "corner_fill": 0.54,
+    "area": 52408,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1520,
+    696,
+    1550,
+    712
+   ],
+   "cx": 1535,
+   "cy": 704,
+   "w": 30,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.759,
+   "label": null,
+   "evidence": {
+    "fill": 0.575,
+    "aspect": 1.88,
+    "corner_fill": 0.31,
+    "area": 276,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    670,
+    259,
+    1482,
+    1103
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 18,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    279,
+    369,
+    457,
+    548,
+    638,
+    726,
+    817,
+    906,
+    995,
+    1085
+   ],
+   "rows": [
+    {
+     "y": 279,
+     "texts": [
+      "小地图锁定"
+     ]
+    },
+    {
+     "y": 369,
+     "texts": [
+      "自动播放剧情"
+     ]
+    },
+    {
+     "y": 457,
+     "texts": [
+      "自动保护锁定四星武器"
+     ]
+    },
+    {
+     "y": 548,
+     "texts": [
+      "队伍配置时背景跟随所处地域变化"
+     ]
+    },
+    {
+     "y": 638,
+     "texts": [
+      "可快捷放入5星圣遗物作为强化素材"
+     ]
+    },
+    {
+     "y": 726,
+     "texts": [
+      "隐藏主界面"
+     ]
+    },
+    {
+     "y": 817,
+     "texts": [
+      "角色圣遗物界面高亮显示推荐属性及推荐圣遗物特殊标记"
+     ]
+    },
+    {
+     "y": 906,
+     "texts": [
+      "是否允许好友赠礼"
+     ]
+    },
+    {
+     "y": 995,
+     "texts": [
+      "是否接收陌生人单独发送的消息"
+     ]
+    },
+    {
+     "y": 1085,
+     "texts": [
+      "陌生人消息提醒方式"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    154,
+    42,
+    363,
+    982
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 36,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    62,
+    204,
+    296,
+    391,
+    482,
+    575,
+    667,
+    761,
+    853,
+    946
+   ],
+   "rows": [
+    {
+     "y": 62,
+     "texts": [
+      "设置／其他"
+     ]
+    },
+    {
+     "y": 204,
+     "texts": [
+      "控制"
+     ]
+    },
+    {
+     "y": 296,
+     "texts": [
+      "按键"
+     ]
+    },
+    {
+     "y": 391,
+     "texts": [
+      "图像",
+      "★"
+     ]
+    },
+    {
+     "y": 482,
+     "texts": [
+      "声音"
+     ]
+    },
+    {
+     "y": 575,
+     "texts": [
+      "消息"
+     ]
+    },
+    {
+     "y": 667,
+     "texts": [
+      "语言"
+     ]
+    },
+    {
+     "y": 761,
+     "texts": [
+      "账户"
+     ]
+    },
+    {
+     "y": 853,
+     "texts": [
+      "资源"
+     ]
+    },
+    {
+     "y": 946,
+     "texts": [
+      "其他"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    2100,
+    257,
+    2242,
+    1108
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 23,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 10,
+   "row_y": [
+    279,
+    368,
+    459,
+    549,
+    637,
+    727,
+    817,
+    907,
+    996,
+    1085
+   ],
+   "rows": [
+    {
+     "y": 279,
+     "texts": [
+      "锁定方向"
+     ]
+    },
+    {
+     "y": 368,
+     "texts": [
+      "关闭"
+     ]
+    },
+    {
+     "y": 459,
+     "texts": [
+      "打开"
+     ]
+    },
+    {
+     "y": 549,
+     "texts": [
+      "打开"
+     ]
+    },
+    {
+     "y": 637,
+     "texts": [
+      "关闭"
+     ]
+    },
+    {
+     "y": 727,
+     "texts": [
+      "关闭"
+     ]
+    },
+    {
+     "y": 817,
+     "texts": [
+      "全部开启"
+     ]
+    },
+    {
+     "y": 907,
+     "texts": [
+      "允许"
+     ]
+    },
+    {
+     "y": 996,
+     "texts": [
+      "接收"
+     ]
+    },
+    {
+     "y": 1085,
+     "texts": [
+      "全部提示"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "图像",
+   "text_id": 11,
+   "target": "circle@(166,299)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 50,
+   "dx": -68,
+   "dy": -91,
+   "confidence": 0.658
+  },
+  {
+   "text": "图像",
+   "text_id": 11,
+   "target": "circle@(165,485)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 54,
+   "dx": -69,
+   "dy": 95,
+   "confidence": 0.655
+  },
+  {
+   "text": "图像",
+   "text_id": 11,
+   "target": "circle@(165,207)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 142,
+   "dx": -69,
+   "dy": -183,
+   "confidence": 0.582
+  },
+  {
+   "text": "接收",
+   "text_id": 32,
+   "target": "rect@(2173,998)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "接收",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 2,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "账户",
+   "text_id": 24,
+   "target": "circle@(165,763)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 3,
+   "dx": -67,
+   "dy": 2,
+   "confidence": 0.548
+  },
+  {
+   "text": "资源",
+   "text_id": 27,
+   "target": "circle@(165,856)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 3,
+   "dx": -68,
+   "dy": 3,
+   "confidence": 0.548
+  },
+  {
+   "text": "其他",
+   "text_id": 30,
+   "target": "circle@(173,949)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 8,
+   "dx": -84,
+   "dy": 3,
+   "confidence": 0.543
+  },
+  {
+   "text": "隐藏主界面",
+   "text_id": 22,
+   "target": "circle@(678,640)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 30,
+   "dx": -79,
+   "dy": -86,
+   "confidence": 0.525
+  },
+  {
+   "text": "允许",
+   "text_id": 29,
+   "target": "rect@(2173,998)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "接收",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 31,
+   "dx": 2,
+   "dy": 92,
+   "confidence": 0.524
+  },
+  {
+   "text": "全部提示",
+   "text_id": 34,
+   "target": "rect@(2173,998)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "接收",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 31,
+   "dx": 2,
+   "dy": -88,
+   "confidence": 0.524
+  },
+  {
+   "text": "锁定方向",
+   "text_id": 8,
+   "target": "label@(2170,368)",
+   "target_id": "t10",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 44,
+   "dx": 0,
+   "dy": 90,
+   "confidence": 0.713
+  },
+  {
+   "text": "控制",
+   "text_id": 5,
+   "target": "circle@(84,62)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": "DXVK v3.0 FPS: GPU: 60.",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 52,
+   "dx": -148,
+   "dy": -142,
+   "confidence": 0.507
+  },
+  {
+   "text": "角色圣遗物界面高亮显示推荐属性及推荐圣遗物特殊标记",
+   "text_id": 25,
+   "target": "rect@(1535,704)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 86,
+   "dx": 457,
+   "dy": -112,
+   "confidence": 0.478
+  },
+  {
+   "text": "是否接收陌生人单独发送的消息",
+   "text_id": 31,
+   "target": "rect@(1262,1139)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 111,
+   "dx": 361,
+   "dy": 144,
+   "confidence": 0.458
+  },
+  {
+   "text": "全部开启",
+   "text_id": 26,
+   "target": "rect@(2173,998)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "接收",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 125,
+   "dx": 2,
+   "dy": 181,
+   "confidence": 0.446
+  },
+  {
+   "text": "打开",
+   "text_id": 14,
+   "target": "label@(2170,637)",
+   "target_id": "t20",
+   "target_kind": "label",
+   "label": "关闭",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 127,
+   "dx": 2,
+   "dy": 178,
+   "confidence": 0.644
+  },
+  {
+   "text": "按键",
+   "text_id": 6,
+   "target": "circle@(84,62)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": "DXVK v3.0 FPS: GPU: 60.",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 143,
+   "dx": -149,
+   "dy": -234,
+   "confidence": 0.431
+  },
+  {
+   "text": "★",
+   "text_id": 12,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 298,
+   "dx": 110,
+   "dy": -330,
+   "confidence": 0.502
+  },
+  {
+   "text": "小地图锁定",
+   "text_id": 7,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 307,
+   "dx": -480,
+   "dy": -217,
+   "confidence": 0.5
+  },
+  {
+   "text": "自动播放剧情",
+   "text_id": 9,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 313,
+   "dx": -500,
+   "dy": -307,
+   "confidence": 0.5
+  },
+  {
+   "text": "自动保护锁定四星武器",
+   "text_id": 13,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 355,
+   "dx": -563,
+   "dy": -396,
+   "confidence": 0.5
+  },
+  {
+   "text": "声音",
+   "text_id": 15,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 371,
+   "dx": 42,
+   "dy": -420,
+   "confidence": 0.5
+  },
+  {
+   "text": "队伍配置时背景跟随所处地域变化",
+   "text_id": 16,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 447,
+   "dx": -642,
+   "dy": -486,
+   "confidence": 0.5
+  },
+  {
+   "text": "消息",
+   "text_id": 18,
+   "target": "label@(275,62)",
+   "target_id": "t4",
+   "target_kind": "label",
+   "label": "设置／其他",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 463,
+   "dx": 43,
+   "dy": -514,
+   "confidence": 0.5
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    2,
+    121,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=131",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS:",
+     "GPU:",
+     "60."
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 5,
+    "bg_mean": 130.6,
+    "bg_std": 57.0,
+    "ring_mean": 90.4,
+    "ring_std": 53.1,
+    "texture_ratio": 1.07,
+    "bg_rgb": [
+     142,
+     132,
+     116
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    588,
+    2560,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     159.0,
+     118.0,
+     116.0
+    ],
+    "fill": 0.58,
+    "rect": 0.59
+   },
+   "text": [
+    "语言",
+    "隐藏主界面",
+    "关闭",
+    "账户",
+    "资源",
+    "其他",
+    "是否接收陌生人单独发送的消息",
+    "接收",
+    "min:",
+    "4.8 ms",
+    "max:",
+    "35,2 ms",
+    "UID: 110170759"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2352,
+      722,
+      2376,
+      738
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 146.0
+    },
+    {
+     "bbox": [
+      156,
+      754,
+      174,
+      772
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 71.0
+    },
+    {
+     "bbox": [
+      156,
+      846,
+      176,
+      866
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 125.0
+    },
+    {
+     "bbox": [
+      156,
+      660,
+      176,
+      680
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 81.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:13",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "right",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.72,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 16)",
+    "area_px": 1281744,
+    "area_frac": 0.5917,
+    "aspect": 3.0,
+    "grid": "col n=1 pitch_x=None pitch_y=687.0",
+    "skin_siblings": 0,
+    "text_in": 13,
+    "text_ui": 16,
+    "skin_lab": [
+     159.0,
+     118.0,
+     116.0
+    ],
+    "flat_fill": 0.58,
+    "rect": 0.59
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    654
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     68.0,
+     132.0,
+     114.0
+    ],
+    "fill": 0.64,
+    "rect": 0.75
+   },
+   "text": [
+    "DXVK v3.0",
+    "FPS:",
+    "GPU:",
+    "60.",
+    "设置／其他",
+    "控制",
+    "按键",
+    "小地图锁定",
+    "锁定方向",
+    "自动播放剧情",
+    "关闭",
+    "图像",
+    "★",
+    "自动保护锁定四星武器",
+    "打开",
+    "声音",
+    "队伍配置时背景跟随所处地域变化",
+    "打开",
+    "消息",
+    "可快捷放入5星圣遗物作为强化素材",
+    "关闭"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2418,
+      24,
+      2496,
+      102
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 190.0
+    },
+    {
+     "bbox": [
+      2354,
+      364,
+      2376,
+      380
+     ],
+     "role": "icon",
+     "fill": 0.61,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      156,
+      196,
+      176,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 118.0
+    },
+    {
+     "bbox": [
+      2352,
+      274,
+      2376,
+      290
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 139.0
+    },
+    {
+     "bbox": [
+      60,
+      32,
+      150,
+      100
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 210.0
+    },
+    {
+     "bbox": [
+      156,
+      290,
+      176,
+      310
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      156,
+      568,
+      174,
+      588
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 99.0
+    },
+    {
+     "bbox": [
+      156,
+      474,
+      176,
+      494
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 103.0
+    },
+    {
+     "bbox": [
+      2352,
+      454,
+      2378,
+      470
+     ],
+     "role": "icon",
+     "fill": 0.52,
+     "contrast": 139.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:21",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "top",
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.75,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 17)",
+    "area_px": 1257064,
+    "area_frac": 0.4542,
+    "aspect": 3.91,
+    "grid": "col n=1 pitch_x=None pitch_y=687.0",
+    "skin_siblings": 0,
+    "text_in": 21,
+    "text_ui": 17,
+    "skin_lab": [
+     68.0,
+     132.0,
+     114.0
+    ],
+    "flat_fill": 0.64,
+    "rect": 0.75
+   }
+  },
+  {
+   "id": "c2",
+   "parent": "c0",
+   "bbox": [
+    646,
+    876,
+    2394,
+    956
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     216.0,
+     125.0,
+     131.0
+    ],
+    "fill": 0.69,
+    "rect": 0.77
+   },
+   "text": [
+    "是否允许好友赠礼",
+    "允许"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2352,
+      902,
+      2378,
+      918
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 149.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 107220,
+    "area_frac": 0.0379,
+    "aspect": 21.85,
+    "grid": "col n=2 pitch_x=None pitch_y=103.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     216.0,
+     125.0,
+     131.0
+    ],
+    "flat_fill": 0.69,
+    "rect": 0.77
+   }
+  },
+  {
+   "id": "c3",
+   "parent": "c0",
+   "bbox": [
+    646,
+    1056,
+    2394,
+    1122
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     219.0,
+     124.0,
+     131.0
+    ],
+    "fill": 0.74,
+    "rect": 0.82
+   },
+   "text": [
+    "陌生人消息提醒方式",
+    "全部提示"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.76,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 94180,
+    "area_frac": 0.0313,
+    "aspect": 26.48,
+    "grid": "col n=2 pitch_x=None pitch_y=173.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     219.0,
+     124.0,
+     131.0
+    ],
+    "flat_fill": 0.74,
+    "rect": 0.82
+   }
+  },
+  {
+   "id": "c4",
+   "parent": "c0",
+   "bbox": [
+    644,
+    772,
+    2394,
+    854
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     213.0,
+     125.0,
+     131.0
+    ],
+    "fill": 0.52,
+    "rect": 0.58
+   },
+   "text": [
+    "角色圣遗物界面高亮显示推荐属性及推荐圣遗物特殊标记",
+    "全部开启"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      2354,
+      812,
+      2376,
+      828
+     ],
+     "role": "icon",
+     "fill": 0.62,
+     "contrast": 153.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:1",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.87,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (1 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 83284,
+    "area_frac": 0.0389,
+    "aspect": 21.34,
+    "grid": "col n=2 pitch_x=None pitch_y=103.0",
+    "skin_siblings": 1,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     213.0,
+     125.0,
+     131.0
+    ],
+    "flat_fill": 0.52,
+    "rect": 0.58
+   }
+  }
+ ],
+ "free_text": [],
+ "free_glyphs": [],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 164,
+  "ocr_ms": 692,
+  "pixel_ms": 929,
+  "container_ms": 392,
+  "container_cached": false,
+  "total_ms": 1786,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 40,
+  "err": null
+ },
+ "title_text_id": 11,
+ "digest": "屏幕 2560x1440 · 文本 40 · 控件 40 · 容器 5 · 邻接 24 · 遮挡 1 · 1786ms（OCR daemon）\n标题「图像」@(234,390) 画面 · 字高 60px\n邻接「图像」→ circle@(166,299) 上方 50px\n邻接「图像」→ circle@(165,485) 下方 54px\n邻接「图像」→ circle@(165,207) 上方 142px\n邻接「锁定方向」→ label@(2170,368)「关闭」 下方 44px\n控件: circle@(166,299) | circle@(165,485) | circle@(165,207) | rect@(2173,998)「接收」\n遮挡 [0, 2, 121, 80] (0,2)-(121,80)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=131\n可点文字 4 个: 设置／其他 / 关闭 / 关闭 / 关闭"
+}

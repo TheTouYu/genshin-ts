@@ -1,0 +1,34 @@
+# prelabel lines — 修正规则：删行=删对象；改 4 个数字=改框；kind/text 直接改；
+# 加对象：抄一行把 id 写 new（apply 时自动编号）；行首 # = 注释掉=删除。
+# frame=195300 image=.scratch/gui-corpus/capture-2026-10-18/195300.png backend=cv units=30
+# 格式：id | kind | x y w h | text1 / text2 | {可选 JSON}
+0 | icon | 2410 26 86 70 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+1 | row | 2321 74 83 80 | X | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+2 | row | 1135 75 286 77 | 邮件珍藏盒 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+3 | row | 1201 138 156 47 | 339/1000 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+4 | row | 1304 206 161 75 | 启发… | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+5 | row | 220 214 284 55 | 搜索标题或发件人 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+6 | row | 1308 291 205 55 | 发件人：辛焱 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+7 | row | 302 310 942 126 | 启发… / 辛焱 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+8 | row | 1311 343 358 45 | 时间: 2026-10-16 02:57 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+9 | row | 1187 417 1211 98 | 前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸 / 新 / 在屋檐、石板和灯笼上，听着还挺像一段即兴的鼓点。我抱着琴，跟着 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+10 | row | 190 468 1044 126 | 新 / 祝他成功。 / 欧洛伦 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1200, 458, 1242, 492]}, {"type": "red", "bbox": [246, 504, 262, 518]}, {"type": "red", "bbox": [250, 524, 274, 542]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+11 | row | 1306 501 1074 59 | 这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+12 | row | 1307 547 1081 55 | 这事给了我一个启发。既然风声、雨声能成为音乐，那么大雪与冰雹岂 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+13 | row | 1186 591 1190 68 | 新 / 不是也能作为灵感来源？我的摇滚之火，会在冰天雪地中燃烧出怎样 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+14 | row | 190 622 1044 126 | 新 / 舞台· / 芙宁娜 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1200, 614, 1242, 648]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+15 | row | 1306 633 537 55 | 精彩的旋律呢？想想就迫不及待！ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+16 | row | 1308 677 1089 53 | …尽管真的很想这么冲动一回，但去至冬和去沉玉谷可不一样，还得从 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+17 | row | 1304 714 152 64 | 长计议。 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+18 | row | 1187 758 877 61 | 新 / 总之，给你带了点当地特产，往后也为我加油吧！ | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+19 | row | 190 782 1044 122 | 新 / 行到闲处… / 行秋 | {"state": {"selected": false, "focused": false, "disabled": false}, "badges": [{"type": "red", "bbox": [1200, 770, 1242, 806]}], "clipped": {"edges": [], "cut_by": null, "px": 0}}
+20 | row | 190 936 1044 128 | 礼物… / 尼可 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+21 | row | 190 1096 1044 122 | 读书的收获… / 菲米尼 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+22 | icon | 1472 1108 120 108 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+23 | icon | 1344 1122 86 68 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+24 | row | 1355 1178 62 54 | 10 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+25 | row | 190 1252 1044 94 | 定香· / 69. / .5 ms / 艾梅莉埃 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+26 | icon | 2326 1272 66 66 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+27 | row | 370 1317 143 47 | 艾梅莉埃 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+28 | icon | 2424 1356 42 40 |  | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}
+29 | row | 2249 1393 244 51 | UID: 110170759 | {"state": {"selected": false, "focused": false, "disabled": false}, "clipped": {"edges": [], "cut_by": null, "px": 0}}

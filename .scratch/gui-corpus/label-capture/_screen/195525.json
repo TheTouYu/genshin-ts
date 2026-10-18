@@ -1,0 +1,2723 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195525.png",
+  "sha256": "676ce68ede949043c89c4bd00bc5cebb1884ebc500319966933541bdd0e47aff",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 4418150
+ },
+ "title": {
+  "text": "造物",
+  "cx": 67,
+  "cy": 388,
+  "bbox": [
+   29,
+   372,
+   105,
+   405
+  ],
+  "region": "左侧栏",
+  "why": "上半屏字高最大（33px, score=1.00）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.",
+   "cx": 54,
+   "cy": 19,
+   "bbox": [
+    1,
+    6,
+    107,
+    32
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.9194,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 60.0",
+   "cx": 61,
+   "cy": 40,
+   "bbox": [
+    2,
+    27,
+    120,
+    54
+   ],
+   "w": 118,
+   "h": 27,
+   "score": 0.941,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "背景音乐管理 ×",
+   "cx": 362,
+   "cy": 25,
+   "bbox": [
+    289,
+    10,
+    436,
+    39
+   ],
+   "w": 147,
+   "h": 29,
+   "score": 0.9327,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": "60",
+   "cx": 2285,
+   "cy": 16,
+   "bbox": [
+    2270,
+    6,
+    2300,
+    27
+   ],
+   "w": 30,
+   "h": 21,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "ms",
+   "cx": 2286,
+   "cy": 37,
+   "bbox": [
+    2270,
+    28,
+    2301,
+    47
+   ],
+   "w": 31,
+   "h": 19,
+   "score": 0.9998,
+   "kind": "other"
+  },
+  {
+   "id": 5,
+   "text": "GPU: 53%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    105,
+    77
+   ],
+   "w": 102,
+   "h": 22,
+   "score": 0.988,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "摆放",
+   "cx": 41,
+   "cy": 85,
+   "bbox": [
+    14,
+    70,
+    68,
+    100
+   ],
+   "w": 54,
+   "h": 30,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 7,
+   "text": "久",
+   "cx": 436,
+   "cy": 86,
+   "bbox": [
+    423,
+    74,
+    449,
+    97
+   ],
+   "w": 26,
+   "h": 23,
+   "score": 0.6622,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "x",
+   "cx": 2487,
+   "cy": 141,
+   "bbox": [
+    2476,
+    129,
+    2498,
+    153
+   ],
+   "w": 22,
+   "h": 24,
+   "score": 0.7593,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "儿系礼你",
+   "cx": 381,
+   "cy": 194,
+   "bbox": [
+    347,
+    186,
+    416,
+    203
+   ],
+   "w": 69,
+   "h": 17,
+   "score": 0.896,
+   "kind": "other"
+  },
+  {
+   "id": 10,
+   "text": "自定义",
+   "cx": 48,
+   "cy": 217,
+   "bbox": [
+    18,
+    204,
+    78,
+    231
+   ],
+   "w": 60,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "物件",
+   "cx": 68,
+   "cy": 260,
+   "bbox": [
+    29,
+    244,
+    107,
+    276
+   ],
+   "w": 78,
+   "h": 32,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 302,
+   "bbox": [
+    33,
+    289,
+    152,
+    316
+   ],
+   "w": 119,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "金属齿轮",
+   "cx": 380,
+   "cy": 302,
+   "bbox": [
+    343,
+    289,
+    418,
+    316
+   ],
+   "w": 75,
+   "h": 27,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 345,
+   "bbox": [
+    29,
+    333,
+    134,
+    358
+   ],
+   "w": 105,
+   "h": 25,
+   "score": 0.9666,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "造物",
+   "cx": 67,
+   "cy": 388,
+   "bbox": [
+    29,
+    372,
+    105,
+    405
+   ],
+   "w": 76,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "title"
+  },
+  {
+   "id": 16,
+   "text": "金属齿轮",
+   "cx": 381,
+   "cy": 415,
+   "bbox": [
+    345,
+    403,
+    416,
+    426
+   ],
+   "w": 71,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 430,
+   "bbox": [
+    33,
+    417,
+    152,
+    443
+   ],
+   "w": 119,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 473,
+   "bbox": [
+    28,
+    460,
+    134,
+    487
+   ],
+   "w": 106,
+   "h": 27,
+   "score": 0.958,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 516,
+   "bbox": [
+    29,
+    501,
+    126,
+    532
+   ],
+   "w": 97,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "金属齿轮",
+   "cx": 381,
+   "cy": 527,
+   "bbox": [
+    345,
+    516,
+    416,
+    538
+   ],
+   "w": 71,
+   "h": 22,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "未分类页签",
+   "cx": 92,
+   "cy": 558,
+   "bbox": [
+    32,
+    543,
+    152,
+    573
+   ],
+   "w": 120,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 601,
+   "bbox": [
+    28,
+    588,
+    134,
+    614
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.9895,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "预制",
+   "cx": 38,
+   "cy": 644,
+   "bbox": [
+    16,
+    632,
+    60,
+    657
+   ],
+   "w": 44,
+   "h": 25,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "金属齿轮",
+   "cx": 381,
+   "cy": 639,
+   "bbox": [
+    345,
+    627,
+    416,
+    650
+   ],
+   "w": 71,
+   "h": 23,
+   "score": 0.9992,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "动态单位",
+   "cx": 88,
+   "cy": 686,
+   "bbox": [
+    29,
+    671,
+    147,
+    702
+   ],
+   "w": 118,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "流程物件",
+   "cx": 92,
+   "cy": 728,
+   "bbox": [
+    51,
+    714,
+    132,
+    741
+   ],
+   "w": 81,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "金属齿轮",
+   "cx": 380,
+   "cy": 751,
+   "bbox": [
+    343,
+    736,
+    418,
+    766
+   ],
+   "w": 75,
+   "h": 30,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "玩法机关",
+   "cx": 94,
+   "cy": 772,
+   "bbox": [
+    52,
+    758,
+    135,
+    785
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "金属齿轮",
+   "cx": 487,
+   "cy": 776,
+   "bbox": [
+    446,
+    763,
+    527,
+    789
+   ],
+   "w": 81,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "其他",
+   "cx": 76,
+   "cy": 814,
+   "bbox": [
+    52,
+    802,
+    99,
+    826
+   ],
+   "w": 47,
+   "h": 24,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": " 计算负载： 2.72",
+   "cx": 519,
+   "cy": 808,
+   "bbox": [
+    449,
+    795,
+    590,
+    821
+   ],
+   "w": 141,
+   "h": 26,
+   "score": 0.8544,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "内存负载: 0.82",
+   "cx": 521,
+   "cy": 835,
+   "bbox": [
+    449,
+    824,
+    594,
+    846
+   ],
+   "w": 145,
+   "h": 22,
+   "score": 0.9517,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "静态单位",
+   "cx": 88,
+   "cy": 856,
+   "bbox": [
+    29,
+    839,
+    147,
+    873
+   ],
+   "w": 118,
+   "h": 34,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "金属传动杆",
+   "cx": 379,
+   "cy": 861,
+   "bbox": [
+    335,
+    848,
+    424,
+    874
+   ],
+   "w": 89,
+   "h": 26,
+   "score": 0.9804,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "造物",
+   "cx": 68,
+   "cy": 900,
+   "bbox": [
+    30,
+    884,
+    105,
+    915
+   ],
+   "w": 75,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 942,
+   "bbox": [
+    30,
+    927,
+    126,
+    957
+   ],
+   "w": 96,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "元件组",
+   "cx": 47,
+   "cy": 985,
+   "bbox": [
+    15,
+    972,
+    80,
+    999
+   ],
+   "w": 65,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "金属铃铛",
+   "cx": 381,
+   "cy": 975,
+   "bbox": [
+    345,
+    964,
+    416,
+    986
+   ],
+   "w": 71,
+   "h": 22,
+   "score": 0.996,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "自定义元件组",
+   "cx": 109,
+   "cy": 1027,
+   "bbox": [
+    29,
+    1013,
+    188,
+    1042
+   ],
+   "w": 159,
+   "h": 29,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "资产库",
+   "cx": 48,
+   "cy": 1070,
+   "bbox": [
+    16,
+    1056,
+    80,
+    1083
+   ],
+   "w": 64,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "金属齿轮",
+   "cx": 381,
+   "cy": 1087,
+   "bbox": [
+    344,
+    1076,
+    419,
+    1098
+   ],
+   "w": 75,
+   "h": 22,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "物件",
+   "cx": 65,
+   "cy": 1112,
+   "bbox": [
+    32,
+    1098,
+    99,
+    1126
+   ],
+   "w": 67,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "造物",
+   "cx": 65,
+   "cy": 1155,
+   "bbox": [
+    32,
+    1141,
+    99,
+    1168
+   ],
+   "w": 67,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 44,
+   "text": "场景生成模板",
+   "cx": 74,
+   "cy": 1198,
+   "bbox": [
+    16,
+    1185,
+    131,
+    1211
+   ],
+   "w": 115,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 45,
+   "text": "金属齿轮",
+   "cx": 381,
+   "cy": 1199,
+   "bbox": [
+    345,
+    1188,
+    416,
+    1211
+   ],
+   "w": 71,
+   "h": 23,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 46,
+   "text": "预设模板",
+   "cx": 94,
+   "cy": 1240,
+   "bbox": [
+    52,
+    1226,
+    135,
+    1253
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 47,
+   "text": "未分类页签",
+   "cx": 102,
+   "cy": 1283,
+   "bbox": [
+    51,
+    1270,
+    153,
+    1296
+   ],
+   "w": 102,
+   "h": 26,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 48,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9844,
+   "kind": "other"
+  },
+  {
+   "id": 49,
+   "text": "7.3 ms",
+   "cx": 85,
+   "cy": 1308,
+   "bbox": [
+    54,
+    1299,
+    117,
+    1317
+   ],
+   "w": 63,
+   "h": 18,
+   "score": 0.9618,
+   "kind": "data"
+  },
+  {
+   "id": 50,
+   "text": "maxt",
+   "cx": 178,
+   "cy": 1308,
+   "bbox": [
+    160,
+    1302,
+    197,
+    1315
+   ],
+   "w": 37,
+   "h": 13,
+   "score": 0.8305,
+   "kind": "other"
+  },
+  {
+   "id": 51,
+   "text": "125.5",
+   "cx": 231,
+   "cy": 1308,
+   "bbox": [
+    202,
+    1299,
+    260,
+    1316
+   ],
+   "w": 58,
+   "h": 17,
+   "score": 0.9902,
+   "kind": "other"
+  },
+  {
+   "id": 52,
+   "text": "m s",
+   "cx": 268,
+   "cy": 1309,
+   "bbox": [
+    254,
+    1302,
+    282,
+    1316
+   ],
+   "w": 28,
+   "h": 14,
+   "score": 0.8323,
+   "kind": "other"
+  },
+  {
+   "id": 53,
+   "text": "金属轮轴",
+   "cx": 380,
+   "cy": 1311,
+   "bbox": [
+    344,
+    1299,
+    416,
+    1323
+   ],
+   "w": 72,
+   "h": 24,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 54,
+   "text": "金属底座",
+   "cx": 382,
+   "cy": 1420,
+   "bbox": [
+    349,
+    1411,
+    415,
+    1429
+   ],
+   "w": 66,
+   "h": 18,
+   "score": 0.8275,
+   "kind": "other"
+  },
+  {
+   "id": 55,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    374,
+    1260,
+    398,
+    1284
+   ],
+   "cx": 386,
+   "cy": 1272,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 39.5,
+    "ring_L": 139.7,
+    "inside_L": 84.9,
+    "outside_L": 115.5
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2440,
+    14,
+    2464,
+    38
+   ],
+   "cx": 2452,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 94.0,
+    "ring_L": 179.0,
+    "inside_L": 114.9,
+    "outside_L": 55.2
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    260,
+    14,
+    284,
+    38
+   ],
+   "cx": 272,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 40.3,
+    "ring_L": 122.8,
+    "inside_L": 109.7,
+    "outside_L": 55.3
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    24,
+    136,
+    456,
+    172
+   ],
+   "cx": 240,
+   "cy": 154,
+   "w": 432,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.934,
+    "aspect": 12.0,
+    "corner_fill": 0.12,
+    "area": 14532,
+    "src": "flat"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    10,
+    1322,
+    158,
+    1386
+   ],
+   "cx": 84,
+   "cy": 1354,
+   "w": 148,
+   "h": 64,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.947,
+    "aspect": 2.31,
+    "corner_fill": 0.9,
+    "area": 8972,
+    "src": "flat"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    182,
+    10,
+    218,
+    38
+   ],
+   "cx": 200,
+   "cy": 24,
+   "w": 36,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.79,
+    "aspect": 1.29,
+    "corner_fill": 0.3,
+    "area": 796,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2334,
+    18,
+    2356,
+    34
+   ],
+   "cx": 2345,
+   "cy": 26,
+   "w": 22,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.818,
+    "aspect": 1.38,
+    "corner_fill": 0.31,
+    "area": 288,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    310,
+    830,
+    350,
+    880
+   ],
+   "cx": 330,
+   "cy": 855,
+   "w": 40,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.634,
+    "aspect": 0.8,
+    "corner_fill": 0.24,
+    "area": 1268,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    2238,
+    18,
+    2258,
+    36
+   ],
+   "cx": 2248,
+   "cy": 27,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.8,
+    "aspect": 1.11,
+    "corner_fill": 0.31,
+    "area": 288,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    348,
+    454,
+    410,
+    512
+   ],
+   "cx": 379,
+   "cy": 483,
+   "w": 62,
+   "h": 58,
+   "shape": "circle",
+   "confidence": 0.909,
+   "label": null,
+   "evidence": {
+    "fill": 0.545,
+    "aspect": 1.07,
+    "corner_fill": 0.22,
+    "area": 1960,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    364,
+    1276,
+    396,
+    1300
+   ],
+   "cx": 380,
+   "cy": 1288,
+   "w": 32,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.901,
+   "label": null,
+   "evidence": {
+    "fill": 0.578,
+    "aspect": 1.33,
+    "corner_fill": 0.25,
+    "area": 444,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1288,
+    138,
+    1312,
+    154
+   ],
+   "cx": 1300,
+   "cy": 146,
+   "w": 24,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 1.5,
+    "corner_fill": 0.62,
+    "area": 332,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    28,
+    138,
+    56,
+    168
+   ],
+   "cx": 42,
+   "cy": 153,
+   "w": 28,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.686,
+    "aspect": 0.93,
+    "corner_fill": 0.33,
+    "area": 576,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    602,
+    778,
+    626,
+    806
+   ],
+   "cx": 614,
+   "cy": 792,
+   "w": 24,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.881,
+   "label": null,
+   "evidence": {
+    "fill": 0.482,
+    "aspect": 0.86,
+    "corner_fill": 0.25,
+    "area": 324,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    2444,
+    116,
+    2466,
+    144
+   ],
+   "cx": 2455,
+   "cy": 130,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 0.79,
+    "corner_fill": 0.39,
+    "area": 508,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    20,
+    752,
+    262,
+    794
+   ],
+   "cx": 141,
+   "cy": 773,
+   "w": 242,
+   "h": 42,
+   "shape": "rect",
+   "confidence": 0.868,
+   "label": "玩法机关",
+   "evidence": {
+    "fill": 0.817,
+    "aspect": 5.76,
+    "corner_fill": 0.18,
+    "area": 8308,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    310,
+    446,
+    356,
+    540
+   ],
+   "cx": 333,
+   "cy": 493,
+   "w": 46,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.865,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 0.49,
+    "corner_fill": 0.79,
+    "area": 3508,
+    "src": "flat"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    374,
+    908,
+    396,
+    932
+   ],
+   "cx": 385,
+   "cy": 920,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.864,
+   "label": null,
+   "evidence": {
+    "fill": 0.811,
+    "aspect": 0.92,
+    "corner_fill": 0.42,
+    "area": 428,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    366,
+    338,
+    398,
+    356
+   ],
+   "cx": 382,
+   "cy": 347,
+   "w": 32,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.806,
+    "aspect": 1.78,
+    "corner_fill": 0.12,
+    "area": 464,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    310,
+    558,
+    356,
+    652
+   ],
+   "cx": 333,
+   "cy": 605,
+   "w": 46,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.806,
+    "aspect": 0.49,
+    "corner_fill": 0.78,
+    "area": 3484,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2392,
+    18,
+    2412,
+    34
+   ],
+   "cx": 2402,
+   "cy": 26,
+   "w": 20,
+   "h": 16,
+   "shape": "circle",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.85,
+    "aspect": 1.25,
+    "corner_fill": 0.44,
+    "area": 272,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    310,
+    1398,
+    348,
+    1424
+   ],
+   "cx": 329,
+   "cy": 1411,
+   "w": 38,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.861,
+   "label": null,
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 1.46,
+    "corner_fill": 0.58,
+    "area": 792,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1414,
+    86,
+    1442,
+    114
+   ],
+   "cx": 1428,
+   "cy": 100,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.86,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 11.0,
+    "ring_L": 115.0,
+    "inside_L": 188.4,
+    "outside_L": 63.5
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    1314,
+    134,
+    1436,
+    154
+   ],
+   "cx": 1375,
+   "cy": 144,
+   "w": 122,
+   "h": 20,
+   "shape": "rect",
+   "confidence": 0.842,
+   "label": null,
+   "evidence": {
+    "fill": 0.761,
+    "aspect": 6.1,
+    "corner_fill": 0.06,
+    "area": 1856,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1196,
+    1354,
+    1230,
+    1382
+   ],
+   "cx": 1213,
+   "cy": 1368,
+   "w": 34,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.838,
+   "label": null,
+   "evidence": {
+    "fill": 0.458,
+    "aspect": 1.21,
+    "corner_fill": 0.33,
+    "area": 436,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1234,
+    650,
+    1342,
+    768
+   ],
+   "cx": 1288,
+   "cy": 709,
+   "w": 108,
+   "h": 118,
+   "shape": "circle",
+   "confidence": 0.835,
+   "label": null,
+   "evidence": {
+    "fill": 0.463,
+    "aspect": 0.92,
+    "corner_fill": 0.34,
+    "area": 5896,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    400,
+    248,
+    428,
+    282
+   ],
+   "cx": 414,
+   "cy": 265,
+   "w": 28,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.829,
+   "label": null,
+   "evidence": {
+    "fill": 0.651,
+    "aspect": 0.82,
+    "corner_fill": 0.42,
+    "area": 620,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    308,
+    670,
+    354,
+    766
+   ],
+   "cx": 331,
+   "cy": 718,
+   "w": 46,
+   "h": 96,
+   "shape": "rect",
+   "confidence": 0.828,
+   "label": null,
+   "evidence": {
+    "fill": 0.728,
+    "aspect": 0.48,
+    "corner_fill": 0.57,
+    "area": 3216,
+    "src": "flat"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    386,
+    670,
+    454,
+    766
+   ],
+   "cx": 420,
+   "cy": 718,
+   "w": 68,
+   "h": 96,
+   "shape": "circle",
+   "confidence": 0.827,
+   "label": null,
+   "evidence": {
+    "fill": 0.532,
+    "aspect": 0.71,
+    "corner_fill": 0.38,
+    "area": 3476,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    2530,
+    488,
+    2560,
+    510
+   ],
+   "cx": 2545,
+   "cy": 499,
+   "w": 30,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.824,
+   "label": null,
+   "evidence": {
+    "fill": 0.473,
+    "aspect": 1.36,
+    "corner_fill": 0.36,
+    "area": 312,
+    "src": "flat"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2524,
+    364,
+    2560,
+    406
+   ],
+   "cx": 2542,
+   "cy": 385,
+   "w": 36,
+   "h": 42,
+   "shape": "circle",
+   "confidence": 0.823,
+   "label": null,
+   "evidence": {
+    "fill": 0.463,
+    "aspect": 0.86,
+    "corner_fill": 0.36,
+    "area": 700,
+    "src": "flat"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    352,
+    680,
+    416,
+    742
+   ],
+   "cx": 384,
+   "cy": 711,
+   "w": 64,
+   "h": 62,
+   "shape": "circle",
+   "confidence": 0.821,
+   "label": null,
+   "evidence": {
+    "fill": 0.64,
+    "aspect": 1.03,
+    "corner_fill": 0.43,
+    "area": 2540,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    310,
+    334,
+    452,
+    428
+   ],
+   "cx": 381,
+   "cy": 381,
+   "w": 142,
+   "h": 94,
+   "shape": "rect",
+   "confidence": 0.817,
+   "label": "金属齿轮",
+   "evidence": {
+    "fill": 0.704,
+    "aspect": 1.51,
+    "corner_fill": 0.99,
+    "area": 9400,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    22,
+    612,
+    120,
+    640
+   ],
+   "cx": 71,
+   "cy": 626,
+   "w": 98,
+   "h": 28,
+   "shape": "rect",
+   "confidence": 0.813,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 3.5,
+    "corner_fill": 0.16,
+    "area": 1908,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    450,
+    70,
+    476,
+    122
+   ],
+   "cx": 463,
+   "cy": 96,
+   "w": 26,
+   "h": 52,
+   "shape": "rect",
+   "confidence": 0.805,
+   "label": null,
+   "evidence": {
+    "fill": 0.678,
+    "aspect": 0.5,
+    "corner_fill": 0.42,
+    "area": 916,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    456,
+    1358,
+    478,
+    1386
+   ],
+   "cx": 467,
+   "cy": 1372,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.804,
+   "label": null,
+   "evidence": {
+    "fill": 0.442,
+    "aspect": 0.79,
+    "corner_fill": 0.39,
+    "area": 272,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    346,
+    1128,
+    422,
+    1208
+   ],
+   "cx": 384,
+   "cy": 1168,
+   "w": 76,
+   "h": 80,
+   "shape": "circle",
+   "confidence": 0.799,
+   "label": "金属齿轮",
+   "evidence": {
+    "fill": 0.58,
+    "aspect": 0.95,
+    "corner_fill": 0.46,
+    "area": 3528,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    100,
+    54,
+    152,
+    80
+   ],
+   "cx": 126,
+   "cy": 67,
+   "w": 52,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.797,
+   "label": null,
+   "evidence": {
+    "fill": 0.66,
+    "aspect": 2.0,
+    "corner_fill": 0.31,
+    "area": 892,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    480,
+    1338,
+    500,
+    1440
+   ],
+   "cx": 490,
+   "cy": 1389,
+   "w": 20,
+   "h": 102,
+   "shape": "rect",
+   "confidence": 0.797,
+   "label": null,
+   "evidence": {
+    "fill": 0.661,
+    "aspect": 0.2,
+    "corner_fill": 0.38,
+    "area": 1348,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1116,
+    138,
+    1158,
+    156
+   ],
+   "cx": 1137,
+   "cy": 147,
+   "w": 42,
+   "h": 18,
+   "shape": "rect",
+   "confidence": 0.79,
+   "label": null,
+   "evidence": {
+    "fill": 0.646,
+    "aspect": 2.33,
+    "corner_fill": 0.38,
+    "area": 488,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 37% 宽）"
+  },
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    478,
+    1440
+   ],
+   "why": "竖边长直边 x=478（覆盖 90% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    15,
+    10,
+    594,
+    1253
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 12,
+   "row_y": [
+    25,
+    86,
+    205,
+    288,
+    345,
+    411,
+    473,
+    533,
+    811,
+    1089,
+    1155,
+    1212
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      "背景音乐管理 ×"
+     ]
+    },
+    {
+     "y": 86,
+     "texts": [
+      "久"
+     ]
+    },
+    {
+     "y": 205,
+     "texts": [
+      "儿系礼你",
+      "自定义"
+     ]
+    },
+    {
+     "y": 288,
+     "texts": [
+      "物件",
+      "未分类页签",
+      "金属齿轮"
+     ]
+    },
+    {
+     "y": 345,
+     "texts": [
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 411,
+     "texts": [
+      "造物",
+      "金属齿轮",
+      "未分类页签"
+     ]
+    },
+    {
+     "y": 473,
+     "texts": [
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 533,
+     "texts": [
+      "掉落物",
+      "金属齿轮",
+      "未分类页签"
+     ]
+    },
+    {
+     "y": 811,
+     "texts": [
+      "+添加页签",
+      "金属齿轮",
+      "预制",
+      "动态单位",
+      "流程物件",
+      "金属齿轮",
+      "玩法机关",
+      "金属齿轮",
+      " 计算负载： 2.72",
+      "其他",
+      "内存负载: 0.82",
+      "静态单位",
+      "金属传动杆",
+      "造物",
+      "掉落物",
+      "金属铃铛",
+      "元件组",
+      "自定义元件组"
+     ]
+    },
+    {
+     "y": 1089,
+     "texts": [
+      "资产库",
+      "金属齿轮",
+      "物件"
+     ]
+    },
+    {
+     "y": 1155,
+     "texts": [
+      "造物"
+     ]
+    },
+    {
+     "y": 1212,
+     "texts": [
+      "场景生成模板",
+      "金属齿轮",
+      "预设模板"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "造物",
+   "text_id": 15,
+   "target": "rect@(381,381)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "金属齿轮",
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 205,
+   "dx": 314,
+   "dy": -8,
+   "confidence": 0.529
+  },
+  {
+   "text": "造物",
+   "text_id": 15,
+   "target": "rect@(240,154)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 200,
+   "dx": 173,
+   "dy": -234,
+   "confidence": 0.533
+  },
+  {
+   "text": "造物",
+   "text_id": 15,
+   "target": "circle@(42,153)",
+   "target_id": "c12",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "above",
+   "gap_px": 204,
+   "dx": -25,
+   "dy": -236,
+   "confidence": 0.53
+  },
+  {
+   "text": "玩法机关",
+   "text_id": 28,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 48,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "金属齿轮",
+   "text_id": 45,
+   "target": "circle@(384,1168)",
+   "target_id": "c36",
+   "target_kind": "icon",
+   "label": "金属齿轮",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 4,
+   "dy": -32,
+   "confidence": 0.55
+  },
+  {
+   "text": "久",
+   "text_id": 7,
+   "target": "rect@(463,96)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 1,
+   "dx": 27,
+   "dy": 10,
+   "confidence": 0.549
+  },
+  {
+   "text": "背景音乐管理 ×",
+   "text_id": 2,
+   "target": "circle@(272,26)",
+   "target_id": "c2",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 5,
+   "dx": -90,
+   "dy": 2,
+   "confidence": 0.546
+  },
+  {
+   "text": "其他",
+   "text_id": 30,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 8,
+   "dx": 66,
+   "dy": -41,
+   "confidence": 0.543
+  },
+  {
+   "text": "x",
+   "text_id": 8,
+   "target": "circle@(2455,130)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 10,
+   "dx": -32,
+   "dy": -11,
+   "confidence": 0.542
+  },
+  {
+   "text": "流程物件",
+   "text_id": 26,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 11,
+   "dx": 50,
+   "dy": 46,
+   "confidence": 0.541
+  },
+  {
+   "text": "60",
+   "text_id": 3,
+   "target": "circle@(2248,27)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 12,
+   "dx": -37,
+   "dy": 10,
+   "confidence": 0.54
+  },
+  {
+   "text": "金属齿轮",
+   "text_id": 13,
+   "target": "rect@(381,381)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": "金属齿轮",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 18,
+   "dx": 0,
+   "dy": 78,
+   "confidence": 0.535
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 47,
+   "target": "rect@(84,1354)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 26,
+   "dx": -18,
+   "dy": 71,
+   "confidence": 0.528
+  },
+  {
+   "text": "自定义",
+   "text_id": 10,
+   "target": "rect@(240,154)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 32,
+   "dx": 192,
+   "dy": -64,
+   "confidence": 0.523
+  },
+  {
+   "text": "未分类页签",
+   "text_id": 21,
+   "target": "rect@(71,626)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": -21,
+   "dy": 68,
+   "confidence": 0.518
+  },
+  {
+   "text": "静态单位",
+   "text_id": 33,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 45,
+   "dx": 53,
+   "dy": -83,
+   "confidence": 0.513
+  },
+  {
+   "text": "动态单位",
+   "text_id": 25,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 50,
+   "dx": 53,
+   "dy": 86,
+   "confidence": 0.508
+  },
+  {
+   "text": "预设模板",
+   "text_id": 46,
+   "target": "rect@(84,1354)",
+   "target_id": "c4",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 69,
+   "dx": -10,
+   "dy": 114,
+   "confidence": 0.493
+  },
+  {
+   "text": "物件",
+   "text_id": 11,
+   "target": "rect@(240,154)",
+   "target_id": "c3",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 72,
+   "dx": 172,
+   "dy": -106,
+   "confidence": 0.49
+  },
+  {
+   "text": "金属传动杆",
+   "text_id": 34,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 73,
+   "dx": -238,
+   "dy": -88,
+   "confidence": 0.489
+  },
+  {
+   "text": "金属齿轮",
+   "text_id": 29,
+   "target": "circle@(614,792)",
+   "target_id": "c13",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 75,
+   "dx": 128,
+   "dy": 16,
+   "confidence": 0.488
+  },
+  {
+   "text": "掉落物",
+   "text_id": 19,
+   "target": "rect@(71,626)",
+   "target_id": "c33",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 80,
+   "dx": -6,
+   "dy": 110,
+   "confidence": 0.483
+  },
+  {
+   "text": "金属齿轮",
+   "text_id": 27,
+   "target": "rect@(141,773)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": "玩法机关",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 81,
+   "dx": -240,
+   "dy": 22,
+   "confidence": 0.483
+  },
+  {
+   "text": " 计算负载： 2.72",
+   "text_id": 31,
+   "target": "circle@(385,920)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 87,
+   "dx": -134,
+   "dy": 112,
+   "confidence": 0.478
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    3,
+    123,
+    103
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=73",
+   "evidence": {
+    "texts": [
+     "DXVK v3.",
+     "FPS: 60.0",
+     "GPU: 53%",
+     "摆放"
+    ],
+    "text_ids": [
+     0,
+     1,
+     5,
+     6
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 6,
+    "bg_mean": 72.5,
+    "bg_std": 29.8,
+    "ring_mean": 79.1,
+    "ring_std": 45.2,
+    "texture_ratio": 0.66,
+    "bg_rgb": [
+     65,
+     88,
+     63
+    ]
+   }
+  }
+ ],
+ "containers": [],
+ "free_text": [
+  "DXVK v3.",
+  "FPS: 60.0",
+  "背景音乐管理 ×",
+  "60",
+  "ms",
+  "GPU: 53%",
+  "摆放",
+  "久",
+  "x",
+  "儿系礼你",
+  "自定义",
+  "物件",
+  "未分类页签",
+  "金属齿轮",
+  "+添加页签",
+  "造物",
+  "金属齿轮",
+  "未分类页签",
+  "+添加页签",
+  "掉落物",
+  "金属齿轮",
+  "未分类页签",
+  "+添加页签",
+  "预制",
+  "金属齿轮",
+  "动态单位",
+  "流程物件",
+  "金属齿轮",
+  "玩法机关",
+  "金属齿轮",
+  "其他",
+  " 计算负载： 2.72",
+  "内存负载: 0.82",
+  "静态单位",
+  "金属传动杆",
+  "造物",
+  "掉落物",
+  "元件组",
+  "金属铃铛",
+  "自定义元件组",
+  "资产库",
+  "金属齿轮",
+  "物件",
+  "造物",
+  "场景生成模板",
+  "金属齿轮",
+  "预设模板",
+  "未分类页签",
+  "min:",
+  "7.3 ms",
+  "maxt",
+  "125.5",
+  "m s",
+  "金属轮轴",
+  "金属底座",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2508,
+    16,
+    2532,
+    36
+   ],
+   "role": "icon",
+   "fill": 1.0,
+   "contrast": 61.0
+  },
+  {
+   "bbox": [
+    186,
+    14,
+    214,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 182.0
+  },
+  {
+   "bbox": [
+    344,
+    1238,
+    420,
+    1294
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 217.0
+  },
+  {
+   "bbox": [
+    344,
+    1128,
+    422,
+    1184
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 219.0
+  },
+  {
+   "bbox": [
+    334,
+    244,
+    430,
+    284
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 158.0
+  },
+  {
+   "bbox": [
+    2236,
+    18,
+    2256,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 278.0
+  },
+  {
+   "bbox": [
+    366,
+    340,
+    398,
+    374
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 127.0
+  },
+  {
+   "bbox": [
+    344,
+    556,
+    418,
+    622
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 183.0
+  },
+  {
+   "bbox": [
+    226,
+    752,
+    260,
+    794
+   ],
+   "role": "icon",
+   "fill": 0.62,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    1236,
+    650,
+    1346,
+    766
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 160.0
+  },
+  {
+   "bbox": [
+    1212,
+    82,
+    1252,
+    120
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 203.0
+  },
+  {
+   "bbox": [
+    24,
+    134,
+    66,
+    172
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 179.0
+  },
+  {
+   "bbox": [
+    2390,
+    18,
+    2412,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    2450,
+    92,
+    2526,
+    174
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 230.0
+  },
+  {
+   "bbox": [
+    338,
+    1012,
+    426,
+    1072
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 215.0
+  },
+  {
+   "bbox": [
+    2334,
+    18,
+    2358,
+    36
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    340,
+    800,
+    424,
+    844
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 163.0
+  },
+  {
+   "bbox": [
+    344,
+    446,
+    416,
+    512
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 135.0
+  },
+  {
+   "bbox": [
+    286,
+    1294,
+    340,
+    1326
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    320,
+    880,
+    448,
+    960
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 222.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 241,
+  "ocr_ms": 954,
+  "pixel_ms": 1503,
+  "container_ms": 622,
+  "container_cached": false,
+  "total_ms": 2700,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 56,
+  "err": null
+ },
+ "title_text_id": 15,
+ "digest": "屏幕 2560x1440 · 文本 56 · 控件 40 · 容器 0 · 邻接 24 · 遮挡 1 · 2700ms（OCR daemon）\n标题「造物」@(67,388) 左侧栏 · 字高 33px\n邻接「造物」→ rect@(381,381)「金属齿轮」 右侧 205px\n邻接「造物」→ rect@(240,154) 上方 200px\n邻接「造物」→ circle@(42,153) 上方 204px\n控件: rect@(381,381)「金属齿轮」 | rect@(240,154) | circle@(42,153) | rect@(141,773)「玩法机关」\n区域: 顶栏 (0,0)-(2560,50) | 左侧栏 (0,0)-(478,1440)\n遮挡 [0, 3, 123, 103] (0,3)-(123,103)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=73"
+}

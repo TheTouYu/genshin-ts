@@ -1,0 +1,15 @@
+PRELABEL frame=f00       candidates=35  container=3  row-split=5  loose-text=14 glyph=13 overlay=on
+PRELABEL frame=f01       candidates=37  container=4  row-split=13 loose-text=9  glyph=11 overlay=on
+PRELABEL frame=f02       candidates=37  container=4  row-split=13 loose-text=9  glyph=11 overlay=on
+PRELABEL frame=f03       candidates=27  container=4  row-split=5  loose-text=12 glyph=6  overlay=on
+PRELABEL frame=f04       candidates=34  container=3  row-split=4  loose-text=18 glyph=9  overlay=on
+PRELABEL frame=f05       candidates=39  container=3  row-split=6  loose-text=18 glyph=12 overlay=on
+PRELABEL frame=f06       candidates=49  container=22 row-split=3  loose-text=13 glyph=11 overlay=on
+PRELABEL frame=f07       candidates=48  container=20 row-split=4  loose-text=15 glyph=9  overlay=on
+PRELABEL frame=f08       candidates=50  container=21 row-split=0  loose-text=15 glyph=14 overlay=on
+PRELABEL frame=f09       candidates=30  container=5  row-split=0  loose-text=25 glyph=0  overlay=on
+PRELABEL frame=f10       candidates=29  container=5  row-split=0  loose-text=24 glyph=0  overlay=on
+PRELABEL frame=f11       candidates=33  container=8  row-split=0  loose-text=23 glyph=2  overlay=on
+PRELABEL frame=f12       candidates=21  container=0  row-split=0  loose-text=21 glyph=0  overlay=on
+PRELABEL frame=f13       candidates=37  container=6  row-split=3  loose-text=23 glyph=5  overlay=on
+PRELABEL-RESULT frames=14 out=.scratch/gui-corpus/label

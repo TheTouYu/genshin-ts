@@ -1,0 +1,3021 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/truth-v2/c32_195258.png",
+  "sha256": "ed3ef51da8b445e588964dff767205fe7e329660143ee4f4898fa1ebd444f1d4",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 752204
+ },
+ "title": {
+  "text": "X",
+  "cx": 2363,
+  "cy": 114,
+  "bbox": [
+   2331,
+   82,
+   2394,
+   146
+  ],
+  "region": null,
+  "why": "上半屏字高最大（64px, score=0.98）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.0",
+   "cx": 60,
+   "cy": 17,
+   "bbox": [
+    0,
+    3,
+    120,
+    32
+   ],
+   "w": 120,
+   "h": 29,
+   "score": 0.9924,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS: 60.2",
+   "cx": 60,
+   "cy": 42,
+   "bbox": [
+    2,
+    29,
+    118,
+    55
+   ],
+   "w": 116,
+   "h": 26,
+   "score": 0.9295,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "GPU:",
+   "cx": 30,
+   "cy": 66,
+   "bbox": [
+    2,
+    55,
+    59,
+    77
+   ],
+   "w": 57,
+   "h": 22,
+   "score": 0.9978,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "7%",
+   "cx": 78,
+   "cy": 66,
+   "bbox": [
+    61,
+    56,
+    95,
+    77
+   ],
+   "w": 34,
+   "h": 21,
+   "score": 0.9959,
+   "kind": "hud"
+  },
+  {
+   "id": 4,
+   "text": "邮件珍藏盒",
+   "cx": 1278,
+   "cy": 113,
+   "bbox": [
+    1145,
+    83,
+    1411,
+    144
+   ],
+   "w": 266,
+   "h": 61,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 5,
+   "text": "X",
+   "cx": 2363,
+   "cy": 114,
+   "bbox": [
+    2331,
+    82,
+    2394,
+    146
+   ],
+   "w": 63,
+   "h": 64,
+   "score": 0.9842,
+   "kind": "title"
+  },
+  {
+   "id": 6,
+   "text": "339/1000",
+   "cx": 1279,
+   "cy": 162,
+   "bbox": [
+    1211,
+    146,
+    1347,
+    177
+   ],
+   "w": 136,
+   "h": 31,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "搜索标题或发件人",
+   "cx": 362,
+   "cy": 241,
+   "bbox": [
+    230,
+    222,
+    494,
+    261
+   ],
+   "w": 264,
+   "h": 39,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 8,
+   "text": "启发…",
+   "cx": 1385,
+   "cy": 244,
+   "bbox": [
+    1314,
+    214,
+    1455,
+    273
+   ],
+   "w": 141,
+   "h": 59,
+   "score": 0.9942,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "发件人：辛焱",
+   "cx": 1410,
+   "cy": 318,
+   "bbox": [
+    1318,
+    299,
+    1503,
+    338
+   ],
+   "w": 185,
+   "h": 39,
+   "score": 0.9832,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "启发…",
+   "cx": 394,
+   "cy": 346,
+   "bbox": [
+    325,
+    318,
+    464,
+    374
+   ],
+   "w": 139,
+   "h": 56,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "时间: 2026-10-16 02:57",
+   "cx": 1490,
+   "cy": 365,
+   "bbox": [
+    1321,
+    351,
+    1659,
+    380
+   ],
+   "w": 338,
+   "h": 29,
+   "score": 0.9537,
+   "kind": "data"
+  },
+  {
+   "id": 12,
+   "text": "辛焱",
+   "cx": 406,
+   "cy": 404,
+   "bbox": [
+    367,
+    383,
+    445,
+    425
+   ],
+   "w": 78,
+   "h": 42,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸",
+   "cx": 1852,
+   "cy": 444,
+   "bbox": [
+    1317,
+    425,
+    2388,
+    464
+   ],
+   "w": 1071,
+   "h": 39,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "新",
+   "cx": 1220,
+   "cy": 474,
+   "bbox": [
+    1197,
+    452,
+    1243,
+    496
+   ],
+   "w": 46,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "祝他成功。",
+   "cx": 431,
+   "cy": 502,
+   "bbox": [
+    336,
+    478,
+    526,
+    527
+   ],
+   "w": 190,
+   "h": 49,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "在屋檐、石板和灯笼上，听着还挺像一段即兴的鼓点。我抱着琴，跟着",
+   "cx": 1843,
+   "cy": 488,
+   "bbox": [
+    1318,
+    469,
+    2367,
+    507
+   ],
+   "w": 1049,
+   "h": 38,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！",
+   "cx": 1843,
+   "cy": 530,
+   "bbox": [
+    1316,
+    509,
+    2370,
+    552
+   ],
+   "w": 1054,
+   "h": 43,
+   "score": 0.9894,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "欧洛伦",
+   "cx": 428,
+   "cy": 560,
+   "bbox": [
+    378,
+    540,
+    478,
+    581
+   ],
+   "w": 100,
+   "h": 41,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "这事给了我一个启发。既然风声、雨声能成为音乐，那么大雪与冰雹岂",
+   "cx": 1847,
+   "cy": 574,
+   "bbox": [
+    1317,
+    555,
+    2378,
+    594
+   ],
+   "w": 1061,
+   "h": 39,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "新",
+   "cx": 1220,
+   "cy": 630,
+   "bbox": [
+    1196,
+    609,
+    1245,
+    651
+   ],
+   "w": 49,
+   "h": 42,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "不是也能作为灵感来源？我的摇滚之火，会在冰天雪地中燃烧出怎样",
+   "cx": 1842,
+   "cy": 618,
+   "bbox": [
+    1318,
+    599,
+    2366,
+    637
+   ],
+   "w": 1048,
+   "h": 38,
+   "score": 0.9892,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "舞台·",
+   "cx": 385,
+   "cy": 660,
+   "bbox": [
+    334,
+    635,
+    436,
+    686
+   ],
+   "w": 102,
+   "h": 51,
+   "score": 0.9729,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "精彩的旋律呢？想想就迫不及待！",
+   "cx": 1574,
+   "cy": 660,
+   "bbox": [
+    1316,
+    641,
+    1833,
+    680
+   ],
+   "w": 517,
+   "h": 39,
+   "score": 0.9873,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "芙宁娜",
+   "cx": 423,
+   "cy": 715,
+   "bbox": [
+    371,
+    695,
+    476,
+    735
+   ],
+   "w": 105,
+   "h": 40,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "…尽管真的很想这么冲动一回，但去至冬和去沉玉谷可不一样，还得从",
+   "cx": 1852,
+   "cy": 703,
+   "bbox": [
+    1318,
+    685,
+    2387,
+    722
+   ],
+   "w": 1069,
+   "h": 37,
+   "score": 0.9975,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "长计议。",
+   "cx": 1380,
+   "cy": 746,
+   "bbox": [
+    1314,
+    722,
+    1446,
+    770
+   ],
+   "w": 132,
+   "h": 48,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "新",
+   "cx": 1221,
+   "cy": 788,
+   "bbox": [
+    1197,
+    766,
+    1245,
+    810
+   ],
+   "w": 48,
+   "h": 44,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "总之，给你带了点当地特产，往后也为我加油吧！",
+   "cx": 1685,
+   "cy": 790,
+   "bbox": [
+    1316,
+    768,
+    2054,
+    811
+   ],
+   "w": 738,
+   "h": 43,
+   "score": 0.9893,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "行到闲处…",
+   "cx": 442,
+   "cy": 817,
+   "bbox": [
+    335,
+    792,
+    549,
+    843
+   ],
+   "w": 214,
+   "h": 51,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "行秋",
+   "cx": 412,
+   "cy": 874,
+   "bbox": [
+    375,
+    855,
+    450,
+    893
+   ],
+   "w": 75,
+   "h": 38,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "礼物…",
+   "cx": 400,
+   "cy": 973,
+   "bbox": [
+    334,
+    946,
+    467,
+    1001
+   ],
+   "w": 133,
+   "h": 55,
+   "score": 0.995,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "尼可",
+   "cx": 407,
+   "cy": 1031,
+   "bbox": [
+    365,
+    1010,
+    450,
+    1051
+   ],
+   "w": 85,
+   "h": 41,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "读书的收获…",
+   "cx": 463,
+   "cy": 1130,
+   "bbox": [
+    338,
+    1107,
+    589,
+    1154
+   ],
+   "w": 251,
+   "h": 47,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "菲米尼",
+   "cx": 427,
+   "cy": 1188,
+   "bbox": [
+    378,
+    1167,
+    477,
+    1208
+   ],
+   "w": 99,
+   "h": 41,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "10",
+   "cx": 1386,
+   "cy": 1205,
+   "bbox": [
+    1365,
+    1186,
+    1407,
+    1224
+   ],
+   "w": 42,
+   "h": 38,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "定香·",
+   "cx": 385,
+   "cy": 1288,
+   "bbox": [
+    334,
+    1262,
+    436,
+    1315
+   ],
+   "w": 102,
+   "h": 53,
+   "score": 0.8885,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "ns",
+   "cx": 101,
+   "cy": 1309,
+   "bbox": [
+    89,
+    1302,
+    113,
+    1316
+   ],
+   "w": 24,
+   "h": 14,
+   "score": 0.7436,
+   "kind": "other"
+  },
+  {
+   "id": 38,
+   "text": "maxt",
+   "cx": 177,
+   "cy": 1309,
+   "bbox": [
+    158,
+    1302,
+    196,
+    1316
+   ],
+   "w": 38,
+   "h": 14,
+   "score": 0.8238,
+   "kind": "hud"
+  },
+  {
+   "id": 39,
+   "text": "69.",
+   "cx": 220,
+   "cy": 1307,
+   "bbox": [
+    206,
+    1299,
+    234,
+    1315
+   ],
+   "w": 28,
+   "h": 16,
+   "score": 0.9993,
+   "kind": "hud"
+  },
+  {
+   "id": 40,
+   "text": ".5 ms",
+   "cx": 252,
+   "cy": 1310,
+   "bbox": [
+    228,
+    1298,
+    276,
+    1321
+   ],
+   "w": 48,
+   "h": 23,
+   "score": 0.8908,
+   "kind": "hud"
+  },
+  {
+   "id": 41,
+   "text": "艾梅莉埃",
+   "cx": 443,
+   "cy": 1341,
+   "bbox": [
+    383,
+    1325,
+    503,
+    1356
+   ],
+   "w": 120,
+   "h": 31,
+   "score": 0.797,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "UID: 110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 0.98,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    144,
+    362,
+    162,
+    384
+   ],
+   "cx": 153,
+   "cy": 373,
+   "w": 18,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.828,
+    "aspect": 0.82,
+    "corner_fill": 0.19,
+    "area": 328,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    336,
+    390,
+    362,
+    420
+   ],
+   "cx": 349,
+   "cy": 405,
+   "w": 26,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 0.87,
+    "corner_fill": 0.22,
+    "area": 612,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    246,
+    714,
+    270,
+    734
+   ],
+   "cx": 258,
+   "cy": 724,
+   "w": 24,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.725,
+    "aspect": 1.2,
+    "corner_fill": 0.0,
+    "area": 348,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1350,
+    1128,
+    1424,
+    1184
+   ],
+   "cx": 1387,
+   "cy": 1156,
+   "w": 74,
+   "h": 56,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.508,
+    "aspect": 1.32,
+    "corner_fill": 0.19,
+    "area": 2104,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    346,
+    860,
+    370,
+    892
+   ],
+   "cx": 358,
+   "cy": 876,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": 0.859,
+    "aspect": 0.75,
+    "corner_fill": 0.33,
+    "area": 660,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    2424,
+    30,
+    2492,
+    94
+   ],
+   "cx": 2458,
+   "cy": 62,
+   "w": 68,
+   "h": 64,
+   "shape": "circle",
+   "confidence": 0.902,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 1.06,
+    "corner_fill": 0.29,
+    "area": 3024,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    90,
+    1362,
+    130,
+    1398
+   ],
+   "cx": 110,
+   "cy": 1380,
+   "w": 40,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.898,
+   "label": null,
+   "evidence": {
+    "fill": 0.797,
+    "aspect": 1.11,
+    "corner_fill": 0.34,
+    "area": 1148,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    190,
+    226,
+    226,
+    260
+   ],
+   "cx": 208,
+   "cy": 243,
+   "w": 36,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.892,
+   "label": null,
+   "evidence": {
+    "fill": 0.65,
+    "aspect": 1.06,
+    "corner_fill": 0.3,
+    "area": 796,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    108,
+    112,
+    126,
+    146
+   ],
+   "cx": 117,
+   "cy": 129,
+   "w": 18,
+   "h": 34,
+   "shape": "rect",
+   "confidence": 0.891,
+   "label": null,
+   "evidence": {
+    "fill": 0.869,
+    "aspect": 0.53,
+    "corner_fill": 0.19,
+    "area": 532,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    346,
+    546,
+    370,
+    578
+   ],
+   "cx": 358,
+   "cy": 562,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.865,
+    "aspect": 0.75,
+    "corner_fill": 0.39,
+    "area": 664,
+    "src": "contrast"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    206,
+    948,
+    312,
+    1052
+   ],
+   "cx": 259,
+   "cy": 1000,
+   "w": 106,
+   "h": 104,
+   "shape": "rect",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.54,
+    "aspect": 1.02,
+    "corner_fill": 0.97,
+    "area": 5952,
+    "src": "flat"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    430,
+    1386,
+    456,
+    1404
+   ],
+   "cx": 443,
+   "cy": 1395,
+   "w": 26,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.803,
+    "aspect": 1.44,
+    "corner_fill": 0.38,
+    "area": 376,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    196,
+    322,
+    300,
+    426
+   ],
+   "cx": 248,
+   "cy": 374,
+   "w": 104,
+   "h": 104,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.518,
+    "aspect": 1.0,
+    "corner_fill": 0.95,
+    "area": 5604,
+    "src": "flat"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1244,
+    826,
+    1282,
+    856
+   ],
+   "cx": 1263,
+   "cy": 841,
+   "w": 38,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.878,
+   "label": null,
+   "evidence": {
+    "fill": 0.428,
+    "aspect": 1.27,
+    "corner_fill": 0.23,
+    "area": 488,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    346,
+    702,
+    370,
+    734
+   ],
+   "cx": 358,
+   "cy": 718,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.876,
+   "label": null,
+   "evidence": {
+    "fill": 0.87,
+    "aspect": 0.75,
+    "corner_fill": 0.42,
+    "area": 668,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    1686,
+    978,
+    1728,
+    1016
+   ],
+   "cx": 1707,
+   "cy": 997,
+   "w": 42,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.875,
+   "label": null,
+   "evidence": {
+    "fill": 0.426,
+    "aspect": 1.11,
+    "corner_fill": 0.24,
+    "area": 680,
+    "src": "flat"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    432,
+    1280,
+    466,
+    1296
+   ],
+   "cx": 449,
+   "cy": 1288,
+   "w": 34,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.871,
+   "label": null,
+   "evidence": {
+    "fill": 0.824,
+    "aspect": 2.12,
+    "corner_fill": 0.25,
+    "area": 448,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    206,
+    1104,
+    312,
+    1210
+   ],
+   "cx": 259,
+   "cy": 1157,
+   "w": 106,
+   "h": 106,
+   "shape": "rect",
+   "confidence": 0.867,
+   "label": null,
+   "evidence": {
+    "fill": 0.612,
+    "aspect": 1.0,
+    "corner_fill": 0.93,
+    "area": 6880,
+    "src": "flat"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    346,
+    1016,
+    370,
+    1048
+   ],
+   "cx": 358,
+   "cy": 1032,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.863,
+   "label": null,
+   "evidence": {
+    "fill": 0.875,
+    "aspect": 0.75,
+    "corner_fill": 0.44,
+    "area": 672,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    180,
+    218,
+    1254,
+    268
+   ],
+   "cx": 717,
+   "cy": 243,
+   "w": 1074,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.861,
+   "label": "搜索标题或发件人",
+   "evidence": {
+    "fill": 0.802,
+    "aspect": 21.48,
+    "corner_fill": 0.19,
+    "area": 43084,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1970,
+    52,
+    2306,
+    76
+   ],
+   "cx": 2138,
+   "cy": 64,
+   "w": 336,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.857,
+   "label": null,
+   "evidence": {
+    "fill": 0.793,
+    "aspect": 14.0,
+    "corner_fill": 0.0,
+    "area": 6392,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1250,
+    758,
+    1272,
+    814
+   ],
+   "cx": 1261,
+   "cy": 786,
+   "w": 22,
+   "h": 56,
+   "shape": "rect",
+   "confidence": 0.854,
+   "label": null,
+   "evidence": {
+    "fill": 0.786,
+    "aspect": 0.39,
+    "corner_fill": 0.28,
+    "area": 968,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    1392,
+    1172,
+    1422,
+    1208
+   ],
+   "cx": 1407,
+   "cy": 1190,
+   "w": 30,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.853,
+   "label": null,
+   "evidence": {
+    "fill": 0.611,
+    "aspect": 0.83,
+    "corner_fill": 0.36,
+    "area": 660,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    160,
+    52,
+    1906,
+    76
+   ],
+   "cx": 1033,
+   "cy": 64,
+   "w": 1746,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.849,
+   "label": null,
+   "evidence": {
+    "fill": 0.776,
+    "aspect": 72.75,
+    "corner_fill": 0.08,
+    "area": 32516,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    206,
+    476,
+    312,
+    582
+   ],
+   "cx": 259,
+   "cy": 529,
+   "w": 106,
+   "h": 106,
+   "shape": "rect",
+   "confidence": 0.849,
+   "label": null,
+   "evidence": {
+    "fill": 0.467,
+    "aspect": 1.0,
+    "corner_fill": 0.89,
+    "area": 5252,
+    "src": "flat"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    178,
+    308,
+    1248,
+    440
+   ],
+   "cx": 713,
+   "cy": 374,
+   "w": 1070,
+   "h": 132,
+   "shape": "rect",
+   "confidence": 0.841,
+   "label": "启发… 辛焱",
+   "evidence": {
+    "fill": 0.757,
+    "aspect": 8.11,
+    "corner_fill": 0.61,
+    "area": 106980,
+    "src": "flat"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    346,
+    1174,
+    370,
+    1204
+   ],
+   "cx": 358,
+   "cy": 1189,
+   "w": 24,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.84,
+   "label": null,
+   "evidence": {
+    "fill": 0.9,
+    "aspect": 0.8,
+    "corner_fill": 0.5,
+    "area": 648,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    202,
+    1228,
+    1216,
+    1244
+   ],
+   "cx": 709,
+   "cy": 1236,
+   "w": 1014,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.838,
+   "label": null,
+   "evidence": {
+    "fill": 0.75,
+    "aspect": 63.38,
+    "corner_fill": 0.06,
+    "area": 12168,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    190,
+    620,
+    1240,
+    752
+   ],
+   "cx": 715,
+   "cy": 686,
+   "w": 1050,
+   "h": 132,
+   "shape": "rect",
+   "confidence": 0.837,
+   "label": "新 舞台· 芙宁娜",
+   "evidence": {
+    "fill": 0.749,
+    "aspect": 7.95,
+    "corner_fill": 0.43,
+    "area": 103808,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    204,
+    914,
+    1214,
+    930
+   ],
+   "cx": 709,
+   "cy": 922,
+   "w": 1010,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.836,
+   "label": null,
+   "evidence": {
+    "fill": 0.747,
+    "aspect": 63.12,
+    "corner_fill": 0.31,
+    "area": 12072,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    2434,
+    118,
+    2452,
+    518
+   ],
+   "cx": 2443,
+   "cy": 318,
+   "w": 18,
+   "h": 400,
+   "shape": "rect",
+   "confidence": 0.835,
+   "label": null,
+   "evidence": {
+    "fill": 0.744,
+    "aspect": 0.04,
+    "corner_fill": 0.06,
+    "area": 5356,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    206,
+    600,
+    1166,
+    616
+   ],
+   "cx": 686,
+   "cy": 608,
+   "w": 960,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.833,
+   "label": null,
+   "evidence": {
+    "fill": 0.739,
+    "aspect": 60.0,
+    "corner_fill": 0.5,
+    "area": 11352,
+    "src": "contrast"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    1250,
+    600,
+    1272,
+    654
+   ],
+   "cx": 1261,
+   "cy": 627,
+   "w": 22,
+   "h": 54,
+   "shape": "rect",
+   "confidence": 0.83,
+   "label": null,
+   "evidence": {
+    "fill": 0.734,
+    "aspect": 0.41,
+    "corner_fill": 0.42,
+    "area": 872,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    204,
+    1070,
+    1214,
+    1086
+   ],
+   "cx": 709,
+   "cy": 1078,
+   "w": 1010,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.829,
+   "label": null,
+   "evidence": {
+    "fill": 0.732,
+    "aspect": 63.12,
+    "corner_fill": 0.31,
+    "area": 11824,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    2306,
+    36,
+    2354,
+    60
+   ],
+   "cx": 2330,
+   "cy": 48,
+   "w": 48,
+   "h": 24,
+   "shape": "rect",
+   "confidence": 0.828,
+   "label": null,
+   "evidence": {
+    "fill": 0.729,
+    "aspect": 2.0,
+    "corner_fill": 0.42,
+    "area": 840,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    190,
+    462,
+    1242,
+    596
+   ],
+   "cx": 716,
+   "cy": 529,
+   "w": 1052,
+   "h": 134,
+   "shape": "rect",
+   "confidence": 0.827,
+   "label": "新 祝他成功。 欧洛伦",
+   "evidence": {
+    "fill": 0.726,
+    "aspect": 7.85,
+    "corner_fill": 0.4,
+    "area": 102288,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1186,
+    576,
+    1246,
+    606
+   ],
+   "cx": 1216,
+   "cy": 591,
+   "w": 60,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.826,
+   "label": null,
+   "evidence": {
+    "fill": 0.724,
+    "aspect": 2.0,
+    "corner_fill": 0.11,
+    "area": 1304,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    66,
+    162,
+    106,
+    246
+   ],
+   "cx": 86,
+   "cy": 204,
+   "w": 40,
+   "h": 84,
+   "shape": "rect",
+   "confidence": 0.824,
+   "label": null,
+   "evidence": {
+    "fill": 0.719,
+    "aspect": 0.48,
+    "corner_fill": 0.32,
+    "area": 2416,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    1912,
+    32,
+    1964,
+    58
+   ],
+   "cx": 1938,
+   "cy": 45,
+   "w": 52,
+   "h": 26,
+   "shape": "rect",
+   "confidence": 0.821,
+   "label": null,
+   "evidence": {
+    "fill": 0.713,
+    "aspect": 2.0,
+    "corner_fill": 0.5,
+    "area": 964,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2358,
+    56,
+    2400,
+    72
+   ],
+   "cx": 2379,
+   "cy": 64,
+   "w": 42,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.821,
+   "label": null,
+   "evidence": {
+    "fill": 0.714,
+    "aspect": 2.62,
+    "corner_fill": 0.25,
+    "area": 480,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "顶栏",
+   "bbox": [
+    0,
+    0,
+    2560,
+    50
+   ],
+   "why": "横边长直边 y=50（覆盖 76% 宽）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    1145,
+    83,
+    2388,
+    1224
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 19,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 11,
+   "row_y": [
+    113,
+    162,
+    244,
+    318,
+    365,
+    484,
+    574,
+    636,
+    703,
+    774,
+    1205
+   ],
+   "rows": [
+    {
+     "y": 113,
+     "texts": [
+      "邮件珍藏盒"
+     ]
+    },
+    {
+     "y": 162,
+     "texts": [
+      "339/1000"
+     ]
+    },
+    {
+     "y": 244,
+     "texts": [
+      "启发…"
+     ]
+    },
+    {
+     "y": 318,
+     "texts": [
+      "发件人：辛焱"
+     ]
+    },
+    {
+     "y": 365,
+     "texts": [
+      "时间: 2026-10-16 02:57"
+     ]
+    },
+    {
+     "y": 484,
+     "texts": [
+      "前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸",
+      "新",
+      "在屋檐、石板和灯笼上，听着还挺像一段即兴的鼓点。我抱着琴，跟着",
+      "这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！"
+     ]
+    },
+    {
+     "y": 574,
+     "texts": [
+      "这事给了我一个启发。既然风声、雨声能成为音乐，那么大雪与冰雹岂"
+     ]
+    },
+    {
+     "y": 636,
+     "texts": [
+      "不是也能作为灵感来源？我的摇滚之火，会在冰天雪地中燃烧出怎样",
+      "新",
+      "精彩的旋律呢？想想就迫不及待！"
+     ]
+    },
+    {
+     "y": 703,
+     "texts": [
+      "…尽管真的很想这么冲动一回，但去至冬和去沉玉谷可不一样，还得从"
+     ]
+    },
+    {
+     "y": 774,
+     "texts": [
+      "长计议。",
+      "新",
+      "总之，给你带了点当地特产，往后也为我加油吧！"
+     ]
+    },
+    {
+     "y": 1205,
+     "texts": [
+      "10"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    230,
+    222,
+    589,
+    1208
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 20,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 13,
+   "row_y": [
+    241,
+    346,
+    404,
+    502,
+    560,
+    660,
+    715,
+    817,
+    874,
+    973,
+    1031,
+    1130,
+    1188
+   ],
+   "rows": [
+    {
+     "y": 241,
+     "texts": [
+      "搜索标题或发件人"
+     ]
+    },
+    {
+     "y": 346,
+     "texts": [
+      "启发…"
+     ]
+    },
+    {
+     "y": 404,
+     "texts": [
+      "辛焱"
+     ]
+    },
+    {
+     "y": 502,
+     "texts": [
+      "祝他成功。"
+     ]
+    },
+    {
+     "y": 560,
+     "texts": [
+      "欧洛伦"
+     ]
+    },
+    {
+     "y": 660,
+     "texts": [
+      "舞台·"
+     ]
+    },
+    {
+     "y": 715,
+     "texts": [
+      "芙宁娜"
+     ]
+    },
+    {
+     "y": 817,
+     "texts": [
+      "行到闲处…"
+     ]
+    },
+    {
+     "y": 874,
+     "texts": [
+      "行秋"
+     ]
+    },
+    {
+     "y": 973,
+     "texts": [
+      "礼物…"
+     ]
+    },
+    {
+     "y": 1031,
+     "texts": [
+      "尼可"
+     ]
+    },
+    {
+     "y": 1130,
+     "texts": [
+      "读书的收获…"
+     ]
+    },
+    {
+     "y": 1188,
+     "texts": [
+      "菲米尼"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "X",
+   "text_id": 5,
+   "target": "rect@(2379,64)",
+   "target_id": "c39",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 10,
+   "dx": 16,
+   "dy": -50,
+   "confidence": 0.692
+  },
+  {
+   "text": "X",
+   "text_id": 5,
+   "target": "rect@(2330,48)",
+   "target_id": "c34",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 22,
+   "dx": -32,
+   "dy": -66,
+   "confidence": 0.682
+  },
+  {
+   "text": "X",
+   "text_id": 5,
+   "target": "rect@(2138,64)",
+   "target_id": "c20",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "left",
+   "gap_px": 25,
+   "dx": -224,
+   "dy": -50,
+   "confidence": 0.679
+  },
+  {
+   "text": "舞台·",
+   "text_id": 22,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 330,
+   "dy": 26,
+   "confidence": 0.55
+  },
+  {
+   "text": "祝他成功。",
+   "text_id": 15,
+   "target": "rect@(716,529)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "新 祝他成功。 欧洛伦",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 285,
+   "dy": 26,
+   "confidence": 0.55
+  },
+  {
+   "text": "新",
+   "text_id": 14,
+   "target": "rect@(716,529)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "新 祝他成功。 欧洛伦",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -504,
+   "dy": 55,
+   "confidence": 0.55
+  },
+  {
+   "text": "尼可",
+   "text_id": 32,
+   "target": "circle@(358,1032)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -50,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "芙宁娜",
+   "text_id": 24,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 292,
+   "dy": -29,
+   "confidence": 0.55
+  },
+  {
+   "text": "搜索标题或发件人",
+   "text_id": 7,
+   "target": "rect@(717,243)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "搜索标题或发件人",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 355,
+   "dy": 2,
+   "confidence": 0.55
+  },
+  {
+   "text": "菲米尼",
+   "text_id": 34,
+   "target": "circle@(358,1189)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 8,
+   "dx": -70,
+   "dy": 2,
+   "confidence": 0.543
+  },
+  {
+   "text": "礼物…",
+   "text_id": 31,
+   "target": "rect@(259,1000)",
+   "target_id": "c10",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 22,
+   "dx": -142,
+   "dy": 26,
+   "confidence": 0.532
+  },
+  {
+   "text": "读书的收获…",
+   "text_id": 33,
+   "target": "rect@(259,1157)",
+   "target_id": "c17",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 26,
+   "dx": -204,
+   "dy": 26,
+   "confidence": 0.528
+  },
+  {
+   "text": "艾梅莉埃",
+   "text_id": 41,
+   "target": "circle@(443,1395)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 30,
+   "dx": 0,
+   "dy": 54,
+   "confidence": 0.525
+  },
+  {
+   "text": "辛焱",
+   "text_id": 12,
+   "target": "rect@(716,529)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "新 祝他成功。 欧洛伦",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 37,
+   "dx": 310,
+   "dy": 125,
+   "confidence": 0.519
+  },
+  {
+   "text": "欧洛伦",
+   "text_id": 18,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": 287,
+   "dy": 126,
+   "confidence": 0.518
+  },
+  {
+   "text": "行到闲处…",
+   "text_id": 29,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 40,
+   "dx": 273,
+   "dy": -132,
+   "confidence": 0.517
+  },
+  {
+   "text": "339/1000",
+   "text_id": 6,
+   "target": "rect@(717,243)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "搜索标题或发件人",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 41,
+   "dx": -562,
+   "dy": 82,
+   "confidence": 0.516
+  },
+  {
+   "text": "启发…",
+   "text_id": 8,
+   "target": "rect@(713,374)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "启发… 辛焱",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 66,
+   "dx": -672,
+   "dy": 130,
+   "confidence": 0.495
+  },
+  {
+   "text": "发件人：辛焱",
+   "text_id": 9,
+   "target": "rect@(713,374)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": "启发… 辛焱",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 70,
+   "dx": -698,
+   "dy": 56,
+   "confidence": 0.492
+  },
+  {
+   "text": "定香·",
+   "text_id": 36,
+   "target": "circle@(443,1395)",
+   "target_id": "c11",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 71,
+   "dx": 58,
+   "dy": 106,
+   "confidence": 0.491
+  },
+  {
+   "text": "邮件珍藏盒",
+   "text_id": 4,
+   "target": "rect@(717,243)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": "搜索标题或发件人",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 74,
+   "dx": -561,
+   "dy": 130,
+   "confidence": 0.488
+  },
+  {
+   "text": "长计议。",
+   "text_id": 26,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 74,
+   "dx": -665,
+   "dy": -60,
+   "confidence": 0.488
+  },
+  {
+   "text": "前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸",
+   "text_id": 13,
+   "target": "rect@(716,529)",
+   "target_id": "c35",
+   "target_kind": "icon",
+   "label": "新 祝他成功。 欧洛伦",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 75,
+   "dx": -1136,
+   "dy": 84,
+   "confidence": 0.488
+  },
+  {
+   "text": "这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！",
+   "text_id": 17,
+   "target": "rect@(715,686)",
+   "target_id": "c28",
+   "target_kind": "icon",
+   "label": "新 舞台· 芙宁娜",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 76,
+   "dx": -1128,
+   "dy": 156,
+   "confidence": 0.487
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    0,
+    123,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 4 框，非纯黑 L=193",
+   "evidence": {
+    "texts": [
+     "DXVK v3.0",
+     "FPS: 60.2",
+     "GPU:",
+     "7%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "n_texts": 4,
+    "corner": "左上",
+    "corner_dist_px": 3,
+    "bg_mean": 193.2,
+    "bg_std": 38.9,
+    "ring_mean": 67.1,
+    "ring_std": 55.3,
+    "texture_ratio": 0.7,
+    "bg_rgb": [
+     232,
+     202,
+     144
+    ]
+   }
+  },
+  {
+   "bbox": [
+    155,
+    1295,
+    279,
+    1324
+   ],
+   "confidence": 0.85,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 3 框，低方差 std=5.8，非纯黑 L=50，纹理对比骤降 std 50.7→5.8（0.11×）",
+   "evidence": {
+    "texts": [
+     "maxt",
+     "69.",
+     ".5 ms"
+    ],
+    "text_ids": [
+     38,
+     39,
+     40
+    ],
+    "n_texts": 3,
+    "corner": "左下",
+    "corner_dist_px": 198,
+    "bg_mean": 49.7,
+    "bg_std": 5.8,
+    "ring_mean": 72.3,
+    "ring_std": 50.7,
+    "texture_ratio": 0.11,
+    "bg_rgb": [
+     39,
+     49,
+     61
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    190,
+    936,
+    1234,
+    1064
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.89,
+    "rect": 0.91
+   },
+   "text": [
+    "礼物…",
+    "尼可"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      224,
+      964,
+      294,
+      1036
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 266.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.93,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 121516,
+    "area_frac": 0.0362,
+    "aspect": 8.16,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 5,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.89,
+    "rect": 0.91
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    190,
+    622,
+    1234,
+    748
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.87,
+    "rect": 0.9
+   },
+   "text": [
+    "新",
+    "舞台·",
+    "芙宁娜"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      346,
+      704,
+      366,
+      732
+     ],
+     "role": "icon",
+     "fill": 0.76,
+     "contrast": 113.0
+    },
+    {
+     "bbox": [
+      226,
+      642,
+      292,
+      730
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 233.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1200,
+      614,
+      1242,
+      648
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.93,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 118068,
+    "area_frac": 0.0357,
+    "aspect": 8.29,
+    "grid": "col n=6 pitch_x=None pitch_y=154.0",
+    "skin_siblings": 5,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.87,
+    "rect": 0.9
+   }
+  },
+  {
+   "id": "c2",
+   "parent": null,
+   "bbox": [
+    190,
+    468,
+    1234,
+    594
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.83,
+    "rect": 0.86
+   },
+   "text": [
+    "新",
+    "祝他成功。",
+    "欧洛伦"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      216,
+      488,
+      304,
+      566
+     ],
+     "role": "icon",
+     "fill": 0.7,
+     "contrast": 245.0
+    },
+    {
+     "bbox": [
+      346,
+      548,
+      370,
+      576
+     ],
+     "role": "icon",
+     "fill": 0.67,
+     "contrast": 111.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1200,
+      458,
+      1242,
+      492
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      246,
+      504,
+      262,
+      518
+     ],
+     "corner": "tl",
+     "kind": "alert",
+     "color": "red"
+    },
+    {
+     "bbox": [
+      250,
+      524,
+      274,
+      542
+     ],
+     "corner": "bl",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.92,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 112888,
+    "area_frac": 0.0357,
+    "aspect": 8.29,
+    "grid": "col n=6 pitch_x=None pitch_y=154.0",
+    "skin_siblings": 5,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.83,
+    "rect": 0.86
+   }
+  },
+  {
+   "id": "c3",
+   "parent": null,
+   "bbox": [
+    302,
+    310,
+    1244,
+    436
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     234.0,
+     129.0,
+     136.0
+    ],
+    "fill": 0.94,
+    "rect": 0.94
+   },
+   "text": [
+    "启发…",
+    "辛焱"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      338,
+      392,
+      362,
+      420
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 84.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.79,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 111884,
+    "area_frac": 0.0322,
+    "aspect": 7.48,
+    "grid": "col n=6 pitch_x=None pitch_y=158.0",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     234.0,
+     129.0,
+     136.0
+    ],
+    "flat_fill": 0.94,
+    "rect": 0.94
+   }
+  },
+  {
+   "id": "c4",
+   "parent": null,
+   "bbox": [
+    190,
+    1096,
+    1234,
+    1218
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.84,
+    "rect": 0.87
+   },
+   "text": [
+    "读书的收获…",
+    "菲米尼"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      346,
+      1174,
+      372,
+      1204
+     ],
+     "role": "icon",
+     "fill": 0.59,
+     "contrast": 115.0
+    },
+    {
+     "bbox": [
+      216,
+      1110,
+      294,
+      1190
+     ],
+     "role": "icon",
+     "fill": 0.47,
+     "contrast": 279.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:2",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.92,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 110720,
+    "area_frac": 0.0346,
+    "aspect": 8.56,
+    "grid": "col n=6 pitch_x=None pitch_y=142.0",
+    "skin_siblings": 5,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.84,
+    "rect": 0.87
+   }
+  },
+  {
+   "id": "c5",
+   "parent": null,
+   "bbox": [
+    190,
+    782,
+    1234,
+    904
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.84,
+    "rect": 0.86
+   },
+   "text": [
+    "新",
+    "行到闲处…",
+    "行秋"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      346,
+      862,
+      370,
+      890
+     ],
+     "role": "icon",
+     "fill": 0.65,
+     "contrast": 113.0
+    },
+    {
+     "bbox": [
+      214,
+      806,
+      306,
+      882
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 208.0
+    }
+   ],
+   "badges": [
+    {
+     "bbox": [
+      1200,
+      770,
+      1242,
+      806
+     ],
+     "corner": "tr",
+     "kind": "alert",
+     "color": "red"
+    }
+   ],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:3",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.92,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 3)",
+    "area_px": 110072,
+    "area_frac": 0.0346,
+    "aspect": 8.56,
+    "grid": "col n=6 pitch_x=None pitch_y=157.0",
+    "skin_siblings": 5,
+    "text_in": 3,
+    "text_ui": 3,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.84,
+    "rect": 0.86
+   }
+  },
+  {
+   "id": "c6",
+   "parent": null,
+   "bbox": [
+    190,
+    1252,
+    1234,
+    1346
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "fill": 0.85,
+    "rect": 0.88
+   },
+   "text": [
+    "定香·",
+    "69.",
+    ".5 ms",
+    "艾梅莉埃"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:5",
+     "text_in:4",
+     "grid:col",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.93,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (5 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 0)",
+    "area_px": 86764,
+    "area_frac": 0.0266,
+    "aspect": 11.11,
+    "grid": "col n=6 pitch_x=None pitch_y=142.0",
+    "skin_siblings": 5,
+    "text_in": 4,
+    "text_ui": 0,
+    "skin_lab": [
+     57.0,
+     127.0,
+     118.0
+    ],
+    "flat_fill": 0.85,
+    "rect": 0.88
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 60.2",
+  "GPU:",
+  "7%",
+  "邮件珍藏盒",
+  "X",
+  "339/1000",
+  "搜索标题或发件人",
+  "启发…",
+  "发件人：辛焱",
+  "时间: 2026-10-16 02:57",
+  "前几天我在遗珑埠排练时，突然下起了好大一阵雨。雨点接连不断地砸",
+  "在屋檐、石板和灯笼上，听着还挺像一段即兴的鼓点。我抱着琴，跟着",
+  "这来自天上的节奏弹奏了起来，没想到越弹越起劲，手指都快冒烟了！",
+  "这事给了我一个启发。既然风声、雨声能成为音乐，那么大雪与冰雹岂",
+  "不是也能作为灵感来源？我的摇滚之火，会在冰天雪地中燃烧出怎样",
+  "精彩的旋律呢？想想就迫不及待！",
+  "…尽管真的很想这么冲动一回，但去至冬和去沉玉谷可不一样，还得从",
+  "长计议。",
+  "总之，给你带了点当地特产，往后也为我加油吧！",
+  "10",
+  "ns",
+  "maxt",
+  "UID: 110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2326,
+    1272,
+    2392,
+    1338
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 196.0
+  },
+  {
+   "bbox": [
+    2424,
+    1356,
+    2466,
+    1396
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 211.0
+  },
+  {
+   "bbox": [
+    68,
+    140,
+    102,
+    252
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 136.0
+  },
+  {
+   "bbox": [
+    2410,
+    26,
+    2496,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 225.0
+  },
+  {
+   "bbox": [
+    1900,
+    36,
+    1978,
+    52
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 128.0
+  },
+  {
+   "bbox": [
+    1472,
+    1108,
+    1592,
+    1216
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 230.0
+  },
+  {
+   "bbox": [
+    1344,
+    1122,
+    1430,
+    1190
+   ],
+   "role": "icon",
+   "fill": 0.43,
+   "contrast": 184.0
+  },
+  {
+   "bbox": [
+    192,
+    228,
+    226,
+    262
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 112.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 178,
+  "ocr_ms": 1018,
+  "pixel_ms": 1015,
+  "container_ms": 420,
+  "container_cached": false,
+  "total_ms": 2212,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 43,
+  "err": null
+ },
+ "title_text_id": 5,
+ "digest": "屏幕 2560x1440 · 文本 43 · 控件 40 · 容器 7 · 邻接 24 · 遮挡 2 · 2212ms（OCR daemon）\n标题「X」@(2363,114) 画面 · 字高 64px\n邻接「X」→ rect@(2379,64) 上方 10px\n邻接「X」→ rect@(2330,48) 上方 22px\n邻接「X」→ rect@(2138,64) 左侧 25px\n控件: rect@(2379,64) | rect@(2330,48) | rect@(2138,64) | rect@(715,686)「新 舞台· 芙宁娜」\n区域: 顶栏 (0,0)-(2560,50)\n遮挡 [0, 0, 123, 80] (0,0)-(123,80)（conf 0.62）：左上角小字叠加层：小字 4 框，非纯黑 L=193\n遮挡 [155, 1295, 279, 1324] (155,1295)-(279,1324)（conf 0.85）：左下角小字叠加层：小字 3 框，低方差 std=5.8，非纯黑 L=50，纹理对比骤降 std 50.7→5.8（0.11×）"
+}

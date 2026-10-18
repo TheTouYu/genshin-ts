@@ -1,0 +1,3728 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-corpus/capture-2026-10-18/195606.png",
+  "sha256": "8bc0d90dd9314ea76c3be6ca5b2d5691369178b35cc0f6e6ed7554f018a137d5",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 4073854
+ },
+ "title": {
+  "text": "i9",
+  "cx": 2519,
+  "cy": 26,
+  "bbox": [
+   2499,
+   6,
+   2540,
+   46
+  ],
+  "region": "右侧栏",
+  "why": "上半屏字高最大（40px, score=0.57）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK v3.",
+   "cx": 54,
+   "cy": 19,
+   "bbox": [
+    1,
+    6,
+    107,
+    32
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.9374,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "0",
+   "cx": 108,
+   "cy": 19,
+   "bbox": [
+    99,
+    11,
+    117,
+    27
+   ],
+   "w": 18,
+   "h": 16,
+   "score": 0.9544,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "背景音乐管理 ×",
+   "cx": 363,
+   "cy": 25,
+   "bbox": [
+    290,
+    10,
+    436,
+    39
+   ],
+   "w": 146,
+   "h": 29,
+   "score": 0.9593,
+   "kind": "content"
+  },
+  {
+   "id": 3,
+   "text": " 71 ms",
+   "cx": 2271,
+   "cy": 25,
+   "bbox": [
+    2229,
+    10,
+    2313,
+    39
+   ],
+   "w": 84,
+   "h": 29,
+   "score": 0.8152,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "i9",
+   "cx": 2519,
+   "cy": 26,
+   "bbox": [
+    2499,
+    6,
+    2540,
+    46
+   ],
+   "w": 41,
+   "h": 40,
+   "score": 0.5744,
+   "kind": "title"
+  },
+  {
+   "id": 5,
+   "text": "FPS: 60.3",
+   "cx": 60,
+   "cy": 40,
+   "bbox": [
+    2,
+    27,
+    118,
+    54
+   ],
+   "w": 116,
+   "h": 27,
+   "score": 0.9478,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "GPU: 47%",
+   "cx": 54,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    105,
+    77
+   ],
+   "w": 102,
+   "h": 22,
+   "score": 0.9845,
+   "kind": "hud"
+  },
+  {
+   "id": 7,
+   "text": "摆放",
+   "cx": 41,
+   "cy": 85,
+   "bbox": [
+    14,
+    70,
+    69,
+    100
+   ],
+   "w": 55,
+   "h": 30,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 8,
+   "text": "久",
+   "cx": 436,
+   "cy": 86,
+   "bbox": [
+    423,
+    74,
+    449,
+    97
+   ],
+   "w": 26,
+   "h": 23,
+   "score": 0.6533,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "高脚木质平台",
+   "cx": 2281,
+   "cy": 81,
+   "bbox": [
+    2215,
+    66,
+    2348,
+    96
+   ],
+   "w": 133,
+   "h": 30,
+   "score": 0.9956,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "x",
+   "cx": 2007,
+   "cy": 141,
+   "bbox": [
+    1996,
+    129,
+    2018,
+    153
+   ],
+   "w": 22,
+   "h": 24,
+   "score": 0.6744,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "静态单位",
+   "cx": 2250,
+   "cy": 144,
+   "bbox": [
+    2214,
+    131,
+    2287,
+    158
+   ],
+   "w": 73,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "木刀天贝豆",
+   "cx": 103,
+   "cy": 194,
+   "bbox": [
+    56,
+    185,
+    150,
+    203
+   ],
+   "w": 94,
+   "h": 18,
+   "score": 0.7509,
+   "kind": "other"
+  },
+  {
+   "id": 13,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 233,
+   "bbox": [
+    29,
+    219,
+    134,
+    246
+   ],
+   "w": 105,
+   "h": 27,
+   "score": 0.97,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "石质墙壁",
+   "cx": 380,
+   "cy": 222,
+   "bbox": [
+    344,
+    210,
+    416,
+    234
+   ],
+   "w": 72,
+   "h": 24,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "X",
+   "cx": 2264,
+   "cy": 217,
+   "bbox": [
+    2246,
+    200,
+    2282,
+    235
+   ],
+   "w": 36,
+   "h": 35,
+   "score": 0.8409,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 276,
+   "bbox": [
+    29,
+    261,
+    126,
+    291
+   ],
+   "w": 97,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "▼模型",
+   "cx": 2154,
+   "cy": 300,
+   "bbox": [
+    2118,
+    286,
+    2189,
+    315
+   ],
+   "w": 71,
+   "h": 29,
+   "score": 0.8283,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "未分类页签",
+   "cx": 95,
+   "cy": 318,
+   "bbox": [
+    38,
+    304,
+    152,
+    331
+   ],
+   "w": 114,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "镂空石质墙壁",
+   "cx": 381,
+   "cy": 334,
+   "bbox": [
+    329,
+    324,
+    433,
+    345
+   ],
+   "w": 104,
+   "h": 21,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "主物件模型",
+   "cx": 2161,
+   "cy": 345,
+   "bbox": [
+    2113,
+    333,
+    2210,
+    358
+   ],
+   "w": 97,
+   "h": 25,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 21,
+   "text": "+添加页签",
+   "cx": 81,
+   "cy": 361,
+   "bbox": [
+    28,
+    348,
+    134,
+    374
+   ],
+   "w": 106,
+   "h": 26,
+   "score": 0.9452,
+   "kind": "content"
+  },
+  {
+   "id": 22,
+   "text": "预制",
+   "cx": 38,
+   "cy": 404,
+   "bbox": [
+    16,
+    392,
+    60,
+    416
+   ],
+   "w": 44,
+   "h": 24,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 23,
+   "text": "高脚木质平台",
+   "cx": 2250,
+   "cy": 399,
+   "bbox": [
+    2192,
+    387,
+    2308,
+    412
+   ],
+   "w": 116,
+   "h": 25,
+   "score": 0.997,
+   "kind": "content"
+  },
+  {
+   "id": 24,
+   "text": "ID 20001051",
+   "cx": 2249,
+   "cy": 421,
+   "bbox": [
+    2192,
+    408,
+    2307,
+    434
+   ],
+   "w": 115,
+   "h": 26,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 25,
+   "text": "▼动态单位",
+   "cx": 88,
+   "cy": 446,
+   "bbox": [
+    30,
+    433,
+    145,
+    460
+   ],
+   "w": 115,
+   "h": 27,
+   "score": 0.9518,
+   "kind": "content"
+  },
+  {
+   "id": 26,
+   "text": "木质围栏",
+   "cx": 379,
+   "cy": 445,
+   "bbox": [
+    340,
+    430,
+    418,
+    460
+   ],
+   "w": 78,
+   "h": 30,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "显示类型",
+   "cx": 2153,
+   "cy": 468,
+   "bbox": [
+    2113,
+    455,
+    2193,
+    482
+   ],
+   "w": 80,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "流程物件",
+   "cx": 92,
+   "cy": 489,
+   "bbox": [
+    50,
+    475,
+    135,
+    502
+   ],
+   "w": 85,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "无",
+   "cx": 2136,
+   "cy": 506,
+   "bbox": [
+    2121,
+    492,
+    2150,
+    520
+   ],
+   "w": 29,
+   "h": 28,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "玩法机关",
+   "cx": 92,
+   "cy": 531,
+   "bbox": [
+    51,
+    518,
+    134,
+    545
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "木质平台",
+   "cx": 380,
+   "cy": 559,
+   "bbox": [
+    344,
+    547,
+    416,
+    570
+   ],
+   "w": 72,
+   "h": 23,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "▼ 颜色与材质",
+   "cx": 2181,
+   "cy": 551,
+   "bbox": [
+    2118,
+    538,
+    2243,
+    564
+   ],
+   "w": 125,
+   "h": 26,
+   "score": 0.9255,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "其他",
+   "cx": 74,
+   "cy": 574,
+   "bbox": [
+    47,
+    560,
+    100,
+    588
+   ],
+   "w": 53,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 34,
+   "text": "启用自定义颜色",
+   "cx": 2212,
+   "cy": 596,
+   "bbox": [
+    2145,
+    583,
+    2278,
+    609
+   ],
+   "w": 133,
+   "h": 26,
+   "score": 0.9995,
+   "kind": "content"
+  },
+  {
+   "id": 35,
+   "text": "静态单位",
+   "cx": 88,
+   "cy": 617,
+   "bbox": [
+    29,
+    601,
+    147,
+    632
+   ],
+   "w": 118,
+   "h": 31,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 36,
+   "text": "启用自定义材质",
+   "cx": 2212,
+   "cy": 641,
+   "bbox": [
+    2144,
+    628,
+    2280,
+    654
+   ],
+   "w": 136,
+   "h": 26,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 37,
+   "text": "树木",
+   "cx": 75,
+   "cy": 659,
+   "bbox": [
+    51,
+    645,
+    99,
+    673
+   ],
+   "w": 48,
+   "h": 28,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 38,
+   "text": "悬挂木质升降平台",
+   "cx": 380,
+   "cy": 669,
+   "bbox": [
+    313,
+    659,
+    447,
+    680
+   ],
+   "w": 134,
+   "h": 21,
+   "score": 0.9978,
+   "kind": "content"
+  },
+  {
+   "id": 39,
+   "text": "植被",
+   "cx": 75,
+   "cy": 701,
+   "bbox": [
+    51,
+    687,
+    99,
+    716
+   ],
+   "w": 48,
+   "h": 29,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 40,
+   "text": "静态单位物件无法编辑特化配置/通用组件/节点图",
+   "cx": 1278,
+   "cy": 718,
+   "bbox": [
+    925,
+    699,
+    1632,
+    736
+   ],
+   "w": 707,
+   "h": 37,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 41,
+   "text": "装饰物列表(0)",
+   "cx": 2194,
+   "cy": 687,
+   "bbox": [
+    2120,
+    675,
+    2269,
+    700
+   ],
+   "w": 149,
+   "h": 25,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 42,
+   "text": "地貌",
+   "cx": 75,
+   "cy": 745,
+   "bbox": [
+    52,
+    732,
+    98,
+    757
+   ],
+   "w": 46,
+   "h": 25,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 43,
+   "text": "装饰物编辑",
+   "cx": 2320,
+   "cy": 735,
+   "bbox": [
+    2270,
+    722,
+    2369,
+    748
+   ],
+   "w": 99,
+   "h": 26,
+   "score": 0.9998,
+   "kind": "action"
+  },
+  {
+   "id": 44,
+   "text": "岩石",
+   "cx": 76,
+   "cy": 788,
+   "bbox": [
+    52,
+    774,
+    99,
+    802
+   ],
+   "w": 47,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 45,
+   "text": "高脚木质平台",
+   "cx": 381,
+   "cy": 782,
+   "bbox": [
+    329,
+    770,
+    433,
+    795
+   ],
+   "w": 104,
+   "h": 25,
+   "score": 0.9991,
+   "kind": "content"
+  },
+  {
+   "id": 46,
+   "text": "▼原生碰撞",
+   "cx": 2172,
+   "cy": 796,
+   "bbox": [
+    2118,
+    783,
+    2225,
+    810
+   ],
+   "w": 107,
+   "h": 27,
+   "score": 0.9517,
+   "kind": "content"
+  },
+  {
+   "id": 47,
+   "text": "建筑",
+   "cx": 75,
+   "cy": 829,
+   "bbox": [
+    51,
+    815,
+    99,
+    844
+   ],
+   "w": 48,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 48,
+   "text": "初始生效",
+   "cx": 2183,
+   "cy": 841,
+   "bbox": [
+    2141,
+    828,
+    2225,
+    855
+   ],
+   "w": 84,
+   "h": 27,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 49,
+   "text": "建筑结构",
+   "cx": 94,
+   "cy": 872,
+   "bbox": [
+    52,
+    860,
+    135,
+    885
+   ],
+   "w": 83,
+   "h": 25,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 50,
+   "text": "高脚木质平台",
+   "cx": 381,
+   "cy": 894,
+   "bbox": [
+    329,
+    882,
+    433,
+    907
+   ],
+   "w": 104,
+   "h": 25,
+   "score": 0.9994,
+   "kind": "content"
+  },
+  {
+   "id": 51,
+   "text": "★",
+   "cx": 1280,
+   "cy": 887,
+   "bbox": [
+    1268,
+    870,
+    1292,
+    905
+   ],
+   "w": 24,
+   "h": 35,
+   "score": 0.5855,
+   "kind": "content"
+  },
+  {
+   "id": 52,
+   "text": "是否可攀爬",
+   "cx": 2162,
+   "cy": 886,
+   "bbox": [
+    2112,
+    873,
+    2212,
+    900
+   ],
+   "w": 100,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 53,
+   "text": "人造装饰",
+   "cx": 92,
+   "cy": 914,
+   "bbox": [
+    51,
+    901,
+    134,
+    928
+   ],
+   "w": 83,
+   "h": 27,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 54,
+   "text": "原生碰撞预览",
+   "cx": 2170,
+   "cy": 932,
+   "bbox": [
+    2112,
+    919,
+    2229,
+    945
+   ],
+   "w": 117,
+   "h": 26,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 55,
+   "text": "灯具",
+   "cx": 75,
+   "cy": 957,
+   "bbox": [
+    51,
+    943,
+    99,
+    972
+   ],
+   "w": 48,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 56,
+   "text": "可被镜头忽略碰撞",
+   "cx": 2189,
+   "cy": 977,
+   "bbox": [
+    2113,
+    964,
+    2264,
+    990
+   ],
+   "w": 151,
+   "h": 26,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 57,
+   "text": "饮食",
+   "cx": 76,
+   "cy": 1001,
+   "bbox": [
+    52,
+    987,
+    99,
+    1015
+   ],
+   "w": 47,
+   "h": 28,
+   "score": 0.9985,
+   "kind": "content"
+  },
+  {
+   "id": 58,
+   "text": "破碎石质栏杆",
+   "cx": 381,
+   "cy": 1006,
+   "bbox": [
+    329,
+    993,
+    433,
+    1019
+   ],
+   "w": 104,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 59,
+   "text": "武器",
+   "cx": 75,
+   "cy": 1044,
+   "bbox": [
+    51,
+    1029,
+    99,
+    1058
+   ],
+   "w": 48,
+   "h": 29,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 60,
+   "text": "可见性",
+   "cx": 2175,
+   "cy": 1036,
+   "bbox": [
+    2141,
+    1023,
+    2209,
+    1050
+   ],
+   "w": 68,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 61,
+   "text": "工具",
+   "cx": 75,
+   "cy": 1086,
+   "bbox": [
+    51,
+    1072,
+    99,
+    1100
+   ],
+   "w": 48,
+   "h": 28,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 62,
+   "text": "模型可见性",
+   "cx": 2162,
+   "cy": 1081,
+   "bbox": [
+    2113,
+    1068,
+    2211,
+    1094
+   ],
+   "w": 98,
+   "h": 26,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 63,
+   "text": "造物",
+   "cx": 67,
+   "cy": 1129,
+   "bbox": [
+    29,
+    1113,
+    105,
+    1145
+   ],
+   "w": 76,
+   "h": 32,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 64,
+   "text": "石质栏杆",
+   "cx": 380,
+   "cy": 1119,
+   "bbox": [
+    343,
+    1104,
+    418,
+    1134
+   ],
+   "w": 75,
+   "h": 30,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 65,
+   "text": "实体布设组",
+   "cx": 2181,
+   "cy": 1140,
+   "bbox": [
+    2120,
+    1127,
+    2242,
+    1153
+   ],
+   "w": 122,
+   "h": 26,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 66,
+   "text": "掉落物",
+   "cx": 78,
+   "cy": 1172,
+   "bbox": [
+    29,
+    1157,
+    126,
+    1188
+   ],
+   "w": 97,
+   "h": 31,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 67,
+   "text": "负载优化",
+   "cx": 2184,
+   "cy": 1193,
+   "bbox": [
+    2143,
+    1180,
+    2225,
+    1207
+   ],
+   "w": 82,
+   "h": 27,
+   "score": 0.9996,
+   "kind": "hud"
+  },
+  {
+   "id": 68,
+   "text": "元件组",
+   "cx": 47,
+   "cy": 1214,
+   "bbox": [
+    15,
+    1200,
+    78,
+    1227
+   ],
+   "w": 63,
+   "h": 27,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 69,
+   "text": "矩形石质台座",
+   "cx": 380,
+   "cy": 1231,
+   "bbox": [
+    329,
+    1220,
+    432,
+    1242
+   ],
+   "w": 103,
+   "h": 22,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 70,
+   "text": "模型可视范围与精度",
+   "cx": 2229,
+   "cy": 1233,
+   "bbox": [
+    2144,
+    1220,
+    2314,
+    1245
+   ],
+   "w": 170,
+   "h": 25,
+   "score": 1.0,
+   "kind": "hud"
+  },
+  {
+   "id": 71,
+   "text": "自定义元件组",
+   "cx": 109,
+   "cy": 1256,
+   "bbox": [
+    30,
+    1242,
+    188,
+    1271
+   ],
+   "w": 158,
+   "h": 29,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 72,
+   "text": "默认",
+   "cx": 2145,
+   "cy": 1271,
+   "bbox": [
+    2122,
+    1257,
+    2169,
+    1285
+   ],
+   "w": 47,
+   "h": 28,
+   "score": 0.9999,
+   "kind": "hud"
+  },
+  {
+   "id": 73,
+   "text": "资产库6",
+   "cx": 48,
+   "cy": 1301,
+   "bbox": [
+    2,
+    1281,
+    94,
+    1320
+   ],
+   "w": 92,
+   "h": 39,
+   "score": 0.7525,
+   "kind": "content"
+  },
+  {
+   "id": 74,
+   "text": "max‡",
+   "cx": 178,
+   "cy": 1308,
+   "bbox": [
+    158,
+    1301,
+    197,
+    1315
+   ],
+   "w": 39,
+   "h": 14,
+   "score": 0.8291,
+   "kind": "other"
+  },
+  {
+   "id": 75,
+   "text": "62.4 ms",
+   "cx": 239,
+   "cy": 1307,
+   "bbox": [
+    203,
+    1297,
+    276,
+    1317
+   ],
+   "w": 73,
+   "h": 20,
+   "score": 0.9983,
+   "kind": "data"
+  },
+  {
+   "id": 76,
+   "text": "物件",
+   "cx": 76,
+   "cy": 1342,
+   "bbox": [
+    52,
+    1328,
+    99,
+    1356
+   ],
+   "w": 47,
+   "h": 28,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 77,
+   "text": "石质桥面",
+   "cx": 380,
+   "cy": 1343,
+   "bbox": [
+    344,
+    1332,
+    416,
+    1355
+   ],
+   "w": 72,
+   "h": 23,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 78,
+   "text": "3.00",
+   "cx": 1194,
+   "cy": 1339,
+   "bbox": [
+    1163,
+    1321,
+    1225,
+    1356
+   ],
+   "w": 62,
+   "h": 35,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 79,
+   "text": "30",
+   "cx": 1298,
+   "cy": 1340,
+   "bbox": [
+    1277,
+    1325,
+    1318,
+    1355
+   ],
+   "w": 41,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 80,
+   "text": "0.10",
+   "cx": 1400,
+   "cy": 1339,
+   "bbox": [
+    1371,
+    1323,
+    1428,
+    1356
+   ],
+   "w": 57,
+   "h": 33,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 81,
+   "text": "引用源",
+   "cx": 2175,
+   "cy": 1330,
+   "bbox": [
+    2141,
+    1316,
+    2209,
+    1344
+   ],
+   "w": 68,
+   "h": 28,
+   "score": 0.9996,
+   "kind": "content"
+  },
+  {
+   "id": 82,
+   "text": "编辑工具",
+   "cx": 2183,
+   "cy": 1383,
+   "bbox": [
+    2141,
+    1370,
+    2225,
+    1396
+   ],
+   "w": 84,
+   "h": 26,
+   "score": 0.9999,
+   "kind": "action"
+  },
+  {
+   "id": 83,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2259,
+    1401,
+    2483,
+    1436
+   ],
+   "w": 224,
+   "h": 35,
+   "score": 1.0,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2508,
+    76,
+    2528,
+    96
+   ],
+   "cx": 2518,
+   "cy": 86,
+   "w": 20,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.77,
+    "aspect": 1.0,
+    "corner_fill": 0.12,
+    "area": 308,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    28,
+    138,
+    56,
+    174
+   ],
+   "cx": 42,
+   "cy": 156,
+   "w": 28,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.615,
+    "aspect": 0.78,
+    "corner_fill": 0.11,
+    "area": 620,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1268,
+    536,
+    1292,
+    570
+   ],
+   "cx": 1280,
+   "cy": 553,
+   "w": 24,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.74,
+    "aspect": 0.71,
+    "corner_fill": 0.11,
+    "area": 604,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    2498,
+    786,
+    2520,
+    806
+   ],
+   "cx": 2509,
+   "cy": 796,
+   "w": 22,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.827,
+    "aspect": 1.1,
+    "corner_fill": 0.12,
+    "area": 364,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2116,
+    830,
+    2144,
+    856
+   ],
+   "cx": 2130,
+   "cy": 843,
+   "w": 28,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.775,
+    "aspect": 1.08,
+    "corner_fill": 0.17,
+    "area": 564,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    364,
+    1168,
+    398,
+    1194
+   ],
+   "cx": 381,
+   "cy": 1181,
+   "w": 34,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.747,
+    "aspect": 1.31,
+    "corner_fill": 0.14,
+    "area": 660,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    2116,
+    1222,
+    2144,
+    1248
+   ],
+   "cx": 2130,
+   "cy": 1235,
+   "w": 28,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.764,
+    "aspect": 1.08,
+    "corner_fill": 0.17,
+    "area": 556,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    260,
+    14,
+    284,
+    38
+   ],
+   "cx": 272,
+   "cy": 26,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 0.986,
+    "contrast": 36.7,
+    "ring_L": 110.3,
+    "inside_L": 97.6,
+    "outside_L": 49.6
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1092,
+    362,
+    1120,
+    388
+   ],
+   "cx": 1106,
+   "cy": 375,
+   "w": 28,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.945,
+   "label": null,
+   "evidence": {
+    "fill": 0.593,
+    "aspect": 1.08,
+    "corner_fill": 0.17,
+    "area": 432,
+    "src": "contrast"
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    2082,
+    814,
+    2110,
+    844
+   ],
+   "cx": 2096,
+   "cy": 829,
+   "w": 28,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.945,
+   "label": null,
+   "evidence": {
+    "fill": 0.448,
+    "aspect": 0.93,
+    "corner_fill": 0.11,
+    "area": 376,
+    "src": "flat"
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    2462,
+    922,
+    2486,
+    946
+   ],
+   "cx": 2474,
+   "cy": 934,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.928,
+   "label": null,
+   "evidence": {
+    "fill": 0.785,
+    "aspect": 1.0,
+    "corner_fill": 0.28,
+    "area": 452,
+    "src": "contrast"
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    1964,
+    116,
+    1986,
+    144
+   ],
+   "cx": 1975,
+   "cy": 130,
+   "w": 22,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.779,
+    "aspect": 0.79,
+    "corner_fill": 0.28,
+    "area": 480,
+    "src": "contrast"
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2498,
+    1372,
+    2520,
+    1396
+   ],
+   "cx": 2509,
+   "cy": 1384,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.758,
+    "aspect": 0.92,
+    "corner_fill": 0.28,
+    "area": 400,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1516,
+    314,
+    1544,
+    348
+   ],
+   "cx": 1530,
+   "cy": 331,
+   "w": 28,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.923,
+   "label": null,
+   "evidence": {
+    "fill": 0.534,
+    "aspect": 0.82,
+    "corner_fill": 0.19,
+    "area": 508,
+    "src": "flat"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    24,
+    136,
+    456,
+    172
+   ],
+   "cx": 240,
+   "cy": 154,
+   "w": 432,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.936,
+    "aspect": 12.0,
+    "corner_fill": 0.12,
+    "area": 14560,
+    "src": "flat"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    2462,
+    966,
+    2486,
+    992
+   ],
+   "cx": 2474,
+   "cy": 979,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.808,
+    "aspect": 0.92,
+    "corner_fill": 0.31,
+    "area": 504,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    2462,
+    630,
+    2486,
+    656
+   ],
+   "cx": 2474,
+   "cy": 643,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.91,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 520,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    2462,
+    584,
+    2486,
+    610
+   ],
+   "cx": 2474,
+   "cy": 597,
+   "w": 24,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.821,
+    "aspect": 0.92,
+    "corner_fill": 0.33,
+    "area": 512,
+    "src": "contrast"
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    1044,
+    0,
+    1516,
+    50
+   ],
+   "cx": 1280,
+   "cy": 25,
+   "w": 472,
+   "h": 50,
+   "shape": "rect",
+   "confidence": 0.907,
+   "label": null,
+   "evidence": {
+    "fill": 0.905,
+    "aspect": 9.44,
+    "corner_fill": 0.53,
+    "area": 21356,
+    "src": "flat"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    2452,
+    68,
+    2488,
+    104
+   ],
+   "cx": 2470,
+   "cy": 86,
+   "w": 36,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.902,
+   "label": null,
+   "evidence": {
+    "fill": 0.469,
+    "aspect": 1.0,
+    "corner_fill": 0.2,
+    "area": 608,
+    "src": "flat"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    2360,
+    206,
+    2388,
+    234
+   ],
+   "cx": 2374,
+   "cy": 220,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.899,
+   "label": null,
+   "evidence": {
+    "fill": 0.765,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 600,
+    "src": "contrast"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    2498,
+    1182,
+    2520,
+    1208
+   ],
+   "cx": 2509,
+   "cy": 1195,
+   "w": 22,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 0.85,
+    "corner_fill": 0.36,
+    "area": 472,
+    "src": "contrast"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    2514,
+    1316,
+    2538,
+    1348
+   ],
+   "cx": 2526,
+   "cy": 1332,
+   "w": 24,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.894,
+   "label": null,
+   "evidence": {
+    "fill": 0.823,
+    "aspect": 0.75,
+    "corner_fill": 0.36,
+    "area": 632,
+    "src": "contrast"
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    264,
+    378,
+    280,
+    868
+   ],
+   "cx": 272,
+   "cy": 623,
+   "w": 16,
+   "h": 490,
+   "shape": "rect",
+   "confidence": 0.889,
+   "label": null,
+   "evidence": {
+    "fill": 0.864,
+    "aspect": 0.03,
+    "corner_fill": 0.19,
+    "area": 6772,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1254,
+    1332,
+    1278,
+    1356
+   ],
+   "cx": 1266,
+   "cy": 1344,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.888,
+   "label": null,
+   "evidence": {
+    "fill": 0.722,
+    "aspect": 1.0,
+    "corner_fill": 0.33,
+    "area": 416,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    350,
+    1414,
+    378,
+    1434
+   ],
+   "cx": 364,
+   "cy": 1424,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.887,
+   "label": null,
+   "evidence": {
+    "fill": 0.664,
+    "aspect": 1.4,
+    "corner_fill": 0.31,
+    "area": 372,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    2336,
+    200,
+    2362,
+    232
+   ],
+   "cx": 2349,
+   "cy": 216,
+   "w": 26,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.886,
+   "label": null,
+   "evidence": {
+    "fill": 0.712,
+    "aspect": 0.81,
+    "corner_fill": 0.33,
+    "area": 592,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    78,
+    1414,
+    128,
+    1430
+   ],
+   "cx": 103,
+   "cy": 1422,
+   "w": 50,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.855,
+    "aspect": 3.12,
+    "corner_fill": 0.44,
+    "area": 684,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    2520,
+    716,
+    2542,
+    746
+   ],
+   "cx": 2531,
+   "cy": 731,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.885,
+   "label": null,
+   "evidence": {
+    "fill": 0.43,
+    "aspect": 0.73,
+    "corner_fill": 0.22,
+    "area": 284,
+    "src": "flat"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    310,
+    280,
+    362,
+    352
+   ],
+   "cx": 336,
+   "cy": 316,
+   "w": 52,
+   "h": 72,
+   "shape": "circle",
+   "confidence": 0.884,
+   "label": null,
+   "evidence": {
+    "fill": 0.441,
+    "aspect": 0.72,
+    "corner_fill": 0.23,
+    "area": 1652,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1040,
+    388,
+    1094,
+    404
+   ],
+   "cx": 1067,
+   "cy": 396,
+   "w": 54,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.852,
+    "aspect": 3.38,
+    "corner_fill": 0.5,
+    "area": 736,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    370,
+    840,
+    390,
+    886
+   ],
+   "cx": 380,
+   "cy": 863,
+   "w": 20,
+   "h": 46,
+   "shape": "rect",
+   "confidence": 0.883,
+   "label": null,
+   "evidence": {
+    "fill": 0.852,
+    "aspect": 0.43,
+    "corner_fill": 0.56,
+    "area": 784,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    2498,
+    1130,
+    2520,
+    1154
+   ],
+   "cx": 2509,
+   "cy": 1142,
+   "w": 22,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 0.92,
+    "corner_fill": 0.39,
+    "area": 440,
+    "src": "contrast"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1266,
+    1196,
+    1288,
+    1238
+   ],
+   "cx": 1277,
+   "cy": 1217,
+   "w": 22,
+   "h": 42,
+   "shape": "rect",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.848,
+    "aspect": 0.52,
+    "corner_fill": 0.61,
+    "area": 784,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1256,
+    1116,
+    1296,
+    1152
+   ],
+   "cx": 1276,
+   "cy": 1134,
+   "w": 40,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.882,
+   "label": null,
+   "evidence": {
+    "fill": 0.483,
+    "aspect": 1.11,
+    "corner_fill": 0.25,
+    "area": 696,
+    "src": "flat"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1060,
+    408,
+    1102,
+    458
+   ],
+   "cx": 1081,
+   "cy": 433,
+   "w": 42,
+   "h": 50,
+   "shape": "circle",
+   "confidence": 0.881,
+   "label": null,
+   "evidence": {
+    "fill": 0.507,
+    "aspect": 0.84,
+    "corner_fill": 0.26,
+    "area": 1064,
+    "src": "flat"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    2280,
+    200,
+    2306,
+    236
+   ],
+   "cx": 2293,
+   "cy": 218,
+   "w": 26,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.88,
+   "label": null,
+   "evidence": {
+    "fill": 0.752,
+    "aspect": 0.72,
+    "corner_fill": 0.36,
+    "area": 704,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1268,
+    600,
+    1292,
+    636
+   ],
+   "cx": 1280,
+   "cy": 618,
+   "w": 24,
+   "h": 36,
+   "shape": "rect",
+   "confidence": 0.879,
+   "label": null,
+   "evidence": {
+    "fill": 0.843,
+    "aspect": 0.67,
+    "corner_fill": 0.22,
+    "area": 728,
+    "src": "contrast"
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    2106,
+    1126,
+    2122,
+    1156
+   ],
+   "cx": 2114,
+   "cy": 1141,
+   "w": 16,
+   "h": 30,
+   "shape": "rect",
+   "confidence": 0.871,
+   "label": null,
+   "evidence": {
+    "fill": 0.825,
+    "aspect": 0.53,
+    "corner_fill": 0.56,
+    "area": 396,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    2228,
+    158,
+    2266,
+    174
+   ],
+   "cx": 2247,
+   "cy": 166,
+   "w": 38,
+   "h": 16,
+   "shape": "rect",
+   "confidence": 0.87,
+   "label": null,
+   "evidence": {
+    "fill": 0.822,
+    "aspect": 2.38,
+    "corner_fill": 0.31,
+    "area": 500,
+    "src": "contrast"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [
+  {
+   "name": "左侧栏",
+   "bbox": [
+    0,
+    0,
+    478,
+    1440
+   ],
+   "why": "竖边长直边 x=478（覆盖 86% 高）"
+  },
+  {
+   "name": "右侧栏",
+   "bbox": [
+    2078,
+    0,
+    2560,
+    1440
+   ],
+   "why": "竖边长直边 x=2078（覆盖 69% 高）"
+  }
+ ],
+ "structure": [
+  {
+   "bbox": [
+    15,
+    10,
+    449,
+    1271
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 15,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 12,
+   "row_y": [
+    25,
+    86,
+    216,
+    322,
+    431,
+    538,
+    661,
+    786,
+    893,
+    957,
+    1064,
+    1218
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      "背景音乐管理 ×"
+     ]
+    },
+    {
+     "y": 86,
+     "texts": [
+      "久"
+     ]
+    },
+    {
+     "y": 216,
+     "texts": [
+      "木刀天贝豆",
+      "石质墙壁",
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 322,
+     "texts": [
+      "掉落物",
+      "未分类页签",
+      "镂空石质墙壁",
+      "+添加页签"
+     ]
+    },
+    {
+     "y": 431,
+     "texts": [
+      "预制",
+      "木质围栏",
+      "▼动态单位"
+     ]
+    },
+    {
+     "y": 538,
+     "texts": [
+      "流程物件",
+      "玩法机关",
+      "木质平台",
+      "其他"
+     ]
+    },
+    {
+     "y": 661,
+     "texts": [
+      "静态单位",
+      "树木",
+      "悬挂木质升降平台",
+      "植被"
+     ]
+    },
+    {
+     "y": 786,
+     "texts": [
+      "地貌",
+      "高脚木质平台",
+      "岩石",
+      "建筑"
+     ]
+    },
+    {
+     "y": 893,
+     "texts": [
+      "建筑结构",
+      "高脚木质平台",
+      "人造装饰"
+     ]
+    },
+    {
+     "y": 957,
+     "texts": [
+      "灯具"
+     ]
+    },
+    {
+     "y": 1064,
+     "texts": [
+      "饮食",
+      "破碎石质栏杆",
+      "武器",
+      "工具",
+      "石质栏杆",
+      "造物"
+     ]
+    },
+    {
+     "y": 1218,
+     "texts": [
+      "掉落物",
+      "元件组",
+      "矩形石质台座",
+      "自定义元件组"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1996,
+    10,
+    2369,
+    1396
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 24,
+   "row_y": [
+    25,
+    81,
+    142,
+    217,
+    300,
+    345,
+    410,
+    487,
+    551,
+    596,
+    641,
+    687,
+    735,
+    796,
+    841,
+    886,
+    932,
+    977,
+    1036,
+    1081,
+    1140,
+    1232,
+    1330,
+    1383
+   ],
+   "rows": [
+    {
+     "y": 25,
+     "texts": [
+      " 71 ms"
+     ]
+    },
+    {
+     "y": 81,
+     "texts": [
+      "高脚木质平台"
+     ]
+    },
+    {
+     "y": 142,
+     "texts": [
+      "x",
+      "静态单位"
+     ]
+    },
+    {
+     "y": 217,
+     "texts": [
+      "X"
+     ]
+    },
+    {
+     "y": 300,
+     "texts": [
+      "▼模型"
+     ]
+    },
+    {
+     "y": 345,
+     "texts": [
+      "主物件模型"
+     ]
+    },
+    {
+     "y": 410,
+     "texts": [
+      "高脚木质平台",
+      "ID 20001051"
+     ]
+    },
+    {
+     "y": 487,
+     "texts": [
+      "显示类型",
+      "无"
+     ]
+    },
+    {
+     "y": 551,
+     "texts": [
+      "▼ 颜色与材质"
+     ]
+    },
+    {
+     "y": 596,
+     "texts": [
+      "启用自定义颜色"
+     ]
+    },
+    {
+     "y": 641,
+     "texts": [
+      "启用自定义材质"
+     ]
+    },
+    {
+     "y": 687,
+     "texts": [
+      "装饰物列表(0)"
+     ]
+    },
+    {
+     "y": 735,
+     "texts": [
+      "装饰物编辑"
+     ]
+    },
+    {
+     "y": 796,
+     "texts": [
+      "▼原生碰撞"
+     ]
+    },
+    {
+     "y": 841,
+     "texts": [
+      "初始生效"
+     ]
+    },
+    {
+     "y": 886,
+     "texts": [
+      "是否可攀爬"
+     ]
+    },
+    {
+     "y": 932,
+     "texts": [
+      "原生碰撞预览"
+     ]
+    },
+    {
+     "y": 977,
+     "texts": [
+      "可被镜头忽略碰撞"
+     ]
+    },
+    {
+     "y": 1036,
+     "texts": [
+      "可见性"
+     ]
+    },
+    {
+     "y": 1081,
+     "texts": [
+      "模型可见性"
+     ]
+    },
+    {
+     "y": 1140,
+     "texts": [
+      "实体布设组"
+     ]
+    },
+    {
+     "y": 1232,
+     "texts": [
+      "负载优化",
+      "模型可视范围与精度",
+      "默认"
+     ]
+    },
+    {
+     "y": 1330,
+     "texts": [
+      "引用源"
+     ]
+    },
+    {
+     "y": 1383,
+     "texts": [
+      "编辑工具"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    925,
+    699,
+    1632,
+    1356
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 16,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 3,
+   "row_y": [
+    718,
+    887,
+    1339
+   ],
+   "rows": [
+    {
+     "y": 718,
+     "texts": [
+      "静态单位物件无法编辑特化配置/通用组件/节点图"
+     ]
+    },
+    {
+     "y": 887,
+     "texts": [
+      "★"
+     ]
+    },
+    {
+     "y": 1339,
+     "texts": [
+      "3.00",
+      "0.10",
+      "30"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "i9",
+   "text_id": 4,
+   "target": "circle@(2470,86)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 22,
+   "dx": -50,
+   "dy": 60,
+   "confidence": 0.682
+  },
+  {
+   "text": "i9",
+   "text_id": 4,
+   "target": "circle@(2518,86)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "below",
+   "gap_px": 30,
+   "dx": -2,
+   "dy": 60,
+   "confidence": 0.675
+  },
+  {
+   "text": "i9",
+   "text_id": 4,
+   "target": "circle@(2349,216)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "below",
+   "gap_px": 154,
+   "dx": -170,
+   "dy": 190,
+   "confidence": 0.572
+  },
+  {
+   "text": "30",
+   "text_id": 79,
+   "target": "circle@(1266,1344)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -32,
+   "dy": 4,
+   "confidence": 0.55
+  },
+  {
+   "text": "背景音乐管理 ×",
+   "text_id": 2,
+   "target": "circle@(272,26)",
+   "target_id": "c7",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 6,
+   "dx": -91,
+   "dy": 2,
+   "confidence": 0.545
+  },
+  {
+   "text": "装饰物列表(0)",
+   "text_id": 41,
+   "target": "label@(2319,735)",
+   "target_id": "t43",
+   "target_kind": "label",
+   "label": "装饰物编辑",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 22,
+   "dx": 125,
+   "dy": 48,
+   "confidence": 0.732
+  },
+  {
+   "text": "引用源",
+   "text_id": 81,
+   "target": "label@(2183,1383)",
+   "target_id": "t82",
+   "target_kind": "label",
+   "label": "编辑工具",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 26,
+   "dx": 8,
+   "dy": 53,
+   "confidence": 0.728
+  },
+  {
+   "text": "矩形石质台座",
+   "text_id": 69,
+   "target": "circle@(381,1181)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 26,
+   "dx": 0,
+   "dy": -50,
+   "confidence": 0.528
+  },
+  {
+   "text": "3.00",
+   "text_id": 78,
+   "target": "circle@(1266,1344)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 29,
+   "dx": 72,
+   "dy": 6,
+   "confidence": 0.526
+  },
+  {
+   "text": "悬挂木质升降平台",
+   "text_id": 38,
+   "target": "rect@(272,623)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 33,
+   "dx": -108,
+   "dy": -46,
+   "confidence": 0.523
+  },
+  {
+   "text": "UID:110170759",
+   "text_id": 83,
+   "target": "label@(2183,1383)",
+   "target_id": "t82",
+   "target_kind": "label",
+   "label": "编辑工具",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 34,
+   "dx": -188,
+   "dy": -36,
+   "confidence": 0.722
+  },
+  {
+   "text": "石质栏杆",
+   "text_id": 64,
+   "target": "circle@(381,1181)",
+   "target_id": "c5",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 34,
+   "dx": 0,
+   "dy": 62,
+   "confidence": 0.522
+  },
+  {
+   "text": "久",
+   "text_id": 8,
+   "target": "rect@(240,154)",
+   "target_id": "c14",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 39,
+   "dx": -196,
+   "dy": 68,
+   "confidence": 0.518
+  },
+  {
+   "text": "高脚木质平台",
+   "text_id": 45,
+   "target": "rect@(380,863)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 45,
+   "dx": -1,
+   "dy": 80,
+   "confidence": 0.513
+  },
+  {
+   "text": "石质墙壁",
+   "text_id": 14,
+   "target": "circle@(336,316)",
+   "target_id": "c29",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 46,
+   "dx": -44,
+   "dy": 94,
+   "confidence": 0.512
+  },
+  {
+   "text": "镂空石质墙壁",
+   "text_id": 19,
+   "target": "rect@(272,623)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 49,
+   "dx": -109,
+   "dy": 288,
+   "confidence": 0.509
+  },
+  {
+   "text": "物件",
+   "text_id": 76,
+   "target": "rect@(103,1422)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 58,
+   "dx": 28,
+   "dy": 80,
+   "confidence": 0.502
+  },
+  {
+   "text": "石质桥面",
+   "text_id": 77,
+   "target": "circle@(364,1424)",
+   "target_id": "c25",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 59,
+   "dx": -16,
+   "dy": 80,
+   "confidence": 0.501
+  },
+  {
+   "text": "木质围栏",
+   "text_id": 26,
+   "target": "rect@(272,623)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 60,
+   "dx": -107,
+   "dy": 178,
+   "confidence": 0.5
+  },
+  {
+   "text": "静态单位物件无法编辑特化配置/通用组件/节点图",
+   "text_id": 40,
+   "target": "rect@(1280,618)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 63,
+   "dx": 2,
+   "dy": -100,
+   "confidence": 0.498
+  },
+  {
+   "text": "木质平台",
+   "text_id": 31,
+   "target": "rect@(272,623)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 64,
+   "dx": -108,
+   "dy": 64,
+   "confidence": 0.497
+  },
+  {
+   "text": "启用自定义材质",
+   "text_id": 36,
+   "target": "label@(2319,735)",
+   "target_id": "t43",
+   "target_kind": "label",
+   "label": "装饰物编辑",
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 68,
+   "dx": 108,
+   "dy": 94,
+   "confidence": 0.693
+  },
+  {
+   "text": "0.10",
+   "text_id": 80,
+   "target": "circle@(1266,1344)",
+   "target_id": "c24",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 93,
+   "dx": -134,
+   "dy": 4,
+   "confidence": 0.473
+  },
+  {
+   "text": "资产库6",
+   "text_id": 73,
+   "target": "rect@(103,1422)",
+   "target_id": "c27",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 94,
+   "dx": 55,
+   "dy": 122,
+   "confidence": 0.472
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    3,
+    121,
+    103
+   ],
+   "confidence": 0.9,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 5 框，低方差 std=1.8，非纯黑 L=59，纹理对比骤降 std 43.0→1.8（0.04×）",
+   "evidence": {
+    "texts": [
+     "DXVK v3.",
+     "0",
+     "FPS: 60.3",
+     "GPU: 47%",
+     "摆放"
+    ],
+    "text_ids": [
+     0,
+     1,
+     5,
+     6,
+     7
+    ],
+    "n_texts": 5,
+    "corner": "左上",
+    "corner_dist_px": 6,
+    "bg_mean": 59.0,
+    "bg_std": 1.8,
+    "ring_mean": 71.9,
+    "ring_std": 43.0,
+    "texture_ratio": 0.04,
+    "bg_rgb": [
+     52,
+     74,
+     50
+    ]
+   }
+  },
+  {
+   "bbox": [
+    2119,
+    1177,
+    2317,
+    1288
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "右下角小字叠加层：小字 3 框，非纯黑 L=54",
+   "evidence": {
+    "texts": [
+     "负载优化",
+     "模型可视范围与精度",
+     "默认"
+    ],
+    "text_ids": [
+     67,
+     70,
+     72
+    ],
+    "n_texts": 3,
+    "corner": "右下",
+    "corner_dist_px": 291,
+    "bg_mean": 54.1,
+    "bg_std": 24.8,
+    "ring_mean": 56.6,
+    "ring_std": 8.6,
+    "texture_ratio": 2.87,
+    "bg_rgb": [
+     50,
+     62,
+     49
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    898,
+    674,
+    1662,
+    766
+   ],
+   "kind": "row",
+   "skin": {
+    "lab": [
+     52.0,
+     128.0,
+     118.0
+    ],
+    "fill": 0.49,
+    "rect": 0.59
+   },
+   "text": [
+    "静态单位物件无法编辑特化配置/通用组件/节点图"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      892,
+      668,
+      924,
+      770
+     ],
+     "role": "icon",
+     "fill": 0.27,
+     "contrast": 140.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.62,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 41296,
+    "area_frac": 0.0191,
+    "aspect": 8.3,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     52.0,
+     128.0,
+     118.0
+    ],
+    "flat_fill": 0.49,
+    "rect": 0.59
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK v3.",
+  "0",
+  "背景音乐管理 ×",
+  " 71 ms",
+  "i9",
+  "FPS: 60.3",
+  "GPU: 47%",
+  "摆放",
+  "久",
+  "高脚木质平台",
+  "x",
+  "静态单位",
+  "木刀天贝豆",
+  "+添加页签",
+  "石质墙壁",
+  "X",
+  "掉落物",
+  "▼模型",
+  "未分类页签",
+  "镂空石质墙壁",
+  "主物件模型",
+  "+添加页签",
+  "预制",
+  "高脚木质平台",
+  "ID 20001051",
+  "▼动态单位",
+  "木质围栏",
+  "显示类型",
+  "流程物件",
+  "无",
+  "玩法机关",
+  "木质平台",
+  "▼ 颜色与材质",
+  "其他",
+  "启用自定义颜色",
+  "静态单位",
+  "启用自定义材质",
+  "树木",
+  "悬挂木质升降平台",
+  "植被",
+  "装饰物列表(0)",
+  "地貌",
+  "装饰物编辑",
+  "岩石",
+  "高脚木质平台",
+  "▼原生碰撞",
+  "建筑",
+  "初始生效",
+  "建筑结构",
+  "高脚木质平台",
+  "★",
+  "是否可攀爬",
+  "人造装饰",
+  "原生碰撞预览",
+  "灯具",
+  "可被镜头忽略碰撞",
+  "饮食",
+  "破碎石质栏杆",
+  "武器",
+  "可见性",
+  "工具",
+  "模型可见性",
+  "造物",
+  "石质栏杆",
+  "实体布设组",
+  "掉落物",
+  "负载优化",
+  "元件组",
+  "矩形石质台座",
+  "模型可视范围与精度",
+  "自定义元件组",
+  "默认",
+  "资产库6",
+  "max‡",
+  "62.4 ms",
+  "物件",
+  "石质桥面",
+  "3.00",
+  "30",
+  "0.10",
+  "引用源",
+  "编辑工具",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    2500,
+    1376,
+    2518,
+    1392
+   ],
+   "role": "icon",
+   "fill": 1.0,
+   "contrast": 153.0
+  },
+  {
+   "bbox": [
+    2460,
+    1068,
+    2522,
+    1098
+   ],
+   "role": "icon",
+   "fill": 0.91,
+   "contrast": 190.0
+  },
+  {
+   "bbox": [
+    186,
+    14,
+    214,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 166.0
+  },
+  {
+   "bbox": [
+    2460,
+    828,
+    2522,
+    904
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 188.0
+  },
+  {
+   "bbox": [
+    2472,
+    206,
+    2496,
+    230
+   ],
+   "role": "icon",
+   "fill": 0.82,
+   "contrast": 173.0
+  },
+  {
+   "bbox": [
+    2144,
+    206,
+    2168,
+    230
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    2120,
+    832,
+    2136,
+    854
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 163.0
+  },
+  {
+   "bbox": [
+    260,
+    14,
+    284,
+    40
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 166.0
+  },
+  {
+   "bbox": [
+    308,
+    992,
+    324,
+    1022
+   ],
+   "role": "icon",
+   "fill": 0.79,
+   "contrast": 66.0
+  },
+  {
+   "bbox": [
+    2120,
+    1224,
+    2140,
+    1246
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 169.0
+  },
+  {
+   "bbox": [
+    2464,
+    968,
+    2484,
+    988
+   ],
+   "role": "icon",
+   "fill": 0.74,
+   "contrast": 103.0
+  },
+  {
+   "bbox": [
+    2464,
+    588,
+    2484,
+    608
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 105.0
+  },
+  {
+   "bbox": [
+    2464,
+    632,
+    2484,
+    652
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 104.0
+  },
+  {
+   "bbox": [
+    2464,
+    924,
+    2484,
+    944
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 105.0
+  },
+  {
+   "bbox": [
+    2364,
+    206,
+    2386,
+    230
+   ],
+   "role": "icon",
+   "fill": 0.72,
+   "contrast": 178.0
+  },
+  {
+   "bbox": [
+    308,
+    1108,
+    324,
+    1134
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 65.0
+  },
+  {
+   "bbox": [
+    2438,
+    14,
+    2470,
+    40
+   ],
+   "role": "icon",
+   "fill": 0.65,
+   "contrast": 166.0
+  },
+  {
+   "bbox": [
+    32,
+    140,
+    56,
+    166
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 159.0
+  },
+  {
+   "bbox": [
+    300,
+    174,
+    372,
+    190
+   ],
+   "role": "icon",
+   "fill": 0.6,
+   "contrast": 56.0
+  },
+  {
+   "bbox": [
+    1212,
+    82,
+    1252,
+    120
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 200.0
+  },
+  {
+   "bbox": [
+    332,
+    1284,
+    430,
+    1328
+   ],
+   "role": "icon",
+   "fill": 0.55,
+   "contrast": 144.0
+  },
+  {
+   "bbox": [
+    2506,
+    74,
+    2536,
+    98
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 166.0
+  },
+  {
+   "bbox": [
+    348,
+    256,
+    414,
+    320
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 127.0
+  },
+  {
+   "bbox": [
+    396,
+    410,
+    416,
+    426
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    2334,
+    16,
+    2358,
+    38
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 164.0
+  },
+  {
+   "bbox": [
+    2130,
+    76,
+    2178,
+    100
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    1970,
+    92,
+    2046,
+    174
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 221.0
+  },
+  {
+   "bbox": [
+    356,
+    816,
+    406,
+    840
+   ],
+   "role": "icon",
+   "fill": 0.47,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    362,
+    1170,
+    400,
+    1216
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 121.0
+  },
+  {
+   "bbox": [
+    2390,
+    18,
+    2412,
+    34
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 58.0
+  },
+  {
+   "bbox": [
+    354,
+    702,
+    410,
+    730
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 78.0
+  },
+  {
+   "bbox": [
+    334,
+    1056,
+    428,
+    1100
+   ],
+   "role": "icon",
+   "fill": 0.45,
+   "contrast": 114.0
+  },
+  {
+   "bbox": [
+    2102,
+    198,
+    2210,
+    260
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    2050,
+    52,
+    2080,
+    84
+   ],
+   "role": "icon",
+   "fill": 0.4,
+   "contrast": 107.0
+  },
+  {
+   "bbox": [
+    348,
+    374,
+    412,
+    410
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    336,
+    502,
+    428,
+    538
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 88.0
+  },
+  {
+   "bbox": [
+    346,
+    942,
+    428,
+    988
+   ],
+   "role": "icon",
+   "fill": 0.36,
+   "contrast": 111.0
+  },
+  {
+   "bbox": [
+    336,
+    622,
+    430,
+    654
+   ],
+   "role": "icon",
+   "fill": 0.3,
+   "contrast": 79.0
+  },
+  {
+   "bbox": [
+    22,
+    848,
+    120,
+    894
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 190.0
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 236,
+  "ocr_ms": 1003,
+  "pixel_ms": 1117,
+  "container_ms": 418,
+  "container_cached": false,
+  "total_ms": 2358,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 84,
+  "err": null
+ },
+ "title_text_id": 4,
+ "digest": "屏幕 2560x1440 · 文本 84 · 控件 40 · 容器 1 · 邻接 24 · 遮挡 2 · 2358ms（OCR daemon）\n标题「i9」@(2519,26) 右侧栏 · 字高 40px\n邻接「i9」→ circle@(2470,86) 下方 22px\n邻接「i9」→ circle@(2518,86) 下方 30px\n邻接「i9」→ circle@(2349,216) 下方 154px\n邻接「引用源」→ label@(2183,1383)「编辑工具」 下方 26px\n控件: circle@(2470,86) | circle@(2518,86) | circle@(2349,216) | circle@(1266,1344)\n区域: 左侧栏 (0,0)-(478,1440) | 右侧栏 (2078,0)-(2560,1440)\n遮挡 [0, 3, 121, 103] (0,3)-(121,103)（conf 0.90）：左上角小字叠加层：小字 5 框，低方差 std=1.8，非纯黑 L=59，纹理对比骤降 std 43.0→1.8（0.04×）\n遮挡 [2119, 1177, 2317, 1288] (2119,1177)-(2317,1288)（conf 0.57）：右下角小字叠加层：小字 3 框，非纯黑 L=54"
+}
