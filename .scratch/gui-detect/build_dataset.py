@@ -42,7 +42,7 @@ def main():
                 ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                 ".scratch/gui-corpus/capture-2026-10-18/reps",
                 ".scratch/gui-corpus/video-20261018/reps",
-                ".scratch/gui-corpus/inbox/norm",
+                ".scratch/gui-corpus/inbox/norm", ".scratch/gui-corpus/inbox/reps",
                 ".scratch/gui-corpus/truth-v6", ".scratch/gui-corpus/truth-v7",
                 ".scratch/gui-corpus/truth-v5", ".scratch/gui-corpus/truth-v4"]
 
