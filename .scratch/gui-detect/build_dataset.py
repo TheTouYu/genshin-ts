@@ -35,11 +35,13 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     truth_dirs = [".scratch/gui-corpus/truth", ".scratch/gui-corpus/truth-v2",
-                  ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4"]
+                  ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
+                  ".scratch/gui-corpus/truth-v5"]
     img_dirs = [".scratch/gui-corpus", ".scratch/gui-corpus/truth-v2",
                 ".scratch/gui-corpus/truth-v3", ".scratch/gui-corpus/truth-v4",
                 ".scratch/gui-corpus/capture-2026-10-18/reps",
-                ".scratch/gui-corpus/video-20261018/reps"]
+                ".scratch/gui-corpus/video-20261018/reps",
+                ".scratch/gui-corpus/inbox/norm"]
 
     images, anns, cats = [], [], {}
     kind_count = Counter()

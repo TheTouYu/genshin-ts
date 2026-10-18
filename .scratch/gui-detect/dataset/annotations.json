@@ -263,6 +263,46 @@
    "height": 1440,
    "truth": ".scratch/gui-corpus/truth-v4/v101_0529.json",
    "layout": "活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）"
+  },
+  {
+   "id": 34,
+   "file_name": ".scratch/gui-corpus/inbox/norm/r006_snap_2026-10-19_00-22-19.png",
+   "width": 2560,
+   "height": 1440,
+   "truth": ".scratch/gui-corpus/truth-v5/r006_snap_2026-10-19_00-22-19.json",
+   "layout": "邮箱：左 8 封邮件逐行 + 右详情（标题/发件人/时间/附件）+ 底部两按钮"
+  },
+  {
+   "id": 35,
+   "file_name": ".scratch/gui-corpus/inbox/norm/r032_snap_2026-10-19_00-30-42.png",
+   "width": 2560,
+   "height": 1440,
+   "truth": ".scratch/gui-corpus/truth-v5/r032_snap_2026-10-19_00-30-42.json",
+   "layout": "编辑器：左资源树 28 行 + 调色板 6 格 + 视口 + 右上属性面板逐行"
+  },
+  {
+   "id": 36,
+   "file_name": ".scratch/gui-corpus/inbox/norm/r034_snap_2026-10-19_00-31-33.png",
+   "width": 2560,
+   "height": 1440,
+   "truth": ".scratch/gui-corpus/truth-v5/r034_snap_2026-10-19_00-31-33.json",
+   "layout": "编辑器：左资源树（28 行）+ 中部资产格 6 + 背景音乐管理弹窗（9 行）+ 音乐库（9 条）+ 右上属性面板（逐行）+ 底部工具"
+  },
+  {
+   "id": 37,
+   "file_name": ".scratch/gui-corpus/inbox/norm/r040_snap_2026-10-19_00-36-18.png",
+   "width": 2560,
+   "height": 1440,
+   "truth": ".scratch/gui-corpus/truth-v5/r040_snap_2026-10-19_00-36-18.json",
+   "layout": "编辑器：左树 25 行 + 调色板 + 视口 + 右属性面板（3 个分区，各带详细编辑）"
+  },
+  {
+   "id": 38,
+   "file_name": ".scratch/gui-corpus/inbox/norm/r045_snap_2026-10-19_00-38-06.png",
+   "width": 2560,
+   "height": 1440,
+   "truth": ".scratch/gui-corpus/truth-v5/r045_snap_2026-10-19_00-38-06.json",
+   "layout": "编辑器：左下时间轴轨道 8 行 + 视口 + 右特效属性面板逐行"
   }
  ],
  "annotations": [
@@ -12807,6 +12847,5014 @@
    "kind": "button",
    "text": [
     "›"
+   ]
+  },
+  {
+   "id": 748,
+   "image_id": 34,
+   "category_id": 1,
+   "bbox": [
+    1100,
+    20,
+    1000,
+    80
+   ],
+   "area": 80000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "邮箱｜邮件珍藏盒｜邮件数 18/1000"
+   ]
+  },
+  {
+   "id": 749,
+   "image_id": 34,
+   "category_id": 8,
+   "bbox": [
+    1105,
+    22,
+    380,
+    76
+   ],
+   "area": 28880,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "邮件珍藏盒"
+   ]
+  },
+  {
+   "id": 750,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    1500,
+    30,
+    240,
+    60
+   ],
+   "area": 14400,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "邮件数 18/1000"
+   ]
+  },
+  {
+   "id": 751,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    1770,
+    22,
+    60,
+    76
+   ],
+   "area": 4560,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "?"
+   ]
+  },
+  {
+   "id": 752,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    2400,
+    22,
+    110,
+    110
+   ],
+   "area": 12100,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 753,
+   "image_id": 34,
+   "category_id": 8,
+   "bbox": [
+    150,
+    20,
+    300,
+    70
+   ],
+   "area": 21000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "邮箱"
+   ]
+  },
+  {
+   "id": 754,
+   "image_id": 34,
+   "category_id": 1,
+   "bbox": [
+    110,
+    140,
+    1130,
+    1260
+   ],
+   "area": 1423800,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "邮件列表"
+   ]
+  },
+  {
+   "id": 755,
+   "image_id": 34,
+   "category_id": 1,
+   "bbox": [
+    1244,
+    140,
+    1316,
+    1100
+   ],
+   "area": 1447600,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "邮件详情"
+   ]
+  },
+  {
+   "id": 756,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    150,
+    1120,
+    164
+   ],
+   "area": 183680,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "出门准备…",
+    "早柚",
+    "364天后过期"
+   ]
+  },
+  {
+   "id": 757,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    315,
+    1120,
+    154
+   ],
+   "area": 172480,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "10月1日参与《原神》千星奇域「绮星盛会」网页活动，可获得原石等奖励！",
+    "P·A·I·M·O·N",
+    "12天后过期"
+   ]
+  },
+  {
+   "id": 758,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    466,
+    1120,
+    160
+   ],
+   "area": 179200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "【网页活动上线】周年拾光册——回顾旅途精彩瞬间还有原石奖励哦！",
+    "P·A·I·M·O·N",
+    "1天后过期"
+   ]
+  },
+  {
+   "id": 759,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    620,
+    1120,
+    164
+   ],
+   "area": 183680,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "空月祝福即将到期提醒",
+    "P·A·I·M·O·N",
+    "6天后过期"
+   ]
+  },
+  {
+   "id": 760,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    779,
+    1120,
+    160
+   ],
+   "area": 179200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "「周年拾光册」网页活动即将结束",
+    "P·A·I·M·O·N",
+    "13小时后过期"
+   ]
+  },
+  {
+   "id": 761,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    936,
+    1120,
+    160
+   ],
+   "area": 179200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "「判测胜券本征」活动提醒",
+    "P·A·I·M·O·N",
+    "2小时后过期"
+   ]
+  },
+  {
+   "id": 762,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    1093,
+    1120,
+    160
+   ],
+   "area": 179200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "「周年拾光册」网页活动奖励发放",
+    "P·A·I·M·O·N",
+    "20天后过期"
+   ]
+  },
+  {
+   "id": 763,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    112,
+    1250,
+    1120,
+    152
+   ],
+   "area": 170240,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "(第 8 封：被屏底裁切)"
+   ]
+  },
+  {
+   "id": 764,
+   "image_id": 34,
+   "category_id": 8,
+   "bbox": [
+    1250,
+    150,
+    600,
+    60
+   ],
+   "area": 36000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "出门准备…"
+   ]
+  },
+  {
+   "id": 765,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    1250,
+    240,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "发件人：早柚"
+   ]
+  },
+  {
+   "id": 766,
+   "image_id": 34,
+   "category_id": 2,
+   "bbox": [
+    1250,
+    290,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "时间：2026-10-19 00:00"
+   ]
+  },
+  {
+   "id": 767,
+   "image_id": 34,
+   "category_id": 5,
+   "bbox": [
+    1290,
+    1140,
+    150,
+    130
+   ],
+   "area": 19500,
+   "iscrowd": 0,
+   "kind": "icon",
+   "text": [
+    "1"
+   ]
+  },
+  {
+   "id": 768,
+   "image_id": 34,
+   "category_id": 5,
+   "bbox": [
+    1450,
+    1140,
+    150,
+    130
+   ],
+   "area": 19500,
+   "iscrowd": 0,
+   "kind": "icon",
+   "text": [
+    "10"
+   ]
+  },
+  {
+   "id": 769,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    2160,
+    1330,
+    300,
+    90
+   ],
+   "area": 27000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "领取"
+   ]
+  },
+  {
+   "id": 770,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    1990,
+    1330,
+    100,
+    90
+   ],
+   "area": 9000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "☆"
+   ]
+  },
+  {
+   "id": 771,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    200,
+    1330,
+    300,
+    90
+   ],
+   "area": 27000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "全部领取"
+   ]
+  },
+  {
+   "id": 772,
+   "image_id": 34,
+   "category_id": 3,
+   "bbox": [
+    540,
+    1330,
+    300,
+    90
+   ],
+   "area": 27000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "删除已读"
+   ]
+  },
+  {
+   "id": 773,
+   "image_id": 35,
+   "category_id": 1,
+   "bbox": [
+    285,
+    2,
+    1600,
+    52
+   ],
+   "area": 83200,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "编辑器标签栏"
+   ]
+  },
+  {
+   "id": 774,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    285,
+    2,
+    330,
+    52
+   ],
+   "area": 17160,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ]
+  },
+  {
+   "id": 775,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    620,
+    2,
+    420,
+    52
+   ],
+   "area": 21840,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡变量管理 ×"
+   ]
+  },
+  {
+   "id": 776,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    1050,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "背景音乐管理 ×"
+   ]
+  },
+  {
+   "id": 777,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    1460,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "资产导入导出管理 ×"
+   ]
+  },
+  {
+   "id": 778,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    1870,
+    2,
+    360,
+    52
+   ],
+   "area": 18720,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "界面控件组管理 ×"
+   ]
+  },
+  {
+   "id": 779,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    2240,
+    2,
+    320,
+    52
+   ],
+   "area": 16640,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "主镜头管理 ×"
+   ]
+  },
+  {
+   "id": 780,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    10,
+    60,
+    272,
+    110
+   ],
+   "area": 29920,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ]
+  },
+  {
+   "id": 781,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    332,
+    55,
+    40,
+    44
+   ],
+   "area": 1760,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⌃"
+   ]
+  },
+  {
+   "id": 782,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    20,
+    95,
+    250,
+    44
+   ],
+   "area": 11000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "搜索"
+   ]
+  },
+  {
+   "id": 783,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    197,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义"
+   ]
+  },
+  {
+   "id": 784,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    237,
+    264,
+    48
+   ],
+   "area": 12672,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "物件"
+   ]
+  },
+  {
+   "id": 785,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    283,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义页签_1"
+   ]
+  },
+  {
+   "id": 786,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    325,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 787,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    368,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 788,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    409,
+    264,
+    44
+   ],
+   "area": 11616,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "造物"
+   ]
+  },
+  {
+   "id": 789,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    454,
+    264,
+    38
+   ],
+   "area": 10032,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 790,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    496,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 791,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    536,
+    264,
+    44
+   ],
+   "area": 11616,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "掉落物"
+   ]
+  },
+  {
+   "id": 792,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    581,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 793,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    624,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 794,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    666,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "预制"
+   ]
+  },
+  {
+   "id": 795,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    707,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ]
+  },
+  {
+   "id": 796,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    750,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "流程物件"
+   ]
+  },
+  {
+   "id": 797,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    792,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "玩法机关"
+   ]
+  },
+  {
+   "id": 798,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    836,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "其他"
+   ]
+  },
+  {
+   "id": 799,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    878,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "静态单位"
+   ]
+  },
+  {
+   "id": 800,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    922,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "树木"
+   ]
+  },
+  {
+   "id": 801,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    964,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "植被"
+   ]
+  },
+  {
+   "id": 802,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1007,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "地貌"
+   ]
+  },
+  {
+   "id": 803,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1049,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "岩石"
+   ]
+  },
+  {
+   "id": 804,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1092,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑"
+   ]
+  },
+  {
+   "id": 805,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1134,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑结构"
+   ]
+  },
+  {
+   "id": 806,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1178,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "人造装饰"
+   ]
+  },
+  {
+   "id": 807,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1220,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "灯具"
+   ]
+  },
+  {
+   "id": 808,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1263,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "饮食"
+   ]
+  },
+  {
+   "id": 809,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1309,
+    264,
+    36
+   ],
+   "area": 9504,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "武器"
+   ]
+  },
+  {
+   "id": 810,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1387,
+    264,
+    48
+   ],
+   "area": 12672,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "造物"
+   ]
+  },
+  {
+   "id": 811,
+   "image_id": 35,
+   "category_id": 1,
+   "bbox": [
+    0,
+    140,
+    272,
+    1300
+   ],
+   "area": 353600,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资源树"
+   ]
+  },
+  {
+   "id": 812,
+   "image_id": 35,
+   "category_id": 1,
+   "bbox": [
+    320,
+    130,
+    2200,
+    1250
+   ],
+   "area": 2750000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ]
+  },
+  {
+   "id": 813,
+   "image_id": 35,
+   "category_id": 1,
+   "bbox": [
+    318,
+    205,
+    520,
+    382
+   ],
+   "area": 198640,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资产调色板"
+   ]
+  },
+  {
+   "id": 814,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    337,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 815,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    487,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 816,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    337,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 817,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    487,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 818,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    337,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 819,
+   "image_id": 35,
+   "category_id": 7,
+   "bbox": [
+    487,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "木质指路牌"
+   ]
+  },
+  {
+   "id": 820,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1070,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 821,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1150,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 822,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 823,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 824,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    1130,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    3.0
+   ]
+  },
+  {
+   "id": 825,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    1230,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    30
+   ]
+  },
+  {
+   "id": 826,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    1330,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    0.1
+   ]
+  },
+  {
+   "id": 827,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 828,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 829,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2080,
+    1300,
+    460,
+    80
+   ],
+   "area": 36800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "添加通用组件"
+   ]
+  },
+  {
+   "id": 830,
+   "image_id": 35,
+   "category_id": 1,
+   "bbox": [
+    2080,
+    40,
+    480,
+    400
+   ],
+   "area": 192000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 831,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    52,
+    400,
+    50
+   ],
+   "area": 20000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 832,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    90,
+    400,
+    44
+   ],
+   "area": 17600,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "GUID 1077936203"
+   ]
+  },
+  {
+   "id": 833,
+   "image_id": 35,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    120,
+    220,
+    40
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "动态单位"
+   ]
+  },
+  {
+   "id": 834,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2130,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "?"
+   ]
+  },
+  {
+   "id": 835,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2180,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "X"
+   ]
+  },
+  {
+   "id": 836,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2230,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⚙"
+   ]
+  },
+  {
+   "id": 837,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    245,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "_GSTS_game"
+   ]
+  },
+  {
+   "id": 838,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    285,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "1073741825"
+   ]
+  },
+  {
+   "id": 839,
+   "image_id": 35,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    322,
+    380,
+    44
+   ],
+   "area": 16720,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "公开变量数",
+    "0"
+   ]
+  },
+  {
+   "id": 840,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2100,
+    374,
+    200,
+    44
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "编辑节点图变量"
+   ]
+  },
+  {
+   "id": 841,
+   "image_id": 35,
+   "category_id": 3,
+   "bbox": [
+    2320,
+    374,
+    200,
+    44
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "修改节点图"
+   ]
+  },
+  {
+   "id": 842,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    10,
+    60,
+    272,
+    110
+   ],
+   "area": 29920,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ]
+  },
+  {
+   "id": 843,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    285,
+    2,
+    1200,
+    52
+   ],
+   "area": 62400,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "关卡设置 | 关卡变量管理 | 背景音乐管理"
+   ]
+  },
+  {
+   "id": 844,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    285,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ]
+  },
+  {
+   "id": 845,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    620,
+    2,
+    440,
+    52
+   ],
+   "area": 22880,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡变量管理 ×"
+   ]
+  },
+  {
+   "id": 846,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    1060,
+    2,
+    420,
+    52
+   ],
+   "area": 21840,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "背景音乐管理 ×"
+   ]
+  },
+  {
+   "id": 847,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    332,
+    55,
+    40,
+    44
+   ],
+   "area": 1760,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⌃"
+   ]
+  },
+  {
+   "id": 848,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    20,
+    95,
+    250,
+    44
+   ],
+   "area": 11000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "搜索"
+   ]
+  },
+  {
+   "id": 849,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    197,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义"
+   ]
+  },
+  {
+   "id": 850,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    237,
+    264,
+    48
+   ],
+   "area": 12672,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "物件"
+   ]
+  },
+  {
+   "id": 851,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    283,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义页签_1"
+   ]
+  },
+  {
+   "id": 852,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    325,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 853,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    368,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 854,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    409,
+    264,
+    44
+   ],
+   "area": 11616,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "造物"
+   ]
+  },
+  {
+   "id": 855,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    454,
+    264,
+    38
+   ],
+   "area": 10032,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 856,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    496,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 857,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    536,
+    264,
+    44
+   ],
+   "area": 11616,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "掉落物"
+   ]
+  },
+  {
+   "id": 858,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    581,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 859,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    624,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 860,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    666,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "预制"
+   ]
+  },
+  {
+   "id": 861,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    707,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ]
+  },
+  {
+   "id": 862,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    750,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "流程物件"
+   ]
+  },
+  {
+   "id": 863,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    792,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "玩法机关"
+   ]
+  },
+  {
+   "id": 864,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    836,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "其他"
+   ]
+  },
+  {
+   "id": 865,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    878,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "静态单位"
+   ]
+  },
+  {
+   "id": 866,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    922,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "树木"
+   ]
+  },
+  {
+   "id": 867,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    964,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "植被"
+   ]
+  },
+  {
+   "id": 868,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1007,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "地貌"
+   ]
+  },
+  {
+   "id": 869,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1049,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "岩石"
+   ]
+  },
+  {
+   "id": 870,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1092,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑"
+   ]
+  },
+  {
+   "id": 871,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1134,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑结构"
+   ]
+  },
+  {
+   "id": 872,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1178,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "人造装饰"
+   ]
+  },
+  {
+   "id": 873,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1220,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "灯具"
+   ]
+  },
+  {
+   "id": 874,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1263,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "饮食"
+   ]
+  },
+  {
+   "id": 875,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1309,
+    264,
+    36
+   ],
+   "area": 9504,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "武器"
+   ]
+  },
+  {
+   "id": 876,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1387,
+    264,
+    48
+   ],
+   "area": 12672,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "造物"
+   ]
+  },
+  {
+   "id": 877,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    0,
+    140,
+    272,
+    1300
+   ],
+   "area": 353600,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资源树"
+   ]
+  },
+  {
+   "id": 878,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    318,
+    205,
+    520,
+    382
+   ],
+   "area": 198640,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资产调色板"
+   ]
+  },
+  {
+   "id": 879,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    337,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 880,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    487,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 881,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    337,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 882,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    487,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 883,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    337,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 884,
+   "image_id": 36,
+   "category_id": 7,
+   "bbox": [
+    487,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "木质指路牌"
+   ]
+  },
+  {
+   "id": 885,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1070,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 886,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1150,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 887,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 888,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 889,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    320,
+    130,
+    2200,
+    1250
+   ],
+   "area": 2750000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ]
+  },
+  {
+   "id": 890,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    801,
+    387,
+    958,
+    665
+   ],
+   "area": 637070,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "背景音乐管理"
+   ]
+  },
+  {
+   "id": 891,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    820,
+    395,
+    420,
+    46
+   ],
+   "area": 19320,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "背景音乐管理"
+   ]
+  },
+  {
+   "id": 892,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1655,
+    395,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "?"
+   ]
+  },
+  {
+   "id": 893,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1700,
+    395,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⌃"
+   ]
+  },
+  {
+   "id": 894,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    820,
+    452,
+    300,
+    44
+   ],
+   "area": 13200,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "基础设置"
+   ]
+  },
+  {
+   "id": 895,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1688,
+    452,
+    56,
+    40
+   ],
+   "area": 2240,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "..."
+   ]
+  },
+  {
+   "id": 896,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    830,
+    512,
+    900,
+    62
+   ],
+   "area": 55800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "点击选择背景音乐资产"
+   ]
+  },
+  {
+   "id": 897,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    598,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "生效时间范围"
+   ]
+  },
+  {
+   "id": 898,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    845,
+    632,
+    180,
+    44
+   ],
+   "area": 7920,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "00"
+   ]
+  },
+  {
+   "id": 899,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1290,
+    632,
+    180,
+    44
+   ],
+   "area": 7920,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "00.00"
+   ]
+  },
+  {
+   "id": 900,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    715,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "音量",
+    "100"
+   ]
+  },
+  {
+   "id": 901,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    765,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "播放速度",
+    "1.00"
+   ]
+  },
+  {
+   "id": 902,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    815,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "是否淡入淡出",
+    ""
+   ]
+  },
+  {
+   "id": 903,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    880,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "是否循环播放",
+    ""
+   ]
+  },
+  {
+   "id": 904,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    820,
+    915,
+    900,
+    44
+   ],
+   "area": 39600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "间隔时间(s)",
+    "0.00"
+   ]
+  },
+  {
+   "id": 905,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1105,
+    715,
+    260,
+    36
+   ],
+   "area": 9360,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 906,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1105,
+    765,
+    260,
+    36
+   ],
+   "area": 9360,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 907,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1120,
+    815,
+    60,
+    36
+   ],
+   "area": 2160,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 908,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1120,
+    880,
+    60,
+    36
+   ],
+   "area": 2160,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 909,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    1759,
+    387,
+    342,
+    665
+   ],
+   "area": 227430,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "背景音乐库"
+   ]
+  },
+  {
+   "id": 910,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1770,
+    415,
+    320,
+    50
+   ],
+   "area": 16000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "搜索"
+   ]
+  },
+  {
+   "id": 911,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    1770,
+    508,
+    220,
+    44
+   ],
+   "area": 9680,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "▼探索音乐"
+   ]
+  },
+  {
+   "id": 912,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    552,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "鲜衣游侠",
+    "索引：10002/03:43"
+   ]
+  },
+  {
+   "id": 913,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    602,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "激流逐浪",
+    "索引：10003/03:55"
+   ]
+  },
+  {
+   "id": 914,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    664,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "深壑的煅火",
+    "索引：10004/01:36"
+   ]
+  },
+  {
+   "id": 915,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    723,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "沉重的恶意",
+    "索引：10005/04:09"
+   ]
+  },
+  {
+   "id": 916,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    773,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "畅舒的行歌",
+    "索引：10006/01:26"
+   ]
+  },
+  {
+   "id": 917,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    833,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "失色的灾厄",
+    "索引：10008/04:14"
+   ]
+  },
+  {
+   "id": 918,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    882,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "希望的航程",
+    "索引：10010/02:50"
+   ]
+  },
+  {
+   "id": 919,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    944,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "壶中洞天",
+    "索引：10012/03:14"
+   ]
+  },
+  {
+   "id": 920,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1770,
+    998,
+    320,
+    60
+   ],
+   "area": 19200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "海风细语",
+    ""
+   ]
+  },
+  {
+   "id": 921,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2078,
+    390,
+    40,
+    40
+   ],
+   "area": 1600,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "X"
+   ]
+  },
+  {
+   "id": 922,
+   "image_id": 36,
+   "category_id": 1,
+   "bbox": [
+    2080,
+    40,
+    480,
+    380
+   ],
+   "area": 182400,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 923,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    52,
+    400,
+    50
+   ],
+   "area": 20000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 924,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    90,
+    400,
+    44
+   ],
+   "area": 17600,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "GUID 1077936203"
+   ]
+  },
+  {
+   "id": 925,
+   "image_id": 36,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    120,
+    220,
+    40
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "动态单位"
+   ]
+  },
+  {
+   "id": 926,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2130,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "?"
+   ]
+  },
+  {
+   "id": 927,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2180,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "X"
+   ]
+  },
+  {
+   "id": 928,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2230,
+    183,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⚙"
+   ]
+  },
+  {
+   "id": 929,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2290,
+    180,
+    90,
+    50
+   ],
+   "area": 4500,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 930,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    245,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "_GSTS_game"
+   ]
+  },
+  {
+   "id": 931,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    285,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "1073741825"
+   ]
+  },
+  {
+   "id": 932,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    325,
+    380,
+    44
+   ],
+   "area": 16720,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "公开变量数",
+    "0"
+   ]
+  },
+  {
+   "id": 933,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2100,
+    372,
+    200,
+    44
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "编辑节点图变量"
+   ]
+  },
+  {
+   "id": 934,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2320,
+    372,
+    200,
+    44
+   ],
+   "area": 8800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "修改节点图"
+   ]
+  },
+  {
+   "id": 935,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1130,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    3.0
+   ]
+  },
+  {
+   "id": 936,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1230,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    30
+   ]
+  },
+  {
+   "id": 937,
+   "image_id": 36,
+   "category_id": 2,
+   "bbox": [
+    1330,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    0.1
+   ]
+  },
+  {
+   "id": 938,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    2080,
+    1300,
+    460,
+    80
+   ],
+   "area": 36800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "添加节点图"
+   ]
+  },
+  {
+   "id": 939,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 940,
+   "image_id": 36,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 941,
+   "image_id": 37,
+   "category_id": 1,
+   "bbox": [
+    285,
+    2,
+    1600,
+    52
+   ],
+   "area": 83200,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "编辑器标签栏"
+   ]
+  },
+  {
+   "id": 942,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    285,
+    2,
+    330,
+    52
+   ],
+   "area": 17160,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ]
+  },
+  {
+   "id": 943,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    620,
+    2,
+    420,
+    52
+   ],
+   "area": 21840,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡变量管理 ×"
+   ]
+  },
+  {
+   "id": 944,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    1050,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "背景音乐管理 ×"
+   ]
+  },
+  {
+   "id": 945,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    1460,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "资产导入导出管理 ×"
+   ]
+  },
+  {
+   "id": 946,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    1870,
+    2,
+    360,
+    52
+   ],
+   "area": 18720,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "界面控件组管理 ×"
+   ]
+  },
+  {
+   "id": 947,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2240,
+    2,
+    320,
+    52
+   ],
+   "area": 16640,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "主镜头管理 ×"
+   ]
+  },
+  {
+   "id": 948,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    10,
+    60,
+    272,
+    110
+   ],
+   "area": 29920,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ]
+  },
+  {
+   "id": 949,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    332,
+    55,
+    40,
+    44
+   ],
+   "area": 1760,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⌃"
+   ]
+  },
+  {
+   "id": 950,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    20,
+    95,
+    250,
+    44
+   ],
+   "area": 11000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "搜索"
+   ]
+  },
+  {
+   "id": 951,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    197,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义"
+   ]
+  },
+  {
+   "id": 952,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    237,
+    264,
+    48
+   ],
+   "area": 12672,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "物件"
+   ]
+  },
+  {
+   "id": 953,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    280,
+    264,
+    42
+   ],
+   "area": 11088,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义页签_1"
+   ]
+  },
+  {
+   "id": 954,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    325,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ]
+  },
+  {
+   "id": 955,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    368,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ]
+  },
+  {
+   "id": 956,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    411,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "基础模块"
+   ]
+  },
+  {
+   "id": 957,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    451,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ]
+  },
+  {
+   "id": 958,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    496,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "流程物件"
+   ]
+  },
+  {
+   "id": 959,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    535,
+    264,
+    45
+   ],
+   "area": 11880,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "玩法机关"
+   ]
+  },
+  {
+   "id": 960,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    581,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "其他"
+   ]
+  },
+  {
+   "id": 961,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    622,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "静态单位"
+   ]
+  },
+  {
+   "id": 962,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    666,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "树木"
+   ]
+  },
+  {
+   "id": 963,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    708,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "植被"
+   ]
+  },
+  {
+   "id": 964,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    751,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "地貌"
+   ]
+  },
+  {
+   "id": 965,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    795,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "岩石"
+   ]
+  },
+  {
+   "id": 966,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    837,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑"
+   ]
+  },
+  {
+   "id": 967,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    876,
+    264,
+    45
+   ],
+   "area": 11880,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建筑结构"
+   ]
+  },
+  {
+   "id": 968,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    922,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "人造装饰"
+   ]
+  },
+  {
+   "id": 969,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    964,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "灯具"
+   ]
+  },
+  {
+   "id": 970,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1007,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "饮食"
+   ]
+  },
+  {
+   "id": 971,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1050,
+    264,
+    41
+   ],
+   "area": 10824,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "武器"
+   ]
+  },
+  {
+   "id": 972,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1093,
+    264,
+    40
+   ],
+   "area": 10560,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "工具"
+   ]
+  },
+  {
+   "id": 973,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1137,
+    264,
+    39
+   ],
+   "area": 10296,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "资产库"
+   ]
+  },
+  {
+   "id": 974,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1176,
+    264,
+    43
+   ],
+   "area": 11352,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "预设物件"
+   ]
+  },
+  {
+   "id": 975,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1221,
+    264,
+    38
+   ],
+   "area": 10032,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "默认分类"
+   ]
+  },
+  {
+   "id": 976,
+   "image_id": 37,
+   "category_id": 1,
+   "bbox": [
+    0,
+    140,
+    272,
+    1300
+   ],
+   "area": 353600,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资源树"
+   ]
+  },
+  {
+   "id": 977,
+   "image_id": 37,
+   "category_id": 1,
+   "bbox": [
+    320,
+    130,
+    2200,
+    1250
+   ],
+   "area": 2750000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ]
+  },
+  {
+   "id": 978,
+   "image_id": 37,
+   "category_id": 1,
+   "bbox": [
+    318,
+    205,
+    520,
+    382
+   ],
+   "area": 198640,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "资产调色板"
+   ]
+  },
+  {
+   "id": 979,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    337,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 980,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    487,
+    225,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 981,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    337,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ]
+  },
+  {
+   "id": 982,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    487,
+    345,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 983,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    337,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 984,
+   "image_id": 37,
+   "category_id": 7,
+   "bbox": [
+    487,
+    465,
+    98,
+    100
+   ],
+   "area": 9800,
+   "iscrowd": 0,
+   "kind": "tile",
+   "text": [
+    "木质指路牌"
+   ]
+  },
+  {
+   "id": 985,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1070,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 986,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1150,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 987,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 988,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    50,
+    80,
+    80
+   ],
+   "area": 6400,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 989,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    1130,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    3.0
+   ]
+  },
+  {
+   "id": 990,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    1230,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    30
+   ]
+  },
+  {
+   "id": 991,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    1330,
+    1310,
+    90,
+    44
+   ],
+   "area": 3960,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    0.1
+   ]
+  },
+  {
+   "id": 992,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1230,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 993,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 994,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2080,
+    1300,
+    460,
+    80
+   ],
+   "area": 36800,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "添加通用组件"
+   ]
+  },
+  {
+   "id": 995,
+   "image_id": 37,
+   "category_id": 1,
+   "bbox": [
+    2080,
+    40,
+    480,
+    700
+   ],
+   "area": 336000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 996,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    52,
+    400,
+    50
+   ],
+   "area": 20000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "箭头指示牌"
+   ]
+  },
+  {
+   "id": 997,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    92,
+    400,
+    40
+   ],
+   "area": 16000,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "元件ID 20001454"
+   ]
+  },
+  {
+   "id": 998,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    172,
+    460,
+    46
+   ],
+   "area": 21160,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "动态单位元件"
+   ]
+  },
+  {
+   "id": 999,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2130,
+    230,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "?"
+   ]
+  },
+  {
+   "id": 1000,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2180,
+    230,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "X"
+   ]
+  },
+  {
+   "id": 1001,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2230,
+    230,
+    44,
+    44
+   ],
+   "area": 1936,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⚙"
+   ]
+  },
+  {
+   "id": 1002,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2290,
+    228,
+    90,
+    46
+   ],
+   "area": 4140,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": []
+  },
+  {
+   "id": 1003,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    288,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "自定义变量"
+   ]
+  },
+  {
+   "id": 1004,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    332,
+    380,
+    44
+   ],
+   "area": 16720,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "自定义变量数量",
+    "0"
+   ]
+  },
+  {
+   "id": 1005,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2200,
+    380,
+    320,
+    46
+   ],
+   "area": 14720,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "详细编辑"
+   ]
+  },
+  {
+   "id": 1006,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    442,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "特效播放"
+   ]
+  },
+  {
+   "id": 1007,
+   "image_id": 37,
+   "category_id": 2,
+   "bbox": [
+    2090,
+    486,
+    380,
+    44
+   ],
+   "area": 16720,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "特效列表"
+   ]
+  },
+  {
+   "id": 1008,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2200,
+    540,
+    320,
+    46
+   ],
+   "area": 14720,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "详细编辑"
+   ]
+  },
+  {
+   "id": 1009,
+   "image_id": 37,
+   "category_id": 8,
+   "bbox": [
+    2090,
+    600,
+    460,
+    44
+   ],
+   "area": 20240,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "单位状态"
+   ]
+  },
+  {
+   "id": 1010,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    2200,
+    652,
+    320,
+    46
+   ],
+   "area": 14720,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "详细编辑"
+   ]
+  },
+  {
+   "id": 1011,
+   "image_id": 37,
+   "category_id": 3,
+   "bbox": [
+    1330,
+    1372,
+    60,
+    52
+   ],
+   "area": 3120,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "⤓"
+   ]
+  },
+  {
+   "id": 1012,
+   "image_id": 38,
+   "category_id": 1,
+   "bbox": [
+    285,
+    2,
+    1600,
+    52
+   ],
+   "area": 83200,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "编辑器标签栏"
+   ]
+  },
+  {
+   "id": 1013,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    285,
+    2,
+    330,
+    52
+   ],
+   "area": 17160,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ]
+  },
+  {
+   "id": 1014,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    620,
+    2,
+    420,
+    52
+   ],
+   "area": 21840,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "关卡变量管理 ×"
+   ]
+  },
+  {
+   "id": 1015,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    1050,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "背景音乐管理 ×"
+   ]
+  },
+  {
+   "id": 1016,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    1460,
+    2,
+    400,
+    52
+   ],
+   "area": 20800,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "资产导入导出管理 ×"
+   ]
+  },
+  {
+   "id": 1017,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    1870,
+    2,
+    360,
+    52
+   ],
+   "area": 18720,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "界面控件组管理 ×"
+   ]
+  },
+  {
+   "id": 1018,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    2240,
+    2,
+    320,
+    52
+   ],
+   "area": 16640,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "主镜头管理 ×"
+   ]
+  },
+  {
+   "id": 1019,
+   "image_id": 38,
+   "category_id": 8,
+   "bbox": [
+    10,
+    60,
+    272,
+    110
+   ],
+   "area": 29920,
+   "iscrowd": 0,
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ]
+  },
+  {
+   "id": 1020,
+   "image_id": 38,
+   "category_id": 3,
+   "bbox": [
+    20,
+    95,
+    250,
+    44
+   ],
+   "area": 11000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "搜索"
+   ]
+  },
+  {
+   "id": 1021,
+   "image_id": 38,
+   "category_id": 1,
+   "bbox": [
+    0,
+    1000,
+    400,
+    440
+   ],
+   "area": 176000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "时间轴轨道面板"
+   ]
+  },
+  {
+   "id": 1022,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1036,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "蓄力分支动画",
+    "连段技能动画"
+   ]
+  },
+  {
+   "id": 1023,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1088,
+    372,
+    42
+   ],
+   "area": 15624,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "#1 公共前摇",
+    "00:00:00"
+   ]
+  },
+  {
+   "id": 1024,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1142,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "+ 新建轨道"
+   ]
+  },
+  {
+   "id": 1025,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1196,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "开始事件轨道",
+    "+"
+   ]
+  },
+  {
+   "id": 1026,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1244,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "结束事件轨道"
+   ]
+  },
+  {
+   "id": 1027,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1284,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "建段轨道"
+   ]
+  },
+  {
+   "id": 1028,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1332,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "花燕图事件"
+   ]
+  },
+  {
+   "id": 1029,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    8,
+    1380,
+    372,
+    44
+   ],
+   "area": 16368,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "武器模型特效01",
+    "特效播放"
+   ]
+  },
+  {
+   "id": 1030,
+   "image_id": 38,
+   "category_id": 1,
+   "bbox": [
+    320,
+    130,
+    2200,
+    850
+   ],
+   "area": 1870000,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ]
+  },
+  {
+   "id": 1031,
+   "image_id": 38,
+   "category_id": 1,
+   "bbox": [
+    1800,
+    60,
+    740,
+    560
+   ],
+   "area": 414400,
+   "iscrowd": 0,
+   "kind": "panel",
+   "text": [
+    "特效播放"
+   ]
+  },
+  {
+   "id": 1032,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    63,
+    560,
+    44
+   ],
+   "area": 24640,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "特效播放",
+    "X"
+   ]
+  },
+  {
+   "id": 1033,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    104,
+    560,
+    60
+   ],
+   "area": 33600,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "特效播放"
+   ]
+  },
+  {
+   "id": 1034,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    188,
+    560,
+    44
+   ],
+   "area": 24640,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "箭矢01"
+   ]
+  },
+  {
+   "id": 1035,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    251,
+    560,
+    44
+   ],
+   "area": 24640,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "是否播放特效资产音效"
+   ]
+  },
+  {
+   "id": 1036,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    297,
+    560,
+    43
+   ],
+   "area": 24080,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "单位挂接点",
+    "GI_WeaponR"
+   ]
+  },
+  {
+   "id": 1037,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    343,
+    560,
+    43
+   ],
+   "area": 24080,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "位置",
+    "X 0.00",
+    "0.00",
+    "0.00"
+   ]
+  },
+  {
+   "id": 1038,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    388,
+    560,
+    43
+   ],
+   "area": 24080,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "Y 0.00",
+    "旋转",
+    "0.00"
+   ]
+  },
+  {
+   "id": 1039,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    432,
+    560,
+    45
+   ],
+   "area": 25200,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "缩放",
+    "1.00"
+   ]
+  },
+  {
+   "id": 1040,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    481,
+    560,
+    38
+   ],
+   "area": 21280,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "是否跟随位置"
+   ]
+  },
+  {
+   "id": 1041,
+   "image_id": 38,
+   "category_id": 2,
+   "bbox": [
+    1978,
+    526,
+    560,
+    39
+   ],
+   "area": 21840,
+   "iscrowd": 0,
+   "kind": "row",
+   "text": [
+    "是否跟随旋转"
+   ]
+  },
+  {
+   "id": 1042,
+   "image_id": 38,
+   "category_id": 3,
+   "bbox": [
+    2440,
+    1040,
+    100,
+    50
+   ],
+   "area": 5000,
+   "iscrowd": 0,
+   "kind": "button",
+   "text": [
+    "收起"
    ]
   }
  ],
