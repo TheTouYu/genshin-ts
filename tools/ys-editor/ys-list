@@ -102,7 +102,12 @@ def build_items(texts, label_re, region=None):
                  and b["x0"] < lab["x1"] and not re.search(label_re, b["text"])]
         if not cands:
             continue
-        name = min(cands, key=lambda b: (b["x0"], -b["w"]))
+        # 名字：排除 "Lv.NN"/纯数字/命中标签的块，再取最靠左者（实测：不排除会把 Lv.60 当名字）
+        def _is_name(b):
+            t = b["text"].strip()
+            return not re.match(r'^(Lv\.?\s*\d+|\d+(\.\d+)?%?|口|O)$', t)
+        named = [b for b in cands if _is_name(b)] or cands
+        name = min(named, key=lambda b: (b["x0"], -b["w"]))
         out.append({"y": round(name["cy"]), "name": name["text"],
                     "name_bbox": [name["x0"], name["y0"], name["w"], name["y1"] - name["y0"]],
                     "label": lab["text"],

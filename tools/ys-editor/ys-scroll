@@ -80,7 +80,7 @@ def shift_px(a, b, x0f=0.35, x1f=0.65):
     ca = (ca - ca.mean()) / (ca.std() + 1e-6)
     cb = (cb - cb.mean()) / (cb.std() + 1e-6)
     best, bestv = 0, -2.0
-    for s in range(-200, 201):
+    for s in range(-900, 901):
         if s >= 0:
             v = float((ca[s:] * cb[:len(cb) - s]).mean()) if s < len(ca) - 4 else -2
         else:
