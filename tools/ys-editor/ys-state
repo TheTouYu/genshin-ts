@@ -61,7 +61,8 @@ MANIFEST = os.path.join(REG_DIR, "manifest.tsv")
 PROFILE_DEFAULT = os.path.join(REPO, ".scratch", "gui-profiles", "qianxing.json")
 
 # ── 状态名（全仓唯一词表）────────────────────────────────────────
-STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING", "UNKNOWN")
+STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING",
+          "GAME_WORLD", "GAME_PAIMON", "UNKNOWN")   # 后两态=原神本体（2026-10-18 接入）
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
 FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不参与
 # 投票规则：缺省 "all"（该态全部判据成立）；PLAYTEST="any2"（2/3 多数）
@@ -697,6 +698,103 @@ def decide(readings):
 
 
 # ══════════════════════════════════════════════════════════════════
+# 原神本体两态（2026-10-18 接入 O-2026-10-17-12）
+# ══════════════════════════════════════════════════════════════════
+# 为什么用 OCR 而不是像素：实测单点**分不开**——PLAYTEST 的左面板点也是亮蓝
+# （playtest.png (125,216,255) ≈ 本体派蒙菜单 (131,205,255)），一个像素判据必误报。
+# 本体的区分性在**文本 + 位置**：右下角 `UID:` 行、底部「数字/数字」血条是提瓦特世界；
+# 左面板「冒险等阶/世界等级」是派蒙菜单。
+# 仅在既有 8 态**全不成立（UNKNOWN）**时才跑这一次 OCR（约 0.5s，走常驻），
+# 所以不影响既有路径的延迟；本体帧在回归集里是 UNKNOWN 期望，改后仍须 UNKNOWN 之外正确分类。
+NATIVE_OCR = os.path.join(HERE, 'ys_ocr.py')
+
+
+def _ocr_boxes(frame_path):
+    """取一次 OCR 的框（失败返回 None，不抛——本体判定是增强，不是必须）。"""
+    import json as _json
+    try:
+        venv_py = os.environ.get('YS_RAPIDOCR_PY')
+        cmd = [venv_py or '/usr/bin/python3', NATIVE_OCR, 'ocr', frame_path, '--json']
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if p.returncode != 0:
+            return None
+        return _json.loads(p.stdout).get('boxes') or []
+    except Exception:                                        # noqa: BLE001
+        return None
+
+
+def _has(boxes, sub, region=None):
+    for b in boxes:
+        if sub not in (b.get('text') or ''):
+            continue
+        if region is None:
+            return True
+        x0, y0, x1, y1 = region
+        if x0 <= b.get('cx', -1) <= x1 and y0 <= b.get('cy', -1) <= y1:
+            return True
+    return False
+
+
+def native_readings(frame_path, offset=(0, 0)):
+    """本体两态判据。返回 {判据名: {...}}，与 pixel_readings 同形状。
+
+    `offset` = 这张图相对**屏幕绝对坐标**的位移。常驻服务判态时给的是**裁剪后的 ROI 帧**
+    （fast_roi 只裁到判据需要的区域），OCR 出来的框是 ROI 坐标 ⇒ 必须加这个偏移，
+    否则区域判据（右下 UID / 底部血条）全部落空。实测踩过：离线全帧判得对、实时判 UNKNOWN。
+    """
+    boxes = _ocr_boxes(frame_path)
+    if boxes is None:
+        return {}
+    _ox, _oy = offset
+    if _ox or _oy:
+        boxes = [dict(b, cx=b.get('cx', 0) + _ox, cy=b.get('cy', 0) + _oy) for b in boxes]
+    R = {}
+
+    def put(name, passed, value):
+        R[name] = {"value": value, "passed": bool(passed), "kind": "ocr"}
+
+    # GAME_WORLD（提瓦特世界）：右下 UID 行 + 底部血条数值 + 左面板**无**派蒙菜单标题
+    # 区域按**实测**放宽（2026-10-18 真机标定）：UID 行实测 cy=1418、血条实测
+    # 「7629/16950」@cx=1276,cy=1346 —— 初版写 (2200,1380,2560,1440)/(1150..1400,1320..1380)
+    # 恰好把两组都卡在边界外，导致实时判不出 GAME_WORLD（离线帧却对得上，因为那两张帧位置略不同）。
+    put("GAME_WORLD/A 右下 UID 行", _has(boxes, 'UID', (2200, 1360, 2560, 1440)),
+        '右下行')
+    put("GAME_WORLD/B 底部血条数值", any('/' in (b.get('text') or '')
+                                   and 1100 <= b.get('cx', -1) <= 1450
+                                   and 1300 <= b.get('cy', -1) <= 1400 for b in boxes),
+        '血条')
+    put("GAME_WORLD/C 左面板无派蒙标题", not _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
+        '左面板')
+    # GAME_PAIMON（派蒙菜单）：左面板三件套
+    put("GAME_PAIMON/A 左面板「冒险等阶」", _has(boxes, '冒险等阶', (0, 0, 1000, 700)),
+        '冒险等阶')
+    put("GAME_PAIMON/B 左面板「世界等级」", _has(boxes, '世界等级', (0, 0, 1000, 800)),
+        '世界等级')
+    # ⚠️ OCR 把它读成 `UID 110170759`（空格不是冒号），必须用子串 UID
+    put("GAME_PAIMON/C 左侧 UID 行", _has(boxes, 'UID', (0, 240, 1000, 330)),
+        '左 UID')
+    return R
+
+
+def decide_with_native(readings, frame_path, offset=(0, 0)):
+    """先按既有 8 态判；只有 UNKNOWN 才追加本体判据再判一次。"""
+    res = decide(readings)
+    if res.get('state') != 'UNKNOWN' or not frame_path:
+        return res
+    extra = native_readings(frame_path, offset=offset)
+    if not extra:
+        return res
+    merged = dict(readings)
+    merged.update(extra)
+    res2 = decide(merged)
+    if res2.get('state') != 'UNKNOWN':
+        res2['readings'] = merged
+        res2['native'] = True
+        return res2
+    return res
+
+
+# ══════════════════════════════════════════════════════════════════
 # 两个通道的端到端
 # ══════════════════════════════════════════════════════════════════
 def run_full(frame=None):
@@ -720,7 +818,8 @@ def run_full(frame=None):
         # 缩放帧/半截帧：像素坐标不可信 —— 直接拒绝，绝不拿错位像素当判据
         readings["GEOM/frame 尺寸 2560x1440"] = {
             "value": f"实际 {pix.w}x{pix.h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
-    res = decide(readings)
+    res = decide_with_native(readings, frame)      # UNKNOWN 时才追加本体判据（O-2026-10-17-12）
+    readings = res.get('readings') or readings
     res.update({"channel": "full", "readings": readings, "ms": round((time.time() - t0) * 1000)})
     return res, frame, fresh_obj(frame, meta)
 
@@ -847,6 +946,29 @@ def run_fast(frame=None, profile_path=None, max_age_ms=None):
             fresh = d.get("fresh")
             if not fresh and frame:
                 fresh = fresh_obj(frame, None)
+            # 常驻服务只做既有 8 态；它判 UNKNOWN 时由这里用**全帧**做本体后备。
+            # 为什么兜底放在客户端而不是 daemon：daemon 手里是 fast_roi 裁剪帧（宽 ~1400px），
+            # 而本体判据要看右下 UID（x≈2370）——那部分不在裁剪里，所以 daemon 侧永远判不出 WORLD。
+            if res.get("state") == "UNKNOWN":
+                _fp = frame
+                if not _fp:                       # 活体：抓一张全帧落盘（~105ms，仅 UNKNOWN 时付）
+                    try:
+                        load_env()
+                        import ys_look as _yl
+                        import numpy as _np
+                        from PIL import Image as _Im
+                        _arr = (_yl.grab(0, 0, FRAME_W, FRAME_H) * 255).round().astype(_np.uint8)
+                        _fp = os.path.join('/tmp', 'ys-state-native-%d.png' % os.getpid())
+                        _Im.fromarray(_arr).save(_fp)
+                    except Exception:             # noqa: BLE001 —— 抓不到就保持 UNKNOWN
+                        _fp = None
+                if _fp:
+                    _n = decide_with_native(res.get("readings") or {}, _fp)
+                    if _n.get("state") != "UNKNOWN":
+                        res.update({k: _n[k] for k in ("state", "confidence", "ambiguous",
+                                                       "margin", "verdicts") if k in _n})
+                        res["native"] = True
+                        res["readings"] = _n.get("readings") or res.get("readings")
             return res, frame, fresh
 
     # ② 回退本地（服务没起/旧版本/报错）——判据仍是同一份代码，但**必须出声**
@@ -894,7 +1016,8 @@ def run_fast(frame=None, profile_path=None, max_age_ms=None):
                 os.unlink(bin_path)
             except OSError:
                 pass
-    res = decide(readings)
+    res = decide_with_native(readings, frame)     # UNKNOWN 时才追加本体判据
+    readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings, "via": "local",
                 "daemon_error": DAEMON_ERROR, "ms": round((time.time() - t0) * 1000)})
     if fallback_note:

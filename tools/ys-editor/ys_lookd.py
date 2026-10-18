@@ -241,7 +241,9 @@ def _state(req):
         r = _batch_on(It, jobs, -ox, -oy)
         scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
         readings.update(YS.anchor_readings_from_scores(scores, state_of))
-    res = YS.decide(readings)
+    res = YS.decide(readings)   # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
+    # 而本体判据要看右下 UID（x≈2370，在裁剪外）。改由 ys-state 在 UNKNOWN 时用全帧兜底。
+    readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings,
                 "ms": round((time.time() - t0) * 1000),
                 "load_ms": round((t_load - t0) * 1000),
