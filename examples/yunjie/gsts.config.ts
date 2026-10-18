@@ -2,7 +2,7 @@ import type { GstsConfig } from '../../src/compiler/gsts_config.js'
 
 const config: GstsConfig = {
   compileRoot: '.',
-  entries: ['./src/probe.ts'],
+  entries: ['./src/game.ts'],
   outDir: './dist',
   inject: {
     gameRegion: 'China',
