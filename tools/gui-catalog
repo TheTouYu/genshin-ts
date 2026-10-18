@@ -25,7 +25,15 @@ import re
 import sys
 
 FIELDS = ['id', 'file', 'line', 'section', 'quote', 'intent', 'action',
-          'target', 'precond', 'postcond', 'channels', 'status', 'notes']
+          'target', 'precond', 'postcond', 'channels', 'status', 'source_kind', 'notes']
+
+# source_kind —— 这条操作**从哪来的**，决定 quote 该怎么验真（2026-10-18 用户裁决）：
+#   guide    = 官方指南里有原文。quote 必须**逐字**出现在 <同名>.md 里（机器可验，零容忍）。
+#   measured = 真机实测出来的操作，指南里**本来就没有**这句话（EC-M004/005 活动领奖与预测投票
+#              属原神本体，不是编辑器指南的功能）。这类行 **豁免指南验真**——但它并不更松：
+#              必须满足实测证据要求（measurements.tsv 有一致台账 + evidence 非空 + 实测时刻），
+#              由 ys-gates 门槛⑥ 硬检查。把"有原文"与"实测过"分开验，才不会为过门禁去伪造 quote。
+SOURCE_KINDS = ('guide', 'measured')
 
 # 强操作动词：出现即算候选（这些词在描述句里极少自然出现）
 STRONG = [('双击', 'double-click'), ('单击', 'click'), ('点击', 'click'), ('右键', 'right-click'),
@@ -185,6 +193,7 @@ def extract(path, require_control=False):
                     'postcond': post[:90],
                     'channels': '+'.join(channels_of(quote)),
                     'status': '待测',
+                    'source_kind': 'guide',      # 机械抽取的行必然来自指南原文
                     'notes': 'verb=%s' % verb,
                 })
     return rows
@@ -253,14 +262,38 @@ def cmd_extract(a):
 
 
 def cmd_verify(a):
+    """逐行验真 quote。
+
+    口径与 `tools/ys-gates --only 6` 严格一致（契约 §8bis）：
+      guide    ⇒ quote 必须逐字出现在指南原文里
+      measured ⇒ 指南里本来就没有这句（原神本体实测），豁免验真；
+                 但 quote 必须写明实测来源，且必须在 measurements.tsv 里有台账+evidence
+    两边口径必须一致 —— 否则用户跑 `verify` 看到红、跑门禁看到绿（或反过来），
+    就会为了"让 verify 变绿"去编假 quote，那正是这条门禁要拦的行为。
+    """
     guide = open(a.guide, encoding='utf-8').read()
     rows = read_tsv(a.catalog)
-    bad = [r for r in rows if r['quote'] and r['quote'] not in guide]
-    print('[verify] %d/%d 行 quote 逐字命中指南原文' % (len(rows) - len(bad), len(rows)))
-    for r in bad[:10]:
-        print('  [不中] %s L%s: %s' % (r['id'], r['line'], r['quote'][:60]))
-    if bad:
-        print('  → 不中的行必须删除或重抽（catalog 只收逐字可查的原文）')
+    bad, measured_bad, n_measured = [], [], 0
+    for r in rows:
+        kind = (r.get('source_kind') or 'guide').strip()
+        if kind == 'measured':
+            n_measured += 1
+            if '实测' not in (r.get('quote') or ''):
+                measured_bad.append('%s 的 quote 未写明实测来源' % r['id'])
+        elif kind != 'guide':
+            bad.append('%s source_kind=%r 非法' % (r['id'], kind))
+        elif r['quote'] and r['quote'] not in guide:
+            bad.append('%s L%s: %s' % (r['id'], r['line'], r['quote'][:60]))
+    n_guide = len(rows) - n_measured
+    print('[verify] guide 行 %d/%d 逐字命中；measured 行 %d（豁免指南验真）'
+          % (n_guide - len(bad), n_guide, n_measured))
+    for b in bad[:10]:
+        print('  [不中] %s' % b)
+    for b in measured_bad[:10]:
+        print('  [实测证据不足] %s' % b)
+    if bad or measured_bad:
+        print('  → guide 行必须删除或重抽；measured 行必须写明实测来源'
+              '（详见契约 §8bis）')
         return 1
     return 0
 

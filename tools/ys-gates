@@ -371,8 +371,16 @@ def gate6(record=False):
         for r in rs:
             r['_cat'] = c
             rows.append(r)
-            if guide and r.get('quote') and r['quote'] not in guide:
-                quote_bad.append('%s/%s L%s' % (c, r.get('id'), r.get('line')))
+            # source_kind 决定 quote 怎么验真（2026-10-18 用户裁决，契约 §8 增补）：
+            #   guide    ⇒ 逐字出现在 <同名>.md 里（零容忍，机器可验）
+            #   measured ⇒ 指南里本来就没有这句话（原神本体实测操作），豁免验真；
+            #              改由下面的「实测证据闸门」硬检查，**不放松**
+            kind = (r.get('source_kind') or 'guide').strip()
+            if kind not in ('guide', 'measured'):
+                quote_bad.append('%s/%s source_kind=%r 不是 guide|measured' % (c, r.get('id'), kind))
+            elif kind == 'guide':
+                if guide and r.get('quote') and r['quote'] not in guide:
+                    quote_bad.append('%s/%s L%s' % (c, r.get('id'), r.get('line')))
             for f in ('id', 'section', 'quote', 'action', 'target', 'precond', 'postcond', 'status'):
                 if not (r.get(f) or '').strip():
                     field_bad.append('%s/%s 缺 %s' % (c, r.get('id'), f))
@@ -411,6 +419,27 @@ def gate6(record=False):
         if oid not in ids:
             g['gaps'].append('台账里 %s 在 catalog 中不存在（孤儿台账）' % oid)
 
+    # 实测证据闸门（source_kind=measured 的**替代验真**，只对 measured 生效）：
+    # 这类行豁免了指南原文验真，就必须在证据上更硬——台账要有实测时刻 + evidence，
+    # 且 quote 要写明它是实测来源（不许拿"（无原文）"这种空占位符混过去）。
+    measured_rows = [r for r in rows if (r.get('source_kind') or '').strip() == 'measured']
+    measured_bad = []
+    for r in measured_rows:
+        rid = r.get('id', '')
+        m = meas.get(rid)
+        if not m:
+            measured_bad.append('%s 标 measured 但无实测台账' % rid)
+            continue
+        if not (m.get('measured_at') or '').strip():
+            measured_bad.append('%s 台账缺 measured_at' % rid)
+        if not (m.get('evidence') or '').strip():
+            measured_bad.append('%s 台账缺 evidence' % rid)
+        q = (r.get('quote') or '')
+        if '实测' not in q:
+            measured_bad.append('%s 的 quote 未写明实测来源（实测行必须自带出处）' % rid)
+    if measured_bad:
+        g['gaps'].append('实测行证据不足 %d 处：%s' % (len(measured_bad), '; '.join(measured_bad[:5])))
+
     # 小节无盲区：台账行数必须等于指南里 `### ` 小节数
     blind = []
     for c in cats:
@@ -436,7 +465,11 @@ def gate6(record=False):
                                       '可执行': round(100.0 * runnable / denom, 1) if denom else 0.0,
                                       '可验证': round(100.0 * verified / denom, 1) if denom else 0.0},
                      'postcond_placeholder': placeholder,
-                     'quote_bad': len(quote_bad), 'field_bad': len(field_bad)}
+                     'source_kind': {k: sum(1 for r in rows
+                                            if (r.get('source_kind') or 'guide') == k)
+                                     for k in ('guide', 'measured')},
+                     'quote_bad': len(quote_bad), 'field_bad': len(field_bad),
+                     'measured_bad': len(measured_bad)}
     if total < 100:
         g['gaps'].append('catalog 仅 %d 条 < 100（分母太小，覆盖率无意义）' % total)
     if quote_bad:
