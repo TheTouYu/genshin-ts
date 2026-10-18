@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+"""ys-snap — 素材快收（薄客户端：抓帧交给既有抓帧层，本工具只管"选窗口 + 触发 + 落盘"）。
+
+2026-10-19 事故后的设计修订（用户裁定）：
+  上一版在后台起了 10fps 的常驻抓帧守护，连续读游戏窗口 **15 分钟、约 9000 次**，
+  把原神的 presentation 拖死（游戏进程活着、GPU 0%、画面冻结）。
+  ⇒ 本工具**不做任何后台轮询**：每次触发只抓一帧，抓完立刻释放共享内存段并退出。
+  ⇒ 游戏窗口默认走 **KWin ScreenShot2**（读合成器自己的副本，约 250ms），不走 XShm 直读；
+     只有显式 `--fast` 且目标不是游戏时才用 XShm（约 10ms）。
+
+用法：
+  ys-snap --list                       # 列出所有可抓窗口（class / 标题 / 尺寸）
+  ys-snap --snap --window yuanshen     # 抓一帧到 inbox（按 class 子串选窗）
+  ys-snap --snap --window 0x1400001    # 按窗口 id
+  ys-snap --gui                        # 窗口选择器 GUI（列表 + 抓一张）
+  ys-snap --snap --window auto --fast  # 显式允许 XShm 快路径（别对游戏用）
+
+落盘：.scratch/gui-corpus/inbox/raw/snap_<ts>.jpg + manifest.jsonl（内容 sha256 去重）。
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+CAP_MODULE = os.path.join(HERE, "ys-editor", "ys_capture.py")
+INBOX_DEFAULT = ".scratch/gui-corpus/inbox"
+GAME_HINTS = ("yuanshen", "genshin")
+
+
+def load_capture():
+    spec = importlib.util.spec_from_file_location("ys_capture", CAP_MODULE)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # noqa: S301 本地自有模块
+    return mod
+
+
+def list_windows(display, min_side=200):
+    from Xlib import display as xd, X
+    d = xd.Display(display)
+    out = []
+    for w in d.screen().root.query_tree().children:
+        try:
+            a = w.get_attributes()
+            if a.map_state != X.IsViewable:
+                continue
+            g = w.get_geometry()
+            if g.width < min_side or g.height < min_side:
+                continue
+            cls = w.get_full_property(d.intern_atom("WM_CLASS"), X.AnyPropertyType)
+            val = cls.value.decode("latin-1", "ignore").replace("\x00", " ").strip() if cls else ""
+            name = w.get_wm_name() or ""
+            if isinstance(name, bytes):
+                name = name.decode("utf-8", "ignore")
+            out.append({"id": hex(w.id), "class": val, "name": str(name)[:60],
+                        "w": g.width, "h": g.height})
+        except Exception:  # noqa: BLE001
+            continue
+    return out
+
+
+def pick_window(wins, want):
+    if want in (None, "", "auto"):
+        for w in wins:
+            if any(h in w["class"].lower() for h in GAME_HINTS):
+                return w
+        return wins[0] if wins else None
+    if want.startswith("0x"):
+        for w in wins:
+            if w["id"].lower() == want.lower():
+                return w
+        return None
+    want = want.lower()
+    for w in wins:
+        if want in w["class"].lower() or want in w["name"].lower():
+            return w
+    return None
+
+
+class Snap:
+    def __init__(self, display, inbox):
+        self.display = display
+        self.inbox = inbox
+        self.raw = os.path.join(inbox, "raw")
+        os.makedirs(self.raw, exist_ok=True)
+        self.manifest = os.path.join(inbox, "manifest.jsonl")
+        self.cap = load_capture()
+        self.seen = self._load_sha()
+
+    def _load_sha(self):
+        s = set()
+        if os.path.exists(self.manifest):
+            for line in open(self.manifest, encoding="utf-8"):
+                try:
+                    s.add(json.loads(line)["sha"])
+                except Exception:  # noqa: BLE001
+                    pass
+        return s
+
+    def grab_once(self, win, fast=False):
+        """抓一帧。游戏窗口默认走 KWin（安全），非游戏且 fast=True 才用 XShm。"""
+        is_game = any(h in win["class"].lower() for h in GAME_HINTS)
+        note = ""
+        rgb = ms = None
+        if fast and not is_game:
+            try:
+                g = self.cap.XShmGrabber(self.display, int(win["id"], 16), win["w"], win["h"])
+                try:
+                    rgb, ms = g.grab()
+                finally:
+                    g.close()   # 立刻 detach + 释放共享内存段
+                src = "xshm-window"
+            except Exception as e:  # noqa: BLE001
+                note = f"xshm 失败：{e}"
+        if rgb is None:
+            ks = self.cap.KWinSS2(win["class"].split()[0] if win["class"] else "yuanshen")
+            rgb, ms, meta = ks.grab()
+            src = "kwin-ss2"
+        return rgb, ms, src, note
+
+    def save(self, rgb, ms, src, note="", win=None):
+        data = self.cap.encode_jpg(rgb, quality=92)
+        sha = hashlib.sha256(data).hexdigest()
+        if sha in self.seen:
+            return {"ok": True, "dup": True, "ms": round(ms, 1), "src": src}
+        name = "snap_%s.jpg" % time.strftime("%Y-%m-%d_%H-%M-%S")
+        path = os.path.join(self.raw, name)
+        with open(path, "wb") as f:
+            f.write(data)
+        rec = {"src": "ys-snap", "capture_source": src, "dst": os.path.abspath(path),
+               "sha": sha, "w": rgb.shape[1], "h": rgb.shape[0], "bytes": len(data),
+               "window": (win or {}).get("class"), "window_id": (win or {}).get("id"),
+               "note": note, "mtime": time.strftime("%Y-%m-%dT%H:%M:%S"),
+               "ingested_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        with open(self.manifest, "a", encoding="utf-8") as mf:
+            mf.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        self.seen.add(sha)
+        return {"ok": True, "dup": False, "path": path, "ms": round(ms, 1),
+                "w": rgb.shape[1], "h": rgb.shape[0], "src": src}
+
+
+def run_gui(display, snap, want=""):
+    import tkinter as tk
+    from tkinter import ttk
+
+    wins = list_windows(display)
+    root = tk.Tk()
+    root.title("素材快收")
+    root.geometry("520x420+40+40")
+    root.attributes("-topmost", True)
+
+    ttk.Label(root, text="选择要抓的窗口（双击 = 抓一张）").pack(anchor="w", padx=8, pady=(8, 2))
+    lb = tk.Listbox(root, height=14)
+    lb.pack(fill="both", expand=True, padx=8)
+
+    def refresh():
+        lb.delete(0, "end")
+        wins.clear()
+        wins.extend(list_windows(display))
+        for i, w in enumerate(wins):
+            lb.insert("end", f'{w["id"]}  {w["class"][:28]:<28} {w["w"]}x{w["h"]}  {w["name"][:24]}')
+        if want:
+            for i, w in enumerate(wins):
+                if want.lower() in w["class"].lower():
+                    lb.selection_set(i)
+                    lb.see(i)
+                    break
+
+    status = tk.StringVar(value="双击列表项 = 抓一张")
+    ttk.Label(root, textvariable=status).pack(anchor="w", padx=8, pady=4)
+
+    def do_snap(_evt=None):
+        sel = lb.curselection()
+        if not sel:
+            status.set("先选一个窗口")
+            return
+        win = wins[sel[0]]
+        try:
+            rgb, ms, src, note = snap.grab_once(win)
+            r = snap.save(rgb, ms, src, note, win)
+        except Exception as e:  # noqa: BLE001
+            status.set(f"✗ {e}")
+            return
+        status.set(("重复画面（未重复落盘）" if r.get("dup") else f"✓ {os.path.basename(r.get('path',''))}")
+                   + f"｜{src}｜{r['ms']}ms")
+
+    lb.bind("<Double-Button-1>", do_snap)
+    bar = ttk.Frame(root)
+    bar.pack(fill="x", padx=8, pady=(0, 8))
+    ttk.Button(bar, text="刷新列表", command=refresh).pack(side="left")
+    ttk.Button(bar, text="抓一张", command=do_snap).pack(side="left", padx=6)
+    ttk.Button(bar, text="关闭", command=root.destroy).pack(side="right")
+    refresh()
+    root.mainloop()
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--display", default=os.environ.get("DISPLAY", ":1"))
+    ap.add_argument("--inbox", default=INBOX_DEFAULT)
+    ap.add_argument("--list", action="store_true")
+    ap.add_argument("--snap", action="store_true")
+    ap.add_argument("--gui", action="store_true")
+    ap.add_argument("--window", default="auto")
+    ap.add_argument("--fast", action="store_true", help="非游戏窗口允许 XShm 快路径")
+    args = ap.parse_args()
+
+    if args.list:
+        for w in list_windows(args.display):
+            print(f'{w["id"]}  {w["class"][:30]:<30} {w["w"]}x{w["h"]}  {w["name"][:30]}')
+        return 0
+
+    snap = Snap(args.display, args.inbox)
+    if args.gui:
+        run_gui(args.display, snap, args.window)
+        return 0
+    if args.snap:
+        win = pick_window(list_windows(args.display), args.window)
+        if not win:
+            print(json.dumps({"ok": False, "error": "找不到目标窗口"}, ensure_ascii=False))
+            return 2
+        try:
+            rgb, ms, src, note = snap.grab_once(win, fast=args.fast)
+            r = snap.save(rgb, ms, src, note, win)
+        except Exception as e:  # noqa: BLE001
+            print(json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False))
+            return 3
+        print(json.dumps(r, ensure_ascii=False))
+        return 0
+    ap.print_help()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
