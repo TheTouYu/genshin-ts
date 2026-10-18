@@ -1232,6 +1232,127 @@ def _ocr_page(req):
                           max_objects=int(req.get('max_objects') or 200))
 
 
+# ── 多帧共识底板（temporal consensus plate；2026-10-19 用户口径）──────────────
+# 基线不是"上一帧"，而是**同一页面 N≥5 帧的逐像素中值**（静态底板）+ 多帧持续变化像素（动态掩码）。
+# 底板只 OCR 一次（离线）；查询 = 新帧 vs 底板的变化掩码 → 只对变化区域 det+rec；
+# 底板文本按"未变化"复用（框级检查），动态区域永远跳过。
+_PLATE = {}                            # page -> {'plate','dyn','boxes','W','H'}
+_PLATE_RULESET = 'plate-v1'
+_PLATE_DIFF_THR = 12                   # 0-255 像素差阈值
+_PLATE_DYN_FRAC = 0.5                  # 多帧中偏差>阈值的帧占比超过它 → always-dynamic
+_PLATE_MIN_AREA = 400                  # 1/4 尺度连通域最小面积
+_PLATE_MARGIN = 48
+
+
+def _plate_quarter(img):
+    import numpy as np
+    return img[::4, ::4].astype(np.int16)
+
+
+def _ocr_plate_build(req):
+    """action=build：frames=[路径...]（N≥5）→ 中值底板 + 动态掩码 + 底板 OCR（离线，慢没关系）。"""
+    import numpy as np
+    from PIL import Image
+    page = req.get('page') or 'default'
+    fps = req.get('frames') or []
+    if len(fps) < 3:
+        return {'error': 'build 需要至少 3 帧（建议 5–10）', 'code': 'BAD_FRAMES'}
+    t0 = time.time()
+    imgs = [np.asarray(Image.open(f).convert('RGB')) for f in fps]
+    h = min(i.shape[0] for i in imgs); w = min(i.shape[1] for i in imgs)
+    stack = np.stack([i[:h, :w] for i in imgs])
+    plate = np.median(stack, axis=0).astype(np.uint8)
+    med = plate.astype(np.int16)
+    dev = (np.abs(stack.astype(np.int16) - med).max(axis=3) > _PLATE_DIFF_THR)   # N×H×W
+    dyn = (dev.mean(axis=0) > _PLATE_DYN_FRAC)                                   # H×W
+    dyn_q = dyn[::4, ::4]
+    t1 = time.time()
+    objs = _ocr_objects_core(plate, det_max=2000, cache=False)['objects']
+    _PLATE[page] = {'plate': plate, 'dyn': dyn_q, 'boxes': objs, 'W': w, 'H': h}
+    return {'ok': True, 'page': page, 'frames': len(fps), 'w': w, 'h': h,
+            'dynamic_px_ratio': round(float(dyn.mean()), 4),
+            'box_count': len(objs), 'build_ms': round((time.time() - t0) * 1000, 1),
+            'plate_ocr_ms': round((time.time() - t1) * 1000, 1)}
+
+
+def _ocr_plate_query(req):
+    """action=query：新帧 vs 底板 → 只对变化区域 det+rec；静态区复用底板文本。"""
+    import numpy as np
+    from PIL import Image
+    from scipy import ndimage as ndi
+    page = req.get('page') or 'default'
+    pl = _PLATE.get(page)
+    if not pl:
+        return {'error': f'没有页面 {page} 的底板（先 action=build）', 'code': 'NO_PLATE'}
+    t0 = time.time()
+    arr = np.asarray(Image.open(req['frame']).convert('RGB'))
+    h = min(arr.shape[0], pl['H']); w = min(arr.shape[1], pl['W'])
+    arr = arr[:h, :w]
+    bgr = np.ascontiguousarray(arr[..., ::-1])
+    eng, err = _ocr_engine()
+    if eng is None:
+        return {'error': f'OCR 不可用: {err}', 'code': 'OCR_UNAVAILABLE'}
+    det = eng.text_det or eng._load_det_model(); rec = eng.text_rec or eng._load_rec_model()
+    free = _vram_free_mb(); batch = _REC_BATCH if not (0 <= free < 300) else 4
+    # 1) 变化掩码（1/4 尺度；去掉动态区）
+    cur_q = _plate_quarter(arr); plate_q = _plate_quarter(pl['plate'][:h, :w])
+    diff = (np.abs(cur_q - plate_q).max(axis=2) > _PLATE_DIFF_THR)
+    dyn = pl['dyn'][:diff.shape[0], :diff.shape[1]]
+    diff = diff & ~ndi.binary_dilation(dyn, iterations=2)
+    lab, n = ndi.label(diff)
+    regions = []
+    for sl in ndi.find_objects(lab):
+        if sl is None: continue
+        rh = sl[0].stop - sl[0].start; rw = sl[1].stop - sl[1].start
+        if rw * rh < _PLATE_MIN_AREA: continue
+        regions.append((sl[1].start * 4, sl[0].start * 4, rw * 4, rh * 4))
+    mask_ms = round((time.time() - t0) * 1000, 1)
+    # 2) 底板框：未被变化覆盖的复用文字；被覆盖的只重跑 rec
+    changed_boxes = []; kept = []
+    for o in pl['boxes']:
+        x, y, bw, bh = [int(v) for v in o['bbox']]
+        sub = diff[max(0, y // 4):min(diff.shape[0], (y + bh) // 4 + 1),
+                   max(0, x // 4):min(diff.shape[1], (x + bw) // 4 + 1)]
+        if sub.size and sub.any():
+            changed_boxes.append(o)
+        else:
+            kept.append(o)
+    t1 = time.time()
+    rec_ms = 0.0
+    if changed_boxes:
+        from rapidocr.utils.process_img import get_rotate_crop_image
+        from rapidocr.ch_ppocr_rec.typings import TextRecInput
+        rc = []
+        for o in changed_boxes:
+            x, y, bw, bh = [int(v) for v in o['bbox']]
+            rc.append(get_rotate_crop_image(bgr, np.array([[x, y], [x + bw, y],
+                                                           [x + bw, y + bh], [x, y + bh]], np.float32)))
+        rec.rec_batch_num = min(batch, _REC_BATCH_HARD_CAP)
+        r = rec(TextRecInput(img=rc, return_word_box=False))
+        txts = list(r.txts or []); scs = list(r.scores or [])
+        for j, o in enumerate(changed_boxes):
+            kept.append(dict(o, text=txts[j] if j < len(txts) else '',
+                             score=round(float(scs[j]), 4) if j < len(scs) else 0.0))
+        rec_ms = round((time.time() - t1) * 1000, 1)
+    # 3) 变化区域补 det（把新对象捡回来；旧框一个不丢）
+    t2 = time.time()
+    new_objs = []
+    for (rx, ry, rw, rh) in regions[:4]:
+        sx0, sy0 = max(0, rx - _PLATE_MARGIN), max(0, ry - _PLATE_MARGIN)
+        sx1, sy1 = min(w, rx + rw + _PLATE_MARGIN), min(h, ry + rh + _PLATE_MARGIN)
+        loc = _ocr_region_bgr(bgr, (sx0, sy0, sx1, sy1), det, rec, 2000, batch)
+        for o in loc:
+            if all(_iou_xywh(o['bbox'], b['bbox']) <= 0.5 for b in kept):
+                new_objs.append({'text': o['text'], 'score': o['score'], 'bbox': o['bbox']})
+    det_ms = round((time.time() - t2) * 1000, 1)
+    objs = _dedupe_objects([{'text': o['text'], 'score': o.get('score', 0.0), 'bbox': o['bbox']}
+                            for o in kept] + new_objs)
+    return {'objects': objs, 'n_objects': len(objs), 'mode': 'plate', 'page': page,
+            'regions': len(regions), 'reused_boxes': len(kept), 'rec_boxes': len(changed_boxes),
+            'new_boxes': len(new_objs), 'mask_ms': mask_ms, 'rec_ms': rec_ms, 'det_ms': det_ms,
+            'total_ms': round((time.time() - t0) * 1000, 1), 'rec_batch': batch, 'err': None}
+
+
 def _ocr_blocks(req):
     """cmd="ocr_blocks"：分块差量 OCR（默认 3×3 网格、扩边 96px、变化块占比≥0.6 回退整帧）。"""
     import numpy as np
@@ -1622,6 +1743,8 @@ def handle(req):
         return _ocr_blocks(req)
     if cmd == "ocr_page":                  # 对象级基线差量 OCR（新命令；旧命令语义不变）
         return _ocr_page(req)
+    if cmd == "ocr_plate":                 # 多帧共识底板（实验命令；旧命令语义不变）
+        return _ocr_plate_build(req) if req.get('action') == 'build' else _ocr_plate_query(req)
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
