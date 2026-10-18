@@ -87,8 +87,14 @@ ui/src/**/*.js.map
 research/**/*.m4a
 
 # ── 临时/可再生目录（2026-10-18 工作树梳理，按记忆 D84 判据：体积大且可再生 → 不入库）
-.mrd-triage/            # 草稿分诊中间产物（all-drafts/discard-ids）
-.tmp-qxqy/              # 模拟器 CDP 调试截图
-.tmp-research/          # 调研中间 HTML 抓取
-lua-sync-test/          # Lua 同步测试沙盒
-0DF1B5E403DBEE61D8F4F225314A337B/   # 意外产物（32 位 hex 命名目录）
+# 注意：gitignore 不支持行尾注释，注释必须独占一行，否则会被当成模式的一部分
+# 草稿分诊中间产物（all-drafts/discard-ids）
+.mrd-triage/
+# 模拟器 CDP 调试截图
+.tmp-qxqy/
+# 调研中间 HTML 抓取
+.tmp-research/
+# Lua 同步测试沙盒
+lua-sync-test/
+# 意外产物（32 位 hex 命名目录）
+0DF1B5E403DBEE61D8F4F225314A337B/
