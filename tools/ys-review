@@ -33,10 +33,9 @@ def load_frames(truth_dir):
         if not objs:
             continue
         img = d.get("image") or ""
-        if not os.path.exists(img):
-            # 真值里存的是相对仓库根的路径；HTML 在别处也能用 → 转成绝对 file://
-            cand = os.path.abspath(img)
-            img = cand if os.path.exists(cand) else ""
+        # 真值存的是相对仓库根的路径；HTML 里的 file:// 必须是绝对路径（相对路径会渲染成黑图）
+        cand = os.path.abspath(img) if img else ""
+        img = cand if os.path.exists(cand) else ""
         frames.append({"stem": stem, "layout": d.get("layout") or "", "image": img,
                        "objects": objs, "w": (d.get("size") or [2560, 1440])[0],
                        "h": (d.get("size") or [2560, 1440])[1]})
