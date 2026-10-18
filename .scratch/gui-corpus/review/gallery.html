@@ -1,0 +1,82 @@
+<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>标注总览</title>
+<style>
+ body{margin:0;font:14px/1.6 system-ui,"Noto Sans CJK SC",sans-serif;background:#0f0f12;color:#e6e6e6}
+ h1{font-size:20px;margin:16px}
+ .stat{display:flex;gap:24px;flex-wrap:wrap;margin:0 16px 16px}
+ .card{background:#1a1a20;border:1px solid #2c2c34;border-radius:8px;padding:10px 16px}
+ .card b{font-size:22px;color:#7fd1ff}
+ table{border-collapse:collapse;margin:0 16px 16px;min-width:320px}
+ td,th{border-bottom:1px solid #26262b;padding:3px 10px;text-align:left}
+ .cols{display:flex;gap:16px;flex-wrap:wrap}
+ .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;padding:0 16px 32px}
+ figure{margin:0;background:#16161b;border:1px solid #26262b;border-radius:6px;overflow:hidden}
+ figure img{width:100%;display:block}
+ figcaption{padding:6px;color:#aaa;font-size:12px}
+ .legend span{margin-right:12px}
+</style>
+<h1>标注总览</h1>
+<div class="stat">
+  <div class="card"><b>48</b><br>帧</div>
+  <div class="card"><b>1405</b><br>实例</div>
+  <div class="card"><b>36%</b><br>编辑器占比（510 实例 / 11 帧）</div>
+  <div class="card"><b>8</b><br>类别</div>
+</div>
+<div class="legend" style="margin:0 16px 12px">
+  <span style="color:#c084fc">■ 大层级</span><span style="color:#60a5fa">■ 行</span><span style="color:#34d399">■ 元素</span>
+</div>
+<div class="cols">
+<table><tr><th>批次</th><th>帧</th><th>实例</th></tr><tr><td>truth</td><td>14</td><td>285</td></tr><tr><td>truth-v2</td><td>5</td><td>125</td></tr><tr><td>truth-v3</td><td>9</td><td>211</td></tr><tr><td>truth-v4</td><td>4</td><td>95</td></tr><tr><td>truth-v5</td><td>8</td><td>359</td></tr><tr><td>truth-v6</td><td>4</td><td>127</td></tr><tr><td>truth-v7</td><td>4</td><td>203</td></tr></table>
+<table><tr><th>界面族</th><th>帧</th><th>实例</th></tr><tr><td>编辑器：左资源树（28 行）+ 中部资产格 6 + 背景音乐管理弹窗（9 行）+ 音乐库（9 条）+ 右上属性面板（逐行）+ 底部工具</td><td>1</td><td>99</td></tr><tr><td>①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角</td><td>1</td><td>74</td></tr><tr><td>编辑器：左树 25 行 + 调色板 + 视口 + 右属性面板（3 个分区，各带详细编辑）</td><td>1</td><td>71</td></tr><tr><td>编辑器：左资源树 28 行 + 调色板 6 格 + 视口 + 右上属性面板逐行</td><td>1</td><td>69</td></tr><tr><td>①顶栏 / ②左侧分类栏 / ③物品网格 8×4 / ④详情面板 / ⑤底部/四角</td><td>1</td><td>51</td></tr><tr><td>①信息卡(100,0,1100,470) / ②左图标栏(0,20,130,1410) / ③网格区(120,430,1040,1440) / ④底部条(0,1260,1400,1440) / ⑤四角</td><td>1</td><td>42</td></tr><tr><td>好友列表 7 行（背景）+ 角色展柜弹窗（左页资料/数值，右页 2×4 角色卡）+ 黑名单管理</td><td>1</td><td>39</td></tr><tr><td>编辑器窗口：标签栏 + 左资源树 + 视口工具条 + 3D 视口</td><td>1</td><td>37</td></tr><tr><td>资源管理器：左分类树 + 中资源树 + 右列表（上：实体节点图；下：自定义元件）</td><td>1</td><td>37</td></tr><tr><td>①顶栏 / ②左箭头 / ③好友行 7 / ④右箭头 / ⑤底部/四角</td><td>1</td><td>36</td></tr><tr><td>邮箱：左 8 封邮件逐行 + 右详情（标题/发件人/时间/附件）+ 底部两按钮</td><td>1</td><td>35</td></tr><tr><td>标签栏 + 左资源树 21 行 + 视口 + 顶部工具 4 + 右上是 gizmo</td><td>1</td><td>34</td></tr><tr><td>派蒙菜单·千星版（4×5 网格 + 返回提瓦特）</td><td>1</td><td>31</td></tr><tr><td>编辑器：左下时间轴轨道 8 行 + 视口 + 右特效属性面板逐行</td><td>1</td><td>31</td></tr><tr><td>派蒙菜单（新语料）· 玩家卡 + 5×4 网格</td><td>1</td><td>30</td></tr><tr><td>派蒙菜单首屏（网格 4×4+3）</td><td>1</td><td>29</td></tr><tr><td>派蒙菜单·千星奇域区</td><td>1</td><td>29</td></tr><tr><td>派蒙菜单（新语料）· 千星奇域区（含分区标题下的 4 行）</td><td>1</td><td>29</td></tr><tr><td>派蒙菜单滚一屏</td><td>1</td><td>28</td></tr><tr><td>设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作&quot;派蒙菜单&quot;，实际是设置页）</td><td>1</td><td>28</td></tr><tr><td>好友列表（7 行 + 每行动作按钮 + 私聊气泡）</td><td>1</td><td>28</td></tr><tr><td>角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）</td><td>1</td><td>27</td></tr><tr><td>顶栏三簇（左标题 / 中 4 页签 / 右计数+?+X）+ 6 张邀约卡 + 底部提示与领取</td><td>1</td><td>27</td></tr><tr><td>标题 + 添加技能节点图弹窗（搜索 + 4 条目 + 打开沙箱）+ 底部时间轴（2 页签 + 播放 + 5 轨道）</td><td>1</td><td>27</td></tr><tr><td>存档选择（卡片网格）</td><td>1</td><td>25</td></tr><tr><td>存档选择·卡片网格（7 卡 + 7 编辑 + 页签 + 底部按钮）</td><td>1</td><td>25</td></tr><tr><td>设置·按键（页签 基础设置/千星奇域 + 按键绑定行）</td><td>1</td><td>24</td></tr><tr><td>设置·图像（滚后）</td><td>1</td><td>23</td></tr><tr><td>设置·图像（顶部）</td><td>1</td><td>22</td></tr><tr><td>派蒙菜单·千星奇域区（已滚到分区；上排 3 格被面板上沿裁切）</td><td>1</td><td>22</td></tr><tr><td>设置·控制</td><td>1</td><td>21</td></tr><tr><td>设置·控制（与语料 f09 同屏、不同连拍）</td><td>1</td><td>21</td></tr><tr><td>设置·声音（9 个音频设置行）</td><td>1</td><td>20</td></tr><tr><td>编辑器：左单位状态树 7 行 + 标签栏 + 视口 + 右属性面板</td><td>1</td><td>20</td></tr><tr><td>活动一览·左列表+右详情（角色头像行）</td><td>1</td><td>19</td></tr><tr><td>地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）</td><td>1</td><td>19</td></tr><tr><td>活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）</td><td>1</td><td>18</td></tr><tr><td>教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情</td><td>1</td><td>18</td></tr><tr><td>邮件珍藏盒（列表 + 详情两栏）</td><td>1</td><td>17</td></tr><tr><td>活动一览·左列表+右详情（奖励图标行）</td><td>1</td><td>16</td></tr><tr><td>活动一览·同 f01（奖励行横滚）</td><td>1</td><td>16</td></tr><tr><td>任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览</td><td>1</td><td>16</td></tr><tr><td>活动一览·左列表+右详情（奖励行 5 图标）</td><td>1</td><td>15</td></tr><tr><td>邮件珍藏盒·列表（左侧 7 条邮件 + 右侧详情 + 附件）</td><td>1</td><td>15</td></tr><tr><td>活动一览·卡片群</td><td>1</td><td>14</td></tr><tr><td>活动一览·立绘+时装卡+任务卡</td><td>1</td><td>14</td></tr><tr><td>设置·语言</td><td>1</td><td>14</td></tr><tr><td>邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）</td><td>1</td><td>3</td></tr></table>
+<table><tr><th>kind</th><th>数量</th></tr><tr><td>row</td><td>544</td></tr><tr><td>button</td><td>290</td></tr><tr><td>tile</td><td>197</td></tr><tr><td>chip</td><td>140</td></tr><tr><td>panel</td><td>84</td></tr><tr><td>icon</td><td>74</td></tr><tr><td>card</td><td>53</td></tr><tr><td>avatar</td><td>23</td></tr></table>
+</div>
+<div class="grid"><figure><img loading="lazy" src="thumbs/f00.jpg">
+<figcaption><b>f00</b><br>活动一览·左列表+右详情（角色头像行）<br>19 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f01.jpg">
+<figcaption><b>f01</b><br>活动一览·左列表+右详情（奖励图标行）<br>16 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f02.jpg">
+<figcaption><b>f02</b><br>活动一览·同 f01（奖励行横滚）<br>16 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f03.jpg">
+<figcaption><b>f03</b><br>活动一览·左列表+右详情（奖励行 5 图标）<br>15 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f04.jpg">
+<figcaption><b>f04</b><br>活动一览·卡片群<br>14 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f05.jpg">
+<figcaption><b>f05</b><br>活动一览·立绘+时装卡+任务卡<br>14 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f06.jpg">
+<figcaption><b>f06</b><br>派蒙菜单首屏（网格 4×4+3）<br>29 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f07.jpg">
+<figcaption><b>f07</b><br>派蒙菜单滚一屏<br>28 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f08.jpg">
+<figcaption><b>f08</b><br>派蒙菜单·千星奇域区<br>29 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f09.jpg">
+<figcaption><b>f09</b><br>设置·控制<br>21 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f10.jpg">
+<figcaption><b>f10</b><br>设置·图像（顶部）<br>22 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f11.jpg">
+<figcaption><b>f11</b><br>设置·图像（滚后）<br>23 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f12.jpg">
+<figcaption><b>f12</b><br>设置·语言<br>14 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/f13.jpg">
+<figcaption><b>f13</b><br>存档选择（卡片网格）<br>25 单元 · truth</figcaption></figure><figure><img loading="lazy" src="thumbs/c12_195108.jpg">
+<figcaption><b>c12_195108</b><br>派蒙菜单（新语料）· 玩家卡 + 5×4 网格<br>30 单元 · truth-v2</figcaption></figure><figure><img loading="lazy" src="thumbs/c18_195129.jpg">
+<figcaption><b>c18_195129</b><br>设置·控制（与语料 f09 同屏、不同连拍）<br>21 单元 · truth-v2</figcaption></figure><figure><img loading="lazy" src="thumbs/c24_195206.jpg">
+<figcaption><b>c24_195206</b><br>设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作&quot;派蒙菜单&quot;，实际是设置页）<br>28 单元 · truth-v2</figcaption></figure><figure><img loading="lazy" src="thumbs/c25_195214.jpg">
+<figcaption><b>c25_195214</b><br>派蒙菜单（新语料）· 千星奇域区（含分区标题下的 4 行）<br>29 单元 · truth-v2</figcaption></figure><figure><img loading="lazy" src="thumbs/c32_195258.jpg">
+<figcaption><b>c32_195258</b><br>邮件珍藏盒（列表 + 详情两栏）<br>17 单元 · truth-v2</figcaption></figure><figure><img loading="lazy" src="thumbs/c03_194915.jpg">
+<figcaption><b>c03_194915</b><br>好友列表（7 行 + 每行动作按钮 + 私聊气泡）<br>28 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c19_195135.jpg">
+<figcaption><b>c19_195135</b><br>设置·声音（9 个音频设置行）<br>20 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c22_195158.jpg">
+<figcaption><b>c22_195158</b><br>设置·按键（页签 基础设置/千星奇域 + 按键绑定行）<br>24 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c28_195235.jpg">
+<figcaption><b>c28_195235</b><br>邮件珍藏盒·列表（左侧 7 条邮件 + 右侧详情 + 附件）<br>15 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c29_195243.jpg">
+<figcaption><b>c29_195243</b><br>邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）<br>3 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c34_195311.jpg">
+<figcaption><b>c34_195311</b><br>派蒙菜单·千星奇域区（已滚到分区；上排 3 格被面板上沿裁切）<br>22 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c36_195316.jpg">
+<figcaption><b>c36_195316</b><br>存档选择·卡片网格（7 卡 + 7 编辑 + 页签 + 底部按钮）<br>25 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c41_195439.jpg">
+<figcaption><b>c41_195439</b><br>编辑器窗口：标签栏 + 左资源树 + 视口工具条 + 3D 视口<br>37 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/c42_195441.jpg">
+<figcaption><b>c42_195441</b><br>资源管理器：左分类树 + 中资源树 + 右列表（上：实体节点图；下：自定义元件）<br>37 单元 · truth-v3</figcaption></figure><figure><img loading="lazy" src="thumbs/v060_0461.jpg">
+<figcaption><b>v060_0461</b><br>派蒙菜单·千星版（4×5 网格 + 返回提瓦特）<br>31 单元 · truth-v4</figcaption></figure><figure><img loading="lazy" src="thumbs/v078_0487.jpg">
+<figcaption><b>v078_0487</b><br>地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）<br>19 单元 · truth-v4</figcaption></figure><figure><img loading="lazy" src="thumbs/v088_0513.jpg">
+<figcaption><b>v088_0513</b><br>角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）<br>27 单元 · truth-v4</figcaption></figure><figure><img loading="lazy" src="thumbs/v101_0529.jpg">
+<figcaption><b>v101_0529</b><br>活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）<br>18 单元 · truth-v4</figcaption></figure><figure><img loading="lazy" src="thumbs/r006_snap_2026-10-19_00-22-19.jpg">
+<figcaption><b>r006_snap_2026-10-19_00-22-1</b><br>邮箱：左 8 封邮件逐行 + 右详情（标题/发件人/时间/附件）+ 底部两按钮<br>35 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r008_snap_2026-10-19_00-23-27.jpg">
+<figcaption><b>r008_snap_2026-10-19_00-23-2</b><br>任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览<br>16 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r016_snap_2026-10-19_00-24-17.jpg">
+<figcaption><b>r016_snap_2026-10-19_00-24-1</b><br>教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情<br>18 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r032_snap_2026-10-19_00-30-42.jpg">
+<figcaption><b>r032_snap_2026-10-19_00-30-4</b><br>编辑器：左资源树 28 行 + 调色板 6 格 + 视口 + 右上属性面板逐行<br>69 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r034_snap_2026-10-19_00-31-33.jpg">
+<figcaption><b>r034_snap_2026-10-19_00-31-3</b><br>编辑器：左资源树（28 行）+ 中部资产格 6 + 背景音乐管理弹窗（9 行）+ 音乐库（9 条）+ 右上属性面板（逐行）+ 底部工具<br>99 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r040_snap_2026-10-19_00-36-18.jpg">
+<figcaption><b>r040_snap_2026-10-19_00-36-1</b><br>编辑器：左树 25 行 + 调色板 + 视口 + 右属性面板（3 个分区，各带详细编辑）<br>71 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r045_snap_2026-10-19_00-38-06.jpg">
+<figcaption><b>r045_snap_2026-10-19_00-38-0</b><br>编辑器：左下时间轴轨道 8 行 + 视口 + 右特效属性面板逐行<br>31 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r047_snap_2026-10-19_00-39-53.jpg">
+<figcaption><b>r047_snap_2026-10-19_00-39-5</b><br>编辑器：左单位状态树 7 行 + 标签栏 + 视口 + 右属性面板<br>20 单元 · truth-v5</figcaption></figure><figure><img loading="lazy" src="thumbs/r013_snap_2026-10-19_00-23-53.jpg">
+<figcaption><b>r013_snap_2026-10-19_00-23-5</b><br>顶栏三簇（左标题 / 中 4 页签 / 右计数+?+X）+ 6 张邀约卡 + 底部提示与领取<br>27 单元 · truth-v6</figcaption></figure><figure><img loading="lazy" src="thumbs/r022_snap_2026-10-19_00-25-06.jpg">
+<figcaption><b>r022_snap_2026-10-19_00-25-0</b><br>好友列表 7 行（背景）+ 角色展柜弹窗（左页资料/数值，右页 2×4 角色卡）+ 黑名单管理<br>39 单元 · truth-v6</figcaption></figure><figure><img loading="lazy" src="thumbs/r026_snap_2026-10-19_00-27-05.jpg">
+<figcaption><b>r026_snap_2026-10-19_00-27-0</b><br>标签栏 + 左资源树 21 行 + 视口 + 顶部工具 4 + 右上是 gizmo<br>34 单元 · truth-v6</figcaption></figure><figure><img loading="lazy" src="thumbs/r044_snap_2026-10-19_00-37-57.jpg">
+<figcaption><b>r044_snap_2026-10-19_00-37-5</b><br>标题 + 添加技能节点图弹窗（搜索 + 4 条目 + 打开沙箱）+ 底部时间轴（2 页签 + 播放 + 5 轨道）<br>27 单元 · truth-v6</figcaption></figure><figure><img loading="lazy" src="thumbs/r003_snap_2026-10-19_00-17-26.jpg">
+<figcaption><b>r003_snap_2026-10-19_00-17-2</b><br>①信息卡(100,0,1100,470) / ②左图标栏(0,20,130,1410) / ③网格区(120,430,1040,1440) / ④底部条(0,1260,1400,1440) / ⑤四角<br>42 单元 · truth-v7</figcaption></figure><figure><img loading="lazy" src="thumbs/r019_snap_2026-10-19_00-24-44.jpg">
+<figcaption><b>r019_snap_2026-10-19_00-24-4</b><br>①顶栏 / ②左侧分类栏 / ③物品网格 8×4 / ④详情面板 / ⑤底部/四角<br>51 单元 · truth-v7</figcaption></figure><figure><img loading="lazy" src="thumbs/r021_snap_2026-10-19_00-24-58.jpg">
+<figcaption><b>r021_snap_2026-10-19_00-24-5</b><br>①顶栏 / ②左箭头 / ③好友行 7 / ④右箭头 / ⑤底部/四角<br>36 单元 · truth-v7</figcaption></figure><figure><img loading="lazy" src="thumbs/r041_snap_2026-10-19_00-36-21.jpg">
+<figcaption><b>r041_snap_2026-10-19_00-36-2</b><br>①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角<br>74 单元 · truth-v7</figcaption></figure></div>
+</html>

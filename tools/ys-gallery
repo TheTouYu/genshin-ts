@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""ys-gallery — 全部标注的总览页（缩略图 + 统计），供人一眼检查质量。
+
+用法：
+  python3 tools/ys-gallery --out .scratch/gui-corpus/review/gallery.html
+
+做的事：
+  · 扫描所有 truth 目录（v1..v7），**同一帧多版本只取最新**
+  · 每帧渲染一张缩略图（宽 480），框按层级配色
+  · 统计：每批图数/实例数、按族、按 kind、编辑器占比
+  · 输出静态 HTML（可被 ys-annotate-serve 直接访问）
+"""
+import argparse
+import glob
+import html
+import json
+import os
+from collections import Counter, defaultdict
+
+from PIL import Image, ImageDraw
+
+DIRS = [
+    ".scratch/gui-corpus/truth",
+    ".scratch/gui-corpus/truth-v2",
+    ".scratch/gui-corpus/truth-v3",
+    ".scratch/gui-corpus/truth-v4",
+    ".scratch/gui-corpus/truth-v5",
+    ".scratch/gui-corpus/truth-v6",
+    ".scratch/gui-corpus/truth-v7",
+]
+LEVEL = {"panel": "big", "card": "big", "row": "row"}
+COLOR = {"big": (192, 132, 252), "row": (96, 165, 250), "el": (52, 211, 153)}
+EDIT_WORDS = ["编辑器", "资源管理器", "节点图", "时间轴", "属性", "预制", "音乐", "教程", "物件"]
+
+
+def level_of(kind):
+    return LEVEL.get(kind, "el")
+
+
+def load_frames():
+    """按目录顺序加载，后出现的同名 stem 覆盖前者（v7 > v6 …）。"""
+    frames = {}
+    for d in DIRS:
+        for jf in sorted(glob.glob(os.path.join(d, "*.json"))):
+            stem = os.path.splitext(os.path.basename(jf))[0]
+            if stem.startswith("_"):
+                continue
+            try:
+                j = json.load(open(jf, encoding="utf-8"))
+            except Exception:  # noqa: BLE001
+                continue
+            objs = j.get("objects") or []
+            if not objs:
+                continue
+            img = j.get("image") or ""
+            p = os.path.abspath(img) if img else ""
+            if not p or not os.path.exists(p):
+                continue
+            frames[stem] = {"stem": stem, "batch": os.path.basename(d), "layout": j.get("layout") or "",
+                            "image": p, "objects": objs,
+                            "w": (j.get("size") or [2560, 1440])[0], "h": (j.get("size") or [2560, 1440])[1]}
+    return list(frames.values())
+
+
+def thumb(f, outdir, width=480):
+    os.makedirs(outdir, exist_ok=True)
+    out = os.path.join(outdir, f["stem"] + ".jpg")
+    if os.path.exists(out):
+        return out
+    im = Image.open(f["image"]).convert("RGB")
+    im = im.crop((0, 0, min(f["w"], im.width), min(f["h"], im.height)))
+    scale = width / im.width
+    im = im.resize((width, int(im.height * scale)), Image.BILINEAR)
+    dr = ImageDraw.Draw(im)
+    for o in f["objects"]:
+        x, y, w, h = o["bbox"]
+        dr.rectangle([x * scale, y * scale, (x + w) * scale, (y + h) * scale],
+                     outline=COLOR[level_of(o.get("kind"))], width=1)
+    im.save(out, quality=85)
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=".scratch/gui-corpus/review/gallery.html")
+    args = ap.parse_args()
+    outdir = os.path.dirname(os.path.abspath(args.out))
+    tdir = os.path.join(outdir, "thumbs")
+    frames = load_frames()
+    frames.sort(key=lambda f: (f["batch"], f["stem"]))
+
+    per_batch = defaultdict(lambda: [0, 0])
+    per_family = defaultdict(lambda: [0, 0])
+    per_kind = Counter()
+    ed_imgs = ed_units = tot_units = 0
+    cards = []
+    for f in frames:
+        n = len(f["objects"])
+        tot_units += n
+        per_batch[f["batch"]][0] += 1
+        per_batch[f["batch"]][1] += n
+        lay = f["layout"] or "unknown"
+        per_family[lay][0] += 1
+        per_family[lay][1] += n
+        for o in f["objects"]:
+            per_kind[o.get("kind") or "?"] += 1
+        if any(w in lay for w in EDIT_WORDS):
+            ed_imgs += 1
+            ed_units += n
+        t = thumb(f, tdir)
+        rel = os.path.relpath(t, outdir)
+        cards.append(f'''<figure><img loading="lazy" src="{rel}">
+<figcaption><b>{html.escape(f['stem'][:28])}</b><br>{html.escape(lay)}<br>{n} 单元 · {f['batch']}</figcaption></figure>''')
+
+    rows_batch = "".join(f"<tr><td>{b}</td><td>{v[0]}</td><td>{v[1]}</td></tr>" for b, v in sorted(per_batch.items()))
+    rows_fam = "".join(f"<tr><td>{html.escape(k)}</td><td>{v[0]}</td><td>{v[1]}</td></tr>"
+                       for k, v in sorted(per_family.items(), key=lambda kv: -kv[1][1]))
+    rows_kind = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in per_kind.most_common())
+
+    doc = f"""<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>标注总览</title>
+<style>
+ body{{margin:0;font:14px/1.6 system-ui,"Noto Sans CJK SC",sans-serif;background:#0f0f12;color:#e6e6e6}}
+ h1{{font-size:20px;margin:16px}}
+ .stat{{display:flex;gap:24px;flex-wrap:wrap;margin:0 16px 16px}}
+ .card{{background:#1a1a20;border:1px solid #2c2c34;border-radius:8px;padding:10px 16px}}
+ .card b{{font-size:22px;color:#7fd1ff}}
+ table{{border-collapse:collapse;margin:0 16px 16px;min-width:320px}}
+ td,th{{border-bottom:1px solid #26262b;padding:3px 10px;text-align:left}}
+ .cols{{display:flex;gap:16px;flex-wrap:wrap}}
+ .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;padding:0 16px 32px}}
+ figure{{margin:0;background:#16161b;border:1px solid #26262b;border-radius:6px;overflow:hidden}}
+ figure img{{width:100%;display:block}}
+ figcaption{{padding:6px;color:#aaa;font-size:12px}}
+ .legend span{{margin-right:12px}}
+</style>
+<h1>标注总览</h1>
+<div class="stat">
+  <div class="card"><b>{len(frames)}</b><br>帧</div>
+  <div class="card"><b>{tot_units}</b><br>实例</div>
+  <div class="card"><b>{ed_units/tot_units:.0%}</b><br>编辑器占比（{ed_units} 实例 / {ed_imgs} 帧）</div>
+  <div class="card"><b>{len(per_kind)}</b><br>类别</div>
+</div>
+<div class="legend" style="margin:0 16px 12px">
+  <span style="color:#c084fc">■ 大层级</span><span style="color:#60a5fa">■ 行</span><span style="color:#34d399">■ 元素</span>
+</div>
+<div class="cols">
+<table><tr><th>批次</th><th>帧</th><th>实例</th></tr>{rows_batch}</table>
+<table><tr><th>界面族</th><th>帧</th><th>实例</th></tr>{rows_fam}</table>
+<table><tr><th>kind</th><th>数量</th></tr>{rows_kind}</table>
+</div>
+<div class="grid">{''.join(cards)}</div>
+</html>"""
+    open(args.out, "w", encoding="utf-8").write(doc)
+    print(f"frames={len(frames)} units={tot_units} editor={ed_units/tot_units:.0%} -> {os.path.abspath(args.out)}")
+
+
+if __name__ == "__main__":
+    main()
