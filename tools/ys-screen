@@ -724,6 +724,97 @@ def _classify(fills, aspect, corner, w, h, scale):
     return 'unknown', 0.2
 
 
+# ── 界面结构：面板 → 行 → 条目（2026-10-18 用户定义，O-2026-10-18-06）─────────
+# 用户原话：「我们有快速、高效的获取图片结构的办法吗？这或许是高效的 GUI 模型抵达 AGI 的
+# 前置条件，这些基础的事情需要在工程上保证，**不能依赖模型每次都主动去查看图片**」。
+#
+# 之前的状况：`regions` 返回**空数组**，模型要看懂结构只能调 read_image 看图——
+# 我因此盲滚过一次（滚错容器）。结构理解不是能力，是运气。
+#
+# 方法：**OCR 框 → 几何聚类**（不是像素启发式）。
+# 为什么不用像素：实测纯像素的"行带投影"在活动页只找到 3 条行带（真值 6~7 项），
+# 因为列表行是图标+文字的组合图形，不是纯色块；而 OCR 框自带语义与位置，
+# 按 x 间隙切面板、按 y 邻近合并成行，一次就得到"这个界面有哪些区、每区有哪些条目"。
+#
+# 成本：聚类 <1ms（OCR 本来就已跑过，复用它，**不新增任何 OCR 开销**）。
+HUD_PAD = 12                     # HUD 判定外扩，避免边缘漏网
+
+
+def _known_hud(W0, H0):
+    """已知 HUD 区域（按 2560×1440 标定，按比例缩放）。这些位置上的文字是**读数/水印**，
+    不是界面内容，混进"面板/行"会污染结构（实测活动页面板0 的 bbox 从 y=18 起就是 DXVK）。"""
+    boxes = [
+        (0, 0, 130, 90),                 # 左上 DXVK FPS/GPU
+        (0, 1280, 460, 1440),            # 左下 性能叠加（min/max/ms + 曲线）
+        (2240, 1360, 2560, 1440),        # 右下 UID
+        (2380, 0, 2560, 150),            # 右上 网络延迟
+    ]
+    sx, sy = W0 / 2560.0, H0 / 1440.0
+    return [[int(x0 * sx) - HUD_PAD, int(y0 * sy) - HUD_PAD,
+             int(x1 * sx) + HUD_PAD, int(y1 * sy) + HUD_PAD] for x0, y0, x1, y1 in boxes]
+
+
+def _in_hud(bb, hud):
+    cx, cy = (bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0
+    return any(h[0] <= cx <= h[2] and h[1] <= cy <= h[3] for h in hud)
+
+
+def find_structure(text, W0, H0, row_tol=42, panel_gap=260, min_rows=2):
+    """从已识别文本聚类出**面板 → 行 → 条目**。返回 list[dict]。
+
+    判据说明（为什么是这些阈值）：
+      · row_tol=42：实测行高 40~60px，取 42 能把同行的图标+标签并成一行；
+      · panel_gap=260：分栏之间 x 间隙远大于行内元素间距（活动页左列表↔右详情 ≈1100px）；
+      · min_rows=2：单行的"区"多半是标题/HUD 残留，不是面板。
+    """
+    hud = _known_hud(W0, H0)
+    items = []
+    for t in text:
+        if _in_hud(t['bbox'], hud):
+            continue                          # ← HUD 滤除（第 2 步）
+        items.append(t)
+    if not items:
+        return []
+    items.sort(key=lambda b: b['cx'])
+
+    groups, cur, last_x = [], [], None
+    for b in items:
+        if last_x is not None and b['cx'] - last_x > panel_gap:
+            groups.append(cur)
+            cur = []
+        cur.append(b)
+        last_x = b['cx']
+    if cur:
+        groups.append(cur)
+
+    out = []
+    for gp in groups:
+        gp.sort(key=lambda b: b['cy'])
+        rows, cur_row = [], [gp[0]]
+        for b in gp[1:]:
+            if b['cy'] - cur_row[-1]['cy'] <= row_tol:
+                cur_row.append(b)
+            else:
+                rows.append(cur_row)
+                cur_row = [b]
+        rows.append(cur_row)
+        if len(rows) < min_rows:
+            continue
+        xs = [b['bbox'][0] for b in gp] + [b['bbox'][2] for b in gp]
+        ys = [b['bbox'][1] for b in gp] + [b['bbox'][3] for b in gp]
+        out.append({
+            'bbox': [min(xs), min(ys), max(xs), max(ys)],
+            'n_rows': len(rows),
+            'row_y': [int(sum(b['cy'] for b in r) / len(r)) for r in rows],
+            'rows': [{'y': int(sum(b['cy'] for b in r) / len(r)),
+                      'texts': [b['text'] for b in r]} for r in rows],
+        })
+    # 大面板排前面（主内容区优先），行数多的次之
+    out.sort(key=lambda p: (-(p['bbox'][2] - p['bbox'][0]) * (p['bbox'][3] - p['bbox'][1]),
+                            -p['n_rows']))
+    return out
+
+
 def find_regions(arr, scale, W0, H0, occl, debug=False):
     """分区：靠"长直边"定边界（顶栏/左侧栏/右侧栏/底栏），画布靠"大片平坦亮面"。"""
     import numpy as np
@@ -1266,7 +1357,19 @@ def _bs(bb, short=False):
 
 
 # --------------------------------------------------------------------------- 主流程
-def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
+def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structure_only=False):
+    # 结构缓存（2026-10-18）：按帧 sha 存一份 structure.json，**必须在解码之前查**——
+    # 放后面试过一次，命中仍要 260ms（解码 170ms + OCR 查缓存），等于没省。
+    # 判据：同一帧第二次查询 <10ms。
+    if structure_only:
+        _sc = os.path.join(CACHE_DIR, 'struct-%s.json' % _sha256(frame))
+        if os.path.exists(_sc):
+            try:
+                with open(_sc, encoding='utf-8') as f:
+                    return json.load(f), frame, fresh_obj(frame, None)
+            except (OSError, ValueError):
+                pass
+    struct_cache = os.path.join(CACHE_DIR, 'struct-%s.json' % _sha256(frame))
     t0 = time.time()
     arr, (W0, H0) = load_small(frame, 0.5)
     t_load = time.time()
@@ -1288,10 +1391,17 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
         text.append({'id': i, 'text': b['text'], 'cx': int(b['cx']), 'cy': int(b['cy']),
                      'bbox': bb, 'w': bb[2] - bb[0], 'h': bb[3] - bb[1],
                      'score': float(b['score']), 'kind': 'other'})
-    occ = find_occlusion(arr, 0.5, W0, H0, text, debug=debug)
-    text = classify_texts(text, [], occ)
-    ctrls = find_controls(arr, 0.5, W0, H0, text, debug=debug)
-    regs = find_regions(arr, 0.5, W0, H0, occ, debug=debug)
+    if structure_only:
+        # 只要结构就跳过遮挡/控件/分区这三遍像素分析（实测省 ~200ms）。
+        # 这三样是给"动作目标解析"用的，结构查询用不到。
+        occ, ctrls, regs = [], [], []
+        text = classify_texts(text, [], occ)
+    else:
+        occ = find_occlusion(arr, 0.5, W0, H0, text, debug=debug)
+        text = classify_texts(text, [], occ)
+        ctrls = find_controls(arr, 0.5, W0, H0, text, debug=debug)
+        regs = find_regions(arr, 0.5, W0, H0, occ, debug=debug)
+    struct = find_structure(text, W0, H0)          # 面板→行→条目（复用已识别的 text，零额外 OCR）
     title = pick_title(text, regs, H0)
     targets = build_targets(ctrls, text)
     adj = build_adjacency(text, targets, W0, H0,
@@ -1302,7 +1412,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
         'frame': {'path': os.path.abspath(frame), 'sha256': _sha256(frame),
                   'w': W0, 'h': H0, 'bytes': os.path.getsize(frame)},
         'title': title,
-        'text': text, 'controls': ctrls, 'regions': regs,
+        'text': text, 'controls': ctrls, 'regions': regs, 'structure': struct,
         'adjacency': adj, 'occlusion': occ,
         # ⚠️ pixel_ms 原先算的是 `t_end - t_load`，而 t_load 在 run_ocr **之前** ——
         # 于是 OCR 的耗时被重复计进"像素"里（实测 ocr_source=daemon 时 ocr_ms=0、pixel_ms=1262，
@@ -1317,6 +1427,15 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False):
     res['title_text_id'] = next((t['id'] for t in text if title and t['text'] == title['text']),
                                 None)
     res['digest'] = render_digest(res)
+    if structure_only and res.get('structure') is not None:
+        try:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            tmp = '%s.tmp%d' % (struct_cache, os.getpid())
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(res, f, ensure_ascii=False)
+            os.replace(tmp, struct_cache)
+        except OSError:
+            pass
     return res
 
 
@@ -1328,6 +1447,8 @@ def main(argv=None):
     ap.add_argument('--json-out', default=None, help='把 JSON 另存到指定路径')
     ap.add_argument('--no-ocr', action='store_true', help='跳过 OCR（只做像素层，~0.4s）')
     ap.add_argument('--no-cache', action='store_true', help='忽略 OCR 缓存，强制真跑')
+    ap.add_argument('--structure', action='store_true',
+                    help='只输出界面结构（面板→行→条目）。模型规划动作读这个，不必看图')
     ap.add_argument('--scale', type=float, default=1.0, help='OCR 前缩图比例（默认 1.0）')
     ap.add_argument('--max-lines', type=int, default=10, help='摘要最大行数（默认 10）')
     ap.add_argument('--debug', action='store_true', help='诊断打到 stderr')
@@ -1338,6 +1459,7 @@ def main(argv=None):
         return 3
     try:
         res = analyze(a.frame, use_ocr=not a.no_ocr, use_cache=not a.no_cache,
+                 structure_only=getattr(a, 'structure', False),
                       scale=a.scale, debug=a.debug)
     except SystemExit as exc:
         return int(exc.code or 0)
@@ -1349,6 +1471,11 @@ def main(argv=None):
     if a.json_out:
         with open(a.json_out, 'w', encoding='utf-8') as f:
             json.dump(res, f, ensure_ascii=False, indent=1)
+    if getattr(a, 'structure', False):
+        # 模型规划动作读这个就够：面板 → 行 → 条目文本。**不需要看图**。
+        print(json.dumps({'frame': res['frame'], 'structure': res.get('structure') or [],
+                          'timing': res['timing']}, ensure_ascii=False))
+        return 0
     if a.json:
         print(json.dumps(res, ensure_ascii=False))
     else:
