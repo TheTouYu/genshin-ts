@@ -105,7 +105,9 @@
 
 ### 编辑器操作面覆盖率工作流（goal，2026-10-19 19:0x 起）
 - **口径与交接**：`docs/game-engine-knowledge/editor-operation-surface.md`（十二节是机器状态表 + 下一步）
-- **当前读数**：覆盖率 **33 / 458 = 7.21%**（命令：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv`）
+- **当前读数**：覆盖率 **33 / 458 = 7.21%**
+  - 复算（2026-10-19 22:1x）：`coverage` = **34 / 458 = 7.42%**（含包含匹配+证据强度过滤）；`covered`（严格视图）= **27 / 458**
+（命令：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv`）
 - **九个工具全绿**：ys-docops（分母458）· ys-enum（帧枚举雷达）· ys-rowclass（行分类）· ys-ops（台账/覆盖）·
   ys-crawl · ys-cover · ys-goto（进面板）· ys-pick（bbox 取点）· cov-field.py（字段级覆盖）
 - **三条关键判据**（都是被实测打回来才定下的）：
