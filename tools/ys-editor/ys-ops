@@ -306,6 +306,37 @@ def cmd_coverage(a):
     return 0 if pct >= a.require else 1
 
 
+def cmd_covered(a):
+    """列出「已覆盖的分母 id ← 是哪条屏上控件贡献的」。
+
+    为什么需要：覆盖率不涨时，第一动作不该是猜哪一环坏了，而是**先看目标 id 在不在已覆盖集合里**。
+    2026-10-19 实测踩过：台账里明明有 covered 行，我却去查别名表方向，白绕一轮。
+    """
+    import csv
+    inv = list(csv.DictReader(open(a.inventory, encoding="utf-8"), delimiter="\t"))
+    rows = [r for r in read_ledger() if r.get("status") == "covered"]
+    latest = {}
+    for r in rows:
+        latest[r["id"]] = r
+    ctl = {}
+    for r in latest.values():
+        ctl.setdefault(_norm(r.get("control")), []).append(r)
+    out = []
+    for it in inv:
+        ic = _norm(it.get("control"))
+        if not ic:
+            continue
+        src = list(ctl.get(ic, []))
+        for alt in _load_aliases().get(ic, ()):
+            src += ctl.get(alt, [])
+        if src:
+            out.append((it["id"], it["control"], src[-1]["control"], src[-1].get("note", "")[:60]))
+    for i, c, sc, note in out:
+        print(f"{i}\t{c}\t<- {sc}\t{note}")
+    print(f"[ys-ops] 已覆盖 {len(out)} / {len(inv)}", file=sys.stderr)
+    return 0
+
+
 def cmd_check(a):
     rows = [r for r in read_ledger() if r["id"] == a.id]
     if not rows:
@@ -342,6 +373,10 @@ def main():
     p.add_argument("--inventory", help="分母清单 TSV（首列=id）")
     p.add_argument("--require", type=float, default=99.5)
     p.set_defaults(fn=cmd_coverage)
+
+    p = sub.add_parser("covered", help="列出已覆盖的分母 id 及其对应的屏上控件（覆盖率不涨时先跑这个）")
+    p.add_argument("--inventory", required=True)
+    p.set_defaults(fn=cmd_covered)
 
     p = sub.add_parser("check", help="看某 id 的最新记录")
     p.add_argument("--id", required=True)
