@@ -38,6 +38,10 @@ def main():
         else:
             continue
         x, y, w, h = o["bbox"]
+        # 顶部 y<60 是**已打开的文档页签带**，不是入口磁贴/菜单项。实测它会抢走入口：
+        # 8 个面板里 6 个因此没打开（帧差 0.003~0.004），批量的行全是噪声。
+        if y + h / 2 < 60 and o.get("kind") in ("chip", "button"):
+            continue
         cand.append((score, rank(o.get("kind")), -w * h, x, y, w, h))
     if not cand:
         print(f"no object matches {want!r}", file=sys.stderr)

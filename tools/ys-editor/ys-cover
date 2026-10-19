@@ -18,7 +18,10 @@ mark_on_screen() {
   python3 -c "
 import json,sys
 d=json.load(open('$LOOK'))
-t=' '.join(' '.join(o.get('text') or []) for o in (d.get('objects') or []))
+# 只看 y>=60 的对象：顶部 0..60 是**已打开的文档页签带**，页签名里也含「计时器管理」
+# ⇒ 会让人误以为已归位到系统菜单（实测因此对着关卡设置面板点了一整轮）。
+t=' '.join(' '.join(o.get('text') or []) for o in (d.get('objects') or [])
+           if (o.get('bbox') or [0,0,0,0])[1] + (o.get('bbox') or [0,0,0,0])[3]/2 >= 60)
 sys.exit(0 if '$1' in t else 1)" 2>/dev/null
 }
 reset_menu() {
@@ -35,8 +38,19 @@ run_panel() {
   at=$("$PICK" "$LOOK" "$name" 2>/dev/null)
   if [ -z "${at:-}" ]; then echo "[cover] 屏上找不到入口 $name，跳过"; return 1; fi
   echo "[cover] 入口 $name @ $at"
-  "$OPS" add --id "PANEL-$name" --path "编辑器 > 系统菜单" --control "$name" --action click --at "$at" --risk A 2>/dev/null | tail -1
-  sleep 4
+  local out diff
+  out=$("$OPS" add --id "PANEL-$name" --path "编辑器 > 系统菜单" --control "$name" --action click --at "$at" --risk A 2>/dev/null | tail -1)
+  echo "$out"
+  # 入口闸门：帧差过小 = 面板根本没打开。此时继续爬 = 对着错误的界面点一整轮并产出噪声行
+  # （实测 8 个面板里 6 个是这样，明细见 D442 后一轮）。宁可跳过并记账，也不要污染台账。
+  diff=$(printf '%s' "$out" | python3 -c "import json,sys;print(json.load(sys.stdin).get('diff') or 0)" 2>/dev/null || echo 0)
+  if python3 -c "import sys;sys.exit(0 if float('${diff:-0}') < 0.05 else 1)" 2>/dev/null; then
+    echo "[cover] 入口未打开（diff=$diff < 0.05），跳过 $name 并记账"
+    "$OPS" add --id "SKIP-$name" --path "编辑器 > 系统菜单" --control "$name" --action observe --risk A \
+        --note "入口闸门：点入口后帧差 $diff，面板未打开" 2>/dev/null | tail -1
+    return 1
+  fi
+  sleep 3
   "$CRAWL" --from-look --by-name --restore none --max-items 40 --settle 1.2 2>&1 | grep -vE "Deprecation|px = list" | tail -8
 }
 PANELS="关卡设置

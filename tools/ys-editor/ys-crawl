@@ -96,7 +96,8 @@ def go_to(a):
         if objs is None:
             print(f"[ys-crawl] 归位：look 失败（第 {i+1} 次）", file=sys.stderr)
         else:
-            names = {" ".join(o.get("text") or []) for o in objs}
+            names = {" ".join(o.get("text") or []) for o in objs
+                     if (o.get("bbox") or [0, 0, 0, 0])[1] + (o.get("bbox") or [0, 0, 0, 0])[3] / 2 >= 60}
             if any(a.goto_text in n for n in names):
                 print(f"[ys-crawl] ✓ 已归位（{a.goto_text} 在屏，第 {i+1} 次尝试）", file=sys.stderr)
                 return True
