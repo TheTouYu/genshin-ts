@@ -420,7 +420,34 @@ tools/agent-coach --window 2h --dry-run --format text   # 临时要一份卡片�
 ⇒ OCR 耗时被重复计进"像素"（实测 1262ms 里绝大部分是等 daemon）。现在分开计时，
 读数才能指向真瓶颈。
 
+## 单帧感知慢？先看「起了几个外部进程」（2026-10-19 实测，判态 398→125ms）
+
+> 判据：单帧感知类工具 >100ms 时，**先问这一步是不是起了一个外部进程**，再谈算法。
+
+`ys-state --fast` 曾 398ms，账是这样的（daemon 响应已带 `parts{}` 分项，直接读，不要猜）：
+
+| 项 | 修复前 | 修复后 | 手段 |
+|---|---|---|---|
+| 抓帧 ROI 1401×1440 | **116ms** | 27ms | `import -window` 子进程 → **进程内 `XShmGetImage`（9ms）** |
+| UID 小条 360×100 | **82ms** | **0ms** | 不单独抓，从同一张整帧裁 |
+| 39 个像素取点 | 13–34ms | ~5ms | 免一次 24MB GPU→CPU 回传（numpy 已在手） |
+| 12 锚点 / GPU / decide | 35 / 6 / 0ms | 不变 | — |
+
+三条可直接照抄：
+1. **一次请求只抓一张整帧**（11MB，XShm 约 9ms），其余区域（判据点、UID 条、缩略图）**就地裁**；
+   "按需抓两次小区域"比抓一次整帧贵得多。
+2. **别在 GPU 张量上取几十个像素**——那会触发整帧回传；numpy 已经在手里就从 numpy 取。
+3. **改抓帧来源必须重验判据**：`ys-state --regress --channel both`（24 帧含 8 负样本）必须仍 100%，
+   `tools/ys-gates --only 1` 必须 PASS。变快不等于没变错。
+
+两个必踩的坑：
+- **daemon 从无 X 环境的 shell 启动 ⇒ `DISPLAY` 为空串 ⇒ 抓帧全 0 字节**。正确姿势：
+  `cd tools/ys-editor && . ./ys-env.sh && setsid nohup python3 ys_lookd.py`。
+- **`pgrep -f "ys_lookd.py" | xargs kill` 会匹配到自己的 shell 命令行**，把自己杀掉（实测连中两次）。
+  改用遍历 `/proc/*/cmdline` 且要求 cmdline 以 `python3` 开头。
+
 ## 变更记录
+
 
 | 日期 | 变更 |
 |---|---|
