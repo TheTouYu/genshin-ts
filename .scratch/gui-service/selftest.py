@@ -5,7 +5,8 @@
   schema   必填字段、evidence 必带、bbox 归一化（xywh）、状态名词表单一源
   look     state/objects/frame_id/预算门禁/缓存命中 ≤5ms
   act      dry-run 回执、未命中 fail-closed、free_text 无坐标、多义拒绝、
-           注入三连拒（缺 post / 未授权 / 意图需焦点）、点击点必须在帧内
+           语义期待 expect（dry-run 必填 / DSL 校验 / 5 类判据 / 正负例 / 证据三件套 / rc=9）、
+           未授权与意图需焦点、点击点必须在帧内
   wait     reached / timeout / violated / text_absent 降级 / frame_changed（帧序列）/ 非法判据
   cache    内容寻址 key、仪器指纹参与 key
   CLI      退出码 0/2/3/6/7/8 抽样
@@ -159,26 +160,31 @@ def main(argv=None):
     check("look/冷路径 state/objects 分项计时都有",
           all(k in ws_nc.raw["timing_ms"] for k in ("state", "objects")), str(ws_nc.raw["timing_ms"]))
 
-    # ───────── act ─────────
+    # ───────── act（2026-10-19：语义期待 expect）─────────
+    EXPECT_SIMPLE = {"type": "pixel_delta", "region": [300, 200, 1200, 800], "threshold_pct": 5}
     injected = []
     orig_inject = instruments.inject_click
     instruments.inject_click = lambda *aa, **kk: injected.append((aa, kk)) or {"rc": 99, "stderr_tail": "stub"}
     try:
-        res = svc.act({"text": "祈愿"}, frame=FRAME)
+        res = svc.act({"text": "祈愿"}, expect=EXPECT_SIMPLE, frame=FRAME)
+        check("act/不带 expect 被拒（ACT_EXPECT_REQUIRED）",
+              svc.act({"text": "祈愿"}, frame=FRAME)["error"]["code"] == "ACT_EXPECT_REQUIRED")
         check("act/dry-run 状态=dry_run", res["status"] == "dry_run", res["status"])
+        check("act/dry-run 回执带 expect 且未评估",
+              res["expect"]["type"] == "pixel_delta" and res["expect_evaluated"] is False)
         check("act/dry-run 未注入", res["injected"] is False and not injected)
-        check("act/点击点在帧内（bbox 单位正确）",
-              bool(res.get("click_point")) and not fw or (0 <= res["click_point"][0] < (fw or 1e9)),
-              str(res.get("click_point")))
+        check("act/dry-run 默认动作=click（点在帧内）",
+              res["action"]["type"] == "click" and bool(res.get("would_act")) and
+              (not fw or 0 <= res["would_act"]["at"][0] < fw),
+              str(res.get("would_act")))
         check("act/dry-run 明确标注 INJECTION_BLOCKED",
               any(d["code"] == "INJECTION_BLOCKED" for d in res["degraded"]))
-        res = svc.act({"text": "绝对不存在的按钮"}, frame=FRAME)
+        res = svc.act({"text": "绝对不存在的按钮"}, expect=EXPECT_SIMPLE, frame=FRAME)
         check("act/未命中 fail-closed（resolve_fail）", res["status"] == "resolve_fail" and not injected)
-        res = svc.act({"text": "透雨"}, frame=FRAME)      # f06 的 free_text（无容器归属）
+        res = svc.act({"text": "透雨"}, expect=EXPECT_SIMPLE, frame=FRAME)   # f06 free_text
         check("act/free_text 命中但无坐标 → 拒绝",
               res["status"] == "resolve_fail" and
               any(d["code"] == "FREE_TEXT_UNOWNED" for d in res["degraded"]))
-        # 多义：合成世界状态（两个容器同文本）
         synth = schema.new_world(
             frame_id="sha256:" + "1" * 64, captured_at_ms=schema.now_ms(),
             state={"name": "GAME_PAIMON", "evidence": [{"source": "selftest"}], "channel": "fast"},
@@ -188,23 +194,121 @@ def main(argv=None):
             budget_ms=dict(schema.BUDGET_DEFAULT_MS), degraded=[])
         amb = svc._resolve_target(schema.WorldState(synth), {"text": "确定"})
         check("act/多义 fail-closed（ambiguous）", amb["status"] == "ambiguous" and len(amb["candidates"]) == 2)
-        # 注入三连拒：都必须**不调用** inject_click
-        res = svc.act({"text": "祈愿"}, frame=FRAME, inject=True, post=None)
-        check("act/注入缺 post 被拒（ACT_POST_REQUIRED）",
-              res["status"] == "invalid" and res.get("error", {}).get("code") == "ACT_POST_REQUIRED" and not injected,
-              str(res.get("error")))
-        res = svc.act({"text": "祈愿"}, frame=FRAME, inject=True, post={"state_in": ["PLAYTEST"]})
+        # 授权闸门：不带 allow_inject 时绝不调用注入仪器
+        res = svc.act({"text": "祈愿"}, expect=EXPECT_SIMPLE, frame=FRAME, inject=True)
         check("act/注入未授权被拒（INJECTION_BLOCKED）",
               res["status"] == "precondition_fail" and not injected, str(res.get("error")))
-        res = svc.act({"intent": "playtest-start"}, inject=True)
+        res = svc.act({"intent": "playtest-start"}, expect=EXPECT_SIMPLE, inject=True)
         check("act/意图需焦点被拒（FOCUS_REQUIRED/INJECTION_BLOCKED）",
               res["status"] in ("precondition_fail", "dry_run") and not injected, str(res.get("error")))
-        res = svc.act({"intent": "playtest-start"})
+        res = svc.act({"intent": "playtest-start"}, expect=EXPECT_SIMPLE)
         check("act/意图 dry-run 有 pre/post 交接（resolved）",
               res["status"] == "dry_run" and res["resolved"] is True and
               bool(res.get("post_predicate")), str(res.get("post_predicate")))
+        # expect DSL 校验
+        for name, bad in (
+                ("未知 type", {"type": "banana"}),
+                ("text_added 缺 region", {"type": "text_added", "texts": ["x"]}),
+                ("region_text_set_changed 缺 region", {"type": "region_text_set_changed"}),
+                ("pixel_delta 阈值越界", {"type": "pixel_delta", "region": [0, 0, 10, 10],
+                                          "threshold_pct": 0}),
+                ("state_in 空集合", {"type": "state_in", "states": []})):
+            r = svc.act({"text": "祈愿"}, expect=bad, frame=FRAME)
+            check(f"act/expect DSL 拒绝：{name}",
+                  r["status"] == "invalid" and r.get("error", {}).get("code") == "BAD_EXPECT",
+                  str(r.get("error")))
     finally:
         instruments.inject_click = orig_inject
+
+    # ───────── expect 评估 + 证据三件套（离线合成帧：改动只在网格区，详情区不动）─────────
+    from PIL import Image
+    fx = os.path.join(EVIDENCE, "expect-fixtures")
+    os.makedirs(fx, exist_ok=True)
+    before = os.path.join(fx, "before.png")
+    after_grid = os.path.join(fx, "after_grid.png")
+    if not (os.path.exists(before) and os.path.exists(after_grid)):
+        base = Image.open(FRAME).convert("RGB")
+        other = Image.open(ALT_FRAME).convert("RGB")
+        grid_box = (300, 200, 1500, 1000)
+        base.save(before)
+        a = base.copy()
+        a.paste(other.crop(grid_box), (grid_box[0], grid_box[1]))
+        a.save(after_grid)
+    GRID = [300, 200, 1200, 800]
+    DETAIL = [1770, 150, 630, 650]
+    ev = svc.evaluate_expect({"type": "region_text_set_changed", "region": GRID,
+                              "min_jaccard_delta": 0.15}, before, after_grid)
+    check("expect/region_text_set_changed 正例（网格区变了）",
+          ev["ok"] is True and ev["observed"]["delta"] >= 0.15, json.dumps(ev["observed"], ensure_ascii=False))
+    ev = svc.evaluate_expect({"type": "region_text_set_changed", "region": DETAIL,
+                              "min_jaccard_delta": 0.15}, before, after_grid)
+    check("expect/region_text_set_changed 负例（详情区没变）",
+          ev["ok"] is False and ev["observed"]["delta"] == 0.0, json.dumps(ev["observed"], ensure_ascii=False))
+    check("expect/负例 detail 明确说『不是我期待的区域』",
+          "不是我期待的区域" in (ev.get("detail") or ""), ev.get("detail"))
+    ev = svc.evaluate_expect({"type": "pixel_delta", "region": GRID, "threshold_pct": 5},
+                             before, after_grid)
+    check("expect/pixel_delta 正例（0→24% 级变化）",
+          ev["ok"] is True and ev["observed"]["pixels_changed_pct"] >= 5,
+          json.dumps(ev["observed"], ensure_ascii=False))
+    ev = svc.evaluate_expect({"type": "pixel_delta", "region": DETAIL, "threshold_pct": 5},
+                             before, after_grid)
+    check("expect/pixel_delta 负例（详情区 0%）",
+          ev["ok"] is False and ev["observed"]["pixels_changed_pct"] == 0.0,
+          json.dumps(ev["observed"], ensure_ascii=False))
+    ev = svc.evaluate_expect({"type": "state_in", "states": ["GAME_PAIMON"]}, before, after_grid)
+    check("expect/state_in 正例（复用 ys-state 判据）",
+          ev["ok"] is True and ev["observed"]["state"] == "GAME_PAIMON", str(ev["observed"]))
+    ev = svc.evaluate_expect({"type": "state_in", "states": ["PLAYTEST"]}, before, after_grid)
+    check("expect/state_in 负例", ev["ok"] is False, str(ev["observed"]))
+    pair, _err = instruments.watch_region(before, after_grid, GRID, no_ocr=False, debug=True)
+    added = [e["text"] for e in pair["events"] if e["kind"] == "text_added"]
+    removed = [e["text"] for e in pair["events"] if e["kind"] == "text_removed"]
+    if added:
+        ev = svc.evaluate_expect({"type": "text_added", "region": GRID,
+                                  "texts": [added[0]]}, before, after_grid)
+        check(f"expect/text_added 正例（{added[0]}）", ev["ok"] is True, ev.get("detail"))
+    ev = svc.evaluate_expect({"type": "text_added", "region": GRID,
+                              "texts": ["绝对不存在的文本ZZZ"]}, before, after_grid)
+    check("expect/text_added 负例", ev["ok"] is False, ev.get("detail"))
+    if removed:
+        ev = svc.evaluate_expect({"type": "text_removed", "region": GRID,
+                                  "texts": [removed[0]]}, before, after_grid)
+        check(f"expect/text_removed 正例（{removed[0]}）", ev["ok"] is True, ev.get("detail"))
+    check("expect/失败退出码 expect_failed=9", worldsvc._exit_code_for("expect_failed") == 9)
+
+    # 离线注入（假动作）：验证「动作→证据→expect」整条链与正/负例状态
+    # 离线模拟（simulate_action=True）：只验证「动作→证据→expect」链路，不真注入
+    dpos = os.path.join(EVIDENCE, "act-expect-pos")
+    r = svc.act({"object_id": "c3"}, expect={"type": "region_text_set_changed",
+                                             "region": GRID, "min_jaccard_delta": 0.15},
+                action={"type": "click"}, frame=before, after_frame=after_grid,
+                inject=True, simulate_action=True, evidence_dir=dpos)
+    check("act/离线模拟正例 → ok", r["status"] == "ok" and r["ok"] is True and
+          r.get("simulated") is True, str(r.get("error")))
+    files = {f: os.path.exists(os.path.join(dpos, f))
+             for f in ("before.png", "after.png", "detail.png", "meta.json")}
+    check("act/证据三件套 + meta 存在", all(files.values()), str(files))
+    r = svc.act({"object_id": "c3"}, expect={"type": "region_text_set_changed",
+                                             "region": DETAIL, "min_jaccard_delta": 0.15},
+                action={"type": "click"}, frame=before, after_frame=after_grid,
+                inject=True, simulate_action=True,
+                evidence_dir=os.path.join(EVIDENCE, "act-expect-neg"))
+    check("act/离线模拟负例 → expect_failed（画面变了但不是我期待的区域）",
+          r["status"] == "expect_failed" and r["ok"] is False and
+          r.get("error", {}).get("code") == "ACT_EXPECT_FAILED",
+          str(r.get("error")))
+    check("act/负例证据也落盘（before/after/detail）",
+          all(os.path.exists(os.path.join(EVIDENCE, "act-expect-neg", f))
+              for f in ("before.png", "after.png", "detail.png")))
+    check("act/负例 detail 点名区域不符",
+          "不是我期待的区域" in ((r.get("expect_result") or {}).get("detail") or ""))
+    r = svc.act({"object_id": "c3"}, expect={"type": "state_in", "states": ["GAME_PAIMON"]},
+                frame=before, after_frame=after_grid, inject=True,
+                evidence_dir=os.path.join(EVIDENCE, "act-expect-simguard"))
+    check("act/after_frame 未声明 simulate_action → 拒绝（防旧帧驱动真注入）",
+          r["status"] == "invalid" and r.get("error", {}).get("code") == "ACT_SIMULATE_REQUIRED",
+          str(r.get("error")))
 
     # ───────── wait_until ─────────
     res = svc.wait_until({"state_in": ["GAME_PAIMON"]}, frame=FRAME, timeout_ms=3000)
@@ -285,8 +389,14 @@ def main(argv=None):
           f"{svc.cache.cache_dir} / {EVIDENCE}")
 
     # ───────── CLI 退出码 ─────────
-    rc, out, ms = cli(["act", "--text", "绝对不存在的按钮", "--frame", FRAME])
+    rc, out, ms = cli(["act", "--text", "绝对不存在的按钮", "--frame", FRAME,
+                       "--expect", '{"type":"pixel_delta","region":[300,200,1200,800],"threshold_pct":5}'])
     check("CLI/act 未命中 → rc=3", rc == 3, f"rc={rc} {ms}ms")
+    rc, out, ms = cli(["act", "--text", "祈愿", "--frame", FRAME])
+    check("CLI/act 缺 --expect → rc=2（必填）", rc == 2, f"rc={rc} {ms}ms")
+    rc, out, ms = cli(["act", "--text", "祈愿", "--frame", FRAME,
+                       "--expect", '{"type":"pixel_delta","region":[300,200,1200,800],"threshold_pct":5}'])
+    check("CLI/act dry-run 带 expect → rc=0", rc == 0 and '"dry_run"' in out, f"rc={rc} {ms}ms")
     rc, out, ms = cli(["wait", "--predicate", '{"state_in":["PLAYTEST"]}', "--frame", FRAME,
                        "--timeout-ms", "500", "--poll-ms", "100"])
     check("CLI/wait 超时 → rc=6", rc == 6, f"rc={rc} {ms}ms")

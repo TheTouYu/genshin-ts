@@ -1,0 +1,878 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "星鹫赤羽"
+ },
+ "status": "ok",
+ "ok": true,
+ "resolved": false,
+ "injected": true,
+ "reached": true,
+ "expect": {
+  "type": "region_text_set_changed",
+  "region": [
+   300,
+   200,
+   1200,
+   800
+  ],
+  "min_jaccard_delta": 0.05
+ },
+ "expect_result": {
+  "ok": true,
+  "type": "region_text_set_changed",
+  "region": [
+   300,
+   200,
+   1200,
+   800
+  ],
+  "observed": {
+   "jaccard": 0.4545,
+   "delta": 0.5455,
+   "min_jaccard_delta": 0.05,
+   "before_n": 28,
+   "after_n": 33,
+   "added": [
+    "★食食食食",
+    "★食食食",
+    "食食食食",
+    "lv.90",
+    "lv.90",
+    "lv.90",
+    "lv.90",
+    "lv.90",
+    "lv.90"
+   ],
+   "removed": [
+    "★食食⭐",
+    "食寶寶",
+    "5",
+    "0"
+   ],
+   "changed": 0,
+   "source": "ys-watch/slots"
+  },
+  "detail": "区域文本集合变化 delta=0.545 ≥ 0.05",
+  "elapsed_ms": 11001.6
+ },
+ "expect_evaluated": true,
+ "action": {
+  "type": "scroll",
+  "at": [
+   900,
+   600
+  ],
+  "clicks": 4,
+  "dir": "down"
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [],
+ "evidence": {
+  "dir": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-pos",
+  "before": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-pos/before.png",
+  "after": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-pos/after.png",
+  "detail": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-pos/detail.png",
+  "before_meta": {
+   "source": "ys-observe",
+   "attribution": {
+    "checked": true,
+    "src": "x11",
+    "want_title": "原神",
+    "want_class": "yuanshen.exe",
+    "want_id": "0x01400001",
+    "current_desktop": 0,
+    "verdict": "OK",
+    "atop": true,
+    "stacking_top": true,
+    "window": {
+     "id": "0x1800001",
+     "caption": "原神",
+     "class": "yuanshen.exe",
+     "bbox": [
+      0,
+      0,
+      2561,
+      1440
+     ],
+     "desktop": 0,
+     "minimized": false,
+     "idx": 0
+    },
+    "occluders": [],
+    "covered_ratio": 0.0,
+    "elapsed_ms": 17.3
+   },
+   "capture_ms": null,
+   "frame": null
+  },
+  "after_meta": {
+   "source": "ys-observe",
+   "attribution": {
+    "checked": true,
+    "src": "x11",
+    "want_title": "原神",
+    "want_class": "yuanshen.exe",
+    "want_id": "0x01400001",
+    "current_desktop": 0,
+    "verdict": "OK",
+    "atop": true,
+    "stacking_top": true,
+    "window": {
+     "id": "0x1800001",
+     "caption": "原神",
+     "class": "yuanshen.exe",
+     "bbox": [
+      0,
+      0,
+      2561,
+      1440
+     ],
+     "desktop": 0,
+     "minimized": false,
+     "idx": 0
+    },
+    "occluders": [],
+    "covered_ratio": 0.0,
+    "elapsed_ms": 17.3
+   },
+   "capture_ms": null,
+   "frame": null
+  },
+  "detail_meta": {
+   "path": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-pos/detail.png",
+   "region": [
+    300,
+    200,
+    1200,
+    800
+   ],
+   "scale": 1.0,
+   "at": null,
+   "frame_size": [
+    2560,
+    1440
+   ],
+   "ms": {
+    "frame_ms": 0,
+    "crop_ms": 212.7,
+    "ocr_ms": 4019.6
+   },
+   "texts": [
+    {
+     "text": "食食食食",
+     "bbox_local": [
+      71,
+      10,
+      111,
+      29
+     ],
+     "bbox_global": [
+      371.0,
+      210.0,
+      111.0,
+      29
+     ],
+     "score": 0.6972
+    },
+    {
+     "text": "★食食食食",
+     "bbox_local": [
+      852,
+      7,
+      116,
+      30
+     ],
+     "bbox_global": [
+      1152.0,
+      207.0,
+      116.0,
+      30
+     ],
+     "score": 0.8371
+    },
+    {
+     "text": "★食食食",
+     "bbox_local": [
+      1047,
+      9,
+      104,
+      27
+     ],
+     "bbox_global": [
+      1347.0,
+      209.0,
+      104.0,
+      27
+     ],
+     "score": 0.7313
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      91,
+      32,
+      82,
+      32
+     ],
+     "bbox_global": [
+      391.0,
+      232.0,
+      82.0,
+      32
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      285,
+      32,
+      83,
+      32
+     ],
+     "bbox_global": [
+      585.0,
+      232.0,
+      83.0,
+      32
+     ],
+     "score": 0.9992
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      482,
+      32,
+      80,
+      32
+     ],
+     "bbox_global": [
+      782.0,
+      232.0,
+      80.0,
+      32
+     ],
+     "score": 0.9997
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      676,
+      33,
+      83,
+      31
+     ],
+     "bbox_global": [
+      976.0,
+      233.0,
+      83.0,
+      31
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      871,
+      32,
+      82,
+      32
+     ],
+     "bbox_global": [
+      1171.0,
+      232.0,
+      82.0,
+      32
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      1065,
+      31,
+      84,
+      34
+     ],
+     "bbox_global": [
+      1365.0,
+      231.0,
+      84.0,
+      34
+     ],
+     "score": 0.9989
+    },
+    {
+     "text": "3",
+     "bbox_local": [
+      1034,
+      104,
+      22,
+      25
+     ],
+     "bbox_global": [
+      1334.0,
+      304.0,
+      22.0,
+      25
+     ],
+     "score": 1.0
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      92,
+      266,
+      81,
+      32
+     ],
+     "bbox_global": [
+      392.0,
+      466.0,
+      81.0,
+      32
+     ],
+     "score": 0.9997
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      285,
+      267,
+      83,
+      31
+     ],
+     "bbox_global": [
+      585.0,
+      467.0,
+      83.0,
+      31
+     ],
+     "score": 0.9998
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      482,
+      266,
+      81,
+      32
+     ],
+     "bbox_global": [
+      782.0,
+      466.0,
+      81.0,
+      32
+     ],
+     "score": 0.9997
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      676,
+      265,
+      82,
+      32
+     ],
+     "bbox_global": [
+      976.0,
+      465.0,
+      82.0,
+      32
+     ],
+     "score": 0.9997
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      871,
+      265,
+      83,
+      32
+     ],
+     "bbox_global": [
+      1171.0,
+      465.0,
+      83.0,
+      32
+     ],
+     "score": 0.9995
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      1066,
+      265,
+      82,
+      32
+     ],
+     "bbox_global": [
+      1366.0,
+      465.0,
+      82.0,
+      32
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "0",
+     "bbox_local": [
+      252,
+      366,
+      28,
+      32
+     ],
+     "bbox_global": [
+      552.0,
+      566.0,
+      28.0,
+      32
+     ],
+     "score": 0.8333
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      92,
+      500,
+      81,
+      31
+     ],
+     "bbox_global": [
+      392.0,
+      700.0,
+      81.0,
+      31
+     ],
+     "score": 0.9998
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      285,
+      499,
+      83,
+      32
+     ],
+     "bbox_global": [
+      585.0,
+      699.0,
+      83.0,
+      32
+     ],
+     "score": 0.9994
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      481,
+      500,
+      82,
+      31
+     ],
+     "bbox_global": [
+      781.0,
+      700.0,
+      82.0,
+      31
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "Lv.70",
+     "bbox_local": [
+      678,
+      499,
+      81,
+      32
+     ],
+     "bbox_global": [
+      978.0,
+      699.0,
+      81.0,
+      32
+     ],
+     "score": 0.9994
+    },
+    {
+     "text": "Lv.1",
+     "bbox_local": [
+      885,
+      501,
+      59,
+      30
+     ],
+     "bbox_global": [
+      1185.0,
+      701.0,
+      59.0,
+      30
+     ],
+     "score": 0.9995
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      1066,
+      500,
+      83,
+      31
+     ],
+     "bbox_global": [
+      1366.0,
+      700.0,
+      83.0,
+      31
+     ],
+     "score": 0.9998
+    },
+    {
+     "text": "5",
+     "bbox_local": [
+      54,
+      568,
+      30,
+      31
+     ],
+     "bbox_global": [
+      354.0,
+      768.0,
+      30.0,
+      31
+     ],
+     "score": 0.9926
+    },
+    {
+     "text": "5",
+     "bbox_local": [
+      250,
+      567,
+      31,
+      32
+     ],
+     "bbox_global": [
+      550.0,
+      767.0,
+      31.0,
+      32
+     ],
+     "score": 0.9988
+    },
+    {
+     "text": "5",
+     "bbox_local": [
+      445,
+      568,
+      30,
+      31
+     ],
+     "bbox_global": [
+      745.0,
+      768.0,
+      30.0,
+      31
+     ],
+     "score": 0.9983
+    },
+    {
+     "text": "5",
+     "bbox_local": [
+      640,
+      567,
+      31,
+      32
+     ],
+     "bbox_global": [
+      940.0,
+      767.0,
+      31.0,
+      32
+     ],
+     "score": 0.998
+    },
+    {
+     "text": "5",
+     "bbox_local": [
+      835,
+      568,
+      30,
+      32
+     ],
+     "bbox_global": [
+      1135.0,
+      768.0,
+      30.0,
+      32
+     ],
+     "score": 0.999
+    },
+    {
+     "text": "0",
+     "bbox_local": [
+      56,
+      601,
+      26,
+      29
+     ],
+     "bbox_global": [
+      356.0,
+      801.0,
+      26.0,
+      29
+     ],
+     "score": 0.6655
+    },
+    {
+     "text": "0",
+     "bbox_local": [
+      252,
+      599,
+      28,
+      33
+     ],
+     "bbox_global": [
+      552.0,
+      799.0,
+      28.0,
+      33
+     ],
+     "score": 0.6871
+    },
+    {
+     "text": "0",
+     "bbox_local": [
+      446,
+      599,
+      29,
+      32
+     ],
+     "bbox_global": [
+      746.0,
+      799.0,
+      29.0,
+      32
+     ],
+     "score": 0.8475
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      90,
+      734,
+      83,
+      31
+     ],
+     "bbox_global": [
+      390.0,
+      934.0,
+      83.0,
+      31
+     ],
+     "score": 0.9999
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      284,
+      733,
+      84,
+      32
+     ],
+     "bbox_global": [
+      584.0,
+      933.0,
+      84.0,
+      32
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      480,
+      733,
+      83,
+      32
+     ],
+     "bbox_global": [
+      780.0,
+      933.0,
+      83.0,
+      32
+     ],
+     "score": 0.9998
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      675,
+      734,
+      84,
+      31
+     ],
+     "bbox_global": [
+      975.0,
+      934.0,
+      84.0,
+      31
+     ],
+     "score": 0.9997
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      870,
+      733,
+      84,
+      32
+     ],
+     "bbox_global": [
+      1170.0,
+      933.0,
+      84.0,
+      32
+     ],
+     "score": 0.9995
+    },
+    {
+     "text": "Lv.90",
+     "bbox_local": [
+      1065,
+      734,
+      84,
+      31
+     ],
+     "bbox_global": [
+      1365.0,
+      934.0,
+      84.0,
+      31
+     ],
+     "score": 0.9998
+    }
+   ]
+  }
+ },
+ "elapsed_ms": 27791,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "星鹫赤羽",
+  "object": {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    1754,
+    170,
+    636,
+    58
+   ],
+   "kind": "chip",
+   "text": [
+    "星鹫赤羽"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      2370,
+      160,
+      30,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      2372,
+      208,
+      28,
+      28
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 79.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.65,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 28028,
+    "area_frac": 0.01,
+    "aspect": 10.97,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     134.0,
+     157.0,
+     171.0
+    ],
+    "flat_fill": 0.75,
+    "rect": 0.76,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:b6b4fe58fb1a302117983e7610f15e19ac2751412e4c2a2a5b098480c334272f"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "星鹫赤羽"
+ },
+ "simulated": false,
+ "inject": {
+  "tool": "scroll",
+  "ok": true,
+  "raw": {
+   "rc": 0,
+   "result": {
+    "ok": true,
+    "release_ok": true,
+    "budget": {
+     "target_ms": 500,
+     "actual_ms": 1883.0,
+     "over": true
+    },
+    "at": [
+     900,
+     600
+    ],
+    "dir": "down",
+    "clicks": 4,
+    "drag": null,
+    "lease": false,
+    "hint": "hint: 近 15 分钟 read_image 6 次 —— 你在用肉眼读整屏；改用 `ys-list --live`（结构化条目）或 `ys-lookd cmd=world`（state+objects+structure），少猜多算\nhint: 近 15 分钟 ys-scroll 5 次（次数偏多）——滚轮非线性（实测 10 格与 20 格都只走 3 行）；改用拖动：`ys-scroll --by rows=N`（标定 200px/行，线性）",
+    "moved_px": null,
+    "shifted": false,
+    "ms": 1883.0,
+    "frame_before": null,
+    "frame_after": null
+   },
+   "stdout_tail": "{\"ok\": true, \"release_ok\": true, \"budget\": {\"target_ms\": 500, \"actual_ms\": 1883.0, \"over\": true}, \"at\": [900, 600], \"dir\": \"down\", \"clicks\": 4, \"drag\": null, \"lease\": false, \"hint\": \"hint: 近 15 分钟 read_image 6 次 —— 你在用肉眼读整屏；改用 `ys-list --live`（结构化条目）或 `ys-lookd cmd=world`（state+objects+structure），少猜多算\\nhint: 近 15 分钟 ys-scroll 5 次（次数偏多）——滚轮非线性（实测 10 格与 20 格都只走 3 行）；改用拖动：`ys-scroll --by rows=N`（标定 200px/行，线性）\", \"moved_px\": null, \"shifted\": false, \"ms\": 1883.0, \"frame_before\": null, \"frame_after\": null}",
+   "stderr_tail": "⚠️ OVER BUDGET 1883.0ms > 500ms（动作+验证总时；用 --lease 可去掉槽位开销、--no-verify 去掉两次抓帧）"
+  }
+ }
+}

@@ -3,7 +3,8 @@
 
 三动词契约（`.scratch/gui-stack/AGI-BAR.md` §三/§四，2026-10-18 用户裁决）：
   look()               一次感知 → **单一世界状态**（schema.py 定义）；返回回执，不返回像素。
-  act(target)          解析目标 →（dry-run 或注入）→ 等下一稳态；注入动作**必须有 post 判据**。
+  act(target)          解析目标 →（dry-run 或注入）→ **验证语义期待 expect**（必填）；
+                       有变化 ≠ 达成意图：expect 不成立 = 动作失败（rc=9），并落 before/after/detail 证据。
   wait_until(predicate) 三态：reached / timeout / violated（+ 仪器故障的 error，fail-closed）。
 
 目标寻址（Lead 2026-10-18 裁决）：
@@ -17,8 +18,9 @@
   · act 默认 dry-run；`inject=True` 还要求构造时 `allow_inject=True`（本会话硬约束禁止注入）。
   · 判不出来 → `degraded` += {code, detail}，并如实保留 null/unknown，不编。
 
-退出码（CLI）：0 成功/命中；2 用法或判据非法；3 目标解析失败；4 目标多义；
-              5 前置不符（窗口不在栈顶、缺 post 等）；6 超时；7 violated；8 仪器/schema 故障。
+退出码（CLI）：0 成功/命中；2 用法或 expect DSL 非法；3 目标解析失败；4 目标多义；
+              5 前置不符（窗口不在栈顶/归属不过、注入未授权）；6 超时；7 violated；
+              8 仪器/schema 故障；**9 语义期待 expect 不成立**（动作执行了但变化不对）。
 """
 from __future__ import annotations
 
@@ -34,6 +36,8 @@ from cache import FrameCache
 
 REPO_ROOT = schema.repo_root()
 CACHE_DIR_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-service", ".cache")
+EVIDENCE_DIR_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-service", "evidence")
+EXPECT_TYPES = ("state_in", "text_added", "text_removed", "region_text_set_changed", "pixel_delta")
 
 
 class ServiceError(RuntimeError):
@@ -443,14 +447,28 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # 2) act
     # ══════════════════════════════════════════════════════════════
-    def act(self, target, *, post=None, timeout_ms=30000, poll_ms=None, inject=False,
-            frame=None, allow_inject=None):
+    # ══════════════════════════════════════════════════════════════
+    # 2) act —— 2026-10-19 起带**语义期待 expect**：有变化 ≠ 达成意图
+    # ══════════════════════════════════════════════════════════════
+    #
+    # 用户 2026-10-19 裁定：「注意 agi 角度思考」——滚轮滚到别处（请求 (900,600)，实际 (1350,900)）
+    # 时画面变了 85.7%，按旧判据算成功；但滚列表应该改变**列表项集合**，变的是详情面板就是错了。
+    # 因此 act 必须带 expect（机检的语义判据），expect 不成立 = 动作失败（rc=9），
+    # 并落盘 before/after/detail 三张图（同一目录、同一抓帧来源）。
+    def act(self, target, *, expect=None, action=None, post=None, timeout_ms=30000,
+            expect_timeout_ms=5000, poll_ms=None, inject=False, live=None, frame=None,
+            allow_inject=None, evidence_dir=None, after_frame=None, simulate_action=False):
         t0 = time.perf_counter()
         poll_ms = self.poll_ms if poll_ms is None else int(poll_ms)
+        if live:
+            inject = True
+            allow_inject = True if allow_inject is None else allow_inject
         allow_inject = self.allow_inject if allow_inject is None else bool(allow_inject)
         result = {
             "verb": "act", "target": target, "status": None, "ok": False,
             "resolved": False, "injected": False, "reached": None,
+            "expect": None, "expect_result": None, "expect_evaluated": False,
+            "action": action or {"type": "click"},
             "post_predicate": post, "post": None, "transitions": [],
             "degraded": [], "evidence": {}, "elapsed_ms": 0,
         }
@@ -458,9 +476,17 @@ class WorldService:
             if not isinstance(target, dict) or not any(k in target for k in ("text", "object_id", "intent")):
                 raise ServiceError("BAD_TARGET",
                                    "target 必须是 {text} | {object_id} | {intent} 之一", rc=2)
+            if expect is None:
+                raise ServiceError(
+                    "ACT_EXPECT_REQUIRED",
+                    "act 必须带语义期待 expect（有变化 ≠ 达成意图）。例："
+                    '{"type":"region_text_set_changed","region":[300,200,1200,800],'
+                    '"min_jaccard_delta":0.15}', status="invalid", rc=2)
+            exp = self._validate_expect(expect)
+            result["expect"] = exp
             if "intent" in target:
-                return self._act_intent(target, post=post, timeout_ms=timeout_ms, poll_ms=poll_ms,
-                                        inject=inject, result=result, t0=t0)
+                return self._act_intent(target, expect=exp, post=post, timeout_ms=timeout_ms,
+                                        poll_ms=poll_ms, inject=inject, result=result, t0=t0)
             ws = self.look(frame=frame)
             resolution = self._resolve_target(ws, target)
             result["resolution"] = resolution
@@ -470,71 +496,380 @@ class WorldService:
                 result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
                 return result
             obj = resolution["object"]
-            point = instruments.click_point(obj["bbox"])
-            # 防御断言：点击点必须落在帧内（2026-10-18 实测：bbox 格式错会让点落到 y=1647）
-            fw = (ws.raw.get("frame") or {}).get("w")
-            fh = (ws.raw.get("frame") or {}).get("h")
-            if fw and fh and not (0 <= point[0] < fw and 0 <= point[1] < fh):
-                raise ServiceError("CLICK_OUT_OF_FRAME",
-                                   f"点击点 {point} 不在帧 {fw}x{fh} 内；bbox={obj['bbox']}（单位/格式错误？）",
-                                   status="invalid", rc=8)
-            result.update({"resolved": True, "click_point": point,
-                           "evidence": {"frame_id": ws.frame_id, "object_id": obj["id"],
-                                        "text": obj["text"], "bbox": obj["bbox"],
-                                        "confidence": obj["confidence"],
-                                        "affordance": obj["affordance"]}})
+            spec = self._resolve_action_spec(ws, obj, action)
+            result["action"] = spec
+            result["evidence"] = {"dir": None, "before": None, "after": None, "detail": None}
+
+            # ── dry-run（默认）：只解析与校验，不动、不写证据 ──
             if not inject:
-                result.update({"status": "dry_run", "ok": True,
+                result.update({"status": "dry_run", "ok": True, "expect_evaluated": False,
+                               "would_act": spec,
                                "degraded": [_degraded("INJECTION_BLOCKED",
-                                                      "dry-run：已解析目标与点击点，未注入（本会话硬约束）")],
-                               "would_inject": point})
+                                                      "dry-run：已解析动作与 expect，未执行（默认）")]})
                 result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
                 return result
 
-            # ── 注入路径：没有 post 判据一律拒绝（AGI-BAR §五 / ys-do 契约）──
-            if not isinstance(post, dict) or not post:
-                raise ServiceError("ACT_POST_REQUIRED",
-                                   "注入动作必须带 post 判据（不存在没有 post 的动作）；"
-                                   "先给 {\"state_in\": [...]} 之类的判据", status="invalid", rc=5)
-            if not allow_inject:
+            # ── 真动（--live / inject=True）──
+            # 离线 after_frame 只用于「动作→证据→expect」链路的契约测试：必须显式 simulate_action，
+            # 否则会出现「用旧坐标/旧帧驱动真注入」的危险组合（CLI 不暴露该参数）。
+            if after_frame and not simulate_action:
+                raise ServiceError("ACT_SIMULATE_REQUIRED",
+                                   "after_frame 仅用于离线模拟：请传 simulate_action=True（CLI 不暴露）",
+                                   status="invalid", rc=2)
+            if not simulate_action and not allow_inject:
                 raise ServiceError("INJECTION_BLOCKED",
-                                   "本服务 allow_inject=False：注入需用户在环授权 + 窗口可占焦点",
+                                   "注入需用户在环授权（--live / allow_inject=True）",
                                    status="precondition_fail", rc=5)
-            st = instruments.atop_status()
-            if not st["atop"]:
-                raise ServiceError("LIVE_NOT_ATOP",
-                                   f"注入前窗口不在栈顶（rc={st['rc']}）：{st['line']!r}",
-                                   status="precondition_fail", rc=5)
-            res = instruments.inject_click(point[0], point[1])
-            result["injected"] = True
-            result["inject"] = res
-            if res["rc"] != 0:
-                raise ServiceError("INJECT_FAILED",
-                                   f"ys-gui-slot/ys-pointer-click rc={res['rc']}：{res['stderr_tail']}",
-                                   status="error", rc=8)
-            waited = self.wait_until(post, timeout_ms=timeout_ms, poll_ms=poll_ms, frame=None)
-            result["post"] = waited
-            result["transitions"] = waited.get("transitions", [])
-            result["degraded"] = waited.get("degraded", [])
-            if waited["status"] == "reached":
-                result.update({"status": "ok", "ok": True, "reached": True})
+            edir = self._evidence_dir(evidence_dir)
+            result["evidence"]["dir"] = edir
+            before, before_meta = self._capture_evidence(frame, os.path.join(edir, "before.png"))
+            result["evidence"]["before"] = before
+            result["evidence"]["before_meta"] = before_meta
+            if simulate_action:
+                inj = {"ok": True, "simulated": True, "tool": spec["type"], "raw": None}
             else:
-                result.update({"status": waited["status"], "ok": False, "reached": False})
+                inj = self._do_action(spec)
+            result["injected"] = not simulate_action
+            result["simulated"] = bool(simulate_action)
+            result["inject"] = inj
+            if not inj["ok"]:
+                raise ServiceError("INJECT_FAILED",
+                                   f"{spec['type']} 注入失败 rc={inj['raw'].get('rc')}："
+                                   f"{str(inj['raw'].get('stderr_tail') or inj['raw'].get('stdout_tail'))[:300]}",
+                                   status="error", rc=8)
+            deadline = time.perf_counter() + max(0.2, float(expect_timeout_ms) / 1000.0)
+            ev = None
+            after = None
+            while True:
+                after, after_meta = self._capture_evidence(None, os.path.join(edir, "after.png"),
+                                                           after_frame=after_frame)
+                ev = self.evaluate_expect(exp, before, after, profile=self.profile)
+                result["expect_result"] = ev
+                result["expect_evaluated"] = True
+                result["evidence"]["after"] = after
+                result["evidence"]["after_meta"] = after_meta
+                if ev["ok"] or time.perf_counter() >= deadline:
+                    break
+                time.sleep(max(0.05, poll_ms / 1000.0))
+            detail, detail_res = self._write_detail(after, exp, edir)
+            result["evidence"]["detail"] = detail
+            result["evidence"]["detail_meta"] = detail_res
+            if not ev["ok"]:
+                result.update({
+                    "status": "expect_failed", "ok": False, "reached": False,
+                    "error": {"code": "ACT_EXPECT_FAILED",
+                              "detail": ev.get("detail") or "语义期待未成立"}})
+            elif isinstance(post, dict) and post:
+                waited = self.wait_until(post, timeout_ms=timeout_ms, poll_ms=poll_ms, frame=None)
+                result["post"] = waited
+                result["transitions"] = waited.get("transitions", [])
+                result["degraded"] = waited.get("degraded", [])
+                if waited["status"] == "reached":
+                    result.update({"status": "ok", "ok": True, "reached": True})
+                else:
+                    result.update({"status": waited["status"], "ok": False, "reached": False})
+            else:
+                result.update({"status": "ok", "ok": True, "reached": True})
             result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
+            self._write_act_meta(result)
             return result
         except ServiceError as exc:
-            result.update({"status": exc.status, "ok": False, "error": {"code": exc.code,
-                                                                      "detail": exc.detail}})
+            # 用法/DSL 类错误统一归为 invalid（CLI rc=2/5），别混进仪器故障
+            status = "invalid" if exc.code in ("BAD_EXPECT", "ACT_EXPECT_REQUIRED",
+                                               "BAD_ACTION", "BAD_TARGET",
+                                               "ACT_SIMULATE_REQUIRED") else exc.status
+            result.update({"status": status, "ok": False,
+                           "error": {"code": exc.code, "detail": exc.detail}})
             result.setdefault("degraded", []).append(_degraded("INSTRUMENT_FAIL",
-                                                                f"{exc.code}: {exc.detail}"))
+                                                               f"{exc.code}: {exc.detail}"))
             result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
+            self._write_act_meta(result)
             return result
         except instruments.InstrumentError as exc:
             result.update({"status": "error", "ok": False,
                            "error": {"code": exc.code, "detail": exc.detail},
                            "degraded": [_degraded("INSTRUMENT_FAIL", f"{exc.code}: {exc.detail}")]})
             result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
+            self._write_act_meta(result)
             return result
+
+    # ── expect：校验 / 评估（判据全部复用既有仪器）────────────────────────
+    @staticmethod
+    def _region4(v):
+        if isinstance(v, str):
+            parts = [p for p in v.replace(" ", "").split(",") if p]
+        elif isinstance(v, (list, tuple)):
+            parts = list(v)
+        else:
+            parts = []
+        if len(parts) != 4:
+            raise ServiceError("BAD_EXPECT", f"region 必须是 [x,y,w,h]，实际 {v!r}", rc=2)
+        try:
+            x, y, w, h = [int(round(float(p))) for p in parts]
+        except (TypeError, ValueError):
+            raise ServiceError("BAD_EXPECT", f"region 必须是数字 [x,y,w,h]，实际 {v!r}", rc=2)
+        if w <= 0 or h <= 0 or x < 0 or y < 0:
+            raise ServiceError("BAD_EXPECT", f"region 必须 x,y>=0 且 w,h>0，实际 {v!r}", rc=2)
+        return [x, y, w, h]
+
+    def _validate_expect(self, expect):
+        """expect 机检 DSL（v0，2026-10-19）。未知类型/缺字段 fail-closed。"""
+        if not isinstance(expect, dict):
+            raise ServiceError("BAD_EXPECT", "expect 必须是 dict", rc=2)
+        t = expect.get("type")
+        if t not in EXPECT_TYPES:
+            raise ServiceError("BAD_EXPECT",
+                               f"expect.type 必须是 {EXPECT_TYPES}，实际 {t!r}", rc=2)
+        out = {"type": t}
+        if t == "state_in":
+            states = expect.get("states", expect.get("state_in"))
+            if not isinstance(states, list) or not states:
+                raise ServiceError("BAD_EXPECT", "state_in 必须带 non-empty states: [...]", rc=2)
+            vocab = set(schema.state_vocabulary())
+            bad = [s for s in states if vocab and str(s) not in vocab]
+            if bad:
+                raise ServiceError("BAD_EXPECT", f"state_in 含未登记状态 {bad}（词表见 ys-state）", rc=2)
+            out["states"] = [str(s) for s in states]
+            if "region" in expect:
+                out["region"] = self._region4(expect["region"])
+            return out
+        if t in ("text_added", "text_removed"):
+            if "region" not in expect:
+                raise ServiceError("BAD_EXPECT", f"{t} 必须带 region: [x,y,w,h]", rc=2)
+            out["region"] = self._region4(expect["region"])
+            texts = expect.get("texts")
+            if not isinstance(texts, list) or not texts:
+                raise ServiceError("BAD_EXPECT", f"{t} 必须带 non-empty texts: [...]", rc=2)
+            out["texts"] = [str(x) for x in texts]
+            return out
+        if t == "region_text_set_changed":
+            if "region" not in expect:
+                raise ServiceError("BAD_EXPECT", f"{t} 必须带 region: [x,y,w,h]", rc=2)
+            out["region"] = self._region4(expect["region"])
+            m = float(expect.get("min_jaccard_delta", 0.15))
+            if not (0.0 <= m <= 1.0):
+                raise ServiceError("BAD_EXPECT", "min_jaccard_delta 必须在 [0,1]", rc=2)
+            out["min_jaccard_delta"] = m
+            return out
+        if "region" not in expect:
+            raise ServiceError("BAD_EXPECT", f"{t} 必须带 region: [x,y,w,h]", rc=2)
+        out["region"] = self._region4(expect["region"])
+        th = float(expect.get("threshold_pct", 5.0))
+        if not (0.0 < th <= 100.0):
+            raise ServiceError("BAD_EXPECT", "pixel_delta.threshold_pct 必须在 (0,100]", rc=2)
+        out["threshold_pct"] = th
+        out["px_thr"] = float(expect.get("px_thr", 10.0))
+        out["calibration"] = expect.get("calibration") or (
+            "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；"
+            "阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节")
+        return out
+
+    @staticmethod
+    def _slots_from_stderr(stderr):
+        """从 ys-watch --debug 的 stderr 读区域文本**集合**（槽位构建是 ys-watch 的唯一实现）。"""
+        import ast
+        import re
+        a = b = None
+        for line in (stderr or "").splitlines():
+            m = re.search(r"\[ys-watch\] slots before:\s*(\[.*\])\s*$", line)
+            if m:
+                try:
+                    a = ast.literal_eval(m.group(1))
+                except (ValueError, SyntaxError):
+                    a = None
+            m = re.search(r"\[ys-watch\] slots after:\s*(\[.*\])\s*$", line)
+            if m:
+                try:
+                    b = ast.literal_eval(m.group(1))
+                except (ValueError, SyntaxError):
+                    b = None
+        return a, b
+
+    def evaluate_expect(self, expect, before, after, *, profile=None):
+        """对一对帧评估 expect。返回 {ok,type,observed,detail,elapsed_ms,degraded?}。
+
+        单一源：state_in → ys-state；text/pixel → ys-watch；不在这里写第二份判据。
+        """
+        exp = self._validate_expect(expect)
+        t = exp["type"]
+        t0 = time.perf_counter()
+        region = exp.get("region")
+        try:
+            if t == "state_in":
+                res = instruments.get_state(after, channel="fast",
+                                            profile=profile or self.profile)
+                st = res.get("state")
+                ok = st in exp["states"]
+                return {"ok": ok, "type": t, "region": region,
+                        "observed": {"state": st, "expected": exp["states"],
+                                     "via": res.get("via"), "confidence": res.get("confidence")},
+                        "detail": (f"界面态 {st} {'∈' if ok else '∉'} 期待集合 {exp['states']}"),
+                        "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
+            if t == "pixel_delta":
+                pair, _ = instruments.watch_region(before, after, region, no_ocr=True, debug=False)
+                cd = pair.get("color_delta") or {}
+                pct = float(cd.get("pixels_changed_pct") or 0.0)
+                ok = pct >= exp["threshold_pct"]
+                return {"ok": ok, "type": t, "region": region,
+                        "observed": {"pixels_changed_pct": pct,
+                                     "mean_delta": cd.get("mean_delta"),
+                                     "px_thr": cd.get("px_thr"),
+                                     "threshold_pct": exp["threshold_pct"],
+                                     "calibration": exp["calibration"]},
+                        "detail": (f"区域像素变化 {pct:.2f}% {'≥' if ok else '<'} "
+                                   f"阈值 {exp['threshold_pct']}%"),
+                        "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
+            # ── 文本层：一次 ys-watch 同时给 events 与 debug 槽位 ──
+            pair, err = instruments.watch_region(before, after, region, no_ocr=False, debug=True)
+            events = pair.get("events") or []
+            norm = schema.normalize_text
+            added = [norm(e.get("text") or "") for e in events if e.get("kind") == "text_added"]
+            removed = [norm(e.get("text") or "") for e in events if e.get("kind") == "text_removed"]
+            changed = [(norm(e.get("from") or ""), norm(e.get("to") or ""))
+                       for e in events if e.get("kind") == "text_changed"]
+            slots = pair.get("slots") or {}
+            if t in ("text_added", "text_removed"):
+                want = [norm(x) for x in exp["texts"]]
+                pool = added if t == "text_added" else removed
+                missing = [w for w in want if w not in set(pool)]
+                ok = bool(want) and not missing
+                label = "出现" if t == "text_added" else "消失"
+                what = "、".join(exp["texts"])
+                det = (f"期待{label}：{what} —— {'成立' if ok else '不成立'}"
+                       + ("" if ok else f"（实际{label}：{pool[:8] or '无'}）"))
+                return {"ok": ok, "type": t, "region": region,
+                        "observed": {"expected": exp["texts"], "added": added,
+                                     "removed": removed, "changed": len(changed),
+                                     "slots": slots,
+                                     "source": "ys-watch/events"},
+                        "detail": det,
+                        "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
+            # region_text_set_changed：优先用 debug 槽位算集合 Jaccard；解析不到才退计数口径
+            a, b = self._slots_from_stderr(err)
+            if a is not None and b is not None:
+                sa = {norm(x) for x in a}
+                sb = {norm(x) for x in b}
+                union = sa | sb
+                inter = sa & sb
+                jac = (len(inter) / len(union)) if union else 0.0
+                delta = (1.0 - jac) if union else 0.0
+                src = "ys-watch/slots"
+            else:
+                before_n = int(slots.get("before") or 0)
+                after_n = int(slots.get("after") or 0)
+                inter = max(0, before_n - len(removed) - len(changed))
+                union = before_n + after_n - inter
+                jac = (inter / union) if union else 0.0
+                delta = (1.0 - jac) if union else 0.0
+                src = "ys-watch/events-counts-fallback"
+            ok = delta >= exp["min_jaccard_delta"]
+            det = (f"区域文本集合变化 delta={delta:.3f} "
+                   f"{'≥' if ok else '<'} {exp['min_jaccard_delta']}")
+            if not ok:
+                det += "（变化的不是我期待的区域 / 没达到集合变化阈值）"
+            return {"ok": ok, "type": t, "region": region,
+                    "observed": {"jaccard": round(jac, 4), "delta": round(delta, 4),
+                                 "min_jaccard_delta": exp["min_jaccard_delta"],
+                                 "before_n": slots.get("before"), "after_n": slots.get("after"),
+                                 "added": added[:12], "removed": removed[:12],
+                                 "changed": len(changed), "source": src},
+                    "detail": det,
+                    "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
+        except instruments.InstrumentError as exc:
+            return {"ok": False, "type": t, "region": region, "observed": {},
+                    "detail": f"判据仪器失败：{exc.code}: {exc.detail}",
+                    "degraded": [_degraded("INSTRUMENT_FAIL", f"{exc.code}: {exc.detail}")],
+                    "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
+
+    # ── 动作解析 / 执行 / 证据 ─────────────────────────────────────────────
+    def _resolve_action_spec(self, ws, obj, action):
+        act = action or {"type": "click"}
+        if not isinstance(act, dict) or act.get("type") not in ("click", "scroll"):
+            raise ServiceError("BAD_ACTION", 'action 必须是 {"type":"click"} 或 {"type":"scroll",...}',
+                               rc=2)
+        frame = ws.raw.get("frame") or {}
+        fw, fh = frame.get("w"), frame.get("h")
+        if act["type"] == "click":
+            at = instruments.click_point(obj["bbox"])
+            spec = {"type": "click", "at": at}
+        else:
+            raw_at = act.get("at")
+            if raw_at is None:
+                at = instruments.click_point(obj["bbox"])
+            elif isinstance(raw_at, str):
+                at = [int(v) for v in raw_at.replace(" ", "").split(",")]
+            else:
+                at = [int(v) for v in raw_at]
+            if len(at) != 2:
+                raise ServiceError("BAD_ACTION", f"action.at 必须是 [x,y]，实际 {raw_at!r}", rc=2)
+            dy = act.get("dy")
+            clicks = act.get("clicks")
+            if clicks is None:
+                clicks = abs(int(dy)) if dy not in (None, 0) else 3
+            direction = act.get("dir") or ("down" if (dy is None or int(dy) < 0) else "up")
+            if direction not in ("down", "up"):
+                raise ServiceError("BAD_ACTION", 'action.dir 必须是 "down"|"up"', rc=2)
+            spec = {"type": "scroll", "at": [int(at[0]), int(at[1])],
+                    "clicks": int(clicks), "dir": direction}
+        if fw and fh and not (0 <= spec["at"][0] < fw and 0 <= spec["at"][1] < fh):
+            raise ServiceError("ACTION_OUT_OF_FRAME",
+                               f"动作点 {spec['at']} 不在帧 {fw}x{fh} 内", status="invalid", rc=8)
+        return spec
+
+    def _do_action(self, spec):
+        if spec["type"] == "click":
+            raw = instruments.inject_click(spec["at"][0], spec["at"][1])
+            ok = raw.get("rc") == 0
+        else:
+            raw = instruments.inject_scroll(spec["at"][0], spec["at"][1],
+                                            clicks=spec["clicks"], direction=spec["dir"],
+                                            lease=True)
+            res = raw.get("result") or {}
+            ok = raw.get("rc") == 0 and bool(res.get("ok", True))
+        return {"tool": spec["type"], "ok": bool(ok), "raw": raw}
+
+    def _evidence_dir(self, evidence_dir):
+        if evidence_dir:
+            path = os.path.abspath(evidence_dir)
+        else:
+            path = os.path.join(EVIDENCE_DIR_DEFAULT,
+                                "act-%s-%d" % (time.strftime("%Y%m%d-%H%M%S"), os.getpid()))
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def _capture_evidence(self, frame, out, *, after_frame=None):
+        """动作与证据同源：live 走 instruments.grab_frame()（ys-capture/observe 的唯一入口）；
+        离线用给定帧（before=frame；after 必须显式给 after_frame，测试用）。"""
+        if after_frame:
+            instruments.copy_frame(after_frame, out)
+            return out, {"source": "frame", "path": os.path.abspath(after_frame)}
+        if frame:
+            instruments.copy_frame(frame, out)
+            return out, {"source": "frame", "path": os.path.abspath(frame)}
+        meta = instruments.grab_frame()
+        instruments.copy_frame(meta["path"], out)
+        return out, {"source": meta.get("source"), "attribution": meta.get("attribution"),
+                     "capture_ms": meta.get("capture_ms"), "frame": meta.get("frame")}
+
+    def _write_detail(self, after, exp, edir):
+        region = exp.get("region") or [1280 - 400, 720 - 300, 800, 600]
+        out = os.path.join(edir, "detail.png")
+        r = instruments.detail_image(after, region, out, scale=1.0, ocr=True)
+        if r["rc"] != 0 or not os.path.isfile(out):
+            raise ServiceError("ACT_DETAIL_FAILED",
+                               f"ys-detail 失败 rc={r['rc']}：{r.get('stderr_tail')}",
+                               status="error", rc=8)
+        return out, r.get("result")
+
+    def _write_act_meta(self, result):
+        edir = (result.get("evidence") or {}).get("dir")
+        if not edir:
+            return
+        try:
+            with open(os.path.join(edir, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=1)
+        except (OSError, TypeError, ValueError):
+            pass
 
     def _resolve_target(self, ws, target):
         """解析 target → {status, object, ...}。未命中/多义 fail-closed，不猜。"""
@@ -570,7 +905,7 @@ class WorldService:
         return {"status": "resolved", "channel": "text", "target": text,
                 "object": obj, "candidates": 1, "matched_text": hits[0]["text"]}
 
-    def _act_intent(self, target, *, post, timeout_ms, poll_ms, inject, result, t0):
+    def _act_intent(self, target, *, expect, post, timeout_ms, poll_ms, inject, result, t0):
         intent = target["intent"]
         intents = {i["intent"]: i for i in instruments.list_intents()}
         if intent not in intents:
@@ -582,6 +917,7 @@ class WorldService:
         result["post_predicate"] = post
         if not inject:
             result.update({"status": "dry_run", "resolved": True, "ok": True,
+                           "expect_evaluated": False,
                            "degraded": [_degraded("INJECTION_BLOCKED",
                                                   "dry-run：意图已解析（pre/post/steps），未执行；"
                                                   "ys-do 连 dry-run 也会 acquire_focus ⇒ 本会话不调用")]})
@@ -591,20 +927,41 @@ class WorldService:
             raise ServiceError("INJECTION_BLOCKED",
                                "意图执行需占焦点（ys-do acquire_focus）+ 注入；allow_inject=False",
                                status="precondition_fail", rc=5)
+        # 语义期待同样适用于意图：执行前抓一帧，执行后评估 expect（判据仍走同一套仪器）
+        edir = self._evidence_dir(None)
+        result["evidence"] = {"dir": edir}
+        before, before_meta = self._capture_evidence(None, os.path.join(edir, "before.png"))
+        result["evidence"].update({"before": before, "before_meta": before_meta})
         out = instruments.run_intent(intent, dry=False, allow_focus=True)
         result["intent_run"] = out
         if out["rc"] != 0:
             raise ServiceError("INTENT_FAILED", f"ys-do {intent} rc={out['rc']}：{out['stderr_tail']}",
                                status="error", rc=8)
+        result["injected"] = True
+        after, after_meta = self._capture_evidence(None, os.path.join(edir, "after.png"))
+        result["evidence"].update({"after": after, "after_meta": after_meta})
+        ev = self.evaluate_expect(expect, before, after, profile=self.profile)
+        result["expect_result"] = ev
+        result["expect_evaluated"] = True
+        detail, detail_res = self._write_detail(after, expect, edir)
+        result["evidence"].update({"detail": detail, "detail_meta": detail_res})
+        if not ev["ok"]:
+            result.update({"status": "expect_failed", "ok": False, "reached": False,
+                           "error": {"code": "ACT_EXPECT_FAILED",
+                                     "detail": ev.get("detail") or "语义期待未成立"}})
+            result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
+            self._write_act_meta(result)
+            return result
         waited = self.wait_until(post, timeout_ms=timeout_ms, poll_ms=poll_ms)
         result["post"] = waited
         result["transitions"] = waited.get("transitions", [])
         result["degraded"] = waited.get("degraded", [])
         if waited["status"] == "reached":
-            result.update({"status": "ok", "ok": True, "injected": True, "reached": True})
+            result.update({"status": "ok", "ok": True, "reached": True})
         else:
-            result.update({"status": waited["status"], "ok": False, "injected": True, "reached": False})
+            result.update({"status": waited["status"], "ok": False, "reached": False})
         result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
+        self._write_act_meta(result)
         return result
 
     # ══════════════════════════════════════════════════════════════
@@ -760,7 +1117,9 @@ def _emit(obj, *, json_only=False, out_path=None):
 def _exit_code_for(status):
     return {"ok": 0, "reached": 0, "dry_run": 0,
             "resolve_fail": 3, "ambiguous": 4, "invalid": 5, "precondition_fail": 5,
-            "timeout": 6, "violated": 7, "error": 8}.get(status, 8)
+            "timeout": 6, "violated": 7, "error": 8,
+            # 2026-10-19：语义期待不成立（有变化 ≠ 达成意图）
+            "expect_failed": 9}.get(status, 8)
 
 
 def main(argv=None):
@@ -791,9 +1150,20 @@ def main(argv=None):
     p.add_argument("--object-id", default=None)
     p.add_argument("--intent", default=None)
     p.add_argument("--frame", default=None, help="离线帧（解析用）")
-    p.add_argument("--inject", action="store_true", help="真注入（需 allow_inject + post 判据）")
+    p.add_argument("--expect", required=True,
+                   help='语义期待 JSON（必填），如 {"type":"region_text_set_changed",'
+                        '"region":[300,200,1200,800],"min_jaccard_delta":0.15}；'
+                        '类型：state_in/text_added/text_removed/region_text_set_changed/pixel_delta')
+    p.add_argument("--action", default=None,
+                   help='动作 JSON（缺省 {"type":"click"}；滚动：{"type":"scroll","dy":-3,"at":[900,600]}）')
+    p.add_argument("--inject", action="store_true", help="真注入（需 allow_inject；旧开关，保留）")
+    p.add_argument("--live", action="store_true", help="真动（等价 --inject + 授权；默认 dry-run）")
     p.add_argument("--allow-inject", action="store_true", help="显式授权注入（用户在环）")
     p.add_argument("--post", default=None, help='post 判据 JSON，如 {"state_in":["PLAYTEST"]}')
+    p.add_argument("--expect-timeout-ms", type=int, default=5000,
+                   help="expect 轮询等待上限（毫秒，缺省 5000）")
+    p.add_argument("--evidence-dir", default=None,
+                   help="证据目录（before/after/detail/meta.json；缺省 .scratch/gui-service/evidence/act-…）")
     p.add_argument("--timeout-ms", type=int, default=30000)
     p.add_argument("--poll-ms", type=int, default=300)
 
@@ -851,8 +1221,12 @@ def main(argv=None):
             if target is None:
                 raise ServiceError("BAD_USAGE", "act 需要 --text / --object-id / --intent 之一", rc=2)
             post = json.loads(a.post) if a.post else None
-            res = svc.act(target, post=post, timeout_ms=a.timeout_ms, poll_ms=a.poll_ms,
-                          inject=a.inject, frame=a.frame)
+            expect = json.loads(a.expect)
+            action = json.loads(a.action) if a.action else None
+            res = svc.act(target, expect=expect, action=action, post=post,
+                          timeout_ms=a.timeout_ms, expect_timeout_ms=a.expect_timeout_ms,
+                          poll_ms=a.poll_ms, inject=a.inject, live=a.live,
+                          frame=a.frame, evidence_dir=a.evidence_dir)
             _emit(res, out_path=a.json_out)
             return _exit_code_for(res["status"])
 

@@ -35,6 +35,9 @@ YS_ATOP = os.path.join(YS_EDITOR, "ys-atop")
 YS_DO = os.path.join(YS_EDITOR, "ys-do")
 YS_GUI_SLOT = os.path.join(YS_EDITOR, "ys-gui-slot")
 YS_POINTER_CLICK = os.path.join(YS_EDITOR, "ys-pointer-click")
+YS_SCROLL = os.path.join(YS_EDITOR, "ys-scroll")
+YS_WATCH = os.path.join(REPO_ROOT, "tools", "ys-watch")
+YS_DETAIL = os.path.join(REPO_ROOT, "tools", "ys-detail")
 ACTIONS_DIR = os.path.join(YS_EDITOR, "actions")
 PROFILE_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-profiles", "qianxing.json")
 LOOKD_SOCK = os.environ.get("YS_LOOKD_SOCK", "/run/user/%d/ys-lookd.sock" % os.getuid())
@@ -328,3 +331,105 @@ def click_point(bbox):
 
 def now_ms():
     return int(time.time() * 1000)
+
+
+# ═══════════════════════════════════════════════════════════════
+# 2026-10-19：act 的语义期待所需仪器（滚动注入 / 变化事件 / 局部下钻）
+# 纪律：判据不在这里——滚动注入走 ys-scroll，变化事件走 ys-watch，界面态走 ys-state，
+# 局部图走 ys-detail。本文件只做「调用 + 解析 + 失败出声」。
+# ═══════════════════════════════════════════════════════════════
+
+def parse_json_doc(stdout, *, what):
+    """解析工具输出：优先整段 JSON（有些工具 pretty-print），退化为最后一行 JSON。"""
+    text = (stdout or "").strip()
+    if not text:
+        raise InstrumentError("EMPTY_OUTPUT", f"{what}：stdout 为空")
+    try:
+        return json.loads(text)
+    except ValueError:
+        return parse_json_line(stdout, what=what)
+
+
+def _ocr_env():
+    """沙箱/无 GPU 环境强制 ys_ocr 走 CPU（否则 ORT 的 EP 错误会污染 stdout）。"""
+    env = {}
+    try:
+        if not os.path.exists("/dev/nvidia0"):
+            env["YS_OCR_CPU"] = "1"
+    except OSError:
+        env["YS_OCR_CPU"] = "1"
+    return env
+
+
+def inject_scroll(x, y, *, clicks=3, direction="down", drag=0, lease=True, timeout=180):
+    """滚动注入：走 `ys-scroll`（它自己走 ys-gui-slot/租约；绝不裸调 xdotool）。"""
+    cmd = [YS_SCROLL, "--at", "%d,%d" % (int(x), int(y)),
+           "--clicks", str(max(1, int(clicks))), "--dir", direction,
+           # 注意：ys-scroll **总是**输出 JSON，没有 --json 参数（传了会 rc=2 usage error）。
+           # 2026-10-19 live 验收第一次跑到这条才发现——离线测试覆盖不到子进程参数。
+           "--no-verify"]
+    if drag:
+        cmd += ["--drag", str(int(drag))]
+    # 已经在外层槽里（YS_SLOT_ACTIVE=1）就不要再套一层租约：
+    # 2026-10-19 live 实测，嵌套租约会把自己当 prev，归还时 target_idx==game_idx ⇒ RESTORE_FAILED。
+    import os as _os
+    if lease and not _os.environ.get("YS_SLOT_ACTIVE"):
+        cmd.append("--lease")
+    rc, out, err = run(cmd, timeout=timeout, env_extra=_ocr_env())
+    res = {}
+    try:
+        res = parse_json_doc(out, what="ys-scroll") if out.strip() else {}
+    except InstrumentError:
+        res = {}
+    return {"rc": rc, "result": res, "stdout_tail": _tail(out, 600),
+            "stderr_tail": _tail(err, 400)}
+
+
+def watch_region(before, after, region, *, no_ocr=False, debug=True, timeout=300):
+    """变化事件层：一律调 `tools/ys-watch`（不自己写帧差/文本差判据）。
+
+    返回 (pair, stderr)。`debug=True` 时 stderr 里有 `[ys-watch] slots before/after: [...]`
+    ——区域文本**集合**由它给出（ys-watch 的槽位构建是唯一实现，我们只解析输出）。
+    """
+    roi = ",".join(str(int(v)) for v in region)
+    cmd = [YS_WATCH, "--frames", os.path.abspath(before), os.path.abspath(after),
+           "--roi", roi, "--json"]
+    if no_ocr:
+        cmd.append("--no-ocr")
+    if debug:
+        cmd.append("--debug")
+    rc, out, err = run(cmd, timeout=timeout, env_extra=_ocr_env())
+    if rc != 0:
+        raise InstrumentError("WATCH_FAILED", f"ys-watch rc={rc}：{_tail(err, 500)}",
+                              rc=rc, stderr_tail=_tail(err, 800))
+    d = parse_json_doc(out, what="ys-watch")
+    pairs = d.get("pairs") or []
+    if not pairs:
+        raise InstrumentError("WATCH_BAD", f"ys-watch 回执无 pairs：{str(d)[:300]}")
+    return pairs[0], err
+
+
+def detail_image(frame, region, out, *, scale=1.0, ocr=True, timeout=240):
+    """局部下钻图：`tools/ys-detail`（只裁这一块 + 框内 OCR）。"""
+    cmd = [YS_DETAIL, "--frame", os.path.abspath(frame), "--out", os.path.abspath(out),
+           "--scale", str(scale), "--json"]
+    if region:
+        cmd += ["--bbox", ",".join(str(int(v)) for v in region)]
+    else:
+        cmd += ["--at", "1280,720", "--pad", "320"]
+    if ocr:
+        cmd.append("--ocr")
+    rc, so, se = run(cmd, timeout=timeout, env_extra=_ocr_env())
+    res = {}
+    try:
+        res = parse_json_doc(so, what="ys-detail") if so.strip() else {}
+    except InstrumentError:
+        res = {}
+    return {"rc": rc, "result": res, "stderr_tail": _tail(se, 400)}
+
+
+def copy_frame(src, dst):
+    import shutil
+    os.makedirs(os.path.dirname(os.path.abspath(dst)), exist_ok=True)
+    shutil.copy2(src, dst)
+    return dst

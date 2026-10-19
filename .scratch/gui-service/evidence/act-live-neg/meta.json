@@ -1,0 +1,451 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "星鹫赤羽"
+ },
+ "status": "expect_failed",
+ "ok": false,
+ "resolved": false,
+ "injected": true,
+ "reached": false,
+ "expect": {
+  "type": "region_text_set_changed",
+  "region": [
+   1770,
+   150,
+   630,
+   650
+  ],
+  "min_jaccard_delta": 0.05
+ },
+ "expect_result": {
+  "ok": false,
+  "type": "region_text_set_changed",
+  "region": [
+   1770,
+   150,
+   630,
+   650
+  ],
+  "observed": {
+   "jaccard": 1.0,
+   "delta": 0.0,
+   "min_jaccard_delta": 0.05,
+   "before_n": 11,
+   "after_n": 11,
+   "added": [],
+   "removed": [],
+   "changed": 0,
+   "source": "ys-watch/slots"
+  },
+  "detail": "区域文本集合变化 delta=0.000 < 0.05（变化的不是我期待的区域 / 没达到集合变化阈值）",
+  "elapsed_ms": 5280.1
+ },
+ "expect_evaluated": true,
+ "action": {
+  "type": "scroll",
+  "at": [
+   900,
+   600
+  ],
+  "clicks": 4,
+  "dir": "down"
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [],
+ "evidence": {
+  "dir": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-neg",
+  "before": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-neg/before.png",
+  "after": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-neg/after.png",
+  "detail": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-neg/detail.png",
+  "before_meta": {
+   "source": "ys-observe",
+   "attribution": {
+    "checked": true,
+    "src": "x11",
+    "want_title": "原神",
+    "want_class": "yuanshen.exe",
+    "want_id": "0x01400001",
+    "current_desktop": 0,
+    "verdict": "OK",
+    "atop": true,
+    "stacking_top": true,
+    "window": {
+     "id": "0x1800001",
+     "caption": "原神",
+     "class": "yuanshen.exe",
+     "bbox": [
+      0,
+      0,
+      2561,
+      1440
+     ],
+     "desktop": 0,
+     "minimized": false,
+     "idx": 0
+    },
+    "occluders": [],
+    "covered_ratio": 0.0,
+    "elapsed_ms": 18.8
+   },
+   "capture_ms": null,
+   "frame": null
+  },
+  "after_meta": {
+   "source": "ys-observe",
+   "attribution": {
+    "checked": true,
+    "src": "x11",
+    "want_title": "原神",
+    "want_class": "yuanshen.exe",
+    "want_id": "0x01400001",
+    "current_desktop": 0,
+    "verdict": "OK",
+    "atop": true,
+    "stacking_top": true,
+    "window": {
+     "id": "0x1800001",
+     "caption": "原神",
+     "class": "yuanshen.exe",
+     "bbox": [
+      0,
+      0,
+      2561,
+      1440
+     ],
+     "desktop": 0,
+     "minimized": false,
+     "idx": 0
+    },
+    "occluders": [],
+    "covered_ratio": 0.0,
+    "elapsed_ms": 17.8
+   },
+   "capture_ms": null,
+   "frame": null
+  },
+  "detail_meta": {
+   "path": "/home/h/genshin-ts/.scratch/gui-service/evidence/act-live-neg/detail.png",
+   "region": [
+    1770,
+    150,
+    630,
+    650
+   ],
+   "scale": 1.0,
+   "at": null,
+   "frame_size": [
+    2560,
+    1440
+   ],
+   "ms": {
+    "frame_ms": 0,
+    "crop_ms": 43.6,
+    "ocr_ms": 2716.3
+   },
+   "texts": [
+    {
+     "text": "星鹫赤羽",
+     "bbox_local": [
+      6,
+      18,
+      185,
+      55
+     ],
+     "bbox_global": [
+      1776.0,
+      168.0,
+      185.0,
+      55
+     ],
+     "score": 0.9872
+    },
+    {
+     "text": "弓",
+     "bbox_local": [
+      7,
+      100,
+      37,
+      38
+     ],
+     "bbox_global": [
+      1777.0,
+      250.0,
+      37.0,
+      38
+     ],
+     "score": 0.9763
+    },
+    {
+     "text": "暴击伤害",
+     "bbox_local": [
+      9,
+      139,
+      119,
+      35
+     ],
+     "bbox_global": [
+      1779.0,
+      289.0,
+      119.0,
+      35
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "66.2%",
+     "bbox_local": [
+      9,
+      174,
+      113,
+      38
+     ],
+     "bbox_global": [
+      1779.0,
+      324.0,
+      113.0,
+      38
+     ],
+     "score": 0.9996
+    },
+    {
+     "text": "基础攻击力",
+     "bbox_local": [
+      8,
+      219,
+      146,
+      35
+     ],
+     "bbox_global": [
+      1778.0,
+      369.0,
+      146.0,
+      35
+     ],
+     "score": 0.9994
+    },
+    {
+     "text": "608",
+     "bbox_local": [
+      5,
+      253,
+      136,
+      66
+     ],
+     "bbox_global": [
+      1775.0,
+      403.0,
+      136.0,
+      66
+     ],
+     "score": 0.9873
+    },
+    {
+     "text": "Lv.90/90",
+     "bbox_local": [
+      10,
+      418,
+      187,
+      43
+     ],
+     "bbox_global": [
+      1780.0,
+      568.0,
+      187.0,
+      43
+     ],
+     "score": 0.995
+    },
+    {
+     "text": "精炼1阶",
+     "bbox_local": [
+      64,
+      476,
+      117,
+      41
+     ],
+     "bbox_global": [
+      1834.0,
+      626.0,
+      117.0,
+      41
+     ],
+     "score": 0.9995
+    },
+    {
+     "text": "眸中的月珥",
+     "bbox_local": [
+      9,
+      530,
+      166,
+      37
+     ],
+     "bbox_global": [
+      1779.0,
+      680.0,
+      166.0,
+      37
+     ],
+     "score": 0.9982
+    },
+    {
+     "text": "·触发扩散或星扩散反应后的12秒内，攻",
+     "bbox_local": [
+      15,
+      569,
+      569,
+      39
+     ],
+     "bbox_global": [
+      1785.0,
+      719.0,
+      569.0,
+      39
+     ],
+     "score": 0.9897
+    },
+    {
+     "text": "击力提高24%。此外，队伍中存在至少1/",
+     "bbox_local": [
+      9,
+      609,
+      570,
+      36
+     ],
+     "bbox_global": [
+      1779.0,
+      759.0,
+      570.0,
+      36
+     ],
+     "score": 0.9932
+    }
+   ]
+  }
+ },
+ "elapsed_ms": 18351,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "星鹫赤羽",
+  "object": {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    1754,
+    170,
+    636,
+    58
+   ],
+   "kind": "chip",
+   "text": [
+    "星鹫赤羽"
+   ],
+   "text_source": "fullframe",
+   "glyphs": [
+    {
+     "bbox": [
+      2370,
+      160,
+      30,
+      30
+     ],
+     "role": "icon",
+     "fill": 0.53,
+     "contrast": 129.0
+    },
+    {
+     "bbox": [
+      2372,
+      208,
+      28,
+      28
+     ],
+     "role": "icon",
+     "fill": 0.46,
+     "contrast": 79.0
+    }
+   ],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:1",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.65,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 28028,
+    "area_frac": 0.01,
+    "aspect": 10.97,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 1,
+    "text_ui": 1,
+    "skin_lab": [
+     134.0,
+     157.0,
+     171.0
+    ],
+    "flat_fill": 0.75,
+    "rect": 0.76,
+    "source": "ys-screen/containers",
+    "frame_id": "sha256:4ce981ac6842bf3914f972cbf789d45712f762ec594cd3853e1bf5beec47c33f"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "星鹫赤羽"
+ },
+ "simulated": false,
+ "inject": {
+  "tool": "scroll",
+  "ok": true,
+  "raw": {
+   "rc": 0,
+   "result": {
+    "ok": true,
+    "release_ok": true,
+    "budget": {
+     "target_ms": 500,
+     "actual_ms": 1393.1,
+     "over": true
+    },
+    "at": [
+     900,
+     600
+    ],
+    "dir": "down",
+    "clicks": 4,
+    "drag": null,
+    "lease": false,
+    "hint": "hint: 近 15 分钟 read_image 6 次 —— 你在用肉眼读整屏；改用 `ys-list --live`（结构化条目）或 `ys-lookd cmd=world`（state+objects+structure），少猜多算\nhint: 近 15 分钟 ys-scroll 5 次（次数偏多）——滚轮非线性（实测 10 格与 20 格都只走 3 行）；改用拖动：`ys-scroll --by rows=N`（标定 200px/行，线性）",
+    "moved_px": null,
+    "shifted": false,
+    "ms": 1393.1,
+    "frame_before": null,
+    "frame_after": null
+   },
+   "stdout_tail": "{\"ok\": true, \"release_ok\": true, \"budget\": {\"target_ms\": 500, \"actual_ms\": 1393.1, \"over\": true}, \"at\": [900, 600], \"dir\": \"down\", \"clicks\": 4, \"drag\": null, \"lease\": false, \"hint\": \"hint: 近 15 分钟 read_image 6 次 —— 你在用肉眼读整屏；改用 `ys-list --live`（结构化条目）或 `ys-lookd cmd=world`（state+objects+structure），少猜多算\\nhint: 近 15 分钟 ys-scroll 5 次（次数偏多）——滚轮非线性（实测 10 格与 20 格都只走 3 行）；改用拖动：`ys-scroll --by rows=N`（标定 200px/行，线性）\", \"moved_px\": null, \"shifted\": false, \"ms\": 1393.1, \"frame_before\": null, \"frame_after\": null}",
+   "stderr_tail": "⚠️ OVER BUDGET 1393.1ms > 500ms（动作+验证总时；用 --lease 可去掉槽位开销、--no-verify 去掉两次抓帧）"
+  }
+ },
+ "error": {
+  "code": "ACT_EXPECT_FAILED",
+  "detail": "区域文本集合变化 delta=0.000 < 0.05（变化的不是我期待的区域 / 没达到集合变化阈值）"
+ }
+}

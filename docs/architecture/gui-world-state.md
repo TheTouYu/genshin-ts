@@ -118,7 +118,7 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 5. `degraded` 自述：`KIND_UNKNOWN` / `FREE_TEXT_UNOWNED` / `L2_NOT_IMPLEMENTED` /
    `L3_NOT_IMPLEMENTED` / `FRAME_PINNED` / `STALE_FRAME` / `BUDGET_EXCEEDED` / …
 
-### `act(target, *, post=None, timeout_ms=30000, inject=False)` → 回执 dict
+### `act(target, *, expect, action=None, post=None, inject=False, live=None)` → 回执 dict
 
 目标寻址（2026-10-18 Lead 裁决）：
 
@@ -142,6 +142,64 @@ v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660
 
 `act(intent=…)` 的真执行路径不默认走：`ys-do` 连 `--dry` 都会 `acquire_focus()`（抬窗）——
 本会话硬约束禁止，回执 `precondition_fail / FOCUS_REQUIRED`。
+
+### act 的语义期待 `expect`（2026-10-19 用户裁定）
+
+**为什么加**：旧 `act` 只验证「画面变了没有」。2026-10-19 实测滚轮滚到别处（请求 (900,600)，
+实际 (1350,900)），画面变化 85.7% ⇒ 按旧判据算成功，但变的是详情面板，**列表并没有滚动**。
+用户原话「注意 agi 角度思考」——AGI 的门槛是知道自己要什么、并验证**变化对不对**：
+
+> 有变化 ≠ 达成意图。
+
+**接口（`expect` 对 act 必填；dry-run 也必填，只是不评估）**
+
+```jsonc
+{"target": {"text": "背包"},
+ "action": {"type": "scroll", "dy": -3, "at": [900, 600]},   // click 可省略（缺省）
+ "expect": {"type": "region_text_set_changed",
+            "region": [300, 200, 1200, 800],                  // 全帧坐标 x,y,w,h（xywh）
+            "min_jaccard_delta": 0.15}}
+```
+
+| expect.type | 判据（**单一源**） | 字段 | 成立条件 |
+|---|---|---|---|
+| `state_in` | `ys-state`（CLI，`--fast`） | `states: [...]` | 界面态 ∈ 集合 |
+| `text_added` | `tools/ys-watch` 的 `text_added` 事件 | `region`, `texts: [...]` | 期待的串**全部**出现在增集（NFKC+去空白+casefold 全等） |
+| `text_removed` | `ys-watch` 的 `text_removed` 事件 | `region`, `texts: [...]` | 期待的串**全部**出现在减集 |
+| `region_text_set_changed` | `ys-watch` 的槽位（debug 输出）→ 集合 Jaccard | `region`, `min_jaccard_delta`（缺省 0.15） | `delta = 1 - |A∩B|/|A∪B| ≥ min_jaccard_delta`；两边都空 ⇒ delta=0（不成立） |
+| `pixel_delta` | `ys-watch` 的 `color_delta`（`--no-ocr`） | `region`, `threshold_pct`（缺省 5.0）, `px_thr`（缺省 10） | 变化像素占比 ≥ threshold_pct |
+
+`pixel_delta` 的 θ 标定依据（本机离线合成帧，可复跑）：把 f07 的网格区贴到 f06 上，
+**网格区 [300,200,1200,800] 变化 24.51%，详情区 [1770,150,630,650] 变化 0.00%**；
+`ys-watch` 自身的「有变化」事件阈值是 0.5%，这里取 **5%（约 10× 事件阈值、约 1/5 实测变化量）**，
+用来区分「整块内容变了」与「局部闪烁/噪声」。真实背包滚动的 θ 待 live 读数补（见 §8 限制）。
+
+**返回值**：`{ok, status, expected, observed, evidence, ...}`；
+- 成立：`status=ok`，`ok=true`，`evidence.before/after/detail` 三张图 + `meta.json`；
+- 不成立：`status=expect_failed`，`ok=false`，`error={code:"ACT_EXPECT_FAILED", detail:...}`，
+  并在 detail 里点名「变化的不是我期待的区域」/「未达到集合变化阈值」；**CLI 退出码 9**。
+- 证据目录默认 `.scratch/gui-service/evidence/act-<时间戳>-<pid>/`，可用 `--evidence-dir` 指定；
+  抓帧与动作同源（live 走 `instruments.grab_frame()` → `ys-capture`（KWin 权威闸门）或
+  `YS_CAPTURE_BACKEND=observe` 的 ys-observe；离线用给定帧）；`detail.png` 由 `tools/ys-detail`
+  只裁 expect.region（或中心区）并带框内 OCR。
+
+**动作类型**：`click`（缺省，点目标中心）/ `scroll`（`ys-scroll` 注入，`dy` 负数=向下滚；
+缺省 `at` = 目标中心，可显式给 `at` 指定滚动落点；`--lease` 复用焦点租约）。
+
+**CLI**：
+```bash
+# dry-run（默认；只校验与解析，输出 would_act）
+worldsvc.py act --text 背包 --frame f06.png --expect '{"type":"state_in","states":["GAME_PAIMON"]}'
+# 真动（--live = inject + 用户授权；动作 + 证据 + 语义期待）
+worldsvc.py act --text 背包 --live   --action '{"type":"scroll","dy":-3,"at":[900,600]}'   --expect '{"type":"region_text_set_changed","region":[300,200,1200,800],"min_jaccard_delta":0.15}'
+```
+
+**退出码**：`0` 成功 / `2` 用法或 expect DSL 非法 / `3` 目标解析失败 / `4` 多义 /
+`5` 前置不符（注入未授权、live 归属闸门不过）/ `9` **expect 不成立** / `6/7/8` 同 wait。
+
+**测试**：`selftest.py` 83 项（含 expect DSL 校验 6 项、5 类判据正负例、离线注入正/负例、
+证据三件套存在性、`expect_failed → rc=9`；全离线、0 注入）。
+
 
 ### `wait_until(predicate, *, timeout_ms=30000, poll_ms=300)` → 三态
 
@@ -281,6 +339,7 @@ frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
 | 目标多义 | `ambiguous`（列候选） | 4 |
 | 缺 post / 未授权注入 / 窗口不在栈顶 | `invalid` / `precondition_fail` | 5 |
 | 判据超时（不是故障） | `timeout` | 6 |
+| **语义期待不成立**（动作执行了，但变化不对） | `expect_failed` + `ACT_EXPECT_FAILED` | **9** |
 | forbid 命中 | `violated` | 7 |
 | 仪器/schema/帧错误 | `error` | 8 |
 | 判据本身非法 | `error` + `BAD_PREDICATE` | 2 |
@@ -303,6 +362,11 @@ frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
     检查不可用（`checked=false`）——此时服务 fail-closed（live 拒绝取数），不退回"看标题猜"。
 11. **票 34 的遮挡判据是几何并集**：≥99.5% 才算"完全遮挡"；半透明遮罩、部分遮挡仍会放行
     （如实标注 `covered_ratio`，不假装"完全可见"）。
+12. **expect 的 live 验收尚未完成**（2026-10-19）：本机原神在 KWin 桌面 3、当前桌面 2；
+    沙箱内 `ys-capture` 守护的 `/dev/shm` 是 per-sandbox、`ys-observe` 抓当前桌面 ⇒ 拿不到背包画面。
+    离线 5 类判据 + 正负例 + 证据三件套已全绿（84/84）；**背包滚动正/负例待用户把原神切到前台
+    且打开背包后补跑**（命令见本文件 expect 节）。`pixel_delta` 的 θ=5% 由离线合成帧标定
+    （网格 24.51% vs 详情 0.00%），真实滚动的分布待补。
 
 ## 9. 下一跳（需裁决）
 
