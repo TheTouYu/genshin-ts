@@ -9,7 +9,7 @@
 | 病 | 症状 | 根因 | 处置 |
 |---|---|---|---|
 | **真死** | 试玩归来再点试玩 → 「编辑器没有启动」 | 编辑器风暴式重连撞上 Linux TCP **自连接**（源端口==目标端口 → 内核直接判 ESTAB，双方空转） | `ys-selfconnect-vaccine`（把用过的端口并入 `ip_local_reserved_ports`）——已常驻 |
-| **假死** | 沙箱窗/资源管理器/日志**全部点不动**，但渲染正常、可移动、可获焦 | kwin **6.7.5** 焦点回归（焦点窃取防护拒绝 Wine 窗口激活 → Wine 内部捕获 desync）；另有 Wine Bug 59965 同族 | 升级 kwin ≥6.7.6 / `FocusStealingPreventionLevel=0`（规避） |
+| **假死** | 沙箱窗/资源管理器/日志**全部点不动**，但渲染正常、可移动、可获焦 | **⚠️ 2026-10-20 旧结论已证伪**：运行中 KWin **6.8.0** + `focusStealingPreventionLevel=0`，假死**仍复发** ⇒ 不是 KDE Bug 525590。现假设 = **Wine x11drv 输入状态 desync**（Wine Bug 59965 同族，上游状态 UNCONFIRMED、无修复版本、无 regression 提交） | 用户手动解卡 = **Win+右键拖动**（仍是唯一有效手段）；根治路径 = 用 `ys-gui-slot`+`ydotool` 复现该手势 → 二分出**最小有效动作** → 找系统级等价物。旧的两条程序化解卡（`ys-unstick*`）保留为反例 |
 
 ## 工具
 
@@ -21,7 +21,8 @@
 | `ys-selfconnect-vaccine` | 自环疫苗（show/once/daemon）。`ip_local_reserved_ports` 维护 + 日志 |
 | `accept-meter.py` | **构建无关验收器**：试玩循环 PASS/FAIL。`PASS`=重连成功且 30s 内有 `level state changed`；`FAIL(zombie)`=连上后 30s 零推进（故障代签名）；`FAIL(storm)`=90s 没连上 |
 | `ys-stuck-report` | 一键取证：进程/活动窗/指针窗/连接/自环/保留表/NLog 尾部 |
-| `ys-unstick` / `ys-unstick2` | 两条解卡尝试（程序化激活+移动 / 最小化→恢复）——**本机实测均无效**，保留为反例；有效的是用户手动的 **Win+右键拖动** |
+| `ys-gesture-cure` | **假死解卡的唯一有效仪器（2026-10-20 实测，用户当场确认「恢复了」）**：复现用户的「Win+右键拖动」= Meta↓ + 右键↓ + 相对移动（净位移 0，不挪窗口）+ 松开，**必须经 `ys-gui-slot` 调用**，2–3 秒完成、焦点自动还原。六个变体 `full/metric/rclick/rdrag1px/rdrag/mdrag` 供二分机制；`--dry` 只打印不注入 |
+| `ys-unstick` / `ys-unstick2` | 两条解卡尝试（程序化激活+移动 / 最小化→恢复）——**本机实测均无效**，保留为反例 |
 | `ys-editor-guard` | 风暴/断连判僵尸 → 杀编辑器双进程的自愈守护。**未启用**（用户否决「强杀+重启」治标路线） |
 | `ys-orphans` / `ys-editor-rescue.sh` | 清 CEF 孤儿进程 / 窗口解卡（旧工具） |
 | `ys-grabq.c` → `ys-grabq` | 查 X 指针/键盘抓取是否被占（`gcc -O2 -o ys-grabq ys-grabq.c -lX11`）；0=没人抓 |

@@ -1,0 +1,68 @@
+#!/bin/bash
+# ys-gesture-cure — 复现/二分用户的解卡手势（**只做诊断，不是把治标自动化**）
+#
+# 背景（2026-10-20）：假死的 kwin 假设被证伪（kwin 6.8 + FSP=0 下仍复发）。
+# 用户唯一有效解卡 = 「Win+右键拖动窗口」。本仪器把该手势拆成可变体，用来回答：
+#   **到底是哪一下让 Wine 的输入状态复位？**（键盘修饰键？按钮？指针位移？WM 交互？）
+#
+# 用法（**必须经 ys-gui-slot 调用**，禁止裸跑）：
+#   ys-gui-slot <win> 25 ys-gesture-cure full        # 完整手势 = 用户的 Win+右键拖动
+#   ys-gui-slot <win> 15 ys-gesture-cure metric      # 只按 Meta
+#   ys-gui-slot <win> 15 ys-gesture-cure rclick      # 只右键点击（不拖）
+#   ys-gui-slot <win> 15 ys-gesture-cure rdrag1px    # 右键按住 + 相对移动 2px
+#   ys-gui-slot <win> 15 ys-gesture-cure rdrag       # 右键按住 + 移动 60px（无 Meta）
+#   ys-gui-slot <win> 15 ys-gesture-cure mdrag       # Meta+左键拖动（KDE 默认"移动"手势）
+#   ys-gesture-cure --dry <variant>                  # 只打印将执行的命令，不注入
+#
+# 判据：每跑完一个变体，**必须由用户真人点一下窗口**报告"恢复了/没恢复"——
+#       程序读不到"点击是否生效"，这一级只能由用户断言（proxy-signal ladder 顶部）。
+#
+# 自证：本脚本先检查 ydotool/ydotoold/socket 三项，缺一即退出 3（不做盲实验）。
+set -u
+VARIANT="${1:-}"
+
+if [ "${1:-}" = "--dry" ]; then DRY=1; VARIANT="${2:-}"; else DRY=0; fi
+
+# ---- 仪器自证（不通过就不注入）----
+if [ "$DRY" = 0 ]; then
+  command -v ydotool >/dev/null || { echo "✗ ydotool 不在 PATH" >&2; exit 3; }
+  pgrep -x ydotoold >/dev/null || { echo "✗ ydotoold 未运行" >&2; exit 3; }
+  ls /run/user/1000/.ydotool_socket >/dev/null 2>&1 || { echo "✗ ydotool socket 不存在" >&2; exit 3; }
+  [ "${YS_SLOT_ACTIVE:-0}" = 1 ] || { echo "✗ 未在 ys-gui-slot 槽内（裸调被禁）" >&2; exit 3; }
+fi
+
+emit() { if [ "$DRY" = 1 ]; then echo "  [dry] $*"; else eval "$@"; fi; }
+
+case "$VARIANT" in
+  full)     # 完整手势：Meta↓ 右键↓ 移动 60px 右键↑ Meta↑
+    emit 'ydotool key 125:1'; emit 'sleep 0.20'
+    emit 'ydotool click 0x41'; emit 'sleep 0.20'
+    emit 'ydotool mousemove -x 45 -y 30'; emit 'sleep 0.15'
+    emit 'ydotool mousemove -x -45 -y -30'; emit 'sleep 0.15'
+    emit 'ydotool click 0x81'; emit 'sleep 0.10'
+    emit 'ydotool key 125:0' ;;
+  metric)   # 只按一下 Meta
+    emit 'ydotool key 125:1'; emit 'sleep 0.15'; emit 'ydotool key 125:0' ;;
+  rclick)   # 只右键点击（不拖）
+    emit 'ydotool click 0xC1' ;;
+  rdrag1px) # 右键按住 + 2px 位移
+    emit 'ydotool click 0x41'; emit 'sleep 0.15'
+    emit 'ydotool mousemove -x 2 -y 1'; emit 'sleep 0.15'
+    emit 'ydotool click 0x81' ;;
+  rdrag)    # 右键按住 + 出去再回来（无 Meta，净位移 0）
+    emit 'ydotool click 0x41'; emit 'sleep 0.15'
+    emit 'ydotool mousemove -x 45 -y 30'; emit 'sleep 0.15'
+    emit 'ydotool mousemove -x -45 -y -30'; emit 'sleep 0.15'
+    emit 'ydotool click 0x81' ;;
+  mdrag)    # Meta + 左键拖动（KDE 默认移动手势）
+    emit 'ydotool key 125:1'; emit 'sleep 0.20'
+    emit 'ydotool click 0x40'; emit 'sleep 0.20'
+    emit 'ydotool mousemove -x 45 -y 30'; emit 'sleep 0.15'
+    emit 'ydotool mousemove -x -45 -y -30'; emit 'sleep 0.15'
+    emit 'ydotool click 0x80'; emit 'sleep 0.10'
+    emit 'ydotool key 125:0' ;;
+  *) echo "用法: ys-gesture-cure [--dry] {full|metric|rclick|rdrag1px|rdrag|mdrag}" >&2; exit 2 ;;
+esac
+
+if [ "$DRY" = 0 ]; then echo "done $(date +%T) variant=$VARIANT"; fi
+exit 0
