@@ -8,12 +8,12 @@ F-2-06	2026-10-17	身份	pkill -f "xclip ..." 匹配到发起它的 bash 自身�
 F-2-07	2026-10-17	判据	ys-state --json 返回 frame:null 后仍 cp 共享临时路径 → 旧帧当"切换后画面"	复盘第二部 #7	P1 evidence{fresh}+sha；replay 缺 sha 报 ERROR	identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	prevented	identity-gate 交付：replay 无 sha/无时刻/sha 不符 ⇒ ERROR
 F-2-08	2026-10-17	归因	把"探针全超时"归因成"判据太严"，真因是 daemon 把 0..1 浮点喂给按 0..255 写死的判据	复盘第二部 #8 / D355	单位护栏 + fail-closed + 探针矩阵			open	探针矩阵覆盖单位错，但无注入用例证明其非空转 ⇒ 降回 open
 F-1-01	2026-10-17	判据	sleep 22/30 冒充同步（一轮 426s 里 92% 是仪器开销）	复盘第一部 #1	ys-wait 谓词等待 + ys-round 零固定 sleep	guards		prevented	无注入用例（round-check 无法被安全注入）⇒ 按纪律降回 open guard=G-SLEEP
-F-1-02	2026-10-17	判据	import -window root 失败返回 0 字节，把失败耗时 18ms 当快路径	复盘第一部 #2	契约：耗时必须带产物校验			open	无机械防线
+F-1-02	2026-10-17	判据	import -window root 失败返回 0 字节，把失败耗时 18ms 当快路径	复盘第一部 #2	契约：耗时必须带产物校验	guards		prevented	无机械防线 guard=G-CAPTURE-EMPTY
 F-1-03	2026-10-17	静默	profile 只存 name/state/tpl/margin，缺 x/y/patch → ROI 全落 (0,0)，判态静默回退慢路径	复盘第一部 #3	字段补全 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-04	2026-10-17	静默	tools/gui 里 ys-env.sh 路径少一层，环境永远解析不到	复盘第一部 #4	修路径 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-05	2026-10-17	静默	os.environ.setdefault(XAUTHORITY) 被空字符串挡住 → import 报 Authorization required	复盘第一部 #5	改覆盖赋值 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-06	2026-10-17	静默	自愈引用未定义变量 _ENVSH，NameError 被 except: pass 吞掉	复盘第一部 #6	定义变量 + 失败重试后抛错	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
-F-1-07	2026-10-17	判据	账本窗口数字虚高 20 倍（守护与手动 scan 并发重复记账）	复盘第一部 #7	flock + callId 去重 + 读侧兜底			open	无机械防线（可加账本自检）
+F-1-07	2026-10-17	判据	账本窗口数字虚高 20 倍（守护与手动 scan 并发重复记账）	复盘第一部 #7	flock + callId 去重 + 读侧兜底	guards		prevented	无机械防线（可加账本自检） guard=G-LEDGER-DEDUP
 F-1-08	2026-10-17	判据	锚点用 best-case（同态最高分）挖 → 过拟合单帧，在同态其它版式上崩	复盘第一部 #8	改 worst-case 选锚 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-09	2026-10-17	判据	0.9 阈值跨 CPU 0.9371 / GPU 0.8997，同一对样本判态相反	复盘第一部 #9	弃单阈值改几何一致性（锚图 inlier）	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-10	2026-10-17	归因	GLM 首次评审零实测（没跑实验/查论文/GitHub）却给出严密结论	复盘第一部 #10	委托任务书写取证义务：每条结论带命令+输出			open	靠流程，非机械

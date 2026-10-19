@@ -187,11 +187,25 @@ def g_ledger_dedup():
     return (not dup), [f"重复 callId {len(dup)} 个（最多重复 {max(ids.values()) if ids else 0} 次）"] if dup else [], \
         "写入端按 callId 去重；统计端也要按 callId 去重后再汇总"
 
+
+def g_capture_empty():
+    """G-CAPTURE-EMPTY：抓帧工具必须校验产物非空（账本 F-1-02 假成功）。"""
+    checks = {os.path.join(ROOT, "tools", "ys-snap"): ["getsize", "EMPTY_CAPTURE"],
+              os.path.join(YSE, "ys_capture.py"): ["len(data)"]}
+    bad = []
+    for p, tokens in checks.items():
+        name = os.path.basename(p)
+        txt = read(p)
+        for t in tokens:
+            if t not in txt:
+                bad.append(f"{name}: 缺 {t}（未校验抓帧产物非空）")
+    return (not bad), bad, "抓帧后必须检查字节数/像素数组长度，0 字节 ⇒ 报 EMPTY_CAPTURE 而不是 ok:true"
+
 GUARDS = {
     "G-SLEEP": g_sleep, "G-PKILL": g_pkill, "G-IDX": g_idx_window,
     "G-BUDGET": g_budget, "G-SNAP": g_snap_fields, "G-STALE": g_stale_hint,
     "G-BBOX": g_bbox_doc,
-    "G-CLIPBOARD": g_clipboard, "G-LEDGER-DEDUP": g_ledger_dedup,
+    "G-CLIPBOARD": g_clipboard, "G-CAPTURE-EMPTY": g_capture_empty, "G-LEDGER-DEDUP": g_ledger_dedup,
 }
 
 

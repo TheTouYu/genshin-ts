@@ -215,7 +215,15 @@ class Snap:
         with open(self.manifest, "a", encoding="utf-8") as mf:
             mf.write(json.dumps(rec, ensure_ascii=False) + "\n")
         self.seen.add(sha)
-        return {"ok": True, "dup": False, "path": path, "ms": round(ms, 1),
+        # 账本 F-1-02：抓帧"成功"但 0 字节/极小文件 = 假成功（曾把失败耗时当快路径）
+        try:
+            _sz = os.path.getsize(path)
+        except Exception:                                # noqa: BLE001
+            _sz = 0
+        if _sz < 4096:
+            return {"ok": False, "error": "EMPTY_CAPTURE", "path": path, "bytes": _sz,
+                    "hint": "抓到的帧为空/极小（多半是窗口不是目标窗，或窗口被最小化）"}
+        return {"ok": True, "dup": False, "path": path, "bytes": _sz, "ms": round(ms, 1),
                 "w": rgb.shape[1], "h": rgb.shape[0], "src": src}
 
 
