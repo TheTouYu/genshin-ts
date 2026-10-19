@@ -1,0 +1,459 @@
+id	path	control	action	kind	doc_ref	note
+D001	系统菜单	ESC	shortcut	nav	official-guide-editor-interface.md:23	快捷键（文档以快捷键叙述给出）
+D002	系统菜单	系统菜单图标	click	nav	official-guide-editor-interface.md:23	打开/关闭系统菜单；快捷键 ESC；同名控件在多处出现（2 处），按路径分别计点
+D003	系统菜单	上传关卡	click	destructive	official-guide-editor-interface.md:31	文档以顿号并列枚举
+D004	系统菜单	保存当前存档	click	create	official-guide-editor-interface.md:31	文档以顿号并列枚举
+D005	系统菜单	打开千星沙箱	click	nav	official-guide-editor-interface.md:31	文档以顿号并列枚举
+D006	系统菜单	打开存档界面	click	nav	official-guide-editor-interface.md:31	文档以顿号并列枚举
+D007	系统菜单	退出存档	click	nav	official-guide-editor-interface.md:31	文档以顿号并列枚举
+D008	系统菜单	主镜头管理	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举
+D009	系统菜单	关卡设置	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举；同名控件在多处出现（6 处），按路径分别计点
+D010	系统菜单	外围系统管理	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举
+D011	系统菜单	多人试玩	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举；同名控件在多处出现（3 处），按路径分别计点
+D012	系统菜单	奇域礼盒管理	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举
+D013	系统菜单	界面控件组管理	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举
+D014	系统菜单	背包与货币	click	setting	official-guide-editor-interface.md:35	文档以顿号并列枚举
+D015	系统菜单	试玩	click	nav	official-guide-editor-interface.md:35	文档以顿号并列枚举；同名控件在多处出现（2 处），按路径分别计点
+D016	系统菜单	光源管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D017	系统菜单	关卡变量管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D018	系统菜单	单位标签管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D019	系统菜单	商店模板管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D020	系统菜单	多语言文本管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D021	系统菜单	实体布设组管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D022	系统菜单	快捷键总览	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举；同名控件在多处出现（2 处），按路径分别计点
+D023	系统菜单	扫描标签管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D024	系统菜单	技能资源管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D025	系统菜单	护盾管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D026	系统菜单	文字聊天管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D027	系统菜单	背景音乐管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D028	系统菜单	装备数据管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D029	系统菜单	角色预览管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D030	系统菜单	计时器管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D031	系统菜单	试玩临时数据管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举；同名控件在多处出现（2 处），按路径分别计点
+D032	系统菜单	资产导入导出管理	click	create	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D033	系统菜单	路径管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D034	系统菜单	预设点管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D035	系统菜单	高级数据管理	click	nav	official-guide-editor-interface.md:39	文档以顿号并列枚举
+D036	资产栏	资产栏图标	click	nav	official-guide-editor-interface.md:51	资产栏的打开/关闭按钮
+D037	资产栏	搜索	click	nav	official-guide-editor-interface.md:55	
+D038	资产栏	未分类页签	click	nav	official-guide-editor-interface.md:59	
+D039	资产栏	自定义页签管理	click	nav	official-guide-editor-interface.md:63	
+D040	快捷设置	快捷设置图标	click	nav	official-guide-editor-interface.md:67	呼出快捷设置菜单
+D041	快捷设置	镜头水平速度	set	scene	official-guide-editor-interface.md:71	
+D042	快捷设置	镜头垂直速度	set	scene	official-guide-editor-interface.md:75	
+D043	快捷设置	水平锁	toggle	setting	official-guide-editor-interface.md:79	
+D044	快捷设置	贴地摆放	toggle	scene	official-guide-editor-interface.md:83	
+D045	快捷设置	表面吸附	toggle	scene	official-guide-editor-interface.md:87	
+D046	快捷设置	吸附表面后转正	toggle	scene	official-guide-editor-interface.md:91	
+D047	快捷设置	中心对齐	toggle	scene	official-guide-editor-interface.md:95	
+D048	快捷设置	对齐位置	toggle	setting	official-guide-editor-interface.md:99	
+D049	快捷设置	移动时显示距离	toggle	scene	official-guide-editor-interface.md:103	
+D050	快捷设置	造物入战范围	toggle	setting	official-guide-editor-interface.md:107	
+D051	快捷设置	预设点常驻显示	toggle	setting	official-guide-editor-interface.md:111	
+D052	快捷设置	空物件提示模型常驻显示	toggle	setting	official-guide-editor-interface.md:115	
+D053	快捷设置	路径常驻显示	toggle	scene	official-guide-editor-interface.md:119	
+D054	快捷设置	Alt复制数量	set	create	official-guide-editor-interface.md:123	
+D055	快捷设置	环境设置	click	setting	official-guide-editor-interface.md:127	
+D056	快捷设置	快捷键总览	click	nav	official-guide-editor-interface.md:131	同名控件在多处出现（2 处），按路径分别计点
+D057	详情面板	详情按钮	click	nav	official-guide-editor-interface.md:135	关闭/再次打开详情面板（仅场景选中单位时可用）
+D058	模式切换	地形编辑	click	nav	official-guide-editor-interface.md:143	
+D059	模式切换	实体摆放	click	nav	official-guide-editor-interface.md:147	
+D060	模式切换	元件库	click	nav	official-guide-editor-interface.md:151	同名控件在多处出现（2 处），按路径分别计点
+D061	模式切换	战斗预设	click	nav	official-guide-editor-interface.md:155	
+D062	相机操作	自由移动相机	shortcut	scene	official-guide-editor-interface.md:163	快捷键 WASD
+D063	相机操作	相机上升	shortcut	scene	official-guide-editor-interface.md:164	快捷键 E
+D064	相机操作	相机下降	shortcut	scene	official-guide-editor-interface.md:165	快捷键 Q
+D065	相机操作	旋转相机	shortcut	scene	official-guide-editor-interface.md:166	快捷键 鼠标右键
+D066	相机操作	水平移动相机	shortcut	scene	official-guide-editor-interface.md:167	快捷键 鼠标中键
+D067	相机操作	相机推远推进	shortcut	scene	official-guide-editor-interface.md:168	快捷键 鼠标滚轮
+D068	相机操作	开启/关闭相机水平锁	shortcut	scene	official-guide-editor-interface.md:169	快捷键 ALT+L
+D069	地形编辑 > 主界面 > 详情栏	修改名称	click	setting	official-guide-editor-interface.md:240	
+D070	地形编辑 > 主界面 > 详情栏	聚焦	click	setting	official-guide-editor-interface.md:244	
+D071	地形编辑 > 主界面 > 详情栏	创建地形	click	create	official-guide-editor-interface.md:248	
+D072	地形编辑 > 主界面 > 详情栏	修改地形位置	set	scene	official-guide-editor-interface.md:260	
+D073	地形编辑 > 主界面 > 详情栏	修改地形旋转	set	scene	official-guide-editor-interface.md:264	
+D074	地形编辑 > 地形创建 > 开启方式	基于格线创建	click	create	official-guide-editor-interface.md:298	
+D075	地形编辑 > 地形修改 - 自由编辑	基于格线创建按钮（右下角）	click	create	official-guide-editor-interface.md:298	进入自由编辑笔刷态
+D076	地形编辑 > 地形创建	创建地形-结束绘制按钮（右上角X）	click	create	official-guide-editor-interface.md:310	结束绘制并生成地形
+D077	地形编辑 > 地形创建 > 素材栏	切换笔刷材质	click	nav	official-guide-editor-interface.md:322	
+D078	地形编辑 > 地形创建 > 底部工具栏	笔刷模式-地块操作	click	scene	official-guide-editor-interface.md:352	笔刷模式切换；组内含 创建/删除/抹平
+D079	地形编辑 > 地形创建 > 底部工具栏	笔刷层数	set	scene	official-guide-editor-interface.md:356	
+D080	地形编辑 > 地形创建 > 底部工具栏	创建	click	create	official-guide-editor-interface.md:358	
+D081	地形编辑 > 地形创建 > 底部工具栏	删除	click	destructive	official-guide-editor-interface.md:360	同名控件在多处出现（3 处），按路径分别计点
+D082	地形编辑 > 地形创建 > 底部工具栏	抹平	click	scene	official-guide-editor-interface.md:362	
+D083	地形编辑 > 地形创建 > 底部工具栏	笔刷模式-斜坡操作	click	scene	official-guide-editor-interface.md:368	笔刷模式切换
+D084	地形编辑 > 地形创建 > 底部工具栏	设置斜坡方向	click	scene	official-guide-editor-interface.md:372	
+D085	地形编辑 > 地形创建 > 底部工具栏	斜坡材质	click	scene	official-guide-editor-interface.md:374	
+D086	地形编辑 > 地形创建 > 底部工具栏	创建斜坡	click	create	official-guide-editor-interface.md:376	
+D087	地形编辑 > 地形创建 > 底部工具栏	删除斜坡	click	destructive	official-guide-editor-interface.md:378	
+D088	地形编辑 > 地形创建 > 底部工具栏	笔刷模式-水体操作	click	scene	official-guide-editor-interface.md:386	笔刷模式切换
+D089	地形编辑 > 地形创建 > 底部工具栏	创建水体	click	create	official-guide-editor-interface.md:388	
+D090	地形编辑 > 地形创建 > 底部工具栏	删除水体	click	destructive	official-guide-editor-interface.md:390	
+D091	地形编辑 > 地形创建 > 底部工具栏	笔刷模式-路径操作	click	scene	official-guide-editor-interface.md:394	笔刷模式切换
+D092	地形编辑 > 地形创建 > 底部工具栏	创建路径	click	create	official-guide-editor-interface.md:400	
+D093	地形编辑 > 地形创建 > 底部工具栏	删除路径	click	destructive	official-guide-editor-interface.md:402	
+D094	地形编辑 > 地形创建 > 笔刷操作	点按	click	setting	official-guide-editor-interface.md:408	
+D095	地形编辑 > 地形创建 > 笔刷操作	拖移	drag	setting	official-guide-editor-interface.md:412	
+D096	地形编辑 > 地形修改 - 指针操作 > 单选地形	移动	click	scene	official-guide-editor-interface.md:444	
+D097	地形编辑 > 地形修改 - 指针操作 > 单选地形	旋转	click	scene	official-guide-editor-interface.md:448	
+D098	地形编辑 > 地形修改 - 指针操作 > 单选地形	空格	shortcut	nav	official-guide-editor-interface.md:452	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（2 处），按路径分别计点
+D099	地形编辑 > 地形修改 - 指针操作 > 单选地形	抬高一层	click	scene	official-guide-editor-interface.md:460	
+D100	地形编辑 > 地形修改 - 指针操作 > 单选地形	下沉一层	click	scene	official-guide-editor-interface.md:462	
+D101	地形编辑 > 地形修改 - 指针操作 > 单选地形	抬升	click	scene	official-guide-editor-interface.md:474	
+D102	地形编辑 > 地形修改 - 指针操作 > 单选地形	下沉	click	scene	official-guide-editor-interface.md:476	
+D103	地形编辑 > 地形修改 - 指针操作 > 单选地形	分割	click	scene	official-guide-editor-interface.md:478	
+D104	地形编辑 > 地形修改 - 指针操作 > 单选地形	精准编辑	click	setting	official-guide-editor-interface.md:482	项目符号标题，语义由后文给出
+D105	地形编辑 > 地形修改 - 指针操作 > 单选地形	删除地形	click	destructive	official-guide-editor-interface.md:490	项目符号标题，语义由后文给出
+D106	地形编辑 > 地形修改 - 指针操作 > 多选地形	变换处理工具	click	scene	official-guide-editor-interface.md:506	项目符号标题，语义由后文给出
+D107	地形编辑 > 地形修改 - 指针操作 > 多选地形	删除	click	destructive	official-guide-editor-interface.md:512	项目符号标题，语义由后文给出；同名控件在多处出现（3 处），按路径分别计点
+D108	地形编辑 > 地形修改 - 指针操作 > 右键菜单	删除	click	destructive	official-guide-editor-interface.md:522	文档以顿号并列枚举；同名控件在多处出现（3 处），按路径分别计点
+D109	地形编辑 > 地形修改 - 指针操作 > 右键菜单	右键菜单-角色假人	click	create	official-guide-editor-interface.md:522	地形右键菜单项
+D110	地形编辑 > 地形修改 - 指针操作 > 右键菜单	复制	click	create	official-guide-editor-interface.md:522	文档以顿号并列枚举
+D111	地形编辑 > 地形修改 - 指针操作 > 右键菜单	添加到实体布设组	click	create	official-guide-editor-interface.md:522	文档以顿号并列枚举
+D112	地形编辑 > 地形修改 - 指针操作 > 右键菜单	粘贴	click	create	official-guide-editor-interface.md:522	文档以顿号并列枚举
+D113	地形编辑 > 地形修改 - 指针操作 > 右键菜单	资产导出	click	create	official-guide-editor-interface.md:522	文档以顿号并列枚举
+D114	地形编辑 > 地形修改 - 指针操作 > 右键菜单	镜头聚焦	click	scene	official-guide-editor-interface.md:522	文档以顿号并列枚举
+D115	地形编辑 > 地形修改 - 自由编辑 > 开启方式	素材栏材质按钮	click	nav	official-guide-editor-interface.md:528	待界面确认
+D116	地形编辑 > 地形修改 - 精准编辑 > 操作逻辑	结束绘制按钮	click	nav	official-guide-editor-interface.md:610	待界面确认
+D117	地形编辑 > 快捷操作	统一高度（按住Alt后点击）	click	scene	official-guide-editor-interface.md:642	按住 Alt 后首次点击取层数，后续点击按该层数统一高度
+D118	地形编辑 > 快捷操作	快捷生成（按住Shift后拖移点击）	click	scene	official-guide-editor-interface.md:671	按住 Shift 点起点、悬停预览、点终点生成
+D119	实体摆放 > 基础摆放操作 > 移动、旋转、缩放	空格	shortcut	nav	official-guide-editor-interface.md:747	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（2 处），按路径分别计点
+D120	实体摆放 > 基础摆放操作 > 移动、旋转、缩放	三合一变换处理工具	click	scene	official-guide-editor-interface.md:751	
+D121	实体摆放 > 基础摆放操作 > 移动、旋转、缩放	移动变换处理工具	click	scene	official-guide-editor-interface.md:755	
+D122	实体摆放 > 基础摆放操作 > 移动、旋转、缩放	旋转变换处理工具	click	scene	official-guide-editor-interface.md:759	
+D123	实体摆放 > 基础摆放操作 > 移动、旋转、缩放	缩放变换处理工具	click	scene	official-guide-editor-interface.md:763	
+D124	实体摆放 > 基础摆放操作 > 删除实体	按delete键	shortcut	nav	official-guide-editor-interface.md:769	快捷键（文档以快捷键叙述给出）
+D125	实体摆放 > 详情编辑 > 变换	变换	click	setting	official-guide-editor-interface.md:803	标题即控件（属性卡/设置项，点击展开）
+D126	实体摆放 > 详情编辑 > 模型	模型	click	setting	official-guide-editor-interface.md:809	标题即控件（属性卡/设置项，点击展开）
+D127	实体摆放 > 详情编辑 > 原生碰撞	原生碰撞	click	setting	official-guide-editor-interface.md:813	标题即控件（属性卡/设置项，点击展开）
+D128	实体摆放 > 详情编辑 > 原生碰撞	初始生效	toggle	setting	official-guide-editor-interface.md:815	斜体配置项
+D129	实体摆放 > 详情编辑 > 可见性	可见性	click	setting	official-guide-editor-interface.md:819	标题即控件（属性卡/设置项，点击展开）
+D130	实体摆放 > 详情编辑 > 创建设置	创建设置	click	create	official-guide-editor-interface.md:823	标题即控件（属性卡/设置项，点击展开）
+D131	实体摆放 > 详情编辑 > 阵营	阵营	click	setting	official-guide-editor-interface.md:827	标题即控件（属性卡/设置项，点击展开）
+D132	实体摆放 > 详情编辑 > 单位标签	单位标签	click	setting	official-guide-editor-interface.md:831	标题即控件（属性卡/设置项，点击展开）
+D133	实体摆放 > 详情编辑 > 实体布设组	实体布设组	click	setting	official-guide-editor-interface.md:835	标题即控件（属性卡/设置项，点击展开）
+D134	实体摆放 > 详情编辑 > 负载优化	负载优化	click	setting	official-guide-editor-interface.md:839	标题即控件（属性卡/设置项，点击展开）；同名控件在多处出现（3 处），按路径分别计点
+D135	实体摆放 > 详情编辑 > 音效	音效	click	setting	official-guide-editor-interface.md:843	标题即控件（属性卡/设置项，点击展开）
+D136	实体摆放 > 详情编辑 > 引用源	引用源	click	setting	official-guide-editor-interface.md:847	标题即控件（属性卡/设置项，点击展开）
+D137	实体摆放 > 详情编辑 > 备注	备注	click	setting	official-guide-editor-interface.md:851	标题即控件（属性卡/设置项，点击展开）
+D138	实体摆放 > 便捷摆放功能 > 镜头设置	重置按钮	click	destructive	official-guide-editor-interface.md:861	待界面确认
+D139	实体摆放 > 实体、元件、覆写 > 实体和元件	详情面板-物件属性页签-引用源	click	nav	official-guide-editor-interface.md:907	
+D140	实体摆放 > 实体、元件、覆写 > 修改元件	元件库	click	nav	official-guide-editor-interface.md:921	同名控件在多处出现（2 处），按路径分别计点
+D141	实体摆放 > 实体、元件、覆写 > 修改元件	覆盖保存元件	click	destructive	official-guide-editor-interface.md:923	同名控件在多处出现（2 处），按路径分别计点
+D142	实体摆放 > 实体、元件、覆写 > 修改元件	另存为元件	click	create	official-guide-editor-interface.md:925	同名控件在多处出现（2 处），按路径分别计点
+D143	元件库 > 资产栏详情	资产栏页签-自定义元件	click	nav	official-guide-editor-interface.md:952	资产栏页签切换
+D144	元件库 > 资产栏详情 > 自定义元件	添加页签	click	create	official-guide-editor-interface.md:960	待界面确认
+D145	元件库 > 资产栏详情	资产栏页签-基础模块元件	click	nav	official-guide-editor-interface.md:962	资产栏页签切换（预制元件）
+D146	元件库 > 资产栏详情	资产栏页签-资产库	click	nav	official-guide-editor-interface.md:976	资产栏页签切换（本地资产）
+D147	元件库 > 创建元件 > 资产栏-基础模块页签创建新元件	资产图标	click	nav	official-guide-editor-interface.md:990	待界面确认
+D148	元件库 > 创建元件 > 资产栏-基础模块页签创建新元件	资产图标	drag	nav	official-guide-editor-interface.md:994	待界面确认
+D149	元件库 > 编辑元件	资产栏元件右键菜单	click	nav	official-guide-editor-interface.md:1020	项目符号标题，语义由后文给出
+D150	元件库 > 编辑元件	详情页元件图标菜单	click	nav	official-guide-editor-interface.md:1024	项目符号标题，语义由后文给出
+D151	元件库 > 编辑元件	资产栏物件图标	click	nav	official-guide-editor-interface.md:1036	待界面确认
+D152	元件库 > 保存元件	新建未保存元件	click	create	official-guide-editor-interface.md:1046	项目符号标题，语义由后文给出
+D153	元件库 > 保存元件	保存	click	setting	official-guide-editor-interface.md:1050	
+D154	元件库 > 保存元件	另存为元件	click	create	official-guide-editor-interface.md:1050	同名控件在多处出现（2 处），按路径分别计点
+D155	元件库 > 保存元件	覆盖保存元件	click	destructive	official-guide-editor-interface.md:1070	同名控件在多处出现（2 处），按路径分别计点
+D156	战斗预设 > 编辑模块切换	玩家与职业编辑	click	setting	official-guide-editor-interface.md:1113	
+D157	战斗预设 > 编辑模块切换	单位状态编辑	click	setting	official-guide-editor-interface.md:1117	
+D158	战斗预设 > 编辑模块切换	技能编辑	click	setting	official-guide-editor-interface.md:1121	
+D159	战斗预设 > 编辑模块切换	本地投射物编辑	click	setting	official-guide-editor-interface.md:1125	
+D160	战斗预设 > 编辑模块切换	道具编辑	click	setting	official-guide-editor-interface.md:1129	
+D161	战斗预设 > 新建与保存	保存按钮	click	nav	official-guide-editor-interface.md:1135	待界面确认
+D162	战斗预设 > 切换性别	切换性别按钮	click	nav	official-guide-editor-interface.md:1139	待界面确认
+D163	关卡设置	系统菜单图标	click	nav	official-guide-editor-interface.md:1152	待界面确认；同名控件在多处出现（2 处），按路径分别计点
+D164	关卡设置	关卡设置	click	nav	official-guide-editor-interface.md:1156	同名控件在多处出现（6 处），按路径分别计点
+D165	关卡设置 > 基础	基础	click	nav	official-guide-editor-interface.md:1166	
+D166	关卡设置 > 基础 > 运行后场景生效范围	运行后场景生效范围	click	setting	official-guide-editor-interface.md:1168	标题即控件（属性卡/设置项，点击展开）
+D167	关卡设置 > 基础 > 关卡环境等级	关卡环境等级	click	setting	official-guide-editor-interface.md:1178	标题即控件（属性卡/设置项，点击展开）
+D168	关卡设置 > 基础 > 人数	人数	click	setting	official-guide-editor-interface.md:1190	标题即控件（属性卡/设置项，点击展开）；同名控件在多处出现（2 处），按路径分别计点
+D169	关卡设置 > 基础 > 关卡实体	关卡实体	click	setting	official-guide-editor-interface.md:1196	标题即控件（属性卡/设置项，点击展开）
+D170	关卡设置 > 基础 > 时间设置	时间设置	click	setting	official-guide-editor-interface.md:1206	标题即控件（属性卡/设置项，点击展开）
+D171	关卡设置 > 基础 > 负载优化	负载优化	click	setting	official-guide-editor-interface.md:1214	标题即控件（属性卡/设置项，点击展开）；同名控件在多处出现（3 处），按路径分别计点
+D172	关卡设置 > 基础 > 超出范围不运行	超出范围不运行	click	setting	official-guide-editor-interface.md:1220	标题即控件（属性卡/设置项，点击展开）
+D173	关卡设置 > 基础 > 超出范围不运行	负载优化	click	setting	official-guide-editor-interface.md:1226	同名控件在多处出现（3 处），按路径分别计点
+D174	关卡设置 > 基础 > 超出范围不运行	物件编辑	toggle	nav	official-guide-editor-interface.md:1228	
+D175	关卡设置 > 基础 > 超出范围不运行	负载优化	toggle	setting	official-guide-editor-interface.md:1228	同名控件在多处出现（3 处），按路径分别计点
+D176	关卡设置 > 基础 > 仇恨类型	仇恨类型	click	setting	official-guide-editor-interface.md:1232	标题即控件（属性卡/设置项，点击展开）
+D177	关卡设置 > 基础 > 仇恨类型	自定义	click	setting	official-guide-editor-interface.md:1238	
+D178	关卡设置 > 基础 > 护盾设置	护盾设置	click	setting	official-guide-editor-interface.md:1240	标题即控件（属性卡/设置项，点击展开）
+D179	关卡设置 > 基础 > 护盾设置	统一计算	click	setting	official-guide-editor-interface.md:1244	
+D180	关卡设置 > 基础 > 护盾设置	独立计算	click	setting	official-guide-editor-interface.md:1246	
+D181	关卡设置 > 基础 > 中途退出保护	中途退出保护	click	nav	official-guide-editor-interface.md:1248	标题即控件（属性卡/设置项，点击展开）
+D182	关卡设置 > 基础 > 地形设置	地形设置	click	scene	official-guide-editor-interface.md:1258	标题即控件（属性卡/设置项，点击展开）
+D183	关卡设置 > 基础 > 地形设置	减少地块缝隙概率	toggle	scene	official-guide-editor-interface.md:1260	
+D184	关卡设置 > 复苏点	添加复苏点	click	create	official-guide-editor-interface.md:1310	
+D185	关卡设置 > 人数设置	一键应用当前阵营数据	click	setting	official-guide-editor-interface.md:1330	
+D186	关卡设置 > 人数设置	人数类型	click	setting	official-guide-editor-interface.md:1332	斜体配置项
+D187	关卡设置 > 人数设置	固定人数	click	setting	official-guide-editor-interface.md:1336	
+D188	关卡设置 > 人数设置	自定义人数	click	setting	official-guide-editor-interface.md:1340	
+D189	关卡设置 > 人数设置	人数	click	setting	official-guide-editor-interface.md:1344	斜体配置项；同名控件在多处出现（2 处），按路径分别计点
+D190	关卡设置 > 加载界面	标题与简介	click	setting	official-guide-editor-interface.md:1374	斜体配置项
+D191	关卡设置 > 结算	个人结算	click	setting	official-guide-editor-interface.md:1390	
+D192	关卡设置 > 结算	阵营结算	click	setting	official-guide-editor-interface.md:1394	
+D193	关卡设置 > 结算	启用游戏内排名	toggle	setting	official-guide-editor-interface.md:1396	斜体配置项
+D194	关卡设置 > 结算	相关节点图	click	setting	official-guide-editor-interface.md:1400	斜体配置项
+D195	试玩	试玩	click	nav	official-guide-editor-interface.md:1433	同名控件在多处出现（2 处），按路径分别计点
+D196	试玩	试玩设置	click	setting	official-guide-editor-interface.md:1433	
+D197	试玩	关卡设置	click	nav	official-guide-editor-interface.md:1443	同名控件在多处出现（6 处），按路径分别计点
+D198	试玩	试玩时玩家编号	click	setting	official-guide-editor-interface.md:1443	斜体配置项
+D199	试玩 > 存档数据设置	试玩临时数据管理	click	nav	official-guide-editor-interface.md:1447	文档以导航路径给出；同名控件在多处出现（2 处），按路径分别计点
+D200	试玩 > 存档数据设置	试玩数据	click	setting	official-guide-editor-interface.md:1449	
+D201	试玩 > 装扮展示	装扮展示阶段	click	setting	official-guide-editor-interface.md:1453	斜体配置项
+D202	试玩 > 结算关卡	启用试玩结算	toggle	setting	official-guide-editor-interface.md:1459	同名控件在多处出现（2 处），按路径分别计点
+D203	试玩 > 结算关卡	试玩选项	click	nav	official-guide-editor-interface.md:1459	同名控件在多处出现（3 处），按路径分别计点
+D204	试玩 > 试用奇偶	试玩选项	click	nav	official-guide-editor-interface.md:1463	同名控件在多处出现（3 处），按路径分别计点
+D205	试玩 > 试用奇偶	试用奇偶	click	setting	official-guide-editor-interface.md:1463	同名控件在多处出现（2 处），按路径分别计点
+D206	试玩 > 加载界面	关卡设置	click	nav	official-guide-editor-interface.md:1471	同名控件在多处出现（6 处），按路径分别计点
+D207	试玩 > 加载界面	加载界面	click	setting	official-guide-editor-interface.md:1471	
+D208	试玩 > 退出按钮	Esc	shortcut	nav	official-guide-editor-interface.md:1481	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（5 处），按路径分别计点
+D209	试玩 > 退出按钮	试玩控制	click	nav	official-guide-editor-interface.md:1481	同名控件在多处出现（2 处），按路径分别计点
+D210	试玩 > 退出按钮	退出按钮	click	nav	official-guide-editor-interface.md:1481	待界面确认
+D211	试玩 > 试玩局内控制	继续挑战	click	nav	official-guide-editor-interface.md:1485	试玩控制面板项；同名控件在多处出现（2 处），按路径分别计点
+D212	试玩 > 继续挑战	继续挑战	click	nav	official-guide-editor-interface.md:1487	同名控件在多处出现（2 处），按路径分别计点
+D213	试玩 > 试玩局内控制	重新挑战	click	nav	official-guide-editor-interface.md:1489	试玩控制面板项；同名控件在多处出现（3 处），按路径分别计点
+D214	试玩 > 重新挑战	重新挑战	click	nav	official-guide-editor-interface.md:1491	同名控件在多处出现（3 处），按路径分别计点
+D215	试玩 > 试玩局内控制	中断挑战	click	destructive	official-guide-editor-interface.md:1495	试玩控制面板项（退出试玩）
+D216	多人试玩	多人试玩	click	nav	official-guide-editor-interface.md:1512	同名控件在多处出现（3 处），按路径分别计点
+D217	多人试玩 > 房间功能 > 等候区	准备区	click	nav	official-guide-editor-interface.md:1520	同名控件在多处出现（2 处），按路径分别计点
+D218	多人试玩 > 房间功能 > 等候区	等候区	click	nav	official-guide-editor-interface.md:1520	
+D219	多人试玩 > 房间功能 > 等候区	加入准备区	click	nav	official-guide-editor-interface.md:1528	
+D220	多人试玩 > 房间功能 > 准备区	人数设置	click	setting	official-guide-editor-interface.md:1538	
+D221	多人试玩 > 房间功能 > 准备区	关卡设置	click	nav	official-guide-editor-interface.md:1538	同名控件在多处出现（6 处），按路径分别计点
+D222	多人试玩 > 房间功能 > 准备区	准备区	click	nav	official-guide-editor-interface.md:1538	同名控件在多处出现（2 处），按路径分别计点
+D223	多人试玩 > 房间功能 > 准备区	准备	click	nav	official-guide-editor-interface.md:1542	
+D224	多人试玩 > 房间功能 > 玩家邀请	搜索邀请	click	nav	official-guide-editor-interface.md:1550	
+D225	多人试玩 > 房间功能 > 玩家邀请	邀请	click	create	official-guide-editor-interface.md:1550	
+D226	多人试玩 > 房间功能 > 玩家邀请	邀请玩家	click	create	official-guide-editor-interface.md:1550	
+D227	多人试玩 > 房间功能 > 玩家邀请	搜索邀请	set	nav	official-guide-editor-interface.md:1554	项目符号标题，语义由后文给出
+D228	多人试玩 > 房间功能 > 玩家邀请	邀请	set	create	official-guide-editor-interface.md:1556	
+D229	多人试玩 > 房间功能 > 玩家邀请	今日邀请列表	click	nav	official-guide-editor-interface.md:1560	项目符号标题，语义由后文给出
+D230	多人试玩 > 房间功能 > 玩家邀请	好友	click	setting	official-guide-editor-interface.md:1566	项目符号标题，语义由后文给出
+D231	多人试玩 > 房间功能 > 玩家邀请	邀请数量	set	setting	official-guide-editor-interface.md:1578	
+D232	多人试玩 > 房间功能 > 玩家邀请	受邀玩家	click	setting	official-guide-editor-interface.md:1582	
+D233	多人试玩 > 房间功能 > 开启试玩	开始游戏	click	nav	official-guide-editor-interface.md:1586	
+D234	多人试玩 > 试玩设置 > 生成试玩报告	储存路径	click	setting	official-guide-editor-interface.md:1602	
+D235	多人试玩 > 试玩设置 > 启用结算	启用试玩结算	toggle	setting	official-guide-editor-interface.md:1610	同名控件在多处出现（2 处），按路径分别计点
+D236	多人试玩 > 试玩设置 > 启用结算	多人试玩	click	nav	official-guide-editor-interface.md:1610	同名控件在多处出现（3 处），按路径分别计点
+D237	多人试玩 > 试玩设置 > 试用奇偶	试玩选项	click	nav	official-guide-editor-interface.md:1614	同名控件在多处出现（3 处），按路径分别计点
+D238	多人试玩 > 试玩设置 > 试用奇偶	试用奇偶	click	setting	official-guide-editor-interface.md:1614	同名控件在多处出现（2 处），按路径分别计点
+D239	多人试玩 > 试玩设置 > 试玩成员管理	请离限制	click	setting	official-guide-editor-interface.md:1632	
+D240	多人试玩 > 试玩设置 > 试玩成员管理	移动至等候区	click	nav	official-guide-editor-interface.md:1636	项目符号标题，语义由后文给出
+D241	多人试玩 > 试玩设置 > 试玩成员管理	移至等候区	click	nav	official-guide-editor-interface.md:1638	
+D242	多人试玩 > 试玩设置 > 房间解散	解散	click	destructive	official-guide-editor-interface.md:1642	
+D243	多人试玩 > 试玩设置 > 房间收起	收起	click	nav	official-guide-editor-interface.md:1646	
+D244	多人试玩 > 退出按钮	Esc	shortcut	nav	official-guide-editor-interface.md:1656	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（5 处），按路径分别计点
+D245	多人试玩 > 退出按钮	试玩控制	click	nav	official-guide-editor-interface.md:1656	同名控件在多处出现（2 处），按路径分别计点
+D246	多人试玩 > 试玩控制 > 重新挑战	重新挑战	click	nav	official-guide-editor-interface.md:1662	同名控件在多处出现（3 处），按路径分别计点
+D247	多人试玩	关卡设置	click	nav	official-guide-editor-interface.md:1678	同名控件在多处出现（6 处），按路径分别计点
+D248	多人试玩	结算	click	setting	official-guide-editor-interface.md:1678	
+D249	千星沙箱 > 千星沙箱界面样式	千星沙箱-拉出创建子窗口	drag	nav	official-guide-editor-interface.md:1699	把页签拉出成独立子窗口
+D250	千星沙箱 > 千星沙箱界面样式	千星沙箱-页签拖拽换序	drag	nav	official-guide-editor-interface.md:1699	多页签时拖拽更换顺序
+D251	千星沙箱 > 服务器节点图资源管理器	职业节点图	click	setting	official-guide-editor-interface.md:1733	文档以顿号并列枚举
+D252	千星沙箱 > 服务器节点图资源管理器	道具节点图	click	setting	official-guide-editor-interface.md:1733	文档以顿号并列枚举
+D253	千星沙箱 > 服务器节点图资源管理器	窗口	click	nav	official-guide-editor-interface.md:1741	
+D254	千星沙箱 > 服务器节点图资源管理器	窗口菜单	click	nav	official-guide-editor-interface.md:1741	顶部菜单栏「窗口」子菜单
+D255	千星沙箱 > 服务器节点图资源管理器	资源管理器	click	nav	official-guide-editor-interface.md:1745	项目符号标题，语义由后文给出
+D256	千星沙箱 > 服务器节点图资源管理器	客户端节点图资源管理器	click	nav	official-guide-editor-interface.md:1749	项目符号标题，语义由后文给出
+D257	千星沙箱 > 服务器节点图资源管理器	节点管理器	click	nav	official-guide-editor-interface.md:1753	项目符号标题，语义由后文给出
+D258	千星沙箱 > 服务器节点图资源管理器	日志	click	nav	official-guide-editor-interface.md:1757	项目符号标题，语义由后文给出
+D259	千星沙箱 > 服务器节点图资源管理器	服务器信号管理器	click	nav	official-guide-editor-interface.md:1761	项目符号标题，语义由后文给出
+D260	千星沙箱 > 服务器节点图资源管理器	负载检测	click	nav	official-guide-editor-interface.md:1765	项目符号标题，语义由后文给出
+D261	千星沙箱 > 客户端节点图资源管理器	本地过滤器节点图	click	setting	official-guide-editor-interface.md:1775	文档以顿号并列枚举
+D262	千星沙箱 > 客户端节点图资源管理器	造物技能节点图	click	setting	official-guide-editor-interface.md:1775	文档以顿号并列枚举
+D263	千星沙箱 > 客户端节点图资源管理器	造物状态决策节点图	click	setting	official-guide-editor-interface.md:1775	文档以顿号并列枚举
+D264	千星沙箱 > 客户端节点图资源管理器	造物状态节点图	click	setting	official-guide-editor-interface.md:1775	文档以顿号并列枚举
+D265	资产导入导出 > 导出方式1 - 关卡内选中 > 关联项导出	挂载节点图跟随文件同步导出	click	create	official-guide-editor-interface.md:1884	项目符号标题，语义由后文给出
+D266	资产导入导出 > 导出方式2 - 关卡内多选导出	导入与转存	click	create	official-guide-editor-interface.md:1930	
+D267	资产导入导出 > 导出方式2 - 关卡内多选导出	导入资产	click	create	official-guide-editor-interface.md:1932	同名控件在多处出现（2 处），按路径分别计点
+D268	资产导入导出 > 导出方式3 - 界面单选/多选导出	已选内容管理	click	nav	official-guide-editor-interface.md:1976	
+D269	资产导入导出 > 导出方式3 - 界面单选/多选导出	导出资产按钮	click	create	official-guide-editor-interface.md:1980	待界面确认
+D270	资产导入导出 > 导出方式3 - 界面单选/多选导出	确认按钮	click	nav	official-guide-editor-interface.md:1982	待界面确认
+D271	资产导入导出 > 本地资产导入/加载流程	导入与转存页签	click	nav	official-guide-editor-interface.md:2010	本地资产导入的操作落点
+D272	资产导入导出 > 本地资产导入/加载流程	加载外部资产（右下角）	click	create	official-guide-editor-interface.md:2014	导入本地文件夹资产到资产库页签
+D273	资产导入导出 > 资产使用方式 - 组合内容 > 入口	组合资产	click	setting	official-guide-editor-interface.md:2078	
+D274	资产导入导出 > 资产使用方式 - 组合内容	导入资产	click	create	official-guide-editor-interface.md:2086	同名控件在多处出现（2 处），按路径分别计点
+D275	资产导入导出 > 资产使用方式 - 组合内容	添加至导入资产页签	click	create	official-guide-editor-interface.md:2086	待界面确认
+D276	撤销与还原 > 编辑界面内	撤销按钮（顶栏）	click	nav	official-guide-editor-interface.md:2107	撤销一步；与 Ctrl+Z 同一操作点的两个入口
+D277	撤销与还原 > 编辑界面内	重做按钮（顶栏）	click	nav	official-guide-editor-interface.md:2107	重做一步
+D278	奇域资产中心 > 主界面介绍 > 标题栏	搜索框	click	nav	official-guide-editor-interface.md:2144	
+D279	奇域资产中心 > 主界面介绍 > 标题栏	个人主页	click	nav	official-guide-editor-interface.md:2152	项目符号标题，语义由后文给出
+D280	奇域资产中心 > 主界面介绍 > 标题栏	收藏夹	click	setting	official-guide-editor-interface.md:2156	项目符号标题，语义由后文给出；同名控件在多处出现（2 处），按路径分别计点
+D281	奇域资产中心 > 主界面介绍 > 标题栏	系统通知	click	setting	official-guide-editor-interface.md:2160	项目符号标题，语义由后文给出
+D282	奇域资产中心 > 主界面介绍 > 标题栏	上传资产	click	destructive	official-guide-editor-interface.md:2164	项目符号标题，语义由后文给出
+D283	奇域资产中心 > 主界面介绍 > 筛选栏	筛选	click	nav	official-guide-editor-interface.md:2176	
+D284	奇域资产中心 > 主界面介绍 > 筛选栏	反馈	click	setting	official-guide-editor-interface.md:2180	
+D285	奇域资产中心 > 主界面介绍 > 资产卡片	资产卡片主体	click	nav	official-guide-editor-interface.md:2200	待界面确认（从句中抽出）
+D286	奇域资产中心 > 详情页面介绍	下载资产	click	setting	official-guide-editor-interface.md:2208	项目符号标题，语义由后文给出
+D287	奇域资产中心 > 详情页面介绍	点赞资产	click	setting	official-guide-editor-interface.md:2212	项目符号标题，语义由后文给出
+D288	奇域资产中心 > 详情页面介绍	收藏资产	click	setting	official-guide-editor-interface.md:2216	项目符号标题，语义由后文给出
+D289	奇域资产中心 > 详情页面介绍	复制资产详情页链接	click	create	official-guide-editor-interface.md:2220	项目符号标题，语义由后文给出
+D290	奇域资产中心 > 详情页面介绍	更多按钮	click	nav	official-guide-editor-interface.md:2224	
+D291	奇域资产中心 > 上传资产页面介绍	资产名称	click	setting	official-guide-editor-interface.md:2236	项目符号标题，语义由后文给出
+D292	奇域资产中心 > 上传资产页面介绍	图片素材	click	setting	official-guide-editor-interface.md:2240	项目符号标题，语义由后文给出
+D293	奇域资产中心 > 上传资产页面介绍	视频素材	click	setting	official-guide-editor-interface.md:2244	项目符号标题，语义由后文给出
+D294	奇域资产中心 > 上传资产页面介绍	封面	click	setting	official-guide-editor-interface.md:2248	项目符号标题，语义由后文给出
+D295	奇域资产中心 > 上传资产页面介绍	资产介绍	click	setting	official-guide-editor-interface.md:2252	项目符号标题，语义由后文给出
+D296	奇域资产中心 > 上传资产页面介绍	资产标签	click	setting	official-guide-editor-interface.md:2256	
+D297	奇域资产中心 > 个人主页介绍 > 个人信息栏	基础信息	click	setting	official-guide-editor-interface.md:2266	
+D298	奇域资产中心 > 个人主页介绍 > 个人信息栏	资产中心信息	click	setting	official-guide-editor-interface.md:2270	
+D299	奇域资产中心 > 个人主页介绍 > 个人资产详情栏	收藏夹	click	setting	official-guide-editor-interface.md:2282	项目符号标题，语义由后文给出；同名控件在多处出现（2 处），按路径分别计点
+D300	奇域资产中心 > 个人主页介绍 > 个人资产详情栏	下载历史	click	setting	official-guide-editor-interface.md:2286	项目符号标题，语义由后文给出
+D301	奇域资产中心 > 个人主页介绍 > 个人资产详情栏	消息中心	click	setting	official-guide-editor-interface.md:2290	项目符号标题，语义由后文给出
+D302	编辑工具 > 阵列生成	右键菜单-阵列生成	click	create	official-guide-editor-interface.md:2315	右键菜单 → 阵列
+D303	编辑工具 > 阵列生成	阵列	click	create	official-guide-editor-interface.md:2315	文档以导航路径给出
+D304	阵列生成 > 网格阵列 > 模式特性	Esc	shortcut	nav	official-guide-editor-interface.md:2329	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（5 处），按路径分别计点
+D305	阵列生成 > 网格阵列 > 模式特性	退出	click	nav	official-guide-editor-interface.md:2329	同名控件在多处出现（3 处），按路径分别计点
+D306	阵列生成 > 网格阵列 > 阵列设置	阵列间隔	set	scene	official-guide-editor-interface.md:2337	
+D307	阵列生成 > 网格阵列 > 阵列设置	阵列数量	set	scene	official-guide-editor-interface.md:2339	
+D308	阵列生成 > 网格阵列 > 阵列生成	确认创建	click	create	official-guide-editor-interface.md:2349	同名控件在多处出现（2 处），按路径分别计点
+D309	阵列生成 > 环形阵列 > 模式特性	Esc	shortcut	nav	official-guide-editor-interface.md:2361	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（5 处），按路径分别计点
+D310	阵列生成 > 环形阵列 > 模式特性	退出	click	nav	official-guide-editor-interface.md:2361	同名控件在多处出现（3 处），按路径分别计点
+D311	编辑工具 > 阵列生成 > 环形阵列	环形阵列-数量	set	scene	official-guide-editor-interface.md:2367	输入阵列数量
+D312	编辑工具 > 阵列生成 > 环形阵列	环形阵列-角度	set	scene	official-guide-editor-interface.md:2367	输入角度间隔
+D313	编辑工具 > 对称编辑	右键菜单-对称编辑	click	create	official-guide-editor-interface.md:2389	右键菜单 → 对称（点/轴/面）
+D314	编辑工具 > 对称编辑	对称	click	create	official-guide-editor-interface.md:2389	文档以导航路径给出；同名控件在多处出现（2 处），按路径分别计点
+D315	编辑工具 > 对称编辑 > 模式特性	Esc	shortcut	nav	official-guide-editor-interface.md:2397	快捷键（文档以快捷键叙述给出）；同名控件在多处出现（5 处），按路径分别计点
+D316	编辑工具 > 对称编辑 > 模式特性	退出	click	nav	official-guide-editor-interface.md:2397	同名控件在多处出现（3 处），按路径分别计点
+D317	对称编辑 > 对称操作流程 > 选择对称模式	对称	click	create	official-guide-editor-interface.md:2403	同名控件在多处出现（2 处），按路径分别计点
+D318	对称编辑 > 对称操作流程 > 生成对称结果	确认创建	click	create	official-guide-editor-interface.md:2419	同名控件在多处出现（2 处），按路径分别计点
+D319	实体摆放 > 详情编辑 > 模型	模型-显示类型	click	setting	official-guide-editor-interface.md:2461	切到包围盒显示类型（仅尺寸/包围盒及尺寸/碰撞及尺寸）
+D320	编辑工具 > 包围盒显示	显示类型-仅尺寸	click	setting	official-guide-editor-interface.md:2467	包围盒显示类型三选一
+D321	编辑工具 > 包围盒显示	显示类型-包围盒及尺寸	click	setting	official-guide-editor-interface.md:2471	
+D322	编辑工具 > 包围盒显示	显示类型-碰撞及尺寸	click	setting	official-guide-editor-interface.md:2475	仅物件实体可用
+D323	编辑工具 > 备注功能	显示Z轴	toggle	setting	official-guide-editor-interface.md:2481	详情栏底部编辑工具区的 Z 轴控件开关
+D324	编辑工具 > 备注功能	3D备注	toggle	setting	official-guide-editor-interface.md:2497	3D 备注的显示开关
+D325	编辑工具 > 备注功能	备注文本常驻显示（关卡设置）	toggle	setting	official-guide-editor-interface.md:2517	关卡设置里的全局备注显示控制
+D326	实体摆放 > 详情编辑 > 模型	模型-复制	click	create	official-guide-editor-interface.md:2531	复制模型数据（含装饰物）
+D327	编辑工具 > 模型数据复制粘贴	模型数据复制	click	create	official-guide-editor-interface.md:2531	模型 → 复制（含主模型与装饰物）
+D328	编辑工具 > 多选显示中心点位置信息	多选位置信息显示	click	nav	official-guide-editor-interface.md:2539	多选后在场景层/摆放层显示位置
+D329	编辑工具 > 测距功能 > 工具入口	测距线	click	create	official-guide-editor-interface.md:2551	文档以导航路径给出；同名控件在多处出现（2 处），按路径分别计点
+D330	编辑工具 > 测距功能 > 工具入口	添加测距线	click	create	official-guide-editor-interface.md:2551	
+D331	编辑工具 > 测距功能 > 去除测距线	全部删除	click	destructive	official-guide-editor-interface.md:2563	
+D332	编辑工具 > 测距功能 > 去除测距线	测距线	click	create	official-guide-editor-interface.md:2563	文档以导航路径给出；同名控件在多处出现（2 处），按路径分别计点
+D333	负载计算功能 > 关卡负载等级	关卡设置	click	setting	official-guide-auxiliary-appendix.md:31	文档以导航路径给出
+D334	负载计算功能 > 静态负载计算-全局	静态负载按钮（菜单栏）	click	nav	official-guide-auxiliary-appendix.md:70	菜单栏的静态负载入口
+D335	负载计算功能 > 静态负载计算-区域	查看负载情况	click	nav	official-guide-auxiliary-appendix.md:92	展开区域负载详情
+D336	负载计算功能 > 静态负载计算 > 区域负载占用总览	仅显示负载超标区域	toggle	setting	official-guide-auxiliary-appendix.md:96	斜体配置项；同名控件在多处出现（2 处），按路径分别计点
+D337	负载计算功能 > 静态负载计算-区域 > 区域负载占用总览	仅显示负载超标区域	toggle	setting	official-guide-auxiliary-appendix.md:104	默认勾选；同名控件在多处出现（2 处），按路径分别计点
+D338	负载计算功能 > 动态负载计算	负载检测窗口	click	nav	official-guide-auxiliary-appendix.md:159	千星沙箱 → 窗口 → 负载检测
+D339	负载计算功能 > 动态负载计算	开启负载测试	toggle	setting	official-guide-auxiliary-appendix.md:163	开启动态负载测试开关（负载检测窗口内）
+D340	负载计算功能 > 动态负载计算 > 客户端计算负载异常	负载检测工具提示	click	setting	official-guide-auxiliary-appendix.md:193	项目符号标题，语义由后文给出；同名控件在多处出现（2 处），按路径分别计点
+D341	负载计算功能 > 动态负载计算 > 客户端计算负载异常	负载检测工具详情	click	nav	official-guide-auxiliary-appendix.md:197	项目符号标题，语义由后文给出；同名控件在多处出现（3 处），按路径分别计点
+D342	负载计算功能 > 动态负载计算 > 服务端处理器异常	关卡运行中提示	click	setting	official-guide-auxiliary-appendix.md:227	项目符号标题，语义由后文给出
+D343	负载计算功能 > 动态负载计算 > 服务端处理器异常	负载检测工具提示	click	setting	official-guide-auxiliary-appendix.md:231	项目符号标题，语义由后文给出；同名控件在多处出现（2 处），按路径分别计点
+D344	负载计算功能 > 动态负载计算 > 服务端处理器异常	负载检测工具详情	click	nav	official-guide-auxiliary-appendix.md:235	项目符号标题，语义由后文给出；同名控件在多处出现（3 处），按路径分别计点
+D345	负载计算功能 > 动态负载计算 > 服务端内存负载异常	负载检测工具详情	click	nav	official-guide-auxiliary-appendix.md:253	项目符号标题，语义由后文给出；同名控件在多处出现（3 处），按路径分别计点
+D346	风险检查功能	风险检查入口	click	nav	official-guide-auxiliary-appendix.md:270	菜单栏风险检查
+D347	风险检查功能 > 入口	风险检查	click	setting	official-guide-auxiliary-appendix.md:272	
+D348	风险检查功能	发起检查	click	setting	official-guide-auxiliary-appendix.md:276	
+D349	节点图变量	自定义变量	click	setting	official-guide-auxiliary-appendix.md:1186	
+D350	节点图变量	例如	click	setting	official-guide-auxiliary-appendix.md:1188	同名控件在多处出现（2 处），按路径分别计点
+D351	节点图变量	节点图变量	click	setting	official-guide-auxiliary-appendix.md:1190	
+D352	复合节点	生成复合节点	click	create	official-guide-auxiliary-appendix.md:1339	
+D353	复合节点	复合节点节点图编辑	click	setting	official-guide-auxiliary-appendix.md:1369	
+D354	复合节点	复合节点编辑预览	click	nav	official-guide-auxiliary-appendix.md:1371	
+D355	复合节点	复合节点节点图	click	setting	official-guide-auxiliary-appendix.md:1377	项目符号标题，语义由后文给出
+D356	复合节点	复合节点样式编辑	click	setting	official-guide-auxiliary-appendix.md:1391	项目符号标题，语义由后文给出
+D357	复合节点	复合节点重命名	click	setting	official-guide-auxiliary-appendix.md:1397	项目符号标题，语义由后文给出
+D358	复合节点	复合节点名	click	setting	official-guide-auxiliary-appendix.md:1399	待界面确认（从句中抽出）
+D359	复合节点	引脚详情编辑	click	nav	official-guide-auxiliary-appendix.md:1405	项目符号标题，语义由后文给出
+D360	复合节点	引脚操作	click	setting	official-guide-auxiliary-appendix.md:1417	项目符号标题，语义由后文给出
+D361	复合节点	复合节点	click	setting	official-guide-auxiliary-appendix.md:1447	同名控件在多处出现（2 处），按路径分别计点
+D362	节点图日志	开启节点图日志	toggle	setting	official-guide-auxiliary-appendix.md:1470	节点图日志窗口内的日志开关
+D363	节点图日志	节点图事件	click	setting	official-guide-auxiliary-appendix.md:1488	
+D364	节点图日志	打印信息	click	setting	official-guide-auxiliary-appendix.md:1490	
+D365	节点图日志	打印字符串	click	setting	official-guide-auxiliary-appendix.md:1490	
+D366	客户端节点图日志 > 调试流程	节点图日志-目标节点图选择	click	nav	official-guide-auxiliary-appendix.md:1527	选取目标节点图
+D367	客户端节点图日志 > 调试流程	节点图调试模式	toggle	setting	official-guide-auxiliary-appendix.md:1549	进入节点图调试模式
+D368	复合节点图日志 > 调试流程 > 复合节点运行信息	复合节点	click	setting	official-guide-auxiliary-appendix.md:1572	待界面确认（从句中抽出）；同名控件在多处出现（2 处），按路径分别计点
+D369	复合节点图日志 > 调试流程 > 复合节点调试模式	查看输入输出值	set	setting	official-guide-auxiliary-appendix.md:1576	
+D370	复合节点图日志 > 调试流程 > 复合节点调试模式	页签逻辑	click	nav	official-guide-auxiliary-appendix.md:1578	
+D371	信号	例如	click	setting	official-guide-auxiliary-appendix.md:1587	同名控件在多处出现（2 处），按路径分别计点
+D372	信号	机关触发信号	click	setting	official-guide-auxiliary-appendix.md:1631	
+D373	信号	解耦	click	setting	official-guide-auxiliary-appendix.md:1643	
+D374	信号	信号名	click	setting	official-guide-auxiliary-appendix.md:1651	
+D375	信号	信号_1	click	setting	official-guide-auxiliary-appendix.md:1655	
+D376	信号	参数_1	click	setting	official-guide-auxiliary-appendix.md:1657	
+D377	信号	参数_2	click	setting	official-guide-auxiliary-appendix.md:1659	
+D378	信号	参数_3	click	setting	official-guide-auxiliary-appendix.md:1661	
+D379	信号	发送信号	click	setting	official-guide-auxiliary-appendix.md:1665	
+D380	信号	接收信号	click	setting	official-guide-auxiliary-appendix.md:1665	
+D381	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	小地图	click	setting	official-ui-tutorial.md:683	项目符号标题，语义由后文给出
+D382	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	技能区	click	setting	official-ui-tutorial.md:691	项目符号标题，语义由后文给出
+D383	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	队伍信息	click	setting	official-ui-tutorial.md:697	项目符号标题，语义由后文给出
+D384	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	角色生命值条	click	setting	official-ui-tutorial.md:703	项目符号标题，语义由后文给出
+D385	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	摇杆	click	setting	official-ui-tutorial.md:709	项目符号标题，语义由后文给出
+D386	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	造物生命值条	click	setting	official-ui-tutorial.md:715	项目符号标题，语义由后文给出
+D387	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	退出按钮	click	nav	official-ui-tutorial.md:721	项目符号标题，语义由后文给出
+D388	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	选项卡	click	nav	official-ui-tutorial.md:727	项目符号标题，语义由后文给出
+D389	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	聊天按钮	click	nav	official-ui-tutorial.md:733	项目符号标题，语义由后文给出
+D390	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	网络状态	click	setting	official-ui-tutorial.md:739	项目符号标题，语义由后文给出
+D391	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	挣扎按钮	click	nav	official-ui-tutorial.md:745	项目符号标题，语义由后文给出
+D392	界面控件（完整） > 界面控件的分类 > 固有界面控件资产	语音聊天提示队列	click	setting	official-ui-tutorial.md:757	项目符号标题，语义由后文给出
+D393	界面控件（完整） > 界面控件的分类 > 预制界面控件的引用	添加界面控件	click	create	official-ui-tutorial.md:773	同名控件在多处出现（4 处），按路径分别计点
+D394	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	交互按钮	click	nav	official-ui-tutorial.md:781	项目符号标题，语义由后文给出
+D395	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	道具展示	click	setting	official-ui-tutorial.md:793	项目符号标题，语义由后文给出
+D396	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	文本框	click	setting	official-ui-tutorial.md:805	项目符号标题，语义由后文给出
+D397	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	弹窗	click	setting	official-ui-tutorial.md:817	项目符号标题，语义由后文给出
+D398	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	进度条	click	setting	official-ui-tutorial.md:827	项目符号标题，语义由后文给出
+D399	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	计时器	click	setting	official-ui-tutorial.md:837	项目符号标题，语义由后文给出
+D400	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	计分板	click	setting	official-ui-tutorial.md:847	项目符号标题，语义由后文给出
+D401	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	界面动效	click	setting	official-ui-tutorial.md:869	项目符号标题，语义由后文给出
+D402	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	全屏界面动效	click	setting	official-ui-tutorial.md:879	项目符号标题，语义由后文给出
+D403	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	图片	click	setting	official-ui-tutorial.md:889	项目符号标题，语义由后文给出
+D404	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	自定义按钮	click	nav	official-ui-tutorial.md:899	项目符号标题，语义由后文给出
+D405	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	自定义开关	toggle	setting	official-ui-tutorial.md:909	项目符号标题，语义由后文给出
+D406	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	悬浮交互页	click	setting	official-ui-tutorial.md:919	项目符号标题，语义由后文给出
+D407	界面控件（完整） > 界面控件的分类 > 预制界面控件资产	特殊数字	click	setting	official-ui-tutorial.md:929	项目符号标题，语义由后文给出
+D408	界面控件（完整） > 界面控件的分类 > 索引	索引	click	setting	official-ui-tutorial.md:948	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D409	界面控件（完整） > 界面控件的分类 > 变换	设备	click	setting	official-ui-tutorial.md:957	参数配置表行
+D410	界面控件（完整） > 界面控件的分类 > 变换	位置	drag	setting	official-ui-tutorial.md:958	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D411	界面控件（完整） > 界面控件的分类 > 变换	大小	click	setting	official-ui-tutorial.md:959	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D412	界面控件（完整） > 界面控件的分类 > 变换	缩放比例	set	scene	official-ui-tutorial.md:960	参数配置表行
+D413	界面控件（完整） > 界面控件的分类 > 变换	旋转	click	scene	official-ui-tutorial.md:961	参数配置表行
+D414	界面控件（完整） > 界面控件的分类 > 变换	锚点设置	click	setting	official-ui-tutorial.md:962	参数配置表行
+D415	界面控件（完整） > 界面控件的分类 > 变换	中心	click	setting	official-ui-tutorial.md:963	参数配置表行
+D416	界面控件（完整） > 界面控件的分类 > 变换	层级	click	setting	official-ui-tutorial.md:964	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D417	界面控件（完整） > 界面控件的分类 > 变换	初始可见性	toggle	setting	official-ui-tutorial.md:965	参数配置表行
+D418	界面控件（完整） > 界面控件的分类 > 素材库-素材组遮罩功能	开启遮罩	toggle	setting	official-ui-tutorial.md:998	参数配置表行
+D419	界面控件（完整） > 界面控件的分类 > 素材库-素材组遮罩功能	遮罩形状	click	setting	official-ui-tutorial.md:999	参数配置表行
+D420	界面控件（完整） > 界面控件的分类 > 素材库-素材组遮罩功能	位置	click	setting	official-ui-tutorial.md:1000	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D421	界面控件（完整） > 界面控件的分类 > 素材库-素材组遮罩功能	大小	click	setting	official-ui-tutorial.md:1001	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D422	界面控件组管理 > 入口	界面控件组管理	click	nav	official-ui-tutorial.md:2729	
+D423	界面控件组管理 > 界面布局	界面布局-复制	click	create	official-ui-tutorial.md:2741	右键菜单项
+D424	界面控件组管理 > 界面布局	界面布局-粘贴	click	create	official-ui-tutorial.md:2741	右键菜单项
+D425	界面控件组管理 > 界面布局	界面布局-重命名	click	setting	official-ui-tutorial.md:2741	右键菜单项
+D426	界面控件组管理 > 界面布局管理工具 > 界面布局详情	添加界面控件	click	create	official-ui-tutorial.md:2749	同名控件在多处出现（4 处），按路径分别计点
+D427	界面控件组管理 > 界面布局详情	添加界面控件	click	create	official-ui-tutorial.md:2753	给当前界面布局添加界面控件；同名控件在多处出现（4 处），按路径分别计点
+D428	界面控件组管理 > 界面布局管理工具 > 固有内容	索引	click	setting	official-ui-tutorial.md:2762	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D429	界面控件组管理 > 界面布局管理工具 > 固有内容	初始可见	toggle	setting	official-ui-tutorial.md:2763	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D430	界面控件组管理 > 界面布局管理工具 > 自定义	添加界面控件	click	create	official-ui-tutorial.md:2767	同名控件在多处出现（4 处），按路径分别计点
+D431	界面控件组管理 > 界面布局管理工具 > 自定义	索引	click	setting	official-ui-tutorial.md:2776	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D432	界面控件组管理 > 界面布局管理工具 > 自定义	初始可见	toggle	setting	official-ui-tutorial.md:2777	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D433	界面控件组管理 > 界面布局管理工具 > 自定义	文本框设置	click	setting	official-ui-tutorial.md:2778	参数配置表行
+D434	界面控件组管理 > 界面布局预览窗口	设备切换（预览窗口）	click	nav	official-ui-tutorial.md:2780	切换设备做对比
+D435	界面控件组管理 > 参数配置窗口	打开玩家编辑	click	nav	official-ui-tutorial.md:2788	跳转职业配置界面；同名控件在多处出现（2 处），按路径分别计点
+D436	界面控件组管理 > 界面布局管理工具 > 参数配置窗口	打开玩家编辑	click	nav	official-ui-tutorial.md:2790	同名控件在多处出现（2 处），按路径分别计点
+D437	界面控件组管理 > 界面控件组自定义模板	重命名	click	setting	official-ui-tutorial.md:2802	项目符号标题，语义由后文给出
+D438	界面控件组管理 > 界面控件组自定义模板	删除模板	click	destructive	official-ui-tutorial.md:2808	项目符号标题，语义由后文给出
+D439	界面控件组管理 > 界面控件组详情	添加界面控件模版	click	create	official-ui-tutorial.md:2834	
+D440	界面控件组管理	创建组合	click	create	official-ui-tutorial.md:2844	同名控件在多处出现（2 处），按路径分别计点
+D441	界面控件组管理	保存	click	setting	official-ui-tutorial.md:2848	
+D442	界面控件组管理 > 界面控件组详情	保存控件组	click	create	official-ui-tutorial.md:2848	单个控件保存为界面控件组
+D443	界面控件组管理 > 界面控件组-多界面控件	创建组合	click	create	official-ui-tutorial.md:2869	参数配置表行；同名控件在多处出现（2 处），按路径分别计点
+D444	界面控件组管理 > 界面控件组-多界面控件	解散组合	click	destructive	official-ui-tutorial.md:2875	参数配置表行；同名控件在多处出现（2 处），按路径分别计点
+D445	界面控件组管理 > 界面控件组-多界面控件	保存修改	click	setting	official-ui-tutorial.md:2877	参数配置表行；同名控件在多处出现（2 处），按路径分别计点
+D446	界面控件组管理 > 界面控件组-多界面控件	另存为模板	click	create	official-ui-tutorial.md:2878	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D447	界面控件组管理 > 界面控件组-单界面控件	保存修改	click	setting	official-ui-tutorial.md:2886	参数配置表行；同名控件在多处出现（2 处），按路径分别计点
+D448	界面控件组管理 > 界面控件组-单界面控件	另存为模板	click	create	official-ui-tutorial.md:2887	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D449	界面控件组管理 > 编辑按键处	解散组合	click	destructive	official-ui-tutorial.md:2895	拆散组合并删除组合；同名控件在多处出现（2 处），按路径分别计点
+D450	界面控件组管理 > 界面控件组-多界面控件	初始可见	click	setting	official-ui-tutorial.md:2896	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D451	界面控件组管理 > 界面控件组-多界面控件	位置	click	setting	official-ui-tutorial.md:2897	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D452	界面控件组管理 > 界面控件组-多界面控件	大小	click	setting	official-ui-tutorial.md:2898	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D453	界面控件组管理 > 界面控件组-多界面控件	层级	click	setting	official-ui-tutorial.md:2899	参数配置表行；同名控件在多处出现（3 处），按路径分别计点
+D454	界面控件组管理 > 编辑按键处	另存为模板	click	create	official-ui-tutorial.md:2901	另存为新的界面控件组模板；同名控件在多处出现（3 处），按路径分别计点
+D455	界面控件组管理 > 界面控件组-单界面控件	初始可见	click	setting	official-ui-tutorial.md:2906	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D456	界面控件组管理 > 界面控件组-单界面控件	位置	click	setting	official-ui-tutorial.md:2907	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D457	界面控件组管理 > 界面控件组-单界面控件	大小	click	setting	official-ui-tutorial.md:2908	参数配置表行；同名控件在多处出现（4 处），按路径分别计点
+D458	界面控件组管理 > 界面控件组-单界面控件	层级	click	setting	official-ui-tutorial.md:2909	参数配置表行；同名控件在多处出现（3 处），按路径分别计点

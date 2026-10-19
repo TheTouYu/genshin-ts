@@ -63,6 +63,43 @@ def esc():
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
 
 
+def enumerate_from_look(a):
+    """让模块自己枚举当前界面上的可点对象（这是"机器找目标"的那一半）。
+
+    为什么要这条路径：手写坐标计划时，覆盖率的上限是我的耐心；`look` 能给出
+    「这一屏有哪些带名字的对象 + 各自 bbox」后，机器就能自己把清单跑一遍。
+    """
+    import json
+    out = os.path.join(TMP, "look.json")
+    os.makedirs(TMP, exist_ok=True)
+    r = subprocess.run([sys.executable, os.path.join(REPO, ".scratch/gui-service/worldsvc.py"),
+                        "look", "--live", "--backend", "daemon-world", "--json-out", out],
+                       env=_env(), capture_output=True, text=True, timeout=120)
+    if not os.path.exists(out):
+        print(f"[ys-crawl] look 失败：{(r.stdout or r.stderr or '')[-300:]}", file=sys.stderr)
+        return None
+    d = json.load(open(out))
+    kinds = set(a.kinds.split(","))
+    seen, rows = set(), []
+    for o in d.get("objects") or []:
+        txt = " ".join(o.get("text") or []).strip()
+        if not txt or o.get("kind") not in kinds:
+            continue
+        key = txt.split(" ")[0]
+        if key in seen:
+            continue
+        seen.add(key)
+        x, y, w, h = o["bbox"]
+        rows.append({"id": f"A{len(rows)+1:03d}", "path": "编辑器 > 系统菜单",
+                     "control": key, "x": str(int(x + w / 2)), "y": str(int(y + h / 2)),
+                     "risk": "A", "restore": "esc"})
+        if len(rows) >= a.max_items:
+            break
+    print(f"[ys-crawl] --from-look 枚举到 {len(rows)} 个带名字的可点对象（kinds={sorted(kinds)}）",
+          file=sys.stderr)
+    return rows
+
+
 def read_plan(path):
     rows = []
     with open(path, encoding="utf-8") as f:
@@ -81,9 +118,14 @@ def read_plan(path):
 
 def main():
     ap = argparse.ArgumentParser(prog="ys-crawl")
-    ap.add_argument("--plan", required=True)
+    ap.add_argument("--plan", help="计划 TSV；与 --from-look 二选一")
+    ap.add_argument("--from-look", action="store_true",
+                    help="不看计划，直接让模块枚举当前界面上的可点对象（AGI 路径：机器自己找目标）")
+    ap.add_argument("--kinds", default="row,tile,button,chip",
+                    help="--from-look 时只点这些 kind")
+    ap.add_argument("--max-items", type=int, default=40)
     ap.add_argument("--max-risk", default="A", choices=["A", "B", "C"])
-    ap.add_argument("--back-tol", type=float, default=0.02, help="回到基线的容差（帧差异占比）")
+    ap.add_argument("--back-tol", type=float, default=0.05, help="回到基线的容差（帧差异占比）")
     ap.add_argument("--min-diff", type=float, default=0.002)
     ap.add_argument("--settle", type=float, default=1.2)
     ap.add_argument("--fail-stop", type=int, default=3)
@@ -91,7 +133,15 @@ def main():
     ap.add_argument("--dry", action="store_true")
     a = ap.parse_args()
 
-    rows = read_plan(a.plan)
+    if a.from_look:
+        rows = enumerate_from_look(a)
+        if rows is None:
+            return 2
+    else:
+        if not a.plan:
+            print("[ys-crawl] 需要 --plan 或 --from-look", file=sys.stderr)
+            return 2
+        rows = read_plan(a.plan)
     if a.only:
         keep = set(a.only.split(","))
         rows = [r for r in rows if r.get("id") in keep]
@@ -128,15 +178,23 @@ def main():
         print(f"[{i}/{len(rows)}] {rid} {status} {r.get('control','')}", file=sys.stderr)
 
         if r.get("restore", "esc") == "esc":
-            esc()
-            time.sleep(a.settle)
-            cur = grab(os.path.join(TMP, "cur.png"))
-            if cur:
-                d = diff(base, cur)
-                if d > a.back_tol:
-                    print(f"[ys-crawl] ✗ 回不到基线（diff={d} > {a.back_tol}），停在 {rid} "
-                          f"「{r.get('control','')}」——界面已不在预期状态", file=sys.stderr)
-                    return 1
+            # 自适应回退：编辑器里点开的是**页签**，一次 ESC 常常把页签和系统菜单一起关掉
+            # （2026-10-19 实测：停 A001 时 diff=0.17，画面已回到场景）。所以最多按 3 次，
+            # 每按一次都比一次基线，回到基线就停。
+            back = None
+            for attempt in range(3):
+                esc()
+                time.sleep(a.settle)
+                cur = grab(os.path.join(TMP, "cur.png"))
+                if not cur:
+                    continue
+                back = diff(base, cur)
+                if back <= a.back_tol:
+                    break
+            if back is not None and back > a.back_tol:
+                print(f"[ys-crawl] ✗ 按了 3 次 ESC 仍回不到基线（diff={back} > {a.back_tol}），"
+                      f"停在 {rid}「{r.get('control','')}」", file=sys.stderr)
+                return 1
         if streak >= a.fail_stop:
             print(f"[ys-crawl] ✗ 连续 {streak} 个点没有观测差异，停止（界面大概已经切走了）", file=sys.stderr)
             return 1
