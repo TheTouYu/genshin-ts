@@ -368,9 +368,10 @@
     325,
     20
    ],
-   "kind": "glyph_icon",
+   "kind": "bar",
    "label": "元素能量/护盾条",
-   "clickable": "yes"
+   "clickable": "yes",
+   "note": "HUD 状态条（非图标；不计入 glyph_icon）"
   },
   {
    "id": 28,
@@ -381,9 +382,10 @@
     305,
     26
    ],
-   "kind": "glyph_icon",
+   "kind": "bar",
    "label": "生命值条（绿）",
-   "clickable": "yes"
+   "clickable": "yes",
+   "note": "HUD 状态条（非图标；不计入 glyph_icon）"
   },
   {
    "id": 29,
@@ -420,9 +422,11 @@
     195,
     40
    ],
-   "kind": "glyph_icon",
+   "kind": "row",
    "label": "生命值数值 13557/38734",
-   "clickable": "yes"
+   "clickable": "yes",
+   "scoring": false,
+   "note": "数字文本（不计分）"
   },
   {
    "id": 32,
@@ -513,6 +517,19 @@
    ],
    "kind": "row",
    "label": "任务追踪文本（荒坠的圣迹）",
+   "clickable": "no"
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    1603,
+    316,
+    774,
+    542
+   ],
+   "kind": "panel",
+   "label": "区域:list(5 成员)",
    "clickable": "no"
   }
  ],
@@ -877,9 +894,10 @@
     325,
     20
    ],
-   "kind": "glyph_icon",
+   "kind": "bar",
    "label": "元素能量/护盾条",
-   "clickable": "yes"
+   "clickable": "yes",
+   "note": "HUD 状态条（非图标；不计入 glyph_icon）"
   },
   {
    "id": 28,
@@ -890,9 +908,10 @@
     305,
     26
    ],
-   "kind": "glyph_icon",
+   "kind": "bar",
    "label": "生命值条（绿）",
-   "clickable": "yes"
+   "clickable": "yes",
+   "note": "HUD 状态条（非图标；不计入 glyph_icon）"
   },
   {
    "id": 29,
@@ -929,9 +948,11 @@
     195,
     40
    ],
-   "kind": "glyph_icon",
+   "kind": "row",
    "label": "生命值数值 13557/38734",
-   "clickable": "yes"
+   "clickable": "yes",
+   "scoring": false,
+   "note": "数字文本（不计分）"
   },
   {
    "id": 32,
@@ -1023,12 +1044,27 @@
    "kind": "row",
    "label": "任务追踪文本（荒坠的圣迹）",
    "clickable": "no"
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    1603,
+    316,
+    774,
+    542
+   ],
+   "kind": "panel",
+   "label": "区域:list(5 成员)",
+   "clickable": "no"
   }
  ],
  "_provenance": {
   "family": "世界 HUD（冰窟）",
   "geometry_from": "w01",
-  "glyph_icon_count": 31,
-  "added_after_audit": "队伍成员名 4 条 + 交互提示 2 条（audit 未覆盖补齐）"
+  "glyph_icon_count": 28,
+  "added_after_audit": "队伍成员名 4 条 + 交互提示 2 条（audit 未覆盖补齐）",
+  "bar_count": 2,
+  "non_scoring": 1
  }
 }

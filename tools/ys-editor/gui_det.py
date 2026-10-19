@@ -24,6 +24,9 @@ W, H = 640, 360
 STRIDE = 4
 OW, OH = W // STRIDE, H // STRIDE
 KINDS = ["panel", "row", "button", "tile", "chip", "icon", "card", "avatar"]
+# 2026-10-19：bar（HUD 状态条）**不进检测器类表**（仅 2 实例、8 帧同界面，训不出来），
+# 但登记在此，任何读取 GT 的下游都必须能看见它而不是当作不存在。
+NON_DETECTED_KINDS = ("bar",)
 HERE = os.path.dirname(os.path.abspath(__file__))
 # v2 = 7 类热斑 + 1D 行条带（row 召回 0.084→0.266）；回退用 gui-det-v1.pt
 DEFAULT_MODEL = os.path.join(HERE, "models", "gui-det-v2.pt")
@@ -157,7 +160,15 @@ def decode_rows(rout, src_w, src_h, res=None, thr_ctr=0.30, thr_mask=0.30,
     return out
 
 
-def postprocess(objs, w0, h0, nms_thr=0.5, min_side=8):
+# 与其它类**几何同构**、会被"类无关 NMS"吃掉的类：对这些类只在**同类内**做抑制。
+# 由来（2026-10-19 实测）：v2 在头像位置同时吐出 icon(0.91)/button(0.84)/tile(0.78)/avatar(0.64)
+# 四个 IoU=1.0 的框，类无关 NMS 按分数排序后低分的 avatar 被压掉 ⇒ 全库 31 个 avatar GT 检出 0。
+# 这也顺带解释了约 49% 的"错类率"：同一位置只能活一个类，永远选分最高的那个。
+# 只给**确证被压制**的类开小灶；全类内 NMS 实测会把精确率打掉 7.6pp（跨类同框全变 FP）。
+NMS_SCOPED_KINDS = ("avatar",)
+
+
+def postprocess(objs, w0, h0, nms_thr=0.5, min_side=8, scoped=NMS_SCOPED_KINDS):
     out = []
     for o in objs:
         x, y, w, h = o["bbox"]
@@ -168,7 +179,10 @@ def postprocess(objs, w0, h0, nms_thr=0.5, min_side=8):
         out.append({**o, "bbox": [x0, y0, x1 - x0, y1 - y0]})
     keep = []
     for o in sorted(out, key=lambda z: -z.get("score", 0)):
-        if all(_iou(o["bbox"], k["bbox"]) < nms_thr for k in keep):
+        # scoped 类只在同类内比 —— 否则会被几何同构的高分类压掉
+        pool = [k for k in keep if k.get("kind") == o.get("kind")] \
+            if o.get("kind") in scoped else keep
+        if all(_iou(o["bbox"], k["bbox"]) < nms_thr for k in pool):
             keep.append(o)
     return keep
 

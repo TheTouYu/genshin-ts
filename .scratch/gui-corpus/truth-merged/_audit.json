@@ -28,7 +28,7 @@
  {
   "frame": "c19_195135",
   "ocr": 42,
-  "units": 24,
+  "units": 25,
   "uncovered": 0,
   "samples": []
  },
@@ -160,7 +160,7 @@
  {
   "frame": "c34_195311",
   "ocr": 30,
-  "units": 22,
+  "units": 24,
   "uncovered": 0,
   "samples": []
  },
@@ -206,8 +206,8 @@
  {
   "frame": "c42_195441",
   "ocr": 53,
-  "units": 37,
-  "uncovered": 38,
+  "units": 39,
+  "uncovered": 15,
   "samples": [
    {
     "text": "\">",
@@ -260,91 +260,177 @@
     "cover": 0.0
    },
    {
-    "text": "服务器节点图",
+    "text": "Q在“实体节点图”中搜索",
     "bbox": [
-     429,
-     113,
-     538,
-     138
+     2161,
+     118,
+     2348,
+     144
     ],
-    "cover": 0.29
+    "cover": 0.0
    }
   ]
  },
  {
   "frame": "f00",
-  "ocr": null,
-  "units": 20
+  "ocr": 28,
+  "units": 20,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f01",
-  "ocr": null,
-  "units": 17
+  "ocr": 25,
+  "units": 17,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f02",
-  "ocr": null,
-  "units": 17
+  "ocr": 25,
+  "units": 17,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f03",
-  "ocr": null,
-  "units": 16
+  "ocr": 26,
+  "units": 16,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f04",
-  "ocr": null,
-  "units": 15
+  "ocr": 30,
+  "units": 15,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f05",
-  "ocr": null,
-  "units": 15
+  "ocr": 31,
+  "units": 15,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f06",
-  "ocr": null,
-  "units": 31
+  "ocr": 39,
+  "units": 31,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f07",
-  "ocr": null,
-  "units": 30
+  "ocr": 36,
+  "units": 30,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f08",
-  "ocr": null,
-  "units": 31
+  "ocr": 36,
+  "units": 31,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f09",
-  "ocr": null,
-  "units": 23
+  "ocr": 41,
+  "units": 23,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f10",
-  "ocr": null,
-  "units": 24
+  "ocr": 44,
+  "units": 24,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f11",
-  "ocr": null,
-  "units": 25
+  "ocr": 45,
+  "units": 25,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f12",
-  "ocr": null,
-  "units": 16
+  "ocr": 27,
+  "units": 16,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "f13",
-  "ocr": null,
-  "units": 27
+  "ocr": 41,
+  "units": 27,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m01",
+  "ocr": 41,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m02",
+  "ocr": 39,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m03",
+  "ocr": 40,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m04",
+  "ocr": 40,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m05",
+  "ocr": 38,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m06",
+  "ocr": 38,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m07",
+  "ocr": 39,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
+ },
+ {
+  "frame": "m08",
+  "ocr": 38,
+  "units": 41,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "neg-world",
-  "ocr": null,
-  "units": 0
+  "ocr": 2,
+  "units": 0,
+  "uncovered": 0,
+  "samples": []
  },
  {
   "frame": "r003_snap_2026-10-19_00-17-26",
@@ -538,29 +624,9 @@
  {
   "frame": "v088_0513",
   "ocr": 35,
-  "units": 31,
-  "uncovered": 6,
+  "units": 33,
+  "uncovered": 4,
   "samples": [
-   {
-    "text": "天赋",
-    "bbox": [
-     178,
-     542,
-     287,
-     606
-    ],
-    "cover": 0.44
-   },
-   {
-    "text": "资料",
-    "bbox": [
-     184,
-     641,
-     287,
-     694
-    ],
-    "cover": 0.57
-   },
    {
     "text": "至冬知名芭蕾舞者，于冰雪中绽放的",
     "bbox": [
@@ -613,14 +679,14 @@
  {
   "frame": "w01",
   "ocr": 34,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  },
  {
   "frame": "w02",
   "ocr": 33,
-  "units": 39,
+  "units": 40,
   "uncovered": 1,
   "samples": [
    {
@@ -638,35 +704,35 @@
  {
   "frame": "w03",
   "ocr": 31,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  },
  {
   "frame": "w04",
   "ocr": 31,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  },
  {
   "frame": "w05",
   "ocr": 30,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  },
  {
   "frame": "w06",
   "ocr": 28,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  },
  {
   "frame": "w07",
   "ocr": 31,
-  "units": 39,
+  "units": 40,
   "uncovered": 1,
   "samples": [
    {
@@ -684,7 +750,7 @@
  {
   "frame": "w08",
   "ocr": 30,
-  "units": 39,
+  "units": 40,
   "uncovered": 0,
   "samples": []
  }
