@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""ys-states —— 把「一个界面」枚举成「一组状态」（L5 完整性的第一步），2026-10-20 建
+
+为什么存在：单帧枚举只能看到"当前滚到哪儿"。实测系统菜单只露出 21 个带名字对象，
+而文档记了 35 个——差的那些**在列表下方**。断言"这个界面只有 21 个"就是 L6 事故的同族。
+
+做法（不猜、可复算）：
+  ① 抓当前帧 → 记为一个状态
+  ② 拖动滚动（滚轮在编辑器里无效，实测 dragging 有效）
+  ③ 再抓一帧，与上一状态做差：**差异 > 阈值 ⇒ 出现了新内容，记为新状态**
+     连续两帧几乎相同 ⇒ 已到底，停
+  ④ 每个状态各跑一次 look，把对象名取并集
+
+用法：
+  ys-states --at <逻辑x,y> [--max 8] [--drag -500] [--outdir DIR] [--json out.json]
+退出码：0 正常结束 / 2 抓帧失败
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+WS = os.path.join(REPO, ".scratch/gui-service/worldsvc.py")
+
+
+def env():
+    e = dict(os.environ)
+    e.setdefault("DISPLAY", ":1")
+    return e
+
+
+def grab(path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    r = subprocess.run(["import", "-window", WIN, path], env=env(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
+    return path if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 4096 else None
+
+
+def fdiff(a, b):
+    from PIL import Image, ImageChops
+    ia = Image.open(a).convert("L").resize((64, 36))
+    ib = Image.open(b).convert("L").resize((64, 36))
+    px = list(ImageChops.difference(ia, ib).getdata())
+    return round(sum(1 for v in px if v > 8) / len(px), 4)
+
+
+def look_names(tag):
+    out = os.path.join("/tmp", f"ys-states-{tag}.json")
+    if os.path.exists(out):
+        os.remove(out)
+    subprocess.run([sys.executable, WS, "look", "--live", "--backend", "daemon-world",
+                    "--json-out", out], env=env(), capture_output=True, timeout=180)
+    if not os.path.exists(out):
+        return []
+    try:
+        d = json.load(open(out))
+    except Exception:
+        return []
+    names = []
+    for o in d.get("objects") or []:
+        t = " ".join(o.get("text") or []).strip()
+        if t:
+            names.append(t)
+    return names
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="ys-states")
+    ap.add_argument("--at", required=True, help="拖动起点（逻辑坐标 x,y）")
+    ap.add_argument("--max", type=int, default=8)
+    ap.add_argument("--drag", type=int, default=-500, help="每次拖动像素（负数=向下滚）")
+    ap.add_argument("--new-tol", type=float, default=0.02, help="判为'出现新内容'的最小帧差")
+    ap.add_argument("--outdir", default=os.path.join(REPO, ".scratch/gui-stack/states"))
+    ap.add_argument("--tag", default="state")
+    ap.add_argument("--json")
+    a = ap.parse_args()
+
+    states, union, prev = [], [], None
+    for i in range(a.max):
+        png = grab(os.path.join(a.outdir, f"{a.tag}-{i}.png"))
+        if not png:
+            print("[ys-states] 抓帧失败（窗口不在栈顶？）", file=sys.stderr)
+            return 2
+        if prev is not None:
+            d = fdiff(prev, png)
+            if d < a.new_tol:
+                print(f"[ys-states] 状态 {i}：与上一状态几乎相同（diff={d} < {a.new_tol}）⇒ 到底，停",
+                      file=sys.stderr)
+                break
+            print(f"[ys-states] 状态 {i}：新内容（diff={d}）", file=sys.stderr)
+        names = look_names(f"{a.tag}-{i}")
+        states.append({"idx": i, "frame": png, "names": names})
+        for n in names:
+            if n not in union:
+                union.append(n)
+        prev = png
+        # 滚一屏
+        subprocess.run([os.path.join(HERE, "ys-scroll"), "--at", a.at, "--drag", str(a.drag),
+                        "--lease"], env=env(), capture_output=True, timeout=120)
+        time.sleep(1.0)
+
+    out = {"states": len(states), "union_size": len(union),
+           "per_state": [s["names"].__len__() for s in states], "union": union,
+           "frames": [s["frame"] for s in states]}
+    if a.json:
+        json.dump(out, open(a.json, "w"), ensure_ascii=False, indent=1)
+    print(json.dumps({"states": out["states"], "per_state": out["per_state"],
+                      "union_size": out["union_size"]}, ensure_ascii=False))
+    print("[ys-states] 并集样例：" + " | ".join(union[:24]), file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
