@@ -235,17 +235,29 @@ def cmd_coverage(a):
         # 文档「阵营设置」vs 屏上「阵营」）。全等优先，包含兜底且要求 ≥2 字，避免单字误配。
         hit = set()
         def _strong(r):
-            """证据要够硬才算数：帧差 ≥0.01 或发生了状态迁移。
-            为什么加这条：入口没点开时也会留下 frame_diff≈0.003 的"covered"行（实测批量里有十几条），
-            那是**噪声不是覆盖**——不滤掉会把覆盖率算虚高。"""
+            """证据要够硬才算数。三类读数任一达标即可：状态迁移 / 整帧帧差>=0.01 /
+            note 里的字段级读数（value_diff / region_diff）>=0.01。
+            注意**不能**因为整帧帧差小就提前 return False——字段级观测的整帧差天然接近 0
+            （一个勾选框只占几百像素），真证据在 note 里（2026-10-19 踩到：
+            两条 value_diff=0.99 的行因为整帧 diff=0.0013 被整批评为弱证据）。
+            """
             if "state:" in (r.get("effect") or ""):
                 return True
-            try:
-                for part in (r.get("reading") or "").split():
-                    if part.startswith("diff="):
-                        return float(part[5:]) >= 0.01
-            except Exception:
-                pass
+            for part in (r.get("note") or "").split():
+                for key in ("value_diff=", "region_diff="):
+                    if part.startswith(key):
+                        try:
+                            if float(part[len(key):]) >= 0.01:
+                                return True
+                        except ValueError:
+                            pass
+            for part in (r.get("reading") or "").split():
+                if part.startswith("diff="):
+                    try:
+                        if float(part[5:]) >= 0.01:
+                            return True
+                    except ValueError:
+                        pass
             return False
 
         for r in latest.values():
