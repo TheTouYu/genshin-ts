@@ -165,6 +165,8 @@ def build_items(texts, label_re, region=None):
 
 
 def main():
+    import time as _t
+    _t0 = _t.time()
     ap = argparse.ArgumentParser()
     ap.add_argument("--frame")
     ap.add_argument("--live", action="store_true")
@@ -211,8 +213,13 @@ def main():
                 json.dump({"region": reg, "frame_w": 2560}, open(REGION_CACHE, "w"))
             except Exception:                            # noqa: BLE001
                 pass
-    print(json.dumps({"ok": True, "frame": frame, "n": len(items), "items": items},
-                     ensure_ascii=False))
+    import time as _t
+    _ms = round((_t.time() - _t0) * 1000, 1)
+    _budget = {"target_ms": 500, "actual_ms": _ms, "over": _ms > 500}
+    if _budget["over"]:
+        print(f"⚠️ OVER BUDGET {_ms}ms > 500ms（读屏慢路：检查是否走了 daemon OCR）", file=sys.stderr)
+    print(json.dumps({"ok": True, "frame": frame, "n": len(items), "items": items,
+                      "budget": _budget}, ensure_ascii=False))
     return 0
 
 

@@ -185,7 +185,12 @@ def main():
             hint = hp.stdout.strip() or None
         except Exception:                                # noqa: BLE001
             hint = None
-    out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks,
+    _ms = round((time.time() - t0) * 1000, 1)
+    _budget = {"target_ms": 500, "actual_ms": _ms, "over": _ms > 500}
+    if _budget["over"]:
+        print(f"⚠️ OVER BUDGET {_ms}ms > 500ms（动作+验证总时；用 --lease 可去掉槽位开销、--no-verify 去掉两次抓帧）",
+              file=sys.stderr)
+    out = {"ok": bool(ok_inject), "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
            "drag": a.drag or None, "lease": lease_ok, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "ms": round((time.time() - t0) * 1000, 1),

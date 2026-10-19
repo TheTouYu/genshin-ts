@@ -22,6 +22,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import sys
 import re
 import sys
 import time
@@ -101,23 +102,40 @@ def load_selected(inbox):
         return None
 
 
+SLOW_PATH_HINT = (
+    "[ys-snap] ⚠️ 慢路径（KWin SS2 ≈4.8s）。批量任务请改用常驻抓帧：\n"
+    "  python3 -c \"import sys;sys.path.insert(0,'.scratch/gui-service');import instruments as I;"
+    "print(I.daemon_rpc({'cmd':'grab','out':'/tmp/f.jpg'}))\"   # 0.5s\n"
+)
+
+
+def _warn_slow_path():
+    import sys as _s
+    try:
+        if os.path.exists("/run/user/1000/ys-lookd.sock") or os.path.exists("/tmp/ys-lookd.sock"):
+            print(SLOW_PATH_HINT, file=_s.stderr)
+    except Exception:                                    # noqa: BLE001
+        pass
+
+
 def pick_window(wins, want, inbox=None):
     if want == "current" and inbox:
         sel = load_selected(inbox)
         if sel:
             for w in wins:                       # 先按 id 精确匹配
-                if w["id"] == sel.get("id"):
+                if w.get("id") == sel.get("id"):
                     return w
             for w in wins:                       # 游戏重启后 id 会变 → 退化为按 class 匹配
-                if sel.get("class") and sel["class"] in w["class"]:
+                if sel.get("class") and sel["class"] in (w.get("class") or ""):
                     return w
         want = "auto"
     if want in (None, "", "auto"):
         for w in wins:
-            if any(h in w["class"].lower() for h in GAME_HINTS):
+            if any(h in (w.get("class") or "").lower() for h in GAME_HINTS):
                 return w
         return wins[0] if wins else None
     if want.startswith("idx:"):
+        print("[ys-snap] 警告：idx 序号会随窗口堆叠变化，不是稳定身份；建议用 --window <类名> 或 0x<窗口id>", file=sys.stderr)
         try:
             i = int(want.split(":", 1)[1])
         except Exception:  # noqa: BLE001
@@ -128,12 +146,12 @@ def pick_window(wins, want, inbox=None):
         return None
     if want.startswith("0x"):
         for w in wins:
-            if w["id"].lower() == want.lower():
+            if (w.get("id") or "").lower() == want.lower():
                 return w
         return None
     want = want.lower()
     for w in wins:
-        if want in w["class"].lower() or want in w["name"].lower():
+        if want in (w.get("class") or "").lower() or want in (w.get("name") or "").lower():
             return w
     return None
 
@@ -270,6 +288,7 @@ def run_gui(display, snap, want=""):
 
 
 def main():
+    _warn_slow_path()
     ap = argparse.ArgumentParser()
     ap.add_argument("--display", default=os.environ.get("DISPLAY", ":1"))
     ap.add_argument("--inbox", default=INBOX_DEFAULT)
