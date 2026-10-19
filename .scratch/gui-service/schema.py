@@ -181,6 +181,39 @@ def object_from_container(c, *, frame_id, text_source="fullframe"):
 
 # ── 组装与校验 ─────────────────────────────────────────────────────────────
 
+def object_from_detection(d, *, frame_id):
+    """D2 学习型检测框 → schema object。**与容器不同源，不新增语义**。
+
+    为什么需要它（2026-10-19 实测）：在**三维游戏世界**里，CV 的 `flat+rect` 容器规则一个都命中不了
+    （圆形小地图/头像/技能键都不是平坦矩形皮肤）⇒ `containers=0`，而 D2 在同一帧给 29 个框。
+    不接这层，`look()` 在世界里就是"什么都看不见"。
+
+    与 `object_from_container` 的差异（必须显式记住）：
+      · **bbox 已是 xywh**（gui_det 输出即 xywh），不做 xyxy 转换——两套口径混用会让框整体错位；
+      · 没有文本、没有皮肤/角标/裁切判据 ⇒ 全部给空，`evidence.source="gui_det"` 标明来源；
+      · 可点性一律 `unknown`（fail-closed，不拿"检测到了"冒充"能点"）；
+      · `confidence` 是模型分数，不是容器层的几何置信度，两者不可直接比大小。
+    """
+    b = [float(v) for v in (d.get("bbox") or [0, 0, 0, 0])[:4]]
+    while len(b) < 4:
+        b.append(0.0)
+    return {
+        "id": "det:%s" % d.get("id"),
+        "parent": None,
+        "bbox": [b[0], b[1], b[2], b[3]],
+        "kind": d.get("kind") if d.get("kind") in KINDS else "unknown",
+        "text": [],
+        "text_source": "fullframe",
+        "glyphs": [],
+        "badges": [],
+        "state": {"selected": None, "focused": None, "disabled": None},
+        "affordance": {"clickable": "unknown", "evidence": []},
+        "clipped": {"edges": [], "cut_by": None, "px": 0},
+        "confidence": round(float(d.get("score") or 0.0), 4),
+        "evidence": {"source": "gui_det", "frame_id": frame_id},
+    }
+
+
 def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=(),
               transitions=(), budget_ms=None, degraded=(), timing_ms=None, frame=None,
               free_text=(), uncertainty=()):

@@ -200,6 +200,11 @@ class WorldService:
             raise ServiceError("DAEMON_WORLD_BAD", "frame sha 非法")
         objects = [schema.object_from_container(c, frame_id=frame_id)
                    for c in ((resp.get("objects") or {}).get("containers") or [])]
+        # 三维游戏世界：CV 容器层一个都不命中（flat+rect 是为菜单 UI 设计的），而 D2 检测器
+        # 在同一帧给几十个框。容器为空时才用检测框顶替——有容器时不合并，避免同一元素两套框。
+        dets = ((resp.get("structure") or {}).get("detections") or []) if not objects else []
+        if dets:
+            objects = [schema.object_from_detection(d, frame_id=frame_id) for d in dets]
         free_text = [str(t) for t in ((resp.get("objects") or {}).get("free_text") or [])]
         uncertainty = list((resp.get("objects") or {}).get("uncertainty") or [])
         cont_degr = bool((resp.get("objects") or {}).get("degraded") or
