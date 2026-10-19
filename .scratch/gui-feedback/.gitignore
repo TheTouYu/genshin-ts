@@ -1,0 +1,4 @@
+frames/
+web/_check/
+__pycache__/
+*.log
