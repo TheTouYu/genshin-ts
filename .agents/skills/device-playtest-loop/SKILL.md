@@ -80,6 +80,26 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
    `rc=4` = 步进过小。调用点写 `2>/dev/null 2>&1` 会让"点空了"看起来像"点到了"（本轮同族 4 处已修）。
 10. **命令限时**（全局守则第 5 条）：预计 >5s 就先优化、单条 ≤20s、长任务放后台。
 
+## 三条 2026-10-19 用户/实测回灌（GUI 工作里反复踩）
+
+1. **找东西先看已知索引，再考虑全仓搜索**（用户原话：「别扫盘，教程目录很明显」）。
+   我为找本地官方教程跑全仓 `grep -rl`，60s 超时转后台；而 `docs/ui-tutorial/README.md` 第一张表就是文件地图。
+   ⇒ 顺序恒为 **`ls` 一层 → 该目录 README/文档地图 → 定向 grep → 全仓搜索（需理由）**。
+2. **评测通道过了 ≠ 生产线过了**（★ 常驻进程改代码不重启 = 没改）。
+   `ys_lookd` 是常驻服务，检测器实例按路径缓存在 `_DETS`：**改 `gui_det.py`/`ys_lookd.py` 后必须重启 lookd**，
+   且任何模型/解码改动都要额外报一条**生产入口 `gui_det.Detector.detect()`** 的读数（不能只报评测台数字）。
+   重启姿势（`pgrep -f` 会自匹配，必须精确解析）：
+   ```bash
+   PID=$(pgrep -f '^python3 ys_lookd.py$' | head -1)     # 只取精确 cmdline
+   [ "$(tr '\0' ' ' < /proc/$PID/cmdline)" = "python3 ys_lookd.py " ] && kill "$PID"
+   rm -f /run/user/1000/ys-lookd.sock
+   cd tools/ys-editor && DISPLAY=:1 XAUTHORITY=/run/user/1000/xauth_oypYEi \
+     setsid nohup python3 ys_lookd.py > /tmp/ys-lookd.log 2>&1 < /dev/null &
+   ```
+3. **"恒定值 / 空列表"先判它是读数还是没接上**。2026-10-19 一天踩了三次同形态：
+   判据只写在两条路径之一（state 漂移）、结果算出来没透出去（detections 不暴露）、
+   条件回退被单个假阳性短路（"容器为空才回退"，世界里 CV 吐 1 个假 panel ⇒ 57 个真框全丢）。
+
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：
