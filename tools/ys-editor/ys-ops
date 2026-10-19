@@ -32,6 +32,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 LEDGER = os.path.join(REPO, ".scratch/gui-stack/ops-ledger.tsv")
+ALIASES = os.path.join(REPO, ".scratch/gui-stack/ops-aliases.tsv")
 EVID = os.path.join(REPO, ".scratch/gui-stack/ops-evidence")
 WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
 
@@ -201,6 +202,25 @@ def cmd_list(a):
     print(f"[ys-ops] {len(rows)} 行", file=sys.stderr)
 
 
+def _load_aliases():
+    """文档名 ↔ 屏上名 的对照。
+
+    为什么必须有这一层：分母来自官方文档，屏上文字来自 OCR，两者常常**语义相同、措辞不同**
+    （文档「时间设置」↔ 屏上「关卡初始时间点」；文档「人数」↔ 屏上「当前可进关人数: 1..8」）。
+    没有它，即使把界面全点一遍，覆盖率也涨不上去——这不是像素问题，是命名对齐问题。
+    """
+    m = {}
+    if not os.path.exists(ALIASES):
+        return m
+    with open(ALIASES, encoding="utf-8") as f:
+        f.readline()
+        for line in f:
+            v = line.rstrip("\n").split("\t")
+            if len(v) >= 2 and v[0] and v[1]:
+                m.setdefault(_norm(v[1]), set()).add(_norm(v[0]))
+    return m
+
+
 def _norm(s):
     import unicodedata
     s = unicodedata.normalize("NFKC", s or "")
@@ -266,6 +286,9 @@ def cmd_coverage(a):
             c = _norm(r["control"])
             if not c:
                 continue
+            for alt in _load_aliases().get(c, ()):      # 屏上名 → 文档名
+                for iid in inv_ctl.get(alt, []):
+                    hit.add(iid)
             for iid in inv_ctl.get(c, []):
                 hit.add(iid)
             if len(c) >= 2:
