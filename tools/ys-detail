@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""ys-detail — 下钻通道：动作前/后**只看这一小块**（不重处理整帧）。
+
+为什么需要它（2026-10-19 用户点破）：「拖动和滚动犯老错误了，位置不对。这个时候可以看局细节图。
+我们应该提供这个机制。」
+  · 拖/滚/点的目标位置不可信时，唯一的可靠判据是"看一眼那里现在是什么"；
+  · 但整帧 read_image 既贵又糊（1707×960 下 20px 的图标等于看不见）；
+  · 正确做法 = 只裁那一块、放大到原生或更大、带上坐标与框内文本。
+
+与 `ys-screen` 的分工：`ys-screen` 回答「整屏有什么」，`ys-detail` 回答「**这一个点/这一块**是什么」。
+
+用法
+----
+  # 看一个点周围（缺省 ±200px，放大 2×）
+  tools/ys-detail --at 900,600
+
+  # 看一个框（容器的 bbox 直接喂进来）
+  tools/ys-detail --bbox 170,300,1490,950 --scale 1
+
+  # 带框内 OCR（本地引擎，只 OCR 这一块，不重跑整帧）
+  tools/ys-detail --at 900,600 --ocr
+
+  # 离线帧（不碰桌面）
+  tools/ys-detail --frame shot.png --at 900,600
+
+输出（--json 或缺省都打印 JSON）
+  {"path":"...png","region":[x,y,w,h],"scale":2,"at":[900,600],
+   "ms":{...},"texts":[...],"center_text":"...","nearest_text":"..."}
+  · `center_text` = 包含该点的文本（没有则 null）——**这就是"我点这里会点到什么"**
+  · `nearest_text` = 中心距该点最近的文本 + 距离
+
+设计约束（来自 design-2026-10-18-gui-agi-system §4）
+  · 只给**已切好的那一块**，不重新处理整帧；
+  · 局部坐标与全局坐标**同时给**，避免下游自己换算（bbox 口径已经错过 4 次）；
+  · 稳态目标 <50ms（当前受限于抓帧 ~1.5–2s 的全帧 PNG 编码；加 daemon `cmd=crop` 可降到 <50ms，见文末 TODO）。
+"""
+import argparse
+import json
+import os
+import socket
+import subprocess
+import sys
+import time
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTDIR = os.path.join(REPO, ".scratch", "ys-detail")
+SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
+OCR = os.path.join(REPO, "tools", "ys-editor", "ys_ocr.py")
+
+
+def daemon(req, timeout=60):
+    c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    c.settimeout(timeout)
+    c.connect(SOCK)
+    c.sendall((json.dumps(req) + "\n").encode())
+    buf = b""
+    while not buf.endswith(b"\n"):
+        d = c.recv(1 << 16)
+        if not d:
+            break
+        buf += d
+    c.close()
+    return json.loads(buf.decode())
+
+
+def grab_frame(out_png):
+    r = daemon({"cmd": "grab", "out": out_png})
+    if r.get("error") or not os.path.exists(out_png):
+        raise SystemExit(f"抓帧失败: {r.get('error') or '文件未生成'}")
+    return r
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="ys-detail", description="动作前/后只看这一小块")
+    ap.add_argument("--at", default="", help="点 x,y（与 --bbox 二选一）")
+    ap.add_argument("--bbox", default="", help="框 x,y,w,h（与 --at 二选一）")
+    ap.add_argument("--pad", type=int, default=200, help="--at 时的半边长，缺省 200")
+    ap.add_argument("--scale", type=float, default=2.0, help="放大倍数，缺省 2")
+    ap.add_argument("--frame", default="", help="离线帧；给出即不抓屏")
+    ap.add_argument("--out", default="", help="输出 png 路径")
+    ap.add_argument("--ocr", action="store_true", help="对这块跑 OCR（只 OCR 这一块）")
+    ap.add_argument("--json", action="store_true", help="机读输出（缺省也打 JSON）")
+    a = ap.parse_args()
+
+    from PIL import Image
+    t = {}
+    t0 = time.time()
+    os.makedirs(OUTDIR, exist_ok=True)
+
+    if a.frame:
+        src = a.frame
+        t["frame_ms"] = 0
+    else:
+        tmp = os.path.join(OUTDIR, "_frame.png")
+        grab_frame(tmp)
+        src = tmp
+        t["frame_ms"] = round((time.time() - t0) * 1000, 1)
+
+    im = Image.open(src).convert("RGB")
+    W, H = im.size
+    if a.bbox:
+        x, y, w, h = [int(v) for v in a.bbox.split(",")]
+    elif a.at:
+        ax, ay = [int(v) for v in a.at.split(",")]
+        x, y = ax - a.pad, ay - a.pad
+        w = h = a.pad * 2
+    else:
+        raise SystemExit("必须给 --at 或 --bbox（或配合 --frame 做离线裁切）")
+    x, y = max(0, x), max(0, y)
+    w, h = min(w, W - x), min(h, H - y)
+    t1 = time.time()
+    crop = im.crop((x, y, x + w, y + h))
+    if a.scale and a.scale != 1:
+        crop = crop.resize((int(w * a.scale), int(h * a.scale)), Image.LANCZOS)
+    out = a.out or os.path.join(OUTDIR, f"detail-{int(time.time()*1000)}.png")
+    crop.save(out)
+    t["crop_ms"] = round((time.time() - t1) * 1000, 1)
+
+    res = {"path": out, "region": [x, y, w, h], "scale": a.scale,
+           "at": [int(v) for v in a.at.split(",")] if a.at else None,
+           "frame_size": [W, H], "ms": t}
+
+    if a.ocr:
+        t2 = time.time()
+        p = subprocess.run([sys.executable, OCR, "ocr", out, "--json"],
+                           capture_output=True, text=True, timeout=180)
+        t["ocr_ms"] = round((time.time() - t2) * 1000, 1)
+        texts = []
+        if p.returncode == 0 and p.stdout.strip():
+            try:
+                d = json.loads(p.stdout)
+                for b in (d.get("boxes") or []):
+                    # ys_ocr 的 box = 四点多边形 [[x,y]×4]；也有 bbox=[x,y,w,h] 的形态
+                    bb = b.get("poly") or b.get("bbox") or b.get("box")
+                    if not bb:
+                        continue
+                    if isinstance(bb[0], (list, tuple)):
+                        xs = [p0[0] for p0 in bb]
+                        ys = [p0[1] for p0 in bb]
+                        lx, ly, lw, lh = min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)
+                    elif len(bb) == 4:
+                        lx, ly, lw, lh = bb
+                    else:
+                        continue
+                    # 局部坐标（放大后的 crop 上）→ 全局坐标（原帧），除以 scale 还原
+                    gx, gy = x + lx / a.scale, y + ly / a.scale
+                    gw, gh = lw / a.scale, lh / a.scale
+                    texts.append({"text": (b.get("text") or "").strip(),
+                                  "bbox_local": [round(lx, 1), round(ly, 1),
+                                                 round(lw, 1), round(lh, 1)],
+                                  "bbox_global": [round(gx, 1), round(gy, 1),
+                                                  round(gw, 1), round(gh)],
+                                  "score": b.get("score")})
+            except json.JSONDecodeError:
+                res["ocr_error"] = p.stdout[:200]
+        res["texts"] = texts
+        if res["at"]:
+            ax, ay = res["at"]
+            best, bestd, inside = None, 1e18, None
+            for tx in texts:
+                gx, gy, gw, gh = tx["bbox_global"]
+                cx, cy = gx + gw / 2, gy + gh / 2
+                d2 = (cx - ax) ** 2 + (cy - ay) ** 2
+                if d2 < bestd:
+                    best, bestd = tx, d2
+                if gx <= ax <= gx + gw and gy <= ay <= gy + gh:
+                    inside = tx
+            if inside:
+                res["center_text"] = inside["text"]
+            if best:
+                res["nearest_text"] = {"text": best["text"],
+                                       "dist_px": round(bestd ** 0.5, 1),
+                                       "bbox_global": best["bbox_global"]}
+    else:
+        res["hint"] = "加 --ocr 可取框内文本与 center_text/nearest_text"
+
+    print(json.dumps(res, ensure_ascii=False, indent=1))
+    # TODO(性能)：daemon 加 `cmd=crop`（YL.grab(x,y,w,h) 已是 region 抓取，~10–50ms 量级），
+    #            可把 frame_ms 从 ~1500–2000ms 降到 <50ms，满足 design §4「切片返回 <50ms」。
+
+
+if __name__ == "__main__":
+    main()

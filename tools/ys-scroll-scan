@@ -136,6 +136,35 @@ def visible_texts(boxes, region):
     return out
 
 
+def pix_delta(p1, p2, region=None):
+    """区域内**像素**变化比例 —— 文本判据的第二通道。
+
+    为什么必须有：2026-10-19 实测，背包网格滚动时文本几乎不变（全是 Lv.90 / ★食★），
+    文本集 Jaccard = 0.7826 > 阈值 0.15 ⇒ 单靠文本判"没变"，判成**不可滚**，
+    而同期像素实测变化 **85.7%**（滚回去与原图差 0.15%）。
+    ⇒ 纯图形列表的滚动，文本判据必然假阴性。
+    """
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError:
+        return 0.0
+    try:
+        a1 = np.asarray(Image.open(p1).convert('RGB'), dtype=np.int16)
+        a2 = np.asarray(Image.open(p2).convert('RGB'), dtype=np.int16)
+    except (OSError, ValueError):
+        return 0.0
+    if a1.shape != a2.shape:
+        return 1.0
+    if region:
+        x, y, w, h = region
+        a1, a2 = a1[y:y + h, x:x + w], a2[y:y + h, x:x + w]
+    if a1.size == 0:
+        return 0.0
+    d = np.abs(a1 - a2).sum(2)
+    return float((d > 30).mean())
+
+
 def scroll(direction, step, region=None, at=None):
     """发滚轮事件。
 
@@ -169,6 +198,9 @@ def main(argv=None):
     # 因为像素启发式实测不可靠：世界页右侧队伍栏的对比度比真滚动条还高，
     # 按"右侧有竖条就是可滚"会误报（2026-10-18 实测）。
     ap.add_argument('--at', default='', help='滚轮生效点 x,y（缺省=区域中心）')
+    ap.add_argument('--pixdelta', type=float, default=0.25,
+                    help='像素变化比例阈值（区域内的占比）。文本判据之外的第二通道；'
+                         '2026-10-19 实测背包：真滚动 0.857 / 往返 0.0015 ⇒ 0.25 余量充足')
     ap.add_argument('--jaccard', type=float, default=0.15,
                     help='判定内容变了的集合差异阈值（缺省 0.15；实测可滚页 0.22~0.36 / 不可滚页 0.0）')
     ap.add_argument('--check', action='store_true',
@@ -201,7 +233,8 @@ def main(argv=None):
 
     items, seen = [], {}
     prev = None
-    diffs = []
+    prev_frame = None
+    diffs, pixdiffs = [], []
     pages = 0
     at_bottom = False
     changed_last = False
@@ -236,8 +269,13 @@ def main(argv=None):
         else:
             union = prev | cur
             diff = len(prev ^ cur) / float(len(union) or 1)
-            changed = diff >= a.jaccard   # 0.15：实测可滚页 ≥0.22、不可滚页 0.0，余量充足
+            text_changed = diff >= a.jaccard   # 0.15：实测可滚页 ≥0.22、不可滚页 0.0
             diffs.append(round(diff, 3))
+            pdelta = pix_delta(prev_frame, frame, region) if prev_frame else 0.0
+            pixdiffs.append(round(pdelta, 4))
+            # 双通道：文本变了 **或** 像素大面积变了，都算"还有更多"。
+            # 单靠文本 = 纯图形列表假阴性（背包实测）；单靠像素 = 3D 动画假阳性 ⇒ 必须取或。
+            changed = text_changed or (pdelta >= a.pixdelta)
         changed_last = changed
         if prev is not None and not changed:
             at_bottom = True            # 滚完没变化 ⇒ 到底（或这一屏原本就不可滚）
@@ -253,17 +291,19 @@ def main(argv=None):
             items.append({'text': t, 'cx': b['cx'], 'cy': b['cy'], 'first_page': page})
 
         prev = cur
+        prev_frame = frame
         scroll(a.direction, a.step, region=region, at=at_point)
         time.sleep(1.0)                 # 等滚动动画落定（不是"用时长冒充同步"：下一步会验证变化）
 
     out = {'items': items, 'pages': pages, 'at_bottom': at_bottom, 'diffs': diffs,
+           'pixdiffs': pixdiffs,
            'changed_last': changed_last, 'region': list(region) if region else None,
            'direction': a.direction}
     if a.check:
         # 语义：退出码 1 = 还有更多（可滚），0 = 到底/不可滚。与 grep 的"找到=0"相反，
         # 这里刻意让"还有信息没看"成为**非零**（异常才是非零，符合 shell 惯例）。
-        print('scrollable=%s pages=%d at_bottom=%s'
-              % ('yes' if not at_bottom else 'no', pages, at_bottom))
+        print('scrollable=%s pages=%d at_bottom=%s text_diffs=%s pix_diffs=%s'
+              % ('yes' if not at_bottom else 'no', pages, at_bottom, diffs, pixdiffs))
         return 0 if at_bottom else 1
     if a.json:
         print(json.dumps(out, ensure_ascii=False))
