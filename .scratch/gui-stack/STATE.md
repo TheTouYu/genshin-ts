@@ -69,6 +69,24 @@
   `act --text 好友 --expect '{"type":"pixel_delta",...}'` → **dry_run rc=0，点击点 `[677,556]`**
   （= tile 中心，解析正确）。⇒ **菜单类任务的可寻址链路是通的**；世界 HUD 只有坐标、没有文字寻址。
 
+### 双检测器按 state 分派（2026-10-19 18:0x，commit `2d6674c0`）
+- **世界里 0 → 56 个对象**（glyph_icon 37 / button 8 / row 5 / panel 3 / chip 2 / card 1），state=GAME_WORLD；
+  菜单 m01 零变化（19 objects，**19/19 有文字归属**），`act --text 好友` → `[677,556]`。
+- `ys_lookd._detector_for(state)`：GAME_WORLD → `tools/ys-editor/models/gui-det-world-v1.pt`（=v4，sha256 已核）；
+  其余 → `gui-det-v2.pt`。**`DEFAULT_MODEL` 未动，回退=一行**。
+- `_WORLD_DROP_KINDS=("icon",)`：世界 HUD 的 icon 真值=0，模型把无底 glyph 误开火成 icon；丢弃后 P .386→.511，R 不变。
+- `schema.KINDS` 新增 `glyph_icon`（否则 37 个框全降级成 unknown）。
+- **坑（已复发一次）**：「容器为空才用检测框」在有假阳性时整盘失效——世界里 CV 常吐 1 个假 panel，
+  把 57 个检测框全压掉（daemon 直连 57、`look` 返回 1）。改为按 state 判。
+- 验证：`gui-det-contract` 两权重 fails=0；`gui-service selftest` **90/90 PASS**。
+
+### 待办（按价值排序）
+1. **row 解码 cap12**（trainer 已给单变量证据：v4 新 val 2/33→9/33，旧 val 101→103，v2 噪声级不动）——已批，等落地。
+2. **`act(text)` 在世界里不可用**：`free_text` 在 daemon 侧已字符串化、无 bbox。修法=新增 `text_boxes`（带 bbox）
+   + resolver 回退到"文本自身 bbox 中心"，需动 daemon `_KEYS` / `schema.new_world` / `_TOP_ALLOWED` / worldsvc 四处白名单。**本轮未做**。
+3. `_WORLD_CACHE` 键含整帧 sha ⇒ 活体画面几乎不命中（与判态那次同一个坑）。
+4. menu 行在 640×360 上可能根本不是"行"（trainer 正在量化，可能是口径问题）。
+
 ### 正在跑
 - `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
 - `perception`：world_hud 3 个「不像 glyph_icon」单元（元素能量/护盾条 325×20、生命值条 305×26、
