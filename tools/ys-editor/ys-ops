@@ -190,23 +190,47 @@ def cmd_list(a):
     print(f"[ys-ops] {len(rows)} 行", file=sys.stderr)
 
 
+def _norm(s):
+    import unicodedata
+    s = unicodedata.normalize("NFKC", s or "")
+    s = "".join(ch for ch in s if not ch.isspace())
+    return s.replace("×", "").replace("✕", "").lower()
+
+
 def cmd_coverage(a):
     rows = read_ledger()
     latest = {}
     for r in rows:
         latest[r["id"]] = r
     covered = {k for k, v in latest.items() if v["status"] == "covered"}
-    inv = []
+    inv, inv_ctl = [], {}
     if a.inventory and os.path.exists(a.inventory):
         with open(a.inventory, encoding="utf-8") as f:
+            head = f.readline().rstrip("\n").split("\t")
+            ic = head.index("control") if "control" in head else None
             for line in f:
                 line = line.rstrip("\n")
                 if not line or line.startswith("#"):
                     continue
-                inv.append(line.split("\t")[0])
+                v = line.split("\t")
+                inv.append(v[0])
+                if ic is not None and ic < len(v):
+                    inv_ctl.setdefault(_norm(v[ic]), []).append(v[0])
     total = len(set(inv)) if inv else len(latest)
-    cov = len(covered & set(inv)) if inv else len(covered)
-    missing = sorted(set(inv) - covered) if inv else []
+    if inv:
+        # 台账 id 与分母 id 是两套编号（M01/L01/A001 vs D001）⇒ 必须按 **控件名** 对齐，
+        # 否则覆盖率永远是 0（2026-10-19 实测踩到：19 行全 covered，对着分母算出来却是 0%）。
+        hit = set()
+        for r in latest.values():
+            if r["status"] != "covered":
+                continue
+            for iid in inv_ctl.get(_norm(r["control"]), []):
+                hit.add(iid)
+        cov = len(hit)
+        missing = sorted(set(inv) - hit)
+    else:
+        cov = len(covered)
+        missing = []
     pct = (cov / total * 100) if total else 0.0
     print(json.dumps({"total": total, "covered": cov, "pct": round(pct, 2),
                       "missing": missing[:80]}, ensure_ascii=False, indent=1))

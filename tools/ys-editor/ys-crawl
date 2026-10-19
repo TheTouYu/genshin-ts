@@ -124,6 +124,8 @@ def main():
     ap.add_argument("--kinds", default="row,tile,button,chip",
                     help="--from-look 时只点这些 kind")
     ap.add_argument("--max-items", type=int, default=40)
+    ap.add_argument("--by-name", action="store_true",
+                    help="用名字寻址（act --text，点击那一刻解析）而不是预存坐标——坐标是位置，名字才是身份")
     ap.add_argument("--max-risk", default="A", choices=["A", "B", "C"])
     ap.add_argument("--back-tol", type=float, default=0.05, help="回到基线的容差（帧差异占比）")
     ap.add_argument("--min-diff", type=float, default=0.002)
@@ -162,8 +164,12 @@ def main():
     for i, r in enumerate(rows, 1):
         rid = r.get("id", "?")
         cmd = [OPS, "add", "--id", rid, "--path", r.get("path", ""), "--control", r.get("control", ""),
-               "--action", "click", "--at", f"{r['x']},{r['y']}", "--risk", r.get("risk", "A"),
+               "--action", "click", "--risk", r.get("risk", "A"),
                "--min-diff", str(a.min_diff), "--settle", str(a.settle)]
+        if a.by_name:
+            cmd += ["--text", r.get("control", "")]
+        else:
+            cmd += ["--at", f"{r['x']},{r['y']}"]
         if a.dry:
             print(f"[dry] {i}/{len(rows)} {rid} {r.get('control','')} @ {r['x']},{r['y']}", file=sys.stderr)
             continue
