@@ -511,12 +511,82 @@ def g_whitelist():
     return (not bad), bad[:20], hint
 
 
+# ── G-OBJECT：门禁判健康必须探对象，不许探记录 ─────────────────────────────
+#
+# 2026-10-19 事故：daemon-resilience 用 `systemctl -p MainPID` 判 ys-lookd 在不在——
+# daemon 是手工 setsid 起的（unit inactive/MainPID=0），进程与 socket 都健康却被判「不在」。
+# 判据：**socket/HTTP 有应答=健康（对象）；systemd MainPID/is-active/pidfile 是记录，只能辅助**。
+# 本守卫：文件里出现「记录型判据」且**没有对象探针** ⇒ 红。显式豁免用 `# guard-ok: record`。
+_RECORD_PAT = re.compile(
+    r"systemctl\s+--user\s+(?:show\b[^\n]*-p\s+MainPID|is-active)"
+    r"|\bMainPID\b|\bpidfile\b"
+    r"|(?:cat|open|read|get)\s*\(?[^\n]{0,60}\.pid\b")
+_OBJECT_PAT = re.compile(
+    r"socket\.socket|SO_PEERCRED|sendall\(|urllib|requests\.|http\.client"
+    r"|curl\s|cmd=px|gdbus\s+call[^\n]*Scripting")
+
+
+def _record_lines(lines):
+    """记录型判据的行（跳过注释/写 pidfile——写不是判健康）。"""
+    out = []
+    for i, ln in enumerate(lines):
+        st = ln.strip()
+        if not st or st.startswith(("#", "//", "*")):
+            continue
+        if not _RECORD_PAT.search(ln):
+            continue
+        if re.search(r"open\([^)]*\.pid['\"]?\s*\)?\s*,\s*['\"][wax]", ln):
+            continue                                   # 写 pidfile（服务启动）不是健康判据
+        out.append((i + 1, ln))
+    return out
+
+
+def g_object_probe():
+    """G-OBJECT：门禁/体检判健康必须探对象（socket/HTTP），记录（MainPID/is-active/pidfile）只能辅助。"""
+    bad, hits, notes = [], set(), []
+    roots = [TOOLS, os.path.join(SCRATCH, "gui-service")]
+    for f in _scan_files(roots):
+        base = os.path.basename(f)
+        if f.endswith(".service") or "/fixtures/" in f or "/tests/fixtures/" in f:
+            continue
+        if base in ("guards-inject.sh", "daemon-gate-inject.sh"):
+            continue                                   # 注入用例故意含记录模式（造违例用）
+        txt = read(f)
+        lines = txt.splitlines()
+        recs = _record_lines(lines)
+        if not recs:
+            continue
+        if "guard-ok: record" in txt:
+            continue
+        if _OBJECT_PAT.search(txt):
+            continue                                  # 有对象探针：记录只是辅助读数
+        rel = _rel(f)
+        first = recs[0][0]
+        key = f"{rel}|record-only"
+        if key in _OBJECT_BASELINE:
+            hits.add(key)
+            notes.append(f"[baseline] {rel}:{first} 只用记录判健康")
+            continue
+        bad.append(f"{rel}:{first} 只用记录判健康（systemd MainPID/is-active/pidfile），没有对象探针 "
+                   f"(socket/HTTP)  —— 记录永远比对象旧或窄  (key={key})")
+    for key in sorted(set(_OBJECT_BASELINE) - hits):
+        notes.append(f"[baseline-stale] {key} 已不再命中，可从 _OBJECT_BASELINE 删除")
+    if os.environ.get("YS_GUARDS_SHOW_BASELINE"):
+        for n in notes:
+            print(n, file=sys.stderr)
+    hint = "判健康要发一次真实请求（socket send/recv、HTTP、cmd=px）；MainPID/is-active 只写进辅助读数，不参与判定"
+    return (not bad), bad[:20], hint
+
+
+_OBJECT_BASELINE = {}
+
 GUARDS = {
     "G-SLEEP": g_sleep, "G-PKILL": g_pkill, "G-IDX": g_idx_window,
     "G-BUDGET": g_budget, "G-SNAP": g_snap_fields, "G-STALE": g_stale_hint,
     "G-BBOX": g_bbox_doc,
     "G-CLIPBOARD": g_clipboard, "G-CAPTURE-EMPTY": g_capture_empty, "G-DEVICE": g_device_path, "G-LEDGER-DEDUP": g_ledger_dedup,
     "G-FOCUS-RETURN": g_focus_return, "G-WHITELIST": g_whitelist,
+    "G-OBJECT": g_object_probe,
 }
 
 

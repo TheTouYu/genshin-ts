@@ -35,14 +35,28 @@ ok()  { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); echo "  ✓ $*"; }
 bad() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); echo "  ✗ $*"; }
 
 aux_readings() {
-  echo "  辅助读数（只是辅助；健康判据是 socket 应答）："
-  local procs svc mpid
+  # $1 = socket 状态：missing | no-answer | checked
+  local socket_state="${1:-checked}"
+  echo "  辅助读数（**只是辅助**；健康判据是 socket 应答）："
+  local procs svc mpid proc_state
   procs="$(pgrep -af '[y]s_lookd.py' 2>/dev/null || true)"
   svc="$(systemctl --user is-active ys-lookd.service 2>/dev/null || true)"
   mpid="$(systemctl --user show ys-lookd.service -p MainPID --value 2>/dev/null || true)"
+  if [ -n "$procs" ]; then proc_state=alive; else proc_state=dead; fi
   [ -n "$procs" ] && printf '%s\n' "$procs" | sed 's/^/    proc: /' || echo "    proc: (pgrep 未找到 ys_lookd.py)"
   echo "    service: ${svc:-unknown}   MainPID: ${mpid:-0}"
   [ -S "$SOCK" ] && echo "    socket: $SOCK 存在" || echo "    socket: $SOCK 不存在"
+  echo "    health_diag: process=$proc_state  socket=$socket_state  service=${svc:-unknown}  MainPID=${mpid:-0}"
+  if [ "$proc_state" = "alive" ] && [ "$socket_state" = "no-answer" ]; then
+    local dpid errfile
+    dpid="$(printf '%s\n' "$procs" | awk 'NR==1{print $1}')"
+    [ -n "${dpid:-}" ] && errfile="$(readlink "/proc/$dpid/fd/2" 2>/dev/null || true)"
+    echo "    → 进程活着但对象不应答：修服务内部（看 ${errfile:-/tmp/ys-lookd.log} / 卡死 / 抓帧超时），不是「起服务」能解决的"
+  elif [ "$proc_state" = "dead" ] && [ "$socket_state" = "missing" ]; then
+    echo "    → 进程不在且 socket 不在：起服务（systemd 或手工 setsid）后复跑"
+  elif [ "$proc_state" = "alive" ] && [ "$socket_state" = "missing" ]; then
+    echo "    → 进程活着但 socket 不在：检查监听路径/socket 是否被清理（对象层修法）"
+  fi
 }
 
 # 探 socket：发一个 px 请求，收到 v 即健康。stdout: "ok <v>" / 非零退出
@@ -93,20 +107,20 @@ PY
 # ── 0 环境：socket 必须在；**应答才是健康判据**（不看 MainPID） ─────────────
 if [ ! -S "$SOCK" ]; then
   echo "✗ 常驻服务不在：$SOCK 不存在" >&2
-  aux_readings >&2
+  aux_readings missing >&2
   echo "  本自测验的是「服务抗客户端断开」，服务不在就无法验证 —— 不静默跳过。" >&2
   exit 2
 fi
 HEALTH="$(probe_px)" || {
   echo "✗ socket 存在但无应答（判 FAIL）：$HEALTH" >&2
-  aux_readings >&2
+  aux_readings no-answer >&2
   printf 'DAEMON-RESULT alive=0 served=0 spoke=skipped pid_before=0 pid_after=0 verdict=FAIL\n'
   exit 1
 }
 PID_BEFORE="$(peer_pid || true)"
 if [ -z "$PID_BEFORE" ]; then
   echo "✗ 取不到 socket 对端 pid（SO_PEERCRED 不可用）" >&2
-  aux_readings >&2
+  aux_readings checked >&2
   exit 2
 fi
 echo "══ ys-lookd 抗断开自测  peer_pid=$PID_BEFORE  health=$HEALTH  sock=$SOCK ══"
@@ -205,7 +219,7 @@ printf 'DAEMON-RESULT alive=%d served=%d spoke=%s pid_before=%s pid_after=%s ver
   "$alive" "$served" "$spoke" "${PID_BEFORE:-0}" "${PID_AFTER:-0}" "$VERDICT"
 if [ "$FAIL" -gt 0 ]; then
   printf '✗ %d 项失败 / %d 项通过\n' "$FAIL" "$PASS"
-  aux_readings >&2
+  aux_readings checked >&2
   exit 1
 fi
 printf '✓ 全绿（%d 项；socket 健康、客户端断开不熄火、事后可服务）\n' "$PASS"
