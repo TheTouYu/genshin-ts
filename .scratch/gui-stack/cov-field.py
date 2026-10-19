@@ -31,7 +31,15 @@ for r in rows:
     time.sleep(1.3)
     a=grab('/tmp/cf-a.png')
     if not a: continue
-    d=rdiff(b,a,r['value_region'])
+    # 证据区要**向下扩展**：下拉/时间选择器展开的列表在行下方，只比那一条 56px 高的带会读到 0
+    # （实测：下拉在行右侧区域 diff=0.2532，但在行条带内 diff=0.0）。高度 +400 覆盖展开物。
+    # 两个证据区取**最大**：行条带对小控件（勾选框/图标）敏感，向下扩展区对下拉/时间选择器敏感。
+    # 只用一个会顾此失彼（实测：整条带内下拉 diff=0，只扩展区时小控件 diff 被稀释到 0.002）。
+    vr=list(r['value_region'])
+    d_row=rdiff(b,a,vr)
+    vr2=list(vr); vr2[3]=vr2[3]+400
+    d_ext=rdiff(b,a,vr2)
+    d=max(d_row,d_ext)
     st='covered' if d>=0.01 else 'failed'
     subprocess.run([OPS,'add','--id','SET-'+r['text'][:12],'--path','关卡设置 > 基础',
                     '--control',r['text'],'--action','observe','--risk','B',
