@@ -26,3 +26,4 @@ guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budge
 unitselftest	./tools/ys-editor/ys-state --selftest-units	单位域护栏（0..1 浮点归一、越界夹紧，治 F-2-08 静默错值）	fast
 subagent-verdict	./tools/subagent-verdict --latest --check	子代理自述复核四读数齐全自洽（治 F-20261019-34 信任自述）	fast
 model-trace	./tools/subagent-verdict --selftest-trace	评审 trace 是否真动过手（measurement=0 判零实测，治 F-1-10）	fast
+focus-guard	./tools/ys-editor/ys-focus-guard --check	焦点租约该归还时必须报红（治 F-20261019-36 占着焦点不还）	fast

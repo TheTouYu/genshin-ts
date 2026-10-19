@@ -24,7 +24,7 @@ import subprocess
 import sys
 import time
 
-LEASE = "/tmp/ys-lease.json"
+LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"   # 注入用例用临时路径，别动活租约
 LOG = "/tmp/ys-focus-guard.log"
 FALLBACK = "firefox"
 

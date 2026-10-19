@@ -45,5 +45,39 @@ case "$mode" in
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL path-typo: 漏 /h 的路径没被 lint 拦下（门禁空转）"; exit 1; fi
     echo "INJECT-PASS path-typo: rc=$rc $(printf '%s' "$out" | head -1 | cut -c1-70)"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo" >&2; exit 2 ;;
+  # ④ 注入「单位护栏被拆」→ ys-state --selftest-units 必须报红（治 F-2-08）
+  unit-domain)
+    tmp="$(mktemp --suffix=.py)"; trap 'rm -f "$tmp"' EXIT
+    # 把 _u8 的夹紧换回裸 astype（正是 2026-10-17 那次事故的形态）
+    sed 's/np.clip(arr, 0, 255).astype("uint8")/arr.astype("uint8")/; s/np.clip(arr, 0, 255).round().astype("uint8")/arr.round().astype("uint8")/g' \
+      tools/ys-editor/ys-state > "$tmp"
+    chmod +x "$tmp"
+    out=$(python3 "$tmp" --selftest-units 2>&1); rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL unit-domain: 拆掉夹紧后自检仍 PASS（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS unit-domain: 拆掉夹紧后自检报红 rc=$rc $(printf '%s' "$out" | grep -c '^FAIL') 条断言失败"; exit 0
+    ;;
+  # ⑤ 注入「零实测评审」→ subagent-verdict --trace 必须报红（治 F-1-10 / F-20261019-34）
+  model-trace)
+    empty="$(mktemp --suffix=.jsonl)"; meas="$(mktemp --suffix=.jsonl)"
+    trap 'rm -f "$empty" "$meas"' EXIT
+    printf '{"type":"tool_execution_start","toolName":"read","args":{"path":"a.md"}}\n' > "$empty"
+    printf '{"type":"tool_execution_start","toolName":"bash","args":{"command":"ls"}}\n' > "$meas"
+    ./tools/subagent-verdict --trace "$empty" >/dev/null 2>&1; rc0=$?
+    ./tools/subagent-verdict --trace "$meas"  >/dev/null 2>&1; rc1=$?
+    if [ "$rc0" -eq 0 ]; then echo "INJECT-FAIL model-trace: 零取证 trace 没被判红（门禁空转）"; exit 1; fi
+    if [ "$rc1" -ne 0 ]; then echo "INJECT-FAIL model-trace: 有取证 trace 被误判红（判据过严）"; exit 1; fi
+    echo "INJECT-PASS model-trace: 零取证 rc=$rc0 有取证 rc=$rc1"; exit 0
+    ;;
+  # ⑥ 注入「持有者已死的租约」→ ys-focus-guard --check 必须报红（治 F-20261019-36 焦点不归还）
+  focus-lease)
+    tmp="$(mktemp --suffix=.json)"; trap 'rm -f "$tmp"' EXIT
+    dead=$(( $(date +%s) - 4000 ))
+    printf '{"prev":"firefox","expires":%s,"owner_pid":999999,"acquired":%s}\n' "$dead" "$dead" > "$tmp"
+    YS_LEASE="$tmp" tools/ys-editor/ys-focus-guard --check >/dev/null 2>&1; rc=$?
+    if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL focus-lease: 死主租约没被判成该归还（门禁空转）"; exit 1; fi
+    echo "INJECT-PASS focus-lease: 死主租约判红 rc=$rc"; exit 0
+    ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease" >&2; exit 2 ;;
 esac
