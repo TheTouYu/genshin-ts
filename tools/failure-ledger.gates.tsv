@@ -27,3 +27,4 @@ unitselftest	./tools/ys-editor/ys-state --selftest-units	单位域护栏（0..1 
 subagent-verdict	./tools/subagent-verdict --latest --check	子代理自述复核四读数齐全自洽（治 F-20261019-34 信任自述）	fast
 model-trace	./tools/subagent-verdict --selftest-trace	评审 trace 是否真动过手（measurement=0 判零实测，治 F-1-10）	fast
 focus-guard	./tools/ys-editor/ys-focus-guard --check	焦点租约该归还时必须报红（治 F-20261019-36 占着焦点不还）	fast
+focus-failure	bash tools/ys-editor/tests/focus-failure.selftest.sh	焦点归还失败路径：同一租约 3 次后 abandoned（不再动作）、连续 5 次 CRITICAL+自停；noop/prev==game 零 raise（假 lease，不碰焦点）	fast

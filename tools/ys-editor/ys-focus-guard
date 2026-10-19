@@ -6,27 +6,32 @@
   用户的原话：「不是记住，而是工程落地来保障」。
   ⇒ 归还这件事不能靠"我记得 release"，必须有一条独立进程盯着租约，超时或持有者死了就自动还原。
 
-2026-10-19 重做（与 ys-lease 同一事故）：
-  旧版归还走 `xdotool windowactivate`：本机 KWin/Wayland 下记录的原焦点是 0x200000（1×1 幽灵窗），
-  而且只改焦点不改堆叠 —— 看门狗"报成功"时画面仍被原神压着。现在：
-  · 归还**委托给 `ys-lease release --force --fast`**：KWin 权威通道记录/激活/抬升/验证堆叠，
-    失败**非零退出**并保留租约（下一轮重试），不再有"静默成功"；
-  · 检查间隔默认 **0.5s**（原 2s）——持有者被 kill -9 后目标 ≤2s 内画面回到用户窗；
-  · 日志落 `~/.dsh/cmdlog/ys-focus-guard.log`（持久；不再写 /tmp）。
+2026-10-19 重做（用户投诉「无论做什么都强制切回原神桌面」后加的四条硬约束）：
+  ① **不无限重试**：同一租约连续失败 **3 次** ⇒ 标记 `abandoned`（写回租约文件留证据）、
+     打印 ALERT、**从此不再对它做任何窗口操作**；退避 0.5→1（→2→4→8 若还有下次）。
+  ② **no-op 租约**：acquire 时目标已在焦点 ⇒ 租约带 `noop`，release 只删文件、不做任何窗口操作。
+  ③ **失败路径不反复 raise**：`ys-lease release` 内部只有第一次尝试 raise，后续只重读验证。
+  ④ **全程失败自愈保险**：连续 **5 次**无法恢复任何租约 ⇒ 写 CRITICAL 并
+     `systemctl --user stop ys-focus-guard`（干净退出；unit 的 Restart=on-failure 不会重启）。
+  判据：**守护在无法恢复时必须"安静地失败"，绝不能持续干扰用户。**
 
 机制：
   · 每 0.5s 读租约文件；
   · 判定「该归还」：① 租约过期 ② 持有者 pid 不存在/已退出；
-  · 归还 = ys-lease release --force --fast（activate + raise + 堆叠验证），成功才删租约；
+  · 归还 = ys-lease release --force --fast（KWin activate+raise+堆叠验证；失败非零）；
   · prev 不可用（面板/幽灵窗/已消失）时回落 firefox，回落同样要过堆叠验证；
-  · 失败保留租约并在日志里写清"谁还压在上面"，绝不静默留在游戏窗。
+  · 失败保留租约并按上面的 ①②③④ 收敛，绝不静默留在游戏窗、也不反复抢屏。
 
 用法：
   ys-focus-guard              # 前台跑（调试）
   ys-focus-guard --daemon     # 后台常驻（setsid）
-  ys-focus-guard --check      # 只检查一次（退出码 1 = 有该归还的租约，或归还失败）
+  ys-focus-guard --check      # 只检查一次（退出码 1 = 有该归还的租约，或归还失败；不做自停）
 
-环境变量：YS_LEASE（租约路径，注入用例用）、YS_FOCUS_GUARD_LOG（日志路径）
+环境变量（测试/注入用）：
+  YS_LEASE             租约路径
+  YS_FOCUS_GUARD_LOG   日志路径
+  YS_LEASE_BIN         覆盖 ys-lease 可执行（失败路径注入用假 bin，不碰焦点）
+  YS_FOCUS_GUARD_STOP  覆盖自停命令（注入用例用 `touch <file>`，不碰真实服务）
 """
 import argparse
 import json
@@ -36,10 +41,16 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LEASE_BIN = os.path.join(HERE, "ys-lease")
-LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"   # 注入用例用临时路径，别动活租约
+LEASE_BIN = os.environ.get("YS_LEASE_BIN") or os.path.join(HERE, "ys-lease")
+LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"
 LOG = os.environ.get("YS_FOCUS_GUARD_LOG") or os.path.expanduser(
     "~/.dsh/cmdlog/ys-focus-guard.log")
+STOP_CMD = os.environ.get("YS_FOCUS_GUARD_STOP") or "systemctl --user stop ys-focus-guard"
+MAX_LEASE_ATTEMPTS = 3          # 同一租约连续失败 3 次 ⇒ abandoned
+GLOBAL_FAIL_LIMIT = 5           # 连续 5 次无法恢复任何租约 ⇒ CRITICAL + 自停
+LEASE_STATE = {}                # key -> {"attempts": n, "next_ts": t}
+GLOBAL_FAILS = 0
+SEEN_ABANDONED = set()
 
 
 def log(msg):
@@ -89,32 +100,91 @@ def should_release(lease):
     return None
 
 
-def check_once(verbose=False):
-    """返回 1 = 本应有租约要归还（已归还或归还失败，门禁都算红）；0 = 无该归还的租约。"""
+def mark_abandoned(lease, attempts, res):
+    """把租约标记为 abandoned（保留文件作证据），此后守护不再对它做任何窗口操作。"""
+    lease = dict(lease)
+    lease["abandoned"] = {"at": time.time(), "attempts": attempts,
+                          "error": res.get("error"), "problems": res.get("problems")}
+    tmp = f"{LEASE}.tmp.{os.getpid()}"
+    try:
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(lease, fh, ensure_ascii=False)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, LEASE)
+        return True
+    except Exception:                                    # noqa: BLE001
+        return False
+
+
+def lease_key(lease):
+    prev = lease.get("prev")
+    pid = prev.get("internalId") if isinstance(prev, dict) else prev
+    return "%s|%s|%s" % (lease.get("acquired_at"), lease.get("owner_pid"), pid)
+
+
+def check_once(verbose=False, allow_stop=False):
+    """返回 1 = 本应有租约要归还（已处理或失败）；0 = 无该归还的租约。"""
+    global GLOBAL_FAILS
     if not os.path.exists(LEASE):
         return 0
     try:
         lease = json.load(open(LEASE))
     except Exception:                                    # noqa: BLE001
         return 0
+    if lease.get("abandoned"):
+        key = lease_key(lease)
+        if key not in SEEN_ABANDONED:
+            SEEN_ABANDONED.add(key)
+            log(f"跳过 abandoned 租约（{key}，不再做任何窗口操作）")
+        return 1
     why = should_release(lease)
     if not why:
         return 0
+    key = lease_key(lease)
+    st = LEASE_STATE.setdefault(key, {"attempts": 0, "next_ts": 0.0})
+    now = time.time()
+    if now < st["next_ts"]:
+        return 1                                   # 退避中：仍算"有该归还的租约"，但不动焦点
     ok, res = release_via_lease()
-    if res.get("error") == "NO_LEASE":
-        log(f"租约（{why}）已被其他进程归还")
+    if ok or res.get("noop") or res.get("error") == "NO_LEASE":
+        LEASE_STATE.pop(key, None)
+        GLOBAL_FAILS = 0
+        if res.get("noop"):
+            log(f"no-op 租约（{why}）→ 直接清除，未做任何窗口操作")
+            if verbose:
+                print("[ys-focus-guard] no-op 租约 → 清除")
+        else:
+            log(f"归还焦点（{why}）→ OK restored={res.get('restored')} "
+                f"target_idx={res.get('target_index')} game_idx={res.get('game_index')} "
+                f"attempts={res.get('attempts')}")
+            if verbose:
+                print(f"[ys-focus-guard] 归还焦点（{why}）→ OK {res.get('restored')}")
         return 1
-    if ok:
-        log(f"归还焦点（{why}）→ OK restored={res.get('restored')} "
-            f"target_idx={res.get('target_index')} game_idx={res.get('game_index')} "
-            f"attempts={res.get('attempts')}")
+
+    GLOBAL_FAILS += 1
+    st["attempts"] += 1
+    if st["attempts"] >= MAX_LEASE_ATTEMPTS:
+        marked = mark_abandoned(lease, st["attempts"], res)
+        LEASE_STATE.pop(key, None)
+        log(f"ALERT 租约连续失败 {st['attempts']} 次 → 标记 abandoned（{marked}），"
+            f"此后不再做任何窗口操作：{json.dumps(res, ensure_ascii=False)[:400]}")
         if verbose:
-            print(f"[ys-focus-guard] 归还焦点（{why}）→ OK {res.get('restored')} "
-                  f"（idx {res.get('target_index')} > game {res.get('game_index')}）")
-        return 1
-    log(f"归还失败（{why}）→ {json.dumps(res, ensure_ascii=False)[:600]}")
-    if verbose:
-        print(f"[ys-focus-guard] 归还失败（{why}）：{json.dumps(res, ensure_ascii=False)[:400]}")
+            print(f"[ys-focus-guard] ALERT 租约 abandoned（{st['attempts']} 次失败）")
+    else:
+        delay = min(8.0, 0.5 * (2 ** (st["attempts"] - 1)))   # 0.5 → 1 → 2 → 4 → 8
+        st["next_ts"] = now + delay
+        log(f"归还失败（{why}，第 {st['attempts']} 次，退避 {delay:.1f}s）→ "
+            f"{json.dumps(res, ensure_ascii=False)[:400]}")
+        if verbose:
+            print(f"[ys-focus-guard] 归还失败（{why}，第 {st['attempts']} 次，退避 {delay:.1f}s）")
+
+    if allow_stop and GLOBAL_FAILS >= GLOBAL_FAIL_LIMIT:
+        log(f"CRITICAL 连续 {GLOBAL_FAILS} 次无法恢复任何租约 —— 停止 ys-focus-guard 自身（不再干扰用户）")
+        try:
+            subprocess.run(STOP_CMD, shell=True, timeout=10)
+        except Exception as e:                           # noqa: BLE001
+            log(f"CRITICAL 自停命令失败：{type(e).__name__}: {e}")
+        sys.exit(0)
     return 1
 
 
@@ -125,14 +195,16 @@ def main():
     ap.add_argument("--interval", type=float, default=0.5)
     a = ap.parse_args()
     if a.check:
-        return check_once(verbose=True)
+        return check_once(verbose=True, allow_stop=False)
     if a.daemon:
         if os.fork():
             return 0
         os.setsid()
     while True:
         try:
-            check_once(verbose=a.daemon)
+            check_once(verbose=a.daemon, allow_stop=True)
+        except SystemExit:
+            raise
         except Exception as e:                           # noqa: BLE001
             log(f"error {type(e).__name__}: {e}")
         time.sleep(a.interval)
