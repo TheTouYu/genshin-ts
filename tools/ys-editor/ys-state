@@ -1109,6 +1109,47 @@ def _eval_panel(cells):
     return max(abs(a - b) for a, b in zip(lm, mm))
 
 
+def _u8(arr):
+    """单位护栏：判据全部按 0..255 写死，0..1 浮点进来会让**每一条判据都假**（且不报错）。
+
+    2026-10-17 事故（F-2-08）：daemon 活体把 `ys_look.grab` 的 0..1 浮点直接传进来
+    ⇒ 探针永远"不可见"，而 `--print-state` 全判对，没人发现。
+    自检：`ys-state --selftest-units`（gate=unitselftest，改动本函数必跑）。
+    """
+    import numpy as np
+    arr = np.asarray(arr)
+    if arr.dtype.kind == "f":
+        if arr.size and float(arr.max()) <= 1.0:
+            return np.clip(arr * 255.0, 0, 255).round().astype("uint8")
+        return np.clip(arr, 0, 255).round().astype("uint8")
+    if arr.dtype != np.uint8:
+        # astype 会**静默回绕**（300 → 44），夹紧才是护栏该做的事（自检用例抓到过）
+        return np.clip(arr, 0, 255).astype("uint8")
+    return arr
+
+
+def selftest_units():
+    """单位域护栏自检：0..1 浮点必须归一到 0..255，且不得破坏已是 0..255 的输入。"""
+    import numpy as np
+    fails = []
+
+    def chk(name, got, want):
+        ok = (got.dtype == np.uint8) and np.array_equal(got, want)
+        print(f"{'PASS' if ok else 'FAIL'} {name}: dtype={got.dtype} "
+              f"min={int(got.min())} max={int(got.max())} 期望 {int(want.min())}..{int(want.max())}")
+        if not ok:
+            fails.append(name)
+
+    chk("0..1 浮点 → 0..255", _u8(np.full((8, 8, 3), 0.5, dtype=np.float32)), np.full((8, 8, 3), 128))
+    chk("0..255 浮点保持", _u8(np.full((8, 8, 3), 200.0, dtype=np.float32)), np.full((8, 8, 3), 200))
+    chk("uint8 原样", _u8(np.full((4, 4, 3), 77, dtype=np.uint8)), np.full((4, 4, 3), 77))
+    chk("int 数组转 uint8", _u8(np.full((4, 4, 3), 300, dtype=np.int32)), np.full((4, 4, 3), 255))
+    chk("0..1 全黑不误判", _u8(np.zeros((4, 4, 3), dtype=np.float32)), np.zeros((4, 4, 3)))
+    chk("0..1 全白 → 255", _u8(np.ones((4, 4, 3), dtype=np.float32)), np.full((4, 4, 3), 255))
+    print(f"UNIT-SELFTEST ok={6 - len(fails)} bad={len(fails)} verdict={'PASS' if not fails else 'FAIL'}")
+    return 0 if not fails else 1
+
+
 def probe_readings(name, frame=None, grabbed=None):
     """取数并算一条探针的全部判据。返回 (readings 列表, cells 字典)。
 
@@ -1118,14 +1159,7 @@ def probe_readings(name, frame=None, grabbed=None):
     spec = PROBES[name]
     if grabbed is not None:
         arr, ox, oy = grabbed
-        arr = np.asarray(arr)
-        # 单位护栏：判据全部按 0..255 写死，0..1 浮点进来会让**每一条判据都假**（且不报错）。
-        # 2026-10-17 事故：daemon 活体把 `ys_look.grab` 的 0..1 浮点直接传进来 ⇒ 探针永远"不可见"。
-        if arr.dtype.kind == "f":
-            arr = (arr * 255.0).round().astype("uint8") if (arr.size and float(arr.max()) <= 1.0) \
-                else arr.round().astype("uint8")
-        elif arr.dtype != np.uint8:
-            arr = arr.astype("uint8")
+        arr = _u8(arr)
         cells = {}
         for x, y in _probe_points(spec) + [p for p, _ in _panel_pts(spec)]:
             rx, ry = x - ox, y - oy
@@ -1374,6 +1408,8 @@ def _has_game_window(timeout=2.0):
 
 def main(argv):
     args = list(argv)
+    if "--selftest-units" in args:
+        return selftest_units()
     as_json = "--json" in args
     print_state = "--print-state" in args
     compat = opt(args, "--compat")

@@ -114,18 +114,116 @@ def analyze(events):
     }
 
 
+
+MEASURE_TOOLS = {"bash", "web_fetch", "web_search", "command"}
+
+
+def analyze_trace(path):
+    """评审/结论类 trace（Pi 的 trace.jsonl）：数它到底动没动手。
+
+    治 F-1-10：GLM 首次评审零实测（没跑实验/查论文/GitHub）却给出严密结论。
+    判据：measurement == 0 ⇒ ZERO-MEASUREMENT（结论不可引用，先让它取证）。
+    """
+    from collections import Counter
+    counts, errs = Counter(), 0
+    try:
+        lines = open(path, encoding="utf-8").read().splitlines()
+    except OSError as e:
+        return {"ok": False, "error": f"TRACE_UNREADABLE: {e}"}
+    for line in lines:
+        try:
+            ev = json.loads(line)
+        except Exception:
+            continue
+        t = ev.get("type")
+        if t == "tool_execution_start":
+            counts[ev.get("toolName") or "?"] += 1
+        elif t == "tool_execution_update":
+            u = ev.get("update") or ev.get("message") or {}
+            if isinstance(u, dict) and u.get("isError"):
+                errs += 1
+    meas = sum(v for k, v in counts.items() if k in MEASURE_TOOLS)
+    return {"ok": True, "n_calls": sum(counts.values()), "counts": dict(counts),
+            "measurement": meas, "errors": errs,
+            "verdict": "MEASURED" if meas else "ZERO-MEASUREMENT"}
+
+
+def selftest_trace():
+    """自检：造两条 trace（有取证 / 零取证），判据必须分得开。"""
+    import tempfile
+    fails = []
+    cases = [
+        ("有取证", [{"type": "tool_execution_start", "toolName": "bash", "args": {"command": "ls"}},
+                    {"type": "tool_execution_start", "toolName": "read", "args": {"path": "a.md"}}],
+         "MEASURED"),
+        ("零取证", [{"type": "tool_execution_start", "toolName": "read", "args": {"path": "a.md"}}],
+         "ZERO-MEASUREMENT"),
+        ("空文件", [], "ZERO-MEASUREMENT"),
+    ]
+    for name, evs, want in cases:
+        with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as fh:
+            for e in evs:
+                fh.write(json.dumps(e, ensure_ascii=False) + "\n")
+            tmp = fh.name
+        try:
+            got = analyze_trace(tmp)["verdict"]
+        finally:
+            os.unlink(tmp)
+        ok = got == want
+        print(f"{'PASS' if ok else 'FAIL'} {name}: verdict={got} 期望 {want}")
+        if not ok:
+            fails.append(name)
+    print(f"MODEL-TRACE-SELFTEST ok={len(cases) - len(fails)} bad={len(fails)} "
+          f"verdict={'PASS' if not fails else 'FAIL'}")
+    return 0 if not fails else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sid", nargs="?", default=None)
     ap.add_argument("--latest", action="store_true")
+    ap.add_argument("--trace", help="评审类 trace.jsonl：数它有没有实测（治 F-1-10）")
+    ap.add_argument("--selftest-trace", action="store_true", help="trace 判据自检（gate 用）")
+    ap.add_argument("--check", action="store_true",
+                    help="只验四张读数是否齐全自洽（gate 用；退出码 0/1）")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
+    if a.selftest_trace:
+        return selftest_trace()
+    if a.trace:
+        r = analyze_trace(a.trace)
+        if not r.get("ok"):
+            print(json.dumps(r, ensure_ascii=False))
+            return 2
+        if a.json:
+            print(json.dumps(r, ensure_ascii=False, indent=1))
+        else:
+            print(f"MODEL-TRACE calls={r['n_calls']} measurement={r['measurement']} "
+                  f"errors={r['errors']} verdict={r['verdict']}")
+        return 0 if r["verdict"] == "MEASURED" else 1
     d = find_session(a.sid, a.latest)
     if not d:
         print(json.dumps({"ok": False, "error": "SESSION_NOT_FOUND"}, ensure_ascii=False))
         return 2
     res = analyze(load_events(d))
     res["session"] = os.path.basename(d)
+    if a.check:
+        # 治 F-20261019-34：引用子代理结论前，四张读数必须真的出得来且自洽
+        need = {"n_calls", "counts", "tool_total_s", "wall_s", "tool_share_pct",
+                "model_latency_s", "slowest", "anti_patterns"}
+        bad = []
+        miss = sorted(need - set(res))
+        if miss:
+            bad.append("缺字段: " + ",".join(miss))
+        share = res.get("tool_share_pct")
+        if share is not None and not (0 <= share <= 100):
+            bad.append(f"tool_share_pct 越界: {share}")
+        if res.get("n_calls"):
+            tot = sum(res["counts"].values())
+            if tot != res["n_calls"]:
+                bad.append(f"计数不自洽: sum(counts)={tot} != n_calls={res['n_calls']}")
+        print("SUBAGENT-VERDICT-CHECK " + ("PASS" if not bad else "FAIL；" + "；".join(bad)))
+        return 0 if not bad else 1
     if a.json:
         print(json.dumps(res, ensure_ascii=False, indent=1))
         return 0

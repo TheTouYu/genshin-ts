@@ -81,7 +81,10 @@
 
 ## 七、当前待办（按优先级）
 
-1. **失败的机械防线还差 6 条**（F-1-02 / F-1-07 / F-1-11 / F-2-08 / F-1-10 / F-20261019-34）——其中 F-1-07（cmdmon 幻影重复）已有守卫在报但**未收敛**；其余 4 条是"归因/信任"类认知错误，需流程强制
+1. ~~失败的机械防线~~ **已清零：36/36 全部有机械防线（2026-10-19 13:5x）**。最后三条「归因」类这样收的：
+   - F-2-08（单位域错配）→ `ys-state --selftest-units`（gate=unitselftest）：把内联护栏抽成 `_u8()`，6 条断言。**自检当场抓到真 bug**：非 uint8 整数走 `astype` 会静默回绕（300→44），改成夹紧。
+   - F-20261019-34（信任子代理自述）→ `tools/subagent-verdict --check`（gate=subagent-verdict）：四读数齐全 + 计数自洽。
+   - F-1-10（零实测下结论）→ `tools/subagent-verdict --trace <jsonl>`（gate=model-trace）：数评审 trace 的 measurement，=0 判 ZERO-MEASUREMENT。
 2. ~~`failure-ledger check --fast` 卡住~~ **已修（2026-10-19 13:1x）：400s → 9s**。
    根因两层：① `main()` 用 `vars(parse_args())` 得到 **dict**，而我写的 `getattr(a,'fast')` 对 dict 永远 False（开关点了等于没点）；
    ② fast 模式只过滤 gate、**照跑 inject 用例**（造故障脚本才是耗时大头）⇒ 现在 fast=只验 gate 可跑，inject 留全量。
