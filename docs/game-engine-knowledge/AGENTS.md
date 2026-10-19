@@ -45,7 +45,9 @@
 30. [地形/草皮规则](terrain-grass.md)
 31. [足球带球速度场吸附算法](football-dribble-velocity-field.md)
 32. [魔方自动还原作战手册](rubik-autosolve-playbook.md)
-33. [复盘档案（按主题检索历史经验）](#复盘档案)
+33. [千星编辑器操作面与覆盖率机器](editor-operation-surface.md)（界面树/入口路径/稳定判据/危险操作清单；
+    分母 458 点 + `ys-docops`/`ys-enum`/`ys-ops`/`ys-crawl` 四件套；2026-10-19 实测，覆盖率分批推进中）
+34. [复盘档案（按主题检索历史经验）](#复盘档案)
 
 ## 知识关系图
 

@@ -92,6 +92,16 @@
 3. `_WORLD_CACHE` 键含整帧 sha ⇒ 活体画面几乎不命中（与判态那次同一个坑）。
 4. menu 行在 640×360 上可能根本不是"行"（trainer 正在量化，可能是口径问题）。
 
+
+### 编辑器操作面覆盖率（2026-10-19 19:xx 起，目标见 goal）
+- **口径文档**：`docs/game-engine-knowledge/editor-operation-surface.md`（界面树/入口/判据/危险操作/四件套）
+- **分母 A = 458 点**（`tools/ys-docops` 从 3 份官方文档抽取，`check` 全绿）；分母 B（帧枚举）只能当雷达
+- **覆盖率命令**：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv`
+- **当前读数**：26 / 458 = **5.68%**（分批推进中；单批 19 点全绿、零失败）
+- **关键解锁**：编辑器对象终于带文字（`object_from_detection` 曾把 text 写死成 `[]`）⇒ `act --text 名字` 可用
+- **爬取器**：`ys-crawl --from-look --by-name --goto-text <屏标记>`：自己归位 → 自己枚举 → 逐个点 → 自适应回退
+- **未闭合**：`--enter-text` 用名字进面板时解析失败（rc=1），进面板目前靠坐标；`ys-state` 只粗分编辑器面板
+
 ### 正在跑
 - `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
 - `perception`：world_hud 3 个「不像 glyph_icon」单元（元素能量/护盾条 325×20、生命值条 305×26、
