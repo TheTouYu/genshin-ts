@@ -121,6 +121,8 @@ def main():
     ap.add_argument("--field", required=True)
     ap.add_argument("--clicks", type=int, default=1)
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--at", help="显式指定点击点 x,y（推荐：用 ys-rowclass 的 value_at，"
+                    "否则本工具会按值区 35% 猜 x —— 实测猜到的 x 常落在空白处）")
     ap.add_argument("--probe", action="store_true",
                     help="只判「这一行右边有没有可操作控件」，不点击。用来把说明行从分母里剔出去")
     a = ap.parse_args()
@@ -166,7 +168,12 @@ def main():
     # 值「100×100×100」在 x≈1807 —— 360px 的带根本够不着，会把有控件的行判成 no。
     vw = max(80, min(1900 - vx, 800))
     box = (vx, int(y - 4), vw, int(h + 8))
-    cx, cy = int(vx + vw * 0.35), int(y + h / 2)
+    if a.at:
+        _x, _y = [int(v) for v in a.at.split(",")]
+        cx, cy = _x, _y
+    else:
+        # 没给 --at 时的退路：按值区 35% 猜。实测这个 x 常落在空白处，优先用 --at。
+        cx, cy = int(vx + vw * 0.35), int(y + h / 2)
     print(f"[ys-field] {a.field}: bbox={[round(v) for v in hit['bbox']]} 值区={box} 点={cx},{cy}",
           file=sys.stderr)
     if a.probe or a.dry:
