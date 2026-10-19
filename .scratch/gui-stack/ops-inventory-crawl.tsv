@@ -1,0 +1,152 @@
+id	source	frame	screen	region	path	control_text	bbox_xywh	bbox_kind	kind	confidence	channels	evidence
+e01	enum-B	t16.png	实体布设页	顶栏	顶栏		176,2,46,48	label	icon_button	0.56	glyph	无文字图标 34×36（局部对比 >24） | 位于顶栏
+e02	enum-B	t16.png	实体布设页	顶栏	顶栏		2430,4,48,46	label	icon_button	0.68	glyph+struct	无文字图标 36×34（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e03	enum-B	t16.png	实体布设页	顶栏	顶栏		2498,4,46,46	label	icon_button	0.68	glyph+struct	无文字图标 34×34（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e04	enum-B	t16.png	实体布设页	顶栏	顶栏		2324,8,44,38	label	icon_button	0.68	glyph+struct	无文字图标 32×26（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e05	enum-B	t16.png	实体布设页	顶栏	顶栏		2380,8,44,38	label	icon_button	0.68	glyph+struct	无文字图标 32×26（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e06	enum-B	t16.png	实体布设页	顶栏	顶栏		2226,10,96,34	label	icon_button	0.68	glyph+struct	无文字图标 84×22（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e07	enum-B	t16.png	实体布设页	左栏	左栏		58,52,54,32	label	icon_button	0.56	glyph	无文字图标 42×20（局部对比 >24） | 位于左栏
+e08	enum-B	t16.png	实体布设页	画布	画布		1402,72,58,60	label	icon_button	0.62	glyph+struct	无文字图标 46×48（局部对比 >24） | 与另外 5 个图标同 y 成条
+e09	enum-B	t16.png	实体布设页	画布	画布		1304,74,54,56	label	icon_button	0.62	glyph+struct	无文字图标 42×44（局部对比 >24） | 与另外 5 个图标同 y 成条
+e10	enum-B	t16.png	实体布设页	画布	画布		1102,76,58,52	label	icon_button	0.62	glyph+struct	无文字图标 46×40（局部对比 >24） | 与另外 5 个图标同 y 成条
+e11	enum-B	t16.png	实体布设页	左栏	左栏		16,78,48,48	label	icon_button	0.56	glyph	无文字图标 36×36（局部对比 >24） | 位于左栏
+e12	enum-B	t16.png	实体布设页	右栏	右栏		2470,94,40,30	label	icon_button	0.56	glyph	无文字图标 28×18（局部对比 >24） | 位于右栏
+e13	enum-B	t16.png	实体布设页	左栏	左栏 > 关卡设置	关卡设置	122,146,100,121	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e14	enum-B	t16.png	实体布设页	左栏	左栏 > 主镜头管理	主镜头管理	416,148,106,119	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e15	enum-B	t16.png	实体布设页	左栏	左栏		6,150,68,60	label	icon_button	0.56	glyph	无文字图标 56×48（局部对比 >24） | 位于左栏
+e16	enum-B	t16.png	实体布设页	左栏	左栏 > 界面控件组管理	界面控件组管理	251,150,137,116	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e17	enum-B	t16.png	实体布设页	左栏	左栏		14,226,56,52	label	icon_button	0.56	glyph	无文字图标 44×40（局部对比 >24） | 位于左栏
+e18	enum-B	t16.png	实体布设页	左栏	左栏 > 外围系统管理	外围系统管理	407,282,122,122	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e19	enum-B	t16.png	实体布设页	左栏	左栏 > 试玩	试玩	124,288,96,119	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e20	enum-B	t16.png	实体布设页	左栏	左栏 > 多人试玩	多人试玩	274,292,96,114	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e21	enum-B	t16.png	实体布设页	左栏	左栏 > 货币与背包	货币与背包	117,422,107,122	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e22	enum-B	t16.png	实体布设页	左栏	左栏 > 奇域礼盒管理	奇域礼盒管理	259,422,121,121	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 70
+e23	enum-B	t16.png	实体布设页	左栏	左栏 > 角色预览管理	角色预览管理	90,560,219,60	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e24	enum-B	t16.png	实体布设页	左栏	左栏 > 计时器管理	计时器管理	86,614,202,70	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e25	enum-B	t16.png	实体布设页	左栏	左栏 > 关卡变量管理	关卡变量管理	84,670,225,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e26	enum-B	t16.png	实体布设页	左栏	左栏 > 预设点管理	预设点管理	92,734,196,54	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e27	enum-B	t16.png	实体布设页	左栏	左栏 > 技能资源管理	技能资源管理	94,796,215,56	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e28	enum-B	t16.png	实体布设页	左栏	左栏 > 背景音乐管理	背景音乐管理	86,848,223,70	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e29	enum-B	t16.png	实体布设页	左栏	左栏 > 资产导入导出管理	资产导入导出管理	84,908,267,68	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e30	enum-B	t16.png	实体布设页	左栏	左栏 > 装备数据管理	装备数据管理	94,972,215,56	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e31	enum-B	t16.png	实体布设页	左栏	左栏 > 商店模板管理	商店模板管理	94,1030,215,58	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e32	enum-B	t16.png	实体布设页	左栏	左栏 > 高级数据管理	高级数据管理	84,1082,225,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e33	enum-B	t16.png	实体布设页	左栏	左栏		4,1134,72,70	label	icon_button	0.68	glyph+struct	无文字图标 60×58（局部对比 >24） | 与另外 1 个图标同 y 成条 | 位于左栏
+e34	enum-B	t16.png	实体布设页	左栏	左栏 > 局内存档管理	局内存档管理	86,1140,221,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=163，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e35	enum-B	t16.png	实体布设页	左栏	左栏 > 试玩临时数据管理	试玩临时数据管理	86,1198,264,74	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=163，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e36	enum-B	t16.png	实体布设页	左栏	左栏		4,1206,70,70	label	icon_button	0.68	glyph+struct	无文字图标 58×58（局部对比 >24） | 与另外 1 个图标同 y 成条 | 位于左栏
+e37	enum-B	t16.png	实体布设页	左栏	左栏 > 实体布设组管理	实体布设组管理	78,1266,250,60	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e38	enum-B	t16.png	实体布设页	左栏	左栏		2,1290,94,56	label	icon_button	0.56	glyph	无文字图标 82×44（局部对比 >24） | 位于左栏
+e39	enum-B	t16.png	实体布设页	左栏	左栏		270,1346,64,50	label	icon_button	0.56	glyph	无文字图标 52×38（局部对比 >24） | 位于左栏
+e40	enum-B	t16.png	实体布设页	左栏	左栏		0,1348,74,62	label	icon_button	0.56	glyph	无文字图标 64×50（局部对比 >24） | 位于左栏
+e41	enum-B	t16.png	实体布设页	左栏	左栏		92,1374,90,36	label	icon_button	0.56	glyph	无文字图标 78×24（局部对比 >24） | 位于左栏
+e01	enum-B	t17.png	界面控件组管理	顶栏	顶栏		2372,0,58,56	label	icon_button	0.68	glyph+struct	无文字图标 46×44（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e02	enum-B	t17.png	界面控件组管理	顶栏	顶栏		2244,4,50,48	label	icon_button	0.68	glyph+struct	无文字图标 38×36（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e03	enum-B	t17.png	界面控件组管理	顶栏	顶栏		2316,4,46,48	label	icon_button	0.68	glyph+struct	无文字图标 34×36（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e04	enum-B	t17.png	界面控件组管理	顶栏	顶栏		2444,6,40,42	label	icon_button	0.68	glyph+struct	无文字图标 28×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e05	enum-B	t17.png	界面控件组管理	顶栏	顶栏		2506,6,44,42	label	icon_button	0.68	glyph+struct	无文字图标 32×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e06	enum-B	t17.png	界面控件组管理	顶栏	顶栏 > 层级渲染模式	层级渲染模式	2100,7,124,36	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e07	enum-B	t17.png	界面控件组管理	画布	画布 > 16:9	16:9	1030,52,364,56	label	input	0.66	text	宽外皮 344×40 内右侧有图标（下拉/搜索框）
+e08	enum-B	t17.png	界面控件组管理	画布	画布		1390,54,62,54	label	icon_button	0.62	glyph+struct	无文字图标 50×42（局部对比 >24） | 与另外 2 个图标同 y 成条
+e09	enum-B	t17.png	界面控件组管理	左栏	左栏 > 素材库	素材库	329,58,86,43	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e10	enum-B	t17.png	界面控件组管理	左栏	左栏 > 界面布局	界面布局	32,59,103,41	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e11	enum-B	t17.png	界面控件组管理	左栏	左栏 > 界面控件组库	界面控件组库	164,59,138,40	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e12	enum-B	t17.png	界面控件组管理	左栏	左栏		134,60,42,42	label	icon_button	0.56	glyph	无文字图标 30×30（局部对比 >24） | 位于左栏
+e13	enum-B	t17.png	界面控件组管理	画布	画布		1346,66,34,30	label	icon_button	0.62	glyph+struct	无文字图标 22×18（局部对比 >24） | 与另外 2 个图标同 y 成条
+e14	enum-B	t17.png	界面控件组管理	画布	画布		1486,66,32,28	label	icon_button	0.62	glyph+struct	无文字图标 20×16（局部对比 >24） | 与另外 2 个图标同 y 成条
+e15	enum-B	t17.png	界面控件组管理	画布	画布 > 默认布局	默认布局	2120,106,134,90	row	menu_item	0.78	text+struct+glyph	竖列同左沿 x=2142，组内 2 行，pitch=40px σ=0.0px | 行左侧有图标
+e16	enum-B	t17.png	界面控件组管理	左栏	左栏		374,110,48,48	label	icon_button	0.56	glyph	无文字图标 36×36（局部对比 >24） | 位于左栏
+e17	enum-B	t17.png	界面控件组管理	左栏	左栏 > 界面布局	界面布局	0,112,99,41	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e18	enum-B	t17.png	界面控件组管理	画布	画布 > 索引 1073741825	索引 1073741825	2129,153,171,38	row	menu_item	0.72	text+struct	竖列同左沿 x=2143，组内 2 行，pitch=40px σ=0.0px | 行无图标（纯文字行）
+e19	enum-B	t17.png	界面控件组管理	右栏	右栏 > 应用设置	应用设置	2190,206,98,41	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e20	enum-B	t17.png	界面控件组管理	右栏	右栏		2492,208,36,38	label	icon_button	0.56	glyph	无文字图标 24×26（局部对比 >24） | 位于右栏
+e21	enum-B	t17.png	界面控件组管理	右栏	右栏		2168,214,34,28	label	icon_button	0.56	glyph	无文字图标 22×16（局部对比 >24） | 位于右栏
+e22	enum-B	t17.png	界面控件组管理	右栏	右栏 > 打开玩家编辑	打开玩家编辑	2280,254,133,40	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e23	enum-B	t17.png	界面控件组管理	左栏	左栏 > 布局详情	布局详情	0,703,98,39	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e24	enum-B	t17.png	界面控件组管理	左栏	左栏 > 固有内容	固有内容	8,760,114,110	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 43 vs 区底 45
+e25	enum-B	t17.png	界面控件组管理	左栏	左栏 > 自定义	自定义	14,822,112,93	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 43 vs 区底 45
+e26	enum-B	t17.png	界面控件组管理	左栏	左栏		2,1294,54,30	label	icon_button	0.68	glyph+struct	无文字图标 42×18（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e27	enum-B	t17.png	界面控件组管理	左栏	左栏		52,1294,52,30	label	icon_button	0.68	glyph+struct	无文字图标 40×18（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e28	enum-B	t17.png	界面控件组管理	左栏	左栏		200,1294,92,42	label	icon_button	0.68	glyph+struct	无文字图标 80×30（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e29	enum-B	t17.png	界面控件组管理	左栏	左栏		86,1296,46,36	label	icon_button	0.56	glyph	无文字图标 34×24（局部对比 >24） | 位于左栏
+e30	enum-B	t17.png	界面控件组管理	左栏	左栏		152,1296,54,28	label	icon_button	0.68	glyph+struct	无文字图标 42×16（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e31	enum-B	t17.png	界面控件组管理	左栏	左栏 > 添加界面控件	添加界面控件	148,1384,127,31	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e01	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏		2372,0,58,56	label	icon_button	0.68	glyph+struct	无文字图标 46×44（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e02	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏		2244,4,50,48	label	icon_button	0.68	glyph+struct	无文字图标 38×36（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e03	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏		2316,4,46,48	label	icon_button	0.68	glyph+struct	无文字图标 34×36（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e04	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏		2444,6,40,42	label	icon_button	0.68	glyph+struct	无文字图标 28×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e05	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏		2506,6,44,42	label	icon_button	0.68	glyph+struct	无文字图标 32×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e06	enum-B	t18.png	界面控件组管理(展开)	顶栏	顶栏 > 层级渲染模式	层级渲染模式	2100,7,124,36	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e07	enum-B	t18.png	界面控件组管理(展开)	画布	画布 > 16:9	16:9	1030,52,364,56	label	input	0.66	text	宽外皮 344×40 内右侧有图标（下拉/搜索框）
+e08	enum-B	t18.png	界面控件组管理(展开)	画布	画布		1390,54,62,54	label	icon_button	0.62	glyph+struct	无文字图标 50×42（局部对比 >24） | 与另外 2 个图标同 y 成条
+e09	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 素材库	素材库	329,58,86,43	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e10	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 界面布局	界面布局	32,59,103,41	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e11	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 界面控件组库	界面控件组库	164,59,138,40	label	tab	0.7	text+struct	水平条成员（同 y ±1px，共 3 个）
+e12	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		134,60,42,42	label	icon_button	0.56	glyph	无文字图标 30×30（局部对比 >24） | 位于左栏
+e13	enum-B	t18.png	界面控件组管理(展开)	画布	画布		1346,66,34,30	label	icon_button	0.62	glyph+struct	无文字图标 22×18（局部对比 >24） | 与另外 2 个图标同 y 成条
+e14	enum-B	t18.png	界面控件组管理(展开)	画布	画布		1486,66,32,28	label	icon_button	0.62	glyph+struct	无文字图标 20×16（局部对比 >24） | 与另外 2 个图标同 y 成条
+e15	enum-B	t18.png	界面控件组管理(展开)	画布	画布 > 默认布局	默认布局	2120,106,134,90	row	menu_item	0.78	text+struct+glyph	竖列同左沿 x=2142，组内 2 行，pitch=40px σ=0.0px | 行左侧有图标
+e16	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		374,110,48,48	label	icon_button	0.56	glyph	无文字图标 36×36（局部对比 >24） | 位于左栏
+e17	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 界面布局	界面布局	0,112,99,41	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e18	enum-B	t18.png	界面控件组管理(展开)	画布	画布 > 索引 1073741825	索引 1073741825	2129,153,171,38	row	menu_item	0.72	text+struct	竖列同左沿 x=2143，组内 2 行，pitch=40px σ=0.0px | 行无图标（纯文字行）
+e19	enum-B	t18.png	界面控件组管理(展开)	右栏	右栏 > 应用设置	应用设置	2190,206,98,41	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e20	enum-B	t18.png	界面控件组管理(展开)	右栏	右栏		2492,208,36,38	label	icon_button	0.56	glyph	无文字图标 24×26（局部对比 >24） | 位于右栏
+e21	enum-B	t18.png	界面控件组管理(展开)	右栏	右栏		2168,214,34,28	label	icon_button	0.56	glyph	无文字图标 22×16（局部对比 >24） | 位于右栏
+e22	enum-B	t18.png	界面控件组管理(展开)	右栏	右栏 > 打开玩家编辑	打开玩家编辑	2280,254,133,40	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e23	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 布局详情	布局详情	0,703,98,39	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e24	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 固有内容	固有内容	8,760,114,110	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 43 vs 区底 45
+e25	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 自定义	自定义	14,822,112,93	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 43 vs 区底 45
+e26	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		2,1294,54,30	label	icon_button	0.68	glyph+struct	无文字图标 42×18（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e27	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		202,1294,52,30	label	icon_button	0.68	glyph+struct	无文字图标 40×18（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e28	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		228,1294,54,38	label	icon_button	0.56	glyph	无文字图标 42×26（局部对比 >24） | 位于左栏
+e29	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		50,1296,82,36	label	icon_button	0.68	glyph+struct	无文字图标 70×24（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e30	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		152,1296,54,28	label	icon_button	0.68	glyph+struct	无文字图标 42×16（局部对比 >24） | 与另外 3 个图标同 y 成条 | 位于左栏
+e31	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏		134,1338,94,48	label	icon_button	0.56	glyph	无文字图标 82×36（局部对比 >24） | 位于左栏
+e32	enum-B	t18.png	界面控件组管理(展开)	左栏	左栏 > 添加界面控件	添加界面控件	146,1377,133,40	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e01	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏 > 资产导入导出	资产导入导出	669,1,142,46	label	tab	0.7	text+struct	水平条成员（同 y ±4px，共 3 个）
+e02	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		176,2,46,48	label	icon_button	0.68	glyph+struct	无文字图标 34×36（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e03	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏 > 关卡设置 ×	关卡设置 ×	502,3,130,43	label	tab	0.7	text+struct	水平条成员（同 y ±4px，共 3 个）
+e04	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2430,4,48,46	label	icon_button	0.68	glyph+struct	无文字图标 36×34（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e05	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2498,4,46,46	label	icon_button	0.68	glyph+struct	无文字图标 34×34（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e06	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏 > 界面控件组管理 ×	界面控件组管理 ×	282,5,181,40	label	tab	0.7	text+struct	水平条成员（同 y ±4px，共 3 个）
+e07	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		252,6,42,42	label	icon_button	0.68	glyph+struct	无文字图标 30×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e08	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		472,6,44,42	label	icon_button	0.68	glyph+struct	无文字图标 32×30（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e09	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2246,6,60,42	label	icon_button	0.56	glyph	无文字图标 48×30（局部对比 >24） | 位于顶栏
+e10	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		640,8,46,40	label	icon_button	0.68	glyph+struct	无文字图标 34×28（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e11	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2324,8,44,38	label	icon_button	0.68	glyph+struct	无文字图标 32×26（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e12	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2380,8,44,38	label	icon_button	0.68	glyph+struct	无文字图标 32×26（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e13	enum-B	live-1910.png	实体布设页(含文档页签)	顶栏	顶栏		2226,10,38,34	label	icon_button	0.68	glyph+struct	无文字图标 26×22（局部对比 >24） | 与另外 4 个图标同 y 成条 | 位于顶栏
+e14	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		58,52,54,32	label	icon_button	0.56	glyph	无文字图标 42×20（局部对比 >24） | 位于左栏
+e15	enum-B	live-1910.png	实体布设页(含文档页签)	画布	画布		1402,72,58,60	label	icon_button	0.62	glyph+struct	无文字图标 46×48（局部对比 >24） | 与另外 5 个图标同 y 成条
+e16	enum-B	live-1910.png	实体布设页(含文档页签)	画布	画布		1304,74,54,56	label	icon_button	0.62	glyph+struct	无文字图标 42×44（局部对比 >24） | 与另外 5 个图标同 y 成条
+e17	enum-B	live-1910.png	实体布设页(含文档页签)	画布	画布		1102,76,58,52	label	icon_button	0.62	glyph+struct	无文字图标 46×40（局部对比 >24） | 与另外 5 个图标同 y 成条
+e18	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		16,78,48,48	label	icon_button	0.56	glyph	无文字图标 36×36（局部对比 >24） | 位于左栏
+e19	enum-B	live-1910.png	实体布设页(含文档页签)	右栏	右栏		2470,94,40,30	label	icon_button	0.56	glyph	无文字图标 28×18（局部对比 >24） | 位于右栏
+e20	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 未分类页签_存档_1	未分类页签_存档_1	461,124,182,42	label	button	0.45	text	无外皮无网格；仅命中控件词表（最弱证据，必须人审）
+e21	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 关卡设置	关卡设置	122,146,100,121	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e22	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		6,150,68,60	label	icon_button	0.56	glyph	无文字图标 56×48（局部对比 >24） | 位于左栏
+e23	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 界面控件组管理	界面控件组管理	250,150,139,116	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e24	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		440,160,28,28	label	icon_button	0.56	glyph	无文字图标 16×16（局部对比 >24） | 位于左栏
+e25	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		14,226,56,52	label	icon_button	0.56	glyph	无文字图标 44×40（局部对比 >24） | 位于左栏
+e26	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 主镜头管理	主镜头管理	417,228,105,38	label	button	0.6	text	文字压在亮卡面（卡面 216 vs 底 69）
+e27	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 外围系统管理	外围系统管理	407,282,122,122	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e28	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 试玩	试玩	124,288,96,119	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e29	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 多人试玩	多人试玩	274,292,96,114	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e30	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 货币与背包	货币与背包	117,422,107,122	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e31	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 奇域礼盒管理	奇域礼盒管理	259,422,121,121	label	tile	0.74	text+glyph+struct	格子网格成员（图标+文字） | 卡面亮度 216 vs 区底 69
+e32	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 角色预览管理	角色预览管理	90,560,218,60	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e33	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 计时器管理	计时器管理	86,614,202,70	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e34	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 关卡变量管理	关卡变量管理	84,670,225,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e35	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 预设点管理	预设点管理	92,734,196,54	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e36	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 技能资源管理	技能资源管理	94,796,215,56	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e37	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 背景音乐管理	背景音乐管理	86,848,223,70	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e38	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 资产导入导出管理	资产导入导出管理	84,908,267,68	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e39	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 装备数据管理	装备数据管理	94,972,215,56	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e40	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 商店模板管理	商店模板管理	94,1030,215,58	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e41	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 高级数据管理	高级数据管理	84,1082,225,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=161，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e42	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		4,1134,72,70	label	icon_button	0.68	glyph+struct	无文字图标 60×58（局部对比 >24） | 与另外 1 个图标同 y 成条 | 位于左栏
+e43	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 局内存档管理	局内存档管理	86,1140,221,72	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=163，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e44	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 试玩临时数据管理	试玩临时数据管理	86,1198,264,74	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=163，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e45	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		4,1206,70,70	label	icon_button	0.68	glyph+struct	无文字图标 58×58（局部对比 >24） | 与另外 1 个图标同 y 成条 | 位于左栏
+e46	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏 > 实体布设组管理	实体布设组管理	88,1266,240,60	row	menu_item	0.86	text+struct+glyph	竖列同左沿 x=162，组内 13 行，pitch=59px σ=0.7px | 行左侧有图标
+e47	enum-B	live-1910.png	实体布设页(含文档页签)	左栏	左栏		6,1356,68,54	label	icon_button	0.56	glyph	无文字图标 56×42（局部对比 >24） | 位于左栏

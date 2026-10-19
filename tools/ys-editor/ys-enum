@@ -1,0 +1,814 @@
+#!/usr/bin/python3
+"""ys-enum — 界面帧上的**候选可交互元素枚举器**（覆盖率分母 B 通道）。
+
+输入一张（或多张）界面帧 PNG，输出"这张屏上可能能点的东西"清单（JSON + TSV），
+每个候选带 `bbox / kind / control_text / evidence / confidence`，供人工裁决成真值分母。
+
+**只读文件，不碰屏幕**：本工具绝不抓帧、不注入键鼠、不抢焦点。
+
+用法:
+  tools/ys-editor/ys-enum 帧.png                          # 人读摘要
+  tools/ys-editor/ys-enum 帧1.png 帧2.png --json out.json  # 多帧一次跑（OCR 模型只加载一次）
+  tools/ys-editor/ys-enum 帧.png --json o.json --tsv o.tsv --overlay-dir preview/
+  tools/ys-editor/ys-enum 帧.png --path "实体摆放页"       # path 前缀（界面路径）
+  tools/ys-editor/ys-enum 帧.png --no-ocr                 # 只看像素通道（调试）
+  tools/ys-editor/ys-enum 帧.png --debug                  # 每通道原始候选数
+
+输出（schema=ys-enum/1，单帧=对象，多帧=数组）:
+  objects[] {id, path, control_text, bbox[x,y,w,h], bbox_kind, kind, evidence[],
+             channels[], confidence, region, clipped[]}
+  kind ∈ button|tab|menu_item|toggle|slider|input|icon_button|tile
+  dropped[] {text, bbox, why}   ← **被丢的一律留痕**（HUD/游戏画面内文字/短噪声）
+  stats {n, by_kind, channels{n_text,n_fill,n_glyph,n_dropped}, ms{...}}
+
+三条判据（缺证据不进清单）:
+  A 归属 —— 文字被"控制器形状的外皮"包住，或同行/同格有图标（图标+文字=一个控件）
+  B 结构 —— 与别的项构成等距列表 / 页签条 / 工具条（pitch 稳定 → 是控件不是装饰）
+  C 语料 —— 文字命中控件动词名词表（设置/管理/导入/试玩…）或符号（+×▸⌕）
+"""
+import argparse
+import json
+import os
+import re
+import sys
+import time
+
+import numpy as np
+from PIL import Image, ImageDraw
+from scipy import ndimage
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+SCHEMA = 'ys-enum/1'
+
+# ── 已知噪声（宿主叠加层 / 游戏本体 HUD，不是编辑器操作点）──────────────────
+HUD_PAT = re.compile(
+    r'^(DXVK|FPS|GPU|G\.?P\.?U|PU\b|min\b|max\b|UID|Lv\.?|\d+(\.\d+)?\s*(ms|fps|%)$)'
+    r'|^(i9|rtx|v\d\.\d)', re.I)
+HUD_WORDS = {'DXVK', 'FPS', 'GPU', 'UID', 'ms', 'fps', '%', '奇匠等级'}
+
+# 控件动词/名词表（判据 C：命中只加置信度，不命中不淘汰——编辑器大量自定义图标）
+CONTROL_WORDS = (
+    '设置 管理 导入 导出 编辑 添加 删除 新建 保存 打开 关闭 确认 取消 应用 重置 返回 '
+    '试玩 预览 上传 下载 分享 发布 复制 粘贴 搜索 筛选 排序 刷新 切换 选择 全选 '
+    '布局 列表 网格 属性 参数 数据 变量 资产 素材 资源 组件 控件 节点 逻辑 事件 信号 '
+    '镜头 相机 光照 地形 实体 元件 角色 技能 背包 商店 货币 任务 对话 文本 界面 页面 页签 '
+    '音乐 音效 动画 特效 时间 计时 关卡 存档 地图 场景 模式 视图 层级 大纲 历史 撤销 重做 '
+    '展开 折叠 过滤 上移 下移 置顶 置底 锁定 解锁 隐藏 显示 模板 仓库 礼盒 奇域 布设'
+).split()
+CTRL_SYMBOL = set('+×✕✖⌕▸▾◂◃▶◀▼▲⟳↻⟲⚙✎✏🗑⋯…⤢')
+
+KINDS = ('button', 'tab', 'menu_item', 'toggle', 'slider', 'input', 'icon_button', 'tile')
+
+
+def to_lum(arr):
+    """亮度（float32）。**必须显式转 float**：NumPy 2 的 NEP50 下 uint8*77 会回绕成 uint8，
+    实测 t16 全帧亮度被算成噪声、图标通道整体失效（返回 0 个图标）。"""
+    a = arr.astype(np.float32)
+    return a[..., 0] * 0.299 + a[..., 1] * 0.587 + a[..., 2] * 0.114
+
+
+def _iou(a, b):
+    ax0, ay0, ax1, ay1 = a
+    bx0, by0, bx1, by1 = b
+    iw = max(0.0, min(ax1, bx1) - max(ax0, bx0))
+    ih = max(0.0, min(ay1, by1) - max(ay0, by0))
+    inter = iw * ih
+    ua = (ax1 - ax0) * (ay1 - ay0) + (bx1 - bx0) * (by1 - by0) - inter
+    return inter / ua if ua > 0 else 0.0
+
+
+def overlap_frac(box, frame):
+    ix = max(0.0, min(box[2], frame[2]) - max(box[0], frame[0]))
+    iy = max(0.0, min(box[3], frame[3]) - max(box[1], frame[1]))
+    a = max(1.0, (box[2] - box[0]) * (box[3] - box[1]))
+    return ix * iy / a
+
+
+def _pad(b, dx, dy):
+    return [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy]
+
+
+def _union(a, b):
+    return [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 通道 1：文字（切块 OCR，空白块按"文字样团块数"跳过）
+# ══════════════════════════════════════════════════════════════════════
+def textiness(sub, thr=22):
+    """块内"像文字的小团块"数：0.5 尺度局部对比 + 尺寸筛。
+
+    用途=决定要不要对这个块跑 OCR：3D 画布块实测 0~1，有字的面板块 3~27。
+    """
+    small = sub[::2, ::2]
+    lum = to_lum(small)
+    bg = ndimage.uniform_filter(lum, size=15)
+    m = np.abs(lum - bg) > thr
+    if not m.any():
+        return 0
+    lab, _num = ndimage.label(m)
+    objs = ndimage.find_objects(lab)
+    n = 0
+    for sl in objs:
+        bh = sl[0].stop - sl[0].start
+        bw = sl[1].stop - sl[1].start
+        if 3 <= bw <= 26 and 4 <= bh <= 20:
+            n += 1
+    return n
+
+
+def ocr_tiled(arr, tile=(800, 600), overlap=40, scale=1.0, min_blobs=2, debug=False):
+    """切块 OCR。为什么必须切：整帧 2560×1440 上 13~16px 小字召回极低
+    （实测整帧只出 54 行、左栏 3 行漏 2 行；切块后同帧 61 行、小字全中）。"""
+    import ys_ocr
+    eng = ys_ocr._engine(verbose=debug)
+    H, W = arr.shape[:2]
+    tw, th = tile
+    out, ntiles, skipped = [], 0, 0
+    for y in range(0, H, th - overlap):
+        for x in range(0, W, tw - overlap):
+            x1, y1 = min(x + tw, W), min(y + th, H)
+            if x1 - x < 16 or y1 - y < 16:
+                continue
+            ntiles += 1
+            sub = arr[y:y1, x:x1]
+            if textiness(sub) < min_blobs:
+                skipped += 1
+                continue
+            img = Image.fromarray(sub)
+            if abs(scale - 1.0) > 1e-6:
+                img = img.resize((int(img.width * scale), int(img.height * scale)), Image.LANCZOS)
+            try:
+                items = ys_ocr._normalize(eng(np.array(img)))
+            except Exception as e:                       # 单块失败不毁整帧
+                sys.stderr.write(f'[ys-enum] OCR 块失败 @({x},{y}): {e}\n')
+                continue
+            for box, txt, sc in items:
+                pts = np.array(box, dtype=float) / scale
+                pts[:, 0] += x
+                pts[:, 1] += y
+                xs, ys_ = pts[:, 0], pts[:, 1]
+                out.append({'text': txt.strip(), 'score': float(sc),
+                            'bbox': [float(xs.min()), float(ys_.min()),
+                                     float(xs.max()), float(ys_.max())]})
+    if debug:
+        sys.stderr.write(f'[ys-enum] OCR 块 {ntiles} 跳过空白 {skipped} 出框 {len(out)}\n')
+    return _merge_text(out)
+
+
+def _merge_text(items):
+    """切块重叠处的重复文本：同文本且中心距 <12px，或 IoU>0.5 → 留分数高的。"""
+    items = sorted(items, key=lambda d: -d['score'])
+    keep = []
+    for it in items:
+        cx = (it['bbox'][0] + it['bbox'][2]) / 2
+        cy = (it['bbox'][1] + it['bbox'][3]) / 2
+        dup = False
+        for k in keep:
+            kx = (k['bbox'][0] + k['bbox'][2]) / 2
+            ky = (k['bbox'][1] + k['bbox'][3]) / 2
+            if (it['text'] == k['text'] and abs(cx - kx) < 12 and abs(cy - ky) < 12) \
+                    or _iou(it['bbox'], k['bbox']) > 0.5:
+                dup = True
+                break
+        if not dup:
+            keep.append(it)
+    return keep
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 通道 2：外皮（填充色连通域）
+# ══════════════════════════════════════════════════════════════════════
+def find_fills(arr, quant=20, min_area_half=420, debug=False):
+    """填充色连通域 → 候选"外皮"框。
+
+    为什么用同色连通域而不是边缘：编辑器是**半透明暗面板叠在 3D 场景上**，
+    行/块填充与背景只差 6~10 灰度，Canny 类边缘会碎成噪点；整块同色反而稳定
+    （实测 t16 一次拿到 5 条管理行 + 3 个格子 + 顶栏 + 左图标列）。
+    """
+    h, w = arr.shape[:2]
+    small = arr[::2, ::2].astype(np.int32)
+    q = small // quant
+    key = (q[..., 0] << 16) | (q[..., 1] << 8) | q[..., 2]
+    boxes = []
+    vals, counts = np.unique(key, return_counts=True)
+    for oi in np.argsort(counts)[::-1][:60]:
+        if counts[oi] < min_area_half:
+            continue
+        mask = key == vals[oi]
+        lab, num = ndimage.label(mask)
+        if num == 0:
+            continue
+        sizes = ndimage.sum(mask, lab, range(1, num + 1))
+        objs = ndimage.find_objects(lab)
+        for i in np.argsort(sizes)[::-1][:8]:
+            if sizes[i] < min_area_half:
+                break
+            sl = objs[i]
+            if sl is None:
+                continue
+            ys0, xs0, ys1, xs1 = sl[0].start, sl[1].start, sl[0].stop, sl[1].stop
+            bh, bw = ys1 - ys0, xs1 - xs0
+            fill = float(sizes[i]) / max(1, bh * bw)
+            if fill < 0.70 or bh < 7 or bw < 15:
+                continue
+            if bw > w // 2 and bh < 12:          # 细长横条（分隔线）不是控件
+                continue
+            boxes.append({'bbox': [xs0 * 2, ys0 * 2, xs1 * 2, ys1 * 2],
+                          'fill': round(fill, 2), 'area': int(sizes[i] * 4)})
+    boxes = sorted(boxes, key=lambda b: -(b['bbox'][2] - b['bbox'][0]) * (b['bbox'][3] - b['bbox'][1]))
+    merged = []
+    for b in boxes:
+        if any(_iou(b['bbox'], m['bbox']) > 0.75 for m in merged):
+            continue
+        merged.append(b)
+    if debug:
+        sys.stderr.write(f'[ys-enum] fills {len(merged)}\n')
+    return merged
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 通道 3：图标（局部背景减除 + 连通域，0.5 尺度）
+# ══════════════════════════════════════════════════════════════════════
+def find_glyphs(arr, thr=24, debug=False):
+    """局部背景减除找"亮/暗小团块"。图标按钮没有文字，只能靠这条通道。
+
+    用 uniform_filter 而不是 median_filter：31px 中值在全帧实测 **29.5 秒**，
+    box blur 同尺度 ~30ms（背景平滑，中值的抗噪在这里换不来收益）。
+    """
+    small = arr[::2, ::2]
+    lum = to_lum(small)
+    bg = ndimage.uniform_filter(lum, size=15)      # ≈ 全尺度 31px
+    d = lum - bg
+    out = []
+    for sign in (+1, -1):
+        m = (d * sign) > thr
+        if not m.any():
+            continue
+        md = ndimage.binary_dilation(m, iterations=2)   # 碎片合并（描边/空洞）
+        lab, num = ndimage.label(md)
+        if num == 0:
+            continue
+        npx = ndimage.sum(m, lab, range(1, num + 1))
+        objs = ndimage.find_objects(lab)
+        for i in range(num):
+            if npx[i] < 12:
+                continue
+            sl = objs[i]
+            if sl is None:
+                continue
+            bh = sl[0].stop - sl[0].start
+            bw = sl[1].stop - sl[1].start
+            if not (6 <= bh <= 56 and 6 <= bw <= 56):      # 半尺度：≈12~112px 全尺度
+                continue
+            if npx[i] / (bh * bw) < 0.10:
+                continue
+            out.append([sl[1].start * 2, sl[0].start * 2,
+                        sl[1].stop * 2, sl[0].stop * 2])
+    out = _dedupe_boxes(out)
+    if debug:
+        sys.stderr.write(f'[ys-enum] glyphs {len(out)}\n')
+    return out
+
+
+def _dedupe_boxes(boxes, iou_thr=0.30, contain_thr=0.65):
+    """同一图标被亮/暗两遍各检一次 → 合并成一个（保留面积大的）。"""
+    boxes = sorted(boxes, key=lambda b: -((b[2] - b[0]) * (b[3] - b[1])))
+    keep = []
+    for b in boxes:
+        drop = False
+        for k in keep:
+            if _iou(b, k) > iou_thr or overlap_frac(b, k) > contain_thr:
+                drop = True
+                break
+        if not drop:
+            keep.append(b)
+    return keep
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 内容区 / HUD / 分区
+# ══════════════════════════════════════════════════════════════════════
+def content_mask(arr, block=32, std_thr=11.0):
+    """3D 预览/游戏画面区：逐块局部标准差高 → 是"内容"不是"界面"。
+
+    用途：t17 中间的游戏内预览里的 造物名称/玩家名称/Enter 等文字**不是编辑器控件**，
+    不滤掉就是成批假阳性（实测 t17 有 20+ 条）。
+    """
+    h, w = arr.shape[:2]
+    lum = to_lum(arr)
+    gh, gw = h // block, w // block
+    blk = lum[:gh * block, :gw * block].reshape(gh, block, gw, block)
+    s = blk.std(axis=(1, 3))
+    hit = s > std_thr
+    hit = ndimage.binary_opening(hit, structure=np.ones((2, 2)))
+    lab, num = ndimage.label(hit)
+    objs = ndimage.find_objects(lab)
+    boxes = []
+    for i in range(1, num + 1):
+        sl = objs[i - 1]
+        ys0, xs0, ys1, xs1 = sl[0].start, sl[1].start, sl[0].stop, sl[1].stop
+        if (ys1 - ys0) * (xs1 - xs0) < 30:
+            continue
+        boxes.append([xs0 * block, ys0 * block, xs1 * block, ys1 * block])
+    return boxes
+
+
+def photo_frac(arr, box, pad=14, chroma_thr=18.0):
+    """文字环内高彩度像素占比（0~1）。
+
+    实测（t17 2560×1440）：游戏画面内文字 0.60~0.88（沙滩/水面/岩石背景），
+    编辑器面板文字 0.00~0.37（半透明暗面板把场景压成中性色）。
+    比「局部标准差」干净：标准差在 3D 预览的平坦天空/沙子上会被打散，
+    在 t16 的文字区又会被文字本身拉高（于是把整块面板误判成内容区）。
+    """
+    H, W = arr.shape[:2]
+    x0, y0, x1, y1 = [int(round(v)) for v in box]
+    x0 = max(0, x0 - pad); y0 = max(0, y0 - pad)
+    x1 = min(W, x1 + pad); y1 = min(H, y1 + pad)
+    if x1 - x0 < 3 or y1 - y0 < 3:
+        return 0.0
+    sub = arr[y0:y1, x0:x1].astype(np.float32)
+    chroma = sub.max(axis=2) - sub.min(axis=2)
+    return float((chroma > chroma_thr).mean())
+
+
+def hud_mask(arr):
+    """宿主 HUD 区（不是编辑器操作面）：左上 DXVK 叠加层、右下 UID、左下游戏等级条。
+
+    左下只框最底 60px：t17/t18 的「添加界面控件」按钮在同一列（y 1300~1440），
+    框高了会把它一起吃掉。
+    """
+    h, w = arr.shape[:2]
+    return [[w - 420, h - 90, w, h]]
+
+
+def detect_regions(arr, fills):
+    """面板级分区（顶栏/左栏/右栏/底栏），用于生成 path 与图标上下文。"""
+    h, w = arr.shape[:2]
+    regs = []
+    for f in fills:
+        x0, y0, x1, y1 = f['bbox']
+        bw, bh = x1 - x0, y1 - y0
+        if bw * bh < 0.10 * w * h:
+            continue
+        if y0 <= 8 and bw > 0.5 * w:
+            regs.append({'name': '顶栏', 'bbox': [0, 0, w, max(y1, 56)]})
+        elif x0 <= 8 and bh > 0.35 * h:
+            regs.append({'name': '左栏', 'bbox': [0, y0, max(x1, 60), min(h, y1)]})
+        elif x1 >= w - 8 and bh > 0.2 * h:
+            regs.append({'name': '右栏', 'bbox': [x0, y0, w, y1]})
+        elif y1 >= h - 8 and bw > 0.3 * w:
+            regs.append({'name': '底栏', 'bbox': [x0, y0, w, h]})
+    names = {r['name'] for r in regs}
+    # 左面板宽度用 fills 实测：t16 的行/格 fill 到 x=538 ⇒ 面板 0..~620；t17 ~0..420。
+    # 写死比例会把「贴右边界的格子（主镜头管理 x=426）」错算到画布区。
+    left_ext = 0
+    for f in fills:
+        x0, y0, x1, y1 = f['bbox']
+        if x0 < 0.25 * w and y0 > 40 and x1 < 0.45 * w and (x1 - x0) > 100 \
+                and (x1 - x0) * (y1 - y0) > 0.008 * w * h:
+            left_ext = max(left_ext, x1)
+    if '左栏' not in names:
+        wid = int(min(0.30 * w, max(0.14 * w, left_ext + 60)))
+        regs.append({'name': '左栏', 'bbox': [0, 56, wid, h]})
+    if '顶栏' not in names:
+        regs.append({'name': '顶栏', 'bbox': [0, 0, w, 56]})
+    if '右栏' not in names:
+        regs.append({'name': '右栏', 'bbox': [int(0.83 * w), 56, w, h]})
+    return regs
+
+
+def region_of(box, regs):
+    best, bestf = '画布', 0.0
+    for r in regs:
+        f = overlap_frac(box, r['bbox'])
+        if f > bestf:
+            best, bestf = r['name'], f
+    return best if bestf >= 0.5 else '画布'
+
+
+# ── 分组 ───────────────────────────────────────────────────────────────
+def group_columns(items, tol=12, max_gap=140):
+    """同左沿、纵向相邻的项 → 竖列表。返回 [list…]（≥2 项）。"""
+    groups = []
+    for it in sorted(items, key=lambda t: (t['bbox'][1], t['bbox'][0])):
+        x0, y0, _x1, y1 = it['bbox']
+        hgt = y1 - y0
+        placed = False
+        for g in groups:
+            gx0 = min(t['bbox'][0] for t in g)
+            gy1 = max(t['bbox'][3] for t in g)
+            if abs(x0 - gx0) <= tol and 0 < y0 - gy1 <= max(26, min(max_gap, 2.4 * hgt)):
+                g.append(it)
+                placed = True
+                break
+        if not placed:
+            groups.append([it])
+    return [g for g in groups if len(g) >= 2]
+
+
+def group_rows(items, tol=12, min_n=2):
+    """同 y 中心、横向相邻的项 → 页签条/工具条。"""
+    groups = []
+    for it in sorted(items, key=lambda t: (t['bbox'][0], t['bbox'][1])):
+        cy = (it['bbox'][1] + it['bbox'][3]) / 2
+        placed = False
+        for g in groups:
+            gy = float(np.mean([(t['bbox'][1] + t['bbox'][3]) / 2 for t in g]))
+            gx1 = max(t['bbox'][2] for t in g)
+            if abs(cy - gy) <= tol and 0 <= it['bbox'][0] - gx1 <= 200:
+                g.append(it)
+                placed = True
+                break
+        if not placed:
+            groups.append([it])
+    return [g for g in groups if len(g) >= min_n]
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 分类
+# ══════════════════════════════════════════════════════════════════════
+def ring_lum(lum, box, pad=8):
+    x0, y0, x1, y1 = [int(v) for v in box]
+    x0 = max(0, x0 - pad); y0 = max(0, y0 - pad)
+    x1 = min(lum.shape[1], x1 + pad); y1 = min(lum.shape[0], y1 + pad)
+    ix0, iy0 = max(0, int(box[0]) - x0), max(0, int(box[1]) - y0)
+    sub = lum[y0:y1, x0:x1].copy()
+    iw, ih = max(1, int(box[2] - box[0])), max(1, int(box[3] - box[1]))
+    sub[iy0:iy0 + ih, ix0:ix0 + iw] = np.nan
+    v = sub[~np.isnan(sub)]
+    return float(np.median(v)) if v.size else float('nan')
+
+
+_ARR = [None]
+_PREVIEW = [None]
+
+
+def classify(texts, fills, glyphs, regs, lum, W, H, debug=False):
+    cands, used_glyph = [], set()
+
+    def is_container(f):
+        x0, y0, x1, y1 = f['bbox']
+        bw, bh = x1 - x0, y1 - y0
+        return (bw > 0.45 * W and bh < 0.12 * H) or (bw > 0.25 * W and bh > 0.5 * H) \
+            or (bw * bh > 0.18 * W * H and bh > 0.5 * H)
+
+    ctrl_fills = [f for f in fills if not is_container(f)]
+
+    info = []
+    for t in texts:
+        b = t['bbox']
+        fi, ff = None, 0.0
+        for j, f in enumerate(ctrl_fills):
+            fr = overlap_frac(b, f['bbox'])
+            if fr > ff:
+                fi, ff = j, fr
+        gl = [k for k, g in enumerate(glyphs) if _same_row(g, b)]
+        ga = [k for k, g in enumerate(glyphs) if _above(g, b)]
+        reg = region_of(b, regs)
+        reg_box = next((r['bbox'] for r in regs if r['name'] == reg), [0, 0, W, H])
+        reg_l = float(np.median(lum[int(reg_box[1]):int(reg_box[3]),
+                                    int(reg_box[0]):int(reg_box[2])]))
+        rl = ring_lum(lum, b)
+        info.append({'t': t, 'bbox': b, 'fill': fi, 'fill_frac': ff,
+                     'glyph_left': gl, 'glyph_above': ga,
+                     'on_card': (not np.isnan(rl)) and (rl - reg_l) > 24,
+                     'region': reg, 'ring_lum': rl, 'reg_lum': reg_l, 'claimed': False})
+
+    # ① 格子（tile）：图标+下方文字，或亮卡面上的文字，且成网格
+    tiles = [i for i in info if i['glyph_above']]
+    tile_groups = group_columns(tiles) + group_rows(tiles)
+    tiled = set()
+    for g in tile_groups:
+        if len(g) >= 2:
+            for i in g:
+                tiled.add(id(i))
+    for i in tiles:
+        if id(i) not in tiled and not (i['glyph_above'] and i['on_card']):
+            continue
+        t = i['t']
+        bb = list(t['bbox'])
+        for k in i['glyph_above'][:2]:
+            bb = _union(bb, glyphs[k])
+            used_glyph.add(k)
+        cands.append({'bbox': _pad(bb, 10, 8), 'text': t['text'], 'kind': 'tile',
+                      'ch': ['text', 'glyph' if i['glyph_above'] else 'fill', 'struct'],
+                      'conf': 0.74 if id(i) in tiled else 0.66, 'bbox_kind': 'label',
+                      'ev': [f'格子网格成员（图标+文字）',
+                             f'卡面亮度 {i["ring_lum"]:.0f} vs 区底 {i["reg_lum"]:.0f}']})
+        i['claimed'] = True
+
+    # ② 竖列表行（menu_item）
+    rest = [i for i in info if not i['claimed']]
+    _rows = group_columns(rest)
+    if debug:
+        sys.stderr.write('[ys-enum] row groups: ' +
+                         ' | '.join('、'.join(i['t']['text'][:8] for i in g) for g in _rows) + '\n')
+    for g in _rows:
+        ys = sorted(i['t']['bbox'][1] for i in g)
+        diffs = np.diff(ys)
+        pitch = float(np.median(diffs)) if len(diffs) else 0
+        stable = len(diffs) >= 2 and float(np.std(diffs)) <= 12
+        for i in g:
+            t = i['t']
+            bb = list(t['bbox'])
+            if i['glyph_left']:
+                for k in i['glyph_left'][:2]:
+                    bb = _union(bb, glyphs[k])
+                    used_glyph.add(k)
+            cands.append({'bbox': _pad(bb, 14, 8), 'text': t['text'], 'kind': 'menu_item',
+                          'ch': ['text', 'struct'] + (['glyph'] if i['glyph_left'] else []),
+                          'conf': 0.72 + (0.08 if stable else 0) + (0.06 if i['glyph_left'] else 0),
+                          'bbox_kind': 'row',
+                          'ev': [f'竖列同左沿 x={int(t["bbox"][0])}，组内 {len(g)} 行'
+                                 + (f'，pitch={pitch:.0f}px σ={float(np.std(diffs)):.1f}px' if len(diffs) else ''),
+                                 '行左侧有图标' if i['glyph_left'] else '行无图标（纯文字行）']})
+            i['claimed'] = True
+
+    # ③ 页签：同一水平条上的多个文字
+    rest2 = [i for i in info if not i['claimed']]
+    _tabs = group_rows(rest2)
+    if debug:
+        sys.stderr.write('[ys-enum] row-strips: ' +
+                         ' | '.join('、'.join(i['t']['text'][:8] for i in g) for g in _tabs) + '\n')
+    for g in _tabs:
+        ys = [i['t']['bbox'][1] for i in g]
+        if max(ys) - min(ys) > 14:
+            continue
+        for i in g:
+            t = i['t']
+            cands.append({'bbox': _pad(t['bbox'], 12, 9), 'text': t['text'], 'kind': 'tab',
+                          'ch': ['text', 'struct'], 'conf': 0.7, 'bbox_kind': 'label',
+                          'ev': [f'水平条成员（同 y ±{int(max(ys) - min(ys))}px，共 {len(g)} 个）']})
+            i['claimed'] = True
+
+    # ④ 单体：有外皮 → button/input；亮卡面 → button；只命中词表 → 弱 button
+    for i in info:
+        if i['claimed']:
+            continue
+        t = i['t']
+        bb = list(t['bbox'])
+        tw = bb[2] - bb[0]
+        kind, conf, ev = None, 0.0, []
+        _fb = ctrl_fills[i['fill']]['bbox'] if i['fill'] is not None else None
+        _fw = (_fb[2] - _fb[0]) if _fb else 0
+        _wide_input = False
+        if i['fill'] is not None and i['fill_frac'] >= 0.55 and _fw > 3.5 * tw and _fb is not None:
+            _fh = _fb[3] - _fb[1]
+            _carets = [k for k, g in enumerate(glyphs)
+                       if overlap_frac(g, _fb) > 0.8 and g[0] > _fb[2] - 80]
+            if _carets and _fh <= 90:
+                bb = list(_fb)
+                kind, conf = 'input', 0.66
+                ev = [f'宽外皮 {_fw}×{_fh} 内右侧有图标（下拉/搜索框）']
+                _wide_input = True
+        if _wide_input:
+            pass
+        elif i['fill'] is not None and i['fill_frac'] >= 0.55 and _fw <= 3.5 * tw:
+            fb = ctrl_fills[i['fill']]['bbox']
+            fw, fh = fb[2] - fb[0], fb[3] - fb[1]
+            if fw < 6 * tw and fh < 4 * max(20, bb[3] - bb[1]):
+                bb = _union(bb, fb)
+            kind = 'input' if (fh <= 60 and fw >= 3 * tw) else 'button'
+            conf = 0.7
+            ev = [f'文字被外皮包住 fill={ctrl_fills[i["fill"]]["fill"]} {fw}×{fh}']
+        elif i['on_card']:
+            kind, conf = 'button', 0.6
+            ev = [f'文字压在亮卡面（卡面 {i["ring_lum"]:.0f} vs 底 {i["reg_lum"]:.0f}）']
+        elif any(w in t['text'] for w in CONTROL_WORDS) or (set(t['text']) & CTRL_SYMBOL):
+            kind, conf = 'button', 0.45
+            ev = ['无外皮无网格；仅命中控件词表（最弱证据，必须人审）']
+        if kind:
+            cands.append({'bbox': _pad(bb, 10, 8), 'text': t['text'], 'kind': kind,
+                          'ch': ['text'], 'conf': conf, 'bbox_kind': 'label', 'ev': ev})
+
+    # ⑤ 纯图标按钮：未被认领的图标
+    strips = group_rows([{'bbox': g} for g in glyphs if _size_ok(g)], tol=10)
+    strip_members = {}
+    for s2 in strips:
+        if max(it['bbox'][2] - it['bbox'][0] for it in s2) > 120:   # 文字块不是图标
+            continue
+        for it in s2:
+            strip_members[tuple(it['bbox'])] = len(s2)
+    H, W = lum.shape
+    HUD_BOXES = [[W - 420, H - 90, W, H]]
+    for k, g in enumerate(glyphs):
+        if k in used_glyph or not _size_ok(g):
+            continue
+        if any(overlap_frac(g, hb) > 0.6 for hb in HUD_BOXES):
+            continue
+        if _ARR[0] is not None and photo_frac(_ARR[0], g) > 0.55:   # 游戏画面里的图标
+            continue
+        if _PREVIEW[0] is not None and overlap_frac(g, _PREVIEW[0]) > 0.95:  # 落在游戏预览框内
+            continue
+        if any(overlap_frac(g, t['bbox']) > 0.35 for t in texts):
+            continue
+        n = strip_members.get(tuple(g), 1)
+        gw, gh = g[2] - g[0], g[3] - g[1]
+        if gw * 1.0 / max(1, gh) < 0.42 and gh >= 60:      # 细长竖条 = 滚动条/滑杆
+            cands.append({'bbox': _pad(g, 6, 6), 'text': '', 'kind': 'slider',
+                          'ch': ['glyph'], 'conf': 0.5, 'bbox_kind': 'label',
+                          'ev': [f'细长竖条 {gw}×{gh}（自绘滚动条/滑杆，非按钮）']})
+            continue
+        reg = region_of(g, regs)
+        in_chrome = reg in ('顶栏', '左栏', '右栏', '底栏')
+        if not (in_chrome or n >= 2):
+            continue
+        conf = 0.5 + (0.12 if n >= 2 else 0) + (0.06 if in_chrome else 0)
+        ev = [f'无文字图标 {g[2] - g[0]}×{g[3] - g[1]}（局部对比 >24）']
+        if n >= 2:
+            ev.append(f'与另外 {n - 1} 个图标同 y 成条')
+        if in_chrome:
+            ev.append(f'位于{reg}')
+        cands.append({'bbox': _pad(g, 6, 6), 'text': '', 'kind': 'icon_button',
+                      'ch': ['glyph'] + (['struct'] if n >= 2 else []),
+                      'conf': conf, 'bbox_kind': 'label', 'ev': ev})
+    if debug:
+        sys.stderr.write(f'[ys-enum] candidates {len(cands)}\n')
+    return cands
+
+
+def _size_ok(g, lo=12, hi=84):
+    return lo <= (g[2] - g[0]) <= hi and lo <= (g[3] - g[1]) <= hi
+
+
+def _same_row(g, b, reach=96):
+    """图标在文字左侧同一行。reach 必须限距离：不加限制时面板另一侧的图标也会命中，
+    实测 t17 把 2254px 外的图标并进「默认布局」行，行框被拉到 2254 宽。"""
+    gy = (g[1] + g[3]) / 2
+    by = (b[1] + b[3]) / 2
+    return abs(gy - by) <= max(10, (b[3] - b[1]) * 0.6) and (b[0] - reach) <= g[0] <= b[0] + 4
+
+
+def _above(g, b):
+    gx = (g[0] + g[2]) / 2
+    return (b[1] - 40) <= g[3] <= b[1] + 10 and (b[0] - 30) <= gx <= (b[2] + 30)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 主流程
+# ══════════════════════════════════════════════════════════════════════
+def analyze(path, screen_path='', use_ocr=True, debug=False, tile=(800, 600), scale=1.0):
+    t0 = time.time()
+    arr = np.array(Image.open(path).convert('RGB'))
+    H, W = arr.shape[:2]
+    timing = {}
+    lum = to_lum(arr)
+
+    t = time.time()
+    cbox = content_mask(arr)
+    hud = hud_mask(arr)
+    timing['pixel_ms'] = int((time.time() - t) * 1000)
+
+    t = time.time()
+    fills = find_fills(arr, debug=debug)
+    glyphs = find_glyphs(arr, debug=debug)
+    timing['shape_ms'] = int((time.time() - t) * 1000)
+
+    t = time.time()
+    texts = ocr_tiled(arr, tile=tile, scale=scale, debug=debug) if use_ocr else []
+    timing['ocr_ms'] = int((time.time() - t) * 1000)
+
+    regs = detect_regions(arr, fills)
+
+    kept, dropped = [], []
+    for t in texts:
+        txt = t['text']
+        if sum(ch.isalnum() for ch in txt) < 2:
+            dropped.append({'text': txt, 'bbox': [round(v, 1) for v in t['bbox']],
+                            'why': 'ocr_fragment(<2 alnum)'})
+            continue
+        if len(txt) < 2 or HUD_PAT.search(txt) or txt in HUD_WORDS:
+            dropped.append({'text': txt, 'bbox': [round(v, 1) for v in t['bbox']], 'why': 'hud/noise'})
+            continue
+        if any(overlap_frac(t['bbox'], hb) > 0.5 for hb in hud):
+            dropped.append({'text': txt, 'bbox': [round(v, 1) for v in t['bbox']], 'why': 'host_overlay'})
+            continue
+        pf = photo_frac(arr, t['bbox'])
+        if pf > 0.55:
+            dropped.append({'text': txt, 'bbox': [round(v, 1) for v in t['bbox']],
+                            'why': 'inside_content(游戏画面内文字, photo=%.2f)' % pf})
+            continue
+        kept.append(t)
+
+    _ARR[0] = arr
+    photo_boxes = [d['bbox'] for d in dropped if d['why'].startswith('inside_content')]
+    _PREVIEW[0] = None
+    if len(photo_boxes) >= 3:
+        px0 = min(b[0] for b in photo_boxes) - 60
+        py0 = min(b[1] for b in photo_boxes) - 60
+        px1 = max(b[2] for b in photo_boxes) + 60
+        py1 = max(b[3] for b in photo_boxes) + 60
+        _PREVIEW[0] = [px0, py0, px1, py1]
+    cands = classify(kept, fills, glyphs, regs, lum, W, H, debug=debug)
+
+    objs = []
+    for i, c in enumerate(sorted(cands, key=lambda c: (c['bbox'][1], c['bbox'][0]))):
+        x0 = max(0, int(round(c['bbox'][0]))); y0 = max(0, int(round(c['bbox'][1])))
+        x1 = min(W, int(round(c['bbox'][2]))); y1 = min(H, int(round(c['bbox'][3])))
+        if x1 - x0 < 6 or y1 - y0 < 6:
+            continue
+        clipped = [e for e, cond in (('L', x0 <= 1), ('T', y0 <= 1),
+                                     ('R', x1 >= W - 1), ('B', y1 >= H - 1)) if cond]
+        reg = region_of([x0, y0, x1, y1], regs)
+        label = re.sub(r'\s+', ' ', c.get('text') or '').strip()
+        objs.append({
+            'id': f'e{i + 1:02d}',
+            'path': ' > '.join([p for p in (screen_path, reg, label) if p]),
+            'control_text': label,
+            'bbox': [x0, y0, x1 - x0, y1 - y0],          # xywh（AGI-BAR 口径）
+            'bbox_kind': c.get('bbox_kind', 'label'),
+            'kind': c['kind'],
+            'region': reg,
+            'evidence': c['ev'],
+            'channels': c['ch'],
+            'confidence': round(min(0.97, c['conf']), 2),
+            'clipped': clipped,
+        })
+
+    by_kind = {}
+    for o in objs:
+        by_kind[o['kind']] = by_kind.get(o['kind'], 0) + 1
+    timing['total_ms'] = int((time.time() - t0) * 1000)
+    return {
+        'schema': SCHEMA, 'frame': os.path.abspath(path), 'size': [W, H],
+        'screen': screen_path, 'objects': objs, 'regions': regs, 'dropped': dropped,
+        'stats': {'n': len(objs), 'by_kind': by_kind,
+                  'channels': {'text': len(kept), 'fill': len(fills), 'glyph': len(glyphs),
+                               'dropped': len(dropped)},
+                  'ms': timing},
+    }
+
+
+def render_overlay(res, out_path):
+    img = Image.open(res['frame']).convert('RGB')
+    d = ImageDraw.Draw(img)
+    color = {'button': (255, 64, 64), 'tab': (255, 200, 0), 'menu_item': (0, 255, 128),
+             'icon_button': (64, 160, 255), 'tile': (255, 0, 255), 'toggle': (0, 255, 255),
+             'slider': (255, 128, 0), 'input': (180, 255, 64), 'row': (200, 200, 200)}
+    for o in res['objects']:
+        x, y, w, h = o['bbox']
+        c = color.get(o['kind'], (255, 255, 255))
+        d.rectangle([x, y, x + w, y + h], outline=c, width=3)
+        d.text((x + 4, max(0, y - 14)), f"{o['id']}:{o['kind'][:4]}", fill=c)
+    for r in res['regions']:
+        x0, y0, x1, y1 = r['bbox']
+        d.rectangle([x0, y0, x1, y1], outline=(255, 255, 255), width=1)
+        d.text((x0 + 6, y0 + 4), r['name'], fill=(255, 255, 255))
+    img.save(out_path)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='界面帧候选可交互元素枚举器（只读）')
+    ap.add_argument('frames', nargs='+')
+    ap.add_argument('--path', default='', help='界面路径前缀，如 "实体摆放页"')
+    ap.add_argument('--json', dest='json_out')
+    ap.add_argument('--tsv', dest='tsv_out')
+    ap.add_argument('--overlay-dir', help='把每帧 overlay 写进这个目录')
+    ap.add_argument('--no-ocr', action='store_true')
+    ap.add_argument('--scale', type=float, default=1.0)
+    ap.add_argument('--tile', default='800x600')
+    ap.add_argument('--debug', action='store_true')
+    a = ap.parse_args(argv)
+    tw, th = [int(v) for v in a.tile.lower().split('x')]
+    results = []
+    for fp in a.frames:
+        res = analyze(fp, screen_path=a.path, use_ocr=not a.no_ocr,
+                      debug=a.debug, tile=(tw, th), scale=a.scale)
+        results.append(res)
+        s = res['stats']
+        print(f"帧 {os.path.basename(fp)}  {res['size'][0]}×{res['size'][1]}  "
+              f"候选 {s['n']}  kind={s['by_kind']}")
+        print(f"  通道 text={s['channels']['text']} fill={s['channels']['fill']} "
+              f"glyph={s['channels']['glyph']} 丢弃={s['channels']['dropped']}  "
+              f"{s['ms']['total_ms']}ms (ocr {s['ms']['ocr_ms']} / 形状 {s['ms']['shape_ms']})")
+        for o in res['objects']:
+            x, y, w, h = o['bbox']
+            print(f"  {o['id']} {o['kind']:<11} {o['confidence']:.2f} "
+                  f"({x:>4},{y:>4},{w:>4},{h:>3})  {o['control_text'][:28]}")
+        if a.overlay_dir:
+            os.makedirs(a.overlay_dir, exist_ok=True)
+            render_overlay(res, os.path.join(a.overlay_dir,
+                                             os.path.basename(fp).replace('.png', '-overlay.png')))
+    payload = results[0] if len(results) == 1 else results
+    if a.json_out:
+        with open(a.json_out, 'w') as f:
+            json.dump(payload, f, ensure_ascii=False, indent=1)
+    if a.tsv_out:
+        cols = ['id', 'frame', 'path', 'control_text', 'bbox', 'kind', 'confidence', 'evidence']
+        with open(a.tsv_out, 'w') as f:
+            f.write('\t'.join(cols) + '\n')
+            for res in results:
+                for o in res['objects']:
+                    f.write('\t'.join([o['id'], os.path.basename(res['frame']), o['path'],
+                                       o['control_text'], ','.join(map(str, o['bbox'])),
+                                       o['kind'], str(o['confidence']),
+                                       ' | '.join(o['evidence'])]) + '\n')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
