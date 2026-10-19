@@ -60,7 +60,10 @@ JSEOF
     --method org.kde.kwin.Scripting.loadScript "$KWIN_JS" "ysact-$RANDOM" >/dev/null 2>&1
   gdbus call --session --dest org.kde.KWin --object-path /Scripting \
     --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-  sleep 0.7
+  for _i in $(seq 1 30); do
+    [ "$(xdotool getactivewindow 2>/dev/null)" = "$1" ] && break
+    sleep 0.02
+  done
   # 严格判据：回读行的 ||ACTIVE= 必须含目标窗名（不是"找到了"）
   local out; out=$(journalctl --user --since "$before" 2>/dev/null | grep -a "YS-SLOT-ACT " | tail -1)
   [ -n "$out" ] && [ -n "$nm" ] && printf '%s' "$out" | sed 's/.*||ACTIVE=//' | grep -qF "$nm"
@@ -102,6 +105,11 @@ START=$(date +%s); CMD_RC=0; RESTORE_RC=0
 
 restore() {
   local cur="" done_flag=0
+  # 快路径：执行前焦点就已经在目标窗 ⇒ 无需还原（实测省 1.5–2s）
+  if [ "${ALREADY_FOCUSED:-0}" = "1" ]; then
+    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗，未改动"
+    return
+  fi
   # 1) 精确还原 X11 前焦（仅当它是有名字的真实窗，且非目标窗）
   if [ -n "${PREV:-}" ] && [ -n "$PREV_NAME" ] && [ "$PREV" != "$WIN_DEC" ]; then
     for _ in 1 2 3; do
@@ -120,10 +128,16 @@ restore() {
     RESTORE_RC=9
   fi
 }
+ALREADY_FOCUSED=0
+_cur0=$(focus 2>/dev/null || echo "")
+[ "$_cur0" = "$WIN_DEC" ] && ALREADY_FOCUSED=1
+
 trap restore EXIT INT TERM HUP
 
-activate "$WIN_DEC" >/dev/null 2>&1 || true
-sleep 0.3
+if [ "$ALREADY_FOCUSED" != "1" ]; then
+  activate "$WIN_DEC" >/dev/null 2>&1 || true
+  sleep 0.3
+fi
 cur=$(focus)
 if [ "$cur" != "$WIN_DEC" ]; then
   echo "[ys-gui-slot] 焦点核验失败（当前=$cur 目标=$WIN_DEC）——未执行命令" >&2
