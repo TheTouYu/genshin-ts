@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""ys-goto —— 把编辑器带到指定面板（可靠的那一条路），2026-10-19 建
+
+为什么单独抽出来：进面板这件事在 round 2-4 里反复踩坑，三条都试过——
+  ① 预存坐标 → 帧差 0.007（没打开，菜单滚动位置会变）
+  ② 裸名字 act --text → 页签已开时歧义 rc=1
+  ③ bbox 现算中心 → 帧差 0.95（真开了）✅
+本脚本把 ③ 连同「归位 + 入口闸门」打包成一步，供 ys-field / 批量脚本复用。
+
+归位标记只看 **bbox 中心 y >= 60** 的对象：顶部 0..60 是已打开的文档页签带，
+页签名里也有「计时器管理 ×」，会让机器误以为已在系统菜单（round 3 实测）。
+
+用法：ys-goto <面板名> [--marker 归位标记] [--tries N]
+退出码：0 已在目标面板 / 1 进不去（打印卡在哪一步）
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+WS = os.path.join(REPO, ".scratch/gui-service/worldsvc.py")
+OPS = os.path.join(HERE, "ys-ops")
+PICK = os.path.join(HERE, "ys-pick")
+LOOK = "/tmp/ys-goto-look.json"
+
+
+def env():
+    e = dict(os.environ)
+    e.setdefault("DISPLAY", ":1")
+    return e
+
+
+def look():
+    if os.path.exists(LOOK):
+        os.remove(LOOK)
+    subprocess.run([sys.executable, WS, "look", "--live", "--backend", "daemon-world",
+                    "--json-out", LOOK], env=env(), capture_output=True, timeout=180)
+    return os.path.exists(LOOK)
+
+
+def texts_below_tabbar():
+    try:
+        d = json.load(open(LOOK))
+    except Exception:
+        return ""
+    out = []
+    for o in d.get("objects") or []:
+        b = o.get("bbox") or [0, 0, 0, 0]
+        if b[1] + b[3] / 2 >= 60:
+            out.append(" ".join(o.get("text") or []))
+    return " ".join(out)
+
+
+# 系统菜单的**结构判据**：单看「计时器管理」不够——它同时是面板标题（实测踩到：
+# 停在计时器管理面板里，"标题在屏"被当成"已在系统菜单"）。菜单里同时有十几个菜单项，
+# 所以用「至少命中 N 个」当判据，比任何一个单名都稳。
+MENU_ITEMS = ("角色预览管理", "计时器管理", "关卡变量管理", "预设点管理", "技能资源管理",
+              "背景音乐管理", "资产导入导出管理", "装备数据管理", "商店模板管理",
+              "高级数据管理", "局内存档管理", "试玩临时数据管理", "实体布设组管理")
+MIN_MENU_HITS = 5
+
+
+def menu_score():
+    t = texts_below_tabbar()
+    return sum(1 for m in MENU_ITEMS if m in t)
+
+
+def esc():
+    subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "8", "bash", "-c",
+                    "ydotool key 1:1 1:0"], env=env(), capture_output=True, timeout=60)
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="ys-goto")
+    ap.add_argument("panel")
+    ap.add_argument("--marker", default="计时器管理")
+    ap.add_argument("--tries", type=int, default=5)
+    a = ap.parse_args()
+
+    home = False
+    for _ in range(a.tries):
+        if look():
+            n = menu_score()
+            if n >= MIN_MENU_HITS:
+                home = True
+                break
+            print(f"[ys-goto] 当前命中菜单项 {n}/{MIN_MENU_HITS}，继续 ESC 归位", file=sys.stderr)
+        esc()
+        time.sleep(2)
+    if not home:
+        print(f"[ys-goto] 归位失败（{a.tries} 次 ESC 后仍不像系统菜单）", file=sys.stderr)
+        return 1
+
+    r = subprocess.run([sys.executable, PICK, LOOK, a.panel], capture_output=True, text=True)
+    at = (r.stdout or "").strip()
+    if not at:
+        print(f"[ys-goto] 系统菜单里找不到入口 {a.panel}", file=sys.stderr)
+        return 1
+    print(f"[ys-goto] 入口 {a.panel} @ {at}", file=sys.stderr)
+    out = subprocess.run([OPS, "add", "--id", f"GOTO-{a.panel[:12]}", "--path", "编辑器 > 系统菜单",
+                          "--control", a.panel, "--action", "click", "--at", at, "--risk", "A"],
+                         env=env(), capture_output=True, text=True)
+    diff = 0.0
+    for line in (out.stdout or "").splitlines():
+        if line.startswith("{"):
+            try:
+                diff = json.loads(line).get("diff") or 0.0
+            except Exception:
+                pass
+
+    if diff < 0.05:
+        print(f"[ys-goto] 入口未打开（diff={diff} < 0.05）", file=sys.stderr)
+        return 1
+    time.sleep(2)
+    print(f"[ys-goto] 已进入 {a.panel}（入口帧差 {diff}）", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
