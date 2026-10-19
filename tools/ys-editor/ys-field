@@ -129,7 +129,9 @@ def main():
     # 为什么改：从 45% 处切会把标签自身的文字含进来，方差被文字撑高，
     # 「说明行（右侧纯背景）」会被误判成"有控件"（实测 stdev 21，肉眼却明明没有控件）。
     vx = int(x + w + 10)
-    vw = max(60, min(360, 2560 - vx))
+    # 值区宽度要够到面板右侧：实测「运行后场景生效范围」标签右边缘 ~1230，
+    # 值「100×100×100」在 x≈1807 —— 360px 的带根本够不着，会把有控件的行判成 no。
+    vw = max(80, min(1900 - vx, 800))
     box = (vx, int(y - 4), vw, int(h + 8))
     cx, cy = int(vx + vw * 0.35), int(y + h / 2)
     print(f"[ys-field] {a.field}: bbox={[round(v) for v in hit['bbox']]} 值区={box} 点={cx},{cy}",
