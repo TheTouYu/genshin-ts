@@ -250,23 +250,8 @@ def _state(req):
         r = _batch_on(It, jobs, -ox, -oy)
         scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
         readings.update(YS.anchor_readings_from_scores(scores, state_of))
-    res = YS.decide(readings)
-    # 本体态（GAME_WORLD）判据要看右下 UID（x≈2370）——它**不在 fast_roi 裁剪内**，
-    # 所以在这里补一条 **UID 小条**（360×80 ≈ 115KB）单独 OCR 后并入本体判据，
-    # 免掉客户端整帧重判（实测那是每次判态多花 ~420ms 的大头）。
-    if is_live and res.get("state") == "UNKNOWN":
-        try:
-            from PIL import Image as _Im
-            _x, _y, _w, _h = 2200, 1340, 360, 100
-            _strip = YL.grab(_x, _y, _w, _h)
-            _p = "/tmp/ys-state-uid-strip.png"
-            _Im.fromarray((_strip * 255).round().astype("uint8")).save(_p)
-            _r2 = YS.decide_with_native(readings, _p, offset=(_x, _y))
-            if _r2.get("state") != "UNKNOWN":
-                _r2["uid_strip"] = True
-                res = _r2
-        except Exception as _e:                             # noqa: BLE001
-            res["uid_strip_error"] = f"{type(_e).__name__}: {_e}" 
+    res = YS.decide(readings)   # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
+    # 而本体判据要看右下 UID（x≈2370，在裁剪外）。改由 ys-state 在 UNKNOWN 时用全帧兜底。
     readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings,
                 "ms": round((time.time() - t0) * 1000),
