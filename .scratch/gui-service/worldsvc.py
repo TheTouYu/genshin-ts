@@ -203,11 +203,15 @@ class WorldService:
         # 三维游戏世界：CV 容器层在这里是噪声（flat+rect 是菜单 UI 规则），而 D2 世界专家
         # 在同一帧给几十个框。**不能只看"容器是否为空"**——实测世界里 CV 常吐出 1 个假 panel，
         # 它会把 57 个检测框全压掉（2026-10-19 实跑：objects=1，daemon 直连却是 57）。
-        # 所以按 state 判：GAME_WORLD 一律用检测框；其它状态优先容器，容器为空时退回检测框。
-        # 有容器时不合并，避免同一元素出现两套框。
+        # 所以按 state 判：GAME_WORLD 一律用检测框；其它状态优先容器。
+        # 2026-10-19 追加：**「优先容器」在编辑器里同样会丢一大截**——编辑器系统菜单 CV 只给 2 个容器，
+        # 同帧 D2 给 71 个（27 个带文字，把整张菜单都点得出名字）。⇒ 改成**选更全的那个源**：
+        # 检测框数量超过容器数量时用检测框。两个源互不合并（避免同一元素两套框）。
         dets = (resp.get("structure") or {}).get("detections") or []
         state_name = ((resp.get("state") or {}).get("state") or "")
-        use_dets = bool(dets) and (state_name == "GAME_WORLD" or not objects)
+        use_dets = bool(dets) and (state_name == "GAME_WORLD" or not objects
+                                   or len(dets) > len(objects))
+        n_cont = len(objects)
         if use_dets:
             objects = [schema.object_from_detection(d, frame_id=frame_id) for d in dets]
         free_text = [str(t) for t in ((resp.get("objects") or {}).get("free_text") or [])]

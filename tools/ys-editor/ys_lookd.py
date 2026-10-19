@@ -1848,6 +1848,42 @@ def _world_detector(arr, state_name=None):
         return [], round((time.time() - t0) * 1000, 1), f"{type(e).__name__}: {e}", None
 
 
+
+def _attach_text_to_dets(dets, boxes, min_cover=0.5):
+    """把全帧 OCR 文本归到**学习型检测框**上（2026-10-19 修：编辑器/世界里 objects 来自 D2，
+    而 `schema.object_from_detection` 曾把 text 写死为空 ⇒ 有 OCR 也永远"0 个对象有文字"）。
+
+    归属规则（与容器层同源思路）：OCR 框中心落在 det 框内，且 OCR 框面积被 det 框覆盖 ≥ min_cover
+    ⇒ 归给**面积最小的那个 det**（避免大面板吞掉所有文字）。返回归上的文本条数。
+    """
+    n = 0
+    for b in boxes or []:
+        txt = (b.get("text") or "").strip()
+        if not txt or not b.get("box"):
+            continue
+        xs = [p[0] for p in b["box"]]; ys = [p[1] for p in b["box"]]
+        tx0, ty0, tx1, ty1 = min(xs), min(ys), max(xs), max(ys)
+        cx, cy = (tx0 + tx1) / 2.0, (ty0 + ty1) / 2.0
+        tarea = max(1.0, (tx1 - tx0) * (ty1 - ty0))
+        best, best_area = None, None
+        for d in dets:
+            bx, by, bw, bh = d["bbox"]
+            if not (bx <= cx <= bx + bw and by <= cy <= by + bh):
+                continue
+            iw = max(0.0, min(tx1, bx + bw) - max(tx0, bx))
+            ih = max(0.0, min(ty1, by + bh) - max(ty0, by))
+            if (iw * ih) / tarea < min_cover:
+                continue
+            a = bw * bh
+            if best is None or a < best_area:
+                best, best_area = d, a
+        if best is not None:
+            best.setdefault("text", []).append(txt)
+            best["text_source"] = "fullframe+det"
+            n += 1
+    return n
+
+
 def _world_structure(objects, W, H, boxes=None, det_objs=None):
     """D3 结构层：给对象列表，返回 groups / rows / pitch / 类别修正 / 缺行槽。
 
@@ -1897,6 +1933,41 @@ def _world_structure(objects, W, H, boxes=None, det_objs=None):
                 "ms": round((time.time() - t0) * 1000, 1)}
 
 
+# ── world 的 OCR 时间缓存（2026-10-19；Lead 口径：文本类可时间缓存，对象框/可点性必须跟帧走）──
+# 为什么：`_WORLD_CACHE` 键含整帧 sha256，活体画面每帧都在渲染 ⇒ 永远不命中；
+# OCR 是每帧都付的固定成本（实测活体帧 824ms）。文本结果在"画面基本没变"时可安全复用，
+# 但对象框/可点性仍用**当前帧**重算（不缓存整份 world 状态）。
+_WORLD_OCR_TTL = {"ts": 0.0, "boxes": None, "sig": None, "sha": None}
+_WORLD_OCR_TTL_MS = int(os.environ.get("YS_WORLD_OCR_TTL_MS", "1200"))
+_WORLD_OCR_SIG_THR = float(os.environ.get("YS_WORLD_OCR_SIG_THR", "6.0"))
+
+
+def _world_ocr_objects_timed(arr, sha, force_fallback=False):
+    """在 _world_ocr_objects 外包一层**时间缓存**：TTL 内且帧间差异小 → 直接复用文本。
+
+    复用的只是**文本层**（boxes/text/score）；对象框、可点性、判态仍用当前帧现算。
+    返回 (boxes, meta)，meta.source = 'objects' | 'ttl-cache'。
+    """
+    import numpy as np
+    now = time.time()
+    st = _WORLD_OCR_TTL
+    if _WORLD_OCR_TTL_MS > 0 and st["boxes"] is not None and (now - st["ts"]) * 1000 <= _WORLD_OCR_TTL_MS:
+        try:
+            sig = _page_gray(arr, step=8)
+            if st["sig"] is not None and float(np.abs(sig - st["sig"]).mean()) < _WORLD_OCR_SIG_THR:
+                return st["boxes"], {"source": "ttl-cache", "ms": 0.1, "n": len(st["boxes"]),
+                                     "err": None, "age_ms": round((now - st["ts"]) * 1000)}
+        except Exception:                                # noqa: BLE001
+            pass
+    boxes, meta = _world_ocr_objects(arr, sha, force_fallback=force_fallback)
+    if boxes is not None:
+        try:
+            st.update(ts=now, boxes=boxes, sig=_page_gray(arr, step=8), sha=sha)
+        except Exception:                                # noqa: BLE001
+            pass
+    return boxes, meta
+
+
 def _world(req):
     """cmd="world"：世界状态仪器（显式开启；请求里不给 cmd=world 就完全走旧路径）。"""
     t0 = time.time()
@@ -1931,8 +2002,8 @@ def _world(req):
     if do_ocr:
         # 2026-10-18（Lead 裁决）：文本来源从「全帧」换成「对象切片」——热态同屏重复看 ~40ms，
         # 冷态与全帧同量级；小字号占比过高时回退全帧（兜底只在那些帧付 50–100ms）。
-        boxes, ocr_meta = _world_ocr_objects(arr, sha,
-                                             force_fallback=bool(req.get("force_fallback")))
+        boxes, ocr_meta = _world_ocr_objects_timed(arr, sha,
+                                                   force_fallback=bool(req.get("force_fallback")))
     t_after_ocr = time.time()
     state, t_judge = _world_state(arr, It, W, H, prof, boxes, is_live=(src == "live"))
     t_after_state = time.time()
@@ -1952,6 +2023,13 @@ def _world(req):
         # 找不到容器，实测 containers=0 而检测器给 33 个框）。此前只喂给 D3 结构层、不对外暴露，
         # 消费方等于看不见任何对象。放在 structure 里（已透传）而不是新增顶层键，避免又撞白名单。
         structure["detections"] = det_objs
+        # 把 OCR 文本归到检测框上（编辑器/世界的 objects 来源就是这批框）；归不上的仍走 free_text
+        try:
+            _n_txt = _attach_text_to_dets(det_objs, boxes)
+            structure["detector"]["text_attached"] = _n_txt
+        except Exception as _e:                      # noqa: BLE001 —— 归属失败不影响主输出
+            structure["detector"]["text_attached"] = 0
+            structure["detector"]["text_attach_err"] = "%s: %s" % (type(_e).__name__, _e)
     t_after_structure = time.time()
     degraded = []
     if do_ocr and boxes is None:

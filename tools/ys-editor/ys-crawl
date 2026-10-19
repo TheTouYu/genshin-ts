@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""ys-crawl —— 按清单批量覆盖界面操作点（覆盖率机器，2026-10-19 建）
+
+为什么存在（`.scratch/gui-stack/EDITOR-COVERAGE-PLAN.md`）：
+  覆盖率要成为**机器产出**而不是"我觉得点过了"。`ys-ops` 负责"点一次 + 记一行"，
+  `ys-crawl` 负责"按清单把整批跑完并自动回到基线"，两者合起来才是可复算的覆盖率。
+
+清单位式（TSV，首行表头，多余列忽略）：
+  id	path	control	x	y	risk	restore
+  · risk    A 导航 / B 局部变更 / C 不可逆（**C 级只允许在一次性存档里跑**，本工具不校验，调用方负责）
+  · restore `esc`（点完按 ESC 回上界面）/ `none`（点完不回，用于本身就是导航的动作）
+
+安全闸门（默认打开）
+  · `--max-risk` 缺省 A：默认**不点** B/C 级，必须显式放行
+  · `--dry` 只打印将要做什么
+  · 每步前后抓帧；**回不到基线**（与基线帧差异 > `--back-tol`）就**立即停**并打印哪一个点让界面回不去
+  · 连续 `--fail-stop` 个点没观测到差异 → 停止（多半是界面已经不在预期状态）
+
+用法
+  ys-crawl --plan .scratch/gui-stack/plan-system-menu.tsv
+  ys-crawl --plan ... --max-risk B --dry
+
+退出码：0 全部跑完 / 1 中途停下（打印原因）/ 2 用法错误
+"""
+import argparse
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+OPS = os.path.join(HERE, "ys-ops")
+TMP = os.path.join(REPO, ".scratch/gui-stack/.crawl")
+
+
+def _env():
+    e = dict(os.environ)
+    e.setdefault("DISPLAY", ":1")
+    return e
+
+
+def grab(path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    r = subprocess.run(["import", "-window", WIN, path], env=_env(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
+    return path if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 4096 else None
+
+
+def diff(a, b):
+    from PIL import Image, ImageChops
+    ia = Image.open(a).convert("L").resize((64, 36))
+    ib = Image.open(b).convert("L").resize((64, 36))
+    d = ImageChops.difference(ia, ib)
+    px = list(d.getdata())
+    return round(sum(1 for v in px if v > 8) / len(px), 4)
+
+
+def esc():
+    subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "10", "bash", "-c",
+                    "ydotool key 1:1 1:0"], env=_env(),
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+
+
+def read_plan(path):
+    rows = []
+    with open(path, encoding="utf-8") as f:
+        head = None
+        for line in f:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            v = line.split("\t")
+            if head is None:
+                head = v
+                continue
+            rows.append(dict(zip(head, v)))
+    return rows
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="ys-crawl")
+    ap.add_argument("--plan", required=True)
+    ap.add_argument("--max-risk", default="A", choices=["A", "B", "C"])
+    ap.add_argument("--back-tol", type=float, default=0.02, help="回到基线的容差（帧差异占比）")
+    ap.add_argument("--min-diff", type=float, default=0.002)
+    ap.add_argument("--settle", type=float, default=1.2)
+    ap.add_argument("--fail-stop", type=int, default=3)
+    ap.add_argument("--only", help="只跑这些 id（逗号分隔）")
+    ap.add_argument("--dry", action="store_true")
+    a = ap.parse_args()
+
+    rows = read_plan(a.plan)
+    if a.only:
+        keep = set(a.only.split(","))
+        rows = [r for r in rows if r.get("id") in keep]
+    rank = {"A": 0, "B": 1, "C": 2}
+    rows = [r for r in rows if rank.get(r.get("risk", "A"), 0) <= rank[a.max_risk]]
+    if not rows:
+        print("[ys-crawl] 计划为空（或被 --max-risk 过滤光）", file=sys.stderr)
+        return 2
+
+    print(f"[ys-crawl] 计划 {len(rows)} 个操作点，max-risk={a.max_risk}", file=sys.stderr)
+    base = grab(os.path.join(TMP, "baseline.png"))
+    if not base:
+        print("[ys-crawl] 抓不到基线帧（窗口不在栈顶？）", file=sys.stderr)
+        return 2
+
+    ok = fail = 0
+    streak = 0
+    for i, r in enumerate(rows, 1):
+        rid = r.get("id", "?")
+        cmd = [OPS, "add", "--id", rid, "--path", r.get("path", ""), "--control", r.get("control", ""),
+               "--action", "click", "--at", f"{r['x']},{r['y']}", "--risk", r.get("risk", "A"),
+               "--min-diff", str(a.min_diff), "--settle", str(a.settle)]
+        if a.dry:
+            print(f"[dry] {i}/{len(rows)} {rid} {r.get('control','')} @ {r['x']},{r['y']}", file=sys.stderr)
+            continue
+        p = subprocess.run(cmd, env=_env(), capture_output=True, text=True, timeout=120)
+        status = "covered" if '"covered"' in (p.stdout or "") else "failed"
+        if status == "covered":
+            ok += 1
+            streak = 0
+        else:
+            fail += 1
+            streak += 1
+        print(f"[{i}/{len(rows)}] {rid} {status} {r.get('control','')}", file=sys.stderr)
+
+        if r.get("restore", "esc") == "esc":
+            esc()
+            time.sleep(a.settle)
+            cur = grab(os.path.join(TMP, "cur.png"))
+            if cur:
+                d = diff(base, cur)
+                if d > a.back_tol:
+                    print(f"[ys-crawl] ✗ 回不到基线（diff={d} > {a.back_tol}），停在 {rid} "
+                          f"「{r.get('control','')}」——界面已不在预期状态", file=sys.stderr)
+                    return 1
+        if streak >= a.fail_stop:
+            print(f"[ys-crawl] ✗ 连续 {streak} 个点没有观测差异，停止（界面大概已经切走了）", file=sys.stderr)
+            return 1
+
+    print(f"[ys-crawl] 完成：covered={ok} failed={fail} total={len(rows)}", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

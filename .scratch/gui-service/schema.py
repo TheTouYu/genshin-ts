@@ -43,7 +43,10 @@ BADGE_TYPES = ("alert", "scroll", "crown", "claimed", "lastopen")
 AFFORDANCE_VALUES = ("yes", "no", "unknown")
 CLIP_EDGES = ("left", "top", "right", "bottom")
 STATE_CHANNELS = ("fast", "full")
-TEXT_SOURCES = ("slice-ocr", "fullframe")
+TEXT_SOURCES = ("slice-ocr", "fullframe", "fullframe+det")
+# "fullframe+det"（2026-10-19 新增）：文本来自全帧 OCR，但归属到 **D2 检测框**而不是 CV 容器。
+# 起因：编辑器/世界状态的对象来自检测框，而 object_from_detection 曾把 text 写死成 []
+# ⇒ "OCR 读到了但永远归不上去"（编辑器 45 个对象 0 个有文字）。单列一个来源值是为了能审计归属质量。
 DEGRADED_CODES = (
     "BUDGET_EXCEEDED", "OBJECTS_DEGRADED", "STATE_UNKNOWN", "STALE_FRAME",
     "LIVE_NOT_ATOP", "STATE_VOCAB_UNVERIFIED", "FREE_TEXT_UNOWNED", "PARENT_DANGLING",
@@ -203,8 +206,10 @@ def object_from_detection(d, *, frame_id):
         "parent": None,
         "bbox": [b[0], b[1], b[2], b[3]],
         "kind": d.get("kind") if d.get("kind") in KINDS else "unknown",
-        "text": [],
-        "text_source": "fullframe",
+        # 2026-10-19：D2 检测框可以带 text（daemon 用 _attach_text_to_dets 归进去）。
+        # 之前写死 [] ⇒ 编辑器/世界里"有 OCR 但 0 个对象有文字"，act --text 恒解析不到。
+        "text": list(d.get("text") or []),
+        "text_source": d.get("text_source") or "fullframe",
         "glyphs": [],
         "badges": [],
         "state": {"selected": None, "focused": None, "disabled": None},
