@@ -795,6 +795,32 @@
    "kind": "row",
    "label": "等级80/80",
    "clickable": "no"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    88,
+    20,
+    2444,
+    752
+   ],
+   "kind": "panel",
+   "label": "区域:list(16 成员)",
+   "clickable": "no"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    708,
+    0,
+    1153,
+    140
+   ],
+   "kind": "panel",
+   "label": "区域:icons(9 成员)",
+   "clickable": "no"
   }
  ],
  "_provenance": {
@@ -1590,6 +1616,32 @@
    ],
    "kind": "row",
    "label": "等级80/80",
+   "clickable": "no"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    88,
+    20,
+    2444,
+    752
+   ],
+   "kind": "panel",
+   "label": "区域:list(16 成员)",
+   "clickable": "no"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    708,
+    0,
+    1153,
+    140
+   ],
+   "kind": "panel",
+   "label": "区域:icons(9 成员)",
    "clickable": "no"
   }
  ]

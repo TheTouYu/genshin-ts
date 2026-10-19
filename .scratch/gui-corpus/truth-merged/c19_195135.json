@@ -601,6 +601,19 @@
    "kind": "row",
    "label": "关闭",
    "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    126,
+    122,
+    2288,
+    1070
+   ],
+   "kind": "panel",
+   "label": "区域:list(22 成员)",
+   "clickable": "no"
   }
  ],
  "_provenance": {
@@ -1202,6 +1215,19 @@
    "kind": "row",
    "label": "关闭",
    "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    126,
+    122,
+    2288,
+    1070
+   ],
+   "kind": "panel",
+   "label": "区域:list(22 成员)",
+   "clickable": "no"
   }
  ]
 }
