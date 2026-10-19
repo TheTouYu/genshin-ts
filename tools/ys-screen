@@ -1259,6 +1259,68 @@ def _find_badges(arr, scale):
     return out
 
 
+
+def find_scroll_bands(arr, scale):
+    """固定 ROI 的**竖直滚动指示器**扫描（2026-10-19；不依赖 glyph 分割）。
+
+    为什么不用 glyph 簇：glyph 的分割边界在不同帧之间不稳定（实测 w01 切成上下两块、w04+ 合并），
+    任何建立在"glyph 簇"上的形态判据都会继承这个不稳定性。这里直接对像素做**候选带**扫描。
+
+    判据（与 uncertainty 的 scroll_affordance 同源，均在 w01 实测标定）：
+      ① 竖向细长：h/w ≥ 1.8，宽 24~90px，高 100~260px（全帧像素）
+      ② 中段有**高饱和窄条**：HSV S≥115 & V≥90 的列覆盖 ∈ [0.25, 0.80]
+      ③ 上下 30% 各有高亮像素（箭头/端帽）：合计 ≥30
+    返回 [{bbox(全帧 xywh), coverage, hw_ratio, score}]，按 score 降序（同带 NMS）。
+    """
+    import cv2
+    import numpy as np
+    H, W = arr.shape[:2]
+    hsv = cv2.cvtColor(arr, cv2.COLOR_RGB2HSV)
+    gray = arr.mean(axis=2)
+    sat = (hsv[:, :, 1] >= 115) & (hsv[:, :, 2] >= 90)
+    bright = gray >= 200
+    out = []
+    for wh in (int(0.03 * H), int(0.05 * H), int(0.08 * H)):      # 候选带高度（三档）
+        for bw in (int(0.02 * W), int(0.03 * W), int(0.04 * W)):  # 候选带宽度（三档）
+            if bw < 8 or wh < 40:
+                continue
+            if wh / float(bw) < 1.8:
+                continue
+            for y in range(0, H - wh, max(8, wh // 8)):
+                for x in range(0, W - bw, max(8, bw // 2)):
+                    sub_sat = sat[y:y + wh, x:x + bw]
+                    mid = sub_sat[int(wh * 0.3): int(wh * 0.7)]
+                    cover = float(mid.any(axis=0).mean()) if mid.size else 0.0
+                    if not (0.25 <= cover <= 0.80):
+                        continue
+                    at = int(bright[y:y + int(wh * 0.3), x:x + bw].sum())
+                    ab = int(bright[y + int(wh * 0.7): y + wh, x:x + bw].sum())
+                    if at + ab < 30:
+                        continue
+                    score = round(0.55 + 0.30 * cover + 0.15 * min(1.0, (at + ab) / 200.0), 3)
+                    out.append({'bbox': [int(round(x / scale)), int(round(y / scale)),
+                                         int(round(bw / scale)), int(round(wh / scale))],
+                                'coverage': round(cover, 2),
+                                'hw_ratio': round(wh / float(bw), 2), 'score': score})
+    out.sort(key=lambda o: -o['score'])
+    keep = []
+    for o in out:                       # 同带 NMS：中心距 <0.5 宽且 IoU>0.5 视为同一带
+        bx, by, bw2, bh2 = o['bbox']
+        dup = False
+        for k in keep:
+            kx, ky, kw, kh = k['bbox']
+            ix = max(0, min(bx + bw2, kx + kw) - max(bx, kx))
+            iy = max(0, min(by + bh2, ky + kh) - max(by, ky))
+            if ix * iy > 0.5 * bw2 * bh2:
+                dup = True
+                break
+        if not dup:
+            keep.append(o)
+        if len(keep) >= 12:
+            break
+    return keep
+
+
 def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     """容器层：L3 平坦皮肤容器 + 文本/图形/角标叶子归属。返回 dict。
 
@@ -1275,7 +1337,7 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     于是**不输出**它们（漏检，不是假对象）。
     """
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [],
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [],
            'degraded': False, 'error': None}
     try:
         cands = _flat_container_candidates(arr, scale)
@@ -1481,6 +1543,94 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
         unc.sort(key=lambda u: -u['score'])
         res['uncertainty'] = unc
 
+        # ================= scroll_affordance[]：滚动指示器的**视觉通道**（2026-10-19 新增，独立检出）=================
+        # 由来：worldsvc drill 下钻发现 uncertainty 把滚动指示器（▲/滑块/▼）误标成 background_like。
+        # 而 glyph-v1 把它当图标提上来是**对的**——它是真 UI 控件。故单独检出，并从可能的假阳性里排除。
+        # 判据全部单帧可算（形态学，不用 OCR）：
+        #   ① 竖向细长：h/w ≥ 2.5 且 h ≥ 60
+        #   ② 上下各有一个**高亮同形块**（灰度≥200），两者面积比 ∈ [0.5, 2.0]
+        #   ③ 中间有一条**高饱和窄条**（HSV S≥0.45），竖向覆盖率 ≥0.5
+        def _scroll_affordance(rgb, box, hmin=50):
+            x0, y0, x1, y1 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+            x0, y0 = max(0, x0), max(0, y0)
+            x1, y1 = min(rgb.shape[1], x1), min(rgb.shape[0], y1)
+            w, h = x1 - x0, y1 - y0
+            # 阈值来自 w01 实测（滚动指示器 68×136、h/w=2.00、中段饱和度覆盖 0.68；
+            # 真背景光点 26×28、h/w=1.08、satcov=0.15；技能图标 h/w=1.00）⇒ h/w≥1.8 ∧ satcov≥0.4 可分。
+            if w < 4 or w > 90 or h < hmin or h / float(w) < 1.8:   # 宽 ≤90px：滚动条是细带，队伍头像列更宽
+                return None
+            sub = rgb[y0:y1, x0:x1]
+            g = sub.mean(axis=2)
+            top = g[: int(h * 0.3)]; bot = g[int(h * 0.7):]
+            at = float((top >= 200).sum()); ab = float((bot >= 200).sum())
+            ratio = at / max(ab, 1.0)
+            if at + ab < 30:            # 上下至少要有若干高亮像素（箭头/端帽）
+                return None
+            import cv2
+            hsv = cv2.cvtColor(sub, cv2.COLOR_RGB2HSV)
+            mid = hsv[int(h * 0.3): int(h * 0.7)]
+            sat = (mid[:, :, 1] >= 115) & (mid[:, :, 2] >= 90)
+            cols = sat.any(axis=0)
+            cover = float(cols.mean()) if cols.size else 0.0
+            if cover < 0.25 or cover > 0.80:   # 窄滑块：列覆盖过高说明整条都饱和（图标/立绘，不是滚动条）
+                return None
+            return {'bbox': [x0, y0, w, h], 'coverage': round(cover, 2),
+                    'arrow_area_ratio': round(ratio, 2)}
+
+        scroll_aff = []
+        _cand = [g['bbox'] for g in (res.get('glyph_icons') or [])] + [gl['bbox'] for gl in free_glyphs]
+        _cand = [list(b) for b in _cand if (b[2] - b[0]) >= 6 and (b[3] - b[1]) >= 6]
+        _cand.sort(key=lambda b: (b[0], b[1]))
+        for i, b in enumerate(_cand):
+            for c in _cand[i + 1:]:
+                if abs(c[0] - b[0]) > 10:
+                    continue
+                gap = c[1] - b[3]
+                if gap < -4 or gap > 60:
+                    continue
+                union = [min(b[0], c[0]), min(b[1], c[1]), max(b[2], c[2]), max(b[3], c[3])]
+                uni = [union[0], union[1], union[2] - union[0], union[3] - union[1]]
+                # arr 是**分析尺度**图（scale≈0.5），uni 是全帧坐标 ⇒ 必须换算，否则裁剪到角落必失败
+                # uni 是 xywh；_scroll_affordance 收 xyxy ⇒ 先转再缩放到分析尺度
+                _xyxy = [uni[0], uni[1], uni[0] + uni[2], uni[1] + uni[3]]
+                _a = _scroll_affordance(arr, [v * scale for v in _xyxy], hmin=100 * scale)
+                aff = None
+                if _a:
+                    aff = {'bbox': [int(round(v / scale)) for v in _a['bbox']],
+                           'coverage': _a['coverage'], 'arrow_area_ratio': _a['arrow_area_ratio']}
+                if aff and not any(abs(aff['bbox'][0] - a['bbox'][0]) < 6 and abs(aff['bbox'][1] - a['bbox'][1]) < 6
+                                   for a in scroll_aff):
+                    scroll_aff.append(aff)
+        res['scroll_affordances'] = scroll_aff
+        # ⚠️ 实验通道（未过验收）：只在显式开启时计算。实测 w01 真带 0 命中、m01 出 12 条误报，
+        # 且窗口高度档（≤115px）根本没覆盖真带高度 128px ⇒ 不能默认输出，避免污染下游。
+        if os.environ.get('YS_SCROLL_BANDS') == '1':
+            try:
+                res['scroll_bands'] = find_scroll_bands(arr, scale)
+            except Exception as _e:
+                res['scroll_bands'] = []
+                res['scroll_bands_error'] = '%s: %s' % (type(_e).__name__, _e)
+        else:
+            res['scroll_bands'] = []
+        # 从"可能假阳性"里排除滚动指示器所在的框（它已被识别为正向控件）
+        if scroll_aff:
+            keep_u = []
+            for u in unc:
+                if u['kind'] == 'possible_false_positive':
+                    r = u['region']
+                    inside = any(a['bbox'][0] - 12 <= r[0] <= a['bbox'][0] + a['bbox'][2]
+                                 and a['bbox'][1] - 12 <= r[1] <= a['bbox'][1] + a['bbox'][3] for a in scroll_aff)
+                    if inside:
+                        continue
+                keep_u.append(u)
+            for a in scroll_aff:
+                keep_u.append({'region': a['bbox'], 'kind': 'scroll_affordance', 'score': 0.90,
+                               'reasons': ['vertical_strip', 'arrow_pair', 'saturated_thumb'],
+                               'hint': '竖向滚动指示器（上/下箭头 + 滑块），**这是可滚动的正向信号**，不是背景'})
+            keep_u.sort(key=lambda u: -u['score'])
+            res['uncertainty'] = keep_u
+
+
     except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded
         res['containers'] = []
         res['free_text'] = []
@@ -1673,7 +1823,7 @@ def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.
                           kind_map=None, timing_out=None):
     """torch fp16 stub 通道：与 find_containers_onnx 同形的返回（bbox=xyxy 原帧坐标）。"""
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'degraded': False, 'error': None}
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [], 'degraded': False, 'error': None}
     try:
         dets, info = _torch_stub_detect(arr, size=size, threshold=threshold,
                                         min_area=min_area, device=device, dtype=dtype)
@@ -1791,7 +1941,7 @@ def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDA
     """
     import numpy as np
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [],
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [],
            'degraded': False, 'error': None}
     try:
         # mock 通道：只用于**打通 plumbing 与记分器**（无权重/无 GPU 时也能验证接线）
@@ -1926,7 +2076,7 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             pass
     if backend == 'onnx':
         if not detect_model:
-            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'degraded': True,
+            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [], 'degraded': True,
                    'error': 'detect-backend: onnx 需要 --detect-model <path.onnx>'
                             '（或 env YS_DETECT_ONNX）；缺模型 fail-closed，不静默回落到 cv'}
         else:
@@ -1947,7 +2097,7 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             with open(tmp, 'w', encoding='utf-8') as f:
                 # ★ 显式拒绝未知键（白名单丢字段已踩第 5 次）：输出字段集必须与白名单**完全一致**
                 _whitelist = ('containers', 'free_text', 'free_glyphs', 'glyph_icons',
-                              'uncertainty', 'degraded', 'error')
+                              'uncertainty', 'scroll_affordances', 'scroll_bands', 'degraded', 'error')
                 _missing = [k for k in _whitelist if k not in res]
                 if _missing:
                     raise KeyError('容器层结果缺字段 %r —— 白名单与产出不一致，拒绝写缓存' % _missing)
@@ -2524,7 +2674,14 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
             'free_glyphs': cont['free_glyphs'],
             'glyph_icons': cont.get('glyph_icons') or [],
         'uncertainty': cont.get('uncertainty') or [],
+        'scroll_affordances': cont.get('scroll_affordances') or [],
+        'scroll_bands': cont.get('scroll_bands') or [],
             'uncertainty': cont.get('uncertainty') or [],
+        'scroll_affordances': cont.get('scroll_affordances') or [],
+        'scroll_bands': cont.get('scroll_bands') or [],
+            'scroll_affordances': cont.get('scroll_affordances') or [],
+        'scroll_bands': cont.get('scroll_bands') or [],
+            'scroll_bands': cont.get('scroll_bands') or [],
             'degraded': cont['degraded'], 'error': cont['error'],
             'timing': {'load_ms': int((t_load - t0) * 1000),
                        'ocr_ms': int((t_after_ocr - t_load) * 1000),
@@ -2565,6 +2722,8 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
         'free_glyphs': cont['free_glyphs'],
         'glyph_icons': cont.get('glyph_icons') or [],
         'uncertainty': cont.get('uncertainty') or [],
+        'scroll_affordances': cont.get('scroll_affordances') or [],
+        'scroll_bands': cont.get('scroll_bands') or [],
         'degraded': cont['degraded'], 'error': cont['error'],
         # ⚠️ pixel_ms 原先算的是 `t_end - t_load`，而 t_load 在 run_ocr **之前** ——
         # 于是 OCR 的耗时被重复计进"像素"里（实测 ocr_source=daemon 时 ocr_ms=0、pixel_ms=1262，

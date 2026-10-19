@@ -4,105 +4,210 @@
   "path": ".scratch/gui-corpus/truth-v3/c03_194915.json",
   "units": 32,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.724",
+  "area_max_frac": 0.7236,
+  "audit_uncovered": 0,
+  "objects": 32,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c12_195108": {
   "from": "truth-v2",
   "path": ".scratch/gui-corpus/truth-v2/c12_195108.json",
   "units": 34,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.215",
+  "area_max_frac": 0.2152,
+  "audit_uncovered": 0,
+  "objects": 34,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c18_195129": {
   "from": "truth-v2",
   "path": ".scratch/gui-corpus/truth-v2/c18_195129.json",
   "units": 26,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.471",
+  "area_max_frac": 0.4712,
+  "audit_uncovered": 0,
+  "objects": 26,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c19_195135": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c19_195135.json",
   "units": 20,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.036",
+  "area_max_frac": 0.0362,
+  "audit_uncovered": 0,
+  "objects": 24,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c22_195158": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c22_195158.json",
   "units": 33,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.434",
+  "area_max_frac": 0.4341,
+  "audit_uncovered": 0,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c24_195206": {
   "from": "truth-v2",
   "path": ".scratch/gui-corpus/truth-v2/c24_195206.json",
   "units": 33,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.583",
+  "area_max_frac": 0.5825,
+  "audit_uncovered": 0,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c25_195214": {
   "from": "truth-v2",
   "path": ".scratch/gui-corpus/truth-v2/c25_195214.json",
   "units": 33,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 1 处；area_max=0.165",
+  "area_max_frac": 0.1649,
+  "audit_uncovered": 1,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c28_195235": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c28_195235.json",
   "units": 23,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 1 处；area_max=0.363",
+  "area_max_frac": 0.3633,
+  "audit_uncovered": 1,
+  "objects": 23,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c29_195243": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c29_195243.json",
   "units": 3,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "C",
+  "grade_reason": "audit 未覆盖 26 处 ≥3（待重标）",
+  "area_max_frac": 0.3633,
+  "audit_uncovered": 26,
+  "objects": 3,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c32_195258": {
   "from": "truth-v2",
   "path": ".scratch/gui-corpus/truth-v2/c32_195258.json",
   "units": 22,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.355",
+  "area_max_frac": 0.3549,
+  "audit_uncovered": 0,
+  "objects": 22,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "c34_195311": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c34_195311.json",
   "units": 22,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.086",
+  "area_max_frac": 0.0855,
+  "audit_uncovered": 0,
+  "objects": 22,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c36_195316": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c36_195316.json",
   "units": 29,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.524",
+  "area_max_frac": 0.524,
+  "audit_uncovered": 0,
+  "objects": 29,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c37_195331": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c37_195331.json",
   "units": 0,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.000",
+  "area_max_frac": 0,
+  "audit_uncovered": 0,
+  "objects": 0,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c40_195339": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c40_195339.json",
   "units": 0,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.000",
+  "area_max_frac": 0,
+  "audit_uncovered": 0,
+  "objects": 0,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "c41_195439": {
   "from": "truth-v3",
   "path": ".scratch/gui-corpus/truth-v3/c41_195439.json",
   "units": 37,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 1 处；area_max=0.190",
+  "area_max_frac": 0.1898,
+  "audit_uncovered": 1,
+  "objects": 37,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "c42_195441": {
   "from": "truth-v3",
@@ -114,112 +219,224 @@
     "dir": "truth-v2",
     "units": 31
    }
-  ]
+  ],
+  "quality_grade": "C",
+  "grade_reason": "audit 未覆盖 38 处 ≥3（待重标）",
+  "area_max_frac": 0.0216,
+  "audit_uncovered": 38,
+  "objects": 37,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "f00": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f00.json",
   "units": 20,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 20,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f01": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f01.json",
   "units": 17,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 17,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f02": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f02.json",
   "units": 17,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 17,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f03": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f03.json",
   "units": 16,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 16,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f04": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f04.json",
   "units": 15,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 15,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f05": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f05.json",
   "units": 15,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4541,
+  "audit_uncovered": null,
+  "objects": 15,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f06": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f06.json",
   "units": 31,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.2223,
+  "audit_uncovered": null,
+  "objects": 31,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f07": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f07.json",
   "units": 30,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.2269,
+  "audit_uncovered": null,
+  "objects": 30,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f08": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f08.json",
   "units": 31,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.2269,
+  "audit_uncovered": null,
+  "objects": 31,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f09": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f09.json",
   "units": 23,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.4865,
+  "audit_uncovered": null,
+  "objects": 23,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f10": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f10.json",
   "units": 24,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.5822,
+  "audit_uncovered": null,
+  "objects": 24,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f11": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f11.json",
   "units": 25,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.6214,
+  "audit_uncovered": null,
+  "objects": 25,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f12": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f12.json",
   "units": 16,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.1555,
+  "audit_uncovered": null,
+  "objects": 16,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "f13": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/f13.json",
   "units": 27,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0.5441,
+  "audit_uncovered": null,
+  "objects": 27,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "neg-world": {
   "from": "truth",
   "path": ".scratch/gui-corpus/truth/neg-world.json",
   "units": 0,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "无 OCR 对照",
+  "area_max_frac": 0,
+  "audit_uncovered": null,
+  "objects": 0,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r003_snap_2026-10-19_00-17-26": {
   "from": "truth-v8-game",
@@ -235,7 +452,14 @@
     "dir": "truth-v7",
     "units": 42
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.948",
+  "area_max_frac": 0.9482,
+  "audit_uncovered": 0,
+  "objects": 51,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r004_snap_2026-10-19_00-20-33": {
   "from": "truth-v9-fixed",
@@ -247,7 +471,15 @@
     "dir": "truth-v9-pred",
     "units": 97
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.211",
+  "area_max_frac": 0.2114,
+  "audit_uncovered": 0,
+  "objects": 43,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
  },
  "r006_snap_2026-10-19_00-22-19": {
   "from": "truth-v8-game",
@@ -259,7 +491,14 @@
     "dir": "truth-v5",
     "units": 35
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.396",
+  "area_max_frac": 0.3955,
+  "audit_uncovered": 0,
+  "objects": 35,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r007_snap_2026-10-19_00-22-25": {
   "from": "truth-v9-fixed",
@@ -271,14 +510,29 @@
     "dir": "truth-v9-pred",
     "units": 49
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.471",
+  "area_max_frac": 0.4712,
+  "audit_uncovered": 0,
+  "objects": 30,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
  },
  "r008_snap_2026-10-19_00-23-27": {
   "from": "truth-v5",
   "path": ".scratch/gui-corpus/truth-v5/r008_snap_2026-10-19_00-23-27.json",
   "units": 16,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.513",
+  "area_max_frac": 0.5127,
+  "audit_uncovered": 0,
+  "objects": 16,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r009_snap_2026-10-19_00-23-32": {
   "from": "truth-v9-fixed",
@@ -290,7 +544,15 @@
     "dir": "truth-v9-pred",
     "units": 34
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.448",
+  "area_max_frac": 0.4481,
+  "audit_uncovered": 0,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
  },
  "r013_snap_2026-10-19_00-23-53": {
   "from": "truth-v8-game",
@@ -302,14 +564,28 @@
     "dir": "truth-v6",
     "units": 27
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.981",
+  "area_max_frac": 0.9805,
+  "audit_uncovered": 0,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r016_snap_2026-10-19_00-24-17": {
   "from": "truth-v5",
   "path": ".scratch/gui-corpus/truth-v5/r016_snap_2026-10-19_00-24-17.json",
   "units": 18,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.508",
+  "area_max_frac": 0.5078,
+  "audit_uncovered": 0,
+  "objects": 18,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r019_snap_2026-10-19_00-24-44": {
   "from": "truth-v8-game",
@@ -329,7 +605,14 @@
     "dir": "truth-v8-fix",
     "units": 50
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.517",
+  "area_max_frac": 0.5168,
+  "audit_uncovered": 0,
+  "objects": 72,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r021_snap_2026-10-19_00-24-58": {
   "from": "truth-v8-game",
@@ -349,7 +632,14 @@
     "dir": "truth-v8-fix",
     "units": 35
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.981",
+  "area_max_frac": 0.9805,
+  "audit_uncovered": 0,
+  "objects": 46,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r022_snap_2026-10-19_00-25-06": {
   "from": "truth-v8-game",
@@ -361,7 +651,14 @@
     "dir": "truth-v6",
     "units": 39
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.981",
+  "area_max_frac": 0.9805,
+  "audit_uncovered": 0,
+  "objects": 45,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "r023_snap_2026-10-19_00-25-15": {
   "from": "truth-v9-fixed",
@@ -373,7 +670,15 @@
     "dir": "truth-v9-pred",
     "units": 10
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.298",
+  "area_max_frac": 0.2978,
+  "audit_uncovered": 0,
+  "objects": 20,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
  },
  "r024_snap_2026-10-19_00-25-30": {
   "from": "truth-v9-fixed",
@@ -385,7 +690,15 @@
     "dir": "truth-v9-pred",
     "units": 29
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.514",
+  "area_max_frac": 0.5144,
+  "audit_uncovered": 0,
+  "objects": 40,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
  },
  "r026_snap_2026-10-19_00-27-05": {
   "from": "truth-v8-editor",
@@ -397,7 +710,14 @@
     "dir": "truth-v6",
     "units": 33
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.783",
+  "area_max_frac": 0.7826,
+  "audit_uncovered": 0,
+  "objects": 44,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r028_snap_2026-10-19_00-27-49": {
   "from": "truth-v9-fixed",
@@ -409,7 +729,15 @@
     "dir": "truth-v9-pred",
     "units": 116
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.602",
+  "area_max_frac": 0.602,
+  "audit_uncovered": 0,
+  "objects": 117,
+  "family": "editor",
+  "family_source": "annotator",
+  "family_evidence": "ocr:关卡设置,摆放,自定义页签"
  },
  "r032_snap_2026-10-19_00-30-42": {
   "from": "truth-v8-editor",
@@ -421,7 +749,14 @@
     "dir": "truth-v5",
     "units": 69
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.783",
+  "area_max_frac": 0.7826,
+  "audit_uncovered": 0,
+  "objects": 129,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r034_snap_2026-10-19_00-31-33": {
   "from": "truth-v8-editor",
@@ -433,7 +768,14 @@
     "dir": "truth-v5",
     "units": 99
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.783",
+  "area_max_frac": 0.7826,
+  "audit_uncovered": 0,
+  "objects": 128,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r040_snap_2026-10-19_00-36-18": {
   "from": "truth-v8-editor",
@@ -445,14 +787,28 @@
     "dir": "truth-v5",
     "units": 70
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.752",
+  "area_max_frac": 0.7525,
+  "audit_uncovered": 0,
+  "objects": 97,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r041_snap_2026-10-19_00-36-21": {
   "from": "truth-v7",
   "path": ".scratch/gui-corpus/truth-v7/r041_snap_2026-10-19_00-36-21.json",
   "units": 74,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.746",
+  "area_max_frac": 0.746,
+  "audit_uncovered": 0,
+  "objects": 74,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r044_snap_2026-10-19_00-37-57": {
   "from": "truth-v8-editor",
@@ -464,7 +820,14 @@
     "dir": "truth-v6",
     "units": 27
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.688",
+  "area_max_frac": 0.6875,
+  "audit_uncovered": 0,
+  "objects": 75,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r045_snap_2026-10-19_00-38-06": {
   "from": "truth-v8-editor",
@@ -476,7 +839,14 @@
     "dir": "truth-v5",
     "units": 31
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.527",
+  "area_max_frac": 0.5269,
+  "audit_uncovered": 0,
+  "objects": 88,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "r047_snap_2026-10-19_00-39-53": {
   "from": "truth-v8-fix",
@@ -488,34 +858,190 @@
     "dir": "truth-v5",
     "units": 20
    }
-  ]
+  ],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.522",
+  "area_max_frac": 0.5219,
+  "audit_uncovered": 0,
+  "objects": 57,
+  "family": "editor",
+  "family_source": "annotator"
  },
  "v060_0461": {
   "from": "truth-v4",
   "path": ".scratch/gui-corpus/truth-v4/v060_0461.json",
   "units": 33,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 2 处；area_max=0.274",
+  "area_max_frac": 0.2741,
+  "audit_uncovered": 2,
+  "objects": 33,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "v078_0487": {
   "from": "truth-v4",
   "path": ".scratch/gui-corpus/truth-v4/v078_0487.json",
   "units": 19,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.671",
+  "area_max_frac": 0.6711,
+  "audit_uncovered": 0,
+  "objects": 20,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "v088_0513": {
   "from": "truth-v4",
   "path": ".scratch/gui-corpus/truth-v4/v088_0513.json",
   "units": 27,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "C",
+  "grade_reason": "audit 未覆盖 6 处 ≥3（待重标）",
+  "area_max_frac": 0.0102,
+  "audit_uncovered": 6,
+  "objects": 31,
+  "family": "game_ui",
+  "family_source": "annotator"
  },
  "v101_0529": {
   "from": "truth-v4",
   "path": ".scratch/gui-corpus/truth-v4/v101_0529.json",
   "units": 19,
   "n_versions": 1,
-  "superseded": []
+  "superseded": [],
+  "quality_grade": "A",
+  "grade_reason": "未覆盖 0；area_max=0.272",
+  "area_max_frac": 0.2721,
+  "audit_uncovered": 0,
+  "objects": 19,
+  "family": "game_ui",
+  "family_source": "annotator",
+  "family_evidence": "ocr:game（editor 标记 0 个）"
+ },
+ "w01": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w01.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w02": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w02.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 1,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 1 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w03": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w03.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w04": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w04.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w05": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w05.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w06": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w06.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w07": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w07.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 1,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 1 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
+ },
+ "w08": {
+  "from": "(new) gui-collect world 8 帧扩标",
+  "path": ".scratch/gui-corpus/truth-merged/w08.json",
+  "units": 39,
+  "n_versions": 1,
+  "superseded": [],
+  "objects": 39,
+  "area_max_frac": 0.0109,
+  "audit_uncovered": 0,
+  "quality_grade": "B",
+  "grade_reason": "未覆盖 0 处；area_max=0.011",
+  "glyph_icon_count": 31,
+  "family": "world_hud",
+  "family_source": "annotator"
  }
 }
