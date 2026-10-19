@@ -374,7 +374,9 @@ def main():
     p.add_argument("--require", type=float, default=99.5)
     p.set_defaults(fn=cmd_coverage)
 
-    p = sub.add_parser("covered", help="列出已覆盖的分母 id 及其对应的屏上控件（覆盖率不涨时先跑这个）")
+    p = sub.add_parser("covered",
+                       help="列出已覆盖的分母 id 及贡献它的屏上控件。**严格视图**：只认全等与别名，"
+                            "不含包含匹配 ⇒ 数字比 coverage 小，两者不等是正常的")
     p.add_argument("--inventory", required=True)
     p.set_defaults(fn=cmd_covered)
 
