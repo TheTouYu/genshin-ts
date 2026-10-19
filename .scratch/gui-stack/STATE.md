@@ -2,7 +2,58 @@
 
 > **用途**：压缩/换会话后的第一份交接。比 BOARD 细、比复盘新。
 > **纪律**：任何一条工作线有实质变化就更新本文件**再**压缩上下文（数字、路径、判据、未决项一个都不能丢）。
-> 最近更新：2026-10-19 05:1x
+> 最近更新：2026-10-19 18:0x
+
+## 零、最新读数（2026-10-19 17:0x–18:0x，优先于下面所有小节）
+
+### 真值终态 `truth-merged/`（commit `7108af06`）
+- **73 帧**，`quality_grade` **A39 / B31 / C3**，`family` **game_ui 53 / editor 12 / world_hud 8**
+- **独立界面 ≈ 58 个，不是 73**（trainer 新判据「同界面重复帧」实测）：
+  m01–m08 框 100% 互相重合 = **1 个界面**；w01–w08 100% 重合 = **1 个界面**；
+  f07↔f08 0.967、f09↔c18 0.957 两对同界面。⇒ **按帧随机切分必泄漏**，必须按界面组切。
+- **kind × family 全表**（判类别样本量时先看这张，别再重算）：
+  | family | avatar | button | card | chip | **glyph_icon** | icon | panel | row | tile | unknown | 合计 |
+  |---|---|---|---|---|---|---|---|---|---|---|---|
+  | editor | 0 | 244 | 0 | 164 | 0 | 53 | 79 | 328 | 36 | 3 | 907 |
+  | game_ui | 39 | 245 | 86 | 33 | **0** | 144 | 135 | 419 | 362 | 54 | 1517 |
+  | world_hud | 0 | 16 | 0 | 0 | **248** | 0 | 16 | 40 | 0 | 0 | 320 |
+- **`glyph_icon` 只存在于 world_hud**（且 world_hud = 1 个界面 × 8 张连拍）⇒ 整族留出就训不出这个类。
+  **裁决（本文件作者）**：走「game_ui/editor 按族留出 + world_hud 内部按帧切」，
+  但结论只能写「31 个已知 glyph 模板可学」，**不得**写成「glyph_icon 可用」。
+  248 帧级实例 = **31 个不同 glyph**（两两归一化相关最大仅 0.70，确是 31 个图案）。
+
+### 评测口径与检测器
+- 评测台 `.scratch/gui-detect/eval.sh {old,old-both,d2val,merged,all}` → `eval-out/<tag>/report.{md,json}`；
+  口径 `CALIBER-v2.md`（micro mAP 退役，分 kind + 分族 + 真值覆盖率 + 单帧/多帧双报）。
+- 口径自证：`eval.sh d2val` 与 D2-improve 历史差 ≤0.6pp ⇒ 可与历史并列。
+- v2 是**用精确率换召回**（旧 57 帧：v1 P .443/R .578/F1 .502，v2 P .350/R .582/F1 .437）。
+- **avatar 归零的真因不是训练，是 `gui_det.postprocess` 的类无关 NMS**：v2 在头像位置同时吐
+  icon(.91)/button(.84)/tile(.78)/avatar(.64) 四个 IoU=1.0 的框，低分 avatar 被压掉；这也解释了 ~49% 错类率。
+- `tools/ys-editor/gui_det.py` 已加 `NMS_SCOPED_KINDS = ("avatar",)`（只在同类内比 NMS），
+  **但 A/B 被帧集变化污染（73 vs 62 帧），尚未定论**——已派 trainer 在固定快照上重做。
+
+### L6 负面闸门（commit `0dfdf684` + `faadffcb`）
+- `ys-screen` 新字段 `uncertainty[]`：`possible_miss`(≤0.80) / `possible_false_positive`(≥0.85，仅 HUD 类) /
+  `ambiguous_kind`(0.5)，两段分数刻意不重叠。验收：world/w01 的 4 个背景假阳性全标出（0.983/0.971/0.923/0.897），
+  18 个真命中最高 0.00 ⇒ 4/4；menu/m01 的 FP = 0。
+- 接进 `look()` 时踩到**三处字段白名单丢弃点**：`ys_lookd._world_containers` 键白名单 / `schema.new_world()` 无该参数 /
+  `_TOP_ALLOWED`。**跨层加字段必须逐层查重建点**。
+- `worldsvc drill` 子命令：对 score 最高 N 个区域裁局部图（带局部/全局双坐标）。
+- `act` 失败自解释：`_changed_region()` + `_overlap_ratio()`，错误升级为「期待 [x,y,w,h]，实际变化集中在 [a,b,c,d]，IoU=0.0x」。
+- drill 第一个真实用例就抓到 uncertainty 自己的误标（w01 top3 里两个是滚动指示器）。
+
+### 焦点看门狗（用户可感知事故，已修，commit `f99f72d2`）
+- 症状：无论做什么都被强制切回原神桌面。根因链：内层 `prev==target` → `idx(prev)>idx(game)` 恒不成立 →
+  `RESTORE_FAILED` 且 `lease_kept:true` → 守护每 0.5s **无限重试**（restore=activate+raise）。
+- 修复：限次 3 + 指数退避 + `abandoned` + 失败路径只首试 raise + 连续 5 次自停。
+  自测 `first_calls=3 no_more=1 abandoned=1 fuse=1`；打扰次数 prev==game **0 次**、最坏 ≤3（原事故 19s 6 次）。
+- 用户选 A 后已 `enable --now`（systemd，active）。
+
+### 正在跑
+- `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
+- `perception`：world_hud 3 个「不像 glyph_icon」单元（元素能量/护盾条 325×20、生命值条 305×26、
+  生命值数值 195×40）的**口径复核（先给口径再改数据）**；顺带补 16 帧的索引使其可被 audit 覆盖。
+- 硬约束：根 `AGENTS.md` = **16377 B**，离 16384 只剩 **7 字节**，新规则只能写子目录或技能。
 
 ## 一、运行中的进程（谁在跑）
 
