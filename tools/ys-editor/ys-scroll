@@ -132,8 +132,11 @@ def main():
         dy = abs(a.drag)
         y1 = y + dy // 2 if a.dir == "down" else y - dy // 2
         y2 = y1 - dy if a.dir == "down" else y1 + dy
+        # 人类拖动速度：约 400–600 px/s（200px ≈ 0.4s）。刻意放慢反而"看着难受"且拖长占用时间。
+        steps = max(8, int(round(dy / 20.0)))
+        hold = max(0.03, min(0.08, 0.05))
         script = (f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
-                  f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} 60 0.25")
+                  f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} {steps} {hold}")
     else:
         # 一次调用滚完（--repeat），减少 N 次进程启停
         script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
