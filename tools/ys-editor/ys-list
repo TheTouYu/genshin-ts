@@ -27,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SCREEN = os.path.join(os.path.dirname(HERE), "ys-screen")
 SNAP = os.path.join(os.path.dirname(HERE), "ys-snap")
 DEFAULT_LABEL = r"(天前|今日内|昨天|在线|离线|分钟前|小时前|个月前|年前)"
+REGION_CACHE = "/tmp/ys-list-region.json"
 
 
 def _fast_grab(out):
@@ -56,12 +57,58 @@ def grab(win):
     return r.get("path") if r.get("ok") else None
 
 
-def screen_json(frame):
-    p = subprocess.run([SCREEN, frame, "--json"], capture_output=True, text=True, timeout=180)
+
+
+def daemon_ocr(frame, max_objects=400):
+    """走常驻 ys-lookd 的 ocr_objects（0.04–0.4s）——比 spawn ys-screen（4–10s）快一个量级。
+
+    返回 [{text, bbox:[x,y,w,h]}]；**daemon 的 bbox 是 xywh**（ys-screen CLI 是 xyxy，别混）。
+    """
     try:
-        return json.loads(p.stdout)
+        import sys as _s
+        _s.path.insert(0, os.path.join(os.path.dirname(HERE), "..", ".scratch", "gui-service"))
+        import instruments as I
+        r = I.daemon_rpc({"cmd": "ocr_objects", "frame": os.path.abspath(frame),
+                          "ocr": True, "cache": True, "max_objects": max_objects}, timeout=180)
+        out = []
+        for o in (r.get("objects") or []):
+            t = (o.get("text") or "").strip()
+            b = o.get("bbox")
+            if t and b and len(b) == 4:
+                out.append({"text": t, "bbox": [b[0], b[1], b[2], b[3]]})
+        return out or None
+    except Exception:                                     # noqa: BLE001
+        return None
+
+
+def screen_json(frame, region=None):
+    """region=[x,y,w,h] 时先裁剪再 OCR（ys-screen 没有 --region 选项），返回的 bbox 加回偏移。"""
+    src, off = frame, (0, 0)
+    if region:
+        try:
+            from PIL import Image
+            im = Image.open(frame)
+            W, H = im.size
+            x, y, w, h = [int(v) for v in region]
+            x, y = max(0, x), max(0, y)
+            w, h = min(w, W - x), min(h, H - y)
+            if w > 200 and h > 200:
+                crop = os.path.join("/tmp", "ys-list-crop.jpg")
+                im.crop((x, y, x + w, y + h)).save(crop, quality=92)
+                src, off = crop, (x, y)
+        except Exception:                                # noqa: BLE001
+            src, off = frame, (0, 0)
+    p = subprocess.run([SCREEN, src, "--json"], capture_output=True, text=True, timeout=180)
+    try:
+        d = json.loads(p.stdout)
     except Exception:                                    # noqa: BLE001
         return None
+    if off != (0, 0):
+        for t in d.get("text") or []:
+            if isinstance(t, dict) and t.get("bbox"):
+                b = t["bbox"]
+                t["bbox"] = [b[0] + off[0], b[1] + off[1], b[2] + off[0], b[3] + off[1]]
+    return d
 
 
 def build_items(texts, label_re, region=None):
@@ -124,6 +171,7 @@ def main():
     ap.add_argument("--window", default="auto")
     ap.add_argument("--region", default="", help="x,y,w,h（只读该区域）")
     ap.add_argument("--label-pattern", default=DEFAULT_LABEL)
+    ap.add_argument("--full", action="store_true", help="全帧 OCR（默认复用上次的列表区域，快 3–4 倍）")
     a = ap.parse_args()
     frame = a.frame
     if a.live or not frame:
@@ -131,12 +179,38 @@ def main():
     if not frame or not os.path.exists(frame):
         print(json.dumps({"ok": False, "error": "NO_FRAME"}, ensure_ascii=False))
         return 2
-    d = screen_json(frame)
+    region_hint = None
+    if not a.full and os.path.exists(REGION_CACHE):
+        try:
+            rc = json.load(open(REGION_CACHE))
+            if rc.get("frame_w") and rc.get("region"):
+                region_hint = rc["region"]
+        except Exception:                                # noqa: BLE001
+            region_hint = None
+    texts = None if region_hint else daemon_ocr(frame)
+    if texts is not None:
+        d = {"text": [{"text": t["text"], "bbox": [t["bbox"][0], t["bbox"][1],
+                                                  t["bbox"][0] + t["bbox"][2], t["bbox"][1] + t["bbox"][3]]}
+                      for t in texts]}
+    else:
+        d = screen_json(frame, region_hint)
     if not d:
         print(json.dumps({"ok": False, "error": "SCREEN_FAILED"}, ensure_ascii=False))
         return 3
     region = [int(v) for v in a.region.split(",")] if a.region else None
     items = build_items(d.get("text") or [], a.label_pattern, region)
+    # 记住这次的列表区域（给下次缩小 OCR 范围用）
+    if items and region_hint is None:
+        xs = [it["name_bbox"][0] for it in items] + [it["label_bbox"][0] + it["label_bbox"][2] for it in items if it.get("label_bbox")]
+        ys = [it["name_bbox"][1] for it in items] + [it["label_bbox"][1] + it["label_bbox"][3] for it in items if it.get("label_bbox")]
+        if xs and ys:
+            pad = 60
+            reg = [max(0, min(xs) - pad), max(0, min(ys) - pad),
+                   (max(xs) - min(xs)) + 2 * pad, (max(ys) - min(ys)) + 2 * pad]
+            try:
+                json.dump({"region": reg, "frame_w": 2560}, open(REGION_CACHE, "w"))
+            except Exception:                            # noqa: BLE001
+                pass
     print(json.dumps({"ok": True, "frame": frame, "n": len(items), "items": items},
                      ensure_ascii=False))
     return 0
