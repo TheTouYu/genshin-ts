@@ -170,7 +170,11 @@ def ncc(I, T):
     阈值：搜索区像素 × 模板像素 > 3e7 走 GPU。"""
     H, W, _ = I.shape; h, w, _ = T.shape
     work = H * W * h * w
-    if work <= 3e9:   # FFT(CPU) 在多数尺寸下胜过 torch import 开销；超出才上 GPU
+    # 2026-10-19 用户令「实验也走 GPU」：阈值与强制开关都可用环境变量控制，
+    # 保证**实验路径 = 生产路径**（账本 F-1-11：实验全 CPU、生产走 GPU ⇒ 复跑一致≠路径正确）
+    thr = float(os.environ.get("YS_NCC_GPU_MIN_WORK", "3e9"))
+    force = os.environ.get("YS_NCC_FORCE_GPU") == "1"
+    if not force and work <= thr:   # 小区域用 numpy：省掉 torch import 的 2~3s（常驻服务内该开销已付）
         return _ncc_np(I, T)
     try:
         return _ncc_gpu(I, T)
