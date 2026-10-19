@@ -1,0 +1,99 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "奇域礼盒管理"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   2167,
+   25
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 727,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "奇域礼盒管理",
+  "object": {
+   "id": "det:29",
+   "parent": null,
+   "bbox": [
+    2068.883560180664,
+    0.0,
+    198.23287963867188,
+    50.76442265510559
+   ],
+   "kind": "chip",
+   "text": [
+    "奇域礼盒管理",
+    "•I"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.996,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:3dc8d457eecbb088e608b28bba94af7a08d2e0c9c2fd8e15589c345fe6c8bf09"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "奇域礼盒管理"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   2167,
+   25
+  ]
+ }
+}

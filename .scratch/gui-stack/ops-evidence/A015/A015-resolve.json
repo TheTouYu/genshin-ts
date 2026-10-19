@@ -1,0 +1,98 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "出生点"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   631,
+   535
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 765,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "出生点",
+  "object": {
+   "id": "det:105",
+   "parent": null,
+   "bbox": [
+    537.3120517730713,
+    508.9660850763321,
+    189.37589645385742,
+    54.067829847335815
+   ],
+   "kind": "chip",
+   "text": [
+    "出生点"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6318,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:caaefb0596e0838bfdb14b778765779d3ba81fb09d342ea52304e641a8ddad1f"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "出生点"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   631,
+   535
+  ]
+ }
+}

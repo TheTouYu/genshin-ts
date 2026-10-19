@@ -1,0 +1,98 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "实体布设组管理"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   183,
+   87
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 723,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "实体布设组管理",
+  "object": {
+   "id": "det:88",
+   "parent": null,
+   "bbox": [
+    126.97682285308838,
+    56.86338621377945,
+    114.04635429382324,
+    62.2732275724411
+   ],
+   "kind": "chip",
+   "text": [
+    "实体布设组管理"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7579,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:6aa65feefbd6b897facd7dffbc7b908253318410eb871f6b51091be8d698d6e0"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "实体布设组管理"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   183,
+   87
+  ]
+ }
+}

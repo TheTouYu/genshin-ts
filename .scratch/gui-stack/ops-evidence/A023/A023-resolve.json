@@ -1,0 +1,98 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "协作模式"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   872,
+   871
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 774,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "协作模式",
+  "object": {
+   "id": "det:26",
+   "parent": null,
+   "bbox": [
+    560.0,
+    850.4,
+    624.0,
+    43.200000000000045
+   ],
+   "kind": "row",
+   "text": [
+    "协作模式"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9975,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:7dd709208d26ea9b8540663402f98dc1a90342db790b63558c575d0753b68f39"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "协作模式"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   872,
+   871
+  ]
+ }
+}

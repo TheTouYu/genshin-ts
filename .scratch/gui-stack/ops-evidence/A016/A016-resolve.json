@@ -1,0 +1,99 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "序号1口"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   1111,
+   615
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 735,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "序号1口",
+  "object": {
+   "id": "det:78",
+   "parent": null,
+   "bbox": [
+    987.5892181396484,
+    562.462732553482,
+    248.82156372070312,
+    107.07453489303589
+   ],
+   "kind": "tile",
+   "text": [
+    "序号1口",
+    "出生点名称"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8378,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:701d139bcfaa3062027e6004298e99608c61e95d93e60b39faed5b41673e338c"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "序号1口"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   1111,
+   615
+  ]
+ }
+}

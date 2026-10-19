@@ -1,0 +1,98 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "阵营"
+ },
+ "status": "dry_run",
+ "ok": true,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click",
+  "at": [
+   647,
+   455
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INJECTION_BLOCKED",
+   "detail": "dry-run：已解析动作与 expect，未执行（默认）"
+  }
+ ],
+ "evidence": {
+  "dir": null,
+  "before": null,
+  "after": null,
+  "detail": null
+ },
+ "elapsed_ms": 712,
+ "resolution": {
+  "status": "resolved",
+  "channel": "text",
+  "target": "阵营",
+  "object": {
+   "id": "det:93",
+   "parent": null,
+   "bbox": [
+    625.9955863952637,
+    420.6522831916809,
+    44.008827209472656,
+    70.69543361663818
+   ],
+   "kind": "tile",
+   "text": [
+    "阵营"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6873,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:a16cd8514189e43184e4dbbfd1ad782d6b74edc03091de5aa2edbb888e20257d"
+   }
+  },
+  "candidates": 1,
+  "matched_text": "阵营"
+ },
+ "would_act": {
+  "type": "click",
+  "at": [
+   647,
+   455
+  ]
+ }
+}

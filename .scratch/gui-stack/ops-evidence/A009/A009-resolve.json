@@ -1,0 +1,52 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "46%"
+ },
+ "status": "resolve_fail",
+ "ok": false,
+ "resolved": false,
+ "injected": false,
+ "reached": null,
+ "expect": {
+  "type": "pixel_delta",
+  "region": [
+   0,
+   0,
+   2560,
+   1440
+  ],
+  "threshold_pct": 1.0,
+  "px_thr": 10.0,
+  "calibration": "ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节"
+ },
+ "expect_result": null,
+ "expect_evaluated": false,
+ "action": {
+  "type": "click"
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "TARGET_UNSTABLE",
+   "detail": "容器文本里没有全等匹配 '46%'（NFKC+去空白+casefold）；free_text 命中 0 条但**无归属容器/无坐标** ⇒ 无法定位"
+  }
+ ],
+ "evidence": {},
+ "elapsed_ms": 646,
+ "resolution": {
+  "status": "resolve_fail",
+  "channel": "text",
+  "target": "46%",
+  "detail": "容器文本里没有全等匹配 '46%'（NFKC+去空白+casefold）；free_text 命中 0 条但**无归属容器/无坐标** ⇒ 无法定位",
+  "free_text_hits": [],
+  "degraded": [
+   {
+    "code": "TARGET_UNSTABLE",
+    "detail": "容器文本里没有全等匹配 '46%'（NFKC+去空白+casefold）；free_text 命中 0 条但**无归属容器/无坐标** ⇒ 无法定位"
+   }
+  ]
+ }
+}
