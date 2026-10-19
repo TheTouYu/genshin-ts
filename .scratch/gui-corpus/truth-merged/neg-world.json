@@ -1,0 +1,16 @@
+{
+ "frame": "neg-world",
+ "image": ".scratch/gui-corpus/neg-world.png",
+ "size": [
+  1530,
+  1440
+ ],
+ "annotator": "perception(subagent) · 从 f06 右侧裁出提瓦特世界实景（x≥1030），人眼确认 0 个界面单元",
+ "criteria": "truth/_rules.md",
+ "layout": "负样本·提瓦特世界（3D 实景，无 UI）",
+ "classes": [
+  "负样本·世界帧"
+ ],
+ "units": 0,
+ "objects": []
+}

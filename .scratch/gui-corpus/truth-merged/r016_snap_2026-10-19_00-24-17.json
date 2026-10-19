@@ -1,0 +1,498 @@
+{
+ "frame": "r016_snap_2026-10-19_00-24-17",
+ "image": ".scratch/gui-corpus/inbox/norm/r016_snap_2026-10-19_00-24-17.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 逐行标注（OCR 行聚类枚举 + edges.py 量边，未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md + 本批收紧（标题/字段行也成单元）",
+ "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情",
+ "classes": [
+  "列表+详情",
+  "分区标题"
+ ],
+ "units": 18,
+ "_provenance": {
+  "family": "教程（图鉴）",
+  "method": "条目 y 由 rows_from_ocr 逐行（330/440/546/657/766/874/984 与 1164/1273）",
+  "tool_assist": "行枚举=rows_from_ocr.py；边界=edges.py；ys-screen 仅事后对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "Lead 原标注为\"编辑器·主界面\"，**实际是教程页面**（按用户要求按实际标并注明）",
+   "右侧详情面板内容未逐行（本帧 OCR 未覆盖）"
+  ]
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    60,
+    20,
+    2400,
+    90
+   ],
+   "kind": "panel",
+   "text": [
+    "教程"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    80,
+    25,
+    320,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "教程／全部"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    2050,
+    30,
+    500,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "已解锁图鉴条目：733条"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    2400,
+    20,
+    120,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    180,
+    150,
+    700,
+    60
+   ],
+   "kind": "button",
+   "text": [
+    "搜索教程…"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    140,
+    230,
+    760,
+    1200
+   ],
+   "kind": "panel",
+   "text": [
+    "教程列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左教程列表"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    156,
+    240,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "最近解锁"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    156,
+    1078,
+    300,
+    70
+   ],
+   "kind": "chip",
+   "text": [
+    "当前区域相关"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    170,
+    322,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "影域屏障与保管库"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    170,
+    432,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "应声柱与音汐海螺…"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    170,
+    538,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "元素反应： 星扩散"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    170,
+    649,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "星辉棱晶"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    170,
+    758,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "关于汐歌洞窟的应声柱…"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    170,
+    866,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "铁钱叮咚驻其足…"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    170,
+    976,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "巴窟纳瓦"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    170,
+    1156,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "臻冰造物・连索机关"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    170,
+    1265,
+    720,
+    100
+   ],
+   "kind": "row",
+   "text": [
+    "雷殛寒枝与星辉棱晶"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    940,
+    230,
+    1560,
+    1200
+   ],
+   "kind": "panel",
+   "text": [
+    "教程详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右教程详情面板"
+  }
+ ]
+}

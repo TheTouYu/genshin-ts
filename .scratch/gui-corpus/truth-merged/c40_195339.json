@@ -1,0 +1,24 @@
+{
+ "frame": "c40_195339",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/reps/c40_195339.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "负样本：整屏世界实景，0 个界面单元",
+ "classes": [
+  "负样本·世界帧"
+ ],
+ "units": 0,
+ "_provenance": {
+  "family": "提瓦特世界场景（负样本）",
+  "method": "read_image 人眼确认无任何界面控件；宿主 HUD（FPS/ms/UID/DXVK）按口径不计入",
+  "tool_assist": "几何=edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）；行标签用 OCR 文本（`label-capture/_screen/*.json`）核对，不用其 bbox",
+  "ys_screen_prior": false,
+  "uncertain": [],
+  "tool_crosscheck": "ys-screen(cv) 命中 0/0 = 100.0%（iou 0.000，fp=0，degen=0）"
+ },
+ "objects": []
+}

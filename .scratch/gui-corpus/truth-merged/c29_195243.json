@@ -1,0 +1,107 @@
+{
+ "frame": "c29_195243",
+ "image": ".scratch/gui-corpus/capture-2026-10-18/reps/c29_195243.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）",
+ "classes": [
+  "列表+详情",
+  "浮层"
+ ],
+ "units": 3,
+ "_provenance": {
+  "family": "邮箱（邮件珍藏盒·含活动提醒）",
+  "method": "与 c28_195235 同族；本帧标了浏览器/浮层关键控件（未逐条标邮件行）",
+  "tool_assist": "几何=edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）；行标签用 OCR 文本（`label-capture/_screen/*.json`）核对，不用其 bbox",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "本帧只标了浮层与顶部控件，邮件行未逐条标注（不完整：units 偏少）",
+   "活动提醒浮层内部控件未标（浮层文字 OCR 未取全）"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 0/3 = 0.0%（iou 0.000，fp=8，degen=0）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    2325,
+    70,
+    95,
+    95
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    183,
+    196,
+    1075,
+    62
+   ],
+   "kind": "button",
+   "text": [
+    "搜索标题或发件人"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    1262,
+    170,
+    1240,
+    1080
+   ],
+   "kind": "panel",
+   "text": [
+    "邮件详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧详情面板"
+  }
+ ]
+}
