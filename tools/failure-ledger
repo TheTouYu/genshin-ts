@@ -150,7 +150,7 @@ def cmd_check(a):
     """
     gates_all = read_gates()
     gates = gates_all
-    if getattr(a, 'fast', False):
+    if a.get('fast', False):
         gates = {k: v for k, v in gates_all.items() if (v.get('tier') or 'fast') != 'slow'}
     skipped = 0
     rows = load()
@@ -162,7 +162,13 @@ def cmd_check(a):
         # gate 字段支持逗号多值（实测 F-3-05 写的是 `act,slider`）：以前把整串当一个 key 查
         # ⇒ 明明两个 gate 都已登记，却报「未在 gates.tsv 登记」，账本常年红着 1 条（假红）。
         g = r.get('gate', '')
-        for one in [x.strip() for x in g.split(',') if x.strip()]:
+        _gl = [x.strip() for x in g.split(',') if x.strip()]
+        # fast 模式：这条账目的 gate 全被 tier 过滤 ⇒ 连它的 inject 用例也跳过
+        # （否则慢 gate 的注入脚本照样跑，--fast 仍要几分钟）
+        if a.get('fast', False) and _gl and all((one in gates_all and one not in gates) for one in _gl):
+            skipped += 1
+            continue
+        for one in _gl:
             if one in used_gates:
                 continue
             if one in gates_all and one not in gates:
@@ -178,6 +184,8 @@ def cmd_check(a):
             tail = (p.stdout or p.stderr).strip().splitlines()
             print('  [%s] %-16s %s' % ('PASS' if ok else 'FAIL', one, tail[-1][:80] if tail else ''))
         inj = r.get('inject', '')
+        if a.get('fast', False):
+            continue          # fast = 只验门禁可跑；注入用例（造故障）留全量
         if not inj:
             print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1
             continue
