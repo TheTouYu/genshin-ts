@@ -337,3 +337,37 @@ tools/ys-editor/ys-goto <面板名>      # 归位(结构判据) → ys-pick 算�
 
 **教训（第 N 次同族）**：诊断工具自己也会错。用「拿掉一个输入看输出变不变」这种 A/B 去验一个子系统，
 比盯着它的输出猜原因可靠得多——这次一次就分清了「覆盖率算错」和「诊断视图不准」两种完全不同的结论。
+
+## 十五、第三方复跑手册（判据④，2026-10-19 22:2x）
+
+任何人在这台机器上按下面五条命令，能**独立复现**当前覆盖率读数，不需要读本文件的其余部分：
+
+```bash
+cd /home/h/genshin-ts
+export DISPLAY=:1 XAUTHORITY=/run/user/1000/xauth_oypYEi
+
+# ① 分母（应输出 458 行 + check 全绿）
+python3 tools/ys-docops/ys_docops.py extract && python3 tools/ys-docops/ys_docops.py check
+
+# ② 覆盖率（应输出 covered / total / pct）
+tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv --require 0
+
+# ③ 逐项：哪些分母 id 已覆盖、由哪条屏上控件贡献
+tools/ys-editor/ys-ops covered --inventory .scratch/gui-stack/ops-inventory-doc.tsv
+
+# ④ 台账原始行（第 2 列是 id，第 9 列是 status，第 12 列是 note 里的读数）
+awk -F'\t' 'NR>1 && $9=="covered" {print $2, $4, $12}' .scratch/gui-stack/ops-ledger.tsv | tail -20
+
+# ⑤ 分母的未覆盖分类（哪些类目还差多少）
+python3 - <<'EOF'
+import csv, collections
+rows=list(csv.DictReader(open('.scratch/gui-stack/ops-inventory-doc.tsv'),delimiter='\t'))
+print(collections.Counter(r['kind'] for r in rows))
+EOF
+```
+
+**预期读数（2026-10-19 22:2x）**：分母 458；`coverage` = **34 / 458 = 7.42%**；`covered`（严格视图）= 27。
+
+**如果读数不同**：先看 `ops-aliases.tsv` 与 `ops-ledger.tsv` 是否被改过——这两个是覆盖率的输入，
+`ys-ops coverage` 是纯函数，同样的两个输入必然得出同样的输出（可用 ⑩ 的 A/B 法自证：
+拿掉别名表应降到 33）。
