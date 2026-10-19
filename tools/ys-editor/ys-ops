@@ -220,12 +220,35 @@ def cmd_coverage(a):
     if inv:
         # 台账 id 与分母 id 是两套编号（M01/L01/A001 vs D001）⇒ 必须按 **控件名** 对齐，
         # 否则覆盖率永远是 0（2026-10-19 实测踩到：19 行全 covered，对着分母算出来却是 0%）。
+        # 匹配分两档：**全等**（可靠）与**包含**（文档名常是长名，屏上控件名是短名，如
+        # 文档「阵营设置」vs 屏上「阵营」）。全等优先，包含兜底且要求 ≥2 字，避免单字误配。
         hit = set()
+        def _strong(r):
+            """证据要够硬才算数：帧差 ≥0.01 或发生了状态迁移。
+            为什么加这条：入口没点开时也会留下 frame_diff≈0.003 的"covered"行（实测批量里有十几条），
+            那是**噪声不是覆盖**——不滤掉会把覆盖率算虚高。"""
+            if "state:" in (r.get("effect") or ""):
+                return True
+            try:
+                for part in (r.get("reading") or "").split():
+                    if part.startswith("diff="):
+                        return float(part[5:]) >= 0.01
+            except Exception:
+                pass
+            return False
+
         for r in latest.values():
-            if r["status"] != "covered":
+            if r["status"] != "covered" or not _strong(r):
                 continue
-            for iid in inv_ctl.get(_norm(r["control"]), []):
+            c = _norm(r["control"])
+            if not c:
+                continue
+            for iid in inv_ctl.get(c, []):
                 hit.add(iid)
+            if len(c) >= 2:
+                for ic, ids in inv_ctl.items():
+                    if ic and (c in ic or ic in c) and abs(len(c) - len(ic)) <= 4:
+                        hit.update(ids)
         cov = len(hit)
         missing = sorted(set(inv) - hit)
     else:
