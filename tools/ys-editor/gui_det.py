@@ -133,6 +133,13 @@ def decode_rows(rout, src_w, src_h, res=None, thr_ctr=0.30, thr_mask=0.30,
         hcells = (min(gaps) - pitch_gap) if gaps else h_reg
         if hcells <= 0.5:
             hcells = h_reg
+        # 行距上限（2026-10-19，trainer）：行距规则只在**等距列表**上成立。世界 HUD 的行不等距
+        # （护盾条/血量/任务追踪混排），相邻峰间距被拉大 ⇒ 行框高≈真值 1.9×，IoU 卡在 0.3–0.5 全判漏。
+        # 用回归头兜底封顶：min(行距, 1.2×logh)。实测 row recall@0.5（v4 权重）：
+        #   新 val（未见界面，33 GT / 3 界面）0.061 → 0.273；旧 d2 val（密集列表，202 GT）0.500 → 0.510；
+        #   v2 线上菜单模型：新 val 0→0、旧 val 0.277→0.272（−1 行，噪声级）。
+        # 回退：删掉下面这一行即回到原行为。复算：.scratch/gui-detect/probe_row_height.py
+        hcells = min(hcells, 1.2 * h_reg)
         y0, y1 = max(0, y - 1), min(oh, y + 2)
         act = (msk[y0:y1].max(0).values > thr_mask).tolist()
         runs, i, n = [], 0, len(act)
