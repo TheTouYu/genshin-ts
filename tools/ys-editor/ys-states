@@ -24,7 +24,18 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
-WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+def _win():
+    """窗口 id 每次重开游戏都会变（实测 0x1800001 → 0x1200001），且类名搜索会命中 1×1 幽灵窗。
+    统一走 ys-win-id（按面积取最大），不再硬编码。"""
+    import subprocess as sp
+    try:
+        return sp.run([os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-win-id")],
+                      capture_output=True, text=True, timeout=15, env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":1"))).stdout.strip() or "0x1800001"
+    except Exception:
+        return "0x1800001"
+
+
+WIN = os.environ.get("YS_OPS_WIN") or _win()
 WS = os.path.join(REPO, ".scratch/gui-service/worldsvc.py")
 
 

@@ -1,0 +1,11 @@
+#!/bin/bash
+# 素材快收 启动器（桌面/应用菜单入口）——2026-10-20
+# 为什么包一层：桌面启动时环境里可能没有 DISPLAY/XAUTHORITY，
+# 且 XAUTHORITY 的文件名每次登录会变（xauth_XXXXXX），不能硬编码。
+set -u
+cd /home/h/genshin-ts || exit 1
+[ -z "${DISPLAY:-}" ] && export DISPLAY=:1
+if [ -z "${XAUTHORITY:-}" ]; then
+  for f in /run/user/$(id -u)/xauth_*; do [ -f "$f" ] && export XAUTHORITY="$f" && break; done
+fi
+exec ./tools/ys-snap --gui

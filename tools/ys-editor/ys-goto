@@ -71,8 +71,14 @@ def menu_score():
 
 
 def esc():
-    subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "8", "bash", "-c",
-                    "ydotool key 1:1 1:0"], env=env(), capture_output=True, timeout=60)
+    """按一次 ESC。**必须检查退出码**：ydotool 被 shim 拦下时返回非零，
+    不检查就会把"一次没按出去"当成"按了但没反应"（G-FOCUS-RETURN 账本条目）。"""
+    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "8", "bash", "-c",
+                        "ydotool key 1:1 1:0"], env=env(), capture_output=True, timeout=60)
+    if r.returncode != 0:
+        print(f"[ys-goto] ESC 注入失败 rc={r.returncode}: "
+              f"{(r.stderr or b'').decode('utf-8', 'replace')[:120]}", file=sys.stderr)
+    return r.returncode == 0
 
 
 def main():

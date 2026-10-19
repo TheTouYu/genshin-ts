@@ -58,9 +58,12 @@ def diff(a, b):
 
 
 def esc():
-    subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "10", "bash", "-c",
-                    "ydotool key 1:1 1:0"], env=_env(),
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    """按一次 ESC，**检查退出码**（G-FOCUS-RETURN）：注入被 shim 拦下时要能看出来，
+    否则会把"没按出去"当成"按了没反应"。"""
+    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "10", "bash", "-c",
+                        "ydotool key 1:1 1:0"], env=_env(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    return r.returncode == 0
 
 
 def look_objects():

@@ -65,20 +65,30 @@ def g_pkill():
     """G-PKILL：`pkill -f <串>` 会匹配到发起它的 shell 自身（账本 F-2-06 / F-20261019-35）。"""
     bad = []
     for f in files_under(TOOLS):
-        if os.path.abspath(f) == os.path.abspath(__file__) or "/tests/" in f:
+        # ys-kill 是这条规则的**合法出口**，它的文档里必然写着反例原文 ⇒ 豁免（否则规则会报自己）
+        if (os.path.abspath(f) == os.path.abspath(__file__) or "/tests/" in f
+                or os.path.basename(f) == "ys-kill"):
             continue
         for i, line in enumerate(read(f).splitlines(), 1):
             st = line.strip()
             if st.startswith("#") or st.startswith("print(") or st.startswith('\"\"\"'):
                 continue
             m = re.search(r"pkill\s+-f\s+['\"]?([^'\";|]+)", line)
-            if not m:
+            if m:
+                pat = m.group(1)
+                if "[" in pat or "]" in pat:     # 已用字符类断开自匹配（ys_capture[.]py）
+                    continue
+                bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:90]}")
                 continue
-            pat = m.group(1)
-            if "[" in pat or "]" in pat:     # 已用字符类断开自匹配（ys_capture[.]py）
-                continue
-            bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:90]}")
-    return (not bad), bad[:8], "用字符类断开自匹配（`ys_capture[.]py`），或先 pgrep 再按 pid 杀"
+            # 同族：`kill $(pgrep -f X)` / `pgrep -f X | xargs kill` —— 2026-10-20 实测
+            # 我连续三次被这一族杀掉（连 `for p in $(pgrep -f "ys-snap --gui")` 也算）。
+            if re.search(r"pgrep\s+-f", line) and re.search(r"\bkill\b|xargs", line):
+                mm = re.search(r"pgrep\s+-f\s+['\"]?([^'\"|)]+)", line)
+                pat = mm.group(1) if mm else ""
+                if "[" in pat or "]" in pat:
+                    continue
+                bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:90]}")
+    return (not bad), bad[:8], "用 tools/ys-editor/ys-kill（自动排除自身与祖先进程）；手写时用字符类断开自匹配（`ys_capture[.]py`）"
 
 
 def g_idx_window():

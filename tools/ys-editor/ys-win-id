@@ -1,0 +1,23 @@
+#!/bin/bash
+# ys-win-id —— 打印当前原神窗口 id（16 进制），2026-10-20 建
+#
+# 为什么必须有它：**窗口 id 每次重开游戏都会变**（实测 0x1800001 → 0x1200001），
+# 而类名搜索会同时命中主窗 + 两个 1×1 幽灵窗（Default IME 等）。
+# 判据：按窗口面积取最大者——1×1 幽灵窗永远不会赢。
+# 用法：ys-win-id            → 0x1200001
+#       ys-win-id --dec      → 18874369
+set -u
+export DISPLAY="${DISPLAY:-:1}"
+if [ -z "${XAUTHORITY:-}" ] && [ -f /run/user/1000/xauth_oypYEi ]; then
+  export XAUTHORITY=/run/user/1000/xauth_oypYEi
+fi
+best=""; bestarea=0
+for w in $(xdotool search --class yuanshen 2>/dev/null); do
+  geom=$(xdotool getwindowgeometry "$w" 2>/dev/null | grep Geometry | awk '{print $2}')
+  wh=${geom#*x}; wi=${geom%x*}
+  [ -z "$wi" ] && continue
+  area=$((wi * wh))
+  if [ "$area" -gt "$bestarea" ]; then bestarea=$area; best="$w"; fi
+done
+[ -z "$best" ] && { echo "no yuanhen window" >&2; exit 3; }
+if [ "${1:-}" = "--dec" ]; then echo "$best"; else printf '0x%x\n' "$best"; fi
