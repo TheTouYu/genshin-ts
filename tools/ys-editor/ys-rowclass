@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""ys-rowclass —— 把一屏编辑器的行逐行分类（setting / description / nav / section）
+"""ys-rowclass —— 把一屏编辑器的行逐行分类（setting / description / nav），并把「值」归并到标签行
 
-为什么需要（round 10 的教训）：分母里混着大量「问号图标 + 说明文字」的行，
-它们名字看起来像开关（「是否启用全额绽放伤害」），界面上却不可操作。
+为什么需要（round 10 教训）：分母混着大量「问号图标 + 说明文字」的行，名字像开关却不可操作。
 不先分类就点，只会在这些行上反复得到 region_diff=0.0，然后把 failed 当参数去调。
 
-做法：**只看一帧**，不点击。
-  ① 全帧 OCR 拿所有文字行（ys_ocr 的 boxes 键）
-  ② 每行取「标签右边缘到面板右沿」的条带，算亮度 stdev / range
-  ③ 分类：
-     · x_center < 750           → nav（左栏导航项，不值区）
-     · stdev>=6 且 range>=60    → setting（右侧有控件样元素）
-     · 其它                      → description（说明行/分区标题，右侧是纯背景）
+为什么要把值归并（round 11 教训）：值文本（100×100×100 / 编辑 / 查看 / 暂无）本身是**独立 OCR 框**，
+右侧没有东西 ⇒ 单独判会全变 description；而且**值框的位置就是控件的位置**——点它才对。
+
+做法（只看一帧，不点击）：
+  ① OCR 全部文字框（ys_ocr 的 **boxes** 键）
+  ② 按 y 聚成"行"；行内最左的是标签，标签右侧的是值
+  ③ 值区 = 标签右边缘 → 面板右沿；算亮度 stdev / range
+  ④ 分类：x<750 → nav；stdev>=6 且 range>=60 → setting；否则 description
 
 用法：ys-rowclass [--frame x.png] [--path "关卡设置 > 基础"] [--json out.json] [--tsv out.tsv]
 """
@@ -26,8 +26,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
 LEDGER = os.path.join(REPO, ".scratch/gui-stack/rows-classified.tsv")
-PANEL_RIGHT = 1900          # 属性面板内容右沿（实测值区控件在 x≈1800-1885）
-NAV_X = 750                 # 左栏导航的 x 上界
+PANEL_RIGHT = 1900
+NAV_X = 750
 
 
 def grab(out):
@@ -41,11 +41,10 @@ def ocr(png):
     r = subprocess.run([sys.executable, os.path.join(HERE, "ys_ocr.py"), "ocr", png, "--json"],
                        capture_output=True, text=True, timeout=240)
     d = json.loads(r.stdout or "[]")
-    # ys_ocr 用 **boxes** 键（按 items/results 取会稳定拿到空列表——round 7 踩过）
     return d if isinstance(d, list) else (d.get("boxes") or [])
 
 
-def strip_stats(png, x0, y0, x1, y1):
+def stats(png, x0, y0, x1, y1):
     from PIL import Image
     im = Image.open(png).convert("L").crop((int(x0), int(y0), int(x1), int(y1)))
     px = list(im.getdata())
@@ -68,43 +67,62 @@ def main():
         return 2
     boxes = ocr(png)
     if not boxes:
-        print("[ys-rowclass] OCR 没读到任何文字（先查 boxes 键与引擎）", file=sys.stderr)
+        print("[ys-rowclass] OCR 没读到文字（先查 boxes 键与引擎）", file=sys.stderr)
         return 2
 
-    rows = []
+    items = []
     for b in boxes:
         t = (b.get("text") or "").strip()
         if not t or b.get("score", 0) < 0.75:
             continue
-        cx, cy = b["cx"], b["cy"]
-        xs = [p[0] for p in b["box"]]; ys = [p[1] for p in b["box"]]
-        x0, x1 = min(xs), max(xs); y0, y1 = min(ys), max(ys)
-        vx = int(x1 + 10)
+        xs = [p[0] for p in b["box"]]
+        ys = [p[1] for p in b["box"]]
+        items.append({"t": t, "cx": b["cx"], "cy": b["cy"],
+                      "x0": min(xs), "x1": max(xs), "y0": min(ys), "y1": max(ys)})
+    items.sort(key=lambda r: (r["cy"], r["x0"]))
+
+    lines = []
+    for it in items:
+        if lines and abs(lines[-1]["cy"] - it["cy"]) <= 12:
+            lines[-1]["parts"].append(it)
+        else:
+            lines.append({"cy": it["cy"], "parts": [it]})
+
+    rows = []
+    for ln in lines:
+        parts = sorted(ln["parts"], key=lambda r: r["x0"])
+        label = parts[0]
+        vals = [q for q in parts[1:] if q["x0"] > label["x1"] + 8]
+        value = vals[-1] if vals else None
+        vx = int(label["x1"] + 10)
         vw = max(60, min(PANEL_RIGHT - vx, 800))
-        sd, rng = strip_stats(png, vx, y0 - 4, vx + vw, y1 + 4) if vw > 60 else (0.0, 0)
-        if cx < NAV_X:
+        sd, rng = stats(png, vx, label["y0"] - 4, vx + vw, label["y1"] + 4)
+        if label["cx"] < NAV_X:
             cls = "nav"
         elif sd >= 6.0 and rng >= 60:
             cls = "setting"
         else:
             cls = "description"
-        rows.append({"text": t, "cx": round(cx), "cy": round(cy),
-                     "x0": round(x0), "x1": round(x1), "stdev": sd, "range": rng,
-                     "class": cls, "value_region": [vx, round(y0 - 4), vw, round(y1 - y0 + 8)]})
+        rows.append({"text": label["t"], "cx": round(label["cx"]), "cy": round(label["cy"]),
+                     "stdev": sd, "range": rng, "class": cls,
+                     "value_text": value["t"] if value else None,
+                     "value_at": [round(value["cx"]), round(value["cy"])] if value else None,
+                     "value_region": [vx, round(label["y0"] - 4), vw, round(label["y1"] - label["y0"] + 8)]})
 
     if a.json:
         json.dump(rows, open(a.json, "w"), ensure_ascii=False, indent=1)
     for r in rows:
-        print(f"{r['class']:12s} x={r['cx']:5d} y={r['cy']:5d} sd={r['stdev']:6.2f} rng={r['range']:4d}  {r['text'][:24]}")
-
+        v = f"  [{r['value_text']}]" if r["value_text"] else ""
+        print(f"{r['class']:12s} x={r['cx']:5d} y={r['cy']:5d} sd={r['stdev']:6.2f} rng={r['range']:4d}"
+              f"  {r['text'][:22]}{v}")
     if a.tsv:
         new = not os.path.exists(a.tsv)
         with open(a.tsv, "a", encoding="utf-8") as f:
             if new:
-                f.write("path\ttext\tcx\tcy\tstdev\trange\tclass\tframe\n")
+                f.write("path\ttext\tcx\tcy\tstdev\trange\tclass\tvalue_text\tframe\n")
             for r in rows:
-                f.write("\t".join(str(v) for v in (a.path, r["text"], r["cx"], r["cy"],
-                                                   r["stdev"], r["range"], r["class"], png)) + "\n")
+                f.write("\t".join(str(v) for v in (a.path, r["text"], r["cx"], r["cy"], r["stdev"],
+                                                   r["range"], r["class"], r["value_text"] or "", png)) + "\n")
     return 0
 
 
