@@ -1,0 +1,898 @@
+{
+ "frame": "r009_snap_2026-10-19_00-23-32",
+ "image": ".scratch/gui-corpus/truth-v9-fixed/r009_snap_2026-10-19_00-23-32.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · v9 预测修正：实测模板+OCR 锚点，逐框改/删/补",
+ "criteria": "gui-annotation R1–R10 + .scratch/gui-corpus/truth/_rules.md",
+ "layout": "任务界面：顶栏 + 左任务列表（8 项）+ 右详情（名/地点/目标/描述/奖励）+ 底部两钮",
+ "classes": [
+  "任务列表",
+  "任务详情",
+  "奖励图标",
+  "录制 HUD"
+ ],
+ "review": "auto",
+ "units": 33,
+ "objects": [
+  {
+   "id": "0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    112
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏整条（R7）"
+  },
+  {
+   "id": "1",
+   "parent": "0",
+   "bbox": [
+    176,
+    28,
+    150,
+    66
+   ],
+   "kind": "row",
+   "text": [
+    "进行中"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "页标题"
+  },
+  {
+   "id": "2",
+   "parent": "0",
+   "bbox": [
+    884,
+    30,
+    70,
+    62
+   ],
+   "kind": "button",
+   "text": [
+    "Q"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "键位 Q"
+  },
+  {
+   "id": "3",
+   "parent": "0",
+   "bbox": [
+    1096,
+    14,
+    110,
+    100
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏页签 1（高亮）"
+  },
+  {
+   "id": "4",
+   "parent": "0",
+   "bbox": [
+    1450,
+    30,
+    70,
+    62
+   ],
+   "kind": "button",
+   "text": [
+    "E"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "键位 E"
+  },
+  {
+   "id": "5",
+   "parent": "0",
+   "bbox": [
+    2416,
+    26,
+    84,
+    76
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": "6",
+   "parent": null,
+   "bbox": [
+    196,
+    140,
+    824,
+    1150
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务列表区（9 项并集 ±10，R7）"
+  },
+  {
+   "id": "7",
+   "parent": "6",
+   "bbox": [
+    236,
+    164,
+    190,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "世界任务"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "分组标题"
+  },
+  {
+   "id": "8",
+   "parent": "6",
+   "bbox": [
+    245,
+    240,
+    450,
+    70
+   ],
+   "kind": "card",
+   "text": [
+    "风仙亦是仙，古剑通幽玄!"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "9",
+   "parent": "6",
+   "bbox": [
+    245,
+    372,
+    320,
+    70
+   ],
+   "kind": "card",
+   "text": [
+    "胜过白银与精金"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "10",
+   "parent": "6",
+   "bbox": [
+    232,
+    492,
+    780,
+    112
+   ],
+   "kind": "card",
+   "text": [
+    "忘忧灯塔"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "11",
+   "parent": "6",
+   "bbox": [
+    240,
+    646,
+    300,
+    70
+   ],
+   "kind": "card",
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "12",
+   "parent": "6",
+   "bbox": [
+    232,
+    768,
+    780,
+    112
+   ],
+   "kind": "card",
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "13",
+   "parent": "6",
+   "bbox": [
+    245,
+    922,
+    350,
+    70
+   ],
+   "kind": "card",
+   "text": [
+    "卑劣者的穷街陋巷"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "14",
+   "parent": "6",
+   "bbox": [
+    232,
+    1044,
+    780,
+    112
+   ],
+   "kind": "card",
+   "text": [
+    "烧去仓房与马棚"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "15",
+   "parent": "6",
+   "bbox": [
+    222,
+    1184,
+    780,
+    100
+   ],
+   "kind": "card",
+   "text": [
+    "曙光的一缕"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务卡/行（OCR 文本锚点 ±皮肤）"
+  },
+  {
+   "id": "16",
+   "parent": null,
+   "bbox": [
+    1040,
+    130,
+    1400,
+    1180
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务详情区（R7）"
+  },
+  {
+   "id": "17",
+   "parent": "16",
+   "bbox": [
+    1150,
+    146,
+    250,
+    80
+   ],
+   "kind": "row",
+   "text": [
+    "盗亦无道"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "任务名"
+  },
+  {
+   "id": "18",
+   "parent": "16",
+   "bbox": [
+    1158,
+    218,
+    340,
+    56
+   ],
+   "kind": "row",
+   "text": [
+    "挪德卡莱 苔骨荒原"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地点行"
+  },
+  {
+   "id": "19",
+   "parent": "16",
+   "bbox": [
+    1170,
+    320,
+    1200,
+    70
+   ],
+   "kind": "row",
+   "text": [
+    "击败所有敌人",
+    "(0/4)"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "目标行（R8：整行到右端计数）"
+  },
+  {
+   "id": "20",
+   "parent": "16",
+   "bbox": [
+    1160,
+    402,
+    1170,
+    60
+   ],
+   "kind": "row",
+   "text": [
+    "一群盗宝团成员在野外扎营，意图盗夺宝物。清理这片区域"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "描述行"
+  },
+  {
+   "id": "21",
+   "parent": "16",
+   "bbox": [
+    1150,
+    1032,
+    480,
+    66
+   ],
+   "kind": "row",
+   "text": [
+    "今日委托奖励已达到领取上限"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励提示行"
+  },
+  {
+   "id": "22",
+   "parent": "16",
+   "bbox": [
+    1180,
+    1178,
+    700,
+    92
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "委托奖励 5 件（并集）"
+  },
+  {
+   "id": "23",
+   "parent": "22",
+   "bbox": [
+    1190,
+    1184,
+    110,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励图标 1/5"
+  },
+  {
+   "id": "24",
+   "parent": "22",
+   "bbox": [
+    1322,
+    1184,
+    110,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励图标 2/5"
+  },
+  {
+   "id": "25",
+   "parent": "22",
+   "bbox": [
+    1454,
+    1184,
+    110,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励图标 3/5"
+  },
+  {
+   "id": "26",
+   "parent": "22",
+   "bbox": [
+    1586,
+    1184,
+    110,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励图标 4/5"
+  },
+  {
+   "id": "27",
+   "parent": "22",
+   "bbox": [
+    1718,
+    1184,
+    110,
+    80
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励图标 5/5"
+  },
+  {
+   "id": "28",
+   "parent": null,
+   "bbox": [
+    126,
+    1308,
+    380,
+    84
+   ],
+   "kind": "button",
+   "text": [
+    "任务总览"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左下主按钮（R4 边缘带）"
+  },
+  {
+   "id": "29",
+   "parent": null,
+   "bbox": [
+    1996,
+    1310,
+    480,
+    78
+   ],
+   "kind": "button",
+   "text": [
+    "追踪目标"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右下主按钮（R1 按右沿）"
+  },
+  {
+   "id": "30",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    128,
+    96
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "31",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "32",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  }
+ ],
+ "_provenance": {
+  "layout": "任务界面：顶栏 + 左任务列表（8 项）+ 右详情（名/地点/目标/描述/奖励）+ 底部两钮",
+  "classes": [
+   "任务列表",
+   "任务详情",
+   "奖励图标",
+   "录制 HUD"
+  ],
+  "fixed": {
+   "from_pred": 34,
+   "to": 33
+  }
+ }
+}

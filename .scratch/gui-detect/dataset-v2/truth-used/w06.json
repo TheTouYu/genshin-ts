@@ -1,0 +1,1060 @@
+{
+ "frame": "w06",
+ "image": ".scratch/gui-collect/world/frames/w06.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception · 世界 HUD glyph_icon 标注（几何取自 w01 独立测量；同一界面 8 帧 jitter ≤3px ⇒ 共享）",
+ "criteria": ".agents/skills/gui-annotation + CALIBER-v2.md",
+ "units": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    140,
+    8,
+    200,
+    200
+   ],
+   "kind": "panel",
+   "label": "小地图",
+   "clickable": "yes"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    18,
+    128,
+    82,
+    92
+   ],
+   "kind": "glyph_icon",
+   "label": "派蒙菜单（左上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    22,
+    232,
+    48,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "元素视野/任务提示",
+   "clickable": "yes"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    136,
+    126,
+    28,
+    54
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图侧挂图标 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    184,
+    136,
+    60,
+    50
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图内任务标记",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    302,
+    92,
+    44,
+    48
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图右侧图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    52,
+    234,
+    63,
+    68
+   ],
+   "kind": "glyph_icon",
+   "label": "左侧竖排图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    345,
+    22,
+    62,
+    62
+   ],
+   "kind": "glyph_icon",
+   "label": "元素/天气（上中左）",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    452,
+    20,
+    66,
+    64
+   ],
+   "kind": "glyph_icon",
+   "label": "上中右图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    556,
+    18,
+    70,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "活动警示（红点）",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1772,
+    22,
+    88,
+    82
+   ],
+   "kind": "glyph_icon",
+   "label": "时钟/日程（右上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1855,
+    12,
+    36,
+    36
+   ],
+   "kind": "glyph_icon",
+   "label": "红点角标",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1891,
+    26,
+    59,
+    70
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1996,
+    22,
+    82,
+    80
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2106,
+    32,
+    64,
+    64
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 4",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2160,
+    22,
+    26,
+    26
+   ],
+   "kind": "glyph_icon",
+   "label": "右上小指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2206,
+    11,
+    88,
+    90
+   ],
+   "kind": "glyph_icon",
+   "label": "网络/延迟指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    2378,
+    458,
+    74,
+    74
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 1/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2378,
+    586,
+    74,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 2/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    2378,
+    686,
+    74,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 3/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    2496,
+    470,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2496,
+    596,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    2496,
+    696,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    2380,
+    1072,
+    72,
+    72
+   ],
+   "kind": "glyph_icon",
+   "label": "元素战技 Z",
+   "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1948,
+    1306,
+    64,
+    58
+   ],
+   "kind": "glyph_icon",
+   "label": "T 键位",
+   "clickable": "yes"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    2196,
+    1306,
+    74,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "E 键位（交互）",
+   "clickable": "yes"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    2388,
+    1306,
+    74,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "Q 键位（爆发）",
+   "clickable": "yes"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1010,
+    1303,
+    325,
+    20
+   ],
+   "kind": "glyph_icon",
+   "label": "元素能量/护盾条",
+   "clickable": "yes"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    1030,
+    1322,
+    305,
+    26
+   ],
+   "kind": "glyph_icon",
+   "label": "生命值条（绿）",
+   "clickable": "yes"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    975,
+    1320,
+    70,
+    30
+   ],
+   "kind": "glyph_icon",
+   "label": "等级 Lv.80",
+   "clickable": "yes"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    1300,
+    1288,
+    60,
+    24
+   ],
+   "kind": "glyph_icon",
+   "label": "护盾 0%",
+   "clickable": "yes"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    1185,
+    1324,
+    195,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "生命值数值 13557/38734",
+   "clickable": "yes"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    2255,
+    328,
+    110,
+    54
+   ],
+   "kind": "row",
+   "label": "队伍成员名 1（奥黛塔）",
+   "clickable": "yes"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    2250,
+    453,
+    110,
+    48
+   ],
+   "kind": "row",
+   "label": "队伍成员名 2（阿罗夏）",
+   "clickable": "yes"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    2188,
+    584,
+    140,
+    50
+   ],
+   "kind": "row",
+   "label": "队伍成员名 3（沃雅妮莎）",
+   "clickable": "yes"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    2280,
+    696,
+    84,
+    50
+   ],
+   "kind": "row",
+   "label": "队伍成员名 4（透雨）",
+   "clickable": "yes"
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    1608,
+    588,
+    120,
+    64
+   ],
+   "kind": "button",
+   "label": "交互提示-进入",
+   "clickable": "yes"
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    1608,
+    682,
+    120,
+    66
+   ],
+   "kind": "button",
+   "label": "交互提示-称赞",
+   "clickable": "yes"
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    1615,
+    778,
+    235,
+    68
+   ],
+   "kind": "row",
+   "label": "任务追踪文本（荒坠的圣迹）",
+   "clickable": "no"
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    1603,
+    316,
+    774,
+    542
+   ],
+   "kind": "panel",
+   "label": "区域:list(5 成员)",
+   "clickable": "no"
+  }
+ ],
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    140,
+    8,
+    200,
+    200
+   ],
+   "kind": "panel",
+   "label": "小地图",
+   "clickable": "yes"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    18,
+    128,
+    82,
+    92
+   ],
+   "kind": "glyph_icon",
+   "label": "派蒙菜单（左上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    22,
+    232,
+    48,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "元素视野/任务提示",
+   "clickable": "yes"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    136,
+    126,
+    28,
+    54
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图侧挂图标 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    184,
+    136,
+    60,
+    50
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图内任务标记",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    302,
+    92,
+    44,
+    48
+   ],
+   "kind": "glyph_icon",
+   "label": "小地图右侧图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    52,
+    234,
+    63,
+    68
+   ],
+   "kind": "glyph_icon",
+   "label": "左侧竖排图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    345,
+    22,
+    62,
+    62
+   ],
+   "kind": "glyph_icon",
+   "label": "元素/天气（上中左）",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    452,
+    20,
+    66,
+    64
+   ],
+   "kind": "glyph_icon",
+   "label": "上中右图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    556,
+    18,
+    70,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "活动警示（红点）",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1772,
+    22,
+    88,
+    82
+   ],
+   "kind": "glyph_icon",
+   "label": "时钟/日程（右上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1855,
+    12,
+    36,
+    36
+   ],
+   "kind": "glyph_icon",
+   "label": "红点角标",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1891,
+    26,
+    59,
+    70
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1996,
+    22,
+    82,
+    80
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2106,
+    32,
+    64,
+    64
+   ],
+   "kind": "glyph_icon",
+   "label": "右上图标 4",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2160,
+    22,
+    26,
+    26
+   ],
+   "kind": "glyph_icon",
+   "label": "右上小指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2206,
+    11,
+    88,
+    90
+   ],
+   "kind": "glyph_icon",
+   "label": "网络/延迟指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    2378,
+    458,
+    74,
+    74
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 1/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2378,
+    586,
+    74,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 2/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    2378,
+    686,
+    74,
+    66
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍头像 3/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    2496,
+    470,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2496,
+    596,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    2496,
+    696,
+    34,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "队伍编号 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    2380,
+    1072,
+    72,
+    72
+   ],
+   "kind": "glyph_icon",
+   "label": "元素战技 Z",
+   "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1948,
+    1306,
+    64,
+    58
+   ],
+   "kind": "glyph_icon",
+   "label": "T 键位",
+   "clickable": "yes"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    2196,
+    1306,
+    74,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "E 键位（交互）",
+   "clickable": "yes"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    2388,
+    1306,
+    74,
+    60
+   ],
+   "kind": "glyph_icon",
+   "label": "Q 键位（爆发）",
+   "clickable": "yes"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1010,
+    1303,
+    325,
+    20
+   ],
+   "kind": "glyph_icon",
+   "label": "元素能量/护盾条",
+   "clickable": "yes"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    1030,
+    1322,
+    305,
+    26
+   ],
+   "kind": "glyph_icon",
+   "label": "生命值条（绿）",
+   "clickable": "yes"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    975,
+    1320,
+    70,
+    30
+   ],
+   "kind": "glyph_icon",
+   "label": "等级 Lv.80",
+   "clickable": "yes"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    1300,
+    1288,
+    60,
+    24
+   ],
+   "kind": "glyph_icon",
+   "label": "护盾 0%",
+   "clickable": "yes"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    1185,
+    1324,
+    195,
+    40
+   ],
+   "kind": "glyph_icon",
+   "label": "生命值数值 13557/38734",
+   "clickable": "yes"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    2255,
+    328,
+    110,
+    54
+   ],
+   "kind": "row",
+   "label": "队伍成员名 1（奥黛塔）",
+   "clickable": "yes"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    2250,
+    453,
+    110,
+    48
+   ],
+   "kind": "row",
+   "label": "队伍成员名 2（阿罗夏）",
+   "clickable": "yes"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    2188,
+    584,
+    140,
+    50
+   ],
+   "kind": "row",
+   "label": "队伍成员名 3（沃雅妮莎）",
+   "clickable": "yes"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    2280,
+    696,
+    84,
+    50
+   ],
+   "kind": "row",
+   "label": "队伍成员名 4（透雨）",
+   "clickable": "yes"
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    1608,
+    588,
+    120,
+    64
+   ],
+   "kind": "button",
+   "label": "交互提示-进入",
+   "clickable": "yes"
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    1608,
+    682,
+    120,
+    66
+   ],
+   "kind": "button",
+   "label": "交互提示-称赞",
+   "clickable": "yes"
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    1615,
+    778,
+    235,
+    68
+   ],
+   "kind": "row",
+   "label": "任务追踪文本（荒坠的圣迹）",
+   "clickable": "no"
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    1603,
+    316,
+    774,
+    542
+   ],
+   "kind": "panel",
+   "label": "区域:list(5 成员)",
+   "clickable": "no"
+  }
+ ],
+ "_provenance": {
+  "family": "世界 HUD（冰窟）",
+  "geometry_from": "w01",
+  "glyph_icon_count": 31,
+  "added_after_audit": "队伍成员名 4 条 + 交互提示 2 条（audit 未覆盖补齐）"
+ }
+}

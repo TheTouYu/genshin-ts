@@ -1,0 +1,671 @@
+{
+ "frame": "c32_195258",
+ "image": ".scratch/gui-corpus/truth-v2/c32_195258.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "邮件珍藏盒（列表 + 详情两栏）",
+ "classes": [
+  "列表+详情",
+  "半透明卡",
+  "新角标"
+ ],
+ "units": 22,
+ "_provenance": {
+  "method": "edges.py 竖直扫描 x=950 定 7 行邮件（行高 150、pitch 147..157）；搜索框由 y=255 横扫描定右沿 1257",
+  "tool_assist": "仅 read_image 判身份；几何全部来自 edges.py / remeasure_grid.py / boxer.py（本仓自写，前提与 ys-screen 的 Lab 平坦皮肤检测无关）",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "两个翻页箭头（‹ ›）位置按可见像素估，±20px",
+   "右上「收藏/归档」图标语义未定（可能是收藏夹入口）",
+   "第 7 行（定香…）被屏底裁切，下沿不可判"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 7/17=41.2%（**7 个邮件行全中**，iou 0.769）。漏：搜索框、两个翻页箭头、右侧详情面板、2 个附件图标、删除/收藏按钮",
+  "qc_2026_10_19": {
+   "by": "fix9.py（成员并集派生区域 + 四角 + 行沿吸附 + IoU≥0.98 去重）",
+   "units_before": 17,
+   "units_after": 21,
+   "geo_fixed": [],
+   "regions_added": [
+    "id=17 [177, 264, 1063, 1125] QC 补区域：竖列 7 项成员并集 ±10px（7 项，占比 32.4%）"
+   ],
+   "corners_added": [
+    "id=18 [0, 0, 128, 96]",
+    "id=19 [0, 1292, 300, 34]",
+    "id=20 [2250, 1395, 260, 45]"
+   ],
+   "dedup_removed": [],
+   "rows_snapped": [],
+   "pass3_added": [
+    "id=21 [1195, 138, 170, 50] 339/1000"
+   ]
+  }
+ },
+ "objects": [
+  {
+   "id": "18",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    128,
+    96
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2370,
+    18,
+    95,
+    80
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上收藏/归档"
+  },
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    2325,
+    70,
+    95,
+    95
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": "21",
+   "parent": null,
+   "bbox": [
+    1195,
+    138,
+    170,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "339/1000"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "列表头邮件数（OCR 1211..1347 × 146..177）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    246,
+    186,
+    44,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "‹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "列表上一页箭头"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    1212,
+    186,
+    44,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "›"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "列表下一页箭头"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1262,
+    196,
+    1240,
+    1055
+   ],
+   "kind": "panel",
+   "text": [
+    "启发… 详情"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧详情面板"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    183,
+    222,
+    1075,
+    62
+   ],
+   "kind": "button",
+   "text": [
+    "搜索标题或发件人"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "搜索输入框（点进去可打字）"
+  },
+  {
+   "id": "17",
+   "parent": null,
+   "bbox": [
+    177,
+    264,
+    1063,
+    1125
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补区域：竖列 7 项成员并集 ±10px（7 项，占比 32.4%）",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    187,
+    274,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "启发…",
+    "辛焱"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    187,
+    447,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "祝他成功。",
+    "欧洛伦"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "new",
+     "bbox": [
+      1150,
+      507,
+      60,
+      44
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    187,
+    602,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "舞台…",
+    "芙宁娜"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "new",
+     "bbox": [
+      1150,
+      662,
+      60,
+      44
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    187,
+    758,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "行到闲处…",
+    "行秋"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "new",
+     "bbox": [
+      1150,
+      818,
+      60,
+      44
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    187,
+    915,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "礼物…",
+    "尼可"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    187,
+    1072,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "读书的收获…",
+    "菲米尼"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2372,
+    1138,
+    96,
+    96
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "删除（垃圾桶）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1330,
+    1140,
+    150,
+    130
+   ],
+   "kind": "icon",
+   "text": [
+    "10"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "附件奖励 1"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    1495,
+    1140,
+    150,
+    130
+   ],
+   "kind": "icon",
+   "text": [
+    "1"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "附件奖励 2"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    187,
+    1229,
+    1043,
+    150
+   ],
+   "kind": "row",
+   "text": [
+    "定香…",
+    "艾海莉埃"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 60
+   },
+   "note": "邮件条目（图标+标题+发件人）"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2448,
+    1290,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "收藏/标星"
+  },
+  {
+   "id": "19",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  },
+  {
+   "id": "20",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "QC 补四角（R4/R10）：录制 HUD/角件，非游戏 UI",
+   "qc_added": "2026-10-19-v8game"
+  }
+ ]
+}

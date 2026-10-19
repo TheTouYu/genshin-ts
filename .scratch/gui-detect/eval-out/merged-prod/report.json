@@ -1,0 +1,2644 @@
+{
+ "meta": {
+  "tag": "scoped-nms",
+  "preset": "merged",
+  "channel": "prod",
+  "dirs": [
+   ".scratch/gui-corpus/truth-merged"
+  ],
+  "n_frames": 73,
+  "dropped_no_image": 0,
+  "cmd": [
+   "/usr/sbin/python3",
+   ".scratch/gui-detect/eval_v2.py",
+   "--preset",
+   "merged",
+   "--channel",
+   "prod",
+   "--multi-dir",
+   ".scratch/gui-collect/menu",
+   "--multi-dir",
+   ".scratch/gui-collect/world",
+   "--out",
+   ".scratch/gui-detect/eval-out/merged-prod",
+   "--tag",
+   "scoped-nms"
+  ],
+  "time": "2026-10-19 17:24:19"
+ },
+ "audit": {
+  "c03_194915": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 32
+  },
+  "c12_195108": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 34
+  },
+  "c18_195129": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 26
+  },
+  "c19_195135": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 25
+  },
+  "c22_195158": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c24_195206": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c25_195214": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c28_195235": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 23
+  },
+  "c29_195243": {
+   "uncovered": 26,
+   "ocr": "manifest",
+   "units": 3
+  },
+  "c32_195258": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 22
+  },
+  "c34_195311": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 24
+  },
+  "c36_195316": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 29
+  },
+  "c37_195331": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c40_195339": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c41_195439": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 37
+  },
+  "c42_195441": {
+   "uncovered": 15,
+   "ocr": "manifest",
+   "units": 39
+  },
+  "r003_snap_2026-10-19_00-17-26": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 51
+  },
+  "r004_snap_2026-10-19_00-20-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 43
+  },
+  "r006_snap_2026-10-19_00-22-19": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 35
+  },
+  "r007_snap_2026-10-19_00-22-25": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 30
+  },
+  "r008_snap_2026-10-19_00-23-27": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "r009_snap_2026-10-19_00-23-32": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r013_snap_2026-10-19_00-23-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r016_snap_2026-10-19_00-24-17": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 18
+  },
+  "r019_snap_2026-10-19_00-24-44": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 72
+  },
+  "r021_snap_2026-10-19_00-24-58": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 46
+  },
+  "r022_snap_2026-10-19_00-25-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 45
+  },
+  "r023_snap_2026-10-19_00-25-15": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "r024_snap_2026-10-19_00-25-30": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "r026_snap_2026-10-19_00-27-05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 44
+  },
+  "r028_snap_2026-10-19_00-27-49": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 117
+  },
+  "r032_snap_2026-10-19_00-30-42": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 129
+  },
+  "r034_snap_2026-10-19_00-31-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 128
+  },
+  "r040_snap_2026-10-19_00-36-18": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 97
+  },
+  "r041_snap_2026-10-19_00-36-21": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 74
+  },
+  "r044_snap_2026-10-19_00-37-57": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 75
+  },
+  "r045_snap_2026-10-19_00-38-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 88
+  },
+  "r047_snap_2026-10-19_00-39-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 57
+  },
+  "v060_0461": {
+   "uncovered": 2,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v078_0487": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "v088_0513": {
+   "uncovered": 4,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v101_0529": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 19
+  },
+  "w01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w02": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w07": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "m01": {
+   "uncovered": 0,
+   "ocr": 41,
+   "units": 41
+  },
+  "m02": {
+   "uncovered": 0,
+   "ocr": 39,
+   "units": 41
+  },
+  "m03": {
+   "uncovered": 0,
+   "ocr": 40,
+   "units": 41
+  },
+  "m04": {
+   "uncovered": 0,
+   "ocr": 40,
+   "units": 41
+  },
+  "m05": {
+   "uncovered": 0,
+   "ocr": 38,
+   "units": 41
+  },
+  "m06": {
+   "uncovered": 0,
+   "ocr": 38,
+   "units": 41
+  },
+  "m07": {
+   "uncovered": 0,
+   "ocr": 39,
+   "units": 41
+  },
+  "m08": {
+   "uncovered": 0,
+   "ocr": 38,
+   "units": 41
+  }
+ },
+ "frames": [
+  {
+   "stem": "c03_194915",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "好友列表（7 行 + 每行动作按钮 + 私聊气泡）",
+   "gt": 32,
+   "area_max": 0.724,
+   "kinds": {
+    "panel": 2,
+    "chip": 3,
+    "button": 18,
+    "row": 7,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c12_195108",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单（新语料）· 玩家卡 + 5×4 网格",
+   "gt": 34,
+   "area_max": 0.215,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "tile": 20,
+    "icon": 6,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c18_195129",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制（与语料 f09 同屏、不同连拍）",
+   "gt": 26,
+   "area_max": 0.471,
+   "kinds": {
+    "panel": 3,
+    "button": 2,
+    "row": 19,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c19_195135",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·声音（9 个音频设置行）",
+   "gt": 25,
+   "area_max": 0.664,
+   "kinds": {
+    "button": 2,
+    "row": 22,
+    "panel": 1
+   }
+  },
+  {
+   "stem": "c22_195158",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·按键（页签 基础设置/千星奇域 + 按键绑定行）",
+   "gt": 33,
+   "area_max": 0.434,
+   "kinds": {
+    "panel": 4,
+    "button": 4,
+    "chip": 2,
+    "row": 21,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c24_195206",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作\"派蒙菜单\"，实际是设置页）",
+   "gt": 33,
+   "area_max": 0.583,
+   "kinds": {
+    "panel": 4,
+    "button": 4,
+    "chip": 2,
+    "row": 21,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c25_195214",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单（新语料）· 千星奇域区（含分区标题下的 4 行）",
+   "gt": 33,
+   "area_max": 0.165,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "chip": 4,
+    "icon": 6,
+    "tile": 15,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c28_195235",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒·列表（左侧 7 条邮件 + 右侧详情 + 附件）",
+   "gt": 23,
+   "area_max": 0.363,
+   "kinds": {
+    "unknown": 3,
+    "button": 8,
+    "row": 8,
+    "panel": 2,
+    "icon": 2
+   }
+  },
+  {
+   "stem": "c29_195243",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）",
+   "gt": 3,
+   "area_max": 0.363,
+   "kinds": {
+    "button": 2,
+    "panel": 1
+   }
+  },
+  {
+   "stem": "c32_195258",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒（列表 + 详情两栏）",
+   "gt": 22,
+   "area_max": 0.355,
+   "kinds": {
+    "unknown": 3,
+    "button": 7,
+    "row": 8,
+    "panel": 2,
+    "icon": 2
+   }
+  },
+  {
+   "stem": "c34_195311",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星奇域区（已滚到分区；上排 3 格被面板上沿裁切）",
+   "gt": 24,
+   "area_max": 0.414,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 11,
+    "chip": 1
+   }
+  },
+  {
+   "stem": "c36_195316",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "存档选择·卡片网格（7 卡 + 7 编辑 + 页签 + 底部按钮）",
+   "gt": 29,
+   "area_max": 0.524,
+   "kinds": {
+    "panel": 2,
+    "chip": 4,
+    "button": 14,
+    "card": 7,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c37_195331",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "c40_195339",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "c41_195439",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "编辑器窗口：标签栏 + 左资源树 + 视口工具条 + 3D 视口",
+   "gt": 37,
+   "area_max": 0.19,
+   "kinds": {
+    "chip": 15,
+    "button": 13,
+    "panel": 1,
+    "row": 8
+   }
+  },
+  {
+   "stem": "c42_195441",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "资源管理器：左分类树 + 中资源树 + 右列表（上：实体节点图；下：自定义元件）",
+   "gt": 39,
+   "area_max": 0.646,
+   "kinds": {
+    "button": 15,
+    "chip": 9,
+    "row": 13,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f00",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（角色头像行）",
+   "gt": 20,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 4,
+    "avatar": 5,
+    "icon": 3
+   }
+  },
+  {
+   "stem": "f01",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（奖励图标行）",
+   "gt": 17,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 6
+   }
+  },
+  {
+   "stem": "f02",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·同 f01（奖励行横滚）",
+   "gt": 17,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 6
+   }
+  },
+  {
+   "stem": "f03",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（奖励行 5 图标）",
+   "gt": 16,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 5
+   }
+  },
+  {
+   "stem": "f04",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·卡片群",
+   "gt": 15,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "card": 4
+   }
+  },
+  {
+   "stem": "f05",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·立绘+时装卡+任务卡",
+   "gt": 15,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 4,
+    "card": 3
+   }
+  },
+  {
+   "stem": "f06",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单首屏（网格 4×4+3）",
+   "gt": 31,
+   "area_max": 0.222,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 19
+   }
+  },
+  {
+   "stem": "f07",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单滚一屏",
+   "gt": 30,
+   "area_max": 0.227,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 18
+   }
+  },
+  {
+   "stem": "f08",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星奇域区",
+   "gt": 31,
+   "area_max": 0.227,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 19
+   }
+  },
+  {
+   "stem": "f09",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制",
+   "gt": 23,
+   "area_max": 0.486,
+   "kinds": {
+    "row": 19,
+    "button": 2,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f10",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·图像（顶部）",
+   "gt": 24,
+   "area_max": 0.582,
+   "kinds": {
+    "row": 21,
+    "button": 1,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f11",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·图像（滚后）",
+   "gt": 25,
+   "area_max": 0.621,
+   "kinds": {
+    "row": 22,
+    "button": 1,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f12",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·语言",
+   "gt": 16,
+   "area_max": 0.155,
+   "kinds": {
+    "row": 12,
+    "button": 2,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f13",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "存档选择（卡片网格）",
+   "gt": 27,
+   "area_max": 0.544,
+   "kinds": {
+    "chip": 4,
+    "card": 7,
+    "button": 14,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "m01",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m02",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m03",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m04",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m05",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m06",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m07",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m08",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "neg-world",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 1530,
+   "H": 1440,
+   "layout": "负样本·提瓦特世界（3D 实景，无 UI）",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "r003_snap_2026-10-19_00-17-26",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "左上玩家信息卡（插画皮肤）→ 左列图标栏（6 图标）→ 4×5 网格（每格 192×173）→ 底部 HUD/四角件",
+   "gt": 51,
+   "area_max": 0.948,
+   "kinds": {
+    "panel": 4,
+    "avatar": 1,
+    "row": 7,
+    "button": 4,
+    "icon": 11,
+    "tile": 20,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r004_snap_2026-10-19_00-20-33",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单：信息卡 + 左图标栏 + 4×5 网格 + 四角 HUD",
+   "gt": 43,
+   "area_max": 0.211,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 5,
+    "tile": 20,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r006_snap_2026-10-19_00-22-19",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（左「邮箱」chip + 右簇 邮件珍藏盒/图标/邮件数/?/X）→ 左邮件列表 8 行 → 右详情（标题/发件人/时间/正文/附件×2）→ 底部按钮 ×4 + 四角 HUD",
+   "gt": 35,
+   "area_max": 0.396,
+   "kinds": {
+    "panel": 4,
+    "chip": 2,
+    "icon": 6,
+    "row": 14,
+    "button": 6,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r007_snap_2026-10-19_00-22-25",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制：顶栏（标题/射击设置/X）+ 左导航 9 行 + 内容 10 行（含 2 个分节标题）",
+   "gt": 30,
+   "area_max": 0.471,
+   "kinds": {
+    "panel": 3,
+    "row": 22,
+    "button": 2,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r008_snap_2026-10-19_00-23-27",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览",
+   "gt": 16,
+   "area_max": 0.513,
+   "kinds": {
+    "panel": 3,
+    "button": 2,
+    "chip": 3,
+    "row": 8
+   }
+  },
+  {
+   "stem": "r009_snap_2026-10-19_00-23-32",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "任务界面：顶栏 + 左任务列表（8 项）+ 右详情（名/地点/目标/描述/奖励）+ 底部两钮",
+   "gt": 33,
+   "area_max": 0.448,
+   "kinds": {
+    "panel": 4,
+    "row": 7,
+    "button": 6,
+    "card": 8,
+    "icon": 5,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r013_snap_2026-10-19_00-23-53",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（左标题 / 中 3 页签 / 右 3-3·?·X）→ 6 张邀约角色卡横排（卡底 1099）→ 底部提示条（钥匙 8/8 + 提示）→ 右下 领取",
+   "gt": 33,
+   "area_max": 0.981,
+   "kinds": {
+    "panel": 3,
+    "icon": 2,
+    "row": 10,
+    "button": 8,
+    "card": 6,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r016_snap_2026-10-19_00-24-17",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情",
+   "gt": 18,
+   "area_max": 0.508,
+   "kinds": {
+    "panel": 3,
+    "chip": 3,
+    "row": 10,
+    "button": 2
+   }
+  },
+  {
+   "stem": "r019_snap_2026-10-19_00-24-44",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（背包图标/分类 chip/Q/8 个筛选页签/E/容量/X）→ 左分类栏 → 物品网格 8×5 → 右物品详情 → 底部货币带 + 使用",
+   "gt": 72,
+   "area_max": 0.517,
+   "kinds": {
+    "panel": 5,
+    "icon": 1,
+    "chip": 3,
+    "button": 12,
+    "row": 8,
+    "tile": 40,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r021_snap_2026-10-19_00-24-58",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（图标/标题/Q/3 页签/E/计数 173-200/X）→ 好友列表 7 行（头像+名字+等级状态+留言+动作钮+私聊）→ 左右翻页箭头 → 底部黑名单管理",
+   "gt": 46,
+   "area_max": 0.981,
+   "kinds": {
+    "panel": 2,
+    "icon": 1,
+    "row": 9,
+    "button": 23,
+    "avatar": 7,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r022_snap_2026-10-19_00-25-06",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "好友页（顶栏 + 7 行列表，被弹窗压住）→ 角色展柜弹窗（左页 名片/资料 6 行 + 右页 页签×2 + 角色卡 4×2）→ 底部黑名单管理",
+   "gt": 45,
+   "area_max": 0.981,
+   "kinds": {
+    "panel": 4,
+    "row": 19,
+    "button": 7,
+    "avatar": 1,
+    "chip": 2,
+    "card": 8,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r023_snap_2026-10-19_00-25-15",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "绘卷详情弹窗（覆盖在奇域详情页上）：标题/翻页/截图/作品信息/活动关卡/评价 + 背景页按钮",
+   "gt": 20,
+   "area_max": 0.298,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 8,
+    "icon": 1,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r024_snap_2026-10-19_00-25-30",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "角色图鉴：顶栏 + 左 5×5 角色卡网格 + 右立绘预览 + 底部排序/筛选/详情",
+   "gt": 40,
+   "area_max": 0.514,
+   "kinds": {
+    "panel": 3,
+    "row": 4,
+    "button": 5,
+    "card": 25,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r026_snap_2026-10-19_00-27-05",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左资源栏 / ③3D 视口/浮动工具条 / ④四角小件",
+   "gt": 44,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 6,
+    "icon": 4,
+    "chip": 2,
+    "button": 10,
+    "row": 22
+   }
+  },
+  {
+   "stem": "r028_snap_2026-10-19_00-27-49",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左竖栏(树+调色板) / ③视口+浮动工具条 / ④模型资产库弹窗 / ⑤右属性面板（逐行） / ⑥底部对象操作条",
+   "gt": 117,
+   "area_max": 0.602,
+   "kinds": {
+    "panel": 9,
+    "icon": 4,
+    "chip": 14,
+    "button": 23,
+    "row": 56,
+    "tile": 11
+   }
+  },
+  {
+   "stem": "r032_snap_2026-10-19_00-30-42",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④关卡设置弹窗 / ⑤右属性面板/底部",
+   "gt": 129,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 12,
+    "icon": 8,
+    "chip": 12,
+    "button": 36,
+    "row": 55,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r034_snap_2026-10-19_00-31-33",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④背景音乐窗口+库 / ⑤右属性面板/底部",
+   "gt": 128,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 11,
+    "icon": 7,
+    "chip": 12,
+    "button": 39,
+    "row": 53,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r040_snap_2026-10-19_00-36-18",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②竖图标栏+左树+调色板 / ③视口 / ④右属性面板 / ⑤底部",
+   "gt": 97,
+   "area_max": 0.752,
+   "kinds": {
+    "panel": 13,
+    "icon": 9,
+    "chip": 11,
+    "button": 26,
+    "row": 32,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r041_snap_2026-10-19_00-36-21",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角",
+   "gt": 74,
+   "area_max": 0.746,
+   "kinds": {
+    "panel": 5,
+    "chip": 15,
+    "button": 14,
+    "row": 34,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r044_snap_2026-10-19_00-37-57",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏窗口控件 / ②橙色工作区 / ③添加技能节点图弹窗 / ④时间轴",
+   "gt": 75,
+   "area_max": 0.688,
+   "kinds": {
+    "panel": 5,
+    "icon": 5,
+    "button": 19,
+    "row": 16,
+    "chip": 30
+   }
+  },
+  {
+   "stem": "r045_snap_2026-10-19_00-38-06",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏窗口控件 / ②橙色工作区 / ③特效播放面板 / ④时间轴",
+   "gt": 88,
+   "area_max": 0.527,
+   "kinds": {
+    "panel": 4,
+    "icon": 5,
+    "button": 22,
+    "row": 20,
+    "chip": 37
+   }
+  },
+  {
+   "stem": "r047_snap_2026-10-19_00-39-53",
+   "family": "editor",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左竖图标栏+单位状态树+调色板 / ③视口+浮动工具条 / ④右属性面板（逐行） / ⑤底部命令条+四角",
+   "gt": 57,
+   "area_max": 0.522,
+   "kinds": {
+    "panel": 9,
+    "icon": 9,
+    "chip": 7,
+    "button": 20,
+    "row": 11,
+    "tile": 1
+   }
+  },
+  {
+   "stem": "v060_0461",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星版（4×5 网格 + 返回提瓦特）",
+   "gt": 33,
+   "area_max": 0.274,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 3,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "v078_0487",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）",
+   "gt": 20,
+   "area_max": 0.671,
+   "kinds": {
+    "panel": 1,
+    "button": 2,
+    "card": 16,
+    "row": 1
+   }
+  },
+  {
+   "stem": "v088_0513",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）",
+   "gt": 33,
+   "area_max": 0.499,
+   "kinds": {
+    "button": 6,
+    "avatar": 9,
+    "row": 16,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "v101_0529",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）",
+   "gt": 19,
+   "area_max": 0.272,
+   "kinds": {
+    "panel": 3,
+    "button": 7,
+    "row": 7,
+    "card": 2
+   }
+  },
+  {
+   "stem": "w01",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w02",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w03",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w04",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w05",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w06",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w07",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w08",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 31,
+    "row": 5,
+    "button": 2
+   }
+  }
+ ],
+ "models": {
+  "v1": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v1.pt",
+   "strict": {
+    "P": 0.454,
+    "R": 0.512,
+    "F1": 0.481
+   },
+   "total": {
+    "gt": 2687,
+    "det": 3030,
+    "tp": 1376,
+    "fn": 1311,
+    "fp": 1654,
+    "leg_hit": 1381,
+    "leg_ndet": 1391
+   },
+   "per_kind": {
+    "button": {
+     "gt": 505,
+     "det": 747,
+     "tp": 255,
+     "fn": 250,
+     "fp": 492,
+     "leg_hit": 255,
+     "leg_ndet": 255
+    },
+    "icon": {
+     "gt": 197,
+     "det": 239,
+     "tp": 131,
+     "fn": 66,
+     "fp": 108,
+     "leg_hit": 131,
+     "leg_ndet": 131
+    },
+    "panel": {
+     "gt": 230,
+     "det": 315,
+     "tp": 152,
+     "fn": 78,
+     "fp": 163,
+     "leg_hit": 157,
+     "leg_ndet": 154
+    },
+    "row": {
+     "gt": 787,
+     "det": 920,
+     "tp": 333,
+     "fn": 454,
+     "fp": 587,
+     "leg_hit": 333,
+     "leg_ndet": 346
+    },
+    "chip": {
+     "gt": 197,
+     "det": 185,
+     "tp": 75,
+     "fn": 122,
+     "fp": 110,
+     "leg_hit": 75,
+     "leg_ndet": 75
+    },
+    "tile": {
+     "gt": 398,
+     "det": 439,
+     "tp": 345,
+     "fn": 53,
+     "fp": 94,
+     "leg_hit": 345,
+     "leg_ndet": 345
+    },
+    "avatar": {
+     "gt": 39,
+     "det": 59,
+     "tp": 15,
+     "fn": 24,
+     "fp": 44,
+     "leg_hit": 15,
+     "leg_ndet": 15
+    },
+    "card": {
+     "gt": 86,
+     "det": 126,
+     "tp": 70,
+     "fn": 16,
+     "fp": 56,
+     "leg_hit": 70,
+     "leg_ndet": 70
+    },
+    "glyph_icon": {
+     "gt": 248,
+     "det": 0,
+     "tp": 0,
+     "fn": 248,
+     "fp": 0,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 1463,
+     "det": 2022,
+     "tp": 1095,
+     "fn": 368,
+     "fp": 927,
+     "leg_hit": 1097,
+     "leg_ndet": 1109
+    },
+    "editor": {
+     "gt": 904,
+     "det": 934,
+     "tp": 281,
+     "fn": 623,
+     "fp": 653,
+     "leg_hit": 284,
+     "leg_ndet": 282
+    },
+    "world_hud": {
+     "gt": 320,
+     "det": 74,
+     "tp": 0,
+     "fn": 320,
+     "fp": 74,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "legacy_micro_R": 0.514,
+   "geom": {
+    "chip/aspect/≤2": {
+     "n": 22,
+     "hit": 11,
+     "r": 0.5
+    },
+    "chip/aspect/2–6": {
+     "n": 117,
+     "hit": 48,
+     "r": 0.41
+    },
+    "chip/aspect/>6": {
+     "n": 58,
+     "hit": 16,
+     "r": 0.276
+    },
+    "chip/h/≤32px": {
+     "n": 6,
+     "hit": 2,
+     "r": 0.333
+    },
+    "chip/h/33–64px": {
+     "n": 161,
+     "hit": 58,
+     "r": 0.36
+    },
+    "chip/h/>64px": {
+     "n": 30,
+     "hit": 15,
+     "r": 0.5
+    },
+    "chip/contrast/低": {
+     "n": 66,
+     "hit": 17,
+     "r": 0.258
+    },
+    "chip/contrast/中": {
+     "n": 65,
+     "hit": 20,
+     "r": 0.308
+    },
+    "chip/contrast/高": {
+     "n": 66,
+     "hit": 38,
+     "r": 0.576
+    },
+    "chip/flat/低": {
+     "n": 66,
+     "hit": 22,
+     "r": 0.333
+    },
+    "chip/flat/中": {
+     "n": 65,
+     "hit": 22,
+     "r": 0.338
+    },
+    "chip/flat/高": {
+     "n": 66,
+     "hit": 31,
+     "r": 0.47
+    },
+    "button/aspect/≤2": {
+     "n": 338,
+     "hit": 141,
+     "r": 0.417
+    },
+    "button/aspect/2–6": {
+     "n": 120,
+     "hit": 92,
+     "r": 0.767
+    },
+    "button/aspect/>6": {
+     "n": 47,
+     "hit": 22,
+     "r": 0.468
+    },
+    "button/h/≤32px": {
+     "n": 18,
+     "hit": 3,
+     "r": 0.167
+    },
+    "button/h/33–64px": {
+     "n": 304,
+     "hit": 121,
+     "r": 0.398
+    },
+    "button/h/>64px": {
+     "n": 183,
+     "hit": 131,
+     "r": 0.716
+    },
+    "button/contrast/低": {
+     "n": 168,
+     "hit": 68,
+     "r": 0.405
+    },
+    "button/contrast/中": {
+     "n": 168,
+     "hit": 85,
+     "r": 0.506
+    },
+    "button/contrast/高": {
+     "n": 169,
+     "hit": 102,
+     "r": 0.604
+    },
+    "button/flat/低": {
+     "n": 168,
+     "hit": 70,
+     "r": 0.417
+    },
+    "button/flat/中": {
+     "n": 163,
+     "hit": 108,
+     "r": 0.663
+    },
+    "button/flat/高": {
+     "n": 174,
+     "hit": 77,
+     "r": 0.443
+    },
+    "row/aspect/≤2": {
+     "n": 20,
+     "hit": 5,
+     "r": 0.25
+    },
+    "row/aspect/2–6": {
+     "n": 285,
+     "hit": 163,
+     "r": 0.572
+    },
+    "row/aspect/>6": {
+     "n": 482,
+     "hit": 165,
+     "r": 0.342
+    },
+    "row/h/≤32px": {
+     "n": 11,
+     "hit": 0,
+     "r": 0.0
+    },
+    "row/h/33–64px": {
+     "n": 479,
+     "hit": 97,
+     "r": 0.203
+    },
+    "row/h/>64px": {
+     "n": 297,
+     "hit": 236,
+     "r": 0.795
+    },
+    "row/contrast/低": {
+     "n": 262,
+     "hit": 112,
+     "r": 0.427
+    },
+    "row/contrast/中": {
+     "n": 262,
+     "hit": 124,
+     "r": 0.473
+    },
+    "row/contrast/高": {
+     "n": 263,
+     "hit": 97,
+     "r": 0.369
+    },
+    "row/flat/低": {
+     "n": 262,
+     "hit": 154,
+     "r": 0.588
+    },
+    "row/flat/中": {
+     "n": 262,
+     "hit": 109,
+     "r": 0.416
+    },
+    "row/flat/高": {
+     "n": 263,
+     "hit": 70,
+     "r": 0.266
+    },
+    "tile/aspect/≤2": {
+     "n": 390,
+     "hit": 341,
+     "r": 0.874
+    },
+    "tile/aspect/2–6": {
+     "n": 8,
+     "hit": 4,
+     "r": 0.5
+    },
+    "tile/aspect/>6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/≤32px": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/33–64px": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/>64px": {
+     "n": 398,
+     "hit": 345,
+     "r": 0.867
+    },
+    "tile/contrast/低": {
+     "n": 133,
+     "hit": 110,
+     "r": 0.827
+    },
+    "tile/contrast/中": {
+     "n": 125,
+     "hit": 110,
+     "r": 0.88
+    },
+    "tile/contrast/高": {
+     "n": 140,
+     "hit": 125,
+     "r": 0.893
+    },
+    "tile/flat/低": {
+     "n": 132,
+     "hit": 129,
+     "r": 0.977
+    },
+    "tile/flat/中": {
+     "n": 133,
+     "hit": 119,
+     "r": 0.895
+    },
+    "tile/flat/高": {
+     "n": 133,
+     "hit": 97,
+     "r": 0.729
+    },
+    "icon/aspect/≤2": {
+     "n": 197,
+     "hit": 131,
+     "r": 0.665
+    },
+    "icon/aspect/2–6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "icon/aspect/>6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "icon/h/≤32px": {
+     "n": 10,
+     "hit": 0,
+     "r": 0.0
+    },
+    "icon/h/33–64px": {
+     "n": 117,
+     "hit": 80,
+     "r": 0.684
+    },
+    "icon/h/>64px": {
+     "n": 70,
+     "hit": 51,
+     "r": 0.729
+    },
+    "icon/contrast/低": {
+     "n": 66,
+     "hit": 51,
+     "r": 0.773
+    },
+    "icon/contrast/中": {
+     "n": 65,
+     "hit": 47,
+     "r": 0.723
+    },
+    "icon/contrast/高": {
+     "n": 66,
+     "hit": 33,
+     "r": 0.5
+    },
+    "icon/flat/低": {
+     "n": 66,
+     "hit": 44,
+     "r": 0.667
+    },
+    "icon/flat/中": {
+     "n": 65,
+     "hit": 47,
+     "r": 0.723
+    },
+    "icon/flat/高": {
+     "n": 66,
+     "hit": 40,
+     "r": 0.606
+    },
+    "glyph_icon/aspect/≤2": {
+     "n": 208,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/aspect/2–6": {
+     "n": 24,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/aspect/>6": {
+     "n": 16,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/≤32px": {
+     "n": 40,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/33–64px": {
+     "n": 104,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/>64px": {
+     "n": 104,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/低": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/中": {
+     "n": 82,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/高": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/低": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/中": {
+     "n": 82,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/高": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    }
+   },
+   "lat_ms": {
+    "p50": 43.2,
+    "p90": 52.4
+   }
+  },
+  "v2": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
+   "strict": {
+    "P": 0.348,
+    "R": 0.523,
+    "F1": 0.418
+   },
+   "total": {
+    "gt": 2687,
+    "det": 4032,
+    "tp": 1405,
+    "fn": 1282,
+    "fp": 2627,
+    "leg_hit": 1410,
+    "leg_ndet": 1416
+   },
+   "per_kind": {
+    "tile": {
+     "gt": 398,
+     "det": 550,
+     "tp": 346,
+     "fn": 52,
+     "fp": 204,
+     "leg_hit": 346,
+     "leg_ndet": 347
+    },
+    "button": {
+     "gt": 505,
+     "det": 889,
+     "tp": 251,
+     "fn": 254,
+     "fp": 638,
+     "leg_hit": 251,
+     "leg_ndet": 252
+    },
+    "icon": {
+     "gt": 197,
+     "det": 439,
+     "tp": 137,
+     "fn": 60,
+     "fp": 302,
+     "leg_hit": 137,
+     "leg_ndet": 137
+    },
+    "panel": {
+     "gt": 230,
+     "det": 426,
+     "tp": 155,
+     "fn": 75,
+     "fp": 271,
+     "leg_hit": 160,
+     "leg_ndet": 164
+    },
+    "row": {
+     "gt": 787,
+     "det": 1093,
+     "tp": 341,
+     "fn": 446,
+     "fp": 752,
+     "leg_hit": 341,
+     "leg_ndet": 341
+    },
+    "chip": {
+     "gt": 197,
+     "det": 435,
+     "tp": 88,
+     "fn": 109,
+     "fp": 347,
+     "leg_hit": 88,
+     "leg_ndet": 88
+    },
+    "card": {
+     "gt": 86,
+     "det": 177,
+     "tp": 72,
+     "fn": 14,
+     "fp": 105,
+     "leg_hit": 72,
+     "leg_ndet": 72
+    },
+    "avatar": {
+     "gt": 39,
+     "det": 23,
+     "tp": 15,
+     "fn": 24,
+     "fp": 8,
+     "leg_hit": 15,
+     "leg_ndet": 15
+    },
+    "glyph_icon": {
+     "gt": 248,
+     "det": 0,
+     "tp": 0,
+     "fn": 248,
+     "fp": 0,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 1463,
+     "det": 2507,
+     "tp": 1030,
+     "fn": 433,
+     "fp": 1477,
+     "leg_hit": 1032,
+     "leg_ndet": 1036
+    },
+    "editor": {
+     "gt": 904,
+     "det": 1296,
+     "tp": 375,
+     "fn": 529,
+     "fp": 921,
+     "leg_hit": 378,
+     "leg_ndet": 380
+    },
+    "world_hud": {
+     "gt": 320,
+     "det": 229,
+     "tp": 0,
+     "fn": 320,
+     "fp": 229,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "legacy_micro_R": 0.5247,
+   "geom": {
+    "chip/aspect/≤2": {
+     "n": 22,
+     "hit": 8,
+     "r": 0.364
+    },
+    "chip/aspect/2–6": {
+     "n": 117,
+     "hit": 62,
+     "r": 0.53
+    },
+    "chip/aspect/>6": {
+     "n": 58,
+     "hit": 18,
+     "r": 0.31
+    },
+    "chip/h/≤32px": {
+     "n": 6,
+     "hit": 0,
+     "r": 0.0
+    },
+    "chip/h/33–64px": {
+     "n": 161,
+     "hit": 69,
+     "r": 0.429
+    },
+    "chip/h/>64px": {
+     "n": 30,
+     "hit": 19,
+     "r": 0.633
+    },
+    "chip/contrast/低": {
+     "n": 66,
+     "hit": 20,
+     "r": 0.303
+    },
+    "chip/contrast/中": {
+     "n": 65,
+     "hit": 30,
+     "r": 0.462
+    },
+    "chip/contrast/高": {
+     "n": 66,
+     "hit": 38,
+     "r": 0.576
+    },
+    "chip/flat/低": {
+     "n": 66,
+     "hit": 25,
+     "r": 0.379
+    },
+    "chip/flat/中": {
+     "n": 65,
+     "hit": 31,
+     "r": 0.477
+    },
+    "chip/flat/高": {
+     "n": 66,
+     "hit": 32,
+     "r": 0.485
+    },
+    "button/aspect/≤2": {
+     "n": 338,
+     "hit": 136,
+     "r": 0.402
+    },
+    "button/aspect/2–6": {
+     "n": 120,
+     "hit": 89,
+     "r": 0.742
+    },
+    "button/aspect/>6": {
+     "n": 47,
+     "hit": 26,
+     "r": 0.553
+    },
+    "button/h/≤32px": {
+     "n": 18,
+     "hit": 2,
+     "r": 0.111
+    },
+    "button/h/33–64px": {
+     "n": 304,
+     "hit": 125,
+     "r": 0.411
+    },
+    "button/h/>64px": {
+     "n": 183,
+     "hit": 124,
+     "r": 0.678
+    },
+    "button/contrast/低": {
+     "n": 168,
+     "hit": 74,
+     "r": 0.44
+    },
+    "button/contrast/中": {
+     "n": 168,
+     "hit": 74,
+     "r": 0.44
+    },
+    "button/contrast/高": {
+     "n": 169,
+     "hit": 103,
+     "r": 0.609
+    },
+    "button/flat/低": {
+     "n": 168,
+     "hit": 68,
+     "r": 0.405
+    },
+    "button/flat/中": {
+     "n": 163,
+     "hit": 105,
+     "r": 0.644
+    },
+    "button/flat/高": {
+     "n": 174,
+     "hit": 78,
+     "r": 0.448
+    },
+    "row/aspect/≤2": {
+     "n": 20,
+     "hit": 5,
+     "r": 0.25
+    },
+    "row/aspect/2–6": {
+     "n": 285,
+     "hit": 118,
+     "r": 0.414
+    },
+    "row/aspect/>6": {
+     "n": 482,
+     "hit": 218,
+     "r": 0.452
+    },
+    "row/h/≤32px": {
+     "n": 11,
+     "hit": 1,
+     "r": 0.091
+    },
+    "row/h/33–64px": {
+     "n": 479,
+     "hit": 157,
+     "r": 0.328
+    },
+    "row/h/>64px": {
+     "n": 297,
+     "hit": 183,
+     "r": 0.616
+    },
+    "row/contrast/低": {
+     "n": 262,
+     "hit": 134,
+     "r": 0.511
+    },
+    "row/contrast/中": {
+     "n": 262,
+     "hit": 118,
+     "r": 0.45
+    },
+    "row/contrast/高": {
+     "n": 263,
+     "hit": 89,
+     "r": 0.338
+    },
+    "row/flat/低": {
+     "n": 262,
+     "hit": 133,
+     "r": 0.508
+    },
+    "row/flat/中": {
+     "n": 262,
+     "hit": 139,
+     "r": 0.531
+    },
+    "row/flat/高": {
+     "n": 263,
+     "hit": 69,
+     "r": 0.262
+    },
+    "tile/aspect/≤2": {
+     "n": 390,
+     "hit": 338,
+     "r": 0.867
+    },
+    "tile/aspect/2–6": {
+     "n": 8,
+     "hit": 8,
+     "r": 1.0
+    },
+    "tile/aspect/>6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/≤32px": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/33–64px": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "tile/h/>64px": {
+     "n": 398,
+     "hit": 346,
+     "r": 0.869
+    },
+    "tile/contrast/低": {
+     "n": 133,
+     "hit": 110,
+     "r": 0.827
+    },
+    "tile/contrast/中": {
+     "n": 125,
+     "hit": 110,
+     "r": 0.88
+    },
+    "tile/contrast/高": {
+     "n": 140,
+     "hit": 126,
+     "r": 0.9
+    },
+    "tile/flat/低": {
+     "n": 132,
+     "hit": 131,
+     "r": 0.992
+    },
+    "tile/flat/中": {
+     "n": 133,
+     "hit": 118,
+     "r": 0.887
+    },
+    "tile/flat/高": {
+     "n": 133,
+     "hit": 97,
+     "r": 0.729
+    },
+    "icon/aspect/≤2": {
+     "n": 197,
+     "hit": 137,
+     "r": 0.695
+    },
+    "icon/aspect/2–6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "icon/aspect/>6": {
+     "n": 0,
+     "hit": 0,
+     "r": null
+    },
+    "icon/h/≤32px": {
+     "n": 10,
+     "hit": 1,
+     "r": 0.1
+    },
+    "icon/h/33–64px": {
+     "n": 117,
+     "hit": 84,
+     "r": 0.718
+    },
+    "icon/h/>64px": {
+     "n": 70,
+     "hit": 52,
+     "r": 0.743
+    },
+    "icon/contrast/低": {
+     "n": 66,
+     "hit": 47,
+     "r": 0.712
+    },
+    "icon/contrast/中": {
+     "n": 65,
+     "hit": 46,
+     "r": 0.708
+    },
+    "icon/contrast/高": {
+     "n": 66,
+     "hit": 44,
+     "r": 0.667
+    },
+    "icon/flat/低": {
+     "n": 66,
+     "hit": 45,
+     "r": 0.682
+    },
+    "icon/flat/中": {
+     "n": 65,
+     "hit": 45,
+     "r": 0.692
+    },
+    "icon/flat/高": {
+     "n": 66,
+     "hit": 47,
+     "r": 0.712
+    },
+    "glyph_icon/aspect/≤2": {
+     "n": 208,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/aspect/2–6": {
+     "n": 24,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/aspect/>6": {
+     "n": 16,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/≤32px": {
+     "n": 40,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/33–64px": {
+     "n": 104,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/h/>64px": {
+     "n": 104,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/低": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/中": {
+     "n": 82,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/contrast/高": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/低": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/中": {
+     "n": 82,
+     "hit": 0,
+     "r": 0.0
+    },
+    "glyph_icon/flat/高": {
+     "n": 83,
+     "hit": 0,
+     "r": 0.0
+    }
+   },
+   "lat_ms": {
+    "p50": 57.3,
+    "p90": 79.6
+   }
+  }
+ },
+ "multi": {
+  "v1": [
+   {
+    "case": "menu",
+    "N": 8,
+    "ref": "m01",
+    "n_gt": 41,
+    "n_multi": 37,
+    "clusters": 47
+   },
+   {
+    "case": "world",
+    "N": 8,
+    "ref": "w01",
+    "n_gt": 32,
+    "n_multi": 8,
+    "clusters": 27
+   }
+  ],
+  "v2": [
+   {
+    "case": "menu",
+    "N": 8,
+    "ref": "m01",
+    "n_gt": 41,
+    "n_multi": 52,
+    "clusters": 73
+   },
+   {
+    "case": "world",
+    "N": 8,
+    "ref": "w01",
+    "n_gt": 32,
+    "n_multi": 22,
+    "clusters": 88
+   }
+  ]
+ }
+}

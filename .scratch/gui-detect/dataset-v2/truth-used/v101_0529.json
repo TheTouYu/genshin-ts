@@ -1,0 +1,547 @@
+{
+ "frame": "v101_0529",
+ "image": ".scratch/gui-corpus/video-20261018/reps/v101_0529.jpg",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）",
+ "classes": [
+  "不透明纯色列表",
+  "插画背景",
+  "预测面板"
+ ],
+ "units": 19,
+ "_provenance": {
+  "family": "活动一览",
+  "method": "列表行 y 由 preview 比例 + edges.py x=600 扫描带复核（选中行药丸 300 起，其余 120 步长）；右侧按钮/面板/阵营卡按可见像素估",
+  "tool_assist": "几何=edges.py/remeasure_grid.py/boxer.py（本仓自写）；ys-screen 只在最后做交叉对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "列表行高选中行 110、其余推测同为 110（未逐行扫描）",
+   "预测面板外沿与两个阵营卡 x 边界 ±20px"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 1/18 = 5.6%（iou 0.763，fp=1）",
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 18,
+     "kind": "panel",
+     "bbox": [
+      1340,
+      300,
+      1180,
+      850
+     ],
+     "text": "活动详情区",
+     "note": "R3/R7 补框：右详情区皮肤（含 判测胜券本征/剩余参与时间/预测评分/尚未参与本轮预测）"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "详情区左沿 1340 落在插画上（该页详情区无可见皮肤边界，按内容外沿取），误差约 ±20px。"
+  }
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    272,
+    268,
+    384,
+    900
+   ],
+   "kind": "panel",
+   "text": [
+    "活动一览"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左侧活动列表容器"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2425,
+    165,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    2000,
+    285,
+    270,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "活动说明"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    298,
+    300,
+    404,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "判测胜券本征"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    272,
+    420,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "幽境危战"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    272,
+    540,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "砺行修远"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    272,
+    660,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "虹旅藏金·耀星烁熠"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    272,
+    780,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "无神怜爱的冻土"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    272,
+    900,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "且试身手"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    272,
+    1020,
+    384,
+    110
+   ],
+   "kind": "row",
+   "text": [
+    "风仙亦是仙，古剑通幽玄！"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    700,
+    900,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "预测奖励"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    790,
+    1060,
+    300,
+    80
+   ],
+   "kind": "button",
+   "text": [
+    "赛程总览"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2000,
+    1050,
+    380,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "活动详情"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1380,
+    500,
+    900,
+    380
+   ],
+   "kind": "panel",
+   "text": [
+    "「半决赛」预测进行中"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "预测面板（两块阵营卡 + 两个箭头）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    1420,
+    640,
+    360,
+    160
+   ],
+   "kind": "card",
+   "text": [
+    "水果团的镜像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    1790,
+    640,
+    360,
+    160
+   ],
+   "kind": "card",
+   "text": [
+    "龙龙最可爱"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    1360,
+    690,
+    60,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "‹"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    2220,
+    690,
+    60,
+    90
+   ],
+   "kind": "button",
+   "text": [
+    "›"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "kind": "panel",
+   "bbox": [
+    1340,
+    300,
+    1180,
+    850
+   ],
+   "text": [
+    "活动详情区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3/R7 补框：右详情区皮肤（含 判测胜券本征/剩余参与时间/预测评分/尚未参与本轮预测）"
+  }
+ ]
+}

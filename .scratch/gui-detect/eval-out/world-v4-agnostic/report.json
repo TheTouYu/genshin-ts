@@ -1,0 +1,692 @@
+{
+ "meta": {
+  "tag": "merged-prod",
+  "preset": "merged",
+  "channel": "prod",
+  "dirs": [
+   ".scratch/gui-corpus/truth-merged"
+  ],
+  "n_frames": 8,
+  "dropped_no_image": 3,
+  "cmd": [
+   "/usr/sbin/python3",
+   ".scratch/gui-detect/eval_v2.py",
+   "--preset",
+   "merged",
+   "--grade-filter",
+   "A,B",
+   "--channel",
+   "prod",
+   "--frame-list",
+   "/dev/fd/63",
+   "--models",
+   "v4=.scratch/gui-detect/train-v4/model.pt",
+   "--nms",
+   "agnostic",
+   "--out",
+   ".scratch/gui-detect/eval-out/world-v4-agnostic",
+   "--no-feats"
+  ],
+  "time": "2026-10-19 17:53:51"
+ },
+ "audit": {
+  "c03_194915": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 32
+  },
+  "c12_195108": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 34
+  },
+  "c18_195129": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 26
+  },
+  "c19_195135": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 25
+  },
+  "c22_195158": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c24_195206": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c25_195214": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c28_195235": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 23
+  },
+  "c29_195243": {
+   "uncovered": 26,
+   "ocr": "manifest",
+   "units": 3
+  },
+  "c32_195258": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 22
+  },
+  "c34_195311": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 24
+  },
+  "c36_195316": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 29
+  },
+  "c37_195331": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c40_195339": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c41_195439": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 37
+  },
+  "c42_195441": {
+   "uncovered": 15,
+   "ocr": "manifest",
+   "units": 39
+  },
+  "f00": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "f01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 17
+  },
+  "f02": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 17
+  },
+  "f03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "f04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 15
+  },
+  "f05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 15
+  },
+  "f06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 31
+  },
+  "f07": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 30
+  },
+  "f08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 31
+  },
+  "f09": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 23
+  },
+  "f10": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 24
+  },
+  "f11": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 25
+  },
+  "f12": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "f13": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 27
+  },
+  "m01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m02": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m07": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "neg-world": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "r003_snap_2026-10-19_00-17-26": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 51
+  },
+  "r004_snap_2026-10-19_00-20-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 43
+  },
+  "r006_snap_2026-10-19_00-22-19": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 35
+  },
+  "r007_snap_2026-10-19_00-22-25": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 30
+  },
+  "r008_snap_2026-10-19_00-23-27": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "r009_snap_2026-10-19_00-23-32": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r013_snap_2026-10-19_00-23-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r016_snap_2026-10-19_00-24-17": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 18
+  },
+  "r019_snap_2026-10-19_00-24-44": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 72
+  },
+  "r021_snap_2026-10-19_00-24-58": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 46
+  },
+  "r022_snap_2026-10-19_00-25-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 45
+  },
+  "r023_snap_2026-10-19_00-25-15": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "r024_snap_2026-10-19_00-25-30": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "r026_snap_2026-10-19_00-27-05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 44
+  },
+  "r028_snap_2026-10-19_00-27-49": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 117
+  },
+  "r032_snap_2026-10-19_00-30-42": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 129
+  },
+  "r034_snap_2026-10-19_00-31-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 128
+  },
+  "r040_snap_2026-10-19_00-36-18": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 97
+  },
+  "r041_snap_2026-10-19_00-36-21": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 74
+  },
+  "r044_snap_2026-10-19_00-37-57": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 75
+  },
+  "r045_snap_2026-10-19_00-38-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 88
+  },
+  "r047_snap_2026-10-19_00-39-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 57
+  },
+  "v060_0461": {
+   "uncovered": 2,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v078_0487": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "v088_0513": {
+   "uncovered": 4,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v101_0529": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 19
+  },
+  "w01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w02": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w07": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  }
+ },
+ "frames": [
+  {
+   "stem": "w01",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w02",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w03",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w04",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w05",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w06",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w07",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w08",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  }
+ ],
+ "models": {
+  "v4": {
+   "path": "/home/h/genshin-ts/.scratch/gui-detect/train-v4/model.pt",
+   "strict": {
+    "P": 0.38,
+    "R": 0.717,
+    "F1": 0.497
+   },
+   "total": {
+    "gt": 304,
+    "det": 573,
+    "tp": 218,
+    "fp": 355,
+    "fn": 86,
+    "leg_hit": 218,
+    "leg_ndet": 218
+   },
+   "per_kind": {
+    "row": {
+     "gt": 48,
+     "det": 40,
+     "tp": 8,
+     "fn": 40,
+     "fp": 32,
+     "leg_hit": 8,
+     "leg_ndet": 8
+    },
+    "button": {
+     "gt": 16,
+     "det": 71,
+     "tp": 16,
+     "fn": 0,
+     "fp": 55,
+     "leg_hit": 16,
+     "leg_ndet": 16
+    },
+    "glyph_icon": {
+     "gt": 224,
+     "det": 269,
+     "tp": 178,
+     "fn": 46,
+     "fp": 91,
+     "leg_hit": 178,
+     "leg_ndet": 178
+    },
+    "panel": {
+     "gt": 16,
+     "det": 34,
+     "tp": 16,
+     "fn": 0,
+     "fp": 18,
+     "leg_hit": 16,
+     "leg_ndet": 16
+    },
+    "icon": {
+     "gt": 0,
+     "det": 144,
+     "tp": 0,
+     "fn": 0,
+     "fp": 144,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "chip": {
+     "gt": 0,
+     "det": 5,
+     "tp": 0,
+     "fn": 0,
+     "fp": 5,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "card": {
+     "gt": 0,
+     "det": 5,
+     "tp": 0,
+     "fn": 0,
+     "fp": 5,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "tile": {
+     "gt": 0,
+     "det": 5,
+     "tp": 0,
+     "fn": 0,
+     "fp": 5,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "per_family": {
+    "world_hud": {
+     "gt": 304,
+     "det": 573,
+     "tp": 218,
+     "fn": 86,
+     "fp": 355,
+     "leg_hit": 218,
+     "leg_ndet": 218
+    }
+   },
+   "legacy_micro_R": 0.7171,
+   "geom": {},
+   "lat_ms": {
+    "p50": 54.8,
+    "p90": 61.0
+   }
+  }
+ },
+ "multi": {
+  "v4": []
+ },
+ "gt_redundancy": {
+  "w01": {
+   "peer": "w02",
+   "ratio": 1.0
+  },
+  "w02": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w03": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w04": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w05": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w06": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w07": {
+   "peer": "w01",
+   "ratio": 1.0
+  },
+  "w08": {
+   "peer": "w01",
+   "ratio": 1.0
+  }
+ }
+}

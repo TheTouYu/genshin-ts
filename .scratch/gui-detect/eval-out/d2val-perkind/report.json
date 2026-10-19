@@ -1,0 +1,410 @@
+{
+ "meta": {
+  "tag": "old-prod",
+  "preset": "old",
+  "channel": "prod",
+  "dirs": [
+   ".scratch/gui-corpus/truth",
+   ".scratch/gui-corpus/truth-v2",
+   ".scratch/gui-corpus/truth-v3",
+   ".scratch/gui-corpus/truth-v4",
+   ".scratch/gui-corpus/truth-v5",
+   ".scratch/gui-corpus/truth-v6",
+   ".scratch/gui-corpus/truth-v7",
+   ".scratch/gui-corpus/truth-v8-game",
+   ".scratch/gui-corpus/truth-v8-editor",
+   ".scratch/gui-corpus/truth-v8-fix",
+   ".scratch/gui-corpus/truth-v9-fixed"
+  ],
+  "n_frames": 7,
+  "dropped_no_image": 0,
+  "cmd": [
+   "/usr/sbin/python3",
+   ".scratch/gui-detect/eval_v2.py",
+   "--preset",
+   "old",
+   "--channel",
+   "prod",
+   "--nms",
+   "perkind",
+   "--d2-val",
+   "--no-audit",
+   "--no-feats",
+   "--out",
+   ".scratch/gui-detect/eval-out/d2val-perkind"
+  ],
+  "time": "2026-10-19 17:21:09"
+ },
+ "audit": {},
+ "frames": [
+  {
+   "stem": "r003_snap_2026-10-19_00-17-26",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "左上玩家信息卡（插画皮肤）→ 左列图标栏（6 图标）→ 4×5 网格（每格 192×173）→ 底部 HUD/四角件",
+   "gt": 51,
+   "area_max": 0.948,
+   "kinds": {
+    "panel": 4,
+    "avatar": 1,
+    "row": 7,
+    "button": 4,
+    "icon": 11,
+    "tile": 20,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r016_snap_2026-10-19_00-24-17",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v5",
+   "W": 2560,
+   "H": 1440,
+   "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情",
+   "gt": 18,
+   "area_max": 0.508,
+   "kinds": {
+    "panel": 3,
+    "chip": 3,
+    "row": 10,
+    "button": 2
+   }
+  },
+  {
+   "stem": "r026_snap_2026-10-19_00-27-05",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左资源栏 / ③3D 视口/浮动工具条 / ④四角小件",
+   "gt": 44,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 6,
+    "icon": 4,
+    "chip": 2,
+    "button": 10,
+    "row": 22
+   }
+  },
+  {
+   "stem": "r028_snap_2026-10-19_00-27-49",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左竖栏(树+调色板) / ③视口+浮动工具条 / ④模型资产库弹窗 / ⑤右属性面板（逐行） / ⑥底部对象操作条",
+   "gt": 117,
+   "area_max": 0.602,
+   "kinds": {
+    "panel": 9,
+    "icon": 4,
+    "chip": 14,
+    "button": 23,
+    "row": 56,
+    "tile": 11
+   }
+  },
+  {
+   "stem": "r034_snap_2026-10-19_00-31-33",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④背景音乐窗口+库 / ⑤右属性面板/底部",
+   "gt": 128,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 11,
+    "icon": 7,
+    "chip": 12,
+    "button": 39,
+    "row": 53,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r041_snap_2026-10-19_00-36-21",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v7",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角",
+   "gt": 74,
+   "area_max": 0.746,
+   "kinds": {
+    "panel": 5,
+    "chip": 15,
+    "button": 14,
+    "row": 34,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r045_snap_2026-10-19_00-38-06",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏窗口控件 / ②橙色工作区 / ③特效播放面板 / ④时间轴",
+   "gt": 88,
+   "area_max": 0.527,
+   "kinds": {
+    "panel": 4,
+    "icon": 5,
+    "button": 22,
+    "row": 20,
+    "chip": 37
+   }
+  }
+ ],
+ "models": {
+  "v1": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v1.pt",
+   "strict": {
+    "P": 0.203,
+    "R": 0.264,
+    "F1": 0.23
+   },
+   "total": {
+    "gt": 516,
+    "det": 669,
+    "tp": 136,
+    "fn": 380,
+    "fp": 533,
+    "leg_hit": 137,
+    "leg_ndet": 136
+   },
+   "per_kind": {
+    "panel": {
+     "gt": 42,
+     "det": 42,
+     "tp": 17,
+     "fn": 25,
+     "fp": 25,
+     "leg_hit": 18,
+     "leg_ndet": 17
+    },
+    "row": {
+     "gt": 202,
+     "det": 218,
+     "tp": 16,
+     "fn": 186,
+     "fp": 202,
+     "leg_hit": 16,
+     "leg_ndet": 16
+    },
+    "avatar": {
+     "gt": 1,
+     "det": 3,
+     "tp": 1,
+     "fn": 0,
+     "fp": 2,
+     "leg_hit": 1,
+     "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 79,
+     "tp": 28,
+     "fn": 55,
+     "fp": 51,
+     "leg_hit": 28,
+     "leg_ndet": 28
+    },
+    "tile": {
+     "gt": 43,
+     "det": 51,
+     "tp": 34,
+     "fn": 9,
+     "fp": 17,
+     "leg_hit": 34,
+     "leg_ndet": 34
+    },
+    "icon": {
+     "gt": 31,
+     "det": 40,
+     "tp": 10,
+     "fn": 21,
+     "fp": 30,
+     "leg_hit": 10,
+     "leg_ndet": 10
+    },
+    "card": {
+     "gt": 0,
+     "det": 12,
+     "tp": 0,
+     "fn": 0,
+     "fp": 12,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "button": {
+     "gt": 114,
+     "det": 224,
+     "tp": 30,
+     "fn": 84,
+     "fp": 194,
+     "leg_hit": 30,
+     "leg_ndet": 30
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 65,
+     "det": 131,
+     "tp": 36,
+     "fn": 29,
+     "fp": 95,
+     "leg_hit": 36,
+     "leg_ndet": 36
+    },
+    "editor": {
+     "gt": 451,
+     "det": 538,
+     "tp": 100,
+     "fn": 351,
+     "fp": 438,
+     "leg_hit": 101,
+     "leg_ndet": 100
+    }
+   },
+   "legacy_micro_R": 0.2655,
+   "geom": {},
+   "lat_ms": {
+    "p50": 46.2,
+    "p90": 53.3
+   }
+  },
+  "v2": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
+   "strict": {
+    "P": 0.179,
+    "R": 0.331,
+    "F1": 0.232
+   },
+   "total": {
+    "gt": 516,
+    "det": 955,
+    "tp": 171,
+    "fn": 345,
+    "fp": 784,
+    "leg_hit": 172,
+    "leg_ndet": 175
+   },
+   "per_kind": {
+    "panel": {
+     "gt": 42,
+     "det": 74,
+     "tp": 17,
+     "fn": 25,
+     "fp": 57,
+     "leg_hit": 18,
+     "leg_ndet": 21
+    },
+    "row": {
+     "gt": 202,
+     "det": 303,
+     "tp": 56,
+     "fn": 146,
+     "fp": 247,
+     "leg_hit": 56,
+     "leg_ndet": 56
+    },
+    "avatar": {
+     "gt": 1,
+     "det": 1,
+     "tp": 1,
+     "fn": 0,
+     "fp": 0,
+     "leg_hit": 1,
+     "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 168,
+     "tp": 24,
+     "fn": 59,
+     "fp": 144,
+     "leg_hit": 24,
+     "leg_ndet": 24
+    },
+    "tile": {
+     "gt": 43,
+     "det": 82,
+     "tp": 31,
+     "fn": 12,
+     "fp": 51,
+     "leg_hit": 31,
+     "leg_ndet": 31
+    },
+    "icon": {
+     "gt": 31,
+     "det": 69,
+     "tp": 12,
+     "fn": 19,
+     "fp": 57,
+     "leg_hit": 12,
+     "leg_ndet": 12
+    },
+    "card": {
+     "gt": 0,
+     "det": 43,
+     "tp": 0,
+     "fn": 0,
+     "fp": 43,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "button": {
+     "gt": 114,
+     "det": 215,
+     "tp": 30,
+     "fn": 84,
+     "fp": 185,
+     "leg_hit": 30,
+     "leg_ndet": 30
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 65,
+     "det": 230,
+     "tp": 38,
+     "fn": 27,
+     "fp": 192,
+     "leg_hit": 38,
+     "leg_ndet": 38
+    },
+    "editor": {
+     "gt": 451,
+     "det": 725,
+     "tp": 133,
+     "fn": 318,
+     "fp": 592,
+     "leg_hit": 134,
+     "leg_ndet": 137
+    }
+   },
+   "legacy_micro_R": 0.3333,
+   "geom": {},
+   "lat_ms": {
+    "p50": 75.9,
+    "p90": 140.9
+   }
+  }
+ },
+ "multi": {
+  "v1": [],
+  "v2": []
+ }
+}

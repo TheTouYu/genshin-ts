@@ -1,0 +1,1295 @@
+{
+ "meta": {
+  "tag": "old-prod",
+  "preset": "old",
+  "channel": "prod",
+  "dirs": [
+   ".scratch/gui-corpus/truth",
+   ".scratch/gui-corpus/truth-v2",
+   ".scratch/gui-corpus/truth-v3",
+   ".scratch/gui-corpus/truth-v4",
+   ".scratch/gui-corpus/truth-v5",
+   ".scratch/gui-corpus/truth-v6",
+   ".scratch/gui-corpus/truth-v7",
+   ".scratch/gui-corpus/truth-v8-game",
+   ".scratch/gui-corpus/truth-v8-editor",
+   ".scratch/gui-corpus/truth-v8-fix",
+   ".scratch/gui-corpus/truth-v9-fixed"
+  ],
+  "n_frames": 57,
+  "dropped_no_image": 0,
+  "cmd": [
+   "/usr/sbin/python3",
+   ".scratch/gui-detect/eval_v2.py",
+   "--preset",
+   "old",
+   "--channel",
+   "prod",
+   "--nms",
+   "avatar",
+   "--no-audit",
+   "--no-feats",
+   "--out",
+   ".scratch/gui-detect/eval-out/old-prod-avnms"
+  ],
+  "time": "2026-10-19 17:21:35"
+ },
+ "audit": {},
+ "frames": [
+  {
+   "stem": "c03_194915",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "好友列表（7 行 + 每行动作按钮 + 私聊气泡）",
+   "gt": 32,
+   "area_max": 0.724,
+   "kinds": {
+    "panel": 2,
+    "chip": 3,
+    "button": 18,
+    "row": 7,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c12_195108",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v2",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单（新语料）· 玩家卡 + 5×4 网格",
+   "gt": 34,
+   "area_max": 0.215,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "tile": 20,
+    "icon": 6,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c18_195129",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v2",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制（与语料 f09 同屏、不同连拍）",
+   "gt": 26,
+   "area_max": 0.471,
+   "kinds": {
+    "panel": 3,
+    "button": 2,
+    "row": 19,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c19_195135",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·声音（9 个音频设置行）",
+   "gt": 20,
+   "area_max": 0.036,
+   "kinds": {
+    "button": 2,
+    "row": 18
+   }
+  },
+  {
+   "stem": "c22_195158",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·按键（页签 基础设置/千星奇域 + 按键绑定行）",
+   "gt": 33,
+   "area_max": 0.434,
+   "kinds": {
+    "panel": 4,
+    "button": 4,
+    "chip": 2,
+    "row": 21,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c24_195206",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v2",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·按键（**两层页签**：基础设置 / 千星奇域；Lead 原标签写作\"派蒙菜单\"，实际是设置页）",
+   "gt": 33,
+   "area_max": 0.582,
+   "kinds": {
+    "panel": 4,
+    "button": 4,
+    "chip": 2,
+    "row": 21,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c25_195214",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v2",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单（新语料）· 千星奇域区（含分区标题下的 4 行）",
+   "gt": 33,
+   "area_max": 0.165,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "chip": 4,
+    "icon": 6,
+    "tile": 15,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c28_195235",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒·列表（左侧 7 条邮件 + 右侧详情 + 附件）",
+   "gt": 23,
+   "area_max": 0.363,
+   "kinds": {
+    "unknown": 3,
+    "button": 8,
+    "row": 8,
+    "panel": 2,
+    "icon": 2
+   }
+  },
+  {
+   "stem": "c29_195243",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒（本帧右侧出现「判测胜券本征」活动提醒浮层）",
+   "gt": 3,
+   "area_max": 0.363,
+   "kinds": {
+    "button": 2,
+    "panel": 1
+   }
+  },
+  {
+   "stem": "c32_195258",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v2",
+   "W": 2560,
+   "H": 1440,
+   "layout": "邮件珍藏盒（列表 + 详情两栏）",
+   "gt": 22,
+   "area_max": 0.355,
+   "kinds": {
+    "unknown": 3,
+    "button": 7,
+    "row": 8,
+    "panel": 2,
+    "icon": 2
+   }
+  },
+  {
+   "stem": "c34_195311",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星奇域区（已滚到分区；上排 3 格被面板上沿裁切）",
+   "gt": 22,
+   "area_max": 0.085,
+   "kinds": {
+    "panel": 1,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 11,
+    "chip": 1
+   }
+  },
+  {
+   "stem": "c36_195316",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "存档选择·卡片网格（7 卡 + 7 编辑 + 页签 + 底部按钮）",
+   "gt": 29,
+   "area_max": 0.524,
+   "kinds": {
+    "panel": 2,
+    "chip": 4,
+    "button": 14,
+    "card": 7,
+    "unknown": 2
+   }
+  },
+  {
+   "stem": "c37_195331",
+   "family": "world_hud",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "c40_195339",
+   "family": "world_hud",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "c41_195439",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "编辑器窗口：标签栏 + 左资源树 + 视口工具条 + 3D 视口",
+   "gt": 37,
+   "area_max": 0.19,
+   "kinds": {
+    "chip": 15,
+    "button": 13,
+    "panel": 1,
+    "row": 8
+   }
+  },
+  {
+   "stem": "c42_195441",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v3",
+   "W": 2560,
+   "H": 1440,
+   "layout": "资源管理器：左分类树 + 中资源树 + 右列表（上：实体节点图；下：自定义元件）",
+   "gt": 37,
+   "area_max": 0.022,
+   "kinds": {
+    "button": 15,
+    "chip": 9,
+    "row": 13
+   }
+  },
+  {
+   "stem": "f00",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（角色头像行）",
+   "gt": 20,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 4,
+    "avatar": 5,
+    "icon": 3
+   }
+  },
+  {
+   "stem": "f01",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（奖励图标行）",
+   "gt": 17,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 6
+   }
+  },
+  {
+   "stem": "f02",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·同 f01（奖励行横滚）",
+   "gt": 17,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 6
+   }
+  },
+  {
+   "stem": "f03",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·左列表+右详情（奖励行 5 图标）",
+   "gt": 16,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "icon": 5
+   }
+  },
+  {
+   "stem": "f04",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·卡片群",
+   "gt": 15,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 3,
+    "card": 4
+   }
+  },
+  {
+   "stem": "f05",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览·立绘+时装卡+任务卡",
+   "gt": 15,
+   "area_max": 0.454,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 4,
+    "card": 3
+   }
+  },
+  {
+   "stem": "f06",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单首屏（网格 4×4+3）",
+   "gt": 31,
+   "area_max": 0.222,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 19
+   }
+  },
+  {
+   "stem": "f07",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单滚一屏",
+   "gt": 30,
+   "area_max": 0.227,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 18
+   }
+  },
+  {
+   "stem": "f08",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星奇域区",
+   "gt": 31,
+   "area_max": 0.227,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 2,
+    "icon": 6,
+    "tile": 19
+   }
+  },
+  {
+   "stem": "f09",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制",
+   "gt": 23,
+   "area_max": 0.487,
+   "kinds": {
+    "row": 19,
+    "button": 2,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f10",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·图像（顶部）",
+   "gt": 24,
+   "area_max": 0.582,
+   "kinds": {
+    "row": 21,
+    "button": 1,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f11",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·图像（滚后）",
+   "gt": 25,
+   "area_max": 0.621,
+   "kinds": {
+    "row": 22,
+    "button": 1,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f12",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·语言",
+   "gt": 16,
+   "area_max": 0.155,
+   "kinds": {
+    "row": 12,
+    "button": 2,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "f13",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth",
+   "W": 2560,
+   "H": 1440,
+   "layout": "存档选择（卡片网格）",
+   "gt": 27,
+   "area_max": 0.544,
+   "kinds": {
+    "chip": 4,
+    "card": 7,
+    "button": 14,
+    "panel": 2
+   }
+  },
+  {
+   "stem": "neg-world",
+   "family": "world_hud",
+   "family_src": "layout-rule",
+   "from": "truth",
+   "W": 1530,
+   "H": 1440,
+   "layout": "负样本·提瓦特世界（3D 实景，无 UI）",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "r003_snap_2026-10-19_00-17-26",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "左上玩家信息卡（插画皮肤）→ 左列图标栏（6 图标）→ 4×5 网格（每格 192×173）→ 底部 HUD/四角件",
+   "gt": 51,
+   "area_max": 0.948,
+   "kinds": {
+    "panel": 4,
+    "avatar": 1,
+    "row": 7,
+    "button": 4,
+    "icon": 11,
+    "tile": 20,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r004_snap_2026-10-19_00-20-33",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单：信息卡 + 左图标栏 + 4×5 网格 + 四角 HUD",
+   "gt": 43,
+   "area_max": 0.211,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 5,
+    "tile": 20,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r006_snap_2026-10-19_00-22-19",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（左「邮箱」chip + 右簇 邮件珍藏盒/图标/邮件数/?/X）→ 左邮件列表 8 行 → 右详情（标题/发件人/时间/正文/附件×2）→ 底部按钮 ×4 + 四角 HUD",
+   "gt": 35,
+   "area_max": 0.396,
+   "kinds": {
+    "panel": 4,
+    "chip": 2,
+    "icon": 6,
+    "row": 14,
+    "button": 6,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r007_snap_2026-10-19_00-22-25",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "设置·控制：顶栏（标题/射击设置/X）+ 左导航 9 行 + 内容 10 行（含 2 个分节标题）",
+   "gt": 30,
+   "area_max": 0.471,
+   "kinds": {
+    "panel": 3,
+    "row": 22,
+    "button": 2,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r008_snap_2026-10-19_00-23-27",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v5",
+   "W": 2560,
+   "H": 1440,
+   "layout": "任务：顶栏 + 左列表（3 个分区标题 + 8 个任务行）+ 右详情 + 任务总览",
+   "gt": 16,
+   "area_max": 0.513,
+   "kinds": {
+    "panel": 3,
+    "button": 2,
+    "chip": 3,
+    "row": 8
+   }
+  },
+  {
+   "stem": "r009_snap_2026-10-19_00-23-32",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "任务界面：顶栏 + 左任务列表（8 项）+ 右详情（名/地点/目标/描述/奖励）+ 底部两钮",
+   "gt": 33,
+   "area_max": 0.448,
+   "kinds": {
+    "panel": 4,
+    "row": 7,
+    "button": 6,
+    "card": 8,
+    "icon": 5,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r013_snap_2026-10-19_00-23-53",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（左标题 / 中 3 页签 / 右 3-3·?·X）→ 6 张邀约角色卡横排（卡底 1099）→ 底部提示条（钥匙 8/8 + 提示）→ 右下 领取",
+   "gt": 33,
+   "area_max": 0.98,
+   "kinds": {
+    "panel": 3,
+    "icon": 2,
+    "row": 10,
+    "button": 8,
+    "card": 6,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r016_snap_2026-10-19_00-24-17",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v5",
+   "W": 2560,
+   "H": 1440,
+   "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情",
+   "gt": 18,
+   "area_max": 0.508,
+   "kinds": {
+    "panel": 3,
+    "chip": 3,
+    "row": 10,
+    "button": 2
+   }
+  },
+  {
+   "stem": "r019_snap_2026-10-19_00-24-44",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（背包图标/分类 chip/Q/8 个筛选页签/E/容量/X）→ 左分类栏 → 物品网格 8×5 → 右物品详情 → 底部货币带 + 使用",
+   "gt": 72,
+   "area_max": 0.517,
+   "kinds": {
+    "panel": 5,
+    "icon": 1,
+    "chip": 3,
+    "button": 12,
+    "row": 8,
+    "tile": 40,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r021_snap_2026-10-19_00-24-58",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "顶栏（图标/标题/Q/3 页签/E/计数 173-200/X）→ 好友列表 7 行（头像+名字+等级状态+留言+动作钮+私聊）→ 左右翻页箭头 → 底部黑名单管理",
+   "gt": 46,
+   "area_max": 0.98,
+   "kinds": {
+    "panel": 2,
+    "icon": 1,
+    "row": 9,
+    "button": 23,
+    "avatar": 7,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r022_snap_2026-10-19_00-25-06",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v8-game",
+   "W": 2560,
+   "H": 1440,
+   "layout": "好友页（顶栏 + 7 行列表，被弹窗压住）→ 角色展柜弹窗（左页 名片/资料 6 行 + 右页 页签×2 + 角色卡 4×2）→ 底部黑名单管理",
+   "gt": 45,
+   "area_max": 0.98,
+   "kinds": {
+    "panel": 4,
+    "row": 19,
+    "button": 7,
+    "avatar": 1,
+    "chip": 2,
+    "card": 8,
+    "unknown": 4
+   }
+  },
+  {
+   "stem": "r023_snap_2026-10-19_00-25-15",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "绘卷详情弹窗（覆盖在奇域详情页上）：标题/翻页/截图/作品信息/活动关卡/评价 + 背景页按钮",
+   "gt": 20,
+   "area_max": 0.298,
+   "kinds": {
+    "panel": 2,
+    "row": 6,
+    "button": 8,
+    "icon": 1,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r024_snap_2026-10-19_00-25-30",
+   "family": "game_ui",
+   "family_src": "default",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "角色图鉴：顶栏 + 左 5×5 角色卡网格 + 右立绘预览 + 底部排序/筛选/详情",
+   "gt": 40,
+   "area_max": 0.514,
+   "kinds": {
+    "panel": 3,
+    "row": 4,
+    "button": 5,
+    "card": 25,
+    "unknown": 3
+   }
+  },
+  {
+   "stem": "r026_snap_2026-10-19_00-27-05",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左资源栏 / ③3D 视口/浮动工具条 / ④四角小件",
+   "gt": 44,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 6,
+    "icon": 4,
+    "chip": 2,
+    "button": 10,
+    "row": 22
+   }
+  },
+  {
+   "stem": "r028_snap_2026-10-19_00-27-49",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v9-fixed",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左竖栏(树+调色板) / ③视口+浮动工具条 / ④模型资产库弹窗 / ⑤右属性面板（逐行） / ⑥底部对象操作条",
+   "gt": 117,
+   "area_max": 0.602,
+   "kinds": {
+    "panel": 9,
+    "icon": 4,
+    "chip": 14,
+    "button": 23,
+    "row": 56,
+    "tile": 11
+   }
+  },
+  {
+   "stem": "r032_snap_2026-10-19_00-30-42",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④关卡设置弹窗 / ⑤右属性面板/底部",
+   "gt": 129,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 12,
+    "icon": 8,
+    "chip": 12,
+    "button": 36,
+    "row": 55,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r034_snap_2026-10-19_00-31-33",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④背景音乐窗口+库 / ⑤右属性面板/底部",
+   "gt": 128,
+   "area_max": 0.783,
+   "kinds": {
+    "panel": 11,
+    "icon": 7,
+    "chip": 12,
+    "button": 39,
+    "row": 53,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r040_snap_2026-10-19_00-36-18",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②竖图标栏+左树+调色板 / ③视口 / ④右属性面板 / ⑤底部",
+   "gt": 97,
+   "area_max": 0.752,
+   "kinds": {
+    "panel": 13,
+    "icon": 9,
+    "chip": 11,
+    "button": 26,
+    "row": 32,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r041_snap_2026-10-19_00-36-21",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v7",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角",
+   "gt": 74,
+   "area_max": 0.746,
+   "kinds": {
+    "panel": 5,
+    "chip": 15,
+    "button": 14,
+    "row": 34,
+    "tile": 6
+   }
+  },
+  {
+   "stem": "r044_snap_2026-10-19_00-37-57",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏窗口控件 / ②橙色工作区 / ③添加技能节点图弹窗 / ④时间轴",
+   "gt": 75,
+   "area_max": 0.688,
+   "kinds": {
+    "panel": 5,
+    "icon": 5,
+    "button": 19,
+    "row": 16,
+    "chip": 30
+   }
+  },
+  {
+   "stem": "r045_snap_2026-10-19_00-38-06",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-editor",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏窗口控件 / ②橙色工作区 / ③特效播放面板 / ④时间轴",
+   "gt": 88,
+   "area_max": 0.527,
+   "kinds": {
+    "panel": 4,
+    "icon": 5,
+    "button": 22,
+    "row": 20,
+    "chip": 37
+   }
+  },
+  {
+   "stem": "r047_snap_2026-10-19_00-39-53",
+   "family": "editor",
+   "family_src": "provenance",
+   "from": "truth-v8-fix",
+   "W": 2560,
+   "H": 1440,
+   "layout": "①顶栏 / ②左竖图标栏+单位状态树+调色板 / ③视口+浮动工具条 / ④右属性面板（逐行） / ⑤底部命令条+四角",
+   "gt": 57,
+   "area_max": 0.522,
+   "kinds": {
+    "panel": 9,
+    "icon": 9,
+    "chip": 7,
+    "button": 20,
+    "row": 11,
+    "tile": 1
+   }
+  },
+  {
+   "stem": "v060_0461",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v4",
+   "W": 2560,
+   "H": 1440,
+   "layout": "派蒙菜单·千星版（4×5 网格 + 返回提瓦特）",
+   "gt": 33,
+   "area_max": 0.274,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 3,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "v078_0487",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v4",
+   "W": 2560,
+   "H": 1440,
+   "layout": "地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）",
+   "gt": 19,
+   "area_max": 0.671,
+   "kinds": {
+    "panel": 1,
+    "button": 2,
+    "card": 16
+   }
+  },
+  {
+   "stem": "v088_0513",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v4",
+   "W": 2560,
+   "H": 1440,
+   "layout": "角色详情·属性页（顶栏 9 头像 + 左 6 导航 + 右属性面板 + 底部按钮）",
+   "gt": 27,
+   "area_max": 0.01,
+   "kinds": {
+    "button": 6,
+    "avatar": 9,
+    "row": 12
+   }
+  },
+  {
+   "stem": "v101_0529",
+   "family": "game_ui",
+   "family_src": "provenance",
+   "from": "truth-v4",
+   "W": 2560,
+   "H": 1440,
+   "layout": "活动一览（左 7 行列表 + 右：预测面板 / 两个活动按钮 / 活动详情）",
+   "gt": 19,
+   "area_max": 0.272,
+   "kinds": {
+    "panel": 3,
+    "button": 7,
+    "row": 7,
+    "card": 2
+   }
+  }
+ ],
+ "models": {
+  "v1": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v1.pt",
+   "strict": {
+    "P": 0.439,
+    "R": 0.578,
+    "F1": 0.499
+   },
+   "total": {
+    "gt": 2023,
+    "det": 2664,
+    "tp": 1169,
+    "fn": 854,
+    "fp": 1495,
+    "leg_hit": 1174,
+    "leg_ndet": 1186
+   },
+   "per_kind": {
+    "icon": {
+     "gt": 149,
+     "det": 188,
+     "tp": 99,
+     "fn": 50,
+     "fp": 89,
+     "leg_hit": 99,
+     "leg_ndet": 99
+    },
+    "chip": {
+     "gt": 197,
+     "det": 185,
+     "tp": 75,
+     "fn": 122,
+     "fp": 110,
+     "leg_hit": 75,
+     "leg_ndet": 75
+    },
+    "button": {
+     "gt": 457,
+     "det": 682,
+     "tp": 255,
+     "fn": 202,
+     "fp": 427,
+     "leg_hit": 255,
+     "leg_ndet": 255
+    },
+    "row": {
+     "gt": 682,
+     "det": 869,
+     "tp": 333,
+     "fn": 349,
+     "fp": 536,
+     "leg_hit": 333,
+     "leg_ndet": 346
+    },
+    "panel": {
+     "gt": 183,
+     "det": 305,
+     "tp": 127,
+     "fn": 56,
+     "fp": 178,
+     "leg_hit": 132,
+     "leg_ndet": 129
+    },
+    "tile": {
+     "gt": 238,
+     "det": 276,
+     "tp": 185,
+     "fn": 53,
+     "fp": 91,
+     "leg_hit": 185,
+     "leg_ndet": 185
+    },
+    "avatar": {
+     "gt": 31,
+     "det": 35,
+     "tp": 15,
+     "fn": 16,
+     "fp": 20,
+     "leg_hit": 15,
+     "leg_ndet": 15
+    },
+    "card": {
+     "gt": 86,
+     "det": 124,
+     "tp": 80,
+     "fn": 6,
+     "fp": 44,
+     "leg_hit": 80,
+     "leg_ndet": 82
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 1140,
+     "det": 1722,
+     "tp": 900,
+     "fn": 240,
+     "fp": 822,
+     "leg_hit": 902,
+     "leg_ndet": 916
+    },
+    "world_hud": {
+     "gt": 0,
+     "det": 31,
+     "tp": 0,
+     "fn": 0,
+     "fp": 31,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "editor": {
+     "gt": 883,
+     "det": 911,
+     "tp": 269,
+     "fn": 614,
+     "fp": 642,
+     "leg_hit": 272,
+     "leg_ndet": 270
+    }
+   },
+   "legacy_micro_R": 0.5803,
+   "geom": {},
+   "lat_ms": {
+    "p50": 44.5,
+    "p90": 53.7
+   }
+  },
+  "v2": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
+   "strict": {
+    "P": 0.353,
+    "R": 0.589,
+    "F1": 0.441
+   },
+   "total": {
+    "gt": 2023,
+    "det": 3377,
+    "tp": 1192,
+    "fn": 831,
+    "fp": 2185,
+    "leg_hit": 1197,
+    "leg_ndet": 1203
+   },
+   "per_kind": {
+    "icon": {
+     "gt": 149,
+     "det": 331,
+     "tp": 105,
+     "fn": 44,
+     "fp": 226,
+     "leg_hit": 105,
+     "leg_ndet": 105
+    },
+    "tile": {
+     "gt": 238,
+     "det": 358,
+     "tp": 186,
+     "fn": 52,
+     "fp": 172,
+     "leg_hit": 186,
+     "leg_ndet": 187
+    },
+    "chip": {
+     "gt": 197,
+     "det": 403,
+     "tp": 88,
+     "fn": 109,
+     "fp": 315,
+     "leg_hit": 88,
+     "leg_ndet": 88
+    },
+    "button": {
+     "gt": 457,
+     "det": 749,
+     "tp": 243,
+     "fn": 214,
+     "fp": 506,
+     "leg_hit": 243,
+     "leg_ndet": 244
+    },
+    "row": {
+     "gt": 682,
+     "det": 998,
+     "tp": 341,
+     "fn": 341,
+     "fp": 657,
+     "leg_hit": 341,
+     "leg_ndet": 341
+    },
+    "panel": {
+     "gt": 183,
+     "det": 365,
+     "tp": 130,
+     "fn": 53,
+     "fp": 235,
+     "leg_hit": 135,
+     "leg_ndet": 139
+    },
+    "card": {
+     "gt": 86,
+     "det": 158,
+     "tp": 84,
+     "fn": 2,
+     "fp": 74,
+     "leg_hit": 84,
+     "leg_ndet": 84
+    },
+    "avatar": {
+     "gt": 31,
+     "det": 15,
+     "tp": 15,
+     "fn": 16,
+     "fp": 0,
+     "leg_hit": 15,
+     "leg_ndet": 15
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 1140,
+     "det": 2094,
+     "tp": 834,
+     "fn": 306,
+     "fp": 1260,
+     "leg_hit": 836,
+     "leg_ndet": 840
+    },
+    "world_hud": {
+     "gt": 0,
+     "det": 25,
+     "tp": 0,
+     "fn": 0,
+     "fp": 25,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "editor": {
+     "gt": 883,
+     "det": 1258,
+     "tp": 358,
+     "fn": 525,
+     "fp": 900,
+     "leg_hit": 361,
+     "leg_ndet": 363
+    }
+   },
+   "legacy_micro_R": 0.5917,
+   "geom": {},
+   "lat_ms": {
+    "p50": 62.7,
+    "p90": 113.2
+   }
+  }
+ },
+ "multi": {
+  "v1": [],
+  "v2": []
+ }
+}

@@ -36,7 +36,8 @@ SCHEMA_ID = "gui-world-state/0"
 # 这是**契约里声明的预算**，实际耗时另见 timing_ms；超预算 ⇒ degraded BUDGET_EXCEEDED。
 BUDGET_DEFAULT_MS = {"total": 50, "detect": 10, "ocr": 0}
 
-KINDS = ("tile", "card", "button", "row", "panel", "chip", "icon", "avatar", "unknown")
+KINDS = ("tile", "card", "button", "row", "panel", "chip", "icon", "avatar",
+         "glyph_icon", "unknown")   # glyph_icon：无底图标（HUD 专属，2026-10-19 由真值口径引入）
 GROUP_ROLES = ("section", "row", "grid", "tabs")
 BADGE_TYPES = ("alert", "scroll", "crown", "claimed", "lastopen")
 AFFORDANCE_VALUES = ("yes", "no", "unknown")

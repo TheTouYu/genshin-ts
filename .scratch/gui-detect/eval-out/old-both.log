@@ -1,0 +1,8 @@
+[audit] 16 帧有未覆盖读数（≥3 处 = 3 帧）
+[done] 57 帧 × 4 检测器 · 32.8s
+[out ] .scratch/gui-detect/eval-out/old-both/report.md
+[一屏摘要]
+  v1.prod    strict P=0.443 R=0.578 F1=0.502 · legacy R=0.58 · det=2636
+  v1.train   strict P=0.318 R=0.586 F1=0.413 · legacy R=0.589 · det=3724
+  v2.prod    strict P=0.35 R=0.582 F1=0.437 · legacy R=0.584 · det=3362
+  v2.train   strict P=0.252 R=0.591 F1=0.353 · legacy R=0.592 · det=4750

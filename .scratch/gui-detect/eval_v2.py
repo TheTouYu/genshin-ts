@@ -38,6 +38,7 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+VAL_STEMS = set()      # split.json 的验证帧（glyph 专项据此分 val / train 两侧）
 HERE = os.path.dirname(os.path.abspath(__file__))
 CORPUS = os.path.join(ROOT, ".scratch", "gui-corpus")
 COLLECT = os.path.join(ROOT, ".scratch", "gui-collect")
@@ -215,7 +216,7 @@ def normalize_frame(fr, family_override=None, infer_unknown=False, manifest=None
                 kind = "icon"
             else:
                 kind = "tile"
-        if glyph_drop_bars and kind == "glyph_icon" and (w > 150 or h > 60):
+        if glyph_drop_bars and kind == "glyph_icon" and w > 150:
             continue                          # 条/数值文本按 CALIBER「无底图标」定义不算 glyph_icon
         objs.append({"bbox": [x, y, w, h], "kind": kind,
                      "id": o.get("id"), "text": o.get("text") or [],
@@ -611,7 +612,7 @@ def geom_slices(frame_recs, kinds=("row", "glyph_icon", "tile", "icon", "chip", 
             for k, v in rows.items()}
 
 
-def glyph_report(frames, results, ref=None, iou_thr=0.5):
+def glyph_report(frames, results, ref=None, iou_thr=0.5, val_stems=None):
     """world_hud 的 glyph_icon 专项：三个数（帧级 GT / 独立样本 / 独立界面）+ 逐 glyph 检出率。
 
     为什么必须逐 glyph：31 个样本太少，总 P/R 会把「17 个学会了、14 个从没检出过」平均掉。
@@ -625,27 +626,31 @@ def glyph_report(frames, results, ref=None, iou_thr=0.5):
     ref_f = next((f for f, g in gl if f["stem"] == (ref or gl[0][0]["stem"])), gl[0][0])
     ref_glyphs = [o for o in ref_f["objects"] if o["kind"] == "glyph_icon"]
     eval_frames = [f for f, g in gl if f["stem"] != ref_f["stem"]]
+    val_stems = set(val_stems or [])
+    ev_val = [f for f in eval_frames if f["stem"] in val_stems]
+    ev_tr = [f for f in eval_frames if f["stem"] not in val_stems]
     total_frames_gt = sum(len(g) for f, g in gl)
     rows = []
     for gi, o in enumerate(ref_glyphs):
         w, h = o["bbox"][2], o["bbox"][3]
-        is_bar = (w > 150 or h > 60)
+        is_bar = (w > 150)          # 条/数值：宽 >150px（与 truth 的独立 kind `bar` 口径一致）
         label = (o.get("text") or o.get("note") or [""])
         label = label[0] if isinstance(label, list) and label else str(label)
         cell = {"idx": gi + 1, "bbox": [round(v) for v in o["bbox"]], "w": round(w), "h": round(h),
                 "bar": is_bar, "label": (label or "")[:14]}
+        def _hit(res, f):
+            rec = next((fr for fr in res["frames"] if fr["stem"] == f["stem"]), None)
+            return bool(rec) and any(d["kind"] == "glyph_icon"
+                                     and iou_xywh(d["bbox"], o["bbox"]) >= iou_thr
+                                     for d in rec["_dets"])
         for m, res in results.items():
-            hits = 0
-            for f in eval_frames:
-                dets = next((fr for fr in res["frames"] if fr["stem"] == f["stem"]), None)
-                if not dets:
-                    continue
-                if any(d["kind"] == "glyph_icon" and iou_xywh(d["bbox"], o["bbox"]) >= iou_thr
-                       for d in dets["_dets"]):
-                    hits += 1
-            cell[m] = hits
+            cell[m] = (sum(1 for f in ev_val if _hit(res, f)), len(ev_val),
+                       sum(1 for f in ev_tr if _hit(res, f)), len(ev_tr))
         rows.append(cell)
+    rows.sort(key=lambda c: (-max((v for v, _nv, _t, _nt in [c[m] for m in results]), default=0),
+                             c["idx"]))
     return {"ref": ref_f["stem"], "n_eval_frames": len(eval_frames),
+            "n_val": len(ev_val), "n_train": len(ev_tr),
             "frames": [f["stem"] for f in eval_frames],
             "total_frames_gt": total_frames_gt, "distinct": len(ref_glyphs),
             "n_interfaces": 1, "rows": rows}
@@ -852,7 +857,8 @@ def build_report(args, frames, manifest, audit, results, multi, tag):
     L.append("")
 
     # ---- 3.5 world HUD / glyph_icon 专项
-    gr = glyph_report(frames, results, ref=getattr(args, "glyph_ref", None))
+    gr = glyph_report(frames, results, ref=getattr(args, "glyph_ref", None),
+                      val_stems=VAL_STEMS)
     if gr:
         L.append("## 3.5 world HUD / glyph_icon 专项（C 方案：只回答「31 个已知模板能不能学出来」）")
         L.append("")
@@ -866,23 +872,24 @@ def build_report(args, frames, manifest, audit, results, multi, tag):
         rows = []
         for c in gr["rows"]:
             cells = [c[m] for m in results]
-            best = max(cells) if cells else 0
-            verdict = "稳定" if best >= gr["n_eval_frames"] and gr["n_eval_frames"] else (
-                "部分" if best else "从不")
+            best_val = max((v for v, nv, _t, _nt in cells), default=0)
+            verdict = ("稳定" if best_val >= gr["n_val"] and gr["n_val"] else
+                       "部分" if best_val else "从不")
             rows.append([c["idx"], c["bbox"], f"{c['w']}×{c['h']}", "是" if c["bar"] else "",
-                         c["label"]] + [f"{h}/{gr['n_eval_frames']}" for h in cells] + [verdict])
+                         c["label"]]
+                        + [f"val {v}/{nv} · train {t}/{nt}" for v, nv, t, nt in cells]
+                        + [verdict])
         L.append(md_table(head, rows))
         L.append("")
         for m in results:
-            stab = sum(1 for c in gr["rows"] if gr["n_eval_frames"] and c[m] >= gr["n_eval_frames"])
-            part = sum(1 for c in gr["rows"] if 0 < c[m] < gr["n_eval_frames"])
-            never = sum(1 for c in gr["rows"] if c[m] == 0)
-            bars = [c for c in gr["rows"] if c["bar"]]
-            icons = [c for c in gr["rows"] if not c["bar"]]
-            bi = sum(1 for c in icons if c[m] > 0)
-            bb = sum(1 for c in bars if c[m] > 0)
-            L.append(f"- `{m}`：**稳定 {stab}／部分 {part}／从不 {never}**（共 {len(gr['rows'])}）；"
-                     f"图标类 {bi}/{len(icons)} 有检出，条/数值类 {bb}/{len(bars)} 有检出")
+            nv = gr["n_val"] or 1
+            stab = sum(1 for c in gr["rows"] if c[m][0] >= nv and nv)
+            part = sum(1 for c in gr["rows"] if 0 < c[m][0] < nv)
+            never = sum(1 for c in gr["rows"] if c[m][0] == 0)
+            tr_hit = sum(1 for c in gr["rows"] if c[m][2] > 0)
+            L.append(f"- `{m}`：**val 稳定 {stab}／部分 {part}／从不 {never}**（共 {len(gr['rows'])}，"
+                     f"val 帧 {gr['n_val']} 个）；同一批 glyph 在训练帧上有检出 {tr_hit}/{len(gr['rows'])}"
+                     f"（train 帧 {gr['n_train']} 个，仅作 in-sample 参考，不算泛化）")
         L.append("")
 
     # ---- 4 几何切片
@@ -1046,6 +1053,8 @@ def main():
     for d in dirs:
         if not os.path.isdir(d):
             raise SystemExit(f"真值目录不存在：{d}")
+    global VAL_STEMS
+    VAL_STEMS = set()
     raw_frames, manifest = collect_frames(dirs)
     man, man_paths = load_manifest(dirs)
     if man_paths:
@@ -1070,6 +1079,7 @@ def main():
     dropped = len(raw_frames) - len(frames)
     if args.split_file:
         sp = json.load(open(os.path.join(ROOT, args.split_file), encoding="utf-8"))
+        VAL_STEMS = set(sp.get("val", []))
         if args.eval_split != "all":
             keep = set(sp[args.eval_split])
             n0 = len(frames)

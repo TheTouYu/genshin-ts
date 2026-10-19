@@ -1,0 +1,1083 @@
+{
+ "frame": "r024_snap_2026-10-19_00-25-30",
+ "image": ".scratch/gui-corpus/truth-v9-fixed/r024_snap_2026-10-19_00-25-30.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · v9 预测修正：实测模板+OCR 锚点，逐框改/删/补",
+ "criteria": "gui-annotation R1–R10 + .scratch/gui-corpus/truth/_rules.md",
+ "layout": "角色图鉴：顶栏 + 左 5×5 角色卡网格 + 右立绘预览 + 底部排序/筛选/详情",
+ "classes": [
+  "角色卡网格",
+  "立绘预览",
+  "录制 HUD"
+ ],
+ "review": "auto",
+ "units": 40,
+ "objects": [
+  {
+   "id": "0",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    112
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏整条（R7）"
+  },
+  {
+   "id": "1",
+   "parent": "0",
+   "bbox": [
+    180,
+    25,
+    200,
+    62
+   ],
+   "kind": "row",
+   "text": [
+    "角色图鉴"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "页标题"
+  },
+  {
+   "id": "2",
+   "parent": "0",
+   "bbox": [
+    2415,
+    20,
+    92,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": "3",
+   "parent": null,
+   "bbox": [
+    46,
+    86,
+    1010,
+    1214
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡网格区（5 列 × 5 行并集 ±10，R7）"
+  },
+  {
+   "id": "4",
+   "parent": "3",
+   "bbox": [
+    56,
+    99,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "沃雅妮莎"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c1（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "5",
+   "parent": "3",
+   "bbox": [
+    258,
+    99,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "薇斯纳"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c2（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "6",
+   "parent": "3",
+   "bbox": [
+    460,
+    99,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "奧黛塔"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c3（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "7",
+   "parent": "3",
+   "bbox": [
+    662,
+    99,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "阿罗夏"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c4（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "8",
+   "parent": "3",
+   "bbox": [
+    864,
+    99,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "桑多涅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r1c5（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "9",
+   "parent": "3",
+   "bbox": [
+    56,
+    335,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "洛恩"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c1（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "10",
+   "parent": "3",
+   "bbox": [
+    258,
+    335,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "尼可"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c2（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "11",
+   "parent": "3",
+   "bbox": [
+    460,
+    335,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "布伦妮"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c3（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "12",
+   "parent": "3",
+   "bbox": [
+    662,
+    335,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "莉奈娅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c4（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "13",
+   "parent": "3",
+   "bbox": [
+    864,
+    335,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "法尔伽"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r2c5（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "14",
+   "parent": "3",
+   "bbox": [
+    56,
+    571,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "兹白"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r3c1（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "15",
+   "parent": "3",
+   "bbox": [
+    258,
+    571,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "叶洛亚"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r3c2（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "16",
+   "parent": "3",
+   "bbox": [
+    460,
+    571,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "哥伦比娅"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r3c3（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "17",
+   "parent": "3",
+   "bbox": [
+    662,
+    571,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "杜林"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r3c4（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "18",
+   "parent": "3",
+   "bbox": [
+    864,
+    571,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "雅珂达"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r3c5（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "19",
+   "parent": "3",
+   "bbox": [
+    56,
+    807,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "奈芙尔"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r4c1（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "20",
+   "parent": "3",
+   "bbox": [
+    258,
+    807,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "奇偶·女性"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r4c2（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "21",
+   "parent": "3",
+   "bbox": [
+    460,
+    807,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "奇偶·男性"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r4c3（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "22",
+   "parent": "3",
+   "bbox": [
+    662,
+    807,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "菲林斯"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r4c4（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "23",
+   "parent": "3",
+   "bbox": [
+    864,
+    807,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [
+    "菈乌玛"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r4c5（行 99+236r / 列 56+202c，卡 200×236）"
+  },
+  {
+   "id": "24",
+   "parent": "3",
+   "bbox": [
+    56,
+    1043,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r5c1（行 99+236r / 列 56+202c，卡 200×236）；第 5 行被底部按钮带裁切"
+  },
+  {
+   "id": "25",
+   "parent": "3",
+   "bbox": [
+    258,
+    1043,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r5c2（行 99+236r / 列 56+202c，卡 200×236）；第 5 行被底部按钮带裁切"
+  },
+  {
+   "id": "26",
+   "parent": "3",
+   "bbox": [
+    460,
+    1043,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r5c3（行 99+236r / 列 56+202c，卡 200×236）；第 5 行被底部按钮带裁切"
+  },
+  {
+   "id": "27",
+   "parent": "3",
+   "bbox": [
+    662,
+    1043,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r5c4（行 99+236r / 列 56+202c，卡 200×236）；第 5 行被底部按钮带裁切"
+  },
+  {
+   "id": "28",
+   "parent": "3",
+   "bbox": [
+    864,
+    1043,
+    200,
+    236
+   ],
+   "kind": "card",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "角色卡 r5c5（行 99+236r / 列 56+202c，卡 200×236）；第 5 行被底部按钮带裁切"
+  },
+  {
+   "id": "29",
+   "parent": null,
+   "bbox": [
+    1076,
+    60,
+    1470,
+    1290
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右侧角色立绘/预览区（R7）"
+  },
+  {
+   "id": "30",
+   "parent": "29",
+   "bbox": [
+    2240,
+    1152,
+    270,
+    90
+   ],
+   "kind": "row",
+   "text": [
+    "沃雅妮莎"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "选中角色名"
+  },
+  {
+   "id": "31",
+   "parent": "29",
+   "bbox": [
+    2216,
+    1244,
+    290,
+    50
+   ],
+   "kind": "row",
+   "text": [
+    "2026/9/23加入队伍"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "加入队伍信息行"
+  },
+  {
+   "id": "32",
+   "parent": null,
+   "bbox": [
+    168,
+    1312,
+    340,
+    84
+   ],
+   "kind": "button",
+   "text": [
+    "默认排序"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左下排序胶囊（R4 边缘带）"
+  },
+  {
+   "id": "33",
+   "parent": null,
+   "bbox": [
+    520,
+    1316,
+    660,
+    76
+   ],
+   "kind": "row",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "搜索/筛选输入条"
+  },
+  {
+   "id": "34",
+   "parent": null,
+   "bbox": [
+    1424,
+    1306,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "排序方向钮"
+  },
+  {
+   "id": "35",
+   "parent": null,
+   "bbox": [
+    1840,
+    1306,
+    84,
+    84
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "筛选钮"
+  },
+  {
+   "id": "36",
+   "parent": null,
+   "bbox": [
+    2296,
+    1312,
+    190,
+    76
+   ],
+   "kind": "button",
+   "text": [
+    "详情"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右下详情钮（R1 按右沿）"
+  },
+  {
+   "id": "37",
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    128,
+    96
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "38",
+   "parent": null,
+   "bbox": [
+    0,
+    1292,
+    300,
+    34
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  },
+  {
+   "id": "39",
+   "parent": null,
+   "bbox": [
+    2250,
+    1395,
+    260,
+    45
+   ],
+   "kind": "unknown",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "四角（R4/R10）：录制 HUD/角件，非游戏 UI"
+  }
+ ],
+ "_provenance": {
+  "layout": "角色图鉴：顶栏 + 左 5×5 角色卡网格 + 右立绘预览 + 底部排序/筛选/详情",
+  "classes": [
+   "角色卡网格",
+   "立绘预览",
+   "录制 HUD"
+  ],
+  "fixed": {
+   "from_pred": 29,
+   "to": 40
+  },
+  "note": "任务书把本帧标成「好友+展柜弹窗」——实测是角色图鉴页（无弹窗）"
+ }
+}

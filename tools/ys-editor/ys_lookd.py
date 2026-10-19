@@ -1808,20 +1808,44 @@ def _world_containers(arr, sha, boxes, W, H):
 
 
 _DET = None
+_DETS = {}           # 按权重路径缓存（双检测器分派，见 _detector_for）
+
+# 世界 HUD 真值里 icon 数为 0（trainer 固定快照实测）；模型会把无底 glyph 误开火成 icon。
+# 丢掉这一类：世界专家 P .386→.511，R 不变（映射成 glyph_icon **未验证**，先不做）。
+_WORLD_DROP_KINDS = ("icon",)
 
 
-def _world_detector(arr):
-    """D2 检测器（懒加载常驻）。返回 (objs, ms, err)。"""
-    global _DET
+def _detector_for(state_name):
+    """按 state 选检测器：**三维世界用 world 专家，其余用 v2**。
+
+    为什么分派（2026-10-19 实测，`STAGE-B-REPORT.md`）：
+      单模型兼顾两边是「用 game_ui 换 world HUD」——v4 热启动后 game_ui P .500→.436（差 4.4pp 未过线），
+      换来的 world_hud 从 0/0 到 .386/.737。而**三维世界里 CV 容器层是 0 命中**（flat+rect 是菜单 UI 规则），
+      HUD 检测器是唯一对象来源；菜单里 CV 本来就好用，检测器只是补充。
+      ⇒ 两个场景要的不是同一个能力，分派让两边各自零退化。
+    """
+    import gui_det
+    here = os.path.dirname(os.path.abspath(gui_det.__file__))
+    world = os.path.join(here, "models", "gui-det-world-v1.pt")
+    path = world if (state_name == "GAME_WORLD" and os.path.exists(world)) else gui_det.DEFAULT_MODEL
+    det = _DETS.get(path)
+    if det is None:
+        det = gui_det.Detector(path)
+        _DETS[path] = det
+    return det, path
+
+
+def _world_detector(arr, state_name=None):
+    """D2 检测器（按 state 分派，懒加载常驻）。返回 (objs, ms, err)。"""
     t0 = time.time()
     try:
-        if _DET is None:
-            import gui_det
-            _DET = gui_det.Detector()
-        objs = _DET.detect(arr)
-        return objs, round((time.time() - t0) * 1000, 1), (_DET.err if not objs else None)
+        det, path = _detector_for(state_name)
+        objs = det.detect(arr)
+        if state_name == "GAME_WORLD":
+            objs = [o for o in objs if o.get("kind") not in _WORLD_DROP_KINDS]
+        return objs, round((time.time() - t0) * 1000, 1), (det.err if not objs else None), path
     except Exception as e:                                   # noqa: BLE001
-        return [], round((time.time() - t0) * 1000, 1), f"{type(e).__name__}: {e}"
+        return [], round((time.time() - t0) * 1000, 1), f"{type(e).__name__}: {e}", None
 
 
 def _world_structure(objects, W, H, boxes=None, det_objs=None):
@@ -1914,11 +1938,16 @@ def _world(req):
     t_after_state = time.time()
     objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
     t_after_obj = time.time()
-    det_objs, det_ms, det_err = (_world_detector(arr) if (do_obj and req.get("structure", True)) else ([], 0.0, None))
+    det_objs, det_ms, det_err, det_path = (
+        _world_detector(arr, (state or {}).get("state"))
+        if (do_obj and req.get("structure", True)) else ([], 0.0, None, None))
     t_after_det = time.time()
     structure = _world_structure(objects, W, H, boxes, det_objs) if (do_obj and req.get("structure", True)) else None
     if structure is not None:
-        structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err}
+        structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err,
+                                 "model": os.path.basename(det_path) if det_path else None,
+                                 "dropped_kinds": list(_WORLD_DROP_KINDS)
+                                 if (state or {}).get("state") == "GAME_WORLD" else []}
         # D2 检测结果原样透出：它是**三维世界 HUD 里唯一的对象来源**（CV flat+rect 在开放世界
         # 找不到容器，实测 containers=0 而检测器给 33 个框）。此前只喂给 D3 结构层、不对外暴露，
         # 消费方等于看不见任何对象。放在 structure 里（已透传）而不是新增顶层键，避免又撞白名单。

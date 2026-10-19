@@ -1,0 +1,3582 @@
+{
+ "frame": "r032_snap_2026-10-19_00-30-42",
+ "image": ".scratch/gui-corpus/inbox/reps/r032_snap_2026-10-19_00-30-42.jpg",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 切块标注法（block-wise，6 块并行量边后汇总）",
+ "criteria": ".agents/skills/gui-annotation/SKILL.md（R1–R10）",
+ "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④关卡设置弹窗 / ⑤右属性面板/底部",
+ "classes": [
+  "切块标注法"
+ ],
+ "units": 129,
+ "_provenance": {
+  "family": "编辑器·关卡设置弹窗（阵营页）+左树调色板+右属性面板",
+  "blocks": [
+   "①顶栏",
+   "②左树+调色板",
+   "③视口",
+   "④关卡设置弹窗",
+   "⑤右属性面板/底部"
+  ],
+  "rules_applied": {
+   "R1": "右上窗口控件按右沿定位：关闭 2502..2550、设置 2426..2478（edges x=30 扫线）",
+   "R2": "逐项：左树 22~29 行逐行、库 9 条曲目逐条、弹窗菜单 10 项/节点图 4 条逐条、轨道 5 条逐条、时间轴片段逐条",
+   "R3": "区域级整块：顶栏/左栏/视口/弹窗/属性面板/时间轴；面板内可见行仍逐行（r040 三段各带一个「详细编辑」单独成框）",
+   "R4": "四角贴边扫：底中相机参数 3.00/30/0.10、右下「添加节点图/添加通用组件」、r040 底中「保存」、右上浮动控件",
+   "R5": "页签宽按可见皮肤：实测 190/215/205/255/215/200（v5 旧值 330~420 宽出 130~230px，本轮全部重量）",
+   "R6": "整栏：r026/r032/r034 左栏 [0,53,480,1387]（树列 0..268 + 调色板 276..470）；r040 左栏 [0,53,560,1387] + 竖图标栏 [0,53,88,1387]",
+   "R7": "区域级：视口 [480,53,2080,1387]、属性面板、弹窗、时间轴窗口均整块成框",
+   "R8": "行按可见皮肤量：树行 x=8 w=460/258/242（随栏宽）；库条目 1765..2137；属性面板行 2105..2540",
+   "R9": "先判分区再量 y：弹窗/时间轴内元素先归块（parent 指向容器 id），再量块内 y；跨块不合并",
+   "R10": "四角：左上 HUD/文档图标、右上撤销重做齿轮面板、左下 HUD perf（不计单元）、右下 UID/浮动按钮"
+  },
+  "tool_assist": "grid.py 分块裁剪（标签=原帧坐标）+ edges.py 扫描线 + rows_from_ocr.py 行枚举 + 自写颜色 run 扫描（时间轴片段填充）+ ASCII 像素图（窗口小图标）；无 ys-screen 先验",
+  "ys_screen_prior": false,
+  "measured_anchors": {
+   "left_panel": [
+    0,
+    53,
+    480,
+    1387
+   ],
+   "tree_col_edge": 268,
+   "palette_col": [
+    276,
+    175,
+    194,
+    1100
+   ],
+   "palette_card_pitch": 115,
+   "palette_card": [
+    315,
+    185,
+    135,
+    115
+   ],
+   "dialog": [
+    561,
+    334,
+    1430,
+    772
+   ],
+   "dialog_menu_band": [
+    561,
+    449,
+    438,
+    46
+   ],
+   "dialog_content_x": 999,
+   "faction_left_col_x": 1018,
+   "faction_right_col": [
+    1663,
+    0,
+    287,
+    0
+   ],
+   "prop_panel": [
+    2080,
+    53,
+    480,
+    377
+   ],
+   "prop_icon_row_y": 196
+  },
+  "uncertain": [
+   "弹窗右缘竖条（滚动条）1950..1986 由三段亮差读，宽 ±10px",
+   "阵营块右列字段 x1663..1950 由 1.4x 放大切块图读，±8px",
+   "『包含的实体』计数（立方图标/单位图标 + 数值）合并成 74px 框，图标本身无文字",
+   "调色板卡片把缩略图与下方标签合成一整卡（R3 视觉整块），卡高按 pitch 115 取",
+   "顶部浮动条 4 键按等分位量（图标无文字），±8px",
+   "弹窗标题栏『?』『—』按 3x 放大图读（1903..1928 / 1958..1985），±4px"
+  ],
+  "changed_from_prev": "本轮为重新量测的新版（truth-v8-editor），未复用 truth-v5 坐标"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    2560,
+    53
+   ],
+   "kind": "panel",
+   "text": [
+    "编辑器顶栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "①顶栏（R7 区域级）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    96,
+    16,
+    44,
+    36
+   ],
+   "kind": "icon",
+   "text": [
+    "关卡文件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏文档图标（OCR 未识别，切块图现读）"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    182,
+    12,
+    44,
+    38
+   ],
+   "kind": "icon",
+   "text": [
+    "指针工具"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "顶栏工具图标"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    250,
+    0,
+    196,
+    52
+   ],
+   "kind": "chip",
+   "text": [
+    "关卡设置 ×"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "标签页（R2 每页签单独成框；宽按可见皮肤 R5）"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    2320,
+    10,
+    42,
+    36
+   ],
+   "kind": "button",
+   "text": [
+    "撤销"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上窗口控件（R1 按右沿定位；图标实测 x2328..2358）"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    2362,
+    10,
+    42,
+    36
+   ],
+   "kind": "button",
+   "text": [
+    "重做"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2428,
+    8,
+    48,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    2494,
+    8,
+    48,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "面板"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    0,
+    53,
+    480,
+    1387
+   ],
+   "kind": "panel",
+   "text": [
+    "左侧资源栏"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "②左资源栏整块（R6）"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    8,
+    62,
+    190,
+    48
+   ],
+   "kind": "chip",
+   "text": [
+    "摆放"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左栏标题"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    332,
+    55,
+    52,
+    48
+   ],
+   "kind": "button",
+   "text": [
+    "⌃"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "折叠按钮"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    24,
+    133,
+    432,
+    42
+   ],
+   "kind": "button",
+   "text": [
+    "搜索"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "搜索框（edges 量 x24..456 / y133..174）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    0,
+    175,
+    268,
+    1265
+   ],
+   "kind": "panel",
+   "text": [
+    "资源树"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "资源树容器（R6 整栏）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    0,
+    175,
+    258,
+    1265
+   ],
+   "kind": "panel",
+   "text": [
+    "资源树滚动区"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "树滚动区整块（行在其上逐行，R2）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    8,
+    201,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "自定义"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    8,
+    241,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "物件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    8,
+    287,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "自定义页签_1"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    8,
+    329,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    8,
+    372,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    8,
+    413,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "造物"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    8,
+    458,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    8,
+    500,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    8,
+    540,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "掉落物"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    8,
+    585,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "未分类页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    8,
+    628,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "+添加页签"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    8,
+    670,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "预制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    8,
+    711,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    8,
+    754,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "流程物件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    8,
+    799,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "玩法机关"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    8,
+    840,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "其他"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    8,
+    882,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "静态单位"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    8,
+    926,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "树木"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    8,
+    968,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "植被"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    8,
+    1011,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "地貌"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    8,
+    1053,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "岩石"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    8,
+    1096,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "建筑"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    8,
+    1138,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "建筑结构"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    8,
+    1182,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "人造装饰"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    8,
+    1224,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "灯具"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    8,
+    1267,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "饮食"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 40,
+   "parent": null,
+   "bbox": [
+    8,
+    1314,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "武器"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 41,
+   "parent": null,
+   "bbox": [
+    8,
+    1354,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "工具"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 42,
+   "parent": null,
+   "bbox": [
+    8,
+    1390,
+    258,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "造物"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 43,
+   "parent": null,
+   "bbox": [
+    276,
+    175,
+    194,
+    1100
+   ],
+   "kind": "panel",
+   "text": [
+    "资产调色板"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左栏右半：资产调色板列（R6）"
+  },
+  {
+   "id": 44,
+   "parent": null,
+   "bbox": [
+    315,
+    185,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 45,
+   "parent": null,
+   "bbox": [
+    315,
+    300,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 46,
+   "parent": null,
+   "bbox": [
+    315,
+    415,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "石质功能平台"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 47,
+   "parent": null,
+   "bbox": [
+    315,
+    530,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 48,
+   "parent": null,
+   "bbox": [
+    315,
+    645,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "箭头指示牌"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 49,
+   "parent": null,
+   "bbox": [
+    315,
+    760,
+    135,
+    115
+   ],
+   "kind": "tile",
+   "text": [
+    "木质指路牌"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "调色板卡片（含缩略图+标签；pitch 115 实测，标签在卡顶+88）"
+  },
+  {
+   "id": 50,
+   "parent": null,
+   "bbox": [
+    480,
+    53,
+    2080,
+    1387
+   ],
+   "kind": "panel",
+   "text": [
+    "3D 视口"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "③视口整块（R7）"
+  },
+  {
+   "id": 51,
+   "parent": null,
+   "bbox": [
+    1083,
+    70,
+    394,
+    70
+   ],
+   "kind": "panel",
+   "text": [
+    "顶部浮动工具条"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 52,
+   "parent": null,
+   "bbox": [
+    1104,
+    78,
+    52,
+    54
+   ],
+   "kind": "button",
+   "text": [
+    "工具1"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 53,
+   "parent": null,
+   "bbox": [
+    1183,
+    71,
+    94,
+    61
+   ],
+   "kind": "button",
+   "text": [
+    "工具2"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 54,
+   "parent": null,
+   "bbox": [
+    1292,
+    78,
+    52,
+    54
+   ],
+   "kind": "button",
+   "text": [
+    "工具3"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 55,
+   "parent": null,
+   "bbox": [
+    1384,
+    78,
+    52,
+    54
+   ],
+   "kind": "button",
+   "text": [
+    "工具4"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 56,
+   "parent": null,
+   "bbox": [
+    561,
+    334,
+    1430,
+    772
+   ],
+   "kind": "panel",
+   "text": [
+    "关卡设置弹窗"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "④弹窗整块（R3/R9）"
+  },
+  {
+   "id": 57,
+   "parent": 56,
+   "bbox": [
+    590,
+    336,
+    160,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "关卡设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "弹窗标题栏"
+  },
+  {
+   "id": 58,
+   "parent": 56,
+   "bbox": [
+    1902,
+    340,
+    32,
+    34
+   ],
+   "kind": "button",
+   "text": [
+    "?"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 59,
+   "parent": 56,
+   "bbox": [
+    1950,
+    340,
+    32,
+    34
+   ],
+   "kind": "button",
+   "text": [
+    "—"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 60,
+   "parent": 56,
+   "bbox": [
+    561,
+    387,
+    438,
+    719
+   ],
+   "kind": "panel",
+   "text": [
+    "弹窗左菜单"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "菜单列（选中带宽实测 x561..999）"
+  },
+  {
+   "id": 61,
+   "parent": 56,
+   "bbox": [
+    561,
+    399,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "基础"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 62,
+   "parent": 56,
+   "bbox": [
+    561,
+    445,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "选中带橙色填充（y449..495）"
+  },
+  {
+   "id": 63,
+   "parent": 56,
+   "bbox": [
+    561,
+    501,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "出生点"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 64,
+   "parent": 56,
+   "bbox": [
+    561,
+    552,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "复苏点"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 65,
+   "parent": 56,
+   "bbox": [
+    561,
+    602,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "人数设置"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 66,
+   "parent": 56,
+   "bbox": [
+    561,
+    654,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "加载界面"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 67,
+   "parent": 56,
+   "bbox": [
+    561,
+    703,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "结算"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 68,
+   "parent": 56,
+   "bbox": [
+    561,
+    755,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "地形导航"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 69,
+   "parent": 56,
+   "bbox": [
+    561,
+    806,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "优化选项"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 70,
+   "parent": 56,
+   "bbox": [
+    561,
+    856,
+    438,
+    46
+   ],
+   "kind": "row",
+   "text": [
+    "协作模式"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 71,
+   "parent": 56,
+   "bbox": [
+    999,
+    387,
+    992,
+    719
+   ],
+   "kind": "panel",
+   "text": [
+    "弹窗内容区"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "内容区整块（R3）"
+  },
+  {
+   "id": 72,
+   "parent": 56,
+   "bbox": [
+    1040,
+    402,
+    72,
+    72
+   ],
+   "kind": "icon",
+   "text": [
+    "阵营头像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 73,
+   "parent": 56,
+   "bbox": [
+    1140,
+    410,
+    190,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "初始玩家阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "阵营块标题"
+  },
+  {
+   "id": 74,
+   "parent": 56,
+   "bbox": [
+    1140,
+    466,
+    96,
+    38
+   ],
+   "kind": "chip",
+   "text": [
+    "序号 1"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 75,
+   "parent": 56,
+   "bbox": [
+    1236,
+    468,
+    32,
+    32
+   ],
+   "kind": "button",
+   "text": [
+    "复制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 76,
+   "parent": 56,
+   "bbox": [
+    1770,
+    400,
+    182,
+    34
+   ],
+   "kind": "button",
+   "text": [
+    "玩家默认阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "橙色状态按钮（玩家/物件/造物默认阵营；实测 x1770..1950）"
+  },
+  {
+   "id": 77,
+   "parent": 56,
+   "bbox": [
+    1663,
+    436,
+    287,
+    48
+   ],
+   "kind": "button",
+   "text": [
+    "阵营关系"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（实测 x1663..1950）"
+  },
+  {
+   "id": 78,
+   "parent": 56,
+   "bbox": [
+    1892,
+    446,
+    40,
+    36
+   ],
+   "kind": "button",
+   "text": [
+    "删除"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "垃圾桶图标"
+  },
+  {
+   "id": 79,
+   "parent": 56,
+   "bbox": [
+    1018,
+    518,
+    196,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "默认阵营单位"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "带 ② 图标"
+  },
+  {
+   "id": 80,
+   "parent": 56,
+   "bbox": [
+    1663,
+    508,
+    287,
+    47
+   ],
+   "kind": "button",
+   "text": [
+    "玩家"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（与左列「默认阵营单位」同一行）"
+  },
+  {
+   "id": 81,
+   "parent": 56,
+   "bbox": [
+    1045,
+    556,
+    120,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "包含的玩家"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 82,
+   "parent": 56,
+   "bbox": [
+    1663,
+    558,
+    287,
+    47
+   ],
+   "kind": "button",
+   "text": [
+    "所有人"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（与左列「包含的玩家」同一行）"
+  },
+  {
+   "id": 83,
+   "parent": 56,
+   "bbox": [
+    1045,
+    612,
+    120,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "包含的实体"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 84,
+   "parent": 56,
+   "bbox": [
+    1796,
+    608,
+    74,
+    42
+   ],
+   "kind": "chip",
+   "text": [
+    "0"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "实体计数（图标+数值）"
+  },
+  {
+   "id": 85,
+   "parent": 56,
+   "bbox": [
+    1866,
+    608,
+    74,
+    42
+   ],
+   "kind": "chip",
+   "text": [
+    "0"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "实体计数（图标+数值）"
+  },
+  {
+   "id": 86,
+   "parent": 56,
+   "bbox": [
+    1040,
+    678,
+    72,
+    72
+   ],
+   "kind": "icon",
+   "text": [
+    "阵营头像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 87,
+   "parent": 56,
+   "bbox": [
+    1140,
+    687,
+    190,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "初始物件阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "阵营块标题"
+  },
+  {
+   "id": 88,
+   "parent": 56,
+   "bbox": [
+    1140,
+    730,
+    96,
+    38
+   ],
+   "kind": "chip",
+   "text": [
+    "序号 2"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 89,
+   "parent": 56,
+   "bbox": [
+    1236,
+    732,
+    32,
+    32
+   ],
+   "kind": "button",
+   "text": [
+    "复制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 90,
+   "parent": 56,
+   "bbox": [
+    1770,
+    677,
+    182,
+    34
+   ],
+   "kind": "button",
+   "text": [
+    "物件默认阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "橙色状态按钮（玩家/物件/造物默认阵营；实测 x1770..1950）"
+  },
+  {
+   "id": 91,
+   "parent": 56,
+   "bbox": [
+    1663,
+    699,
+    287,
+    48
+   ],
+   "kind": "button",
+   "text": [
+    "阵营关系"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（实测 x1663..1950）"
+  },
+  {
+   "id": 92,
+   "parent": 56,
+   "bbox": [
+    1892,
+    712,
+    40,
+    36
+   ],
+   "kind": "button",
+   "text": [
+    "删除"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "垃圾桶图标"
+  },
+  {
+   "id": 93,
+   "parent": 56,
+   "bbox": [
+    1018,
+    784,
+    196,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "默认阵营单位"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "带 ② 图标"
+  },
+  {
+   "id": 94,
+   "parent": 56,
+   "bbox": [
+    1663,
+    783,
+    287,
+    47
+   ],
+   "kind": "button",
+   "text": [
+    "物件"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（与左列「默认阵营单位」同一行）"
+  },
+  {
+   "id": 95,
+   "parent": 56,
+   "bbox": [
+    1045,
+    831,
+    120,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "包含的玩家"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 96,
+   "parent": 56,
+   "bbox": [
+    1663,
+    833,
+    287,
+    47
+   ],
+   "kind": "button",
+   "text": [
+    "无"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "下拉字段（与左列「包含的玩家」同一行）"
+  },
+  {
+   "id": 97,
+   "parent": 56,
+   "bbox": [
+    1045,
+    874,
+    120,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "包含的实体"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 98,
+   "parent": 56,
+   "bbox": [
+    1796,
+    870,
+    74,
+    42
+   ],
+   "kind": "chip",
+   "text": [
+    "18"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "实体计数（图标+数值）"
+  },
+  {
+   "id": 99,
+   "parent": 56,
+   "bbox": [
+    1866,
+    870,
+    74,
+    42
+   ],
+   "kind": "chip",
+   "text": [
+    "0"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "实体计数（图标+数值）"
+  },
+  {
+   "id": 100,
+   "parent": 56,
+   "bbox": [
+    1040,
+    940,
+    72,
+    72
+   ],
+   "kind": "icon",
+   "text": [
+    "阵营头像"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 101,
+   "parent": 56,
+   "bbox": [
+    1140,
+    946,
+    190,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "初始造物阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 102,
+   "parent": 56,
+   "bbox": [
+    1770,
+    926,
+    182,
+    34
+   ],
+   "kind": "button",
+   "text": [
+    "造物默认阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "橙色状态按钮"
+  },
+  {
+   "id": 103,
+   "parent": 56,
+   "bbox": [
+    1663,
+    963,
+    287,
+    48
+   ],
+   "kind": "button",
+   "text": [
+    "阵营关系"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 104,
+   "parent": 56,
+   "bbox": [
+    1892,
+    970,
+    40,
+    36
+   ],
+   "kind": "button",
+   "text": [
+    "删除"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 105,
+   "parent": 56,
+   "bbox": [
+    1770,
+    1015,
+    182,
+    52
+   ],
+   "kind": "button",
+   "text": [
+    "添加阵营"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "弹窗底部主按钮（橙色描边）"
+  },
+  {
+   "id": 106,
+   "parent": 56,
+   "bbox": [
+    1950,
+    387,
+    36,
+    719
+   ],
+   "kind": "icon",
+   "text": [
+    "弹窗滚动条"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "弹窗右缘竖条（edges 1950..1990 处三段亮差）"
+  },
+  {
+   "id": 107,
+   "parent": null,
+   "bbox": [
+    2080,
+    53,
+    480,
+    377
+   ],
+   "kind": "panel",
+   "text": [
+    "属性面板"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "⑤右属性面板（R3；公开变量数=0 ⇒ 面板只有 y53..430）"
+  },
+  {
+   "id": 108,
+   "parent": 107,
+   "bbox": [
+    2200,
+    60,
+    240,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "石质功能平台"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "面板标题"
+  },
+  {
+   "id": 109,
+   "parent": 107,
+   "bbox": [
+    2205,
+    98,
+    220,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "GUID 1077936203"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 110,
+   "parent": 107,
+   "bbox": [
+    2210,
+    128,
+    130,
+    34
+   ],
+   "kind": "row",
+   "text": [
+    "动态单位"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 111,
+   "parent": 107,
+   "bbox": [
+    2112,
+    196,
+    40,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "信息"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "图标行（ASCII 像素图实测 (i) x2118..2145）"
+  },
+  {
+   "id": 112,
+   "parent": 107,
+   "bbox": [
+    2242,
+    196,
+    40,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "删除"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "✗ 图标 x2248..2278"
+  },
+  {
+   "id": 113,
+   "parent": 107,
+   "bbox": [
+    2314,
+    198,
+    44,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "资产"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "立方图标 x2320..2350"
+  },
+  {
+   "id": 114,
+   "parent": 107,
+   "bbox": [
+    2415,
+    192,
+    112,
+    50
+   ],
+   "kind": "button",
+   "text": [
+    "橙色操作"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "橙色药丸实测 x2420..2525 / y195..240"
+  },
+  {
+   "id": 115,
+   "parent": 107,
+   "bbox": [
+    2130,
+    252,
+    300,
+    44
+   ],
+   "kind": "row",
+   "text": [
+    "_GSTS_game"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "变量列表标题行 + ☰"
+  },
+  {
+   "id": 116,
+   "parent": 107,
+   "bbox": [
+    2500,
+    252,
+    44,
+    40
+   ],
+   "kind": "button",
+   "text": [
+    "☰"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 117,
+   "parent": 107,
+   "bbox": [
+    2105,
+    294,
+    210,
+    36
+   ],
+   "kind": "row",
+   "text": [
+    "1073741825"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 118,
+   "parent": 107,
+   "bbox": [
+    2105,
+    330,
+    220,
+    40
+   ],
+   "kind": "row",
+   "text": [
+    "公开变量数"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 119,
+   "parent": 107,
+   "bbox": [
+    2490,
+    334,
+    44,
+    34
+   ],
+   "kind": "chip",
+   "text": [
+    "0"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 120,
+   "parent": 107,
+   "bbox": [
+    2148,
+    380,
+    152,
+    42
+   ],
+   "kind": "button",
+   "text": [
+    "编辑节点图变量"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 121,
+   "parent": 107,
+   "bbox": [
+    2370,
+    380,
+    160,
+    42
+   ],
+   "kind": "button",
+   "text": [
+    "修改节点图"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": ""
+  },
+  {
+   "id": 122,
+   "parent": null,
+   "bbox": [
+    1122,
+    1306,
+    326,
+    122
+   ],
+   "kind": "panel",
+   "text": [
+    "底部对象操作条"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "⑤底中浮动操作条（R4 贴底扫；非 HUD）"
+  },
+  {
+   "id": 123,
+   "parent": 0,
+   "bbox": [
+    1128,
+    1312,
+    106,
+    50
+   ],
+   "kind": "chip",
+   "text": [
+    "3.00"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "数值框（图标+数值）"
+  },
+  {
+   "id": 124,
+   "parent": 0,
+   "bbox": [
+    1240,
+    1312,
+    92,
+    50
+   ],
+   "kind": "chip",
+   "text": [
+    "30"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "数值框（图标+数值）"
+  },
+  {
+   "id": 125,
+   "parent": 0,
+   "bbox": [
+    1338,
+    1312,
+    106,
+    50
+   ],
+   "kind": "chip",
+   "text": [
+    "0.10"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "数值框（图标+数值）"
+  },
+  {
+   "id": 126,
+   "parent": 0,
+   "bbox": [
+    1216,
+    1372,
+    60,
+    52
+   ],
+   "kind": "icon",
+   "text": [
+    "轴向操作"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "三轴手柄图标"
+  },
+  {
+   "id": 127,
+   "parent": 0,
+   "bbox": [
+    1288,
+    1372,
+    56,
+    52
+   ],
+   "kind": "icon",
+   "text": [
+    "删除"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "蓝色垃圾桶图标"
+  },
+  {
+   "id": 128,
+   "parent": null,
+   "bbox": [
+    2248,
+    1358,
+    142,
+    44
+   ],
+   "kind": "button",
+   "text": [
+    "添加节点图"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右下浮动按钮（R4）"
+  }
+ ]
+}

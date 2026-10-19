@@ -1,0 +1,631 @@
+{
+ "frame": "f00",
+ "image": ".scratch/gui-corpus/f00.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 人眼判对象 + grid.py 网格量边 + boxer.py 量小图标",
+ "criteria": "truth/_rules.md",
+ "layout": "活动一览·左列表+右详情（角色头像行）",
+ "classes": [
+  "不透明纯色列表",
+  "插画背景",
+  "纯图形头像"
+ ],
+ "units": 20,
+ "_provenance": {
+  "method": "人眼（read_image）判对象与身份 → grid.py 网格量边（50px 步长，原帧坐标标签） → boxer.py 量小图标像素紧致边界",
+  "tool_assist": {
+   "tiles(f06/f07/f08)": "bbox 由 ys-screen 平坦皮肤候选预填、逐格人眼确认身份；**已用独立通道 remeasure_grid.py（同色连通域，前提与 ys-screen 无关）复核**",
+   "rows/panels(设置页与活动页)": "grid.py 网格读数（±20px），未用工具候选",
+   "icons/avatars": "boxer.py 像素边界（独立于 ys-screen 的容器层）"
+  },
+  "independence_note": "ys-screen 的前提=Lab 边缘能量低（平坦皮肤）；remeasure 的前提=低亮度同色连通域。两者互不依赖 ⇒ 同框即可判几何实测通过。",
+  "bias_measured": "独立测量把格子外发光/阴影一起框进来，每边约 +9px（192×173 vs 174×156），故 IoU≈0.80 而非 1.0；位置一致（无一片错位）。",
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 19,
+     "kind": "panel",
+     "bbox": [
+      660,
+      272,
+      1885,
+      888
+     ],
+     "text": "活动详情区",
+     "note": "R3/R7 补框：列表右沿 x=660 → 屏右沿 2545，页面上下沿 y=272/1160 之间即详情区皮肤"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "OCR 剩 1 条未覆盖：列表面板底部装饰菱形被 OCR 读成 \"X\"（§一 装饰不算单元，故意不标）。详情区右沿取页面边界 2545（留 15px 安全边），未逐像素贴到 2560。"
+  }
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    272,
+    268,
+    384,
+    900
+   ],
+   "kind": "panel",
+   "text": [
+    "活动一览列表"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 60
+   },
+   "note": "列表容器；顶部第一项被面板上沿切掉一半（滚动位置证据）"
+  },
+  {
+   "id": 1,
+   "parent": 0,
+   "bbox": [
+    272,
+    335,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "砺行修远"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      440,
+      305,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": 0,
+   "bbox": [
+    272,
+    465,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "虹旅藏金·耀星烁熠"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 3,
+   "parent": 0,
+   "bbox": [
+    272,
+    588,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "无神怜爱的冻土"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 4,
+   "parent": 0,
+   "bbox": [
+    298,
+    708,
+    404,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "且试身手"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": true,
+    "focused": true,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 5,
+   "parent": 0,
+   "bbox": [
+    272,
+    831,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "风仙亦是仙，古剑通幽玄！"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 6,
+   "parent": 0,
+   "bbox": [
+    272,
+    952,
+    384,
+    116
+   ],
+   "kind": "row",
+   "text": [
+    "溯流的变奏曲"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    2000,
+    285,
+    270,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "活动说明"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    2425,
+    165,
+    90,
+    90
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "右上关闭 X"
+  },
+  {
+   "id": 9,
+   "parent": 0,
+   "bbox": [
+    1600,
+    390,
+    120,
+    125
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "claimed",
+     "bbox": [
+      1670,
+      485,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "试用角色头像（带 ✓ 完成标记）"
+  },
+  {
+   "id": 10,
+   "parent": 0,
+   "bbox": [
+    1725,
+    390,
+    120,
+    130
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "claimed",
+     "bbox": [
+      1795,
+      485,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "试用角色头像（带 ✓ 完成标记）"
+  },
+  {
+   "id": 11,
+   "parent": 0,
+   "bbox": [
+    1860,
+    390,
+    115,
+    130
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "claimed",
+     "bbox": [
+      1930,
+      485,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "试用角色头像（带 ✓ 完成标记）"
+  },
+  {
+   "id": 12,
+   "parent": 0,
+   "bbox": [
+    1990,
+    390,
+    100,
+    130
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "claimed",
+     "bbox": [
+      2060,
+      485,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "试用角色头像（带 ✓ 完成标记）"
+  },
+  {
+   "id": 13,
+   "parent": 0,
+   "bbox": [
+    2115,
+    390,
+    105,
+    130
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "claimed",
+     "bbox": [
+      2185,
+      485,
+      40,
+      40
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "试用角色头像（带 ✓ 完成标记）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    1560,
+    871,
+    140,
+    139
+   ],
+   "kind": "icon",
+   "text": [
+    "20"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励槽（原石 20）"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    1705,
+    871,
+    135,
+    139
+   ],
+   "kind": "icon",
+   "text": [
+    "3"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励槽（道具 3）"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    1845,
+    871,
+    130,
+    139
+   ],
+   "kind": "icon",
+   "text": [
+    "3"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "奖励槽（道具 3）"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1910,
+    1030,
+    370,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "开始试用"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    1540,
+    1030,
+    290,
+    100
+   ],
+   "kind": "button",
+   "text": [
+    "角色预览"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 19,
+   "kind": "panel",
+   "bbox": [
+    660,
+    272,
+    1885,
+    888
+   ],
+   "text": [
+    "活动详情区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3/R7 补框：列表右沿 x=660 → 屏右沿 2545，页面上下沿 y=272/1160 之间即详情区皮肤"
+  }
+ ]
+}

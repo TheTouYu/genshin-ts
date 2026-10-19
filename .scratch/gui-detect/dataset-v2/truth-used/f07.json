@@ -1,0 +1,874 @@
+{
+ "frame": "f07",
+ "image": ".scratch/gui-corpus/f07.png",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 人眼判对象 + grid.py 网格量边 + boxer.py 量小图标",
+ "criteria": "truth/_rules.md",
+ "layout": "派蒙菜单滚一屏",
+ "classes": [
+  "不透明纯色网格",
+  "裁切行"
+ ],
+ "units": 30,
+ "_provenance": {
+  "method": "人眼（read_image）判对象与身份 → grid.py 网格量边（50px 步长，原帧坐标标签） → boxer.py 量小图标像素紧致边界",
+  "tool_assist": {
+   "tiles(f06/f07/f08)": "bbox 由 ys-screen 平坦皮肤候选预填、逐格人眼确认身份；**已用独立通道 remeasure_grid.py（同色连通域，前提与 ys-screen 无关）复核**",
+   "rows/panels(设置页与活动页)": "grid.py 网格读数（±20px），未用工具候选",
+   "icons/avatars": "boxer.py 像素边界（独立于 ys-screen 的容器层）"
+  },
+  "independence_note": "ys-screen 的前提=Lab 边缘能量低（平坦皮肤）；remeasure 的前提=低亮度同色连通域。两者互不依赖 ⇒ 同框即可判几何实测通过。",
+  "bias_measured": "独立测量把格子外发光/阴影一起框进来，每边约 +9px（192×173 vs 174×156），故 IoU≈0.80 而非 1.0；位置一致（无一片错位）。",
+  "independent_check": {
+   "truth_tiles": 18,
+   "measured": 13,
+   "matched": 13,
+   "miss": [
+    10,
+    11,
+    12,
+    13,
+    25
+   ],
+   "extra": 0,
+   "mean_iou": 0.799,
+   "min_iou": 0.758,
+   "miss_reason": "id=10–13 是被裁切行（只剩 174×64 文字带，长宽比 2.7 超出矩形先验）；id=25 底部渐隐",
+   "tool": ".scratch/gui-corpus/tools/remeasure_grid.py",
+   "verdict": "完整格子几何实测通过（extra=0，无错位）；未匹配均为裁切行/渐隐行，属滤波器边界而非真值错误"
+  },
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 28,
+     "kind": "panel",
+     "bbox": [
+      22,
+      486,
+      102,
+      649
+     ],
+     "text": "左图标栏",
+     "note": "R6 补框：6 个左列图标 x∈[30,116] y∈[494,1127] 的并集 ±8px"
+    },
+    {
+     "id": 29,
+     "kind": "panel",
+     "bbox": [
+      148,
+      426,
+      850,
+      984
+     ],
+     "text": "功能网格区",
+     "note": "R7 补框：全部格子的并集 ±26px（紧贴米色皮肤列）"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "同 f06 的缺口；「装扮搭配」tile 的 OCR 框比格子宽 93px，靠网格区覆盖到 0.73（不是靠格子本身），tile 自身边界未动。"
+  }
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    200,
+    20,
+    840,
+    390
+   ],
+   "kind": "panel",
+   "text": [],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "玩家信息卡（透雨 / UID / 冒险等阶 / 世界等级 / 生日）"
+  },
+  {
+   "id": 1,
+   "parent": 0,
+   "bbox": [
+    210,
+    50,
+    190,
+    190
+   ],
+   "kind": "avatar",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    935,
+    55,
+    75,
+    75
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "改名铅笔按钮"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    220,
+    285,
+    190,
+    55
+   ],
+   "kind": "button",
+   "text": [
+    "复制"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "UID 复制"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    33,
+    494,
+    62,
+    53
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左列纯图标：相机/截图（无文字，文本结构里完全不可见）"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    30,
+    614,
+    86,
+    66
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [
+    {
+     "type": "red",
+     "bbox": [
+      96,
+      610,
+      36,
+      36
+     ]
+    }
+   ],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左列纯图标：邮件(红点)（无文字，文本结构里完全不可见）"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    33,
+    787,
+    62,
+    45
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左列纯图标：活动/礼物（无文字，文本结构里完全不可见）"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    30,
+    919,
+    68,
+    41
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左列纯图标：指南/罗盘（无文字，文本结构里完全不可见）"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    33,
+    1068,
+    62,
+    59
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "左列纯图标：设置(齿轮)（无文字，文本结构里完全不可见）"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    1018,
+    1185,
+    104,
+    187
+   ],
+   "kind": "icon",
+   "text": [],
+   "clickable": "unknown",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "▲▼ 滚动指示（不是 W/S 键位提示，是容器可滚通道）"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    174,
+    452,
+    174,
+    64
+   ],
+   "kind": "tile",
+   "text": [
+    "冒险之证"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 92
+   },
+   "note": "被面板上沿切掉图标、只剩文字（滚动位置证据）"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    382,
+    452,
+    174,
+    64
+   ],
+   "kind": "tile",
+   "text": [
+    "祈愿"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 92
+   },
+   "note": "被面板上沿切掉图标、只剩文字（滚动位置证据）"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    590,
+    452,
+    174,
+    64
+   ],
+   "kind": "tile",
+   "text": [
+    "纪行"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 92
+   },
+   "note": "被面板上沿切掉图标、只剩文字（滚动位置证据）"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    798,
+    452,
+    174,
+    64
+   ],
+   "kind": "tile",
+   "text": [
+    "多人游戏"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "top"
+    ],
+    "cut_by": "panel",
+    "px": 92
+   },
+   "note": "被面板上沿切掉图标、只剩文字（滚动位置证据）"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    174,
+    550,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "特典活动"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    382,
+    550,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "官方社区"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    590,
+    550,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "版本热点"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    798,
+    550,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "反馈"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    174,
+    738,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "云·原神"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    382,
+    738,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "周边商城"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    590,
+    738,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "问卷"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    174,
+    1038,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "千星商城"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    382,
+    1038,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "人气奇域"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    578,
+    1030,
+    196,
+    174
+   ],
+   "kind": "tile",
+   "text": [
+    "奇域收藏"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    798,
+    1038,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "我的奇域"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    382,
+    1228,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "装扮搭配"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    590,
+    1228,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "颂愿"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    798,
+    1228,
+    174,
+    156
+   ],
+   "kind": "tile",
+   "text": [
+    "纪游"
+   ],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   }
+  },
+  {
+   "id": 28,
+   "kind": "panel",
+   "bbox": [
+    22,
+    486,
+    102,
+    649
+   ],
+   "text": [
+    "左图标栏"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R6 补框：6 个左列图标 x∈[30,116] y∈[494,1127] 的并集 ±8px"
+  },
+  {
+   "id": 29,
+   "kind": "panel",
+   "bbox": [
+    148,
+    426,
+    850,
+    984
+   ],
+   "text": [
+    "功能网格区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R7 补框：全部格子的并集 ±26px（紧贴米色皮肤列）"
+  }
+ ]
+}

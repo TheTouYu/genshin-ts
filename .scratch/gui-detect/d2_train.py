@@ -36,6 +36,9 @@ def main():
     ap.add_argument("--outdir", default=".scratch/gui-detect")
     ap.add_argument("--tag", default="d2-run")
     ap.add_argument("--classes", default="7", help="8 | 7 | coarse")
+    ap.add_argument("--kinds", default="", help="显式类别表（逗号），覆盖 --classes，例如含 glyph_icon")
+    ap.add_argument("--overfit", type=int, default=0,
+                    help="过拟合自检：只用前 N 个训练帧，并在同一批上评（指标不动先做这一步）")
     ap.add_argument("--row-strip", action="store_true")
     ap.add_argument("--res", default="640x360")
     ap.add_argument("--loss", default="base", help="base | logw")
@@ -57,7 +60,9 @@ def main():
     res = parse_res(args.res)
     logw = args.loss == "logw"
     coarse = args.classes == "coarse"
-    if coarse:
+    if args.kinds:
+        kinds = [k.strip() for k in args.kinds.split(",") if k.strip()]
+    elif coarse:
         kinds = ["container", "element"]
     elif args.classes == "8":
         kinds = list(ALL_KINDS)
@@ -65,6 +70,11 @@ def main():
         kinds = [k for k in ALL_KINDS if k != "row"]
 
     data = Data(args.root, args.val_frac)
+    if args.overfit:
+        data.train = data.train[:args.overfit]
+        data.val = list(data.train)
+        print(f"[{args.tag}] overfit 自检：train=val={len(data.train)} 帧（同一批，看能不能背下来）",
+              flush=True)
     if coarse:
         for it in data.train + data.val:
             it["boxes"] = [(b, COARSE.get(k, k)) for b, k in it["boxes"]]
@@ -77,9 +87,22 @@ def main():
     net = Net(nc=len(kinds), row_strip=args.row_strip).to(DEV)
     if args.init:
         ck0 = torch.load(args.init, map_location="cpu", weights_only=False)
-        miss = net.load_state_dict(ck0["model"], strict=False)
-        print(f"[{args.tag}] init from {args.init}: missing={list(miss.missing_keys)} "
-              f"unexpected={list(miss.unexpected_keys)}", flush=True)
+        src, dst = ck0["model"], net.state_dict()
+        new, copied, shaped = {}, 0, 0
+        for k, v in dst.items():
+            if k in src and src[k].shape == v.shape:
+                new[k] = src[k]
+                copied += 1
+            elif k in src and src[k].dim() == v.dim() and src[k].shape[1:] == v.shape[1:]:
+                t = torch.zeros_like(v)                     # 只保留前 N 个通道（新增类重新初始化）
+                t[:src[k].shape[0]] = src[k]
+                new[k] = t
+                shaped += 1
+            else:
+                new[k] = v
+        net.load_state_dict(new)
+        print(f"[{args.tag}] init from {args.init}: 原样 {copied} 个张量，扩类 {shaped} 个，"
+              f"其余随机初始化（新增类={[k for k in kinds if k not in ck0.get('kinds', [])]}）", flush=True)
     torch.manual_seed(args.seed)
     random.seed(args.seed)
 
@@ -93,6 +116,8 @@ def main():
         rgb = np.asarray(Image.open(data.val[0]["path"]).convert("RGB"))
         s["bench"] = d2.bench(net, rgb, res)
         s["ckpt"] = args.ckpt
+        if DEV.type == "cuda":
+            s["peak_mem_MB"] = round(torch.cuda.max_memory_allocated() / 2**20, 1)
         print(json.dumps(s, ensure_ascii=False), flush=True)
         return
 

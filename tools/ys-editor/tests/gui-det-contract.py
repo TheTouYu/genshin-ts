@@ -7,7 +7,9 @@
 
 判据（每条都打印 PASS/FAIL）：
   R1 err is None；R2 返回 list[dict]；R3 每条含 id/bbox(xywh)/kind/score；
-  R4 bbox 四元数、w>0 h>0、全部落在图内（±2px）；R5 kind ∈ 八类规范名；
+  R4 bbox 四元数、w>0 h>0、全部落在图内（±2px）；
+  R5 kind ∈ **该权重自己声明的类表**（`det.kinds`，来自 ckpt；v1=8 类 / v3+=含 glyph_icon 9 类）
+     且必须落在规范超集 CANON 内（防止权重写出未知类）；
   R6 score ∈ (0,1]；R7 id 唯一；R8 同一帧重复调用结果稳定（无状态泄漏）。
 """
 import argparse
@@ -23,7 +25,10 @@ sys.path.insert(0, os.path.dirname(HERE))
 import gui_det  # noqa: E402
 
 FRAME = ".scratch/gui-corpus/f00.png"
-KINDS = set(gui_det.KINDS)
+# 规范超集：v1 的 8 类 + 2026-10-19 新增的 `glyph_icon`（world HUD 无底图标）。
+# 单个权重具体有几类是它 ckpt 里自带的（v1=8 / v2=7 / v3+=8~9），R5 按 det.kinds 判，
+# CANON 只用来兜底拦截"未知类名"这种真回归。
+CANON = set(gui_det.KINDS) | {"glyph_icon"}
 
 
 def main():
@@ -62,8 +67,12 @@ def main():
                 ok4 = False
                 break
         chk("R4 bbox 合法且在画面内", ok4)
-        chk("R5 kind ∈ 八类", all(o["kind"] in KINDS for o in out),
-            str(sorted({o["kind"] for o in out})))
+        # row_strip=True 的权重，行由 1D 条带分支输出，`row` **不在** ckpt 的类表里
+        # （类表驱动热斑通道数，多一个 row 会改网络形状）。所以合法输出 = 类表 ∪ {row}。
+        declared = set(det.kinds or []) | ({"row"} if det.row_strip else set())
+        chk("R5 kind ∈ 该权重的类表", all(o["kind"] in declared for o in out)
+            and declared <= CANON,
+            f"declared={sorted(declared)} 输出={sorted({o['kind'] for o in out})}")
         chk("R6 score ∈ (0,1]", all(0 < o["score"] <= 1 for o in out))
         chk("R7 id 唯一", len({o["id"] for o in out}) == len(out))
         chk("R8 重复调用稳定",

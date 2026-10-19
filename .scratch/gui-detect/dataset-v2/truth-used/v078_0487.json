@@ -1,0 +1,626 @@
+{
+ "frame": "v078_0487",
+ "image": ".scratch/gui-corpus/video-20261018/reps/v078_0487.jpg",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · read_image 判身份 + edges.py/remeasure_grid.py/boxer.py 独立量边（未用 ys-screen 先验）",
+ "criteria": "truth/_rules.md（同一口径）",
+ "layout": "地图（左：世界地图；右：地区/地下区列表 8 行 × 2 列）",
+ "classes": [
+  "地图画面",
+  "地区卡列"
+ ],
+ "units": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    1718,
+    1440
+   ],
+   "kind": "panel",
+   "text": [
+    "地图"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图画面本体（左侧大图）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2440,
+    10,
+    110,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    40,
+    360,
+    56,
+    240
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图缩放滑条（‑/＋/中心三档）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1758,
+    148,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "蒙德",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    2152,
+    150,
+    400,
+    75
+   ],
+   "kind": "card",
+   "label": "璃月",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1758,
+    288,
+    360,
+    75
+   ],
+   "kind": "card",
+   "label": "稻妻",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2152,
+    288,
+    400,
+    75
+   ],
+   "kind": "card",
+   "label": "须弥",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    2152,
+    423,
+    400,
+    78
+   ],
+   "kind": "card",
+   "label": "纳塔",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1758,
+    424,
+    360,
+    75
+   ],
+   "kind": "card",
+   "label": "枫丹",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    2152,
+    560,
+    400,
+    80
+   ],
+   "kind": "card",
+   "label": "至冬",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1758,
+    564,
+    360,
+    71
+   ],
+   "kind": "card",
+   "label": "挪德卡莱",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1758,
+    721,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "渊下宫",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2152,
+    724,
+    400,
+    68
+   ],
+   "kind": "card",
+   "label": "层岩巨渊·地下矿区",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1758,
+    861,
+    360,
+    70
+   ],
+   "kind": "card",
+   "label": "旧日之海",
+   "clickable": "yes"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2152,
+    861,
+    400,
+    71
+   ],
+   "kind": "card",
+   "label": "远古圣山",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2152,
+    996,
+    400,
+    76
+   ],
+   "kind": "card",
+   "label": "霜月",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    1758,
+    999,
+    360,
+    71
+   ],
+   "kind": "card",
+   "label": "空之神殿",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1758,
+    1153,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "尘歌壶",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2152,
+    1157,
+    400,
+    70
+   ],
+   "kind": "card",
+   "label": "千星奇域·大厅",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1730,
+    14,
+    120,
+    66
+   ],
+   "kind": "row",
+   "label": "地图",
+   "clickable": "no"
+  }
+ ],
+ "_provenance": {
+  "family": "地图",
+  "method": "地区卡 2 列 × 8 行的 y 由 preview 比例 + edges.py x=2200 扫描带复核（pitch≈123.7）；列 x 由右栏边界估（1776/2140）；关闭与缩放控件按可见像素",
+  "tool_assist": "几何=edges.py/remeasure_grid.py/boxer.py（本仓自写）；ys-screen 只在最后做交叉对照",
+  "ys_screen_prior": false,
+  "uncertain": [
+   "列 x 边界按可见像素估（±20px）",
+   "缩放滑条三档的独立热区未逐一拆（整条当一个控件）"
+  ],
+  "tool_crosscheck": "ys-screen(cv) 命中 3/19 = 15.8%（iou 0.698，fp=1）"
+ },
+ "objects": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    0,
+    0,
+    1718,
+    1440
+   ],
+   "kind": "panel",
+   "text": [
+    "地图"
+   ],
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图画面本体（左侧大图）"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    2440,
+    10,
+    110,
+    110
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "关闭 X"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    40,
+    360,
+    56,
+    240
+   ],
+   "kind": "button",
+   "text": [],
+   "clickable": "yes",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "地图缩放滑条（‑/＋/中心三档）"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    1758,
+    148,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "蒙德",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    2152,
+    150,
+    400,
+    75
+   ],
+   "kind": "card",
+   "label": "璃月",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    1758,
+    288,
+    360,
+    75
+   ],
+   "kind": "card",
+   "label": "稻妻",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    2152,
+    288,
+    400,
+    75
+   ],
+   "kind": "card",
+   "label": "须弥",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    2152,
+    423,
+    400,
+    78
+   ],
+   "kind": "card",
+   "label": "纳塔",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    1758,
+    424,
+    360,
+    75
+   ],
+   "kind": "card",
+   "label": "枫丹",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    2152,
+    560,
+    400,
+    80
+   ],
+   "kind": "card",
+   "label": "至冬",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1758,
+    564,
+    360,
+    71
+   ],
+   "kind": "card",
+   "label": "挪德卡莱",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1758,
+    721,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "渊下宫",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    2152,
+    724,
+    400,
+    68
+   ],
+   "kind": "card",
+   "label": "层岩巨渊·地下矿区",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1758,
+    861,
+    360,
+    70
+   ],
+   "kind": "card",
+   "label": "旧日之海",
+   "clickable": "yes"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2152,
+    861,
+    400,
+    71
+   ],
+   "kind": "card",
+   "label": "远古圣山",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2152,
+    996,
+    400,
+    76
+   ],
+   "kind": "card",
+   "label": "霜月",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    1758,
+    999,
+    360,
+    71
+   ],
+   "kind": "card",
+   "label": "空之神殿",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    1758,
+    1153,
+    360,
+    76
+   ],
+   "kind": "card",
+   "label": "尘歌壶",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2152,
+    1157,
+    400,
+    70
+   ],
+   "kind": "card",
+   "label": "千星奇域·大厅",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1730,
+    14,
+    120,
+    66
+   ],
+   "kind": "row",
+   "label": "地图",
+   "clickable": "no"
+  }
+ ]
+}

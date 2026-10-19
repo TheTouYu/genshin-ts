@@ -1,0 +1,913 @@
+{
+ "meta": {
+  "tag": "merged-prod",
+  "preset": "merged",
+  "channel": "prod",
+  "dirs": [
+   ".scratch/gui-corpus/truth-merged"
+  ],
+  "n_frames": 12,
+  "dropped_no_image": 3,
+  "cmd": [
+   "/usr/sbin/python3",
+   ".scratch/gui-detect/eval_v2.py",
+   "--preset",
+   "merged",
+   "--grade-filter",
+   "A,B",
+   "--channel",
+   "prod",
+   "--split-file",
+   ".scratch/gui-detect/dataset-v2/split.json",
+   "--eval-split",
+   "val",
+   "--models",
+   "v2=tools/ys-editor/models/gui-det-v2.pt,v4=.scratch/gui-detect/train-v4/model.pt",
+   "--out",
+   ".scratch/gui-detect/eval-out/val-v2-v4",
+   "--no-feats"
+  ],
+  "time": "2026-10-19 17:53:18"
+ },
+ "audit": {
+  "c03_194915": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 32
+  },
+  "c12_195108": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 34
+  },
+  "c18_195129": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 26
+  },
+  "c19_195135": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 25
+  },
+  "c22_195158": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c24_195206": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c25_195214": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "c28_195235": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 23
+  },
+  "c29_195243": {
+   "uncovered": 26,
+   "ocr": "manifest",
+   "units": 3
+  },
+  "c32_195258": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 22
+  },
+  "c34_195311": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 24
+  },
+  "c36_195316": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 29
+  },
+  "c37_195331": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c40_195339": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "c41_195439": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 37
+  },
+  "c42_195441": {
+   "uncovered": 15,
+   "ocr": "manifest",
+   "units": 39
+  },
+  "f00": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "f01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 17
+  },
+  "f02": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 17
+  },
+  "f03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "f04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 15
+  },
+  "f05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 15
+  },
+  "f06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 31
+  },
+  "f07": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 30
+  },
+  "f08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 31
+  },
+  "f09": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 23
+  },
+  "f10": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 24
+  },
+  "f11": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 25
+  },
+  "f12": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "f13": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 27
+  },
+  "m01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m02": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m07": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "m08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 41
+  },
+  "neg-world": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 0
+  },
+  "r003_snap_2026-10-19_00-17-26": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 51
+  },
+  "r004_snap_2026-10-19_00-20-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 43
+  },
+  "r006_snap_2026-10-19_00-22-19": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 35
+  },
+  "r007_snap_2026-10-19_00-22-25": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 30
+  },
+  "r008_snap_2026-10-19_00-23-27": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 16
+  },
+  "r009_snap_2026-10-19_00-23-32": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r013_snap_2026-10-19_00-23-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "r016_snap_2026-10-19_00-24-17": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 18
+  },
+  "r019_snap_2026-10-19_00-24-44": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 72
+  },
+  "r021_snap_2026-10-19_00-24-58": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 46
+  },
+  "r022_snap_2026-10-19_00-25-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 45
+  },
+  "r023_snap_2026-10-19_00-25-15": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "r024_snap_2026-10-19_00-25-30": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "r026_snap_2026-10-19_00-27-05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 44
+  },
+  "r028_snap_2026-10-19_00-27-49": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 117
+  },
+  "r032_snap_2026-10-19_00-30-42": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 129
+  },
+  "r034_snap_2026-10-19_00-31-33": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 128
+  },
+  "r040_snap_2026-10-19_00-36-18": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 97
+  },
+  "r041_snap_2026-10-19_00-36-21": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 74
+  },
+  "r044_snap_2026-10-19_00-37-57": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 75
+  },
+  "r045_snap_2026-10-19_00-38-06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 88
+  },
+  "r047_snap_2026-10-19_00-39-53": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 57
+  },
+  "v060_0461": {
+   "uncovered": 2,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v078_0487": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 20
+  },
+  "v088_0513": {
+   "uncovered": 4,
+   "ocr": "manifest",
+   "units": 33
+  },
+  "v101_0529": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 19
+  },
+  "w01": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w02": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w03": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w04": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w05": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w06": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w07": {
+   "uncovered": 1,
+   "ocr": "manifest",
+   "units": 40
+  },
+  "w08": {
+   "uncovered": 0,
+   "ocr": "manifest",
+   "units": 40
+  }
+ },
+ "frames": [
+  {
+   "stem": "c37_195331",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "c40_195339",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "负样本：整屏世界实景，0 个界面单元",
+   "gt": 0,
+   "area_max": 0.0,
+   "kinds": {}
+  },
+  {
+   "stem": "m01",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m02",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m03",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m04",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m05",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m06",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m07",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "m08",
+   "family": "game_ui",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 41,
+   "area_max": 0.229,
+   "kinds": {
+    "panel": 3,
+    "avatar": 1,
+    "button": 4,
+    "row": 7,
+    "icon": 6,
+    "tile": 20
+   }
+  },
+  {
+   "stem": "w07",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  },
+  {
+   "stem": "w08",
+   "family": "world_hud",
+   "family_src": "manifest",
+   "from": "truth-merged",
+   "W": 2560,
+   "H": 1440,
+   "layout": "",
+   "gt": 40,
+   "area_max": 0.114,
+   "kinds": {
+    "panel": 2,
+    "glyph_icon": 28,
+    "bar": 2,
+    "row": 6,
+    "button": 2
+   }
+  }
+ ],
+ "models": {
+  "v2": {
+   "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
+   "strict": {
+    "P": 0.444,
+    "R": 0.554,
+    "F1": 0.493
+   },
+   "total": {
+    "gt": 404,
+    "det": 504,
+    "tp": 224,
+    "fp": 280,
+    "fn": 180,
+    "leg_hit": 224,
+    "leg_ndet": 224
+   },
+   "per_kind": {
+    "row": {
+     "gt": 68,
+     "det": 53,
+     "tp": 0,
+     "fn": 68,
+     "fp": 53,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "tile": {
+     "gt": 160,
+     "det": 189,
+     "tp": 160,
+     "fn": 0,
+     "fp": 29,
+     "leg_hit": 160,
+     "leg_ndet": 160
+    },
+    "button": {
+     "gt": 36,
+     "det": 76,
+     "tp": 8,
+     "fn": 28,
+     "fp": 68,
+     "leg_hit": 8,
+     "leg_ndet": 8
+    },
+    "chip": {
+     "gt": 0,
+     "det": 28,
+     "tp": 0,
+     "fn": 0,
+     "fp": 28,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "avatar": {
+     "gt": 8,
+     "det": 8,
+     "tp": 0,
+     "fn": 8,
+     "fp": 8,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "card": {
+     "gt": 0,
+     "det": 12,
+     "tp": 0,
+     "fn": 0,
+     "fp": 12,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "panel": {
+     "gt": 28,
+     "det": 57,
+     "tp": 24,
+     "fn": 4,
+     "fp": 33,
+     "leg_hit": 24,
+     "leg_ndet": 24
+    },
+    "icon": {
+     "gt": 48,
+     "det": 81,
+     "tp": 32,
+     "fn": 16,
+     "fp": 49,
+     "leg_hit": 32,
+     "leg_ndet": 32
+    },
+    "glyph_icon": {
+     "gt": 56,
+     "det": 0,
+     "tp": 0,
+     "fn": 56,
+     "fp": 0,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 328,
+     "det": 448,
+     "tp": 224,
+     "fn": 104,
+     "fp": 224,
+     "leg_hit": 224,
+     "leg_ndet": 224
+    },
+    "world_hud": {
+     "gt": 76,
+     "det": 56,
+     "tp": 0,
+     "fn": 76,
+     "fp": 56,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    }
+   },
+   "legacy_micro_R": 0.5545,
+   "geom": {},
+   "lat_ms": {
+    "p50": 50.2,
+    "p90": 52.8
+   }
+  },
+  "v4": {
+   "path": "/home/h/genshin-ts/.scratch/gui-detect/train-v4/model.pt",
+   "strict": {
+    "P": 0.425,
+    "R": 0.693,
+    "F1": 0.527
+   },
+   "total": {
+    "gt": 404,
+    "det": 659,
+    "tp": 280,
+    "fp": 379,
+    "fn": 124,
+    "leg_hit": 280,
+    "leg_ndet": 280
+   },
+   "per_kind": {
+    "row": {
+     "gt": 68,
+     "det": 35,
+     "tp": 2,
+     "fn": 66,
+     "fp": 33,
+     "leg_hit": 2,
+     "leg_ndet": 2
+    },
+    "panel": {
+     "gt": 28,
+     "det": 75,
+     "tp": 28,
+     "fn": 0,
+     "fp": 47,
+     "leg_hit": 28,
+     "leg_ndet": 28
+    },
+    "button": {
+     "gt": 36,
+     "det": 89,
+     "tp": 12,
+     "fn": 24,
+     "fp": 77,
+     "leg_hit": 12,
+     "leg_ndet": 12
+    },
+    "glyph_icon": {
+     "gt": 56,
+     "det": 112,
+     "tp": 46,
+     "fn": 10,
+     "fp": 66,
+     "leg_hit": 46,
+     "leg_ndet": 46
+    },
+    "avatar": {
+     "gt": 8,
+     "det": 8,
+     "tp": 0,
+     "fn": 8,
+     "fp": 8,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "card": {
+     "gt": 0,
+     "det": 20,
+     "tp": 0,
+     "fn": 0,
+     "fp": 20,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "chip": {
+     "gt": 0,
+     "det": 16,
+     "tp": 0,
+     "fn": 0,
+     "fp": 16,
+     "leg_hit": 0,
+     "leg_ndet": 0
+    },
+    "tile": {
+     "gt": 160,
+     "det": 172,
+     "tp": 160,
+     "fn": 0,
+     "fp": 12,
+     "leg_hit": 160,
+     "leg_ndet": 160
+    },
+    "icon": {
+     "gt": 48,
+     "det": 132,
+     "tp": 32,
+     "fn": 16,
+     "fp": 100,
+     "leg_hit": 32,
+     "leg_ndet": 32
+    }
+   },
+   "per_family": {
+    "game_ui": {
+     "gt": 328,
+     "det": 514,
+     "tp": 224,
+     "fn": 104,
+     "fp": 290,
+     "leg_hit": 224,
+     "leg_ndet": 224
+    },
+    "world_hud": {
+     "gt": 76,
+     "det": 145,
+     "tp": 56,
+     "fn": 20,
+     "fp": 89,
+     "leg_hit": 56,
+     "leg_ndet": 56
+    }
+   },
+   "legacy_micro_R": 0.6931,
+   "geom": {},
+   "lat_ms": {
+    "p50": 47.1,
+    "p90": 50.5
+   }
+  }
+ },
+ "multi": {
+  "v2": [],
+  "v4": []
+ },
+ "gt_redundancy": {
+  "m01": {
+   "peer": "m02",
+   "ratio": 1.0
+  },
+  "m02": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m03": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m04": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m05": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m06": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m07": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "m08": {
+   "peer": "m01",
+   "ratio": 1.0
+  },
+  "w07": {
+   "peer": "w08",
+   "ratio": 1.0
+  },
+  "w08": {
+   "peer": "w07",
+   "ratio": 1.0
+  }
+ }
+}
