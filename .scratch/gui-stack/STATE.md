@@ -49,6 +49,20 @@
   自测 `first_calls=3 no_more=1 abandoned=1 fuse=1`；打扰次数 prev==game **0 次**、最坏 ≤3（原事故 19s 6 次）。
 - 用户选 A 后已 `enable --now`（systemd，active）。
 
+### 服务层两个真 bug 已修（2026-10-19 17:2x–18:0x，commit `e1dabeae` / `6e6955bf`）
+1. **`look` 的 state 曾经是错的**：同帧 `cmd=state`=GAME_WORLD 而 `cmd=world`=PLAYTEST(0.5)，
+   因为 UID 本体判据只写在 `_state` 内联块里，`_world_state` 直接返回 `YS.decide()`。
+   → 抽 `_uid_present()` / `_apply_world_uid()` 两处共用；连测 3 次全一致 GAME_WORLD。
+2. **三维世界里 `containers=0`**（flat+rect 是菜单 UI 规则，圆形小地图/头像/技能键都不命中），
+   而 D2 同帧给 29–33 框；这些框此前只喂 D3、不对外暴露 ⇒ `look()` 返回 `objects=[]`。
+   → daemon 输出 `structure.detections`；`schema.object_from_detection()` 转换（**bbox 已是 xywh**，
+   clickable 恒 unknown，confidence=模型分数）；worldsvc 在容器为空时才顶替。
+   **验证**：`look --live --backend daemon-world` → objects=33（row15/button9/panel3/icon3/chip1/card1/tile1）；
+   `gui-service selftest` **90/90 PASS**。
+- **仍未达标**：单次 `look` 1.1–3.3s（冷启 11.8s）。`_WORLD_CACHE` 键含整帧 sha，**活体画面每帧都在渲染
+  ⇒ 几乎不命中**（与判态那次同一个坑：像素 sha 对活体画面无效，应改时间缓存）。缓存命中 1.5ms。
+- **未闭合**：`free_text` 无 bbox（daemon 侧已字符串化）⇒ 世界里 `act(text)` 解析不到，`FREE_TEXT_UNOWNED`。
+
 ### 正在跑
 - `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
 - `perception`：world_hud 3 个「不像 glyph_icon」单元（元素能量/护盾条 325×20、生命值条 305×26、
