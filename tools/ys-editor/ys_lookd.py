@@ -1760,8 +1760,12 @@ def _world_containers(arr, sha, boxes, W, H):
         half = _world_half(arr)
         res = S.containers_cached(None, half, 0.5, W, H, text,
                                   use_cache=True, frame_sha=sha)
-        res = {k: res.get(k) for k in ("containers", "free_text", "free_glyphs",
-                                       "degraded", "error")}
+        _KEYS = ("containers", "free_text", "free_glyphs", "uncertainty",
+                 "degraded", "error")
+        _extra = set(res) - set(_KEYS)          # 新增字段没加进白名单 ⇒ 大声报，不静默丢
+        res = {k: res.get(k) for k in _KEYS}
+        if _extra:
+            res["whitelist_dropped"] = sorted(_extra)
         res["timing_ms"] = round((time.time() - t0) * 1000, 1)
         return res
     except Exception as e:                                  # noqa: BLE001 —— fail-closed 成 degraded

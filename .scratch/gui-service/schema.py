@@ -183,7 +183,7 @@ def object_from_container(c, *, frame_id, text_source="fullframe"):
 
 def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=(),
               transitions=(), budget_ms=None, degraded=(), timing_ms=None, frame=None,
-              free_text=()):
+              free_text=(), uncertainty=()):
     """组装 world-state dict。字段名严格用 AGI-BAR §四 的名字（扩展字段另行标注）。"""
     return {
         "schema": SCHEMA_ID,
@@ -202,13 +202,15 @@ def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=
         "timing_ms": timing_ms or {},
         "frame": frame or {},
         "free_text": list(free_text),
+        # v0 扩展：感知层自报"我拿不准"的区域（ys-screen uncertainty[]，2026-10-19）
+        "uncertainty": list(uncertainty),
     }
 
 
 _TOP_REQUIRED = ("schema", "frame_id", "captured_at_ms", "state", "objects", "groups",
                  "slices", "transitions", "budget_ms", "degraded")
 _TOP_ALLOWED = set(_TOP_REQUIRED) | {"tracked_at_ms", "timing_ms", "frame", "free_text",
-                                    "attribution"}
+                                    "attribution", "uncertainty"}
 _OBJ_REQUIRED = ("id", "parent", "bbox", "kind", "text", "text_source", "glyphs", "badges",
                  "state", "affordance", "clipped", "confidence", "evidence")
 

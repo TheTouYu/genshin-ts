@@ -201,6 +201,7 @@ class WorldService:
         objects = [schema.object_from_container(c, frame_id=frame_id)
                    for c in ((resp.get("objects") or {}).get("containers") or [])]
         free_text = [str(t) for t in ((resp.get("objects") or {}).get("free_text") or [])]
+        uncertainty = list((resp.get("objects") or {}).get("uncertainty") or [])
         cont_degr = bool((resp.get("objects") or {}).get("degraded") or
                          (resp.get("objects") or {}).get("error"))
         degraded = self._degraded_list(objects, free_text,
@@ -218,7 +219,8 @@ class WorldService:
               "channel": "fast", "native": state.get("native", False)}
         raw = schema.new_world(
             frame_id=frame_id, captured_at_ms=int(frame_meta["captured_at_ms"]),
-            state=st, objects=objects, free_text=free_text, degraded=degraded,
+            state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
+            degraded=degraded,
             timing_ms=dict(resp.get("timing") or {}, rpc=round(rpc_ms, 1)),
             frame=dict(frame_meta, **{"w": resp["frame"].get("w"),
                                       "h": resp["frame"].get("h")}),
@@ -365,6 +367,7 @@ class WorldService:
         objects = [schema.object_from_container(c, frame_id=frame_id)
                    for c in (cont_res.get("containers") or [])]
         free_text = [str(t) for t in (cont_res.get("free_text") or [])]
+        uncertainty = list(cont_res.get("uncertainty") or [])
 
         degraded = []
         if state_name == "UNKNOWN":
@@ -395,7 +398,7 @@ class WorldService:
         return schema.new_world(
             frame_id=frame_id,
             captured_at_ms=int(frame_meta["captured_at_ms"]),
-            state=st, objects=objects, free_text=free_text,
+            state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
             degraded=degraded, timing_ms=timing, frame=frame_meta,
             budget_ms=self.budget_ms,
         )
@@ -532,6 +535,11 @@ class WorldService:
             result["injected"] = not simulate_action
             result["simulated"] = bool(simulate_action)
             result["inject"] = inj
+            if inj.get("release_failed"):
+                result["degraded"].append(_degraded(
+                    "LEASE_RESTORE_FAILED",
+                    "动作已注入，但 ys-scroll 归还焦点失败（release_ok=false）；"
+                    "rc 非 0 来自归还而非注入，最终结论由 expect 判定"))
             if not inj["ok"]:
                 raise ServiceError("INJECT_FAILED",
                                    f"{spec['type']} 注入失败 rc={inj['raw'].get('rc')}："
@@ -817,16 +825,32 @@ class WorldService:
         return spec
 
     def _do_action(self, spec):
+        """执行动作；**区分「动作没做成」与「动作做成了但归还失败」**。
+
+        2026-10-19 live 暴露：`ys-scroll` 的退出码是 `0 if (ok_inject and release_ok) else 5`
+        ——`release_ok=false`（焦点归还失败）也会把 rc 弄成 5，但滚轮**已经注入**。
+        旧实现只看 rc ⇒ 把「动作成功、归还失败」报成 INJECT_FAILED，与事实相反
+        （meta 里 `inject.raw.result` 明明是 `ok:true, release_ok:true` 的那次是 rc=0）。
+        新语义：`release_ok=false` 时**不判死**，交给 expect 判「动作到底有没有达成意图」，
+        并单独记 `LEASE_RESTORE_FAILED`；只有 `result.ok=false` 且不是归还失败才算注入失败。
+        """
         if spec["type"] == "click":
             raw = instruments.inject_click(spec["at"][0], spec["at"][1])
             ok = raw.get("rc") == 0
+            return {"tool": "click", "ok": bool(ok), "raw": raw}
+        raw = instruments.inject_scroll(spec["at"][0], spec["at"][1],
+                                        clicks=spec["clicks"], direction=spec["dir"],
+                                        lease=True)
+        res = raw.get("result") or {}
+        rc = raw.get("rc")
+        release_failed = res.get("release_ok") is False
+        inject_failed = (res.get("ok") is False) and not release_failed
+        if release_failed:
+            ok = True          # 动作可能已执行；由 expect 给最终结论（不允许用 rc 冒充事实）
         else:
-            raw = instruments.inject_scroll(spec["at"][0], spec["at"][1],
-                                            clicks=spec["clicks"], direction=spec["dir"],
-                                            lease=True)
-            res = raw.get("result") or {}
-            ok = raw.get("rc") == 0 and bool(res.get("ok", True))
-        return {"tool": spec["type"], "ok": bool(ok), "raw": raw}
+            ok = (rc == 0) and not inject_failed
+        return {"tool": "scroll", "ok": bool(ok), "release_failed": bool(release_failed),
+                "inject_failed": bool(inject_failed), "raw": raw}
 
     def _evidence_dir(self, evidence_dir):
         if evidence_dir:
