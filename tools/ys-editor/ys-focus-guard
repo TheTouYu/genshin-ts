@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""ys-focus-guard — 焦点租约看门狗：**防止代理占用桌面后不归还**。
+
+为什么要有它（2026-10-19 用户投诉）：
+  跑基准时我为了"动作项"取了焦点租约，跑完**没有归还**，用户在旁边干等，还怕打断我。
+  用户的原话：「不是记住，而是工程落地来保障」。
+  ⇒ 归还这件事不能靠"我记得 release"，必须有一条独立进程盯着租约，超时或持有者死了就自动还原。
+
+机制：
+  · 每 2s 读 /tmp/ys-lease.json；
+  · 判定「该归还」的三种情况：① 租约过期（expires 已过）② 持有者 pid 不存在 ③ 持有者已退出；
+  · 归还 = 把焦点还给租约里记录的 prev（用户当时的窗口），并把租约文件删掉、记一行日志；
+  · prev 不可用时回落到 firefox（DSH 页面），**绝不静默留在游戏窗**。
+
+用法：
+  ys-focus-guard              # 前台跑（调试）
+  ys-focus-guard --daemon     # 后台常驻（setsid）
+  ys-focus-guard --check      # 只检查一次（给测试/CI 用，退出码 1 = 有该归还的租约）
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+LEASE = "/tmp/ys-lease.json"
+LOG = "/tmp/ys-focus-guard.log"
+FALLBACK = "firefox"
+
+
+def log(msg):
+    line = f"{time.strftime('%H:%M:%S')} {msg}\n"
+    try:
+        with open(LOG, "a") as fh:
+            fh.write(line)
+    except Exception:                                    # noqa: BLE001
+        pass
+
+
+def restore_focus(prev):
+    env = dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":1"))
+    if prev:
+        try:
+            r = subprocess.run(["xdotool", "windowactivate", "--sync", str(prev)],
+                               capture_output=True, text=True, env=env, timeout=5)
+            if r.returncode == 0:
+                return f"restored {prev}"
+        except Exception:                                # noqa: BLE001
+            pass
+    # 回落：KWin 激活 firefox（Wayland 窗 xdotool 够不到）
+    try:
+        raise_tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-kwin-raise")
+        r = subprocess.run([raise_tool, FALLBACK], capture_output=True, text=True, timeout=10)
+        return f"fallback {FALLBACK}: {('OK' in (r.stdout or ''))}"
+    except Exception as e:                               # noqa: BLE001
+        return f"FAILED ({type(e).__name__})"
+
+
+def should_release(lease):
+    now = time.time()
+    if lease.get("expires", 0) < now:
+        return "expired"
+    pid = lease.get("owner_pid")
+    if pid:
+        try:
+            os.kill(int(pid), 0)
+        except OSError:
+            return "owner-dead"
+    return None
+
+
+def check_once(verbose=False):
+    if not os.path.exists(LEASE):
+        return 0
+    try:
+        lease = json.load(open(LEASE))
+    except Exception:                                    # noqa: BLE001
+        return 0
+    why = should_release(lease)
+    if not why:
+        return 0
+    res = restore_focus(lease.get("prev"))
+    try:
+        os.remove(LEASE)
+    except Exception:                                    # noqa: BLE001
+        pass
+    log(f"归还焦点（{why}）→ {res}")
+    if verbose:
+        print(f"[ys-focus-guard] 归还焦点（{why}）→ {res}")
+    return 1
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--daemon", action="store_true")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--interval", type=float, default=2.0)
+    a = ap.parse_args()
+    if a.check:
+        return check_once(verbose=True)
+    if a.daemon:
+        if os.fork():
+            return 0
+        os.setsid()
+    while True:
+        try:
+            check_once(verbose=a.daemon)
+        except Exception as e:                           # noqa: BLE001
+            log(f"error {type(e).__name__}: {e}")
+        time.sleep(a.interval)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

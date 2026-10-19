@@ -56,7 +56,7 @@ def acquire(name="原神", max_s=30):
     if not ok:
         return {"ok": False, "error": "RAISE_FAILED", "detail": (r.stdout or r.stderr)[:200]}
     d = {"win": WIN, "name": name, "prev": prev, "acquired_at": time.time(),
-         "expires": time.time() + max_s, "max_s": max_s}
+         "expires": time.time() + max_s, "max_s": max_s, "owner_pid": os.getpid()}
     json.dump(d, open(LEASE, "w"))
     return {"ok": True, "lease": {k: d[k] for k in ("win", "prev", "max_s")},
             "ms": round((time.time() - t0) * 1000, 1)}
