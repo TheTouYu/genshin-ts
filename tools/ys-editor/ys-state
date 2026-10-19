@@ -1351,6 +1351,17 @@ def regress(channels, as_json=False):
 # ══════════════════════════════════════════════════════════════════
 # CLI
 # ══════════════════════════════════════════════════════════════════
+
+
+def _has_game_window(timeout=2.0):
+    """游戏窗口是否存在（快速探测；无窗时不要傻等 90s 超时）。"""
+    import subprocess as _sp
+    try:
+        r = _sp.run(["xdotool", "search", "--class", "yuanshen"], capture_output=True, text=True, timeout=timeout)
+        return bool(r.stdout.strip())
+    except Exception:                                    # noqa: BLE001
+        return True                                      # 探测失败时不拦截（交给后续路径报错）
+
 def main(argv):
     args = list(argv)
     as_json = "--json" in args
@@ -1368,6 +1379,15 @@ def main(argv):
         except (IndexError, ValueError):
             sys.stderr.write("--max-age-ms 需要一个数字（毫秒）\n")
             return 3
+
+    # ── 失焦/无窗快失败（2026-10-19 实测：游戏没起时本工具会卡满 90s 超时）
+    if not frame and "--pixel" not in args and "--pred" not in args and not _has_game_window():
+        sys.stderr.write("ys-state: 未找到游戏窗口（YuanShen.exe）——无帧可判，直接退出\n")
+        if as_json:
+            print('{"state": "UNKNOWN", "error": "NO_WINDOW", "ok": false}')
+        else:
+            print("NO_WINDOW")
+        return 3
 
     # ── 原语转发（给 `_ys-ui.sh` 的 judge / is_light / is_dark 用）：坐标与阈值仍在**本文件**
     # `--pixel X Y` 打印 `r g b`（judge）；`--pred light|dark X Y` 打印 1/0（is_light / is_dark）

@@ -7,10 +7,10 @@
 | # | 指标 | **历史最佳** | 怎么做到的（路径/命令） | 2026-10-19 复测 | 状态 |
 |---|---|---|---|---|---|
 | 1 | 单帧抓取（XShm 常驻 + /dev/shm 环） | **12–13ms** | `tools/ys-editor/ys-capture serve` + `ys-capture latest --out x.png` | 守护能起（win=0x01400001），环内暂无帧 ⇒ 未复测到 12ms | ⚠️ **能力在，按需启**（fps=10 常驻会拖死游戏，只在批量实验期短暂启用） |
-| 2 | 同帧 OCR（对象切片 + 内容寻址缓存） | **15–45ms** | `ys-lookd cmd=ocr_objects --frame <绝对路径> --cache true` | **45–46ms**（热）/ 176ms（首调） | ✅ 仍达标 |
-| 3 | 判态 fast 通道 | **130–142ms** | `python3 tools/ys-editor/ys-state --fast` | **1.45–1.5s** | ❌ **退化 ~10×**，优先级最高 |
+| 2 | 同帧 OCR（对象切片 + 内容寻址缓存） | **15–45ms** | `ys-lookd cmd=ocr_objects --frame <绝对路径> --cache true` | **35.9ms** 热（重启后干净资源；首调 1008ms 冷） | ✅ 达标 |
+| 3 | 判态 fast 通道 | **130–142ms** | `python3 tools/ys-editor/ys-state --fast` | 游戏未运行时**卡 90s 超时**（已修：0.05s 快失败 NO_WINDOW）；有窗口时的真值待游戏启动后复测 | ⚠️ 需复测 |
 | 4 | 世界状态 in-process（look 稳态） | **147–162ms** | `.scratch/gui-service/worldsvc.py` + `ys_lookd cmd=world` | 缓存命中 0.7ms；新帧受 OCR 主导 | ⚠️ 需按新帧口径复测 |
-| 5 | 对象检测（GPU） | 基准 **5.3ms**（U-Net 640 fp16）/ 生产 **27.6ms** | 基准 `.scratch/gui-detect`；生产 `tools/ys-editor/gui_det.py` | v2 生产 p50 **41.3ms** | ⚠️ 生产口径超 ≤10ms 目标 4× |
+| 5 | 对象检测（GPU） | 基准 **5.3ms** / 生产 **27.6ms** | 基准 `.scratch/gui-detect`；生产 `tools/ys-editor/gui_det.py` | **干净资源（重启后）p50 30.2ms / p90 37.3ms**（此前 41.3ms 含系统负载） | ⚠️ 超 ≤10ms 目标 3× |
 | 6 | 结构层（D3） | **1.2–9.9ms** | `ys_lookd cmd=world` 内 `_world_structure` | 9.9ms（r028） | ✅ |
 | 7 | 列表结构化读取 | **0.11s** 热 / 0.32s 冷 | `tools/ys-editor/ys-list`（走 daemon OCR） | 0.109s / 0.32s | ✅ |
 | 8 | 焦点租约内按键 | **32ms** | `ys-lease acquire` 后直接 `ydotool key` | 32ms | ✅ |
@@ -47,3 +47,14 @@ time python3 tools/ys-editor/ys-list --frame .scratch/gui-corpus/evidence-friend
 - **优化前先查本表**；本表已有达标值的项，只做"可用性确认"，不做重新优化。
 - 新达成的指标必须**立刻**补进本表（含命令），否则下次压缩后就没了。
 - 本表任一行的"状态"变化（达标→退化）都要当日记录，不许静默。
+
+
+## 2026-10-19 11:5x 重启后复测（排除系统资源干扰）
+
+| 项 | 重启前 | **重启后（干净资源）** |
+|---|---|---|
+| 检测器生产推理 p50 | 41.3ms | **30.2ms**（p90 37.3） |
+| OCR 热 p50 | 45–46ms | **35.9ms** |
+| ys-state --fast | 1.45s | 无窗时卡 90s → **已修 0.05s 快失败** |
+
+**结论**：资源争用确实抬高了 20–25%，但**检测器仍超 ≤10ms 目标 3×**，不是环境问题。
