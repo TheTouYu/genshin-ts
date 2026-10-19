@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""subagent-verdict — 引用子代理结论之前，**先出四张读数**。
+
+存在理由（账本 F-20261019-34）：用户原话「你没有自己深入分析它的执行过程，全靠它自己汇报」。
+实证：某子代理自报「410 秒，最费时是排序口径判错」；翻原始事件后发现
+**工具只占 46%（189s）、其余 220s 是模型自延迟；且 read_image 9 次、盲滚 clicks 200/300/500**——
+自述里一个字没提。⇒ **子代理的汇报是它的自我认知，不是证据。**
+
+用法：
+  tools/subagent-verdict <subagent-id>              # 四张读数
+  tools/subagent-verdict <subagent-id> --json
+  tools/subagent-verdict --latest                   # 取最新子代理会话
+
+四张读数：
+  ① 每工具次数/总耗时  ② 最慢 N 次调用（带命令原文）
+  ③ 工具总耗时 vs 会话 wall（差值 = 模型自延迟）
+  ④ 反模式计数：read_image / 裸 sleep / 大格数盲滚 / 慢抓帧
+"""
+import argparse
+import collections
+import glob
+import json
+import os
+import subprocess
+import sys
+
+BASE = os.path.expanduser("~/.dsh/sessions/--home-h-genshin-ts--")
+
+
+def find_session(sid=None, latest=False):
+    if latest:
+        cands = [d for d in glob.glob(os.path.join(BASE, "*")) if os.path.isdir(d)
+                 and os.path.exists(os.path.join(d, "session.v4.jsonl.zstd"))]
+        if not cands:
+            return None
+        return max(cands, key=lambda d: os.path.getmtime(os.path.join(d, "session.v4.jsonl.zstd")))
+    if not sid:
+        return None
+    for d in (os.path.join(BASE, sid), os.path.join(BASE, "session-" + sid)):
+        if os.path.isdir(d):
+            return d
+    hits = glob.glob(os.path.join(BASE, "*" + sid + "*"))
+    return hits[0] if hits else None
+
+
+def load_events(session_dir):
+    f = os.path.join(session_dir, "session.v4.jsonl.zstd")
+    p = subprocess.run(["zstd", "-dc", f], capture_output=True, text=True)
+    out = []
+    for line in p.stdout.splitlines():
+        if not line.startswith("{"):
+            continue
+        try:
+            out.append(json.loads(line))
+        except Exception:                                # noqa: BLE001
+            continue
+    return out
+
+
+def analyze(events):
+    calls, results = {}, {}
+    first_ts = last_ts = None
+    for e in events:
+        t = e.get("type")
+        ts = e.get("time")
+        if ts:
+            first_ts = ts if first_ts is None else min(first_ts, ts)
+            last_ts = ts if last_ts is None else max(last_ts, ts)
+        d = e.get("data") or {}
+        if t == "tool/call":
+            try:
+                args = json.loads(d.get("arguments") or "{}")
+            except Exception:                            # noqa: BLE001
+                args = {}
+            calls[d.get("callId")] = (ts, d.get("name"), args)
+        elif t == "tool/result":
+            m = d.get("message") or {}
+            cid = m.get("toolCallId") or (m.get("source") or {}).get("callId")
+            if cid:
+                results[cid] = ts
+    rows = []
+    for cid, (ts, name, args) in calls.items():
+        end = results.get(cid)
+        dur = (end - ts) / 1000.0 if end and ts else None
+        rows.append({"name": name, "args": args, "dur": dur})
+    cnt = collections.Counter(r["name"] for r in rows)
+    tot = collections.defaultdict(float)
+    for r in rows:
+        if r["dur"]:
+            tot[r["name"]] += r["dur"]
+    wall = (last_ts - first_ts) / 1000.0 if first_ts and last_ts else None
+    tool_time = sum(r["dur"] for r in rows if r["dur"])
+    # 反模式
+    def cmds():
+        return [str(r["args"].get("command") or r["args"].get("file_path") or "") for r in rows]
+    all_cmds = cmds()
+    anti = {
+        "read_image": cnt.get("read_image", 0),
+        "bare_sleep>=5s": sum(1 for c in all_cmds if "sleep " in c and any(f"sleep {n}" in c for n in range(5, 10))),
+        "blind_scroll_clicks>=100": sum(1 for c in all_cmds if "ys-scroll" in c and "--clicks" in c
+                                        and any(f"--clicks {n}" in c for n in range(100, 1000, 100))),
+        "ys-snap 抓帧": sum(1 for c in all_cmds if "ys-snap" in c and "--snap" in c),
+    }
+    slow = sorted([r for r in rows if r["dur"]], key=lambda r: -r["dur"])[:10]
+    return {
+        "n_calls": len(rows), "counts": dict(cnt), "tool_total_s": round(tool_time, 1),
+        "wall_s": round(wall, 1) if wall else None,
+        "model_latency_s": round(wall - tool_time, 1) if wall else None,
+        "tool_share_pct": round(tool_time / wall * 100, 1) if wall else None,
+        "slowest": [{"s": round(r["dur"], 1), "tool": r["name"],
+                     "cmd": str(r["args"].get("command") or r["args"].get("file_path") or "")[:120]}
+                    for r in slow],
+        "anti_patterns": anti,
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("sid", nargs="?", default=None)
+    ap.add_argument("--latest", action="store_true")
+    ap.add_argument("--json", action="store_true")
+    a = ap.parse_args()
+    d = find_session(a.sid, a.latest)
+    if not d:
+        print(json.dumps({"ok": False, "error": "SESSION_NOT_FOUND"}, ensure_ascii=False))
+        return 2
+    res = analyze(load_events(d))
+    res["session"] = os.path.basename(d)
+    if a.json:
+        print(json.dumps(res, ensure_ascii=False, indent=1))
+        return 0
+    print(f"会话 {res['session']}")
+    print(f"① 工具调用 {res['n_calls']} 次：" + " / ".join(f"{k}×{v}" for k, v in
+                                                    sorted(res['counts'].items(), key=lambda kv: -kv[1])[:6]))
+    print(f"② 工具总耗时 {res['tool_total_s']}s ｜ 会话 {res['wall_s']}s ｜ 工具占比 {res['tool_share_pct']}%"
+          f" ｜ 模型自延迟 {res['model_latency_s']}s")
+    print("③ 最慢 5 次：")
+    for s in res["slowest"][:5]:
+        print(f"     {s['s']:7.1f}s [{s['tool']}] {s['cmd']}")
+    ap_ = {k: v for k, v in res["anti_patterns"].items() if v}
+    print("④ 反模式：" + ("、".join(f"{k}×{v}" for k, v in ap_.items()) if ap_ else "无"))
+    if res["anti_patterns"].get("read_image", 0) >= 3:
+        print("   ⚠️ 它在用肉眼读屏（read_image ≥3）——引用其结论前先核对它是否绕过了结构化读取")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
