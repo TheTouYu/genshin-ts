@@ -272,7 +272,7 @@ def decode(hm_logits, wh, src_w, src_h, thr=0.35, topk=120, res=(640, 360),
 
 
 def decode_rows(rout, src_w, src_h, res=(640, 360), thr_ctr=0.30, thr_mask=0.30,
-                gap=4, max_rows=200, pitch_gap=0.3):
+                gap=4, max_rows=200, pitch_gap=0.3, cap_reg=1.2):
     """1D 条带解码：逐 y 判「这一带是行」→ 行高从回归头 → x 支撑面从 mask 读。"""
     W, H = res
     OW, OH = W // 4, H // 4
@@ -298,6 +298,9 @@ def decode_rows(rout, src_w, src_h, res=(640, 360), thr_ctr=0.30, thr_mask=0.30,
         hcells = (min(gaps) - pitch_gap) if gaps else h_reg
         if hcells <= 0.5:
             hcells = h_reg
+        # 与线上 gui_det.decode_rows 对齐（2026-10-19）：行距规则只对等距列表成立，
+        # 用回归头封顶。否则评测台的 train 通道与 prod 通道会因这一行而读数不一致。
+        hcells = min(hcells, cap_reg * h_reg)
         y0, y1 = max(0, y - 1), min(OH, y + 2)
         colprof = msk[y0:y1].max(0).values
         act = (colprof > thr_mask).tolist()

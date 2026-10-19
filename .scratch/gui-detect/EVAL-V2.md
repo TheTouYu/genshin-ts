@@ -38,6 +38,9 @@ cd /home/h/genshin-ts
 | `strict` | **同类 1:1 贪心匹配**（按 score 降序，IoU≥0.5），P/R/F1 | CALIBER-v2 主口径；P 才有通常含义 |
 | `legacy` | `d2.evaluate` 原口径：同 kind 且 IoU≥0.5 即命中，**不一对一** | 与 D2-improve 历史表直接可比 |
 
+> 2026-10-19 起：两个通道的行高规则一致（都用 `min(行距, 1.2×logh)` 封顶，见 `STAGE-B-REPORT.md` §七）。
+> 历史 row 数字（D2-improve 的 0.266 等）是封顶前算的，行密集列表上差 ≤1pp，世界 HUD 类不规则行会差很多。
+
 通道：`prod` = `tools/ys-editor/gui_det.Detector.detect`（PIL 缩放→前向→decode→**NMS0.5**→min_side 8），
 `train` = `d2.Net` + `d2.decode/decode_rows`（**无 NMS**，与 `d2.evaluate` 逐字一致）。
 P/R/F1 一律按 kind 分开；`unknown` 类真值**不计分**但计数进报告。
