@@ -122,12 +122,22 @@ RING_MAX_CAND = 150          # 进入环验证的候选中心上限
 # —— 容器层（L3 平坦皮肤容器 + 叶子归属）——
 # 判据全部来自已验证原型（.scratch/gui-arch-probe/p2_containers.py、ysui.py）与设计文档
 # docs/maintenance/design-2026-10-18-gui-structure.md §2.2；改动前先读那两张表。
-CONTAINER_RULESET = 'flatrect-v1'   # 规则版本：**改任何容器/图形/角标判据就 +1**（进缓存键）
+CONTAINER_RULESET = 'glyph-v1'      # 2026-10-19 +1：新增独立「无底图标」通道 glyph_icons[]（flatrect 判据未改）
 CONTAINER_EDGE = 6.0         # 平坦判据：Lab 三通道 Sobel 合能量 E 的阈值（E<6 ⇒ 平坦）
 CONTAINER_EDGE_SQ = 36.0     # 同一个阈值的平方形式（E²<36 ⟺ E<6）：省 sqrt，且整数 Sobel 可直接比
 CONTAINER_CLOSE = 5          # 形态学闭核边长（补掉平坦区内部 1~2px 的细缝，实测 5 够用）
 CONTAINER_MIN_W_FULL = 80    # 候选最小宽（**全帧像素**；分析尺度 0.5 ⇒ 40px，与原型一致）
 CONTAINER_MIN_H_FULL = 52    # 候选最小高（0.5 尺度 ⇒ 26px）
+# ——「无底图标」通道（glyph-v1，独立于 flatrect；证据见 .scratch/gui-collect/REPORT-2026-10-19.md §三）——
+# 反例依据：world HUD 116 簇里 104 个 <80×52、平坦度 ≤0.47（menu tile 0.80+）⇒ 用 flatrect 永远接不住。
+# R1 提升规则（8/8 帧同位置±3px ∧ 面积≥A ∧ w/h≤3）在 A=24 时 precision 10/10；单帧版用尺寸/长宽/对比度近似。
+GLYPH_ICON_MIN_FULL_HUD = 20     # 无容器（世界 HUD 类画面）分档：20×20 起
+GLYPH_ICON_MIN_FULL_UI = 24      # 有容器（界面类画面）分档：24×24 起（R1@A=24 的实测起点）
+GLYPH_ICON_MAX_ASPECT = 3.0
+GLYPH_ICON_MIN_CONTRAST_HUD = 40.0
+GLYPH_ICON_MIN_CONTRAST_UI = 60.0
+# 「远离 HUD 带 ⇒ 疑似背景」判据的全帧阈值（实测间距：真图标 ≤169px / 背景 ≥253px）
+UNCERTAIN_BG_EDGE_FULL = 200.0
 CONTAINER_MIN_RECT = 0.55    # 矩形度（连通域面积 / bbox 面积）下限——世界的软边平坦区过不了
 CONTAINER_PAL_TOL = 3.0      # "同皮肤色兄弟"的 Lab ΔE 上限（世界每块平坦区颜色都不同）
 CONTAINER_PANEL_FRAC = 0.05  # kind=panel：占屏面积比下限（实测大面板 6%~35%，格子 ~1%）
@@ -1265,7 +1275,7 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     于是**不输出**它们（漏检，不是假对象）。
     """
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [],
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [],
            'degraded': False, 'error': None}
     try:
         cands = _flat_container_candidates(arr, scale)
@@ -1371,10 +1381,111 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
         res['containers'] = out
         res['free_text'] = free_text
         res['free_glyphs'] = free_glyphs
+        # —— glyph-v1：把「无底图标」提升成独立通道（**不进 containers[]**，避免冒充同一种东西）
+        # 场景分档判据（单帧、可复算）：**有没有"成排的规整平坦矩形"**。
+        # 菜单/设置这类界面有 ≥4 个 rect≥0.8 的同型容器；世界 HUD 页只有零星不规则平坦块（雪地/雪堆 rect 0.63/0.67）。
+        _regular = sum(1 for c in kept if float((c.get('skin') or {}).get('rect') or 0) >= 0.8)
+        hud_like = _regular < 4
+        min_side = GLYPH_ICON_MIN_FULL_HUD if hud_like else GLYPH_ICON_MIN_FULL_UI
+        min_con = GLYPH_ICON_MIN_CONTRAST_HUD if hud_like else GLYPH_ICON_MIN_CONTRAST_UI
+        gicons = []
+        for gl in free_glyphs:
+            bb = gl['bbox']
+            gw, gh = bb[2] - bb[0], bb[3] - bb[1]
+            if gw < min_side or gh < min_side:
+                continue
+            ar = gw / float(max(gh, 1))
+            if ar > GLYPH_ICON_MAX_ASPECT or 1.0 / ar > GLYPH_ICON_MAX_ASPECT:
+                continue
+            if float(gl.get('contrast') or 0.0) < min_con:
+                continue
+            gicons.append({'id': 'g%d' % len(gicons), 'kind': 'glyph_icon',
+                           'bbox': bb, 'role': gl.get('role'), 'fill': gl.get('fill'),
+                           'contrast': gl.get('contrast'),
+                           'scene_tier': 'hud' if hud_like else 'ui',
+                           'min_side': min_side, 'evidence': {'promoted_from': 'free_glyphs'}})
+        res['glyph_icons'] = gicons
+
+        # ================= uncertainty[]：把"拿不准的地方"显式输出（2026-10-19 AGI 判据）=================
+        # 用户裁定：AGI 的门槛不是"什么都能识别"，而是"知道自己的把握度，并在把握度不够时主动获取信息"。
+        # 硬约束：**全部单帧可算**（模块是单帧的，不许用"8 帧稳定"这类时序判据）。
+        W0f, H0f = W0, H0
+        unc = []
+
+        def _edge_dist(box):
+            x, y = box[0] + (box[2] - box[0]) / 2.0, box[1] + (box[3] - box[1]) / 2.0
+            return min(x, y, max(0.0, W0f - x), max(0.0, H0f - y))
+
+        # 规则①：possible_miss —— free_glyph 大到可能是真 UI 元素（≥20×20）但四道容器闸门一条都没过。
+        #   score 公式（写死）：0.30 + 0.40*min(1, 最短边/80) + 0.30*min(1, contrast/120)
+        #   —— 尺寸越大、对比越强 ⇒ 越可能是被漏掉的真控件 ⇒ 越该去看。
+        for gl in free_glyphs:
+            bb = gl['bbox']
+            gw, gh = bb[2] - bb[0], bb[3] - bb[1]
+            if min(gw, gh) < 20:
+                continue
+            if any((gi['bbox'] == bb) for gi in (res.get('glyph_icons') or [])):
+                continue                      # 已被无底图标通道接住 ⇒ 不算 miss
+            reasons = []
+            if gw < CONTAINER_MIN_W_FULL or gh < CONTAINER_MIN_H_FULL:
+                reasons.append('below_size_gate')
+            if not gl.get('text_in'):
+                reasons.append('no_text')
+            reasons.append('low_flatness')     # glyph 本身不是平坦皮肤（这是它进不了容器的根本原因）
+            if _edge_dist(bb) < 340:
+                reasons.append('clipped_edge')
+            # 分数区间设计（写死）：possible_miss ∈ [0.20, 0.80]，possible_false_positive ∈ [0.85, 1.00]，
+            # 两段**不重叠** ⇒ 排序恒有 "已输出但可疑" > "可能漏掉"，不依赖两者框是否重叠。
+            sc = 0.20 + 0.35 * min(1.0, min(gw, gh) / 80.0) + 0.25 * min(1.0, float(gl.get('contrast') or 0) / 120.0)
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(gw), int(gh)], 'kind': 'possible_miss',
+                        'score': round(min(1.0, sc), 3), 'reasons': reasons,
+                        'hint': '这里是 %dx%d 的图形块（对比度 %s），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标' % (gw, gh, gl.get('contrast'))})
+
+        # 规则②：possible_false_positive —— 已提升的 glyph_icon 中心**离四边都 >340px**（远离 HUD 带）
+        #   或「大面积 + 极低平坦度」。score 公式：0.60 + 0.40*min(1, edge_dist/800)
+        #   —— 越靠画面中部 ⇒ 越可能是背景（冰面/粒子/光晕），越该复核。
+        for gi in (res.get('glyph_icons') or []):
+            bb = gi['bbox']
+            d = _edge_dist(bb)
+            area = (bb[2] - bb[0]) * (bb[3] - bb[1])
+            reasons = []
+            # 只在**无容器（HUD/世界类）画面**启用"远离 HUD 带 ⇒ 背景"这条：
+            # 菜单/设置这类界面（kept>=2）内部本来就有一堆图标，按距离判会把正常界面标成不确定。
+            # 阈值 200px 有实测间距支撑（world/w01 的 30 个 glyph_icon）：
+            #   18 个真图标的"中心距最近画面边" 全部 ≤169px；4 个背景（冰面/粒子/光晕）全部 ≥253px。
+            # 取 200 落在间距中间（两侧余量 31px / 53px），比经验值 340 更贴合 HUD 布局。
+            if hud_like and d > UNCERTAIN_BG_EDGE_FULL:
+                reasons.append('background_like')
+            # 「大面积 + 极低填充」这条**已删**：实测真图标 fill 也低（0.31~0.52，见 w01 的 18 个命中），
+            # 用它会把正常图标一起标成背景（实测 15 个 FP 里 11 个是这条误伤）。只保留边缘距离判据。
+            if not reasons:
+                continue
+            if 'merged_blobs' in reasons:
+                pass
+            # 排序理由（写死）：**已输出但可疑**的框（下游可能直接用它动作）比"可能漏了"更紧急，
+            # 所以 possible_false_positive 的分数区间取 0.75~1.0，恒高于 possible_miss（0.30~1.00 但实际上限约 0.7）。
+            sc = 0.85 + 0.15 * min(1.0, d / 800.0)
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
+                        'kind': 'possible_false_positive', 'score': round(min(1.0, sc), 3),
+                        'reasons': sorted(set(reasons)),
+                        'hint': '该图形块中心距画面边 %dpx（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标' % int(d)})
+
+        # 规则③：ambiguous_kind —— kind == 'unknown' 的容器（类别判不出，score 固定 0.5）
+        for c in (res.get('containers') or []):
+            if (c.get('kind') or 'unknown') != 'unknown':
+                continue
+            bb = c['bbox']
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
+                        'kind': 'ambiguous_kind', 'score': 0.5, 'reasons': ['unknown_kind'],
+                        'hint': '这个容器类别判不出（unknown）：形状/内容都不像已知种类，需要复核'})
+        unc.sort(key=lambda u: -u['score'])
+        res['uncertainty'] = unc
+
     except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
+        res['glyph_icons'] = []
         res['degraded'] = True
         res['error'] = '%s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -1562,7 +1673,7 @@ def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.
                           kind_map=None, timing_out=None):
     """torch fp16 stub 通道：与 find_containers_onnx 同形的返回（bbox=xyxy 原帧坐标）。"""
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'degraded': False, 'error': None}
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'degraded': False, 'error': None}
     try:
         dets, info = _torch_stub_detect(arr, size=size, threshold=threshold,
                                         min_area=min_area, device=device, dtype=dtype)
@@ -1615,6 +1726,7 @@ def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
+        res['glyph_icons'] = []
         res['degraded'] = True
         res['error'] = 'detect-backend(torch): %s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -1679,7 +1791,7 @@ def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDA
     """
     import numpy as np
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [],
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [],
            'degraded': False, 'error': None}
     try:
         # mock 通道：只用于**打通 plumbing 与记分器**（无权重/无 GPU 时也能验证接线）
@@ -1759,10 +1871,12 @@ def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDA
         res['free_text'] = [text_boxes[j]['text'] for j in range(len(text_boxes))
                             if j not in used_text]
         res['free_glyphs'] = []
+        res['glyph_icons'] = []
     except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded + 说清原因
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
+        res['glyph_icons'] = []
         res['degraded'] = True
         res['error'] = 'detect-backend: %s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -1804,14 +1918,15 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
         try:
             with open(path, encoding='utf-8') as f:
                 c = json.load(f)
-            if isinstance(c.get('containers'), list):
+            if isinstance(c.get('containers'), list) and 'glyph_icons' in c and 'uncertainty' in c:
+                # 旧缓存没有这个键 ⇒ 视为 miss（否则新通道在缓存命中时静默消失，实测过）
                 c['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': True}
                 return c
         except (OSError, ValueError):
             pass
     if backend == 'onnx':
         if not detect_model:
-            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'degraded': True,
+            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'degraded': True,
                    'error': 'detect-backend: onnx 需要 --detect-model <path.onnx>'
                             '（或 env YS_DETECT_ONNX）；缺模型 fail-closed，不静默回落到 cv'}
         else:
@@ -1830,8 +1945,13 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             os.makedirs(CACHE_DIR, exist_ok=True)
             tmp = '%s.tmp%d' % (path, os.getpid())
             with open(tmp, 'w', encoding='utf-8') as f:
-                json.dump({k: res[k] for k in ('containers', 'free_text',
-                                               'free_glyphs', 'degraded', 'error')},
+                # ★ 显式拒绝未知键（白名单丢字段已踩第 5 次）：输出字段集必须与白名单**完全一致**
+                _whitelist = ('containers', 'free_text', 'free_glyphs', 'glyph_icons',
+                              'uncertainty', 'degraded', 'error')
+                _missing = [k for k in _whitelist if k not in res]
+                if _missing:
+                    raise KeyError('容器层结果缺字段 %r —— 白名单与产出不一致，拒绝写缓存' % _missing)
+                json.dump({k: res[k] for k in _whitelist},
                           f, ensure_ascii=False)
             os.replace(tmp, path)
         except OSError:
@@ -2402,6 +2522,9 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
             'frame': frame_info,
             'containers': cont['containers'], 'free_text': cont['free_text'],
             'free_glyphs': cont['free_glyphs'],
+            'glyph_icons': cont.get('glyph_icons') or [],
+        'uncertainty': cont.get('uncertainty') or [],
+            'uncertainty': cont.get('uncertainty') or [],
             'degraded': cont['degraded'], 'error': cont['error'],
             'timing': {'load_ms': int((t_load - t0) * 1000),
                        'ocr_ms': int((t_after_ocr - t_load) * 1000),
@@ -2440,6 +2563,8 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
         # 容器层：结构是"这块界面上有哪些容器 + 谁属于谁"
         'containers': cont['containers'], 'free_text': cont['free_text'],
         'free_glyphs': cont['free_glyphs'],
+        'glyph_icons': cont.get('glyph_icons') or [],
+        'uncertainty': cont.get('uncertainty') or [],
         'degraded': cont['degraded'], 'error': cont['error'],
         # ⚠️ pixel_ms 原先算的是 `t_end - t_load`，而 t_load 在 run_ocr **之前** ——
         # 于是 OCR 的耗时被重复计进"像素"里（实测 ocr_source=daemon 时 ocr_ms=0、pixel_ms=1262，

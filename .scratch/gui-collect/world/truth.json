@@ -1,0 +1,428 @@
+{
+ "case": "world",
+ "frame": "w01",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 块裁剪图（grid.py）+ 扫描线独立测量，未用 module 框作先验",
+ "criteria": ".agents/skills/gui-annotation（R1–R10）",
+ "units": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    140,
+    8,
+    200,
+    200
+   ],
+   "kind": "panel",
+   "label": "小地图",
+   "clickable": "no"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    18,
+    128,
+    82,
+    92
+   ],
+   "kind": "icon",
+   "label": "派蒙菜单（左上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    22,
+    232,
+    48,
+    60
+   ],
+   "kind": "icon",
+   "label": "元素视野/任务提示",
+   "clickable": "yes"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    136,
+    126,
+    28,
+    54
+   ],
+   "kind": "icon",
+   "label": "小地图侧挂图标 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    184,
+    136,
+    60,
+    50
+   ],
+   "kind": "icon",
+   "label": "小地图内任务标记",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    302,
+    92,
+    44,
+    48
+   ],
+   "kind": "icon",
+   "label": "小地图右侧图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    52,
+    234,
+    63,
+    68
+   ],
+   "kind": "icon",
+   "label": "左侧竖排图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    345,
+    22,
+    62,
+    62
+   ],
+   "kind": "icon",
+   "label": "元素/天气（上中左）",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    452,
+    20,
+    66,
+    64
+   ],
+   "kind": "icon",
+   "label": "上中右图标",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    556,
+    18,
+    70,
+    66
+   ],
+   "kind": "icon",
+   "label": "活动警示（红点）",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    1772,
+    22,
+    88,
+    82
+   ],
+   "kind": "icon",
+   "label": "时钟/日程（右上）",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    1855,
+    12,
+    36,
+    36
+   ],
+   "kind": "icon",
+   "label": "红点角标",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    1891,
+    26,
+    59,
+    70
+   ],
+   "kind": "icon",
+   "label": "右上图标 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    1996,
+    22,
+    82,
+    80
+   ],
+   "kind": "icon",
+   "label": "右上图标 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    2106,
+    32,
+    64,
+    64
+   ],
+   "kind": "icon",
+   "label": "右上图标 4",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    2160,
+    22,
+    26,
+    26
+   ],
+   "kind": "icon",
+   "label": "右上小指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    2206,
+    11,
+    88,
+    90
+   ],
+   "kind": "icon",
+   "label": "网络/延迟指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    2378,
+    458,
+    74,
+    74
+   ],
+   "kind": "avatar",
+   "label": "队伍头像 1/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    2378,
+    586,
+    74,
+    66
+   ],
+   "kind": "avatar",
+   "label": "队伍头像 2/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    2378,
+    686,
+    74,
+    66
+   ],
+   "kind": "avatar",
+   "label": "队伍头像 3/3",
+   "clickable": "yes"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    2496,
+    470,
+    34,
+    40
+   ],
+   "kind": "row",
+   "label": "队伍编号 1",
+   "clickable": "yes"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    2496,
+    596,
+    34,
+    40
+   ],
+   "kind": "row",
+   "label": "队伍编号 2",
+   "clickable": "yes"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    2496,
+    696,
+    34,
+    40
+   ],
+   "kind": "row",
+   "label": "队伍编号 3",
+   "clickable": "yes"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    2380,
+    1072,
+    72,
+    72
+   ],
+   "kind": "button",
+   "label": "元素战技 Z",
+   "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    1948,
+    1306,
+    64,
+    58
+   ],
+   "kind": "button",
+   "label": "T 键位",
+   "clickable": "yes"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    2196,
+    1306,
+    74,
+    60
+   ],
+   "kind": "button",
+   "label": "E 键位（交互）",
+   "clickable": "yes"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    2388,
+    1306,
+    74,
+    60
+   ],
+   "kind": "button",
+   "label": "Q 键位（爆发）",
+   "clickable": "yes"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    1010,
+    1303,
+    325,
+    20
+   ],
+   "kind": "row",
+   "label": "元素能量/护盾条",
+   "clickable": "yes"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    1030,
+    1322,
+    305,
+    26
+   ],
+   "kind": "row",
+   "label": "生命值条（绿）",
+   "clickable": "yes"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    975,
+    1320,
+    70,
+    30
+   ],
+   "kind": "row",
+   "label": "等级 Lv.80",
+   "clickable": "yes"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    1300,
+    1288,
+    60,
+    24
+   ],
+   "kind": "row",
+   "label": "护盾 0%",
+   "clickable": "yes"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    1170,
+    1325,
+    170,
+    26
+   ],
+   "kind": "row",
+   "label": "生命值数值 13557/38734",
+   "clickable": "yes"
+  }
+ ]
+}

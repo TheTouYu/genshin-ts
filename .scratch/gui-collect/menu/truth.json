@@ -1,0 +1,545 @@
+{
+ "case": "menu",
+ "frame": "m01",
+ "size": [
+  2560,
+  1440
+ ],
+ "annotator": "perception(subagent) · 块裁剪图（grid.py）+ 扫描线独立测量，未用 module 框作先验",
+ "criteria": ".agents/skills/gui-annotation（R1–R10）",
+ "units": [
+  {
+   "id": 0,
+   "parent": null,
+   "bbox": [
+    128,
+    28,
+    888,
+    412
+   ],
+   "kind": "panel",
+   "label": "玩家信息卡",
+   "clickable": "no"
+  },
+  {
+   "id": 1,
+   "parent": null,
+   "bbox": [
+    175,
+    45,
+    180,
+    170
+   ],
+   "kind": "avatar",
+   "label": "角色头像",
+   "clickable": "yes"
+  },
+  {
+   "id": 2,
+   "parent": null,
+   "bbox": [
+    935,
+    58,
+    52,
+    55
+   ],
+   "kind": "button",
+   "label": "改名铅笔",
+   "clickable": "yes"
+  },
+  {
+   "id": 3,
+   "parent": null,
+   "bbox": [
+    415,
+    55,
+    145,
+    50
+   ],
+   "kind": "row",
+   "label": "透雨",
+   "clickable": "yes"
+  },
+  {
+   "id": 4,
+   "parent": null,
+   "bbox": [
+    415,
+    125,
+    120,
+    40
+   ],
+   "kind": "row",
+   "label": "逆风解意",
+   "clickable": "yes"
+  },
+  {
+   "id": 5,
+   "parent": null,
+   "bbox": [
+    415,
+    215,
+    560,
+    45
+   ],
+   "kind": "row",
+   "label": "冒险等阶",
+   "clickable": "yes"
+  },
+  {
+   "id": 6,
+   "parent": null,
+   "bbox": [
+    935,
+    220,
+    40,
+    40
+   ],
+   "kind": "button",
+   "label": "冒险等阶说明",
+   "clickable": "yes"
+  },
+  {
+   "id": 7,
+   "parent": null,
+   "bbox": [
+    415,
+    255,
+    560,
+    40
+   ],
+   "kind": "row",
+   "label": "冒险阅历",
+   "clickable": "yes"
+  },
+  {
+   "id": 8,
+   "parent": null,
+   "bbox": [
+    415,
+    328,
+    560,
+    40
+   ],
+   "kind": "row",
+   "label": "世界等级",
+   "clickable": "yes"
+  },
+  {
+   "id": 9,
+   "parent": null,
+   "bbox": [
+    935,
+    330,
+    40,
+    40
+   ],
+   "kind": "button",
+   "label": "世界等级说明",
+   "clickable": "yes"
+  },
+  {
+   "id": 10,
+   "parent": null,
+   "bbox": [
+    415,
+    380,
+    560,
+    35
+   ],
+   "kind": "row",
+   "label": "生日",
+   "clickable": "yes"
+  },
+  {
+   "id": 11,
+   "parent": null,
+   "bbox": [
+    160,
+    258,
+    250,
+    36
+   ],
+   "kind": "row",
+   "label": "UID 110170759",
+   "clickable": "yes"
+  },
+  {
+   "id": 12,
+   "parent": null,
+   "bbox": [
+    235,
+    305,
+    80,
+    36
+   ],
+   "kind": "button",
+   "label": "复制",
+   "clickable": "yes"
+  },
+  {
+   "id": 13,
+   "parent": null,
+   "bbox": [
+    8,
+    20,
+    118,
+    1390
+   ],
+   "kind": "panel",
+   "label": "左侧图标栏",
+   "clickable": "no"
+  },
+  {
+   "id": 14,
+   "parent": null,
+   "bbox": [
+    30,
+    485,
+    60,
+    55
+   ],
+   "kind": "icon",
+   "label": "相机/截图",
+   "clickable": "yes"
+  },
+  {
+   "id": 15,
+   "parent": null,
+   "bbox": [
+    30,
+    610,
+    60,
+    60
+   ],
+   "kind": "icon",
+   "label": "邮件(红点)",
+   "clickable": "yes"
+  },
+  {
+   "id": 16,
+   "parent": null,
+   "bbox": [
+    30,
+    780,
+    60,
+    50
+   ],
+   "kind": "icon",
+   "label": "活动/礼物",
+   "clickable": "yes"
+  },
+  {
+   "id": 17,
+   "parent": null,
+   "bbox": [
+    30,
+    915,
+    60,
+    45
+   ],
+   "kind": "icon",
+   "label": "指南/罗盘",
+   "clickable": "yes"
+  },
+  {
+   "id": 18,
+   "parent": null,
+   "bbox": [
+    30,
+    1060,
+    60,
+    60
+   ],
+   "kind": "icon",
+   "label": "设置(齿轮)",
+   "clickable": "yes"
+  },
+  {
+   "id": 19,
+   "parent": null,
+   "bbox": [
+    1012,
+    1262,
+    44,
+    96
+   ],
+   "kind": "icon",
+   "label": "▲▼ 滚动指示",
+   "clickable": "yes"
+  },
+  {
+   "id": 20,
+   "parent": null,
+   "bbox": [
+    138,
+    448,
+    872,
+    968
+   ],
+   "kind": "panel",
+   "label": "菜单网格大区",
+   "clickable": "no"
+  },
+  {
+   "id": 21,
+   "parent": null,
+   "bbox": [
+    172,
+    478,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "商城",
+   "clickable": "yes"
+  },
+  {
+   "id": 22,
+   "parent": null,
+   "bbox": [
+    380,
+    478,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "队伍配置",
+   "clickable": "yes"
+  },
+  {
+   "id": 23,
+   "parent": null,
+   "bbox": [
+    588,
+    478,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "好友",
+   "clickable": "yes"
+  },
+  {
+   "id": 24,
+   "parent": null,
+   "bbox": [
+    796,
+    478,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "成就",
+   "clickable": "yes"
+  },
+  {
+   "id": 25,
+   "parent": null,
+   "bbox": [
+    172,
+    666,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "图鉴",
+   "clickable": "yes"
+  },
+  {
+   "id": 26,
+   "parent": null,
+   "bbox": [
+    380,
+    666,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "角色图鉴",
+   "clickable": "yes"
+  },
+  {
+   "id": 27,
+   "parent": null,
+   "bbox": [
+    588,
+    666,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "角色",
+   "clickable": "yes"
+  },
+  {
+   "id": 28,
+   "parent": null,
+   "bbox": [
+    796,
+    666,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "提升指南",
+   "clickable": "yes"
+  },
+  {
+   "id": 29,
+   "parent": null,
+   "bbox": [
+    172,
+    854,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "背包",
+   "clickable": "yes"
+  },
+  {
+   "id": 30,
+   "parent": null,
+   "bbox": [
+    380,
+    854,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "任务",
+   "clickable": "yes"
+  },
+  {
+   "id": 31,
+   "parent": null,
+   "bbox": [
+    588,
+    854,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "地图",
+   "clickable": "yes"
+  },
+  {
+   "id": 32,
+   "parent": null,
+   "bbox": [
+    796,
+    854,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "活动",
+   "clickable": "yes"
+  },
+  {
+   "id": 33,
+   "parent": null,
+   "bbox": [
+    172,
+    1042,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "冒险之证",
+   "clickable": "yes"
+  },
+  {
+   "id": 34,
+   "parent": null,
+   "bbox": [
+    380,
+    1042,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "祈愿",
+   "clickable": "yes"
+  },
+  {
+   "id": 35,
+   "parent": null,
+   "bbox": [
+    588,
+    1042,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "纪行",
+   "clickable": "yes"
+  },
+  {
+   "id": 36,
+   "parent": null,
+   "bbox": [
+    796,
+    1042,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "多人游戏",
+   "clickable": "yes"
+  },
+  {
+   "id": 37,
+   "parent": null,
+   "bbox": [
+    172,
+    1230,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "特典活动",
+   "clickable": "yes"
+  },
+  {
+   "id": 38,
+   "parent": null,
+   "bbox": [
+    380,
+    1230,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "官方社区",
+   "clickable": "yes"
+  },
+  {
+   "id": 39,
+   "parent": null,
+   "bbox": [
+    588,
+    1230,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "版本热点",
+   "clickable": "yes"
+  },
+  {
+   "id": 40,
+   "parent": null,
+   "bbox": [
+    796,
+    1230,
+    176,
+    156
+   ],
+   "kind": "tile",
+   "label": "反馈",
+   "clickable": "yes"
+  }
+ ]
+}

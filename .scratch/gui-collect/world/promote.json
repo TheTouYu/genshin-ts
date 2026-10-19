@@ -1,0 +1,35 @@
+{
+ "case": "world",
+ "clusters_total": 163,
+ "stable_8of8": 10,
+ "sweep": [
+  {
+   "A": "24x24",
+   "promoted": 10,
+   "true_icon": 10,
+   "false": 0,
+   "fp_boxes": []
+  },
+  {
+   "A": "32x32",
+   "promoted": 8,
+   "true_icon": 8,
+   "false": 0,
+   "fp_boxes": []
+  },
+  {
+   "A": "48x48",
+   "promoted": 7,
+   "true_icon": 7,
+   "false": 0,
+   "fp_boxes": []
+  },
+  {
+   "A": "64x64",
+   "promoted": 5,
+   "true_icon": 5,
+   "false": 0,
+   "fp_boxes": []
+  }
+ ]
+}

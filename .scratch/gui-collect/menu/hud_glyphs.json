@@ -1,0 +1,461 @@
+{
+ "case": "menu",
+ "glyph_clusters": 26,
+ "glyph_instances": 133,
+ "containers_per_frame": {
+  "m01": 19,
+  "m02": 19,
+  "m03": 19,
+  "m04": 19,
+  "m05": 19,
+  "m06": 19,
+  "m07": 19,
+  "m08": 19
+ },
+ "containers_total": 152,
+ "size_gate_pass": 1,
+ "rows": [
+  {
+   "box": [
+    936,
+    62,
+    984,
+    108
+   ],
+   "w": 48,
+   "h": 46,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.98,
+   "contrast": 206.0,
+   "flat_frac_in_box": 0.585,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    416,
+    268,
+    456,
+    312
+   ],
+   "w": 40,
+   "h": 44,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "左上（小地图/元素视野/派蒙菜单按钮一带）",
+   "glyph_fill": 0.93,
+   "contrast": 168.5,
+   "flat_frac_in_box": 0.0,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    940,
+    326,
+    980,
+    366
+   ],
+   "w": 40,
+   "h": 40,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.81,
+   "contrast": 133.9,
+   "flat_frac_in_box": 0.513,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    900,
+    332,
+    918,
+    358
+   ],
+   "w": 18,
+   "h": 26,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.72,
+   "contrast": 99.4,
+   "flat_frac_in_box": 0.098,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    926,
+    222,
+    980,
+    262
+   ],
+   "w": 54,
+   "h": 40,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.69,
+   "contrast": 118.0,
+   "flat_frac_in_box": 0.494,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1700,
+    1332,
+    1716,
+    1348
+   ],
+   "w": 16,
+   "h": 16,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.61,
+   "contrast": 95.0,
+   "flat_frac_in_box": 0.012,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1066,
+    1242,
+    1098,
+    1272
+   ],
+   "w": 32,
+   "h": 30,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.52,
+   "contrast": 174.0,
+   "flat_frac_in_box": 0.422,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1066,
+    1320,
+    1098,
+    1350
+   ],
+   "w": 32,
+   "h": 30,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.52,
+   "contrast": 169.0,
+   "flat_frac_in_box": 0.345,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1508,
+    806,
+    1532,
+    836
+   ],
+   "w": 24,
+   "h": 30,
+   "frames_seen": 8,
+   "jitter_px": 3.31,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.51,
+   "contrast": 74.0,
+   "flat_frac_in_box": 0.318,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    996,
+    438,
+    1024,
+    468
+   ],
+   "w": 28,
+   "h": 30,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.44,
+   "contrast": 87.6,
+   "flat_frac_in_box": 0.774,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    224,
+    1252,
+    300,
+    1322
+   ],
+   "w": 76,
+   "h": 70,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.44,
+   "contrast": 167.2,
+   "flat_frac_in_box": 0.458,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    814,
+    166,
+    842,
+    192
+   ],
+   "w": 28,
+   "h": 26,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.36,
+   "contrast": 102.0,
+   "flat_frac_in_box": 0.218,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    872,
+    108,
+    914,
+    154
+   ],
+   "w": 42,
+   "h": 46,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.33,
+   "contrast": 71.0,
+   "flat_frac_in_box": 0.326,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1122,
+    1380,
+    1226,
+    1440
+   ],
+   "w": 104,
+   "h": 60,
+   "frames_seen": 8,
+   "jitter_px": 0.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.27,
+   "contrast": 111.1,
+   "flat_frac_in_box": 0.335,
+   "size_gate": "PASS"
+  },
+  {
+   "box": [
+    1912,
+    12,
+    1928,
+    42
+   ],
+   "w": 16,
+   "h": 30,
+   "frames_seen": 6,
+   "jitter_px": 0.0,
+   "role_guess": "右上（元素/天气/任务追踪一带）",
+   "glyph_fill": 0.38,
+   "contrast": 61.7,
+   "flat_frac_in_box": 0.021,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1960,
+    522,
+    2008,
+    594
+   ],
+   "w": 48,
+   "h": 72,
+   "frames_seen": 3,
+   "jitter_px": 23.67,
+   "role_guess": "右侧（队伍头像列一带）",
+   "glyph_fill": 0.33,
+   "contrast": 218.7,
+   "flat_frac_in_box": 0.51,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1724,
+    708,
+    1755,
+    739
+   ],
+   "w": 31,
+   "h": 31,
+   "frames_seen": 2,
+   "jitter_px": 20.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.52,
+   "contrast": 164.5,
+   "flat_frac_in_box": 0.3,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    130,
+    1288,
+    160,
+    1320
+   ],
+   "w": 30,
+   "h": 32,
+   "frames_seen": 2,
+   "jitter_px": 8.0,
+   "role_guess": "底部（血条/耐力/交互提示一带）",
+   "glyph_fill": 0.66,
+   "contrast": 123.0,
+   "flat_frac_in_box": 0.656,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1720,
+    886,
+    1746,
+    908
+   ],
+   "w": 26,
+   "h": 22,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.75,
+   "contrast": 135.0,
+   "flat_frac_in_box": 0.589,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1920,
+    534,
+    1972,
+    604
+   ],
+   "w": 52,
+   "h": 70,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.3,
+   "contrast": 218.0,
+   "flat_frac_in_box": 0.323,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1426,
+    620,
+    1448,
+    640
+   ],
+   "w": 22,
+   "h": 20,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.82,
+   "contrast": 129.0,
+   "flat_frac_in_box": 0.218,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1768,
+    796,
+    1814,
+    844
+   ],
+   "w": 46,
+   "h": 48,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "右下（技能/冲刺/队伍切换一带）",
+   "glyph_fill": 0.82,
+   "contrast": 138.0,
+   "flat_frac_in_box": 0.201,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1802,
+    282,
+    1866,
+    364
+   ],
+   "w": 64,
+   "h": 82,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.28,
+   "contrast": 219.0,
+   "flat_frac_in_box": 0.436,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1918,
+    560,
+    1970,
+    632
+   ],
+   "w": 52,
+   "h": 72,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.29,
+   "contrast": 219.0,
+   "flat_frac_in_box": 0.3,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1622,
+    780,
+    1640,
+    800
+   ],
+   "w": 18,
+   "h": 20,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "中部/其他",
+   "glyph_fill": 0.74,
+   "contrast": 173.0,
+   "flat_frac_in_box": 0.483,
+   "size_gate": "FAIL(w<80|h<52)"
+  },
+  {
+   "box": [
+    1976,
+    490,
+    2028,
+    562
+   ],
+   "w": 52,
+   "h": 72,
+   "frames_seen": 1,
+   "jitter_px": 0.0,
+   "role_guess": "右侧（队伍头像列一带）",
+   "glyph_fill": 0.31,
+   "contrast": 220.0,
+   "flat_frac_in_box": 0.523,
+   "size_gate": "FAIL(w<80|h<52)"
+  }
+ ]
+}

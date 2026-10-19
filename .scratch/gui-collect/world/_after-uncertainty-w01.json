@@ -1,0 +1,3449 @@
+{
+ "schema": "ys-screen/1",
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-collect/world/frames/w01.png",
+  "sha256": "4544d1a8fbc46df157d227c039a73277636f1c947e69e5510221f38cd9d5ee00",
+  "w": 2560,
+  "h": 1440,
+  "bytes": 3715065
+ },
+ "title": {
+  "text": "奥黛塔",
+  "cx": 2307,
+  "cy": 357,
+  "bbox": [
+   2259,
+   336,
+   2354,
+   378
+  ],
+  "region": null,
+  "why": "上半屏字高最大（42px, score=0.87）"
+ },
+ "text": [
+  {
+   "id": 0,
+   "text": "DXVK",
+   "cx": 35,
+   "cy": 18,
+   "bbox": [
+    2,
+    7,
+    68,
+    29
+   ],
+   "w": 66,
+   "h": 22,
+   "score": 0.9996,
+   "kind": "hud"
+  },
+  {
+   "id": 1,
+   "text": "FPS:",
+   "cx": 29,
+   "cy": 42,
+   "bbox": [
+    3,
+    30,
+    55,
+    54
+   ],
+   "w": 52,
+   "h": 24,
+   "score": 0.9953,
+   "kind": "hud"
+  },
+  {
+   "id": 2,
+   "text": "v3.0",
+   "cx": 87,
+   "cy": 19,
+   "bbox": [
+    59,
+    10,
+    116,
+    28
+   ],
+   "w": 57,
+   "h": 18,
+   "score": 0.9855,
+   "kind": "hud"
+  },
+  {
+   "id": 3,
+   "text": "0",
+   "cx": 2390,
+   "cy": 35,
+   "bbox": [
+    2376,
+    20,
+    2405,
+    50
+   ],
+   "w": 29,
+   "h": 30,
+   "score": 0.9632,
+   "kind": "content"
+  },
+  {
+   "id": 4,
+   "text": "GPU8",
+   "cx": 36,
+   "cy": 66,
+   "bbox": [
+    3,
+    55,
+    68,
+    77
+   ],
+   "w": 65,
+   "h": 22,
+   "score": 0.9966,
+   "kind": "hud"
+  },
+  {
+   "id": 5,
+   "text": "44%",
+   "cx": 87,
+   "cy": 66,
+   "bbox": [
+    67,
+    56,
+    107,
+    75
+   ],
+   "w": 40,
+   "h": 19,
+   "score": 0.831,
+   "kind": "hud"
+  },
+  {
+   "id": 6,
+   "text": "64 ms",
+   "cx": 2481,
+   "cy": 122,
+   "bbox": [
+    2445,
+    110,
+    2518,
+    133
+   ],
+   "w": 73,
+   "h": 23,
+   "score": 0.9736,
+   "kind": "content"
+  },
+  {
+   "id": 7,
+   "text": "奥黛塔",
+   "cx": 2307,
+   "cy": 357,
+   "bbox": [
+    2259,
+    336,
+    2354,
+    378
+   ],
+   "w": 95,
+   "h": 42,
+   "score": 0.8711,
+   "kind": "title"
+  },
+  {
+   "id": 8,
+   "text": "1",
+   "cx": 2495,
+   "cy": 367,
+   "bbox": [
+    2472,
+    348,
+    2518,
+    387
+   ],
+   "w": 46,
+   "h": 39,
+   "score": 0.9501,
+   "kind": "content"
+  },
+  {
+   "id": 9,
+   "text": "阿罗夏",
+   "cx": 2305,
+   "cy": 479,
+   "bbox": [
+    2258,
+    461,
+    2353,
+    497
+   ],
+   "w": 95,
+   "h": 36,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 10,
+   "text": "2",
+   "cx": 2496,
+   "cy": 489,
+   "bbox": [
+    2470,
+    468,
+    2521,
+    510
+   ],
+   "w": 51,
+   "h": 42,
+   "score": 0.9873,
+   "kind": "content"
+  },
+  {
+   "id": 11,
+   "text": "F",
+   "cx": 1490,
+   "cy": 622,
+   "bbox": [
+    1473,
+    604,
+    1508,
+    640
+   ],
+   "w": 35,
+   "h": 36,
+   "score": 0.9993,
+   "kind": "content"
+  },
+  {
+   "id": 12,
+   "text": "进入",
+   "cx": 1667,
+   "cy": 621,
+   "bbox": [
+    1621,
+    595,
+    1712,
+    648
+   ],
+   "w": 91,
+   "h": 53,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 13,
+   "text": "沃雅妮莎",
+   "cx": 2257,
+   "cy": 610,
+   "bbox": [
+    2194,
+    590,
+    2320,
+    630
+   ],
+   "w": 126,
+   "h": 40,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 14,
+   "text": "3",
+   "cx": 2494,
+   "cy": 611,
+   "bbox": [
+    2480,
+    596,
+    2509,
+    626
+   ],
+   "w": 29,
+   "h": 30,
+   "score": 1.0,
+   "kind": "content"
+  },
+  {
+   "id": 15,
+   "text": "称赞",
+   "cx": 1668,
+   "cy": 716,
+   "bbox": [
+    1621,
+    690,
+    1714,
+    743
+   ],
+   "w": 93,
+   "h": 53,
+   "score": 0.9999,
+   "kind": "content"
+  },
+  {
+   "id": 16,
+   "text": "透雨",
+   "cx": 2320,
+   "cy": 722,
+   "bbox": [
+    2287,
+    703,
+    2353,
+    741
+   ],
+   "w": 66,
+   "h": 38,
+   "score": 0.9998,
+   "kind": "content"
+  },
+  {
+   "id": 17,
+   "text": "4",
+   "cx": 2496,
+   "cy": 732,
+   "bbox": [
+    2472,
+    711,
+    2520,
+    754
+   ],
+   "w": 48,
+   "h": 43,
+   "score": 0.9614,
+   "kind": "content"
+  },
+  {
+   "id": 18,
+   "text": "荒坠的圣迹",
+   "cx": 1726,
+   "cy": 812,
+   "bbox": [
+    1625,
+    788,
+    1827,
+    837
+   ],
+   "w": 202,
+   "h": 49,
+   "score": 0.9977,
+   "kind": "content"
+  },
+  {
+   "id": 19,
+   "text": "Z",
+   "cx": 2425,
+   "cy": 1170,
+   "bbox": [
+    2400,
+    1148,
+    2450,
+    1191
+   ],
+   "w": 50,
+   "h": 43,
+   "score": 0.9834,
+   "kind": "content"
+  },
+  {
+   "id": 20,
+   "text": "min:",
+   "cx": 29,
+   "cy": 1308,
+   "bbox": [
+    9,
+    1301,
+    49,
+    1315
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9883,
+   "kind": "hud"
+  },
+  {
+   "id": 21,
+   "text": "9.6",
+   "cx": 72,
+   "cy": 1308,
+   "bbox": [
+    54,
+    1301,
+    90,
+    1315
+   ],
+   "w": 36,
+   "h": 14,
+   "score": 0.9988,
+   "kind": "hud"
+  },
+  {
+   "id": 22,
+   "text": "ns",
+   "cx": 101,
+   "cy": 1309,
+   "bbox": [
+    89,
+    1302,
+    114,
+    1316
+   ],
+   "w": 25,
+   "h": 14,
+   "score": 0.8464,
+   "kind": "hud"
+  },
+  {
+   "id": 23,
+   "text": "max",
+   "cx": 178,
+   "cy": 1309,
+   "bbox": [
+    158,
+    1302,
+    198,
+    1316
+   ],
+   "w": 40,
+   "h": 14,
+   "score": 0.9912,
+   "kind": "hud"
+  },
+  {
+   "id": 24,
+   "text": "166.0",
+   "cx": 232,
+   "cy": 1308,
+   "bbox": [
+    205,
+    1301,
+    259,
+    1316
+   ],
+   "w": 54,
+   "h": 15,
+   "score": 0.9962,
+   "kind": "hud"
+  },
+  {
+   "id": 25,
+   "text": "ms",
+   "cx": 270,
+   "cy": 1308,
+   "bbox": [
+    260,
+    1303,
+    281,
+    1314
+   ],
+   "w": 21,
+   "h": 11,
+   "score": 0.9386,
+   "kind": "hud"
+  },
+  {
+   "id": 26,
+   "text": "0%",
+   "cx": 1280,
+   "cy": 1323,
+   "bbox": [
+    1260,
+    1311,
+    1299,
+    1335
+   ],
+   "w": 39,
+   "h": 24,
+   "score": 0.999,
+   "kind": "content"
+  },
+  {
+   "id": 27,
+   "text": "Lv.80",
+   "cx": 1030,
+   "cy": 1348,
+   "bbox": [
+    997,
+    1334,
+    1064,
+    1361
+   ],
+   "w": 67,
+   "h": 27,
+   "score": 0.9997,
+   "kind": "content"
+  },
+  {
+   "id": 28,
+   "text": "13557/38734",
+   "cx": 1279,
+   "cy": 1347,
+   "bbox": [
+    1197,
+    1334,
+    1362,
+    1360
+   ],
+   "w": 165,
+   "h": 26,
+   "score": 0.9989,
+   "kind": "content"
+  },
+  {
+   "id": 29,
+   "text": "Enter",
+   "cx": 160,
+   "cy": 1382,
+   "bbox": [
+    116,
+    1366,
+    205,
+    1398
+   ],
+   "w": 89,
+   "h": 32,
+   "score": 0.9986,
+   "kind": "content"
+  },
+  {
+   "id": 30,
+   "text": "0",
+   "cx": 1999,
+   "cy": 1385,
+   "bbox": [
+    1974,
+    1364,
+    2024,
+    1406
+   ],
+   "w": 50,
+   "h": 42,
+   "score": 0.9295,
+   "kind": "content"
+  },
+  {
+   "id": 31,
+   "text": "E",
+   "cx": 2267,
+   "cy": 1385,
+   "bbox": [
+    2246,
+    1366,
+    2289,
+    1405
+   ],
+   "w": 43,
+   "h": 39,
+   "score": 0.704,
+   "kind": "content"
+  },
+  {
+   "id": 32,
+   "text": "Q",
+   "cx": 2426,
+   "cy": 1386,
+   "bbox": [
+    2407,
+    1369,
+    2445,
+    1404
+   ],
+   "w": 38,
+   "h": 35,
+   "score": 0.9987,
+   "kind": "content"
+  },
+  {
+   "id": 33,
+   "text": "UID:110170759",
+   "cx": 2371,
+   "cy": 1418,
+   "bbox": [
+    2258,
+    1401,
+    2485,
+    1436
+   ],
+   "w": 227,
+   "h": 35,
+   "score": 0.9996,
+   "kind": "content"
+  }
+ ],
+ "controls": [
+  {
+   "bbox": [
+    2486,
+    76,
+    2526,
+    108
+   ],
+   "cx": 2506,
+   "cy": 92,
+   "w": 40,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.65,
+    "aspect": 1.25,
+    "corner_fill": 0.16,
+    "area": 832,
+    "src": "contrast"
+   },
+   "id": "c0"
+  },
+  {
+   "bbox": [
+    2510,
+    302,
+    2528,
+    326
+   ],
+   "cx": 2519,
+   "cy": 314,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.824,
+    "aspect": 0.75,
+    "corner_fill": 0.19,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c1"
+  },
+  {
+   "bbox": [
+    1620,
+    352,
+    1662,
+    388
+   ],
+   "cx": 1641,
+   "cy": 370,
+   "w": 42,
+   "h": 36,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.582,
+    "aspect": 1.17,
+    "corner_fill": 0.02,
+    "area": 880,
+    "src": "contrast"
+   },
+   "id": "c2"
+  },
+  {
+   "bbox": [
+    1426,
+    370,
+    1456,
+    404
+   ],
+   "cx": 1441,
+   "cy": 387,
+   "w": 30,
+   "h": 34,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.722,
+    "aspect": 0.88,
+    "corner_fill": 0.17,
+    "area": 736,
+    "src": "contrast"
+   },
+   "id": "c3"
+  },
+  {
+   "bbox": [
+    2038,
+    416,
+    2064,
+    434
+   ],
+   "cx": 2051,
+   "cy": 425,
+   "w": 26,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.761,
+    "aspect": 1.44,
+    "corner_fill": 0.12,
+    "area": 356,
+    "src": "contrast"
+   },
+   "id": "c4"
+  },
+  {
+   "bbox": [
+    1264,
+    750,
+    1286,
+    780
+   ],
+   "cx": 1275,
+   "cy": 765,
+   "w": 22,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.685,
+    "aspect": 0.73,
+    "corner_fill": 0.11,
+    "area": 452,
+    "src": "contrast"
+   },
+   "id": "c5"
+  },
+  {
+   "bbox": [
+    1080,
+    1020,
+    1122,
+    1060
+   ],
+   "cx": 1101,
+   "cy": 1040,
+   "w": 42,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.633,
+    "aspect": 1.05,
+    "corner_fill": 0.14,
+    "area": 1064,
+    "src": "contrast"
+   },
+   "id": "c6"
+  },
+  {
+   "bbox": [
+    1630,
+    1102,
+    1652,
+    1120
+   ],
+   "cx": 1641,
+   "cy": 1111,
+   "w": 22,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.95,
+   "label": null,
+   "evidence": {
+    "fill": 0.788,
+    "aspect": 1.22,
+    "corner_fill": 0.19,
+    "area": 312,
+    "src": "contrast"
+   },
+   "id": "c7"
+  },
+  {
+   "bbox": [
+    1574,
+    610,
+    1598,
+    634
+   ],
+   "cx": 1586,
+   "cy": 622,
+   "w": 24,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.949,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 576,
+    "src": "ring",
+    "ring_r_px": 10,
+    "cov": 1.0,
+    "contrast": 19.9,
+    "ring_L": 155.0,
+    "inside_L": 51.2,
+    "outside_L": 218.9
+   },
+   "id": "c8"
+  },
+  {
+   "bbox": [
+    346,
+    36,
+    390,
+    80
+   ],
+   "cx": 368,
+   "cy": 58,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 0.986,
+    "contrast": 66.6,
+    "ring_L": 211.5,
+    "inside_L": 160.4,
+    "outside_L": 129.3
+   },
+   "id": "c9"
+  },
+  {
+   "bbox": [
+    466,
+    42,
+    494,
+    70
+   ],
+   "cx": 480,
+   "cy": 56,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 0.986,
+    "contrast": 29.9,
+    "ring_L": 236.2,
+    "inside_L": 190.5,
+    "outside_L": 222.2
+   },
+   "id": "c10"
+  },
+  {
+   "bbox": [
+    18,
+    144,
+    58,
+    184
+   ],
+   "cx": 38,
+   "cy": 164,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.947,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.986,
+    "contrast": 22.7,
+    "ring_L": 171.3,
+    "inside_L": 234.7,
+    "outside_L": 153.2
+   },
+   "id": "c11"
+  },
+  {
+   "bbox": [
+    2176,
+    120,
+    2218,
+    168
+   ],
+   "cx": 2197,
+   "cy": 144,
+   "w": 42,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.946,
+   "label": null,
+   "evidence": {
+    "fill": 0.706,
+    "aspect": 0.88,
+    "corner_fill": 0.21,
+    "area": 1424,
+    "src": "contrast"
+   },
+   "id": "c12"
+  },
+  {
+   "bbox": [
+    1086,
+    776,
+    1118,
+    822
+   ],
+   "cx": 1102,
+   "cy": 799,
+   "w": 32,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.945,
+   "label": null,
+   "evidence": {
+    "fill": 0.603,
+    "aspect": 0.7,
+    "corner_fill": 0.17,
+    "area": 888,
+    "src": "contrast"
+   },
+   "id": "c13"
+  },
+  {
+   "bbox": [
+    1214,
+    878,
+    1260,
+    918
+   ],
+   "cx": 1237,
+   "cy": 898,
+   "w": 46,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.944,
+   "label": null,
+   "evidence": {
+    "fill": 0.543,
+    "aspect": 1.15,
+    "corner_fill": 0.15,
+    "area": 1000,
+    "src": "contrast"
+   },
+   "id": "c14"
+  },
+  {
+   "bbox": [
+    2372,
+    312,
+    2444,
+    410
+   ],
+   "cx": 2408,
+   "cy": 361,
+   "w": 72,
+   "h": 98,
+   "shape": "circle",
+   "confidence": 0.943,
+   "label": null,
+   "evidence": {
+    "fill": 0.714,
+    "aspect": 0.73,
+    "corner_fill": 0.22,
+    "area": 5036,
+    "src": "contrast"
+   },
+   "id": "c15"
+  },
+  {
+   "bbox": [
+    2396,
+    530,
+    2424,
+    550
+   ],
+   "cx": 2410,
+   "cy": 540,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": 0.629,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 352,
+    "src": "contrast"
+   },
+   "id": "c16"
+  },
+  {
+   "bbox": [
+    1904,
+    52,
+    1932,
+    80
+   ],
+   "cx": 1918,
+   "cy": 66,
+   "w": 28,
+   "h": 28,
+   "shape": "circle",
+   "confidence": 0.942,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 784,
+    "src": "ring",
+    "ring_r_px": 12,
+    "cov": 1.0,
+    "contrast": 19.2,
+    "ring_L": 214.1,
+    "inside_L": 222.7,
+    "outside_L": 167.1
+   },
+   "id": "c17"
+  },
+  {
+   "bbox": [
+    2016,
+    356,
+    2034,
+    380
+   ],
+   "cx": 2025,
+   "cy": 368,
+   "w": 18,
+   "h": 24,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.62,
+    "aspect": 0.75,
+    "corner_fill": 0.19,
+    "area": 268,
+    "src": "contrast"
+   },
+   "id": "c18"
+  },
+  {
+   "bbox": [
+    1016,
+    1304,
+    1050,
+    1336
+   ],
+   "cx": 1033,
+   "cy": 1320,
+   "w": 34,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.695,
+    "aspect": 1.06,
+    "corner_fill": 0.22,
+    "area": 756,
+    "src": "contrast"
+   },
+   "id": "c19"
+  },
+  {
+   "bbox": [
+    1414,
+    472,
+    1442,
+    492
+   ],
+   "cx": 1428,
+   "cy": 482,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.94,
+   "label": null,
+   "evidence": {
+    "fill": 0.464,
+    "aspect": 1.4,
+    "corner_fill": 0.12,
+    "area": 260,
+    "src": "flat"
+   },
+   "id": "c20"
+  },
+  {
+   "bbox": [
+    1366,
+    636,
+    1400,
+    662
+   ],
+   "cx": 1383,
+   "cy": 649,
+   "w": 34,
+   "h": 26,
+   "shape": "circle",
+   "confidence": 0.939,
+   "label": null,
+   "evidence": {
+    "fill": 0.421,
+    "aspect": 1.31,
+    "corner_fill": 0.11,
+    "area": 372,
+    "src": "flat"
+   },
+   "id": "c21"
+  },
+  {
+   "bbox": [
+    44,
+    64,
+    84,
+    104
+   ],
+   "cx": 64,
+   "cy": 84,
+   "w": 40,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.931,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1600,
+    "src": "ring",
+    "ring_r_px": 18,
+    "cov": 0.903,
+    "contrast": 33.0,
+    "ring_L": 157.6,
+    "inside_L": 238.5,
+    "outside_L": 142.7
+   },
+   "id": "c22"
+  },
+  {
+   "bbox": [
+    2318,
+    600,
+    2336,
+    620
+   ],
+   "cx": 2327,
+   "cy": 610,
+   "w": 18,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.927,
+   "label": null,
+   "evidence": {
+    "fill": 0.867,
+    "aspect": 0.9,
+    "corner_fill": 0.31,
+    "area": 312,
+    "src": "contrast"
+   },
+   "id": "c23"
+  },
+  {
+   "bbox": [
+    1442,
+    416,
+    1462,
+    434
+   ],
+   "cx": 1452,
+   "cy": 425,
+   "w": 20,
+   "h": 18,
+   "shape": "circle",
+   "confidence": 0.92,
+   "label": null,
+   "evidence": {
+    "fill": 0.833,
+    "aspect": 1.11,
+    "corner_fill": 0.31,
+    "area": 300,
+    "src": "contrast"
+   },
+   "id": "c24"
+  },
+  {
+   "bbox": [
+    1400,
+    0,
+    1416,
+    54
+   ],
+   "cx": 1408,
+   "cy": 27,
+   "w": 16,
+   "h": 54,
+   "shape": "rect",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.931,
+    "aspect": 0.3,
+    "corner_fill": 0.38,
+    "area": 804,
+    "src": "contrast"
+   },
+   "id": "c25"
+  },
+  {
+   "bbox": [
+    1148,
+    1226,
+    1176,
+    1258
+   ],
+   "cx": 1162,
+   "cy": 1242,
+   "w": 28,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.919,
+   "label": null,
+   "evidence": {
+    "fill": 0.629,
+    "aspect": 0.88,
+    "corner_fill": 0.23,
+    "area": 564,
+    "src": "contrast"
+   },
+   "id": "c26"
+  },
+  {
+   "bbox": [
+    1618,
+    212,
+    1652,
+    242
+   ],
+   "cx": 1635,
+   "cy": 227,
+   "w": 34,
+   "h": 30,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.667,
+    "aspect": 1.13,
+    "corner_fill": 0.25,
+    "area": 680,
+    "src": "contrast"
+   },
+   "id": "c27"
+  },
+  {
+   "bbox": [
+    1354,
+    548,
+    1386,
+    586
+   ],
+   "cx": 1370,
+   "cy": 567,
+   "w": 32,
+   "h": 38,
+   "shape": "circle",
+   "confidence": 0.918,
+   "label": null,
+   "evidence": {
+    "fill": 0.625,
+    "aspect": 0.84,
+    "corner_fill": 0.23,
+    "area": 760,
+    "src": "contrast"
+   },
+   "id": "c28"
+  },
+  {
+   "bbox": [
+    1614,
+    416,
+    1640,
+    448
+   ],
+   "cx": 1627,
+   "cy": 432,
+   "w": 26,
+   "h": 32,
+   "shape": "circle",
+   "confidence": 0.917,
+   "label": null,
+   "evidence": {
+    "fill": 0.87,
+    "aspect": 0.81,
+    "corner_fill": 0.33,
+    "area": 724,
+    "src": "contrast"
+   },
+   "id": "c29"
+  },
+  {
+   "bbox": [
+    1092,
+    588,
+    1108,
+    610
+   ],
+   "cx": 1100,
+   "cy": 599,
+   "w": 16,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": 0.807,
+    "aspect": 0.73,
+    "corner_fill": 0.31,
+    "area": 284,
+    "src": "contrast"
+   },
+   "id": "c30"
+  },
+  {
+   "bbox": [
+    1918,
+    902,
+    1946,
+    922
+   ],
+   "cx": 1932,
+   "cy": 912,
+   "w": 28,
+   "h": 20,
+   "shape": "circle",
+   "confidence": 0.915,
+   "label": null,
+   "evidence": {
+    "fill": 0.493,
+    "aspect": 1.4,
+    "corner_fill": 0.19,
+    "area": 276,
+    "src": "flat"
+   },
+   "id": "c31"
+  },
+  {
+   "bbox": [
+    2448,
+    354,
+    2472,
+    376
+   ],
+   "cx": 2460,
+   "cy": 365,
+   "w": 24,
+   "h": 22,
+   "shape": "circle",
+   "confidence": 0.914,
+   "label": null,
+   "evidence": {
+    "fill": 0.508,
+    "aspect": 1.09,
+    "corner_fill": 0.19,
+    "area": 268,
+    "src": "flat"
+   },
+   "id": "c32"
+  },
+  {
+   "bbox": [
+    1236,
+    752,
+    1316,
+    852
+   ],
+   "cx": 1276,
+   "cy": 802,
+   "w": 80,
+   "h": 100,
+   "shape": "circle",
+   "confidence": 0.912,
+   "label": null,
+   "evidence": {
+    "fill": 0.425,
+    "aspect": 0.8,
+    "corner_fill": 0.16,
+    "area": 3400,
+    "src": "contrast"
+   },
+   "id": "c33"
+  },
+  {
+   "bbox": [
+    1466,
+    452,
+    1516,
+    500
+   ],
+   "cx": 1491,
+   "cy": 476,
+   "w": 50,
+   "h": 48,
+   "shape": "circle",
+   "confidence": 0.91,
+   "label": null,
+   "evidence": {
+    "fill": 0.658,
+    "aspect": 1.04,
+    "corner_fill": 0.26,
+    "area": 1580,
+    "src": "contrast"
+   },
+   "id": "c34"
+  },
+  {
+   "bbox": [
+    1084,
+    1102,
+    1124,
+    1156
+   ],
+   "cx": 1104,
+   "cy": 1129,
+   "w": 40,
+   "h": 54,
+   "shape": "circle",
+   "confidence": 0.91,
+   "label": null,
+   "evidence": {
+    "fill": 0.602,
+    "aspect": 0.74,
+    "corner_fill": 0.24,
+    "area": 1300,
+    "src": "contrast"
+   },
+   "id": "c35"
+  },
+  {
+   "bbox": [
+    1218,
+    544,
+    1268,
+    590
+   ],
+   "cx": 1243,
+   "cy": 567,
+   "w": 50,
+   "h": 46,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": 0.563,
+    "aspect": 1.09,
+    "corner_fill": 0.23,
+    "area": 1296,
+    "src": "contrast"
+   },
+   "id": "c36"
+  },
+  {
+   "bbox": [
+    1562,
+    790,
+    1606,
+    834
+   ],
+   "cx": 1584,
+   "cy": 812,
+   "w": 44,
+   "h": 44,
+   "shape": "circle",
+   "confidence": 0.908,
+   "label": null,
+   "evidence": {
+    "fill": null,
+    "aspect": 1.0,
+    "corner_fill": null,
+    "area": 1936,
+    "src": "ring",
+    "ring_r_px": 20,
+    "cov": 1.0,
+    "contrast": 15.8,
+    "ring_L": 153.8,
+    "inside_L": 218.4,
+    "outside_L": 57.6
+   },
+   "id": "c37"
+  },
+  {
+   "bbox": [
+    2256,
+    234,
+    2286,
+    274
+   ],
+   "cx": 2271,
+   "cy": 254,
+   "w": 30,
+   "h": 40,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.683,
+    "aspect": 0.75,
+    "corner_fill": 0.28,
+    "area": 820,
+    "src": "contrast"
+   },
+   "id": "c38"
+  },
+  {
+   "bbox": [
+    1412,
+    0,
+    1554,
+    114
+   ],
+   "cx": 1483,
+   "cy": 57,
+   "w": 142,
+   "h": 114,
+   "shape": "circle",
+   "confidence": 0.906,
+   "label": null,
+   "evidence": {
+    "fill": 0.469,
+    "aspect": 1.25,
+    "corner_fill": 0.2,
+    "area": 7600,
+    "src": "flat"
+   },
+   "id": "c39"
+  }
+ ],
+ "regions": [],
+ "structure": [
+  {
+   "bbox": [
+    997,
+    595,
+    1827,
+    1361
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 13,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 4,
+   "row_y": [
+    621,
+    716,
+    812,
+    1339
+   ],
+   "rows": [
+    {
+     "y": 621,
+     "texts": [
+      "进入",
+      "F"
+     ]
+    },
+    {
+     "y": 716,
+     "texts": [
+      "称赞"
+     ]
+    },
+    {
+     "y": 812,
+     "texts": [
+      "荒坠的圣迹"
+     ]
+    },
+    {
+     "y": 1339,
+     "texts": [
+      "0%",
+      "13557/38734",
+      "Lv.80"
+     ]
+    }
+   ]
+  },
+  {
+   "bbox": [
+    1974,
+    336,
+    2521,
+    1406
+   ],
+   "scroll_hint": {
+    "key_tokens": [],
+    "last_row_to_edge": 21,
+    "scrollable": "unknown",
+    "note": "单帧无法判定；要真值请跑 ys-scroll-scan --check"
+   },
+   "n_rows": 6,
+   "row_y": [
+    362,
+    484,
+    610,
+    727,
+    1170,
+    1385
+   ],
+   "rows": [
+    {
+     "y": 362,
+     "texts": [
+      "奥黛塔",
+      "1"
+     ]
+    },
+    {
+     "y": 484,
+     "texts": [
+      "阿罗夏",
+      "2"
+     ]
+    },
+    {
+     "y": 610,
+     "texts": [
+      "沃雅妮莎",
+      "3"
+     ]
+    },
+    {
+     "y": 727,
+     "texts": [
+      "透雨",
+      "4"
+     ]
+    },
+    {
+     "y": 1170,
+     "texts": [
+      "Z"
+     ]
+    },
+    {
+     "y": 1385,
+     "texts": [
+      "0"
+     ]
+    }
+   ]
+  }
+ ],
+ "adjacency": [
+  {
+   "text": "奥黛塔",
+   "text_id": 7,
+   "target": "circle@(2408,361)",
+   "target_id": "c15",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 18,
+   "dx": 102,
+   "dy": 4,
+   "confidence": 0.685
+  },
+  {
+   "text": "奥黛塔",
+   "text_id": 7,
+   "target": "circle@(2460,365)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 94,
+   "dx": 154,
+   "dy": 8,
+   "confidence": 0.622
+  },
+  {
+   "text": "奥黛塔",
+   "text_id": 7,
+   "target": "circle@(2025,368)",
+   "target_id": "c18",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "title",
+   "rank": 2,
+   "dir": "left",
+   "gap_px": 225,
+   "dx": -282,
+   "dy": 11,
+   "confidence": 0.513
+  },
+  {
+   "text": "沃雅妮莎",
+   "text_id": 13,
+   "target": "circle@(2327,610)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 70,
+   "dy": 0,
+   "confidence": 0.55
+  },
+  {
+   "text": "Lv.80",
+   "text_id": 27,
+   "target": "circle@(1033,1320)",
+   "target_id": "c19",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": 2,
+   "dy": -28,
+   "confidence": 0.55
+  },
+  {
+   "text": "64 ms",
+   "text_id": 6,
+   "target": "circle@(2506,92)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 2,
+   "dx": 24,
+   "dy": -30,
+   "confidence": 0.548
+  },
+  {
+   "text": "进入",
+   "text_id": 12,
+   "target": "circle@(1586,622)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 23,
+   "dx": -80,
+   "dy": 0,
+   "confidence": 0.531
+  },
+  {
+   "text": "阿罗夏",
+   "text_id": 9,
+   "target": "circle@(2410,540)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 43,
+   "dx": 104,
+   "dy": 61,
+   "confidence": 0.514
+  },
+  {
+   "text": "2",
+   "text_id": 10,
+   "target": "circle@(2410,540)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 46,
+   "dx": -86,
+   "dy": 51,
+   "confidence": 0.512
+  },
+  {
+   "text": "称赞",
+   "text_id": 15,
+   "target": "circle@(1584,812)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 47,
+   "dx": -84,
+   "dy": 96,
+   "confidence": 0.511
+  },
+  {
+   "text": "F",
+   "text_id": 11,
+   "target": "circle@(1383,649)",
+   "target_id": "c21",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 73,
+   "dx": -108,
+   "dy": 27,
+   "confidence": 0.489
+  },
+  {
+   "text": "13557/38734",
+   "text_id": 28,
+   "target": "circle@(1162,1242)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 76,
+   "dx": -118,
+   "dy": -105,
+   "confidence": 0.487
+  },
+  {
+   "text": "0",
+   "text_id": 3,
+   "target": "circle@(2506,92)",
+   "target_id": "c0",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 81,
+   "dx": 116,
+   "dy": 57,
+   "confidence": 0.483
+  },
+  {
+   "text": "透雨",
+   "text_id": 16,
+   "target": "circle@(2327,610)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "above",
+   "gap_px": 83,
+   "dx": 7,
+   "dy": -112,
+   "confidence": 0.481
+  },
+  {
+   "text": "0%",
+   "text_id": 26,
+   "target": "circle@(1162,1242)",
+   "target_id": "c26",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 84,
+   "dx": -118,
+   "dy": -81,
+   "confidence": 0.48
+  },
+  {
+   "text": "荒坠的圣迹",
+   "text_id": 18,
+   "target": "circle@(1932,912)",
+   "target_id": "c31",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "right",
+   "gap_px": 91,
+   "dx": 206,
+   "dy": 100,
+   "confidence": 0.474
+  },
+  {
+   "text": "4",
+   "text_id": 17,
+   "target": "circle@(2327,610)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 136,
+   "dx": -169,
+   "dy": -122,
+   "confidence": 0.437
+  },
+  {
+   "text": "1",
+   "text_id": 8,
+   "target": "circle@(2410,540)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "below",
+   "gap_px": 143,
+   "dx": -85,
+   "dy": 172,
+   "confidence": 0.431
+  },
+  {
+   "text": "3",
+   "text_id": 14,
+   "target": "circle@(2327,610)",
+   "target_id": "c23",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 0,
+   "dir": "left",
+   "gap_px": 144,
+   "dx": -168,
+   "dy": -1,
+   "confidence": 0.43
+  },
+  {
+   "text": "1",
+   "text_id": 8,
+   "target": "circle@(2460,365)",
+   "target_id": "c32",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "overlap",
+   "gap_px": 0,
+   "dx": -35,
+   "dy": -2,
+   "confidence": 0.55
+  },
+  {
+   "text": "荒坠的圣迹",
+   "text_id": 18,
+   "target": "circle@(1584,812)",
+   "target_id": "c37",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 19,
+   "dx": -142,
+   "dy": 0,
+   "confidence": 0.534
+  },
+  {
+   "text": "称赞",
+   "text_id": 15,
+   "target": "circle@(1586,622)",
+   "target_id": "c8",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "above",
+   "gap_px": 56,
+   "dx": -82,
+   "dy": -94,
+   "confidence": 0.503
+  },
+  {
+   "text": "3",
+   "text_id": 14,
+   "target": "circle@(2410,540)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "left",
+   "gap_px": 56,
+   "dx": -84,
+   "dy": -71,
+   "confidence": 0.503
+  },
+  {
+   "text": "沃雅妮莎",
+   "text_id": 13,
+   "target": "circle@(2410,540)",
+   "target_id": "c16",
+   "target_kind": "icon",
+   "label": null,
+   "anchor_kind": "content",
+   "rank": 1,
+   "dir": "right",
+   "gap_px": 76,
+   "dx": 153,
+   "dy": -70,
+   "confidence": 0.487
+  }
+ ],
+ "occlusion": [
+  {
+   "bbox": [
+    0,
+    4,
+    119,
+    80
+   ],
+   "confidence": 0.62,
+   "label": "hud-overlay",
+   "why": "左上角小字叠加层：小字 5 框，非纯黑 L=175",
+   "evidence": {
+    "texts": [
+     "DXVK",
+     "FPS:",
+     "v3.0",
+     "GPU8",
+     "44%"
+    ],
+    "text_ids": [
+     0,
+     1,
+     2,
+     4,
+     5
+    ],
+    "n_texts": 5,
+    "corner": "左上",
+    "corner_dist_px": 7,
+    "bg_mean": 175.2,
+    "bg_std": 64.8,
+    "ring_mean": 145.6,
+    "ring_std": 55.2,
+    "texture_ratio": 1.17,
+    "bg_rgb": [
+     183,
+     171,
+     170
+    ]
+   }
+  },
+  {
+   "bbox": [
+    6,
+    1298,
+    117,
+    1319
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 3 框，非纯黑 L=112",
+   "evidence": {
+    "texts": [
+     "min:",
+     "9.6",
+     "ns"
+    ],
+    "text_ids": [
+     20,
+     21,
+     22
+    ],
+    "n_texts": 3,
+    "corner": "左下",
+    "corner_dist_px": 124,
+    "bg_mean": 111.5,
+    "bg_std": 29.7,
+    "ring_mean": 91.8,
+    "ring_std": 25.4,
+    "texture_ratio": 1.17,
+    "bg_rgb": [
+     80,
+     107,
+     146
+    ]
+   }
+  },
+  {
+   "bbox": [
+    155,
+    1298,
+    284,
+    1319
+   ],
+   "confidence": 0.57,
+   "label": "hud-overlay",
+   "why": "左下角小字叠加层：小字 3 框，非纯黑 L=111",
+   "evidence": {
+    "texts": [
+     "max",
+     "166.0",
+     "ms"
+    ],
+    "text_ids": [
+     23,
+     24,
+     25
+    ],
+    "n_texts": 3,
+    "corner": "左下",
+    "corner_dist_px": 201,
+    "bg_mean": 111.5,
+    "bg_std": 33.0,
+    "ring_mean": 90.4,
+    "ring_std": 24.2,
+    "texture_ratio": 1.36,
+    "bg_rgb": [
+     82,
+     107,
+     144
+    ]
+   }
+  }
+ ],
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    0,
+    874,
+    1116,
+    1440
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     119.0,
+     127.0,
+     98.0
+    ],
+    "fill": 0.45,
+    "rect": 0.63
+   },
+   "text": [
+    "min:",
+    "9.6",
+    "ns",
+    "max",
+    "166.0",
+    "ms",
+    "Lv.80",
+    "Enter"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      8,
+      1362,
+      112,
+      1404
+     ],
+     "role": "icon",
+     "fill": 0.6,
+     "contrast": 137.0
+    },
+    {
+     "bbox": [
+      748,
+      844,
+      782,
+      964
+     ],
+     "role": "icon",
+     "fill": 0.54,
+     "contrast": 96.0
+    },
+    {
+     "bbox": [
+      8,
+      1320,
+      30,
+      1350
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 69.0
+    },
+    {
+     "bbox": [
+      1094,
+      1058,
+      1118,
+      1104
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 103.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:8",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "left",
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 1)",
+    "area_px": 400456,
+    "area_frac": 0.1713,
+    "aspect": 1.97,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 8,
+    "text_ui": 1,
+    "skin_lab": [
+     119.0,
+     127.0,
+     98.0
+    ],
+    "flat_fill": 0.45,
+    "rect": 0.63
+   }
+  },
+  {
+   "id": "c1",
+   "parent": null,
+   "bbox": [
+    2434,
+    588,
+    2560,
+    840
+   ],
+   "kind": "unknown",
+   "skin": {
+    "lab": [
+     135.0,
+     124.0,
+     103.0
+    ],
+    "fill": 0.35,
+    "rect": 0.67
+   },
+   "text": [
+    "3",
+    "4"
+   ],
+   "glyphs": [],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:2",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [
+     "right"
+    ],
+    "cut_by": "screen",
+    "px": 0
+   },
+   "confidence": 0.63,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 2)",
+    "area_px": 21392,
+    "area_frac": 0.0086,
+    "aspect": 0.5,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 2,
+    "text_ui": 2,
+    "skin_lab": [
+     135.0,
+     124.0,
+     103.0
+    ],
+    "flat_fill": 0.35,
+    "rect": 0.67
+   }
+  }
+ ],
+ "free_text": [
+  "DXVK",
+  "FPS:",
+  "v3.0",
+  "0",
+  "GPU8",
+  "44%",
+  "64 ms",
+  "奥黛塔",
+  "1",
+  "阿罗夏",
+  "2",
+  "F",
+  "进入",
+  "沃雅妮莎",
+  "称赞",
+  "透雨",
+  "荒坠的圣迹",
+  "Z",
+  "0%",
+  "13557/38734",
+  "0",
+  "E",
+  "Q",
+  "UID:110170759"
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    1618,
+    422,
+    1634,
+    442
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 146.0
+  },
+  {
+   "bbox": [
+    2160,
+    22,
+    2186,
+    48
+   ],
+   "role": "icon",
+   "fill": 0.83,
+   "contrast": 172.0
+  },
+  {
+   "bbox": [
+    454,
+    30,
+    510,
+    86
+   ],
+   "role": "icon",
+   "fill": 0.78,
+   "contrast": 161.0
+  },
+  {
+   "bbox": [
+    1892,
+    26,
+    1948,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 168.0
+  },
+  {
+   "bbox": [
+    2388,
+    1066,
+    2464,
+    1140
+   ],
+   "role": "icon",
+   "fill": 0.71,
+   "contrast": 151.0
+  },
+  {
+   "bbox": [
+    1280,
+    266,
+    1334,
+    282
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1428,
+    374,
+    1454,
+    402
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 146.0
+  },
+  {
+   "bbox": [
+    1444,
+    414,
+    1460,
+    442
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 170.0
+  },
+  {
+   "bbox": [
+    2178,
+    120,
+    2216,
+    170
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 155.0
+  },
+  {
+   "bbox": [
+    18,
+    130,
+    94,
+    214
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 167.0
+  },
+  {
+   "bbox": [
+    1392,
+    690,
+    1432,
+    724
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 208.0
+  },
+  {
+   "bbox": [
+    202,
+    152,
+    244,
+    186
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 161.0
+  },
+  {
+   "bbox": [
+    2368,
+    436,
+    2446,
+    528
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 201.0
+  },
+  {
+   "bbox": [
+    52,
+    224,
+    116,
+    302
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 162.0
+  },
+  {
+   "bbox": [
+    1340,
+    450,
+    1374,
+    468
+   ],
+   "role": "icon",
+   "fill": 0.58,
+   "contrast": 162.0
+  },
+  {
+   "bbox": [
+    2208,
+    22,
+    2296,
+    94
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 210.0
+  },
+  {
+   "bbox": [
+    1996,
+    22,
+    2078,
+    102
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 170.0
+  },
+  {
+   "bbox": [
+    2454,
+    136,
+    2514,
+    162
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 119.0
+  },
+  {
+   "bbox": [
+    338,
+    28,
+    402,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 171.0
+  },
+  {
+   "bbox": [
+    2226,
+    1280,
+    2298,
+    1360
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 153.0
+  },
+  {
+   "bbox": [
+    540,
+    22,
+    640,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 165.0
+  },
+  {
+   "bbox": [
+    1176,
+    260,
+    1264,
+    276
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 63.0
+  },
+  {
+   "bbox": [
+    1338,
+    280,
+    1354,
+    300
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 84.0
+  },
+  {
+   "bbox": [
+    1964,
+    1298,
+    2036,
+    1360
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 120.0
+  },
+  {
+   "bbox": [
+    1772,
+    22,
+    1860,
+    104
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    2372,
+    300,
+    2446,
+    420
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 155.0
+  },
+  {
+   "bbox": [
+    40,
+    24,
+    128,
+    112
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 198.0
+  },
+  {
+   "bbox": [
+    2104,
+    30,
+    2122,
+    50
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 99.0
+  },
+  {
+   "bbox": [
+    1076,
+    1340,
+    1192,
+    1378
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 220.0
+  },
+  {
+   "bbox": [
+    2106,
+    32,
+    2170,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 172.0
+  },
+  {
+   "bbox": [
+    136,
+    126,
+    160,
+    180
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 90.0
+  },
+  {
+   "bbox": [
+    1688,
+    430,
+    1714,
+    446
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 185.0
+  },
+  {
+   "bbox": [
+    152,
+    40,
+    246,
+    126
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 105.0
+  },
+  {
+   "bbox": [
+    1444,
+    298,
+    1460,
+    340
+   ],
+   "role": "icon",
+   "fill": 0.38,
+   "contrast": 62.0
+  },
+  {
+   "bbox": [
+    2504,
+    78,
+    2536,
+    114
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 162.0
+  },
+  {
+   "bbox": [
+    302,
+    92,
+    346,
+    140
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 70.0
+  },
+  {
+   "bbox": [
+    1628,
+    300,
+    1644,
+    318
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 122.0
+  },
+  {
+   "bbox": [
+    2216,
+    1408,
+    2254,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 124.0
+  },
+  {
+   "bbox": [
+    1392,
+    770,
+    1456,
+    818
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 115.0
+  },
+  {
+   "bbox": [
+    1344,
+    702,
+    1360,
+    730
+   ],
+   "role": "icon",
+   "fill": 0.29,
+   "contrast": 86.0
+  },
+  {
+   "bbox": [
+    234,
+    52,
+    302,
+    116
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 71.0
+  },
+  {
+   "bbox": [
+    2446,
+    0,
+    2464,
+    20
+   ],
+   "role": "icon",
+   "fill": 0.27,
+   "contrast": 81.0
+  },
+  {
+   "bbox": [
+    1044,
+    230,
+    1112,
+    276
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 81.0
+  }
+ ],
+ "glyph_icons": [
+  {
+   "id": "g0",
+   "kind": "glyph_icon",
+   "bbox": [
+    2160,
+    22,
+    2186,
+    48
+   ],
+   "role": "icon",
+   "fill": 0.83,
+   "contrast": 172.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g1",
+   "kind": "glyph_icon",
+   "bbox": [
+    454,
+    30,
+    510,
+    86
+   ],
+   "role": "icon",
+   "fill": 0.78,
+   "contrast": 161.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g2",
+   "kind": "glyph_icon",
+   "bbox": [
+    1892,
+    26,
+    1948,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 168.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g3",
+   "kind": "glyph_icon",
+   "bbox": [
+    2388,
+    1066,
+    2464,
+    1140
+   ],
+   "role": "icon",
+   "fill": 0.71,
+   "contrast": 151.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g4",
+   "kind": "glyph_icon",
+   "bbox": [
+    1428,
+    374,
+    1454,
+    402
+   ],
+   "role": "icon",
+   "fill": 0.68,
+   "contrast": 146.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g5",
+   "kind": "glyph_icon",
+   "bbox": [
+    2178,
+    120,
+    2216,
+    170
+   ],
+   "role": "icon",
+   "fill": 0.67,
+   "contrast": 155.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g6",
+   "kind": "glyph_icon",
+   "bbox": [
+    18,
+    130,
+    94,
+    214
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 167.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g7",
+   "kind": "glyph_icon",
+   "bbox": [
+    1392,
+    690,
+    1432,
+    724
+   ],
+   "role": "icon",
+   "fill": 0.63,
+   "contrast": 208.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g8",
+   "kind": "glyph_icon",
+   "bbox": [
+    202,
+    152,
+    244,
+    186
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 161.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g9",
+   "kind": "glyph_icon",
+   "bbox": [
+    2368,
+    436,
+    2446,
+    528
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 201.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g10",
+   "kind": "glyph_icon",
+   "bbox": [
+    52,
+    224,
+    116,
+    302
+   ],
+   "role": "icon",
+   "fill": 0.59,
+   "contrast": 162.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g11",
+   "kind": "glyph_icon",
+   "bbox": [
+    2208,
+    22,
+    2296,
+    94
+   ],
+   "role": "icon",
+   "fill": 0.57,
+   "contrast": 210.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g12",
+   "kind": "glyph_icon",
+   "bbox": [
+    1996,
+    22,
+    2078,
+    102
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 170.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g13",
+   "kind": "glyph_icon",
+   "bbox": [
+    2454,
+    136,
+    2514,
+    162
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 119.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g14",
+   "kind": "glyph_icon",
+   "bbox": [
+    338,
+    28,
+    402,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 171.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g15",
+   "kind": "glyph_icon",
+   "bbox": [
+    2226,
+    1280,
+    2298,
+    1360
+   ],
+   "role": "icon",
+   "fill": 0.51,
+   "contrast": 153.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g16",
+   "kind": "glyph_icon",
+   "bbox": [
+    540,
+    22,
+    640,
+    92
+   ],
+   "role": "icon",
+   "fill": 0.5,
+   "contrast": 165.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g17",
+   "kind": "glyph_icon",
+   "bbox": [
+    1964,
+    1298,
+    2036,
+    1360
+   ],
+   "role": "icon",
+   "fill": 0.49,
+   "contrast": 120.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g18",
+   "kind": "glyph_icon",
+   "bbox": [
+    1772,
+    22,
+    1860,
+    104
+   ],
+   "role": "icon",
+   "fill": 0.48,
+   "contrast": 194.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g19",
+   "kind": "glyph_icon",
+   "bbox": [
+    2372,
+    300,
+    2446,
+    420
+   ],
+   "role": "icon",
+   "fill": 0.46,
+   "contrast": 155.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g20",
+   "kind": "glyph_icon",
+   "bbox": [
+    40,
+    24,
+    128,
+    112
+   ],
+   "role": "icon",
+   "fill": 0.44,
+   "contrast": 198.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g21",
+   "kind": "glyph_icon",
+   "bbox": [
+    2106,
+    32,
+    2170,
+    96
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 172.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g22",
+   "kind": "glyph_icon",
+   "bbox": [
+    136,
+    126,
+    160,
+    180
+   ],
+   "role": "icon",
+   "fill": 0.41,
+   "contrast": 90.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g23",
+   "kind": "glyph_icon",
+   "bbox": [
+    152,
+    40,
+    246,
+    126
+   ],
+   "role": "icon",
+   "fill": 0.39,
+   "contrast": 105.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g24",
+   "kind": "glyph_icon",
+   "bbox": [
+    2504,
+    78,
+    2536,
+    114
+   ],
+   "role": "icon",
+   "fill": 0.37,
+   "contrast": 162.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g25",
+   "kind": "glyph_icon",
+   "bbox": [
+    302,
+    92,
+    346,
+    140
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 70.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g26",
+   "kind": "glyph_icon",
+   "bbox": [
+    2216,
+    1408,
+    2254,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.32,
+   "contrast": 124.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g27",
+   "kind": "glyph_icon",
+   "bbox": [
+    1392,
+    770,
+    1456,
+    818
+   ],
+   "role": "icon",
+   "fill": 0.31,
+   "contrast": 115.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g28",
+   "kind": "glyph_icon",
+   "bbox": [
+    234,
+    52,
+    302,
+    116
+   ],
+   "role": "icon",
+   "fill": 0.28,
+   "contrast": 71.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g29",
+   "kind": "glyph_icon",
+   "bbox": [
+    1044,
+    230,
+    1112,
+    276
+   ],
+   "role": "icon",
+   "fill": 0.25,
+   "contrast": 81.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  }
+ ],
+ "uncertainty": [
+  {
+   "region": [
+    1392,
+    690,
+    40,
+    34
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.983,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 707px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1392,
+    770,
+    64,
+    48
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.971,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 646px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1428,
+    374,
+    26,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.923,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 388px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1044,
+    230,
+    68,
+    46
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.897,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 253px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1076,
+    1340,
+    116,
+    38
+   ],
+   "kind": "possible_miss",
+   "score": 0.616,
+   "reasons": [
+    "below_size_gate",
+    "no_text",
+    "low_flatness",
+    "clipped_edge"
+   ],
+   "hint": "这里是 116x38 的图形块（对比度 220.0），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标"
+  },
+  {
+   "region": [
+    2434,
+    588,
+    126,
+    252
+   ],
+   "kind": "ambiguous_kind",
+   "score": 0.5,
+   "reasons": [
+    "unknown_kind"
+   ],
+   "hint": "这个容器类别判不出（unknown）：形状/内容都不像已知种类，需要复核"
+  }
+ ],
+ "degraded": false,
+ "error": null,
+ "timing": {
+  "load_ms": 339,
+  "ocr_ms": 766,
+  "pixel_ms": 1615,
+  "container_ms": 715,
+  "container_cached": false,
+  "total_ms": 2721,
+  "ocr_source": "daemon",
+  "ocr_backend": "/usr/bin/python3|1790936611000000000|14424"
+ },
+ "ocr": {
+  "n_total": 34,
+  "err": null
+ },
+ "title_text_id": 7,
+ "digest": "屏幕 2560x1440 · 文本 34 · 控件 40 · 容器 2 · 邻接 24 · 遮挡 3 · 2721ms（OCR daemon）\n标题「奥黛塔」@(2307,357) 画面 · 字高 42px\n邻接「奥黛塔」→ circle@(2408,361) 右侧 18px\n邻接「奥黛塔」→ circle@(2460,365) 右侧 94px\n邻接「奥黛塔」→ circle@(2025,368) 左侧 225px\n控件: circle@(2408,361) | circle@(2460,365) | circle@(2025,368) | circle@(2327,610)\n遮挡 [0, 4, 119, 80] (0,4)-(119,80)（conf 0.62）：左上角小字叠加层：小字 5 框，非纯黑 L=175\n遮挡 [6, 1298, 117, 1319] (6,1298)-(117,1319)（conf 0.57）：左下角小字叠加层：小字 3 框，非纯黑 L=112"
+}
