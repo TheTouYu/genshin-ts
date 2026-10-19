@@ -29,6 +29,7 @@ import sys
 
 BASE = pathlib.Path.home() / ".dsh" / "sessions" / "--home-h-genshin-ts--"
 # 指路/诉求的线索词——命中就标 ★，提醒"这条别再被压掉"
+HEAD_KEEP = 6          # 即便截断也保留开头几条：会话开头定义目标，丢了就只剩"当前诉求"
 CUE = re.compile(r"去|看|查|试|问|不要|应该|可能|为什么|怎么|？|\?|记住|注意|提醒|不是")
 
 
@@ -54,7 +55,8 @@ def stream(path: pathlib.Path):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("-n", "--num", type=int, default=20)
+    ap.add_argument("-n", "--num", type=int, default=0,
+                    help="显示最后 N 条；0（缺省）=全量。截断时仍保留开头几条，并报告省略的 seq 区间")
     ap.add_argument("--since", type=int, default=0, help="只看 seq ≥ 该值")
     ap.add_argument("--session", help="会话 id（默认本会话）")
     ap.add_argument("--all", action="store_true", help="不过滤 skill-invocation/系统提醒")
@@ -97,13 +99,25 @@ def main() -> int:
     if comps:
         print(f"最近压缩点：seq {comps[-1][0]}（影子区 {comps[-1][1]}–{comps[-1][2]}）"
               f"｜共 {len(comps)} 次 summary")
-    sel = [u for u in users if u[0] >= args.since][-args.num:]
-    print(f"\n最后 {len(sel)} 条（★=含指路/诉求线索，压缩前逐条确认已满足）：\n")
+    pool = [u for u in users if u[0] >= args.since]
+    if args.num and len(pool) > args.num:
+        head = pool[:HEAD_KEEP]                       # 开头定目标：截断也要留住
+        tail = pool[-args.num:]
+        omitted = [u for u in pool[len(head):len(pool) - args.num]]
+        sel = head + tail
+        cut_note = (f"（-n {args.num} 截断：开头 {len(head)} 条 + 末尾 {len(tail)} 条；"
+                    f"**省略 {len(omitted)} 条**，seq {omitted[0][0]}–{omitted[-1][0]}）")
+    else:
+        sel, cut_note = pool, ""
+    print(f"\n共 {len(sel)} 条（★=含指路/诉求线索）{cut_note}\n"
+          "  开头=目标从哪来，中间=转折与指路，结尾=当前诉求；三段都要看，别只读尾巴。\n")
     for seq, ts, txt in sel:
         mark = "★" if CUE.search(txt) else " "
         print(f"  {mark} seq={seq:<6} {ts}  {txt[:150]}")
     if args.since and any(u[0] < args.since for u in users):
         print(f"\n（--since {args.since} 之前的 {sum(1 for u in users if u[0] < args.since)} 条已隐藏）")
+    if cut_note:
+        print("\n⚠ 本视图是截断视图：判「已满足/未满足」前请用 `ys-memcheck`（缺省全量）或 -n 0 复看一遍。")
     print("\n判据：★ 行逐条回答——已满足（证据在哪）／未满足（进摘要，别压掉）；"
           "用户给的指针先执行完再压。")
     return 0

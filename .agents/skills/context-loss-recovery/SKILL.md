@@ -78,7 +78,8 @@ If a detail would change the next action if lost, treat it as critical.
      **更省事：直接跑 `ys-memcheck`**（2026-10-17 落地件，已装 `~/.local/bin`，源码 `scripts/ys-memcheck.py`）——
      它自带会话定位（`$DSH_SESSION_ID` → `ls -dt`）、过滤 `skill-invocation`、标 ★ 指路线索、打印最近压缩点：
      ```bash
-     ys-memcheck -n 30            # 本会话最后 30 条真实用户消息
+     ys-memcheck                  # **缺省全量**（一条不漏）——压缩前默认就用这个
+     ys-memcheck -n 8             # 速览用；会保留开头 6 条 + 末尾 8 条，并报告被省略的 seq 区间
      ys-memcheck --since 8300     # 只看某 seq 之后（配合"最近压缩点"用）
      ```
      下面是等价的裸命令（`ys-memcheck` 不可用时用）：
@@ -132,6 +133,22 @@ If a detail would change the next action if lost, treat it as critical.
    - If the task touches real game data, verify current file hashes/paths instead of trusting a memory.
    - If a number/path appears in two places (session + file), confirm they match; if they conflict, trust file/git evidence and mark the conflict.
 
+## 读多少条才够（2026-10-19 用户裁决，优先级高于"省 context"）
+
+> 用户原话（2026-10-19）：「这个技能只看这么多消息完全不够用了，而且会给模型错误，最好是多看一点，
+> 开始和结尾也不要错过。**加载用户的上下文代价不高，设计为引导模型多看**，更好地恢复用户原意思收益更高。」
+
+**默认读全量用户消息**（一个会话通常 50–150 条 × 150 字 ≈ 4–10K tokens，远低于一次误判的返工成本）。
+截断视图会**系统性给出错误**，而不是"信息少一点"：
+
+- **开头定目标**：会话最初的 1–3 条几乎总是根目标（例：本会话 seq=9 才是真正的任务书，
+  只看最后 14 条会被"处理好这个 bug"误导成局部修补）；
+- **中间定取舍**：用户在中段给的指路（"去 X 桶"/"先 1 后 2"）决定了路线，丢了就会走另一条；
+- **结尾定当下**：最后 1–2 条是此刻要做什么。
+
+因此：`ys-memcheck` 缺省全量；任何 `-n N` 视图都会保留开头 6 条并显式打印**被省略的 seq 区间**——
+看到该提示就说明"结论可能建在残缺视图上"，必须复看全量再下判断。
+
 ## 用户诉求与指路恢复（2026-10-17 实证：**最高价值、最易丢**）
 
 > 事故：一个区间里有 5 条用户指路（"去 plugins 记忆桶，有更优雅的关闭方式"、"找找原因？"、"你的窗口没打开对"），
@@ -140,7 +157,8 @@ If a detail would change the next action if lost, treat it as critical.
 
 恢复时按这三条做：
 
-1. **先抽全量用户消息，逐条判「已满足 / 未满足」**（用上面的 user-only 提取器；排掉 skill-invocation 与系统提醒）。
+1. **先抽全量用户消息（缺省全量视图，不要用 `-n 14` 之类），逐条判「已满足 / 未满足」**
+   （用上面的 user-only 提取器；排掉 skill-invocation 与系统提醒）。
    - 已满足 = 有落盘证据（提交/文档/日记/tool 结果）；
    - 未满足 = 问题没答、路没走、验收没做 ⇒ **进恢复报告的显式清单**。
 2. **用户给的指针当场执行**（"去 X 记忆桶 / 看 Y 文件 / 问 Z"）——恢复动作本身就包含这一次查找；
