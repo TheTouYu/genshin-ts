@@ -252,6 +252,39 @@ def _state(req):
         readings.update(YS.anchor_readings_from_scores(scores, state_of))
     res = YS.decide(readings)   # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
     # 而本体判据要看右下 UID（x≈2370，在裁剪外）。改由 ys-state 在 UNKNOWN 时用全帧兜底。
+    # 本体态补判（2026-10-19）：fast ROI 裁到 x≤1400，右下 UID 行不在内 ⇒ 世界里会判成
+    # PLAYTEST/UNKNOWN。这里抓一条 UID 小条、用常驻 OCR 引擎识别，并按**帧 sha 缓存 2s**。
+    # 关键：OCR 用 _ocr_array + monkey-patch YS._ocr_boxes（与 _world 同法），
+    # **绝不调用会重入 daemon RPC 的路径**（那会自锁，e676e698 已踩）。
+    if is_live and res.get("state") in ("UNKNOWN", "PLAYTEST"):
+        try:
+            import hashlib as _hl
+            import numpy as _np
+            _bx, _by, _bw, _bh = 2200, 1340, 360, 100
+            _strip = YL.grab(_bx, _by, _bw, _bh)
+            _a8 = (_np.clip(_strip, 0, 1) * 255).round().astype(_np.uint8)
+            _sha = "t"      # 画面持续渲染 ⇒ 像素 sha 每帧都变，改按**时间**缓存（UID 只在切场景时变）
+            _now = time.monotonic()
+            _hit = _UID_CACHE.get(_sha)
+            if _hit and (_now - _hit[1]) < 5.0:
+                _uid = _hit[0]
+            else:
+                _eng, _err = _ocr_engine()
+                _uid = False
+                if _eng is not None:
+                    _boxes = _ocr_array(_eng, _a8, (_bx, _by))
+                    _uid = any("UID" in (b.get("text") or "").upper() for b in _boxes)
+                _UID_CACHE[_sha] = (_uid, _now)
+                if len(_UID_CACHE) > 8:
+                    _UID_CACHE.clear()
+                    _UID_CACHE[_sha] = (_uid, _now)
+            if _uid:
+                res["replaced"] = str(res.get("state")) + "->GAME_WORLD"
+                res["state"] = "GAME_WORLD"
+                res["confidence"] = max(0.6, float(res.get("confidence") or 0))
+                res["ambiguous"] = False
+        except Exception as _e:                             # noqa: BLE001
+            res["world_check_error"] = f"{type(_e).__name__}: {_e}"
     readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings,
                 "ms": round((time.time() - t0) * 1000),
@@ -321,6 +354,7 @@ def _probe(req):
 #   ② ORT 的 CUDA EP 要 CUDA **12** 运行库（libcudart.so.12 / libcublas.so.12）；本机系统 CUDA 是 13，
 #      所以由 venv 里的 nvidia-*-cu12 包提供，需要把它们加进 LD_LIBRARY_PATH。
 _OCR_ENGINE = None
+_UID_CACHE = {}
 _OCR_ERR = None
 
 
@@ -1879,6 +1913,25 @@ def handle(req):
         return _ocr_page(req)
     if cmd == "ocr_plate":                 # 多帧共识底板（实验命令；旧命令语义不变）
         return _ocr_plate_build(req) if req.get('action') == 'build' else _ocr_plate_query(req)
+    if cmd == "world_check":
+        # 本体态快速判定：只抓底部横条（含右下 UID 行）→ 常驻 OCR 引擎识别 → 返回是否含 UID。
+        # 为什么放在 daemon：客户端做同样的事要 ~500ms（grab 往返 + 独立 OCR + PNG 落盘），
+        # 在这里是 ~100ms（内存张量直接喂引擎）。
+        t0 = time.time()
+        eng, err = _ocr_engine()
+        if eng is None:
+            return {"error": f"OCR 不可用: {err}", "code": "OCR_UNAVAILABLE"}
+        x, y, w, h = [int(v) for v in (req.get("region") or [1000, 1330, 1560, 110])]
+        try:
+            import numpy as _np
+            arr = YL.grab(x, y, w, h)
+            boxes = _ocr_array(eng, (_np.clip(arr, 0, 1) * 255).round().astype(_np.uint8), (x, y))
+        except Exception as e:                              # noqa: BLE001
+            return {"error": f"{type(e).__name__}: {e}", "code": "FRAME_FAILED"}
+        texts = [{"text": b.get("text") or "", "bbox": b.get("bbox")} for b in boxes]
+        has_uid = any("UID" in (t["text"] or "").upper() for t in texts)
+        return {"has_uid": bool(has_uid), "texts": texts[:12], "n": len(texts),
+                "ms": round((time.time() - t0) * 1000), "region": [x, y, w, h]}
     if cmd == "grab":                      # 快抓帧落 PNG（XShm 直抓，~10–40ms；给 ys-scroll/ys-list 等工具用）
         from PIL import Image as _Image
         import hashlib as _hl
